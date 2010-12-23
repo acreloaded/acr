@@ -84,7 +84,7 @@ void updatemasterserver(int millis, const ENetAddress &localaddr)
 {
     if(!millis || millis/(60*60*1000)!=lastupdatemaster)
     {
-		s_sprintfd(path)("%sregister/%d", masterpath, localaddr.port);
+		s_sprintfd(path)("%sregister/%d/%d", masterpath, localaddr.port, AC_VERSION);
         s_sprintfd(agent)("AssaultCube Server %d", AC_VERSION);
 		mssock = httpgetsend(masterserver, masterbase, path, "assaultcubeserver", agent, &msaddress);
 		masterrep[0] = 0;

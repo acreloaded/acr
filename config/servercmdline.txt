@@ -9,11 +9,9 @@
 //
 // see docs/commandline.html for full parameter descriptions
 
-// example MOTD:
- -o \f3server using example cmdline file (config/servercmdline.txt)\n\f2feel free to change this :)
-
- -D 5     // please don't disable this...
-
+// example command line:
+-n Default Server Name
+-o \f1Welcome \f3to \f2this \f0 server\f7!
 
 // commonly used commandline switches:
 
@@ -39,7 +37,7 @@
 // -X     // server passwords file, default config/serverpwd.cfg
 // -B     // server IP blacklist file, default config/serverblacklist.cfg
 // -K     // server nickname blacklist file, default config/nicknameblacklist.cfg
-// -P     // voting permission string (read docs/commandline.html)
+// -P     // voting permission string
           //    k kick players
           //    b ban players (and remove bans)
           //    m change mastermode (open/private)
@@ -58,7 +56,6 @@
 // -p     // serverpassword, for passworded servers
 // -N     // syslog identity string
 // -F     // syslog facility, 0..7, default 6
-// -x     // adminpasswd, don't use, use serverpwd.cfg instead
 // -W     // demopath, path & file prefix to store recorded demos at
 // -V     // verbose logging (enable this via commandline, until you're sure, there are no errors in your config left)
 // -C     // import commandline options from file (can be used recursively)
@@ -79,4 +76,3 @@
 // -u     // uprate
 // -i     // ip, only for machines with multiple network interfaces
 // -m     // masterserver URL (exception: use "-m localhost", if you don't want AC to register at a masterserver at all)
-

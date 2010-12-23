@@ -17,7 +17,7 @@
 		header('Content-type: text/plain');
 		$motdlines = explode("\n", $config['motd']);
 		foreach($motdlines as $l) // MOTD
-			echo 'echo "'.addcslashes(trim($l), '"')."\"\n"; // escape
+			echo 'echo "'.str_replace('"', "''", trim($l))."\"\n"; // looks like we can't use double quotes!
 		$srvs = getServers();
 		foreach($srvs as $s) echo "addserver {$s[0]} {$s[1]}\r\n";
 	}
@@ -29,7 +29,7 @@
 		echo '</Servers>';
 	}
 	elseif(isset($_GET['register'])){ // register
-		if(!$config['servers']['autoapprove']) exit("Automatic registration is closed. {$config['contact']}");
+		if($config['servers']['autoapprove'] === false) exit("Automatic registration is closed. {$config['contact']}");
 		$port = intval($_GET['port']);
 		if($port < $config['servers']['minport'] || $port > $config['servers']['maxport'])
 			exit("You may only register a server with ports between {$config['servers']['minport']} and {$config['servers']['maxport']}");
@@ -42,6 +42,7 @@
 			echo 'Your server has been renewed.';
 		}else{ // register
 			foreach($config['sbans'] as $banRangeStart => $banRangeEnd) if($banRangeStart <= $ip && $ip <= $banRangeStart) exit("You are not authorized to register a server. {$config['contact']}");
+			if($config['servers']['autoapprove'] !== true && $config['servers']['autoapprove'] > $_GET['version']) exit("You must run a server at least version {$config['servers']['autoapprove']}");
 			/*
 				No sockets with free hosting :(
 			*/

@@ -1893,13 +1893,6 @@ void readpwdfile(const char *name)
 
     if(!name && getfilesize(pwdfilename) == pwdfilesize) return;
     adminpwds.setsize(0);
-    if(scl.adminpasswd[0])
-    {
-        s_strcpy(c.pwd, scl.adminpasswd);
-        c.line = 0;   // commandline is 'line 0'
-        c.denyadmin = false;
-        adminpwds.add(c);
-    }
     char *buf = loadcfgfile(pwdfilename, name, &len);
     pwdfilesize = len;
     if(!buf) return;
@@ -1931,7 +1924,7 @@ void readpwdfile(const char *name)
         line++;
     }
     delete[] buf;
-    logline(ACLOG_INFO,"read %d admin passwords from '%s'", adminpwds.length() - (scl.adminpasswd[0] > 0), pwdfilename);
+    logline(ACLOG_INFO,"read %d admin passwords from '%s'", adminpwds.length(), pwdfilename);
 }
 
 bool checkadmin(const char *name, const char *pwd, int salt, pwddetail *detail = NULL)

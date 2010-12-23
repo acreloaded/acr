@@ -3,7 +3,7 @@
 enum { EE_LOCAL_SERV = 1, EE_DED_SERV = 1<<1 }; // execution environment
 
 int roleconf(int key)
-{ // current defaults: "fGkBMasRCDxP"
+{
     if(strchr(scl.voteperm, tolower(key))) return CR_DEFAULT;
     if(strchr(scl.voteperm, toupper(key))) return CR_ADMIN;
     return (key) == tolower(key) ? CR_DEFAULT : CR_ADMIN;
@@ -47,12 +47,12 @@ struct mapaction : serveraction
         {
             bool notify = valid_client(caller) && clients[caller]->role == CR_DEFAULT;
             mapstats *ms = getservermapstats(map);
-            if(strchr(scl.voteperm, 'X') && !ms) // admin needed for unknown maps
+            if(strchr(scl.voteperm, 'x') && !ms) // admin needed for unknown maps
             {
                 role = CR_ADMIN;
                 if(notify) sendservmsg("the server does not have this map", caller);
             }
-            if(ms && !strchr(scl.voteperm, 'p')) // admin needed for mismatched modes
+            if(ms && !strchr(scl.voteperm, 'P')) // admin needed for mismatched modes
             {
                 int smode = mode;  // 'borrow' the mode macros by replacing a global by a local var
                 bool spawns = (m_teammode && !m_ktf) ? ms->hasteamspawns : ms->hasffaspawns;
@@ -125,7 +125,6 @@ struct giveadminaction : playeraction
     giveadminaction(int cn) : playeraction(cn)
     {
         role = CR_ADMIN;
-//        role = roleconf('G');
     }
 };
 
@@ -159,7 +158,7 @@ struct banaction : playeraction
     banaction(int cn) : playeraction(cn)
     {
         wasvalid = false;
-        role = roleconf('B');
+        role = roleconf('b');
         if(isvalid())
         {
             wasvalid = true;

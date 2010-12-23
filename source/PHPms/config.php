@@ -2,10 +2,9 @@
 	// general
 	$config['contact'] = 'Please contact the masterserver admin.';
 	// servers
-	$config['servers']['autoapprove'] = true; // servers can be registered
+	$config['servers']['autoapprove'] = true; // servers can be registered (false, minimum protocol number or true)
 	$config['servers']['force'] = array(
 		// "server:port",
-		"localhost:28763",
 );
 	$config['servers']['minport'] = 28760;
 	$config['servers']['maxport'] = 28780;
