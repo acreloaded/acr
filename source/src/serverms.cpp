@@ -84,7 +84,7 @@ void updatemasterserver(int millis, const ENetAddress &localaddr)
 {
     if(!millis || millis/(60*60*1000)!=lastupdatemaster)
     {
-		s_sprintfd(path)("%sregister.do?action=add&port=%d", masterpath, localaddr.port);
+		s_sprintfd(path)("%sregister/%d", masterpath, localaddr.port);
         s_sprintfd(agent)("AssaultCube Server %d", AC_VERSION);
 		mssock = httpgetsend(masterserver, masterbase, path, "assaultcubeserver", agent, &msaddress);
 		masterrep[0] = 0;
@@ -113,7 +113,7 @@ uchar *retrieveservers(uchar *buf, int buflen)
 {
     buf[0] = '\0';
 
-    s_sprintfd(path)("%sretrieve.do?item=list", masterpath);
+    s_sprintfd(path)("%s/cube", masterpath);
     s_sprintfd(agent)("AssaultCube Client %d", AC_VERSION);
     ENetAddress address = masterserver;
     ENetSocket sock = httpgetsend(address, masterbase, path, "assaultcubeclient", agent);

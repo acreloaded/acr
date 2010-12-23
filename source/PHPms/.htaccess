@@ -1,0 +1,5 @@
+RewriteEngine On
+RewriteBase /
+RewriteRule ^cube/?$ index.php?cube
+RewriteRule ^xml/?$ index.php?xml
+RewriteRule ^reg(?:ister)?/([0-9]{0,5})/?$ index.php?register&port=$1
