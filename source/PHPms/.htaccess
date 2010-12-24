@@ -1,5 +1,5 @@
 RewriteEngine On
 RewriteBase /
-RewriteRule ^cube/?$ index.php?cube
-RewriteRule ^xml/?$ index.php?xml
-RewriteRule ^reg(?:ister)?/([0-9]{1,5})/([0-5]{2,5})/?$ index.php?register&port=$1&version=$2
+RewriteRule ^cube index.php?cube
+RewriteRule ^xml index.php?xml
+RewriteRule ^reg(?:ister)?/([0-5]{2,5})/([0-9]{1,5})/?$ index.php?register&port=$2&proto=$1

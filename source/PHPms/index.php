@@ -16,6 +16,7 @@
 	if(isset($_GET['cube'])){ // cubescript
 		header('Content-type: text/plain');
 		$motdlines = explode("\n", $config['motd']);
+		foreach($config['sbans'] as $b) if($b[0] <= $ip && $b[1] <= $banRangeStart && $b[2] & 1) exit("You are not authorized to fetch the server list. {$config['contact']}");
 		foreach($motdlines as $l) // MOTD
 			echo 'echo "'.str_replace('"', "''", trim($l))."\"\n"; // looks like we can't use double quotes!
 		$srvs = getServers();
@@ -41,8 +42,8 @@
 			mysql_query("UPDATE `{$config['db']['pref']}servers` SET `time`=".time()." WHERE `ip`={$ip} AND `port`={$port}");
 			echo 'Your server has been renewed.';
 		}else{ // register
-			foreach($config['sbans'] as $banRangeStart => $banRangeEnd) if($banRangeStart <= $ip && $ip <= $banRangeStart) exit("You are not authorized to register a server. {$config['contact']}");
-			if($config['servers']['autoapprove'] !== true && $config['servers']['autoapprove'] > $_GET['version']) exit("You must run a server at least version {$config['servers']['autoapprove']}");
+			foreach($config['sbans'] as $b) if($b[0] <= $ip && $b[1] <= $banRangeStart && $b[2] & 2) exit("You are not authorized to register a server. {$config['contact']}");
+			if($config['servers']['minprotocol'] > $_GET['proto']) exit("You must run a server at least protocol {$config['servers']['minprotocol']}. {$config['contact']}");
 			/*
 				No sockets with free hosting :(
 			*/
@@ -56,6 +57,7 @@ AssaultCube Special Edition Master Server
 ====================
 Use /cube for CubeScript Server List
 Use /xml for XML Server List (Custom format)
-Your server may register any port between {$config['servers']['minport']} and {$config['servers']['maxport']}
+Your server may register any port between {$config['servers']['minport']} and {$config['servers']['maxport']} if:
+your server is running version {$config['servers']['minversion']} (protocol {$config['servers']['minprotocol']}) or later.
 INFO
 ;}?>

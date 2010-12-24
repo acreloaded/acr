@@ -583,7 +583,7 @@ void weapon::renderstats()
 }
 
 //VAR(recoiltest, 0, 0, 1); // FIXME ON RELEASE
-int recoiltest = 0;
+bool recoiltest = true;
 
 VAR(recoilincrease, 1, 2, 10);
 VAR(recoilbase, 0, 40, 1000);

@@ -1,6 +1,6 @@
 <?
 	// server bans
 	$config['sbans'] = array(
-		// start => end, // use longs, don't overlap too much
+		// array(start, end, type), // use longs, don't overlap; type = blocked actions {1: fetch list; 2: register server; 3: both}
 	);
 ?>

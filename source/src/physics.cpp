@@ -566,7 +566,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         pl->pitch += pl->pitchvel*(curtime/1000.0f)*pl->maxspeed*(pl->crouching ? 0.75f : 1.0f);
         pl->pitchvel *= fric-3;
         pl->pitchvel /= fric;
-        extern int recoiltest;
+        extern bool recoiltest;
         if(recoiltest)
         {
             if(pl->pitchvel < 0.05f && pl->pitchvel > 0.001f) pl->pitchvel -= recoilbackfade/100.0f; // slide back

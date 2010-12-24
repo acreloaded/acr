@@ -1,8 +1,9 @@
 <?
 	// general
-	$config['contact'] = 'Please contact the masterserver admin.';
+	$config['contact'] = 'Please contact the masterserver admin.'; // include some form of contact
 	// servers
-	$config['servers']['autoapprove'] = true; // servers can be registered (false, minimum protocol number or true)
+	$config['servers']['minprotocol'] = 2100; // protocol requirements
+	$config['servers']['autoapprove'] = true; // servers can be registered
 	$config['servers']['force'] = array(
 		// "server:port",
 );
