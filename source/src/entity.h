@@ -42,14 +42,14 @@ struct entity : public persistent_entity
 struct itemstat { int add, start, max, sound; };
 static itemstat ammostats[] =
 {
-    {1,  1,   1,   S_ITEMAMMO},   //knife dummy
-    {16, 32,  72,  S_ITEMAMMO},   //pistol
-    {14, 28,  21,  S_ITEMAMMO},   //shotgun
-    {60, 90,  90,  S_ITEMAMMO},   //subgun
-    {10, 20,  15,  S_ITEMAMMO},   //sniper
-    {30, 60,  60,  S_ITEMAMMO},   //assault
-    {2,  0,   2,   S_ITEMAMMO},   //grenade
-    {72, 0,   72,  S_ITEMAKIMBO}  //akimbo
+    {1,  1,   1,     S_ITEMAMMO},   //knife dummy
+    {24, 36,  72,    S_ITEMAMMO},   //pistol
+    {20, 30,  60,    S_ITEMAMMO},   //shotgun
+    {64, 96,  192,   S_ITEMAMMO},   //subgun
+    {10, 20,  30,    S_ITEMAMMO},   //sniper
+    {60, 90,  180,    S_ITEMAMMO},   //assault
+    {2,  0,   3,     S_ITEMAMMO},   //grenade
+    {72, 0,   108,   S_ITEMAKIMBO}  //akimbo
 };
 
 static itemstat powerupstats[] =
@@ -58,29 +58,32 @@ static itemstat powerupstats[] =
     {50, 100, 100, S_ITEMARMOUR}, //armour
 };
 
-enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_GRENADE, GUN_AKIMBO, NUMGUNS };
-#define reloadable_gun(g) (g != GUN_KNIFE && g != GUN_GRENADE)
-
-#define SGRAYS 21
-#define SGSPREAD 2
+#define SGRAYS 15
+#define SGSPREAD 4
 #define EXPDAMRAD 10
 
-struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back, recoilincrease, recoilbase, maxrecoil, recoilbackfade, pushfactor; bool isauto; };
+struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, range, endrange, rangeminus, projspeed, part, spread, kick, magsize, mdl_kick_rot, mdl_kick_back, recoil, maxrecoil, recoilbackfade, pushfactor; bool isauto; };
 static guninfo guns[NUMGUNS] =
 {
-    { "knife",      S_KNIFE,      S_NULL,     0,      500,    50,     0,   0,  1,    1,   1,    0,  0,    0,  0,      0,      0,    1,      false },
-    { "pistol",     S_PISTOL,     S_RPISTOL,  1400,   170,    19,     0,   0, 80,   10,   8,    6,  5,    1,  40,     75,     150,  1,      false },
-    { "shotgun",    S_SHOTGUN,    S_RSHOTGUN, 2400,   1000,   5,      0,   0,  1,   35,   7,    9,  9,    10,  60,    60,    100,  1,      false },
-    { "subgun",     S_SUBGUN,     S_RSUBGUN,  1650,   80,     16,     0,   0, 70,   15,   30,   1,  2,    5,  15,     55,     250,  1,      true },
-    { "sniper",     S_SNIPER,     S_RSNIPER,  1950,   1500,   85,     0,   0, 60,   50,   5,    4,  4,    10,  70,    70,    100,  1,      false },
-    { "assault",    S_ASSAULT,    S_RASSAULT, 2000,   130,    24,     0,   0, 20,   40,   15,   0,  2,    2,  25,     60,     150,  1,      true },
-    { "grenade",    S_NULL,       S_NULL,     1000,   650,    200,    20,  6,  1,    1,   1,    3,  1,    0,  0,      0,      0,    3,      false },
-    { "pistol",     S_PISTOL,     S_RAKIMBO,  1400,   80,     19,     0,   0, 80,   10,   16,   6,  5,    6,  15,     30,     100,   1,      true },
-};
+//	{ modelname;  snd,      rldsnd, rldtime, atkdelay, dmg,rngstart, rngend, rngm,psd,ptt,spr,kick,magsz,mkrot,mkback,rcoil,maxrcl,rclback,pushf; auto;}
+    { "knife",    S_KNIFE,    S_NULL,     0,      750,    50,   0,    0,    0,    0,   0,  1,    1,   1,    0,  0,   0,    0,     0,      1,   true },
+    { "pistol",   S_PISTOL,   S_RPISTOL,  1400,   90,     40,   150,  200,  20,   0,   0, 80,    9,   12,   6,  2,   50,   85,    150,    1,   false},
+    { "shotgun",  S_SHOTGUN,  S_RSHOTGUN, 2400,   181,    6,    16,   20,   4,    0,   0,  1,   12,   10,   9,  5,   60,   60,    100,    1,   true },
+    { "subgun",   S_SUBGUN,   S_RSUBGUN,  1858,   67,     40,   200,  400,  20,   0,   0, 50,    4,   32,   1,  3,   28,   65,    250,    1,   true },
+    { "sniper",   S_SNIPER,   S_RSNIPER,  1950,   500,    105,   10,  500,  10,   0,   0, 70,   18,   10,   4,  4,   70,   70,    100,    1,   false},
+    { "assault",  S_ASSAULT,  S_RASSAULT, 2000,   73,     40,   300,  540,  10,   0,   0, 40,    3,   30,   0,  3,   24,   60,    150,    1,   true },
+    { "grenade",  S_NULL,     S_NULL,     1000,   650,    200,  0,    10,   200,  20,  6,  1,    1,   1,    3,  1,   0,    0,     0,      3,   false},
+    { "pistol",   S_PISTOL,   S_RAKIMBO,  1400,   60,     36,   160,  210,  16,   0,   0, 80,    9,   16,   6,  2,   35,   60,    100,    1,   true },
+}; 
 
 static inline int reloadtime(int gun) { return guns[gun].reloadtime; }
 static inline int attackdelay(int gun) { return guns[gun].attackdelay; }
 static inline int magsize(int gun) { return guns[gun].magsize; }
+static inline int effectiveDamage(int gun, float dist) {
+	if((!guns[gun].range && !guns[gun].endrange) || dist < guns[gun].range) return guns[gun].damage;
+	if(dist >= guns[gun].endrange) return guns[gun].damage - guns[gun].rangeminus;
+	else return guns[gun].damage - ((dist - guns[gun].range) * guns[gun].rangeminus / (guns[gun].endrange - guns[gun].range));
+}
 
 #define isteam(a,b)   (m_teammode && strcmp(a, b)==0)
 
@@ -101,7 +104,7 @@ struct physent
     vec o, vel;                         // origin, velocity
     vec deltapos, newpos;                       // movement interpolation
     float yaw, pitch, roll;             // used as vec in one place
-    float pitchvel;
+    float pitchvel, pitchreturn;
     float maxspeed;                     // cubes per second, 24 for player
     int timeinair;                      // used for fake gravity
     float radius, eyeheight, maxeyeheight, aboveeye;  // bounding box size
@@ -112,7 +115,7 @@ struct physent
     uchar state, type;
     float eyeheightvel;
 
-    physent() : o(0, 0, 0), deltapos(0, 0, 0), newpos(0, 0, 0), yaw(270), pitch(0), roll(0), pitchvel(0),
+    physent() : o(0, 0, 0), deltapos(0, 0, 0), newpos(0, 0, 0), yaw(270), pitch(0), pitchreturn(0), roll(0), pitchvel(0),
                 crouching(false), trycrouch(false), cancollide(true), stuck(false), lastsplash(0), state(CS_ALIVE)
     {
         reset();

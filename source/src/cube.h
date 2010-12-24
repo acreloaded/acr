@@ -48,6 +48,8 @@ extern int hwtexsize;
 extern int numspawn[3], maploaded, numflagspawn[2];
 extern int verbose;
 
+extern int noob;
+
 #include "protos.h"				// external function decls
 
 #define AC_VERSION 2001

@@ -582,13 +582,6 @@ void weapon::renderstats()
     draw_text(gunstats, 690, 827);
 }
 
-//VAR(recoiltest, 0, 0, 1); // FIXME ON RELEASE
-bool recoiltest = true;
-
-VAR(recoilincrease, 1, 2, 10);
-VAR(recoilbase, 0, 40, 1000);
-VAR(maxrecoil, 0, 1000, 1000);
-
 void weapon::attackphysics(vec &from, vec &to) // physical fx to the owner
 {
     const guninfo &g = info;
@@ -610,14 +603,7 @@ void weapon::attackphysics(vec &from, vec &to) // physical fx to the owner
     owner->vel.add(vec(unitv).mul(recoil/dist).mul(owner->crouching ? 0.75 : 1.0f));
     // recoil
     int numshots = info.isauto ? shots : 1;
-    if(recoiltest)
-    {
-        owner->pitchvel = min(powf(numshots/(float)(recoilincrease), 2.0f)+(float)(recoilbase)/10.0f, (float)(maxrecoil)/10.0f);
-    }
-    else
-    {
-        owner->pitchvel = min(powf(numshots/(float)(g.recoilincrease), 2.0f)+(float)(g.recoilbase)/10.0f, (float)(g.maxrecoil)/10.0f);
-    }
+    owner->pitchvel = min(owner->pitchvel + (float)(g.recoil)/10.0f, (float)(g.maxrecoil)/10.0f);
 }
 
 void weapon::renderhudmodel(int lastaction, int index)
@@ -647,7 +633,7 @@ void weapon::onselecting()
 void weapon::renderhudmodel() { renderhudmodel(owner->lastaction); }
 void weapon::renderaimhelp(bool teamwarning) { drawcrosshair(owner, teamwarning ? CROSSHAIR_TEAMMATE : CROSSHAIR_DEFAULT); }
 int weapon::dynspread() { return info.spread; }
-float weapon::dynrecoil() { return info.recoil; }
+float weapon::dynrecoil() { return info.kick; }
 bool weapon::selectable() { return this != owner->weaponsel && owner->state == CS_ALIVE && !owner->weaponchanging; }
 bool weapon::deselectable() { return !reloading; }
 
@@ -947,7 +933,7 @@ bool gun::attack(vec &targ)
     owner->lastattackweapon = this;
 	shots++;
 
-	if(!info.isauto) owner->attacking = false;
+	owner->attacking = info.isauto;
 
     vec from = owner->o;
     vec to = targ;
@@ -1046,7 +1032,7 @@ int sniperrifle::dynspread()
     }
     return info.spread;
 }
-float sniperrifle::dynrecoil() { return scoped && lastmillis - scoped_since > SCOPESETTLETIME ? info.recoil / 3 : info.recoil; }
+float sniperrifle::dynrecoil() { return weapon::dynrecoil() / (scoped && lastmillis - scoped_since > SCOPESETTLETIME ? 3 : 1); }
 bool sniperrifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 void sniperrifle::onselecting() { weapon::onselecting(); scoped = false; }
 void sniperrifle::ondeselecting() { scoped = false; }
@@ -1074,7 +1060,7 @@ void sniperrifle::setscope(bool enable)
 assaultrifle::assaultrifle(playerent *owner) : gun(owner, GUN_ASSAULT) {}
 
 int assaultrifle::dynspread() { return shots > 3 ? 70 : info.spread; }
-float assaultrifle::dynrecoil() { return info.recoil + (rnd(8)*-0.01f); }
+float assaultrifle::dynrecoil() { return weapon::dynrecoil() + (rnd(8)*-0.01f); }
 bool assaultrifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 
 
@@ -1147,7 +1133,7 @@ bool knife::attack(vec &targ)
     updatelastaction(owner);
 
     owner->lastattackweapon = this;
-	owner->attacking = false;
+	owner->attacking = info.isauto;
 
     vec from = owner->o;
     vec to = targ;
@@ -1156,7 +1142,7 @@ bool knife::attack(vec &targ)
     vec unitv;
     float dist = to.dist(from, unitv);
     unitv.div(dist);
-    unitv.mul(3); // punch range
+    unitv.mul(4); // punch range (meter)
     to = from;
     to.add(unitv);
 

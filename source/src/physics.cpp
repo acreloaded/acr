@@ -563,15 +563,17 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 
         // smooth pitch
         const float fric = 6.0f/curtime*20.0f;
-        pl->pitch += pl->pitchvel*(curtime/1000.0f)*pl->maxspeed*(pl->crouching ? 0.75f : 1.0f);
+		#define addpitch pl->pitchvel*(curtime/1000.0f)*pl->maxspeed*(pl->crouching ? 0.75f : 1.0f)
+		pl->pitchreturn += addpitch;
+        pl->pitch += addpitch;
         pl->pitchvel *= fric-3;
         pl->pitchvel /= fric;
-        extern bool recoiltest;
-        if(recoiltest)
-        {
-            if(pl->pitchvel < 0.05f && pl->pitchvel > 0.001f) pl->pitchvel -= recoilbackfade/100.0f; // slide back
-        }
-        else if(pl->pitchvel < 0.05f && pl->pitchvel > 0.001f) pl->pitchvel -= ((playerent *)pl)->weaponsel->info.recoilbackfade/100.0f; // slide back
+        //if(pl->pitchvel < 0.05f && pl->pitchvel > 0.001f) pl->pitchvel -= ((playerent *)pl)->weaponsel->info.recoilbackfade/100.0f; // slide back
+		// new slide back!
+		if(pl->pitchvel < 0.2f){ 
+			pl->pitch -= pl->pitchreturn * 0.02f;
+			pl->pitchreturn *= 0.98f;
+		}
         if(pl->pitchvel) fixcamerarange(pl); // fix pitch if necessary
     }
 
@@ -741,7 +743,10 @@ void mousemove(int dx, int dy)
 
     const float SENSF = 33.0f;     // try match quake sens
     camera1->yaw += (dx/SENSF)*sensitivity;
+	float pitchchange = camera1->pitch;
     camera1->pitch -= (dy/SENSF)*sensitivity*(invmouse ? -1 : 1);
+	pitchchange -= camera1->pitch;
+	if(pitchchange > 0 && player1->pitchreturn > 0) player1->pitchreturn -= pitchchange;
     fixcamerarange();
     if(camera1!=player1 && player1->spectatemode!=SM_DEATHCAM)
     {

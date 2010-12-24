@@ -10,8 +10,10 @@
 // see docs/commandline.html for full parameter descriptions
 
 // example command line:
--n Default Server Name
--o \f1Welcome \f3to \f2this \f0 server\f7!
+-n Default Server Name // Server Name
+-o \f1Welcome \f3to \f2this \f0 server\f7! // MOTD
+-f 28770 // port
+-c 12 // max players
 
 // commonly used commandline switches:
 
@@ -19,8 +21,8 @@
 // -n     // server description
 // -n1    // custom server description prefix
 // -n2    // custom server description suffix
-// -f     // port, 1..65534, default 28763
-// -c     // max client number, 1..20, default 6
+// -f     // port, 1..65534, default 28770
+// -c     // max client number, 1..20, default 12
 // -D     // permanent demo recording, optionally +number of demos to keep in RAM, default 5
 
 // the switches o, n, n1 and n2 support coloring and character escaping; 'o' also supports escaped newlines

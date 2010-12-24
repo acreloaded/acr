@@ -1,6 +1,7 @@
 <?
 	require "config.php"; // get our configuration
 	require_once "cron.php"; // take care of the tasks
+	require_once "bans.php"; // banning sysrem
 	docron();
 	function getServers(){ // {string, int}[] (void)
 		global $config;

@@ -4,6 +4,9 @@
 #include "cube.h"
 #include "bot/bot.h"
 
+// Global Noob-Switch
+VARP(noob, 0, 0, 1);
+
 VAR(connected, 1, 0, 0);
 
 ENetHost *clienthost = NULL;
