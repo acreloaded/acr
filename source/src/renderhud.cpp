@@ -8,15 +8,16 @@ void drawicon(Texture *tex, float x, float y, float s, int col, int row, float t
     if(tex && tex->xs == tex->ys) quad(tex->id, x, y, s, ts*col, ts*row, ts);
 }
 
-void drawequipicon(float x, float y, int col, int row, float blend)
+void drawequipicon(float x, float y, int col, int row, bool pulse)
 {
     static Texture *tex = NULL;
     if(!tex) tex = textureload("packages/misc/items.png", 3);
     if(tex)
     {
-        if(blend) glEnable(GL_BLEND);
+        glEnable(GL_BLEND);
+		glColor4f(1.0f, 1.0f, 1.0f, pulse ? (0.2f+(sinf(lastmillis/100.0f)+1.0f)/2.0f) : 1.f);
         drawicon(tex, x, y, 120, col, row, 1/3.0f);
-        if(blend) glDisable(GL_BLEND);
+        glDisable(GL_BLEND);
     }
 }
 
@@ -241,7 +242,6 @@ void drawequipicons(playerent *p)
 {
     glDisable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glColor4f(1.0f, 1.0f, 1.0f, 0.2f+(sinf(lastmillis/100.0f)+1.0f)/2.0f);
 
     // health & armor
     if(p->armour) drawequipicon(620, 1650, 2, 0, false);
