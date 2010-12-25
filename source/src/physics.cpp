@@ -387,6 +387,8 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 
         if(editfly)                // just apply velocity
         {
+			// move faster!
+			d.mul(2);
             pl->o.add(d);
             if(pl->jumpnext)
             {
