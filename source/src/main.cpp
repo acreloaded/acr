@@ -460,7 +460,7 @@ static void clockreset() { clockrealbase = SDL_GetTicks(); clockvirtbase = total
 VARFP(clockerror, 990000, 1000000, 1010000, clockreset());
 VARFP(clockfix, 0, 0, 1, clockreset());
 
-SVARF(defaultmap, "maps/ac_desert");
+SVAR(defaultmap, "maps/ac_desert");
 
 int main(int argc, char **argv)
 {

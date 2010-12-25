@@ -319,21 +319,7 @@ void hit(int damage, playerent *d, playerent *at, const vec &vel, int gun, bool 
         h.target = d->clientnum;
         h.lifesequence = d->lifesequence;
         h.info = info;
-        if(d==player1)
-        {
-            h.dir = ivec(0, 0, 0);
-            d->damageroll(damage);
-            updatedmgindicator(at->o);
-            damageblend(damage);
-            damageeffect(damage, d);
-            playsound(S_PAIN6, SP_HIGH);
-        }
-        else
-        {
-            h.dir = ivec(int(vel.x*DNF), int(vel.y*DNF), int(vel.z*DNF));
-            damageeffect(damage, d);
-            playsound(S_PAIN1+rnd(5), d);
-        }
+		h.dir = (d==player1) ? ivec(0, 0, 0) : ivec(int(vel.x*DNF), int(vel.y*DNF), int(vel.z*DNF));
     }
 }
 
@@ -479,7 +465,7 @@ void shorten(vec &from, vec &to, vec &target)
 
 void raydamage(vec &from, vec &to, playerent *d)
 {
-    int dam = d->weaponsel->info.damage;
+    int dam = effectiveDamage(d->weaponsel->type, from.dist(to));
     int hitzone = -1;
     playerent *o = NULL;
 
@@ -509,16 +495,16 @@ void raydamage(vec &from, vec &to, playerent *d)
     }
     else if((o = intersectclosest(from, to, d, hitzone)))
     {
+		shorten(from, o->o, to);
         bool gib = false;
         if(d->weaponsel->type==GUN_KNIFE) gib = true;
-    	else if(d==player1 && d->weaponsel->type==GUN_SNIPER && hitzone==2)
+    	else if(d==player1 && hitzone==2)
         {
-            dam *= 3;
-            gib = true;
+            dam *= d->weaponsel->type==GUN_SNIPER ? 5 : 1.5; // 1.5x damage for non-sniper headshots
+            gib = d->weaponsel->type==GUN_SNIPER;
         }
 
-        hitpush(dam, o, d, from, to, d->weaponsel->type, gib, gib ? 1 : 0);
-        shorten(from, o->o, to);
+        hitpush(dam, o, d, from, to, d->weaponsel->type, gib, hitzone==2 ? 1 : 0);
     }
 }
 
@@ -608,7 +594,6 @@ void weapon::attackphysics(vec &from, vec &to) // physical fx to the owner
     // kickback
     owner->vel.add(vec(unitv).mul(recoil/dist).mul(owner->crouching ? 0.75 : 1.0f));
     // recoil
-    int numshots = info.isauto ? shots : 1;
     owner->pitchvel = min(owner->pitchvel + (float)(g.recoil)/10.0f, (float)(g.maxrecoil)/10.0f);
 }
 
@@ -637,7 +622,7 @@ void weapon::onselecting()
 }
 
 void weapon::renderhudmodel() { renderhudmodel(owner->lastaction); }
-void weapon::renderaimhelp(bool teamwarning) { drawcrosshair(owner, teamwarning ? CROSSHAIR_TEAMMATE : CROSSHAIR_DEFAULT); }
+void weapon::renderaimhelp(int teamwarning) { drawcrosshair(owner, teamwarning); }
 int weapon::dynspread() { return info.spread; }
 float weapon::dynrecoil() { return info.kick; }
 bool weapon::selectable() { return this != owner->weaponsel && owner->state == CS_ALIVE && !owner->weaponchanging; }
@@ -920,7 +905,6 @@ bool gun::attack(vec &targ)
 
     if(!owner->attacking)
     {
-        shots = 0;
         checkautoreload();
         return false;
     }
@@ -931,14 +915,11 @@ bool gun::attack(vec &targ)
         playsoundc(S_NOAMMO);
 	    gunwait += 250;
 	    owner->lastattackweapon = NULL;
-        shots = 0;
         checkautoreload();
         return false;
     }
 
     owner->lastattackweapon = this;
-	shots++;
-
 	owner->attacking = info.isauto;
 
     vec from = owner->o;
@@ -1045,10 +1026,10 @@ void sniperrifle::ondeselecting() { scoped = false; }
 void sniperrifle::onownerdies() { scoped = false; }
 void sniperrifle::renderhudmodel() { if(!scoped) weapon::renderhudmodel(); }
 
-void sniperrifle::renderaimhelp(bool teamwarning)
+void sniperrifle::renderaimhelp(int teamwarning)
 {
     if(scoped) drawscope();
-    if(scoped && !teamwarning) drawcrosshair(owner, CROSSHAIR_SCOPE, NULL, 24.0f);
+    if(scoped && teamwarning == CROSSHAIR_DEFAULT) drawcrosshair(owner, CROSSHAIR_SCOPE, NULL, 24.0f);
 	else weapon::renderaimhelp(teamwarning);
 }
 
@@ -1066,7 +1047,6 @@ void sniperrifle::setscope(bool enable)
 
 assaultrifle::assaultrifle(playerent *owner) : gun(owner, GUN_ASSAULT) {}
 
-int assaultrifle::dynspread() { return shots > 3 ? 70 : info.spread; }
 float assaultrifle::dynrecoil() { return weapon::dynrecoil() + (rnd(8)*-0.01f); }
 bool assaultrifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 

@@ -68,8 +68,8 @@ void processevent(client *c, shotevent &e)
                 bool gib = false;
                 if(e.gun==GUN_KNIFE) gib = true;
                 else if(e.gun==GUN_SNIPER) gib = h.info!=0;
-                int damage = rays*guns[e.gun].damage;
-                if(e.gun==GUN_SNIPER && gib) damage *= 3;
+                int damage = rays * effectiveDamage(e.gun, vec(e.from[0], e.from[1], e.from[2]).dist(vec(e.to[0], e.to[1], e.to[2])));
+                if(e.gun!=GUN_SHOTGUN && h.info != 0) damage *= e.gun==GUN_SNIPER ? 5 : 1.5;
                 serverdamage(target, c, damage, e.gun, gib, h.dir);
             }
             break;

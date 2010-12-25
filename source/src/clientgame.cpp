@@ -486,7 +486,7 @@ bool tryrespawn()
 {
     if(player1->state==CS_DEAD)
     {
-        int respawnmillis = player1->respawnoffset+(m_arena ? 0 : (m_flags ? 5000 : 2000));
+        int respawnmillis = player1->respawnoffset+(m_arena ? 0 : (m_flags ? 5000 : 1000));
         if(lastmillis>respawnmillis)
         {
             player1->attacking = false;
@@ -512,7 +512,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, bool gib, bool local)
 
     pl->respawnoffset = pl->lastpain = lastmillis;
     if(local) damage = pl->dodamage(damage);
-    else if(actor==player1) return;
+	else if(pl == player1 && pl == actor) return;
 
     if(pl==player1)
     {

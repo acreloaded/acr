@@ -58,31 +58,31 @@ static itemstat powerupstats[] =
     {50, 100, 100, S_ITEMARMOUR}, //armour
 };
 
-#define SGRAYS 15
+#define SGRAYS 32
 #define SGSPREAD 4
 #define EXPDAMRAD 10
 
-struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, range, endrange, rangeminus, projspeed, part, spread, kick, magsize, mdl_kick_rot, mdl_kick_back, recoil, maxrecoil, recoilbackfade, pushfactor; bool isauto; };
+struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, range, endrange, rangeminus, projspeed, part, spread, kick, magsize, mdl_kick_rot, mdl_kick_back, recoil, maxrecoil, pushfactor; bool isauto; };
 static guninfo guns[NUMGUNS] =
 {
-//	{ modelname;  snd,      rldsnd, rldtime, atkdelay, dmg,rngstart, rngend, rngm,psd,ptt,spr,kick,magsz,mkrot,mkback,rcoil,maxrcl,rclback,pushf; auto;}
-    { "knife",    S_KNIFE,    S_NULL,     0,      750,    130,  0,    0,    0,    0,   0,  1,    1,   1,    0,  0,   0,    0,     0,      1,   true },
-    { "pistol",   S_PISTOL,   S_RPISTOL,  1400,   90,     40,   150,  200,  20,   0,   0, 80,    9,   12,   6,  2,   50,   85,    150,    1,   false},
-    { "shotgun",  S_SHOTGUN,  S_RSHOTGUN, 2400,   181,    6,    16,   20,   4,    0,   0,  1,   12,   10,   9,  5,   60,   60,    100,    1,   true },
-    { "subgun",   S_SUBGUN,   S_RSUBGUN,  1858,   67,     30,   200,  400,  10,   0,   0, 50,    4,   32,   1,  3,   28,   65,    250,    1,   true },
-    { "sniper",   S_SNIPER,   S_RSNIPER,  1950,   500,    105,   10,  500,  10,   0,   0,128,   18,   10,   4,  4,   70,   70,    100,    1,   false},
-    { "assault",  S_ASSAULT,  S_RASSAULT, 2000,   73,     40,   300,  540,  10,   0,   0, 40,    3,   30,   0,  3,   24,   60,    150,    1,   true },
-    { "grenade",  S_NULL,     S_NULL,     1000,   650,    200,  0,    10,   200,  20,  6,  1,    1,   1,    3,  1,   0,    0,     0,      3,   false},
-    { "pistol",   S_PISTOL,   S_RAKIMBO,  1400,   60,     36,   160,  210,  16,   0,   0, 80,    9,   16,   6,  2,   35,   60,    100,    1,   true },
+//	{ modelname;  snd,      rldsnd, rldtime, atkdelay, dmg,rngstart, rngend, rngm,psd,ptt,spr,kick,magsz,mkrot,mkback,rcoil,maxrcl,pushf; auto;}
+    { "knife",    S_KNIFE,    S_NULL,     0,      560,    260,  0,    0,     0,   0,   0,  1,    1,   1,    0,  0,   0,    0,      1,   true },
+    { "pistol",   S_PISTOL,   S_RPISTOL,  1400,   90,     40,   40,  120,   20,   0,   0, 90,    9,   12,   6,  2,   50,   85,     1,   false},
+    { "shotgun",  S_SHOTGUN,  S_RSHOTGUN, 2400,   181,     6,   16,   20,    4,   0,   0,  1,   12,   10,   9,  5,   80,   80,     1,   true },
+    { "subgun",   S_SUBGUN,   S_RSUBGUN,  1858,   67,     36,   38,   63,    8,   0,   0, 70,    4,   32,   1,  3,   28,   65,     1,   true },
+    { "sniper",   S_SNIPER,   S_RSNIPER,  1950,   500,    205,  10,  100,   30,   0,   0,128,   18,   10,   4,  4,   70,   70,     1,   false},
+    { "assault",  S_ASSAULT,  S_RASSAULT, 2000,   73,     40,   50,   150,  10,   0,   0, 60,    3,   30,   0,  3,   24,   60,     1,   true },
+    { "grenade",  S_NULL,     S_NULL,     1000,   650,    200,  0,    10,   200,  20,  6,  1,    1,   1,    3,  1,   0,    0,      3,   false},
+    { "pistol",   S_PISTOL,   S_RAKIMBO,  1400,   60,     36,   160,  210,  16,   0,   0, 90,    9,   16,   6,  2,   35,   60,     1,   true },
 }; 
 
 static inline int reloadtime(int gun) { return guns[gun].reloadtime; }
 static inline int attackdelay(int gun) { return guns[gun].attackdelay; }
 static inline int magsize(int gun) { return guns[gun].magsize; }
 static inline int effectiveDamage(int gun, float dist) {
-	if((!guns[gun].range && !guns[gun].endrange) || dist < guns[gun].range) return guns[gun].damage;
+	if(dist <= guns[gun].range || (!guns[gun].range && !guns[gun].endrange)) return guns[gun].damage;
 	if(dist >= guns[gun].endrange) return guns[gun].damage - guns[gun].rangeminus;
-	else return guns[gun].damage - ((dist - guns[gun].range) * guns[gun].rangeminus / (guns[gun].endrange - guns[gun].range));
+	else return guns[gun].damage - (short)((dist - (float)guns[gun].range) * guns[gun].rangeminus / (guns[gun].endrange - guns[gun].range));
 }
 
 #define isteam(a,b)   (m_teammode && strcmp(a, b)==0)
@@ -292,7 +292,7 @@ struct playerstate
 
     void respawn()
     {
-        health = 100;
+        health = 200;
         armour = 0;
         gunselect = GUN_PISTOL;
         akimbo = false;

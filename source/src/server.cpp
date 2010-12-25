@@ -3050,7 +3050,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 break;
 
             case SV_TRYSPAWN:
-                if(cl->state.state!=CS_DEAD || cl->state.lastspawn>=0 || !canspawn(cl)) break;
+                if(cl->state.state!=CS_DEAD || cl->state.lastspawn>=0 || lastmillis - cl->state.lastdeath < (m_flags ? 5000 : 2000) || !canspawn(cl)) break;
                 if(cl->state.lastdeath) cl->state.respawn();
                 sendspawn(cl);
                 break;

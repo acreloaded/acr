@@ -266,8 +266,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
     return true;
 }
 
-VARP(maxroll, 0, 0, 20); // note: when changing max value, fix network transmission
-VAR(recoilbackfade, 0, 100, 1000);
+VARP(maxroll, 0, 0, 10); // note: when changing max value, fix network transmission
 
 void resizephysent(physent *pl, int moveres, int curtime, float min, float max)
 {
@@ -568,7 +567,6 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         pl->pitch += addpitch;
         pl->pitchvel *= fric-3;
         pl->pitchvel /= fric;
-        //if(pl->pitchvel < 0.05f && pl->pitchvel > 0.001f) pl->pitchvel -= ((playerent *)pl)->weaponsel->info.recoilbackfade/100.0f; // slide back
 		// new slide back!
 		if(pl->pitchvel < 0.2f){ 
 			pl->pitch -= pl->pitchreturn * 0.02f;

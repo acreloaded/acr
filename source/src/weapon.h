@@ -17,7 +17,7 @@ struct weapon
     int type;
     playerent *owner;
     const struct guninfo &info;
-    int &ammo, &mag, &gunwait, shots;
+    int &ammo, &mag, &gunwait;
     virtual int dynspread();
     virtual float dynrecoil();
     int reloading, lastaction, timebalance;
@@ -36,7 +36,7 @@ struct weapon
     virtual bool deselectable();
     virtual void renderstats();
     virtual void renderhudmodel();
-    virtual void renderaimhelp(bool teamwarning);
+    virtual void renderaimhelp(int teamwarning);
 
     virtual void onselecting();
     virtual void ondeselecting() {}
@@ -116,7 +116,7 @@ struct sniperrifle : gun
     void ondeselecting();
     void onownerdies();
     void renderhudmodel();
-    void renderaimhelp(bool teamwarning);
+    void renderaimhelp(int teamwarning);
     void setscope(bool enable);
 };
 
@@ -133,7 +133,6 @@ struct shotgun : gun
 struct assaultrifle : gun
 {
     assaultrifle(playerent *owner);
-    int dynspread();
     float dynrecoil();
     bool selectable();
 };
