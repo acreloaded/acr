@@ -1472,15 +1472,15 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 				if(!v.iszero()) v.normalize();
 				sendf(actor->clientnum, 1, "ri3f3", SV_HITPUSH, gun, damage * 2, v.x, v.y, v.z);
 			}
-			actor->state.dodamage(damage * 0.8);
-			sendf(-1, 1, "ri7", SV_DAMAGE, actor->clientnum, actor->clientnum, damage,
+			actor->state.dodamage(damage * 0.4);
+			sendf(-1, 1, "ri7", SV_DAMAGE, actor->clientnum, actor->clientnum, damage * 0.4,
 				actor->state.armour, actor->state.health, NUMGUNS | 0x80);
 			actor->state.frags -= 2;
 			sendf(-1, 1, "ri5", SV_DIED, actor->clientnum, actor->clientnum, actor->state.frags, NUMGUNS | 0x80);
 			if(actor->state.health <= 0){
 				logline(ACLOG_INFO, "[%s] %s suicided with teamkills", actor->hostname, actor->name);
 			}
-			damage *= 0.4;
+			damage *= 0.25;
 		}
 		else if(!hitpush.iszero()){
 			vec v(hitpush);
@@ -3456,7 +3456,7 @@ void checkintermission()
     if(minremain>0)
     {
         minremain = gamemillis>=gamelimit || forceintermission ? 0 : (gamelimit - gamemillis + 60000 - 1)/60000;
-		loopv(clients) if(valid_client(i)){
+		if(isdedicated) loopv(clients) if(valid_client(i)){
 			client &cl = *clients[i];
 			s_sprintfd(accmsg)("\f1%d%% \f5accuracy \f4(\f1%d \f2shot, \f1%d \f0hit, \f1%d \f3wasted\f4)",
 				cl.state.damage * 100/ max(cl.state.shotdamage,1),

@@ -322,8 +322,8 @@ void hit(int damage, playerent *d, playerent *at, const vec &vel, int gun, bool 
 
 	if(!m_mp(gamemode)){
 		if(d != at && isteam(d->team, at->team)){
-			dodamage(damage * 0.7, at, at, NUMGUNS, true);
-			damage *= 0.4;
+			dodamage(damage * 0.4, at, at, NUMGUNS, true);
+			damage *= 0.25;
 			vec rvel(vel);
 			rvel.mul(-1);
 			at->hitpush(damage * 2, rvel, at, gun);
@@ -1001,11 +1001,7 @@ bool shotgun::attack(vec &targ)
 void shotgun::attackfx(const vec &from, const vec &to, int millis)
 {
     loopi(SGRAYS) particle_splash(0, 5, 200, sg[i]);
-    if(addbullethole(owner, from, to))
-    {
-        int holes = 3+rnd(5);
-        loopi(holes) addbullethole(owner, from, sg[i], 0, false);
-    }
+    if(addbullethole(owner, from, to)) loopi(SGRAYS) addbullethole(owner, from, sg[i], 0, false);
     adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
     attacksound();
 }
