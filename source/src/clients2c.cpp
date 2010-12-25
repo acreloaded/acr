@@ -809,13 +809,20 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 voteresult(getint(p));
                 break;
 
-            case SV_WHOISINFO:
+            case SV_WHOIS:
             {
-                int cn = getint(p);
-                playerent *pl = cn == getclientnum() ? player1 : getclient(cn);
-                int ip = getint(p);
-                if((ip>>16&0xFF) > 0 && (ip>>24&0xFF) > 0) conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.%d", cn, pl ? colorname(pl) : "", ip&0xFF, ip>>8&0xFF, ip>>16&0xFF, ip>>24&0xFF); // full IP
-                else conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.x.x", cn, pl ? colorname(pl) : "", ip&0xFF, ip>>8&0xFF); // censored IP
+                int cn = getint(p), ip = getint(p), mask = getint(p);
+                playerent *pl = getclient(cn);
+				s_sprintfd(cip)("%d", ip & 0xFF);
+				if(mask >= 8 || (ip >> 8) & 0xFF){
+					s_sprintf(cip)("%s.%d", cip, (ip >> 8) & 0xFF);
+					if(mask >= 16 || (ip >> 16) & 0xFF){
+						s_sprintf(cip)("%s.%d", cip, (ip >> 16) & 0xFF);
+						if(mask >= 24|| (ip >> 24) & 0xFF) s_sprintf(cip)("%s.%d", cip, (ip >> 24) & 0xFF);
+					}
+				}
+				if(mask < 32) s_sprintf(cip)("%s/%d", cip, mask);
+                conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%s", cn, pl ? colorname(pl) : "", cip);
                 break;
             }
 

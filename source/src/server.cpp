@@ -2426,9 +2426,10 @@ void sendwhois(int sender, int cn)
     if(!valid_client(sender) || !valid_client(cn)) return;
     if(clients[cn]->type == ST_TCPIP)
     {
-        uint ip = clients[cn]->peer->address.host;
-        if(clients[sender]->role != CR_ADMIN) ip &= 0xFFFF; // only admin gets full IP
-        sendf(sender, 1, "ri3", SV_WHOISINFO, cn, ip);
+        uint ip = clients[cn]->peer->address.host, mask = 32;
+        if(clients[sender]->role != CR_ADMIN) mask = 8;
+		ip &= (2 << mask) - 1;
+        sendf(sender, 1, "ri3", SV_WHOIS, cn, ip, mask);
     }
 }
 
@@ -2753,7 +2754,7 @@ int checktype(int type, client *cl)
                         SV_FLAGINFO, SV_FLAGMSG, SV_FLAGCNT,
                         SV_ARENAWIN, SV_SERVOPINFO,
                         SV_CALLVOTESUC, SV_CALLVOTEERR, SV_VOTERESULT,
-                        SV_FORCETEAM, SV_AUTOTEAM, SV_WHOISINFO,
+                        SV_FORCETEAM, SV_AUTOTEAM,
                         SV_SENDDEMOLIST, SV_SENDDEMO, SV_DEMOPLAYBACK, SV_CLIENT,
                         SV_FORCENOTIFY };
     if(cl) loopi(sizeof(servtypes)/sizeof(int)) if(type == servtypes[i]) return -1;

@@ -611,7 +611,7 @@ playerent *newclient(int cn)   // ensure valid entity
 
 playerent *getclient(int cn)   // ensure valid entity
 {
-    return players.inrange(cn) ? players[cn] : NULL;
+    return cn == getclientnum() ? player1 : players.inrange(cn) ? players[cn] : NULL;
 }
 
 void initclient()
