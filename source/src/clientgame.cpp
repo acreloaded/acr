@@ -58,7 +58,7 @@ char *colorname(playerent *d, char *name, const char *prefix)
     static string cname[4];
     static int num = 0;
     num = (num + 1) % 4;
-    s_sprintf(cname[num])("%s%s \fs\f6(%d)\fr", prefix, name, d->clientnum);
+    s_sprintf(cname[num])("%s%s \fs\f6(%d) \f4[\f0%d\f4]\fr", prefix, name, d->clientnum, d->health);
     return cname[num];
 }
 
