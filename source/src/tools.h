@@ -158,6 +158,15 @@ struct databuf
         return overreadval;
     }
 
+	int get(T *vals, int numvals)
+    {
+        int read = min(maxlen-len, numvals);
+        if(read<numvals) flags |= OVERREAD;
+        memcpy(vals, &buf[len], read*sizeof(T));
+        len += read;
+        return read;
+    }
+
     databuf subbuf(int sz)
     {
         sz = min(sz, maxlen-len);
@@ -577,6 +586,37 @@ inline char *newstring(const char *s, size_t l) { return s_strncpy(newstring(l),
 inline char *newstring(const char *s)           { return newstring(s, strlen(s)); }
 inline char *newstringbuf()                     { return newstring(_MAXDEFSTR-1); }
 inline char *newstringbuf(const char *s)        { return newstring(s, _MAXDEFSTR-1); }
+
+const int islittleendian = 1;
+#ifdef SDL_BYTEORDER
+#define endianswap16 SDL_Swap16
+#define endianswap32 SDL_Swap32
+#else
+inline ushort endianswap16(ushort n) { return (n<<8) | (n>>8); }
+inline uint endianswap32(uint n) { return (n<<24) | (n>>24) | ((n>>8)&0xFF00) | ((n<<8)&0xFF0000); }
+#endif
+template<class T> inline T endianswap(T n) { union { T t; uint i; } conv; conv.t = n; conv.i = endianswap32(conv.i); return conv.t; }
+template<> inline ushort endianswap<ushort>(ushort n) { return endianswap16(n); }
+template<> inline short endianswap<short>(short n) { return endianswap16(n); }
+template<> inline uint endianswap<uint>(uint n) { return endianswap32(n); }
+template<> inline int endianswap<int>(int n) { return endianswap32(n); }
+template<class T> inline void endianswap(T *buf, int len) { for(T *end = &buf[len]; buf < end; buf++) *buf = endianswap(*buf); }
+template<class T> inline T endiansame(T n) { return n; }
+template<class T> inline void endiansame(T *buf, int len) {}
+#ifdef SDL_BYTEORDER
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN
+#define lilswap endiansame
+#define bigswap endianswap
+#else
+#define lilswap endianswap
+#define bigswap endiansame
+#endif
+#else
+template<class T> inline T lilswap(T n) { return *(const uchar *)&islittleendian ? n : endianswap(n); }
+template<class T> inline void lilswap(T *buf, int len) { if(!*(const uchar *)&islittleendian) endianswap(buf, len); }
+template<class T> inline T bigswap(T n) { return *(const uchar *)&islittleendian ? endianswap(n) : n; }
+template<class T> inline void bigswap(T *buf, int len) { if(*(const uchar *)&islittleendian) endianswap(buf, len); }
+#endif
 
 extern const char *timestring(bool local = false, const char *fmt = NULL);
 extern const char *asctime();

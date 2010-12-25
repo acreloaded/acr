@@ -12,20 +12,16 @@ void processevent(client *c, explodeevent &e)
         default:
             return;
     }
-    for(int i = 1; i<c->events.length() && c->events[i].type==GE_HIT; i++)
-    {
-        hitevent &h = c->events[i].hit;
-        if(!clients.inrange(h.target)) continue;
-        client *target = clients[h.target];
-        if(target->type==ST_EMPTY || target->state.state!=CS_ALIVE || h.lifesequence!=target->state.lifesequence || h.dist<0 || h.dist>EXPDAMRAD) continue;
-
-        int j = 1;
-        for(j = 1; j<i; j++) if(c->events[j].hit.target==h.target) break;
-        if(j<i) continue;
-
-        int damage = int(guns[e.gun].damage*(1-h.dist/EXPDAMRAD));
-        serverdamage(target, c, damage, e.gun, true, h.dir);
-    }
+	vec o(e.o[0], e.o[1], e.o[2]);
+	loopv(clients){
+		client *target = clients[i];
+		if(!target) continue;
+		vec dir;
+		float dist = target->state.o.dist(o, dir);		
+		if(dist >= guns[e.gun].endrange) continue;
+		dir.div(dist);
+		serverdamage(target, c, effectiveDamage(e.gun, dist), e.gun, true, dir);
+	}
 }
 
 void processevent(client *c, shotevent &e)
@@ -42,10 +38,9 @@ void processevent(client *c, shotevent &e)
     gs.lastshot = e.millis;
     gs.gunwait[e.gun] = attackdelay(e.gun);
     if(e.gun==GUN_PISTOL && gs.akimbomillis>gamemillis) gs.gunwait[e.gun] /= 2;
-    sendf(-1, 1, "ri9x", SV_SHOTFX, c->clientnum, e.gun,
-        int(e.from[0]*DMF), int(e.from[1]*DMF), int(e.from[2]*DMF),
-        int(e.to[0]*DMF), int(e.to[1]*DMF), int(e.to[2]*DMF),
-        c->clientnum);
+    sendf(-1, 1, "ri3f6", SV_SHOTFX, c->clientnum, e.gun,
+        c->state.o.x, c->state.o.y, c->state.o.z,
+        e.to[0], e.to[1], e.to[2]);
     gs.shotdamage += guns[e.gun].damage*(e.gun==GUN_SHOTGUN ? SGRAYS : 1);
     switch(e.gun)
     {
@@ -66,10 +61,13 @@ void processevent(client *c, shotevent &e)
                 if(totalrays>maxrays) continue;
 
                 bool gib = false;
-                if(e.gun==GUN_KNIFE) gib = true;
-                else if(e.gun==GUN_SNIPER) gib = h.info!=0;
-                int damage = rays * effectiveDamage(e.gun, vec(e.from[0], e.from[1], e.from[2]).dist(vec(e.to[0], e.to[1], e.to[2])));
-                if(e.gun!=GUN_SHOTGUN && h.info != 0) damage *= e.gun==GUN_SNIPER ? 5 : 1.5;
+                if(e.gun==GUN_KNIFE || (e.gun==GUN_SHOTGUN && rays == maxrays)) gib = true;
+                else if(e.gun==GUN_SNIPER) gib = h.info == 2;
+                int damage = rays * effectiveDamage(e.gun, c->state.o.dist(vec(e.to[0], e.to[1], e.to[2])));
+                if(e.gun!=GUN_SHOTGUN){
+					if(e.gun!=GUN_SNIPER && h.info == 1) damage *= 0.8;
+					else if(h.info == 2) damage *= e.gun==GUN_SNIPER ? 5 : 1.5;
+				}
                 serverdamage(target, c, damage, e.gun, gib, h.dir);
             }
             break;

@@ -240,10 +240,21 @@ int intersect(playerent *d, const vec &from, const vec &to, vec *end)
     vec bottom(d->o), top(sinf(y)*c, -cosf(y)*c, sinf(p));
     bottom.z -= d->eyeheight;
     top.mul(d->eyeheight + d->aboveeye).add(bottom);
+	// torso
+	bottom.sub(top).div(2).add(top);
     if(intersectcylinder(from, to, bottom, top, d->radius, dist))
     {
         if(end) (*end = to).sub(from).mul(dist).add(from);
         return 1;
+    }
+	// restore to body
+	bottom.sub(top).mul(2).add(top);
+	// legs
+	top.sub(bottom).div(2).add(bottom);
+	if(intersectcylinder(from, to, bottom, top, d->radius, dist))
+    {
+        if(end) (*end = to).sub(from).mul(dist).add(from);
+        return 3;
     }
     return 0;
 
@@ -290,13 +301,10 @@ playerent *intersectclosest(const vec &from, const vec &to, playerent *at, int &
     return best;
 }
 
-playerent *playerincrosshair()
+playerent *playerincrosshairhit(int &hitzone)
 {
     if(camera1->type == ENT_PLAYER || (camera1->type == ENT_CAMERA && player1->spectatemode == SM_DEATHCAM))
-    {
-        int hitzone;
         return intersectclosest(camera1->o, worldpos, (playerent *)camera1, hitzone, false);
-    }
     else return NULL;
 }
 
@@ -312,14 +320,24 @@ void hit(int damage, playerent *d, playerent *at, const vec &vel, int gun, bool 
 {
     if(d==player1 || d->type==ENT_BOT || !m_mp(gamemode)) d->hitpush(damage, vel, at, gun);
 
-    if(!m_mp(gamemode)) dodamage(damage, d, at, gib);
+	if(!m_mp(gamemode)){
+		if(d != at && isteam(d->team, at->team)){
+			dodamage(damage * 0.7, at, at, NUMGUNS, true);
+			damage *= 0.4;
+			vec rvel(vel);
+			rvel.mul(-1);
+			at->hitpush(damage * 2, rvel, at, gun);
+		}
+		dodamage(damage, d, at, gun, gib);
+	}
     else
     {
         hitmsg &h = hits.add();
         h.target = d->clientnum;
         h.lifesequence = d->lifesequence;
         h.info = info;
-		h.dir = (d==player1) ? ivec(0, 0, 0) : ivec(int(vel.x*DNF), int(vel.y*DNF), int(vel.z*DNF));
+		if(d==player1) loopk(3) h.dir[k] = 0;
+		loopk(3) h.dir[k] = vel[k];
     }
 }
 
@@ -341,16 +359,15 @@ float expdist(playerent *o, vec &dir, const vec &v)
     return dist;
 }
 
-void radialeffect(playerent *o, vec &v, int qdam, playerent *at, int gun)
+void radialeffect(playerent *o, vec &v, playerent *at, int gun)
 {
-    if(o->state!=CS_ALIVE) return;
+    if(o->state!=CS_ALIVE||!m_mp(gamemode)) return;
     vec dir;
     float dist = expdist(o, dir, v);
-    if(dist<EXPDAMRAD)
-    {
-        int damage = (int)(qdam*(1-dist/EXPDAMRAD));
-        hit(damage, o, at, dir, gun, true, int(dist*DMF));
-    }
+	if(dist >= guns[gun].endrange) return;
+	int dam = effectiveDamage(gun, dist);
+	o->hitpush(dam, dir, at, gun);
+	dodamage(dam, o, at, gun, true);
 }
 
 vector<bounceent *> bounceents;
@@ -489,7 +506,7 @@ void raydamage(vec &from, vec &to, playerent *d)
                 }
                 else raysleft = true;
             }
-            if(hitrays) hitpush(hitrays*dam, o, d, from, to, d->weaponsel->type, false, hitrays);
+            if(hitrays) hitpush(hitrays*dam, o, d, from, to, d->weaponsel->type, hitrays==SGRAYS, hitrays);
             if(!raysleft) break;
         }
     }
@@ -498,13 +515,17 @@ void raydamage(vec &from, vec &to, playerent *d)
 		shorten(from, o->o, to);
         bool gib = false;
         if(d->weaponsel->type==GUN_KNIFE) gib = true;
-    	else if(d==player1 && hitzone==2)
-        {
-            dam *= d->weaponsel->type==GUN_SNIPER ? 5 : 1.5; // 1.5x damage for non-sniper headshots
-            gib = d->weaponsel->type==GUN_SNIPER;
+    	else if(d==player1){
+			if(hitzone==3 &&d->weaponsel->type!=GUN_SNIPER){ // legs
+				dam *= 0.8;
+			}
+			else if(hitzone == 2){
+				dam *= d->weaponsel->type==GUN_SNIPER ? 5 : 1.5; // 1.5x damage for non-sniper headshots
+				gib = d->weaponsel->type==GUN_SNIPER;
+			}
         }
 
-        hitpush(dam, o, d, from, to, d->weaponsel->type, gib, hitzone==2 ? 1 : 0);
+        hitpush(dam, o, d, from, to, d->weaponsel->type, gib, hitzone==2 ? 2 : hitzone==3 ? 1 : 0);
     }
 }
 
@@ -523,10 +544,28 @@ int weapon::flashtime() const { return max((int)info.attackdelay, 120)/4; }
 void weapon::sendshoot(vec &from, vec &to)
 {
     if(owner!=player1) return;
-    addmsg(SV_SHOOT, "ri2i6iv", lastmillis, owner->weaponsel->type,
-           (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF),
-           (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF),
-           hits.length(), hits.length()*sizeof(hitmsg)/sizeof(int), hits.getbuf());
+    //addmsg(SV_SHOOT, "ri2f3iv", lastmillis, owner->weaponsel->type, to.x, to.y, to.z,
+		//hits.length(), hits.length()*sizeof(hitmsg)/sizeof(int), hits.getbuf);
+	static uchar buf[MAXTRANS];
+    ucharbuf p(buf, MAXTRANS);
+    putint(p, SV_SHOOT);
+	putint(p, lastmillis);
+	putint(p, owner->weaponsel->type);
+	putfloat(p, to.x);
+	putfloat(p, to.y);
+	putfloat(p, to.z);
+	putint(p, hits.length());
+	loopv(hits){
+		putint(p, hits[i].target);
+		putint(p, hits[i].lifesequence);
+		putint(p, hits[i].info);
+		loopk(3) putfloat(p, hits[i].dir[k]);
+	}
+    int len = p.length();
+	extern vector<uchar> messages;
+    messages.add(len&0xFF);
+    messages.add((len>>8)| 0x80);
+    loopi(len) messages.add(buf[i]);
 }
 
 bool weapon::modelattacking()
@@ -677,8 +716,7 @@ void grenadeent::explode()
     hits.setsizenodelete(0);
     splash();
     if(local)
-        addmsg(SV_EXPLODE, "ri3iv", lastmillis, GUN_GRENADE, millis, // fixme
-            hits.length(), hits.length()*sizeof(hitmsg)/sizeof(int), hits.getbuf());
+        addmsg(SV_EXPLODE, "ri3f3", lastmillis, GUN_GRENADE, millis, o.x, o.y, o.z);
     playsound(S_FEXPLODE, &o);
 }
 
@@ -689,14 +727,13 @@ void grenadeent::splash()
     addscorchmark(o);
     adddynlight(NULL, o, 16, 200, 100, 255, 255, 224);
     adddynlight(NULL, o, 16, 600, 600, 192, 160, 128);
-    if(owner != player1) return;
-    int damage = guns[GUN_GRENADE].damage;
-    radialeffect(owner, o, damage, owner, GUN_GRENADE);
+    if(owner != player1 || !m_mp(gamemode)) return;
+    radialeffect(owner, o, owner, GUN_GRENADE);
     loopv(players)
     {
         playerent *p = players[i];
         if(!p) continue;
-        radialeffect(p, o, damage, owner, GUN_GRENADE);
+        radialeffect(p, o, owner, GUN_GRENADE);
     }
 }
 
@@ -707,10 +744,7 @@ void grenadeent::activate(const vec &from, const vec &to)
 
     if(local)
     {
-        addmsg(SV_SHOOT, "ri2i6i", millis, owner->weaponsel->type,
-               (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF),
-               (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF),
-               0);
+        addmsg(SV_SHOOT, "ri2f3i", millis, owner->weaponsel->type, to.x, to.y, to.z, 0);
         playsound(S_GRENADEPULL, SP_HIGH);
     }
 }
@@ -726,7 +760,7 @@ void grenadeent::_throw(const vec &from, const vec &vel)
 
     if(local)
     {
-        addmsg(SV_THROWNADE, "ri7", int(o.x*DMF), int(o.y*DMF), int(o.z*DMF), int(vel.x*DMF), int(vel.y*DMF), int(vel.z*DMF), lastmillis-millis);
+        addmsg(SV_THROWNADE, "rf6i", o.x, o.y, o.z, vel.x, vel.y, vel.z, lastmillis-millis);
         playsound(S_GRENADETHROW, SP_HIGH);
     }
     else playsound(S_GRENADETHROW, owner);

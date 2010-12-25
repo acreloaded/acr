@@ -71,6 +71,19 @@ int getuint(ucharbuf &p)
     return n;
 }
 
+void putfloat(ucharbuf &p, float f)
+{
+    lilswap(&f, 1);
+    p.put((uchar *)&f, sizeof(float));
+}
+
+float getfloat(ucharbuf &p)
+{
+    float f;
+    p.get((uchar *)&f, sizeof(float));
+    return lilswap(f);
+}
+
 void sendstring(const char *text, ucharbuf &p)
 {
     const char *t = text;
@@ -198,7 +211,7 @@ char msgsizesl[] =               // size inclusive message token, 0 for variable
 {
     SV_INITS2C, 5, SV_WELCOME, 2, SV_INITC2S, 0, SV_POS, 0, SV_TEXT, 0, SV_TEAMTEXT, 0, SV_SOUND, 2, SV_VOICECOM, 2, SV_VOICECOMTEAM, 2, SV_CDIS, 2,
     SV_SHOOT, 0, SV_EXPLODE, 0, SV_SUICIDE, 1, SV_AKIMBO, 2, SV_RELOAD, 3,
-    SV_GIBDIED, 4, SV_DIED, 4, SV_GIBDAMAGE, 6, SV_DAMAGE, 6, SV_HITPUSH, 6, SV_SHOTFX, 9, SV_THROWNADE, 8,
+    SV_DIED, 5, SV_DAMAGE, 6, SV_HITPUSH, 6, SV_SHOTFX, 9, SV_THROWNADE, 0,
     SV_TRYSPAWN, 1, SV_SPAWNSTATE, 23, SV_SPAWN, 3, SV_FORCEDEATH, 2, SV_RESUME, 0,
     SV_TIMEUP, 2, SV_EDITENT, 10, SV_MAPRELOAD, 2, SV_NEXTMAP, 0, SV_ITEMACC, 2,
     SV_MAPCHANGE, 0, SV_ITEMSPAWN, 2, SV_ITEMPICKUP, 2,
@@ -211,12 +224,12 @@ char msgsizesl[] =               // size inclusive message token, 0 for variable
     SV_SETADMIN, 0, SV_SERVOPINFO, 3,
     SV_CALLVOTE, 0, SV_CALLVOTESUC, 1, SV_CALLVOTEERR, 2, SV_VOTE, 2, SV_VOTERESULT, 2,
     SV_FORCETEAM, 3, SV_AUTOTEAM, 2, SV_CHANGETEAM, 1,
-    SV_WHOIS, 2, // 4 by the server
+    SV_WHOIS, 0, // 2 by the client, 4 by the server
     SV_LISTDEMOS, 1, SV_SENDDEMOLIST, 0, SV_GETDEMO, 2, SV_SENDDEMO, 0, SV_DEMOPLAYBACK, 3,
     SV_CONNECT, 0,
     SV_CLIENT, 0,
     SV_EXTENSION, 0,
-    SV_SPAWNLIST, 0, SV_FORCENOTIFY, 3,
+    SV_MAPIDENT, 2, SV_FORCENOTIFY, 3,
     -1
 };
 

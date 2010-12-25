@@ -357,8 +357,8 @@ extern void changemap(const char *name);
 extern void initclient();
 extern void deathstate(playerent *pl);
 extern void spawnplayer(playerent *d);
-extern void dodamage(int damage, playerent *pl, playerent *actor, bool gib = false, bool local = true);
-extern void dokill(playerent *pl, playerent *act, bool gib = false);
+extern void dodamage(int damage, playerent *pl, playerent *actor, int weapon, bool gib = false, bool local = true);
+extern void dokill(playerent *pl, playerent *act, int weapon, bool gib = false);
 extern playerent *newplayerent();
 extern botent *newbotent();
 extern void freebotent(botent *d);
@@ -564,6 +564,7 @@ extern bool addscorchmark(vec &o, float radius = 7);
 extern void render_particles(int time, int typemask = ~0);
 
 // worldio
+const char *setnames(const char *name);
 extern void save_world(char *fname);
 extern bool load_world(char *mname);
 extern void writemap(char *name, int size, uchar *data);
@@ -628,7 +629,7 @@ extern void movebounceents();
 extern void clearbounceents();
 extern void renderbounceents();
 extern void addgib(playerent *d);
-extern playerent *playerincrosshair();
+extern playerent *playerincrosshairhit(int &hitzone);
 extern int magsize(int gun);
 extern void checkweaponswitch();
 extern void setscope(bool activate);
@@ -642,7 +643,7 @@ extern struct projectile *newprojectile(vec &from, vec &to, float speed, bool lo
 // entities
 extern const char *entnames[];
 
-extern void putitems(ucharbuf &p);
+extern void spawnallitems();
 extern void pickupeffects(int n, playerent *d);
 extern void renderentities();
 extern void rendermapmodels();
@@ -679,6 +680,8 @@ extern void putint(ucharbuf &p, int n);
 extern int getint(ucharbuf &p);
 extern void putuint(ucharbuf &p, int n);
 extern int getuint(ucharbuf &p);
+extern void putfloat(ucharbuf &p, float f);
+extern float getfloat(ucharbuf &p);
 extern void sendstring(const char *t, ucharbuf &p);
 extern void getstring(char *t, ucharbuf &p, int len = MAXTRANS);
 extern void filtertext(char *dst, const char *src, int whitespace = 1, int len = sizeof(string)-1);

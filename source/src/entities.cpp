@@ -289,14 +289,11 @@ void checkitems(playerent *d)
     }
 }
 
-void putitems(ucharbuf &p)            // puts items in network stream and also spawns them locally
+void spawnallitems() // spawns items them locally
 {
-    loopv(ents) if(ents[i].fitsmode(gamemode) || (multiplayer(false) && gamespeed!=100 && (i=-1)))
-    {
-        putint(p, i);
-        putint(p, ents[i].type);
-        ents[i].spawned = true;
-    }
+    loopv(ents)
+		if(ents[i].fitsmode(gamemode) || (multiplayer(false) && gamespeed!=100 && (i=-1)))
+			ents[i].spawned = true;
 }
 
 void resetspawns()

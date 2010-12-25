@@ -7,7 +7,7 @@
 VARP(networkdebug, 0, 0, 1);
 #define DEBUGCOND (networkdebug==1)
 
-extern bool c2sinit, senditemstoserver, watchingdemo;
+extern bool c2sinit, watchingdemo;
 extern string clientpassword;
 
 packetqueue pktlogger;
@@ -91,15 +91,15 @@ void parsepositions(ucharbuf &p)
             int cn = getint(p);
             vec o, vel;
             float yaw, pitch, roll;
-            o.x   = getuint(p)/DMF;
-            o.y   = getuint(p)/DMF;
-            o.z   = getuint(p)/DMF;
-            yaw   = (float)getuint(p);
-            pitch = (float)getint(p);
-            roll  = (float)(getint(p)*20.0f/125.0f);
-            vel.x = getint(p)/DVELF;
-            vel.y = getint(p)/DVELF;
-            vel.z = getint(p)/DVELF;
+            o.x   = getfloat(p);
+            o.y   = getfloat(p);
+            o.z   = getfloat(p);
+            yaw   = getfloat(p);
+            pitch = getfloat(p);
+            roll  = getfloat(p);
+            vel.x = getfloat(p);
+            vel.y = getfloat(p);
+            vel.z = getfloat(p);
             int f = getuint(p), seqcolor = (f>>6)&1;
             playerent *d = getclient(cn);
             if(!d || seqcolor!=(d->lifesequence&1)) continue;
@@ -164,7 +164,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 {
     static char text[MAXTRANS];
     int type, joining = 0;
-    bool mapchanged = false, demoplayback = false;
+    bool demoplayback = false;
 
     while(p.remaining())
     {
@@ -292,21 +292,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 int downloadable = getint(p);
                 changemapserv(text, mode, downloadable);
                 if(m_arena && joining>2) deathstate(player1);
-                mapchanged = true;
                 break;
             }
 
             case SV_ITEMLIST:
             {
                 int n;
-                if(mapchanged||watchingdemo) { senditemstoserver = false; resetspawns(); }
-                while((n = getint(p))!=-1) { getint(p); if(mapchanged||watchingdemo) setspawn(n, true); }
-                break;
-            }
-
-            case SV_SPAWNLIST:
-            {
-                if(getint(p) > 0) loopi(5) getint(p);
+                resetspawns();
+                while((n = getint(p))!=-1) setspawn(n, true);
                 break;
             }
 
@@ -420,8 +413,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             {
                 int scn = getint(p), gun = getint(p);
                 vec from, to;
-                loopk(3) from[k] = getint(p)/DMF;
-                loopk(3) to[k] = getint(p)/DMF;
+                loopk(3) from[k] = getfloat(p);
+                loopk(3) to[k] = getfloat(p);
                 playerent *s = getclient(scn);
                 if(!s || !weapon::valid(gun)) break;
                 if(gun==GUN_SHOTGUN) createrays(from, to);
@@ -438,8 +431,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             case SV_THROWNADE:
             {
                 vec from, to;
-                loopk(3) from[k] = getint(p)/DMF;
-                loopk(3) to[k] = getint(p)/DMF;
+                loopk(3) from[k] = getfloat(p);
+                loopk(3) to[k] = getfloat(p);
                 int nademillis = getint(p);
                 if(!d) break;
                 d->lastaction = lastmillis;
@@ -459,20 +452,19 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 break;
             }
 
-            case SV_GIBDAMAGE:
             case SV_DAMAGE:
             {
                 int tcn = getint(p),
                     acn = getint(p),
                     damage = getint(p),
                     armour = getint(p),
-                    health = getint(p);
-                playerent *target = tcn==getclientnum() ? player1 : getclient(tcn),
-                          *actor = acn==getclientnum() ? player1 : getclient(acn);
+                    health = getint(p),
+					weap = getint(p);
+                playerent *target = getclient(tcn), *actor = getclient(acn);
                 if(!target || !actor) break;
                 target->armour = armour;
                 target->health = health;
-                dodamage(damage, target, actor, type==SV_GIBDAMAGE, false);
+                dodamage(damage, target, actor, weap & 0x7F, (weap & 0x80) > 0, false);
                 break;
             }
 
@@ -480,21 +472,19 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             {
                 int gun = getint(p), damage = getint(p);
                 vec dir;
-                loopk(3) dir[k] = getint(p)/DNF;
+                loopk(3) dir[k] = getfloat(p);
                 player1->hitpush(damage, dir, NULL, gun);
                 break;
             }
 
-            case SV_GIBDIED:
             case SV_DIED:
             {
-                int vcn = getint(p), acn = getint(p), frags = getint(p);
-                playerent *victim = vcn==getclientnum() ? player1 : getclient(vcn),
-                          *actor = acn==getclientnum() ? player1 : getclient(acn);
+                int vcn = getint(p), acn = getint(p), frags = getint(p), weap = getint(p);
+                playerent *victim = getclient(vcn), *actor = getclient(acn);
                 if(!actor) break;
                 actor->frags = frags;
                 if(!victim) break;
-                dokill(victim, actor, type==SV_GIBDIED);
+                dokill(victim, actor, weap & 0x7F, (weap & 0x80) > 0);
                 break;
             }
 
@@ -649,9 +639,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                         break;
                     case CTFF_DROPPED:
                     {
-                        float x = getuint(p)/DMF;
-                        float y = getuint(p)/DMF;
-                        float z = getuint(p)/DMF;
+                        float x = getfloat(p), y = getfloat(p), z = getfloat(p);
                         flagdropped(flag, x, y, z);
                         break;
                     }

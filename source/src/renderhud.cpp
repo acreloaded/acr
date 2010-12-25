@@ -553,7 +553,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     glEnable(GL_TEXTURE_2D);
 
-    playerent *targetplayer = playerincrosshair();
+	int targetplayerzone = 0;
+    playerent *targetplayer = playerincrosshairhit(targetplayerzone);
     bool menu = menuvisible();
     bool command = getcurcommand() ? true : false;
     if((p->state==CS_ALIVE || p->state==CS_EDITING) && !p->weaponsel->reloading)
@@ -578,7 +579,11 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     int commandh = 1570 + FONTH;
     if(command) commandh -= rendercommand(20, 1570, VIRTW);
     else if(infostr) draw_text(infostr, 20, 1570);
-    else if(targetplayer) draw_text(colorname(targetplayer), 20, 1570);
+    else if(targetplayer){
+		s_sprintfd(targetplayername)("\f%d%s \f4[\f%s\f4]", p==targetplayer?1:isteam(p->team, targetplayer->team)? 0:3, colorname(targetplayer),
+			targetplayerzone==2?"3HEAD":targetplayerzone==1?"2TORSO":"1LEGS");
+		draw_text(targetplayername, 20, 1570);
+	}
 
     glLoadIdentity();
     glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);

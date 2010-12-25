@@ -24,7 +24,7 @@ int arenaintermission = 0;
 playerent *player1 = newplayerent();          // our client
 vector<playerent *> players;                        // other clients
 
-int lastmillis = 0, totalmillis = 0;
+//int lastmillis = 0, totalmillis = 0;
 int curtime = 0;
 string clientmap;
 
@@ -32,7 +32,7 @@ extern int framesinmap;
 
 char *getclientmap() { return clientmap; }
 
-extern bool c2sinit, senditemstoserver;
+extern bool c2sinit, sendmapident;
 
 void setskin(playerent *pl, uint skin)
 {
@@ -53,11 +53,14 @@ bool duplicatename(playerent *d, char *name = NULL)
 
 char *colorname(playerent *d, char *name, const char *prefix)
 {
+	if(!d) return "unknown";
     if(!name) name = d->name;
+	s_sprintfd(healthstat)("%d%d", d->health > 50 ? 0 : d->health > 25 ? 2 : d->health > 0 ? 3 : 4, d->health);
+	if(d->armour) s_sprintf(healthstat)("%s\f5-\f4%d", healthstat, d->armour);
     static string cname[4];
     static int num = 0;
     num = (num + 1) % 4;
-    s_sprintf(cname[num])("%s%s \fs\f6(%d) \f4[%d]\fr", prefix, name, d->clientnum, d->health);
+    s_sprintf(cname[num])("%s%s \fs\f6(%d) \f5[\f%s\f5]\fr", prefix, name, d->clientnum, healthstat);
     return cname[num];
 }
 
@@ -505,7 +508,7 @@ bool tryrespawn()
 
 // damage arriving from the network, monsters, yourself, all ends up here.
 
-void dodamage(int damage, playerent *pl, playerent *actor, bool gib, bool local)
+void dodamage(int damage, playerent *pl, playerent *actor, int weapon, bool gib, bool local)
 {
     if(pl->state != CS_ALIVE || intermission) return;
 
@@ -521,21 +524,58 @@ void dodamage(int damage, playerent *pl, playerent *actor, bool gib, bool local)
     }
     damageeffect(damage, pl);
 
-    if(pl->health<=0) { if(local) dokill(pl, actor, gib); }
+    if(pl->health<=0) { if(local) dokill(pl, actor, weapon, gib); }
     else if(pl==player1) playsound(S_PAIN6, SP_HIGH);
     else playsound(S_PAIN1+rnd(5), pl);
 }
 
-void dokill(playerent *pl, playerent *act, bool gib)
+void dokill(playerent *pl, playerent *act, int weapon, bool gib)
 {
     if(pl->state!=CS_ALIVE || intermission) return;
 
     string pname, aname, death;
-    s_strcpy(pname, pl==player1 ? "you" : colorname(pl));
-    s_strcpy(aname, act==player1 ? "you" : colorname(act));
-    s_strcpy(death, gib ? "gibbed" : "fragged");
-    void (*outf)(const char *s, ...) = (pl == player1 || act == player1) ? hudoutf : conoutf;
+    s_strcpy(pname, pl==player1 ? "\fs\f1you\fr" : colorname(pl));
+    s_strcpy(aname, act==player1 ? "\fs\f1you\fr" : colorname(act));
+    // s_strcpy(death, gib ? "gibbed" : "fragged");
+	switch(weapon){
+		case GUN_GRENADE:
+			s_strcpy(death, "obliterated");
+			break;
+		case GUN_SNIPER:
+			s_strcpy(death, gib ? "expertly sniped" : "sniped");
+			break;
+		case GUN_KNIFE:
+			s_strcpy(death, "slashed");
+			break;
+		case GUN_SUBGUN:
+			s_strcpy(death, "spliced");
+			break;
+		case GUN_SHOTGUN:
+			s_strcpy(death, gib ? "splattered" : "scrambled");
+			break;
+		case GUN_ASSAULT:
+			s_strcpy(death, "shredded");
+			break;
+		case GUN_PISTOL:
+			s_strcpy(death, "pierced");
+			break;
+		case GUN_AKIMBO:
+			s_strcpy(death, "skewered");
+			break;
+		default:
+			s_strcpy(death, "killed");
+			break;
+	}
+    //void (*outf)(const char *s, ...) = (pl == player1 || act == player1) ? hudoutf : conoutf;
+	playerent *p = camera1->type<ENT_CAMERA ? (playerent *)camera1 : player1;
+	void (*outf)(const char *s, ...) = (pl == p || act == p) ? hudoutf : conoutf;
 
+	if(pl==act)
+		outf("\f2%s %s%s", pname, weapon == GUN_GRENADE ? "blew himself up" :
+			weapon == NUMGUNS ? "committed too much friendly fire" : "suicided", pl == p ? "\f3!" : "");
+	else
+		outf("\f2%s %s %s%s", aname, death, isteam(pl->team, act->team) ? "teammate " : "", pname);
+	/*
     if(pl==act)
         outf("\f2%s suicided%s", pname, pl==player1 ? "!" : "");
     else if(isteam(pl->team, act->team))
@@ -548,13 +588,12 @@ void dokill(playerent *pl, playerent *act, bool gib)
         if(pl==player1) outf("\f2you got %s by %s", death, aname);
         else outf("\f2%s %s %s", aname, death, pname);
     }
-
-    if(gib)
-    {
-        if(pl!=act && act->weaponsel->type == GUN_SNIPER) playsound(S_HEADSHOT, SP_LOW);
+	*/
+    if(gib){
+        if(pl != act && weapon == GUN_SNIPER) playsound(S_HEADSHOT, SP_LOW);
         addgib(pl);
     }
-
+	
     if(!m_mp(gamemode))
     {
         if(pl==act || isteam(pl->team, act->team)) act->frags--;
@@ -698,7 +737,7 @@ int suicided = -1;
 void startmap(const char *name, bool reset)   // called just after a map load
 {
     s_strcpy(clientmap, name);
-    senditemstoserver = true;
+    sendmapident = true;
     // Added by Rick
 	if(m_botmode) BotManager.BeginMap(name);
     else kickallbots();

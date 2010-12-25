@@ -268,19 +268,25 @@ void addmsg(int type, const char *fmt, ...)
         while(*fmt) switch(*fmt++)
         {
             case 'r': reliable = true; break;
-            case 'v':
+            /*case 'v':
             {
                 int n = va_arg(args, int);
                 int *v = va_arg(args, int *);
                 loopi(n) putint(p, v[i]);
                 numi += n;
                 break;
-            }
-
+            }*/
             case 'i':
             {
                 int n = isdigit(*fmt) ? *fmt++-'0' : 1;
                 loopi(n) putint(p, va_arg(args, int));
+                numi += n;
+                break;
+            }
+			case 'f':
+            {
+                int n = isdigit(*fmt) ? *fmt++-'0' : 1;
+                loopi(n) putfloat(p, va_arg(args, float));
                 numi += n;
                 break;
             }
@@ -297,7 +303,7 @@ void addmsg(int type, const char *fmt, ...)
 }
 
 static int lastupdate = -1000, lastping = 0;
-bool senditemstoserver = false;     // after a map change, since server doesn't have map data
+bool sendmapident = false;
 
 void sendpackettoserv(int chan, ENetPacket *packet)
 {
@@ -325,15 +331,15 @@ void c2sinfo(playerent *d)                  // send update to the server
 
         putint(q, SV_POS);
         putint(q, d->clientnum);
-        putuint(q, (int)(d->o.x*DMF));       // quantize coordinates to 1/16th of a cube, between 1 and 3 bytes
-        putuint(q, (int)(d->o.y*DMF));
-        putuint(q, (int)((d->o.z - d->eyeheight)*DMF));
-        putuint(q, (int)d->yaw);
-        putint(q, (int)d->pitch);
-        putint(q, (int)(125*d->roll/20));
-        putint(q, (int)(d->vel.x*DVELF));
-        putint(q, (int)(d->vel.y*DVELF));
-        putint(q, (int)(d->vel.z*DVELF));
+        putfloat(q, d->o.x);       // quantize coordinates to 1/16th of a cube, between 1 and 3 bytes
+        putfloat(q, d->o.y);
+        putfloat(q, d->o.z - d->eyeheight);
+        putfloat(q, d->yaw);
+        putfloat(q, d->pitch);
+        putfloat(q, d->roll);
+        putfloat(q, d->vel.x);
+        putfloat(q, d->vel.y);
+        putfloat(q, d->vel.z);
         // pack rest in 1 int: strafe:2, move:2, onfloor:1, onladder: 1
         putuint(q, (d->strafe&3) | ((d->move&3)<<2) | (((int)d->onfloor)<<4) | (((int)d->onladder)<<5) | ((d->lifesequence&1)<<6) | (((int)d->crouching)<<7));
 
@@ -341,7 +347,7 @@ void c2sinfo(playerent *d)                  // send update to the server
         sendpackettoserv(0, packet);
     }
 
-    if(senditemstoserver || !c2sinit || messages.length() || totalmillis-lastping>250)
+    if(sendmapident || !c2sinit || messages.length() || totalmillis-lastping>250)
     {
         ENetPacket *packet = enet_packet_create (NULL, MAXTRANS, 0);
         ucharbuf p(packet->data, packet->dataLength);
@@ -355,23 +361,13 @@ void c2sinfo(playerent *d)                  // send update to the server
             sendstring(player1->team, p);
             putint(p, player1->skin);
         }
-        if(senditemstoserver)
+        if(sendmapident)
         {
+			spawnallitems();
             packet->flags = ENET_PACKET_FLAG_RELIABLE;
-            if(maploaded > 0)
-            {
-                putint(p, SV_ITEMLIST);
-                if(!m_noitems) putitems(p);
-                putint(p, -1);
-            }
-            putint(p, SV_SPAWNLIST);
+            putint(p, SV_MAPIDENT);
             putint(p, maploaded);
-            if(maploaded > 0)
-            {
-                loopi(3) putint(p, numspawn[i]);
-                loopi(2) putint(p, numflagspawn[i]);
-            }
-            senditemstoserver = false;
+            sendmapident = false;
         }
         int i = 0;
         while(i < messages.length()) // send messages collected during the previous frames
