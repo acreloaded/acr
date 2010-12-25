@@ -1048,7 +1048,8 @@ void sniperrifle::renderhudmodel() { if(!scoped) weapon::renderhudmodel(); }
 void sniperrifle::renderaimhelp(bool teamwarning)
 {
     if(scoped) drawscope();
-    if(scoped || teamwarning) drawcrosshair(owner, teamwarning ? CROSSHAIR_TEAMMATE : CROSSHAIR_SCOPE, NULL, 24.0f);
+    if(scoped && !teamwarning) drawcrosshair(owner, CROSSHAIR_SCOPE, NULL, 24.0f);
+	else weapon::renderaimhelp(teamwarning);
 }
 
 void sniperrifle::setscope(bool enable)
