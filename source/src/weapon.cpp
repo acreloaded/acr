@@ -554,6 +554,12 @@ void weapon::attacksound()
 {
     if(info.sound == S_NULL) return;
     bool local = (owner == player1);
+	if(reloadable_gun(type)){ // it's loud if you can reload it
+		owner->lastloud = lastmillis;
+		owner->lastloudpos[0] = owner->o.x;
+		owner->lastloudpos[1] = owner->o.y;
+		owner->lastloudpos[2] = owner->yaw;
+	}
     playsound(info.sound, owner, local ? SP_HIGH : SP_NORMAL);
 }
 

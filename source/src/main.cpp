@@ -460,6 +460,8 @@ static void clockreset() { clockrealbase = SDL_GetTicks(); clockvirtbase = total
 VARFP(clockerror, 990000, 1000000, 1010000, clockreset());
 VARFP(clockfix, 0, 0, 1, clockreset());
 
+SVARF(defaultmap, "maps/ac_desert");
+
 int main(int argc, char **argv)
 {
     extern struct servercommandline scl;
@@ -653,7 +655,7 @@ int main(int argc, char **argv)
 
 		initlog("localconnect");
 		localconnect();
-		changemap("maps/ac_complex");
+		changemap(defaultmap);
 
 		initlog("mainloop");
 		inmainloop = true;

@@ -257,12 +257,12 @@ void drawequipicons(playerent *p)
     glEnable(GL_BLEND);
 }
 
-void drawradarent(float x, float y, float yaw, int col, int row, float iconsize, bool pulse, const char *label = NULL, ...)
+void drawradarent(const vec &o, float coordtrans, float yaw, int col, int row, float iconsize, bool pulse, float alpha = 1.f, const char *label = NULL, ...)
 {
     glPushMatrix();
     if(pulse) glColor4f(1.0f, 1.0f, 1.0f, 0.2f+(sinf(lastmillis/30.0f)+1.0f)/2.0f);
-    else glColor4f(1, 1, 1, 1);
-    glTranslatef(x, y, 0);
+    else glColor4f(1, 1, 1, alpha);
+    glTranslatef(o.x * coordtrans, o.y * coordtrans, 0);
     glRotatef(yaw, 0, 0, 1);
     drawradaricon(-iconsize/2.0f, -iconsize/2.0f, iconsize, col, row);
     glPopMatrix();
@@ -273,7 +273,7 @@ void drawradarent(float x, float y, float yaw, int col, int row, float iconsize,
         glTranslatef(iconsize/2, iconsize/2, 0);
         glScalef(1/2.0f, 1/2.0f, 1/2.0f);
         s_sprintfdv(lbl, label);
-        draw_text(lbl, (int)(x*2), (int)(y*2));
+        draw_text(lbl, (int)(o.x * coordtrans *2), (int)(o.y * coordtrans*2));
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glDisable(GL_BLEND);
         glPopMatrix();
@@ -362,6 +362,8 @@ vec getradarpos()
     return vec(VIRTW-10-VIRTH/28-overlaysize, 10+VIRTH/52, 0);
 }
 
+VARP(radarenemyfade, 0, 1250, 1250);
+
 void drawradar(playerent *p, int w, int h)
 {
     vec center = showmap ? vec(ssize/2, ssize/2, 0) : p->o;
@@ -402,13 +404,19 @@ void drawradar(playerent *p, int w, int h)
     }
     glTranslatef(-(centerpos.x-res/2)/worldsize*radarsize, -(centerpos.y-res/2)/worldsize*radarsize, 0);
 
-    drawradarent(p->o.x*coordtrans, p->o.y*coordtrans, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player
+    drawradarent(p->o, coordtrans, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), 1.f, "\f1%s", colorname(p)); // local player
 
     loopv(players) // other players
     {
         playerent *pl = players[i];
-        if(!pl || pl==p || !isteam(p->team, pl->team) || !insideradar(centerpos, res/2, pl->o)) continue;
-        drawradarent(pl->o.x*coordtrans, pl->o.y*coordtrans, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, team_int(pl->team), iconsize, isattacking(pl), "%s", colorname(pl));
+        if(!pl || pl == p || !insideradar(centerpos, res/2, pl->o)) continue;
+		if(!isteam(p->team, pl->team) && lastmillis - pl->lastloud > radarenemyfade) continue;
+		if(isteam(p->team, pl->team))
+			drawradarent(pl->o, coordtrans, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1,
+				team_int(pl->team), iconsize, isattacking(pl), 1.f, "\f0%s", colorname(pl));
+		else
+			drawradarent(pl->lastloudpos, coordtrans, pl->lastloudpos[2], pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1,
+				team_int(pl->team), iconsize, false, (radarenemyfade - lastmillis + pl->lastloud) / (float)radarenemyfade, "\f3%s", colorname(pl));
     }
     if(m_flags)
     {
@@ -421,7 +429,7 @@ void drawradar(playerent *p, int w, int h)
             if(!e) continue;
             float yaw = showmap ? 0 : camera1->yaw;
             if(insideradar(centerpos, res/2, vec(e->x, e->y, centerpos.z)))
-                drawradarent(e->x*coordtrans, e->y*coordtrans, yaw, m_ktf ? 2 : f.team, 3, iconsize, false); // draw bases
+                drawradarent(vec(e->x, e->y, 0), coordtrans, yaw, m_ktf ? 2 : f.team, 3, iconsize, false); // draw bases
             if(m_ktf && f.state == CTFF_IDLE) continue;
             vec pos(0.5f-0.1f, 0.5f-0.9f, 0);
             pos.mul(iconsize/coordtrans).rotate_around_z(yaw*RAD);
@@ -434,7 +442,7 @@ void drawradar(playerent *p, int w, int h)
                     if(m_htf) tm = !tm;
                     else if(m_ktf) tm = true;
                     if(tm && insideradar(centerpos, res/2, pos))
-                        drawradarent(pos.x*coordtrans, pos.y*coordtrans, yaw, 3, m_ktf ? 2 : f.team, iconsize, true); // draw near flag thief
+                        drawradarent(pos, coordtrans, yaw, 3, m_ktf ? 2 : f.team, iconsize, true); // draw near flag thief
                 }
             }
             else
@@ -442,7 +450,7 @@ void drawradar(playerent *p, int w, int h)
                 pos.x += e->x;
                 pos.y += e->y;
                 pos.z += centerpos.z;
-                if(insideradar(centerpos, res/2, pos)) drawradarent(pos.x*coordtrans, pos.y*coordtrans, yaw, 3, m_ktf ? 2 : f.team, iconsize, false); // draw on entitiy pos
+                if(insideradar(centerpos, res/2, pos)) drawradarent(pos, coordtrans, yaw, 3, m_ktf ? 2 : f.team, iconsize, false); // draw on entitiy pos
             }
         }
     }

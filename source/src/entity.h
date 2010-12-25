@@ -66,10 +66,10 @@ struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay,
 static guninfo guns[NUMGUNS] =
 {
 //	{ modelname;  snd,      rldsnd, rldtime, atkdelay, dmg,rngstart, rngend, rngm,psd,ptt,spr,kick,magsz,mkrot,mkback,rcoil,maxrcl,rclback,pushf; auto;}
-    { "knife",    S_KNIFE,    S_NULL,     0,      750,    50,   0,    0,    0,    0,   0,  1,    1,   1,    0,  0,   0,    0,     0,      1,   true },
+    { "knife",    S_KNIFE,    S_NULL,     0,      750,    130,  0,    0,    0,    0,   0,  1,    1,   1,    0,  0,   0,    0,     0,      1,   true },
     { "pistol",   S_PISTOL,   S_RPISTOL,  1400,   90,     40,   150,  200,  20,   0,   0, 80,    9,   12,   6,  2,   50,   85,    150,    1,   false},
     { "shotgun",  S_SHOTGUN,  S_RSHOTGUN, 2400,   181,    6,    16,   20,   4,    0,   0,  1,   12,   10,   9,  5,   60,   60,    100,    1,   true },
-    { "subgun",   S_SUBGUN,   S_RSUBGUN,  1858,   67,     40,   200,  400,  20,   0,   0, 50,    4,   32,   1,  3,   28,   65,    250,    1,   true },
+    { "subgun",   S_SUBGUN,   S_RSUBGUN,  1858,   67,     30,   200,  400,  10,   0,   0, 50,    4,   32,   1,  3,   28,   65,    250,    1,   true },
     { "sniper",   S_SNIPER,   S_RSNIPER,  1950,   500,    105,   10,  500,  10,   0,   0, 70,   18,   10,   4,  4,   70,   70,    100,    1,   false},
     { "assault",  S_ASSAULT,  S_RASSAULT, 2000,   73,     40,   300,  540,  10,   0,   0, 40,    3,   30,   0,  3,   24,   60,    150,    1,   true },
     { "grenade",  S_NULL,     S_NULL,     1000,   650,    200,  0,    10,   200,  20,  6,  1,    1,   1,    3,  1,   0,    0,     0,      3,   false},
@@ -96,7 +96,8 @@ static inline int effectiveDamage(int gun, float dist) {
 
 enum { ENT_PLAYER = 0, ENT_BOT, ENT_CAMERA, ENT_BOUNCE };
 enum { CS_ALIVE = 0, CS_DEAD, CS_SPAWNING, CS_LAGGED, CS_EDITING, CS_SPECTATE };
-enum { CR_DEFAULT = 0, CR_ADMIN };
+enum { CR_DEFAULT = 0, CR_ADMIN }; // TODO: update into new system
+enum { PRIV_NONE = 0, PRIV_MASTER, PRIV_ADMIN, PRIV_OWNER };
 enum { SM_NONE = 0, SM_DEATHCAM, SM_FOLLOW1ST, SM_FOLLOW3RD, SM_FOLLOW3RD_TRANSPARENT, SM_FLY, SM_NUM };
 
 struct physent
@@ -341,6 +342,7 @@ struct playerent : dynent, playerstate
 {
     int clientnum, lastupdate, plag, ping;
     int lifesequence;                   // sequence id for each respawn, used in damage test
+	int lastloud; float lastloudpos[3]; // position and yaw stored for last shot
     int frags, flagscore, deaths;
     int lastaction, lastmove, lastpain, lastvoicecom;
     int clientrole;
@@ -367,7 +369,7 @@ struct playerent : dynent, playerstate
     vec head;
 
     playerent() : clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), deaths(0), lastpain(0), lastvoicecom(0), clientrole(CR_DEFAULT),
-                  skin(0), spectatemode(SM_NONE), followplayercn(-1), eardamagemillis(0), respawnoffset(0),
+                  skin(0), spectatemode(SM_NONE), followplayercn(-1), eardamagemillis(0), respawnoffset(0), lastloud(0),
                   prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
                   smoothmillis(-1),
                   head(-1, -1, -1)
