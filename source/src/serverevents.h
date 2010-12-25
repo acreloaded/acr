@@ -75,13 +75,6 @@ void processevent(client *c, shotevent &e)
     }
 }
 
-void processevent(client *c, pickupevent &e)
-{
-    clientstate &gs = c->state;
-    if(m_mp(gamemode) && !gs.isalive(gamemillis)) return;
-    serverpickup(e.ent, c->clientnum);
-}
-
 void processevent(client *c, reloadevent &e)
 {
     clientstate &gs = c->state;
@@ -145,8 +138,7 @@ void processevents()
                 case GE_EXPLODE: processevent(c, e.explode); break;
                 case GE_AKIMBO: processevent(c, e.akimbo); break;
                 case GE_RELOAD: processevent(c, e.reload); break;
-                // untimed events
-                case GE_PICKUP: processevent(c, e.pickup); break;
+                // untimed events are GONE!
             }
             clearevent(c);
         }

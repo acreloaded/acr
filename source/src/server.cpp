@@ -53,6 +53,7 @@ mapstats smapstats;
 
 struct shotevent
 {
+	int type;
     int millis, id;
     int gun;
     float to[3];
@@ -60,6 +61,7 @@ struct shotevent
 
 struct explodeevent
 {
+	int type;
     int millis, id;
     int gun;
 	float o[3];
@@ -67,6 +69,7 @@ struct explodeevent
 
 struct hitevent
 {
+	int type;
     int target;
     int lifesequence;
     union
@@ -77,18 +80,15 @@ struct hitevent
     float dir[3];
 };
 
-struct pickupevent
-{
-    int ent;
-};
-
 struct akimboevent
 {
+	int type;
     int millis, id;
 };
 
 struct reloadevent
 {
+	int type;
     int millis, id;
     int gun;
 };
@@ -99,7 +99,6 @@ union gameevent
     shotevent shot;
     explodeevent explode;
     hitevent hit;
-    pickupevent pickup;
     akimboevent akimbo;
     reloadevent reload;
 };
@@ -3013,9 +3012,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 int n = getint(p);
                 if(!arenaround || arenaround - gamemillis > 2000)
                 {
-                    gameevent &pickup = cl->addevent();
-                    pickup.type = GE_PICKUP;
-                    pickup.pickup.ent = n;
+					if(m_mp(gamemode) && !cl->state.isalive(gamemillis)) break;
+					serverpickup(n, sender);
                 }
                 else
                 { // no nade pickup during last two seconds of lss intermission
