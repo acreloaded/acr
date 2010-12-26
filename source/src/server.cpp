@@ -3058,7 +3058,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(!cl->isonrightmap){
 					sendservmsg("\f3you can't spawn until you download the map from the server; please type /getmap", sender);
 				}
-				if(cl->state.state!=CS_DEAD || cl->state.lastspawn>=0 || lastmillis - cl->state.lastdeath < (m_flags ? 5000 : 2000) || !canspawn(cl)) break;
+				if(cl->state.state!=CS_DEAD || cl->state.lastspawn>=0 || gamemillis - cl->state.lastdeath < (m_flags ? 5000 : 1000) || !canspawn(cl)) break;
 				if(cl->state.lastdeath) cl->state.respawn();
 				sendspawn(cl);
 				break;
