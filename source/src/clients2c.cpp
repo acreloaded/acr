@@ -315,7 +315,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				filtertext(text, text, 1, MAXNAMELEN);
 				if(!text[0]) s_strcpy(text, "unnamed");
 				if(!d || !strcmp(d->name, text)) break;
-				conoutf("%s is now known as %s", colorname(d), colorname(d, text));
+				if(d->name[0]) conoutf("%s is now known as %s", colorname(d), colorname(d, text));
 				s_strncpy(d->name, text, MAXNAMELEN+1);
 				updateclientname(d);
 				break;
