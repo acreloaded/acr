@@ -76,12 +76,12 @@ void processevent(client *c, shotevent &e)
                 if(totalrays>maxrays) continue;
 
                 bool gib = false;
+				int damage = rays * effectiveDamage(e.gun, c->state.o.dist(vec(e.to)));
                 if(e.gun==GUN_KNIFE) gib = true;
-				else if(e.gun==GUN_SHOTGUN) gib = rays == maxrays;
+				else if(e.gun==GUN_SHOTGUN) gib = damage > SGGIB;
                 else gib = h.info == 2;
-                int damage = rays * effectiveDamage(e.gun, c->state.o.dist(vec(e.to)));
                 if(e.gun!=GUN_SHOTGUN){
-					if(e.gun!=GUN_SNIPER && h.info == 1) damage *= 0.6;
+					if(h.info == 1) damage *= 0.6;
 					else if(h.info == 2) damage *= e.gun==GUN_SNIPER ? 5 : 1.5;
 				}
                 serverdamage(target, c, damage, e.gun, gib, h.dir);

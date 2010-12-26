@@ -401,7 +401,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 if(!s || !weapon::valid(gun)) break;
                 if(gun==GUN_SHOTGUN) createrays(from, to);
                 s->lastaction = lastmillis;
-                s->mag[gun]--;
+                if(s != player1) s->mag[gun]--;
                 if(s->weapons[gun])
                 {
                     s->lastattackweapon = s->weapons[gun];

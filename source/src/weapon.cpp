@@ -321,14 +321,16 @@ void hit(int damage, playerent *d, playerent *at, const vec &vel, int gun, bool 
     if(d==player1 || d->type==ENT_BOT || !m_mp(gamemode)) d->hitpush(damage, vel, at, gun);
 
 	if(!m_mp(gamemode)){
-		if(d != at && isteam(d->team, at->team)){
-			dodamage(damage * 0.4, at, at, NUMGUNS, true);
-			damage *= 0.25;
-			vec rvel(vel);
-			rvel.mul(-1);
-			at->hitpush(damage * 2, rvel, at, gun);
-			if(damage >= d->health) damage = d->health - 1;
-		}
+		if(d != at){
+			if(isteam(d->team, at->team)){
+				dodamage(damage * 0.4, at, at, NUMGUNS, true);
+				damage *= 0.25;
+				vec rvel(vel);
+				rvel.mul(-1);
+				at->hitpush(damage * 2, rvel, at, gun);
+				if(damage >= d->health) damage = d->health - 1;
+			}
+		} else damage /= 2;
 		dodamage(damage, d, at, gun, gib);
 	}
     else
@@ -362,13 +364,14 @@ float expdist(playerent *o, vec &dir, const vec &v)
 
 void radialeffect(playerent *o, vec &v, playerent *at, int gun)
 {
-    if(o->state!=CS_ALIVE||!m_mp(gamemode)) return;
+    if(o->state!=CS_ALIVE) return;
     vec dir;
     float dist = expdist(o, dir, v);
 	if(dist >= guns[gun].endrange) return;
 	int dam = effectiveDamage(gun, dist);
-	o->hitpush(dam, dir, at, gun);
-	dodamage(dam, o, at, gun, true);
+	//o->hitpush(dam, dir, at, gun);
+	//dodamage(dam, o, at, gun, true);
+	hit(dam, o, at, dir, gun, true, dist);
 }
 
 vector<bounceent *> bounceents;
@@ -507,7 +510,7 @@ void raydamage(vec &from, vec &to, playerent *d)
                 }
                 else raysleft = true;
             }
-            if(hitrays) hitpush(hitrays*dam, o, d, from, to, d->weaponsel->type, hitrays==SGRAYS, hitrays);
+            if(hitrays) hitpush(hitrays*dam, o, d, from, to, d->weaponsel->type, hitrays*dam > SGGIB, hitrays);
             if(!raysleft) break;
         }
     }
@@ -517,7 +520,7 @@ void raydamage(vec &from, vec &to, playerent *d)
         bool gib = false;
         if(d->weaponsel->type==GUN_KNIFE) gib = true;
     	else if(d==player1){
-			if(hitzone==3 &&d->weaponsel->type!=GUN_SNIPER){ // legs
+			if(hitzone == 3){ // legs
 				dam *= 0.6;
 			}
 			else if(hitzone == 2){
@@ -743,7 +746,7 @@ void grenadeent::splash()
     addscorchmark(o);
     adddynlight(NULL, o, 16, 200, 100, 255, 255, 224);
     adddynlight(NULL, o, 16, 600, 600, 192, 160, 128);
-    if(owner != player1 || !m_mp(gamemode)) return;
+	if(!local) return;
     radialeffect(owner, o, owner, GUN_GRENADE);
     loopv(players)
     {
@@ -1266,7 +1269,10 @@ void checkakimbo()
 			// fix akimbo magcontent
 			a.mag = 0;
 			a.ammo = 0;
-            if(player1->weaponsel->type==GUN_AKIMBO) player1->weaponswitch(&p);
+            if(player1->weaponsel->type==GUN_AKIMBO){
+				if(player1->primweap) player1->weaponswitch(player1->primweap);
+				else player1->weaponswitch(&p);
+			}
 	        playsoundc(S_AKIMBOOUT);
         }
     }

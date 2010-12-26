@@ -571,9 +571,8 @@ void dokill(playerent *pl, playerent *act, int weapon, bool gib)
 	void (*outf)(const char *s, ...) = (pl == p || act == p) ? hudoutf : conoutf;
 
 	if(pl==act){
-		outf("\f2%s %s%s", pname, weapon == GUN_GRENADE ? "blew himself up" :
+		outf("\f2%s %s%s", pname, weapon == GUN_GRENADE ? pl==p? "blew yourself up" : "blew himself up" :
 			weapon == NUMGUNS ? "committed too much friendly fire" : "suicided", pl == p ? "\f3!" : "");
-		if(pl == p) outf("\f3FRIENDLY FIRE WILL NOT BE TOLERATED!");
 	}
 	else
 		outf("\f2%s %s %s%s", aname, death, isteam(pl->team, act->team) ? "teammate " : "", pname);
