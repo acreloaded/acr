@@ -577,12 +577,6 @@ void sendf(int cn, int chan, const char *format, ...)
             loopi(n) putint(p, va_arg(args, int));
             break;
         }
-		case 'f':
-        {
-            int n = isdigit(*format) ? *format++-'0' : 1;
-            loopi(n) putfloat(p, va_arg(args, float));
-            break;
-        }
         case 's': sendstring(va_arg(args, const char *), p); break;
         case 'm':
         {
@@ -972,9 +966,9 @@ void sendflaginfo(int flag = -1, int cn = -1)
 void flagmessage(int flag, int message, int actor, int cn = -1)
 {
     if(message == FM_KTFSCORE)
-        sendf(cn, 1, "riiiii", SV_FLAGMSG, flag, message, actor, (gamemillis - sflaginfos[flag].stolentime) / 1000);
+        sendf(cn, 1, "ri5", SV_FLAGMSG, flag, message, actor, (gamemillis - sflaginfos[flag].stolentime) / 1000);
     else
-        sendf(cn, 1, "riiii", SV_FLAGMSG, flag, message, actor);
+        sendf(cn, 1, "ri4", SV_FLAGMSG, flag, message, actor);
 }
 
 void flagaction(int flag, int action, int actor)
@@ -1080,7 +1074,7 @@ void flagaction(int flag, int action, int actor)
     if(score)
     {
         clients[actor]->state.flagscore += score;
-        sendf(-1, 1, "riii", SV_FLAGCNT, actor, clients[actor]->state.flagscore);
+        sendf(-1, 1, "ri3", SV_FLAGCNT, actor, clients[actor]->state.flagscore);
     }
     if(valid_client(actor))
     {
@@ -1460,6 +1454,21 @@ void checkitemspawns(int diff)
     }
 }
 
+static inline void hitpushworkaround(client *&c, int gun, int damage, const vec &v){
+	//sendf(c->clientnum, 1, "ri3f3", SV_HITPUSH, gun, damage, v.x, v.y, v.z);
+	ENetPacket *packet = enet_packet_create(NULL, 6 * sizeof(float), ENET_PACKET_FLAG_RELIABLE);
+	ucharbuf p(packet->data, packet->dataLength);
+	putint(p, SV_HITPUSH);
+	putint(p, gun);
+	putint(p, damage * 2);
+	putfloat(p, v.x);
+	putfloat(p, v.y);
+	putfloat(p, v.z);
+	enet_packet_resize(packet, p.length());
+	sendpacket(c->clientnum, 1, packet);
+	if(packet->referenceCount==0) enet_packet_destroy(packet);
+}
+
 void serverdamage(client *target, client *actor, int damage, int gun, bool gib, const vec &hitpush = vec(0, 0, 0))
 {
     clientstate &ts = target->state;
@@ -1469,7 +1478,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 				vec v(hitpush);
 				v.mul(-1);
 				if(!v.iszero()) v.normalize();
-				sendf(actor->clientnum, 1, "ri3f3", SV_HITPUSH, gun, damage * 2, v.x, v.y, v.z);
+				hitpushworkaround(actor, gun, damage * 2, v);
 			}
 			actor->state.dodamage(damage * 0.4);
 			sendf(-1, 1, "ri7", SV_DAMAGE, actor->clientnum, actor->clientnum, damage * 0.4,
@@ -1477,14 +1486,14 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 			actor->state.frags -= 2;
 			sendf(-1, 1, "ri5", SV_DIED, actor->clientnum, actor->clientnum, actor->state.frags, NUMGUNS | 0x80);
 			if(actor->state.health <= 0){
-				logline(ACLOG_INFO, "[%s] %s suicided with teamkills", actor->hostname, actor->name);
+				logline(ACLOG_INFO, "[%s] %s suicided with friendly fire", actor->hostname, actor->name);
 			}
 			damage *= 0.25;
 		}
 		else if(!hitpush.iszero()){
 			vec v(hitpush);
 			if(!v.iszero()) v.normalize();
-			sendf(target->clientnum, 1, "ri3f3", SV_HITPUSH, gun, damage, v.x, v.y, v.z);
+			hitpushworkaround(target, gun, damage, v);
 		}
     }
     ts.dodamage(damage);
@@ -1515,7 +1524,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         if((suic || tk) && (m_htf || m_ktf) && targethasflag >= 0)
         {
             actor->state.flagscore--;
-            sendf(-1, 1, "riii", SV_FLAGCNT, actor->clientnum, actor->state.flagscore);
+            sendf(-1, 1, "ri3", SV_FLAGCNT, actor->clientnum, actor->state.flagscore);
         }
         target->position.setsizenodelete(0);
         ts.state = CS_DEAD;
@@ -1976,16 +1985,16 @@ void forcedeath(client *cl)
     sdropflag(cl->clientnum);
     cl->state.state = CS_DEAD;
     cl->state.respawn();
-    sendf(-1, 1, "rii", SV_FORCEDEATH, cl->clientnum);
+    sendf(-1, 1, "ri2", SV_FORCEDEATH, cl->clientnum);
 }
 
 void forceteam(int client, int team, bool respawn, bool notify = false)
 {
     if(!valid_client(client) || team < 0 || team > 1) return;
     if(clients[client]->lastforce && (servmillis - clients[client]->lastforce) < 2000) return;
-    sendf(client, 1, "riii", SV_FORCETEAM, team, (respawn ? 1 : 0) | (respawn && !notify ? 2 : 0));
+    sendf(client, 1, "ri3", SV_FORCETEAM, team, (respawn ? 1 : 0) | (respawn && !notify ? 2 : 0));
     clients[client]->lastforce = servmillis;
-    if(notify) sendf(-1, 1, "riii", SV_FORCENOTIFY, client, team);
+    if(notify) sendf(-1, 1, "ri3", SV_FORCENOTIFY, client, team);
 }
 
 int calcscores() // skill eval
@@ -2172,7 +2181,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 	else sendservmsg("\f3map not found - start another map or send the map to the server");
     if(notify){
         // change map
-        sendf(-1, 1, "risii", SV_MAPCHANGE, smapname, smode, mapavailable(smapname));
+        sendf(-1, 1, "risi2", SV_MAPCHANGE, smapname, smode, mapavailable(smapname));
         if(smode>1 || (smode==0 && numnonlocalclients()>0)) sendf(-1, 1, "ri2", SV_TIMEUP, minremain);
     }
     logline(ACLOG_INFO, "");
@@ -2262,7 +2271,7 @@ int serveroperator()
 void sendserveropinfo(int receiver)
 {
     int op = serveroperator();
-    sendf(receiver, 1, "riii", SV_SERVOPINFO, op, op >= 0 ? clients[op]->role : -1);
+    sendf(receiver, 1, "ri3", SV_SERVOPINFO, op, op >= 0 ? clients[op]->role : -1);
 }
 
 #include "serveractions.h"
@@ -2398,14 +2407,8 @@ void changeclientrole(int client, int role, char *pwd, bool force)
             logline(ACLOG_INFO,"[%s] player %s used admin password in line %d", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", pd.line);
         logline(ACLOG_INFO,"[%s] set role of player %s to %s", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", role == CR_ADMIN ? "admin" : "normal player"); // flowtron : connecting players haven't got a name yet (connectadmin)
     }
-    else if(pwd && pwd[0]) disconnect_client(client, DISC_SOPLOGINFAIL); // avoid brute-force
+    else if(pwd && pwd[0]) disconnect_client(client, DISC_LOGINFAIL); // avoid brute-force
     if(curvote) curvote->evaluate();
-}
-
-const char *disc_reason(int reason)
-{
-    static const char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by server operator", "banned by server operator", "tag type", "connection refused due to ban", "wrong password", "failed admin login", "server FULL - maxclients", "server mastermode is \"private\"", "auto kick - did your score drop below the threshold?", "auto ban - did your score drop below the threshold?", "duplicate connection" };
-    return reason >= 0 && (size_t)reason < sizeof(disc_reasons)/sizeof(disc_reasons[0]) ? disc_reasons[reason] : "unknown";
 }
 
 void disconnect_client(int n, int reason)
@@ -2429,7 +2432,7 @@ void disconnect_client(int n, int reason)
     c.peer->data = (void *)-1;
     if(reason>=0) enet_peer_disconnect(c.peer, reason);
 	clients[n]->zap();
-    sendf(-1, 1, "rii", SV_CDIS, n);
+    sendf(-1, 1, "ri2", SV_CDIS, n);
     if(curvote) curvote->evaluate();
 }
 
@@ -2759,7 +2762,7 @@ int checktype(int type, client *cl)
                         SV_DAMAGE, SV_HITPUSH, SV_SHOTFX,
                         SV_SPAWNSTATE, SV_FORCEDEATH, SV_RESUME, SV_TIMEUP,
                         SV_MAPRELOAD, SV_ITEMACC, SV_MAPCHANGE, SV_ITEMSPAWN,
-                        SV_PONG, SV_SERVMSG, SV_MODELSKIN,
+                        SV_SERVMSG, SV_MODELSKIN,
                         SV_FLAGINFO, SV_FLAGMSG, SV_FLAGCNT,
                         SV_ARENAWIN, SV_SERVOPINFO,
                         SV_CALLVOTESUC, SV_CALLVOTEERR, SV_VOTERESULT, SV_ITEMLIST,
@@ -2790,7 +2793,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
     if(cl && !cl->isauthed)
     {
         int clientrole = CR_DEFAULT;
-
+		int clientversion, clientdefs;
         if(chan==0) return;
         else if(chan!=1 || getint(p)!=SV_CONNECT) disconnect_client(sender, DISC_TAGT);
         else
@@ -2804,6 +2807,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             s_strcpy(cl->pwd, text);
             int wantrole = getint(p);
             cl->state.nextprimary = getint(p);
+			clientversion = getint(p), clientdefs = getint(p);
             bool banned = isbanned(sender);
             bool srvfull = numnonlocalclients() > scl.maxclients;
             bool srvprivate = mastermode == MM_PRIVATE;
@@ -2813,30 +2817,19 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             if(wl == NWL_IPFAIL || wl == NWL_PWDFAIL)
             { // nickname matches whitelist, but IP is not in the required range or PWD doesn't match
                 logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong %s", cl->hostname, cl->name, wl == NWL_IPFAIL ? "IP" : "PWD");
-                disconnect_client(sender, DISC_MKICK);
+                disconnect_client(sender, DISC_PASSWORD);
             }
             else if(bl > 0)
             { // nickname matches blacklist
                 logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d", cl->hostname, cl->name, bl);
-                disconnect_client(sender, DISC_MKICK);
+                disconnect_client(sender, DISC_NAME);
             }
             else if(checkadmin(cl->name, text, cl->salt, &pd) && (!pd.denyadmin || (banned && !srvfull && !srvprivate))) // pass admins always through
             { // admin (or deban) password match
                 bool banremoved = false;
                 cl->isauthed = true;
                 if(!pd.denyadmin && wantrole == CR_ADMIN) clientrole = CR_ADMIN;
-                if(banned)
-                {
-                    loopv(bans) if(bans[i].address.host == cl->peer->address.host) { banremoved = true; bans.remove(i); break; } // remove admin bans
-                }
-                if(srvfull)
-                {
-                    loopv(clients) if(i != sender && clients[i]->type==ST_TCPIP)
-                    {
-                        disconnect_client(i, DISC_MAXCLIENTS); // disconnect someone else to fit maxclients again
-                        break;
-                    }
-                }
+                if(banned) loopv(bans) if(bans[i].address.host == cl->peer->address.host) { banremoved = true; bans.remove(i); break; } // remove admin bans
                 logline(ACLOG_INFO, "[%s] %s logged in using the admin password in line %d%s%s", cl->hostname, cl->name, pd.line, wlp, banremoved ? ", (ban removed)" : "");
             }
             else if(scl.serverpassword[0] && !(srvprivate || srvfull || banned))
@@ -2846,11 +2839,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                     cl->isauthed = true;
                     logline(ACLOG_INFO, "[%s] %s client logged in (using serverpassword)%s", cl->hostname, cl->name, wlp);
                 }
-                else disconnect_client(sender, DISC_WRONGPW);
+                else disconnect_client(sender, DISC_PASSWORD);
             }
-            else if(srvprivate) disconnect_client(sender, DISC_MASTERMODE);
-            else if(srvfull) disconnect_client(sender, DISC_MAXCLIENTS);
-            else if(banned) disconnect_client(sender, DISC_BANREFUSE);
+            else if(srvprivate) disconnect_client(sender, DISC_PRIVATE);
+            else if(srvfull) disconnect_client(sender, DISC_FULL);
+            else if(banned) disconnect_client(sender, DISC_REFUSE);
             else
             {
                 cl->isauthed = true;
@@ -2858,6 +2851,13 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             }
         }
         if(!cl->isauthed) return;
+
+		string cdefs = "";
+		if(clientdefs & 0x40) s_strcat(cdefs, "W");
+		if(clientdefs & 0x20) s_strcat(cdefs, "M");
+		if(clientdefs & 0x8) s_strcat(cdefs, "D");
+		if(clientdefs & 0x4) s_strcat(cdefs, "L");
+		logline(ACLOG_INFO, "[%s] runs %d [%s]", cl->hostname, clientversion, cdefs);
 
         if(cl->type==ST_TCPIP)
         {
@@ -2904,7 +2904,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         type = checktype(getint(p), cl);
 
         #ifdef _DEBUG
-        if(type!=SV_POS && type!=SV_CLIENTPING && type!=SV_PING && type!=SV_CLIENT)
+        if(type!=SV_POS && type!=SV_CLIENTPING && type!=SV_PINGPONG && type!=SV_CLIENT)
         {
             DEBUGVAR(cl->name);
             ASSERT(type>=0 && type<SV_NUM);
@@ -2981,7 +2981,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                         case NWL_PWDFAIL:
                         case NWL_IPFAIL:
                             logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong IP/PWD", cl->hostname, cl->name);
-                            disconnect_client(sender, DISC_MKICK);
+                            disconnect_client(sender, DISC_PASSWORD);
                             break;
 
                         case NWL_UNLISTED:
@@ -2990,7 +2990,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                             if(l >= 0)
                             {
                                 logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d", cl->hostname, cl->name, l);
-                                disconnect_client(sender, DISC_MKICK);
+                                disconnect_client(sender, DISC_NAME);
                             }
                             break;
                         }
@@ -3002,7 +3002,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             case SV_MAPIDENT:
             {
                 int gzs = getint(p);
-				if(!isdedicated || smapstats.cgzsize == gzs) cl->isonrightmap = true;
+				if(!isdedicated || smapstats.cgzsize == gzs){
+					if(cl->state.state == CS_DEAD)sendspawn(cl);
+					cl->isonrightmap = true;
+				}
 				else forcedeath(cl);
                 break;
             }
@@ -3041,12 +3044,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             }
 
             case SV_CHANGETEAM:
-                if(cl->state.state==CS_ALIVE)
-                {
-                    cl->state.state = CS_DEAD;
-                    cl->state.respawn();
-                    sendf(-1, 1, "rii", SV_FORCEDEATH, cl->clientnum);
-                }
+                if(cl->state.state==CS_ALIVE) forcedeath(cl);
                 break;
 
             case SV_TRYSPAWN:
@@ -3148,20 +3146,21 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				loopi(6) getfloat(p);
 				getint(p);
 				QUEUE_MSG;
+				break;
 			}
 
-            case SV_PING:
-                sendf(sender, 1, "ii", SV_PONG, getint(p));
-                break;
+			case SV_PINGPONG:
+				sendf(-1, 1, "ii", SV_PINGPONG, getint(p));
+				break;
 
-
-            case SV_CLIENTPING:
-            {
-                int ping = getint(p);
-                if(cl) cl->ping = cl->ping == 9999 ? ping : (cl->ping * 4 + ping) / 5;
-                QUEUE_MSG;
+			case SV_PINGTIME:
+			{
+				int pp = getint(p);
+				if(!cl) break;
+				cl->ping = cl->ping == 9999 ? pp : (cl->ping * 4 + pp) / 5;
+				sendf(-1, 1, "i3", SV_PINGTIME, sender, cl->ping);
                 break;
-            }
+			}
 
 			case SV_EDITMODE:
 			{
@@ -3392,18 +3391,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                     getstring(text, p, n);
                     if(valid_client(sender) && clients[sender]->role==CR_ADMIN) logline(ACLOG_INFO, "%s", text);
                 }
-                else if(!strcmp(ext, "official::clientstring"))
-                {
-                    // not for public use
-
-                    if(valid_client(sender))
-                    {
-                        client *c = clients[sender];
-                        int version = getint(p);
-                        int cdefs = getint(p);
-                        logline(ACLOG_INFO, "[%s] runs AC %d (defs: %02x)", c->hostname, version, cdefs);
-                    }
-                }
 
                 // add other extensions here
 
@@ -3412,6 +3399,13 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 break;
             }
 
+			case -1: // tag type
+				disconnect_client(sender, DISC_TAGT);
+				return;
+
+			case -2: // overflow
+				disconnect_client(sender, DISC_OVERFLOW);
+				return;
             default:
             {
                 int size = msgsizelookup(type);
@@ -3454,7 +3448,7 @@ void checkintermission()
     if(minremain>0)
     {
         minremain = gamemillis>=gamelimit || forceintermission ? 0 : (gamelimit - gamemillis + 60000 - 1)/60000;
-		if(isdedicated) loopv(clients) if(valid_client(i)){
+		loopv(clients) if(valid_client(i)){
 			client &cl = *clients[i];
 			s_sprintfd(accmsg)("\f1%d%% \f5accuracy \f4(\f1%d \f2shot, \f1%d \f0hit, \f1%d \f3wasted\f4)",
 				cl.state.damage * 100/ max(cl.state.shotdamage,1),
@@ -3596,7 +3590,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         else if(configsets.length()) nextcfgset();
         else if(!isdedicated){
 			loopv(clients) if(clients[i]->type!=ST_EMPTY){
-				sendf(i, 1, "rii", SV_MAPRELOAD, 0);    // ask a client to trigger map reload
+				sendf(i, 1, "ri2", SV_MAPRELOAD, 0);    // ask a client to trigger map reload
 				mapreload = true;
 				break;
 			}

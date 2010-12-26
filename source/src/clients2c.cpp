@@ -171,7 +171,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         type = getint(p);
 
         #ifdef _DEBUG
-        if(type!=SV_POS && type!=SV_CLIENTPING && type!=SV_PING && type!=SV_PONG && type!=SV_CLIENT)
+        if(type!=SV_POS && type!=SV_CLIENTPING && type!=SV_PINGPONG && type!=SV_CLIENT)
         {
             DEBUGVAR(d);
             ASSERT(type>=0 && type<SV_NUM);
@@ -204,24 +204,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 player1->clientnum = mycn;
                 if(getint(p) > 0) conoutf("INFO: this server is password protected");
                 sendintro();
-
-                // send client info using srv extension (backward compat)
-                string versionext;
-                s_strcpy(versionext, "official::clientstring");
-                addmsg(SV_EXTENSION, "rsiii", versionext, 2, AC_VERSION,
-                #ifdef WIN32
-                    0x40 |
-                #endif
-                #ifdef __APPLE__
-                    0x20 |
-                #endif
-                #ifdef _DEBUG
-                    0x08 |
-                #endif
-                #ifdef __GNUC__
-                    0x04 |
-                #endif
-                    1);
                 break;
             }
 
@@ -594,17 +576,17 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 break;
             }
 
-            case SV_PONG:
-            {
-                int millis = getint(p);
-                addmsg(SV_CLIENTPING, "i", player1->ping = max(0, (player1->ping*5+totalmillis-millis)/6));
+            case SV_PINGPONG:
+                addmsg(SV_PINGTIME, "i", totalmillis - getint(p));
                 break;
-            }
 
-            case SV_CLIENTPING:
-                if(!d) return;
-                d->ping = getint(p);
+            case SV_PINGTIME:
+			{
+                playerent *pl = getclient(getint(p));
+				int pp = getint(p);
+                if(pl) pl->ping = pp;
                 break;
+			}
 
             case SV_GAMEMODE:
                 nextmode = getint(p);

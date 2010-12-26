@@ -23,7 +23,7 @@ enum
     SV_TRYSPAWN, SV_SPAWNSTATE, SV_SPAWN, SV_FORCEDEATH, SV_RESUME,
     SV_TIMEUP, SV_EDITENT, SV_MAPRELOAD, SV_NEXTMAP, SV_ITEMACC,
     SV_MAPCHANGE, SV_ITEMSPAWN, SV_ITEMPICKUP,
-    SV_PING, SV_PONG, SV_CLIENTPING, SV_GAMEMODE,
+    SV_PINGPONG, SV_PINGTIME, SV_GAMEMODE,
     SV_EDITMODE, SV_EDITH, SV_EDITT, SV_EDITS, SV_EDITD, SV_EDITE, SV_NEWMAP,
     SV_SENDMAP, SV_RECVMAP, SV_SERVMSG, SV_ITEMLIST, SV_WEAPCHANGE, SV_PRIMARYWEAP,
     SV_MODELSKIN,
@@ -53,7 +53,7 @@ const static char *messagenames[] =
     "SV_TRYSPAWN", "SV_SPAWNSTATE", "SV_SPAWN", "SV_FORCEDEATH", "SV_RESUME",
     "SV_TIMEUP", "SV_EDITENT", "SV_MAPRELOAD", "SV_NEXTMAP", "SV_ITEMACC",
     "SV_MAPCHANGE", "SV_ITEMSPAWN", "SV_ITEMPICKUP",
-    "SV_PING", "SV_PONG", "SV_CLIENTPING", "SV_GAMEMODE",
+    "SV_PINGPONG", "SV_PINGTIME", "SV_GAMEMODE",
     "SV_EDITMODE", "SV_EDITH", "SV_EDITT", "SV_EDITS", "SV_EDITD", "SV_EDITE", "SV_NEWMAP",
     "SV_SENDMAP", "SV_RECVMAP", "SV_SERVMSG", "SV_ITEMLIST", "SV_WEAPCHANGE", "SV_PRIMARYWEAP",
     "SV_MODELSKIN",
@@ -79,10 +79,19 @@ enum { AT_DISABLED = 0, AT_ENABLED, AT_SHUFFLE, AT_NUM };
 enum { FA_PICKUP = 0, FA_DROP, FA_LOST, FA_RETURN, FA_SCORE, FA_NUM, FA_RESET };
 enum { FM_PICKUP = 0, FM_DROP, FM_LOST, FM_RETURN, FM_SCORE, FM_KTFSCORE, FM_SCOREFAIL, FM_RESET, FM_NUM };
 
-enum { DISC_NONE = 0, DISC_EOP, DISC_CN, DISC_MKICK, DISC_MBAN, DISC_TAGT, DISC_BANREFUSE, DISC_WRONGPW, DISC_SOPLOGINFAIL, DISC_MAXCLIENTS, DISC_MASTERMODE, DISC_AUTOKICK, DISC_AUTOBAN, DISC_DUP, DISC_NUM };
+enum { DISC_NONE = 0, DISC_EOP, DISC_CN, DISC_KICK, DISC_BAN, DISC_TAGT, DISC_REFUSE, DISC_PASSWORD, DISC_LOGINFAIL, DISC_FULL, DISC_PRIVATE,
+		DISC_NAME, DISC_AUTOKICK, DISC_AUTOBAN, DISC_DUP, DISC_OVERFLOW, DISC_NUM };
+
+static const char *disc_reason(int reason)
+{
+    static const char *disc_reasons[] = {
+		"normal", "end of packet", "client num", "kicked", "banned", "tag type", "connection refused", "wrong password", "failed login", "server is full", "private",
+			"bad name", "auto kick", "auto ban", "duplicate connection", "overflow (packet flood)" };
+    return reason >= 0 && (size_t)reason < sizeof(disc_reasons)/sizeof(disc_reasons[0]) ? disc_reasons[reason] : "unknown";
+}
 
 #define EXT_ACK                         -1
-#define EXT_VERSION                     104
+#define EXT_VERSION                     200
 #define EXT_ERROR_NONE                  0
 #define EXT_ERROR                       1
 #define EXT_PLAYERSTATS_RESP_IDS        -10

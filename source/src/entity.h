@@ -46,7 +46,7 @@ static itemstat ammostats[] =
     {24, 36,  72,    S_ITEMAMMO},   //pistol
     {20, 30,  60,    S_ITEMAMMO},   //shotgun
     {64, 96,  192,   S_ITEMAMMO},   //subgun
-    {10, 20,  30,    S_ITEMAMMO},   //sniper
+    {20, 30,  30,    S_ITEMAMMO},   //sniper
     {60, 90,  180,    S_ITEMAMMO},   //assault
     {2,  0,   3,     S_ITEMAMMO},   //grenade
     {72, 0,   108,   S_ITEMAKIMBO}  //akimbo
@@ -54,8 +54,8 @@ static itemstat ammostats[] =
 
 static itemstat powerupstats[] =
 {
-    {33, 100, 100, S_ITEMHEALTH}, //health
-    {50, 100, 100, S_ITEMARMOUR}, //armour
+    {35, 100, 120, S_ITEMHEALTH}, //health
+    {60, 100, 150, S_ITEMARMOUR}, //armour
 };
 
 #define SGRAYS 32

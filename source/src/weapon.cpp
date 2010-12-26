@@ -715,8 +715,23 @@ void grenadeent::explode()
     static vec n(0,0,0);
     hits.setsizenodelete(0);
     splash();
-    if(local)
-        addmsg(SV_EXPLODE, "ri3f3", lastmillis, GUN_GRENADE, millis, o.x, o.y, o.z);
+    if(local){
+        //addmsg(SV_EXPLODE, "ri3f3", lastmillis, GUN_GRENADE, millis, o.x, o.y, o.z);
+		static uchar buf[7 * sizeof(float)];
+		ucharbuf p(buf, 7 * sizeof(float));
+		putint(p, SV_EXPLODE);
+		putint(p, lastmillis);
+		putint(p, GUN_GRENADE);
+		putint(p, millis);
+		putfloat(p, o.x);
+		putfloat(p, o.y);
+		putfloat(p, o.z);
+		int len = p.length();
+		extern vector<uchar> messages;
+		messages.add(len & 0xFF);
+		messages.add((len >> 8) | 0x80);
+		loopi(len) messages.add(buf[i]);
+	}
     playsound(S_FEXPLODE, &o);
 }
 
@@ -744,7 +759,22 @@ void grenadeent::activate(const vec &from, const vec &to)
 
     if(local)
     {
-        addmsg(SV_SHOOT, "ri2f3i", millis, owner->weaponsel->type, to.x, to.y, to.z, 0);
+        //addmsg(SV_SHOOT, "ri2f3i", millis, GUN_GRENADE, to.x, to.y, to.z, 0);
+		static uchar buf[7 * sizeof(float)];
+		ucharbuf p(buf, 7 * sizeof(float));
+		putint(p, SV_SHOOT);
+		putint(p, millis);
+		putint(p, GUN_GRENADE);
+		putfloat(p, to.x);
+		putfloat(p, to.y);
+		putfloat(p, to.z);
+		putint(p, 0);
+		int len = p.length();
+		extern vector<uchar> messages;
+		messages.add(len & 0xFF);
+		messages.add((len >> 8) | 0x80);
+		loopi(len) messages.add(buf[i]);
+
         playsound(S_GRENADEPULL, SP_HIGH);
     }
 }
@@ -760,7 +790,23 @@ void grenadeent::_throw(const vec &from, const vec &vel)
 
     if(local)
     {
-        addmsg(SV_THROWNADE, "rf6i", o.x, o.y, o.z, vel.x, vel.y, vel.z, lastmillis-millis);
+        //addmsg(SV_THROWNADE, "rf6i", o.x, o.y, o.z, vel.x, vel.y, vel.z, lastmillis-millis);
+		static uchar buf[8 * sizeof(float)];
+		ucharbuf p(buf, 8 * sizeof(float));
+		putint(p, SV_THROWNADE);
+		putfloat(p, o.x);
+		putfloat(p, o.y);
+		putfloat(p, o.z);
+		putfloat(p, vel.x);
+		putfloat(p, vel.y);
+		putfloat(p, vel.z);
+		putint(p, lastmillis-millis);
+		int len = p.length();
+		extern vector<uchar> messages;
+		messages.add(len&0xFF);
+		messages.add((len>>8)| 0x80);
+		loopi(len) messages.add(buf[i]);
+
         playsound(S_GRENADETHROW, SP_HIGH);
     }
     else playsound(S_GRENADETHROW, owner);
@@ -840,7 +886,7 @@ bool grenades::attack(vec &targ)
 void grenades::attackfx(const vec &from, const vec &to, int millis) // other player's grenades
 {
     throwmillis = lastmillis-millis;
-    if(millis == 0) playsound(S_GRENADEPULL, owner); // activate
+    if(millis <= 0) playsound(S_GRENADEPULL, owner); // activate
     else if(millis > 0) // throw
     {
         grenadeent *g = new grenadeent(owner, millis);
@@ -932,7 +978,7 @@ gun::gun(playerent *owner, int type) : weapon(owner, type) {}
 bool gun::attack(vec &targ)
 {
     int attackmillis = lastmillis-owner->lastaction;
-    if(timebalance < gunwait) attackmillis += timebalance;
+    // if(timebalance < gunwait) attackmillis += timebalance;
 	if(attackmillis<gunwait) return false;
 	timebalance = gunwait ? attackmillis - gunwait : 0;
     gunwait = reloading = 0;
@@ -1159,7 +1205,7 @@ bool knife::attack(vec &targ)
     vec unitv;
     float dist = to.dist(from, unitv);
     unitv.div(dist);
-    unitv.mul(4); // punch range (meter)
+    unitv.mul(4); // punch range (1 meter)
     to = from;
     to.add(unitv);
 

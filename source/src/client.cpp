@@ -259,7 +259,6 @@ void addmsg(int type, const char *fmt, ...)
     static uchar buf[MAXTRANS];
     ucharbuf p(buf, MAXTRANS);
     putint(p, type);
-    int numi = 1, nums = 0;
     bool reliable = false;
     if(fmt)
     {
@@ -273,29 +272,18 @@ void addmsg(int type, const char *fmt, ...)
                 int n = va_arg(args, int);
                 int *v = va_arg(args, int *);
                 loopi(n) putint(p, v[i]);
-                numi += n;
                 break;
             }*/
             case 'i':
             {
                 int n = isdigit(*fmt) ? *fmt++-'0' : 1;
                 loopi(n) putint(p, va_arg(args, int));
-                numi += n;
                 break;
-            }
-			case 'f':
-            {
-                int n = isdigit(*fmt) ? *fmt++-'0' : 1;
-                loopi(n) putfloat(p, va_arg(args, float));
-                numi += n;
-                break;
-            }
-            case 's': sendstring(va_arg(args, const char *), p); nums++; break;
+            }			
+            case 's': sendstring(va_arg(args, const char *), p); break;
         }
         va_end(args);
     }
-    int num = nums?0:numi, msgsize = msgsizelookup(type);
-    if(msgsize && num!=msgsize) { fatal("inconsistent msg size for %d (%d != %d)", type, num, msgsize); }
     int len = p.length();
     messages.add(len&0xFF);
     messages.add((len>>8)|(reliable ? 0x80 : 0));
@@ -381,7 +369,7 @@ void c2sinfo(playerent *d)                  // send update to the server
         messages.remove(0, i);
         if(totalmillis-lastping>250)
         {
-            putint(p, SV_PING);
+            putint(p, SV_PINGPONG);
             putint(p, totalmillis);
             lastping = totalmillis;
         }
@@ -408,6 +396,21 @@ void sendintro()
     clientpassword[0] = '\0';
     connectrole = CR_DEFAULT;
     putint(p, player1->nextprimweap->type);
+	putint(p, AC_VERSION);
+	putint(p, 
+			#ifdef WIN32
+				0x40 |
+			#endif
+			#ifdef __APPLE__
+				0x20 |
+				#endif
+			#ifdef _DEBUG
+				0x08 |
+			#endif
+			#ifdef __GNUC__
+				0x04 |
+			#endif
+				1);
     enet_packet_resize(packet, p.length());
     sendpackettoserv(1, packet);
 }
@@ -455,7 +458,6 @@ void gets2c()           // get updates from the server
 
         case ENET_EVENT_TYPE_DISCONNECT:
 		{
-            extern const char *disc_reason(int reason);
             if(event.data>=DISC_NUM) event.data = DISC_NONE;
             if(event.peer==connpeer)
             {

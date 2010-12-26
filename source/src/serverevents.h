@@ -38,9 +38,24 @@ void processevent(client *c, shotevent &e)
     gs.lastshot = e.millis;
     gs.gunwait[e.gun] = attackdelay(e.gun);
     if(e.gun==GUN_PISTOL && gs.akimbomillis>gamemillis) gs.gunwait[e.gun] /= 2;
-    sendf(-1, 1, "ri3f6", SV_SHOTFX, c->clientnum, e.gun,
+    /*sendf(-1, 1, "ri3f6x", SV_SHOTFX, c->clientnum, e.gun,
         c->state.o.x, c->state.o.y, c->state.o.z,
-        e.to[0], e.to[1], e.to[2]);
+        e.to[0], e.to[1], e.to[2], c->clientnum);*/
+	ENetPacket *packet = enet_packet_create(NULL, 9 * sizeof(float), ENET_PACKET_FLAG_RELIABLE);
+	ucharbuf p(packet->data, packet->dataLength);
+	putint(p, SV_SHOTFX);
+	putint(p, c->clientnum);
+	putint(p, e.gun);
+	putfloat(p, c->state.o.x);
+	putfloat(p, c->state.o.y);
+	putfloat(p, c->state.o.z);
+	putfloat(p, e.to[0]);
+	putfloat(p, e.to[1]);
+	putfloat(p, e.to[2]);
+	enet_packet_resize(packet, p.length());
+	sendpacket(-1, 1, packet, c->clientnum);
+	if(packet->referenceCount==0) enet_packet_destroy(packet);
+
     gs.shotdamage += guns[e.gun].damage*(e.gun==GUN_SHOTGUN ? SGRAYS : 1);
     switch(e.gun)
     {
@@ -122,7 +137,7 @@ void processevents()
     loopv(clients)
     {
         client *c = clients[i];
-        if(c->type==ST_EMPTY) continue;
+        if(!c || c->type==ST_EMPTY) continue;
         while(c->events.length())
         {
             gameevent &e = c->events[0];

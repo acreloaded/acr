@@ -131,7 +131,7 @@ struct giveadminaction : playeraction
 struct kickaction : playeraction
 {
     bool wasvalid;
-    void perform()  { disconnect(DISC_MKICK); }
+    void perform()  { disconnect(DISC_KICK); }
     virtual bool isvalid() { return wasvalid || playeraction::isvalid(); }
     kickaction(int cn) : playeraction(cn)
     {
@@ -152,7 +152,7 @@ struct banaction : playeraction
     {
         ban b = { address, servmillis+20*60*1000 };
 		bans.add(b);
-        disconnect(DISC_MBAN);
+        disconnect(DISC_BAN);
     }
     virtual bool isvalid() { return wasvalid || playeraction::isvalid(); }
     banaction(int cn) : playeraction(cn)

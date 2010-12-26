@@ -580,8 +580,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if(command) commandh -= rendercommand(20, 1570, VIRTW);
     else if(infostr) draw_text(infostr, 20, 1570);
     else if(targetplayer){
-		s_sprintfd(targetplayername)("\f%d%s \f4[\f%s\f4]", p==targetplayer?1:isteam(p->team, targetplayer->team)? 0:3, colorname(targetplayer),
-			targetplayerzone==2?"3HEAD":targetplayerzone==1?"2TORSO":"1LEGS");
+		s_sprintfd(targetplayername)("\f%d%s \f4[\f%s\f4]", p==targetplayer?1:isteam(p->team, targetplayer->team)?0:3, colorname(targetplayer),
+			targetplayerzone==2?"3HEAD":targetplayerzone==1?"2TORSO":"0LEGS");
 		draw_text(targetplayername, 20, 1570);
 	}
 
