@@ -21,19 +21,19 @@ typedef vector<int> ivector;
 
 // globals ooh naughty
 
-extern sqr *world, *wmip[];             // map data, the mips are sequential 2D arrays in memory
-extern header hdr;                      // current map header
-extern int sfactor, ssize;              // ssize = 2^sfactor
-extern int cubicsize, mipsize;          // cubicsize = ssize^2
-extern physent *camera1;                // camera representing perspective of player, usually player1
-extern playerent *player1;              // special client ent that receives input and acts as camera
-extern vector<playerent *> players;     // all the other clients (in multiplayer)
+extern sqr *world, *wmip[];			 // map data, the mips are sequential 2D arrays in memory
+extern header hdr;					  // current map header
+extern int sfactor, ssize;			  // ssize = 2^sfactor
+extern int cubicsize, mipsize;		  // cubicsize = ssize^2
+extern physent *camera1;				// camera representing perspective of player, usually player1
+extern playerent *player1;			  // special client ent that receives input and acts as camera
+extern vector<playerent *> players;	 // all the other clients (in multiplayer)
 extern vector<bounceent *> bounceents;
 extern bool editmode;
-extern vector<entity> ents;             // map entities
+extern vector<entity> ents;			 // map entities
 extern vec worldpos, camup, camright, camdir; // current target of the crosshair in the world
-extern int lastmillis, totalmillis;     // last time
-extern int curtime;                     // current frame time
+extern int lastmillis, totalmillis;	 // last time
+extern int curtime;					 // current frame time
 extern int gamemode, nextmode;
 extern int gamespeed;
 extern int xtraverts;

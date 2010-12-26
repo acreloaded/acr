@@ -5,10 +5,10 @@
 extern bool hasTE, hasMT, hasMDA, hasDRE, hasstencil, hasST2, hasSTW, hasSTS;
 
 // GL_ARB_multitexture
-extern PFNGLACTIVETEXTUREARBPROC       glActiveTexture_;
+extern PFNGLACTIVETEXTUREARBPROC	   glActiveTexture_;
 extern PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTexture_;
-extern PFNGLMULTITEXCOORD2FARBPROC     glMultiTexCoord2f_;
-extern PFNGLMULTITEXCOORD3FARBPROC     glMultiTexCoord3f_;
+extern PFNGLMULTITEXCOORD2FARBPROC	 glMultiTexCoord2f_;
+extern PFNGLMULTITEXCOORD3FARBPROC	 glMultiTexCoord3f_;
 
 // GL_EXT_multi_draw_arrays
 extern PFNGLMULTIDRAWARRAYSEXTPROC   glMultiDrawArrays_;
@@ -26,10 +26,10 @@ extern PFNGLSTENCILFUNCSEPARATEATIPROC glStencilFuncSeparate_;
 
 struct color
 {
-    float r, g, b, alpha;
-    color(){}
-    color(float r, float g, float b) : r(r), g(g), b(b), alpha(1.0f) {}
-    color(float r, float g, float b, float a) : r(r), g(g), b(b), alpha(a) {}
+	float r, g, b, alpha;
+	color(){}
+	color(float r, float g, float b) : r(r), g(g), b(b), alpha(1.0f) {}
+	color(float r, float g, float b, float a) : r(r), g(g), b(b), alpha(a) {}
 };
 
 // command
@@ -82,12 +82,12 @@ extern void conoutf(const char *s, ...);
 
 struct keym
 {
-    int code;
-    char *name, *action;
-    bool pressed;
+	int code;
+	char *name, *action;
+	bool pressed;
 
-    keym() : code(-1), name(NULL), action(NULL), pressed(false) {}
-    ~keym() { DELETEA(name); DELETEA(action); }
+	keym() : code(-1), name(NULL), action(NULL), pressed(false) {}
+	~keym() { DELETEA(name); DELETEA(action); }
 };
 
 extern bool bindkey(keym *km, const char *action);
@@ -114,67 +114,67 @@ extern void refreshapplymenu(void *menu, bool init);
 
 struct mitem
 {
-    struct gmenu *parent;
-    color *bgcolor;
+	struct gmenu *parent;
+	color *bgcolor;
 
-    mitem(gmenu *parent, color *bgcolor) : parent(parent), bgcolor(bgcolor) {}
-    virtual ~mitem() {}
+	mitem(gmenu *parent, color *bgcolor) : parent(parent), bgcolor(bgcolor) {}
+	virtual ~mitem() {}
 
-    virtual void render(int x, int y, int w);
-    virtual int width() = 0;
-    virtual void select() {}
-    virtual void focus(bool on) { }
-    virtual void key(int code, bool isdown, int unicode) { }
-    virtual void init() {}
-    virtual const char *getdesc() { return NULL; }
-    bool isselection();
-    void renderbg(int x, int y, int w, color *c);
-    static color gray, white, whitepulse;
+	virtual void render(int x, int y, int w);
+	virtual int width() = 0;
+	virtual void select() {}
+	virtual void focus(bool on) { }
+	virtual void key(int code, bool isdown, int unicode) { }
+	virtual void init() {}
+	virtual const char *getdesc() { return NULL; }
+	bool isselection();
+	void renderbg(int x, int y, int w, color *c);
+	static color gray, white, whitepulse;
 };
 
 struct mdirlist
 {
-    char *dir, *ext, *action;
-    bool image;
-    ~mdirlist()
-    {
-        DELETEA(dir);
-        DELETEA(ext);
-        DELETEA(action);
-    }
+	char *dir, *ext, *action;
+	bool image;
+	~mdirlist()
+	{
+		DELETEA(dir);
+		DELETEA(ext);
+		DELETEA(action);
+	}
 };
 
 struct gmenu
 {
-    const char *name, *title, *header, *footer;
-    vector<mitem *> items;
-    int mwidth;
-    int menusel;
-    bool allowinput, inited, hotkeys, forwardkeys;
-    void (__cdecl *refreshfunc)(void *, bool);
-    bool (__cdecl *keyfunc)(void *, int, bool, int);
-    char *initaction;
+	const char *name, *title, *header, *footer;
+	vector<mitem *> items;
+	int mwidth;
+	int menusel;
+	bool allowinput, inited, hotkeys, forwardkeys;
+	void (__cdecl *refreshfunc)(void *, bool);
+	bool (__cdecl *keyfunc)(void *, int, bool, int);
+	char *initaction;
 
-    const char *mdl;
-    int anim, rotspeed, scale;
-    mdirlist *dirlist;
+	const char *mdl;
+	int anim, rotspeed, scale;
+	mdirlist *dirlist;
 
-    gmenu() : name(0), title(0), header(0), footer(0), initaction(0), mdl(0), dirlist(0) {}
-    virtual ~gmenu()
-    {
-        DELETEA(name);
-        DELETEA(mdl);
-        DELETEP(dirlist);
-        DELETEA(initaction);
-        items.deletecontentsp();
-    }
+	gmenu() : name(0), title(0), header(0), footer(0), initaction(0), mdl(0), dirlist(0) {}
+	virtual ~gmenu()
+	{
+		DELETEA(name);
+		DELETEA(mdl);
+		DELETEP(dirlist);
+		DELETEA(initaction);
+		items.deletecontentsp();
+	}
 
-    void render();
-    void renderbg(int x1, int y1, int x2, int y2, bool border);
-    void refresh();
-    void open();
-    void close();
-    void init();
+	void render();
+	void renderbg(int x1, int y1, int x2, int y2, bool border);
+	void refresh();
+	void open();
+	void close();
+	void init();
 };
 
 // serverbrowser
@@ -188,30 +188,30 @@ extern bool serverskey(void *menu, int code, bool isdown, int unicode);
 
 struct serverinfo
 {
-    enum { UNRESOLVED = 0, RESOLVING, RESOLVED };
+	enum { UNRESOLVED = 0, RESOLVING, RESOLVED };
 
-    string name;
-    string full;
-    string map;
-    string sdesc;
-    string description;
-    string cmd;
-    int mode, numplayers, maxclients, ping, protocol, minremain, resolved, port, lastpingmillis, pongflags, getnames, getinfo, menuline_from, menuline_to;
-    ENetAddress address;
-    vector<const char *> playernames;
-    uchar namedata[MAXTRANS];
-    vector<char *> infotexts;
-    uchar textdata[MAXTRANS];
-    char lang[3];
-    color *bgcolor;
-    int favcat, msweight, weight;
+	string name;
+	string full;
+	string map;
+	string sdesc;
+	string description;
+	string cmd;
+	int mode, numplayers, maxclients, ping, protocol, minremain, resolved, port, lastpingmillis, pongflags, getnames, getinfo, menuline_from, menuline_to;
+	ENetAddress address;
+	vector<const char *> playernames;
+	uchar namedata[MAXTRANS];
+	vector<char *> infotexts;
+	uchar textdata[MAXTRANS];
+	char lang[3];
+	color *bgcolor;
+	int favcat, msweight, weight;
 
-    serverinfo()
-     : mode(0), numplayers(0), maxclients(0), ping(9999), protocol(0), minremain(0), resolved(UNRESOLVED), port(-1), lastpingmillis(0), pongflags(0), getnames(0), getinfo(0), bgcolor(NULL), favcat(-1), msweight(0), weight(0)
-    {
-        name[0] = full[0] = map[0] = sdesc[0] = description[0] = '\0';
-        loopi(3) lang[i] = '\0';
-    }
+	serverinfo()
+	 : mode(0), numplayers(0), maxclients(0), ping(9999), protocol(0), minremain(0), resolved(UNRESOLVED), port(-1), lastpingmillis(0), pongflags(0), getnames(0), getinfo(0), bgcolor(NULL), favcat(-1), msweight(0), weight(0)
+	{
+		name[0] = full[0] = map[0] = sdesc[0] = description[0] = '\0';
+		loopi(3) lang[i] = '\0';
+	}
 };
 
 extern serverinfo *getconnectedserverinfo();
@@ -220,13 +220,13 @@ extern void updatefrommaster(int force);
 
 struct packetqueue
 {
-    ringbuf<ENetPacket *, 8> packets;
+	ringbuf<ENetPacket *, 8> packets;
 
-    packetqueue();
-    ~packetqueue();
-    void queue(ENetPacket *p);
-    bool flushtolog(const char *logfile);
-    void clear();
+	packetqueue();
+	~packetqueue();
+	void queue(ENetPacket *p);
+	bool flushtolog(const char *logfile);
+	void clear();
 };
 
 // rendergl
@@ -259,11 +259,11 @@ extern void damageblend(int n);
 
 enum
 {
-    CROSSHAIR_DEFAULT = 0,
-    CROSSHAIR_TEAMMATE,
-    CROSSHAIR_SCOPE,
+	CROSSHAIR_DEFAULT = 0,
+	CROSSHAIR_TEAMMATE,
+	CROSSHAIR_SCOPE,
 	CROSSHAIR_ENEMY,
-    CROSSHAIR_NUM
+	CROSSHAIR_NUM
 };
 
 extern void drawcrosshair(playerent *p, int n, struct color *c = NULL, float size = -1.0f);
@@ -275,10 +275,10 @@ extern void drawstencilshadows();
 // texture
 struct Texture
 {
-    char *name;
-    int xs, ys, bpp, clamp;
-    bool mipmap, canreduce;
-    GLuint id;
+	char *name;
+	int xs, ys, bpp, clamp;
+	bool mipmap, canreduce;
+	GLuint id;
 };
 extern Texture *notexture, *noworldtexture;
 
@@ -337,7 +337,6 @@ extern void c2skeepalive();
 extern void neterr(const char *s);
 extern int getclientnum();
 extern void changemapserv(char *name, int mode, bool download = false);
-extern void changeteam(int team, bool respawn = true);
 extern void getmap();
 extern void newteam(char *name);
 extern bool securemapcheck(char *map, bool msg = true);
@@ -396,11 +395,11 @@ extern void spectate(int mode);
 
 struct votedisplayinfo
 {
-    playerent *owner;
-    int type, stats[VOTE_NUM], result, millis;
-    string desc;
-    bool localplayervoted;
-    votedisplayinfo() : owner(NULL), result(VOTE_NEUTRAL), millis(0), localplayervoted(false) { loopi(VOTE_NUM) stats[i] = VOTE_NEUTRAL; }
+	playerent *owner;
+	int type, stats[VOTE_NUM], result, millis;
+	string desc;
+	bool localplayervoted;
+	votedisplayinfo() : owner(NULL), result(VOTE_NEUTRAL), millis(0), localplayervoted(false) { loopi(VOTE_NUM) stats[i] = VOTE_NEUTRAL; }
 };
 
 extern votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, char *arg1, char *arg2);
@@ -459,30 +458,30 @@ extern bool firstrun, inmainloop;
 
 enum
 {
-    NOT_INITING = 0,
-    INIT_LOAD,
-    INIT_RESET
+	NOT_INITING = 0,
+	INIT_LOAD,
+	INIT_RESET
 };
 enum
 {
-    CHANGE_GFX   = 1<<0,
-    CHANGE_SOUND = 1<<1
+	CHANGE_GFX   = 1<<0,
+	CHANGE_SOUND = 1<<1
 };
 extern bool initwarning(const char *desc, int level = INIT_RESET, int type = CHANGE_GFX);
 
 // rendertext
 struct font
 {
-    struct charinfo
-    {
-        short x, y, w, h;
-    };
+	struct charinfo
+	{
+		short x, y, w, h;
+	};
 
-    char *name;
-    Texture *tex;
-    vector<charinfo> chars;
-    short defaultw, defaulth;
-    short offsetx, offsety, offsetw, offseth;
+	char *name;
+	Texture *tex;
+	vector<charinfo> chars;
+	short defaultw, defaulth;
+	short offsetx, offsety, offsetw, offseth;
 };
 
 #define VIRTH 1800
@@ -519,11 +518,11 @@ extern void pruneundos(int maxremain = 0);
 // renderhud
 enum
 {
-    HUDMSG_INFO = 0,
-    HUDMSG_TIMER,
+	HUDMSG_INFO = 0,
+	HUDMSG_TIMER,
 
-    HUDMSG_TYPE = 0xFF,
-    HUDMSG_OVERWRITE = 1<<8
+	HUDMSG_TYPE = 0xFF,
+	HUDMSG_OVERWRITE = 1<<8
 };
 extern void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater);
 extern void loadingscreen(const char *fmt = NULL, ...);
@@ -537,15 +536,15 @@ extern vec getradarpos();
 // renderparticles
 enum
 {
-    PT_PART = 0,
-    PT_FIREBALL,
-    PT_SHOTLINE,
-    PT_DECAL,
-    PT_BULLETHOLE,
-    PT_BLOOD,
-    PT_STAIN,
-    PT_FLASH,
-    PT_HUDFLASH
+	PT_PART = 0,
+	PT_FIREBALL,
+	PT_SHOTLINE,
+	PT_DECAL,
+	PT_BULLETHOLE,
+	PT_BLOOD,
+	PT_STAIN,
+	PT_FLASH,
+	PT_HUDFLASH
 };
 
 #define PT_DECAL_MASK ((1<<PT_DECAL)|(1<<PT_BULLETHOLE)|(1<<PT_STAIN))
@@ -707,9 +706,9 @@ extern int wizardmain(int argc, char **argv);
 #define DHDR_DESCCHARS 80
 struct demoheader
 {
-    char magic[16];
-    int version, protocol;
-    char desc[DHDR_DESCCHARS];
+	char magic[16];
+	int version, protocol;
+	char desc[DHDR_DESCCHARS];
 };
 
 // logging
@@ -724,103 +723,103 @@ extern bool logline(int level, const char *msg, ...);
 
 struct servercommandline
 {
-    int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, kickthreshold, banthreshold, verbose;
-    const char *ip, *master, *logident, *serverpassword, *demopath, *maprot, *pwdfile, *blfile, *nbfile, *infopath;
-    bool demoeverymatch, logtimestamp;
-    string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm;
-    int clfilenesting;
-    vector<const char *> adminonlymaps;
+	int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, kickthreshold, banthreshold, verbose;
+	const char *ip, *master, *logident, *serverpassword, *demopath, *maprot, *pwdfile, *blfile, *nbfile, *infopath;
+	bool demoeverymatch, logtimestamp;
+	string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm;
+	int clfilenesting;
+	vector<const char *> adminonlymaps;
 
-    servercommandline() :   uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), syslogfacility(6), filethres(-1), syslogthres(-1), maxdemos(5),
-                            maxclients(DEFAULTCLIENTS), kickthreshold(-5), banthreshold(-6), verbose(0),
-                            ip(""), master(NULL), logident(""), serverpassword(""), demopath(""),
-                            maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), nbfile("config/nicknameblacklist.cfg"),
-                            infopath("config/serverinfo"),
-                            demoeverymatch(false), logtimestamp(false),
-                            clfilenesting(0)
-    {
-        motd[0] = servdesc_full[0] = servdesc_pre[0] = servdesc_suf[0] = voteperm[0] = '\0';
-    }
+	servercommandline() :   uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), syslogfacility(6), filethres(-1), syslogthres(-1), maxdemos(5),
+							maxclients(DEFAULTCLIENTS), kickthreshold(-5), banthreshold(-6), verbose(0),
+							ip(""), master(NULL), logident(""), serverpassword(""), demopath(""),
+							maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), nbfile("config/nicknameblacklist.cfg"),
+							infopath("config/serverinfo"),
+							demoeverymatch(false), logtimestamp(false),
+							clfilenesting(0)
+	{
+		motd[0] = servdesc_full[0] = servdesc_pre[0] = servdesc_suf[0] = voteperm[0] = '\0';
+	}
 
-    bool checkarg(const char *arg)
-    {
-        if(arg[0] != '-' || arg[1] == '\0') return false;
-        const char *a = arg + 2 + strspn(arg + 2, " ");
-        int ai = atoi(a);
-        switch(arg[1])
-        { // todo: egjlqEGHJOQUYZ
-            case 'u': uprate = ai; break;
-            case 'f': if(ai > 0 && ai < 65536) serverport = ai; break;
-            case 'i': ip     = a; break;
-            case 'm': master = a; break;
-            case 'N': logident = a; break;
-            case 'F': if(isdigit(*a) && ai >= 0 && ai <= 7) syslogfacility = ai; break;
-            case 'T': logtimestamp = true; break;
-            case 'L':
-                switch(*a)
-                {
-                    case 'F': filethres = atoi(a + 1); break;
-                    case 'S': syslogthres = atoi(a + 1); break;
-                }
-                break;
-            case 'A': if(*a) adminonlymaps.add(a); break;
-            case 'c': if(ai > 0) maxclients = min(ai, MAXCLIENTS); break;
-            case 'k': if(ai < 0) kickthreshold = ai; break;
-            case 'y': if(ai < 0) banthreshold = ai; break;
-            case 'p': serverpassword = a; break;
-            case 'D':
-                demoeverymatch = true;
-                if(isdigit(*a)) maxdemos = ai;
-                break;
-            case 'W': demopath = a; break;
-            case 'r': maprot = a; break;
-            case 'X': pwdfile = a; break;
-            case 'B': blfile = a; break;
-            case 'K': nbfile = a; break;
-            case 'I': infopath = a; break;
-            case 'o': filterrichtext(motd, a); break;
-            case 'n':
-            {
-                char *t = servdesc_full;
-                switch(*a)
-                {
-                    case '1': t = servdesc_pre; a += 1 + strspn(a + 1, " "); break;
-                    case '2': t = servdesc_suf; a += 1 + strspn(a + 1, " "); break;
-                }
-                filterrichtext(t, a);
-                filterservdesc(t, t);
-                break;
-            }
-            case 'P': s_strcat(voteperm, a); break;
-            case 'V': verbose++; break;
+	bool checkarg(const char *arg)
+	{
+		if(arg[0] != '-' || arg[1] == '\0') return false;
+		const char *a = arg + 2 + strspn(arg + 2, " ");
+		int ai = atoi(a);
+		switch(arg[1])
+		{ // todo: egjlqEGHJOQUYZ
+			case 'u': uprate = ai; break;
+			case 'f': if(ai > 0 && ai < 65536) serverport = ai; break;
+			case 'i': ip	 = a; break;
+			case 'm': master = a; break;
+			case 'N': logident = a; break;
+			case 'F': if(isdigit(*a) && ai >= 0 && ai <= 7) syslogfacility = ai; break;
+			case 'T': logtimestamp = true; break;
+			case 'L':
+				switch(*a)
+				{
+					case 'F': filethres = atoi(a + 1); break;
+					case 'S': syslogthres = atoi(a + 1); break;
+				}
+				break;
+			case 'A': if(*a) adminonlymaps.add(a); break;
+			case 'c': if(ai > 0) maxclients = min(ai, MAXCLIENTS); break;
+			case 'k': if(ai < 0) kickthreshold = ai; break;
+			case 'y': if(ai < 0) banthreshold = ai; break;
+			case 'p': serverpassword = a; break;
+			case 'D':
+				demoeverymatch = true;
+				if(isdigit(*a)) maxdemos = ai;
+				break;
+			case 'W': demopath = a; break;
+			case 'r': maprot = a; break;
+			case 'X': pwdfile = a; break;
+			case 'B': blfile = a; break;
+			case 'K': nbfile = a; break;
+			case 'I': infopath = a; break;
+			case 'o': filterrichtext(motd, a); break;
+			case 'n':
+			{
+				char *t = servdesc_full;
+				switch(*a)
+				{
+					case '1': t = servdesc_pre; a += 1 + strspn(a + 1, " "); break;
+					case '2': t = servdesc_suf; a += 1 + strspn(a + 1, " "); break;
+				}
+				filterrichtext(t, a);
+				filterservdesc(t, t);
+				break;
+			}
+			case 'P': s_strcat(voteperm, a); break;
+			case 'V': verbose++; break;
 #ifdef STANDALONE
-            case 'C': if(*a && clfilenesting < 3)
-            {
-                extern char *loadcfgfile(char *cfg, const char *name, int *len);
-                string clfilename;
-                int len, line = 1;
-                clfilenesting++;
-                char *buf = loadcfgfile(clfilename, a, &len);
-                if(buf)
-                {
-                    printf("reading commandline parameters from file '%s'\n", clfilename);
-                    for(char *p = buf, *l; p < buf + len; line++)
-                    {
-                        l = p; p += strlen(p) + 1;
-                        for(char *c = p - 2; c > l; c--) { if(*c == ' ') *c = '\0'; else break; }
-                        l += strspn(l, " \t");
-                        if(*l && !this->checkarg(l))
-                            printf("unknown parameter in file '%s', line %d: '%s'\n", clfilename, line, l);
-                    }
-                    // don't free *buf - we may still have pointers using it
-                }
-                else printf("failed to read file '%s'\n", clfilename);
-                clfilenesting--;
-                break;
-            }
+			case 'C': if(*a && clfilenesting < 3)
+			{
+				extern char *loadcfgfile(char *cfg, const char *name, int *len);
+				string clfilename;
+				int len, line = 1;
+				clfilenesting++;
+				char *buf = loadcfgfile(clfilename, a, &len);
+				if(buf)
+				{
+					printf("reading commandline parameters from file '%s'\n", clfilename);
+					for(char *p = buf, *l; p < buf + len; line++)
+					{
+						l = p; p += strlen(p) + 1;
+						for(char *c = p - 2; c > l; c--) { if(*c == ' ') *c = '\0'; else break; }
+						l += strspn(l, " \t");
+						if(*l && !this->checkarg(l))
+							printf("unknown parameter in file '%s', line %d: '%s'\n", clfilename, line, l);
+					}
+					// don't free *buf - we may still have pointers using it
+				}
+				else printf("failed to read file '%s'\n", clfilename);
+				clfilenesting--;
+				break;
+			}
 #endif
-            default: return false;
-        }
-        return true;
-    }
+			default: return false;
+		}
+		return true;
+	}
 };

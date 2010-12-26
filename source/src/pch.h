@@ -27,14 +27,14 @@
 #endif
 
 #ifdef WIN32
-    #define WIN32_LEAN_AND_MEAN
-    #include "windows.h"
-    #include <tlhelp32.h>
-    #ifndef __GNUC__
-        #include <Dbghelp.h>
-    #endif
-    #define ZLIB_DLL
-    #define _WINDOWS
+	#define WIN32_LEAN_AND_MEAN
+	#include "windows.h"
+	#include <tlhelp32.h>
+	#ifndef __GNUC__
+		#include <Dbghelp.h>
+	#endif
+	#define ZLIB_DLL
+	#define _WINDOWS
 #endif
 
 #ifndef STANDALONE

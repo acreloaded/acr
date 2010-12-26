@@ -1,7 +1,7 @@
 /*
-    SDL_main.c, placed in the public domain by Sam Lantinga  4/13/98
+	SDL_main.c, placed in the public domain by Sam Lantinga  4/13/98
 
-    The WinMain function -- calls your program's main() function
+	The WinMain function -- calls your program's main() function
 */
 
 #define _CRT_SECURE_NO_DEPRECATE
@@ -305,7 +305,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
 	SDL_strlcpy( stdoutPath, path, SDL_arraysize(stdoutPath) );
 	SDL_strlcat( stdoutPath, DIR_SEPERATOR STDOUT_FILE, SDL_arraysize(stdoutPath) );
 #endif
-    
+	
 	/* Redirect standard input and standard output */
 	newfp = freopen(stdoutPath, TEXT("w"), stdout);
 

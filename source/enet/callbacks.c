@@ -11,30 +11,30 @@ int
 enet_initialize_with_callbacks (ENetVersion version, const ENetCallbacks * inits)
 {
    if (version != ENET_VERSION)
-     return -1;
+	 return -1;
 
    if (inits -> malloc != NULL || inits -> free != NULL)
    {
-      if (inits -> malloc == NULL || inits -> free == NULL)
-        return -1;
+	  if (inits -> malloc == NULL || inits -> free == NULL)
+		return -1;
 
-      callbacks.malloc = inits -> malloc;
-      callbacks.free = inits -> free;
+	  callbacks.malloc = inits -> malloc;
+	  callbacks.free = inits -> free;
    }
-      
+	  
    if (inits -> rand != NULL)
-     callbacks.rand = inits -> rand;
+	 callbacks.rand = inits -> rand;
 
    return enet_initialize ();
 }
-           
+		   
 void *
 enet_malloc (size_t size)
 {
    void * memory = callbacks.malloc (size);
 
    if (memory == NULL)
-     abort ();
+	 abort ();
 
    return memory;
 }

@@ -6,9 +6,9 @@
 #include "enet/list.h"
 
 /** 
-    @defgroup list ENet linked list utility functions
-    @ingroup private
-    @{
+	@defgroup list ENet linked list utility functions
+	@ingroup private
+	@{
 */
 void
 enet_list_clear (ENetList * list)
@@ -47,9 +47,9 @@ enet_list_size (ENetList * list)
    ENetListIterator position;
 
    for (position = enet_list_begin (list);
-        position != enet_list_end (list);
-        position = enet_list_next (position))
-     ++ size;
+		position != enet_list_end (list);
+		position = enet_list_next (position))
+	 ++ size;
    
    return size;
 }
