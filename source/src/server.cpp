@@ -16,8 +16,6 @@
 
 #define DEBUGCOND (true)
 
-#define SERVER_PROTOCOL_VERSION	(PROTOCOL_VERSION)	// server without any gameplay modification
-
 void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = true);
 void disconnect_client(int n, int reason = -1);
 int clienthasflag(int cn);
@@ -468,7 +466,7 @@ int freeteam(int pl = -1)
 	{
 		return sum > 200 ? (teamscore[0] < teamscore[1] ? 0 : 1) : rnd(2);
 	}
-	return teamsize[0] < teamsize[1] ? 0 : 1;
+	return teamsize[1] < teamsize[0] ? 1 : 0;
 }
 
 int findcnbyaddress(ENetAddress *address)
@@ -722,7 +720,7 @@ void setupdemorecord()
 	demoheader hdr;
 	memcpy(hdr.magic, DEMO_MAGIC, sizeof(hdr.magic));
 	hdr.version = DEMO_VERSION;
-	hdr.protocol = SERVER_PROTOCOL_VERSION;
+	hdr.protocol = PROTOCOL_VERSION;
 	endianswap(&hdr.version, sizeof(int), 1);
 	endianswap(&hdr.protocol, sizeof(int), 1);
 	memset(hdr.desc, 0, DHDR_DESCCHARS);
@@ -2598,7 +2596,7 @@ void sendresume(client &c, bool broadcast)
 
 void sendservinfo(client &c)
 {
-	sendf(c.clientnum, 1, "ri4", SV_SERVINFO, c.clientnum, isdedicated ? SERVER_PROTOCOL_VERSION : PROTOCOL_VERSION, c.salt);
+	sendf(c.clientnum, 1, "ri4", SV_SERVINFO, c.clientnum, PROTOCOL_VERSION, c.salt);
 }
 
 void putinitclient(client &c, ucharbuf &p){
@@ -3611,7 +3609,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
 	if(!isdedicated) return;	 // below is network only
 
-	serverms(smode, numclients(), minremain, smapname, servmillis, serverhost->address, SERVER_PROTOCOL_VERSION);
+	serverms(smode, numclients(), minremain, smapname, servmillis, serverhost->address, PROTOCOL_VERSION);
 
 	if(autoteam && m_teammode && !m_arena && !interm && servmillis - lastfillup > 5000 && refillteams()) lastfillup = servmillis;
 
@@ -3899,7 +3897,7 @@ void initserver(bool dedicated)
 	int conthres = scl.verbose > 1 ? ACLOG_DEBUG : (scl.verbose ? ACLOG_VERBOSE : ACLOG_INFO);
 	if(dedicated && !initlogging(identity, scl.syslogfacility, conthres, scl.filethres, scl.syslogthres, scl.logtimestamp))
 		printf("WARNING: logging not started!\n");
-	logline(ACLOG_INFO, "logging local AssaultCube server (version %d, protocol %d/%d) now..", AC_VERSION, SERVER_PROTOCOL_VERSION, EXT_VERSION);
+	logline(ACLOG_INFO, "logging local AssaultCube server (version %d, protocol %d/%d) now..", AC_VERSION, PROTOCOL_VERSION, EXT_VERSION);
 
 	s_strcpy(servdesc_current, scl.servdesc_full);
 	servermsinit(scl.master ? scl.master : AC_MASTER_URI, scl.ip, CUBE_SERVINFO_PORT(scl.serverport), dedicated);
