@@ -327,6 +327,7 @@ void hit(int damage, playerent *d, playerent *at, const vec &vel, int gun, bool 
 			vec rvel(vel);
 			rvel.mul(-1);
 			at->hitpush(damage * 2, rvel, at, gun);
+			if(damage >= d->health) damage = d->health - 1;
 		}
 		dodamage(damage, d, at, gun, gib);
 	}
@@ -517,11 +518,11 @@ void raydamage(vec &from, vec &to, playerent *d)
         if(d->weaponsel->type==GUN_KNIFE) gib = true;
     	else if(d==player1){
 			if(hitzone==3 &&d->weaponsel->type!=GUN_SNIPER){ // legs
-				dam *= 0.8;
+				dam *= 0.6;
 			}
 			else if(hitzone == 2){
 				dam *= d->weaponsel->type==GUN_SNIPER ? 5 : 1.5; // 1.5x damage for non-sniper headshots
-				gib = d->weaponsel->type==GUN_SNIPER;
+				gib = true;
 			}
         }
 

@@ -17,8 +17,6 @@
 #define DEBUGCOND (true)
 
 #define SERVER_PROTOCOL_VERSION    (PROTOCOL_VERSION)    // server without any gameplay modification
-//#define SERVER_PROTOCOL_VERSION   (-PROTOCOL_VERSION)  // server with gameplay modification but compatible to vanilla client (using /modconnect)
-//#define SERVER_PROTOCOL_VERSION  (PROTOCOL_VERSION)    // server with incompatible protocol (change PROTOCOL_VERSION in file protocol.h to a negative number!)
 
 void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = true);
 void disconnect_client(int n, int reason = -1);
@@ -138,7 +136,7 @@ struct clientstate : playerstate
     int lastshot;
     projectilestate<8> grenades;
     int akimbos, akimbomillis;
-    int flagscore, frags, teamkills, deaths, shotdamage, damage;
+    int flagscore, frags, deaths, shotdamage, damage;
 
     clientstate() : state(CS_DEAD) {}
 
@@ -161,7 +159,7 @@ struct clientstate : playerstate
         grenades.reset();
         akimbos = 0;
         akimbomillis = 0;
-        flagscore = frags = teamkills = deaths = shotdamage = damage = 0;
+        flagscore = frags = deaths = shotdamage = damage = 0;
         respawn();
     }
 
@@ -181,14 +179,13 @@ struct savedscore
 {
     string name;
     uint ip;
-    int frags, flagscore, deaths, teamkills, shotdamage, damage;
+    int frags, flagscore, deaths, shotdamage, damage;
 
     void save(clientstate &cs)
     {
         frags = cs.frags;
         flagscore = cs.flagscore;
         deaths = cs.deaths;
-        teamkills = cs.teamkills;
         shotdamage = cs.shotdamage;
         damage = cs.damage;
     }
@@ -198,7 +195,6 @@ struct savedscore
         cs.frags = frags;
         cs.flagscore = flagscore;
         cs.deaths = deaths;
-        cs.teamkills = teamkills;
         cs.shotdamage = shotdamage;
         cs.damage = damage;
     }
@@ -1488,7 +1484,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 			if(actor->state.health <= 0){
 				logline(ACLOG_INFO, "[%s] %s suicided with friendly fire", actor->hostname, actor->name);
 			}
-			damage *= 0.25;
+			if((damage *= 0.25) >= target->state.health) damage = target->state.health - 1;
 		}
 		else if(!hitpush.iszero()){
 			vec v(hitpush);
@@ -1507,10 +1503,8 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         if(target!=actor)
         {
             if(!isteam(target->team, actor->team)) actor->state.frags += gib ? 2 : 1;
-            else
-            {
+            else{
                 actor->state.frags--;
-                actor->state.teamkills++;
                 tk = true;
             }
         }
@@ -3167,7 +3161,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				bool editing = getint(p) != 0;
 				if(!m_edit){ // unacceptable!
 					disconnect_client(sender, DISC_TAGT);
-					break;
+					return;
 				}
 				if(cl->state.state != (editing ? CS_ALIVE : CS_EDITING)) break;
 				cl->state.state = editing ? CS_EDITING : CS_ALIVE;
@@ -3511,7 +3505,7 @@ void loggamestatus(const char *reason)
     logline(ACLOG_INFO, "");
     logline(ACLOG_INFO, "Game status: %s on %s, %s, %s%c %s",
                       modestr(gamemode), smapname, reason ? reason : text, mmfullname(mastermode), custom_servdesc ? ',' : '\0', servdesc_current);
-    logline(ACLOG_INFO, "cn name             %s%sfrag death %sping role    host", m_teammode ? "team " : "", m_flags ? "flag " : "", m_teammode ? "tk " : "");
+    logline(ACLOG_INFO, "cn name             %s%sfrag death ping role    host", m_teammode ? "team " : "", m_flags ? "flag " : "");
     loopv(clients)
     {
         client &c = *clients[i];
@@ -3520,7 +3514,6 @@ void loggamestatus(const char *reason)
         if(m_teammode) s_strcatf(text, "%-4s ", c.team);            // team
         if(m_flags) s_strcatf(text, "%4d ", c.state.flagscore);     // flag
         s_strcatf(text, "%4d %5d", c.state.frags, c.state.deaths);  // frag death
-        if(m_teammode) s_strcatf(text, " %2d", c.state.teamkills);  // tk
         logline(ACLOG_INFO, "%s%5d %s  %s", text, c.ping, c.role == CR_ADMIN ? "admin " : "normal", c.hostname);
         n = team_int(c.team);
         flagscore[n] += c.state.flagscore;
@@ -3799,7 +3792,6 @@ void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENet
         putint(p,clients[i]->state.frags);      //Frags
         putint(p,clients[i]->state.flagscore);  //Flagscore
         putint(p,clients[i]->state.deaths);     //Death
-        putint(p,clients[i]->state.teamkills);  //Teamkills
         putint(p,clients[i]->state.damage*100/max(clients[i]->state.shotdamage,1)); //Accuracy
         putint(p,clients[i]->state.health);     //Health
         putint(p,clients[i]->state.armour);     //Armour

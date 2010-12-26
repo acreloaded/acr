@@ -541,38 +541,40 @@ void dokill(playerent *pl, playerent *act, int weapon, bool gib)
 		case GUN_GRENADE:
 			s_strcpy(death, "obliterated");
 			break;
-		case GUN_SNIPER:
-			s_strcpy(death, gib ? "expertly sniped" : "sniped");
-			break;
 		case GUN_KNIFE:
 			s_strcpy(death, "slashed");
 			break;
+		case GUN_SNIPER:
+			s_strcpy(death, gib ? "expertly sniped" : "sniped");
+			break;
 		case GUN_SUBGUN:
-			s_strcpy(death, "spliced");
+			s_strcpy(death, gib ? "perforated" : "spliced");
 			break;
 		case GUN_SHOTGUN:
 			s_strcpy(death, gib ? "splattered" : "scrambled");
 			break;
 		case GUN_ASSAULT:
-			s_strcpy(death, "shredded");
+			s_strcpy(death, gib ? "eliminated" : "shredded");
 			break;
 		case GUN_PISTOL:
-			s_strcpy(death, "pierced");
+			s_strcpy(death, gib ? "capped" : "pierced");
 			break;
 		case GUN_AKIMBO:
-			s_strcpy(death, "skewered");
+			s_strcpy(death, gib ? "blasted" : "skewered");
 			break;
 		default:
-			s_strcpy(death, "killed");
+			s_strcpy(death, gib ? "pwned" : "killed");
 			break;
 	}
     //void (*outf)(const char *s, ...) = (pl == player1 || act == player1) ? hudoutf : conoutf;
 	playerent *p = camera1->type<ENT_CAMERA ? (playerent *)camera1 : player1;
 	void (*outf)(const char *s, ...) = (pl == p || act == p) ? hudoutf : conoutf;
 
-	if(pl==act)
+	if(pl==act){
 		outf("\f2%s %s%s", pname, weapon == GUN_GRENADE ? "blew himself up" :
 			weapon == NUMGUNS ? "committed too much friendly fire" : "suicided", pl == p ? "\f3!" : "");
+		if(pl == p) outf("\f3FRIENDLY FIRE WILL NOT BE TOLERATED!");
+	}
 	else
 		outf("\f2%s %s %s%s", aname, death, isteam(pl->team, act->team) ? "teammate " : "", pname);
 	/*

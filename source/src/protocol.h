@@ -5,7 +5,7 @@
 #define CUBE_SERVINFO_PORT_LAN 28778
 #define CUBE_SERVINFO_PORT(serverport) (serverport+1)
 #define CUBE_SERVINFO_TO_SERV_PORT(servinfoport) (servinfoport-1)
-#define PROTOCOL_VERSION 2100           // bump when protocol changes (use negative numbers for mods!)
+#define PROTOCOL_VERSION 1100           // bump when protocol changes
 #define DEMO_VERSION 1                  // bump when demo format changes
 #define DEMO_MAGIC "ACS_DEMO"
 #define MAXMAPSENDSIZE 65536

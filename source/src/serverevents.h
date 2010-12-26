@@ -19,7 +19,7 @@ void processevent(client *c, explodeevent &e)
 		vec dir;
 		float dist = target->state.o.dist(o, dir);		
 		if(dist >= guns[e.gun].endrange) continue;
-		dir.div(dist);
+		//dir.div(dist); // it gets normalized by the serverdamage() function
 		serverdamage(target, c, effectiveDamage(e.gun, dist), e.gun, true, dir);
 	}
 }
@@ -76,11 +76,12 @@ void processevent(client *c, shotevent &e)
                 if(totalrays>maxrays) continue;
 
                 bool gib = false;
-                if(e.gun==GUN_KNIFE || (e.gun==GUN_SHOTGUN && rays == maxrays)) gib = true;
-                else if(e.gun==GUN_SNIPER) gib = h.info == 2;
-                int damage = rays * effectiveDamage(e.gun, c->state.o.dist(vec(e.to[0], e.to[1], e.to[2])));
+                if(e.gun==GUN_KNIFE) gib = true;
+				else if(e.gun==GUN_SHOTGUN) gib = rays == maxrays;
+                else gib = h.info == 2;
+                int damage = rays * effectiveDamage(e.gun, c->state.o.dist(vec(e.to)));
                 if(e.gun!=GUN_SHOTGUN){
-					if(e.gun!=GUN_SNIPER && h.info == 1) damage *= 0.8;
+					if(e.gun!=GUN_SNIPER && h.info == 1) damage *= 0.6;
 					else if(h.info == 2) damage *= e.gun==GUN_SNIPER ? 5 : 1.5;
 				}
                 serverdamage(target, c, damage, e.gun, gib, h.dir);
