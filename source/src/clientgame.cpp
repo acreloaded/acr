@@ -84,10 +84,16 @@ void newname(const char *name)
 {
 	if(name[0])
 	{
+		/*
 		filtertext(player1->name, name, 0, MAXNAMELEN);
 		if(!player1->name[0]) s_strcpy(player1->name, "unnamed");
 		addmsg(SV_NEWNAME, "rs", player1->name);
 		updateclientname(player1);
+		*/
+		static string name2;
+		filtertext(name2, name, 0, MAXNAMELEN);
+		if(!name2[0]) s_strcpy(name2, "unnamed");
+		addmsg(SV_NEWNAME, "rs", name2);
 	}
 	else conoutf("your name is: %s", player1->name);
 	alias("curname", player1->name);

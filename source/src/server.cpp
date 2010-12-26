@@ -2647,6 +2647,11 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath)
 
 	putint(p, SV_WELCOME);
 	putint(p, smapname[0] && !m_demo ? numcl : -1);
+	if(scl.motd[0])
+	{
+		CHECKSPACE(5+2*(int)strlen(scl.motd)+1);
+		sendstring(scl.motd, p);
+	} else putint(p, 0);
 	if(smapname[0] && !m_demo)
 	{
 		putint(p, SV_MAPCHANGE);
@@ -2735,12 +2740,6 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath)
 		}
 		putint(p, -1);
 		welcomeinitclient(p, n);
-	}
-	if(scl.motd[0])
-	{
-		CHECKSPACE(5+2*(int)strlen(scl.motd)+1);
-		putint(p, SV_TEXT);
-		sendstring(scl.motd, p);
 	}
 
 	#undef CHECKSPACE
@@ -2909,7 +2908,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 		type = checktype(getint(p), cl);
 
 		#ifdef _DEBUG
-		if(type!=SV_POS && type!=SV_CLIENTPING && type!=SV_PINGPONG && type!=SV_CLIENT)
+		if(type!=SV_POS && type!=SV_PINGTIME && type!=SV_PINGPONG && type!=SV_CLIENT)
 		{
 			DEBUGVAR(cl->name);
 			ASSERT(type>=0 && type<SV_NUM);
@@ -3163,9 +3162,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case SV_PINGTIME:
 			{
-				int pp = getint(p);
+				int pingtime = getint(p);
 				if(!cl) break;
-				cl->ping = cl->ping == 9999 ? pp : (cl->ping * 4 + pp) / 5;
+				cl->ping = cl->ping == 9999 ? pingtime : (cl->ping * 4 + pingtime) / 5;
 				sendf(-1, 1, "i3", SV_PINGTIME, sender, cl->ping);
 				break;
 			}

@@ -171,7 +171,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 		type = getint(p);
 
 		#ifdef _DEBUG
-		if(type!=SV_POS && type!=SV_CLIENTPING && type!=SV_PINGPONG && type!=SV_CLIENT)
+		if(type!=SV_POS && type!=SV_PINGTIME && type!=SV_PINGPONG && type!=SV_CLIENT)
 		{
 			DEBUGVAR(d);
 			ASSERT(type>=0 && type<SV_NUM);
@@ -200,6 +200,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case SV_WELCOME:
 				joining = getint(p);
+				getstring(text, p);
+				if(text[0]){
+					conoutf("MOTD:");
+					conoutf("\f4%s", text);
+				}
 				player1->resetspec();
 				resetcamera();
 				break;
@@ -237,21 +242,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				filtertext(text, text);
 				playerent *d = getclient(cn);
 				if(!d) break;
-				if(m_teammode) conoutf("%s:\f1 %s", colorname(d), text);
-				else conoutf("%s:\f0 %s", colorname(d), text);
+				conoutf("%s:\f%d %s", isteam(player1, d) ? 1 : 3, colorname(d), text);
 				break;
 			}
 
 			case SV_TEXT:
-				if(cn == -1)
-				{
-					getstring(text, p);
-					conoutf("MOTD:");
-					conoutf("\f4%s", text);
-				}
-				else if(d)
-				{
-					getstring(text, p);
+				getstring(text, p);
+				if(d){
 					filtertext(text, text);
 					conoutf("%s:\f0 %s", colorname(d), text);
 				}
