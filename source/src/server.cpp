@@ -3085,7 +3085,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case SV_SUICIDE:
 			{
-				serverdamage(cl, cl, 1000, GUN_KNIFE, true);
+				if(cl->state.state == CS_ALIVE) serverdamage(cl, cl, 1000, GUN_KNIFE, true);
 				break;
 			}
 
