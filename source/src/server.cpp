@@ -1322,10 +1322,11 @@ bool serverpickup(int i, int sender) // server side item pickup, acknowledge fir
 {
 	server_entity &e = sents[i];
 	if(!e.spawned) return false;
-	sendf(-1, 1, "ri3", SV_ITEMACC, i, sender);
-	clients[sender]->state.pickup(sents[i].type);
 	e.spawned = false;
 	e.spawntime = spawntime(e.type);
+	if(!valid_client(sender)) return true;
+	sendf(-1, 1, "ri3", SV_ITEMACC, i, sender);
+	clients[sender]->state.pickup(sents[i].type);
 	return true;
 }
 
