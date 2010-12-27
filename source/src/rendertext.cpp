@@ -98,14 +98,16 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color, int a
 		else stack[sp] = c;
 		switch(c)
 		{
-			case '0': color = bvec(64,  255, 128); break;   // green: player talk
-			case '1': color = bvec(96,  160, 255); break;   // blue: team chat
-			case '2': color = bvec(255, 192, 64);  break;   // yellow: gameplay action messages, only actions done by players
-			case '3': color = bvec(255, 64,  64);  break;   // red: important errors and notes
-			case '4': color = bvec(128, 128, 128); break;   // gray
-			case '5': color = bvec(255, 255, 255); break;   // white
+			case '0': case 'g': color = bvec(64,  255, 128); break;   // green: player talk
+			case '1': case 'b': color = bvec(96,  160, 255); break;   // blue: team chat or 'owner'
+			case '2': case 'y': color = bvec(255, 192, 64);  break;   // yellow: gameplay action messages, only actions done by players
+			case '3': case 'r': color = bvec(255, 64,  64);  break;   // red: important errors and notes
+			case '4': case 'a': color = bvec(128, 128, 128); break;   // gray
+			case '5': case 'w': color = bvec(255, 255, 255); break;   // white
 			case '6': color = bvec(96, 48, 0);	 break;   // dark brown
 			case '7': color = bvec(128, 48,  48);  break;   // dark red: dead admin
+			case '8': color = bvec(0, 116, 57); break; // dark green: dead master
+			case '9': color = bvec(31, 86, 166); break; // dark blue: dead 'owner'
 			// white (provided color): everything else
 		}
 		glColor4ub(color.x, color.y, color.z, a);
