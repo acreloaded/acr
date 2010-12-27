@@ -692,8 +692,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
 			// big flag-stolen icon
 			int ft = 0;
-			if((flaginfos[0].state==CTFF_STOLEN && flaginfos[0].actor == p && flaginfos[0].ack) ||
-			   (flaginfos[1].state==CTFF_STOLEN && flaginfos[1].actor == p && flaginfos[1].ack && ++ft))
+			if((flaginfos[0].state==CTFF_STOLEN && flaginfos[0].actor == p) ||
+			   (flaginfos[1].state==CTFF_STOLEN && flaginfos[1].actor == p && ++ft))
 			{
 				glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis/100.0f)+1.0f) / 2.0f);
 				glEnable(GL_BLEND);

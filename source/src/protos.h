@@ -373,7 +373,7 @@ extern void addsleep(int msec, const char *cmd);
 extern void resetsleep();
 //game mode extras
 extern void flagpickup(int fln);
-extern void tryflagdrop(bool manual = false);
+extern void tryflagdrop();
 extern void flagreturn(int fln);
 extern void flagscore(int fln);
 extern void flagstolen(int flag, int act);

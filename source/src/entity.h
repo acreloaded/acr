@@ -497,8 +497,7 @@ struct flaginfo
 	playerent *actor;
 	vec pos;
 	int state; // one of CTFF_*
-	bool ack;
-	flaginfo() : flagent(0), actor(0), state(CTFF_INBASE), ack(false) {}
+	flaginfo() : flagent(0), actor(0), state(CTFF_INBASE) {}
 };
 
 enum { BT_NONE, BT_NADE, BT_GIB };

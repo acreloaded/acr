@@ -643,7 +643,6 @@ void initflag(int i)
 	flaginfo &f = flaginfos[i];
 	f.flagent = &flagdummies[i];
 	f.pos = vec(f.flagent->x, f.flagent->y, f.flagent->z);
-	f.ack = true;
 	f.actor = NULL;
 	f.actor_cn = -1;
 	f.team = i;
@@ -776,7 +775,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 {
 	static int musicplaying = -1;
 	playerent *act = getclient(actor);
-	if(actor != getclientnum() && !act && message != FM_RESET) return;
+	if(actor != getclientnum() && !act && message != FA_RESET) return;
 	bool own = flag == player1->team;
 	bool firstperson = actor == getclientnum();
 	bool teammate = !act ? true : isteam(player1, act);
@@ -786,7 +785,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 
 	switch(message)
 	{
-		case FM_PICKUP:
+		case FA_PICKUP:
 			playsound(S_FLAGPICKUP, SP_HIGHEST);
 			if(firstperson)
 			{
@@ -796,10 +795,10 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 			}
 			else hudoutf("\f2%s%s got %s flag", flagteam, colorname(act), teamstr);
 			break;
-		case FM_LOST:
-		case FM_DROP:
+		case FA_LOST:
+		case FA_DROP:
 		{
-			const char *droplost = message == FM_LOST ? "lost" : "dropped";
+			const char *droplost = message == FA_LOST ? "lost" : "dropped";
 			playsound(S_FLAGDROP, SP_HIGHEST);
 			if(firstperson)
 			{
@@ -809,12 +808,12 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 			else hudoutf("\f2%s %s %s flag", colorname(act), droplost, teamstr);
 			break;
 		}
-		case FM_RETURN:
+		case FA_RETURN:
 			playsound(S_FLAGRETURN, SP_HIGHEST);
 			if(firstperson) hudoutf("\f2you returned your flag");
 			else hudoutf("\f2%s returned %s flag", colorname(act), teamstr);
 			break;
-		case FM_SCORE:
+		case FA_SCORE:
 			playsound(S_FLAGSCORE, SP_HIGHEST);
 			if(firstperson)
 			{
@@ -823,7 +822,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 			}
 			else hudoutf("\f2%s scored for %s team", colorname(act), teammate ? "your" : "the enemy");
 			break;
-		case FM_KTFSCORE:
+		case FA_KTFSCORE:
 		{
 			playsound(S_VOTEPASS, SP_HIGHEST); // need better ktf sound here
 			const char *ta = firstperson ? "you have" : colorname(act);
@@ -836,12 +835,12 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 				hudoutf("\f2%s%s%s kept the flag for %d seconds now", tc, ta, tb, flagtime);
 			break;
 		}
-		case FM_SCOREFAIL: // sound?
+		case FA_SCOREFAIL: // sound?
 			hudoutf("\f2%s failed to score (own team flag not taken)", firstperson ? "you" : colorname(act));
 			break;
-		case FM_RESET:
+		case FA_RESET:
 			playsound(S_FLAGRETURN, SP_HIGHEST);
-			hudoutf("the server reset the flag");
+			hudoutf("\f1the server reset the flag");
 			firstpersondrop = true;
 			break;
 	}
@@ -852,8 +851,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 	}
 }
 
-void dropflag() { tryflagdrop(true); }
-COMMAND(dropflag, ARG_NONE);
+COMMANDN(dropflag, tryflagdrop, ARG_NONE);
 
 char *votestring(int type, char *arg1, char *arg2)
 {

@@ -912,31 +912,6 @@ void putflaginfo(ucharbuf &p, int flag)
 	}
 }
 
-bool flagdistance(sflaginfo &f, int cn)
-{
-	if(!valid_client(cn)) return false;
-	client &c = *clients[cn];
-	vec v(-1, -1, c.state.o.z);
-	switch(f.state)
-	{
-		case CTFF_INBASE:
-			v.x = f.x; v.y = f.y;
-			break;
-		case CTFF_DROPPED:
-			v.x = f.pos[0]; v.y = f.pos[1];
-			break;
-	}
-	if(v.x < 0) return true;
-	float dist = c.state.o.dist(v);
-	if(dist > 10)				// <2.5 would be normal, LAG may increase the value
-	{
-		c.farpickups++;
-		logline(ACLOG_INFO, "[%s] %s touched the %s flag at distance %.2f (%d)", c.hostname, c.name, team_string(&f == sflaginfos + 1), dist, c.farpickups);
-		return false;
-	}
-	return true;
-}
-
 void sendflaginfo(int flag = -1, int cn = -1)
 {
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
@@ -950,7 +925,7 @@ void sendflaginfo(int flag = -1, int cn = -1)
 
 void flagmessage(int flag, int message, int actor, int cn = -1)
 {
-	if(message == FM_KTFSCORE)
+	if(message == FA_KTFSCORE)
 		sendf(cn, 1, "ri5", SV_FLAGMSG, flag, message, actor, (gamemillis - sflaginfos[flag].stolentime) / 1000);
 	else
 		sendf(cn, 1, "ri4", SV_FLAGMSG, flag, message, actor);
@@ -961,7 +936,6 @@ void flagaction(int flag, int action, int actor)
 	if(!valid_flag(flag)) return;
 	sflaginfo &f = sflaginfos[flag];
 	sflaginfo &of = sflaginfos[team_opposite(flag)];
-	bool deadactor = valid_client(actor) ? clients[actor]->state.state != CS_ALIVE : true;
 	int score = 0;
 	int message = -1;
 
@@ -969,53 +943,32 @@ void flagaction(int flag, int action, int actor)
 	{
 		switch(action)
 		{
-			case FA_PICKUP:  // ctf: f = enemy team	htf: f = own team
-			{
-				if(deadactor || f.state == CTFF_STOLEN) return;
-				flagdistance(f, actor);
-				int team = clients[actor]->team;
-				if(m_ctf) team = team_opposite(team);
-				if(team != flag) return;
+			case FA_PICKUP:
 				f.state = CTFF_STOLEN;
 				f.actor_cn = actor;
-				message = FM_PICKUP;
 				break;
-			}
 			case FA_LOST:
 				if(actor == -1) actor = f.actor_cn;
 			case FA_DROP:
-				if(f.state!=CTFF_STOLEN || f.actor_cn != actor) return;
+				if(f.actor_cn != actor) return;
 				f.state = CTFF_DROPPED;
 				loopi(3) f.pos[i] = clients[actor]->state.o[i];
-				message = action == FA_LOST ? FM_LOST : FM_DROP;
 				break;
 			case FA_RETURN:
 				if(f.state!=CTFF_DROPPED || m_htf) return;
 				f.state = CTFF_INBASE;
-				message = FM_RETURN;
 				break;
 			case FA_SCORE:  // ctf: f = carried by actor flag,  htf: f = hunted flag (run over by actor)
-				if(m_ctf)
-				{
-					if(f.state != CTFF_STOLEN || f.actor_cn != actor || of.state != CTFF_INBASE) return;
-					flagdistance(of, actor);
-					score = 1;
-					message = FM_SCORE;
-				}
-				else // m_htf
-				{
-					if(f.state != CTFF_DROPPED) return;
-					flagdistance(f, actor);
+				if(m_ctf) score = 1;
+				else{ // htf
 					score = (of.state == CTFF_STOLEN) ? 1 : 0;
-					message = score ? FM_SCORE : FM_SCOREFAIL;
-					if(of.actor_cn == actor) score *= 2;
+					message = score ? FA_SCORE : FA_SCOREFAIL;
+					if(of.actor_cn == actor) score = 2;
 				}
 				f.state = CTFF_INBASE;
 				break;
-
 			case FA_RESET:
 				f.state = CTFF_INBASE;
-				message = FM_RESET;
 				break;
 		}
 	}
@@ -1024,20 +977,16 @@ void flagaction(int flag, int action, int actor)
 		switch(action)
 		{
 			case FA_PICKUP:
-				if(deadactor || f.state != CTFF_INBASE) return;
-				flagdistance(f, actor);
 				f.state = CTFF_STOLEN;
 				f.actor_cn = actor;
 				f.stolentime = gamemillis;
-				message = FM_PICKUP;
 				break;
 			case FA_SCORE:  // f = carried by actor flag
-				if(actor != -1 || f.state != CTFF_STOLEN) return; // no client msg allowed here
 				if(valid_client(f.actor_cn) && clients[f.actor_cn]->state.state == CS_ALIVE)
 				{
 					actor = f.actor_cn;
 					score = 1;
-					message = FM_KTFSCORE;
+					message = FA_KTFSCORE;
 					break;
 				}
 			case FA_LOST:
@@ -1045,10 +994,9 @@ void flagaction(int flag, int action, int actor)
 			case FA_DROP:
 				if(f.actor_cn != actor || f.state != CTFF_STOLEN) return;
 			case FA_RESET:
-				if(f.state == CTFF_STOLEN)
-				{
+				if(f.state == CTFF_STOLEN){
 					actor = f.actor_cn;
-					message = FM_LOST;
+					message = FA_LOST;
 				}
 				f.state = CTFF_IDLE;
 				of.state = CTFF_INBASE;
@@ -1056,57 +1004,42 @@ void flagaction(int flag, int action, int actor)
 				break;
 		}
 	}
-	if(score)
-	{
+	if(score){
 		clients[actor]->state.flagscore += score;
 		sendf(-1, 1, "ri3", SV_FLAGCNT, actor, clients[actor]->state.flagscore);
 	}
-	if(valid_client(actor))
-	{
+	if(message < 0) message = action;
+	if(valid_client(actor)){
 		client &c = *clients[actor];
 		switch(message)
 		{
-			case FM_PICKUP:
+			case FA_PICKUP:
 				logline(ACLOG_INFO,"[%s] %s stole the flag", c.hostname, c.name);
 				break;
-			case FM_DROP:
-			case FM_LOST:
-				logline(ACLOG_INFO,"[%s] %s %s the flag", c.hostname, c.name, message == FM_LOST ? "lost" : "dropped");
+			case FA_DROP:
+				logline(ACLOG_INFO,"[%s] %s dropped the flag", c.hostname, c.name);
 				break;
-			case FM_RETURN:
+			case FA_LOST:
+				logline(ACLOG_INFO,"[%s] %s lost the flag", c.hostname, c.name);
+				break;
+			case FA_RETURN:
 				logline(ACLOG_INFO,"[%s] %s returned the flag", c.hostname, c.name);
 				break;
-			case FM_SCORE:
+			case FA_SCORE:
 				logline(ACLOG_INFO, "[%s] %s scored with the flag for %s, new score %d", c.hostname, c.name, c.team, c.state.flagscore);
 				break;
-			case FM_KTFSCORE:
+			case FA_KTFSCORE:
 				logline(ACLOG_INFO, "[%s] %s scored, carrying for %d seconds, new score %d", c.hostname, c.name, (gamemillis - f.stolentime) / 1000, c.state.flagscore);
 				break;
-			case FM_SCOREFAIL:
+			case FA_SCOREFAIL:
 				logline(ACLOG_INFO, "[%s] %s failed to score", c.hostname, c.name);
 				break;
-			default:
-				logline(ACLOG_INFO, "flagaction %d, actor %d, flag %d, message %d", action, actor, flag, message);
-				break;
 		}
 	}
-	else
-	{
-		switch(message)
-		{
-			case FM_RESET:
-				logline(ACLOG_INFO,"the server reset the flag for team %s", team_string(flag));
-				break;
-			default:
-				logline(ACLOG_INFO, "flagaction %d with invalid actor cn %d, flag %d, message %d", action, actor, flag, message);
-				break;
-		}
-	}
-
+	else if(message == FA_RESET) logline(ACLOG_INFO,"the server reset the flag for team %s", team_string(flag));
 	f.lastupdate = gamemillis;
 	sendflaginfo(flag);
-	if(message >= 0)
-		flagmessage(flag, message, valid_client(actor) ? actor : -1);
+	flagmessage(flag, message, valid_client(actor) ? actor : -1);
 }
 
 int clienthasflag(int cn)
@@ -1171,7 +1104,7 @@ void htf_forceflag(int flag)
 				f.state = CTFF_STOLEN;
 				f.actor_cn = i;
 				sendflaginfo(flag);
-				flagmessage(flag, FM_PICKUP, i);
+				flagmessage(flag, FA_PICKUP, i);
 				logline(ACLOG_INFO,"[%s] %s got forced to pickup the flag", clients[i]->hostname, clients[i]->name);
 				break;
 			}
@@ -3154,6 +3087,20 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					cl->position.setsizenodelete(0);
 					while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
 				}
+				if(maplayout)
+				{
+					vec &po = clients[cn]->state.o;
+					int ls = (1 << maplayout_factor) - 1;
+					if(po.x < 0 || po.y < 0 || po.x > ls || po.y > ls || maplayout[((int) po.x) + (((int) po.y) << maplayout_factor)] > po.z + 3)
+					{
+						logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", clients[cn]->hostname, clients[cn]->name, clients[cn]->mapcollisions);
+						s_sprintfd(collidemsg)("\f1%s \f2collides with the map \f5- \f3forcing death");
+						sendservmsg(collidemsg);
+						forcedeath(clients[cn]);
+						clients[cn]->isonrightmap = false; // cannot spawn until you get the right map
+						break; // no pickups for you!
+					}
+				}
 				loopv(sents){
 					server_entity &e = sents[i];
 					vec v(e.x, e.y, 0);
@@ -3163,10 +3110,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					}
 					if(!e.spawned || !cl->state.canpickup(e.type)) continue;
 					float dist = cl->state.o.distxy(v);
-					if(dist > 2) continue;
+					if(dist > 2.5f) continue;
 					serverpickup(i, sender);
 				}
-				/*
 				if(m_flags) loopi(2){ // check flag pickup
 					sflaginfo &f = sflaginfos[i];
 					sflaginfo &of = sflaginfos[team_opposite(i)];
@@ -3181,31 +3127,21 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					}
 					if(v.x < 0) continue;
 					float dist = cl->state.o.dist(v);
-					if(dist > 2) continue;
+					if(dist > 2.5f) continue;
 					if(f.state == CTFF_STOLEN) continue;
-					bool own = i == cl->team;
 					if(m_ctf){
-						if(own){ // it's our flag
+						if(i == cl->team){ // it's our flag
 							if(f.state == CTFF_DROPPED) flagaction(i, FA_RETURN, sender);
 							else if(f.state == CTFF_INBASE && of.state == CTFF_STOLEN && //
 								of.actor_cn == sender) flagaction(team_opposite(i), FA_SCORE, sender);
 						}
 						else flagaction(i, FA_PICKUP, sender);
 					}
-				}
-				*/
-				if(maplayout)
-				{
-					vec &po = clients[cn]->state.o;
-					int ls = (1 << maplayout_factor) - 1;
-					if(po.x < 0 || po.y < 0 || po.x > ls || po.y > ls || maplayout[((int) po.x) + (((int) po.y) << maplayout_factor)] > po.z + 3)
-					{
-						logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", clients[cn]->hostname, clients[cn]->name, clients[cn]->mapcollisions);
-						s_sprintfd(collidemsg)("\f1%s \f2collides with the map \f5- \f3forcing death");
-						sendservmsg(collidemsg);
-						forcedeath(clients[cn]);
-						clients[cn]->isonrightmap = false; // cannot spawn until you get the right map
+					else if(m_htf){
+						if(i == cl->team) flagaction(i, FA_PICKUP, sender);
+						else if(f.state == CTFF_DROPPED) flagaction(i, FA_SCORE, sender);
 					}
+					else if(m_ktf && f.state == CTFF_INBASE) flagaction(i, FA_PICKUP, sender);
 				}
 				break;
 			}
@@ -3263,12 +3199,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				break;
 			}
 
-			case SV_FLAGACTION:
+			case SV_DROPFLAG:
 			{
-				int action = getint(p);
-				int flag = getint(p);
-				if(!m_flags || flag < 0 || flag > 1 || action < 0 || action > FA_NUM) break;
-				flagaction(flag, action, sender);
+				int fl = clienthasflag(sender);
+				if(fl >= 0) flagaction(fl, FA_DROP, sender);
 				break;
 			}
 
