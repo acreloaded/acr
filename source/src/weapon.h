@@ -164,11 +164,11 @@ struct akimbo : gun
 };
 
 
-struct knife : gun //weapon
+struct knife : weapon
 {
 	knife(playerent *owner);
 
-	//bool attack(vec &targ);
+	bool attack(vec &targ);
 	int modelanim();
 
 	void drawstats();
