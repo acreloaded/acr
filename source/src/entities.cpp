@@ -190,11 +190,9 @@ void trypickup(int n, playerent *d)
 	entity &e = ents[n];
 	switch(e.type)
 	{
-		default:
-			if(d->canpickup(e.type))
-			{
-				if(d->type==ENT_PLAYER) addmsg(SV_ITEMPICKUP, "ri", n);
-				else if(d->type==ENT_BOT && serverpickup(n, -1)) pickupeffects(n, d);
+		default: // the server now picks up our items!
+			if(d->type==ENT_BOT && d->canpickup(e.type) && serverpickup(n, -1)){
+				pickupeffects(n, d);
 				e.spawned = false;
 			}
 			break;
@@ -206,7 +204,7 @@ void trypickup(int n, playerent *d)
 }
 
 void trypickupflag(int flag, playerent *d)
-{
+{	
 	if(d==player1)
 	{
 		flaginfo &f = flaginfos[flag];

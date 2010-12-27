@@ -1385,40 +1385,12 @@ int spawntime(int type)
 	return sec*1000;
 }
 
-bool serverpickup(int i, int sender)		 // server side item pickup, acknowledge first client that gets it
+bool serverpickup(int i, int sender) // server side item pickup, acknowledge first client that moves to the entity
 {
-	const char *hn = sender >= 0 && clients[sender]->type == ST_TCPIP ? clients[sender]->hostname : NULL;
-	if(!sents.inrange(i))
-	{
-		if(hn) logline(ACLOG_INFO, "[%s] tried to pick up entity #%d - doesn't exist on this map", hn, i);
-		return false;
-	}
 	server_entity &e = sents[i];
-	if(!e.spawned)
-	{
-		if(!e.spawntime && hn) logline(ACLOG_INFO, "[%s] tried to pick up entity #%d - can't be picked up in this gamemode or at all", hn, i);
-		return false;
-	}
-	if(sender>=0)
-	{
-		client *cl = clients[sender];
-		if(cl->type==ST_TCPIP)
-		{
-			if(cl->state.state!=CS_ALIVE || !cl->state.canpickup(e.type)) return false;
-			if(e.hascoord)
-			{
-				vec v(e.x, e.y, cl->state.o.z);
-				float dist = cl->state.o.dist(v);
-				if(dist > 10)				// <2.5 would be normal, LAG may increase the value
-				{
-					cl->farpickups++;
-					logline(ACLOG_INFO, "[%s] %s picked up entity type %d #%d, distance %.2f (%d)", cl->hostname, cl->name, e.type, i, dist, cl->farpickups);
-				}
-			}
-		}
-		sendf(-1, 1, "ri3", SV_ITEMACC, i, sender);
-		cl->state.pickup(sents[i].type);
-	}
+	if(!e.spawned) return false;
+	sendf(-1, 1, "ri3", SV_ITEMACC, i, sender);
+	clients[sender]->state.pickup(sents[i].type);
 	e.spawned = false;
 	e.spawntime = spawntime(e.type);
 	return true;
@@ -2908,7 +2880,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 		type = checktype(getint(p), cl);
 
 		#ifdef _DEBUG
-		if(type!=SV_POS && type!=SV_PINGTIME && type!=SV_PINGPONG && type!=SV_CLIENT)
+		if(type!=SV_POS && type!=SV_PINGTIME && type!=SV_PINGPONG)
 		{
 			DEBUGVAR(cl->name);
 			ASSERT(type>=0 && type<SV_NUM);
@@ -3018,22 +2990,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					cl->isonrightmap = true;
 				}
 				else forcedeath(cl);
-				break;
-			}
-
-			case SV_ITEMPICKUP:
-			{
-				int n = getint(p);
-				if(!arenaround || arenaround - gamemillis > 2000)
-				{
-					if(m_mp(gamemode) && !cl->state.isalive(gamemillis)) break;
-					serverpickup(n, sender);
-				}
-				else
-				{ // no nade pickup during last two seconds of lss intermission
-					if(sents.inrange(n) && sents[n].spawned)
-						sendf(sender, 1, "ri2", SV_ITEMSPAWN, n);
-				}
 				break;
 			}
 
@@ -3192,22 +3148,63 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				loopi(3) clients[cn]->state.o[i] = getfloat(p);
 				loopi(6) getfloat(p); // yaw, pitch, roll, vel[3]
 				getuint(p); // last data uint
-				if(cl->type==ST_TCPIP && (cl->state.state==CS_ALIVE || cl->state.state==CS_EDITING))
+				if(cl->state.state!=CS_ALIVE && cl->state.state!=CS_EDITING) break;
+				if(cl->type==ST_TCPIP)
 				{
 					cl->position.setsizenodelete(0);
 					while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
 				}
+				loopv(sents){
+					server_entity &e = sents[i];
+					vec v(e.x, e.y, 0);
+					if(arenaround && arenaround - gamemillis <= 2000){ // no nade pickup during last two seconds of lss intermission
+						sendf(sender, 1, "ri2", SV_ITEMSPAWN, i);
+						continue;
+					}
+					if(!e.spawned || !cl->state.canpickup(e.type)) continue;
+					float dist = cl->state.o.distxy(v);
+					if(dist > 2) continue;
+					serverpickup(i, sender);
+				}
+				/*
+				if(m_flags) loopi(2){ // check flag pickup
+					sflaginfo &f = sflaginfos[i];
+					sflaginfo &of = sflaginfos[team_opposite(i)];
+					vec v(-1, -1, cl->state.o.z);
+					switch(f.state){
+						case CTFF_INBASE:
+							v.x = f.x; v.y = f.y;
+							break;
+						case CTFF_DROPPED:
+							v.x = f.pos[0]; v.y = f.pos[1];
+							break;
+					}
+					if(v.x < 0) continue;
+					float dist = cl->state.o.dist(v);
+					if(dist > 2) continue;
+					if(f.state == CTFF_STOLEN) continue;
+					bool own = i == cl->team;
+					if(m_ctf){
+						if(own){ // it's our flag
+							if(f.state == CTFF_DROPPED) flagaction(i, FA_RETURN, sender);
+							else if(f.state == CTFF_INBASE && of.state == CTFF_STOLEN && //
+								of.actor_cn == sender) flagaction(team_opposite(i), FA_SCORE, sender);
+						}
+						else flagaction(i, FA_PICKUP, sender);
+					}
+				}
+				*/
 				if(maplayout)
 				{
 					vec &po = clients[cn]->state.o;
 					int ls = (1 << maplayout_factor) - 1;
 					if(po.x < 0 || po.y < 0 || po.x > ls || po.y > ls || maplayout[((int) po.x) + (((int) po.y) << maplayout_factor)] > po.z + 3)
 					{
-						if(gamemillis > 10000 && (servmillis - clients[cn]->connectmillis) > 10000) clients[cn]->mapcollisions++;	// assume map to be loaded after 10 seconds: fixme
-						if((clients[cn]->mapcollisions % 25) == 1)
-						{
-							logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", clients[cn]->hostname, clients[cn]->name, clients[cn]->mapcollisions);
-						}
+						logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", clients[cn]->hostname, clients[cn]->name, clients[cn]->mapcollisions);
+						s_sprintfd(collidemsg)("\f1%s \f2collides with the map \f5- \f3forcing death");
+						sendservmsg(collidemsg);
+						forcedeath(clients[cn]);
+						clients[cn]->isonrightmap = false; // cannot spawn until you get the right map
 					}
 				}
 				break;
