@@ -36,7 +36,7 @@ struct servercommandline scl;
 
 static const int DEATHMILLIS = 300;
 
-enum { GE_NONE = 0, GE_SHOT, GE_EXPLODE, GE_HIT, GE_AKIMBO, GE_RELOAD, GE_PICKUP };
+enum { GE_NONE = 0, GE_SHOT, GE_EXPLODE, GE_HIT, GE_AKIMBO, GE_RELOAD };
 enum { ST_EMPTY, ST_LOCAL, ST_TCPIP };
 
 int mastermode = MM_OPEN;
@@ -229,7 +229,7 @@ struct client				   // server side version of "dynent" type
 	int spawnindex;
 	int salt;
 	string pwd;
-	int mapcollisions, farpickups;
+	int mapcollisions;
 
 	gameevent &addevent()
 	{
@@ -247,7 +247,7 @@ struct client				   // server side version of "dynent" type
 		isonrightmap = m_edit;
 		lastevent = 0;
 		at3_lastforce = 0;
-		mapcollisions = farpickups = 0;
+		mapcollisions;
 	}
 
 	void reset()
@@ -3097,6 +3097,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", clients[cn]->hostname, clients[cn]->name, clients[cn]->mapcollisions);
 						s_sprintfd(collidemsg)("\f1%s \f2collides with the map \f5- \f3forcing death");
 						sendservmsg(collidemsg);
+						sendservmsg("\f3please get the map by typing /getmap", cn);
 						forcedeath(clients[cn]);
 						clients[cn]->isonrightmap = false; // cannot spawn until you get the right map
 						break; // no pickups for you!
@@ -3387,7 +3388,7 @@ void checkintermission()
 	if(minremain>0)
 	{
 		minremain = gamemillis>=gamelimit || forceintermission ? 0 : (gamelimit - gamemillis + 60000 - 1)/60000;
-		loopv(clients) if(valid_client(i)){
+		if(isdedicated) loopv(clients) if(valid_client(i)){
 			client &cl = *clients[i];
 			s_sprintfd(accmsg)("\f1%d%% \f5accuracy \f4(\f1%d \f2shot, \f1%d \f0hit, \f1%d \f3wasted\f4)",
 				cl.state.damage * 100/ max(cl.state.shotdamage,1),

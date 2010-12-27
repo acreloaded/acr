@@ -442,7 +442,7 @@ void drawradar(playerent *p, int w, int h)
 		playerent *pl = players[i];
 		if(!pl || pl == p || !insideradar(centerpos, res/2, pl->o)) continue;
 		bool hasflag = pl == flaginfos[0].actor || pl == flaginfos[1].actor;
-		if(!isteam(p, pl) && !hasflag && pl->state != CS_ALIVE && lastmillis - pl->lastloud > radarenemyfade) continue;
+		if(!hasflag && pl->state == CS_ALIVE && !isteam(p, pl) && lastmillis - pl->lastloud > radarenemyfade) continue;
 		if(isteam(p, pl) || hasflag || pl->state != CS_ALIVE) // friendly, flag tracker or dead
 			drawradarent(pl->o, coordtrans, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1,
 				pl->team, iconsize, isattacking(pl), 1.f, "\f%d%s", isteam(p, pl) ? 0 : 3, colorname(pl));

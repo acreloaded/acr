@@ -142,7 +142,7 @@ void processevents()
 		while(c->events.length())
 		{
 			gameevent &e = c->events[0];
-			if(e.type<GE_PICKUP)
+			if(e.type<=GE_RELOAD) // timed
 			{
 				if(e.shot.millis>gamemillis) break;
 				if(e.shot.millis<c->lastevent) { clearevent(c); continue; }
