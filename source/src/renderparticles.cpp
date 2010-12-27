@@ -586,8 +586,12 @@ void particle_trail(int type, int fade, const vec &s, const vec &e)
 	}
 }
 
-void particle_fireball(int type, const vec &o)
+vector<nadexplode> nxp;
+
+void particle_fireball(int type, const vec &o, playerent *pl)
 {
+	nadexplode nx = {pl ? pl : player1, {o.x, o.y}, lastmillis};
+	nxp.add(nx);
 	newparticle(o, vec(0, 0, 0), (int)((parttypes[type].sz-1.0f)*100.0f), type);
 }
 
@@ -634,11 +638,13 @@ VARP(bulletairsoundrad, 0, 15, 1000);
 VARP(bulletairsoundsourcerad, 0, 8, 1000);
 VARP(bulletairsounddestrad, 0, 8, 1000);
 
+vector<sl> sls;
+
 void addshotline(dynent *pl, const vec &from, const vec &to)
 {
+	sl s = {(playerent*)pl, {from.x, from.y}, {to.x, to.y}, lastmillis + shotlinettl * 2};
+	sls.add(s);
 	if(pl == player1 || !shotlinettl || !shotline) return;
-	bool fx = shotlinettl > 0 && (player1->isspectating() || !multiplayer(false)); // allow fx only in spect mode and locally
-	if(rnd(3) && !fx) return; // show all shotlines when fx enabled
 	   
 	int start = (camera1->o.dist(to) <= 10.0f) ? 8 : 5;
 	vec unitv;
@@ -650,7 +656,7 @@ void addshotline(dynent *pl, const vec &from, const vec &to)
 	o.mul(dist/10+start).add(from);
 	vec d = unitv;
 	d.mul(dist/10*-(10-start-2)).add(to);
-	newparticle(o, d, fx ? shotlinettl : min(75, shotlinettl), 6);
+	newparticle(o, d, shotlinettl, 6);
 
 	// shotline sound fx
 	if(!bulletairsoundrad) return;

@@ -72,7 +72,7 @@ VARP(crosshairteamsign, 0, 1, 1);
 VARP(hideradar, 0, 0, 1);
 VARP(hidecompass, 0, 0, 1);
 VARP(hideteam, 0, 0, 1);
-VARP(radarres, 1, 64, 1024);
+//VARP(radarres, 1, 64, 1024); // auto
 VARP(radarentsize, 1, 4, 64);
 VARP(hidectfhud, 0, 0, 1);
 VARP(hidevote, 0, 0, 2);
@@ -365,15 +365,45 @@ vec getradarpos()
 
 VARP(radarenemyfade, 0, 1250, 1250);
 
+// DrawCircle from http://slabode.exofire.net/circle_draw.shtmls (public domain, but I'll reference it anyways
+#define circleSegments 720
+void DrawCircle(float cx, float cy, float r, float coordmul, int *col, float thickness = 1.f, float opacity = 250 / 255.f){
+	float theta = 2 * 3.1415926 / float(circleSegments); 
+	float c = cosf(theta); // precalculate the sine and cosine
+	float s = sinf(theta);
+	float t;
+
+	float x = r * coordmul;// we start at angle = 0 
+	float y = 0; 
+    
+	glEnable(GL_BLEND);
+	glEnable(GL_LINE_SMOOTH);
+	glLineWidth(thickness);
+	glBegin(GL_LINE_LOOP);
+	glColor4f(col[0] / 255.f, col[1] / 255.f, col[2] / 255.f, opacity);
+	for(int ii = 0; ii < circleSegments; ii++){
+		glVertex2f(x + cx * coordmul, y + cy * coordmul); // output vertex
+		// apply the rotation matrix
+		t = x;
+		x = c * x - s * y;
+		y = s * t + c * y;
+	}
+	glEnd(); 
+	glDisable(GL_BLEND);
+	glDisable(GL_LINE_SMOOTH);
+}
+
+float easedradarsize = 64;
 void drawradar(playerent *p, int w, int h)
 {
 	vec center = showmap ? vec(ssize/2, ssize/2, 0) : p->o;
-	int res = showmap ? ssize : radarres;
+	easedradarsize = clamp(((easedradarsize * 80.f + p->o.dist(worldpos) * 3.f) / 81.f), 50.f, ssize/2.f); // 2.5f is normal scaling; 3 for extra view
+	float res = showmap ? ssize : easedradarsize;
 
 	float worldsize = (float)ssize;
 	float radarviewsize = showmap ? VIRTH : VIRTH/6;
 	float radarsize = worldsize/res*radarviewsize;
-	float iconsize = radarentsize/(float)res*radarviewsize;
+	float iconsize = radarentsize/res*radarviewsize;
 	float coordtrans = radarsize/worldsize;
 	float overlaysize = radarviewsize*4.0f/3.25f;
 
@@ -411,14 +441,54 @@ void drawradar(playerent *p, int w, int h)
 	{
 		playerent *pl = players[i];
 		if(!pl || pl == p || !insideradar(centerpos, res/2, pl->o)) continue;
-		if(!isteam(p, pl) && lastmillis - pl->lastloud > radarenemyfade) continue;
-		if(isteam(p, pl))
+		bool hasflag = pl == flaginfos[0].actor || pl == flaginfos[1].actor;
+		if(!isteam(p, pl) && !hasflag && pl->state != CS_ALIVE && lastmillis - pl->lastloud > radarenemyfade) continue;
+		if(isteam(p, pl) || hasflag || pl->state != CS_ALIVE) // friendly, flag tracker or dead
 			drawradarent(pl->o, coordtrans, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1,
-				pl->team, iconsize, isattacking(pl), 1.f, "\f0%s", colorname(pl));
+				pl->team, iconsize, isattacking(pl), 1.f, "\f%d%s", isteam(p, pl) ? 0 : 3, colorname(pl));
 		else
 			drawradarent(pl->lastloudpos, coordtrans, pl->lastloudpos[2], pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1,
 				pl->team, iconsize, false, (radarenemyfade - lastmillis + pl->lastloud) / (float)radarenemyfade, "\f3%s", colorname(pl));
 	}
+	loopv(bounceents){ // draw grenades
+		bounceent *b = bounceents[i];
+		if(b == NULL || b->bouncetype != BT_NADE) continue;
+		if(((grenadeent *)b)->nadestate != 1) continue;
+		drawradarent(vec(b->o.x, b->o.y, 0), coordtrans, 0, b->owner == p ? 2 : isteam(b->owner, p) ? 1 : 0, 3, iconsize/1.5f, true);
+	}
+	int col[3] = {255, 255, 255};
+	#define setcol(c1, c2, c3) col[0] = c1; col[1] = c2; col[2] = c3;
+	glDisable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+	loopv(nxp){ // draw explosions
+		int ndelay = lastmillis - nxp[i].millis;
+		if(ndelay > 600) nxp.remove(i--);
+		else{
+			if(nxp[i].owner == p) {setcol(0xf7, 0xf5, 0x34)} // yellow for your explosions
+			else if(isteam(p, nxp[i].owner)) {setcol(0x02, 0x13, 0xFB)} // blue for friendlies' explosions
+			else {setcol(0xFB, 0x02, 0x02)} // red for enemies' explosions
+			if(ndelay / 400.f < 1) DrawCircle(nxp[i].o[0], nxp[i].o[1], ndelay / 100.f, coordtrans, col, 2.f, 1 - ndelay / 400.f);
+			DrawCircle(nxp[i].o[0], nxp[i].o[1], pow(ndelay, 1.5f) / 3094.0923f, coordtrans, col, 1.f, 1 - ndelay / 600.f);
+		}
+	}
+	loopv(sls){ // shotlines
+		if(sls[i].expire < lastmillis) sls.remove(i--);
+		else{
+			if(sls[i].owner == p) {setcol(0x94, 0xB0, 0xDE)} // blue for your shots
+			else if(isteam(p, sls[i].owner)) {setcol(0xB8, 0xDC, 0x78)} // light green-yellow for friendlies
+			else {setcol(0xFF, 0xFF, 0xFF)} // white for enemies
+			glBegin(GL_LINES);
+			// source shot
+			glColor4ub(col[0], col[1], col[2], 200);
+			glVertex2f(sls[i].from[0]*coordtrans, sls[i].from[1]*coordtrans);
+			// dest shot
+			glColor4ub(col[0], col[1], col[2], 250);
+			glVertex2f(sls[i].to[0]*coordtrans, sls[i].to[1]*coordtrans);
+			glEnd();
+		}
+	}
+	glEnable(GL_TEXTURE_2D);
+
 	if(m_flags)
 	{
 		glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f);
@@ -430,8 +500,8 @@ void drawradar(playerent *p, int w, int h)
 			if(!e) continue;
 			float yaw = showmap ? 0 : camera1->yaw;
 			if(insideradar(centerpos, res/2, vec(e->x, e->y, centerpos.z)))
-				drawradarent(vec(e->x, e->y, 0), coordtrans, yaw, m_ktf ? 2 : f.team, 3, iconsize, false); // draw bases
-			if(m_ktf && f.state == CTFF_IDLE) continue;
+				drawradarent(vec(e->x, e->y, 0), coordtrans, yaw, m_ktf && f.state!=CTFF_IDLE ? 2 : f.team, 3, iconsize, false); // draw bases
+			if(m_ktf && f.state==CTFF_IDLE) continue;
 			vec pos(0.5f-0.1f, 0.5f-0.9f, 0);
 			pos.mul(iconsize/coordtrans).rotate_around_z(yaw*RAD);
 			if(f.state==CTFF_STOLEN)
@@ -439,10 +509,8 @@ void drawradar(playerent *p, int w, int h)
 				if(f.actor)
 				{
 					pos.add(f.actor->o);
-					bool tm = i != p->team;
-					if(m_htf) tm = !tm;
-					else if(m_ktf) tm = true;
-					if(tm && insideradar(centerpos, res/2, pos))
+					// see flag position no matter what!
+					if(insideradar(centerpos, res/2, pos))
 						drawradarent(pos, coordtrans, yaw, 3, m_ktf ? 2 : f.team, iconsize, true); // draw near flag thief
 				}
 			}
