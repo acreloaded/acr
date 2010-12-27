@@ -1189,7 +1189,7 @@ bool akimbo::timerout() { return akimbomillis && akimbomillis <= lastmillis; }
 
 // knife
 
-knife::knife(playerent *owner) : weapon(owner, GUN_KNIFE) {}
+knife::knife(playerent *owner) : gun(owner, GUN_KNIFE){} //weapon(owner, GUN_KNIFE) {}
 
 int knife::flashtime() const { return 0; }
 

@@ -164,7 +164,7 @@ struct akimbo : gun
 };
 
 
-struct knife : weapon
+struct knife : gun //weapon
 {
 	knife(playerent *owner);
 
