@@ -357,7 +357,7 @@ extern void initclient();
 extern void deathstate(playerent *pl);
 extern void spawnplayer(playerent *d);
 extern void dodamage(int damage, playerent *pl, playerent *actor, int weapon, bool gib = false, bool local = true);
-extern void dokill(playerent *pl, playerent *act, int weapon, bool gib = false);
+extern void dokill(playerent *pl, playerent *act, int weapon, bool gib = false, int finishingdamage = -1);
 extern playerent *newplayerent();
 extern botent *newbotent();
 extern void freebotent(botent *d);

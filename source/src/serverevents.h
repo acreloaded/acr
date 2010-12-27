@@ -77,7 +77,10 @@ void processevent(client *c, shotevent &e)
 
 				bool gib = false;
 				int damage = rays * effectiveDamage(e.gun, c->state.o.dist(vec(e.to)));
-				if(e.gun==GUN_KNIFE) gib = true;
+				if(e.gun==GUN_KNIFE){
+					if(h.info == 2) damage *= 10;
+					gib = true;
+				}
 				else if(e.gun==GUN_SHOTGUN) gib = damage > SGGIB;
 				else gib = h.info == 2;
 				if(e.gun!=GUN_SHOTGUN){

@@ -486,7 +486,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, bool gib,
 
 	pl->respawnoffset = pl->lastpain = lastmillis;
 	if(local) damage = pl->dodamage(damage);
-	else if(pl == player1 && pl == actor) return;
+	// else if(pl == player1 && pl == actor) return;
 
 	if(pl==player1)
 	{
@@ -496,12 +496,12 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, bool gib,
 	}
 	damageeffect(damage, pl);
 
-	if(pl->health<=0) { if(local) dokill(pl, actor, weapon, gib); }
+	if(pl->health<=0) { if(local) dokill(pl, actor, weapon, gib, damage); }
 	else if(pl==player1) playsound(S_PAIN6, SP_HIGH);
 	else playsound(S_PAIN1+rnd(5), pl);
 }
 
-void dokill(playerent *pl, playerent *act, int weapon, bool gib)
+void dokill(playerent *pl, playerent *act, int weapon, bool gib, int finishingdamage)
 {
 	if(pl->state!=CS_ALIVE || intermission) return;
 
@@ -514,7 +514,7 @@ void dokill(playerent *pl, playerent *act, int weapon, bool gib)
 			s_strcpy(death, "obliterated");
 			break;
 		case GUN_KNIFE:
-			s_strcpy(death, "slashed");
+			s_strcpy(death, finishingdamage > 1000 ? "decapitated" : "slashed");
 			break;
 		case GUN_SNIPER:
 			s_strcpy(death, gib ? "expertly sniped" : "sniped");
@@ -563,7 +563,8 @@ void dokill(playerent *pl, playerent *act, int weapon, bool gib)
 	}
 	*/
 	if(gib){
-		if(pl != act && weapon == GUN_SNIPER) playsound(S_HEADSHOT, SP_LOW);
+		if(pl != act && weapon != GUN_SHOTGUN && weapon != GUN_GRENADE && (weapon != GUN_KNIFE || finishingdamage > 1000))
+			playsound(S_HEADSHOT, act, SP_LOW);
 		addgib(pl);
 	}
 	

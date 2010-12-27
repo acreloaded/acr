@@ -55,7 +55,7 @@ static itemstat ammostats[] =
 static itemstat powerupstats[] =
 {
 	{35, 100, 120, S_ITEMHEALTH}, //health
-	{60, 100, 150, S_ITEMARMOUR}, //armour
+	{40, 100, 100, S_ITEMARMOUR}, //armour
 };
 
 #define SGRAYS 32
@@ -65,15 +65,15 @@ static itemstat powerupstats[] =
 struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, range, endrange, rangeminus, projspeed, part, spread, kick, magsize, mdl_kick_rot, mdl_kick_back, recoil, maxrecoil, pushfactor; bool isauto; };
 static guninfo guns[NUMGUNS] =
 {
-//	{ modelname;  snd,	  rldsnd, rldtime, atkdelay, dmg,rngstart, rngend, rngm,psd,ptt,spr,kick,magsz,mkrot,mkback,rcoil,maxrcl,pushf; auto;}
-	{ "knife",	S_KNIFE,	S_NULL,	 0,	  560,	260,  0,	0,	 0,   0,   0,  1,	1,   1,	0,  0,   0,	0,	  5,   true },
-	{ "pistol",   S_PISTOL,   S_RPISTOL,  1400,   90,	 40,   40,  120,   20,   0,   0, 90,	9,   12,   6,  2,   50,   85,	 1,   false},
-	{ "shotgun",  S_SHOTGUN,  S_RSHOTGUN, 2400,   181,	12,   16,   32,	8,   0,   0,  1,   12,   10,   9,  5,   80,   80,	 2,   true },
-	{ "subgun",   S_SUBGUN,   S_RSUBGUN,  1858,   67,	 40,   40,   90,   15,   0,   0, 70,	4,   32,   1,  3,   24,   60,	 1,   true },
-	{ "sniper",   S_SNIPER,   S_RSNIPER,  1950,   500,	125,  10,  100,   10,   0,   0,128,   18,   10,   4,  4,   70,   70,	 1,   false},
-	{ "assault",  S_ASSAULT,  S_RASSAULT, 2000,   73,	 40,   50,   150,  14,   0,   0, 60,	3,   30,   0,  3,   25,   63,	 1,   true },
-	{ "grenade",  S_NULL,	 S_NULL,	 1000,   650,	200,  0,	8,	200,  20,  6,  1,	1,   1,	3,  1,   0,	0,	  4,   false},
-	{ "pistol",   S_PISTOL,   S_RAKIMBO,  1400,   60,	 36,   160,  210,  16,   0,   0, 90,	9,   16,   6,  2,   35,   60,	 3,   true },
+//	{ modelname;  snd,	  rldsnd,  rldtime, atkdelay,  dmg, rngstart, rngend, rngm,psd,ptt,spr,kick,magsz,mkrot,mkback,rcoil,maxrcl,pushf; auto;}
+	{ "knife",    S_KNIFE,    S_NULL,     0,      560,    150,  0,    0,     0,   0,   0,  1,    1,   1,    0,  0,   0,    0,      5,   true },
+	{ "pistol",   S_PISTOL,   S_RPISTOL,  1400,   90,     40,   40,  120,   20,   0,   0, 90,    9,   12,   6,  2,   50,   85,     1,   false},
+	{ "shotgun",  S_SHOTGUN,  S_RSHOTGUN, 2400,   181,    12,   16,   32,    8,   0,   0,  1,   12,   10,   9,  5,   80,   80,     2,   true },
+	{ "subgun",   S_SUBGUN,   S_RSUBGUN,  1858,   67,     40,   40,   90,   15,   0,   0, 70,    4,   32,   1,  3,   24,   60,     1,   true },
+	{ "sniper",   S_SNIPER,   S_RSNIPER,  1950,   500,    140,  10,  100,   10,   0,   0,128,   18,   10,   4,  4,   70,   70,     1,   false},
+	{ "assault",  S_ASSAULT,  S_RASSAULT, 2000,   73,     40,   50,   150,  14,   0,   0, 60,    3,   30,   0,  3,   25,   63,     1,   true },
+	{ "grenade",  S_NULL,     S_NULL,     1000,   650,    200,  0,    8,    200,  20,  6,  1,    1,   1,    3,  1,   0,    0,      4,   false},
+	{ "pistol",   S_PISTOL,   S_RAKIMBO,  1400,   60,     36,   160,  210,  16,   0,   0, 90,    9,   16,   6,  2,   35,   60,     3,   true },
 }; 
 
 static inline int reloadtime(int gun) { return guns[gun].reloadtime; }
