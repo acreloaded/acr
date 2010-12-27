@@ -1193,6 +1193,7 @@ knife::knife(playerent *owner) : weapon(owner, GUN_KNIFE) {}
 
 int knife::flashtime() const { return 0; }
 
+/*
 bool knife::attack(vec &targ)
 {
 	int attackmillis = lastmillis-owner->lastaction;
@@ -1223,6 +1224,7 @@ bool knife::attack(vec &targ)
 	gunwait = info.attackdelay;
 	return true;
 }
+*/
 
 int knife::modelanim() { return modelattacking() ? ANIM_GUN_SHOOT : ANIM_GUN_IDLE; }
 
