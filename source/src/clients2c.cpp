@@ -80,6 +80,7 @@ void updatelagtime(playerent *d)
 extern void trydisconnect();
 
 VARP(maxrollremote, 0, 1, 1); // bound remote "roll" values by our maxroll?!
+VARP(voteid, 0, 1, 1); // display votes
 
 void parsepositions(ucharbuf &p)
 {
@@ -159,6 +160,8 @@ void parsepositions(ucharbuf &p)
 			return;
 	}
 }
+
+extern votedisplayinfo *curvote;
 
 void parsemessages(int cn, playerent *d, ucharbuf &p)
 {
@@ -762,30 +765,57 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					case SA_SHUFFLETEAMS:
 						v = newvotedisplayinfo(d, type, NULL, NULL);
 						break;
+					case SA_GIVEADMIN:
+						break;
+						itoa(a, getint(p));
+						itoa(text, getint(p));
+						v = newvotedisplayinfo(d, type, a, text);
 					default:
 						itoa(a, getint(p));
 						v = newvotedisplayinfo(d, type, a, NULL);
 						break;
 				}
+				if(v) v->expiremillis = totalmillis;
+				if(type == SA_KICK) v->expiremillis += 35000;
+				else if(type == SA_BAN) v->expiremillis += 25000;
+				else v->expiremillis += 40000;
 				displayvote(v);
 				break;
 			}
 
-			case SV_CALLVOTESUC:
-				callvotesuc();
-				break;
-
 			case SV_CALLVOTEERR:
-				callvoteerr(getint(p));
+			{
+				int e = getint(p);
+				if(e < 0 || e >= VOTEE_NUM) break;
+				conoutf("\f3could not vote: %s", voteerrorstr(e));
 				break;
+			}
 
 			case SV_VOTE:
-				votecount(getint(p));
+			{
+				int cn = getint(p), vote = getint(p);
+				playerent *d = getclient(cn);
+				if(!curvote || !d) break;
+				d->vote = vote;
+				d->voternum = curvote->nextvote++;
+				if(voteid) conoutf("%s \f6(%d) \f2voted \f%s", d->name, cn, vote == VOTE_NO ? "3no" : "0yes");
 				break;
+			}
 
 			case SV_VOTERESULT:
-				voteresult(getint(p));
+			{
+				int v = getint(p);
+				veto = ((v >> 7) & 1) > 0;
+				v &= 0x7F;
+				if(curvote && v >= 0 && v < VOTE_NUM)
+				{
+					curvote->result = v;
+					curvote->millis = totalmillis + 5000;
+					conoutf("vote %s", v == VOTE_YES ? "\f0passed" : "\f3failed");
+					playsound(v == VOTE_YES ? S_VOTEPASS : S_VOTEFAIL, SP_HIGH);
+				}
 				break;
+			}
 
 			case SV_WHOIS:
 			{

@@ -9,7 +9,6 @@ int roleconf(int key)
 	return (key) == tolower(key) ? PRIV_NONE : PRIV_ADMIN;
 }
 
-extern struct voteinfo;
 struct serveraction
 {
 	int role; // required client role
@@ -17,7 +16,6 @@ struct serveraction
 	float passratio;
 	int area; // only on ded servers
 	string desc;
-	voteinfo *vote;
 
 	virtual void perform() = 0;
 	virtual bool isvalid() { return true; }
@@ -129,13 +127,13 @@ struct forceteamaction : playeraction
 
 struct giveadminaction : playeraction
 {
-	int give;
+	int give, from;
 	void perform() {
-		changeclientrole(vote->owner, PRIV_NONE, NULL, true);
+		changeclientrole(from, PRIV_NONE, NULL, true);
 		changeclientrole(cn, give, NULL, true);
 	}
-	giveadminaction(int cn, int wants) : playeraction(cn){
-		give = min(wants, clients[vote->owner]->priv);
+	giveadminaction(int cn, int wants, int caller) : from(caller), playeraction(cn){
+		give = min(wants, clients[from]->priv);
 		role = max(give, 1);
 		if(valid_client(cn)) s_sprintf(desc)("give %s to %s", privname(give), clients[cn]->name);
 		else s_sprintf(desc)("invalid give-%s", privname(give));
@@ -272,3 +270,47 @@ struct serverdescaction : serveraction
 	}
 	~serverdescaction() { DELETEA(sdesc); }
 };
+
+struct voteinfo
+{
+	int owner, callmillis, result, type;
+	serveraction *action;
+
+	voteinfo() : owner(0), callmillis(0), result(VOTE_NEUTRAL), action(NULL), type(SA_NUM) {}
+
+	void end(int result, bool veto = false)
+	{
+		if(action && !action->isvalid()) result = VOTE_NO; // don't perform() invalid votes
+		sendf(-1, 1, "ri2", SV_VOTERESULT, result | (veto ? 0x80 : 0));
+		this->result = result;
+		if(result == VOTE_YES)
+		{
+			if(valid_client(owner)) clients[owner]->lastvotecall = 0;
+			if(action) action->perform();
+		}
+		loopv(clients) clients[i]->vote = VOTE_NEUTRAL;
+	}
+
+	bool isvalid() { return valid_client(owner) && action != NULL && action->isvalid(); }
+	bool isalive() { return servmillis - callmillis < 40*1000; }
+
+	void evaluate(bool forceend = false, int veto = VOTE_NEUTRAL)
+	{
+		if(result!=VOTE_NEUTRAL) return; // block double action
+		if(action && !action->isvalid()) end(VOTE_NO);
+		int stats[VOTE_NUM] = {0};
+		loopv(clients) if(clients[i]->type != ST_EMPTY) stats[clients[i]->vote]++;
+		if(forceend){
+			if(veto == VOTE_NEUTRAL) end(stats[VOTE_YES]/(float)(stats[VOTE_NO]+stats[VOTE_YES]) > action->passratio ? VOTE_YES : VOTE_NO);
+			else end(veto, true);
+		}
+
+		int total = stats[VOTE_NO]+stats[VOTE_YES]+stats[VOTE_NEUTRAL];
+		if(stats[VOTE_YES]/(float)total > action->passratio || (!isdedicated && clients[owner]->type==ST_LOCAL))
+			end(VOTE_YES);
+		else if(stats[VOTE_NO]/(float)total >= action->passratio)
+			end(VOTE_NO);
+		else return;
+	}
+};
+static voteinfo *curvote = NULL;

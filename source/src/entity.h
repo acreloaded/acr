@@ -361,7 +361,7 @@ struct playerent : dynent, playerstate
 	int lastloud; float lastloudpos[3]; // position and yaw stored for last shot
 	int frags, flagscore, deaths;
 	int lastaction, lastmove, lastpain, lastvoicecom;
-	int priv;
+	int priv, vote, voternum;
 	bool attacking;
 	string name;
 	int weaponchanging;
@@ -385,7 +385,7 @@ struct playerent : dynent, playerstate
 	vec head;
 
 	playerent() : clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), deaths(0), lastpain(0), lastvoicecom(0), priv(PRIV_NONE),
-				  skin(0), spectatemode(SM_NONE), followplayercn(-1), eardamagemillis(0), respawnoffset(0), lastloud(0),
+				  skin(0), spectatemode(SM_NONE), followplayercn(-1), eardamagemillis(0), respawnoffset(0), lastloud(0), vote(VOTE_NEUTRAL), voternum(MAXCLIENTS),
 				  prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
 				  smoothmillis(-1),
 				  head(-1, -1, -1)

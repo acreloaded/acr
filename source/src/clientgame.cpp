@@ -854,7 +854,7 @@ COMMANDN(dropflag, tryflagdrop, ARG_NONE);
 
 char *votestring(int type, char *arg1, char *arg2)
 {
-	const char *msgs[] = { "kick player %s", "ban player %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "give admin to player %s", "load map %s in mode %s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'", "shuffle teams"};
+	const char *msgs[] = { "kick player %s", "ban player %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "\fgive \f%d%s \f5to player %s", "load map %s in mode %s", "%s demo recording for the next match", "stop demo recording", "clear%s demo%s%s", "set server description to '%s'", "shuffle teams"};
 	const char *msg = msgs[type];
 	char *out = newstring(_MAXDEFSTR);
 	out[_MAXDEFSTR] = '\0';
@@ -863,12 +863,19 @@ char *votestring(int type, char *arg1, char *arg2)
 		case SA_KICK:
 		case SA_BAN:
 		case SA_FORCETEAM:
-		case SA_GIVEADMIN:
 		{
 			int cn = atoi(arg1);
-			playerent *p = (cn == getclientnum() ? player1 : getclient(cn));
+			playerent *p = getclient(cn);
 			if(!p) break;
 			s_sprintf(out)(msg, colorname(p));
+			break;
+		}
+		case SA_GIVEADMIN:
+		{
+			int cn = atoi(arg1), priv = atoi(arg2);
+			playerent *p = getclient(cn);
+			if(!p) break;
+			s_sprintf(out)(msg, privcolor(priv), privname(priv), colorname(p));
 			break;
 		}
 		case SA_MASTERMODE:
@@ -884,6 +891,12 @@ char *votestring(int type, char *arg1, char *arg2)
 		case SA_SERVERDESC:
 			s_sprintf(out)(msg, arg1);
 			break;
+		case SA_CLEARDEMOS:
+		{
+			bool demo = atoi(arg1) > 0;
+			s_sprintf(out)(msg, !demo ? "all " : "", demo ? "s" : " ", demo ? "" : arg1);
+			break;
+		}
 		default:
 			s_sprintf(out)(msg, arg1, arg2);
 			break;
@@ -904,20 +917,17 @@ votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, char *arg1, char
 	return v;
 }
 
-votedisplayinfo *curvote = NULL, *calledvote = NULL;
+votedisplayinfo *curvote = NULL;
+bool veto = false;
 
 void callvote(int type, char *arg1, char *arg2)
 {
-	if(calledvote) return;
-	votedisplayinfo *v = newvotedisplayinfo(player1, type, arg1, arg2);
-	if(v)
-	{
-		calledvote = v;
+	if(type > 0 && type < SA_NUM){
 		ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 		ucharbuf p(packet->data, packet->dataLength);
 		putint(p, SV_CALLVOTE);
-		putint(p, v->type);
-		switch(v->type)
+		putint(p, type);
+		switch(type)
 		{
 			case SA_MAP:
 				sendstring(arg1, p);
@@ -959,10 +969,9 @@ void scallvote(char *type, char *arg1, char *arg2)
 	}
 }
 
-int vote(int v)
+bool vote(int v)
 {
-	if(!curvote || v < 0 || v >= VOTE_NUM) return 0;
-	if(curvote->localplayervoted) { conoutf("\f3you voted already"); return 0; }
+	if(!curvote || v < 0 || v >= VOTE_NUM) return false;
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
 	putint(p, SV_VOTE);
@@ -970,10 +979,9 @@ int vote(int v)
 	enet_packet_resize(packet, p.length());
 	sendpackettoserv(1, packet);
 	// flowtron : 2008 11 06 : I don't think the following comments are still current
-	if(!curvote) { /*printf(":: curvote vanished!\n");*/ return 0; } // flowtron - happens when I call "/stopdemo"! .. seems the map-load happens in-between
-	curvote->stats[v]++;
-	curvote->localplayervoted = true;
-	return 1;
+	if(!curvote) { /*printf(":: curvote vanished!\n");*/ return false; } // flowtron - happens when I call "/stopdemo"! .. seems the map-load happens in-between
+	player1->vote = v;
+	return true;
 }
 
 void displayvote(votedisplayinfo *v)
@@ -983,52 +991,21 @@ void displayvote(votedisplayinfo *v)
 	curvote = v;
 	conoutf("%s called a vote: %s", v->owner ? colorname(v->owner) : "", curvote->desc);
 	playsound(S_CALLVOTE, SP_HIGHEST);
-	curvote->localplayervoted = false;
+	veto = false;
 }
 
-void callvotesuc()
-{
-	if(!calledvote) return;
-	displayvote(calledvote);
-	calledvote = NULL;
-	vote(VOTE_YES); // not automatically done by callvote to keep a clear sequence
-}
-
-void callvoteerr(int e)
-{
-	if(e < 0 || e >= VOTEE_NUM) return;
-	conoutf("\f3could not vote: %s", voteerrorstr(e));
-	DELETEP(calledvote);
-}
-
-void votecount(int v) { if(curvote && v >= 0 && v < VOTE_NUM) curvote->stats[v]++; }
-void voteresult(int v)
-{
-	if(curvote && v >= 0 && v < VOTE_NUM)
-	{
-		curvote->result = v;
-		curvote->millis = totalmillis + 5000;
-		conoutf("vote %s", v == VOTE_YES ? "passed" : "failed");
-		if(multiplayer(false)) playsound(v == VOTE_YES ? S_VOTEPASS : S_VOTEFAIL, SP_HIGH);
-	}
-}
-
-void clearvote() { DELETEP(curvote); DELETEP(calledvote); }
+void clearvote() { DELETEP(curvote); }
 
 COMMANDN(callvote, scallvote, ARG_3STR); //fixme,ah
 COMMAND(vote, ARG_1EXP);
 
-void cleanplayervotes(playerent *p)
-{
-	if(calledvote && calledvote->owner==p) calledvote->owner = NULL;
+void cleanplayervotes(playerent *p){	
 	if(curvote && curvote->owner==p) curvote->owner = NULL;
 }
 
-void whois(int cn)
-{
+void whois(int cn){
 	addmsg(SV_WHOIS, "ri", cn);
 }
-
 COMMAND(whois, ARG_1INT);
 
 int sessionid = 0;

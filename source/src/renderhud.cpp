@@ -570,6 +570,10 @@ void damageblend(int n)
 	damageblendmillis += n*damagescreenfactor;
 }
 
+static int votersort(playerent **a, playerent **b){
+	return (*a)->voternum - (*b)->voternum;
+}
+
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
 {
 	playerent *p = camera1->type<ENT_CAMERA ? (playerent *)camera1 : player1;
@@ -667,17 +671,48 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		draw_textf("evt %d", left, top+320, xtraverts);
 	}
 
-	if(hidevote < 2 && multiplayer(false))
+	if(hidevote < 2)
 	{
 		extern votedisplayinfo *curvote;
 
-		if(curvote && curvote->millis >= totalmillis && !(hidevote == 1 && curvote->localplayervoted && curvote->result == VOTE_NEUTRAL))
+		if(curvote && curvote->millis >= totalmillis && !(hidevote == 1 && player1->vote != VOTE_YES && curvote->result == VOTE_NEUTRAL))
 		{
-			const int left = 20*2, top = VIRTH;
-			draw_textf("%s called a vote:", left, top+240, curvote->owner ? colorname(curvote->owner) : "");
+			int left = 20*2, top = VIRTH;
+			if(curvote->result == VOTE_NEUTRAL)
+			draw_textf("%s called a vote: %.2f seconds remaining", left, top+240, curvote->owner ? colorname(curvote->owner) : "(unknown owner)", (curvote->expiremillis-lastmillis)/1000.0f);
+			else draw_textf("%s called a vote:", left, top+240, curvote->owner ? colorname(curvote->owner) : "(unknown)");
 			draw_textf("%s", left, top+320, curvote->desc);
 			draw_textf("----", left, top+400);
-			draw_textf("%d yes vs. %d no", left, top+480, curvote->stats[VOTE_YES], curvote->stats[VOTE_NO]);
+
+			vector<playerent *> votepl[VOTE_NUM];
+			string votestr[VOTE_NUM];
+			if(!watchingdemo) votepl[player1->vote].add(player1);
+			loopv(players){
+				playerent *vpl = players[i];
+				if(!vpl) continue;
+				votepl[vpl->vote].add(vpl);
+			}
+			#define VSU votepl[VOTE_NEUTRAL].length()
+			loopl(VOTE_NUM){
+				if(l == VOTE_NEUTRAL && VSU > 5) continue;
+				votepl[l].sort(votersort);
+				s_strcpy(votestr[l], "");
+				loopv(votepl[l]){
+					playerent *vpl = votepl[l][i];
+					if(!vpl) continue;
+					s_sprintf(votestr[l])("%s\f%d%s \f6(%d)\f5, ", votestr[l],
+						vpl == player1 ? 6 : vpl->priv ? 0 : vpl->team ? 1 : 3, vpl->name, vpl->clientnum);
+				}
+				if(!votepl[l].length())
+					s_strcpy(votestr[l], "\f4None");
+				else
+					s_strncpy(votestr[l], votestr[l], strlen(votestr[l])-1);
+			}
+			#define VSY votepl[VOTE_YES].length()
+			#define VSN votepl[VOTE_NO].length()
+			draw_textf("%d yes vs. %d no; %d neutral", left, top+480, VSY, VSN, VSU);
+			#undef VSY
+			#undef VSN
 
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 			glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis/100.0f)+1.0f) / 2.0f);
@@ -685,14 +720,28 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 			{
 				case VOTE_NEUTRAL:
 					drawvoteicon(left, top, 0, 0, true);
-					if(!curvote->localplayervoted)
-						draw_textf("\f3press F1/F2 to vote yes or no", left, top+560);
+					if(player1->vote == VOTE_NEUTRAL)
+						draw_textf("\f3please vote yes or no", left, top+560);
+					else draw_textf("\f2you voted \f%s", left, top+560, player1->vote == VOTE_NO ? "3no" : "0yes");
 					break;
 				default:
 					drawvoteicon(left, top, (curvote->result-1)&1, 1, false);
-					draw_textf("\f3vote %s", left, top+560, curvote->result == VOTE_YES ? "PASSED" : "FAILED");
+					draw_textf("\f%s \f%s", left, top+560, veto ? "1VETO" : "2vote", curvote->result == VOTE_YES ? "0PASSED" : "3FAILED");
 					break;
 			}
+			glLoadIdentity();
+			glOrtho(0, VIRTW*2.2, VIRTH*2.2, 0, -1, 1);
+			left = 44;
+			top = (VIRTH+560)*1.1;
+			draw_text("\f1Vote \f0Yes", left, top += 88);
+			draw_text(votestr[VOTE_YES], left, top += 88);
+			draw_text("\f1Vote \f3No", left, top += 88);
+			draw_text(votestr[VOTE_NO], left, top += 88);
+			if(VSU<=5){
+				draw_text("\f1Vote \f2Neutral", left, top += 88);
+				draw_text(votestr[VOTE_NEUTRAL], left, top += 88);
+			}
+			#undef VSU
 		}
 	}
 

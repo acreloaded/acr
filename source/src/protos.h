@@ -396,18 +396,15 @@ extern void spectate(int mode);
 struct votedisplayinfo
 {
 	playerent *owner;
-	int type, stats[VOTE_NUM], result, millis;
+	int type, result, millis, nextvote, expiremillis;
 	string desc;
-	bool localplayervoted;
-	votedisplayinfo() : owner(NULL), result(VOTE_NEUTRAL), millis(0), localplayervoted(false) { loopi(VOTE_NUM) stats[i] = VOTE_NEUTRAL; }
+	votedisplayinfo() : owner(NULL), result(VOTE_NEUTRAL), millis(0), nextvote(0), expiremillis(0) { }
 };
+extern bool veto;
 
 extern votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, char *arg1, char *arg2);
-extern void callvotesuc();
 extern void callvoteerr(int e);
 extern void displayvote(votedisplayinfo *v);
-extern void voteresult(int v);
-extern void votecount(int v);
 extern void clearvote();
 
 // scoreboard
@@ -556,10 +553,10 @@ extern void particle_splash(int type, int num, int fade, const vec &p);
 extern void particle_trail(int type, int fade, const vec &from, const vec &to);
 extern void particle_emit(int type, int *args, int basetime, int seed, const vec &p);
 struct nadexplode {playerent *owner; int o[2]; int millis;};
-vector<nadexplode> nxp;
+static vector<nadexplode> nxp;
 extern void particle_fireball(int type, const vec &o, playerent *pl = NULL);
 struct sl {playerent *owner; int from[2]; int to[2]; int expire;};
-vector<sl> sls;
+static vector<sl> sls;
 extern void addshotline(dynent *d, const vec &from, const vec &to);
 extern bool addbullethole(dynent *d, const vec &from, const vec &to, float radius = 1, bool noisy = true);
 extern bool addscorchmark(vec &o, float radius = 7);
