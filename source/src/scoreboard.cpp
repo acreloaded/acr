@@ -94,10 +94,8 @@ struct scoreratio
 
 void renderscore(void *menu, playerent *d)
 {
-	const char *status = "";
+	s_sprintfd(status)("\f%d", privcolor(d->priv));
 	static color localplayerc(0.2f, 0.2f, 0.2f, 0.2f);
-	if(d->clientrole==CR_ADMIN) status = d->state==CS_DEAD ? "\f7" : "\f3";
-	else if(d->state==CS_DEAD) status = "\f4";
 	const char *clag = d->state==CS_LAGGED ? "LAG" : colorpj(d->plag), *cping = colorping(d->ping);
 	sline &line = scorelines.add();
 	line.bgcolor = d==player1 ? &localplayerc : NULL;
@@ -237,7 +235,12 @@ void consolescores()
 		s_sprintf(team)(" %-4s", d->team);
 		s_sprintf(flags)(" %4d ", d->flagscore);
 		printf("%s %4d   %4d %5.2f %2d%s %s%s\n", m_flags ? flags : "", d->frags, d->deaths, sr.ratio, d->clientnum,
-					m_teammode ? team : "", d->name, d->clientrole==CR_ADMIN ? " (admin)" : d==player1 ? " (you)" : "");
+					m_teammode ? team : "", d->name,
+						d->priv == PRIV_MAX ? " (highest)" :
+						d->priv == PRIV_ADMIN ? " (admin)" :
+						d->priv == PRIV_MASTER ? " (master)" :
+						d == player1 ? " (you)" :
+					"");
 	}
 	printf("\n");
 }

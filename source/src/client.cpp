@@ -44,13 +44,13 @@ void throttle()
 }
 
 string clientpassword = "";
-int connectrole = CR_DEFAULT;
+int connectrole = PRIV_NONE;
 
 void abortconnect()
 {
 	if(!connpeer) return;
 	clientpassword[0] = '\0';
-	connectrole = CR_DEFAULT;
+	connectrole = PRIV_NONE;
 	if(connpeer->state!=ENET_PEER_STATE_DISCONNECTED) enet_peer_reset(connpeer);
 	connpeer = NULL;
 #if 0
@@ -62,7 +62,7 @@ void abortconnect()
 #endif
 }
 
-void connectserv_(const char *servername, const char *serverport = NULL, const char *password = NULL, int role = CR_DEFAULT)
+void connectserv_(const char *servername, const char *serverport = NULL, const char *password = NULL, int role = PRIV_NONE)
 {
 	extern void enddemoplayback();
 	if(watchingdemo) enddemoplayback();
@@ -88,7 +88,7 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
 		{
 			conoutf("\f3could not resolve server %s", servername);
 			clientpassword[0] = '\0';
-			connectrole = CR_DEFAULT;
+			connectrole = PRIV_NONE;
 			return;
 		}
 	}
@@ -112,7 +112,7 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
 	{
 		conoutf("\f3could not connect to server");
 		clientpassword[0] = '\0';
-		connectrole = CR_DEFAULT;
+		connectrole = PRIV_NONE;
 	}
 }
 
@@ -124,7 +124,7 @@ void connectserv(char *servername, char *serverport, char *password)
 void connectadmin(char *servername, char *serverport, char *password)
 {
 	if(!password[0]) return;
-	connectserv_(servername, serverport, password, CR_ADMIN);
+	connectserv_(servername, serverport, password, PRIV_MAX);
 }
 
 void lanconnect()
@@ -159,7 +159,7 @@ void disconnect(int onlyclean, int async)
 	{
 		player1->clientnum = -1;
 		player1->lifesequence = 0;
-		player1->clientrole = CR_DEFAULT;
+		player1->priv = PRIV_NONE;
 		kickallbots();
 		loopv(players) zapplayer(players[i]);
 		clearvote();
@@ -369,7 +369,7 @@ void sendintro()
 	sendstring(genpwdhash(player1->name, clientpassword, sessionid), p);
 	putint(p, connectrole);
 	clientpassword[0] = '\0';
-	connectrole = CR_DEFAULT;
+	connectrole = PRIV_NONE;
 	putint(p, player1->nextprimweap->type);
 	putint(p, AC_VERSION);
 	putint(p, 

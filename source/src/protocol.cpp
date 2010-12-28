@@ -198,7 +198,7 @@ const char *modeacronymnames[] =
 	"OSOK", "TOSOK", "BOSOK", "HTF", "TKTF", "KTF"
 };
 
-const char *voteerrors[] = { "voting is currently disabled", "there is already a vote pending", "already voted", "can't vote that often", "this vote is not allowed in the current environment (singleplayer/multiplayer)", "no permission", "invalid vote" };
+const char *voteerrors[] = { "voting is currently disabled", "there is already a vote pending", "already voted (you can change votes)", "can't vote that often", "this vote is not allowed in the current environment (singleplayer/multiplayer)", "no permission", "invalid vote" };
 const char *mmfullnames[] = { "open", "private" };
 
 const char *fullmodestr(int n) { return (n>=-1 && size_t(n+1) < sizeof(modefullnames)/sizeof(modefullnames[0])) ? modefullnames[n+1] : "unknown"; }
@@ -207,21 +207,21 @@ const char *modestr(int n, bool acronyms) { return acronyms ? acronymmodestr (n)
 const char *voteerrorstr(int n) { return (n>=0 && (size_t)n < sizeof(voteerrors)/sizeof(voteerrors[0])) ? voteerrors[n] : "unknown"; }
 const char *mmfullname(int n) { return (n>=0 && n < MM_NUM) ? mmfullnames[n] : "unknown"; }
 
-char msgsizesl[] =			   // size inclusive message token, 0 for variable or not-checked sizes
+char msgsizesl[] =			   // size inclusive message token (client to client, 0 if handled by the server [commentable])
 {
-	SV_SERVINFO, 4, SV_WELCOME, 0, SV_POS, 0, SV_TEXT, 0, SV_TEAMTEXT, 0, SV_SOUND, 2, SV_VOICECOM, 2, SV_VOICECOMTEAM, 2, SV_CDIS, 2,
-	SV_INITCLIENT, 0, SV_NEWNAME, 0, SV_SKIN, 2,
-	SV_SHOOT, 0, SV_EXPLODE, 0, SV_SUICIDE, 1, SV_AKIMBO, 2, SV_RELOAD, 3,
-	SV_DIED, 5, SV_DAMAGE, 6, SV_HITPUSH, 6, SV_SHOTFX, 9, SV_THROWNADE, 0,
+	SV_SERVINFO, 0, SV_WELCOME, 0, SV_POS, 0, SV_TEXT, 0, SV_TEAMTEXT, 0, SV_SOUND, 2, SV_VOICECOM, 0, SV_VOICECOMTEAM, 0, SV_CDIS, 0,
+	SV_INITCLIENT, 0, SV_NEWNAME, 0, SV_SKIN, 0,
+	SV_SHOOT, 0, SV_EXPLODE, 0, SV_SUICIDE, 0, SV_AKIMBO, 0, SV_RELOAD, 0,
+	SV_DIED, 0, SV_DAMAGE, 0, SV_HITPUSH, 0, SV_SHOTFX, 0, SV_THROWNADE, 0,
 	SV_TRYSPAWN, 1, SV_SPAWNSTATE, 23, SV_SPAWN, 3, SV_FORCEDEATH, 2, SV_RESUME, 0,
 	SV_TIMEUP, 2, SV_EDITENT, 10, SV_MAPRELOAD, 2, SV_NEXTMAP, 0,
 	SV_MAPCHANGE, 0, SV_ITEMSPAWN, 2, SV_ITEMACC, 2,
-	SV_PINGPONG, 2, SV_PINGTIME, 3, SV_GAMEMODE, 2,
+	SV_PINGPONG, 2, SV_PINGTIME, 0, SV_GAMEMODE, 2,
 	SV_EDITMODE, 2, SV_EDITH, 7, SV_EDITT, 7, SV_EDITS, 6, SV_EDITD, 6, SV_EDITE, 6, SV_NEWMAP, 2,
 	SV_SENDMAP, 0, SV_RECVMAP, 1, SV_SERVMSG, 0, SV_ITEMLIST, 0, SV_WEAPCHANGE, 2, SV_PRIMARYWEAP, 2,
 	SV_DROPFLAG, 1, SV_FLAGINFO, 0, SV_FLAGMSG, 0, SV_FLAGCNT, 3,
 	SV_ARENAWIN, 2,
-	SV_SETADMIN, 0, SV_SERVOPINFO, 3,
+	SV_SETROLE, 0, SV_CURRENTSOP, 3,
 	SV_CALLVOTE, 0, SV_CALLVOTESUC, 1, SV_CALLVOTEERR, 2, SV_VOTE, 2, SV_VOTERESULT, 2,
 	SV_SETTEAM, 3, SV_SWITCHTEAM, 2,
 	SV_WHOIS, 0,
@@ -229,7 +229,7 @@ char msgsizesl[] =			   // size inclusive message token, 0 for variable or not-c
 	SV_CONNECT, 0,
 	SV_CLIENT, 0,
 	SV_EXTENSION, 0,
-	SV_MAPIDENT, 2,
+	SV_MAPIDENT, 0,
 	-1
 };
 

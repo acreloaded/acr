@@ -291,7 +291,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case SV_INITCLIENT:
 			{
-				d = newclient(getint(p));
+				playerent *d = newclient(getint(p));
 				d->team = getint(p);
 				setskin(d, getint(p));
 				getstring(text, p);
@@ -310,7 +310,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case SV_NEWNAME:
 			{
-				d = getclient(getint(p));
+				playerent *d = getclient(getint(p));
 				getstring(text, p);
 				filtertext(text, text, 1, MAXNAMELEN);
 				if(!text[0]) s_strcpy(text, "unnamed");
@@ -322,7 +322,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			}
 
 			case SV_SKIN:
-				setskin(d == player1 ? NULL : d, getint(p));
+				setskin(d, getint(p));
 				break;
 
 			case SV_CDIS:
@@ -679,35 +679,42 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_SERVOPINFO:
+			case SV_CURRENTSOP:
 			{
-				loopv(players) { if(players[i]) players[i]->clientrole = CR_DEFAULT; }
-				player1->clientrole = CR_DEFAULT;
-
 				int cl = getint(p), r = getint(p);
-				if(cl >= 0 && r >= 0)
-				{
-					playerent *pl = (cl == getclientnum() ? player1 : newclient(cl));
-					if(pl)
-					{
-						pl->clientrole = r;
-						if(pl->name[0]) conoutf("%s claimed %s status", pl == player1 ? "you" : colorname(pl), r == CR_ADMIN ? "admin" : "master");
-					}
+				playerent *p = getclient(cl);
+				p->priv = r;
+				break;
+			}
+
+			case SV_SOPCHANGE:
+			{
+				int cl = getint(p), r = getint(p);
+				bool drop = (r >> 7) & 1, err = (r >> 6) & 1; r &= 0x3F;
+				playerent *d = getclient(cl);
+				const char *n = (d == player1) ? "\f1you" : colorname(d);
+				if(!d) break;
+				if(err){
+					if(d == player1) hudoutf("\f1you \f3already \f2have \f%d%s \f5status", privcolor(r), privname(r));
+					else hudoutf("\f3there is already a \f1master \f2(\f0%s\f2)", n);
+					break;
 				}
+				hudoutf("%s \f2%s \f%d%s \f5status", n, drop ? "relinquished" : "claimed", privcolor(r), privname(r));
 				break;
 			}
 
 			case SV_SETTEAM:
 			{
-				cn = getint(p); d = getclient(cn);
-				int fnt = getint(p), ftr = fnt >> 4; fnt &= 0xF;
+				int cn = getint(p), fnt = getint(p), ftr = fnt >> 4; fnt &= 0xF;
+				playerent *p = getclient(cn);
+				if(!p || !m_teammode) break;
 				const char* nts = team_string(fnt);
-				if(!d || !m_teammode) break;
-				if(d->team == fnt){
-					if(d == player1 && ftr == FTR_AUTOTEAM) hudoutf("\f1you stay in team %s", nts);
+				if(p->team == fnt){
+					if(p == player1 && ftr == FTR_AUTOTEAM) hudoutf("\f1you stay in team %s", nts);
 					break;
 				}
-				if(d == player1 && !watchingdemo){
+				p->team = fnt;
+				if(p == player1 && !watchingdemo){
 					switch(ftr){
 						case FTR_PLAYERWISH:
 							conoutf("\f2you're now in team %s", nts);
@@ -718,18 +725,16 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					}
 				}
 				else{
-                    const char *pls = colorname(d);
                     switch(ftr)
                     {
                         case FTR_PLAYERWISH:
-                            conoutf("\f2%s switched to team %s", colorname(d), nts); // new message
+                            conoutf("\f2%s switched to team %s", colorname(p), nts); // new message
                             break;
                         case FTR_AUTOTEAM:
-                            conoutf("\f1the server forced %s to team \f%s", colorname(d), fnt ? 1 : 3, nts);
+                            conoutf("\f1the server forced %s to team \f%s", colorname(p), fnt ? 1 : 3, nts);
                             break;
                     }
                 }
-				d->team = fnt;
 				break;
 			}
 

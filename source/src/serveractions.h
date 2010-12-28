@@ -4,21 +4,25 @@ enum { EE_LOCAL_SERV = 1, EE_DED_SERV = 1<<1 }; // execution environment
 
 int roleconf(int key)
 {
-	if(strchr(scl.voteperm, tolower(key))) return CR_DEFAULT;
-	if(strchr(scl.voteperm, toupper(key))) return CR_ADMIN;
-	return (key) == tolower(key) ? CR_DEFAULT : CR_ADMIN;
+	if(strchr(scl.voteperm, tolower(key))) return PRIV_NONE;
+	if(strchr(scl.voteperm, toupper(key))) return PRIV_ADMIN;
+	return (key) == tolower(key) ? PRIV_NONE : PRIV_ADMIN;
 }
 
+extern struct voteinfo;
 struct serveraction
 {
 	int role; // required client role
+	int length;
+	float passratio;
 	int area; // only on ded servers
 	string desc;
+	voteinfo *vote;
 
 	virtual void perform() = 0;
 	virtual bool isvalid() { return true; }
 	virtual bool isdisabled() { return false; }
-	serveraction() : role(CR_DEFAULT), area(EE_DED_SERV) { desc[0] = '\0'; }
+	serveraction() : role(PRIV_NONE), length(40000), area(EE_DED_SERV), passratio(0.5f) { desc[0] = '\0'; }
 	virtual ~serveraction() { }
 };
 
@@ -45,12 +49,15 @@ struct mapaction : serveraction
 	{
 		if(isdedicated)
 		{
-			bool notify = valid_client(caller) && clients[caller]->role == CR_DEFAULT;
+			bool notify = valid_client(caller) && clients[caller]->priv < PRIV_ADMIN;
 			mapstats *ms = getservermapstats(map);
-			if(strchr(scl.voteperm, 'x') && !ms) // admin needed for unknown maps
-			{
-				role = CR_ADMIN;
+			if(strchr(scl.voteperm, 'x') && !ms){ // admin needed for unknown maps
+				role = PRIV_ADMIN;
 				if(notify) sendservmsg("the server does not have this map", caller);
+			}
+			if(mode == GMODE_COOPEDIT && notify){ // admin needed for coopedit
+				sendservmsg("\f3coopedit is restricted to admins!", caller);
+				role = PRIV_ADMIN;
 			}
 			if(ms && !strchr(scl.voteperm, 'P')) // admin needed for mismatched modes
 			{
@@ -59,7 +66,7 @@ struct mapaction : serveraction
 				bool flags = m_flags && !m_htf ? ms->hasflags : true;
 				if(!spawns || !flags)
 				{
-					role = CR_ADMIN;
+					role = PRIV_ADMIN;
 					s_sprintfd(msg)("\f3map \"%s\" does not support \"%s\": ", behindpath(map), modestr(mode, false));
 					if(!spawns) s_strcat(msg, "player spawns");
 					if(!spawns && !flags) s_strcat(msg, " and ");
@@ -71,7 +78,7 @@ struct mapaction : serveraction
 			}
 			loopv(scl.adminonlymaps)
 			{
-				if(!strcmp(behindpath(map), scl.adminonlymaps[i])) role = CR_ADMIN;
+				if(!strcmp(behindpath(map), scl.adminonlymaps[i])) role = PRIV_ADMIN;
 			}
 		}
 		area |= EE_LOCAL_SERV; // local too
@@ -101,7 +108,7 @@ struct playeraction : serveraction
 		int i = findcnbyaddress(&address);
 		if(i >= 0) disconnect_client(i, reason);
 	}
-	virtual bool isvalid() { return valid_client(cn) && clients[cn]->role != CR_ADMIN; } // actions can't be done on admins
+	virtual bool isvalid() { return valid_client(cn) && clients[cn]->priv < PRIV_ADMIN; } // kick & ban can't be done on admins
 	playeraction(int cn) : cn(cn)
 	{
 		if(isvalid()) address = clients[cn]->peer->address;
@@ -115,55 +122,50 @@ struct forceteamaction : playeraction
 	forceteamaction(int cn, int caller) : playeraction(cn)
 	{
 		if(cn != caller) role = roleconf('f');
-		if(isvalid()) s_sprintf(desc)("force player %s to the enemy team", clients[cn]->name);
+		if(valid_client(cn)) s_sprintf(desc)("force player %s to the enemy team", clients[cn]->name);
+		else s_strcpy(desc, "invalid forceteam");
 	}
 };
 
 struct giveadminaction : playeraction
 {
-	void perform() { changeclientrole(cn, CR_ADMIN, NULL, true); }
-	giveadminaction(int cn) : playeraction(cn)
-	{
-		role = CR_ADMIN;
+	int give;
+	void perform() {
+		changeclientrole(vote->owner, PRIV_NONE, NULL, true);
+		changeclientrole(cn, give, NULL, true);
+	}
+	giveadminaction(int cn, int wants) : playeraction(cn){
+		give = min(wants, clients[vote->owner]->priv);
+		role = max(give, 1);
+		if(valid_client(cn)) s_sprintf(desc)("give %s to %s", privname(give), clients[cn]->name);
+		else s_sprintf(desc)("invalid give-%s", privname(give));
 	}
 };
 
 struct kickaction : playeraction
 {
-	bool wasvalid;
 	void perform()  { disconnect(DISC_KICK); }
-	virtual bool isvalid() { return wasvalid || playeraction::isvalid(); }
 	kickaction(int cn) : playeraction(cn)
 	{
-		wasvalid = false;
 		role = roleconf('k');
-		if(isvalid())
-		{
-			wasvalid = true;
-			s_sprintf(desc)("kick player %s", clients[cn]->name);
-		}
+		length = 35000; // 35s
+		if(valid_client(cn)) s_sprintf(desc)("kick player %s", clients[cn]->name);
+		else s_strcpy(desc, "invalid kick");
 	}
 };
 
 struct banaction : playeraction
 {
-	bool wasvalid;
-	void perform()
-	{
+	void perform(){
 		ban b = { address, servmillis+20*60*1000 };
 		bans.add(b);
 		disconnect(DISC_BAN);
 	}
-	virtual bool isvalid() { return wasvalid || playeraction::isvalid(); }
 	banaction(int cn) : playeraction(cn)
 	{
-		wasvalid = false;
 		role = roleconf('b');
-		if(isvalid())
-		{
-			wasvalid = true;
-			s_sprintf(desc)("ban player %s", clients[cn]->name);
-		}
+		if(isvalid()) s_sprintf(desc)("ban player %s", clients[cn]->name);
+		else s_strcpy(desc, "invalid ban");
 	}
 };
 
@@ -238,7 +240,7 @@ struct stopdemoaction : serveraction
 	}
 	stopdemoaction()
 	{
-		role = CR_ADMIN;
+		role = PRIV_ADMIN;
 		area |= EE_LOCAL_SERV;
 		s_strcpy(desc, "stop demo");
 	}

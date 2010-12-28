@@ -95,8 +95,25 @@ enum { TEAM_RED = 0, TEAM_BLUE, TEAM_NUM };
 
 enum { ENT_PLAYER = 0, ENT_BOT, ENT_CAMERA, ENT_BOUNCE };
 enum { CS_ALIVE = 0, CS_DEAD, CS_SPAWNING, CS_LAGGED, CS_EDITING, CS_SPECTATE };
-enum { CR_DEFAULT = 0, CR_ADMIN }; // TODO: update into new system
-enum { PRIV_NONE = 0, PRIV_MASTER, PRIV_ADMIN, PRIV_OWNER };
+enum { PRIV_NONE = 0, PRIV_MASTER, PRIV_ADMIN, PRIV_MAX };
+static inline const uchar privcolor(int priv, bool dead = false){
+	switch(priv){
+		case PRIV_NONE: return dead ? 4 : 5;
+		case PRIV_MASTER: return dead ? 8 : 0;
+		case PRIV_ADMIN: return dead ? 7 : 3;
+		case PRIV_MAX: return dead ? 9 : 1;
+	}
+	return 5;
+}
+static inline const char *privname(int priv){ 
+	switch(priv){
+		case PRIV_NONE: return "user";
+		case PRIV_MASTER: return "master";
+		case PRIV_ADMIN: return "admin";
+		case PRIV_MAX: return "highest";
+	}
+	return "unknown";
+}
 enum { SM_NONE = 0, SM_DEATHCAM, SM_FOLLOW1ST, SM_FOLLOW3RD, SM_FOLLOW3RD_TRANSPARENT, SM_FLY, SM_NUM };
 
 struct physent
@@ -344,7 +361,7 @@ struct playerent : dynent, playerstate
 	int lastloud; float lastloudpos[3]; // position and yaw stored for last shot
 	int frags, flagscore, deaths;
 	int lastaction, lastmove, lastpain, lastvoicecom;
-	int clientrole;
+	int priv;
 	bool attacking;
 	string name;
 	int weaponchanging;
@@ -367,7 +384,7 @@ struct playerent : dynent, playerstate
 
 	vec head;
 
-	playerent() : clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), deaths(0), lastpain(0), lastvoicecom(0), clientrole(CR_DEFAULT),
+	playerent() : clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), deaths(0), lastpain(0), lastvoicecom(0), priv(PRIV_NONE),
 				  skin(0), spectatemode(SM_NONE), followplayercn(-1), eardamagemillis(0), respawnoffset(0), lastloud(0),
 				  prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
 				  smoothmillis(-1),

@@ -210,7 +210,7 @@ struct client				   // server side version of "dynent" type
 	int ping;
 	int team, skin;
 	int vote;
-	int role;
+	int priv;
 	int connectmillis;
 	bool isauthed; // for passworded servers
 	bool haswelcome;
@@ -258,7 +258,7 @@ struct client				   // server side version of "dynent" type
 		position.setsizenodelete(0);
 		messages.setsizenodelete(0);
 		isauthed = haswelcome = false;
-		role = CR_DEFAULT;
+		priv = PRIV_NONE;
 		lastvotecall = 0;
 		vote = VOTE_NEUTRAL;
 		lastsaytext[0] = '\0';
@@ -270,7 +270,7 @@ struct client				   // server side version of "dynent" type
 	void zap()
 	{
 		type = ST_EMPTY;
-		role = CR_DEFAULT;
+		priv = PRIV_NONE;
 		isauthed = haswelcome = false;
 	}
 };
@@ -1245,7 +1245,7 @@ void arenacheck()
 
 bool spamdetect(client *cl, char *text) // checks doubled lines and average typing speed
 {
-	if(cl->type != ST_TCPIP || cl->role == CR_ADMIN) return false;
+	if(cl->type != ST_TCPIP || cl->priv >= PRIV_ADMIN) return false;
 	bool spam = false;
 	int pause = servmillis - cl->lastsay;
 	if(pause < 0 || pause > 90*1000) pause = 90*1000;
@@ -1278,7 +1278,7 @@ void sendteamtext(char *text, int sender)
 	enet_packet_resize(packet, p.length());
 	loopv(clients) if(i!=sender)
 	{
-		if(clients[i]->team == clients[sender]->team || clients[i]->role || !m_teammode) // send to everyone in non-team mode
+		if(clients[i]->team == clients[sender]->team || clients[i]->priv || !m_teammode) // send to everyone in non-team mode
 			sendpacket(i, 1, packet);
 	}
 	if(packet->referenceCount==0) enet_packet_destroy(packet);
@@ -1548,7 +1548,6 @@ vector<iprange> ipblacklist;
 
 void readipblacklist(const char *name)
 {
-	const enet_uint32 permaban[] = { 0x43b92a06, 0xcec10504 };
 	static string blfilename;
 	static int blfilesize;
 	char *p, *l, *r;
@@ -1557,7 +1556,6 @@ void readipblacklist(const char *name)
 
 	if(!name && getfilesize(blfilename) == blfilesize) return;
 	ipblacklist.setsize(0);
-	loopi(sizeof(permaban)/sizeof(permaban[0])) { ir.lr = ir.ur = permaban[i]; ipblacklist.add(ir); }
 	char *buf = loadcfgfile(blfilename, name, &len);
 	blfilesize = len;
 	if(!buf) return;
@@ -1787,7 +1785,7 @@ struct pwddetail
 {
 	string pwd;
 	int line;
-	bool denyadmin;	// true: connect only
+	int priv;
 };
 
 vector<pwddetail> adminpwds;
@@ -1824,13 +1822,10 @@ void readpwdfile(const char *name)
 				else
 					break;
 			}
-			//if(i > 0)
-			{
-				c.line = line;
-				c.denyadmin = par[0] > 0;
-				adminpwds.add(c);
-				logline(ACLOG_VERBOSE,"line%4d: %s %d", c.line, hiddenpwd(c.pwd), c.denyadmin ? 1 : 0);
-			}
+			c.line = line;
+			c.priv = par[0];
+			adminpwds.add(c);
+			logline(ACLOG_VERBOSE,"line%4d: %s (%s)", c.line, hiddenpwd(c.pwd), privname(c.priv));
 		}
 		line++;
 	}
@@ -2144,22 +2139,14 @@ bool isbanned(int cn)
 	loopv(bans)
 	{
 		ban &b = bans[i];
-		if(b.millis < servmillis) { bans.remove(i--); }
+		if(b.millis >= 0 && b.millis < servmillis) { bans.remove(i--); }
 		if(b.address.host == c.peer->address.host) { return true; }
 	}
 	return checkipblacklist(c.peer->address.host);
 }
 
-int serveroperator()
-{
-	loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->role > CR_DEFAULT) return i;
-	return -1;
-}
-
-void sendserveropinfo(int receiver)
-{
-	int op = serveroperator();
-	sendf(receiver, 1, "ri3", SV_SERVOPINFO, op, op >= 0 ? clients[op]->role : -1);
+void sendserveropinfo(int receiver = -1){
+	loopv(clients) if(valid_client(i)) sendf(receiver, 1, "ri3", SV_CURRENTSOP, i, clients[i]->priv);
 }
 
 #include "serveractions.h"
@@ -2187,50 +2174,27 @@ struct voteinfo
 	bool isvalid() { return valid_client(owner) && action != NULL && action->isvalid(); }
 	bool isalive() { return servmillis - callmillis < 40*1000; }
 
-	void evaluate(bool forceend = false)
+	void evaluate(bool forceend = false, int veto = VOTE_NEUTRAL)
 	{
 		if(result!=VOTE_NEUTRAL) return; // block double action
 		if(action && !action->isvalid()) end(VOTE_NO);
 		int stats[VOTE_NUM] = {0};
-		int adminvote = VOTE_NEUTRAL;
-		loopv(clients)
-			if(clients[i]->type!=ST_EMPTY && clients[i]->connectmillis < callmillis)
-			{
-				stats[clients[i]->vote]++;
-				if(clients[i]->role==CR_ADMIN) adminvote = clients[i]->vote;
-			};
+		loopv(clients) if(clients[i]->type != ST_EMPTY) stats[clients[i]->vote]++;
+		if(forceend){
+			if(veto == VOTE_NEUTRAL) veto = stats[VOTE_YES]/(float)(stats[VOTE_NO]+stats[VOTE_YES]) >= action->passratio ? VOTE_YES : VOTE_NO;
+			end(veto);
+		}
 
-		bool admin = clients[owner]->role==CR_ADMIN || (!isdedicated && clients[owner]->type==ST_LOCAL);
 		int total = stats[VOTE_NO]+stats[VOTE_YES]+stats[VOTE_NEUTRAL];
-		const float requiredcount = 0.51f;
-		if(stats[VOTE_YES]/(float)total > requiredcount || admin || adminvote == VOTE_YES)
+		if(stats[VOTE_YES]/(float)total >= action->passratio || (!isdedicated && clients[owner]->type==ST_LOCAL))
 			end(VOTE_YES);
-		else if(forceend || stats[VOTE_NO]/(float)total > requiredcount || stats[VOTE_NO] >= stats[VOTE_YES]+stats[VOTE_NEUTRAL] || adminvote == VOTE_NO)
+		else if(stats[VOTE_NO]/(float)total > action->passratio)
 			end(VOTE_NO);
 		else return;
 	}
 };
 
 static voteinfo *curvote = NULL;
-
-bool svote(int sender, int vote, ENetPacket *msg) // true if the vote was placed successfully
-{
-	if(!curvote || !valid_client(sender) || vote < VOTE_YES || vote > VOTE_NO) return false;
-	if(clients[sender]->vote != VOTE_NEUTRAL)
-	{
-		sendf(sender, 1, "ri2", SV_CALLVOTEERR, VOTEE_MUL);
-		return false;
-	}
-	else
-	{
-		sendpacket(-1, 1, msg, sender);
-
-		clients[sender]->vote = vote;
-		logline(ACLOG_DEBUG,"[%s] client %s voted %s", clients[sender]->hostname, clients[sender]->name, vote == VOTE_NO ? "no" : "yes");
-		curvote->evaluate();
-		return true;
-	}
-}
 
 void scallvotesuc(voteinfo *v)
 {
@@ -2256,46 +2220,62 @@ bool scallvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was calle
 	int error = -1;
 
 	if(!v || !v->isvalid()) error = VOTEE_INVALID;
-	else if(v->action->role > clients[v->owner]->role) error = VOTEE_PERMISSION;
+	else if(v->action->role > clients[v->owner]->priv) error = VOTEE_PERMISSION;
 	else if(!(area & v->action->area)) error = VOTEE_AREA;
 	else if(curvote && curvote->result==VOTE_NEUTRAL) error = VOTEE_CUR;
-	else if(clients[v->owner]->role == CR_DEFAULT && v->action->isdisabled()) error = VOTEE_DISABLED;
-	else if(clients[v->owner]->lastvotecall && servmillis - clients[v->owner]->lastvotecall < 60*1000 && clients[v->owner]->role != CR_ADMIN && numclients()>1)
+	else if(clients[v->owner]->priv < PRIV_ADMIN && v->action->isdisabled()) error = VOTEE_DISABLED;
+	else if(clients[v->owner]->lastvotecall && servmillis - clients[v->owner]->lastvotecall < 60*1000 && clients[v->owner]->priv < PRIV_ADMIN && numclients()>1)
 		error = VOTEE_MAX;
 
-	if(error>=0)
-	{
+	if(error>=0){
 		scallvoteerr(v, error);
 		return false;
 	}
-	else
-	{
+	else{
 		sendpacket(-1, 1, msg, v->owner);
-
 		scallvotesuc(v);
 		return true;
 	}
 }
 
-void changeclientrole(int client, int role, char *pwd, bool force)
+void changeclientrole(int cl, int wants, char *pwd, bool force)
 {
-	pwddetail pd;
-	if(!isdedicated || !valid_client(client)) return;
-	pd.line = -1;
-	if(force || role == CR_DEFAULT || (role == CR_ADMIN && pwd && pwd[0] && checkadmin(clients[client]->name, pwd, clients[client]->salt, &pd) && !pd.denyadmin))
-	{
-		if(role == clients[client]->role) return;
-		if(role > CR_DEFAULT)
-		{
-			loopv(clients) clients[i]->role = CR_DEFAULT;
+	if(!valid_client(cl)) return;
+	client &c = *clients[cl];
+	if(force); // force passthru
+	else if(!wants){ // claim
+		if(c.priv >= wants){
+			sendf(cl, 1, "ri3", cl, wants | 0x40);
+			return;
 		}
-		clients[client]->role = role;
-		sendserveropinfo(-1);
-		if(pd.line > -1)
-			logline(ACLOG_INFO,"[%s] player %s used admin password in line %d", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", pd.line);
-		logline(ACLOG_INFO,"[%s] set role of player %s to %s", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", role == CR_ADMIN ? "admin" : "normal player"); // flowtron : connecting players haven't got a name yet (connectadmin)
+		if(wants == PRIV_MASTER) loopv(clients) if(valid_client(i) && clients[i]->priv == PRIV_MASTER){
+			sendf(cl, 1, "ri3", i, PRIV_MASTER | 0x40);
+			return;
+		}
+		else{
+			if(!pwd || !*pwd) return;
+			pwddetail pd;
+			pd.line = -1;
+			if(!checkadmin(c.name, pwd, c.salt, &pd) || !pd.priv){
+				disconnect_client(cl, DISC_LOGINFAIL); // avoid brute-force
+				return;
+			};
+			wants = min(wants, pd.priv);
+			logline(ACLOG_INFO,"[%s] %s used %s password in line %d", c.hostname, c.name, privname(wants), pd.line);
+		}
 	}
-	else if(pwd && pwd[0]) disconnect_client(client, DISC_LOGINFAIL); // avoid brute-force
+	else{ // relinquish
+		if(!c.priv) return; // no privilege to relinquish
+		sendf(-1, 1, "ri3", cl, c.priv | 0x80);
+		logline(ACLOG_INFO,"[%s] %s relinquished %s status", c.hostname, c.name, privname(c.priv));
+		c.priv = PRIV_NONE;
+		sendserveropinfo();
+		return;
+	}
+	c.priv = wants;
+	sendf(-1, 1, "ri3", SV_SOPCHANGE, cl, c.priv);
+	logline(ACLOG_INFO,"[%s] %s claimed %s status", c.hostname, c.name, privname(c.priv));
+	sendserveropinfo();
 	if(curvote) curvote->evaluate();
 }
 
@@ -2329,8 +2309,12 @@ void sendwhois(int sender, int cn)
 	if(!valid_client(sender) || !valid_client(cn)) return;
 	if(clients[cn]->type == ST_TCPIP)
 	{
-		uint ip = clients[cn]->peer->address.host, mask = 32;
-		if(clients[sender]->role != CR_ADMIN) mask = 8;
+		uint ip = clients[cn]->peer->address.host, mask = 1;
+		switch(clients[sender]->priv){
+			case PRIV_MAX: case PRIV_ADMIN: mask = 32; // f.f.f.f/32 full ip
+			case PRIV_MASTER: mask = 12; // f.h/12 - full, half, 2 empty
+			case PRIV_NONE: default: mask = 8; break; // f/8 full, 3 empty
+		}
 		ip &= (2 << mask) - 1;
 		sendf(sender, 1, "ri3", SV_WHOIS, cn, ip, mask);
 	}
@@ -2583,7 +2567,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath)
 		}
 	}
 	if(c){
-		if(c->type == ST_TCPIP && serveroperator() != -1) sendserveropinfo(n);
+		sendserveropinfo(n);
 		putint(p, SV_SETTEAM);
         putint(p, n);
         putint(p, (c->team = freeteam(n)) | (FTR_SILENT << 4));
@@ -2673,7 +2657,7 @@ int checktype(int type, client *cl)
 						SV_MAPRELOAD, SV_ITEMACC, SV_MAPCHANGE, SV_ITEMSPAWN,
 						SV_SERVMSG,
 						SV_FLAGINFO, SV_FLAGMSG, SV_FLAGCNT,
-						SV_ARENAWIN, SV_SERVOPINFO,
+						SV_ARENAWIN, SV_CURRENTSOP, SV_SOPCHANGE,
 						SV_CALLVOTESUC, SV_CALLVOTEERR, SV_VOTERESULT, SV_ITEMLIST,
 						SV_SETTEAM,
 						SV_SENDDEMOLIST, SV_SENDDEMO, SV_DEMOPLAYBACK, SV_CLIENT };
@@ -2700,7 +2684,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 	if(cl && !cl->isauthed)
 	{
-		int clientrole = CR_DEFAULT;
+		int clientrole = PRIV_NONE;
 		int clientversion, clientdefs;
 		if(chan==0) return;
 		else if(chan!=1 || getint(p)!=SV_CONNECT) disconnect_client(sender, DISC_TAGT);
@@ -2733,13 +2717,13 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d", cl->hostname, cl->name, bl);
 				disconnect_client(sender, DISC_NAME);
 			}
-			else if(checkadmin(cl->name, text, cl->salt, &pd) && (!pd.denyadmin || (banned && !srvfull && !srvprivate))) // pass admins always through
-			{ // admin (or deban) password match
+			else if(checkadmin(cl->name, text, cl->salt, &pd) && (pd.priv >= PRIV_ADMIN || (banned && !srvfull && !srvprivate))) // pass admins always through
+			{ // admin (or master or deban) password match
 				bool banremoved = false;
 				cl->isauthed = true;
-				if(!pd.denyadmin && wantrole == CR_ADMIN) clientrole = CR_ADMIN;
+				clientrole = min(pd.priv, wantrole);
 				if(banned) loopv(bans) if(bans[i].address.host == cl->peer->address.host) { banremoved = true; bans.remove(i); break; } // remove admin bans
-				logline(ACLOG_INFO, "[%s] %s logged in using the admin password in line %d%s%s", cl->hostname, cl->name, pd.line, wlp, banremoved ? ", (ban removed)" : "");
+				logline(ACLOG_INFO, "[%s] %s logged in using the password in line %d%s%s", cl->hostname, cl->name, pd.line, wlp, banremoved ? ", (ban removed)" : "");
 			}
 			else if(scl.serverpassword[0] && !(srvprivate || srvfull || banned))
 			{ // server password required
@@ -2781,7 +2765,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 		sendwelcome(cl);
 		sendinitclient(*cl);
 		if(findscore(*cl, false)) sendresume(*cl, true);
-		if(clientrole != CR_DEFAULT) changeclientrole(sender, clientrole, NULL, true);
+		if(clientrole != PRIV_NONE) changeclientrole(sender, clientrole, NULL, true);
 	}
 
 	if(packet->flags&ENET_PACKET_FLAG_RELIABLE) reliablemessages = true;
@@ -3208,11 +3192,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				break;
 			}
 
-			case SV_SETADMIN:
+			case SV_SETROLE:
 			{
-				bool claim = getint(p) != 0;
+				int wants = getint(p);
 				getstring(text, p);
-				changeclientrole(sender, claim ? CR_ADMIN : CR_DEFAULT, text);
+				changeclientrole(sender, wants, text);
 				break;
 			}
 
@@ -3253,7 +3237,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						vi->action = new forceteamaction(getint(p), sender);
 						break;
 					case SA_GIVEADMIN:
-						vi->action = new giveadminaction(getint(p));
+						vi->action = new giveadminaction(getint(p), getint(p));
 						break;
 					case SA_RECORDDEMO:
 						vi->action = new recorddemoaction(getint(p)!=0);
@@ -3269,7 +3253,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						filtertext(text, text);
 						vi->action = new serverdescaction(newstring(text), sender);
 						break;
+					default:
+						vi->action = new kickaction(-1);
+						break;
 				}
+				vi->action->vote = vi;
 				vi->owner = sender;
 				vi->callmillis = servmillis;
 				MSG_PACKET(msg);
@@ -3280,11 +3268,23 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case SV_VOTE:
 			{
-				int n = getint(p);
-				MSG_PACKET(msg);
-				msg->referenceCount++; // don't know why...
-				svote(sender, n, msg);
-				if(valid_client(sender) && !--msg->referenceCount) enet_packet_destroy(msg);
+				int vote = getint(p);
+				if(!curvote || vote < VOTE_YES || vote > VOTE_NO) break;
+				if(cl->vote != VOTE_NEUTRAL){
+					if(cl->vote == vote){
+						if(cl->priv >= PRIV_ADMIN) curvote->evaluate(true, vote);
+						else sendf(sender, 1, "ri2", SV_CALLVOTEERR, VOTEE_MUL);
+						break;
+					}
+					else{
+						logline(ACLOG_INFO,"[%s] %s changed vote to %s", clients[sender]->hostname, clients[sender]->name, vote == VOTE_NO ? "no" : "yes");
+					}
+				}
+				else logline(ACLOG_INFO,"[%s] %s voted %s", clients[sender]->hostname, clients[sender]->name, vote == VOTE_NO ? "no" : "yes");
+				// SET VOTE
+				cl->vote = vote;
+				sendf(SV_VOTE);
+				curvote->evaluate();
 				break;
 			}
 
@@ -3328,7 +3328,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					// usage:	   /serverextension driAn::writelog "your log message here.."
 
 					getstring(text, p, n);
-					if(valid_client(sender) && clients[sender]->role==CR_ADMIN) logline(ACLOG_INFO, "%s", text);
+					if(valid_client(sender) && clients[sender]->priv<PRIV_ADMIN) logline(ACLOG_INFO, "%s", text);
 				}
 
 				// add other extensions here
@@ -3460,7 +3460,11 @@ void loggamestatus(const char *reason)
 		if(m_teammode) s_strcatf(text, "%-4s ", c.team);			// team
 		if(m_flags) s_strcatf(text, "%4d ", c.state.flagscore);	 // flag
 		s_strcatf(text, "%4d %5d", c.state.frags, c.state.deaths);  // frag death
-		logline(ACLOG_INFO, "%s%5d %s  %s", text, c.ping, c.role == CR_ADMIN ? "admin " : "normal", c.hostname);
+		logline(ACLOG_INFO, "%s%5d %s %s", text, c.ping,
+			c.priv == PRIV_NONE ? "normal " :
+			c.priv == PRIV_ADMIN ? "admin  " :
+			c.priv == PRIV_MAX ? "highest" :
+			"unknown", c.hostname);
 		n = c.team;
 		flagscore[n] += c.state.flagscore;
 		fragscore[n] += c.state.frags;
@@ -3742,10 +3746,9 @@ void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENet
 		putint(p,clients[i]->state.health);	 //Health
 		putint(p,clients[i]->state.armour);	 //Armour
 		putint(p,clients[i]->state.gunselect);  //Gun selected
-		putint(p,clients[i]->role);			 //Role
+		putint(p,clients[i]->priv ? 1 : 0);		 //Role
 		putint(p,clients[i]->state.state);	  //State (Alive,Dead,Spawning,Lagged,Editing)
-		uint ip = clients[i]->peer->address.host; // only 3 byte of the ip address (privacy protected)
-		p.put((uchar*)&ip,3);
+		putint(p,clients[i]->peer->address.host & 0xFF); // only 1 byte of the IP address (privacy protected)
 
 		buf.dataLength = len + p.length();
 		enet_socket_send(pongsock, &addr, &buf, 1);
@@ -3813,7 +3816,7 @@ void localconnect()
 {
 	client &c = addclient();
 	c.type = ST_LOCAL;
-	c.role = CR_ADMIN;
+	c.priv = PRIV_ADMIN;
 	s_strcpy(c.hostname, "local");
 	sendservinfo(c);
 }

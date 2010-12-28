@@ -57,11 +57,9 @@ char *colorname(playerent *d, char *name, const char *prefix)
 	if(!name) name = d->name;
 	s_sprintfd(healthstat)("%d%d", d->health > 50 ? 0 : d->health > 25 ? 2 : d->health > 0 ? 3 : 4, d->health);
 	if(d->armour) s_sprintf(healthstat)("%s\f5-\f4%d", healthstat, d->armour);
-	static string cname[4];
-	static int num = 0;
-	num = (num + 1) % 4;
-	s_sprintf(cname[num])("%s%s \fs\f6(%d) \f5[\f%s\f5]\fr", prefix, name, d->clientnum, healthstat);
-	return cname[num];
+	static string cname;
+	s_sprintf(cname)("%s%s \fs\f6(%d) \f5[\f%s\f5]\fr", prefix, name, d->clientnum, healthstat);
+	return cname;
 }
 
 char *colorping(int ping)
@@ -114,7 +112,7 @@ void newteam(char *name)
 VARNP(skin, nextskin, 0, 0, 1000);
 
 int curteam() { return player1->team; }
-int currole() { return player1->clientrole; }
+int currole() { return player1->priv; }
 int curmode() { return gamemode; }
 void curmap(int cleaned) { result(cleaned ? behindpath(getclientmap()) : getclientmap()); }
 COMMANDN(team, newteam, ARG_1STR);
@@ -928,6 +926,10 @@ void callvote(int type, char *arg1, char *arg2)
 			case SA_SERVERDESC:
 				sendstring(arg1, p);
 				break;
+			case SA_GIVEADMIN:
+				putint(p, atoi(arg1));
+				putint(p, atoi(arg2) ? atoi(arg2) : PRIV_MAX);
+				break;
 			case SA_STOPDEMO:
 			case SA_REMBANS:
 			case SA_SHUFFLETEAMS:
@@ -1031,12 +1033,16 @@ COMMAND(whois, ARG_1INT);
 
 int sessionid = 0;
 
+void setmaster(int claim){
+	addmsg(SV_SETROLE, "ris", claim ? PRIV_MASTER : PRIV_NONE, "");
+}
+COMMAND(setmaster, ARG_1INT);
+
 void setadmin(char *claim, char *password)
 {
 	if(!claim || !password) return;
-	else addmsg(SV_SETADMIN, "ris", atoi(claim), genpwdhash(player1->name, password, sessionid));
+	else addmsg(SV_SETROLE, "ris", atoi(claim)!=0?PRIV_MAX:PRIV_NONE, genpwdhash(player1->name, password, sessionid));
 }
-
 COMMAND(setadmin, ARG_2STR);
 
 void changemap(const char *name)					  // silently request map change, server may ignore
