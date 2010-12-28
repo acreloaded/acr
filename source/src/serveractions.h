@@ -129,7 +129,7 @@ struct giveadminaction : playeraction
 {
 	int give, from;
 	void perform() {
-		changeclientrole(from, PRIV_NONE, NULL, true);
+		if(valid_client(from) && clients[from]->priv < PRIV_ADMIN) changeclientrole(from, PRIV_NONE, NULL, true);
 		changeclientrole(cn, give, NULL, true);
 	}
 	giveadminaction(int cn, int wants, int caller) : from(caller), playeraction(cn){
@@ -145,6 +145,7 @@ struct kickaction : playeraction
 	void perform()  { disconnect(DISC_KICK); }
 	kickaction(int cn) : playeraction(cn)
 	{
+		passratio = 0.6f;
 		role = roleconf('k');
 		length = 35000; // 35s
 		if(valid_client(cn)) s_sprintf(desc)("kick player %s", clients[cn]->name);
@@ -161,6 +162,7 @@ struct banaction : playeraction
 	}
 	banaction(int cn) : playeraction(cn)
 	{
+		passratio = 0.8f;
 		role = roleconf('b');
 		if(isvalid()) s_sprintf(desc)("ban player %s", clients[cn]->name);
 		else s_strcpy(desc, "invalid ban");
@@ -172,7 +174,8 @@ struct removebansaction : serveraction
 	void perform() { bans.setsize(0); }
 	removebansaction()
 	{
-		role = roleconf('B');
+		passratio = 0.7f;
+		role = roleconf('b');
 		s_strcpy(desc, "remove all bans");
 	}
 };
