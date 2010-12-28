@@ -756,7 +756,7 @@ void listdemos(int cn)
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	if(!packet) return;
 	ucharbuf p(packet->data, packet->dataLength);
-	putint(p, SV_SENDDEMOLIST);
+	putint(p, SV_LISTDEMOS);
 	putint(p, demos.length());
 	loopv(demos) sendstring(demos[i].info, p);
 	enet_packet_resize(packet, p.length());
@@ -795,7 +795,7 @@ void senddemo(int cn, int num)
 		return;
 	}
 	demofile &d = demos[num-1];
-	sendf(cn, 2, "rim", SV_SENDDEMO, d.len, d.data);
+	sendf(cn, 2, "rim", SV_DEMO, d.len, d.data);
 }
 
 void enddemoplayback()
@@ -2657,8 +2657,7 @@ int checktype(int type, client *cl)
 						SV_FLAGINFO, SV_FLAGMSG, SV_FLAGCNT,
 						SV_ARENAWIN, SV_CURRENTSOP, SV_SOPCHANGE,
 						SV_CALLVOTEERR, SV_VOTERESULT, SV_ITEMLIST,
-						SV_SETTEAM,
-						SV_SENDDEMOLIST, SV_SENDDEMO, SV_DEMOPLAYBACK, SV_CLIENT };
+						SV_SETTEAM, SV_DEMOPLAYBACK, SV_CLIENT };
 	// only allow edit messages in coop-edit mode
 	static int edittypes[] = { SV_EDITENT, SV_EDITH, SV_EDITT, SV_EDITS, SV_EDITD, SV_EDITE, SV_NEWMAP };
 	if(cl){
@@ -3292,7 +3291,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				listdemos(sender);
 				break;
 
-			case SV_GETDEMO:
+			case SV_DEMO:
 				senddemo(sender, getint(p));
 				break;
 

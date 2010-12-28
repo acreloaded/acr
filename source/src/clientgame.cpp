@@ -10,10 +10,8 @@ VARP(modeacronyms, 0, 0, 1);
 
 flaginfo flaginfos[2];
 
-void mode(int n)
-{
+void mode(int n){
 	nextmode = n;
-	if(m_mp(n) || !multiplayer()) addmsg(SV_GAMEMODE, "ri", n);
 }
 COMMAND(mode, ARG_1INT);
 

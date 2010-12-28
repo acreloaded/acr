@@ -531,7 +531,7 @@ void getdemo(int i)
 {
 	if(i<=0) conoutf("getting demo...");
 	else conoutf("getting demo %d...", i);
-	addmsg(SV_GETDEMO, "ri", i);
+	addmsg(SV_DEMO, "ri", i);
 }
 
 void listdemos()

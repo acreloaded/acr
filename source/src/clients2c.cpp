@@ -593,10 +593,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_GAMEMODE:
-				nextmode = getint(p);
-				break;
-
 			case SV_TIMEUP:
 				timeupdate(getint(p));
 				break;
@@ -834,7 +830,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_SENDDEMOLIST:
+			case SV_LISTDEMOS:
 			{
 				int demos = getint(p);
 				if(!demos) conoutf("no demos available");
@@ -892,7 +888,7 @@ void receivefile(uchar *data, int len)
 	len -= p.length();
 	switch(type)
 	{
-		case SV_SENDDEMO:
+		case SV_DEMO:
 		{
 			s_sprintfd(fname)("demos/%s.dmo", timestring());
 			path(fname);
