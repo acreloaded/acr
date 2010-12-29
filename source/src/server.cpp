@@ -2167,6 +2167,7 @@ void sendcallvote(int cl = -1){
 		ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 		ucharbuf p(packet->data, packet->dataLength);
 		putint(p, SV_CALLVOTE);
+		putint(p, curvote->owner);
 		putint(p, curvote->type);
 		switch(curvote->type)
 		{
@@ -2221,13 +2222,12 @@ bool scallvote(voteinfo *v) // true if a regular vote was called
 		scallvoteerr(v, error);
 		return false;
 	}else{
+		scallvotesuc(v);
 		sendcallvote();
-		/* // uncomment after debug
+		// owner votes yes
 		clients[v->owner]->vote = VOTE_YES;
 		sendf(-1, 1, "ri3", SV_VOTE, v->owner, VOTE_YES);
 		curvote->evaluate();
-		*/
-		scallvotesuc(v);
 		return true;
 	}
 }
@@ -2249,8 +2249,9 @@ void changeclientrole(int cl, int wants, char *pwd, bool force)
 {
 	if(!valid_client(cl)) return;
 	client &c = *clients[cl];
+	if(wants && c.type == ST_LOCAL) force = true; // force local user to be able to claim
 	if(force); // force passthru
-	else if(!wants){ // claim
+	else if(wants){ // claim
 		if(c.priv >= wants){
 			sendf(cl, 1, "ri3", cl, wants | 0x40);
 			return;
@@ -3223,6 +3224,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						vi->action = new serverdescaction(newstring(text), sender);
 						break;
 					default:
+						vi->type = SA_KICK;
 						vi->action = new kickaction(-1);
 						break;
 				}

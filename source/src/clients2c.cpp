@@ -724,7 +724,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case SV_CALLVOTE:
 			{
-				int type = getint(p);
+				int cn = getint(p), type = getint(p);
+				playerent *d = getclient(cn);
 				if(type < 0 || type >= SA_NUM || !d) return;
 				votedisplayinfo *v = NULL;
 				string a;
