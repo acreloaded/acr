@@ -193,19 +193,53 @@ void trydisconnect()
 	disconnect(0, !discmillis);
 }
 
-void toserver(char *text)
-{
-	bool toteam = text && text[0] == '%' && m_teammode;
-	if(!toteam && text[0] == '%' && strlen(text) > 1) text++; // convert team-text to normal-text if no team-mode is active
-	if(toteam) text++;
-	conoutf("%s:\f%d %s", colorname(player1), toteam ? 1 : 0, text);
-	addmsg(toteam ? SV_TEAMTEXT : SV_TEXT, "rs", text);
+VARP(hudchat, 0, 1, 1);
+void saytext(playerent *&d, char *text, int flags, int sound){
+	void (*outf)(const char *s, ...) = hudchat ? hudoutf : conoutf;
+	string nametag; s_strcpy(nametag, colorname(d));
+	if(flags & SAY_TEAM) s_sprintf(nametag)("%s \f5(\f%d%s\f5)", nametag, d->team ? 1 : 3, team_string(d->team));
+	if(sound > S_MAINEND && sound < S_NULL){
+		d->lastvoicecom = lastmillis;
+		playsound(sound, SP_HIGH);
+	} else sound = 0;
+	int textcolor = 0; // normal text
+	if(flags&SAY_TEAM) textcolor = isteam(d, player1) ? 1 : 3; // friendly blue, enemy red
+	if(flags&SAY_DENY){
+		textcolor = 2; // denied yellow
+		s_strcat(text, "\nDo not SPAM! Your message (in yellow) is not relayed!");
+		outf = hudoutf; // force HUD as well
+	}
+	string textout;
+	if(flags & SAY_ACTION) s_sprintf(textout)("\f5* \f4%s \f6(%d)", d->name, d->clientnum);
+	else s_sprintf(textout)("\f5<\f4%s \f6(%d)\f5>", d->name, d->clientnum);
+	if(sound) s_sprintf(textout)("%s \f4[\f6Voice %d\f4]", textout, sound);
+	outf("%s \f%d%s", textout, textcolor, text);
 }
+
+void toserver(char *text, int voice, bool action){
+	bool toteam = text && *text == '%' && m_teammode && strlen(text) > 1;
+	if(toteam) text++;
+	addmsg(SV_TEXT, "ris", (voice & 0x1F) | ((action ? SAY_ACTION : 0 | toteam ? SAY_TEAM : 0) << 5), text);
+}
+
+void toserver_voice(char *text){
+	extern int findvoice();
+	int s = findvoice();
+	string t;
+	*t = t[1] = 0;
+	if(s <= S_VOICETEAMEND) *t = '%';
+	s_strcat(t, text);
+	toserver(t, s - S_MAINEND);
+}
+void toserver_me(char *text){ toserver(text, 0, true); }
+
+COMMANDN(say, toserver, ARG_CONC);
+COMMANDN(sayvoice, toserver_voice, ARG_2STR);
+COMMANDN(me, toserver_me, ARG_2STR);
 
 void echo(char *text) { conoutf("%s", text); }
 
 COMMAND(echo, ARG_CONC);
-COMMANDN(say, toserver, ARG_CONC);
 COMMANDN(connect, connectserv, ARG_3STR);
 COMMAND(connectadmin, ARG_3STR);
 COMMAND(lanconnect, ARG_NONE);
@@ -513,8 +547,6 @@ void sendmap(char *mapname)
 	enet_packet_resize(packet, p.length());
 	sendpackettoserv(2, packet);
 	conoutf("sending map %s to server...", mapname);
-	s_sprintfd(msg)("[map %s uploaded to server, \"/getmap\" to receive it]", mapname);
-	toserver(msg);
 }
 
 void getmap()

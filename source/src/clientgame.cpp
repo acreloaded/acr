@@ -80,14 +80,8 @@ void newname(const char *name)
 {
 	if(name[0])
 	{
-		/*
-		filtertext(player1->name, name, 0, MAXNAMELEN);
-		if(!player1->name[0]) s_strcpy(player1->name, "unnamed");
-		addmsg(SV_NEWNAME, "rs", player1->name);
-		updateclientname(player1);
-		*/
 		static string name2;
-		filtertext(name2, name, 0, MAXNAMELEN);
+		filtername(name2, name);
 		if(!name2[0]) s_strcpy(name2, "unnamed");
 		addmsg(SV_NEWNAME, "rs", name2);
 	}
@@ -99,8 +93,8 @@ void newteam(char *name)
 {
 	if(name[0])
 	{
-		int nt = team_int(name);
 		if(!team_valid(name)) { conoutf("\f3\"%s\" is not a valid team name (try RED or BLUE)", name); return;}
+		int nt = team_int(name);
 		if(nt == player1->team) return; // same team
 		addmsg(SV_SWITCHTEAM, "ri", nt);
 	}
@@ -114,7 +108,7 @@ int currole() { return player1->priv; }
 int curmode() { return gamemode; }
 void curmap(int cleaned) { result(cleaned ? behindpath(getclientmap()) : getclientmap()); }
 COMMANDN(team, newteam, ARG_1STR);
-COMMANDN(name, newname, ARG_1STR);
+COMMANDN(name, newname, ARG_CONC);
 COMMAND(curteam, ARG_IVAL);
 COMMAND(currole, ARG_IVAL);
 COMMAND(curmode, ARG_IVAL);
@@ -1013,10 +1007,12 @@ void setmaster(int claim){
 }
 COMMAND(setmaster, ARG_1INT);
 
+SVARP(adminpass, ""); // saved admin password
+
 void setadmin(char *claim, char *password)
 {
 	if(!claim || !password) return;
-	else addmsg(SV_SETROLE, "ris", atoi(claim)!=0?PRIV_MAX:PRIV_NONE, genpwdhash(player1->name, password, sessionid));
+	else addmsg(SV_SETROLE, "ris", atoi(claim)!=0?PRIV_MAX:PRIV_NONE, genpwdhash(player1->name, *password ? password : adminpass, sessionid));
 }
 COMMAND(setadmin, ARG_2STR);
 

@@ -165,12 +165,8 @@ void pickupeffects(int n, playerent *d)
 	if(!d) return;
 	d->pickup(e.type);
 	itemstat &is = d->itemstats(e.type);
-	if(d!=player1 && d->type!=ENT_BOT) return;
-	if(&is)
-	{
-		if(d==player1) playsoundc(is.sound);
-		else playsound(is.sound, d);
-	}
+	if(&is) playsound(is.sound, d);
+	if(d != player1 && d->type != ENT_BOT) return;
 
 	weapon *w = NULL;
 	switch(e.type)

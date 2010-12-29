@@ -602,13 +602,8 @@ bool weapon::reload()
 	reloading = lastmillis;
 	gunwait += info.reloadtime;
 
-	int numbullets = min(info.magsize - mag, ammo);
-	mag += numbullets;
-	ammo -= numbullets;
-
 	bool local = (player1 == owner);
 	if(owner->type==ENT_BOT) playsound(info.reload, owner);
-	else playsoundc(info.reload);
 	if(local) addmsg(SV_RELOAD, "ri2", lastmillis, owner->weaponsel->type);
 	return true;
 }

@@ -123,6 +123,20 @@ void filtertext(char *dst, const char *src, int whitespace, int len)
 	*dst = '\0';
 }
 
+inline void filtername(char *dst, const char *src){
+	int len = MAXNAMELEN;
+	for(char c = *src & 0x7F; c; c = *++src)
+	{
+		if(c == '\f'){ ++src; continue; }
+		if(c == ' ' || isprint(c)){
+			if(c == ' ' && ((&c - 1 < dst) || (*(&c - 1))==' ' || len < 2 || (*(&c + 1))==' ')) continue;
+			*dst++ = c;
+			if(!--len) break;
+		}
+	}
+	*dst = 0;
+}
+
 void filterrichtext(char *dst, const char *src, int len)
 {
 	int b, c;
@@ -206,38 +220,6 @@ const char *acronymmodestr(int n) { return (n>=-1 && size_t(n+1) < sizeof(modeac
 const char *modestr(int n, bool acronyms) { return acronyms ? acronymmodestr (n) : fullmodestr(n); }
 const char *voteerrorstr(int n) { return (n>=0 && (size_t)n < sizeof(voteerrors)/sizeof(voteerrors[0])) ? voteerrors[n] : "unknown"; }
 const char *mmfullname(int n) { return (n>=0 && n < MM_NUM) ? mmfullnames[n] : "unknown"; }
-
-char msgsizesl[] =			   // size inclusive message token (client to client, 0 if handled by the server [commentable])
-{
-	/*SV_SERVINFO, 0, SV_WELCOME, 0, SV_POS, 0, SV_TEXT, 0, SV_TEAMTEXT, 0,*/ SV_SOUND, 2,/* SV_VOICECOM, 0, SV_VOICECOMTEAM, 0, SV_CDIS, 0,
-	SV_INITCLIENT, 0, SV_NEWNAME, 0, SV_SKIN, 0,
-	SV_SHOOT, 0, SV_EXPLODE, 0, SV_SUICIDE, 0, SV_AKIMBO, 0, SV_RELOAD, 0,
-	SV_DIED, 0, SV_DAMAGE, 0, SV_HITPUSH, 0, SV_SHOTFX, 0, SV_THROWNADE, 0,
-	SV_TRYSPAWN, 0, SV_SPAWNSTATE, 0, SV_SPAWN, 0, SV_FORCEDEATH, 0, SV_RESUME, 0,
-	SV_TIMEUP, 0, */ SV_EDITENT, 10, /* SV_MAPRELOAD, 0, SV_NEXTMAP, 0,
-	SV_MAPCHANGE, 0, SV_ITEMSPAWN, 0, SV_ITEMACC, 0,
-	SV_PINGPONG, 0, SV_PINGTIME, 0, */
-	SV_EDITMODE, 2, SV_EDITH, 7, SV_EDITT, 7, SV_EDITS, 6, SV_EDITD, 6, SV_EDITE, 6, SV_NEWMAP, 2,
-	/*SV_SENDMAP, 0, SV_RECVMAP, 0, SV_SERVMSG, 0, SV_ITEMLIST, 0, SV_WEAPCHANGE, 0, SV_PRIMARYWEAP, 0,
-	SV_DROPFLAG, 0, SV_FLAGINFO, 0, SV_FLAGMSG, 0, SV_FLAGCNT, 0,
-	SV_ARENAWIN, 0,
-	SV_SETROLE, 0, SV_CURRENTSOP, 0,
-	SV_CALLVOTE, 0, SV_CALLVOTEERR, 0, SV_VOTE, 0, SV_VOTERESULT, 0,
-	SV_SETTEAM, 0, SV_SWITCHTEAM, 0,
-	SV_WHOIS, 0,
-	SV_LISTDEMOS, 0, SV_DEMO, 0, SV_DEMOPLAYBACK, 0,
-	SV_CONNECT, 0,
-	SV_CLIENT, 0,
-	SV_EXTENSION, 0,
-	SV_MAPIDENT, 0, */
-	-1
-};
-
-char msgsizelookup(int msg)
-{
-	for(char *p = msgsizesl; *p>=0; p += 2) if(*p==msg) return p[1];
-	return -1;
-}
 
 const char *genpwdhash(const char *name, const char *pwd, int salt)
 {

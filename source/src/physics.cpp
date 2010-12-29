@@ -706,7 +706,7 @@ void updatecrouch(playerent *p, bool on)
 	const float crouchspeed = 0.6f;
 	p->crouching = on;
 	p->eyeheightvel = on ? -crouchspeed : crouchspeed;
-	if(p==player1) playsoundc(on ? S_CROUCH : S_UNCROUCH);
+	playsound(on ? S_CROUCH : S_UNCROUCH);
 }
 
 void crouch(bool on)

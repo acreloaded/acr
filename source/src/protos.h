@@ -326,7 +326,7 @@ extern void resetwater();
 extern void abortconnect();
 extern void disconnect(int onlyclean = 0, int async = 0);
 extern void cleanupclient();
-extern void toserver(char *text);
+extern void toserver(char *text, int voice = 0, bool action = false);
 extern void addmsg(int type, const char *fmt = NULL, ...);
 extern bool multiplayer(bool msg = true);
 extern bool allowedittoggle();
@@ -685,6 +685,7 @@ extern float getfloat(ucharbuf &p);
 extern void sendstring(const char *t, ucharbuf &p);
 extern void getstring(char *t, ucharbuf &p, int len = MAXTRANS);
 extern void filtertext(char *dst, const char *src, int whitespace = 1, int len = sizeof(string)-1);
+extern inline void filtername(char *dst, const char *src);
 extern void filterrichtext(char *dst, const char *src, int len = sizeof(string)-1);
 extern void filterservdesc(char *dst, const char *src, int len = sizeof(string)-1);
 extern void cutcolorstring(char *text, int len);
@@ -824,3 +825,6 @@ struct servercommandline
 		return true;
 	}
 };
+
+enum { SAY_TEXT = 0, SAY_TEAM = 1 << 0, SAY_ACTION = 1 << 1, SAY_DENY = 1 << 2 };
+extern void saytext(playerent *&d, char *text, int flags, int sound);

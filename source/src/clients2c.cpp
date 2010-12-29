@@ -221,42 +221,25 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			}
 
 			case SV_SOUND:
-				playsound(getint(p), d);
-				break;
-
-			case SV_VOICECOMTEAM:
-			{
-				playerent *d = getclient(getint(p));
-				if(d) d->lastvoicecom = lastmillis;
-				playsound(getint(p), SP_HIGH);
-				break;
-			}
-			case SV_VOICECOM:
-			{
-				playsound(getint(p), SP_HIGH);
-				if(d) d->lastvoicecom = lastmillis;
-				break;
-			}
-
-			case SV_TEAMTEXT:
 			{
 				int cn = getint(p);
-				getstring(text, p);
-				filtertext(text, text);
 				playerent *d = getclient(cn);
-				if(!d) break;
-				conoutf("%s:\f%d %s", isteam(player1, d) ? 1 : 3, colorname(d), text);
+				if(!d) d = player1;
+				playsound(getint(p), d);
 				break;
 			}
 
 			case SV_TEXT:
+			{
+				int cn = getint(p), voice = getint(p), flags = (voice >> 5) & 7;
+				voice = (voice & 0x1F) + S_MAINEND;
 				getstring(text, p);
-				if(d){
-					filtertext(text, text);
-					conoutf("%s:\f0 %s", colorname(d), text);
-				}
-				else return;
+				filtertext(text, text);
+				playerent *d = getclient(cn);
+				if(!d) break;
+				saytext(d, text, flags, voice);
 				break;
+			}
 
 			case SV_MAPCHANGE:
 			{
@@ -302,7 +285,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(!text[0]) s_strcpy(text, "unnamed");
 				conoutf("connected: %s", colorname(d, text));
 				updateclientname(d);
-				s_strncpy(d->name, text, MAXNAMELEN+1);
+				filtername(d->name, text);
 				if(m_flags) loopi(2)
 				{
 					flaginfo &f = flaginfos[i];
@@ -318,8 +301,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				filtertext(text, text, 1, MAXNAMELEN);
 				if(!text[0]) s_strcpy(text, "unnamed");
 				if(!d || !strcmp(d->name, text)) break;
-				if(d->name[0]) conoutf("%s is now known as %s", colorname(d), colorname(d, text));
-				s_strncpy(d->name, text, MAXNAMELEN+1);
+				if(d->name[0]) conoutf("%s \f6(%d) \f5is now known as \f1%s", d->name, d->clientnum, text);
+				filtername(d->name, text);
 				updateclientname(d);
 				break;
 			}
@@ -431,9 +414,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case SV_RELOAD:
 			{
 				int cn = getint(p), gun = getint(p);
-				playerent *p = cn==getclientnum() ? player1 : getclient(cn);
-				if(!p || p==player1) break;
-				int bullets = magsize(gun)-p->mag[gun];
+				playerent *p = getclient(cn);
+				playsound(guns[gun].reload, p ? p : player1);
+				if(!p) break;
+				int bullets = min(p->ammo[gun], magsize(gun) - p->mag[gun]);
 				p->ammo[gun] -= bullets;
 				p->mag[gun] += bullets;
 				break;
@@ -869,7 +853,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 	}
 
 	// check if joining here so as not to interrupt welcomepacket
-	if(joining<0 && getclientmap()[0]) // we are the first client on this server, set map
+	if(joining<0 && *getclientmap()) // we are the first client on this server, set map
 	{
 		nextmode = gamemode;
 		changemap(getclientmap());

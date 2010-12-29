@@ -1493,6 +1493,12 @@ int findsound(char *name, int vol, vector<soundconfig> &sounds)
 	return -1;
 }
 
+SVAR(nextvoice, "");
+int findvoice(){
+	s_sprintfd(soundpath)("voicecom/%s", nextvoice);
+	return findsound(soundpath, 0, gamesounds);
+}
+
 int addsound(char *name, int vol, int maxuses, bool loop, vector<soundconfig> &sounds, bool load, int audibleradius)
 {
 	if(nosound) return -1;
@@ -1857,33 +1863,6 @@ void playsoundc(int n, physent *p)
 		playsound(n);
 	}
 }
-
-void voicecom(char *sound, char *text)
-{
-	if(!sound || !sound[0]) return;
-	static int last = 0;
-	if(!last || lastmillis-last > 2000)
-	{
-		s_sprintfd(soundpath)("voicecom/%s", sound);
-		int s = findsound(soundpath, 0, gamesounds);
-		if(s < 0 || s < S_AFFIRMATIVE || s > S_NICESHOT) return;
-		playsound(s, SP_HIGH);
-		if(s == S_NICESHOT) // public
-		{
-			addmsg(SV_VOICECOM, "ri", s);
-			toserver(text);
-		}
-		else // team
-		{
-			addmsg(SV_VOICECOMTEAM, "ri", s);
-			s_sprintfd(teamtext)("%c%s", '%', text);
-			toserver(teamtext);
-		}
-		last = lastmillis;
-	}
-}
-
-COMMAND(voicecom, ARG_2STR);
 
 void detachsounds(playerent *owner)
 {

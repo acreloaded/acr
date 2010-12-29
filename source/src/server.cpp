@@ -1265,38 +1265,30 @@ bool spamdetect(client *cl, char *text) // checks doubled lines and average typi
 	return spam;
 }
 
-void sendteamtext(char *text, int sender)
+void sendtext(char *text, client &cl, int flags, int voice)
 {
-	if(!valid_client(sender)) return;
+	if(voice < 0 || voice > S_VOICEEND - S_MAINEND) voice = 0;
+	s_sprintfd(logmsg)("[%s] ", cl.hostname);
+	if(flags & SAY_ACTION) s_sprintf(logmsg)("%s* %s %s ", logmsg, cl.name);
+	else s_sprintf(logmsg)("%s<%s> ", logmsg, cl.name);
+	if(flags & SAY_TEAM) s_sprintf(logmsg)("%s(%s) ", logmsg, team_string(cl.team));
+	if(voice) s_sprintf(logmsg)("%s [%d]", logmsg, voice + S_MAINEND);
+	s_strcat(logmsg, text);
+	if(spamdetect(&cl, text)){
+		logline(ACLOG_INFO, "%s, SPAM detected", logmsg);
+		sendf(cl.clientnum, 1, "ri3s", SV_TEXT, cl.clientnum, SAY_DENY, text);
+		return;
+	}
+	if(!m_teammode) flags &= ~SAY_TEAM;
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
-	putint(p, SV_TEAMTEXT);
-	putint(p, sender);
+	putint(p, SV_TEXT);
+	putint(p, cl.clientnum);
+	putint(p, (voice & 0x1F) | flags << 5);
 	sendstring(text, p);
 	enet_packet_resize(packet, p.length());
-	loopv(clients) if(i!=sender)
-	{
-		if(clients[i]->team == clients[sender]->team || clients[i]->priv || !m_teammode) // send to everyone in non-team mode
-			sendpacket(i, 1, packet);
-	}
-	if(packet->referenceCount==0) enet_packet_destroy(packet);
-}
-
-void sendvoicecomteam(int sound, int sender)
-{
-	if(!valid_client(sender)) return;
-	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-	ucharbuf p(packet->data, packet->dataLength);
-	putint(p, SV_VOICECOMTEAM);
-	putint(p, sender);
-	putint(p, sound);
-	enet_packet_resize(packet, p.length());
-	loopv(clients) if(i!=sender)
-	{
-		if(clients[i]->team == clients[sender]->team || !m_teammode)
-			sendpacket(i, 1, packet);
-	}
-	if(packet->referenceCount==0) enet_packet_destroy(packet);
+	loopv(clients) if(!(flags&SAY_TEAM) || clients[i]->team == cl.team || clients[i]->priv) sendpacket(i, 1, packet);
+	if(!packet->referenceCount) enet_packet_destroy(packet);
 }
 
 int spawntime(int type)
@@ -2688,7 +2680,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 		else
 		{
 			getstring(text, p);
-			filtertext(text, text, 1, MAXNAMELEN);
+			filtername(text, text);
 			if(!text[0]) s_strcpy(text, "unarmed");
 			s_strncpy(cl->name, text, MAXNAMELEN+1);
 			cl->skin = getint(p);
@@ -2786,7 +2778,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 		ENetPacket *packet = enet_packet_create(NULL, 16 + p.length() - curmsg, ENET_PACKET_FLAG_RELIABLE); \
 		ucharbuf buf(packet->data, packet->dataLength); \
 		putint(buf, SV_CLIENT); \
-		putint(buf, cl->clientnum); \
+		putint(buf, sender); \
 		putuint(buf, p.length() - curmsg); \
 		buf.put(&p.buf[curmsg], p.length() - curmsg); \
 		enet_packet_resize(packet, buf.length());
@@ -2809,52 +2801,19 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 		switch(type)
 		{
-			case SV_TEAMTEXT:
-				getstring(text, p);
-				filtertext(text, text);
-				if(!spamdetect(cl, text))
-				{
-					logline(ACLOG_INFO, "[%s] %s says to team %s: '%s'", cl->hostname, cl->name, cl->team, text);
-					sendteamtext(text, sender);
-				}
-				else
-				{
-					logline(ACLOG_INFO, "[%s] %s says to team %s: '%s', SPAM detected", cl->hostname, cl->name, cl->team, text);
-					sendservmsg("\f3please do not spam", sender);
-				}
-				break;
-
 			case SV_TEXT:
 			{
-				int mid1 = curmsg, mid2 = p.length();
+				int flags = getint(p), voice = flags & 0x1F; flags = (flags >> 5) & 3; // SAY_DENY is server only
 				getstring(text, p);
+				if(!cl) break;
 				filtertext(text, text);
-				if(!spamdetect(cl, text))
-				{
-					logline(ACLOG_INFO, "[%s] %s says: '%s'", cl->hostname, cl->name, text);
-					if(cl->type==ST_TCPIP) while(mid1<mid2) cl->messages.add(p.buf[mid1++]);
-					QUEUE_STR(text);
-				}
-				else
-				{
-					logline(ACLOG_INFO, "[%s] %s says: '%s', SPAM detected", cl->hostname, cl->name, text);
-					sendservmsg("\f3please do not spam", sender);
-				}
+				sendtext(text, *cl, flags, voice);
 				break;
 			}
 
-			case SV_VOICECOM:
-				getint(p);
-				QUEUE_MSG;
-				break;
-
-			case SV_VOICECOMTEAM:
-				sendvoicecomteam(getint(p), sender);
-				break;
-
 			case SV_NEWNAME:
 				getstring(text, p);
-				filtertext(text, text, 1, MAXNAMELEN);
+				filtername(text, text);
 				if(!text[0]) s_strcpy(text, "unnamed");
 				if(!strcmp(cl->name, text)) break; // same name!
 				switch(nbl.checknickwhitelist(*cl)){
@@ -3154,6 +3113,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				}
 				if(sendmapserv(sender, text, mapsize, cfgsize, cfgsizegz, &p.buf[p.len]))
 				{
+					s_sprintfd(sendmapsucmsg)("%s \f6(%d) \f0sent the map %s to the server, \f1type /getmap to get it", cl->name, sender, text);
+					sendservmsg(sendmapsucmsg, -1);
 					logline(ACLOG_INFO,"[%s] %s sent map %s, %d + %d(%d) bytes written",
 								clients[sender]->hostname, clients[sender]->name, text, mapsize, cfgsize, cfgsizegz);
 				}
@@ -3295,6 +3256,39 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				senddemo(sender, getint(p));
 				break;
 
+			case SV_SOUND:
+				switch(getint(p)){
+					case S_AKIMBOOUT:
+						if(!cl->state.akimbomillis) break;
+						cl->state.akimbomillis = 0;
+					case S_NOAMMO:
+						if(cl->state.ammo[cl->state.gunselect]) break;
+					case S_JUMP:
+					case S_HARDLAND:
+					case S_SOFTLAND:
+						cl->messages.add(p.buf[curmsg]);
+						cl->messages.add(sender);
+						cl->messages.add(p.buf[curmsg+1]);
+					default:
+						break;
+				}
+				break;
+
+			// client to client edit messages
+			case SV_EDITENT: // 10
+				loopi(3) getint(p);
+			case SV_EDITH: // 7
+			case SV_EDITT: // 7
+				getint(p);
+			case SV_EDITS: // 6
+			case SV_EDITD: // 6
+			case SV_EDITE: // 6
+				loopi(4) getint(p);
+			case SV_NEWMAP: // 2
+				getint(p);
+				QUEUE_MSG;
+				break;
+
 			case SV_EXTENSION:
 			{
 				//
@@ -3331,6 +3325,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				break;
 			}
 
+			default:
 			case -1: // tag type
 				disconnect_client(sender, DISC_TAGT);
 				return;
@@ -3338,15 +3333,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case -2: // overflow
 				disconnect_client(sender, DISC_OVERFLOW);
 				return;
-
-			default:
-			{
-				int size = msgsizelookup(type);
-				if(size<1) { if(sender>=0) disconnect_client(sender, DISC_TAGT); return; }
-				loopi(size-1) getint(p);
-				QUEUE_MSG;
-				break;
-			}
 		}
 	}
 
