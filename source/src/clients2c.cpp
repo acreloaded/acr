@@ -303,6 +303,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(!d || !strcmp(d->name, text)) break;
 				if(d->name[0]) conoutf("%s \f6(%d) \f5is now known as \f1%s", d->name, d->clientnum, text);
 				filtername(d->name, text);
+				if(d == player1) alias("curname", player1->name);
 				updateclientname(d);
 				break;
 			}

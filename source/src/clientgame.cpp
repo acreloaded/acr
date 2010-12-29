@@ -1007,7 +1007,7 @@ void setmaster(int claim){
 }
 COMMAND(setmaster, ARG_1INT);
 
-SVARP(adminpass, ""); // saved admin password
+SVARP(adminpass, "pwd"); // saved admin password
 
 void setadmin(char *claim, char *password)
 {

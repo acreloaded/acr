@@ -397,7 +397,7 @@ float easedradarsize = 64;
 void drawradar(playerent *p, int w, int h)
 {
 	vec center = showmap ? vec(ssize/2, ssize/2, 0) : p->o;
-	easedradarsize = clamp(((easedradarsize * 80.f + p->o.dist(worldpos) * 3.f) / 81.f), 50.f, ssize/2.f); // 2.5f is normal scaling; 3 for extra view
+	easedradarsize = clamp(((easedradarsize * 60.f + p->o.dist(worldpos) * 3.f) / 61.f), 50.f, ssize/2.f); // 2.5f is normal scaling; 3 for extra view
 	float res = showmap ? ssize : easedradarsize;
 
 	float worldsize = (float)ssize;
@@ -691,6 +691,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 				playerent *vpl = players[i];
 				if(!vpl) continue;
 				votepl[vpl->vote].add(vpl);
+				if(vpl->priv >= PRIV_MASTER) votepl[vpl->vote].add(vpl);
+				if(vpl->priv >= PRIV_ADMIN) votepl[vpl->vote].add(vpl);
 			}
 			#define VSU votepl[VOTE_NEUTRAL].length()
 			loopl(VOTE_NUM){

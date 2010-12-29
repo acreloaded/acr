@@ -783,9 +783,14 @@ static void cleardemos(int n)
 
 void senddemo(int cn, int num)
 {
+	if(!valid_client(cn)) return;
+	if(clients[cn]->priv < scl.demodownloadpriv){
+		s_sprintfd(nodownloadprivmsg)("you need %s to download demos", privname(scl.demodownloadpriv));
+		sendservmsg(nodownloadprivmsg, cn);
+		return;
+	}
 	if(!num) num = demos.length();
-	if(!demos.inrange(num-1))
-	{
+	if(!demos.inrange(num-1)){
 		if(demos.empty()) sendservmsg("no demos available", cn);
 		else
 		{
@@ -1272,11 +1277,11 @@ void sendtext(char *text, client &cl, int flags, int voice)
 	if(flags & SAY_ACTION) s_sprintf(logmsg)("%s* %s %s ", logmsg, cl.name);
 	else s_sprintf(logmsg)("%s<%s> ", logmsg, cl.name);
 	if(flags & SAY_TEAM) s_sprintf(logmsg)("%s(%s) ", logmsg, team_string(cl.team));
-	if(voice) s_sprintf(logmsg)("%s [%d]", logmsg, voice + S_MAINEND);
+	if(voice) s_sprintf(logmsg)("%s[%d] ", logmsg, voice + S_MAINEND);
 	s_strcat(logmsg, text);
 	if(spamdetect(&cl, text)){
 		logline(ACLOG_INFO, "%s, SPAM detected", logmsg);
-		sendf(cl.clientnum, 1, "ri3s", SV_TEXT, cl.clientnum, SAY_DENY, text);
+		sendf(cl.clientnum, 1, "ri3s", SV_TEXT, cl.clientnum, SAY_DENY << 5, text);
 		return;
 	}
 	if(!m_teammode) flags &= ~SAY_TEAM;
@@ -2212,12 +2217,16 @@ bool scallvote(voteinfo *v) // true if a regular vote was called
 	else if(clients[v->owner]->lastvotecall && servmillis - clients[v->owner]->lastvotecall < 60*1000 && clients[v->owner]->priv < PRIV_ADMIN && numclients()>1)
 		error = VOTEE_MAX;
 
-	if(error>=0){
+	if(error >= 0){
 		scallvoteerr(v, error);
 		return false;
-	}
-	else{
+	}else{
 		sendcallvote();
+		/* // uncomment after debug
+		clients[v->owner]->vote = VOTE_YES;
+		sendf(-1, 1, "ri3", SV_VOTE, v->owner, VOTE_YES);
+		curvote->evaluate();
+		*/
 		scallvotesuc(v);
 		return true;
 	}
@@ -3430,7 +3439,7 @@ void loggamestatus(const char *reason)
 	logline(ACLOG_INFO, "");
 	logline(ACLOG_INFO, "Game status: %s on %s, %s, %s%c %s",
 					  modestr(gamemode), smapname, reason ? reason : text, mmfullname(mastermode), custom_servdesc ? ',' : '\0', servdesc_current);
-	logline(ACLOG_INFO, "cn name		 %s%sfrag death ping role	host", m_teammode ? "team " : "", m_flags ? "flag " : "");
+	logline(ACLOG_INFO, "cn name		    %s%sfrag death ping role	host", m_teammode ? "team " : "", m_flags ? "flag " : "");
 	loopv(clients)
 	{
 		client &c = *clients[i];

@@ -24,6 +24,7 @@
 // -f     // port, 1..65534, default 28770
 // -c     // max client number, 1..20, default 12
 // -D     // permanent demo recording, optionally +number of demos to keep in RAM, default 5
+// -d     // privilege required to download demos, default 2 (admin)
 
 // the switches o, n, n1 and n2 support coloring and character escaping; 'o' also supports escaped newlines
 // the available colors are: 0: green, 1: blue, 2: yellow, 3: red, 4: gray, 5: white, 6: dark brown, 7: dark red
@@ -51,7 +52,7 @@
           //    d change server description
           //    x vote for maps, that are not present on the server
           //    p vote for a gamemode that is not supported by the map
-          //    default: fkBMasRCDxP (lowercase: a user can vote for it; uppercase: admin role is required to vote)
+          //    default: fkbMasRCDxP (lowercase: a user can vote for it; uppercase: admin role is required to vote)
 
 // rarely used switches:
 
