@@ -476,7 +476,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, bool gib,
 
 	pl->respawnoffset = pl->lastpain = lastmillis;
 	if(local) damage = pl->dodamage(damage);
-	// else if(pl == player1 && pl == actor) return;
+	else if(actor == player1 && damage == 1000) return;
 
 	if(pl==player1)
 	{
@@ -558,11 +558,7 @@ void dokill(playerent *pl, playerent *act, int weapon, bool gib, int finishingda
 		addgib(pl);
 	}
 	
-	if(!m_mp(gamemode))
-	{
-		if(pl==act || isteam(pl, act)) act->frags--;
-		else act->frags += gib ? 2 : 1;
-	}
+	if(!m_mp(gamemode)) act->frags += (pl==act || isteam(pl, act)) ? -1 : gib ? 2 : 1;
 
 	deathstate(pl);
 	pl->deaths++;

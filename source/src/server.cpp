@@ -133,7 +133,7 @@ struct clientstate : playerstate
 	vec o;
 	int state;
 	int lastdeath, lastspawn, lifesequence;
-	int lastshot;
+	int lastshot, lastregen;
 	projectilestate<2> grenades;
 	int akimbos, akimbomillis;
 	int flagscore, frags, deaths, shotdamage, damage;
@@ -167,11 +167,9 @@ struct clientstate : playerstate
 	{
 		playerstate::respawn();
 		o = vec(-1e10f, -1e10f, -1e10f);
-		lastdeath = 0;
 		lastspawn = -1;
-		lastshot = 0;
-		akimbos = 0;
-		akimbomillis = 0;
+		lastdeath = lastshot = lastregen = 0;
+		akimbos = akimbomillis = 0;
 	}
 };
 
@@ -209,10 +207,7 @@ struct client				   // server side version of "dynent" type
 	ENetPeer *peer;
 	string hostname;
 	string name;
-	int ping;
-	int team, skin;
-	int vote;
-	int priv;
+	int ping, team, skin, vote, priv;
 	int connectmillis;
 	bool isauthed; // for passworded servers
 	bool haswelcome;

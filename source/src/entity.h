@@ -39,6 +39,8 @@ struct entity : public persistent_entity
 	}
 };
 
+#define STARTHEALTH 100
+
 struct itemstat { int add, start, max, sound; };
 static itemstat ammostats[] =
 {
@@ -309,7 +311,7 @@ struct playerstate
 
 	void respawn()
 	{
-		health = 100;
+		health = STARTHEALTH;
 		armour = 0;
 		gunselect = GUN_PISTOL;
 		akimbo = false;

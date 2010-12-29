@@ -142,6 +142,12 @@ void processevents()
 	{
 		client *c = clients[i];
 		if(!c || c->type==ST_EMPTY) continue;
+		if(c->state.health < STARTHEALTH && c->state.lastregen + 2500 < gamemillis){
+			int amt = min(STARTHEALTH - c->state.health, 15);
+			c->state.health += amt;
+			sendf(-1, 1, "ri3", SV_REGEN, i, amt);
+			c->state.lastregen = gamemillis;
+		}
 		while(c->events.length())
 		{
 			gameevent &e = c->events[0];

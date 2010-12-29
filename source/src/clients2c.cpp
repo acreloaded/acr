@@ -423,6 +423,16 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
+			case SV_REGEN:
+			{
+				int cn = getint(p), amt = getint(p);
+				playerent *d = getclient(cn);
+				if(!d) break;
+				d->health += amt;
+				//if(d == player1); // fx?
+				break;
+			}
+
 			case SV_DAMAGE:
 			{
 				int tcn = getint(p),
