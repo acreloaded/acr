@@ -513,7 +513,7 @@ void dokill(playerent *pl, playerent *act, int weapon, bool gib, int finishingda
 			s_strcpy(death, gib ? "perforated" : "spliced");
 			break;
 		case GUN_SHOTGUN:
-			s_strcpy(death, gib ? "splattered" : "scrambled");
+			s_strcpy(death, gib ? finishingdamage > SGGIB ? "splattered" : "blew off the head of" : "scrambled");
 			break;
 		case GUN_ASSAULT:
 			s_strcpy(death, gib ? "eliminated" : "shredded");

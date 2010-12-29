@@ -73,7 +73,8 @@ void processevent(client *c, shotevent &e)
 				int rays = e.gun==GUN_SHOTGUN ? h.info : 1;
 				if(rays<1) continue;
 				totalrays += rays;
-				if(totalrays>maxrays) continue;
+				if(totalrays>maxrays) break;
+				if(target->state.o.dist(vec(e.to)) > 2.5f) continue; // 62.5cm away from a target is very bad lag!
 
 				bool gib = false;
 				int damage = rays * effectiveDamage(e.gun, c->state.o.dist(vec(e.to)));
@@ -84,9 +85,9 @@ void processevent(client *c, shotevent &e)
 				else if(e.gun==GUN_SHOTGUN) gib = damage > SGGIB;
 				else gib = h.info == 2;
 				if(e.gun!=GUN_SHOTGUN){
-					if(h.info == 1) damage *= 0.6;
-					else if(h.info == 2) damage *= e.gun==GUN_SNIPER ? 5 : 1.5;
-				}
+					if(h.info == 1 && e.gun != GUN_KNIFE) damage *= 0.6;
+					else if(h.info == 2) damage *= e.gun == GUN_SNIPER ? 5 : e.gun == GUN_KNIFE ? 10 : 1.5;
+				} else if(h.info & 0x80) gib = true;
 				serverdamage(target, c, damage, e.gun, gib, h.dir);
 			}
 			break;

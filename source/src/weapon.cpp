@@ -239,7 +239,7 @@ int intersect(playerent *d, const vec &from, const vec &to, vec *end)
 	float y = d->yaw*RAD, p = (d->pitch/4+90)*RAD, c = cosf(p);
 	vec bottom(d->o), top(sinf(y)*c, -cosf(y)*c, sinf(p));
 	bottom.z -= d->eyeheight;
-	top.mul(d->eyeheight + d->aboveeye).add(bottom);
+	top.mul(d->eyeheight/* + d->aboveeye*/).add(bottom); // space above shoulders
 	// torso
 	bottom.sub(top).div(2).add(top);
 	if(intersectcylinder(from, to, bottom, top, d->radius, dist))
@@ -321,16 +321,14 @@ void hit(int damage, playerent *d, playerent *at, const vec &vel, int gun, bool 
 	if(d==player1 || d->type==ENT_BOT || !m_mp(gamemode)) d->hitpush(damage, vel, at, gun);
 
 	if(!m_mp(gamemode)){
-		if(d != at){
-			if(isteam(d, at)){
-				dodamage(damage * 0.4, at, at, NUMGUNS, true);
-				damage *= 0.25;
-				vec rvel(vel);
-				rvel.mul(-1);
-				at->hitpush(damage * 2, rvel, at, gun);
-				if(damage >= d->health) damage = d->health - 1;
-			}
-		} else damage /= 2;
+		if(d != at && isteam(d, at)){
+			dodamage(damage * 0.4, at, at, NUMGUNS, true);
+			damage *= 0.25;
+			vec rvel(vel);
+			rvel.mul(-1);
+			at->hitpush(damage * 2, rvel, at, gun);
+			if(damage >= d->health) damage = d->health - 1;
+		}
 		dodamage(damage, d, at, gun, gib);
 	}
 	else
@@ -369,8 +367,6 @@ void radialeffect(playerent *o, vec &v, playerent *at, int gun)
 	float dist = expdist(o, dir, v);
 	if(dist >= guns[gun].endrange) return;
 	int dam = effectiveDamage(gun, dist);
-	//o->hitpush(dam, dir, at, gun);
-	//dodamage(dam, o, at, gun, true);
 	hit(dam, o, at, dir, gun, true, dist);
 }
 
@@ -486,7 +482,6 @@ void shorten(vec &from, vec &to, vec &target)
 
 void raydamage(vec &from, vec &to, playerent *d)
 {
-	int dam = effectiveDamage(d->weaponsel->type, from.dist(to));
 	int hitzone = -1;
 	playerent *o = NULL;
 
@@ -499,7 +494,8 @@ void raydamage(vec &from, vec &to, playerent *d)
 			bool raysleft = false;
 			int hitrays = 0;
 			o = NULL;
-			loop(r, SGRAYS) if((done&(1<<r))==0 && (cl = intersectclosest(from, sg[r], d, hitzone)))
+			float totaldist = 0.f;
+			loop(r, SGRAYS) if(!(done&(1<<r)) && (cl = intersectclosest(from, sg[r], d, hitzone)))
 			{
 				if(!o || o==cl)
 				{
@@ -507,19 +503,23 @@ void raydamage(vec &from, vec &to, playerent *d)
 					o = cl;
 					done |= 1<<r;
 					shorten(from, o->o, sg[r]);
+					totaldist += from.dist(sg[r]);
 				}
 				else raysleft = true;
 			}
-			if(hitrays) hitpush(hitrays*dam, o, d, from, to, d->weaponsel->type, hitrays*dam > SGGIB, hitrays);
+			int dam = effectiveDamage(d->weaponsel->type, totaldist/(float)hitrays);
+			if(hitrays) hitpush(hitrays*dam, o, d, from, to, d->weaponsel->type, hitrays*dam > SGGIB || hitzone == 2, hitrays | (hitzone == 2 ? 0x80 : 0));
 			if(!raysleft) break;
 		}
 	}
 	else if((o = intersectclosest(from, to, d, hitzone)))
 	{
 		shorten(from, o->o, to);
+		int dam = effectiveDamage(d->weaponsel->type, from.dist(to));
 		bool gib = false;
 		if(d==player1){
 			if(d->weaponsel->type==GUN_KNIFE){
+				if(!dam) return; // for the knife
 				if(hitzone == 2) dam *= 10; // ultimate knife fx
 				gib = true;
 			}
@@ -531,7 +531,6 @@ void raydamage(vec &from, vec &to, playerent *d)
 				gib = true;
 			}
 		}
-
 		hitpush(dam, o, d, from, to, d->weaponsel->type, gib, hitzone==2 ? 2 : hitzone==3 ? 1 : 0);
 	}
 }
@@ -1208,14 +1207,12 @@ bool knife::attack(vec &targ)
 	vec to = targ;
 	from.z -= weaponbeloweye;
 
-	/* // handled by effectiveDamage()
 	vec unitv;
 	float dist = to.dist(from, unitv);
 	unitv.div(dist);
-	unitv.mul(4); // punch range (1 meter)
+	unitv.mul(guns[GUN_KNIFE].endrange);
 	to = from;
 	to.add(unitv);
-	*/
 
 	hits.setsizenodelete(0);
 	raydamage(from, to, owner);
