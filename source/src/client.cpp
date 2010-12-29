@@ -236,7 +236,7 @@ void toserver_me(char *text){ toserver(text, 0, true); }
 
 COMMANDN(say, toserver_, ARG_CONC);
 COMMANDN(sayvoice, toserver_voice, ARG_2STR);
-COMMANDN(me, toserver_me, ARG_2STR);
+COMMANDN(me, toserver_me, ARG_CONC);
 
 void echo(char *text) { conoutf("%s", text); }
 
