@@ -704,7 +704,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 					if(!vpl) continue;
 					s_sprintf(votestr[l])("%s\f%d%s \f6(%d)", votestr[l],
 						vpl->priv ? 0 : vpl == player1 ? 6 : vpl->team ? 1 : 3, vpl->name, vpl->clientnum);
-					if(vpl->priv) s_sprintf(votestr[l])("%s \f8(x%d)",  vpl->priv > PRIV_MASTER ? 3 : 2);
+					if(vpl->priv) s_sprintf(votestr[l])("%s \f8(x%d)", votestr[l],  vpl->priv > PRIV_MASTER ? 3 : 2);
 					s_strcat(votestr[l], "\f5, ");
 				}
 				if(!votepl[l].length())
