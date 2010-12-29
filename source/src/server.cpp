@@ -2252,12 +2252,8 @@ void changeclientrole(int cl, int wants, char *pwd, bool force)
 	if(wants && c.type == ST_LOCAL) force = true; // force local user to be able to claim
 	if(force); // force passthru
 	else if(wants){ // claim
-		if(c.priv >= wants){
-			sendf(cl, 1, "ri3", SV_SOPCHANGE, cl, wants | 0x40);
-			return;
-		}
 		if(wants == PRIV_MASTER){
-			loopv(clients) if(valid_client(i) && clients[i]->priv == PRIV_MASTER){
+			if(!c.priv) loopv(clients) if(valid_client(i) && clients[i]->priv == PRIV_MASTER){
 				sendf(cl, 1, "ri3", SV_SOPCHANGE, i, PRIV_MASTER | 0x40);
 				return;
 			}
@@ -2267,11 +2263,16 @@ void changeclientrole(int cl, int wants, char *pwd, bool force)
 			pwddetail pd;
 			pd.line = -1;
 			if(!checkadmin(c.name, pwd, c.salt, &pd) || !pd.priv){
-				disconnect_client(cl, DISC_LOGINFAIL); // avoid brute-force
-				return;
+				if(c.priv >= PRIV_ADMIN){
+					pd.priv = c.priv;
+					pd.line = -1;
+				}else{
+					disconnect_client(cl, DISC_LOGINFAIL); // avoid brute-force
+					return;
+				}
 			};
 			wants = min(wants, pd.priv);
-			logline(ACLOG_INFO,"[%s] %s used %s password in line %d", c.hostname, c.name, privname(wants), pd.line);
+			if(pd.line >= 0) logline(ACLOG_INFO,"[%s] %s used %s password in line %d", c.hostname, c.name, privname(wants), pd.line);
 		}
 	}
 	else{ // relinquish
@@ -2280,6 +2281,10 @@ void changeclientrole(int cl, int wants, char *pwd, bool force)
 		logline(ACLOG_INFO,"[%s] %s relinquished %s status", c.hostname, c.name, privname(c.priv));
 		c.priv = PRIV_NONE;
 		sendserveropinfo();
+		return;
+	}
+	if(c.priv >= wants){
+		sendf(cl, 1, "ri3", SV_SOPCHANGE, cl, wants | 0x40);
 		return;
 	}
 	c.priv = wants;
