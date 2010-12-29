@@ -2253,12 +2253,12 @@ void changeclientrole(int cl, int wants, char *pwd, bool force)
 	if(force); // force passthru
 	else if(wants){ // claim
 		if(c.priv >= wants){
-			sendf(cl, 1, "ri3", cl, wants | 0x40);
+			sendf(cl, 1, "ri3", SV_SOPCHANGE, cl, wants | 0x40);
 			return;
 		}
 		if(wants == PRIV_MASTER){
 			loopv(clients) if(valid_client(i) && clients[i]->priv == PRIV_MASTER){
-				sendf(cl, 1, "ri3", i, PRIV_MASTER | 0x40);
+				sendf(cl, 1, "ri3", SV_SOPCHANGE, i, PRIV_MASTER | 0x40);
 				return;
 			}
 		}
