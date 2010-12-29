@@ -326,8 +326,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				int val = getint(p);
 				if(!d) break;
-				if(val) d->state = CS_EDITING;
-				else d->state = CS_ALIVE;
+				if(val) d->state = val ? CS_EDITING : CS_ALIVE;
 				break;
 			}
 

@@ -61,6 +61,7 @@ static itemstat powerupstats[] =
 #define SGRAYS 32
 #define SGSPREAD 4
 #define SGGIB 130
+#define NADEPOWER 1.5f
 
 struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, range, endrange, rangeminus, projspeed, part, spread, kick, magsize, mdl_kick_rot, mdl_kick_back, recoil, maxrecoil, pushfactor; bool isauto; };
 static guninfo guns[NUMGUNS] =

@@ -932,7 +932,7 @@ void grenades::thrownade()
 	if(!inhandnade) return;
 	const float speed = cosf(RAD*owner->pitch);
 	vec vel(sinf(RAD*owner->yaw)*speed, -cosf(RAD*owner->yaw)*speed, sinf(RAD*owner->pitch));
-	vel.mul(1.5f);
+	vel.mul(NADEPOWER);
 	thrownade(vel);
 }
 

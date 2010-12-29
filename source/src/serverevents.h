@@ -19,7 +19,6 @@ void processevent(client *c, explodeevent &e)
 		vec dir;
 		float dist = target->state.o.dist(o, dir);		
 		if(dist >= guns[e.gun].endrange) continue;
-		//dir.div(dist); // it gets normalized by the serverdamage() function
 		serverdamage(target, c, effectiveDamage(e.gun, dist), e.gun, true, dir);
 	}
 }

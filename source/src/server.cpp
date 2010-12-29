@@ -104,6 +104,7 @@ struct projectilestate
 {
 	int projs[N];
 	int numprojs;
+	int throwable;
 
 	projectilestate() : numprojs(0) {}
 
@@ -113,6 +114,7 @@ struct projectilestate
 	{
 		if(numprojs>=N) numprojs = 0;
 		projs[numprojs++] = val;
+		throwable++;
 	}
 
 	bool remove(int val)
@@ -2652,27 +2654,10 @@ void sendwelcome(client *cl, int chan, bool forcedeath)
 	cl->haswelcome = true;
 }
 
-int checktype(int type, client *cl)
-{
+int checktype(int type, client *cl){ // invalid defined types handled in the processing function
 	if(cl && cl->type==ST_LOCAL) return type;
 	if (type < 0 || type >= SV_NUM) return -1;
-	// server only messages
-	static int servtypes[] = { SV_SERVINFO, SV_WELCOME, SV_CDIS, SV_DIED,
-						SV_DAMAGE, SV_HITPUSH, SV_SHOTFX,
-						SV_SPAWNSTATE, SV_FORCEDEATH, SV_RESUME, SV_TIMEUP,
-						SV_MAPRELOAD, SV_ITEMACC, SV_MAPCHANGE, SV_ITEMSPAWN,
-						SV_SERVMSG,
-						SV_FLAGINFO, SV_FLAGMSG, SV_FLAGCNT,
-						SV_ARENAWIN, SV_CURRENTSOP, SV_SOPCHANGE,
-						SV_CALLVOTEERR, SV_VOTERESULT, SV_ITEMLIST,
-						SV_SETTEAM, SV_DEMOPLAYBACK, SV_CLIENT };
-	// only allow edit messages in coop-edit mode
-	static int edittypes[] = { SV_EDITENT, SV_EDITH, SV_EDITT, SV_EDITS, SV_EDITD, SV_EDITE, SV_NEWMAP };
-	if(cl){
-		loopi(sizeof(servtypes)/sizeof(int)) if(type == servtypes[i]) return -1;
-		if(!m_edit) loopi(sizeof(edittypes)/sizeof(int)) if(type == edittypes[i]) return -1;
-		if(cl->overflow++ > 200) return -2;
-	}
+	if(cl && cl->overflow++ > 200) return -2;
 	return type;
 }
 
@@ -2998,9 +2983,20 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case SV_THROWNADE:
 			{
-				loopi(6) getfloat(p);
-				getint(p);
-				QUEUE_MSG;
+				vec from, vel;
+				loopi(3) from[i] = getfloat(p);
+				loopi(3) vel[i] = getfloat(p);
+				int remainmillis = getint(p);
+				if(cl->state.grenades.throwable <= 0) break;
+				cl->state.grenades.throwable--;
+				loopi(2) from[i] = clamp(from[i], 0.f, (1 << maplayout_factor) - 1.f);
+				if(maplayout && maplayout[((int)from.x) + (((int)from.y) << maplayout_factor)] > from.z + 3) from = vec();
+				vel.normalize().mul(NADEPOWER);
+				ucharbuf newmsg(cl->messages.reserve(7 * sizeof(float)));
+				loopi(3) putfloat(newmsg, from[i]);
+				loopi(3) putfloat(newmsg, vel[i]);
+				putint(newmsg, remainmillis);
+				cl->messages.addbuf(newmsg);
 				break;
 			}
 
@@ -3021,7 +3017,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			{
 				bool editing = getint(p) != 0;
 				if(!m_edit){ // unacceptable!
-					disconnect_client(sender, DISC_TAGT);
+					disconnect_client(sender, DISC_AUTOKICK);
 					return;
 				}
 				if(cl->state.state != (editing ? CS_ALIVE : CS_EDITING)) break;
@@ -3291,7 +3287,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				}
 				break;
 
-			// client to client edit messages
+			// client to client (edit messages)
 			case SV_EDITENT: // 10
 				loopi(3) getint(p);
 			case SV_EDITH: // 7
@@ -3303,18 +3299,15 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				loopi(4) getint(p);
 			case SV_NEWMAP: // 2
 				getint(p);
+				if(!m_edit){
+					disconnect_client(sender, DISC_TAGT);
+					return;
+				}
 				QUEUE_MSG;
 				break;
 
 			case SV_EXTENSION:
 			{
-				//
-				// rules:
-				// 1. extensions MUST modify gameplay or the beavior of the game in a reasonable manner
-				// 2. extensions may be used to extend or automate server administration tasks
-				// 3. extensions may ONLY operate on the server and must not send any additional data to the connected clients
-				// 4. extensions not adhering to these rules may cause the hosting server being banned from the masterserver
-				//
 				// also note that there is no guarantee that custom extensions will work in future AC versions
 
 				getstring(text, p, 64);

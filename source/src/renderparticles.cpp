@@ -624,7 +624,7 @@ bool addscorchmark(vec &o, float radius)
 {
 	if(!scorchttl || !scorch) return false;
 	sqr *s = S((int)o.x, (int)o.y);
-	if(s->type!=SPACE || o.z-s->floor>radius) return false;
+	if(!s || s->type!=SPACE || o.z-s->floor>radius) return false;
 	newparticle(vec(o.x, o.y, s->floor+0.005f), vec(0, 0, 1), scorchttl, 9);
 	return true;
 }
