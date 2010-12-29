@@ -3430,7 +3430,7 @@ void loggamestatus(const char *reason)
 	logline(ACLOG_INFO, "");
 	logline(ACLOG_INFO, "Game status: %s on %s, %s, %s%c %s",
 					  modestr(gamemode), smapname, reason ? reason : text, mmfullname(mastermode), custom_servdesc ? ',' : '\0', servdesc_current);
-	logline(ACLOG_INFO, "cn name			 %s%sfrag death ping role	host", m_teammode ? "team " : "", m_flags ? "flag " : "");
+	logline(ACLOG_INFO, "cn name		 %s%sfrag death ping role	host", m_teammode ? "team " : "", m_flags ? "flag " : "");
 	loopv(clients)
 	{
 		client &c = *clients[i];

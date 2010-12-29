@@ -222,6 +222,7 @@ void toserver(char *text, int voice, bool action){
 	addmsg(SV_TEXT, "ris", (voice & 0x1F) | ((action ? SAY_ACTION : 0 | toteam ? SAY_TEAM : 0) << 5), text);
 }
 
+void toserver_(char *text){ toserver(text); }
 void toserver_voice(char *text){
 	extern int findvoice();
 	int s = findvoice();
@@ -233,7 +234,7 @@ void toserver_voice(char *text){
 }
 void toserver_me(char *text){ toserver(text, 0, true); }
 
-COMMANDN(say, toserver, ARG_CONC);
+COMMANDN(say, toserver_, ARG_CONC);
 COMMANDN(sayvoice, toserver_voice, ARG_2STR);
 COMMANDN(me, toserver_me, ARG_2STR);
 
