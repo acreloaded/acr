@@ -2224,7 +2224,7 @@ bool scallvote(voteinfo *v) // true if a regular vote was called
 	}else{
 		scallvotesuc(v);
 		sendcallvote();
-		// owner votes yes
+		// owner auto votes yes
 		clients[v->owner]->vote = VOTE_YES;
 		sendf(-1, 1, "ri3", SV_VOTE, v->owner, VOTE_YES);
 		curvote->evaluate();
@@ -2256,9 +2256,11 @@ void changeclientrole(int cl, int wants, char *pwd, bool force)
 			sendf(cl, 1, "ri3", cl, wants | 0x40);
 			return;
 		}
-		if(wants == PRIV_MASTER) loopv(clients) if(valid_client(i) && clients[i]->priv == PRIV_MASTER){
-			sendf(cl, 1, "ri3", i, PRIV_MASTER | 0x40);
-			return;
+		if(wants == PRIV_MASTER){
+			loopv(clients) if(valid_client(i) && clients[i]->priv == PRIV_MASTER){
+				sendf(cl, 1, "ri3", i, PRIV_MASTER | 0x40);
+				return;
+			}
 		}
 		else{
 			if(!pwd || !*pwd) return;
@@ -2274,7 +2276,7 @@ void changeclientrole(int cl, int wants, char *pwd, bool force)
 	}
 	else{ // relinquish
 		if(!c.priv) return; // no privilege to relinquish
-		sendf(-1, 1, "ri3", cl, c.priv | 0x80);
+		sendf(-1, 1, "ri3", SV_SOPCHANGE, cl, c.priv | 0x80);
 		logline(ACLOG_INFO,"[%s] %s relinquished %s status", c.hostname, c.name, privname(c.priv));
 		c.priv = PRIV_NONE;
 		sendserveropinfo();
@@ -3447,7 +3449,7 @@ void loggamestatus(const char *reason)
 		client &c = *clients[i];
 		if(c.type == ST_EMPTY || !c.name[0]) continue;
 		s_sprintf(text)("%2d %-16s ", c.clientnum, c.name);		 // cn name
-		if(m_teammode) s_strcatf(text, "%-4s ", c.team);			// team
+		if(m_teammode) s_strcatf(text, "%-4s ", team_string(c.team)); // team
 		if(m_flags) s_strcatf(text, "%4d ", c.state.flagscore);	 // flag
 		s_strcatf(text, "%4d %5d", c.state.frags, c.state.deaths);  // frag death
 		logline(ACLOG_INFO, "%s%5d %s %s", text, c.ping,

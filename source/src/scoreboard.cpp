@@ -94,7 +94,7 @@ struct scoreratio
 
 void renderscore(void *menu, playerent *d)
 {
-	s_sprintfd(status)("\f%d", privcolor(d->priv));
+	s_sprintfd(status)("\f%d", privcolor(d->priv, d->state == CS_DEAD));
 	static color localplayerc(0.2f, 0.2f, 0.2f, 0.2f);
 	const char *clag = d->state==CS_LAGGED ? "LAG" : colorpj(d->plag), *cping = colorping(d->ping);
 	sline &line = scorelines.add();
