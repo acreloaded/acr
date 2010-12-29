@@ -111,7 +111,7 @@ void processevent(client *c, reloadevent &e)
 	gs.ammo[e.gun] -= numbullets;
 
 	int wait = e.millis - gs.lastshot;
-	sendf(-1, 1, "ri3", SV_RELOAD, c->clientnum, e.gun);
+	sendf(-1, 1, "ri3x", SV_RELOAD, c->clientnum, e.gun, c->clientnum);
 	if(gs.gunwait[e.gun] && wait<gs.gunwait[e.gun]) gs.gunwait[e.gun] += reloadtime(e.gun);
 	else
 	{

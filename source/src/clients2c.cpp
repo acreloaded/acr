@@ -416,8 +416,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				int cn = getint(p), gun = getint(p);
 				playerent *p = getclient(cn);
-				playsound(guns[gun].reload, p ? p : player1);
 				if(!p) break;
+				playsound(guns[gun].reload, p);
 				int bullets = min(p->ammo[gun], magsize(gun) - p->mag[gun]);
 				p->ammo[gun] -= bullets;
 				p->mag[gun] += bullets;
