@@ -67,8 +67,6 @@ void drawvoteicon(float x, float y, int col, int row, bool noblend)
 
 VARP(crosshairsize, 0, 15, 50);
 VARP(hidestats, 0, 1, 1);
-VARP(crosshairfx, 0, 1, 1);
-VARP(crosshairteamsign, 0, 1, 1);
 VARP(hideradar, 0, 0, 1);
 VARP(hidecompass, 0, 0, 1);
 VARP(hideteam, 0, 0, 1);
@@ -124,7 +122,7 @@ void drawscope()
 	glEnd();
 }
 
-const char *crosshairnames[CROSSHAIR_NUM] = { "default", "teammate", "scope", "enemy" };
+const char *crosshairnames[CROSSHAIR_NUM] = { "default", "scope" };
 Texture *crosshairs[CROSSHAIR_NUM] = { NULL }; // weapon specific crosshairs
 
 Texture *loadcrosshairtexture(const char *c)
@@ -149,9 +147,9 @@ void loadcrosshair(char *c, char *name)
 
 COMMAND(loadcrosshair, ARG_2STR);
 
-void drawcrosshair(playerent *p, int n, color *c, float size)
+void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 {
-	Texture *crosshair = crosshairs[n == CROSSHAIR_TEAMMATE ? CROSSHAIR_DEFAULT : n];
+	Texture *crosshair = crosshairs[n];
 	if(!crosshair)
 	{
 		crosshair = crosshairs[CROSSHAIR_DEFAULT];
@@ -163,14 +161,13 @@ void drawcrosshair(playerent *p, int n, color *c, float size)
 	glBindTexture(GL_TEXTURE_2D, crosshair->id);
 	glColor3ub(255,255,255);
 	if(c) glColor3f(c->r, c->g, c->b);
-	else if(crosshairfx || n==CROSSHAIR_TEAMMATE)
+	else if(teamtype)
 	{
-		if(n==CROSSHAIR_TEAMMATE) glColor3ub(0, 255, 0);
-		else if(n==CROSSHAIR_ENEMY) glColor3ub(255, 0, 0);
-		else if(!m_osok)
-		{
-			if(p->health<=25) glColor3ub(128,0,0);
-			else if(p->health<=50) glColor3ub(128,64,0);
+		if(teamtype == 1) glColor3ub(0, 255, 0);
+		else if(teamtype == 2) glColor3ub(255, 0, 0);
+		else if(!m_osok){
+			if(p->health<=25) glColor3ub(128,0,0); // orange
+			else if(p->health<=50) glColor3ub(128,64,0); // light orange
 		}
 	}
 	float s = size>0 ? size : (float)crosshairsize;
@@ -630,10 +627,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	bool menu = menuvisible();
 	bool command = getcurcommand() ? true : false;
 	if((p->state==CS_ALIVE || p->state==CS_EDITING) && !p->weaponsel->reloading)
-	{
-		p->weaponsel->renderaimhelp((crosshairteamsign && targetplayer && targetplayer->state==CS_ALIVE) ?
-			isteam(targetplayer, p) ? CROSSHAIR_TEAMMATE : CROSSHAIR_ENEMY : CROSSHAIR_DEFAULT);
-	}
+		p->weaponsel->renderaimhelp(targetplayer->state==CS_ALIVE ? isteam(targetplayer, p) ? 1 : 2 : 0);
 
 	drawdmgindicator();
 

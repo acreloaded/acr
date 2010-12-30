@@ -666,7 +666,7 @@ void weapon::onselecting()
 }
 
 void weapon::renderhudmodel() { renderhudmodel(owner->lastaction); }
-void weapon::renderaimhelp(int teamwarning) { drawcrosshair(owner, teamwarning); }
+void weapon::renderaimhelp(int teamtype) { drawcrosshair(owner, CROSSHAIR_DEFAULT, teamtype); }
 int weapon::dynspread() { return info.spread; }
 float weapon::dynrecoil() { return info.kick; }
 bool weapon::selectable() { return this != owner->weaponsel && owner->state == CS_ALIVE && !owner->weaponchanging; }
@@ -1107,11 +1107,10 @@ void sniperrifle::ondeselecting() { scoped = false; }
 void sniperrifle::onownerdies() { scoped = false; }
 void sniperrifle::renderhudmodel() { if(!scoped) weapon::renderhudmodel(); }
 
-void sniperrifle::renderaimhelp(int teamwarning)
+void sniperrifle::renderaimhelp(int teamtype)
 {
-	if(scoped) drawscope();
-	if(scoped && teamwarning == CROSSHAIR_DEFAULT) drawcrosshair(owner, CROSSHAIR_SCOPE, NULL, 24.0f);
-	else weapon::renderaimhelp(teamwarning);
+	if(scoped){ drawscope(); drawcrosshair(owner, CROSSHAIR_SCOPE, teamtype, NULL, 24.0f); }
+	else weapon::renderaimhelp(teamtype);
 }
 
 void sniperrifle::setscope(bool enable)

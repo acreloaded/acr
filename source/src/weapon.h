@@ -36,7 +36,7 @@ struct weapon
 	virtual bool deselectable();
 	virtual void renderstats();
 	virtual void renderhudmodel();
-	virtual void renderaimhelp(int teamwarning);
+	virtual void renderaimhelp(int teamtype);
 
 	virtual void onselecting();
 	virtual void ondeselecting() {}
@@ -116,7 +116,7 @@ struct sniperrifle : gun
 	void ondeselecting();
 	void onownerdies();
 	void renderhudmodel();
-	void renderaimhelp(int teamwarning);
+	void renderaimhelp(int teamtype);
 	void setscope(bool enable);
 };
 
