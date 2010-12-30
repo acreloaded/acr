@@ -259,7 +259,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_MAPRELOAD:		  // server requests next map
+			case SV_NEXTMAP: // server requests next map
 			{
 				getint(p);
 				s_sprintfd(nextmapalias)("nextmap_%s", getclientmap());
@@ -672,7 +672,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_CURRENTSOP:
+			case SV_SETROLE:
 			{
 				int cl = getint(p), r = getint(p);
 				playerent *p = getclient(cl);
@@ -680,7 +680,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_SOPCHANGE:
+			case SV_ROLECHANGE:
 			{
 				int cl = getint(p), r = getint(p);
 				bool drop = (r >> 7) & 1, err = (r >> 6) & 1; r &= 0x3F;
@@ -854,6 +854,19 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					player1->resetspec();
 				}
 				player1->clientnum = getint(p);
+				break;
+			}
+
+			case SV_EXTENSION:
+			{
+				getstring(text, p, 64);
+				int len = getint(p);
+				if(len > 50) { neterr("Extension too long"); return; }
+				//if(!strcmp(text, ""));
+				else{ // ignore unknown extensions
+					conoutf("server sent unknown extension %s, length %d", text, len);
+					while(len--) getint(p);
+				}
 				break;
 			}
 

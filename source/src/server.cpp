@@ -2117,7 +2117,7 @@ bool isbanned(int cn)
 }
 
 void sendserveropinfo(int receiver = -1){
-	loopv(clients) if(valid_client(i)) sendf(receiver, 1, "ri3", SV_CURRENTSOP, i, clients[i]->priv);
+	loopv(clients) if(valid_client(i)) sendf(receiver, 1, "ri3", SV_SETROLE, i, clients[i]->priv);
 }
 
 #include "serveractions.h"
@@ -2230,7 +2230,7 @@ void changeclientrole(int cl, int wants, char *pwd, bool force)
 	else if(wants){ // claim
 		if(wants == PRIV_MASTER){
 			if(!c.priv) loopv(clients) if(valid_client(i) && clients[i]->priv == PRIV_MASTER){
-				sendf(cl, 1, "ri3", SV_SOPCHANGE, i, PRIV_MASTER | 0x40);
+				sendf(cl, 1, "ri3", SV_ROLECHANGE, i, PRIV_MASTER | 0x40);
 				return;
 			}
 		}
@@ -2253,18 +2253,18 @@ void changeclientrole(int cl, int wants, char *pwd, bool force)
 	}
 	else{ // relinquish
 		if(!c.priv) return; // no privilege to relinquish
-		sendf(-1, 1, "ri3", SV_SOPCHANGE, cl, c.priv | 0x80);
+		sendf(-1, 1, "ri3", SV_ROLECHANGE, cl, c.priv | 0x80);
 		logline(ACLOG_INFO,"[%s] %s relinquished %s status", c.hostname, c.name, privname(c.priv));
 		c.priv = PRIV_NONE;
 		sendserveropinfo();
 		return;
 	}
 	if(c.priv >= wants){
-		sendf(cl, 1, "ri3", SV_SOPCHANGE, cl, wants | 0x40);
+		sendf(cl, 1, "ri3", SV_ROLECHANGE, cl, wants | 0x40);
 		return;
 	}
 	c.priv = wants;
-	sendf(-1, 1, "ri3", SV_SOPCHANGE, cl, c.priv);
+	sendf(-1, 1, "ri3", SV_ROLECHANGE, cl, c.priv);
 	logline(ACLOG_INFO,"[%s] %s claimed %s status", c.hostname, c.name, privname(c.priv));
 	sendserveropinfo();
 	if(curvote) curvote->evaluate();
@@ -3281,36 +3281,35 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				QUEUE_MSG;
 				break;
 
-			case SV_EXTENSION:
+			case SV_EXTENSION: // note that there is no guarantee that custom extensions will work in future AC versions
 			{
-				// also note that there is no guarantee that custom extensions will work in future AC versions
-
-				getstring(text, p, 64);
-				char *ext = text;   // extension specifier in the form of OWNER::EXTENSION, see sample below
+				getstring(text, p, 64); // extension specifier, preferred to be in the form of OWNER::EXTENSION
 				int n = getint(p);  // length of data after the specifier
 				if(n > 50) return;
 
 				// sample
-				if(!strcmp(ext, "driAn::writelog"))
+				if(!strcmp(text, "official::writelog"))
 				{
-					// owner:	   driAn - root@sprintf.org
-					// extension:   writelog - WriteLog v1.0
+					// extension:   writelog
 					// description: writes a custom string to the server log
 					// access:	  requires admin privileges
-					// usage:	   /serverextension driAn::writelog "your log message here.."
-
+					// usage:	/wl = [serverextension "official::writelog" $arg1]
+					//			/wl "message to write to the log"
 					getstring(text, p, n);
-					if(valid_client(sender) && clients[sender]->priv<PRIV_ADMIN) logline(ACLOG_INFO, "%s", text);
+					if(valid_client(sender) && clients[sender]->priv >= PRIV_ADMIN) logline(ACLOG_INFO, "%s", text);
 				}
 
 				// add other extensions here
 
-				else for(; n > 0; n--) getint(p); // ignore unknown extensions
+				else{
+					logline(ACLOG_INFO, "[%s] sent unknown extension %s, length %d", cl->hostname, text, n);
+					while(n-- > 0) getint(p); // ignore unknown extensions
+				}
 
 				break;
 			}
 
-			default:
+			default: // unknown
 			case -1: // tag type
 				disconnect_client(sender, DISC_TAGT);
 				return;
@@ -3497,7 +3496,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 		else if(configsets.length()) nextcfgset();
 		else if(!isdedicated){
 			loopv(clients) if(clients[i]->type!=ST_EMPTY){
-				sendf(i, 1, "ri2", SV_MAPRELOAD, 0);	// ask a client to trigger map reload
+				sendf(i, 1, "ri2", SV_NEXTMAP, 0);	// ask a client for the next map
 				mapreload = true;
 				break;
 			}
