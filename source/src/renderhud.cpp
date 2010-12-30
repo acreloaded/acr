@@ -172,6 +172,7 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 	}
 	float s = size>0 ? size : (float)crosshairsize;
 	float chsize = s;
+	if(n != CROSSHAIR_SCOPE) chsize = (p->weaponsel->type == GUN_SHOTGUN ? SGSPREAD*101 : p->weaponsel->info.spread) * 100 / dynfov();
 	glBegin(GL_QUADS);
 	glTexCoord2f(0, 0); glVertex2f(VIRTW/2 - chsize, VIRTH/2 - chsize);
 	glTexCoord2f(1, 0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 - chsize);
