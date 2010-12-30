@@ -78,6 +78,7 @@ struct mapaction : serveraction
 			{
 				if(!strcmp(behindpath(map), scl.adminonlymaps[i])) role = PRIV_ADMIN;
 			}
+			if(notify) passratio = 0.6f; // you need 60% to vote a map without admin
 		}
 		area |= EE_LOCAL_SERV; // local too
 		s_sprintf(desc)("load map '%s' in mode '%s'", map, modestr(mode));
@@ -100,17 +101,8 @@ struct demoplayaction : serveraction
 struct playeraction : serveraction
 {
 	int cn;
-	ENetAddress address;
-	void disconnect(int reason)
-	{
-		int i = findcnbyaddress(&address);
-		if(i >= 0) disconnect_client(i, reason);
-	}
 	virtual bool isvalid() { return valid_client(cn) && clients[cn]->priv < PRIV_ADMIN; } // kick & ban can't be done on admins
-	playeraction(int cn) : cn(cn)
-	{
-		if(isvalid()) address = clients[cn]->peer->address;
-	};
+	playeraction(int cn) : cn(cn) { };
 };
 
 struct forceteamaction : playeraction
@@ -119,7 +111,8 @@ struct forceteamaction : playeraction
 	virtual bool isvalid() { return m_teammode && valid_client(cn); }
 	forceteamaction(int cn, int caller) : playeraction(cn)
 	{
-		if(cn != caller) role = roleconf('f');
+		if(cn != caller){ role = roleconf('f'); passratio = 0.55f;}
+		else passratio = 0.7f;
 		if(valid_client(cn)) s_sprintf(desc)("force player %s to the enemy team", clients[cn]->name);
 		else s_strcpy(desc, "invalid forceteam");
 	}
@@ -142,10 +135,10 @@ struct giveadminaction : playeraction
 
 struct kickaction : playeraction
 {
-	void perform()  { disconnect(DISC_KICK); }
+	void perform()  { disconnect_client(cn, DISC_KICK); }
 	kickaction(int cn) : playeraction(cn)
 	{
-		passratio = 0.6f;
+		passratio = 0.7f;
 		role = roleconf('k');
 		length = 35000; // 35s
 		if(valid_client(cn)) s_sprintf(desc)("kick player %s", clients[cn]->name);
@@ -156,13 +149,13 @@ struct kickaction : playeraction
 struct banaction : playeraction
 {
 	void perform(){
-		ban b = { address, servmillis+20*60*1000 };
+		ban b = { clients[cn]->peer->address.host, servmillis+20*60*1000 };
 		bans.add(b);
-		disconnect(DISC_BAN);
+		disconnect_client(cn, DISC_BAN);
 	}
 	banaction(int cn) : playeraction(cn)
 	{
-		passratio = 0.8f;
+		passratio = 0.75f;
 		role = roleconf('b');
 		if(isvalid()) s_sprintf(desc)("ban player %s", clients[cn]->name);
 		else s_strcpy(desc, "invalid ban");

@@ -34,8 +34,6 @@
 
 // change these, if you don't like the defaults:
 
-// -k     // kickthreshold, -1..-100, default -5
-// -y     // banthreshold, -1..-100, default -6
 // -r     // server maprot file, default config/maprot.cfg
 // -X     // server passwords file, default config/serverpwd.cfg
 // -B     // server IP blacklist file, default config/serverblacklist.cfg

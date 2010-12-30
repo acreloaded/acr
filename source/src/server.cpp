@@ -281,7 +281,7 @@ bool valid_client(int cn)
 
 struct ban
 {
-	ENetAddress address;
+	enet_uint32 host;
 	int millis;
 };
 
@@ -948,14 +948,12 @@ void flagaction(int flag, int action, int actor)
 				f.actor_cn = actor;
 				break;
 			case FA_LOST:
-				if(actor == -1) actor = f.actor_cn;
 			case FA_DROP:
-				if(f.actor_cn != actor) return;
+				if(actor == -1) actor = f.actor_cn;
 				f.state = CTFF_DROPPED;
 				loopi(3) f.pos[i] = clients[actor]->state.o[i];
 				break;
 			case FA_RETURN:
-				if(f.state!=CTFF_DROPPED || m_htf) return;
 				f.state = CTFF_INBASE;
 				break;
 			case FA_SCORE:  // ctf: f = carried by actor flag,  htf: f = hunted flag (run over by actor)
@@ -990,9 +988,8 @@ void flagaction(int flag, int action, int actor)
 					break;
 				}
 			case FA_LOST:
-				if(actor == -1) actor = f.actor_cn;
 			case FA_DROP:
-				if(f.actor_cn != actor || f.state != CTFF_STOLEN) return;
+				if(actor == -1) actor = f.actor_cn;
 			case FA_RESET:
 				if(f.state == CTFF_STOLEN){
 					actor = f.actor_cn;
@@ -1371,7 +1368,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 			if(actor->state.health <= 0){
 				logline(ACLOG_INFO, "[%s] %s suicided with friendly fire", actor->hostname, actor->name);
 			}
-			if((damage *= 0.25) >= target->state.health) damage = target->state.health - 1;
+			if((damage *= 0.25) >= target->state.health) damage = target->state.health - 1; // no more TKs!
 		}
 		else if(!hitpush.iszero()){
 			vec v(hitpush);
@@ -1385,24 +1382,16 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 	if(ts.health<=0)
 	{
 		int targethasflag = clienthasflag(target->clientnum);
-		bool tk = false, suic = false;
+		bool suic = false;
 		target->state.deaths++;
-		if(target!=actor)
-		{
-			if(!isteam(target, actor)) actor->state.frags += gib ? 2 : 1;
-			else{
-				actor->state.frags--;
-				tk = true;
-			}
-		}
+		if(target!=actor) actor->state.frags += isteam(target, actor) ? -1 : gib ? 2 : 1;
 		else
 		{ // suicide
 			actor->state.frags--;
 			suic = true;
-			logline(ACLOG_INFO, "[%s] %s suicided", actor->hostname, actor->name);
 		}
 		sendf(-1, 1, "ri5", SV_DIED, target->clientnum, actor->clientnum, actor->state.frags, gun | (gib ? 0x80 : 0));
-		if((suic || tk) && (m_htf || m_ktf) && targethasflag >= 0)
+		if(suic && (m_htf || m_ktf) && targethasflag >= 0)
 		{
 			actor->state.flagscore--;
 			sendf(-1, 1, "ri3", SV_FLAGCNT, actor->clientnum, actor->state.flagscore);
@@ -1410,29 +1399,20 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 		target->position.setsizenodelete(0);
 		ts.state = CS_DEAD;
 		ts.lastdeath = gamemillis;
-		if(!suic) logline(ACLOG_INFO, "[%s] %s %s%s %s", actor->hostname, actor->name, gib ? "gibbed" : "fragged", tk ? " his teammate" : "", target->name);
+		if(!suic) logline(ACLOG_INFO, "[%s] %s %s %s", actor->hostname, actor->name, gib ? "gibbed" : "fragged", target->name);
+		else logline(ACLOG_INFO, "[%s] %s suicided", actor->hostname, actor->name);
+
 		if(m_flags && targethasflag >= 0)
 		{
 			if(m_ctf)
-				flagaction(targethasflag, tk ? FA_RESET : FA_LOST, -1);
+				flagaction(targethasflag, FA_LOST, -1);
 			else if(m_htf)
 				flagaction(targethasflag, FA_LOST, -1);
 			else // ktf || tktf
 				flagaction(targethasflag, FA_RESET, -1);
 		}
-		// don't issue respawn yet until DEATHMILLIS has elapsed
-		// ts.respawn();
 
-		if(isdedicated && actor->type == ST_TCPIP)
-		{
-			if(actor->state.frags < scl.banthreshold)
-			{
-				ban b = { actor->peer->address, servmillis+20*60*1000 };
-				bans.add(b);
-				disconnect_client(actor->clientnum, DISC_AUTOBAN);
-			}
-			else if(actor->state.frags < scl.kickthreshold) disconnect_client(actor->clientnum, DISC_AUTOKICK);
-		}
+		if(isdedicated && actor->type == ST_TCPIP){ } // check for friendly fire?
 	}
 }
 
@@ -2131,7 +2111,7 @@ bool isbanned(int cn)
 	{
 		ban &b = bans[i];
 		if(b.millis >= 0 && b.millis < servmillis) { bans.remove(i--); }
-		if(b.address.host == c.peer->address.host) { return true; }
+		if(b.host == c.peer->address.host) { return true; }
 	}
 	return checkipblacklist(c.peer->address.host);
 }
@@ -2707,7 +2687,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				bool banremoved = false;
 				cl->isauthed = true;
 				clientrole = min(pd.priv, wantrole);
-				if(banned) loopv(bans) if(bans[i].address.host == cl->peer->address.host) { banremoved = true; bans.remove(i); break; } // remove admin bans
+				if(banned) loopv(bans) if(bans[i].host == cl->peer->address.host) { banremoved = true; bans.remove(i); break; } // remove admin bans
 				logline(ACLOG_INFO, "[%s] %s logged in using the password in line %d%s%s", cl->hostname, cl->name, pd.line, wlp, banremoved ? ", (ban removed)" : "");
 			}
 			else if(scl.serverpassword[0] && !(srvprivate || srvfull || banned))
@@ -3610,7 +3590,7 @@ int getpongflags(enet_uint32 ip)
 {
 	int flags = mastermode << PONGFLAG_MASTERMODE;
 	flags |= scl.serverpassword[0] ? 1 << PONGFLAG_PASSWORD : 0;
-	loopv(bans) if(bans[i].address.host == ip) { flags |= 1 << PONGFLAG_BANNED; break; }
+	loopv(bans) if(bans[i].host == ip) { flags |= 1 << PONGFLAG_BANNED; break; }
 	flags |= checkipblacklist(ip) ? 1 << PONGFLAG_BLACKLIST : 0;
 	return flags;
 }
@@ -3839,7 +3819,6 @@ void initserver(bool dedicated)
 		if(scl.voteperm[0]) logline(ACLOG_VERBOSE,"vote permission string: \"%s\"", scl.voteperm);
 		logline(ACLOG_VERBOSE,"server description: \"%s\"", scl.servdesc_full);
 		if(scl.servdesc_pre[0] || scl.servdesc_suf[0]) logline(ACLOG_VERBOSE,"custom server description: \"%sCUSTOMPART%s\"", scl.servdesc_pre, scl.servdesc_suf);
-		logline(ACLOG_VERBOSE,"maxclients: %d, kick threshold: %d, ban threshold: %d", scl.maxclients, scl.kickthreshold, scl.banthreshold);
 		if(scl.master) logline(ACLOG_VERBOSE,"master server URL: \"%s\"", scl.master);
 		if(scl.serverpassword[0]) logline(ACLOG_VERBOSE,"server password: \"%s\"", hiddenpwd(scl.serverpassword));
 	}

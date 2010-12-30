@@ -271,11 +271,7 @@ VARFP(nextprimary, 0, GUN_ASSAULT, NUMGUNS,
 
 // flag ent actions done by the local player
 
-int flagdropmillis = 0;
-
-void tryflagdrop(){
-	addmsg(SV_DROPFLAG, "r");
-}
+void tryflagdrop(){ addmsg(SV_DROPFLAG, "r"); }
 
 // flag ent actions from the net
 

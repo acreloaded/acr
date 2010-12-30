@@ -348,7 +348,7 @@ void resetgl()
 
 COMMAND(resetgl, ARG_NONE);
 
-VARP(maxfps, 0, 0, 2000);
+VARP(maxfps, 0, 0, 1000);
 
 void limitfps(int &millis, int curmillis)
 {
