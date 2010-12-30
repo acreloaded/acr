@@ -627,7 +627,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	bool menu = menuvisible();
 	bool command = getcurcommand() ? true : false;
 	if((p->state==CS_ALIVE || p->state==CS_EDITING) && !p->weaponsel->reloading)
-		p->weaponsel->renderaimhelp(targetplayer->state==CS_ALIVE ? isteam(targetplayer, p) ? 1 : 2 : 0);
+		p->weaponsel->renderaimhelp(targetplayer && targetplayer->state==CS_ALIVE ? isteam(targetplayer, p) ? 1 : 2 : 0);
 
 	drawdmgindicator();
 
