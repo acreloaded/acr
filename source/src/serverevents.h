@@ -142,7 +142,7 @@ void processevents()
 	{
 		client *c = clients[i];
 		if(!c || c->type==ST_EMPTY) continue;
-		if(c->state.state == CS_ALIVE && c->state.health < STARTHEALTH && c->state.lastregen + 2500 < gamemillis){
+		if(!m_osok && c->state.state == CS_ALIVE && c->state.health < STARTHEALTH && c->state.lastregen + 2500 < gamemillis){
 			int amt = min(STARTHEALTH - c->state.health, 15);
 			c->state.health += amt;
 			sendf(-1, 1, "ri3", SV_REGEN, i, amt);
