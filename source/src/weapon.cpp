@@ -622,8 +622,6 @@ void weapon::renderstats()
 		int offset = text_width(gunstats);
 		glScalef(0.5f, 0.5f, 1.0f);
 		draw_textf("%i", (590 + offset)*2, 826*2, ammo);
-		glLoadIdentity();
-		glOrtho(0, VIRTW/2, VIRTH/2, 0, -1, 1);
 	}
 }
 

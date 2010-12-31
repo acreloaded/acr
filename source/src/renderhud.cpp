@@ -288,7 +288,11 @@ void drawequipicons(playerent *p)
 
 	// weapons
 	int c = p->weaponsel->type, r = 0;
-	if(c == GUN_GRENADE) c = p->prevweaponsel->type; // draw nades separately
+	if(c == GUN_GRENADE){// draw nades separately
+		if(p->prevweaponsel->type != GUN_GRENADE) c = p->prevweaponsel->type;
+		else if(p->nextweaponsel->type != GUN_GRENADE) c = p->nextweaponsel->type;
+		else c = 14; // unknown = HP symbol
+	}
 	else if(c == GUN_AKIMBO) c = GUN_PISTOL; // same icon for akimbo & pistol
 	switch(c){
 		case GUN_KNIFE: case GUN_PISTOL: default: break; // aligned properly
@@ -862,11 +866,13 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 			pushfont("huddigits");
 			draw_textf("%d",  90, 823, p->health);
 			if(p->armour) draw_textf("%d", 360, 823, p->armour);
-			if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS)
-				if(p->weaponsel->type != GUN_GRENADE) p->weaponsel->renderstats();
-				else if(p->prevweaponsel->type == GUN_GRENADE) p->nextweaponsel->renderstats();
-				else p->prevweaponsel->renderstats();
 			if(p->weapons[GUN_GRENADE] && p->weapons[GUN_GRENADE]->mag) p->weapons[GUN_GRENADE]->renderstats();
+			// The next set will alter the matrix - load the identity matrix and apply ortho after
+			if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS){
+				if(p->weaponsel->type != GUN_GRENADE) p->weaponsel->renderstats();
+				else if(p->prevweaponsel->type != GUN_GRENADE) p->prevweaponsel->renderstats();
+				else if(p->nextweaponsel->type != GUN_GRENADE) p->nextweaponsel->renderstats();
+			}
 			popfont();
 		}
 
