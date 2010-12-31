@@ -3017,6 +3017,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					cl->position.setsizenodelete(0);
 					while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
 				}
+				if(cl->state.state!=CS_ALIVE) break;
 				if(maplayout)
 				{
 					vec &po = clients[cn]->state.o;
@@ -3026,7 +3027,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", clients[cn]->hostname, clients[cn]->name, clients[cn]->mapcollisions);
 						s_sprintfd(collidemsg)("\f1%s \f2collides with the map \f5- \f3forcing death");
 						sendservmsg(collidemsg);
-						sendservmsg("\f3please get the map by typing /getmap", cn);
+						sendservmsg("\f3please \f1get the map \f3by typing \f0/getmap", cn);
 						forcedeath(clients[cn]);
 						clients[cn]->isonrightmap = false; // cannot spawn until you get the right map
 						break; // no pickups for you!
