@@ -122,14 +122,17 @@ void drawscope()
 	glEnd();
 }
 
-const char *crosshairnames[CROSSHAIR_NUM] = { "default", "scope" };
+const char *crosshairnames[CROSSHAIR_NUM] = { "default", "scope", "shotgun", "vertical", "horizontal" };
 Texture *crosshairs[CROSSHAIR_NUM] = { NULL }; // weapon specific crosshairs
 
-Texture *loadcrosshairtexture(const char *c)
+Texture *loadcrosshairtexture(const char *c, int type = -1)
 {
 	s_sprintfd(p)("packages/misc/crosshairs/%s", c);
 	Texture *crosshair = textureload(p, 3);
-	if(crosshair==notexture) crosshair = textureload("packages/misc/crosshairs/default.png", 3);
+	if(crosshair==notexture){
+		s_sprintf(p)("packages/misc/crosshairs/%s", crosshairnames[type < 0 || type >= CROSSHAIR_NUM ? CROSSHAIR_DEFAULT : type]);
+		crosshair = textureload(p, 3);
+	}
 	return crosshair;
 }
 
@@ -137,12 +140,11 @@ void loadcrosshair(char *c, char *name)
 {
 	int n = -1;
 	loopi(CROSSHAIR_NUM) if(!strcmp(crosshairnames[i], name)) { n = i; break; }
-	if(n<0)
-	{
+	if(n<0){
 		n = atoi(name);
 		if(n<0 || n>=CROSSHAIR_NUM) return;
 	}
-	crosshairs[n] = loadcrosshairtexture(c);
+	crosshairs[n] = loadcrosshairtexture(c, n);
 }
 
 COMMAND(loadcrosshair, ARG_2STR);
@@ -165,19 +167,54 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 	{
 		if(teamtype == 1) glColor3ub(0, 255, 0);
 		else if(teamtype == 2) glColor3ub(255, 0, 0);
-		else if(!m_osok){
-			if(p->health<=25) glColor3ub(128,0,0); // orange
-			else if(p->health<=50) glColor3ub(128,64,0); // light orange
-		}
 	}
-	float s = size>0 ? size : (float)crosshairsize;
-	float chsize = s;
-	if(n != CROSSHAIR_SCOPE) chsize = (p->weaponsel->type == GUN_SHOTGUN ? SGSPREAD*101 : p->weaponsel->info.spread) * 100 / dynfov();
-	glBegin(GL_QUADS);
-	glTexCoord2f(0, 0); glVertex2f(VIRTW/2 - chsize, VIRTH/2 - chsize);
-	glTexCoord2f(1, 0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 - chsize);
-	glTexCoord2f(1, 1); glVertex2f(VIRTW/2 + chsize, VIRTH/2 + chsize);
-	glTexCoord2f(0, 1); glVertex2f(VIRTW/2 - chsize, VIRTH/2 + chsize);
+	else if(!m_osok){
+		if(p->health<=25) glColor3ub(128,0,0); // orange
+		else if(p->health<=50) glColor3ub(128,64,0); // light orange
+	}
+	float usz = (float)crosshairsize, chsize = size>0 ? size : usz;
+	if(n == CROSSHAIR_DEFAULT){
+		usz *= 3.5f;
+		float ct = usz / 1.8f;
+		chsize = p->weaponsel->dynspread() * 100 / dynfov();
+		Texture *cv = crosshairs[CROSSHAIR_V], *ch = crosshairs[CROSSHAIR_H];
+		if(!cv) cv = textureload("packages/misc/crosshairs/vertical.png", 3);
+		if(!ch) ch = textureload("packages/misc/crosshairs/horizontal.png", 3);
+		glBindTexture(GL_TEXTURE_2D, ch->id);
+		glBegin(GL_QUADS);
+		// top
+		glTexCoord2f(0, 0); glVertex2f(VIRTW/2 - ct, VIRTH/2 - chsize - usz);
+		glTexCoord2f(1, 0); glVertex2f(VIRTW/2 + ct, VIRTH/2 - chsize - usz);
+		glTexCoord2f(1, 1); glVertex2f(VIRTW/2 + ct, VIRTH/2 - chsize);
+		glTexCoord2f(0, 1); glVertex2f(VIRTW/2 - ct, VIRTH/2 - chsize);
+		// bottom
+		glTexCoord2f(0, 0); glVertex2f(VIRTW/2 - ct, VIRTH/2 + chsize);
+		glTexCoord2f(1, 0); glVertex2f(VIRTW/2 + ct, VIRTH/2 + chsize);
+		glTexCoord2f(1, 1); glVertex2f(VIRTW/2 + ct, VIRTH/2 + chsize + usz);
+		glTexCoord2f(0, 1); glVertex2f(VIRTW/2 - ct, VIRTH/2 + chsize + usz);
+		// change texture
+		glEnd();
+		glBindTexture(GL_TEXTURE_2D, cv->id);
+		glBegin(GL_QUADS);
+		// left
+		glTexCoord2f(0, 0); glVertex2f(VIRTW/2 - chsize - usz, VIRTH/2 - ct);
+		glTexCoord2f(1, 0); glVertex2f(VIRTW/2 - chsize, VIRTH/2 - ct);
+		glTexCoord2f(1, 1); glVertex2f(VIRTW/2 - chsize, VIRTH/2 + ct);
+		glTexCoord2f(0, 1); glVertex2f(VIRTW/2 - chsize - usz, VIRTH/2 + ct);
+		// right
+		glTexCoord2f(0, 0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 - ct);
+		glTexCoord2f(1, 0); glVertex2f(VIRTW/2 + chsize + usz, VIRTH/2 - ct);
+		glTexCoord2f(1, 1); glVertex2f(VIRTW/2 + chsize + usz, VIRTH/2 + ct);
+		glTexCoord2f(0, 1); glVertex2f(VIRTW/2 + chsize, VIRTH/2 + ct);
+	}
+	else{
+	if(n == CROSSHAIR_SHOTGUN) chsize = SGSPREAD * 100 / dynfov();
+		glBegin(GL_QUADS);
+		glTexCoord2f(0, 0); glVertex2f(VIRTW/2 - chsize, VIRTH/2 - chsize);
+		glTexCoord2f(1, 0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 - chsize);
+		glTexCoord2f(1, 1); glVertex2f(VIRTW/2 + chsize, VIRTH/2 + chsize);
+		glTexCoord2f(0, 1); glVertex2f(VIRTW/2 - chsize, VIRTH/2 + chsize);
+	}
 	glEnd();
 }
 
@@ -627,7 +664,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	playerent *targetplayer = playerincrosshairhit(targetplayerzone);
 	bool menu = menuvisible();
 	bool command = getcurcommand() ? true : false;
-	if((p->state==CS_ALIVE || p->state==CS_EDITING) && !p->weaponsel->reloading)
+	if((p->state==CS_ALIVE || p->state==CS_EDITING) && !p->weaponsel->reloading && !p->weaponchanging)
 		p->weaponsel->renderaimhelp(targetplayer && targetplayer->state==CS_ALIVE ? isteam(targetplayer, p) ? 1 : 2 : 0);
 
 	drawdmgindicator();

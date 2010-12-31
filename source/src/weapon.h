@@ -127,6 +127,7 @@ struct shotgun : gun
 	bool attack(vec &targ);
 	void attackfx(const vec &from, const vec &to, int millis);
 	bool selectable();
+	void renderaimhelp(int teamtype);
 };
 
 

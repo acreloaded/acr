@@ -261,7 +261,9 @@ enum
 {
 	CROSSHAIR_DEFAULT = 0,
 	CROSSHAIR_SCOPE,
-	CROSSHAIR_NUM
+	CROSSHAIR_SHOTGUN,
+	CROSSHAIR_V, CROSSHAIR_H,
+	CROSSHAIR_NUM,
 };
 
 extern void drawcrosshair(playerent *p, int n, int teamtype, struct color *c = NULL, float size = -1.0f);

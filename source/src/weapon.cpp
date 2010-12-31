@@ -122,10 +122,10 @@ COMMANDN(reload, selfreload, ARG_NONE);
 
 void createrays(vec &from, vec &to)			 // create random spread of rays for the shotgun
 {
-	float f = to.dist(from)*SGSPREAD/1000;
+	float f = to.dist(from)/1000;
 	loopi(SGRAYS)
 	{
-		#define RNDD (rnd(101)-50)*f
+		#define RNDD (rnd(SGSPREAD)-SGSPREAD/2.f)*f
 		vec r(RNDD, RNDD, RNDD);
 		sg[i] = to;
 		sg[i].add(r);
@@ -667,7 +667,7 @@ void weapon::onselecting()
 
 void weapon::renderhudmodel() { renderhudmodel(owner->lastaction); }
 void weapon::renderaimhelp(int teamtype) { drawcrosshair(owner, CROSSHAIR_DEFAULT, teamtype); }
-int weapon::dynspread() { return info.spread; }
+int weapon::dynspread() { return (int)(info.spread * (owner->vel.magnitude() / 2.f + 0.5f)); }
 float weapon::dynrecoil() { return info.kick; }
 bool weapon::selectable() { return this != owner->weaponsel && owner->state == CS_ALIVE && !owner->weaponchanging; }
 bool weapon::deselectable() { return !reloading; }
@@ -1059,6 +1059,7 @@ void shotgun::attackfx(const vec &from, const vec &to, int millis)
 
 bool shotgun::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 
+void shotgun::renderaimhelp(int teamtype){ drawcrosshair(owner, CROSSHAIR_SHOTGUN, teamtype); }
 
 // subgun
 
@@ -1088,17 +1089,13 @@ bool sniperrifle::reload()
 }
 
 #define SCOPESETTLETIME 100
-int sniperrifle::dynspread()
-{
-	if(scoped)
-	{
+int sniperrifle::dynspread(){
+	if(scoped){
 		int scopetime = lastmillis - scoped_since;
-		if(scopetime > SCOPESETTLETIME)
-			return 1;
-		else
-			return max((info.spread * (SCOPESETTLETIME - scopetime)) / SCOPESETTLETIME, 1);
+		if(scopetime > SCOPESETTLETIME) return 1;
+		else return max((weapon::dynspread() * (SCOPESETTLETIME - scopetime)) / SCOPESETTLETIME, 1);
 	}
-	return info.spread;
+	return weapon::dynspread();
 }
 float sniperrifle::dynrecoil() { return weapon::dynrecoil() / (scoped && lastmillis - scoped_since > SCOPESETTLETIME ? 3 : 1); }
 bool sniperrifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
