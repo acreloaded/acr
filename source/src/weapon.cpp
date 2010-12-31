@@ -1018,7 +1018,7 @@ bool gun::attack(vec &targ)
 
 	hits.setsizenodelete(0);
 	raydamage(from, to, owner);
-	attackfx(from, to, 0);
+	//attackfx(from, to, 0);
 
 	gunwait = info.attackdelay;
 	mag--;

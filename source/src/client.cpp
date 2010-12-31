@@ -327,9 +327,9 @@ void c2sinfo(playerent *d)				  // send update to the server
 
 		putint(q, SV_POS);
 		putint(q, d->clientnum);
-		putfloat(q, d->o.x);	   // quantize coordinates to 1/16th of a cube, between 1 and 3 bytes
+		putfloat(q, d->o.x);
 		putfloat(q, d->o.y);
-		putfloat(q, d->o.z - d->eyeheight);
+		putfloat(q, d->o.z); // not subtracting the eyeheight
 		putfloat(q, d->yaw);
 		putfloat(q, d->pitch);
 		putfloat(q, d->roll);

@@ -107,7 +107,6 @@ void parsepositions(ucharbuf &p)
 			vec oldpos(d->o);
 			float oldyaw = d->yaw, oldpitch = d->pitch;
 			d->o = o;
-			d->o.z += d->eyeheight;
 			d->yaw = yaw;
 			d->pitch = pitch;
 			d->roll = roll;
@@ -479,7 +478,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					int ammo[NUMGUNS], mag[NUMGUNS];
 					loopi(NUMGUNS) ammo[i] = getint(p);
 					loopi(NUMGUNS) mag[i] = getint(p);
-					playerent *d = (cn == getclientnum() ? player1 : newclient(cn));
+					playerent *d = newclient(cn);
 					if(!d) continue;
 					if(d!=player1) d->state = state;
 					d->lifesequence = lifesequence;
@@ -666,7 +665,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case SV_FORCEDEATH:
 			{
 				int cn = getint(p);
-				playerent *d = cn==getclientnum() ? player1 : newclient(cn);
+				playerent *d = newclient(cn);
 				if(!d) break;
 				deathstate(d);
 				break;
@@ -675,7 +674,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case SV_SETROLE:
 			{
 				int cl = getint(p), r = getint(p);
-				playerent *p = getclient(cl);
+				playerent *p = newclient(cl);
+				if(!p) break;
 				p->priv = r;
 				break;
 			}

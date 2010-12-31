@@ -25,6 +25,9 @@ void processevent(client *c, explodeevent &e)
 
 void processevent(client *c, shotevent &e)
 {
+	vector<hitevent> hits, &hitv = *e.hits;
+	loopv(hitv) hits.add(hitv[i]);
+	delete e.hits; // transfer all hits into an auto
 	clientstate &gs = c->state;
 	int wait = e.millis - gs.lastshot;
 	if(!gs.isalive(gamemillis) ||
@@ -56,24 +59,28 @@ void processevent(client *c, shotevent &e)
 	if(packet->referenceCount==0) enet_packet_destroy(packet);
 
 	gs.shotdamage += guns[e.gun].damage*(e.gun==GUN_SHOTGUN ? SGRAYS : 1);
-	switch(e.gun)
-	{
+	switch(e.gun){
 		case GUN_GRENADE: gs.grenades.add(e.id); break;
 		default:
 		{
 			int totalrays = 0, maxrays = e.gun==GUN_SHOTGUN ? SGRAYS : 1;
-			for(int i = 1; i<c->events.length() && c->events[i].type==GE_HIT; i++)
-			{
-				hitevent &h = c->events[i].hit;
+			loopv(hits){
+				hitevent &h = hits[i];
 				if(!clients.inrange(h.target)) continue;
 				client *target = clients[h.target];
 				if(target->type==ST_EMPTY || target->state.state!=CS_ALIVE || h.lifesequence!=target->state.lifesequence) continue;
 
 				int rays = e.gun==GUN_SHOTGUN ? h.info : 1;
+				/* if(){
+					s_sprintfd(test)("dist %.2f", target->state.o.dist(vec(e.to)));
+					sendservmsg(test, c->clientnum);
+					continue;
+				}
+				*/
 				if(rays<1) continue;
+				if(totalrays + rays > maxrays) continue;
 				totalrays += rays;
-				if(totalrays>maxrays) break;
-				if(target->state.o.dist(vec(e.to)) > 2.5f) continue; // 62.5cm away from a target is very bad lag!
+				if(e.gun != GUN_SHOTGUN && target->state.o.dist(vec(e.to)) > 0.5f) continue; // 25cm away from a target is very bad lag!
 
 				bool gib = false;
 				int damage = rays * effectiveDamage(e.gun, c->state.o.dist(vec(e.to)));

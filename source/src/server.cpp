@@ -47,12 +47,22 @@ string smapname, nextmapname;
 int smode = 0, nextgamemode;
 mapstats smapstats;
 
+struct hitevent
+{
+	//int type;
+	int target;
+	int lifesequence;
+	int info;
+	float dir[3];
+};
+
 struct shotevent
 {
 	int type;
 	int millis, id;
 	int gun;
 	float to[3];
+	vector<hitevent>* hits;
 };
 
 struct explodeevent
@@ -61,19 +71,6 @@ struct explodeevent
 	int millis, id;
 	int gun;
 	float o[3];
-};
-
-struct hitevent
-{
-	int type;
-	int target;
-	int lifesequence;
-	union
-	{
-		int info;
-		float dist;
-	};
-	float dir[3];
 };
 
 struct akimboevent
@@ -94,7 +91,6 @@ union gameevent
 	int type;
 	shotevent shot;
 	explodeevent explode;
-	hitevent hit;
 	akimboevent akimbo;
 	reloadevent reload;
 };
@@ -2915,15 +2911,15 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				seteventmillis(shot.shot);
 				shot.shot.gun = getint(p);
 				loopk(3) shot.shot.to[k] = getfloat(p);
-				int hits = getint(p);
-				loopk(hits)
-				{
-					gameevent &hit = cl->addevent();
-					hit.type = GE_HIT;
-					hit.hit.target = getint(p);
-					hit.hit.lifesequence = getint(p);
-					hit.hit.info = getint(p);
-					loopk(3) hit.hit.dir[k] = getfloat(p);
+				shot.shot.hits = new vector<hitevent>;
+				vector<hitevent> &hits = *shot.shot.hits;
+				int hitcount = getint(p);
+				loopk(hitcount){
+					hitevent &hit = hits.add();
+					hit.target = getint(p);
+					hit.lifesequence = getint(p);
+					hit.info = getint(p);
+					loopk(3) hit.dir[k] = getfloat(p);
 				}
 				break;
 			}
@@ -2968,6 +2964,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(maplayout && maplayout[((int)from.x) + (((int)from.y) << maplayout_factor)] > from.z + 3) from = vec();
 				if(!vel.iszero()) vel.normalize().mul(NADEPOWER);
 				ucharbuf newmsg(cl->messages.reserve(7 * sizeof(float)));
+				putint(newmsg, SV_THROWNADE);
 				loopi(3) putfloat(newmsg, from[i]);
 				loopi(3) putfloat(newmsg, vel[i]);
 				putint(newmsg, remainmillis);
@@ -2976,7 +2973,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			}
 
 			case SV_PINGPONG:
-				sendf(-1, 1, "ii", SV_PINGPONG, getint(p));
+				sendf(sender, 1, "ii", SV_PINGPONG, getint(p));
 				break;
 
 			case SV_PINGTIME:
