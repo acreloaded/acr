@@ -52,8 +52,8 @@ extern int noob;
 
 #include "protos.h"				// external function decls
 
-#define AC_VERSION 2001
-#define AC_MASTER_URI "ms.assaultcubes.tk/" // FIXME, change DNS on ac release
+#define AC_VERSION 2002
+#define AC_MASTER_URI "ms.assaultcubes.tk/"
 
 #endif
 
