@@ -527,7 +527,7 @@ void raydamage(vec &from, vec &to, playerent *d)
 				dam *= 0.6;
 			}
 			else if(hitzone == 2){
-				dam *= d->weaponsel->type==GUN_SNIPER ? 5 : 1.5; // 1.5x damage for non-sniper headshots
+				dam *= d->weaponsel->type==GUN_SNIPER || d->weaponsel->type == GUN_SLUG ? 5 : 1.5; // 1.5x damage for non-sniper headshots
 				gib = true;
 			}
 		}
@@ -680,6 +680,7 @@ void weapon::equipplayer(playerent *pl)
 	pl->weapons[GUN_KNIFE] = new knife(pl);
 	pl->weapons[GUN_PISTOL] = new pistol(pl);
 	pl->weapons[GUN_SHOTGUN] = new shotgun(pl);
+	pl->weapons[GUN_SLUG] = new sluggun(pl);
 	pl->weapons[GUN_SNIPER] = new sniperrifle(pl);
 	pl->weapons[GUN_SUBGUN] = new subgun(pl);
 	pl->weapons[GUN_AKIMBO] = new akimbo(pl);
@@ -1119,6 +1120,11 @@ void sniperrifle::setscope(bool enable)
 	}
 }
 
+
+// sluggun
+
+sluggun::sluggun(playerent* owner) : gun(owner, GUN_SLUG) {}
+bool sluggun::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 
 // assaultrifle
 
