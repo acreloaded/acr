@@ -863,8 +863,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 			draw_textf("%d",  90, 823, p->health);
 			if(p->armour) draw_textf("%d", 360, 823, p->armour);
 			if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS)
-				if(p->weaponsel->type == GUN_GRENADE) p->prevweaponsel->renderstats();
-				else p->weaponsel->renderstats();
+				if(p->weaponsel->type != GUN_GRENADE) p->weaponsel->renderstats();
+				else if(p->prevweaponsel->type == GUN_GRENADE) p->nextweaponsel->renderstats();
+				else p->prevweaponsel->renderstats();
 			if(p->weapons[GUN_GRENADE] && p->weapons[GUN_GRENADE]->mag) p->weapons[GUN_GRENADE]->renderstats();
 			popfont();
 		}
