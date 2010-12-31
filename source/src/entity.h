@@ -73,16 +73,17 @@ static guninfo guns[NUMGUNS] =
 	{ "pistol",   S_PISTOL,   S_RPISTOL,  1400,   90,     40,   40,  120,   20,   0,   0, 90,    9,   12,   6,  2,   50,   85,     1,   false},
 	{ "shotgun",  S_SHOTGUN,  S_RSHOTGUN, 2400,   181,    12,   16,   32,    8,   0,   0,  1,   12,   10,   9,  5,   80,   80,     2,   true },
 	{ "subgun",   S_SUBGUN,   S_RSUBGUN,  1858,   67,     40,   40,   90,   15,   0,   0, 70,    4,   32,   1,  3,   24,   60,     1,   true },
-	{ "sniper",   S_SNIPER,   S_RSNIPER,  1950,   500,    140,  10,  100,   10,   0,   0,512,   18,   10,   4,  4,   70,   70,     1,   false},
+	{ "sniper",   S_SNIPER,   S_RSNIPER,  1950,   500,    140,  10,  100,   10,   0,   0,512,   18,   10,   4,  4,  100,  125,     1,   false},
+  //{ "rifle",    S_SLUGGUN,  S_RSLUG,    2400,   500,    140,  10,  100,   10,   0,   0,512,   18,   10,   4,  4,   70,   70,     1,   false},
 	{ "assault",  S_ASSAULT,  S_RASSAULT, 2000,   73,     40,   50,   150,  14,   0,   0, 60,    3,   30,   0,  3,   25,   63,     1,   true },
 	{ "grenade",  S_NULL,     S_NULL,     1000,   650,    200,  0,    8,    200,  20,  6,  1,    1,   1,    3,  1,   0,    0,      4,   false},
 	{ "pistol",   S_PISTOL,   S_RAKIMBO,  1400,   60,     36,   160,  210,  16,   0,   0, 90,    9,   16,   6,  2,   35,   60,     3,   true },
 }; 
 
-static inline int reloadtime(int gun) { return guns[gun].reloadtime; }
-static inline int attackdelay(int gun) { return guns[gun].attackdelay; }
-static inline int magsize(int gun) { return guns[gun].magsize; }
-static inline int effectiveDamage(int gun, float dist) {
+static inline ushort reloadtime(int gun) { return guns[gun].reloadtime; }
+static inline ushort attackdelay(int gun) { return guns[gun].attackdelay; }
+static inline ushort magsize(int gun) { return guns[gun].magsize; }
+static inline ushort effectiveDamage(int gun, float dist) {
 	if(dist <= guns[gun].range || (!guns[gun].range && !guns[gun].endrange)) return guns[gun].damage;
 	if(dist >= guns[gun].endrange) return guns[gun].damage - guns[gun].rangeminus;
 	else return guns[gun].damage - (short)((dist - (float)guns[gun].range) * guns[gun].rangeminus / (guns[gun].endrange - guns[gun].range));
@@ -361,7 +362,7 @@ struct playerent : dynent, playerstate
 {
 	int clientnum, lastupdate, plag, ping;
 	int lifesequence;				   // sequence id for each respawn, used in damage test
-	int lastloud; float lastloudpos[3]; // position and yaw stored for last shot
+	int radarmillis; float lastloudpos[3];
 	int frags, flagscore, deaths;
 	int lastaction, lastmove, lastpain, lastvoicecom;
 	int priv, vote, voternum;
@@ -388,7 +389,7 @@ struct playerent : dynent, playerstate
 	vec head;
 
 	playerent() : clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), deaths(0), lastpain(0), lastvoicecom(0), priv(PRIV_NONE),
-				  skin(0), spectatemode(SM_NONE), followplayercn(-1), eardamagemillis(0), respawnoffset(0), lastloud(0), vote(VOTE_NEUTRAL), voternum(MAXCLIENTS),
+				  skin(0), spectatemode(SM_NONE), followplayercn(-1), eardamagemillis(0), respawnoffset(0), radarmillis(0), vote(VOTE_NEUTRAL), voternum(MAXCLIENTS),
 				  prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
 				  smoothmillis(-1),
 				  head(-1, -1, -1)

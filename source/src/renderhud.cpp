@@ -477,13 +477,29 @@ void drawradar(playerent *p, int w, int h)
 		playerent *pl = players[i];
 		if(!pl || pl == p || !insideradar(centerpos, res/2, pl->o)) continue;
 		bool hasflag = pl == flaginfos[0].actor || pl == flaginfos[1].actor;
-		if(!hasflag && pl->state == CS_ALIVE && !isteam(p, pl) && lastmillis - pl->lastloud > radarenemyfade) continue;
-		if(isteam(p, pl) || hasflag || pl->state != CS_ALIVE) // friendly, flag tracker or dead
+		if(!hasflag && pl->state != CS_DEAD && !isteam(p, pl)){
+			playerent *seenby = NULL;
+			extern bool IsVisible(vec v1, vec v2, dynent *tracer = NULL, bool SkipTags=false);
+			if(IsVisible(p->o, pl->o)) seenby = p;
+			else loopvj(players){
+				playerent *pll = players[j];
+				if(!pll || pll == p || !isteam(p, pll) || pll->state == CS_DEAD) continue;
+				if(IsVisible(pll->o, pl->o)) { seenby = pll; break;}
+			}
+			if(seenby){
+				pl->radarmillis = lastmillis + (seenby == p ? 750 : 250);
+				pl->lastloudpos[0] = pl->o.x;
+				pl->lastloudpos[1] = pl->o.y;
+				pl->lastloudpos[2] = pl->yaw;
+			}
+			else if(pl->radarmillis + radarenemyfade < lastmillis) continue;
+		}
+		if(isteam(p, pl) || hasflag || pl->state == CS_DEAD) // friendly, flag tracker or dead
 			drawradarent(pl->o, coordtrans, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1,
 				pl->team, iconsize, isattacking(pl), 1.f, "\f%d%s", isteam(p, pl) ? 0 : 3, colorname(pl));
 		else
 			drawradarent(pl->lastloudpos, coordtrans, pl->lastloudpos[2], pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1,
-				pl->team, iconsize, false, (radarenemyfade - lastmillis + pl->lastloud) / (float)radarenemyfade, "\f3%s", colorname(pl));
+				pl->team, iconsize, false, (radarenemyfade - lastmillis + pl->radarmillis) / (float)radarenemyfade, "\f3%s", colorname(pl));
 	}
 	loopv(bounceents){ // draw grenades
 		bounceent *b = bounceents[i];
