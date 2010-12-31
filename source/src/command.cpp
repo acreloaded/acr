@@ -881,6 +881,9 @@ void writecfg()
 	extern int lowfps, highfps;
 	fprintf(f, "fpsrange %d %d\n", lowfps, highfps);
 	fprintf(f, "\n");
+	extern string myfont;
+    fprintf(f, "setfont %s\n", myfont);
+    fprintf(f, "\n");
 	writesoundconfig(f);
 	fprintf(f, "\n");
 	enumerate(*idents, ident, id,

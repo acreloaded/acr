@@ -11,12 +11,12 @@ void drawicon(Texture *tex, float x, float y, float s, int col, int row, float t
 void drawequipicon(float x, float y, int col, int row, bool pulse)
 {
 	static Texture *tex = NULL;
-	if(!tex) tex = textureload("packages/misc/items.png", 3);
+	if(!tex) tex = textureload("packages/misc/items.png", 4);
 	if(tex)
 	{
 		glEnable(GL_BLEND);
 		glColor4f(1.0f, 1.0f, 1.0f, pulse ? (0.2f+(sinf(lastmillis/100.0f)+1.0f)/2.0f) : 1.f);
-		drawicon(tex, x, y, 120, col, row, 1/3.0f);
+		drawicon(tex, x, y, 120, col, row, 1/4.0f);
 		glDisable(GL_BLEND);
 	}
 }
@@ -169,8 +169,8 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 		else if(teamtype == 2) glColor3ub(255, 0, 0);
 	}
 	else if(!m_osok){
-		if(p->health<=25) glColor3ub(128,0,0); // orange
-		else if(p->health<=50) glColor3ub(128,64,0); // light orange
+		if(p->health<=50) glColor3ub(128,64,0); // orange-red
+		if(p->health<=25) glColor3ub(128,32,0); // red-orange
 	}
 	float usz = (float)crosshairsize, chsize = size>0 ? size : usz;
 	if(n == CROSSHAIR_DEFAULT){
@@ -280,16 +280,28 @@ void drawequipicons(playerent *p)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// health & armor
-	if(p->armour) drawequipicon(620, 1650, 2, 0, false);
-	drawequipicon(20, 1650, 1, 0, (p->state!=CS_DEAD && p->health<=20 && !m_osok));
+	if(p->armour)
+		if(p->armour > 25) drawequipicon(560, 1650, (p->armour - 25) / 25, 2, false);
+		else drawequipicon(560, 1650, 3, 3, false);
+	drawequipicon(20, 1650, 2, 3, (p->state!=CS_DEAD && p->health<=35 && !m_osok));
+	if(p->mag[GUN_GRENADE]) drawequipicon(1520, 1650, 3, 1, false);
 
 	// weapons
-	int c = p->weaponsel->type, r = 1;
-	if(c==GUN_AKIMBO) c = GUN_PISTOL; // same icon for akimb & pistol
-	if(c==GUN_GRENADE) c = r = 0;
-	else if(c>2) { c -= 3; r = 2; }
+	int c = p->weaponsel->type, r = 0;
+	if(c == GUN_GRENADE) c = p->prevweaponsel->type; // draw nades separately
+	else if(c == GUN_AKIMBO) c = GUN_PISTOL; // same icon for akimbo & pistol
+	switch(c){
+		case GUN_KNIFE: case GUN_PISTOL: default: break; // aligned properly
+		case GUN_SHOTGUN: c = 2; break;
+		case GUN_SUBGUN: c = 4; break;
+		case GUN_SNIPER: c = 5; break;
+		case GUN_SLUG: c = 3; break;
+		case GUN_ASSAULT: c = 6; break;
+	}
+	if(c > 3) { c -= 4; r = 1; }
 
-	if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS) drawequipicon(1220, 1650, c, r, (!p->weaponsel->mag && p->weaponsel->type != GUN_KNIFE && p->weaponsel->type != GUN_GRENADE));
+	if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS)
+		drawequipicon(1020, 1650, c, r, (!p->weaponsel->mag && p->weaponsel->type != GUN_KNIFE && p->weaponsel->type != GUN_GRENADE));
 	glEnable(GL_BLEND);
 }
 
@@ -715,6 +727,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	if(!hidestats)
 	{
 		const int left = (VIRTW-225-10)*2, top = (VIRTH*7/8)*2;
+		draw_textf("x %05.3f", left, top-240, p->o.x);
+		draw_textf("y %05.3f", left, top-160, p->o.y);
+		draw_textf("z %04.1f", left, top-80, p->o.z);
 		draw_textf("fps %d", left, top, curfps);
 		draw_textf("lod %d", left, top+80, lod_factor());
 		draw_textf("wqd %d", left, top+160, nquads);
@@ -844,9 +859,14 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
 		if(!hidehudequipment)
 		{
-			draw_textf("%d",  90, 827, p->health);
-			if(p->armour) draw_textf("%d", 390, 827, p->armour);
-			if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS) p->weaponsel->renderstats();
+			pushfont("huddigits");
+			draw_textf("%d",  90, 823, p->health);
+			if(p->armour) draw_textf("%d", 360, 823, p->armour);
+			if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS)
+				if(p->weaponsel->type == GUN_GRENADE) p->prevweaponsel->renderstats();
+				else p->weaponsel->renderstats();
+			if(p->weapons[GUN_GRENADE]->mag) p->weapons[GUN_GRENADE]->renderstats();
+			popfont();
 		}
 
 		if(m_flags && !hidectfhud)
