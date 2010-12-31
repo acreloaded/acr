@@ -553,11 +553,11 @@ extern void particle_splash(int type, int num, int fade, const vec &p);
 extern void particle_trail(int type, int fade, const vec &from, const vec &to);
 extern void particle_emit(int type, int *args, int basetime, int seed, const vec &p);
 struct nadexplode {playerent *owner; int o[2]; int millis;};
-static vector<nadexplode> nxp;
+extern vector<nadexplode> nxp;
 extern void particle_fireball(int type, const vec &o, playerent *pl = NULL);
-struct sl {playerent *owner; int from[2]; int to[2]; int expire;};
-static vector<sl> sls;
-extern void addshotline(dynent *d, const vec &from, const vec &to);
+struct sl {playerent *owner; float from[2]; float to[2]; int expire;};
+extern vector<sl> sls;
+extern void addshotline(playerent *d, const vec &from, const vec &to);
 extern bool addbullethole(dynent *d, const vec &from, const vec &to, float radius = 1, bool noisy = true);
 extern bool addscorchmark(vec &o, float radius = 7);
 

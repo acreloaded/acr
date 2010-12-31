@@ -586,6 +586,8 @@ void particle_trail(int type, int fade, const vec &s, const vec &e)
 	}
 }
 
+vector<nadexplode> nxp;
+
 void particle_fireball(int type, const vec &o, playerent *pl)
 {
 	nadexplode nx = {pl ? pl : player1, {o.x, o.y}, lastmillis};
@@ -636,9 +638,11 @@ VARP(bulletairsoundrad, 0, 15, 1000);
 VARP(bulletairsoundsourcerad, 0, 8, 1000);
 VARP(bulletairsounddestrad, 0, 8, 1000);
 
-void addshotline(dynent *pl, const vec &from, const vec &to)
+vector<sl> sls;
+
+void addshotline(playerent *pl, const vec &from, const vec &to)
 {
-	sl s = {(playerent*)pl, {from.x, from.y}, {to.x, to.y}, lastmillis + shotlinettl * 2};
+	sl s = {pl, {from.x, from.y}, {to.x, to.y}, lastmillis + shotlinettl * 2};
 	sls.add(s);
 	if(pl == player1 || !shotlinettl || !shotline) return;
 	   
