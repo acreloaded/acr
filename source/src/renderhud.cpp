@@ -865,7 +865,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 			if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS)
 				if(p->weaponsel->type == GUN_GRENADE) p->prevweaponsel->renderstats();
 				else p->weaponsel->renderstats();
-			if(p->weapons[GUN_GRENADE]->mag) p->weapons[GUN_GRENADE]->renderstats();
+			if(p->weapons[GUN_GRENADE] && p->weapons[GUN_GRENADE]->mag) p->weapons[GUN_GRENADE]->renderstats();
 			popfont();
 		}
 
