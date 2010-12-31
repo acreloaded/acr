@@ -2966,7 +2966,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				cl->state.grenades.throwable--;
 				loopi(2) from[i] = clamp(from[i], 0.f, (1 << maplayout_factor) - 1.f);
 				if(maplayout && maplayout[((int)from.x) + (((int)from.y) << maplayout_factor)] > from.z + 3) from = vec();
-				vel.normalize().mul(NADEPOWER);
+				if(!vel.iszero()) vel.normalize().mul(NADEPOWER);
 				ucharbuf newmsg(cl->messages.reserve(7 * sizeof(float)));
 				loopi(3) putfloat(newmsg, from[i]);
 				loopi(3) putfloat(newmsg, vel[i]);
