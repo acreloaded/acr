@@ -506,6 +506,9 @@ void dokill(playerent *pl, playerent *act, int weapon, bool gib, int finishingda
 		case GUN_KNIFE:
 			s_strcpy(death, finishingdamage > 1000 ? "decapitated" : "slashed");
 			break;
+		case GUN_SLUG:
+			s_strcpy(death, gib ? "shotgun-sniped" : "slugged");
+			break;
 		case GUN_SNIPER:
 			s_strcpy(death, gib ? "expertly sniped" : "sniped");
 			break;
