@@ -682,7 +682,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	bool command = getcurcommand() ? true : false;
 	if(!p->weaponsel->reloading && !p->weaponchanging){
 		if(p->state==CS_ALIVE) p->weaponsel->renderaimhelp(targetplayer && targetplayer->state==CS_ALIVE ? isteam(targetplayer, p) ? 1 : 2 : 0);
-		else drawcrosshair(p, CROSSHAIR_SCOPE, targetplayer && targetplayer->state==CS_ALIVE ? isteam(targetplayer, p) ? 1 : 2 : 0, NULL, 48.f);
+		else if(p->state==CS_EDITING) 
+			drawcrosshair(p, CROSSHAIR_SCOPE, targetplayer && targetplayer->state==CS_ALIVE ? isteam(targetplayer, p) ? 1 : 2 : 0, NULL, 48.f);
 	}
 
 	drawdmgindicator();
