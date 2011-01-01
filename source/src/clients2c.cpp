@@ -887,7 +887,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			}
 
 			default:
-				neterr("type");
+				if(cn < 0) neterr("type");
+				else conoutf("\f3illegal network message type (%d)", type);
 				return;
 		}
 	}

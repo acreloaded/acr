@@ -326,7 +326,7 @@ void c2sinfo(playerent *d)				  // send update to the server
 		ucharbuf q(packet->data, packet->dataLength);
 
 		putint(q, SV_POS);
-		putint(q, d->clientnum);
+		//putint(q, d->clientnum);
 		putfloat(q, d->o.x);
 		putfloat(q, d->o.y);
 		putfloat(q, d->o.z); // not subtracting the eyeheight

@@ -238,7 +238,7 @@ void consolescores()
 		sr.calc(d->frags, d->deaths);
 		s_sprintf(team)(" %-4s", team_string(d->team));
 		s_sprintf(flags)(" %4d ", d->flagscore);
-		printf("%6d %s %4d   %4d %5.2f %2d%s %s%s\n", m_flags ? flags : "", d->frags, d->deaths, sr.ratio, d->clientnum,
+		printf("%6d %s %4d   %4d %5.2f %2d%s %s%s\n", d->points, m_flags ? flags : "", d->frags, d->deaths, sr.ratio, d->clientnum,
 					m_teammode ? team : "", d->name,
 						d->priv == PRIV_MAX ? " (highest)" :
 						d->priv == PRIV_ADMIN ? " (admin)" :

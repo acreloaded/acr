@@ -3095,7 +3095,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			{
 				bool editing = getint(p) != 0;
 				if(!m_edit){ // unacceptable!
-					disconnect_client(sender, DISC_AUTOKICK);
+					disconnect_client(sender, DISC_EDITMODE);
 					return;
 				}
 				if(cl->state.state != (editing ? CS_ALIVE : CS_EDITING)) break;
@@ -3106,33 +3106,37 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case SV_POS:
 			{
-				int cn = getint(p);
+				/*int cn = getint(p);
 				if(cn != sender){
 					disconnect_client(sender, DISC_CN);
 					return;
-				}
-				loopi(3) clients[cn]->state.o[i] = getfloat(p);
+				}*/
+				loopi(3) cl->state.o[i] = getfloat(p);
 				loopi(6) getfloat(p); // yaw, pitch, roll, vel[3]
 				getuint(p); // last data uint
 				if(cl->state.state!=CS_ALIVE && cl->state.state!=CS_EDITING) break;
 				if(cl->type==ST_TCPIP)
 				{
 					cl->position.setsizenodelete(0);
+					ucharbuf q = cl->position.reserve(2 * sizeof(int));
+					putint(q, SV_POS); curmsg++;
+					putint(q, sender);
+					cl->position.addbuf(q);
 					while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
 				}
 				if(cl->state.state!=CS_ALIVE) break;
 				if(maplayout)
 				{
-					vec &po = clients[cn]->state.o;
+					vec &po = cl->state.o;
 					int ls = (1 << maplayout_factor) - 1;
 					if(po.x < 0 || po.y < 0 || po.x > ls || po.y > ls || maplayout[((int) po.x) + (((int) po.y) << maplayout_factor)] > po.z + 3)
 					{
-						logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", clients[cn]->hostname, clients[cn]->name, clients[cn]->mapcollisions);
-						s_sprintfd(collidemsg)("\f1%s \f2collides with the map \f5- \f3forcing death");
+						logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cl->hostname, cl->name, cl->mapcollisions);
+						s_sprintfd(collidemsg)("\f1%s \f6(%d) \f2collides with the map \f5- \f3forcing death", cl->name, cl->clientnum);
 						sendservmsg(collidemsg);
-						sendservmsg("\f3please \f1get the map \f3by typing \f0/getmap", cn);
-						forcedeath(clients[cn]);
-						clients[cn]->isonrightmap = false; // cannot spawn until you get the right map
+						sendservmsg("\f3please \f1get the map \f3by typing \f0/getmap", sender);
+						forcedeath(cl);
+						cl->isonrightmap = false; // cannot spawn until you get the right map
 						break; // no pickups for you!
 					}
 				}

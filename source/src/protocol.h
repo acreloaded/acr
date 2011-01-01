@@ -46,14 +46,14 @@ enum { AT_DISABLED = 0, AT_ENABLED, AT_SHUFFLE, AT_NUM };
 enum { FA_PICKUP = 0, FA_DROP, FA_LOST, FA_RETURN, FA_SCORE, FA_KTFSCORE, FA_SCOREFAIL, FA_RESET };
 enum { FTR_SILENT = 0, FTR_PLAYERWISH, FTR_AUTOTEAM, FTR_NUM }; // forceteam reasons
 
-enum { DISC_NONE = 0, DISC_EOP, DISC_CN, DISC_KICK, DISC_BAN, DISC_TAGT, DISC_REFUSE, DISC_PASSWORD, DISC_LOGINFAIL, DISC_FULL, DISC_PRIVATE,
-		DISC_NAME, DISC_AUTOKICK, DISC_AUTOBAN, DISC_DUP, DISC_OVERFLOW, DISC_NUM };
+enum { DISC_NONE = 0, DISC_EOP, DISC_KICK, DISC_BAN, DISC_TAGT, DISC_REFUSE, DISC_PASSWORD, DISC_LOGINFAIL, DISC_FULL, DISC_PRIVATE,
+		DISC_NAME, DISC_FF, DISC_EDITMODE, DISC_DUP, DISC_OVERFLOW, DISC_NUM };
 
 static const char *disc_reason(int reason)
 {
 	static const char *disc_reasons[] = {
-		"normal", "end of packet", "client num", "kicked", "banned", "tag type", "connection refused", "wrong password", "failed login", "server is full", "private",
-			"bad name", "auto kick", "auto ban", "duplicate connection", "overflow (packet flood)" };
+		"normal", "end of packet (overflow)", "vote-kicked", "vote-banned", "tag type", "connection refused", "wrong password", "failed login", "server is full", "private",
+			"bad name", "excessive friendly fire", "the age-old editmode hack is fixed - goto coopedit", "duplicate connection", "overflow (packet flood)" };
 	return reason >= 0 && (size_t)reason < sizeof(disc_reasons)/sizeof(disc_reasons[0]) ? disc_reasons[reason] : "unknown";
 }
 
