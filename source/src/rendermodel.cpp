@@ -685,8 +685,8 @@ void updateclientname(playerent *d)
 	gotlist = true;
 	if(!d || !playerskinlist.length()) return;
 	d->skin_noteam = getclientskin(d->name, "_ffa");
-	d->skin_cla = getclientskin(d->name, "_cla");
-	d->skin_rvsf = getclientskin(d->name, "_rvsf");
+	d->skin_red = getclientskin(d->name, "_red");
+	d->skin_blue = getclientskin(d->name, "_blue");
 }
 
 void renderclient(playerent *d)
@@ -698,7 +698,7 @@ void renderclient(playerent *d)
 	string skin;
 	if(hidecustomskins == 0 || (hidecustomskins == 1 && !m_teammode))
 	{
-		cs = team ? d->skin_rvsf : d->skin_cla;
+		cs = team ? d->skin_blue : d->skin_red;
 		if(!m_teammode && d->skin_noteam) cs = d->skin_noteam;
 	}
 	if(cs)

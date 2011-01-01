@@ -382,7 +382,7 @@ struct playerent : dynent, playerstate
 
 	poshist history; // Previous stored locations of this player
 
-	const char *skin_noteam, *skin_cla, *skin_rvsf;
+	const char *skin_noteam, *skin_red, *skin_blue;
 
 	float deltayaw, deltapitch, newyaw, newpitch;
 	int smoothmillis;
@@ -402,7 +402,7 @@ struct playerent : dynent, playerstate
 		aboveeye = 0.7f;
 		radius = 1.1f;
 		maxspeed = 16.0f;
-		skin_noteam = skin_cla = skin_rvsf = NULL;
+		skin_noteam = skin_red = skin_blue = NULL;
 		respawn();
 	}
 

@@ -217,7 +217,7 @@ struct client				   // server side version of "dynent" type
 	vector<uchar> position, messages;
 	string lastsaytext;
 	int saychars, lastsay, spamcount;
-	int at3_score, at3_lastforce;
+	int at3_score, at3_lastforce, eff_score;
 	bool at3_dontmove;
 	int spawnindex;
 	int salt;
@@ -1840,12 +1840,12 @@ void forcedeath(client *cl)
 	sendf(-1, 1, "ri2", SV_FORCEDEATH, cl->clientnum);
 }
 
-void updateclientteam(int client, int team, int ftr) // just sets it; be careful about when the user wants to change it
-
+bool updateclientteam(int client, int team, int ftr)
 {
-	if(!valid_client(client) || team < TEAM_RED || team > TEAM_BLUE) return;
+	if(!valid_client(client) || team < TEAM_RED || team > TEAM_BLUE) return false;
 	sendf(client, 1, "ri3", SV_SETTEAM, client, team | (ftr << 4));
-	forcedeath(clients[client]);
+	if(m_teammode) forcedeath(clients[client]);
+	return true;
 }
 
 int calcscores() // skill eval
@@ -1896,82 +1896,180 @@ void shuffleteams(int ftr = FTR_AUTOTEAM)
 	}
 }
 
+
+bool balanceteams(int ftr)  // pro vs noobs never more
+{
+    if(mastermode != MM_OPEN || numauthedclients() < 3 ) return true;
+    int tsize[2] = {0, 0}, tscore[2] = {0, 0};
+    int totalscore = 0, nplayers = 0;
+    int flagmult = (m_ctf ? 50 : (m_htf ? 25 : 12));
+
+    loopv(clients) if(clients[i]->type!=ST_EMPTY){
+        client *c = clients[i];
+        if(c->isauthed){
+            int time = servmillis - c->connectmillis + 5000;
+            if ( time > gamemillis ) time = gamemillis + 5000;
+            tsize[c->team]++;
+            // effective score per minute: in a normal game, normal players will do 500 points in 10 minutes
+            c->eff_score = c->state.points * 60 * 1000 / time + c->state.points / 6 + c->state.flagscore * flagmult;
+            tscore[c->team] += c->eff_score;
+            nplayers++;
+            totalscore += c->state.points;
+        }
+    }
+
+    int h = 0, l = 1;
+    if ( tscore[1] > tscore[0] ) { h = 1; l = 0; }
+    if ( 2 * tscore[h] < 3 * tscore[l] || totalscore < nplayers * 100 ) return true;
+    if ( tscore[h] > 3 * tscore[l] && tscore[h] > 150 * nplayers )
+    {
+        shuffleteams();
+        return true;
+    }
+
+    float diffscore = tscore[h] - tscore[l];
+
+    int besth = 0, hid = -1;
+    int bestdiff = 0, bestpair[2] = {-1, -1};
+    if ( tsize[h] - tsize[l] > 0 ) // the h team has more players, so we will force only one player
+    {
+        loopv(clients) if( clients[i]->type!=ST_EMPTY )
+        {
+            client *c = clients[i]; // loop for h
+            // client from the h team and without the flag
+            if( c->isauthed && c->team == h && clienthasflag(i) < 0 )
+            {
+                // do not exchange in the way that weaker team becomes the stronger or the change is less than 20% effective
+                if ( 2 * c->eff_score <= diffscore && 10 * c->eff_score >= diffscore && c->eff_score > besth )
+                {
+                    besth = c->eff_score;
+                    hid = i;
+                }
+            }
+        }
+        if ( hid >= 0 )
+        {
+            updateclientteam(hid, l, ftr);
+            clients[hid]->at3_lastforce = gamemillis;
+            return true;
+        }
+    } else { // the h score team has less or the same player number, so, lets exchange
+        loopv(clients) if(clients[i]->type!=ST_EMPTY)
+        {
+            client *c = clients[i]; // loop for h
+            if( c->isauthed && c->team == h && clienthasflag(i) < 0 )
+            {
+                loopvj(clients) if(clients[j]->type!=ST_EMPTY && j != i )
+                {
+                    client *cj = clients[j]; // loop for l
+                    if( cj->isauthed && cj->team == l && clienthasflag(j) < 0 )
+                    {
+                        int pairdiff = 2 * (c->eff_score - cj->eff_score);
+                        if ( pairdiff <= diffscore && 5 * pairdiff >= diffscore && pairdiff > bestdiff )
+                        {
+                            bestdiff = pairdiff;
+                            bestpair[h] = i;
+                            bestpair[l] = j;
+                        }
+                    }
+                }
+            }
+        }
+        if ( bestpair[h] >= 0 && bestpair[l] >= 0 )
+        {
+            updateclientteam(bestpair[h], l, ftr);
+            updateclientteam(bestpair[l], h, ftr);
+            clients[bestpair[h]]->at3_lastforce = clients[bestpair[l]]->at3_lastforce = gamemillis;
+            return true;
+        }
+    }
+    return false;
+}
+
+int lastbalance = 0, waitbalance = 2 * 60 * 1000;
+
 bool refillteams(bool now, int ftr)  // force only minimal amounts of players
 {
 	static int lasttime_eventeams = 0;
-	int teamsize[2] = {0, 0}, teamscore[2] = {0, 0}, moveable[2] = {0, 0};
-	bool switched = false;
+    int teamsize[2] = {0, 0}, teamscore[2] = {0, 0}, moveable[2] = {0, 0};
+    bool switched = false;
 
-	calcscores();
-	loopv(clients) if(clients[i]->type!=ST_EMPTY)	 // playerlist stocktaking
-	{
-		client *c = clients[i];
-		c->at3_dontmove = true;
-		if(c->isauthed)
-		{
-			int t = 0;
-			if(c->team == TEAM_RED || t++ || c->team == TEAM_BLUE) // need exact teams here
-			{
-				teamsize[t]++;
-				teamscore[t] += c->at3_score;
-				if(clienthasflag(i) < 0)
-				{
-					c->at3_dontmove = false;
-					moveable[t]++;
-				}
-			}
-		}
-	}
-	int bigteam = teamsize[1] > teamsize[0];
-	int allplayers = teamsize[0] + teamsize[1];
-	int diffnum = teamsize[bigteam] - teamsize[!bigteam];
-	int diffscore = teamscore[bigteam] - teamscore[!bigteam];
-	if(lasttime_eventeams > gamemillis) lasttime_eventeams = 0;
-	if(diffnum > 1)
-	{
-		if(now || gamemillis - lasttime_eventeams > 8000 + allplayers * 1000 || diffnum > 2 + allplayers / 10)
-		{
-			// time to even out teams
-			loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->team != bigteam) clients[i]->at3_dontmove = true;  // dont move small team players
-			while(diffnum > 1 && moveable[bigteam] > 0)
-			{
-				// pick best fitting cn
-				// string atlog, buf;	// debug logging - will be removed
-				int pick = -1;
-				int bestfit = 1000000000;
-				int targetscore = diffscore / (diffnum & ~1);
-				// s_sprintf(atlog)("at-target: %d, ", targetscore);
-				loopv(clients) if(clients[i]->type!=ST_EMPTY && !clients[i]->at3_dontmove) // try all still movable players
-				{
-					int fit = targetscore - clients[i]->at3_score;
-					if(fit < 0 ) fit = -(fit * 15) / 10;	   // avoid too good players
-					int forcedelay = clients[i]->at3_lastforce ? (1000 - (gamemillis - clients[i]->at3_lastforce) / (5 * 60)) : 0;
-					if(forcedelay > 0) fit += (fit * forcedelay) / 600;   // avoid lately forced players
-					if(fit < bestfit + fit * rnd(100) / 400)   // search 'almost' best fit
-					{
-						bestfit = fit;
-						pick = i;
-					}
-					// s_sprintf(buf)("%d:%d ", i, fit); s_strcat(atlog, buf);
-				}
-				if(pick < 0) break; // should really never happen
-				// move picked player
-				updateclientteam(pick, !bigteam, ftr);
-
-				diffnum -= 2;
-				diffscore -= 2 * clients[pick]->at3_score;
-				moveable[bigteam]--;
-				clients[pick]->at3_dontmove = true;
-				clients[pick]->at3_lastforce = gamemillis;  // try not to force this player again for the next 5 minutes
-				switched = true;
-				// s_sprintf(buf)(" pick:%d", pick); s_strcat(atlog, buf);
-				// logline(ACLOG_INFO,"%s", atlog);
-			}
-		}
-	}
-	if(diffnum < 2)
-		lasttime_eventeams = gamemillis;
-	return switched;
+    calcscores();
+    loopv(clients) if(clients[i]->type!=ST_EMPTY)     // playerlist stocktaking
+    {
+        client *c = clients[i];
+        c->at3_dontmove = true;
+        if(c->isauthed){
+			teamsize[c->team]++;
+			teamscore[c->team] += c->at3_score;
+			if(clienthasflag(i) < 0) {
+				c->at3_dontmove = false;
+				moveable[c->team]++;
+			} 
+        }
+    }
+    int bigteam = teamsize[1] > teamsize[0];
+    int allplayers = teamsize[0] + teamsize[1];
+    int diffnum = teamsize[bigteam] - teamsize[!bigteam];
+    int diffscore = teamscore[bigteam] - teamscore[!bigteam];
+    if(lasttime_eventeams > gamemillis) lasttime_eventeams = 0;
+    if(diffnum > 1)
+    {
+        if(now || gamemillis - lasttime_eventeams > 8000 + allplayers * 1000 || diffnum > 2 + allplayers / 10)
+        {
+            // time to even out teams
+            loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->team != bigteam) clients[i]->at3_dontmove = true;  // dont move small team players
+            while(diffnum > 1 && moveable[bigteam] > 0)
+            {
+                // pick best fitting cn
+                int pick = -1;
+                int bestfit = 1000000000;
+                int targetscore = diffscore / (diffnum & ~1);
+                loopv(clients) if(clients[i]->type!=ST_EMPTY && !clients[i]->at3_dontmove) // try all still movable players
+                {
+                    int fit = targetscore - clients[i]->at3_score;
+                    if(fit < 0 ) fit = -(fit * 15) / 10;       // avoid too good players
+                    int forcedelay = clients[i]->at3_lastforce ? (1000 - (gamemillis - clients[i]->at3_lastforce) / (5 * 60)) : 0;
+                    if(forcedelay > 0) fit += (fit * forcedelay) / 600;   // avoid lately forced players
+                    if(fit < bestfit + fit * rnd(100) / 400)   // search 'almost' best fit
+                    {
+                        bestfit = fit;
+                        pick = i;
+                    }
+                }
+                if(pick < 0) break; // should really never happen
+                // move picked player
+                clients[pick]->at3_dontmove = true;
+                moveable[bigteam]--;
+                if(updateclientteam(pick, team_opposite(bigteam), ftr)){
+                    diffnum -= 2;
+                    diffscore -= 2 * clients[pick]->at3_score;
+                    clients[pick]->at3_lastforce = gamemillis;  // try not to force this player again for the next 5 minutes
+                    switched = true;
+                }
+            }
+        }
+    }
+    if(diffnum < 2)
+    {
+        if ( ( gamemillis - lastbalance ) > waitbalance && ( gamelimit - gamemillis ) > 4*60*1000 )
+        {
+            if ( balanceteams (ftr) )
+            {
+                waitbalance = 2 * 60 * 1000 + gamemillis / 3;
+                switched = true;
+            }
+            else waitbalance = 20 * 1000;
+            lastbalance = gamemillis;
+        }
+        else if ( lastbalance > gamemillis )
+        {
+            lastbalance = 0;
+            waitbalance = 2 * 60 * 1000;
+        }
+        lasttime_eventeams = gamemillis;
+    }
+    return switched;
 }
 
 void resetserver(const char *newname, int newmode, int newtime)

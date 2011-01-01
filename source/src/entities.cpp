@@ -362,8 +362,8 @@ void entstats(void)
 		if(entcnt[i]) switch(i)
 		{
 			case MAPMODEL:	  conoutf(" %d %s, %d clipped", entcnt[i], entnames[i], clipents); break;
-			case PLAYERSTART:   conoutf(" %d %s, %d CLA, %d RVSF, %d FFA", entcnt[i], entnames[i], spawncnt[0], spawncnt[1], spawncnt[2]); break;
-			case CTF_FLAG:	  conoutf(" %d %s, %d CLA, %d RVSF", entcnt[i], entnames[i], spawncnt[3], spawncnt[4]); break;
+			case PLAYERSTART:   conoutf(" %d %s, %d RED, %d BLUE, %d FFA", entcnt[i], entnames[i], spawncnt[0], spawncnt[1], spawncnt[2]); break;
+			case CTF_FLAG:	  conoutf(" %d %s, %d RED, %d BLUE", entcnt[i], entnames[i], spawncnt[3], spawncnt[4]); break;
 			default:			conoutf(" %d %s", entcnt[i], entnames[i]); break;
 		}
 	}
