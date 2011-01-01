@@ -313,10 +313,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case SV_CDIS:
 			{
-				int cn = getint(p);
+				int cn = getint(p), reason = getint(p);
 				playerent *d = getclient(cn);
 				if(!d) break;
-				if(d->name[0]) conoutf("player %s disconnected", colorname(d));
+				if(*d->name) conoutf("player %s disconnected (%s)", colorname(d), disc_reason(reason));
 				zapplayer(players[cn]);
 				break;
 			}
