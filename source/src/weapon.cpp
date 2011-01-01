@@ -524,7 +524,7 @@ void raydamage(vec &from, vec &to, playerent *d)
 				if(!dam) return; // for the knife
 				gib = true;
 			}
-			else if(hitzone == 3){ // legs
+			else if(hitzone == 3 && d->weaponsel->type!=GUN_SLUG){ // legs if not using the slug gun (one-hit snipe) or knife
 				dam *= 0.67;
 			}
 			if(hitzone == 2){
