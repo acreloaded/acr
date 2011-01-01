@@ -3781,7 +3781,7 @@ void localconnect()
 {
 	client &c = addclient();
 	c.type = ST_LOCAL;
-	c.priv = PRIV_ADMIN;
+	c.priv = PRIV_MAX;
 	s_strcpy(c.hostname, "local");
 	sendservinfo(c);
 }
