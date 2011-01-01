@@ -366,7 +366,7 @@ struct playerent : dynent, playerstate
 	int radarmillis; float lastloudpos[3];
 	int frags, flagscore, deaths;
 	int lastaction, lastmove, lastpain, lastvoicecom;
-	int priv, vote, voternum;
+	int priv, vote, voternum, lastregen;
 	bool attacking;
 	string name;
 	int weaponchanging;

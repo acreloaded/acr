@@ -432,7 +432,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				playerent *d = getclient(cn);
 				if(!d) break;
 				d->health += amt;
-				//if(d == player1); // fx?
+				d->lastregen = lastmillis;
+				if(d == player1){
+					playsound(S_ITEMHEALTH, SP_LOW);
+				}
 				break;
 			}
 

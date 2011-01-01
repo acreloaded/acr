@@ -8,14 +8,15 @@ void drawicon(Texture *tex, float x, float y, float s, int col, int row, float t
 	if(tex && tex->xs == tex->ys) quad(tex->id, x, y, s, ts*col, ts*row, ts);
 }
 
-void drawequipicon(float x, float y, int col, int row, bool pulse)
+void drawequipicon(float x, float y, int col, int row, int pulse, playerent *p = NULL) // pulse: 3 = (1 - pulse) | (2 - blue regen)
 {
 	static Texture *tex = NULL;
 	if(!tex) tex = textureload("packages/misc/items.png", 4);
 	if(tex)
 	{
 		glEnable(GL_BLEND);
-		glColor4f(1.0f, 1.0f, 1.0f, pulse ? (0.2f+(sinf(lastmillis/100.0f)+1.0f)/2.0f) : 1.f);
+		float antiblue = (pulse&2) && p ? (lastmillis-p->lastregen)/1000.f : 1.f;
+		glColor4f(antiblue, antiblue, antiblue*2, (pulse&1) ? (0.2f+(sinf(lastmillis/100.0f)+1.0f)/2.0f) : 1.f);
 		drawicon(tex, x, y, 120, col, row, 1/4.0f);
 		glDisable(GL_BLEND);
 	}
@@ -281,10 +282,10 @@ void drawequipicons(playerent *p)
 
 	// health & armor
 	if(p->armour)
-		if(p->armour > 25) drawequipicon(560, 1650, (p->armour - 25) / 25, 2, false);
-		else drawequipicon(560, 1650, 3, 3, false);
-	drawequipicon(20, 1650, 2, 3, (p->state!=CS_DEAD && p->health<=35 && !m_osok));
-	if(p->mag[GUN_GRENADE]) drawequipicon(1520, 1650, 3, 1, false);
+		if(p->armour > 25) drawequipicon(560, 1650, (p->armour - 25) / 25, 2, 0);
+		else drawequipicon(560, 1650, 3, 3, 0);
+	drawequipicon(20, 1650, 2, 3, (lastmillis - p->lastregen < 1000 ? 2 : 0) | ((p->state!=CS_DEAD && p->health<=35 && !m_osok) ? 1 : 0), p);
+	if(p->mag[GUN_GRENADE]) drawequipicon(1520, 1650, 3, 1, 0);
 
 	// weapons
 	int c = p->weaponsel->type, r = 0;
@@ -305,7 +306,7 @@ void drawequipicons(playerent *p)
 	if(c > 3) { c -= 4; r = 1; }
 
 	if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS)
-		drawequipicon(1020, 1650, c, r, (!p->weaponsel->mag && p->weaponsel->type != GUN_KNIFE && p->weaponsel->type != GUN_GRENADE));
+		drawequipicon(1020, 1650, c, r, (!p->weaponsel->mag && p->weaponsel->type != GUN_KNIFE && p->weaponsel->type != GUN_GRENADE) ? 1 : 0);
 	glEnable(GL_BLEND);
 }
 
