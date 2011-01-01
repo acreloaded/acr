@@ -482,12 +482,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case SV_DIED:
 			{
-				int vcn = getint(p), acn = getint(p), frags = getint(p), weap = getint(p);
+				int vcn = getint(p), acn = getint(p), frags = getint(p), weap = getint(p), damage = getint(p);
 				playerent *victim = getclient(vcn), *actor = getclient(acn);
 				if(!actor) break;
 				actor->frags = frags;
 				if(!victim) break;
-				dokill(victim, actor, weap & 0x7F, (weap & 0x80) > 0);
+				dokill(victim, actor, weap & 0x7F, (weap & 0x80) > 0, damage);
 				break;
 			}
 

@@ -506,7 +506,7 @@ void dokill(playerent *pl, playerent *act, int weapon, bool gib, int finishingda
 			s_strcpy(death, "obliterated");
 			break;
 		case GUN_KNIFE:
-			s_strcpy(death, finishingdamage > 1000 ? "decapitated" : "slashed");
+			s_strcpy(death, finishingdamage > guns[GUN_KNIFE].damage ? "decapitated" : "slashed");
 			break;
 		case GUN_SLUG:
 			s_strcpy(death, gib ? "shotgun-sniped" : "slugged");
@@ -541,8 +541,9 @@ void dokill(playerent *pl, playerent *act, int weapon, bool gib, int finishingda
 		outf("\f2%s %s%s", pname, weapon == GUN_GRENADE ? pl==p? "blew yourself up" : "blew himself up" :
 			weapon == NUMGUNS ? "committed too much friendly fire" : "suicided", pl == p ? "\f3!" : "");
 	}
-	else
-		outf("\f2%s %s %s%s", aname, death, isteam(pl, act) ? "teammate " : "", pname);
+	else if(act->killstreak++) outf("\f2%s %s %s%s (%d killstreak)", aname, death, isteam(pl, act) ? "teammate " : "", pname, act->killstreak);
+	else outf("\f2%s %s %s%s", aname, death, isteam(pl, act) ? "teammate " : "", pname);
+	pl->killstreak = 0;
 	/*
 	if(pl==act)
 		outf("\f2%s suicided%s", pname, pl==player1 ? "!" : "");

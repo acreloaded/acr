@@ -247,7 +247,7 @@ struct poshist
 
 struct playerstate
 {
-	int health, armour;
+	int health, armour, killstreak;
 	int primary, nextprimary;
 	int gunselect;
 	bool akimbo;
@@ -314,7 +314,7 @@ struct playerstate
 	void respawn()
 	{
 		health = STARTHEALTH;
-		armour = 0;
+		killstreak = armour = 0;
 		gunselect = GUN_PISTOL;
 		akimbo = false;
 		loopi(NUMGUNS) ammo[i] = mag[i] = gunwait[i] = 0;

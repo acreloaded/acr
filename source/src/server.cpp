@@ -1363,9 +1363,9 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 			actor->state.dodamage(damage * 0.4);
 			sendf(-1, 1, "ri7", SV_DAMAGE, actor->clientnum, actor->clientnum, damage * 0.4,
 				actor->state.armour, actor->state.health, NUMGUNS | 0x80);
-			actor->state.frags -= 2;
-			sendf(-1, 1, "ri5", SV_DIED, actor->clientnum, actor->clientnum, actor->state.frags, NUMGUNS | 0x80);
 			if(actor->state.health <= 0){
+				actor->state.frags -= 2;
+				sendf(-1, 1, "ri6", SV_DIED, actor->clientnum, actor->clientnum, actor->state.frags, NUMGUNS | 0x80, damage);
 				logline(ACLOG_INFO, "[%s] %s suicided with friendly fire", actor->hostname, actor->name);
 			}
 			if((damage *= 0.25) >= target->state.health) damage = target->state.health - 1; // no more TKs!
@@ -1402,8 +1402,10 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 			actor->state.frags--;
 			suic = true;
 		}
+		actor->state.killstreak++;
+		target->state.killstreak = 0;
 		killpoints(target, actor, gun, gib);
-		sendf(-1, 1, "ri5", SV_DIED, target->clientnum, actor->clientnum, actor->state.frags, gun | (gib ? 0x80 : 0));
+		sendf(-1, 1, "ri6", SV_DIED, target->clientnum, actor->clientnum, actor->state.frags, gun | (gib ? 0x80 : 0), damage);
 		if(suic && (m_htf || m_ktf) && targethasflag >= 0)
 		{
 			actor->state.flagscore--;

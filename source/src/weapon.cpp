@@ -528,7 +528,7 @@ void raydamage(vec &from, vec &to, playerent *d)
 				dam *= 0.67;
 			}
 			if(hitzone == 2){
-				dam *= d->weaponsel->type==GUN_SNIPER || d->weaponsel->type == GUN_SLUG ? 5 : 2.5;
+				dam *= d->weaponsel->type==GUN_SNIPER || d->weaponsel->type == GUN_SLUG ? 5 : d->weaponsel->type == GUN_KNIFE ? 1.1 : 2.5;
 				gib = true;
 			}
 		}
