@@ -1118,12 +1118,13 @@ void sniperrifle::renderaimhelp(int teamtype)
 	else weapon::renderaimhelp(teamtype);
 }
 
-void sniperrifle::setscope(bool enable)
-{
+void sniperrifle::setscope(bool enable){
+	if(scoped == enable) return;
 	if(this == owner->weaponsel && !reloading && owner->state == CS_ALIVE)
 	{
 		if(scoped == false && enable == true) scoped_since = lastmillis;
 		scoped = enable;
+		if(owner == player1) addmsg(SV_SCOPE, "ri", enable ? 1 : 0);
 	}
 }
 

@@ -127,6 +127,7 @@ struct projectilestate
 struct clientstate : playerstate
 {
 	vec o, sg[SGRAYS], flagpickupo;
+	bool scoped;
 	int state;
 	int lastdeath, lastspawn, lifesequence;
 	int lastshot, lastregen;
@@ -162,6 +163,7 @@ struct clientstate : playerstate
 	void respawn()
 	{
 		playerstate::respawn();
+		scoped = false;
 		o = vec(-1e10f, -1e10f, -1e10f);
 		lastspawn = -1;
 		lastdeath = lastshot = lastregen = 0;
@@ -3012,6 +3014,14 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case SV_SUICIDE:
 			{
 				if(cl->state.state == CS_ALIVE) serverdamage(cl, cl, 1000, GUN_KNIFE, true);
+				break;
+			}
+
+			case SV_SCOPE:
+			{
+				bool scope = getint(p);
+				if(!cl->state.isalive(gamemillis) || cl->state.scoped == scope) break;
+				QUEUE_MSG;
 				break;
 			}
 

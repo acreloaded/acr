@@ -378,6 +378,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
+			case SV_SCOPE:
+			{
+				bool scope = getint(p);
+				if(!d) break;
+				((sniperrifle *)d->weapons[GUN_SNIPER])->setscope(scope);
+				break;
+			}
+
 			case SV_SG: // someone else's shotgun rays
 				extern vec sg[SGRAYS];
 				loopi(SGRAYS) loopj(3) sg[i][j] = getfloat(p);
