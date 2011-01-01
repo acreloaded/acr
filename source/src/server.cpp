@@ -2318,8 +2318,7 @@ bool scallvote(voteinfo *v) // true if a regular vote was called
 		scallvotesuc(v);
 		sendcallvote();
 		// owner auto votes yes
-		clients[v->owner]->vote = VOTE_YES;
-		sendf(-1, 1, "ri3", SV_VOTE, v->owner, VOTE_YES);
+		sendf(-1, 1, "ri3", SV_VOTE, v->owner, (clients[v->owner]->vote = VOTE_YES));
 		curvote->evaluate();
 		return true;
 	}
