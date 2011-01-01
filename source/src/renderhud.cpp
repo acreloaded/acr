@@ -707,15 +707,15 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
 	static Texture *headshottex = NULL;
 	if(!headshottex) headshottex = textureload("packages/misc/headshot.png", 3);
-	if(lastmillis - p->lastheadshot > 5000){
+	if(lastmillis - p->lastheadshot < 3000){
 		glBindTexture(GL_TEXTURE_2D, headshottex->id);
 		glEnable(GL_BLEND);
-		glColor4f(1.f, 1.f, 1.f, (lastmillis - p->lastheadshot) / 5000.f);
+		glColor4f(1.f, 1.f, 1.f, (3000 + p->lastheadshot - lastmillis) / 3000.f);
 		glBegin(GL_QUADS);
-		glTexCoord2f(0, 0); glVertex2f(VIRTW * 0.3f, VIRTH * 0.2f);
-		glTexCoord2f(1, 0);	glVertex2f(VIRTW * 0.6f, VIRTH * 0.2f);
-		glTexCoord2f(1, 1); glVertex2f(VIRTW * 0.6f, VIRTH * 0.4f);
-		glTexCoord2f(0,	1); glVertex2f(VIRTW * 0.3f, VIRTH * 0.4f);
+		glTexCoord2f(0, 0); glVertex2f(VIRTW * 0.35f, VIRTH * 0.2f);
+		glTexCoord2f(1, 0);	glVertex2f(VIRTW * 0.65f, VIRTH * 0.2f);
+		glTexCoord2f(1, 1); glVertex2f(VIRTW * 0.65f, VIRTH * 0.4f);
+		glTexCoord2f(0,	1); glVertex2f(VIRTW * 0.35f, VIRTH * 0.4f);
 		glEnd();
 	}
 
