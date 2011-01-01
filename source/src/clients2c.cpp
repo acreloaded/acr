@@ -678,11 +678,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
+			case SV_FORCEGIB:
 			case SV_FORCEDEATH:
 			{
 				int cn = getint(p);
 				playerent *d = newclient(cn);
 				if(!d) break;
+				if(type == SV_FORCEGIB) addgib(d);
 				deathstate(d);
 				break;
 			}

@@ -41,6 +41,7 @@
 // -P     // voting permission string
           //    k kick players
           //    b ban players (and remove bans)
+          //    q subdue (force respawn)
           //    m change mastermode (open/private)
           //    f force a player to the other team
           //    a enable/disable autoteam
@@ -50,7 +51,7 @@
           //    d change server description
           //    x vote for maps, that are not present on the server
           //    p vote for a gamemode that is not supported by the map
-          //    default: fkbMasRCDxP (lowercase: a user can vote for it; uppercase: admin role is required to vote)
+          //    default: fkbMasRCDxPQ (lowercase: a user can vote for it; uppercase: admin role is required to vote)
 
 // rarely used switches:
 

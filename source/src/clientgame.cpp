@@ -854,20 +854,28 @@ COMMANDN(dropflag, tryflagdrop, ARG_NONE);
 
 char *votestring(int type, char *arg1, char *arg2)
 {
-	const char *msgs[] = { "kick player %s", "ban player %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "\fgive \f%d%s \f5to player %s", "load map %s in mode %s", "%s demo recording for the next match", "stop demo recording", "clear%s demo%s%s", "set server description to '%s'", "shuffle teams"};
+	const char *msgs[] = { "kick player %s", "ban player %s for %d minutes", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "\fgive \f%d%s \f5to player %s", "load map %s in mode %s", "%s demo recording for the next match", "stop demo recording", "clear%s demo%s%s", "set server description to '%s'", "shuffle teams", "subdue player %s"};
 	const char *msg = msgs[type];
 	char *out = newstring(_MAXDEFSTR);
 	out[_MAXDEFSTR] = '\0';
 	switch(type)
 	{
 		case SA_KICK:
-		case SA_BAN:
 		case SA_FORCETEAM:
+		case SA_SUBDUE:
 		{
 			int cn = atoi(arg1);
 			playerent *p = getclient(cn);
 			if(!p) break;
 			s_sprintf(out)(msg, colorname(p));
+			break;
+		}
+		case SA_BAN:
+		{
+			int cn = atoi(arg1), minutes = atoi(arg2);
+			playerent *p = getclient(cn);
+			if(!p) break;
+			s_sprintf(out)(msg, colorname(p), minutes);
 			break;
 		}
 		case SA_GIVEADMIN:
@@ -939,6 +947,10 @@ void callvote(int type, char *arg1, char *arg2)
 			case SA_GIVEADMIN:
 				putint(p, atoi(arg1));
 				putint(p, atoi(arg2) ? atoi(arg2) : PRIV_MAX);
+				break;
+			case SA_BAN:
+				putint(p, atoi(arg1));
+				putint(p, atoi(arg2));
 				break;
 			case SA_STOPDEMO:
 			case SA_REMBANS:

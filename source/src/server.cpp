@@ -1371,6 +1371,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 			if(isdedicated && actor->type == ST_TCPIP){
 				actor->state.friendlyfire += damage;
 				if(actor->state.friendlyfire > 140 && actor->state.friendlyfire * 60000 > gamemillis * 70){ // 70 HP / minute after 140 damage
+					extern void banclient(client *&c, int minutes);
 					banclient(actor, 2);
 					disconnect_client(actor->clientnum, DISC_FF);
 					return;
@@ -1842,12 +1843,12 @@ void updatesdesc(const char *newdesc, ENetAddress *caller = NULL)
 	}
 }
 
-void forcedeath(client *cl)
+void forcedeath(client *cl, bool gib = false)
 {
 	sdropflag(cl->clientnum);
 	cl->state.state = CS_DEAD;
 	cl->state.respawn();
-	sendf(-1, 1, "ri2", SV_FORCEDEATH, cl->clientnum);
+	sendf(-1, 1, "ri2", gib ? SV_FORCEGIB : SV_FORCEDEATH, cl->clientnum);
 }
 
 bool updateclientteam(int client, int team, int ftr)
@@ -2272,14 +2273,20 @@ void sendcallvote(int cl = -1){
 			case SA_SHUFFLETEAMS:
 			default:
 				break;
+			case SA_SUBDUE:
 			case SA_KICK:
-			case SA_BAN:
 			case SA_FORCETEAM:
 				putint(p, ((playeraction *)curvote->callmillis)->cn);
+				break;
+			case SA_BAN:
+				putint(p, ((playeraction *)curvote->callmillis)->cn);
+				putint(p, ((banaction *)curvote->callmillis)->bantime);
+				break;
 			case SA_AUTOTEAM:
 			case SA_MASTERMODE:
 			case SA_RECORDDEMO:
 				putint(p, ((enableaction *)curvote->callmillis)->enable ? 1 : 0);
+				break;
 			case SA_CLEARDEMOS:
 				putint(p, ((cleardemosaction *)curvote->callmillis)->demo);
 				break;
@@ -3286,8 +3293,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					case SA_KICK:
 						vi->action = new kickaction(getint(p));
 						break;
+					case SA_SUBDUE:
+						vi->action = new subdueaction(getint(p));
+						break;
 					case SA_BAN:
-						vi->action = new banaction(getint(p));
+						vi->action = new banaction(getint(p), clamp(getint(p), 1, 60));
 						break;
 					case SA_REMBANS:
 						vi->action = new removebansaction();

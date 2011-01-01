@@ -133,6 +133,19 @@ struct giveadminaction : playeraction
 	}
 };
 
+struct subdueaction : playeraction
+{
+	void perform() { forcedeath(clients[cn], true); }
+	subdueaction(int cn) : playeraction(cn)
+	{
+		passratio = 0.8f;
+		role = roleconf('Q');
+		length = 25000; // 25s
+		if(valid_client(cn)) s_sprintf(desc)("subdue player %s", clients[cn]->name);
+		else s_strcpy(desc, "invalid subdue");
+	}
+};
+
 struct kickaction : playeraction
 {
 	void perform() { disconnect_client(cn, DISC_KICK); }
@@ -148,15 +161,17 @@ struct kickaction : playeraction
 
 struct banaction : playeraction
 {
+	int bantime;
 	void perform(){
-		banclient(clients[cn], 20);
+		banclient(clients[cn], bantime);
 		disconnect_client(cn, DISC_BAN);
 	}
-	banaction(int cn) : playeraction(cn)
+	banaction(int cn, int minutes) : playeraction(cn)
 	{
 		passratio = 0.75f;
 		role = roleconf('b');
-		if(isvalid()) s_sprintf(desc)("ban player %s", clients[cn]->name);
+		length = 30000; // 30s
+		if(isvalid()) s_sprintf(desc)("ban player %s for %d minutes", clients[cn]->name, (bantime = minutes));
 		else s_strcpy(desc, "invalid ban");
 	}
 };
