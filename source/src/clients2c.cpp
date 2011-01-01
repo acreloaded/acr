@@ -667,11 +667,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case SV_ARENAWIN:
 			{
 				int acn = getint(p);
-				playerent *alive = acn<0 ? NULL : (acn==getclientnum() ? player1 : getclient(acn));
+				playerent *alive = acn<0 ? NULL : getclient(acn);
 				conoutf("the round is over! next round in 5 seconds...");
 				if(m_botmode && acn==-2) hudoutf("the bots have won the round!");
 				else if(!alive) hudoutf("everyone died!");
-				else if(m_teammode) hudoutf("team %s has won the round!", alive->team);
+				else if(m_teammode) hudoutf("team %s has won the round!", team_string(alive->team));
 				else if(alive==player1) hudoutf("you are the survivor!");
 				else hudoutf("%s is the survivor!", colorname(alive));
 				arenaintermission = lastmillis;

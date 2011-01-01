@@ -1003,7 +1003,7 @@ void displayvote(votedisplayinfo *v)
 	curvote = v;
 	conoutf("%s called a vote: %s", v->owner ? colorname(v->owner) : "", curvote->desc);
 	playsound(S_CALLVOTE, SP_HIGHEST);
-	loopv(players) players[i]->vote = VOTE_NEUTRAL;
+	loopv(players) if(players[i]) players[i]->vote = VOTE_NEUTRAL;
 	veto = false;
 }
 
