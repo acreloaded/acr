@@ -522,14 +522,13 @@ void raydamage(vec &from, vec &to, playerent *d)
 		if(d==player1){
 			if(d->weaponsel->type==GUN_KNIFE){
 				if(!dam) return; // for the knife
-				if(hitzone == 2) dam *= 10; // ultimate knife fx
 				gib = true;
 			}
 			else if(hitzone == 3){ // legs
-				dam *= 0.6;
+				dam *= 0.67;
 			}
-			else if(hitzone == 2){
-				dam *= d->weaponsel->type==GUN_SNIPER || d->weaponsel->type == GUN_SLUG ? 5 : 1.5; // 1.5x damage for non-sniper headshots
+			if(hitzone == 2){
+				dam *= d->weaponsel->type==GUN_SNIPER || d->weaponsel->type==GUN_KNIFE || d->weaponsel->type == GUN_SLUG ? 5 : 2.5;
 				gib = true;
 			}
 		}
