@@ -1854,7 +1854,7 @@ void forcedeath(client *cl, bool gib = false)
 bool updateclientteam(int client, int team, int ftr)
 {
 	if(!valid_client(client) || team < TEAM_RED || team > TEAM_BLUE) return false;
-	sendf(client, 1, "ri3", SV_SETTEAM, client, team | (ftr << 4));
+	sendf(-1, 1, "ri3", SV_SETTEAM, client, team | (ftr << 4));
 	if(m_teammode) forcedeath(clients[client]);
 	return true;
 }
