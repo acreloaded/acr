@@ -132,7 +132,7 @@ struct clientstate : playerstate
 	int lastshot, lastregen;
 	projectilestate<2> grenades;
 	int akimbos, akimbomillis;
-	int points, flagscore, frags, deaths, shotdamage, damage;
+	int points, flagscore, frags, deaths, shotdamage, damage, friendlyfire;
 
 	clientstate() : state(CS_DEAD) {}
 
@@ -155,7 +155,7 @@ struct clientstate : playerstate
 		grenades.reset();
 		akimbos = 0;
 		akimbomillis = 0;
-		points = flagscore = frags = deaths = shotdamage = damage = 0;
+		points = flagscore = frags = deaths = shotdamage = damage = friendlyfire = 0;
 		respawn();
 	}
 
@@ -1367,7 +1367,14 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 				logline(ACLOG_INFO, "[%s] %s suicided with friendly fire", actor->hostname, actor->name);
 			}
 			if((damage *= 0.25) >= target->state.health) damage = target->state.health - 1; // no more TKs!
-			if(isdedicated && actor->type == ST_TCPIP){ } // check for friendly fire?
+			if(!damage) return;
+			if(isdedicated && actor->type == ST_TCPIP){
+				actor->state.friendlyfire += damage;
+				if(actor->state.friendlyfire > 140 && actor->state.friendlyfire * 60000 > gamemillis * 70){ // 70 HP / minute after two minutes
+					disconnect_client(actor->clientnum, DISC_FF);
+					return;
+				}
+			}
 		}
 		else if(!hitpush.iszero()){
 			vec v(hitpush);
