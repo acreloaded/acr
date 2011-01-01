@@ -52,7 +52,7 @@ extern int noob;
 
 #include "protos.h"				// external function decls
 
-#define AC_VERSION 2003
+#define AC_VERSION 2002
 #define AC_MASTER_URI "ms.assaultcubes.tk/"
 
 #endif
