@@ -487,7 +487,7 @@ void raydamage(vec &from, vec &to, playerent *d)
 
 	if(d->weaponsel->type==GUN_SHOTGUN)
 	{
-		uint done = 0;
+		uint done = 0, hitflag = 0;
 		playerent *cl = NULL;
 		for(;;)
 		{
@@ -495,6 +495,7 @@ void raydamage(vec &from, vec &to, playerent *d)
 			int hitrays = 0;
 			o = NULL;
 			float totaldist = 0.f;
+			hitflag = 0;
 			loop(r, SGRAYS) if(!(done&(1<<r)) && (cl = intersectclosest(from, sg[r], d, hitzone)))
 			{
 				if(!o || o==cl)
@@ -502,13 +503,14 @@ void raydamage(vec &from, vec &to, playerent *d)
 					hitrays++;
 					o = cl;
 					done |= 1<<r;
+					hitflag |= 1 << r;
 					shorten(from, o->o, sg[r]);
 					totaldist += from.dist(sg[r]);
 				}
 				else raysleft = true;
 			}
 			int dam = effectiveDamage(d->weaponsel->type, totaldist/(float)hitrays);
-			if(hitrays) hitpush(hitrays*dam, o, d, from, to, d->weaponsel->type, hitrays*dam > SGGIB || hitzone == 2, hitrays | (hitzone == 2 ? 0x80 : 0));
+			if(hitrays) hitpush(hitrays*dam, o, d, from, to, d->weaponsel->type, hitrays*dam > SGGIB, hitflag);
 			if(!raysleft) break;
 		}
 	}
@@ -554,6 +556,10 @@ void weapon::sendshoot(vec &from, vec &to)
 		//hits.length(), hits.length()*sizeof(hitmsg)/sizeof(int), hits.getbuf);
 	static uchar buf[MAXTRANS];
 	ucharbuf p(buf, MAXTRANS);
+	if(type == GUN_SHOTGUN){
+		putint(p, SV_SG);
+		loopi(SGRAYS) loopj(3) putfloat(p, sg[i][j]);
+	}
 	putint(p, SV_SHOOT);
 	putint(p, lastmillis);
 	putint(p, owner->weaponsel->type);
@@ -1018,7 +1024,7 @@ bool gun::attack(vec &targ)
 
 	hits.setsizenodelete(0);
 	raydamage(from, to, owner);
-	//attackfx(from, to, 0);
+	attackfx(from, to, 0);
 
 	gunwait = info.attackdelay;
 	mag--;

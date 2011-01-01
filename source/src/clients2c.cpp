@@ -378,6 +378,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
+			case SV_SG: // someone else's shotgun rays
+				extern vec sg[SGRAYS];
+				loopi(SGRAYS) loopj(3) sg[i][j] = getfloat(p);
+				break;
+
 			case SV_SHOTFX:
 			{
 				int scn = getint(p), gun = getint(p);
@@ -386,7 +391,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				loopk(3) to[k] = getfloat(p);
 				playerent *s = getclient(scn);
 				if(!s || !weapon::valid(gun)) break;
-				if(gun==GUN_SHOTGUN) createrays(from, to);
 				s->lastaction = lastmillis;
 				if(s != player1) s->mag[gun]--;
 				if(s->weapons[gun])

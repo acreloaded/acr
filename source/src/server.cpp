@@ -126,7 +126,7 @@ struct projectilestate
 
 struct clientstate : playerstate
 {
-	vec o;
+	vec o, sg[SGRAYS];
 	int state;
 	int lastdeath, lastspawn, lifesequence;
 	int lastshot, lastregen;
@@ -2892,6 +2892,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(cl->state.state == CS_ALIVE) serverdamage(cl, cl, 1000, GUN_KNIFE, true);
 				break;
 			}
+
+			case SV_SG:
+				loopi(SGRAYS) loopj(3) cl->state.sg[i][j] = getfloat(p);
+				break;
 
 			case SV_SHOOT:
 			{

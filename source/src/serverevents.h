@@ -45,6 +45,10 @@ void processevent(client *c, shotevent &e)
 		e.to[0], e.to[1], e.to[2], c->clientnum);*/
 	ENetPacket *packet = enet_packet_create(NULL, 9 * sizeof(float), ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
+	if(e.gun==GUN_SHOTGUN){
+		putint(p, SV_SG);
+		loopi(SGRAYS) loopj(3) putfloat(p, c->state.sg[i][j]);
+	}
 	putint(p, SV_SHOTFX);
 	putint(p, c->clientnum);
 	putint(p, e.gun);
@@ -70,17 +74,16 @@ void processevent(client *c, shotevent &e)
 				client *target = clients[h.target];
 				if(target->type==ST_EMPTY || target->state.state!=CS_ALIVE || h.lifesequence!=target->state.lifesequence) continue;
 
-				int rays = e.gun==GUN_SHOTGUN ? h.info : 1;
-				/* if(){
-					s_sprintfd(test)("dist %.2f", target->state.o.dist(vec(e.to)));
-					sendservmsg(test, c->clientnum);
-					continue;
+				int rays = e.gun==GUN_SHOTGUN ? popcount(h.info) : 1;
+				if(e.gun==GUN_SHOTGUN){
+					uint hitflags = h.info;
+					loopi(SGRAYS) if((hitflags & (1 << i)) && c->state.sg[i].dist(e.to) > 56.f) // 2 meters for height x3 for unknown reasons + 2m for lag
+						rays --;
 				}
-				*/
 				if(rays<1) continue;
 				if(totalrays + rays > maxrays) continue;
 				totalrays += rays;
-				if(e.gun != GUN_SHOTGUN && target->state.o.dist(vec(e.to)) > 0.5f) continue; // 25cm away from a target is very bad lag!
+				if(e.gun != GUN_SHOTGUN && target->state.o.dist(vec(e.to)) > 16.f) continue; // 2 meters for height x2 for lag
 
 				bool gib = false;
 				int damage = rays * effectiveDamage(e.gun, c->state.o.dist(vec(e.to)));
