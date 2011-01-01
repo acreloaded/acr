@@ -559,6 +559,7 @@ void dokill(playerent *pl, playerent *act, int weapon, bool gib, int finishingda
 		if(pl != act && weapon != GUN_SHOTGUN && weapon != GUN_GRENADE && (weapon != GUN_KNIFE || finishingdamage > 1000)){
 			playsound(S_HEADSHOT, act, act == p ? SP_HIGHEST : SP_HIGH);
 			if(pl->o.dist(act->o) > 8.f) playsound(S_HEADSHOT, pl, pl == p ? SP_HIGHEST : SP_HIGH); // let the victim hear it if he is 2 meters away
+			pl->lastheadshot = act->lastheadshot = lastmillis; // both get headshot info
 		}
 		addgib(pl);
 	}
