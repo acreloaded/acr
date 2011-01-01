@@ -132,7 +132,7 @@ struct clientstate : playerstate
 	int lastshot, lastregen;
 	projectilestate<2> grenades;
 	int akimbos, akimbomillis;
-	int flagscore, frags, deaths, shotdamage, damage;
+	int points, flagscore, frags, deaths, shotdamage, damage;
 
 	clientstate() : state(CS_DEAD) {}
 
@@ -155,7 +155,7 @@ struct clientstate : playerstate
 		grenades.reset();
 		akimbos = 0;
 		akimbomillis = 0;
-		flagscore = frags = deaths = shotdamage = damage = 0;
+		points = flagscore = frags = deaths = shotdamage = damage = 0;
 		respawn();
 	}
 
@@ -173,10 +173,11 @@ struct savedscore
 {
 	string name;
 	uint ip;
-	int frags, flagscore, deaths, shotdamage, damage;
+	int points, frags, flagscore, deaths, shotdamage, damage;
 
 	void save(clientstate &cs)
 	{
+		points = cs.points;
 		frags = cs.frags;
 		flagscore = cs.flagscore;
 		deaths = cs.deaths;
@@ -186,6 +187,7 @@ struct savedscore
 
 	void restore(clientstate &cs)
 	{
+		cs.points = points;
 		cs.frags = frags;
 		cs.flagscore = flagscore;
 		cs.deaths = deaths;
@@ -2559,6 +2561,7 @@ void sendresume(client &c, bool broadcast)
 			c.state.state,
 			c.state.lifesequence,
 			c.state.gunselect,
+			c.state.points,
 			c.state.flagscore,
 			c.state.frags,
 			c.state.deaths,
@@ -2697,6 +2700,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath)
 			putint(p, c.state.state);
 			putint(p, c.state.lifesequence);
 			putint(p, c.state.gunselect);
+			putint(p, c.state.points);
 			putint(p, c.state.flagscore);
 			putint(p, c.state.frags);
 			putint(p, c.state.deaths);
