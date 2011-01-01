@@ -136,6 +136,7 @@ struct giveadminaction : playeraction
 struct subdueaction : playeraction
 {
 	void perform() { forcedeath(clients[cn], true); }
+	virtual bool isvalid() { return !m_edit && valid_client(cn); }
 	subdueaction(int cn) : playeraction(cn)
 	{
 		passratio = 0.8f;
