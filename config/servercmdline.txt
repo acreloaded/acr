@@ -11,7 +11,7 @@
 
 // example command line:
 -n Default Server Name // Server Name
--o \f1Welcome \f3to \f2this \f0 server\f7! // MOTD
+-o \f1Welcome \f3to \f2this \f0server\f7! // MOTD
 -f 28770 // port
 -c 12 // max players
 
