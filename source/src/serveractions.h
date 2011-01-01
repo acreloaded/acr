@@ -144,6 +144,7 @@ struct subdueaction : playeraction
 		length = 25000; // 25s
 		if(valid_client(cn)) s_sprintf(desc)("subdue player %s", clients[cn]->name);
 		else s_strcpy(desc, "invalid subdue");
+		area |= EE_LOCAL_SERV;
 	}
 };
 
