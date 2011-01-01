@@ -1370,7 +1370,8 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 			if(!damage) return;
 			if(isdedicated && actor->type == ST_TCPIP){
 				actor->state.friendlyfire += damage;
-				if(actor->state.friendlyfire > 140 && actor->state.friendlyfire * 60000 > gamemillis * 70){ // 70 HP / minute after two minutes
+				if(actor->state.friendlyfire > 140 && actor->state.friendlyfire * 60000 > gamemillis * 70){ // 70 HP / minute after 140 damage
+					banclient(actor, 2);
 					disconnect_client(actor->clientnum, DISC_FF);
 					return;
 				}
@@ -2217,6 +2218,11 @@ bool isbanned(int cn)
 		if(b.host == c.peer->address.host) { return true; }
 	}
 	return checkipblacklist(c.peer->address.host);
+}
+
+void banclient(client *&c, int minutes){
+	ban b = { c->peer->address.host, servmillis + minutes * 60000 };
+	bans.add(b);
 }
 
 void sendserveropinfo(int receiver = -1){

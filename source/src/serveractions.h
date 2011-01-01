@@ -135,7 +135,7 @@ struct giveadminaction : playeraction
 
 struct kickaction : playeraction
 {
-	void perform()  { disconnect_client(cn, DISC_KICK); }
+	void perform() { disconnect_client(cn, DISC_KICK); }
 	kickaction(int cn) : playeraction(cn)
 	{
 		passratio = 0.7f;
@@ -149,8 +149,7 @@ struct kickaction : playeraction
 struct banaction : playeraction
 {
 	void perform(){
-		ban b = { clients[cn]->peer->address.host, servmillis+20*60*1000 };
-		bans.add(b);
+		banclient(clients[cn], 20);
 		disconnect_client(cn, DISC_BAN);
 	}
 	banaction(int cn) : playeraction(cn)
