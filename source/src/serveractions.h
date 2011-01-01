@@ -303,14 +303,14 @@ struct voteinfo
 	}
 
 	bool isvalid() { return valid_client(owner) && action != NULL && action->isvalid(); }
-	bool isalive() { return servmillis - callmillis < 40*1000; }
+	bool isalive() { return servmillis - callmillis < action->length; }
 
 	void evaluate(bool forceend = false, int veto = VOTE_NEUTRAL)
 	{
 		if(result!=VOTE_NEUTRAL) return; // block double action
 		if(action && !action->isvalid()) end(VOTE_NO);
 		int stats[VOTE_NUM] = {0};
-		loopv(clients) if(clients[i]->type != ST_EMPTY) stats[clients[i]->vote] += clients[i]->priv >= PRIV_ADMIN ? 3 : clients[i]->priv==PRIV_MASTER ? 2 : 1;
+		loopv(clients) if(clients[i]->type != ST_EMPTY) stats[clients[i]->vote] += clients[i]->priv ? 2 : 1;
 		if(forceend){
 			if(veto == VOTE_NEUTRAL) end(stats[VOTE_YES]/(float)(stats[VOTE_NO]+stats[VOTE_YES]) > action->passratio ? VOTE_YES : VOTE_NO);
 			else end(veto, true);

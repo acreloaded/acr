@@ -2255,6 +2255,7 @@ void sendcallvote(int cl = -1){
 		putint(p, SV_CALLVOTE);
 		putint(p, curvote->owner);
 		putint(p, curvote->type);
+		putint(p, servmillis - curvote->callmillis);
 		switch(curvote->type)
 		{
 			case SA_MAP:
@@ -2276,19 +2277,19 @@ void sendcallvote(int cl = -1){
 			case SA_SUBDUE:
 			case SA_KICK:
 			case SA_FORCETEAM:
-				putint(p, ((playeraction *)curvote->callmillis)->cn);
+				putint(p, ((playeraction *)curvote->action)->cn);
 				break;
 			case SA_BAN:
-				putint(p, ((playeraction *)curvote->callmillis)->cn);
-				putint(p, ((banaction *)curvote->callmillis)->bantime);
+				putint(p, ((playeraction *)curvote->action)->cn);
+				putint(p, ((banaction *)curvote->action)->bantime);
 				break;
 			case SA_AUTOTEAM:
 			case SA_MASTERMODE:
 			case SA_RECORDDEMO:
-				putint(p, ((enableaction *)curvote->callmillis)->enable ? 1 : 0);
+				putint(p, ((enableaction *)curvote->action)->enable ? 1 : 0);
 				break;
 			case SA_CLEARDEMOS:
-				putint(p, ((cleardemosaction *)curvote->callmillis)->demo);
+				putint(p, ((cleardemosaction *)curvote->action)->demo);
 				break;
 		}
 		enet_packet_resize(packet, p.length());
