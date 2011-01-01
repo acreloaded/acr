@@ -365,6 +365,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\clientpoints.h" />
     <ClInclude Include="..\src\command.h" />
     <ClInclude Include="..\src\console.h" />
     <ClInclude Include="..\src\cube.h" />
@@ -383,11 +384,13 @@
     <ClInclude Include="..\src\model.h" />
     <ClInclude Include="..\src\modelcache.h" />
     <ClInclude Include="..\src\pch.h" />
+    <ClInclude Include="..\src\points.h" />
     <ClInclude Include="..\src\protocol.h" />
     <ClInclude Include="..\src\protos.h" />
     <ClInclude Include="..\src\serveractions.h" />
     <ClInclude Include="..\src\servercontroller.h" />
     <ClInclude Include="..\src\serverevents.h" />
+    <ClInclude Include="..\src\serverpoints.h" />
     <ClInclude Include="..\src\sound.h" />
     <ClInclude Include="..\src\tools.h" />
     <CustomBuildStep Include="..\src\tristrip.h">

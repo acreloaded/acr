@@ -126,7 +126,7 @@ struct projectilestate
 
 struct clientstate : playerstate
 {
-	vec o, sg[SGRAYS];
+	vec o, sg[SGRAYS], flagpickupo;
 	int state;
 	int lastdeath, lastspawn, lifesequence;
 	int lastshot, lastregen;
@@ -881,7 +881,7 @@ void readdemo()
 	}
 }
 
-//
+#include "serverpoints.h"
 
 struct sflaginfo
 {
@@ -1367,6 +1367,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 				logline(ACLOG_INFO, "[%s] %s suicided with friendly fire", actor->hostname, actor->name);
 			}
 			if((damage *= 0.25) >= target->state.health) damage = target->state.health - 1; // no more TKs!
+			if(isdedicated && actor->type == ST_TCPIP){ } // check for friendly fire?
 		}
 		else if(!hitpush.iszero()){
 			vec v(hitpush);
@@ -1379,7 +1380,9 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 	sendf(-1, 1, "ri7", SV_DAMAGE, target->clientnum, actor->clientnum, damage, ts.armour, ts.health, gun | (gib ? 0x80 : 0));
 	if(ts.health<=0)
 	{
+		
 		int targethasflag = clienthasflag(target->clientnum);
+		int cnumber = numauthedclients() < 12 ? numauthedclients() : 12;
 		bool suic = false;
 		target->state.deaths++;
 		if(target!=actor) actor->state.frags += isteam(target, actor) ? -1 : gib ? 2 : 1;
@@ -1388,6 +1391,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 			actor->state.frags--;
 			suic = true;
 		}
+		killpoints(target, actor, gun, gib);
 		sendf(-1, 1, "ri5", SV_DIED, target->clientnum, actor->clientnum, actor->state.frags, gun | (gib ? 0x80 : 0));
 		if(suic && (m_htf || m_ktf) && targethasflag >= 0)
 		{
@@ -1402,15 +1406,11 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 
 		if(m_flags && targethasflag >= 0)
 		{
-			if(m_ctf)
-				flagaction(targethasflag, FA_LOST, -1);
-			else if(m_htf)
+			if(m_ctf || m_htf)
 				flagaction(targethasflag, FA_LOST, -1);
 			else // ktf || tktf
 				flagaction(targethasflag, FA_RESET, -1);
 		}
-
-		if(isdedicated && actor->type == ST_TCPIP){ } // check for friendly fire?
 	}
 }
 

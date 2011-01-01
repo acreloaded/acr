@@ -26,7 +26,7 @@ enum{
 	// game events
 	SV_SHOOT, SV_EXPLODE, SV_AKIMBO, SV_RELOAD, // clients to server events
 	SV_SG, SV_SUICIDE, SV_WEAPCHANGE, SV_PRIMARYWEAP, SV_THROWNADE, // server directly handled
-	SV_DIED, SV_DAMAGE, SV_REGEN, SV_HITPUSH, SV_SHOTFX, // server to client
+	SV_POINTS, SV_DIED, SV_DAMAGE, SV_REGEN, SV_HITPUSH, SV_SHOTFX, // server to client
 	// gameplay
 	SV_TRYSPAWN, SV_SPAWNSTATE, SV_SPAWN, SV_FORCEDEATH, // spawning
 	SV_ITEMLIST, SV_ITEMSPAWN, SV_ITEMACC, // items

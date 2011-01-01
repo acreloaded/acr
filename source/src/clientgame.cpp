@@ -468,6 +468,8 @@ bool tryrespawn()
 	return false;
 }
 
+#include "clientpoints.h"
+
 // damage arriving from the network, monsters, yourself, all ends up here.
 
 void dodamage(int damage, playerent *pl, playerent *actor, int weapon, bool gib, bool local)
@@ -564,7 +566,10 @@ void dokill(playerent *pl, playerent *act, int weapon, bool gib, int finishingda
 		addgib(pl);
 	}
 	
-	if(!m_mp(gamemode)) act->frags += (pl==act || isteam(pl, act)) ? -1 : gib ? 2 : 1;
+	if(!m_mp(gamemode)){
+		act->frags += (pl==act || isteam(pl, act)) ? -1 : gib ? 2 : 1;
+		killpoints(pl, act, weapon, gib);
+	}
 
 	deathstate(pl);
 	pl->deaths++;
