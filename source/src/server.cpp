@@ -2556,7 +2556,7 @@ void getservermap(void)
 
 void sendresume(client &c, bool broadcast)
 {
-	sendf(broadcast ? -1 : c.clientnum, 1, "rxii9vvi", broadcast ? c.clientnum : -1, SV_RESUME,
+	sendf(broadcast ? -1 : c.clientnum, 1, "rxi2i9vvi", broadcast ? c.clientnum : -1, SV_RESUME,
 			c.clientnum,
 			c.state.state,
 			c.state.lifesequence,
