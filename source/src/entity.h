@@ -72,11 +72,11 @@ static guninfo guns[NUMGUNS] =
 //	{ modelname;     snd,	  rldsnd,  rldtime, atkdelay,  dmg, rngstart, rngend, rngm,psd,ptt,spr,kick,magsz,mkrot,mkback,rcoil,maxrcl,pushf; auto;}
 	{ "knife",       S_KNIFE,    S_NULL,     0,      560,    250,  3,    4,   250,   0,   0,  1,    1,   1,    0,  0,   0,    0,      5,   true },
 	{ "pistol",      S_PISTOL,   S_RPISTOL,  1400,   90,     40,   40,  120,   20,   0,   0, 90,    9,   12,   6,  2,   50,   85,     1,   false},
-	{ "autoshotgun", S_SHOTGUN, S_RSHOTGUN,  2400,   181,    12,   16,   32,    8,   0,   0,  1,   12,   10,   9,  5,   80,   80,     2,   true },
-	{ "subgun",      S_SUBGUN,   S_RSUBGUN,  1858,   67,     40,   40,   90,   15,   0,   0, 70,    4,   32,   1,  3,   24,   60,     1,   true },
+	{ "autoshotgun", S_SHOTGUN,  S_RSHOTGUN, 2400,   200,     6,   16,   32,    4,   0,   0,  1,   12,   10,   9,  5,   80,   80,     2,   true },
+	{ "subgun",      S_SUBGUN,   S_RSUBGUN,  1858,   67,     35,   40,   90,   20,   0,   0, 70,    4,   32,   1,  3,   24,   60,     1,   true },
 	{ "sniper",      S_SNIPER,   S_RSNIPER,  1950,   500,    140,  10,  100,   10,   0,   0,512,   18,   10,   4,  4,  120,  125,     2,   false},
-	{ "shotgun",     S_SLUG,     S_RSLUG,    2400,   1000,   200,  16,   32,   50,   0,   0,  1,   16,    8,   9,  5,   80,   94,     2,   false},
-	{ "assault",     S_ASSAULT,  S_RASSAULT, 2000,   73,     40,   50,   150,  14,   0,   0, 60,    3,   30,   0,  3,   25,   63,     1,   true },
+	{ "shotgun",     S_SLUG,     S_RSLUG,    2400,   700,    200,  16,   32,   50,   0,   0,  1,   16,    8,   9,  5,   80,   94,     2,   false},
+	{ "assault",     S_ASSAULT,  S_RASSAULT, 2000,   73,     30,   50,   150,  10,   0,   0, 60,    3,   30,   0,  3,   25,   63,     1,   true },
 	{ "grenade",     S_NULL,     S_NULL,     1000,   650,    200,  0,    8,    200,  20,  6,  1,    1,    1,   3,  1,   0,    0,      4,   false},
 	{ "pistol",      S_PISTOL,   S_RAKIMBO,  1400,   60,     36,   160,  210,  16,   0,   0, 90,    9,   16,   6,  2,   35,   60,     3,   true },
 }; 
