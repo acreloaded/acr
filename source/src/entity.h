@@ -200,7 +200,7 @@ struct dynent : physent				 // animated ent
 	virtual ~dynent() {}
 };
 
-#define MAXNAMELEN 15
+#define MAXNAMELEN 16
 #define MAXTEAMLEN 4
 
 struct bounceent;

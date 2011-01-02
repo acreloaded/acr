@@ -39,7 +39,7 @@ ENetSocket httpgetsend(ENetAddress &remoteaddress, const char *hostname, const c
 	s_sprintfd(httpget)("GET %s HTTP/1.0\nHost: %s\nReferer: %s\nUser-Agent: %s\n\n", req, hostname, ref, agent);
 	buf.data = httpget;
 	buf.dataLength = strlen((char *)buf.data);
-	logline(ACLOG_INFO, "sending request to %s...", hostname);
+	//logline(ACLOG_INFO, "sending request to %s...", hostname);
 	enet_socket_send(sock, NULL, &buf, 1);
 	return sock;
 }
@@ -78,6 +78,7 @@ string masterbase;
 string masterpath;
 uchar masterrep[MAXTRANS];
 ENetBuffer masterb;
+vector<authrequest> authrequests;
 
 // send alive signal to masterserver every hour of uptime
 void updatemasterserver(int millis, const ENetAddress &localaddr)
@@ -85,6 +86,19 @@ void updatemasterserver(int millis, const ENetAddress &localaddr)
 	if(!millis || millis/(60*60*1000)!=lastupdatemaster)
 	{
 		s_sprintfd(path)("%sregister/%d/%d", masterpath, PROTOCOL_VERSION, localaddr.port);
+		s_sprintfd(agent)("AssaultCube Server %d", AC_VERSION);
+		mssock = httpgetsend(masterserver, masterbase, path, "assaultcubeserver", agent, &msaddress);
+		logline(ACLOG_INFO, "sending registration request to %s...", masterbase);
+		masterrep[0] = 0;
+		masterb.data = masterrep;
+		masterb.dataLength = MAXTRANS-1;
+		lastupdatemaster = millis/(60*60*1000);
+	} else if (authrequests.length()){
+		authrequest &r = authrequests.remove(0);
+		// request first auth
+		string path;
+		if(r.answer) s_sprintf(path)("%sauth/%d/%s", masterpath, r.id, r.chal);
+		else s_sprintf(path)("%sauth/%d", masterpath, r.id);
 		s_sprintfd(agent)("AssaultCube Server %d", AC_VERSION);
 		mssock = httpgetsend(masterserver, masterbase, path, "assaultcubeserver", agent, &msaddress);
 		masterrep[0] = 0;
@@ -101,7 +115,43 @@ void checkmasterreply()
 		mssock = ENET_SOCKET_NULL;
 		string text;
 		filtertext(text, (const char *) stripheader(masterrep));
-		logline(ACLOG_INFO, "masterserver reply: %s", text);
+		char *tp = text;
+		if(*tp++ == '*'){
+			char t = *tp++;
+			if(!t) return;
+			char rtxt[12] = ""; char *r = rtxt; int rl;
+			while(rl < 11 && (*r++ = *tp++) && r[-1] != '|') rl++;
+			if(*--r == '|') *r = 0; // overwrite bar to NULL
+			uint authid = atoi(rtxt);
+			if(!authid) return;
+			switch(t){
+				case 'd': // fail to claim
+				case 'f': // failure
+					extern void authfail(uint id, bool disconnect);
+					authfail(authid, t == 'd');
+					break;
+				case 's': // succeed
+				{
+					if(!*tp) return;
+					char priv = atoi(tp++);
+					if(!priv || !*tp) return;
+					string name;
+					filtertext(name, tp, 1, MAXNAMELEN);
+					extern void authsuceeded(uint id, char priv, char *name);
+					authsuceeded(authid, priv, name);
+					break;
+				}
+				case 'c': // challenge
+					if(!*tp) return;
+					extern void authchallenged(uint id, int nonce);
+					authchallenged(authid, atoi(tp));
+					break;
+				default:
+					logline(ACLOG_INFO, "masterserver sent an unknown command: %s", text);
+					return;
+			}
+		}
+		else logline(ACLOG_INFO, "masterserver reply: %s", text);
 	}
 }
 
@@ -156,7 +206,7 @@ extern int getpongflags(enet_uint32 ip);
 void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int protocol_version)
 {
 	checkmasterreply();
-	if(protocol_version > 0 || strncmp(masterpath, AC_MASTER_URI, 23)) updatemasterserver(millis, localaddr);
+	updatemasterserver(millis, localaddr);
 
 	static ENetSocketSet sockset;
 	ENET_SOCKETSET_EMPTY(sockset);

@@ -175,12 +175,13 @@ struct savedscore
 {
 	string name;
 	uint ip;
-	int points, frags, flagscore, deaths, shotdamage, damage;
+	int points, frags, killstreak, flagscore, deaths, shotdamage, damage;
 
 	void save(clientstate &cs)
 	{
 		points = cs.points;
 		frags = cs.frags;
+		killstreak = cs.killstreak;
 		flagscore = cs.flagscore;
 		deaths = cs.deaths;
 		shotdamage = cs.shotdamage;
@@ -191,6 +192,7 @@ struct savedscore
 	{
 		cs.points = points;
 		cs.frags = frags;
+		cs.killstreak = killstreak;
 		cs.flagscore = flagscore;
 		cs.deaths = deaths;
 		cs.shotdamage = shotdamage;
@@ -199,6 +201,8 @@ struct savedscore
 };
 
 static vector<savedscore> scores;
+
+uint nextauthreq = 1;
 
 struct client				   // server side version of "dynent" type
 {
@@ -210,6 +214,7 @@ struct client				   // server side version of "dynent" type
 	int ping, team, skin, vote, priv;
 	int connectmillis;
 	bool isauthed; // for passworded servers
+	uint authreq;
 	bool haswelcome;
 	bool isonrightmap;
 	bool timesync;
@@ -259,7 +264,7 @@ struct client				   // server side version of "dynent" type
 		lastvotecall = 0;
 		vote = VOTE_NEUTRAL;
 		lastsaytext[0] = '\0';
-		saychars = 0;
+		saychars = authreq = 0;
 		spawnindex = -1;
 		mapchange();
 	}
@@ -2580,7 +2585,7 @@ void getservermap(void)
 
 void sendresume(client &c, bool broadcast)
 {
-	sendf(broadcast ? -1 : c.clientnum, 1, "rxi2i9vvi", broadcast ? c.clientnum : -1, SV_RESUME,
+	sendf(broadcast ? -1 : c.clientnum, 1, "rxi3i9vvi", broadcast ? c.clientnum : -1, SV_RESUME,
 			c.clientnum,
 			c.state.state,
 			c.state.lifesequence,
@@ -2588,6 +2593,7 @@ void sendresume(client &c, bool broadcast)
 			c.state.points,
 			c.state.flagscore,
 			c.state.frags,
+			c.state.killstreak,
 			c.state.deaths,
 			c.state.health,
 			c.state.armour,
@@ -2727,6 +2733,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath)
 			putint(p, c.state.points);
 			putint(p, c.state.flagscore);
 			putint(p, c.state.frags);
+			putint(p, c.state.killstreak);
 			putint(p, c.state.deaths);
 			putint(p, c.state.health);
 			putint(p, c.state.armour);
@@ -2750,6 +2757,8 @@ void sendwelcome(client *cl, int chan, bool forcedeath)
 	if(!packet->referenceCount) enet_packet_destroy(packet);
 	cl->haswelcome = true;
 }
+
+#include "auth.h"
 
 int checktype(int type, client *cl){ // invalid defined types handled in the processing function
 	if(cl && cl->type==ST_LOCAL) return type;
@@ -3099,7 +3108,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(cl->state.grenades.throwable <= 0) break;
 				cl->state.grenades.throwable--;
 				loopi(2) from[i] = clamp(from[i], 0.f, (1 << maplayout_factor) - 1.f);
-				if(maplayout && maplayout[((int)from.x) + (((int)from.y) << maplayout_factor)] > from.z + 3) from = vec();
+				if(maplayout && maplayout[((int)from.x) + (((int)from.y) << maplayout_factor)] > from.z + 3)
+					from.z = maplayout[((int)from.x) + (((int)from.y) << maplayout_factor)] - 3;
 				if(!vel.iszero()) vel.normalize().mul(NADEPOWER);
 				ucharbuf newmsg(cl->messages.reserve(7 * sizeof(float)));
 				putint(newmsg, SV_THROWNADE);
@@ -3284,6 +3294,46 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				int wants = getint(p);
 				getstring(text, p);
 				changeclientrole(sender, wants, text);
+				break;
+			}
+
+			case SV_AUTHREQ:
+			{
+				if(!isdedicated){ sendf(sender, 1, "ri2", SV_AUTHCHAL, 2); break;}
+				if(cl->authreq){
+					sendf(sender, 1, "ri2", SV_AUTHCHAL, 1);
+					break;
+				}
+				authrequest &r = authrequests.add();
+				r.id = cl->authreq = nextauthreq++;
+				r.answer = false;
+				logline(ACLOG_INFO, "[%s] %s is requesting an authority challenge", cl->hostname, cl->name);
+				sendf(sender, 1, "ri2", SV_AUTHCHAL, 0);
+				break;
+			}
+
+			case SV_AUTHCHAL:
+			{
+				getstring(text, p);
+				if(!isdedicated){ sendf(sender, 1, "ri2", SV_AUTHCHAL, 2); break;}
+				if(!cl->authreq) break;
+				loopv(authrequests){
+					if(authrequests[i].id == cl->authreq){
+						sendf(sender, 1, "ri2", SV_AUTHCHAL, 1);
+						break;
+					}
+				}
+				authrequest &r = authrequests.add();
+				r.id = cl->authreq;
+				r.answer = true;
+				char *t = text, *d = r.chal;
+				while(isxdigit(*t)){ // SHA1 is 20 bits (40 hexadecimal characters)
+					*d++ = *t++; // copy
+				}
+				while(strlen(r.chal) < 40) *d++ = '0'; // pad string
+				r.chal[40] = 0; // terminate string
+				logline(ACLOG_INFO, "[%s] %s is answering challenge #%d", cl->hostname, cl->name, r.id);
+				sendf(sender, 1, "ri2", SV_AUTHCHAL, 4);
 				break;
 			}
 

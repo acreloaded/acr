@@ -2,7 +2,7 @@
 	// general
 	$config['contact'] = 'Please contact the masterserver admin.'; // include some form of contact
 	// servers
-	$config['servers']['minprotocol'] = 2100; // protocol requirements
+	$config['servers']['minprotocol'] = 2103; // protocol requirements
 	$config['servers']['autoapprove'] = true; // servers can be registered
 	$config['servers']['force'] = array(
 		// "server:port",
@@ -12,7 +12,7 @@
 	
 	// motd
 	$config['motd'] = <<<MOTD
-\f1Test \f2message! 'Single Quotes' "Double Quotes"
+\f0Welcome \f1to \f2the \f7Assault\f3Cube \f8Special \f9Edition \f3master\f5server
 MOTD;
 
 	// database

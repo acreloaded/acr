@@ -134,6 +134,12 @@
     <ClInclude Include="..\src\clientpoints.h">
       <Filter>headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\sha1.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\auth.h">
+      <Filter>headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\ChangeLog.txt">
@@ -386,6 +392,9 @@
     </ClCompile>
     <ClCompile Include="..\src\bot\botmanager.cpp">
       <Filter>bot</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\sha1.cpp">
+      <Filter>cs</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

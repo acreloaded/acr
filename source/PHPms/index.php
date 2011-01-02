@@ -1,7 +1,9 @@
 <?
 	require "config.php"; // get our configuration
+	require_once "inc.ip.php"; // function to detect IP
 	require_once "cron.php"; // take care of the tasks
 	require_once "bans.php"; // banning sysrem
+	require_once "auth.php"; // auths
 	docron();
 	function getServers(){ // {string, int}[] (void)
 		global $config;
@@ -35,10 +37,10 @@
 		$port = intval($_GET['port']);
 		if($port < $config['servers']['minport'] || $port > $config['servers']['maxport'])
 			exit("You may only register a server with ports between {$config['servers']['minport']} and {$config['servers']['maxport']}");
-		require_once "inc.ip.php"; // function to detect IP
 		$ip = getiplong();
 		// find server
 		// connect_db(); // we took care of this in cron
+		mysql_query("DELETE FROM `{$config['db']['pref']}auth` WHERE `ip`={$ip}"); // clear auth from this server
 		if($q = mysql_num_rows(mysql_query("SELECT `port` FROM `{$config['db']['pref']}servers` WHERE `ip`={$ip} AND `port`={$port}"))){ // renew
 			mysql_query("UPDATE `{$config['db']['pref']}servers` SET `time`=".time()." WHERE `ip`={$ip} AND `port`={$port}");
 			echo 'Your server has been renewed.';
@@ -52,6 +54,30 @@
 			echo 'Your server has been registered. Make sure your server is accessible from the internet as it cannot be verified from this end.';
 		}
 	}
+	elseif(isset($_GET['authreq'])){ // request auth
+		$ip = getiplong();
+		$q = mysql_num_rows(mysql_query("SELECT `ip` FROM `{$config['db']['pref']}servers` WHERE `ip`={$ip}"));
+		if(!$q) exit("*f{$id}");
+		$id = intval($_GET['id']);
+		$q = mysql_num_rows(mysql_query("SELECT `id` FROM `{$config['db']['pref']}auth` WHERE `ip`={$ip} AND `id`={$id}"));
+		if($q) exit("*f{$id}");
+		$nonce = mt_rand(0, 2147483647); // 32-bit signed -> 31-bit unsigned
+		mysql_query("INSERT INTO `{$config['db']['pref']}auth` (`ip`, `time`, `id`, `nonce`) VALUES ({$ip}, ".time().", {$id}, {$nonce})");
+		echo "*c{$id}|".$nonce;
+	}
+	elseif(isset($_GET['authchal'])){ // answer auth
+		$ip = getiplong();
+		$q = mysql_num_rows(mysql_query("SELECT `ip` FROM `{$config['db']['pref']}servers` WHERE `ip`={$ip}"));
+		if(!$q) exit("*f{$id}");
+		$id = intval($_GET['id']);
+		$q = mysql_num_rows(mysql_query("SELECT `id` FROM `{$config['db']['pref']}auth` WHERE `ip`={$ip} AND `id`={$id}"));
+		if(!$q) exit("*f{$id}");
+		$q = mysql_result(mysql_query("SELECT `nonce` FROM `{$config['db']['pref']}auth` WHERE `ip`={$ip} AND `id`={$id}"), 0, 0);
+		mysql_query("DELETE FROM `{$config['db']['pref']}auth` WHERE `ip`={$ip} AND `id`={$id}"); // used auth
+		$ans = &$_GET['ans'];
+		foreach($config['auth'] as $authkey) if(strtolower($ans) == sha1($q.$authkey[0])) exit("*s{$id}|".$authkey[2].$authkey[1]);
+		echo "*d{$id}"; // no match
+	}
 	else{
 	echo <<<INFO
 AssaultCube Special Edition Master Server
@@ -59,6 +85,6 @@ AssaultCube Special Edition Master Server
 Use /cube for CubeScript Server List
 Use /xml for XML Server List (Custom format)
 Your server may register any port between {$config['servers']['minport']} and {$config['servers']['maxport']} if:
-your server is running version {$config['servers']['minversion']} (protocol {$config['servers']['minprotocol']}) or later.
+your server is running protocol {$config['servers']['minprotocol']} or later.
 INFO
 ;}?>

@@ -580,3 +580,8 @@ COMMAND(resetsecuremaps, ARG_NONE);
 COMMAND(securemap, ARG_1STR);
 COMMAND(getdemo, ARG_1INT);
 COMMAND(listdemos, ARG_NONE);
+
+void tryauth(){
+	addmsg(SV_AUTHREQ, "r");
+}
+COMMANDN(auth, tryauth, ARG_NONE);

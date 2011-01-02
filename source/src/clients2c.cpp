@@ -160,7 +160,11 @@ void parsepositions(ucharbuf &p)
 	}
 }
 
+SVARP(authkey, "none");
+
 extern votedisplayinfo *curvote;
+
+#include "sha1.h"
 
 void parsemessages(int cn, playerent *d, ucharbuf &p)
 {
@@ -497,7 +501,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				{
 					int cn = getint(p);
 					if(p.overread() || cn<0) break;
-					int state = getint(p), lifesequence = getint(p), gunselect = getint(p), points = getint(p), flagscore = getint(p), frags = getint(p), deaths = getint(p), health = getint(p), armour = getint(p);
+					int state = getint(p), lifesequence = getint(p), gunselect = getint(p), points = getint(p), flagscore = getint(p), frags = getint(p), killstreak = getint(p), deaths = getint(p), health = getint(p), armour = getint(p);
 					int ammo[NUMGUNS], mag[NUMGUNS];
 					loopi(NUMGUNS) ammo[i] = getint(p);
 					loopi(NUMGUNS) mag[i] = getint(p);
@@ -508,6 +512,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					d->points = points;
 					d->flagscore = flagscore;
 					d->frags = frags;
+					d->killstreak = killstreak;
 					d->deaths = deaths;
 					if(d!=player1)
 					{
@@ -718,7 +723,58 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					else hudoutf("\f3there is already a \f1master \f2(\f0%s\f2)", n);
 					break;
 				}
-				hudoutf("%s \f2%s \f%d%s \f5status", n, drop ? "relinquished" : "claimed", privcolor(r), privname(r));
+				(d == player1 ? hudoutf : conoutf)("%s \f2%s \f%d%s \f5status", n, drop ? "relinquished" : "claimed", privcolor(r), privname(r));
+				break;
+			}
+
+			case SV_AUTHREQ:
+			{
+				int nonce = getint(p);
+				conoutf("server is challenging authentication details");
+				string buf;
+				itoa(buf, nonce);
+				s_strcat(buf, authkey);
+				unsigned message_digest[5];
+				SHA1 sha;
+				sha << buf;
+				if(!sha.Result(message_digest)){
+					conoutf("could not compute message digest");
+					break;
+				}
+				s_sprintfd(answer)("%x%x%x%x%x", message_digest[0], message_digest[1], message_digest[2], message_digest[3], message_digest[4]);
+				s_strncpy(answer, answer, 41); // 40 hex digits
+				addmsg(SV_AUTHCHAL, "rs", answer);
+				break;
+			}
+
+			case SV_AUTHCHAL:
+			{
+				switch(getint(p)){
+					case 0:
+						conoutf("please wait, requesting challenge");
+						break;
+					case 1:
+						conoutf("waiting for previous attempt...");
+						break;
+					case 2:
+						conoutf("not connected to authentication server");
+						break;
+					case 3:
+						conoutf("authority request failed");
+						break;
+					case 4:
+						conoutf("please wait, requesting credential match");
+						break;
+					case 5:
+					{
+						int cn = getint(p); getstring(text, p);
+						playerent *d = getclient(cn);
+						if(!d) break;
+						filtertext(text, text, 1, MAXNAMELEN);
+						(d == player1 ? hudoutf : conoutf)("%s \f1identified as \f2'\f9%s\f2'", colorname(d), text);
+						break;
+					}
+				}
 				break;
 			}
 

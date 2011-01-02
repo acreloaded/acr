@@ -5,7 +5,7 @@
 #define CUBE_SERVINFO_PORT_LAN 28778
 #define CUBE_SERVINFO_PORT(serverport) (serverport+1)
 #define CUBE_SERVINFO_TO_SERV_PORT(servinfoport) (servinfoport-1)
-#define PROTOCOL_VERSION 2102		   // bump when protocol changes
+#define PROTOCOL_VERSION 2103		   // bump when protocol changes
 #define DEMO_VERSION 2				  // bump when demo format changes
 #define DEMO_MAGIC "ACS_DEMO"
 #define MAXMAPSENDSIZE 65536
@@ -19,6 +19,7 @@ enum{
 	SV_TEXT, SV_WHOIS, SV_NEWNAME, SV_SKIN, SV_SWITCHTEAM, // user-initiated
 	SV_CALLVOTE, SV_CALLVOTEERR, SV_VOTE, SV_VOTERESULT, // votes
 	SV_LISTDEMOS, SV_DEMO, SV_DEMOPLAYBACK, // demos
+	SV_AUTHREQ, SV_AUTHCHAL, // auth
 	SV_SETROLE, SV_ROLECHANGE, // privileges
 	SV_SENDMAP, SV_RECVMAP, // map transit
 	// editmode ONLY
@@ -115,3 +116,5 @@ enum
 #define m_demo		(gamemode==-1)
 #define m_flags	   (m_ctf || m_htf || m_ktf)
 
+struct authrequest{ uint id; bool answer; string chal; };
+extern vector<authrequest> authrequests;
