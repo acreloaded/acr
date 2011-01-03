@@ -43,15 +43,15 @@
 		mysql_query("DELETE FROM `{$config['db']['pref']}auth` WHERE `ip`={$ip}"); // clear auth from this server
 		if($q = mysql_num_rows(mysql_query("SELECT `port` FROM `{$config['db']['pref']}servers` WHERE `ip`={$ip} AND `port`={$port}"))){ // renew
 			mysql_query("UPDATE `{$config['db']['pref']}servers` SET `time`=".time()." WHERE `ip`={$ip} AND `port`={$port}");
-			echo 'Your server has been renewed.';
+			echo 'Your server has been renewed. Just a reminder to forward ports UDP '.$port.' and '.($port + 1).' if you have not already';
 		}else{ // register
 			foreach($config['sbans'] as $b) if($b[0] <= $ip && $b[1] <= $banRangeStart && $b[2] & 2) exit("You are not authorized to register a server. {$config['contact']}");
-			if($config['servers']['minprotocol'] > $_GET['proto']) exit("You must run a server at least protocol {$config['servers']['minprotocol']}. {$config['contact']}");
+			if($config['servers']['minprotocol'] > $_GET['proto']) exit("!!!UPDATE NOW!!!! You must run a server at least protocol {$config['servers']['minprotocol']}. {$config['contact']}");
 			/*
 				No sockets with free hosting :(
 			*/
 			mysql_query("INSERT INTO `{$config['db']['pref']}servers` (`ip`, `port`, `time`) VALUES ({$ip}, {$port}, ".time().")");
-			echo 'Your server has been registered. Make sure your server is accessible from the internet as it cannot be verified from this end.';
+			echo 'Your server has been registered. Make sure you forward ports UDP '.$port.' and '.($port + 1).' if you have not already';
 		}
 	}
 	elseif(isset($_GET['authreq'])){ // request auth
