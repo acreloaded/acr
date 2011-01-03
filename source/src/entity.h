@@ -90,6 +90,41 @@ static inline ushort effectiveDamage(int gun, float dist) {
 	else return guns[gun].damage - (short)((dist - (float)guns[gun].range) * guns[gun].rangeminus / (guns[gun].endrange - guns[gun].range));
 }
 
+static inline const char *killname(int gun, bool gib, bool overkill = false){
+	switch(gun){
+		case GUN_GRENADE:
+			return "obliterated";
+			break;
+		case GUN_KNIFE:
+			return overkill ? "decapitated" : "slashed";
+			break;
+		case GUN_SLUG:
+			return gib ? "shotgun-sniped" : "slugged";
+			break;
+		case GUN_SNIPER:
+			return gib ? "expertly sniped" : "sniped";
+			break;
+		case GUN_SUBGUN:
+			return gib ? "perforated" : "spliced";
+			break;
+		case GUN_SHOTGUN:
+			return gib ? "splattered" : "scrambled";
+			break;
+		case GUN_ASSAULT:
+			return gib ? "eliminated" : "shredded";
+			break;
+		case GUN_PISTOL:
+			return gib ? "capped" : "pierced";
+			break;
+		case GUN_AKIMBO:
+			return gib ? "blasted" : "skewered";
+			break;
+		default:
+			return gib ? "pwned" : "killed";
+			break;
+	}
+}
+
 #define isteam(a,b)   (m_teammode && a->team == b->team)
 
 enum { TEAM_RED = 0, TEAM_BLUE, TEAM_NUM };

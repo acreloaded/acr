@@ -1419,7 +1419,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 		target->position.setsizenodelete(0);
 		ts.state = CS_DEAD;
 		ts.lastdeath = gamemillis;
-		if(!suic) logline(ACLOG_INFO, "[%s] %s %s %s", actor->hostname, actor->name, gib ? "gibbed" : "fragged", target->name);
+		if(!suic) logline(ACLOG_INFO, "[%s] %s %s %s", actor->hostname, actor->name, killname(gun, gib, damage > guns[gun].damage), target->name);
 		else logline(ACLOG_INFO, "[%s] %s suicided", actor->hostname, actor->name);
 
 		if(m_flags && targethasflag >= 0)

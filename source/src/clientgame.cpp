@@ -501,38 +501,7 @@ void dokill(playerent *pl, playerent *act, int weapon, bool gib, int finishingda
 	s_strcpy(pname, pl==player1 ? "\fs\f1you\fr" : colorname(pl));
 	s_strcpy(aname, act==player1 ? "\fs\f1you\fr" : colorname(act));
 	// s_strcpy(death, gib ? "gibbed" : "fragged");
-	switch(weapon){
-		case GUN_GRENADE:
-			s_strcpy(death, "obliterated");
-			break;
-		case GUN_KNIFE:
-			s_strcpy(death, finishingdamage > guns[GUN_KNIFE].damage ? "decapitated" : "slashed");
-			break;
-		case GUN_SLUG:
-			s_strcpy(death, gib ? "shotgun-sniped" : "slugged");
-			break;
-		case GUN_SNIPER:
-			s_strcpy(death, gib ? "expertly sniped" : "sniped");
-			break;
-		case GUN_SUBGUN:
-			s_strcpy(death, gib ? "perforated" : "spliced");
-			break;
-		case GUN_SHOTGUN:
-			s_strcpy(death, gib ? "splattered" : "scrambled");
-			break;
-		case GUN_ASSAULT:
-			s_strcpy(death, gib ? "eliminated" : "shredded");
-			break;
-		case GUN_PISTOL:
-			s_strcpy(death, gib ? "capped" : "pierced");
-			break;
-		case GUN_AKIMBO:
-			s_strcpy(death, gib ? "blasted" : "skewered");
-			break;
-		default:
-			s_strcpy(death, gib ? "pwned" : "killed");
-			break;
-	}
+	s_strcpy(death, killname(weapon, gib, finishingdamage > guns[weapon].damage));
 	//void (*outf)(const char *s, ...) = (pl == player1 || act == player1) ? hudoutf : conoutf;
 	playerent *p = camera1->type<ENT_CAMERA ? (playerent *)camera1 : player1;
 	void (*outf)(const char *s, ...) = (pl == p || act == p) ? hudoutf : conoutf;
