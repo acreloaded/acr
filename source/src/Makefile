@@ -90,11 +90,11 @@ server: libenet $(SERVER_FILES)
 	$(CXX) $(CXXFLAGSSERVER) -o ac_server -DSTANDALONE $(SERVER_FILES) $(SERVER_LIBS)
 
 install: all
-	cp ac_client ../../bin_unix/$(PLATFORM_PREFIX)_client
-	cp ac_server ../../bin_unix/$(PLATFORM_PREFIX)_server
+	cp ac_client ../$(PLATFORM_PREFIX)_client
+	cp ac_server ../$(PLATFORM_PREFIX)_server
 #	strip ../../bin_unix/$(PLATFORM_PREFIX)_client
 #	strip ../../bin_unix/$(PLATFORM_PREFIX)_server
 
 server_install: server
-	cp ac_server ../../bin_unix/$(PLATFORM_PREFIX)_server
+	cp ac_server ../$(PLATFORM_PREFIX)_server
 #	strip ../../bin_unix/$(PLATFORM_PREFIX)_server
