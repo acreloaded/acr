@@ -322,8 +322,8 @@ public:
 	 char m_szTeam[32];
 	 short m_sSkillNr;
 
-	 CStoredBot(char *name, char *team, short skill) : m_sSkillNr(skill)
-		  { strcpy(m_szName, name); strcpy(m_szTeam, team); };
+	 CStoredBot(char *name, int team, short skill) : m_sSkillNr(skill)
+		  { strcpy(m_szName, name); strcpy(m_szTeam, team_string(team)); };
 };
 
 extern vector<botent *> bots;

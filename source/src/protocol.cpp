@@ -123,7 +123,7 @@ void filtertext(char *dst, const char *src, int whitespace, int len)
 	*dst = '\0';
 }
 
-inline void filtername(char *dst, const char *src){
+void filtername(char *dst, const char *src){
 	int len = MAXNAMELEN;
 	for(char c = *src & 0x7F; c; c = *++src)
 	{

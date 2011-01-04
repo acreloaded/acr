@@ -33,6 +33,7 @@ CLIENT_OBJS1= \
 	server.o \
 	serverbrowser.o \
 	serverms.o \
+	sha1.o \
 	shadow.o \
 	sound.o \
 	texture.o \

@@ -327,7 +327,7 @@ void CBotManager::EndMap()
 		  // Store bots so they can be re-added after map change
 		  if (bots[i]->pBot && bots[i]->name[0])
 		  {
-			   CStoredBot *pStoredBot = new CStoredBot(bots[i]->name, team_string(bots[i]->team),
+			   CStoredBot *pStoredBot = new CStoredBot(bots[i]->name, bots[i]->team,
 													   bots[i]->pBot->m_sSkillNr);
 			   m_StoredBots.AddNode(pStoredBot);
 		  }

@@ -94,7 +94,7 @@ void updatemasterserver(int millis, const ENetAddress &localaddr)
 		masterb.dataLength = MAXTRANS-1;
 		lastupdatemaster = millis/(60*60*1000);
 	} else if (authrequests.length()){
-		authrequest &r = authrequests.remove(0);
+		authrequest r = authrequests.remove(0);
 		// request first auth
 		string path;
 		if(r.answer) s_sprintf(path)("%sauth/%d/%s", masterpath, r.id, r.chal);

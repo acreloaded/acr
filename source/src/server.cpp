@@ -1396,7 +1396,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 	sendf(-1, 1, "ri7", SV_DAMAGE, target->clientnum, actor->clientnum, damage, ts.armour, ts.health, gun | (gib ? 0x80 : 0));
 	if(ts.health<=0)
 	{
-		
+
 		int targethasflag = clienthasflag(target->clientnum);
 		int cnumber = numauthedclients() < 12 ? numauthedclients() : 12;
 		bool suic = false;
@@ -2025,7 +2025,7 @@ bool refillteams(bool now, int ftr)  // force only minimal amounts of players
 			if(clienthasflag(i) < 0) {
 				c->at3_dontmove = false;
 				moveable[c->team]++;
-			} 
+			}
         }
     }
     int bigteam = teamsize[1] > teamsize[0];
@@ -2964,7 +2964,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				cl->skin = getint(p);
 				QUEUE_MSG;
 				break;
-			
+
 			case SV_MAPIDENT:
 			{
 				int gzs = getint(p);
@@ -3921,30 +3921,30 @@ void extinfo_teamscorebuf(ucharbuf &p)
 	putint(p, minremain);
 	if(!m_teammode) return;
 
-	cvector teams;
+	ivector teams;
 	bool addteam;
 	loopv(clients) if(clients[i]->type!=ST_EMPTY)
 	{
 		addteam = true;
 		loopvj(teams)
 		{
-			if(!strcmp(team_string(clients[i]->team),teams[j]))
+			if(clients[i]->team == teams[j])
 			{
 				addteam = false;
 				break;
 			}
 		}
-		if(addteam) teams.add(team_string(clients[i]->team));
+		if(addteam) teams.add(clients[i]->team);
 	}
 
 	loopv(teams)
 	{
-		sendstring(teams[i],p); //team
+		sendstring(team_string(teams[i]),p); //team
 		int fragscore = 0;
 		int flagscore = 0;
 		loopvj(clients) if(clients[j]->type!=ST_EMPTY)
 		{
-			if(strcmp(team_string(clients[j]->team),teams[i])!=0) continue;
+			if(clients[j]->team != teams[i]) continue;
 			fragscore += clients[j]->state.frags;
 			flagscore += clients[j]->state.flagscore;
 		}

@@ -391,9 +391,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			}
 
 			case SV_SG: // someone else's shotgun rays
+			{	
 				extern vec sg[SGRAYS];
 				loopi(SGRAYS) loopj(3) sg[i][j] = getfloat(p);
 				break;
+			}
 
 			case SV_SHOTFX:
 			{

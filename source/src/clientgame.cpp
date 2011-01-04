@@ -360,13 +360,13 @@ int spawncycle = -1;
 int fixspawn = 2;
 
 // returns -1 for a free place, else dist to the nearest enemy
-float nearestenemy(vec place, char *team)
+float nearestenemy(vec place, int team)
 {
 	float nearestenemydist = -1;
 	loopv(players)
 	{
 		playerent *other = players[i];
-		if(!other || (m_teammode && !strcmp(team, team_string(other->team)))) continue;
+		if(!other || (m_teammode && team == other->team)) continue;
 		float dist = place.dist(other->o);
 		if(dist < nearestenemydist || nearestenemydist == -1) nearestenemydist = dist;
 	}
@@ -400,7 +400,7 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
 			{
 				spawncycle = m_ktf && numspawn[2] > 5 ? findentity(PLAYERSTART, spawncycle+1, 100) : findentity(PLAYERSTART, spawncycle+1);
 				if(spawncycle < 0) continue;
-				float dist = nearestenemy(vec(ents[spawncycle].x, ents[spawncycle].y, ents[spawncycle].z), team_string(d->team));
+				float dist = nearestenemy(vec(ents[spawncycle].x, ents[spawncycle].y, ents[spawncycle].z), d->team);
 				if(!e || dist < 0 || (bestdist >= 0 && dist > bestdist)) { e = &ents[spawncycle]; bestdist = dist; }
 			}
 		}
