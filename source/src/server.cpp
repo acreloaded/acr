@@ -3618,6 +3618,7 @@ void loggamestatus(const char *reason)
 		s_strcatf(text, "%4d %5d", c.state.frags, c.state.deaths);  // frag death
 		logline(ACLOG_INFO, "%s%5d %s %s", text, c.ping,
 			c.priv == PRIV_NONE ? "normal " :
+			c.priv == PRIV_MASTER ? "master " :
 			c.priv == PRIV_ADMIN ? "admin  " :
 			c.priv == PRIV_MAX ? "highest" :
 			"unknown", c.hostname);
