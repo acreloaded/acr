@@ -128,6 +128,7 @@ struct giveadminaction : playeraction
 	giveadminaction(int cn, int wants, int caller) : from(caller), playeraction(cn){
 		give = min(wants, clients[from]->priv);
 		role = max(give, 1);
+		passratio = 0.1f;
 		if(valid_client(cn)) s_sprintf(desc)("give %s to %s", privname(give), clients[cn]->name);
 		else s_sprintf(desc)("invalid give-%s", privname(give));
 	}
