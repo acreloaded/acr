@@ -841,10 +841,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						v = newvotedisplayinfo(d, type, NULL, NULL);
 						break;
 					case SA_GIVEADMIN:
-						break;
 						itoa(a, getint(p));
 						itoa(text, getint(p));
 						v = newvotedisplayinfo(d, type, a, text);
+						break;
 					default:
 						itoa(a, getint(p));
 						v = newvotedisplayinfo(d, type, a, NULL);
