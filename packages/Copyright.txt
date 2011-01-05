@@ -1,0 +1,4 @@
+The files here are distributed adhering to the following licence:
+"The entire AssaultCube package MAY be redistributed"
+----------
+It is distributed with our some of our custom content presnt.
