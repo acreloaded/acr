@@ -3410,7 +3410,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(!curvote || vote < VOTE_YES || vote > VOTE_NO) break;
 				if(cl->vote != VOTE_NEUTRAL){
 					if(cl->vote == vote){
-						if(cl->priv >= PRIV_ADMIN) curvote->evaluate(true, vote);
+						if(cl->priv) curvote->evaluate(true, vote);
 						else sendf(sender, 1, "ri2", SV_CALLVOTEERR, VOTEE_MUL);
 						break;
 					}
