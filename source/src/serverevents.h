@@ -77,13 +77,13 @@ void processevent(client *c, shotevent &e)
 				int rays = e.gun==GUN_SHOTGUN ? popcount(h.info) : 1;
 				if(e.gun==GUN_SHOTGUN){
 					uint hitflags = h.info;
-					loopi(SGRAYS) if((hitflags & (1 << i)) && c->state.sg[i].dist(e.to) > 56.f) // 2 meters for height x3 for unknown reasons + 2m for lag
+					loopi(SGRAYS) if((hitflags & (1 << i)) && c->state.sg[i].dist(e.to) > 60.f) // 2 meters for height x3 for unknown reasons + 3m for lag
 						rays --;
 				}
 				if(rays<1) continue;
 				if(totalrays + rays > maxrays) continue;
 				totalrays += rays;
-				if(e.gun != GUN_SHOTGUN && target->state.o.dist(vec(e.to)) > 16.f) continue; // 2 meters for height x2 for lag
+				if(e.gun != GUN_SHOTGUN && target->state.o.dist(vec(e.to)) > 20.f) continue; // 2 meters for height + 3 meters for lag
 
 				bool gib = false;
 				int damage = rays * effectiveDamage(e.gun, c->state.o.dist(vec(e.to)));
