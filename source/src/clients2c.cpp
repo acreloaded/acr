@@ -684,11 +684,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				int acn = getint(p);
 				playerent *alive = acn<0 ? NULL : getclient(acn);
 				conoutf("the round is over! next round in 5 seconds...");
-				if(m_botmode && acn==-2) hudoutf("the bots have won the round!");
+				if(m_botmode && acn==-2) hudoutf("the bots are the victors!");
 				else if(!alive) hudoutf("everyone died!");
-				else if(m_teammode) hudoutf("team %s has won the round!", team_string(alive->team));
-				else if(alive==player1) hudoutf("you are the survivor!");
-				else hudoutf("%s is the survivor!", colorname(alive));
+				else if(m_teammode) hudoutf("team %s is the victor!", team_string(alive->team));
+				else if(alive==player1) hudoutf("you are the victor!");
+				else hudoutf("%s is the victor!", colorname(alive));
 				arenaintermission = lastmillis;
 				break;
 			}
