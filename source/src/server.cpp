@@ -2427,8 +2427,8 @@ void sendwhois(int sender, int cn)
 	{
 		uint ip = clients[cn]->peer->address.host, mask = 1;
 		switch(clients[sender]->priv){
-			case PRIV_MAX: case PRIV_ADMIN: mask = 32; // f.f.f.f/32 full ip
-			case PRIV_MASTER: mask = 12; // f.h/12 - full, half, 2 empty
+			case PRIV_MAX: case PRIV_ADMIN: mask = 32; break; // f.f.f.f/32 full ip
+			case PRIV_MASTER: mask = 12; break; // f.h/12 - full, half, 2 empty
 			case PRIV_NONE: default: mask = 8; break; // f/8 full, 3 empty
 		}
 		ip &= (2 << mask) - 1;
