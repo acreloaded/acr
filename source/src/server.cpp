@@ -3706,6 +3706,11 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
 	if(autoteam && m_teammode && !m_arena && !interm && servmillis - lastfillup > 5000 && refillteams()) lastfillup = servmillis;
 
+	loopv(clients){
+		if(!valid_client(i) || clients[i]->isauthed || clients[i]->connectmillis + 15000 > servmillis) continue;
+		disconnect_client(i, DISC_FF);
+	}
+
 	if(servmillis-laststatus>60*1000)   // display bandwidth stats, useful for server ops
 	{
 		laststatus = servmillis;
