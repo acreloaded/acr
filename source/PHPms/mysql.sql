@@ -1,17 +1,17 @@
 -- AssaultCube Special Edition Masterserver Tables
 
-CREATE TABLE `cubems_auth` (
-   `ip` int(10) unsigned,
-   `time` bigint(20) unsigned,
-   `id` int(10) unsigned,
-   `nonce` int(11),
-   UNIQUE KEY (`ip`,`id`)
+CREATE TABLE IF NOT EXISTS `cubems_auth` (
+  `ip` int(10) unsigned NOT NULL default '0',
+  `time` bigint(20) unsigned default NULL,
+  `id` int(10) unsigned NOT NULL default '0',
+  `nonce` int(11) default NULL,
+  PRIMARY KEY  (`ip`,`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 
-CREATE TABLE `cubems_servers` (
-   `ip` int(10) unsigned,
-   `port` smallint(5) unsigned,
-   `time` bigint(20) unsigned,
-   UNIQUE KEY (`ip`,`port`)
+CREATE TABLE IF NOT EXISTS `cubems_servers` (
+  `ip` int(10) unsigned NOT NULL default '0',
+  `port` smallint(5) unsigned NOT NULL default '0',
+  `time` bigint(20) unsigned default NULL,
+  PRIMARY KEY  (`ip`,`port`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;

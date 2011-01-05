@@ -6,6 +6,7 @@
 	$config['servers']['autoapprove'] = true; // servers can be registered
 	$config['servers']['force'] = array(
 		// "server:port",
+		"localhost:28770",
 );
 	$config['servers']['minport'] = 28760;
 	$config['servers']['maxport'] = 28780;

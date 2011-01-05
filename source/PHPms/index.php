@@ -38,20 +38,32 @@
 		if($port < $config['servers']['minport'] || $port > $config['servers']['maxport'])
 			exit("You may only register a server with ports between {$config['servers']['minport']} and {$config['servers']['maxport']}");
 		$ip = getiplong();
+		// check bans
+		foreach($config['sbans'] as $b) if($b[0] <= $ip && $b[1] <= $banRangeStart && $b[2] & 2) exit("You are not authorized to register a server. {$config['contact']}");
+		
+		// sockets pwn!
+		function nosock(){ global $port; exit("Your server is unreachable. Please make sure port {$port} and ".($port + 1)." is properly forwarded and reachable."); };
+		// noob socket 101
+		$sock = fsockopen("udp://".getip(), $port, $errno, $errstr, 2);
+		if(!$sock) nosock(); // lazy test doesn't always catch it
+		fclose($sock);
+		$sock = fsockopen("udp://".getip(), $port + 1, $errno, $errstr, 3);
+		if(!$sock) nosock();
+		stream_set_timeout($sock, 3);
+		fwrite($sock, "1"); // "standard ping is not equal to the null byte"
+		if(!fread($sock, 1)) nosock(); // if anything comes back...
+		fclose($sock);
+		
+		// connect_db(); // already connected from cronjobs
 		// find server
-		// connect_db(); // we took care of this in cron
 		mysql_query("DELETE FROM `{$config['db']['pref']}auth` WHERE `ip`={$ip}"); // clear auth from this server
 		if($q = mysql_num_rows(mysql_query("SELECT `port` FROM `{$config['db']['pref']}servers` WHERE `ip`={$ip} AND `port`={$port}"))){ // renew
 			mysql_query("UPDATE `{$config['db']['pref']}servers` SET `time`=".time()." WHERE `ip`={$ip} AND `port`={$port}");
-			echo 'Your server has been renewed. Just a reminder to forward ports UDP '.$port.' and '.($port + 1).' if you have not already';
+			echo 'Your server has been renewed.';// Just a reminder to forward ports UDP '.$port.' and '.($port + 1).' if you have not already';
 		}else{ // register
-			foreach($config['sbans'] as $b) if($b[0] <= $ip && $b[1] <= $banRangeStart && $b[2] & 2) exit("You are not authorized to register a server. {$config['contact']}");
 			if($config['servers']['minprotocol'] > $_GET['proto']) exit("!!!UPDATE NOW!!!! You must run a server at least protocol {$config['servers']['minprotocol']}. {$config['contact']}");
-			/*
-				No sockets with free hosting :(
-			*/
 			mysql_query("INSERT INTO `{$config['db']['pref']}servers` (`ip`, `port`, `time`) VALUES ({$ip}, {$port}, ".time().")");
-			echo 'Your server has been registered. Make sure you forward ports UDP '.$port.' and '.($port + 1).' if you have not already';
+			echo 'Your server has been registered.';// Make sure you forward ports UDP '.$port.' and '.($port + 1).' if you have not already';
 		}
 	}
 	elseif(isset($_GET['authreq'])){ // request auth
