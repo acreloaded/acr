@@ -592,7 +592,7 @@ void particle_fireball(int type, const vec &o, playerent *pl)
 {
 	nadexplode nx = {pl ? pl : player1, {o.x, o.y}, lastmillis};
 	nxp.add(nx);
-	newparticle(o, vec(0, 0, 0), (int)((parttypes[type].sz-1.0f)*100.0f), type);
+	newparticle(o, vec(0, 0, 0), 600, type);
 }
 
 VARP(bulletbouncesound, 0, 1, 1);
