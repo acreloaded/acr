@@ -1031,7 +1031,7 @@ void refreshsopmenu(void *menu, bool init)
 	{
 		mline &m = mlines.add();
 		s_strcpy(m.name, colorname(players[i]));
-		s_sprintf(m.cmd)("%s %d", menu==kickmenu ? "kick" : (menu==banmenu ? "ban" : (menu==forceteammenu ? "forceteam" : "giveadmin")), i);
+		s_sprintf(m.cmd)("%s %d", menu==kickmenu ? "kick" : (menu==banmenu ? "ban" : (menu==forceteammenu ? "forceteam" : "giverole")), i);
 		menumanual(menu, m.name, m.cmd);
 	}
 }

@@ -3362,8 +3362,13 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						vi->action = new subdueaction(getint(p));
 						break;
 					case SA_BAN:
-						vi->action = new banaction(getint(p), clamp(getint(p), 1, 60));
+					{
+						int c = getint(p), m = getint(p);
+						if(m == 0) m = 20;
+						else m = clamp(getint(p), 1, 60);
+						vi->action = new banaction(c, m);
 						break;
+					}
 					case SA_REMBANS:
 						vi->action = new removebansaction();
 						break;
@@ -3380,8 +3385,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						vi->action = new forceteamaction(getint(p), sender);
 						break;
 					case SA_GIVEADMIN:
-						vi->action = new giveadminaction(getint(p), getint(p), sender);
+					{
+						int c = getint(p), r = getint(p);
+						vi->action = new giveadminaction(c, r, sender);
 						break;
+					}
 					case SA_RECORDDEMO:
 						vi->action = new recorddemoaction(getint(p)!=0);
 						break;
