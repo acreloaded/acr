@@ -1,18 +1,6 @@
 Licence
 ============
-AssaultCube Special Edition is released under the LGPL v3:
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+AssaultCube Special Edition is released under the GLPv3. Please see Readme-GPL3.txt.
 
 Cheat Protection
 ================
@@ -21,7 +9,7 @@ However, this does not mean that you should not cheat.
 You may cheat, but only for the purpose of improving this game's anti-cheat.
 If nobody cheats, then how will we know how to improve the anti-cheat?
 
-AssaultCube License
+AssaultCube License (Parent licence)
 =====================
 The AssaultCube source code is mainly based on the cube game/engine and uses the zLib licence.
 This modification is allowed due to the licence described.
@@ -29,6 +17,6 @@ This modification is allowed due to the licence described.
 This is a modification of AssaultCube, redistributing the entire AssaultCube package with the included modifications.
 Therefore, this is not a violation of AssaultCube's licence.
 
-Cube Licence
+Cube Licence (Grandparent licence)
 ==============
 Irrelevant; this is an AssaultCube mod. Their relationships with Cube are not "in our jursdiction".

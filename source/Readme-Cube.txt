@@ -1,3 +1,6 @@
+The following licence is of Cube, which is what AssaultCube is based of.
+This game is based off of AssaultCube, so this is the grandparent licence of AssaultCube Special Edition.
+==========
 Cube source code license, usage, and documentation.
 
 You should read this file IN ITS ENTIRETY if you wish to do anything with
