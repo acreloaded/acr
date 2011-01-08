@@ -824,7 +824,7 @@ COMMANDN(dropflag, tryflagdrop, ARG_NONE);
 
 char *votestring(int type, char *arg1, char *arg2)
 {
-	const char *msgs[] = { "kick player %s", "ban player %s for %d minutes", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "\fgive \f%d%s \f5to player %s", "load map %s in mode %s", "%s demo recording for the next match", "stop demo recording", "clear%s demo%s%s", "set server description to '%s'", "shuffle teams", "subdue player %s"};
+	const char *msgs[] = { "kick player %s", "ban player %s for %d minutes", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "\f0give \f%d%s \f5to player %s", "load map %s in mode %s", "%s demo recording for the next match", "stop demo recording", "clear%s demo%s%s", "set server description to '%s'", "shuffle teams", "subdue player %s"};
 	const char *msg = msgs[type];
 	char *out = newstring(_MAXDEFSTR);
 	out[_MAXDEFSTR] = '\0';
