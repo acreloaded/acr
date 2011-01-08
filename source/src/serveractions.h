@@ -125,6 +125,7 @@ struct giveadminaction : playeraction
 		if(valid_client(from) && clients[from]->priv < PRIV_ADMIN) changeclientrole(from, PRIV_NONE, NULL, true);
 		changeclientrole(cn, give, NULL, true);
 	}
+	virtual bool isvalid() { return valid_client(cn); } // give to anyone
 	giveadminaction(int cn, int wants, int caller) : from(caller), playeraction(cn){
 		give = min(wants, clients[from]->priv);
 		role = max(give, 1);
@@ -326,4 +327,3 @@ struct voteinfo
 		else return;
 	}
 };
-static voteinfo *curvote = NULL;

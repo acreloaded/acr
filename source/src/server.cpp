@@ -2240,6 +2240,8 @@ void sendserveropinfo(int receiver = -1){
 }
 
 #include "serveractions.h"
+static voteinfo *curvote = NULL;
+
 void scallvotesuc(voteinfo *v)
 {
 	if(!v->isvalid()) return;
