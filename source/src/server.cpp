@@ -2427,14 +2427,15 @@ void sendwhois(int sender, int cn)
 	if(!valid_client(sender) || !valid_client(cn)) return;
 	if(clients[cn]->type == ST_TCPIP)
 	{
-		uint ip = clients[cn]->peer->address.host, mask = 1;
+		uint ip = clients[cn]->peer->address.host;
+		int mask = 1;
 		switch(clients[sender]->priv){
 			case PRIV_MAX: case PRIV_ADMIN: mask = 32; break; // f.f.f.f/32 full ip
 			case PRIV_MASTER: mask = 12; break; // f.h/12 - full, half, 2 empty
 			case PRIV_NONE: default: mask = 8; break; // f/8 full, 3 empty
 		}
-		ip &= (2 << mask) - 1;
-		sendf(sender, 1, "ri3", SV_WHOIS, cn, ip, mask);
+		if(mask < 32) ip &= (1 << mask) - 1;
+		sendf(sender, 1, "ri4", SV_WHOIS, cn, ip, mask);
 	}
 }
 

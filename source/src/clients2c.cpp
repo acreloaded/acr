@@ -898,15 +898,15 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				int cn = getint(p), ip = getint(p), mask = getint(p);
 				playerent *pl = getclient(cn);
 				s_sprintfd(cip)("%d", ip & 0xFF);
-				if(mask >= 8 || (ip >> 8) & 0xFF){
+				if(mask > 8 || (ip >> 8) & 0xFF){
 					s_sprintf(cip)("%s.%d", cip, (ip >> 8) & 0xFF);
-					if(mask >= 16 || (ip >> 16) & 0xFF){
+					if(mask > 16 || (ip >> 16) & 0xFF){
 						s_sprintf(cip)("%s.%d", cip, (ip >> 16) & 0xFF);
-						if(mask >= 24|| (ip >> 24) & 0xFF) s_sprintf(cip)("%s.%d", cip, (ip >> 24) & 0xFF);
+						if(mask > 24 || (ip >> 24) & 0xFF) s_sprintf(cip)("%s.%d", cip, (ip >> 24) & 0xFF);
 					}
 				}
 				if(mask < 32) s_sprintf(cip)("%s/%d", cip, mask);
-				conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%s", cn, pl ? colorname(pl) : "", cip);
+				conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%s", cn, pl ? colorname(pl) : "unknown", cip);
 				break;
 			}
 
