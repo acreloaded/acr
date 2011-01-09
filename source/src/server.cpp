@@ -2679,15 +2679,17 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath)
 			loopi(2) putflaginfo(p, i);
 		}
 	}
+	bool restored = false;
 	if(c){
+		CHECKSPACE(256);
 		sendserveropinfo(n);
 		putint(p, SV_SETTEAM);
         putint(p, n);
         putint(p, (c->team = freeteam(n)) | (FTR_SILENT << 4));
-	}
-	bool restored = false;
-	if(c)
-	{
+
+		putint(p, SV_FORCEDEATH);
+		putint(p, n);
+		sendf(-1, 1, "ri2x", SV_FORCEDEATH, n, n);
 		if(c->type==ST_TCPIP)
 		{
 			savedscore *sc = findscore(*c, false);
@@ -2697,31 +2699,8 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath)
 				restored = true;
 			}
 		}
-
-		CHECKSPACE(256);
-		if(!canspawn(c, true) || forcedeath)
-		{
-			putint(p, SV_FORCEDEATH);
-			putint(p, n);
-			sendf(-1, 1, "ri2x", SV_FORCEDEATH, n, n);
-		}
-		else
-		{
-			clientstate &gs = c->state;
-			spawnstate(c);
-			putint(p, SV_SPAWNSTATE);
-			putint(p, gs.lifesequence);
-			putint(p, gs.health);
-			putint(p, gs.armour);
-			putint(p, gs.primary);
-			putint(p, gs.gunselect);
-			putint(p, -1);
-			loopi(NUMGUNS) putint(p, gs.ammo[i]);
-			loopi(NUMGUNS) putint(p, gs.mag[i]);
-			gs.lastspawn = gamemillis;
-		}
 	}
-	if(clients.length()>1 || restored)
+	if(clients.length()>1 || restored || !c)
 	{
 		putint(p, SV_RESUME);
 		loopv(clients)
@@ -2972,10 +2951,13 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			{
 				int gzs = getint(p);
 				if(!isdedicated || smapstats.cgzsize == gzs){
-					if(cl->state.state == CS_DEAD)sendspawn(cl);
+					if(cl->state.state == CS_DEAD && canspawn(cl, true)) sendspawn(cl);
 					cl->isonrightmap = true;
 				}
-				else forcedeath(cl);
+				else{
+					sendservmsg("\f3you have the wrong map; please type /getmap", sender);
+					forcedeath(cl);
+				}
 				break;
 			}
 
