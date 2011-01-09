@@ -3017,7 +3017,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case SV_SCOPE:
 			{
 				bool scope = getint(p);
-				if(!cl->state.isalive(gamemillis) || cl->state.scoped == scope) break;
+				if((!cl->state.isalive(gamemillis) && scope) || cl->state.scoped == scope) break;
 				QUEUE_MSG;
 				break;
 			}
