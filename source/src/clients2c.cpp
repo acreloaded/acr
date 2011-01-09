@@ -785,7 +785,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				int cn = getint(p), fnt = getint(p), ftr = fnt >> 4; fnt &= 0xF;
 				playerent *p = getclient(cn);
 				if(!p) break;
-				const char* nts = team_string(fnt);
+				char* nts = fnt ? "\f1" : "\f3"; 
+				s_strcat(nts, team_string(fnt));
 				if(p->team == fnt){
 					if(p == player1 && ftr == FTR_AUTOTEAM) hudoutf("\f1you stay in team %s", nts);
 					break;
@@ -805,10 +806,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     switch(ftr)
                     {
                         case FTR_PLAYERWISH:
-                            conoutf("\f2%s switched to team %s", colorname(p), nts);
+                            conoutf("\f2%s switched to team %s", colorname(p), fnt ? 1 : 3, nts);
                             break;
                         case FTR_AUTOTEAM:
-                            conoutf("\f1the server forced %s to team \f%s", colorname(p), fnt ? 1 : 3, nts);
+                            conoutf("\f1the server forced %s to team %s", colorname(p), fnt ? 1 : 3, nts);
                             break;
                     }
                 }
