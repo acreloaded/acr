@@ -738,6 +738,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 			targetplayerzone==2?"3HEAD":targetplayerzone==1?"2TORSO":"0LEGS");
 		draw_text(targetplayername, 20, 1570);
 	}
+	else draw_textf("\f0Distance\f2: \f1%.1f\f3m", 20, 1570, p->o.dist(worldpos) / 4.f);
 
 	glLoadIdentity();
 	glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
