@@ -12,7 +12,7 @@ VAR(connected, 1, 0, 0);
 ENetHost *clienthost = NULL;
 ENetPeer *curpeer = NULL, *connpeer = NULL;
 int connmillis = 0, connattempts = 0, discmillis = 0;
-bool watchingdemo = false;		  // flowtron : enables SV_ITEMLIST in demos - req. because mapchanged == false by then
+bool watchingdemo = false;		  // flowtron : enables N_ITEMLIST in demos - req. because mapchanged == false by then
 
 int getclientnum() { return player1 ? player1->clientnum : -1; }
 
@@ -220,7 +220,7 @@ void toserver(char *text, int voice, bool action){
 	if(!text) return;
 	bool toteam = *text == '%' && m_teammode && strlen(text) > 1;
 	if(*text == '%') text++;
-	addmsg(SV_TEXT, "ris", (voice & 0x1F) | (((action ? SAY_ACTION : 0) | (toteam ? SAY_TEAM : 0)) << 5), text);
+	addmsg(N_TEXT, "ris", (voice & 0x1F) | (((action ? SAY_ACTION : 0) | (toteam ? SAY_TEAM : 0)) << 5), text);
 }
 
 void toserver_(char *text){ toserver(text); }
@@ -325,7 +325,7 @@ void c2sinfo(playerent *d)				  // send update to the server
 		ENetPacket *packet = enet_packet_create(NULL, 100, 0);
 		ucharbuf q(packet->data, packet->dataLength);
 
-		putint(q, SV_POS);
+		putint(q, N_POS);
 		//putint(q, d->clientnum);
 		putfloat(q, d->o.x);
 		putfloat(q, d->o.y);
@@ -353,7 +353,7 @@ void c2sinfo(playerent *d)				  // send update to the server
 		{
 			packet->flags = ENET_PACKET_FLAG_RELIABLE;
 			c2sinit = true;
-			putint(p, SV_INITC2S);
+			putint(p, N_INITC2S);
 			sendstring(player1->name, p);
 			sendstring(player1->team, p);
 			putint(p, player1->skin);
@@ -363,7 +363,7 @@ void c2sinfo(playerent *d)				  // send update to the server
 		{
 			spawnallitems();
 			packet->flags = ENET_PACKET_FLAG_RELIABLE;
-			putint(p, SV_MAPIDENT);
+			putint(p, N_MAPIDENT);
 			putint(p, maploaded);
 			sendmapident = false;
 		}
@@ -379,7 +379,7 @@ void c2sinfo(playerent *d)				  // send update to the server
 		messages.remove(0, i);
 		if(totalmillis-lastping>250)
 		{
-			putint(p, SV_PINGPONG);
+			putint(p, N_PINGPONG);
 			putint(p, totalmillis);
 			lastping = totalmillis;
 		}
@@ -399,7 +399,7 @@ void sendintro()
 {
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
-	putint(p, SV_CONNECT);
+	putint(p, N_CONNECT);
 	sendstring(player1->name, p);
 	putint(p, player1->skin);
 	sendstring(genpwdhash(player1->name, clientpassword, sessionid), p);
@@ -525,7 +525,7 @@ void sendmap(char *mapname)
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS + mapsize + cfgsizegz, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
 
-	putint(p, SV_SENDMAP);
+	putint(p, N_SENDMAP);
 	sendstring(mapname, p);
 	putint(p, mapsize);
 	putint(p, cfgsize);
@@ -556,7 +556,7 @@ void getmap()
 	conoutf("requesting map from server...");
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
-	putint(p, SV_RECVMAP);
+	putint(p, N_RECVMAP);
 	enet_packet_resize(packet, p.length());
 	sendpackettoserv(2, packet);
 }
@@ -565,13 +565,13 @@ void getdemo(int i)
 {
 	if(i<=0) conoutf("getting demo...");
 	else conoutf("getting demo %d...", i);
-	addmsg(SV_DEMO, "ri", i);
+	addmsg(N_DEMO, "ri", i);
 }
 
 void listdemos()
 {
 	conoutf("listing demos...");
-	addmsg(SV_LISTDEMOS, "r");
+	addmsg(N_LISTDEMOS, "r");
 }
 
 COMMAND(sendmap, ARG_1STR);
@@ -582,6 +582,6 @@ COMMAND(getdemo, ARG_1INT);
 COMMAND(listdemos, ARG_NONE);
 
 void tryauth(){
-	addmsg(SV_AUTHREQ, "r");
+	addmsg(N_AUTHREQ, "r");
 }
 COMMANDN(auth, tryauth, ARG_NONE);

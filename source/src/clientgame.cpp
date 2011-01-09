@@ -35,7 +35,7 @@ extern bool sendmapident;
 void setskin(playerent *pl, uint skin)
 {
 	if(!pl) return;
-	if(pl == player1) addmsg(SV_SKIN, "ri", skin);
+	if(pl == player1) addmsg(N_SKIN, "ri", skin);
 	const int maxskin[2] = { 3, 5 };
 	pl->skin = skin % (maxskin[pl->team]+1);
 }
@@ -83,7 +83,7 @@ void newname(const char *name)
 		static string name2;
 		filtername(name2, name);
 		if(!name2[0]) s_strcpy(name2, "unnamed");
-		addmsg(SV_NEWNAME, "rs", name2);
+		addmsg(N_NEWNAME, "rs", name2);
 	}
 	else conoutf("your name is: %s", player1->name);
 	alias("curname", player1->name);
@@ -96,7 +96,7 @@ void newteam(char *name)
 		if(!team_valid(name)) { conoutf("\f3\"%s\" is not a valid team name (try RED or BLUE)", name); return;}
 		int nt = team_int(name);
 		if(nt == player1->team) return; // same team
-		addmsg(SV_SWITCHTEAM, "ri", nt);
+		addmsg(N_SWITCHTEAM, "ri", nt);
 	}
 	else conoutf("your team is: %s", player1->team);
 }
@@ -434,7 +434,7 @@ void spawnplayer(playerent *d)
 
 void respawnself()
 {
-	if(m_mp(gamemode)) addmsg(SV_TRYSPAWN, "r");
+	if(m_mp(gamemode)) addmsg(N_TRYSPAWN, "r");
 	else
 	{
 		showscores(false);
@@ -731,7 +731,7 @@ void suicide()
 {
 	if(player1->state == CS_ALIVE && suicided!=player1->lifesequence)
 	{
-		addmsg(SV_SUICIDE, "r");
+		addmsg(N_SUICIDE, "r");
 		suicided = player1->lifesequence;
 	}
 }
@@ -903,7 +903,7 @@ void callvote(int type, char *arg1, char *arg2)
 	if(type > 0 && type < SA_NUM){
 		ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 		ucharbuf p(packet->data, packet->dataLength);
-		putint(p, SV_CALLVOTE);
+		putint(p, N_CALLVOTE);
 		putint(p, type);
 		switch(type)
 		{
@@ -956,7 +956,7 @@ bool vote(int v)
 	if(!curvote || v < 0 || v >= VOTE_NUM) return false;
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
-	putint(p, SV_VOTE);
+	putint(p, N_VOTE);
 	putint(p, v);
 	enet_packet_resize(packet, p.length());
 	sendpackettoserv(1, packet);
@@ -988,14 +988,14 @@ void cleanplayervotes(playerent *p){
 }
 
 void whois(int cn){
-	addmsg(SV_WHOIS, "ri", cn);
+	addmsg(N_WHOIS, "ri", cn);
 }
 COMMAND(whois, ARG_1INT);
 
 int sessionid = 0;
 
 void setmaster(int claim){
-	addmsg(SV_SETROLE, "ris", claim ? PRIV_MASTER : PRIV_NONE, "");
+	addmsg(N_SETROLE, "ris", claim ? PRIV_MASTER : PRIV_NONE, "");
 }
 COMMAND(setmaster, ARG_1INT);
 
@@ -1004,7 +1004,7 @@ SVARP(adminpass, "pwd"); // saved admin password
 void setadmin(char *claim, char *password)
 {
 	if(!claim || !password) return;
-	else addmsg(SV_SETROLE, "ris", atoi(claim)!=0?PRIV_MAX:PRIV_NONE, genpwdhash(player1->name, *password ? password : adminpass, sessionid));
+	else addmsg(N_SETROLE, "ris", atoi(claim)!=0?PRIV_MAX:PRIV_NONE, genpwdhash(player1->name, *password ? password : adminpass, sessionid));
 }
 COMMAND(setadmin, ARG_2STR);
 
@@ -1012,7 +1012,7 @@ void changemap(const char *name)					  // silently request map change, server ma
 {
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
-	putint(p, SV_NEXTMAP);
+	putint(p, N_NEXTMAP);
 	sendstring(name, p);
 	putint(p, nextmode);
 	enet_packet_resize(packet, p.length());
@@ -1134,8 +1134,8 @@ void serverextension(char *ext, char *args)
 {
 	if(!ext || !ext[0]) return;
 	size_t n = args ? strlen(args)+1 : 0;
-	if(n>0) addmsg(SV_EXTENSION, "rsis", ext, n, args);
-	else addmsg(SV_EXTENSION, "rsi", ext, n);
+	if(n>0) addmsg(N_EXTENSION, "rsis", ext, n, args);
+	else addmsg(N_EXTENSION, "rsi", ext, n);
 }
 
 COMMAND(serverextension, ARG_2STR);

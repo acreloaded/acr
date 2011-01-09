@@ -51,7 +51,7 @@ void toggleedit(bool force)
 	selset = false;
 	editing = editmode ? 1 : 0;
 	player1->state = editing ? CS_EDITING : CS_ALIVE;
-	if(!force) addmsg(SV_EDITMODE, "ri", editing);
+	if(!force) addmsg(N_EDITMODE, "ri", editing);
 }
 
 void edittoggle() { toggleedit(false); }
@@ -300,7 +300,7 @@ void editheight(int flr, int amount)
 	EDITSEL;
 	bool isfloor = flr==0;
 	editheightxy(isfloor, amount, sel);
-	addmsg(SV_EDITH, "ri6", sel.x, sel.y, sel.xs, sel.ys, isfloor, amount);
+	addmsg(N_EDITH, "ri6", sel.x, sel.y, sel.xs, sel.ys, isfloor, amount);
 }
 
 COMMAND(editheight, ARG_2INT);
@@ -327,7 +327,7 @@ void edittex(int type, int dir)
 	curedittex[atype] = i = min(max(i, 0), 255);
 	int t = lasttex = hdr.texlists[atype][i];
 	edittexxy(type, t, sel);
-	addmsg(SV_EDITT, "ri6", sel.x, sel.y, sel.xs, sel.ys, type, t);
+	addmsg(N_EDITT, "ri6", sel.x, sel.y, sel.xs, sel.ys, type, t);
 }
 
 void replace()
@@ -360,7 +360,7 @@ void edittype(int type)
 				   || sel.x&~-sel.xs || sel.y&~-sel.ys))
 				   { conoutf("corner selection must be power of 2 aligned"); return; }
 	edittypexy(type, sel);
-	addmsg(SV_EDITS, "ri5", sel.x, sel.y, sel.xs, sel.ys, type);
+	addmsg(N_EDITS, "ri5", sel.x, sel.y, sel.xs, sel.ys, type);
 }
 
 void heightfield(int t) { edittype(t==0 ? FHF : CHF); }
@@ -391,7 +391,7 @@ void equalize(int flr)
 	bool isfloor = flr==0;
 	EDITSEL;
 	editequalisexy(isfloor, sel);
-	addmsg(SV_EDITE, "ri5", sel.x, sel.y, sel.xs, sel.ys, isfloor);
+	addmsg(N_EDITE, "ri5", sel.x, sel.y, sel.xs, sel.ys, isfloor);
 }
 
 COMMAND(equalize, ARG_1INT);
@@ -406,7 +406,7 @@ void setvdelta(int delta)
 {
 	EDITSEL;
 	setvdeltaxy(delta, sel);
-	addmsg(SV_EDITD, "ri5", sel.x, sel.y, sel.xs, sel.ys, delta);
+	addmsg(N_EDITD, "ri5", sel.x, sel.y, sel.xs, sel.ys, delta);
 }
 
 const int MAXARCHVERT = 50;

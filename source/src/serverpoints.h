@@ -1,7 +1,7 @@
 #include "points.h"
 
 inline void addpt(client *c, int points){
-	sendf(-1, 1, "ri3", SV_POINTS, c->clientnum, (c->state.points += points));
+	sendf(-1, 1, "ri3", N_POINTS, c->clientnum, (c->state.points += points));
 }
 
 void killpoints(client *& target, client *& actor, int gun, bool gib){

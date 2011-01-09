@@ -87,7 +87,7 @@ void parsepositions(ucharbuf &p)
 	int type;
 	while(p.remaining()) switch(type = getint(p))
 	{
-		case SV_POS:						// position of another client
+		case N_POS:						// position of another client
 		{
 			int cn = getint(p);
 			vec o, vel;
@@ -177,10 +177,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 		type = getint(p);
 
 		#ifdef _DEBUG
-		if(type!=SV_POS && type!=SV_PINGTIME && type!=SV_PINGPONG && type!=SV_CLIENT)
+		if(type!=N_POS && type!=N_PINGTIME && type!=N_PINGPONG && type!=N_CLIENT)
 		{
 			DEBUGVAR(d);
-			ASSERT(type>=0 && type<SV_NUM);
+			ASSERT(type>=0 && type<N_NUM);
 			DEBUGVAR(messagenames[type]);
 			protocoldebug(true);
 		}
@@ -189,7 +189,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 		switch(type)
 		{
-			case SV_SERVINFO:					// welcome messsage from the server
+			case N_SERVINFO:					// welcome messsage from the server
 			{
 				int mycn = getint(p), prot = getint(p);
 				if(prot != PROTOCOL_VERSION)
@@ -204,7 +204,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_WELCOME:
+			case N_WELCOME:
 				joining = getint(p);
 				getstring(text, p);
 				if(text[0]){
@@ -215,7 +215,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				resetcamera();
 				break;
 
-			case SV_CLIENT:
+			case N_CLIENT:
 			{
 				int cn = getint(p), len = getuint(p);
 				ucharbuf q = p.subbuf(len);
@@ -223,7 +223,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_SOUND:
+			case N_SOUND:
 			{
 				int cn = getint(p);
 				playerent *d = getclient(cn);
@@ -232,7 +232,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_TEXT:
+			case N_TEXT:
 			{
 				int cn = getint(p), voice = getint(p), flags = (voice >> 5) & 7;
 				voice = (voice & 0x1F) + S_MAINEND;
@@ -244,7 +244,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_MAPCHANGE:
+			case N_MAPCHANGE:
 			{
 				getstring(text, p);
 				int mode = getint(p);
@@ -254,7 +254,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_ITEMLIST:
+			case N_ITEMLIST:
 			{
 				int n;
 				resetspawns();
@@ -262,7 +262,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_NEXTMAP: // server requests next map
+			case N_NEXTMAP: // server requests next map
 			{
 				getint(p);
 				s_sprintfd(nextmapalias)("nextmap_%s", getclientmap());
@@ -271,14 +271,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_SWITCHTEAM:
+			case N_SWITCHTEAM:
 			{
 				int t = getint(p);
                 if(m_teammode) conoutf("\f3Team %s is full", team_string(t));
 				break;
 			}
 
-			case SV_INITCLIENT:
+			case N_INITCLIENT:
 			{
 				playerent *d = newclient(getint(p));
 				d->team = getint(p);
@@ -297,7 +297,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_NEWNAME:
+			case N_NEWNAME:
 			{
 				playerent *d = getclient(getint(p));
 				getstring(text, p);
@@ -311,11 +311,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_SKIN:
+			case N_SKIN:
 				setskin(d, getint(p));
 				break;
 
-			case SV_CDIS:
+			case N_CDIS:
 			{
 				int cn = getint(p), reason = getint(p);
 				playerent *d = getclient(cn);
@@ -325,7 +325,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_EDITMODE:
+			case N_EDITMODE:
 			{
 				int val = getint(p);
 				if(!d) break;
@@ -333,7 +333,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_SPAWN:
+			case N_SPAWN:
 			{
 				playerent *s = d;
 				if(!s) { static playerent dummy; s = &dummy; }
@@ -350,7 +350,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_SPAWNSTATE:
+			case N_SPAWNSTATE:
 			{
 				if(editmode) toggleedit(true);
 				showscores(false);
@@ -376,13 +376,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					hudeditf(HUDMSG_TIMER, "FIGHT!");
 					if(m_botmode) BotManager.RespawnBots();
 				}
-				addmsg(SV_SPAWN, "rii", player1->lifesequence, player1->weaponsel->type);
+				addmsg(N_SPAWN, "rii", player1->lifesequence, player1->weaponsel->type);
 				player1->weaponswitch(player1->primweap);
 				player1->weaponchanging -= weapon::weaponchangetime/2;
 				break;
 			}
 
-			case SV_SCOPE:
+			case N_SCOPE:
 			{
 				bool scope = getint(p);
 				if(!d) break;
@@ -390,14 +390,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_SG: // someone else's shotgun rays
+			case N_SG: // someone else's shotgun rays
 			{	
 				extern vec sg[SGRAYS];
 				loopi(SGRAYS) loopj(3) sg[i][j] = getfloat(p);
 				break;
 			}
 
-			case SV_SHOTFX:
+			case N_SHOTFX:
 			{
 				int scn = getint(p), gun = getint(p);
 				vec from, to;
@@ -415,7 +415,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_THROWNADE:
+			case N_THROWNADE:
 			{
 				vec from, to;
 				loopk(3) from[k] = getfloat(p);
@@ -428,7 +428,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_RELOAD:
+			case N_RELOAD:
 			{
 				int cn = getint(p), gun = getint(p);
 				playerent *p = getclient(cn);
@@ -440,7 +440,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_POINTS:
+			case N_POINTS:
 			{
 				int cn = getint(p), points = getint(p);
 				playerent *d = getclient(cn);
@@ -448,7 +448,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_REGEN:
+			case N_REGEN:
 			{
 				int cn = getint(p), amt = getint(p);
 				playerent *d = getclient(cn);
@@ -461,7 +461,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_DAMAGE:
+			case N_DAMAGE:
 			{
 				int tcn = getint(p),
 					acn = getint(p),
@@ -477,7 +477,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_HITPUSH:
+			case N_HITPUSH:
 			{
 				int gun = getint(p), damage = getint(p);
 				vec dir;
@@ -486,7 +486,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_DIED:
+			case N_DIED:
 			{
 				int vcn = getint(p), acn = getint(p), frags = getint(p), weap = getint(p), damage = getint(p);
 				playerent *victim = getclient(vcn), *actor = getclient(acn);
@@ -497,7 +497,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_RESUME:
+			case N_RESUME:
 			{
 				loopi(MAXCLIENTS)
 				{
@@ -538,14 +538,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_ITEMSPAWN:
+			case N_ITEMSPAWN:
 			{
 				int i = getint(p);
 				setspawn(i, true);
 				break;
 			}
 
-			case SV_ITEMACC:
+			case N_ITEMACC:
 			{
 				int i = getint(p), cn = getint(p);
 				playerent *d = cn==getclientnum() ? player1 : getclient(cn);
@@ -553,11 +553,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_EDITH:			  // coop editing messages, should be extended to include all possible editing ops
-			case SV_EDITT:
-			case SV_EDITS:
-			case SV_EDITD:
-			case SV_EDITE:
+			case N_EDITH:			  // coop editing messages, should be extended to include all possible editing ops
+			case N_EDITT:
+			case N_EDITS:
+			case N_EDITD:
+			case N_EDITE:
 			{
 				int x  = getint(p);
 				int y  = getint(p);
@@ -567,16 +567,16 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				block b = { x, y, xs, ys };
 				switch(type)
 				{
-					case SV_EDITH: editheightxy(v!=0, getint(p), b); break;
-					case SV_EDITT: edittexxy(v, getint(p), b); break;
-					case SV_EDITS: edittypexy(v, b); break;
-					case SV_EDITD: setvdeltaxy(v, b); break;
-					case SV_EDITE: editequalisexy(v!=0, b); break;
+					case N_EDITH: editheightxy(v!=0, getint(p), b); break;
+					case N_EDITT: edittexxy(v, getint(p), b); break;
+					case N_EDITS: edittypexy(v, b); break;
+					case N_EDITD: setvdeltaxy(v, b); break;
+					case N_EDITE: editequalisexy(v!=0, b); break;
 				}
 				break;
 			}
 
-			case SV_NEWMAP:
+			case N_NEWMAP:
 			{
 				int size = getint(p);
 				if(size>=0) empty_world(size, true);
@@ -586,7 +586,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_EDITENT:			// coop edit of ent
+			case N_EDITENT:			// coop edit of ent
 			{
 				uint i = getint(p);
 				while((uint)ents.length()<=i) ents.add().type = NOTUSED;
@@ -605,11 +605,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_PINGPONG:
-				addmsg(SV_PINGTIME, "i", totalmillis - getint(p));
+			case N_PINGPONG:
+				addmsg(N_PINGTIME, "i", totalmillis - getint(p));
 				break;
 
-			case SV_PINGTIME:
+			case N_PINGTIME:
 			{
 				playerent *pl = getclient(getint(p));
 				int pp = getint(p);
@@ -617,23 +617,23 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_TIMEUP:
+			case N_TIMEUP:
 				timeupdate(getint(p));
 				break;
 
-			case SV_WEAPCHANGE:
+			case N_WEAPCHANGE:
 			{
 				int gun = getint(p);
 				if(d) d->selectweapon(gun);
 				break;
 			}
 
-			case SV_SERVMSG:
+			case N_SERVMSG:
 				getstring(text, p);
 				conoutf("%s", text);
 				break;
 
-			case SV_FLAGINFO:
+			case N_FLAGINFO:
 			{
 				int flag = getint(p);
 				if(flag<0 || flag>1) return;
@@ -660,7 +660,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_FLAGMSG:
+			case N_FLAGMSG:
 			{
 				int flag = getint(p);
 				int message = getint(p);
@@ -670,7 +670,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_FLAGCNT:
+			case N_FLAGCNT:
 			{
 				int fcn = getint(p);
 				int flags = getint(p);
@@ -679,7 +679,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_ARENAWIN:
+			case N_ARENAWIN:
 			{
 				int acn = getint(p);
 				playerent *alive = acn<0 ? NULL : getclient(acn);
@@ -693,18 +693,18 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_FORCEGIB:
-			case SV_FORCEDEATH:
+			case N_FORCEGIB:
+			case N_FORCEDEATH:
 			{
 				int cn = getint(p);
 				playerent *d = newclient(cn);
 				if(!d) break;
-				if(type == SV_FORCEGIB) addgib(d);
+				if(type == N_FORCEGIB) addgib(d);
 				deathstate(d);
 				break;
 			}
 
-			case SV_SETROLE:
+			case N_SETROLE:
 			{
 				int cl = getint(p), r = getint(p);
 				playerent *p = newclient(cl);
@@ -713,7 +713,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_ROLECHANGE:
+			case N_ROLECHANGE:
 			{
 				int cl = getint(p), r = getint(p);
 				bool drop = (r >> 7) & 1, err = (r >> 6) & 1; r &= 0x3F;
@@ -729,7 +729,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_AUTHREQ:
+			case N_AUTHREQ:
 			{
 				int nonce = getint(p);
 				conoutf("server is challenging authentication details");
@@ -745,11 +745,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				}
 				s_sprintfd(answer)("%x%x%x%x%x", message_digest[0], message_digest[1], message_digest[2], message_digest[3], message_digest[4]);
 				s_strncpy(answer, answer, 41); // 40 hex digits
-				addmsg(SV_AUTHCHAL, "rs", answer);
+				addmsg(N_AUTHCHAL, "rs", answer);
 				break;
 			}
 
-			case SV_AUTHCHAL:
+			case N_AUTHCHAL:
 			{
 				switch(getint(p)){
 					case 0:
@@ -780,7 +780,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_SETTEAM:
+			case N_SETTEAM:
 			{
 				int cn = getint(p), fnt = getint(p), ftr = fnt >> 4; fnt &= 0xF;
 				playerent *p = getclient(cn);
@@ -817,7 +817,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_CALLVOTE:
+			case N_CALLVOTE:
 			{
 				int cn = getint(p), type = getint(p), votewasted = getint(p);
 				playerent *d = getclient(cn);
@@ -861,7 +861,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_CALLVOTEERR:
+			case N_CALLVOTEERR:
 			{
 				int e = getint(p);
 				if(e < 0 || e >= VOTEE_NUM) break;
@@ -869,7 +869,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_VOTE:
+			case N_VOTE:
 			{
 				int cn = getint(p), vote = getint(p);
 				playerent *d = getclient(cn);
@@ -880,7 +880,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_VOTERESULT:
+			case N_VOTERESULT:
 			{
 				int v = getint(p);
 				veto = ((v >> 7) & 1) > 0;
@@ -895,7 +895,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_WHOIS:
+			case N_WHOIS:
 			{
 				int cn = getint(p), ip = getint(p), mask = getint(p);
 				playerent *pl = getclient(cn);
@@ -912,7 +912,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_LISTDEMOS:
+			case N_LISTDEMOS:
 			{
 				int demos = getint(p);
 				if(!demos) conoutf("no demos available");
@@ -924,7 +924,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_DEMOPLAYBACK:
+			case N_DEMOPLAYBACK:
 			{
 				watchingdemo = demoplayback = getint(p)!=0;
 				if(demoplayback)
@@ -944,7 +944,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case SV_EXTENSION:
+			case N_EXTENSION:
 			{
 				getstring(text, p, 64);
 				int len = getint(p);
@@ -984,7 +984,7 @@ void receivefile(uchar *data, int len)
 	len -= p.length();
 	switch(type)
 	{
-		case SV_DEMO:
+		case N_DEMO:
 		{
 			s_sprintfd(fname)("demos/%s.dmo", timestring());
 			path(fname);
@@ -1000,7 +1000,7 @@ void receivefile(uchar *data, int len)
 			break;
 		}
 
-		case SV_RECVMAP:
+		case N_RECVMAP:
 		{
 			static char text[MAXTRANS];
 			getstring(text, p);

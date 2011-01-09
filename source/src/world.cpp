@@ -220,7 +220,7 @@ void delent()
 	int t = ents[e].type;
 	conoutf("%s entity deleted", entnames[t]);
 	ents[e].type = NOTUSED;
-	addmsg(SV_EDITENT, "ri9", e, NOTUSED, 0, 0, 0, 0, 0, 0, 0);
+	addmsg(N_EDITENT, "ri9", e, NOTUSED, 0, 0, 0, 0, 0, 0, 0);
 	switch(t)
 	{
 		case LIGHT: calclight(); break;
@@ -259,7 +259,7 @@ entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, in
 			e.attr1 = (int)camera1->yaw;
 			break;
 	}
-	addmsg(SV_EDITENT, "ri9", index<0 ? ents.length() : index, type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4);
+	addmsg(N_EDITENT, "ri9", index<0 ? ents.length() : index, type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4);
 	e.spawned = true;
 	int oldtype = type;
 	if(index<0) ents.add(e);
@@ -462,8 +462,8 @@ bool empty_world(int factor, bool force)	// main empty world creation routine, i
 	return true;
 }
 
-void mapenlarge()  { if(empty_world(-1, false)) addmsg(SV_NEWMAP, "ri", -1); }
-void newmap(int i) { if(empty_world(i, false)) addmsg(SV_NEWMAP, "ri", max(i, 0)); }
+void mapenlarge()  { if(empty_world(-1, false)) addmsg(N_NEWMAP, "ri", -1); }
+void newmap(int i) { if(empty_world(i, false)) addmsg(N_NEWMAP, "ri", max(i, 0)); }
 
 COMMAND(mapenlarge, ARG_NONE);
 COMMAND(newmap, ARG_1INT);

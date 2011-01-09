@@ -40,16 +40,16 @@ void processevent(client *c, shotevent &e)
 	gs.lastshot = e.millis;
 	gs.gunwait[e.gun] = attackdelay(e.gun);
 	if(e.gun==GUN_PISTOL && gs.akimbomillis>gamemillis) gs.gunwait[e.gun] /= 2;
-	/*sendf(-1, 1, "ri3f6x", SV_SHOTFX, c->clientnum, e.gun,
+	/*sendf(-1, 1, "ri3f6x", N_SHOTFX, c->clientnum, e.gun,
 		c->state.o.x, c->state.o.y, c->state.o.z,
 		e.to[0], e.to[1], e.to[2], c->clientnum);*/
 	ENetPacket *packet = enet_packet_create(NULL, 9 * sizeof(float), ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
 	if(e.gun==GUN_SHOTGUN){
-		putint(p, SV_SG);
+		putint(p, N_SG);
 		loopi(SGRAYS) loopj(3) putfloat(p, c->state.sg[i][j]);
 	}
-	putint(p, SV_SHOTFX);
+	putint(p, N_SHOTFX);
 	putint(p, c->clientnum);
 	putint(p, e.gun);
 	putfloat(p, c->state.o.x);
@@ -121,7 +121,7 @@ void processevent(client *c, reloadevent &e)
 	gs.ammo[e.gun] -= numbullets;
 
 	int wait = e.millis - gs.lastshot;
-	sendf(-1, 1, "ri3x", SV_RELOAD, c->clientnum, e.gun, c->clientnum);
+	sendf(-1, 1, "ri3x", N_RELOAD, c->clientnum, e.gun, c->clientnum);
 	if(gs.gunwait[e.gun] && wait<gs.gunwait[e.gun]) gs.gunwait[e.gun] += reloadtime(e.gun);
 	else
 	{
@@ -155,7 +155,7 @@ void processevents()
 		if(!m_osok && c->state.state == CS_ALIVE && c->state.health < STARTHEALTH && c->state.lastregen + 2500 < gamemillis){
 			int amt = min(STARTHEALTH - c->state.health, 15);
 			c->state.health += amt;
-			sendf(-1, 1, "ri3", SV_REGEN, i, amt);
+			sendf(-1, 1, "ri3", N_REGEN, i, amt);
 			c->state.lastregen = gamemillis;
 		}
 		while(c->events.length())

@@ -21,7 +21,7 @@ void checkweaponswitch()
 	int timeprogress = lastmillis-player1->weaponchanging;
 	if(timeprogress>weapon::weaponchangetime)
 	{
-		addmsg(SV_WEAPCHANGE, "ri", player1->weaponsel->type);
+		addmsg(N_WEAPCHANGE, "ri", player1->weaponsel->type);
 		player1->weaponchanging = 0;
 	}
 	else if(timeprogress>weapon::weaponchangetime/2)
@@ -551,15 +551,15 @@ int weapon::flashtime() const { return max((int)info.attackdelay, 120)/4; }
 void weapon::sendshoot(vec &from, vec &to)
 {
 	if(owner!=player1) return;
-	//addmsg(SV_SHOOT, "ri2f3iv", lastmillis, owner->weaponsel->type, to.x, to.y, to.z,
+	//addmsg(N_SHOOT, "ri2f3iv", lastmillis, owner->weaponsel->type, to.x, to.y, to.z,
 		//hits.length(), hits.length()*sizeof(hitmsg)/sizeof(int), hits.getbuf);
 	static uchar buf[MAXTRANS];
 	ucharbuf p(buf, MAXTRANS);
 	if(type == GUN_SHOTGUN){
-		putint(p, SV_SG);
+		putint(p, N_SG);
 		loopi(SGRAYS) loopj(3) putfloat(p, sg[i][j]);
 	}
-	putint(p, SV_SHOOT);
+	putint(p, N_SHOOT);
 	putint(p, lastmillis);
 	putint(p, owner->weaponsel->type);
 	putfloat(p, to.x);
@@ -612,7 +612,7 @@ bool weapon::reload()
 
 	bool local = (player1 == owner);
 	playsound(info.reload, owner);
-	if(local) addmsg(SV_RELOAD, "ri2", lastmillis, type);
+	if(local) addmsg(N_RELOAD, "ri2", lastmillis, type);
 	return true;
 }
 
@@ -734,10 +734,10 @@ void grenadeent::explode()
 	hits.setsizenodelete(0);
 	splash();
 	if(local){
-		//addmsg(SV_EXPLODE, "ri3f3", lastmillis, GUN_GRENADE, millis, o.x, o.y, o.z);
+		//addmsg(N_EXPLODE, "ri3f3", lastmillis, GUN_GRENADE, millis, o.x, o.y, o.z);
 		static uchar buf[7 * sizeof(float)];
 		ucharbuf p(buf, 7 * sizeof(float));
-		putint(p, SV_EXPLODE);
+		putint(p, N_EXPLODE);
 		putint(p, lastmillis);
 		putint(p, GUN_GRENADE);
 		putint(p, millis);
@@ -777,10 +777,10 @@ void grenadeent::activate(const vec &from, const vec &to)
 
 	if(local)
 	{
-		//addmsg(SV_SHOOT, "ri2f3i", millis, GUN_GRENADE, to.x, to.y, to.z, 0);
+		//addmsg(N_SHOOT, "ri2f3i", millis, GUN_GRENADE, to.x, to.y, to.z, 0);
 		static uchar buf[7 * sizeof(float)];
 		ucharbuf p(buf, 7 * sizeof(float));
-		putint(p, SV_SHOOT);
+		putint(p, N_SHOOT);
 		putint(p, millis);
 		putint(p, GUN_GRENADE);
 		putfloat(p, to.x);
@@ -808,10 +808,10 @@ void grenadeent::_throw(const vec &from, const vec &vel)
 
 	if(local)
 	{
-		//addmsg(SV_THROWNADE, "rf6i", o.x, o.y, o.z, vel.x, vel.y, vel.z, lastmillis-millis);
+		//addmsg(N_THROWNADE, "rf6i", o.x, o.y, o.z, vel.x, vel.y, vel.z, lastmillis-millis);
 		static uchar buf[8 * sizeof(float)];
 		ucharbuf p(buf, 8 * sizeof(float));
-		putint(p, SV_THROWNADE);
+		putint(p, N_THROWNADE);
 		putfloat(p, o.x);
 		putfloat(p, o.y);
 		putfloat(p, o.z);
@@ -1124,7 +1124,7 @@ void sniperrifle::setscope(bool enable){
 	{
 		if(scoped == false && enable == true) scoped_since = lastmillis;
 		scoped = enable;
-		if(owner == player1) addmsg(SV_SCOPE, "ri", enable ? 1 : 0);
+		if(owner == player1) addmsg(N_SCOPE, "ri", enable ? 1 : 0);
 	}
 }
 
@@ -1172,7 +1172,7 @@ void akimbo::onammopicked()
 	if(owner==player1)
 	{
 		if(owner->weaponsel->type!=GUN_SNIPER && owner->weaponsel->type!=GUN_GRENADE) owner->weaponswitch(this);
-		addmsg(SV_AKIMBO, "ri", lastmillis);
+		addmsg(N_AKIMBO, "ri", lastmillis);
 	}
 }
 

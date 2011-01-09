@@ -295,7 +295,7 @@ struct voteinfo
 	void end(int result, bool veto = false)
 	{
 		if(action && !action->isvalid()) result = VOTE_NO; // don't perform() invalid votes
-		sendf(-1, 1, "ri2", SV_VOTERESULT, result | (veto ? 0x80 : 0));
+		sendf(-1, 1, "ri2", N_VOTERESULT, result | (veto ? 0x80 : 0));
 		this->result = result;
 		if(result == VOTE_YES)
 		{

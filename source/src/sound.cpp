@@ -1859,7 +1859,7 @@ void playsoundc(int n, physent *p)
 	if(p && p!=player1) playsound(n, p);
 	else
 	{
-		addmsg(SV_SOUND, "i", n);
+		addmsg(N_SOUND, "i", n);
 		playsound(n);
 	}
 }

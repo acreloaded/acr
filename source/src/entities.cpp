@@ -256,7 +256,7 @@ bool selectnextprimary(int num)
 		case GUN_SLUG:
 		case GUN_ASSAULT:
 			player1->setnextprimary(num);
-			addmsg(SV_PRIMARYWEAP, "ri", player1->nextprimweap->type);
+			addmsg(N_PRIMARYWEAP, "ri", player1->nextprimweap->type);
 			return true;
 
 		default:
@@ -272,7 +272,7 @@ VARFP(nextprimary, 0, GUN_ASSAULT, NUMGUNS,
 
 // flag ent actions done by the local player
 
-void tryflagdrop(){ addmsg(SV_DROPFLAG, "r"); }
+void tryflagdrop(){ addmsg(N_DROPFLAG, "r"); }
 
 // flag ent actions from the net
 
