@@ -1863,7 +1863,11 @@ void forcedeath(client *cl, bool gib = false)
 bool updateclientteam(int client, int team, int ftr)
 {
 	if(!valid_client(client) || team < TEAM_RED || team > TEAM_BLUE) return false;
-	sendf(-1, 1, "ri3", N_SETTEAM, client, team | (ftr << 4));
+	if(clients[client]->team == team){
+		if(ftr == FTR_AUTOTEAM) sendf(client, 1, "ri3", N_SETTEAM, client, team | (FTR_AUTOTEAM << 4));
+		return false;
+	}
+	sendf(-1, 1, "ri3", N_SETTEAM, client, (clients[client]->team = team) | (ftr << 4));
 	if(m_teammode) forcedeath(clients[client]);
 	return true;
 }
@@ -2931,6 +2935,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case N_SWITCHTEAM:
 			{
 				int t = getint(p);
+				if(cl->team == t) break;
 				int teamsizes[TEAM_BLUE];
 				loopv(clients) if(i != sender && clients[i]->type!=ST_EMPTY && clients[i]->isauthed && clients[i]->isonrightmap)
 					teamsizes[clients[i]->team]++;

@@ -789,7 +789,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				s_strcpy(nts, fnt ? "\f1" : "\f3");
 				s_strcat(nts, team_string(fnt));
 				if(p->team == fnt){
-					if(p == player1 && ftr == FTR_AUTOTEAM) hudoutf("\f1you stay in team %s", nts);
+					if(p == player1 && ftr == FTR_AUTOTEAM) hudoutf("\f2you stay in team %s", nts);
 					break;
 				}
 				p->team = fnt;
