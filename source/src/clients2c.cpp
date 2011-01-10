@@ -799,7 +799,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 							conoutf("\f2you're now in team %s", nts);
 							break;
 						case FTR_AUTOTEAM:
-							hudoutf("\f1the server forced you to team %s", nts);
+							hudoutf("\f2the server forced you to team %s", nts);
 							break;
 					}
 				}
@@ -810,7 +810,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                             conoutf("\f2%s switched to team %s", colorname(p), fnt ? 1 : 3, nts);
                             break;
                         case FTR_AUTOTEAM:
-                            conoutf("\f1the server forced %s to team %s", colorname(p), fnt ? 1 : 3, nts);
+                            conoutf("\f2the server forced %s to team %s", colorname(p), fnt ? 1 : 3, nts);
                             break;
                     }
                 }
