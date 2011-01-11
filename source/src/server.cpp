@@ -2952,7 +2952,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case N_MAPIDENT:
 			{
 				int gzs = getint(p);
-				if(!isdedicated || smapstats.cgzsize == gzs){
+				if(!isdedicated || m_edit || smapstats.cgzsize == gzs){
 					if(cl->state.state == CS_DEAD && canspawn(cl, true)) sendspawn(cl);
 					cl->isonrightmap = true;
 				}
@@ -3020,6 +3020,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			{
 				bool scope = getint(p);
 				if((!cl->state.isalive(gamemillis) && scope) || cl->state.scoped == scope) break;
+				cl->state.scoped = scope;
 				QUEUE_MSG;
 				break;
 			}
@@ -3155,7 +3156,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
 				}
 				if(cl->state.state!=CS_ALIVE) break;
-				if(maplayout)
+				if(maplayout && !m_edit)
 				{
 					vec &po = cl->state.o;
 					int ls = (1 << maplayout_factor) - 1;
