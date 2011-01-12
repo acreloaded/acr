@@ -36,9 +36,9 @@ struct weaponmove
 		if(player1->onfloor || player1->onladder || player1->inwater) swaymillis += lastmillis-lastsway;
 		lastsway = lastmillis;
 
+		anim = ANIM_GUN_IDLE;
 		if(player1->weaponchanging)
 		{
-			anim = ANIM_GUN_RELOAD;
 			basetime = player1->weaponchanging;
 			float progress = clamp((lastmillis - player1->weaponchanging)/(float)weapon::weaponchangetime, 0.0f, 1.0f);
 			k_rot = -90*sinf(progress*M_PI);
@@ -47,13 +47,13 @@ struct weaponmove
 		{
 			anim = ANIM_GUN_RELOAD;
 			basetime = player1->weaponsel->reloading;
+			/*
 			float reloadtime = (float)player1->weaponsel->info.reloadtime,
 				  progress = clamp((lastmillis - player1->weaponsel->reloading)/reloadtime, 0.0f, clamp(1.0f - (player1->lastaction + player1->weaponsel->gunwait - lastmillis)/reloadtime, 0.5f, 1.0f));
-			k_rot = -90*sinf(progress*M_PI);
+			k_rot = -90*sinf(progress*M_PI);*/
 		}
 		else
 		{
-			anim = ANIM_GUN_IDLE;
 			basetime = lastaction;
 
 			int timediff = lastmillis-lastaction, 
