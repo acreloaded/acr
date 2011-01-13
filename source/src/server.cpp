@@ -894,6 +894,7 @@ struct sflaginfo
 {
 	int state;
 	int actor_cn;
+	int drop_cn, dropmillis; // track drop flag glitch
 	float pos[3];
 	int lastupdate;
 	int stolentime;
@@ -1019,6 +1020,8 @@ void flagaction(int flag, int action, int actor)
 				logline(ACLOG_INFO,"[%s] %s stole the flag", c.hostname, c.name);
 				break;
 			case FA_DROP:
+				f.drop_cn = actor;
+				f.dropmillis = servmillis;
 				logline(ACLOG_INFO,"[%s] %s dropped the flag", c.hostname, c.name);
 				break;
 			case FA_LOST:
@@ -3150,10 +3153,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				{
 					cl->position.setsizenodelete(0);
 					ucharbuf q = cl->position.reserve(2 * sizeof(int));
-					putint(q, N_POS); curmsg++;
-					putint(q, sender);
-					cl->position.addbuf(q);
-					while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
+					putint(q, N_POS); curmsg++; // put N_POS
+					putint(q, sender); // inject sender
+					cl->position.addbuf(q); // put current buffer
+					while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]); // add the rest
 				}
 				if(cl->state.state!=CS_ALIVE) break;
 				if(maplayout && !m_edit)
@@ -3198,14 +3201,13 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					if(v.x < 0) continue;
 					float dist = cl->state.o.dist(v);
 					if(dist > 2.5f) continue;
-					if(f.state == CTFF_STOLEN) continue;
+					//if(f.state == CTFF_STOLEN) continue;
 					if(m_ctf){
 						if(i == cl->team){ // it's our flag
 							if(f.state == CTFF_DROPPED) flagaction(i, FA_RETURN, sender);
-							else if(f.state == CTFF_INBASE && of.state == CTFF_STOLEN && //
-								of.actor_cn == sender) flagaction(team_opposite(i), FA_SCORE, sender);
+							else if(f.state == CTFF_INBASE && of.state == CTFF_STOLEN && of.actor_cn == sender) flagaction(team_opposite(i), FA_SCORE, sender);
 						}
-						else flagaction(i, FA_PICKUP, sender);
+						else if(f.drop_cn != sender || f.dropmillis + 2000 < servmillis) flagaction(i, FA_PICKUP, sender);
 					}
 					else if(m_htf){
 						if(i == cl->team) flagaction(i, FA_PICKUP, sender);
@@ -3273,8 +3275,12 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_DROPFLAG:
 			{
-				int fl = clienthasflag(sender);
-				if(fl >= 0) flagaction(fl, FA_DROP, sender);
+				loopi(2){
+					int fl = clienthasflag(sender);
+					if(fl >= 0){
+						flagaction(fl, FA_DROP, sender);
+					} else break;
+				}
 				break;
 			}
 
