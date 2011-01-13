@@ -18,7 +18,7 @@ void neterr(const char *s)
 
 	// might indicate a client/server communication bug, create error report
 	pktlogger.flushtolog("packetlog.txt");
-	conoutf("\f3wrote a network error report to packetlog.txt, please post this file to the bugtracker now!");
+	hudoutf("\f3wrote a network error report to packetlog.txt, please post this file to the bugtracker now!");
 
 	disconnect();
 }
@@ -258,7 +258,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				int n;
 				resetspawns();
-				while((n = getint(p))!=-1) setspawn(n, true);
+				while((n = getint(p)) != -1 && !p.overread()) setspawn(n, true);
 				break;
 			}
 
@@ -945,7 +945,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case N_EXTENSION:
+			case N_EXT:
 			{
 				getstring(text, p, 64);
 				int len = getint(p);
@@ -953,7 +953,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				//if(!strcmp(text, ""));
 				else{ // ignore unknown extensions
 					conoutf("server sent unknown extension %s, length %d", text, len);
-					while(len--) getint(p);
+					while(len-- > 0) getint(p);
 				}
 				break;
 			}

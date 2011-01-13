@@ -3472,7 +3472,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				QUEUE_MSG;
 				break;
 
-			case N_EXTENSION: // note that there is no guarantee that custom extensions will work in future AC versions
+			case N_EXT: // note that there is no guarantee that custom extensions will work in future AC versions
 			{
 				getstring(text, p, 64); // extension specifier, preferred to be in the form of OWNER::EXTENSION
 				int n = getint(p);  // length of data after the specifier
