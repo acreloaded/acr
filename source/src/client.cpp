@@ -361,7 +361,6 @@ void c2sinfo(playerent *d)				  // send update to the server
 		*/
 		if(sendmapident)
 		{
-			spawnallitems();
 			packet->flags = ENET_PACKET_FLAG_RELIABLE;
 			putint(p, N_MAPIDENT);
 			putint(p, maploaded);
