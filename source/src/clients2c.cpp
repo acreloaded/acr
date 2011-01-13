@@ -873,8 +873,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				int cn = getint(p), vote = getint(p);
 				playerent *d = getclient(cn);
-				if(!curvote || !d) break;
+				if(!curvote || !d || vote < VOTE_NEUTRAL || vote > VOTE_NO) break;
 				d->vote = vote;
+				if(vote == VOTE_NEUTRAL) break;
 				d->voternum = curvote->nextvote++;
 				if(voteid) conoutf("%s \f6(%d) \f2voted \f%s", d->name, cn, vote == VOTE_NO ? "3no" : "0yes");
 				break;

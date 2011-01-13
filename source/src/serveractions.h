@@ -294,7 +294,7 @@ struct voteinfo
 
 	void end(int result, bool veto = false)
 	{
-		if(action && !action->isvalid()) result = VOTE_NO; // don't perform() invalid votes
+		if(!action || !action->isvalid()) result = VOTE_NO; // don't perform() invalid votes
 		sendf(-1, 1, "ri2", N_VOTERESULT, result | (veto ? 0x80 : 0));
 		this->result = result;
 		if(result == VOTE_YES)
@@ -311,18 +311,20 @@ struct voteinfo
 	void evaluate(bool forceend = false, int veto = VOTE_NEUTRAL)
 	{
 		if(result!=VOTE_NEUTRAL) return; // block double action
-		if(action && !action->isvalid()) end(VOTE_NO);
-		int stats[VOTE_NUM] = {0};
-		loopv(clients) if(clients[i]->type != ST_EMPTY) stats[clients[i]->vote] += clients[i]->priv ? 2 : 1;
+		if(!action || !action->isvalid()) end(VOTE_NO);
+		int stats[VOTE_NUM+1] = {0};
+		loopv(clients) if(clients[i]->type != ST_EMPTY){
+			stats[clients[i]->vote] += clients[i]->priv ? 2 : 1;
+			stats[VOTE_NUM]++;
+		}
 		if(forceend){
 			if(veto == VOTE_NEUTRAL) end(stats[VOTE_YES]/(float)(stats[VOTE_NO]+stats[VOTE_YES]) > action->passratio ? VOTE_YES : VOTE_NO);
 			else end(veto, true);
 		}
 
-		int total = stats[VOTE_NO]+stats[VOTE_YES]+stats[VOTE_NEUTRAL];
-		if(stats[VOTE_YES]/(float)total > action->passratio || (!isdedicated && clients[owner]->type==ST_LOCAL))
+		if(stats[VOTE_YES]/stats[VOTE_NUM] > action->passratio || (!isdedicated && clients[owner]->type==ST_LOCAL))
 			end(VOTE_YES);
-		else if(stats[VOTE_NO]/(float)total >= action->passratio)
+		else if(stats[VOTE_NO]/stats[VOTE_NUM] >= action->passratio)
 			end(VOTE_NO);
 		else return;
 	}

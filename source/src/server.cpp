@@ -2342,7 +2342,7 @@ void putinitclient(client &c, ucharbuf &p){
 	putint(p, c.team);
     putint(p, c.skin);
     sendstring(c.name, p);
-	if(curvote){
+	if(curvote && c.vote != VOTE_NEUTRAL){
 		putint(p, N_VOTE);
 		putint(p, c.clientnum);
 		putint(p, c.vote);
