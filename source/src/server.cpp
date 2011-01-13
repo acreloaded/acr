@@ -1401,10 +1401,10 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 	{
 
 		int targethasflag = clienthasflag(target->clientnum);
-		int cnumber = numauthedclients() < 12 ? numauthedclients() : 12;
+		int cnumber = min(numauthedclients(), 12);
 		bool suic = false;
 		target->state.deaths++;
-		if(target!=actor) actor->state.frags += isteam(target, actor) ? -1 : gib ? 2 : 1;
+		if(target!=actor) actor->state.frags += /*isteam(target, actor) ? -1 :*/ gib ? 2 : 1;
 		else
 		{ // suicide
 			actor->state.frags--;
@@ -1423,7 +1423,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 		ts.state = CS_DEAD;
 		ts.lastdeath = gamemillis;
 		if(!suic) logline(ACLOG_INFO, "[%s] %s %s %s", actor->hostname, actor->name, killname(gun, gib, damage > guns[gun].damage), target->name);
-		else logline(ACLOG_INFO, "[%s] %s suicided", actor->hostname, actor->name);
+		else logline(ACLOG_INFO, "[%s] %s %s", actor->hostname, actor->name, gun == GUN_GRENADE ? "blew himself up" : "suicided");
 
 		if(m_flags && targethasflag >= 0)
 		{
