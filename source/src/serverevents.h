@@ -1,8 +1,8 @@
 // processing of server events
 
-void processevent(client *c, explodeevent &e)
+void processevent(client &c, explodeevent &e)
 {
-	clientstate &gs = c->state;
+	clientstate &gs = c.state;
 	switch(e.gun)
 	{
 		case GUN_GRENADE:
@@ -17,18 +17,21 @@ void processevent(client *c, explodeevent &e)
 		client *target = clients[i];
 		if(!target) continue;
 		vec dir;
-		float dist = target->state.o.dist(o, dir);		
+		float dist = target->state.o.dist(o, dir);
 		if(dist >= guns[e.gun].endrange) continue;
-		serverdamage(target, c, effectiveDamage(e.gun, dist), e.gun, true, dir);
+		dir.normalize();
+		serverdamage(target, &c, effectiveDamage(e.gun, dist), e.gun, true, dir);
 	}
 }
 
-void processevent(client *c, shotevent &e)
+void processevent(client &c, shotevent &e)
 {
-	vector<hitevent> hits, &hitv = *e.hits;
-	loopv(hitv) hits.add(hitv[i]);
-	delete e.hits; // transfer all hits into an auto
-	clientstate &gs = c->state;
+	vector<hitevent> hits;
+	while(c.events.length() > 1 && c.events[1].type == GE_HIT){
+		hits.add(c.events[1].hit);
+		c.events.remove(1);
+	}
+	clientstate &gs = c.state;
 	int wait = e.millis - gs.lastshot;
 	if(!gs.isalive(gamemillis) ||
 	   e.gun<GUN_KNIFE || e.gun>=NUMGUNS ||
@@ -47,19 +50,19 @@ void processevent(client *c, shotevent &e)
 	ucharbuf p(packet->data, packet->dataLength);
 	if(e.gun==GUN_SHOTGUN){
 		putint(p, N_SG);
-		loopi(SGRAYS) loopj(3) putfloat(p, c->state.sg[i][j]);
+		loopi(SGRAYS) loopj(3) putfloat(p, gs.sg[i][j]);
 	}
 	putint(p, N_SHOTFX);
-	putint(p, c->clientnum);
+	putint(p, c.clientnum);
 	putint(p, e.gun);
-	putfloat(p, c->state.o.x);
-	putfloat(p, c->state.o.y);
-	putfloat(p, c->state.o.z);
+	putfloat(p, gs.o.x);
+	putfloat(p, gs.o.y);
+	putfloat(p, gs.o.z);
 	putfloat(p, e.to[0]);
 	putfloat(p, e.to[1]);
 	putfloat(p, e.to[2]);
 	enet_packet_resize(packet, p.length());
-	sendpacket(-1, 1, packet, c->clientnum);
+	sendpacket(-1, 1, packet, c.clientnum);
 	if(packet->referenceCount==0) enet_packet_destroy(packet);
 
 	gs.shotdamage += guns[e.gun].damage*(e.gun==GUN_SHOTGUN ? SGRAYS : 1);
@@ -77,7 +80,7 @@ void processevent(client *c, shotevent &e)
 				int rays = e.gun==GUN_SHOTGUN ? popcount(h.info) : 1;
 				if(e.gun==GUN_SHOTGUN){
 					uint hitflags = h.info;
-					loopi(SGRAYS) if((hitflags & (1 << i)) && c->state.sg[i].dist(e.to) > 60.f) // 2 meters for height x3 for unknown reasons + 3m for lag
+					loopi(SGRAYS) if((hitflags & (1 << i)) && gs.sg[i].dist(e.to) > 60.f) // 2 meters for height x3 for unknown reasons + 3m for lag
 						rays --;
 				}
 				if(rays<1) continue;
@@ -85,8 +88,9 @@ void processevent(client *c, shotevent &e)
 				totalrays += rays;
 				if(e.gun != GUN_SHOTGUN && target->state.o.dist(vec(e.to)) > 20.f) continue; // 2 meters for height + 3 meters for lag
 
-				bool gib = false;
-				int damage = rays * effectiveDamage(e.gun, c->state.o.dist(vec(e.to)));
+				bool gib = false; vec dir;
+				int damage = rays * effectiveDamage(e.gun, vec(e.to).dist(gs.o, dir));
+				dir.normalize();
 				if(e.gun==GUN_KNIFE){
 					if(h.info == 2) damage *= 10;
 					gib = true;
@@ -97,16 +101,16 @@ void processevent(client *c, shotevent &e)
 					if(h.info == 1 && e.gun != GUN_KNIFE) damage *= 0.67;
 					else if(h.info == 2) damage *= e.gun == GUN_SNIPER || e.gun == GUN_SLUG ? 5 : e.gun == GUN_KNIFE ? 1.1 : 2.5;
 				} else if(h.info & 0x80) gib = true;
-				serverdamage(target, c, damage, e.gun, gib, h.dir);
+				serverdamage(target, &c, damage, e.gun, gib, dir);
 			}
 			break;
 		}
 	}
 }
 
-void processevent(client *c, reloadevent &e)
+void processevent(client &c, reloadevent &e)
 {
-	clientstate &gs = c->state;
+	clientstate &gs = c.state;
 	if(!gs.isalive(gamemillis) ||
 	   e.gun<GUN_KNIFE || e.gun>=NUMGUNS ||
 	   !reloadable_gun(e.gun) ||
@@ -121,7 +125,7 @@ void processevent(client *c, reloadevent &e)
 	gs.ammo[e.gun] -= numbullets;
 
 	int wait = e.millis - gs.lastshot;
-	sendf(-1, 1, "ri3x", N_RELOAD, c->clientnum, e.gun, c->clientnum);
+	sendf(-1, 1, "ri3x", N_RELOAD, c.clientnum, e.gun, c.clientnum);
 	if(gs.gunwait[e.gun] && wait<gs.gunwait[e.gun]) gs.gunwait[e.gun] += reloadtime(e.gun);
 	else
 	{
@@ -131,41 +135,44 @@ void processevent(client *c, reloadevent &e)
 	}
 }
 
-void processevent(client *c, akimboevent &e)
+void processevent(client &c, akimboevent &e)
 {
-	clientstate &gs = c->state;
+	clientstate &gs = c.state;
 	if(!gs.isalive(gamemillis) || gs.akimbos<=0) return;
 	gs.akimbos--;
 	gs.akimbomillis = e.millis+30000;
 }
 
-void clearevent(client *c)
+void clearevent(client &c)
 {
+	/*
 	int n = 1;
 	while(n<c->events.length() && c->events[n].type==GE_HIT) n++;
 	c->events.remove(0, n);
+	*/
+	c.events.remove(0);
 }
 
 void processevents()
 {
 	loopv(clients)
 	{
-		client *c = clients[i];
-		if(!c || c->type==ST_EMPTY) continue;
-		if(!m_osok && c->state.state == CS_ALIVE && c->state.health < STARTHEALTH && c->state.lastregen + 2500 < gamemillis){
-			int amt = min(STARTHEALTH - c->state.health, 15);
-			c->state.health += amt;
+		client &c = *clients[i];
+		if(c.type==ST_EMPTY) continue;
+		if(!m_osok && c.state.state == CS_ALIVE && c.state.health < STARTHEALTH && c.state.lastregen + 2500 < gamemillis){
+			int amt = min(STARTHEALTH - c.state.health, 15);
+			c.state.health += amt;
 			sendf(-1, 1, "ri3", N_REGEN, i, amt);
-			c->state.lastregen = gamemillis;
+			c.state.lastregen = gamemillis;
 		}
-		while(c->events.length())
+		while(c.events.length())
 		{
-			gameevent &e = c->events[0];
+			gameevent &e = c.events[0];
 			if(e.type<=GE_RELOAD) // timed
 			{
 				if(e.shot.millis>gamemillis) break;
-				if(e.shot.millis<c->lastevent) { clearevent(c); continue; }
-				c->lastevent = e.shot.millis;
+				if(e.shot.millis<c.lastevent) { clearevent(c); continue; }
+				c.lastevent = e.shot.millis;
 			}
 			switch(e.type)
 			{

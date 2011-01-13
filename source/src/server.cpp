@@ -47,22 +47,17 @@ string smapname, nextmapname;
 int smode = 0, nextgamemode;
 mapstats smapstats;
 
-struct hitevent
-{
-	//int type;
-	int target;
-	int lifesequence;
-	int info;
-	float dir[3];
-};
-
 struct shotevent
 {
 	int type;
 	int millis, id;
 	int gun;
 	float to[3];
-	vector<hitevent>* hits;
+};
+
+struct hitevent{
+	int type;
+	int target, lifesequence, info;
 };
 
 struct explodeevent
@@ -90,6 +85,7 @@ union gameevent
 {
 	int type;
 	shotevent shot;
+	hitevent hit;
 	explodeevent explode;
 	akimboevent akimbo;
 	reloadevent reload;
@@ -3050,15 +3046,14 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				seteventmillis(shot.shot);
 				shot.shot.gun = getint(p);
 				loopk(3) shot.shot.to[k] = getfloat(p);
-				shot.shot.hits = new vector<hitevent>;
-				vector<hitevent> &hits = *shot.shot.hits;
 				int hitcount = getint(p);
 				loopk(hitcount){
-					hitevent &hit = hits.add();
-					hit.target = getint(p);
-					hit.lifesequence = getint(p);
-					hit.info = getint(p);
-					loopk(3) hit.dir[k] = getfloat(p);
+					gameevent &hit = cl->addevent();
+					hit.type = GE_HIT;
+					hit.hit.target = getint(p);
+					hit.hit.lifesequence = getint(p);
+					hit.hit.info = getint(p);
+					loopj(3) /*hit.hit.dir[j] =*/ getfloat(p); // Fix me!
 				}
 				break;
 			}
