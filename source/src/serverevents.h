@@ -78,28 +78,30 @@ void processevent(client &c, shotevent &e)
 				if(target->type==ST_EMPTY || target->state.state!=CS_ALIVE || h.lifesequence!=target->state.lifesequence) continue;
 
 				int rays = e.gun==GUN_SHOTGUN ? popcount(h.info) : 1;
+				if(rays<1) continue;
+				if(totalrays + rays > maxrays) continue;
 				if(e.gun==GUN_SHOTGUN){
 					uint hitflags = h.info;
 					loopi(SGRAYS) if((hitflags & (1 << i)) && gs.sg[i].dist(e.to) > 60.f) // 2 meters for height x3 for unknown reasons + 3m for lag
-						rays --;
-				}
-				if(rays<1) continue;
-				if(totalrays + rays > maxrays) continue;
-				totalrays += rays;
-				if(e.gun != GUN_SHOTGUN && target->state.o.dist(vec(e.to)) > 20.f) continue; // 2 meters for height + 3 meters for lag
+						rays--;
+				} else if (target->state.o.dist(vec(e.to)) > 20.f) continue; // 2 meters for height + 3 meters for lag
 
 				bool gib = false; vec dir;
-				int damage = rays * effectiveDamage(e.gun, vec(e.to).dist(gs.o, dir));
-				dir.normalize();
-				if(e.gun==GUN_KNIFE){
-					if(h.info == 2) damage *= 10;
-					gib = true;
+				int damage = 0;
+				damage = rays * effectiveDamage(e.gun, vec(e.to).dist(gs.o, dir));
+				if(e.gun == GUN_SHOTGUN){
+					uint hitflags = h.info;
+					loopi(SGRAYS) if(hitflags & (1 << i)) damage += effectiveDamage(GUN_SHOTGUN, gs.sg[i].dist(gs.o));
 				}
-				else if(e.gun==GUN_SHOTGUN) gib = damage > SGGIB;
-				else gib = h.info == 2;
+				if(!damage) continue;
+
+				totalrays += rays;
+				dir.normalize();
+				if(e.gun==GUN_SHOTGUN) gib = damage > SGGIB;
+				else gib = e.gun==GUN_KNIFE || h.info == 2;
 				if(e.gun!=GUN_SHOTGUN){
-					if(h.info == 1 && e.gun != GUN_KNIFE) damage *= 0.67;
-					else if(h.info == 2) damage *= e.gun == GUN_SNIPER || e.gun == GUN_SLUG ? 5 : e.gun == GUN_KNIFE ? 1.1 : 2.5;
+					if(h.info == 1 && e.gun != GUN_SLUG && e.gun != GUN_KNIFE) damage *= 0.67;
+					else if(h.info == 2) damage *= e.gun == GUN_SNIPER || e.gun == GUN_SLUG || e.gun == GUN_KNIFE ? 5 : 2.5;
 				} else if(h.info & 0x80) gib = true;
 				serverdamage(target, &c, damage, e.gun, gib, dir);
 			}
