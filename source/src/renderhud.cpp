@@ -635,7 +635,7 @@ void damageblend(int n)
 {
 	if(!damagescreen) return;
 	if(lastmillis > damageblendmillis) damageblendmillis = lastmillis;
-	damageblendmillis += n*damagescreenfactor;
+	damageblendmillis += min(n*damagescreenfactor, 1500);
 }
 
 static int votersort(playerent **a, playerent **b){
