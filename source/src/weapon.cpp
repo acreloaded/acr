@@ -983,6 +983,9 @@ void grenades::removebounceent(bounceent *b)
 	if(b == inhandnade) { inhandnade = NULL; reset(); }
 }
 
+VARP(burst, 0, 0, 10);
+VARP(burstfull, 0, 1, 1); // full burst before stopping
+
 // gun base class
 
 gun::gun(playerent *owner, int type) : weapon(owner, type) {}
@@ -997,6 +1000,7 @@ bool gun::attack(vec &targ)
 
 	if(!owner->attacking)
 	{
+		shots = 0;
 		checkautoreload();
 		return false;
 	}
@@ -1007,12 +1011,14 @@ bool gun::attack(vec &targ)
 		playsoundc(S_NOAMMO);
 		gunwait += 250;
 		owner->lastattackweapon = NULL;
+		shots = 0;
 		checkautoreload();
 		return false;
 	}
 
+	shots++;
 	owner->lastattackweapon = this;
-	owner->attacking = info.isauto;
+	if(!info.isauto || ((type == GUN_ASSAULT || type == GUN_SUBGUN) && burst && shots >= burst)) owner->attacking = false;
 
 	vec from = owner->o;
 	vec to = targ;

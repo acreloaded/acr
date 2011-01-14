@@ -686,7 +686,10 @@ void attack(bool on)
 	{
 		if(!on) tryrespawn();
 	}
-	else player1->attacking = on;
+	else{
+		extern int burst, burstfull;
+		player1->attacking = on || (player1->attacking && !on && burst && burstfull && player1->weaponsel && (player1->weaponsel->type == GUN_ASSAULT || player1->weaponsel->type == GUN_SUBGUN) && player1->weaponsel->shots < burst);
+	}
 }
 
 void jumpn(bool on)
