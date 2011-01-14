@@ -1134,8 +1134,8 @@ void serverextension(char *ext, char *args)
 {
 	if(!ext || !ext[0]) return;
 	size_t n = args ? strlen(args)+1 : 0;
-	if(n>0) addmsg(N_EXTENSION, "rsis", ext, n, args);
-	else addmsg(N_EXTENSION, "rsi", ext, n);
+	if(n>0) addmsg(N_EXT, "rsis", ext, n, args);
+	else addmsg(N_EXT, "rsi", ext, n);
 }
 
 COMMAND(serverextension, ARG_2STR);
