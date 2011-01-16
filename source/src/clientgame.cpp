@@ -124,6 +124,7 @@ void deathstate(playerent *pl)
 	pl->pitch = pl->roll = 0;
 	pl->attacking = false;
 	pl->weaponsel->onownerdies();
+	pl->damagelog.setsizenodelete(0);
 
 	if(pl==player1)
 	{
@@ -434,9 +435,8 @@ void spawnplayer(playerent *d)
 
 void respawnself()
 {
-	if(m_mp(gamemode)) addmsg(N_TRYSPAWN, "r");
-	else
-	{
+	addmsg(N_TRYSPAWN, "r");
+	if(!m_mp(gamemode)){
 		showscores(false);
 		setscope(false);
 		spawnplayer(player1);
@@ -480,12 +480,14 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, bool gib,
 	if(local) damage = pl->dodamage(damage);
 	else if(actor == player1 && damage == 1000) return;
 
+	if(actor != pl && pl->damagelog.find(actor->clientnum) < 0) pl->damagelog.add(actor->clientnum);
+
 	if(pl==player1)
 	{
-		if(weapon != GUN_GRENADE){
+		if(weapon != GUN_GRENADE && actor != pl){
 			vec dir = pl->o;
 			dir.sub(actor->o);
-			dir.normalize();
+			if(!dir.iszero()) dir.normalize();
 			pl->hitpush(damage, dir, actor, weapon);
 		}
 		updatedmgindicator(actor->o);
@@ -506,18 +508,31 @@ void dokill(playerent *pl, playerent *act, int weapon, bool gib, int finishingda
 	string pname, aname, death;
 	s_strcpy(pname, pl==player1 ? "\fs\f1you\fr" : colorname(pl));
 	s_strcpy(aname, act==player1 ? "\fs\f1you\fr" : colorname(act));
-	// s_strcpy(death, gib ? "gibbed" : "fragged");
-	s_strcpy(death, killname(weapon, gib, finishingdamage > guns[weapon].damage));
-	//void (*outf)(const char *s, ...) = (pl == player1 || act == player1) ? hudoutf : conoutf;
 	playerent *p = camera1->type<ENT_CAMERA ? (playerent *)camera1 : player1;
-	void (*outf)(const char *s, ...) = (pl == p || act == p) ? hudoutf : conoutf;
+	//void (*outf)(const char *s, ...) = (pl == p || act == p) ? hudoutf : conoutf;
 
-	if(pl==act){
-		outf("\f2%s %s%s", pname, weapon == GUN_GRENADE ? pl==p? "blew yourself up" : "blew himself up" :
+	if(pl == act)
+		s_sprintf(death)("\f2%s %s%s", pname, weapon == GUN_GRENADE ? pl==p? "blew yourself up" : "blew himself up" :
 			weapon == NUMGUNS ? "committed too much friendly fire" : "suicided", pl == p ? "\f3!" : "");
+	else{
+		s_sprintf(death)("\f2%s %s %s%s", aname, killname(weapon, gib, finishingdamage > guns[weapon].damage), isteam(pl, act) ? "teammate " : "", pname);
+		if(act->killstreak++) s_sprintf(death)("%s (%d killstreak)", death, act->killstreak);
 	}
-	else if(act->killstreak++) outf("\f2%s %s %s%s (%d killstreak)", aname, death, isteam(pl, act) ? "teammate " : "", pname, act->killstreak);
-	else outf("\f2%s %s %s%s", aname, death, isteam(pl, act) ? "teammate " : "", pname);
+	if(pl == p || act == p) hudonlyf("%s", death);
+	pl->damagelog.removeobj(pl->clientnum);
+	pl->damagelog.removeobj(act->clientnum);
+	if(pl->damagelog.length()){
+		playerent *p = NULL;
+		s_strcat(death, ", assisted by");
+		bool first = true;
+		while(pl->damagelog.length()){
+			p = getclient(pl->damagelog.pop());
+			if(!p) continue;
+			s_sprintf(death)("%s%s \fs\f%d%s\fr \fs\f6(%d)\fr", death, first ? "" : !pl->damagelog.length() ? " and" : ",", isteam(p, pl) ? 3 : 2, p->name, p->clientnum);
+			first = false;
+		}
+	}
+	conoutf("%s", death);
 	pl->killstreak = 0;
 	/*
 	if(pl==act)
@@ -906,7 +921,7 @@ bool veto = false;
 
 void callvote(int type, char *arg1, char *arg2)
 {
-	if(type > 0 && type < SA_NUM){
+	if(type >= 0 && type < SA_NUM){
 		ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 		ucharbuf p(packet->data, packet->dataLength);
 		putint(p, N_CALLVOTE);

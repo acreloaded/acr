@@ -287,6 +287,7 @@ struct playerstate
 	int gunselect;
 	bool akimbo;
 	int ammo[NUMGUNS], mag[NUMGUNS], gunwait[NUMGUNS];
+	ivector damagelog;
 
 	playerstate() : primary(GUN_ASSAULT), nextprimary(GUN_ASSAULT) {}
 	virtual ~playerstate() {}

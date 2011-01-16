@@ -162,8 +162,12 @@ void processevents()
 	{
 		client &c = *clients[i];
 		if(c.type==ST_EMPTY) continue;
-		if(!m_osok && c.state.state == CS_ALIVE && c.state.health < STARTHEALTH && c.state.lastregen + 2500 < gamemillis){
-			int amt = min(STARTHEALTH - c.state.health, 15);
+		if(!m_arena && c.state.state == CS_ALIVE && c.state.health < STARTHEALTH && c.state.lastregen + 2500 < gamemillis){
+			int amt = 15;
+			if(amt > STARTHEALTH - c.state.health){
+				amt = STARTHEALTH - c.state.health;
+				c.state.damagelog.setsizenodelete(0);
+			}
 			c.state.health += amt;
 			sendf(-1, 1, "ri3", N_REGEN, i, amt);
 			c.state.lastregen = gamemillis;

@@ -469,9 +469,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					health = getint(p),
 					weap = getint(p);
 				playerent *target = getclient(tcn), *actor = getclient(acn);
-				if(!target || !actor) break;
+				if(!target) break;
 				target->armour = armour;
 				target->health = health;
+				if(!actor) break;
 				dodamage(damage, target, actor, weap & 0x7F, (weap & 0x80) > 0, false);
 				break;
 			}
@@ -487,11 +488,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_DIED:
 			{
-				int vcn = getint(p), acn = getint(p), frags = getint(p), weap = getint(p), damage = getint(p);
+				int vcn = getint(p), acn = getint(p), frags = getint(p), weap = getint(p), damage = getint(p), assists = getint(p);
 				playerent *victim = getclient(vcn), *actor = getclient(acn);
-				if(!actor) break;
-				actor->frags = frags;
-				if(!victim) break;
+				if(actor) actor->frags = frags;
+				if(victim){
+					victim->damagelog.setsizenodelete(0);
+					loopi(assists) victim->damagelog.add(getint(p));
+				} else loopi(assists) getint(p);
+				if(!actor || !victim) break;
 				dokill(victim, actor, weap & 0x7F, (weap & 0x80) > 0, damage);
 				break;
 			}
