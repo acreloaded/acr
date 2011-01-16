@@ -470,7 +470,7 @@ struct playerent : dynent, playerstate
 	{
 		if(gun<0 || gun>NUMGUNS) return;
 		vec push(dir);
-		push.mul(damage/100.0f*guns[gun].pushfactor);
+		push.normalize().mul(damage/100.0f*guns[gun].pushfactor);
 		vel.add(push);
 		extern int lastmillis;
 		if(gun==GUN_GRENADE && damage > 50) eardamagemillis = lastmillis+damage*100;
@@ -581,11 +581,7 @@ struct bounceent : physent // nades, gibs
 	virtual bool applyphysics() { return true; }
 };
 
-struct hitmsg
-{
-	int target, lifesequence, info;
-	float dir[3];
-};
+struct hitmsg{ int target, lifesequence, info; };
 
 struct grenadeent : bounceent
 {

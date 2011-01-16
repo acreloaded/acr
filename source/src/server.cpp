@@ -1333,32 +1333,11 @@ void checkitemspawns(int diff)
 	}
 }
 
-static inline void hitpushworkaround(client *&c, int gun, int damage, const vec &v){
-	//sendf(c->clientnum, 1, "ri3f3", N_HITPUSH, gun, damage, v.x, v.y, v.z);
-	ENetPacket *packet = enet_packet_create(NULL, 6 * sizeof(float), ENET_PACKET_FLAG_RELIABLE);
-	ucharbuf p(packet->data, packet->dataLength);
-	putint(p, N_HITPUSH);
-	putint(p, gun);
-	putint(p, damage * 2);
-	putfloat(p, v.x);
-	putfloat(p, v.y);
-	putfloat(p, v.z);
-	enet_packet_resize(packet, p.length());
-	sendpacket(c->clientnum, 1, packet);
-	if(packet->referenceCount==0) enet_packet_destroy(packet);
-}
-
 void serverdamage(client *target, client *actor, int damage, int gun, bool gib, const vec &hitpush = vec(0, 0, 0))
 {
 	clientstate &ts = target->state;
 	if(target!=actor){
 		if(isteam(actor, target)){
-			if(!hitpush.iszero()){
-				vec v(hitpush);
-				v.mul(-1);
-				if(!v.iszero()) v.normalize();
-				hitpushworkaround(actor, gun, damage * 2, v);
-			}
 			actor->state.dodamage(damage * 0.4);
 			sendf(-1, 1, "ri7", N_DAMAGE, actor->clientnum, actor->clientnum, damage * 0.4,
 				actor->state.armour, actor->state.health, NUMGUNS | 0x80);
@@ -1379,10 +1358,21 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 				}
 			}
 		}
-		else if(!hitpush.iszero()){
+		if(!hitpush.iszero() && gun == GUN_GRENADE){
 			vec v(hitpush);
 			if(!v.iszero()) v.normalize();
-			hitpushworkaround(target, gun, damage, v);
+			//sendf(target->clientnum, 1, "ri3f3", N_HITPUSH, gun, damage, v.x, v.y, v.z);
+			ENetPacket *packet = enet_packet_create(NULL, 6 * sizeof(float), ENET_PACKET_FLAG_RELIABLE);
+			ucharbuf p(packet->data, packet->dataLength);
+			putint(p, N_HITPUSH);
+			putint(p, gun);
+			putint(p, damage);
+			putfloat(p, v.x);
+			putfloat(p, v.y);
+			putfloat(p, v.z);
+			enet_packet_resize(packet, p.length());
+			sendpacket(target->clientnum, 1, packet);
+			if(packet->referenceCount==0) enet_packet_destroy(packet);
 		}
 	}
 	ts.dodamage(damage);
@@ -3044,7 +3034,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					hit.hit.target = getint(p);
 					hit.hit.lifesequence = getint(p);
 					hit.hit.info = getint(p);
-					loopj(3) /*hit.hit.dir[j] =*/ getfloat(p); // Fix me!
 				}
 				break;
 			}

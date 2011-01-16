@@ -337,8 +337,6 @@ void hit(int damage, playerent *d, playerent *at, const vec &vel, int gun, bool 
 		h.target = d->clientnum;
 		h.lifesequence = d->lifesequence;
 		h.info = info;
-		if(d==player1) loopk(3) h.dir[k] = 0;
-		loopk(3) h.dir[k] = vel[k];
 	}
 }
 
@@ -569,7 +567,6 @@ void weapon::sendshoot(vec &from, vec &to)
 		putint(p, hits[i].target);
 		putint(p, hits[i].lifesequence);
 		putint(p, hits[i].info);
-		loopk(3) putfloat(p, hits[i].dir[k]);
 	}
 	int len = p.length();
 	extern vector<uchar> messages;
@@ -622,9 +619,9 @@ void weapon::renderstats()
 	string gunstats, ammostr;
 	itoa(ammostr, max((int)floor((float)ammo / (float)magsize(type)), 0));
 	if(ammo % magsize(type)){
-		s_sprintf(ammostr, "%s/%i", ammostr, ammo % magsize(type));
+		s_sprintf(ammostr)("%s/%i", ammostr, ammo % magsize(type));
 	}
-	sprintf(gunstats, oldfashionedgunstats ? "%i/%s" : "%i", mag, ammostr);
+	s_sprintf(gunstats)(oldfashionedgunstats ? "%i/%s" : "%i", mag, ammostr);
 	draw_text(gunstats, 590, 823);
 	if(!oldfashionedgunstats){
 		int offset = text_width(gunstats);
