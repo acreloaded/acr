@@ -113,21 +113,22 @@ void processevent(client &c, shotevent &e)
 void processevent(client &c, reloadevent &e)
 {
 	clientstate &gs = c.state;
+	int mag = magsize(e.gun);
 	if(!gs.isalive(gamemillis) ||
 	   e.gun<GUN_KNIFE || e.gun>=NUMGUNS ||
 	   !reloadable_gun(e.gun) ||
-	   gs.ammo[e.gun]<=0)
+	   gs.mag[e.gun] >= mag ||
+	   gs.ammo[e.gun] < mag)
 		return;
 
 	bool akimbo = e.gun==GUN_PISTOL && gs.akimbomillis>e.millis;
-	int mag = (akimbo ? 2 : 1) * magsize(e.gun), numbullets = min(gs.ammo[e.gun], mag - gs.mag[e.gun]);
-	if(numbullets<=0) return;
+	if(akimbo && gs.ammo[GUN_PISTOL] >= mag*2) mag *= 2;
 
-	gs.mag[e.gun] += numbullets;
-	gs.ammo[e.gun] -= numbullets;
+	gs.mag[e.gun]   = mag;
+	gs.ammo[e.gun] -= mag;
 
 	int wait = e.millis - gs.lastshot;
-	sendf(-1, 1, "ri3x", N_RELOAD, c.clientnum, e.gun, c.clientnum);
+	sendf(-1, 1, "ri5", N_RELOAD, c.clientnum, e.gun, gs.mag[e.gun], gs.ammo[e.gun]);
 	if(gs.gunwait[e.gun] && wait<gs.gunwait[e.gun]) gs.gunwait[e.gun] += reloadtime(e.gun);
 	else
 	{

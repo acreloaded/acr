@@ -306,7 +306,7 @@ void drawequipicons(playerent *p)
 	if(c > 3) { c -= 4; r = 1; }
 
 	if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS)
-		drawequipicon(1020, 1650, c, r, (!p->weaponsel->mag && p->weaponsel->type != GUN_KNIFE && p->weaponsel->type != GUN_GRENADE) ? 1 : 0);
+		drawequipicon(1020, 1650, c, r, ((!p->weaponsel->ammo || p->weaponsel->mag < magsize(p->weaponsel->type) / 3) && p->weaponsel->type != GUN_KNIFE && p->weaponsel->type != GUN_GRENADE) ? 1 : 0);
 	glEnable(GL_BLEND);
 }
 

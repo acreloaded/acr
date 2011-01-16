@@ -44,15 +44,15 @@ struct entity : public persistent_entity
 struct itemstat { int add, start, max, sound; };
 static itemstat ammostats[] =
 {
-	{1,  1,   1,	 S_ITEMAMMO},   //knife dummy
+	{1,  1,   1,	S_ITEMAMMO},   //knife dummy
 	{24, 36,  72,	S_ITEMAMMO},   //pistol
 	{20, 30,  60,	S_ITEMAMMO},   //auto shotgun
-	{64, 96,  192,   S_ITEMAMMO},   //subgun
+	{64, 96,  192,	S_ITEMAMMO},   //subgun
 	{20, 30,  30,	S_ITEMAMMO},   //sniper
 	{16, 24,  32,	S_ITEMAMMO},   //slug gun
 	{60, 90,  180,	S_ITEMAMMO},   //assault
-	{2,  0,   3,	 S_ITEMAMMO},   //grenade
-	{72, 0,   108,   S_ITEMAKIMBO}  //akimbo
+	{2,  0,   3,	S_ITEMAMMO},   //grenade
+	{80, 0,   128,	S_ITEMAKIMBO}  //akimbo
 };
 
 static itemstat powerupstats[] =

@@ -430,13 +430,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_RELOAD:
 			{
-				int cn = getint(p), gun = getint(p);
+				int cn = getint(p), gun = getint(p), mag = getint(p), ammo = getint(p);
 				playerent *p = getclient(cn);
-				if(!p) break;
+				if(!p || gun < GUN_KNIFE || gun >= NUMGUNS) break;
+				p->ammo[gun] = ammo;
+				p->mag[gun] = mag;
 				playsound(guns[gun].reload, p);
-				int bullets = min(p->ammo[gun], magsize(gun) - p->mag[gun]);
-				p->ammo[gun] -= bullets;
-				p->mag[gun] += bullets;
 				break;
 			}
 

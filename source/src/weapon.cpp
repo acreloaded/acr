@@ -600,18 +600,18 @@ void weapon::attacksound()
 
 bool weapon::reload()
 {
-	if(mag>=info.magsize || ammo<=0) return false;
+	if(mag >= info.magsize || ammo < magsize(type)) return false;
 	updatelastaction(owner);
 	reloading = lastmillis;
 	gunwait += info.reloadtime;
 
-	int bullets =  min(owner->ammo[type], magsize(type) - owner->mag[type]);
-	owner->ammo[type] -= bullets;
-	owner->mag[type] += bullets;
-
-	bool local = (player1 == owner);
-	playsound(info.reload, owner);
-	if(local) addmsg(N_RELOAD, "ri2", lastmillis, type);
+	bool local = player1 == owner;
+	if(!local){
+		owner->ammo[type] -= magsize(type);
+		owner->mag[type] = magsize(type);
+		playsound(info.reload, owner);
+	}
+	else addmsg(N_RELOAD, "ri2", lastmillis, type);
 	return true;
 }
 
@@ -619,13 +619,17 @@ VARP(oldfashionedgunstats, 0, 0, 1);
 
 void weapon::renderstats()
 {
-	char gunstats[64];
-	sprintf(gunstats, oldfashionedgunstats ? "%i/%i" : "%i", mag, ammo);
+	string gunstats, ammostr;
+	itoa(ammostr, max((int)floor((float)ammo / (float)magsize(type)), 0));
+	if(ammo % magsize(type)){
+		s_sprintf(ammostr, "%s/%i", ammostr, ammo % magsize(type));
+	}
+	sprintf(gunstats, oldfashionedgunstats ? "%i/%s" : "%i", mag, ammostr);
 	draw_text(gunstats, 590, 823);
 	if(!oldfashionedgunstats){
 		int offset = text_width(gunstats);
 		glScalef(0.5f, 0.5f, 1.0f);
-		draw_textf("%i", (590 + offset)*2, 826*2, ammo);
+		draw_textf("%s", (590 + offset)*2, 826*2, ammostr);
 	}
 }
 
