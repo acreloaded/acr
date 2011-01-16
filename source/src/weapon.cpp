@@ -1066,7 +1066,10 @@ bool shotgun::attack(vec &targ)
 void shotgun::attackfx(const vec &from, const vec &to, int millis)
 {
 	loopi(SGRAYS) particle_splash(0, 5, 200, sg[i]);
-	if(addbullethole(owner, from, to)) loopi(SGRAYS) addbullethole(owner, from, sg[i], 0, false);
+	if(addbullethole(owner, from, to)) loopi(SGRAYS){
+		addshotline(owner, from, sg[i]);
+		addbullethole(owner, from, sg[i], 0, false);
+	}
 	adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
 	attacksound();
 }
