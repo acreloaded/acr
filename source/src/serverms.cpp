@@ -119,7 +119,7 @@ void checkmasterreply()
 		if(*tp++ == '*'){
 			char t = *tp++;
 			if(!t) return;
-			char rtxt[12] = ""; char *r = rtxt; int rl;
+			char rtxt[12] = ""; char *r = rtxt; int rl = 0;
 			while(rl < 11 && (*r++ = *tp++) && r[-1] != '|') rl++;
 			if(*--r == '|') *r = 0; // overwrite bar to NULL
 			uint authid = atoi(rtxt);
