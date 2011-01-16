@@ -585,9 +585,18 @@ void sendf(int cn, int chan, const char *format, ...)
 	if(packet->referenceCount==0) enet_packet_destroy(packet);
 }
 
-void sendservmsg(const char *msg, int client=-1)
-{
+inline void sendservmsg(const char *msg, int client = -1){ // compact to below every new protocol
 	sendf(client, 1, "ris", N_SERVMSG, msg);
+}
+
+inline void sendmsg(int msg, int client = -1){
+	sendf(client, 1, "ri2", N_CONFMSG, msg);
+}
+inline void sendmsgs(int msg, char *str, int client = -1){
+	sendf(client, 1, "ri2s", N_CONFMSG, str);
+}
+inline void sendmsgi(int msg, int num, int client = -1){
+	sendf(client, 1, "ri3", N_CONFMSG, num);
 }
 
 void spawnstate(client *c)
@@ -662,8 +671,7 @@ void enddemorecord()
 	}
 	demofile &d = demos.add();
 	s_sprintf(d.info)("%s: %s, %s, %.2f%s", asctime(), modestr(gamemode), smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB");
-	s_sprintfd(msg)("Demo \"%s\" recorded\nPress F10 to download it from the server..", d.info);
-	sendservmsg(msg);
+	sendmsgs(26, d.info);
 	logline(ACLOG_INFO, "Demo \"%s\" recorded.", d.info);
 	d.data = new uchar[len];
 	d.len = len;
@@ -672,7 +680,7 @@ void enddemorecord()
 	demotmp = NULL;
 	if(scl.demopath[0])
 	{
-		s_sprintf(msg)("%s%s_%s_%s.dmo", scl.demopath, timestring(), behindpath(smapname), modestr(gamemode, true));
+		s_sprintfd(msg)("%s%s_%s_%s.dmo", scl.demopath, timestring(), behindpath(smapname), modestr(gamemode, true));
 		path(msg);
 		FILE *demo = openfile(msg, "wb");
 		if(demo)
@@ -711,7 +719,7 @@ void setupdemorecord()
 	}
 #endif
 
-	sendservmsg("recording demo");
+	sendmsg(20);
 	logline(ACLOG_INFO, "Demo recording started.");
 
 	demorecord = f;
@@ -764,18 +772,13 @@ void listdemos(int cn)
 
 static void cleardemos(int n)
 {
-	if(!n)
-	{
+	if(!n){
 		loopv(demos) delete[] demos[i].data;
 		demos.setsize(0);
-		sendservmsg("cleared all demos");
 	}
-	else if(demos.inrange(n-1))
-	{
+	else if(demos.inrange(n-1)){
 		delete[] demos[n-1].data;
 		demos.remove(n-1);
-		s_sprintfd(msg)("cleared demo %d", n);
-		sendservmsg(msg);
 	}
 }
 
@@ -783,18 +786,13 @@ void senddemo(int cn, int num)
 {
 	if(!valid_client(cn)) return;
 	if(clients[cn]->priv < scl.demodownloadpriv){
-		s_sprintfd(nodownloadprivmsg)("you need %s to download demos", privname(scl.demodownloadpriv));
-		sendservmsg(nodownloadprivmsg, cn);
+		sendmsgi(29, scl.demodownloadpriv, cn);
 		return;
 	}
 	if(!num) num = demos.length();
 	if(!demos.inrange(num-1)){
-		if(demos.empty()) sendservmsg("no demos available", cn);
-		else
-		{
-			s_sprintfd(msg)("no demo %d available", num);
-			sendservmsg(msg, cn);
-		}
+		if(demos.empty()) sendmsg(27, cn);
+		else sendmsgi(28, num);
 		return;
 	}
 	demofile &d = demos[num-1];
@@ -809,7 +807,7 @@ void enddemoplayback()
 
 	loopv(clients) sendf(i, 1, "ri3", N_DEMOPLAYBACK, 0, i);
 
-	sendservmsg("demo playback finished");
+	sendmsg(21);
 
 	loopv(clients) sendwelcome(clients[i]);
 }
@@ -817,32 +815,27 @@ void enddemoplayback()
 void setupdemoplayback()
 {
 	demoheader hdr;
-	string msg;
-	msg[0] = '\0';
+	int msg = 0;
 	s_sprintfd(file)("demos/%s.dmo", smapname);
 	path(file);
 	demoplayback = opengzfile(file, "rb9");
-	if(!demoplayback) s_sprintf(msg)("could not read demo \"%s\"", file);
+	if(!demoplayback) msg = 22;
 	else if(gzread(demoplayback, &hdr, sizeof(demoheader))!=sizeof(demoheader) || memcmp(hdr.magic, DEMO_MAGIC, sizeof(hdr.magic)))
-		s_sprintf(msg)("\"%s\" is not a demo file", file);
+		msg = 23;
 	else
 	{
 		endianswap(&hdr.version, sizeof(int), 1);
 		endianswap(&hdr.protocol, sizeof(int), 1);
-		if(hdr.version!=DEMO_VERSION) s_sprintf(msg)("demo \"%s\" requires an %s version of AssaultCube", file, hdr.version<DEMO_VERSION ? "older" : "newer");
-		else if(hdr.protocol != PROTOCOL_VERSION && !(hdr.protocol < 0 && hdr.protocol == -PROTOCOL_VERSION)) s_sprintf(msg)("demo \"%s\" requires an %s version of AssaultCube", file, hdr.protocol<PROTOCOL_VERSION ? "older" : "newer");
+		if(hdr.version!=DEMO_VERSION) msg = hdr.version<DEMO_VERSION ? 24 : 25;
+		else if(hdr.protocol != PROTOCOL_VERSION && !(hdr.protocol < 0 && hdr.protocol == -PROTOCOL_VERSION)) msg = hdr.protocol<PROTOCOL_VERSION ? 24 : 25;
 	}
-	if(msg[0])
-	{
+	if(msg){
 		if(demoplayback) { gzclose(demoplayback); demoplayback = NULL; }
-		sendservmsg(msg);
+		sendmsgs(msg, file);
 		return;
 	}
 
-	s_sprintf(msg)("playing demo \"%s\"", file);
-	sendservmsg(msg);
-
-	sendf(-1, 1, "ri3", N_DEMOPLAYBACK, 1, -1);
+	sendf(-1, 1, "ri2si", N_DEMOPLAYBACK, 1, file, -1);
 
 	if(gzread(demoplayback, &nextplayback, sizeof(nextplayback))!=sizeof(nextplayback))
 	{
@@ -1283,6 +1276,7 @@ void sendtext(char *text, client &cl, int flags, int voice)
 		return;
 	}
 	if(!m_teammode) flags &= ~SAY_TEAM;
+	logline(ACLOG_INFO, "%s", logmsg);
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
 	putint(p, N_TEXT);
@@ -1291,6 +1285,7 @@ void sendtext(char *text, client &cl, int flags, int voice)
 	sendstring(text, p);
 	enet_packet_resize(packet, p.length());
 	loopv(clients) if(!(flags&SAY_TEAM) || clients[i]->team == cl.team || clients[i]->priv) sendpacket(i, 1, packet);
+	recordpacket(1, packet->data, (int)packet->dataLength);
 	if(!packet->referenceCount) enet_packet_destroy(packet);
 }
 
@@ -1393,11 +1388,8 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 	ts.dodamage(damage);
 	actor->state.damage += damage != 1000 ? damage : 0;
 	sendf(-1, 1, "ri7", N_DAMAGE, target->clientnum, actor->clientnum, damage, ts.armour, ts.health, gun | (gib ? 0x80 : 0));
-	if(ts.health<=0)
-	{
-
+	if(ts.health<=0){
 		int targethasflag = clienthasflag(target->clientnum);
-		int cnumber = min(numauthedclients(), 12);
 		bool suic = false;
 		target->state.deaths++;
 		if(target!=actor) actor->state.frags += /*isteam(target, actor) ? -1 :*/ gib ? 2 : 1;
@@ -1410,8 +1402,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 		target->state.killstreak = 0;
 		killpoints(target, actor, gun, gib);
 		sendf(-1, 1, "ri6", N_DIED, target->clientnum, actor->clientnum, actor->state.frags, gun | (gib ? 0x80 : 0), damage);
-		if(suic && (m_htf || m_ktf) && targethasflag >= 0)
-		{
+		if(suic && (m_htf || m_ktf) && targethasflag >= 0){
 			actor->state.flagscore--;
 			sendf(-1, 1, "ri3", N_FLAGCNT, actor->clientnum, actor->state.flagscore);
 		}
@@ -2146,7 +2137,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 		}
 		// copyrevision = copymapsize == smapstats.cgzsize ? smapstats.hdr.maprevision : 0;
 	}
-	else sendservmsg("\f3map not found - start another map or send the map to the server");
+	else sendmsg(11);
 	if(notify){
 		// change map
 		sendf(-1, 1, "risi2", N_MAPCHANGE, smapname, smode, mapavailable(smapname));
@@ -2956,8 +2947,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					cl->isonrightmap = true;
 				}
 				else{
-					sendservmsg("\f3you have the wrong map; please type /getmap", sender);
-					forcedeath(cl);
+					sendf(sender, 1, "ri", N_MAPIDENT);
+					if(cl->state.state != CS_DEAD) forcedeath(cl);
 				}
 				break;
 			}
@@ -2981,7 +2972,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_TRYSPAWN:
 				if(!cl->isonrightmap){
-					sendservmsg("\f3you can't spawn until you download the map from the server; please type /getmap", sender);
+					sendf(sender, 1, "ri", N_MAPIDENT);
 					break;
 				}
 				if(cl->state.state!=CS_DEAD || cl->state.lastspawn>=0 || gamemillis - cl->state.lastdeath < (m_flags ? 5000 : 1000) || !canspawn(cl)) break;
@@ -3017,7 +3008,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_SCOPE:
 			{
-				bool scope = getint(p);
+				bool scope = getint(p) != 0;
 				if((!cl->state.isalive(gamemillis) && scope) || cl->state.scoped == scope) break;
 				cl->state.scoped = scope;
 				QUEUE_MSG;
@@ -3160,10 +3151,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					int ls = (1 << maplayout_factor) - 1;
 					if(po.x < 0 || po.y < 0 || po.x > ls || po.y > ls || maplayout[((int) po.x) + (((int) po.y) << maplayout_factor)] > po.z + 3)
 					{
-						logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cl->hostname, cl->name, cl->mapcollisions);
-						s_sprintfd(collidemsg)("\f1%s \f6(%d) \f2collides with the map \f5- \f3forcing death", cl->name, cl->clientnum);
-						sendservmsg(collidemsg);
-						sendservmsg("\f3please \f1get the map \f3by typing \f0/getmap", sender);
+						logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cl->hostname, cl->name, ++cl->mapcollisions);
+						sendmsgi(40, sender);
+						sendf(sender, -1, "ri", N_MAPIDENT);
 						forcedeath(cl);
 						cl->isonrightmap = false; // cannot spawn until you get the right map
 						break; // no pickups for you!
@@ -3236,8 +3226,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				}
 				if(sendmapserv(sender, text, mapsize, cfgsize, cfgsizegz, &p.buf[p.len]))
 				{
-					s_sprintfd(sendmapsucmsg)("%s \f6(%d) \f0sent the map %s to the server, \f1type /getmap to get it", cl->name, sender, text);
-					sendservmsg(sendmapsucmsg, -1);
+					sendf(-1, 1, "ri2s", N_SENDMAP, sender, text);
 					logline(ACLOG_INFO,"[%s] %s sent map %s, %d + %d(%d) bytes written",
 								clients[sender]->hostname, clients[sender]->name, text, mapsize, cfgsize, cfgsizegz);
 				}
@@ -3255,16 +3244,16 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				ENetPacket *mappacket = getmapserv(cl->clientnum);
 				if(mappacket)
 				{
-					resetflag(cl->clientnum); // drop ctf flag
+					resetflag(sender); // drop ctf flag
 					// save score
 					savedscore *sc = findscore(*cl, true);
 					if(sc) sc->save(cl->state);
 					// resend state properly
-					sendpacket(cl->clientnum, 2, mappacket);
+					sendpacket(sender, 2, mappacket);
 					cl->mapchange();
 					sendwelcome(cl, 2, true);
 				}
-				else sendservmsg("no map to get", cl->clientnum);
+				else sendmsg(13, sender);
 				break;
 			}
 
@@ -3542,25 +3531,32 @@ void checkintermission()
 	if(minremain>0)
 	{
 		minremain = gamemillis>=gamelimit || forceintermission ? 0 : (gamelimit - gamemillis + 60000 - 1)/60000;
-		if(isdedicated) loopv(clients) if(valid_client(i)){
-			client &cl = *clients[i];
-			s_sprintfd(accmsg)("\f1%d%% \f5accuracy \f4(\f1%d \f2shot, \f1%d \f0hit, \f1%d \f3wasted\f4)",
-				cl.state.damage * 100/ max(cl.state.shotdamage,1),
-				cl.state.shotdamage, cl.state.damage, cl.state.shotdamage - cl.state.damage);
-			sendservmsg(accmsg, i);
-		}
+		if(isdedicated) loopv(clients) if(valid_client(i)) sendf(i, 1, "ri3", N_ACCURACY, clients[i]->state.damage, clients[i]->state.shotdamage);
 		if(minremain < 2){
-			string nextmaprotmsg;
-			if(nextmapname[0])
-				s_sprintf(nextmaprotmsg)("\f2Next map loaded: %s in mode %s", nextmapname, modestr(nextgamemode));
+			short nextmaptype = 0, nextmaptime = 0, nextmapmode = GMODE_TEAMDEATHMATCH;
+			string nextmapnm = "unknown";
+			if(*nextmapname){
+				nextmaptype = 1;
+				s_strcpy(nextmapnm, nextmapname);
+				nextmapmode = nextgamemode;
+			}
 			else if(configsets.length()){
+				nextmaptype = 2;
 				configset nextmaprot = configsets[nextcfgset(false, true)];
-				s_sprintf(nextmaprotmsg)("\f1Next on map rotation: %s in mode %s for %d minutes", nextmaprot.mapname, modestr(nextmaprot.mode), nextmaprot.time);
+				s_strcpy(nextmapnm, nextmaprot.mapname);
+				nextmapmode = nextmaprot.mode;
+				nextmaptime = nextmaprot.time;
 			}
 			else{
-				s_sprintf(nextmaprotmsg)("\f2No map rotation entries, reloading %s in mode %s for %d minutes", smapname, modestr(smode), m_teammode ? 15 : 10);
+				nextmaptype = 3;
+				s_strcpy(nextmapnm, smapname);
+				nextmapmode = smode;
 			}
-			sendservmsg(nextmaprotmsg);
+			if(nextmaptime < 1){
+				int smode = nextmapmode;
+				nextmaptime = m_teammode ? 15 : 10;
+			}
+			if(nextmaptype) sendf(-1, 1, "ri4s", N_CONFMSG, 14, nextmaptime, nextmapmode | ((nextmaptype & 3) << 6), nextmapnm);
 		}
 		sendf(-1, 1, "ri2", N_TIMEUP, minremain);
 	}

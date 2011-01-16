@@ -5,7 +5,7 @@
 #define CUBE_SERVINFO_PORT_LAN 28778
 #define CUBE_SERVINFO_PORT(serverport) (serverport+1)
 #define CUBE_SERVINFO_TO_SERV_PORT(servinfoport) (servinfoport-1)
-#define PROTOCOL_VERSION 2103		   // bump when protocol changes
+#define PROTOCOL_VERSION 2104		   // bump when protocol changes
 #define DEMO_VERSION 2				  // bump when demo format changes
 #define DEMO_MAGIC "ACS_DEMO"
 #define MAXMAPSENDSIZE 65536
@@ -33,9 +33,9 @@ enum{
 	N_ITEMLIST, N_ITEMSPAWN, N_ITEMACC, // items
 	N_DROPFLAG, N_FLAGINFO, N_FLAGMSG, N_FLAGCNT, // flags
 	N_MAPCHANGE, N_NEXTMAP, // map changes
-	N_TIMEUP, N_ARENAWIN, // round end/remaining
+	N_TIMEUP, N_ACCURACY, N_ARENAWIN, // round end/remaining
 	// extensions
-	N_SERVMSG, N_EXT,
+	N_SERVMSG, N_CONFMSG, N_EXT,
 	N_NUM
 };
 

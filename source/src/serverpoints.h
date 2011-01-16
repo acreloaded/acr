@@ -10,7 +10,6 @@ void killpoints(client *& target, client *& actor, int gun, bool gib){
 	addpt(target, DEATHPT);
 	if(!suic){
 		//if(tk){ // NO MORE TKs
-		int tpts = target->state.points;
 		if(m_teammode){
 			if(!m_flags) addpt(actor, TMBONUSPT);
 			else addpt(actor, FLBONUSPT);

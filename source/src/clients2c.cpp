@@ -384,7 +384,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_SCOPE:
 			{
-				bool scope = getint(p);
+				bool scope = getint(p) != 0;
 				if(!d) break;
 				((sniperrifle *)d->weapons[GUN_SNIPER])->setscope(scope);
 				break;
@@ -614,6 +614,128 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				playerent *pl = getclient(getint(p));
 				int pp = getint(p);
 				if(pl) pl->ping = pp;
+				break;
+			}
+
+			case N_MAPIDENT:
+				conoutf("\f3please \f1get the map \f3by typing \f0/getmap");
+				break;
+
+			case N_SENDMAP:
+			{
+				int cn = getint(p); playerent *d = getclient(cn);
+				getstring(text, p);
+				conoutf("%s \f0sent the map %s to the server, \f1type /getmap to get it", d ? colorname(d) : "someone", text);
+				break;
+			}
+
+			case N_CONFMSG: // preconfigured messages
+			{
+				int n = getint(p);
+				string msg = "server sent unknown message";
+				switch(n){
+					case 10: // 1* maps
+						s_strcpy(msg, "\f3coopedit is restricted to admins!");
+						break;
+					case 11:
+						s_strcpy(msg, "\f3map not found - start another map or send the map to the server");
+						break;
+					case 12:
+						s_strcpy(msg, "\f3the server does not have this map");
+						break;
+					case 13:
+						s_strcpy(msg, "no map to get");
+						break;
+					case 14:
+					{
+						int minutes = getint(p), mode = getint(p), nextt = (mode >> 6) & 3; mode &= 0x3F;
+						getstring(text, p);
+						s_strcpy(msg, "nextmap:");
+						switch(nextt){
+							case 1:
+								s_strcpy(msg, "\f2Next map loaded:");
+								break;
+							case 2:
+								s_strcpy(msg, "\f1Next on map rotation:");
+								break;
+							case 3:
+								s_strcpy(msg, "\f2No map rotation entries,");
+								break;
+						}
+						s_sprintf(msg)("%s %s in mode %s for %d minutes", msg, text, modestr(mode), minutes);
+						break;
+					}
+					case 15:
+					{
+						getstring(text, p);
+						bool spawns = (*text & 0x80) != 0, flags = (*text & 0x40) != 0;
+						*text &= 0x3F;
+						s_sprintf(msg)("\f3map \"%s\" does not support \"%s\": ", text + 1, modestr(*text));
+						if(spawns || !flags) s_strcat(msg, "player spawns");
+						if(spawns && flags) s_strcat(msg, " and ");
+						if(flags || !spawns) s_strcat(msg, "flag bases");
+						s_strcat(msg, " missing");
+					}
+					case 20: // 2* demos
+						s_strcpy(msg, "recording demo");
+						break;
+					case 21:
+						s_strcpy(msg, "demo playback finished");
+						break;
+					case 22:
+					case 23:
+					case 24:
+					case 25:
+					case 26:
+						getstring(text, p);
+						switch(n){
+							case 22:
+								s_sprintf(msg)("could not read demo \"%s\"", text);
+								break;
+							case 23:
+								s_sprintf(msg)("\"%s\" is not a demo file", text);
+								break;
+							case 24:
+							case 25:
+								s_sprintf(msg)("demo \"%s\" requires a %s version", text, n==24 ? "older" : "newer");
+								break;
+							case 26:
+								s_sprintf(msg)("Demo \"%s\" recorded", text);
+								break;
+						}
+						break;
+					case 27:
+						s_strcpy(msg, "no demos available");
+						break;
+					case 28:
+						s_sprintf(msg)("no demo %d available", getint(p)); 
+						break;
+					case 29:
+						s_sprintf(msg)("you need %s to download demos", privname(getint(p)));
+						break;
+					case 40: // 4* gameplay errors
+					{
+						int cn = getint(p); playerent *d = getclient(cn);
+						string pname = "unknown";
+						if(d) s_strcpy(pname, colorname(d));
+						s_strcat(msg, " ");
+						switch(n){
+							case 40:
+								s_strcat(msg, "\f2collides with the map \f5- \f3forcing death");
+								break;
+						}
+						break;
+					}
+				}
+				conoutf("%s", msg);
+				break;
+			}
+
+			case N_ACCURACY:
+			{
+				int hit = getint(p), shot = getint(p);
+				s_sprintfd(accmsg)("\f1%d%% \f5accuracy \f4(\f1%d \f2shot, \f1%d \f0hit, \f1%d \f3wasted\f4)",
+					hit * 100 / max(shot, 1), hit, shot, shot - hit);
 				break;
 			}
 
@@ -930,6 +1052,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				watchingdemo = demoplayback = getint(p)!=0;
 				if(demoplayback)
 				{
+					getstring(text, p);
+					conoutf("playing demo \"%s\"", text);
 					player1->resetspec();
 					player1->state = CS_SPECTATE;
 				}

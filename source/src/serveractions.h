@@ -51,10 +51,10 @@ struct mapaction : serveraction
 			mapstats *ms = getservermapstats(map);
 			if(strchr(scl.voteperm, 'x') && !ms){ // admin needed for unknown maps
 				role = PRIV_ADMIN;
-				if(notify) sendservmsg("the server does not have this map", caller);
+				if(notify) sendmsg(12, caller);
 			}
 			if(mode == GMODE_COOPEDIT && notify){ // admin needed for coopedit
-				sendservmsg("\f3coopedit is restricted to admins!", caller);
+				sendmsg(10, caller);
 				role = PRIV_ADMIN;
 			}
 			if(ms && !strchr(scl.voteperm, 'P')) // admin needed for mismatched modes
@@ -65,13 +65,12 @@ struct mapaction : serveraction
 				if(!spawns || !flags)
 				{
 					role = PRIV_ADMIN;
-					s_sprintfd(msg)("\f3map \"%s\" does not support \"%s\": ", behindpath(map), modestr(mode, false));
-					if(!spawns) s_strcat(msg, "player spawns");
-					if(!spawns && !flags) s_strcat(msg, " and ");
-					if(!flags) s_strcat(msg, "flag bases");
-					s_strcat(msg, " missing");
-					if(notify) sendservmsg(msg, caller);
-					logline(ACLOG_INFO, "%s", msg);
+					string mapfail;
+					s_strcpy(mapfail + 1, behindpath(map));
+					*mapfail = mode;
+					if(!spawns) *mapfail |= 0x80;
+					if(!flags) *mapfail |= 0x40;
+					sendmsgs(15, mapfail, caller);
 				}
 			}
 			loopv(scl.adminonlymaps)
