@@ -598,13 +598,11 @@ bool weapon::reload()
 	reloading = lastmillis;
 	gunwait += info.reloadtime;
 
-	bool local = player1 == owner;
-	if(!local){
-		owner->ammo[type] -= magsize(type);
-		owner->mag[type] = magsize(type);
-		playsound(info.reload, owner);
-	}
-	else addmsg(N_RELOAD, "ri2", lastmillis, type);
+	owner->ammo[type] -= magsize(type);
+	owner->mag[type] = magsize(type);
+	playsound(info.reload, owner);
+
+	if(player1 == owner) addmsg(N_RELOAD, "ri2", lastmillis, type);
 	return true;
 }
 

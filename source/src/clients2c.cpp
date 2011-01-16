@@ -435,7 +435,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(!p || gun < GUN_KNIFE || gun >= NUMGUNS) break;
 				p->ammo[gun] = ammo;
 				p->mag[gun] = mag;
-				playsound(guns[gun].reload, p);
+				if(p != player1) playsound(guns[gun].reload, p);
 				break;
 			}
 
