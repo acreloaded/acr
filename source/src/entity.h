@@ -41,7 +41,7 @@ struct entity : public persistent_entity
 
 #define STARTHEALTH 100
 
-struct itemstat { int add, start, max, sound; };
+struct itemstat { short add, start, max, sound; };
 static itemstat ammostats[] =
 {
 	{1,  1,   1,	S_ITEMAMMO},   //knife dummy
@@ -49,16 +49,16 @@ static itemstat ammostats[] =
 	{20, 30,  60,	S_ITEMAMMO},   //auto shotgun
 	{64, 96,  192,	S_ITEMAMMO},   //subgun
 	{20, 30,  30,	S_ITEMAMMO},   //sniper
-	{16, 24,  32,	S_ITEMAMMO},   //slug gun
+	{8,  12,  32,	S_ITEMAMMO},   //slug gun
 	{60, 90,  180,	S_ITEMAMMO},   //assault
-	{2,  0,   3,	S_ITEMAMMO},   //grenade
-	{80, 0,   128,	S_ITEMAKIMBO}  //akimbo
+	{1,  1,   3,	S_ITEMAMMO},   //grenade
+	{72, 0,   144,	S_ITEMAKIMBO}  //akimbo
 };
 
 static itemstat powerupstats[] =
 {
-	{35, 100, 120, S_ITEMHEALTH}, //health
-	{40, 100, 100, S_ITEMARMOUR}, //armour
+	{35, STARTHEALTH, STARTHEALTH+20, S_ITEMHEALTH}, //health
+	{40, STARTHEALTH, STARTHEALTH, S_ITEMARMOUR}, //armour
 };
 
 #define SGRAYS 32
@@ -78,7 +78,7 @@ static guninfo guns[NUMGUNS] =
 	{ "shotgun",     S_SLUG,     S_RSLUG,    2400,   700,    200,  24,   48,  100,   0,   0,  1,   16,    8,   9,  5,   80,   94,     2,   false},
 	{ "assault",     S_ASSAULT,  S_RASSAULT, 2000,   73,     30,   50,   150,  10,   0,   0, 60,    3,   30,   0,  3,   25,   63,     1,   true },
 	{ "grenade",     S_NULL,     S_NULL,     1000,   650,    200,  0,    20,   200,  20,  6,  1,    1,    1,   3,  1,   0,    0,      4,   false},
-	{ "pistol",      S_PISTOL,   S_RAKIMBO,  1400,   80,     36,   30,   80,   18,   0,   0, 90,    9,   16,   6,  2,   35,   60,     3,   true },
+	{ "pistol",      S_PISTOL,   S_RAKIMBO,  1400,   80,     36,   30,   80,   18,   0,   0, 90,    9,   24,   6,  2,   35,   60,     3,   true },
 }; 
 
 static inline ushort reloadtime(int gun) { return guns[gun].reloadtime; }
@@ -364,17 +364,17 @@ struct playerstate
 		else if(m_lss) primary = GUN_KNIFE;
 		else primary = nextprimary;
 
-		if(!m_nopistol)
-		{
-			ammo[GUN_PISTOL] = ammostats[GUN_PISTOL].max-magsize(GUN_PISTOL);
+		if(!m_nopistol){
+			ammo[GUN_PISTOL] = ammostats[GUN_PISTOL].start-magsize(GUN_PISTOL);
 			mag[GUN_PISTOL] = magsize(GUN_PISTOL);
 		}
 
-		if(!m_noprimary)
-		{
+		if(!m_noprimary){
 			ammo[primary] = ammostats[primary].start-magsize(primary);
 			mag[primary] = magsize(primary);
 		}
+
+		if(!m_noitems) mag[GUN_GRENADE] = ammostats[GUN_GRENADE].start;
 
 		gunselect = primary;
 
