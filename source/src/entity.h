@@ -45,12 +45,12 @@ struct itemstat { short add, start, max, sound; };
 static itemstat ammostats[] =
 {
 	{1,  1,   1,	S_ITEMAMMO},   //knife dummy
-	{24, 36,  72,	S_ITEMAMMO},   //pistol
-	{20, 30,  60,	S_ITEMAMMO},   //auto shotgun
-	{64, 96,  192,	S_ITEMAMMO},   //subgun
-	{20, 30,  30,	S_ITEMAMMO},   //sniper
-	{8,  12,  32,	S_ITEMAMMO},   //slug gun
-	{60, 90,  180,	S_ITEMAMMO},   //assault
+	{24, 60,  72,	S_ITEMAMMO},   //pistol
+	{30, 40,  60,	S_ITEMAMMO},   //auto shotgun
+	{96, 128,  192,	S_ITEMAMMO},   //subgun
+	{30, 40,  80,	S_ITEMAMMO},   //sniper
+	{16, 24,  32,	S_ITEMAMMO},   //slug gun
+	{90, 120,  180,	S_ITEMAMMO},   //assault
 	{1,  1,   3,	S_ITEMAMMO},   //grenade
 	{72, 0,   144,	S_ITEMAKIMBO}  //akimbo
 };
