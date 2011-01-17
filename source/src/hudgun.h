@@ -67,7 +67,7 @@ struct weaponmove
 				progress = max(0.0f, min(1.0f, timediff/(float)animtime));
 				// f(x) = -sin(x-1.5)^3
 				kick = -sinf(pow((1.5f*progress)-1.5f,3));
-				if(player1->crouching) kick *= 0.75f;
+				kick *= player1->eyeheight / player1->maxeyeheight;
 				if(player1->lastaction) anim = player1->weaponsel->modelanim();
 			}
 			
