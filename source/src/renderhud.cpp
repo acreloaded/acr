@@ -160,7 +160,7 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 	}
 
 	if(crosshair->bpp==32) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	else glBlendFunc(GL_ONE, GL_ONE);
+	else glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	glBindTexture(GL_TEXTURE_2D, crosshair->id);
 	static color col;
 	col.r = col.b = col.g = col.alpha = 1.f;
