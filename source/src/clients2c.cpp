@@ -952,6 +952,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				switch(type)
 				{
 					case SA_MAP:
+					case SA_BAN:
 						getstring(text, p);
 						filtertext(text, text);
 						itoa(a, getint(p));
