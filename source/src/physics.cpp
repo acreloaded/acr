@@ -279,11 +279,11 @@ void resizephysent(physent *pl, int moveres, int curtime, float min, float max)
 	loopi(moveres)
 	{
 		pl->eyeheight += h;
-		pl->o.z += h;
+		if(!pl->crouching || pl->onfloor || pl->timeinair < 50) pl->o.z += h;
 		if(!collide(pl))
 		{
 			pl->eyeheight -= h; // collided, revert mini-step
-			pl->o.z -= h;
+			if(!pl->crouching || pl->onfloor || pl->timeinair < 50) pl->o.z -= h;
 			break;
 		}
 		if(pl->eyeheight<min) // clamp to min
@@ -361,7 +361,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 		water = hdr.waterlevel>pl->o.z-0.5f;
 
 		const bool crouching = pl->crouching || pl->eyeheight < pl->maxeyeheight;
-		const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed*(crouching ? 0.4f : 1.0f)*(specfly ? 2.0f : 1.0f);
+		const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed*(crouching ? pl->onfloor ? 0.4f : 0.8f : 1.0f)*(specfly ? 2.0f : 1.0f);
 		const float friction = water ? 20.0f : (pl->onfloor || editfly || specfly ? 6.0f : (pl->onladder ? 1.5f : 30.0f));
 		const float fpsfric = max(friction/curtime*20.0f, 1.0f);
 
@@ -564,7 +564,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 
 		// smooth pitch
 		const float fric = 6.0f/curtime*20.0f;
-		#define addpitch pl->pitchvel*(curtime/1000.0f)*pl->maxspeed*(pl->crouching ? 0.75f : 1.0f)
+		#define addpitch pl->pitchvel*(curtime/1000.0f)*pl->maxspeed*(pl->eyeheight / pl->maxeyeheight)
 		pl->pitchreturn += addpitch;
 		pl->pitch += addpitch;
 		pl->pitchvel *= fric-3;
@@ -601,7 +601,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 	// apply volume-resize when crouching
 	if(pl->type==ENT_PLAYER)
 	{
-		if(pl==player1 && !(intermission || player1->onladder || (pl->trycrouch && !player1->onfloor && player1->timeinair > 50))) updatecrouch(player1, player1->trycrouch);
+		if(pl==player1 && !intermission && !player1->onladder) updatecrouch(player1, player1->trycrouch);
 		const float croucheyeheight = pl->maxeyeheight*3.0f/4.0f;
 		resizephysent(pl, moveres, curtime, croucheyeheight, pl->maxeyeheight);
 	}
