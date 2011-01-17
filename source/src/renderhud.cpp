@@ -162,17 +162,20 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 	if(crosshair->bpp==32) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	else glBlendFunc(GL_ONE, GL_ONE);
 	glBindTexture(GL_TEXTURE_2D, crosshair->id);
-	glColor3ub(255,255,255);
-	if(c) glColor3f(c->r, c->g, c->b);
+	static color col;
+	col.r = col.b = col.g = col.alpha = 1.f;
+	if(c) col = color(c->r, c->g, c->b);
 	else if(teamtype)
 	{
-		if(teamtype == 1) glColor3ub(0, 255, 0);
-		else if(teamtype == 2) glColor3ub(255, 0, 0);
+		if(teamtype == 1) col = color(0.f, 1.f, 0.f);
+		else if(teamtype == 2) col = color(1.f, 0.f, 0.f);
 	}
 	else if(!m_osok){
-		if(p->health<=50) glColor3ub(128,64,0); // orange-red
-		if(p->health<=25) glColor3ub(128,32,0); // red-orange
+		if(p->health<=50) col = color(0.5f, 0.25f, 0.f); // orange-red
+		if(p->health<=25) col = color(0.5f, 0.125f, 0.f); // red-orange
 	}
+	if(n == CROSSHAIR_DEFAULT) col.alpha = 1.f + p->weaponsel->dynspread() / -1200.f;
+	glColor4f(col.r, col.g, col.b, col.alpha);
 	float usz = (float)crosshairsize, chsize = size>0 ? size : usz;
 	if(n == CROSSHAIR_DEFAULT){
 		usz *= 3.5f;
