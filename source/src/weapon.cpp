@@ -642,7 +642,7 @@ void weapon::attackphysics(vec &from, vec &to) // physical fx to the owner
 		#undef RNDD
 	}
 	// kickback
-	owner->vel.add(vec(unitv).mul(recoil/dist).mul(owner->crouching ? 0.75 : 1.0f));
+	owner->vel.add(vec(unitv).mul(recoil/dist).mul(owner->eyeheight / owner->maxeyeheight));
 	// recoil
 	owner->pitchvel = min(owner->pitchvel + (float)(g.recoil)/10.0f, (float)(g.maxrecoil)/10.0f);
 }
