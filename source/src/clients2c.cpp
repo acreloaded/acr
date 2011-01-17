@@ -952,7 +952,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				switch(type)
 				{
 					case SA_MAP:
-					case SA_BAN:
 						getstring(text, p);
 						filtertext(text, text);
 						itoa(a, getint(p));
@@ -968,6 +967,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					case SA_SHUFFLETEAMS:
 						v = newvotedisplayinfo(d, type, NULL, NULL);
 						break;
+					case SA_BAN:
 					case SA_GIVEADMIN:
 						itoa(a, getint(p));
 						itoa(text, getint(p));
