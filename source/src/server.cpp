@@ -512,7 +512,7 @@ struct server_entity			// server side version of "entity" type
 	int type;
 	bool spawned, hascoord;
 	int spawntime;
-	short x, y;
+	short x, y, z;
 };
 
 vector<server_entity> sents;
@@ -2121,7 +2121,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 		{
 			e.type = smapstats.enttypes[i];
 			e.transformtype(smode);
-			server_entity se = { e.type, false, true, 0, smapstats.entposs[i * 3], smapstats.entposs[i * 3 + 1]};
+			server_entity se = { e.type, false, true, 0, smapstats.entposs[i * 3], smapstats.entposs[i * 3 + 1], smapstats.entposs[i * 3 + 2]};
 			sents.add(se);
 			if(e.fitsmode(smode)) sents[i].spawned = true;
 		}
@@ -3151,13 +3151,13 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				}
 				loopv(sents){
 					server_entity &e = sents[i];
-					vec v(e.x, e.y, 0);
+					vec v(e.x, e.y, e.z);
 					if(arenaround && arenaround - gamemillis <= 2000){ // no nade pickup during last two seconds of lss intermission
 						sendf(sender, 1, "ri2", N_ITEMSPAWN, i);
 						continue;
 					}
 					if(!e.spawned || !cl->state.canpickup(e.type)) continue;
-					float dist = cl->state.o.distxy(v);
+					float dist = cl->state.o.dist(v);
 					if(dist > 2.5f) continue;
 					serverpickup(i, sender);
 				}
