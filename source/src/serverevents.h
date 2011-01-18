@@ -78,13 +78,13 @@ void processevent(client &c, shotevent &e)
 				if(target->type==ST_EMPTY || target->state.state!=CS_ALIVE || h.lifesequence!=target->state.lifesequence) continue;
 
 				int rays = e.gun==GUN_SHOTGUN ? popcount(h.info) : 1;
-				if(rays<1) continue;
-				if(totalrays + rays > maxrays) continue;
 				if(e.gun==GUN_SHOTGUN){
 					uint hitflags = h.info;
 					loopi(SGRAYS) if((hitflags & (1 << i)) && gs.sg[i].dist(e.to) > 60.f) // 2 meters for height x3 for unknown reasons + 3m for lag
 						rays--;
 				} else if (target->state.o.dist(vec(e.to)) > 20.f) continue; // 2 meters for height + 3 meters for lag
+				if(rays<1) continue;
+				if(totalrays + rays > maxrays) continue;
 
 				bool gib = false; vec dir;
 				int damage = 0;

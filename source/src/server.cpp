@@ -1372,6 +1372,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 	}
 	if(target->state.damagelog.find(actor->clientnum) < 0) target->state.damagelog.add(actor->clientnum);
 	ts.dodamage(damage);
+	ts.lastregen = gamemillis;
 	actor->state.damage += damage != 1000 ? damage : 0;
 	sendf(-1, 1, "ri7", N_DAMAGE, target->clientnum, actor->clientnum, damage, ts.armour, ts.health, gun | (gib ? 0x80 : 0));
 	if(ts.health<=0){
