@@ -25,7 +25,7 @@ typedef unsigned int uint;
 #else
 #define DEBUG(v) {}
 #define DEBUGVAR(v) {}
-#define ASSERT(c) if(c) {}
+#define ASSERT(c) {}
 #endif
 
 #ifdef swap
