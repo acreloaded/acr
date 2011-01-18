@@ -845,10 +845,11 @@ COMMANDN(dropflag, tryflagdrop, ARG_NONE);
 
 char *votestring(int type, char *arg1, char *arg2)
 {
-	const char *msgs[] = { "kick player %s", "ban player %s for %d minutes", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "\f0give \f%d%s \f5to player %s", "load map %s in mode %s", "%s demo recording for the next match", "stop demo recording", "clear%s demo%s%s", "set server description to '%s'", "shuffle teams", "subdue player %s"};
+	const char *msgs[] = { "kick player %s", "ban player %s for %d minutes", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "\f0give \f%d%s \f5to player %s", "load map %s in mode %s", "%s demo recording for the next match", "stop demo recording", "clear%s demo%s%s", "set server description to '%s'", "shuffle teams", "subdue player %s", "revoke \fs\f%s\fr from %s"};
 	const char *msg = msgs[type];
 	char *out = newstring(_MAXDEFSTR);
 	out[_MAXDEFSTR] = '\0';
+	s_strcpy(out, "unknown vote");
 	switch(type)
 	{
 		case SA_KICK:
@@ -861,9 +862,16 @@ char *votestring(int type, char *arg1, char *arg2)
 			s_sprintf(out)(msg, colorname(p));
 			break;
 		}
+		case SA_REVOKE:
+		{
+			playerent *p = getclient(atoi(arg1));
+			if(!p) break;
+			s_sprintf(out)(msg, privcolor(p->priv), privname(p->priv), colorname(p));
+			break;
+		}
 		case SA_BAN:
 		{
-			int cn = atoi(arg1), minutes = atoi(arg2);
+			int cn = atoi(arg2), minutes = atoi(arg1);
 			playerent *p = getclient(cn);
 			if(!p) break;
 			s_sprintf(out)(msg, colorname(p), minutes);
@@ -940,8 +948,8 @@ void callvote(int type, char *arg1, char *arg2)
 				putint(p, atoi(arg2) ? atoi(arg2) : PRIV_MAX);
 				break;
 			case SA_BAN:
-				putint(p, atoi(arg1));
 				putint(p, atoi(arg2));
+				putint(p, atoi(arg1));
 				break;
 			case SA_STOPDEMO:
 			case SA_REMBANS:
@@ -1043,7 +1051,7 @@ void changemap(const char *name)					  // silently request map change, server ma
 struct mline { string name, cmd; };
 static vector<mline> mlines;
 
-void *kickmenu = NULL, *banmenu = NULL, *forceteammenu = NULL, *giveadminmenu = NULL;
+void *kickmenu = NULL, *banmenu = NULL, *forceteammenu = NULL, *giveadminmenu = NULL, *revokemenu = NULL, *whoismenu = NULL;
 
 void refreshsopmenu(void *menu, bool init)
 {
@@ -1053,7 +1061,7 @@ void refreshsopmenu(void *menu, bool init)
 	{
 		mline &m = mlines.add();
 		s_strcpy(m.name, colorname(players[i]));
-		s_sprintf(m.cmd)("%s %d", menu==kickmenu ? "kick" : (menu==banmenu ? "ban" : (menu==forceteammenu ? "forceteam" : "giverole")), i);
+		s_sprintf(m.cmd)("%s %d", menu==kickmenu ? "kick" : (menu==banmenu ? "ban" : (menu==forceteammenu ? "forceteam" : (menu==revokemenu ? "revoke" : (menu==giveadminmenu ? "giverole" : (menu==whoismenu ? "whois" : "unknownplayeraction"))))), i);
 		menumanual(menu, m.name, m.cmd);
 	}
 }

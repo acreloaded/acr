@@ -590,7 +590,7 @@ int main(int argc, char **argv)
 		initsound();
 
 		initlog("cfg");
-		extern void *scoremenu, *teammenu, *ctfmenu, *servmenu, *searchmenu, *serverinfomenu, *kickmenu, *banmenu, *forceteammenu, *giveadminmenu, *docmenu, *applymenu;
+		extern void *scoremenu, *teammenu, *ctfmenu, *servmenu, *searchmenu, *serverinfomenu, *kickmenu, *banmenu, *forceteammenu, *giveadminmenu, *revokemenu, *whoismenu, *docmenu, *applymenu;
 		scoremenu = addmenu("score", "score\tfrags\tdeath\tratio\tpj\tping\tcn\tname", false, renderscores, NULL, false, true);
 		teammenu = addmenu("team score", "score\tfrags\tdeath\tratio\tpj\tping\tcn\tname", false, renderscores, NULL, false, true);
 		ctfmenu = addmenu("ctf score", "score\tflags\tfrags\tdeath\tratio\tpj\tping\tcn\tname", false, renderscores, NULL, false, true);
@@ -600,7 +600,9 @@ int main(int argc, char **argv)
 		kickmenu = addmenu("kick player", NULL, true, refreshsopmenu);
 		banmenu = addmenu("ban player", NULL, true, refreshsopmenu);
 		forceteammenu = addmenu("force team", NULL, true, refreshsopmenu);
-		giveadminmenu = addmenu("give admin", NULL, true, refreshsopmenu);
+		giveadminmenu = addmenu("give permission", NULL, true, refreshsopmenu);
+		revokemenu = addmenu("revoke privilege", NULL, true, refreshsopmenu);
+		whoismenu = addmenu("WHOIS", NULL, true, refreshsopmenu);
 		docmenu = addmenu("reference", NULL, true, renderdocmenu);
 		applymenu = addmenu("apply", "apply changes now?", true, refreshapplymenu);
 

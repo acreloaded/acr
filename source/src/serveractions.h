@@ -11,7 +11,7 @@ int roleconf(int key)
 
 struct serveraction
 {
-	int role; // required client role
+	uchar role; // required client role
 	int length;
 	float passratio;
 	int area; // only on ded servers
@@ -100,7 +100,7 @@ struct demoplayaction : serveraction
 struct playeraction : serveraction
 {
 	int cn;
-	virtual bool isvalid() { return valid_client(cn) && clients[cn]->priv < PRIV_ADMIN; } // kick & ban can't be done on admins
+	virtual bool isvalid() { return valid_client(cn); }
 	playeraction(int cn) : cn(cn) { };
 };
 
@@ -117,6 +117,18 @@ struct forceteamaction : playeraction
 	}
 };
 
+struct revokeaction : playeraction
+{
+	void perform(){ changeclientrole(cn, PRIV_NONE); }
+	virtual bool isvalid() { return playeraction::isvalid() && clients[cn]->priv;}
+	revokeaction(int cn) : playeraction(cn){
+		role = max<int>(PRIV_ADMIN, valid_client(cn) ? clients[cn]->priv : 0);
+		passratio = 0.1f;
+		if(valid_client(cn)) s_sprintf(desc)("revoke %s's %s", clients[cn]->name, privname(clients[cn]->priv));
+		else s_sprintf(desc)("invalid revoke to %d", cn);
+	}
+};
+
 struct giveadminaction : playeraction
 {
 	int give, from;
@@ -124,7 +136,7 @@ struct giveadminaction : playeraction
 		if(valid_client(from) && clients[from]->priv < PRIV_ADMIN) changeclientrole(from, PRIV_NONE, NULL, true);
 		changeclientrole(cn, give, NULL, true);
 	}
-	virtual bool isvalid() { return valid_client(cn); } // give to anyone
+	// virtual bool isvalid() { return valid_client(cn); } // give to anyone
 	giveadminaction(int cn, int wants, int caller) : from(caller), playeraction(cn){
 		give = min(wants, clients[from]->priv);
 		role = max(give, 1);
@@ -134,6 +146,10 @@ struct giveadminaction : playeraction
 	}
 };
 
+inline uchar protectAdminRole(const char conf, int cn){
+	return max(roleconf(conf), valid_client(cn) && clients[cn]->priv >= PRIV_ADMIN ? clients[cn]->priv : PRIV_NONE);
+}
+
 struct subdueaction : playeraction
 {
 	void perform() { forcedeath(clients[cn], true); }
@@ -141,7 +157,7 @@ struct subdueaction : playeraction
 	subdueaction(int cn) : playeraction(cn)
 	{
 		passratio = 0.8f;
-		role = roleconf('Q');
+		role = protectAdminRole('Q', cn);
 		length = 25000; // 25s
 		if(valid_client(cn)) s_sprintf(desc)("subdue player %s", clients[cn]->name);
 		else s_strcpy(desc, "invalid subdue");
@@ -155,7 +171,7 @@ struct kickaction : playeraction
 	kickaction(int cn) : playeraction(cn)
 	{
 		passratio = 0.7f;
-		role = roleconf('k');
+		role = protectAdminRole('k', cn);
 		length = 35000; // 35s
 		if(valid_client(cn)) s_sprintf(desc)("kick player %s", clients[cn]->name);
 		else s_strcpy(desc, "invalid kick");
@@ -172,7 +188,7 @@ struct banaction : playeraction
 	banaction(int cn, int minutes) : playeraction(cn)
 	{
 		passratio = 0.75f;
-		role = roleconf('b');
+		role = protectAdminRole('b', cn);
 		length = 30000; // 30s
 		if(isvalid()) s_sprintf(desc)("ban player %s for %d minutes", clients[cn]->name, (bantime = minutes));
 		else s_strcpy(desc, "invalid ban");

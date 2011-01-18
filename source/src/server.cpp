@@ -2266,13 +2266,14 @@ void sendcallvote(int cl = -1){
 			default:
 				break;
 			case SA_SUBDUE:
+			case SA_REVOKE:
 			case SA_KICK:
 			case SA_FORCETEAM:
 				putint(p, ((playeraction *)curvote->action)->cn);
 				break;
 			case SA_BAN:
-				putint(p, ((playeraction *)curvote->action)->cn);
 				putint(p, ((banaction *)curvote->action)->bantime);
+				putint(p, ((playeraction *)curvote->action)->cn);
 				break;
 			case SA_AUTOTEAM:
 			case SA_MASTERMODE:
@@ -3322,14 +3323,16 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					case SA_KICK:
 						vi->action = new kickaction(getint(p));
 						break;
+					case SA_REVOKE:
+						vi->action = new revokeaction(getint(p));
+						break;
 					case SA_SUBDUE:
 						vi->action = new subdueaction(getint(p));
 						break;
 					case SA_BAN:
 					{
-						int c = getint(p), m = getint(p);
-						if(m == 0) m = 20;
-						else m = clamp(getint(p), 1, 60);
+						int m = getint(p), c = getint(p);
+						m = clamp(getint(p), 1, 60);
 						vi->action = new banaction(c, m);
 						break;
 					}
