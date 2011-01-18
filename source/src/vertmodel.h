@@ -316,7 +316,7 @@ struct vertmodel : model
 			else d->prev.fr1 = -1;
 
 			static vector<uchar> side;
-			side.setsizenodelete(0);
+			side.setsize(0);
 
 			loopi(numtris)
 			{

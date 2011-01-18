@@ -305,7 +305,7 @@ bool load_world(char *mname)		// still supports all map formats that have existe
 	{
 		hdr.waterlevel = -100000;
 	}
-	ents.setsize(0);
+	ents.shrink(0);
 	loopi(3) numspawn[i] = 0;
 	loopi(2) numflagspawn[i] = 0;
 	loopi(hdr.numents)

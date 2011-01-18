@@ -102,8 +102,8 @@ void resolverclear()
 	if(resolverthreads.empty()) return;
 
 	SDL_LockMutex(resolvermutex);
-	resolverqueries.setsize(0);
-	resolverresults.setsize(0);
+	resolverqueries.shrink(0);
+	resolverresults.shrink(0);
 	loopv(resolverthreads)
 	{
 		resolverthread &rt = resolverthreads[i];
@@ -497,7 +497,7 @@ void checkpings()
 				{
 					case EXTPING_NAMELIST:
 					{
-						si->playernames.setsizenodelete(0);
+						si->playernames.setsize(0);
 						ucharbuf q(si->namedata, sizeof(si->namedata));
 						loopi(si->numplayers)
 						{
@@ -514,7 +514,7 @@ void checkpings()
 					}
 					case EXTPING_SERVERINFO:
 					{
-						si->infotexts.setsizenodelete(0);
+						si->infotexts.setsize(0);
 						ucharbuf q(si->textdata, sizeof(si->textdata));
 						getstring(text, p);
 						si->getinfo = 0;
@@ -541,7 +541,7 @@ void checkpings()
 					}
 					case EXTPING_MAPROT:
 					{
-						si->infotexts.setsizenodelete(0);
+						si->infotexts.setsize(0);
 						ucharbuf q(si->textdata, sizeof(si->textdata));
 						int n = getint(p);
 						si->getinfo = 0;
@@ -821,7 +821,7 @@ bool assignserverfavourites()
 {
 	int alxn[FC_NUM];
 	const char *alx[FC_NUM], *sep = " \t\n\r";
-	favcattags.setsizenodelete(0);
+	favcattags.setsize(0);
 	bool res = false;
 	loopv(servers) { servers[i]->favcat = -1; servers[i]->weight = 0; }
 	loopvj(favcats)

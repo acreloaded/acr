@@ -164,7 +164,7 @@ struct clientstate : playerstate
 		lastspawn = -1;
 		lastdeath = lastshot = lastregen = 0;
 		akimbos = akimbomillis = 0;
-		damagelog.setsizenodelete(0);
+		damagelog.setsize(0);
 	}
 };
 
@@ -240,7 +240,7 @@ struct client				   // server side version of "dynent" type
 	void mapchange()
 	{
 		state.reset();
-		events.setsizenodelete(0);
+		events.setsize(0);
 		overflow = 0;
 		timesync = false;
 		isonrightmap = m_edit;
@@ -254,8 +254,8 @@ struct client				   // server side version of "dynent" type
 		name[0] = demoflags = 0;
 		ping = 9999;
 		skin = team = 0;
-		position.setsizenodelete(0);
-		messages.setsizenodelete(0);
+		position.setsize(0);
+		messages.setsize(0);
 		isauthed = haswelcome = false;
 		priv = PRIV_NONE;
 		lastvotecall = 0;
@@ -403,7 +403,7 @@ bool buildworldstate()
 			if(!packet->referenceCount) enet_packet_destroy(packet);
 			else { ++ws.uses; packet->freeCallback = cleanworldstate; }
 		}
-		c.position.setsizenodelete(0);
+		c.position.setsize(0);
 
 		if(msize && (pkt[i].msgoff<0 || msize-pkt[i].msglen>0))
 		{
@@ -414,7 +414,7 @@ bool buildworldstate()
 			if(!packet->referenceCount) enet_packet_destroy(packet);
 			else { ++ws.uses; packet->freeCallback = cleanworldstate; }
 		}
-		c.messages.setsizenodelete(0);
+		c.messages.setsize(0);
 	}
 	reliablemessages = false;
 	if(!ws.uses)
@@ -775,7 +775,7 @@ static void cleardemos(int n)
 {
 	if(!n){
 		loopv(demos) delete[] demos[i].data;
-		demos.setsize(0);
+		demos.shrink(0);
 	}
 	else if(demos.inrange(n-1)){
 		delete[] demos[n-1].data;
@@ -1133,7 +1133,7 @@ void distributeteam(int team)
 	int numsp = team == 100 ? smapstats.spawns[2] : smapstats.spawns[team];
 	if(!numsp) numsp = 30; // no spawns: try to distribute anyway
 	twoint ti;
-	tdistrib.setsize(0);
+	tdistrib.shrink(0);
 	loopv(clients) if(clients[i]->type!=ST_EMPTY)
 	{
 		if(team == 100 || team == clients[i]->team)
@@ -1143,7 +1143,7 @@ void distributeteam(int team)
 		}
 	}
 	tdistrib.sort(cmpscore); // random player order
-	sdistrib.setsize(0);
+	sdistrib.shrink(0);
 	loopi(numsp)
 	{
 		ti.index = i;
@@ -1395,7 +1395,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 			actor->state.flagscore--;
 			sendf(-1, 1, "ri3", N_FLAGCNT, actor->clientnum, actor->state.flagscore);
 		}
-		target->position.setsizenodelete(0);
+		target->position.setsize(0);
 		ts.state = CS_DEAD;
 		ts.lastdeath = gamemillis;
 		if(!suic) logline(ACLOG_INFO, "[%s] %s %s %s", actor->hostname, actor->name, killname(gun, gib, damage > guns[gun].damage), target->name);
@@ -1465,7 +1465,7 @@ void readscfg(const char *name)
 	int i, len, line = 0;
 
 	if(!name && getfilesize(cfgfilename) == cfgfilesize) return;
-	configsets.setsize(0);
+	configsets.shrink(0);
 	char *buf = loadcfgfile(cfgfilename, name, &len);
 	cfgfilesize = len;
 	if(!buf) return;
@@ -1521,7 +1521,7 @@ void readipblacklist(const char *name)
 	int len, line = 0, errors = 0;
 
 	if(!name && getfilesize(blfilename) == blfilesize) return;
-	ipblacklist.setsize(0);
+	ipblacklist.shrink(0);
 	char *buf = loadcfgfile(blfilename, name, &len);
 	blfilesize = len;
 	if(!buf) return;
@@ -1588,11 +1588,11 @@ struct nickblacklist {
 
 	void destroylists()
 	{
-		whitelistranges.setsizenodelete(0);
+		whitelistranges.setsize(0);
 		enumeratek(whitelist, const char *, key, delete key);
 		whitelist.clear(false);
 		blfraglist.deletecontentsp();
-		blacklines.setsizenodelete(0);
+		blacklines.setsize(0);
 	}
 
 	void readnickblacklist(const char *name)
@@ -1767,7 +1767,7 @@ void readpwdfile(const char *name)
 	int i, len, line, par[ADMINPWD_MAXPAR];
 
 	if(!name && getfilesize(pwdfilename) == pwdfilesize) return;
-	adminpwds.setsize(0);
+	adminpwds.shrink(0);
 	char *buf = loadcfgfile(pwdfilename, name, &len);
 	pwdfilesize = len;
 	if(!buf) return;
@@ -1883,7 +1883,7 @@ void shuffleteams(int ftr = FTR_AUTOTEAM)
 	}
 	else
 	{ // skill sorted
-		shuffle.setsize(0);
+		shuffle.shrink(0);
 		sums /= 4 * numplayers + 2;
 		team = rnd(2);
 		loopv(clients) if(clients[i]->type!=ST_EMPTY) { clients[i]->at3_score += rnd(sums | 1); shuffle.add(i); }
@@ -2088,8 +2088,8 @@ void resetserver(const char *newname, int newmode, int newtime)
 	interm = 0;
 	if(!laststatus) laststatus = servmillis-61*1000;
 	lastfillup = servmillis;
-	sents.setsize(0);
-	scores.setsize(0);
+	sents.shrink(0);
+	scores.shrink(0);
 	ctfreset();
 }
 
@@ -3126,7 +3126,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(cl->state.state!=CS_ALIVE && cl->state.state!=CS_EDITING) break;
 				if(cl->type==ST_TCPIP)
 				{
-					cl->position.setsizenodelete(0);
+					cl->position.setsize(0);
 					ucharbuf q = cl->position.reserve(2 * sizeof(int));
 					putint(q, N_POS); curmsg++; // put N_POS
 					putint(q, sender); // inject sender

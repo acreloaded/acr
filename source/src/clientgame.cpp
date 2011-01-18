@@ -124,7 +124,7 @@ void deathstate(playerent *pl)
 	pl->pitch = pl->roll = 0;
 	pl->attacking = false;
 	pl->weaponsel->onownerdies();
-	pl->damagelog.setsizenodelete(0);
+	pl->damagelog.setsize(0);
 
 	if(pl==player1)
 	{
@@ -319,7 +319,7 @@ void addsleep_(char *msec, char *cmd)
 void resetsleep()
 {
 	loopv(sleeps) DELETEA(sleeps[i].cmd);
-	sleeps.setsize(0);
+	sleeps.shrink(0);
 }
 
 COMMANDN(sleep, addsleep_, ARG_2STR);
@@ -1055,7 +1055,7 @@ void *kickmenu = NULL, *banmenu = NULL, *forceteammenu = NULL, *giveadminmenu = 
 void refreshsopmenu(void *menu, bool init)
 {
 	menureset(menu);
-	mlines.setsize(0);
+	mlines.shrink(0);
 	loopv(players) if(players[i])
 	{
 		mline &m = mlines.add();

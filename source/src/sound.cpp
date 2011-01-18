@@ -1558,9 +1558,9 @@ void soundcleanup()
 	// destroy consuming code
 	stopsound();
 	DELETEP(gamemusic);
-	mapsounds.setsize(0);
+	mapsounds.shrink(0);
 	locations.deletecontentsp();
-	gamesounds.setsize(0);
+	gamesounds.shrink(0);
 	bufferpool.clear();
 
 	// kill scheduler
@@ -1576,13 +1576,13 @@ void soundcleanup()
 void clearworldsounds(bool fullclean)
 {
 	stopsound();
-	if(fullclean) mapsounds.setsize(0);
+	if(fullclean) mapsounds.shrink(0);
 	locations.deleteworldobjsounds();
 }
 
 void mapsoundreset()
 {
-	mapsounds.setsize(0);
+	mapsounds.shrink(0);
 	locations.deleteworldobjsounds();
 }
 

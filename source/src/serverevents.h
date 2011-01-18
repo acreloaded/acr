@@ -166,7 +166,7 @@ void processevents()
 			int amt = 15;
 			if(amt > STARTHEALTH - c.state.health){
 				amt = STARTHEALTH - c.state.health;
-				c.state.damagelog.setsizenodelete(0);
+				c.state.damagelog.setsize(0);
 			}
 			c.state.health += amt;
 			sendf(-1, 1, "ri3", N_REGEN, i, amt);

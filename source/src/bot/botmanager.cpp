@@ -336,7 +336,7 @@ void CBotManager::EndMap()
 		  bots[i]->pBot = NULL;
 		  freebotent(bots[i]);
 	 }
-	 bots.setsize(0);	 
+	 bots.shrink(0);	 
 	 condebug("Cleared all bots");
 	 m_fReAddBotDelay = lastmillis + 7500;
 	 //if(ishost()) WaypointClass.SaveWPExpFile(); //UNDONE
@@ -1093,7 +1093,7 @@ void kickallbots(void)
 		  }
 	 };
 	 
-	 bots.setsize(0);
+	 bots.shrink(0);
 }
 
 COMMAND(kickallbots, ARG_NONE);

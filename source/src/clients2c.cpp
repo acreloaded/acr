@@ -492,7 +492,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				playerent *victim = getclient(vcn), *actor = getclient(acn);
 				if(actor) actor->frags = frags;
 				if(victim){
-					victim->damagelog.setsizenodelete(0);
+					victim->damagelog.setsize(0);
 					loopi(assists) victim->damagelog.add(getint(p));
 				} else loopi(assists) getint(p);
 				if(!actor || !victim) break;

@@ -177,7 +177,7 @@ struct mitemmanual : mitem
 			if(result >= 0 && oldmenu == curmenu)
 			{
 				menuset(NULL, false);
-				menustack.setsize(0);
+				menustack.shrink(0);
 			}
 		}
 	}
@@ -1059,7 +1059,7 @@ void addchange(const char *desc, int type)
 void clearchanges(int type)
 {
 	if(type!=CHANGE_GFX) return;
-	needsapply.setsize(0);
+	needsapply.shrink(0);
 	closemenu("apply");
 }
 

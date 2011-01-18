@@ -220,11 +220,11 @@ template <class T> struct vector
 		*this = v;
 	}
 
-	~vector() { setsize(0); if(buf) delete[] (uchar *)buf; }
+	~vector() { shrink(0); if(buf) delete[] (uchar *)buf; }
 
 	vector<T> &operator=(const vector<T> &v)
 	{
-		setsize(0);
+		shrink(0);
 		if(v.length() > alen) vrealloc(v.length());
 		loopv(v) add(v[i]);
 		return *this;
@@ -263,8 +263,8 @@ template <class T> struct vector
 	T &operator[](int i) { ASSERT(i>=0 && i<ulen); return buf[i]; }
 	const T &operator[](int i) const { ASSERT(i >= 0 && i<ulen); return buf[i]; }
 
-	void setsize(int i)		 { ASSERT(i<=ulen); while(ulen>i) drop(); }
-	void setsizenodelete(int i) { ASSERT(i<=ulen); ulen = i; }
+	void shrink(int i)		 { ASSERT(i<=ulen); while(ulen>i) drop(); }
+	void setsize(int i) { ASSERT(i<=ulen); ulen = i; }
 
 	void deletecontentsp() { while(!empty()) delete   pop(); }
 	void deletecontentsa() { while(!empty()) delete[] pop(); }

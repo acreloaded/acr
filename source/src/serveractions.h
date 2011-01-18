@@ -197,7 +197,7 @@ struct banaction : playeraction
 
 struct removebansaction : serveraction
 {
-	void perform() { bans.setsize(0); }
+	void perform() { bans.shrink(0); }
 	removebansaction()
 	{
 		passratio = 0.7f;
