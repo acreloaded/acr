@@ -3151,14 +3151,14 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				}
 				loopv(sents){
 					server_entity &e = sents[i];
+					if(!e.spawned || !cl->state.canpickup(e.type)) continue;
 					vec v(e.x, e.y, maplayout ? maplayout[e.x + (e.y << maplayout_factor)] : cl->state.o.z);
+					float dist = cl->state.o.dist(v);
+					if(dist > 2.5f) continue;
 					if(arenaround && arenaround - gamemillis <= 2000){ // no nade pickup during last two seconds of lss intermission
 						sendf(sender, 1, "ri2", N_ITEMSPAWN, i);
 						continue;
 					}
-					if(!e.spawned || !cl->state.canpickup(e.type)) continue;
-					float dist = cl->state.o.dist(v);
-					if(dist > 2.5f) continue;
 					serverpickup(i, sender);
 				}
 				if(m_flags) loopi(2){ // check flag pickup
