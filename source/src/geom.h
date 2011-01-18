@@ -32,7 +32,7 @@ struct vec
 	float dot(const vec &o) const { return x*o.x + y*o.y + z*o.z; }
 
 	float magnitude() const { return sqrtf(squaredlen()); }
-	vec &normalize() { div(magnitude()); return *this; }
+	vec &normalize() { if(!iszero()) div(magnitude()); return *this; }
 
 	float dist(const vec &e) const { vec t; return dist(e, t); }
 	float dist(const vec &e, vec &t) const { t = *this; t.sub(e); return t.magnitude(); }

@@ -487,7 +487,6 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, bool gib,
 		if(weapon != GUN_GRENADE && actor != pl){
 			vec dir = pl->o;
 			dir.sub(actor->o);
-			if(!dir.iszero()) dir.normalize();
 			pl->hitpush(damage, dir, actor, weapon);
 		}
 		updatedmgindicator(actor->o);

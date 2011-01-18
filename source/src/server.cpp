@@ -1355,7 +1355,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 		}
 		if(!hitpush.iszero() && gun == GUN_GRENADE){
 			vec v(hitpush);
-			if(!v.iszero()) v.normalize();
+			v.normalize();
 			//sendf(target->clientnum, 1, "ri3f3", N_HITPUSH, gun, damage, v.x, v.y, v.z);
 			ENetPacket *packet = enet_packet_create(NULL, 6 * sizeof(float), ENET_PACKET_FLAG_RELIABLE);
 			ucharbuf p(packet->data, packet->dataLength);
@@ -3077,7 +3077,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				loopi(2) from[i] = clamp(from[i], 0.f, (1 << maplayout_factor) - 1.f);
 				if(maplayout && maplayout[((int)from.x) + (((int)from.y) << maplayout_factor)] > from.z + 3)
 					from.z = maplayout[((int)from.x) + (((int)from.y) << maplayout_factor)] - 3;
-				if(!vel.iszero()) vel.normalize().mul(NADEPOWER);
+				vel.normalize().mul(NADEPOWER);
 				ucharbuf newmsg(cl->messages.reserve(7 * sizeof(float)));
 				putint(newmsg, N_THROWNADE);
 				loopi(3) putfloat(newmsg, from[i]);
