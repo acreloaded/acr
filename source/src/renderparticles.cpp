@@ -652,9 +652,8 @@ void addshotline(playerent *pl, const vec &from, const vec &to)
 	unitv.div(dist);
 
 	// shotline visuals
-	vec o = unitv;
+	vec o = unitv, d = unitv;
 	o.mul(dist/10+start).add(from);
-	vec d = unitv;
 	d.mul(dist/10*-(10-start-2)).add(to);
 	newparticle(o, d, shotlinettl, 6);
 

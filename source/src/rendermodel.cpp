@@ -6,7 +6,6 @@ VARP(animationinterpolationtime, 0, 150, 1000);
 model *loadingmodel = NULL;
 
 #include "tristrip.h"
-#include "modelcache.h"
 #include "vertmodel.h"
 #include "md2.h"
 #include "md3.h"
