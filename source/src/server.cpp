@@ -512,7 +512,7 @@ struct server_entity			// server side version of "entity" type
 	int type;
 	bool spawned, hascoord;
 	int spawntime;
-	short x, y, z;
+	short x, y;
 };
 
 vector<server_entity> sents;
@@ -2121,7 +2121,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 		{
 			e.type = smapstats.enttypes[i];
 			e.transformtype(smode);
-			server_entity se = { e.type, false, true, 0, smapstats.entposs[i * 3], smapstats.entposs[i * 3 + 1], smapstats.entposs[i * 3 + 2]};
+			server_entity se = { e.type, false, true, 0, smapstats.entposs[i * 3], smapstats.entposs[i * 3 + 1]};
 			sents.add(se);
 			if(e.fitsmode(smode)) sents[i].spawned = true;
 		}
@@ -3139,7 +3139,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				{
 					vec &po = cl->state.o;
 					int ls = (1 << maplayout_factor) - 1;
-					if(po.x < 0 || po.y < 0 || po.x > ls || po.y > ls || maplayout[((int) po.x) + (((int) po.y) << maplayout_factor)] > po.z + 3)
+					if(po.x < 0 || po.y < 0 || po.x > ls || po.y > ls || maplayout[((int) po.x) + (((int) po.y) << maplayout_factor)] > po.z)
 					{
 						logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cl->hostname, cl->name, ++cl->mapcollisions);
 						sendmsgi(40, sender);
@@ -3151,7 +3151,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				}
 				loopv(sents){
 					server_entity &e = sents[i];
-					vec v(e.x, e.y, e.z);
+					vec v(e.x, e.y, maplayout ? maplayout[e.x + (e.y << maplayout_factor)] : cl->state.o.z);
 					if(arenaround && arenaround - gamemillis <= 2000){ // no nade pickup during last two seconds of lss intermission
 						sendf(sender, 1, "ri2", N_ITEMSPAWN, i);
 						continue;
