@@ -52,7 +52,7 @@ static itemstat ammostats[] =
 	{16, 24,  32,	S_ITEMAMMO},   //slug gun
 	{90, 120,  180,	S_ITEMAMMO},   //assault
 	{1,  1,   3,	S_ITEMAMMO},   //grenade
-	{72, 0,   144,	S_ITEMAKIMBO}  //akimbo
+	{96, 0,   144,	S_ITEMAKIMBO}  //akimbo
 };
 
 static itemstat powerupstats[] =
