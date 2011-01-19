@@ -331,7 +331,7 @@ struct voteinfo
 		if(!action || !action->isvalid()) end(VOTE_NO);
 		int stats[VOTE_NUM+1] = {0};
 		loopv(clients) if(clients[i]->type != ST_EMPTY){
-			stats[clients[i]->vote] += clients[i]->priv ? 2 : 1;
+			stats[clients[i]->vote] += clients[i]->priv >= PRIV_ADMIN ? 2 : 1;
 			stats[VOTE_NUM]++;
 		}
 		if(forceend){
