@@ -212,7 +212,7 @@ const char *modeacronymnames[] =
 	"OSOK", "TOSOK", "BOSOK", "HTF", "TKTF", "KTF"
 };
 
-const char *voteerrors[] = { "voting is currently disabled", "there is already a vote pending", "already voted (you can change votes)", "can't vote that often", "this vote is not allowed in the current environment (singleplayer/multiplayer)", "no permission", "invalid vote" };
+const char *voteerrors[] = { "voting is currently disabled", "there is already a vote pending", "no permission to veto", "can't vote that often", "this vote is not allowed in the current environment (singleplayer/multiplayer)", "no permission", "invalid vote" };
 const char *mmfullnames[] = { "open", "private" };
 
 const char *fullmodestr(int n) { return (n>=-1 && size_t(n+1) < sizeof(modefullnames)/sizeof(modefullnames[0])) ? modefullnames[n+1] : "unknown"; }

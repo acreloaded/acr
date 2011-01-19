@@ -11,7 +11,7 @@ int roleconf(int key)
 
 struct serveraction
 {
-	uchar role; // required client role
+	uchar role, vetorole; // required client role to call and veto
 	int length;
 	float passratio;
 	int area; // only on ded servers
@@ -20,7 +20,7 @@ struct serveraction
 	virtual void perform() = 0;
 	virtual bool isvalid() { return true; }
 	virtual bool isdisabled() { return false; }
-	serveraction() : role(PRIV_NONE), length(40000), area(EE_DED_SERV), passratio(0.5f) { desc[0] = '\0'; }
+	serveraction() : role(PRIV_NONE), length(40000), area(EE_DED_SERV), passratio(0.5f), vetorole(PRIV_MASTER) { desc[0] = '\0'; }
 	virtual ~serveraction() { }
 };
 
@@ -79,6 +79,7 @@ struct mapaction : serveraction
 			}
 			if(notify) passratio = 0.6f; // you need 60% to vote a map without admin
 		}
+		vetorole = PRIV_ADMIN; // don't let masters abuse
 		area |= EE_LOCAL_SERV; // local too
 		s_sprintf(desc)("load map '%s' in mode '%s'", map, modestr(mode));
 	}
@@ -158,6 +159,7 @@ struct subdueaction : playeraction
 	{
 		passratio = 0.8f;
 		role = protectAdminRole('Q', cn);
+		vetorole = PRIV_ADMIN; // don't let admins abuse this either!
 		length = 25000; // 25s
 		if(valid_client(cn)) s_sprintf(desc)("subdue player %s", clients[cn]->name);
 		else s_strcpy(desc, "invalid subdue");

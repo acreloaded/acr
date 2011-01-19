@@ -3333,7 +3333,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					case SA_BAN:
 					{
 						int m = getint(p), c = getint(p);
-						m = clamp(getint(p), 1, 60);
+						m = clamp(m, 1, 60);
+						if(cl->priv < PRIV_ADMIN && m >= 10) m = 10;
 						vi->action = new banaction(c, m);
 						break;
 					}
@@ -3386,11 +3387,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case N_VOTE:
 			{
 				int vote = getint(p);
-				if(!curvote || vote < VOTE_YES || vote > VOTE_NO) break;
+				if(!curvote || !curvote->action || vote < VOTE_YES || vote > VOTE_NO) break;
 				if(cl->vote != VOTE_NEUTRAL){
 					if(cl->vote == vote){
-						if(cl->priv) curvote->evaluate(true, vote);
-						else sendf(sender, 1, "ri2", N_CALLVOTEERR, VOTEE_MUL);
+						if(cl->priv >= curvote->action->vetorole) curvote->evaluate(true, vote);
+						else sendf(sender, 1, "ri2", N_CALLVOTEERR, VOTEE_VETOPERM);
 						break;
 					}
 					else logline(ACLOG_INFO,"[%s] %s changed vote to %s", clients[sender]->hostname, clients[sender]->name, vote == VOTE_NO ? "no" : "yes");
