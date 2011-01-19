@@ -386,7 +386,7 @@ extern bool tryrespawn();
 extern void findplayerstart(playerent *d, bool mapcenter = false, int arenaspawn = -1);
 extern void serveropcommand(int cmd, int arg1);
 extern void refreshsopmenu(void *menu, bool init);
-extern char *colorname(playerent *d, char *name = NULL, const char *prefix = "");
+extern char *colorname(playerent *d, bool stats = false);
 extern char *colorping(int ping);
 extern char *colorpj(int pj);
 extern void togglespect();

@@ -284,11 +284,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				d->team = getint(p);
 				setskin(d, getint(p));
 				getstring(text, p);
-				filtertext(text, text, 1, MAXNAMELEN);
-				if(!text[0]) s_strcpy(text, "unnamed");
-				conoutf("connected: %s", colorname(d, text));
-				updateclientname(d);
 				filtername(d->name, text);
+				if(!*text) s_strcpy(text, "unnamed");
+				s_strcpy(d->name, text);
+				conoutf("connected: %s", colorname(d));
+				updateclientname(d);
 				if(m_flags) loopi(2)
 				{
 					flaginfo &f = flaginfos[i];

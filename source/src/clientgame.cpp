@@ -44,19 +44,22 @@ bool duplicatename(playerent *d, char *name = NULL)
 {
 	if(!name) name = d->name;
 	if(d!=player1 && !strcmp(name, player1->name)) return true;
-	if(!strcmp(name, "you")) return true;
+	if(!strncmp(name, "you", 3)) return true;
 	loopv(players) if(players[i] && d!=players[i] && !strcmp(name, players[i]->name)) return true;
 	return false;
 }
 
-char *colorname(playerent *d, char *name, const char *prefix)
+char *colorname(playerent *d, bool stats)
 {
 	if(!d) return "unknown";
-	if(!name) name = d->name;
-	s_sprintfd(healthstat)("%d%d", d->health > 50 ? 0 : d->health > 25 ? 2 : d->health > 0 ? 3 : 4, d->health);
-	if(d->armour) s_sprintf(healthstat)("%s\f5-\f4%d", healthstat, d->armour);
 	static string cname;
-	s_sprintf(cname)("%s%s \fs\f6(%d) \f5[\f%s\f5]\fr", prefix, name, d->clientnum, healthstat);
+	s_sprintf(cname)("%s \fs\f6(%d)", d->name, d->clientnum);
+	if(stats){
+		s_sprintfd(stat)("%d%d", d->health > 50 ? 0 : d->health > 25 ? 2 : d->health > 0 ? 3 : 4, d->health);
+		if(d->armour) s_sprintf(stat)("%s\f5-\f4%d", stat, d->armour);
+		s_sprintf(cname)("% \f5[\f%s\f5]", stat);
+	}
+	s_strcat(cname, "\fr");
 	return cname;
 }
 
@@ -517,9 +520,9 @@ void dokill(playerent *pl, playerent *act, int weapon, bool gib, int finishingda
 		s_sprintf(death)("\f2%s %s %s%s", aname, killname(weapon, gib, finishingdamage > guns[weapon].damage), isteam(pl, act) ? "teammate " : "", pname);
 		if(act->killstreak++) s_sprintf(death)("%s (%d killstreak)", death, act->killstreak);
 	}
-	if(pl == p || act == p) hudonlyf("%s", death);
 	pl->damagelog.removeobj(pl->clientnum);
 	pl->damagelog.removeobj(act->clientnum);
+	if(pl == p || act == p) hudonlyf(pl->damagelog.length() ? "%s, %d assister%s" : "%s", death, pl->damagelog.length(), pl->damagelog.length()==1?"":"s");
 	if(pl->damagelog.length()){
 		playerent *p = NULL;
 		s_strcat(death, ", assisted by");
@@ -527,7 +530,7 @@ void dokill(playerent *pl, playerent *act, int weapon, bool gib, int finishingda
 		while(pl->damagelog.length()){
 			p = getclient(pl->damagelog.pop());
 			if(!p) continue;
-			s_sprintf(death)("%s%s \fs\f%d%s\fr \fs\f6(%d)\fr", death, first ? "" : !pl->damagelog.length() ? " and" : ",", isteam(p, pl) ? 3 : 2, p->name, p->clientnum);
+			s_sprintf(death)("%s%s \fs\f%d%s\fr", death, first ? "" : !pl->damagelog.length() ? " and" : ",", isteam(p, pl) ? 3 : 2, colorname(p));
 			first = false;
 		}
 	}
