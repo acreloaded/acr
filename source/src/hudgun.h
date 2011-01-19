@@ -4,6 +4,8 @@ VARP(swaymovediv, 1, 200, 1000);
 VARP(swayupspeeddiv, 1, 105, 1000);
 VARP(swayupmovediv, 1, 200, 1000); 
 
+#include "vertmodel_t.h"
+
 struct weaponmove
 {
 	static vec swaydir;
@@ -98,9 +100,26 @@ struct weaponmove
 				sway.y *= swayspeed;
 				sway.z *= swayupspeed;
 
-				if(player1->crouching) sway.mul(0.75f);
+				sway.mul(player1->eyeheight / player1->maxeyeheight);
 			}
 			
+			s_sprintfd(mdl)("weapons/%s", player1->weaponsel->info.modelname);
+			vertmodel *m = (vertmodel *)loadmodel(mdl);
+			if(m && m->parts.length()){
+				vec *tagpos = NULL;
+				loopi(m->parts.last()->numtags) if(!strcmp(m->parts.last()->tags[i].name, "tag_aimpoint")){
+					tagpos = &m->parts.last()->tags[i].pos;
+					break;
+				}
+				if(tagpos){
+					vec posadd = *tagpos;
+					posadd.x *= cosf(player1->yaw * PI / 180);
+					posadd.y *= sinf(player1->yaw * PI / 180);
+					posadd.z *= sinf(player1->pitch * PI / 180);
+					pos.sub(posadd);
+				}
+			}
+
 			pos.x -= aimdir.x*k_back+sway.x;
 			pos.y -= aimdir.y*k_back+sway.y;
 			pos.z -= aimdir.z*k_back+sway.z;
