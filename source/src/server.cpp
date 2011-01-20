@@ -2413,8 +2413,8 @@ void sendwhois(int sender, int cn)
 		int mask = 1;
 		switch(clients[sender]->priv){
 			case PRIV_MAX: case PRIV_ADMIN: mask = 32; break; // f.f.f.f/32 full ip
-			case PRIV_MASTER: mask = 12; break; // f.h/12 - full, half, 2 empty
-			case PRIV_NONE: default: mask = 8; break; // f/8 full, 3 empty
+			case PRIV_MASTER: mask = 14; break; // f.h/12 - full, three quarters, 2 empty
+			case PRIV_NONE: default: mask = 12; break; // f.h/12 full, half, 2 empty
 		}
 		if(mask < 32) ip &= (1 << mask) - 1;
 		sendf(sender, 1, "ri4", N_WHOIS, cn, ip, mask);
@@ -3390,7 +3390,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(!curvote || !curvote->action || vote < VOTE_YES || vote > VOTE_NO) break;
 				if(cl->vote != VOTE_NEUTRAL){
 					if(cl->vote == vote){
-						if(cl->priv >= curvote->action->vetorole) curvote->evaluate(true, vote);
+						if(cl->priv >= curvote->action->role && cl->priv >= curvote->action->vetorole) curvote->evaluate(true, vote);
 						else sendf(sender, 1, "ri2", N_CALLVOTEERR, VOTEE_VETOPERM);
 						break;
 					}

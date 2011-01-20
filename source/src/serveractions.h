@@ -79,7 +79,7 @@ struct mapaction : serveraction
 			}
 			if(notify) passratio = 0.6f; // you need 60% to vote a map without admin
 		}
-		vetorole = PRIV_ADMIN; // don't let masters abuse
+		vetorole = PRIV_ADMIN; // don't let masters abuse maps
 		area |= EE_LOCAL_SERV; // local too
 		s_sprintf(desc)("load map '%s' in mode '%s'", map, modestr(mode));
 	}
