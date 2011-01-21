@@ -570,8 +570,8 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 		pl->pitchvel *= fric-3;
 		pl->pitchvel /= fric;
 		if(pl->pitchvel < 0.15f){  // new slide back!
-			pl->pitch -= pl->pitchreturn * 0.015f;
-			pl->pitchreturn *= 0.985f;
+			pl->pitch -= pl->pitchreturn * 0.005f;
+			pl->pitchreturn *= 0.995f;
 		}
 		if(pl->pitchvel) fixcamerarange(pl); // fix pitch if necessary
 	}
@@ -706,7 +706,7 @@ void jumpn(bool on)
 void updatecrouch(playerent *p, bool on)
 {
 	if(p->crouching == on) return;
-	const float crouchspeed = 0.6f;
+	const float crouchspeed = 0.35f;
 	p->crouching = on;
 	p->eyeheightvel = on ? -crouchspeed : crouchspeed;
 	playsound(on ? S_CROUCH : S_UNCROUCH);
@@ -745,10 +745,9 @@ void mousemove(int dx, int dy)
 
 	const float SENSF = 33.0f;	 // try match quake sens
 	camera1->yaw += (dx/SENSF)*sensitivity;
-	float pitchchange = camera1->pitch;
-	camera1->pitch -= (dy/SENSF)*sensitivity*(invmouse ? -1 : 1);
-	pitchchange -= camera1->pitch;
-	if(pitchchange > 0 && player1->pitchreturn > 0) player1->pitchreturn -= pitchchange;
+	float pitchchange = (dy/SENSF) * sensitivity * (invmouse ? 1 : -1);
+	if(pitchchange < 0 && player1->pitchreturn > 0) player1->pitchreturn += (pitchchange /= 2);
+	camera1->pitch += pitchchange;
 	fixcamerarange();
 	if(camera1!=player1 && player1->spectatemode!=SM_DEATHCAM)
 	{

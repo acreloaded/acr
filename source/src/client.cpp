@@ -287,7 +287,13 @@ void addmsg(int type, const char *fmt, ...)
 				int n = isdigit(*fmt) ? *fmt++-'0' : 1;
 				loopi(n) putint(p, va_arg(args, int));
 				break;
-			}			
+			}
+			case 'f':
+			{
+				int n = isdigit(*fmt) ? *fmt++-'0' : 1;
+				loopi(n) putfloat(p, (float)va_arg(args, double));
+				break;
+			}
 			case 's': sendstring(va_arg(args, const char *), p); break;
 		}
 		va_end(args);

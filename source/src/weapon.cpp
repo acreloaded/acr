@@ -318,7 +318,7 @@ vector<hitmsg> hits;
 
 void hit(int damage, playerent *d, playerent *at, const vec &vel, int gun, bool gib, int info)
 {
-	if(d==player1 || d->type==ENT_BOT || !m_mp(gamemode)) d->hitpush(damage, vel, at, gun);
+	if(d==player1 || d->type==ENT_BOT || !m_mp(gamemode)) d->hitpush(damage, vel, gun);
 
 	if(!m_mp(gamemode)){
 		if(d != at && isteam(d, at)){
@@ -727,23 +727,7 @@ void grenadeent::explode()
 	static vec n(0,0,0);
 	hits.setsize(0);
 	splash();
-	if(local){
-		//addmsg(N_EXPLODE, "ri3f3", lastmillis, GUN_GRENADE, millis, o.x, o.y, o.z);
-		static uchar buf[7 * sizeof(float)];
-		ucharbuf p(buf, 7 * sizeof(float));
-		putint(p, N_EXPLODE);
-		putint(p, lastmillis);
-		putint(p, GUN_GRENADE);
-		putint(p, millis);
-		putfloat(p, o.x);
-		putfloat(p, o.y);
-		putfloat(p, o.z);
-		int len = p.length();
-		extern vector<uchar> messages;
-		messages.add(len & 0xFF);
-		messages.add((len >> 8) | 0x80);
-		loopi(len) messages.add(buf[i]);
-	}
+	if(local) addmsg(N_EXPLODE, "ri3f3", lastmillis, GUN_GRENADE, millis, o.x, o.y, o.z);
 	playsound(S_FEXPLODE, &o);
 }
 
@@ -754,7 +738,7 @@ void grenadeent::splash()
 	addscorchmark(o);
 	adddynlight(NULL, o, 16, 200, 100, 255, 255, 224);
 	adddynlight(NULL, o, 16, 600, 600, 192, 160, 128);
-	if(!local) return;
+	if(!local || m_mp(gamemode)) return;
 	radialeffect(owner, o, owner, GUN_GRENADE);
 	loopv(players)
 	{
@@ -771,22 +755,7 @@ void grenadeent::activate(const vec &from, const vec &to)
 
 	if(local)
 	{
-		//addmsg(N_SHOOT, "ri2f3i", millis, GUN_GRENADE, to.x, to.y, to.z, 0);
-		static uchar buf[7 * sizeof(float)];
-		ucharbuf p(buf, 7 * sizeof(float));
-		putint(p, N_SHOOT);
-		putint(p, millis);
-		putint(p, GUN_GRENADE);
-		putfloat(p, to.x);
-		putfloat(p, to.y);
-		putfloat(p, to.z);
-		putint(p, 0);
-		int len = p.length();
-		extern vector<uchar> messages;
-		messages.add(len & 0xFF);
-		messages.add((len >> 8) | 0x80);
-		loopi(len) messages.add(buf[i]);
-
+		addmsg(N_SHOOT, "ri2f3i", millis, GUN_GRENADE, to.x, to.y, to.z, 0);
 		playsound(S_GRENADEPULL, SP_HIGH);
 	}
 }
@@ -800,25 +769,8 @@ void grenadeent::_throw(const vec &from, const vec &vel)
 	this->resetinterp();
 	inwater = hdr.waterlevel>o.z;
 
-	if(local)
-	{
-		//addmsg(N_THROWNADE, "rf6i", o.x, o.y, o.z, vel.x, vel.y, vel.z, lastmillis-millis);
-		static uchar buf[8 * sizeof(float)];
-		ucharbuf p(buf, 8 * sizeof(float));
-		putint(p, N_THROWNADE);
-		putfloat(p, o.x);
-		putfloat(p, o.y);
-		putfloat(p, o.z);
-		putfloat(p, vel.x);
-		putfloat(p, vel.y);
-		putfloat(p, vel.z);
-		putint(p, lastmillis-millis);
-		int len = p.length();
-		extern vector<uchar> messages;
-		messages.add(len&0xFF);
-		messages.add((len>>8)| 0x80);
-		loopi(len) messages.add(buf[i]);
-
+	if(local){
+		addmsg(N_THROWNADE, "rf6i", o.x, o.y, o.z, vel.x, vel.y, vel.z, lastmillis-millis);
 		playsound(S_GRENADETHROW, SP_HIGH);
 	}
 	else playsound(S_GRENADETHROW, owner);

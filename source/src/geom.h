@@ -25,6 +25,8 @@ struct vec
 	vec &add(float f) { x += f; y += f; z += f; return *this; }
 	vec &sub(float f) { x -= f; y -= f; z -= f; return *this; }
 
+	vec &mul(const vec &o) { x *= o.x; y *= o.y; z *= o.z; return *this; }
+	vec &div(const vec &o) { x /= o.x; y /= o.y; z /= o.z; return *this; }
 	vec &add(const vec &o) { x += o.x; y += o.y; z += o.z; return *this; }
 	vec &sub(const vec &o) { x -= o.x; y -= o.y; z -= o.z; return *this; }
 
@@ -32,7 +34,7 @@ struct vec
 	float dot(const vec &o) const { return x*o.x + y*o.y + z*o.z; }
 
 	float magnitude() const { return sqrtf(squaredlen()); }
-	vec &normalize() { if(!iszero()) div(magnitude()); return *this; }
+	vec &normalize() { if(magnitude()) div(magnitude()); return *this; }
 
 	float dist(const vec &e) const { vec t; return dist(e, t); }
 	float dist(const vec &e, vec &t) const { t = *this; t.sub(e); return t.magnitude(); }

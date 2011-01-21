@@ -102,23 +102,26 @@ struct weaponmove
 
 				sway.mul(player1->eyeheight / player1->maxeyeheight);
 			}
-			
-			s_sprintfd(mdl)("weapons/%s", player1->weaponsel->info.modelname);
-			vertmodel *m = (vertmodel *)loadmodel(mdl);
-			if(m && m->parts.length()){
-				vec *tagpos = NULL;
-				loopi(m->parts.last()->numtags) if(!strcmp(m->parts.last()->tags[i].name, "tag_aimpoint")){
-					tagpos = &m->parts.last()->tags[i].pos;
-					break;
-				}
-				if(tagpos){
-					vec posadd = *tagpos;
-					posadd.x *= cosf(player1->yaw * PI / 180);
-					posadd.y *= sinf(player1->yaw * PI / 180);
-					posadd.z *= sinf(player1->pitch * PI / 180);
-					pos.sub(posadd);
+
+			/*
+			if(player1->weaponsel->type != GUN_AKIMBO){ // no akimbo ADS
+				s_sprintfd(mdl)("weapons/%s", player1->weaponsel->info.modelname);
+				vertmodel *m = (vertmodel *)loadmodel(mdl);
+				if(m && m->parts.length()){
+					vec *tagpos = NULL;
+					loopi(m->parts.last()->numtags) if(!strcmp(m->parts.last()->tags[i].name, "tag_aimpoint")){
+						tagpos = &m->parts.last()->tags[i].pos;
+						break;
+					}
+					if(tagpos){
+						vec posadd = *tagpos;
+						const float speed = cosf(RAD*player1->pitch);
+						posadd.mul(vec(sinf(RAD*player1->yaw)*speed, -cosf(RAD*player1->yaw)*speed, sinf(RAD*player1->pitch)));
+						pos.sub(posadd);
+					}
 				}
 			}
+			*/
 
 			pos.x -= aimdir.x*k_back+sway.x;
 			pos.y -= aimdir.y*k_back+sway.y;

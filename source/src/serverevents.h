@@ -12,15 +12,14 @@ void processevent(client &c, explodeevent &e)
 		default:
 			return;
 	}
-	vec o(e.o[0], e.o[1], e.o[2]);
+	vec o(e.o);
 	loopv(clients){
-		client *target = clients[i];
-		if(!target) continue;
+		client &target = *clients[i];
 		vec dir;
-		float dist = target->state.o.dist(o, dir);
+		float dist = target.state.o.dist(o, dir);
 		if(dist >= guns[e.gun].endrange) continue;
 		dir.normalize();
-		serverdamage(target, &c, effectiveDamage(e.gun, dist), e.gun, true, dir);
+		serverdamage(&target, &c, effectiveDamage(e.gun, dist), e.gun, true, dir);
 	}
 }
 
@@ -86,9 +85,9 @@ void processevent(client &c, shotevent &e)
 				if(rays<1) continue;
 				if(totalrays + rays > maxrays) continue;
 
-				bool gib = false; vec dir;
+				bool gib = false;
 				int damage = 0;
-				damage = rays * effectiveDamage(e.gun, vec(e.to).dist(gs.o, dir));
+				damage = rays * effectiveDamage(e.gun, vec(e.to).dist(gs.o));
 				if(e.gun == GUN_SHOTGUN){
 					uint hitflags = h.info;
 					loopi(SGRAYS) if(hitflags & (1 << i)) damage += effectiveDamage(GUN_SHOTGUN, gs.sg[i].dist(gs.o));
@@ -96,14 +95,13 @@ void processevent(client &c, shotevent &e)
 				if(!damage) continue;
 
 				totalrays += rays;
-				dir.normalize();
 				if(e.gun==GUN_SHOTGUN) gib = damage > SGGIB;
 				else gib = e.gun==GUN_KNIFE || h.info == 2;
 				if(e.gun!=GUN_SHOTGUN){
 					if(h.info == 1 && e.gun != GUN_SLUG && e.gun != GUN_KNIFE) damage *= 0.67;
 					else if(h.info == 2) damage *= e.gun == GUN_SNIPER || e.gun == GUN_SLUG || e.gun == GUN_KNIFE ? 5 : 2.5;
 				} else if(h.info & 0x80) gib = true;
-				serverdamage(target, &c, damage, e.gun, gib, dir);
+				serverdamage(target, &c, damage, e.gun, gib);
 			}
 			break;
 		}

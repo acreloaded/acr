@@ -490,9 +490,9 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, bool gib,
 		if(weapon != GUN_GRENADE && actor != pl){
 			vec dir = pl->o;
 			dir.sub(actor->o);
-			pl->hitpush(damage, dir, actor, weapon);
+			pl->hitpush(damage, dir, weapon);
 		}
-		updatedmgindicator(actor->o);
+		if(weapon != GUN_GRENADE) updatedmgindicator(actor->o);
 		damageblend(damage);
 		pl->damageroll(damage);
 	}

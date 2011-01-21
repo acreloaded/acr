@@ -122,9 +122,9 @@ struct projectilestate
 
 struct clientstate : playerstate
 {
-	vec o, sg[SGRAYS], flagpickupo;
+	vec o, lasto, sg[SGRAYS], flagpickupo;
 	bool scoped;
-	int state;
+	int state, lastomillis;
 	int lastdeath, lastspawn, lifesequence;
 	int lastshot, lastregen;
 	projectilestate<2> grenades;
@@ -160,7 +160,8 @@ struct clientstate : playerstate
 	{
 		playerstate::respawn();
 		scoped = false;
-		o = vec(-1e10f, -1e10f, -1e10f);
+		o = lasto = vec(-1e10f, -1e10f, -1e10f);
+		lastomillis = 0;
 		lastspawn = -1;
 		lastdeath = lastshot = lastregen = 0;
 		akimbos = akimbomillis = 0;
@@ -554,7 +555,6 @@ void sendf(int cn, int chan, const char *format, ...)
 		case 'x':
 			exclude = va_arg(args, int);
 			break;
-
 		case 'v':
 		{
 			int n = va_arg(args, int);
@@ -562,11 +562,16 @@ void sendf(int cn, int chan, const char *format, ...)
 			loopi(n) putint(p, v[i]);
 			break;
 		}
-
 		case 'i':
 		{
 			int n = isdigit(*format) ? *format++-'0' : 1;
 			loopi(n) putint(p, va_arg(args, int));
+			break;
+		}
+		case 'f':
+		{
+			int n = isdigit(*format) ? *format++-'0' : 1;
+			loopi(n) putint(p, (float)va_arg(args, double));
 			break;
 		}
 		case 's': sendstring(va_arg(args, const char *), p); break;
@@ -1353,22 +1358,6 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 				}
 			}
 		}
-		if(!hitpush.iszero() && gun == GUN_GRENADE){
-			vec v(hitpush);
-			v.normalize();
-			//sendf(target->clientnum, 1, "ri3f3", N_HITPUSH, gun, damage, v.x, v.y, v.z);
-			ENetPacket *packet = enet_packet_create(NULL, 6 * sizeof(float), ENET_PACKET_FLAG_RELIABLE);
-			ucharbuf p(packet->data, packet->dataLength);
-			putint(p, N_HITPUSH);
-			putint(p, gun);
-			putint(p, damage);
-			putfloat(p, v.x);
-			putfloat(p, v.y);
-			putfloat(p, v.z);
-			enet_packet_resize(packet, p.length());
-			sendpacket(target->clientnum, 1, packet);
-			if(packet->referenceCount==0) enet_packet_destroy(packet);
-		}
 	}
 	if(target->state.damagelog.find(actor->clientnum) < 0) target->state.damagelog.add(actor->clientnum);
 	ts.dodamage(damage);
@@ -1380,8 +1369,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 		bool suic = false;
 		target->state.deaths++;
 		if(target!=actor) actor->state.frags += /*isteam(target, actor) ? -1 :*/ gib ? 2 : 1;
-		else
-		{ // suicide
+		else{ // suicide
 			actor->state.frags--;
 			suic = true;
 		}
@@ -1409,6 +1397,11 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 			else // ktf || tktf
 				flagaction(targethasflag, FA_RESET, -1);
 		}
+	}
+	else if(!hitpush.iszero() && gun == GUN_GRENADE){
+		vec v = hitpush;
+		v.normalize();
+		sendf(target->clientnum, 1, "ri3f3", N_HITPUSH, gun, damage, v.x, v.y, v.z);
 	}
 }
 
@@ -3121,10 +3114,12 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					disconnect_client(sender, DISC_CN);
 					return;
 				}*/
-				loopi(3) cl->state.o[i] = getfloat(p);
+				clientstate &cs = cl->state;
+				cs.lasto = cs.o;
+				loopi(3) cs.o[i] = getfloat(p);
 				loopi(6) getfloat(p); // yaw, pitch, roll, vel[3]
 				getuint(p); // last data uint
-				if(cl->state.state!=CS_ALIVE && cl->state.state!=CS_EDITING) break;
+				if(cs.state!=CS_ALIVE && cs.state!=CS_EDITING) break;
 				if(cl->type==ST_TCPIP)
 				{
 					cl->position.setsize(0);
@@ -3134,10 +3129,18 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					cl->position.addbuf(q); // put current buffer
 					while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]); // add the rest
 				}
-				if(cl->state.state!=CS_ALIVE) break;
-				if(maplayout && !m_edit)
-				{
-					vec &po = cl->state.o;
+				if(cs.state!=CS_ALIVE) break;
+				float cps = cs.lasto.dist(cs.o);
+				if(cps && cs.lastomillis && gamemillis > cs.lastomillis){
+					cps *= 1000 / (gamemillis - cs.lastomillis);
+					if(cps > 64.f){ // 16 meters per second
+						s_sprintfd(lol)("TOO FAST: %.3f", cps);
+						sendservmsg(lol);
+					}
+				}
+				cs.lastomillis = gamemillis;
+				if(maplayout && !m_edit){
+					vec &po = cs.o;
 					int ls = (1 << maplayout_factor) - 1;
 					if(po.x < 0 || po.y < 0 || po.x > ls || po.y > ls || maplayout[((int) po.x) + (((int) po.y) << maplayout_factor)] > po.z)
 					{
@@ -3151,9 +3154,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				}
 				loopv(sents){
 					server_entity &e = sents[i];
-					if(!e.spawned || !cl->state.canpickup(e.type)) continue;
-					vec v(e.x, e.y, maplayout ? maplayout[e.x + (e.y << maplayout_factor)] : cl->state.o.z);
-					float dist = cl->state.o.dist(v);
+					if(!e.spawned || !cs.canpickup(e.type)) continue;
+					vec v(e.x, e.y, maplayout ? maplayout[e.x + (e.y << maplayout_factor)] : cs.o.z);
+					float dist = cs.o.dist(v);
 					if(dist > 2.5f) continue;
 					if(arenaround && arenaround - gamemillis <= 2000){ // no nade pickup during last two seconds of lss intermission
 						sendf(sender, 1, "ri2", N_ITEMSPAWN, i);
@@ -3164,7 +3167,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(m_flags) loopi(2){ // check flag pickup
 					sflaginfo &f = sflaginfos[i];
 					sflaginfo &of = sflaginfos[team_opposite(i)];
-					vec v(-1, -1, cl->state.o.z);
+					vec v(-1, -1, cs.o.z);
 					switch(f.state){
 						case CTFF_INBASE:
 							v.x = f.x; v.y = f.y;
@@ -3174,7 +3177,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 							break;
 					}
 					if(v.x < 0) continue;
-					float dist = cl->state.o.dist(v);
+					float dist = cs.o.dist(v);
 					if(dist > 2.5f) continue;
 					//if(f.state == CTFF_STOLEN) continue;
 					if(m_ctf){

@@ -482,7 +482,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				int gun = getint(p), damage = getint(p);
 				vec dir;
 				loopk(3) dir[k] = getfloat(p);
-				player1->hitpush(damage, dir, NULL, gun);
+				player1->hitpush(damage, dir, gun);
 				break;
 			}
 

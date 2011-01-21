@@ -715,17 +715,19 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		glEnable(GL_BLEND);
 		glColor4f(1.f, 1.f, 1.f, (3000 + p->lastheadshot - lastmillis) / 3000.f);
 		glBegin(GL_QUADS);
-		glTexCoord2f(0, 0); glVertex2f(VIRTW * 0.35f, VIRTH * 0.2f);
-		glTexCoord2f(1, 0);	glVertex2f(VIRTW * 0.65f, VIRTH * 0.2f);
-		glTexCoord2f(1, 1); glVertex2f(VIRTW * 0.65f, VIRTH * 0.4f);
-		glTexCoord2f(0,	1); glVertex2f(VIRTW * 0.35f, VIRTH * 0.4f);
+		float anim = lastmillis / 100 % 8;
+		if(anim > 3) anim = 7 - anim;
+		anim /= 4;
+		glTexCoord2f(0, 0 + anim); glVertex2f(VIRTW * 0.35f, VIRTH * 0.2f);
+		glTexCoord2f(1, 0 + anim);	glVertex2f(VIRTW * 0.65f, VIRTH * 0.2f);
+		glTexCoord2f(1, 0.25f + anim); glVertex2f(VIRTW * 0.65f, VIRTH * 0.4f);
+		glTexCoord2f(0,	0.25f + anim); glVertex2f(VIRTW * 0.35f, VIRTH * 0.4f);
 		glEnd();
 	}
 
 	if(p->state==CS_ALIVE && !hidehudequipment) drawequipicons(p);
 
-	if(!editmode)
-	{
+	if(!editmode){
 		glMatrixMode(GL_MODELVIEW);
 		if(/*!menu &&*/ (!hideradar || showmap)) drawradar(p, w, h);
 		if(!hideteam && m_teammode) drawteamicons(w, h);
