@@ -120,6 +120,7 @@ VARP(showscoresondeath, 0, 1, 1);
 
 void deathstate(playerent *pl)
 {
+	if(pl == player1 && editmode) toggleedit(true);
 	pl->state = CS_DEAD;
 	pl->spectatemode = SM_DEATHCAM;
 	pl->respawnoffset = pl->lastpain = lastmillis;
@@ -130,10 +131,8 @@ void deathstate(playerent *pl)
 	pl->damagelog.setsize(0);
 
 	if(pl==player1){
-		if(editmode){ keyrepeat(false); editmode = false; extern int editing; editing = 0; }
 		if(showscoresondeath) showscores(true);
 		setscope(false);
-		if(editmode) toggleedit(true);
 		damageblend(-1);
 	}
 	else pl->resetinterp();

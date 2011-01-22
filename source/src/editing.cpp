@@ -31,27 +31,24 @@ int lastx, lasty, lasth;
 int lasttype = 0, lasttex = 0;
 sqr rtex;
 
-VAR(editing, 1, 0, 0);
+int getediting(){ return editmode ? 1 : 0; }
+COMMANDN(editing, getediting, ARG_IVAL);
 
 void toggleedit(bool force)
 {
-	if(player1->state==CS_DEAD) return;				   // do not allow dead players to edit to avoid state confusion
+	if(player1->state==CS_DEAD && !editmode) return;				   // do not allow dead players to edit to avoid state confusion
 	if(!force && !editmode && !allowedittoggle()) return; // not in most multiplayer modes
-	if(!(editmode = !editmode))
-	{
+	if(!(editmode = !editmode)){
 		entinmap(player1);								// find spawn closest to current floating pos
 	}
-	else
-	{
-		//player1->health = 100; // illusion only (client-side) and unwanted anyway (bug found by grenadier)
+	else{
 		//put call to clear/restart gamemode
 		player1->attacking = false;
 	}
 	keyrepeat(editmode);
 	selset = false;
-	editing = editmode ? 1 : 0;
-	player1->state = editing ? CS_EDITING : CS_ALIVE;
-	if(!force) addmsg(N_EDITMODE, "ri", editing);
+	player1->state = editmode ? CS_EDITING : CS_ALIVE;
+	if(!force) addmsg(N_EDITMODE, "ri", editmode ? 1 : 0);
 }
 
 void edittoggle() { toggleedit(false); }
