@@ -130,7 +130,7 @@ void deathstate(playerent *pl)
 	pl->damagelog.setsize(0);
 
 	if(pl==player1){
-		if(editmode) toggleedit(true);
+		if(editmode){ keyrepeat(false); editmode = false; extern int editing; editing = 0; }
 		if(showscoresondeath) showscores(true);
 		setscope(false);
 		if(editmode) toggleedit(true);
