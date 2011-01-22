@@ -3027,7 +3027,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case N_EDITMODE:
 			{
 				bool editing = getint(p) != 0;
-				if(!m_edit){ // unacceptable!
+				if(!m_edit && cl->type == ST_TCPIP){ // unacceptable!
 					forcedeath(cl, true);
 					return;
 				}
