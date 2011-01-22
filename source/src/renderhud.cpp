@@ -869,7 +869,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		{
 			if(players.inrange(player1->followplayercn) && players[player1->followplayercn])
 			{
-				s_sprintfd(name)("Player %s", players[player1->followplayercn]->name);
+				s_sprintfd(name)("Player \f%d%s", players[player1->followplayercn]->team ? 1 : 3, players[player1->followplayercn]->name);
 				draw_text(name, VIRTW/40, VIRTH/10*8);
 			}
 		}

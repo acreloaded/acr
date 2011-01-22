@@ -410,7 +410,7 @@ void sendintro()
 	putint(p, player1->skin);
 	sendstring(genpwdhash(player1->name, clientpassword, sessionid), p);
 	putint(p, connectrole);
-	clientpassword[0] = '\0';
+	*clientpassword = 0;
 	connectrole = PRIV_NONE;
 	putint(p, player1->nextprimweap->type);
 	putint(p, AC_VERSION);
@@ -428,6 +428,7 @@ void sendintro()
 				0x04 |
 			#endif
 				1);
+	// other post-connect stuff goes here
 	enet_packet_resize(packet, p.length());
 	sendpackettoserv(1, packet);
 }

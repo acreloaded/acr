@@ -246,16 +246,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_MAPCHANGE:
 			{
+				// get map info
+				int mode = getint(p), downloadable = getint(p);
 				getstring(text, p);
-				int mode = getint(p);
-				int downloadable = getint(p);
 				changemapserv(text, mode, downloadable);
-				if(m_arena && joining>2) deathstate(player1);
-				break;
-			}
-
-			case N_ITEMLIST:
-			{
+				// get items
 				int n;
 				resetspawns();
 				while((n = getint(p)) != -1 && !p.overread()) setspawn(n, true);
@@ -632,6 +627,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
+			case N_FF:
+				hudoutf("\f3FRIENDLY FIRE WILL NOT BE TOLERATED!\n\f2Wait %d seconds until to respawn!", getint(p));
+				break;
+
 			case N_CONFMSG: // preconfigured messages
 			{
 				int n = getint(p);
@@ -932,10 +931,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     switch(ftr)
                     {
                         case FTR_PLAYERWISH:
-                            conoutf("\f2%s switched to team %s", colorname(p), fnt ? 1 : 3, nts);
+                            conoutf("\f2%s switched to team %s", colorname(p), nts);
                             break;
                         case FTR_AUTOTEAM:
-                            conoutf("\f2the server forced %s to team %s", colorname(p), fnt ? 1 : 3, nts);
+                            conoutf("\f2the server forced %s to team %s", colorname(p), nts);
                             break;
                     }
                 }
@@ -1094,8 +1093,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 	}
 
 	// check if joining here so as not to interrupt welcomepacket
-	if(joining<0 && *getclientmap()) // we are the first client on this server, set map
-	{
+	if(joining<0 && *getclientmap()){ // we are the first client on this server, set map
 		nextmode = gamemode;
 		changemap(getclientmap());
 	}

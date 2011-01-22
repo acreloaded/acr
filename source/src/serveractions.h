@@ -228,12 +228,11 @@ struct enableaction : serveraction
 
 struct autoteamaction : enableaction
 {
-	void perform()
-	{
+	void perform(){
+		autoteam = enable;
 		if(m_teammode && enable) refillteams(true);
 	}
-	autoteamaction(bool enable) : enableaction(enable)
-	{
+	autoteamaction(bool enable) : enableaction(enable){
 		role = roleconf('a');
 		if(isvalid()) s_sprintf(desc)("%s autoteam", enable ? "enable" : "disable");
 	}

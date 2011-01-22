@@ -1032,15 +1032,13 @@ COMMAND(setmaster, ARG_1INT);
 
 SVARP(adminpass, "pwd"); // saved admin password
 
-void setadmin(char *claim, char *password)
-{
+void setadmin(char *claim, char *password){
 	if(!claim || !password) return;
 	else addmsg(N_SETROLE, "ris", atoi(claim)!=0?PRIV_MAX:PRIV_NONE, genpwdhash(player1->name, *password ? password : adminpass, sessionid));
 }
 COMMAND(setadmin, ARG_2STR);
 
-void changemap(const char *name)					  // silently request map change, server may ignore
-{
+void changemap(const char *name){ // silently request map change, server may ignore
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
 	putint(p, N_NEXTMAP);
