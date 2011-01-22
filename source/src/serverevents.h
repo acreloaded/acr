@@ -74,7 +74,7 @@ void processevent(client &c, shotevent &e)
 				hitevent &h = hits[i];
 				if(!clients.inrange(h.target)) continue;
 				client *target = clients[h.target];
-				if(target->type==ST_EMPTY || target->state.state!=CS_ALIVE || h.lifesequence!=target->state.lifesequence) continue;
+				if(target->type==ST_EMPTY || target->state.state!=CS_ALIVE || &c==target || h.lifesequence!=target->state.lifesequence) continue;
 
 				int rays = e.gun==GUN_SHOTGUN ? popcount(h.info) : 1;
 				if(e.gun==GUN_SHOTGUN){
