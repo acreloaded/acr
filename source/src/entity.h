@@ -382,8 +382,7 @@ struct playerstate
 	}
 
 	// just subtract damage here, can set death, etc. later in code calling this
-	int dodamage(int damage)
-	{
+	int dodamage(int damage){
 		int ad = damage*30/100; // let armour absorb when possible
 		if(ad>armour) ad = armour;
 		armour -= ad;
@@ -403,6 +402,7 @@ struct playerent : dynent, playerstate
 	int points, frags, flagscore, deaths;
 	int lastaction, lastmove, lastpain, lastvoicecom;
 	int priv, vote, voternum, lastregen;
+	int ads; bool scoping, wantsreload;
 	bool attacking;
 	string name;
 	int weaponchanging;
@@ -427,7 +427,7 @@ struct playerent : dynent, playerstate
 
 	playerent() : clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), points(0), frags(0), flagscore(0), deaths(0), lastpain(0), lastvoicecom(0), priv(PRIV_NONE),
 				  skin(0), spectatemode(SM_NONE), followplayercn(-1), eardamagemillis(0), respawnoffset(0), radarmillis(0), vote(VOTE_NEUTRAL), voternum(MAXCLIENTS),
-				  prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL), lastheadshot(0),
+				  prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL), lastheadshot(0), ads(0), scoping(false),
 				  smoothmillis(-1),
 				  head(-1, -1, -1)
 	{
@@ -491,7 +491,8 @@ struct playerent : dynent, playerstate
 		if(weaponsel) weaponsel->reset();
 		lastaction = 0;
 		lastattackweapon = NULL;
-		attacking = false;
+		ads = 0.f;
+		scoping = attacking = false;
 		weaponchanging = 0;
 		resetspec();
 		eardamagemillis = 0;

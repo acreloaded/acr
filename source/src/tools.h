@@ -54,12 +54,16 @@ static inline T min(T a, T b)
 {
 	return a < b ? a : b;
 }
+template<class T>
+static inline T clamp(T a, T b, T c)
+{
+	return max<T>(b, min<T>(a, c));
+}
 
 static inline float round(float x) { return floor(x + 0.5f); }
 
 static inline char popcount(unsigned i){ char c; for(c=0;i;c++){i&=i-1;} return c;}
 
-#define clamp(a,b,c) (max(b, min(a, c)))
 #define rnd(max) (rand()%(max))
 #define detrnd(s, x) ((int)(((((uint)(s))*1103515245+12345)>>16)%(x)))
 

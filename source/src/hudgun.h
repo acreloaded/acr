@@ -4,8 +4,6 @@ VARP(swaymovediv, 1, 200, 1000);
 VARP(swayupspeeddiv, 1, 105, 1000);
 VARP(swayupmovediv, 1, 200, 1000); 
 
-#include "vertmodel_t.h"
-
 struct weaponmove
 {
 	static vec swaydir;
@@ -32,21 +30,18 @@ struct weaponmove
 			dv.y *= 1.5f;
 			dv.z *= 0.4f;
 			swaydir.add(dv);
-			pos.add(swaydir);
 		}
 
 		if(player1->onfloor || player1->onladder || player1->inwater) swaymillis += lastmillis-lastsway;
 		lastsway = lastmillis;
 
 		anim = ANIM_GUN_IDLE;
-		if(player1->weaponchanging)
-		{
+		if(player1->weaponchanging){
 			basetime = player1->weaponchanging;
 			float progress = clamp((lastmillis - player1->weaponchanging)/(float)weapon::weaponchangetime, 0.0f, 1.0f);
 			k_rot = -90*sinf(progress*M_PI);
 		}
-		else if(player1->weaponsel->reloading)
-		{
+		else if(player1->weaponsel->reloading){
 			anim = ANIM_GUN_RELOAD;
 			basetime = player1->weaponsel->reloading;
 			/*
@@ -54,8 +49,7 @@ struct weaponmove
 				  progress = clamp((lastmillis - player1->weaponsel->reloading)/reloadtime, 0.0f, clamp(1.0f - (player1->lastaction + player1->weaponsel->gunwait - lastmillis)/reloadtime, 0.5f, 1.0f));
 			k_rot = -90*sinf(progress*M_PI);*/
 		}
-		else
-		{
+		else{
 			basetime = lastaction;
 
 			int timediff = lastmillis-lastaction, 
@@ -64,8 +58,7 @@ struct weaponmove
 			float progress = 0.0f;
 			float k_back = 0.0f;
 			
-			if(player1->weaponsel==player1->lastattackweapon)
-			{
+			if(player1->weaponsel==player1->lastattackweapon){
 				progress = max(0.0f, min(1.0f, timediff/(float)animtime));
 				// f(x) = -sin(x-1.5)^3
 				kick = -sinf(pow((1.5f*progress)-1.5f,3));
@@ -73,15 +66,13 @@ struct weaponmove
 				if(player1->lastaction) anim = player1->weaponsel->modelanim();
 			}
 			
-			if(player1->weaponsel->info.mdl_kick_rot || player1->weaponsel->info.mdl_kick_back)
-			{
+			if(player1->weaponsel->info.mdl_kick_rot || player1->weaponsel->info.mdl_kick_back){
 				k_rot = player1->weaponsel->info.mdl_kick_rot*kick;
 				k_back = player1->weaponsel->info.mdl_kick_back*kick/10;
 			}
 			
 			if(nosway) sway.x = sway.y = sway.z = 0;
-			else
-			{
+			else{
 				float swayspeed = sinf((float)swaymillis/swayspeeddiv)/(swaymovediv/10.0f);
 				float swayupspeed = cosf((float)swaymillis/swayupspeeddiv)/(swayupmovediv/10.0f);
 
@@ -103,26 +94,16 @@ struct weaponmove
 				sway.mul(player1->eyeheight / player1->maxeyeheight);
 			}
 
-			/*
 			if(player1->weaponsel->type != GUN_AKIMBO){ // no akimbo ADS
-				s_sprintfd(mdl)("weapons/%s", player1->weaponsel->info.modelname);
-				vertmodel *m = (vertmodel *)loadmodel(mdl);
-				if(m && m->parts.length()){
-					vec *tagpos = NULL;
-					loopi(m->parts.last()->numtags) if(!strcmp(m->parts.last()->tags[i].name, "tag_aimpoint")){
-						tagpos = &m->parts.last()->tags[i].pos;
-						break;
-					}
-					if(tagpos){
-						vec posadd = *tagpos;
-						const float speed = cosf(RAD*player1->pitch);
-						posadd.mul(vec(sinf(RAD*player1->yaw)*speed, -cosf(RAD*player1->yaw)*speed, sinf(RAD*player1->pitch)));
-						pos.sub(posadd);
-					}
-				}
-			}
-			*/
+				if(anim == ANIM_GUN_IDLE) basetime = lastmillis-player1->ads;
+				else if(player1->ads) basetime += 1000;
+				k_rot *= 1 - player1->ads / 2000.f;
+				k_back *= 1 - player1->ads / 1000.f;
+				sway.mul(1 - player1->ads / 1200.f);
+				swaydir.mul(1 - player1->ads / 1300.f);
+			} else basetime = lastmillis;
 
+			pos.add(swaydir);
 			pos.x -= aimdir.x*k_back+sway.x;
 			pos.y -= aimdir.y*k_back+sway.y;
 			pos.z -= aimdir.z*k_back+sway.z;

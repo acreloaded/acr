@@ -266,7 +266,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
 	return true;
 }
 
-VARP(maxroll, 0, 0, 10); // note: when changing max value, fix network transmission
+VARP(maxroll, 0, 0, 10);
 
 void resizephysent(physent *pl, int moveres, int curtime, float min, float max)
 {
@@ -593,17 +593,24 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 	}
 
 	// store previous locations of all players/bots
-	if(pl->type==ENT_PLAYER || pl->type==ENT_BOT)
-	{
+	if(pl->type==ENT_PLAYER || pl->type==ENT_BOT){
 		((playerent *)pl)->history.update(pl->o, lastmillis);
 	}
 
-	// apply volume-resize when crouching
-	if(pl->type==ENT_PLAYER)
-	{
+	if(pl->type==ENT_PLAYER){
+		// apply volume-resize when crouching
+		playerent *ppl = (playerent *)pl;
 		if(pl==player1 && !intermission && !player1->onladder) updatecrouch(player1, player1->trycrouch);
 		const float croucheyeheight = pl->maxeyeheight*3.0f/4.0f;
 		resizephysent(pl, moveres, curtime, croucheyeheight, pl->maxeyeheight);
+		if(!intermission && pl->state == CS_ALIVE && (ppl->scoping ? ppl->ads < 1000 : ppl->ads > 0)){
+			ppl->ads += curtime * (ppl->scoping ? 1000 : -1000) / ppl->weaponsel->scopetime;
+			ppl->ads = clamp(ppl->ads, 0, 1000);
+			if(!ppl->ads && ppl->wantsreload && ppl == gamefocus){
+				ppl->wantsreload = false;
+				tryreload(ppl);
+			}
+		}
 	}
 }
 

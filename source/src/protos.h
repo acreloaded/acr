@@ -247,7 +247,7 @@ extern void blendbox(int x1, int y1, int x2, int y2, bool border, int tex = -1, 
 extern void quad(GLuint tex, float x, float y, float s, float tx, float ty, float tsx, float tsy = 0);
 extern void quad(GLuint tex, vec &c1, vec &c2, float tx, float ty, float tsx, float tsy);
 extern void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr, int subdiv = 32);
-extern void setperspective(float fovy, float aspect, float nearplane, float farplane);
+extern void setperspective(float fovy, float nearplane);
 extern void sethudgunperspective(bool on);
 extern void gl_drawframe(int w, int h, float changelod, float curfps);
 extern void clearminimap();

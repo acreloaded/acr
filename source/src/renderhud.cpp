@@ -598,15 +598,13 @@ void drawradar(playerent *p, int w, int h)
 	glEnable(GL_BLEND);
 	glPopMatrix();
 
-	if(!showmap)
-	{
+	if(!showmap){
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glColor3f(1, 1, 1);
 		static Texture *bordertex = NULL;
 		if(!bordertex) bordertex = textureload("packages/misc/compass-base.png", 3);
 		quad(bordertex->id, VIRTW-10-VIRTH/28-overlaysize, 10+VIRTH/52, overlaysize, 0, 0, 1, 1);
-		if(!hidecompass)
-		{
+		if(!hidecompass){
 			static Texture *compasstex = NULL;
 			if(!compasstex) compasstex = textureload("packages/misc/compass-rose.png", 3);
 			glPushMatrix();
@@ -618,8 +616,7 @@ void drawradar(playerent *p, int w, int h)
 	}
 }
 
-void drawteamicons(int w, int h)
-{
+void drawteamicons(int w, int h){
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glColor3f(1, 1, 1);
 	static Texture *icons = NULL;
@@ -634,8 +631,7 @@ VARP(damagescreenfactor, 1, 7, 100);
 VARP(damagescreenalpha, 1, 45, 100);
 VARP(damagescreenfade, 0, 125, 1000);
 
-void damageblend(int n)
-{
+void damageblend(int n){
 	if(!damagescreen) return;
 	if(lastmillis > damageblendmillis) damageblendmillis = lastmillis;
 	damageblendmillis += min(n*damagescreenfactor, 1500);
@@ -645,9 +641,8 @@ static int votersort(playerent **a, playerent **b){
 	return (*a)->voternum - (*b)->voternum;
 }
 
-void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
-{
-	playerent *p = camera1->type<ENT_CAMERA ? (playerent *)camera1 : player1;
+void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater){
+	playerent * const p = gamefocus;
 	bool spectating = player1->isspectating();
 
 	glDisable(GL_DEPTH_TEST);

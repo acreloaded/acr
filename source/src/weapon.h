@@ -8,6 +8,7 @@ struct bounceent;
 struct weapon
 {
 	const static int weaponchangetime;
+	const static int scopetime;
 	const static float weaponbeloweye;
 	static void equipplayer(playerent *pl);
 

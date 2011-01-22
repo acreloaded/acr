@@ -27,6 +27,7 @@ extern int sfactor, ssize;			  // ssize = 2^sfactor
 extern int cubicsize, mipsize;		  // cubicsize = ssize^2
 extern physent *camera1;				// camera representing perspective of player, usually player1
 extern playerent *player1;			  // special client ent that receives input and acts as camera
+#define gamefocus (camera1->type<ENT_CAMERA ? (playerent *)camera1 : player1)
 extern vector<playerent *> players;	 // all the other clients (in multiplayer)
 extern vector<bounceent *> bounceents;
 extern bool editmode;

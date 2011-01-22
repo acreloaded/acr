@@ -26,13 +26,11 @@ PFNGLACTIVESTENCILFACEEXTPROC glActiveStencilFace_ = NULL;
 PFNGLSTENCILOPSEPARATEATIPROC   glStencilOpSeparate_ = NULL;
 PFNGLSTENCILFUNCSEPARATEATIPROC glStencilFuncSeparate_ = NULL;
 
-void *getprocaddress(const char *name)
-{
+void *getprocaddress(const char *name){
 	return SDL_GL_GetProcAddress(name);
 }
 
-int glext(char *ext)
-{
+int glext(char *ext){
 	const char *exts = (const char *)glGetString(GL_EXTENSIONS);
 	return strstr(exts, ext) != NULL;
 }
@@ -40,8 +38,7 @@ COMMAND(glext, ARG_1EST);
 
 VAR(ati_mda_bug, 0, 0, 1);
 
-void gl_checkextensions()
-{
+void gl_checkextensions(){
 	const char *vendor = (const char *)glGetString(GL_VENDOR);
 	const char *exts = (const char *)glGetString(GL_EXTENSIONS);
 	const char *renderer = (const char *)glGetString(GL_RENDERER);
@@ -52,8 +49,7 @@ void gl_checkextensions()
 	if(strstr(exts, "GL_EXT_texture_env_combine") || strstr(exts, "GL_ARB_texture_env_combine")) hasTE = true;
 	else conoutf("WARNING: cannot use overbright lighting, using old lighting model!");
 
-	if(strstr(exts, "GL_ARB_multitexture"))
-	{
+	if(strstr(exts, "GL_ARB_multitexture")){
 		glActiveTexture_	   = (PFNGLACTIVETEXTUREARBPROC)	  getprocaddress("glActiveTextureARB");
 		glClientActiveTexture_ = (PFNGLCLIENTACTIVETEXTUREARBPROC)getprocaddress("glClientActiveTextureARB");
 		glMultiTexCoord2f_	 = (PFNGLMULTITEXCOORD2FARBPROC)	getprocaddress("glMultiTexCoord2fARB");
@@ -61,8 +57,7 @@ void gl_checkextensions()
 		hasMT = true;
 	}
 
-	if(strstr(exts, "GL_EXT_multi_draw_arrays"))
-	{
+	if(strstr(exts, "GL_EXT_multi_draw_arrays")){
 		glMultiDrawArrays_   = (PFNGLMULTIDRAWARRAYSEXTPROC)  getprocaddress("glMultiDrawArraysEXT");
 		glMultiDrawElements_ = (PFNGLMULTIDRAWELEMENTSEXTPROC)getprocaddress("glMultiDrawElementsEXT");
 		hasMDA = true;
@@ -70,20 +65,17 @@ void gl_checkextensions()
 		if(strstr(vendor, "ATI")) ati_mda_bug = 1;
 	}
 
-	if(strstr(exts, "GL_EXT_draw_range_elements"))
-	{
+	if(strstr(exts, "GL_EXT_draw_range_elements")){
 		glDrawRangeElements_ = (PFNGLDRAWRANGEELEMENTSEXTPROC)getprocaddress("glDrawRangeElementsEXT");
 		hasDRE = true;
 	}
 
-	if(strstr(exts, "GL_EXT_stencil_two_side"))
-	{
+	if(strstr(exts, "GL_EXT_stencil_two_side")){
 		glActiveStencilFace_ = (PFNGLACTIVESTENCILFACEEXTPROC)getprocaddress("glActiveStencilFaceEXT");
 		hasST2 = true;
 	}
 
-	if(strstr(exts, "GL_ATI_separate_stencil"))
-	{
+	if(strstr(exts, "GL_ATI_separate_stencil")){
 		glStencilOpSeparate_   = (PFNGLSTENCILOPSEPARATEATIPROC)  getprocaddress("glStencilOpSeparateATI");
 		glStencilFuncSeparate_ = (PFNGLSTENCILFUNCSEPARATEATIPROC)getprocaddress("glStencilFuncSeparateATI");
 		hasSTS = true;
@@ -91,16 +83,14 @@ void gl_checkextensions()
 
 	if(strstr(exts, "GL_EXT_stencil_wrap")) hasSTW = true;
 
-	if(!strstr(exts, "GL_ARB_fragment_program"))
-	{
+	if(!strstr(exts, "GL_ARB_fragment_program")){
 		// not a required extension, but ensures the card has enough power to do reflections
 		extern int waterreflect, waterrefract;
 		waterreflect = waterrefract = 0;
 	}
 
 #ifdef WIN32
-	if(strstr(vendor, "S3 Graphics"))
-	{
+	if(strstr(vendor, "S3 Graphics")){
 		// official UniChrome drivers can't handle glDrawElements inside a display list without bugs
 		extern int mdldlist;
 		mdldlist = 0;
@@ -108,8 +98,7 @@ void gl_checkextensions()
 #endif
 }
 
-void gl_init(int w, int h, int bpp, int depth, int fsaa)
-{
+void gl_init(int w, int h, int bpp, int depth, int fsaa){
 	//#define fogvalues 0.5f, 0.6f, 0.7f, 1.0f
 
 	glViewport(0, 0, w, h);
@@ -142,8 +131,7 @@ FVAR(polygonoffsetfactor, -1e4f, -3.0f, 1e4f);
 FVAR(polygonoffsetunits, -1e4f, -3.0f, 1e4f);
 FVAR(depthoffset, -1e4f, 0.005f, 1e4f);
 
-void enablepolygonoffset(GLenum type)
-{
+void enablepolygonoffset(GLenum type){
 	if(!depthoffset)
 	{
 		glPolygonOffset(polygonoffsetfactor, polygonoffsetunits);
@@ -159,8 +147,7 @@ void enablepolygonoffset(GLenum type)
 	glMatrixMode(GL_MODELVIEW);
 }
 
-void disablepolygonoffset(GLenum type, bool restore)
-{
+void disablepolygonoffset(GLenum type, bool restore){
 	if(!depthoffset)
 	{
 		glDisable(type);
@@ -175,8 +162,7 @@ void disablepolygonoffset(GLenum type, bool restore)
 	}
 }
 
-void line(int x1, int y1, float z1, int x2, int y2, float z2)
-{
+void line(int x1, int y1, float z1, int x2, int y2, float z2){
 	glBegin(GL_QUADS);
 	glVertex3f((float)x1, (float)y1, z1);
 	glVertex3f((float)x1, y1+0.01f, z1);
@@ -186,8 +172,7 @@ void line(int x1, int y1, float z1, int x2, int y2, float z2)
 	xtraverts += 4;
 }
 
-void line(int x1, int y1, int x2, int y2, color *c)
-{
+void line(int x1, int y1, int x2, int y2, color *c){
 	glDisable(GL_BLEND);
 	if(c) glColor4f(c->r, c->g, c->b, c->alpha);
 	glBegin(GL_LINES);
@@ -198,14 +183,12 @@ void line(int x1, int y1, int x2, int y2, color *c)
 }
 
 
-void linestyle(float width, int r, int g, int b)
-{
+void linestyle(float width, int r, int g, int b){
 	glLineWidth(width);
 	glColor3ub(r,g,b);
 }
 
-void box(block &b, float z1, float z2, float z3, float z4)
-{
+void box(block &b, float z1, float z2, float z3, float z4){
 	glBegin(GL_QUADS);
 	glVertex3f((float)b.x,	  (float)b.y,	  z1);
 	glVertex3f((float)b.x+b.xs, (float)b.y,	  z2);
@@ -215,8 +198,7 @@ void box(block &b, float z1, float z2, float z3, float z4)
 	xtraverts += 4;
 }
 
-void quad(GLuint tex, float x, float y, float s, float tx, float ty, float tsx, float tsy)
-{
+void quad(GLuint tex, float x, float y, float s, float tx, float ty, float tsx, float tsy){
 	if(!tsy) tsy = tsx;
 	glBindTexture(GL_TEXTURE_2D, tex);
 	glBegin(GL_QUADS);
@@ -228,8 +210,7 @@ void quad(GLuint tex, float x, float y, float s, float tx, float ty, float tsx, 
 	xtraverts += 4;
 }
 
-void quad(GLuint tex, const vec &c1, const vec &c2, float tx, float ty, float tsx, float tsy)
-{
+void quad(GLuint tex, const vec &c1, const vec &c2, float tx, float ty, float tsx, float tsy){
 	if(!tsy) tsy = tsx;
 	glBindTexture(GL_TEXTURE_2D, tex);
 	glBegin(GL_QUADS);
@@ -241,8 +222,7 @@ void quad(GLuint tex, const vec &c1, const vec &c2, float tx, float ty, float ts
 	xtraverts += 4;
 }
 
-void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr, int subdiv)
-{
+void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr, int subdiv){
 	glBindTexture(GL_TEXTURE_2D, tex);
 	glBegin(GL_TRIANGLE_FAN);
 	glTexCoord2f(tx, ty);
@@ -257,8 +237,7 @@ void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr,
 	xtraverts += subdiv+2;
 }
 
-void dot(int x, int y, float z)
-{
+void dot(int x, int y, float z){
 	const float DOF = 0.1f;
 	glBegin(GL_QUADS);
 	glVertex3f(x-DOF, y-DOF, z);
@@ -269,19 +248,15 @@ void dot(int x, int y, float z)
 	xtraverts += 4;
 }
 
-void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
-{
+void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c){
 	glDepthMask(GL_FALSE);
-	if(tex>=0)
-	{
+	if(tex>=0){
 		glBindTexture(GL_TEXTURE_2D, tex);
-		if(c) 
-		{
+		if(c){
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glColor4f(c->r, c->g, c->b, c->alpha);
 		}
-		else
-		{
+		else{
 			glDisable(GL_BLEND);
 			glColor3f(1, 1, 1);
 		}
@@ -292,22 +267,18 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
 		int rows = (int)((y2-y1)/texh+1);
 		xtraverts += cols*rows*4;
 
-		loopj(rows)
-		{
+		loopj(rows){
 			float ytexcut = 0.0f;
 			float yboxcut = 0.0f;
-			if((j+1)*texh>y2-y1) // cut last row to match the box height
-			{
+			if((j+1)*texh>y2-y1){ // cut last row to match the box height
 				yboxcut = (float)(((j+1)*texh)-(y2-y1));
 				ytexcut = (float)(((j+1)*texh)-(y2-y1))/texh;
 			}
 
-			loopi(cols)
-			{
+			loopi(cols){
 				float xtexcut = 0.0f;
 				float xboxcut = 0.0f;
-				if((i+1)*texw>x2-x1)
-				{
+				if((i+1)*texw>x2-x1){
 					xboxcut = (float)(((i+1)*texw)-(x2-x1));
 					xtexcut = (float)(((i+1)*texw)-(x2-x1))/texw;
 				}
@@ -323,17 +294,14 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
 
 		if(!c) glEnable(GL_BLEND);
 	}
-	else
-	{
+	else{
 		glDisable(GL_TEXTURE_2D);
 
-		if(c)
-		{
+		if(c){
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 			glColor4f(c->r, c->g, c->b, c->alpha);
 		}
-		else
-		{
+		else{
 			glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
 			glColor3f(0.5f, 0.5f, 0.5f);
 		}
@@ -347,8 +315,7 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
 		xtraverts += 4;
 	}
 
-	if(border)
-	{
+	if(border){
 		glDisable(GL_BLEND);
 		if(tex>=0) glDisable(GL_TEXTURE_2D);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -370,8 +337,7 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
 VARP(aboveheadiconsize, 0, 50, 1000);
 VARP(aboveheadiconfadetime, 1, 2000, 10000);
 
-void renderaboveheadicon(playerent *p)
-{
+void renderaboveheadicon(playerent *p){
 	int t = lastmillis-p->lastvoicecom;
 	if(!aboveheadiconsize || !p->lastvoicecom || t > aboveheadiconfadetime) return;
 	glPushMatrix();
@@ -388,14 +354,12 @@ void renderaboveheadicon(playerent *p)
 	glPopMatrix();
 }
 
-void rendercursor(int x, int y, int w)
-{
+void rendercursor(int x, int y, int w){
 	color c(1, 1, 1, (sinf(lastmillis/200.0f)+1.0f)/2.0f);
 	blendbox(x, y, x+w, y+FONTH, true, -1, &c);
 }
 
-void fixresizedscreen()
-{
+void fixresizedscreen(){
 #ifdef WIN32
 	char broken_res[] = { 0x44, 0x69, 0x66, 0x62, 0x75, 0x21, 0x46, 0x6f, 0x68, 0x6a, 0x6f, 0x66, 0x01 };
 	static int lastcheck = 0;
@@ -430,16 +394,14 @@ VARP(spectfov, 5, 110, 120);
 
 
 // map old fov values to new ones
-void fovcompat(int oldfov)
-{
+void fovcompat(int oldfov){
 	extern float aspect;
 	setfvar("fov", atan(tan(RAD/2.0f*oldfov/aspect)*aspect)*2.0f/RAD, true);
 }
 
 COMMAND(fovcompat, ARG_1INT);
 
-float dynfov()
-{
+float dynfov(){
 	if(player1->weaponsel->type == GUN_SNIPER && ((sniperrifle *)player1->weaponsel)->scoped) return (float)scopefov;
 	else if(player1->isspectating()) return (float)spectfov;
 	else return (float)fov;
@@ -452,17 +414,13 @@ int farplane;
 
 physent *camera1 = NULL;
 
-void resetcamera()
-{
+void resetcamera(){
 	camera1 = player1;
 }
 
-void recomputecamera()
-{
-	if((player1->state==CS_SPECTATE || player1->state==CS_DEAD) && !editmode)
-	{
-		switch(player1->spectatemode)
-		{
+void recomputecamera(){
+	if((player1->state==CS_SPECTATE || player1->state==CS_DEAD) && !editmode){
+		switch(player1->spectatemode){
 			case SM_DEATHCAM:
 			{
 				static physent deathcam;
@@ -494,8 +452,7 @@ void recomputecamera()
 				if(!p) { togglespect(); return; }
 				static physent followcam;
 				static playerent *lastplayer;
-				if(lastplayer != p || &followcam != camera1)
-				{
+				if(lastplayer != p || &followcam != camera1){
 					followcam = *(physent *)p;
 					followcam.type = ENT_CAMERA;
 					followcam.reset();
@@ -524,15 +481,12 @@ void recomputecamera()
 				resetcamera();
 				break;
 		}
-	}
-	else
-	{
+	}else{
 		resetcamera();
 	}
 }
 
-void transplayer()
-{
+void transplayer(){
 	glLoadIdentity();
 
 	glRotatef(camera1->roll, 0, 0, 1);
@@ -548,8 +502,7 @@ void transplayer()
 
 glmatrixf clipmatrix;
 
-void genclipmatrix(float a, float b, float c, float d)
-{
+void genclipmatrix(float a, float b, float c, float d){
 	// transform the clip plane into camera space
 	float clip[4];
 	loopi(4) clip[i] = a*invmvmatrix[i*4 + 0] + b*invmvmatrix[i*4 + 1] + c*invmvmatrix[i*4 + 2] + d*invmvmatrix[i*4 + 3];
@@ -575,28 +528,23 @@ VARP(waterreflect, 0, 1, 1);
 VARP(waterrefract, 0, 0, 1);
 VAR(reflectscissor, 0, 1, 1);
 
-void drawreflection(float hf, int w, int h, float changelod, bool refract)
-{
+void drawreflection(float hf, int w, int h, float changelod, bool refract){
 	reflecting = true;
 	refracting = refract;
 
 	int size = 1<<reflectsize, sizelimit = min(hwtexsize, min(w, h));
 	while(size > sizelimit) size /= 2;
-	if(size!=reflectlastsize)
-	{
+	if(size!=reflectlastsize){
 		if(reflecttex) glDeleteTextures(1, &reflecttex);
 		if(refracttex) glDeleteTextures(1, &refracttex);
 		reflecttex = refracttex = 0;
 	}
-	if(!reflecttex || (waterrefract && !refracttex))
-	{
-		if(!reflecttex)
-		{
+	if(!reflecttex || (waterrefract && !refracttex)){
+		if(!reflecttex){
 			glGenTextures(1, &reflecttex);
 			createtexture(reflecttex, size, size, NULL, 3, false, GL_RGB);
 		}
-		if(!refracttex)
-		{
+		if(!refracttex){
 			glGenTextures(1, &refracttex);
 			createtexture(refracttex, size, size, NULL, 3, false, GL_RGB);
 		}
@@ -606,8 +554,7 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
 	extern float wsx1, wsx2, wsy1, wsy2;
 	int sx = 0, sy = 0, sw = size, sh = size;
 	bool scissor = reflectscissor && (wsx1 > -1 || wsy1 > -1 || wsx1 < 1 || wsy1 < 1);
-	if(scissor)
-	{
+	if(scissor){
 		sx = int(floor((wsx1+1)*0.5f*size));
 		sy = int(floor((wsy1+1)*0.5f*size));
 		sw = int(ceil((wsx2+1)*0.5f*size)) - sx;
@@ -630,8 +577,7 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
 	glEnable(GL_TEXTURE_2D);
 
 	glPushMatrix();
-	if(!refract)
-	{
+	if(!refract){
 		glTranslatef(0, 0, 2*hf);
 		glScalef(1, 1, -1);
 	}
@@ -673,8 +619,7 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
 	if(refract) glLoadIdentity();
 	glMatrixMode(GL_PROJECTION);
 	extern int mtwater;
-	if(refract && (!mtwater || maxtmus<2))
-	{
+	if(refract && (!mtwater || maxtmus<2)){
 		glLoadIdentity();
 		glOrtho(0, 1, 0, 1, -1, 1);
 		glDisable(GL_TEXTURE_2D);
@@ -713,27 +658,23 @@ bool minimap = false, minimapdirty = true;
 int minimaplastsize = 0;
 GLuint minimaptex = 0;
 
-void clearminimap()
-{
+void clearminimap(){
 	minimapdirty = true;
 }
 
 COMMAND(clearminimap, ARG_NONE);
 VARFP(minimapres, 7, 9, 10, clearminimap());
 
-void drawminimap(int w, int h)
-{
+void drawminimap(int w, int h){
 	if(!minimapdirty) return;
 
 	int size = 1<<minimapres, sizelimit = min(hwtexsize, min(w, h));
 	while(size > sizelimit) size /= 2;
-	if(size!=minimaplastsize && minimaptex)
-	{
+	if(size!=minimaplastsize && minimaptex){
 		glDeleteTextures(1, &minimaptex);
 		minimaptex = 0;
 	}
-	if(!minimaptex)
-	{
+	if(!minimaptex){
 		glGenTextures(1, &minimaptex);
 		createtexture(minimaptex, size, size, NULL, 3, false, GL_RGB);
 		minimaplastsize = size;
@@ -802,8 +743,7 @@ void drawminimap(int w, int h)
 	glClearDepth(1.0);
 }
 
-void cleanupgl()
-{
+void cleanupgl(){
 	if(reflecttex) glDeleteTextures(1, &reflecttex);
 	if(refracttex) glDeleteTextures(1, &refracttex);
 	if(minimaptex) glDeleteTextures(1, &minimaptex);
@@ -817,26 +757,23 @@ int xtraverts;
 
 VARP(hudgun, 0, 1, 1);
 
-void setperspective(float fovy, float aspect, float nearplane, float farplane)
-{
+void setperspective(float fovy, float nearplane){
 	GLdouble ydist = nearplane * tan(fovy/2*RAD), xdist = ydist * aspect;
 	glFrustum(-xdist, xdist, -ydist, ydist, nearplane, farplane);
 }
 
-void sethudgunperspective(bool on)
-{
+void sethudgunperspective(bool on){
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	if(on){
 		glScalef(1, 1, 0.5f); // fix hudguns colliding with map geometry
-		setperspective(75.0f, aspect, 0.3f, farplane); // y fov fixed at 75 degrees
+		setperspective(75.0f, 0.01f); // y fov fixed at 75 degrees
 	}
-	else setperspective(fovy, aspect, 0.15f, farplane);
+	else setperspective(fovy, 0.15f);
 	glMatrixMode(GL_MODELVIEW);
 }
 
-void drawhudgun(int w, int h, float aspect, int farplane)
-{
+void drawhudgun(int w, int h, float aspect, int farplane){
 	sethudgunperspective(true);
 
 	if(hudgun && !player1->isspectating() && camera1->type==ENT_PLAYER)
@@ -849,8 +786,7 @@ void drawhudgun(int w, int h, float aspect, int farplane)
 	sethudgunperspective(false);
 }
 
-bool outsidemap(physent *pl)
-{
+bool outsidemap(physent *pl){
 	if(pl->o.x < 0 || pl->o.x >= ssize || pl->o.y <0 || pl->o.y > ssize) return true;
 	sqr *s = S((int)pl->o.x, (int)pl->o.y);
 	return SOLID(s)
@@ -862,8 +798,7 @@ float cursordepth = 0.9f;
 glmatrixf mvmatrix, projmatrix, mvpmatrix, invmvmatrix, invmvpmatrix;
 vec worldpos, camdir, camup, camright;
 
-void readmatrices()
-{
+void readmatrices(){
 	glGetFloatv(GL_MODELVIEW_MATRIX, mvmatrix.v);
 	glGetFloatv(GL_PROJECTION_MATRIX, projmatrix.v);
 	camright = vec(mvmatrix[0], mvmatrix[4], mvmatrix[8]);
@@ -877,8 +812,7 @@ void readmatrices()
 
 // stupid function to cater for stupid ATI linux drivers that return incorrect depth values
 
-float depthcorrect(float d)
-{
+inline float depthcorrect(float d){
 	return (d<=1/256.0f) ? d*256 : d;
 }
 
@@ -888,8 +822,7 @@ float depthcorrect(float d)
 // also hits map entities which is unwanted.
 // could be replaced by a more acurate version of monster.cpp los() if needed
 
-void readdepth(int w, int h, vec &pos)
-{
+void readdepth(int w, int h, vec &pos){
 	glReadPixels(w/2, h/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &cursordepth);
 	vec screen(0, 0, depthcorrect(cursordepth)*2 - 1);
 	vec4 world;
@@ -897,8 +830,7 @@ void readdepth(int w, int h, vec &pos)
 	pos = vec(world.x, world.y, world.z).div(world.w);
 }
 
-void gl_drawframe(int w, int h, float changelod, float curfps)
-{
+void gl_drawframe(int w, int h, float changelod, float curfps){
 	dodynlights();
 	drawminimap(w, h);
 
@@ -930,7 +862,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
 	}
 
 	farplane = fog*5/2;
-	setperspective(fovy, aspect, 0.15f, farplane);
+	setperspective(fovy, 0.15f);
 	glMatrixMode(GL_MODELVIEW);
 
 	transplayer();
