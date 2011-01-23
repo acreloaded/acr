@@ -569,9 +569,12 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 		pl->pitch += addpitch;
 		pl->pitchvel *= fric-3;
 		pl->pitchvel /= fric;
-		if(pl->pitchvel < 0.15f){  // new slide back!
-			pl->pitch -= pl->pitchreturn * 0.005f;
-			pl->pitchreturn *= 0.995f;
+		if(pl->pitchvel < .15f){  // new slide back!
+			if(pl->pitchreturn > .001f){
+				float returnamount = sqrtf(pl->pitchreturn) * 0.012f;
+				pl->pitch -= returnamount;
+				pl->pitchreturn -= returnamount;
+			} else pl->pitchreturn = 0;
 		}
 		if(pl->pitchvel) fixcamerarange(pl); // fix pitch if necessary
 	}
