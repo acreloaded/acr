@@ -97,10 +97,16 @@ struct weaponmove
 			if(ads_gun(player1->weaponsel->type)){
 				if((anim&ANIM_INDEX) == ANIM_GUN_IDLE) basetime = lastmillis-player1->ads;
 				else if((anim&ANIM_INDEX) == ANIM_GUN_SHOOT && player1->ads){ anim &= ~ANIM_GUN_SHOOT; anim |= ANIM_GUN_SHOOT2; }
+				k_rot *= player1->ads ? 0.5f : 1;
+				k_back *= player1->ads ? 0 : 1;
+				sway.mul(player1->ads ? 0.133333f : 1);
+				swaydir.mul(player1->ads ? 0.23076923076923076923076923076923f : 1.f);
+				/*
 				k_rot *= 1 - player1->ads / 2000.f;
 				k_back *= 1 - player1->ads / 1000.f;
 				sway.mul(1 - player1->ads / 1200.f);
 				swaydir.mul(1 - player1->ads / 1300.f);
+				*/
 			} else if(player1->weaponsel->type == GUN_AKIMBO && (anim&ANIM_INDEX) == ANIM_GUN_IDLE) basetime = lastmillis;
 
 			pos.add(swaydir);
