@@ -140,6 +140,12 @@
     <ClInclude Include="..\src\auth.h">
       <Filter>headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\vertmodel_t.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tristrip_t.h">
+      <Filter>headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\ChangeLog.txt">
