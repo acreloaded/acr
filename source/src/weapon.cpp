@@ -630,7 +630,7 @@ void weapon::renderhudmodel(int lastaction, int index){
 	weaponmove wm;
 	if(!intermission) wm.calcmove(unitv, lastaction);
 	s_sprintfd(path)("weapons/%s", info.modelname);
-	bool emit = (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT && (lastmillis - lastaction) < flashtime();
+	bool emit = ((wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT || (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT2) && (lastmillis - lastaction) < flashtime();
 	rendermodel(path, wm.anim|ANIM_DYNALLOC|(index ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, -1, wm.pos, player1->yaw+90, player1->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, NULL, 1.28f);
 }
 
@@ -892,7 +892,7 @@ VARP(burstfull, 0, 1, 1); // full burst before stopping
 gun::gun(playerent *owner, int type) : weapon(owner, type) {}
 
 bool gun::attack(vec &targ){
-	int attackmillis = lastmillis-owner->lastaction;
+	const int attackmillis = lastmillis-owner->lastaction;
 	// if(timebalance < gunwait) attackmillis += timebalance;
 	if(attackmillis<gunwait) return false;
 	timebalance = gunwait ? attackmillis - gunwait : 0;
@@ -1151,13 +1151,11 @@ COMMAND(setscope, ARG_1INT);
 
 
 void shoot(playerent *p, vec &targ){
-	if(p->state==CS_DEAD || p->weaponchanging) return;
+	if(p->state==CS_DEAD || p->weaponchanging || (p->ads && p->ads != 1000)) return;
 	weapon *weap = p->weaponsel;
-	if(weap)
-	{
+	if(weap){
 		weap->attack(targ);
-		loopi(NUMGUNS)
-		{
+		loopi(NUMGUNS){
 			weapon *bweap = player1->weapons[i];
 			if(bweap != weap && bweap->busy()) bweap->attack(targ);
 		}
