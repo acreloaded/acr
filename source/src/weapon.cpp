@@ -893,9 +893,7 @@ gun::gun(playerent *owner, int type) : weapon(owner, type) {}
 
 bool gun::attack(vec &targ){
 	const int attackmillis = lastmillis-owner->lastaction;
-	// if(timebalance < gunwait) attackmillis += timebalance;
 	if(attackmillis<gunwait) return false;
-	timebalance = gunwait ? attackmillis - gunwait : 0;
 	gunwait = reloading = 0;
 
 	if(!owner->attacking)

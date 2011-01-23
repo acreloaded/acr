@@ -21,14 +21,14 @@ struct weapon
 	int &ammo, &mag, &gunwait, shots;
 	virtual int dynspread();
 	virtual float dynrecoil();
-	int reloading, lastaction, timebalance;
+	int reloading, lastaction;
 
 	virtual bool attack(vec &targ) = 0;
 	virtual void attackfx(const vec &from, const vec &to, int millis) = 0;
 	virtual void attackphysics(vec &from, vec &to);
 	virtual void attacksound();
 	virtual bool reload();
-	virtual void reset() { timebalance = 0; }
+	virtual void reset() { }
 	virtual bool busy() { return false; }
 
 	virtual int modelanim() = 0;
