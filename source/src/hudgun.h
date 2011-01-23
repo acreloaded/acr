@@ -96,7 +96,7 @@ struct weaponmove
 
 			if(ads_gun(player1->weaponsel->type)){
 				if((anim&ANIM_INDEX) == ANIM_GUN_IDLE) basetime = lastmillis-player1->ads;
-				else if((anim&ANIM_INDEX) == ANIM_GUN_SHOOT && player1->ads == 1000){ anim &= ~ANIM_GUN_SHOOT; anim |= ANIM_GUN_SHOOT2; }
+				else if((anim&ANIM_INDEX) == ANIM_GUN_SHOOT && player1->ads){ anim &= ~ANIM_GUN_SHOOT; anim |= ANIM_GUN_SHOOT2; }
 				k_rot *= 1 - player1->ads / 2000.f;
 				k_back *= 1 - player1->ads / 1000.f;
 				sway.mul(1 - player1->ads / 1200.f);
