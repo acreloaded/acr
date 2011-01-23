@@ -31,8 +31,7 @@ int lastx, lasty, lasth;
 int lasttype = 0, lasttex = 0;
 sqr rtex;
 
-int getediting(){ return editmode ? 1 : 0; }
-COMMANDN(editing, getediting, ARG_IVAL);
+VARF(editing, 0, 0, 1, editing = editmode ? 1 : 0);
 
 void toggleedit(bool force)
 {
@@ -47,6 +46,7 @@ void toggleedit(bool force)
 	}
 	keyrepeat(editmode);
 	selset = false;
+	editing = editmode ? 1 : 0;
 	player1->state = editmode ? CS_EDITING : CS_ALIVE;
 	if(!force) addmsg(N_EDITMODE, "ri", editmode ? 1 : 0);
 }
