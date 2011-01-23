@@ -645,8 +645,11 @@ void weapon::onselecting(){
 
 void weapon::renderhudmodel() { renderhudmodel(owner->lastaction); }
 void weapon::renderaimhelp(int teamtype) { drawcrosshair(owner, CROSSHAIR_DEFAULT, teamtype); }
-int weapon::dynspread() { return info.spread > 1 ? (int)(info.spread * (owner->vel.magnitude() / 3.f + owner->pitchvel / 5.f + 0.4f) * 1.4f * owner->eyeheight / owner->maxeyeheight) : 1; }
-float weapon::dynrecoil() { return info.kick; }
+int weapon::dynspread() {
+	if(info.spread <= 1) return 1;
+	return (int)(info.spread * (owner->vel.magnitude() / 3.f + owner->pitchvel / 5.f + 0.4f) * 1.4f * owner->eyeheight / owner->maxeyeheight * (1 - owner->ads / 1000.f));
+}
+float weapon::dynrecoil() { return info.kick * (1 - owner->ads / 2000.f); }
 bool weapon::selectable() { return this != owner->weaponsel && owner->state == CS_ALIVE && !owner->weaponchanging; }
 bool weapon::deselectable() { return !reloading; }
 

@@ -175,6 +175,7 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 		if(p->health<=25) col = color(0.5f, 0.125f, 0.f); // red-orange
 	}
 	if(n == CROSSHAIR_DEFAULT) col.alpha = 1.f + p->weaponsel->dynspread() / -1200.f;
+	if(n != CROSSHAIR_SCOPE && p->ads) col.alpha *= 1 - sqrtf(p->ads) / sqrtf(600);
 	glColor4f(col.r, col.g, col.b, col.alpha);
 	float usz = (float)crosshairsize, chsize = size>0 ? size : usz;
 	if(n == CROSSHAIR_DEFAULT){
