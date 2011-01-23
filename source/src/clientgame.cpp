@@ -512,7 +512,7 @@ void dokill(playerent *pl, playerent *act, int weapon, bool gib, int finishingda
 
 	if(pl == act)
 		s_sprintf(death)("\f2%s %s%s", pname, weapon == GUN_GRENADE ? pl==gamefocus? "blew yourself up" : "blew himself up" :
-			weapon == NUMGUNS ? "committed too much friendly fire" : "suicided", pl == gamefocus ? "\f3!" : "");
+			weapon == NUMGUNS ? "committed too much friendly fire" : "suicided", pl == gamefocus ? "\f3!\f2" : "");
 	else{
 		s_sprintf(death)("\f2%s %s %s%s", aname, killname(weapon, gib, finishingdamage > guns[weapon].damage), isteam(pl, act) ? "teammate " : "", pname);
 		if(act->killstreak++) s_sprintf(death)("%s (%d killstreak)", death, act->killstreak);
