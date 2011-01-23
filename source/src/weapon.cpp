@@ -947,7 +947,7 @@ void gun::attackfx(const vec &from, const vec &to, int millis){
 }
 
 int gun::modelanim() { return modelattacking() ? ANIM_GUN_SHOOT|ANIM_LOOP : ANIM_GUN_IDLE; }
-void gun::checkautoreload() { if(autoreload && owner==player1 && !mag) tryreload(owner); }
+void gun::checkautoreload() { if(autoreload && owner==player1 && !mag && ammo) tryreload(owner); }
 
 
 // shotgun
