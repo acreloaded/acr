@@ -1,6 +1,7 @@
 
 enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_SLUG, GUN_ASSAULT, GUN_GRENADE, GUN_AKIMBO, NUMGUNS };
 #define reloadable_gun(g) (g != GUN_KNIFE && g != GUN_GRENADE)
+#define ads_gun(g) (g != GUN_GRENADE && g != GUN_AKIMBO)
 
 struct playerent;
 struct bounceent;

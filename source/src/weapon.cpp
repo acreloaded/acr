@@ -1140,7 +1140,7 @@ void knife::renderstats() { }
 
 
 void setscope(bool enable){
-	player1->scoping = enable;
+	if(ads_gun(player1->weaponsel->type)) player1->scoping = enable;
 	/*
 	if(player1->weaponsel->type != GUN_SNIPER) return;
 	sniperrifle *sr = (sniperrifle *)player1->weaponsel;

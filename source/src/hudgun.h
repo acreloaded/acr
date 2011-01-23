@@ -37,7 +37,7 @@ struct weaponmove
 
 		anim = ANIM_GUN_IDLE;
 		if(player1->weaponchanging){
-			basetime = player1->weaponchanging;
+			basetime = ads_gun(player1->weaponsel->type) ? lastmillis : player1->weaponchanging;
 			float progress = clamp((lastmillis - player1->weaponchanging)/(float)weapon::weaponchangetime, 0.0f, 1.0f);
 			k_rot = -90*sinf(progress*M_PI);
 		}
@@ -94,14 +94,14 @@ struct weaponmove
 				sway.mul(player1->eyeheight / player1->maxeyeheight);
 			}
 
-			if(player1->weaponsel->type != GUN_AKIMBO){ // no akimbo ADS
+			if(ads_gun(player1->weaponsel->type)){
 				if((anim&ANIM_INDEX) == ANIM_GUN_IDLE) basetime = lastmillis-player1->ads;
 				else if((anim&ANIM_INDEX) == ANIM_GUN_SHOOT && player1->ads == 1000){ anim &= ~ANIM_GUN_SHOOT; anim |= ANIM_GUN_SHOOT2; }
 				k_rot *= 1 - player1->ads / 2000.f;
 				k_back *= 1 - player1->ads / 1000.f;
 				sway.mul(1 - player1->ads / 1200.f);
 				swaydir.mul(1 - player1->ads / 1300.f);
-			} else basetime = lastmillis;
+			} else if(player1->weaponsel->type == GUN_AKIMBO && (anim&ANIM_INDEX) == ANIM_GUN_IDLE) basetime = lastmillis;
 
 			pos.add(swaydir);
 			pos.x -= aimdir.x*k_back+sway.x;
