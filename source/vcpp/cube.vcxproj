@@ -493,6 +493,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Standalone|Win32'">true</ExcludedFromBuild>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Standalone|Win32'">Use</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\src\SDL_win32_main.c" />
     <ClCompile Include="..\src\sha1.cpp" />
     <ClCompile Include="..\src\shadow.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Standalone Debug|Win32'">true</ExcludedFromBuild>
@@ -727,11 +728,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Standalone|Win32'">true</ExcludedFromBuild>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Standalone|Win32'">
       </PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="SDL_win32_main.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </PrecompiledHeader>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Standalone|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\src\sound.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Standalone Debug|Win32'">true</ExcludedFromBuild>

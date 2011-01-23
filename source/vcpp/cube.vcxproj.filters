@@ -363,9 +363,6 @@
     <ClCompile Include="..\src\pch.cpp">
       <Filter>support</Filter>
     </ClCompile>
-    <ClCompile Include="SDL_win32_main.c">
-      <Filter>support</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\sound.cpp">
       <Filter>support</Filter>
     </ClCompile>
@@ -401,6 +398,9 @@
     </ClCompile>
     <ClCompile Include="..\src\sha1.cpp">
       <Filter>cs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\SDL_win32_main.c">
+      <Filter>support</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
