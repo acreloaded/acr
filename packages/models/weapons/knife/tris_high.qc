@@ -3,15 +3,14 @@
 $model "models/players/model/model.md3"
 // reference frame
 //$frames -1 -1
-// frame 1-10
-$frames 1 10
+// frame 1-8
+$frames 1 8
 $flags 0
 $numskins 0
 
 // you can have one or no parent tag
 
 // tags
-// $tag "tag_muzzle" // knives do not have muzzle flashes!
 
 // meshes (surfaces)
 $mesh "weapon"
