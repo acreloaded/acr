@@ -285,7 +285,7 @@ struct playerstate
 	int health, armour, killstreak;
 	int primary, nextprimary;
 	int gunselect;
-	bool akimbo;
+	bool akimbo, scoping;
 	int ammo[NUMGUNS], mag[NUMGUNS], gunwait[NUMGUNS];
 	ivector damagelog;
 
@@ -352,7 +352,7 @@ struct playerstate
 		health = STARTHEALTH;
 		killstreak = armour = 0;
 		gunselect = GUN_PISTOL;
-		akimbo = false;
+		akimbo = scoping = false;
 		loopi(NUMGUNS) ammo[i] = mag[i] = gunwait[i] = 0;
 		ammo[GUN_KNIFE] = mag[GUN_KNIFE] = 1;
 	}
@@ -402,7 +402,7 @@ struct playerent : dynent, playerstate
 	int points, frags, flagscore, deaths;
 	int lastaction, lastmove, lastpain, lastvoicecom;
 	int priv, vote, voternum, lastregen;
-	int ads; bool scoping, wantsreload;
+	int ads; bool wantsreload;
 	bool attacking;
 	string name;
 	int weaponchanging;
@@ -427,7 +427,7 @@ struct playerent : dynent, playerstate
 
 	playerent() : clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), points(0), frags(0), flagscore(0), deaths(0), lastpain(0), lastvoicecom(0), priv(PRIV_NONE),
 				  skin(0), spectatemode(SM_NONE), followplayercn(-1), eardamagemillis(0), respawnoffset(0), radarmillis(0), vote(VOTE_NEUTRAL), voternum(MAXCLIENTS),
-				  prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL), lastheadshot(0), ads(0), scoping(false),
+				  prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL), lastheadshot(0), ads(0),
 				  smoothmillis(-1),
 				  head(-1, -1, -1)
 	{
@@ -515,7 +515,7 @@ struct playerent : dynent, playerstate
 	{
 		if(!w) return;
 		extern int lastmillis;
-		weaponsel->ondeselecting();
+		// weaponsel->ondeselecting();
 		weaponchanging = lastmillis;
 		prevweaponsel = weaponsel;
 		nextweaponsel = w;

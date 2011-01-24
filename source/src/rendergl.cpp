@@ -402,7 +402,7 @@ void fovcompat(int oldfov){
 COMMAND(fovcompat, ARG_1INT);
 
 float dynfov(){
-	if(player1->weaponsel->type == GUN_SNIPER && ((sniperrifle *)player1->weaponsel)->scoped) return (float)scopefov;
+	if(player1->weaponsel->type == GUN_SNIPER && player1->ads > sniperrifle::adsscope) return (float)scopefov;
 	else if(player1->isspectating()) return (float)spectfov;
 	else return (float)fov;
 }

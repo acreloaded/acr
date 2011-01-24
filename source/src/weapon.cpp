@@ -515,8 +515,6 @@ weapon::weapon(struct playerent *owner, int type) : type(type), owner(owner), in
 	ammo(owner->ammo[type]), mag(owner->mag[type]), gunwait(owner->gunwait[type]), reloading(0){
 }
 
-const int weapon::weaponchangetime = 400;
-const int weapon::scopetime = 250;
 const float weapon::weaponbeloweye = 0.2f;
 
 int weapon::flashtime() const { return max((int)info.attackdelay, 120)/4; }
@@ -985,7 +983,7 @@ bool subgun::selectable() { return weapon::selectable() && !m_noprimary && this 
 
 // sniperrifle
 
-sniperrifle::sniperrifle(playerent *owner) : gun(owner, GUN_SNIPER), scoped(false) {}
+sniperrifle::sniperrifle(playerent *owner) : gun(owner, GUN_SNIPER) {}
 
 void sniperrifle::attackfx(const vec &from, const vec &to, int millis){
 	addbullethole(owner, from, to);
@@ -996,43 +994,14 @@ void sniperrifle::attackfx(const vec &from, const vec &to, int millis){
 	attacksound();
 }
 
-bool sniperrifle::reload(){
-	bool r = weapon::reload();
-	if(owner==player1 && r) scoped = false;
-	return r;
-}
-
-#define SCOPESETTLETIME 100
-int sniperrifle::dynspread(){
-	if(scoped){
-		int scopetime = lastmillis - scoped_since;
-		if(scopetime > SCOPESETTLETIME) return 1;
-		else return max((weapon::dynspread() * (SCOPESETTLETIME - scopetime)) / SCOPESETTLETIME, 1);
-	}
-	return weapon::dynspread();
-}
-float sniperrifle::dynrecoil() { return weapon::dynrecoil() / (scoped && lastmillis - scoped_since > SCOPESETTLETIME ? 3 : 1); }
+float sniperrifle::dynrecoil() { return weapon::dynrecoil() * 1 - owner->ads / 1500; } // 1/3 spread when ADS
 bool sniperrifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
-void sniperrifle::onselecting() { weapon::onselecting(); scoped = false; }
-void sniperrifle::ondeselecting() { scoped = false; }
-void sniperrifle::onownerdies() { scoped = false; }
-void sniperrifle::renderhudmodel() { if(!scoped) weapon::renderhudmodel(); }
+void sniperrifle::renderhudmodel() { if(owner->ads < adsscope) weapon::renderhudmodel(); }
 
 void sniperrifle::renderaimhelp(int teamtype){
-	if(scoped){ drawscope(); drawcrosshair(owner, CROSSHAIR_SCOPE, teamtype, NULL, 24.0f); }
+	if(player1->ads > adsscope){ drawscope(); drawcrosshair(owner, CROSSHAIR_SCOPE, teamtype, NULL, 24.0f); }
 	else weapon::renderaimhelp(teamtype);
 }
-
-void sniperrifle::setscope(bool enable){
-	if(scoped == enable) return;
-	if(this == owner->weaponsel && !reloading && owner->state == CS_ALIVE)
-	{
-		if(scoped == false && enable == true) scoped_since = lastmillis;
-		scoped = enable;
-		if(owner == player1) addmsg(N_SCOPE, "ri", enable ? 1 : 0);
-	}
-}
-
 
 // sluggun
 
@@ -1141,11 +1110,7 @@ void knife::renderstats() { }
 
 void setscope(bool enable){
 	if(ads_gun(player1->weaponsel->type)) player1->scoping = enable;
-	/*
-	if(player1->weaponsel->type != GUN_SNIPER) return;
-	sniperrifle *sr = (sniperrifle *)player1->weaponsel;
-	sr->setscope(enable);
-	*/
+	addmsg(N_SCOPE, "ri", enable ? 1 : 0);
 }
 
 COMMAND(setscope, ARG_1INT);

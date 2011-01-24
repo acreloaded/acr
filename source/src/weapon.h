@@ -8,9 +8,9 @@ struct bounceent;
 
 struct weapon
 {
-	const static int weaponchangetime;
-	const static int scopetime;
-	const static float weaponbeloweye;
+	const static int weaponchangetime = 400;
+	const static int scopetime = 250;
+	const static float weaponbeloweye /*= 0.2f*/;
 	static void equipplayer(playerent *pl);
 
 	weapon(struct playerent *owner, int type);
@@ -41,7 +41,7 @@ struct weapon
 	virtual void renderaimhelp(int teamtype);
 
 	virtual void onselecting();
-	virtual void ondeselecting() {}
+	// virtual void ondeselecting() {}
 	virtual void onammopicked() {}
 	virtual void onownerdies() {}
 	virtual void removebounceent(bounceent *b) {}
@@ -104,22 +104,14 @@ struct subgun : gun
 
 struct sniperrifle : gun
 {
-	bool scoped;
-	int scoped_since;
-
+	const static int adsscope = 500;
 	sniperrifle(playerent *owner);
 	void attackfx(const vec &from, const vec &to, int millis);
-	bool reload();
 
-	int dynspread();
 	float dynrecoil();
 	bool selectable();
-	void onselecting();
-	void ondeselecting();
-	void onownerdies();
 	void renderhudmodel();
 	void renderaimhelp(int teamtype);
-	void setscope(bool enable);
 };
 
 struct sluggun : gun

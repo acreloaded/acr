@@ -380,8 +380,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_SCOPE:
 			{
 				bool scope = getint(p) != 0;
-				if(!d) break;
-				((sniperrifle *)d->weapons[GUN_SNIPER])->setscope(scope);
+				if(!d || d->state != CS_ALIVE || !ads_gun(d->weaponsel->type)) break;
+				d->scoping = scope;
 				break;
 			}
 
