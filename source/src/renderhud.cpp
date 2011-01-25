@@ -766,7 +766,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	{
 		extern votedisplayinfo *curvote;
 
-		if(curvote)// && curvote->millis >= totalmillis && !(hidevote == 1 && player1->vote != VOTE_YES && curvote->result == VOTE_NEUTRAL))
+		if(curvote && curvote->millis >= totalmillis && !(hidevote == 1 && player1->vote != VOTE_YES && curvote->result == VOTE_NEUTRAL))
 		{
 			int left = 20*2, top = VIRTH + 22*10;
 			if(curvote->result == VOTE_NEUTRAL)
