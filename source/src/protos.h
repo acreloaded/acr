@@ -79,6 +79,7 @@ extern char *addreleaseaction(const char *s);
 extern void writebinds(FILE *f);
 extern void pasteconsole(char *dst);
 extern void conoutf(const char *s, ...);
+extern inline void chatout(const char *s);
 
 struct keym
 {

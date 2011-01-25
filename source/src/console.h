@@ -16,6 +16,8 @@ template<class LINE> struct consolebuffer
 		return conlines.insert(0, cl);
 	}
 
+	void addline(const char *sf) { consolebuffer<cline>::addline(sf, totalmillis); }
+
 	void setmaxlines(int numlines)
 	{
 		maxlines = numlines;

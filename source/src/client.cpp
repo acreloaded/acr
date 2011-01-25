@@ -195,7 +195,6 @@ void trydisconnect()
 
 VARP(hudchat, 0, 1, 1);
 void saytext(playerent *&d, char *text, int flags, int sound){
-	void (*outf)(const char *s, ...) = hudchat ? hudoutf : conoutf;
 	string nametag; s_strcpy(nametag, colorname(d));
 	if(flags & SAY_TEAM) s_sprintf(nametag)("%s \f5(\f%d%s\f5)", nametag, d->team ? 1 : 3, team_string(d->team));
 	if(sound > S_MAINEND && sound < S_NULL){
@@ -206,14 +205,14 @@ void saytext(playerent *&d, char *text, int flags, int sound){
 	if(flags&SAY_TEAM) textcolor = isteam(d, player1) ? 1 : 3; // friendly blue, enemy red
 	if(flags&SAY_DENY){
 		textcolor = 2; // denied yellow
-		s_strcat(text, "\nDo not SPAM! Your message (in yellow) is not relayed!");
-		outf = hudoutf; // force HUD as well
+		s_strcat(text, "\n\f3Do not SPAM! Your message (in yellow) is not relayed!");
 	}
 	string textout;
 	if(flags & SAY_ACTION) s_sprintf(textout)("\f5* \f4%s \f6(%d)", d->name, d->clientnum);
 	else s_sprintf(textout)("\f5<\f4%s \f6(%d)\f5>", d->name, d->clientnum);
 	if(sound) s_sprintf(textout)("%s \f4[\f6Voice %d\f4]", textout, sound);
-	outf("%s \f%d%s", textout, textcolor, text);
+	s_sprintf(textout)("%s \f%d%s", textout, textcolor, text);
+	chatout(textout);
 }
 
 void toserver(char *text, int voice, bool action){

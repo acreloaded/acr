@@ -766,9 +766,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	{
 		extern votedisplayinfo *curvote;
 
-		if(curvote && curvote->millis >= totalmillis && !(hidevote == 1 && player1->vote != VOTE_YES && curvote->result == VOTE_NEUTRAL))
+		if(curvote)// && curvote->millis >= totalmillis && !(hidevote == 1 && player1->vote != VOTE_YES && curvote->result == VOTE_NEUTRAL))
 		{
-			int left = 20*2, top = VIRTH;
+			int left = 20*2, top = VIRTH + 22*10;
 			if(curvote->result == VOTE_NEUTRAL)
 			draw_textf("%s called a vote: %.2f seconds remaining", left, top+240, curvote->owner ? colorname(curvote->owner) : "(unknown owner)", (curvote->expiremillis-lastmillis)/1000.0f);
 			else draw_textf("%s called a vote:", left, top+240, curvote->owner ? colorname(curvote->owner) : "(unknown)");
@@ -824,8 +824,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 			}
 			glLoadIdentity();
 			glOrtho(0, VIRTW*2.2, VIRTH*2.2, 0, -1, 1);
-			left = 44;
-			top = (VIRTH+560)*1.1;
+			left *= 1.1; top += 560; top *= 1.1;
 			draw_text("\f1Vote \f0Yes", left, top += 88);
 			draw_text(votestr[VOTE_YES], left, top += 88);
 			draw_text("\f1Vote \f3No", left, top += 88);

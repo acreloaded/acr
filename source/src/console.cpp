@@ -27,8 +27,6 @@ struct console : consolebuffer<cline>
 		else fullconsole = ++fullconsole % 3;
 	}
 
-	void addline(const char *sf) { consolebuffer<cline>::addline(sf, totalmillis); }
-
 	void render()
 	{
 		int conwidth = (fullconsole ? VIRTW : int(floor(getradarpos().x)))*2 - 2*CONSPAD - 2*FONTH/3;
@@ -64,18 +62,64 @@ struct console : consolebuffer<cline>
 		loopi(numl)
 		{
 			int idx = offset + numl-i-1;
-			char *line = conlines[idx].line;
-			draw_text(line, CONSPAD+FONTH/3, y, 0xFF, 0xFF, 0xFF, 0xFF, -1, conwidth);
+			cline &l = conlines[idx];
+			char *line = l.line;
+
+			int fade = 255;
+            if(l.millis+confade*1000-totalmillis<1000 && !fullconsole){ // fading out
+				fade = (l.millis+confade*1000-totalmillis)*255/1000;
+				y -= FONTH * (totalmillis + 1000 - l.millis - confade*1000) / 1000;
+			} else if(i+1 == numl && lastmillis - l.millis < 500){ // fading in
+				fade = (lastmillis - l.millis)*255/500;
+				y += FONTH * (l.millis + 500 - lastmillis) / 500;
+			}
+
+			draw_text(line, CONSPAD+FONTH/3, y, 0xFF, 0xFF, 0xFF, fade, -1, conwidth);
 			int width, height;
 			text_bounds(line, width, height, conwidth);
 			y += height;
 		}
 	}
 
-	console() : consolebuffer<cline>(200), fullconsole(false) {}
+	console() : consolebuffer<cline>(200), fullconsole(false) { maxlines = 8; }
 };
 
 console con;
+
+VARP(chatfade, 2, 10, 20);
+struct chatlist : consolebuffer<cline>{
+    void render(){
+        const int conwidth = 2 * VIRTW * 3 / 10;
+		int linei = conlines.length(), y = 2 * VIRTH * 52 / 100;
+		loopi(conlines.length()){
+			char *l = conlines[i].line;
+			int width, height;
+			text_bounds(l, width, height, conwidth);
+			linei -= -1 + floor(float(height/FONTH));
+		}
+        loopi(linei){
+			cline &l = conlines[i];
+			if(totalmillis-l.millis < chatfade*1000 || con.fullconsole){
+				int fade = 255;
+				if(l.millis + chatfade*1000 - totalmillis < 1000 && !con.fullconsole){ // fading out
+					fade = (l.millis + chatfade*1000 - totalmillis) * 255/1000;
+					y -= FONTH * (totalmillis + 1000 - l.millis - chatfade*1000) / 1000;
+				}
+				else if(i == 0 && lastmillis-l.millis < 500){ // fading in
+					fade = (lastmillis - l.millis)*255/500;
+					y += FONTH * (l.millis + 500 - lastmillis) / 500;
+				}
+				int width, height;
+				text_bounds(l.line, width, height, conwidth);
+				y -= height;
+				draw_text(l.line, CONSPAD+FONTH/3 + VIRTW / 100, y, 0xFF, 0xFF, 0xFF, fade, -1, conwidth);
+			}
+        }
+    }
+    chatlist() : consolebuffer<cline>(6) {}
+};
+chatlist chat;
+
 textinputbuffer cmdline;
 char *cmdaction = NULL, *cmdprompt = NULL;
 bool saycommandon = false;
@@ -88,16 +132,22 @@ COMMANDN(conskip, setconskip, ARG_1INT);
 void toggleconsole() { con.toggleconsole(); }
 COMMANDN(toggleconsole, toggleconsole, ARG_NONE);
 
-void renderconsole() { con.render(); }
+void renderconsole() { con.render(); chat.render(); }
+
+inline void conout(consolebuffer<cline> &c, const char *s){
+	string sp;
+	filtertext(sp, s, 2);
+	extern struct servercommandline scl;
+	printf("%s%s\n", scl.logtimestamp ? timestring(true, "%b %d %H:%M:%S ") : "", sp);
+	c.addline(s);
+}
+
+inline void chatout(const char *s){ conout(chat, s); con.addline(s); }
 
 void conoutf(const char *s, ...)
 {
 	s_sprintfdv(sf, s);
-	string sp;
-	filtertext(sp, sf, 2);
-	extern struct servercommandline scl;
-	printf("%s%s\n", scl.logtimestamp ? timestring(true, "%b %d %H:%M:%S ") : "", sp);
-	con.addline(sf);
+	conout(con, sf);
 }
 
 int rendercommand(int x, int y, int w)
