@@ -9,8 +9,10 @@ $flags 0
 $numskins 0
 
 // you can have one or no parent tag
+//$parenttag "tag_muzzle"
 
 // tags
+$tag "tag_muzzle"
 
 // meshes (surfaces)
 $mesh "hands"
