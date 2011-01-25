@@ -9,7 +9,7 @@ struct bounceent;
 struct weapon
 {
 	const static int weaponchangetime = 400;
-	const static int scopetime = 250;
+	const static int scopetime = 275;
 	const static float weaponbeloweye /*= 0.2f*/;
 	static void equipplayer(playerent *pl);
 
@@ -104,7 +104,7 @@ struct subgun : gun
 
 struct sniperrifle : gun
 {
-	const static int adsscope = 500;
+	const static int adsscope = 850;
 	sniperrifle(playerent *owner);
 	void attackfx(const vec &from, const vec &to, int millis);
 
