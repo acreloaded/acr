@@ -629,7 +629,6 @@ extern void updateclientname(playerent *d);
 
 // weapon
 extern void shoot(playerent *d, vec &to);
-extern void createrays(vec &from, vec &to);
 extern void removebounceents(playerent *owner);
 extern void movebounceents();
 extern void clearbounceents();

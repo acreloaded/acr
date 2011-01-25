@@ -118,12 +118,14 @@ void tryreload(playerent *p){
 void selfreload() { tryreload(player1); }
 COMMANDN(reload, selfreload, ARG_NONE);
 
-void createrays(vec &from, vec &to)			 // create random spread of rays for the shotgun
+void createrays(playerent *owner, vec &to)			 // create random spread of rays for the shotgun
 {
+	vec from = owner->o;
+	from.z -= weapon::weaponbeloweye;
 	float f = to.dist(from)/1000;
 	loopi(SGRAYS)
 	{
-		#define RNDD (rnd(SGSPREAD)-SGSPREAD/2.f)*f
+		#define RNDD (rnd(SGSPREAD)-SGSPREAD/2.f)*f*(1-owner->ads/6000.f)
 		vec r(RNDD, RNDD, RNDD);
 		sg[i] = to;
 		sg[i].add(r);
@@ -953,9 +955,7 @@ void gun::checkautoreload() { if(autoreload && owner==player1 && !mag && ammo) t
 shotgun::shotgun(playerent *owner) : gun(owner, GUN_SHOTGUN) {}
 
 bool shotgun::attack(vec &targ){
-	vec from = owner->o;
-	from.z -= weaponbeloweye;
-	createrays(from, targ);
+	createrays(owner, targ);
 	return gun::attack(targ);
 }
 

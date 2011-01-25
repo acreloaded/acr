@@ -175,7 +175,7 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 		if(p->health<=25) col = color(0.5f, 0.125f, 0.f); // red-orange
 	}
 	if(n == CROSSHAIR_DEFAULT) col.alpha = 1.f + p->weaponsel->dynspread() / -1200.f;
-	if(n != CROSSHAIR_SCOPE && p->ads) col.alpha *= 1 - sqrtf(p->ads) / sqrtf(600);
+	if(n != CROSSHAIR_SCOPE && p->ads) col.alpha *= 1 - sqrtf(p->ads * (n == CROSSHAIR_SHOTGUN ? 0.5f : 1)) / sqrtf(600);
 	glColor4f(col.r, col.g, col.b, col.alpha);
 	float usz = (float)crosshairsize, chsize = size>0 ? size : usz;
 	if(n == CROSSHAIR_DEFAULT){
@@ -213,7 +213,7 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 		glTexCoord2f(0, 1); glVertex2f(VIRTW/2 + chsize, VIRTH/2 + ct);
 	}
 	else{
-	if(n == CROSSHAIR_SHOTGUN) chsize = SGSPREAD * 100 / dynfov();
+	if(n == CROSSHAIR_SHOTGUN) chsize = SGSPREAD * 100 * (1 - p->ads / 6000.f) / dynfov();
 		glBegin(GL_QUADS);
 		glTexCoord2f(0, 0); glVertex2f(VIRTW/2 - chsize, VIRTH/2 - chsize);
 		glTexCoord2f(1, 0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 - chsize);
