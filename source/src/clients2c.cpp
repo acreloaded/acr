@@ -856,6 +856,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_AUTHREQ:
 			{
 				int nonce = getint(p);
+				if(nonce < 0){
+					conoutf("server challenged incorrectly");
+					break;
+				}
 				conoutf("server is challenging authentication details");
 				string buf;
 				itoa(buf, nonce);
