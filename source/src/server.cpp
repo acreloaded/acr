@@ -561,7 +561,7 @@ void sendf(int cn, int chan, const char *format, ...){
 		case 'f':
 		{
 			int n = isdigit(*format) ? *format++-'0' : 1;
-			loopi(n) putint(p, (float)va_arg(args, double));
+			loopi(n) putfloat(p, (float)va_arg(args, double));
 			break;
 		}
 		case 's': sendstring(va_arg(args, const char *), p); break;
