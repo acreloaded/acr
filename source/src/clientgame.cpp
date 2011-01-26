@@ -601,7 +601,7 @@ playerent *newclient(int cn)   // ensure valid entity
 	if(cn == getclientnum()) return player1;
 	if(cn<0 || cn>=MAXCLIENTS)
 	{
-		neterr("clientnum");
+		neterr("clientnum", cn);
 		return NULL;
 	}
 	while(cn>=players.length()) players.add(NULL);

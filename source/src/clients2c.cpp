@@ -12,9 +12,9 @@ extern string clientpassword;
 
 packetqueue pktlogger;
 
-void neterr(const char *s)
+void neterr(const char *s, int info)
 {
-	conoutf("\f3illegal network message (%s)", s);
+	conoutf("\f3illegal network message (%s %d)", s, info);
 
 	// might indicate a client/server communication bug, create error report
 	pktlogger.flushtolog("packetlog.txt");
@@ -155,7 +155,7 @@ void parsepositions(ucharbuf &p)
 		}
 
 		default:
-			neterr("type");
+			neterr("type in position packet: ", type);
 			return;
 	}
 }
@@ -1081,7 +1081,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				getstring(text, p, 64);
 				int len = getint(p);
-				if(len > 50) { neterr("Extension too long"); return; }
+				if(len > 50) { neterr("Extension too long,", len); return; }
 				//if(!strcmp(text, ""));
 				else{ // ignore unknown extensions
 					conoutf("server sent unknown extension %s, length %d", text, len);
@@ -1091,7 +1091,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			}
 
 			default:
-				if(cn < 0) neterr("type");
+				if(cn < 0) neterr("type", type);
 				else conoutf("\f3illegal network message type (%d)", type);
 				return;
 		}

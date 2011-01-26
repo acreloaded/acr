@@ -335,7 +335,7 @@ extern void sendpackettoserv(int chan, ENetPacket *packet);
 extern void gets2c();
 extern void c2sinfo(playerent *d);
 extern void c2skeepalive();
-extern void neterr(const char *s);
+extern void neterr(const char *s, int info);
 extern int getclientnum();
 extern void changemapserv(char *name, int mode, bool download = false);
 extern void getmap();
