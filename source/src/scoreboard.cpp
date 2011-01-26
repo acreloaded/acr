@@ -35,15 +35,16 @@ static vector<sline> scorelines;
 
 struct teamscore
 {
-	int team, points, frags, deaths, flagscore;
+	int team, points, frags, assists, deaths, flagscore;
 	vector<playerent *> teammembers;
-	teamscore(int t) : team(t), frags(0), deaths(0), points(0), flagscore(0) {}
+	teamscore(int t) : team(t), frags(0), assists(0), deaths(0), points(0), flagscore(0) {}
 
 	void addscore(playerent *d)
 	{
 		if(!d) return;
 		teammembers.add(d);
 		frags += d->frags;
+		assists += d->assists;
 		deaths += d->deaths;
 		points += d->points;
 		if(m_flags) flagscore += d->flagscore;
@@ -58,6 +59,8 @@ static int teamscorecmp(const teamscore *x, const teamscore *y)
 	if(x->frags < y->frags) return 1;
 	if(x->points > y->points) return -1;
 	if(x->points < y->points) return 1;
+	if(x->assists > y->assists) return -1;
+	if(x->assists < y->assists) return 1;
 	if(x->deaths < y->deaths) return -1;
 	if(x->deaths > y->deaths) return 1;
 	return x->team > y->team;
@@ -71,6 +74,8 @@ static int scorecmp(const playerent **x, const playerent **y)
 	if((*x)->frags < (*y)->frags) return 1;
 	if((*x)->points > (*y)->points) return 1;
 	if((*x)->points < (*y)->points) return -1;
+	if((*x)->assists > (*y)->assists) return -1;
+	if((*x)->assists < (*y)->assists) return 1;
 	if((*x)->deaths > (*y)->deaths) return 1;
 	if((*x)->deaths < (*y)->deaths) return -1;
 	if((*x)->lifesequence > (*y)->lifesequence) return 1;
@@ -107,8 +112,8 @@ void renderscore(void *menu, playerent *d)
 	string &s = line.s;
 	scoreratio sr;
 	sr.calc(d->frags, d->deaths);
-	if(m_flags) s_sprintf(s)("%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->points, d->flagscore, d->frags, d->deaths, sr.precision, sr.ratio, clag, cping, d->clientnum, status, colorname(d));
-	else s_sprintf(s)("%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->points, d->frags, d->deaths, sr.precision, sr.ratio, clag, cping, d->clientnum, status, colorname(d));
+	if(m_flags) s_sprintf(s)("%d\t%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->points, d->flagscore, d->frags, d->assists, d->deaths, sr.precision, sr.ratio, clag, cping, d->clientnum, status, colorname(d, true));
+	else s_sprintf(s)("%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->points, d->frags, d->assists, d->deaths, sr.precision, sr.ratio, clag, cping, d->clientnum, status, colorname(d, true));
 }
 
 void renderteamscore(void *menu, teamscore *t)
@@ -122,8 +127,8 @@ void renderteamscore(void *menu, teamscore *t)
 	s_sprintfd(plrs)("(%d %s)", t->teammembers.length(), t->teammembers.length() == 1 ? "player" : "players");
 	scoreratio sr;
 	sr.calc(t->frags, t->deaths);
-	if(m_flags) s_sprintf(line.s)("%d\t%d\t%d\t%d\t%.*f\t\t\t\t%s\t\t%s", t->points, t->flagscore, t->frags, t->deaths, sr.precision, sr.ratio, team_string(t->team), plrs);
-	else if(m_teammode) s_sprintf(line.s)("%d\t%d\t%d\t%.*f\t\t\t\t%s\t\t%s", t->points, t->frags, t->deaths, sr.precision, sr.ratio, team_string(t->team), plrs);
+	if(m_flags) s_sprintf(line.s)("%d\t%d\t%d\t%d\t%d\t%.*f\t\t\t\t%s\t\t%s", t->points, t->flagscore, t->frags, t->assists, t->deaths, sr.precision, sr.ratio, team_string(t->team), plrs);
+	else if(m_teammode) s_sprintf(line.s)("%d\t%d\t%d\t%d\t%.*f\t\t\t\t%s\t\t%s", t->points, t->frags, t->assists, t->deaths, sr.precision, sr.ratio, team_string(t->team), plrs);
 	static color teamcolors[2] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f) };
 	line.bgcolor = &teamcolors[t->team];
 	loopv(t->teammembers) renderscore(menu, t->teammembers[i]);
@@ -231,14 +236,14 @@ void consolescores()
 			printf(", %s:%d %s", s->name, s->port, text);
 		}
 	}
-	printf("\npoints %sfrags deaths ratio cn%s name\n", m_flags ? "flags " : "", m_teammode ? " team" : "");
+	printf("\npoints %sfrags assists deaths ratio cn%s name\n", m_flags ? "flags " : "", m_teammode ? " team" : "");
 	loopv(scores)
 	{
 		d = scores[i];
 		sr.calc(d->frags, d->deaths);
 		s_sprintf(team)(" %-4s", team_string(d->team));
 		s_sprintf(flags)(" %4d ", d->flagscore);
-		printf("%6d %s %4d   %4d %5.2f %2d%s %s%s\n", d->points, m_flags ? flags : "", d->frags, d->deaths, sr.ratio, d->clientnum,
+		printf("%6d %s %4d %7d   %4d %5.2f %2d%s %s%s\n", d->points, m_flags ? flags : "", d->frags, d->assists, d->deaths, sr.ratio, d->clientnum,
 					m_teammode ? team : "", d->name,
 						d->priv == PRIV_MAX ? " (highest)" :
 						d->priv == PRIV_ADMIN ? " (admin)" :

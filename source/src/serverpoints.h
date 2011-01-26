@@ -4,28 +4,31 @@ inline void addpt(client *c, int points){
 	sendf(-1, 1, "ri3", N_POINTS, c->clientnum, (c->state.points += points));
 }
 
-void killpoints(client *& target, client *& actor, int gun, bool gib){
-	int cnumber = numauthedclients(), tpts = target->state.points;
+void killpoints(client * target, client * actor, int gun, bool gib){
+	int cnumber = numauthedclients(), tpts = target->state.points, gain = 0;
 	bool suic = target == actor;
 	addpt(target, DEATHPT);
 	if(!suic){
 		//if(tk){ // NO MORE TKs
 		if(m_teammode){
-			if(!m_flags) addpt(actor, TMBONUSPT);
-			else addpt(actor, FLBONUSPT);
-			if (m_htf && clienthasflag(actor->clientnum) >= 0) addpt(actor, HTFFRAGPT);
-            if (m_ctf && clienthasflag(target->clientnum) >= 0) addpt(actor, CTFFRAGPT);
-		} else addpt(actor, BONUSPT);
+			if(!m_flags) gain += TMBONUSPT;
+			else gain += FLBONUSPT;
+			if (m_htf && clienthasflag(actor->clientnum) >= 0) gain += HTFFRAGPT;
+            if (m_ctf && clienthasflag(target->clientnum) >= 0) gain += CTFFRAGPT;
+		} else gain += BONUSPT;
 		if (gib) {
-            if (gun == GUN_KNIFE || gun != GUN_GRENADE) addpt(actor, KNIFENADEPT);
-            else if (gun == GUN_SHOTGUN) addpt(actor, SHOTGPT);
-			else addpt(actor, HEADSHOTPT);
+            if (gun == GUN_KNIFE || gun != GUN_GRENADE) gain += KNIFENADEPT;
+            else if (gun == GUN_SHOTGUN) gain += SHOTGPT;
+			else gain += HEADSHOTPT;
         }
-        else addpt(actor, FRAGPT);
+        else gain += FRAGPT;
 		/*}else{
 			if ( targethasflag >= 0 ) addpt(actor, FLAGTKPT);
 			else addpt(actor, TKPT);
 		}*/
+		addpt(actor, gain);
+		gain *= ASSISTMUL;
+		loopv(target->state.damagelog) addpt(clients[target->state.damagelog[i]], gain); // assume validated
 	}
 }
 

@@ -57,7 +57,7 @@ char *colorname(playerent *d, bool stats)
 	if(stats){
 		s_sprintfd(stat)("%d%d", d->health > 50 ? 0 : d->health > 25 ? 2 : d->health > 0 ? 3 : 4, d->health);
 		if(d->armour) s_sprintf(stat)("%s\f5-\f4%d", stat, d->armour);
-		s_sprintf(cname)("% \f5[\f%s\f5]", stat);
+		s_sprintf(cname)("%s \f5[\f%s\f5]", cname, stat);
 	}
 	s_strcat(cname, "\fr");
 	return cname;
@@ -524,9 +524,13 @@ void dokill(playerent *pl, playerent *act, int weapon, bool gib, int finishingda
 		playerent *p = NULL;
 		s_strcat(death, ", assisted by");
 		bool first = true;
-		while(pl->damagelog.length()){
+		loopv(pl->damagelog){
 			p = getclient(pl->damagelog.pop());
-			if(!p) continue;
+			if(!p){
+				pl->damagelog.remove(i--);
+				continue;
+			}
+			p->assists++;
 			s_sprintf(death)("%s%s \fs\f%d%s\fr", death, first ? "" : !pl->damagelog.length() ? " and" : ",", isteam(p, pl) ? 3 : 2, colorname(p));
 			first = false;
 		}
@@ -713,8 +717,8 @@ void startmap(const char *name, bool reset)   // called just after a map load
 
 	if(!reset) return;
 
-	player1->points = player1->frags = player1->flagscore = player1->deaths = player1->lifesequence = 0;
-	loopv(players) if(players[i]) players[i]->frags = players[i]->points = players[i]->flagscore = players[i]->deaths = players[i]->lifesequence = 0;
+	player1->points = player1->frags = player1->assists = player1->flagscore = player1->deaths = player1->lifesequence = 0;
+	loopv(players) if(players[i]) players[i]->frags = players[i]->assists = players[i]->points = players[i]->flagscore = players[i]->deaths = players[i]->lifesequence = 0;
 	if(editmode) toggleedit(true);
 	intermission = false;
 	showscores(false);

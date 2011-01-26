@@ -171,12 +171,13 @@ struct savedscore
 {
 	string name;
 	uint ip;
-	int points, frags, killstreak, flagscore, deaths, shotdamage, damage;
+	int points, frags, assists, killstreak, flagscore, deaths, shotdamage, damage;
 
 	void save(clientstate &cs)
 	{
 		points = cs.points;
 		frags = cs.frags;
+		assists = cs.assists;
 		killstreak = cs.killstreak;
 		flagscore = cs.flagscore;
 		deaths = cs.deaths;
@@ -188,6 +189,7 @@ struct savedscore
 	{
 		cs.points = points;
 		cs.frags = frags;
+		cs.assists = assists;
 		cs.killstreak = killstreak;
 		cs.flagscore = flagscore;
 		cs.deaths = deaths;
@@ -1350,9 +1352,13 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 		}
 		actor->state.killstreak++;
 		target->state.killstreak = 0;
+		ts.damagelog.removeobj(target->clientnum);
+		ts.damagelog.removeobj(actor->clientnum);
+		loopv(ts.damagelog){
+			if(valid_client(ts.damagelog[i])) clients[ts.damagelog[i]]->state.assists++;
+			else ts.damagelog.remove(i--);
+		}
 		killpoints(target, actor, gun, gib);
-		target->state.damagelog.removeobj(target->clientnum);
-		target->state.damagelog.removeobj(actor->clientnum);
 		sendf(-1, 1, "ri7v", N_DIED, target->clientnum, actor->clientnum, actor->state.frags, gun | (gib ? 0x80 : 0), damage,
 			target->state.damagelog.length(), target->state.damagelog.length(), target->state.damagelog.getbuf());
 		if(suic && (m_htf || m_ktf) && targethasflag >= 0){
@@ -1809,7 +1815,7 @@ int calcscores() // skill eval
 	loopv(clients) if(clients[i]->type!=ST_EMPTY)
 	{
 		clientstate &cs = clients[i]->state;
-		sum += clients[i]->at3_score = (cs.frags * 100) / (cs.deaths ? cs.deaths : 1)
+		sum += clients[i]->at3_score = (cs.frags * 85 + cs.assists * 15) / (cs.deaths ? cs.deaths : 1)
 									 + (cs.flagscore < 3 ? fp12 * cs.flagscore : 2 * fp12 + fp3 * (cs.flagscore - 2));
 	}
 	return sum;
@@ -2514,7 +2520,7 @@ void getservermap(void){
 }
 
 void sendresume(client &c, bool broadcast){
-	sendf(broadcast ? -1 : c.clientnum, 1, "rxi3i9vvi", broadcast ? c.clientnum : -1, N_RESUME,
+	sendf(broadcast ? -1 : c.clientnum, 1, "rxi4i9vvi", broadcast ? c.clientnum : -1, N_RESUME,
 			c.clientnum,
 			c.state.state,
 			c.state.lifesequence,
@@ -2522,6 +2528,7 @@ void sendresume(client &c, bool broadcast){
 			c.state.points,
 			c.state.flagscore,
 			c.state.frags,
+			c.state.assists,
 			c.state.killstreak,
 			c.state.deaths,
 			c.state.health,
@@ -2623,6 +2630,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath){
 			putint(p, c.state.points);
 			putint(p, c.state.flagscore);
 			putint(p, c.state.frags);
+			putint(p, c.state.assists);
 			putint(p, c.state.killstreak);
 			putint(p, c.state.deaths);
 			putint(p, c.state.health);
@@ -3801,6 +3809,7 @@ void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENet
 		sendstring(clients[i]->name,p);		 //Name
 		sendstring(team_string(clients[i]->team),p);//Team
 		putint(p,clients[i]->state.frags);	  //Frags
+		putint(p,clients[i]->state.assists);	  //Assists
 		putint(p,clients[i]->state.flagscore);  //Flagscore
 		putint(p,clients[i]->state.deaths);	 //Death
 		putint(p,clients[i]->state.damage*100/max(clients[i]->state.shotdamage,1)); //Accuracy
