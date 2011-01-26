@@ -135,7 +135,7 @@ void check_anisotropy(){
 }
 COMMAND(check_anisotropy, ARG_NONE);
 
-VARFP(anisotropy, 0, 0, 16, initwarning("anisotropy"));
+VARFP(anisotropy, 0, 0, 16, initwarning("anisotropic filtering", INIT_LOAD));
 void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap, GLenum format, int reduce)
 {
 	glBindTexture(GL_TEXTURE_2D, tnum);
