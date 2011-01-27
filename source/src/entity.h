@@ -560,7 +560,7 @@ struct flaginfo
 	flaginfo() : flagent(0), actor(0), state(CTFF_INBASE) {}
 };
 
-enum { BT_NONE, BT_NADE, BT_GIB };
+enum { BT_NONE, BT_NADE, BT_GIB, BT_SHELL };
 
 struct bounceent : physent // nades, gibs
 {

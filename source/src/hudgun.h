@@ -127,5 +127,6 @@ void preload_hudguns()
 		s_sprintfd(path)("weapons/%s", guns[i].modelname);
 		loadmodel(path);
 	}
+	loadmodel("weapons/shell");
 }
 

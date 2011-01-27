@@ -363,7 +363,7 @@ void movebounceents(){
 	loopv(bounceents) if(bounceents[i])
 	{
 		bounceent *p = bounceents[i];
-		if((p->bouncetype==BT_NADE || p->bouncetype==BT_GIB) && p->applyphysics()) movebounceent(p, 1, false);
+		if(p->bouncetype && p->applyphysics()) movebounceent(p, 1, false);
 		if(!p->isalive(lastmillis))
 		{
 			p->destroy();
@@ -393,6 +393,19 @@ void renderbounceents(){
 			case BT_NADE:
 				s_strcpy(model, "weapons/grenade/static");
 				break;
+			case BT_SHELL:
+			{
+				s_strcpy(model, "weapons/shell");
+				int t = lastmillis-p->millis;
+				if(t>p->timetolive-2000)
+				{
+					anim = ANIM_DECAY;
+					basetime = p->millis+p->timetolive-2000;
+					t -= p->timetolive-2000;
+					o.z -= t*t/4000000000.0f*t;
+				}
+				break;
+			}
 			case BT_GIB:
 			default:
 			{
@@ -938,7 +951,37 @@ bool gun::attack(vec &targ){
 	return true;
 }
 
+VARP(shellttl, 0, 4000, 20000);
+
+void gun::attackshell(const vec &to){
+	if(!shellttl) return;
+	bounceent *s = bounceents.add(new bounceent);
+	s->owner = owner;
+	s->millis = lastmillis;
+	s->timetolive = gibttl;
+	s->bouncetype = BT_SHELL;
+	
+	s->vel = vec(1, 0, 0);
+	s->vel.rotate_around_z(owner->yaw*RAD);
+	s->o = owner->o;
+	s->o.z -= weaponbeloweye;
+	s->o.x += s->vel.x * owner->radius;
+	s->o.y += s->vel.y * owner->radius;
+	s->vel.mul(0.025f * (rnd(6) + 1));
+	s->inwater = hdr.waterlevel > owner->o.z;
+	s->cancollide = false;
+
+	s->yaw = owner->yaw;
+	s->pitch = 0;
+
+	s->maxspeed = 30.0f;
+	s->rotspeed = 1.f;
+
+	s->resetinterp();
+}
+
 void gun::attackfx(const vec &from, const vec &to, int millis){
+	attackshell(to);
 	addbullethole(owner, from, to);
 	addshotline(owner, from, to);
 	particle_splash(0, 5, 250, to);
@@ -967,6 +1010,7 @@ void shotgun::attackfx(const vec &from, const vec &to, int millis){
 		if(filter >= 4) filter = 0;
 		addbullethole(owner, from, sg[i], 0, false);
 	}
+	attackshell(to);
 	adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
 	attacksound();
 }
