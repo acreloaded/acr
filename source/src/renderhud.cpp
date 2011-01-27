@@ -524,7 +524,7 @@ void drawradar(playerent *p, int w, int h)
 	}
 	loopv(bounceents){ // draw grenades
 		bounceent *b = bounceents[i];
-		if(b == NULL || b->bouncetype != BT_NADE) continue;
+		if(!b || b->bouncetype != BT_NADE) continue;
 		if(((grenadeent *)b)->nadestate != 1) continue;
 		drawradarent(vec(b->o.x, b->o.y, 0), coordtrans, 0, b->owner == p ? 2 : isteam(b->owner, p) ? 1 : 0, 3, iconsize/1.5f, true);
 	}
