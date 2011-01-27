@@ -21,5 +21,9 @@ void killpoints(playerent *target, playerent *actor, int gun, bool gib){ // bots
     else gain += FRAGPT;
 	addpt(actor, gain);
 	gain *= ASSISTMUL;
-	loopv(actor->damagelog) if(getclient(actor->damagelog[i])) addpt(getclient(actor->damagelog[i]), gain);
+	loopv(target->damagelog){
+		playerent *p = getclient(target->damagelog[i]);
+		if(!p || isteam(p, target)) continue;
+		addpt(p, gain);
+	}
 }

@@ -4,7 +4,7 @@ inline void addpt(client *c, int points){
 	sendf(-1, 1, "ri3", N_POINTS, c->clientnum, (c->state.points += points));
 }
 
-void killpoints(client * target, client * actor, int gun, bool gib){
+void killpoints(client *target, client *actor, int gun, bool gib){
 	int cnumber = numauthedclients(), tpts = target->state.points, gain = 0;
 	bool suic = target == actor;
 	addpt(target, DEATHPT);
@@ -28,7 +28,12 @@ void killpoints(client * target, client * actor, int gun, bool gib){
 		}*/
 		addpt(actor, gain);
 		gain *= ASSISTMUL;
-		loopv(target->state.damagelog) addpt(clients[target->state.damagelog[i]], gain); // assume validated
+		loopv(target->state.damagelog){
+			if(!valid_client(target->state.damagelog[i])) continue;
+			client *c = clients[target->state.damagelog[i]];
+			if(!c || isteam(c, actor)) continue;
+			addpt(c, gain);
+		}
 	}
 }
 
