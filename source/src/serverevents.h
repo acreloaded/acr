@@ -51,15 +51,17 @@ void processevent(client &c, shotevent &e)
 		putint(p, N_SG);
 		loopi(SGRAYS) loopj(3) putfloat(p, gs.sg[i][j]);
 	}
-	putint(p, N_SHOOT);
+	putint(p, e.gun == GUN_GRENADE ? N_SHOOTC : N_SHOOT);
 	putint(p, c.clientnum);
 	putint(p, e.gun);
-	putfloat(p, gs.o.x);
-	putfloat(p, gs.o.y);
-	putfloat(p, gs.o.z);
-	putfloat(p, e.to[0]);
-	putfloat(p, e.to[1]);
-	putfloat(p, e.to[2]);
+	if(e.gun != GUN_GRENADE){
+		putfloat(p, gs.o.x);
+		putfloat(p, gs.o.y);
+		putfloat(p, gs.o.z);
+		putfloat(p, e.to[0]);
+		putfloat(p, e.to[1]);
+		putfloat(p, e.to[2]);
+	}
 	enet_packet_resize(packet, p.length());
 	sendpacket(-1, 1, packet, c.clientnum);
 	if(packet->referenceCount==0) enet_packet_destroy(packet);

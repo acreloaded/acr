@@ -393,11 +393,15 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			}
 
 			case N_SHOOT:
+			case N_SHOOTC:
 			{
 				int scn = getint(p), gun = getint(p);
 				vec from, to;
-				loopk(3) from[k] = getfloat(p);
-				loopk(3) to[k] = getfloat(p);
+				if(type == N_SHOOTC) from = to = vec(0, 0, 0);
+				else{
+					loopk(3) from[k] = getfloat(p);
+					loopk(3) to[k] = getfloat(p);
+				}
 				playerent *s = getclient(scn);
 				if(!s || !weapon::valid(gun)) break;
 				s->lastaction = lastmillis;
