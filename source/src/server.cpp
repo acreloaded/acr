@@ -3365,7 +3365,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						if(!cl->state.akimbomillis) break;
 						cl->state.akimbomillis = 0;
 					case S_NOAMMO:
-						if(cl->state.ammo[cl->state.gunselect]) break;
+						if(cl->state.mag[cl->state.gunselect] || cl->state.ammo[cl->state.gunselect]) break;
 					case S_JUMP:
 					case S_HARDLAND:
 					case S_SOFTLAND:
