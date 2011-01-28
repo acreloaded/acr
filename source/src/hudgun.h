@@ -53,6 +53,7 @@ struct weaponmove
 					k_rot = -90 * sinf(progress*M_PI);
 				}
 			}
+			swaydir = vec(0, 0, 0);
 		}
 		else{
 			basetime = lastaction;
