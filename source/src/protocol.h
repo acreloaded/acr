@@ -25,9 +25,9 @@ enum{
 	// editmode ONLY
 	N_EDITMODE, N_EDITH, N_EDITT, N_EDITS, N_EDITD, N_EDITE, N_EDITENT, N_NEWMAP,
 	// game events
-	N_SHOOT, N_EXPLODE, N_AKIMBO, N_RELOAD, // clients to server events
+	N_SHOOT, N_SHOOTC, N_EXPLODE, N_AKIMBO, N_RELOAD, // clients to server events
 	N_SG, N_SCOPE, N_SUICIDE, N_WEAPCHANGE, N_PRIMARYWEAP, N_THROWNADE, // server directly handled
-	N_POINTS, N_DIED, N_DAMAGE, N_REGEN, N_HITPUSH, N_SHOTFX, // server to client
+	N_POINTS, N_DIED, N_DAMAGE, N_REGEN, N_HITPUSH, n_SHOOT, // server to client
 	// gameplay
 	N_TRYSPAWN, N_SPAWNSTATE, N_SPAWN, N_FORCEDEATH, N_FORCEGIB, // spawning
 	N_ITEMSPAWN, N_ITEMACC, // items

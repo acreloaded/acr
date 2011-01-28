@@ -741,7 +741,7 @@ void grenadeent::activate(const vec &from, const vec &to){
 
 	if(local)
 	{
-		addmsg(N_SHOOT, "ri2f3i", millis, GUN_GRENADE, to.x, to.y, to.z, 0);
+		addmsg(N_SHOOTC, "ri2", millis, GUN_GRENADE);
 		playsound(S_GRENADEPULL, SP_HIGH);
 	}
 }

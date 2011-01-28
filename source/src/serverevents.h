@@ -42,7 +42,7 @@ void processevent(client &c, shotevent &e)
 	gs.lastshot = e.millis;
 	gs.gunwait[e.gun] = attackdelay(e.gun);
 	if(e.gun==GUN_PISTOL && gs.akimbomillis>gamemillis) gs.gunwait[e.gun] /= 2;
-	/*sendf(-1, 1, "ri3f6x", N_SHOTFX, c->clientnum, e.gun,
+	/*sendf(-1, 1, "ri3f6x", n_SHOOT, c->clientnum, e.gun,
 		c->state.o.x, c->state.o.y, c->state.o.z,
 		e.to[0], e.to[1], e.to[2], c->clientnum);*/
 	ENetPacket *packet = enet_packet_create(NULL, 9 * sizeof(float), ENET_PACKET_FLAG_RELIABLE);
@@ -51,7 +51,7 @@ void processevent(client &c, shotevent &e)
 		putint(p, N_SG);
 		loopi(SGRAYS) loopj(3) putfloat(p, gs.sg[i][j]);
 	}
-	putint(p, N_SHOTFX);
+	putint(p, n_SHOOT);
 	putint(p, c.clientnum);
 	putint(p, e.gun);
 	putfloat(p, gs.o.x);

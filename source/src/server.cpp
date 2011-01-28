@@ -2940,6 +2940,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				break;
 
 			case N_SHOOT:
+			case N_SHOOTC:
 			{
 				gameevent &shot = cl->addevent();
 				shot.type = GE_SHOT;
@@ -2956,14 +2957,16 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				}
 				seteventmillis(shot.shot);
 				shot.shot.gun = getint(p);
-				loopk(3) shot.shot.to[k] = getfloat(p);
-				int hitcount = getint(p);
-				loopk(hitcount){
-					gameevent &hit = cl->addevent();
-					hit.type = GE_HIT;
-					hit.hit.target = getint(p);
-					hit.hit.lifesequence = getint(p);
-					hit.hit.info = getint(p);
+				if(type != N_SHOOTC){
+					loopk(3) shot.shot.to[k] = getfloat(p);
+					int hitcount = getint(p);
+					loopk(hitcount){
+						gameevent &hit = cl->addevent();
+						hit.type = GE_HIT;
+						hit.hit.target = getint(p);
+						hit.hit.lifesequence = getint(p);
+						hit.hit.info = getint(p);
+					}
 				}
 				break;
 			}

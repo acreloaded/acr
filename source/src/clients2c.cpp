@@ -392,7 +392,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case N_SHOTFX:
+			case n_SHOOT:
 			{
 				int scn = getint(p), gun = getint(p);
 				vec from, to;
