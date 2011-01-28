@@ -4,12 +4,15 @@
 	// servers
 	$config['servers']['minprotocol'] = 2103; // protocol requirements
 	$config['servers']['autoapprove'] = true; // servers can be registered
-	$config['servers']['force'] = array(
-		// "server:port",
-		"localhost:28770",
+	$config['servers']['translate'] = array( // IP translation
+		// array(start, end, port, "domain"), // port can be 0 for wildcard
 );
-	$config['servers']['minport'] = 28760;
-	$config['servers']['maxport'] = 28780;
+	$config['servers']['force'] = array( // always forced if unable to use master server
+		// "server:port",
+);
+	$config['servers']['placeholder'] = "localhost:28770"; // dummy when out of servers
+	$config['servers']['minport'] = 1024; // end of primary reserved ports
+	$config['servers']['maxport'] = 65534; // 65535 is the max
 	
 	// motd
 	$config['motd'] = <<<MOTD

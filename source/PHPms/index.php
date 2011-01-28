@@ -8,63 +8,101 @@
 	function getServers(){ // {string, int}[] (void)
 		global $config;
 		$buffer = array();
+		$q = mysql_query("SELECT `ip`, `port`, `add` FROM `{$config['db']['pref']}servers`");
+		$q2 = mysql_query("SELECT `add` FROM `{$config['db']['pref']}servers` WHERE `add`");
 		foreach($config['servers']['force'] as $srv){ // forced servers
 			preg_match("/([^:]+):([0-9]{1,5})/", $srv, $s);
-			$buffer[] = array($s[1], $s[2]);
+			$buffer[] = array($s[1], $s[2], true);
 		}
-		$q = mysql_query("SELECT `ip`, `port` FROM `{$config['db']['pref']}servers`");
-		while ($r = mysql_fetch_row($q)) $buffer[] = array(long2ip($r[0]), $r[1]); // {$r[ip], $r[port]}
+		if(!mysql_num_rows($q2)){
+			preg_match("/([^:]+):([0-9]{1,5})/", $config['servers']['placeholder'], $s);
+			$buffer[] = array($s[1], $s[2], true);
+		}
+		while ($r = mysql_fetch_row($q)){
+			$i = $ip = $r[0];
+			$i = long2ip($i);
+			foreach($config['servers']['translate'] as $t){
+				// if($start <= $ip && $ip <= $end && (!tport || $tport == $port)
+				if($t[0] <= $ip && $ip <= $t[1] && (!$t[2] || $t[2] == $r[1])){
+					// $ip = $translatetarget
+					$i = $t[3];
+					break;
+				}
+			}
+			$buffer[] = array($i, $r[1], (bool)$r[2]); // {$r[ip], $r[port], (bool)$r[add]}
+		}
 		return $buffer;
 	}
 	if(isset($_GET['cube'])){ // cubescript
 		header('Content-type: text/plain');
 		$motdlines = explode("\n", $config['motd']);
-		foreach($config['sbans'] as $b) if($b[0] <= $ip && $b[1] <= $banRangeStart && $b[2] & 1) exit("You are not authorized to fetch the server list. {$config['contact']}");
+		$ip = getiplong();
+		foreach($config['sbans'] as $b) if($b[0] <= $ip && $ip <= $b[1] && $b[2] & 1) exit("echo You are not authorized to fetch the server list. {$config['contact']}");
 		foreach($motdlines as $l) // MOTD
 			echo 'echo "'.str_replace('"', "''", trim($l))."\"\n"; // looks like we can't use double quotes!
 		$srvs = getServers();
-		foreach($srvs as $s) echo "addserver {$s[0]} {$s[1]}\r\n";
+		foreach($srvs as $s) echo ($s[2] ? '' : "//")."addserver {$s[0]} {$s[1]}\r\n";
 	}
 	elseif(isset($_GET['xml'])){ // XML
-		header('Content-type: text/xml');
-		echo '<?xml version="1.0" encoding="UTF-8"?><MOTD><![CDATA['.str_replace("\f", '\f', $config['motd']).']]></MOTD><Servers>';
+		header('Content-type: text/xml; charset=utf-8');
+		$header = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+		echo $header.'<ServerList><MOTD><![CDATA['.str_replace("\f", '\f', $config['motd']).']]></MOTD><Servers>';
 		$srvs = getServers();
-		foreach($srvs as $s) echo '<Server port="'.$s[1].'">'.$s[0].'</Server>';
-		echo '</Servers>';
+		foreach($srvs as $s) echo '<Server port="'.$s[1].'"'.($s[2] ? "" : ' disabled="disabled"').'>'.$s[0].'</Server>';
+		echo '</Servers></ServerList>';
 	}
 	elseif(isset($_GET['register'])){ // register
+		function addserver($ip, $port, $add){ // returns if it is renewed
+			global $config;
+			if($add) mysql_query("DELETE FROM `{$config['db']['pref']}auth` WHERE `ip`={$ip}"); // clear auth server
+			if($q = mysql_num_rows(mysql_query("SELECT `port` FROM `{$config['db']['pref']}servers` WHERE `ip`={$ip} AND `port`={$port}"))){ // renew
+				mysql_query("UPDATE `{$config['db']['pref']}servers` SET `time`=".time().", `add`=".($add ? 1 : 0)." WHERE `ip`={$ip} AND `port`={$port}");
+				return true;
+			}
+			else{ // register
+				mysql_query("INSERT INTO `{$config['db']['pref']}servers` (`ip`, `port`, `time`, `add`) VALUES ({$ip}, {$port}, ".time().", ".($add ? 1 : 0).")");
+				return false;
+			}
+		}
 		if($config['servers']['autoapprove'] === false) exit("Automatic registration is closed. {$config['contact']}");
-		$port = intval($_GET['port']);
-		if($port < $config['servers']['minport'] || $port > $config['servers']['maxport'])
-			exit("You may only register a server with ports between {$config['servers']['minport']} and {$config['servers']['maxport']}");
 		$ip = getiplong();
 		// check bans
-		foreach($config['sbans'] as $b) if($b[0] <= $ip && $b[1] <= $banRangeStart && $b[2] & 2) exit("You are not authorized to register a server. {$config['contact']}");
+		foreach($config['sbans'] as $b) if($b[0] <= $ip && $ip <= $b[1] && $b[2] & 2) exit("You are not authorized to register a server. {$config['contact']}");
+		// check port
+		$port = intval($_GET['port']);
+		if($port < $config['servers']['minport'] || $port > $config['servers']['maxport']){
+			addserver($ip, $port, false);
+			exit("You may only register a server with ports between {$config['servers']['minport']} and {$config['servers']['maxport']}");
+		}
+		
+		// check protocol
+		if($config['servers']['minprotocol'] > $_GET['proto']) exit("!!!UPDATE NOW!!!! You must run a server at least protocol {$config['servers']['minprotocol']}. {$config['contact']}");
+		
+		// good: can register
 		
 		// sockets pwn!
-		function nosock(){ global $port; exit("Your server is unreachable. Please make sure port {$port} and ".($port + 1)." is properly forwarded and reachable."); };
+		function nosock($port, $p1pass = false){
+			global $ip;
+			addserver($ip, $port, false);
+			exit("Your server is unreachable. Please make sure UDP port".($p1pass ? " " : "s ".$port." and ").($port + 1)." are properly forwarded and reachable.");
+		};
 		// noob socket 101
 		$sock = fsockopen("udp://".getip(), $port, $errno, $errstr, 2);
-		if(!$sock) nosock(); // lazy test doesn't always catch it
+		if(!$sock) nosock($port); // lazy test doesn't always catch it
 		fclose($sock);
 		$sock = fsockopen("udp://".getip(), $port + 1, $errno, $errstr, 3);
-		if(!$sock) nosock();
+		if(!$sock) nosock($port);
 		stream_set_timeout($sock, 3);
 		fwrite($sock, "1"); // "standard ping is not equal to the null byte"
-		if(!fread($sock, 1)) nosock(); // if anything comes back...
+		if(!fread($sock, 1)) nosock($port, true); // if anything comes back...
 		fclose($sock);
 		
 		// connect_db(); // already connected from cronjobs
 		// find server
-		mysql_query("DELETE FROM `{$config['db']['pref']}auth` WHERE `ip`={$ip}"); // clear auth from this server
-		if($q = mysql_num_rows(mysql_query("SELECT `port` FROM `{$config['db']['pref']}servers` WHERE `ip`={$ip} AND `port`={$port}"))){ // renew
-			mysql_query("UPDATE `{$config['db']['pref']}servers` SET `time`=".time()." WHERE `ip`={$ip} AND `port`={$port}");
-			echo 'Your server has been renewed.';// Just a reminder to forward ports UDP '.$port.' and '.($port + 1).' if you have not already';
-		}else{ // register
-			if($config['servers']['minprotocol'] > $_GET['proto']) exit("!!!UPDATE NOW!!!! You must run a server at least protocol {$config['servers']['minprotocol']}. {$config['contact']}");
-			mysql_query("INSERT INTO `{$config['db']['pref']}servers` (`ip`, `port`, `time`) VALUES ({$ip}, {$port}, ".time().")");
-			echo 'Your server has been registered.';// Make sure you forward ports UDP '.$port.' and '.($port + 1).' if you have not already';
-		}
+		if(addserver($ip, $port, true)) // renewed
+			echo 'Your server has been renewed.';
+		else // registered
+			echo 'Your server has been registered.';
 	}
 	elseif(isset($_GET['authreq'])){ // request auth
 		$ip = getiplong();
@@ -73,7 +111,7 @@
 		$id = intval($_GET['id']);
 		$q = mysql_num_rows(mysql_query("SELECT `id` FROM `{$config['db']['pref']}auth` WHERE `ip`={$ip} AND `id`={$id}"));
 		if($q) exit("*f{$id}");
-		$nonce = mt_rand(0, 2147483647); // 32-bit signed -> 31-bit unsigned
+		$nonce = mt_rand(0, 127); // 1 byte unsigned -> 7-bit signed
 		mysql_query("INSERT INTO `{$config['db']['pref']}auth` (`ip`, `time`, `id`, `nonce`) VALUES ({$ip}, ".time().", {$id}, {$nonce})");
 		echo "*c{$id}|".$nonce;
 	}
