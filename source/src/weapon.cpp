@@ -379,6 +379,8 @@ void clearbounceents(){
 	loopv(bounceents) if(bounceents[i]) { delete bounceents[i]; bounceents.remove(i--); }
 }
 
+VARP(shellsize, 1, 4, 10);
+
 void renderbounceents(){
 	loopv(bounceents)
 	{
@@ -387,6 +389,7 @@ void renderbounceents(){
 		string model;
 		vec o(p->o);
 
+		float scale = 1.f;
 		int anim = ANIM_MAPMODEL, basetime = 0;
 		switch(p->bouncetype)
 		{
@@ -396,6 +399,7 @@ void renderbounceents(){
 			case BT_SHELL:
 			{
 				s_strcpy(model, "weapons/shell");
+				scale = shellsize / 10.f;
 				int t = lastmillis-p->millis;
 				if(t>p->timetolive-2000)
 				{
@@ -423,7 +427,7 @@ void renderbounceents(){
 			}
 		}
 		path(model);
-		rendermodel(model, anim|ANIM_LOOP|ANIM_DYNALLOC, 0, 1.1f, o, p->yaw+90, p->pitch, 0, basetime);
+		rendermodel(model, anim|ANIM_LOOP|ANIM_DYNALLOC, 0, 1.1f, o, p->yaw+90, p->pitch, 0, basetime, NULL, NULL, scale);
 	}
 }
 
@@ -967,6 +971,7 @@ void gun::attackshell(const vec &to){
 	s->o.z -= weaponbeloweye;
 	s->o.x += s->vel.x * owner->radius;
 	s->o.y += s->vel.y * owner->radius;
+	s->vel.rotate_around_z(180*RAD);
 	s->vel.mul(0.025f * (rnd(6) + 1));
 	s->inwater = hdr.waterlevel > owner->o.z;
 	s->cancollide = false;
