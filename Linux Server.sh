@@ -10,4 +10,4 @@ CUBE_OPTIONS=
 # comment this to disable reading command line options from config/servercmdline.txt
 CUBE_OPTIONFILE=-Cconfig/servercmdline.txt
 
-exec ${CUBE_DIR}/bin_linux/native_server ${CUBE_OPTIONS} ${CUBE_OPTIONFILE}
+exec ${CUBE_DIR}/bin_linux/linux_server ${CUBE_OPTIONS} ${CUBE_OPTIONFILE}

@@ -9,4 +9,4 @@ CUBE_DIR=.
 #CUBE_OPTIONS="-f"
 CUBE_OPTIONS="--home=home --init"
 
-exec ${CUBE_DIR}/bin_linux/native_client ${CUBE_OPTIONS}
+exec ${CUBE_DIR}/bin_linux/linux_client ${CUBE_OPTIONS}
