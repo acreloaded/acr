@@ -194,7 +194,7 @@ void trydisconnect()
 }
 
 VARP(hudchat, 0, 1, 1);
-void saytext(playerent *&d, char *text, int flags, int sound){
+void saytext(playerent *d, char *text, int flags, int sound){
 	string nametag; s_strcpy(nametag, colorname(d));
 	if(flags & SAY_TEAM) s_sprintf(nametag)("%s \f5(\f%d%s\f5)", nametag, d->team ? 1 : 3, team_string(d->team));
 	if(sound > S_MAINEND && sound < S_NULL){

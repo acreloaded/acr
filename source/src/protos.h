@@ -831,4 +831,4 @@ struct servercommandline
 };
 
 enum { SAY_TEXT = 0, SAY_TEAM = 1 << 0, SAY_ACTION = 1 << 1, SAY_DENY = 1 << 2 };
-extern void saytext(playerent *&d, char *text, int flags, int sound);
+extern void saytext(playerent *d, char *text, int flags, int sound);
