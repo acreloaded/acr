@@ -971,12 +971,11 @@ void gun::attackshell(const vec &to){
 	s->o.z -= weaponbeloweye;
 	s->o.x += s->vel.x * owner->radius;
 	s->o.y += s->vel.y * owner->radius;
-	s->vel.rotate_around_z(180*RAD);
 	s->vel.mul(0.025f * (rnd(6) + 1));
 	s->inwater = hdr.waterlevel > owner->o.z;
 	s->cancollide = false;
 
-	s->yaw = owner->yaw;
+	s->yaw = owner->yaw+180;
 	s->pitch = 0;
 
 	s->maxspeed = 30.0f;
