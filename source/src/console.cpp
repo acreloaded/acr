@@ -142,7 +142,7 @@ inline void conout(consolebuffer<cline> &c, const char *s){
 	c.addline(s);
 }
 
-inline void chatout(const char *s){ conout(chat, s); con.addline(s); }
+void chatout(const char *s){ conout(chat, s); con.addline(s); }
 
 void conoutf(const char *s, ...)
 {
