@@ -965,7 +965,7 @@ void gun::attackshell(const vec &to){
 	s->timetolive = gibttl;
 	s->bouncetype = BT_SHELL;
 	
-	s->vel = vec(1, 0, 0);
+	s->vel = vec(1, rnd(101) / 200.f, rnd(101) / 200.f);
 	s->vel.rotate_around_z(owner->yaw*RAD);
 	s->o = owner->o;
 	s->o.z -= weaponbeloweye;
