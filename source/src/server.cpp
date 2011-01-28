@@ -3400,7 +3400,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			{
 				getstring(text, p, 64); // extension specifier, preferred to be in the form of OWNER::EXTENSION
 				int n = getint(p);  // length of data after the specifier
-				if(n > 50) return;
+				if(n > 50 || n < 1) return;
 
 				// sample
 				if(!strcmp(text, "official::writelog"))
