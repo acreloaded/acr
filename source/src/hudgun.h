@@ -44,10 +44,15 @@ struct weaponmove
 		else if(player1->weaponsel->reloading){
 			anim = ANIM_GUN_RELOAD;
 			basetime = player1->weaponsel->reloading;
-			/*
-			float reloadtime = (float)player1->weaponsel->info.reloadtime,
-				  progress = clamp((lastmillis - player1->weaponsel->reloading)/reloadtime, 0.0f, clamp(1.0f - (player1->lastaction + player1->weaponsel->gunwait - lastmillis)/reloadtime, 0.5f, 1.0f));
-			k_rot = -90*sinf(progress*M_PI);*/
+			if(player1->weaponsel->type == GUN_AKIMBO){
+				float reloadtime = (float)player1->weaponsel->info.reloadtime,
+					progress = clamp((lastmillis - player1->weaponsel->reloading)/reloadtime, 0.0f,
+						clamp(1.0f - (player1->lastaction + player1->weaponsel->gunwait - lastmillis)/reloadtime, 0.5f, 1.0f));
+				if((progress -= .4f) > 0){
+					progress /= .6f;
+					k_rot = -90 * sinf(progress*M_PI);
+				}
+			}
 		}
 		else{
 			basetime = lastaction;
