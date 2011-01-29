@@ -589,10 +589,10 @@ inline void sendmsg(int msg, int client = -1){
 	sendf(client, 1, "ri2", N_CONFMSG, msg);
 }
 inline void sendmsgs(int msg, char *str, int client = -1){
-	sendf(client, 1, "ri2s", N_CONFMSG, str);
+	sendf(client, 1, "ri2s", N_CONFMSG, msg, str);
 }
 inline void sendmsgi(int msg, int num, int client = -1){
-	sendf(client, 1, "ri3", N_CONFMSG, num);
+	sendf(client, 1, "ri3", N_CONFMSG, msg, num);
 }
 
 void spawnstate(client *c){
@@ -779,7 +779,7 @@ void senddemo(int cn, int num){
 	if(!num) num = demos.length();
 	if(!demos.inrange(num-1)){
 		if(demos.empty()) sendmsg(27, cn);
-		else sendmsgi(28, num);
+		else sendmsgi(28, num, cn);
 		return;
 	}
 	demofile &d = demos[num-1];
