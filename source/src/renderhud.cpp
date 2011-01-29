@@ -704,9 +704,11 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
 	drawdmgindicator();
 
-	static Texture *comtex = NULL, *headshottex = NULL;
+	static Texture *comtex = NULL, *headshottex = NULL, *decapitatedtex = NULL, *firstbloodtex = NULL;
 	if(!comtex) comtex = textureload("packages/misc/com.png");
 	if(!headshottex) headshottex = textureload("packages/misc/headshot.png");
+	if(!decapitatedtex) decapitatedtex = textureload("packages/misc/decapitated.png");
+	if(!firstbloodtex) firstbloodtex = textureload("packages/misc/firstblood.png");
 	loopv(p->icons){
 		eventicon &icon = p->icons[i];
 		Texture *icontex = headshottex;
@@ -714,8 +716,10 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		int h = 1;
 		float aspect = 1, scalef = 1, offset = (lastmillis - icon.millis) / 3000.f * 160.f;
 		switch(icon.type){
-			case eventicon::VOICECOM: scalef = .4f; icontex = comtex; break;
-			case eventicon::HEADSHOT: aspect = 2; h = 4; default: break;
+			case eventicon::VOICECOM: default: scalef = .4f; icontex = comtex; break;
+			case eventicon::HEADSHOT: aspect = 2; h = 4; break;
+			case eventicon::FIRSTBLOOD: icontex = firstbloodtex; aspect = 2; h = 8; break;
+			case eventicon::DECAPITATED: scalef = .4f; icontex = decapitatedtex; break;
 		}
 		glBindTexture(GL_TEXTURE_2D, icontex->id);
 		glEnable(GL_BLEND);

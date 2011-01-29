@@ -519,7 +519,7 @@ void restoreserverstate(vector<entity> &ents)   // hack: called from savegame co
 }
 
 static int interm = 0, minremain = 0, gamemillis = 0, gamelimit = 0;
-static bool mapreload = false, autoteam = true, forceintermission = false;
+static bool mapreload = false, autoteam = true, forceintermission = false, nokills = true;
 
 string servdesc_current;
 ENetAddress servdesc_caller;
@@ -1340,7 +1340,9 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 	ts.dodamage(damage);
 	ts.lastregen = gamemillis;
 	actor->state.damage += damage != 1000 ? damage : 0;
-	sendf(-1, 1, "ri7", N_DAMAGE, target->clientnum, actor->clientnum, damage, ts.armour, ts.health, gun | (gib ? 0x80 : 0));
+	int style = (gib ? FRAG_GIB : FRAG_NONE) | (damage > guns[gun].damage ? FRAG_OVERKILL : FRAG_NONE);
+	// TODO: add critical!
+	sendf(-1, 1, "ri8", N_DAMAGE, target->clientnum, actor->clientnum, damage, ts.armour, ts.health, gun, style);
 	if(ts.health<=0){
 		int targethasflag = clienthasflag(target->clientnum);
 		bool suic = false;
@@ -1358,8 +1360,12 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 			if(valid_client(ts.damagelog[i])) clients[ts.damagelog[i]]->state.assists++;
 			else ts.damagelog.remove(i--);
 		}
-		killpoints(target, actor, gun, gib);
-		sendf(-1, 1, "ri7v", N_DIED, target->clientnum, actor->clientnum, actor->state.frags, gun | (gib ? 0x80 : 0), damage,
+		if(nokills){
+			style |= FRAG_FIRST;
+			nokills = false;
+		}
+		killpoints(target, actor, gun, style);
+		sendf(-1, 1, "ri7v", N_KILL, target->clientnum, actor->clientnum, actor->state.frags, gun, style,
 			target->state.damagelog.length(), target->state.damagelog.length(), target->state.damagelog.getbuf());
 		if(suic && (m_htf || m_ktf) && targethasflag >= 0){
 			actor->state.flagscore--;
@@ -2104,10 +2110,8 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 	logline(ACLOG_INFO, "Game start: %s on %s, %d players, %d minutes remaining, mastermode %d, (itemlist %spreloaded, 'getmap' %sprepared)",
 		modestr(smode), smapname, numclients(), minremain, mastermode, ms ? "" : "not ", mapavailable(smapname) ? "" : "not ");
 	arenaround = 0;
-	if(m_arena)
-	{
-		distributespawns();
-	}
+	nokills = true;
+	if(m_arena) distributespawns();
 	if(notify){
 		// shuffle if previous mode wasn't a team-mode
 		if(m_teammode){
@@ -3080,7 +3084,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				cs.lastomillis = gamemillis;
 				if(maplayout && !m_edit){
 					vec &po = cs.o;
-					int ls = (1 << maplayout_factor) - 1;
+					const int ls = (1 << maplayout_factor) - 1;
 					if(po.x < 0 || po.y < 0 || po.x > ls || po.y > ls || maplayout[((int) po.x) + (((int) po.y) << maplayout_factor)] > po.z)
 					{
 						logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cl->hostname, cl->name, ++cl->mapcollisions);
@@ -3094,7 +3098,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				loopv(sents){
 					server_entity &e = sents[i];
 					if(!e.spawned || !cs.canpickup(e.type)) continue;
-					vec v(e.x, e.y, maplayout ? maplayout[e.x + (e.y << maplayout_factor)] : cs.o.z);
+					const int ls = (1 << maplayout_factor) - 1;
+					vec v(e.x, e.y, maplayout && e.x >= 0 && e.y >= 0 && e.x < ls && e.y < ls ? maplayout[e.x + (e.y << maplayout_factor)] : cs.o.z);
 					float dist = cs.o.dist(v);
 					if(dist > 2.5f) continue;
 					if(arenaround && arenaround - gamemillis <= 2000){ // no nade pickup during last two seconds of lss intermission

@@ -314,10 +314,10 @@ void hit(int damage, playerent *d, playerent *at, const vec &vel, int gun, bool 
 
 	if(!m_mp(gamemode)){
 		if(d != at && isteam(d, at)){
-			dodamage(damage * 0.4, at, at, NUMGUNS, true);
+			dodamage(damage * 0.4, at, at, NUMGUNS, FRAG_GIB);
 			if((damage *= 0.25) >= d->health) damage = d->health - 1;
 		}
-		dodamage(damage, d, at, gun, gib);
+		dodamage(damage, d, at, gun, gib ? FRAG_GIB : FRAG_NONE);
 	}
 	else
 	{

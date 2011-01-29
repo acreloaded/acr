@@ -4,7 +4,7 @@ inline void addpt(client *c, int points){
 	sendf(-1, 1, "ri3", N_POINTS, c->clientnum, (c->state.points += points));
 }
 
-void killpoints(client *target, client *actor, int gun, bool gib){
+void killpoints(client *target, client *actor, int gun, int style){
 	int cnumber = numauthedclients(), tpts = target->state.points, gain = 0;
 	bool suic = target == actor;
 	addpt(target, DEATHPT);
@@ -16,7 +16,7 @@ void killpoints(client *target, client *actor, int gun, bool gib){
 			if (m_htf && clienthasflag(actor->clientnum) >= 0) gain += HTFFRAGPT;
             if (m_ctf && clienthasflag(target->clientnum) >= 0) gain += CTFFRAGPT;
 		} else gain += BONUSPT;
-		if (gib) {
+		if (style & FRAG_GIB) {
             if (gun == GUN_KNIFE || gun != GUN_GRENADE) gain += KNIFENADEPT;
             else if (gun == GUN_SHOTGUN) gain += SHOTGPT;
 			else gain += HEADSHOTPT;
@@ -26,6 +26,7 @@ void killpoints(client *target, client *actor, int gun, bool gib){
 			if ( targethasflag >= 0 ) addpt(actor, FLAGTKPT);
 			else addpt(actor, TKPT);
 		}*/
+		if(style & FRAG_FIRST) gain += FIRSTKILLPT;
 		addpt(actor, gain);
 		gain *= ASSISTMUL;
 		loopv(target->state.damagelog){

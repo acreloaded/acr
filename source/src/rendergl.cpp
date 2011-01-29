@@ -338,9 +338,11 @@ VARP(aboveheadiconsize, 0, 50, 100);
 VARP(aboveheadiconfadetime, 1, 2000, 10000);
 
 void renderaboveheadicon(playerent *p){
-	static Texture *comtex = NULL, *headshottex = NULL;
+	static Texture *comtex = NULL, *headshottex = NULL, *decapitatedtex = NULL, *firstbloodtex = NULL;
 	if(!comtex) comtex = textureload("packages/misc/com.png");
 	if(!headshottex) headshottex = textureload("packages/misc/headshot.png");
+	if(!decapitatedtex) decapitatedtex = textureload("packages/misc/decapitated.png");
+	if(!firstbloodtex) firstbloodtex = textureload("packages/misc/firstblood.png");
 	if(!aboveheadiconsize) return;
 	loopv(p->icons){
 		eventicon &icon = p->icons[i];
@@ -354,6 +356,8 @@ void renderaboveheadicon(playerent *p){
 		uint h = 1; float aspect = 2, scalef = 3;
 		switch(icon.type){
 			case eventicon::HEADSHOT: tex = headshottex; h = 4; break;
+			case eventicon::FIRSTBLOOD: tex = firstbloodtex; h = 8; break;
+			case eventicon::DECAPITATED: scalef = aspect = 1; tex = decapitatedtex; break;
 			case eventicon::VOICECOM: scalef = aspect = 1; default: break;
 		}
 		glPushMatrix();
