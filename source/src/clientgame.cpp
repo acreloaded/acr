@@ -1083,7 +1083,7 @@ playerent *updatefollowplayer(int shiftdirection)
 	vector<playerent *> available;
 	loopv(players) if(players[i])
 	{
-		if(players[i]->state==CS_DEAD || players[i]->isspectating()) continue;
+		if((players[i]->state==CS_DEAD && m_arena) || players[i]->isspectating()) continue;
 		available.add(players[i]);
 	}
 	if(!available.length()) return NULL;
