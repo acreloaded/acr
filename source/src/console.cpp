@@ -86,7 +86,7 @@ struct console : consolebuffer<cline>
 
 console con;
 
-VARP(chatfade, 2, 10, 20);
+VARP(chatfade, 0, 15, 30);
 struct chatlist : consolebuffer<cline>{
     void render(){
         const int conwidth = 2 * VIRTW * 3 / 10;
