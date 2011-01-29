@@ -526,7 +526,7 @@ void renderhbox(playerent *d)
 	float y = d->yaw*RAD, p = (d->pitch/4+90)*RAD, c = cosf(p);
 	vec bottom(d->o), up(sinf(y)*c, -cosf(y)*c, sinf(p)), top(up);
 	bottom.z -= d->eyeheight;
-	top.mul(d->eyeheight + d->aboveeye).add(bottom);
+	top.mul(d->eyeheight).add(bottom);
 
 	if(d->state==CS_ALIVE && d->head.x >= 0)
 	{
@@ -549,6 +549,8 @@ void renderhbox(playerent *d)
 	spoke.orthogonal(up);
 	spoke.normalize().mul(d->radius);
 
+	// legs
+	top.sub(bottom).mul(LEGPART).add(bottom);
 	glBegin(GL_LINE_LOOP);
 	loopi(8)
 	{
@@ -567,6 +569,38 @@ void renderhbox(playerent *d)
 	glEnd();
 	glBegin(GL_LINES);
 	loopi(8)
+	{
+		vec pos(spoke);
+		pos.rotate(2*M_PI*i/8.0f, up).add(bottom);
+		glVertex3fv(pos.v);
+		pos.sub(bottom).add(top);
+		glVertex3fv(pos.v);
+	}
+	glEnd();
+
+	top.sub(bottom).div(LEGPART).add(bottom);
+
+	// torso
+	bottom.sub(top).mul(TORSOPART).add(top);
+
+	glBegin(GL_LINE_LOOP);
+	loopi(9)
+	{
+		vec pos(spoke);
+		pos.rotate(2*M_PI*i/8.0f, up).add(top);
+		glVertex3fv(pos.v);
+	}
+	glEnd();
+	glBegin(GL_LINE_LOOP);
+	loopi(9)
+	{
+		vec pos(spoke);
+		pos.rotate(2*M_PI*i/8.0f, up).add(bottom);
+		glVertex3fv(pos.v);
+	}
+	glEnd();
+	glBegin(GL_LINES);
+	loopi(9)
 	{
 		vec pos(spoke);
 		pos.rotate(2*M_PI*i/8.0f, up).add(bottom);
@@ -608,7 +642,7 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
 	else if(d->state==CS_EDITING)				   { anim = ANIM_JUMP|ANIM_END; }
 	else if(d->state==CS_LAGGED)					{ anim = ANIM_SALUTE|ANIM_LOOP|ANIM_TRANSLUCENT; }
 	else if(lastmillis-d->lastpain<300)			 { anim = d->crouching ? ANIM_CROUCH_PAIN : ANIM_PAIN; speed = 300.0f/4; varseed += d->lastpain; basetime = d->lastpain; }
-	else if(!d->onfloor && d->timeinair>50)		 { anim = ANIM_JUMP|ANIM_END; }
+	else if(!d->onfloor && d->timeinair>50)		 { anim = (d->crouching ? ANIM_CROUCH_IDLE : ANIM_JUMP)|ANIM_END; }
 	else if(d->weaponsel==d->lastattackweapon && lastmillis-d->lastaction<300 && d->lastpain < d->lastaction) { anim = d->crouching ? ANIM_CROUCH_ATTACK : ANIM_ATTACK; speed = 300.0f/8; basetime = d->lastaction; }
 	else if(!d->move && !d->strafe)				 { anim = (d->crouching ? ANIM_CROUCH_IDLE : ANIM_IDLE)|ANIM_LOOP; }
 	else											{ anim = (d->crouching ? ANIM_CROUCH_WALK : ANIM_RUN)|ANIM_LOOP; speed = 1860/d->maxspeed; }
@@ -643,7 +677,7 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
 	rendermodel(mdlname, anim|ANIM_DYNALLOC, tex, 1.5f, o, d->yaw+90, d->pitch/4, speed, basetime, d, a);
 	if(!stenciling && !reflecting && !refracting)
 	{
-		if(isteam(player1, d)) renderaboveheadicon(d);
+		renderaboveheadicon(d);
 		if(dbghbox) renderhbox(d);
 	}
 }

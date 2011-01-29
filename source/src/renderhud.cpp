@@ -704,20 +704,32 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
 	drawdmgindicator();
 
-	static Texture *headshottex = NULL;
-	if(!headshottex) headshottex = textureload("packages/misc/headshot.png", 3);
-	if(lastmillis - p->lastheadshot < 3000){
-		glBindTexture(GL_TEXTURE_2D, headshottex->id);
+	static Texture *comtex = NULL, *headshottex = NULL;
+	if(!comtex) comtex = textureload("packages/misc/com.png");
+	if(!headshottex) headshottex = textureload("packages/misc/headshot.png");
+	loopv(p->icons){
+		eventicon &icon = p->icons[i];
+		Texture *icontex = headshottex;
+		if(icon.millis + 3000 < lastmillis) continue; // deleted elsewhere
+		int h = 1;
+		float aspect = 1, scalef = 1, offset = (lastmillis - icon.millis) / 3000.f * 160.f;
+		switch(icon.type){
+			case eventicon::VOICECOM: scalef = .4f; icontex = comtex; break;
+			case eventicon::HEADSHOT: aspect = 2; h = 4; default: break;
+		}
+		glBindTexture(GL_TEXTURE_2D, icontex->id);
 		glEnable(GL_BLEND);
-		glColor4f(1.f, 1.f, 1.f, (3000 + p->lastheadshot - lastmillis) / 3000.f);
+		glColor4f(1.f, 1.f, 1.f, (3000 + icon.millis - lastmillis) / 3000.f);
 		glBegin(GL_QUADS);
-		float anim = lastmillis / 100 % 8;
-		if(anim > 3) anim = 7 - anim;
-		anim /= 4;
-		glTexCoord2f(0, 0 + anim); glVertex2f(VIRTW * 0.35f, VIRTH * 0.2f);
-		glTexCoord2f(1, 0 + anim);	glVertex2f(VIRTW * 0.65f, VIRTH * 0.2f);
-		glTexCoord2f(1, 0.25f + anim); glVertex2f(VIRTW * 0.65f, VIRTH * 0.4f);
-		glTexCoord2f(0,	0.25f + anim); glVertex2f(VIRTW * 0.35f, VIRTH * 0.4f);
+		float anim = lastmillis / 100 % (h * 2);
+		if(anim >= h) anim = h * 2 - anim + 1;
+		anim /= h;
+		const float xx = VIRTW * .15f * scalef, yy = /*VIRTH * .2f * scalef*/ xx / aspect, yoffset = VIRTH * -.15f - offset;
+		glTexCoord2f(0, anim); glVertex2f(VIRTW / 2 - xx, VIRTH / 2 - yy + yoffset);
+		glTexCoord2f(1, anim); glVertex2f(VIRTW / 2 + xx, VIRTH / 2 - yy + yoffset);
+		anim += 1.f / h;
+		glTexCoord2f(1, anim); glVertex2f(VIRTW / 2 + xx, VIRTH / 2 + yy + yoffset);
+		glTexCoord2f(0,	anim); glVertex2f(VIRTW / 2 - xx, VIRTH / 2 + yy + yoffset);
 		glEnd();
 	}
 

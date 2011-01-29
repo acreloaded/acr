@@ -334,24 +334,41 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c){
 	glDepthMask(GL_TRUE);
 }
 
-VARP(aboveheadiconsize, 0, 50, 1000);
+VARP(aboveheadiconsize, 0, 50, 100);
 VARP(aboveheadiconfadetime, 1, 2000, 10000);
 
 void renderaboveheadicon(playerent *p){
-	int t = lastmillis-p->lastvoicecom;
-	if(!aboveheadiconsize || !p->lastvoicecom || t > aboveheadiconfadetime) return;
-	glPushMatrix();
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
-	glTranslatef(p->o.x, p->o.y, p->o.z+p->aboveeye);
-	glRotatef(camera1->yaw-180, 0, 0, 1);
-	glColor3f(1.0f, 0.0f, 0.0f);
-	static Texture *tex = NULL;
-	if(!tex) tex = textureload("packages/misc/com.png");
-	float s = aboveheadiconsize/100.0f;
-	quad(tex->id, vec(s/2.0f, 0.0f, s), vec(s/-2.0f, 0.0f, 0.0f), 0.0f, 0.0f, 1.0f, 1.0f);
-	glDisable(GL_BLEND);
-	glPopMatrix();
+	static Texture *comtex = NULL, *headshottex = NULL;
+	if(!comtex) comtex = textureload("packages/misc/com.png");
+	if(!headshottex) headshottex = textureload("packages/misc/headshot.png");
+	if(!aboveheadiconsize) return;
+	loopv(p->icons){
+		eventicon &icon = p->icons[i];
+		int t = lastmillis - icon.millis;
+		if(t > 3000 && t > aboveheadiconfadetime){
+			p->icons.remove(i--);
+			continue;
+		}
+		if(!aboveheadiconsize || t > aboveheadiconfadetime) continue;
+		Texture *tex = comtex;
+		uint h = 1; float aspect = 2, scalef = 3;
+		switch(icon.type){
+			case eventicon::HEADSHOT: tex = headshottex; h = 4; break;
+			case eventicon::VOICECOM: scalef = aspect = 1; default: break;
+		}
+		glPushMatrix();
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_BLEND);
+		glTranslatef(p->o.x, p->o.y, p->o.z+p->aboveeye);
+		glRotatef(camera1->yaw-180, 0, 0, 1);
+		glColor4f(1.0f, 1.0f, 1.0f, (aboveheadiconfadetime + icon.millis - lastmillis) / float(aboveheadiconfadetime));
+		float s = aboveheadiconsize/75.0f*scalef, offset =  (lastmillis - icon.millis) * 2.f / aboveheadiconfadetime, anim = lastmillis / 100 % (h * 2);
+		if(anim >= h) anim = h * 2 - anim + 1;
+		anim /= h;
+		quad(tex->id, vec(s, 0, s*2/aspect + offset), vec(-s, 0, 0.0f + offset), 0.0f, anim, 1.0f, 1.f/h);
+		glDisable(GL_BLEND);
+		glPopMatrix();
+	}
 }
 
 void rendercursor(int x, int y, int w){

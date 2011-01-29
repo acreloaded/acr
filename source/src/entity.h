@@ -394,14 +394,22 @@ struct playerstate
 };
 
 #define HEADSIZE 0.4f
+#define TORSOPART 0.35f
+#define LEGPART (1 - TORSOPART)
+
+struct eventicon{
+    enum { VOICECOM = 0, HEADSHOT, CRITICAL, FIRSTBLOOD, AFFINITY, WEAPON, TOTAL };
+    int type, millis;
+	eventicon(int type, int millis) : type(type), millis(millis){}
+};
 
 struct playerent : dynent, playerstate
 {
 	int clientnum, lastupdate, plag, ping;
 	int lifesequence;				   // sequence id for each respawn, used in damage test
-	int radarmillis, lastheadshot; float lastloudpos[3];
+	int radarmillis; float lastloudpos[3];
 	int points, frags, flagscore, deaths;
-	int lastaction, lastmove, lastpain, lastvoicecom;
+	int lastaction, lastmove, lastpain;
 	int priv, vote, voternum, lastregen;
 	int ads; bool wantsreload;
 	bool attacking;
@@ -413,6 +421,7 @@ struct playerent : dynent, playerstate
 	int eardamagemillis;
 	int respawnoffset;
 	bool allowmove() { return state!=CS_DEAD || spectatemode==SM_FLY; }
+	vector<eventicon> icons;
 
 	weapon *weapons[NUMGUNS];
 	weapon *prevweaponsel, *weaponsel, *nextweaponsel, *primweap, *nextprimweap, *lastattackweapon;
@@ -426,9 +435,9 @@ struct playerent : dynent, playerstate
 
 	vec head;
 
-	playerent() : clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), points(0), frags(0), flagscore(0), deaths(0), lastpain(0), lastvoicecom(0), priv(PRIV_NONE),
+	playerent() : clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), points(0), frags(0), flagscore(0), deaths(0), lastpain(0), priv(PRIV_NONE),
 				  skin(0), spectatemode(SM_NONE), followplayercn(-1), eardamagemillis(0), respawnoffset(0), radarmillis(0), vote(VOTE_NEUTRAL), voternum(MAXCLIENTS),
-				  prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL), lastheadshot(0), ads(0),
+				  prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL), ads(0),
 				  smoothmillis(-1),
 				  head(-1, -1, -1)
 	{
@@ -441,6 +450,13 @@ struct playerent : dynent, playerstate
 		maxspeed = 16.0f;
 		skin_noteam = skin_red = skin_blue = NULL;
 		respawn();
+	}
+
+	void addicon(int type)
+	{
+		extern int lastmillis;
+		eventicon icon(type, lastmillis);
+		icons.add(icon);
 	}
 
 	virtual ~playerent()
@@ -458,6 +474,7 @@ struct playerent : dynent, playerstate
 		zapplayerflags(this);
 		cleanplayervotes(this);
 		if(this==camera1) togglespect();
+		icons.setsize(0);
 	}
 
 	void damageroll(float damage)

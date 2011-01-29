@@ -238,16 +238,16 @@ int intersect(playerent *d, const vec &from, const vec &to, vec *end){
 	bottom.z -= d->eyeheight;
 	top.mul(d->eyeheight/* + d->aboveeye*/).add(bottom); // space above shoulders
 	// torso
-	bottom.sub(top).div(2).add(top);
+	bottom.sub(top).mul(TORSOPART).add(top);
 	if(intersectcylinder(from, to, bottom, top, d->radius, dist))
 	{
 		if(end) (*end = to).sub(from).mul(dist).add(from);
 		return 1;
 	}
 	// restore to body
-	bottom.sub(top).mul(2).add(top);
+	bottom.sub(top).div(TORSOPART).add(top);
 	// legs
-	top.sub(bottom).div(2).add(bottom);
+	top.sub(bottom).mul(LEGPART).add(bottom);
 	if(intersectcylinder(from, to, bottom, top, d->radius, dist))
 	{
 		if(end) (*end = to).sub(from).mul(dist).add(from);
