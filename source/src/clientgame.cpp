@@ -32,6 +32,8 @@ char *getclientmap() { return clientmap; }
 
 extern bool sendmapident;
 
+bool localfirstkill = false;
+
 void setskin(playerent *pl, uint skin)
 {
 	if(!pl) return;
@@ -500,7 +502,10 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 	}
 	damageeffect(damage, pl);
 
-	if(pl->health<=0) { if(local) dokill(pl, actor, weapon, style); }
+	if(pl->health<=0){ if(local){
+		if(!localfirstkill && pl != actor && !isteam(pl, actor)){ localfirstkill = true; style |= FRAG_FIRST; }
+		dokill(pl, actor, weapon, style);
+	}}
 	else if(pl==player1) playsound(S_PAIN6, SP_HIGH);
 	else playsound(S_PAIN1+rnd(5), pl);
 }
@@ -707,6 +712,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
 {
 	s_strcpy(clientmap, name);
 	sendmapident = true;
+	localfirstkill = false;
 	// Added by Rick
 	if(m_botmode) BotManager.BeginMap(name);
 	else kickallbots();
