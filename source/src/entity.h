@@ -411,7 +411,7 @@ struct playerent : dynent, playerstate
 	int points, frags, flagscore, deaths;
 	int lastaction, lastmove, lastpain;
 	int priv, vote, voternum, lastregen;
-	int ads; bool wantsreload;
+	int ads, wantsswitch; bool wantsreload;
 	bool attacking;
 	string name;
 	int weaponchanging;
@@ -438,7 +438,7 @@ struct playerent : dynent, playerstate
 	playerent() : clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), points(0), frags(0), flagscore(0), deaths(0), lastpain(0), priv(PRIV_NONE),
 				  skin(0), spectatemode(SM_NONE), followplayercn(-1), eardamagemillis(0), respawnoffset(0), radarmillis(0), vote(VOTE_NEUTRAL), voternum(MAXCLIENTS),
 				  prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL), ads(0),
-				  smoothmillis(-1),
+				  smoothmillis(-1), wantsswitch(-1),
 				  head(-1, -1, -1)
 	{
 		type = ENT_PLAYER;
@@ -510,6 +510,7 @@ struct playerent : dynent, playerstate
 		lastaction = 0;
 		lastattackweapon = NULL;
 		ads = 0.f;
+		wantsswitch = -1;
 		scoping = attacking = false;
 		weaponchanging = 0;
 		resetspec();
@@ -532,12 +533,22 @@ struct playerent : dynent, playerstate
 	void weaponswitch(weapon *w)
 	{
 		if(!w) return;
+		extern playerent *player1;
+		if(ads){
+			if(this == player1){
+				extern void setscope(bool activate);
+				setscope(false);
+				wantsswitch = w->type;
+			}
+			return;
+		}
+		wantsswitch = -1;
 		extern int lastmillis;
 		// weaponsel->ondeselecting();
 		weaponchanging = lastmillis;
 		prevweaponsel = weaponsel;
 		nextweaponsel = w;
-		extern playerent *player1; extern void addmsg(int type, const char *fmt = NULL, ...);;
+		extern void addmsg(int type, const char *fmt = NULL, ...);
 		if(this == player1) addmsg(N_SWITCHWEAP, "ri", w->type);
 		w->onselecting();
 	}

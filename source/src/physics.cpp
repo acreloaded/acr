@@ -610,9 +610,16 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 				!ppl->weaponsel->reloading && !ppl->weaponchanging && !ppl->weaponsel->modelattacking() ){
 			ppl->ads += curtime * (ppl->scoping ? 1000 : -1000) / ppl->weaponsel->scopetime;
 			ppl->ads = clamp(ppl->ads, 0, 1000);
-			if(!ppl->ads && ppl->wantsreload && ppl == gamefocus){
-				ppl->wantsreload = false;
-				tryreload(ppl);
+			if(!ppl->ads && ppl == player1){
+				if(ppl->wantsreload){
+					ppl->wantsreload = false;
+					tryreload(ppl);
+					ppl->scoping = true;
+				}
+				else if(ppl->wantsswitch >= 0){
+					ppl->weaponswitch(ppl->weapons[ppl->wantsswitch]);
+					ppl->scoping = true;
+				}
 			}
 		}
 	}
