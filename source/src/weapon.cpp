@@ -1075,7 +1075,7 @@ bool sniperrifle::selectable() { return weapon::selectable() && !m_noprimary && 
 void sniperrifle::renderhudmodel() { if(owner->ads < adsscope) weapon::renderhudmodel(); }
 
 void sniperrifle::renderaimhelp(int teamtype){
-	if(player1->ads > adsscope){ drawscope(); drawcrosshair(owner, CROSSHAIR_SCOPE, teamtype, NULL, 24.0f); }
+	if(owner->ads > adsscope){ drawscope(); drawcrosshair(owner, CROSSHAIR_SCOPE, teamtype, NULL, 24.0f); }
 	else weapon::renderaimhelp(teamtype);
 }
 
