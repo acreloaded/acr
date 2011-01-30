@@ -606,7 +606,8 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 		if(pl==player1 && !intermission && !player1->onladder) updatecrouch(player1, player1->trycrouch);
 		const float croucheyeheight = pl->maxeyeheight*3.0f/4.0f;
 		resizephysent(pl, moveres, curtime, croucheyeheight, pl->maxeyeheight);
-		if(!intermission && pl->state == CS_ALIVE && !ppl->weaponsel->reloading && !ppl->weaponchanging && (ppl->scoping ? ppl->ads < 1000 : ppl->ads > 0)){
+		if(!intermission && pl->state == CS_ALIVE && (ppl->scoping ? ppl->ads < 1000 : ppl->ads > 0) &&
+				!ppl->weaponsel->reloading && !ppl->weaponchanging && !ppl->weaponsel->modelattacking() ){
 			ppl->ads += curtime * (ppl->scoping ? 1000 : -1000) / ppl->weaponsel->scopetime;
 			ppl->ads = clamp(ppl->ads, 0, 1000);
 			if(!ppl->ads && ppl->wantsreload && ppl == gamefocus){
