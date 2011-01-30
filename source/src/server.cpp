@@ -1341,7 +1341,11 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 	ts.lastregen = gamemillis;
 	actor->state.damage += damage != 1000 ? damage : 0;
 	int style = (gib ? FRAG_GIB : FRAG_NONE) | (damage > guns[gun].damage ? FRAG_OVERKILL : FRAG_NONE);
-	// TODO: add critical!
+	/*/ TODO: add critical!
+	if(!suic){
+	
+	}
+	//*/
 	sendf(-1, 1, "ri8", N_DAMAGE, target->clientnum, actor->clientnum, damage, ts.armour, ts.health, gun, style);
 	if(ts.health<=0){
 		int targethasflag = clienthasflag(target->clientnum);
@@ -1360,7 +1364,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 			if(valid_client(ts.damagelog[i])) clients[ts.damagelog[i]]->state.assists++;
 			else ts.damagelog.remove(i--);
 		}
-		if(nokills){
+		if(!suic && nokills){
 			style |= FRAG_FIRST;
 			nokills = false;
 		}
