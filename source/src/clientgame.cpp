@@ -135,7 +135,7 @@ void deathstate(playerent *pl)
 	if(pl==player1){
 		if(showscoresondeath) showscores(true);
 		setscope(false);
-		damageblend(-1);
+		//damageblend(-1);
 	}
 	else pl->resetinterp();
 }
@@ -497,7 +497,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 			pl->hitpush(damage, dir, weapon);
 		}
 		if(weapon != GUN_GRENADE) updatedmgindicator(actor->o);
-		damageblend(damage);
+		//damageblend(damage);
 		pl->damageroll(damage);
 	}
 	damageeffect(damage, pl);

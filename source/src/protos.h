@@ -256,7 +256,7 @@ extern void rendercursor(int x, int y, int w);
 extern void renderaboveheadicon(playerent *p);
 extern void drawscope();
 extern float dynfov();
-extern void damageblend(int n);
+//extern void damageblend(int n);
 
 enum
 {

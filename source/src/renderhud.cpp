@@ -625,18 +625,8 @@ void drawteamicons(int w, int h){
 	quad(icons->id, VIRTW-VIRTH/12-10, 10, VIRTH/12, player1->team ? 0.5f : 0, 0, 0.49f, 1.0f);
 }
 
-int damageblendmillis = 0;
-
-VARFP(damagescreen, 0, 1, 1, { if(!damagescreen) damageblendmillis = 0; });
-VARP(damagescreenfactor, 1, 7, 100);
-VARP(damagescreenalpha, 1, 45, 100);
-VARP(damagescreenfade, 0, 125, 1000);
-
-void damageblend(int n){
-	if(!damagescreen) return;
-	if(lastmillis > damageblendmillis) damageblendmillis = lastmillis;
-	damageblendmillis += min(n*damagescreenfactor, 1500);
-}
+//VARP(damagescreenfactor, 1, 7, 100);
+VARP(damagescreenalpha, 40, 80, 100);
 
 static int votersort(playerent **a, playerent **b){
 	return (*a)->voternum - (*b)->voternum;
@@ -669,8 +659,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		glEnd();
 	}
 
-	if(lastmillis < damageblendmillis)
-	{
+	if(!m_osok && p->health < 100){
 		static Texture *damagetex = NULL;
 		if(!damagetex) damagetex = textureload("packages/misc/damage.png", 3);
 
@@ -678,8 +667,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, damagetex->id);
 		float fade = damagescreenalpha/100.0f;
-		if(damageblendmillis - lastmillis < damagescreenfade)
-			fade *= float(damageblendmillis - lastmillis)/damagescreenfade;
+		fade *= 1 - powf(p->health, 2) / powf(100, 2);
 		glColor4f(fade, fade, fade, fade);
 
 		glBegin(GL_QUADS);
