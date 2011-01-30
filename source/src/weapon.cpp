@@ -425,7 +425,9 @@ void renderbounceents(){
 			}
 		}
 		path(model);
+		if(p->bouncetype == BT_SHELL) sethudgunperspective(true);
 		rendermodel(model, anim|ANIM_LOOP|ANIM_DYNALLOC, 0, 1.1f, o, p->yaw+90, p->pitch, 0, basetime, NULL, NULL, scale);
+		if(p->bouncetype == BT_SHELL) sethudgunperspective(false);
 	}
 }
 
@@ -970,7 +972,7 @@ void gun::attackshell(const vec &to){
 	s->bouncetype = BT_SHELL;
 	
 	const bool akimboflip = type == GUN_AKIMBO && ((akimbo *)this)->akimboside;
-	s->vel = vec(1, rnd(101) / 400.f, (rnd(51) + 100) / 100.f);
+	s->vel = vec(1, rnd(101) / 400.f, (rnd(51) + 50) / 100.f);
 	s->vel.rotate_around_z(owner->yaw*RAD);
 	s->o = owner->o;
 	s_sprintfd(hudmdl)("weapons/%s", owner->weaponsel->info.modelname);
