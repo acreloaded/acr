@@ -659,15 +659,16 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		glEnd();
 	}
 
-	if(!m_osok && p->state == CS_ALIVE && p->health < 100){
-		static Texture *damagetex = NULL;
+	static Texture *damagetex = NULL;
 		if(!damagetex) damagetex = textureload("packages/misc/damage.png", 3);
 
+	if(!m_osok && p->health < 100){
 		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, damagetex->id);
-		float fade = damagescreenalpha/100.0f;
-		fade *= 1 - powf(p->health, 2) / powf(100, 2);
+		static float fade = 0.f;
+		float newfade = p->state == CS_ALIVE ? (1 - powf(p->health, 2) / powf(100, 2) * damagescreenalpha / 100.f) : 0;
+		fade = (fade * 40 + newfade) / 41.f;
 		glColor4f(fade, fade, fade, fade);
 
 		glBegin(GL_QUADS);
