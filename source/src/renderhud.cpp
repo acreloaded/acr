@@ -213,7 +213,7 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 		glTexCoord2f(0, 1); glVertex2f(VIRTW/2 + chsize, VIRTH/2 + ct);
 	}
 	else{
-	if(n == CROSSHAIR_SHOTGUN) chsize = SGSPREAD * 100 * (1 - p->ads / 6000.f) / dynfov();
+	if(n == CROSSHAIR_SHOTGUN) chsize = SGSPREAD * 100 * (1 - p->ads / 8000.f) / dynfov();
 		glBegin(GL_QUADS);
 		glTexCoord2f(0, 0); glVertex2f(VIRTW/2 - chsize, VIRTH/2 - chsize);
 		glTexCoord2f(1, 0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 - chsize);

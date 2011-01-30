@@ -62,7 +62,7 @@ static itemstat powerupstats[] =
 };
 
 #define SGRAYS 32
-#define SGSPREAD 260
+#define SGSPREAD 300
 #define SGGIB 130
 #define NADEPOWER 1.5f
 
@@ -72,7 +72,7 @@ static guninfo guns[NUMGUNS] =
 //	{ modelname;     snd,	  rldsnd,  rldtime, atkdelay,  dmg, rngstart, rngend, rngm,psd,ptt,spr,kick,magsz,mkrot,mkback,rcoil,maxrcl,pushf; auto;}
 	{ "knife",       S_KNIFE,    S_NULL,     0,      560,    250,  3,    4,   250,   0,   0,  1,    1,   1,    0,  0,   0,    0,      5,   true },
 	{ "pistol",      S_PISTOL,   S_RPISTOL,  1400,   90,     40,   40,  120,   20,   0,   0, 90,    9,   12,   6,  2,   50,   85,     1,   false},
-	{ "autoshotgun", S_SHOTGUN,  S_RSHOTGUN, 2400,   200,     6,   16,   32,    2,   0,   0,  1,   12,   10,   9,  5,   80,   80,     2,   true },
+	{ "autoshotgun", S_SHOTGUN,  S_RSHOTGUN, 2400,   200,    6,    16,   32,    4,   0,   0,  1,   12,   10,   9,  5,   80,   80,     2,   true },
 	{ "subgun",      S_SUBGUN,   S_RSUBGUN,  1858,   67,     35,   40,   90,   20,   0,   0, 70,    4,   32,   1,  3,   14,   45,     1,   true },
 	{ "sniper",      S_SNIPER,   S_RSNIPER,  1950,   500,    140,  10,  100,   10,   0,   0,512,   18,   10,   4,  4,  100,  110,     2,   false},
 	{ "shotgun",     S_SLUG,     S_RSLUG,    2400,   700,    200,  24,   48,  100,   0,   0,128,   16,    8,   9,  5,   90,  100,     2,   false},
