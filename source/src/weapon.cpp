@@ -397,7 +397,7 @@ void renderbounceents(){
 			case BT_SHELL:
 			{
 				s_strcpy(model, "weapons/shell");
-				scale = shellsize / 10.f;
+				scale = shellsize / 18.f;
 				int t = lastmillis-p->millis;
 				if(t>p->timetolive-2000)
 				{
@@ -969,7 +969,8 @@ void gun::attackshell(const vec &to){
 	s->timetolive = gibttl;
 	s->bouncetype = BT_SHELL;
 	
-	s->vel = vec(1, rnd(101) / 200.f, rnd(101) / 200.f);
+	const bool akimboflip = type == GUN_AKIMBO && ((akimbo *)this)->akimboside;
+	s->vel = vec(1, rnd(101) / 400.f, (rnd(51) + 100) / 100.f);
 	s->vel.rotate_around_z(owner->yaw*RAD);
 	s->o = owner->o;
 	s_sprintfd(hudmdl)("weapons/%s", owner->weaponsel->info.modelname);
@@ -986,7 +987,8 @@ void gun::attackshell(const vec &to){
 		float f = poscpy.magnitude();
 		if(f) poscpy.div(f);
 		poscpy.rotate_around_y(owner->pitch * RAD);
-		poscpy.rotate_around_z((owner->yaw - 90 )*RAD);
+		if(akimboflip) poscpy.rotate_around_z(180*RAD);
+		poscpy.rotate_around_z((owner->yaw - 90) * RAD);
 		poscpy.mul(f);
 		s->o.add(poscpy);
 	}
@@ -996,14 +998,15 @@ void gun::attackshell(const vec &to){
 		s->o.y += s->vel.y * owner->radius;
 	}
 	s->vel.mul(0.025f * (rnd(6) + 1));
+	if(akimboflip) s->vel.rotate_around_z(180*RAD);
 	s->inwater = hdr.waterlevel > owner->o.z;
 	s->cancollide = false;
 
 	s->yaw = owner->yaw+180;
-	s->pitch = 0;
+	s->pitch = owner->pitch;
 
 	s->maxspeed = 30.0f;
-	s->rotspeed = 1.f;
+	s->rotspeed = rnd(11) / 10.f;
 
 	s->resetinterp();
 }
