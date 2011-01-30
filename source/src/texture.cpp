@@ -577,3 +577,14 @@ void cleanuptmus()
 	loopi(MAXTMUS) tmus[i] = invalidtmu;
 }
 
+Texture **geteventicons(){
+	static Texture *tex[eventicon::TOTAL];
+	if(!*tex){
+		const char *texname[eventicon::TOTAL] = { "com", "headshot", "decapitated", "firstblood", "critical", "revenge" };
+		loopi(eventicon::TOTAL){
+			s_sprintfd(tname)("packages/misc/eventicons/%s.png", texname);
+			tex[i] = textureload(tname);
+		}
+	}
+	return tex;
+}
