@@ -338,6 +338,7 @@ VARP(aboveheadiconsize, 0, 50, 100);
 VARP(aboveheadiconfadetime, 1, 2000, 10000);
 
 void renderaboveheadicon(playerent *p){
+	static Texture **texs = geteventicons();
 	loopv(p->icons){
 		eventicon &icon = p->icons[i];
 		int t = lastmillis - icon.millis;
@@ -346,7 +347,7 @@ void renderaboveheadicon(playerent *p){
 			continue;
 		}
 		if(!aboveheadiconsize || t > aboveheadiconfadetime) continue;
-		Texture *tex = geteventicons()[icon.type];
+		Texture *tex = texs[icon.type];
 		uint h = 1; float aspect = 2, scalef = 3;
 		switch(icon.type){
 			case eventicon::HEADSHOT: h = 4; break;

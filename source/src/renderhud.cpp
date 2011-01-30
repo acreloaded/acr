@@ -704,6 +704,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
 	drawdmgindicator();
 
+	static Texture **texs = geteventicons();
 	loopv(p->icons){
 		eventicon &icon = p->icons[i];
 		if(icon.type < 0 || icon.type >= eventicon::TOTAL){
@@ -711,7 +712,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 			continue;
 		}
 		if(icon.millis + 3000 < lastmillis) continue; // deleted elsewhere
-		Texture *tex = geteventicons()[icon.type];
+		Texture *tex = texs[icon.type];
 		int h = 1;
 		float aspect = 1, scalef = 1, offset = (lastmillis - icon.millis) / 3000.f * 160.f;
 		switch(icon.type){
