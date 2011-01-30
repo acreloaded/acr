@@ -987,8 +987,7 @@ void gun::attackshell(const vec &to){
 		float f = poscpy.magnitude();
 		if(f) poscpy.div(f);
 		poscpy.rotate_around_y(owner->pitch * RAD);
-		if(akimboflip) poscpy.rotate_around_z(180*RAD);
-		poscpy.rotate_around_z((owner->yaw - 90) * RAD);
+		poscpy.rotate_around_z((owner->yaw + (akimboflip ? 90 : -90)) * RAD);
 		poscpy.mul(f);
 		s->o.add(poscpy);
 	}
@@ -1003,7 +1002,7 @@ void gun::attackshell(const vec &to){
 	s->cancollide = false;
 
 	s->yaw = owner->yaw+180;
-	s->pitch = owner->pitch;
+	s->pitch = -owner->pitch;
 
 	s->maxspeed = 30.0f;
 	s->rotspeed = rnd(11) / 10.f;
