@@ -514,8 +514,8 @@ void dokill(playerent *pl, playerent *act, int weapon, int style){
 	if(pl->state!=CS_ALIVE || intermission) return;
 
 	string pname, aname, death;
-	s_strcpy(pname, pl==player1 ? "\fs\f1you\fr" : colorname(pl));
-	s_strcpy(aname, act==player1 ? "\fs\f1you\fr" : colorname(act));
+	s_strcpy(pname, pl==gamefocus ? "\fs\f1you\fr" : colorname(pl));
+	s_strcpy(aname, act==gamefocus ? "\fs\f1you\fr" : colorname(act));
 	//void (*outf)(const char *s, ...) = (pl == p || act == p) ? hudoutf : conoutf;
 	const bool gib = style & FRAG_GIB;
 
