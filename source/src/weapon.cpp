@@ -836,6 +836,7 @@ void grenades::attackfx(const vec &from, const vec &to, int millis) // other pla
 	}
 	else /*if(millis > 0)*/ { // throw
 		grenadeent *g = new grenadeent(owner, millis);
+		state = GST_THROWING;
 		bounceents.add(g);
 		g->_throw(from, to);
 	}

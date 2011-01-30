@@ -412,9 +412,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				s->mag[gun]--;
 				updatelastaction(s);
 				if(s->weapons[gun]){
+					s->weapons[gun]->gunwait = s->weapons[gun]->info.attackdelay;
 					s->lastattackweapon = s->weapons[gun];
 					s->weapons[gun]->attackfx(from, to, -1);
-				}				
+				}
 				break;
 			}
 
@@ -425,7 +426,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				loopk(3) to[k] = getfloat(p);
 				int nademillis = getint(p);
 				if(!d) break;
-				d->lastaction = lastmillis;
+				updatelastaction(d);
 				d->lastattackweapon = d->weapons[GUN_GRENADE];
 				if(d->weapons[GUN_GRENADE]) d->weapons[GUN_GRENADE]->attackfx(from, to, nademillis);
 				break;
@@ -770,7 +771,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				int cn = getint(p), gun = getint(p);
 				playerent *d = getclient(cn);
 				if(!d || gun < 0 || gun >= NUMGUNS) break;
+				d->ads = 0;
 				d->weaponswitch(d->weapons[gun]);
+				//if(!d->weaponchanging) d->selectweapon(gun);
 				break;
 			}
 

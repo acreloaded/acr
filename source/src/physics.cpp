@@ -614,11 +614,11 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 				if(ppl->wantsreload){
 					ppl->wantsreload = false;
 					tryreload(ppl);
-					ppl->scoping = true;
+					setscope(true);
 				}
 				else if(ppl->wantsswitch >= 0){
 					ppl->weaponswitch(ppl->weapons[ppl->wantsswitch]);
-					ppl->scoping = true;
+					setscope(true);
 				}
 			}
 		}
