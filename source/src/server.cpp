@@ -3006,7 +3006,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case N_QUICKSWITCH:
 			{
 				cl->state.gunselect = cl->state.primary;
-				sendf(-1, 1, "ri2", N_QUICKSWITCH, sender);
+				sendf(-1, 1, "ri2x", N_QUICKSWITCH, sender, sender);
 				break;
 			}
 
@@ -3014,7 +3014,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			{
 				int weaponsel = getint(p);
 				cl->state.gunselect = weaponsel;
-				sendf(-1, 1, "ri3x", type, sender, weaponsel, sender);
+				sendf(-1, 1, "ri3x", N_SWITCHWEAP, sender, weaponsel, sender);
 				break;
 			}
 
