@@ -176,7 +176,7 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 	}
 	if(n == CROSSHAIR_DEFAULT) col.alpha = 1.f + p->weaponsel->dynspread() / -1200.f;
 	if(n != CROSSHAIR_SCOPE && p->ads) col.alpha *= 1 - sqrtf(p->ads * (n == CROSSHAIR_SHOTGUN ? 0.5f : 1)) / sqrtf(600);
-	glColor4f(col.r, col.g, col.b, col.alpha);
+	glColor4f(col.r, col.g, col.b, col.alpha * 0.8f);
 	float usz = (float)crosshairsize, chsize = size>0 ? size : usz;
 	if(n == CROSSHAIR_DEFAULT){
 		usz *= 3.5f;
