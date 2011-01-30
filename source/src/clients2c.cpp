@@ -283,6 +283,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(!*text) s_strcpy(text, "unnamed");
 				s_strcpy(d->name, text);
 				conoutf("connected: %s", colorname(d));
+				s_sprintfd(joinmsg)("%s \f0joined \f2the \f1game", colorname(d));
+				chatout(joinmsg);
 				updateclientname(d);
 				if(m_flags) loopi(2)
 				{
@@ -319,7 +321,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				int cn = getint(p), reason = getint(p);
 				playerent *d = getclient(cn);
 				if(!d) break;
-				if(*d->name) conoutf("player %s disconnected (%s)", colorname(d), reason >= 0 ? disc_reason(reason) : "normally");
+				if(*d->name){
+					conoutf("player %s disconnected (%s)", colorname(d), reason >= 0 ? disc_reason(reason) : "normally");
+					s_sprintfd(leavemsg)("%s \f3left \f2the \f1game", colorname(d));
+					chatout(leavemsg);
+				}
 				zapplayer(players[cn]);
 				break;
 			}
