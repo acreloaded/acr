@@ -107,7 +107,7 @@ struct subgun : gun
 
 struct sniperrifle : gun
 {
-	const static int adsscope = 650;
+	const static int adsscope = 550;
 	sniperrifle(playerent *owner);
 	void attackfx(const vec &from, const vec &to, int millis);
 
