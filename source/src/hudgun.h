@@ -18,36 +18,36 @@ struct weaponmove
 	void calcmove(vec aimdir, int lastaction)
 	{
 		kick = k_rot = 0.0f;
-		pos = player1->o;
+		pos = gamefocus->o;
 		
 		if(!nosway)
 		{
 			float k = pow(0.7f, (lastmillis-lastsway)/10.0f);
 			swaydir.mul(k);
-			vec dv(player1->vel);
-			dv.mul((1-k)/max(player1->vel.magnitude(), player1->maxspeed));
+			vec dv(gamefocus->vel);
+			dv.mul((1-k)/max(gamefocus->vel.magnitude(), gamefocus->maxspeed));
 			dv.x *= 1.5f;
 			dv.y *= 1.5f;
 			dv.z *= 0.4f;
 			swaydir.add(dv);
 		}
 
-		if(player1->onfloor || player1->onladder || player1->inwater) swaymillis += lastmillis-lastsway;
+		if(gamefocus->onfloor || gamefocus->onladder || gamefocus->inwater) swaymillis += lastmillis-lastsway;
 		lastsway = lastmillis;
 
 		anim = ANIM_GUN_IDLE;
-		if(player1->weaponchanging){
-			basetime = ads_gun(player1->weaponsel->type) ? lastmillis : player1->weaponchanging;
-			float progress = clamp((lastmillis - player1->weaponchanging)/(float)weapon::weaponchangetime, 0.0f, 1.0f);
+		if(gamefocus->weaponchanging){
+			basetime = ads_gun(gamefocus->weaponsel->type) ? lastmillis : gamefocus->weaponchanging;
+			float progress = clamp((lastmillis - gamefocus->weaponchanging)/(float)weapon::weaponchangetime, 0.0f, 1.0f);
 			k_rot = -90*sinf(progress*M_PI);
 		}
-		else if(player1->weaponsel->reloading){
+		else if(gamefocus->weaponsel->reloading){
 			anim = ANIM_GUN_RELOAD;
-			basetime = player1->weaponsel->reloading;
-			if(player1->weaponsel->type == GUN_AKIMBO){
-				float reloadtime = (float)player1->weaponsel->info.reloadtime,
-					progress = clamp((lastmillis - player1->weaponsel->reloading)/reloadtime, 0.0f,
-						clamp(1.0f - (player1->lastaction + player1->weaponsel->gunwait - lastmillis)/reloadtime, 0.5f, 1.0f));
+			basetime = gamefocus->weaponsel->reloading;
+			if(gamefocus->weaponsel->type == GUN_AKIMBO){
+				float reloadtime = (float)gamefocus->weaponsel->info.reloadtime,
+					progress = clamp((lastmillis - gamefocus->weaponsel->reloading)/reloadtime, 0.0f,
+						clamp(1.0f - (gamefocus->lastaction + gamefocus->weaponsel->gunwait - lastmillis)/reloadtime, 0.5f, 1.0f));
 				if((progress -= .4f) > 0){
 					progress /= .6f;
 					k_rot = -90 * sinf(progress*M_PI);
@@ -59,22 +59,22 @@ struct weaponmove
 			basetime = lastaction;
 
 			int timediff = lastmillis-lastaction, 
-				animtime = min(player1->weaponsel->gunwait, (int)player1->weaponsel->info.attackdelay);
+				animtime = min(gamefocus->weaponsel->gunwait, (int)gamefocus->weaponsel->info.attackdelay);
 			vec sway = aimdir;
 			float progress = 0.0f;
 			float k_back = 0.0f;
 			
-			if(player1->weaponsel==player1->lastattackweapon){
+			if(gamefocus->weaponsel==gamefocus->lastattackweapon){
 				progress = max(0.0f, min(1.0f, timediff/(float)animtime));
 				// f(x) = -sin(x-1.5)^3
 				kick = -sinf(pow((1.5f*progress)-1.5f,3));
-				kick *= player1->eyeheight / player1->maxeyeheight;
-				if(player1->lastaction) anim = player1->weaponsel->modelanim();
+				kick *= gamefocus->eyeheight / gamefocus->maxeyeheight;
+				if(gamefocus->lastaction) anim = gamefocus->weaponsel->modelanim();
 			}
 			
-			if(player1->weaponsel->info.mdl_kick_rot || player1->weaponsel->info.mdl_kick_back){
-				k_rot = player1->weaponsel->info.mdl_kick_rot*kick;
-				k_back = player1->weaponsel->info.mdl_kick_back*kick/10;
+			if(gamefocus->weaponsel->info.mdl_kick_rot || gamefocus->weaponsel->info.mdl_kick_back){
+				k_rot = gamefocus->weaponsel->info.mdl_kick_rot*kick;
+				k_back = gamefocus->weaponsel->info.mdl_kick_back*kick/10;
 			}
 			
 			if(nosway) sway.x = sway.y = sway.z = 0;
@@ -82,7 +82,7 @@ struct weaponmove
 				float swayspeed = sinf((float)swaymillis/swayspeeddiv)/(swaymovediv/10.0f);
 				float swayupspeed = cosf((float)swaymillis/swayupspeeddiv)/(swayupmovediv/10.0f);
 
-				float plspeed = min(1.0f, sqrtf(player1->vel.x*player1->vel.x + player1->vel.y*player1->vel.y));
+				float plspeed = min(1.0f, sqrtf(gamefocus->vel.x*gamefocus->vel.x + gamefocus->vel.y*gamefocus->vel.y));
 				
 				swayspeed *= plspeed/2;
 				swayupspeed *= plspeed/2;
@@ -97,23 +97,23 @@ struct weaponmove
 				sway.y *= swayspeed;
 				sway.z *= swayupspeed;
 
-				sway.mul(player1->eyeheight / player1->maxeyeheight);
+				sway.mul(gamefocus->eyeheight / gamefocus->maxeyeheight);
 			}
 
-			if(ads_gun(player1->weaponsel->type)){
-				if((anim&ANIM_INDEX) == ANIM_GUN_IDLE) basetime = lastmillis-player1->ads;
-				else if((anim&ANIM_INDEX) == ANIM_GUN_SHOOT && player1->ads){ anim &= ~ANIM_GUN_SHOOT; anim |= ANIM_GUN_SHOOT2; }
-				k_rot *= player1->ads ? 0.5f : 1;
-				k_back *= player1->ads ? 0.09090909090909090909090909090909f : 1;
-				sway.mul(player1->ads ? 0.13333333333333333333333333333333 : 1);
-				swaydir.mul(player1->ads ? 0.23076923076923076923076923076923f : 1.f);
+			if(ads_gun(gamefocus->weaponsel->type)){
+				if((anim&ANIM_INDEX) == ANIM_GUN_IDLE) basetime = lastmillis-gamefocus->ads;
+				else if((anim&ANIM_INDEX) == ANIM_GUN_SHOOT && gamefocus->ads){ anim &= ~ANIM_GUN_SHOOT; anim |= ANIM_GUN_SHOOT2; }
+				k_rot *= gamefocus->ads ? 0.5f : 1;
+				k_back *= gamefocus->ads ? 0.09090909090909090909090909090909f : 1;
+				sway.mul(gamefocus->ads ? 0.13333333333333333333333333333333 : 1);
+				swaydir.mul(gamefocus->ads ? 0.23076923076923076923076923076923f : 1.f);
 				/*
-				k_rot *= 1 - player1->ads / 2000.f;
-				k_back *= 1 - player1->ads / 1100.f;
-				sway.mul(1 - player1->ads / 1200.f);
-				swaydir.mul(1 - player1->ads / 1300.f);
+				k_rot *= 1 - gamefocus->ads / 2000.f;
+				k_back *= 1 - gamefocus->ads / 1100.f;
+				sway.mul(1 - gamefocus->ads / 1200.f);
+				swaydir.mul(1 - gamefocus->ads / 1300.f);
 				*/
-			} else if(player1->weaponsel->type == GUN_AKIMBO && (anim&ANIM_INDEX) == ANIM_GUN_IDLE) basetime = lastmillis;
+			} else if(gamefocus->weaponsel->type == GUN_AKIMBO && (anim&ANIM_INDEX) == ANIM_GUN_IDLE) basetime = lastmillis;
 
 			pos.add(swaydir);
 			pos.x -= aimdir.x*k_back+sway.x;

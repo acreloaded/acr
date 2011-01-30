@@ -345,7 +345,10 @@ void updateworld(int curtime, int lastmillis)		// main game update loop
 	physicsframe();
 	checkweaponswitch();
 	checkakimbo();
-	if(getclientnum()>=0) shoot(player1, worldpos);	 // only shoot when connected to server
+	if(getclientnum()>=0){ // only shoot when connected to server
+		shoot(player1, worldpos);
+		loopv(players) if(players[i]) shoot(players[i], worldpos);
+	}
 	movebounceents();
 	moveotherplayers();
 	gets2c();
@@ -1083,7 +1086,7 @@ playerent *updatefollowplayer(int shiftdirection)
 	vector<playerent *> available;
 	loopv(players) if(players[i])
 	{
-		if((players[i]->state==CS_DEAD && m_arena) || players[i]->isspectating()) continue;
+		if(players[i]->state==CS_DEAD && m_arena) continue;
 		available.add(players[i]);
 	}
 	if(!available.length()) return NULL;

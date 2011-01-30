@@ -24,7 +24,7 @@ struct weapon
 	int &ammo, &mag, &gunwait, shots;
 	virtual int dynspread();
 	virtual float dynrecoil();
-	int reloading, lastaction;
+	int reloading;
 
 	virtual bool attack(vec &targ) = 0;
 	virtual void attackfx(const vec &from, const vec &to, int millis) = 0;
@@ -107,7 +107,7 @@ struct subgun : gun
 
 struct sniperrifle : gun
 {
-	const static int adsscope = 850;
+	const static int adsscope = 650;
 	sniperrifle(playerent *owner);
 	void attackfx(const vec &from, const vec &to, int millis);
 

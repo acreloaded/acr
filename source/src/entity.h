@@ -62,7 +62,7 @@ static itemstat powerupstats[] =
 };
 
 #define SGRAYS 32
-#define SGSPREAD 240
+#define SGSPREAD 260
 #define SGGIB 130
 #define NADEPOWER 1.5f
 
@@ -537,6 +537,8 @@ struct playerent : dynent, playerstate
 		weaponchanging = lastmillis;
 		prevweaponsel = weaponsel;
 		nextweaponsel = w;
+		extern playerent *player1; extern void addmsg(int type, const char *fmt = NULL, ...);;
+		if(this == player1) addmsg(N_SWITCHWEAP, "ri", w->type);
 		w->onselecting();
 	}
 };

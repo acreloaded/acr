@@ -636,6 +636,7 @@ extern void renderbounceents();
 extern void addgib(playerent *d);
 extern playerent *playerincrosshairhit(int &hitzone);
 extern ushort magsize(int gun);
+extern void updatelastaction(playerent *d);
 extern void checkweaponswitch();
 extern void setscope(bool activate);
 extern int intersect(playerent *d, const vec &from, const vec &to, vec *end = NULL);

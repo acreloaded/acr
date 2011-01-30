@@ -14,18 +14,16 @@ void updatelastaction(playerent *d){
 	d->lastaction = lastmillis;
 }
 
+inline void _checkweaponswitch(playerent *p){
+	if(!p->weaponchanging) return;
+	int timeprogress = lastmillis - p->weaponchanging;
+	if(timeprogress > weapon::weaponchangetime) p->weaponchanging = 0;
+	else if(timeprogress > weapon::weaponchangetime / 2) p->weaponsel = p->nextweaponsel;
+}
+
 void checkweaponswitch(){
-	if(!player1->weaponchanging) return;
-	int timeprogress = lastmillis-player1->weaponchanging;
-	if(timeprogress>weapon::weaponchangetime)
-	{
-		addmsg(N_WEAPCHANGE, "ri", player1->weaponsel->type);
-		player1->weaponchanging = 0;
-	}
-	else if(timeprogress>weapon::weaponchangetime/2)
-	{
-		player1->weaponsel = player1->nextweaponsel;
-	}
+	_checkweaponswitch(player1);
+	loopv(players) if(players[i]) _checkweaponswitch(players[i]);
 }
 
 void selectweapon(weapon *w){
@@ -111,7 +109,7 @@ void tryreload(playerent *p){
 	if(p->ads == 0)	p->weaponsel->reload();
 	else{
 		p->wantsreload = true;
-		p->scoping = false;
+		setscope(false);
 	}
 }
 
@@ -648,7 +646,7 @@ void weapon::renderhudmodel(int lastaction, int index){
 	if(!intermission) wm.calcmove(unitv, lastaction);
 	s_sprintfd(path)("weapons/%s", info.modelname);
 	bool emit = ((wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT || (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT2) && (lastmillis - lastaction) < flashtime();
-	rendermodel(path, wm.anim|ANIM_DYNALLOC|(index ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, -1, wm.pos, player1->yaw+90, player1->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, NULL, 1.28f);
+	rendermodel(path, wm.anim|ANIM_DYNALLOC|(index ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, -1, wm.pos, owner->yaw+90, owner->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, NULL, 1.28f);
 }
 
 void weapon::updatetimers(){
@@ -818,6 +816,7 @@ bool grenades::attack(vec &targ){
 				reset();
 				if(!mag && this==owner->weaponsel) // switch to primary immediately
 				{
+					addmsg(N_QUICKSWITCH, "r");
 					owner->weaponchanging = lastmillis-1-(weaponchangetime/2);
 					owner->nextweaponsel = owner->weaponsel = owner->primweap;
 				}
@@ -831,9 +830,11 @@ bool grenades::attack(vec &targ){
 void grenades::attackfx(const vec &from, const vec &to, int millis) // other player's grenades
 {
 	throwmillis = lastmillis-millis;
-	if(millis <= 0) playsound(S_GRENADEPULL, owner); // activate
-	else if(millis > 0) // throw
-	{
+	if(millis < 0){ // activate
+		state = GST_INHAND;
+		playsound(S_GRENADEPULL, SP_HIGH);
+	}
+	else /*if(millis > 0)*/ { // throw
 		grenadeent *g = new grenadeent(owner, millis);
 		bounceents.add(g);
 		g->_throw(from, to);

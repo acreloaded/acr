@@ -2877,15 +2877,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				break;
 			}
 
-			case N_WEAPCHANGE:
-			{
-				int gunselect = getint(p);
-				if(gunselect<0 && gunselect>=NUMGUNS) break;
-				cl->state.gunselect = gunselect;
-				QUEUE_MSG;
-				break;
-			}
-
 			case N_PRIMARYWEAP:
 			{
 				int nextprimary = getint(p);
@@ -3000,6 +2991,21 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				reload.type = GE_RELOAD;
 				seteventmillis(reload.reload);
 				reload.reload.gun = getint(p);
+				break;
+			}
+
+			case N_QUICKSWITCH:
+			{
+				cl->state.gunselect = cl->state.primary;
+				sendf(-1, 1, "ri2", N_QUICKSWITCH, sender);
+				break;
+			}
+
+			case N_SWITCHWEAP:
+			{
+				int weaponsel = getint(p);
+				cl->state.gunselect = weaponsel;
+				sendf(-1, 1, "ri3x", type, sender, weaponsel, sender);
 				break;
 			}
 
@@ -3642,7 +3648,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 		if(nonlocalclients || bsend || brec)
 		{
 			if(nonlocalclients) loggamestatus(NULL);
-			logline(ACLOG_INFO, "Status at %s: %d remote clients, %.1f send, %.1f rec (K/sec)", timestring(true, "%d-%m-%Y %H:%M:%S"), nonlocalclients, bsend/60.0f/1024, brec/60.0f/1024);
+			logline(ACLOG_INFO, "Status at %s: %d remote clients, %.1f send, %.1f rec (KB/sec)", timestring(true, "%d-%m-%Y %H:%M:%S"), nonlocalclients, bsend/60.0f/1024, brec/60.0f/1024);
 		}
 		bsend = brec = 0;
 	}

@@ -45,7 +45,7 @@ void processevent(client &c, shotevent &e)
 	/*sendf(-1, 1, "ri3f6x", N_SHOOT, c->clientnum, e.gun,
 		c->state.o.x, c->state.o.y, c->state.o.z,
 		e.to[0], e.to[1], e.to[2], c->clientnum);*/
-	ENetPacket *packet = enet_packet_create(NULL, 9 * sizeof(float), ENET_PACKET_FLAG_RELIABLE);
+	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
 	if(e.gun==GUN_SHOTGUN){
 		putint(p, N_SG);

@@ -797,7 +797,7 @@ void sethudgunperspective(bool on){
 void drawhudgun(int w, int h, float aspect, int farplane){
 	sethudgunperspective(true);
 
-	if(hudgun && !player1->isspectating() && camera1->type==ENT_PLAYER)
+	if(hudgun && camera1->type==ENT_PLAYER)
 	{
 		playerent *p = (playerent *)camera1;
 		if(p->state==CS_ALIVE) p->weaponsel->renderhudmodel();

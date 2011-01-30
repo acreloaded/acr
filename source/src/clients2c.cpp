@@ -403,14 +403,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					loopk(3) to[k] = getfloat(p);
 				}
 				playerent *s = getclient(scn);
-				if(!s || !weapon::valid(gun)) break;
-				s->lastaction = lastmillis;
-				if(s != player1) s->mag[gun]--;
-				if(s->weapons[gun])
-				{
+				if(!s || !weapon::valid(gun) || s == player1) break;
+				s->mag[gun]--;
+				updatelastaction(s);
+				if(s->weapons[gun]){
 					s->lastattackweapon = s->weapons[gun];
 					s->weapons[gun]->attackfx(from, to, -1);
-				}
+				}				
 				break;
 			}
 
@@ -431,10 +430,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				int cn = getint(p), gun = getint(p), mag = getint(p), ammo = getint(p);
 				playerent *p = getclient(cn);
-				if(!p || gun < GUN_KNIFE || gun >= NUMGUNS) break;
+				if(!p || gun < 0 || gun >= NUMGUNS) break;
+				if(p != player1) p->weapons[gun]->reload();
 				p->ammo[gun] = ammo;
 				p->mag[gun] = mag;
-				if(p != player1) playsound(guns[gun].reload, p);
 				break;
 			}
 
@@ -751,10 +750,22 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				timeupdate(getint(p));
 				break;
 
-			case N_WEAPCHANGE:
+			case N_QUICKSWITCH:
 			{
-				int gun = getint(p);
-				if(d) d->selectweapon(gun);
+				int cn = getint(p);
+				playerent *d = getclient(cn);
+				if(!d) break;
+				d->weaponchanging = lastmillis-1-(weapon::weaponchangetime/2);
+				d->nextweaponsel = d->weaponsel = d->primweap;
+				break;
+			}
+
+			case N_SWITCHWEAP:
+			{
+				int cn = getint(p), gun = getint(p);
+				playerent *d = getclient(cn);
+				if(!d || gun < 0 || gun >= NUMGUNS) break;
+				d->weaponswitch(d->weapons[gun]);
 				break;
 			}
 
