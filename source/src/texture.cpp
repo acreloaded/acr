@@ -582,7 +582,7 @@ Texture **geteventicons(){
 	if(!*tex){
 		const char *texname[eventicon::TOTAL] = { "com", "headshot", "decapitated", "firstblood", "critical", "revenge" };
 		loopi(eventicon::TOTAL){
-			s_sprintfd(tname)("packages/misc/eventicons/%s.png", texname);
+			s_sprintfd(tname)("packages/misc/eventicons/%s.png", texname[i]);
 			tex[i] = textureload(tname);
 		}
 	}
