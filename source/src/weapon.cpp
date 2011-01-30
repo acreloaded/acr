@@ -995,8 +995,7 @@ void gun::attackshell(const vec &to){
 		s->o.x += s->vel.x * owner->radius;
 		s->o.y += s->vel.y * owner->radius;
 	}
-	//s->vel.mul(0.025f * (rnd(6) + 1));
-	s->vel.mul(0);
+	s->vel.mul(0.025f * (rnd(6) + 1));
 	s->inwater = hdr.waterlevel > owner->o.z;
 	s->cancollide = false;
 
