@@ -41,7 +41,6 @@ void processevent(client &c, shotevent &e)
 	loopi(NUMGUNS) if(gs.gunwait[i]) gs.gunwait[i] = max(gs.gunwait[i] - (e.millis-gs.lastshot), 0);
 	gs.lastshot = e.millis;
 	gs.gunwait[e.gun] = attackdelay(e.gun);
-	if(e.gun==GUN_PISTOL && gs.akimbomillis>gamemillis) gs.gunwait[e.gun] /= 2;
 	/*sendf(-1, 1, "ri3f6x", N_SHOOT, c->clientnum, e.gun,
 		c->state.o.x, c->state.o.y, c->state.o.z,
 		e.to[0], e.to[1], e.to[2], c->clientnum);*/
@@ -120,9 +119,6 @@ void processevent(client &c, reloadevent &e)
 	   gs.mag[e.gun] >= mag ||
 	   gs.ammo[e.gun] < mag)
 		return;
-
-	bool akimbo = e.gun==GUN_PISTOL && gs.akimbomillis>e.millis;
-	if(akimbo && gs.ammo[GUN_PISTOL] >= mag*2) mag *= 2;
 
 	gs.mag[e.gun]   = mag;
 	gs.ammo[e.gun] -= mag;
