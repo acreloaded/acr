@@ -659,7 +659,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		glEnd();
 	}
 
-	if(!m_osok && p->health < 100){
+	if(!m_osok && p->state == CS_ALIVE && p->health < 100){
 		static Texture *damagetex = NULL;
 		if(!damagetex) damagetex = textureload("packages/misc/damage.png", 3);
 
