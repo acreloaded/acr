@@ -1083,17 +1083,22 @@ void htf_forceflag(int flag){
 	f.lastupdate = gamemillis;
 }
 
+int arenaround = 0;
 
+inline bool canspawn(client *, bool = false){
+	return !m_arena;
+}
+
+/*
 bool canspawn(client *c, bool connecting = false){
 	if(m_arena)
 	{
 		if(connecting && numauthedclients()<=2) return true;
-		return false;
+		else return false;
 	}
 	return true;
 }
-
-int arenaround = 0;
+*/
 
 struct twoint { int index, value; };
 int cmpscore(const int *a, const int *b) { return clients[*a]->at3_score - clients[*b]->at3_score; }
