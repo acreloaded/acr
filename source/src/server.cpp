@@ -2864,7 +2864,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_SKIN:
 				cl->skin = getint(p);
-				QUEUE_MSG;
+				sendf(-1, 1, "ri3x", N_SKIN, sender, cl->skin, sender);
 				break;
 
 			case N_MAPIDENT:
@@ -2930,7 +2930,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				bool scope = getint(p) != 0;
 				if(!cl->state.isalive(gamemillis) || !ads_gun(cl->state.gunselect) || cl->state.scoping == scope) break;
 				cl->state.scoping = scope;
-				QUEUE_MSG;
+				sendf(-1, 1, "ri3x", N_SCOPE, sender, scope ? 1 : 0, sender);
 				break;
 			}
 
@@ -3056,7 +3056,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				}
 				if(cl->state.state != (editing ? CS_ALIVE : CS_EDITING)) break;
 				cl->state.state = editing ? CS_EDITING : CS_ALIVE;
-				QUEUE_MSG;
+				sendf(-1, 1, "ri3x", N_EDITMODE, sender, editing ? 1 : 0, sender);
 				break;
 			}
 

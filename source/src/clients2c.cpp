@@ -307,8 +307,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			}
 
 			case N_SKIN:
-				setskin(d, getint(p));
+			{
+				playerent *d = getclient(getint(p));
+				int s = getint(p);
+				if(d) setskin(d, s);
 				break;
+			}
 
 			case N_CDIS:
 			{
@@ -322,9 +326,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_EDITMODE:
 			{
-				int val = getint(p);
-				if(!d) break;
-				if(val) d->state = val ? CS_EDITING : CS_ALIVE;
+				int cn = getint(p), val = getint(p);
+				playerent *d = getclient(cn);
+				if(d) d->state = val ? CS_EDITING : CS_ALIVE;
 				break;
 			}
 
@@ -379,6 +383,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_SCOPE:
 			{
+				int cn = getint(p); playerent *d = getclient(cn);
 				bool scope = getint(p) != 0;
 				if(!d || d->state != CS_ALIVE || !ads_gun(d->weaponsel->type)) break;
 				d->scoping = scope;
