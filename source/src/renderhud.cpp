@@ -517,10 +517,10 @@ void drawradar(playerent *p, int w, int h)
 		}
 		if(isteam(p, pl) || hasflag || pl->state == CS_DEAD) // friendly, flag tracker or dead
 			drawradarent(pl->o, coordtrans, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1,
-				pl->team, iconsize, isattacking(pl), 1.f, "\f%d%s", isteam(p, pl) ? 0 : 3, colorname(pl));
+				isteam(p, pl) ? 1 : 0, iconsize, isattacking(pl), 1.f, "\f%d%s", isteam(p, pl) ? 0 : 3, colorname(pl));
 		else
 			drawradarent(pl->lastloudpos, coordtrans, pl->lastloudpos[2], pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1,
-				pl->team, iconsize, false, (radarenemyfade - lastmillis + pl->radarmillis) / (float)radarenemyfade, "\f3%s", colorname(pl));
+				isteam(p, pl) ? 1 : 0, iconsize, false, (radarenemyfade - lastmillis + pl->radarmillis) / (float)radarenemyfade, "\f3%s", colorname(pl));
 	}
 	loopv(bounceents){ // draw grenades
 		bounceent *b = bounceents[i];
