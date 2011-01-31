@@ -435,11 +435,12 @@ struct playerent : dynent, playerstate
 
 	vec head, damagesource;
 
-	playerent() : clientnum(-1), spectatemode(SM_NONE), followplayercn(-1), vote(VOTE_NEUTRAL), voternum(MAXCLIENTS),
-				  smoothmillis(-1), wantsswitch(-1),
-				  head(-1, -1, -1)
+	playerent() : spectatemode(SM_NONE), vote(VOTE_NEUTRAL), voternum(MAXCLIENTS), priv(PRIV_NONE), head(-1, -1, -1), damagesource(0, 0, 0)
 	{
+		lastupdate = plag = ping = lifesequence = points = frags = flagscore = deaths = lastpain = skin = eardamagemillis = respawnoffset = radarmillis = ads = 0;
+		weaponsel = nextweaponsel = primweap = nextprimweap = lastattackweapon = prevweaponsel = NULL;
 		type = ENT_PLAYER;
+		clientnum = smoothmillis = followplayercn = wantsswitch = -1;
 		name[0] = 0;
 		team = TEAM_BLUE;
 		maxeyeheight = 4.5f;
