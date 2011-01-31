@@ -10,8 +10,7 @@ void drawicon(Texture *tex, float x, float y, float s, int col, int row, float t
 
 void drawequipicon(float x, float y, int col, int row, int pulse, playerent *p = NULL) // pulse: 3 = (1 - pulse) | (2 - blue regen)
 {
-	static Texture *tex = NULL;
-	if(!tex) tex = textureload("packages/misc/items.png", 4);
+	static Texture *tex = textureload("packages/misc/items.png", 4);
 	if(tex)
 	{
 		glEnable(GL_BLEND);
@@ -24,8 +23,7 @@ void drawequipicon(float x, float y, int col, int row, int pulse, playerent *p =
 
 void drawradaricon(float x, float y, float s, int col, int row)
 {
-	static Texture *tex = NULL;
-	if(!tex) tex = textureload("packages/misc/radaricons.png", 3);
+	static Texture *tex = textureload("packages/misc/radaricons.png", 3);
 	if(tex)
 	{
 		glEnable(GL_BLEND);
@@ -36,10 +34,9 @@ void drawradaricon(float x, float y, float s, int col, int row)
 
 void drawctficon(float x, float y, float s, int col, int row, float ts)
 {
-	static Texture *ctftex = NULL, *htftex = NULL, *ktftex = NULL;
-	if(!ctftex) ctftex = textureload("packages/misc/ctficons.png", 3);
-	if(!htftex) htftex = textureload("packages/misc/htficons.png", 3);
-	if(!ktftex) ktftex = textureload("packages/misc/ktficons.png", 3);
+	static Texture *ctftex = textureload("packages/misc/ctficons.png", 3),
+		*htftex = textureload("packages/misc/htficons.png", 3),
+		*ktftex = textureload("packages/misc/ktficons.png", 3);
 	if(m_htf)
 	{
 		if(htftex) drawicon(htftex, x, y, s, col, row, ts);
@@ -56,8 +53,7 @@ void drawctficon(float x, float y, float s, int col, int row, float ts)
 
 void drawvoteicon(float x, float y, int col, int row, bool noblend)
 {
-	static Texture *tex = NULL;
-	if(!tex) tex = textureload("packages/misc/voteicons.png", 3);
+	static Texture *tex = textureload("packages/misc/voteicons.png", 3);
 	if(tex)
 	{
 		if(noblend) glDisable(GL_BLEND);
@@ -87,8 +83,7 @@ void drawscope()
 	const float scopeaspect = 4.0f/3.0f;
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	static Texture *scopetex = NULL;
-	if(!scopetex) scopetex = textureload("packages/misc/scope.png", 3);
+	static Texture *scopetex = textureload("packages/misc/scope.png", 3);
 	glBindTexture(GL_TEXTURE_2D, scopetex->id);
 	glBegin(GL_QUADS);
 	glColor3ub(255,255,255);
@@ -602,12 +597,10 @@ void drawradar(playerent *p, int w, int h)
 	if(!showmap){
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glColor3f(1, 1, 1);
-		static Texture *bordertex = NULL;
-		if(!bordertex) bordertex = textureload("packages/misc/compass-base.png", 3);
+		static Texture *bordertex = textureload("packages/misc/compass-base.png", 3);
 		quad(bordertex->id, VIRTW-10-VIRTH/28-overlaysize, 10+VIRTH/52, overlaysize, 0, 0, 1, 1);
 		if(!hidecompass){
-			static Texture *compasstex = NULL;
-			if(!compasstex) compasstex = textureload("packages/misc/compass-rose.png", 3);
+			static Texture *compasstex = textureload("packages/misc/compass-rose.png", 3);
 			glPushMatrix();
 			glTranslatef(VIRTW-10-VIRTH/28-overlaysize/2, 10+VIRTH/52+overlaysize/2, 0);
 			glRotatef(-camera1->yaw, 0, 0, 1);
@@ -620,8 +613,7 @@ void drawradar(playerent *p, int w, int h)
 void drawteamicons(int w, int h){
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glColor3f(1, 1, 1);
-	static Texture *icons = NULL;
-	if(!icons) icons = textureload("packages/misc/teamicons.png", 3);
+	static Texture *icons = textureload("packages/misc/teamicons.png", 3);
 	quad(icons->id, VIRTW-VIRTH/12-10, 10, VIRTH/12, player1->team ? 0.5f : 0, 0, 0.49f, 1.0f);
 }
 
@@ -659,24 +651,25 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		glEnd();
 	}
 
-	static Texture *damagetex = NULL;
-		if(!damagetex) damagetex = textureload("packages/misc/damage.png", 3);
+	static Texture *damagetex = textureload("packages/misc/damage.png", 3);
 
-	if(!m_osok && p->health < 100){
-		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, damagetex->id);
+	if(!m_osok){
 		static float fade = 0.f;
-		float newfade = p->state == CS_ALIVE ? (1 - powf(p->health, 2) / powf(100, 2) * damagescreenalpha / 100.f) : 0;
+		float newfade = p->state == CS_ALIVE ? ((1 - powf(p->health, 2) / powf(100, 2)) * damagescreenalpha / 100.f) : 0;
 		fade = (fade * 40 + newfade) / 41.f;
-		glColor4f(fade, fade, fade, fade);
+		if(fade){
+			glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+			glEnable(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, damagetex->id);
+			glColor4f(fade, fade, fade, fade);
 
-		glBegin(GL_QUADS);
-		glTexCoord2f(0, 0); glVertex2f(0, 0);
-		glTexCoord2f(1, 0); glVertex2f(VIRTW, 0);
-		glTexCoord2f(1, 1); glVertex2f(VIRTW, VIRTH);
-		glTexCoord2f(0, 1); glVertex2f(0, VIRTH);
-		glEnd();
+			glBegin(GL_QUADS);
+			glTexCoord2f(0, 0); glVertex2f(0, 0);
+			glTexCoord2f(1, 0); glVertex2f(VIRTW, 0);
+			glTexCoord2f(1, 1); glVertex2f(VIRTW, VIRTH);
+			glTexCoord2f(0, 1); glVertex2f(0, VIRTH);
+			glEnd();
+		}
 	}
 
 	glEnable(GL_TEXTURE_2D);
@@ -934,8 +927,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
 void loadingscreen(const char *fmt, ...)
 {
-	static Texture *logo = NULL;
-	if(!logo) logo = textureload("packages/misc/startscreen.png", 3);
+	static Texture *logo = textureload("packages/misc/startscreen.png", 3);
 
 	glEnable(GL_TEXTURE_2D);
 	glDisable(GL_DEPTH_TEST);
