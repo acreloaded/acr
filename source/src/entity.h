@@ -433,11 +433,9 @@ struct playerent : dynent, playerstate
 	float deltayaw, deltapitch, newyaw, newpitch;
 	int smoothmillis;
 
-	vec head;
+	vec head, damagesource;
 
-	playerent() : clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), points(0), frags(0), flagscore(0), deaths(0), lastpain(0), priv(PRIV_NONE),
-				  skin(0), spectatemode(SM_NONE), followplayercn(-1), eardamagemillis(0), respawnoffset(0), radarmillis(0), vote(VOTE_NEUTRAL), voternum(MAXCLIENTS),
-				  prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL), ads(0),
+	playerent() : clientnum(-1), spectatemode(SM_NONE), followplayercn(-1), vote(VOTE_NEUTRAL), voternum(MAXCLIENTS),
 				  smoothmillis(-1), wantsswitch(-1),
 				  head(-1, -1, -1)
 	{

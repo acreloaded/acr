@@ -3,9 +3,9 @@
 #define MAXTRANS 5000				   // max amount of data to swallow in 1 go
 #define CUBE_DEFAULT_SERVER_PORT 28770
 #define CUBE_SERVINFO_PORT_LAN 28778
-#define CUBE_SERVINFO_PORT(serverport) (serverport+1)
-#define CUBE_SERVINFO_TO_SERV_PORT(servinfoport) (servinfoport-1)
-#define PROTOCOL_VERSION 2105		   // bump when protocol changes
+#define CUBE_SERVINFO_OFFSET 1
+// SET protocol version to 2106 on stable release!
+#define PROTOCOL_VERSION 1105		   // bump when protocol changes
 #define DEMO_VERSION 2				  // bump when demo format changes
 #define DEMO_MAGIC "ACS_DEMO"
 #define MAXMAPSENDSIZE 65536
@@ -27,7 +27,7 @@ enum{
 	// game events
 	N_SHOOT, N_SHOOTC, N_EXPLODE, N_AKIMBO, N_RELOAD, // clients to server events
 	N_SG, N_SCOPE, N_SUICIDE, N_QUICKSWITCH, N_SWITCHWEAP, N_PRIMARYWEAP, N_THROWNADE, // server directly handled
-	N_POINTS, N_KILL, N_DAMAGE, N_REGEN, N_HITPUSH, // server to client
+	N_POINTS, N_KILL, N_DAMAGE, N_REGEN, N_PROJPUSH, // server to client
 	// gameplay
 	N_TRYSPAWN, N_SPAWNSTATE, N_SPAWN, N_FORCEDEATH, N_FORCEGIB, // spawning
 	N_ITEMSPAWN, N_ITEMACC, // items

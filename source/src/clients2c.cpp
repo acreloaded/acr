@@ -488,12 +488,17 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case N_HITPUSH:
+			case N_PROJPUSH:
 			{
-				int gun = getint(p), damage = getint(p);
-				vec dir;
-				loopk(3) dir[k] = getfloat(p);
-				player1->hitpush(damage, dir, gun);
+				int cn = getint(p), gun = getint(p), damage = getint(p);
+				vec src; loopk(3) src[k] = getfloat(p);
+				playerent *d = getclient(cn);
+				if(gun != GUN_GRENADE) break; // only type of projectile right now!
+				d->damagesource = src;
+				if(d != player1 || d->o == src) break;
+				vec dir = d->o;
+				dir.sub(src).normalize();
+				d->hitpush(damage, dir, gun);
 				break;
 			}
 

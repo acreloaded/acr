@@ -489,17 +489,15 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 
 	if(actor != pl && pl->damagelog.find(actor->clientnum) < 0) pl->damagelog.add(actor->clientnum);
 
-	if(pl==player1)
-	{
+	if(pl==player1){
 		if(weapon != GUN_GRENADE && actor != pl){
 			vec dir = pl->o;
 			dir.sub(actor->o);
 			pl->hitpush(damage, dir, weapon);
 		}
-		if(weapon != GUN_GRENADE) updatedmgindicator(actor->o);
-		//damageblend(damage);
 		pl->damageroll(damage);
 	}
+	pl->damagesource = actor->o;
 	damageeffect(damage, pl);
 
 	if(pl->health<=0){ if(local){

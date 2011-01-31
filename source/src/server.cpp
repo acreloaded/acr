@@ -1315,7 +1315,7 @@ void forcedeath(client *cl, bool gib = false){
 	sendf(-1, 1, "ri2", gib ? N_FORCEGIB : N_FORCEDEATH, cl->clientnum);
 }
 
-void serverdamage(client *target, client *actor, int damage, int gun, bool gib, const vec &hitpush = vec(0, 0, 0)){
+void serverdamage(client *target, client *actor, int damage, int gun, bool gib, const vec &source = vec(0, 0, 0)){
 	if(!target || !actor || target->state.state != CS_ALIVE || actor->state.state != CS_ALIVE) return;
 	clientstate &ts = target->state;
 	if(target!=actor){
@@ -1394,10 +1394,8 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 				flagaction(targethasflag, FA_RESET, -1);
 		}
 	}
-	else if(!hitpush.iszero() && gun == GUN_GRENADE){
-		vec v = hitpush;
-		v.normalize();
-		sendf(target->clientnum, 1, "ri3f3", N_HITPUSH, gun, damage, v.x, v.y, v.z);
+	else if(source != target->state.o && gun == GUN_GRENADE){
+		sendf(-1, 1, "ri4f3", N_PROJPUSH, target->clientnum, gun, damage, source.x, source.y, source.z);
 	}
 }
 
@@ -3924,7 +3922,7 @@ void initserver(bool dedicated){
 	logline(ACLOG_INFO, "logging local AssaultCube server (version %d, protocol %d/%d) now..", AC_VERSION, PROTOCOL_VERSION, EXT_VERSION);
 
 	s_strcpy(servdesc_current, scl.servdesc_full);
-	servermsinit(scl.master ? scl.master : AC_MASTER_URI, scl.ip, CUBE_SERVINFO_PORT(scl.serverport), dedicated);
+	servermsinit(scl.master ? scl.master : AC_MASTER_URI, scl.ip, scl.serverport + CUBE_SERVINFO_OFFSET, dedicated);
 
 	if((isdedicated = dedicated))
 	{

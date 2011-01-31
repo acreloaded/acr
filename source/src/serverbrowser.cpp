@@ -307,7 +307,7 @@ static serverinfo *newserver(const char *name, uint ip = ENET_HOST_ANY, int port
 {
 	serverinfo *si = new serverinfo;
 	si->address.host = ip;
-	si->address.port = CUBE_SERVINFO_PORT(port);
+	si->address.port = port + CUBE_SERVINFO_OFFSET;
 	si->msweight = weight;
 	if(ip!=ENET_HOST_ANY) si->resolved = serverinfo::RESOLVED;
 
@@ -463,7 +463,7 @@ void checkpings()
 			si = servers[i];
 			break;
 		}
-		if(!si && searchlan) si = newserver(NULL, addr.host, CUBE_SERVINFO_TO_SERV_PORT(addr.port));
+		if(!si && searchlan) si = newserver(NULL, addr.host, addr.port - CUBE_SERVINFO_OFFSET);
 		if(!si) continue;
 
 		ucharbuf p(ping, len);

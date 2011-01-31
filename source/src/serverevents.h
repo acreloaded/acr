@@ -12,14 +12,11 @@ void processevent(client &c, explodeevent &e)
 		default:
 			return;
 	}
-	vec o(e.o);
 	loopv(clients){
 		client &target = *clients[i];
-		vec dir;
-		float dist = target.state.o.dist(o, dir);
+		float dist = target.state.o.dist(e.o);
 		if(dist >= guns[e.gun].endrange) continue;
-		dir.normalize();
-		serverdamage(&target, &c, effectiveDamage(e.gun, dist), e.gun, true, dir);
+		serverdamage(&target, &c, effectiveDamage(e.gun, dist), e.gun, true, e.o);
 	}
 }
 

@@ -218,62 +218,6 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 	glEnd();
 }
 
-VARP(hidedamageindicator, 0, 0, 1);
-VARP(damageindicatorsize, 0, 200, 10000);
-VARP(damageindicatordist, 0, 500, 10000);
-VARP(damageindicatortime, 1, 1000, 10000);
-VARP(damageindicatoralpha, 1, 50, 100);
-int damagedirections[4] = {0};
-
-void updatedmgindicator(vec &attack)
-{
-	if(hidedamageindicator || !damageindicatorsize) return;
-	float bestdist = 0.0f;
-	int bestdir = -1;
-	loopi(4)
-	{
-		vec d;
-		d.x = (float)(cosf(RAD*(player1->yaw-90+(i*90))));
-		d.y = (float)(sinf(RAD*(player1->yaw-90+(i*90))));
-		d.z = 0.0f;
-		d.add(player1->o);
-		float dist = d.dist(attack);
-		if(dist < bestdist || bestdir==-1)
-		{
-			bestdist = dist;
-			bestdir = i;
-		}
-	}
-	damagedirections[bestdir] = lastmillis+damageindicatortime;
-}
-
-void drawdmgindicator()
-{
-	if(!damageindicatorsize) return;
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDisable(GL_TEXTURE_2D);
-	float size = (float)damageindicatorsize;
-	loopi(4)
-	{
-		if(!damagedirections[i] || damagedirections[i] < lastmillis) continue;
-		float t = damageindicatorsize/(float)(damagedirections[i]-lastmillis);
-		glPushMatrix();
-		glColor4f(0.5f, 0.0f, 0.0f, damageindicatoralpha/100.0f);
-		glTranslatef(VIRTW/2, VIRTH/2, 0);
-		glRotatef(i*90, 0, 0, 1);
-		glTranslatef(0, (float)-damageindicatordist, 0);
-		glScalef(max(0.0f, 1.0f-t), max(0.0f, 1.0f-t), 0);
-
-		glBegin(GL_TRIANGLES);
-		glVertex3f(size/2.0f, size/2.0f, 0.0f);
-		glVertex3f(-size/2.0f, size/2.0f, 0.0f);
-		glVertex3f(0.0f, 0.0f, 0.0f);
-		glEnd();
-		glPopMatrix();
-	}
-	glEnable(GL_TEXTURE_2D);
-}
-
 void drawequipicons(playerent *p)
 {
 	glDisable(GL_BLEND);
@@ -617,8 +561,9 @@ void drawteamicons(int w, int h){
 	quad(icons->id, VIRTW-VIRTH/12-10, 10, VIRTH/12, player1->team ? 0.5f : 0, 0, 0.49f, 1.0f);
 }
 
-//VARP(damagescreenfactor, 1, 7, 100);
 VARP(damagescreenalpha, 40, 80, 100);
+VARP(damageindicatorsize, 0, 200, 10000);
+VARP(damageindicatordist, 0, 500, 10000);
 
 static int votersort(playerent **a, playerent **b){
 	return (*a)->voternum - (*b)->voternum;
@@ -651,9 +596,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		glEnd();
 	}
 
-	static Texture *damagetex = textureload("packages/misc/damage.png", 3);
+	static Texture *damagetex = textureload("packages/misc/damage.png", 3), *damagedirtex = textureload("packages/misc/damagedir.png");
 
-	if(!m_osok){
+	if(!m_arena){
 		static float fade = 0.f;
 		float newfade = p->state == CS_ALIVE ? ((1 - powf(p->health, 2) / powf(100, 2)) * damagescreenalpha / 100.f) : 0;
 		fade = (fade * 40 + newfade) / 41.f;
@@ -669,6 +614,27 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 			glTexCoord2f(1, 1); glVertex2f(VIRTW, VIRTH);
 			glTexCoord2f(0, 1); glVertex2f(0, VIRTH);
 			glEnd();
+
+			if(p->damagesource != p->o){
+				vec dir = p->damagesource;
+				dir.sub(p->o).normalize();
+				const float size = damageindicatorsize, dirangle = dir.x ? atan2f(dir.y, dir.x) / RAD : dir.y < 0 ? 270 : 90;
+				glPushMatrix();
+				glTranslatef(VIRTW/2, VIRTH/2, 0);
+				glRotatef(dirangle + 90 - player1->yaw, 0, 0, 1);
+				glTranslatef(0, -damageindicatordist, 0);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				glBindTexture(GL_TEXTURE_2D, damagedirtex->id);
+				glColor4f(fade * 2, fade * 2, fade * 2, fade * 2);
+
+				glBegin(GL_QUADS);
+				glTexCoord2f(0, 0); glVertex2f(-size, -size / 2);
+				glTexCoord2f(1, 0); glVertex2f(size, -size / 2);
+				glTexCoord2f(1, 1); glVertex2f(size, size / 2);
+				glTexCoord2f(0, 1); glVertex2f(-size, size / 2);
+				glEnd();
+				glPopMatrix();
+			}
 		}
 	}
 
@@ -683,8 +649,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		else if(p->state==CS_EDITING) 
 			drawcrosshair(p, CROSSHAIR_SCOPE, targetplayer && targetplayer->state==CS_ALIVE ? isteam(targetplayer, p) ? 1 : 2 : 0, NULL, 48.f);
 	}
-
-	drawdmgindicator();
 
 	static Texture **texs = geteventicons();
 	loopv(p->icons){
