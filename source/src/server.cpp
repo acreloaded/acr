@@ -2074,7 +2074,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 
 	if(isdedicated) getservermap();
 
-	mapstats *ms = getservermapstats(smapname, isdedicated);
+	mapstats *ms = getservermapstats(smapname, true);
 	if(ms){
 		smapstats = *ms;
 		loopi(2)
