@@ -397,7 +397,7 @@ void renderbounceents(){
 			case BT_SHELL:
 			{
 				s_strcpy(model, "weapons/shell");
-				scale = shellsize / 18.f;
+				scale = shellsize / 24.f;
 				int t = lastmillis-p->millis;
 				if(t>p->timetolive-2000)
 				{
