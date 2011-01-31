@@ -557,15 +557,17 @@ void dokill(playerent *pl, playerent *act, int weapon, int style){
 		else outf("\f2%s %s %s", aname, death, pname);
 	}
 	*/
+	int icon = -1;
 	if(gib){
 		if(pl != act && weapon != GUN_SHOTGUN && weapon != GUN_GRENADE && (weapon != GUN_KNIFE || style & FRAG_OVERKILL)){
 			playsound(S_HEADSHOT, act, act == gamefocus ? SP_HIGHEST : SP_HIGH);
 			playsound(S_HEADSHOT, pl, pl == gamefocus ? SP_HIGHEST : SP_HIGH); // both get headshot sound
-			act->addicon(eventicon::HEADSHOT); pl->addicon(eventicon::DECAPITATED); // both get headshot info
+			icon = eventicon::HEADSHOT; pl->addicon(eventicon::DECAPITATED); // both get headshot info
 		}
 		addgib(pl);
 	}
-	if(style & FRAG_FIRST) act->addicon(eventicon::FIRSTBLOOD);
+	if(style & FRAG_FIRST) icon = eventicon::FIRSTBLOOD;
+	if(icon >= 0) act->addicon(icon);
 	
 	if(!m_mp(gamemode)){
 		act->frags += (pl==act || isteam(pl, act)) ? -1 : gib ? 2 : 1;
