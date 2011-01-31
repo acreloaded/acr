@@ -972,7 +972,7 @@ void gun::attackshell(const vec &to){
 	s->bouncetype = BT_SHELL;
 	
 	const bool akimboflip = type == GUN_AKIMBO && ((akimbo *)this)->akimboside;
-	s->vel = vec(1, rnd(101) / 400.f, (rnd(51) + 50) / 100.f);
+	s->vel = vec(1, rnd(101) / 800.f, (rnd(51) + 50) / 100.f);
 	s->vel.rotate_around_z(owner->yaw*RAD);
 	s->o = owner->o;
 	s_sprintfd(hudmdl)("weapons/%s", owner->weaponsel->info.modelname);
@@ -988,8 +988,9 @@ void gun::attackshell(const vec &to){
 		vec poscpy = *tagpos;
 		float f = poscpy.magnitude();
 		if(f) poscpy.div(f);
+		if(akimboflip) poscpy.y *= -1;
 		poscpy.rotate_around_y(owner->pitch * RAD);
-		poscpy.rotate_around_z((owner->yaw + (akimboflip ? 90 : -90)) * RAD);
+		poscpy.rotate_around_z((owner->yaw - 90) * RAD);
 		poscpy.mul(f);
 		s->o.add(poscpy);
 	}
@@ -998,7 +999,7 @@ void gun::attackshell(const vec &to){
 		s->o.x += s->vel.x * owner->radius;
 		s->o.y += s->vel.y * owner->radius;
 	}
-	s->vel.mul(0.025f * (rnd(6) + 1));
+	s->vel.mul(0.025f * (rnd(4) + 3));
 	if(akimboflip) s->vel.rotate_around_z(180*RAD);
 	s->inwater = hdr.waterlevel > owner->o.z;
 	s->cancollide = false;
