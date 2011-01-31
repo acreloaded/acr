@@ -740,8 +740,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					case 40: // 4* gameplay errors
 					{
 						int cn = getint(p); playerent *d = getclient(cn);
-						string pname = "unknown";
-						if(d) s_strcpy(pname, colorname(d));
+						s_strcpy(msg, "unknown");
+						if(d) s_strcpy(msg, colorname(d));
 						s_strcat(msg, " ");
 						switch(n){
 							case 40:

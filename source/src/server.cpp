@@ -3095,7 +3095,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					}
 				}
 				cs.lastomillis = gamemillis;
-				if(maplayout && !m_edit){
+				if(maplayout && cl->type==ST_TCPIP && !m_edit){
 					vec &po = cs.o;
 					const int ls = (1 << maplayout_factor) - 1;
 					if(po.x < 0 || po.y < 0 || po.x > ls || po.y > ls || maplayout[((int) po.x) + (((int) po.y) << maplayout_factor)] > po.z)
@@ -3112,7 +3112,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					server_entity &e = sents[i];
 					if(!e.spawned || !cs.canpickup(e.type)) continue;
 					const int ls = (1 << maplayout_factor) - 1;
-					vec v(e.x, e.y, maplayout && e.x >= 0 && e.y >= 0 && e.x < ls && e.y < ls ? maplayout[e.x + (e.y << maplayout_factor)] + 4.5f : cs.o.z);
+					vec v(e.x, e.y, maplayout && e.x >= 0 && e.y >= 0 && e.x < ls && e.y < ls ? maplayout[e.x + (e.y << maplayout_factor)] + 3 : cs.o.z);
 					float dist = cs.o.dist(v);
 					if(dist > 2.5f) continue;
 					if(arenaround && arenaround - gamemillis <= 2000){ // no nade pickup during last two seconds of lss intermission
