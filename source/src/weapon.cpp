@@ -961,8 +961,6 @@ bool gun::attack(vec &targ){
 
 VARP(shellttl, 0, 4000, 20000);
 
-#include "vertmodel_t.h"
-
 void gun::attackshell(const vec &to){
 	if(!shellttl) return;
 	bounceent *s = bounceents.add(new bounceent);
@@ -975,31 +973,15 @@ void gun::attackshell(const vec &to){
 	s->vel = vec(1, rnd(101) / 800.f, (rnd(51) + 50) / 100.f);
 	s->vel.rotate_around_z(owner->yaw*RAD);
 	s->o = owner->o;
-	s_sprintfd(hudmdl)("weapons/%s", owner->weaponsel->info.modelname);
-	vertmodel *m = (vertmodel *)loadmodel(hudmdl);
-	vec *tagpos = NULL;
-	if(m && m->parts.length()){
-		loopi(m->parts.last()->numtags) if(!strcmp(m->parts.last()->tags[i].name, "tag_eject")){
-			tagpos = &m->parts.last()->tags[i].pos;
-			break;
-		}
+	vec *ejecttrans = hudEject(owner, akimboflip);
+	if(false){//ejecttrans){
+		vec *adstrans = hudAds(owner);
+		if(adstrans) s->o.sub(*adstrans);
+		s->o.add(*ejecttrans);
 	}
-	if(tagpos){
-		vec poscpy = *tagpos;
-		float f = poscpy.magnitude();
-		if(f) poscpy.div(f);
-		if(akimboflip) poscpy.y *= -1;
-		poscpy.rotate_around_y(owner->pitch * RAD);
-		poscpy.rotate_around_z((owner->yaw - 90) * RAD);
-		poscpy.mul(f);
-		s->o.add(poscpy);
-	}
-	else{
-		s->o.z -= weaponbeloweye;
-		s->o.x += s->vel.x * owner->radius;
-		s->o.y += s->vel.y * owner->radius;
-	}
+	else s->o.add(vec(s->vel.x * owner->radius, s->vel.y * owner->radius, -weaponbeloweye));
 	s->vel.mul(0.025f * (rnd(4) + 3));
+	s->vel.mul(2).add(owner->vel).div(2);
 	if(akimboflip) s->vel.rotate_around_z(180*RAD);
 	s->inwater = hdr.waterlevel > owner->o.z;
 	s->cancollide = false;
