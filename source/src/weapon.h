@@ -84,6 +84,8 @@ struct grenades : weapon
 	void onownerdies();
 	void removebounceent(bounceent *b);
 	int flashtime() const;
+
+	void renderaimhelp(int teamtype){}
 };
 
 
