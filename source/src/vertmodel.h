@@ -45,11 +45,8 @@ vec tagTrans(vec v, physent *p, bool mirror){
 	float f = ret.magnitude();
 	if(f) ret.div(f);
 	if(mirror) ret.y = -ret.y;
-	ret.z = 0;
 	// needs major fixing!
-	ret.rotate_around_y(p->pitch * RAD);
-	ret.rotate_around_z((p->yaw  - lol) * RAD);
-	ret.rotate_around_x(p->roll * RAD);
+	ret.rotate_3d(p->yaw - 90, -p->pitch, p->roll);
 	ret.mul(f);
 	return ret;
 }
