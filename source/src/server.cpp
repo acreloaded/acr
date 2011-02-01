@@ -3378,12 +3378,15 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				break;
 
 			case N_SOUND:
+			{
+				bool relay = false;
 				switch(getint(p)){
 					case S_AKIMBOOUT:
 						if(!cl->state.akimbomillis) break;
 						cl->state.akimbomillis = 0;
+						relay = true;
 					case S_NOAMMO:
-						if(cl->state.mag[cl->state.gunselect] || cl->state.ammo[cl->state.gunselect]) break;
+						if(!relay && (cl->state.mag[cl->state.gunselect] || cl->state.ammo[cl->state.gunselect])) break;
 					case S_JUMP:
 					case S_HARDLAND:
 					case S_SOFTLAND:
@@ -3394,6 +3397,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						break;
 				}
 				break;
+			}
 
 			// client to client (edit messages)
 			case N_EDITENT: // 10
