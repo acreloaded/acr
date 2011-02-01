@@ -49,12 +49,10 @@ struct vec
 	void rotate_around_z(float angle) { *this = vec(cosf(angle)*x-sinf(angle)*y, cosf(angle)*y+sinf(angle)*x, z); }
 	void rotate_around_x(float angle) { *this = vec(x, cosf(angle)*y-sinf(angle)*z, cosf(angle)*z+sinf(angle)*y); }
 	void rotate_around_y(float angle) { *this = vec(cosf(angle)*x-sinf(angle)*z, y, cosf(angle)*z+sinf(angle)*x); }
-	vec &rotate_3d(float yaw, float pitch, float roll, bool mulrad = false){
-		if(mulrad){
-			yaw *= RAD;
-			pitch *= RAD;
-			roll *= RAD;
-		}
+	vec &rotate_3d(float yaw, float pitch, float roll, float deg2rad = RAD){
+		yaw *= deg2rad;
+		pitch *= deg2rad;
+		roll *= deg2rad;
 		*this = vec(
 				/* // adapted from http://planning.cs.uiuc.edu/node102.html where a = yaw, b = pitch, c = roll
 				x * (cos(a) * cos(b))	+ y * (cos(a) * sin(b) * sin(c) - sin(a) * cos(c))	+ z * (cos(a) * sin(b) * cos(c) + sin(a) * sin(c)),
