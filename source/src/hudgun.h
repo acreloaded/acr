@@ -100,23 +100,14 @@ struct weaponmove
 				sway.mul(gamefocus->eyeheight / gamefocus->maxeyeheight);
 			}
 
-			if(ads_gun(gamefocus->weaponsel->type)){
-				if((anim&ANIM_INDEX) == ANIM_GUN_IDLE){
-					//basetime = lastmillis-gamefocus->ads;
-					vec *v = hudAds(gamefocus);
-					if(v) pos.sub(*v);
-				}
-				k_rot *= gamefocus->ads ? 0.5f : 1;
-				k_back *= gamefocus->ads ? 0.09090909090909090909090909090909f : 1;
-				sway.mul(gamefocus->ads ? 0.13333333333333333333333333333333 : 1);
-				swaydir.mul(gamefocus->ads ? 0.23076923076923076923076923076923f : 1.f);
-				/*
+			if(ads_gun(gamefocus->weaponsel->type) && gamefocus->ads){
+				vec *v = hudAds(gamefocus);
+				if(v) pos.sub(*v);
 				k_rot *= 1 - gamefocus->ads / 2000.f;
 				k_back *= 1 - gamefocus->ads / 1100.f;
 				sway.mul(1 - gamefocus->ads / 1200.f);
 				swaydir.mul(1 - gamefocus->ads / 1300.f);
-				*/
-			} else if(gamefocus->weaponsel->type == GUN_AKIMBO && (anim&ANIM_INDEX) == ANIM_GUN_IDLE) basetime = lastmillis;
+			}
 
 			pos.add(swaydir);
 			pos.x -= aimdir.x*k_back+sway.x;
