@@ -38,16 +38,17 @@ vec *getTagPos(const char *mdl, const char *tag){
 	return NULL;
 }
 
-VAR(lol, 0, 0, 360);
+VAR(lol, 0, 90, 360);
 
 vec tagTrans(vec v, physent *p, bool mirror){
 	vec ret = v;
 	float f = ret.magnitude();
 	if(f) ret.div(f);
 	if(mirror) ret.y = -ret.y;
+	ret.z = 0;
 	// needs major fixing!
 	ret.rotate_around_y(p->pitch * RAD);
-	ret.rotate_around_z((p->yaw  - 90) * RAD);
+	ret.rotate_around_z((p->yaw  - lol) * RAD);
 	ret.rotate_around_x(p->roll * RAD);
 	ret.mul(f);
 	return ret;

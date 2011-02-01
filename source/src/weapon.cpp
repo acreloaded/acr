@@ -647,7 +647,7 @@ void weapon::renderhudmodel(int lastaction, int index){
 	weaponmove wm;
 	if(!intermission) wm.calcmove(unitv, lastaction);
 	s_sprintfd(path)("weapons/%s", info.modelname);
-	bool emit = ((wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT || (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT2) && (lastmillis - lastaction) < flashtime();
+	bool emit = ((wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT) && (lastmillis - lastaction) < flashtime();
 	rendermodel(path, wm.anim|ANIM_DYNALLOC|(index ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, -1, wm.pos, owner->yaw+90, owner->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, NULL, 1.28f);
 }
 

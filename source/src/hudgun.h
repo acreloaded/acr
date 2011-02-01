@@ -106,7 +106,6 @@ struct weaponmove
 					vec *v = hudAds(gamefocus);
 					if(v) pos.sub(*v);
 				}
-				else if((anim&ANIM_INDEX) == ANIM_GUN_SHOOT && gamefocus->ads){ anim &= ~ANIM_GUN_SHOOT; anim |= ANIM_GUN_SHOOT2; }
 				k_rot *= gamefocus->ads ? 0.5f : 1;
 				k_back *= gamefocus->ads ? 0.09090909090909090909090909090909f : 1;
 				sway.mul(gamefocus->ads ? 0.13333333333333333333333333333333 : 1);
