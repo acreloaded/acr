@@ -38,17 +38,11 @@ vec *getTagPos(const char *mdl, const char *tag){
 	return NULL;
 }
 
-VAR(lol, 0, 90, 360);
-VAR(lol2, 0, 0, 360);
-
 vec tagTrans(vec v, physent *p, bool mirror){
 	vec ret = v;
-	float f = ret.magnitude();
-	if(f) ret.div(f);
 	if(mirror) ret.y = -ret.y;
-	// needs major fixing!
-	ret.rotate_3d(p->yaw - lol, -p->pitch + lol2, p->roll);
-	ret.mul(f);
+	ret.rotate_around_z(30 * RAD); // why is this needed???
+	ret.rotate_3d(p->yaw, -p->pitch, p->roll);
 	return ret;
 }
 
@@ -66,5 +60,5 @@ inline vec *hudEject(playerent *p, bool akimboflip){
 inline vec *hudAds(playerent *p){
 	vec *v = hudgunTag(p, "tag_aimpoint");
 	if(!v) return NULL;
-	return &v->mul(p->ads).div(1000);
+	return &v->rotate_around_z(-90 * RAD).mul(p->ads).div(1000);
 }
