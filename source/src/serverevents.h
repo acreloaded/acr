@@ -96,7 +96,7 @@ void processevent(client &c, shotevent &e)
 				if(e.gun==GUN_SHOTGUN) gib = damage > SGGIB;
 				else gib = e.gun==GUN_KNIFE || h.info == 2;
 				if(e.gun!=GUN_SHOTGUN){
-					if(h.info == 1 && e.gun != GUN_KNIFE) damage *= 0.67;
+					if(h.info == 1) damage *= 0.67;
 					else if(h.info == 2) damage *= e.gun == GUN_SNIPER || e.gun == GUN_SLUG || e.gun == GUN_KNIFE ? 5 : 2.5;
 				} else if(h.info & 0x80) gib = true;
 				serverdamage(target, &c, damage, e.gun, gib);
