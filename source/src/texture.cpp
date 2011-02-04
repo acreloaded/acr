@@ -580,7 +580,7 @@ void cleanuptmus()
 Texture **geteventicons(){
 	static Texture *tex[eventicon::TOTAL];
 	if(!*tex){
-		const char *texname[eventicon::TOTAL] = { "com", "headshot", "decapitated", "firstblood", "critical", "revenge" };
+		const char *texname[eventicon::TOTAL] = { "com", "headshot", "decapitated", "firstblood", "critical", "revenge", "bleed" };
 		loopi(eventicon::TOTAL){
 			s_sprintfd(tname)("packages/misc/eventicons/%s.png", texname[i]);
 			tex[i] = textureload(tname);

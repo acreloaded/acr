@@ -404,7 +404,7 @@ struct playerstate
 #define LEGPART (1 - TORSOPART)
 
 struct eventicon{
-    enum { VOICECOM = 0, HEADSHOT, DECAPITATED, FIRSTBLOOD, CRITICAL, REVENGE, TOTAL };
+    enum { VOICECOM = 0, HEADSHOT, DECAPITATED, FIRSTBLOOD, CRITICAL, REVENGE, BLEED, TOTAL };
     int type, millis;
 	eventicon(int type, int millis) : type(type), millis(millis){}
 };

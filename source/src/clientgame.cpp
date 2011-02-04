@@ -490,6 +490,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, bool loca
 	if(actor != pl && pl->damagelog.find(actor->clientnum) < 0) pl->damagelog.add(actor->clientnum);
 
 	if(pl==player1){
+		if(weapon == GUN_KNIFE && pl->health > 0) pl->addicon(eventicon::BLEED);
 		if(weapon != GUN_GRENADE && actor != pl){
 			vec dir = pl->o;
 			dir.sub(actor->o);

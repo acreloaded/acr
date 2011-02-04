@@ -665,7 +665,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 			case eventicon::VOICECOM: default: scalef = .4f; break;
 			case eventicon::HEADSHOT: aspect = 2; h = 4; break;
 			case eventicon::FIRSTBLOOD: aspect = 2; h = 8; break;
-			case eventicon::DECAPITATED: scalef = .4f; break;
+			case eventicon::DECAPITATED: case eventicon::BLEED: scalef = .4f; break;
 		}
 		glBindTexture(GL_TEXTURE_2D, tex->id);
 		glEnable(GL_BLEND);
