@@ -561,7 +561,7 @@ void drawteamicons(int w, int h){
 	quad(icons->id, VIRTW-VIRTH/12-10, 10, VIRTH/12, player1->team ? 0.5f : 0, 0, 0.49f, 1.0f);
 }
 
-VARP(damagescreenalpha, 40, 80, 100);
+VARP(damagescreenalpha, 40, 90, 100);
 VARP(damageindicatorsize, 0, 200, 10000);
 VARP(damageindicatordist, 0, 500, 10000);
 
