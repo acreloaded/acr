@@ -38,11 +38,14 @@ vec *getTagPos(const char *mdl, const char *tag){
 	return NULL;
 }
 
+VAR(lol, 0, 30, 360);
+
 vec tagTrans(vec v, physent *p, bool mirror){
 	vec ret = v;
 	if(mirror) ret.y = -ret.y;
-	ret.rotate_around_z(30 * RAD); // why is this needed???
-	ret.rotate_3d(p->yaw, -p->pitch, p->roll);
+	//ret.rotate_around_z(30 * RAD); // why is this needed???
+	ret.rotate_around_x(lol * RAD).rotate_around_y(lol * RAD).rotate_around_z(lol * RAD);
+	ret.rotate_3d(p->yaw - 90, -p->pitch, p->roll);
 	return ret;
 }
 
@@ -54,11 +57,13 @@ inline vec *hudgunTag(playerent *p, const char *tag, bool mirror = false){
 }
 
 inline vec *hudEject(playerent *p, bool akimboflip){
-	return hudgunTag(p, "tag_eject", akimboflip);
+	vec *v = hudgunTag(p, "tag_eject", akimboflip);
+	if(!v) return NULL;
+	return &v->rotate_around_z(180 * RAD);
 }
 
 inline vec *hudAds(playerent *p){
 	vec *v = hudgunTag(p, "tag_aimpoint");
 	if(!v) return NULL;
-	return &v->rotate_around_z(-90 * RAD).mul(p->ads).div(1000);
+	return &v->mul(p->ads).div(1000);
 }
