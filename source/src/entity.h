@@ -66,6 +66,8 @@ static itemstat powerupstats[] =
 #define SGGIB 130
 #define NADEPOWER 1.5f
 
+#define GIBBLOODMUL 1.5
+
 struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, range, endrange, rangeminus, projspeed, part, spread, kick, magsize, mdl_kick_rot, mdl_kick_back, recoil, maxrecoil, pushfactor; bool isauto; };
 static guninfo guns[NUMGUNS] =
 {
@@ -90,38 +92,40 @@ static inline ushort effectiveDamage(int gun, float dist) {
 	else return guns[gun].damage - (short)((dist - (float)guns[gun].range) * guns[gun].rangeminus / (guns[gun].endrange - guns[gun].range));
 }
 
-static inline const char *killname(int gun, bool gib, bool overkill = false){
+static inline const char *killname(int gun, int style){
+	const bool gib = (style & FRAG_GIB) > 0,
+				overkill = (style & FRAG_OVER) > 0;
 	switch(gun){
 		case GUN_GRENADE:
 			return "obliterated";
-			break;
+			//break;
 		case GUN_KNIFE:
-			return overkill ? "decapitated" : "slashed";
-			break;
+			return !gib ? "fatally wounded" : overkill ? "decapitated" : "slashed";
+			//break;
 		case GUN_SLUG:
 			return gib ? "shotgun-sniped" : "slugged";
-			break;
+			//break;
 		case GUN_SNIPER:
 			return gib ? "expertly sniped" : "sniped";
-			break;
+			//break;
 		case GUN_SUBGUN:
 			return gib ? "perforated" : "spliced";
-			break;
+			//break;
 		case GUN_SHOTGUN:
 			return gib ? "splattered" : "scrambled";
-			break;
+			//break;
 		case GUN_ASSAULT:
 			return gib ? "eliminated" : "shredded";
-			break;
+			//break;
 		case GUN_PISTOL:
 			return gib ? "capped" : "pierced";
-			break;
+			//break;
 		case GUN_AKIMBO:
 			return gib ? "blasted" : "skewered";
-			break;
+			//break;
 		default:
 			return gib ? "pwned" : "killed";
-			break;
+			//break;
 	}
 }
 
@@ -283,6 +287,7 @@ struct poshist
 struct playerstate
 {
 	int health, armour;
+	int lastcut, cutter;
 	int killstreak, assists;
 	int primary, nextprimary;
 	int gunselect;
@@ -351,7 +356,8 @@ struct playerstate
 	void respawn()
 	{
 		health = STARTHEALTH;
-		killstreak = assists = armour = 0;
+		cutter = -1;
+		killstreak = assists = armour = lastcut = 0;
 		gunselect = GUN_PISTOL;
 		akimbo = scoping = false;
 		loopi(NUMGUNS) ammo[i] = mag[i] = gunwait[i] = 0;

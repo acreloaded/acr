@@ -3,7 +3,8 @@ enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_SLUG,
 #define reloadable_gun(g) (g != GUN_KNIFE && g != GUN_GRENADE)
 #define ads_gun(g) (g != GUN_GRENADE && g != GUN_AKIMBO)
 
-enum { FRAG_NONE = 0, FRAG_GIB = 1 << 0, FRAG_OVERKILL = 1 << 1, FRAG_REVENGE = 1 << 2, FRAG_CRITICAL = 1 << 3, FRAG_FIRST = 1 << 4 };
+enum { FRAG_NONE = 0, FRAG_GIB = 1 << 0, FRAG_REVENGE = 1 << 1, FRAG_CRITICAL = 1 << 2, FRAG_FIRST = 1 << 3, FRAG_OVER = 1 << 4,
+		FRAG_SERVER = (1 << ((3) + 1)) - 1 };
 
 struct playerent;
 struct bounceent;

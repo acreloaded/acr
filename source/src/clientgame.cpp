@@ -479,7 +479,7 @@ bool tryrespawn()
 
 // damage arriving from the network, monsters, yourself, all ends up here.
 
-void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style, bool local)
+void dodamage(int damage, playerent *pl, playerent *actor, int weapon, bool local)
 {
 	if(pl->state != CS_ALIVE || intermission) return;
 
@@ -498,30 +498,32 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 		pl->damageroll(damage);
 	}
 	pl->damagesource = actor->o;
-	damageeffect(damage, pl);
+	damageeffect(damage * (weapon == GUN_KNIFE && damage < guns[GUN_KNIFE].damage ? 5 : 1), pl);
 
 	if(pl->health<=0){ if(local){
+		int style = !weapon::valid(weapon) || guns[weapon].damage < damage ? FRAG_GIB : FRAG_NONE;
 		if(!localfirstkill && pl != actor && !isteam(pl, actor)){ localfirstkill = true; style |= FRAG_FIRST; }
-		dokill(pl, actor, weapon, style);
+		dokill(pl, actor, weapon, damage, style);
 	}}
 	else if(pl==player1) playsound(S_PAIN6, SP_HIGH);
 	else playsound(S_PAIN1+rnd(5), pl);
 }
 
-void dokill(playerent *pl, playerent *act, int weapon, int style){
+void dokill(playerent *pl, playerent *act, int weapon, int damage, int style){
 	if(pl->state!=CS_ALIVE || intermission) return;
 
 	string pname, aname, death;
 	s_strcpy(pname, pl==gamefocus ? "\fs\f1you\fr" : colorname(pl));
 	s_strcpy(aname, act==gamefocus ? "\fs\f1you\fr" : colorname(act));
 	//void (*outf)(const char *s, ...) = (pl == p || act == p) ? hudoutf : conoutf;
-	const bool gib = style & FRAG_GIB;
+
+	if(weapon::valid(weapon) && damage > guns[weapon].damage) style |= FRAG_OVER;
 
 	if(pl == act)
 		s_sprintf(death)("\f2%s %s%s", pname, weapon == GUN_GRENADE ? pl==gamefocus? "blew yourself up" : "blew himself up" :
 			weapon == NUMGUNS ? "committed too much friendly fire" : "suicided", pl == gamefocus ? "\f3!\f2" : "");
 	else
-		s_sprintf(death)("\f2%s %s %s%s", aname, killname(weapon, gib, (style & FRAG_OVERKILL) > 0), isteam(pl, act) ? "teammate " : "", pname);
+		s_sprintf(death)("\f2%s %s %s%s", aname, killname(weapon, style), isteam(pl, act) ? "teammate " : "", pname);
 	pl->damagelog.removeobj(pl->clientnum);
 	pl->damagelog.removeobj(act->clientnum);
 	if(pl == gamefocus || act == gamefocus) hudonlyf(pl->damagelog.length() ? "%s, %d assister%s" : "%s", death, pl->damagelog.length(), pl->damagelog.length()==1?"":"s");
@@ -558,8 +560,8 @@ void dokill(playerent *pl, playerent *act, int weapon, int style){
 	}
 	*/
 	int icon = -1;
-	if(gib){
-		if(pl != act && weapon != GUN_SHOTGUN && weapon != GUN_GRENADE && (weapon != GUN_KNIFE || style & FRAG_OVERKILL)){
+	if(style & FRAG_GIB){
+		if(pl != act && weapon != GUN_SHOTGUN && weapon != GUN_GRENADE && (weapon != GUN_KNIFE || style & FRAG_OVER)){
 			playsound(S_HEADSHOT, act, act == gamefocus ? SP_HIGHEST : SP_HIGH);
 			playsound(S_HEADSHOT, pl, pl == gamefocus ? SP_HIGHEST : SP_HIGH); // both get headshot sound
 			icon = eventicon::HEADSHOT; pl->addicon(eventicon::DECAPITATED); // both get headshot info
@@ -570,7 +572,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int style){
 	if(icon >= 0) act->addicon(icon);
 	
 	if(!m_mp(gamemode)){
-		act->frags += (pl==act || isteam(pl, act)) ? -1 : gib ? 2 : 1;
+		act->frags += (pl==act || isteam(pl, act)) ? -1 : (style & FRAG_GIB) ? 2 : 1;
 		killpoints(pl, act, weapon, style);
 	}
 

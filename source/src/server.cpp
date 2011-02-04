@@ -1345,13 +1345,12 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 	ts.dodamage(damage);
 	ts.lastregen = gamemillis;
 	actor->state.damage += damage != 1000 ? damage : 0;
-	int style = (gib ? FRAG_GIB : FRAG_NONE) | (damage > guns[gun].damage ? FRAG_OVERKILL : FRAG_NONE);
+	int style = (gib ? FRAG_GIB : FRAG_NONE) | (damage > guns[gun].damage ? FRAG_OVER : FRAG_NONE);
 	/*/ TODO: add critical!
 	if(!suic){
 	
 	}
 	//*/
-	sendf(-1, 1, "ri8", N_DAMAGE, target->clientnum, actor->clientnum, damage, ts.armour, ts.health, gun, style);
 	if(ts.health<=0){
 		int targethasflag = clienthasflag(target->clientnum);
 		bool suic = false;
@@ -1362,7 +1361,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 			suic = true;
 		}
 		actor->state.killstreak++;
-		target->state.killstreak = 0;
+		target->state.killstreak = ts.lastcut = 0;
 		ts.damagelog.removeobj(target->clientnum);
 		ts.damagelog.removeobj(actor->clientnum);
 		loopv(ts.damagelog){
@@ -1374,7 +1373,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 			nokills = false;
 		}
 		killpoints(target, actor, gun, style);
-		sendf(-1, 1, "ri7v", N_KILL, target->clientnum, actor->clientnum, actor->state.frags, gun, style,
+		sendf(-1, 1, "ri8v", N_KILL, target->clientnum, actor->clientnum, actor->state.frags, gun, style & FRAG_SERVER, int(damage * (gib ? GIBBLOODMUL : 1)),
 			target->state.damagelog.length(), target->state.damagelog.length(), target->state.damagelog.getbuf());
 		if(suic && (m_htf || m_ktf) && targethasflag >= 0){
 			actor->state.flagscore--;
@@ -1383,7 +1382,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 		target->position.setsize(0);
 		ts.state = CS_DEAD;
 		ts.lastdeath = gamemillis;
-		if(!suic) logline(ACLOG_INFO, "[%s] %s %s %s", actor->hostname, actor->name, killname(gun, gib, damage > guns[gun].damage), target->name);
+		if(!suic) logline(ACLOG_INFO, "[%s] %s %s %s", actor->hostname, actor->name, killname(gun, style), target->name);
 		else logline(ACLOG_INFO, "[%s] %s %s", actor->hostname, actor->name, gun == GUN_GRENADE ? "blew himself up" : gun == NUMGUNS ? "commited too much friendly fire" : "suicided");
 
 		if(m_flags && targethasflag >= 0)
@@ -1394,8 +1393,9 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 				flagaction(targethasflag, FA_RESET, -1);
 		}
 	}
-	else if(source != target->state.o && gun == GUN_GRENADE){
-		sendf(-1, 1, "ri4f3", N_PROJPUSH, target->clientnum, gun, damage, source.x, source.y, source.z);
+	else{
+		sendf(-1, 1, "ri7", N_DAMAGE, target->clientnum, actor->clientnum, int(damage * (gib ? GIBBLOODMUL : 1)), ts.armour, ts.health, gun);
+		if(source != target->state.o && gun == GUN_GRENADE) sendf(-1, 1, "ri4f3", N_PROJPUSH, target->clientnum, gun, damage, source.x, source.y, source.z);
 	}
 }
 

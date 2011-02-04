@@ -283,8 +283,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(!*text) s_strcpy(text, "unnamed");
 				s_strcpy(d->name, text);
 				conoutf("connected: %s", colorname(d));
-				s_sprintfd(joinmsg)("%s \f0joined \f2the \f1game", colorname(d));
-				chatout(joinmsg);
+				if(!joining){
+					s_sprintfd(joinmsg)("%s \f0joined \f2the \f1game", colorname(d));
+					chatout(joinmsg);
+				}
 				updateclientname(d);
 				if(m_flags) loopi(2)
 				{
@@ -477,14 +479,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					damage = getint(p),
 					armour = getint(p),
 					health = getint(p),
-					weap = getint(p),
-					style = getint(p);
+					weap = getint(p);
 				playerent *target = getclient(tcn), *actor = getclient(acn);
 				if(!target) break;
 				target->armour = armour;
 				target->health = health;
 				if(!actor) break;
-				dodamage(damage, target, actor, weap, style);
+				dodamage(damage, target, actor, weap);
 				break;
 			}
 
@@ -504,7 +505,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_KILL:
 			{
-				int vcn = getint(p), acn = getint(p), frags = getint(p), weap = getint(p), style = getint(p), assists = getint(p);
+				int vcn = getint(p), acn = getint(p), frags = getint(p), weap = getint(p), style = getint(p) & FRAG_SERVER, damage = getint(p), assists = getint(p) & 0xFF;
 				playerent *victim = getclient(vcn), *actor = getclient(acn);
 				if(actor) actor->frags = frags;
 				if(victim){
@@ -512,7 +513,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					loopi(assists) victim->damagelog.add(getint(p));
 				} else loopi(assists) getint(p);
 				if(!actor || !victim) break;
-				dokill(victim, actor, weap, style);
+				dodamage(damage, victim, actor, weap);
+				if((victim->health -= damage) > 0) victim->health = 0;
+				dokill(victim, actor, weap, damage, style);
 				break;
 			}
 

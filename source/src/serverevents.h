@@ -99,6 +99,10 @@ void processevent(client &c, shotevent &e)
 					if(h.info == 1) damage *= 0.67;
 					else if(h.info == 2) damage *= e.gun == GUN_SNIPER || e.gun == GUN_SLUG || e.gun == GUN_KNIFE ? 5 : 2.5;
 				} else if(h.info & 0x80) gib = true;
+				if(e.gun == GUN_KNIFE){
+					target->state.cutter = c.clientnum;
+					target->state.lastcut = gamemillis;
+				}
 				serverdamage(target, &c, damage, e.gun, gib);
 			}
 			break;
@@ -155,15 +159,23 @@ void processevents()
 	{
 		client &c = *clients[i];
 		if(c.type==ST_EMPTY) continue;
-		if(!m_arena && c.state.state == CS_ALIVE && c.state.health < STARTHEALTH && c.state.lastregen + 2500 < gamemillis){
-			int amt = 15;
-			if(amt > STARTHEALTH - c.state.health){
-				amt = STARTHEALTH - c.state.health;
-				c.state.damagelog.setsize(0);
+		if(c.state.state == CS_ALIVE){ // can't regen or bleed if dead
+			if(c.state.lastcut){ // bleeding; oh no!
+				if(c.state.lastcut + 500 < gamemillis && valid_client(c.state.cutter)){
+					serverdamage(&c, clients[c.state.cutter], 10, GUN_KNIFE, false);
+					c.state.lastcut = gamemillis;
+				}
 			}
-			c.state.health += amt;
-			sendf(-1, 1, "ri3", N_REGEN, i, amt);
-			c.state.lastregen = gamemillis;
+			else if(!m_arena && c.state.state == CS_ALIVE && c.state.health < STARTHEALTH && c.state.lastregen + 2500 < gamemillis){
+				int amt = 15;
+				if(amt > STARTHEALTH - c.state.health){
+					amt = STARTHEALTH - c.state.health;
+					c.state.damagelog.setsize(0);
+				}
+				c.state.health += amt;
+				sendf(-1, 1, "ri3", N_REGEN, i, amt);
+				c.state.lastregen = gamemillis;
+			}
 		}
 		while(c.events.length())
 		{
