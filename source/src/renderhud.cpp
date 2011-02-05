@@ -569,6 +569,11 @@ static int votersort(playerent **a, playerent **b){
 	return (*a)->voternum - (*b)->voternum;
 }
 
+void icondebug(int lol){
+	if(lol >= 0 && lol < eventicon::TOTAL) player1->addicon(lol);
+}
+COMMAND(icondebug, ARG_1INT);
+
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater){
 	playerent * const p = gamefocus;
 	bool spectating = player1->isspectating();
@@ -663,11 +668,14 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		float aspect = 1, scalef = 1, offset = (lastmillis - icon.millis) / 3000.f * 160.f;
 		switch(icon.type){
 			case eventicon::VOICECOM: default: scalef = .4f; break;
-			case eventicon::HEADSHOT: aspect = 2; h = 4; break;
+				case eventicon::HEADSHOT:
+				case eventicon::CRITICAL:
+				case eventicon::REVENGE: aspect = 2; h = 4; break;
 			case eventicon::FIRSTBLOOD: aspect = 2; h = 8; break;
 			case eventicon::DECAPITATED: case eventicon::BLEED: scalef = .4f; break;
 		}
 		glBindTexture(GL_TEXTURE_2D, tex->id);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
 		glColor4f(1.f, 1.f, 1.f, (3000 + icon.millis - lastmillis) / 3000.f);
 		glBegin(GL_QUADS);
