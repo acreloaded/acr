@@ -14,7 +14,7 @@ ENetPeer *curpeer = NULL, *connpeer = NULL;
 int connmillis = 0, connattempts = 0, discmillis = 0;
 bool watchingdemo = false;		  // flowtron : enables N_ITEMLIST in demos - req. because mapchanged == false by then
 
-int getclientnum() { return player1 ? player1->clientnum : -1; }
+inline int getclientnum() { return player1 ? player1->clientnum : -1; }
 
 bool multiplayer(bool msg)
 {
@@ -303,7 +303,7 @@ void addmsg(int type, const char *fmt, ...)
 	loopi(len) messages.add(buf[i]);
 }
 
-static int lastupdate = -1000, lastping = 0;
+static int lastping = 0;
 bool sendmapident = false;
 
 void sendpackettoserv(int chan, ENetPacket *packet)
@@ -322,8 +322,7 @@ extern string masterpwd;
 
 void c2sinfo(playerent *d)				  // send update to the server
 {
-	if(d->clientnum<0) return;			  // we haven't had a welcome message from the server yet
-	if(totalmillis-lastupdate<40) return;	// don't update faster than 25fps
+	if(totalmillis-d->lastupdate<40) return;	// don't update faster than 25fps
 
 	if(d->state==CS_ALIVE || d->state==CS_EDITING)
 	{
@@ -331,7 +330,7 @@ void c2sinfo(playerent *d)				  // send update to the server
 		ucharbuf q(packet->data, packet->dataLength);
 
 		putint(q, N_POS);
-		//putint(q, d->clientnum);
+		putint(q, d->clientnum);
 		putfloat(q, d->o.x);
 		putfloat(q, d->o.y);
 		putfloat(q, d->o.z); // not subtracting the eyeheight
@@ -397,7 +396,7 @@ void c2sinfo(playerent *d)				  // send update to the server
 	}
 
 	if(clienthost) enet_host_flush(clienthost);
-	lastupdate = totalmillis;
+	d->lastupdate = totalmillis;
 }
 
 void sendintro()

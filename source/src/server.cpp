@@ -2649,7 +2649,81 @@ void sendwelcome(client *cl, int chan, bool forcedeath){
 	cl->haswelcome = true;
 }
 
+void checkmove(client &cp){
+	const int sender = cp.clientnum;
+	clientstate &cs = cp.state;
+	float cps = cs.lasto.dist(cs.o);
+	if(cps && cs.lastomillis && gamemillis > cs.lastomillis){
+		cps *= 1000 / (gamemillis - cs.lastomillis);
+		if(cps > 64.f){ // 16 meters per second
+			s_sprintfd(lol)("TOO FAST: %.3f", cps);
+			sendservmsg(lol);
+		}
+	}
+	if(maplayout && cp.type==ST_TCPIP && !m_edit){
+		vec &po = cs.o;
+		const int ls = (1 << maplayout_factor) - 1;
+		if(po.x < 0 || po.y < 0 || po.x > ls || po.y > ls || maplayout[((int) po.x) + (((int) po.y) << maplayout_factor)] > po.z)
+		{
+			logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cp.hostname, cp.name, ++cp.mapcollisions);
+			sendmsgi(40, sender);
+			sendf(sender, 1, "ri", N_MAPIDENT);
+			forcedeath(&cp);
+			cp.isonrightmap = false; // cannot spawn until you get the right map
+			return; // no pickups for you!
+		}
+	}
+	loopv(sents){
+		server_entity &e = sents[i];
+		if(!e.spawned || !cs.canpickup(e.type)) continue;
+		const int ls = (1 << maplayout_factor) - 1;
+		vec v(e.x, e.y, maplayout && e.x >= 0 && e.y >= 0 && e.x < ls && e.y < ls ? maplayout[e.x + (e.y << maplayout_factor)] + 3 : cs.o.z);
+		float dist = cs.o.dist(v);
+		if(dist > 2.5f) continue;
+		if(arenaround && arenaround - gamemillis <= 2000){ // no nade pickup during last two seconds of lss intermission
+			sendf(sender, 1, "ri2", N_ITEMSPAWN, i);
+			continue;
+		}
+		serverpickup(i, sender);
+	}
+	if(m_flags) loopi(2){ // check flag pickup
+		sflaginfo &f = sflaginfos[i];
+		sflaginfo &of = sflaginfos[team_opposite(i)];
+		vec v(-1, -1, cs.o.z);
+		switch(f.state){
+			case CTFF_INBASE:
+				v.x = f.x; v.y = f.y;
+				break;
+			case CTFF_DROPPED:
+				v.x = f.pos[0]; v.y = f.pos[1];
+				break;
+		}
+		if(v.x < 0) continue;
+		float dist = cs.o.dist(v);
+		if(dist > 2.5f) continue;
+		//if(f.state == CTFF_STOLEN) continue;
+		if(m_ctf){
+			if(i == cp.team){ // it's our flag
+				if(f.state == CTFF_DROPPED) flagaction(i, FA_RETURN, sender);
+				else if(f.state == CTFF_INBASE && of.state == CTFF_STOLEN && of.actor_cn == sender) flagaction(team_opposite(i), FA_SCORE, sender);
+			}
+			else if(f.drop_cn != sender || f.dropmillis + 2000 < servmillis) flagaction(i, FA_PICKUP, sender);
+		}
+		else if(m_htf){
+			if(i == cp.team) flagaction(i, FA_PICKUP, sender);
+			else if(f.state == CTFF_DROPPED) flagaction(i, FA_SCORE, sender);
+		}
+		else if(m_ktf && f.state == CTFF_INBASE) flagaction(i, FA_PICKUP, sender);
+	}
+}
+
 #include "auth.h"
+
+bool hasclient(client &ci, int cn){
+	if(!valid_client(cn)) return false;
+	client &cp = *clients[cn];
+	return ci.clientnum == cn || cp.state.ownernum == ci.clientnum;
+}
 
 int checktype(int type, client *cl){ // invalid defined types handled in the processing function
 	if(cl && cl->type==ST_LOCAL) return type;
@@ -2795,6 +2869,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 		switch(type)
 		{
+
 			case N_TEXT:
 			{
 				int flags = getint(p), voice = flags & 0x1F; flags = (flags >> 5) & 3; // SAY_DENY is server only
@@ -3048,91 +3123,26 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_POS:
 			{
-				/*int cn = getint(p);
-				if(cn != sender){
-					disconnect_client(sender, DISC_CN);
-					return;
-				}*/
-				clientstate &cs = cl->state;
-				cs.lasto = cs.o;
-				loopi(3) cs.o[i] = getfloat(p);
+				int cn = getint(p);
+				bool broadcast = true;
+				if(!hasclient(*cl, cn)) broadcast = false;
+				vec newo;
+				loopi(3) newo[i] = getfloat(p);
 				loopi(6) getfloat(p); // yaw, pitch, roll, vel[3]
 				getuint(p); // last data uint
-				if(cs.state!=CS_ALIVE && cs.state!=CS_EDITING) break;
-				if(cl->type==ST_TCPIP)
-				{
-					cl->position.setsize(0);
-					ucharbuf q = cl->position.reserve(2 * sizeof(int));
-					putint(q, N_POS); curmsg++; // put N_POS
-					putint(q, sender); // inject sender
-					cl->position.addbuf(q); // put current buffer
-					while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]); // add the rest
-				}
-				if(cs.state!=CS_ALIVE) break;
-				float cps = cs.lasto.dist(cs.o);
-				if(cps && cs.lastomillis && gamemillis > cs.lastomillis){
-					cps *= 1000 / (gamemillis - cs.lastomillis);
-					if(cps > 64.f){ // 16 meters per second
-						s_sprintfd(lol)("TOO FAST: %.3f", cps);
-						sendservmsg(lol);
-					}
-				}
+				if(!valid_client(cn)) break;
+				client &cp = *clients[cn];
+				clientstate &cs = cp.state;
+				if((cs.state!=CS_ALIVE && cs.state!=CS_EDITING) || !broadcast) break;
+				// store location
+				cs.lasto = cs.o;
 				cs.lastomillis = gamemillis;
-				if(maplayout && cl->type==ST_TCPIP && !m_edit){
-					vec &po = cs.o;
-					const int ls = (1 << maplayout_factor) - 1;
-					if(po.x < 0 || po.y < 0 || po.x > ls || po.y > ls || maplayout[((int) po.x) + (((int) po.y) << maplayout_factor)] > po.z)
-					{
-						logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cl->hostname, cl->name, ++cl->mapcollisions);
-						sendmsgi(40, sender);
-						sendf(sender, 1, "ri", N_MAPIDENT);
-						forcedeath(cl);
-						cl->isonrightmap = false; // cannot spawn until you get the right map
-						break; // no pickups for you!
-					}
-				}
-				loopv(sents){
-					server_entity &e = sents[i];
-					if(!e.spawned || !cs.canpickup(e.type)) continue;
-					const int ls = (1 << maplayout_factor) - 1;
-					vec v(e.x, e.y, maplayout && e.x >= 0 && e.y >= 0 && e.x < ls && e.y < ls ? maplayout[e.x + (e.y << maplayout_factor)] + 3 : cs.o.z);
-					float dist = cs.o.dist(v);
-					if(dist > 2.5f) continue;
-					if(arenaround && arenaround - gamemillis <= 2000){ // no nade pickup during last two seconds of lss intermission
-						sendf(sender, 1, "ri2", N_ITEMSPAWN, i);
-						continue;
-					}
-					serverpickup(i, sender);
-				}
-				if(m_flags) loopi(2){ // check flag pickup
-					sflaginfo &f = sflaginfos[i];
-					sflaginfo &of = sflaginfos[team_opposite(i)];
-					vec v(-1, -1, cs.o.z);
-					switch(f.state){
-						case CTFF_INBASE:
-							v.x = f.x; v.y = f.y;
-							break;
-						case CTFF_DROPPED:
-							v.x = f.pos[0]; v.y = f.pos[1];
-							break;
-					}
-					if(v.x < 0) continue;
-					float dist = cs.o.dist(v);
-					if(dist > 2.5f) continue;
-					//if(f.state == CTFF_STOLEN) continue;
-					if(m_ctf){
-						if(i == cl->team){ // it's our flag
-							if(f.state == CTFF_DROPPED) flagaction(i, FA_RETURN, sender);
-							else if(f.state == CTFF_INBASE && of.state == CTFF_STOLEN && of.actor_cn == sender) flagaction(team_opposite(i), FA_SCORE, sender);
-						}
-						else if(f.drop_cn != sender || f.dropmillis + 2000 < servmillis) flagaction(i, FA_PICKUP, sender);
-					}
-					else if(m_htf){
-						if(i == cl->team) flagaction(i, FA_PICKUP, sender);
-						else if(f.state == CTFF_DROPPED) flagaction(i, FA_SCORE, sender);
-					}
-					else if(m_ktf && f.state == CTFF_INBASE) flagaction(i, FA_PICKUP, sender);
-				}
+				cs.o = newo;
+				// broadcast
+				cp.position.setsize(0);
+				while(curmsg < p.length()) cp.position.add(p.buf[curmsg++]);
+				// check movement
+				if(cs.state==CS_ALIVE) checkmove(cp);
 				break;
 			}
 

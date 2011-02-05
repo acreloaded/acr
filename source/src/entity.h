@@ -287,7 +287,7 @@ struct poshist
 struct playerstate
 {
 	int health, armour;
-	int lastcut, cutter;
+	int lastcut, cutter, ownernum;
 	int killstreak, assists;
 	int primary, nextprimary;
 	int gunselect;

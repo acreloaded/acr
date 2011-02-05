@@ -359,7 +359,10 @@ void updateworld(int curtime, int lastmillis)		// main game update loop
 	BotManager.Think(); // let bots think
 
 	movelocalplayer();
-	c2sinfo(player1);   // do this last, to reduce the effective frame lag
+	if(getclientnum() >= 0){ // do this last, to reduce the effective frame lag
+		c2sinfo(player1);
+		loopv(players) if(players[i] && players[i]->ownernum == getclientnum()) c2sinfo(players[i]);
+	}
 }
 
 #define SECURESPAWNDIST 15
