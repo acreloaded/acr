@@ -512,8 +512,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					loopi(assists) victim->damagelog.add(getint(p));
 				} else loopi(assists) getint(p);
 				if(!actor || !victim) break;
-				dodamage(damage, victim, actor, weap);
 				if((victim->health -= damage) > 0) victim->health = 0;
+				dodamage(damage, victim, actor, weap);
 				dokill(victim, actor, weap, damage, style);
 				break;
 			}
