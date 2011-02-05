@@ -311,7 +311,7 @@ void CWaypointClass::SaveWaypoints()
 
 	 if (!bfp)
 	 {
-		  conoutf("Error writing waypoint file, check if the directory \"bot/waypoint\" exists and "
+		  conoutf("Error writing waypoint file, check if the directory \"bot/waypoints\" exists and "
 					   "the right permissions are set");
 		  return;
 	 }
@@ -504,7 +504,7 @@ void CWaypointClass::SaveWPExpFile()
 
 	 if (!bfp)
 	 {
-		  conoutf("Error writing waypoint experience file, check if the directory \"bot/waypoint\" exists and "
+		  conoutf("Error writing waypoint experience file, check if the directory \"bot/waypoints\" exists and "
 					   "the right permissions are set");
 		  return;
 	 }
