@@ -688,7 +688,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	if(!editmode){
 		glMatrixMode(GL_MODELVIEW);
 		if(/*!menu &&*/ (!hideradar || showmap)) drawradar(p, w, h);
-		if(!hideteam && m_teammode) drawteamicons(w, h);
+		if(!hideteam && m_team) drawteamicons(w, h);
 		glMatrixMode(GL_PROJECTION);
 	}
 

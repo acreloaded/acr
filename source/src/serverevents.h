@@ -166,7 +166,7 @@ void processevents()
 					c.state.lastcut = gamemillis;
 				}
 			}
-			else if(!m_arena && c.state.state == CS_ALIVE && c.state.health < STARTHEALTH && c.state.lastregen + 2500 < gamemillis){
+			else if(!m_duel && c.state.state == CS_ALIVE && c.state.health < STARTHEALTH && c.state.lastregen + 2500 < gamemillis){
 				int amt = 15;
 				if(amt > STARTHEALTH - c.state.health){
 					amt = STARTHEALTH - c.state.health;

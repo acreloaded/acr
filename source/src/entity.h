@@ -129,7 +129,7 @@ static inline const char *killname(int gun, int style){
 	}
 }
 
-#define isteam(a,b)   (m_teammode && a->team == b->team)
+#define isteam(a,b)   (m_team && a->team == b->team)
 
 enum { TEAM_RED = 0, TEAM_BLUE, TEAM_NUM };
 #define team_valid(t) (!strcmp(t, "BLUE") || !strcmp(t, "RED"))

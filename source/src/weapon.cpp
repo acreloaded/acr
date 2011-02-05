@@ -308,22 +308,12 @@ void damageeffect(int damage, playerent *d){
 vector<hitmsg> hits;
 
 void hit(int damage, playerent *d, playerent *at, const vec &vel, int gun, bool gib, int info){
-	if(d==player1 || d->type==ENT_BOT || !m_mp(gamemode)) d->hitpush(damage, vel, gun);
+	if(d == player1) d->hitpush(damage, vel, gun);
 
-	if(!m_mp(gamemode)){
-		if(d != at && isteam(d, at)){
-			dodamage(damage * 0.4 * GIBBLOODMUL, at, at, NUMGUNS, true);
-			if((damage *= 0.25) >= d->health) damage = d->health - 1;
-		}
-		dodamage(damage * (gib ? GIBBLOODMUL : 1), d, at, gun, true);
-	}
-	else
-	{
-		hitmsg &h = hits.add();
-		h.target = d->clientnum;
-		h.lifesequence = d->lifesequence;
-		h.info = info;
-	}
+	hitmsg &h = hits.add();
+	h.target = d->clientnum;
+	h.lifesequence = d->lifesequence;
+	h.info = info;
 }
 
 void hitpush(int damage, playerent *d, playerent *at, vec &from, vec &to, int gun, bool gib, int info){
@@ -331,24 +321,6 @@ void hitpush(int damage, playerent *d, playerent *at, vec &from, vec &to, int gu
 	v.sub(from);
 	v.normalize();
 	hit(damage, d, at, v, gun, gib, info);
-}
-
-float expdist(playerent *o, vec &dir, const vec &v){
-	vec middle = o->o;
-	middle.z += (o->aboveeye-o->eyeheight)/2;
-	float dist = middle.dist(v, dir);
-	dir.div(dist);
-	if(dist<0) dist = 0;
-	return dist;
-}
-
-void radialeffect(playerent *o, vec &v, playerent *at, int gun){
-	if(o->state!=CS_ALIVE) return;
-	vec dir;
-	float dist = expdist(o, dir, v);
-	if(dist >= guns[gun].endrange) return;
-	int dam = effectiveDamage(gun, dist);
-	hit(dam, o, at, dir, gun, true, dist);
 }
 
 vector<bounceent *> bounceents;
@@ -724,14 +696,6 @@ void grenadeent::splash(){
 	addscorchmark(o);
 	adddynlight(NULL, o, 16, 200, 100, 255, 255, 224);
 	adddynlight(NULL, o, 16, 600, 600, 192, 160, 128);
-	if(!local || m_mp(gamemode)) return;
-	radialeffect(owner, o, owner, GUN_GRENADE);
-	loopv(players)
-	{
-		playerent *p = players[i];
-		if(!p) continue;
-		radialeffect(p, o, owner, GUN_GRENADE);
-	}
 }
 
 void grenadeent::activate(const vec &from, const vec &to){

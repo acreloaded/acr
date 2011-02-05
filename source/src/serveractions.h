@@ -41,7 +41,7 @@ struct mapaction : serveraction
 			resetmap(map, mode);
 		}
 	}
-	bool isvalid() { return serveraction::isvalid() && mode != GMODE_DEMO && map[0] && !(isdedicated && !m_mp(mode)); }
+	bool isvalid() { return serveraction::isvalid() && mode != GMODE_DEMO && map[0] && !(isdedicated && !m_fight(mode)); }
 	bool isdisabled() { return configsets.inrange(curcfgset) && !configsets[curcfgset].vote; }
 	mapaction(char *map, int mode, int caller) : map(map), mode(mode)
 	{
@@ -60,7 +60,7 @@ struct mapaction : serveraction
 			if(ms && !strchr(scl.voteperm, 'P')) // admin needed for mismatched modes
 			{
 				int smode = mode;  // 'borrow' the mode macros by replacing a global by a local var
-				bool spawns = (m_teammode && !m_ktf) ? ms->hasteamspawns : ms->hasffaspawns;
+				bool spawns = (m_team && !m_ktf) ? ms->hasteamspawns : ms->hasffaspawns;
 				bool flags = m_flags && !m_htf ? ms->hasflags : true;
 				if(!spawns || !flags)
 				{
@@ -108,7 +108,7 @@ struct playeraction : serveraction
 struct forceteamaction : playeraction
 {
 	void perform() { updateclientteam(cn, team_opposite(clients[cn]->team), FTR_AUTOTEAM); }
-	virtual bool isvalid() { return m_teammode && valid_client(cn); }
+	virtual bool isvalid() { return m_team && valid_client(cn); }
 	forceteamaction(int cn, int caller) : playeraction(cn)
 	{
 		if(cn != caller){ role = roleconf('f'); passratio = 0.55f;}
@@ -230,7 +230,7 @@ struct autoteamaction : enableaction
 {
 	void perform(){
 		autoteam = enable;
-		if(m_teammode && enable) refillteams(true);
+		if(m_team && enable) refillteams(true);
 	}
 	autoteamaction(bool enable) : enableaction(enable){
 		role = roleconf('a');
@@ -241,7 +241,7 @@ struct autoteamaction : enableaction
 struct shuffleteamaction : serveraction
 {
 	void perform() { shuffleteams(); }
-	bool isvalid() { return serveraction::isvalid() && m_teammode; }
+	bool isvalid() { return serveraction::isvalid() && m_team; }
 	shuffleteamaction()
 	{
 		role = roleconf('s');

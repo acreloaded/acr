@@ -106,7 +106,7 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
 		enet_host_flush(clienthost);
 		connmillis = totalmillis;
 		connattempts = 0;
-		if(!m_mp(gamemode)) gamemode = GMODE_TEAMDEATHMATCH;
+		if(!m_fight(gamemode)) gamemode = GMODE_TEAMDEATHMATCH;
 	}
 	else
 	{
@@ -160,7 +160,6 @@ void disconnect(int onlyclean, int async)
 		player1->clientnum = -1;
 		player1->lifesequence = 0;
 		player1->priv = PRIV_NONE;
-		kickallbots();
 		loopv(players) zapplayer(players[i]);
 		clearvote();
 		clearworldsounds(false);
@@ -208,7 +207,7 @@ void saytext(playerent *d, char *text, int flags, int sound){
 		s_strcat(text, "\f3Do not SPAM!");
 	}
 	string textout;
-	const int col = d == player1 ? 1 : m_teammode ? d->team == player1->team ? 0 : 3 : 5;
+	const int col = d == player1 ? 1 : m_team ? d->team == player1->team ? 0 : 3 : 5;
 	if(flags & SAY_ACTION) s_sprintf(textout)("\f5* \f%d%s \f6(%d)", col, d->name, d->clientnum);
 	else s_sprintf(textout)("\f5<\f%d%s \f6(%d)\f5>", col, d->name, d->clientnum);
 	if(sound) s_sprintf(textout)("%s \f4[\f6%d\f4]", textout, sound);
@@ -218,7 +217,7 @@ void saytext(playerent *d, char *text, int flags, int sound){
 
 void toserver(char *text, int voice, bool action){
 	if(!text) return;
-	bool toteam = *text == '%' && m_teammode && strlen(text) > 1;
+	bool toteam = *text == '%' && m_team && strlen(text) > 1;
 	if(*text == '%') text++;
 	addmsg(N_TEXT, "ris", (voice & 0x1F) | (((action ? SAY_ACTION : 0) | (toteam ? SAY_TEAM : 0)) << 5), text);
 }

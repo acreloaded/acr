@@ -606,7 +606,7 @@ void sendspawn(client *c){
 	spawnstate(c);
 	sendf(c->clientnum, 1, "ri7vv", N_SPAWNSTATE, gs.lifesequence,
 		gs.health, gs.armour,
-		gs.primary, gs.gunselect, m_arena ? c->spawnindex : -1,
+		gs.primary, gs.gunselect, m_duel ? c->spawnindex : -1,
 		NUMGUNS, gs.ammo, NUMGUNS, gs.mag);
 	gs.lastspawn = gamemillis;
 }
@@ -690,7 +690,7 @@ void enddemorecord(){
 void putinitclient(client &c, ucharbuf &p);
 
 void setupdemorecord(){
-	if(numlocalclients() || !m_mp(gamemode) || gamemode==1) return;
+	if(numlocalclients() || !m_fight(gamemode)) return;
 
 #ifdef WIN32
 	gzFile f = gzopen(path("demos/demorecord", true), "wb9");
@@ -1086,12 +1086,12 @@ void htf_forceflag(int flag){
 int arenaround = 0;
 
 inline bool canspawn(client *, bool = false){
-	return !m_arena;
+	return !m_duel;
 }
 
 /*
 bool canspawn(client *c, bool connecting = false){
-	if(m_arena)
+	if(m_duel)
 	{
 		if(connecting && numauthedclients()<=2) return true;
 		else return false;
@@ -1141,7 +1141,7 @@ void distributespawns(){
 	{
 		clients[i]->spawnindex = -1;
 	}
-	if(m_teammode)
+	if(m_team)
 	{
 		distributeteam(0);
 		distributeteam(1);
@@ -1153,7 +1153,7 @@ void distributespawns(){
 }
 
 void arenacheck(){
-	if(!m_arena || interm || gamemillis<arenaround || clients.empty()) return;
+	if(!m_duel || interm || gamemillis<arenaround || clients.empty()) return;
 
 	if(arenaround)
 	{   // start new arena round
@@ -1167,23 +1167,6 @@ void arenacheck(){
 		return;
 	}
 
-#ifndef STANDALONE
-	if(m_botmode && clients[0]->type==ST_LOCAL)
-	{
-		bool alive = false, dead = false;
-		loopv(players) if(players[i])
-		{
-			if(players[i]->state==CS_DEAD) dead = true;
-			else alive = true;
-		}
-		if((dead && !alive) || player1->state==CS_DEAD)
-		{
-			sendf(-1, 1, "ri2", N_ARENAWIN, player1->state==CS_ALIVE ? getclientnum() : (alive ? -2 : -1));
-			arenaround = gamemillis+5000;
-		}
-		return;
-	}
-#endif
 	client *alive = NULL;
 	bool dead = false;
 	int lastdeath = 0;
@@ -1194,7 +1177,7 @@ void arenacheck(){
 		if(c.state.state==CS_ALIVE || (c.state.state==CS_DEAD && c.state.lastspawn>=0))
 		{
 			if(!alive) alive = &c;
-			else if(!m_teammode || alive->team != c.team) return;
+			else if(!m_team || alive->team != c.team) return;
 		}
 		else if(c.state.state==CS_DEAD)
 		{
@@ -1206,7 +1189,7 @@ void arenacheck(){
 	if(!dead || gamemillis < lastdeath + 500) return;
 	sendf(-1, 1, "ri2", N_ARENAWIN, alive ? alive->clientnum : -1);
 	arenaround = gamemillis+5000;
-	if(autoteam && m_teammode) refillteams(true);
+	if(autoteam && m_team) refillteams(true);
 }
 
 #define SPAMREPEATINTERVAL  20   // detect doubled lines only if interval < 20 seconds
@@ -1251,7 +1234,7 @@ void sendtext(char *text, client &cl, int flags, int voice){
 		sendf(cl.clientnum, 1, "ri3s", N_TEXT, cl.clientnum, SAY_DENY << 5, text);
 		return;
 	}
-	if(!m_teammode) flags &= ~SAY_TEAM;
+	if(!m_team) flags &= ~SAY_TEAM;
 	logline(ACLOG_INFO, "%s", logmsg);
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
@@ -1816,7 +1799,7 @@ bool updateclientteam(int client, int team, int ftr, bool broadcast = true){
 	if(!valid_client(client) || team < TEAM_RED || team > TEAM_BLUE) return false;
 	if(clients[client]->team == team && ftr != FTR_AUTOTEAM) return false;
 	sendf(broadcast ? -1 : client, 1, "ri3", N_SETTEAM, client, (clients[client]->team = team) | (ftr << 4));
-	if(m_teammode) forcedeath(clients[client]);
+	if(m_team) forcedeath(clients[client]);
 	return true;
 }
 
@@ -2044,7 +2027,7 @@ void resetserver(const char *newname, int newmode, int newtime){
 	smode = newmode;
 	s_strcpy(smapname, newname);
 
-	minremain = newtime >= 0 ? newtime : (m_teammode ? 15 : 10);
+	minremain = newtime >= 0 ? newtime : (m_team ? 15 : 10);
 	gamemillis = 0;
 	gamelimit = minremain*60000;
 
@@ -2069,7 +2052,7 @@ inline void putmap(ucharbuf &p){
 }
 
 void resetmap(const char *newname, int newmode, int newtime, bool notify){
-	bool lastteammode = m_teammode;
+	bool lastteammode = m_team;
 	resetserver(newname, newmode, newtime);
 
 	if(isdedicated) getservermap();
@@ -2118,10 +2101,10 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 		modestr(smode), smapname, numclients(), minremain, mastermode, ms ? "" : "not ", mapavailable(smapname) ? "" : "not ");
 	arenaround = 0;
 	nokills = true;
-	if(m_arena) distributespawns();
+	if(m_duel) distributespawns();
 	if(notify){
 		// shuffle if previous mode wasn't a team-mode
-		if(m_teammode){
+		if(m_team){
 			if(!lastteammode)
 				shuffleteams(FTR_SILENT);
 			else if(autoteam)
@@ -2857,7 +2840,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				int teamsizes[TEAM_BLUE];
 				loopv(clients) if(i != sender && clients[i]->type!=ST_EMPTY && clients[i]->isauthed && clients[i]->isonrightmap)
 					teamsizes[clients[i]->team]++;
-				if(m_teammode && teamsizes[t] > teamsizes[team_opposite(t)] && cl->priv < PRIV_ADMIN){
+				if(m_team && teamsizes[t] > teamsizes[team_opposite(t)] && cl->priv < PRIV_ADMIN){
 					sendf(sender, 1, "ri2", N_SWITCHTEAM, t);
 					break;
 				}
@@ -3508,7 +3491,7 @@ void checkintermission(){
 			}
 			if(nextmaptime < 1){
 				int smode = nextmapmode;
-				nextmaptime = m_teammode ? 15 : 10;
+				nextmaptime = m_team ? 15 : 10;
 			}
 			if(nextmaptype) sendf(-1, 1, "ri4s", N_CONFMSG, 14, nextmaptime, nextmapmode | ((nextmaptype & 3) << 6), nextmapnm);
 		}
@@ -3551,13 +3534,13 @@ void loggamestatus(const char *reason){
 	logline(ACLOG_INFO, "");
 	logline(ACLOG_INFO, "Game status: %s on %s, %s, %s%c %s",
 					  modestr(gamemode), smapname, reason ? reason : text, mmfullname(mastermode), custom_servdesc ? ',' : '\0', servdesc_current);
-	logline(ACLOG_INFO, "cn name		    %s%sfrag death ping role	host", m_teammode ? "team " : "", m_flags ? "flag " : "");
+	logline(ACLOG_INFO, "cn name		    %s%sfrag death ping role	host", m_team ? "team " : "", m_flags ? "flag " : "");
 	loopv(clients)
 	{
 		client &c = *clients[i];
 		if(c.type == ST_EMPTY || !c.name[0]) continue;
 		s_sprintf(text)("%2d %-16s ", c.clientnum, c.name);		 // cn name
-		if(m_teammode) s_strcatf(text, "%-4s ", team_string(c.team)); // team
+		if(m_team) s_strcatf(text, "%-4s ", team_string(c.team)); // team
 		if(m_flags) s_strcatf(text, "%4d ", c.state.flagscore);	 // flag
 		s_strcatf(text, "%4d %5d", c.state.frags, c.state.deaths);  // frag death
 		logline(ACLOG_INFO, "%s%5d %s %s", text, c.ping,
@@ -3571,7 +3554,7 @@ void loggamestatus(const char *reason){
 		fragscore[n] += c.state.frags;
 		pnum[n] += 1;
 	}
-	if(m_teammode)
+	if(m_team)
 	{
 		loopi(2) logline(ACLOG_INFO, "Team %4s:%3d players,%5d frags%c%5d flags", team_string(i), pnum[i], fragscore[i], m_flags ? ',' : '\0', flagscore[i]);
 	}
@@ -3610,7 +3593,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 			if(f.state == CTFF_INBASE || f.state == CTFF_STOLEN) ktfflagingame = true;
 		}
 		if(m_ktf && !ktfflagingame) flagaction(rnd(2), FA_RESET, -1); // ktf flag watchdog
-		if(m_arena) arenacheck();
+		if(m_duel) arenacheck();
 	}
 
 	if(curvote)
@@ -3648,7 +3631,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
 	serverms(smode, numclients(), minremain, smapname, servmillis, serverhost->address, PROTOCOL_VERSION);
 
-	if(autoteam && m_teammode && !m_arena && !interm && servmillis - lastfillup > 5000 && refillteams()) lastfillup = servmillis;
+	if(autoteam && m_team && !m_duel && !interm && servmillis - lastfillup > 5000 && refillteams()) lastfillup = servmillis;
 
 	loopv(clients) if(valid_client(i) && !clients[i]->isauthed && clients[i]->connectmillis + 15000 <= servmillis) disconnect_client(i, DISC_TIMEOUT);
 
@@ -3854,10 +3837,10 @@ void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENet
 }
 
 void extinfo_teamscorebuf(ucharbuf &p){
-	putint(p, m_teammode ? EXT_ERROR_NONE : EXT_ERROR);
+	putint(p, m_team ? EXT_ERROR_NONE : EXT_ERROR);
 	putint(p, gamemode);
 	putint(p, minremain);
-	if(!m_teammode) return;
+	if(!m_team) return;
 
 	ivector teams;
 	bool addteam;

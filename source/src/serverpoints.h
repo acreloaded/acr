@@ -10,7 +10,7 @@ void killpoints(client *target, client *actor, int gun, int style){
 	addpt(target, DEATHPT);
 	if(!suic){
 		//if(tk){ // NO MORE TKs
-		if(m_teammode){
+		if(m_team){
 			if(!m_flags) gain += TMBONUSPT;
 			else gain += FLBONUSPT;
 			if (m_htf && clienthasflag(actor->clientnum) >= 0) gain += HTFFRAGPT;

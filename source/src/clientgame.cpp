@@ -293,7 +293,7 @@ int lastspawnattempt = 0;
 void showrespawntimer()
 {
 	if(intermission) return;
-	if(m_arena)
+	if(m_duel)
 	{
 		if(!arenaintermission) return;
 		showhudtimer(5, arenaintermission, "FIGHT!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
@@ -356,8 +356,7 @@ void updateworld(int curtime, int lastmillis)		// main game update loop
 	gets2c();
 	showrespawntimer();
 
-	// Added by Rick: let bots think
-	if(m_botmode) BotManager.Think();
+	BotManager.Think(); // let bots think
 
 	movelocalplayer();
 	c2sinfo(player1);   // do this last, to reduce the effective frame lag
@@ -374,7 +373,7 @@ float nearestenemy(vec place, int team)
 	loopv(players)
 	{
 		playerent *other = players[i];
-		if(!other || (m_teammode && team == other->team)) continue;
+		if(!other || (m_team && team == other->team)) continue;
 		float dist = place.dist(other->o);
 		if(dist < nearestenemydist || nearestenemydist == -1) nearestenemydist = dist;
 	}
@@ -388,14 +387,14 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
 	entity *e = NULL;
 	if(!mapcenter)
 	{
-		int type = m_teammode ? d->team : 100;
-		if(m_arena && arenaspawn >= 0)
+		int type = m_team ? d->team : 100;
+		if(m_duel && arenaspawn >= 0)
 		{
 			int x = -1;
 			loopi(arenaspawn + 1) x = findentity(PLAYERSTART, x+1, type);
 			if(x >= 0) e = &ents[x];
 		}
-		else if((m_teammode || m_arena) && !m_ktf) // ktf uses ffa spawns
+		else if((m_team || m_duel) && !m_ktf) // ktf uses ffa spawns
 		{
 			loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1, type);
 			if(spawncycle >= 0) e = &ents[spawncycle];
@@ -440,28 +439,19 @@ void spawnplayer(playerent *d)
 	findplayerstart(d);
 }
 
-void respawnself()
-{
+void respawnself(){
 	addmsg(N_TRYSPAWN, "r");
-	if(!m_mp(gamemode)){
-		showscores(false);
-		setscope(false);
-		spawnplayer(player1);
-		player1->lifesequence++;
-		player1->weaponswitch(player1->primweap);
-		player1->weaponchanging -= weapon::weaponchangetime/2;
-	}
 }
 
 bool tryrespawn()
 {
 	if(player1->state==CS_DEAD)
 	{
-		int respawnmillis = player1->respawnoffset+(m_arena ? 0 : (m_flags ? 5000 : 1000));
+		int respawnmillis = player1->respawnoffset+(m_duel ? 0 : (m_flags ? 5000 : 1000));
 		if(lastmillis>respawnmillis)
 		{
 			player1->attacking = false;
-			if(m_arena)
+			if(m_duel)
 			{
 				if(!arenaintermission) hudeditf(HUDMSG_TIMER, "waiting for new round to start...");
 				else lastspawnattempt = lastmillis;
@@ -474,8 +464,6 @@ bool tryrespawn()
 	}
 	return false;
 }
-
-#include "clientpoints.h"
 
 // damage arriving from the network, monsters, yourself, all ends up here.
 
@@ -572,11 +560,6 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style){
 	if(style & FRAG_FIRST) icon = eventicon::FIRSTBLOOD;
 	if(icon >= 0) act->addicon(icon);
 	
-	if(!m_mp(gamemode)){
-		act->frags += (pl==act || isteam(pl, act)) ? -1 : (style & FRAG_GIB) ? 2 : 1;
-		killpoints(pl, act, weapon, style);
-	}
-
 	deathstate(pl);
 	pl->deaths++;
 	playsound(S_DIE1+rnd(2), pl);
@@ -716,17 +699,13 @@ void startmap(const char *name, bool reset)   // called just after a map load
 	s_strcpy(clientmap, name);
 	sendmapident = true;
 	localfirstkill = false;
-	// Added by Rick
-	if(m_botmode) BotManager.BeginMap(name);
-	else kickallbots();
-	// End add by Rick
+	BotManager.BeginMap(name); // Added by Rick
 	clearbounceents();
 	resetspawns();
 	preparectf(!m_flags);
 	suicided = -1;
 	spawncycle = -1;
-	if(m_valid(gamemode) && !m_mp(gamemode)) respawnself();
-	else findplayerstart(player1);
+	findplayerstart(player1);
 
 	if(!reset) return;
 
@@ -739,13 +718,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
 	arenaintermission = 0;
 	bool noflags = (m_ctf || m_ktf) && (!numflagspawn[0] || !numflagspawn[1]);
 	if(*clientmap) conoutf("game mode is \"%s\"%s", modestr(gamemode, modeacronyms > 0), noflags ? " - \f2but there are no flag bases on this map" : "");
-	if(multiplayer(false) || m_botmode)
-	{
-		loopv(gmdescs) if(gmdescs[i].mode == gamemode)
-		{
-			conoutf("\f1%s", gmdescs[i].desc);
-		}
-	}
+	loopv(gmdescs) if(gmdescs[i].mode == gamemode) conoutf("\f1%s", gmdescs[i].desc);
 
 	// run once
 	if(firstrun)
@@ -1095,7 +1068,7 @@ playerent *updatefollowplayer(int shiftdirection)
 	vector<playerent *> available;
 	loopv(players) if(players[i])
 	{
-		if(players[i]->state==CS_DEAD && m_arena) continue;
+		if(players[i]->state==CS_DEAD && m_duel) continue;
 		available.add(players[i]);
 	}
 	if(!available.length()) return NULL;
@@ -1151,14 +1124,10 @@ void spectate(int mode)
 
 void togglespect() // cycle through all spectating modes
 {
-	if(m_botmode) spectate(SM_FLY);
-	else
-	{
-		int mode;
-		if(player1->spectatemode==SM_NONE) mode = SM_FOLLOW1ST; // start with 1st person spect
-		else mode = SM_FOLLOW1ST + ((player1->spectatemode - SM_FOLLOW1ST + 1) % (SM_NUM-SM_FOLLOW1ST));
-		spectate(mode);
-	}
+	int mode;
+	if(player1->spectatemode==SM_NONE) mode = SM_FOLLOW1ST; // start with 1st person spect
+	else mode = SM_FOLLOW1ST + ((player1->spectatemode - SM_FOLLOW1ST + 1) % (SM_NUM-SM_FOLLOW1ST));
+	spectate(mode);
 }
 
 void changefollowplayer(int shift)

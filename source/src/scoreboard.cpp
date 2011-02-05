@@ -7,7 +7,7 @@ void *scoremenu = NULL, *teammenu = NULL, *ctfmenu = NULL;
 
 void showscores(int on)
 {
-	if(on) showmenu(m_flags ? "ctf score" : (m_teammode ? "team score" : "score"), false);
+	if(on) showmenu(m_flags ? "ctf score" : (m_team ? "team score" : "score"), false);
 	else if (!intermission)
 	{
 		closemenu("score");
@@ -128,7 +128,7 @@ void renderteamscore(void *menu, teamscore *t)
 	scoreratio sr;
 	sr.calc(t->frags, t->deaths);
 	if(m_flags) s_sprintf(line.s)("%d\t%d\t%d\t%d\t%d\t%.*f\t\t\t\t%s\t\t%s", t->points, t->flagscore, t->frags, t->assists, t->deaths, sr.precision, sr.ratio, team_string(t->team), plrs);
-	else if(m_teammode) s_sprintf(line.s)("%d\t%d\t%d\t%d\t%.*f\t\t\t\t%s\t\t%s", t->points, t->frags, t->assists, t->deaths, sr.precision, sr.ratio, team_string(t->team), plrs);
+	else if(m_team) s_sprintf(line.s)("%d\t%d\t%d\t%d\t%.*f\t\t\t\t%s\t\t%s", t->points, t->frags, t->assists, t->deaths, sr.precision, sr.ratio, team_string(t->team), plrs);
 	static color teamcolors[2] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f) };
 	line.bgcolor = &teamcolors[t->team];
 	loopv(t->teammembers) renderscore(menu, t->teammembers[i]);
@@ -178,7 +178,7 @@ void renderscores(void *menu, bool init)
 		if(s) s_sprintf(serverline)("%s:%d %s", s->name, s->port, s->sdesc);
 	}
 
-	if(m_teammode)
+	if(m_team)
 	{
 		teamscore teamscores[2] = { teamscore(TEAM_RED), teamscore(TEAM_BLUE) };
 
@@ -236,7 +236,7 @@ void consolescores()
 			printf(", %s:%d %s", s->name, s->port, text);
 		}
 	}
-	printf("\npoints %sfrags assists deaths ratio cn%s name\n", m_flags ? "flags " : "", m_teammode ? " team" : "");
+	printf("\npoints %sfrags assists deaths ratio cn%s name\n", m_flags ? "flags " : "", m_team ? " team" : "");
 	loopv(scores)
 	{
 		d = scores[i];
@@ -244,7 +244,7 @@ void consolescores()
 		s_sprintf(team)(" %-4s", team_string(d->team));
 		s_sprintf(flags)(" %4d ", d->flagscore);
 		printf("%6d %s %4d %7d   %4d %5.2f %2d%s %s%s\n", d->points, m_flags ? flags : "", d->frags, d->assists, d->deaths, sr.ratio, d->clientnum,
-					m_teammode ? team : "", d->name,
+					m_team ? team : "", d->name,
 						d->priv == PRIV_MAX ? " (highest)" :
 						d->priv == PRIV_ADMIN ? " (admin)" :
 						d->priv == PRIV_MASTER ? " (master)" :

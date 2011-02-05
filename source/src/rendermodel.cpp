@@ -729,16 +729,16 @@ void renderclient(playerent *d)
 	int team = d->team;
 	int skinid = 1 + max(0, min(d->skin, (team==TEAM_RED ? 3 : 5)));
 	string skin;
-	if(hidecustomskins == 0 || (hidecustomskins == 1 && !m_teammode))
+	if(hidecustomskins == 0 || (hidecustomskins == 1 && !m_team))
 	{
 		cs = team ? d->skin_blue : d->skin_red;
-		if(!m_teammode && d->skin_noteam) cs = d->skin_noteam;
+		if(!m_team && d->skin_noteam) cs = d->skin_noteam;
 	}
 	if(cs)
 		s_sprintf(skin)("%s/custom/%s.jpg", skinbase, cs);
 	else
 	{
-		if(!m_teammode || !teamdisplaymode) s_sprintf(skin)("%s/%s/%02i.jpg", skinbase, team_string(team), skinid);
+		if(!m_team || !teamdisplaymode) s_sprintf(skin)("%s/%s/%02i.jpg", skinbase, team_string(team), skinid);
 		else switch(teamdisplaymode)
 		{
 			case 1: s_sprintf(skin)("%s/%s/%02i_%svest.jpg", skinbase, team_string(team), skinid, team ? "blue" : "red"); break;
