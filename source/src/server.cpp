@@ -2366,7 +2366,7 @@ void sendwhois(int sender, int cn){
 			case PRIV_NONE: default: mask = 12; break; // f.h/12 full, half, 2 empty
 		}
 		if(mask < 32) ip &= (1 << mask) - 1;
-		sendf(sender, 1, "ri4", N_WHOIS, cn, ip, mask);
+		sendf(-1, 1, "ri5", N_WHOIS, cn, sender, ip, mask);
 	}
 }
 
