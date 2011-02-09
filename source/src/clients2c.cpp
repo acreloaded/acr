@@ -1073,8 +1073,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						if(mask > 24 || (ip >> 24) & 0xFF) s_sprintf(cip)("%s.%d", cip, (ip >> 24) & 0xFF);
 					}
 				}
-				if(mask < 32) s_sprintf(cip)("%s/\fs\f4%d\fr", cip, mask);
-				conoutf("\fs%s \f1requests \f2who\f0is \f3 on \fr%s \f6(\f4%s\f6)", owner ? colorname(owner) : "someone", pl ? colorname(pl) : "unknown", cip);
+				if(mask < 32) s_sprintf(cip)("%s\f7/\f4%d", cip, mask);
+				conoutf("\fs%s \f1requests \f2who\f0is \f3 on \fr%s \f6(\f5%s\f6)", owner ? colorname(owner) : "someone", pl ? colorname(pl) : "unknown", cip);
 				break;
 			}
 
