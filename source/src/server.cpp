@@ -578,7 +578,7 @@ void sendf(int cn, int chan, const char *format, ...){
 	va_end(args);
 	enet_packet_resize(packet, p.length());
 	sendpacket(cn, chan, packet, exclude);
-	if(packet->referenceCount==0) enet_packet_destroy(packet);
+	if(!packet->referenceCount) enet_packet_destroy(packet);
 }
 
 inline void sendservmsg(const char *msg, int client = -1){ // compact to below every new protocol
@@ -2354,19 +2354,41 @@ void disconnect_client(int n, int reason){
 	if(curvote) curvote->evaluate();
 }
 
+inline int whoismask(int cn){
+	if(!valid_client(cn)) return 1;
+	switch(clients[cn]->priv){
+		case PRIV_MAX: case PRIV_ADMIN: return 32; // f.f.f.f/32 full ip
+		case PRIV_MASTER: return 14; // f.h/12 - full, three quarters, 2 empty
+		case PRIV_NONE: default: return 12; // f.h/12 full, half, 2 empty
+	}
+}
+
+inline uint maskip(int ip, uchar mask){
+	if(mask < 32) ip &= (1 << mask) - 1;
+	return ip;
+}
+
 void sendwhois(int sender, int cn){
 	if(!valid_client(sender) || !valid_client(cn)) return;
 	if(clients[cn]->type == ST_TCPIP)
 	{
 		uint ip = clients[cn]->peer->address.host;
-		int mask = 1;
-		switch(clients[sender]->priv){
-			case PRIV_MAX: case PRIV_ADMIN: mask = 32; break; // f.f.f.f/32 full ip
-			case PRIV_MASTER: mask = 14; break; // f.h/12 - full, three quarters, 2 empty
-			case PRIV_NONE: default: mask = 12; break; // f.h/12 full, half, 2 empty
+		uchar mask = whoismask(cn), leastmask = mask;
+		sendf(sender, 1, "ri5", N_WHOIS, cn, sender, maskip(ip, mask), mask | (mask << 6));
+		loopv(clients) if(i != sender && valid_client(i)){
+			if(leastmask > whoismask(i)) leastmask = whoismask(i);
+			sendf(i, 1, "ri5", N_WHOIS, cn, sender, maskip(ip, whoismask(i)), whoismask(i) | (mask << 6));
 		}
-		if(mask < 32) ip &= (1 << mask) - 1;
-		sendf(-1, 1, "ri5", N_WHOIS, cn, sender, ip, mask);
+		ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+		ucharbuf p(packet->data, packet->dataLength);
+		putint(p, N_WHOIS);
+		putint(p, cn);
+		putint(p, sender);
+		putint(p, maskip(ip, leastmask));
+		putint(p, leastmask | (mask << 6));
+		enet_packet_resize(packet, p.length());
+		recordpacket(1, packet->data, (int)packet->dataLength);
+		if(!packet->referenceCount) enet_packet_destroy(packet);
 	}
 }
 
