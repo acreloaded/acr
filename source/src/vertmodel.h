@@ -38,17 +38,20 @@ vec *getTagPos(const char *mdl, const char *tag){
 	return NULL;
 }
 
+VAR(loln, 0, 0, 1);
 VAR(lol1, 0, 0, 360);
 VAR(lol2, 0, 9, 360);
 VAR(lol3, 0, 0, 360);
+
+static vec lol = vec(0, 0, 0);
 
 vec tagTrans(vec v, physent *p, bool mirror){
 	vec ret = v;
 	float f = ret.magnitude();
 	if(f) ret.div(f);
 	if(mirror) ret.y = -ret.y;
-	ret.rotate_3d(lol1, -lol2, lol3);
-	ret.rotate_3d(p->yaw - 90, -p->pitch, p->roll);
+	//ret.rotate_3d(lol1, -lol2, lol3);
+	//ret.rotate_3d(p->yaw - 90, -p->pitch, p->roll);
 	/*
 	conoutf("%f %f %f", p->yaw, p->pitch, p->roll);
 	ret.mul(f);
@@ -57,6 +60,9 @@ vec tagTrans(vec v, physent *p, bool mirror){
 	newparticle(ret, ret, 50, 12);
 	ret.sub(p->o);
 	*/
+	if(loln) lol = ret;
+	extern void newparticle(const vec &o, const vec &d, int fade, int type);
+	newparticle(lol, lol, 1000, 0);
 	return ret;
 }
 
