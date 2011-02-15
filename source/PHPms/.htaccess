@@ -1,3 +1,6 @@
+ErrorDocument 403 "403 You don't have clearance"
+ErrorDocument 404 "404 I lost it!"
+ErrorDocument 500 "500 Stupid failure"
 RewriteEngine On
 RewriteRule ^cube index.php?cube [L]
 RewriteRule ^xml index.php?xml [L]

@@ -7,17 +7,12 @@
 	$config['servers']['translate'] = array( // IP translation
 		// array(start, end, port, "domain"), // port can be 0 for wildcard
 );
-	$config['servers']['force'] = array( // always forced if unable to use master server
+	$config['servers']['force'] = array( // always forced if it cannot register
 		// "server:port",
 );
 	$config['servers']['placeholder'] = "localhost:28770"; // dummy when out of servers
 	$config['servers']['minport'] = 1024; // end of primary reserved ports
 	$config['servers']['maxport'] = 65534; // 65535 is the max
-	
-	// motd
-	$config['motd'] = <<<MOTD
-\f0Welcome \f1to \f2the \f7Assault\f3Cube \f8Special \f9Edition \f3master\f5server
-MOTD;
 
 	// database
 	$config['db']['host'] = 'localhost'; // database host (domain or IP)

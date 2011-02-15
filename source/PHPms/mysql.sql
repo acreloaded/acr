@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS `cubems_auth` (
   `id` int(10) unsigned NOT NULL DEFAULT '0',
   `nonce` int(11) DEFAULT NULL,
   PRIMARY KEY (`ip`,`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MEMORY DEFAULT CHARSET=latin1;
 
 
 CREATE TABLE IF NOT EXISTS `cubems_servers` (
@@ -15,4 +15,4 @@ CREATE TABLE IF NOT EXISTS `cubems_servers` (
   `time` bigint(20) unsigned NOT NULL,
   `add` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`ip`,`port`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MEMORY DEFAULT CHARSET=latin1;

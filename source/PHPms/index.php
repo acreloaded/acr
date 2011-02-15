@@ -35,18 +35,15 @@
 	}
 	if(isset($_GET['cube'])){ // cubescript
 		header('Content-type: text/plain');
-		$motdlines = explode("\n", $config['motd']);
 		$ip = getiplong();
 		foreach($config['sbans'] as $b) if($b[0] <= $ip && $ip <= $b[1] && $b[2] & 1) exit("echo You are not authorized to fetch the server list. {$config['contact']}");
-		foreach($motdlines as $l) // MOTD
-			echo 'echo "'.str_replace('"', "''", trim($l))."\"\n"; // looks like we can't use double quotes!
 		$srvs = getServers();
 		foreach($srvs as $s) echo ($s[2] ? '' : "//")."addserver {$s[0]} {$s[1]}\r\n";
 	}
 	elseif(isset($_GET['xml'])){ // XML
 		header('Content-type: text/xml; charset=utf-8');
 		$header = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
-		echo $header.'<ServerList><MOTD><![CDATA['.str_replace("\f", '\f', $config['motd']).']]></MOTD><Servers>';
+		echo $header.'<ServerList><Servers>';
 		$srvs = getServers();
 		foreach($srvs as $s) echo '<Server port="'.$s[1].'"'.($s[2] ? "" : ' disabled="disabled"').'>'.$s[0].'</Server>';
 		echo '</Servers></ServerList>';
@@ -84,7 +81,7 @@
 		function nosock($port, $p1pass = false){
 			global $ip;
 			addserver($ip, $port, false);
-			exit("Your server is unreachable. Please make sure UDP port".($p1pass ? " " : "s ".$port." and ").($port + 1)." are properly forwarded and reachable.");
+			exit("Your server is unreachable. Please make sure UDP port".($p1pass ? " " : "s ".$port." and ").($port + 1)." ".($p1pass ? "is" : "are")." properly forwarded and reachable.");
 		};
 		// noob socket 101
 		$sock = fsockopen("udp://".getip(), $port, $errno, $errstr, 2);
