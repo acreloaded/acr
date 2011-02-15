@@ -877,8 +877,7 @@ struct vertmodel : model
 				glmatrixf linkmat;
 				gentagmatrix(cur, doai ? &prev : NULL, ai_t, i, linkmat.v);
 				
-				matrixpos++;
-				matrixstack[matrixpos].mul(matrixstack[matrixpos-1], linkmat);
+				matrixstack[++matrixpos].mul(matrixstack[matrixpos-1], linkmat);
 
 				if(link.pos) *link.pos = matrixstack[matrixpos].gettranslation();
 
