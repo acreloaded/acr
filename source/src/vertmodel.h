@@ -33,7 +33,8 @@ vec *getTagPos(const char *mdl, const char *tag){
 	vertmodel *m = (vertmodel *)loadmodel(mdl);
 	if(!m) return NULL;
 	if(m && m->parts.length()) loopi(m->parts.last()->numtags) if(!strcmp(m->parts.last()->tags[i].name, tag)){
-		return &m->parts.last()->tags[i].pos;
+		//return &m->parts.last()->tags[i].pos;
+		return m->parts.last()->links[i].pos;
 	}
 	return NULL;
 }
