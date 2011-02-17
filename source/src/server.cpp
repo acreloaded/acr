@@ -122,7 +122,7 @@ struct projectilestate
 
 struct clientstate : playerstate
 {
-	vec o, lasto, sg[SGRAYS], flagpickupo;
+	vec o, aim, vel, lasto, sg[SGRAYS], flagpickupo;
 	int state, lastomillis;
 	int lastdeath, lastffkill, lastspawn, lifesequence;
 	int lastshot, lastregen;
@@ -159,6 +159,7 @@ struct clientstate : playerstate
 	{
 		playerstate::respawn();
 		o = lasto = vec(-1e10f, -1e10f, -1e10f);
+		aim = vel = vec(0, 0, 0);
 		lastomillis = 0;
 		lastspawn = -1;
 		lastdeath = lastshot = lastregen = 0;
@@ -3148,9 +3149,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				int cn = getint(p);
 				bool broadcast = true;
 				if(!hasclient(*cl, cn)) broadcast = false;
-				vec newo;
+				vec newo, newaim, newvel;
 				loopi(3) newo[i] = getfloat(p);
-				loopi(6) getfloat(p); // yaw, pitch, roll, vel[3]
+				loopi(3) newaim[i] = getfloat(p);
+				loopi(3) newvel[i] = getfloat(p);
 				getuint(p); // last data uint
 				if(!valid_client(cn)) break;
 				client &cp = *clients[cn];
@@ -3160,6 +3162,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				cs.lasto = cs.o;
 				cs.lastomillis = gamemillis;
 				cs.o = newo;
+				cs.aim = newaim;
+				cs.vel = newvel;
 				// broadcast
 				cp.position.setsize(0);
 				while(curmsg < p.length()) cp.position.add(p.buf[curmsg++]);
