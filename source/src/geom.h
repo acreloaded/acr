@@ -49,28 +49,6 @@ struct vec
 	vec &rotate_around_z(float angle) { *this = vec(cosf(angle)*x-sinf(angle)*y, cosf(angle)*y+sinf(angle)*x, z); return *this; }
 	vec &rotate_around_x(float angle) { *this = vec(x, cosf(angle)*y-sinf(angle)*z, cosf(angle)*z+sinf(angle)*y); return *this; }
 	vec &rotate_around_y(float angle) { *this = vec(cosf(angle)*x-sinf(angle)*z, y, cosf(angle)*z+sinf(angle)*x); return *this; }
-	vec &rotate_3d(float yaw, float pitch, float roll, float deg2rad = RAD){
-		yaw *= deg2rad;
-		pitch *= deg2rad;
-		roll *= deg2rad;
-		*this = vec(
-				/* // adapted from http://planning.cs.uiuc.edu/node102.html where a = yaw, b = pitch, c = roll
-				x * (cos(a) * cos(b))	+ y * (cos(a) * sin(b) * sin(c) - sin(a) * cos(c))	+ z * (cos(a) * sin(b) * cos(c) + sin(a) * sin(c)),
-				x * (sin(a) * cos(b))	+ y * (sin(a) * sin(b) * sin(c) + cos(a) * cos(c))	+ z * (sin(a) * sin(b) * cos(c) + cos(a) * sin(c)),
-				x * (	-sin(b))		+ y * 				(cos(b) * sin(c))				+ z *				(cos(b) * cos(c))
-				*/
-				x * (cosf(yaw) * cosf(pitch)) +
-					y * (cosf(yaw) * sinf(pitch) * sinf(roll) - sinf(yaw) * cosf(roll)) +
-						z * (cosf(yaw) * sinf(pitch) * cosf(roll) + sinf(yaw) * sinf(roll)),
-				x * (sinf(yaw) * cosf(pitch)) +
-					y * (sinf(yaw) * sinf(pitch) * sinf(roll) + cosf(yaw) * cosf(roll)) +
-						z * (sinf(yaw) * sinf(pitch) * cosf(roll) + cosf(yaw) * sinf(roll)),
-				x * (-sinf(pitch)) +
-					y * (cosf(pitch) * sinf(roll)) +
-						z * (cosf(pitch) * cosf(roll))
-			);
-		return *this;
-	}
 
 	vec &rotate(float angle, const vec &d)
 	{
