@@ -37,27 +37,33 @@ const vec *getTagPos(const char *mdl, const char *tag){
 	return NULL;
 }
 
-inline vec *hudgunTag(playerent *p, const char *tag, bool mirror = false){
+inline vec *hudgunTag(playerent *p, const char *tag){
 	s_sprintfd(hudmdl)("weapons/%s", p->weaponsel->info.modelname);
 	const vec *v = getTagPos(hudmdl, tag);
 	if(!v) return NULL;
-	vec v2 = *v;
+	static vec v2;
+	v2 = *v;
 	return &v2.mul(1.28f);
 }
 
 inline vec *hudEject(playerent *p, bool akimboflip){
-	vec *v = hudgunTag(p, "tag_eject", akimboflip);
+	vec *v = hudgunTag(p, "tag_eject");
 	if(!v) return NULL;
-	v->y = akimboflip ? -v->y : v->y;
+	if(akimboflip) v->y = -v->y;
 	v->rotate_around_x(p->roll * RAD).rotate_around_y(p->pitch * RAD).rotate_around_z((p->yaw - 90) * RAD);
-	//vec *adstrans = hudAds(p);
-	//if(adstrans) v->sub(*adstrans);
+	/*
+	vec *adstrans = hudAds(p);
+	if(adstrans) v->sub(*adstrans);
+	//*/
 	return v;
 }
+
+VAR(lol1, 0, 60, 360);
 
 inline vec *hudAds(playerent *p){
 	vec *v = hudgunTag(p, "tag_aimpoint");
 	if(!v) return NULL;
-	return &v->rotate_around_x(p->roll * RAD).rotate_around_y(p->pitch * RAD).rotate_around_z((p->yaw + 90) * RAD);
-	//return &v->rotate_3d(PI - 90, 5, 6).mul(/*p->ads*/1000).div(1000);
+	v->rotate_around_z((p->yaw - lol1) * RAD).rotate_around_y(-p->pitch * RAD).rotate_around_x(p->roll * RAD);
+	//v->mul(p->ads).div(1000);
+	return v;
 }
