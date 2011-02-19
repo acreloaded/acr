@@ -102,7 +102,7 @@ struct weaponmove
 
 			if(ads_gun(gamefocus->weaponsel->type) /* && gamefocus->ads*/){
 				vec *v = hudAds(gamefocus);
-				if(v) pos.sub(v->rotate_around_z(90 * RAD));
+				if(v) pos.sub(*v);
 				k_rot *= 1 - gamefocus->ads / 2000.f;
 				k_back *= 1 - gamefocus->ads / 1100.f;
 				sway.mul(1 - gamefocus->ads / 1200.f);
