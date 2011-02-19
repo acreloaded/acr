@@ -937,14 +937,9 @@ void gun::attackshell(const vec &to){
 	s->vel.rotate_around_z(owner->yaw*RAD);
 	s->o = owner->o;
 	vec *ejecttrans = hudEject(owner, akimboflip);
-	if(false){//ejecttrans){
-		vec *adstrans = hudAds(owner);
-		if(adstrans) s->o.sub(*adstrans);
-		s->o.add(*ejecttrans);
-	}
+	if(ejecttrans) s->o.add(*ejecttrans);
 	else s->o.add(vec(s->vel.x * owner->radius, s->vel.y * owner->radius, -weaponbeloweye));
-	s->vel.mul(0.025f * (rnd(4) + 3));
-	s->vel.mul(2).add(owner->vel).div(2);
+	s->vel.mul(.02f * (rnd(3) + 5));
 	if(akimboflip) s->vel.rotate_around_z(180*RAD);
 	s->inwater = hdr.waterlevel > owner->o.z;
 	s->cancollide = false;
@@ -952,8 +947,8 @@ void gun::attackshell(const vec &to){
 	s->yaw = owner->yaw+180;
 	s->pitch = -owner->pitch;
 
-	s->maxspeed = 30.0f;
-	s->rotspeed = rnd(11) / 10.f;
+	s->maxspeed = 30.f;
+	s->rotspeed = 3.f;
 
 	s->resetinterp();
 }
