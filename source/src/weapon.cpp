@@ -933,7 +933,7 @@ void gun::attackshell(const vec &to){
 	s->bouncetype = BT_SHELL;
 	
 	const bool akimboflip = type == GUN_AKIMBO && ((akimbo *)this)->akimboside;
-	s->vel = vec(1, rnd(101) / 800.f, (rnd(51) + 50) / 100.f);
+	s->vel = vec(1, rnd(101) / 800.f - .1f, (rnd(51) + 50) / 100.f);
 	s->vel.rotate_around_z(owner->yaw*RAD);
 	s->o = owner->o;
 	vec *ejecttrans = hudEject(owner, akimboflip);
