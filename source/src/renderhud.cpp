@@ -562,6 +562,7 @@ void drawteamicons(int w, int h){
 }
 
 VARP(damagescreenalpha, 40, 90, 100);
+VARP(damageindicatorfade, 0, 2000, 10000);
 VARP(damageindicatorsize, 0, 200, 10000);
 VARP(damageindicatordist, 0, 500, 10000);
 
@@ -619,28 +620,27 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 			glTexCoord2f(1, 1); glVertex2f(VIRTW, VIRTH);
 			glTexCoord2f(0, 1); glVertex2f(0, VIRTH);
 			glEnd();
-
-			if(p->damagesource != p->o){
-				vec dir = p->damagesource;
-				dir.sub(p->o).normalize();
-				const float size = damageindicatorsize, dirangle = dir.x ? atan2f(dir.y, dir.x) / RAD : dir.y < 0 ? 270 : 90;
-				glPushMatrix();
-				glTranslatef(VIRTW/2, VIRTH/2, 0);
-				glRotatef(dirangle + 90 - player1->yaw, 0, 0, 1);
-				glTranslatef(0, -damageindicatordist, 0);
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-				glBindTexture(GL_TEXTURE_2D, damagedirtex->id);
-				glColor4f(fade * 2, fade * 2, fade * 2, fade * 2);
-
-				glBegin(GL_QUADS);
-				glTexCoord2f(0, 0); glVertex2f(-size, -size / 2);
-				glTexCoord2f(1, 0); glVertex2f(size, -size / 2);
-				glTexCoord2f(1, 1); glVertex2f(size, size / 2);
-				glTexCoord2f(0, 1); glVertex2f(-size, size / 2);
-				glEnd();
-				glPopMatrix();
-			}
 		}
+	}
+	if(p->lastpain + damageindicatorfade > lastmillis && p->damagesource != p->o){
+		vec dir = p->damagesource;
+		dir.sub(p->o).normalize();
+		const float fade = 1 - (lastmillis-p->lastpain)/(float)damageindicatorfade, size = damageindicatorsize, dirangle = dir.x ? atan2f(dir.y, dir.x) / RAD : dir.y < 0 ? 270 : 90;
+		glPushMatrix();
+		glTranslatef(VIRTW/2, VIRTH/2, 0);
+		glRotatef(dirangle + 90 - player1->yaw, 0, 0, 1);
+		glTranslatef(0, -damageindicatordist, 0);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glBindTexture(GL_TEXTURE_2D, damagedirtex->id);
+		glColor4f(fade * 2, fade * 2, fade * 2, fade * 2);
+
+		glBegin(GL_QUADS);
+		glTexCoord2f(0, 0); glVertex2f(-size, -size / 2);
+		glTexCoord2f(1, 0); glVertex2f(size, -size / 2);
+		glTexCoord2f(1, 1); glVertex2f(size, size / 2);
+		glTexCoord2f(0, 1); glVertex2f(-size, size / 2);
+		glEnd();
+		glPopMatrix();
 	}
 
 	glEnable(GL_TEXTURE_2D);
