@@ -489,7 +489,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, bool loca
 		}
 		pl->damageroll(damage);
 	}
-	pl->damagesource = actor->o;
+	pl->damagestack.add(damageinfo(actor->o, lastmillis));
 	damageeffect(damage * (weapon == GUN_KNIFE && damage < guns[GUN_KNIFE].damage ? 5 : 1), pl);
 
 	if(pl->health<=0){ if(local){

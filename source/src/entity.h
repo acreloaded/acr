@@ -409,6 +409,12 @@ struct eventicon{
 	eventicon(int type, int millis) : type(type), millis(millis){}
 };
 
+struct damageinfo{
+	vec o;
+	int millis;
+	damageinfo(vec s, int t) : o(s), millis(t) {}
+};
+
 struct playerent : dynent, playerstate
 {
 	int clientnum, lastupdate, plag, ping;
@@ -439,9 +445,10 @@ struct playerent : dynent, playerstate
 	float deltayaw, deltapitch, newyaw, newpitch;
 	int smoothmillis;
 
-	vec head, damagesource;
+	vector<damageinfo> damagestack;
+	vec head;
 
-	playerent() : spectatemode(SM_NONE), vote(VOTE_NEUTRAL), voternum(MAXCLIENTS), priv(PRIV_NONE), head(-1, -1, -1), damagesource(0, 0, 0)
+	playerent() : spectatemode(SM_NONE), vote(VOTE_NEUTRAL), voternum(MAXCLIENTS), priv(PRIV_NONE), head(-1, -1, -1)
 	{
 		lastupdate = plag = ping = lifesequence = points = frags = flagscore = deaths = lastpain = skin = eardamagemillis = respawnoffset = radarmillis = ads = 0;
 		weaponsel = nextweaponsel = primweap = nextprimweap = lastattackweapon = prevweaponsel = NULL;
@@ -455,6 +462,7 @@ struct playerent : dynent, playerstate
 		maxspeed = 16.0f;
 		skin_noteam = skin_red = skin_blue = NULL;
 		respawn();
+		damagestack.setsize(0);
 	}
 
 	void addicon(int type)
@@ -521,6 +529,7 @@ struct playerent : dynent, playerstate
 		resetspec();
 		eardamagemillis = 0;
 		eyeheight = maxeyeheight;
+		damagestack.setsize(0);
 	}
 
 	void spawnstate(int gamemode)
