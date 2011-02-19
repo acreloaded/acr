@@ -51,19 +51,21 @@ inline vec *hudEject(playerent *p, bool akimboflip){
 	if(!v) return NULL;
 	if(akimboflip) v->y = -v->y;
 	v->rotate_around_x(p->roll * RAD).rotate_around_y(p->pitch * RAD).rotate_around_z((p->yaw - 90) * RAD);
-	/*
+	/* <PUT ANOTHER '/' IN FRONT TO UNCOMMENT NEXT BLOCK>
 	vec *adstrans = hudAds(p);
 	if(adstrans) v->sub(*adstrans);
 	//*/
 	return v;
 }
 
-VAR(lol1, 0, 60, 360);
+VAR(lol1, 0, 90, 360);
 
 inline vec *hudAds(playerent *p){
 	vec *v = hudgunTag(p, "tag_aimpoint");
 	if(!v) return NULL;
-	v->rotate_around_z((p->yaw - lol1) * RAD).rotate_around_y(-p->pitch * RAD).rotate_around_x(p->roll * RAD);
+	v->mul(-1);
+	v->rotate_around_y(-p->pitch * RAD).rotate_around_z((p->yaw + 90) * RAD);//.rotate_around_x(-p->roll * RAD);
+	v->mul(-1);
 	//v->mul(p->ads).div(1000);
 	return v;
 }
