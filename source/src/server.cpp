@@ -1091,13 +1091,8 @@ inline bool canspawn(client *, bool = false){
 }
 
 /*
-bool canspawn(client *c, bool connecting = false){
-	if(m_duel)
-	{
-		if(connecting && numauthedclients()<=2) return true;
-		else return false;
-	}
-	return true;
+inline bool canspawn(client *c, bool connecting = false){
+	return !m_duel || (connecting && numauthedclients() <= 2);
 }
 */
 
