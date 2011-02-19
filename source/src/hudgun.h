@@ -100,7 +100,7 @@ struct weaponmove
 				sway.mul(gamefocus->eyeheight / gamefocus->maxeyeheight);
 			}
 
-			if(ads_gun(gamefocus->weaponsel->type) /* && gamefocus->ads*/){
+			if(ads_gun(gamefocus->weaponsel->type) && gamefocus->ads){
 				vec *v = hudAds(gamefocus);
 				if(v) pos.sub(*v);
 				k_rot *= 1 - gamefocus->ads / 2000.f;
