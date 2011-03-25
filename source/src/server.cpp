@@ -3131,7 +3131,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				bool editing = getint(p) != 0;
 				if(!m_edit && cl->type == ST_TCPIP){ // unacceptable!
 					forcedeath(cl, true);
-					return;
+					break;
 				}
 				if(cl->state.state != (editing ? CS_ALIVE : CS_EDITING)) break;
 				cl->state.state = editing ? CS_EDITING : CS_ALIVE;
