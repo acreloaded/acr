@@ -93,7 +93,7 @@ static inline ushort effectiveDamage(int gun, float dist) {
 }
 
 static inline const char *suicname(int gun, bool self){
-	string k;
+	static string k;
 	s_strcpy(k, self ? "have " : "has ");
 	switch(gun){
 		case GUN_GRENADE:
@@ -112,7 +112,7 @@ static inline const char *suicname(int gun, bool self){
 static inline const char *killname(int gun, int style, bool thirdperson){
 	const bool gib = (style & FRAG_GIB) > 0,
 				overkill = (style & FRAG_OVER) > 0;
-	string k;
+	static string k;
 	s_strcpy(k, thirdperson ? "has " : "have ");
 	switch(gun){
 		case GUN_GRENADE:
