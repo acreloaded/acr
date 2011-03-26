@@ -128,6 +128,7 @@ static inline const char *killname(int gun, int style, bool thirdperson){
 			s_strcat(k, gib ? "pwned" : "killed");
 			break;
 	}
+	return k;
 }
 
 #define isteam(a,b)   (m_team && a->team == b->team)
