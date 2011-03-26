@@ -1362,7 +1362,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 		ts.state = CS_DEAD;
 		ts.lastdeath = gamemillis;
 		if(!suic) logline(ACLOG_INFO, "[%s] %s %s %s", actor->hostname, actor->name, killname(gun, style, true), target->name);
-		else logline(ACLOG_INFO, "[%s] %s %s", actor->hostname, actor->name, suicname(gun, false));
+		else logline(ACLOG_INFO, "[%s] %s %s", actor->hostname, actor->name, suicname(gun, true));
 
 		if(m_flags && targethasflag >= 0)
 		{

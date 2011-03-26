@@ -92,12 +92,12 @@ static inline ushort effectiveDamage(int gun, float dist) {
 	else return guns[gun].damage - (short)((dist - (float)guns[gun].range) * guns[gun].rangeminus / (guns[gun].endrange - guns[gun].range));
 }
 
-static inline const char *suicname(int gun, bool self){
+static inline const char *suicname(int gun, bool thirdperson){
 	static string k;
-	s_strcpy(k, self ? "have " : "has ");
+	s_strcpy(k, thirdperson ? "have " : "has ");
 	switch(gun){
 		case GUN_GRENADE:
-			s_strcat(k, self ? "blown yourself up" : " blown himself up");
+			s_strcat(k, thirdperson ? "blown himself up" : " blown yourself up");
 			break;
 		case NUMGUNS:
 			s_strcat(k, "commited too much friendly fire");
