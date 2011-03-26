@@ -16,7 +16,7 @@ void processevent(client &c, explodeevent &e)
 		client &target = *clients[i];
 		float dist = target.state.o.dist(e.o);
 		if(dist >= guns[e.gun].endrange) continue;
-		serverdamage(&target, &c, effectiveDamage(e.gun, dist), e.gun, true, e.o);
+		serverdamage(&target, &c, effectiveDamage(e.gun, dist, true), e.gun, true, e.o);
 	}
 }
 

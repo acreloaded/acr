@@ -86,10 +86,12 @@ static guninfo guns[NUMGUNS] =
 static inline ushort reloadtime(int gun) { return guns[gun].reloadtime; }
 static inline ushort attackdelay(int gun) { return guns[gun].attackdelay; }
 static inline ushort magsize(int gun) { return guns[gun].magsize; }
-static inline ushort effectiveDamage(int gun, float dist) {
+static inline ushort effectiveDamage(int gun, float dist, bool explosive = false) {
 	if(dist <= guns[gun].range || (!guns[gun].range && !guns[gun].endrange)) return guns[gun].damage;
 	if(dist >= guns[gun].endrange) return guns[gun].damage - guns[gun].rangeminus;
-	else return guns[gun].damage - (short)((dist - (float)guns[gun].range) * guns[gun].rangeminus / (guns[gun].endrange - guns[gun].range));
+	float subtractfactor = (dist - (float)guns[gun].range) / ((float)guns[gun].endrange - (float)guns[gun].range);
+	if(explosive) subtractfactor = sqrtf(subtractfactor);
+	return guns[gun].damage - (short)(subtractfactor * guns[gun].rangeminus);
 }
 
 static inline const char *suicname(int gun, bool thirdperson){
