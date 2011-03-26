@@ -94,7 +94,7 @@ static inline ushort effectiveDamage(int gun, float dist) {
 
 static inline const char *suicname(int gun, bool thirdperson){
 	static string k;
-	s_strcpy(k, thirdperson ? "have " : "has ");
+	s_strcpy(k, thirdperson ? "has " : "have ");
 	switch(gun){
 		case GUN_GRENADE:
 			s_strcat(k, thirdperson ? "blown himself up" : " blown yourself up");
