@@ -1042,7 +1042,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				d->vote = vote;
 				if(vote == VOTE_NEUTRAL) break;
 				d->voternum = curvote->nextvote++;
-				if(voteid) conoutf("%s \f6(%d) \f2voted \f%s", d->name, cn, vote == VOTE_NO ? "3no" : "0yes");
+				if(voteid && (d != curvote->owner || curvote->millis + 100 < lastmillis))
+					conoutf("%s \f6(%d) \f2voted \f%s", d->name, cn, vote == VOTE_NO ? "3no" : "0yes");
 				break;
 			}
 
