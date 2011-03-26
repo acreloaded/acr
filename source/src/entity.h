@@ -92,40 +92,41 @@ static inline ushort effectiveDamage(int gun, float dist) {
 	else return guns[gun].damage - (short)((dist - (float)guns[gun].range) * guns[gun].rangeminus / (guns[gun].endrange - guns[gun].range));
 }
 
-static inline const char *killname(int gun, int style){
+static inline const char *killname(int gun, int style, bool thirdperson){
 	const bool gib = (style & FRAG_GIB) > 0,
 				overkill = (style & FRAG_OVER) > 0;
+	char *k = thirdperson ? "has " : "have ";
 	switch(gun){
 		case GUN_GRENADE:
-			return "obliterated";
-			//break;
+			s_strcat(k, "obliterated");
+			break;
 		case GUN_KNIFE:
-			return !gib ? "fatally wounded" : overkill ? "decapitated" : "slashed";
-			//break;
+			s_strcat(k, !gib ? "fatally wounded" : overkill ? "decapitated" : "slashed");
+			break;
 		case GUN_SLUG:
-			return gib ? "shotgun-sniped" : "slugged";
-			//break;
+			s_strcat(k, gib ? "shotgun-sniped" : "slugged");
+			break;
 		case GUN_SNIPER:
-			return gib ? "expertly sniped" : "sniped";
-			//break;
+			s_strcat(k, gib ? "expertly sniped" : "sniped");
+			break;
 		case GUN_SUBGUN:
-			return gib ? "perforated" : "spliced";
-			//break;
+			s_strcat(k, gib ? "perforated" : "spliced");
+			break;
 		case GUN_SHOTGUN:
-			return gib ? "splattered" : "scrambled";
-			//break;
+			s_strcat(k, gib ? "splattered" : "scrambled");
+			break;
 		case GUN_ASSAULT:
-			return gib ? "eliminated" : "shredded";
-			//break;
+			s_strcat(k, gib ? "eliminated" : "shredded");
+			break;
 		case GUN_PISTOL:
-			return gib ? "capped" : "pierced";
-			//break;
+			s_strcat(k, gib ? "capped" : "pierced");
+			break;
 		case GUN_AKIMBO:
-			return gib ? "blasted" : "skewered";
-			//break;
+			s_strcat(k, gib ? "blasted" : "skewered");
+			break;
 		default:
-			return gib ? "pwned" : "killed";
-			//break;
+			s_strcat(k, gib ? "pwned" : "killed");
+			break;
 	}
 }
 
