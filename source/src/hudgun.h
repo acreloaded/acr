@@ -101,7 +101,7 @@ struct weaponmove
 			}
 
 			if(ads_gun(gamefocus->weaponsel->type) && gamefocus->ads){
-				vec *v = hudAds(gamefocus);
+				vec *v = hudAds(gamefocus, true);
 				if(v) pos.sub(*v);
 				k_rot *= 1 - gamefocus->ads / 2000.f;
 				k_back *= 1 - gamefocus->ads / 1100.f;
