@@ -512,8 +512,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style){
 	if(weapon::valid(weapon) && damage > guns[weapon].damage) style |= FRAG_OVER;
 
 	if(pl == act)
-		s_sprintf(death)("\f2%s %s%s", pname, weapon == GUN_GRENADE ? pl==gamefocus? "blew yourself up" : "blew himself up" :
-			weapon == NUMGUNS ? "committed too much friendly fire" : "suicided", pl == gamefocus ? "\f3!\f2" : "");
+		s_sprintf(death)("\f2%s %s%s", pname, suicname(weapon, pl==gamefocus), pl==gamefocus ? "\f3!\f2" : "");
 	else
 		s_sprintf(death)("\f2%s %s %s%s", aname, killname(weapon, style, pl!=gamefocus), isteam(pl, act) ? "teammate " : "", pname);
 	pl->damagelog.removeobj(pl->clientnum);

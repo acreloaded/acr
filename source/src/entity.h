@@ -92,6 +92,22 @@ static inline ushort effectiveDamage(int gun, float dist) {
 	else return guns[gun].damage - (short)((dist - (float)guns[gun].range) * guns[gun].rangeminus / (guns[gun].endrange - guns[gun].range));
 }
 
+static inline const char *suicname(int gun, bool self){
+	char *k = self ? "have " : "has ";
+	switch(gun){
+		case GUN_GRENADE:
+			s_strcat(k, self ? "blown yourself up" : " blown himself up");
+			break;
+		case NUMGUNS:
+			s_strcat(k, "commited too much friendly fire");
+			break;
+		default:
+			s_strcat(k, "suicided");
+			break;
+	}
+	return k;
+}
+
 static inline const char *killname(int gun, int style, bool thirdperson){
 	const bool gib = (style & FRAG_GIB) > 0,
 				overkill = (style & FRAG_OVER) > 0;
