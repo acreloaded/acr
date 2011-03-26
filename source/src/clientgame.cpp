@@ -514,7 +514,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style){
 	if(pl == act)
 		s_sprintf(death)("\f2%s %s%s", pname, suicname(weapon, pl!=gamefocus), pl==gamefocus ? "\f3!\f2" : "");
 	else
-		s_sprintf(death)("\f2%s %s %s%s", aname, killname(weapon, style, pl!=gamefocus), isteam(pl, act) ? "teammate " : "", pname);
+		s_sprintf(death)("\f2%s %s %s%s", aname, killname(weapon, style, act!=gamefocus), isteam(pl, act) ? "teammate " : "", pname);
 	pl->damagelog.removeobj(pl->clientnum);
 	pl->damagelog.removeobj(act->clientnum);
 	if(pl == gamefocus || act == gamefocus) hudonlyf(pl->damagelog.length() ? "%s, %d assister%s" : "%s", death, pl->damagelog.length(), pl->damagelog.length()==1?"":"s");
