@@ -43,18 +43,18 @@ inline vec *hudgunTag(playerent *p, const char *tag){
 	if(!v) return NULL;
 	static vec v2;
 	v2 = *v;
-	return &v2.mul(1.28f);
+	return &v2;
 }
 
 inline vec *hudEject(playerent *p, bool akimboflip){
 	vec *v = hudgunTag(p, "tag_eject");
 	if(!v) return NULL;
 	if(akimboflip) v->y = -v->y;
-	v->rotate_around_x(p->roll * RAD).rotate_around_y(p->pitch * RAD).rotate_around_z((p->yaw - 90) * RAD);
+	v->mul(1.28f).rotate_around_x(p->roll * RAD).rotate_around_y(p->pitch * RAD).rotate_around_z((p->yaw - 90) * RAD);
 	if(p->ads){
 		vec *adstrans = hudAds(p, false);
 		// fixme
-		if(adstrans) v->rotate_around_z(PI).rotate_around_y(PI).sub(*adstrans); // PI = 180 degrees in radians
+		if(adstrans) v->add(*adstrans); // PI = 180 degrees in radians
 	}
 	return v;
 }
@@ -76,6 +76,7 @@ inline vec *hudAds(playerent *p, bool flip){
 		matrixstack[0].rotate_around_y(-pitch*RAD);
 		if(anim&ANIM_MIRROR || scale!=1) matrixstack[0].scale(scale, anim&ANIM_MIRROR ? -scale : scale, scale);
 	*/
-	v->div(1.6384f).rotate_around_y(p->pitch*RAD).rotate_around_z((p->yaw+270)*-RAD);
+	if(flip) v->div(1.28f).rotate_around_y(p->pitch*RAD).rotate_around_z((p->yaw+270)*-RAD);
+	else v->rotate_around_z((p->yaw + 270)*RAD).rotate_around_y(p->pitch*-RAD).mul(1.28f);
 	return &v->mul(p->ads).div(1000);
 }
