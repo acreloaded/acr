@@ -99,7 +99,8 @@ static inline const char *suicname(int gun, bool thirdperson){
 	s_strcpy(k, thirdperson ? "has " : "have ");
 	switch(gun){
 		case GUN_GRENADE:
-			s_strcat(k, thirdperson ? "blown himself up" : "blown yourself up");
+			// non-third person is not present perfect tense, but present tense
+			s_strcat(k, thirdperson ? "failed with nades" : "to be more careful with nades");
 			break;
 		case NUMGUNS:
 			s_strcat(k, "commited too much friendly fire");
