@@ -495,13 +495,13 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, bool loca
 	if(pl->health<=0){ if(local){
 		int style = !weapon::valid(weapon) || guns[weapon].damage < damage ? FRAG_GIB : FRAG_NONE;
 		if(!localfirstkill && pl != actor && !isteam(pl, actor)){ localfirstkill = true; style |= FRAG_FIRST; }
-		dokill(pl, actor, weapon, damage, style, actor->o);
+		dokill(pl, actor, weapon, damage, style, pl->o.dist(actor->o) / 4);
 	}}
 	else if(pl==player1) playsound(S_PAIN6, SP_HIGH);
 	else playsound(S_PAIN1+rnd(5), pl);
 }
 
-void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, const vec &source){
+void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, float killdist){
 	if(pl->state!=CS_ALIVE || intermission) return;
 
 	string pname, aname, death;
@@ -515,7 +515,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, co
 		s_sprintf(death)("\f2%s %s%s", pname, suicname(weapon, pl!=gamefocus), pl==gamefocus ? "\f3!\f2" : "");
 	else
 		s_sprintf(death)("\f2%s %s %s%s", aname, killname(weapon, style, act!=gamefocus), isteam(pl, act) ? act==gamefocus? "your teammate " :"his teammate " : "", pname);
-	s_sprintf(death)("%s (@%.2f m)", death, pl->o.dist(source) / 4);
+	s_sprintf(death)("%s (@%.2f m)", death, killdist);
 	pl->damagelog.removeobj(pl->clientnum);
 	pl->damagelog.removeobj(act->clientnum);
 	if(pl == gamefocus || act == gamefocus) hudonlyf(pl->damagelog.length() ? "%s, %d assister%s" : "%s", death, pl->damagelog.length(), pl->damagelog.length()==1?"":"s");
