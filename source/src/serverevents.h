@@ -103,7 +103,7 @@ void processevent(client &c, shotevent &e)
 					target->state.cutter = c.clientnum;
 					target->state.lastcut = gamemillis;
 				}
-				serverdamage(target, &c, damage, e.gun, gib);
+				serverdamage(target, &c, damage, e.gun, gib, gs.o);
 			}
 			break;
 		}
@@ -162,7 +162,7 @@ void processevents()
 		if(c.state.state == CS_ALIVE){ // can't regen or bleed if dead
 			if(c.state.lastcut){ // bleeding; oh no!
 				if(c.state.lastcut + 500 < gamemillis && valid_client(c.state.cutter)){
-					serverdamage(&c, clients[c.state.cutter], 10, GUN_KNIFE, false);
+					serverdamage(&c, clients[c.state.cutter], 10, GUN_KNIFE, false, clients[c.state.cutter]->state.o);
 					c.state.lastcut = gamemillis;
 				}
 			}

@@ -1294,12 +1294,12 @@ void forcedeath(client *cl, bool gib = false){
 	sendf(-1, 1, "ri2", gib ? N_FORCEGIB : N_FORCEDEATH, cl->clientnum);
 }
 
-void serverdamage(client *target, client *actor, int damage, int gun, bool gib, const vec &source = vec(0, 0, 0)){
+void serverdamage(client *target, client *actor, int damage, int gun, bool gib, const vec &source){
 	if(!target || !actor || target->state.state != CS_ALIVE || actor->state.state != CS_ALIVE) return;
 	clientstate &ts = target->state;
 	if(target!=actor){
 		if(isteam(actor, target)){
-			serverdamage(actor, actor, damage * 0.4, NUMGUNS, true);
+			serverdamage(actor, actor, damage * 0.4, NUMGUNS, true, source);
 			if((damage *= 0.25) >= target->state.health) damage = target->state.health - 1; // no more TKs!
 			if(!damage) return;
 			if(isdedicated && actor->type == ST_TCPIP && actor->priv < PRIV_ADMIN){
@@ -1352,8 +1352,8 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 			nokills = false;
 		}
 		killpoints(target, actor, gun, style);
-		sendf(-1, 1, "ri8v", N_KILL, target->clientnum, actor->clientnum, actor->state.frags, gun, style & FRAG_SERVER, int(damage * (gib ? GIBBLOODMUL : 1)),
-			target->state.damagelog.length(), target->state.damagelog.length(), target->state.damagelog.getbuf());
+		sendf(-1, 1, "ri8vf3", N_KILL, target->clientnum, actor->clientnum, actor->state.frags, gun, style & FRAG_SERVER, int(damage * (gib ? GIBBLOODMUL : 1)),
+			target->state.damagelog.length(), target->state.damagelog.length(), target->state.damagelog.getbuf(), source.x, source.y, source.z);
 		if(suic && (m_htf || m_ktf) && targethasflag >= 0){
 			actor->state.flagscore--;
 			sendf(-1, 1, "ri3", N_FLAGCNT, actor->clientnum, actor->state.flagscore);
@@ -1374,7 +1374,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 	}
 	else{
 		sendf(-1, 1, "ri7", N_DAMAGE, target->clientnum, actor->clientnum, int(damage * (gib ? GIBBLOODMUL : 1)), ts.armour, ts.health, gun);
-		if(source != target->state.o && gun == GUN_GRENADE) sendf(-1, 1, "ri4f3", N_PROJPUSH, target->clientnum, gun, damage, source.x, source.y, source.z);
+		if(source != target->state.o && (gun == GUN_GRENADE)) sendf(-1, 1, "ri4f3", N_PROJPUSH, target->clientnum, gun, damage, source.x, source.y, source.z);
 	}
 }
 
@@ -3000,7 +3000,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_SUICIDE:
 			{
-				if(cl->state.state == CS_ALIVE) serverdamage(cl, cl, 1000, GUN_KNIFE, true);
+				if(cl->state.state == CS_ALIVE) serverdamage(cl, cl, 1000, GUN_KNIFE, true, cl->state.o);
 				break;
 			}
 
