@@ -474,7 +474,7 @@ void raydamage(vec &from, vec &to, playerent *d){
 				}
 				else raysleft = true;
 			}
-			int dam = effectiveDamage(d->weaponsel->type, totaldist/(float)hitrays);
+			int dam = effectiveDamage(d->weaponsel->type, totaldist/(float)hitrays, DAMAGESCALE);
 			if(hitrays) hitpush(hitrays*dam, o, d, from, to, d->weaponsel->type, hitrays*dam > SGGIB, hitflag);
 			if(!raysleft) break;
 		}
@@ -482,7 +482,7 @@ void raydamage(vec &from, vec &to, playerent *d){
 	else if((o = intersectclosest(from, to, d, hitzone)))
 	{
 		shorten(from, o->o, to);
-		int dam = effectiveDamage(d->weaponsel->type, from.dist(to));
+		int dam = effectiveDamage(d->weaponsel->type, from.dist(to), DAMAGESCALE);
 		bool gib = false;
 		if(d==player1){
 			if(d->weaponsel->type==GUN_KNIFE){

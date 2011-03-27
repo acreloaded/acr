@@ -40,6 +40,10 @@ struct entity : public persistent_entity
 };
 
 #define STARTHEALTH 100
+#define MAXHEALTH 120
+
+#define STARTARMOR 0
+#define MAXARMOR 100
 
 struct itemstat { short add, start, max, sound; };
 static itemstat ammostats[] =
@@ -57,9 +61,11 @@ static itemstat ammostats[] =
 
 static itemstat powerupstats[] =
 {
-	{35, STARTHEALTH, STARTHEALTH+20, S_ITEMHEALTH}, //health
-	{40, STARTHEALTH, STARTHEALTH, S_ITEMARMOUR}, //armour
+	{35, STARTHEALTH, MAXHEALTH, S_ITEMHEALTH}, //health
+	{40, STARTARMOR, MAXARMOR, S_ITEMARMOUR}, //armour
 };
+
+#define DAMAGESCALE 1
 
 #define SGRAYS 32
 #define SGSPREAD 300
@@ -86,12 +92,16 @@ static guninfo guns[NUMGUNS] =
 static inline ushort reloadtime(int gun) { return guns[gun].reloadtime; }
 static inline ushort attackdelay(int gun) { return guns[gun].attackdelay; }
 static inline ushort magsize(int gun) { return guns[gun].magsize; }
-static inline ushort effectiveDamage(int gun, float dist, bool explosive = false) {
-	if(dist <= guns[gun].range || (!guns[gun].range && !guns[gun].endrange)) return guns[gun].damage;
-	if(dist >= guns[gun].endrange) return guns[gun].damage - guns[gun].rangeminus;
-	float subtractfactor = (dist - (float)guns[gun].range) / ((float)guns[gun].endrange - (float)guns[gun].range);
-	if(explosive) subtractfactor = sqrtf(subtractfactor);
-	return guns[gun].damage - (short)(subtractfactor * guns[gun].rangeminus);
+static inline ushort effectiveDamage(int gun, float dist, int damagescale, bool explosive = false) {
+	ushort finaldamage = 0;
+	if(dist <= guns[gun].range || (!guns[gun].range && !guns[gun].endrange)) finaldamage = guns[gun].damage;
+	else if(dist >= guns[gun].endrange) finaldamage = guns[gun].damage - guns[gun].rangeminus;
+	else{
+		float subtractfactor = (dist - (float)guns[gun].range) / ((float)guns[gun].endrange - (float)guns[gun].range);
+		if(explosive) subtractfactor = sqrtf(subtractfactor);
+		finaldamage = guns[gun].damage - (short)(subtractfactor * guns[gun].rangeminus);
+	}
+	return finaldamage * damagescale;
 }
 
 static inline const char *suicname(int gun, bool thirdperson){
@@ -379,6 +389,7 @@ struct playerstate
 	void respawn()
 	{
 		health = STARTHEALTH;
+		armour = STARTARMOR;
 		cutter = -1;
 		killstreak = assists = armour = lastcut = 0;
 		gunselect = GUN_PISTOL;

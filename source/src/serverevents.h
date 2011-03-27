@@ -16,7 +16,7 @@ void processevent(client &c, explodeevent &e)
 		client &target = *clients[i];
 		float dist = target.state.o.dist(e.o);
 		if(dist >= guns[e.gun].endrange) continue;
-		serverdamage(&target, &c, effectiveDamage(e.gun, dist, true), e.gun, true, e.o);
+		serverdamage(&target, &c, effectiveDamage(e.gun, dist, DAMAGESCALE, true), e.gun, true, e.o);
 	}
 }
 
@@ -85,10 +85,10 @@ void processevent(client &c, shotevent &e)
 
 				bool gib = false;
 				int damage = 0;
-				damage = rays * effectiveDamage(e.gun, vec(e.to).dist(gs.o));
+				damage = rays * effectiveDamage(e.gun, vec(e.to).dist(gs.o), DAMAGESCALE);
 				if(e.gun == GUN_SHOTGUN){
 					uint hitflags = h.info;
-					loopi(SGRAYS) if(hitflags & (1 << i)) damage += effectiveDamage(GUN_SHOTGUN, gs.sg[i].dist(gs.o));
+					loopi(SGRAYS) if(hitflags & (1 << i)) damage += effectiveDamage(GUN_SHOTGUN, gs.sg[i].dist(gs.o), DAMAGESCALE);
 				}
 				if(!damage) continue;
 
