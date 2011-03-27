@@ -118,7 +118,7 @@ void drawscope()
 	glEnd();
 }
 
-const char *crosshairnames[CROSSHAIR_NUM] = { "default", "scope", "shotgun", "vertical", "horizontal" };
+const char *crosshairnames[CROSSHAIR_NUM] = { "default", "scope", "shotgun", "vertical", "horizontal", "hit" };
 Texture *crosshairs[CROSSHAIR_NUM] = { NULL }; // weapon specific crosshairs
 
 Texture *loadcrosshairtexture(const char *c, int type = -1)
@@ -154,9 +154,6 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 		if(!crosshair) crosshair = crosshairs[CROSSHAIR_DEFAULT] = loadcrosshairtexture("default.png");
 	}
 
-	if(crosshair->bpp==32) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	else glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-	glBindTexture(GL_TEXTURE_2D, crosshair->id);
 	static color col;
 	col.r = col.b = col.g = col.alpha = 1.f;
 	if(c) col = color(c->r, c->g, c->b);
@@ -171,8 +168,24 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 	}
 	if(n == CROSSHAIR_DEFAULT) col.alpha = 1.f + p->weaponsel->dynspread() / -1200.f;
 	if(n != CROSSHAIR_SCOPE && p->ads) col.alpha *= 1 - sqrtf(p->ads * (n == CROSSHAIR_SHOTGUN ? 0.5f : 1)) / sqrtf(600);
-	glColor4f(col.r, col.g, col.b, col.alpha * 0.8f);
 	float usz = (float)crosshairsize, chsize = size>0 ? size : usz;
+	if(p->lasthitmarker + 3000 > lastmillis){
+		glColor4f(1, 1, 1, (p->lasthitmarker + 3000 - lastmillis) / 2000.f);
+		Texture *ch = crosshairs[CROSSHAIR_HIT];
+		if(!ch) ch = textureload("packages/misc/crosshairs/hit.png", 3);
+		if(ch->bpp==32) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		else glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+		glBindTexture(GL_TEXTURE_2D, ch->id);
+		glBegin(GL_QUADS);
+		const float hitsize = 56.f;
+		glTexCoord2f(0, 0); glVertex2f(VIRTW/2 - hitsize, VIRTH/2 - hitsize);
+		glTexCoord2f(1, 0); glVertex2f(VIRTW/2 + hitsize, VIRTH/2 - hitsize);
+		glTexCoord2f(1, 1); glVertex2f(VIRTW/2 + hitsize, VIRTH/2 + hitsize);
+		glTexCoord2f(0, 1); glVertex2f(VIRTW/2 - hitsize, VIRTH/2 + hitsize);
+		glEnd();
+	}
+	glColor4f(col.r, col.g, col.b, col.alpha * 0.8f);
 	if(n == CROSSHAIR_DEFAULT){
 		usz *= 3.5f;
 		float ct = usz / 1.8f;
@@ -180,7 +193,11 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 		Texture *cv = crosshairs[CROSSHAIR_V], *ch = crosshairs[CROSSHAIR_H];
 		if(!cv) cv = textureload("packages/misc/crosshairs/vertical.png", 3);
 		if(!ch) ch = textureload("packages/misc/crosshairs/horizontal.png", 3);
+		
+		/*if(ch->bpp==32) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		else */glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 		glBindTexture(GL_TEXTURE_2D, ch->id);
+
 		glBegin(GL_QUADS);
 		// top
 		glTexCoord2f(0, 0); glVertex2f(VIRTW/2 - ct, VIRTH/2 - chsize - usz);
@@ -192,9 +209,13 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 		glTexCoord2f(1, 0); glVertex2f(VIRTW/2 + ct, VIRTH/2 + chsize);
 		glTexCoord2f(1, 1); glVertex2f(VIRTW/2 + ct, VIRTH/2 + chsize + usz);
 		glTexCoord2f(0, 1); glVertex2f(VIRTW/2 - ct, VIRTH/2 + chsize + usz);
+
 		// change texture
 		glEnd();
+		/*if(cv->bpp==32) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		else */glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 		glBindTexture(GL_TEXTURE_2D, cv->id);
+
 		glBegin(GL_QUADS);
 		// left
 		glTexCoord2f(0, 0); glVertex2f(VIRTW/2 - chsize - usz, VIRTH/2 - ct);
@@ -208,7 +229,12 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 		glTexCoord2f(0, 1); glVertex2f(VIRTW/2 + chsize, VIRTH/2 + ct);
 	}
 	else{
-	if(n == CROSSHAIR_SHOTGUN) chsize = SGSPREAD * 100 * (1 - p->ads / 8000.f) / dynfov();
+		if(n == CROSSHAIR_SHOTGUN) chsize = SGSPREAD * 100 * (1 - p->ads / 8000.f) / dynfov();
+
+		if(crosshair->bpp==32) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		else glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+		glBindTexture(GL_TEXTURE_2D, crosshair->id);
+
 		glBegin(GL_QUADS);
 		glTexCoord2f(0, 0); glVertex2f(VIRTW/2 - chsize, VIRTH/2 - chsize);
 		glTexCoord2f(1, 0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 - chsize);

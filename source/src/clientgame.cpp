@@ -474,7 +474,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, bool loca
 {
 	if(pl->state != CS_ALIVE || intermission) return;
 
-	pl->respawnoffset = pl->lastpain = lastmillis;
+	pl->respawnoffset = pl->lastpain = actor->lasthitmarker = lastmillis;
 	if(local) damage = pl->dodamage(damage);
 	else if(actor == player1 && damage == 1000) return;
 

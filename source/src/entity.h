@@ -455,7 +455,7 @@ struct playerent : dynent, playerstate
 	int lifesequence;				   // sequence id for each respawn, used in damage test
 	int radarmillis; float lastloudpos[3];
 	int points, frags, flagscore, deaths;
-	int lastaction, lastmove, lastpain;
+	int lastaction, lastmove, lastpain, lasthitmarker;
 	int priv, vote, voternum, lastregen;
 	int ads, wantsswitch; bool wantsreload;
 	bool attacking;
@@ -484,7 +484,7 @@ struct playerent : dynent, playerstate
 
 	playerent() : spectatemode(SM_NONE), vote(VOTE_NEUTRAL), voternum(MAXCLIENTS), priv(PRIV_NONE), head(-1, -1, -1)
 	{
-		lastupdate = plag = ping = lifesequence = points = frags = flagscore = deaths = lastpain = skin = eardamagemillis = respawnoffset = radarmillis = ads = 0;
+		lastupdate = plag = ping = lifesequence = points = frags = flagscore = deaths = lastpain = lasthitmarker = skin = eardamagemillis = respawnoffset = radarmillis = ads = 0;
 		weaponsel = nextweaponsel = primweap = nextprimweap = lastattackweapon = prevweaponsel = NULL;
 		type = ENT_PLAYER;
 		clientnum = smoothmillis = followplayercn = wantsswitch = -1;
