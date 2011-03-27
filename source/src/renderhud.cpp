@@ -169,22 +169,6 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 	if(n == CROSSHAIR_DEFAULT) col.alpha = 1.f + p->weaponsel->dynspread() / -1200.f;
 	if(n != CROSSHAIR_SCOPE && p->ads) col.alpha *= 1 - sqrtf(p->ads * (n == CROSSHAIR_SHOTGUN ? 0.5f : 1)) / sqrtf(600);
 	float usz = (float)crosshairsize, chsize = size>0 ? size : usz;
-	if(p->lasthitmarker + 3000 > lastmillis){
-		glColor4f(1, 1, 1, (p->lasthitmarker + 3000 - lastmillis) / 2000.f);
-		Texture *ch = crosshairs[CROSSHAIR_HIT];
-		if(!ch) ch = textureload("packages/misc/crosshairs/hit.png", 3);
-		if(ch->bpp==32) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		else glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-
-		glBindTexture(GL_TEXTURE_2D, ch->id);
-		glBegin(GL_QUADS);
-		const float hitsize = 56.f;
-		glTexCoord2f(0, 0); glVertex2f(VIRTW/2 - hitsize, VIRTH/2 - hitsize);
-		glTexCoord2f(1, 0); glVertex2f(VIRTW/2 + hitsize, VIRTH/2 - hitsize);
-		glTexCoord2f(1, 1); glVertex2f(VIRTW/2 + hitsize, VIRTH/2 + hitsize);
-		glTexCoord2f(0, 1); glVertex2f(VIRTW/2 - hitsize, VIRTH/2 + hitsize);
-		glEnd();
-	}
 	glColor4f(col.r, col.g, col.b, col.alpha * 0.8f);
 	if(n == CROSSHAIR_DEFAULT){
 		usz *= 3.5f;
@@ -678,6 +662,24 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	playerent *targetplayer = playerincrosshairhit(targetplayerzone);
 	bool menu = menuvisible();
 	bool command = getcurcommand() ? true : false;
+
+	if(p->lasthitmarker + 2000 > lastmillis){
+		glColor4f(1, 1, 1, (p->lasthitmarker + 2000 - lastmillis) / 1000.f);
+		Texture *ch = crosshairs[CROSSHAIR_HIT];
+		if(!ch) ch = textureload("packages/misc/crosshairs/hit.png", 3);
+		if(ch->bpp==32) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		else glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+		glBindTexture(GL_TEXTURE_2D, ch->id);
+		glBegin(GL_QUADS);
+		const float hitsize = 56.f;
+		glTexCoord2f(0, 0); glVertex2f(VIRTW/2 - hitsize, VIRTH/2 - hitsize);
+		glTexCoord2f(1, 0); glVertex2f(VIRTW/2 + hitsize, VIRTH/2 - hitsize);
+		glTexCoord2f(1, 1); glVertex2f(VIRTW/2 + hitsize, VIRTH/2 + hitsize);
+		glTexCoord2f(0, 1); glVertex2f(VIRTW/2 - hitsize, VIRTH/2 + hitsize);
+		glEnd();
+	}
+
 	if(!p->weaponsel->reloading && !p->weaponchanging){
 		if(p->state==CS_ALIVE) p->weaponsel->renderaimhelp(targetplayer && targetplayer->state==CS_ALIVE ? isteam(targetplayer, p) ? 1 : 2 : 0);
 		else if(p->state==CS_EDITING) 
