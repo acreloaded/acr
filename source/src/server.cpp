@@ -3041,6 +3041,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					loopk(3) shot.shot.to[k] = getfloat(p);
 					int hitcount = getint(p);
 					loopk(hitcount){
+						if(hitcount > SGRAYS) break;
 						gameevent &hit = cl->addevent();
 						hit.type = GE_HIT;
 						hit.hit.target = getint(p);
