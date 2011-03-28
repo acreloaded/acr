@@ -669,7 +669,7 @@ grenadeent::grenadeent(playerent *owner, int millis){
 	local = owner==player1;
 	bounceent::owner = owner;
 	bounceent::millis = lastmillis;
-	timetolive = 2000-millis;
+	timetolive = NADETTL-millis;
 	bouncetype = BT_NADE;
 	maxspeed = 30.0f;
 	rotspeed = 6.0f;
