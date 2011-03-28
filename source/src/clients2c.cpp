@@ -239,8 +239,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				getstring(text, p);
 				filtertext(text, text);
 				playerent *d = getclient(cn);
-				if(!d) break;
-				saytext(d, text, flags, voice);
+				if(d) saytext(d, text, flags, voice);
+				else if(cn == -1) hudoutf("\f3Server Admin: \f5%s", text);
 				break;
 			}
 
