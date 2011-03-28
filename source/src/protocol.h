@@ -98,6 +98,8 @@ enum
 #define m_htf		(gamemode == GMODE_HTF)
 #define m_ktf		(gamemode == GMODE_TEAMKTF || gamemode == GMODE_KTF)
 #define m_edit		(gamemode == GMODE_COOPEDIT)
+#define	m_expert	(false)
+#define m_real		(false)
 
 #define m_noitems		(m_lms || m_osok)
 #define m_noitemsnade	(m_lss)

@@ -1296,6 +1296,7 @@ void forcedeath(client *cl, bool gib = false){
 
 void serverdamage(client *target, client *actor, int damage, int gun, bool gib, const vec &source){
 	if(!target || !actor || target->state.state != CS_ALIVE || actor->state.state != CS_ALIVE) return;
+	if(m_expert && !gib) return;
 	clientstate &ts = target->state;
 	if(target!=actor){
 		if(isteam(actor, target)){
@@ -3001,7 +3002,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_SUICIDE:
 			{
-				if(cl->state.state == CS_ALIVE) serverdamage(cl, cl, 1000, GUN_KNIFE, true, cl->state.o);
+				if(cl->state.state == CS_ALIVE) serverdamage(cl, cl, 1000 * DAMAGESCALE, GUN_KNIFE, true, cl->state.o);
 				break;
 			}
 

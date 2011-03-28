@@ -65,7 +65,7 @@ static itemstat powerupstats[] =
 	{40, STARTARMOR, MAXARMOR, S_ITEMARMOUR}, //armour
 };
 
-#define DAMAGESCALE 1
+#define DAMAGESCALE (m_real ? 2 : 1)
 
 #define SGRAYS 32
 #define SGSPREAD 300
