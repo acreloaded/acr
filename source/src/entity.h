@@ -42,6 +42,9 @@ struct entity : public persistent_entity
 #define STARTHEALTH 100
 #define MAXHEALTH 120
 
+#define REGENDELAY 4250
+#define REGENINT 2500
+
 #define STARTARMOR 0
 #define MAXARMOR 100
 

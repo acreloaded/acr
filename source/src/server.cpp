@@ -1323,7 +1323,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 	}
 	if(target->state.damagelog.find(actor->clientnum) < 0) target->state.damagelog.add(actor->clientnum);
 	ts.dodamage(damage);
-	ts.lastregen = gamemillis;
+	ts.lastregen = gamemillis + REGENDELAY - REGENINT;
 	actor->state.damage += damage != 1000 ? damage : 0;
 	int style = (gib ? FRAG_GIB : FRAG_NONE) | (damage > guns[gun].damage ? FRAG_OVER : FRAG_NONE);
 	/*/ TODO: add critical!
