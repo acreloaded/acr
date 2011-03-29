@@ -64,7 +64,7 @@ struct explodeevent
 {
 	int type;
 	int millis, id;
-	int gun;
+	int gun, proj;
 	float o[3];
 };
 
@@ -3058,7 +3058,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				exp.type = GE_EXPLODE;
 				seteventmillis(exp.explode);
 				exp.explode.gun = getint(p);
-				exp.explode.id = getint(p);
+				exp.explode.proj = getint(p);
 				loopi(3) exp.explode.o[i] = getfloat(p);
 				break;
 			}
