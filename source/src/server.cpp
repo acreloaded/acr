@@ -2676,8 +2676,8 @@ void checkmove(client &cp){
 	if(cps && cs.lastomillis && gamemillis > cs.lastomillis){
 		cps *= 1000 / (gamemillis - cs.lastomillis);
 		if(cps > 64.f){ // 16 meters per second
-			s_sprintfd(lol)("TOO FAST: %.3f", cps);
-			sendservmsg(lol);
+			s_sprintfd(fastmsg)("%s (%d) moved at %.3f meters/second", cp.name, sender, cps / 4);
+			sendservmsg(fastmsg);
 		}
 	}
 	if(maplayout && cp.type==ST_TCPIP && !m_edit){
