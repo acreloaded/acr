@@ -29,4 +29,4 @@
 #define FIRSTKILLPT   25                           // player makes the first kill
 // #define TKPT         -20                        // player tks
 // #define FLAGTKPT     -2*(10+cnumber)            // player tks the flag keeper/stealer
-#define ASSISTMUL 0.4f                             // multiply reward by this for assisters
+#define ASSISTMUL 0.225f                             // multiply reward by this for assisters
