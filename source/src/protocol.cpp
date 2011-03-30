@@ -201,25 +201,28 @@ const char *modefullnames[] =
 {
 	"demo playback",
 	"team deathmatch", "coopedit", "deathmatch", "survivor",
-	"team survivor", "ctf", "pistol frenzy", "bot team deathmatch", "bot deathmatch", "last swiss standing",
-	"one shot, one kill", "team one shot, one kill", "bot one shot, one kill", "hunt the flag", "team keep the flag", "keep the flag"
+	"team survivor", "ctf", "pistol frenzy", "last swiss standing",
+	"one shot, one kill", "team one shot, one kill", "hunt the flag", "team keep the flag", "keep the flag",
+	"real-team deathmatch", "expert-teamdeathmatch", "real deathmatch", "expert deathmatch"
 };
 
 const char *modeacronymnames[] =
 {
-	"DEMO",
-	"TDM", "coop", "DM", "SURV", "TSURV", "CTF", "PF", "BTDM", "BDM", "LSS",
-	"OSOK", "TOSOK", "BOSOK", "HTF", "TKTF", "KTF"
+	"demo",
+	"TDM", "edit", "DM", "SURV",
+	"TSURV", "CTF", "PF", "LSS",
+	"OSOK", "TOSOK", "HTF", "TKTF", "KTF",
+	"rTDM", "eTDM", "rDM", "eDM"
 };
 
-const char *voteerrors[] = { "voting is currently disabled", "there is already a vote pending", "no permission to veto", "can't vote that often", "this vote is not allowed in the current environment (singleplayer/multiplayer)", "no permission", "invalid vote" };
-const char *mmfullnames[] = { "open", "private" };
+const char *voteerrors[VOTEE_NUM] = { "voting is currently disabled", "there is already a vote pending", "no permission to veto", "can't vote that often", "this vote is not allowed in the current environment (singleplayer/multiplayer)", "no permission", "invalid vote" };
+const char *mmfullnames[MM_NUM] = { "open", "private" };
 
-const char *fullmodestr(int n) { return (n>=-1 && size_t(n+1) < sizeof(modefullnames)/sizeof(modefullnames[0])) ? modefullnames[n+1] : "unknown"; }
-const char *acronymmodestr(int n) { return (n>=-1 && size_t(n+1) < sizeof(modeacronymnames)/sizeof(modeacronymnames[0])) ? modeacronymnames[n+1] : "n/a"; }
-const char *modestr(int n, bool acronyms) { return acronyms ? acronymmodestr (n) : fullmodestr(n); }
-const char *voteerrorstr(int n) { return (n>=0 && (size_t)n < sizeof(voteerrors)/sizeof(voteerrors[0])) ? voteerrors[n] : "unknown"; }
-const char *mmfullname(int n) { return (n>=0 && n < MM_NUM) ? mmfullnames[n] : "unknown"; }
+inline const char *fullmodestr(int n) { return (n>=-1 && size_t(n+1) < sizeof(modefullnames)/sizeof(*modefullnames)) ? modefullnames[n+1] : "unknown"; }
+inline const char *acronymmodestr(int n) { return (n>=-1 && size_t(n+1) < sizeof(modeacronymnames)/sizeof(*modeacronymnames)) ? modeacronymnames[n+1] : "n/a"; }
+inline const char *modestr(int n, bool acronyms) { return acronyms ? acronymmodestr (n) : fullmodestr(n); }
+inline const char *voteerrorstr(int n) { return (n>=0 && n < VOTEE_NUM) ? voteerrors[n] : "unknown"; }
+inline const char *mmfullname(int n) { return (n>=0 && n < MM_NUM) ? mmfullnames[n] : "unknown"; }
 
 const char *genpwdhash(const char *name, const char *pwd, int salt)
 {

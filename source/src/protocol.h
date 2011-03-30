@@ -87,6 +87,8 @@ enum
 	GMODE_HTF,
 	GMODE_TEAMKTF,
 	GMODE_KTF,
+	GMODE_REALTDM, GMODE_EXPERTTDM,
+	GMODE_REALDM, GMODE_EXPERTDM,
 	GMODE_NUM
 };
 
@@ -98,8 +100,8 @@ enum
 #define m_htf		(gamemode == GMODE_HTF)
 #define m_ktf		(gamemode == GMODE_TEAMKTF || gamemode == GMODE_KTF)
 #define m_edit		(gamemode == GMODE_COOPEDIT)
-#define	m_expert	(false)
-#define m_real		(false)
+#define	m_expert	(gamemode == GMODE_EXPERTTDM || gamemode == GMODE_EXPERTDM)
+#define m_real		(gamemode == GMODE_REALTDM || gamemode == GMODE_REALDM)
 
 #define m_noitems		(m_lms || m_osok)
 #define m_noitemsnade	(m_lss)
@@ -108,7 +110,8 @@ enum
 #define m_duel			(m_lms || m_lss || m_osok)
 #define m_flags			(m_ctf || m_htf || m_ktf)
 #define m_team			(gamemode==GMODE_TEAMDEATHMATCH || gamemode==GMODE_TEAMONESHOTONEKILL || \
-							gamemode==GMODE_TEAMSURVIVOR || m_ctf || m_htf || gamemode==GMODE_TEAMKTF)
+							gamemode==GMODE_TEAMSURVIVOR || m_ctf || m_htf || gamemode==GMODE_TEAMKTF || \
+							gamemode==GMODE_REALTDM || gamemode == GMODE_EXPERTTDM)
 #define m_fight(mode)	((mode)>=0 && (mode)<GMODE_NUM)
 #define m_demo			(gamemode == GMODE_DEMO)
 #define m_valid(mode)	(m_fight || m_demo)
