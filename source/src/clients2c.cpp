@@ -1129,7 +1129,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			}
 
 			default:
-				if(cn < 0) neterr("type", type);
+				if(cn < 0) neterr("type in game packet", type);
 				else conoutf("\f3illegal network message type (%d)", type);
 				return;
 		}
