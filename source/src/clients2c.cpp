@@ -799,7 +799,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_FLAGINFO:
 			{
 				int flag = getint(p);
-				if(flag<0 || flag>1) return;
+				if(!(flag == 0 || flag == 1)) break;
 				flaginfo &f = flaginfos[flag];
 				f.state = getint(p);
 				switch(f.state)
@@ -986,7 +986,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				int cn = getint(p), type = getint(p), votewasted = getint(p);
 				playerent *d = getclient(cn);
-				if(type < 0 || type >= SA_NUM || !d) return;
+				if(type < 0 || type >= SA_NUM || !d) break;
 				votedisplayinfo *v = NULL;
 				string a;
 				switch(type)
@@ -1163,7 +1163,7 @@ void receivefile(uchar *data, int len)
 			if(!demo)
 			{
 				conoutf("failed writing to \"%s\"", fname);
-				return;
+				break;
 			}
 			conoutf("received demo \"%s\"", fname);
 			fwrite(data, 1, len, demo);
