@@ -1119,7 +1119,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				getstring(text, p, 64);
 				int len = getint(p);
-				if(len > 50) { neterr("Extension too long,", len); return; }
+				if(len < 1) { neterr("Extension too short,", len); break; }
+				if(len > 50) { neterr("Extension too long,", len); break; }
 				//if(!strcmp(text, ""));
 				else{ // ignore unknown extensions
 					conoutf("server sent unknown extension %s, length %d", text, len);
