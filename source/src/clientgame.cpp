@@ -571,15 +571,22 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 VAR(minutesremaining, 1, 0, 0);
 VAR(gametimecurrent, 1, 0, 0);
 VAR(gametimemaximum, 1, 0, 0);
-//VAR(lastgametimeupdate, 1, 0, 0);
+VAR(lastgametimeupdate, 1, 0, 0);
 
 void timeupdate(int milliscur, int millismax){
 	// if( lastmillis - lastgametimeupdate < 1000 ) return; // avoid double-output, but possibly omit new message if joined 1s before server switches to next minute
-	// lastgametimeupdate = lastmillis;
+	lastgametimeupdate = lastmillis;
 	gametimecurrent = milliscur;
 	gametimemaximum = millismax;
 	minutesremaining = (gametimemaximum - gametimecurrent + 60000 - 1) / 60000;
-	if(!minutesremaining){
+	if(minutesremaining){
+		if(minutesremaining==1){
+			musicsuggest(M_LASTMINUTE1 + rnd(2), 70000, true);
+			hudoutf("1 minute left!");
+		}
+		else conoutf("time remaining: %d minutes", minutesremaining);
+	}
+	else{
 		intermission = true;
 		player1->attacking = false;
 		conoutf("intermission:");
@@ -587,13 +594,6 @@ void timeupdate(int milliscur, int millismax){
 		consolescores();
 		showscores(true);
 		if(identexists("start_intermission")) execute("start_intermission");
-	}
-	else{
-		if(minutesremaining==1){
-			musicsuggest(M_LASTMINUTE1 + rnd(2), 70000, true);
-			hudoutf("1 minute left!");
-		}
-		else conoutf("time remaining: %d minutes", minutesremaining);
 	}
 }
 

@@ -763,6 +763,22 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		draw_textf("evt %d", left, top+320, xtraverts);
 	}
 
+	if(!intermission){
+		extern int gametimecurrent, lastgametimeupdate, gametimemaximum;
+		int cssec = (gametimecurrent+(lastmillis-lastgametimeupdate))/1000;
+		int cursec = cssec%60;
+		int curmin = cssec/60;
+		
+		int rmin = gametimemaximum/60000 - curmin, rsec = cursec;
+		if(rsec){
+			rmin--;
+			rsec = 60 - rsec;
+		}
+		
+		s_sprintfd(gtime)("%02d:%02d/%02d:%02d", curmin, cursec, rmin, rsec);
+		draw_text(gtime, (2*VIRTW - text_width(gtime))/2, 2);
+	}
+
 	if(hidevote < 2)
 	{
 		extern votedisplayinfo *curvote;
