@@ -2092,7 +2092,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 		sendpacket(-1, 1, packet);
 		if(!packet->referenceCount) enet_packet_destroy(packet);
 		// time remaining
-		if(smode>GMODE_DEMO || (smode==GMODE_DEMO && numnonlocalclients()>0)) sendf(-1, 1, "ri3", N_TIMEUP, gamemillis, gamelimit);
+		if(smode>GMODE_DEMO || numnonlocalclients()) sendf(-1, 1, "ri3", N_TIMEUP, gamemillis, gamelimit);
 	}
 	logline(ACLOG_INFO, "");
 	logline(ACLOG_INFO, "Game start: %s on %s, %d players, %d minutes remaining, mastermode %d, (itemlist %spreloaded, 'getmap' %sprepared)",
@@ -2599,7 +2599,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath){
 	} else putint(p, 0);
 	if(smapname[0] && !m_demo){
 		putmap(p);
-		if(smode>1 || (smode==0 && numnonlocalclients()>0)){
+		if(smode>GMODE_DEMO || numnonlocalclients()){
 			putint(p, N_TIMEUP);
 			putint(p, gamemillis);
 			putint(p, gamelimit);
@@ -3639,7 +3639,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
 	int nonlocalclients = numnonlocalclients();
 
-	if(forceintermission || ((smode>1 || (gamemode==0 && nonlocalclients)) && gamemillis-diff>0 && gamemillis/60000!=(gamemillis-diff)/60000))
+	if(forceintermission || ((smode>GMODE_DEMO || numnonlocalclients()) && gamemillis-diff>0 && gamemillis/60000!=(gamemillis-diff)/60000))
 		checkintermission();
 	if(interm && gamemillis>interm)
 	{
