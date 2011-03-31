@@ -271,7 +271,7 @@ template <class T> struct vector
 	void setsize(int i) { ASSERT(i<=ulen); ulen = i; }
 
 	void deletecontentsp() { while(!empty()) delete   pop(); }
-	void deletecontentsa() { while(!empty()) delete[] pop(); }
+	void deletearrays() { while(!empty()) delete[] pop(); }
 
 	T *getbuf() { return buf; }
 	const T *getbuf() const { return buf; }
