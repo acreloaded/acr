@@ -767,8 +767,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			}
 
 			case N_TIMEUP:
-				timeupdate(getint(p));
+			{
+				int curgamemillis = getint(p);
+				int curgamelimit = getint(p);
+				timeupdate(curgamemillis, curgamelimit);
 				break;
+			}
 
 			case N_QUICKSWITCH:
 			{
