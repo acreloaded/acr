@@ -229,28 +229,28 @@ template <class T> struct vector
 	vector<T> &operator=(const vector<T> &v)
 	{
 		shrink(0);
-		if(v.length() > alen) vrealloc(v.length());
+		if(v.length() > alen) growbuf(v.length());
 		loopv(v) add(v[i]);
 		return *this;
 	}
 
 	T &add(const T &x)
 	{
-		if(ulen==alen) vrealloc(ulen+1);
+		if(ulen==alen) growbuf(ulen+1);
 		new (&buf[ulen]) T(x);
 		return buf[ulen++];
 	}
 
 	T &add()
 	{
-		if(ulen==alen) vrealloc(ulen+1);
+		if(ulen==alen) growbuf(ulen+1);
 		new (&buf[ulen]) T;
 		return buf[ulen++];
 	}
 
 	T &dup()
 	{
-		if(ulen==alen) vrealloc(ulen+1);
+		if(ulen==alen) growbuf(ulen+1);
 		new (&buf[ulen]) T(buf[ulen-1]);
 		return buf[ulen++];
 	}
@@ -289,7 +289,7 @@ template <class T> struct vector
 		return (T *) bsearch(key, &buf[i], n<0 ? ulen : n, sizeof(T), (int (__cdecl *)(const void *,const void *))cf);
 	}
 
-	void vrealloc(int sz)
+	void growbuf(int sz)
 	{
 		int olen = alen;
 		if(!alen) alen = max(MINSIZE, sz);
@@ -306,7 +306,7 @@ template <class T> struct vector
 
 	databuf<T> reserve(int sz)
 	{
-		if(ulen+sz > alen) vrealloc(ulen+sz);
+		if(ulen+sz > alen) growbuf(ulen+sz);
 		return databuf<T>(&buf[ulen], sz);
 	}
 
