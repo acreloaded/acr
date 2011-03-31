@@ -72,7 +72,7 @@ static itemstat powerupstats[] =
 
 #define SGRAYS 32
 #define SGSPREAD 300
-#define SGGIB 130
+#define SGGIB 165
 #define NADEPOWER 1.5f
 #define NADETTL 4000
 
