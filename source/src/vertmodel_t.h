@@ -651,7 +651,7 @@ struct vertmodel : model
 		virtual ~part()
 		{
 			DELETEA(filename);
-			meshes.deletecontentsp();
+			meshes.deletecontents();
 			DELETEA(anims);
 			DELETEA(links);
 			DELETEA(tags);
@@ -1212,7 +1212,7 @@ struct vertmodel : model
 	~vertmodel()
 	{
 		delete[] loadname;
-		parts.deletecontentsp();
+		parts.deletecontents();
 	}
 
 	char *name() { return loadname; }

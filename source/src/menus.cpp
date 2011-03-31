@@ -585,7 +585,7 @@ void newmenu(char *name, char *hotkeys, char *forwardkeys)
 void menureset(void *menu)
 {
 	gmenu &m = *(gmenu *)menu;
-	m.items.deletecontentsp();
+	m.items.deletecontents();
 }
 
 void menumanual(void *menu, char *text, char *action, color *bgcolor, const char *desc)
@@ -934,7 +934,7 @@ void gmenu::init()
 {
 	if(dirlist)
 	{
-		items.deletecontentsp();
+		items.deletecontents();
 		cvector files;
 		listfiles(dirlist->dir, dirlist->ext, files);
 		files.sort(stringsort);
@@ -1067,7 +1067,7 @@ void refreshapplymenu(void *menu, bool init)
 {
 	gmenu *m = (gmenu *) menu;
 	if(!m || (!init && needsapply.length() != m->items.length()-3)) return;
-	m->items.deletecontentsp();
+	m->items.deletecontents();
 	loopv(needsapply) m->items.add(new mitemtext(m, newstring(needsapply[i]), NULL, NULL, NULL));
 	m->items.add(new mitemtext(m, newstring(""), NULL, NULL, NULL));
 	m->items.add(new mitemtext(m, newstring("Yes"), newstring("resetgl"), NULL, NULL));

@@ -1556,7 +1556,7 @@ struct nickblacklist {
 		whitelistranges.setsize(0);
 		enumeratek(whitelist, const char *, key, delete key);
 		whitelist.clear(false);
-		blfraglist.deletecontentsp();
+		blfraglist.deletecontents();
 		blacklines.setsize(0);
 	}
 

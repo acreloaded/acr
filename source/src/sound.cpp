@@ -354,7 +354,7 @@ struct sourcescheduler
 	void reset()
 	{
 		loopv(sources) sources[i]->reset();
-		sources.deletecontentsp();
+		sources.deletecontents();
 	}
 
 	// returns a free sound source (channel)
@@ -1559,7 +1559,7 @@ void soundcleanup()
 	stopsound();
 	DELETEP(gamemusic);
 	mapsounds.shrink(0);
-	locations.deletecontentsp();
+	locations.deletecontents();
 	gamesounds.shrink(0);
 	bufferpool.clear();
 

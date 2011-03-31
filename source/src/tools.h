@@ -270,7 +270,7 @@ template <class T> struct vector
 	void shrink(int i)		 { ASSERT(i<=ulen); while(ulen>i) drop(); }
 	void setsize(int i) { ASSERT(i<=ulen); ulen = i; }
 
-	void deletecontentsp() { while(!empty()) delete   pop(); }
+	void deletecontents() { while(!empty()) delete   pop(); }
 	void deletearrays() { while(!empty()) delete[] pop(); }
 
 	T *getbuf() { return buf; }

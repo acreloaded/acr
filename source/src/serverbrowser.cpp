@@ -1160,7 +1160,7 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
 void clearservers()
 {
 	resolverclear();
-	servers.deletecontentsp();
+	servers.deletecontents();
 }
 
 VARP(masterupdatefrequency, 1, 60*60, 24*60*60);
