@@ -111,8 +111,9 @@ struct forceteamaction : playeraction
 	virtual bool isvalid() { return m_team && valid_client(cn); }
 	forceteamaction(int cn, int caller) : playeraction(cn)
 	{
-		if(cn != caller){ role = roleconf('f'); passratio = 0.55f;}
-		else passratio = 0.7f;
+		area |= EE_LOCAL_SERV;
+		if(cn != caller){ role = roleconf('f'); passratio = 0.65f;}
+		else passratio = 0.55f;
 		if(valid_client(cn)) s_sprintf(desc)("force player %s to the enemy team", clients[cn]->name);
 		else s_strcpy(desc, "invalid forceteam");
 	}
@@ -169,14 +170,16 @@ struct subdueaction : playeraction
 
 struct kickaction : playeraction
 {
+	string reason;
 	void perform() { disconnect_client(cn, DISC_KICK); }
-	kickaction(int cn) : playeraction(cn)
+	kickaction(int cn, char *r) : playeraction(cn)
 	{
+		s_strcpy(reason, r);
 		passratio = 0.7f;
 		role = protectAdminRole('k', cn);
 		length = 35000; // 35s
-		if(valid_client(cn)) s_sprintf(desc)("kick player %s", clients[cn]->name);
-		else s_strcpy(desc, "invalid kick");
+		if(valid_client(cn)) s_sprintf(desc)("kick player %s for %s", clients[cn]->name, reason);
+		else s_sprintf(desc)("invalid kick for %s", reason);
 	}
 };
 

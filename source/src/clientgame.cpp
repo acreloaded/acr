@@ -840,14 +840,13 @@ COMMANDN(dropflag, tryflagdrop, ARG_NONE);
 
 char *votestring(int type, char *arg1, char *arg2)
 {
-	const char *msgs[] = { "kick player %s", "ban player %s for %d minutes", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "\f0give \f%d%s \f5to player %s", "load map %s in mode %s", "%s demo recording for the next match", "stop demo recording", "clear%s demo%s%s", "set server description to '%s'", "shuffle teams", "subdue player %s", "revoke \fs\f%d%s\fr from %s"};
+	if(type < 0 || type >= SA_NUM) return "<invalid vote type>";
+	const char *msgs[SA_NUM] = { "kick player %s for %s", "ban player %s for %d minutes", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "\f0give \f%d%s \f5to player %s", "load map %s in mode %s", "%s demo recording for the next match", "stop demo recording", "clear%s demo%s%s", "set server description to '%s'", "shuffle teams", "subdue player %s", "revoke \fs\f%d%s\fr from %s"};
 	const char *msg = msgs[type];
 	char *out = newstring(_MAXDEFSTR);
 	out[_MAXDEFSTR] = '\0';
 	s_strcpy(out, "unknown vote");
-	switch(type)
-	{
-		case SA_KICK:
+	switch(type){
 		case SA_FORCETEAM:
 		case SA_SUBDUE:
 		{
@@ -855,6 +854,14 @@ char *votestring(int type, char *arg1, char *arg2)
 			playerent *p = getclient(cn);
 			if(!p) break;
 			s_sprintf(out)(msg, colorname(p));
+			break;
+		}
+		case SA_KICK:
+		{
+			int cn = atoi(arg1);
+			playerent *p = getclient(cn);
+			if(!p) break;
+			s_sprintf(out)(msg, colorname(p), arg2);
 			break;
 		}
 		case SA_REVOKE:
@@ -888,10 +895,10 @@ char *votestring(int type, char *arg1, char *arg2)
 			s_sprintf(out)(msg, atoi(arg1) == 0 ? "disable" : "enable");
 			break;
 		case SA_MAP:
-			s_sprintf(out)(msg, arg1, modestr(atoi(arg2), modeacronyms > 0));
+			s_sprintf(out)(msg, arg2, modestr(atoi(arg1), modeacronyms > 0));
 			break;
 		case SA_SERVERDESC:
-			s_sprintf(out)(msg, arg1);
+			s_sprintf(out)(msg, arg2);
 			break;
 		case SA_CLEARDEMOS:
 		{
@@ -950,6 +957,8 @@ void callvote(int type, char *arg1, char *arg2)
 			case SA_REMBANS:
 			case SA_SHUFFLETEAMS:
 				break;
+			case SA_KICK:
+				sendstring(arg2, p);
 			default:
 				putint(p, atoi(arg1));
 				break;
@@ -1055,6 +1064,7 @@ void refreshsopmenu(void *menu, bool init)
 		mline &m = mlines.add();
 		s_strcpy(m.name, colorname(players[i]));
 		s_sprintf(m.cmd)("%s %d", menu==kickmenu ? "kick" : (menu==banmenu ? "ban" : (menu==forceteammenu ? "forceteam" : (menu==revokemenu ? "revoke" : (menu==giveadminmenu ? "giverole" : (menu==whoismenu ? "whois" : "unknownplayeraction"))))), i);
+		if(menu==kickmenu && getalias("_kickbanreason")!=NULL) s_sprintf(m.cmd)("%s [ %s ]", m.cmd, getalias("_kickbanreason"));
 		menumanual(menu, m.name, m.cmd);
 	}
 }

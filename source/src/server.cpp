@@ -2216,9 +2216,10 @@ void sendcallvote(int cl = -1){
 			case SA_SHUFFLETEAMS:
 			default:
 				break;
+			case SA_KICK:
+				sendstring(((kickaction *)curvote->action)->reason, p);
 			case SA_SUBDUE:
 			case SA_REVOKE:
-			case SA_KICK:
 			case SA_FORCETEAM:
 				putint(p, ((playeraction *)curvote->action)->cn);
 				break;
@@ -2253,6 +2254,7 @@ bool scallvote(voteinfo *v) // true if a regular vote was called
 	else if(clients[v->owner]->priv < PRIV_ADMIN && v->action->isdisabled()) error = VOTEE_DISABLED;
 	else if(clients[v->owner]->lastvotecall && servmillis - clients[v->owner]->lastvotecall < 60*1000 && clients[v->owner]->priv < PRIV_ADMIN && numclients()>1)
 		error = VOTEE_MAX;
+	else if(v->type = SA_KICK && strlen(((kickaction *)v)->reason) < 4) error = VOTEE_SHORTREASON;
 
 	if(error >= 0){
 		scallvoteerr(v, error);
@@ -3300,8 +3302,13 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						break;
 					}
 					case SA_KICK:
-						vi->action = new kickaction(getint(p));
+					{
+						getstring(text, p);
+						filtertext(text, text, 1, 16);
+						int cn = getint(p);
+						vi->action = new kickaction(cn, text);
 						break;
+					}
 					case SA_REVOKE:
 						vi->action = new revokeaction(getint(p));
 						break;
@@ -3353,7 +3360,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						break;
 					default:
 						vi->type = SA_KICK;
-						vi->action = new kickaction(-1);
+						vi->action = new kickaction(-1, "<invalid type placeholder>");
 						break;
 				}
 				vi->owner = sender;

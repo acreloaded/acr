@@ -995,33 +995,27 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				string a;
 				switch(type)
 				{
-					case SA_MAP:
-						getstring(text, p);
-						filtertext(text, text);
-						itoa(a, getint(p));
-						v = newvotedisplayinfo(d, type, text, a);
-						break;
 					case SA_SERVERDESC:
 						getstring(text, p);
 						filtertext(text, text);
-						v = newvotedisplayinfo(d, type, text, NULL);
-						break;
-					case SA_STOPDEMO:
-					case SA_REMBANS:
-					case SA_SHUFFLETEAMS:
-						v = newvotedisplayinfo(d, type, NULL, NULL);
 						break;
 					case SA_BAN:
 					case SA_GIVEADMIN:
 						itoa(a, getint(p));
 						itoa(text, getint(p));
-						v = newvotedisplayinfo(d, type, a, text);
 						break;
+					case SA_MAP:
+					case SA_KICK:
+						getstring(text, p);
+						filtertext(text, text);
 					default:
-						itoa(a, getint(p));
-						v = newvotedisplayinfo(d, type, a, NULL);
+						itoa(a, getint(p));	
+					case SA_STOPDEMO:
+					case SA_REMBANS:
+					case SA_SHUFFLETEAMS:
 						break;
 				}
+				v = newvotedisplayinfo(d, type, a, text);
 				if(v) v->expiremillis = totalmillis;
 				if(type == SA_KICK) v->expiremillis += 35000;
 				else if(type == SA_BAN) v->expiremillis += 25000;
