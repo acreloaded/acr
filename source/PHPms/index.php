@@ -77,22 +77,24 @@
 		
 		// good: can register
 		
-		// sockets pwn!
-		function nosock($port, $p1pass = false){
-			global $ip;
-			addserver($ip, $port, false);
-			exit("Your server is unreachable. Please make sure UDP port".($p1pass ? " " : "s ".$port." and ").($port + 1)." ".($p1pass ? "is" : "are")." properly forwarded and reachable.");
-		};
-		// noob socket 101
-		$sock = fsockopen("udp://".getip(), $port, $errno, $errstr, 2);
-		if(!$sock) nosock($port); // lazy test doesn't always catch it
-		fclose($sock);
-		$sock = fsockopen("udp://".getip(), $port + 1, $errno, $errstr, 3);
-		if(!$sock) nosock($port);
-		stream_set_timeout($sock, 3);
-		fwrite($sock, "1"); // "standard ping is not equal to the null byte"
-		if(!fread($sock, 1)) nosock($port, true); // if anything comes back...
-		fclose($sock);
+		if($config['servers']['check-socket']){
+			// sockets pwn!
+			function nosock($port, $p1pass = false){
+				global $ip;
+				addserver($ip, $port, false);
+				exit("Your server is unreachable. Please make sure UDP port".($p1pass ? " " : "s ".$port." and ").($port + 1)." ".($p1pass ? "is" : "are")." properly forwarded and reachable.");
+			};
+			// noob socket 101
+			$sock = fsockopen("udp://".getip(), $port, $errno, $errstr, 2);
+			if(!$sock) nosock($port); // lazy test doesn't always catch it
+			fclose($sock);
+			$sock = fsockopen("udp://".getip(), $port + 1, $errno, $errstr, 3);
+			if(!$sock) nosock($port);
+			stream_set_timeout($sock, 3);
+			fwrite($sock, "1"); // "standard ping is not equal to the null byte"
+			if(!fread($sock, 1)) nosock($port, true); // if anything comes back...
+			fclose($sock);
+		}
 		
 		// connect_db(); // already connected from cronjobs
 		// find server

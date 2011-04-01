@@ -13,6 +13,7 @@
 	$config['servers']['placeholder'] = "localhost:28770"; // dummy when out of servers
 	$config['servers']['minport'] = 1024; // end of primary reserved ports
 	$config['servers']['maxport'] = 65534; // 65535 is the max
+	$config['servers']['check-socket'] = true; // check server with UDP sockets or not
 
 	// database
 	$config['db']['host'] = 'localhost'; // database host (domain or IP)
