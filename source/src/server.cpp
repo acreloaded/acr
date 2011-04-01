@@ -2254,7 +2254,7 @@ bool scallvote(voteinfo *v) // true if a regular vote was called
 	else if(clients[v->owner]->priv < PRIV_ADMIN && v->action->isdisabled()) error = VOTEE_DISABLED;
 	else if(clients[v->owner]->lastvotecall && servmillis - clients[v->owner]->lastvotecall < 60*1000 && clients[v->owner]->priv < PRIV_ADMIN && numclients()>1)
 		error = VOTEE_MAX;
-	else if(v->type = SA_KICK && strlen(((kickaction *)v)->reason) < 4) error = VOTEE_SHORTREASON;
+	else if(v->type == SA_KICK && strlen(((kickaction *)v)->reason) < 4) error = VOTEE_SHORTREASON;
 
 	if(error >= 0){
 		scallvoteerr(v, error);
