@@ -90,11 +90,12 @@ enum
 	GMODE_REALTDM, GMODE_EXPERTTDM,
 	GMODE_REALDM, GMODE_EXPERTDM,
 	GMODE_KNIFE, GMODE_HANDHELD,
+	GMODE_RCTF,
 	GMODE_NUM
 };
 
 #define m_lms		(gamemode == GMODE_SURVIVOR || gamemode == GMODE_TEAMSURVIVOR)
-#define m_ctf		(gamemode == GMODE_CTF)
+#define m_ctf		(gamemode == GMODE_CTF || gamemode == GMODE_RCTF)
 #define m_pistol	(gamemode == GMODE_PISTOLFRENZY)
 #define m_lss		(gamemode == GMODE_LASTSWISSSTANDING || gamemode == GMODE_HANDHELD)
 #define m_osok		(gamemode == GMODE_ONESHOTONEKILL || gamemode == GMODE_TEAMONESHOTONEKILL)
