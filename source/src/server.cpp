@@ -2714,6 +2714,8 @@ void checkmove(client &cp){
 		sflaginfo &of = sflaginfos[team_opposite(i)];
 		vec v(-1, -1, cs.o.z);
 		switch(f.state){
+			case CTFF_STOLEN:
+				if(!m_return || i != cp.team) break;
 			case CTFF_INBASE:
 				v.x = f.x; v.y = f.y;
 				break;
@@ -2727,10 +2729,17 @@ void checkmove(client &cp){
 		//if(f.state == CTFF_STOLEN) continue;
 		if(m_ctf){
 			if(i == cp.team){ // it's our flag
-				if(f.state == CTFF_DROPPED) flagaction(i, FA_RETURN, sender);
+				if(f.state == CTFF_DROPPED){
+					if(m_return && of.actor_cn != sender) flagaction(i, FA_PICKUP, sender);
+					else flagaction(i, FA_RETURN, sender);
+				}
+				else if(f.state == CTFF_STOLEN) flagaction(i, FA_RETURN, sender);
 				else if(f.state == CTFF_INBASE && of.state == CTFF_STOLEN && of.actor_cn == sender) flagaction(team_opposite(i), FA_SCORE, sender);
 			}
-			else if(f.drop_cn != sender || f.dropmillis + 2000 < servmillis) flagaction(i, FA_PICKUP, sender);
+			else if(f.drop_cn != sender || f.dropmillis + 2000 < servmillis){
+				if(m_return && of.state == CTFF_STOLEN && of.actor_cn == sender) flagaction(team_opposite(i), FA_RETURN, sender);
+				flagaction(i, FA_PICKUP, sender);
+			}
 		}
 		else if(m_htf){
 			if(i == cp.team) flagaction(i, FA_PICKUP, sender);

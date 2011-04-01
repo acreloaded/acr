@@ -774,11 +774,13 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 			playsound(S_FLAGPICKUP, SP_HIGHEST);
 			if(firstperson)
 			{
-				hudoutf("\f2you got the %sflag", m_ctf ? "enemy " : "");
-				musicsuggest(M_FLAGGRAB, m_ctf ? 90*1000 : 900*1000, true);
-				musicplaying = flag;
+				hudoutf("\f2you have picked up %s flag", teamstr);
+				if(!m_ctf || !own){
+					musicsuggest(M_FLAGGRAB, m_ctf ? 90*1000 : 900*1000, true);
+					musicplaying = flag;
+				}
 			}
-			else hudoutf("\f2%s%s got %s flag", flagteam, colorname(act), teamstr);
+			else hudoutf("\f2%s%s has got %s flag", flagteam, colorname(act), teamstr);
 			break;
 		case FA_LOST:
 		case FA_DROP:
@@ -787,45 +789,45 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 			playsound(S_FLAGDROP, SP_HIGHEST);
 			if(firstperson)
 			{
-				hudoutf("\f2you %s the flag", droplost);
+				hudoutf("\f2you have %s the flag", droplost);
 				firstpersondrop = true;
 			}
-			else hudoutf("\f2%s %s %s flag", colorname(act), droplost, teamstr);
+			else hudoutf("\f2%s has %s %s flag", colorname(act), droplost, teamstr);
 			break;
 		}
 		case FA_RETURN:
 			playsound(S_FLAGRETURN, SP_HIGHEST);
-			if(firstperson) hudoutf("\f2you returned your flag");
-			else hudoutf("\f2%s returned %s flag", colorname(act), teamstr);
+			if(firstperson) hudoutf("\f2you have returned your flag");
+			else hudoutf("\f2%s has returned %s flag", colorname(act), teamstr);
 			break;
 		case FA_SCORE:
 			playsound(S_FLAGSCORE, SP_HIGHEST);
 			if(firstperson)
 			{
-				hudoutf("\f2you scored");
+				hudoutf("\f2you have scored!");
 				if(m_ctf) firstpersondrop = true;
 			}
-			else hudoutf("\f2%s scored for %s team", colorname(act), teammate ? "your" : "the enemy");
+			else hudoutf("\f2%s has scored for %s team", colorname(act), teamstr);
 			break;
 		case FA_KTFSCORE:
 		{
 			playsound(S_VOTEPASS, SP_HIGHEST); // need better ktf sound here
-			const char *ta = firstperson ? "you have" : colorname(act);
-			const char *tb = firstperson ? "" : " has";
-			const char *tc = firstperson ? "" : flagteam;
+			const char *actorname = firstperson ? "you" : colorname(act);
+			const char *hashave = firstperson ? "have" : "has";
+			const char *teamtype = firstperson ? "" : flagteam;
 			int m = flagtime / 60;
 			if(m)
-				hudoutf("\f2%s%s%s kept the flag for %d minute%s %d seconds now", tc, ta, tb, m, m == 1 ? "" : "s", flagtime % 60);
+				hudoutf("\f2%s%s %s kept the flag for %d minute%s %d seconds now", teamtype, actorname, hashave, m, m == 1 ? "" : "s", flagtime % 60);
 			else
-				hudoutf("\f2%s%s%s kept the flag for %d seconds now", tc, ta, tb, flagtime);
+				hudoutf("\f2%s%s %s kept the flag for %d seconds now", teamtype, actorname, hashave, flagtime);
 			break;
 		}
 		case FA_SCOREFAIL: // sound?
-			hudoutf("\f2%s failed to score (own team flag not taken)", firstperson ? "you" : colorname(act));
+			hudoutf("\f2%s %s failed to score (own team flag not taken)", firstperson ? "you" : colorname(act), firstperson ? "have" : "has");
 			break;
 		case FA_RESET:
 			playsound(S_FLAGRETURN, SP_HIGHEST);
-			hudoutf("\f1the server reset the flag");
+			hudoutf("\f1the server had reset the flag");
 			firstpersondrop = true;
 			break;
 	}

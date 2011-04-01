@@ -95,6 +95,7 @@ enum
 };
 
 #define m_lms		(gamemode == GMODE_SURVIVOR || gamemode == GMODE_TEAMSURVIVOR)
+#define m_return	(gamemode == GMODE_RCTF)
 #define m_ctf		(gamemode == GMODE_CTF || gamemode == GMODE_RCTF)
 #define m_pistol	(gamemode == GMODE_PISTOLFRENZY)
 #define m_lss		(gamemode == GMODE_LASTSWISSSTANDING || gamemode == GMODE_HANDHELD)
