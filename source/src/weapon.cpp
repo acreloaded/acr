@@ -564,7 +564,7 @@ bool weapon::reload(){
 
 	owner->ammo[type] -= magsize(type);
 	owner->mag[type] = magsize(type);
-	playsound(info.reload, owner);
+	playsound(info.reload, owner, owner == player1 ? SP_HIGH : SP_NORMAL);
 
 	if(player1 == owner) addmsg(N_RELOAD, "ri2", lastmillis, type);
 	return true;
@@ -628,7 +628,7 @@ void weapon::updatetimers(){
 
 void weapon::onselecting(){
 	updatelastaction(owner);
-	playsound(S_GUNCHANGE, owner == player1? SP_HIGH : SP_NORMAL);
+	playsound(S_GUNCHANGE, owner, owner == player1 ? SP_HIGH : SP_NORMAL);
 }
 
 void weapon::renderhudmodel() { renderhudmodel(owner->lastaction); }
