@@ -887,7 +887,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(!d) break;
 				if(err){
 					if(d == player1) hudoutf("\f1you \f3already \f2have \f%d%s \f5status", privcolor(r), privname(r));
-					else hudoutf("\f3there is already a \f1master \f2(\f0%s\f2)", n);
+					else hudoutf("\f3there is already a \f1%s \f2(\f%d%s\f2)", privname(r), privcolor(r), n);
 					break;
 				}
 				(d == player1 ? hudoutf : conoutf)("%s \f2%s \f%d%s \f5status", n, drop ? "relinquished" : "claimed", privcolor(r), privname(r));
