@@ -896,8 +896,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_AUTHREQ:
 			{
-				int nonce = getint(p);
-				if(nonce < 0){
+				int nonce = getint(p), sauthtoken = getint(p);
+				extern int authtoken;
+				if(nonce < 0 || sauthtoken != authtoken){
 					conoutf("server challenged incorrectly");
 					break;
 				}

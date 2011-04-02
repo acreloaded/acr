@@ -213,7 +213,7 @@ struct client				   // server side version of "dynent" type
 	int ping, team, skin, vote, priv;
 	int connectmillis;
 	bool isauthed; // for passworded servers
-	uint authreq;
+	int authtoken; uint authreq;
 	bool haswelcome;
 	bool isonrightmap;
 	bool timesync;
@@ -3257,22 +3257,23 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_AUTHREQ:
 			{
+				int authtoken = getint(p);
 				if(!isdedicated){ sendf(sender, 1, "ri2", N_AUTHCHAL, 2); break;}
 				if(cl->authreq){
 					sendf(sender, 1, "ri2", N_AUTHCHAL, 1);
 					break;
 				}
+				cl->authtoken = authtoken;
 				authrequest &r = authrequests.add();
 				r.id = cl->authreq = nextauthreq++;
 				r.answer = false;
-				logline(ACLOG_INFO, "[%s] %s is requesting an authority challenge", cl->hostname, cl->name);
 				sendf(sender, 1, "ri2", N_AUTHCHAL, 0);
 				break;
 			}
 
 			case N_AUTHCHAL:
 			{
-				unsigned int hash[5];
+				int hash[5];
 				loopi(5) hash[i] = getint(p);
 				if(!isdedicated){ sendf(sender, 1, "ri2", N_AUTHCHAL, 2); break;}
 				if(!cl->authreq) break;
@@ -3285,9 +3286,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				authrequest &r = authrequests.add();
 				r.id = cl->authreq;
 				r.answer = true;
-				char * const hash_dest = r.chal;
-				s_sprintf(hash_dest)("%08x%08x%08x%08x%08x", hash[0], hash[1], hash[2], hash[3], hash[4]);
-				logline(ACLOG_INFO, "[%s] %s is answering challenge #%d", cl->hostname, cl->name, r.id);
+				s_sprintf(r.chal)("%08x%08x%08x%08x%08x", hash[0], hash[1], hash[2], hash[3], hash[4]);
 				sendf(sender, 1, "ri2", N_AUTHCHAL, 4);
 				break;
 			}

@@ -586,7 +586,10 @@ COMMAND(securemap, ARG_1STR);
 COMMAND(getdemo, ARG_1INT);
 COMMAND(listdemos, ARG_NONE);
 
+int authtoken = -1;
+
 void tryauth(){
-	addmsg(N_AUTHREQ, "r");
+	authtoken = rand();
+	addmsg(N_AUTHREQ, "ri", authtoken);
 }
 COMMANDN(auth, tryauth, ARG_NONE);
