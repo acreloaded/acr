@@ -902,9 +902,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					break;
 				}
 				conoutf("server is challenging authentication details");
-				string buf;
-				itoa(buf, nonce);
-				s_strcat(buf, authkey);
+				s_sprintfd(buf)("%d%s", nonce, authkey);
 				unsigned message_digest[5];
 				SHA1 sha;
 				sha << buf;
@@ -912,9 +910,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					conoutf("could not compute message digest");
 					break;
 				}
-				s_sprintfd(answer)("%x%x%x%x%x", message_digest[0], message_digest[1], message_digest[2], message_digest[3], message_digest[4]);
-				s_strncpy(answer, answer, 41); // 40 hex digits
-				addmsg(N_AUTHCHAL, "rs", answer);
+				addmsg(N_AUTHCHAL, "ri5", message_digest[0], message_digest[1], message_digest[2], message_digest[3], message_digest[4]);
 				break;
 			}
 

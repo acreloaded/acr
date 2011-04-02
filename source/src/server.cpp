@@ -3272,7 +3272,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_AUTHCHAL:
 			{
-				getstring(text, p);
+				unsigned int hash[5];
+				loopi(5) hash[i] = getint(p);
 				if(!isdedicated){ sendf(sender, 1, "ri2", N_AUTHCHAL, 2); break;}
 				if(!cl->authreq) break;
 				loopv(authrequests){
@@ -3284,12 +3285,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				authrequest &r = authrequests.add();
 				r.id = cl->authreq;
 				r.answer = true;
-				char *t = text, *d = r.chal;
-				while(isxdigit(*t)){ // SHA1 is 20 bits (40 hexadecimal characters)
-					*d++ = *t++; // copy
-				}
-				while(strlen(r.chal) < 40) *d++ = '0'; // pad string
-				r.chal[40] = 0; // terminate string
+				char * const hash_dest = r.chal;
+				s_sprintf(hash_dest)("%08x%08x%08x%08x%08x", hash[0], hash[1], hash[2], hash[3], hash[4]);
 				logline(ACLOG_INFO, "[%s] %s is answering challenge #%d", cl->hostname, cl->name, r.id);
 				sendf(sender, 1, "ri2", N_AUTHCHAL, 4);
 				break;
