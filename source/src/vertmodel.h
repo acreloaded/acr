@@ -51,11 +51,12 @@ inline vec *hudEject(playerent *p, bool akimboflip){
 	if(!v) return NULL;
 	if(akimboflip) v->y = -v->y;
 	v->mul(1.28f).rotate_around_x(p->roll * RAD).rotate_around_y(p->pitch * RAD).rotate_around_z((p->yaw - 90) * RAD);
+	/*
 	if(p->ads){
 		vec *adstrans = hudAds(p, false);
 		// fixme
 		if(adstrans) v->add(*adstrans); // PI = 180 degrees in radians
-	}
+	}//*/
 	return v;
 }
 
@@ -77,6 +78,6 @@ inline vec *hudAds(playerent *p, bool flip){
 		if(anim&ANIM_MIRROR || scale!=1) matrixstack[0].scale(scale, anim&ANIM_MIRROR ? -scale : scale, scale);
 	*/
 	if(flip) v->div(1.28f).rotate_around_y(p->pitch*RAD).rotate_around_z((p->yaw+270)*-RAD);
-	else v->rotate_around_z((p->yaw + 270)*RAD).rotate_around_y(p->pitch*-RAD).mul(1.28f);
+	//else v->rotate_around_z((p->yaw + 270)*RAD).rotate_around_y(p->pitch*-RAD).mul(1.28f);
 	return &v->mul(p->ads).div(1000);
 }
