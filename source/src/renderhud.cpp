@@ -522,7 +522,6 @@ void drawradar(playerent *p, int w, int h)
 			float yaw = showmap ? 0 : camera1->yaw;
 			if(insideradar(centerpos, res/2, vec(e->x, e->y, centerpos.z)))
 				drawradarent(vec(e->x, e->y, 0), coordtrans, yaw, m_ktf && f.state!=CTFF_IDLE ? 2 : f.team, 3, iconsize, false); // draw bases
-			if(m_ktf && f.state==CTFF_IDLE) continue;
 			vec pos(0.5f-0.1f, 0.5f-0.9f, 0);
 			pos.mul(iconsize/coordtrans).rotate_around_z(yaw*RAD);
 			if(f.state==CTFF_STOLEN){
@@ -543,7 +542,8 @@ void drawradar(playerent *p, int w, int h)
 				pos.x += f.pos.x;
 				pos.y += f.pos.y;
 				pos.z += f.pos.z;
-				if(insideradar(centerpos, res/2, pos)) drawradarent(pos, coordtrans, yaw, 3, m_ktf ? 2 : f.team, iconsize, false);
+				if(insideradar(centerpos, res/2, pos))
+					drawradarent(pos, coordtrans, yaw, 3, m_ktf && f.state != CTFF_IDLE ? 2 : f.team, iconsize, false, f.state == CTFF_IDLE ? .3f : 1);
 			}
 		}
 	}
