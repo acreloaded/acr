@@ -453,7 +453,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
 
 int findanim(const char *name)
 {
-	const char *names[] = { "idle", "run", "attack", "pain", "jump", "land", "flipoff", "salute", "taunt", "wave", "point", "crouch idle", "crouch walk", "crouch attack", "crouch pain", "crouch death", "death", "lying dead", "flag", "gun idle", "gun shoot", "gun reload", "gun throw", "mapmodel", "trigger", "decay", "all" };
+	const char *names[] = { "idle", "run", "attack", "pain", "jump", "land", "flipoff", "salute", "taunt", "wave", "point", "crouch idle", "crouch walk", "crouch attack", "crouch pain", "crouch death", "death", "lying dead", "flag", "gun idle", "gun shoot", "gun shoot2", "gun reload", "gun throw", "mapmodel", "trigger", "decay", "all" };
 	loopi(sizeof(names)/sizeof(names[0])) if(!strcmp(name, names[i])) return i;
 	return -1;
 }
