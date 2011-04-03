@@ -1,11 +1,11 @@
 <?
 	// general
-	$config['contact'] = 'Please contact the masterserver admin.'; // include some form of contact
+	$config['contact'] = 'Please contact the masterserver admin at domain.invalid.'; // include some form of contact
 	// servers
 	$config['servers']['minprotocol'] = 2103; // protocol requirements
 	$config['servers']['autoapprove'] = true; // servers can be registered
 	$config['servers']['translate'] = array( // IP translation
-		// array(start, end, port, "domain"), // port can be 0 for wildcard
+		// array(ip, "domain"),
 );
 	$config['servers']['force'] = array( // always forced if it cannot register
 		// "server:port",

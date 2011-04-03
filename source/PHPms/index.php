@@ -21,13 +21,9 @@
 		while ($r = mysql_fetch_row($q)){
 			$i = $ip = $r[0];
 			$i = long2ip($i);
-			foreach($config['servers']['translate'] as $t){
-				// if($start <= $ip && $ip <= $end && (!tport || $tport == $port)
-				if($t[0] <= $ip && $ip <= $t[1] && (!$t[2] || $t[2] == $r[1])){
-					// $ip = $translatetarget
-					$i = $t[3];
-					break;
-				}
+			foreach($config['servers']['translate'] as $t) if($ip == $t[0]){
+				$i = $t[1];
+				break;
 			}
 			$buffer[] = array($i, $r[1], (bool)$r[2]); // {$r[ip], $r[port], (bool)$r[add]}
 		}
