@@ -764,7 +764,7 @@ void mousemove(int dx, int dy)
 	const float SENSF = 33.0f;	 // try match quake sens
 	camera1->yaw += (dx/SENSF)*sensitivity;
 	float pitchchange = (dy/SENSF) * sensitivity * (invmouse ? 1 : -1);
-	if(pitchchange < 0 && player1->pitchreturn > 0) player1->pitchreturn += (pitchchange /= 2);
+	//if(pitchchange < 0 && player1->pitchreturn > 0) player1->pitchreturn += (pitchchange /= 2);
 	camera1->pitch += pitchchange;
 	fixcamerarange();
 	if(camera1!=player1 && player1->spectatemode!=SM_DEATHCAM)
