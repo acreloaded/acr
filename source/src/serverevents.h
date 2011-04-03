@@ -167,7 +167,7 @@ void processevents()
 				}
 			}
 			else if(!m_duel && c.state.state == CS_ALIVE && c.state.health < STARTHEALTH && c.state.lastregen + REGENINT < gamemillis){
-				int amt = round((STARTHEALTH - c.state.health) / 5 + 15);
+				int amt = round(float((STARTHEALTH - c.state.health) / 5 + 15));
 				if(amt >= STARTHEALTH - c.state.health){
 					amt = STARTHEALTH - c.state.health;
 					c.state.damagelog.setsize(0);

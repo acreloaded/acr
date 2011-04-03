@@ -46,7 +46,7 @@ inline vec *hudgunTag(playerent *p, const char *tag){
 	return &v2;
 }
 
-inline vec *hudEject(playerent *p, bool akimboflip){
+vec *hudEject(playerent *p, bool akimboflip){
 	vec *v = hudgunTag(p, "tag_eject");
 	if(!v) return NULL;
 	if(akimboflip) v->y = -v->y;
@@ -63,7 +63,7 @@ inline vec *hudEject(playerent *p, bool akimboflip){
 VAR(aimy, 0, 190, 360); // aim yaw correction
 VAR(aimp, 0, 7, 360); // aim pitch correction
 
-inline vec *hudAds(playerent *p, bool flip){
+vec *hudAds(playerent *p, bool flip){
 	vec *v = hudgunTag(p, "tag_aimpoint");
 	if(!v || !p->ads) return NULL;
 	/*

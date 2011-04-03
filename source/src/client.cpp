@@ -14,7 +14,7 @@ ENetPeer *curpeer = NULL, *connpeer = NULL;
 int connmillis = 0, connattempts = 0, discmillis = 0;
 bool watchingdemo = false;		  // flowtron : enables N_ITEMLIST in demos - req. because mapchanged == false by then
 
-inline int getclientnum() { return player1 ? player1->clientnum : -1; }
+int getclientnum() { return player1 ? player1->clientnum : -1; }
 
 bool multiplayer(bool msg)
 {
