@@ -47,7 +47,7 @@ struct mapaction : serveraction
 	{
 		if(isdedicated)
 		{
-			bool notify = valid_client(caller) && clients[caller]->priv < PRIV_ADMIN;
+			const bool notify = valid_client(caller) && clients[caller]->priv < PRIV_ADMIN;
 			mapstats *ms = getservermapstats(map);
 			if(strchr(scl.voteperm, 'x') && !ms){ // admin needed for unknown maps
 				role = PRIV_ADMIN;
@@ -337,13 +337,13 @@ struct voteinfo
 			stats[VOTE_NUM]++;
 		}
 		if(forceend){
-			if(veto == VOTE_NEUTRAL) end(stats[VOTE_YES]/(float)(stats[VOTE_NO]+stats[VOTE_YES]) > action->passratio ? VOTE_YES : VOTE_NO);
+			if(veto == VOTE_NEUTRAL) end(stats[VOTE_YES]/(float)(stats[VOTE_NO]+stats[VOTE_YES]) >= action->passratio ? VOTE_YES : VOTE_NO);
 			else end(veto, true);
 		}
 
-		if(stats[VOTE_YES]/stats[VOTE_NUM] > action->passratio || (!isdedicated && clients[owner]->type==ST_LOCAL))
+		if(stats[VOTE_YES]/(float)stats[VOTE_NUM] >= action->passratio || (!isdedicated && clients[owner]->type==ST_LOCAL))
 			end(VOTE_YES);
-		else if(stats[VOTE_NO]/stats[VOTE_NUM] >= action->passratio)
+		else if(stats[VOTE_NO]/(float)stats[VOTE_NUM] >= action->passratio)
 			end(VOTE_NO);
 		else return;
 	}
