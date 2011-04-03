@@ -840,4 +840,3 @@ extern void saytext(playerent *d, char *text, int flags, int sound);
 
 // tag info
 extern vec *hudEject(playerent *p, bool akimboflip);
-extern vec *hudAds(playerent *p, bool flip);

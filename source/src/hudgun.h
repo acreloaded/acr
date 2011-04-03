@@ -101,13 +101,14 @@ struct weaponmove
 			}
 
 			if(ads_gun(gamefocus->weaponsel->type) && gamefocus->ads){
-				vec *v = hudAds(gamefocus, true);
-				if(v) pos.sub(*v);
+				if((anim&ANIM_INDEX) == ANIM_GUN_IDLE) basetime = lastmillis-gamefocus->ads;
+				else if((anim&ANIM_INDEX) == ANIM_GUN_SHOOT && gamefocus->ads){ anim &= ~ANIM_GUN_SHOOT; anim |= ANIM_GUN_SHOOT2; }
 				k_rot *= 1 - gamefocus->ads / 2000.f;
 				k_back *= 1 - gamefocus->ads / 1100.f;
 				sway.mul(1 - gamefocus->ads / 1200.f);
 				swaydir.mul(1 - gamefocus->ads / 1300.f);
 			}
+			else if(anim == ANIM_GUN_IDLE) basetime = lastmillis;
 
 			pos.add(swaydir);
 			pos.x -= aimdir.x*k_back+sway.x;
