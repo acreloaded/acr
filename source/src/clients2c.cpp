@@ -653,7 +653,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			}
 
 			case N_FF:
-				hudoutf("\f3FRIENDLY FIRE WILL NOT BE TOLERATED!\n\f2Wait %d seconds until to respawn!", getint(p));
+				hudoutf("\f3FRIENDLY FIRE WILL NOT BE TOLERATED!");
+				hudoutf("\f2Wait %d extra seconds to respawn!", getint(p));
 				break;
 
 			case N_CONFMSG: // preconfigured messages
