@@ -1061,8 +1061,18 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_WHOIS:
 			{
-				int cn = getint(p), wants = getint(p), ip = getint(p), mask = getint(p), realmask = (mask >> 6) & 0x3F; mask &= 0x3F;
+				int cn = getint(p), wants = getint(p);
 				playerent *pl = getclient(cn), *owner = getclient(wants);
+				conoutf("\fs%s \f1requests \f2who\f0is \f3 on \fr%s \f6(\f5%s\f6)", owner ? colorname(owner) : "someone", pl ? colorname(pl) : "unknown");
+				break;
+			}
+
+			case N_WHOISINFO:
+			{
+				// \fs%s \f1requests \f2who\f0is \f3on \fr%s, owner ? colorname(owner) : "someone", pl ? colorname(pl) : "unknown"
+				int cn = getint(p), ip = getint(p), mask = getint(p);
+				playerent *pl = getclient(cn);
+
 				s_sprintfd(cip)("%d", ip & 0xFF);
 				if(mask > 8 || (ip >> 8) & 0xFF){
 					s_sprintf(cip)("%s.%d", cip, (ip >> 8) & 0xFF);
@@ -1072,8 +1082,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					}
 				}
 				if(mask < 32) s_sprintf(cip)("%s\f7/\f4%d", cip, mask);
-				if(mask != realmask) s_sprintf(cip)("%s|d", cip, realmask);
-				conoutf("\fs%s \f1requests \f2who\f0is \f3 on \fr%s \f6(\f5%s\f6)", owner ? colorname(owner) : "someone", pl ? colorname(pl) : "unknown", cip);
+				conoutf("\f2who\f0is \f1on \f3%s\f6: \f5%s", pl ? colorname(pl) : "unknown", cip);
 				break;
 			}
 
