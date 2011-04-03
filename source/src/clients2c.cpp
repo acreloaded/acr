@@ -1081,7 +1081,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					}
 				}
 				if(mask < 32) s_sprintf(cip)("%s\f7/\f4%d", cip, mask);
-				conoutf("\f2who\f0is \f1on \f3%s\f6 returned \f5%s", pl ? colorname(pl) : "unknown", cip);
+				conoutf("\f2who\f0is \f1on \f3%s \f4returned \f5%s", pl ? colorname(pl) : "unknown", cip);
 				break;
 			}
 
