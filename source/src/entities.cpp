@@ -251,7 +251,7 @@ bool selectnextprimary(int num)
 		case GUN_SHOTGUN:
 		case GUN_SUBGUN:
 		case GUN_SNIPER:
-		case GUN_SLUG:
+		case GUN_BOLT:
 		case GUN_ASSAULT:
 			player1->setnextprimary(num);
 			addmsg(N_PRIMARYWEAP, "ri", player1->nextprimweap->type);

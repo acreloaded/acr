@@ -491,7 +491,7 @@ void raydamage(vec &from, vec &to, playerent *d){
 			}
 			if(hitzone == 3) dam *= 0.67;
 			else if(hitzone == 2){
-				dam *= d->weaponsel->type==GUN_SNIPER || d->weaponsel->type == GUN_SLUG || d->weaponsel->type == GUN_KNIFE ? 5 : 2.5;
+				dam *= d->weaponsel->type==GUN_SNIPER || d->weaponsel->type == GUN_BOLT || d->weaponsel->type == GUN_KNIFE ? 5 : 2.5;
 				gib = true;
 			}
 		}
@@ -647,7 +647,7 @@ void weapon::equipplayer(playerent *pl){
 	pl->weapons[GUN_KNIFE] = new knife(pl);
 	pl->weapons[GUN_PISTOL] = new pistol(pl);
 	pl->weapons[GUN_SHOTGUN] = new shotgun(pl);
-	pl->weapons[GUN_SLUG] = new sluggun(pl);
+	pl->weapons[GUN_BOLT] = new sluggun(pl);
 	pl->weapons[GUN_SNIPER] = new sniperrifle(pl);
 	pl->weapons[GUN_SUBGUN] = new subgun(pl);
 	pl->weapons[GUN_AKIMBO] = new akimbo(pl);
@@ -1021,7 +1021,7 @@ void sniperrifle::renderaimhelp(int teamtype){
 
 // sluggun
 
-sluggun::sluggun(playerent* owner) : gun(owner, GUN_SLUG) {}
+sluggun::sluggun(playerent* owner) : gun(owner, GUN_BOLT) {}
 bool sluggun::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 
 // assaultrifle

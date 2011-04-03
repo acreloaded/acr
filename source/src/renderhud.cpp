@@ -253,7 +253,7 @@ void drawequipicons(playerent *p)
 		case GUN_SHOTGUN: c = 2; break;
 		case GUN_SUBGUN: c = 4; break;
 		case GUN_SNIPER: c = 5; break;
-		case GUN_SLUG: c = 3; break;
+		case GUN_BOLT: c = 3; break;
 		case GUN_ASSAULT: c = 6; break;
 	}
 	if(c > 3) { c -= 4; r = 1; }
