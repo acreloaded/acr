@@ -51,15 +51,15 @@ struct entity : public persistent_entity
 struct itemstat { short add, start, max, sound; };
 static itemstat ammostats[] =
 {
-	{1,  1,   1,	S_ITEMAMMO},   //knife dummy
-	{24, 60,  72,	S_ITEMAMMO},   //pistol
-	{30, 40,  60,	S_ITEMAMMO},   //auto shotgun
-	{96, 128,  192,	S_ITEMAMMO},   //subgun
-	{30, 40,  80,	S_ITEMAMMO},   //sniper
-	{16, 24,  32,	S_ITEMAMMO},   //slug gun
-	{90, 120,  180,	S_ITEMAMMO},   //assault
-	{1,  1,   3,	S_ITEMAMMO},   //grenade
-	{96, 0,   144,	S_ITEMAKIMBO}  //akimbo
+	{1,  1,   1,	S_ITEMAMMO},   // knife dummy
+	{24, 60,  72,	S_ITEMAMMO},   // pistol
+	{30, 40,  60,	S_ITEMAMMO},   // auto shotgun
+	{96, 128,  192,	S_ITEMAMMO},   // subgun
+	{30, 40,  80,	S_ITEMAMMO},   // sniper
+	{16, 24,  32,	S_ITEMAMMO},   // bolt sniper
+	{90, 120,  180,	S_ITEMAMMO},   // assault
+	{1,  1,   3,	S_ITEMAMMO},   // grenade
+	{96, 0,   144,	S_ITEMAKIMBO}  // akimbo
 };
 
 static itemstat powerupstats[] =
@@ -82,15 +82,15 @@ struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay,
 static guninfo guns[NUMGUNS] =
 {
 //	{ modelname;     snd,	  rldsnd,  rldtime, atkdelay,  dmg, rngstart, rngend, rngm,psd,ptt,spr,kick,magsz,mkrot,mkback,rcoil,maxrcl,pushf; auto;}
-	{ "knife",      S_KNIFE,    S_NULL,     0,      560,    60,   3,    4,    60,   0,   0,  1,    1,   1,    0,  0,    0,     0,      5,   true },
-	{ "pistol",     S_PISTOL,   S_RPISTOL,  1400,   90,     40,   40,  120,   20,   0,   0, 90,    9,   12,   6,  2,    50,    85,     1,   false},
-	{ "shotgun",    S_SHOTGUN,  S_RSHOTGUN, 2400,   200,    6,    16,   32,    4,   0,   0,  1,   12,   10,   9,  5,    80,    80,     2,   true },
-	{ "subgun",     S_SUBGUN,   S_RSUBGUN,  1858,   67,     35,   40,   90,   20,   0,   0, 70,    4,   32,   1,  3,    14,    45,     1,   true },
-	{ "sniper",     S_SNIPER,   S_RSNIPER,  1950,   100,    50,   0,     0,    0,   0,   0,450,   18,   10,   4,  4,    50,    85,     2,   false},
-	{ "bolt",       S_BOLT,     S_RBOLT,    2400,   700,    200,  24,   48,  100,   0,   0,128,   16,    8,   9,  5,    90,    99,     2,   false},
-	{ "assault",    S_ASSAULT,  S_RASSAULT, 2000,   73,     30,   50,   150,  10,   0,   0, 60,    3,   30,   0,  3,    16,    50,     1,   true },
-	{ "grenade",    S_NULL,     S_NULL,     1000,   650,    350,  0,    20,   350,  20,  6,  1,    1,    1,   3,  1,    0,     0,      4,   false},
-	{ "pistol",     S_PISTOL,   S_RAKIMBO,  1400,   80,     36,   30,   80,   18,   0,   0, 90,    9,   24,   6,  2,    5,     60,     3,   true },
+	{ "knife",      S_KNIFE,    S_NULL,     0,      560,    60,   3,    4,    60,   0,   0,  1,    1,   1,    0,  0,     0,    0,      5,   true },
+	{ "pistol",     S_PISTOL,   S_RPISTOL,  1400,   90,     40,   40,  120,   20,   0,   0, 90,    9,   12,   6,  2,    38,    85,     1,   false},
+	{ "shotgun",    S_SHOTGUN,  S_RSHOTGUN, 2400,   200,    6,    16,   32,    4,   0,   0,  1,   12,   10,   9,  5,    40,    80,     2,   true },
+	{ "subgun",     S_SUBGUN,   S_RSUBGUN,  1858,   67,     35,   40,   90,   20,   0,   0, 70,    4,   32,   1,  3,    24,    45,     1,   true },
+	{ "sniper",     S_SNIPER,   S_RSNIPER,  1950,   100,    50,   0,     0,    0,   0,   0,480,   14,   10,   4,  4,    50,    85,     2,   false},
+	{ "bolt",       S_BOLT,     S_RBOLT,    2000,   700,   140,  80,   800,   40,   0,   0,512,   36,    8,   4,  4,    92,   285,     3,   false},
+	{ "assault",    S_ASSAULT,  S_RASSAULT, 2000,   73,     30,   50,   150,  10,   0,   0, 60,    3,   30,   0,  3,    22,    50,     1,   true },
+	{ "grenade",    S_NULL,     S_NULL,     1000,   650,    350,  0,    20,   350,  20,  6,  1,    1,    1,   3,  1,     0,    0,      4,   false},
+	{ "pistol",     S_PISTOL,   S_RAKIMBO,  1400,   80,     36,   30,   80,   18,   0,   0, 90,    9,   24,   6,  2,    31,    60,     2,   true },
 };
 
 static inline ushort reloadtime(int gun) { return guns[gun].reloadtime; }
@@ -202,7 +202,7 @@ struct physent
 	vec o, vel;						 // origin, velocity
 	vec deltapos, newpos;					   // movement interpolation
 	float yaw, pitch, roll;			 // used as vec in one place
-	float pitchvel, pitchreturn;
+	float pitchvel, yawvel, pitchreturn, yawreturn;
 	float maxspeed;					 // cubes per second, 24 for player
 	int timeinair;					  // used for fake gravity
 	float radius, eyeheight, maxeyeheight, aboveeye;  // bounding box size

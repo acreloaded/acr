@@ -313,6 +313,27 @@ void clamproll(physent *pl)
 	else if(pl->roll < -maxroll) pl->roll = -maxroll;
 }
 
+inline void applyrecoil(float addfactor, float fric, float &dir, float &vel, float &back){
+	const float addpitch = vel * addfactor;
+	back += addpitch;
+	dir += addpitch;
+
+	if(vel < 0){ // negative
+		if(vel + fric < 0) vel += fric;
+		else vel = 0;
+	}
+	else if(vel > 0){ // positive
+		if(vel - fric > 0) vel -= fric;
+		else vel = 0;
+	}
+
+	if(fabs(vel) < .15f){  // new slide back!
+		const float returnamount = sqrtf(back < 0 ? -back : back) * (back < 0 ? -.017f : .017f);
+		dir -= returnamount;
+		back -= returnamount;
+	}
+}
+
 void moveplayer(physent *pl, int moveres, bool local, int curtime)
 {
 	bool water = false;
@@ -549,34 +570,21 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 
 	if(pl->type==ENT_CAMERA) return;
 
-	if(pl->type!=ENT_BOUNCE && pl==player1)
-	{
+	if(pl->type!=ENT_BOUNCE && pl==player1){
 		// automatically apply smooth roll when strafing
-		if(pl->strafe==0)
-		{
-			pl->roll = pl->roll/(1+(float)sqrt((float)curtime)/25);
-		}
-		else
-		{
+		if(pl->strafe==0) pl->roll = pl->roll/(1+(float)sqrt((float)curtime)/25);
+		else{
 			pl->roll += pl->strafe*curtime/-30.0f;
 			clamproll(pl);
 		}
 
-		// smooth pitch
-		const float fric = 6.0f/curtime*20.0f;
-		#define addpitch pl->pitchvel*(curtime/1000.0f)*pl->maxspeed*(pl->eyeheight / pl->maxeyeheight)
-		pl->pitchreturn += addpitch;
-		pl->pitch += addpitch;
-		pl->pitchvel *= fric-3;
-		pl->pitchvel /= fric;
-		if(pl->pitchvel < .15f){  // new slide back!
-			if(pl->pitchreturn > .001f){
-				float returnamount = sqrtf(pl->pitchreturn) * 0.012f;
-				pl->pitch -= returnamount;
-				pl->pitchreturn -= returnamount;
-			} else pl->pitchreturn = 0;
-		}
-		if(pl->pitchvel) fixcamerarange(pl); // fix pitch if necessary
+		// smooth pitch and yaw recoil
+		const float fric = curtime/40.f;
+		const float addfactor = (curtime/1000.0f) * pl->maxspeed * (pl->eyeheight / pl->maxeyeheight) / 2.5f;
+		applyrecoil(addfactor, fric, pl->pitch, pl->pitchvel, pl->pitchreturn);
+		applyrecoil(addfactor, fric, pl->yaw, pl->yawvel, pl->yawreturn);
+
+		fixcamerarange(pl);
 	}
 
 	// play sounds on water transitions

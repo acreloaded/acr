@@ -588,7 +588,6 @@ void weapon::renderstats(){
 
 void weapon::attackphysics(vec &from, vec &to) // physical fx to the owner
 {
-	const guninfo &g = info;
 	vec unitv;
 	float dist = to.dist(from, unitv);
 	float f = dist/1000;
@@ -606,7 +605,14 @@ void weapon::attackphysics(vec &from, vec &to) // physical fx to the owner
 	// kickback
 	owner->vel.add(vec(unitv).mul(recoil/dist).mul(owner->eyeheight / owner->maxeyeheight));
 	// recoil
-	owner->pitchvel = min(owner->pitchvel + (float)(g.recoil)/10.0f, (float)(g.maxrecoil)/10.0f);
+	const float recoilshift = (rnd(1301) / 10.f - 65) * RAD, recoilval = info.recoil * sqrtf(rnd(50) + 51) / 100.f;
+	owner->pitchvel += cosf(recoilshift) * recoilval;
+	owner->yawvel += sinf(recoilshift) * recoilval;
+	const float maxmagnitude = sqrtf(owner->pitchvel * owner->pitchvel + owner->yawvel + owner->yawvel) / info.maxrecoil * 10;
+	if(maxmagnitude > 1){
+		owner->pitchvel /= maxmagnitude;
+		owner->yawvel /= maxmagnitude;
+	}
 }
 
 void weapon::renderhudmodel(int lastaction, int index){
