@@ -87,7 +87,7 @@ static guninfo guns[NUMGUNS] =
 	{ "shotgun",    S_SHOTGUN,  S_RSHOTGUN, 2400,   200,    6,    16,   32,    4,   0,   0,  1,   12,   10,   9,  5,    40,    50,     2,   true },
 	{ "subgun",     S_SUBGUN,   S_RSUBGUN,  1858,   67,     35,   40,   90,   20,   0,   0, 70,    4,   32,   1,  3,    24,    45,     1,   true },
 	{ "sniper",     S_SNIPER,   S_RSNIPER,  1950,   100,    50,   0,     0,    0,   0,   0,480,   14,   10,   4,  4,    50,    65,     2,   false},
-	{ "bolt",       S_BOLT,     S_RBOLT,    2000,   700,   140,  80,   800,   40,   0,   0,512,   36,    8,   4,  4,   122,   140,     3,   false},
+	{ "bolt",       S_BOLT,     S_RBOLT,    2000,  1500,   140,  80,   800,   40,   0,   0,512,   36,    8,   4,  4,   122,   140,     3,   false},
 	{ "assault",    S_ASSAULT,  S_RASSAULT, 2000,   73,     30,   50,   150,  10,   0,   0, 60,    3,   30,   0,  3,    28,    45,     1,   true },
 	{ "grenade",    S_NULL,     S_NULL,     1000,   650,    350,  0,    20,   350,  20,  6,  1,    1,    1,   3,  1,     0,    0,      4,   false},
 	{ "pistol",     S_PISTOL,   S_RAKIMBO,  1400,   80,     36,   30,   80,   18,   0,   0, 90,    9,   24,   6,  2,    31,    52,     2,   true },
