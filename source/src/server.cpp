@@ -3370,7 +3370,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						cl->state.akimbomillis = 0;
 						relay = true;
 					case S_NOAMMO:
-						if(!relay && (cl->state.mag[cl->state.gunselect] || cl->state.ammo[cl->state.gunselect])) break;
+						if(!relay && (cl->state.mag[cl->state.gunselect])) break;
 					case S_JUMP:
 					case S_HARDLAND:
 					case S_SOFTLAND:
