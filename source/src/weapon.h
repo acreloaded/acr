@@ -92,6 +92,7 @@ struct grenades : weapon
 
 struct gun : weapon
 {
+	const static int adsscope = 550;
 	gun(playerent *owner, int type);
 	virtual bool attack(vec &targ);
 	void attackshell(const vec &to);
@@ -107,11 +108,9 @@ struct subgun : gun
 	bool selectable();
 };
 
-
-struct sniperrifle : gun
+struct scopedprimary : gun
 {
-	const static int adsscope = 550;
-	sniperrifle(playerent *owner);
+	scopedprimary(playerent *owner, int type);
 	void attackfx(const vec &from, const vec &to, int millis);
 
 	float dynrecoil();
@@ -120,10 +119,14 @@ struct sniperrifle : gun
 	void renderaimhelp(int teamtype);
 };
 
-struct sluggun : gun
+struct sniperrifle : scopedprimary
 {
-	sluggun(playerent *owner);
-	bool selectable();
+	sniperrifle(playerent *owner);
+};
+
+struct boltrifle : scopedprimary
+{
+	boltrifle(playerent *owner);
 };
 
 struct shotgun : gun

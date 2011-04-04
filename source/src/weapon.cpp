@@ -653,7 +653,7 @@ void weapon::equipplayer(playerent *pl){
 	pl->weapons[GUN_KNIFE] = new knife(pl);
 	pl->weapons[GUN_PISTOL] = new pistol(pl);
 	pl->weapons[GUN_SHOTGUN] = new shotgun(pl);
-	pl->weapons[GUN_BOLT] = new sluggun(pl);
+	pl->weapons[GUN_BOLT] = new boltrifle(pl);
 	pl->weapons[GUN_SNIPER] = new sniperrifle(pl);
 	pl->weapons[GUN_SUBGUN] = new subgun(pl);
 	pl->weapons[GUN_AKIMBO] = new akimbo(pl);
@@ -1002,12 +1002,11 @@ void shotgun::renderaimhelp(int teamtype){ drawcrosshair(owner, CROSSHAIR_SHOTGU
 subgun::subgun(playerent *owner) : gun(owner, GUN_SUBGUN) {}
 bool subgun::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 
+// scopedprimary
+scopedprimary::scopedprimary(playerent *owner, int type) : gun(owner, type) {}
 
-// sniperrifle
-
-sniperrifle::sniperrifle(playerent *owner) : gun(owner, GUN_SNIPER) {}
-
-void sniperrifle::attackfx(const vec &from, const vec &to, int millis){
+bool scopedprimary::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
+void scopedprimary::attackfx(const vec &from, const vec &to, int millis){
 	addbullethole(owner, from, to);
 	addshotline(owner, from, to);
 	particle_splash(0, 50, 200, to);
@@ -1016,19 +1015,19 @@ void sniperrifle::attackfx(const vec &from, const vec &to, int millis){
 	attacksound();
 }
 
-float sniperrifle::dynrecoil() { return weapon::dynrecoil() * 1 - owner->ads / 1500; } // 1/3 spread when ADS
-bool sniperrifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
-void sniperrifle::renderhudmodel() { if(owner->ads < adsscope) weapon::renderhudmodel(); }
+float scopedprimary::dynrecoil() { return weapon::dynrecoil() * 1 - owner->ads / 1500; } // 1/3 spread when ADS
+void scopedprimary::renderhudmodel() { if(owner->ads < adsscope) weapon::renderhudmodel(); }
 
-void sniperrifle::renderaimhelp(int teamtype){
+void scopedprimary::renderaimhelp(int teamtype){
 	if(owner->ads > adsscope){ drawscope(); drawcrosshair(owner, CROSSHAIR_SCOPE, teamtype, NULL, 24.0f); }
 	else weapon::renderaimhelp(teamtype);
 }
 
-// sluggun
+// sniperrifle
+sniperrifle::sniperrifle(playerent *owner) : scopedprimary(owner, GUN_SNIPER) {}
 
-sluggun::sluggun(playerent* owner) : gun(owner, GUN_BOLT) {}
-bool sluggun::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
+// boltrifle
+boltrifle::boltrifle(playerent* owner) : scopedprimary(owner, GUN_BOLT) {}
 
 // assaultrifle
 
