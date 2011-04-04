@@ -6,7 +6,7 @@ void processevent(client &c, explodeevent &e)
 	switch(e.gun)
 	{
 		case GUN_GRENADE:
-			if(!gs.grenades.remove(e.proj) || e.id - e.proj < NADETTL) return;
+			if(!gs.grenades.remove(e.proj)/* || e.id - e.proj < NADETTL*/) return;
 			break;
 
 		default:
