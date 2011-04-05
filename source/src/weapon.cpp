@@ -604,7 +604,7 @@ void weapon::attackphysics(vec &from, vec &to) // physical fx to the owner
 	// kickback
 	owner->vel.add(vec(unitv).mul(kick * owner->eyeheight / owner->maxeyeheight));
 	// recoil
-	const float recoilshift = (rnd(1301) / 10.f - 65) * RAD, recoilval = info.recoil * sqrtf(rnd(50) + 51) / 100.f;
+	const float recoilshift = (rnd(info.recoilangle * 10 + 1) / 10.f - info.recoilangle) * RAD, recoilval = info.recoil * sqrtf(rnd(50) + 51) / 100.f;
 	owner->pitchvel += cosf(recoilshift) * recoilval;
 	owner->yawvel += sinf(recoilshift) * recoilval;
 	const float maxmagnitude = sqrtf(owner->pitchvel * owner->pitchvel + owner->yawvel + owner->yawvel) / info.maxrecoil * 10;
