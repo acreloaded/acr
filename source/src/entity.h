@@ -72,7 +72,7 @@ static itemstat powerupstats[] =
 
 #define SGRAYS 32
 #define SGSPREAD 380
-#define SGGIB 165
+#define SGGIB 180
 #define NADEPOWER 1.5f
 #define NADETTL 4000
 
@@ -82,14 +82,14 @@ struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay,
 static guninfo guns[NUMGUNS] =
 {
 //	{ modelname;     snd,	  rldsnd,  rldtime, atkdelay,  dmg, rngstart, rngend, rngm,psd,ptt,spr,kick,magsz,mkrot,mkback,rcoil,maxrcl,rca,pushf; auto;}
-	{ "knife",      S_KNIFE,    S_NULL,     0,      560,    60,   3,    4,    60,   0,   0,  1,    1,   1,    0,  0,     0,    0,       0, 5,   true },
+	{ "knife",      S_KNIFE,    S_NULL,     0,      560,    60,    3,    4,   60,   0,   0,  1,    1,   1,    0,  0,     0,    0,       0, 5,   true },
 	{ "pistol",     S_PISTOL,   S_RPISTOL,  1400,   90,     40,   40,  120,   20,   0,   0, 90,    9,   12,   6,  2,    38,    42,     70, 1,   false},
-	{ "shotgun",    S_SHOTGUN,  S_RSHOTGUN, 2400,   200,    6,    16,   32,    5,   0,   0,  1,   12,   10,   9,  5,    50,    60,      5, 2,   true },
+	{ "shotgun",    S_SHOTGUN,  S_RSHOTGUN, 2400,   200,    6,     8,   16,    4,   0,   0,  1,   12,   10,   9,  5,    50,    60,      5, 2,   true },
 	{ "subgun",     S_SUBGUN,   S_RSUBGUN,  1858,   67,     35,   40,   90,   20,   0,   0, 70,    4,   32,   1,  3,    24,    45,     65, 1,   true },
-	{ "sniper",     S_SNIPER,   S_RSNIPER,  1950,   100,    50,   0,     0,    0,   0,   0,480,   14,   10,   4,  4,    50,    65,     75, 2,   false},
-	{ "bolt",       S_BOLT,     S_RBOLT,    2000,   1500,  140,  80,   800,   40,   0,   0,512,   36,    8,   4,  4,   152,   160,     80, 3,   false},
+	{ "sniper",     S_SNIPER,   S_RSNIPER,  1950,   100,    50,    0,    0,    0,   0,   0,480,   14,   10,   4,  4,    50,    65,     75, 2,   false},
+	{ "bolt",       S_BOLT,     S_RBOLT,    2000,   1500,  140 ,  80,  800,   40,   0,   0,512,   36,    8,   4,  4,   152,   160,     80, 3,   false},
 	{ "assault",    S_ASSAULT,  S_RASSAULT, 2000,   73,     30,   50,   150,  10,   0,   0, 60,    3,   30,   0,  3,    28,    45,     60, 1,   true },
-	{ "grenade",    S_NULL,     S_NULL,     1000,   650,    350,  0,    20,   350,  20,  6,  1,    1,    1,   3,  1,     0,    0,       0, 4,   false},
+	{ "grenade",    S_NULL,     S_NULL,     1000,   650,    350,   0,   20,   350,  20,  6,  1,    1,    1,   3,  1,     0,    0,       0, 4,   false},
 	{ "pistol",     S_PISTOL,   S_RAKIMBO,  1400,   80,     36,   30,   80,   18,   0,   0, 90,    9,   24,   6,  2,    31,    52,     70, 2,   true },
 };
 
