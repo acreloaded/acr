@@ -1325,7 +1325,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 	ts.dodamage(damage);
 	ts.lastregen = gamemillis + REGENDELAY - REGENINT;
 	actor->state.damage += damage != 1000 ? damage : 0;
-	int style = (gib ? FRAG_GIB : FRAG_NONE) | (damage > guns[gun].damage ? FRAG_OVER : FRAG_NONE);
+	int style = (gib ? FRAG_GIB : FRAG_NONE) | (gun == GUN_KNIFE && damage == guns[GUN_KNIFE].damage*5 ? FRAG_OVER : FRAG_NONE);
 	/*/ TODO: add critical!
 	if(!suic){
 	
