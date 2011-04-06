@@ -579,8 +579,8 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 		}
 
 		// smooth pitch and yaw recoil
-		const float fric = curtime/40.f;
-		const float addfactor = (curtime/1000.0f) * pl->maxspeed * (pl->eyeheight / pl->maxeyeheight) / 2.5f;
+		const float fric = curtime/30.f * pl->maxeyeheight / pl->eyeheight;
+		const float addfactor = (curtime/1000.0f) * pl->maxspeed;
 		applyrecoil(addfactor, fric, pl->pitch, pl->pitchvel, pl->pitchreturn);
 		applyrecoil(addfactor, fric, pl->yaw, pl->yawvel, pl->yawreturn);
 
