@@ -614,7 +614,7 @@ void weapon::attackphysics(vec &from, vec &to) // physical fx to the owner
 	}
 }
 
-void weapon::renderhudmodel(int lastaction, int index){
+void weapon::renderhudmodel(int lastaction, bool flip){
 	vec unitv;
 	float dist = worldpos.dist(owner->o, unitv);
 	unitv.div(dist);
@@ -623,7 +623,7 @@ void weapon::renderhudmodel(int lastaction, int index){
 	if(!intermission) wm.calcmove(unitv, lastaction);
 	s_sprintfd(path)("weapons/%s", info.modelname);
 	bool emit = ((wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT) && (lastmillis - lastaction) < flashtime();
-	rendermodel(path, wm.anim|ANIM_DYNALLOC|(index ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, -1, wm.pos, owner->yaw+90, owner->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, NULL, 1.28f);
+	rendermodel(path, wm.anim|ANIM_DYNALLOC|(flip ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, -1, wm.pos, owner->yaw+90, owner->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, NULL, 1.28f);
 }
 
 void weapon::updatetimers(){
@@ -1077,8 +1077,8 @@ void akimbo::updatetimers() { weapon::updatetimers(); /*loopi(2) akimbolastactio
 void akimbo::reset() { akimbolastaction[0] = akimbolastaction[1] = akimbomillis = 0; akimboside = false; }
 
 void akimbo::renderhudmodel(){
-	weapon::renderhudmodel(akimbolastaction[0], 0);
-	weapon::renderhudmodel(akimbolastaction[1], 1);
+	weapon::renderhudmodel(*akimbolastaction, false);
+	weapon::renderhudmodel(akimbolastaction[1], true);
 }
 
 bool akimbo::timerout() { return akimbomillis && akimbomillis <= lastmillis; }

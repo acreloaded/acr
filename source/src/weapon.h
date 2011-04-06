@@ -51,7 +51,7 @@ struct weapon
 
 	void sendshoot(vec &from, vec &to);
 	bool modelattacking();
-	void renderhudmodel(int lastaction, int index = 0);
+	void renderhudmodel(int lastaction, bool flip = false);
 
 	static bool valid(int id);
 
