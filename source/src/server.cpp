@@ -2709,11 +2709,10 @@ void checkmove(client &cp){
 		if(v.x < 0) continue;
 		float dist = cs.o.dist(v);
 		if(dist > 3.5f) continue;
-		//if(f.state == CTFF_STOLEN) continue;
 		if(m_ctf){
 			if(i == cp.team){ // it's our flag
 				if(f.state == CTFF_DROPPED){
-					if(m_return && of.actor_cn != sender) flagaction(i, FA_PICKUP, sender);
+					if(m_return && (of.state != CTFF_STOLEN || of.actor_cn != sender)) flagaction(i, FA_PICKUP, sender);
 					else flagaction(i, FA_RETURN, sender);
 				}
 				else if(f.state == CTFF_STOLEN) flagaction(i, FA_RETURN, sender);
