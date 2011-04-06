@@ -2684,7 +2684,7 @@ void checkmove(client &cp){
 		const int ls = (1 << maplayout_factor) - 1;
 		vec v(e.x, e.y, maplayout && e.x >= 0 && e.y >= 0 && e.x < ls && e.y < ls ? maplayout[e.x + (e.y << maplayout_factor)] + 3 : cs.o.z);
 		float dist = cs.o.dist(v);
-		if(dist > 4) continue;
+		if(dist > 3) continue;
 		if(arenaround && arenaround - gamemillis <= 2000){ // no nade pickup during last two seconds of lss intermission
 			sendf(sender, 1, "ri2", N_ITEMSPAWN, i);
 			continue;
@@ -2708,7 +2708,7 @@ void checkmove(client &cp){
 		}
 		if(v.x < 0) continue;
 		float dist = cs.o.dist(v);
-		if(dist > 3.5f) continue;
+		if(dist > 2) continue;
 		if(m_ctf){
 			if(i == cp.team){ // it's our flag
 				if(f.state == CTFF_DROPPED){
