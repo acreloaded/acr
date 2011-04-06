@@ -213,7 +213,7 @@ struct client				   // server side version of "dynent" type
 	int ping, team, skin, vote, priv;
 	int connectmillis;
 	bool isauthed; // for passworded servers
-	int authtoken; uint authreq;
+	int authtoken, authmillis; uint authreq;
 	bool haswelcome;
 	bool isonrightmap;
 	bool timesync;
@@ -253,7 +253,7 @@ struct client				   // server side version of "dynent" type
 
 	void reset()
 	{
-		name[0] = demoflags = 0;
+		name[0] = demoflags = authmillis = 0;
 		ping = 9999;
 		skin = team = 0;
 		position.setsize(0);

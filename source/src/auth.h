@@ -33,11 +33,11 @@ void authfail(uint id, bool disconnect){
 void reqauth(int cn, int authtoken){
 	if(!valid_client(cn)) return;
 	client &cl = *clients[cn];
-	if(!isdedicated){ sendf(cn, 1, "ri2", N_AUTHCHAL, 2); return;}
-	if(cl.authreq){
-		sendf(cn, 1, "ri2", N_AUTHCHAL, 1);
-		return;
-	}
+	if(!isdedicated){ sendf(cn, 1, "ri2", N_AUTHCHAL, 2); return;} // not dedicated/connected
+	if(cl.authreq){ sendf(cn, 1, "ri2", N_AUTHCHAL, 1);	return;	} // already pending
+	const int authlimit = 10000; // 10 seconds
+	if(cl.authmillis + authlimit > servmillis){ sendf(cn, 1, "ri3", N_AUTHCHAL, 6, cl.authmillis + authlimit - servmillis); return; } // flood check
+	cl.authmillis = servmillis;
 	cl.authtoken = authtoken;
 	authrequest &r = authrequests.add();
 	r.id = cl.authreq = nextauthreq++;

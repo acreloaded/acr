@@ -944,6 +944,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						(d == player1 ? hudoutf : conoutf)("%s \f1identified as \f2'\f9%s\f2'", colorname(d), text);
 						break;
 					}
+					case 6:
+						conoutf("please wait %.3f seconds to request another challenge", getint(p) / 1000.f);
+						break;
 					default:
 						conoutf("server sent undefined authority message");
 						break;
