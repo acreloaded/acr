@@ -2663,6 +2663,7 @@ void checkmove(client &cp){
 			sendservmsg(fastmsg);
 		}
 	}
+	// out of map check
 	if(maplayout && cp.type==ST_TCPIP && !m_edit){
 		vec &po = cs.o;
 		const int ls = (1 << maplayout_factor) - 1;
@@ -2676,19 +2677,21 @@ void checkmove(client &cp){
 			return; // no pickups for you!
 		}
 	}
+	// pickups
 	loopv(sents){
 		server_entity &e = sents[i];
 		if(!e.spawned || !cs.canpickup(e.type)) continue;
 		const int ls = (1 << maplayout_factor) - 1;
 		vec v(e.x, e.y, maplayout && e.x >= 0 && e.y >= 0 && e.x < ls && e.y < ls ? maplayout[e.x + (e.y << maplayout_factor)] + 3 : cs.o.z);
 		float dist = cs.o.dist(v);
-		if(dist > 2.5f) continue;
+		if(dist > 4) continue;
 		if(arenaround && arenaround - gamemillis <= 2000){ // no nade pickup during last two seconds of lss intermission
 			sendf(sender, 1, "ri2", N_ITEMSPAWN, i);
 			continue;
 		}
 		serverpickup(i, sender);
 	}
+	// flags
 	if(m_flags) loopi(2){ // check flag pickup
 		sflaginfo &f = sflaginfos[i];
 		sflaginfo &of = sflaginfos[team_opposite(i)];
@@ -2705,7 +2708,7 @@ void checkmove(client &cp){
 		}
 		if(v.x < 0) continue;
 		float dist = cs.o.dist(v);
-		if(dist > 2.5f) continue;
+		if(dist > 3.5f) continue;
 		//if(f.state == CTFF_STOLEN) continue;
 		if(m_ctf){
 			if(i == cp.team){ // it's our flag
