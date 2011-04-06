@@ -661,7 +661,7 @@ struct oggstream : sourceowner
 
 		loopi(sizeof(exts)/sizeof(exts[0]))
 		{
-			s_sprintf(filepath)("packages/audio/songs/%s%s", f, exts[i]);
+			s_sprintf(filepath)("packages/audio/music/%s%s", f, exts[i]);
 			FILE *file = fopen(findfile(path(filepath), "rb"), "rb");
 			if(!file) continue;
 
