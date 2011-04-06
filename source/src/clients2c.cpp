@@ -903,6 +903,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					conoutf("server challenged incorrectly");
 					break;
 				}
+				authtoken = -1;
 				conoutf("server is challenging authentication details");
 				s_sprintfd(buf)("%d%s", nonce, authkey);
 				unsigned message_digest[5];
