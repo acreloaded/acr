@@ -16,6 +16,7 @@ void authsuceeded(uint id, char priv, char *name){
 	c->authreq = 0;
 	if(!priv) return;
 	priv = clamp(priv, (char)PRIV_MASTER, (char)PRIV_MAX);
+	logline(ACLOG_INFO, "[%s] auth #%d suceeded for %s as '%s'", c->hostname, id, privname(priv), name);
 	changeclientrole(c->clientnum, priv, NULL, true);
 	sendf(-1, 1, "ri3s", N_AUTHCHAL, 5, c->clientnum, name);
 }
