@@ -944,6 +944,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						(d == player1 ? hudoutf : conoutf)("%s \f1identified as \f2'\f9%s\f2'", colorname(d), text);
 						break;
 					}
+					default:
+						conoutf("server sent undefined authority message");
+						break;
 				}
 				break;
 			}
