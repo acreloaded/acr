@@ -3,8 +3,8 @@
 $model "models/players/model/model.md3"
 // reference frame
 //$frames -1 -1
-// frame 1-11
-$frames 1 11
+// frame 1-2
+$frames 1 2
 $flags 0
 $numskins 0
 
@@ -17,15 +17,35 @@ $tag "tag_muzzle"
 $tag "tag_eject"
 
 // meshes (surfaces)
-$mesh "hands"
+$mesh "back"
 $skin "models/players/model/skin.tga"
 $flags 0
 
-$mesh "weapon"
+$mesh "chamber"
+$skin "models/players/model/skin.tga"
+$flags 0
+
+$mesh "body"
 $skin "models/players/model/skin.tga"
 $flags 0
 
 $mesh "mag"
+$skin "models/players/model/skin.tga"
+$flags 0
+
+$mesh "barrel"
+$skin "models/players/model/skin.tga"
+$flags 0
+
+$mesh "barrel2"
+$skin "models/players/model/skin.tga"
+$flags 0
+
+$mesh "arm"
+$skin "models/players/model/skin.tga"
+$flags 0
+
+$mesh "arm2"
 $skin "models/players/model/skin.tga"
 $flags 0
 
