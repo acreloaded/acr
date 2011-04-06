@@ -3,8 +3,8 @@
 $model "models/players/model/model.md3"
 // reference frame
 //$frames -1 -1
-// frame 1-6
-$frames 1 6
+// frame 1-30
+$frames 1 30
 $flags 0
 $numskins 0
 
@@ -15,15 +15,11 @@ $numskins 0
 $tag "tag_muzzle"
 
 // meshes (surfaces)
-$mesh "hands"
-$skin "models/players/model/skin.tga"
-$flags 0
-
 $mesh "weapon"
 $skin "models/players/model/skin.tga"
 $flags 0
 
-$mesh "mag"
+$mesh "hands"
 $skin "models/players/model/skin.tga"
 $flags 0
 
