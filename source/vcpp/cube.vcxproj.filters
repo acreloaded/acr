@@ -396,9 +396,6 @@
     <ClCompile Include="..\src\bot\botmanager.cpp">
       <Filter>bot</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\sha1.cpp">
-      <Filter>cs</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\SDL_win32_main.c">
       <Filter>support</Filter>
     </ClCompile>

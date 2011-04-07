@@ -906,14 +906,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				authtoken = -1;
 				conoutf("server is challenging authentication details");
 				s_sprintfd(buf)("%d%s", nonce, authkey);
-				unsigned message_digest[5];
-				SHA1 sha;
-				sha << buf;
-				if(!sha.Result(message_digest)){
+				unsigned hash[5];
+				sha1 s;
+				s << buf;
+				if(!s.Result(hash)){
 					conoutf("could not compute message digest");
 					break;
 				}
-				addmsg(N_AUTHCHAL, "ri5", message_digest[0], message_digest[1], message_digest[2], message_digest[3], message_digest[4]);
+				addmsg(N_AUTHCHAL, "ri5", hash[0], hash[1], hash[2], hash[3], hash[4]);
 				break;
 			}
 
