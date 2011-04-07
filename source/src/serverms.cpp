@@ -92,7 +92,7 @@ void updatemasterserver(int millis, const ENetAddress &localaddr)
 		masterrep[0] = 0;
 		masterb.data = masterrep;
 		masterb.dataLength = MAXTRANS-1;
-		lastupdatemaster = millis/(60*60*1000);
+		lastupdatemaster = millis/(10*60*1000);
 	} else if (authrequests.length()){
 		authrequest r = authrequests.remove(0);
 		// request first auth
@@ -104,7 +104,6 @@ void updatemasterserver(int millis, const ENetAddress &localaddr)
 		masterrep[0] = 0;
 		masterb.data = masterrep;
 		masterb.dataLength = MAXTRANS-1;
-		lastupdatemaster = millis/(60*60*1000);
 	}
 }
 
