@@ -83,7 +83,7 @@ vector<authrequest> authrequests;
 // send alive signal to masterserver every hour of uptime
 void updatemasterserver(int millis, const ENetAddress &localaddr)
 {
-	if(!millis || millis/(60*60*1000)!=lastupdatemaster)
+	if(!millis || millis/(10*60*1000)!=lastupdatemaster)
 	{
 		s_sprintfd(path)("%sregister/%d/%d", masterpath, PROTOCOL_VERSION, localaddr.port);
 		s_sprintfd(agent)("AssaultCube Server %d", AC_VERSION);
