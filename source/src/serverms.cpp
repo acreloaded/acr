@@ -112,53 +112,62 @@ void checkmasterreply()
 	if(mssock!=ENET_SOCKET_NULL && !httpgetreceive(mssock, masterb))
 	{
 		mssock = ENET_SOCKET_NULL;
-		string text;
-		filtertext(text, (const char *) stripheader(masterrep));
-		char *tp = text;
-		if(*tp++ == '*'){
-			char t = *tp++;
-			if(!t) return;
-			char rtxt[12] = ""; char *r = rtxt; int rl = 0;
-			while(rl < 11 && (*r++ = *tp++) && r[-1] != '|') rl++;
-			if(*--r == '|') *r = 0; // overwrite bar to NULL
-			uint authid = atoi(rtxt);
-			if(!authid) return;
-			switch(t){
-				case 'a': // clear bans, before any ban data
+		string replytext;
+		char *text = replytext;
+		filtertext(text, (const char *) stripheader(masterrep), 2);
+		while(isspace(*text)) text++;
+		char *replytoken = strtok(text, "\n");
+		while(replytoken){
+			// process
+			char *tp = replytoken;
+			if(*tp++ == '*'){
+				if(*tp == 'a'){ // clear bans, before any ban data
 					extern void clearmbans();
 					clearmbans();
-					break;
-				case 'b': // ban an IP
-					extern void addmban(enet_uint32 start, enet_uint32 end);
-					//addmban(0, 0);
-					break;
-				case 'd': // fail to claim
-				case 'f': // failure
-					extern void authfail(uint id, bool disconnect);
-					authfail(authid, t == 'd');
-					break;
-				case 's': // succeed
-				{
-					if(!*tp) return;
-					char priv = atoi(tp++);
-					if(!priv || !*tp) return;
-					string name;
-					filtertext(name, tp, 1, MAXNAMELEN);
-					extern void authsuceeded(uint id, char priv, char *name);
-					authsuceeded(authid, priv, name);
-					break;
 				}
-				case 'c': // challenge
-					if(!*tp) return;
-					extern void authchallenged(uint id, int nonce);
-					authchallenged(authid, atoi(tp));
-					break;
-				default:
-					logline(ACLOG_INFO, "masterserver sent an unknown command: %s", text);
-					return;
+				else if(*tp == 'b'){ // add a ban
+					char *start = ++tp, *end = strpbrk(tp, "-");
+					if(end && end[1]){
+						*end++ = 0;
+						extern void addmban(enet_uint32 start, enet_uint32 end);
+						addmban(atoi(start), atoi(end));
+					}
+				}
+				else if(*tp == 'd' || *tp == 'f' || *tp == 's' || *tp == 'c'){ // auth
+					char t = *tp++;
+					char *bar = strpbrk(tp, "|");
+					if(bar) *bar = 0;
+					uint authid = atoi(tp);
+					if(bar && bar[1]) tp = bar + 1;
+					if(authid) switch(t){
+						case 'd': // fail to claim
+						case 'f': // failure
+							extern void authfail(uint id, bool disconnect);
+							authfail(authid, t == 'd');
+							break;
+						case 's': // succeed
+						{
+							if(!*tp) return;
+							char priv = atoi(tp++);
+							if(!priv || !*tp) return;
+							string name;
+							filtertext(name, tp, 1, MAXNAMELEN);
+							extern void authsuceeded(uint id, char priv, char *name);
+							authsuceeded(authid, priv, name);
+							break;
+						}
+						case 'c': // challenge
+							if(!*tp) return;
+							extern void authchallenged(uint id, int nonce);
+							authchallenged(authid, atoi(tp));
+							break;
+					}
+				}
+				else logline(ACLOG_INFO, "masterserver sent an unknown command: %s", replytoken);
 			}
+			else logline(ACLOG_INFO, "masterserver reply: %s", replytoken);
+			replytoken = strtok(NULL, "\n");
 		}
-		else logline(ACLOG_INFO, "masterserver reply: %s", text);
 	}
 }
 
