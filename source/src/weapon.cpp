@@ -706,8 +706,7 @@ void grenadeent::activate(const vec &from, const vec &to){
 	if(nadestate!=NS_NONE) return;
 	nadestate = NS_ACTIVATED;
 
-	if(local)
-	{
+	if(local){
 		addmsg(N_SHOOTC, "ri2", millis, GUN_GRENADE);
 		playsound(S_GRENADEPULL, SP_HIGH);
 	}
@@ -801,7 +800,7 @@ void grenades::attackfx(const vec &from, const vec &to, int millis) // other pla
 	throwmillis = lastmillis-millis;
 	if(millis < 0){ // activate
 		state = GST_INHAND;
-		playsound(S_GRENADEPULL, SP_HIGH);
+		playsound(S_GRENADEPULL, owner, SP_HIGH);
 	}
 	else /*if(millis > 0)*/ { // throw
 		grenadeent *g = new grenadeent(owner, millis);
@@ -865,7 +864,7 @@ void grenades::renderstats(){ draw_textf("%i", 830, 823, mag); }
 bool grenades::selectable() { return weapon::selectable() && state != GST_INHAND && mag; }
 void grenades::reset() { throwmillis = 0; state = GST_NONE; }
 
-void grenades::onselecting() { reset(); playsound(S_GUNCHANGE); }
+void grenades::onselecting() { reset(); weapon::onselecting(); }
 void grenades::onownerdies(){
 	reset();
 	if(owner==player1 && inhandnade) dropnade();
