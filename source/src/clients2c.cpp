@@ -465,7 +465,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(!d) break;
 				d->health += amt;
 				d->lastregen = lastmillis;
-				if(d == player1){
+				if(d == gamefocus){
 					playsound(S_ITEMHEALTH, SP_LOW);
 				}
 				break;
