@@ -81,9 +81,9 @@ ENetBuffer masterb;
 vector<authrequest> authrequests;
 
 // send alive signal to masterserver every hour of uptime
-void updatemasterserver(int millis, const ENetAddress &localaddr)
-{
-	if(!millis || millis/(10*60*1000)!=lastupdatemaster)
+void updatemasterserver(int millis, const ENetAddress &localaddr){
+	#define MSKEEPALIVE (20*60*1000)
+	if(!millis || millis/MSKEEPALIVE!=lastupdatemaster)
 	{
 		s_sprintfd(path)("%sregister/%d/%d", masterpath, PROTOCOL_VERSION, localaddr.port);
 		s_sprintfd(agent)("AssaultCube Server %d", AC_VERSION);
@@ -92,7 +92,7 @@ void updatemasterserver(int millis, const ENetAddress &localaddr)
 		masterrep[0] = 0;
 		masterb.data = masterrep;
 		masterb.dataLength = MAXTRANS-1;
-		lastupdatemaster = millis/(10*60*1000);
+		lastupdatemaster = millis/MSKEEPALIVE;
 	} else if (authrequests.length()){
 		authrequest r = authrequests.remove(0);
 		// request first auth
