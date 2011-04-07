@@ -1476,7 +1476,7 @@ int cmpiprange(const struct iprange *a, const struct iprange *b){
 
 int cmpipmatch(const struct iprange *a, const struct iprange *b) { return - (a->lr < b->lr) + (a->lr > b->ur); }
 
-vector<iprange> ipblacklist;
+vector<iprange> ipblacklist, masterbans;
 
 void readipblacklist(const char *name){
 	static string blfilename;
@@ -1532,13 +1532,24 @@ void readipblacklist(const char *name){
 	logline(ACLOG_INFO,"read %d (%d) blacklist entries from '%s', %d errors", ipblacklist.length(), orglength, blfilename, errors);
 }
 
-bool checkipblacklist(enet_uint32 ip) // ip: network byte order
-{
+void clearmbans(){ masterbans.setsize(0); }
+
+void addmban(enet_uint32 start, enet_uint32 end){
+	iprange &ir = masterbans.add();
+	ir.lr = start;
+	ir.ur = end;
+}
+
+inline bool checkblacklist(enet_uint32 ip, vector<iprange> &ranges){ // ip: network byte order
 	iprange t;
 	t.lr = ntohl(ip); // blacklist uses host byte order
 	t.ur = 0;
-	return ipblacklist.search(&t, cmpipmatch) != NULL;
+	return ranges.search(&t, cmpipmatch) != NULL;
 }
+
+bool checkipblacklist(enet_uint32 ip) { return checkblacklist(ip, ipblacklist); }
+
+bool checkmasterbans(enet_uint32 ip) { return checkblacklist(ip, masterbans); }
 
 #define MAXNICKFRAGMENTS 5
 enum { NWL_UNLISTED = 0, NWL_PASS, NWL_PWDFAIL, NWL_IPFAIL };
@@ -2160,7 +2171,7 @@ bool isbanned(int cn){
 		if(b.millis >= 0 && b.millis < servmillis) { bans.remove(i--); }
 		if(b.host == c.peer->address.host) { return true; }
 	}
-	return checkipblacklist(c.peer->address.host);
+	return checkipblacklist(c.peer->address.host) || checkmasterbans(c.peer->address.host);
 }
 
 void banclient(client *&c, int minutes){
@@ -3715,6 +3726,7 @@ int getpongflags(enet_uint32 ip){
 	flags |= scl.serverpassword[0] ? 1 << PONGFLAG_PASSWORD : 0;
 	loopv(bans) if(bans[i].host == ip) { flags |= 1 << PONGFLAG_BANNED; break; }
 	flags |= checkipblacklist(ip) ? 1 << PONGFLAG_BLACKLIST : 0;
+	flags |= checkmasterbans(ip) ? 1 << PONGFLAG_MBLACKLIST : 0;
 	return flags;
 }
 

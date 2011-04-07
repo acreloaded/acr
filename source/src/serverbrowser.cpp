@@ -574,6 +574,8 @@ void checkpings()
 				sp = "you are banned from this server";
 			if(si->pongflags & (1 << PONGFLAG_BLACKLIST))
 				sp = "you are blacklisted on this server";
+			if(si->pongflags & (1 << PONGFLAG_MBLACKLIST))
+				sp = "you are blacklisted globally!";
 			else if(si->pongflags & (1 << PONGFLAG_PASSWORD))
 				sp = "this server is password-protected";
 			else if(mm) sp = mmfullname(mm);
@@ -965,7 +967,7 @@ void refreshservers(void *menu, bool init)
 			serverinfo &si = *servers[i];
 			si.menuline_to = si.menuline_from = ((gmenu *)menu)->items.length();
 			if(!showallservers && si.lastpingmillis < servermenumillis) continue; // no pong yet
-			int banned = ((si.pongflags >> PONGFLAG_BANNED) & 1) | ((si.pongflags >> (PONGFLAG_BLACKLIST - 1)) & 2);
+			int banned = ((si.pongflags >> PONGFLAG_BANNED) & 1) | ((si.pongflags >> (PONGFLAG_BLACKLIST - 1)) & 2) | ((si.pongflags >> (PONGFLAG_MBLACKLIST - 2)) & 4);
 			bool showthisone = !(banned && showonlygoodservers) && !(showonlyfavourites > 0 && si.favcat != showonlyfavourites - 1);
 			bool serverfull = si.numplayers >= si.maxclients;
 			bool needspasswd = (si.pongflags & (1 << PONGFLAG_PASSWORD)) > 0;

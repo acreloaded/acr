@@ -124,6 +124,14 @@ void checkmasterreply()
 			uint authid = atoi(rtxt);
 			if(!authid) return;
 			switch(t){
+				case 'a': // clear bans, before any ban data
+					extern void clearmbans();
+					clearmbans();
+					break;
+				case 'b': // ban an IP
+					extern void addmban(enet_uint32 start, enet_uint32 end);
+					//addmban(0, 0);
+					break;
 				case 'd': // fail to claim
 				case 'f': // failure
 					extern void authfail(uint id, bool disconnect);
