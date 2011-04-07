@@ -1793,10 +1793,10 @@ void updatesdesc(const char *newdesc, ENetAddress *caller = NULL){
 	}
 }
 
-bool updateclientteam(int client, int team, int ftr, bool broadcast = true){
+bool updateclientteam(int client, int team, int ftr){
 	if(!valid_client(client) || team < TEAM_RED || team > TEAM_BLUE) return false;
 	if(clients[client]->team == team && ftr != FTR_AUTOTEAM) return false;
-	sendf(broadcast ? -1 : client, 1, "ri3", N_SETTEAM, client, (clients[client]->team = team) | (ftr << 4));
+	sendf(-1, 1, "ri3", N_SETTEAM, client, (clients[client]->team = team) | (ftr << 4));
 	if(m_team) forcedeath(clients[client]);
 	return true;
 }
@@ -1827,7 +1827,7 @@ void shuffleteams(int ftr = FTR_AUTOTEAM){
 			sums += rnd(1000);
 			team = sums & 1;
 			if(teamsize[team] >= numplayers/2) team = team_opposite(team);
-			updateclientteam(i, team, ftr, false);
+			updateclientteam(i, team, ftr);
 			teamsize[team]++;
 			sums >>= 1;
 		}
