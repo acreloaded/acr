@@ -87,7 +87,7 @@ void updatemasterserver(int millis, const ENetAddress &localaddr){
 	{
 		s_sprintfd(path)("%sregister/%d/%d", masterpath, PROTOCOL_VERSION, localaddr.port);
 		s_sprintfd(agent)("AssaultCube Server %d", AC_VERSION);
-		mssock = httpgetsend(masterserver, masterbase, path, "assaultcubeserver", agent, &msaddress);
+		mssock = httpgetsend(masterserver, masterbase, path, "acse-serv", agent, &msaddress);
 		logline(ACLOG_INFO, "sending registration request to %s...", masterbase);
 		masterrep[0] = 0;
 		masterb.data = masterrep;
@@ -100,7 +100,7 @@ void updatemasterserver(int millis, const ENetAddress &localaddr){
 		if(r.answer) s_sprintf(path)("%sauth/%d/%s", masterpath, r.id, r.chal);
 		else s_sprintf(path)("%sauth/%d", masterpath, r.id);
 		s_sprintfd(agent)("AssaultCube Server %d", AC_VERSION);
-		mssock = httpgetsend(masterserver, masterbase, path, "assaultcubeserver", agent, &msaddress);
+		mssock = httpgetsend(masterserver, masterbase, path, "acse-sauth", agent, &msaddress);
 		masterrep[0] = 0;
 		masterb.data = masterrep;
 		masterb.dataLength = MAXTRANS-1;
@@ -165,7 +165,7 @@ uchar *retrieveservers(uchar *buf, int buflen)
 	s_sprintfd(path)("%scube", masterpath);
 	s_sprintfd(agent)("AssaultCube Client %d", AC_VERSION);
 	ENetAddress address = masterserver;
-	ENetSocket sock = httpgetsend(address, masterbase, path, "assaultcubeclient", agent);
+	ENetSocket sock = httpgetsend(address, masterbase, path, "acse-client", agent);
 	if(sock==ENET_SOCKET_NULL) return buf;
 	/* only cache this if connection succeeds */
 	masterserver = address;
