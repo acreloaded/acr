@@ -250,10 +250,10 @@ void drawequipicons(playerent *p)
 	else if(c == GUN_AKIMBO) c = GUN_PISTOL; // same icon for akimbo & pistol
 	switch(c){
 		case GUN_KNIFE: case GUN_PISTOL: default: break; // aligned properly
-		case GUN_SHOTGUN: c = 2; break;
+		case GUN_SHOTGUN: c = 3; break;
 		case GUN_SUBGUN: c = 4; break;
 		case GUN_SNIPER: c = 5; break;
-		case GUN_BOLT: c = 3; break;
+		case GUN_BOLT: c = 2; break;
 		case GUN_ASSAULT: c = 6; break;
 	}
 	if(c > 3) { c -= 4; r = 1; }
