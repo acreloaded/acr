@@ -507,7 +507,7 @@ weapon::weapon(struct playerent *owner, int type) : type(type), owner(owner), in
 
 const float weapon::weaponbeloweye = 0.2f;
 
-int weapon::flashtime() const { return max((int)info.attackdelay, 120)/4; }
+int weapon::flashtime() const { return max((int)info.attackdelay, 120)/2; }
 
 void weapon::sendshoot(vec &from, vec &to){
 	if(owner!=player1) return;
