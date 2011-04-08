@@ -98,6 +98,9 @@
 			echo 'Your server has been renewed.';
 		else // registered
 			echo 'Your server has been registered.';
+		echo "\n*a";
+		function u2i($n){ return $n > 2147483647 ? $n - 4294967296 : $n; }
+		foreach($config['sbans'] as $b) if($b[2] & 4) echo "\n*b".u2i($b[0])."|".u2i($b[1]);
 	}
 	elseif(isset($_GET['authreq'])){ // request auth
 		$ip = getiplong();

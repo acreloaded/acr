@@ -117,6 +117,7 @@ void checkmasterreply()
 		filtertext(text, (const char *) stripheader(masterrep), 2);
 		while(isspace(*text)) text++;
 		char *replytoken = strtok(text, "\n");
+		int bancount = 0;
 		while(replytoken){
 			// process
 			char *tp = replytoken;
@@ -126,11 +127,12 @@ void checkmasterreply()
 					clearmbans();
 				}
 				else if(*tp == 'b'){ // add a ban
-					char *start = ++tp, *end = strpbrk(tp, "-");
+					char *start = ++tp, *end = strpbrk(tp, "|");
 					if(end && end[1]){
 						*end++ = 0;
+						unsigned rs = atoi(start), re = atoi(end);
 						extern void addmban(enet_uint32 start, enet_uint32 end);
-						addmban(atoi(start), atoi(end));
+						addmban(rs, re);
 					}
 				}
 				else if(*tp == 'd' || *tp == 'f' || *tp == 's' || *tp == 'c'){ // auth
@@ -165,7 +167,10 @@ void checkmasterreply()
 				}
 				else logline(ACLOG_INFO, "masterserver sent an unknown command: %s", replytoken);
 			}
-			else logline(ACLOG_INFO, "masterserver reply: %s", replytoken);
+			else{
+				while(isspace(*replytoken)) replytoken++;
+				if(*replytoken) logline(ACLOG_INFO, "masterserver reply: %s", replytoken);
+			}
 			replytoken = strtok(NULL, "\n");
 		}
 	}

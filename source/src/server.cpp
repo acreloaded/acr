@@ -1532,6 +1532,8 @@ void readipblacklist(const char *name){
 	logline(ACLOG_INFO,"read %d (%d) blacklist entries from '%s', %d errors", ipblacklist.length(), orglength, blfilename, errors);
 }
 
+int countmbans() { return masterbans.length(); }
+
 void clearmbans(){ masterbans.setsize(0); }
 
 void addmban(enet_uint32 start, enet_uint32 end){
@@ -1547,9 +1549,8 @@ inline bool checkblacklist(enet_uint32 ip, vector<iprange> &ranges){ // ip: netw
 	return ranges.search(&t, cmpipmatch) != NULL;
 }
 
-bool checkipblacklist(enet_uint32 ip) { return checkblacklist(ip, ipblacklist); }
-
-bool checkmasterbans(enet_uint32 ip) { return checkblacklist(ip, masterbans); }
+inline bool checkmasterbans(enet_uint32 ip) { return checkblacklist(ip, masterbans); }
+bool checkipblacklist(enet_uint32 ip) { return checkblacklist(ip, ipblacklist) || checkmasterbans(ip); }
 
 #define MAXNICKFRAGMENTS 5
 enum { NWL_UNLISTED = 0, NWL_PASS, NWL_PWDFAIL, NWL_IPFAIL };
