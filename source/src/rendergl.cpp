@@ -774,6 +774,15 @@ VARP(hudgun, 0, 1, 1);
 
 void setperspective(float fovy, float nearplane){
 	GLdouble ydist = nearplane * tan(fovy/2*RAD), xdist = ydist * aspect;
+
+	float adsmax = 864, zoomf = (float)adszoom;
+	if((gamefocus->weaponsel->type == GUN_SNIPER || gamefocus->weaponsel->type == GUN_BOLT) && gamefocus->ads){
+		adsmax = sniperrifle::adsscope;
+		zoomf = (float)scopezoom;
+	}
+	xdist *= 100 / (min(player1->ads/adsmax,1.f) * zoomf + 100);
+	ydist *= 100 / (min(player1->ads/adsmax,1.f) * zoomf + 100);
+
 	glFrustum(-xdist, xdist, -ydist, ydist, nearplane, farplane);
 }
 
