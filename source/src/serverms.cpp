@@ -117,7 +117,6 @@ void checkmasterreply()
 		filtertext(text, (const char *) stripheader(masterrep), 2);
 		while(isspace(*text)) text++;
 		char *replytoken = strtok(text, "\n");
-		int bancount = 0;
 		while(replytoken){
 			// process
 			char *tp = replytoken;
