@@ -103,7 +103,7 @@ void newteam(char *name)
 		if(nt == player1->team) return; // same team
 		addmsg(N_SWITCHTEAM, "ri", nt);
 	}
-	else conoutf("your team is: %s", player1->team);
+	else conoutf("your team is: %s", team_str(player1->team));
 }
 
 VARNP(skin, nextskin, 0, 0, 1000);
