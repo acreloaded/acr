@@ -407,7 +407,7 @@ void fixresizedscreen(){
 FVARP(fov, 75, 90, 120);
 VARP(spectfov, 5, 110, 120);
 VARP(scopezoom, 1, 150, 400);
-VARP(adszoom, 1, 20, 100);
+VARP(adszoom, 1, 15, 100);
 
 
 // map old fov values to new ones
