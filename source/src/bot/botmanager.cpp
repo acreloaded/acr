@@ -348,7 +348,7 @@ void CBotManager::BeginMap(const char *szMapName)
 	 
 	 WaypointClass.Init();
 	 WaypointClass.SetMapName(szMapName);
-	 if (!WaypointClass.LoadWaypoints())
+	 if (!WaypointClass.LoadWaypoints() && *szMapName)
 		  WaypointClass.StartFlood();
 	 //WaypointClass.LoadWPExpFile(); // UNDONE
 
