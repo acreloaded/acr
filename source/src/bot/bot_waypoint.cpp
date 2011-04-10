@@ -86,7 +86,6 @@ TLinkedList<node_s *>::node_s *testx;
 // returns true if waypoints succesfull loaded
 bool CWaypointClass::LoadWaypoints()
 {
-	if(!*szMapName) return false;
 	 FILE *bfp;
 	 char szWPFileName[64];
 	 char filename[256];
