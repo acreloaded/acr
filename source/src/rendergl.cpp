@@ -405,8 +405,9 @@ void fixresizedscreen(){
 }
 
 FVARP(fov, 75, 90, 120);
-VARP(scopefov, 5, 50, 60);
 VARP(spectfov, 5, 110, 120);
+VARP(scopezoom, 1, 150, 400);
+VARP(adszoom, 1, 20, 100);
 
 
 // map old fov values to new ones
@@ -418,9 +419,14 @@ void fovcompat(int oldfov){
 COMMAND(fovcompat, ARG_1INT);
 
 float dynfov(){
-	if(player1->weaponsel->type == GUN_SNIPER && player1->ads > sniperrifle::adsscope) return (float)scopefov;
-	else if(player1->isspectating()) return (float)spectfov;
-	else return (float)fov;
+	float ret = float(player1->isspectating() ? spectfov : fov);
+	if(!gamefocus->ads) return ret;
+	float adsmax = 864, zoomf = (float)adszoom;
+	if((gamefocus->weaponsel->type == GUN_SNIPER || gamefocus->weaponsel->type == GUN_BOLT) && gamefocus->ads){
+		adsmax = sniperrifle::adsscope;
+		zoomf = (float)scopezoom;
+	}
+	return ret * 100 / (min(player1->ads/adsmax,1.f) * zoomf + 100);
 }
 
 VAR(fog, 64, 180, 1024);
