@@ -419,14 +419,7 @@ void fovcompat(int oldfov){
 COMMAND(fovcompat, ARG_1INT);
 
 float dynfov(){
-	float ret = float(player1->isspectating() ? spectfov : fov);
-	if(!gamefocus->ads) return ret;
-	float adsmax = 864, zoomf = (float)adszoom;
-	if((gamefocus->weaponsel->type == GUN_SNIPER || gamefocus->weaponsel->type == GUN_BOLT) && gamefocus->ads){
-		adsmax = sniperrifle::adsscope;
-		zoomf = (float)scopezoom;
-	}
-	return ret * 100 / (min(player1->ads/adsmax,1.f) * zoomf + 100);
+	return float(player1->isspectating() ? spectfov : fov);
 }
 
 VAR(fog, 64, 180, 1024);
