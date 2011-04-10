@@ -142,13 +142,15 @@ void renderentities()
 				if(OUTBORD(f.pos.x, f.pos.y)) break;
 				rendermodel(fpath, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(f.pos.x, f.pos.y, f.pos.z), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
 				break;
+			/*
 			case CTFF_INBASE:
 			case CTFF_IDLE:
 			default:
 				break;
+			*/
 		}
 		if(!OUTBORD(e.x, e.y) && numflagspawn[i])
-		rendermodel(fpath, ANIM_FLAG|ANIM_LOOP|(f.state == CTFF_INBASE ? 0 : ANIM_TRANSLUCENT), 0, 0, vec(e.x, e.y, (float)S(int(f.pos.x), int(f.pos.y))->floor), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
+		rendermodel(fpath, ANIM_FLAG|ANIM_LOOP|(f.state == CTFF_INBASE ? 0 : ANIM_TRANSLUCENT), 0, 0, vec(e.x, e.y, (float)S(int(e.x), int(e.y))->floor), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
 	}
 }
 
