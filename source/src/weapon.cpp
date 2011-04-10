@@ -1005,6 +1005,7 @@ scopedprimary::scopedprimary(playerent *owner, int type) : gun(owner, type) {}
 
 bool scopedprimary::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 void scopedprimary::attackfx(const vec &from, const vec &to, int millis){
+	attackshell(to);
 	addbullethole(owner, from, to);
 	addshotline(owner, from, to);
 	particle_splash(0, 50, 200, to);
