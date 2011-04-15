@@ -17,5 +17,3 @@
 // Example:
 //     BobsInstagibServer \f3play nicely!
 //     contact me at a@b.c
-
-
