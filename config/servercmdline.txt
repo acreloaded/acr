@@ -12,9 +12,6 @@
 // example command line:
 -n \f1Default \f0Server \f2Name // Server Name
 -o \f1Welcome \f3to \f2this \f0server\f7! // MOTD
--f 28770 // port
--c 12 // max players
-
 -D // keep demos
 
 // commonly used commandline switches:
