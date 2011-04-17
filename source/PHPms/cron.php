@@ -6,7 +6,7 @@
 		// connect to database
 		connect_db();
 		// delete old servers
-		mysql_query("DELETE FROM `{$config['db']['pref']}servers` WHERE `time` < ".(time() - 1920)); // give 32 extra minutes
+		mysql_query("DELETE FROM `{$config['db']['pref']}servers` WHERE `time` < ".(time() - 1440)); // give 24 minutes
 		mysql_query("DELETE FROM `{$config['db']['pref']}auth` WHERE `time` < ".(time() - 60)); // authentication requests expire in a minute
 	}
 ?>
