@@ -14,7 +14,6 @@ void authsuceeded(uint id, char priv, char *name){
 	client *c = findauth(id);
 	if(!c) return;
 	c->authreq = 0;
-	c->authmillis = servmillis - 13000;
 	logline(ACLOG_INFO, "[%s] auth #%d suceeded for %s as '%s'", c->hostname, id, privname(priv), name);
 	if(!priv) return;
 	priv = clamp(priv, (char)PRIV_MASTER, (char)PRIV_MAX);
@@ -37,7 +36,7 @@ void reqauth(int cn, int authtoken){
 	client &cl = *clients[cn];
 	if(!isdedicated){ sendf(cn, 1, "ri2", N_AUTHCHAL, 2); return;} // not dedicated/connected
 	if(cl.authreq){ sendf(cn, 1, "ri2", N_AUTHCHAL, 1);	return;	} // already pending
-	if(cl.authmillis + 15000 > servmillis){ sendf(cn, 1, "ri3", N_AUTHCHAL, 6, cl.authmillis + 15000 - servmillis); return; } // flood check
+	if(cl.authmillis + 2000 > servmillis){ sendf(cn, 1, "ri3", N_AUTHCHAL, 6, cl.authmillis + 2000 - servmillis); return; } // flood check
 	cl.authmillis = servmillis;
 	cl.authtoken = authtoken;
 	authrequest &r = authrequests.add();
