@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS `cubems_auth` (
 
 
 CREATE TABLE IF NOT EXISTS `cubems_authtimes` (
-  `ip` mediumint(9) unsigned NOT NULL,
+  `ip` int(10) unsigned NOT NULL,
   `time` bigint(20) unsigned NOT NULL,
   PRIMARY KEY (`ip`)
 ) ENGINE=MEMORY DEFAULT CHARSET=latin1;
