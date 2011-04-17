@@ -13,10 +13,10 @@ void authchallenged(uint id, int nonce){
 void authsuceeded(uint id, char priv, char *name){
 	client *c = findauth(id);
 	if(!c) return;
-	c->authreq = 0;
+	c->authreq = c->authmillis = 0;
+	logline(ACLOG_INFO, "[%s] auth #%d suceeded for %s as '%s'", c->hostname, id, privname(priv), name);
 	if(!priv) return;
 	priv = clamp(priv, (char)PRIV_MASTER, (char)PRIV_MAX);
-	logline(ACLOG_INFO, "[%s] auth #%d suceeded for %s as '%s'", c->hostname, id, privname(priv), name);
 	changeclientrole(c->clientnum, priv, NULL, true);
 	sendf(-1, 1, "ri3s", N_AUTHCHAL, 5, c->clientnum, name);
 }
