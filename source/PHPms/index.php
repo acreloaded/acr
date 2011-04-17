@@ -109,9 +109,12 @@
 		$id = intval($_GET['id']);
 		$q = mysql_num_rows(mysql_query("SELECT `id` FROM `{$config['db']['pref']}auth` WHERE `ip`={$ip} AND `id`={$id}"));
 		if($q) exit("*f{$id}");
+		
 		$q = mysql_query("SELECT `time` FROM `{$config['db']['pref']}authtimes` WHERE `ip`={$ip}");
 		if(!mysql_num_rows($q)) mysql_query("INSERT INTO `{$config['db']['pref']}authtimes` (`ip`, `time`) VALUES ({$ip}, ".time().")");
-		elseif(mysql_result($q, 0, 0) + 1000 >= time()) exit("*f{$id}");
+		else if(mysql_result($q, 0, 0) + 1 >= time()) exit("*f{$id}");
+		else mysql_query("UPDATE `{$config['db']['pref']}authtimes` SET `time`=".time()." WHERE `ip`={$ip}");
+		
 		$nonce = mt_rand(0, 2147483647); // 31-bits signed
 		mysql_query("INSERT INTO `{$config['db']['pref']}auth` (`ip`, `time`, `id`, `nonce`) VALUES ({$ip}, ".time().", {$id}, {$nonce})");
 		echo "*c{$id}|".$nonce;
