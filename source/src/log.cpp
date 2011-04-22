@@ -23,7 +23,8 @@ static const char *levelname[] = { "DEBUG", "VERBOSE", "INFO", "WARNING", "ERROR
 static FILE *fp = NULL;
 static string filepath, ident;
 static int facility = -1,
-#ifdef AC_USE_SYSLOG
+//#ifdef AC_USE_SYSLOG
+#ifdef AC_USE_SYSLOG_DISABLE
 		filethreshold = ACLOG_NUM,
 		syslogthreshold = ACLOG_INFO,
 #else
