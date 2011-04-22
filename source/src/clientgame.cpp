@@ -539,7 +539,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 			first = false;
 		}
 	}
-	conoutf("%s %s %s", subject, hashave, predicate);
+	conoutf("%s %s %s", subject, predicate);
 	pl->killstreak = 0;
 	
 	int icon = -1;
