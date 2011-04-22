@@ -139,7 +139,7 @@ static inline const char *killname(int gun, int style, bool thirdperson){
 			s_strcat(k, !gib ? "fatally wounded" : overkill ? "decapitated" : "slashed");
 			break;
 		case GUN_BOLT:
-			s_strcat(k, gib ? "shotgun-sniped" : "slugged");
+			s_strcat(k, gib ? "overkilled" : "instantly killed");
 			break;
 		case GUN_SNIPER:
 			s_strcat(k, gib ? "expertly sniped" : "sniped");
