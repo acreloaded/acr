@@ -508,7 +508,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 
 	// kill message
 	string subject, predicate, hashave;
-	s_strcpy(subject, act == player1 ? "\f1you\f2" : colorname(act));
+	s_sprintf(subject)("\f2\fs%s\f2", act == player1 ? "\f1you" : colorname(act));
 	s_strcpy(hashave, act == player1 ? "have" : "has");
 	if(pl == act){
 		s_strcpy(predicate, suicname(weapon));
