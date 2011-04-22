@@ -754,7 +754,6 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 	if(actor != getclientnum() && !act && message != FA_RESET) return;
 	bool own = flag == player1->team;
 	bool firstperson = actor == getclientnum();
-	bool teammate = !act ? true : isteam(player1, act);
 	bool firstpersondrop = false;
 	const char *teamstr = m_ktf ? "the" : own ? "your" : "the enemy";
 	string subject, predicate, hashave;
@@ -798,8 +797,6 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 		case FA_KTFSCORE:
 		{
 			playsound(S_VOTEPASS, SP_HIGHEST); // need better ktf sound here
-			const char *actorname = firstperson ? "you" : colorname(act);
-			const char *hashave = firstperson ? "have" : "has";
 			const int m = flagtime / 60, s = flagtime % 60;
 			s_strcpy(predicate, "kept the flag for ");
 			if(m) s_sprintf(predicate)("%s%d minute%s", predicate, m, m==1 ? " " : "s ");
