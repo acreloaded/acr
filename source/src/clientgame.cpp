@@ -766,71 +766,69 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 	bool teammate = !act ? true : isteam(player1, act);
 	bool firstpersondrop = false;
 	const char *teamstr = m_ktf ? "the" : own ? "your" : "the enemy";
-	const char *flagteam = m_ktf ? (teammate ? "your teammate " : "your enemy ") : "";
+	string subject, predicate, hashave;
 
-	switch(message)
-	{
+	s_strcpy(subject, firstperson ? "you" : colorname(act));
+	s_strcpy(hashave, firstperson ? "have" : "has");
+	s_strcpy(predicate, " altered a flag");
+
+	switch(message){
 		case FA_PICKUP:
 			playsound(S_FLAGPICKUP, SP_HIGHEST);
-			if(firstperson)
-			{
-				hudoutf("\f2you have picked up %s flag", teamstr);
+			if(firstperson){
+				s_sprintf(predicate)("picked up %s flag", teamstr);
 				if(!m_ctf || !own){
 					musicsuggest(M_FLAGGRAB, m_ctf ? 90*1000 : 900*1000, true);
 					musicplaying = flag;
 				}
 			}
-			else hudoutf("\f2%s%s has got %s flag", flagteam, colorname(act), teamstr);
+			else s_sprintf(predicate)("got %s flag", teamstr);
 			break;
 		case FA_LOST:
 		case FA_DROP:
 		{
-			const char *droplost = message == FA_LOST ? "lost" : "dropped";
 			playsound(S_FLAGDROP, SP_HIGHEST);
-			if(firstperson)
-			{
-				hudoutf("\f2you have %s the flag", droplost);
-				firstpersondrop = true;
-			}
-			else hudoutf("\f2%s has %s %s flag", colorname(act), droplost, teamstr);
+			s_sprintf(predicate)("%s %s flag", message == FA_LOST ? "lost" : "dropped", firstperson ? "the" : teamstr);
+			if(firstperson) firstpersondrop = true;
 			break;
 		}
 		case FA_RETURN:
 			playsound(S_FLAGRETURN, SP_HIGHEST);
-			if(firstperson) hudoutf("\f2you have returned your flag");
-			else hudoutf("\f2%s has returned %s flag", colorname(act), teamstr);
+			s_sprintf(predicate)("returned %s flag", firstperson ? "your" : teamstr);
 			break;
 		case FA_SCORE:
 			playsound(S_FLAGSCORE, SP_HIGHEST);
-			if(firstperson)
-			{
-				hudoutf("\f2you have scored!");
+			if(firstperson){
+				s_strcpy(predicate, "scored!");
 				if(m_ctf) firstpersondrop = true;
 			}
-			else hudoutf("\f2%s has scored for %s team", colorname(act), teamstr);
+			else s_sprintf(predicate)("scored for %s team", teamstr);
 			break;
 		case FA_KTFSCORE:
 		{
 			playsound(S_VOTEPASS, SP_HIGHEST); // need better ktf sound here
 			const char *actorname = firstperson ? "you" : colorname(act);
 			const char *hashave = firstperson ? "have" : "has";
-			const char *teamtype = firstperson ? "" : flagteam;
-			int m = flagtime / 60;
-			if(m)
-				hudoutf("\f2%s%s %s kept the flag for %d minute%s %d seconds now", teamtype, actorname, hashave, m, m == 1 ? "" : "s", flagtime % 60);
-			else
-				hudoutf("\f2%s%s %s kept the flag for %d seconds now", teamtype, actorname, hashave, flagtime);
+			const int m = flagtime / 60, s = flagtime % 60;
+			s_strcpy(predicate, "kept the flag for ");
+			if(m) s_sprintf(predicate)("%s%d minute%s", predicate, m, m==1 ? " " : "s ");
+			if(s) s_sprintf(predicate)("%s%d second%s", predicate, s, s==1 ? " " : "s ");;
+			s_strcat(predicate, "now");
 			break;
 		}
 		case FA_SCOREFAIL: // sound?
-			hudoutf("\f2%s %s failed to score (own team flag not taken)", firstperson ? "you" : colorname(act), firstperson ? "have" : "has");
+			s_strcpy(predicate, "failed to score because his flag is in base");
 			break;
 		case FA_RESET:
 			playsound(S_FLAGRETURN, SP_HIGHEST);
-			hudoutf("\f1the server had reset the flag");
+			s_strcpy(subject, "\f1the server");
+			s_strcpy(hashave, "had");
+			s_strcpy(predicate, "reset the flag");
 			firstpersondrop = true;
 			break;
 	}
+	conoutf("\f2%s %s", subject, predicate);
+	hudonlyf("\f2%s %s %s", subject, hashave, predicate);
 	if(firstpersondrop && flag == musicplaying)
 	{
 		musicfadeout(M_FLAGGRAB);
