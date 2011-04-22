@@ -504,53 +504,44 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, bool loca
 void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, float killdist){
 	if(pl->state!=CS_ALIVE || intermission) return;
 
-	string pname, aname, death;
-	s_strcpy(pname, pl==gamefocus ? "\fs\f1you\fr" : colorname(pl));
-	s_strcpy(aname, act==gamefocus ? "\fs\f1you\fr" : colorname(act));
-	//void (*outf)(const char *s, ...) = (pl == p || act == p) ? hudoutf : conoutf;
-
 	if(weapon::valid(weapon) && damage > guns[weapon].damage) style |= FRAG_OVER;
 
-	if(pl == act)
-		s_sprintf(death)("\f2%s %s%s", pname, suicname(weapon, pl!=gamefocus), pl==gamefocus ? "\f3!\f2" : "");
-	else
-		s_sprintf(death)("\f2%s %s %s%s", aname, killname(weapon, style, act!=gamefocus), isteam(pl, act) ? act==gamefocus? "your teammate " :"his teammate " : "", pname);
-	s_sprintf(death)("%s (@%.2f m)", death, killdist);
+	// kill message
+	string subject, predicate, hashave;
+	s_strcpy(subject, act == player1 ? "\f1you\f2" : colorname(act));
+	s_strcpy(hashave, act == player1 ? "have" : "has");
+	if(pl == act){
+		s_strcpy(predicate, suicname(weapon));
+		if(pl == player1) s_strcat(predicate, "\f3");
+		if(pl == gamefocus) s_strcat(predicate, "!\f2");
+		if(killdist) s_sprintf(predicate)("%s (@%.2f m)", predicate, killdist);
+	}
+	else s_sprintf(predicate)("%s %s%s (@%.2f m)", killname(weapon, style),
+		isteam(pl, act) ? act==player1 ? "your teammate " : "his teammate " : "", pl == player1 ? "\f1you\f2" : colorname(pl), killdist);
+	// killstreak
+	if(act->killstreak++) s_sprintf(predicate)("%s (%d killstreak)", predicate, act->killstreak);
+	// assist count
 	pl->damagelog.removeobj(pl->clientnum);
 	pl->damagelog.removeobj(act->clientnum);
-	if(pl == gamefocus || act == gamefocus) hudonlyf(pl->damagelog.length() ? "%s, %d assister%s" : "%s", death, pl->damagelog.length(), pl->damagelog.length()==1?"":"s");
-	if(act->killstreak++) s_sprintf(death)("%s (%d killstreak)", death, act->killstreak);
+	// HUD for first person
+	if(pl == gamefocus || act == gamefocus) hudonlyf(pl->damagelog.length() ? "%s %s %s, %d assister%s" : "%s %s %s", subject, hashave, predicate,
+		pl->damagelog.length(), pl->damagelog.length()==1?"":"s");
+	// assists
 	if(pl->damagelog.length()){
 		playerent *p = NULL;
-		s_strcat(death, ", assisted by");
+		s_strcat(predicate, ", assisted by");
 		bool first = true;
 		loopv(pl->damagelog){
 			p = getclient(pl->damagelog.pop());
-			if(!p){
-				pl->damagelog.remove(i--);
-				continue;
-			}
+			if(!p) continue;
 			p->assists++;
-			s_sprintf(death)("%s%s \fs\f%d%s\fr", death, first ? "" : !pl->damagelog.length() ? " and" : ",", isteam(p, pl) ? 3 : 2, colorname(p));
+			s_sprintf(predicate)("%s%s \fs\f%d%s\fr", predicate, first ? "" : !pl->damagelog.length() ? " and" : ",", isteam(p, pl) ? 3 : 2, colorname(p));
 			first = false;
 		}
 	}
-	conoutf("%s", death);
+	conoutf("%s %s %s", subject, hashave, predicate);
 	pl->killstreak = 0;
-	/*
-	if(pl==act)
-		outf("\f2%s suicided%s", pname, pl==player1 ? "!" : "");
-	else if(isteam(pl, act))
-	{
-		if(pl==player1) outf("\f2you got %s by teammate %s", death, aname);
-		else outf("%s%s %s teammate %s", act==player1 ? "\f3" : "\f2", aname, death, pname);
-	}
-	else
-	{
-		if(pl==player1) outf("\f2you got %s by %s", death, aname);
-		else outf("\f2%s %s %s", aname, death, pname);
-	}
-	*/
+	
 	int icon = -1;
 	if(style & FRAG_GIB){
 		if(pl != act && weapon != GUN_SHOTGUN && weapon != GUN_GRENADE && (weapon != GUN_KNIFE || style & FRAG_OVER)){

@@ -108,13 +108,13 @@ static inline ushort effectiveDamage(int gun, float dist, int damagescale, bool 
 	return finaldamage * damagescale;
 }
 
-static inline const char *suicname(int gun, bool thirdperson){
+static inline const char *suicname(int gun){
 	static string k;
-	s_strcpy(k, thirdperson ? "has " : "have ");
+	*k = 0;
 	switch(gun){
 		case GUN_GRENADE:
 			// non-third person is not present perfect tense, but present tense
-			s_strcat(k, thirdperson ? "failed with nades" : "to be more careful with nades");
+			s_strcat(k, "failed with nades");
 			break;
 		case NUMGUNS:
 			s_strcat(k, "commited too much friendly fire");
@@ -126,11 +126,11 @@ static inline const char *suicname(int gun, bool thirdperson){
 	return k;
 }
 
-static inline const char *killname(int gun, int style, bool thirdperson){
+static inline const char *killname(int gun, int style){
 	const bool gib = (style & FRAG_GIB) > 0,
 				overkill = (style & FRAG_OVER) > 0;
 	static string k;
-	s_strcpy(k, thirdperson ? "has " : "have ");
+	*k = 0;
 	switch(gun){
 		case GUN_GRENADE:
 			s_strcat(k, "obliterated");
