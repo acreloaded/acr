@@ -1295,7 +1295,7 @@ void forcedeath(client *cl, bool gib = false){
 }
 
 void serverdamage(client *target, client *actor, int damage, int gun, bool gib, const vec &source){
-	if(!target || !actor || target->state.state != CS_ALIVE || actor->state.state != CS_ALIVE) return;
+	if(!target || !actor || target->state.state != CS_ALIVE) return;
 	if(m_expert && !gib && gun != GUN_KNIFE) return;
 	clientstate &ts = target->state;
 	if(target!=actor){
