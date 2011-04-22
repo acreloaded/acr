@@ -103,7 +103,7 @@ void processevent(client &c, shotevent &e)
 					target->state.cutter = c.clientnum;
 					target->state.lastcut = gamemillis;
 				}
-				serverdamage(target, &c, damage, e.gun, gib, gs.o);
+				if(!m_expert || gib || e.gun == GUN_KNIFE) serverdamage(target, &c, damage, e.gun, gib, gs.o);
 			}
 			break;
 		}
