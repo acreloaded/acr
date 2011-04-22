@@ -14,6 +14,7 @@ void processevent(client &c, explodeevent &e)
 	}
 	loopv(clients){
 		client &target = *clients[i];
+		if(target.type == ST_EMPTY || target.state.state != CS_ALIVE) continue;
 		float dist = target.state.o.dist(e.o);
 		if(dist >= guns[e.gun].endrange) continue;
 		serverdamage(&target, &c, effectiveDamage(e.gun, dist, DAMAGESCALE, true), e.gun, true, e.o);
