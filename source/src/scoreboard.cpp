@@ -92,7 +92,7 @@ struct scoreratio
 	{
 		// ratio
 		if(frags>=0 && deaths>0) ratio = (float)frags/(float)deaths;
-		else if(frags>=0 && deaths==0) ratio = frags;
+		else if(frags>=0 && deaths==0) ratio = frags * 2.f;
 		else ratio = 0.0f;
 
 		// precision
