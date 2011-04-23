@@ -1340,7 +1340,8 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 			suic = true;
 		}
 		actor->state.killstreak++;
-		target->state.killstreak = ts.lastcut = 0;
+		ts.cutter = -1;
+		ts.killstreak = ts.lastcut = 0;
 		ts.damagelog.removeobj(target->clientnum);
 		ts.damagelog.removeobj(actor->clientnum);
 		loopv(ts.damagelog){
