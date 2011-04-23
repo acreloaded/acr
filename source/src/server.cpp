@@ -2322,7 +2322,7 @@ void changeclientrole(int cl, int wants, char *pwd, bool force){
 			if(pd.line >= 0) logline(ACLOG_INFO,"[%s] %s used %s password in line %d", c.hostname, c.name, privname(wants), pd.line);
 		}
 	}
-	else{ // relinquish
+	if(!wants){ // relinquish
 		if(!c.priv) return; // no privilege to relinquish
 		sendf(-1, 1, "ri3", N_ROLECHANGE, cl, c.priv | 0x80);
 		logline(ACLOG_INFO,"[%s] %s relinquished %s status", c.hostname, c.name, privname(c.priv));
@@ -2345,6 +2345,7 @@ void disconnect_client(int n, int reason){
 	if(!clients.inrange(n) || clients[n]->type!=ST_TCPIP) return;
 	sdropflag(n);
 	client &c = *clients[n];
+	if(c.priv) changeclientrole(n, PRIV_NONE, 0, true);
 	const char *scoresaved = "";
 	if(c.haswelcome)
 	{
