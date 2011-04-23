@@ -123,7 +123,7 @@ void createrays(playerent *owner, vec &to)			 // create random spread of rays fo
 	float f = to.dist(from)/1000;
 	loopi(SGRAYS)
 	{
-		#define RNDD (rnd(SGSPREAD)-SGSPREAD/2.f)*f*(1-owner->ads/8000.f)
+		#define RNDD (rnd(SGSPREAD)-SGSPREAD/2.f)*f*(1-owner->ads/20000.f)
 		vec r(RNDD, RNDD, RNDD);
 		sg[i] = to;
 		sg[i].add(r);
