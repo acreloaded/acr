@@ -573,13 +573,8 @@ VARP(oldfashionedgunstats, 0, 0, 1);
 
 void weapon::renderstats(){
 	string gunstats, ammostr;
-	if(type == GUN_SHOTGUN){
-		itoa(ammostr, ammo);
-	}
-	else{
-		itoa(ammostr, max((int)floor((float)ammo / (float)magsize(type)), 0));
-		if(ammo % magsize(type)) s_sprintf(ammostr)("%s/%i", ammostr, ammo % magsize(type));
-	}
+	itoa(ammostr, max((int)floor((float)ammo / (float)reloadsize(type)), 0));
+	if(ammo % magsize(type)) s_sprintf(ammostr)("%s/%i", ammostr, ammo % magsize(type));
 	s_sprintf(gunstats)(oldfashionedgunstats ? "%i/%s" : "%i", mag, ammostr);
 	draw_text(gunstats, 590, 823);
 	if(!oldfashionedgunstats){
