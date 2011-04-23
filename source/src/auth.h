@@ -15,10 +15,10 @@ void authsuceeded(uint id, char priv, char *name){
 	if(!c) return;
 	c->authreq = 0;
 	logline(ACLOG_INFO, "[%s] auth #%d suceeded for %s as '%s'", c->hostname, id, privname(priv), name);
+	sendf(-1, 1, "ri3s", N_AUTHCHAL, 5, c->clientnum, name);
 	if(!priv) return;
 	priv = clamp(priv, (char)PRIV_MASTER, (char)PRIV_MAX);
 	changeclientrole(c->clientnum, priv, NULL, true);
-	sendf(-1, 1, "ri3s", N_AUTHCHAL, 5, c->clientnum, name);
 }
 
 void authfail(uint id, bool disconnect){
