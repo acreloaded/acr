@@ -97,7 +97,7 @@ enum
 #define m_return	(gamemode == GMODE_RCTF)
 #define m_ctf		(gamemode == GMODE_CTF || gamemode == GMODE_RCTF)
 #define m_pistol	(gamemode == GMODE_PISTOLFRENZY)
-#define m_lss		(gamemode == GMODE_LASTSWISSSTANDING || gamemode == GMODE_HANDHELD)
+#define m_lss		(gamemode == GMODE_LASTSWISSSTANDING || gamemode == GMODE_HANDHELD || gamemode == GMODE_KNIFE)
 #define m_osok		(gamemode == GMODE_ONESHOTONEKILL || gamemode == GMODE_TEAMONESHOTONEKILL)
 #define m_htf		(gamemode == GMODE_HTF)
 #define m_ktf		(gamemode == GMODE_TEAMKTF || gamemode == GMODE_KTF)
@@ -106,9 +106,9 @@ enum
 #define m_real		(gamemode == GMODE_REALTDM || gamemode == GMODE_REALDM)
 
 #define m_noitems		(m_lms || m_osok || gamemode == GMODE_KNIFE)
-#define m_noitemsnade	(m_lss)
-#define m_nopistol		(m_osok || m_lss || gamemode == GMODE_KNIFE)
-#define m_noprimary		(m_pistol || m_lss || gamemode == GMODE_KNIFE)
+#define m_noitemsnade	(m_lss && gamemode != GMODE_KNIFE)
+#define m_nopistol		(m_osok || m_lss)
+#define m_noprimary		(m_pistol || m_lss)
 #define m_duel			(m_lms || gamemode == GMODE_LASTSWISSSTANDING || m_osok)
 #define m_flags			(m_ctf || m_htf || m_ktf)
 #define m_team			(gamemode==GMODE_TEAMDEATHMATCH || gamemode==GMODE_TEAMONESHOTONEKILL || \
