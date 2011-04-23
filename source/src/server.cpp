@@ -2726,7 +2726,7 @@ void checkmove(client &cp){
 					if(m_return && (of.state != CTFF_STOLEN || of.actor_cn != sender)) flagaction(i, FA_PICKUP, sender);
 					else flagaction(i, FA_RETURN, sender);
 				}
-				else if(f.state == CTFF_STOLEN) flagaction(i, FA_RETURN, sender);
+				else if(f.state == CTFF_STOLEN && sender == i) flagaction(i, FA_RETURN, sender);
 				else if(f.state == CTFF_INBASE && of.state == CTFF_STOLEN && of.actor_cn == sender) flagaction(team_opposite(i), FA_SCORE, sender);
 			}
 			else if(f.drop_cn != sender || f.dropmillis + 2000 < servmillis){
