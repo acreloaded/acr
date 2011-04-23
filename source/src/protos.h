@@ -817,7 +817,7 @@ struct servercommandline
 						l = p; p += strlen(p) + 1;
 						for(char *c = p - 2; c > l; c--) { if(*c == ' ') *c = '\0'; else break; }
 						l += strspn(l, " \t");
-						if(*l && !this->checkarg(l))
+						if(*l && !checkarg(l))
 							printf("unknown parameter in file '%s', line %d: '%s'\n", clfilename, line, l);
 					}
 					// don't free *buf - we may still have pointers using it

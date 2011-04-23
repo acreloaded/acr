@@ -718,8 +718,8 @@ void grenadeent::_throw(const vec &from, const vec &vel){
 	if(nadestate!=NS_ACTIVATED) return;
 	nadestate = NS_THROWED;
 	this->vel = vel;
-	this->o = from;
-	this->resetinterp();
+	o = from;
+	resetinterp();
 	inwater = hdr.waterlevel>o.z;
 
 	if(local){
