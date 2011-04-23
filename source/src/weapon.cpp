@@ -617,11 +617,14 @@ void weapon::attackphysics(vec &from, vec &to) // physical fx to the owner
 	}
 }
 
-void weapon::renderhudmodel(int lastaction, bool flip){
+VARP(lefthand, 0, 0, 1);
+
+void weapon::renderhudmodel(int lastaction, bool akimboflip){
 	vec unitv;
 	float dist = worldpos.dist(owner->o, unitv);
 	unitv.div(dist);
 
+	const bool flip = akimboflip ^ (lefthand > 0);
 	weaponmove wm;
 	if(!intermission) wm.calcmove(unitv, lastaction);
 	s_sprintfd(path)("weapons/%s", info.modelname);
@@ -938,7 +941,7 @@ void gun::attackshell(const vec &to){
 	s->timetolive = gibttl;
 	s->bouncetype = BT_SHELL;
 	
-	const bool akimboflip = type == GUN_AKIMBO && ((akimbo *)this)->akimboside;
+	const bool akimboflip = (type == GUN_AKIMBO && ((akimbo *)this)->akimboside)  ^ (lefthand > 0);
 	s->vel = vec(1, rnd(101) / 800.f - .1f, (rnd(51) + 50) / 100.f);
 	s->vel.rotate_around_z(owner->yaw*RAD);
 	s->o = owner->o;
