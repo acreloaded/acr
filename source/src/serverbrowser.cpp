@@ -327,9 +327,9 @@ static serverinfo *newserver(const char *name, uint ip = ENET_HOST_ANY, int port
 void addserver(const char *servername, const char *serverport, const char *weight)
 {
 	int port = atoi(serverport);
-	if(port == 0) port = CUBE_DEFAULT_SERVER_PORT;
+	if(!port) port = CUBE_DEFAULT_SERVER_PORT;
 
-	loopv(servers) if(strcmp(servers[i]->name, servername)==0 && servers[i]->port == port) return;
+	loopv(servers) if(!strcmp(servers[i]->name, servername) && servers[i]->port == port) return;
 
 	newserver(servername, ENET_HOST_ANY, port, weight ? atoi(weight) : 0);
 }
