@@ -504,8 +504,6 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, bool loca
 void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, float killdist){
 	if(pl->state!=CS_ALIVE || intermission) return;
 
-	if(weapon::valid(weapon) && damage > guns[weapon].damage) style |= FRAG_OVER;
-
 	// kill message
 	string subject, predicate, hashave;
 	s_sprintf(subject)("\f2\fs%s\f2", act == player1 ? "\f1you" : colorname(act));
