@@ -996,7 +996,7 @@ bool shotgun::selectable() { return weapon::selectable() && !m_noprimary && this
 void shotgun::renderaimhelp(int teamtype){ drawcrosshair(owner, CROSSHAIR_SHOTGUN, teamtype); }
 
 bool shotgun::reload(){
-	if(owner == player1) autoreloading = mag < magsize(type);
+	if(owner == player1) autoreloading = mag < magsize(type) && ammo;
 	if(!gun::reload()) return false;
 	return true;
 }
