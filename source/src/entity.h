@@ -84,7 +84,7 @@ static guninfo guns[NUMGUNS] =
 //	{ modelname;     snd,	  rldsnd,  rldtime, atkdelay,  dmg, rngstart, rngend, rngm,psd,ptt,spr,kick,magsz,mkrot,mkback,rcoil,maxrcl,rca,pushf; auto;}
 	{ "knife",      S_KNIFE,    S_NULL,     0,      560,    60,    3,    4,   60,   0,   0,  1,    1,   1,    0,  0,     0,    0,       0, 5,   true },
 	{ "pistol",     S_PISTOL,   S_RPISTOL,  1400,   90,     40,   40,  120,   20,   0,   0, 90,    9,   12,   6,  2,    32,    48,     70, 1,   false},
-	{ "shotgun",    S_SHOTGUN,  S_RSHOTGUN,  700,   200,    10,    4,   16,    9,   0,   0,  1,   12,    7,   9,  5,    60,    80,      5, 2,   false},
+	{ "shotgun",    S_SHOTGUN,  S_RSHOTGUN,  750,   200,    10,    4,   16,    9,   0,   0,  1,   12,    7,   9,  5,    60,    80,      5, 2,   false},
 	{ "subgun",     S_SUBGUN,   S_RSUBGUN,  1858,   67,     35,   40,   90,   20,   0,   0, 70,    4,   32,   1,  3,    23,    45,     65, 1,   true },
 	{ "sniper",     S_SNIPER,   S_RSNIPER,  1950,   100,    50,    0,    0,    0,   0,   0,280,   14,   10,   4,  4,    50,    65,     75, 2,   false},
 	{ "bolt",       S_BOLT,     S_RBOLT,    2000,   1500,  140 ,  80,  800,   40,   0,   0,320,   36,    8,   4,  4,    72,    90,     80, 3,   false},
