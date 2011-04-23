@@ -20,7 +20,7 @@ void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = 
 void disconnect_client(int n, int reason = -1);
 int clienthasflag(int cn);
 bool refillteams(bool now = false, int ftr = FTR_AUTOTEAM);
-void changeclientrole(int client, int role, char *pwd = NULL, bool force=false);
+void setpriv(int client, int role, char *pwd = NULL, bool force=false);
 int mapavailable(const char *mapname);
 void getservermap(void);
 mapstats *getservermapstats(const char *mapname, bool getlayout = false);
@@ -2293,7 +2293,7 @@ void putinitclient(client &c, ucharbuf &p){
 	}
 }
 
-void changeclientrole(int cl, int wants, char *pwd, bool force){
+void setpriv(int cl, int wants, char *pwd, bool force){
 	if(!valid_client(cl)) return;
 	client &c = *clients[cl];
 	if(wants && c.type == ST_LOCAL) force = true; // force local user to be able to claim
@@ -2345,7 +2345,7 @@ void disconnect_client(int n, int reason){
 	if(!clients.inrange(n) || clients[n]->type!=ST_TCPIP) return;
 	sdropflag(n);
 	client &c = *clients[n];
-	if(c.priv) changeclientrole(n, PRIV_NONE, 0, true);
+	if(c.priv) setpriv(n, PRIV_NONE, 0, true);
 	const char *scoresaved = "";
 	if(c.haswelcome)
 	{
@@ -2848,7 +2848,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 		sendwelcome(cl);
 		sendinitclient(*cl);
 		if(findscore(*cl, false)) sendresume(*cl, true);
-		if(clientrole != PRIV_NONE) changeclientrole(sender, clientrole, NULL, true);
+		if(clientrole != PRIV_NONE) setpriv(sender, clientrole, NULL, true);
 
 		sendcallvote(sender);
 	}
@@ -3245,7 +3245,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			{
 				int wants = getint(p);
 				getstring(text, p);
-				changeclientrole(sender, wants, text);
+				setpriv(sender, wants, text);
 				break;
 			}
 

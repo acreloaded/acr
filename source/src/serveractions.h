@@ -121,7 +121,7 @@ struct forceteamaction : playeraction
 
 struct revokeaction : playeraction
 {
-	void perform(){ changeclientrole(cn, PRIV_NONE); }
+	void perform(){ setpriv(cn, PRIV_NONE); }
 	virtual bool isvalid() { return playeraction::isvalid() && clients[cn]->priv;}
 	revokeaction(int cn) : playeraction(cn){
 		role = max<int>(PRIV_ADMIN, valid_client(cn) ? clients[cn]->priv : 0);
@@ -135,8 +135,8 @@ struct giveadminaction : playeraction
 {
 	int give, from;
 	void perform() {
-		if(valid_client(from) && clients[from]->priv < PRIV_ADMIN) changeclientrole(from, PRIV_NONE, NULL, true);
-		changeclientrole(cn, give, NULL, true);
+		if(valid_client(from) && clients[from]->priv < PRIV_ADMIN) setpriv(from, PRIV_NONE, NULL, true);
+		setpriv(cn, give, NULL, true);
 	}
 	// virtual bool isvalid() { return valid_client(cn); } // give to anyone
 	giveadminaction(int cn, int wants, int caller) : from(caller), playeraction(cn){

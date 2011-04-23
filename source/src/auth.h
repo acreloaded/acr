@@ -18,7 +18,7 @@ void authsuceeded(uint id, char priv, char *name){
 	sendf(-1, 1, "ri3s", N_AUTHCHAL, 5, c->clientnum, name);
 	if(!priv) return;
 	priv = clamp(priv, (char)PRIV_MASTER, (char)PRIV_MAX);
-	changeclientrole(c->clientnum, priv, NULL, true);
+	setpriv(c->clientnum, priv, NULL, true);
 }
 
 void authfail(uint id, bool disconnect){
