@@ -1031,7 +1031,7 @@ float scopedprimary::dynrecoil() { return weapon::dynrecoil() * 1 - owner->ads /
 void scopedprimary::renderhudmodel() { if(owner->ads < adsscope) weapon::renderhudmodel(); }
 
 void scopedprimary::renderaimhelp(int teamtype){
-	if(owner->ads > adsscope){ drawscope(); drawcrosshair(owner, CROSSHAIR_SCOPE, teamtype, NULL, 24.0f); }
+	if(owner->ads >= adsscope){ drawscope(); drawcrosshair(owner, CROSSHAIR_SCOPE, teamtype, NULL, 24.0f); }
 	else weapon::renderaimhelp(teamtype);
 }
 
