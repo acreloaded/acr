@@ -98,7 +98,7 @@ struct gun : weapon
 	void attackshell(const vec &to);
 	virtual void attackfx(const vec &from, const vec &to, int millis);
 	int modelanim();
-	void checkautoreload();
+	virtual void checkautoreload();
 };
 
 
@@ -132,10 +132,12 @@ struct boltrifle : scopedprimary
 struct shotgun : gun
 {
 	shotgun(playerent *owner);
-	bool attack(vec &targ);
 	void attackfx(const vec &from, const vec &to, int millis);
 	bool selectable();
 	void renderaimhelp(int teamtype);
+	bool autoreloading;
+	bool reload();
+	void checkautoreload();
 };
 
 

@@ -884,6 +884,8 @@ VARP(burstfull, 0, 1, 1); // full burst before stopping
 gun::gun(playerent *owner, int type) : weapon(owner, type) {}
 
 bool gun::attack(vec &targ){
+	if(type == GUN_SHOTGUN && owner == player1 && player1->attacking) ((shotgun *)this)->autoreloading = false;
+
 	const int attackmillis = lastmillis-owner->lastaction;
 	if(attackmillis<gunwait) return false;
 	gunwait = reloading = 0;
@@ -915,6 +917,7 @@ bool gun::attack(vec &targ){
 	from.z -= weaponbeloweye;
 
 	attackphysics(from, to);
+	if(type == GUN_SHOTGUN) createrays(owner, to);
 
 	hits.setsize(0);
 	raydamage(from, to, owner);
@@ -973,12 +976,7 @@ void gun::checkautoreload() { if(autoreload && owner==player1 && !mag && ammo) t
 
 // shotgun
 
-shotgun::shotgun(playerent *owner) : gun(owner, GUN_SHOTGUN) {}
-
-bool shotgun::attack(vec &targ){
-	createrays(owner, targ);
-	return gun::attack(targ);
-}
+shotgun::shotgun(playerent *owner) : gun(owner, GUN_SHOTGUN), autoreloading(false) {}
 
 void shotgun::attackfx(const vec &from, const vec &to, int millis){
 	loopi(SGRAYS) particle_splash(0, 5, 200, sg[i]);
@@ -996,6 +994,19 @@ void shotgun::attackfx(const vec &from, const vec &to, int millis){
 bool shotgun::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 
 void shotgun::renderaimhelp(int teamtype){ drawcrosshair(owner, CROSSHAIR_SHOTGUN, teamtype); }
+
+bool shotgun::reload(){
+	if(owner == player1) autoreloading = mag < magsize(type);
+	if(!gun::reload()) return false;
+	return true;
+}
+
+void shotgun::checkautoreload() {
+	if(owner != player1 || !autoreload) return;
+	if(!mag && ammo) autoreloading = true;
+	if(autoreloading) tryreload(owner);
+	else gun::checkautoreload();
+}
 
 // subgun
 
