@@ -574,7 +574,7 @@ VARP(oldfashionedgunstats, 0, 0, 1);
 void weapon::renderstats(){
 	string gunstats, ammostr;
 	const int clipsize = reloadsize(type);
-	itoa(ammostr,floor((float)ammo / clipsize));
+	itoa(ammostr, (int)floor((float)ammo / clipsize));
 	if(ammo % clipsize) s_sprintf(ammostr)("%s/%i", ammostr, ammo % clipsize);
 	s_sprintf(gunstats)(oldfashionedgunstats ? "%i/%s" : "%i", mag, ammostr);
 	draw_text(gunstats, 590, 823);
