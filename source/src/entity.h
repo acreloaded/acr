@@ -96,6 +96,7 @@ static guninfo guns[NUMGUNS] =
 static inline ushort reloadtime(int gun) { return guns[gun].reloadtime; }
 static inline ushort attackdelay(int gun) { return guns[gun].attackdelay; }
 static inline ushort magsize(int gun) { return guns[gun].magsize; }
+static inline ushort reloadsize(int gun) { return gun == GUN_SHOTGUN ? 1 : guns[gun].magsize; }
 static inline ushort effectiveDamage(int gun, float dist, int damagescale, bool explosive = false) {
 	ushort finaldamage = 0;
 	if(dist <= guns[gun].range || (!guns[gun].range && !guns[gun].endrange)) finaldamage = guns[gun].damage;

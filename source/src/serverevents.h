@@ -114,16 +114,16 @@ void processevent(client &c, shotevent &e)
 void processevent(client &c, reloadevent &e)
 {
 	clientstate &gs = c.state;
-	int mag = magsize(e.gun);
+	int mag = magsize(e.gun), reload = reloadsize(e.gun);
 	if(!gs.isalive(gamemillis) ||
 	   e.gun<GUN_KNIFE || e.gun>=NUMGUNS ||
 	   !reloadable_gun(e.gun) ||
 	   gs.mag[e.gun] >= mag ||
-	   gs.ammo[e.gun] < mag)
+	   gs.ammo[e.gun] < reload)
 		return;
 
-	gs.mag[e.gun]   = mag;
-	gs.ammo[e.gun] -= mag;
+	gs.mag[e.gun]   = min(mag, gs.mag[e.gun] + reload);
+	gs.ammo[e.gun] -= reload;
 
 	int wait = e.millis - gs.lastshot;
 	sendf(-1, 1, "ri5", N_RELOAD, c.clientnum, e.gun, gs.mag[e.gun], gs.ammo[e.gun]);

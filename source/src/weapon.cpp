@@ -557,13 +557,13 @@ void weapon::attacksound(){
 }
 
 bool weapon::reload(){
-	if(mag >= info.magsize || ammo < magsize(type)) return false;
+	if(mag >= magsize(type) || ammo < reloadsize(type)) return false;
 	updatelastaction(owner);
 	reloading = lastmillis;
 	gunwait += info.reloadtime;
 
-	owner->ammo[type] -= magsize(type);
-	owner->mag[type] = magsize(type);
+	owner->ammo[type] -= reloadsize(type);
+	owner->mag[type] = min<int>(magsize(type), owner->mag[type] + reloadsize(type));
 
 	if(player1 == owner) addmsg(N_RELOAD, "ri2", lastmillis, type);
 	return true;
@@ -573,9 +573,12 @@ VARP(oldfashionedgunstats, 0, 0, 1);
 
 void weapon::renderstats(){
 	string gunstats, ammostr;
-	itoa(ammostr, max((int)floor((float)ammo / (float)magsize(type)), 0));
-	if(ammo % magsize(type)){
-		s_sprintf(ammostr)("%s/%i", ammostr, ammo % magsize(type));
+	if(type == GUN_SHOTGUN){
+		itoa(ammostr, ammo);
+	}
+	else{
+		itoa(ammostr, max((int)floor((float)ammo / (float)magsize(type)), 0));
+		if(ammo % magsize(type)) s_sprintf(ammostr)("%s/%i", ammostr, ammo % magsize(type));
 	}
 	s_sprintf(gunstats)(oldfashionedgunstats ? "%i/%s" : "%i", mag, ammostr);
 	draw_text(gunstats, 590, 823);
