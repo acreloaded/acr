@@ -2755,7 +2755,7 @@ bool hasclient(client &ci, int cn){
 int checktype(int type, client *cl){ // invalid defined types handled in the processing function
 	if(cl && cl->type==ST_LOCAL) return type;
 	if (type < 0 || type >= N_NUM) return -1;
-	if(cl && cl->overflow++ > 200) return -2;
+	if(cl && cl->overflow++ > MAXTRANS) return -2;
 	return type;
 }
 
