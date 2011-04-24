@@ -12,12 +12,15 @@ void processevent(client &c, explodeevent &e)
 		default:
 			return;
 	}
+	gs.shotdamage += effectiveDamage(e.gun, 0, DAMAGESCALE, true);
 	loopv(clients){
 		client &target = *clients[i];
 		if(target.type == ST_EMPTY || target.state.state != CS_ALIVE) continue;
 		float dist = target.state.o.dist(e.o);
 		if(dist >= guns[e.gun].endrange) continue;
-		serverdamage(&target, &c, effectiveDamage(e.gun, dist, DAMAGESCALE, true), e.gun, true, e.o);
+		ushort dmg = effectiveDamage(e.gun, dist, DAMAGESCALE, true);
+		gs.damage += dmg;
+		serverdamage(&target, &c, dmg, e.gun, true, e.o);
 	}
 }
 
@@ -62,19 +65,22 @@ void processevent(client &c, shotevent &e)
 	enet_packet_resize(packet, p.length());
 	sendpacket(-1, 1, packet, c.clientnum);
 	if(packet->referenceCount==0) enet_packet_destroy(packet);
-
-	gs.shotdamage += guns[e.gun].damage*(e.gun==GUN_SHOTGUN ? SGRAYS : 1);
+	if(e.gun == GUN_SHOTGUN){
+		loopi(SGRAYS) gs.shotdamage += effectiveDamage(e.gun, vec(gs.sg[i]).dist(gs.o), DAMAGESCALE);
+	}
+	else gs.shotdamage += effectiveDamage(e.gun, vec(e.to).dist(gs.o), DAMAGESCALE);
 	switch(e.gun){
 		case GUN_GRENADE: gs.grenades.add(e.id); break;
 		default:
 		{
-			int totalrays = 0, maxrays = e.gun==GUN_SHOTGUN ? SGRAYS : 1;
+			int totalrays = 0;
 			loopv(hits){
 				hitevent &h = hits[i];
 				if(!clients.inrange(h.target)) continue;
 				client *target = clients[h.target];
 				if(target->type==ST_EMPTY || target->state.state!=CS_ALIVE || &c==target || h.lifesequence!=target->state.lifesequence) continue;
 
+				const int maxrays = e.gun==GUN_SHOTGUN ? SGRAYS : 1;
 				int rays = e.gun==GUN_SHOTGUN ? popcount(h.info) : 1;
 				if(e.gun==GUN_SHOTGUN){
 					uint hitflags = h.info;
@@ -100,11 +106,13 @@ void processevent(client &c, shotevent &e)
 					if(h.info == 1) damage *= 0.67;
 					else if(h.info == 2) damage *= e.gun == GUN_SNIPER || e.gun == GUN_BOLT || e.gun == GUN_KNIFE ? 5 : 2.5;
 				} else if(h.info & 0x80) gib = true;
-				if(e.gun == GUN_KNIFE){
+				if(e.gun == GUN_KNIFE && !isteam((&c), target)){
 					target->state.cutter = c.clientnum;
 					target->state.lastcut = gamemillis;
 				}
-				if(!m_expert || gib || e.gun == GUN_KNIFE) serverdamage(target, &c, damage, e.gun, gib, gs.o);
+				if(m_expert && !gib && e.gun != GUN_KNIFE) continue;
+				gs.damage += damage;
+				serverdamage(target, &c, damage, e.gun, gib, gs.o);
 			}
 			break;
 		}
@@ -163,6 +171,8 @@ void processevents()
 		if(c.state.state == CS_ALIVE){ // can't regen or bleed if dead
 			if(c.state.lastcut){ // bleeding; oh no!
 				if(c.state.lastcut + 500 < gamemillis && valid_client(c.state.cutter)){
+					c.state.damage += 10;
+					c.state.shotdamage += 10;
 					serverdamage(&c, clients[c.state.cutter], 10, GUN_KNIFE, false, clients[c.state.cutter]->state.o);
 					c.state.lastcut = gamemillis;
 				}

@@ -1184,3 +1184,8 @@ void checkakimbo(){
 		}
 	}
 }
+
+void flashme(){
+	player1->eardamagemillis = lastmillis + 2000;
+}
+COMMAND(flashme, ARG_NONE);

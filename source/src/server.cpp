@@ -1304,6 +1304,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 			if(!damage) return;
 			if(isdedicated && actor->type == ST_TCPIP && actor->priv < PRIV_ADMIN){
 				actor->state.friendlyfire += damage;
+				actor->state.shotdamage += damage;
 				if(actor->state.friendlyfire > 140 && actor->state.friendlyfire * 60000 > gamemillis * 70){ // 70 HP / minute after 140 damage
 					extern void banclient(client *&c, int minutes);
 					if(actor->state.lastffkill > 3){
@@ -1323,7 +1324,6 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 	if(target->state.damagelog.find(actor->clientnum) < 0) target->state.damagelog.add(actor->clientnum);
 	ts.dodamage(damage);
 	ts.lastregen = gamemillis + REGENDELAY - REGENINT;
-	actor->state.damage += damage != 1000 ? damage : 0;
 	int style = (gib ? FRAG_GIB : FRAG_NONE) | (gun == GUN_KNIFE && damage == guns[GUN_KNIFE].damage*5 ? FRAG_OVER : FRAG_NONE);
 	/*/ TODO: add critical!
 	if(!suic){
