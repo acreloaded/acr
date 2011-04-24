@@ -3,8 +3,8 @@
 $model "models/players/model/model.md3"
 // reference frame
 //$frames -1 -1
-// frame 1-2
-$frames 1 2
+// frame 1-11
+$frames 1 11
 $flags 0
 $numskins 0
 
@@ -53,11 +53,11 @@ $mesh "barrel2"
 $skin "models/players/model/skin.tga"
 $flags 0
 
-$mesh "hands"
+$mesh "lhand"
 $skin "models/players/model/skin.tga"
 $flags 0
 
-$mesh "griphand"
+$mesh "rhand"
 $skin "models/players/model/skin.tga"
 $flags 0
 
