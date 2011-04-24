@@ -38,6 +38,28 @@ struct weaponmove
 		anim = ANIM_GUN_IDLE;
 
 		float k_back = 0.0f; vec sway = aimdir;
+		if(nosway) sway.x = sway.y = sway.z = 0;
+		else{
+			float swayspeed = sinf((float)swaymillis/swayspeeddiv)/(swaymovediv/10.0f);
+			float swayupspeed = cosf((float)swaymillis/swayupspeeddiv)/(swayupmovediv/10.0f);
+
+			float plspeed = min(1.0f, sqrtf(gamefocus->vel.x*gamefocus->vel.x + gamefocus->vel.y*gamefocus->vel.y));
+				
+			swayspeed *= plspeed/2;
+			swayupspeed *= plspeed/2;
+
+			swap(sway.x, sway.y);
+			sway.y = -sway.y;
+				
+			swayupspeed = fabs(swayupspeed); // sway a semicirle only
+			sway.z = 1.0f;
+				
+			sway.x *= swayspeed;
+			sway.y *= swayspeed;
+			sway.z *= swayupspeed;
+
+			sway.mul(gamefocus->eyeheight / gamefocus->maxeyeheight);
+		}
 
 		if(gamefocus->weaponchanging){
 			basetime = ads_gun(gamefocus->weaponsel->type) ? lastmillis : gamefocus->weaponchanging;
@@ -89,33 +111,10 @@ struct weaponmove
 			else if(anim == ANIM_GUN_IDLE) basetime = lastmillis;
 		}
 
-		if(nosway) sway.x = sway.y = sway.z = 0;
-		else{
-			float swayspeed = sinf((float)swaymillis/swayspeeddiv)/(swaymovediv/10.0f);
-			float swayupspeed = cosf((float)swaymillis/swayupspeeddiv)/(swayupmovediv/10.0f);
-
-			float plspeed = min(1.0f, sqrtf(gamefocus->vel.x*gamefocus->vel.x + gamefocus->vel.y*gamefocus->vel.y));
-				
-			swayspeed *= plspeed/2;
-			swayupspeed *= plspeed/2;
-
-			swap(sway.x, sway.y);
-			sway.y = -sway.y;
-				
-			swayupspeed = fabs(swayupspeed); // sway a semicirle only
-			sway.z = 1.0f;
-				
-			sway.x *= swayspeed;
-			sway.y *= swayspeed;
-			sway.z *= swayupspeed;
-
-			sway.mul(gamefocus->eyeheight / gamefocus->maxeyeheight);
-		}
-
+		pos.add(swaydir);
 		pos.x -= aimdir.x*k_back+sway.x;
 		pos.y -= aimdir.y*k_back+sway.y;
 		pos.z -= aimdir.z*k_back+sway.z;
-		pos.add(swaydir);		
 	}
 };
 
@@ -124,8 +123,7 @@ int weaponmove::lastsway = 0, weaponmove::swaymillis = 0;
 
 void preload_hudguns()
 {
-	loopi(NUMGUNS)
-	{
+	loopi(NUMGUNS){
 		s_sprintfd(path)("weapons/%s", guns[i].modelname);
 		loadmodel(path);
 	}
