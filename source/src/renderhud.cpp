@@ -615,7 +615,43 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		glEnd();
 	}
 
+	glDisable(GL_TEXTURE_2D);
+
+	if(p->flashmillis > 0 && lastmillis<=p->flashmillis){
+		extern GLuint flashtex;
+		if(flashtex){
+			glEnable(GL_TEXTURE_2D);
+			glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+			glBindTexture(GL_TEXTURE_2D, flashtex);
+
+			const float flashsnapfade = min((p->flashmillis - lastmillis) / 1500.f, .78f);
+			glColor4f(flashsnapfade, flashsnapfade, flashsnapfade, flashsnapfade);
+
+			glBegin(GL_QUADS);
+			glTexCoord2f(0, 0); glVertex2f(0, 0);
+			glTexCoord2f(1, 0); glVertex2f(VIRTW, 0);
+			glTexCoord2f(1, 1); glVertex2f(VIRTW, VIRTH);
+			glTexCoord2f(0, 1); glVertex2f(0, VIRTH);
+			glEnd();
+		}
+
+		// flashbang!
+		glDisable(GL_TEXTURE_2D);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		const float flashwhitefade = min((p->flashmillis - lastmillis - 1500) / 1500.f, .6f);
+		glColor4f(1, 1, 1, flashwhitefade);
+		
+		glBegin(GL_QUADS);
+		glVertex2f(0, 0);
+		glVertex2f(VIRTW, 0);
+		glVertex2f(VIRTW, VIRTH);
+		glVertex2f(0, VIRTH);
+		glEnd();
+	}
+
 	static Texture *damagetex = textureload("packages/misc/damage.png", 3), *damagedirtex = textureload("packages/misc/damagedir.png");
+	glEnable(GL_TEXTURE_2D);
 
 	if(!m_osok){
 		static float fade = 0.f;
@@ -623,7 +659,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		fade = (fade * 40 + newfade) / 41.f;
 		if(fade){
 			glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-			glEnable(GL_TEXTURE_2D);
 			glBindTexture(GL_TEXTURE_2D, damagetex->id);
 			glColor4f(fade, fade, fade, fade);
 
@@ -635,9 +670,10 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 			glEnd();
 		}
 	}
+
 	loopv(p->damagestack){
 		damageinfo &pain = p->damagestack[i];
-		if(pain.millis + damageindicatorfade < lastmillis) p->damagestack.remove(i--);
+		if(pain.millis + damageindicatorfade <= lastmillis) p->damagestack.remove(i--);
 		vec dir = pain.o;
 		if(dir == p->o) continue;
 		dir.sub(p->o).normalize();
@@ -658,8 +694,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		glEnd();
 		glPopMatrix();
 	}
-
-	glEnable(GL_TEXTURE_2D);
 
 	int targetplayerzone = 0;
 	playerent *targetplayer = playerincrosshairhit(targetplayerzone);

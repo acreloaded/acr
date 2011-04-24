@@ -469,7 +469,7 @@ struct playerent : dynent, playerstate
 	int nextweapon; // weapon we switch to
 	int team, skin;
 	int spectatemode, followplayercn;
-	int eardamagemillis;
+	int eardamagemillis, flashmillis;
 	int respawnoffset;
 	bool allowmove() { return state!=CS_DEAD || spectatemode==SM_FLY; }
 	vector<eventicon> icons;
@@ -559,14 +559,13 @@ struct playerent : dynent, playerstate
 		playerstate::respawn();
 		history.reset();
 		if(weaponsel) weaponsel->reset();
-		lastaction = 0;
+		lastaction = weaponchanging = eardamagemillis = flashmillis = 0;
 		lastattackweapon = NULL;
 		ads = 0.f;
 		wantsswitch = -1;
 		scoping = attacking = false;
-		weaponchanging = 0;
+		lastaction ;
 		resetspec();
-		eardamagemillis = 0;
 		eyeheight = maxeyeheight;
 		damagestack.setsize(0);
 	}

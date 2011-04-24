@@ -1688,21 +1688,22 @@ void updateaudio()
 	}
 
 	// water
-	bool underwater = /*alive &&*/ firstperson && hdr.waterlevel>player1->o.z+player1->aboveeye;
+	const bool underwater = /*alive &&*/ firstperson && hdr.waterlevel>player1->o.z+player1->aboveeye;
 	updateloopsound(S_UNDERWATER, underwater);
 
 	// tinnitus
-	bool tinnitus = /*alive &&*/ firstperson && player1->eardamagemillis>0 && lastmillis<=player1->eardamagemillis;
-	location *tinnitusloc = updateloopsound(S_TINNITUS, tinnitus);
+	const bool tinnitus = /*alive &&*/ firstperson && player1->eardamagemillis>0 && lastmillis<=player1->eardamagemillis,
+		flashed = /*alive &&*/ firstperson && player1->flashmillis>0 && lastmillis<=player1->flashmillis;
+	location *tinnitusloc = updateloopsound(S_TINNITUS, tinnitus || flashed);
 
 	// pitch fx
 	const float lowpitch = 0.65f;
-	bool pitchfx = underwater || tinnitus;
+	bool pitchfx = underwater || tinnitus || flashed;
 	if(pitchfx && currentpitch!=lowpitch)
 	{
 		currentpitch = lowpitch;
 		locations.forcepitch(currentpitch);
-		if(tinnitusloc) tinnitusloc->pitch(1.9f); // super high pitched tinnitus
+		if(tinnitusloc) tinnitusloc->pitch(flashed ? 2.1f : 1.9f); // super high pitched tinnitus
 	}
 	else if(!pitchfx && currentpitch==lowpitch)
 	{

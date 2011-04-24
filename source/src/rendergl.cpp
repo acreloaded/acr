@@ -864,7 +864,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps){
 	fovy = 2*atan2(tan(float(dynfov())/2*RAD), aspect)/RAD;
 
 	float hf = hdr.waterlevel-0.3f;
-	bool underwater = camera1->o.z<hf;
+	const bool underwater = camera1->o.z<hf/*, flashed = gamefocus->flashmillis > 0 && lastmillis <= gamefocus->flashmillis*/;
 
 	glFogi(GL_FOG_START, (fog+64)/8);
 	glFogi(GL_FOG_END, fog);
@@ -876,8 +876,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps){
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	if(underwater)
-	{
+	if(underwater){
 		fovy += sinf(lastmillis/1000.0f)*2.0f;
 		aspect += sinf(lastmillis/1000.0f+PI)*0.1f;
 		glFogfv(GL_FOG_COLOR, wfogc);
