@@ -36,6 +36,9 @@ struct weaponmove
 		lastsway = lastmillis;
 
 		anim = ANIM_GUN_IDLE;
+
+		float k_back = 0.0f; vec sway = aimdir;
+
 		if(gamefocus->weaponchanging){
 			basetime = ads_gun(gamefocus->weaponsel->type) ? lastmillis : gamefocus->weaponchanging;
 			float progress = clamp((lastmillis - gamefocus->weaponchanging)/(float)weapon::weaponchangetime, 0.0f, 1.0f);
@@ -53,16 +56,14 @@ struct weaponmove
 					k_rot = -90 * sinf(progress*M_PI);
 				}
 			}
-			swaydir = vec(0, 0, 0);
 		}
 		else{
 			basetime = lastaction;
 
 			int timediff = lastmillis-lastaction, 
 				animtime = min(gamefocus->weaponsel->gunwait, (int)gamefocus->weaponsel->info.attackdelay);
-			vec sway = aimdir;
+			
 			float progress = 0.0f;
-			float k_back = 0.0f;
 			
 			if(gamefocus->weaponsel==gamefocus->lastattackweapon){
 				progress = max(0.0f, min(1.0f, timediff/(float)animtime));
@@ -77,29 +78,6 @@ struct weaponmove
 				k_back = gamefocus->weaponsel->info.mdl_kick_back*kick/10;
 			}
 			
-			if(nosway) sway.x = sway.y = sway.z = 0;
-			else{
-				float swayspeed = sinf((float)swaymillis/swayspeeddiv)/(swaymovediv/10.0f);
-				float swayupspeed = cosf((float)swaymillis/swayupspeeddiv)/(swayupmovediv/10.0f);
-
-				float plspeed = min(1.0f, sqrtf(gamefocus->vel.x*gamefocus->vel.x + gamefocus->vel.y*gamefocus->vel.y));
-				
-				swayspeed *= plspeed/2;
-				swayupspeed *= plspeed/2;
-
-				swap(sway.x, sway.y);
-				sway.y = -sway.y;
-				
-				swayupspeed = fabs(swayupspeed); // sway a semicirle only
-				sway.z = 1.0f;
-				
-				sway.x *= swayspeed;
-				sway.y *= swayspeed;
-				sway.z *= swayupspeed;
-
-				sway.mul(gamefocus->eyeheight / gamefocus->maxeyeheight);
-			}
-
 			if(ads_gun(gamefocus->weaponsel->type) && gamefocus->ads){
 				if((anim&ANIM_INDEX) == ANIM_GUN_IDLE) basetime = lastmillis-gamefocus->ads;
 				else if((anim&ANIM_INDEX) == ANIM_GUN_SHOOT && gamefocus->ads){ anim &= ~ANIM_GUN_SHOOT; anim |= ANIM_GUN_SHOOT2; }
@@ -109,12 +87,35 @@ struct weaponmove
 				swaydir.mul(1 - gamefocus->ads / 1300.f);
 			}
 			else if(anim == ANIM_GUN_IDLE) basetime = lastmillis;
-
-			pos.add(swaydir);
-			pos.x -= aimdir.x*k_back+sway.x;
-			pos.y -= aimdir.y*k_back+sway.y;
-			pos.z -= aimdir.z*k_back+sway.z;
 		}
+
+		if(nosway) sway.x = sway.y = sway.z = 0;
+		else{
+			float swayspeed = sinf((float)swaymillis/swayspeeddiv)/(swaymovediv/10.0f);
+			float swayupspeed = cosf((float)swaymillis/swayupspeeddiv)/(swayupmovediv/10.0f);
+
+			float plspeed = min(1.0f, sqrtf(gamefocus->vel.x*gamefocus->vel.x + gamefocus->vel.y*gamefocus->vel.y));
+				
+			swayspeed *= plspeed/2;
+			swayupspeed *= plspeed/2;
+
+			swap(sway.x, sway.y);
+			sway.y = -sway.y;
+				
+			swayupspeed = fabs(swayupspeed); // sway a semicirle only
+			sway.z = 1.0f;
+				
+			sway.x *= swayspeed;
+			sway.y *= swayspeed;
+			sway.z *= swayupspeed;
+
+			sway.mul(gamefocus->eyeheight / gamefocus->maxeyeheight);
+		}
+
+		pos.x -= aimdir.x*k_back+sway.x;
+		pos.y -= aimdir.y*k_back+sway.y;
+		pos.z -= aimdir.z*k_back+sway.z;
+		pos.add(swaydir);		
 	}
 };
 
