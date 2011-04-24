@@ -85,10 +85,10 @@ static guninfo guns[NUMGUNS] =
 	{ "knife",      S_KNIFE,    S_NULL,        0,   560,    60,    3,    4,   60,   0,   0,  1,    1,   1,    0,  0,     0,    0,       0, 5,   true },
 	{ "pistol",     S_PISTOL,   S_RPISTOL,  1400,   90,     40,   40,  120,   20,   0,   0, 90,    9,   12,   6,  2,    32,    48,     70, 1,   false},
 	{ "shotgun",    S_SHOTGUN,  S_RSHOTGUN,  750,   200,    10,    4,   16,    9,   0,   0,  1,   12,    7,   9,  5,    60,    80,      5, 2,   false},
-	{ "subgun",     S_SUBGUN,   S_RSUBGUN,  2400,   67,     45,   40,   90,   30,   0,   0, 70,    4,   32,   1,  3,    23,    45,     65, 1,   true },
+	{ "subgun",     S_SUBGUN,   S_RSUBGUN,  2400,   67,     40,   32,   80,   22,   0,   0, 70,    4,   32,   1,  3,    23,    45,     65, 1,   true },
 	{ "sniper",     S_SNIPER,   S_RSNIPER,  2000,   100,    50,    0,    0,    0,   0,   0,250,   14,   10,   4,  4,    50,    65,     75, 2,   false},
 	{ "bolt",       S_BOLT,     S_RBOLT,    2000,   1500,  140 ,  80,  800,   40,   0,   0,280,   36,    8,   4,  4,    72,    90,     80, 3,   false},
-	{ "assault",    S_ASSAULT,  S_RASSAULT, 2100,   73,     35,   50,   150,  15,   0,   0, 60,    3,   30,   0,  3,    24,    38,     60, 1,   true },
+	{ "assault",    S_ASSAULT,  S_RASSAULT, 2100,   73,     32,   40,  100,   12,   0,   0, 60,    3,   30,   0,  3,    24,    38,     60, 1,   true },
 	{ "grenade",    S_NULL,     S_NULL,     1000,   650,    350,   0,   20,   350,  20,  6,  1,    1,    1,   3,  1,     0,    0,       0, 4,   false},
 	{ "pistol",     S_PISTOL,   S_RAKIMBO,  1400,   80,     36,   30,   80,   18,   0,   0, 90,    9,   24,   6,  2,    28,    48,     70, 2,   true },
 };
