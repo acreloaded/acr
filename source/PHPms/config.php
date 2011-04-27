@@ -10,6 +10,9 @@
 	$config['servers']['force'] = array( // always forced if it cannot register
 		// "server:port",
 );
+	$config['servers']['weights'] = array( // only for cubelist
+		// array("x.x.x.x", weight),
+	);
 	$config['servers']['placeholder'] = "localhost:28770"; // dummy when out of servers
 	$config['servers']['minport'] = 1024; // end of primary reserved ports
 	$config['servers']['maxport'] = 65534; // 65535 is the max
