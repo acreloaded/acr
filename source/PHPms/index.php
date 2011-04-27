@@ -5,7 +5,7 @@
 	require_once "bans.php"; // banning sysrem
 	require_once "auth.php"; // auths
 	docron();
-	function getServers(){ // {string, int}[] (void)
+	function getServers(){ // {string, int, bool}[] (void)
 		global $config;
 		$buffer = array();
 		$q = mysql_query("SELECT `ip`, `port`, `add` FROM `{$config['db']['pref']}servers`");
@@ -35,12 +35,12 @@
 		foreach($config['sbans'] as $b) if($b[0] <= $ip && $ip <= $b[1] && $b[2] & 1) exit("echo You are not authorized to fetch the server list. {$config['contact']}");
 		$srvs = getServers();
 		foreach($srvs as $s){
-			$w = '';
+			$wt = '';
 			foreach($config['servers']['weights'] as $w) if($w[0] == $s[0]){
-				$w = ' '.$w[1];
+				$wt = ' '.$w[1];
 				break;
 			}
-			echo ($s[2] ? '' : "//")."addserver {$s[0]} {$s[1]}{$w}\r\n";
+			echo ($s[2] ? '' : "//")."addserver {$s[0]} {$s[1]}{$wt}\r\n";
 		}
 	}
 	elseif(isset($_GET['xml'])){ // XML
