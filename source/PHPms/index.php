@@ -5,7 +5,7 @@
 	require_once "bans.php"; // banning sysrem
 	require_once "auth.php"; // auths
 	docron();
-	function getServers(){ // {string, int, bool}[] (void)
+	function getServers(){ // {string, int, bool, int}[] (void)
 		global $config;
 		$buffer = array();
 		$q = mysql_query("SELECT `ip`, `port`, `add` FROM `{$config['db']['pref']}servers`");
@@ -19,13 +19,13 @@
 			$buffer[] = array($s[1], $s[2], true);
 		}
 		while ($r = mysql_fetch_row($q)){
-			$i = $ip = $r[0];
-			$i = long2ip($i);
+			$io = $ip = $r[0];
+			$i = long2ip($io);
 			foreach($config['servers']['translate'] as $t) if($ip == $t[0]){
 				$i = $t[1];
 				break;
 			}
-			$buffer[] = array($i, $r[1], (bool)$r[2]); // {$r[ip], $r[port], (bool)$r[add]}
+			$buffer[] = array($i, $r[1], (bool)$r[2], $io); // {long2ip2domain($r[ip]), $r[port], (bool)$r[add], $r[ip]}
 		}
 		return $buffer;
 	}
@@ -36,7 +36,7 @@
 		$srvs = getServers();
 		foreach($srvs as $s){
 			$wt = '';
-			foreach($config['servers']['weights'] as $w) if($w[0] == $s[0]){
+			foreach($config['servers']['weights'] as $w) if($w[0] == $s[3]){
 				$wt = ' '.$w[1];
 				break;
 			}

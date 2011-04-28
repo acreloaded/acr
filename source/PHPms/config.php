@@ -11,7 +11,7 @@
 		// "server:port",
 );
 	$config['servers']['weights'] = array( // only for cubelist
-		// array("x.x.x.x", weight),
+		// array(ip, weight),
 	);
 	$config['servers']['placeholder'] = "localhost:28770"; // dummy when out of servers
 	$config['servers']['minport'] = 1024; // end of primary reserved ports
