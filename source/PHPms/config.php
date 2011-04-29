@@ -5,7 +5,7 @@
 	$config['servers']['minprotocol'] = 2106; // protocol requirements
 	$config['servers']['autoapprove'] = true; // servers can be registered
 	$config['servers']['translate'] = array( // IP translation
-		// array(ip, "domain"),
+		// array(ip, "domain", port), // use port 0 or omit for wildcard
 );
 	$config['servers']['force'] = array( // always forced if it cannot register
 		// "server:port",

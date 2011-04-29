@@ -21,7 +21,7 @@
 		while ($r = mysql_fetch_row($q)){
 			$io = $ip = $r[0];
 			$i = long2ip($io);
-			foreach($config['servers']['translate'] as $t) if($ip == $t[0]){
+			foreach($config['servers']['translate'] as $t) if($ip == $t[0] && (!$t[2] || $r[1] == $t[2])){
 				$i = $t[1];
 				break;
 			}
