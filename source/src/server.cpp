@@ -2690,12 +2690,13 @@ void checkmove(client &cp){
 			return; // no pickups for you!
 		}
 	}
-	// pickups
+	// item pickups
 	loopv(sents){
 		server_entity &e = sents[i];
 		if(!e.spawned || !cs.canpickup(e.type)) continue;
 		const int ls = (1 << maplayout_factor) - 1;
-		vec v(e.x, e.y, maplayout && e.x >= 0 && e.y >= 0 && e.x < ls && e.y < ls ? maplayout[e.x + (e.y << maplayout_factor)] + 3 : cs.o.z);
+		char &mapz = maplayout[e.x + (e.y << maplayout_factor)];
+		vec v(e.x, e.y, maplayout && e.x >= 0 && e.y >= 0 && e.x < ls && e.y < ls && mapz > -128 ? mapz + 3 : cs.o.z);
 		float dist = cs.o.dist(v);
 		if(dist > 3) continue;
 		if(arenaround && arenaround - gamemillis <= 2000){ // no nade pickup during last two seconds of lss intermission
