@@ -495,7 +495,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, bool loca
 	if(pl->health<=0){ if(local){
 		int style = !weapon::valid(weapon) || guns[weapon].damage < damage ? FRAG_GIB : FRAG_NONE;
 		if(!localfirstkill && pl != actor && !isteam(pl, actor)){ localfirstkill = true; style |= FRAG_FIRST; }
-		dokill(pl, actor, weapon, damage, style, pl->o.dist(actor->o) / 4);
+		dokill(pl, actor, weapon, damage, style, pl->o == actor->o ? 0 : pl->o.dist(actor->o) / 4);
 	}}
 	else if(pl==player1) playsound(S_PAIN6, SP_HIGH);
 	else playsound(S_PAIN1+rnd(5), pl);
