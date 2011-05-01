@@ -3621,7 +3621,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
 	int nonlocalclients = numnonlocalclients();
 
-	if(forceintermission || ((smode>GMODE_DEMO || numnonlocalclients()) && gamemillis-diff>0 && gamemillis/60000!=(gamemillis-diff)/60000))
+	if(forceintermission || ((m_fight(smode) || numnonlocalclients()) && gamemillis-diff>0 && gamemillis/60000!=(gamemillis-diff)/60000))
 		checkintermission();
 	if(interm && gamemillis>interm)
 	{

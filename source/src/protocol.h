@@ -114,7 +114,7 @@ enum
 #define m_team			(gamemode==GMODE_TEAMDEATHMATCH || gamemode==GMODE_TEAMONESHOTONEKILL || \
 							gamemode==GMODE_TEAMSURVIVOR || m_ctf || m_htf || gamemode==GMODE_TEAMKTF || \
 							gamemode==GMODE_REALTDM || gamemode == GMODE_EXPERTTDM)
-#define m_fight(mode)	((mode)>=0 && (mode)<GMODE_NUM)
+#define m_fight(mode)	((mode)>=0 && (mode) != GMODE_COOPEDIT && (mode)<GMODE_NUM)
 #define m_demo			(gamemode == GMODE_DEMO)
 #define m_valid(mode)	(m_fight || m_demo)
 
