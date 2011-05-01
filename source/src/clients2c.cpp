@@ -760,7 +760,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_ACCURACY:
 			{
 				int hit = getint(p), shot = getint(p);
-				conoutf("\f1%d%% \f5accuracy \f4(\f1%d \f2shot, \f1%d \f0hit, \f1%d \f3wasted\f4)", hit * 100 / max(shot, 1), hit, shot, shot - hit);
+				conoutf("\f1%d%% \f5accuracy \f4(\f1%d \f0hit, \f1%d \f2shot, \f1%d \f3wasted\f4)", hit * 100 / max(shot, 1), hit, shot, shot - hit);
 				break;
 			}
 
