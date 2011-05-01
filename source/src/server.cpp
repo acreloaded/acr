@@ -2104,7 +2104,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 		sendpacket(-1, 1, packet);
 		if(!packet->referenceCount) enet_packet_destroy(packet);
 		// time remaining
-		if(smode>GMODE_DEMO || numnonlocalclients()) sendf(-1, 1, "ri3", N_TIMEUP, gamemillis, gamelimit);
+		if(m_fight(smode) || numnonlocalclients()) sendf(-1, 1, "ri3", N_TIMEUP, gamemillis, gamelimit);
 	}
 	logline(ACLOG_INFO, "");
 	logline(ACLOG_INFO, "Game start: %s on %s, %d players, %d minutes remaining, mastermode %d, (itemlist %spreloaded, 'getmap' %sprepared)",
@@ -2594,7 +2594,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath){
 	} else putint(p, 0);
 	if(smapname[0] && !m_demo){
 		putmap(p);
-		if(smode>GMODE_DEMO || numnonlocalclients()){
+		if(m_fight(smode) || numnonlocalclients()){
 			putint(p, N_TIMEUP);
 			putint(p, gamemillis);
 			putint(p, gamelimit);
