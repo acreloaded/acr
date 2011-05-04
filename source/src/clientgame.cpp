@@ -511,7 +511,18 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 	s_strcpy(hashave, act == player1 ? "have" : "has");
 	if(pl == act){
 		s_strcpy(predicate, suicname(weapon));
-		if(pl == player1) s_strcat(predicate, "\f3");
+		if(pl == player1){
+			// radar scan
+			loopv(players){
+				playerent *p = players[i];
+				if(!p || isteam(p, pl)) continue;
+				p->radarmillis = lastmillis - 1000;
+				p->lastloudpos[0] = p->o.x;
+				p->lastloudpos[1] = p->o.y;
+				p->lastloudpos[2] = p->yaw;
+			}
+			s_strcat(predicate, "\f3");
+		}
 		if(pl == gamefocus) s_strcat(predicate, "!\f2");
 		if(killdist) s_sprintf(predicate)("%s (@%.2f m)", predicate, killdist);
 	}
