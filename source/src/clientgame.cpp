@@ -131,6 +131,7 @@ void deathstate(playerent *pl)
 	pl->attacking = false;
 	pl->weaponsel->onownerdies();
 	pl->damagelog.setsize(0);
+	pl->radarmillis = 0;
 
 	if(pl==player1){
 		if(showscoresondeath) showscores(true);
