@@ -625,7 +625,7 @@ void weapon::renderhudmodel(int lastaction, bool akimboflip){
 	if(!intermission) wm.calcmove(unitv, lastaction);
 	s_sprintfd(path)("weapons/%s", info.modelname);
 	const bool emit = ((wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT) && (lastmillis - lastaction) < flashtime();
-	if((wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT){ wm.anim &= ~ANIM_GUN_SHOOT; wm.anim |= ANIM_GUN_IDLE; }
+	if(ads_gun(type) && (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT){ wm.anim = ANIM_GUN_IDLE; }
 	rendermodel(path, wm.anim|ANIM_DYNALLOC|(flip ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, -1, wm.pos, owner->yaw+90, owner->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, NULL, 1.28f);
 }
 
@@ -1151,7 +1151,7 @@ COMMAND(setscope, ARG_1INT);
 
 
 void shoot(playerent *p, vec &targ){
-	if(p->state==CS_DEAD || p->weaponchanging /*|| (p->ads && p->ads != 1000) */) return;
+	if(p->state==CS_DEAD || p->weaponchanging) return;
 	weapon *weap = p->weaponsel;
 	if(weap){
 		weap->attack(targ);

@@ -615,7 +615,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 		const float croucheyeheight = pl->maxeyeheight*3.0f/4.0f;
 		resizephysent(pl, moveres, curtime, croucheyeheight, pl->maxeyeheight);
 		if(!intermission && pl->state == CS_ALIVE && (ppl->scoping ? ppl->ads < 1000 : ppl->ads > 0) && ads_gun(ppl->weaponsel->type) &&
-				!ppl->weaponsel->reloading && !ppl->weaponchanging && !ppl->weaponsel->modelattacking() ){
+				!ppl->weaponsel->reloading && !ppl->weaponchanging ){
 			ppl->ads += curtime * (ppl->scoping ? 1000 : -1000) / ppl->weaponsel->scopetime;
 			ppl->ads = clamp(ppl->ads, 0, 1000);
 			if(!ppl->ads && ppl == player1){
