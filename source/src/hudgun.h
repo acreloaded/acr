@@ -100,15 +100,14 @@ struct weaponmove
 				k_back = gamefocus->weaponsel->info.mdl_kick_back*kick/10;
 			}
 			
-			if(ads_gun(gamefocus->weaponsel->type) && gamefocus->ads){
-				if((anim&ANIM_INDEX) == ANIM_GUN_IDLE) basetime = lastmillis-gamefocus->ads;
-				else if((anim&ANIM_INDEX) == ANIM_GUN_SHOOT && gamefocus->ads){ anim &= ~ANIM_GUN_SHOOT; anim |= ANIM_GUN_SHOOT2; }
+			if((anim&ANIM_INDEX) == ANIM_GUN_IDLE || (anim&ANIM_INDEX) == ANIM_GUN_SHOOT)
+				basetime = lastmillis-gamefocus->ads;
+			if(ads_gun(gamefocus->weaponsel->type)){
 				k_rot *= 1 - gamefocus->ads / 2000.f;
 				k_back *= 1 - gamefocus->ads / 1100.f;
 				sway.mul(1 - gamefocus->ads / 1200.f);
 				swaydir.mul(1 - gamefocus->ads / 1300.f);
 			}
-			else if(anim == ANIM_GUN_IDLE) basetime = lastmillis;
 		}
 
 		pos.add(swaydir);
