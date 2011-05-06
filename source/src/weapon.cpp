@@ -507,7 +507,7 @@ weapon::weapon(struct playerent *owner, int type) : type(type), owner(owner), in
 
 const float weapon::weaponbeloweye = 0.2f;
 
-int weapon::flashtime() const { return max((int)info.attackdelay, 120)/2; }
+int weapon::flashtime() const { return max((int)info.attackdelay, 180)/3; }
 
 void weapon::sendshoot(vec &from, vec &to){
 	if(owner!=player1) return;
@@ -1041,6 +1041,7 @@ sniperrifle::sniperrifle(playerent *owner) : scopedprimary(owner, GUN_SNIPER) {}
 
 // boltrifle
 boltrifle::boltrifle(playerent* owner) : scopedprimary(owner, GUN_BOLT) {}
+int boltrifle::flashtime() const { return 100; }
 
 // assaultrifle
 

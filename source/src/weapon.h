@@ -127,6 +127,7 @@ struct sniperrifle : scopedprimary
 struct boltrifle : scopedprimary
 {
 	boltrifle(playerent *owner);
+	int flashtime() const;
 };
 
 struct shotgun : gun
