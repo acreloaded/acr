@@ -26,9 +26,9 @@ void processevent(client &c, projevent &e)
 			}
 			else{
 				ushort dmg = effectiveDamage(GUN_KNIFE, 0, DAMAGESCALE);
-				gs.damage += dmg * 2;
+				gs.damage += dmg;
 				client &target = *clients[e.proj];
-				serverdamage(&target, &c, dmg * 2, GUN_KNIFE, FRAG_OVER, vec(0, 0, 0));
+				serverdamage(&target, &c, dmg, GUN_KNIFE, FRAG_OVER, vec(0, 0, 0));
 				if(target.state.state == CS_ALIVE && !isteam((&target), (&c))){
 					target.state.cutter = c.clientnum;
 					target.state.lastcut = gamemillis;
