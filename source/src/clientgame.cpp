@@ -516,7 +516,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 			loopv(players){
 				playerent *p = players[i];
 				if(!p || isteam(p, pl)) continue;
-				p->radarmillis = lastmillis - 1000;
+				p->radarmillis = lastmillis + 1000;
 				p->lastloudpos[0] = p->o.x;
 				p->lastloudpos[1] = p->o.y;
 				p->lastloudpos[2] = p->yaw;
