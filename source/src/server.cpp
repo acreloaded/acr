@@ -36,7 +36,7 @@ struct servercommandline scl;
 
 static const int DEATHMILLIS = 300;
 
-enum { GE_NONE = 0, GE_SHOT, GE_EXPLODE, GE_HIT, GE_AKIMBO, GE_RELOAD };
+enum { GE_NONE = 0, GE_SHOT, GE_PROJ, GE_HIT, GE_AKIMBO, GE_RELOAD };
 enum { ST_EMPTY, ST_LOCAL, ST_TCPIP };
 
 int mastermode = MM_OPEN;
@@ -3068,7 +3068,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case N_PROJ:
 			{
 				gameevent &exp = cl->addevent();
-				exp.type = GE_EXPLODE;
+				exp.type = GE_PROJ;
 				seteventmillis(exp.explode);
 				exp.explode.gun = getint(p);
 				exp.explode.proj = getint(p);
