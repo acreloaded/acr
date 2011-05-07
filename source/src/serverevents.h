@@ -35,6 +35,7 @@ void processevent(client &c, projevent &e)
 				}
 				gs.knifepos = target.state.o;
 			}
+			gs.knifemillis = servmillis;
 			// send knife hit message?
 			break;
 
