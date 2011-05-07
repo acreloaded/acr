@@ -53,6 +53,7 @@ struct shotevent
 	int millis, id;
 	int gun;
 	float to[3];
+	bool compact;
 };
 
 struct hitevent{
@@ -3045,7 +3046,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				}
 				seteventmillis(shot.shot);
 				shot.shot.gun = getint(p);
-				if(type != N_SHOOTC){
+				if(type == N_SHOOT){
 					loopk(3) shot.shot.to[k] = getfloat(p);
 					int hitcount = getint(p);
 					if(hitcount < 1) break;
@@ -3057,6 +3058,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						hit.hit.lifesequence = getint(p);
 						hit.hit.info = getint(p);
 					}
+				}
+				else if(type == N_SHOOTC){
+					shot.shot.compact = true;
 				}
 				break;
 			}

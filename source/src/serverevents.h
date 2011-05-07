@@ -9,6 +9,11 @@ void processevent(client &c, explodeevent &e)
 			if(!gs.grenades.remove(e.proj)/* || e.id - e.proj < NADETTL*/) return;
 			break;
 
+		case GUN_KNIFE:
+			if(gs.mag[GUN_KNIFE] || !gs.ammo[GUN_KNIFE]) return;
+			gs.ammo[GUN_KNIFE]--;
+			return;
+
 		default:
 			return;
 	}
@@ -51,10 +56,10 @@ void processevent(client &c, shotevent &e)
 		putint(p, N_SG);
 		loopi(SGRAYS) loopj(3) putfloat(p, gs.sg[i][j]);
 	}
-	putint(p, e.gun == GUN_GRENADE ? N_SHOOTC : N_SHOOT);
+	putint(p, e.compact ? N_SHOOTC : N_SHOOT);
 	putint(p, c.clientnum);
 	putint(p, e.gun);
-	if(e.gun != GUN_GRENADE){
+	if(!e.compact){
 		putfloat(p, gs.o.x);
 		putfloat(p, gs.o.y);
 		putfloat(p, gs.o.z);
@@ -71,6 +76,11 @@ void processevent(client &c, shotevent &e)
 	else gs.shotdamage += effectiveDamage(e.gun, vec(e.to).dist(gs.o), DAMAGESCALE);
 	switch(e.gun){
 		case GUN_GRENADE: gs.grenades.add(e.id); break;
+		case GUN_KNIFE:
+			if(e.compact){
+				gs.mag[GUN_KNIFE]--;
+				break;
+			}
 		default:
 		{
 			int totalrays = 0;

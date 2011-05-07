@@ -1143,7 +1143,11 @@ void knife::renderstats() { }
 
 
 void setscope(bool enable){
+	if(!player1->state == CS_ALIVE) return;
 	if(ads_gun(player1->weaponsel->type)) player1->scoping = enable;
+	else if(player1->weaponsel->type == GUN_KNIFE){
+		// nothing yet...
+	}
 	addmsg(N_SCOPE, "ri", enable ? 1 : 0);
 }
 
