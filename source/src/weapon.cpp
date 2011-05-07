@@ -1120,10 +1120,11 @@ void knifeent::explode(){
 	splash();
 	if(local){
 		int cn = -1;
-		float cdist = 1; // 25cm to hit a player right now...
+		float cdist = 10; // 2.5m to hit a player right now...
+		// needs better check?
 		loopv(players){
 			playerent *p = players[i];
-			if(!p) continue;
+			if(!p || p == owner) continue;
 			float dist = p->o.dist(o);
 			if(dist >= cdist) continue;
 			cn = p->clientnum;
