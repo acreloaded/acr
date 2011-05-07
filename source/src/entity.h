@@ -692,7 +692,6 @@ struct knifeent : bounceent
 {
 	bool local;
 	int knifestate;
-	float distsincebounce;
 	knifeent(playerent *owner, int millis = 0);
 	~knifeent();
 	void activate();
@@ -703,5 +702,4 @@ struct knifeent : bounceent
 	virtual bool applyphysics();
 	void moveoutsidebbox(const vec &direction, playerent *boundingbox);
 	void oncollision();
-	void onmoved(const vec &dist);
 };

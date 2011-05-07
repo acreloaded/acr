@@ -1103,9 +1103,8 @@ knifeent::knifeent(playerent *owner, int millis){
 	bounceent::millis = lastmillis;
 	timetolive = KNIFETTL-millis;
 	bouncetype = BT_KNIFE;
-	maxspeed = 30.0f;
-	rotspeed = 6.0f;
-	distsincebounce = 0.0f;
+	maxspeed = 25.0f;
+	rotspeed = 0.1f;
 }
 
 knifeent::~knifeent(){
@@ -1175,10 +1174,6 @@ void knifeent::destroy() { explode(); }
 bool knifeent::applyphysics() { return knifestate==NS_THROWED; }
 
 void knifeent::oncollision(){ explode(); }
-
-void knifeent::onmoved(const vec &dist){
-	distsincebounce += dist.magnitude();
-}
 
 // knife
 
