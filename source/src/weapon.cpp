@@ -1104,6 +1104,7 @@ knifeent::knifeent(playerent *owner, int millis){
 	timetolive = KNIFETTL-millis;
 	bouncetype = BT_KNIFE;
 	maxspeed = 25.0f;
+	yaw = owner->yaw;
 	rotspeed = 0.1f;
 }
 
