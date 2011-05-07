@@ -1134,7 +1134,7 @@ bool knife::attack(vec &targ){
 	return true;
 }
 
-
+bool knife::selectable() { return weapon::selectable() && mag; }
 int knife::modelanim() { return modelattacking() ? ANIM_GUN_SHOOT : ANIM_GUN_IDLE; }
 
 void knife::drawstats() {}

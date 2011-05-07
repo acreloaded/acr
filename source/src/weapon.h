@@ -180,6 +180,7 @@ struct knife : weapon
 	knife(playerent *owner);
 
 	bool attack(vec &targ);
+	bool selectable();
 	int modelanim();
 
 	void drawstats();
