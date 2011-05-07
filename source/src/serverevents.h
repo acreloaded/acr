@@ -21,7 +21,7 @@ void processevent(client &c, projevent &e)
 		case GUN_KNIFE:
 			if(gs.mag[GUN_KNIFE] || !gs.ammo[GUN_KNIFE]) return;
 			gs.ammo[GUN_KNIFE] = 0;
-			if(e.proj < 0 || !valid_client(e.proj) || !clients[e.proj]->state.state == CS_ALIVE){
+			if(e.proj < 0 || c.clientnum == e.proj || !valid_client(e.proj) || !clients[e.proj]->state.state == CS_ALIVE){
 				gs.knifepos = vec(e.o);
 			}
 			else{
@@ -29,7 +29,7 @@ void processevent(client &c, projevent &e)
 				gs.damage += dmg;
 				client &target = *clients[e.proj];
 				serverdamage(&target, &c, dmg, GUN_KNIFE, FRAG_OVER, vec(0, 0, 0));
-				if(target.state.state == CS_ALIVE && !isteam((&target), (&c))){
+				if(c.state.state == CS_ALIVE && !isteam((&target), (&c))){
 					target.state.cutter = c.clientnum;
 					target.state.lastcut = gamemillis;
 				}
