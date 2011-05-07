@@ -1,6 +1,6 @@
 // processing of server events
 
-void processevent(client &c, explodeevent &e)
+void processevent(client &c, projevent &e)
 {
 	clientstate &gs = c.state;
 	switch(e.gun)

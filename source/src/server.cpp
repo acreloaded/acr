@@ -61,7 +61,7 @@ struct hitevent{
 	int target, lifesequence, info;
 };
 
-struct explodeevent
+struct projevent
 {
 	int type;
 	int millis, id;
@@ -87,7 +87,7 @@ union gameevent
 	int type;
 	shotevent shot;
 	hitevent hit;
-	explodeevent explode;
+	projevent explode;
 	akimboevent akimbo;
 	reloadevent reload;
 };
