@@ -210,7 +210,7 @@ void processevents()
 			switch(e.type)
 			{
 				case GE_SHOT: processevent(c, e.shot); break;
-				case GE_PROJ: processevent(c, e.explode); break;
+				case GE_PROJ: processevent(c, e.proj); break;
 				case GE_AKIMBO: processevent(c, e.akimbo); break;
 				case GE_RELOAD: processevent(c, e.reload); break;
 				// untimed events are GONE!

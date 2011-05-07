@@ -87,7 +87,7 @@ union gameevent
 	int type;
 	shotevent shot;
 	hitevent hit;
-	projevent explode;
+	projevent proj;
 	akimboevent akimbo;
 	reloadevent reload;
 };
@@ -3069,10 +3069,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			{
 				gameevent &exp = cl->addevent();
 				exp.type = GE_PROJ;
-				seteventmillis(exp.explode);
-				exp.explode.gun = getint(p);
-				exp.explode.proj = getint(p);
-				loopi(3) exp.explode.o[i] = getfloat(p);
+				seteventmillis(exp.proj);
+				exp.proj.gun = getint(p);
+				exp.proj.proj = getint(p);
+				loopi(3) exp.proj.o[i] = getfloat(p);
 				break;
 			}
 
