@@ -497,7 +497,7 @@ void preload_entmodels()
 		model *mdl = loadmodel(entmdlnames[i]);
 		if(dynshadow && mdl) mdl->genshadows(8.0f, 2.0f);
 	}
-	static const char *bouncemdlnames[] = { "misc/gib01", "misc/gib02", "misc/gib03", "weapons/grenade/static" };
+	static const char *bouncemdlnames[] = { "misc/gib01", "misc/gib02", "misc/gib03", "weapons/grenade/static", "weapons/knife/static" };
 	loopi(sizeof(bouncemdlnames)/sizeof(bouncemdlnames[0]))
 	{
 		model *mdl = loadmodel(bouncemdlnames[i]);
