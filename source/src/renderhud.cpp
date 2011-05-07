@@ -735,7 +735,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		int h = 1;
 		float aspect = 1, scalef = 1, offset = (lastmillis - icon.millis) / 3000.f * 160.f;
 		switch(icon.type){
-			case eventicon::VOICECOM: default: scalef = .4f; break;
+			case eventicon::VOICECOM: case eventicon::PICKUP: default: scalef = .4f; break;
 				case eventicon::HEADSHOT:
 				case eventicon::CRITICAL:
 				case eventicon::REVENGE: aspect = 2; h = 4; break;
