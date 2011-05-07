@@ -365,7 +365,7 @@ void renderbounceents(){
 		{
 			case BT_KNIFE:
 			case BT_NADE:
-				s_strcpy(model, p->bouncetype == BT_NADE ? "weapons/grenade/static" : "weapons/knife/world");
+				s_strcpy(model, p->bouncetype == BT_NADE ? "weapons/grenade/static" : "weapons/knife/static");
 				break;
 			case BT_SHELL:
 			{
