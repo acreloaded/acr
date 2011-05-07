@@ -2745,7 +2745,7 @@ void checkmove(client &cp){
 		else if(m_ktf && f.state == CTFF_INBASE) flagaction(i, FA_PICKUP, sender);
 	}
 	// throwing knife pickup
-	if(!cs.ammo[GUN_KNIFE] && cs.knifepos.dist(cs.o) < 2){
+	if(!cs.ammo[GUN_KNIFE] && cs.knifepos.dist(cs.o) < 5){
 		cs.mag[GUN_KNIFE] = cs.ammo[GUN_KNIFE] = 1;
 		sendf(-1, 1, "ri5", N_RELOAD, sender, GUN_KNIFE, 1, 1);
 	}
