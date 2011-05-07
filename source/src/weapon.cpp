@@ -363,8 +363,9 @@ void renderbounceents(){
 		int anim = ANIM_MAPMODEL, basetime = 0;
 		switch(p->bouncetype)
 		{
+			case BT_KNIFE:
 			case BT_NADE:
-				s_strcpy(model, "weapons/grenade/static");
+				s_strcpy(model, p->bouncetype == BT_NADE ? "weapons/grenade/static" : "weapons/knife/world");
 				break;
 			case BT_SHELL:
 			{
@@ -690,7 +691,6 @@ grenadeent::~grenadeent(){
 void grenadeent::explode(){
 	if(nadestate!=NS_ACTIVATED && nadestate!=NS_THROWED ) return;
 	nadestate = NS_EXPLODED;
-	static vec n(0,0,0);
 	hits.setsize(0);
 	splash();
 	if(local) addmsg(N_PROJ, "ri3f3", lastmillis, GUN_GRENADE, millis, o.x, o.y, o.z);
@@ -705,7 +705,7 @@ void grenadeent::splash(){
 	adddynlight(NULL, o, 16, 600, 600, 192, 160, 128);
 }
 
-void grenadeent::activate(const vec &from, const vec &to){
+void grenadeent::activate(){
 	if(nadestate!=NS_NONE) return;
 	nadestate = NS_ACTIVATED;
 
@@ -754,7 +754,7 @@ void grenadeent::onmoved(const vec &dist){
 
 // grenades
 
-grenades::grenades(playerent *owner) : weapon(owner, GUN_GRENADE), inhandnade(NULL), throwwait((13*1000)/40), throwmillis(0), state(GST_NONE) {}
+grenades::grenades(playerent *owner) : weapon(owner, GUN_GRENADE), inhandnade(NULL), throwwait(325), state(GST_NONE) {}
 
 int grenades::flashtime() const { return 0; }
 
@@ -762,7 +762,7 @@ bool grenades::busy() { return state!=GST_NONE; }
 
 bool grenades::attack(vec &targ){
 	int attackmillis = lastmillis-owner->lastaction;
-	vec &to = targ;
+	//vec &to = targ;
 
 	bool waitdone = attackmillis>=gunwait;
 	if(waitdone) gunwait = reloading = 0;
@@ -770,7 +770,7 @@ bool grenades::attack(vec &targ){
 	switch(state)
 	{
 		case GST_NONE:
-			if(waitdone && owner->attacking && this==owner->weaponsel) activatenade(to); // activate
+			if(waitdone && owner->attacking && this==owner->weaponsel) activatenade(); // activate
 			break;
 
 		case GST_INHAND:
@@ -800,7 +800,6 @@ bool grenades::attack(vec &targ){
 
 void grenades::attackfx(const vec &from, const vec &to, int millis) // other player's grenades
 {
-	throwmillis = lastmillis-millis;
 	if(millis < 0){ // activate
 		state = GST_INHAND;
 		playsound(S_GRENADEPULL, owner, SP_HIGH);
@@ -823,9 +822,8 @@ int grenades::modelanim(){
 	return ANIM_GUN_IDLE;
 }
 
-void grenades::activatenade(const vec &to){
+void grenades::activatenade(){
 	if(!mag) return;
-	throwmillis = 0;
 
 	inhandnade = new grenadeent(owner);
 	bounceents.add(inhandnade);
@@ -835,7 +833,7 @@ void grenades::activatenade(const vec &to){
 	gunwait = info.attackdelay;
 	owner->lastattackweapon = this;
 	state = GST_INHAND;
-	inhandnade->activate(owner->o, to);
+	inhandnade->activate();
 }
 
 void grenades::thrownade(){
@@ -851,7 +849,6 @@ void grenades::thrownade(const vec &vel){
 	inhandnade->_throw(inhandnade->o, vel);
 	inhandnade = NULL;
 
-	throwmillis = lastmillis;
 	updatelastaction(owner);
 	state = GST_THROWING;
 	if(this==owner->weaponsel) owner->attacking = false;
@@ -865,7 +862,7 @@ void grenades::dropnade(){
 void grenades::renderstats(){ draw_textf("%i", 830, 823, mag); }
 
 bool grenades::selectable() { return weapon::selectable() && state != GST_INHAND && mag; }
-void grenades::reset() { throwmillis = 0; state = GST_NONE; }
+void grenades::reset() { state = GST_NONE; }
 
 void grenades::onselecting() { reset(); weapon::onselecting(); }
 void grenades::onownerdies(){
@@ -1097,15 +1094,129 @@ void akimbo::renderhudmodel(){
 
 bool akimbo::timerout() { return akimbomillis && akimbomillis <= lastmillis; }
 
+// knifeent
+knifeent::knifeent(playerent *owner, int millis){
+	ASSERT(owner);
+	knifestate = NS_NONE;
+	local = owner==player1;
+	bounceent::owner = owner;
+	bounceent::millis = lastmillis;
+	timetolive = KNIFETTL-millis;
+	bouncetype = BT_KNIFE;
+	maxspeed = 30.0f;
+	rotspeed = 6.0f;
+	distsincebounce = 0.0f;
+}
+
+knifeent::~knifeent(){
+	if(owner && owner->weapons[GUN_GRENADE]) owner->weapons[GUN_GRENADE]->removebounceent(this);
+}
+
+void knifeent::explode(){
+	if(knifestate!=NS_ACTIVATED && knifestate!=NS_THROWED ) return;
+	knifestate = NS_EXPLODED;
+	static vec n(0,0,0);
+	hits.setsize(0);
+	splash();
+	if(local){
+		int cn = -1;
+		float cdist = 1; // 25cm to hit a player right now...
+		loopv(players){
+			playerent *p = players[i];
+			if(!p) continue;
+			float dist = p->o.dist(o);
+			if(dist >= cdist) continue;
+			cn = p->clientnum;
+			cdist = dist;
+		}
+		addmsg(N_PROJ, "ri3f3", lastmillis, GUN_KNIFE, cn, o.x, o.y, o.z);
+	}
+	//playsound(S_KNIFEGONE, &o);
+}
+
+void knifeent::splash(){
+	particle_splash(0, 50, 300, o);
+	particle_fireball(5, o, owner);
+	addscorchmark(o);
+	adddynlight(NULL, o, 16, 200, 100, 255, 255, 224);
+	adddynlight(NULL, o, 16, 600, 600, 192, 160, 128);
+}
+
+void knifeent::activate(){
+	if(knifestate!=NS_NONE) return;
+	knifestate = NS_ACTIVATED;
+
+	if(local){
+		addmsg(N_SHOOTC, "ri2", millis, GUN_KNIFE);
+		//playsound(S_KNIFEPULL, SP_HIGH);
+	}
+}
+
+void knifeent::_throw(const vec &from, const vec &vel){
+	if(knifestate!=NS_ACTIVATED) return;
+	knifestate = NS_THROWED;
+	this->vel = vel;
+	o = from;
+	resetinterp();
+	inwater = hdr.waterlevel>o.z;
+
+	//if(local) addmsg(N_THROWNADE, "rf6i", o.x, o.y, o.z, vel.x, vel.y, vel.z, lastmillis-millis);
+	//playsound(S_KNIFETHROW, SP_HIGH);
+}
+
+void knifeent::moveoutsidebbox(const vec &direction, playerent *boundingbox){
+	vel = direction;
+	o = boundingbox->o;
+	inwater = hdr.waterlevel>o.z;
+
+	boundingbox->cancollide = false;
+	loopi(10) moveplayer(this, 10, true, 10);
+	boundingbox->cancollide = true;
+}
+
+void knifeent::destroy() { explode(); }
+bool knifeent::applyphysics() { return knifestate==NS_THROWED; }
+
+void knifeent::oncollision(){ destroy(); }
+
+void knifeent::onmoved(const vec &dist){
+	distsincebounce += dist.magnitude();
+}
 
 // knife
 
-knife::knife(playerent *owner) : weapon(owner, GUN_KNIFE) {}
+knife::knife(playerent *owner) : weapon(owner, GUN_KNIFE), inhandknife(NULL), state(GST_NONE) {}
 
 int knife::flashtime() const { return 0; }
 
+//bool knife::busy(){}
+
 bool knife::attack(vec &targ){
 	int attackmillis = lastmillis-owner->lastaction;
+	if(owner->scoping || state){
+		const bool waitdone = attackmillis >= 400;
+		switch(state){
+			case GST_NONE:
+				if(waitdone && owner->scoping && this==owner->weaponsel) activateknife(); // activate
+				break;
+			case GST_INHAND:
+				if(waitdone){
+					if(!owner->scoping || this!=owner->weaponsel) throwknife(); // throw
+					else if(!inhandknife->isalive(lastmillis)) throwknife(true); // muscle spasm
+				}
+				break;
+			case GST_THROWING:
+				if(attackmillis >= 350){
+					reset();
+					addmsg(N_QUICKSWITCH, "r");
+					owner->weaponchanging = lastmillis-1-(weaponchangetime/2);
+					owner->nextweaponsel = owner->weaponsel = owner->primweap;
+					return false;
+				}
+				break;
+		}
+		return true;
+	}
 	if(attackmillis<gunwait) return false;
 	gunwait = reloading = 0;
 
@@ -1134,21 +1245,67 @@ bool knife::attack(vec &targ){
 	return true;
 }
 
+void knife::reset() { state = GST_NONE; }
 bool knife::selectable() { return weapon::selectable() && mag; }
-int knife::modelanim() { return modelattacking() ? ANIM_GUN_SHOOT : ANIM_GUN_IDLE; }
+int knife::modelanim() { 
+	if(state == GST_THROWING) return ANIM_GUN_THROW;
+	else{
+		//int animtime = min(gunwait, (int)info.attackdelay);
+		if(state == GST_INHAND /*|| lastmillis - owner->lastaction < animtime*/) return ANIM_GUN_RELOAD;
+	}
+	return modelattacking() ? ANIM_GUN_SHOOT : ANIM_GUN_IDLE;
+}
+
+void knife::activateknife(){
+	if(!mag) return;
+
+	inhandknife = new knifeent(owner);
+	bounceents.add(inhandknife);
+
+	updatelastaction(owner);
+	mag--;
+	gunwait = info.attackdelay;
+	owner->lastattackweapon = this;
+	state = GST_INHAND;
+	inhandknife->activate();
+}
+
+void knife::throwknife(bool weak){
+	if(!inhandknife) return;
+	const float speed = cosf(RAD*owner->pitch);
+	vec vel(sinf(RAD*owner->yaw)*speed, -cosf(RAD*owner->yaw)*speed, sinf(RAD*owner->pitch));
+	vel.mul(weak ? NADEPOWER : KNIFEPOWER);
+	throwknife(vel);
+}
+
+void knife::throwknife(const vec &vel){
+	inhandknife->moveoutsidebbox(vel, owner);
+	inhandknife->_throw(inhandknife->o, vel);
+	inhandknife = NULL;
+
+	updatelastaction(owner);
+	state = GST_THROWING;
+	if(this==owner->weaponsel) owner->attacking = false;
+}
 
 void knife::drawstats() {}
-void knife::attackfx(const vec &from, const vec &to, int millis) { attacksound(); }
+void knife::renderaimhelp(int teamtype){ if(state) weapon::renderaimhelp(teamtype); }
+void knife::attackfx(const vec &from, const vec &to, int millis) {
+	if(millis < 0 && from.iszero() && to.iszero()) state = GST_INHAND;
+	attacksound();
+}
 void knife::renderstats() { }
 
 
 void setscope(bool enable){
 	if(!player1->state == CS_ALIVE) return;
-	if(ads_gun(player1->weaponsel->type)) player1->scoping = enable;
-	else if(player1->weaponsel->type == GUN_KNIFE){
-		// nothing yet...
+	if(player1->weaponsel->type == GUN_KNIFE){
+		player1->scoping = enable;
 	}
-	addmsg(N_SCOPE, "ri", enable ? 1 : 0);
+	else if(ads_gun(player1->weaponsel->type)){
+		player1->scoping = enable;
+		addmsg(N_SCOPE, "ri", enable ? 1 : 0);
+	}
 }
 
 COMMAND(setscope, ARG_1INT);

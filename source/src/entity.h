@@ -76,6 +76,7 @@ static itemstat powerupstats[] =
 #define NADEPOWER 1.5f
 #define NADETTL 4000
 #define KNIFEPOWER 5
+#define KNIFETTL 10000
 
 #define GIBBLOODMUL 1.5
 
@@ -643,7 +644,7 @@ struct flaginfo
 	flaginfo() : flagent(0), actor(0), state(CTFF_INBASE) {}
 };
 
-enum { BT_NONE, BT_NADE, BT_GIB, BT_SHELL };
+enum { BT_NONE, BT_NADE, BT_GIB, BT_SHELL, BT_KNIFE };
 
 struct bounceent : physent // nades, gibs
 {
@@ -676,7 +677,7 @@ struct grenadeent : bounceent
 	float distsincebounce;
 	grenadeent(playerent *owner, int millis = 0);
 	~grenadeent();
-	void activate(const vec &from, const vec &to);
+	void activate();
 	void _throw(const vec &from, const vec &vel);
 	void explode();
 	void splash();
@@ -687,3 +688,20 @@ struct grenadeent : bounceent
 	void onmoved(const vec &dist);
 };
 
+struct knifeent : bounceent
+{
+	bool local;
+	int knifestate;
+	float distsincebounce;
+	knifeent(playerent *owner, int millis = 0);
+	~knifeent();
+	void activate();
+	void _throw(const vec &from, const vec &vel);
+	void explode();
+	void splash();
+	virtual void destroy();
+	virtual bool applyphysics();
+	void moveoutsidebbox(const vec &direction, playerent *boundingbox);
+	void oncollision();
+	void onmoved(const vec &dist);
+};

@@ -3,8 +3,8 @@
 $model "models/players/model/model.md3"
 // reference frame
 //$frames -1 -1
-// frame 1-5
-$frames 1 5
+// frame 1-7
+$frames 1 7
 $flags 0
 $numskins 0
 

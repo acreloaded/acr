@@ -66,14 +66,13 @@ struct grenades : weapon
 {
 	grenadeent *inhandnade;
 	const int throwwait;
-	int throwmillis;
 	int state;
 
 	grenades(playerent *owner);
 	bool attack(vec &targ);
 	void attackfx(const vec &from, const vec &to, int millis);
 	int modelanim();
-	void activatenade(const vec &to);
+	void activatenade();
 	void thrownade();
 	void thrownade(const vec &vel);
 	void dropnade();
@@ -174,19 +173,27 @@ struct akimbo : gun
 	bool timerout();
 };
 
+struct knifeent;
 
 struct knife : weapon
 {
 	knife(playerent *owner);
+	knifeent *inhandknife;
+	int state;
 
 	bool attack(vec &targ);
+	void reset();
 	bool selectable();
 	int modelanim();
+
+	void activateknife();
+	void throwknife(bool weak = false);
+	void throwknife(const vec &vel);
 
 	void drawstats();
 	void attackfx(const vec &from, const vec &to, int millis);
 	void renderstats();
-	void renderaimhelp(int teamtype){}
+	void renderaimhelp(int teamtype);
 
 	int flashtime() const;
 };
