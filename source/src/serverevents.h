@@ -7,26 +7,36 @@ void processevent(client &c, projevent &e)
 	{
 		case GUN_GRENADE:
 			if(!gs.grenades.remove(e.proj)/* || e.id - e.proj < NADETTL*/) return;
+			loopv(clients){
+				client &target = *clients[i];
+				if(target.type == ST_EMPTY || target.state.state != CS_ALIVE) continue;
+				float dist = target.state.o.dist(e.o);
+				if(dist >= guns[e.gun].endrange) continue;
+				ushort dmg = effectiveDamage(e.gun, dist, DAMAGESCALE, true);
+				gs.damage += dmg;
+				serverdamage(&target, &c, dmg, e.gun, FRAG_GIB, e.o);
+			}
 			break;
 
 		case GUN_KNIFE:
 			if(gs.mag[GUN_KNIFE] || !gs.ammo[GUN_KNIFE]) return;
 			gs.ammo[GUN_KNIFE]--;
-			return;
+			if(e.proj < 0 || !valid_client(e.proj) || !clients[e.proj]->state.isalive(gamemillis)){
+				
+
+			}
+			else{
+				ushort dmg = effectiveDamage(GUN_KNIFE, 0, DAMAGESCALE);
+				gs.damage += dmg;
+				client &target = *clients[e.proj];
+				serverdamage(&target, &c, dmg, GUN_KNIFE, FRAG_OVER, vec(0, 0, 0));
+			}
+			break;
 
 		default:
 			return;
 	}
 	gs.shotdamage += effectiveDamage(e.gun, 0, DAMAGESCALE, true);
-	loopv(clients){
-		client &target = *clients[i];
-		if(target.type == ST_EMPTY || target.state.state != CS_ALIVE) continue;
-		float dist = target.state.o.dist(e.o);
-		if(dist >= guns[e.gun].endrange) continue;
-		ushort dmg = effectiveDamage(e.gun, dist, DAMAGESCALE, true);
-		gs.damage += dmg;
-		serverdamage(&target, &c, dmg, e.gun, true, e.o);
-	}
 }
 
 void processevent(client &c, shotevent &e)
@@ -115,14 +125,16 @@ void processevent(client &c, shotevent &e)
 				if(e.gun!=GUN_SHOTGUN){
 					if(h.info == 1) damage *= 0.67;
 					else if(h.info == 2) damage *= e.gun == GUN_SNIPER || e.gun == GUN_BOLT || e.gun == GUN_KNIFE ? 5 : 2.5;
-				} else if(h.info & 0x80) gib = true;
+				}// else if(h.info & 0x80) gib = true;
 				if(e.gun == GUN_KNIFE && !isteam((&c), target)){
 					target->state.cutter = c.clientnum;
 					target->state.lastcut = gamemillis;
 				}
 				if(m_expert && !gib && e.gun != GUN_KNIFE) continue;
+				int style = gib ? FRAG_GIB : FRAG_NONE;
+				if(e.gun == GUN_KNIFE && h.info == 2) style |= FRAG_OVER;
 				gs.damage += damage;
-				serverdamage(target, &c, damage, e.gun, gib, gs.o);
+				serverdamage(target, &c, damage, e.gun, style, gs.o);
 			}
 			break;
 		}
@@ -183,7 +195,7 @@ void processevents()
 				if(c.state.lastcut + 500 < gamemillis && valid_client(c.state.cutter)){
 					c.state.damage += 10;
 					c.state.shotdamage += 10;
-					serverdamage(&c, clients[c.state.cutter], 10, GUN_KNIFE, false, clients[c.state.cutter]->state.o);
+					serverdamage(&c, clients[c.state.cutter], 10, GUN_KNIFE, FRAG_NONE, clients[c.state.cutter]->state.o);
 					c.state.lastcut = gamemillis;
 				}
 			}

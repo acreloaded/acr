@@ -1295,12 +1295,12 @@ void forcedeath(client *cl, bool gib = false){
 	sendf(-1, 1, "ri2", gib ? N_FORCEGIB : N_FORCEDEATH, cl->clientnum);
 }
 
-void serverdamage(client *target, client *actor, int damage, int gun, bool gib, const vec &source){
-	if(!target || !actor) return;
+void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source){
+	if(!target || !actor || !damage) return;
 	clientstate &ts = target->state;
 	if(target!=actor){
 		if(isteam(actor, target)){
-			serverdamage(actor, actor, damage * 0.4, NUMGUNS, true, source);
+			serverdamage(actor, actor, damage * 0.4, NUMGUNS, FRAG_GIB, source);
 			if((damage *= 0.25) >= target->state.health) damage = target->state.health - 1; // no more TKs!
 			if(!damage) return;
 			if(isdedicated && actor->type == ST_TCPIP && actor->priv < PRIV_ADMIN){
@@ -1325,7 +1325,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 	if(target->state.damagelog.find(actor->clientnum) < 0) target->state.damagelog.add(actor->clientnum);
 	ts.dodamage(damage);
 	ts.lastregen = gamemillis + REGENDELAY - REGENINT;
-	int style = (gib ? FRAG_GIB : FRAG_NONE) | (gun == GUN_KNIFE && damage == guns[GUN_KNIFE].damage*5 ? FRAG_OVER : FRAG_NONE);
+	const bool gib = style & FRAG_GIB;
 	/*/ TODO: add critical!
 	if(!suic){
 	
@@ -3011,7 +3011,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_SUICIDE:
 			{
-				if(cl->state.state == CS_ALIVE) serverdamage(cl, cl, 1000 * DAMAGESCALE, GUN_KNIFE, true, cl->state.o);
+				if(cl->state.state == CS_ALIVE) serverdamage(cl, cl, 1000 * DAMAGESCALE, GUN_KNIFE, FRAG_GIB, cl->state.o);
 				break;
 			}
 
@@ -3046,11 +3046,15 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				}
 				seteventmillis(shot.shot);
 				shot.shot.gun = getint(p);
+				shot.shot.compact = type == N_SHOOTC;
 				if(type == N_SHOOT){
 					loopk(3) shot.shot.to[k] = getfloat(p);
 					int hitcount = getint(p);
 					if(hitcount < 1) break;
-					while(hitcount-- > SGRAYS) loopk(3) getint(p);
+					if(hitcount > SGRAYS){
+						loopk((hitcount - SGRAYS) * 3) getint(p);
+						hitcount = SGRAYS;
+					}
 					while(hitcount--){
 						gameevent &hit = cl->addevent();
 						hit.type = GE_HIT;
@@ -3058,9 +3062,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						hit.hit.lifesequence = getint(p);
 						hit.hit.info = getint(p);
 					}
-				}
-				else if(type == N_SHOOTC){
-					shot.shot.compact = true;
 				}
 				break;
 			}
