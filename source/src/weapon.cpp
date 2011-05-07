@@ -1159,8 +1159,8 @@ void knifeent::_throw(const vec &from, const vec &vel){
 	resetinterp();
 	inwater = hdr.waterlevel>o.z;
 
-	//if(local) addmsg(N_THROWNADE, "rf6i", o.x, o.y, o.z, vel.x, vel.y, vel.z, lastmillis-millis);
-	//playsound(S_KNIFETHROW, SP_HIGH);
+	if(local) addmsg(N_THROWKNIFE, "rf6", o.x, o.y, o.z, vel.x, vel.y, vel.z);
+	playsound(S_GRENADETHROW, SP_HIGH);
 }
 
 void knifeent::moveoutsidebbox(const vec &direction, playerent *boundingbox){
@@ -1286,8 +1286,17 @@ void knife::throwknife(const vec &vel){
 void knife::drawstats() {}
 void knife::renderaimhelp(int teamtype){ if(state) weapon::renderaimhelp(teamtype); }
 void knife::attackfx(const vec &from, const vec &to, int millis) {
-	if(millis < 0 && from.iszero() && to.iszero()) state = GST_INHAND;
-	attacksound();
+	if(from.iszero() && to.iszero()){
+		state = GST_INHAND;
+		playsound(S_GRENADEPULL, owner, SP_HIGH);
+	}
+	else if(millis){
+		knifeent *g = new knifeent(owner);
+		state = GST_THROWING;
+		bounceents.add(g);
+		g->_throw(from, to);
+	}
+	else attacksound();
 }
 void knife::renderstats() { }
 

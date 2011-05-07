@@ -426,6 +426,18 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
+			case N_THROWKNIFE:
+			{
+				vec from, to;
+				loopk(3) from[k] = getfloat(p);
+				loopk(3) to[k] = getfloat(p);
+				if(!d) break;
+				updatelastaction(d);
+				d->lastattackweapon = d->weapons[GUN_KNIFE];
+				if(d->weapons[GUN_KNIFE]) d->weapons[GUN_KNIFE]->attackfx(from, to, 1);
+				break;
+			}
+
 			case N_THROWNADE:
 			{
 				vec from, to;

@@ -93,6 +93,7 @@ void processevent(client &c, shotevent &e)
 		case GUN_GRENADE: gs.grenades.add(e.id); break;
 		case GUN_KNIFE:
 			if(e.compact){
+				gs.knifethrowables++;
 				gs.mag[GUN_KNIFE]--;
 				break;
 			}
