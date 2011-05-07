@@ -20,17 +20,22 @@ void processevent(client &c, projevent &e)
 
 		case GUN_KNIFE:
 			if(gs.mag[GUN_KNIFE] || !gs.ammo[GUN_KNIFE]) return;
-			gs.ammo[GUN_KNIFE]--;
-			if(e.proj < 0 || !valid_client(e.proj) || !clients[e.proj]->state.isalive(gamemillis)){
-				
-
+			gs.ammo[GUN_KNIFE] = 0;
+			if(e.proj < 0 || !valid_client(e.proj) || !clients[e.proj]->state.state == CS_ALIVE){
+				gs.knifepos = vec(e.o);
 			}
 			else{
 				ushort dmg = effectiveDamage(GUN_KNIFE, 0, DAMAGESCALE);
-				gs.damage += dmg;
+				gs.damage += dmg * 2;
 				client &target = *clients[e.proj];
-				serverdamage(&target, &c, dmg, GUN_KNIFE, FRAG_OVER, vec(0, 0, 0));
+				serverdamage(&target, &c, dmg * 2, GUN_KNIFE, FRAG_OVER, vec(0, 0, 0));
+				if(target.state.state == CS_ALIVE && !isteam((&target), (&c))){
+					target.state.cutter = c.clientnum;
+					target.state.lastcut = gamemillis;
+				}
+				gs.knifepos = target.state.o;
 			}
+			// send knife hit message?
 			break;
 
 		default:

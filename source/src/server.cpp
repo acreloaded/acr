@@ -123,7 +123,7 @@ struct projectilestate
 
 struct clientstate : playerstate
 {
-	vec o, aim, vel, lasto, sg[SGRAYS], flagpickupo;
+	vec o, aim, vel, knifepos, lasto, sg[SGRAYS], flagpickupo;
 	int state, lastomillis;
 	int lastdeath, lastffkill, lastspawn, lifesequence;
 	int lastshot, lastregen;
@@ -160,7 +160,7 @@ struct clientstate : playerstate
 	{
 		playerstate::respawn();
 		o = lasto = vec(-1e10f, -1e10f, -1e10f);
-		aim = vel = vec(0, 0, 0);
+		aim = vel = knifepos = vec(0, 0, 0);
 		lastomillis = 0;
 		lastspawn = -1;
 		lastdeath = lastshot = lastregen = 0;
@@ -2743,6 +2743,11 @@ void checkmove(client &cp){
 			else if(f.state == CTFF_DROPPED) flagaction(i, FA_SCORE, sender);
 		}
 		else if(m_ktf && f.state == CTFF_INBASE) flagaction(i, FA_PICKUP, sender);
+	}
+	// throwing knife pickup
+	if(!cs.ammo[GUN_KNIFE] && cs.knifepos.dist(cs.o) < 2){
+		cs.mag[GUN_KNIFE] = cs.ammo[GUN_KNIFE] = 1;
+		sendf(-1, 1, "ri5", N_RELOAD, sender, GUN_KNIFE, 1, 1);
 	}
 }
 
