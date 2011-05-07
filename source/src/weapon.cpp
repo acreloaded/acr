@@ -1107,7 +1107,7 @@ knifeent::knifeent(playerent *owner, int millis){
 	yaw = owner->yaw;
 	pitch = owner->pitch;
 	roll = owner->roll;
-	rotspeed = 0.1f;
+	rotspeed = 0;
 }
 
 knifeent::~knifeent(){
