@@ -626,7 +626,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 				}
 				else if(ppl->wantsswitch >= 0){
 					ppl->weaponswitch(ppl->weapons[ppl->wantsswitch]);
-					setscope(true);
+					if(ads_gun(ppl->wantsswitch)) setscope(true);
 				}
 			}
 		}
