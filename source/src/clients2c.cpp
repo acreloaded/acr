@@ -502,7 +502,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_KILL:
 			{
-				int vcn = getint(p), acn = getint(p), frags = getint(p), weap = getint(p), style = getint(p) & FRAG_SERVER, damage = getint(p), assists = getint(p) & 0xFF;
+				int vcn = getint(p), acn = getint(p), frags = getint(p), weap = getint(p), style = getint(p) & FRAG_VALID, damage = getint(p), assists = getint(p) & 0xFF;
 				float killdist = getfloat(p);
 				playerent *victim = getclient(vcn), *actor = getclient(acn);
 				if(actor) actor->frags = frags;
