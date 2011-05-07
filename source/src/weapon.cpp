@@ -1137,10 +1137,6 @@ void knifeent::explode(){
 
 void knifeent::splash(){
 	particle_splash(0, 50, 300, o);
-	particle_fireball(5, o, owner);
-	addscorchmark(o);
-	adddynlight(NULL, o, 16, 200, 100, 255, 255, 224);
-	adddynlight(NULL, o, 16, 600, 600, 192, 160, 128);
 }
 
 void knifeent::activate(){
