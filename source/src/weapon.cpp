@@ -1132,7 +1132,7 @@ void knifeent::explode(){
 		}
 		addmsg(N_PROJ, "ri3f3", lastmillis, GUN_KNIFE, cn, o.x, o.y, o.z);
 	}
-	//playsound(S_KNIFEGONE, &o);
+	playsound(S_GRENADEBOUNCE1+rnd(2), &o);
 }
 
 void knifeent::splash(){
@@ -1174,7 +1174,9 @@ void knifeent::moveoutsidebbox(const vec &direction, playerent *boundingbox){
 void knifeent::destroy() { explode(); }
 bool knifeent::applyphysics() { return knifestate==NS_THROWED; }
 
-void knifeent::oncollision(){ destroy(); }
+void knifeent::oncollision(){
+	destroy();
+}
 
 void knifeent::onmoved(const vec &dist){
 	distsincebounce += dist.magnitude();
