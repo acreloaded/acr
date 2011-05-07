@@ -693,7 +693,7 @@ void grenadeent::explode(){
 	static vec n(0,0,0);
 	hits.setsize(0);
 	splash();
-	if(local) addmsg(N_EXPLODE, "ri3f3", lastmillis, GUN_GRENADE, millis, o.x, o.y, o.z);
+	if(local) addmsg(N_PROJ, "ri3f3", lastmillis, GUN_GRENADE, millis, o.x, o.y, o.z);
 	playsound(S_FEXPLODE, &o);
 }
 

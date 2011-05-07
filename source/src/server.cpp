@@ -3065,7 +3065,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				break;
 			}
 
-			case N_EXPLODE:
+			case N_PROJ:
 			{
 				gameevent &exp = cl->addevent();
 				exp.type = GE_EXPLODE;
