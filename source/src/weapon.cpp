@@ -1174,9 +1174,7 @@ void knifeent::moveoutsidebbox(const vec &direction, playerent *boundingbox){
 void knifeent::destroy() { explode(); }
 bool knifeent::applyphysics() { return knifestate==NS_THROWED; }
 
-void knifeent::oncollision(){
-	destroy();
-}
+void knifeent::oncollision(){ explode(); }
 
 void knifeent::onmoved(const vec &dist){
 	distsincebounce += dist.magnitude();

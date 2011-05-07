@@ -447,7 +447,16 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				p->ammo[gun] = ammo;
 				p->mag[gun] = mag;
 				if(guns[gun].reload != S_NULL) playsound(guns[gun].reload, p, p == player1 ? SP_HIGH : SP_NORMAL);
-				if(gun == GUN_KNIFE) p->addicon(eventicon::PICKUP);
+				if(gun == GUN_KNIFE){
+					p->addicon(eventicon::PICKUP);
+					loopv(bounceents){
+						bounceent *b = bounceents[i];
+						if(!b || b->owner != p || b->bouncetype != BT_KNIFE) continue;
+						b->destroy();
+						delete b;
+						bounceents.remove(i--);
+					}
+				}
 				break;
 			}
 
