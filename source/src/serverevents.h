@@ -29,7 +29,7 @@ void processevent(client &c, projevent &e)
 				gs.damage += dmg;
 				client &target = *clients[e.proj];
 				serverdamage(&target, &c, dmg, GUN_KNIFE, FRAG_OVER, vec(0, 0, 0));
-				if(c.state.state == CS_ALIVE && !isteam((&target), (&c))){
+				if(target.state.state == CS_ALIVE && !isteam((&target), (&c))){
 					target.state.cutter = c.clientnum;
 					target.state.lastcut = gamemillis;
 				}
