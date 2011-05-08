@@ -1111,7 +1111,7 @@ knifeent::knifeent(playerent *owner, int millis){
 }
 
 knifeent::~knifeent(){
-	if(owner && owner->weapons[GUN_GRENADE]) owner->weapons[GUN_GRENADE]->removebounceent(this);
+	//if(owner && owner->weapons[GUN_KNIFE]) owner->weapons[GUN_KNIFE]->removebounceent(this);
 }
 
 void knifeent::explode(){
@@ -1197,7 +1197,7 @@ bool knife::attack(vec &targ){
 			case GST_INHAND:
 				if(waitdone){
 					if(!owner->scoping || this!=owner->weaponsel) throwknife(); // throw
-					else if(!owner->state == CS_ALIVE || !inhandknife->isalive(lastmillis)) throwknife(true); // muscle spasm
+					else if(!inhandknife->isalive(lastmillis)) throwknife(true); // muscle spasm
 				}
 				break;
 			case GST_THROWING:
@@ -1249,6 +1249,11 @@ int knife::modelanim() {
 		if(state == GST_INHAND /*|| lastmillis - owner->lastaction < animtime*/) return ANIM_GUN_RELOAD;
 	}
 	return modelattacking() ? ANIM_GUN_SHOOT : ANIM_GUN_IDLE;
+}
+
+void knife::onownerdies(){
+	reset();
+	if(owner == player1 && inhandknife) throwknife(true);
 }
 
 void knife::activateknife(){

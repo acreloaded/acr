@@ -194,6 +194,7 @@ struct knife : weapon
 	void attackfx(const vec &from, const vec &to, int millis);
 	void renderstats();
 	void renderaimhelp(int teamtype);
+	void onownerdies();
 
 	int flashtime() const;
 };
