@@ -1120,20 +1120,7 @@ void knifeent::explode(){
 	static vec n(0,0,0);
 	hits.setsize(0);
 	splash();
-	if(local){
-		int cn = -1;
-		float cdist = 10; // 2.5m to hit a player right now...
-		// needs better check?
-		loopv(players){
-			playerent *p = players[i];
-			if(!p || p == owner) continue;
-			float dist = p->o.dist(o);
-			if(dist >= cdist) continue;
-			cn = p->clientnum;
-			cdist = dist;
-		}
-		addmsg(N_PROJ, "ri3f3", lastmillis, GUN_KNIFE, cn, o.x, o.y, o.z);
-	}
+	if(local) addmsg(N_PROJ, "ri3f3", lastmillis, GUN_KNIFE, millis, o.x, o.y, o.z);
 	playsound(S_GRENADEBOUNCE1+rnd(2), &o);
 }
 

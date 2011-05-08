@@ -19,24 +19,35 @@ void processevent(client &c, projevent &e)
 			break;
 
 		case GUN_KNIFE:
+		{
 			if(gs.mag[GUN_KNIFE] || !gs.ammo[GUN_KNIFE]) return;
 			gs.ammo[GUN_KNIFE] = 0;
-			if(e.proj < 0 || c.clientnum == e.proj || !valid_client(e.proj) || !clients[e.proj]->state.state == CS_ALIVE){
-				gs.knifepos = vec(e.o);
+
+			gs.knifepos = vec(e.o);
+			gs.knifemillis = servmillis;
+
+			client *bestc = NULL;
+			float bdist = 8; // 2m to hit a player right now...
+			// needs better check?
+			loopv(clients){
+				client &target = *clients[i];
+				if(target.type == ST_EMPTY || &target == &c || target.state.state != CS_ALIVE) continue;
+				float dist = gs.knifepos.dist(target.state.o);
+				if(dist >= bdist) continue;
+				bdist = dist;
+				bestc = &target;
 			}
-			else{
+			if(bestc){
 				ushort dmg = effectiveDamage(GUN_KNIFE, 0, DAMAGESCALE);
 				gs.damage += dmg;
-				client &target = *clients[e.proj];
-				serverdamage(&target, &c, dmg, GUN_KNIFE, FRAG_OVER, vec(0, 0, 0));
-				if(target.state.state == CS_ALIVE && !isteam((&target), (&c))){
-					target.state.cutter = c.clientnum;
-					target.state.lastcut = gamemillis;
+				serverdamage(bestc, &c, dmg, GUN_KNIFE, FRAG_OVER, vec(0, 0, 0));
+				if(bestc->state.state == CS_ALIVE && !isteam(bestc, (&c))){
+					bestc->state.cutter = c.clientnum;
+					bestc->state.lastcut = gamemillis;
 				}
-				gs.knifepos = target.state.o;
 			}
-			gs.knifemillis = servmillis;
 			break;
+		}
 
 		default:
 			return;
@@ -93,7 +104,7 @@ void processevent(client &c, shotevent &e)
 		case GUN_GRENADE: gs.grenades.add(e.id); break;
 		case GUN_KNIFE:
 			if(e.compact){
-				gs.knifethrowables++;
+				gs.knives.add(e.id);
 				gs.mag[GUN_KNIFE]--;
 				break;
 			}

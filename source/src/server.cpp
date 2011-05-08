@@ -124,10 +124,10 @@ struct projectilestate
 struct clientstate : playerstate
 {
 	vec o, aim, vel, knifepos, lasto, sg[SGRAYS], flagpickupo;
-	int state, lastomillis, knifemillis, knifethrowables;
+	int state, lastomillis, knifemillis;
 	int lastdeath, lastffkill, lastspawn, lifesequence;
 	int lastshot, lastregen;
-	projectilestate<2> grenades;
+	projectilestate<2> grenades, knives;
 	int akimbos, akimbomillis;
 	int points, flagscore, frags, deaths, shotdamage, damage, friendlyfire;
 
@@ -150,6 +150,7 @@ struct clientstate : playerstate
 		state = CS_DEAD;
 		lifesequence = -1;
 		grenades.reset();
+		knives.reset();
 		akimbos = 0;
 		akimbomillis = 0;
 		points = flagscore = frags = deaths = shotdamage = damage = lastffkill = friendlyfire = 0;
@@ -161,7 +162,7 @@ struct clientstate : playerstate
 		playerstate::respawn();
 		o = lasto = vec(-1e10f, -1e10f, -1e10f);
 		aim = vel = knifepos = vec(0, 0, 0);
-		lastomillis = knifemillis = knifethrowables = 0;
+		lastomillis = knifemillis = 0;
 		lastspawn = -1;
 		lastdeath = lastshot = lastregen = 0;
 		akimbos = akimbomillis = 0;
@@ -3119,8 +3120,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				vec from, vel;
 				loopi(3) from[i] = getfloat(p);
 				loopi(3) vel[i] = getfloat(p);
-				if(cl->state.knifethrowables <= 0) break;
-				cl->state.knifethrowables--;
+				if(cl->state.knives.throwable <= 0) break;
+				cl->state.knives.throwable--;
 				loopi(2) from[i] = clamp(from[i], 0.f, (1 << maplayout_factor) - 1.f);
 				if(maplayout && maplayout[((int)from.x) + (((int)from.y) << maplayout_factor)] > from.z + 3)
 					from.z = maplayout[((int)from.x) + (((int)from.y) << maplayout_factor)] - 3;
