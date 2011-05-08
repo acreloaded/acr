@@ -1173,7 +1173,7 @@ void knifeent::moveoutsidebbox(const vec &direction, playerent *boundingbox){
 	boundingbox->cancollide = true;
 }
 
-void knifeent::destroy() { explode(); }
+void knifeent::destroy() { /*explode();*/ }
 bool knifeent::applyphysics() { return knifestate==NS_THROWED; }
 
 void knifeent::oncollision(){ explode(); }
