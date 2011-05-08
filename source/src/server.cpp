@@ -1240,7 +1240,7 @@ void sendtext(char *text, client &cl, int flags, int voice){
 	putint(p, (voice & 0x1F) | flags << 5);
 	sendstring(text, p);
 	enet_packet_resize(packet, p.length());
-	loopv(clients) if(!(flags&SAY_TEAM) || clients[i]->team == cl.team || clients[i]->priv) sendpacket(i, 1, packet);
+	loopv(clients) if(!(flags&SAY_TEAM) || clients[i]->team == cl.team || clients[i]->priv >= PRIV_ADMIN) sendpacket(i, 1, packet);
 	recordpacket(1, packet->data, (int)packet->dataLength);
 	if(!packet->referenceCount) enet_packet_destroy(packet);
 }
