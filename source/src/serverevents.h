@@ -130,7 +130,7 @@ void processevent(client &c, shotevent &e)
 				else gib = e.gun==GUN_KNIFE || h.info == 2;
 				if(e.gun!=GUN_SHOTGUN){
 					if(h.info == 1 && e.gun != GUN_BOLT) damage *= 0.67;
-					else if(h.info == 2) damage *= e.gun == GUN_SNIPER || e.gun == GUN_BOLT || e.gun == GUN_KNIFE ? 5 : 2.5;
+					else if(h.info == 2) damage *= e.gun == GUN_SNIPER || e.gun == GUN_BOLT || e.gun == GUN_KNIFE ? 5 : 3.5f;
 				}// else if(h.info & 0x80) gib = true;
 				if(e.gun == GUN_KNIFE && !isteam((&c), target)){
 					target->state.cutter = c.clientnum;
