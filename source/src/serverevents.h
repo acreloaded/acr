@@ -34,7 +34,7 @@ void processevent(client &c, projevent &e)
 				client &target = *clients[i];
 				clientstate &ts = target.state;
 				if(target.type == ST_EMPTY || &target == &c || ts.state != CS_ALIVE ||
-					!inplayer(gs.knifepos, ts.o, .7f, 4.5f, PLAYERRADIUS)) continue;
+					!inplayer(gs.knifepos, ts.o, .35f, PLAYERHEIGHT, PLAYERRADIUS)) continue;
 				gs.damage += dmg;
 				serverdamage(&target, &c, dmg, GUN_KNIFE, FRAG_OVER, vec(0, 0, 0));
 				if(ts.state == CS_ALIVE && !isteam((&target), (&c))){

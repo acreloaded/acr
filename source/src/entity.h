@@ -445,6 +445,7 @@ struct playerstate
 #define LEGPART (1 - TORSOPART)
 
 #define PLAYERRADIUS 1.1f
+#define PLAYERHEIGHT 4.5f
 
 struct eventicon{
     enum { VOICECOM = 0, HEADSHOT, DECAPITATED, FIRSTBLOOD, CRITICAL, REVENGE, BLEED, PICKUP, TOTAL };
@@ -499,7 +500,7 @@ struct playerent : dynent, playerstate
 		clientnum = smoothmillis = followplayercn = wantsswitch = -1;
 		name[0] = 0;
 		team = TEAM_BLUE;
-		maxeyeheight = 4.5f;
+		maxeyeheight = PLAYERHEIGHT;
 		aboveeye = 0.7f;
 		radius = PLAYERRADIUS;
 		maxspeed = 16.0f;
