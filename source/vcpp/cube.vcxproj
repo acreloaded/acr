@@ -25,6 +25,10 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}</ProjectGuid>
     <RootNamespace>cube</RootNamespace>
+    <SccProjectName>SAK</SccProjectName>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccProvider>SAK</SccProvider>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Standalone Debug|Win32'" Label="Configuration">
@@ -366,7 +370,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\src\auth.h" />
-    <ClInclude Include="..\src\clientpoints.h" />
+    <ClInclude Include="..\src\ballistics.h" />
     <ClInclude Include="..\src\command.h" />
     <ClInclude Include="..\src\console.h" />
     <ClInclude Include="..\src\cube.h" />

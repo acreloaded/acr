@@ -131,9 +131,6 @@
     <ClInclude Include="..\src\points.h">
       <Filter>headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\clientpoints.h">
-      <Filter>headers</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\sha1.h">
       <Filter>headers</Filter>
     </ClInclude>
@@ -144,6 +141,9 @@
       <Filter>headers</Filter>
     </ClInclude>
     <ClInclude Include="..\src\tristrip_t.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ballistics.h">
       <Filter>headers</Filter>
     </ClInclude>
   </ItemGroup>
