@@ -2376,9 +2376,10 @@ void sendwhois(int sender, int cn){
 		uint ip = clients[cn]->peer->address.host;
 		uchar mask = 0;
 		switch(clients[cn]->priv){
-			case PRIV_MAX: case PRIV_ADMIN: mask = 32; break; // f.f.f.f/32 full ip
-			case PRIV_MASTER: mask = 14; break; // f.h/12 - full, three quarters, 2 empty
-			case PRIV_NONE: default: mask = 12; break; // f.h/12 full, half, 2 empty
+			// admins and server owner: f.f.f.f/32 full ip
+			case PRIV_MAX: case PRIV_ADMIN: mask = 32; break;
+			// masters and users: f.f.h/12 full, full, half, empty
+			case PRIV_MASTER: case PRIV_NONE: default: mask = 20; break;
 		}
 		if(mask < 32) ip &= (1 << mask) - 1;
 
