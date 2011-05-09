@@ -1,13 +1,6 @@
 #ifndef BOT_UTIL_H
 #define BOT_UTIL_H
 
-// Structure for storing traceresults
-struct traceresult_s
-{
-	 vec end;
-	 bool collided;
-};
-
 long RandomLong(long from, long to);
 float RandomFloat(float from, float to);
 void lsrand(unsigned long initial_seed);

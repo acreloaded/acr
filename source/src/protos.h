@@ -641,8 +641,14 @@ extern ushort magsize(int gun);
 extern void updatelastaction(playerent *d);
 extern void checkweaponswitch();
 extern void setscope(bool activate);
+enum { HIT_NONE = 0, HIT_TORSO, HIT_LEG, HIT_HEAD };
 extern int intersect(playerent *d, const vec &from, const vec &to, vec *end = NULL);
 extern bool intersect(entity *e, const vec &from, const vec &to, vec *end = NULL);
+// Structure for storing traceresults
+struct traceresult_s{
+	 vec end;
+	 bool collided;
+};
 extern void damageeffect(int damage, playerent *d);
 extern void tryreload(playerent *p);
 extern void checkakimbo();

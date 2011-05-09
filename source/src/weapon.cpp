@@ -135,12 +135,10 @@ void createrays(playerent *owner, vec &to)			 // create random spread of rays fo
 
 int intersect(playerent *d, const vec &from, const vec &to, vec *end){
 	float dist;
-	if(d->head.x >= 0)
-	{
-		if(intersectsphere(from, to, d->head, HEADSIZE, dist))
-		{
+	if(d->head.x >= 0){
+		if(intersectsphere(from, to, d->head, HEADSIZE, dist)){
 			if(end) (*end = to).sub(from).mul(dist).add(from);
-			return 2;
+			return HIT_HEAD;
 		}
 	}
 	float y = d->yaw*RAD, p = (d->pitch/4+90)*RAD, c = cosf(p);
@@ -152,25 +150,17 @@ int intersect(playerent *d, const vec &from, const vec &to, vec *end){
 	if(intersectcylinder(from, to, bottom, top, d->radius, dist))
 	{
 		if(end) (*end = to).sub(from).mul(dist).add(from);
-		return 1;
+		return HIT_TORSO;
 	}
 	// restore to body
 	bottom.sub(top).div(TORSOPART).add(top);
 	// legs
 	top.sub(bottom).mul(LEGPART).add(bottom);
-	if(intersectcylinder(from, to, bottom, top, d->radius, dist))
-	{
+	if(intersectcylinder(from, to, bottom, top, d->radius, dist)){
 		if(end) (*end = to).sub(from).mul(dist).add(from);
-		return 3;
+		return HIT_LEG;
 	}
-	return 0;
-
-#if 0
-	const float eyeheight = d->eyeheight;
-	vec o(d->o);
-	o.z += (d->aboveeye - eyeheight)/2;
-	return intersectbox(o, vec(d->radius, d->radius, (d->aboveeye + eyeheight)/2), from, to, end) ? 1 : 0;
-#endif
+	return HIT_NONE;
 }
 
 bool intersect(entity *e, const vec &from, const vec &to, vec *end){
@@ -185,19 +175,16 @@ playerent *intersectclosest(const vec &from, const vec &to, playerent *at, int &
 	playerent *best = NULL;
 	float bestdist = 1e16f;
 	int zone;
-	if(at!=player1 && player1->state==CS_ALIVE && (zone = intersect(player1, from, to)))
-	{
+	if(at!=player1 && player1->state==CS_ALIVE && (zone = intersect(player1, from, to))){
 		best = player1;
 		bestdist = at->o.dist(player1->o);
 		hitzone = zone;
 	}
-	loopv(players)
-	{
+	loopv(players){
 		playerent *o = players[i];
 		if(!o || o==at || (o->state!=CS_ALIVE && (aiming || (o->state!=CS_EDITING && o->state!=CS_LAGGED)))) continue;
 		float dist = at->o.dist(o->o);
-		if(dist < bestdist && (zone = intersect(o, from, to)))
-		{
+		if(dist < bestdist && (zone = intersect(o, from, to))){
 			best = o;
 			bestdist = dist;
 			hitzone = zone;
@@ -359,6 +346,7 @@ void shorten(vec &from, vec &to, vec &target){
 	target.sub(from).normalize().mul(from.dist(to)).add(from);
 }
 
+/*
 void raydamage(vec &from, vec &to, playerent *d){
 	int hitzone = -1;
 	playerent *o = NULL;
@@ -411,6 +399,7 @@ void raydamage(vec &from, vec &to, playerent *d){
 		hitpush(dam, o, d, from, to, d->weaponsel->type, gib, hitzone==2 ? 2 : hitzone==3 ? 1 : 0);
 	}
 }
+*/
 
 // weapon
 
@@ -830,8 +819,8 @@ bool gun::attack(vec &targ){
 	if(type == GUN_SHOTGUN) createrays(owner, to);
 
 	hits.setsize(0);
-	raydamage(from, to, owner);
-	attackfx(from, to, 0);
+	//raydamage(from, to, owner);
+	//attackfx(from, to, 0);
 
 	gunwait = info.attackdelay;
 	mag--;
@@ -1132,8 +1121,8 @@ bool knife::attack(vec &targ){
 	to.add(unitv);
 
 	hits.setsize(0);
-	raydamage(from, to, owner);
-	attackfx(from, to, 0);
+	//raydamage(from, to, owner);
+	//attackfx(from, to, 0);
 	sendshoot(from, to);
 	gunwait = info.attackdelay;
 	return true;

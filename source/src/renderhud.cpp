@@ -774,7 +774,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	else if(infostr) draw_text(infostr, 20, 1570);
 	else if(targetplayer){
 		s_sprintfd(targetplayername)("\f%d%s \f4[\f%s\f4]", p==targetplayer?1:isteam(p, targetplayer)?0:3, colorname(targetplayer),
-			targetplayerzone==2?"3HEAD":targetplayerzone==1?"2TORSO":"0LEGS");
+			targetplayerzone==HIT_HEAD?"3HEAD":targetplayerzone==HIT_TORSO?"2TORSO":"0LEGS");
 		draw_text(targetplayername, 20, 1570);
 	}
 	else draw_textf("\f0Distance\f2: \f1%.1f\f3m", 20, 1570, p->o.dist(worldpos) / 4.f);
