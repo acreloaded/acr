@@ -446,6 +446,7 @@ struct playerstate
 
 #define PLAYERRADIUS 1.1f
 #define PLAYERHEIGHT 4.5f
+#define PLAYERABOVEEYE .7f
 
 struct eventicon{
     enum { VOICECOM = 0, HEADSHOT, DECAPITATED, FIRSTBLOOD, CRITICAL, REVENGE, BLEED, PICKUP, TOTAL };
@@ -501,7 +502,7 @@ struct playerent : dynent, playerstate
 		name[0] = 0;
 		team = TEAM_BLUE;
 		maxeyeheight = PLAYERHEIGHT;
-		aboveeye = 0.7f;
+		aboveeye = PLAYERABOVEEYE;
 		radius = PLAYERRADIUS;
 		maxspeed = 16.0f;
 		skin_noteam = skin_red = skin_blue = NULL;
