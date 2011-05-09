@@ -206,22 +206,6 @@ void damageeffect(int damage, playerent *d){
 
 vector<hitmsg> hits;
 
-void hit(int damage, playerent *d, playerent *at, const vec &vel, int gun, bool gib, int info){
-	if(d == player1) d->hitpush(damage, vel, gun);
-
-	hitmsg &h = hits.add();
-	h.target = d->clientnum;
-	h.lifesequence = d->lifesequence;
-	h.info = info;
-}
-
-void hitpush(int damage, playerent *d, playerent *at, vec &from, vec &to, int gun, bool gib, int info){
-	vec v(to);
-	v.sub(from);
-	v.normalize();
-	hit(damage, d, at, v, gun, gib, info);
-}
-
 vector<bounceent *> bounceents;
 
 void removebounceents(playerent *owner){
@@ -413,8 +397,6 @@ int weapon::flashtime() const { return min(max((int)info.attackdelay, 180)/3, 15
 
 void weapon::sendshoot(vec &from, vec &to){
 	if(owner!=player1) return;
-	//addmsg(N_SHOOT, "ri2f3iv", lastmillis, owner->weaponsel->type, to.x, to.y, to.z,
-		//hits.length(), hits.length()*sizeof(hitmsg)/sizeof(int), hits.getbuf);
 	static uchar buf[MAXTRANS];
 	ucharbuf p(buf, MAXTRANS);
 	if(type == GUN_SHOTGUN){
@@ -592,7 +574,6 @@ grenadeent::~grenadeent(){
 void grenadeent::explode(){
 	if(nadestate!=NS_ACTIVATED && nadestate!=NS_THROWED ) return;
 	nadestate = NS_EXPLODED;
-	hits.setsize(0);
 	splash();
 	if(local) addmsg(N_PROJ, "ri3f3", lastmillis, GUN_GRENADE, millis, o.x, o.y, o.z);
 	playsound(S_FEXPLODE, &o);
@@ -818,7 +799,6 @@ bool gun::attack(vec &targ){
 	attackphysics(from, to);
 	if(type == GUN_SHOTGUN) createrays(owner, to);
 
-	hits.setsize(0);
 	//raydamage(from, to, owner);
 	//attackfx(from, to, 0);
 
@@ -1019,7 +999,6 @@ void knifeent::explode(){
 	if(knifestate!=NS_ACTIVATED && knifestate!=NS_THROWED ) return;
 	knifestate = NS_EXPLODED;
 	static vec n(0,0,0);
-	hits.setsize(0);
 	splash();
 	if(local) addmsg(N_PROJ, "ri3f3", lastmillis, GUN_KNIFE, millis, o.x, o.y, o.z);
 	playsound(S_GRENADEBOUNCE1+rnd(2), &o);
@@ -1120,7 +1099,6 @@ bool knife::attack(vec &targ){
 	to = from;
 	to.add(unitv);
 
-	hits.setsize(0);
 	//raydamage(from, to, owner);
 	//attackfx(from, to, 0);
 	sendshoot(from, to);
