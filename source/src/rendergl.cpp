@@ -852,8 +852,8 @@ void readdepth(int w, int h, vec &pos){
 	invmvpmatrix.transform(screen, world);
 	pos = vec(world.x, world.y, world.z).div(world.w);
 	traceresult_s tr;
-	pos.sub(camera1->o).normalize().mul(1000).add(camera1->o);
-	TraceLine(camera1->o, pos, gamefocus, true, &tr);
+	pos.sub(camera1->o).normalize().mul(ssize*2).add(camera1->o);
+	TraceLine(camera1->o, pos, gamefocus, false, &tr);
 	pos = tr.end;
 }
 
