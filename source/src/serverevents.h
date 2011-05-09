@@ -1,3 +1,5 @@
+#include "ballistics.h"
+
 // processing of server events
 
 void processevent(client &c, projevent &e)
@@ -26,24 +28,18 @@ void processevent(client &c, projevent &e)
 			gs.knifepos = vec(e.o);
 			gs.knifemillis = servmillis;
 
-			client *bestc = NULL;
-			float bdist = 8; // 2m to hit a player right now...
-			// needs better check?
+			ushort dmg = effectiveDamage(GUN_KNIFE, 0, DAMAGESCALE);
+			
 			loopv(clients){
 				client &target = *clients[i];
-				if(target.type == ST_EMPTY || &target == &c || target.state.state != CS_ALIVE) continue;
-				float dist = gs.knifepos.dist(target.state.o);
-				if(dist >= bdist) continue;
-				bdist = dist;
-				bestc = &target;
-			}
-			if(bestc){
-				ushort dmg = effectiveDamage(GUN_KNIFE, 0, DAMAGESCALE);
+				clientstate &ts = target.state;
+				if(target.type == ST_EMPTY || &target == &c || ts.state != CS_ALIVE ||
+					!inplayer(gs.knifepos, ts.o, .7f, 4.5f, 1.1)) continue;
 				gs.damage += dmg;
-				serverdamage(bestc, &c, dmg, GUN_KNIFE, FRAG_OVER, vec(0, 0, 0));
-				if(bestc->state.state == CS_ALIVE && !isteam(bestc, (&c))){
-					bestc->state.cutter = c.clientnum;
-					bestc->state.lastcut = gamemillis;
+				serverdamage(&target, &c, dmg, GUN_KNIFE, FRAG_OVER, vec(0, 0, 0));
+				if(ts.state == CS_ALIVE && !isteam((&target), (&c))){
+					ts.cutter = c.clientnum;
+					ts.lastcut = gamemillis;
 				}
 			}
 			break;
@@ -248,4 +244,3 @@ void processevents()
 		}
 	}
 }
-

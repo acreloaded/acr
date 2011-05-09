@@ -1,5 +1,4 @@
-static inline bool intersectbox(const vec &o, const vec &rad, const vec &from, const vec &to, vec *end) // if lineseg hits entity bounding box
-{
+static inline bool intersectbox(const vec &o, const vec &rad, const vec &from, const vec &to, vec *end){ // if line segment hits entity bounding box
 	const vec *p;
 	vec v = to, w = o;
 	v.sub(from);
@@ -86,4 +85,11 @@ static inline bool intersectcylinder(const vec &from, const vec &to, const vec &
 		if(k + dd - 2*md + dist*(2*(mn-nd) + dist*nn) > 0) return false;
 	}
 	return dist >= 0 && dist <= 1;
+}
+
+static inline bool inplayer(const vec &location, const vec &target, float above, float below, float radius){
+	// check for z
+	if(location.z > target.z + above || target.z > target.z + below) return false;
+	// check for xy
+	return radius > target.distxy(location);
 }
