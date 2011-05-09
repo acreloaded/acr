@@ -843,8 +843,7 @@ inline float depthcorrect(float d){
 // find out the 3d target of the crosshair in the world easily and very acurately.
 // sadly many very old cards and drivers appear to fuck up on glReadPixels() and give false
 // coordinates, making shooting and such impossible.
-// also hits map entities which is unwanted.
-// could be replaced by a more acurate version of monster.cpp los() if needed
+// NO LONGER hits map entities which is GOOD
 
 void readdepth(int w, int h, vec &pos){
 	glReadPixels(w/2, h/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &cursordepth);
@@ -852,6 +851,10 @@ void readdepth(int w, int h, vec &pos){
 	vec4 world;
 	invmvpmatrix.transform(screen, world);
 	pos = vec(world.x, world.y, world.z).div(world.w);
+	traceresult_s tr;
+	pos.sub(camera1->o).normalize().mul(1000).add(camera1->o);
+	TraceLine(camera1->o, pos, gamefocus, true, &tr);
+	pos = tr.end;
 }
 
 void gl_drawframe(int w, int h, float changelod, float curfps){
