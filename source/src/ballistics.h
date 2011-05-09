@@ -86,10 +86,3 @@ static inline bool intersectcylinder(const vec &from, const vec &to, const vec &
 	}
 	return dist >= 0 && dist <= 1;
 }
-
-static inline bool inplayer(const vec &location, const vec &target, float above, float below, float radius, float tolerance){
-	// check for z
-	if(location.z > target.z + above*tolerance || target.z > location.z + below*tolerance) return false;
-	// check for xy
-	return radius*tolerance > target.distxy(location);
-}
