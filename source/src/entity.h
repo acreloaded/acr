@@ -444,6 +444,8 @@ struct playerstate
 #define TORSOPART 0.35f
 #define LEGPART (1 - TORSOPART)
 
+#define PLAYERRADIUS 1.1f
+
 struct eventicon{
     enum { VOICECOM = 0, HEADSHOT, DECAPITATED, FIRSTBLOOD, CRITICAL, REVENGE, BLEED, PICKUP, TOTAL };
     int type, millis;
@@ -499,7 +501,7 @@ struct playerent : dynent, playerstate
 		team = TEAM_BLUE;
 		maxeyeheight = 4.5f;
 		aboveeye = 0.7f;
-		radius = 1.1f;
+		radius = PLAYERRADIUS;
 		maxspeed = 16.0f;
 		skin_noteam = skin_red = skin_blue = NULL;
 		respawn();

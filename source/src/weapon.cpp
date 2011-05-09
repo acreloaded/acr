@@ -311,7 +311,7 @@ void renderbounceents(){
 		}
 		path(model);
 		if(p->bouncetype == BT_SHELL) sethudgunperspective(true);
-		rendermodel(model, anim|ANIM_LOOP|ANIM_DYNALLOC, 0, 1.1f, o, p->yaw+90, p->pitch, 0, basetime, NULL, NULL, scale);
+		rendermodel(model, anim|ANIM_LOOP|ANIM_DYNALLOC, 0, PLAYERRADIUS, o, p->yaw+90, p->pitch, 0, basetime, NULL, NULL, scale);
 		if(p->bouncetype == BT_SHELL) sethudgunperspective(false);
 	}
 }

@@ -824,7 +824,7 @@ void CBotManager::DisableBotView()
 {
 	 m_pBotToView = NULL;
 	 respawnself();
-	 player1->radius = 1.1f;
+	 player1->radius = PLAYERRADIUS;
 }
 
 void CBotManager::CalculateMaxAStarCount()
