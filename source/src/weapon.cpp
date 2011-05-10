@@ -1017,7 +1017,7 @@ int knife::flashtime() const { return 0; }
 bool knife::attack(vec &targ){
 	int attackmillis = lastmillis-owner->lastaction;
 	if(owner->scoping || state){
-		const bool waitdone = attackmillis >= 200;
+		const bool waitdone = attackmillis >= 500;
 		switch(state){
 			case GST_NONE:
 				if(waitdone && owner->scoping && this==owner->weaponsel) activateknife(); // activate
