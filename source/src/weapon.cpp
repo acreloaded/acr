@@ -328,61 +328,6 @@ void shorten(vec &from, vec &to, vec &target){
 	target.sub(from).normalize().mul(from.dist(to)).add(from);
 }
 
-/*
-void raydamage(vec &from, vec &to, playerent *d){
-	int hitzone = -1;
-	playerent *o = NULL;
-
-	if(d->weaponsel->type==GUN_SHOTGUN)
-	{
-		uint done = 0, hitflag = 0;
-		playerent *cl = NULL;
-		for(;;)
-		{
-			bool raysleft = false;
-			int hitrays = 0;
-			o = NULL;
-			float totaldist = 0.f;
-			hitflag = 0;
-			loop(r, SGRAYS) if(!(done&(1<<r)) && (cl = intersectclosest(from, sg[r], d, hitzone)))
-			{
-				if(!o || o==cl)
-				{
-					hitrays++;
-					o = cl;
-					done |= 1<<r;
-					hitflag |= 1 << r;
-					shorten(from, o->o, sg[r]);
-					totaldist += from.dist(sg[r]);
-				}
-				else raysleft = true;
-			}
-			int dam = effectiveDamage(d->weaponsel->type, totaldist/(float)hitrays, DAMAGESCALE);
-			if(hitrays) hitpush(hitrays*dam, o, d, from, to, d->weaponsel->type, hitrays*dam > SGGIB, hitflag);
-			if(!raysleft) break;
-		}
-	}
-	else if((o = intersectclosest(from, to, d, hitzone)))
-	{
-		shorten(from, o->o, to);
-		int dam = effectiveDamage(d->weaponsel->type, from.dist(to), DAMAGESCALE);
-		bool gib = false;
-		if(d==player1){
-			if(d->weaponsel->type==GUN_KNIFE){
-				if(!dam) return; // for the knife
-				gib = true;
-			}
-			if(hitzone == 3 && d->weaponsel->type != GUN_BOLT) dam *= 0.67;
-			else if(hitzone == 2){
-				dam *= d->weaponsel->type==GUN_SNIPER || d->weaponsel->type == GUN_BOLT || d->weaponsel->type == GUN_KNIFE ? 5 : 3.5f;
-				gib = true;
-			}
-		}
-		hitpush(dam, o, d, from, to, d->weaponsel->type, gib, hitzone==2 ? 2 : hitzone==3 ? 1 : 0);
-	}
-}
-*/
-
 // weapon
 
 weapon::weapon(struct playerent *owner, int type) : type(type), owner(owner), info(guns[type]),
