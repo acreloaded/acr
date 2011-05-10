@@ -134,7 +134,7 @@ void processevent(client &c, shotevent &e)
 		putfloat(p, e.to[2]);
 	}
 	enet_packet_resize(packet, p.length());
-	sendpacket(-1, 1, packet, c.clientnum);
+	sendpacket(-1, 1, packet, !e.compact && e.gun != GUN_GRENADE ? -1 : c.clientnum);
 	if(packet->referenceCount==0) enet_packet_destroy(packet);
 	if(e.gun == GUN_SHOTGUN){
 		loopi(SGRAYS) gs.shotdamage += effectiveDamage(e.gun, vec(gs.sg[i]).dist(gs.o), DAMAGESCALE);

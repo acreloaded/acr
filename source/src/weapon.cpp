@@ -354,7 +354,7 @@ void weapon::sendshoot(vec &from, vec &to){
 	putfloat(p, to.z);
 	vector<vec4> heads;
 	heads.setsize(0);
-	// heads...
+	// add potential heads...
 	loopv(players){
 		playerent *p = players[i];
 		if(!p || p == owner) continue;
@@ -756,9 +756,6 @@ bool gun::attack(vec &targ){
 	attackphysics(from, to);
 	if(type == GUN_SHOTGUN) createrays(owner, to);
 
-	//raydamage(from, to, owner);
-	//attackfx(from, to, 0);
-
 	gunwait = info.attackdelay;
 	mag--;
 
@@ -1056,8 +1053,6 @@ bool knife::attack(vec &targ){
 	to = from;
 	to.add(unitv);
 
-	//raydamage(from, to, owner);
-	//attackfx(from, to, 0);
 	sendshoot(from, to);
 	gunwait = info.attackdelay;
 	return true;

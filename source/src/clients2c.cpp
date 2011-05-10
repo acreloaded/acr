@@ -415,7 +415,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					loopk(3) to[k] = getfloat(p);
 				}
 				playerent *s = getclient(scn);
-				if(!s || !weapon::valid(gun) || s == player1) break;
+				if(!s || !weapon::valid(gun)) break;
+				if(s == player1){
+					if(type == N_SHOOTC || gun == GUN_GRENADE) break;
+					s->weapons[gun]->attackfx(from, to, 0);
+					break;
+				}
 				s->mag[gun]--;
 				updatelastaction(s);
 				if(s->weapons[gun]){
