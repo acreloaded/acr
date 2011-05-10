@@ -41,8 +41,8 @@ static inline bool inplayer(const vec &location, const vec &target, float above,
 	return radius*tolerance > target.distxy(location);
 }
 
-inline void sendhit(client &c, float *o){
-	sendf(-1, 1, "ri3f3", N_PROJ, c.clientnum, GUN_GRENADE, o[0], o[1], o[2]);
+inline void sendhit(client &actor, int gun, float *o){
+	sendf(-1, 1, "ri3f3", N_PROJ, actor.clientnum, gun, o[0], o[1], o[2]);
 }
 
 // processing events
@@ -51,7 +51,7 @@ void processevent(client &c, projevent &e){
 	switch(e.gun){
 		case GUN_GRENADE:
 			if(!gs.grenades.remove(e.proj)/* || e.id - e.proj < NADETTL*/) return;
-			
+			sendhit(c, GUN_GRENADE, e.o);
 			loopv(clients){
 				client &target = *clients[i];
 				if(target.type == ST_EMPTY || target.state.state != CS_ALIVE) continue;
@@ -68,11 +68,11 @@ void processevent(client &c, projevent &e){
 			if(gs.mag[GUN_KNIFE] || !gs.ammo[GUN_KNIFE]) return;
 			gs.ammo[GUN_KNIFE] = 0;
 
+			sendhit(c, GUN_KNIFE, e.o);
 			gs.knifepos = vec(e.o);
 			gs.knifemillis = servmillis;
 
 			ushort dmg = effectiveDamage(GUN_KNIFE, 0, DAMAGESCALE);
-			
 			loopv(clients){
 				client &target = *clients[i];
 				clientstate &ts = target.state;
@@ -181,6 +181,7 @@ void processevent(client &c, shotevent &e)
 					if(m_expert && !gib) continue;
 					int style = gib ? FRAG_GIB : FRAG_NONE;
 					gs.damage += damage;
+					sendhit(c, GUN_SHOTGUN, ts.o.v);
 					serverdamage(&t, &c, damage, e.gun, style, gs.o);
 				}
 				else{ // one ray, potentially multiple players
@@ -205,6 +206,7 @@ void processevent(client &c, shotevent &e)
 							break;
 					}
 					if(!damage) continue;
+					if(e.gun != GUN_KNIFE) sendhit(c, e.gun, end.v);
 					// gib check
 					const bool gib = e.gun == GUN_KNIFE || hitzone == HIT_HEAD;
 					if(m_expert && !gib) continue;
