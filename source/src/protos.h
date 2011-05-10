@@ -642,6 +642,7 @@ extern ushort magsize(int gun);
 extern void updatelastaction(playerent *d);
 extern void checkweaponswitch();
 extern void setscope(bool activate);
+extern int intersect(playerent *d, const vec &from, const vec &to, vec *end = NULL);
 extern bool intersect(entity *e, const vec &from, const vec &to, vec *end = NULL);
 // Structure for storing traceresults
 struct traceresult_s{
