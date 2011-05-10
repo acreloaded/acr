@@ -527,7 +527,6 @@ grenadeent::~grenadeent(){
 void grenadeent::explode(){
 	if(nadestate!=NS_ACTIVATED && nadestate!=NS_THROWED ) return;
 	nadestate = NS_EXPLODED;
-	splash();
 	if(local) addmsg(N_PROJ, "ri3f3", lastmillis, GUN_GRENADE, millis, o.x, o.y, o.z);
 	playsound(S_FEXPLODE, &o);
 }
@@ -956,7 +955,6 @@ void knifeent::explode(){
 	if(knifestate!=NS_ACTIVATED && knifestate!=NS_THROWED ) return;
 	knifestate = NS_EXPLODED;
 	static vec n(0,0,0);
-	splash();
 	if(local) addmsg(N_PROJ, "ri3f3", lastmillis, GUN_KNIFE, millis, o.x, o.y, o.z);
 	playsound(S_GRENADEBOUNCE1+rnd(2), &o);
 }
