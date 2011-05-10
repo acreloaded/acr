@@ -407,11 +407,26 @@ void weapon::sendshoot(vec &from, vec &to){
 	putfloat(p, to.x);
 	putfloat(p, to.y);
 	putfloat(p, to.z);
-	vector<vec> heads;
+	vector<float[4]> heads;
 	heads.setsize(0);
 	// heads...
+	loopv(players){
+		playerent *p = players[i];
+		if(!p || p == owner) continue;
+		if(true) continue;
+		vec headoffset(p->head);
+		headoffset.sub(p->o);
+		float *f = heads.add();
+		f[0] = headoffset.x;
+		f[1] = headoffset.y;
+		f[2] = headoffset.z;
+		f[3] = i;
+	}
 	putint(p, heads.length());
-	loopv(heads) loopk(3) putfloat(p, heads[i].v[k]);
+	loopv(heads){
+		putint(p, (int)heads[i][3]);
+		loopk(3) putfloat(p, heads[i][k]);
+	}
 	int len = p.length();
 	extern vector<uchar> messages;
 	messages.add(len&0xFF);

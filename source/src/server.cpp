@@ -57,6 +57,7 @@ struct shotevent{
 
 struct headevent{
 	int type;
+	int cn;
 	float o[3];
 };
 
@@ -3053,13 +3054,15 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					loopk(3) shot.shot.to[k] = getfloat(p);
 					int hcount = getint(p);
 					if(hcount < 1) break;
-					if(hcount > numclients()){
-						loopk((hcount - numclients()) * 3) getfloat(p);
-						hcount = numclients();
+					while(hcount > numclients()){
+						getint(p);
+						loopk(3) getfloat(p);
+						hcount--;
 					}
 					while(hcount--){
 						gameevent &h = cl->addevent();
 						h.type = GE_HEAD;
+						h.head.cn = getint(p);
 						loopk(3) h.head.o[k] = getfloat(p);
 					}
 				}
