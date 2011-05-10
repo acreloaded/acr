@@ -672,6 +672,7 @@ struct bounceent : physent // nades, gibs
 	virtual bool applyphysics() { return true; }
 };
 
+enum { HIT_NONE = 0, HIT_TORSO, HIT_LEG, HIT_HEAD };
 struct hitmsg{ int target, lifesequence, info; };
 
 struct grenadeent : bounceent
