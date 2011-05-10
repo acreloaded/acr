@@ -355,7 +355,7 @@ void weapon::sendshoot(vec &from, vec &to){
 	loopv(players){
 		playerent *p = players[i];
 		if(!p || p == owner) continue;
-		if(true) continue;
+		if(!intersecthead(p, from, to, NULL, max(p->maxspeed * player1->ping / 500.f, 2.f))) continue;
 		vec headoffset(p->head);
 		headoffset.sub(p->o);
 		vec4 &h = heads.add();
