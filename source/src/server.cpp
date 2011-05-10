@@ -3175,9 +3175,14 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				bool editing = getint(p) != 0;
 				if(!m_edit && cl->type == ST_TCPIP){ // unacceptable
 					sdropflag(cl->clientnum);
-					cl->state.state = CS_DEAD;
-					cl->state.lastdeath = gamemillis;
-					sendf(-1, 1, "ri4", N_EDITFAIL, sender, (cl->state.frags -= 1000), (cl->state.deaths += 1000));
+					clientstate &cs = cl->state;
+					cs.state = CS_DEAD;
+					cs.lastdeath = gamemillis;
+					cs.points -= 20000;
+					cs.frags -= 10000;
+					cs.assists -= 1000;
+					cs.deaths += 1000;
+					sendf(-1, 1, "ri2", N_EDITFAIL, sender);
 					break;
 				}
 				if(cl->state.state != (editing ? CS_ALIVE : CS_EDITING)) break;
