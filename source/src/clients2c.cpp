@@ -882,12 +882,18 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_FORCEGIB:
 			case N_FORCEDEATH:
 			{
-				int cn = getint(p);
+				int cn = getint(p), newkills = -1, newdeaths = -1;
+				if(type == N_EDITFAIL){
+					newkills = getint(p);
+					newdeaths = getint(p);
+				}
 				playerent *d = newclient(cn);
 				if(!d) break;
 				if(type != N_FORCEDEATH) addgib(d);
 				deathstate(d);
 				if(type == N_EDITFAIL){
+					d->frags = newkills;
+					d->deaths = newdeaths;
 					char * const editorname = d == player1 ? "\f1you\f2" : colorname(d);
 					if(d == gamefocus)
 						hudoutf("\f2%s %s just been outh4x0rd!", editorname, d == player1 ? "have" : "has");

@@ -3177,7 +3177,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					sdropflag(cl->clientnum);
 					cl->state.state = CS_DEAD;
 					cl->state.lastdeath = gamemillis;
-					sendf(-1, 1, "ri3", N_EDITFAIL, (cl->state.frags -= 1000), (cl->state.deaths += 1000));
+					sendf(-1, 1, "ri4", N_EDITFAIL, sender, (cl->state.frags -= 1000), (cl->state.deaths += 1000));
 					break;
 				}
 				if(cl->state.state != (editing ? CS_ALIVE : CS_EDITING)) break;
