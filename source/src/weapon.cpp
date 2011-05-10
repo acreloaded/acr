@@ -1025,7 +1025,7 @@ bool knife::attack(vec &targ){
 			case GST_INHAND:
 				if(waitdone){
 					if(!owner->scoping || this!=owner->weaponsel) throwknife(); // throw
-					else if(!inhandknife->isalive(lastmillis)) throwknife(true); // muscle spasm
+					else if(!inhandknife->isalive(lastmillis)) throwknife(true);
 				}
 				break;
 			case GST_THROWING:
@@ -1078,7 +1078,7 @@ int knife::modelanim() {
 
 void knife::onownerdies(){
 	reset();
-	if(owner == player1 && inhandknife) throwknife(true);
+	if(owner == player1 && inhandknife) throwknife(true); // muscle spasm
 }
 
 void knife::activateknife(){
