@@ -407,12 +407,11 @@ void weapon::sendshoot(vec &from, vec &to){
 	putfloat(p, to.x);
 	putfloat(p, to.y);
 	putfloat(p, to.z);
-	putint(p, hits.length());
-	loopv(hits){
-		putint(p, hits[i].target);
-		putint(p, hits[i].lifesequence);
-		putint(p, hits[i].info);
-	}
+	vector<vec> heads;
+	heads.setsize(0);
+	// heads...
+	putint(p, heads.length());
+	loopv(heads) loopk(3) putfloat(p, heads[i].v[k]);
 	int len = p.length();
 	extern vector<uchar> messages;
 	messages.add(len&0xFF);

@@ -3,7 +3,7 @@
 // ballistics
 
 #include "ballistics.h"
-
+/*
 // normal shots
 static inline int hitplayer(const vec &from, float yaw, float pitch, const vec &to, const vec &target, const vec &head, vec *end = NULL){
 	// intersect head
@@ -15,7 +15,7 @@ static inline int hitplayer(const vec &from, float yaw, float pitch, const vec &
 	float y = yaw*RAD, p = (pitch/4+90)*RAD, c = cosf(p);
 	vec bottom(target), top(sinf(y)*c, -cosf(y)*c, sinf(p));
 	bottom.z -= PLAYERHEIGHT;
-	top.mul(PLAYERHEIGHT/* + d->aboveeye*/).add(bottom); // space above shoulders
+	top.mul(PLAYERHEIGHT/* + d->aboveeye/).add(bottom); // space above shoulders
 	// torso
 	bottom.sub(top).mul(TORSOPART).add(top);
 	if(intersectcylinder(from, to, bottom, top, PLAYERRADIUS, dist))
@@ -33,7 +33,7 @@ static inline int hitplayer(const vec &from, float yaw, float pitch, const vec &
 	}
 	return HIT_NONE;
 }
-
+*/
 // throwing knife
 static inline bool inplayer(const vec &location, const vec &target, float above, float below, float radius, float tolerance){
 	// check for z
@@ -95,9 +95,10 @@ void processevent(client &c, projevent &e)
 
 void processevent(client &c, shotevent &e)
 {
-	vector<hitevent> hits;
-	while(c.events.length() > 1 && c.events[1].type == GE_HIT){
-		hits.add(c.events[1].hit);
+	vector<headevent> heads;
+	heads.setsize(0);
+	while(c.events.length() > 1 && c.events[1].type == GE_HEAD){
+		heads.add(c.events[1].head);
 		c.events.remove(1);
 	}
 	clientstate &gs = c.state;

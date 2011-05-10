@@ -36,7 +36,7 @@ struct servercommandline scl;
 
 static const int DEATHMILLIS = 300;
 
-enum { GE_NONE = 0, GE_SHOT, GE_PROJ, GE_HIT, GE_AKIMBO, GE_RELOAD };
+enum { GE_NONE = 0, GE_SHOT, GE_PROJ, GE_HEAD, GE_AKIMBO, GE_RELOAD };
 enum { ST_EMPTY, ST_LOCAL, ST_TCPIP };
 
 int mastermode = MM_OPEN;
@@ -47,8 +47,7 @@ string smapname, nextmapname;
 int smode = 0, nextgamemode;
 mapstats smapstats;
 
-struct shotevent
-{
+struct shotevent{
 	int type;
 	int millis, id;
 	int gun;
@@ -56,37 +55,33 @@ struct shotevent
 	bool compact;
 };
 
-struct hitevent{
+struct headevent{
 	int type;
-	int target, lifesequence, info;
+	float o[3];
 };
 
-struct projevent
-{
+struct projevent{
 	int type;
 	int millis, id;
 	int gun, proj;
 	float o[3];
 };
 
-struct akimboevent
-{
+struct akimboevent{
 	int type;
 	int millis, id;
 };
 
-struct reloadevent
-{
+struct reloadevent{
 	int type;
 	int millis, id;
 	int gun;
 };
 
-union gameevent
-{
+union gameevent{
 	int type;
 	shotevent shot;
-	hitevent hit;
+	headevent head;
 	projevent proj;
 	akimboevent akimbo;
 	reloadevent reload;
@@ -3056,18 +3051,16 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				shot.shot.compact = type == N_SHOOTC;
 				if(type == N_SHOOT){
 					loopk(3) shot.shot.to[k] = getfloat(p);
-					int hitcount = getint(p);
-					if(hitcount < 1) break;
-					if(hitcount > SGRAYS){
-						loopk((hitcount - SGRAYS) * 3) getint(p);
-						hitcount = SGRAYS;
+					int hcount = getint(p);
+					if(hcount < 1) break;
+					if(hcount > numclients()){
+						loopk((hcount - numclients()) * 3) getfloat(p);
+						hcount = numclients();
 					}
-					while(hitcount--){
-						gameevent &hit = cl->addevent();
-						hit.type = GE_HIT;
-						hit.hit.target = getint(p);
-						hit.hit.lifesequence = getint(p);
-						hit.hit.info = getint(p);
+					while(hcount--){
+						gameevent &h = cl->addevent();
+						h.type = GE_HEAD;
+						loopk(3) h.head.o[k] = getfloat(p);
 					}
 				}
 				break;
