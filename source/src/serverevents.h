@@ -1,21 +1,20 @@
 // processing of server events
 
 // ballistics
-
 #include "ballistics.h"
-/*
-// normal shots
+
+// normal shots (ray through sphere and cylinder check)
 static inline int hitplayer(const vec &from, float yaw, float pitch, const vec &to, const vec &target, const vec &head, vec *end = NULL){
 	// intersect head
 	float dist;
-	if(intersectsphere(from, to, head, HEADSIZE, dist)){
+	if(!head.iszero() && intersectsphere(from, to, head, HEADSIZE, dist)){
 		if(end) (*end = to).sub(from).mul(dist).add(from);
 		return HIT_HEAD;
 	}
 	float y = yaw*RAD, p = (pitch/4+90)*RAD, c = cosf(p);
 	vec bottom(target), top(sinf(y)*c, -cosf(y)*c, sinf(p));
 	bottom.z -= PLAYERHEIGHT;
-	top.mul(PLAYERHEIGHT/* + d->aboveeye/).add(bottom); // space above shoulders
+	top.mul(PLAYERHEIGHT/* + d->aboveeye*/).add(bottom); // space above shoulders removed
 	// torso
 	bottom.sub(top).mul(TORSOPART).add(top);
 	if(intersectcylinder(from, to, bottom, top, PLAYERRADIUS, dist))
@@ -33,8 +32,8 @@ static inline int hitplayer(const vec &from, float yaw, float pitch, const vec &
 	}
 	return HIT_NONE;
 }
-*/
-// throwing knife
+
+// throwing knife shots (point in cylinder check)
 static inline bool inplayer(const vec &location, const vec &target, float above, float below, float radius, float tolerance){
 	// check for z
 	if(location.z > target.z + above*tolerance || target.z > location.z + below*tolerance) return false;
@@ -149,50 +148,66 @@ void processevent(client &c, shotevent &e)
 			}
 		default:
 		{
-			int totalrays = 0;
-			loopv(hits){
-				hitevent &h = hits[i];
-				if(!clients.inrange(h.target)) continue;
-				client *target = clients[h.target];
-				if(target->type==ST_EMPTY || target->state.state!=CS_ALIVE || &c==target || h.lifesequence!=target->state.lifesequence) continue;
-
-				const int maxrays = e.gun==GUN_SHOTGUN ? SGRAYS : 1;
-				int rays = e.gun==GUN_SHOTGUN ? popcount(h.info) : 1;
-				if(e.gun==GUN_SHOTGUN){
-					uint hitflags = h.info;
-					loopi(SGRAYS) if((hitflags & (1 << i)) && gs.sg[i].dist(e.to) > 60.f) // 2 meters for height x3 for unknown reasons + 3m for lag
-						rays--;
-				} else if (target->state.o.dist(vec(e.to)) > 20.f) continue; // 2 meters for height + 3 meters for lag
-				if(rays<1) continue;
-				if(totalrays + rays > maxrays) continue;
-
-				bool gib = false;
-				int damage = 0;
-				damage = rays * effectiveDamage(e.gun, vec(e.to).dist(gs.o), DAMAGESCALE);
-				if(e.gun == GUN_SHOTGUN){
-					uint hitflags = h.info;
-					loopi(SGRAYS) if(hitflags & (1 << i)) damage += effectiveDamage(GUN_SHOTGUN, gs.sg[i].dist(gs.o), DAMAGESCALE);
+			vec to(e.to);
+			loopv(clients){ 
+				client &t = *clients[i];
+				clientstate &ts = t.state;
+				// basic checks
+				if(t.type == ST_EMPTY || ts.state != CS_ALIVE || &c == &t) continue;
+				vec head = vec(0, 0, 0);
+				vec end(gs.o);
+				// [TODO SOON] needs to check for head offset, spark effect???
+				if(e.gun == GUN_SHOTGUN){ // many rays, many players
+					int damage = 0;
+					loopj(SGRAYS){ // check rays and sum damage
+						int hitzone = hitplayer(gs.o, gs.aim[0], gs.aim[1], gs.sg[j], ts.o, head, &end);
+						if(hitzone == HIT_NONE) continue;
+						damage += effectiveDamage(e.gun, end.dist(gs.o), DAMAGESCALE * hitzone == HIT_HEAD ? 4.f : hitzone == HIT_TORSO ? 1.2f : 1);
+					}
+					const bool gib = damage > SGGIB;
+					if(m_expert && !gib) continue;
+					int style = gib ? FRAG_GIB : FRAG_NONE;
+					gs.damage += damage;
+					serverdamage(&t, &c, damage, e.gun, style, gs.o);
 				}
-				if(!damage) continue;
-
-				totalrays += rays;
-				if(e.gun==GUN_SHOTGUN) gib = damage > SGGIB;
-				else gib = e.gun==GUN_KNIFE || h.info == 2;
-				if(e.gun!=GUN_SHOTGUN){
-					if(h.info == 1 && e.gun != GUN_BOLT) damage *= 0.67;
-					else if(h.info == 2) damage *= e.gun == GUN_SNIPER || e.gun == GUN_BOLT || e.gun == GUN_KNIFE ? 5 : 3.5f;
-				}// else if(h.info & 0x80) gib = true;
-				if(e.gun == GUN_KNIFE && !isteam((&c), target)){
-					target->state.cutter = c.clientnum;
-					target->state.lastcut = gamemillis;
+				else{ // one ray, potentially multiple players
+					// calculate the hit
+					int hitzone = hitplayer(gs.o, gs.aim[0], gs.aim[1], to, ts.o, head, &end);
+					if(hitzone == HIT_NONE) continue;
+					// damage check
+					int damage = effectiveDamage(e.gun, end.dist(gs.o), DAMAGESCALE);
+					// damage multipliers
+					switch(hitzone){
+						case HIT_HEAD:
+							if(e.gun == GUN_SNIPER || e.gun == GUN_BOLT || e.gun == GUN_KNIFE) damage *= 5;
+							else damage *= 3.5f;
+							break;
+						case HIT_TORSO:
+							// multiplying by one is pretty stupid to do
+							break;
+						case HIT_LEG:
+						default:
+							if(e.gun == GUN_BOLT) break;
+							damage *= .67f;
+							break;
+					}
+					if(!damage) continue;
+					// gib check
+					const bool gib = e.gun == GUN_KNIFE || hitzone == HIT_HEAD;
+					if(m_expert && !gib) continue;
+					// do the damage!
+					int style = gib ? FRAG_GIB : FRAG_NONE;
+					if(e.gun == GUN_KNIFE){
+						if(hitzone == HIT_HEAD) style |= FRAG_OVER;
+						if(!isteam((&c), (&t))){
+							ts.cutter = c.clientnum;
+							ts.lastcut = gamemillis;
+						}
+					}
+					gs.damage += damage;
+					serverdamage(&t, &c, damage, e.gun, style, gs.o);
 				}
-				if(m_expert && !gib && e.gun != GUN_KNIFE) continue;
-				int style = gib ? FRAG_GIB : FRAG_NONE;
-				if(e.gun == GUN_KNIFE && h.info == 2) style |= FRAG_OVER;
-				gs.damage += damage;
-				serverdamage(target, &c, damage, e.gun, style, gs.o);
 			}
-			break;
 		}
 	}
 }
