@@ -3173,8 +3173,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case N_EDITMODE:
 			{
 				bool editing = getint(p) != 0;
-				if(!m_edit && cl->type == ST_TCPIP){ // unacceptable!
-					forcedeath(cl, true);
+				if(!m_edit && cl->type == ST_TCPIP){ // unacceptable
+					sdropflag(cl->clientnum);
+					cl->state.state = CS_DEAD;
+					cl->state.lastdeath = gamemillis;
+					sendf(-1, 1, "ri3", N_EDITFAIL, (cl->state.frags -= 1000), (cl->state.deaths += 1000));
 					break;
 				}
 				if(cl->state.state != (editing ? CS_ALIVE : CS_EDITING)) break;

@@ -878,14 +878,21 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
+			case N_EDITFAIL:
 			case N_FORCEGIB:
 			case N_FORCEDEATH:
 			{
 				int cn = getint(p);
 				playerent *d = newclient(cn);
 				if(!d) break;
-				if(type == N_FORCEGIB) addgib(d);
+				if(type != N_FORCEDEATH) addgib(d);
 				deathstate(d);
+				if(type == N_EDITFAIL){
+					char * const editorname = d == player1 ? "\f1you\f2" : colorname(d);
+					if(d == gamefocus)
+						hudoutf("\f2%s %s just been outh4x0rd!", editorname, d == player1 ? "have" : "has");
+					conoutf("\f2%s paid the ultimate repercussion for cheating!", editorname);
+				}
 				break;
 			}
 
