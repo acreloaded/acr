@@ -446,6 +446,10 @@ void weapon::attackphysics(vec &from, vec &to) // physical fx to the owner
 	}
 }
 
+void weapon::attackhit(const vec &o){
+	particle_splash(0, 5, 250, o);
+}
+
 VARP(lefthand, 0, 0, 1);
 
 void weapon::renderhudmodel(int lastaction, bool akimboflip){
@@ -526,14 +530,6 @@ void grenadeent::explode(){
 	splash();
 	if(local) addmsg(N_PROJ, "ri3f3", lastmillis, GUN_GRENADE, millis, o.x, o.y, o.z);
 	playsound(S_FEXPLODE, &o);
-}
-
-void grenadeent::splash(){
-	particle_splash(0, 50, 300, o);
-	particle_fireball(5, o, owner);
-	addscorchmark(o);
-	adddynlight(NULL, o, 16, 200, 100, 255, 255, 224);
-	adddynlight(NULL, o, 16, 600, 600, 192, 160, 128);
 }
 
 void grenadeent::activate(){
@@ -641,6 +637,14 @@ void grenades::attackfx(const vec &from, const vec &to, int millis) // other pla
 		bounceents.add(g);
 		g->_throw(from, to);
 	}
+}
+
+void grenades::attackhit(const vec &o){
+	particle_splash(0, 50, 300, o);
+	particle_fireball(5, o, owner);
+	addscorchmark(o);
+	adddynlight(NULL, o, 16, 200, 100, 255, 255, 224);
+	adddynlight(NULL, o, 16, 600, 600, 192, 160, 128);
 }
 
 int grenades::modelanim(){
@@ -957,10 +961,6 @@ void knifeent::explode(){
 	playsound(S_GRENADEBOUNCE1+rnd(2), &o);
 }
 
-void knifeent::splash(){
-	particle_splash(0, 50, 300, o);
-}
-
 void knifeent::activate(){
 	if(knifestate!=NS_NONE) return;
 	knifestate = NS_ACTIVATED;
@@ -1119,6 +1119,9 @@ void knife::attackfx(const vec &from, const vec &to, int millis) {
 		g->_throw(from, to);
 	}
 	else attacksound();
+}
+void knife::attackhit(const vec &o){
+	particle_splash(0, 50, 300, o);
 }
 void knife::renderstats() { }
 

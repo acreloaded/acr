@@ -41,12 +41,17 @@ static inline bool inplayer(const vec &location, const vec &target, float above,
 	return radius*tolerance > target.distxy(location);
 }
 
+inline void sendhit(client &c, float *o){
+	sendf(-1, 1, "ri3f3", N_PROJ, c.clientnum, GUN_GRENADE, o[0], o[1], o[2]);
+}
+
 // processing events
 void processevent(client &c, projevent &e){
 	clientstate &gs = c.state;
 	switch(e.gun){
 		case GUN_GRENADE:
 			if(!gs.grenades.remove(e.proj)/* || e.id - e.proj < NADETTL*/) return;
+			
 			loopv(clients){
 				client &target = *clients[i];
 				if(target.type == ST_EMPTY || target.state.state != CS_ALIVE) continue;

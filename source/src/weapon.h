@@ -30,6 +30,7 @@ struct weapon
 	virtual bool attack(vec &targ) = 0;
 	virtual void attackfx(const vec &from, const vec &to, int millis) = 0;
 	virtual void attackphysics(vec &from, vec &to);
+	virtual void attackhit(const vec &o);
 	virtual void attacksound();
 	virtual bool reload();
 	virtual void reset() { }
@@ -71,6 +72,7 @@ struct grenades : weapon
 	grenades(playerent *owner);
 	bool attack(vec &targ);
 	void attackfx(const vec &from, const vec &to, int millis);
+	void attackhit(const vec &o);
 	int modelanim();
 	void activatenade();
 	void thrownade();
@@ -192,6 +194,7 @@ struct knife : weapon
 
 	void drawstats();
 	void attackfx(const vec &from, const vec &to, int millis);
+	void attackhit(const vec &o);
 	void renderstats();
 	void renderaimhelp(int teamtype);
 	void onownerdies();

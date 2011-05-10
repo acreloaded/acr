@@ -684,7 +684,6 @@ struct grenadeent : bounceent
 	void activate();
 	void _throw(const vec &from, const vec &vel);
 	void explode();
-	void splash();
 	virtual void destroy();
 	virtual bool applyphysics();
 	void moveoutsidebbox(const vec &direction, playerent *boundingbox);
@@ -701,7 +700,6 @@ struct knifeent : bounceent
 	void activate();
 	void _throw(const vec &from, const vec &vel);
 	void explode();
-	void splash();
 	virtual void destroy();
 	virtual bool applyphysics();
 	void moveoutsidebbox(const vec &direction, playerent *boundingbox);

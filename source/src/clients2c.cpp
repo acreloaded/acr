@@ -404,6 +404,15 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
+			case N_PROJ:
+			{
+				int weap = getint(p);
+				vec o;
+				loopi(3) o[1] = getfloat(p);
+				
+				break;
+			}
+
 			case N_SHOOT:
 			case N_SHOOTC:
 			{
