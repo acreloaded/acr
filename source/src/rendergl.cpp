@@ -838,7 +838,7 @@ void traceShot(const vec &from, vec &to, float len){
 	traceresult_s tr;
 	to.sub(from).normalize().mul(len).add(from);
 	TraceLine(from, to, NULL, false, &tr);
-	to = tr.end;
+	if(tr.collided) to = tr.end;
 }
 
 // stupid function to cater for stupid ATI linux drivers that return incorrect depth values

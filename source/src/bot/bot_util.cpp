@@ -243,7 +243,6 @@ void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult
 	 int steps = (int)(sqrt(dx*dx+dy*dy)/0.9);
 	 if(!steps) // If from and to are on the same cube...
 	 {
-		 /*
 		  if (GetDistance(from, to) < flNearestDist)		 
 		  {
 			   tr->end = to;
@@ -256,7 +255,6 @@ void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult
 					tr->end.z = (fabs(to.z-s->ceil) < fabs(to.z-flr)) ? s->ceil : flr;
 			   }
 		  }
-		  */
 		  return;
 	 }
 	 
@@ -294,9 +292,10 @@ void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult
 	 }
 	 else
 	 {
-		  tr->collided = true;
-		  if (GetDistance(from, endcube) < flNearestDist)
-			   tr->end = endcube;
+		  if (GetDistance(from, endcube) < flNearestDist && endcube != from && endcube != to){
+			tr->collided = true;
+			tr->end = endcube;
+		  }
 	 }
 
 	 return;
