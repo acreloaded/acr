@@ -1284,12 +1284,20 @@ void checkitemspawns(int diff){
 	}
 }
 
-void forcedeath(client *cl, bool gib = false){
+void forcedeath(client *cl, bool gib = false, bool cheat = false){
 	sdropflag(cl->clientnum);
-	cl->state.state = CS_DEAD;
-	//cl->state.respawn();
-	cl->state.lastdeath = gamemillis;
-	sendf(-1, 1, "ri2", gib ? N_FORCEGIB : N_FORCEDEATH, cl->clientnum);
+	clientstate &cs = cl->state;
+	cs.state = CS_DEAD;
+	//cs.respawn();
+	cs.lastdeath = gamemillis;
+	if(cheat){
+		cs.points -= 2000;
+		cs.frags -= 100;
+		cs.assists -= 100;
+		cs.deaths += 100;
+		sendf(-1, 1, "ri2", N_EDITFAIL, cl->clientnum);
+	}
+	else sendf(-1, 1, "ri2", gib ? N_FORCEGIB : N_FORCEDEATH, cl->clientnum);
 }
 
 void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source){
@@ -3170,15 +3178,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			{
 				bool editing = getint(p) != 0;
 				if(!m_edit && cl->type == ST_TCPIP){ // unacceptable
-					sdropflag(cl->clientnum);
-					clientstate &cs = cl->state;
-					cs.state = CS_DEAD;
-					cs.lastdeath = gamemillis;
-					cs.points -= 20000;
-					cs.frags -= 10000;
-					cs.assists -= 1000;
-					cs.deaths += 1000;
-					sendf(-1, 1, "ri2", N_EDITFAIL, sender);
+					logline(ACLOG_INFO, "[%s] %s tried editmode", cl->hostname, cl->name);
+					forcedeath(cl, true, true);
 					break;
 				}
 				if(cl->state.state != (editing ? CS_ALIVE : CS_EDITING)) break;

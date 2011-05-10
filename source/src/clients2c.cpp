@@ -893,10 +893,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(type != N_FORCEDEATH) addgib(d);
 				deathstate(d);
 				if(type == N_EDITFAIL){
-					d->points -= 20000;
-					d->frags -= 10000;
-					d->assists -= 1000;
-					d->deaths += 1000;
+					d->points -= 2000;
+					d->frags -= 100;
+					d->assists -= 100;
+					d->deaths += 100;
 					string editorname;
 					s_strcpy(editorname, d == player1 ? "\f1you\f2" : colorname(d));
 					if(d == gamefocus)
