@@ -622,7 +622,7 @@ bool addbullethole(dynent *d, const vec &from, const vec &to, float radius, bool
 VARP(scorch, 0, 1, 1);
 VARP(scorchttl, 0, 10000, 30000);
 
-bool addscorchmark(vec &o, float radius)
+bool addscorchmark(const vec &o, float radius)
 {
 	if(!scorchttl || !scorch) return false;
 	sqr *s = S((int)o.x, (int)o.y);
