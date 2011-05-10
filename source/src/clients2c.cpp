@@ -897,7 +897,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					d->frags -= 10000;
 					d->assists -= 1000;
 					d->deaths += 1000;
-					char * const editorname = d == player1 ? "\f1you\f2" : colorname(d);
+					string editorname;
+					s_strcpy(editorname, d == player1 ? "\f1you\f2" : colorname(d));
 					if(d == gamefocus)
 						hudonlyf("\f3%s %s just been outh4x0rd!", editorname, d == player1 ? "have" : "has");
 					conoutf("\f%d%s paid the ultimate repercussion for cheating!", d == player1 ? 3 : 2, editorname);
