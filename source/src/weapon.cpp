@@ -797,7 +797,7 @@ void gun::attackshell(const vec &to){
 void gun::attackfx(const vec &from, const vec &too, int millis){
 	// trace shot
 	vec to(too);
-	traceShot(from, to, owner);
+	traceShot(from, to);
 
 	attackshell(to);
 	addbullethole(owner, from, to);
@@ -823,7 +823,7 @@ void shotgun::attackfx(const vec &from, const vec &to, int millis){
 			addshotline(owner, from, sg[i]);
 		}
 		if(filter >= 4) filter = 0;
-		traceShot(from, sg[i], owner);
+		traceShot(from, sg[i]);
 		addbullethole(owner, from, sg[i], 0, false);
 	}
 	attackshell(to);

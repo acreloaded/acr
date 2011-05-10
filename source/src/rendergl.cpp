@@ -834,10 +834,10 @@ void readmatrices(){
 	invmvpmatrix.invert(mvpmatrix);
 }
 
-void traceShot(const vec &from, vec &to, dynent *tracer, float len){
+void traceShot(const vec &from, vec &to, float len){
 	traceresult_s tr;
 	to.sub(from).normalize().mul(len).add(from);
-	TraceLine(from, to, tracer, false, &tr);
+	TraceLine(from, to, NULL, false, &tr);
 	to = tr.end;
 }
 
