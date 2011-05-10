@@ -834,6 +834,13 @@ void readmatrices(){
 	invmvpmatrix.invert(mvpmatrix);
 }
 
+inline void traceShot(const vec &from, vec &to, dynent *tracer, float len){
+	traceresult_s tr;
+	to.sub(from).normalize().mul(len).add(from);
+	TraceLine(from, to, tracer, false, &tr);
+	to = tr.end;
+}
+
 // stupid function to cater for stupid ATI linux drivers that return incorrect depth values
 
 inline float depthcorrect(float d){
@@ -851,10 +858,7 @@ void readdepth(int w, int h, vec &pos){
 	vec4 world;
 	invmvpmatrix.transform(screen, world);
 	pos = vec(world.x, world.y, world.z).div(world.w);
-	traceresult_s tr;
-	pos.sub(camera1->o).normalize().mul(ssize*2).add(camera1->o);
-	TraceLine(camera1->o, pos, gamefocus, false, &tr);
-	pos = tr.end;
+	traceShot(camera1->o, pos);
 }
 
 void gl_drawframe(int w, int h, float changelod, float curfps){

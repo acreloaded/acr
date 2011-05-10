@@ -794,7 +794,11 @@ void gun::attackshell(const vec &to){
 	s->resetinterp();
 }
 
-void gun::attackfx(const vec &from, const vec &to, int millis){
+void gun::attackfx(const vec &from, const vec &too, int millis){
+	// trace shot
+	vec to(too);
+	traceShot(from, to, owner);
+
 	attackshell(to);
 	addbullethole(owner, from, to);
 	addshotline(owner, from, to);
@@ -815,8 +819,11 @@ void shotgun::attackfx(const vec &from, const vec &to, int millis){
 	loopi(SGRAYS) particle_splash(0, 5, 200, sg[i]);
 	uchar filter = 0;
 	if(addbullethole(owner, from, to)) loopi(SGRAYS){
-		if(!filter++) addshotline(owner, from, sg[i]);
+		if(filter++ % 4){
+			addshotline(owner, from, sg[i]);
+		}
 		if(filter >= 4) filter = 0;
+		traceShot(from, sg[i], owner);
 		addbullethole(owner, from, sg[i], 0, false);
 	}
 	attackshell(to);
