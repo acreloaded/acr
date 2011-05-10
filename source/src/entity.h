@@ -673,7 +673,6 @@ struct bounceent : physent // nades, gibs
 };
 
 enum { HIT_NONE = 0, HIT_TORSO, HIT_LEG, HIT_HEAD };
-struct hitmsg{ int target, lifesequence, info; };
 
 struct grenadeent : bounceent
 {

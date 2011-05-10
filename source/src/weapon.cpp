@@ -204,8 +204,6 @@ void damageeffect(int damage, playerent *d){
 }
 
 
-vector<hitmsg> hits;
-
 vector<bounceent *> bounceents;
 
 void removebounceents(playerent *owner){
