@@ -133,14 +133,19 @@ void createrays(playerent *owner, vec &to)			 // create random spread of rays fo
 
 #include "ballistics.h"
 
+bool intersecthead(playerent *d, const vec &from, const vec &to, vec *end = NULL, float tolerance = 1){
+	float dist;
+	if(intersectsphere(from, to, d->head, HEADSIZE*tolerance, dist)){
+		if(end) (*end = to).sub(from).mul(dist).add(from);
+		return true;
+	}
+	return false;
+}
+
 int intersect(playerent *d, const vec &from, const vec &to, vec *end){
 	float dist;
-	if(d->head.x >= 0){
-		if(intersectsphere(from, to, d->head, HEADSIZE, dist)){
-			if(end) (*end = to).sub(from).mul(dist).add(from);
-			return HIT_HEAD;
-		}
-	}
+	// share the head function for other uses
+	if(d->head.x >= 0 && intersecthead(d, from, to, end)) return HIT_HEAD;
 	float y = d->yaw*RAD, p = (d->pitch/4+90)*RAD, c = cosf(p);
 	vec bottom(d->o), top(sinf(y)*c, -cosf(y)*c, sinf(p));
 	bottom.z -= d->eyeheight;
