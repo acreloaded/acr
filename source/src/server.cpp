@@ -3127,7 +3127,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				loopi(3) vel[i] = getfloat(p);
 				if(cl->state.knives.throwable <= 0) break;
 				cl->state.knives.throwable--;
-				loopi(2) from[i] = clamp(from[i], 0.f, (1 << maplayout_factor) - 1.f);
+				loopi(2) from[i] = clamp(from[i], 2.f, (1 << maplayout_factor) - 2.f);
 				if(maplayout && maplayout[((int)from.x) + (((int)from.y) << maplayout_factor)] > from.z + 3)
 					from.z = maplayout[((int)from.x) + (((int)from.y) << maplayout_factor)] - 3;
 				vel.normalize().mul(NADEPOWER);
@@ -3148,7 +3148,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				int remainmillis = getint(p);
 				if(cl->state.grenades.throwable <= 0) break;
 				cl->state.grenades.throwable--;
-				loopi(2) from[i] = clamp(from[i], 0.f, (1 << maplayout_factor) - 1.f);
+				loopi(2) from[i] = clamp(from[i], 2.f, (1 << maplayout_factor) - 2.f);
 				if(maplayout && maplayout[((int)from.x) + (((int)from.y) << maplayout_factor)] > from.z + 3)
 					from.z = maplayout[((int)from.x) + (((int)from.y) << maplayout_factor)] - 3;
 				vel.normalize().mul(NADEPOWER);
