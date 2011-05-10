@@ -896,8 +896,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					d->deaths = newdeaths;
 					char * const editorname = d == player1 ? "\f1you\f2" : colorname(d);
 					if(d == gamefocus)
-						hudoutf("\f2%s %s just been outh4x0rd!", editorname, d == player1 ? "have" : "has");
-					conoutf("\f2%s paid the ultimate repercussion for cheating!", editorname);
+						hudonlyf("\f3%s %s just been outh4x0rd!", editorname, d == player1 ? "have" : "has");
+					conoutf("\f%d%s paid the ultimate repercussion for cheating!", d == player1 ? 3 : 2, editorname);
 				}
 				break;
 			}
