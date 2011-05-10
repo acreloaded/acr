@@ -42,12 +42,9 @@ static inline bool inplayer(const vec &location, const vec &target, float above,
 }
 
 // processing events
-
-void processevent(client &c, projevent &e)
-{
+void processevent(client &c, projevent &e){
 	clientstate &gs = c.state;
-	switch(e.gun)
-	{
+	switch(e.gun){
 		case GUN_GRENADE:
 			if(!gs.grenades.remove(e.proj)/* || e.id - e.proj < NADETTL*/) return;
 			loopv(clients){
@@ -95,9 +92,14 @@ void processevent(client &c, projevent &e)
 void processevent(client &c, shotevent &e)
 {
 	vector<headevent> heads;
+	vector<int> headi;
 	heads.setsize(0);
 	while(c.events.length() > 1 && c.events[1].type == GE_HEAD){
-		heads.add(c.events[1].head);
+		headevent &head = c.events[1].head;
+		if(headi.find(head.cn) < 0){
+			heads.add(head);
+			headi.add(head.cn);
+		}
 		c.events.remove(1);
 	}
 	clientstate &gs = c.state;
@@ -154,9 +156,15 @@ void processevent(client &c, shotevent &e)
 				clientstate &ts = t.state;
 				// basic checks
 				if(t.type == ST_EMPTY || ts.state != CS_ALIVE || &c == &t) continue;
-				vec head = vec(0, 0, 0);
-				vec end(gs.o);
+				vec head(0, 0, 0), end(gs.o);
 				// [TODO SOON] needs to check for head offset, spark effect???
+				loopvj(heads) if(heads[j].cn == i){
+					head.x = heads[j].o[0];
+					head.y = heads[j].o[1];
+					head.z = heads[j].o[2];
+					head.add(ts.o);
+					break;
+				}
 				if(e.gun == GUN_SHOTGUN){ // many rays, many players
 					int damage = 0;
 					loopj(SGRAYS){ // check rays and sum damage
@@ -212,8 +220,7 @@ void processevent(client &c, shotevent &e)
 	}
 }
 
-void processevent(client &c, reloadevent &e)
-{
+void processevent(client &c, reloadevent &e){
 	clientstate &gs = c.state;
 	int mag = magsize(e.gun), reload = reloadsize(e.gun);
 	if(!gs.isalive(gamemillis) ||
@@ -237,16 +244,14 @@ void processevent(client &c, reloadevent &e)
 	}
 }
 
-void processevent(client &c, akimboevent &e)
-{
+void processevent(client &c, akimboevent &e){
 	clientstate &gs = c.state;
 	if(!gs.isalive(gamemillis) || gs.akimbos<=0) return;
 	gs.akimbos--;
 	gs.akimbomillis = e.millis+30000;
 }
 
-void clearevent(client &c)
-{
+void clearevent(client &c){
 	/*
 	int n = 1;
 	while(n<c->events.length() && c->events[n].type==GE_HIT) n++;
@@ -255,8 +260,7 @@ void clearevent(client &c)
 	c.events.remove(0);
 }
 
-void processevents()
-{
+void processevents(){
 	loopv(clients)
 	{
 		client &c = *clients[i];
