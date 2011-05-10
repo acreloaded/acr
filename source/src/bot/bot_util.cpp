@@ -292,10 +292,9 @@ void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult
 	 }
 	 else
 	 {
-		  if (GetDistance(from, endcube) < flNearestDist && endcube != from && endcube != to){
-			tr->collided = true;
-			tr->end = endcube;
-		  }
+		  tr->collided = true;
+		  if (GetDistance(from, endcube) < flNearestDist)
+			   tr->end = endcube;
 	 }
 
 	 return;
