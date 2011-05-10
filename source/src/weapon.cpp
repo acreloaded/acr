@@ -407,7 +407,7 @@ void weapon::sendshoot(vec &from, vec &to){
 	putfloat(p, to.x);
 	putfloat(p, to.y);
 	putfloat(p, to.z);
-	vector<float[4]> heads;
+	vector<vec4> heads;
 	heads.setsize(0);
 	// heads...
 	loopv(players){
@@ -416,11 +416,11 @@ void weapon::sendshoot(vec &from, vec &to){
 		if(true) continue;
 		vec headoffset(p->head);
 		headoffset.sub(p->o);
-		float *f = heads.add();
-		f[0] = headoffset.x;
-		f[1] = headoffset.y;
-		f[2] = headoffset.z;
-		f[3] = i;
+		vec4 &h = heads.add();
+		h[0] = headoffset.x;
+		h[1] = headoffset.y;
+		h[2] = headoffset.z;
+		h[3] = i;
 	}
 	putint(p, heads.length());
 	loopv(heads){
