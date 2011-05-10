@@ -74,11 +74,11 @@ void processevent(client &c, projevent &e){
 				if(target.type == ST_EMPTY || &target == &c || ts.state != CS_ALIVE ||
 					!inplayer(gs.knifepos, ts.o, PLAYERABOVEEYE, PLAYERHEIGHT, PLAYERRADIUS, 2)) continue;
 				gs.damage += dmg;
-				serverdamage(&target, &c, dmg, GUN_KNIFE, FRAG_OVER, vec(0, 0, 0));
-				if(ts.state == CS_ALIVE && !isteam((&target), (&c))){
+				if(!isteam((&target), (&c))){
 					ts.cutter = c.clientnum;
 					ts.lastcut = gamemillis;
 				}
+				serverdamage(&target, &c, dmg, GUN_KNIFE, FRAG_OVER, vec(0, 0, 0));
 			}
 			break;
 		}
