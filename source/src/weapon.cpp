@@ -171,18 +171,16 @@ bool intersect(entity *e, const vec &from, const vec &to, vec *end){
 	return intersectbox(vec(e->x, e->y, lo+mmi.h/2.0f), vec(mmi.rad, mmi.rad, mmi.h/2.0f), from, to, end);
 }
 
-playerent *intersectclosest(const vec &from, const vec &to, playerent *at, int &hitzone, bool aiming = true){
+playerent *playerincrosshairhit(int &hitzone){
+	const vec &from = camera1->o, &to = worldpos;
+	const physent *at = camera1;
+
 	playerent *best = NULL;
 	float bestdist = 1e16f;
 	int zone;
-	if(at!=player1 && player1->state==CS_ALIVE && (zone = intersect(player1, from, to))){
-		best = player1;
-		bestdist = at->o.dist(player1->o);
-		hitzone = zone;
-	}
 	loopv(players){
 		playerent *o = players[i];
-		if(!o || o==at || (o->state!=CS_ALIVE && (aiming || (o->state!=CS_EDITING && o->state!=CS_LAGGED)))) continue;
+		if(!o || o==at || (o->state!=CS_ALIVE && o->state!=CS_EDITING && o->state!=CS_LAGGED)) continue;
 		float dist = at->o.dist(o->o);
 		if(dist < bestdist && (zone = intersect(o, from, to))){
 			best = o;
@@ -191,12 +189,6 @@ playerent *intersectclosest(const vec &from, const vec &to, playerent *at, int &
 		}
 	}
 	return best;
-}
-
-playerent *playerincrosshairhit(int &hitzone){
-	if(camera1->type == ENT_PLAYER || (camera1->type == ENT_CAMERA && player1->spectatemode == SM_DEATHCAM))
-		return intersectclosest(camera1->o, worldpos, (playerent *)camera1, hitzone, false);
-	else return NULL;
 }
 
 void damageeffect(int damage, playerent *d){
