@@ -167,6 +167,8 @@ void processevent(client &c, shotevent &e)
 					head.x = heads[j].o[0];
 					head.y = heads[j].o[1];
 					head.z = heads[j].o[2];
+					// how can the center of our heads deviate more than 25 cm from our necks?
+					if(head.magnitude() > 1) head.normalize();
 					head.add(ts.o);
 					break;
 				}
