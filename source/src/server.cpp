@@ -1295,7 +1295,7 @@ void forcedeath(client *cl, bool gib = false, bool cheat = false){
 		cs.frags -= 100;
 		cs.assists -= 100;
 		cs.deaths += 100;
-		sendf(-1, 1, "ri2", N_EDITFAIL, cl->clientnum);
+		sendf(-1, 1, "ri2", N_HACKFAIL, cl->clientnum);
 	}
 	else sendf(-1, 1, "ri2", gib ? N_FORCEGIB : N_FORCEDEATH, cl->clientnum);
 }

@@ -883,7 +883,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case N_EDITFAIL:
+			case N_HACKFAIL:
 			case N_FORCEGIB:
 			case N_FORCEDEATH:
 			{
@@ -892,7 +892,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(!d) break;
 				if(type != N_FORCEDEATH) addgib(d);
 				deathstate(d);
-				if(type == N_EDITFAIL){
+				if(type == N_HACKFAIL){
 					d->points -= 2000;
 					d->frags -= 100;
 					d->assists -= 100;
