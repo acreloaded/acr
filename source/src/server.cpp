@@ -3262,7 +3262,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					cl->mapchange();
 					sendwelcome(cl, 2, true);
 				}
-				else sendmsg(13, sender);
+				else{
+					cl->isonrightmap = true;
+					sendmsg(13, sender);
+				}
 				break;
 			}
 
