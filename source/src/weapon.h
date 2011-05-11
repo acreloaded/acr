@@ -13,7 +13,6 @@ struct weapon
 {
 	const static int weaponchangetime = 400;
 	const static int scopetime = 275;
-	const static float weaponbeloweye /*= 0.2f*/;
 	static void equipplayer(playerent *pl);
 
 	weapon(struct playerent *owner, int type);

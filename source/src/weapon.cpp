@@ -116,21 +116,6 @@ void tryreload(playerent *p){
 void selfreload() { tryreload(player1); }
 COMMANDN(reload, selfreload, ARG_NONE);
 
-void createrays(playerent *owner, vec &to)			 // create random spread of rays for the shotgun
-{
-	vec from = owner->o;
-	from.z -= weapon::weaponbeloweye;
-	float f = to.dist(from)/1000;
-	loopi(SGRAYS)
-	{
-		#define RNDD (rnd(SGSPREAD)-SGSPREAD/2.f)*f*(1-owner->ads/20000.f)
-		vec r(RNDD, RNDD, RNDD);
-		sg[i] = to;
-		sg[i].add(r);
-		#undef RNDD
-	}
-}
-
 #include "ballistics.h"
 
 bool intersecthead(playerent *d, const vec &from, const vec &to, vec *end = NULL, float tolerance = 1){
@@ -331,18 +316,12 @@ weapon::weapon(struct playerent *owner, int type) : type(type), owner(owner), in
 	ammo(owner->ammo[type]), mag(owner->mag[type]), gunwait(owner->gunwait[type]), reloading(0){
 }
 
-const float weapon::weaponbeloweye = 0.2f;
-
 int weapon::flashtime() const { return min(max((int)info.attackdelay, 180)/3, 150); }
 
 void weapon::sendshoot(vec &from, vec &to){
 	if(owner!=player1) return;
 	static uchar buf[MAXTRANS];
 	ucharbuf p(buf, MAXTRANS);
-	if(type == GUN_SHOTGUN){
-		putint(p, N_SG);
-		loopi(SGRAYS) loopj(3) putfloat(p, sg[i][j]);
-	}
 	putint(p, N_SHOOT);
 	putint(p, lastmillis);
 	putint(p, owner->weaponsel->type);
@@ -751,10 +730,9 @@ bool gun::attack(vec &targ){
 
 	vec from = owner->o;
 	vec to = targ;
-	from.z -= weaponbeloweye;
+	from.z -= WEAPONBELOWEYE;
 
 	attackphysics(from, to);
-	if(type == GUN_SHOTGUN) createrays(owner, to);
 
 	gunwait = info.attackdelay;
 	mag--;
@@ -779,7 +757,7 @@ void gun::attackshell(const vec &to){
 	s->o = owner->o;
 	vec *ejecttrans = hudEject(owner, akimboflip);
 	if(ejecttrans) s->o.add(*ejecttrans);
-	else s->o.add(vec(s->vel.x * owner->radius, s->vel.y * owner->radius, -weaponbeloweye));
+	else s->o.add(vec(s->vel.x * owner->radius, s->vel.y * owner->radius, -WEAPONBELOWEYE));
 	s->vel.mul(.02f * (rnd(3) + 5));
 	if(akimboflip) s->vel.rotate_around_z(180*RAD);
 	s->inwater = hdr.waterlevel > owner->o.z;
@@ -1046,7 +1024,7 @@ bool knife::attack(vec &targ){
 
 	vec from = owner->o;
 	vec to = targ;
-	from.z -= weaponbeloweye;
+	from.z -= WEAPONBELOWEYE;
 
 	vec unitv;
 	float dist = to.dist(from, unitv);

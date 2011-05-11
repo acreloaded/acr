@@ -124,6 +124,16 @@ void processevent(client &c, shotevent &e)
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
 	if(e.gun==GUN_SHOTGUN){
+		vec from(gs.o), to(e.to);
+		from.z -= WEAPONBELOWEYE;
+		float f = to.dist(from)/1000;
+		loopi(SGRAYS){
+			#define RNDD (rnd(SGSPREAD)-SGSPREAD/2.f)*f*(gs.scoping ? 0.99995 : 0)
+			vec r(RNDD, RNDD, RNDD);
+			gs.sg[i] = to;
+			gs.sg[i].add(r);
+			#undef RNDD
+		}
 		putint(p, N_SG);
 		loopi(SGRAYS) loopj(3) putfloat(p, gs.sg[i][j]);
 	}

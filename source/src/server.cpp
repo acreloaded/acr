@@ -3035,10 +3035,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				break;
 			}
 
-			case N_SG:
-				loopi(SGRAYS) loopj(3) cl->state.sg[i][j] = getfloat(p);
-				break;
-
 			case N_SHOOT:
 			case N_SHOOTC:
 			{

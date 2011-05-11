@@ -447,6 +447,7 @@ struct playerstate
 #define PLAYERRADIUS 1.1f
 #define PLAYERHEIGHT 4.5f
 #define PLAYERABOVEEYE .7f
+#define WEAPONBELOWEYE .2f
 
 struct eventicon{
     enum { VOICECOM = 0, HEADSHOT, DECAPITATED, FIRSTBLOOD, CRITICAL, REVENGE, BLEED, PICKUP, TOTAL };
