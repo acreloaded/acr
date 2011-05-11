@@ -1127,7 +1127,7 @@ void shoot(playerent *p, vec &targ){
 	if(weap){
 		weap->attack(targ);
 		loopi(NUMGUNS){
-			weapon *bweap = player1->weapons[i];
+			weapon *bweap = p->weapons[i];
 			if(bweap != weap && bweap->busy()) bweap->attack(targ);
 		}
 	}
