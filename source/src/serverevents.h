@@ -205,16 +205,17 @@ void processevent(client &c, shotevent &e)
 					// damage multipliers
 					switch(hitzone){
 						case HIT_HEAD:
-							if(e.gun == GUN_SNIPER || e.gun == GUN_BOLT || e.gun == GUN_KNIFE) damage *= 5;
-							else damage *= 3.5f;
+							damage *= POWERGUN(e.gun) ? POWHEADMUL : DAMHEADMUL;
 							break;
 						case HIT_TORSO:
 							// multiplying by one is pretty stupid to do
+							if(POWERGUN(e.gun)) damage *= POWTORSOMUL;
 							break;
 						case HIT_LEG:
 						default:
-							if(e.gun == GUN_BOLT) break;
-							damage *= .67f;
+							// ditto to the above comment
+							if(POWERGUN(e.gun)) break;
+							damage *= DAMLEGMUL;
 							break;
 					}
 					if(!damage) continue;

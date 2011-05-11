@@ -79,7 +79,14 @@ static itemstat powerupstats[] =
 #define KNIFEPOWER 5
 #define KNIFETTL 30000
 
-#define GIBBLOODMUL 1.5
+#define POWERGUN(gun) (gun == GUN_SNIPER || gun == GUN_BOLT || gun == GUN_KNIFE)
+#define DAMHEADMUL 3.5f
+#define POWHEADMUL 5
+//#define DAMTORSOMUL 1
+#define POWTORSOMUL 1.1f
+#define DAMLEGMUL .67f
+//#define POWLEGMUL 1
+#define GIBBLOODMUL 1.5f
 
 struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, range, endrange, rangeminus, projspeed, part, spread, kick, magsize, mdl_kick_rot, mdl_kick_back, recoil, maxrecoil, recoilangle, pushfactor; bool isauto; };
 static guninfo guns[NUMGUNS] =
