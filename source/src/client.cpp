@@ -204,7 +204,7 @@ void saytext(playerent *d, char *text, int flags, int sound){
 	if(flags&SAY_TEAM) textcolor = isteam(d, player1) ? 1 : 3; // friendly blue, enemy red
 	if(flags&SAY_DENY){
 		textcolor = 2; // denied yellow
-		s_strcat(text, "\f3Do not SPAM!");
+		s_strcat(text, " \f3Do not SPAM!");
 	}
 	string textout;
 	const int col = d == player1 ? 1 : m_team ? d->team == player1->team ? 0 : 3 : 5;
