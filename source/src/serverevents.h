@@ -128,7 +128,7 @@ void processevent(client &c, shotevent &e)
 		from.z -= WEAPONBELOWEYE;
 		float f = to.dist(from)/1000;
 		loopi(SGRAYS){
-			#define RNDD (rnd(SGSPREAD)-SGSPREAD/2.f)*f*(gs.scoping ? 0.99995 : 0)
+			#define RNDD (rnd(SGSPREAD)-SGSPREAD/2.f)*f*(gs.scoping ? 0.99995 : 1)
 			vec r(RNDD, RNDD, RNDD);
 			gs.sg[i] = to;
 			gs.sg[i].add(r);
