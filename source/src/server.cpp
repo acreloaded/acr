@@ -1218,7 +1218,7 @@ bool spamdetect(client *cl, char *text) // checks doubled lines and average typi
 void sendtext(char *text, client &cl, int flags, int voice){
 	if(voice < 0 || voice > S_VOICEEND - S_MAINEND) voice = 0;
 	s_sprintfd(logmsg)("[%s] ", cl.hostname);
-	if(flags & SAY_ACTION) s_sprintf(logmsg)("%s* %s %s ", logmsg, cl.name);
+	if(flags & SAY_ACTION) s_sprintf(logmsg)("%s* %s ", logmsg, cl.name);
 	else s_sprintf(logmsg)("%s<%s> ", logmsg, cl.name);
 	if(flags & SAY_TEAM) s_sprintf(logmsg)("%s(%s) ", logmsg, team_string(cl.team));
 	if(voice) s_sprintf(logmsg)("%s[%d] ", logmsg, voice + S_MAINEND);
