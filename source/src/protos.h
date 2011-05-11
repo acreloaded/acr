@@ -361,7 +361,7 @@ extern void changemap(const char *name);
 extern void initclient();
 extern void deathstate(playerent *pl);
 extern void spawnplayer(playerent *d);
-extern void dodamage(int damage, playerent *pl, playerent *actor, int weapon, bool local = false);
+extern void dodamage(int damage, playerent *pl, playerent *actor, int weapon);
 extern void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, float killdist);
 extern playerent *newplayerent();
 extern botent *newbotent();

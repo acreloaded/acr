@@ -471,13 +471,12 @@ bool tryrespawn()
 
 // damage arriving from the network, monsters, yourself, all ends up here.
 
-void dodamage(int damage, playerent *pl, playerent *actor, int weapon, bool local)
+void dodamage(int damage, playerent *pl, playerent *actor, int weapon)
 {
 	if(pl->state != CS_ALIVE || intermission) return;
 
 	pl->respawnoffset = pl->lastpain = actor->lasthitmarker = lastmillis;
-	if(local) damage = pl->dodamage(damage);
-	else if(actor == player1 && damage == 1000) return;
+	//if(actor == player1 && damage == 1000) return;
 
 	if(actor != pl && pl->damagelog.find(actor->clientnum) < 0) pl->damagelog.add(actor->clientnum);
 
@@ -493,12 +492,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, bool loca
 	pl->damagestack.add(damageinfo(actor->o, lastmillis));
 	damageeffect(damage * (weapon == GUN_KNIFE && damage < guns[GUN_KNIFE].damage ? 5 : 1), pl);
 
-	if(pl->health<=0){ if(local){
-		int style = !weapon::valid(weapon) || guns[weapon].damage < damage ? FRAG_GIB : FRAG_NONE;
-		if(!localfirstkill && pl != actor && !isteam(pl, actor)){ localfirstkill = true; style |= FRAG_FIRST; }
-		dokill(pl, actor, weapon, damage, style, pl->o == actor->o ? 0 : pl->o.dist(actor->o) / 4);
-	}}
-	else if(pl==player1) playsound(S_PAIN6, SP_HIGH);
+	if(pl==player1) playsound(S_PAIN6, SP_HIGH);
 	else playsound(S_PAIN1+rnd(5), pl);
 }
 
