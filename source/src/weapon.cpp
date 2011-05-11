@@ -1002,7 +1002,7 @@ bool knife::attack(vec &targ){
 				}
 				break;
 			case GST_THROWING:
-				if(attackmillis >= 300){
+				if(attackmillis >= 250){
 					reset();
 					addmsg(N_QUICKSWITCH, "r");
 					owner->weaponchanging = lastmillis-1-(weaponchangetime/2);
