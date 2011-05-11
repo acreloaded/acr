@@ -836,8 +836,9 @@ void readmatrices(){
 
 void traceShot(const vec &from, vec &to, float len){
 	traceresult_s tr;
-	to.sub(from).normalize().mul(len).add(from);
-	TraceLine(from, to, NULL, false, &tr);
+	vec tracer(to);
+	tracer.sub(from).normalize().mul(len).add(from);
+	TraceLine(from, tracer, NULL, false, &tr);
 	if(tr.collided) to = tr.end;
 }
 

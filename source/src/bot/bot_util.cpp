@@ -240,7 +240,7 @@ void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult
 	
 	 float dx = to.x-from.x;
 	 float dy = to.y-from.y; 
-	 int steps = (int)(sqrt(dx*dx+dy*dy)/0.9);
+	 int steps = (int)(sqrt(dx*dx+dy*dy));///0.9);
 	 if(!steps) // If from and to are on the same cube...
 	 {
 		  if (GetDistance(from, to) < flNearestDist)		 
@@ -262,6 +262,8 @@ void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult
 	 float y = from.y;
 	 int i = 0;
 	 vec endcube = from;
+
+	 const float xincrement = dx/(float)steps, yincrement = dy/(float)steps;
 	 
 	 // Now check if the 'line' is hit by a cube
 	 while(i<steps)
@@ -281,20 +283,15 @@ void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult
 		  endcube.x = x;
 		  endcube.y = y;
 		  endcube.z = rz;
-		  x += dx/(float)steps;
-		  y += dy/(float)steps;
+		  x += xincrement;
+		  y += yincrement;
 		  i++;
 	 }
 	
-	 if ((i>=steps) && !tr->collided)
-	 {
-		  tr->end = to;
-	 }
-	 else
-	 {
+	 if ((i>=steps) && !tr->collided) tr->end = to;
+	 else if(i > 1){
 		  tr->collided = true;
-		  if (GetDistance(from, endcube) < flNearestDist)
-			   tr->end = endcube;
+		  if (GetDistance(from, endcube) < flNearestDist) tr->end = endcube;
 	 }
 
 	 return;
