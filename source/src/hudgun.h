@@ -100,15 +100,21 @@ struct weaponmove
 				k_back = gamefocus->weaponsel->info.mdl_kick_back*kick/10;
 			}
 			
+			int swayremove = 0;
 			if(ads_gun(gamefocus->weaponsel->type)){
+				swayremove = gamefocus->ads;
 				if((anim&ANIM_INDEX) == ANIM_GUN_IDLE || (anim&ANIM_INDEX) == ANIM_GUN_SHOOT)
-					basetime = lastmillis-gamefocus->ads;
-				k_rot *= 1 - sqrtf(gamefocus->ads / 1000.f) / 2.f;
-				k_back *= 1 - sqrtf(gamefocus->ads / 1000.f) / 1.1f;
-				sway.mul(1 - sqrtf(gamefocus->ads / 1000.f) / 1.2f);
-				swaydir.mul(1 - sqrtf(gamefocus->ads / 1000.f) / 1.3f);
+					basetime = lastmillis - swayremove;
 			}
 			else if(gamefocus->weaponsel->type == GUN_AKIMBO) basetime = lastmillis;
+			else if(gamefocus->weaponsel->type == GUN_KNIFE && ((knife *)gamefocus->weaponsel)->state) swayremove = 680;
+
+			if(swayremove){
+				k_rot *= 1 - sqrtf(swayremove / 1000.f) / 2.f;
+				k_back *= 1 - sqrtf(swayremove / 1000.f) / 1.1f;
+				sway.mul(1 - sqrtf(swayremove / 1000.f) / 1.2f);
+				swaydir.mul(1 - sqrtf(swayremove / 1000.f) / 1.3f);
+			}
 		}
 
 		pos.add(swaydir);
