@@ -1087,7 +1087,7 @@ void knife::throwknife(const vec &vel){
 }
 
 void knife::drawstats() {}
-void knife::renderaimhelp(int teamtype){ if(state) weapon::renderaimhelp(teamtype); }
+//void knife::renderaimhelp(int teamtype){ if(state) weapon::renderaimhelp(teamtype); }
 void knife::attackfx(const vec &from, const vec &to, int millis) {
 	if(from.iszero() && to.iszero()){
 		state = GST_INHAND;
