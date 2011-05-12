@@ -478,7 +478,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon)
 	if(pl->state != CS_ALIVE || intermission) return;
 
 	pl->respawnoffset = pl->lastpain = actor->lasthitmarker = lastmillis;
-	//if(actor == player1 && damage == 1000) return;
+	if(actor == player1 && damage == 1000) return;
 
 	if(actor != pl && pl->damagelog.find(actor->clientnum) < 0) pl->damagelog.add(actor->clientnum);
 
