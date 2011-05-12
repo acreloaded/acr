@@ -140,7 +140,7 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color, int a
 			case '9': color = bvec(31, 86, 166); break; // dark blue: dead 'owner'
 			// white (provided color): everything else
 		}
-		glColor4ub(color.x, color.y, color.z, stack[sp] > 0 ? a : a * (sinf(lastmillis / 200.f) * 115.f));
+		glColor4ub(color.x, color.y, color.z, stack[sp] > 0 ? a : a * (sinf(lastmillis / 200.f) * 1.15f));
 	} 
 }
 
