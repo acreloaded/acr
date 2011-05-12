@@ -119,17 +119,15 @@ static int draw_char(int c, int x, int y)
 //stack[sp] is current color index
 static void text_color(char c, char *stack, int size, int &sp, bvec color, int a) 
 {
-	if(c=='s') // save color
-	{   
+	if(c=='s'){ // save color
 		c = stack[sp];
-		if(sp<size-1) stack[++sp] = c;
+		if(sp+1<size) stack[++sp] = c;
 	}
-	else
-	{
+	else{
 		if(c=='r') c = stack[(sp > 0) ? --sp : sp]; // restore color
+		else if(c=='b') stack[sp] *= -1;
 		else stack[sp] = c;
-		switch(c)
-		{
+		switch(abs(c)){
 			case '0': case 'g': color = bvec(64,  255, 128); break;   // green: player talk
 			case '1': case 'b': color = bvec(96,  160, 255); break;   // blue: team chat or 'owner'
 			case '2': case 'y': color = bvec(255, 192, 64);  break;   // yellow: gameplay action messages, only actions done by players
@@ -142,7 +140,7 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color, int a
 			case '9': color = bvec(31, 86, 166); break; // dark blue: dead 'owner'
 			// white (provided color): everything else
 		}
-		glColor4ub(color.x, color.y, color.z, a);
+		glColor4ub(color.x, color.y, color.z, stack[sp] > 0 ? a : a * (sinf(lastmillis / 200.f) * 115.f));
 	} 
 }
 
