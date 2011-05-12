@@ -127,7 +127,7 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color, int a
 		if(c=='r') c = stack[(sp > 0) ? --sp : sp]; // restore color
 		else if(c=='b') stack[sp] *= -1;
 		else stack[sp] = c;
-		switch(abs(c)){
+		switch(abs(stack[sp])){
 			case '0': case 'g': color = bvec(64,  255, 128); break;   // green: player talk
 			case '1': case 'b': color = bvec(96,  160, 255); break;   // blue: team chat or 'owner'
 			case '2': case 'y': color = bvec(255, 192, 64);  break;   // yellow: gameplay action messages, only actions done by players
