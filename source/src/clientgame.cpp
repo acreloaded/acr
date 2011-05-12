@@ -96,9 +96,11 @@ void newname(const char *name)
 
 void newteam(char *name)
 {
-	if(name[0])
-	{
-		if(!team_valid(name)) { conoutf("\f3\"%s\" is not a valid team name (try RED or BLUE)", name); return;}
+	if(name[0]){
+		if(strcmp(name, "BLUE") && strcmp(name, "RED") && strcmp(name, "SPECT")){
+			conoutf("\f3\"%s\" is not a valid team name (try RED, BLUE or SPECT)", name);
+			return;
+		}
 		int nt = team_int(name);
 		if(nt == player1->team) return; // same team
 		addmsg(N_SWITCHTEAM, "ri", nt);
