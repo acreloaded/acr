@@ -1153,7 +1153,7 @@ void arenacheck(){
 	if(arenaround){ // start new arena round
 		arenaround = 0;
 		distributespawns();
-		loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed && clients[i]->isonrightmap){
+		loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed && clients[i]->isonrightmap && clients[i]->team != TEAM_SPECT){
 			clients[i]->state.lastdeath = 1;
 			sendspawn(clients[i]);
 		}
