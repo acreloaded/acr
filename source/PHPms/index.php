@@ -37,7 +37,7 @@
 		foreach($srvs as $s){
 			$wt = '';
 			foreach($config['servers']['weights'] as $w) if($w[0] == $s[3] && (!$w[2] || $w[2] == $s[1])){
-				$wt = ' '.$w[1];
+				if($w[1]) $wt = ' '.$w[1];
 				break;
 			}
 			echo ($s[2] ? '' : "//")."addserver {$s[0]} {$s[1]}{$wt}\r\n";
