@@ -1150,11 +1150,10 @@ void distributespawns(){
 void arenacheck(){
 	if(!m_duel || interm || gamemillis<arenaround || clients.empty()) return;
 
-	if(arenaround)
-	{   // start new arena round
+	if(arenaround){ // start new arena round
 		arenaround = 0;
 		distributespawns();
-		loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed){
+		loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed && clients[i]->isonrightmap){
 			clients[i]->state.lastdeath = 1;
 			sendspawn(clients[i]);
 		}
@@ -1164,17 +1163,14 @@ void arenacheck(){
 	client *alive = NULL;
 	bool dead = false;
 	int lastdeath = 0;
-	loopv(clients)
-	{
+	loopv(clients){
 		client &c = *clients[i];
 		if(c.type==ST_EMPTY || !c.isauthed) continue;
-		if(c.state.state==CS_ALIVE || (c.state.state==CS_DEAD && c.state.lastspawn>=0))
-		{
+		if(c.state.state==CS_ALIVE || (c.state.state==CS_DEAD && c.state.lastspawn>=0)){
 			if(!alive) alive = &c;
 			else if(!m_team || alive->team != c.team) return;
 		}
-		else if(c.state.state==CS_DEAD)
-		{
+		else if(c.state.state==CS_DEAD){
 			dead = true;
 			lastdeath = max(lastdeath, c.state.lastdeath);
 		}
