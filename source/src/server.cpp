@@ -3003,6 +3003,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				}
 				if(!canspawn(cl)){
 					int t = freeteam(sender);
+					updateclientteam(sender, t, FTR_PLAYERWISH);
 					break;
 				}
 				sendspawn(cl);
