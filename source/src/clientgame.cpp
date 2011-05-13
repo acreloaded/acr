@@ -449,21 +449,17 @@ void respawnself(){
 	addmsg(N_TRYSPAWN, "r");
 }
 
-bool tryrespawn()
-{
-	if(player1->state==CS_DEAD)
-	{
+bool tryrespawn(){
+	if(player1->state==CS_DEAD){
+		respawnself();
 		int respawnmillis = player1->respawnoffset+(m_duel ? 0 : (m_flags ? 5000 : 1000));
-		if(lastmillis>respawnmillis)
-		{
+		if(lastmillis>respawnmillis){
 			player1->attacking = false;
-			if(m_duel)
-			{
+			if(m_duel){
 				if(!arenaintermission) hudeditf(HUDMSG_TIMER, "waiting for new round to start...");
 				else lastspawnattempt = lastmillis;
 				return false;
 			}
-			respawnself();
 			return true;
 		}
 		else lastspawnattempt = lastmillis;
