@@ -444,11 +444,11 @@ int numauthedclients(){
 int calcscores();
 
 int freeteam(int pl = -1){
-	int teamsize[2] = {0, 0};
-	int teamscore[2] = {0, 0};
+	int teamsize[2] = {0};
+	int teamscore[2] = {0};
 	int t;
 	int sum = calcscores();
-	loopv(clients) if(clients[i]->type!=ST_EMPTY && i != pl && clients[i]->isauthed)
+	loopv(clients) if(clients[i]->type!=ST_EMPTY && i != pl && clients[i]->isauthed && clients[i]->team != TEAM_SPECT)
 	{
 		t = clients[i]->team;
 		teamsize[t]++;
@@ -3002,7 +3002,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					break;
 				}
 				if(!canspawn(cl)){
-					// find free team
+					int t = freeteam(sender);
 					break;
 				}
 				sendspawn(cl);
