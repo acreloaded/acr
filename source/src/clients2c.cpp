@@ -1007,8 +1007,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				playerent *p = getclient(cn);
 				if(!p) break;
 				string nts;
-				s_strcpy(nts, fnt ? "\f1" : "\f3");
-				s_strcat(nts, team_string(fnt));
+				s_sprintf(nts)("\f%d%s", team_color(fnt), team_string(fnt));
 				if(p->team == fnt){
 					if(p == player1 && ftr == FTR_AUTOTEAM) hudoutf("\f2you stay in team %s", nts);
 					break;
@@ -1025,8 +1024,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					}
 				}
 				else{
-                    switch(ftr)
-                    {
+                    switch(ftr){
                         case FTR_PLAYERWISH:
                             conoutf("\f2%s switched to team %s", colorname(p), nts);
                             break;
