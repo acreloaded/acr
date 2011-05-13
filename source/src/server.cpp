@@ -1959,7 +1959,7 @@ bool refillteams(bool now, int ftr){ // force only minimal amounts of players
     loopv(clients) if(clients[i]->type!=ST_EMPTY){ // playerlist stocktaking
         client *c = clients[i];
         c->at3_dontmove = true;
-        if(c->isauthed){
+        if(c->isauthed && c->team != TEAM_SPECT){
 			teamsize[c->team]++;
 			teamscore[c->team] += c->at3_score;
 			if(clienthasflag(i) < 0) {
