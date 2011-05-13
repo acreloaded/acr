@@ -45,6 +45,14 @@ struct teamscore{
 	}
 };
 
+struct spectscore{
+	vector<playerent *> teammembers;
+
+	void addscore(playerent *d){
+		if(d) teammembers.add(d);
+	}
+};
+
 static int teamscorecmp(const teamscore *x, const teamscore *y){
 	if(x->flagscore > y->flagscore) return -1;
 	if(x->flagscore < y->flagscore) return 1;
