@@ -602,6 +602,7 @@ void spawnstate(client *c){
 
 void sendspawn(client *c){
 	clientstate &gs = c->state;
+	if(gs.lastdeath) gs.respawn();
 	spawnstate(c);
 	sendf(c->clientnum, 1, "ri7vv", N_SPAWNSTATE, gs.lifesequence,
 		gs.health, gs.armour,
@@ -1153,9 +1154,8 @@ void arenacheck(){
 	{   // start new arena round
 		arenaround = 0;
 		distributespawns();
-		loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed)
-		{
-			clients[i]->state.respawn();
+		loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed){
+			clients[i]->state.lastdeath = 1;
 			sendspawn(clients[i]);
 		}
 		return;
@@ -2999,7 +2999,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					break;
 				}
 				if(cl->state.state!=CS_DEAD || cl->state.lastspawn>=0 || gamemillis - cl->state.lastdeath < (m_flags ? 5000 : 1000) || !canspawn(cl)) break;
-				if(cl->state.lastdeath) cl->state.respawn();
 				sendspawn(cl);
 				break;
 
