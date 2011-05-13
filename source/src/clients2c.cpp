@@ -790,6 +790,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						}
 						break;
 					}
+					case 41:
+						s_sprintf(msg)("you cannot spawn so quickly, wait another %.1f seconds", getint(p) / 1000.f);
+						break;
 				}
 				conoutf("%s", msg);
 				break;

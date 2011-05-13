@@ -2990,13 +2990,24 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			}
 
 			case N_TRYSPAWN:
+			{
 				if(!cl->isonrightmap){
 					sendf(sender, 1, "ri", N_MAPIDENT);
 					break;
 				}
-				if(cl->state.state!=CS_DEAD || cl->state.lastspawn>=0 || gamemillis - cl->state.lastdeath < (m_flags ? 5000 : 1000) || !canspawn(cl)) break;
+				if(cl->state.state!=CS_DEAD || cl->state.lastspawn>=0) break;
+				const int waitremain = (m_flags ? 5000 : 1000) - gamemillis + cl->state.lastdeath;
+				if(waitremain > 0){
+					sendmsgi(41, waitremain, sender);
+					break;
+				}
+				if(!canspawn(cl)){
+					// find free team
+					break;
+				}
 				sendspawn(cl);
 				break;
+			}
 
 			case N_SPAWN:
 			{
