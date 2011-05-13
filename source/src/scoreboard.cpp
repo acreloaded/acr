@@ -129,6 +129,32 @@ void renderteamscore(void *menu, teamscore *t){
 	loopv(t->teammembers) renderscore(menu, t->teammembers[i]);
 }
 
+void renderspect(void *menu, playerent *d){
+	s_sprintfd(status)("\f%d", privcolor(d->priv, d->state == CS_DEAD));
+	static color localplayerc(0.2f, 0.2f, 0.2f, 0.2f);
+	const char *clag = d->state==CS_LAGGED ? "LAG" : colorpj(d->plag), *cping = colorping(d->ping);
+	sline &line = scorelines.add();
+	line.bgcolor = d==player1 ? &localplayerc : NULL;
+	s_sprintf(line.s)("%s%s", status, colorname(d, true));
+}
+
+void renderspectscore(void *menu, teamscore &t){
+	if(!scorelines.empty()){ // space between teams
+		sline &space = scorelines.add();
+		space.s[0] = 0;
+	}
+	sline &line = scorelines.add();
+	s_sprintfd(plrs)("(%d %s)", t.teammembers.length(), t.teammembers.length() == 1 ? "spectator" : "spectators");
+	s_sprintf(line.s)("SPECTATORs %s", plrs);
+	/*
+	if(m_flags) s_sprintf(line.s)("%d\t%d\t%d\t%d\t%d\t%.*f\t\t\t\t%s\t\t%s", t->points, t->flagscore, t->frags, t->assists, t->deaths, sr.precision, sr.ratio, team_string(t->team), plrs);
+	else if(m_team) s_sprintf(line.s)("%d\t%d\t%d\t%d\t%.*f\t\t\t\t%s\t\t%s", t->points, t->frags, t->assists, t->deaths, sr.precision, sr.ratio, team_string(t->team), plrs);
+	*/
+	static color spectcolor = color(.5f, .5f, .5f, 0.2f);
+	line.bgcolor = &spectcolor;
+	loopv(t.teammembers) renderspect(menu, t.teammembers[i]);
+}
+
 extern bool watchingdemo;
 
 void renderscores(void *menu, bool init){
@@ -179,6 +205,7 @@ void renderscores(void *menu, bool init){
 
 		int sort = teamscorecmp(&teamscores[TEAM_RED], &teamscores[TEAM_BLUE]);
 		loopi(2) renderteamscore(menu, &teamscores[sort < 0 ? i : (i+1)&1]);
+		if(teamscores[TEAM_SPECT].teammembers.length()) renderspectscore(menu, teamscores[TEAM_SPECT]);
 	}
 	else loopv(scores) renderscore(menu, scores[i]);
 
