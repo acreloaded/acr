@@ -1085,8 +1085,8 @@ void htf_forceflag(int flag){
 
 int arenaround = 0;
 
-inline bool canspawn(client *, bool = false){
-	return !m_duel;
+inline bool canspawn(client *c, bool = false){
+	return !m_duel && c->team != TEAM_SPECT;
 }
 
 /*
