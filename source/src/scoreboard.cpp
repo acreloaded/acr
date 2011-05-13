@@ -5,27 +5,23 @@
 
 void *scoremenu = NULL, *teammenu = NULL, *ctfmenu = NULL;
 
-void showscores(int on)
-{
+void showscores(int on){
 	if(on) showmenu(m_flags ? "ctf score" : (m_team ? "team score" : "score"), false);
-	else if (!intermission)
-	{
+	else if (!intermission){
 		closemenu("score");
 		closemenu("team score");
 		closemenu("ctf score");
 	}
 }
 
-void showscores_(char *on)
-{
+void showscores_(char *on){
 	if(on[0]) showscores(ATOI(on));
 	else showscores(addreleaseaction("showscores")!=NULL);
 }
 
 COMMANDN(showscores, showscores_, ARG_1STR);
 
-struct sline
-{
+struct sline{
 	string s;
 	color *bgcolor;
 	sline() : bgcolor(NULL) {}
@@ -33,14 +29,12 @@ struct sline
 
 static vector<sline> scorelines;
 
-struct teamscore
-{
+struct teamscore{
 	int team, points, frags, assists, deaths, flagscore;
 	vector<playerent *> teammembers;
 	teamscore(int t) : team(t), frags(0), assists(0), deaths(0), points(0), flagscore(0) {}
 
-	void addscore(playerent *d)
-	{
+	void addscore(playerent *d){
 		if(!d) return;
 		teammembers.add(d);
 		frags += d->frags;
@@ -51,8 +45,7 @@ struct teamscore
 	}
 };
 
-static int teamscorecmp(const teamscore *x, const teamscore *y)
-{
+static int teamscorecmp(const teamscore *x, const teamscore *y){
 	if(x->flagscore > y->flagscore) return -1;
 	if(x->flagscore < y->flagscore) return 1;
 	if(x->frags > y->frags) return -1;
@@ -66,8 +59,7 @@ static int teamscorecmp(const teamscore *x, const teamscore *y)
 	return x->team > y->team;
 }
 
-static int scorecmp(const playerent **x, const playerent **y)
-{
+static int scorecmp(const playerent **x, const playerent **y){
 	if((*x)->flagscore > (*y)->flagscore) return -1;
 	if((*x)->flagscore < (*y)->flagscore) return 1;
 	if((*x)->frags > (*y)->frags) return -1;
@@ -83,13 +75,11 @@ static int scorecmp(const playerent **x, const playerent **y)
 	return strcmp((*x)->name, (*y)->name);
 }
 
-struct scoreratio
-{
+struct scoreratio{
 	float ratio;
 	int precision;
 
-	void calc(int frags, int deaths)
-	{
+	void calc(int frags, int deaths){
 		// ratio
 		if(frags>=0 && deaths>0) ratio = (float)frags/(float)deaths;
 		else if(frags>=0 && deaths==0) ratio = frags * 2.f;
@@ -102,8 +92,7 @@ struct scoreratio
 	}
 };
 
-void renderscore(void *menu, playerent *d)
-{
+void renderscore(void *menu, playerent *d){
 	s_sprintfd(status)("\f%d", privcolor(d->priv, d->state == CS_DEAD));
 	static color localplayerc(0.2f, 0.2f, 0.2f, 0.2f), damagedplayerc(0.4f, 0.1f, 0.1f, 0.3f);
 	const char *clag = d->state==CS_LAGGED ? "LAG" : colorpj(d->plag), *cping = colorping(d->ping);
@@ -116,10 +105,8 @@ void renderscore(void *menu, playerent *d)
 	else s_sprintf(s)("%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->points, d->frags, d->assists, d->deaths, sr.precision, sr.ratio, clag, cping, d->clientnum, status, colorname(d, true));
 }
 
-void renderteamscore(void *menu, teamscore *t)
-{
-	if(!scorelines.empty()) // space between teams
-	{
+void renderteamscore(void *menu, teamscore *t){
+	if(!scorelines.empty()){ // space between teams
 		sline &space = scorelines.add();
 		space.s[0] = 0;
 	}
@@ -136,8 +123,7 @@ void renderteamscore(void *menu, teamscore *t)
 
 extern bool watchingdemo;
 
-void renderscores(void *menu, bool init)
-{
+void renderscores(void *menu, bool init){
 	static string modeline, serverline;
 
 	modeline[0] = '\0';
@@ -149,41 +135,34 @@ void renderscores(void *menu, bool init)
 	loopv(players) if(players[i]) scores.add(players[i]);
 	scores.sort(scorecmp);
 
-	if(init)
-	{
+	if(init){
 		int sel = scores.find(player1);
 		if(sel>=0) menuselect(menu, sel);
 	}
 
-	if(getclientmap()[0])
-	{
+	if(getclientmap()[0]){
 		bool fldrprefix = !strncmp(getclientmap(), "maps/", strlen("maps/"));
 		s_sprintf(modeline)("\"%s\" on map %s", modestr(gamemode, modeacronyms > 0), fldrprefix ? getclientmap()+strlen("maps/") : getclientmap());
 	}
 
 	extern int minutesremaining;
-	if((gamemode>1 || (gamemode==0 && (multiplayer(false) || watchingdemo))) && minutesremaining >= 0)
-	{
+	if((gamemode>1 || (gamemode==0 && (multiplayer(false) || watchingdemo))) && minutesremaining >= 0){
 		if(!minutesremaining) s_strcat(modeline, ", intermission");
-		else
-		{
+		else{
 			s_sprintfd(timestr)(", %d %s remaining", minutesremaining, minutesremaining==1 ? "minute" : "minutes");
 			s_strcat(modeline, timestr);
 		}
 	}
 
-	if(multiplayer(false))
-	{
+	if(multiplayer(false)){
 		serverinfo *s = getconnectedserverinfo();
 		if(s) s_sprintf(serverline)("%s:%d %s", s->name, s->port, s->sdesc);
 	}
 
-	if(m_team)
-	{
+	if(m_team){
 		teamscore teamscores[2] = { teamscore(TEAM_RED), teamscore(TEAM_BLUE) };
 
-		loopv(players)
-		{
+		loopv(players){
 			if(!players[i]) continue;
 			teamscores[players[i]->team].addscore(players[i]);
 		}
@@ -193,10 +172,7 @@ void renderscores(void *menu, bool init)
 		int sort = teamscorecmp(&teamscores[TEAM_RED], &teamscores[TEAM_BLUE]);
 		loopi(2) renderteamscore(menu, &teamscores[sort < 0 ? i : (i+1)&1]);
 	}
-	else
-	{
-		loopv(scores) renderscore(menu, scores[i]);
-	}
+	else loopv(scores) renderscore(menu, scores[i]);
 
 	menureset(menu);
 	loopv(scorelines) menumanual(menu, scorelines[i].s, NULL, scorelines[i].bgcolor);
@@ -204,15 +180,13 @@ void renderscores(void *menu, bool init)
 
 	// update server stats
 	static int lastrefresh = 0;
-	if(!lastrefresh || lastrefresh+5000<lastmillis)
-	{
+	if(!lastrefresh || lastrefresh+5000<lastmillis){
 		refreshservers(NULL, init);
 		lastrefresh = lastmillis;
 	}
 }
 
-void consolescores()
-{
+void consolescores(){
 	static string team, flags;
 	playerent *d;
 	scoreratio sr;
@@ -222,23 +196,17 @@ void consolescores()
 	loopv(players) if(players[i]) scores.add(players[i]);
 	scores.sort(scorecmp);
 
-	if(getclientmap()[0])
-	{
-		printf("\n\"%s\" on map %s", modestr(gamemode, 0), getclientmap());
-	}
-	if(multiplayer(false))
-	{
+	if(getclientmap()[0]) printf("\n\"%s\" on map %s", modestr(gamemode, 0), getclientmap());
+	if(multiplayer(false)){
 		serverinfo *s = getconnectedserverinfo();
 		string text;
-		if(s)
-		{
+		if(s){
 			filtertext(text, s->sdesc, 1);
 			printf(", %s:%d %s", s->name, s->port, text);
 		}
 	}
 	printf("\npoints %sfrags assists deaths ratio cn%s name\n", m_flags ? "flags " : "", m_team ? " team" : "");
-	loopv(scores)
-	{
+	loopv(scores){
 		d = scores[i];
 		sr.calc(d->frags, d->deaths);
 		s_sprintf(team)(" %-4s", team_string(d->team));
