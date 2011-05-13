@@ -1812,10 +1812,10 @@ void updatesdesc(const char *newdesc, ENetAddress *caller = NULL){
 }
 
 bool updateclientteam(int client, int team, int ftr){
-	if(!valid_client(client) || team < TEAM_RED || team > TEAM_BLUE) return false;
+	if(!valid_client(client) || !team_valid(team)) return false;
 	if(clients[client]->team == team && ftr != FTR_AUTOTEAM) return false;
 	sendf(-1, 1, "ri3", N_SETTEAM, client, (clients[client]->team = team) | (ftr << 4));
-	if(m_team) forcedeath(clients[client]);
+	if(m_team || team == TEAM_SPECT) forcedeath(clients[client]);
 	return true;
 }
 
@@ -2952,14 +2952,17 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			{
 				int t = getint(p);
 				if(cl->team == t) break;
-				int teamsizes[TEAM_BLUE];
-				loopv(clients) if(i != sender && clients[i]->type!=ST_EMPTY && clients[i]->isauthed && clients[i]->isonrightmap)
-					teamsizes[clients[i]->team]++;
-				if(m_team && teamsizes[t] > teamsizes[team_opposite(t)] && cl->priv < PRIV_ADMIN){
-					sendf(sender, 1, "ri2", N_SWITCHTEAM, t);
-					break;
+				
+				if(m_team && cl->priv < PRIV_ADMIN && t != TEAM_SPECT){
+					int teamsizes[TEAM_NUM];
+					loopv(clients) if(i != sender && clients[i]->type!=ST_EMPTY && clients[i]->isauthed && clients[i]->isonrightmap && clients[i]->team != TEAM_SPECT)
+						teamsizes[clients[i]->team]++;
+					if(teamsizes[t] > teamsizes[team_opposite(t)]){
+						sendf(sender, 1, "ri2", N_SWITCHTEAM, t);
+						break;
+					}
 				}
-				else updateclientteam(sender, t, FTR_PLAYERWISH);
+				updateclientteam(sender, t, FTR_PLAYERWISH);
 				break;
 			}
 
