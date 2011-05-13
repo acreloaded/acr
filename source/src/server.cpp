@@ -1836,8 +1836,7 @@ void shuffleteams(int ftr = FTR_AUTOTEAM){
 	int team, sums = calcscores();
 	if(gamemillis < 2 * 60 *1000){ // random
 		int teamsize[2] = {0, 0};
-		loopv(clients) if(clients[i]->type!=ST_EMPTY)
-		{
+		loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->team != TEAM_SPECT){
 			sums += rnd(1000);
 			team = sums & 1;
 			if(teamsize[team] >= numplayers/2) team = team_opposite(team);
@@ -1850,7 +1849,7 @@ void shuffleteams(int ftr = FTR_AUTOTEAM){
 		shuffle.shrink(0);
 		sums /= 4 * numplayers + 2;
 		team = rnd(2);
-		loopv(clients) if(clients[i]->type!=ST_EMPTY) { clients[i]->at3_score += rnd(sums | 1); shuffle.add(i); }
+		loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->team != TEAM_SPECT) { clients[i]->at3_score += rnd(sums | 1); shuffle.add(i); }
 		shuffle.sort(cmpscore);
 		loopi(shuffle.length()){
 			updateclientteam(shuffle[i], team, ftr);
