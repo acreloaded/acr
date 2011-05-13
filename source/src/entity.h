@@ -180,6 +180,7 @@ static inline const char *killname(int gun, int style){
 #define isteam(a,b)   (m_team && a->team == b->team)
 
 enum { TEAM_RED = 0, TEAM_BLUE, TEAM_SPECT, TEAM_NUM };
+#define team_valid(t) ((t) >= 0 && (t) < TEAM_NUM)
 #define team_string(t) ((t) == TEAM_BLUE ? "BLUE" : (t) == TEAM_RED ? "RED" : "SPECT")
 #define team_int(t) (!strcmp((t), "RED") ? TEAM_RED : !strcmp((t), "BLUE") ? TEAM_BLUE : TEAM_SPECT)
 #define team_opposite(o) ((o) < TEAM_SPECT ? (o) ^ 1 : TEAM_SPECT)
