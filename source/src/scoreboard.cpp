@@ -34,7 +34,7 @@ struct teamscore{
 	vector<playerent *> teammembers;
 	teamscore(int t) : team(t), frags(0), assists(0), deaths(0), points(0), flagscore(0) {}
 
-	void addscore(playerent *d){
+	virtual void addscore(playerent *d){
 		if(!d) return;
 		teammembers.add(d);
 		frags += d->frags;
@@ -45,8 +45,8 @@ struct teamscore{
 	}
 };
 
-struct spectscore{
-	vector<playerent *> teammembers;
+struct spectscore : teamscore{
+	spectscore() : teamscore(TEAM_SPECT) {}
 
 	void addscore(playerent *d){
 		if(d) teammembers.add(d);
@@ -168,7 +168,7 @@ void renderscores(void *menu, bool init){
 	}
 
 	if(m_team){
-		teamscore teamscores[2] = { teamscore(TEAM_RED), teamscore(TEAM_BLUE) };
+		teamscore teamscores[TEAM_NUM] = { teamscore(TEAM_RED), teamscore(TEAM_BLUE), spectscore() };
 
 		loopv(players){
 			if(!players[i]) continue;
