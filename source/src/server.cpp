@@ -3182,7 +3182,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(cl->state.grenades.throwable <= 0) break;
 				cl->state.grenades.throwable--;
 				fixposinmap(from, &from);
-				vel.normalize().mul(NADEPOWER);
+				if(vel.magnitude() > NADEPOWER) vel.normalize().mul(NADEPOWER);
 				ucharbuf newmsg(cl->messages.reserve(8 * sizeof(float)));
 				putint(newmsg, N_THROWNADE);
 				loopi(3) putfloat(newmsg, from[i]);
