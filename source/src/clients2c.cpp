@@ -912,7 +912,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					d->assists -= 100;
 					d->deaths += 100;
 					string editorname;
-					s_strcpy(editorname, d == player1 ? "\f1you\f2" : colorname(d));
+					s_strcpy(editorname, d == player1 ? "\fs\f1you\fr" : colorname(d));
 					if(d == gamefocus)
 						hudonlyf("\f3%s %s just been outh4x0rd!", editorname, d == player1 ? "have" : "has");
 					conoutf("\f%d%s paid the ultimate repercussion for cheating!", d == player1 ? 3 : 2, editorname);
