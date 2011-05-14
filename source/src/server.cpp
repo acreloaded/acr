@@ -3000,7 +3000,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					sendmsgi(41, waitremain, sender);
 					break;
 				}
-				if(!canspawn(cl)){
+				if(!canspawn(cl) && !m_duel){
 					int t = freeteam(sender);
 					updateclientteam(sender, t, FTR_PLAYERWISH);
 					break;
