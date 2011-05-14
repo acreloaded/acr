@@ -329,7 +329,7 @@ bool delfile(const char *path)
 	return !remove(path);
 }
 
-extern char *maplayout, *mapceil;
+extern char *maplayout, *mapceil, swaterlvl;
 extern int maplayout_factor;
 
 mapstats *loadmapstats(const char *filename, bool getlayout)
@@ -342,6 +342,8 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 	loopi(MAXENTTYPES) s.entcnt[i] = 0;
 	loopi(3) s.spawns[i] = 0;
 	loopi(2) s.flags[i] = 0;
+
+	swaterlvl = -128; // until changed
 
 	gzFile f = opengzfile(filename, "rb9");
 	if(!f) return NULL;
@@ -364,9 +366,11 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 		enttypes[i] = e.type;
 		entposs[i * 3] = e.x; entposs[i * 3 + 1] = e.y; entposs[i * 3 + 2] = e.z;
 	}
+	swaterlvl = s.hdr.waterlevel;
 	if(getlayout)
 	{
 		DELETEA(maplayout);
+		DELETEA(mapceil);
 		if(s.hdr.sfactor <= LARGEST_FACTOR && s.hdr.sfactor >= SMALLEST_FACTOR)
 		{
 			maplayout_factor = s.hdr.sfactor;

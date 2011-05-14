@@ -290,7 +290,7 @@ struct ban
 
 vector<ban> bans;
 
-char *maplayout = NULL, *mapceil = NULL;
+char *maplayout = NULL, *mapceil = NULL, swaterlvl = 0;
 int maplayout_factor;
 
 struct worldstate
@@ -2716,9 +2716,16 @@ void checkmove(client &cp){
 			sendservmsg(fastmsg);
 		}
 	}
-	// add drowning
-	if(false);
-	if(cs.state != CS_ALIVE) return;
+	// drowning
+	if(cs.o.z < swaterlvl){
+		if(!cs.lastdrownmillis) cs.lastdrownmillis = servmillis;
+		if(cs.lastdrownsuffered + 1000 < servmillis){
+			cs.lastdrownsuffered = servmillis;
+			serverdamage(&cp, &cp, 10, GUN_KNIFE, FRAG_OVER, cs.o);
+			if(cs.state != CS_ALIVE) return;
+		}
+	}
+	else cs.lastdrownmillis = 0;
 	// out of map check
 	if(cp.type==ST_TCPIP && !m_edit && fixposinmap(cs.o, false)){
 		logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cp.hostname, cp.name, ++cp.mapcollisions);
