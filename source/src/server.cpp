@@ -1280,7 +1280,7 @@ void checkitemspawns(int diff){
 	}
 }
 
-bool fixposinmap(const vec &p, vec *fixed = NULL){
+bool fixposinmap(vec &p, bool alter = true){
 	bool ret = false;
 	vec fix = p;
 	if(!maplayout) return false;
@@ -1308,7 +1308,7 @@ bool fixposinmap(const vec &p, vec *fixed = NULL){
 			ret = true;
 		}
 	}
-	if(fixed) *fixed = fix;
+	if(alter) p = fix;
 	return ret;
 }
 
@@ -2714,7 +2714,7 @@ void checkmove(client &cp){
 	if(false);
 	if(cs.state != CS_ALIVE) return;
 	// out of map check
-	if(cp.type==ST_TCPIP && !m_edit && fixposinmap(cs.o)){
+	if(cp.type==ST_TCPIP && !m_edit && fixposinmap(cs.o, false)){
 		logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cp.hostname, cp.name, ++cp.mapcollisions);
 		sendmsgi(40, sender);
 		sendf(sender, 1, "ri", N_MAPIDENT);
@@ -3162,7 +3162,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				loopi(3) vel[i] = getfloat(p);
 				if(cl->state.knives.throwable <= 0) break;
 				cl->state.knives.throwable--;
-				fixposinmap(from, &from);
+				fixposinmap(from);
 				if(vel.magnitude() > KNIFEPOWER) vel.normalize().mul(KNIFEPOWER);
 				ucharbuf newmsg(cl->messages.reserve(7 * sizeof(float)));
 				putint(newmsg, N_THROWKNIFE);
@@ -3181,7 +3181,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				int remainmillis = getint(p);
 				if(cl->state.grenades.throwable <= 0) break;
 				cl->state.grenades.throwable--;
-				fixposinmap(from, &from);
+				fixposinmap(from);
 				if(vel.magnitude() > NADEPOWER) vel.normalize().mul(NADEPOWER);
 				ucharbuf newmsg(cl->messages.reserve(8 * sizeof(float)));
 				putint(newmsg, N_THROWNADE);

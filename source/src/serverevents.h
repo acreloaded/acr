@@ -53,7 +53,7 @@ void processevent(client &c, projevent &e){
 		{
 			if(!gs.grenades.remove(e.proj)/* || e.id - e.proj < NADETTL*/) return;
 			vec o(e.o);
-			fixposinmap(o, &o);
+			fixposinmap(o);
 			sendhit(c, GUN_GRENADE, o.v);
 			loopv(clients){
 				client &target = *clients[i];
