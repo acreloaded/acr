@@ -2711,11 +2711,10 @@ void checkmove(client &cp){
 		}
 	}
 	// add drowning
-	if(cs.state == CS_ALIVE){
-		//
-	}
+	if(false);
+	if(cs.state != CS_ALIVE) return;
 	// out of map check
-	if(fixposinmap(cs.o)/*&& cp.type==ST_TCPIP && !m_edit*/){
+	if(cp.type==ST_TCPIP && !m_edit && fixposinmap(cs.o)){
 		logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cp.hostname, cp.name, ++cp.mapcollisions);
 		sendmsgi(40, sender);
 		sendf(sender, 1, "ri", N_MAPIDENT);
@@ -3248,7 +3247,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				cp.position.setsize(0);
 				while(curmsg < p.length()) cp.position.add(p.buf[curmsg++]);
 				// check movement
-				/*if(cs.state==CS_ALIVE)*/ checkmove(cp);
+				if(cs.state==CS_ALIVE) checkmove(cp);
 				break;
 			}
 
