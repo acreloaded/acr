@@ -2678,15 +2678,14 @@ bool fixposinmap(const vec &p, vec *fixed = NULL){
 			ret = true;
 			
 		}
-		else if(fix[i] > (1 << maplayout_factor) - 2){
+		else if((1 << maplayout_factor) - 2 < fix[i]){
 			fix[i] = (1 << maplayout_factor) - 2;
 			ret = true;
 		}
-		
 	}
 	if(!ret){
 		// z
-		const char ceil = 128, floor = maplayout[((int)fix.x) + (((int)fix.y) << maplayout_factor)];
+		const char ceil = 127, floor = maplayout[((int)fix.x) + (((int)fix.y) << maplayout_factor)];
 		if(fix.z > ceil){
 			fix.z = ceil;
 			ret = true;
@@ -2716,19 +2715,13 @@ void checkmove(client &cp){
 		//
 	}
 	// out of map check
-	if(maplayout /*&& cp.type==ST_TCPIP && !m_edit*/){
-		vec &po = cs.o;
-		const int ls = (1 << maplayout_factor) - 1;
-		//if(po.x < 0 || po.y < 0 || po.x > ls || po.y > ls || maplayout[((int) po.x) + (((int) po.y) << maplayout_factor)] > po.z)
-		if(fixposinmap(po))
-		{
-			logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cp.hostname, cp.name, ++cp.mapcollisions);
-			sendmsgi(40, sender);
-			sendf(sender, 1, "ri", N_MAPIDENT);
-			forcedeath(&cp);
-			cp.isonrightmap = false; // cannot spawn until you get the right map
-			return; // no pickups for you!
-		}
+	if(fixposinmap(cs.o)/*&& cp.type==ST_TCPIP && !m_edit*/){
+		logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cp.hostname, cp.name, ++cp.mapcollisions);
+		sendmsgi(40, sender);
+		sendf(sender, 1, "ri", N_MAPIDENT);
+		forcedeath(&cp);
+		cp.isonrightmap = false; // cannot spawn until you get the right map
+		return; // no pickups for you!
 	}
 	// item pickups
 	loopv(sents){
@@ -3255,7 +3248,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				cp.position.setsize(0);
 				while(curmsg < p.length()) cp.position.add(p.buf[curmsg++]);
 				// check movement
-				if(cs.state==CS_ALIVE) checkmove(cp);
+				/*if(cs.state==CS_ALIVE)*/ checkmove(cp);
 				break;
 			}
 
