@@ -3163,7 +3163,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(cl->state.knives.throwable <= 0) break;
 				cl->state.knives.throwable--;
 				fixposinmap(from, &from);
-				vel.normalize().mul(NADEPOWER);
+				if(vel.magnitude() > KNIFEPOWER) vel.normalize().mul(KNIFEPOWER);
 				ucharbuf newmsg(cl->messages.reserve(7 * sizeof(float)));
 				putint(newmsg, N_THROWKNIFE);
 				loopi(3) putfloat(newmsg, from[i]);
