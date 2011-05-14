@@ -569,16 +569,16 @@ void drawradar(playerent *p, int w, int h)
 
 void drawteamicons(int w, int h){
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	const float bteam = player1->team == TEAM_BLUE ? 1000 : 0;
-	const float rteam = player1->team == TEAM_RED ? 1000 : 0;
+	const float bteam = player1->team == TEAM_BLUE ? 1 : 0;
+	const float rteam = player1->team == TEAM_RED ? 1 : 0;
 	static Texture *icons = textureload("packages/misc/teamicons.png", 3);
 	if(rteam){
 		glColor4f(1, 1, 1, rteam);
-		quad(icons->id, VIRTW-VIRTH/12-10, 10, VIRTH/12, .5f, 0, 0.49f, 1.0f);
+		quad(icons->id, VIRTW-VIRTH/12-10, 10, VIRTH/12, 0.f, 0, 0.49f, 1.0f);
 	}
 	if(bteam){
 		glColor4f(1, 1, 1, bteam);
-		quad(icons->id, VIRTW-VIRTH/12-10, 10, VIRTH/12, 0.f, 0, 0.49f, 1.0f);
+		quad(icons->id, VIRTW-VIRTH/12-10, 10, VIRTH/12, .5f, 0, 0.49f, 1.0f);
 	}
 }
 
