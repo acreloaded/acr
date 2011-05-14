@@ -2667,28 +2667,31 @@ void sendwelcome(client *cl, int chan, bool forcedeath){
 	cl->haswelcome = true;
 }
 
-bool fixsposinmap(const vec &p, vec *fixed = NULL){
+bool fixposinmap(const vec &p, vec *fixed = NULL){
 	bool ret = false;
 	vec fix = p;
+	if(!maplayout) return false;
 	// xy
 	loopi(2){
 		if(fix[i] < 2){
 			fix[i] = 2;
 			ret = true;
+			
 		}
 		else if(fix[i] > (1 << maplayout_factor) - 2){
 			fix[i] = (1 << maplayout_factor) - 2;
 			ret = true;
 		}
+		
 	}
-	if(maplayout && !ret){
+	if(!ret){
 		// z
 		const char ceil = 128, floor = maplayout[((int)fix.x) + (((int)fix.y) << maplayout_factor)];
 		if(fix.z > ceil){
 			fix.z = ceil;
 			ret = true;
 		}
-		else if(floor > fix.z + 3){
+		else if(floor > fix.z){
 			fix.z = floor;
 			ret = true;
 		}
@@ -2713,10 +2716,11 @@ void checkmove(client &cp){
 		//
 	}
 	// out of map check
-	if(maplayout && cp.type==ST_TCPIP && !m_edit){
+	if(maplayout /*&& cp.type==ST_TCPIP && !m_edit*/){
 		vec &po = cs.o;
 		const int ls = (1 << maplayout_factor) - 1;
-		if(po.x < 0 || po.y < 0 || po.x > ls || po.y > ls || maplayout[((int) po.x) + (((int) po.y) << maplayout_factor)] > po.z)
+		//if(po.x < 0 || po.y < 0 || po.x > ls || po.y > ls || maplayout[((int) po.x) + (((int) po.y) << maplayout_factor)] > po.z)
+		if(fixposinmap(po))
 		{
 			logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cp.hostname, cp.name, ++cp.mapcollisions);
 			sendmsgi(40, sender);
