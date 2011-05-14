@@ -1280,6 +1280,38 @@ void checkitemspawns(int diff){
 	}
 }
 
+bool fixposinmap(const vec &p, vec *fixed = NULL){
+	bool ret = false;
+	vec fix = p;
+	if(!maplayout) return false;
+	// xy
+	loopi(2){
+		if(fix[i] < 2){
+			fix[i] = 2;
+			ret = true;
+			
+		}
+		else if((1 << maplayout_factor) - 2 < fix[i]){
+			fix[i] = (1 << maplayout_factor) - 2;
+			ret = true;
+		}
+	}
+	if(!ret){
+		// z
+		const char ceil = 127, floor = maplayout[((int)fix.x) + (((int)fix.y) << maplayout_factor)];
+		if(fix.z > ceil){
+			fix.z = ceil;
+			ret = true;
+		}
+		else if(floor > fix.z){
+			fix.z = floor;
+			ret = true;
+		}
+	}
+	if(fixed) *fixed = fix;
+	return ret;
+}
+
 void forcedeath(client *cl, bool gib = false, bool cheat = false){
 	sdropflag(cl->clientnum);
 	clientstate &cs = cl->state;
@@ -2665,38 +2697,6 @@ void sendwelcome(client *cl, int chan, bool forcedeath){
 	sendpacket(cl->clientnum, chan, packet);
 	if(!packet->referenceCount) enet_packet_destroy(packet);
 	cl->haswelcome = true;
-}
-
-bool fixposinmap(const vec &p, vec *fixed = NULL){
-	bool ret = false;
-	vec fix = p;
-	if(!maplayout) return false;
-	// xy
-	loopi(2){
-		if(fix[i] < 2){
-			fix[i] = 2;
-			ret = true;
-			
-		}
-		else if((1 << maplayout_factor) - 2 < fix[i]){
-			fix[i] = (1 << maplayout_factor) - 2;
-			ret = true;
-		}
-	}
-	if(!ret){
-		// z
-		const char ceil = 127, floor = maplayout[((int)fix.x) + (((int)fix.y) << maplayout_factor)];
-		if(fix.z > ceil){
-			fix.z = ceil;
-			ret = true;
-		}
-		else if(floor > fix.z){
-			fix.z = floor;
-			ret = true;
-		}
-	}
-	if(fixed) *fixed = fix;
-	return ret;
 }
 
 void checkmove(client &cp){

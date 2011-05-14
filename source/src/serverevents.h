@@ -50,18 +50,22 @@ void processevent(client &c, projevent &e){
 	clientstate &gs = c.state;
 	switch(e.gun){
 		case GUN_GRENADE:
+		{
 			if(!gs.grenades.remove(e.proj)/* || e.id - e.proj < NADETTL*/) return;
-			sendhit(c, GUN_GRENADE, e.o);
+			vec o(e.o);
+			fixposinmap(o, &o);
+			sendhit(c, GUN_GRENADE, o.v);
 			loopv(clients){
 				client &target = *clients[i];
 				if(target.type == ST_EMPTY || target.state.state != CS_ALIVE) continue;
-				float dist = target.state.o.dist(e.o);
+				float dist = target.state.o.dist(o);
 				if(dist >= guns[e.gun].endrange) continue;
 				ushort dmg = effectiveDamage(e.gun, dist, DAMAGESCALE, true);
 				gs.damage += dmg;
-				serverdamage(&target, &c, dmg, e.gun, FRAG_GIB, e.o);
+				serverdamage(&target, &c, dmg, e.gun, FRAG_GIB, o);
 			}
 			break;
+		}
 
 		case GUN_KNIFE:
 		{
