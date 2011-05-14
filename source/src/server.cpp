@@ -2716,7 +2716,7 @@ void checkmove(client &cp){
 	}
 	// add drowning
 	if(false);
-	//if(cs.state != CS_ALIVE) return;
+	if(cs.state != CS_ALIVE) return;
 	// out of map check
 	if(cp.type==ST_TCPIP && !m_edit && fixposinmap(cs.o, false)){
 		logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cp.hostname, cp.name, ++cp.mapcollisions);
@@ -2730,9 +2730,9 @@ void checkmove(client &cp){
 	loopv(sents){
 		server_entity &e = sents[i];
 		if(!e.spawned || !cs.canpickup(e.type)) continue;
-		const int ls = (1 << maplayout_factor) - 1;
+		const int ls = (1 << maplayout_factor) - 2;
 		char &mapz = maplayout[e.x + (e.y << maplayout_factor)];
-		vec v(e.x, e.y, maplayout && e.x >= 0 && e.y >= 0 && e.x < ls && e.y < ls && mapz > -128 ? mapz + 3 : cs.o.z);
+		vec v(e.x, e.y, maplayout && e.x > 2 && e.y > 2 && e.x < ls && e.y < ls && mapz > -128 ? mapz + 3 : cs.o.z);
 		float dist = cs.o.dist(v);
 		if(dist > 3) continue;
 		if(arenaround && arenaround - gamemillis <= 2000){ // no nade pickup during last two seconds of lss intermission
