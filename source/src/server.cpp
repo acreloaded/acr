@@ -122,6 +122,7 @@ struct clientstate : playerstate
 	vec o, aim, vel, knifepos, lasto, sg[SGRAYS], flagpickupo;
 	int state, lastomillis, knifemillis;
 	int lastdeath, lastffkill, lastspawn, lifesequence;
+	int lastdrownmillis, lastdrownsuffered;
 	int lastshot, lastregen;
 	projectilestate<2> grenades, knives;
 	int akimbos, akimbomillis;
@@ -159,6 +160,7 @@ struct clientstate : playerstate
 		o = lasto = vec(-1e10f, -1e10f, -1e10f);
 		aim = vel = knifepos = vec(0, 0, 0);
 		lastomillis = knifemillis = 0;
+		lastdrownmillis = lastdrownsuffered = 0;
 		lastspawn = -1;
 		lastdeath = lastshot = lastregen = 0;
 		akimbos = akimbomillis = 0;
