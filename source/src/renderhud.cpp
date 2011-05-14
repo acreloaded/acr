@@ -464,7 +464,7 @@ void drawradar(playerent *p, int w, int h)
 			}
 			else if(pl->radarmillis + radarenemyfade < lastmillis) continue;
 		}
-		if(isteam(p, pl) || hasflag || pl->state == CS_DEAD) // friendly, flag tracker or dead
+		if(isteam(p, pl) || p->team == TEAM_SPECT || hasflag || pl->state == CS_DEAD) // friendly, flag tracker or dead
 			drawradarent(pl->o, coordtrans, pl->yaw, pl->state!=CS_DEAD ? (isattacking(pl) ? 2 : 0) : 1,
 				isteam(p, pl) ? 1 : 0, iconsize, isattacking(pl), 1.f, "\f%d%s", isteam(p, pl) ? 0 : 3, colorname(pl));
 		else
