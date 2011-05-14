@@ -288,7 +288,7 @@ struct ban
 
 vector<ban> bans;
 
-char *maplayout = NULL;
+char *maplayout = NULL, *mapceil = NULL;
 int maplayout_factor;
 
 struct worldstate
@@ -1298,7 +1298,8 @@ bool fixposinmap(vec &p, bool alter = true){
 	}
 	if(!ret){
 		// z
-		const char ceil = 127, floor = maplayout[((int)fix.x) + (((int)fix.y) << maplayout_factor)];
+		const int mapi = ((int)fix.x) + (((int)fix.y) << maplayout_factor);
+		const char ceil = mapceil[mapi], floor = maplayout[mapi];
 		if(fix.z > ceil){
 			fix.z = ceil;
 			ret = true;
@@ -2502,7 +2503,10 @@ mapstats *getservermapstats(const char *mapname, bool getlayout){
 			found = fileexists(filename, "r");
 		}
 	}
-	if(getlayout) DELETEA(maplayout);
+	if(getlayout){
+		DELETEA(maplayout);
+		DELETEA(mapceil);
+	}
 	return found ? loadmapstats(filename, getlayout) : NULL;
 }
 
@@ -2712,7 +2716,7 @@ void checkmove(client &cp){
 	}
 	// add drowning
 	if(false);
-	if(cs.state != CS_ALIVE) return;
+	//if(cs.state != CS_ALIVE) return;
 	// out of map check
 	if(cp.type==ST_TCPIP && !m_edit && fixposinmap(cs.o, false)){
 		logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cp.hostname, cp.name, ++cp.mapcollisions);

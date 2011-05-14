@@ -329,7 +329,7 @@ bool delfile(const char *path)
 	return !remove(path);
 }
 
-extern char *maplayout;
+extern char *maplayout, *mapceil;
 extern int maplayout_factor;
 
 mapstats *loadmapstats(const char *filename, bool getlayout)
@@ -373,12 +373,14 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 			int layoutsize = 1 << (maplayout_factor * 2);
 			bool fail = false;
 			maplayout = new char[layoutsize + 256];
+			mapceil = new char[layoutsize + 256];
 			memset(maplayout, 0, layoutsize * sizeof(char));
-			char *t = NULL;
+			memset(mapceil, 0, layoutsize * sizeof(char));
+			char *t = NULL, *t2 = NULL;
 			char floor = 0, ceil;
 			loopk(layoutsize)
 			{
-				char *c = maplayout + k;
+				char *c = maplayout + k, *c2 = mapceil + k;
 				int type = gzgetc(f);
 				switch(type)
 				{
@@ -387,12 +389,14 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 						int n = gzgetc(f);
 						if(!t || n < 0) { fail = true; break; }
 						memset(c, *t, n);
+						memset(c2, *t2, n);
 						k += n - 1;
 						break;
 					}
 					case 254: // only in MAPVERSION<=2
 						if(!t) { fail = true; break; }
 						*c = *t;
+						*c2 = *t2;
 						gzgetc(f); gzgetc(f);
 						break;
 					default:
@@ -400,20 +404,26 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 						floor = gzgetc(f);
 						ceil = gzgetc(f);
 						if(floor >= ceil && ceil > -128) floor = ceil - 1;  // for pre 12_13
+						if(type == CHF) ceil = 127;
 						if(type == FHF) floor = -128;
 						gzgetc(f); gzgetc(f);
 						if(s.hdr.version>=2) gzgetc(f);
 						if(s.hdr.version>=5) gzgetc(f);
 					case SOLID:
 						*c = type == SOLID ? 127 : floor;
+						*c2 = type == SOLID ? -128 : ceil;
 						gzgetc(f); gzgetc(f);
 						if(s.hdr.version<=2) { gzgetc(f); gzgetc(f); }
 						break;
 				}
 				if(fail) break;
 				t = c;
+				t2 = c2;
 			}
-			if(fail) DELETEA(maplayout);
+			if(fail){
+				DELETEA(maplayout);
+				DELETEA(mapceil);
+			}
 		}
 	}
 	gzclose(f);
