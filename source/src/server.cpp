@@ -2670,26 +2670,25 @@ void sendwelcome(client *cl, int chan, bool forcedeath){
 bool fixsposinmap(const vec &p, vec *fixed = NULL){
 	bool ret = false;
 	vec fix = p;
-	if(maplayout){
-		// xy
-		loopi(2){
-			if(fix[i] < 2){
-				fix[i] = 2;
-				ret = true;
-			}
-			else if(fix[i] > (1 << maplayout_factor) - 2){
-				fix[i] = (1 << maplayout_factor) - 2;
-				ret = true;
-			}
+	// xy
+	loopi(2){
+		if(fix[i] < 2){
+			fix[i] = 2;
+			ret = true;
 		}
-		if(!ret){
+		else if(fix[i] > (1 << maplayout_factor) - 2){
+			fix[i] = (1 << maplayout_factor) - 2;
+			ret = true;
+		}
+	}
+	if(maplayout && !ret){
 		// z
 		const char ceil = 128, floor = maplayout[((int)fix.x) + (((int)fix.y) << maplayout_factor)];
 		if(fix.z > ceil){
 			fix.z = ceil;
 			ret = true;
 		}
-		else if(floor > fix.z + 3)
+		else if(floor > fix.z + 3){
 			fix.z = floor;
 			ret = true;
 		}
