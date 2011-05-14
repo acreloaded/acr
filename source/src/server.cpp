@@ -2678,6 +2678,10 @@ void checkmove(client &cp){
 			sendservmsg(fastmsg);
 		}
 	}
+	// add drowning
+	if(cs.state == CS_ALIVE){
+		//
+	}
 	// out of map check
 	if(maplayout && cp.type==ST_TCPIP && !m_edit){
 		vec &po = cs.o;
