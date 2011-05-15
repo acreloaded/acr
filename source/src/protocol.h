@@ -117,7 +117,7 @@ enum
 							gamemode==GMODE_REALTDM || gamemode == GMODE_EXPERTTDM)
 #define m_fight(mode)	((mode)>=0 && (mode) != GMODE_COOPEDIT && (mode)<GMODE_NUM)
 #define m_demo			(gamemode == GMODE_DEMO)
-#define m_valid(mode)	(m_fight(mode) || m_demo)
+#define m_valid(mode)	(m_fight(mode) || mode == GMODE_COOPEDIT)
 
 struct authrequest{ uint id; bool answer; string chal; };
 extern vector<authrequest> authrequests;
