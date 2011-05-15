@@ -122,7 +122,7 @@ struct clientstate : playerstate
 	vec o, aim, vel, knifepos, lasto, sg[SGRAYS], flagpickupo;
 	int state, lastomillis, knifemillis;
 	int lastdeath, lastffkill, lastspawn, lifesequence;
-	int lastdrownmillis, lastdrownsuffered;
+	int drownmillis; char drownval;
 	int lastshot, lastregen;
 	projectilestate<2> grenades, knives;
 	int akimbos, akimbomillis;
@@ -160,7 +160,7 @@ struct clientstate : playerstate
 		o = lasto = vec(-1e10f, -1e10f, -1e10f);
 		aim = vel = knifepos = vec(0, 0, 0);
 		lastomillis = knifemillis = 0;
-		lastdrownmillis = lastdrownsuffered = 0;
+		drownmillis = drownval = 0;
 		lastspawn = -1;
 		lastdeath = lastshot = lastregen = 0;
 		akimbos = akimbomillis = 0;
@@ -2716,16 +2716,22 @@ void checkmove(client &cp){
 			sendservmsg(fastmsg);
 		}
 	}
-	// drowning
+	// drown underwater
 	if(cs.o.z < swaterlvl){
-		if(!cs.lastdrownmillis) cs.lastdrownmillis = servmillis;
-		if(cs.lastdrownsuffered + 1000 < servmillis){
-			cs.lastdrownsuffered = servmillis;
-			serverdamage(&cp, &cp, 10, GUN_ASSAULT, FRAG_NONE, cs.o);
-			if(cs.state != CS_ALIVE) return;
+		if(cs.drownmillis <= 0){
+			if(cs.drownmillis)
+				cs.drownval = max(cs.drownval - ((servmillis + cs.drownmillis) / 1000), 0);
+			cs.drownmillis = servmillis;
+		}
+		char drownstate = (servmillis - cs.drownmillis) / 1000;
+		while(cs.drownval++ < drownstate){
+			s_sprintfd(lol)("%d/%d", cs.drownval, drownstate);
+			sendservmsg(lol);
+			serverdamage(&cp, &cp, powf(cs.drownval, 2.5f), GUN_ASSAULT, FRAG_NONE, cs.o);
+			if(cs.state != CS_ALIVE) return; // dead!
 		}
 	}
-	else cs.lastdrownmillis = 0;
+	else if(cs.drownmillis > 0) cs.drownmillis = -cs.drownmillis;
 	// out of map check
 	if(cp.type==ST_TCPIP && !m_edit && fixposinmap(cs.o, false)){
 		logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cp.hostname, cp.name, ++cp.mapcollisions);
