@@ -2719,15 +2719,15 @@ void checkmove(client &cp){
 	// drown underwater
 	if(cs.o.z < swaterlvl){
 		if(cs.drownmillis <= 0){
-			if(cs.drownmillis)
-				cs.drownval = max(cs.drownval - ((servmillis + cs.drownmillis) / 1000), 0);
-			cs.drownmillis = servmillis;
+			//if(cs.drownmillis)
+			//	cs.drownval = max(cs.drownval - ((servmillis + cs.drownmillis) / 1000), 0);
+			cs.drownmillis = gamemillis;
 		}
-		char drownstate = (servmillis - cs.drownmillis) / 1000;
+		char drownstate = (gamemillis - cs.drownmillis) / 1000;
 		while(cs.drownval++ < drownstate){
 			s_sprintfd(lol)("%d/%d", cs.drownval, drownstate);
 			sendservmsg(lol);
-			serverdamage(&cp, &cp, powf(cs.drownval, 2.5f), GUN_ASSAULT, FRAG_NONE, cs.o);
+			serverdamage(&cp, &cp, powf(cs.drownval*10, 2.5f), GUN_ASSAULT, FRAG_NONE, cs.o);
 			if(cs.state != CS_ALIVE) return; // dead!
 		}
 	}
