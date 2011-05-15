@@ -329,7 +329,7 @@ bool delfile(const char *path)
 	return !remove(path);
 }
 
-extern char *maplayout, *mapceil, swaterlvl;
+extern char *mapfloor, *mapfhfbase, *mapceil, swaterlvl;
 extern int maplayout_factor;
 
 mapstats *loadmapstats(const char *filename, bool getlayout)
@@ -369,22 +369,25 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 	swaterlvl = s.hdr.waterlevel;
 	if(getlayout)
 	{
-		DELETEA(maplayout);
+		DELETEA(mapfloor);
+		DELETEA(mapfhfbase);
 		DELETEA(mapceil);
 		if(s.hdr.sfactor <= LARGEST_FACTOR && s.hdr.sfactor >= SMALLEST_FACTOR)
 		{
 			maplayout_factor = s.hdr.sfactor;
 			int layoutsize = 1 << (maplayout_factor * 2);
 			bool fail = false;
-			maplayout = new char[layoutsize + 256];
+			mapfloor = new char[layoutsize + 256];
+			mapfhfbase = new char[layoutsize + 256];
 			mapceil = new char[layoutsize + 256];
-			memset(maplayout, 0, layoutsize * sizeof(char));
+			memset(mapfloor, 0, layoutsize * sizeof(char));
+			memset(mapfhfbase, 0, layoutsize * sizeof(char));
 			memset(mapceil, 0, layoutsize * sizeof(char));
-			char *t = NULL, *t2 = NULL;
+			char *t = NULL, *t2 = NULL, *tfb = NULL;
 			char floor = 0, ceil;
 			loopk(layoutsize)
 			{
-				char *c = maplayout + k, *c2 = mapceil + k;
+				char *c = mapfloor + k, *c2 = mapceil + k, *cfb = mapfhfbase + k;
 				int type = gzgetc(f);
 				switch(type)
 				{
@@ -393,6 +396,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 						int n = gzgetc(f);
 						if(!t || n < 0) { fail = true; break; }
 						memset(c, *t, n);
+						memset(cfb, *tfb, n);
 						memset(c2, *t2, n);
 						k += n - 1;
 						break;
@@ -400,6 +404,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 					case 254: // only in MAPVERSION<=2
 						if(!t) { fail = true; break; }
 						*c = *t;
+						*cfb = *tfb;
 						*c2 = *t2;
 						gzgetc(f); gzgetc(f);
 						break;
@@ -409,7 +414,10 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 						ceil = gzgetc(f);
 						if(floor >= ceil && ceil > -128) floor = ceil - 1;  // for pre 12_13
 						if(type == CHF) ceil = 127;
-						if(type == FHF) floor = -128;
+						if(type == FHF){
+							*cfb = floor;
+							floor = -128;
+						}
 						gzgetc(f); gzgetc(f);
 						if(s.hdr.version>=2) gzgetc(f);
 						if(s.hdr.version>=5) gzgetc(f);
@@ -422,10 +430,12 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 				}
 				if(fail) break;
 				t = c;
+				tfb = cfb;
 				t2 = c2;
 			}
 			if(fail){
-				DELETEA(maplayout);
+				DELETEA(mapfloor);
+				DELETEA(mapfhfbase);
 				DELETEA(mapceil);
 			}
 		}

@@ -290,7 +290,7 @@ struct ban
 
 vector<ban> bans;
 
-char *maplayout = NULL, *mapceil = NULL, swaterlvl = 0;
+char *mapfloor = NULL, *mapfhfbase = NULL, *mapceil = NULL, swaterlvl = 0;
 int maplayout_factor;
 
 struct worldstate
@@ -1285,7 +1285,6 @@ void checkitemspawns(int diff){
 bool fixposinmap(vec &p, bool alter = true){
 	bool ret = false;
 	vec fix = p;
-	if(!maplayout) return false;
 	// xy
 	loopi(2){
 		if(fix[i] < 2){
@@ -1301,7 +1300,7 @@ bool fixposinmap(vec &p, bool alter = true){
 	if(!ret){
 		// z
 		const int mapi = ((int)fix.x) + (((int)fix.y) << maplayout_factor);
-		const char ceil = mapceil[mapi], floor = maplayout[mapi];
+		const char ceil = mapceil ? mapceil[mapi] : 127, floor = mapfloor ? mapfloor[mapi] : -128;
 		if(fix.z > ceil){
 			fix.z = ceil;
 			ret = true;
@@ -2506,7 +2505,8 @@ mapstats *getservermapstats(const char *mapname, bool getlayout){
 		}
 	}
 	if(getlayout){
-		DELETEA(maplayout);
+		DELETEA(mapfloor);
+		DELETEA(mapfhfbase);
 		DELETEA(mapceil);
 	}
 	return found ? loadmapstats(filename, getlayout) : NULL;
@@ -2745,9 +2745,9 @@ void checkmove(client &cp){
 	loopv(sents){
 		server_entity &e = sents[i];
 		if(!e.spawned || !cs.canpickup(e.type)) continue;
-		const int ls = (1 << maplayout_factor) - 2;
-		char &mapz = maplayout[e.x + (e.y << maplayout_factor)];
-		vec v(e.x, e.y, maplayout && e.x > 2 && e.y > 2 && e.x < ls && e.y < ls && mapz > -128 ? mapz + 3 : cs.o.z);
+		const int ls = (1 << maplayout_factor) - 2, maplayoutid = e.x + (e.y << maplayout_factor);
+		const char &mapz = mapfloor[maplayoutid] > -128 ? mapfloor[maplayoutid] : mapfhfbase[maplayoutid];
+		vec v(e.x, e.y, mapfloor && e.x > 2 && e.y > 2 && e.x < ls && e.y < ls ? mapz + 3 : cs.o.z);
 		float dist = cs.o.dist(v);
 		if(dist > 3) continue;
 		if(arenaround && arenaround - gamemillis <= 2000){ // no nade pickup during last two seconds of lss intermission
