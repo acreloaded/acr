@@ -2401,6 +2401,10 @@ void disconnect_client(int n, int reason){
 	if(curvote) curvote->evaluate();
 }
 
+inline void badtype(int sender){
+	disconnect_client(sender, DISC_TAGT);
+}
+
 void sendwhois(int sender, int cn){
 	if(!valid_client(sender) || !valid_client(cn)) return;
 	if(clients[cn]->type == ST_TCPIP)
@@ -2808,10 +2812,11 @@ bool hasclient(client &ci, int cn){
 }
 
 int checktype(int type, client *cl){ // invalid defined types handled in the processing function
-	if(cl && cl->type==ST_LOCAL) return type;
-	if (type < 0 || type >= N_NUM) return -1;
-	if(cl && cl->overflow++ > MAXTRANS) return -2;
-	return type;
+	if(cl && cl->type==ST_LOCAL) return type; // local
+	if (type < 0 || type >= N_NUM) return -1; // out of range
+	if(!m_edit && (type >= N_EDITH || type <= N_NEWMAP)) return -1; // edit
+	if(cl && cl->overflow++ > MAXTRANS) return -2; // overflow
+	return type; // normal
 }
 
 // server side processing of updates: does very little and most state is tracked client only
@@ -2830,7 +2835,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 		int clientrole = PRIV_NONE;
 		int clientversion, clientdefs;
 		if(chan==0) return;
-		else if(chan!=1 || getint(p)!=N_CONNECT) disconnect_client(sender, DISC_TAGT);
+		else if(chan!=1 || getint(p)!=N_CONNECT) badtype(sender);
 		else
 		{
 			getstring(text, p);
@@ -3481,24 +3486,35 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				break;
 			}
 
-			// client to client (edit messages)
-			case N_EDITENT: // 10
-				loopi(3) getint(p);
+			// client to client
+			// coop editing messages (checktype() checks for editmode)
 			case N_EDITH: // 7
 			case N_EDITT: // 7
 				getint(p);
 			case N_EDITS: // 6
 			case N_EDITD: // 6
 			case N_EDITE: // 6
-			case N_EDITW: // 6
-				if(type == N_EDITW && m_edit) swaterlvl = getint(p);	
-				else getint(p);
-				loopi(3) getint(p);
+				loopi(5) getint(p);
+				QUEUE_MSG;
+				break;
+
+			case N_EDITW:
+				// set water level
+				swaterlvl = getint(p);
+				// water color
+				loopi(4) getint(p);
+				QUEUE_MSG;
+				break;
+
+			// wrecks the server's control
+			case N_EDITENT: // 10
+				loopi(8) getint(p);
 			case N_NEWMAP: // 2
 				getint(p);
-				if(!m_edit){
-					disconnect_client(sender, DISC_TAGT);
-					return;
+				if(type == N_NEWMAP){
+					DELETEA(mapfloor);
+					DELETEA(mapfhfbase);
+					DELETEA(mapceil);
 				}
 				QUEUE_MSG;
 				break;
@@ -3533,7 +3549,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			default: // unknown
 			case -1: // tag type
-				disconnect_client(sender, DISC_TAGT);
+				badtype(sender);
 				return;
 
 			case -2: // overflow
