@@ -19,7 +19,7 @@ block sel =
 int selh = 0;
 bool selset = false;
 
-#define loopselxy(b) { makeundo(); loop(x,sel.xs) loop(y,sel.ys) { sqr *s = S(sel.x+x, sel.y+y); b; } remip(sel); }
+#define loopselxy(b) { makeundo(); loop(x,sel.xs) loop(y,sel.ys) if(!OUTBORD(sel.x+x, sel.y+y)) { sqr *s = S(sel.x+x, sel.y+y); b; } remip(sel); }
 
 int cx, cy, ch;
 
