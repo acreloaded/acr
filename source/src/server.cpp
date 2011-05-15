@@ -2726,7 +2726,7 @@ void checkmove(client &cp){
 		char drownstate = (gamemillis - cs.drownmillis) / 1000;
 		while(cs.drownval < drownstate){
 			cs.drownval++;
-			serverdamage(&cp, &cp, powf(cs.drownval, 3.f)/30, GUN_ASSAULT, FRAG_NONE, cs.o);
+			serverdamage(&cp, &cp, powf(cs.drownval, 7.f)/100000, GUN_ASSAULT, FRAG_NONE, cs.o);
 			if(cs.state != CS_ALIVE) return; // dead!
 		}
 	}
