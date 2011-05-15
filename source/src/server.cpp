@@ -290,7 +290,7 @@ struct ban
 
 vector<ban> bans;
 
-char *mapfloor = NULL, *mapfhfbase = NULL, *mapceil = NULL, swaterlvl = 0;
+char *mapfloor = NULL, *mapfhfbase = NULL, *mapceil = NULL, swaterlvl = -128;
 int maplayout_factor;
 
 struct worldstate

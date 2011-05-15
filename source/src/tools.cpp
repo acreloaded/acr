@@ -343,7 +343,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 	loopi(3) s.spawns[i] = 0;
 	loopi(2) s.flags[i] = 0;
 
-	swaterlvl = -127; // until changed
+	swaterlvl = -128; // until changed
 
 	gzFile f = opengzfile(filename, "rb9");
 	if(!f) return NULL;
