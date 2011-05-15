@@ -572,6 +572,8 @@ struct playerent : dynent, playerstate
 		followplayercn = -1;
 	}
 
+	void purgeknives();
+
 	void respawn()
 	{
 		dynent::reset();
@@ -587,6 +589,7 @@ struct playerent : dynent, playerstate
 		resetspec();
 		eyeheight = maxeyeheight;
 		damagestack.setsize(0);
+		purgeknives();
 	}
 
 	void spawnstate(int gamemode)
