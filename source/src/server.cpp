@@ -122,7 +122,7 @@ struct clientstate : playerstate
 	vec o, aim, vel, knifepos, lasto, sg[SGRAYS], flagpickupo;
 	int state, lastomillis, knifemillis;
 	int lastdeath, lastffkill, lastspawn, lifesequence;
-	int drownmillis; char drownval;
+	int drownmillis, drownval;
 	int lastshot, lastregen;
 	projectilestate<2> grenades, knives;
 	int akimbos, akimbomillis;
@@ -2719,15 +2719,15 @@ void checkmove(client &cp){
 	// drown underwater
 	if(cs.o.z < swaterlvl){
 		if(cs.drownmillis <= 0){
-			//if(cs.drownmillis)
-			//	cs.drownval = max(cs.drownval - ((servmillis + cs.drownmillis) / 1000), 0);
+			if(cs.drownmillis)
+				cs.drownval = max(cs.drownval - ((servmillis + cs.drownmillis) / 1000), 0);
 			cs.drownmillis = gamemillis;
 		}
-		char drownstate = (gamemillis - cs.drownmillis) / 1000;
+		int drownstate = (gamemillis - cs.drownmillis) / 1000;
 		while(cs.drownval++ < drownstate){
 			s_sprintfd(lol)("%d/%d", cs.drownval, drownstate);
 			sendservmsg(lol);
-			serverdamage(&cp, &cp, powf(cs.drownval*10, 2.5f), GUN_ASSAULT, FRAG_NONE, cs.o);
+			serverdamage(&cp, &cp, powf(cs.drownval, 2.5f), GUN_ASSAULT, FRAG_NONE, cs.o);
 			if(cs.state != CS_ALIVE) return; // dead!
 		}
 	}
