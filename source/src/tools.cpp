@@ -329,8 +329,8 @@ bool delfile(const char *path)
 	return !remove(path);
 }
 
-extern char *mapfloor, *mapfhfbase, *mapceil, swaterlvl;
-extern int maplayout_factor;
+extern char *mapfloor, *mapfhfbase, *mapceil;
+extern int swaterlvl, maplayout_factor;
 
 mapstats *loadmapstats(const char *filename, bool getlayout)
 {
@@ -343,7 +343,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 	loopi(3) s.spawns[i] = 0;
 	loopi(2) s.flags[i] = 0;
 
-	swaterlvl = -128; // until changed
+	swaterlvl = INT_MIN; // until changed
 
 	gzFile f = opengzfile(filename, "rb9");
 	if(!f) return NULL;
