@@ -2721,7 +2721,7 @@ void checkmove(client &cp){
 		if(!cs.lastdrownmillis) cs.lastdrownmillis = servmillis;
 		if(cs.lastdrownsuffered + 1000 < servmillis){
 			cs.lastdrownsuffered = servmillis;
-			serverdamage(&cp, &cp, 10, GUN_KNIFE, FRAG_OVER, cs.o);
+			serverdamage(&cp, &cp, 10, GUN_ASSAULT, FRAG_NONE, cs.o);
 			if(cs.state != CS_ALIVE) return;
 		}
 	}
