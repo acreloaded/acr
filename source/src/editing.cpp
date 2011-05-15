@@ -481,7 +481,12 @@ void edittag(int tag)
 void newent(char *what, char *a1, char *a2, char *a3, char *a4)
 {
 	EDITSEL;
-	newentity(-1, sel.x, sel.y, (int)camera1->o.z, what, ATOI(a1), ATOI(a2), ATOI(a3), ATOI(a4));
+	int newindex = -1;
+	loopv(ents) if(ents[i].type == NOTUSED){
+		newindex = i;
+		break;
+	}
+	newentity(newindex, sel.x, sel.y, (int)camera1->o.z, what, ATOI(a1), ATOI(a2), ATOI(a3), ATOI(a4));
 }
 
 COMMANDN(select, selectpos, ARG_4INT);
