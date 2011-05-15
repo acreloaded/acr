@@ -3490,7 +3490,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case N_EDITS: // 6
 			case N_EDITD: // 6
 			case N_EDITE: // 6
-				loopi(4) getint(p);
+			case N_EDITW: // 6
+				if(type == N_EDITW) swaterlvl = getint(p);	
+				else getint(p);
+				loopi(3) getint(p);
 			case N_NEWMAP: // 2
 				getint(p);
 				if(!m_edit){

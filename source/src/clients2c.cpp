@@ -629,6 +629,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
+			case N_EDITW: // coop editing EDIT
+				hdr.waterlevel = getint(p);
+				loopi(4) hdr.watercolor[i] = getint(p);
+				break;
+
 			case N_NEWMAP:
 			{
 				int size = getint(p);
