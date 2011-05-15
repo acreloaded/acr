@@ -2401,10 +2401,6 @@ void disconnect_client(int n, int reason){
 	if(curvote) curvote->evaluate();
 }
 
-inline void badtype(int sender){
-	disconnect_client(sender, DISC_TAGT);
-}
-
 void sendwhois(int sender, int cn){
 	if(!valid_client(sender) || !valid_client(cn)) return;
 	if(clients[cn]->type == ST_TCPIP)
@@ -2814,7 +2810,7 @@ bool hasclient(client &ci, int cn){
 int checktype(int type, client *cl){ // invalid defined types handled in the processing function
 	if(cl && cl->type==ST_LOCAL) return type; // local
 	if (type < 0 || type >= N_NUM) return -1; // out of range
-	if(!m_edit && (type >= N_EDITH || type <= N_NEWMAP)) return -1; // edit
+	if(!m_edit && (type >= N_EDITH && type <= N_NEWMAP)) return -1; // edit
 	if(cl && cl->overflow++ > MAXTRANS) return -2; // overflow
 	return type; // normal
 }
@@ -2835,7 +2831,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 		int clientrole = PRIV_NONE;
 		int clientversion, clientdefs;
 		if(chan==0) return;
-		else if(chan!=1 || getint(p)!=N_CONNECT) badtype(sender);
+		else if(chan!=1 || getint(p)!=N_CONNECT) disconnect_client(sender, DISC_TAGT);
 		else
 		{
 			getstring(text, p);
@@ -3501,23 +3497,32 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case N_EDITW:
 				// set water level
 				swaterlvl = getint(p);
-				// water color
+				// water color alpha
 				loopi(4) getint(p);
 				QUEUE_MSG;
 				break;
 
-			// wrecks the server's control
-			case N_EDITENT: // 10
-				loopi(8) getint(p);
-			case N_NEWMAP: // 2
-				getint(p);
-				if(type == N_NEWMAP){
-					DELETEA(mapfloor);
-					DELETEA(mapfhfbase);
-					DELETEA(mapceil);
-				}
+			case N_EDITENT: // not much the server can do about this
+				loopi(9) getint(p);
 				QUEUE_MSG;
 				break;
+
+			case N_NEWMAP: // the server needs to create a new layout
+			{
+				maplayout_factor = getint(p);
+				QUEUE_MSG;
+				const int layoutsize = 1 << (maplayout_factor * 2);
+				DELETEA(mapfloor);
+				DELETEA(mapfhfbase);
+				DELETEA(mapceil);
+				mapfloor = new char[layoutsize + 256];
+				mapfhfbase = new char[layoutsize + 256];
+				mapceil = new char[layoutsize + 256];
+				memset(mapfloor, 0, layoutsize * sizeof(char));
+				memset(mapfhfbase, 0, layoutsize * sizeof(char));
+				memset(mapceil, 0, layoutsize * sizeof(char));
+				break;
+			}
 
 			case N_EXT: // note that there is no guarantee that custom extensions will work in future AC versions
 			{
@@ -3549,7 +3554,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			default: // unknown
 			case -1: // tag type
-				badtype(sender);
+				disconnect_client(sender, DISC_TAGT);
 				return;
 
 			case -2: // overflow
