@@ -1333,27 +1333,25 @@ void forcedeath(client *cl, bool gib = false, bool cheat = false){
 void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source){
 	if(!target || !actor || !damage) return;
 	clientstate &ts = target->state;
-	if(target!=actor){
-		if(isteam(actor, target)){
-			serverdamage(actor, actor, damage * 0.4, NUMGUNS, FRAG_GIB, source);
-			if((damage *= 0.25) >= target->state.health) damage = target->state.health - 1; // no more TKs!
-			if(!damage) return;
-			if(isdedicated && actor->type == ST_TCPIP && actor->priv < PRIV_ADMIN){
-				actor->state.friendlyfire += damage;
-				actor->state.shotdamage += damage;
-				if(actor->state.friendlyfire > 140 && actor->state.friendlyfire * 60000 > gamemillis * 70){ // 70 HP / minute after 140 damage
-					extern void banclient(client *&c, int minutes);
-					if(actor->state.lastffkill > 3){
-						banclient(actor, 2);
-						disconnect_client(actor->clientnum, DISC_ABAN);
-						return;
-					}
-					forcedeath(actor);
-					sendf(actor->clientnum, 1, "ri2", N_FF, ++actor->state.lastffkill * 3);
-					actor->state.lastdeath += actor->state.lastffkill * 3000;
-					actor->state.friendlyfire = 80; // only needs another 60 HP next time
+	if(target != actor && isteam(actor, target)){ // friendly fire
+		serverdamage(actor, actor, damage * 0.4, NUMGUNS, FRAG_GIB, source);
+		if((damage *= 0.25) >= target->state.health) damage = target->state.health - 1; // no more TKs!
+		if(!damage) return;
+		if(isdedicated && actor->type == ST_TCPIP && actor->priv < PRIV_ADMIN){
+			actor->state.friendlyfire += damage;
+			actor->state.shotdamage += damage;
+			if(actor->state.friendlyfire > 140 && actor->state.friendlyfire * 60000 > gamemillis * 70){ // 70 HP / minute after 140 damage
+				extern void banclient(client *&c, int minutes);
+				if(actor->state.lastffkill > 3){
+					banclient(actor, 2);
+					disconnect_client(actor->clientnum, DISC_ABAN);
 					return;
 				}
+				forcedeath(actor);
+				sendf(actor->clientnum, 1, "ri2", N_FF, ++actor->state.lastffkill * 3);
+				actor->state.lastdeath += actor->state.lastffkill * 3000;
+				actor->state.friendlyfire = 80; // only needs another 60 HP next time
+				return;
 			}
 		}
 	}
