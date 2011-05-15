@@ -2731,7 +2731,7 @@ void checkmove(client &cp){
 	}
 	else if(cs.drownmillis > 0) cs.drownmillis = -cs.drownmillis;
 	// out of map check
-	if(cp.type==ST_TCPIP && !m_edit && fixposinmap(cs.o, false)){
+	if(/*cp.type==ST_TCPIP && !m_edit &&*/ fixposinmap(cs.o, false)){
 		logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cp.hostname, cp.name, ++cp.mapcollisions);
 		sendmsgi(40, sender);
 		sendf(sender, 1, "ri", N_MAPIDENT);
@@ -3520,7 +3520,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				mapceil = new char[layoutsize + 256];
 				memset(mapfloor, 0, layoutsize * sizeof(char));
 				memset(mapfhfbase, 0, layoutsize * sizeof(char));
-				memset(mapceil, 0, layoutsize * sizeof(char));
+				memset(mapceil, 16, layoutsize * sizeof(char));
 				break;
 			}
 
