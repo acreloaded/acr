@@ -114,7 +114,7 @@ bool mmcollide(physent *d, float &hi, float &lo)		   // collide with a mapmodel
 	loopv(ents)
 	{
 		entity &e = ents[i];
-		if(e.type==CLIP && d->type != ENT_BOUNCE)
+		if(e.type==CLIP || (e.type == PLCLIP && d->type == ENT_PLAYER))
 		{
 			if(fabs(e.x-d->o.x) < e.attr2 + d->radius && fabs(e.y-d->o.y) < e.attr3 + d->radius)
 			{

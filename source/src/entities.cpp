@@ -12,7 +12,7 @@ const char *entnames[] =
 	"health", "armour", "akimbo",
 	"mapmodel", "trigger",
 	"ladder", "ctf-flag",
-	"sound", "clip", "", ""
+	"sound", "clip", "plclip", "max"
 };
 
 const char *entmdlnames[] =
@@ -28,15 +28,19 @@ void renderent(entity &e)
 	rendermodel(mdlname, ANIM_MAPMODEL|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor+e.attr1), yaw, 0);
 }
 
-void renderclip(entity &e, bool ismm = false)
+void renderclip(entity &e)
 {
 	float xradius = max(float(e.attr2), 0.1f), yradius = max(float(e.attr3), 0.1f);
 	vec bbmin(e.x - xradius, e.y - yradius, float(S(e.x, e.y)->floor+e.attr1)),
 		bbmax(e.x + xradius, e.y + yradius, bbmin.z + max(float(e.attr4), 0.1f));
 
 	glDisable(GL_TEXTURE_2D);
-	if(ismm) linestyle(1, 0, 0xFF, 0);
-	else linestyle(1, 0xFF, 0xFF, 0);
+	switch(e.type){
+        case CLIP:		linestyle(1, 0xFF, 0xFF, 0); break;  // yellow
+		case MAPMODEL:	linestyle(1, 0xFF, 0, 0xFF);    break;  // magenta
+        case PLCLIP:	linestyle(1, 0, 0xFF, 0); break;  // green
+		default:		linestyle(1, 0xFF, 0, 0); break;  // red
+    }
 	glBegin(GL_LINES);
 
 	glVertex3f(bbmin.x, bbmin.y, bbmin.z);
@@ -109,7 +113,7 @@ void renderentities()
 				s_sprintfd(path)("pickups/flags/%s", team_string(e.attr2));
 				rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
 			}
-			else if(e.type==CLIP && !stenciling) renderclip(e);
+			else if((e.type==CLIP || e.type==PLCLIP) && !stenciling) renderclip(e);
 			else if(showmodelclipping && e.type == MAPMODEL && !stenciling)
 			{
 				mapmodelinfo &mmi = getmminfo(e.attr2);
@@ -120,7 +124,7 @@ void renderentities()
 					ce.attr1 = mmi.zoff+e.attr3;
 					ce.attr2 = ce.attr3 = mmi.rad;
 					ce.attr4 = mmi.h;
-					renderclip(ce, true);
+					renderclip(ce);
 				}
 			}
 		}
