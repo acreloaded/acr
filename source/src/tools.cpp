@@ -414,7 +414,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 						ceil = gzgetc(f);
 						if(floor >= ceil && ceil > -128) floor = ceil - 1;  // for pre 12_13
 						if(type == CHF) ceil = 127;
-						if(type == FHF){
+						if(type == FHF || floor < -127){
 							*cfb = floor;
 							floor = -128;
 						}
