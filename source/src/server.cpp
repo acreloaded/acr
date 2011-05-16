@@ -3230,6 +3230,72 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				break;
 			}
 
+			// client to client
+			// coop editing messages (checktype() checks for editmode)
+			case N_EDITH: // 7
+			case N_EDITT: // 7
+				getint(p);
+			case N_EDITS: // 6
+			case N_EDITD: // 6
+			case N_EDITE: // 6
+				loopi(5) getint(p);
+				QUEUE_MSG;
+				break;
+
+			case N_EDITW:
+				// set water level
+				swaterlvl = getint(p);
+				// water color alpha
+				loopi(4) getint(p);
+				QUEUE_MSG;
+				break;
+
+			case N_EDITENT:
+			{
+				const int id = getint(p), type = getint(p);
+				vec o;
+				loopi(3) o[i] = getint(p);
+				// placeholders
+				server_entity see = { NOTUSED, false, false, 0, 0, 0};
+				while(sents.length()<=id) sents.add(see);
+				// entity
+				entity e;
+				e.type = type;
+				e.transformtype(smode);
+				// server entity
+				server_entity se = { e.type, false, true, 0, o.x, o.y};
+				if(e.fitsmode(smode)) se.spawned = true;
+				sents[id] = se;
+				// skip attributes
+				loopi(4) getint(p);
+				QUEUE_MSG;
+				break;
+			}
+
+			case N_NEWMAP: // the server needs to create a new layout
+			{
+				const int size = getint(p);
+				if(size < 0) maplayout_factor++;
+				else maplayout_factor = size;
+				DELETEA(mapfloor);
+				DELETEA(mapfhfbase);
+				DELETEA(mapceil);
+				if(maplayout_factor >= 0){
+					sents.shrink(0);
+					maplayout_factor = clamp(maplayout_factor, SMALLEST_FACTOR, LARGEST_FACTOR);
+					swaterlvl = -100000;
+					const int layoutsize = 1 << (maplayout_factor * 2);
+					mapfloor = new char[layoutsize + 256];
+					mapfhfbase = new char[layoutsize + 256];
+					mapceil = new char[layoutsize + 256];
+					memset(mapfloor, 0, layoutsize * sizeof(char));
+					memset(mapfhfbase, 0, layoutsize * sizeof(char));
+					memset(mapceil, 26, layoutsize * sizeof(char));
+				}
+				QUEUE_MSG;
+				break;
+			}
+
 			case N_POS:
 			{
 				int cn = getint(p);
@@ -3479,72 +3545,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					default:
 						break;
 				}
-				break;
-			}
-
-			// client to client
-			// coop editing messages (checktype() checks for editmode)
-			case N_EDITH: // 7
-			case N_EDITT: // 7
-				getint(p);
-			case N_EDITS: // 6
-			case N_EDITD: // 6
-			case N_EDITE: // 6
-				loopi(5) getint(p);
-				QUEUE_MSG;
-				break;
-
-			case N_EDITW:
-				// set water level
-				swaterlvl = getint(p);
-				// water color alpha
-				loopi(4) getint(p);
-				QUEUE_MSG;
-				break;
-
-			case N_EDITENT:
-			{
-				const int id = getint(p), type = getint(p);
-				vec o;
-				loopi(3) o[i] = getint(p);
-				// placeholders
-				server_entity see = { NOTUSED, false, false, 0, 0, 0};
-				while(sents.length()<=id) sents.add(see);
-				// entity
-				entity e;
-				e.type = type;
-				e.transformtype(smode);
-				// server entity
-				server_entity se = { e.type, false, true, 0, o.x, o.y};
-				if(e.fitsmode(smode)) se.spawned = true;
-				sents[id] = se;
-				// skip attributes
-				loopi(4) getint(p);
-				QUEUE_MSG;
-				break;
-			}
-
-			case N_NEWMAP: // the server needs to create a new layout
-			{
-				const int size = getint(p);
-				if(size < 0) maplayout_factor++;
-				else maplayout_factor = size;
-				DELETEA(mapfloor);
-				DELETEA(mapfhfbase);
-				DELETEA(mapceil);
-				if(maplayout_factor >= 0){
-					sents.shrink(0);
-					maplayout_factor = clamp(maplayout_factor, SMALLEST_FACTOR, LARGEST_FACTOR);
-					swaterlvl = -100000;
-					const int layoutsize = 1 << (maplayout_factor * 2);
-					mapfloor = new char[layoutsize + 256];
-					mapfhfbase = new char[layoutsize + 256];
-					mapceil = new char[layoutsize + 256];
-					memset(mapfloor, 0, layoutsize * sizeof(char));
-					memset(mapfhfbase, 0, layoutsize * sizeof(char));
-					memset(mapceil, 26, layoutsize * sizeof(char));
-				}
-				QUEUE_MSG;
 				break;
 			}
 
