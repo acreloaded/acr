@@ -122,11 +122,12 @@ void renderteamscore(void *menu, teamscore &t){
 	s_sprintfd(plrs)("(%d %s)", t.teammembers.length(), t.team == TEAM_SPECT ? "spectating" : t.teammembers.length() == 1 ? "player" : "players");
 	scoreratio sr;
 	sr.calc(t.frags, t.deaths);
-	if(m_flags) s_sprintf(line.s)("%d\t%d\t%d\t%d\t%d\t%.*f\t\t\t\t%s\t\t%s", t.points, t.flagscore, t.frags, t.assists, t.deaths, sr.precision, sr.ratio, team_string(t.team), plrs);
-	else if(m_team) s_sprintf(line.s)("%d\t%d\t%d\t%d\t%.*f\t\t\t\t%s\t\t%s", t.points, t.frags, t.assists, t.deaths, sr.precision, sr.ratio, team_string(t.team), plrs);
-	static color teamcolors[TEAM_NUM] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f), color(.4f, .4f, .4f, .3f) };
-	line.bgcolor = &teamcolors[t.team];
-	loopv(t.teammembers) renderscore(menu, t.teammembers[i]);
+	char *teamname = m_team || t.team == TEAM_SPECT ? team_string(t.team) : "FFA Total";
+	if(m_flags) s_sprintf(line.s)("%d\t%d\t%d\t%d\t%d\t%.*f\t\t\t\t%s\t\t%s", t.points, t.flagscore, t.frags, t.assists, t.deaths, sr.precision, sr.ratio, teamname, plrs);
+	else s_sprintf(line.s)("%d\t%d\t%d\t%d\t%.*f\t\t\t\t%s\t\t%s", t.points, t.frags, t.assists, t.deaths, sr.precision, sr.ratio, teamname, plrs);
+	static color teamcolors[TEAM_NUM+1] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f), color(.4f, .4f, .4f, .3f), color(.8f, .8f, .8f, .4f) };
+	line.bgcolor = &teamcolors[!m_team && t.team != TEAM_SPECT ? TEAM_NUM : t.team];
+	loopv(t.teammembers) renderscore(menu, at.teammembers[i]);
 }
 
 extern bool watchingdemo;
@@ -167,21 +168,23 @@ void renderscores(void *menu, bool init){
 		if(s) s_sprintf(serverline)("%s:%d %s", s->name, s->port, s->sdesc);
 	}
 
-	if(m_team){
+	//if(m_team){
 		teamscore teamscores[TEAM_NUM] = { teamscore(TEAM_RED), teamscore(TEAM_BLUE), spectscore() };
 
+		#define fixteam(pl) (pl->team == TEAM_BLUE && !m_team ? TEAM_RED : pl->team)
 		loopv(players){
 			if(!players[i]) continue;
-			teamscores[players[i]->team].addscore(players[i]);
+			teamscores[fixteam(players[i])].addscore(players[i]);
 		}
-		if(!watchingdemo) teamscores[player1->team].addscore(player1);
-		loopi(2) teamscores[i].teammembers.sort(scorecmp);
+		if(!watchingdemo) teamscores[fixteam(player1)].addscore(player1);
+		loopi(TEAM_NUM) teamscores[i].teammembers.sort(scorecmp);
 
 		int sort = teamscorecmp(&teamscores[TEAM_RED], &teamscores[TEAM_BLUE]);
-		loopi(2) renderteamscore(menu, teamscores[sort < 0 ? i : (i+1)&1]);
+		if(!m_team) renderteamscore(menu, teamscores[TEAM_RED]);
+		else loopi(2) renderteamscore(menu, teamscores[sort < 0 ? i : i^1]);
 		if(teamscores[TEAM_SPECT].teammembers.length()) renderteamscore(menu, teamscores[TEAM_SPECT]);
-	}
-	else loopv(scores) renderscore(menu, scores[i]);
+	//}
+	//else loopv(scores) renderscore(menu, scores[i]);
 
 	menureset(menu);
 	loopv(scorelines) menumanual(menu, scorelines[i].s, NULL, scorelines[i].bgcolor);
