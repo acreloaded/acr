@@ -606,7 +606,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case N_EDITH:			  // coop editing messages, should be extended to include all possible editing ops
+			case N_EDITH:  // coop editing messages
 			case N_EDITT:
 			case N_EDITS:
 			case N_EDITD:
@@ -629,10 +629,15 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case N_EDITW: // coop editing EDIT
-				hdr.waterlevel = getint(p);
+			case N_EDITW: // coop editing water
+			{
+				const int newwaterlevel = getint(p);
 				loopi(4) hdr.watercolor[i] = getint(p);
+				if(newwaterlevel == hdr.waterlevel) break;
+				hdr.waterlevel = newwaterlevel;
+				conoutf("%s changed the water-level to %d", colorname(d), hdr.waterlevel);
 				break;
+			}
 
 			case N_NEWMAP:
 			{
