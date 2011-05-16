@@ -3232,15 +3232,29 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			// client to client
 			// coop editing messages (checktype() checks for editmode)
-			case N_EDITH: // 7
-			case N_EDITT: // 7
-				getint(p);
-			case N_EDITS: // 6
-			case N_EDITD: // 6
-			case N_EDITE: // 6
-				loopi(5) getint(p);
+			case N_EDITH: // height
+			case N_EDITT: // (ignore and relay) texture
+			case N_EDITS: // solid or not
+			case N_EDITD: // (ignore and relay) delta
+			case N_EDITE: // (unknown) equalize
+			{
+				int x  = getint(p);
+				int y  = getint(p);
+				int xs = getint(p);
+				int ys = getint(p);
+				int v  = getint(p);
+				block b = { x, y, xs, ys };
+				switch(type)
+				{
+					case N_EDITH: /*editheightxy(v!=0, getint(p), b);*/ break;
+					case N_EDITT: getint(p); break;
+					case N_EDITS: /*edittypexy(v, b);*/ break;
+					case N_EDITD: break;
+					case N_EDITE: /*editequalisexy(v!=0, b);*/ break;
+				}
 				QUEUE_MSG;
 				break;
+			}
 
 			case N_EDITW:
 				// set water level
