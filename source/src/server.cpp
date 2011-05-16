@@ -3502,10 +3502,27 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				QUEUE_MSG;
 				break;
 
-			case N_EDITENT: // not much the server can do about this
-				loopi(9) getint(p);
+			case N_EDITENT:
+			{
+				const int id = getint(p), type = getint(p);
+				vec o;
+				loopi(3) o[i] = getint(p);
+				// placeholders
+				server_entity see = { NOTUSED, false, false, 0, 0, 0};
+				while(sents.length()<=id) sents.add(see);
+				// entity
+				entity e;
+				e.type = type;
+				e.transformtype(smode);
+				// server entity
+				server_entity se = { e.type, false, true, 0, o.x, o.y};
+				if(e.fitsmode(smode)) se.spawned = true;
+				sents[id] = se;
+				// skip attributes
+				loopi(4) getint(p);
 				QUEUE_MSG;
 				break;
+			}
 
 			case N_NEWMAP: // the server needs to create a new layout
 			{
