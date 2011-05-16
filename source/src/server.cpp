@@ -3533,6 +3533,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				DELETEA(mapfhfbase);
 				DELETEA(mapceil);
 				if(maplayout_factor >= 0){
+					sents.shrink(0);
 					maplayout_factor = clamp(maplayout_factor, SMALLEST_FACTOR, LARGEST_FACTOR);
 					swaterlvl = -100000;
 					const int layoutsize = 1 << (maplayout_factor * 2);
