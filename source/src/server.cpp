@@ -3512,14 +3512,13 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				const int size = getint(p);
 				if(size < 0) maplayout_factor++;
 				else maplayout_factor = size;
-				QUEUE_MSG;
+				DELETEA(mapfloor);
+				DELETEA(mapfhfbase);
+				DELETEA(mapceil);
 				if(maplayout_factor >= 0){
 					maplayout_factor = clamp(maplayout_factor, SMALLEST_FACTOR, LARGEST_FACTOR);
 					swaterlvl = -100000;
 					const int layoutsize = 1 << (maplayout_factor * 2);
-					DELETEA(mapfloor);
-					DELETEA(mapfhfbase);
-					DELETEA(mapceil);
 					mapfloor = new char[layoutsize + 256];
 					mapfhfbase = new char[layoutsize + 256];
 					mapceil = new char[layoutsize + 256];
@@ -3527,6 +3526,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					memset(mapfhfbase, 0, layoutsize * sizeof(char));
 					memset(mapceil, 26, layoutsize * sizeof(char));
 				}
+				QUEUE_MSG;
 				break;
 			}
 
