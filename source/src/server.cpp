@@ -3258,7 +3258,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case N_EDITT: // (ignore and relay) texture
 			case N_EDITS: // solid or not
 			case N_EDITD: // delta
-			case N_EDITE: // (unknown) equalize
+			case N_EDITE: // equalize
 			{
 				int x  = getint(p);
 				int y  = getint(p);
@@ -3300,8 +3300,20 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						}
 						break;
 					case N_EDITE:
-						// editequalisexy(v!=0, b);
+					{
+						int low = 127, hi = -128;
+						seditloop{
+							sseteditid;
+							if(maplayout[id].floor<low) low = maplayout[id].floor;
+							if(maplayout[id].ceil>hi) hi = maplayout[id].ceil;
+						}
+						seditloop{
+							sseteditid;
+							if(!v) maplayout[id].ceil = hi; else maplayout[id].floor = low;
+							if(maplayout[id].floor >= maplayout[id].ceil) maplayout[id].floor = maplayout[id].ceil-1;
+						}
 						break;
+					}
 					// ignore texture
 					case N_EDITT: getint(p); break;
 				}
