@@ -3286,7 +3286,12 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						}
 						break;
 					}
-					case N_EDITS: /*edittypexy(v, b);*/ break;
+					case N_EDITS:
+						seditloop{
+							sseteditid;
+							maplayout[id].type = v;
+						}
+						break;
 					case N_EDITD:
 						seditloop{
 							sseteditid;
@@ -3294,9 +3299,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 							if(maplayout[id].vdelta < 0) maplayout[id].vdelta = 0;
 						}
 						break;
-					case N_EDITE: /*editequalisexy(v!=0, b);*/ break;
+					case N_EDITE:
+						// editequalisexy(v!=0, b);
+						break;
 					// ignore texture
-					case N_EDITT: getint(p);
+					case N_EDITT: getint(p); break;
 				}
 				QUEUE_MSG;
 				break;
