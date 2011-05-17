@@ -17,7 +17,7 @@ const char *entnames[] =
 
 const char *entmdlnames[] =
 {
-	"pickups/pistolclips", "pickups/ammobox", "pickups/nades", "pickups/health", "pickups/kevlar", "pickups/akimbo",
+	"pickups/pistolclips", "pickups/ammobox", "pickups/nade", "pickups/health", "pickups/kevlar", "pickups/akimbo",
 };
 
 void renderent(entity &e)
