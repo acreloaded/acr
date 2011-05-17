@@ -2837,8 +2837,8 @@ int checktype(int type, client *cl){ // invalid defined types handled in the pro
 	return type; // normal
 }
 
-// server side processing of updates: does very little and most state is tracked client only
-// could be extended to move more gameplay to server (at expense of lag)
+// server side processing of updates: does very quite a bit more than before!
+// IS extended to move more gameplay to server (at expense of lag)
 
 void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 {
