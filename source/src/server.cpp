@@ -3243,10 +3243,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				int xs = getint(p);
 				int ys = getint(p);
 				int v  = getint(p);
-				block b = { x, y, xs, ys };
 				switch(type)
 				{
-					case N_EDITH: /*editheightxy(v!=0, getint(p), b);*/ break;
+					case N_EDITH: getint(p); /*editheightxy(v!=0, getint(p), b);*/ break;
 					case N_EDITT: getint(p); break;
 					case N_EDITS: /*edittypexy(v, b);*/ break;
 					case N_EDITD: break;
