@@ -3257,7 +3257,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case N_EDITH: // height
 			case N_EDITT: // (ignore and relay) texture
 			case N_EDITS: // solid or not
-			case N_EDITD: // (ignore and relay) delta
+			case N_EDITD: // delta
 			case N_EDITE: // (unknown) equalize
 			{
 				int x  = getint(p);
@@ -3267,12 +3267,28 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				int v  = getint(p);
 				switch(type)
 				{
-					#define seditloop loop(xx, xs) loop(yy, ys)
-					case N_EDITH: seditloop{}getint(p); /*editheightxy(v!=0, getint(p), b);*/ break;
-					case N_EDITT: getint(p); break;
+					#define seditid ((x + xx) + ((y + yy) << maplayout_factor))
+					#define seditloop loop(xx, xs) loop(yy, ys) if(x + xx > 0 && x + xx < (1 << maplayout_factor) && y + yy > 0 && y + yy < (1 << maplayout_factor))
+					#define sseteditid const int id = seditid;
+					case N_EDITH:
+					{
+						int offset = getint(p);
+						seditloop{
+							sseteditid;
+						} // editheightxy(v!=0, getint(p), b);
+						break;
+					}
 					case N_EDITS: /*edittypexy(v, b);*/ break;
-					case N_EDITD: break;
+					case N_EDITD:
+						seditloop{
+							sseteditid;
+							maplayout[id].vdelta += v;
+							if(maplayout[id].vdelta < 0) maplayout[id].vdelta = 0;
+						}
+						break;
 					case N_EDITE: /*editequalisexy(v!=0, b);*/ break;
+					// ignore texture
+					case N_EDITT: getint(p);
 				}
 				QUEUE_MSG;
 				break;
