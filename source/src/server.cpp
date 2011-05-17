@@ -3275,7 +3275,15 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						int offset = getint(p);
 						seditloop{
 							sseteditid;
-						} // editheightxy(v!=0, getint(p), b);
+							if(!v){ // ceil
+								maplayout[id].ceil += offset;
+								if(maplayout[id].ceil <= maplayout[id].floor) maplayout[id].ceil = maplayout[id].floor+1;
+							}
+							else{ // floor
+								maplayout[id].floor += offset;
+								if(maplayout[id].floor >= maplayout[id].ceil) maplayout[id].floor = maplayout[id].ceil-1;
+							}
+						}
 						break;
 					}
 					case N_EDITS: /*edittypexy(v, b);*/ break;
