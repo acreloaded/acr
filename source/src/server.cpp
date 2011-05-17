@@ -3267,14 +3267,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				int v  = getint(p);
 				switch(type)
 				{
-					#define seditid ((x + xx) + ((y + yy) << maplayout_factor))
-					#define seditloop loop(xx, xs) loop(yy, ys) if(x + xx > 0 && x + xx < (1 << maplayout_factor) && y + yy > 0 && y + yy < (1 << maplayout_factor))
-					#define sseteditid const int id = seditid;
+					#define seditloop(body) loop(xx, xs) loop(yy, ys) if(x + xx > 0 && x + xx < (1 << maplayout_factor) && y + yy > 0 && y + yy < (1 << maplayout_factor)){const int id = (x + xx) + ((y + yy) << maplayout_factor); body}
 					case N_EDITH:
 					{
 						int offset = getint(p);
-						seditloop{
-							sseteditid;
+						seditloop({
 							if(!v){ // ceil
 								maplayout[id].ceil += offset;
 								if(maplayout[id].ceil <= maplayout[id].floor) maplayout[id].ceil = maplayout[id].floor+1;
@@ -3283,35 +3280,31 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 								maplayout[id].floor += offset;
 								if(maplayout[id].floor >= maplayout[id].ceil) maplayout[id].floor = maplayout[id].ceil-1;
 							}
-						}
+						});
 						break;
 					}
 					case N_EDITS:
-						seditloop{
-							sseteditid;
+						seditloop({
 							maplayout[id].type = v;
-						}
+						});
 						break;
 					case N_EDITD:
-						seditloop{
-							sseteditid;
+						seditloop({
 							maplayout[id].vdelta += v;
 							if(maplayout[id].vdelta < 0) maplayout[id].vdelta = 0;
-						}
+						});
 						break;
 					case N_EDITE:
 					{
 						int low = 127, hi = -128;
-						seditloop{
-							sseteditid;
+						seditloop({
 							if(maplayout[id].floor<low) low = maplayout[id].floor;
 							if(maplayout[id].ceil>hi) hi = maplayout[id].ceil;
-						}
-						seditloop{
-							sseteditid;
+						});
+						seditloop({
 							if(!v) maplayout[id].ceil = hi; else maplayout[id].floor = low;
 							if(maplayout[id].floor >= maplayout[id].ceil) maplayout[id].floor = maplayout[id].ceil-1;
-						}
+						});
 						break;
 					}
 					// ignore texture
