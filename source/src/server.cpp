@@ -2832,8 +2832,8 @@ bool hasclient(client &ci, int cn){
 int checktype(int type, client *cl){ // invalid defined types handled in the processing function
 	if(cl && cl->type==ST_LOCAL) return type; // local
 	if (type < 0 || type >= N_NUM) return -1; // out of range
-	if(!m_edit && cl->type == ST_TCPIP && (type >= N_EDITH && type <= N_NEWMAP)) return -1; // edit
-	if(cl && cl->overflow++ > MAXTRANS) return -2; // overflow
+	if(!m_edit && cl && cl->type == ST_TCPIP && (type >= N_EDITH && type <= N_NEWMAP)) return -1; // edit
+	if(cl && cl->type == ST_TCPIP && cl->overflow++ > MAXTRANS) return -2; // overflow
 	return type; // normal
 }
 
