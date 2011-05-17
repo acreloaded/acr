@@ -479,6 +479,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					p->addicon(eventicon::PICKUP);
 					p->purgeknives();
 				}
+				if(p != player1 && p->weapons[gun]) p->weapons[gun]->reload();
 				break;
 			}
 
