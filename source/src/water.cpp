@@ -5,7 +5,7 @@ int wx1, wy1, wx2, wy2;
 float wsx1, wsy1, wsx2, wsy2;
 
 inline void sendwater(){
-	if(!m_edit) return;
+	if(noteditmode()) return;
 	addmsg(N_EDITW, "ri5", hdr.waterlevel, hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], hdr.watercolor[3]);
 }
 
