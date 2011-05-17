@@ -472,6 +472,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				int cn = getint(p), gun = getint(p), mag = getint(p), ammo = getint(p);
 				playerent *p = getclient(cn);
 				if(!p || gun < 0 || gun >= NUMGUNS) break;
+				if(p != player1 && p->weapons[gun]) p->weapons[gun]->reload();
 				p->ammo[gun] = ammo;
 				p->mag[gun] = mag;
 				if(guns[gun].reload != S_NULL) playsound(guns[gun].reload, p, p == player1 ? SP_HIGH : SP_NORMAL);
@@ -479,7 +480,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					p->addicon(eventicon::PICKUP);
 					p->purgeknives();
 				}
-				if(p != player1 && p->weapons[gun]) p->weapons[gun]->reload();
 				break;
 			}
 
