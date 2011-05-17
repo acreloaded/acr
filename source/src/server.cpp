@@ -1283,6 +1283,11 @@ void checkitemspawns(int diff){
 	}
 }
 
+bool outofborder(const vec &p){
+	loopi(2) if(p[i] < 2 || p[i] > (1 << maplayout_factor) - 2) return true;
+	return false;
+}
+
 bool checkpos(vec &p, bool alter = true){
 	bool ret = false;
 	vec fix = p;
