@@ -290,8 +290,7 @@ struct ban
 
 vector<ban> bans;
 
-char *mapfloor = NULL, *mapfhfbase = NULL, *mapceil = NULL;
-int swaterlvl = INT_MIN;
+ssqr *maplayout = NULL;
 int maplayout_factor;
 
 struct worldstate
@@ -1283,6 +1282,18 @@ void checkitemspawns(int diff){
 	}
 }
 
+float getblockfloor(int id){
+	if(!maplayout) return -128;
+	ssqr &s = maplayout[id];
+	return s.floor - (s.type == FHF ? s.vdelta / 4.f : 0);
+}
+
+float getblockceil(int id){
+	if(!maplayout) return 127;
+	ssqr &s = maplayout[id];
+	return s.ceil + (s.type == CHF ? s.vdelta / 4.f : 0);
+}
+
 bool outofborder(const vec &p){
 	loopi(2) if(p[i] < 2 || p[i] > (1 << maplayout_factor) - 2) return true;
 	return false;
@@ -1306,7 +1317,7 @@ bool checkpos(vec &p, bool alter = true){
 	if(!ret){
 		// z
 		const int mapi = ((int)fix.x) + (((int)fix.y) << maplayout_factor);
-		const char ceil = mapceil ? mapceil[mapi] : 127, floor = mapfloor ? mapfloor[mapi] : -128;
+		const char ceil = getblockceil(mapi), floor = getblockfloor(mapi);
 		if(fix.z > ceil){
 			fix.z = ceil;
 			ret = true;
@@ -2508,11 +2519,7 @@ mapstats *getservermapstats(const char *mapname, bool getlayout){
 			found = fileexists(filename, "r");
 		}
 	}
-	if(getlayout){
-		DELETEA(mapfloor);
-		DELETEA(mapfhfbase);
-		DELETEA(mapceil);
-	}
+	if(getlayout) DELETEA(maplayout);
 	return found ? loadmapstats(filename, getlayout) : NULL;
 }
 
@@ -2721,7 +2728,7 @@ void checkmove(client &cp){
 		}
 	}
 	// drown underwater
-	if(cs.o.z < swaterlvl){
+	if(cs.o.z < smapstats.hdr.waterlevel){
 		if(cs.drownmillis <= 0){
 			if(cs.drownmillis)
 				cs.drownval = max(cs.drownval - ((servmillis + cs.drownmillis) / 1000), 0);
@@ -2749,8 +2756,9 @@ void checkmove(client &cp){
 		server_entity &e = sents[i];
 		if(!e.spawned || !cs.canpickup(e.type)) continue;
 		const int ls = (1 << maplayout_factor) - 2, maplayoutid = e.x + (e.y << maplayout_factor);
-		const char &mapz = mapfloor[maplayoutid] > -128 ? mapfloor[maplayoutid] : mapfhfbase[maplayoutid];
-		vec v(e.x, e.y, mapfloor && e.x > 2 && e.y > 2 && e.x < ls && e.y < ls ? mapz + 3 : cs.o.z);
+		const bool getmapz = maplayout && e.x > 2 && e.y > 2 && e.x < ls && e.y < ls;
+		const char &mapz = getmapz ? getblockfloor(maplayoutid) : 0;
+		vec v(e.x, e.y, getmapz ? mapz + PLAYERHEIGHT : cs.o.z);
 		float dist = cs.o.dist(v);
 		if(dist > 3) continue;
 		if(arenaround && arenaround - gamemillis <= 2000){ // no nade pickup during last two seconds of lss intermission
@@ -3250,7 +3258,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				int v  = getint(p);
 				switch(type)
 				{
-					case N_EDITH: getint(p); /*editheightxy(v!=0, getint(p), b);*/ break;
+					#define seditloop loop(xx, xs) loop(yy, ys)
+					case N_EDITH: seditloop{}getint(p); /*editheightxy(v!=0, getint(p), b);*/ break;
 					case N_EDITT: getint(p); break;
 					case N_EDITS: /*edittypexy(v, b);*/ break;
 					case N_EDITD: break;
@@ -3262,7 +3271,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_EDITW:
 				// set water level
-				swaterlvl = getint(p);
+				smapstats.hdr.waterlevel = getint(p);
 				// water color alpha
 				loopi(4) getint(p);
 				QUEUE_MSG;
@@ -3295,20 +3304,19 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				const int size = getint(p);
 				if(size < 0) maplayout_factor++;
 				else maplayout_factor = size;
-				DELETEA(mapfloor);
-				DELETEA(mapfhfbase);
-				DELETEA(mapceil);
+				DELETEA(maplayout)
 				if(maplayout_factor >= 0){
 					sents.shrink(0);
 					maplayout_factor = clamp(maplayout_factor, SMALLEST_FACTOR, LARGEST_FACTOR);
-					swaterlvl = -100000;
+					smapstats.hdr.waterlevel = -100000;
 					const int layoutsize = 1 << (maplayout_factor * 2);
-					mapfloor = new char[layoutsize + 256];
-					mapfhfbase = new char[layoutsize + 256];
-					mapceil = new char[layoutsize + 256];
-					memset(mapfloor, 0, layoutsize * sizeof(char));
-					memset(mapfhfbase, 0, layoutsize * sizeof(char));
-					memset(mapceil, 26, layoutsize * sizeof(char));
+					ssqr defaultblock;
+					defaultblock.type = SPACE;
+					defaultblock.floor = 0;
+					defaultblock.ceil = 16;
+					defaultblock.vdelta = 0;
+					maplayout = new ssqr[layoutsize + 256];
+					loopi(layoutsize) memcpy(maplayout + i, &defaultblock, sizeof(ssqr));
 				}
 				QUEUE_MSG;
 				break;

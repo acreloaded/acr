@@ -329,8 +329,8 @@ bool delfile(const char *path)
 	return !remove(path);
 }
 
-extern char *mapfloor, *mapfhfbase, *mapceil;
-extern int swaterlvl, maplayout_factor;
+extern ssqr *maplayout;
+extern int maplayout_factor;
 
 mapstats *loadmapstats(const char *filename, bool getlayout)
 {
@@ -342,8 +342,6 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 	loopi(MAXENTTYPES) s.entcnt[i] = 0;
 	loopi(3) s.spawns[i] = 0;
 	loopi(2) s.flags[i] = 0;
-
-	swaterlvl = INT_MIN; // until changed
 
 	gzFile f = opengzfile(filename, "rb9");
 	if(!f) return NULL;
@@ -366,78 +364,60 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 		enttypes[i] = e.type;
 		entposs[i * 3] = e.x; entposs[i * 3 + 1] = e.y; entposs[i * 3 + 2] = e.z;
 	}
-	swaterlvl = s.hdr.waterlevel;
 	if(getlayout)
 	{
-		DELETEA(mapfloor);
-		DELETEA(mapfhfbase);
-		DELETEA(mapceil);
+		DELETEA(maplayout);
 		if(s.hdr.sfactor <= LARGEST_FACTOR && s.hdr.sfactor >= SMALLEST_FACTOR)
 		{
 			maplayout_factor = s.hdr.sfactor;
 			int layoutsize = 1 << (maplayout_factor * 2);
 			bool fail = false;
-			mapfloor = new char[layoutsize + 256];
-			mapfhfbase = new char[layoutsize + 256];
-			mapceil = new char[layoutsize + 256];
-			memset(mapfloor, 0, layoutsize * sizeof(char));
-			memset(mapfhfbase, 0, layoutsize * sizeof(char));
-			memset(mapceil, 0, layoutsize * sizeof(char));
-			char *t = NULL, *t2 = NULL, *tfb = NULL;
-			char floor = 0, ceil;
+			maplayout = new ssqr[layoutsize + 256];
+			memset(maplayout, 0, layoutsize * sizeof(ssqr));
+			ssqr *t = NULL;
+			//char floor = 0, ceil;
 			loopk(layoutsize)
 			{
-				char *c = mapfloor + k, *c2 = mapceil + k, *cfb = mapfhfbase + k;
-				int type = gzgetc(f);
-				switch(type)
+				ssqr &sq = maplayout[k];
+				sq.type = gzgetc(f);
+				switch(sq.type)
 				{
 					case 255:
 					{
 						int n = gzgetc(f);
 						if(!t || n < 0) { fail = true; break; }
-						memset(c, *t, n);
-						memset(cfb, *tfb, n);
-						memset(c2, *t2, n);
+						loopi(n) memcpy(&sq + i, t, sizeof(ssqr));
 						k += n - 1;
 						break;
 					}
 					case 254: // only in MAPVERSION<=2
 						if(!t) { fail = true; break; }
-						*c = *t;
-						*cfb = *tfb;
-						*c2 = *t2;
+						memcpy(&sq, t, sizeof(ssqr));
 						gzgetc(f); gzgetc(f);
 						break;
 					default:
-						if(type<0 || type>=MAXTYPE)  { fail = true; break; }
-						floor = gzgetc(f);
-						ceil = gzgetc(f);
-						if(floor >= ceil && ceil > -128) floor = ceil - 1;  // for pre 12_13
-						if(type == CHF) ceil = 127;
-						if(type == FHF || floor < -127){
-							*cfb = floor;
-							floor = -128;
-						}
-						gzgetc(f); gzgetc(f);
-						if(s.hdr.version>=2) gzgetc(f);
-						if(s.hdr.version>=5) gzgetc(f);
+						if(sq.type<0 || sq.type>=MAXTYPE)  { fail = true; break; }
+						sq.floor = gzgetc(f);
+						sq.ceil = gzgetc(f);
+						if(sq.floor >= sq.ceil && sq.ceil > -128) sq.floor = sq.ceil - 1;  // for pre 12_13
+						gzgetc(f); gzgetc(f); gzgetc(f); // wtex, ftex, ctex
+						if(s.hdr.version<=2) { gzgetc(f); gzgetc(f); }
+						sq.vdelta = gzgetc(f);
+						if(s.hdr.version>=2) gzgetc(f); // utex
+						if(s.hdr.version>=5) gzgetc(f); // tag
+						break;
 					case SOLID:
-						*c = type == SOLID ? 127 : floor;
-						*c2 = type == SOLID ? -128 : ceil;
-						gzgetc(f); gzgetc(f);
+						sq.floor = 0;
+						sq.ceil = 16;
+						gzgetc(f); // wtex
+						sq.vdelta = gzgetc(f);
 						if(s.hdr.version<=2) { gzgetc(f); gzgetc(f); }
 						break;
 				}
 				if(fail) break;
-				t = c;
-				tfb = cfb;
-				t2 = c2;
+				t = &sq;
 			}
-			if(fail){
-				DELETEA(mapfloor);
-				DELETEA(mapfhfbase);
-				DELETEA(mapceil);
-			}
+			if(fail) DELETEA(maplayout);
 		}
 	}
 	gzclose(f);

@@ -23,6 +23,11 @@ struct sqr
 	uchar reserved[2];
 };
 
+struct ssqr{ // for the server, more compact
+	uchar type;
+	char floor, ceil, vdelta;
+};
+
 enum							// hardcoded texture numbers
 {
 	DEFAULT_SKY = 0,
