@@ -1282,16 +1282,25 @@ void checkitemspawns(int diff){
 	}
 }
 
-float getblockfloor(int id){
-	if(!maplayout) return -128;
+inline char maxvdelta(int id){
 	ssqr &s = maplayout[id];
-	return s.floor - (s.type == FHF ? s.vdelta / 4.f : 0);
+	char vdelta = s.vdelta;
+	if((&s + 1)->vdelta > vdelta) vdelta = (&s + 1)->vdelta;
+	if((&s + (1 << maplayout_factor))->vdelta > vdelta) vdelta = (&s + (1 << maplayout_factor))->vdelta;
+	if((&s + (1 << maplayout_factor) + 1)->vdelta > vdelta) vdelta = (&s + (1 << maplayout_factor) + 1)->vdelta;
+	return vdelta;
+}
+
+float getblockfloor(int id){
+	if(!maplayout || maplayout[id].type == SOLID) return -128;
+	ssqr &s = maplayout[id];
+	return s.floor - (s.type == FHF ? maxvdelta(id) / 4.f : 0);
 }
 
 float getblockceil(int id){
-	if(!maplayout) return 127;
+	if(!maplayout || maplayout[id].type == SOLID) return 127;
 	ssqr &s = maplayout[id];
-	return s.ceil + (s.type == CHF ? s.vdelta / 4.f : 0);
+	return s.ceil + (s.type == CHF ? maxvdelta(id) / 4.f : 0);
 }
 
 bool outofborder(const vec &p){
