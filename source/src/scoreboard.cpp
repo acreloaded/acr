@@ -127,7 +127,7 @@ void renderteamscore(void *menu, teamscore &t){
 	else s_sprintf(line.s)("%d\t%d\t%d\t%d\t%.*f\t\t\t\t%s\t\t%s", t.points, t.frags, t.assists, t.deaths, sr.precision, sr.ratio, teamname, plrs);
 	static color teamcolors[TEAM_NUM+1] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f), color(.4f, .4f, .4f, .3f), color(.8f, .8f, .8f, .4f) };
 	line.bgcolor = &teamcolors[!m_team && t.team != TEAM_SPECT ? TEAM_NUM : t.team];
-	loopv(t.teammembers) renderscore(menu, at.teammembers[i]);
+	loopv(t.teammembers) renderscore(menu, t.teammembers[i]);
 }
 
 extern bool watchingdemo;
