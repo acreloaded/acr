@@ -1282,6 +1282,10 @@ void checkitemspawns(int diff){
 	}
 }
 
+inline int getmaplayoutid(int x, int y){
+	return x + (y << maplayout_factor);
+}
+
 inline char maxvdelta(int id){
 	ssqr &s = maplayout[id];
 	char vdelta = s.vdelta;
@@ -1325,7 +1329,7 @@ bool checkpos(vec &p, bool alter = true){
 	}
 	if(!ret){
 		// z
-		const int mapi = ((int)fix.x) + (((int)fix.y) << maplayout_factor);
+		const int mapi = getmaplayoutid(fix.x, fix.y);
 		const char ceil = getblockceil(mapi), floor = getblockfloor(mapi);
 		if(fix.z > ceil){
 			fix.z = ceil;
@@ -1338,6 +1342,47 @@ bool checkpos(vec &p, bool alter = true){
 	}
 	if(alter) p = fix;
 	return ret;
+}
+
+float sraycube(const vec &o, const vec &ray){
+	if(ray.iszero()) return -1;
+
+	vec v = o;
+	float dist = 0, dx = 0, dy = 0, dz = 0;
+
+	const int maxtraces = (1 << maplayout_factor << 2);
+	for(int numtraces = 0; numtraces < maxtraces; numtraces++){
+		int x = int(v.x), y = int(v.y);
+		if(x < 0 || y < 0 || x >= (1 << maplayout_factor) || y >= (1 << maplayout_factor)) return -1;
+		const int mapid = getmaplayoutid(x, y);
+		ssqr s = maplayout[getmaplayoutid(x, y)];
+		float floor = getblockfloor(mapid), ceil = getblockceil(mapid);
+		if(s.type == SOLID || v.z < floor || v.z > ceil){
+			if((!dx && !dy) /*|| s->wtex==DEFAULT_SKY*/ || (s.type != SOLID && v.z > ceil /*&& s->ctex==DEFAULT_SKY*/)) return -1;
+			dist = max(dist-0.1f, 0.0f);
+			break;
+		}
+		dx = ray.x ? (x + (ray.x > 0 ? 1 : 0) - v.x)/ray.x : 1e16f;
+		dy = ray.y ? (y + (ray.y > 0 ? 1 : 0) - v.y)/ray.y : 1e16f;
+		dz = ray.z ? ((ray.z > 0 ? ceil : floor) - v.z)/ray.z : 1e16f;
+		if(dz < dx && dz < dy)
+		{
+			if(ray.z>0 /*&& s->ctex==DEFAULT_SKY*/) return -1;
+			dist += dz;
+			break;
+		}
+		float disttonext = 0.1f + min(dx, dy);
+		v.add(vec(ray).mul(disttonext));
+		dist += disttonext;
+	}
+	return dist;
+}
+
+void straceShot(const vec &from, vec &to){
+	vec tracer(to);
+	tracer.sub(from).normalize();
+	const float dist = sraycube(from, tracer);
+	to = tracer.mul(dist).add(from);
 }
 
 void forcedeath(client *cl, bool gib = false, bool cheat = false){

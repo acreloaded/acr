@@ -136,10 +136,18 @@ void processevent(client &c, shotevent &e)
 			vec r(RNDD, RNDD, RNDD);
 			gs.sg[i] = to;
 			gs.sg[i].add(r);
+			straceShot(gs.o, gs.sg[i]);
 			#undef RNDD
 		}
 		putint(p, N_SG);
 		loopi(SGRAYS) loopj(3) putfloat(p, gs.sg[i][j]);
+	}
+	else{
+		vec v(e.to);
+		straceShot(gs.o, v);
+		e.to[0] = v.x;
+		e.to[1] = v.y;
+		e.to[2] = v.z;
 	}
 	putint(p, e.compact ? N_SHOOTC : N_SHOOT);
 	putint(p, c.clientnum);
