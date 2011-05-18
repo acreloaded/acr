@@ -70,6 +70,7 @@ static itemstat powerupstats[] =
 };
 
 #define ADSTIME 275
+#define CROUCHTIME 500
 #define DAMAGESCALE (m_real ? 2 : 1)
 
 #define SGRAYS 32

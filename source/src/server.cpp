@@ -3424,15 +3424,16 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_POS:
 			{
-				int cn = getint(p);
+				const int cn = getint(p);
 				bool broadcast = true;
 				if(!hasclient(*cl, cn)) broadcast = false;
 				vec newo, newaim, newvel;
 				loopi(3) newo[i] = getfloat(p);
 				loopi(3) newaim[i] = getfloat(p);
 				loopi(3) newvel[i] = getfloat(p);
-				float newpitchvel = getfloat(p);
-				int f = getuint(p), seqcolor = (f>>6)&1;
+				const float newpitchvel = getfloat(p);
+				const int f = getuint(p), seqcolor = (f>>6)&1;
+				const bool newcrouching = (f>>7)&1;
 				if(!valid_client(cn)) break;
 				client &cp = *clients[cn];
 				clientstate &cs = cp.state;
@@ -3445,8 +3446,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				cs.vel = newvel;
 				cs.pitchvel = newpitchvel;
 				// crouch
-				cs.crouching = (f>>7)&1;
-				//cs.crouchmillis = gamemillis;
+				if(cs.crouching != newcrouching){
+					cs.crouching = newcrouching;
+					cs.crouchmillis = gamemillis - CROUCHTIME + min(gamemillis - cl->state.crouchmillis, CROUCHTIME);
+				}
 				// broadcast
 				cp.position.setsize(0);
 				while(curmsg < p.length()) cp.position.add(p.buf[curmsg++]);
