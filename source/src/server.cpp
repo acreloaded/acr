@@ -122,6 +122,8 @@ struct clientstate : playerstate
 	vec o, aim, vel, knifepos, lasto, sg[SGRAYS], flagpickupo;
 	int state, lastomillis, knifemillis;
 	int lastdeath, lastffkill, lastspawn, lifesequence;
+	bool crouching;
+	int crouchmillis, scopemillis;
 	int drownmillis; char drownval;
 	int lastshot, lastregen;
 	projectilestate<2> grenades, knives;
@@ -165,6 +167,8 @@ struct clientstate : playerstate
 		lastdeath = lastshot = lastregen = 0;
 		akimbos = akimbomillis = 0;
 		damagelog.setsize(0);
+		crouching = false;
+		crouchmillis = scopemillis = 0;
 	}
 };
 
@@ -3148,6 +3152,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				bool scope = getint(p) != 0;
 				if(!cl->state.isalive(gamemillis) || !ads_gun(cl->state.gunselect) || cl->state.scoping == scope) break;
 				cl->state.scoping = scope;
+				cl->state.scopemillis = gamemillis - ADSTIME + min(gamemillis - cl->state.scopemillis, ADSTIME);
 				sendf(-1, 1, "ri3x", N_SCOPE, sender, scope ? 1 : 0, sender);
 				break;
 			}
@@ -3425,17 +3430,20 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				loopi(3) newo[i] = getfloat(p);
 				loopi(3) newaim[i] = getfloat(p);
 				loopi(3) newvel[i] = getfloat(p);
-				getuint(p); // last data uint
+				int f = getuint(p), seqcolor = (f>>6)&1;
 				if(!valid_client(cn)) break;
 				client &cp = *clients[cn];
 				clientstate &cs = cp.state;
-				if((cs.state!=CS_ALIVE && cs.state!=CS_EDITING) || !broadcast) break;
+				if((cs.state!=CS_ALIVE && cs.state!=CS_EDITING) || seqcolor!=(cs.lifesequence&1) || !broadcast) break;
 				// store location
 				cs.lasto = cs.o;
 				cs.lastomillis = gamemillis;
 				cs.o = newo;
 				cs.aim = newaim;
 				cs.vel = newvel;
+				// crouch
+				cs.crouching = (f>>7)&1;
+				//cs.crouchmillis = gamemillis;
 				// broadcast
 				cp.position.setsize(0);
 				while(curmsg < p.length()) cp.position.add(p.buf[curmsg++]);

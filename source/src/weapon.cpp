@@ -316,6 +316,8 @@ weapon::weapon(struct playerent *owner, int type) : type(type), owner(owner), in
 	ammo(owner->ammo[type]), mag(owner->mag[type]), gunwait(owner->gunwait[type]), reloading(0){
 }
 
+const int weapon::scopetime = ADSTIME;
+
 int weapon::flashtime() const { return min(max((int)info.attackdelay, 180)/3, 150); }
 
 void weapon::sendshoot(vec &from, vec &to){
