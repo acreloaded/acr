@@ -122,16 +122,16 @@ void processevent(client &c, shotevent &e)
 	loopi(NUMGUNS) if(gs.gunwait[i]) gs.gunwait[i] = max(gs.gunwait[i] - (e.millis-gs.lastshot), 0);
 	gs.lastshot = e.millis;
 	gs.gunwait[e.gun] = attackdelay(e.gun);
-	/*sendf(-1, 1, "ri3f6x", N_SHOOT, c->clientnum, e.gun,
-		c->state.o.x, c->state.o.y, c->state.o.z,
-		e.to[0], e.to[1], e.to[2], c->clientnum);*/
+	// for ease of access
+	vec from(gs.o), to(sinf(RAD*e.to[0]), -cosf(RAD*e.to[0]), sinf(RAD*e.to[1]));
+	to.add(from); straceShot(gs.o, to);
+	from.z -= WEAPONBELOWEYE;
+	// packet
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
 	if(e.gun==GUN_SHOTGUN){
-		vec from(gs.o), to(e.to);
-		from.z -= WEAPONBELOWEYE;
-		float f = to.dist(from)/1000;
 		loopi(SGRAYS){
+			const float f = to.dist(from)/1000;
 			#define RNDD (rnd(SGSPREAD)-SGSPREAD/2.f)*f*(gs.scoping ? 1 - 1000 / SGADSSPREADFACTOR : 1)
 			vec r(RNDD, RNDD, RNDD);
 			gs.sg[i] = to;
@@ -142,23 +142,16 @@ void processevent(client &c, shotevent &e)
 		putint(p, N_SG);
 		loopi(SGRAYS) loopj(3) putfloat(p, gs.sg[i][j]);
 	}
-	else{
-		vec v(e.to);
-		straceShot(gs.o, v);
-		e.to[0] = v.x;
-		e.to[1] = v.y;
-		e.to[2] = v.z;
-	}
 	putint(p, e.compact ? N_SHOOTC : N_SHOOT);
 	putint(p, c.clientnum);
 	putint(p, e.gun);
 	if(!e.compact){
-		putfloat(p, gs.o.x);
-		putfloat(p, gs.o.y);
-		putfloat(p, gs.o.z);
-		putfloat(p, e.to[0]);
-		putfloat(p, e.to[1]);
-		putfloat(p, e.to[2]);
+		putfloat(p, from.x);
+		putfloat(p, from.y);
+		putfloat(p, from.z);
+		putfloat(p, to[0]);
+		putfloat(p, to[1]);
+		putfloat(p, to[2]);
 	}
 	enet_packet_resize(packet, p.length());
 	sendpacket(-1, 1, packet, !e.compact && e.gun != GUN_GRENADE ? -1 : c.clientnum);
@@ -166,7 +159,7 @@ void processevent(client &c, shotevent &e)
 	if(e.gun == GUN_SHOTGUN){
 		loopi(SGRAYS) gs.shotdamage += effectiveDamage(e.gun, vec(gs.sg[i]).dist(gs.o), DAMAGESCALE);
 	}
-	else gs.shotdamage += effectiveDamage(e.gun, vec(e.to).dist(gs.o), DAMAGESCALE);
+	else gs.shotdamage += effectiveDamage(e.gun, to.dist(gs.o), DAMAGESCALE);
 	switch(e.gun){
 		case GUN_GRENADE: gs.grenades.add(e.id); break;
 		case GUN_KNIFE:
@@ -177,7 +170,6 @@ void processevent(client &c, shotevent &e)
 			}
 		default:
 		{
-			vec to(e.to);
 			loopv(clients){ 
 				client &t = *clients[i];
 				clientstate &ts = t.state;

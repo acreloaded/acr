@@ -325,9 +325,14 @@ void weapon::sendshoot(vec &from, vec &to){
 	putint(p, N_SHOOT);
 	putint(p, lastmillis);
 	putint(p, owner->weaponsel->type);
+	/*
 	putfloat(p, to.x);
 	putfloat(p, to.y);
 	putfloat(p, to.z);
+	*/
+	putfloat(p, owner->yaw);
+	putfloat(p, owner->pitch);
+	putfloat(p, owner->roll);
 	vector<vec4> heads;
 	heads.setsize(0);
 	// add potential heads...
