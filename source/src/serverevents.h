@@ -149,9 +149,9 @@ void processevent(client &c, shotevent &e)
 		putfloat(p, from.x);
 		putfloat(p, from.y);
 		putfloat(p, from.z);
-		putfloat(p, to[0]);
-		putfloat(p, to[1]);
-		putfloat(p, to[2]);
+		putfloat(p, to.x);
+		putfloat(p, to.y);
+		putfloat(p, to.z);
 	}
 	enet_packet_resize(packet, p.length());
 	sendpacket(-1, 1, packet, !e.compact && e.gun != GUN_GRENADE ? -1 : c.clientnum);
