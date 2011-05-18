@@ -130,7 +130,7 @@ void processevent(client &c, shotevent &e)
 	ucharbuf p(packet->data, packet->dataLength);
 	const float spreadf = to.dist(from)/1000;
 	const int adsfactor = (gs.scoping ? min(gamemillis - gs.scopemillis, ADSTIME) : ADSTIME - min(gamemillis - gs.scopemillis, ADSTIME)) * 1000 / ADSTIME;
-	const float crouchfactor = 1 - (gs.crouching ? min(gamemillis - gs.crouchmillis, CROUCHTIME) : CROUCHTIME - min(gamemillis - gs.crouchmillis, CROUCHTIME)) * .25f;
+	const float crouchfactor = 1 - (gs.crouching ? min(gamemillis - gs.crouchmillis, CROUCHTIME) : CROUCHTIME - min(gamemillis - gs.crouchmillis, CROUCHTIME)) / CROUCHTIME * .25f;
 	if(e.gun==GUN_SHOTGUN){
 		loopi(SGRAYS){
 			#define RNDD (rnd(SGSPREAD)-SGSPREAD/2.f)*spreadf*(gs.scoping ? 1 - adsfactor / SGADSSPREADFACTOR : 1)
