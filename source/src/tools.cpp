@@ -400,7 +400,9 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 						sq.floor = gzgetc(f);
 						sq.ceil = gzgetc(f);
 						if(sq.floor >= sq.ceil && sq.ceil > -128) sq.floor = sq.ceil - 1;  // for pre 12_13
-						gzgetc(f); gzgetc(f); gzgetc(f); // wtex, ftex, ctex
+						sq.wtex = gzgetc(f);
+						gzgetc(f); // ftex
+						sq.ctex = gzgetc(f);
 						if(s.hdr.version<=2) { gzgetc(f); gzgetc(f); }
 						sq.vdelta = gzgetc(f);
 						if(s.hdr.version>=2) gzgetc(f); // utex
@@ -409,7 +411,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 					case SOLID:
 						sq.floor = 0;
 						sq.ceil = 16;
-						gzgetc(f); // wtex
+						sq.wtex = gzgetc(f);
 						sq.vdelta = gzgetc(f);
 						if(s.hdr.version<=2) { gzgetc(f); gzgetc(f); }
 						break;
