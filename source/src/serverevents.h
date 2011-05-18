@@ -125,7 +125,6 @@ void processevent(client &c, shotevent &e)
 	// for ease of access
 	vec from(gs.o), to(sinf(RAD*e.yaw), -cosf(RAD*e.yaw), sinf(RAD*e.pitch));
 	to.add(from); straceShot(gs.o, to);
-	from.z -= WEAPONBELOWEYE;
 	// packet
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
@@ -160,7 +159,7 @@ void processevent(client &c, shotevent &e)
 	if(!e.compact){
 		putfloat(p, from.x);
 		putfloat(p, from.y);
-		putfloat(p, from.z);
+		putfloat(p, from.z - WEAPONBELOWEYE);
 		putfloat(p, to.x);
 		putfloat(p, to.y);
 		putfloat(p, to.z);
