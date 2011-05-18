@@ -123,7 +123,7 @@ void processevent(client &c, shotevent &e)
 	gs.lastshot = e.millis;
 	gs.gunwait[e.gun] = attackdelay(e.gun);
 	// for ease of access
-	vec from(gs.o), to(sinf(RAD*e.to[0]), -cosf(RAD*e.to[0]), sinf(RAD*e.to[1]));
+	vec from(gs.o), to(sinf(RAD*e.yaw), -cosf(RAD*e.yaw), sinf(RAD*e.pitch));
 	to.add(from); straceShot(gs.o, to);
 	from.z -= WEAPONBELOWEYE;
 	// packet

@@ -51,7 +51,7 @@ struct shotevent{
 	int type;
 	int millis, id;
 	int gun;
-	float to[3];
+	float yaw, pitch;
 	bool compact;
 };
 
@@ -3172,7 +3172,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				shot.shot.gun = getint(p);
 				shot.shot.compact = type == N_SHOOTC;
 				if(type == N_SHOOT){
-					loopk(3) shot.shot.to[k] = getfloat(p);
+					shot.shot.yaw = getfloat(p);
+					shot.shot.pitch = getfloat(p);
 					int hcount = getint(p);
 					if(hcount < 1) break;
 					while(hcount > numclients()){
