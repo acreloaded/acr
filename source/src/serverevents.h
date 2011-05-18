@@ -123,8 +123,9 @@ void processevent(client &c, shotevent &e)
 	gs.lastshot = e.millis;
 	gs.gunwait[e.gun] = attackdelay(e.gun);
 	// for ease of access
-	vec from(gs.o), to(sinf(RAD*e.yaw), -cosf(RAD*e.yaw), sinf(RAD*e.pitch));
-	to.add(from); straceShot(gs.o, to);
+	vec from(gs.o), to(e.to);
+	from.z -= WEAPONBELOWEYE;
+	to.normalize().mul(sraycube(from, to.normalize())).add(from);
 	// packet
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);

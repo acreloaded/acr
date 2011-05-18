@@ -327,8 +327,8 @@ void weapon::sendshoot(vec &from, vec &to){
 	putint(p, N_SHOOT);
 	putint(p, lastmillis);
 	putint(p, owner->weaponsel->type);
-	putfloat(p, owner->yaw);
-	putfloat(p, owner->pitch);
+	to.sub(owner->o);
+	loopi(3) putfloat(p, to[i]);
 	vector<vec4> heads;
 	heads.setsize(0);
 	// add potential heads...
@@ -767,7 +767,7 @@ void gun::attackshell(const vec &to){
 void gun::attackfx(const vec &from, const vec &too, int millis){
 	// trace shot
 	vec to(too);
-	traceShot(from, to);
+	//traceShot(from, to);
 
 	attackshell(to);
 	addbullethole(owner, from, to);
