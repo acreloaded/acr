@@ -120,6 +120,7 @@ struct projectilestate
 struct clientstate : playerstate
 {
 	vec o, aim, vel, knifepos, lasto, sg[SGRAYS], flagpickupo;
+	float pitchvel;
 	int state, lastomillis, knifemillis;
 	int lastdeath, lastffkill, lastspawn, lifesequence;
 	bool crouching;
@@ -161,6 +162,7 @@ struct clientstate : playerstate
 		playerstate::respawn();
 		o = lasto = vec(-1e10f, -1e10f, -1e10f);
 		aim = vel = knifepos = vec(0, 0, 0);
+		pitchvel = 0;
 		lastomillis = knifemillis = 0;
 		drownmillis = drownval = 0;
 		lastspawn = -1;
@@ -3430,6 +3432,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				loopi(3) newo[i] = getfloat(p);
 				loopi(3) newaim[i] = getfloat(p);
 				loopi(3) newvel[i] = getfloat(p);
+				float newpitchvel = getfloat(p);
 				int f = getuint(p), seqcolor = (f>>6)&1;
 				if(!valid_client(cn)) break;
 				client &cp = *clients[cn];
@@ -3441,6 +3444,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				cs.o = newo;
 				cs.aim = newaim;
 				cs.vel = newvel;
+				cs.pitchvel = newpitchvel;
 				// crouch
 				cs.crouching = (f>>7)&1;
 				//cs.crouchmillis = gamemillis;

@@ -143,7 +143,7 @@ void processevent(client &c, shotevent &e)
 		loopi(SGRAYS) loopj(3) putfloat(p, gs.sg[i][j]);
 	}
 	else{
-		const int spread = guns[e.gun].spread * (gs.vel.magnitude() / 3.f /*+ owner->pitchvel / 5.f*/ + 0.4f) * 2.4f * (gs.crouching ? .75f : 1) * (1 - adsfactor / 1000.f);
+		const int spread = guns[e.gun].spread * (gs.vel.magnitude() / 3.f + gs.pitchvel / 5.f + 0.4f) * 2.4f * (gs.crouching ? .75f : 1) * (1 - adsfactor / 1000.f);
 		if(spread>1){
 			#define RNDD (rnd(spread)-spread/2)*spreadf
 			vec r(RNDD, RNDD, RNDD);

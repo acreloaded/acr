@@ -340,6 +340,7 @@ void c2sinfo(playerent *d)				  // send update to the server
 		putfloat(q, d->vel.x);
 		putfloat(q, d->vel.y);
 		putfloat(q, d->vel.z);
+		putfloat(q, d->pitchvel);
 		// pack rest in 1 int: strafe:2, move:2, onfloor:1, onladder: 1
 		putuint(q, (d->strafe&3) | ((d->move&3)<<2) | (((int)d->onfloor)<<4) | (((int)d->onladder)<<5) | ((d->lifesequence&1)<<6) | (((int)d->crouching)<<7));
 

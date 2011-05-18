@@ -91,7 +91,7 @@ void parsepositions(ucharbuf &p)
 		{
 			int cn = getint(p);
 			vec o, vel;
-			float yaw, pitch, roll;
+			float yaw, pitch, roll, pitchvel;
 			o.x   = getfloat(p);
 			o.y   = getfloat(p);
 			o.z   = getfloat(p);
@@ -101,6 +101,7 @@ void parsepositions(ucharbuf &p)
 			vel.x = getfloat(p);
 			vel.y = getfloat(p);
 			vel.z = getfloat(p);
+			pitchvel = getfloat(p);
 			int f = getuint(p), seqcolor = (f>>6)&1;
 			playerent *d = getclient(cn);
 			if(!d || seqcolor!=(d->lifesequence&1)) continue;
@@ -111,6 +112,7 @@ void parsepositions(ucharbuf &p)
 			d->pitch = pitch;
 			d->roll = roll;
 			d->vel = vel;
+			d->pitchvel = pitchvel;
 			d->strafe = (f&3)==3 ? -1 : f&3;
 			f >>= 2;
 			d->move = (f&3)==3 ? -1 : f&3;
