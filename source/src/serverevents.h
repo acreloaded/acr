@@ -128,12 +128,12 @@ void processevent(client &c, shotevent &e)
 	// packet
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
-	const float spreadf = to.dist(from)/1000;
-	const int adsfactor = (gs.scoping ? min(gamemillis - gs.scopemillis, ADSTIME) : ADSTIME - min(gamemillis - gs.scopemillis, ADSTIME)) * 1000 / ADSTIME;
-	const float crouchfactor = 1 - (gs.crouching ? min(gamemillis - gs.crouchmillis, CROUCHTIME) : CROUCHTIME - min(gamemillis - gs.crouchmillis, CROUCHTIME)) / CROUCHTIME * .25f;
+	const float spreadf = to.dist(from)/1000,
+		adsfactor = 1 - float(gs.scoping ? min(gamemillis - gs.scopemillis, ADSTIME) : ADSTIME - min(gamemillis - gs.scopemillis, ADSTIME)) / ADSTIME,
+		crouchfactor = 1 - (gs.crouching ? min(gamemillis - gs.crouchmillis, CROUCHTIME) : CROUCHTIME - min(gamemillis - gs.crouchmillis, CROUCHTIME)) * .25f / CROUCHTIME;
 	if(e.gun==GUN_SHOTGUN){
 		loopi(SGRAYS){
-			#define RNDD (rnd(SGSPREAD)-SGSPREAD/2.f)*spreadf*(gs.scoping ? 1 - adsfactor / SGADSSPREADFACTOR : 1)
+			#define RNDD (rnd(SGSPREAD)-SGSPREAD/2.f)*spreadf*adsfactor
 			vec r(RNDD, RNDD, RNDD);
 			gs.sg[i] = to;
 			gs.sg[i].add(r);
@@ -144,7 +144,7 @@ void processevent(client &c, shotevent &e)
 		loopi(SGRAYS) loopj(3) putfloat(p, gs.sg[i][j]);
 	}
 	else{
-		const int spread = guns[e.gun].spread * (gs.vel.magnitude() / 3.f + gs.pitchvel / 5.f + 0.4f) * 2.4f * crouchfactor * (1 - adsfactor / 1000.f);
+		const int spread = guns[e.gun].spread * (gs.vel.magnitude() / 3.f + gs.pitchvel / 5.f + 0.4f) * 2.4f * crouchfactor * adsfactor;
 		if(spread>1){
 			#define RNDD (rnd(spread)-spread/2)*spreadf
 			vec r(RNDD, RNDD, RNDD);
