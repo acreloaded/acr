@@ -129,7 +129,7 @@ void processevent(client &c, shotevent &e)
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
 	const float spreadf = to.dist(from)/1000;
-	const int adsfactor = gs.scoping ? min(gamemillis - gs.scopemillis, ADSTIME) : ADSTIME - min(gamemillis - gs.scopemillis, ADSTIME);
+	const int adsfactor = (gs.scoping ? min(gamemillis - gs.scopemillis, ADSTIME) : ADSTIME - min(gamemillis - gs.scopemillis, ADSTIME)) * 1000 / ADSTIME;
 	if(e.gun==GUN_SHOTGUN){
 		loopi(SGRAYS){
 			#define RNDD (rnd(SGSPREAD)-SGSPREAD/2.f)*spreadf*(gs.scoping ? 1 - adsfactor / SGADSSPREADFACTOR : 1)
