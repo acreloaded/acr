@@ -404,18 +404,9 @@ void weapon::renderstats(){
 void weapon::attackphysics(vec &from, vec &to) // physical fx to the owner
 {
 	vec unitv;
-	const float dist = to.dist(from, unitv), f = dist/1000;
-	const int spread = dynspread();
+	const float dist = to.dist(from, unitv);
 	const float kick = dynrecoil() * -0.01f / dist;
 
-	// spread
-	if(spread>1)
-	{
-		#define RNDD (rnd(spread)-spread/2)*f
-		vec r(RNDD, RNDD, RNDD);
-		to.add(r);
-		#undef RNDD
-	}
 	// kickback
 	owner->vel.add(vec(unitv).mul(kick * owner->eyeheight / owner->maxeyeheight));
 	// recoil
