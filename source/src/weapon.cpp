@@ -764,10 +764,11 @@ void gun::attackshell(const vec &to){
 	s->resetinterp();
 }
 
-void gun::attackfx(const vec &from, const vec &too, int millis){
+void gun::attackfx(const vec &from2, const vec &too, int millis){
 	// trace shot
-	vec to(too);
-	//traceShot(from, to);
+	vec from(from2), to(too);
+	traceShot(from, to);
+	from.z -= WEAPONBELOWEYE;
 
 	attackshell(to);
 	addbullethole(owner, from, to);
@@ -785,7 +786,9 @@ void gun::checkautoreload() { if(autoreload && owner==player1 && !mag && ammo) t
 
 shotgun::shotgun(playerent *owner) : gun(owner, GUN_SHOTGUN), autoreloading(false) {}
 
-void shotgun::attackfx(const vec &from, const vec &to, int millis){
+void shotgun::attackfx(const vec &from2, const vec &to, int millis){
+	vec from(from2);
+	from.z -= WEAPONBELOWEYE;
 	loopi(SGRAYS) particle_splash(0, 5, 200, sg[i]);
 	uchar filter = 0;
 	if(addbullethole(owner, from, to)) loopi(SGRAYS){
@@ -827,7 +830,9 @@ bool subgun::selectable() { return weapon::selectable() && !m_noprimary && this 
 scopedprimary::scopedprimary(playerent *owner, int type) : gun(owner, type) {}
 
 bool scopedprimary::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
-void scopedprimary::attackfx(const vec &from, const vec &to, int millis){
+void scopedprimary::attackfx(const vec &from2, const vec &to, int millis){
+	vec from(from2);
+	from.z -= WEAPONBELOWEYE;
 	attackshell(to);
 	addbullethole(owner, from, to);
 	addshotline(owner, from, to);

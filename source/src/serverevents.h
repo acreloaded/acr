@@ -124,7 +124,6 @@ void processevent(client &c, shotevent &e)
 	gs.gunwait[e.gun] = attackdelay(e.gun);
 	// for ease of access
 	vec from(gs.o), to(e.to);
-	from.z -= WEAPONBELOWEYE;
 	to.normalize().mul(sraycube(from, to.normalize())).add(from);
 	// packet
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
@@ -161,7 +160,7 @@ void processevent(client &c, shotevent &e)
 	if(!e.compact){
 		putfloat(p, from.x);
 		putfloat(p, from.y);
-		putfloat(p, from.z - WEAPONBELOWEYE);
+		putfloat(p, from.z);
 		putfloat(p, to.x);
 		putfloat(p, to.y);
 		putfloat(p, to.z);
