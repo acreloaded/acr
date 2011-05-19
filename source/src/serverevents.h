@@ -2,45 +2,9 @@
 
 // ballistics
 #include "ballistics.h"
+#include "serverballistics.h"
 
-// normal shots (ray through sphere and cylinder check)
-static inline int hitplayer(const vec &from, float yaw, float pitch, const vec &to, const vec &target, const vec &head, vec *end = NULL){
-	// intersect head
-	float dist;
-	if(!head.iszero() && intersectsphere(from, to, head, HEADSIZE, dist)){
-		if(end) (*end = to).sub(from).mul(dist).add(from);
-		return HIT_HEAD;
-	}
-	float y = yaw*RAD, p = (pitch/4+90)*RAD, c = cosf(p);
-	vec bottom(target), top(sinf(y)*c, -cosf(y)*c, sinf(p));
-	bottom.z -= PLAYERHEIGHT;
-	top.mul(PLAYERHEIGHT/* + d->aboveeye*/).add(bottom); // space above shoulders removed
-	// torso
-	bottom.sub(top).mul(TORSOPART).add(top);
-	if(intersectcylinder(from, to, bottom, top, PLAYERRADIUS, dist))
-	{
-		if(end) (*end = to).sub(from).mul(dist).add(from);
-		return HIT_TORSO;
-	}
-	// restore to body
-	bottom.sub(top).div(TORSOPART).add(top);
-	// legs
-	top.sub(bottom).mul(LEGPART).add(bottom);
-	if(intersectcylinder(from, to, bottom, top, PLAYERRADIUS, dist)){
-		if(end) (*end = to).sub(from).mul(dist).add(from);
-		return HIT_LEG;
-	}
-	return HIT_NONE;
-}
-
-// throwing knife shots (point in cylinder check)
-static inline bool inplayer(const vec &location, const vec &target, float above, float below, float radius, float tolerance){
-	// check for z
-	if(location.z > target.z + above*tolerance || target.z > location.z + below*tolerance) return false;
-	// check for xy
-	return radius*tolerance > target.distxy(location);
-}
-
+// easy to send shot damage messages
 inline void sendhit(client &actor, int gun, float *o){
 	sendf(-1, 1, "ri3f3", N_PROJ, actor.clientnum, gun, o[0], o[1], o[2]);
 }
@@ -51,7 +15,7 @@ void processevent(client &c, projevent &e){
 	switch(e.gun){
 		case GUN_GRENADE:
 		{
-			if(!gs.grenades.remove(e.proj)/* || e.id - e.proj < NADETTL*/) return;
+			if(!gs.grenades.remove(e.proj)) return;
 			vec o(e.o);
 			checkpos(o);
 			sendhit(c, GUN_GRENADE, o.v);
@@ -132,27 +96,19 @@ void processevent(client &c, shotevent &e)
 		adsfactor = 1 - float(gs.scoping ? min(gamemillis - gs.scopemillis, ADSTIME) : ADSTIME - min(gamemillis - gs.scopemillis, ADSTIME)) / ADSTIME,
 		crouchfactor = 1 - (gs.crouching ? min(gamemillis - gs.crouchmillis, CROUCHTIME) : CROUCHTIME - min(gamemillis - gs.crouchmillis, CROUCHTIME)) * .25f / CROUCHTIME;
 	if(e.gun==GUN_SHOTGUN){
-		loopi(SGRAYS){
-			#define RNDD (rnd(SGSPREAD)-SGSPREAD/2.f)*spreadf*adsfactor
-			vec r(RNDD, RNDD, RNDD);
+		// apply shotgun spread
+		if(spreadf*adsfactor) loopi(SGRAYS){
 			gs.sg[i] = to;
-			gs.sg[i].add(r);
-			straceShot(gs.o, gs.sg[i]);
-			#undef RNDD
+			applyspread(gs.o, gs.sg[i], SGSPREAD, spreadf*adsfactor);
 		}
+		// send message
 		putint(p, N_SG);
 		loopi(SGRAYS) loopj(3) putfloat(p, gs.sg[i][j]);
 	}
 	else{
+		// apply normal ray spread
 		const int spread = guns[e.gun].spread * (gs.vel.magnitude() / 3.f + gs.pitchvel / 5.f + 0.4f) * 2.4f * crouchfactor * adsfactor;
-		if(spread>1){
-			#define RNDD (rnd(spread)-spread/2)*spreadf
-			vec r(RNDD, RNDD, RNDD);
-			to.add(r);
-			#undef RNDD
-		}
-		// retrace
-		straceShot(gs.o, to);
+		applyspread(gs.o, to, spread, spreadf);
 	}
 	putint(p, e.compact ? N_SHOOTC : N_SHOOT);
 	putint(p, c.clientnum);
