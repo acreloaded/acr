@@ -38,6 +38,7 @@ static inline bool inplayer(const vec &location, const vec &target, float above,
 
 // apply spread
 void applyspread(const vec &from, vec &to, int spread, float factor){
+	if(spread < 1) return;
 	#define RNDD (rnd(spread)-spread/2.f)*factor
 	vec r(RNDD, RNDD, RNDD);
 	// to should be a unit vector
