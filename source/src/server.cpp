@@ -1173,7 +1173,7 @@ void arenacheck(){
 	int lastdeath = 0;
 	loopv(clients){
 		client &c = *clients[i];
-		if(c.type==ST_EMPTY || !c.isauthed) continue;
+		if(c.type==ST_EMPTY || !c.isauthed || c.team == CS_TEAM_SPECT) continue;
 		if(c.state.state==CS_ALIVE || (c.state.state==CS_DEAD && c.state.lastspawn>=0)){
 			if(!alive) alive = &c;
 			else if(!m_team || alive->team != c.team) return;
