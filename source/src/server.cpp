@@ -898,6 +898,24 @@ void putflaginfo(ucharbuf &p, int flag){
 	}
 }
 
+int next_afk_check = 200;
+void check_afk(){
+	next_afk_check = servmillis + 7 * 1000;
+	// if we have less than five players or a non-teammode is not full: do nothing!
+	if (numclients() < 5 || (numnonlocalclients() < scl.maxclients && !m_team)) return;
+	loopv(clients){
+		client &c = *clients[i];
+		if (c.type != ST_TCPIP || c.connectmillis + 60 * 1000 > servmillis || c.team == TEAM_SPECT ||
+			c.movemillis + scl.afktimelimit > servmillis || clienthasflag(c.clientnum) > -1 ) continue;
+		if ( ( c.state.state == CS_DEAD && !m_duel && c.state.lastdeath + 45 * 1000 < gamemillis) ||
+			( c.state.state == CS_ALIVE && c.upspawnp ) ||
+				( c.state.state == CS_SPECTATE && numnonlocalclients() >= scl.maxclients ) ) {
+			logline(ACLOG_INFO, "[%s] %s %s", c.hostname, c.name, "is afk");
+			updateclientteam(i, TEAM_SPECT, FTR_AUTOTEAM);
+		}
+	}
+}
+
 void sendflaginfo(int flag = -1, int cn = -1){
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
@@ -3875,6 +3893,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 		}
 		if(m_ktf && !ktfflagingame) flagaction(rnd(2), FA_RESET, -1); // ktf flag watchdog
 		if(m_duel) arenacheck();
+		if(scl.afktimelimit && mastermode == MM_OPEN && next_afk_check < servmillis && gamemillis > 20000 ) check_afk();
 	}
 
 	if(curvote)

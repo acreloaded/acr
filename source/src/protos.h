@@ -739,7 +739,7 @@ extern bool logline(int level, const char *msg, ...);
 
 struct servercommandline
 {
-	int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, verbose, demodownloadpriv;
+	int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, verbose, demodownloadpriv, afktimelimit;
 	const char *ip, *master, *logident, *serverpassword, *demopath, *maprot, *pwdfile, *blfile, *nbfile, *infopath;
 	bool demoeverymatch, logtimestamp;
 	string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm;
@@ -747,7 +747,7 @@ struct servercommandline
 	vector<const char *> adminonlymaps;
 
 	servercommandline() :   uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), syslogfacility(6), filethres(-1), syslogthres(-1), maxdemos(5), demodownloadpriv(PRIV_ADMIN),
-							maxclients(DEFAULTCLIENTS), verbose(0),
+							maxclients(DEFAULTCLIENTS), verbose(0), afktimelimit(45000),
 							ip(""), master(NULL), logident(""), serverpassword(""), demopath(""),
 							maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), nbfile("config/nicknameblacklist.cfg"),
 							infopath("config/serverinfo"),
@@ -780,6 +780,16 @@ struct servercommandline
 				break;
 			case 'A': if(*a) adminonlymaps.add(a); break;
 			case 'c': if(ai > 0) maxclients = min(ai, MAXCLIENTS); break;
+			case 'k':
+			{
+				if(arg[2]=='A' && arg[3]!='\0')
+                {
+                    if ((ai = atoi(&arg[3])) >= 30) afktimelimit = ai * 1000;
+                    else afktimelimit = 0;
+                }
+                //else if(ai < 0) kickthreshold = ai;
+                break;
+			}
 			case 'p': serverpassword = a; break;
 			case 'd': demodownloadpriv = ai; break;
 			case 'D':
