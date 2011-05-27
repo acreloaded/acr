@@ -2797,7 +2797,7 @@ void checkmove(client &cp){
 	const int sender = cp.clientnum;
 	clientstate &cs = cp.state;
 	float cps = cs.lasto.dist(cs.o);
-	if(cs.lasto == cs.o) cs.movemillis = servmillis;
+	if(cs.lasto != cs.o) cs.movemillis = servmillis;
 	else if(cps && cs.lastomillis && gamemillis > cs.lastomillis){
 		cps *= 1000 / (gamemillis - cs.lastomillis);
 		if(cps > 64.f){ // 16 meters per second
