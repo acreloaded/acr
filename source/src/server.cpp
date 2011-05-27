@@ -19,6 +19,7 @@
 void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = true);
 void disconnect_client(int n, int reason = -1);
 int clienthasflag(int cn);
+bool updateclientteam(int client, int team, int ftr);
 bool refillteams(bool now = false, int ftr = FTR_AUTOTEAM);
 void setpriv(int client, int role, char *pwd = NULL, bool force=false);
 int mapavailable(const char *mapname);
@@ -121,7 +122,7 @@ struct clientstate : playerstate
 {
 	vec o, aim, vel, knifepos, lasto, sg[SGRAYS], flagpickupo;
 	float pitchvel;
-	int state, lastomillis, knifemillis;
+	int state, lastomillis, movemillis, knifemillis;
 	int lastdeath, lastffkill, lastspawn, lifesequence;
 	bool crouching;
 	int crouchmillis, scopemillis;
@@ -163,7 +164,7 @@ struct clientstate : playerstate
 		o = lasto = vec(-1e10f, -1e10f, -1e10f);
 		aim = vel = knifepos = vec(0, 0, 0);
 		pitchvel = 0;
-		lastomillis = knifemillis = 0;
+		lastomillis = movemillis = knifemillis = 0;
 		drownmillis = drownval = 0;
 		lastspawn = -1;
 		lastdeath = lastshot = lastregen = 0;
@@ -905,11 +906,9 @@ void check_afk(){
 	if (numclients() < 5 || (numnonlocalclients() < scl.maxclients && !m_team)) return;
 	loopv(clients){
 		client &c = *clients[i];
-		if (c.type != ST_TCPIP || c.connectmillis + 60 * 1000 > servmillis || c.team == TEAM_SPECT ||
-			c.movemillis + scl.afktimelimit > servmillis || clienthasflag(c.clientnum) > -1 ) continue;
-		if ( ( c.state.state == CS_DEAD && !m_duel && c.state.lastdeath + 45 * 1000 < gamemillis) ||
-			( c.state.state == CS_ALIVE && c.upspawnp ) ||
-				( c.state.state == CS_SPECTATE && numnonlocalclients() >= scl.maxclients ) ) {
+		if (c.type != ST_TCPIP || c.connectmillis + 60 * 1000 > servmillis || c.team == TEAM_SPECT || c.priv >= PRIV_ADMIN ||
+			c.state.movemillis + scl.afktimelimit > servmillis || clienthasflag(c.clientnum) > -1 ) continue;
+		if ( ( c.state.state == CS_DEAD && !m_duel && c.state.lastdeath + 45 * 1000 < gamemillis) ) {
 			logline(ACLOG_INFO, "[%s] %s %s", c.hostname, c.name, "is afk");
 			updateclientteam(i, TEAM_SPECT, FTR_AUTOTEAM);
 		}
@@ -2798,7 +2797,8 @@ void checkmove(client &cp){
 	const int sender = cp.clientnum;
 	clientstate &cs = cp.state;
 	float cps = cs.lasto.dist(cs.o);
-	if(cps && cs.lastomillis && gamemillis > cs.lastomillis){
+	if(cs.lasto == cs.o) cs.movemillis = servmillis;
+	else if(cps && cs.lastomillis && gamemillis > cs.lastomillis){
 		cps *= 1000 / (gamemillis - cs.lastomillis);
 		if(cps > 64.f){ // 16 meters per second
 			s_sprintfd(fastmsg)("%s (%d) moved at %.3f meters/second", cp.name, sender, cps / 4);
