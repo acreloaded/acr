@@ -334,7 +334,7 @@ void weapon::sendshoot(vec &from, vec &to){
 	// add potential heads...
 	loopv(players){
 		playerent *p = players[i];
-		if(!p || p == owner) continue;
+		if(!p || p->state != CS_ALIVE || p == owner) continue;
 		if(!intersecthead(p, from, to, NULL, max(p->maxspeed * player1->ping / 500.f, 2.f))) continue;
 		vec headoffset(p->head);
 		headoffset.sub(p->o);
@@ -938,15 +938,14 @@ void knifeent::explode(){
 	static vec n(0,0,0);
 	if(local){
 		int hitcn = -1;
-		float hitdist = 40; // a knife 10 meters from a throwing knife? hard to get!
+		float hitdist = 40; // a knife hit 10 meters from a throwing knife? hard to get!
 		loopv(players){
 			if(!players[i] || i == getclientnum() || players[i]->state != CS_ALIVE) continue;
-			float d = players[i]->o.dist(o);
-			if(d > hitdist) continue;
-			// check for z
-			if(o.z > players[i]->o.z + PLAYERABOVEEYE || players[i]->o.z > o.z + players[i]->eyeheight) continue;
 			// check for xy
-			if(PLAYERRADIUS < players[i]->o.distxy(o)) continue;
+			float d = players[i]->o.distxy(o);
+			if(hitdist < d || players[i]->radius < d) continue;
+			// check for z
+			if(o.z > players[i]->o.z + players[i]->aboveeye || players[i]->o.z > o.z + players[i]->eyeheight) continue;
 			hitcn = i;
 			hitdist = d;
 		}
