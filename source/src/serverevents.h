@@ -36,10 +36,6 @@ void processevent(client &c, projevent &e){
 			if(gs.mag[GUN_KNIFE] || !gs.ammo[GUN_KNIFE]) return;
 			gs.ammo[GUN_KNIFE] = 0;
 
-			sendhit(c, GUN_KNIFE, e.o);
-			gs.knifepos = vec(e.o);
-			gs.knifemillis = servmillis;
-
 			ushort dmg = effectiveDamage(GUN_KNIFE, 0, DAMAGESCALE);
 			loopv(clients){
 				client &target = *clients[i];
@@ -52,7 +48,15 @@ void processevent(client &c, projevent &e){
 					ts.lastcut = gamemillis;
 				}
 				serverdamage(&target, &c, dmg, GUN_KNIFE, FRAG_OVER, vec(0, 0, 0));
+				e.o[0] = ts.o[0];
+				e.o[1] = ts.o[1];
+				e.o[2] = getblockfloor(getmaplayoutid(e.o[0], e.o[1]));
+				break;
 			}
+
+			sendhit(c, GUN_KNIFE, e.o);
+			gs.knifepos = vec(e.o);
+			gs.knifemillis = servmillis;
 			break;
 		}
 
