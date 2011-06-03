@@ -37,7 +37,7 @@ void processevent(client &c, projevent &e){
 			gs.ammo[GUN_KNIFE] = 0;
 
 			ushort dmg = effectiveDamage(GUN_KNIFE, 0, DAMAGESCALE);
-			if(e.proj >= 0 && valid_client(e.proj) && e.proj != c.clientnum){
+			if(e.proj >= 0 && e.proj != c.clientnum && valid_client(e.proj)){
 				client &target = *clients[e.proj];
 				clientstate &ts = target.state;
 				if(ts.state == CS_ALIVE){

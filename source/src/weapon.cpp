@@ -946,7 +946,7 @@ void knifeent::explode(){
 			// check for z
 			if(o.z > players[i]->o.z + PLAYERABOVEEYE || players[i]->o.z > o.z + players[i]->eyeheight) continue;
 			// check for xy
-			if(PLAYERRADIUS < players[i]->o.dist(o)) continue;
+			if(PLAYERRADIUS < players[i]->o.distxy(o)) continue;
 			hitcn = i;
 			hitdist = d;
 		}
