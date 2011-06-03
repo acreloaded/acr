@@ -48,9 +48,6 @@ void processevent(client &c, projevent &e){
 					ts.lastcut = gamemillis;
 				}
 				serverdamage(&target, &c, dmg, GUN_KNIFE, FRAG_OVER, vec(0, 0, 0));
-				e.o[0] = ts.o[0];
-				e.o[1] = ts.o[1];
-				e.o[2] = getblockfloor(getmaplayoutid(e.o[0], e.o[1]));
 				break;
 			}
 
