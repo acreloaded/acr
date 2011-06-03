@@ -936,7 +936,10 @@ void knifeent::explode(){
 	if(knifestate!=NS_ACTIVATED && knifestate!=NS_THROWED ) return;
 	knifestate = NS_EXPLODED;
 	static vec n(0,0,0);
-	if(local) addmsg(N_PROJ, "ri3f3", lastmillis, GUN_KNIFE, millis, o.x, o.y, o.z);
+	if(local){
+		int hitcn = -1;
+		addmsg(N_PROJ, "ri3f3", lastmillis, GUN_KNIFE, hitcn, o.x, o.y, o.z);
+	}
 	playsound(S_GRENADEBOUNCE1+rnd(2), &o);
 }
 

@@ -37,18 +37,22 @@ void processevent(client &c, projevent &e){
 			gs.ammo[GUN_KNIFE] = 0;
 
 			ushort dmg = effectiveDamage(GUN_KNIFE, 0, DAMAGESCALE);
-			loopv(clients){
-				client &target = *clients[i];
+			if(e.proj >= 0 && valid_client(e.proj) && e.proj != c.clientnum){
+				client &target = *clients[e.proj];
 				clientstate &ts = target.state;
-				if(target.type == ST_EMPTY || &target == &c || ts.state != CS_ALIVE ||
-					!inplayer(gs.knifepos, ts.o, PLAYERABOVEEYE, PLAYERHEIGHT, PLAYERRADIUS, 2)) continue;
-				gs.damage += dmg;
-				if(!isteam((&target), (&c))){
-					ts.cutter = c.clientnum;
-					ts.lastcut = gamemillis;
+				if(ts.state == CS_ALIVE){
+					gs.damage += dmg;
+					if(!isteam((&target), (&c))){
+						ts.cutter = c.clientnum;
+						ts.lastcut = gamemillis;
+					}
+					serverdamage(&target, &c, dmg, GUN_KNIFE, FRAG_OVER, vec(0, 0, 0));
+
+					e.o[0] = ts.o[0];
+					e.o[1] = ts.o[1];
+					int cubefloor = getblockfloor(getmaplayoutid(e.o[0], e.o[1]));
+					e.o[2] = ts.o[2] > cubefloor ? (cubefloor + ts.o[2]) / 2 : cubefloor;
 				}
-				serverdamage(&target, &c, dmg, GUN_KNIFE, FRAG_OVER, vec(0, 0, 0));
-				break;
 			}
 
 			sendhit(c, GUN_KNIFE, e.o);
