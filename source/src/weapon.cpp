@@ -938,6 +938,18 @@ void knifeent::explode(){
 	static vec n(0,0,0);
 	if(local){
 		int hitcn = -1;
+		float hitdist = 40; // a knife 10 meters from a throwing knife? hard to get!
+		loopv(players){
+			if(!players[i] || i == getclientnum() || players[i]->state != CS_ALIVE) continue;
+			float d = players[i]->o.dist(o);
+			if(d > hitdist) continue;
+			// check for z
+			if(o.z > players[i]->o.z + PLAYERABOVEEYE || players[i]->o.z > o.z + players[i]->eyeheight) continue;
+			// check for xy
+			if(PLAYERRADIUS < players[i]->o.dist(o)) continue;
+			hitcn = i;
+			hitdist = d;
+		}
 		addmsg(N_PROJ, "ri3f3", lastmillis, GUN_KNIFE, hitcn, o.x, o.y, o.z);
 	}
 	playsound(S_GRENADEBOUNCE1+rnd(2), &o);

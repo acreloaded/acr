@@ -28,14 +28,6 @@ static inline int hitplayer(const vec &from, float yaw, float pitch, const vec &
 	return HIT_NONE;
 }
 
-// throwing knife shots (point in cylinder check)
-static inline bool inplayer(const vec &location, const vec &target, float above, float below, float radius, float tolerance){
-	// check for z
-	if(location.z > target.z + above*tolerance || target.z > location.z + below*tolerance) return false;
-	// check for xy
-	return radius*tolerance > target.distxy(location);
-}
-
 // apply spread
 void applyspread(const vec &from, vec &to, int spread, float factor){
 	if(spread <=1 ) return;
