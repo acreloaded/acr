@@ -116,7 +116,7 @@ static int draw_char(int c, int x, int y)
 	return info.w;
 }
 
-VAR(allowblinkingtext, 0, 1, 1);
+VARP(allowblinkingtext, 0, 1, 1);
 
 //stack[sp] is current color index
 static void text_color(char c, char *stack, int size, int &sp, bvec color, int a) 
