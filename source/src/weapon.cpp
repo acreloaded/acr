@@ -942,7 +942,7 @@ void knifeent::explode(){
 			if(!players[i] || i == getclientnum() || players[i]->state != CS_ALIVE) continue;
 			// check for xy
 			float d = players[i]->o.distxy(o);
-			if(hitdist < d || players[i]->radius < d) continue;
+			if(hitdist < d || players[i]->radius > d) continue;
 			// check for z
 			if(o.z > players[i]->o.z + players[i]->aboveeye || players[i]->o.z > o.z + players[i]->eyeheight) continue;
 			hitcn = i;
