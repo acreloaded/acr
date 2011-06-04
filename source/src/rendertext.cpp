@@ -116,6 +116,8 @@ static int draw_char(int c, int x, int y)
 	return info.w;
 }
 
+VAR(allowblinkingtext, 0, 1, 1);
+
 //stack[sp] is current color index
 static void text_color(char c, char *stack, int size, int &sp, bvec color, int a) 
 {
@@ -125,7 +127,7 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color, int a
 	}
 	else{
 		if(c=='r') c = stack[(sp > 0) ? --sp : sp]; // restore color
-		else if(c=='b') stack[sp] *= -1;
+		else if(c=='b') stack[sp] *= allowblinkingtext ? -1 : 1;
 		else stack[sp] = c;
 		switch(abs(stack[sp])){
 			case '0': color = bvec(64,  255, 128); break;   // green: player talk
