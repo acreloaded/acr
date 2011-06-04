@@ -1415,10 +1415,10 @@ void forcedeath(client *cl, bool gib = false, bool cheat = false){
 	//cs.respawn();
 	cs.lastdeath = gamemillis;
 	if(cheat){
-		cs.points -= 2000;
-		cs.frags -= 100;
-		cs.assists -= 100;
-		cs.deaths += 100;
+		cs.points -= 120;
+		cs.frags -= 40;
+		cs.assists -= 40;
+		cs.deaths += 80;
 		sendf(-1, 1, "ri2", N_HACKFAIL, cl->clientnum);
 	}
 	else sendf(-1, 1, "ri2", gib ? N_FORCEGIB : N_FORCEDEATH, cl->clientnum);
