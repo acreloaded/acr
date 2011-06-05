@@ -955,8 +955,10 @@ knifeent::knifeent(playerent *owner, int millis){
 	bouncetype = BT_KNIFE;
 	maxspeed = 25.0f;
 	radius = .1f;
+	aboveeye = .7f;
+	eyeheight = .3f;
 	yaw = owner->yaw+180;
-	pitch = 90-owner->pitch;
+	pitch = -owner->pitch;
 	roll = owner->roll;
 	rotspeed = 0;
 }
