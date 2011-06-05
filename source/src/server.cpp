@@ -2360,6 +2360,7 @@ void sendcallvote(int cl = -1){
 			case SA_SUBDUE:
 			case SA_REVOKE:
 			case SA_FORCETEAM:
+			case SA_SPECT:
 				putint(p, ((playeraction *)curvote->action)->cn);
 				break;
 			case SA_BAN:
@@ -3615,6 +3616,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						break;
 					case SA_FORCETEAM:
 						vi->action = new forceteamaction(getint(p), sender);
+						break;
+					case SA_SPECT:
+						vi->action = new spectaction(getint(p), sender);
 						break;
 					case SA_GIVEADMIN:
 					{

@@ -108,7 +108,7 @@ struct playeraction : serveraction
 struct forceteamaction : playeraction
 {
 	void perform() { updateclientteam(cn, team_opposite(clients[cn]->team), FTR_AUTOTEAM); }
-	virtual bool isvalid() { return m_team && valid_client(cn); }
+	virtual bool isvalid() { return playeraction::isvalid() && m_team; }
 	forceteamaction(int cn, int caller) : playeraction(cn)
 	{
 		area |= EE_LOCAL_SERV;
@@ -128,6 +128,18 @@ struct revokeaction : playeraction
 		passratio = 0.1f;
 		if(valid_client(cn)) s_sprintf(desc)("revoke %s's %s", clients[cn]->name, privname(clients[cn]->priv));
 		else s_sprintf(desc)("invalid revoke to %d", cn);
+	}
+};
+
+struct spectaction : playeraction
+{
+	void perform(){ if(isvalid()){ if(clients[cn]->team == TEAM_SPECT) updateclientteam(cn, freeteam(cn), FTR_AUTOTEAM); else updateclientteam(cn, TEAM_SPECT, FTR_AUTOTEAM); } }
+	spectaction(int cn, int caller) : playeraction(cn){
+		area |= EE_LOCAL_SERV;
+		if(cn != caller){ role = roleconf('f'); passratio = 0.65f;}
+		else passratio = 0.55f;
+		if(valid_client(cn)) s_sprintf(desc)("toggle spectator for %s", clients[cn]->name);
+		else s_strcpy(desc, "invalid spect");
 	}
 };
 
