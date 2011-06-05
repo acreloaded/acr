@@ -2497,8 +2497,9 @@ void disconnect_client(int n, int reason){
 
 void sendwhois(int sender, int cn){
 	if(!valid_client(sender) || !valid_client(cn)) return;
-	if(clients[cn]->type == ST_TCPIP)
-	{
+	sendf(-1, 1, "ri3", N_WHOIS, cn, sender);
+
+	if(clients[cn]->type == ST_TCPIP){
 		uint ip = clients[cn]->peer->address.host;
 		uchar mask = 0;
 		switch(clients[cn]->priv){
@@ -2509,7 +2510,6 @@ void sendwhois(int sender, int cn){
 		}
 		if(mask < 32) ip &= (1 << mask) - 1;
 
-		sendf(-1, 1, "ri3x", N_WHOIS, cn, sender, -1 /*sender*/);
 		sendf(sender, 1, "ri4", N_WHOISINFO, cn, ip, mask);
 	}
 }
