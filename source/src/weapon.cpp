@@ -1195,9 +1195,8 @@ void flashme(){
 		glReadPixels(0, 0, screen->w, screen->h, GL_RGB, GL_UNSIGNED_BYTE, tmp);
 		uchar *dst = (uchar *)image->pixels;
 		loopi(screen->h){
-			memcpy(dst, &tmp[3*screen->w*(screen->h-i-1)], 3*screen->w);
+			loopj(screen->w*3) dst[j] = ~tmp[3*screen->w*(screen->h-i-1) + j];
 			endianswap(dst, 3, screen->w);
-			loopj(screen->w*3) dst[j] = ~dst[j];
 			dst += image->pitch;
 		}
 		delete[] tmp;
