@@ -42,10 +42,12 @@ void processevent(client &c, projevent &e){
 				clientstate &ts = target.state;
 				if(ts.state == CS_ALIVE){
 					gs.damage += dmg;
+					/*
 					if(!isteam((&target), (&c))){
 						ts.cutter = c.clientnum;
 						ts.lastcut = gamemillis;
 					}
+					*/
 					serverdamage(&target, &c, dmg, GUN_KNIFE, FRAG_OVER, vec(0, 0, 0));
 
 					e.o[0] = ts.o[0];
