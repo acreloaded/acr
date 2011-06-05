@@ -2509,8 +2509,8 @@ void sendwhois(int sender, int cn){
 		}
 		if(mask < 32) ip &= (1 << mask) - 1;
 
+		sendf(-1, 1, "ri3x", N_WHOIS, cn, sender, -1 /*sender*/);
 		sendf(sender, 1, "ri4", N_WHOISINFO, cn, ip, mask);
-		sendf(-1, 1, "ri3x", N_WHOIS, cn, sender, sender);
 	}
 }
 
