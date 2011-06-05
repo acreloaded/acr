@@ -614,8 +614,8 @@ void grenades::attackfx(const vec &from, const vec &to, int millis) // other pla
 }
 
 GLuint flashtex;
-void flashme(){
-	gamefocus->flashmillis = lastmillis + 3000;
+void flashme(float dist){
+	gamefocus->flashmillis = lastmillis + 3000 - sqrtf(dist) * 300;
 	// store last render
 	SDL_Surface *image = SDL_CreateRGBSurface(SDL_SWSURFACE, screen->w, screen->h, 24, 0x0000FF, 0x00FF00, 0xFF0000, 0);
 	if(!image){
@@ -650,7 +650,7 @@ void grenades::attackhit(const vec &o){
 	addscorchmark(o);
 	adddynlight(NULL, o, 16, 200, 100, 255, 255, 224);
 	adddynlight(NULL, o, 16, 600, 600, 192, 160, 128);
-	if(gamefocus->o.dist(o) < 30.f) flashme();
+	if(gamefocus->o.dist(o) < 30.f) flashme(gamefocus->o.dist(o));
 }
 
 int grenades::modelanim(){
