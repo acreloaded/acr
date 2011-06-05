@@ -227,6 +227,8 @@ void renderbounceents(){
 		switch(p->bouncetype)
 		{
 			case BT_KNIFE:
+				extern void renderhbox(physent *d);
+				renderhbox(p);
 			case BT_NADE:
 				s_strcpy(model, p->bouncetype == BT_NADE ? "weapons/grenade/static" : "weapons/knife/static");
 				break;
@@ -952,7 +954,7 @@ knifeent::knifeent(playerent *owner, int millis){
 	timetolive = KNIFETTL-millis;
 	bouncetype = BT_KNIFE;
 	maxspeed = 25.0f;
-	radius = .01f;
+	radius = .1f;
 	yaw = owner->yaw+180;
 	pitch = 90-owner->pitch;
 	roll = owner->roll;
