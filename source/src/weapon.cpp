@@ -613,12 +613,44 @@ void grenades::attackfx(const vec &from, const vec &to, int millis) // other pla
 	}
 }
 
+GLuint flashtex;
+void flashme(){
+	gamefocus->flashmillis = lastmillis + 3000;
+	// store last render
+	SDL_Surface *image = SDL_CreateRGBSurface(SDL_SWSURFACE, screen->w, screen->h, 24, 0x0000FF, 0x00FF00, 0xFF0000, 0);
+	if(!image){
+		if(flashtex) glDeleteTextures(1, &flashtex);
+		flashtex = 0;
+	}
+	else{
+		uchar *tmp = new uchar[screen->w*screen->h*3];
+		glPixelStorei(GL_PACK_ALIGNMENT, 1);
+		glReadPixels(0, 0, screen->w, screen->h, GL_RGB, GL_UNSIGNED_BYTE, tmp);
+		uchar *dst = (uchar *)image->pixels;
+		loopi(screen->h){
+			loopj(screen->w*3) dst[j] = ~tmp[3*screen->w*(screen->h-i-1) + j];
+			endianswap(dst, 3, screen->w);
+			dst += image->pitch;
+		}
+		delete[] tmp;
+		// make tex
+		if(!flashtex) glGenTextures(1, &flashtex);
+		if(flashtex){
+			extern GLenum texformat(int bpp);
+			createtexture(flashtex, image->w, image->h, image->pixels, 0, false, texformat(image->format->BitsPerPixel), 0);
+			SDL_FreeSurface(image);
+		}
+	}
+}
+COMMAND(flashme, ARG_NONE);
+
 void grenades::attackhit(const vec &o){
 	particle_splash(0, 50, 300, o);
 	particle_fireball(5, o, owner);
 	addscorchmark(o);
 	adddynlight(NULL, o, 16, 200, 100, 255, 255, 224);
 	adddynlight(NULL, o, 16, 600, 600, 192, 160, 128);
+	if(gamefocus->o.dist(o) < 30.f) flashme();
 }
 
 int grenades::modelanim(){
@@ -1178,35 +1210,3 @@ void checkakimbo(){
 		}
 	}
 }
-
-GLuint flashtex;
-
-void flashme(){
-	player1->flashmillis = lastmillis + 3000;
-	// store last render
-	SDL_Surface *image = SDL_CreateRGBSurface(SDL_SWSURFACE, screen->w, screen->h, 24, 0x0000FF, 0x00FF00, 0xFF0000, 0);
-	if(!image){
-		if(flashtex) glDeleteTextures(1, &flashtex);
-		flashtex = 0;
-	}
-	else{
-		uchar *tmp = new uchar[screen->w*screen->h*3];
-		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		glReadPixels(0, 0, screen->w, screen->h, GL_RGB, GL_UNSIGNED_BYTE, tmp);
-		uchar *dst = (uchar *)image->pixels;
-		loopi(screen->h){
-			loopj(screen->w*3) dst[j] = ~tmp[3*screen->w*(screen->h-i-1) + j];
-			endianswap(dst, 3, screen->w);
-			dst += image->pitch;
-		}
-		delete[] tmp;
-		// make tex
-		if(!flashtex) glGenTextures(1, &flashtex);
-		if(flashtex){
-			extern GLenum texformat(int bpp);
-			createtexture(flashtex, image->w, image->h, image->pixels, 0, false, texformat(image->format->BitsPerPixel), 0);
-			SDL_FreeSurface(image);
-		}
-	}
-}
-COMMAND(flashme, ARG_NONE);
