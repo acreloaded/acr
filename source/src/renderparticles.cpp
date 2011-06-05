@@ -185,7 +185,7 @@ void cleanupexplosion()
 	}
 }
 
-#define MAXPARTYPES 13
+#define MAXPARTYPES 14
 
 struct particle { vec o, d; int fade, type; int millis; particle *next; };
 particle *parlist[MAXPARTYPES], *parempty = NULL;
@@ -264,6 +264,7 @@ static struct parttype { int type; float r, g, b; int gr, tex; float sz; } partt
 	{ PT_HUDFLASH,   1.0f, 1.0f, 1.0f, 0,  6, 0.7f  }, // hudgun muzzle flash 
 	{ PT_FLASH,	  1.0f, 1.0f, 1.0f, 0,  6, 0.7f  }, // muzzle flash 
 	{ PT_PART,	   1.0f, 0.5f, 0.2f, 20, 0, 0.08f }, // orange: edit mode closest ent
+	{ PT_FIREBALL,   1.0f, 0.5f, 0.5f, 0,  0, 27.0f  }, // explosion flashbang
 };
 
 VAR(particlesize, 20, 100, 500);
@@ -593,6 +594,7 @@ void particle_fireball(int type, const vec &o, playerent *pl)
 	nadexplode nx = {pl ? pl : player1, {o.x, o.y}, lastmillis};
 	nxp.add(nx);
 	newparticle(o, vec(0, 0, 0), 600, type);
+	//newparticle(o, vec(0, 0, 0), 450, 13); // complementary flashbang fireball!
 }
 
 VARP(bulletbouncesound, 0, 1, 1);
