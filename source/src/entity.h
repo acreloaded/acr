@@ -398,7 +398,7 @@ struct playerstate
 				break;
 			case I_AMMO: additem(ammostats[primary], ammo[primary]); break;
 			case I_GRENADE: additem(ammostats[GUN_GRENADE], mag[GUN_GRENADE]); break;
-			case I_HEALTH: additem(powerupstats[type-I_HEALTH], health); break;
+			case I_HEALTH: cutter = lastcut = 0; additem(powerupstats[type-I_HEALTH], health); break;
 			case I_ARMOUR: additem(powerupstats[type-I_HEALTH], armour); break;
 			case I_AKIMBO:
 				akimbo = true;
