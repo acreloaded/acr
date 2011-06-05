@@ -651,7 +651,7 @@ void CBotManager::CreateSkillData()
 		  }		  
 	 }
 
-	 conoutf("done\n");
+	 conoutf("done");
 }
 
 void CBotManager::InitSkillData()
