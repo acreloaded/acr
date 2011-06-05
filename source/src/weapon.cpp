@@ -214,6 +214,84 @@ void clearbounceents(){
 
 VARP(shellsize, 1, 4, 10);
 
+void renderkbox(physent *d)
+{
+	glDisable(GL_TEXTURE_2D);
+	glColor3f(1, 1, 1);
+
+	float y = d->yaw*RAD, p = (d->pitch/4+90)*RAD, c = cosf(p);
+	vec bottom(d->o), up(sinf(y)*c, -cosf(y)*c, sinf(p)), top(up);
+	bottom.z -= d->eyeheight;
+	top.mul(d->eyeheight).add(bottom);
+
+	vec spoke;
+	spoke.orthogonal(up);
+	spoke.normalize().mul(d->radius);
+
+	// legs
+	top.sub(bottom).mul(LEGPART).add(bottom);
+	glBegin(GL_LINE_LOOP);
+	loopi(8)
+	{
+		vec pos(spoke);
+		pos.rotate(2*M_PI*i/8.0f, up).add(top);
+		glVertex3fv(pos.v);
+	}
+	glEnd();
+	glBegin(GL_LINE_LOOP);
+	loopi(8)
+	{
+		vec pos(spoke);
+		pos.rotate(2*M_PI*i/8.0f, up).add(bottom);
+		glVertex3fv(pos.v);
+	}
+	glEnd();
+	glBegin(GL_LINES);
+	loopi(8)
+	{
+		vec pos(spoke);
+		pos.rotate(2*M_PI*i/8.0f, up).add(bottom);
+		glVertex3fv(pos.v);
+		pos.sub(bottom).add(top);
+		glVertex3fv(pos.v);
+	}
+	glEnd();
+
+	top.sub(bottom).div(LEGPART).add(bottom);
+
+	// torso
+	bottom.sub(top).mul(TORSOPART).add(top);
+
+	glBegin(GL_LINE_LOOP);
+	loopi(9)
+	{
+		vec pos(spoke);
+		pos.rotate(2*M_PI*i/8.0f, up).add(top);
+		glVertex3fv(pos.v);
+	}
+	glEnd();
+	glBegin(GL_LINE_LOOP);
+	loopi(9)
+	{
+		vec pos(spoke);
+		pos.rotate(2*M_PI*i/8.0f, up).add(bottom);
+		glVertex3fv(pos.v);
+	}
+	glEnd();
+	glBegin(GL_LINES);
+	loopi(9)
+	{
+		vec pos(spoke);
+		pos.rotate(2*M_PI*i/8.0f, up).add(bottom);
+		glVertex3fv(pos.v);
+		pos.sub(bottom).add(top);
+		glVertex3fv(pos.v);
+	}
+	glEnd();
+
+	glEnable(GL_TEXTURE_2D);
+}
+
 void renderbounceents(){
 	loopv(bounceents)
 	{
@@ -227,8 +305,7 @@ void renderbounceents(){
 		switch(p->bouncetype)
 		{
 			case BT_KNIFE:
-				extern void renderhbox(physent *d);
-				renderhbox(p);
+				renderkbox(p);
 			case BT_NADE:
 				s_strcpy(model, p->bouncetype == BT_NADE ? "weapons/grenade/static" : "weapons/knife/static");
 				break;

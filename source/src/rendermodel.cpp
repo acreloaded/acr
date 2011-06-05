@@ -518,7 +518,7 @@ void preload_mapmodels()
 
 VAR(dbghbox, 0, 0, 1);
 
-void renderhbox(physent *d)
+void renderhbox(playerent *d)
 {
 	glDisable(GL_TEXTURE_2D);
 	glColor3f(1, 1, 1);
@@ -528,24 +528,21 @@ void renderhbox(physent *d)
 	bottom.z -= d->eyeheight;
 	top.mul(d->eyeheight).add(bottom);
 
-	if(d->type == ENT_PLAYER){
-		playerent *d2 = (playerent *)d;
-		if(d->state==CS_ALIVE && d2->head.x >= 0)
+	if(d->state==CS_ALIVE && d->head.x >= 0)
+	{
+		glBegin(GL_LINE_LOOP);
+		loopi(8)
 		{
-			glBegin(GL_LINE_LOOP);
-			loopi(8)
-			{
-				vec pos(camright);
-				pos.rotate(2*M_PI*i/8.0f, camdir).mul(HEADSIZE).add(d2->head);
-				glVertex3fv(pos.v);
-			}
-			glEnd();
-
-			glBegin(GL_LINES);
-			glVertex3fv(bottom.v);
-			glVertex3fv(d2->head.v);
-			glEnd();
+			vec pos(camright);
+			pos.rotate(2*M_PI*i/8.0f, camdir).mul(HEADSIZE).add(d->head);
+			glVertex3fv(pos.v);
 		}
+		glEnd();
+
+		glBegin(GL_LINES);
+		glVertex3fv(bottom.v);
+		glVertex3fv(d->head.v);
+		glEnd();
 	}
 
 	vec spoke;
