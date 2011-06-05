@@ -18,14 +18,14 @@ float raycube(const vec &o, const vec &ray, vec &surface)
 	for(;;)
 	{
 		int x = int(v.x), y = int(v.y);
-		if(x < 0 || y < 0 || x >= ssize || y >= ssize) return -1;
+		if(x < 0 || y < 0 || x >= ssize || y >= ssize) return dist;
 		sqr *s = S(x, y);
 		float floor = s->floor, ceil = s->ceil;
 		if(s->type==FHF) floor -= s->vdelta/4.0f;
 		if(s->type==CHF) ceil += s->vdelta/4.0f;
 		if(SOLID(s) || v.z < floor || v.z > ceil)
 		{
-			if((!dx && !dy)/* || s->wtex==DEFAULT_SKY || (!SOLID(s) && v.z > ceil && s->ctex==DEFAULT_SKY)*/) return -1;
+			if((!dx && !dy) || s->wtex==DEFAULT_SKY || (!SOLID(s) && v.z > ceil && s->ctex==DEFAULT_SKY)) return dist;
 			if(s->type!=CORNER)// && s->type!=FHF && s->type!=CHF)
 			{
 				if(dx<dy) surface.x = ray.x>0 ? -1 : 1;
@@ -47,7 +47,7 @@ float raycube(const vec &o, const vec &ray, vec &surface)
 		dz = ray.z ? ((ray.z > 0 ? ceil : floor) - v.z)/ray.z : 1e16f;
 		if(dz < dx && dz < dy)
 		{
-			//if(ray.z>0 && s->ctex==DEFAULT_SKY) return -1;
+			if(ray.z>0 && s->ctex==DEFAULT_SKY) return dist;
 			if(s->type!=FHF && s->type!=CHF) surface.z = ray.z>0 ? -1 : 1;
 			dist += dz;
 			break;

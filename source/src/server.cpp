@@ -1376,12 +1376,12 @@ float sraycube(const vec &o, const vec &ray){
 	const int maxtraces = (1 << maplayout_factor << 2);
 	for(int numtraces = 0; numtraces < maxtraces; numtraces++){
 		int x = int(v.x), y = int(v.y);
-		if(x < 0 || y < 0 || x >= (1 << maplayout_factor) || y >= (1 << maplayout_factor)) return -1;
+		if(x < 0 || y < 0 || x >= (1 << maplayout_factor) || y >= (1 << maplayout_factor)) return dist;
 		const int mapid = getmaplayoutid(x, y);
 		ssqr s = maplayout[getmaplayoutid(x, y)];
 		float floor = getblockfloor(mapid), ceil = getblockceil(mapid);
 		if(s.type == SOLID || v.z < floor || v.z > ceil){
-			if((!dx && !dy)/* || s.wtex==DEFAULT_SKY || (s.type != SOLID && v.z > ceil && s.ctex==DEFAULT_SKY)*/) return -1;
+			if((!dx && !dy) || s.wtex==DEFAULT_SKY || (s.type != SOLID && v.z > ceil && s.ctex==DEFAULT_SKY)) return dist;
 			dist = max(dist-0.1f, 0.0f);
 			break;
 		}
@@ -1390,7 +1390,7 @@ float sraycube(const vec &o, const vec &ray){
 		dz = ray.z ? ((ray.z > 0 ? ceil : floor) - v.z)/ray.z : 1e16f;
 		if(dz < dx && dz < dy)
 		{
-			//if(ray.z>0 && s.ctex==DEFAULT_SKY) return -1;
+			if(ray.z>0 && s.ctex==DEFAULT_SKY) return dist;
 			dist += dz;
 			break;
 		}
