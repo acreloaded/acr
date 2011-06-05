@@ -1050,11 +1050,13 @@ void refreshsopmenu(void *menu, bool init)
 {
 	menureset(menu);
 	mlines.shrink(0);
-	loopv(players) if(players[i])
-	{
+	vector<playerent *> p;
+	p.add(player1);
+	loopv(players) if(players[i]) p.add(players[i]);
+	loopv(p){
 		mline &m = mlines.add();
-		s_strcpy(m.name, colorname(players[i]));
-		s_sprintf(m.cmd)("%s %d", menu==kickmenu ? "kick" : (menu==banmenu ? "ban" : (menu==forceteammenu ? "forceteam" : (menu==revokemenu ? "revoke" : (menu==giveadminmenu ? "giverole" : (menu==whoismenu ? "whois" : (menu==spectmenu ? "forcespect" : "unknownplayeraction")))))), i);
+		s_strcpy(m.name, colorname(p[i]));
+		s_sprintf(m.cmd)("%s %d", menu==kickmenu ? "kick" : (menu==banmenu ? "ban" : (menu==forceteammenu ? "forceteam" : (menu==revokemenu ? "revoke" : (menu==giveadminmenu ? "giverole" : (menu==whoismenu ? "whois" : (menu==spectmenu ? "forcespect" : "unknownplayeraction")))))), p[i]->clientnum);
 		if(menu==kickmenu && getalias("_kickbanreason")!=NULL) s_sprintf(m.cmd)("%s [ %s ]", m.cmd, getalias("_kickbanreason"));
 		menumanual(menu, m.name, m.cmd);
 	}
