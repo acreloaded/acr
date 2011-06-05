@@ -590,7 +590,7 @@ int main(int argc, char **argv)
 		initsound();
 
 		initlog("cfg");
-		extern void *scoremenu, *teammenu, *ctfmenu, *servmenu, *searchmenu, *serverinfomenu, *kickmenu, *banmenu, *forceteammenu, *giveadminmenu, *revokemenu, *whoismenu, *docmenu, *applymenu;
+		extern void *scoremenu, *teammenu, *ctfmenu, *servmenu, *searchmenu, *serverinfomenu, *kickmenu, *banmenu, *forceteammenu, *giveadminmenu, *revokemenu, *whoismenu, *spectmenu, *docmenu, *applymenu;
 		scoremenu = addmenu("score", "score\tfrag\tassist\tdeath\tratio\tpj\tping\tcn\tname", false, renderscores, NULL, false, true);
 		teammenu = addmenu("team score", "score\tfrag\tassist\tdeath\tratio\tpj\tping\tcn\tname", false, renderscores, NULL, false, true);
 		ctfmenu = addmenu("ctf score", "score\tflag\tfrag\tassist\tdeath\tratio\tpj\tping\tcn\tname", false, renderscores, NULL, false, true);
@@ -603,6 +603,7 @@ int main(int argc, char **argv)
 		giveadminmenu = addmenu("give permission", NULL, true, refreshsopmenu);
 		revokemenu = addmenu("revoke privilege", NULL, true, refreshsopmenu);
 		whoismenu = addmenu("WHOIS", NULL, true, refreshsopmenu);
+		spectmenu = addmenu("toggle spect", NULL, true, refreshsopmenu);
 		docmenu = addmenu("reference", NULL, true, renderdocmenu);
 		applymenu = addmenu("apply", "apply changes now?", true, refreshapplymenu);
 

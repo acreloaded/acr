@@ -1044,7 +1044,7 @@ void changemap(const char *name){ // silently request map change, server may ign
 struct mline { string name, cmd; };
 static vector<mline> mlines;
 
-void *kickmenu = NULL, *banmenu = NULL, *forceteammenu = NULL, *giveadminmenu = NULL, *revokemenu = NULL, *whoismenu = NULL;
+void *kickmenu = NULL, *banmenu = NULL, *forceteammenu = NULL, *giveadminmenu = NULL, *revokemenu = NULL, *whoismenu = NULL, *spectmenu = NULL;
 
 void refreshsopmenu(void *menu, bool init)
 {
@@ -1054,7 +1054,7 @@ void refreshsopmenu(void *menu, bool init)
 	{
 		mline &m = mlines.add();
 		s_strcpy(m.name, colorname(players[i]));
-		s_sprintf(m.cmd)("%s %d", menu==kickmenu ? "kick" : (menu==banmenu ? "ban" : (menu==forceteammenu ? "forceteam" : (menu==revokemenu ? "revoke" : (menu==giveadminmenu ? "giverole" : (menu==whoismenu ? "whois" : "unknownplayeraction"))))), i);
+		s_sprintf(m.cmd)("%s %d", menu==kickmenu ? "kick" : (menu==banmenu ? "ban" : (menu==forceteammenu ? "forceteam" : (menu==revokemenu ? "revoke" : (menu==giveadminmenu ? "giverole" : (menu==whoismenu ? "whois" : (menu==spectmenu ? "forcespect" : "unknownplayeraction")))))), i);
 		if(menu==kickmenu && getalias("_kickbanreason")!=NULL) s_sprintf(m.cmd)("%s [ %s ]", m.cmd, getalias("_kickbanreason"));
 		menumanual(menu, m.name, m.cmd);
 	}
