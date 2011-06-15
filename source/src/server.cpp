@@ -2484,6 +2484,13 @@ void disconnect_client(int n, int reason){
 		deleteai(c);
 		return;
 	}
+	else{
+		loopv(clients) if(clients[i]->state.ownernum == n){
+			const int newowner = findaiclient(n);
+			if(newowner < 0) deleteai(*clients[i]);
+			else sendf(-1, 1, "ri4", N_INITAI, i, (clients[i]->state.ownernum = newowner), clients[i]->team);
+		}
+	}
 	if(c.priv) setpriv(n, PRIV_NONE, 0, true);
 	const char *scoresaved = "";
 	if(c.haswelcome)
