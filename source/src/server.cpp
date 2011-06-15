@@ -3157,6 +3157,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_TRYSPAWN:
 			{
+				checkai();
 				if(!cl->isonrightmap){
 					sendf(sender, 1, "ri", N_MAPIDENT);
 					break;

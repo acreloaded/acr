@@ -31,6 +31,7 @@ bool addai(){
 	clients[cn]->isauthed = true;
 	clients[cn]->team = freeteam();
 	sendf(-1, 1, "ri4", N_INITAI, cn, aiowner, clients[cn]->team);
+	return true;
 }
 
 void deleteai(client &c){
@@ -78,10 +79,7 @@ void checkai(){
 		}
 	}
 	if(balance > 0){
-		while(numclients(true) < balance){
-			sendservmsg("add");
-			if(!addai()) break;
-		}
+		while(numclients(true) < balance) if(!addai()) break;
 		while(numclients(true) > balance) if(!delai()) break;
 	}
 	else clearai();
