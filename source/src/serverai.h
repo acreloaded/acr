@@ -27,8 +27,9 @@ bool addai(){
 		}
 	}
 	if(cn < 0){
-		cn = clients.length();
-		clients.add(new client);
+		client *c = new client;
+		c->clientnum = cn = clients.length();
+		clients.add(c);
 	}
 	clients[cn]->reset();
 	clients[cn]->state.ownernum = aiowner;
