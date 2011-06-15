@@ -2925,6 +2925,7 @@ int findaiclient(int exclude = -1){ // person with least bots
 		}
 		return cn;
 	}
+	return -1;
 }
 
 bool addai(){
