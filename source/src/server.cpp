@@ -434,9 +434,9 @@ bool buildworldstate(){
 	}
 }
 
-int countclients(int type, bool exclude = false){
+int countclients(int type, bool exclude = false, bool includebots = false){
 	int num = 0;
-	loopv(clients) if((clients[i]->type!=type)==exclude) num++;
+	loopv(clients) if((clients[i]->type!=type)==exclude && (includebots || clients[i]->state.ownernum >= 0)) num++;
 	return num;
 }
 
