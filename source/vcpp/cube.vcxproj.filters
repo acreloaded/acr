@@ -146,6 +146,9 @@
     <ClInclude Include="..\src\ballistics.h">
       <Filter>headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\serverai.h">
+      <Filter>headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\ChangeLog.txt">

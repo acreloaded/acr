@@ -703,18 +703,7 @@ void putinitai(client &c, ucharbuf &p){
 	putint(p, c.team);
 }
 
-void putinitclient(client &c, ucharbuf &p){
-    putint(p, N_INITCLIENT);
-    putint(p, c.clientnum);
-	putint(p, c.team);
-    putint(p, c.skin);
-    sendstring(c.name, p);
-	if(curvote && c.vote != VOTE_NEUTRAL){
-		putint(p, N_VOTE);
-		putint(p, c.clientnum);
-		putint(p, c.vote);
-	}
-}
+void putinitclient(client &c, ucharbuf &p);
 
 void setupdemorecord(){
 	if(numlocalclients() || !m_fight(gamemode)) return;
@@ -2476,6 +2465,8 @@ void setpriv(int cl, int wants, char *pwd, bool force){
 	//if(curvote) curvote->evaluate();
 }
 
+#include "serverai.h"
+
 void disconnect_client(int n, int reason){
 	if(!clients.inrange(n) || clients[n]->type!=ST_TCPIP) return;
 	sdropflag(n);
@@ -2697,6 +2688,19 @@ void sendservinfo(client &c){
 	sendf(c.clientnum, 1, "ri4", N_SERVINFO, c.clientnum, PROTOCOL_VERSION, c.salt);
 }
 
+void putinitclient(client &c, ucharbuf &p){
+    putint(p, N_INITCLIENT);
+    putint(p, c.clientnum);
+	putint(p, c.team);
+    putint(p, c.skin);
+    sendstring(c.name, p);
+	if(curvote && c.vote != VOTE_NEUTRAL){
+		putint(p, N_VOTE);
+		putint(p, c.clientnum);
+		putint(p, c.vote);
+	}
+}
+
 void sendinitclient(client &c){
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
@@ -2908,94 +2912,6 @@ void checkmove(client &cp){
 		cs.mag[GUN_KNIFE] = cs.ammo[GUN_KNIFE] = 1;
 		sendf(-1, 1, "ri5", N_RELOAD, sender, GUN_KNIFE, 1, 1);
 	}
-}
-
-// ai (bots)
-
-int findaiclient(int exclude = -1){ // person with least bots
-	int cn = -1, bots = -1;
-	loopv(clients){
-		client *c = clients[i];
-		if(i == exclude || !valid_client(i) || c->clientnum < 0 || c->state.ownernum >= 0 || !*c->name || !c->isauthed) break;
-		int n = 0;
-		loopvj(clients) if(clients[j]->state.ownernum == i) n++;
-		if(n < bots){
-			bots = cn;
-			cn = i;
-		}
-		return cn;
-	}
-	return -1;
-}
-
-bool addai(){
-	int aiowner = findaiclient(), cn = -1, numbots = 0;
-	if(!valid_client(aiowner)) return false;
-	loopv(clients){
-		if(numbots > MAXBOTS) return false;
-		if(clients[i]->state.ownernum >= 0) numbots++;
-		else if(clients[i]->type == ST_EMPTY){
-			cn = i;
-			break;
-		}
-	}
-	if(cn < 0) cn = clients.length();
-	clients[cn]->reset();
-	clients[cn]->state.ownernum = aiowner;
-	clients[cn]->isauthed = true;
-	clients[cn]->team = freeteam();
-	sendf(-1, 1, "ri4", N_INITAI, cn, aiowner, clients[cn]->team);
-}
-
-void deleteai(client &c){
-    if(c.state.ownernum < 0) return;
-    const int cn = c.clientnum;
-	sdropflag(cn);
-	if(c.priv) setpriv(cn, PRIV_NONE, 0, true);
-    sendf(-1, 1, "ri2", N_DELBOT, cn);
-	c.state.ownernum = -1;
-	c.zap();
-}
-
-bool delai(){
-	loopvrev(clients) if(clients[i]->state.ownernum >= 0){
-		deleteai(*clients[i]);
-		return true;
-	}
-	return false;
-}
-
-void clearai(){
-	loopv(clients) if(clients[i]->state.ownernum >= 0) deleteai(*clients[i]);
-}
-
-void checkai(){
-	int balance = 0;
-	const int people = numclients(true);
-	switch(botbalance){
-		case -1: balance = max(people, m_duel ? 2 : 3); break;
-		case  0: balance = 0; break; // no bots
-		default: balance = max(people, m_duel ? 2 : botbalance); break;
-	}
-	if(balance > 0){
-		int plrs[2] = {0}, highest = -1;
-		loopv(clients) if(clients[i]->state.ownernum < 0 && clients[i]->team < 2){
-			plrs[clients[i]->team]++;
-			if(highest < 0 || plrs[clients[i]->team] > plrs[highest]) highest = clients[i]->team;
-		}
-		if(highest >= 0){
-			int bots = balance-people;
-			loopi(2) if(i != highest && plrs[i] < plrs[highest]) loopj(plrs[highest]-plrs[i]){
-				if(bots > 0) bots--;
-				else balance++;
-			}
-		}
-	}
-	if(balance > 0){
-		while(numclients(true) < balance) if(!addai()) break;
-		while(numclients(true) > balance) if(!delai()) break;
-	}
-	else clearai();
 }
 
 #include "auth.h"
