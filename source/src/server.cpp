@@ -2891,6 +2891,27 @@ void checkmove(client &cp){
 	}
 }
 
+// ai (bots)
+
+int findaiclient(int exclude = -1){ // person with least bots
+	int cn = -1, bots = -1;
+	loopv(clients){
+		client *c = clients[i];
+		if(i == exclude || !valid_client(i) || c->clientnum < 0 || c->state.ownernum >= 0 || !*c->name || !c->isauthed) break;
+		int n = 0;
+		loopvj(clients) if(clients[j]->state.ownernum == i) n++;
+		if(n < bots){
+			bots = cn;
+			cn = i;
+		}
+		return cn;
+	}
+}
+
+bool addai(){
+	
+}
+
 #include "auth.h"
 
 bool hasclient(client &ci, int cn){
