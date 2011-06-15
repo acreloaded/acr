@@ -1,6 +1,6 @@
 // ai (bots)
 int findaiclient(int exclude = -1){ // person with least bots
-	int cn = -1, bots = -1;
+	int cn = -1, bots = MAXBOTS;
 	loopv(clients){
 		client *c = clients[i];
 		if(i == exclude || !valid_client(i) || c->clientnum < 0 || c->state.ownernum >= 0 || !*c->name || !c->isauthed) break;
@@ -11,6 +11,7 @@ int findaiclient(int exclude = -1){ // person with least bots
 			cn = i;
 		}
 	}
+	s_sprintfd(lol)("%d", cn); sendservmsg(lol);
 	return cn;
 }
 
@@ -25,7 +26,10 @@ bool addai(){
 			break;
 		}
 	}
-	if(cn < 0) cn = clients.length();
+	if(cn < 0){
+		cn = clients.length();
+		clients.add(new client);
+	}
 	clients[cn]->reset();
 	clients[cn]->state.ownernum = aiowner;
 	clients[cn]->isauthed = true;
