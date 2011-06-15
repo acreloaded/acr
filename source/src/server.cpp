@@ -2480,6 +2480,10 @@ void disconnect_client(int n, int reason){
 	if(!clients.inrange(n) || clients[n]->type!=ST_TCPIP) return;
 	sdropflag(n);
 	client &c = *clients[n];
+	if(c.state.ownernum >= 0){
+		deleteai(c);
+		return;
+	}
 	if(c.priv) setpriv(n, PRIV_NONE, 0, true);
 	const char *scoresaved = "";
 	if(c.haswelcome)
