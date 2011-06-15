@@ -290,12 +290,24 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					chatout(joinmsg);
 				}
 				updateclientname(d);
-				if(m_flags) loopi(2)
-				{
+				if(m_flags) loopi(2){
 					flaginfo &f = flaginfos[i];
 					if(!f.actor) f.actor = getclient(f.actor_cn);
 				}
 				break;
+			}
+
+			case N_INITAI:
+			{
+				playerent *d = newclient(getint(p));
+				d->ownernum = getint(p);
+				d->team = getint(p);
+				s_strcpy(d->name, "bot");
+				updateclientname(d);
+				if(m_flags) loopi(2){
+					flaginfo &f = flaginfos[i];
+					if(!f.actor) f.actor = getclient(f.actor_cn);
+				}
 			}
 
 			case N_NEWNAME:
