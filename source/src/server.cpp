@@ -440,7 +440,7 @@ int countclients(int type, bool exclude = false, bool includebots = false){
 	return num;
 }
 
-int numclients() { return countclients(ST_EMPTY, true); }
+int numclients(bool bots = false) { return countclients(ST_EMPTY, true, bots); }
 int numlocalclients() { return countclients(ST_LOCAL); }
 int numnonlocalclients() { return countclients(ST_TCPIP); }
 
@@ -2951,7 +2951,7 @@ void clearai(){
 
 void checkai(){
 	int balance = 0;
-	const int people = numclients();
+	const int people = numclients(true);
 	switch(botbalance){
 		case -1: balance = max(people, m_duel ? 2 : 3); break;
 		case  0: balance = 0; break; // no bots
@@ -2972,8 +2972,8 @@ void checkai(){
 		}
 	}
 	if(balance > 0){
-		while(numclients() < balance) if(!addai()) break;
-		while(numclients() > balance) if(!delai()) break;
+		while(numclients(true) < balance) if(!addai()) break;
+		while(numclients(true) > balance) if(!delai()) break;
 	}
 	else clearai();
 }
