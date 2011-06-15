@@ -2467,7 +2467,7 @@ void setpriv(int cl, int wants, char *pwd, bool force){
 	sendf(-1, 1, "ri3", N_ROLECHANGE, cl, c.priv);
 	logline(ACLOG_INFO,"[%s] %s claimed %s status", c.hostname, c.name, privname(c.priv));
 	sendserveropinfo();
-	if(curvote) curvote->evaluate();
+	//if(curvote) curvote->evaluate();
 }
 
 void disconnect_client(int n, int reason){
