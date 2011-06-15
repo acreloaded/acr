@@ -3107,6 +3107,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 		if(clientrole != PRIV_NONE) setpriv(sender, clientrole, NULL, true);
 
 		sendcallvote(sender);
+		curvote->evaluate();
+		checkai();
 	}
 
 	if(packet->flags&ENET_PACKET_FLAG_RELIABLE) reliablemessages = true;
