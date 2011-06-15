@@ -2937,8 +2937,45 @@ void deleteai(client &c){
 	c.zap();
 }
 
+bool delai(){
+	loopvrev(clients) if(clients[i]->state.ownernum >= 0){
+		deleteai(*clients[i]);
+		return true;
+	}
+	return false;
+}
+
 void clearai(){
 	loopv(clients) if(clients[i]->state.ownernum >= 0) deleteai(*clients[i]);
+}
+
+void checkai(){
+	int balance = 0;
+	const int people = numclients();
+	switch(botbalance){
+		case -1: balance = max(people, m_duel ? 2 : 3); break;
+		case  0: balance = 0; break; // no bots
+		default: balance = max(people, m_duel ? 2 : botbalance); break;
+	}
+	if(balance > 0){
+		int plrs[2] = {0}, highest = -1;
+		loopv(clients) if(clients[i]->state.ownernum < 0 && clients[i]->team < 2){
+			plrs[clients[i]->team]++;
+			if(highest < 0 || plrs[clients[i]->team] > plrs[highest]) highest = clients[i]->team;
+		}
+		if(highest >= 0){
+			int bots = balance-people;
+			loopi(2) if(i != highest && plrs[i] < plrs[highest]) loopj(plrs[highest]-plrs[i]){
+				if(bots > 0) bots--;
+				else balance++;
+			}
+		}
+	}
+	if(balance > 0){
+		while(numclients() < balance) if(!addai()) break;
+		while(numclients() > balance) if(!delai()) break;
+	}
+	else clearai();
 }
 
 #include "auth.h"
