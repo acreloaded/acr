@@ -2909,7 +2909,8 @@ int findaiclient(int exclude = -1){ // person with least bots
 }
 
 bool addai(){
-	int cn = -1, numbots = 0;
+	int aiowner = findaiclient(), cn = -1, numbots = 0;
+	if(!valid_client(aiowner)) return;
 	loopv(clients){
 		if(numbots > MAXBOTS) return false;
 		if(clients[i]->state.ownernum >= 0) numbots++;
@@ -2920,10 +2921,14 @@ bool addai(){
 	}
 	if(cn < 0) cn = clients.length();
 	clients[cn]->reset();
-	clients[cn]->state.ownernum = findaiclient();
+	clients[cn]->state.ownernum = aiowner;
 	clients[cn]->isauthed = true;
 	clients[cn]->team = freeteam();
-	sendf(-1, 1, "ri4", N_INITAI, cn, clients[cn]->state.ownernum, clients[cn]->team);
+	sendf(-1, 1, "ri4", N_INITAI, cn, aiowner, clients[cn]->team);
+}
+
+void deleteai(client &c){
+    
 }
 
 #include "auth.h"
