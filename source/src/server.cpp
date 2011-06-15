@@ -696,7 +696,25 @@ void enddemorecord(){
 	}
 }
 
-void putinitclient(client &c, ucharbuf &p);
+void putinitai(client &c, ucharbuf &p){
+	putint(p, N_INITAI);
+	putint(p, c.clientnum);
+	putint(p, c.state.ownernum);
+	putint(p, c.team);
+}
+
+void putinitclient(client &c, ucharbuf &p){
+    putint(p, N_INITCLIENT);
+    putint(p, c.clientnum);
+	putint(p, c.team);
+    putint(p, c.skin);
+    sendstring(c.name, p);
+	if(curvote && c.vote != VOTE_NEUTRAL){
+		putint(p, N_VOTE);
+		putint(p, c.clientnum);
+		putint(p, c.vote);
+	}
+}
 
 void setupdemorecord(){
 	if(numlocalclients() || !m_fight(gamemode)) return;
@@ -751,7 +769,8 @@ void setupdemorecord(){
 		if(ci->type==ST_EMPTY) continue;
 
 		ucharbuf q(buf, sizeof(buf));
-		putinitclient(*ci, q);
+		if(ci->state.ownernum < 0) putinitclient(*ci, q);
+		else putinitai(*ci, q);
 		writedemo(1, buf, q.len);
 	}
 }
@@ -2409,19 +2428,6 @@ bool scallvote(voteinfo *v) // true if a regular vote was called
 	}
 }
 
-void putinitclient(client &c, ucharbuf &p){
-    putint(p, N_INITCLIENT);
-    putint(p, c.clientnum);
-	putint(p, c.team);
-    putint(p, c.skin);
-    sendstring(c.name, p);
-	if(curvote && c.vote != VOTE_NEUTRAL){
-		putint(p, N_VOTE);
-		putint(p, c.clientnum);
-		putint(p, c.vote);
-	}
-}
-
 void setpriv(int cl, int wants, char *pwd, bool force){
 	if(!valid_client(cl)) return;
 	client &c = *clients[cl];
@@ -2683,7 +2689,8 @@ void sendservinfo(client &c){
 void sendinitclient(client &c){
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
-	putinitclient(c, p);
+	if(c.state.ownernum < 0) putinitclient(c, p);
+	else putinitai(c, p);
 	enet_packet_resize(packet, p.length());
 	sendpacket(-1, 1, packet, c.clientnum);
 	if(!packet->referenceCount) enet_packet_destroy(packet);
@@ -2693,7 +2700,8 @@ void welcomeinitclient(ucharbuf &p, int exclude = -1){
     loopv(clients){
         client &c = *clients[i];
         if(c.type!=ST_TCPIP || !c.isauthed || c.clientnum == exclude) continue;
-        putinitclient(c, p);
+        if(c.state.ownernum < 0) putinitclient(c, p);
+		else putinitai(c, p);
     }
 }
 
