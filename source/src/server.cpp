@@ -436,7 +436,7 @@ bool buildworldstate(){
 
 int countclients(int type, bool exclude = false, bool includebots = false){
 	int num = 0;
-	loopv(clients) if((clients[i]->type!=type)==exclude && (includebots || clients[i]->state.ownernum >= 0)) num++;
+	loopv(clients) if((clients[i]->type!=type)==exclude && (includebots || clients[i]->state.ownernum < 0)) num++;
 	return num;
 }
 
@@ -3157,7 +3157,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_TRYSPAWN:
 			{
-				checkai();
 				if(!cl->isonrightmap){
 					sendf(sender, 1, "ri", N_MAPIDENT);
 					break;
