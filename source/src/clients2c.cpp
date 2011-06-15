@@ -343,7 +343,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				int cn = getint(p), reason = getint(p);
 				playerent *d = getclient(cn);
-				if(!d) break;
+				if(!d || d == player1) break;
 				if(*d->name){
 					conoutf("player %s disconnected (%s)", colorname(d), reason >= 0 ? disc_reason(reason) : "normally");
 					s_sprintfd(leavemsg)("%s \f3left \f2the \f1game", colorname(d));
