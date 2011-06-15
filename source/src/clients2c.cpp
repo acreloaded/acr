@@ -332,6 +332,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
+			case N_DELBOT:
+			{
+				int cn = getint(p);
+				if(players.inrange(cn)) zapplayer(players[cn]);
+				break;
+			}
+
 			case N_DISC:
 			{
 				int cn = getint(p), reason = getint(p);
