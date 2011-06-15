@@ -2830,6 +2830,7 @@ void checkmove(client &cp){
 		}
 	}
 	// drown underwater
+	/*
 	if(cs.o.z < smapstats.hdr.waterlevel){
 		if(cs.drownmillis <= 0){
 			if(cs.drownmillis)
@@ -2844,6 +2845,7 @@ void checkmove(client &cp){
 		}
 	}
 	else if(cs.drownmillis > 0) cs.drownmillis = -cs.drownmillis;
+	*/
 	// out of map check
 	if(/*cp.type==ST_TCPIP && !m_edit &&*/ checkpos(cs.o, false)){
 		logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cp.hostname, cp.name, ++cp.mapcollisions);
