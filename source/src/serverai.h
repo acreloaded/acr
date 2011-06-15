@@ -11,7 +11,6 @@ int findaiclient(int exclude = -1){ // person with least bots
 			cn = i;
 		}
 	}
-	s_sprintfd(lol)("%d", cn); sendservmsg(lol);
 	return cn;
 }
 
