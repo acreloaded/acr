@@ -840,7 +840,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 			if(!watchingdemo) votepl[player1->vote].add(player1);
 			loopv(players){
 				playerent *vpl = players[i];
-				if(!vpl) continue;
+				if(!vpl || vpl->ownernum >= 0) continue;
 				votepl[vpl->vote].add(vpl);
 			}
 			#define VSU votepl[VOTE_NEUTRAL].length()

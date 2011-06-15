@@ -344,7 +344,7 @@ struct voteinfo
 		if(result!=VOTE_NEUTRAL) return; // block double action
 		if(!action || !action->isvalid()) end(VOTE_NO);
 		int stats[VOTE_NUM+1] = {0};
-		loopv(clients) if(clients[i]->type != ST_EMPTY){
+		loopv(clients) if(clients[i]->type != ST_EMPTY && clients[i]->state.ownernum < 0){
 			stats[clients[i]->vote]++;
 			stats[VOTE_NUM]++;
 		}
