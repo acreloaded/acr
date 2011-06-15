@@ -350,7 +350,7 @@ struct playerstate
 	int ammo[NUMGUNS], mag[NUMGUNS], gunwait[NUMGUNS];
 	ivector damagelog;
 
-	playerstate() : primary(GUN_ASSAULT), nextprimary(GUN_ASSAULT) {}
+	playerstate() : primary(GUN_ASSAULT), nextprimary(GUN_ASSAULT), ownernum(-1) {}
 	virtual ~playerstate() {}
 
 	itemstat &itemstats(int type)
