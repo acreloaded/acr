@@ -320,7 +320,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case N_CDIS:
+			case N_DISC:
 			{
 				int cn = getint(p), reason = getint(p);
 				playerent *d = getclient(cn);

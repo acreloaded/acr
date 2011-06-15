@@ -2491,7 +2491,7 @@ void disconnect_client(int n, int reason){
 	c.peer->data = (void *)-1;
 	if(reason>=0) enet_peer_disconnect(c.peer, reason);
 	clients[n]->zap();
-	sendf(-1, 1, "ri3", N_CDIS, n, reason);
+	sendf(-1, 1, "ri3", N_DISC, n, reason);
 	if(curvote) curvote->evaluate();
 }
 
