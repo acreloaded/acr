@@ -3022,8 +3022,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 		if(findscore(*cl, false)) sendresume(*cl, true);
 		if(clientrole != PRIV_NONE) setpriv(sender, clientrole, NULL, true);
 
-		sendcallvote(sender);
-		curvote->evaluate();
+		if(curvote){
+			sendcallvote(sender);
+			curvote->evaluate();
+		}
 		checkai();
 	}
 
