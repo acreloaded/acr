@@ -55,7 +55,7 @@ char *colorname(playerent *d, bool stats)
 {
 	if(!d) return "unknown";
 	static string cname;
-	s_sprintf(cname)("%s \fs\f6(%d)", d->name, d->clientnum);
+	s_sprintf(cname)(d->ownernum < 0 ? "%s \fs\f%d(%d)" : "%s \fs\f%d(%d/%d)", d->name, duplicatename(d) ? 7 : 6, d->clientnum, d->ownernum);
 	if(stats){
 		s_sprintfd(stat)("%d%d", d->health > 50 ? 0 : d->health > 25 ? 2 : d->health > 0 ? 3 : 4, d->health);
 		if(d->armour) s_sprintf(stat)("%s\f5-\f4%d", stat, d->armour);
