@@ -337,7 +337,8 @@ class CBotManager
 	 bool m_bInit;
 	 bool m_bBotsShoot;
 	 bool m_bIdleBots;
-	 bot_skill_s m_BotSkills[5]; // 5 different bot skills, 0 = best 4 = worst
+	public: bot_skill_s m_BotSkills[5]; // 5 different bot skills, 0 = best 4 = worst
+	private:
 	 int m_iFrameTime;
 	 int m_iPrevTime;
 	 short m_sBotSkill; // Bad - Worse - Medium - Good - Best

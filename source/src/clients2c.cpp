@@ -299,11 +299,32 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_INITAI:
 			{
-				playerent *d = newclient(getint(p));
-				d->ownernum = getint(p);
-				d->team = getint(p);
-				s_strcpy(d->name, "bot");
-				updateclientname(d);
+				int cn = getint(p);
+				while(cn>=players.length()) players.add(NULL);
+				if(players[cn]) zapplayer(players[cn]);
+				botent *b = new botent;
+				b->clientnum = cn;
+				players.add(b);
+				b->ownernum = getint(p);
+				b->team = getint(p);
+				s_strcpy(b->name, "bot");
+				updateclientname(b);
+
+				if(b->ownernum == getclientnum()){
+					bots.add(b);
+					extern void spawnstate(playerent *d);
+					spawnstate(b);
+					weapon::equipplayer(b);
+					b->type = ENT_PLAYER;
+					b->pBot = new CACBot;
+					b->pBot->m_pMyEnt = b;
+					b->pBot->m_iLastBotUpdate = 0;
+					b->pBot->m_bSendC2SInit = false;
+					b->pBot->m_sSkillNr = 0;
+					b->pBot->m_pBotSkill = &BotManager.m_BotSkills[b->pBot->m_sSkillNr];
+					b->pBot->SyncWaypoints();
+					b->pBot->Spawn();
+				}
 				if(m_flags) loopi(2){
 					flaginfo &f = flaginfos[i];
 					if(!f.actor) f.actor = getclient(f.actor_cn);
@@ -335,7 +356,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_DELBOT:
 			{
 				int cn = getint(p);
-				if(players.inrange(cn)) zapplayer(players[cn]);
+				if(players.inrange(cn)){
+					if(players[cn]->ownernum == getclientnum()) bots.removeobj((botent *)players[cn]);
+					zapplayer(players[cn]);
+				}
 				break;
 			}
 
