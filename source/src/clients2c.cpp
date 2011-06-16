@@ -104,7 +104,7 @@ void parsepositions(ucharbuf &p)
 			pitchvel = getfloat(p);
 			int f = getuint(p), seqcolor = (f>>6)&1;
 			playerent *d = getclient(cn);
-			if(!d || seqcolor!=(d->lifesequence&1)) continue;
+			if(!d || d == player1 || d->ownernum == getclientnum() || seqcolor!=(d->lifesequence&1)) continue;
 			vec oldpos(d->o);
 			float oldyaw = d->yaw, oldpitch = d->pitch;
 			d->o = o;
