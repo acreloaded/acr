@@ -1945,6 +1945,7 @@ bool updateclientteam(int client, int team, int ftr){
 	if(!valid_client(client) || !team_valid(team)) return false;
 	if(clients[client]->team == team && ftr != FTR_AUTOTEAM) return false;
 	sendf(-1, 1, "ri3", N_SETTEAM, client, (clients[client]->team = team) | (ftr << 4));
+	extern void checkai();
 	checkai();
 	if(m_team || team == TEAM_SPECT) forcedeath(clients[client]);
 	return true;
