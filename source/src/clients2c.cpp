@@ -309,7 +309,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				b->team = getint(p);
 				s_strcpy(b->name, "bot");
 				updateclientname(b);
-
+				/*
 				if(b->ownernum == getclientnum()){
 					bots.add(b);
 					extern void spawnstate(playerent *d);
@@ -325,6 +325,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					b->pBot->SyncWaypoints();
 					b->pBot->Spawn();
 				}
+				*/
 				if(m_flags) loopi(2){
 					flaginfo &f = flaginfos[i];
 					if(!f.actor) f.actor = getclient(f.actor_cn);
