@@ -467,6 +467,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 					if(pl->state!=CS_DEAD)
 					{
 						if(pl==player1 || pl->type!=ENT_PLAYER) playsoundc(sound, pl);
+						if(pl==player1 && timeinair > 800) addmsg(N_FALL, "ri", timeinair*timeinair/25000);
 					}
 				}
 			}
