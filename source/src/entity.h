@@ -133,8 +133,14 @@ static inline const char *suicname(int gun){
 		case NUMGUNS:
 			s_strcat(k, "commited too much friendly fire");
 			break;
-		case GUN_ASSAULT:
+		case GUN_ASSAULT: // just a random gun
 			s_strcat(k, "drowned");
+			break;
+		case GUN_BOLT: // and another
+			s_strcat(k, "failed to fly");
+			break;
+		case GUN_KNIFE:
+			s_strcat(k, "used the suicide command");
 			break;
 		default:
 			s_strcat(k, "suicided");
