@@ -256,7 +256,7 @@ static struct parttype { int type; float r, g, b; int gr, tex; float sz; } partt
 	{ PT_PART,	   0.2f, 0.2f, 1.0f, 20, 0, 0.08f }, // blue:   edit mode entities
 	{ PT_BLOOD,	  0.5f, 0.0f, 0.0f, 1,  4, 0.3f  }, // red:	blood spats
 	{ PT_PART,	   1.0f, 0.1f, 0.1f, 0,  1, 0.2f  }, // red:	demotrack
-	{ PT_FIREBALL,   1.0f, 0.5f, 0.5f, 0,  2, 17.0f  }, // explosion fireball
+	{ PT_FIREBALL,   1.0f, 0.5f, 0.5f, 0,  2, 29.0f  }, // explosion fireball
 	{ PT_SHOTLINE,   1.0f, 1.0f, 0.7f, 0, -1, 0.0f  }, // yellow: shotline
 	{ PT_BULLETHOLE, 1.0f, 1.0f, 1.0f, 0,  3, 0.3f  }, // hole decal	 
 	{ PT_STAIN,	  0.5f, 0.0f, 0.0f, 0,  4, 0.6f  }, // red:	blood stain
