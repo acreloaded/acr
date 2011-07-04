@@ -1398,7 +1398,6 @@ float sraycube(const vec &o, const vec &ray){
 		dz = ray.z ? ((ray.z > 0 ? ceil : floor) - v.z)/ray.z : 1e16f;
 		if(dz < dx && dz < dy)
 		{
-			//if(ray.z>0 && s.ctex==DEFAULT_SKY) return dist;
 			dist += dz;
 			break;
 		}
