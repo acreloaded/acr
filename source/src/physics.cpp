@@ -47,7 +47,7 @@ float raycube(const vec &o, const vec &ray, vec &surface)
 		dz = ray.z ? ((ray.z > 0 ? ceil : floor) - v.z)/ray.z : 1e16f;
 		if(dz < dx && dz < dy)
 		{
-			if(ray.z>0 && s->ctex==DEFAULT_SKY) return dist;
+			//if(ray.z>0 && s->ctex==DEFAULT_SKY) return dist;
 			if(s->type!=FHF && s->type!=CHF) surface.z = ray.z>0 ? -1 : 1;
 			dist += dz;
 			break;
