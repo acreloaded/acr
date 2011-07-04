@@ -77,9 +77,9 @@ static itemstat powerupstats[] =
 #define SGSPREAD 318
 #define SGADSSPREADFACTOR 20
 #define SGGIB 250 // 25 rays
-#define NADEPOWER 2
+#define NADEPOWER 2.5f
 #define NADETTL 2500
-#define KNIFEPOWER 5
+#define KNIFEPOWER 6
 #define KNIFETTL 30000
 
 #define POWERGUN(gun) (gun == GUN_SNIPER || gun == GUN_BOLT || gun == GUN_KNIFE)
