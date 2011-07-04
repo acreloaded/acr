@@ -1376,7 +1376,7 @@ bool checkpos(vec &p, bool alter = true){
 }
 
 float sraycube(const vec &o, const vec &ray){
-	if(ray.iszero()) return -1;
+	if(ray.iszero()) return 0;
 
 	vec v = o;
 	float dist = 0, dx = 0, dy = 0, dz = 0;
