@@ -24,6 +24,9 @@ void processevent(client &c, projevent &e){
 				if(target.type == ST_EMPTY || target.state.state != CS_ALIVE) continue;
 				float dist = target.state.o.dist(o);
 				if(dist >= guns[e.gun].endrange) continue;
+				vec ray(target.state.o);
+				ray.sub(o).normalize();
+				if(sraycube(o, ray) < dist) continue;
 				ushort dmg = effectiveDamage(e.gun, dist, DAMAGESCALE, true);
 				gs.damage += dmg;
 				serverdamage(&target, &c, dmg, e.gun, FRAG_GIB, o);
