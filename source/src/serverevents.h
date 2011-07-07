@@ -36,9 +36,8 @@ void processevent(client &c, projevent &e){
 
 		case GUN_KNIFE:
 		{
-			if(gs.mag[GUN_KNIFE] || !gs.ammo[GUN_KNIFE]) return;
-			gs.ammo[GUN_KNIFE] = 0;
-
+			if(!gs.knives.numprojs) return;
+			gs.knives.numprojs--;
 			ushort dmg = effectiveDamage(GUN_KNIFE, 0, DAMAGESCALE);
 			if(e.proj >= 0 && e.proj != c.clientnum && valid_client(e.proj)){
 				client &target = *clients[e.proj];
@@ -143,8 +142,10 @@ void processevent(client &c, shotevent &e)
 		case GUN_GRENADE: gs.grenades.add(e.id); break;
 		case GUN_KNIFE:
 			if(e.compact){
-				gs.knives.add(e.id);
-				gs.mag[GUN_KNIFE]--;
+				if(gs.ammo[GUN_KNIFE]){
+					gs.knives.add(e.id);
+					gs.ammo[GUN_KNIFE]--;
+				}
 				break;
 			}
 		default:

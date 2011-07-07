@@ -214,84 +214,6 @@ void clearbounceents(){
 
 VARP(shellsize, 1, 4, 10);
 
-void renderkbox(physent *d)
-{
-	glDisable(GL_TEXTURE_2D);
-	glColor3f(1, 1, 1);
-
-	float y = d->yaw*RAD, p = (d->pitch/4+90)*RAD, c = cosf(p);
-	vec bottom(d->o), up(sinf(y)*c, -cosf(y)*c, sinf(p)), top(up);
-	bottom.z -= d->eyeheight;
-	top.mul(d->eyeheight).add(bottom);
-
-	vec spoke;
-	spoke.orthogonal(up);
-	spoke.normalize().mul(d->radius);
-
-	// legs
-	top.sub(bottom).mul(LEGPART).add(bottom);
-	glBegin(GL_LINE_LOOP);
-	loopi(8)
-	{
-		vec pos(spoke);
-		pos.rotate(2*M_PI*i/8.0f, up).add(top);
-		glVertex3fv(pos.v);
-	}
-	glEnd();
-	glBegin(GL_LINE_LOOP);
-	loopi(8)
-	{
-		vec pos(spoke);
-		pos.rotate(2*M_PI*i/8.0f, up).add(bottom);
-		glVertex3fv(pos.v);
-	}
-	glEnd();
-	glBegin(GL_LINES);
-	loopi(8)
-	{
-		vec pos(spoke);
-		pos.rotate(2*M_PI*i/8.0f, up).add(bottom);
-		glVertex3fv(pos.v);
-		pos.sub(bottom).add(top);
-		glVertex3fv(pos.v);
-	}
-	glEnd();
-
-	top.sub(bottom).div(LEGPART).add(bottom);
-
-	// torso
-	bottom.sub(top).mul(TORSOPART).add(top);
-
-	glBegin(GL_LINE_LOOP);
-	loopi(9)
-	{
-		vec pos(spoke);
-		pos.rotate(2*M_PI*i/8.0f, up).add(top);
-		glVertex3fv(pos.v);
-	}
-	glEnd();
-	glBegin(GL_LINE_LOOP);
-	loopi(9)
-	{
-		vec pos(spoke);
-		pos.rotate(2*M_PI*i/8.0f, up).add(bottom);
-		glVertex3fv(pos.v);
-	}
-	glEnd();
-	glBegin(GL_LINES);
-	loopi(9)
-	{
-		vec pos(spoke);
-		pos.rotate(2*M_PI*i/8.0f, up).add(bottom);
-		glVertex3fv(pos.v);
-		pos.sub(bottom).add(top);
-		glVertex3fv(pos.v);
-	}
-	glEnd();
-
-	glEnable(GL_TEXTURE_2D);
-}
-
 void renderbounceents(){
 	loopv(bounceents)
 	{
@@ -305,9 +227,10 @@ void renderbounceents(){
 		switch(p->bouncetype)
 		{
 			case BT_KNIFE:
-				renderkbox(p);
+				s_strcpy(model, "weapons/knife/static");
+				break;
 			case BT_NADE:
-				s_strcpy(model, p->bouncetype == BT_NADE ? "weapons/grenade/static" : "weapons/knife/static");
+				s_strcpy(model, "weapons/grenade/static");
 				break;
 			case BT_SHELL:
 			{
@@ -1058,7 +981,6 @@ bool heal::attack(vec &targ){
 bool heal::selectable() { return weapon::selectable() && mag; }
 int heal::modelanim() { return modelattacking() ? ANIM_GUN_SHOOT : ANIM_GUN_IDLE; }
 
-void heal::drawstats() {}
 //void heal::renderaimhelp(int teamtype){ if(state) weapon::renderaimhelp(teamtype); }
 void heal::attackfx(const vec &from, const vec &to, int millis) { attacksound(); }
 void heal::attackhit(const vec &o){
@@ -1109,6 +1031,7 @@ void knifeent::explode(){
 		addmsg(N_PROJ, "ri3f3", lastmillis, GUN_KNIFE, hitcn, o.x, o.y, o.z);
 	}
 	playsound(S_GRENADEBOUNCE1+rnd(2), &o);
+	destroy();
 }
 
 void knifeent::activate(){
@@ -1143,7 +1066,7 @@ void knifeent::moveoutsidebbox(const vec &direction, playerent *boundingbox){
 	boundingbox->cancollide = true;
 }
 
-void knifeent::destroy() { /*explode();*/ }
+void knifeent::destroy() { timetolive = 0; }
 bool knifeent::applyphysics() { return knifestate==NS_THROWED; }
 
 void knifeent::oncollision(){ explode(); }
@@ -1173,9 +1096,11 @@ bool knife::attack(vec &targ){
 			case GST_THROWING:
 				if(attackmillis >= 250){
 					reset();
-					addmsg(N_QUICKSWITCH, "r");
-					owner->weaponchanging = lastmillis-1-(weaponchangetime/2);
-					owner->nextweaponsel = owner->weaponsel = owner->primweap;
+					if(!ammo){
+						addmsg(N_QUICKSWITCH, "r");
+						owner->weaponchanging = lastmillis-1-(weaponchangetime/2);
+						owner->nextweaponsel = owner->weaponsel = owner->primweap;
+					}
 					return false;
 				}
 				break;
@@ -1224,13 +1149,13 @@ void knife::onownerdies(){
 }
 
 void knife::activateknife(){
-	if(!mag) return;
+	if(!ammo) return;
 
 	inhandknife = new knifeent(owner);
 	bounceents.add(inhandknife);
 
 	updatelastaction(owner);
-	mag--;
+	ammo--;
 	gunwait = info.attackdelay;
 	owner->lastattackweapon = this;
 	state = GST_INHAND;
@@ -1255,7 +1180,6 @@ void knife::throwknife(const vec &vel){
 	if(this==owner->weaponsel) owner->attacking = false;
 }
 
-void knife::drawstats() {}
 //void knife::renderaimhelp(int teamtype){ if(state) weapon::renderaimhelp(teamtype); }
 void knife::attackfx(const vec &from, const vec &to, int millis) {
 	if(from.iszero() && to.iszero()){
@@ -1273,7 +1197,7 @@ void knife::attackfx(const vec &from, const vec &to, int millis) {
 void knife::attackhit(const vec &o){
 	particle_splash(0, 50, 300, o);
 }
-void knife::renderstats() { }
+void knife::renderstats() { draw_textf("%i", 590, 823, ammo); }
 
 // purgeknives
 void playerent::purgeknives(){

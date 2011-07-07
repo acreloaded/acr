@@ -182,7 +182,6 @@ struct heal : weapon
 	bool selectable();
 	int modelanim();
 
-	void drawstats();
 	void attackfx(const vec &from, const vec &to, int millis);
 	void attackhit(const vec &o);
 	void renderstats();
@@ -208,7 +207,6 @@ struct knife : weapon
 	void throwknife(bool weak = false);
 	void throwknife(const vec &vel);
 
-	void drawstats();
 	void attackfx(const vec &from, const vec &to, int millis);
 	void attackhit(const vec &o);
 	void renderstats();

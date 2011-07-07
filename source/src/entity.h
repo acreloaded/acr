@@ -424,7 +424,8 @@ struct playerstate
 		gunselect = GUN_PISTOL;
 		akimbo = scoping = false;
 		loopi(NUMGUNS) ammo[i] = mag[i] = gunwait[i] = 0;
-		ammo[GUN_KNIFE] = mag[GUN_KNIFE] = 1;
+		ammo[GUN_KNIFE] = 2;
+		mag[GUN_KNIFE] = 1;
 	}
 
 	virtual void spawnstate(int gamemode)

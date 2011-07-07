@@ -2912,8 +2912,8 @@ void checkmove(client &cp){
 	}
 	// throwing knife pickup
 	if(!cs.ammo[GUN_KNIFE] && (cs.knifemillis + KNIFETTL < servmillis || cs.knifepos.dist(cs.o) < 5)){
-		cs.mag[GUN_KNIFE] = cs.ammo[GUN_KNIFE] = 1;
-		sendf(-1, 1, "ri5", N_RELOAD, sender, GUN_KNIFE, 1, 1);
+		cs.ammo[GUN_KNIFE]++;
+		sendf(-1, 1, "ri5", N_RELOAD, sender, GUN_KNIFE, cs.mag[GUN_KNIFE], cs.ammo[GUN_KNIFE]);
 	}
 }
 
