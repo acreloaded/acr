@@ -2934,7 +2934,7 @@ void checkmove(client &cp){
 	}
 	// throwing knife pickup
 	loopv(sknives){
-		const bool pickup = cs.o.dist(sknives[i].o) < 5, expired = gamemillis - sknives[i].millis > KNIFETTL;
+		const bool pickup = cs.o.dist(sknives[i].o) < 5 && cs.ammo[GUN_KNIFE] < 3, expired = gamemillis - sknives[i].millis > KNIFETTL;
 		if(pickup || expired){
 			if(pickup) sendf(-1, 1, "ri5", N_RELOAD, sender, GUN_KNIFE, cs.mag[GUN_KNIFE], ++cs.ammo[GUN_KNIFE]);
 			sendf(-1, 1, "ri2", N_KNIFEREMOVE, sknives[i].id);
