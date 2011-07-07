@@ -862,4 +862,4 @@ struct cknife{
 	vec o;
 };
 
-vector<cknife> knives;
+extern vector<cknife> knives;

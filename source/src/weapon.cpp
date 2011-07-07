@@ -988,6 +988,8 @@ void heal::attackhit(const vec &o){
 }
 void heal::renderstats() { }
 
+vector<cknife> knives;
+
 // knifeent
 knifeent::knifeent(playerent *owner, int millis){
 	ASSERT(owner);
