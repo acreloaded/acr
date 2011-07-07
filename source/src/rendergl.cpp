@@ -370,8 +370,21 @@ void renderaboveheadicon(playerent *p){
 	}
 }
 
-void renderwaypoint(GLuint tex, const vec &o, bool realpos = false){
-	return;
+static Texture *waypointtex[WP_NUM];
+
+void load_waypointtex(){
+	loopi(WP_NUM){
+		const char *waypointtexname[WP_NUM] = {"knife"};
+		s_sprintfd(tname)("packages/misc/waypoints/%s.png", waypointtexname[i]);
+		waypointtex[i] = textureload(tname);
+	}
+}
+
+void renderwaypoint(int wp, const vec &o, bool realpos){
+	if(!waypointtex[wp]){
+		load_waypointtex();
+		if(!waypointtex[wp]) return;
+	}
 	glPushMatrix();
 	if(!realpos) glDisable(GL_DEPTH_TEST);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -379,8 +392,8 @@ void renderwaypoint(GLuint tex, const vec &o, bool realpos = false){
 	glTranslatef(o.x, o.y, o.z);
 	glRotatef(camera1->yaw-180, 0, 0, 1);
 	glColor4f(1, 1, 1, .8f);
-	float s = aboveheadiconsize/100.0f;
-    quad(tex, vec(s/2.0f, 0.0f, s), vec(s/-2.0f, 0.0f, 0.0f), 0.0f, 0.0f, 1.0f, 1.0f);
+	float s = aboveheadiconsize/40.0f;
+    quad(waypointtex[wp]->id, vec(s/2.0f, 0.0f, s), vec(s/-2.0f, 0.0f, 0.0f), 0.0f, 0.0f, 1.0f, 1.0f);
 	/*
 		float s = aboveheadiconsize/75.0f*scalef, offset =  (lastmillis - icon.millis) * 2.f / aboveheadiconfadetime, anim = lastmillis / 100 % (h * 2);
 		if(anim >= h) anim = h * 2 - anim + 1;
@@ -991,6 +1004,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps){
 
 	startmodelbatches();
 	renderbounceents();
+	loopv(knives) renderwaypoint(WP_KNIFE, knives[i].o, true);
 	endmodelbatches();
 
 	// Added by Rick: Need todo here because of drawing the waypoints

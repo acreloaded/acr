@@ -255,6 +255,9 @@ extern void gl_drawframe(int w, int h, float changelod, float curfps);
 extern void clearminimap();
 extern void rendercursor(int x, int y, int w);
 extern void renderaboveheadicon(playerent *p);
+enum { WP_KNIFE = 0, WP_NUM };
+extern void renderwaypoint(int wp, const vec &o, bool realpos = false);
+
 extern void drawscope();
 extern float dynfov();
 //extern void damageblend(int n);
