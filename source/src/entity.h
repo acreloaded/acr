@@ -104,6 +104,7 @@ static guninfo guns[NUMGUNS] =
 	{ "assault",    S_ASSAULT,  S_RASSAULT, 2100,   73,     32,   40,  100,   12,   0,   0, 60,    3,   30,   0,  3,    24,    38,     60, 1,   true },
 	{ "grenade",    S_NULL,     S_NULL,     1000,   650,   350,    0,   32,  350,  20,   6,  1,    1,    1,   3,  1,     0,    0,       0, 4,   false},
 	{ "pistol",     S_PISTOL,   S_RAKIMBO,  1400,   80,     40,   45,  160,   20,   0,   0, 56,    8,   24,   6,  2,    28,    48,     70, 2,   true },
+	{ "knife",      S_KNIFE,    S_NULL,        0,   500,    80,    3,    4,   60,   0,   0,  1,    1,   1,    0,  0,     0,    0,       0, 5,   true },
 };
 
 static inline ushort reloadtime(int gun) { return guns[gun].reloadtime; }

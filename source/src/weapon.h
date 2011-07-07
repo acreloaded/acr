@@ -1,5 +1,5 @@
 
-enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_BOLT, GUN_ASSAULT, GUN_GRENADE, GUN_AKIMBO, NUMGUNS };
+enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_BOLT, GUN_ASSAULT, GUN_GRENADE, GUN_AKIMBO, GUN_HEAL, NUMGUNS };
 #define reloadable_gun(g) (g != GUN_KNIFE && g != GUN_GRENADE)
 #define ads_gun(g) (g != GUN_KNIFE && g != GUN_GRENADE && g != GUN_AKIMBO)
 
@@ -172,6 +172,23 @@ struct akimbo : gun
 	void reset();
 	void renderhudmodel();
 	bool timerout();
+};
+
+struct heal : weapon
+{
+	heal(playerent *owner);
+
+	bool attack(vec &targ);
+	bool selectable();
+	int modelanim();
+
+	void drawstats();
+	void attackfx(const vec &from, const vec &to, int millis);
+	void attackhit(const vec &o);
+	void renderstats();
+	void renderaimhelp(int teamtype){}
+
+	int flashtime() const;
 };
 
 struct knifeent;
