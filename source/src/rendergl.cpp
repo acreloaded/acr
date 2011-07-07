@@ -370,6 +370,28 @@ void renderaboveheadicon(playerent *p){
 	}
 }
 
+void renderwaypoint(GLuint tex, const vec &o, bool realpos = false){
+	return;
+	glPushMatrix();
+	if(!realpos) glDisable(GL_DEPTH_TEST);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	glTranslatef(o.x, o.y, o.z);
+	glRotatef(camera1->yaw-180, 0, 0, 1);
+	glColor4f(1, 1, 1, .8f);
+	float s = aboveheadiconsize/100.0f;
+    quad(tex, vec(s/2.0f, 0.0f, s), vec(s/-2.0f, 0.0f, 0.0f), 0.0f, 0.0f, 1.0f, 1.0f);
+	/*
+		float s = aboveheadiconsize/75.0f*scalef, offset =  (lastmillis - icon.millis) * 2.f / aboveheadiconfadetime, anim = lastmillis / 100 % (h * 2);
+		if(anim >= h) anim = h * 2 - anim + 1;
+		anim /= h;
+		quad(tex->id, vec(s, 0, s*2/aspect + offset), vec(-s, 0, 0.0f + offset), 0.0f, anim, 1.0f, 1.f/h);
+	*/
+	glDisable(GL_BLEND);
+	if(!realpos) glEnable(GL_DEPTH_TEST);
+	glPopMatrix();
+}
+
 void rendercursor(int x, int y, int w){
 	color c(1, 1, 1, (sinf(lastmillis/200.0f)+1.0f)/2.0f);
 	blendbox(x, y, x+w, y+FONTH, true, -1, &c);
