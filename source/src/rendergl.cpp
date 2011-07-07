@@ -397,13 +397,15 @@ void renderwaypoint(int wp, const vec &o, float alpha){
 	glEnable(GL_BLEND);
 	glTranslatef(o.x, o.y, o.z);
 	glRotatef(camera1->yaw-180, 0, 0, 1);
+	glRotatef(camera1->pitch, 1, 0, 0);
+	glRotatef(camera1->roll, 0, -1, 0);
 	if(alpha == 2){
 		vec v(o), s;
 		v.sub(camera1->o).normalize();
 		alpha = raycube(camera1->o, v, s) < camera1->o.dist(o) ? .4f : .8f;
 	}
 	glColor4f(1, 1, 1, alpha);
-	const float dist = sqrtf(o.dist(camera1->o)), s = (wp==WP_KNIFE?waypointknifesize:aboveheadiconsize)/100.0f*dist;
+	const float dist = sqrtf(o.dist(camera1->o)), s = (wp==WP_KNIFE?waypointknifesize:waypointsize)/100.0f*dist;
     quad(waypointtex[wp]->id, vec(s/2.0f, 0.0f, s), vec(s/-2.0f, 0.0f, 0.0f), 0.0f, 0.0f, 1.0f, 1.0f);
 	/*
 		float s = aboveheadiconsize/75.0f*scalef, offset =  (lastmillis - icon.millis) * 2.f / aboveheadiconfadetime, anim = lastmillis / 100 % (h * 2);
