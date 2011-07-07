@@ -256,6 +256,27 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				int n;
 				resetspawns();
 				while((n = getint(p)) != -1 && !p.overread()) setspawn(n, true);
+				n = getint(p);
+				loopi(n){
+					cknife &k = knives.add();
+					k.id = getint(p);
+					loopi(3) k.o[i] = getfloat(p);
+				}
+				break;
+			}
+
+			case N_KNIFEADD:
+			{
+				cknife &k = knives.add();
+				k.id = getint(p);
+				loopi(3) k.o[i] = getfloat(p);
+				break;
+			}
+			
+			case N_KNIFEREMOVE:
+			{
+				int id = getint(p);
+				loopv(knives) if(knives[i].id == id) knives.remove(i--);
 				break;
 			}
 

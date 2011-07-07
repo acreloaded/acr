@@ -856,3 +856,10 @@ extern void saytext(playerent *d, char *text, int flags, int sound);
 
 // tag info
 extern vec *hudEject(playerent *p, bool akimboflip);
+
+struct cknife{
+	int id;
+	vec o;
+};
+
+vector<cknife> knives;

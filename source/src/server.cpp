@@ -120,9 +120,9 @@ struct projectilestate
 
 struct clientstate : playerstate
 {
-	vec o, aim, vel, knifepos, lasto, sg[SGRAYS], flagpickupo;
+	vec o, aim, vel, lasto, sg[SGRAYS], flagpickupo;
 	float pitchvel;
-	int state, lastomillis, movemillis, knifemillis;
+	int state, lastomillis, movemillis;
 	int lastdeath, lastffkill, lastspawn, lifesequence;
 	bool crouching;
 	int crouchmillis, scopemillis;
@@ -162,9 +162,9 @@ struct clientstate : playerstate
 	{
 		playerstate::respawn();
 		o = lasto = vec(-1e10f, -1e10f, -1e10f);
-		aim = vel = knifepos = vec(0, 0, 0);
+		aim = vel = vec(0, 0, 0);
 		pitchvel = 0;
-		lastomillis = movemillis = knifemillis = 0;
+		lastomillis = movemillis = 0;
 		drownmillis = drownval = 0;
 		lastspawn = -1;
 		lastdeath = lastshot = lastregen = 0;
@@ -516,6 +516,14 @@ struct server_entity			// server side version of "entity" type
 };
 
 vector<server_entity> sents;
+
+struct sknife{
+	int id, millis;
+	vec o;
+};
+
+vector<sknife> sknives;
+int sknifeid = 0;
 
 void restoreserverstate(vector<entity> &ents)   // hack: called from savegame code, only works in SP
 {
@@ -2195,6 +2203,13 @@ inline void putmap(ucharbuf &p){
 		putint(p, i);
 	}
 	putint(p, -1);
+	putint(p, sknives.length());
+	loopv(sknives){
+		putint(p, sknives[i].id);
+		putfloat(p, sknives[i].o.x);
+		putfloat(p, sknives[i].o.y);
+		putfloat(p, sknives[i].o.z);
+	}
 }
 
 void resetmap(const char *newname, int newmode, int newtime, bool notify){
@@ -2233,6 +2248,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 	else sendmsg(11);
 	if(notify){
 		// change map
+		sknives.setsize(sknifeid = 0);
 		ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 		ucharbuf p(packet->data, packet->dataLength);
 		putmap(p);
@@ -2471,6 +2487,12 @@ void setpriv(int cl, int wants, char *pwd, bool force){
 void disconnect_client(int n, int reason){
 	if(!clients.inrange(n) || clients[n]->type!=ST_TCPIP) return;
 	sdropflag(n);
+	/*
+	loopv(sknives) if(sknives[i].owner == n){
+		sendf(-1, 1, "ri2", N_REMOVEKNIFE, sknives[n].id);
+		sknives.remove(i--);
+	}
+	*/
 	client &c = *clients[n];
 	if(c.state.ownernum >= 0){
 		deleteai(c);
@@ -2911,9 +2933,13 @@ void checkmove(client &cp){
 		else if(m_ktf && f.state == CTFF_INBASE) flagaction(i, FA_PICKUP, sender);
 	}
 	// throwing knife pickup
-	if(!cs.ammo[GUN_KNIFE] && (cs.knifemillis + KNIFETTL < servmillis || cs.knifepos.dist(cs.o) < 5)){
-		cs.ammo[GUN_KNIFE]++;
-		sendf(-1, 1, "ri5", N_RELOAD, sender, GUN_KNIFE, cs.mag[GUN_KNIFE], cs.ammo[GUN_KNIFE]);
+	loopv(sknives){
+		const bool pickup = cs.o.dist(sknives[i].o) < 5, expired = gamemillis - sknives[i].millis > KNIFETTL;
+		if(pickup || expired){
+			if(pickup) sendf(-1, 1, "ri5", N_RELOAD, sender, GUN_KNIFE, cs.mag[GUN_KNIFE], ++cs.ammo[GUN_KNIFE]);
+			sendf(-1, 1, "ri2", N_KNIFEREMOVE, sknives[i].id);
+			sknives.remove(i--);
+		}
 	}
 }
 

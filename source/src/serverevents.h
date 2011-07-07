@@ -60,8 +60,9 @@ void processevent(client &c, projevent &e){
 			}
 
 			sendhit(c, GUN_KNIFE, e.o);
-			gs.knifepos = vec(e.o);
-			gs.knifemillis = servmillis;
+			sknife &k = sknives.add();
+			k.millis = gamemillis;
+			sendf(-1, 1, "ri2f3", N_KNIFEADD, (k.id = sknifeid++), (k.o.x = e.o[0]), (k.o.y = e.o[1]), (k.o.z = e.o[2]));
 			break;
 		}
 
