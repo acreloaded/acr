@@ -256,7 +256,7 @@ extern void clearminimap();
 extern void rendercursor(int x, int y, int w);
 extern void renderaboveheadicon(playerent *p);
 enum { WP_KNIFE = 0, WP_KILL, WP_ESCORT, WP_GRAB, WP_ENEMY, WP_FRIENDLY, WP_STOLEN, WP_RETURN, WP_NUM };
-extern void renderwaypoint(int wp, const vec &o, bool realpos = false);
+extern void renderwaypoint(int wp, const vec &o, float alpha = 1);
 
 extern void drawscope();
 extern float dynfov();

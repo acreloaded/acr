@@ -337,6 +337,9 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c){
 VARP(aboveheadiconsize, 0, 50, 100);
 VARP(aboveheadiconfadetime, 1, 2000, 10000);
 
+VARP(waypointsize, 0, 50, 100);
+VARP(waypointknifesize, 0, 25, 100);
+
 void renderaboveheadicon(playerent *p){
 	static Texture **texs = geteventicons();
 	loopv(p->icons){
@@ -383,19 +386,24 @@ void load_waypointtex(){
 	}
 }
 
-void renderwaypoint(int wp, const vec &o, bool realpos){
+void renderwaypoint(int wp, const vec &o, float alpha){
 	if(!waypointtex[wp]){
 		load_waypointtex();
 		if(!waypointtex[wp]) return;
 	}
 	glPushMatrix();
-	if(!realpos) glDisable(GL_DEPTH_TEST);
+	glDisable(GL_DEPTH_TEST);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
 	glTranslatef(o.x, o.y, o.z);
 	glRotatef(camera1->yaw-180, 0, 0, 1);
-	glColor4f(1, 1, 1, .8f);
-	float s = aboveheadiconsize/40.0f;
+	if(alpha == 2){
+		vec v(o), s;
+		v.sub(camera1->o).normalize();
+		alpha = raycube(camera1->o, v, s) < camera1->o.dist(o) ? .4f : .8f;
+	}
+	glColor4f(1, 1, 1, alpha);
+	const float dist = sqrtf(o.dist(camera1->o)), s = (wp==WP_KNIFE?waypointknifesize:aboveheadiconsize)/100.0f*dist;
     quad(waypointtex[wp]->id, vec(s/2.0f, 0.0f, s), vec(s/-2.0f, 0.0f, 0.0f), 0.0f, 0.0f, 1.0f, 1.0f);
 	/*
 		float s = aboveheadiconsize/75.0f*scalef, offset =  (lastmillis - icon.millis) * 2.f / aboveheadiconfadetime, anim = lastmillis / 100 % (h * 2);
@@ -404,7 +412,7 @@ void renderwaypoint(int wp, const vec &o, bool realpos){
 		quad(tex->id, vec(s, 0, s*2/aspect + offset), vec(-s, 0, 0.0f + offset), 0.0f, anim, 1.0f, 1.f/h);
 	*/
 	glDisable(GL_BLEND);
-	if(!realpos) glEnable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST);
 	glPopMatrix();
 }
 
@@ -1007,7 +1015,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps){
 
 	startmodelbatches();
 	renderbounceents();
-	loopv(knives) renderwaypoint(WP_KNIFE, knives[i].o, true);
+	loopv(knives) renderwaypoint(WP_KNIFE, knives[i].o, 2);
 	endmodelbatches();
 
 	// Added by Rick: Need todo here because of drawing the waypoints
