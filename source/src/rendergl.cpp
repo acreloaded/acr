@@ -374,7 +374,10 @@ static Texture *waypointtex[WP_NUM];
 
 void load_waypointtex(){
 	loopi(WP_NUM){
-		const char *waypointtexname[WP_NUM] = {"knife"};
+		const char *waypointtexname[WP_NUM] = {
+			"knife", "kill", "escort",
+			"grab", "enemy", "friendly", "stolen", "return" // CTF only
+		};
 		s_sprintfd(tname)("packages/misc/waypoints/%s.png", waypointtexname[i]);
 		waypointtex[i] = textureload(tname);
 	}
