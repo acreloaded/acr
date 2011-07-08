@@ -1004,7 +1004,7 @@ knifeent::knifeent(playerent *owner, int millis){
 	aboveeye = .7f;
 	eyeheight = .3f;
 	yaw = owner->yaw+180;
-	pitch = -owner->pitch;
+	pitch = 75-owner->pitch;
 	roll = owner->roll;
 	rotspeed = 0;
 }
