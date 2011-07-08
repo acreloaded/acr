@@ -866,9 +866,12 @@ bool subgun::selectable() { return weapon::selectable() && !m_noprimary && this 
 wavegun::wavegun(playerent *owner) : gun(owner, GUN_WAVE) {}
 bool wavegun::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 
-void wavegun::attackfx(const vec &from, const vec &to, int millis){
+void wavegun::attackfx(const vec &from2, const vec &to, int millis){
+	vec from(from2);
+	from.z -= WEAPONBELOWEYE;
+	addbullethole(owner, from, to);
 	particle_splash(0, 50, 200, to);
-	attacksound();
+	//attacksound();
 }
 
 // scopedprimary
