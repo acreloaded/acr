@@ -654,6 +654,15 @@ void grenades::attackhit(const vec &o){
 	addscorchmark(o);
 	adddynlight(NULL, o, 16, 200, 100, 255, 255, 224);
 	adddynlight(NULL, o, 16, 600, 600, 192, 160, 128);
+	extern int shotlinettl;
+	extern void newparticle(const vec &o, const vec &d, int fade, int type);
+	if(shotlinettl) loopi(8) loopj(8) loopk(8){
+		vec t(i/4.f-1, j/4.f-1, k/4.f-1);
+		t.add(o);
+		traceShot(o, t);
+		//addshotline(owner, o, t);
+		newparticle(o, t, shotlinettl, 6);
+	}
 	//if(gamefocus->state == CS_ALIVE && gamefocus->o.dist(o) < 30.f) flashme(gamefocus->o.dist(o));
 }
 
