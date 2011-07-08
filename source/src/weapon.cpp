@@ -366,7 +366,7 @@ bool weapon::modelattacking(){
 void weapon::attacksound(){
 	if(info.sound == S_NULL) return;
 	bool local = (owner == player1);
-	if(reloadable_gun(type)){ // it's "loud" if you can reload it
+	if(reloadable_gun(type) && type != GUN_HEAL && type != GUN_WAVE){ // it's "loud" if you can reload it
 		owner->radarmillis = lastmillis;
 		owner->lastloudpos[0] = owner->o.x;
 		owner->lastloudpos[1] = owner->o.y;
@@ -474,6 +474,7 @@ void weapon::equipplayer(playerent *pl){
 	pl->weapons[GUN_SUBGUN] = new subgun(pl);
 	pl->weapons[GUN_AKIMBO] = new akimbo(pl);
 	pl->weapons[GUN_HEAL] = new heal(pl);
+	pl->weapons[GUN_WAVE] = new wavegun(pl);
 	pl->selectweapon(GUN_ASSAULT);
 	pl->setprimary(GUN_ASSAULT);
 	pl->setnextprimary(GUN_ASSAULT);
@@ -859,6 +860,16 @@ void shotgun::checkautoreload() {
 
 subgun::subgun(playerent *owner) : gun(owner, GUN_SUBGUN) {}
 bool subgun::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
+
+// wavegun
+
+wavegun::wavegun(playerent *owner) : gun(owner, GUN_WAVE) {}
+bool wavegun::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
+
+void wavegun::attackfx(const vec &from, const vec &to, int millis){
+	particle_splash(0, 50, 200, to);
+	attacksound();
+}
 
 // scopedprimary
 scopedprimary::scopedprimary(playerent *owner, int type) : gun(owner, type) {}
