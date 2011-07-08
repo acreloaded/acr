@@ -129,6 +129,7 @@ void renderentities()
 			}
 		}
 	}
+	const int teamfix = player1->team == TEAM_SPECT ? TEAM_RED : player1->team;
 	if(m_flags) loopi(2)
 	{
 		flaginfo &f = flaginfos[i];
@@ -138,20 +139,25 @@ void renderentities()
 		switch(f.state)
 		{
 			case CTFF_STOLEN:
+			{
 				if(f.actor == player1) break;
 				if(OUTBORD(f.actor->o.x, f.actor->o.y)) break;
-				rendermodel(sfpath, ANIM_FLAG|ANIM_START|ANIM_DYNALLOC, 0, 0, vec(f.actor->o).add(vec(0, 0, 0.3f+(sinf(lastmillis/100.0f)+1)/10)), lastmillis/2.5f, 0, 120.0f);
+				vec flagpos(f.actor->o);
+				flagpos.add(vec(0, 0, 0.3f+(sinf(lastmillis/100.0f)+1)/10));
+				renderwaypoint((m_team && i == teamfix) ? WP_ESCORT : WP_KILL, flagpos, .9f);
+				rendermodel(sfpath, ANIM_FLAG|ANIM_START|ANIM_DYNALLOC, 0, 0, flagpos, lastmillis/2.5f, 0, 120.0f);
 				break;
+			}
 			case CTFF_DROPPED:
 				if(OUTBORD(f.pos.x, f.pos.y)) break;
-				rendermodel(fpath, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(f.pos.x, f.pos.y, f.pos.z), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
+				renderwaypoint(m_team && i == teamfix ? WP_RETURN : WP_ENEMY, f.pos);
+				rendermodel(fpath, ANIM_FLAG|ANIM_LOOP, 0, 0, f.pos, (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
 				break;
-			/*
 			case CTFF_INBASE:
+				renderwaypoint(m_team && i == teamfix ? WP_FRIENDLY : WP_GRAB, f.pos);
 			case CTFF_IDLE:
 			default:
 				break;
-			*/
 		}
 		if(!OUTBORD(e.x, e.y) && numflagspawn[i])
 		rendermodel(fpath, ANIM_FLAG|ANIM_LOOP|(f.state == CTFF_INBASE ? 0 : ANIM_TRANSLUCENT), 0, 0, vec(e.x, e.y, (float)S(int(e.x), int(e.y))->floor), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
