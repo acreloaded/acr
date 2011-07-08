@@ -662,6 +662,7 @@ void grenades::attackhit(const vec &o){
 		traceShot(o, t);
 		//addshotline(owner, o, t);
 		newparticle(o, t, shotlinettl, 6);
+		particle_splash(0, 8, 250, t);
 	}
 	//if(gamefocus->state == CS_ALIVE && gamefocus->o.dist(o) < 30.f) flashme(gamefocus->o.dist(o));
 }
