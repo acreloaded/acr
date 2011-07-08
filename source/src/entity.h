@@ -86,7 +86,7 @@ static itemstat powerupstats[] =
 #define GIBBLOODMUL 1.5f
 
 // define the "powerful" arsenal
-#define POWERGUN(gun) (gun == GUN_SNIPER || gun == GUN_BOLT || gun == GUN_KNIFE || gun == GUN_WAVE)
+#define POWERGUN(gun) (gun == GUN_SNIPER || gun == GUN_BOLT || gun == GUN_KNIFE)
 
 // powerful multipliers
 #define POWHEADMUL 5
