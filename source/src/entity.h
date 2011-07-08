@@ -52,15 +52,17 @@ struct entity : public persistent_entity
 struct itemstat { short add, start, max, sound; };
 static itemstat ammostats[] =
 {
-	{1,  1,   1,	S_ITEMAMMO},   // knife dummy
-	{24, 60,  72,	S_ITEMAMMO},   // pistol
-	{21, 28,  42,	S_ITEMAMMO},   // shotgun
-	{96, 128,  192,	S_ITEMAMMO},   // subgun
-	{30, 40,  80,	S_ITEMAMMO},   // sniper
-	{16, 24,  32,	S_ITEMAMMO},   // bolt sniper
-	{90, 120,  180,	S_ITEMAMMO},   // assault
-	{1,  1,   3,	S_ITEMAMMO},   // grenade
-	{96, 0,   144,	S_ITEMAKIMBO}  // akimbo
+	{1,  1,   1,	S_ITEMAMMO },   // knife dummy
+	{24, 60,  72,	S_ITEMAMMO },   // pistol
+	{21, 28,  42,	S_ITEMAMMO },   // shotgun
+	{96, 128,  192,	S_ITEMAMMO },   // subgun
+	{30, 40,  80,	S_ITEMAMMO },   // sniper
+	{16, 24,  32,	S_ITEMAMMO },   // bolt sniper
+	{90, 120,  180,	S_ITEMAMMO },   // assault
+	{1,  1,   3,	S_ITEMAMMO },   // grenade
+	{96, 0,   144,	S_ITEMAKIMBO },  // akimbo
+	{1,  1,   1,	S_ITEMAMMO },   // heal dummy
+	{100, 100, 200, S_ITEMAMMO }, // wave gun
 };
 
 static itemstat powerupstats[] =
@@ -81,15 +83,20 @@ static itemstat powerupstats[] =
 #define NADETTL 2500
 #define KNIFEPOWER 6
 #define KNIFETTL 30000
-
-#define POWERGUN(gun) (gun == GUN_SNIPER || gun == GUN_BOLT || gun == GUN_KNIFE)
-#define DAMHEADMUL 3.5f
-#define POWHEADMUL 5
-//#define DAMTORSOMUL 1
-#define POWTORSOMUL 1.1f
-#define DAMLEGMUL .67f
-//#define POWLEGMUL 1
 #define GIBBLOODMUL 1.5f
+
+// define the "powerful" arsenal
+#define POWERGUN(gun) (gun == GUN_SNIPER || gun == GUN_BOLT || gun == GUN_KNIFE || gun == GUN_WAVE)
+
+// powerful multipliers
+#define POWHEADMUL 5
+#define POWTORSOMUL 1.1f
+//#define POWLEGMUL 1
+
+// other multipliers
+#define DAMHEADMUL 3.5f
+//#define DAMTORSOMUL 1
+#define DAMLEGMUL .67f
 
 struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, range, endrange, rangeminus, projspeed, part, spread, kick, magsize, mdl_kick_rot, mdl_kick_back, recoil, maxrecoil, recoilangle, pushfactor; bool isauto; };
 static guninfo guns[NUMGUNS] =
@@ -105,7 +112,7 @@ static guninfo guns[NUMGUNS] =
 	{ "grenade",    S_NULL,     S_NULL,     1000,   650,   350,    0,   32,  350,  20,   6,  1,    1,    1,   3,  1,     0,    0,       0, 4,   false},
 	{ "pistol",     S_PISTOL,   S_RAKIMBO,  1400,   80,     40,   45,  160,   20,   0,   0, 56,    8,   24,   6,  2,    28,    48,     70, 2,   true },
 	{ "knife",      S_KNIFE,    S_NULL,        0,   500,    80,    3,    4,   60,   0,   0,  1,    1,   1,    0,  0,     0,    0,       0, 5,   true },
-	{ "assault",    S_ASSAULT,  S_RASSAULT, 2100,   73,     32,   40,  100,   12,   0,   0, 60,    3,   30,   0,  3,    24,    38,     60, 1,   true },
+	{ "wave",       S_NULL,     S_RASSAULT, 2500,   40,      9,   60,   80,    4,   0,   0,168,    2,  100,   0,  2,     6,    9,      10, 0,   true },
 };
 
 static inline ushort reloadtime(int gun) { return guns[gun].reloadtime; }
