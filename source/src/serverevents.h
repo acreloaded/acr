@@ -156,7 +156,7 @@ void processevent(client &c, shotevent &e)
 				clientstate &ts = t.state;
 				// basic checks
 				if(t.type == ST_EMPTY || ts.state != CS_ALIVE || &c == &t) continue;
-				vec head(0, 0, 0), end(gs.o);
+				vec head(ts.o), end(gs.o);
 				loopvj(heads) if(heads[j].cn == i){
 					head.x = heads[j].o[0];
 					head.y = heads[j].o[1];
