@@ -118,7 +118,7 @@ void processevent(client &c, shotevent &e)
 	}
 	else{
 		// apply normal ray spread
-		const int spread = guns[e.gun].spread * (gs.vel.magnitude() / 3.f + gs.pitchvel / 5.f + 0.4f) * 2.4f * crouchfactor * adsfactor;
+		const int spread = guns[e.gun].spread * (gs.vel.magnitude() / 3.f + gs.pitchvel / 5.f + 0.4f) * 1.2f * crouchfactor * adsfactor;
 		applyspread(gs.o, to, spread, spreadf);
 	}
 	putint(p, e.compact ? N_SHOOTC : N_SHOOT);
