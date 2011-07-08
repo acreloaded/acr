@@ -336,7 +336,7 @@ void weapon::sendshoot(vec &from, vec &to){
 	// add potential heads...
 	loopv(players){
 		playerent *p = players[i];
-		if(!p || p->state != CS_ALIVE || p == owner) continue;
+		if(!p || p->state != CS_ALIVE || p == owner || p->head.x < 0) continue;
 		vec headoffset(p->head);
 		headoffset.sub(p->o);
 		vec4 &h = heads.add();
