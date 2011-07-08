@@ -1095,3 +1095,38 @@ void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, 
 	SDL_GL_SwapBuffers();
 }
 
+void renderhudwaypoints(){
+	const int teamfix = player1->team == TEAM_SPECT ? TEAM_RED : player1->team;
+	if(m_flags) loopi(2){
+		float a = 1;
+		int wp = -1;
+		vec o;
+
+		flaginfo &f = flaginfos[i];
+		entity &e = *f.flagent;
+		switch(f.state)
+		{
+			case CTFF_STOLEN:
+				if(f.actor == player1) break;
+				if(OUTBORD(f.actor->o.x, f.actor->o.y)) break;
+				o = f.actor->head;
+				wp = m_team && f.actor->team == teamfix ? WP_ESCORT : WP_KILL;
+				break;
+			case CTFF_DROPPED:
+				if(OUTBORD(f.pos.x, f.pos.y)) break;
+				o = f.pos;
+				//o.z += PLAYERHEIGHT;
+				o.z = (float)S(int(e.x), int(e.y))->floor + PLAYERHEIGHT;
+				wp = WP_RETURN;
+				break;
+			case CTFF_INBASE:
+				wp = WP_GRAB;
+			case CTFF_IDLE:
+				if(f.state == CTFF_IDLE) wp = WP_STOLEN;
+			default:
+				o = vec(e.x, e.y, (float)S(int(e.x), int(e.y))->floor + PLAYERHEIGHT);
+				break;
+		}
+		if(wp >= 0 && wp < WP_NUM) renderwaypoint(wp, o, a);
+	}
+}

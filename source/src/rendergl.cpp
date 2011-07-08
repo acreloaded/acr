@@ -1009,6 +1009,8 @@ void gl_drawframe(int w, int h, float changelod, float curfps){
 	renderentities();
 	endmodelbatches();
 
+	renderhudwaypoints();
+
 	readdepth(w, h, worldpos);
 
 	startmodelbatches();
