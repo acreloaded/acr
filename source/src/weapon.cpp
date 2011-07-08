@@ -1201,17 +1201,6 @@ void knife::attackhit(const vec &o){
 }
 void knife::renderstats() { draw_textf("%i", 590, 823, ammo); }
 
-// purgeknives
-void playerent::purgeknives(){
-	loopv(bounceents){
-		bounceent *b = bounceents[i];
-		if(!b || b->owner != this || b->bouncetype != BT_KNIFE) continue;
-		b->destroy();
-		delete b;
-		bounceents.remove(i--);
-	}
-}
-
 // setscope for snipers and iron sights
 void setscope(bool enable){
 	if(!player1->state == CS_ALIVE) return;
