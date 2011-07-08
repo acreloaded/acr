@@ -256,21 +256,9 @@ void setspawn(int i, bool on) { if(ents.inrange(i)) ents[i].spawned = on; }
 
 bool selectnextprimary(int num)
 {
-	switch(num)
-	{
-		case GUN_SHOTGUN:
-		case GUN_SUBGUN:
-		case GUN_SNIPER:
-		case GUN_BOLT:
-		case GUN_ASSAULT:
-			player1->setnextprimary(num);
-			addmsg(N_PRIMARYWEAP, "ri", player1->nextprimweap->type);
-			return true;
-
-		default:
-			conoutf("this is not a valid primary weapon");
-			return false;
-	}
+	player1->setnextprimary(num);
+	addmsg(N_PRIMARYWEAP, "ri", player1->nextprimweap->type);
+	return true;
 }
 
 VARFP(nextprimary, 0, GUN_ASSAULT, NUMGUNS,

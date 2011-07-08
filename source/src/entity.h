@@ -426,6 +426,7 @@ struct playerstate
 		loopi(NUMGUNS) ammo[i] = mag[i] = gunwait[i] = 0;
 		ammo[GUN_KNIFE] = 2;
 		mag[GUN_KNIFE] = 1;
+		//mag[GUN_HEAL] = 20;
 	}
 
 	virtual void spawnstate(int gamemode)
@@ -434,6 +435,8 @@ struct playerstate
 		else if(m_osok) primary = GUN_SNIPER;
 		else if(m_lss) primary = GUN_KNIFE;
 		else primary = nextprimary;
+
+		if(primary == GUN_GRENADE || primary == GUN_AKIMBO || primary == GUN_HEAL) primary = GUN_ASSAULT;
 
 		if(!m_nopistol){
 			ammo[GUN_PISTOL] = ammostats[GUN_PISTOL].start-magsize(GUN_PISTOL);
