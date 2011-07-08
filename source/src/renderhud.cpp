@@ -1110,13 +1110,13 @@ void renderhudwaypoints(){
 				if(f.actor == player1) break;
 				if(OUTBORD(f.actor->o.x, f.actor->o.y)) break;
 				o = f.actor->head;
+				if(o.x < 0) o = f.actor->o;
 				wp = m_team && f.actor->team == teamfix ? m_ctf ? WP_ESCORT : WP_DEFEND : WP_KILL;
 				break;
 			case CTFF_DROPPED:
 				if(OUTBORD(f.pos.x, f.pos.y)) break;
 				o = f.pos;
-				//o.z += PLAYERHEIGHT;
-				o.z = (float)S(int(e.x), int(e.y))->floor + PLAYERHEIGHT;
+				o.z += PLAYERHEIGHT;
 				wp = i == teamfix ? m_ctf ? WP_RETURN : WP_FRIENDLY : m_ctf ? WP_ENEMY : WP_GRAB;
 				break;
 			case CTFF_INBASE:
@@ -1127,6 +1127,7 @@ void renderhudwaypoints(){
 				o = vec(e.x, e.y, (float)S(int(e.x), int(e.y))->floor + PLAYERHEIGHT);
 				break;
 		}
+		o.z += PLAYERABOVEEYE;
 		if(wp >= 0 && wp < WP_NUM) renderwaypoint(wp, o, a);
 	}
 }
