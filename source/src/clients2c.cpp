@@ -261,6 +261,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				loopi(n){
 					cknife &k = knives.add();
 					k.id = getint(p);
+					k.millis = totalmillis + getint(p);
 					loopi(3) k.o[i] = getfloat(p);
 				}
 				break;
@@ -270,6 +271,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				cknife &k = knives.add();
 				k.id = getint(p);
+				k.millis = totalmillis + KNIFETTL;
 				loopi(3) k.o[i] = getfloat(p);
 				break;
 			}

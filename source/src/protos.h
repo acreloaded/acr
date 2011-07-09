@@ -862,7 +862,7 @@ extern void saytext(playerent *d, char *text, int flags, int sound);
 extern vec *hudEject(playerent *p, bool akimboflip);
 
 struct cknife{
-	int id;
+	int id, millis;
 	vec o;
 };
 

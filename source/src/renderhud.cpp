@@ -1096,7 +1096,14 @@ void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, 
 }
 
 void renderhudwaypoints(){
-	const int teamfix = player1->team == TEAM_SPECT ? TEAM_RED : player1->team;
+	loopv(knives){
+		vec v(knives[i].o), s;
+		v.sub(camera1->o).normalize();
+		float a = raycube(camera1->o, v, s) < camera1->o.dist(knives[i].o) ? .4f : .8f;
+		a *= (float)(knives[i].millis - totalmillis) / KNIFETTL;
+		renderwaypoint(WP_KNIFE, knives[i].o, a);
+	}
+	const int teamfix = gamefocus->team == TEAM_SPECT ? TEAM_RED : gamefocus->team;
 	if(m_flags) loopi(2){
 		float a = 1;
 		int wp = -1;

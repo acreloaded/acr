@@ -2206,6 +2206,7 @@ inline void putmap(ucharbuf &p){
 	putint(p, sknives.length());
 	loopv(sknives){
 		putint(p, sknives[i].id);
+		putint(p, KNIFETTL+sknives[i].millis-gamemillis);
 		putfloat(p, sknives[i].o.x);
 		putfloat(p, sknives[i].o.y);
 		putfloat(p, sknives[i].o.z);

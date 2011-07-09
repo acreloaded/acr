@@ -399,11 +399,6 @@ void renderwaypoint(int wp, const vec &o, float alpha){
 	glRotatef(camera1->yaw-180, 0, 0, 1);
 	glRotatef(camera1->pitch, 1, 0, 0);
 	glRotatef(camera1->roll, 0, -1, 0);
-	if(alpha == 2){
-		vec v(o), s;
-		v.sub(camera1->o).normalize();
-		alpha = raycube(camera1->o, v, s) < camera1->o.dist(o) ? .4f : .8f;
-	}
 	glColor4f(1, 1, 1, alpha);
 	const float dist = sqrtf(o.dist(camera1->o)), s = (wp==WP_KNIFE?waypointknifesize:waypointsize)/100.0f*dist;
     quad(waypointtex[wp]->id, vec(s/2.0f, 0.0f, s), vec(s/-2.0f, 0.0f, 0.0f), 0.0f, 0.0f, 1.0f, 1.0f);
@@ -1019,7 +1014,6 @@ void gl_drawframe(int w, int h, float changelod, float curfps){
 
 	startmodelbatches();
 	renderbounceents();
-	loopv(knives) renderwaypoint(WP_KNIFE, knives[i].o, 2);
 	endmodelbatches();
 
 	// Added by Rick: Need todo here because of drawing the waypoints
