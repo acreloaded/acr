@@ -444,7 +444,7 @@ struct playerstate
 		else if(m_lss) primary = GUN_KNIFE;
 		else primary = nextprimary;
 
-		if(primary == GUN_GRENADE || primary == GUN_AKIMBO || primary == GUN_HEAL) primary = GUN_ASSAULT;
+		if(primary == GUN_GRENADE || primary == GUN_AKIMBO || primary == GUN_HEAL || primary < 0 || primary >= NUMGUNS) primary = GUN_ASSAULT;
 
 		if(!m_nopistol){
 			ammo[GUN_PISTOL] = ammostats[GUN_PISTOL].start-magsize(GUN_PISTOL);
