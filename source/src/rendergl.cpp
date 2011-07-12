@@ -376,11 +376,11 @@ void renderaboveheadicon(playerent *p){
 static Texture *waypointtex[WP_NUM];
 
 void load_waypointtex(){
+	const char *waypointtexname[WP_NUM] = {
+		"knife", "exp", "kill", "escort", "defend",
+		"grab", "enemy", "friendly", "stolen", "return", // mostly CTF
+	};
 	loopi(WP_NUM){
-		const char *waypointtexname[WP_NUM] = {
-			"knife", "kill", "escort", "defend",
-			"grab", "enemy", "friendly", "stolen", "return" // mostly CTF
-		};
 		s_sprintfd(tname)("packages/misc/waypoints/%s.png", waypointtexname[i]);
 		waypointtex[i] = textureload(tname);
 	}
