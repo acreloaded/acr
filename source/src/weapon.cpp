@@ -649,15 +649,13 @@ void flashme(float dist){
 }
 COMMAND(flashme, ARG_NONE);
 
-void grenades::attackhit(const vec &o){
+void explosioneffect(const vec &o){
 	particle_splash(0, 50, 300, o);
-	particle_fireball(5, o, owner);
-	addscorchmark(o);
 	adddynlight(NULL, o, 16, 200, 100, 255, 255, 224);
 	adddynlight(NULL, o, 16, 600, 600, 192, 160, 128);
-	extern int shotlinettl;
+	extern int shotline, shotlinettl;
 	extern void newparticle(const vec &o, const vec &d, int fade, int type);
-	if(shotlinettl) loopi(8) loopj(8) loopk(8){
+	if(shotline && shotlinettl) loopi(8) loopj(8) loopk(8){
 		vec t(i/4.f-1, j/4.f-1, k/4.f-1);
 		t.add(o);
 		traceShot(o, t);
@@ -665,6 +663,12 @@ void grenades::attackhit(const vec &o){
 		newparticle(o, t, shotlinettl, 6);
 		particle_splash(0, 8, 250, t);
 	}
+}
+
+void grenades::attackhit(const vec &o){
+	particle_fireball(5, o, owner);
+	addscorchmark(o);
+	explosioneffect(o);
 	//if(gamefocus->state == CS_ALIVE && gamefocus->o.dist(o) < 30.f) flashme(gamefocus->o.dist(o));
 }
 
@@ -895,8 +899,19 @@ vector<cstick> sticks;
 crossbow::crossbow(playerent *owner) : gun(owner, GUN_BOW) {}
 bool crossbow::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 
+void crossbow::attackfx(const vec &from2, const vec &too, int millis){
+	vec from(from2), to(too);
+	traceShot(from, to);
+	from.z -= WEAPONBELOWEYE;
+
+	addshotline(owner, from, to);
+	particle_splash(0, 5, 250, to);
+	attacksound();
+}
+
 void crossbow::attackhit(const vec &o){
-	particle_splash(0, 5, 250, o);
+	particle_fireball(5, o, owner);
+	explosioneffect(o);
 }
 
 // scopedprimary
