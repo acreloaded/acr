@@ -393,6 +393,7 @@ void renderwaypoint(int wp, const vec &o, float alpha){
 	}
 	glPushMatrix();
 	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_FOG);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
 	glTranslatef(o.x, o.y, o.z);
@@ -409,6 +410,7 @@ void renderwaypoint(int wp, const vec &o, float alpha){
 		quad(tex->id, vec(s, 0, s*2/aspect + offset), vec(-s, 0, 0.0f + offset), 0.0f, anim, 1.0f, 1.f/h);
 	*/
 	glDisable(GL_BLEND);
+	glEnable(GL_FOG);
 	glEnable(GL_DEPTH_TEST);
 	glPopMatrix();
 }
