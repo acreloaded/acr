@@ -138,6 +138,7 @@ void processevent(client &c, shotevent &e)
 	if(e.gun == GUN_SHOTGUN){
 		loopi(SGRAYS) gs.shotdamage += effectiveDamage(e.gun, vec(gs.sg[i]).dist(gs.o), DAMAGESCALE);
 	}
+	else if(e.gun == GUN_BOW) gs.shotdamage += 250; // 1 explosion + 1 stick
 	else gs.shotdamage += effectiveDamage(e.gun, to.dist(gs.o), DAMAGESCALE);
 	switch(e.gun){
 		case GUN_GRENADE: gs.grenades.add(e.id); break;
@@ -149,6 +150,25 @@ void processevent(client &c, shotevent &e)
 				}
 				break;
 			}
+		case GUN_BOW:
+		{
+			//vec o(e.to);
+			//checkpos(o);
+			sendhit(c, GUN_GRENADE, to.v);
+			loopv(clients){
+				client &target = *clients[i];
+				if(target.type == ST_EMPTY || target.state.state != CS_ALIVE) continue;
+				float dist = target.state.o.dist(to);
+				if(dist >= guns[e.gun].endrange) continue;
+				vec ray(target.state.o);
+				ray.sub(to).normalize();
+				if(sraycube(to, ray) < dist) continue;
+				ushort dmg = effectiveDamage(e.gun, dist, DAMAGESCALE, true);
+				gs.damage += dmg;
+				serverdamage(&target, &c, dmg, e.gun, FRAG_GIB, to);
+			}
+			break;
+		}
 		default:
 		{
 			loopv(clients){ 
