@@ -754,11 +754,14 @@ bool gun::attack(vec &targ){
 	updatelastaction(owner);
 	if(!mag)
 	{
-		playsoundc(S_NOAMMO);
+		
 		gunwait += 250;
 		owner->lastattackweapon = NULL;
 		shots = 0;
-		checkautoreload();
+		if(!checkautoreload()){
+			if(!m_nopistol && owner->weapons[GUN_PISTOL]->mag || owner->weapons[GUN_PISTOL]->ammo) selectweapon(owner->weapons[GUN_PISTOL]);
+			else playsoundc(S_NOAMMO);
+		}
 		return false;
 	}
 
@@ -825,7 +828,7 @@ void gun::attackfx(const vec &from2, const vec &too, int millis){
 }
 
 int gun::modelanim() { return modelattacking() ? ANIM_GUN_SHOOT|ANIM_LOOP : ANIM_GUN_IDLE; }
-void gun::checkautoreload() { if(autoreload && owner==player1 && !mag && ammo) tryreload(owner); }
+bool gun::checkautoreload() { if(autoreload && owner==player1 && !mag && ammo) { tryreload(owner); return true; } return false; }
 
 
 // shotgun
@@ -860,11 +863,12 @@ bool shotgun::reload(){
 	return true;
 }
 
-void shotgun::checkautoreload() {
-	if(owner != player1 || !autoreload) return;
+bool shotgun::checkautoreload() {
+	if(owner != player1 || !autoreload) return false;
 	if(!mag && ammo) autoreloading = true;
 	if(autoreloading) tryreload(owner);
-	else gun::checkautoreload();
+	else return gun::checkautoreload();
+	return true;
 }
 
 // subgun
