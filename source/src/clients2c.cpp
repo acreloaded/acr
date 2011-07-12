@@ -283,6 +283,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
+			case N_BLEED:
+			{
+				playerent *d = getclient(getint(p));
+				if(d) d->addicon(eventicon::BLEED);
+				break;
+			}
+
 			case N_STICK:
 			{
 				int cn = getint(p);
