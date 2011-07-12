@@ -185,7 +185,10 @@ void processevent(client &c, shotevent &e)
 			int cn = -1;
 			float dist = 4e6f; // 1 million meters should be enough for a "stick"
 			// TODO: add check for crossbow stick
-			if(cn >= 0) sendf(-1, 1, "ri2", N_STICK, cn);
+			if(cn >= 0){
+				if(!m_expert) serverdamage(clients[cn], &c, 50, GUN_BOW, FRAG_NONE, clients[cn]->state.o);
+				sendf(-1, 1, "ri2", N_STICK, cn);
+			}
 			else sendf(-1, 1, "ri2f3", N_STICK, -1, to.x, to.y, to.z);
 			// timed explosion
 			gameevent &exp = c.addevent();
