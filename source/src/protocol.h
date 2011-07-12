@@ -27,7 +27,7 @@ enum{
 	// game events
 	N_SHOOT, N_SHOOTC, N_PROJ, N_AKIMBO, N_RELOAD, // clients to server events
 	N_SG, N_SCOPE, N_SUICIDE, N_QUICKSWITCH, N_SWITCHWEAP, N_PRIMARYWEAP, N_THROWNADE, N_THROWKNIFE, // server directly handled
-	N_POINTS, N_KILL, N_DAMAGE, N_REGEN, N_PROJPUSH, N_KNIFEADD, N_KNIFEREMOVE, // server to client
+	N_POINTS, N_KILL, N_DAMAGE, N_REGEN, N_PROJPUSH, N_KNIFEADD, N_KNIFEREMOVE, N_STICK, // server to client
 	// gameplay
 	N_TRYSPAWN, N_SPAWNSTATE, N_SPAWN, N_FORCEDEATH, N_FORCEGIB, // spawning
 	N_HACKFAIL, // dedicated to those cheaters

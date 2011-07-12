@@ -890,6 +890,8 @@ void wavegun::attackfx(const vec &from2, const vec &to, int millis){
 
 // crossbow
 
+vector<cstick> sticks;
+
 crossbow::crossbow(playerent *owner) : gun(owner, GUN_BOW) {}
 bool crossbow::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 

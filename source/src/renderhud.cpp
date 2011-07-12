@@ -1098,6 +1098,14 @@ void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, 
 void renderhudwaypoints(){
 	// throwing knife pickups
 	loopv(knives) renderwaypoint(WP_KNIFE, knives[i].o, (float)(knives[i].millis - totalmillis) / KNIFETTL);
+	// pending stuck crossbow shots
+	loopv(sticks){
+		if(sticks[i].millis < totalmillis) sticks.remove(i--);
+		else{
+			playerent *stuck = getclient(sticks[i].cn);
+			renderwaypoint(WP_EXP, stuck ? stuck->head.x >= 0 ? stuck->head : stuck->o : sticks[i].o);
+		}
+	}
 	// flags
 	const int teamfix = gamefocus->team == TEAM_SPECT ? TEAM_RED : gamefocus->team;
 	if(m_flags) loopi(2){

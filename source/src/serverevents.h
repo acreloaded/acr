@@ -185,11 +185,13 @@ void processevent(client &c, shotevent &e)
 			int cn = -1;
 			float dist = 4e6f; // 1 million meters should be enough for a "stick"
 			// TODO: add check for crossbow stick
+			if(cn >= 0) sendf(-1, 1, "ri2", N_STICK, cn);
+			else sendf(-1, 1, "ri2f3", N_STICK, -1, to.x, to.y, to.z);
 			// timed explosion
 			gameevent &exp = c.addevent();
 			exp.type = GE_PROJ;
 			gs.tips.add(exp.proj.id = rand());
-			exp.proj.millis = gamemillis + 1500;
+			exp.proj.millis = gamemillis + TIPSTICKTTL;
 			exp.proj.gun = GUN_BOW;
 			exp.proj.proj = cn;
 			loopi(3) exp.proj.o[i] = to[i];

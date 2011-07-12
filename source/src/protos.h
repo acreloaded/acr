@@ -867,3 +867,9 @@ struct cknife{
 };
 
 extern vector<cknife> knives;
+
+struct cstick{
+	int millis, cn;
+	vec o;
+};
+extern vector<cstick> sticks;

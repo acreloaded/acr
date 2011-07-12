@@ -283,6 +283,16 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
+			case N_STICK:
+			{
+				int cn = getint(p);
+				cstick &s = sticks.add();
+				s.cn = cn;
+				s.millis = totalmillis + TIPSTICKTTL;
+				if(cn < 0) loopi(3) s.o[i] = getfloat(p);
+				break;
+			}
+
 			case N_NEXTMAP: // server requests next map
 			{
 				getint(p);
