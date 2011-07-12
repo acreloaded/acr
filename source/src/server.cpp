@@ -128,7 +128,7 @@ struct clientstate : playerstate
 	int crouchmillis, scopemillis;
 	int drownmillis; char drownval;
 	int lastshot, lastregen;
-	projectilestate<2> grenades, knives, tips;
+	projectilestate<2> grenades, knives;
 	int akimbos, akimbomillis;
 	int points, flagscore, frags, deaths, shotdamage, damage, friendlyfire;
 
@@ -228,7 +228,7 @@ struct client				   // server side version of "dynent" type
 	int gameoffset, lastevent, lastvotecall;
 	int demoflags;
 	clientstate state;
-	vector<gameevent> events;
+	vector<gameevent> events, tips;
 	vector<uchar> position, messages;
 	string lastsaytext;
 	int saychars, lastsay, spamcount;

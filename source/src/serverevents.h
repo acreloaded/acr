@@ -60,31 +60,9 @@ void processevent(client &c, projevent &e){
 			break;
 		}
 
-		case GUN_BOW: // server only
-		{
-			if(!gs.tips.remove(e.id)) return;
-			vec o(valid_client(e.proj) ? clients[e.proj]->state.o : e.o);
-			
-			sendhit(c, GUN_BOW, o.v);
-			loopv(clients){
-				client &target = *clients[i];
-				if(target.type == ST_EMPTY || target.state.state != CS_ALIVE) continue;
-				float dist = target.state.o.dist(o);
-				if(dist >= guns[e.gun].endrange) continue;
-				vec ray(target.state.o);
-				ray.sub(o).normalize();
-				if(sraycube(o, ray) < dist) continue;
-				ushort dmg = effectiveDamage(e.gun, dist, DAMAGESCALE, true);
-				gs.damage += dmg;
-				serverdamage(&target, &c, dmg, e.gun, FRAG_GIB, o);
-			}
-			break;
-		}
-
 		default:
 			return;
 	}
-	gs.shotdamage += effectiveDamage(e.gun, 0, DAMAGESCALE, true);
 }
 
 void processevent(client &c, shotevent &e)
@@ -156,8 +134,8 @@ void processevent(client &c, shotevent &e)
 	if(e.gun == GUN_SHOTGUN){
 		loopi(SGRAYS) gs.shotdamage += effectiveDamage(e.gun, vec(gs.sg[i]).dist(gs.o), DAMAGESCALE);
 	}
-	else if(e.gun == GUN_KNIFE) gs.shotdamage += guns[e.gun].damage; // melee damage
-	else if(e.gun == GUN_BOW) gs.shotdamage += 50; // potential stick damage
+	else if(e.gun == GUN_KNIFE) gs.shotdamage += guns[GUN_KNIFE].damage; // melee damage
+	else if(e.gun == GUN_BOW) gs.shotdamage += guns[GUN_BOW].damage + 50; // potential stick damage
 	else gs.shotdamage += effectiveDamage(e.gun, to.dist(gs.o), DAMAGESCALE);
 	switch(e.gun){
 		case GUN_GRENADE: gs.grenades.add(e.id); break;
@@ -201,9 +179,9 @@ void processevent(client &c, shotevent &e)
 			if(cn >= 0) sendf(-1, 1, "ri2", N_STICK, cn);
 			else sendf(-1, 1, "ri2f3", N_STICK, -1, to.x, to.y, to.z);
 			// timed explosion
-			gameevent &exp = c.addevent();
-			exp.type = GE_PROJ;
-			gs.tips.add(exp.proj.id = rand());
+			gameevent &exp = c.tips.add();
+			//exp.type = GE_PROJ;
+			//gs.tips.add(exp.proj.id = rand());
 			exp.proj.millis = gamemillis + TIPSTICKTTL;
 			exp.proj.gun = GUN_BOW;
 			exp.proj.proj = cn;
@@ -377,6 +355,29 @@ void processevents(){
 				// untimed events are GONE!
 			}
 			clearevent(c);
+		}
+		while(c.tips.length()){
+			projevent &e = c.tips[0].proj;
+			if(e.millis>gamemillis) break;
+
+			vec o(valid_client(e.proj) ? clients[e.proj]->state.o : e.o);
+			
+			sendhit(c, GUN_BOW, o.v);
+			loopv(clients){
+				client &target = *clients[i];
+				if(target.type == ST_EMPTY || target.state.state != CS_ALIVE) continue;
+				float dist = target.state.o.dist(o);
+				if(dist >= guns[e.gun].endrange) continue;
+				vec ray(target.state.o);
+				ray.sub(o).normalize();
+				if(sraycube(o, ray) < dist) continue;
+				ushort dmg = effectiveDamage(e.gun, dist, DAMAGESCALE, true);
+				c.state.damage += dmg;
+				serverdamage(&target, &c, dmg, e.gun, FRAG_GIB, o);
+			}
+			c.state.shotdamage += effectiveDamage(e.gun, 0, DAMAGESCALE, true);
+
+			c.tips.remove(0);
 		}
 	}
 }
