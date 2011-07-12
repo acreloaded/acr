@@ -95,7 +95,7 @@ struct gun : weapon
 	const static int adsscope = 550;
 	gun(playerent *owner, int type);
 	virtual bool attack(vec &targ);
-	void attackshell(const vec &to);
+	virtual void attackshell(const vec &to);
 	virtual void attackfx(const vec &from, const vec &to, int millis);
 	int modelanim();
 	virtual bool checkautoreload();
@@ -114,6 +114,7 @@ struct wavegun : gun
 	bool selectable();
 
 	virtual void attackfx(const vec &from, const vec &to, int millis);
+	void attackshell(const vec &to){};
 };
 
 struct crossbow : gun
@@ -122,6 +123,7 @@ struct crossbow : gun
 	bool selectable();
 
 	void attackhit(const vec &o);
+	void attackshell(const vec &to){};
 };
 
 struct scopedprimary : gun
