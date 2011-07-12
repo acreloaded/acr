@@ -475,6 +475,7 @@ void weapon::equipplayer(playerent *pl){
 	pl->weapons[GUN_AKIMBO] = new akimbo(pl);
 	pl->weapons[GUN_HEAL] = new heal(pl);
 	pl->weapons[GUN_WAVE] = new wavegun(pl);
+	pl->weapons[GUN_BOW] = new crossbow(pl);
 	pl->selectweapon(GUN_ASSAULT);
 	pl->setprimary(GUN_ASSAULT);
 	pl->setnextprimary(GUN_ASSAULT);
@@ -882,6 +883,15 @@ void wavegun::attackfx(const vec &from2, const vec &to, int millis){
 	addbullethole(owner, from, to);
 	particle_splash(0, 50, 200, to);
 	//attacksound();
+}
+
+// crossbow
+
+crossbow::crossbow(playerent *owner) : gun(owner, GUN_BOW) {}
+bool crossbow::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
+
+void crossbow::attackhit(const vec &o){
+	particle_splash(0, 5, 250, o);
 }
 
 // scopedprimary

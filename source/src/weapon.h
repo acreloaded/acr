@@ -1,5 +1,5 @@
 
-enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_BOLT, GUN_ASSAULT, GUN_GRENADE, GUN_AKIMBO, GUN_HEAL, GUN_WAVE, NUMGUNS };
+enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_BOLT, GUN_ASSAULT, GUN_GRENADE, GUN_AKIMBO, GUN_HEAL, GUN_WAVE, GUN_BOW, NUMGUNS };
 #define reloadable_gun(g) (g != GUN_KNIFE && g != GUN_GRENADE)
 #define ads_gun(g) (g != GUN_KNIFE && g != GUN_GRENADE && g != GUN_AKIMBO)
 
@@ -114,6 +114,14 @@ struct wavegun : gun
 	bool selectable();
 
 	virtual void attackfx(const vec &from, const vec &to, int millis);
+};
+
+struct crossbow : gun
+{
+	crossbow(playerent *owner);
+	bool selectable();
+
+	void attackhit(const vec &o);
 };
 
 struct scopedprimary : gun
