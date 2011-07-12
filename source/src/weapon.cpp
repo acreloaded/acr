@@ -754,7 +754,6 @@ bool gun::attack(vec &targ){
 	updatelastaction(owner);
 	if(!mag)
 	{
-		
 		gunwait += 250;
 		owner->lastattackweapon = NULL;
 		shots = 0;
