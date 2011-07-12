@@ -296,6 +296,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				cstick &s = sticks.add();
 				s.cn = cn;
 				s.millis = totalmillis + TIPSTICKTTL;
+				s.lastlight = 0;
 				if(cn < 0) loopi(3) s.o[i] = getfloat(p);
 				playerent *d = getclient(cn);
 				if(d) d->addicon(eventicon::BLEED);

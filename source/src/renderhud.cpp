@@ -1103,7 +1103,14 @@ void renderhudwaypoints(){
 		if(sticks[i].millis < totalmillis) sticks.remove(i--);
 		else{
 			playerent *stuck = getclient(sticks[i].cn);
-			renderwaypoint(WP_EXP, stuck ? stuck->head.x >= 0 ? stuck->head : stuck->o : sticks[i].o);
+			vec o(stuck ? stuck->head.x >= 0 ? stuck->head : stuck->o : sticks[i].o);
+			const float flashfactor = float(sticks[i].millis - totalmillis) / TIPSTICKTTL * 350 + 200;
+			renderwaypoint(WP_EXP, o, fabs(sinf((totalmillis % 10000) / flashfactor)));
+			if(sticks[i].lastlight < lastmillis){
+				const int nextflash = flashfactor;
+				adddynlight(stuck, o, 8, nextflash, nextflash, 12, 192, 16);
+				sticks[i].lastlight = lastmillis + nextflash;
+			}
 		}
 	}
 	// flags
