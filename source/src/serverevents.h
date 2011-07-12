@@ -205,10 +205,14 @@ void processevent(client &c, shotevent &e)
 				cn = i;
 				dist = d;
 			}
-			if(cn >= 0){
-				if(!m_expert) serverdamage(clients[cn], &c, 50, GUN_BOW, FRAG_NONE, clients[cn]->state.o);
-				sendf(-1, 1, "ri2", N_STICK, cn);
+			if(cn >= 0 && !m_expert){
+				serverdamage(clients[cn], &c, 50, GUN_BOW, FRAG_NONE, clients[cn]->state.o);
+				if(clients[cn]->state.state != CS_ALIVE){
+					cn = -1;
+					to = clients[cn]->state.o;
+				}
 			}
+			if(cn >= 0) sendf(-1, 1, "ri2", N_STICK, cn);
 			else sendf(-1, 1, "ri2f3", N_STICK, -1, to.x, to.y, to.z);
 			// timed explosion
 			gameevent &exp = c.addevent();
