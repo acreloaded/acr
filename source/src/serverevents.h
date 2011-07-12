@@ -71,7 +71,7 @@ void processevent(client &c, projevent &e){
 			if(!gs.tips.remove(e.id)) return;
 			vec o(valid_client(e.proj) ? clients[e.proj]->state.o : e.o);
 			
-			sendhit(c, GUN_GRENADE, o.v);
+			sendhit(c, GUN_BOW, o.v);
 			loopv(clients){
 				client &target = *clients[i];
 				if(target.type == ST_EMPTY || target.state.state != CS_ALIVE) continue;
@@ -184,7 +184,27 @@ void processevent(client &c, shotevent &e)
 			// check for stick
 			int cn = -1;
 			float dist = 4e6f; // 1 million meters should be enough for a "stick"
-			// TODO: add check for crossbow stick
+			loopv(clients){
+				client &t = *clients[i];
+				clientstate &ts = t.state;
+				// basic checks
+				if(t.type == ST_EMPTY || ts.state != CS_ALIVE || &c == &t) continue;
+				const float d = gs.o.dist(ts.o);
+				if(d > dist) continue;
+				vec head(ts.o);
+				loopvj(heads) if(heads[j].cn == i){
+					head.x = heads[j].o[0];
+					head.y = heads[j].o[1];
+					head.z = heads[j].o[2];
+					// how can the center of our heads deviate more than 25 cm from our necks?
+					if(head.magnitude() > 1) head.normalize();
+					head.add(ts.o);
+					break;
+				}
+				if(!hitplayer(gs.o, gs.aim[0], gs.aim[1], to, ts.o, head)) continue;
+				cn = i;
+				dist = d;
+			}
 			if(cn >= 0){
 				if(!m_expert) serverdamage(clients[cn], &c, 50, GUN_BOW, FRAG_NONE, clients[cn]->state.o);
 				sendf(-1, 1, "ri2", N_STICK, cn);
