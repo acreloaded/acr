@@ -167,14 +167,6 @@ void processevent(client &c, shotevent &e)
 	else gs.shotdamage += effectiveDamage(e.gun, to.dist(gs.o), DAMAGESCALE);
 	switch(e.gun){
 		case GUN_GRENADE: gs.grenades.add(e.id); break;
-		case GUN_KNIFE:
-			if(e.compact){
-				if(gs.ammo[GUN_KNIFE]){
-					gs.knives.add(e.id);
-					gs.ammo[GUN_KNIFE]--;
-				}
-				break;
-			}
 		case GUN_BOW:
 		{
 			// fix to position
@@ -224,6 +216,14 @@ void processevent(client &c, shotevent &e)
 			loopi(3) exp.proj.o[i] = to[i];
 			break;
 		}
+		case GUN_KNIFE:
+			if(e.compact){
+				if(gs.ammo[GUN_KNIFE]){
+					gs.knives.add(e.id);
+					gs.ammo[GUN_KNIFE]--;
+				}
+				break;
+			}
 		default:
 		{
 			loopv(clients){ 
