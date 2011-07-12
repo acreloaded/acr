@@ -222,6 +222,7 @@ void processevent(client &c, shotevent &e)
 			exp.proj.gun = GUN_BOW;
 			exp.proj.proj = cn;
 			loopi(3) exp.proj.o[i] = to[i];
+			break;
 		}
 		default:
 		{
