@@ -66,6 +66,27 @@ void processevent(client &c, projevent &e){
 			break;
 		}
 
+		case GUN_BOW: // server only
+		{
+			if(!gs.tips.remove(e.id)) return;
+			vec o(valid_client(e.proj) ? clients[e.proj]->state.o : e.o);
+			
+			sendhit(c, GUN_GRENADE, o.v);
+			loopv(clients){
+				client &target = *clients[i];
+				if(target.type == ST_EMPTY || target.state.state != CS_ALIVE) continue;
+				float dist = target.state.o.dist(o);
+				if(dist >= guns[e.gun].endrange) continue;
+				vec ray(target.state.o);
+				ray.sub(o).normalize();
+				if(sraycube(o, ray) < dist) continue;
+				ushort dmg = effectiveDamage(e.gun, dist, DAMAGESCALE, true);
+				gs.damage += dmg;
+				serverdamage(&target, &c, dmg, e.gun, FRAG_GIB, o);
+			}
+			break;
+		}
+
 		default:
 			return;
 	}
@@ -141,7 +162,8 @@ void processevent(client &c, shotevent &e)
 	if(e.gun == GUN_SHOTGUN){
 		loopi(SGRAYS) gs.shotdamage += effectiveDamage(e.gun, vec(gs.sg[i]).dist(gs.o), DAMAGESCALE);
 	}
-	else if(e.gun == GUN_BOW) gs.shotdamage += 250; // 1 explosion + 1 stick
+	else if(e.gun == GUN_KNIFE) gs.shotdamage += guns[e.gun].damage; // melee damage
+	else if(e.gun == GUN_BOW) gs.shotdamage += 50; // potential stick damage
 	else gs.shotdamage += effectiveDamage(e.gun, to.dist(gs.o), DAMAGESCALE);
 	switch(e.gun){
 		case GUN_GRENADE: gs.grenades.add(e.id); break;
@@ -155,25 +177,22 @@ void processevent(client &c, shotevent &e)
 			}
 		case GUN_BOW:
 		{
-			//vec o(e.to);
-			//checkpos(to);
+			// fix to position
 			vec tracer(to);
 			tracer.sub(from).normalize();
 			to = tracer.mul(sraycube(from, tracer) - .1f).add(from);
-			sendhit(c, GUN_GRENADE, to.v);
-			loopv(clients){
-				client &target = *clients[i];
-				if(target.type == ST_EMPTY || target.state.state != CS_ALIVE) continue;
-				float dist = target.state.o.dist(to);
-				if(dist >= guns[e.gun].endrange) continue;
-				vec ray(target.state.o);
-				ray.sub(to).normalize();
-				if(sraycube(to, ray) < dist) continue;
-				ushort dmg = effectiveDamage(e.gun, dist, DAMAGESCALE, true);
-				gs.damage += dmg;
-				serverdamage(&target, &c, dmg, e.gun, FRAG_GIB, to);
-			}
-			break;
+			// check for stick
+			int cn = -1;
+			float dist = 4e6f; // 1 million meters should be enough for a "stick"
+			// TODO: add check for crossbow stick
+			// timed explosion
+			gameevent &exp = c.addevent();
+			exp.type = GE_PROJ;
+			gs.tips.add(exp.proj.id = rand());
+			exp.proj.millis = gamemillis + 1500;
+			exp.proj.gun = GUN_BOW;
+			exp.proj.proj = cn;
+			loopi(3) exp.proj.o[i] = to[i];
 		}
 		default:
 		{

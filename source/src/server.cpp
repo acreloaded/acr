@@ -128,7 +128,7 @@ struct clientstate : playerstate
 	int crouchmillis, scopemillis;
 	int drownmillis; char drownval;
 	int lastshot, lastregen;
-	projectilestate<2> grenades, knives;
+	projectilestate<2> grenades, knives, tips;
 	int akimbos, akimbomillis;
 	int points, flagscore, frags, deaths, shotdamage, damage, friendlyfire;
 
