@@ -153,7 +153,10 @@ void processevent(client &c, shotevent &e)
 		case GUN_BOW:
 		{
 			//vec o(e.to);
-			//checkpos(o);
+			//checkpos(to);
+			vec tracer(to);
+			tracer.sub(from).normalize();
+			to = tracer.mul(sraycube(from, tracer) - .1f).add(from);
 			sendhit(c, GUN_GRENADE, to.v);
 			loopv(clients){
 				client &target = *clients[i];
