@@ -910,7 +910,7 @@ void crossbow::attackfx(const vec &from2, const vec &too, int millis){
 }
 
 void crossbow::attackhit(const vec &o){
-	particle_fireball(5, o, owner);
+	particle_fireball(13, o, owner);
 	explosioneffect(o);
 }
 
