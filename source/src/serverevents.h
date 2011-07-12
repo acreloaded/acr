@@ -98,11 +98,9 @@ void processevent(client &c, shotevent &e)
 	gs.gunwait[e.gun] = attackdelay(e.gun);
 	// for ease of access
 	vec from(gs.o), to(e.to);
-	to.normalize().mul(sraycube(from, to.normalize())).add(from);
-	// packet
-	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-	ucharbuf p(packet->data, packet->dataLength);
-	const float spreadf = to.dist(from)/1000,
+	to.normalize().add(from);
+	// apply spread
+	const float spreadf = .001f,//to.dist(from)/1000,
 		crouchfactor = 1 - (gs.crouching ? min(gamemillis - gs.crouchmillis, CROUCHTIME) : CROUCHTIME - min(gamemillis - gs.crouchmillis, CROUCHTIME)) * .25f / CROUCHTIME;
 	float adsfactor = 1 - float(gs.scoping ? min(gamemillis - gs.scopemillis, ADSTIME) : ADSTIME - min(gamemillis - gs.scopemillis, ADSTIME)) / ADSTIME;
 	if(e.gun==GUN_SHOTGUN){
@@ -112,15 +110,20 @@ void processevent(client &c, shotevent &e)
 			gs.sg[i] = to;
 			applyspread(gs.o, gs.sg[i], SGSPREAD, spreadf*adsfactor);
 		}
-		// send message
-		putint(p, N_SG);
-		loopi(SGRAYS) loopj(3) putfloat(p, gs.sg[i][j]);
 	}
 	else{
 		// apply normal ray spread
 		const int spread = guns[e.gun].spread * (gs.vel.magnitude() / 3.f + gs.pitchvel / 5.f + 0.4f) * 1.2f * crouchfactor * adsfactor;
 		applyspread(gs.o, to, spread, spreadf);
 	}
+	// trace shot
+	straceShot(from, to);
+	// create packet
+	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+	ucharbuf p(packet->data, packet->dataLength);
+	// packet shotgun rays
+	if(e.gun==GUN_SHOTGUN){ putint(p, N_SG); loopi(SGRAYS) loopj(3) putfloat(p, gs.sg[i][j]); }
+	// packet shot message
 	putint(p, e.compact ? N_SHOOTC : N_SHOOT);
 	putint(p, c.clientnum);
 	putint(p, e.gun);

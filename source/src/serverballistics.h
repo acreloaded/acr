@@ -35,6 +35,4 @@ void applyspread(const vec &from, vec &to, int spread, float factor){
 	vec r(RNDD, RNDD, RNDD);
 	#undef RNDD
 	to.add(r);
-	// retrace to final location
-	straceShot(from, to);
 }
