@@ -290,6 +290,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				s.cn = cn;
 				s.millis = totalmillis + TIPSTICKTTL;
 				if(cn < 0) loopi(3) s.o[i] = getfloat(p);
+				playerent *d = getclient(cn);
+				if(d) d->addicon(eventicon::BLEED);
 				break;
 			}
 
