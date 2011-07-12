@@ -601,7 +601,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				int cn = getint(p), gun = getint(p), damage = getint(p);
 				vec src; loopk(3) src[k] = getfloat(p);
 				playerent *d = getclient(cn);
-				if(gun != GUN_GRENADE) break; // only type of projectile right now!
+				if(gun != GUN_GRENADE && gun != GUN_BOW) break;
 				d->damagestack.add(damageinfo(src, lastmillis));
 				if(d != player1 || d->o == src) break;
 				vec dir = d->o;
