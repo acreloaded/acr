@@ -283,7 +283,7 @@ void processevent(client &c, reloadevent &e){
 	   gs.ammo[e.gun] < reload)
 		return;
 
-	gs.mag[e.gun]   = min(mag, gs.mag[e.gun] + reload);
+	gs.mag[e.gun]   = min(mag + (gs.mag[e.gun] && reload > 1), gs.mag[e.gun] + reload);
 	gs.ammo[e.gun] -= reload;
 
 	int wait = e.millis - gs.lastshot;
