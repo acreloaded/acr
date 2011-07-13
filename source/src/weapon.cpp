@@ -1238,11 +1238,11 @@ void knife::throwknife(const vec &vel){
 
 //void knife::renderaimhelp(int teamtype){ if(state) weapon::renderaimhelp(teamtype); }
 void knife::attackfx(const vec &from, const vec &to, int millis) {
-	if(from.iszero() && to.iszero()){
+	if(from.iszero() && to.iszero() && millis < 0){
 		state = GST_INHAND;
-		playsound(S_GRENADEPULL, owner, SP_HIGH);
+		//playsound(S_GRENADEPULL, owner, SP_HIGH);
 	}
-	else if(millis){
+	else if(millis == 1){
 		knifeent *g = new knifeent(owner);
 		state = GST_THROWING;
 		bounceents.add(g);
