@@ -1443,7 +1443,8 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 	if(!target || !actor || !damage) return;
 	clientstate &ts = target->state;
 	if(target != actor && isteam(actor, target)){ // friendly fire
-		serverdamage(actor, actor, damage * 0.4, NUMGUNS, FRAG_GIB, source);
+		if(m_expert || m_real) serverdamage(actor, actor, damage, gun, FRAG_GIB, source);
+		/*
 		if((damage *= 0.25) >= target->state.health) damage = target->state.health - 1; // no more TKs!
 		if(!damage) return;
 		if(isdedicated && actor->type == ST_TCPIP && actor->priv < PRIV_ADMIN){
@@ -1463,6 +1464,8 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 				return;
 			}
 		}
+		*/
+		return;
 	}
 	if(target->state.damagelog.find(actor->clientnum) < 0) target->state.damagelog.add(actor->clientnum);
 	ts.dodamage(damage);
