@@ -130,7 +130,7 @@ struct clientstate : playerstate
 	int lastshot, lastregen;
 	projectilestate<2> grenades, knives;
 	int akimbos, akimbomillis;
-	int points, flagscore, frags, deaths, shotdamage, damage, friendlyfire;
+	int points, flagscore, frags, deaths, shotdamage, damage;
 
 	clientstate() : state(CS_DEAD) {}
 
@@ -154,7 +154,7 @@ struct clientstate : playerstate
 		knives.reset();
 		akimbos = 0;
 		akimbomillis = 0;
-		points = flagscore = frags = deaths = shotdamage = damage = lastffkill = friendlyfire = 0;
+		points = flagscore = frags = deaths = shotdamage = damage = lastffkill = 0;
 		respawn();
 	}
 
@@ -1443,29 +1443,11 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 	if(!target || !actor || !damage) return;
 	clientstate &ts = target->state;
 	if(target != actor && isteam(actor, target)){ // friendly fire
-		if(m_expert || m_real) serverdamage(actor, actor, damage, gun, FRAG_GIB, source);
-		/*
-		if((damage *= 0.25) >= target->state.health) damage = target->state.health - 1; // no more TKs!
+		serverdamage(actor, actor, damage * m_expert ? 5 : 0, gun, FRAG_GIB, source); // redirect damage to owner
+		if((damage *= 0.25) > target->state.health - 80) damage = target->state.health - 80; // no more TKs!
 		if(!damage) return;
-		if(isdedicated && actor->type == ST_TCPIP && actor->priv < PRIV_ADMIN){
-			actor->state.friendlyfire += damage;
-			actor->state.shotdamage += damage;
-			if(actor->state.friendlyfire > 140 && actor->state.friendlyfire * 60000 > gamemillis * 70){ // 70 HP / minute after 140 damage
-				extern void banclient(client *&c, int minutes);
-				if(actor->state.lastffkill > 3){
-					banclient(actor, 2);
-					disconnect_client(actor->clientnum, DISC_ABAN);
-					return;
-				}
-				forcedeath(actor);
-				sendf(actor->clientnum, 1, "ri2", N_FF, ++actor->state.lastffkill * 3);
-				actor->state.lastdeath += actor->state.lastffkill * 3000;
-				actor->state.friendlyfire = 80; // only needs another 60 HP next time
-				return;
-			}
-		}
-		*/
-		return;
+		//if(isdedicated && actor->type == ST_TCPIP && actor->priv < PRIV_ADMIN)
+			actor->state.shotdamage += damage; // reduce his accuracy
 	}
 	if(target->state.damagelog.find(actor->clientnum) < 0) target->state.damagelog.add(actor->clientnum);
 	ts.dodamage(damage);
