@@ -1443,7 +1443,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 	if(!target || !actor || !damage) return;
 	clientstate &ts = target->state;
 	if(target != actor && isteam(actor, target)){ // friendly fire
-		serverdamage(actor, actor, damage * (m_expert ? 5 : 1), gun, style, source); // redirect damage to owner
+		serverdamage(actor, actor, damage * (m_expert ? 2 : .5f), gun, style, source); // redirect damage to owner
 		if((damage *= 0.25) > target->state.health - 80) damage = target->state.health - 80; // no more TKs!
 		if(!damage) return;
 		//if(isdedicated && actor->type == ST_TCPIP && actor->priv < PRIV_ADMIN)
