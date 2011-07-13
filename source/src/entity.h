@@ -134,15 +134,26 @@ static inline ushort effectiveDamage(int gun, float dist, int damagescale, bool 
 	return finaldamage * damagescale;
 }
 
-static inline const char *suicname(int gun){
+static inline const char *suicname(int gun, int style){
+	const bool gib = (style & FRAG_GIB) > 0,
+				overkill = (style & FRAG_OVER) > 0;
 	static string k;
 	*k = 0;
 	switch(gun){
 		case GUN_GRENADE:
 			s_strcat(k, "failed with nades");
 			break;
-		case GUN_PISTOL:
 		case GUN_SHOTGUN:
+			s_strcat(k, " tried to ");
+			s_strcat(k, gib ? "splatter" : "scramble");
+			s_strcat(k, " a teammate");
+			break;
+		case GUN_KNIFE:
+			s_strcat(k, " tried to ");
+			s_strcat(k, gib ? overkill ? "sacrifice" : "betray" : overkill ? "throw knives at" : "bleed out");
+			s_strcat(k, " a teammate");
+			break;
+		case GUN_PISTOL:
 		case GUN_SUBGUN:
 		case GUN_SNIPER:
 		case GUN_BOLT:
@@ -179,7 +190,7 @@ static inline const char *killname(int gun, int style){
 			s_strcat(k, "obliterated");
 			break;
 		case GUN_KNIFE:
-			s_strcat(k, !gib ? overkill ? "thrown down" : "fatally wounded" : overkill ? "decapitated" : "slashed");
+			s_strcat(k, gib ? overkill ? "decapitated" : "slashed" : overkill ? "thrown down" : "fatally wounded");
 			break;
 		case GUN_BOLT:
 			s_strcat(k, gib ? "overkilled" : "quickly killed");
