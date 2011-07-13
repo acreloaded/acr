@@ -139,22 +139,30 @@ static inline const char *suicname(int gun){
 	*k = 0;
 	switch(gun){
 		case GUN_GRENADE:
-			// non-third person is not present perfect tense, but present tense
 			s_strcat(k, "failed with nades");
 			break;
-		case NUMGUNS:
+		case GUN_PISTOL:
+		case GUN_SHOTGUN:
+		case GUN_SUBGUN:
+		case GUN_SNIPER:
+		case GUN_BOLT:
+		case GUN_ASSAULT:
+		case GUN_AKIMBO:
+		case GUN_WAVE:
+		case GUN_BOW:
 			s_strcat(k, "commited too much friendly fire");
 			break;
-		case GUN_ASSAULT: // just a random gun
-			s_strcat(k, "drowned");
-			break;
-		case GUN_BOLT: // and another
-			s_strcat(k, "failed to fly");
-			break;
-		case GUN_KNIFE:
+		case NUMGUNS:
 			s_strcat(k, "used the suicide command");
 			break;
+		case NUMGUNS+1:
+			s_strcat(k, "drowned");
+			break;
+		case NUMGUNS+2:
+			s_strcat(k, "failed to fly");
+			break;
 		default:
+		case GUN_HEAL:
 			s_strcat(k, "suicided");
 			break;
 	}
