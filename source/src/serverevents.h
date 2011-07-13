@@ -102,6 +102,7 @@ void processevent(client &c, shotevent &e)
 		if(spreadf*adsfactor) loopi(SGRAYS){
 			gs.sg[i] = to;
 			applyspread(gs.o, gs.sg[i], SGSPREAD, spreadf*adsfactor);
+			straceShot(from, gs.sg[i]);
 		}
 	}
 	else{
