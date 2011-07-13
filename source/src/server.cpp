@@ -3221,7 +3221,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			/*
 			case N_FALL:
-				if(cl->state.state == CS_ALIVE) serverdamage(cl, cl, getint(p) * DAMAGESCALE, GUN_BOLT, FRAG_NONE, cl->state.o);
+				if(cl->state.state == CS_ALIVE) serverdamage(cl, cl, getint(p) * DAMAGESCALE, NUMGUNS+2, FRAG_NONE, cl->state.o);
 				break;
 			*/
 
