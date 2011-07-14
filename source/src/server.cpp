@@ -1442,7 +1442,7 @@ void forcedeath(client *cl, bool gib = false, bool cheat = false){
 void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source){
 	if(!target || !actor || !damage) return;
 	clientstate &ts = target->state;
-	if(ts.state != CS_ALIVE || ts.spawnmillis + SPAWNPROTECT < gamemillis) return;
+	if(ts.state != CS_ALIVE || ts.spawnmillis + SPAWNPROTECT > gamemillis) return;
 	if(target != actor && isteam(actor, target)){ // friendly fire
 		serverdamage(actor, actor, damage * (m_expert ? 2 : .5f), gun, style, source); // redirect damage to owner
 		if((damage *= 0.25) > target->state.health - 80) damage = target->state.health - 80; // no more TKs!
