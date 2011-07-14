@@ -180,8 +180,8 @@ void processevent(client &c, shotevent &e)
 			if(cn >= 0) sendf(-1, 1, "ri2", N_STICK, cn);
 			else sendf(-1, 1, "ri2f3", N_STICK, -1, to.x, to.y, to.z);
 			// timed explosion
-			gameevent &exp = c.tips.add();
-			//exp.type = GE_PROJ;
+			gameevent &exp = c.timers.add();
+			exp.type = GE_PROJ;
 			//gs.tips.add(exp.proj.id = rand());
 			exp.proj.millis = gamemillis + TIPSTICKTTL;
 			exp.proj.gun = GUN_BOW;
@@ -313,6 +313,25 @@ void clearevent(client &c){
 	c.events.remove(0);
 }
 
+void processtimer(client &c, projevent &e){
+	vec o(valid_client(e.proj) ? clients[e.proj]->state.o : e.o);
+	
+	sendhit(c, GUN_BOW, o.v);
+	loopv(clients){
+		client &target = *clients[i];
+		if(target.type == ST_EMPTY || target.state.state != CS_ALIVE) continue;
+		float dist = target.state.o.dist(o);
+		if(dist >= guns[e.gun].endrange) continue;
+		vec ray(target.state.o);
+		ray.sub(o).normalize();
+		if(sraycube(o, ray) < dist) continue;
+		ushort dmg = effectiveDamage(e.gun, dist, DAMAGESCALE, true);
+		c.state.damage += dmg;
+		serverdamage(&target, &c, dmg, e.gun, FRAG_GIB, o);
+	}
+	c.state.shotdamage += effectiveDamage(e.gun, 0, DAMAGESCALE, true);
+}
+
 void processevents(){
 	loopv(clients)
 	{
@@ -357,28 +376,13 @@ void processevents(){
 			}
 			clearevent(c);
 		}
-		while(c.tips.length()){
-			projevent &e = c.tips[0].proj;
-			if(e.millis>gamemillis) break;
-
-			vec o(valid_client(e.proj) ? clients[e.proj]->state.o : e.o);
-			
-			sendhit(c, GUN_BOW, o.v);
-			loopv(clients){
-				client &target = *clients[i];
-				if(target.type == ST_EMPTY || target.state.state != CS_ALIVE) continue;
-				float dist = target.state.o.dist(o);
-				if(dist >= guns[e.gun].endrange) continue;
-				vec ray(target.state.o);
-				ray.sub(o).normalize();
-				if(sraycube(o, ray) < dist) continue;
-				ushort dmg = effectiveDamage(e.gun, dist, DAMAGESCALE, true);
-				c.state.damage += dmg;
-				serverdamage(&target, &c, dmg, e.gun, FRAG_GIB, o);
+		while(c.timers.length()){
+			gameevent &e = c.timers[i];
+			if(e.shot.millis>gamemillis) break;
+			switch(e.type){
+				case GE_PROJ: processtimer(c, e.proj); break;
 			}
-			c.state.shotdamage += effectiveDamage(e.gun, 0, DAMAGESCALE, true);
-
-			c.tips.remove(0);
+			c.timers.remove(i--);
 		}
 	}
 }

@@ -86,6 +86,7 @@ static itemstat powerupstats[] =
 #define KNIFETTL 30000
 #define GIBBLOODMUL 1.5f
 #define TIPSTICKTTL 1500
+#define SPAWNPROTECT 3000
 
 // define the "powerful" arsenal
 #define POWERGUN(gun) (gun == GUN_SNIPER || gun == GUN_BOLT || gun == GUN_KNIFE)

@@ -123,7 +123,7 @@ struct clientstate : playerstate
 	vec o, aim, vel, lasto, sg[SGRAYS], flagpickupo;
 	float pitchvel;
 	int state, lastomillis, movemillis;
-	int lastdeath, lastffkill, lastspawn, lifesequence;
+	int lastdeath, lastffkill, lastspawn, lifesequence, spawnmillis;
 	bool crouching;
 	int crouchmillis, scopemillis;
 	int drownmillis; char drownval;
@@ -228,7 +228,7 @@ struct client				   // server side version of "dynent" type
 	int gameoffset, lastevent, lastvotecall;
 	int demoflags;
 	clientstate state;
-	vector<gameevent> events, tips;
+	vector<gameevent> events, timers;
 	vector<uchar> position, messages;
 	string lastsaytext;
 	int saychars, lastsay, spamcount;
@@ -1442,6 +1442,7 @@ void forcedeath(client *cl, bool gib = false, bool cheat = false){
 void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source){
 	if(!target || !actor || !damage) return;
 	clientstate &ts = target->state;
+	if(ts.state != CS_ALIVE || ts.spawnmillis + SPAWNPROTECT < gamemillis) return;
 	if(target != actor && isteam(actor, target)){ // friendly fire
 		serverdamage(actor, actor, damage * (m_expert ? 2 : .5f), gun, style, source); // redirect damage to owner
 		if((damage *= 0.25) > target->state.health - 80) damage = target->state.health - 80; // no more TKs!
@@ -3189,6 +3190,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				int ls = getint(p), gunselect = getint(p);
 				if((cl->state.state!=CS_ALIVE && cl->state.state!=CS_DEAD) || ls!=cl->state.lifesequence || cl->state.lastspawn<0 || gunselect<0 || gunselect>=NUMGUNS) break;
 				cl->state.lastspawn = -1;
+				cl->state.spawnmillis = gamemillis;
 				cl->state.state = CS_ALIVE;
 				cl->state.gunselect = gunselect;
 				QUEUE_BUF(5*(5 + 2*NUMGUNS),
