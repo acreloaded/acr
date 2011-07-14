@@ -3518,8 +3518,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					cs.crouchmillis = gamemillis - CROUCHTIME + min(gamemillis - cl->state.crouchmillis, CROUCHTIME);
 				}
 				// broadcast
-				cp.position.setsize(0);
-				while(curmsg < p.length()) cp.position.add(p.buf[curmsg++]);
+				if(cs.spawnmillis + SPAWNPROTECT < gamemillis){
+					cp.position.setsize(0);
+					while(curmsg < p.length()) cp.position.add(p.buf[curmsg++]);
+				}
 				// check movement
 				if(cs.state==CS_ALIVE) checkmove(cp);
 				break;
