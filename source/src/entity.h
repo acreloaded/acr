@@ -229,6 +229,37 @@ static inline const char *killname(int gun, int style){
 	return k;
 }
 
+static float gunspeed(int gun, bool lightweight = false){
+	float ret = lightweight ? 1.07f : 1;
+	switch(gun){
+		case GUN_KNIFE:
+		case GUN_PISTOL:
+		case GUN_GRENADE:
+		case GUN_HEAL:
+			//ret *= 1;
+			break;
+		case GUN_AKIMBO:
+			ret *= .99f;
+			break;
+		case GUN_SHOTGUN:
+			ret *= .97f;
+			break;
+		case GUN_SNIPER:
+		case GUN_BOLT:
+			ret *= .95f;
+			break;
+		case GUN_SUBGUN:
+			ret *= .93f;
+			break;
+		case GUN_ASSAULT:
+		case GUN_WAVE:
+		case GUN_BOW:
+			ret *= .9f;
+			break;
+	}
+	return ret;
+}
+
 #define isteam(a,b)   (m_team && a->team == b->team)
 
 enum { TEAM_RED = 0, TEAM_BLUE, TEAM_SPECT, TEAM_NUM };
