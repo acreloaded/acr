@@ -79,14 +79,7 @@ void processevent(client &c, shotevent &e)
 	gs.lastshot = e.millis;
 	gs.gunwait[e.gun] = attackdelay(e.gun);
 	// for ease of access
-	vec from(gs.o), to(e.to);
-	{ // testing...
-	c.state.aim[0] = player1->yaw;
-	c.state.aim[1] = player1->pitch;
-	to = vec(sinf(c.state.aim[0]*RAD), -cosf(c.state.aim[0]*RAD), sinf(c.state.aim[1]*RAD));
-	s_sprintfd(lol)("%.2f %.2f %.2f | %.2f %.2f", to.x, to.y, to.z, c.state.aim.x, c.state.aim.y);
-	sendservmsg(lol);
-	}
+	vec from(gs.o), to(sinf(c.state.aim[0]*RAD)*cosf(c.state.aim[1]*RAD), -cosf(c.state.aim[0]*RAD)*cosf(c.state.aim[1]*RAD), sinf(c.state.aim[1]*RAD)/*e.to*/);
 	to.normalize().add(from);
 	// apply spread
 	const float spreadf = .001f,//to.dist(from)/1000,
