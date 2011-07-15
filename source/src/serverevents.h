@@ -164,8 +164,8 @@ void processevent(client &c, shotevent &e)
 			if(cn >= 0 && !m_expert){
 				serverdamage(clients[cn], &c, 50, GUN_BOW, FRAG_NONE, clients[cn]->state.o);
 				if(clients[cn]->state.state != CS_ALIVE){
-					cn = -1;
 					to = clients[cn]->state.o;
+					cn = -1;
 				}
 			}
 			if(cn >= 0) sendf(-1, 1, "ri2", N_STICK, cn);
