@@ -80,6 +80,11 @@ void processevent(client &c, shotevent &e)
 	gs.gunwait[e.gun] = attackdelay(e.gun);
 	// for ease of access
 	vec from(gs.o), to(e.to);
+	{ // testing...
+	to = vec(sinf(RAD*c.state.aim[0]), -cosf(RAD*c.state.aim[0]), sinf(RAD*c.state.aim[1]));
+	s_sprintfd(lol)("%.2f %.2f %.2f | %.2f %.2f %.2f", to.x, to.y, to.x, c.state.aim.x, c.state.aim.y, c.state.aim.z);
+	sendservmsg(lol);
+	}
 	to.normalize().add(from);
 	// apply spread
 	const float spreadf = .001f,//to.dist(from)/1000,
