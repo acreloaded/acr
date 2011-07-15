@@ -332,6 +332,12 @@ void processtimer(client &c, projevent &e){
 	c.state.shotdamage += effectiveDamage(e.gun, 0);
 }
 
+void processtimer(client &c, reloadevent &e){
+	// heaing from e.id;
+	if(c.state.state == CS_ALIVE) c.state.health += e.gun;
+	// network message?
+}
+
 void processevents(){
 	loopv(clients)
 	{
@@ -381,6 +387,7 @@ void processevents(){
 			if(e.shot.millis>gamemillis) break;
 			switch(e.type){
 				case GE_PROJ: processtimer(c, e.proj); break;
+				case GE_RELOAD: processtimer(c, e.reload); break;
 			}
 			c.timers.remove(i--);
 		}
