@@ -145,14 +145,17 @@ static inline const char *suicname(int gun, int style){
 			s_strcat(k, "failed with nades");
 			break;
 		case GUN_SHOTGUN:
-			s_strcat(k, " tried to ");
+			s_strcat(k, "attempted to ");
 			s_strcat(k, gib ? "splatter" : "scramble");
 			s_strcat(k, " a teammate");
 			break;
 		case GUN_KNIFE:
-			s_strcat(k, " tried to ");
+			s_strcat(k, "tried to ");
 			s_strcat(k, gib ? overkill ? "sacrifice" : "betray" : overkill ? "throw knives at" : "bleed out");
 			s_strcat(k, " a teammate");
+			break;
+		case GUN_BOW:
+			s_strcat(k, overkill ? "tried to detonate a teammate" : "needs to watch his explosives");
 			break;
 		case GUN_PISTOL:
 		case GUN_SUBGUN:
@@ -161,7 +164,6 @@ static inline const char *suicname(int gun, int style){
 		case GUN_ASSAULT:
 		case GUN_AKIMBO:
 		case GUN_WAVE:
-		case GUN_BOW:
 			s_strcat(k, "commited too much friendly fire");
 			break;
 		case NUMGUNS:
