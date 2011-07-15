@@ -155,7 +155,7 @@ static inline const char *suicname(int gun, int style){
 			s_strcat(k, " a teammate");
 			break;
 		case GUN_BOW:
-			s_strcat(k, overkill ? "tried to detonate a teammate" : "needs to watch his explosives");
+			s_strcat(k, overkill ? "tried to detonate a teammate" : "failed with an explosive crossbow");
 			break;
 		case GUN_PISTOL:
 		case GUN_SUBGUN:

@@ -327,7 +327,7 @@ void processtimer(client &c, projevent &e){
 		if(sraycube(o, ray) < dist) continue;
 		ushort dmg = effectiveDamage(e.gun, dist, DAMAGESCALE, true);
 		c.state.damage += dmg;
-		serverdamage(&target, &c, dmg, e.gun, FRAG_GIB, o);
+		serverdamage(&target, &c, dmg, e.gun, FRAG_GIB | FRAG_OVER, o);
 	}
 	c.state.shotdamage += effectiveDamage(e.gun, 0, DAMAGESCALE, true);
 }
