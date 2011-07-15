@@ -83,8 +83,8 @@ void processevent(client &c, shotevent &e)
 	{ // testing...
 	c.state.aim[0] = player1->yaw;
 	c.state.aim[1] = player1->pitch;
-	to = vec(sinf(RAD*c.state.aim[0]), -cosf(RAD*c.state.aim[0]), sinf(RAD*c.state.aim[1]));
-	s_sprintfd(lol)("%.2f %.2f %.2f | %.2f %.2f", to.x, to.y, to.x, c.state.aim.x, c.state.aim.y);
+	to = vec(sinf(c.state.aim[0]*RAD), -cosf(c.state.aim[0]*RAD), sinf(c.state.aim[1]*RAD));
+	s_sprintfd(lol)("%.2f %.2f %.2f | %.2f %.2f", to.x, to.y, to.z, c.state.aim.x, c.state.aim.y);
 	sendservmsg(lol);
 	}
 	to.normalize().add(from);
