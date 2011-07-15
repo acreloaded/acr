@@ -137,7 +137,7 @@ static inline ushort effectiveDamage(int gun, float dist, int damagescale, bool 
 
 static inline const char *suicname(int gun, int style){
 	const bool gib = (style & FRAG_GIB) > 0,
-				overkill = (style & FRAG_FLAG) > 0;
+				flag = (style & FRAG_FLAG) > 0;
 	static string k;
 	*k = 0;
 	switch(gun){
@@ -151,11 +151,11 @@ static inline const char *suicname(int gun, int style){
 			break;
 		case GUN_KNIFE:
 			s_strcat(k, "tried to ");
-			s_strcat(k, gib ? overkill ? "sacrifice" : "betray" : overkill ? "throw knives at" : "bleed out");
+			s_strcat(k, gib ? flag ? "sacrifice" : "betray" : flag ? "throw knives at" : "bleed out");
 			s_strcat(k, " a teammate");
 			break;
 		case GUN_BOW:
-			s_strcat(k, overkill ? "tried to detonate a teammate" : "failed with an explosive crossbow");
+			s_strcat(k, gib ? flag ? "failed to use an explosive crossbow" : "detonated friendly fire" : "tried to impact a teammate");
 			break;
 		case GUN_PISTOL:
 		case GUN_SUBGUN:
@@ -185,7 +185,7 @@ static inline const char *suicname(int gun, int style){
 
 static inline const char *killname(int gun, int style){
 	const bool gib = (style & FRAG_GIB) > 0,
-				overkill = (style & FRAG_FLAG) > 0;
+				flag = (style & FRAG_FLAG) > 0;
 	static string k;
 	*k = 0;
 	switch(gun){
@@ -193,7 +193,7 @@ static inline const char *killname(int gun, int style){
 			s_strcat(k, "obliterated");
 			break;
 		case GUN_KNIFE:
-			s_strcat(k, gib ? overkill ? "decapitated" : "slashed" : overkill ? "thrown down" : "fatally wounded");
+			s_strcat(k, gib ? flag ? "decapitated" : "slashed" : flag ? "thrown down" : "fatally wounded");
 			break;
 		case GUN_BOLT:
 			s_strcat(k, gib ? "overkilled" : "quickly killed");
