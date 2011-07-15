@@ -81,7 +81,9 @@ void processevent(client &c, shotevent &e)
 	// for ease of access
 	vec from(gs.o), to(e.to);
 	{ // testing...
-	to = vec(sinf(RAD*c.state.aim[0]), -cosf(RAD*c.state.aim[0]), sinf(RAD*c.state.aim[1]));
+	//to = vec(sinf(RAD*c.state.aim[0]), -cosf(RAD*c.state.aim[0]), sinf(RAD*c.state.aim[1]));
+	to = vec(1, 1, 1);
+	to.rotate_around_y(RAD*c.state.aim[1]).rotate_around_x(RAD*c.state.aim[0]);
 	s_sprintfd(lol)("%.2f %.2f %.2f | %.2f %.2f %.2f", to.x, to.y, to.x, c.state.aim.x, c.state.aim.y, c.state.aim.z);
 	sendservmsg(lol);
 	}
