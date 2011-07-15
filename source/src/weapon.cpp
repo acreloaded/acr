@@ -698,8 +698,7 @@ void grenades::activatenade(){
 
 void grenades::thrownade(){
 	if(!inhandnade) return;
-	const float speed = cosf(RAD*owner->pitch);
-	vec vel(sinf(RAD*owner->yaw)*speed, -cosf(RAD*owner->yaw)*speed, sinf(RAD*owner->pitch));
+	vec vel(sinf(RAD*owner->yaw) * cosf(RAD*owner->pitch), -cosf(RAD*owner->yaw)* cosf(RAD*owner->pitch), sinf(RAD*owner->pitch));
 	vel.mul(NADEPOWER);
 	thrownade(vel);
 }
@@ -1220,8 +1219,7 @@ void knife::activateknife(){
 
 void knife::throwknife(bool weak){
 	if(!inhandknife) return;
-	const float speed = cosf(RAD*owner->pitch);
-	vec vel(sinf(RAD*owner->yaw)*speed, -cosf(RAD*owner->yaw)*speed, sinf(RAD*owner->pitch));
+	vec vel(sinf(RAD*owner->yaw) * cosf(RAD*owner->pitch), -cosf(RAD*owner->yaw) * cosf(RAD*owner->pitch), sinf(RAD*owner->pitch));
 	vel.mul(weak ? NADEPOWER : KNIFEPOWER);
 	throwknife(vel);
 }
