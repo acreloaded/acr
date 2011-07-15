@@ -44,7 +44,7 @@ void processevent(client &c, projevent &e){
 				clientstate &ts = target.state;
 				if(ts.state == CS_ALIVE){
 					gs.damage += dmg;
-					serverdamage(&target, &c, dmg, GUN_KNIFE, FRAG_OVER, vec(0, 0, 0));
+					serverdamage(&target, &c, dmg, GUN_KNIFE, FRAG_FLAG, vec(0, 0, 0));
 
 					e.o[0] = ts.o[0];
 					e.o[1] = ts.o[1];
@@ -258,7 +258,7 @@ void processevent(client &c, shotevent &e)
 					// do the damage!
 					int style = gib ? FRAG_GIB : FRAG_NONE;
 					if(e.gun == GUN_KNIFE){
-						if(hitzone == HIT_HEAD) style |= FRAG_OVER;
+						if(hitzone == HIT_HEAD) style |= FRAG_FLAG;
 						if(!isteam((&c), (&t))){
 							ts.cutter = c.clientnum;
 							ts.lastcut = gamemillis;
@@ -327,7 +327,7 @@ void processtimer(client &c, projevent &e){
 		if(sraycube(o, ray) < dist) continue;
 		ushort dmg = effectiveDamage(e.gun, dist, DAMAGESCALE, true);
 		c.state.damage += dmg;
-		serverdamage(&target, &c, dmg, e.gun, FRAG_GIB | FRAG_OVER, o);
+		serverdamage(&target, &c, dmg, e.gun, FRAG_GIB | FRAG_FLAG, o);
 	}
 	c.state.shotdamage += effectiveDamage(e.gun, 0, DAMAGESCALE, true);
 }

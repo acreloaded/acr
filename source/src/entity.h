@@ -137,7 +137,7 @@ static inline ushort effectiveDamage(int gun, float dist, int damagescale, bool 
 
 static inline const char *suicname(int gun, int style){
 	const bool gib = (style & FRAG_GIB) > 0,
-				overkill = (style & FRAG_OVER) > 0;
+				overkill = (style & FRAG_FLAG) > 0;
 	static string k;
 	*k = 0;
 	switch(gun){
@@ -185,7 +185,7 @@ static inline const char *suicname(int gun, int style){
 
 static inline const char *killname(int gun, int style){
 	const bool gib = (style & FRAG_GIB) > 0,
-				overkill = (style & FRAG_OVER) > 0;
+				overkill = (style & FRAG_FLAG) > 0;
 	static string k;
 	*k = 0;
 	switch(gun){

@@ -545,7 +545,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 	
 	int icon = -1;
 	if(style & FRAG_GIB){
-		if(pl != act && weapon != GUN_SHOTGUN && weapon != GUN_GRENADE && weapon != GUN_BOW && (weapon != GUN_KNIFE || style & FRAG_OVER)){
+		if(pl != act && weapon != GUN_SHOTGUN && weapon != GUN_GRENADE && weapon != GUN_BOW && (weapon != GUN_KNIFE || style & FRAG_FLAG)){
 			playsound(S_HEADSHOT, act, act == gamefocus ? SP_HIGHEST : SP_HIGH);
 			playsound(S_HEADSHOT, pl, pl == gamefocus ? SP_HIGHEST : SP_HIGH); // both get headshot sound
 			icon = eventicon::HEADSHOT; pl->addicon(eventicon::DECAPITATED); // both get headshot info
