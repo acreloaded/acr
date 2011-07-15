@@ -74,7 +74,6 @@ static itemstat powerupstats[] =
 
 #define ADSTIME 275
 #define CROUCHTIME 500
-#define DAMAGESCALE (m_real ? 2 : 1)
 
 #define SGRAYS 24
 #define SGSPREAD 318
@@ -123,7 +122,7 @@ static inline ushort reloadtime(int gun) { return guns[gun].reloadtime; }
 static inline ushort attackdelay(int gun) { return guns[gun].attackdelay; }
 static inline ushort magsize(int gun) { return guns[gun].magsize; }
 static inline ushort reloadsize(int gun) { return gun == GUN_SHOTGUN ? 1 : guns[gun].magsize; }
-static inline ushort effectiveDamage(int gun, float dist, int damagescale, bool explosive = false) {
+static inline ushort effectiveDamage(int gun, float dist, bool explosive = false) {
 	ushort finaldamage = 0;
 	if(dist <= guns[gun].range || (!guns[gun].range && !guns[gun].endrange)) finaldamage = guns[gun].damage;
 	else if(dist >= guns[gun].endrange) finaldamage = guns[gun].damage - guns[gun].rangeminus;
@@ -132,7 +131,7 @@ static inline ushort effectiveDamage(int gun, float dist, int damagescale, bool 
 		if(explosive) subtractfactor = sqrtf(subtractfactor);
 		finaldamage = guns[gun].damage - (short)(subtractfactor * guns[gun].rangeminus);
 	}
-	return finaldamage * damagescale;
+	return finaldamage;
 }
 
 static inline const char *suicname(int gun, int style){

@@ -3213,7 +3213,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			*/
 
 			case N_SUICIDE:
-				if(cl->state.state == CS_ALIVE) serverdamage(cl, cl, 1000 * DAMAGESCALE, NUMGUNS, FRAG_GIB, cl->state.o);
+				if(cl->state.state == CS_ALIVE) serverdamage(cl, cl, 1000, NUMGUNS, FRAG_GIB, cl->state.o);
 				break;
 
 			case N_SCOPE:

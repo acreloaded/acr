@@ -27,7 +27,7 @@ void processevent(client &c, projevent &e){
 				vec ray(target.state.o);
 				ray.sub(o).normalize();
 				if(sraycube(o, ray) < dist) continue;
-				ushort dmg = effectiveDamage(e.gun, dist, DAMAGESCALE, true);
+				ushort dmg = effectiveDamage(e.gun, dist, true);
 				gs.damage += dmg;
 				serverdamage(&target, &c, dmg, e.gun, FRAG_GIB, o);
 			}
@@ -38,7 +38,7 @@ void processevent(client &c, projevent &e){
 		{
 			if(!gs.knives.numprojs) return;
 			gs.knives.numprojs--;
-			ushort dmg = effectiveDamage(GUN_KNIFE, 0, DAMAGESCALE);
+			ushort dmg = effectiveDamage(GUN_KNIFE, 0);
 			if(e.proj >= 0 && e.proj != c.clientnum && valid_client(e.proj)){
 				client &target = *clients[e.proj];
 				clientstate &ts = target.state;
@@ -133,11 +133,11 @@ void processevent(client &c, shotevent &e)
 	sendpacket(-1, 1, packet, !e.compact && e.gun != GUN_GRENADE ? -1 : c.clientnum);
 	if(packet->referenceCount==0) enet_packet_destroy(packet);
 	if(e.gun == GUN_SHOTGUN){
-		loopi(SGRAYS) gs.shotdamage += effectiveDamage(e.gun, vec(gs.sg[i]).dist(gs.o), DAMAGESCALE);
+		loopi(SGRAYS) gs.shotdamage += effectiveDamage(e.gun, vec(gs.sg[i]).dist(gs.o));
 	}
 	else if(e.gun == GUN_KNIFE) gs.shotdamage += guns[GUN_KNIFE].damage; // melee damage
 	else if(e.gun == GUN_BOW) gs.shotdamage += guns[GUN_BOW].damage + 50; // potential stick damage
-	else gs.shotdamage += effectiveDamage(e.gun, to.dist(gs.o), DAMAGESCALE);
+	else gs.shotdamage += effectiveDamage(e.gun, to.dist(gs.o));
 	switch(e.gun){
 		case GUN_GRENADE: gs.grenades.add(e.id); break;
 		case GUN_BOW:
@@ -219,7 +219,7 @@ void processevent(client &c, shotevent &e)
 					loopj(SGRAYS){ // check rays and sum damage
 						int hitzone = hitplayer(gs.o, gs.aim[0], gs.aim[1], gs.sg[j], ts.o, head, &end);
 						if(hitzone == HIT_NONE) continue;
-						damage += effectiveDamage(e.gun, end.dist(gs.o), DAMAGESCALE * hitzone == HIT_HEAD ? 4.f : hitzone == HIT_TORSO ? 1.2f : 1);
+						damage += effectiveDamage(e.gun, end.dist(gs.o)) * (hitzone == HIT_HEAD ? 4.f : hitzone == HIT_TORSO ? 1.2f : 1);
 					}
 					const bool gib = damage > SGGIB;
 					if(m_expert && !gib) continue;
@@ -233,7 +233,7 @@ void processevent(client &c, shotevent &e)
 					int hitzone = hitplayer(gs.o, gs.aim[0], gs.aim[1], to, ts.o, head, &end);
 					if(hitzone == HIT_NONE) continue;
 					// damage check
-					int damage = effectiveDamage(e.gun, end.dist(gs.o), DAMAGESCALE);
+					int damage = effectiveDamage(e.gun, end.dist(gs.o));
 					// damage multipliers
 					switch(hitzone){
 						case HIT_HEAD:
@@ -325,11 +325,11 @@ void processtimer(client &c, projevent &e){
 		vec ray(target.state.o);
 		ray.sub(o).normalize();
 		if(sraycube(o, ray) < dist) continue;
-		ushort dmg = effectiveDamage(e.gun, dist, DAMAGESCALE, true);
+		ushort dmg = effectiveDamage(e.gun, dist, true);
 		c.state.damage += dmg;
 		serverdamage(&target, &c, dmg, e.gun, &c == &target ? FRAG_GIB | FRAG_FLAG : FRAG_GIB, o);
 	}
-	c.state.shotdamage += effectiveDamage(e.gun, 0, DAMAGESCALE, true);
+	c.state.shotdamage += effectiveDamage(e.gun, 0);
 }
 
 void processevents(){
