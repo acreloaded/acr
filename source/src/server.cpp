@@ -49,41 +49,30 @@ int smode = 0, nextgamemode;
 mapstats smapstats;
 
 struct shotevent{
-	int type;
-	int millis, id;
+	int type, millis, id;
 	int gun;
 	float to[3];
 	bool compact;
 };
 
-struct headevent{
-	int type;
-	int cn;
-	float o[3];
-};
-
 struct projevent{
-	int type;
-	int millis, id;
-	int gun, proj;
+	int type, millis, id;
+	int gun, flag;
 	float o[3];
 };
 
 struct akimboevent{
-	int type;
-	int millis, id;
+	int type, millis, id;
 };
 
 struct reloadevent{
-	int type;
-	int millis, id;
+	int type, millis, id;
 	int gun;
 };
 
 union gameevent{
-	int type;
+	int type, millis, id;
 	shotevent shot;
-	headevent head;
 	projevent proj;
 	akimboevent akimbo;
 	reloadevent reload;
@@ -120,7 +109,7 @@ struct projectilestate
 
 struct clientstate : playerstate
 {
-	vec o, aim, vel, lasto, sg[SGRAYS], flagpickupo;
+	vec o, aim, vel, lasto, sg[SGRAYS], head, flagpickupo;
 	float pitchvel;
 	int state, lastomillis, movemillis;
 	int lastdeath, lastffkill, lastspawn, lifesequence, spawnmillis;
@@ -162,7 +151,7 @@ struct clientstate : playerstate
 	{
 		playerstate::respawn();
 		o = lasto = vec(-1e10f, -1e10f, -1e10f);
-		aim = vel = vec(0, 0, 0);
+		aim = vel = head = vec(0, 0, 0);
 		pitchvel = 0;
 		lastomillis = movemillis = 0;
 		drownmillis = drownval = 0;
@@ -3257,10 +3246,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						hcount--;
 					}
 					while(hcount--){
-						gameevent &h = cl->addevent();
-						h.type = GE_HEAD;
-						h.head.cn = getint(p);
-						loopk(3) h.head.o[k] = getfloat(p);
+						const int cn = getint(p);
+						vec h;
+						loopk(3) h[k] = getfloat(p);
 					}
 				}
 				break;
@@ -3272,7 +3260,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				exp.type = GE_PROJ;
 				seteventmillis(exp.proj);
 				exp.proj.gun = getint(p);
-				exp.proj.proj = getint(p);
+				exp.proj.flag = getint(p);
 				loopi(3) exp.proj.o[i] = getfloat(p);
 				break;
 			}

@@ -15,7 +15,7 @@ void processevent(client &c, projevent &e){
 	switch(e.gun){
 		case GUN_GRENADE:
 		{
-			if(!gs.grenades.remove(e.proj)) return;
+			if(!gs.grenades.remove(e.flag)) return;
 			vec o(e.o);
 			checkpos(o);
 			sendhit(c, GUN_GRENADE, o.v);
@@ -39,8 +39,8 @@ void processevent(client &c, projevent &e){
 			if(!gs.knives.numprojs) return;
 			gs.knives.numprojs--;
 			ushort dmg = effectiveDamage(GUN_KNIFE, 0);
-			if(e.proj >= 0 && e.proj != c.clientnum && valid_client(e.proj)){
-				client &target = *clients[e.proj];
+			if(e.flag >= 0 && e.flag != c.clientnum && valid_client(e.flag)){
+				client &target = *clients[e.flag];
 				clientstate &ts = target.state;
 				if(ts.state == CS_ALIVE){
 					gs.damage += dmg;
@@ -67,17 +67,6 @@ void processevent(client &c, projevent &e){
 
 void processevent(client &c, shotevent &e)
 {
-	vector<headevent> heads;
-	vector<int> headi;
-	heads.setsize(0);
-	while(c.events.length() > 1 && c.events[1].type == GE_HEAD){
-		headevent &head = c.events[1].head;
-		if(headi.find(head.cn) < 0){
-			heads.add(head);
-			headi.add(head.cn);
-		}
-		c.events.remove(1);
-	}
 	clientstate &gs = c.state;
 	int wait = e.millis - gs.lastshot;
 	if(!gs.isalive(gamemillis) ||
@@ -157,6 +146,7 @@ void processevent(client &c, shotevent &e)
 				const float d = gs.o.dist(ts.o);
 				if(d > dist) continue;
 				vec head(ts.o);
+				/*
 				loopvj(heads) if(heads[j].cn == i){
 					head.x = heads[j].o[0];
 					head.y = heads[j].o[1];
@@ -166,6 +156,7 @@ void processevent(client &c, shotevent &e)
 					head.add(ts.o);
 					break;
 				}
+				*/
 				if(!hitplayer(gs.o, gs.aim[0], gs.aim[1], to, ts.o, head)) continue;
 				cn = i;
 				dist = d;
@@ -185,7 +176,7 @@ void processevent(client &c, shotevent &e)
 			//gs.tips.add(exp.proj.id = rand());
 			exp.proj.millis = gamemillis + TIPSTICKTTL;
 			exp.proj.gun = GUN_BOW;
-			exp.proj.proj = cn;
+			exp.proj.flag = cn;
 			loopi(3) exp.proj.o[i] = to[i];
 			break;
 		}
@@ -205,6 +196,7 @@ void processevent(client &c, shotevent &e)
 				// basic checks
 				if(t.type == ST_EMPTY || ts.state != CS_ALIVE || &c == &t) continue;
 				vec head(ts.o), end(gs.o);
+				/*
 				loopvj(heads) if(heads[j].cn == i){
 					head.x = heads[j].o[0];
 					head.y = heads[j].o[1];
@@ -214,6 +206,7 @@ void processevent(client &c, shotevent &e)
 					head.add(ts.o);
 					break;
 				}
+				*/
 				if(e.gun == GUN_SHOTGUN){ // many rays, many players
 					int damage = 0;
 					loopj(SGRAYS){ // check rays and sum damage
@@ -314,7 +307,7 @@ void clearevent(client &c){
 }
 
 void processtimer(client &c, projevent &e){
-	vec o(valid_client(e.proj) ? clients[e.proj]->state.o : e.o);
+	vec o(valid_client(e.flag) ? clients[e.flag]->state.o : e.o);
 	
 	sendhit(c, GUN_BOW, o.v);
 	loopv(clients){
