@@ -79,7 +79,7 @@ static itemstat powerupstats[] =
 #define SGSPREAD 318
 #define SGADSSPREADFACTOR 20
 #define SGGIB 180 // 18-45 rays
-#define NADEPOWER 2.5f
+#define NADEPOWER 3
 #define NADETTL 2500
 #define KNIFEPOWER 6
 #define KNIFETTL 30000
