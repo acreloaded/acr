@@ -26,13 +26,13 @@ void processevent(client &c, projevent &e){
 				if(dist >= guns[e.gun].endrange) continue;
 				vec ray(target.state.o);
 				ray.sub(o).normalize();
+				if(sraycube(o, ray) < dist) continue;
+				ushort dmg = effectiveDamage(e.gun, dist, true);
 				int fragflags = FRAG_GIB;
 				if(!rnd(clamp<int>(ceil(dist), 1, 100))){
 					fragflags |= FRAG_CRITICAL;
-					dist /= 2;
+					dmg *= 2;
 				}
-				if(sraycube(o, ray) < dist) continue;
-				ushort dmg = effectiveDamage(e.gun, dist, true);
 				gs.damage += dmg;
 				serverdamage(&target, &c, dmg, e.gun, fragflags, o);
 			}
