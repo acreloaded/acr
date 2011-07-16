@@ -608,6 +608,12 @@ struct playerent : dynent, playerstate
 
 	void addicon(int type)
 	{
+		switch(type){
+			case eventicon::CRITICAL:
+			case eventicon::PICKUP:
+				loopv(icons) if(icons[i].type == type) icons.remove(i--);
+				break;
+		}
 		extern int lastmillis;
 		eventicon icon(type, lastmillis);
 		icons.add(icon);
