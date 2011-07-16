@@ -349,11 +349,11 @@ void processtimer(client &c, projevent &e){
 }
 
 void processtimer(client &c, reloadevent &e){
-	if(c.state.health >= STARTHEALTH) return;
+	if(c.state.health >= MAXHEALTH) return;
 	// healer: e.id
 	int heal = e.gun;
-	if(heal >= STARTHEALTH - c.state.health){
-		heal = STARTHEALTH - c.state.health;
+	if(heal >= MAXHEALTH - c.state.health){
+		heal = MAXHEALTH - c.state.health;
 		c.state.damagelog.setsize(0);
 	}
 	if(c.state.state == CS_ALIVE) c.state.health += heal;
