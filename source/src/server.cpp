@@ -48,31 +48,39 @@ string smapname, nextmapname;
 int smode = 0, nextgamemode;
 mapstats smapstats;
 
+#define eventcommon int type, millis, id
 struct shotevent{
-	int type, millis, id;
+	eventcommon;
 	int gun;
 	float to[3];
 	bool compact;
 };
 
+struct headevent{
+	eventcommon;
+	int cn;
+	float o[3];
+};
+
 struct projevent{
-	int type, millis, id;
+	eventcommon;
 	int gun, flag;
 	float o[3];
 };
 
 struct akimboevent{
-	int type, millis, id;
+	eventcommon;
 };
 
 struct reloadevent{
-	int type, millis, id;
+	eventcommon;
 	int gun;
 };
 
 union gameevent{
-	int type, millis, id;
+	eventcommon;
 	shotevent shot;
+	headevent head;
 	projevent proj;
 	akimboevent akimbo;
 	reloadevent reload;
@@ -3241,9 +3249,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						hcount--;
 					}
 					while(hcount--){
-						const int cn = getint(p);
-						vec h;
-						loopk(3) h[k] = getfloat(p);
+						headevent &h = cl->addevent().head;
+						h.cn = getint(p);
+						loopk(3) h.o[k] = getfloat(p);
 					}
 				}
 				break;

@@ -77,6 +77,17 @@ void processevent(client &c, projevent &e){
 
 void processevent(client &c, shotevent &e)
 {
+	loopv(clients) if(valid_client(i)) clients[i]->state.head = clients[i]->state.o;
+	while(c.events.length() > 1 && c.events[1].type == GE_HEAD){
+		headevent &h = c.events[1].head;
+		if(valid_client(h.cn)){
+			clientstate &cs = clients[h.cn]->state;
+			loopi(3) cs.head[i] = h.o[i];
+			if(cs.head.magnitude() > 1) cs.head.normalize(); // how can the center of our heads deviate more than 25 cm from our necks?
+			cs.head.add(cs.o);
+		}
+		c.events.remove(1);
+	}
 	clientstate &gs = c.state;
 	int wait = e.millis - gs.lastshot;
 	if(!gs.isalive(gamemillis) ||
@@ -156,18 +167,7 @@ void processevent(client &c, shotevent &e)
 				if(t.type == ST_EMPTY || ts.state != CS_ALIVE || &c == &t) continue;
 				const float d = gs.o.dist(ts.o);
 				if(d > dist) continue;
-				vec head(ts.o);
-				/*
-				loopvj(heads) if(heads[j].cn == i){
-					head.x = heads[j].o[0];
-					head.y = heads[j].o[1];
-					head.z = heads[j].o[2];
-					// how can the center of our heads deviate more than 25 cm from our necks?
-					if(head.magnitude() > 1) head.normalize();
-					head.add(ts.o);
-					break;
-				}
-				*/
+				vec head(ts.head);
 				if(!hitplayer(gs.o, gs.aim[0], gs.aim[1], to, ts.o, head)) continue;
 				cn = i;
 				dist = d;
@@ -206,18 +206,7 @@ void processevent(client &c, shotevent &e)
 				clientstate &ts = t.state;
 				// basic checks
 				if(t.type == ST_EMPTY || ts.state != CS_ALIVE || &c == &t) continue;
-				vec head(ts.o), end(gs.o);
-				/*
-				loopvj(heads) if(heads[j].cn == i){
-					head.x = heads[j].o[0];
-					head.y = heads[j].o[1];
-					head.z = heads[j].o[2];
-					// how can the center of our heads deviate more than 25 cm from our necks?
-					if(head.magnitude() > 1) head.normalize();
-					head.add(ts.o);
-					break;
-				}
-				*/
+				vec head(ts.o), end(gs.head);
 				if(e.gun == GUN_SHOTGUN){ // many rays, many players
 					int damage = 0;
 					loopj(SGRAYS){ // check rays and sum damage
