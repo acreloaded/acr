@@ -585,7 +585,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(!d) break;
 				d->health += amt;
 				d->lastregen = lastmillis;
-				playsound(S_ITEMHEALTH, d, SP_LOW);
 				break;
 			}
 

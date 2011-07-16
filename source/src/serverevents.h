@@ -349,9 +349,15 @@ void processtimer(client &c, projevent &e){
 }
 
 void processtimer(client &c, reloadevent &e){
-	// heaing from e.id;
-	if(c.state.state == CS_ALIVE) c.state.health += e.gun;
-	// network message?
+	if(c.state.health >= STARTHEALTH) return;
+	// healer: e.id
+	int heal = e.gun;
+	if(heal >= STARTHEALTH - c.state.health){
+		heal = STARTHEALTH - c.state.health;
+		c.state.damagelog.setsize(0);
+	}
+	if(c.state.state == CS_ALIVE) c.state.health += heal;
+	sendf(-1, 1, "ri3", N_REGEN, c.clientnum, heal);
 }
 
 void processevents(){
