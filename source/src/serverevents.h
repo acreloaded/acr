@@ -390,9 +390,9 @@ void processevents(){
 			gameevent &e = c.events[0];
 			if(e.type<=GE_RELOAD) // timed
 			{
-				if(e.shot.millis>gamemillis) break;
-				if(e.shot.millis<c.lastevent) { clearevent(c); continue; }
-				c.lastevent = e.shot.millis;
+				if(e.millis>gamemillis) break;
+				if(e.millis<c.lastevent) { clearevent(c); continue; }
+				c.lastevent = e.millis;
 			}
 			switch(e.type)
 			{
@@ -406,7 +406,7 @@ void processevents(){
 		}
 		while(c.timers.length()){
 			gameevent &e = c.timers[i];
-			if(e.shot.millis>gamemillis) break;
+			if(e.millis>gamemillis) break;
 			switch(e.type){
 				case GE_PROJ: processtimer(c, e.proj); break;
 				case GE_RELOAD: processtimer(c, e.reload); break;
