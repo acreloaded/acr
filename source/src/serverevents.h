@@ -48,6 +48,11 @@ void processevent(client &c, projevent &e){
 				client &target = *clients[e.flag];
 				clientstate &ts = target.state;
 				if(ts.state == CS_ALIVE){
+					int tknifeflags = FRAG_FLAG;
+					if(!rnd(20)){ // 5% critical hit chance
+						tknifeflags |= FRAG_CRITICAL;
+						dmg *= 2; // 80 * 2 = 160 damage instant kill!
+					}
 					gs.damage += dmg;
 					serverdamage(&target, &c, dmg, GUN_KNIFE, FRAG_FLAG, vec(0, 0, 0));
 
