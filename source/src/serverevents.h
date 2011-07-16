@@ -237,7 +237,9 @@ void processevent(client &c, shotevent &e)
 					int hitzone = hitplayer(gs.o, gs.aim[0], gs.aim[1], to, ts.o, head, &end);
 					if(hitzone == HIT_NONE) continue;
 					// damage check
-					int damage = effectiveDamage(e.gun, end.dist(gs.o));
+					const float dist = end.dist(gs.o);
+					int damage = effectiveDamage(e.gun, dist);
+					if(!damage) continue;
 					// damage multipliers
 					switch(hitzone){
 						case HIT_HEAD:
@@ -254,13 +256,17 @@ void processevent(client &c, shotevent &e)
 							damage *= DAMLEGMUL;
 							break;
 					}
-					if(!damage) continue;
-					if(e.gun != GUN_KNIFE) sendhit(c, e.gun, end.v);
 					// gib check
 					const bool gib = e.gun == GUN_KNIFE || hitzone == HIT_HEAD;
 					if(m_expert && !gib) continue;
-					// do the damage!
 					int style = gib ? FRAG_GIB : FRAG_NONE;
+					// critical shots
+					if(!rnd(clamp<int>(ceil(dist) * 2.5, 1, 100))){
+						style |= FRAG_CRITICAL;
+						damage *= 3;
+					}
+					if(e.gun != GUN_KNIFE) sendhit(c, e.gun, end.v);
+					// do the damage!
 					if(e.gun == GUN_KNIFE){
 						if(hitzone == HIT_HEAD) style |= FRAG_FLAG;
 						if(!isteam((&c), (&t))){
