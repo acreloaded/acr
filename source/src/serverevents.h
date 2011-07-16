@@ -261,7 +261,7 @@ void processevent(client &c, shotevent &e)
 					if(m_expert && !gib) continue;
 					int style = gib ? FRAG_GIB : FRAG_NONE;
 					// critical shots
-					if(!rnd(clamp<int>(ceil(dist) * 2.5, 1, 100))){
+					if(!rnd(clamp<int>(ceil(dist) * 2.5f, 1, 100))){
 						style |= FRAG_CRITICAL;
 						damage *= 3;
 					}
@@ -335,9 +335,15 @@ void processtimer(client &c, projevent &e){
 		vec ray(target.state.o);
 		ray.sub(o).normalize();
 		if(sraycube(o, ray) < dist) continue;
+		int bowflags = FRAG_GIB;
+		if(&c == &target) bowflags |= FRAG_FLAG;
 		ushort dmg = effectiveDamage(e.gun, dist, true);
+		if(!rnd(clamp<int>(ceil(dist) * 1.5f, 1, 100))){
+			bowflags |= FRAG_CRITICAL;
+			dmg *= 2;
+		}
 		c.state.damage += dmg;
-		serverdamage(&target, &c, dmg, e.gun, &c == &target ? FRAG_GIB | FRAG_FLAG : FRAG_GIB, o);
+		serverdamage(&target, &c, dmg, e.gun, bowflags, o);
 	}
 	c.state.shotdamage += effectiveDamage(e.gun, 0);
 }
