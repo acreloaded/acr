@@ -596,13 +596,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					damage = getint(p),
 					armour = getint(p),
 					health = getint(p),
-					weap = getint(p);
+					weap = getint(p),
+					style = getint(p);
 				playerent *target = getclient(tcn), *actor = getclient(acn);
 				if(!target) break;
 				target->armour = armour;
 				target->health = health;
 				if(!actor) break;
-				dodamage(damage, target, actor, weap);
+				dodamage(damage, target, actor, weap, style);
 				break;
 			}
 
@@ -632,7 +633,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				} else loopi(assists) getint(p);
 				if(!actor || !victim) break;
 				if((victim->health -= damage) > 0) victim->health = 0;
-				dodamage(damage, victim, actor, weap);
 				dokill(victim, actor, weap, damage, style, killdist);
 				break;
 			}

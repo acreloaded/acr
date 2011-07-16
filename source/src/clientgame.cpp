@@ -469,7 +469,7 @@ bool tryrespawn(){
 
 // damage arriving from the network, monsters, yourself, all ends up here.
 
-void dodamage(int damage, playerent *pl, playerent *actor, int weapon)
+void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style)
 {
 	if(pl->state != CS_ALIVE || intermission) return;
 
@@ -478,6 +478,11 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon)
 	if(actor == player1 && weapon == GUN_KNIFE && damage > 1000) return;
 
 	if(actor != pl && pl->damagelog.find(actor->clientnum) < 0) pl->damagelog.add(actor->clientnum);
+
+	if(style & FRAG_CRITICAL){
+		actor->addicon(eventicon::CRITICAL);
+		pl->addicon(eventicon::CRITICAL);
+	}
 
 	if(pl==player1){
 		if(weapon != GUN_GRENADE && actor != pl){
@@ -496,6 +501,8 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon)
 
 void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, float killdist){
 	if(pl->state!=CS_ALIVE || intermission) return;
+	// damage effect
+	dodamage(damage, pl, act, weapon, style);
 
 	// kill message
 	string subject, predicate, hashave;

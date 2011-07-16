@@ -1488,7 +1488,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 		}
 	}
 	else{
-		sendf(-1, 1, "ri7", N_DAMAGE, target->clientnum, actor->clientnum, int(damage * (gib ? GIBBLOODMUL : 1)), ts.armour, ts.health, gun);
+		sendf(-1, 1, "ri8", N_DAMAGE, target->clientnum, actor->clientnum, int(damage * (gib ? GIBBLOODMUL : 1)), ts.armour, ts.health, gun, style & FRAG_VALID);
 		if(source != target->state.o && (gun == GUN_GRENADE || gun == GUN_BOW)) sendf(-1, 1, "ri4f3", N_PROJPUSH, target->clientnum, gun, damage, source.x, source.y, source.z);
 	}
 }
