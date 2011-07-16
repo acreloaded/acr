@@ -1443,11 +1443,6 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 	ts.dodamage(damage);
 	ts.lastregen = gamemillis + REGENDELAY - REGENINT;
 	const bool gib = style & FRAG_GIB;
-	/*/ TODO: add critical!
-	if(!suic){
-	
-	}
-	//*/
 	if(ts.health<=0){
 		int targethasflag = clienthasflag(target->clientnum);
 		bool suic = false;
