@@ -153,6 +153,9 @@ static inline const char *suicname(int gun, int style){
 			s_strcat(k, gib ? flag ? "sacrifice" : "betray" : flag ? "throw knives at" : "bleed out");
 			s_strcat(k, " a teammate");
 			break;
+		case GUN_HEAL:
+			s_strcat(k, "failed to heal players");
+			break;
 		case GUN_BOW:
 			s_strcat(k, gib ? flag ? "failed to use an explosive crossbow" : "detonated friendly fire" : "tried to impact a teammate");
 			break;
@@ -175,7 +178,6 @@ static inline const char *suicname(int gun, int style){
 			s_strcat(k, "failed to fly");
 			break;
 		default:
-		case GUN_HEAL:
 			s_strcat(k, "suicided");
 			break;
 	}
@@ -214,6 +216,9 @@ static inline const char *killname(int gun, int style){
 			break;
 		case GUN_AKIMBO:
 			s_strcat(k, gib ? "blasted" : "skewered");
+			break;
+		case GUN_HEAL:
+			s_strcat(k, gib ? "tranquilized" : "injected");
 			break;
 		case GUN_WAVE:
 			s_strcat(k, gib ? "disrupted" : "cooked");
