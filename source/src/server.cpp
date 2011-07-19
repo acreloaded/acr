@@ -1441,11 +1441,11 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 	clientstate &ts = target->state;
 	if(ts.spawnmillis + SPAWNPROTECT > gamemillis) return;
 	if(target != actor && isteam(actor, target)){ // friendly fire
-		serverdamage(actor, actor, damage * (m_expert ? 2 : .5f), gun, style, source); // redirect damage to owner
 		if((damage *= 0.25) > target->state.health - 80) damage = target->state.health - 80; // no more TKs!
-		if(!damage) return;
-		//if(isdedicated && actor->type == ST_TCPIP && actor->priv < PRIV_ADMIN)
-			actor->state.shotdamage += damage; // reduce his accuracy
+		if(damage < 1) return;
+		const int returndamage = damage * (m_expert ? 1.5f : .4f);
+		if(returndamage) serverdamage(actor, actor, returndamage, gun, style, source); // redirect damage to owner
+		actor->state.shotdamage += damage; // reduce his accuracy
 	}
 	if(target->state.damagelog.find(actor->clientnum) < 0) target->state.damagelog.add(actor->clientnum);
 	ts.dodamage(damage);
