@@ -247,6 +247,7 @@ struct client				   // server side version of "dynent" type
 	{
 		state.reset();
 		events.setsize(0);
+		timers.setsize(0);
 		overflow = 0;
 		timesync = false;
 		isonrightmap = m_edit;
