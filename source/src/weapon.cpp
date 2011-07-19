@@ -1008,7 +1008,17 @@ int heal::flashtime() const { return 0; }
 bool heal::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 
 //void heal::renderaimhelp(int teamtype){ if(state) weapon::renderaimhelp(teamtype); }
-void heal::attackfx(const vec &from, const vec &to, int millis) { attacksound(); }
+void heal::attackfx(const vec &from2, const vec &too, int millis){
+	vec from(from2), to(too);
+	traceShot(from, to);
+	from.z -= WEAPONBELOWEYE;
+
+	addshotline(owner, from, to);
+	particle_trail(14, 400, from, to);
+	particle_splash(0, 3, 200, to);
+	attacksound();
+}
+
 void heal::attackhit(const vec &o){
 	particle_splash(0, 50, 300, o);
 }
