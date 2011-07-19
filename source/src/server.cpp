@@ -3182,7 +3182,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				}
 				if(cl->state.state!=CS_DEAD || cl->state.lastspawn>=0 || m_duel) break;
 				const int waitremain = (m_flags ? 5000 : 1000) - gamemillis + cl->state.lastdeath;
-				if(waitremain > 0) sendmsgi(41, waitremain, sender);
+				//if(waitremain > 0) sendmsgi(41, waitremain, sender);
 				else if(cl->team == TEAM_SPECT) updateclientteam(sender, freeteam(sender), FTR_PLAYERWISH);
 				else sendspawn(cl);
 				break;
