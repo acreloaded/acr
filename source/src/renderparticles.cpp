@@ -185,7 +185,7 @@ void cleanupexplosion()
 	}
 }
 
-#define MAXPARTYPES 14
+#define MAXPARTYPES 16
 
 struct particle { vec o, d; int fade, type; int millis; particle *next; };
 particle *parlist[MAXPARTYPES], *parempty = NULL;
@@ -257,7 +257,7 @@ static struct parttype { int type; float r, g, b; int gr, tex; float sz; } partt
 	{ PT_BLOOD,	  0.5f, 0.0f, 0.0f, 1,  4, 0.3f  }, // red:	blood spats
 	{ PT_PART,	   1.0f, 0.1f, 0.1f, 0,  1, 0.2f  }, // red:	demotrack
 	{ PT_FIREBALL,   1.0f, 0.5f, 0.5f, 0,  2, 4.0f  }, // nade explosion fireball
-	{ PT_SHOTLINE,   1.0f, 1.0f, 0.7f, 0, -1, 0.0f  }, // yellow: shotline
+	{ PT_SHOTLINE,   1.0f, 1.0f, 0.7f, 0, -1, 0.0f  }, // white-yellow: shotline
 	{ PT_BULLETHOLE, 1.0f, 1.0f, 1.0f, 0,  3, 0.3f  }, // hole decal	 
 	{ PT_STAIN,	  0.5f, 0.0f, 0.0f, 0,  4, 0.6f  }, // red:	blood stain
 	{ PT_DECAL,	  1.0f, 1.0f, 1.0f, 0,  5, 1.5f  }, // scorch decal
@@ -265,6 +265,8 @@ static struct parttype { int type; float r, g, b; int gr, tex; float sz; } partt
 	{ PT_FLASH,	  1.0f, 1.0f, 1.0f, 0,  6, 0.7f  }, // muzzle flash 
 	{ PT_PART,	   1.0f, 0.5f, 0.2f, 20, 0, 0.08f }, // orange: edit mode closest ent
 	{ PT_FIREBALL,   1.0f, 1.0f, 0.5f, 0,  2, 3.0f  }, // crossbow explosion fireball
+	{ PT_SHOTLINE,   0.2f, 1.0f, 0.3f, 0, -1, 0.0f  }, // green: heal-line
+	{ PT_SHOTLINE,   1.0f, 0.2f, 0.2f, 0, -1, 0.0f  }, // red: crossbow-shotline
 };
 
 VAR(particlesize, 20, 100, 500);
