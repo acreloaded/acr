@@ -1000,46 +1000,17 @@ bool akimbo::timerout() { return akimbomillis && akimbomillis <= lastmillis; }
 
 // heal
 
-heal::heal(playerent *owner) : weapon(owner, GUN_HEAL) {}
+heal::heal(playerent *owner) : gun(owner, GUN_HEAL) {}
 
 int heal::flashtime() const { return 0; }
 
-bool heal::attack(vec &targ){
-	int attackmillis = lastmillis-owner->lastaction;
-	if(attackmillis<gunwait) return false;
-	gunwait = reloading = 0;
-
-	if(!owner->attacking) return false;
-	updatelastaction(owner);
-
-	owner->lastattackweapon = this;
-	owner->attacking = info.isauto;
-
-	vec from = owner->o;
-	vec to = targ;
-	from.z -= WEAPONBELOWEYE;
-
-	vec unitv;
-	float dist = to.dist(from, unitv);
-	unitv.div(dist);
-	unitv.mul(guns[GUN_HEAL].endrange);
-	to = from;
-	to.add(unitv);
-
-	sendshoot(from, to);
-	gunwait = info.attackdelay;
-	return true;
-}
-
-bool heal::selectable() { return weapon::selectable() && mag; }
-int heal::modelanim() { return modelattacking() ? ANIM_GUN_SHOOT : ANIM_GUN_IDLE; }
+bool heal::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 
 //void heal::renderaimhelp(int teamtype){ if(state) weapon::renderaimhelp(teamtype); }
 void heal::attackfx(const vec &from, const vec &to, int millis) { attacksound(); }
 void heal::attackhit(const vec &o){
 	particle_splash(0, 50, 300, o);
 }
-void heal::renderstats() { }
 
 vector<cknife> knives;
 

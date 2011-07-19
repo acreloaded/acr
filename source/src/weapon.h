@@ -109,6 +109,18 @@ struct subgun : gun
 	bool selectable();
 };
 
+struct heal : gun
+{
+	heal(playerent *owner);
+
+	bool selectable();
+
+	void attackfx(const vec &from, const vec &to, int millis);
+	void attackhit(const vec &o);
+
+	int flashtime() const;
+};
+
 struct wavegun : gun
 {
 	wavegun(playerent *owner);
@@ -192,22 +204,6 @@ struct akimbo : gun
 	void reset();
 	void renderhudmodel();
 	bool timerout();
-};
-
-struct heal : weapon
-{
-	heal(playerent *owner);
-
-	bool attack(vec &targ);
-	bool selectable();
-	int modelanim();
-
-	void attackfx(const vec &from, const vec &to, int millis);
-	void attackhit(const vec &o);
-	void renderstats();
-	void renderaimhelp(int teamtype){}
-
-	int flashtime() const;
 };
 
 struct knifeent;
