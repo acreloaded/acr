@@ -202,15 +202,16 @@ void processevent(client &c, shotevent &e)
 				}
 				case GUN_HEAL: // healing a player
 				{
-					if(cn < 0) cn = c.clientnum; //break;
+					cn = c.clientnum;
+					if(cn < 0) break;
 					const int flags = (cn == c.clientnum ? FRAG_FLAG : FRAG_NONE) | (hitzone == HIT_HEAD ? FRAG_GIB : FRAG_NONE);
 					serverdamage(clients[cn], &c, effectiveDamage(e.gun, dist), e.gun, flags, gs.o);
-					loopi(5){ // 5 x 5 heals over 5 seconds
+					loopi(15){ // 15 x 1hp heals over the next 1 to 2.5 seconds
 						reloadevent &heal = clients[cn]->addtimer().reload;
 						heal.type = GE_RELOAD;
 						heal.id = c.clientnum;
-						heal.millis = gamemillis + (i + 1) * 1000;
-						heal.gun = 5;
+						heal.millis = gamemillis + 1000 + i * 100;
+						heal.gun = 1;
 					}
 					break;
 				}
