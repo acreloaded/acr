@@ -266,7 +266,7 @@ static struct parttype { int type; float r, g, b; int gr, tex; float sz; } partt
 	{ PT_PART,	   1.0f, 0.5f, 0.2f, 20, 0, 0.08f }, // orange: edit mode closest ent
 	{ PT_FIREBALL,   1.0f, 1.0f, 0.5f, 0,  2, 3.0f  }, // crossbow explosion fireball
 	{ PT_SHOTLINE,   0.2f, 1.0f, 0.3f, 0, -1, 0.0f  }, // green: heal-line
-	{ PT_SHOTLINE,   1.0f, 0.2f, 0.2f, 0, -1, 0.0f  }, // red: crossbow-shotline
+	{ PT_PART,	     1.0f, 0.2f, 0.2f, 15, 1, 0.1f }, // red: crossbow smokeline
 };
 
 VAR(particlesize, 20, 100, 500);

@@ -903,7 +903,7 @@ void crossbow::attackfx(const vec &from2, const vec &too, int millis){
 	traceShot(from, to);
 	from.z -= WEAPONBELOWEYE;
 
-	addshotline(owner, from, to);
+	particle_trail(15, 400, from, to);
 	particle_splash(0, 5, 250, to);
 	attacksound();
 }
