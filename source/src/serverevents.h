@@ -191,7 +191,7 @@ void processevent(client &c, shotevent &e)
 					if(cn >= 0) sendf(-1, 1, "ri2", N_STICK, cn);
 					else sendf(-1, 1, "ri2f3", N_STICK, -1, to.x, to.y, to.z);
 					// timed explosion
-					projevent &exp = c.timers.add().proj;
+					projevent &exp = c.addtimer().proj;
 					exp.type = GE_PROJ;
 					//gs.tips.add(exp.proj.id = rand());
 					exp.millis = gamemillis + TIPSTICKTTL;
@@ -206,7 +206,7 @@ void processevent(client &c, shotevent &e)
 					const int flags = (cn == c.clientnum ? FRAG_FLAG : FRAG_NONE) | (hitzone == HIT_HEAD ? FRAG_GIB : FRAG_NONE);
 					serverdamage(clients[cn], &c, effectiveDamage(e.gun, dist), e.gun, flags, gs.o);
 					loopi(5){ // 5 x 5 heals over 5 seconds
-						reloadevent &heal = clients[cn]->timers.add().reload;
+						reloadevent &heal = clients[cn]->addtimer().reload;
 						heal.type = GE_RELOAD;
 						heal.id = c.clientnum;
 						heal.millis = gamemillis + (i + 1) * 1000;
@@ -421,7 +421,7 @@ void processevents(){
 				case GE_PROJ: processtimer(c, e.proj); break;
 				case GE_RELOAD: processtimer(c, e.reload); break;
 			}
-			c.timers.remove(i--);
+			c.timers.remove(j--);
 		}
 	}
 }

@@ -243,6 +243,13 @@ struct client				   // server side version of "dynent" type
 		return events.add();
 	}
 
+	gameevent &addtimer()
+	{
+		static gameevent dummy;
+		if(timers.length()>200) return dummy;
+		return timers.add();
+	}
+
 	void mapchange()
 	{
 		state.reset();
