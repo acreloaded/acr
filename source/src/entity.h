@@ -61,7 +61,7 @@ static itemstat ammostats[] =
 	{90, 120,  180,	S_ITEMAMMO },   // assault
 	{1,  1,   3,	S_ITEMAMMO },   // grenade
 	{96, 0,   144,	S_ITEMAKIMBO },  // akimbo
-	{1,  1,   1,	S_ITEMAMMO },   // heal dummy
+	{10, 20,  30,	S_ITEMAMMO },   // heal
 	{50, 100, 200,  S_ITEMAMMO }, // wave gun
 	{2,  3,   5,    S_ITEMAMMO }, // crossbow
 };
@@ -113,7 +113,7 @@ static guninfo guns[NUMGUNS] =
 	{ "assault",    S_ASSAULT,  S_RASSAULT, 2100,   73,     32,   40,  100,   12,   0,   0, 60,    3,   30,   0,  3,    24,    38,     60, 1,   true },
 	{ "grenade",    S_NULL,     S_NULL,     1000,   650,   350,    0,   32,  350,  20,   6,  1,    1,    1,   3,  1,     0,    0,       0, 4,   false},
 	{ "pistol",     S_PISTOL,   S_RAKIMBO,  1400,   80,     40,   45,  160,   20,   0,   0, 56,    8,   24,   6,  2,    28,    48,     70, 2,   true },
-	{ "knife",      S_KNIFE,    S_NULL,        0,   500,    80,    3,    4,   60,   0,   0,  1,    1,   1,    0,  0,     0,    0,       0, 5,   true },
+	{ "heal",       S_SUBGUN,   S_NULL,     1200,   100,    20,    4,    8,   10,   0,   0,  1,    1,   1,    0,  0,     0,    0,       0, 5,   true },
 	{ "wave",       S_NULL,     S_RASSAULT, 2500,   40,     10,    8,   12,    6,   0,   0,168,    2,   50,   0,  2,    16,   19,     360, 0,   true },
 	{ "bow",        S_NULL,     S_RASSAULT, 2000,   120,   250,    0,   24,  250,   0,   0, 48,    3,    1,   3,  1,    48,   64,       0, 4,   false},
 };
@@ -154,7 +154,7 @@ static inline const char *suicname(int gun, int style){
 			s_strcat(k, " a teammate");
 			break;
 		case GUN_HEAL:
-			s_strcat(k, "failed to heal players");
+			s_strcat(k, flag ? "overdosed on drugs" : "failed at dosing players");
 			break;
 		case GUN_BOW:
 			s_strcat(k, gib ? flag ? "failed to use an explosive crossbow" : "detonated friendly fire" : "tried to impact a teammate");
@@ -500,7 +500,6 @@ struct playerstate
 		loopi(NUMGUNS) ammo[i] = mag[i] = gunwait[i] = 0;
 		ammo[GUN_KNIFE] = 2;
 		mag[GUN_KNIFE] = 1;
-		//mag[GUN_HEAL] = 20;
 	}
 
 	virtual void spawnstate(int gamemode)
@@ -510,7 +509,7 @@ struct playerstate
 		else if(m_lss) primary = GUN_KNIFE;
 		else primary = nextprimary;
 
-		if(primary == GUN_GRENADE || primary == GUN_AKIMBO || primary == GUN_HEAL || primary < 0 || primary >= NUMGUNS) primary = GUN_ASSAULT;
+		if(primary == GUN_GRENADE || primary == GUN_AKIMBO || primary < 0 || primary >= NUMGUNS) primary = GUN_ASSAULT;
 
 		if(!m_nopistol){
 			ammo[GUN_PISTOL] = ammostats[GUN_PISTOL].start-magsize(GUN_PISTOL);

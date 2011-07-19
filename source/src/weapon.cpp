@@ -366,7 +366,7 @@ bool weapon::modelattacking(){
 void weapon::attacksound(){
 	if(info.sound == S_NULL) return;
 	bool local = (owner == player1);
-	if(reloadable_gun(type) && type != GUN_HEAL && type != GUN_WAVE){ // it's "loud" if you can reload it
+	if(!suppressed_gun(type)){
 		owner->radarmillis = lastmillis;
 		owner->lastloudpos[0] = owner->o.x;
 		owner->lastloudpos[1] = owner->o.y;

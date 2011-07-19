@@ -1,6 +1,7 @@
 
 enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_BOLT, GUN_ASSAULT, GUN_GRENADE, GUN_AKIMBO, GUN_HEAL, GUN_WAVE, GUN_BOW, NUMGUNS };
 #define reloadable_gun(g) (g != GUN_KNIFE && g != GUN_GRENADE)
+#define suppressed_gun(g) (!reloadable_gun(g) || g == GUN_WAVE)
 #define ads_gun(g) (g != GUN_KNIFE && g != GUN_GRENADE && g != GUN_AKIMBO)
 
 enum { FRAG_NONE = 0, FRAG_GIB = 1 << 0, FRAG_REVENGE = 1 << 1, FRAG_CRITICAL = 1 << 2, FRAG_FIRST = 1 << 3, FRAG_FLAG = 1 << 4,
