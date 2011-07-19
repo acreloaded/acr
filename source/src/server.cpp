@@ -1450,7 +1450,6 @@ void forcedeath(client *cl, bool gib = false, bool cheat = false){
 void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source){
 	if(!target || !actor || !damage) return;
 	clientstate &ts = target->state;
-	//if(ts.spawnmillis + SPAWNPROTECT > gamemillis) return;
 	if(target != actor && isteam(actor, target)){ // friendly fire
 		if((damage *= 0.25) > target->state.health - 80) damage = target->state.health - 80; // no more TKs!
 		if(damage < 1) return;
@@ -3218,7 +3217,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_SUICIDE:
 				if(cl->state.state != CS_ALIVE) break;
-				cl->state.spawnmillis = INT_MIN; // bypass spawn protection
 				serverdamage(cl, cl, 1000, NUMGUNS, FRAG_GIB, cl->state.o);
 				break;
 
