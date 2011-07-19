@@ -155,13 +155,14 @@ void processevent(client &c, shotevent &e)
 	switch(e.gun){
 		case GUN_GRENADE: gs.grenades.add(e.id); break;
 		case GUN_BOW:
+		case GUN_HEAL:
 		{
 			// fix to position
 			vec tracer(to);
 			tracer.sub(from).normalize();
 			to = tracer.mul(sraycube(from, tracer) - .1f).add(from);
 			// check for stick
-			int cn = -1;
+			int cn = -1, hitzone = HIT_NONE;
 			float dist = 4e6f; // 1 million meters should be enough for a "stick"
 			loopv(clients){
 				client &t = *clients[i];
@@ -171,27 +172,49 @@ void processevent(client &c, shotevent &e)
 				const float d = gs.o.dist(ts.o);
 				if(d > dist) continue;
 				vec head(ts.head);
-				if(!hitplayer(gs.o, gs.aim[0], gs.aim[1], to, ts.o, head)) continue;
+				const int hz = hitplayer(gs.o, gs.aim[0], gs.aim[1], to, ts.o, head);
+				if(!hz) continue;
 				cn = i;
 				dist = d;
+				hitzone = hz;
 			}
-			if(cn >= 0 && !m_expert){
-				serverdamage(clients[cn], &c, 50, GUN_BOW, FRAG_NONE, clients[cn]->state.o);
-				if(clients[cn]->state.state != CS_ALIVE){
-					to = clients[cn]->state.o;
-					cn = -1;
+			switch(e.gun){
+				case GUN_BOW: // explosive tip is stuck to a player
+				{
+					if(cn >= 0 && !m_expert){
+						serverdamage(clients[cn], &c, hitzone == HIT_HEAD ? 50 : 25, GUN_BOW, FRAG_NONE, clients[cn]->state.o);
+						if(clients[cn]->state.state != CS_ALIVE){
+							to = clients[cn]->state.o;
+							cn = -1;
+						}
+					}
+					if(cn >= 0) sendf(-1, 1, "ri2", N_STICK, cn);
+					else sendf(-1, 1, "ri2f3", N_STICK, -1, to.x, to.y, to.z);
+					// timed explosion
+					projevent &exp = c.timers.add().proj;
+					exp.type = GE_PROJ;
+					//gs.tips.add(exp.proj.id = rand());
+					exp.millis = gamemillis + TIPSTICKTTL;
+					exp.gun = GUN_BOW;
+					exp.flag = cn;
+					loopi(3) exp.o[i] = to[i];
+					break;
+				}
+				case GUN_HEAL: // healing a player
+				{
+					if(cn < 0) cn = c.clientnum; //break;
+					const int flags = (cn == c.clientnum ? FRAG_FLAG : FRAG_NONE) | (hitzone == HIT_HEAD ? FRAG_GIB : FRAG_NONE);
+					serverdamage(clients[cn], &c, effectiveDamage(e.gun, dist), e.gun, flags, gs.o);
+					loopi(5){ // 5 x 5 heals over 5 seconds
+						reloadevent &heal = clients[cn]->timers.add().reload;
+						heal.type = GE_RELOAD;
+						heal.id = c.clientnum;
+						heal.millis = gamemillis + (i + 1) * 1000;
+						heal.gun = 5;
+					}
+					break;
 				}
 			}
-			if(cn >= 0) sendf(-1, 1, "ri2", N_STICK, cn);
-			else sendf(-1, 1, "ri2f3", N_STICK, -1, to.x, to.y, to.z);
-			// timed explosion
-			gameevent &exp = c.timers.add();
-			exp.type = GE_PROJ;
-			//gs.tips.add(exp.proj.id = rand());
-			exp.proj.millis = gamemillis + TIPSTICKTTL;
-			exp.proj.gun = GUN_BOW;
-			exp.proj.flag = cn;
-			loopi(3) exp.proj.o[i] = to[i];
 			break;
 		}
 		case GUN_KNIFE:
@@ -213,8 +236,8 @@ void processevent(client &c, shotevent &e)
 				if(e.gun == GUN_SHOTGUN){ // many rays, many players
 					int damage = 0;
 					loopj(SGRAYS){ // check rays and sum damage
-						int hitzone = hitplayer(gs.o, gs.aim[0], gs.aim[1], gs.sg[j], ts.o, head, &end);
-						if(hitzone == HIT_NONE) continue;
+						const int hitzone = hitplayer(gs.o, gs.aim[0], gs.aim[1], gs.sg[j], ts.o, head, &end);
+						if(!hitzone) continue;
 						damage += effectiveDamage(e.gun, end.dist(gs.o)) * (hitzone == HIT_HEAD ? 4.f : hitzone == HIT_TORSO ? 1.2f : 1);
 					}
 					const bool gib = damage > SGGIB;
@@ -226,8 +249,8 @@ void processevent(client &c, shotevent &e)
 				}
 				else{ // one ray, potentially multiple players
 					// calculate the hit
-					int hitzone = hitplayer(gs.o, gs.aim[0], gs.aim[1], to, ts.o, head, &end);
-					if(hitzone == HIT_NONE) continue;
+					const int hitzone = hitplayer(gs.o, gs.aim[0], gs.aim[1], to, ts.o, head, &end);
+					if(!hitzone) continue;
 					// damage check
 					const float dist = end.dist(gs.o);
 					int damage = effectiveDamage(e.gun, dist);
