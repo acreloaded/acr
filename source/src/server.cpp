@@ -243,11 +243,14 @@ struct client				   // server side version of "dynent" type
 		return events.add();
 	}
 
-	gameevent &addtimer()
-	{
+	gameevent &addtimer(){
 		static gameevent dummy;
 		if(timers.length()>200) return dummy;
 		return timers.add();
+	}
+
+	void clearhealtimers(){
+		loopv(timers) if(timers[i].type == GE_RELOAD) timers.remove(i--);
 	}
 
 	void mapchange()
@@ -1473,6 +1476,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 		ts.killstreak = ts.lastcut = 0;
 		ts.damagelog.removeobj(target->clientnum);
 		ts.damagelog.removeobj(actor->clientnum);
+		target->clearhealtimers();
 		loopv(ts.damagelog){
 			if(valid_client(ts.damagelog[i])) clients[ts.damagelog[i]]->state.assists++;
 			else ts.damagelog.remove(i--);
