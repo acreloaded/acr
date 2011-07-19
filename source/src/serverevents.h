@@ -78,15 +78,18 @@ void processevent(client &c, projevent &e){
 void processevent(client &c, shotevent &e)
 {
 	loopv(clients) if(valid_client(i)) clients[i]->state.head = clients[i]->state.o;
-	while(c.events.length() > 1 && c.events[1].type == GE_HEAD){
-		headevent &h = c.events[1].head;
+	loopv(c.events){
+		if(c.events[i].type != GE_HEAD){
+			if(i) break;
+			else continue;
+		}
+		headevent &h = c.events[i].head;
 		if(valid_client(h.cn)){
 			clientstate &cs = clients[h.cn]->state;
 			loopi(3) cs.head[i] = h.o[i];
 			if(cs.head.magnitude() > 1) cs.head.normalize(); // how can the center of our heads deviate more than 25 cm from our necks?
 			cs.head.add(cs.o);
 		}
-		c.events.remove(1);
 	}
 	clientstate &gs = c.state;
 	int wait = e.millis - gs.lastshot;
@@ -304,12 +307,10 @@ void processevent(client &c, akimboevent &e){
 }
 
 void clearevent(client &c){
-	/*
 	int n = 1;
-	while(n<c->events.length() && c->events[n].type==GE_HIT) n++;
-	c->events.remove(0, n);
-	*/
-	c.events.remove(0);
+	while(n<c.events.length() && c.events[n].type==GE_HEAD) n++;
+	c.events.remove(0, n);
+	//c.events.remove(0);
 }
 
 void processtimer(client &c, projevent &e){
@@ -377,12 +378,9 @@ void processevents(){
 		while(c.events.length()) // ordered
 		{
 			gameevent &e = c.events[0];
-			if(e.type<=GE_RELOAD) // timed
-			{
-				if(e.millis>gamemillis) break;
-				if(e.millis<c.lastevent) { clearevent(c); continue; }
-				c.lastevent = e.millis;
-			}
+			if(e.millis>gamemillis) break;
+			if(e.millis<c.lastevent) { clearevent(c); continue; }
+			c.lastevent = e.millis;
 			switch(e.type)
 			{
 				case GE_SHOT: processevent(c, e.shot); break;

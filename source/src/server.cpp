@@ -78,7 +78,7 @@ struct reloadevent{
 };
 
 union gameevent{
-	eventcommon;
+	struct { eventcommon; };
 	shotevent shot;
 	headevent head;
 	projevent proj;
