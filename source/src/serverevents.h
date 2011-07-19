@@ -374,7 +374,7 @@ void processevents(){
 				c.state.lastregen = gamemillis;
 			}
 		}
-		while(c.events.length())
+		while(c.events.length()) // ordered
 		{
 			gameevent &e = c.events[0];
 			if(e.type<=GE_RELOAD) // timed
@@ -393,8 +393,8 @@ void processevents(){
 			}
 			clearevent(c);
 		}
-		while(c.timers.length()){
-			gameevent &e = c.timers[i];
+		loopvj(c.timers){ // unordered
+			gameevent &e = c.timers[j];
 			if(e.millis>gamemillis) break;
 			switch(e.type){
 				case GE_PROJ: processtimer(c, e.proj); break;
