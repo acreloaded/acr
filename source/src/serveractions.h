@@ -184,7 +184,7 @@ struct kickaction : playeraction
 {
 	string reason;
 	void perform() { disconnect_client(cn, DISC_KICK); }
-	kickaction(int cn, char *r) : playeraction(cn)
+	kickaction(int cn, const char *r) : playeraction(cn)
 	{
 		s_strcpy(reason, r);
 		passratio = 0.7f;
