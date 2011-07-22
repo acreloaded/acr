@@ -202,7 +202,7 @@ void processevent(client &c, shotevent &e)
 				}
 				case GUN_HEAL: // healing a player
 				{
-					cn = c.clientnum;
+					//cn = c.clientnum;
 					if(cn < 0) break;
 					const int flags = (cn == c.clientnum ? FRAG_FLAG : FRAG_NONE) | (hitzone == HIT_HEAD ? FRAG_GIB : FRAG_NONE);
 					serverdamage(clients[cn], &c, effectiveDamage(e.gun, dist), e.gun, flags, gs.o);
