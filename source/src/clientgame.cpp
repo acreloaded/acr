@@ -51,7 +51,7 @@ bool duplicatename(playerent *d, char *name = NULL)
 	return false;
 }
 
-char *colorname(playerent *d, bool stats)
+const char *colorname(playerent *d, bool stats)
 {
 	if(!d) return "unknown";
 	static string cname;
@@ -65,7 +65,7 @@ char *colorname(playerent *d, bool stats)
 	return cname;
 }
 
-char *colorping(int ping)
+const char *colorping(int ping)
 {
 	static string cping;
 	if(multiplayer(false)) s_sprintf(cping)("\fs\f%d%d\fr", ping <= 500 ? 0 : ping <= 1000 ? 2 : 3, ping);
@@ -73,7 +73,7 @@ char *colorping(int ping)
 	return cping;
 }
 
-char *colorpj(int pj)
+const char *colorpj(int pj)
 {
 	static string cpj;
 	if(multiplayer(false)) s_sprintf(cpj)("\fs\f%d%d\fr", pj <= 90 ? 0 : pj <= 170 ? 2 : 3, pj);
