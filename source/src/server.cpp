@@ -1262,19 +1262,24 @@ bool spamdetect(client *cl, char *text) // checks doubled lines and average typi
 
 void sendtext(char *text, client &cl, int flags, int voice){
 	if(voice < 0 || voice > S_VOICEEND - S_MAINEND) voice = 0;
-	s_sprintfd(logmsg)("[%s] ", cl.hostname);
-	if(flags & SAY_ACTION) s_sprintf(logmsg)("%s* %s ", logmsg, cl.name);
-	else s_sprintf(logmsg)("%s<%s> ", logmsg, cl.name);
-	if(flags & SAY_TEAM) s_sprintf(logmsg)("%s(%s) ", logmsg, team_string(cl.team));
-	if(voice) s_sprintf(logmsg)("%s[%d] ", logmsg, voice + S_MAINEND);
-	s_strcat(logmsg, text);
+	s_sprintfd(logmsg)("<%s> ", cl.name);
+	if(flags & SAY_ACTION) s_sprintf(logmsg)("* %s ", cl.name);
+	string logappend;
+	if(flags & SAY_TEAM){
+		s_sprintf(logappend)("(%s) ", team_string(cl.team));
+		s_strcat(logmsg, logappend);
+	}
+	if(voice){
+		s_sprintf(logappend)("[%d] ", voice + S_MAINEND);
+		s_strcat(logmsg, logappend);
+	}
 	if(spamdetect(&cl, text)){
-		logline(ACLOG_INFO, "%s, SPAM detected", logmsg);
+		//logline(ACLOG_INFO, "%s, SPAM detected", logmsg);
 		sendf(cl.clientnum, 1, "ri3s", N_TEXT, cl.clientnum, SAY_DENY << 5, text);
 		return;
 	}
 	if(!m_team) flags &= ~SAY_TEAM;
-	logline(ACLOG_INFO, "%s", logmsg);
+	logline(ACLOG_INFO, "[%s] %s%s", cl.hostname, logmsg, text);
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
 	putint(p, N_TEXT);
