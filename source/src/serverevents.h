@@ -279,7 +279,7 @@ void processevent(client &c, shotevent &e)
 					// critical shots
 					if(m_real || !rnd(clamp<int>(ceil(dist) * 2.5f, 1, 100))){
 						style |= FRAG_CRITICAL;
-						damage *= 3;
+						damage *= 2.5f;
 					}
 					if(e.gun != GUN_KNIFE) sendhit(c, e.gun, end.v);
 					// do the damage!
