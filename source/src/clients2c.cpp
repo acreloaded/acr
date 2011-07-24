@@ -346,9 +346,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				int cn = getint(p);
 				while(cn>=players.length()) players.add(NULL);
 				if(players[cn]) zapplayer(players[cn]);
-				botent *b = new botent;
+				//botent *b = new botent;
+				playerent *b = newclient(cn);
+				/*
 				b->clientnum = cn;
 				players.add(b);
+				*/
 				b->ownernum = getint(p);
 				b->team = getint(p);
 				s_strcpy(b->name, "bot");
@@ -376,6 +379,16 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				}
 			}
 
+			case N_DELBOT:
+			{
+				int cn = getint(p);
+				if(players.inrange(cn)){
+					//if(players[cn]->ownernum == getclientnum()) bots.removeobj((botent *)players[cn]);
+					zapplayer(players[cn]);
+				}
+				break;
+			}
+
 			case N_NEWNAME:
 			{
 				playerent *d = getclient(getint(p));
@@ -395,16 +408,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				playerent *d = getclient(getint(p));
 				int s = getint(p);
 				if(d) setskin(d, s);
-				break;
-			}
-
-			case N_DELBOT:
-			{
-				int cn = getint(p);
-				if(players.inrange(cn)){
-					if(players[cn]->ownernum == getclientnum()) bots.removeobj((botent *)players[cn]);
-					zapplayer(players[cn]);
-				}
 				break;
 			}
 

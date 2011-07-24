@@ -61,7 +61,6 @@ void clearai(){
 }
 
 void checkai(){
-	return;
 	int balance = 0;
 	const int people = numclients(true);
 	switch(botbalance){
