@@ -265,6 +265,7 @@ void moveotherplayers()
 
 bool showhudtimer(int maxsecs, int startmillis, const char *msg, bool flash)
 {
+	/*
 	static string str = "";
 	static int tickstart = 0, curticks = -1, maxticks = -1;
 	int nextticks = (lastmillis - startmillis) / 200;
@@ -289,6 +290,14 @@ bool showhudtimer(int maxsecs, int startmillis, const char *msg, bool flash)
 	if(nextticks < maxticks) hudeditf(HUDMSG_TIMER|HUDMSG_OVERWRITE, flash ? str : str+2);
 	else hudeditf(HUDMSG_TIMER, msg);
 	return true;
+	*/
+	static int lasttick = 0;
+	if(lasttick > startmillis + maxsecs * 1000) return false;
+	lasttick = lastmillis;
+	s_sprintfd(str)("\f3Waiting for respawn: %.1fs", maxsecs - (lastmillis - startmillis) / 1000.f);
+	if(lastmillis <= startmillis + maxsecs * 1000) hudeditf(HUDMSG_TIMER|HUDMSG_OVERWRITE, flash ? str : str+2);
+	else hudeditf(HUDMSG_TIMER, msg);
+	return true;
 }
 
 int lastspawnattempt = 0;
@@ -301,11 +310,8 @@ void showrespawntimer()
 		if(!arenaintermission) return;
 		showhudtimer(5, arenaintermission, "FIGHT!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
 	}
-	else if(player1->state==CS_DEAD && m_flags && (!player1->isspectating() || player1->spectatemode==SM_DEATHCAM))
-	{
-		int secs = 5;
-		showhudtimer(secs, player1->respawnoffset, "READY!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
-	}
+	else if(player1->state==CS_DEAD && (!player1->isspectating() || player1->spectatemode==SM_DEATHCAM))
+		showhudtimer(m_flags ? 5 : 1, player1->respawnoffset, "READY!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
 }
 
 struct scriptsleep { int wait; char *cmd; };
