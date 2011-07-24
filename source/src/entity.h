@@ -111,11 +111,11 @@ static guninfo guns[NUMGUNS] =
 	{ "sniper",     S_SNIPER,   S_RSNIPER,  2000,   100,   120,    1,    2,   70,   0,   0,250,   14,   10,   4,  4,    58,    65,     75, 2,   false},
 	{ "bolt",       S_BOLT,     S_RBOLT,    2000,   1500,  150,   80,  800,   40,   0,   0,280,   36,    8,   4,  4,    91,    99,     80, 3,   false},
 	{ "assault",    S_ASSAULT,  S_RASSAULT, 2100,   73,     32,   40,  100,   12,   0,   0, 60,    3,   30,   0,  3,    24,    38,     60, 1,   true },
-	{ "grenade",    S_NULL,     S_NULL,     1000,   650,   350,    0,   32,  350,  20,   6,  1,    1,    1,   3,  1,     0,    0,       0, 4,   false},
+	{ "grenade",    S_NULL,     S_NULL,     1000,   650,   350,    0,   32,  330,  20,   6,  1,    1,    1,   3,  1,     0,    0,       0, 4,   false},
 	{ "pistol",     S_PISTOL,   S_RAKIMBO,  1400,   80,     40,   45,  160,   20,   0,   0, 56,    8,   24,   6,  2,    28,    48,     70, 2,   true },
 	{ "heal",       S_SUBGUN,   S_NULL,     1200,   100,    20,    4,    8,   10,   0,   0,112,    1,   10,   0,  0,    10,    20,      8, 5,   true },
 	{ "wave",       S_NULL,     S_RASSAULT, 2500,   40,     10,    8,   12,    6,   0,   0,168,    2,   50,   0,  2,    16,    19,    360, 0,   true },
-	{ "bow",        S_NULL,     S_RASSAULT, 2000,   120,   300,    0,   24,  250,   0,   0, 48,    3,    1,   3,  1,    48,    64,      0, 4,   false},
+	{ "bow",        S_NULL,     S_RASSAULT, 2000,   120,   300,    0,   24,  290,   0,   0, 48,    3,    1,   3,  1,    48,    64,      0, 4,   false},
 };
 
 static inline ushort reloadtime(int gun) { return guns[gun].reloadtime; }
