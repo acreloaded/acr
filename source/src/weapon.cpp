@@ -1052,21 +1052,7 @@ void knifeent::explode(){
 	if(knifestate!=NS_ACTIVATED && knifestate!=NS_THROWED ) return;
 	knifestate = NS_EXPLODED;
 	static vec n(0,0,0);
-	if(local){
-		int hitcn = -1;
-		float hitdist = 40; // a knife hit 10 meters from a throwing knife? hard to get!
-		loopv(players){
-			if(!players[i] || i == getclientnum() || players[i]->state != CS_ALIVE) continue;
-			// check for xy
-			float d = players[i]->o.distxy(o);
-			if(hitdist < d || players[i]->radius * 1.5f < d) continue;
-			// check for z
-			if(o.z > players[i]->o.z + players[i]->aboveeye || players[i]->o.z > o.z + players[i]->eyeheight) continue;
-			hitcn = i;
-			hitdist = d;
-		}
-		addmsg(N_PROJ, "ri3f3", lastmillis, GUN_KNIFE, hitcn, o.x, o.y, o.z);
-	}
+	if(local) addmsg(N_PROJ, "ri3f3", lastmillis, GUN_KNIFE, millis, o.x, o.y, o.z);
 	playsound(S_GRENADEBOUNCE1+rnd(2), &o);
 	destroy();
 }

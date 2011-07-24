@@ -64,7 +64,7 @@ void checkai(){
 	int balance = 0;
 	const int people = numclients(true);
 	switch(botbalance){
-		case -1: balance = max(people, m_duel ? 2 : 4); break;
+		case -1: balance = max(people, m_duel ? 2 : 4); break; // replace 4 based on map size
 		case  0: balance = 0; break; // no bots
 		default: balance = max(people, m_duel ? 2 : botbalance); break;
 	}

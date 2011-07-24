@@ -41,26 +41,37 @@ void processevent(client &c, projevent &e){
 
 		case GUN_KNIFE:
 		{
-			if(!gs.knives.numprojs) return;
-			gs.knives.numprojs--;
+			if(!gs.knives.remove(e.flag)) return;
 			ushort dmg = effectiveDamage(GUN_KNIFE, 0);
-			if(e.flag >= 0 && e.flag != c.clientnum && valid_client(e.flag)){
-				client &target = *clients[e.flag];
+			int hitcn = -1;
+			float hitdist = 40; // a knife hit 10 meters from a throwing knife? hard to get!
+			const vec o(e.o);
+			loopv(clients){
+				client &h = *clients[i];
+				if(h.type == ST_EMPTY || i == c.clientnum || h.state.state != CS_ALIVE) continue;
+				// check for xy
+				float d = h.state.o.distxy(o);
+				if(hitdist < d || PLAYERRADIUS * 1.5f < d) continue;
+				// check for z
+				if(o.z > h.state.o.z + PLAYERABOVEEYE || h.state.o.z > o.z + PLAYERHEIGHT) continue;
+				hitcn = i;
+				hitdist = d;
+			}
+			if(hitcn >= 0){
+				client &target = *clients[hitcn];
 				clientstate &ts = target.state;
-				if(ts.state == CS_ALIVE){
-					int tknifeflags = FRAG_FLAG;
-					if(m_real || !rnd(20)){ // 5% critical hit chance
-						tknifeflags |= FRAG_CRITICAL;
-						dmg *= 2; // 80 * 2 = 160 damage instant kill!
-					}
-					gs.damage += dmg;
-					serverdamage(&target, &c, dmg, GUN_KNIFE, FRAG_FLAG, vec(0, 0, 0));
-
-					e.o[0] = ts.o[0];
-					e.o[1] = ts.o[1];
-					int cubefloor = getblockfloor(getmaplayoutid(e.o[0], e.o[1]));
-					e.o[2] = ts.o[2] > cubefloor ? (cubefloor + ts.o[2]) / 2 : cubefloor;
+				int tknifeflags = FRAG_FLAG;
+				if(m_real || !rnd(20)){ // 5% critical hit chance
+					tknifeflags |= FRAG_CRITICAL;
+					dmg *= 2; // 80 * 2 = 160 damage instant kill!
 				}
+				gs.damage += dmg;
+				serverdamage(&target, &c, dmg, GUN_KNIFE, FRAG_FLAG, vec(0, 0, 0));
+
+				e.o[0] = ts.o[0];
+				e.o[1] = ts.o[1];
+				int cubefloor = getblockfloor(getmaplayoutid(e.o[0], e.o[1]));
+				e.o[2] = ts.o[2] > cubefloor ? (cubefloor + ts.o[2]) / 2 : cubefloor;
 			}
 
 			sendhit(c, GUN_KNIFE, e.o);
