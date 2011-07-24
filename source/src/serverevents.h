@@ -29,7 +29,7 @@ void processevent(client &c, projevent &e){
 				if(sraycube(o, ray) < dist) continue;
 				ushort dmg = effectiveDamage(e.gun, dist, true);
 				int fragflags = FRAG_GIB;
-				if(!rnd(clamp<int>(ceil(dist), 1, 100))){
+				if(m_real || !rnd(clamp<int>(ceil(dist), 1, 100))){
 					fragflags |= FRAG_CRITICAL;
 					dmg *= 2;
 				}
@@ -49,7 +49,7 @@ void processevent(client &c, projevent &e){
 				clientstate &ts = target.state;
 				if(ts.state == CS_ALIVE){
 					int tknifeflags = FRAG_FLAG;
-					if(!rnd(20)){ // 5% critical hit chance
+					if(m_real || !rnd(20)){ // 5% critical hit chance
 						tknifeflags |= FRAG_CRITICAL;
 						dmg *= 2; // 80 * 2 = 160 damage instant kill!
 					}
@@ -277,7 +277,7 @@ void processevent(client &c, shotevent &e)
 					if(m_expert && !gib) continue;
 					int style = gib ? FRAG_GIB : FRAG_NONE;
 					// critical shots
-					if(!rnd(clamp<int>(ceil(dist) * 2.5f, 1, 100))){
+					if(m_real || !rnd(clamp<int>(ceil(dist) * 2.5f, 1, 100))){
 						style |= FRAG_CRITICAL;
 						damage *= 3;
 					}
@@ -352,7 +352,7 @@ void processtimer(client &c, projevent &e){
 		int bowflags = FRAG_GIB;
 		if(&c == &target) bowflags |= FRAG_FLAG;
 		ushort dmg = effectiveDamage(e.gun, dist, true);
-		if(!rnd(clamp<int>(ceil(dist) * 1.5f, 1, 100))){
+		if(m_real || !rnd(clamp<int>(ceil(dist) * 1.5f, 1, 100))){
 			bowflags |= FRAG_CRITICAL;
 			dmg *= 2;
 		}
