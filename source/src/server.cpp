@@ -1944,7 +1944,13 @@ void updatesdesc(const char *newdesc, ENetAddress *caller = NULL){
 
 bool updateclientteam(int client, int team, int ftr){
 	if(!valid_client(client) || !team_valid(team)) return false;
-	if(clients[client]->team == team && ftr != FTR_AUTOTEAM) return false;
+	if(clients[client]->team == team){
+		if (ftr != FTR_AUTOTEAM) return false;
+	}
+	else{
+		clients[client]->state.grenades.reset();
+		clients[client]->state.knives.reset();
+	}
 	sendf(-1, 1, "ri3", N_SETTEAM, client, (clients[client]->team = team) | (ftr << 4));
 	extern void checkai();
 	checkai();
