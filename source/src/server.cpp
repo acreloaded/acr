@@ -249,8 +249,8 @@ struct client				   // server side version of "dynent" type
 		return timers.add();
 	}
 
-	void clearhealtimers(){
-		loopv(timers) if(timers[i].type == GE_RELOAD) timers.remove(i--);
+	void removetimers(int type){
+		loopv(timers) if(timers[i].type == type) timers.remove(i--);
 	}
 
 	void mapchange()
@@ -1480,7 +1480,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 		ts.killstreak = ts.lastcut = 0;
 		ts.damagelog.removeobj(target->clientnum);
 		ts.damagelog.removeobj(actor->clientnum);
-		target->clearhealtimers();
+		target->removetimers(GE_RELOAD);
 		loopv(ts.damagelog){
 			if(valid_client(ts.damagelog[i])) clients[ts.damagelog[i]]->state.assists++;
 			else ts.damagelog.remove(i--);
@@ -1950,6 +1950,7 @@ bool updateclientteam(int client, int team, int ftr){
 	else{
 		clients[client]->state.grenades.reset();
 		clients[client]->state.knives.reset();
+		clients[client]->removetimers(GE_PROJ);
 	}
 	sendf(-1, 1, "ri3", N_SETTEAM, client, (clients[client]->team = team) | (ftr << 4));
 	extern void checkai();

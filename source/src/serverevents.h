@@ -374,7 +374,7 @@ void processtimer(client &c, projevent &e){
 }
 
 void processtimer(client &c, reloadevent &e){
-	if(c.state.state == CS_DEAD || c.state.health >= MAXHEALTH) return c.clearhealtimers();
+	if(c.state.state == CS_DEAD || c.state.health >= MAXHEALTH) return c.removetimers(GE_RELOAD);
 	// healer: e.id
 	int heal = e.gun;
 	if(heal >= MAXHEALTH - c.state.health){
