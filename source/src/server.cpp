@@ -1510,6 +1510,10 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 			else // ktf || tktf
 				flagaction(targethasflag, FA_RESET, -1);
 		}
+
+		if(true){ // martyrdom testing O.o
+		
+		}
 	}
 	else{
 		sendf(-1, 1, "ri8", N_DAMAGE, target->clientnum, actor->clientnum, int(damage * (gib ? GIBBLOODMUL : 1)), ts.armour, ts.health, gun, style & FRAG_VALID);
