@@ -6,7 +6,7 @@ int roleconf(int key)
 {
 	if(strchr(scl.voteperm, tolower(key))) return PRIV_NONE;
 	if(strchr(scl.voteperm, toupper(key))) return PRIV_ADMIN;
-	return (key) == tolower(key) ? PRIV_NONE : PRIV_ADMIN;
+	return islower(key) ? PRIV_NONE : PRIV_ADMIN;
 }
 
 struct serveraction
@@ -297,6 +297,18 @@ struct cleardemosaction : serveraction
 	{
 		role = roleconf('C');
 		if(isvalid()) s_sprintf(desc)("clear demo %d", demo);
+	}
+};
+
+struct botbalanceaction : serveraction
+{
+	int bb;
+	void perform() { botbalance = bb; checkai(); }
+	botbalanceaction(int b) :bb(b)
+	{
+		area |= EE_LOCAL_SERV;
+		role = roleconf('a');
+		if(isvalid()) s_sprintf(desc)("set botbalance to %d", b);
 	}
 };
 

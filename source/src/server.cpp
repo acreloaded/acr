@@ -2407,6 +2407,9 @@ void sendcallvote(int cl = -1){
 			case SA_CLEARDEMOS:
 				putint(p, ((cleardemosaction *)curvote->action)->demo);
 				break;
+			case SA_BOTBALANCE:
+				putint(p, ((botbalanceaction *)curvote->action)->bb);
+				break;
 		}
 		enet_packet_resize(packet, p.length());
 		sendpacket(cl, 1, packet);
@@ -3700,6 +3703,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						break;
 					case SA_CLEARDEMOS:
 						vi->action = new cleardemosaction(getint(p));
+						break;
+					case SA_BOTBALANCE:
+						vi->action = new botbalanceaction(getint(p));
 						break;
 					case SA_SERVERDESC:
 						getstring(text, p);
