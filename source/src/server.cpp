@@ -774,8 +774,7 @@ void setupdemorecord(){
 		if(ci->type==ST_EMPTY) continue;
 
 		ucharbuf q(buf, sizeof(buf));
-		if(ci->state.ownernum < 0) putinitclient(*ci, q);
-		else putinitai(*ci, q);
+		putinitclient(*ci, q);
 		writedemo(1, buf, q.len);
 	}
 }
@@ -2427,7 +2426,7 @@ bool scallvote(voteinfo *v) // true if a regular vote was called
 	else if(clients[v->owner]->priv < PRIV_ADMIN && v->action->isdisabled()) error = VOTEE_DISABLED;
 	else if(clients[v->owner]->lastvotecall && servmillis - clients[v->owner]->lastvotecall < 60*1000 && clients[v->owner]->priv < PRIV_ADMIN && numclients()>1)
 		error = VOTEE_MAX;
-	else if(v->type == SA_KICK && strlen(((kickaction *)v)->reason) < 4) error = VOTEE_SHORTREASON;
+	//else if(v->type == SA_KICK && strlen(((kickaction *)v)->reason) < 4) error = VOTEE_SHORTREASON;
 
 	if(error >= 0){
 		scallvoteerr(v, error);
@@ -2720,6 +2719,7 @@ void sendservinfo(client &c){
 }
 
 void putinitclient(client &c, ucharbuf &p){
+	if(c.state.ownernum >= 0) return putinitai(c, p);
     putint(p, N_INITCLIENT);
     putint(p, c.clientnum);
 	putint(p, c.team);
@@ -2735,8 +2735,7 @@ void putinitclient(client &c, ucharbuf &p){
 void sendinitclient(client &c){
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
-	if(c.state.ownernum < 0) putinitclient(c, p);
-	else putinitai(c, p);
+	putinitclient(c, p);
 	enet_packet_resize(packet, p.length());
 	sendpacket(-1, 1, packet, c.clientnum);
 	if(!packet->referenceCount) enet_packet_destroy(packet);
@@ -2746,8 +2745,7 @@ void welcomeinitclient(ucharbuf &p, int exclude = -1){
     loopv(clients){
         client &c = *clients[i];
         if(c.type!=ST_TCPIP || !c.isauthed || c.clientnum == exclude) continue;
-        if(c.state.ownernum < 0) putinitclient(c, p);
-		else putinitai(c, p);
+        putinitclient(c, p);
     }
 }
 
