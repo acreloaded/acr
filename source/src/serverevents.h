@@ -361,7 +361,7 @@ void processtimer(client &c, projevent &e){
 		ray.sub(o).normalize();
 		if(sraycube(o, ray) < dist) continue;
 		int bowflags = FRAG_GIB;
-		if(&c == &target) bowflags |= FRAG_FLAG;
+		if(&c == &target || i == e.flag) bowflags |= FRAG_FLAG;
 		ushort dmg = effectiveDamage(e.gun, dist, true);
 		if(m_real || !rnd(clamp<int>(ceil(dist) * 1.5f, 1, 100))){
 			bowflags |= FRAG_CRITICAL;

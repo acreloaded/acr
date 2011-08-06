@@ -225,7 +225,7 @@ static inline const char *killname(int gun, int style){
 			s_strcat(k, gib ? "disrupted" : "cooked");
 			break;
 		case GUN_BOW:
-			s_strcat(k, gib ? "detonated" : "impacted");
+			s_strcat(k, gib ? flag ? "plastered" : "detonated" : "impacted");
 			break;
 		default:
 			s_strcat(k, gib ? "pwned" : "killed");
