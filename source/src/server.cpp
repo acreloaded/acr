@@ -4040,6 +4040,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 		{
 			case ENET_EVENT_TYPE_CONNECT:
 			{
+				clearai(); // hack to give new clients the lowest clientnumber and redistribute bots!
 				client &c = addclient();
 				c.type = ST_TCPIP;
 				c.peer = event.peer;
