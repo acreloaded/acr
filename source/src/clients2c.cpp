@@ -549,6 +549,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_THROWNADE:
 			{
+				playerent *d = getclient(getint(p));
 				vec from, to;
 				loopk(3) from[k] = getfloat(p);
 				loopk(3) to[k] = getfloat(p);
@@ -557,6 +558,23 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				updatelastaction(d);
 				d->lastattackweapon = d->weapons[GUN_GRENADE];
 				if(d->weapons[GUN_GRENADE]) d->weapons[GUN_GRENADE]->attackfx(from, to, nademillis);
+				break;
+			}
+
+			case N_MARTYRDOM:
+			{
+				playerent *d = getclient(getint(p));
+				const int id = getint(p);
+				if(!d) break;
+				grenadeent *g = new grenadeent(d, NADETTL - MARTYRDOMTTL);
+				bounceents.add(g);
+				g->id = id;
+
+				g->nadestate = 1;//NS_THROWED;
+				g->o = d->o;
+				g->moveoutsidebbox((g->vel = vec(0, 0, 0)), d);
+				g->resetinterp();
+				g->inwater = hdr.waterlevel > g->o.z;
 				break;
 			}
 

@@ -81,6 +81,7 @@ static itemstat powerupstats[] =
 #define SGGIB 180 // 18-45 rays
 #define NADEPOWER 3
 #define NADETTL 2500
+#define MARTYRDOMTTL 1500
 #define KNIFEPOWER 4.5f
 #define KNIFETTL 30000
 #define GIBBLOODMUL 1.5f
@@ -783,7 +784,7 @@ enum { HIT_NONE = 0, HIT_TORSO, HIT_LEG, HIT_HEAD };
 struct grenadeent : bounceent
 {
 	bool local;
-	int nadestate;
+	int nadestate, id;
 	float distsincebounce;
 	grenadeent(playerent *owner, int millis = 0);
 	~grenadeent();

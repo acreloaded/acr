@@ -1512,7 +1512,9 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 		}
 
 		if(true){ // martyrdom testing O.o
-		
+			const int n = rand();
+			ts.grenades.add(n);
+			sendf(-1, 1, "ri3", N_MARTYRDOM, target->clientnum, n);
 		}
 	}
 	else{
@@ -3359,12 +3361,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				cl->state.grenades.throwable--;
 				checkpos(from);
 				if(vel.magnitude() > NADEPOWER) vel.normalize().mul(NADEPOWER);
-				ucharbuf newmsg(cl->messages.reserve(8 * sizeof(float)));
-				putint(newmsg, N_THROWNADE);
-				loopi(3) putfloat(newmsg, from[i]);
-				loopi(3) putfloat(newmsg, vel[i]);
-				putint(newmsg, remainmillis);
-				cl->messages.addbuf(newmsg);
+				sendf(-1, 1, "ri2f6ix", N_THROWNADE, sender, from.x, from.y, from.z, vel.x, vel.y, vel.z, remainmillis, sender);
 				break;
 			}
 

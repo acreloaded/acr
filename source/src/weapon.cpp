@@ -492,7 +492,7 @@ grenadeent::grenadeent(playerent *owner, int millis){
 	nadestate = NS_NONE;
 	local = owner==player1;
 	bounceent::owner = owner;
-	bounceent::millis = lastmillis;
+	bounceent::millis = id = lastmillis;
 	timetolive = NADETTL-millis;
 	bouncetype = BT_NADE;
 	maxspeed = 30.0f;
@@ -507,7 +507,7 @@ grenadeent::~grenadeent(){
 void grenadeent::explode(){
 	if(nadestate!=NS_ACTIVATED && nadestate!=NS_THROWED ) return;
 	nadestate = NS_EXPLODED;
-	if(local) addmsg(N_PROJ, "ri3f3", lastmillis, GUN_GRENADE, millis, o.x, o.y, o.z);
+	if(local) addmsg(N_PROJ, "ri3f3", lastmillis, GUN_GRENADE, id, o.x, o.y, o.z);
 }
 
 void grenadeent::activate(){
