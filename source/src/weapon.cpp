@@ -508,7 +508,6 @@ void grenadeent::explode(){
 	if(nadestate!=NS_ACTIVATED && nadestate!=NS_THROWED ) return;
 	nadestate = NS_EXPLODED;
 	if(local) addmsg(N_PROJ, "ri3f3", lastmillis, GUN_GRENADE, millis, o.x, o.y, o.z);
-	playsound(S_FEXPLODE, &o);
 }
 
 void grenadeent::activate(){
@@ -663,6 +662,7 @@ void explosioneffect(const vec &o){
 		newparticle(o, t, shotlinettl, 6);
 		particle_splash(0, 8, 250, t);
 	}
+	playsound(S_FEXPLODE, &o);
 }
 
 void grenades::attackhit(const vec &o){
