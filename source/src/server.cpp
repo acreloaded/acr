@@ -4038,7 +4038,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 				c.salt = rand()*((servmillis%1000)+1);
 				char hn[1024];
 				s_strcpy(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
-				logline(ACLOG_INFO,"[%s] client connected", c.hostname);
+				logline(ACLOG_INFO,"[%s] client #%d connected", c.clientnum, c.hostname);
 				sendservinfo(c);
 				break;
 			}
