@@ -30,6 +30,7 @@ bool addai(){
 		c->clientnum = cn = clients.length();
 		clients.add(c);
 	}
+	clients[cn]->type = ST_LOCAL;
 	clients[cn]->reset();
 	clients[cn]->state.ownernum = aiowner;
 	clients[cn]->isauthed = true;
@@ -68,7 +69,7 @@ void checkai(){
 		case  0: balance = 0; break; // no bots
 		default: balance = max(people, m_duel ? 2 : botbalance); break;
 	}
-	if(balance > 0){
+	if(balance > 0 && m_team){
 		int plrs[2] = {0}, highest = -1;
 		loopv(clients) if(clients[i]->state.ownernum < 0 && clients[i]->team < 2){
 			plrs[clients[i]->team]++;
