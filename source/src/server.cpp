@@ -2506,11 +2506,7 @@ void disconnect_client(int n, int reason){
 		return;
 	}
 	else{
-		loopv(clients) if(clients[i]->state.ownernum == n){
-			const int newowner = findaiclient(n);
-			if(newowner < 0) deleteai(*clients[i]);
-			else sendf(-1, 1, "ri4", N_INITAI, i, (clients[i]->state.ownernum = newowner), clients[i]->team);
-		}
+		loopv(clients) if(clients[i]->state.ownernum == n) deleteai(*clients[i]);
 	}
 	if(c.priv) setpriv(n, PRIV_NONE, 0, true);
 	const char *scoresaved = "";
@@ -2531,6 +2527,7 @@ void disconnect_client(int n, int reason){
 	clients[n]->zap();
 	sendf(-1, 1, "ri3", N_DISC, n, reason);
 	if(curvote) curvote->evaluate();
+	checkai();
 }
 
 void sendwhois(int sender, int cn){
