@@ -30,7 +30,7 @@ bool addai(){
 		c->clientnum = cn = clients.length();
 		clients.add(c);
 	}
-	clients[cn]->type = ST_LOCAL;
+	clients[cn]->type = ST_AI;
 	clients[cn]->reset();
 	clients[cn]->state.ownernum = aiowner;
 	clients[cn]->isauthed = true;

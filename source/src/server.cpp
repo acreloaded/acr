@@ -38,7 +38,7 @@ struct servercommandline scl;
 static const int DEATHMILLIS = 300;
 
 enum { GE_NONE = 0, GE_SHOT, GE_PROJ, GE_HEAD, GE_AKIMBO, GE_RELOAD };
-enum { ST_EMPTY, ST_LOCAL, ST_TCPIP };
+enum { ST_EMPTY, ST_LOCAL, ST_TCPIP, ST_AI };
 
 int mastermode = MM_OPEN, botbalance = -1;
 
@@ -4038,7 +4038,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 				c.salt = rand()*((servmillis%1000)+1);
 				char hn[1024];
 				s_strcpy(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
-				logline(ACLOG_INFO,"[%s] client #%d connected", c.clientnum, c.hostname);
+				logline(ACLOG_INFO,"[%s] client #%d connected", c.hostname, c.clientnum);
 				sendservinfo(c);
 				break;
 			}
