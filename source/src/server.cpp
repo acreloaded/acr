@@ -3705,8 +3705,12 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						vi->action = new cleardemosaction(getint(p));
 						break;
 					case SA_BOTBALANCE:
-						vi->action = new botbalanceaction(getint(p));
+					{
+						int b = getint(p);
+						b = clamp(b, -1, MAXBOTS);
+						vi->action = new botbalanceaction(b);
 						break;
+					}
 					case SA_SERVERDESC:
 						getstring(text, p);
 						filtertext(text, text);
