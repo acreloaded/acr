@@ -81,7 +81,7 @@ static itemstat powerupstats[] =
 #define SGGIB 180 // 18-45 rays
 #define NADEPOWER 3
 #define NADETTL 2500
-#define MARTYRDOMTTL 1500
+#define MARTYRDOMTTL 2000
 #define KNIFEPOWER 4.5f
 #define KNIFETTL 30000
 #define GIBBLOODMUL 1.5f

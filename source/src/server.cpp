@@ -3350,12 +3350,12 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				vec from, vel;
 				loopi(3) from[i] = getfloat(p);
 				loopi(3) vel[i] = getfloat(p);
-				int remainmillis = getint(p);
+				int elapsedmillis = getint(p);
 				if(cl->state.grenades.throwable <= 0) break;
 				cl->state.grenades.throwable--;
 				checkpos(from);
 				if(vel.magnitude() > NADEPOWER) vel.normalize().mul(NADEPOWER);
-				sendf(-1, 1, "ri2f6ix", N_THROWNADE, sender, from.x, from.y, from.z, vel.x, vel.y, vel.z, remainmillis, sender);
+				sendf(-1, 1, "ri2f6ix", N_THROWNADE, sender, from.x, from.y, from.z, vel.x, vel.y, vel.z, elapsedmillis, sender);
 				break;
 			}
 
