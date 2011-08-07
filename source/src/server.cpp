@@ -365,7 +365,7 @@ bool buildworldstate(){
 	loopv(clients)
 	{
 		client &c = *clients[i];
-		if(c.type!=ST_TCPIP || !c.isauthed) continue;
+		if((c.type!=ST_TCPIP && c.type != ST_AI) || !c.isauthed) continue;
 		c.overflow = 0;
 		if(c.position.empty()) pkt[i].posoff = -1;
 		else
