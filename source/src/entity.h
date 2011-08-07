@@ -506,7 +506,7 @@ struct playerstate
 	virtual void spawnstate(int gamemode)
 	{
 		if(m_pistol) primary = GUN_PISTOL;
-		else if(m_osok) primary = GUN_SNIPER;
+		else if(m_osok) primary = GUN_BOLT;
 		else if(m_lss) primary = GUN_KNIFE;
 		else primary = nextprimary;
 
@@ -526,7 +526,7 @@ struct playerstate
 
 		gunselect = primary;
 
-		if(m_osok) health = 1;
+		if(m_osok) health = 50;
 	}
 
 	// just subtract damage here, can set death, etc. later in code calling this
