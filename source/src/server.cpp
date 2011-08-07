@@ -2506,13 +2506,7 @@ void disconnect_client(int n, int reason){
 	}
 	*/
 	client &c = *clients[n];
-	if(c.state.ownernum >= 0){
-		deleteai(c);
-		return;
-	}
-	else{
-		loopv(clients) if(clients[i]->state.ownernum == n) deleteai(*clients[i]);
-	}
+	loopv(clients) if(clients[i]->state.ownernum == n) deleteai(*clients[i]);
 	if(c.priv) setpriv(n, PRIV_NONE, 0, true);
 	const char *scoresaved = "";
 	if(c.haswelcome)
@@ -2537,9 +2531,9 @@ void disconnect_client(int n, int reason){
 
 void sendwhois(int sender, int cn){
 	if(!valid_client(sender) || !valid_client(cn)) return;
-	sendf(-1, 1, "ri3", N_WHOIS, cn, sender);
 
 	if(clients[cn]->type == ST_TCPIP){
+		sendf(-1, 1, "ri3", N_WHOIS, cn, sender);
 		uint ip = clients[cn]->peer->address.host;
 		uchar mask = 0;
 		switch(clients[cn]->priv){
@@ -2814,7 +2808,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath){
 		loopv(clients)
 		{
 			client &c = *clients[i];
-			if(c.type!=ST_TCPIP || (c.clientnum==n && !restored)) continue;
+			if((c.type!=ST_TCPIP && c.type != ST_AI) || (c.clientnum==n && !restored)) continue;
 			CHECKSPACE(256);
 			putint(p, c.clientnum);
 			putint(p, c.state.state);
