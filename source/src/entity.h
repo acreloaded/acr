@@ -526,7 +526,7 @@ struct playerstate
 
 		gunselect = primary;
 
-		if(m_osok) health = 50;
+		if(m_osok) health = /*guns[GUN_KNIFE].damage + 1*/ 81;
 	}
 
 	// just subtract damage here, can set death, etc. later in code calling this
