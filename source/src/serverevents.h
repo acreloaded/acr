@@ -12,6 +12,7 @@ inline void sendhit(client &actor, int gun, float *o){
 // processing events
 void processevent(client &c, projevent &e){
 	clientstate &gs = c.state;
+	int damagepotential = effectiveDamage(e.gun, 0), damagedealt = 0;
 	switch(e.gun){
 		case GUN_GRENADE:
 		{
@@ -33,7 +34,7 @@ void processevent(client &c, projevent &e){
 					fragflags |= FRAG_CRITICAL;
 					dmg *= 2;
 				}
-				gs.damage += dmg;
+				damagedealt += dmg;
 				serverdamage(&target, &c, dmg, e.gun, fragflags, o);
 			}
 			break;
@@ -65,7 +66,7 @@ void processevent(client &c, projevent &e){
 					tknifeflags |= FRAG_CRITICAL;
 					dmg *= 2; // 80 * 2 = 160 damage instant kill!
 				}
-				gs.damage += dmg;
+				damagedealt += dmg;
 				serverdamage(&target, &c, dmg, GUN_KNIFE, FRAG_FLAG, vec(0, 0, 0));
 
 				e.o[0] = ts.o[0];
@@ -84,6 +85,8 @@ void processevent(client &c, projevent &e){
 		default:
 			return;
 	}
+	gs.damage += damagedealt;
+	gs.shotdamage += max(damagedealt, damagepotential);
 }
 
 void processevent(client &c, shotevent &e)
@@ -157,12 +160,15 @@ void processevent(client &c, shotevent &e)
 	enet_packet_resize(packet, p.length());
 	sendpacket(-1, 1, packet, !e.compact && e.gun != GUN_GRENADE ? -1 : c.clientnum);
 	if(packet->referenceCount==0) enet_packet_destroy(packet);
+	int damagepotential = 0, damagedealt = 0;
 	if(e.gun == GUN_SHOTGUN){
-		loopi(SGRAYS) gs.shotdamage += effectiveDamage(e.gun, vec(gs.sg[i]).dist(gs.o));
+		loopi(SGRAYS) damagepotential = effectiveDamage(e.gun, vec(gs.sg[i]).dist(gs.o));
 	}
-	else if(e.gun == GUN_KNIFE) gs.shotdamage += guns[GUN_KNIFE].damage; // melee damage
-	else if(e.gun == GUN_BOW) gs.shotdamage += guns[GUN_BOW].damage + 50; // potential stick damage
-	else gs.shotdamage += effectiveDamage(e.gun, to.dist(gs.o));
+	else if(e.gun == GUN_KNIFE) damagepotential = guns[GUN_KNIFE].damage; // melee damage
+	else if(e.gun == GUN_BOW) damagepotential = 50; // potential stick damage
+	else if(e.gun == GUN_GRENADE) damagepotential = 0;
+	else damagepotential = effectiveDamage(e.gun, to.dist(gs.o));
+
 	switch(e.gun){
 		case GUN_GRENADE: gs.grenades.add(e.id); break;
 		case GUN_BOW:
@@ -255,7 +261,7 @@ void processevent(client &c, shotevent &e)
 					const bool gib = damage > SGGIB;
 					if(m_expert && !gib) continue;
 					int style = gib ? FRAG_GIB : FRAG_NONE;
-					gs.damage += damage;
+					damagedealt += damage;
 					sendhit(c, GUN_SHOTGUN, ts.o.v);
 					serverdamage(&t, &c, damage, e.gun, style, gs.o);
 				}
@@ -302,12 +308,14 @@ void processevent(client &c, shotevent &e)
 							sendf(-1, 1, "ri2", N_BLEED, i);
 						}
 					}
-					gs.damage += damage;
+					damagedealt += damage;
 					serverdamage(&t, &c, damage, e.gun, style, gs.o);
 				}
 			}
 		}
 	}
+	gs.damage += damagedealt;
+	gs.shotdamage += max(damagepotential, damagedealt);
 }
 
 void processevent(client &c, reloadevent &e){
@@ -352,6 +360,7 @@ void processtimer(client &c, projevent &e){
 	vec o(valid_client(e.flag) ? clients[e.flag]->state.o : e.o);
 	
 	sendhit(c, GUN_BOW, o.v);
+	int bowexplodedmgdealt = 0;
 	loopv(clients){
 		client &target = *clients[i];
 		if(target.type == ST_EMPTY || target.state.state != CS_ALIVE) continue;
@@ -367,10 +376,11 @@ void processtimer(client &c, projevent &e){
 			bowflags |= FRAG_CRITICAL;
 			dmg *= 2;
 		}
-		c.state.damage += dmg;
+		bowexplodedmgdealt += dmg;
 		serverdamage(&target, &c, dmg, e.gun, bowflags, o);
 	}
-	c.state.shotdamage += effectiveDamage(e.gun, 0);
+	c.state.damage += bowexplodedmgdealt;
+	c.state.shotdamage += max<int>(effectiveDamage(e.gun, 0), bowexplodedmgdealt);
 }
 
 void processtimer(client &c, reloadevent &e){
