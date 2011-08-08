@@ -62,12 +62,12 @@ static inline T clamp(T a, T b, T c)
 
 static inline float round(float x) { return floor(x + 0.5f); }
 
-static inline char popcount(unsigned i){ char c; for(c=0;i;c++){i&=i-1;} return c;}
+static inline char popcount(unsigned i){ char c; for(c=0;i;++c){i&=i-1;} return c;}
 
 #define rnd(max) (rand()%(max))
 #define detrnd(s, x) ((int)(((((uint)(s))*1103515245+12345)>>16)%(x)))
 
-#define loop(v,m) for(int v = 0; v<int(m); v++)
+#define loop(v,m) for(int v = 0; v<int(m); ++v)
 #define loopi(m) loop(i,m)
 #define loopj(m) loop(j,m)
 #define loopk(m) loop(k,m)
@@ -134,11 +134,11 @@ struct s_sprintf_f
 #define s_sprintfdlv(d,last,fmt) string d; { va_list ap; va_start(ap, last); formatstring(d, fmt, ap); va_end(ap); }
 #define s_sprintfdv(d,fmt) s_sprintfdlv(d,fmt,fmt)
 
-#define loopv(v)	if(false) {} else for(int i = 0; i<(v).length(); i++)
-#define loopvj(v)   if(false) {} else for(int j = 0; j<(v).length(); j++)
-#define loopvk(v)   if(false) {} else for(int k = 0; k<(v).length(); k++)
-#define loopvrev(v) if(false) {} else for(int i = (v).length()-1; i>=0; i--)
-#define loopvjrev(v) if(false) {} else for(int j = (v).length()-1; i>=0; i--)
+#define loopv(v)	if(false) {} else for(int i = 0; i<(v).length(); ++i)
+#define loopvj(v)   if(false) {} else for(int j = 0; j<(v).length(); ++j)
+#define loopvk(v)   if(false) {} else for(int k = 0; k<(v).length(); ++k)
+#define loopvrev(v) if(false) {} else for(int i = (v).length()-1; i>=0; --i)
+#define loopvjrev(v) if(false) {} else for(int j = (v).length()-1; i>=0; --i)
 
 template <class T>
 struct databuf
@@ -317,14 +317,14 @@ template <class T> struct vector
 
 	void remove(int i, int n)
 	{
-		for(int p = i+n; p<ulen; p++) buf[p-n] = buf[p];
+		for(int p = i+n; p<ulen; ++p) buf[p-n] = buf[p];
 		ulen -= n;
 	}
 
 	T remove(int i)
 	{
 		T e = buf[i];
-		for(int p = i+1; p<ulen; p++) buf[p-1] = buf[p];
+		for(int p = i+1; p<ulen; ++p) buf[p-1] = buf[p];
 		ulen--;
 		return e;
 	}
@@ -366,7 +366,7 @@ typedef vector<ushort> usvector;
 static inline uint hthash(const char *key)
 {
 	uint h = 5381;
-	for(int i = 0, k; (k = key[i]); i++) h = ((h<<5)+h)^k;	// bernstein k=33 xor
+	for(int i = 0, k; (k = key[i]); ++i) h = ((h<<5)+h)^k;	// bernstein k=33 xor
 	return h;
 }
 
@@ -452,7 +452,7 @@ template <class K, class T> struct hashtable
 		c->key = key;
 		c->next = table[h];
 		table[h] = c;
-		numelems++;
+		++numelems;
 		return c;
 	}
 
@@ -553,9 +553,9 @@ template <class T, int SIZE> struct ringbuf
 	{
 		T &t = data[index];
 		t = e;
-		index++;
+		++index;
 		if(index>=SIZE) index = 0;
-		if(len<SIZE) len++;
+		if(len<SIZE) ++len;
 		return t;
 	}
 
@@ -606,7 +606,7 @@ template<> inline ushort endianswap<ushort>(ushort n) { return endianswap16(n); 
 template<> inline short endianswap<short>(short n) { return endianswap16(n); }
 template<> inline uint endianswap<uint>(uint n) { return endianswap32(n); }
 template<> inline int endianswap<int>(int n) { return endianswap32(n); }
-template<class T> inline void endianswap(T *buf, int len) { for(T *end = &buf[len]; buf < end; buf++) *buf = endianswap(*buf); }
+template<class T> inline void endianswap(T *buf, int len) { for(T *end = &buf[len]; buf < end; ++buf) *buf = endianswap(*buf); }
 template<class T> inline T endiansame(T n) { return n; }
 template<class T> inline void endiansame(T *buf, int len) {}
 #ifdef SDL_BYTEORDER
