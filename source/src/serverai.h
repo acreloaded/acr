@@ -1,5 +1,6 @@
 // ai (bots)
 int findaiclient(int exclude = -1){ // person with least bots
+	return -1; // disable adding bots
 	int cn = -1, bots = MAXBOTS;
 	loopv(clients){
 		client *c = clients[i];
@@ -40,7 +41,7 @@ bool addai(){
 }
 
 void deleteai(client &c){
-    if(c.state.ownernum < 0) return;
+    if(c.type != ST_AI || c.state.ownernum < 0) return;
     const int cn = c.clientnum;
 	sdropflag(cn);
 	if(c.priv) setpriv(cn, PRIV_NONE, 0, true);
@@ -50,7 +51,7 @@ void deleteai(client &c){
 }
 
 bool delai(){
-	loopvrev(clients) if(clients[i]->state.ownernum >= 0){
+	loopvrev(clients) if(clients[i]->type == ST_AI && clients[i]->state.ownernum >= 0){
 		deleteai(*clients[i]);
 		return true;
 	}
@@ -58,7 +59,7 @@ bool delai(){
 }
 
 void clearai(){
-	loopv(clients) if(clients[i]->state.ownernum >= 0) deleteai(*clients[i]);
+	loopv(clients) if(clients[i]->type == ST_AI && clients[i]->state.ownernum >= 0) deleteai(*clients[i]);
 }
 
 void checkai(){
