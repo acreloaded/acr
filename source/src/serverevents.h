@@ -258,12 +258,9 @@ void processevent(client &c, shotevent &e)
 						if(!hitzone) continue;
 						damage += effectiveDamage(e.gun, end.dist(gs.o)) * (hitzone == HIT_HEAD ? 4.f : hitzone == HIT_TORSO ? 1.2f : 1);
 					}
-					const bool gib = damage > SGGIB;
-					if(m_expert && !gib) continue;
-					int style = gib ? FRAG_GIB : FRAG_NONE;
 					damagedealt += damage;
 					sendhit(c, GUN_SHOTGUN, ts.o.v);
-					serverdamage(&t, &c, damage, e.gun, style, gs.o);
+					serverdamage(&t, &c, damage, e.gun, damage >= SGGIB ? FRAG_GIB : FRAG_NONE, gs.o);
 				}
 				else{ // one ray, potentially multiple players
 					// calculate the hit
@@ -291,7 +288,6 @@ void processevent(client &c, shotevent &e)
 					}
 					// gib check
 					const bool gib = e.gun == GUN_KNIFE || hitzone == HIT_HEAD;
-					if(m_expert && !gib) continue;
 					int style = gib ? FRAG_GIB : FRAG_NONE;
 					// critical shots
 					if(m_real || !rnd(clamp<int>(ceil(dist) * 2.5f, 1, 100))){

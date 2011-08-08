@@ -1453,6 +1453,7 @@ void forcedeath(client *cl, bool gib = false, bool cheat = false){
 
 void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source){
 	if(!target || !actor || !damage) return;
+	if(m_expert && !(style & FRAG_GIB)) damage = 0;
 	clientstate &ts = target->state;
 	if(target != actor && isteam(actor, target)){ // friendly fire
 		if((damage *= 0.25) > target->state.health - 80) damage = target->state.health - 80; // no more TKs!
