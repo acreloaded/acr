@@ -44,22 +44,9 @@ void processevent(client &c, projevent &e){
 		{
 			if(!gs.knives.remove(e.flag)) return;
 			ushort dmg = effectiveDamage(GUN_KNIFE, 0);
-			int hitcn = -1;
-			float hitdist = 40; // a knife hit 10 meters from a throwing knife? hard to get!
-			const vec o(e.o);
-			loopv(clients){
-				client &h = *clients[i];
-				if(h.type == ST_EMPTY || i == c.clientnum || h.state.state != CS_ALIVE) continue;
-				// check for xy
-				float d = h.state.o.distxy(o);
-				if(hitdist < d || PLAYERRADIUS * 1.5f < d) continue;
-				// check for z
-				if(o.z > h.state.o.z + PLAYERABOVEEYE || h.state.o.z > o.z + PLAYERHEIGHT) continue;
-				hitcn = i;
-				hitdist = d;
-			}
-			if(hitcn >= 0){
-				client &target = *clients[hitcn];
+			client *hit = knifehit(c, e.o);
+			if(hit){
+				client &target = *hit;
 				clientstate &ts = target.state;
 				int tknifeflags = FRAG_FLAG;
 				if(m_real || !rnd(20)){ // 5% critical hit chance

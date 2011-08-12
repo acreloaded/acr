@@ -36,3 +36,25 @@ void applyspread(const vec &from, vec &to, int spread, float factor){
 	#undef RNDD
 	to.add(r);
 }
+
+// hit checks
+
+// hitscans (todo)
+
+// throwing knife
+client *knifehit(client &owner, const vec &o){ // checks for knife hit
+	client *hit = NULL;
+	float hitdist = 40; // a knife hit 10 meters from a throwing knife? hard to get!
+	loopv(clients){
+		client &h = *clients[i];
+		if(h.type == ST_EMPTY || i == owner.clientnum || h.state.state != CS_ALIVE) continue;
+		// check for xy
+		float d = h.state.o.distxy(o);
+		if((hitdist > 0 && hitdist < d) || PLAYERRADIUS * 1.5f < d) continue;
+		// check for z
+		if(o.z > h.state.o.z + PLAYERABOVEEYE || h.state.o.z > o.z + PLAYERHEIGHT) continue;
+		hit = &h;
+		hitdist = d;
+	}
+	return hit;
+}
