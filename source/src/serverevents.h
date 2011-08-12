@@ -14,7 +14,6 @@ void processevent(client &c, projevent &e){
 			if(!gs.grenades.remove(e.flag)) return;
 			vec o(e.o);
 			checkpos(o);
-			sendhit(c, GUN_GRENADE, o.v);
 			
 			damagedealt += explosion(c, o, GUN_GRENADE);
 			break;
@@ -262,9 +261,6 @@ void clearevent(client &c){
 
 void processtimer(client &c, projevent &e){
 	vec o(valid_client(e.flag) ? clients[e.flag]->state.o : e.o);
-	
-	sendhit(c, GUN_BOW, o.v);
-
 	int bowexplodedmgdealt = explosion(c, o, GUN_BOW);
 	c.state.damage += bowexplodedmgdealt;
 	c.state.shotdamage += max<int>(effectiveDamage(e.gun, 0), bowexplodedmgdealt);

@@ -42,8 +42,32 @@ bool checkcrit(float dist, float m, int base = 0, int min = 1, int max = 100){
 }
 
 // easy to send shot damage messages
-inline void sendhit(client &actor, int gun, float *o){
+inline void sendhit(client &actor, int gun, const float *o){
 	sendf(-1, 1, "ri3f3", N_PROJ, actor.clientnum, gun, o[0], o[1], o[2]);
+}
+
+// explosions
+int explosion(client &owner, const vec &o, int weap){
+	int damagedealt = 0;
+	sendhit(owner, weap, o.v);
+	loopv(clients){
+		client &target = *clients[i];
+		if(target.type == ST_EMPTY || target.state.state != CS_ALIVE) continue;
+		float dist = target.state.o.dist(o);
+		if(dist >= guns[weap].endrange) continue;
+		vec ray(target.state.o);
+		ray.sub(o).normalize();
+		if(sraycube(o, ray) < dist) continue;
+		ushort dmg = effectiveDamage(weap, dist, true);
+		int expflags = FRAG_GIB;
+		if(checkcrit(dist, 1.5f)){
+			expflags |= FRAG_CRITICAL;
+			dmg *= 2;
+		}
+		damagedealt += dmg;
+		serverdamage(&target, &owner, dmg, weap, expflags, o);
+	}
+	return damagedealt;
 }
 
 // hit checks
@@ -90,10 +114,10 @@ int shot(client &owner, const vec &from, const vec &to, int weap, int exclude = 
 				sendf(-1, 1, "ri2", N_BLEED, i);
 			}
 		}
-		shotdamage += damage;
+		shotdamage += damage + explosion(owner, end, GUN_BOW);
 		serverdamage(&t, &owner, damage, weap, style, gs.o);
 	}
-	return shotdamage;
+	return shotdamage + explosion(owner, to, GUN_BOW);
 }
 
 int shotgun(client &owner, const vec &from, const vec &to){
@@ -116,29 +140,7 @@ int shotgun(client &owner, const vec &from, const vec &to){
 		sendhit(owner, GUN_SHOTGUN, ts.o.v);
 		serverdamage(&t, &owner, damage, GUN_SHOTGUN, damage >= SGGIB ? FRAG_GIB : FRAG_NONE, from);
 	}
-	return damagedealt;
-}
-
-// explosions
-int explosion(client &owner, const vec &o, int weap){
-	int damagedealt = 0;
-	loopv(clients){
-		client &target = *clients[i];
-		if(target.type == ST_EMPTY || target.state.state != CS_ALIVE) continue;
-		float dist = target.state.o.dist(o);
-		if(dist >= guns[weap].endrange) continue;
-		vec ray(target.state.o);
-		ray.sub(o).normalize();
-		if(sraycube(o, ray) < dist) continue;
-		ushort dmg = effectiveDamage(weap, dist, true);
-		int expflags = FRAG_GIB;
-		if(checkcrit(dist, 1.5f)){
-			expflags |= FRAG_CRITICAL;
-			dmg *= 2;
-		}
-		damagedealt += dmg;
-		serverdamage(&target, &owner, dmg, weap, expflags, o);
-	}
+	loopi(SGRAYS) damagedealt += explosion(owner, gs.sg[i], GUN_BOW);
 	return damagedealt;
 }
 
