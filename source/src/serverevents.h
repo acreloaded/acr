@@ -20,23 +20,8 @@ void processevent(client &c, projevent &e){
 			vec o(e.o);
 			checkpos(o);
 			sendhit(c, GUN_GRENADE, o.v);
-			loopv(clients){
-				client &target = *clients[i];
-				if(target.type == ST_EMPTY || target.state.state != CS_ALIVE) continue;
-				float dist = target.state.o.dist(o);
-				if(dist >= guns[e.gun].endrange) continue;
-				vec ray(target.state.o);
-				ray.sub(o).normalize();
-				if(sraycube(o, ray) < dist) continue;
-				ushort dmg = effectiveDamage(e.gun, dist, true);
-				int fragflags = FRAG_GIB;
-				if(m_real || !rnd(clamp<int>(ceil(dist), 1, 100))){
-					fragflags |= FRAG_CRITICAL;
-					dmg *= 2;
-				}
-				damagedealt += dmg;
-				serverdamage(&target, &c, dmg, e.gun, fragflags, o);
-			}
+			
+			damagedealt += explosion(c, o, GUN_GRENADE);
 			break;
 		}
 
@@ -49,7 +34,7 @@ void processevent(client &c, projevent &e){
 				client &target = *hit;
 				clientstate &ts = target.state;
 				int tknifeflags = FRAG_FLAG;
-				if(m_real || !rnd(20)){ // 5% critical hit chance
+				if(checkcrit(0, 0, 20)){ // 5% critical hit chance
 					tknifeflags |= FRAG_CRITICAL;
 					dmg *= 2; // 80 * 2 = 160 damage instant kill!
 				}
@@ -277,7 +262,7 @@ void processevent(client &c, shotevent &e)
 					const bool gib = e.gun == GUN_KNIFE || hitzone == HIT_HEAD;
 					int style = gib ? FRAG_GIB : FRAG_NONE;
 					// critical shots
-					if(m_real || !rnd(clamp<int>(ceil(dist) * 2.5f, 1, 100))){
+					if(checkcrit(dist, 2.5)){
 						style |= FRAG_CRITICAL;
 						damage *= 2.5f;
 					}
@@ -343,25 +328,8 @@ void processtimer(client &c, projevent &e){
 	vec o(valid_client(e.flag) ? clients[e.flag]->state.o : e.o);
 	
 	sendhit(c, GUN_BOW, o.v);
-	int bowexplodedmgdealt = 0;
-	loopv(clients){
-		client &target = *clients[i];
-		if(target.type == ST_EMPTY || target.state.state != CS_ALIVE) continue;
-		float dist = target.state.o.dist(o);
-		if(dist >= guns[e.gun].endrange) continue;
-		vec ray(target.state.o);
-		ray.sub(o).normalize();
-		if(sraycube(o, ray) < dist) continue;
-		int bowflags = FRAG_GIB;
-		if(&c == &target || i == e.flag) bowflags |= FRAG_FLAG;
-		ushort dmg = effectiveDamage(e.gun, dist, true);
-		if(m_real || !rnd(clamp<int>(ceil(dist) * 1.5f, 1, 100))){
-			bowflags |= FRAG_CRITICAL;
-			dmg *= 2;
-		}
-		bowexplodedmgdealt += dmg;
-		serverdamage(&target, &c, dmg, e.gun, bowflags, o);
-	}
+
+	int bowexplodedmgdealt = explosion(c, o, GUN_BOW);
 	c.state.damage += bowexplodedmgdealt;
 	c.state.shotdamage += max<int>(effectiveDamage(e.gun, 0), bowexplodedmgdealt);
 }
