@@ -140,8 +140,7 @@ int shotgun(client &owner, const vec &from, const vec &to){
 		sendhit(owner, GUN_SHOTGUN, ts.o.v);
 		serverdamage(&t, &owner, damage, GUN_SHOTGUN, damage >= SGGIB ? FRAG_GIB : FRAG_NONE, from);
 	}
-	loopi(SGRAYS) damagedealt += explosion(owner, gs.sg[i], GUN_BOW);
-	return damagedealt;
+	return damagedealt + explosion(owner, to, GUN_BOW);
 }
 
 // throwing knife
