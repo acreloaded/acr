@@ -652,8 +652,6 @@ void explosioneffect(const vec &o){
 	particle_splash(0, 50, 300, o);
 	adddynlight(NULL, o, 16, 200, 100, 255, 255, 224);
 	adddynlight(NULL, o, 16, 600, 600, 192, 160, 128);
-	extern int shotline, shotlinettl;
-	extern void newparticle(const vec &o, const vec &d, int fade, int type);
 	playsound(S_FEXPLODE, &o);
 }
 
@@ -661,6 +659,8 @@ void grenades::attackhit(const vec &o){
 	particle_fireball(5, o, owner);
 	addscorchmark(o);
 	explosioneffect(o);
+	extern int shotline, shotlinettl;
+	extern void newparticle(const vec &o, const vec &d, int fade, int type);
 	if(shotline && shotlinettl) loopi(9) loopj(9) loopk(9){
 		vec t(i/4.5f-1, j/4.5f-1, k/4.5f-1);
 		t.add(o);
