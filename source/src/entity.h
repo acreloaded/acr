@@ -91,15 +91,21 @@ static itemstat powerupstats[] =
 // define the "powerful" arsenal
 #define POWERGUN(gun) (gun == GUN_SNIPER || gun == GUN_BOLT || gun == GUN_KNIFE)
 
-// powerful multipliers
-#define POWHEADMUL 5
-#define POWTORSOMUL 1.1f
-//#define POWLEGMUL 1
+struct mul{
+	union{
+		struct{ float head, torso, leg; };
+		float val[3];
+	};
+};
+enum { MUL_NORMAL = 0, MUL_POWERFUL, MUL_SHOTGUN, MUL_NUM };
 
-// other multipliers
-#define DAMHEADMUL 3.5f
-//#define DAMTORSOMUL 1
-#define DAMLEGMUL .67f
+static mul muls[MUL_NUM] =
+{
+	//{ head, torso, leg; }
+	{ 3.5f, 1,		.67f }, // normal
+	{ 5,	1.1f, 	1 }, // powerful
+	{ 4,	1.2f,	1 } // shotgun
+};
 
 struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, range, endrange, rangeminus, projspeed, part, spread, kick, magsize, mdl_kick_rot, mdl_kick_back, recoil, maxrecoil, recoilangle, pushfactor; bool isauto; };
 static guninfo guns[NUMGUNS] =

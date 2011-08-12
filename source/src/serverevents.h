@@ -4,11 +4,6 @@
 #include "ballistics.h"
 #include "serverballistics.h"
 
-// easy to send shot damage messages
-inline void sendhit(client &actor, int gun, float *o){
-	sendf(-1, 1, "ri3f3", N_PROJ, actor.clientnum, gun, o[0], o[1], o[2]);
-}
-
 // processing events
 void processevent(client &c, projevent &e){
 	clientstate &gs = c.state;
@@ -217,69 +212,10 @@ void processevent(client &c, shotevent &e)
 			}
 		default:
 		{
-			loopv(clients){ 
-				client &t = *clients[i];
-				clientstate &ts = t.state;
-				// basic checks
-				if(t.type == ST_EMPTY || ts.state != CS_ALIVE || &c == &t) continue;
-				vec head(ts.o), end(gs.head);
-				if(e.gun == GUN_SHOTGUN){ // many rays, many players
-					int damage = 0;
-					loopj(SGRAYS){ // check rays and sum damage
-						const int hitzone = hitplayer(gs.o, gs.aim[0], gs.aim[1], gs.sg[j], ts.o, head, &end);
-						if(!hitzone) continue;
-						damage += effectiveDamage(e.gun, end.dist(gs.o)) * (hitzone == HIT_HEAD ? 4.f : hitzone == HIT_TORSO ? 1.2f : 1);
-					}
-					damagedealt += damage;
-					sendhit(c, GUN_SHOTGUN, ts.o.v);
-					serverdamage(&t, &c, damage, e.gun, damage >= SGGIB ? FRAG_GIB : FRAG_NONE, gs.o);
-				}
-				else{ // one ray, potentially multiple players
-					// calculate the hit
-					const int hitzone = hitplayer(gs.o, gs.aim[0], gs.aim[1], to, ts.o, head, &end);
-					if(!hitzone) continue;
-					// damage check
-					const float dist = end.dist(gs.o);
-					int damage = effectiveDamage(e.gun, dist);
-					if(!damage) continue;
-					// damage multipliers
-					switch(hitzone){
-						case HIT_HEAD:
-							damage *= POWERGUN(e.gun) ? POWHEADMUL : DAMHEADMUL;
-							break;
-						case HIT_TORSO:
-							// multiplying by one is pretty stupid to do
-							if(POWERGUN(e.gun)) damage *= POWTORSOMUL;
-							break;
-						case HIT_LEG:
-						default:
-							// ditto to the above comment
-							if(POWERGUN(e.gun)) break;
-							damage *= DAMLEGMUL;
-							break;
-					}
-					// gib check
-					const bool gib = e.gun == GUN_KNIFE || hitzone == HIT_HEAD;
-					int style = gib ? FRAG_GIB : FRAG_NONE;
-					// critical shots
-					if(checkcrit(dist, 2.5)){
-						style |= FRAG_CRITICAL;
-						damage *= 2.5f;
-					}
-					if(e.gun != GUN_KNIFE) sendhit(c, e.gun, end.v);
-					// do the damage!
-					if(e.gun == GUN_KNIFE){
-						if(hitzone == HIT_HEAD) style |= FRAG_FLAG;
-						if(!isteam((&c), (&t))){
-							ts.cutter = c.clientnum;
-							ts.lastcut = gamemillis;
-							sendf(-1, 1, "ri2", N_BLEED, i);
-						}
-					}
-					damagedealt += damage;
-					serverdamage(&t, &c, damage, e.gun, style, gs.o);
-				}
+			if(e.gun == GUN_SHOTGUN){ // many rays, many players
+				damagedealt += shotgun(c, gs.o, to);
 			}
+			else damagedealt += shot(c, gs.o, to, e.gun, c.clientnum);
 		}
 	}
 	gs.damage += damagedealt;

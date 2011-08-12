@@ -41,9 +41,83 @@ bool checkcrit(float dist, float m, int base = 0, int min = 1, int max = 100){
 	return m_real || !rnd(base + clamp<int>(ceil(dist) * m, min, max));
 }
 
+// easy to send shot damage messages
+inline void sendhit(client &actor, int gun, float *o){
+	sendf(-1, 1, "ri3f3", N_PROJ, actor.clientnum, gun, o[0], o[1], o[2]);
+}
+
 // hit checks
 
-// hitscans (todo)
+// hitscans
+int shot(client &owner, const vec &from, const vec &to, int weap, int exclude = -1){
+	int shotdamage = 0;
+	clientstate &gs = owner.state;
+	const int mulset = POWERGUN(weap) ? MUL_POWERFUL : MUL_NORMAL;
+	loopv(clients){ // one ray, potentially multiple players
+		client &t = *clients[i];
+		clientstate &ts = t.state;
+		// basic checks
+		if(i == exclude || t.type == ST_EMPTY || ts.state != CS_ALIVE) continue;
+		vec head(ts.o), end(ts.head);
+		
+		// calculate the hit
+		const int hitzone = hitplayer(gs.o, gs.aim[0], gs.aim[1], to, ts.o, head, &end);
+		if(!hitzone) continue;
+		// damage check
+		const float dist = end.dist(gs.o);
+		int damage = effectiveDamage(weap, dist);
+		if(!damage) continue;
+		// damage multipliers
+		switch(hitzone){
+			case HIT_HEAD: damage *= muls[mulset].head; break;
+			case HIT_TORSO: damage *= muls[mulset].torso; break;
+			case HIT_LEG: default: damage *= muls[mulset].leg; break;
+		}
+		// gib check
+		const bool gib = weap == GUN_KNIFE || hitzone == HIT_HEAD;
+		int style = gib ? FRAG_GIB : FRAG_NONE;
+		// critical shots
+		if(checkcrit(dist, 2.5)){
+			style |= FRAG_CRITICAL;
+			damage *= 2.5f;
+		}
+		if(weap != GUN_KNIFE) sendhit(owner, weap, end.v);
+		else{
+			if(hitzone == HIT_HEAD) style |= FRAG_FLAG;
+			if(!isteam((&owner), (&t))){
+				ts.cutter = owner.clientnum;
+				ts.lastcut = gamemillis;
+				sendf(-1, 1, "ri2", N_BLEED, i);
+			}
+		}
+		shotdamage += damage;
+		serverdamage(&t, &owner, damage, weap, style, gs.o);
+	}
+	return shotdamage;
+}
+
+int shotgun(client &owner, const vec &from, const vec &to){
+	int damagedealt = 0;
+	clientstate &gs = owner.state;
+	loopv(clients){
+		client &t = *clients[i];
+		clientstate &ts = t.state;
+		// basic checks
+		if(i == owner.clientnum || t.type == ST_EMPTY || ts.state != CS_ALIVE) continue;
+
+		int damage = 0;
+		loopj(SGRAYS){ // check rays and sum damage
+			vec end;
+			const int hitzone = hitplayer(from, gs.aim[0], gs.aim[1], gs.sg[j], ts.o, ts.head, &end);
+			if(!hitzone) continue;
+			damage += effectiveDamage(GUN_SHOTGUN, end.dist(gs.o)) * muls[MUL_SHOTGUN].val[hitzone == HIT_HEAD ? 0 : hitzone == HIT_TORSO ? 1 : 2];
+		}
+		damagedealt += damage;
+		sendhit(owner, GUN_SHOTGUN, ts.o.v);
+		serverdamage(&t, &owner, damage, GUN_SHOTGUN, damage >= SGGIB ? FRAG_GIB : FRAG_NONE, from);
+	}
+	return damagedealt;
+}
 
 // explosions
 int explosion(client &owner, const vec &o, int weap){
