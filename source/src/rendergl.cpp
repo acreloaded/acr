@@ -353,8 +353,7 @@ void renderaboveheadicon(playerent *p){
 		Texture *tex = texs[icon.type];
 		uint h = 1; float aspect = 2, scalef = 3;
 		switch(icon.type){
-			case eventicon::HEADSHOT: case eventicon::CRITICAL: case eventicon::REVENGE: h = 4; break;
-			case eventicon::FIRSTBLOOD: h = 8; break;
+			case eventicon::HEADSHOT: case eventicon::CRITICAL: case eventicon::REVENGE: case eventicon::FIRSTBLOOD: h = 4; break;
 			case eventicon::DECAPITATED: case eventicon::BLEED: scalef = aspect = 1; break;
 			case eventicon::VOICECOM: case eventicon::PICKUP: scalef = aspect = 1; default: break;
 		}
