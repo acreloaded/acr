@@ -129,7 +129,7 @@ struct clientstate : playerstate
 	int akimbos, akimbomillis;
 	int points, flagscore, frags, deaths, shotdamage, damage;
 
-	clientstate() : state(CS_DEAD) {}
+	clientstate() : state(CS_DEAD), playerstate() {}
 
 	bool isalive(int gamemillis)
 	{
@@ -2738,7 +2738,7 @@ void sendservinfo(client &c){
 }
 
 void putinitclient(client &c, ucharbuf &p){
-	if(c.state.ownernum >= 0) return putinitai(c, p);
+	if(c.type == ST_AI || c.state.ownernum >= 0) return putinitai(c, p);
     putint(p, N_INITCLIENT);
     putint(p, c.clientnum);
 	putint(p, c.team);
@@ -2763,7 +2763,7 @@ void sendinitclient(client &c){
 void welcomeinitclient(ucharbuf &p, int exclude = -1){
     loopv(clients){
         client &c = *clients[i];
-        if(c.type!=ST_TCPIP || !c.isauthed || c.clientnum == exclude) continue;
+        if(!c.isauthed || c.clientnum == peerowner(exclude)) continue;
         putinitclient(c, p);
     }
 }
@@ -2832,7 +2832,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath){
 		{
 			client &c = *clients[i];
 			if((c.type!=ST_TCPIP && c.type != ST_AI) || (c.clientnum==n && !restored)) continue;
-			CHECKSPACE(256);
+			CHECKSPACE(512);
 			putint(p, c.clientnum);
 			putint(p, c.state.state);
 			putint(p, c.state.lifesequence);
@@ -4053,7 +4053,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 		{
 			case ENET_EVENT_TYPE_CONNECT:
 			{
-				clearai(); // hack to give new clients the lowest clientnumber and redistribute bots!
+				// clearai(); // hack to give new clients the lowest clientnumber and redistribute bots!
 				client &c = addclient();
 				c.type = ST_TCPIP;
 				c.peer = event.peer;

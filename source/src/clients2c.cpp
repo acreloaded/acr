@@ -193,14 +193,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 		{
 			case N_SERVINFO:					// welcome messsage from the server
 			{
-				int mycn = getint(p), prot = getint(p);
+				int mycn = getint(p), prot = getint(p), salt = getint(p);
 				if(prot != PROTOCOL_VERSION)
 				{
 					conoutf("\f3you are using a different game protocol (you: %d, server: %d)", PROTOCOL_VERSION, prot);
 					disconnect();
 					return;
 				}
-				sessionid = getint(p);
+				sessionid = salt;
 				player1->clientnum = mycn;
 				sendintro();
 				break;
@@ -354,7 +354,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				*/
 				b->ownernum = owner;
 				b->team = team;
-				s_strcpy(b->name, "bot");
+				s_sprintf(b->name)("bot%d-%d", cn, owner);
 				updateclientname(b);
 				/*
 				if(b->ownernum == getclientnum()){

@@ -31,6 +31,7 @@ bool addai(){
 		c->clientnum = cn = clients.length();
 		clients.add(c);
 	}
+	s_sprintf(clients[cn]->name)("bot%d", cn);
 	clients[cn]->type = ST_AI;
 	clients[cn]->reset();
 	clients[cn]->state.ownernum = aiowner;
