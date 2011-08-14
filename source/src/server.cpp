@@ -331,6 +331,21 @@ void cleanworldstate(ENetPacket *packet){
    }
 }
 
+bool hasclient(client &ci, int cn){
+	if(!valid_client(cn)) return false;
+	client &cp = *clients[cn];
+	return ci.clientnum == cn || cp.state.ownernum == ci.clientnum;
+}
+
+bool allowbroadcast(int n){
+	return valid_client(n) && clients[n]->isauthed && clients[n]->state.ownernum < 0;
+}
+
+int peerowner(int n){
+	if(valid_client(n) && clients[n]->state.ownernum >= 0) return clients[n]->state.ownernum;
+	return n;
+}
+
 int bsend = 0, brec = 0, laststatus = 0, servmillis = 0, lastfillup = 0;
 
 void recordpacket(int chan, void *data, int len);
@@ -339,17 +354,24 @@ void sendpacket(int n, int chan, ENetPacket *packet, int exclude = -1){
 	if(n<0)
 	{
 		recordpacket(chan, packet->data, (int)packet->dataLength);
-		loopv(clients) if(i!=exclude && (clients[i]->type!=ST_TCPIP || clients[i]->isauthed)) sendpacket(i, chan, packet);
+		loopv(clients) if(i!=peerowner(exclude) && allowbroadcast(i)) sendpacket(i, chan, packet);
 		return;
 	}
 	switch(clients[n]->type)
 	{
-		case ST_TCPIP:
+		case ST_AI:
 		{
+			// reroute packets
+			const int owner = peerowner(n);
+			if(owner >= 0 && valid_client(owner) && owner != n && owner != peerowner(exclude))
+				sendpacket(owner, chan, packet, exclude);
+			break;
+		}
+
+		case ST_TCPIP:
 			enet_peer_send(clients[n]->peer, chan, packet);
 			bsend += (int)packet->dataLength;
 			break;
-		}
 
 		case ST_LOCAL:
 			localservertoclient(chan, packet->data, (int)packet->dataLength);
@@ -405,9 +427,9 @@ bool buildworldstate(){
 	loopv(clients)
 	{
 		client &c = *clients[i];
-		if(c.type!=ST_TCPIP || !c.isauthed) continue;
+		//if(c.type!=ST_TCPIP || !c.isauthed) continue;
 		ENetPacket *packet;
-		if(psize && (pkt[i].posoff<0 || psize-c.position.length()>0))
+		if(allowbroadcast(i) && psize && (pkt[i].posoff<0 || psize-c.position.length()>0))
 		{
 			packet = enet_packet_create(&ws.positions[pkt[i].posoff<0 ? 0 : pkt[i].posoff+c.position.length()],
 										pkt[i].posoff<0 ? psize : psize-c.position.length(),
@@ -418,7 +440,7 @@ bool buildworldstate(){
 		}
 		c.position.setsize(0);
 
-		if(msize && (pkt[i].msgoff<0 || msize-pkt[i].msglen>0))
+		if(allowbroadcast(i) && msize && (pkt[i].msgoff<0 || msize-pkt[i].msglen>0))
 		{
 			packet = enet_packet_create(&ws.messages[pkt[i].msgoff<0 ? 0 : pkt[i].msgoff+pkt[i].msglen],
 										pkt[i].msgoff<0 ? msize : msize-pkt[i].msglen,
@@ -1286,7 +1308,7 @@ void sendtext(char *text, client &cl, int flags, int voice){
 	putint(p, (voice & 0x1F) | flags << 5);
 	sendstring(text, p);
 	enet_packet_resize(packet, p.length());
-	loopv(clients) if(!(flags&SAY_TEAM) || clients[i]->team == cl.team || clients[i]->priv >= PRIV_ADMIN) sendpacket(i, 1, packet);
+	loopv(clients) if(allowbroadcast(i) && (!(flags&SAY_TEAM) || clients[i]->team == cl.team || clients[i]->priv >= PRIV_ADMIN)) sendpacket(i, 1, packet);
 	recordpacket(1, packet->data, (int)packet->dataLength);
 	if(!packet->referenceCount) enet_packet_destroy(packet);
 }
@@ -2948,12 +2970,6 @@ void checkmove(client &cp){
 
 #include "auth.h"
 
-bool hasclient(client &ci, int cn){
-	if(!valid_client(cn)) return false;
-	client &cp = *clients[cn];
-	return ci.clientnum == cn || cp.state.ownernum == ci.clientnum;
-}
-
 int checktype(int type, client *cl){ // invalid defined types handled in the processing function
 	if(cl && cl->type==ST_LOCAL) return type; // local
 	if (type < 0 || type >= N_NUM) return -1; // out of range
@@ -3844,7 +3860,7 @@ void checkintermission(){
 	if(minremain>0)
 	{
 		minremain = gamemillis>=gamelimit || forceintermission ? 0 : (gamelimit - gamemillis + 60000 - 1)/60000;
-		if(isdedicated) loopv(clients) if(valid_client(i)) sendf(i, 1, "ri3", N_ACCURACY, clients[i]->state.damage, clients[i]->state.shotdamage);
+		if(isdedicated) loopv(clients) if(valid_client(i) && allowbroadcast(i)) sendf(i, 1, "ri3", N_ACCURACY, clients[i]->state.damage, clients[i]->state.shotdamage);
 		if(minremain < 2){
 			short nextmaptype = 0, nextmaptime = 0, nextmapmode = GMODE_TEAMDEATHMATCH;
 			string nextmapnm = "unknown";

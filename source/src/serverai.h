@@ -1,6 +1,6 @@
 // ai (bots)
 int findaiclient(int exclude = -1){ // person with least bots
-	return -1; // disable adding bots
+	//return -1; // disable adding bots
 	int cn = -1, bots = MAXBOTS;
 	loopv(clients){
 		client *c = clients[i];

@@ -343,17 +343,17 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_INITAI:
 			{
-				int cn = getint(p);
-				while(cn>=players.length()) players.add(NULL);
-				if(players[cn]) zapplayer(players[cn]);
+				int cn = getint(p), owner = getint(p), team = getint(p);
+				//while(cn>=players.length()) players.add(NULL);
+				//if(players[cn]) zapplayer(players[cn]);
 				//botent *b = new botent;
 				playerent *b = newclient(cn);
 				/*
 				b->clientnum = cn;
 				players.add(b);
 				*/
-				b->ownernum = getint(p);
-				b->team = getint(p);
+				b->ownernum = owner;
+				b->team = team;
 				s_strcpy(b->name, "bot");
 				updateclientname(b);
 				/*
