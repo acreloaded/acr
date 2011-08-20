@@ -338,7 +338,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				}
 				else{ //if(type == N_INITAI){
 					d->ownernum = getint(p);
-					s_sprintf(d->name, "bot%d", d->clientnum);
+					s_sprintf(d->name)("bot%d", d->clientnum);
 				}
 				updateclientname(d);
 				if(m_flags) loopi(2){
