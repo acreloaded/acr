@@ -4054,7 +4054,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 		{
 			case ENET_EVENT_TYPE_CONNECT:
 			{
-				// clearai(); // hack to give new clients the lowest clientnumber and redistribute bots!
+				clearai(); // hack to give new clients the lowest clientnumber and redistribute bots!
 				client &c = addclient();
 				c.type = ST_TCPIP;
 				c.peer = event.peer;
@@ -4065,6 +4065,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 				s_strcpy(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
 				logline(ACLOG_INFO,"[%s] client #%d connected", c.hostname, c.clientnum);
 				sendservinfo(c);
+				checkai(); // reinit AI
 				break;
 			}
 
