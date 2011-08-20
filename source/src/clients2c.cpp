@@ -377,6 +377,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					flaginfo &f = flaginfos[i];
 					if(!f.actor) f.actor = getclient(f.actor_cn);
 				}
+				break;
 			}
 
 			case N_DELBOT:
