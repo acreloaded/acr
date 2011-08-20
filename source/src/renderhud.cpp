@@ -64,6 +64,7 @@ void drawvoteicon(float x, float y, int col, int row, bool noblend)
 
 VARP(crosshairsize, 0, 15, 50);
 VARP(hidestats, 0, 1, 1);
+VARP(hideobits, 0, 0, 1);
 VARP(hideradar, 0, 0, 1);
 VARP(hidecompass, 0, 0, 1);
 VARP(hideteam, 0, 0, 1);
@@ -789,6 +790,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
 
 	if(!hideconsole) renderconsole();
+	if(!hideobits){
+		// TODO
+	}
 	if(!hidestats)
 	{
 		const int left = (VIRTW-225-10)*2, top = (VIRTH*7/8)*2;
