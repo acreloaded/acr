@@ -2715,22 +2715,23 @@ void getservermap(void){
 }
 
 void sendresume(client &c, bool broadcast){
-	sendf(broadcast ? -1 : c.clientnum, 1, "rxi4i9vvi", broadcast ? c.clientnum : -1, N_RESUME,
-			c.clientnum,
-			c.state.state,
-			c.state.lifesequence,
-			c.state.gunselect,
-			c.state.points,
-			c.state.flagscore,
-			c.state.frags,
-			c.state.assists,
-			c.state.killstreak,
-			c.state.deaths,
-			c.state.health,
-			c.state.armour,
-			NUMGUNS, c.state.ammo,
-			NUMGUNS, c.state.mag,
-			-1);
+	sendf(broadcast ? -1 : c.clientnum, 1, "rxi4i9vvi", broadcast ? c.clientnum : -1, // x
+			N_RESUME, // i4
+			c.clientnum, // i4
+			c.state.state, // i4
+			c.state.lifesequence, // i4
+			c.state.gunselect, // i9
+			c.state.points, // i9
+			c.state.flagscore, // i9
+			c.state.frags, // i9
+			c.state.assists, // i9
+			c.state.killstreak, // i9
+			c.state.deaths, // i9
+			c.state.health, // i9
+			c.state.armour, // i9
+			NUMGUNS, c.state.ammo, // v
+			NUMGUNS, c.state.mag, // v
+			-1); // i
 }
 
 void sendservinfo(client &c){
