@@ -136,8 +136,8 @@ struct obitlist
 		cl.target = olines.length()>maxlines ? olines.pop().target : newstringbuf("");   // constrain the buffer size
 		cl.millis = millis;						// for how long to keep line on screen
 		cl.weap = weap;
-		s_strcpy(cl.actor, actor && actor != target ? colorname(actor) : "");
-		s_strcpy(cl.target, target ? colorname(target) : "unknown");
+		s_sprintf(cl.actor)("\f%d%s", actor == gamefocus ? 0 : isteam(actor, gamefocus) ? 1 : 3, actor == target ? "" : actor ? colorname(actor) : "unknown");
+		s_sprintf(cl.target)("\f%d%s", actor == gamefocus ? 8 : isteam(actor, gamefocus) ? 9 : 7, target ? colorname(target) : "unknown");
 		cl.headshot = headshot;
 		return olines.insert(0, cl);
 	}
@@ -199,11 +199,11 @@ struct obitlist
 	}
 
 	void render(){
-        const int conwidth = 2 * VIRTW * 3 / 10;
-		const int left = CONSPAD+FONTH/3 + VIRTW / 100;
+		const int left = VIRTW * 1.65f; // 82.5%
+		const int conwidth = VIRTW * 2 - left; // draw all the way to the right
 		int linei = olines.length(), y = 2 * VIRTH * 52 / 100;
-		loopi(olines.length()){
-			char *l = olines[i].actor;
+		loopv(olines){
+			s_sprintfd(l)("%s    %s", olines[i].actor, olines[i].target); // four spaces to subsitute for obit icon
 			int width, height;
 			text_bounds(l, width, height, conwidth);
 			linei -= -1 + floor(float(height/FONTH));
