@@ -141,100 +141,141 @@ static inline ushort effectiveDamage(int gun, float dist, bool explosive = false
 	return finaldamage;
 }
 
-static inline const char *suicname(int gun, int style){
-	const bool gib = (style & FRAG_GIB) > 0,
-				flag = (style & FRAG_FLAG) > 0;
+enum {
+	OBIT_KNIFE = 0,
+	OBIT_PISTOL,
+	OBIT_SHOTGUN,
+	OBIT_SUBGUN,
+	OBIT_SNIPER,
+	OBIT_BOLT,
+	OBIT_ASSAULT,
+	OBIT_GRENADE,
+	OBIT_AKIMBO,
+	OBIT_HEAL,
+	OBIT_WAVE,
+	OBIT_BOW, // guns
+	OBIT_START,
+	OBIT_DEATH = OBIT_START,
+	OBIT_BOW_IMPACT,
+	OBIT_BOW_STUCK,
+	OBIT_KNIFE_BLEED,
+	OBIT_KNIFE_IMPACT,
+	OBIT_HEADSHOT,
+	OBIT_FF,
+	OBIT_DROWN,
+	OBIT_FALL,
+	OBIT_NUM
+};
+
+static inline const int obit_suicide(int weap){
+	if(weap >= 0 && weap <= OBIT_START) return weap;
+	switch(weap){ // fixme
+		//case NUMGUNS+0: return OBIT_DEATH;
+		case NUMGUNS+1: return OBIT_DEATH; // drown
+		case NUMGUNS+2: return OBIT_DEATH; // fall
+		case NUMGUNS+3: return OBIT_DEATH; // ff
+	}
+	return OBIT_DEATH;
+}
+
+static inline const char *suicname(int obit){
 	static string k;
 	*k = 0;
-	switch(gun){
+	switch(obit){
 		case GUN_GRENADE:
 			s_strcat(k, "failed with nades");
 			break;
-		case GUN_SHOTGUN:
-			s_strcat(k, "attempted to ");
-			s_strcat(k, gib ? "splatter" : "scramble");
-			s_strcat(k, " a teammate");
-			break;
-		case GUN_KNIFE:
-			s_strcat(k, "tried to ");
-			s_strcat(k, gib ? flag ? "sacrifice" : "betray" : flag ? "throw knives at" : "bleed out");
-			s_strcat(k, " a teammate");
-			break;
 		case GUN_HEAL:
-			s_strcat(k, flag ? "overdosed on drugs" : "failed at dosing players");
+			s_strcat(k, "overdosed on drugs");
 			break;
 		case GUN_BOW:
-			s_strcat(k, gib ? flag ? "failed to use an explosive crossbow" : "detonated friendly fire" : "tried to impact a teammate");
+			s_strcat(k, "failed to use an explosive crossbow");
 			break;
-		case GUN_PISTOL:
-		case GUN_SUBGUN:
-		case GUN_SNIPER:
-		case GUN_BOLT:
-		case GUN_ASSAULT:
-		case GUN_AKIMBO:
-		case GUN_WAVE:
-			s_strcat(k, "commited too much friendly fire");
-			break;
-		case NUMGUNS:
+		case OBIT_DEATH:
 			s_strcat(k, "requested suicide");
 			break;
-		case NUMGUNS+1:
+		case OBIT_DROWN:
 			s_strcat(k, "drowned");
 			break;
-		case NUMGUNS+2:
+		case OBIT_FALL:
 			s_strcat(k, "failed to fly");
 			break;
 		default:
-			s_strcat(k, "suicided");
+			s_strcat(k, "somehow suicided");
 			break;
 	}
 	return k;
 }
 
-static inline const char *killname(int gun, int style){
+static inline const bool isheadshot(int weapon, int style){
+	return weapon != GUN_SHOTGUN && weapon != GUN_GRENADE && weapon != GUN_BOW && (style & FRAG_GIB) && (weapon != GUN_KNIFE || style & FRAG_FLAG);
+}
+
+static inline const int toobit(int weap, int style){
 	const bool gib = (style & FRAG_GIB) > 0,
 				flag = (style & FRAG_FLAG) > 0;
+	switch(weap){
+		case GUN_KNIFE: return gib ? GUN_KNIFE : flag ? OBIT_KNIFE_IMPACT : OBIT_KNIFE_BLEED;
+		case GUN_BOW: return gib ? flag ? OBIT_BOW_STUCK : GUN_BOW : OBIT_BOW_IMPACT;
+	}
+	return weap < NUMGUNS ? weap : OBIT_DEATH;
+}
+
+static inline const char *killname(int obit, bool headshot){
 	static string k;
 	*k = 0;
-	switch(gun){
+	switch(obit){
 		case GUN_GRENADE:
 			s_strcat(k, "obliterated");
 			break;
 		case GUN_KNIFE:
-			s_strcat(k, gib ? flag ? "decapitated" : "slashed" : flag ? "thrown down" : "fatally wounded");
+			s_strcat(k, headshot ? "decapitated" : "slashed");
 			break;
 		case GUN_BOLT:
-			s_strcat(k, gib ? "overkilled" : "quickly killed");
+			s_strcat(k, headshot ? "overkilled" : "quickly killed");
 			break;
 		case GUN_SNIPER:
-			s_strcat(k, gib ? "expertly sniped" : "sniped");
+			s_strcat(k, headshot ? "expertly sniped" : "sniped");
 			break;
 		case GUN_SUBGUN:
-			s_strcat(k, gib ? "perforated" : "spliced");
+			s_strcat(k, headshot ? "perforated" : "spliced");
 			break;
 		case GUN_SHOTGUN:
-			s_strcat(k, gib ? "splattered" : "scrambled");
+			s_strcat(k, headshot ? "splattered" : "scrambled");
 			break;
 		case GUN_ASSAULT:
-			s_strcat(k, gib ? "eliminated" : "shredded");
+			s_strcat(k, headshot ? "eliminated" : "shredded");
 			break;
 		case GUN_PISTOL:
-			s_strcat(k, gib ? "capped" : "pierced");
+			s_strcat(k, headshot ? "capped" : "pierced");
 			break;
 		case GUN_AKIMBO:
-			s_strcat(k, gib ? "blasted" : "skewered");
+			s_strcat(k, headshot ? "blasted" : "skewered");
 			break;
 		case GUN_HEAL:
-			s_strcat(k, gib ? "tranquilized" : "injected");
+			s_strcat(k, headshot ? "tranquilized" : "injected");
 			break;
 		case GUN_WAVE:
-			s_strcat(k, gib ? "disrupted" : "cooked");
+			s_strcat(k, headshot ? "disrupted" : "cooked");
 			break;
 		case GUN_BOW:
-			s_strcat(k, gib ? flag ? "plastered" : "detonated" : "impacted");
+			s_strcat(k, "detonated");
+			break;
+		// special obits
+		case OBIT_BOW_IMPACT:
+			s_strcat(k, "impacted");
+			break;
+		case OBIT_BOW_STUCK:
+			s_strcat(k, "plastered");
+			break;
+		case OBIT_KNIFE_BLEED:
+			s_strcat(k, "fatally wounded");
+			break;
+		case OBIT_KNIFE_IMPACT:
+			s_strcat(k, "thrown down");
 			break;
 		default:
-			s_strcat(k, gib ? "pwned" : "killed");
+			s_strcat(k, headshot ? "pwned" : "killed");
 			break;
 	}
 	return k;

@@ -74,10 +74,12 @@ extern int execcontext;
 extern void keypress(int code, bool isdown, int cooked, SDLMod mod = KMOD_NONE);
 extern int rendercommand(int x, int y, int w);
 extern void renderconsole();
+extern void renderobits();
 extern char *getcurcommand();
 extern char *addreleaseaction(const char *s);
 extern void writebinds(FILE *f);
 extern void pasteconsole(char *dst);
+extern void addobit(playerent *actor, int weap, bool headshot, playerent *target);
 extern void conoutf(const char *s, ...);
 extern void chatout(const char *s);
 

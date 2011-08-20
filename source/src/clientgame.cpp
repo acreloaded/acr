@@ -511,11 +511,13 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 	dodamage(damage, pl, act, weapon, style);
 
 	// kill message
-	string subject, predicate, hashave;
+	bool headshot = false;
+	int obit = OBIT_DEATH;
+	string subject, predicate, hashave, text;
 	s_sprintf(subject)("\f2\fs%s\f2", act == player1 ? "\f1you" : colorname(act));
 	s_strcpy(hashave, act == player1 ? "have" : "has");
 	if(pl == act){
-		s_strcpy(predicate, suicname(weapon, style));
+		s_strcpy(predicate, suicname(obit = obit_suicide(weapon)));
 		if(pl == player1){
 			// radar scan
 			loopv(players){
@@ -529,12 +531,22 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 			s_strcat(predicate, "\f3");
 		}
 		if(pl == gamefocus) s_strcat(predicate, "!\f2");
-		if(killdist) s_sprintf(predicate)("%s (@%.2f m)", predicate, killdist);
+		if(killdist){
+			s_sprintf(text)(" (@%.2f m)", killdist);
+			s_strcat(predicate, text);
+		}
 	}
-	else s_sprintf(predicate)("%s %s%s (@%.2f m)", killname(weapon, style),
-		isteam(pl, act) ? act==player1 ? "your teammate " : "his teammate " : "", pl == player1 ? "\f1you\f2" : colorname(pl), killdist);
+	else{
+		obit = toobit(weapon, style);
+		headshot = isheadshot(weapon, style);
+		s_sprintf(predicate)("%s %s%s (@%.2f m)", killname(obit, headshot),
+			isteam(pl, act) ? act==player1 ? "your teammate " : "his teammate " : "", pl == player1 ? "\f1you\f2" : colorname(pl), killdist);
+	}
 	// killstreak
-	if(act->killstreak++) s_sprintf(predicate)("%s (%d killstreak)", predicate, act->killstreak);
+	if(act->killstreak++){
+		s_sprintf(text)(" (%d killstreak)", act->killstreak);
+		s_strcat(predicate, text);
+	}
 	// assist count
 	pl->damagelog.removeobj(pl->clientnum);
 	pl->damagelog.removeobj(act->clientnum);
@@ -550,7 +562,8 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 			p = getclient(pl->damagelog.pop());
 			if(!p) continue;
 			p->assists++;
-			s_sprintf(predicate)("%s%s \fs\f%d%s\fr", predicate, first ? "" : !pl->damagelog.length() ? " and" : ",", isteam(p, pl) ? 3 : 2, colorname(p));
+			s_sprintf(text)("%s \fs\f%d%s\fr", first ? "" : !pl->damagelog.length() ? " and" : ",", isteam(p, pl) ? 3 : 2, colorname(p));
+			s_strcat(predicate, text);
 			first = false;
 		}
 	}
@@ -559,7 +572,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 	
 	int icon = -1;
 	if(style & FRAG_GIB){
-		if(pl != act && weapon != GUN_SHOTGUN && weapon != GUN_GRENADE && weapon != GUN_BOW && (weapon != GUN_KNIFE || style & FRAG_FLAG)){
+		if(headshot){
 			playsound(S_HEADSHOT, act, act == gamefocus ? SP_HIGHEST : SP_HIGH);
 			playsound(S_HEADSHOT, pl, pl == gamefocus ? SP_HIGHEST : SP_HIGH); // both get headshot sound
 			icon = eventicon::HEADSHOT; pl->addicon(eventicon::DECAPITATED); // both get headshot info
@@ -568,6 +581,8 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 	}
 	if(style & FRAG_FIRST) icon = eventicon::FIRSTBLOOD;
 	if(icon >= 0) act->addicon(icon);
+
+	addobit(pl, obit, headshot, act);
 	
 	deathstate(pl);
 	pl->deaths++;

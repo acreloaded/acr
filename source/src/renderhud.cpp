@@ -790,9 +790,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
 
 	if(!hideconsole) renderconsole();
-	if(!hideobits){
-		// TODO
-	}
+	if(!hideobits) renderobits();
 	if(!hidestats)
 	{
 		const int left = (VIRTW-225-10)*2, top = (VIRTH*7/8)*2;

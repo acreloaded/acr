@@ -120,6 +120,128 @@ struct chatlist : consolebuffer<cline>{
 };
 chatlist chat;
 
+VARP(obitfade, 0, 10, 60);
+struct oline { char *actor; char *target; int weap, millis; bool headshot; };
+struct obitlist
+{
+	int maxlines;
+	vector<oline> olines;
+
+	obitlist(int maxlines = 8) : maxlines(maxlines) {}
+
+	oline &addline(playerent *actor, int weap, bool headshot, playerent *target, int millis)	// add a line to the obit buffer
+	{
+		oline cl;
+		cl.actor = olines.length()>maxlines ? olines.pop().actor : newstringbuf("");   // constrain the buffer size
+		cl.target = olines.length()>maxlines ? olines.pop().target : newstringbuf("");   // constrain the buffer size
+		cl.millis = millis;						// for how long to keep line on screen
+		cl.weap = weap;
+		s_strcpy(cl.actor, actor && actor != target ? colorname(actor) : "");
+		s_strcpy(cl.target, target ? colorname(target) : "unknown");
+		cl.headshot = headshot;
+		return olines.insert(0, cl);
+	}
+
+	void setmaxlines(int numlines)
+	{
+		maxlines = numlines;
+		while(olines.length() > maxlines){
+			oline &o = olines.pop();
+			delete[] o.actor;
+			delete[] o.target;
+		}
+	}
+		
+	virtual ~obitlist() { setmaxlines(0); }
+
+	Texture **obittex(){
+		static Texture *tex[OBIT_NUM];
+		if(!*tex){
+			const char *texname[OBIT_NUM-OBIT_START] = { "death", "bow_impact", "bow_stuck", "knife_bleed", "knife_impact", "headshot", "ff", "drown", "fall" };
+			loopi(OBIT_NUM){
+				s_sprintfd(tname)("packages/misc/obit/%s.png", i < OBIT_START ? guns[i].modelname : texname[i - OBIT_START]);
+				tex[i] = textureload(tname);
+			}
+		}
+		return tex;
+	}
+
+	int drawobit(int style, int left, int top){
+		int aspect = 1;
+		switch(style){
+			case GUN_SHOTGUN:
+			case GUN_SNIPER:
+				aspect = 4; break;
+			case GUN_SUBGUN:
+			case GUN_BOLT:
+			case GUN_ASSAULT:
+				aspect = 2; break;
+			case GUN_AKIMBO:
+				style = GUN_PISTOL; // break;
+			default: break; // many are square
+		}
+
+		Texture **guntexs = obittex();
+		const int sz = FONTH;
+
+		glColor4f(1, 1, 1, style == OBIT_HEADSHOT ? sinf(totalmillis / 2000.f) : 1);
+		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+		glBindTexture(GL_TEXTURE_2D, guntexs[style]->id);
+
+		glBegin(GL_QUADS);
+		glTexCoord2f(0, 0); glVertex2f(left, top);
+		glTexCoord2f(1, 0); glVertex2f(left + sz * aspect, top);
+		glTexCoord2f(1, 1); glVertex2f(left + sz * aspect, top + sz);
+		glTexCoord2f(0, 1); glVertex2f(left, top + sz);
+		glEnd();
+
+		return aspect * sz;
+	}
+
+	void render(){
+        const int conwidth = 2 * VIRTW * 3 / 10;
+		const int left = CONSPAD+FONTH/3 + VIRTW / 100;
+		int linei = olines.length(), y = 2 * VIRTH * 52 / 100;
+		loopi(olines.length()){
+			char *l = olines[i].actor;
+			int width, height;
+			text_bounds(l, width, height, conwidth);
+			linei -= -1 + floor(float(height/FONTH));
+		}
+        loopi(linei){
+			oline &l = olines[i];
+			if(totalmillis-l.millis < chatfade*1000 || con.fullconsole){
+				int x = 0, fade = 255;
+				if(l.millis + chatfade*1000 - totalmillis < 1000 && !con.fullconsole){ // fading out
+					fade = (l.millis + chatfade*1000 - totalmillis) * 255/1000;
+					y -= FONTH * (totalmillis + 1000 - l.millis - chatfade*1000) / 1000;
+				}
+				else if(i == 0 && lastmillis-l.millis < 500){ // fading in
+					fade = (lastmillis - l.millis)*255/500;
+					y += FONTH * (l.millis + 500 - lastmillis) / 500;
+				}
+				int width, height;
+				text_bounds(l.actor, width, height, conwidth);
+				y -= height;
+				if(*l.actor){
+					draw_text(l.actor, left, y, 0xFF, 0xFF, 0xFF, fade, -1, conwidth);
+					x += width + text_width(" ") / 2;
+				}
+				// now draw weapon symbol
+				x += drawobit(l.weap, left + x, y);
+				if(l.headshot) x += drawobit(OBIT_HEADSHOT, left + x, y);
+				// end of weapon symbol
+				x += text_width(" ") / 2;
+				draw_text(l.target, left + x, y, 0xFF, 0xFF, 0xFF, fade, -1, conwidth);
+			}
+        }
+    }
+};
+obitlist obits;
+
+void addobit(playerent *actor, int weap, bool headshot, playerent *target) { extern int totalmillis; obits.addline(actor, weap, headshot, target, totalmillis); }
+void renderobits() { obits.render(); }
+
 textinputbuffer cmdline;
 char *cmdaction = NULL, *cmdprompt = NULL;
 bool saycommandon = false;

@@ -1481,7 +1481,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 		if((damage *= 0.25) > target->state.health - 80) damage = target->state.health - 80; // no more TKs!
 		if(damage < 1) return;
 		const int returndamage = damage * (m_expert ? 1.5f : .4f);
-		if(returndamage) serverdamage(actor, actor, returndamage, gun, style, source); // redirect damage to owner
+		if(returndamage) serverdamage(actor, actor, returndamage, NUMGUNS+3, style, source); // redirect damage to owner
 		actor->state.shotdamage += damage; // reduce his accuracy
 	}
 	if(target->state.damagelog.find(actor->clientnum) < 0) target->state.damagelog.add(actor->clientnum);
@@ -1522,8 +1522,8 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 		target->position.setsize(0);
 		ts.state = CS_DEAD;
 		ts.lastdeath = gamemillis;
-		if(!suic) logline(ACLOG_INFO, "[%s] %s %s %s (%.2f m)", actor->hostname, actor->name, killname(gun, style), target->name, killdist);
-		else logline(ACLOG_INFO, "[%s] %s %s (%.2f m)", actor->hostname, actor->name, suicname(gun, style), killdist);
+		if(!suic) logline(ACLOG_INFO, "[%s] %s %s %s (%.2f m)", actor->hostname, actor->name, killname(toobit(gun, style), isheadshot(gun, style)), target->name, killdist);
+		else logline(ACLOG_INFO, "[%s] %s %s (%.2f m)", actor->hostname, actor->name, suicname(obit_suicide(gun)), killdist);
 
 		if(m_flags && targethasflag >= 0)
 		{
