@@ -41,7 +41,7 @@ bool packetqueue::flushtolog(const char *logfile)
 		fprintf(f, "dataLength == %d\n", p->dataLength);
 		fputs("data == \n", f);
 		// print whole buffer char-wise
-		loopj(p->dataLength) fprintf(f, "%16d \n", (char)p->data[j]);
+		loopj(p->dataLength) fprintf(f, "%16d %c\n", (char)p->data[j], isprint(p->data[j]) ? p->data[j] : '?');
 		//ucharbuf pbuf(p->data, p->dataLength);
 		//while(pbuf.length() < pbuf.maxlen) fprintf(f, "%16d \n", getint(pbuf));
 	}
