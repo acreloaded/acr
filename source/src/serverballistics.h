@@ -114,7 +114,7 @@ int shot(client &owner, const vec &from, const vec &to, int weap, int exclude = 
 				sendf(-1, 1, "ri2", N_BLEED, i);
 			}
 		}
-		shotdamage += damage + explosion(owner, end, GUN_BOW);
+		shotdamage += damage;
 		serverdamage(&t, &owner, damage, weap, style, gs.o);
 	}
 	return shotdamage + (false ? explosion(owner, to, GUN_BOW) : 0);
