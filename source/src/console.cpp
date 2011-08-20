@@ -239,7 +239,7 @@ struct obitlist
 };
 obitlist obits;
 
-void addobit(playerent *actor, int weap, bool headshot, playerent *target) { extern int totalmillis; loopi(20) obits.addline(actor, weap, headshot, target, totalmillis); }
+void addobit(playerent *actor, int weap, bool headshot, playerent *target) { extern int totalmillis; obits.addline(actor, weap, headshot, target, totalmillis); }
 void renderobits() { obits.render(); }
 
 textinputbuffer cmdline;
