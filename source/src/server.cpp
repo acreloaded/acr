@@ -3384,7 +3384,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_PINGTIME:
 			{
-				int pingtime = getint(p);
+				int pingtime = clamp(getint(p), 0, 99999);
 				if(!cl) break;
 				cl->ping = cl->ping == 9999 ? pingtime : (cl->ping * 4 + pingtime) / 5;
 				sendf(-1, 1, "i3", N_PINGTIME, sender, cl->ping);

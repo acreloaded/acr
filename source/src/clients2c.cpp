@@ -752,9 +752,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_PINGTIME:
 			{
-				playerent *pl = getclient(getint(p));
-				int pp = getint(p);
-				if(pl) pl->ping = pp;
+				int cn = getint(p), ping = getint(p);
+				if(cn == getclientnum()) player1->ping = ping;
+				loopv(players) if(players[i] && (i == cn || players[i]->ownernum == cn)) players[i]->ping = ping;
 				break;
 			}
 
