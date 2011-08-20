@@ -127,7 +127,7 @@ struct obitlist
 	int maxlines;
 	vector<oline> olines;
 
-	obitlist(int maxlines = 8) : maxlines(maxlines) {}
+	obitlist() : maxlines(15) {}
 
 	oline &addline(playerent *actor, int weap, bool headshot, playerent *target, int millis)	// add a line to the obit buffer
 	{
@@ -203,7 +203,7 @@ struct obitlist
 		const int conwidth = VIRTW * 2 - left; // draw all the way to the right
 		int linei = olines.length(), y = 2 * VIRTH * 52 / 100;
 		loopv(olines){
-			s_sprintfd(l)("%s    %s", olines[i].actor, olines[i].target); // four spaces to subsitute for obit icon
+			s_sprintfd(l)("%s    %s", olines[i].actor, olines[i].target); // four spaces to subsitute for unknown obit icon
 			int width, height;
 			text_bounds(l, width, height, conwidth);
 			linei -= -1 + floor(float(height/FONTH));
@@ -239,7 +239,7 @@ struct obitlist
 };
 obitlist obits;
 
-void addobit(playerent *actor, int weap, bool headshot, playerent *target) { extern int totalmillis; obits.addline(actor, weap, headshot, target, totalmillis); }
+void addobit(playerent *actor, int weap, bool headshot, playerent *target) { extern int totalmillis; loopi(20) obits.addline(actor, weap, headshot, target, totalmillis); }
 void renderobits() { obits.render(); }
 
 textinputbuffer cmdline;
