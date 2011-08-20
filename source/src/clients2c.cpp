@@ -319,36 +319,28 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case N_INITCLIENT:
+			case N_INITAI: // cn team skin owner
+			case N_INITCLIENT: // cn team skin name
 			{
 				playerent *d = newclient(getint(p));
 				d->team = getint(p);
 				setskin(d, getint(p));
-				getstring(text, p);
-				filtername(d->name, text);
-				if(!*text) s_strcpy(text, "unnamed");
-				s_strcpy(d->name, text);
-				conoutf("connected: %s", colorname(d));
-				if(!joining){
-					s_sprintfd(joinmsg)("%s \f0joined \f2the \f1game", colorname(d));
-					chatout(joinmsg);
+				if(type == N_INITCLIENT){
+					getstring(text, p);
+					if(!*text) s_strcpy(text, "unnamed");
+					filtername(d->name, text);
+					s_strcpy(d->name, text);
+					conoutf("connected: %s", colorname(d));
+					if(!joining){
+						s_sprintfd(joinmsg)("%s \f0joined \f2the \f1game", colorname(d));
+						chatout(joinmsg);
+					}
+				}
+				else{ //if(type == N_INITAI){
+					d->ownernum = getint(p);
+					s_sprintf(d->name, "bot%d", d->clientnum);
 				}
 				updateclientname(d);
-				if(m_flags) loopi(2){
-					flaginfo &f = flaginfos[i];
-					if(!f.actor) f.actor = getclient(f.actor_cn);
-				}
-				break;
-			}
-
-			case N_INITAI:
-			{
-				int cn = getint(p), owner = getint(p), team = getint(p);
-				playerent *b = newclient(cn);
-				b->ownernum = owner;
-				b->team = team;
-				s_sprintf(b->name)("bot%d", cn);
-				updateclientname(b);
 				if(m_flags) loopi(2){
 					flaginfo &f = flaginfos[i];
 					if(!f.actor) f.actor = getclient(f.actor_cn);

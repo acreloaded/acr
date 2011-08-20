@@ -737,8 +737,9 @@ void enddemorecord(){
 void putinitai(client &c, ucharbuf &p){
 	putint(p, N_INITAI);
 	putint(p, c.clientnum);
-	putint(p, c.state.ownernum);
 	putint(p, c.team);
+	putint(p, c.skin);
+	putint(p, c.state.ownernum);
 }
 
 void putinitclient(client &c, ucharbuf &p);

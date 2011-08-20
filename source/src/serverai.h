@@ -31,13 +31,12 @@ bool addai(){
 		c->clientnum = cn = clients.length();
 		clients.add(c);
 	}
-	s_sprintf(clients[cn]->name)("bot%d", cn);
-	clients[cn]->type = ST_AI;
-	clients[cn]->reset();
-	clients[cn]->state.ownernum = aiowner;
-	clients[cn]->isauthed = true;
-	clients[cn]->team = freeteam();
-	sendf(-1, 1, "ri4", N_INITAI, cn, aiowner, clients[cn]->team);
+	client &b = *clients[cn];
+	s_sprintf(b.name)("bot%d", cn);
+	b.type = ST_AI;
+	b.reset();
+	b.isauthed = true;
+	sendf(-1, 1, "ri5", N_INITAI, cn, (b.team = freeteam()), (b.skin = rand()), (b.state.ownernum = aiowner));
 	return true;
 }
 
