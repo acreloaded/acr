@@ -8,7 +8,7 @@ int findaiclient(int exclude = -1){ // person with least bots
 		int n = 0;
 		loopvj(clients) if(clients[j]->state.ownernum == i) n++;
 		if(n < bots){
-			bots = cn;
+			bots = n;
 			cn = i;
 		}
 	}
