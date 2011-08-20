@@ -117,7 +117,7 @@ int shot(client &owner, const vec &from, const vec &to, int weap, int exclude = 
 		shotdamage += damage + explosion(owner, end, GUN_BOW);
 		serverdamage(&t, &owner, damage, weap, style, gs.o);
 	}
-	return shotdamage + explosion(owner, to, GUN_BOW);
+	return shotdamage + (false ? explosion(owner, to, GUN_BOW) : 0);
 }
 
 int shotgun(client &owner, const vec &from, const vec &to){
@@ -140,7 +140,7 @@ int shotgun(client &owner, const vec &from, const vec &to){
 		sendhit(owner, GUN_SHOTGUN, ts.o.v);
 		serverdamage(&t, &owner, damage, GUN_SHOTGUN, damage >= SGGIB ? FRAG_GIB : FRAG_NONE, from);
 	}
-	return damagedealt + explosion(owner, to, GUN_BOW);
+	return damagedealt + (false ? explosion(owner, to, GUN_BOW) : 0);
 }
 
 // throwing knife
