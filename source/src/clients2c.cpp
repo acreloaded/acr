@@ -344,35 +344,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_INITAI:
 			{
 				int cn = getint(p), owner = getint(p), team = getint(p);
-				//while(cn>=players.length()) players.add(NULL);
-				//if(players[cn]) zapplayer(players[cn]);
-				//botent *b = new botent;
 				playerent *b = newclient(cn);
-				/*
-				b->clientnum = cn;
-				players.add(b);
-				*/
 				b->ownernum = owner;
 				b->team = team;
-				s_sprintf(b->name)("bot%d-%d", cn, owner);
+				s_sprintf(b->name)("bot%d", cn);
 				updateclientname(b);
-				/*
-				if(b->ownernum == getclientnum()){
-					bots.add(b);
-					extern void spawnstate(playerent *d);
-					spawnstate(b);
-					weapon::equipplayer(b);
-					b->type = ENT_PLAYER;
-					b->pBot = new CACBot;
-					b->pBot->m_pMyEnt = b;
-					b->pBot->m_iLastBotUpdate = 0;
-					b->pBot->m_bSendC2SInit = false;
-					b->pBot->m_sSkillNr = 0;
-					b->pBot->m_pBotSkill = &BotManager.m_BotSkills[b->pBot->m_sSkillNr];
-					b->pBot->SyncWaypoints();
-					b->pBot->Spawn();
-				}
-				*/
 				if(m_flags) loopi(2){
 					flaginfo &f = flaginfos[i];
 					if(!f.actor) f.actor = getclient(f.actor_cn);
