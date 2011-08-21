@@ -1355,6 +1355,7 @@ bool CBot::CheckStuck()
 			   m_pMyEnt->jumpnext = true;
 		  else
 			   m_pMyEnt->targetyaw = WrapYZAngle(m_pMyEnt->yaw + RandomLong(60, 160));
+		  addmsg(N_SUICIDE, "ri", m_pMyEnt->clientnum);
 		  return true;
 	 }
 	 
