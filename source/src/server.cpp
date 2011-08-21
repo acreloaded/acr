@@ -1237,7 +1237,7 @@ void arenacheck(){
 	loopv(clients){
 		client &c = *clients[i];
 		if(c.type==ST_EMPTY || !c.connected || c.team == TEAM_SPECT) continue;
-		if(c.state.state==CS_ALIVE || (c.state.state==CS_DEAD && c.state.lastspawn>=0)){
+		if(c.state.ownernum < 0 && (c.state.state==CS_ALIVE || (c.state.state==CS_DEAD && c.state.lastspawn>=0))){
 			if(!alive) alive = &c;
 			else if(!m_team || alive->team != c.team) return;
 		}
