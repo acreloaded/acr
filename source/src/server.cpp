@@ -553,9 +553,6 @@ struct sknife{
 	vec o;
 };
 
-vector<sknife> sknives;
-int sknifeid = 0;
-
 void restoreserverstate(vector<entity> &ents)   // hack: called from savegame code, only works in SP
 {
 	loopv(sents)
@@ -657,6 +654,16 @@ void sendspawn(client *c){
 		gs.primary, gs.gunselect, m_duel ? c->spawnindex : -1,
 		NUMGUNS, gs.ammo, NUMGUNS, gs.mag);
 	gs.lastspawn = gamemillis;
+}
+
+// throwing knives
+
+vector<sknife> sknives;
+int sknifeid = 0;
+
+void purgesknives(){
+	loopv(sknives) sendf(-1, 1, "ri2", N_KNIFEREMOVE, sknives[i].id);
+	sknives.setsize(0);
 }
 
 // demo
@@ -1225,6 +1232,7 @@ void arenacheck(){
 	if(arenaround){ // start new arena round
 		arenaround = 0;
 		distributespawns();
+		purgesknives();
 		loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connected && valid_client(peerowner(i)) && clients[peerowner(i)]->isonrightmap && clients[i]->team != TEAM_SPECT){
 			clients[i]->state.lastdeath = 1;
 			sendspawn(clients[i]);
@@ -2316,6 +2324,8 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 			forcedeath(c);
 		}
 	}
+	checkai();
+	purgesknives();
 	if(m_demo) setupdemoplayback();
 	else if((demonextmatch || scl.demoeverymatch) && *newname && numnonlocalclients() > 0){
 		demonextmatch = false;
