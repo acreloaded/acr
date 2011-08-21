@@ -184,7 +184,7 @@ struct obitlist
 		Texture **guntexs = obittex();
 		const int sz = FONTH;
 
-		glColor4f(1, 1, 1, style == OBIT_HEADSHOT ? sinf(totalmillis / 2000.f) : 1);
+		glColor4f(1, 1, 1, style == OBIT_HEADSHOT ? fabs(sinf(totalmillis / 500.f * 2 * PI)) : 1);
 		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 		glBindTexture(GL_TEXTURE_2D, guntexs[style]->id);
 
