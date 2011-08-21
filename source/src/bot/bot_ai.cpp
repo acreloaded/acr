@@ -671,7 +671,8 @@ void CBot::ShootEnemy()
 			   // Add shoot delay
 			   m_iShootDelay = lastmillis + GetShootDelay();			   
 		  }
-		  ChoosePreferredWeapon(); 
+		  // Victor: don't try to waste time choosing weapon
+		  // ChoosePreferredWeapon(); 
 	 }
 #ifndef RELEASE_BUILD	 
 	 else
