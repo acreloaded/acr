@@ -608,6 +608,10 @@ struct damageinfo{
 	damageinfo(vec s, int t) : o(s), millis(t) {}
 };
 
+class CBot;
+
+#define botent playerent // botent has been moved into playerent
+
 struct playerent : dynent, playerstate
 {
 	int clientnum, lastupdate, plag, ping;
@@ -641,8 +645,18 @@ struct playerent : dynent, playerstate
 	vector<damageinfo> damagestack;
 	vec head;
 
+	// AI
+	CBot *pBot; // ALWAYS STAYS AT NULL! ALWAYS!
+
+	playerent *enemy;  // monster wants to kill this entity
+	float targetpitch, targetyaw; // monster wants to look in this direction
+
 	playerent() : spectatemode(SM_NONE), vote(VOTE_NEUTRAL), voternum(MAXCLIENTS), priv(PRIV_NONE), head(-1, -1, -1)
 	{
+		// ai
+		enemy = NULL;
+		targetpitch = targetyaw = 0;
+
 		lastupdate = plag = ping = lifesequence = points = frags = flagscore = deaths = lastpain = lasthitmarker = skin = eardamagemillis = respawnoffset = radarmillis = ads = 0;
 		weaponsel = nextweaponsel = primweap = nextprimweap = lastattackweapon = prevweaponsel = NULL;
 		type = ENT_PLAYER;
@@ -764,29 +778,6 @@ struct playerent : dynent, playerstate
 		if(this == player1) addmsg(N_SWITCHWEAP, "ri", w->type);
 		w->onselecting();
 	}
-};
-
-
-
-class CBot;
-
-struct botent : playerent
-{
-	// Added by Rick
-	CBot *pBot; // Only used if this is a bot, points to the bot class if we are the host,
-				// for other clients its NULL
-	// End add by Rick
-
-	playerent *enemy;					  // monster wants to kill this entity
-	// Added by Rick: targetpitch
-	float targetpitch;					// monster wants to look in this direction
-	// End add
-	float targetyaw;					// monster wants to look in this direction
-
-	botent() : pBot(NULL), enemy(NULL) { type = ENT_BOT; }
-	~botent() { }
-
-	int deaths() { return lifesequence; }
 };
 
 enum { CTFF_INBASE = 0, CTFF_STOLEN, CTFF_DROPPED, CTFF_IDLE };

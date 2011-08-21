@@ -93,6 +93,31 @@ void CBotManager::Think()
 	 
 		  if (botsbeidle) return;
 	 }
+
+	// Added by Victor: control multiplayer bots
+	const int ourcn = getclientnum();
+	if(ourcn >= 0){
+		static CACBot *bc = NULL; // bot controller
+		if(!bc){
+			bc = new CACBot;
+			// m->type = ENT_BOT;
+			bc->m_pMyEnt = NULL;
+			// m->pBot->m_iLastBotUpdate = 0;
+			// m->pBot->m_bSendC2SInit = false;
+			bc->m_sSkillNr = 0; // because these bots suck anyways
+			// b.pBot->m_sSkillNr = BotManager.m_sBotSkill;
+			bc->m_pBotSkill = &BotManager.m_BotSkills[bc->m_sSkillNr];
+
+			// Sync waypoints
+			bc->SyncWaypoints();
+		}
+		// handle the bots
+		loopv(players){
+			if(!players[i] || players[i]->clientnum != ourcn) continue;
+			bc->m_pMyEnt = players[i];
+			bc->Think();
+		}
+	}
 	 
 	 // Let all bots 'think'
 	 loopv(bots)

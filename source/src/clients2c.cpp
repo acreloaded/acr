@@ -325,7 +325,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				playerent *d = newclient(getint(p));
 				d->team = getint(p);
 				setskin(d, getint(p));
-				if(type == N_INITCLIENT){
+				if(type == N_INITCLIENT){ // human
 					getstring(text, p);
 					if(!*text) s_strcpy(text, "unnamed");
 					filtername(d->name, text);
@@ -336,7 +336,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						chatout(joinmsg);
 					}
 				}
-				else{ //if(type == N_INITAI){
+				else{ // AI
 					d->ownernum = getint(p);
 					s_sprintf(d->name)("bot%d", d->clientnum);
 				}
