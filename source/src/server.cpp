@@ -1237,7 +1237,7 @@ void arenacheck(){
 	loopv(clients){
 		client &c = *clients[i];
 		if(c.type==ST_EMPTY || !c.connected || c.team == TEAM_SPECT) continue;
-		if(c.state.ownernum < 0 && (c.state.state==CS_ALIVE || (c.state.state==CS_DEAD && c.state.lastspawn>=0))){
+		if(c.state.state==CS_ALIVE || (c.state.state==CS_DEAD && c.state.lastspawn>=0)){
 			if(!alive) alive = &c;
 			else if(!m_team || alive->team != c.team) return;
 		}
@@ -2314,6 +2314,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 			forcedeath(c);
 		}
 	}
+	checkai();
 	if(m_demo) setupdemoplayback();
 	else if((demonextmatch || scl.demoeverymatch) && *newname && numnonlocalclients() > 0){
 		demonextmatch = false;
