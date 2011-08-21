@@ -38,7 +38,7 @@ void setskin(playerent *pl, uint skin)
 {
 	if(!pl) return;
 	if(pl == player1) addmsg(N_SKIN, "ri", skin);
-	const int maxskin[2] = { 3, 5 };
+	const int maxskin[TEAM_NUM] = { 3, 5, 0 };
 	pl->skin = skin % (maxskin[pl->team]+1);
 }
 
