@@ -13,12 +13,6 @@
 #include "pch.h"
 #include "bot.h"
 
-
-#ifndef VANILLA_CUBE // UNDONE
-bool dedserv = false;
-#define CS_DEDHOST 0xFF
-#endif
-
 extern void respawnself();
 
 CBotManager BotManager;
@@ -82,18 +76,6 @@ void CBotManager::Think()
 		  }
 		  
 		  m_fReAddBotDelay = -1.0f;
-	 }
-	 
-	 // If this is a ded server check if there are any players, if not bots should be idle
-	 if (dedserv)
-	 {
-		  bool botsbeidle = true;
-		  loopv(players)
-		  {
-			   if (players[i] && (players[i]->state != CS_DEDHOST)) { botsbeidle = false; break; }
-		  }
-	 
-		  if (botsbeidle) return;
 	 }
 
 	// Added by Victor: control multiplayer bots
@@ -212,8 +194,7 @@ const char *CBotManager::GetBotName()
 		  
 		  loopv(players)
 		  {
-			   if (players[i] && (players[i]->state != CS_DEDHOST) && 
-				   !strcasecmp(players[i]->name, m_szBotNames[j]))
+			   if (players[i] && !strcasecmp(players[i]->name, m_szBotNames[j]))
 					ChoiceVal -= 10;
 		  }
 		  
@@ -223,7 +204,7 @@ const char *CBotManager::GetBotName()
 					ChoiceVal -= 10;
 		  }
 		  
-		  if ((player1->state != CS_DEDHOST) && !strcasecmp(player1->name, m_szBotNames[j]))
+		  if (!strcasecmp(player1->name, m_szBotNames[j]))
 			   ChoiceVal -= 10;
 			   
 		  if (ChoiceVal <= 0)

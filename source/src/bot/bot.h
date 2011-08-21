@@ -46,17 +46,11 @@
 
 //#define RELEASE_BUILD // Set when you want to make a release build
 
-
-// Set for which mod the code is
-
-//#define VANILLA_CUBE
 #define AC_CUBE
-//#define CUBE_X
 
 #include "bot_util.h"
 #include "bot_waypoint.h"
 
-extern bool dedserv;
 extern itemstat itemstats[];
 
 #ifdef RELEASE_BUILD
