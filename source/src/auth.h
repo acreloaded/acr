@@ -69,6 +69,7 @@ void authsuceeded(uint id, char priv, char *name){
 		priv = clamp(priv, (char)PRIV_MASTER, (char)PRIV_MAX);
 		setpriv(c->clientnum, priv, NULL, true);
 	}
+	loopv(bans) if(bans[i].host == c->peer->address.host) bans.remove(i); // deban
 	checkauthdisc(*c);
 }
 

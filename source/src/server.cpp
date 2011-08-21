@@ -3648,7 +3648,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				loopi(5) hash[i] = getint(p);
 				bool answered = answerchallenge(sender, hash);
 				if(cl->connectauth && answered) cl->connected = true;
-				checkauthdisc(*cl);
+				else checkauthdisc(*cl);
 				break;
 			}
 
