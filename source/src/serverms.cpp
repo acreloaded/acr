@@ -83,7 +83,8 @@ vector<authrequest> authrequests;
 // send alive signal to masterserver every twenty minutes of uptime
 #define MSKEEPALIVE (20*60*1000)
 void updatemasterserver(int millis, const ENetAddress &localaddr){
-	if(!millis || millis/MSKEEPALIVE!=lastupdatemaster)
+	if(mssock != ENET_SOCKET_NULL) return; // busy
+	if(!millis || millis/MSKEEPALIVE>=lastupdatemaster)
 	{
 		defformatstring(path)("%sregister/%d/%d", masterpath, PROTOCOL_VERSION, localaddr.port);
 		defformatstring(agent)("AssaultCube Server %d", AC_VERSION);
