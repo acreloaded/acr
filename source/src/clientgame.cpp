@@ -719,8 +719,6 @@ void resetmap()
 	setvar("shadowyaw", 45);
 }
 
-int suicided = -1;
-
 void startmap(const char *name, bool reset)   // called just after a map load
 {
 	s_strcpy(clientmap, name);
@@ -730,7 +728,6 @@ void startmap(const char *name, bool reset)   // called just after a map load
 	clearbounceents();
 	resetspawns();
 	preparectf(!m_flags);
-	suicided = -1;
 	spawncycle = -1;
 	findplayerstart(player1);
 
@@ -764,14 +761,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
 	}
 }
 
-void suicide()
-{
-	if(player1->state == CS_ALIVE && suicided!=player1->lifesequence)
-	{
-		addmsg(N_SUICIDE, "r");
-		suicided = player1->lifesequence;
-	}
-}
+void suicide(){ addmsg(N_SUICIDE, "ri", getclientnum()); }
 
 COMMAND(suicide, ARG_NONE);
 

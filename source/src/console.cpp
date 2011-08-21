@@ -157,7 +157,7 @@ struct obitlist
 	Texture **obittex(){
 		static Texture *tex[OBIT_NUM];
 		if(!*tex){
-			const char *texname[OBIT_NUM-OBIT_START] = { "death", "bow_impact", "bow_stuck", "knife_bleed", "knife_impact", "headshot", "ff", "drown", "fall" };
+			const char *texname[OBIT_NUM-OBIT_START] = { "death", "bot", "bow_impact", "bow_stuck", "knife_bleed", "knife_impact", "headshot", "ff", "drown", "fall" };
 			loopi(OBIT_NUM){
 				s_sprintfd(tname)("packages/misc/obit/%s.png", i < OBIT_START ? guns[i].modelname : texname[i - OBIT_START]);
 				tex[i] = textureload(tname);

@@ -3261,9 +3261,14 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			*/
 
 			case N_SUICIDE:
-				if(cl->state.state != CS_ALIVE) break;
-				serverdamage(cl, cl, 1000, NUMGUNS, FRAG_GIB, cl->state.o);
+			{
+				const int cn = getint(p);
+				if(!hasclient(cl, cn)) break;
+				client *cp = clients[cn];
+				if(cp->state.state != CS_ALIVE) break;
+				serverdamage(cp, cp, 1000, NUMGUNS, cn == sender ? FRAG_GIB : FRAG_NONE, cp->state.o);
 				break;
+			}
 
 			case N_SCOPE:
 			{

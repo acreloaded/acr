@@ -156,6 +156,7 @@ enum {
 	OBIT_BOW, // guns
 	OBIT_START,
 	OBIT_DEATH = OBIT_START,
+	OBIT_BOT,
 	OBIT_BOW_IMPACT,
 	OBIT_BOW_STUCK,
 	OBIT_KNIFE_BLEED,
@@ -169,11 +170,12 @@ enum {
 
 static inline const int obit_suicide(int weap){
 	if(weap >= 0 && weap <= OBIT_START) return weap;
-	switch(weap){ // fixme
-		//case NUMGUNS+0: return OBIT_DEATH;
-		case NUMGUNS+1: return OBIT_DEATH; // drown
-		case NUMGUNS+2: return OBIT_DEATH; // fall
-		case NUMGUNS+3: return OBIT_DEATH; // ff
+	switch(weap - OBIT_START){
+		case 0: return OBIT_DEATH; // death
+		case 1: return OBIT_DROWN; // drown
+		case 2: return OBIT_FALL; // fall
+		case 3: return OBIT_FF; // ff
+		case 4: return OBIT_BOT;
 	}
 	return OBIT_DEATH;
 }
@@ -193,6 +195,9 @@ static inline const char *suicname(int obit){
 			break;
 		case OBIT_DEATH:
 			s_strcat(k, "requested suicide");
+			break;
+		case OBIT_BOT:
+			s_strcat(k, "acted like a stupid bot");
 			break;
 		case OBIT_DROWN:
 			s_strcat(k, "drowned");
