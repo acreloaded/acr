@@ -44,13 +44,11 @@ void throttle()
 }
 
 string clientpassword = "";
-int connectrole = PRIV_NONE;
 
 void abortconnect()
 {
 	if(!connpeer) return;
 	clientpassword[0] = '\0';
-	connectrole = PRIV_NONE;
 	if(connpeer->state!=ENET_PEER_STATE_DISCONNECTED) enet_peer_reset(connpeer);
 	connpeer = NULL;
 #if 0
@@ -72,7 +70,6 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
 		abortconnect();
 	}
 
-	connectrole = role;
 	copystring(clientpassword, password ? password : "");
 
 	ENetAddress address;
@@ -88,7 +85,6 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
 		{
 			conoutf("\f3could not resolve server %s", servername);
 			clientpassword[0] = '\0';
-			connectrole = PRIV_NONE;
 			return;
 		}
 	}
@@ -112,7 +108,6 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
 	{
 		conoutf("\f3could not connect to server");
 		clientpassword[0] = '\0';
-		connectrole = PRIV_NONE;
 	}
 }
 
@@ -318,8 +313,6 @@ void c2skeepalive()
 	if(clienthost && (curpeer || connpeer)) enet_host_service(clienthost, NULL, 0);
 }
 
-extern string masterpwd;
-
 void c2sinfo(playerent *d)				  // send update to the server
 {
 	if(totalmillis-d->lastupdate<40) return;	// don't update faster than 25fps
@@ -400,6 +393,16 @@ void c2sinfo(playerent *d)				  // send update to the server
 	d->lastupdate = totalmillis;
 }
 
+int authtoken = -1;
+
+void tryauth(){
+	authtoken = rand();
+	addmsg(N_AUTHREQ, "ri", authtoken);
+}
+COMMANDN(auth, tryauth, ARG_NONE);
+
+VAR(connectauth, 0, 0, 1);
+
 void sendintro()
 {
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
@@ -408,9 +411,13 @@ void sendintro()
 	sendstring(player1->name, p);
 	putint(p, player1->skin);
 	sendstring(genpwdhash(player1->name, clientpassword, sessionid), p);
-	putint(p, connectrole);
+	if(connectauth){
+		authtoken = rand();
+		if(!authtoken) authtoken = 1;
+		putint(p, authtoken);
+	}
+	else putint(p, 0);
 	*clientpassword = 0;
-	connectrole = PRIV_NONE;
 	putint(p, player1->nextprimweap->type);
 	putint(p, AC_VERSION);
 	putint(p, 
@@ -586,11 +593,3 @@ COMMAND(resetsecuremaps, ARG_NONE);
 COMMAND(securemap, ARG_1STR);
 COMMAND(getdemo, ARG_1INT);
 COMMAND(listdemos, ARG_NONE);
-
-int authtoken = -1;
-
-void tryauth(){
-	authtoken = rand();
-	addmsg(N_AUTHREQ, "ri", authtoken);
-}
-COMMANDN(auth, tryauth, ARG_NONE);

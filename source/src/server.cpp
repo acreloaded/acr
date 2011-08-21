@@ -216,7 +216,7 @@ struct client				   // server side version of "dynent" type
 	string name;
 	int ping, team, skin, vote, priv;
 	int connectmillis;
-	bool isauthed; // for passworded servers
+	bool connected, connectauth;
 	int authtoken, authmillis; uint authreq;
 	bool haswelcome;
 	bool isonrightmap;
@@ -273,7 +273,7 @@ struct client				   // server side version of "dynent" type
 		skin = team = 0;
 		position.setsize(0);
 		messages.setsize(0);
-		isauthed = haswelcome = false;
+		connected = connectauth = haswelcome = false;
 		priv = PRIV_NONE;
 		lastvotecall = 0;
 		vote = VOTE_NEUTRAL;
@@ -287,7 +287,7 @@ struct client				   // server side version of "dynent" type
 	{
 		type = ST_EMPTY;
 		priv = PRIV_NONE;
-		isauthed = haswelcome = false;
+		connected = connectauth = haswelcome = false;
 	}
 };
 
@@ -338,7 +338,7 @@ bool hasclient(client *ci, int cn){
 }
 
 bool allowbroadcast(int n){
-	return valid_client(n) && clients[n]->isauthed && clients[n]->state.ownernum < 0;
+	return valid_client(n) && clients[n]->connected && clients[n]->state.ownernum < 0;
 }
 
 int peerowner(int n){
@@ -387,7 +387,7 @@ bool buildworldstate(){
 	loopv(clients)
 	{
 		client &c = *clients[i];
-		if((c.type!=ST_TCPIP && c.type != ST_AI) || !c.isauthed) continue;
+		if((c.type!=ST_TCPIP && c.type != ST_AI) || !c.connected) continue;
 		c.overflow = 0;
 		if(c.position.empty()) pkt[i].posoff = -1;
 		else
@@ -427,7 +427,7 @@ bool buildworldstate(){
 	loopv(clients)
 	{
 		client &c = *clients[i];
-		//if(c.type!=ST_TCPIP || !c.isauthed) continue;
+		//if(c.type!=ST_TCPIP || !c.connected) continue;
 		ENetPacket *packet;
 		if(allowbroadcast(i) && psize && (pkt[i].posoff<0 || psize-c.position.length()>0))
 		{
@@ -476,7 +476,7 @@ int numnonlocalclients() { return countclients(ST_TCPIP); }
 
 int numauthedclients(){
 	int num = 0;
-	loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed) num++;
+	loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connected) num++;
 	return num;
 }
 
@@ -487,7 +487,7 @@ int freeteam(int pl = -1){
 	int teamscore[2] = {0};
 	int t;
 	int sum = calcscores();
-	loopv(clients) if(clients[i]->type!=ST_EMPTY && i != pl && clients[i]->isauthed && clients[i]->team != TEAM_SPECT)
+	loopv(clients) if(clients[i]->type!=ST_EMPTY && i != pl && clients[i]->connected && clients[i]->team != TEAM_SPECT)
 	{
 		t = clients[i]->team;
 		teamsize[t]++;
@@ -1224,7 +1224,7 @@ void arenacheck(){
 	if(arenaround){ // start new arena round
 		arenaround = 0;
 		distributespawns();
-		loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed && clients[i]->isonrightmap && clients[i]->team != TEAM_SPECT){
+		loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connected && clients[i]->isonrightmap && clients[i]->team != TEAM_SPECT){
 			clients[i]->state.lastdeath = 1;
 			sendspawn(clients[i]);
 		}
@@ -1236,7 +1236,7 @@ void arenacheck(){
 	int lastdeath = 0;
 	loopv(clients){
 		client &c = *clients[i];
-		if(c.type==ST_EMPTY || !c.isauthed || c.team == TEAM_SPECT) continue;
+		if(c.type==ST_EMPTY || !c.connected || c.team == TEAM_SPECT) continue;
 		if(c.state.state==CS_ALIVE || (c.state.state==CS_DEAD && c.state.lastspawn>=0)){
 			if(!alive) alive = &c;
 			else if(!m_team || alive->team != c.team) return;
@@ -2043,7 +2043,7 @@ bool balanceteams(int ftr)  // pro vs noobs never more
 
     loopv(clients) if(clients[i]->type!=ST_EMPTY){
         client *c = clients[i];
-        if(c->isauthed){
+        if(c->connected){
             int time = servmillis - c->connectmillis + 5000;
             if ( time > gamemillis ) time = gamemillis + 5000;
             tsize[c->team]++;
@@ -2073,7 +2073,7 @@ bool balanceteams(int ftr)  // pro vs noobs never more
         {
             client *c = clients[i]; // loop for h
             // client from the h team and without the flag
-            if( c->isauthed && c->team == h && clienthasflag(i) < 0 )
+            if( c->connected && c->team == h && clienthasflag(i) < 0 )
             {
                 // do not exchange in the way that weaker team becomes the stronger or the change is less than 20% effective
                 if ( 2 * c->eff_score <= diffscore && 10 * c->eff_score >= diffscore && c->eff_score > besth )
@@ -2093,12 +2093,12 @@ bool balanceteams(int ftr)  // pro vs noobs never more
         loopv(clients) if(clients[i]->type!=ST_EMPTY)
         {
             client *c = clients[i]; // loop for h
-            if( c->isauthed && c->team == h && clienthasflag(i) < 0 )
+            if( c->connected && c->team == h && clienthasflag(i) < 0 )
             {
                 loopvj(clients) if(clients[j]->type!=ST_EMPTY && j != i )
                 {
                     client *cj = clients[j]; // loop for l
-                    if( cj->isauthed && cj->team == l && clienthasflag(j) < 0 )
+                    if( cj->connected && cj->team == l && clienthasflag(j) < 0 )
                     {
                         int pairdiff = 2 * (c->eff_score - cj->eff_score);
                         if ( pairdiff <= diffscore && 5 * pairdiff >= diffscore && pairdiff > bestdiff )
@@ -2133,7 +2133,7 @@ bool refillteams(bool now, int ftr){ // force only minimal amounts of players
     loopv(clients) if(clients[i]->type!=ST_EMPTY){ // playerlist stocktaking
         client *c = clients[i];
         c->at3_dontmove = true;
-        if(c->isauthed && c->team != TEAM_SPECT){
+        if(c->connected && c->team != TEAM_SPECT){
 			teamsize[c->team]++;
 			teamscore[c->team] += c->at3_score;
 			if(clienthasflag(i) < 0) {
@@ -2765,7 +2765,7 @@ void sendinitclient(client &c){
 void welcomeinitclient(ucharbuf &p, int exclude = -1){
     loopv(clients){
         client &c = *clients[i];
-        if(!c.isauthed || c.clientnum == peerowner(exclude)) continue;
+        if(!c.connected || c.clientnum == peerowner(exclude)) continue;
         putinitclient(c, p);
     }
 }
@@ -2992,76 +2992,37 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 	ucharbuf p(packet->data, packet->dataLength);
 	char text[MAXTRANS];
 	client *cl = sender>=0 ? clients[sender] : NULL;
-	pwddetail pd;
 	int type;
 
-	if(cl && !cl->isauthed)
-	{
+	if(cl && !cl->connected){
 		int clientrole = PRIV_NONE;
-		int clientversion, clientdefs;
 		if(chan==0) return;
-		else if(chan!=1 || getint(p)!=N_CONNECT) disconnect_client(sender, DISC_TAGT);
+		else if(chan!=1 || getint(p) != N_CONNECT) disconnect_client(sender, DISC_TAGT);
 		else
 		{
 			getstring(text, p);
+			if(!*text) copystring(text, "unarmed");
 			filtername(text, text);
-			if(!text[0]) copystring(text, "unarmed");
 			copystring(cl->name, text, MAXNAMELEN+1);
 			cl->skin = getint(p);
-
 			getstring(text, p);
 			copystring(cl->pwd, text);
-			int wantrole = getint(p);
+			int connectauth = getint(p);
 			cl->state.nextprimary = getint(p);
-			clientversion = getint(p), clientdefs = getint(p);
-			bool banned = isbanned(sender);
-			bool srvfull = numnonlocalclients() > scl.maxclients;
-			bool srvprivate = mastermode == MM_PRIVATE;
-			int bl = 0, wl = nbl.checknickwhitelist(*cl);
-			string cdefs = "";
-			if(clientdefs & 0x40) concatstring(cdefs, "W");
-			if(clientdefs & 0x20) concatstring(cdefs, "M");
-			if(clientdefs & 0x8) concatstring(cdefs, "D");
-			if(clientdefs & 0x4) concatstring(cdefs, "L");
-			logline(ACLOG_INFO, "[%s] runs %d [%s]", cl->hostname, clientversion, cdefs);
-			const char *wlp = wl == NWL_PASS ? ", nickname whitelist match" : "";
-			if(wl == NWL_UNLISTED) bl = nbl.checknickblacklist(cl->name);
-			if(wl == NWL_IPFAIL || wl == NWL_PWDFAIL)
-			{ // nickname matches whitelist, but IP is not in the required range or PWD doesn't match
-				logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong %s", cl->hostname, cl->name, wl == NWL_IPFAIL ? "IP" : "PWD");
-				disconnect_client(sender, DISC_PASSWORD);
+
+			int clientversion = getint(p), clientdefs = getint(p);
+			logversion(*cl, clientversion, clientdefs);
+
+			int disc = allowconnect(*cl, cl->pwd, true);
+			if(connectauth && reqauth(sender, connectauth)){
+				cl->connectauth = true;
+				disc = DISC_NONE;
 			}
-			else if(bl > 0){ // nickname matches blacklist
-				logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d", cl->hostname, cl->name, bl);
-				disconnect_client(sender, DISC_NAME);
-			}
-			else if(checkadmin(cl->name, text, cl->salt, &pd) && (pd.priv >= PRIV_ADMIN || (banned && !srvfull && !srvprivate))) // pass admins always through
-			{ // admin (or master or deban) password match
-				bool banremoved = false;
-				cl->isauthed = true;
-				clientrole = min(pd.priv, wantrole);
-				if(banned) loopv(bans) if(bans[i].host == cl->peer->address.host) { banremoved = true; bans.remove(i); break; } // remove admin bans
-				logline(ACLOG_INFO, "[%s] %s logged in using the password in line %d%s%s", cl->hostname, cl->name, pd.line, wlp, banremoved ? ", (ban removed)" : "");
-			}
-			else if(scl.serverpassword[0] && !(srvprivate || srvfull || banned))
-			{ // server password required
-				if(!strcmp(genpwdhash(cl->name, scl.serverpassword, cl->salt), text))
-				{
-					cl->isauthed = true;
-					logline(ACLOG_INFO, "[%s] %s client logged in (using serverpassword)%s", cl->hostname, cl->name, wlp);
-				}
-				else disconnect_client(sender, DISC_PASSWORD);
-			}
-			else if(srvprivate) disconnect_client(sender, DISC_PRIVATE);
-			else if(srvfull) disconnect_client(sender, DISC_FULL);
-			else if(banned) disconnect_client(sender, DISC_REFUSE);
-			else
-			{
-				cl->isauthed = true;
-				logline(ACLOG_INFO, "[%s] %s logged in (default)%s", cl->hostname, cl->name, wlp);
-			}
+
+			if(disc) disconnect_client(sender, disc);
+			else cl->connected = true;
 		}
-		if(!cl->isauthed) return;
+		if(!cl->connected) return;
 
 		if(cl->type==ST_TCPIP){
 			loopv(clients) if(i != sender){
@@ -3173,7 +3134,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				
 				if(m_team && cl->priv < PRIV_ADMIN && t != TEAM_SPECT){
 					int teamsizes[TEAM_NUM];
-					loopv(clients) if(i != sender && clients[i]->type!=ST_EMPTY && clients[i]->isauthed && clients[i]->isonrightmap && clients[i]->team != TEAM_SPECT)
+					loopv(clients) if(i != sender && clients[i]->type!=ST_EMPTY && clients[i]->connected && clients[i]->isonrightmap && clients[i]->team != TEAM_SPECT)
 						teamsizes[clients[i]->team]++;
 					if(teamsizes[t] > teamsizes[team_opposite(t)]){
 						sendf(sender, 1, "ri2", N_SWITCHTEAM, t);
@@ -3685,7 +3646,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			{
 				int hash[5];
 				loopi(5) hash[i] = getint(p);
-				answerchallenge(sender, hash);
+				bool answered = answerchallenge(sender, hash);
+				if(cl->connectauth && answered) cl->connected = true;
+				checkauthdisc(*cl);
 				break;
 			}
 
@@ -4068,7 +4031,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
 	if(autoteam && m_team && !m_duel && !interm && servmillis - lastfillup > 5000 && refillteams()) lastfillup = servmillis;
 
-	loopv(clients) if(valid_client(i) && !clients[i]->isauthed && clients[i]->connectmillis + 15000 <= servmillis) disconnect_client(i, DISC_TIMEOUT);
+	loopv(clients) if(valid_client(i) && (!clients[i]->connected || clients[i]->connectauth) && clients[i]->connectmillis + 15000 <= servmillis) disconnect_client(i, DISC_TIMEOUT);
 
 	if(servmillis-laststatus>60*1000)   // display bandwidth stats, useful for server ops
 	{
@@ -4156,7 +4119,7 @@ int getpongflags(enet_uint32 ip){
 void extping_namelist(ucharbuf &p){
 	loopv(clients)
 	{
-		if(clients[i]->type == ST_TCPIP && clients[i]->isauthed) sendstring(clients[i]->name, p);
+		if(clients[i]->type == ST_TCPIP && clients[i]->connected) sendstring(clients[i]->name, p);
 	}
 	sendstring("", p);
 }

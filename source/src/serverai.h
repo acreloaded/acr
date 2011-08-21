@@ -4,7 +4,7 @@ int findaiclient(int exclude = -1){ // person with least bots
 	int cn = -1, bots = MAXBOTS;
 	loopv(clients){
 		client *c = clients[i];
-		if(i == exclude || !valid_client(i) || c->clientnum < 0 || c->state.ownernum >= 0 /*|| !*c->name || !c->isauthed*/) break;
+		if(i == exclude || !valid_client(i) || c->clientnum < 0 || c->state.ownernum >= 0 /*|| !*c->name || !c->connected*/) break;
 		int n = 0;
 		loopvj(clients) if(clients[j]->state.ownernum == i) n++;
 		if(n < bots){
@@ -35,7 +35,7 @@ bool addai(){
 	formatstring(b.name)("bot%d", cn);
 	b.type = ST_AI;
 	b.reset();
-	b.isauthed = true;
+	b.connected = true;
 	sendf(-1, 1, "ri5", N_INITAI, cn, (b.team = freeteam()), (b.skin = rand()), (b.state.ownernum = aiowner));
 	return true;
 }

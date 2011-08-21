@@ -1022,7 +1022,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				int nonce = getint(p), sauthtoken = getint(p);
 				extern int authtoken;
-				if(nonce < 0 || sauthtoken != authtoken){
+				if(nonce < 0 || sauthtoken != authtoken){ // debg
 					conoutf("server challenged incorrectly");
 					break;
 				}
