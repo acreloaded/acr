@@ -122,6 +122,20 @@ COMMAND(curmode, ARG_IVAL);
 COMMAND(curmap, ARG_1INT);
 VARP(showscoresondeath, 0, 1, 1);
 
+VARP(level, 1, 1, 100);
+VARP(experience, 0, 0, 1000);
+void addexp(int xp){
+	#define xpfactor max(level, 1)
+	float factor = xpfactor; // factor to reduce experience collection
+	experience += xp / factor;
+	if(experience >= 1000){
+		level = clamp(level + 1, 1, 100);
+		factor = xpfactor;
+		experience = (experience - 1000) / factor;
+	}
+	#undef xpfactor
+}
+
 void deathstate(playerent *pl)
 {
 	if(pl == player1 && editmode) toggleedit(true);
