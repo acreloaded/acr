@@ -532,7 +532,7 @@ savedscore *findscore(client &c, bool insert){
 	}
 	if(!insert) return NULL;
 	savedscore &sc = scores.add();
-	s_strcpy(sc.name, c.name);
+	copystring(sc.name, c.name);
 	sc.ip = c.peer->address.host;
 	return &sc;
 }
@@ -708,7 +708,7 @@ void enddemorecord(){
 		demos.remove(0);
 	}
 	demofile &d = demos.add();
-	s_sprintf(d.info)("%s: %s, %s, %.2f%s", asctime(), modestr(gamemode), smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB");
+	formatstring(d.info)("%s: %s, %s, %.2f%s", asctime(), modestr(gamemode), smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB");
 	sendmsgs(26, d.info);
 	logline(ACLOG_INFO, "Demo \"%s\" recorded.", d.info);
 	d.data = new uchar[len];
@@ -718,7 +718,7 @@ void enddemorecord(){
 	demotmp = NULL;
 	if(scl.demopath[0])
 	{
-		s_sprintfd(msg)("%s%s_%s_%s.dmo", scl.demopath, timestring(), behindpath(smapname), modestr(gamemode, true));
+		defformatstring(msg)("%s%s_%s_%s.dmo", scl.demopath, timestring(), behindpath(smapname), modestr(gamemode, true));
 		path(msg);
 		FILE *demo = openfile(msg, "wb");
 		if(demo)
@@ -777,9 +777,9 @@ void setupdemorecord(){
 	endianswap(&hdr.version, sizeof(int), 1);
 	endianswap(&hdr.protocol, sizeof(int), 1);
 	memset(hdr.desc, 0, DHDR_DESCCHARS);
-	s_sprintfd(desc)("%s, %s, %s %s", modestr(gamemode, false), behindpath(smapname), asctime(), servdesc_current);
+	defformatstring(desc)("%s, %s, %s %s", modestr(gamemode, false), behindpath(smapname), asctime(), servdesc_current);
 	if(strlen(desc) > DHDR_DESCCHARS)
-		s_sprintf(desc)("%s, %s, %s %s", modestr(gamemode, true), behindpath(smapname), asctime(), servdesc_current);
+		formatstring(desc)("%s, %s, %s %s", modestr(gamemode, true), behindpath(smapname), asctime(), servdesc_current);
 	desc[DHDR_DESCCHARS - 1] = '\0';
 	strcpy(hdr.desc, desc);
 	gzwrite(demorecord, &hdr, sizeof(demoheader));
@@ -856,7 +856,7 @@ void enddemoplayback(){
 void setupdemoplayback(){
 	demoheader hdr;
 	int msg = 0;
-	s_sprintfd(file)("demos/%s.dmo", smapname);
+	defformatstring(file)("demos/%s.dmo", smapname);
 	path(file);
 	demoplayback = opengzfile(file, "rb9");
 	if(!demoplayback) msg = 22;
@@ -1273,7 +1273,7 @@ bool spamdetect(client *cl, char *text) // checks doubled lines and average typi
 	}
 	else
 	{
-		 s_strcpy(cl->lastsaytext, text);
+		 copystring(cl->lastsaytext, text);
 		 cl->spamcount = 0;
 	}
 	cl->lastsay = servmillis;
@@ -1284,16 +1284,16 @@ bool spamdetect(client *cl, char *text) // checks doubled lines and average typi
 
 void sendtext(char *text, client &cl, int flags, int voice){
 	if(voice < 0 || voice > S_VOICEEND - S_MAINEND) voice = 0;
-	s_sprintfd(logmsg)("<%s> ", cl.name);
-	if(flags & SAY_ACTION) s_sprintf(logmsg)("* %s ", cl.name);
+	defformatstring(logmsg)("<%s> ", cl.name);
+	if(flags & SAY_ACTION) formatstring(logmsg)("* %s ", cl.name);
 	string logappend;
 	if(flags & SAY_TEAM){
-		s_sprintf(logappend)("(%s) ", team_string(cl.team));
-		s_strcat(logmsg, logappend);
+		formatstring(logappend)("(%s) ", team_string(cl.team));
+		concatstring(logmsg, logappend);
 	}
 	if(voice){
-		s_sprintf(logappend)("[%d] ", voice + S_MAINEND);
-		s_strcat(logmsg, logappend);
+		formatstring(logappend)("[%d] ", voice + S_MAINEND);
+		concatstring(logmsg, logappend);
 	}
 	if(spamdetect(&cl, text)){
 		//logline(ACLOG_INFO, "%s, SPAM detected", logmsg);
@@ -1568,7 +1568,7 @@ int curcfgset = -1;
 char *loadcfgfile(char *cfg, const char *name, int *len){
 	if(name && name[0])
 	{
-		s_strcpy(cfg, name);
+		copystring(cfg, name);
 		path(cfg);
 	}
 	char *p, *buf = loadfile(cfg, len);
@@ -1612,7 +1612,7 @@ void readscfg(const char *name){
 		l = strtok(l, sep);
 		if(l)
 		{
-			s_strcpy(c.mapname, behindpath(l));
+			copystring(c.mapname, behindpath(l));
 			for(i = 3; i < CONFIG_MAXPAR; i++) c.par[i] = 0;  // default values
 			for(i = 0; i < CONFIG_MAXPAR; i++)
 			{
@@ -1833,7 +1833,7 @@ struct nickblacklist {
 			loopj(MAXNICKFRAGMENTS)
 			{
 				int k = blacklines[i].frag[j];
-				if(k >= 0) { s_strcat(text, " "); s_strcat(text, blfraglist[k]); }
+				if(k >= 0) { concatstring(text, " "); concatstring(text, blfraglist[k]); }
 			}
 			logline(ACLOG_VERBOSE, "  %2d block%s%s", blacklines[i].line, blacklines[i].ignorecase ? "i" : "", text);
 		}
@@ -1873,7 +1873,7 @@ struct nickblacklist {
 	{
 		if(blacklines.empty()) return -2;  // no nickname blacklist loaded
 		string nameuc;
-		s_strcpy(nameuc, name);
+		copystring(nameuc, name);
 		strtoupper(nameuc);
 		loopv(blacklines)
 		{
@@ -1923,7 +1923,7 @@ void readpwdfile(const char *name){
 		l = strtok(l, sep);
 		if(l)
 		{
-			s_strcpy(c.pwd, l);
+			copystring(c.pwd, l);
 			par[0] = 0;  // default values
 			for(i = 0; i < ADMINPWD_MAXPAR; i++)
 			{
@@ -1962,12 +1962,12 @@ bool updatedescallowed(void) { return scl.servdesc_pre[0] || scl.servdesc_suf[0]
 void updatesdesc(const char *newdesc, ENetAddress *caller = NULL){
 	if(!newdesc || !newdesc[0] || !updatedescallowed())
 	{
-		s_strcpy(servdesc_current, scl.servdesc_full);
+		copystring(servdesc_current, scl.servdesc_full);
 		custom_servdesc = false;
 	}
 	else
 	{
-		s_sprintf(servdesc_current)("%s%s%s", scl.servdesc_pre, newdesc, scl.servdesc_suf);
+		formatstring(servdesc_current)("%s%s%s", scl.servdesc_pre, newdesc, scl.servdesc_suf);
 		custom_servdesc = true;
 		if(caller) servdesc_caller = *caller;
 	}
@@ -2211,7 +2211,7 @@ void resetserver(const char *newname, int newmode, int newtime){
 	else enddemorecord();
 
 	smode = newmode;
-	s_strcpy(smapname, newname);
+	copystring(smapname, newname);
 
 	minremain = newtime >= 0 ? newtime : (m_team ? 15 : 10);
 	gamemillis = 0;
@@ -2588,7 +2588,7 @@ bool sendmapserv(int n, string mapname, int mapsize, int cfgsize, int cfgsizegz,
 
 	if(!mapname[0] || mapsize <= 0 || mapsize + cfgsizegz > MAXMAPSENDSIZE || cfgsize > MAXCFGFILESIZE) return false;
 	if(smode != 1 && (strcmp(behindpath(mapname), behindpath(smapname)) || (mapavailable(smapname) && !copyrw))) return false; // map is R/O
-	s_strcpy(copyname, mapname);
+	copystring(copyname, mapname);
 	copymapsize = mapsize;
 	copycfgsize = cfgsize;
 	copycfgsizegz = cfgsizegz;
@@ -2598,14 +2598,14 @@ bool sendmapserv(int n, string mapname, int mapsize, int cfgsize, int cfgsizegz,
 	copydata = new uchar[copysize];
 	memcpy(copydata, data, copysize);
 
-	s_sprintf(name)(SERVERMAP_PATH_INCOMING "%s.cgz", behindpath(copyname));
+	formatstring(name)(SERVERMAP_PATH_INCOMING "%s.cgz", behindpath(copyname));
 	path(name);
 	fp = fopen(name, "wb");
 	if(fp)
 	{
 		fwrite(copydata, 1, copymapsize, fp);
 		fclose(fp);
-		s_sprintf(name)(SERVERMAP_PATH_INCOMING "%s.cfg", behindpath(copyname));
+		formatstring(name)(SERVERMAP_PATH_INCOMING "%s.cfg", behindpath(copyname));
 		path(name);
 		fp = fopen(name, "wb");
 		if(fp)
@@ -2640,17 +2640,17 @@ ENetPacket *getmapserv(int n){
 
 mapstats *getservermapstats(const char *mapname, bool getlayout){
 	const char *name = behindpath(mapname);
-	s_sprintfd(filename)(SERVERMAP_PATH "%s.cgz", name);
+	defformatstring(filename)(SERVERMAP_PATH "%s.cgz", name);
 	path(filename);
 	bool found = fileexists(filename, "r");
 	if(!found)
 	{
-		s_sprintf(filename)(SERVERMAP_PATH_INCOMING "%s.cgz", name);
+		formatstring(filename)(SERVERMAP_PATH_INCOMING "%s.cgz", name);
 		path(filename);
 		found = fileexists(filename, "r");
 		if(!found)
 		{
-			s_sprintf(filename)(SERVERMAP_PATH_BUILTIN "%s.cgz", name);
+			formatstring(filename)(SERVERMAP_PATH_BUILTIN "%s.cgz", name);
 			path(filename);
 			found = fileexists(filename, "r");
 		}
@@ -2671,17 +2671,17 @@ void getservermap(void){
 	if(!gzbuf) gzbuf = new uchar[GZBUFSIZE];
 	if(!gzbuf) return;
 	if(!strcmp(name, behindpath(copyname))) return;
-	s_sprintf(cgzname)(SERVERMAP_PATH "%s.cgz", name);
+	formatstring(cgzname)(SERVERMAP_PATH "%s.cgz", name);
 	path(cgzname);
 	if(fileexists(cgzname, "r"))
 	{
-		s_sprintf(cfgname)(SERVERMAP_PATH "%s.cfg", name);
+		formatstring(cfgname)(SERVERMAP_PATH "%s.cfg", name);
 	}
 	else
 	{
-		s_sprintf(cgzname)(SERVERMAP_PATH_INCOMING "%s.cgz", name);
+		formatstring(cgzname)(SERVERMAP_PATH_INCOMING "%s.cgz", name);
 		path(cgzname);
-		s_sprintf(cfgname)(SERVERMAP_PATH_INCOMING "%s.cfg", name);
+		formatstring(cfgname)(SERVERMAP_PATH_INCOMING "%s.cfg", name);
 		mapisrw = true;
 	}
 	path(cfgname);
@@ -2698,7 +2698,7 @@ void getservermap(void){
 		cfgsizegz = (int) gzbufsize;
 		if(cgzsize + cfgsizegz < MAXMAPSENDSIZE)
 		{
-			s_strcpy(copyname, name);
+			copystring(copyname, name);
 			copymapsize = cgzsize;
 			copycfgsize = cfgsize;
 			copycfgsizegz = cfgsizegz;
@@ -2875,7 +2875,7 @@ void checkmove(client &cp){
 	else if(cps && cs.lastomillis && gamemillis > cs.lastomillis){
 		cps *= 1000 / (gamemillis - cs.lastomillis);
 		if(cps > 64.f){ // 16 meters per second
-			s_sprintfd(fastmsg)("%s (%d) moved at %.3f meters/second", cp.name, sender, cps / 4);
+			defformatstring(fastmsg)("%s (%d) moved at %.3f meters/second", cp.name, sender, cps / 4);
 			sendservmsg(fastmsg);
 		}
 	}
@@ -3005,12 +3005,12 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 		{
 			getstring(text, p);
 			filtername(text, text);
-			if(!text[0]) s_strcpy(text, "unarmed");
-			s_strncpy(cl->name, text, MAXNAMELEN+1);
+			if(!text[0]) copystring(text, "unarmed");
+			copystring(cl->name, text, MAXNAMELEN+1);
 			cl->skin = getint(p);
 
 			getstring(text, p);
-			s_strcpy(cl->pwd, text);
+			copystring(cl->pwd, text);
 			int wantrole = getint(p);
 			cl->state.nextprimary = getint(p);
 			clientversion = getint(p), clientdefs = getint(p);
@@ -3019,10 +3019,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			bool srvprivate = mastermode == MM_PRIVATE;
 			int bl = 0, wl = nbl.checknickwhitelist(*cl);
 			string cdefs = "";
-			if(clientdefs & 0x40) s_strcat(cdefs, "W");
-			if(clientdefs & 0x20) s_strcat(cdefs, "M");
-			if(clientdefs & 0x8) s_strcat(cdefs, "D");
-			if(clientdefs & 0x4) s_strcat(cdefs, "L");
+			if(clientdefs & 0x40) concatstring(cdefs, "W");
+			if(clientdefs & 0x20) concatstring(cdefs, "M");
+			if(clientdefs & 0x8) concatstring(cdefs, "D");
+			if(clientdefs & 0x4) concatstring(cdefs, "L");
 			logline(ACLOG_INFO, "[%s] runs %d [%s]", cl->hostname, clientversion, cdefs);
 			const char *wlp = wl == NWL_PASS ? ", nickname whitelist match" : "";
 			if(wl == NWL_UNLISTED) bl = nbl.checknickblacklist(cl->name);
@@ -3141,7 +3141,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case N_NEWNAME:
 				getstring(text, p);
 				filtername(text, text);
-				if(!text[0]) s_strcpy(text, "unnamed");
+				if(!text[0]) copystring(text, "unnamed");
 				if(!strcmp(cl->name, text)) break; // same name!
 				switch(nbl.checknickwhitelist(*cl)){
 					case NWL_PWDFAIL:
@@ -3162,7 +3162,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					}
 				}
 				logline(ACLOG_INFO,"[%s] %s changed his name to %s", cl->hostname, cl->name, text);
-				s_strncpy(cl->name, text, MAXNAMELEN+1);
+				copystring(cl->name, text, MAXNAMELEN+1);
 				sendf(-1, 1, "ri2s", N_NEWNAME, sender, cl->name);
 				break;
 
@@ -3908,19 +3908,19 @@ void checkintermission(){
 			string nextmapnm = "unknown";
 			if(*nextmapname){
 				nextmaptype = 1;
-				s_strcpy(nextmapnm, nextmapname);
+				copystring(nextmapnm, nextmapname);
 				nextmapmode = nextgamemode;
 			}
 			else if(configsets.length()){
 				nextmaptype = 2;
 				configset nextmaprot = configsets[nextcfgset(false, true)];
-				s_strcpy(nextmapnm, nextmaprot.mapname);
+				copystring(nextmapnm, nextmaprot.mapname);
 				nextmapmode = nextmaprot.mode;
 				nextmaptime = nextmaprot.time;
 			}
 			else{
 				nextmaptype = 3;
-				s_strcpy(nextmapnm, smapname);
+				copystring(nextmapnm, smapname);
 				nextmapmode = smode;
 			}
 			if(nextmaptime < 1){
@@ -3964,7 +3964,7 @@ void rereadcfgs(void){
 void loggamestatus(const char *reason){
 	int fragscore[2] = {0, 0}, flagscore[2] = {0, 0}, pnum[2] = {0, 0}, n;
 	string text;
-	s_sprintf(text)("%d minutes remaining", minremain);
+	formatstring(text)("%d minutes remaining", minremain);
 	logline(ACLOG_INFO, "");
 	logline(ACLOG_INFO, "Game status: %s on %s, %s, %s%c %s",
 					  modestr(gamemode), smapname, reason ? reason : text, mmfullname(mastermode), custom_servdesc ? ',' : '\0', servdesc_current);
@@ -3973,7 +3973,7 @@ void loggamestatus(const char *reason){
 	{
 		client &c = *clients[i];
 		if(c.type == ST_EMPTY || !c.name[0]) continue;
-		s_sprintf(text)("%2d %-16s ", c.clientnum, c.name);		 // cn name
+		formatstring(text)("%2d %-16s ", c.clientnum, c.name);		 // cn name
 		if(m_team) s_strcatf(text, "%-4s ", team_string(c.team)); // team
 		if(m_flags) s_strcatf(text, "%4d ", c.state.flagscore);	 // flag
 		s_strcatf(text, "%4d %5d", c.state.frags, c.state.deaths);  // frag death
@@ -4103,7 +4103,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 				c.connectmillis = servmillis;
 				c.salt = rand()*((servmillis%1000)+1);
 				char hn[1024];
-				s_strcpy(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
+				copystring(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
 				logline(ACLOG_INFO,"[%s] client #%d connected", c.hostname, c.clientnum);
 				sendservinfo(c);
 				checkai(); // reinit AI
@@ -4164,7 +4164,7 @@ void extping_namelist(ucharbuf &p){
 #define MAXINFOLINELEN 100  // including color codes
 
 const char *readserverinfo(const char *lang){
-	s_sprintfd(fname)("%s_%s.txt", scl.infopath, lang);
+	defformatstring(fname)("%s_%s.txt", scl.infopath, lang);
 	path(fname);
 	int len, n;
 	char *c, *s, *t, *buf = loadfile(fname, &len);
@@ -4330,7 +4330,7 @@ void localconnect(){
 	client &c = addclient();
 	c.type = ST_LOCAL;
 	c.priv = PRIV_MAX;
-	s_strcpy(c.hostname, "local");
+	copystring(c.hostname, "local");
 	sendservinfo(c);
 }
 #endif
@@ -4340,13 +4340,13 @@ void initserver(bool dedicated){
 
 	string identity;
 	if(scl.logident[0]) filtertext(identity, scl.logident, 0);
-	else s_sprintf(identity)("%s#%d", scl.ip[0] ? scl.ip : "local", scl.serverport);
+	else formatstring(identity)("%s#%d", scl.ip[0] ? scl.ip : "local", scl.serverport);
 	int conthres = scl.verbose > 1 ? ACLOG_DEBUG : (scl.verbose ? ACLOG_VERBOSE : ACLOG_INFO);
 	if(dedicated && !initlogging(identity, scl.syslogfacility, conthres, scl.filethres, scl.syslogthres, scl.logtimestamp))
 		printf("WARNING: logging not started!\n");
 	logline(ACLOG_INFO, "logging local AssaultCube server (version %d, protocol %d/%d) now..", AC_VERSION, PROTOCOL_VERSION, EXT_VERSION);
 
-	s_strcpy(servdesc_current, scl.servdesc_full);
+	copystring(servdesc_current, scl.servdesc_full);
 	servermsinit(scl.master ? scl.master : AC_MASTER_URI, scl.ip, scl.serverport + CUBE_SERVINFO_OFFSET, dedicated);
 
 	if((isdedicated = dedicated))
@@ -4391,8 +4391,8 @@ void initserver(bool dedicated){
 
 void localservertoclient(int chan, uchar *buf, int len) {}
 void fatal(const char *s, ...){
-	s_sprintfdlv(msg,s,s);
-	s_sprintfd(out)("AssaultCube fatal error: %s", msg);
+	defvformatstring(msg,s,s);
+	defformatstring(out)("AssaultCube fatal error: %s", msg);
 	if (logline(ACLOG_ERROR, "%s", out));
 	else puts(out);
 	cleanupserver();

@@ -306,7 +306,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_NEXTMAP: // server requests next map
 			{
 				getint(p);
-				s_sprintfd(nextmapalias)("nextmap_%s", getclientmap());
+				defformatstring(nextmapalias)("nextmap_%s", getclientmap());
 				const char *map = getalias(nextmapalias);	 // look up map in the cycle
 				changemap(map ? map : getclientmap());
 				break;
@@ -327,18 +327,18 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				setskin(d, getint(p));
 				if(type == N_INITCLIENT){ // human
 					getstring(text, p);
-					if(!*text) s_strcpy(text, "unnamed");
+					if(!*text) copystring(text, "unnamed");
 					filtername(d->name, text);
-					s_strcpy(d->name, text);
+					copystring(d->name, text);
 					conoutf("connected: %s", colorname(d));
 					if(!joining){
-						s_sprintfd(joinmsg)("%s \f0joined \f2the \f1game", colorname(d));
+						defformatstring(joinmsg)("%s \f0joined \f2the \f1game", colorname(d));
 						chatout(joinmsg);
 					}
 				}
 				else{ // AI
 					d->ownernum = getint(p);
-					s_sprintf(d->name)("bot%d", d->clientnum);
+					formatstring(d->name)("bot%d", d->clientnum);
 				}
 				updateclientname(d);
 				if(m_flags) loopi(2){
@@ -363,7 +363,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				playerent *d = getclient(getint(p));
 				getstring(text, p);
 				filtertext(text, text, 1, MAXNAMELEN);
-				if(!text[0]) s_strcpy(text, "unnamed");
+				if(!text[0]) copystring(text, "unnamed");
 				if(!d || !strcmp(d->name, text)) break;
 				if(d->name[0]) conoutf("%s \f6(%d) \f5is now known as \f1%s", d->name, d->clientnum, text);
 				filtername(d->name, text);
@@ -387,7 +387,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(!d || d == player1) break;
 				if(*d->name){
 					conoutf("player %s disconnected (%s)", colorname(d), reason >= 0 ? disc_reason(reason) : "normally");
-					s_sprintfd(leavemsg)("%s \f3left \f2the \f1game", colorname(d));
+					defformatstring(leavemsg)("%s \f3left \f2the \f1game", colorname(d));
 					chatout(leavemsg);
 				}
 				zapplayer(players[cn]);
@@ -779,34 +779,34 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				string msg = "server sent unknown message";
 				switch(n){
 					case 10: // 1* maps
-						s_strcpy(msg, "\f3coopedit is restricted to admins!");
+						copystring(msg, "\f3coopedit is restricted to admins!");
 						break;
 					case 11:
-						s_strcpy(msg, "\f3map not found - start another map or send the map to the server");
+						copystring(msg, "\f3map not found - start another map or send the map to the server");
 						break;
 					case 12:
-						s_strcpy(msg, "\f3the server does not have this map");
+						copystring(msg, "\f3the server does not have this map");
 						break;
 					case 13:
-						s_strcpy(msg, "no map to get");
+						copystring(msg, "no map to get");
 						break;
 					case 14:
 					{
 						int minutes = getint(p), mode = getint(p), nextt = (mode >> 6) & 3; mode &= 0x3F;
 						getstring(text, p);
-						s_strcpy(msg, "nextmap:");
+						copystring(msg, "nextmap:");
 						switch(nextt){
 							case 1:
-								s_strcpy(msg, "\f2Next map loaded:");
+								copystring(msg, "\f2Next map loaded:");
 								break;
 							case 2:
-								s_strcpy(msg, "\f1Next on map rotation:");
+								copystring(msg, "\f1Next on map rotation:");
 								break;
 							case 3:
-								s_strcpy(msg, "\f2No map rotation entries,");
+								copystring(msg, "\f2No map rotation entries,");
 								break;
 						}
-						s_sprintf(msg)("%s %s in mode %s for %d minutes", msg, text, modestr(mode), minutes);
+						formatstring(msg)("%s %s in mode %s for %d minutes", msg, text, modestr(mode), minutes);
 						break;
 					}
 					case 15:
@@ -814,17 +814,17 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						getstring(text, p);
 						bool spawns = (*text & 0x80) != 0, flags = (*text & 0x40) != 0;
 						*text &= 0x3F;
-						s_sprintf(msg)("\f3map \"%s\" does not support \"%s\": ", text + 1, modestr(*text));
-						if(spawns || !flags) s_strcat(msg, "player spawns");
-						if(spawns && flags) s_strcat(msg, " and ");
-						if(flags || !spawns) s_strcat(msg, "flag bases");
-						s_strcat(msg, " missing");
+						formatstring(msg)("\f3map \"%s\" does not support \"%s\": ", text + 1, modestr(*text));
+						if(spawns || !flags) concatstring(msg, "player spawns");
+						if(spawns && flags) concatstring(msg, " and ");
+						if(flags || !spawns) concatstring(msg, "flag bases");
+						concatstring(msg, " missing");
 					}
 					case 20: // 2* demos
-						s_strcpy(msg, "recording demo");
+						copystring(msg, "recording demo");
 						break;
 					case 21:
-						s_strcpy(msg, "demo playback finished");
+						copystring(msg, "demo playback finished");
 						break;
 					case 22:
 					case 23:
@@ -834,38 +834,38 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						getstring(text, p);
 						switch(n){
 							case 22:
-								s_sprintf(msg)("could not read demo \"%s\"", text);
+								formatstring(msg)("could not read demo \"%s\"", text);
 								break;
 							case 23:
-								s_sprintf(msg)("\"%s\" is not a demo file", text);
+								formatstring(msg)("\"%s\" is not a demo file", text);
 								break;
 							case 24:
 							case 25:
-								s_sprintf(msg)("demo \"%s\" requires a %s version", text, n==24 ? "older" : "newer");
+								formatstring(msg)("demo \"%s\" requires a %s version", text, n==24 ? "older" : "newer");
 								break;
 							case 26:
-								s_sprintf(msg)("Demo \"%s\" recorded", text);
+								formatstring(msg)("Demo \"%s\" recorded", text);
 								break;
 						}
 						break;
 					case 27:
-						s_strcpy(msg, "no demos available");
+						copystring(msg, "no demos available");
 						break;
 					case 28:
-						s_sprintf(msg)("no demo %d available", getint(p)); 
+						formatstring(msg)("no demo %d available", getint(p)); 
 						break;
 					case 29:
-						s_sprintf(msg)("you need %s to download demos", privname(getint(p)));
+						formatstring(msg)("you need %s to download demos", privname(getint(p)));
 						break;
 					case 40: // 4* gameplay errors
 					{
 						int cn = getint(p); playerent *d = getclient(cn);
-						s_strcpy(msg, "unknown");
-						if(d) s_strcpy(msg, colorname(d));
-						s_strcat(msg, " ");
+						copystring(msg, "unknown");
+						if(d) copystring(msg, colorname(d));
+						concatstring(msg, " ");
 						switch(n){
 							case 40:
-								s_strcat(msg, "\f2collides with the map \f5- \f3forcing death");
+								concatstring(msg, "\f2collides with the map \f5- \f3forcing death");
 								break;
 						}
 						break;
@@ -985,7 +985,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				deathstate(d);
 				if(type == N_HACKFAIL){
 					string editorname;
-					s_strcpy(editorname, d == player1 ? "\fs\f1you\fr" : colorname(d));
+					copystring(editorname, d == player1 ? "\fs\f1you\fr" : colorname(d));
 					if(d == gamefocus)
 						hudonlyf("\f3%s %s just been outh4x0rd!", editorname, d == player1 ? "have" : "has");
 					conoutf("\f%d%s paid the ultimate repercussion for cheating!", d == player1 ? 3 : 2, editorname);
@@ -1028,7 +1028,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				}
 				authtoken = -1;
 				conoutf("server is challenging authentication details");
-				s_sprintfd(buf)("%d%s", nonce, authkey);
+				defformatstring(buf)("%d%s", nonce, authkey);
 				unsigned hash[5];
 				sha1 s;
 				s << buf;
@@ -1083,7 +1083,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				playerent *p = getclient(cn);
 				if(!p) break;
 				string nts;
-				s_sprintf(nts)("\f%d%s", team_color(fnt), team_string(fnt));
+				formatstring(nts)("\f%d%s", team_color(fnt), team_string(fnt));
 				if(p->team == fnt){
 					if(p == player1 && ftr == FTR_AUTOTEAM) hudoutf("\f2you stay in team %s", nts);
 					break;
@@ -1200,15 +1200,15 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				int cn = getint(p), ip = getint(p), mask = getint(p);
 				playerent *pl = getclient(cn);
 
-				s_sprintfd(cip)("%d", ip & 0xFF);
+				defformatstring(cip)("%d", ip & 0xFF);
 				if(mask > 8 || (ip >> 8) & 0xFF){
-					s_sprintf(cip)("%s.%d", cip, (ip >> 8) & 0xFF);
+					formatstring(cip)("%s.%d", cip, (ip >> 8) & 0xFF);
 					if(mask > 16 || (ip >> 16) & 0xFF){
-						s_sprintf(cip)("%s.%d", cip, (ip >> 16) & 0xFF);
-						if(mask > 24 || (ip >> 24) & 0xFF) s_sprintf(cip)("%s.%d", cip, (ip >> 24) & 0xFF);
+						formatstring(cip)("%s.%d", cip, (ip >> 16) & 0xFF);
+						if(mask > 24 || (ip >> 24) & 0xFF) formatstring(cip)("%s.%d", cip, (ip >> 24) & 0xFF);
 					}
 				}
-				if(mask < 32) s_sprintf(cip)("%s\f7/\f4%d", cip, mask);
+				if(mask < 32) formatstring(cip)("%s\f7/\f4%d", cip, mask);
 				conoutf("\f2who\f0is \f1on \f3%s \f4returned \f5%s", pl ? colorname(pl) : "unknown", cip);
 				break;
 			}
@@ -1289,7 +1289,7 @@ void receivefile(uchar *data, int len)
 	{
 		case N_DEMO:
 		{
-			s_sprintfd(fname)("demos/%s.dmo", timestring());
+			defformatstring(fname)("demos/%s.dmo", timestring());
 			path(fname);
 			FILE *demo = openfile(fname, "wb");
 			if(!demo)

@@ -661,7 +661,7 @@ struct oggstream : sourceowner
 
 		loopi(sizeof(exts)/sizeof(exts[0]))
 		{
-			s_sprintf(filepath)("packages/audio/music/%s%s", f, exts[i]);
+			formatstring(filepath)("packages/audio/music/%s%s", f, exts[i]);
 			FILE *file = fopen(findfile(path(filepath), "rb"), "rb");
 			if(!file) continue;
 
@@ -675,7 +675,7 @@ struct oggstream : sourceowner
 			info = ov_info(&oggfile, -1);
 			format = info->channels == 2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16;
 			totalseconds = ov_time_total(&oggfile, -1);
-			s_strcpy(name, f);
+			copystring(name, f);
 
 			return true;
 		}
@@ -867,7 +867,7 @@ struct sbuffer
 			string filepath;
 			loopi(sizeof(exts)/sizeof(exts[0]))
 			{
-				s_sprintf(filepath)("packages/audio/sounds/%s%s", name, exts[i]);
+				formatstring(filepath)("packages/audio/sounds/%s%s", name, exts[i]);
 				const char *file = findfile(path(filepath), "rb");
 				size_t len = strlen(filepath);
 
@@ -1363,13 +1363,13 @@ void initsound()
 		if(devices)
 		{
 			string d;
-			s_strcpy(d, "Audio devices: ");
+			copystring(d, "Audio devices: ");
 
 			// null separated device string
 			for(const ALchar *c = devices; c[strlen(c)+1]; c += strlen(c)+1)
 			{
-				if(c!=devices) s_strcat(d, ", ");
-				s_strcat(d, c);
+				if(c!=devices) concatstring(d, ", ");
+				concatstring(d, c);
 			}
 			conoutf("%s", d);
 		}
@@ -1495,7 +1495,7 @@ int findsound(char *name, int vol, vector<soundconfig> &sounds)
 
 SVAR(nextvoice, "");
 int findvoice(){
-	s_sprintfd(soundpath)("voicecom/%s", nextvoice);
+	defformatstring(soundpath)("voicecom/%s", nextvoice);
 	return findsound(soundpath, 0, gamesounds);
 }
 

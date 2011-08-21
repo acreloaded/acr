@@ -55,29 +55,29 @@ const char *colorname(playerent *d, bool stats)
 {
 	if(!d) return "unknown";
 	static string cname;
-	s_sprintf(cname)(d->ownernum < 0 ? "%s \fs\f%d(%d)" : "%s \fs\f%d(%d/%d)", d->name, duplicatename(d) ? 7 : 6, d->clientnum, d->ownernum);
+	formatstring(cname)(d->ownernum < 0 ? "%s \fs\f%d(%d)" : "%s \fs\f%d(%d/%d)", d->name, duplicatename(d) ? 7 : 6, d->clientnum, d->ownernum);
 	if(stats){
-		s_sprintfd(stat)("%d%d", d->health > 50 ? 0 : d->health > 25 ? 2 : d->health > 0 ? 3 : 4, d->health);
-		if(d->armour) s_sprintf(stat)("%s\f5-\f4%d", stat, d->armour);
-		s_sprintf(cname)("%s \f5[\f%s\f5]", cname, stat);
+		defformatstring(stat)("%d%d", d->health > 50 ? 0 : d->health > 25 ? 2 : d->health > 0 ? 3 : 4, d->health);
+		if(d->armour) formatstring(stat)("%s\f5-\f4%d", stat, d->armour);
+		formatstring(cname)("%s \f5[\f%s\f5]", cname, stat);
 	}
-	s_strcat(cname, "\fr");
+	concatstring(cname, "\fr");
 	return cname;
 }
 
 const char *colorping(int ping)
 {
 	static string cping;
-	if(multiplayer(false)) s_sprintf(cping)("\fs\f%d%d\fr", ping <= 500 ? 0 : ping <= 1000 ? 2 : 3, ping);
-	else s_sprintf(cping)("%d", ping);
+	if(multiplayer(false)) formatstring(cping)("\fs\f%d%d\fr", ping <= 500 ? 0 : ping <= 1000 ? 2 : 3, ping);
+	else formatstring(cping)("%d", ping);
 	return cping;
 }
 
 const char *colorpj(int pj)
 {
 	static string cpj;
-	if(multiplayer(false)) s_sprintf(cpj)("\fs\f%d%d\fr", pj <= 90 ? 0 : pj <= 170 ? 2 : 3, pj);
-	else s_sprintf(cpj)("%d", pj);
+	if(multiplayer(false)) formatstring(cpj)("\fs\f%d%d\fr", pj <= 90 ? 0 : pj <= 170 ? 2 : 3, pj);
+	else formatstring(cpj)("%d", pj);
 	return cpj;
 }
 
@@ -87,7 +87,7 @@ void newname(const char *name)
 	{
 		static string name2;
 		filtername(name2, name);
-		if(!name2[0]) s_strcpy(name2, "unnamed");
+		if(!name2[0]) copystring(name2, "unnamed");
 		addmsg(N_NEWNAME, "rs", name2);
 	}
 	else conoutf("your name is: %s", player1->name);
@@ -271,17 +271,17 @@ bool showhudtimer(int maxsecs, int startmillis, const char *msg, bool flash)
 		tickstart = startmillis;
 		maxticks = 5*maxsecs;
 		curticks = -1;
-		s_strcpy(str, "\f3");
+		copystring(str, "\f3");
 	}
 	if(curticks >= maxticks) return false;
 	nextticks = min(nextticks, maxticks);
 	while(curticks < nextticks)
 	{
-		if(++curticks%5) s_strcat(str, ".");
+		if(++curticks%5) concatstring(str, ".");
 		else
 		{
-			s_sprintfd(sec)("%d", maxsecs - (curticks/5));
-			s_strcat(str, sec);
+			defformatstring(sec)("%d", maxsecs - (curticks/5));
+			concatstring(str, sec);
 		}
 	}
 	if(nextticks < maxticks) hudeditf(HUDMSG_TIMER|HUDMSG_OVERWRITE, flash ? str : str+2);
@@ -291,7 +291,7 @@ bool showhudtimer(int maxsecs, int startmillis, const char *msg, bool flash)
 	static int lasttick = 0;
 	if(lasttick > startmillis + maxsecs * 1000) return false;
 	lasttick = lastmillis;
-	s_sprintfd(str)("\f3Waiting for respawn: %.1fs", maxsecs - (lastmillis - startmillis) / 1000.f);
+	defformatstring(str)("\f3Waiting for respawn: %.1fs", maxsecs - (lastmillis - startmillis) / 1000.f);
 	if(lastmillis <= startmillis + maxsecs * 1000) hudeditf(HUDMSG_TIMER|HUDMSG_OVERWRITE, flash ? str : str+2);
 	else hudeditf(HUDMSG_TIMER, msg);
 	return true;
@@ -514,10 +514,10 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 	bool headshot = false;
 	int obit = OBIT_DEATH;
 	string subject, predicate, hashave, text;
-	s_sprintf(subject)("\f2\fs%s\f2", act == player1 ? "\f1you" : colorname(act));
-	s_strcpy(hashave, act == player1 ? "have" : "has");
+	formatstring(subject)("\f2\fs%s\f2", act == player1 ? "\f1you" : colorname(act));
+	copystring(hashave, act == player1 ? "have" : "has");
 	if(pl == act){
-		s_strcpy(predicate, suicname(obit = obit_suicide(weapon)));
+		copystring(predicate, suicname(obit = obit_suicide(weapon)));
 		if(pl == player1){
 			// radar scan
 			loopv(players){
@@ -528,24 +528,24 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 				p->lastloudpos[1] = p->o.y;
 				p->lastloudpos[2] = p->yaw;
 			}
-			s_strcat(predicate, "\f3");
+			concatstring(predicate, "\f3");
 		}
-		if(pl == gamefocus) s_strcat(predicate, "!\f2");
+		if(pl == gamefocus) concatstring(predicate, "!\f2");
 		if(killdist){
-			s_sprintf(text)(" (@%.2f m)", killdist);
-			s_strcat(predicate, text);
+			formatstring(text)(" (@%.2f m)", killdist);
+			concatstring(predicate, text);
 		}
 	}
 	else{
 		obit = toobit(weapon, style);
 		headshot = isheadshot(weapon, style);
-		s_sprintf(predicate)("%s %s%s (@%.2f m)", killname(obit, headshot),
+		formatstring(predicate)("%s %s%s (@%.2f m)", killname(obit, headshot),
 			isteam(pl, act) ? act==player1 ? "your teammate " : "his teammate " : "", pl == player1 ? "\f1you\f2" : colorname(pl), killdist);
 	}
 	// killstreak
 	if(act->killstreak++){
-		s_sprintf(text)(" (%d killstreak)", act->killstreak);
-		s_strcat(predicate, text);
+		formatstring(text)(" (%d killstreak)", act->killstreak);
+		concatstring(predicate, text);
 	}
 	// assist count
 	pl->damagelog.removeobj(pl->clientnum);
@@ -556,14 +556,14 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 	// assists
 	if(pl->damagelog.length()){
 		playerent *p = NULL;
-		s_strcat(predicate, ", assisted by");
+		concatstring(predicate, ", assisted by");
 		bool first = true;
 		loopv(pl->damagelog){
 			p = getclient(pl->damagelog.pop());
 			if(!p) continue;
 			p->assists++;
-			s_sprintf(text)("%s \fs\f%d%s\fr", first ? "" : !pl->damagelog.length() ? " and" : ",", isteam(p, pl) ? 3 : 2, colorname(p));
-			s_strcat(predicate, text);
+			formatstring(text)("%s \fs\f%d%s\fr", first ? "" : !pl->damagelog.length() ? " and" : ",", isteam(p, pl) ? 3 : 2, colorname(p));
+			concatstring(predicate, text);
 			first = false;
 		}
 	}
@@ -721,7 +721,7 @@ void resetmap()
 
 void startmap(const char *name, bool reset)   // called just after a map load
 {
-	s_strcpy(clientmap, name);
+	copystring(clientmap, name);
 	sendmapident = true;
 	localfirstkill = false;
 	BotManager.BeginMap(name); // Added by Rick
@@ -778,60 +778,60 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 	const char *teamstr = m_ktf ? "the" : own ? "your" : "the enemy";
 	string subject, predicate, hashave;
 
-	s_strcpy(subject, firstperson ? "you" : colorname(act));
-	s_strcpy(hashave, firstperson ? "have" : "has");
-	s_strcpy(predicate, " altered a flag");
+	copystring(subject, firstperson ? "you" : colorname(act));
+	copystring(hashave, firstperson ? "have" : "has");
+	copystring(predicate, " altered a flag");
 
 	switch(message){
 		case FA_PICKUP:
 			playsound(S_FLAGPICKUP, SP_HIGHEST);
 			if(firstperson){
-				s_sprintf(predicate)("picked up %s flag", teamstr);
+				formatstring(predicate)("picked up %s flag", teamstr);
 				if(!m_ctf || !own){
 					musicsuggest(M_FLAGGRAB, m_ctf ? 90*1000 : 900*1000, true);
 					musicplaying = flag;
 				}
 			}
-			else s_sprintf(predicate)("got %s flag", teamstr);
+			else formatstring(predicate)("got %s flag", teamstr);
 			break;
 		case FA_LOST:
 		case FA_DROP:
 		{
 			playsound(S_FLAGDROP, SP_HIGHEST);
-			s_sprintf(predicate)("%s %s flag", message == FA_LOST ? "lost" : "dropped", firstperson ? "the" : teamstr);
+			formatstring(predicate)("%s %s flag", message == FA_LOST ? "lost" : "dropped", firstperson ? "the" : teamstr);
 			if(firstperson) firstpersondrop = true;
 			break;
 		}
 		case FA_RETURN:
 			playsound(S_FLAGRETURN, SP_HIGHEST);
-			s_sprintf(predicate)("returned %s flag", firstperson ? "your" : teamstr);
+			formatstring(predicate)("returned %s flag", firstperson ? "your" : teamstr);
 			break;
 		case FA_SCORE:
 			playsound(S_FLAGSCORE, SP_HIGHEST);
 			if(firstperson){
-				s_strcpy(predicate, "scored!");
+				copystring(predicate, "scored!");
 				if(m_ctf) firstpersondrop = true;
 			}
-			else s_sprintf(predicate)("scored for %s team", teamstr);
+			else formatstring(predicate)("scored for %s team", teamstr);
 			break;
 		case FA_KTFSCORE:
 		{
 			playsound(S_VOTEPASS, SP_HIGHEST); // need better ktf sound here
 			const int m = flagtime / 60, s = flagtime % 60;
-			s_strcpy(predicate, "kept the flag for ");
-			if(m) s_sprintf(predicate)("%s%d minute%s", predicate, m, m==1 ? " " : "s ");
-			if(s) s_sprintf(predicate)("%s%d second%s", predicate, s, s==1 ? " " : "s ");;
-			s_strcat(predicate, "now");
+			copystring(predicate, "kept the flag for ");
+			if(m) formatstring(predicate)("%s%d minute%s", predicate, m, m==1 ? " " : "s ");
+			if(s) formatstring(predicate)("%s%d second%s", predicate, s, s==1 ? " " : "s ");;
+			concatstring(predicate, "now");
 			break;
 		}
 		case FA_SCOREFAIL: // sound?
-			s_strcpy(predicate, "failed to score because his flag is in base");
+			copystring(predicate, "failed to score because his flag is in base");
 			break;
 		case FA_RESET:
 			playsound(S_FLAGRETURN, SP_HIGHEST);
-			s_strcpy(subject, "\f1the server");
-			s_strcpy(hashave, "had");
-			s_strcpy(predicate, "reset the flag");
+			copystring(subject, "\f1the server");
+			copystring(hashave, "had");
+			copystring(predicate, "reset the flag");
 			firstpersondrop = true;
 			break;
 	}
@@ -853,7 +853,7 @@ const char *votestring(int type, char *arg1, char *arg2)
 	const char *msg = msgs[type];
 	char *out = newstring(_MAXDEFSTR);
 	out[_MAXDEFSTR] = '\0';
-	s_strcpy(out, "unknown vote");
+	copystring(out, "unknown vote");
 	switch(type){
 		case SA_FORCETEAM:
 		case SA_SUBDUE:
@@ -862,7 +862,7 @@ const char *votestring(int type, char *arg1, char *arg2)
 			int cn = atoi(arg1);
 			playerent *p = getclient(cn);
 			if(!p) break;
-			s_sprintf(out)(msg, colorname(p));
+			formatstring(out)(msg, colorname(p));
 			break;
 		}
 		case SA_KICK:
@@ -870,14 +870,14 @@ const char *votestring(int type, char *arg1, char *arg2)
 			int cn = atoi(arg1);
 			playerent *p = getclient(cn);
 			if(!p) break;
-			s_sprintf(out)(msg, colorname(p), arg2);
+			formatstring(out)(msg, colorname(p), arg2);
 			break;
 		}
 		case SA_REVOKE:
 		{
 			playerent *p = getclient(atoi(arg1));
 			if(!p) break;
-			s_sprintf(out)(msg, privcolor(p->priv), privname(p->priv), colorname(p));
+			formatstring(out)(msg, privcolor(p->priv), privname(p->priv), colorname(p));
 			break;
 		}
 		case SA_BAN:
@@ -885,7 +885,7 @@ const char *votestring(int type, char *arg1, char *arg2)
 			int cn = atoi(arg2), minutes = atoi(arg1);
 			playerent *p = getclient(cn);
 			if(!p) break;
-			s_sprintf(out)(msg, colorname(p), minutes);
+			formatstring(out)(msg, colorname(p), minutes);
 			break;
 		}
 		case SA_GIVEADMIN:
@@ -893,33 +893,33 @@ const char *votestring(int type, char *arg1, char *arg2)
 			int cn = atoi(arg1), priv = atoi(arg2);
 			playerent *p = getclient(cn);
 			if(!p) break;
-			s_sprintf(out)(msg, privcolor(priv), privname(priv), colorname(p));
+			formatstring(out)(msg, privcolor(priv), privname(priv), colorname(p));
 			break;
 		}
 		case SA_MASTERMODE:
-			s_sprintf(out)(msg, mmfullname(atoi(arg1)));
+			formatstring(out)(msg, mmfullname(atoi(arg1)));
 			break;
 		case SA_AUTOTEAM:
 		case SA_RECORDDEMO:
-			s_sprintf(out)(msg, atoi(arg1) == 0 ? "disable" : "enable");
+			formatstring(out)(msg, atoi(arg1) == 0 ? "disable" : "enable");
 			break;
 		case SA_MAP:
-			s_sprintf(out)(msg, arg2, modestr(atoi(arg1), modeacronyms > 0));
+			formatstring(out)(msg, arg2, modestr(atoi(arg1), modeacronyms > 0));
 			break;
 		case SA_SERVERDESC:
-			s_sprintf(out)(msg, arg2);
+			formatstring(out)(msg, arg2);
 			break;
 		case SA_CLEARDEMOS:
 		{
 			bool demo = atoi(arg1) > 0;
-			s_sprintf(out)(msg, !demo ? "all " : "", demo ? "s" : " ", demo ? "" : arg1);
+			formatstring(out)(msg, !demo ? "all " : "", demo ? "s" : " ", demo ? "" : arg1);
 			break;
 		}
 		case SA_BOTBALANCE:
-			s_sprintf(out)(msg, atoi(arg1));
+			formatstring(out)(msg, atoi(arg1));
 			break;
 		default:
-			s_sprintf(out)(msg, arg1, arg2);
+			formatstring(out)(msg, arg1, arg2);
 			break;
 	}
 	return out;
@@ -933,7 +933,7 @@ votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, char *arg1, char
 	v->type = type;
 	v->millis = totalmillis + (30+10)*1000;
 	const char *votedesc = votestring(type, arg1, arg2);
-	s_strcpy(v->desc, votedesc);
+	copystring(v->desc, votedesc);
 	DELETEA(votedesc);
 	return v;
 }
@@ -1076,9 +1076,9 @@ void refreshsopmenu(void *menu, bool init)
 	loopv(players) if(players[i]) p.add(players[i]);
 	loopv(p){
 		mline &m = mlines.add();
-		s_strcpy(m.name, colorname(p[i]));
-		s_sprintf(m.cmd)("%s %d", menu==kickmenu ? "kick" : (menu==banmenu ? "ban" : (menu==forceteammenu ? "forceteam" : (menu==revokemenu ? "revoke" : (menu==giveadminmenu ? "giverole" : (menu==whoismenu ? "whois" : (menu==spectmenu ? "forcespect" : "unknownplayeraction")))))), p[i]->clientnum);
-		if(menu==kickmenu && getalias("_kickbanreason")!=NULL) s_sprintf(m.cmd)("%s [ %s ]", m.cmd, getalias("_kickbanreason"));
+		copystring(m.name, colorname(p[i]));
+		formatstring(m.cmd)("%s %d", menu==kickmenu ? "kick" : (menu==banmenu ? "ban" : (menu==forceteammenu ? "forceteam" : (menu==revokemenu ? "revoke" : (menu==giveadminmenu ? "giverole" : (menu==whoismenu ? "whois" : (menu==spectmenu ? "forcespect" : "unknownplayeraction")))))), p[i]->clientnum);
+		if(menu==kickmenu && getalias("_kickbanreason")!=NULL) formatstring(m.cmd)("%s [ %s ]", m.cmd, getalias("_kickbanreason"));
 		menumanual(menu, m.name, m.cmd);
 	}
 }

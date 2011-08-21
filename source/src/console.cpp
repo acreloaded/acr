@@ -136,8 +136,8 @@ struct obitlist
 		cl.target = olines.length()>maxlines ? olines.pop().target : newstringbuf("");   // constrain the buffer size
 		cl.millis = millis;						// for how long to keep line on screen
 		cl.weap = weap;
-		s_sprintf(cl.actor)("\f%d%s", actor == gamefocus ? 0 : isteam(actor, gamefocus) ? 1 : 3, actor == target ? "" : actor ? colorname(actor) : "unknown");
-		s_sprintf(cl.target)("\f%d%s", actor == gamefocus ? 8 : isteam(actor, gamefocus) ? 9 : 7, target ? colorname(target) : "unknown");
+		formatstring(cl.actor)("\f%d%s", actor == gamefocus ? 0 : isteam(actor, gamefocus) ? 1 : 3, actor == target ? "" : actor ? colorname(actor) : "unknown");
+		formatstring(cl.target)("\f%d%s", actor == gamefocus ? 8 : isteam(actor, gamefocus) ? 9 : 7, target ? colorname(target) : "unknown");
 		cl.headshot = headshot;
 		return olines.insert(0, cl);
 	}
@@ -159,7 +159,7 @@ struct obitlist
 		if(!*tex){
 			const char *texname[OBIT_NUM-OBIT_START] = { "death", "bot", "bow_impact", "bow_stuck", "knife_bleed", "knife_impact", "headshot", "ff", "drown", "fall" };
 			loopi(OBIT_NUM){
-				s_sprintfd(tname)("packages/misc/obit/%s.png", i < OBIT_START ? guns[i].modelname : texname[i - OBIT_START]);
+				defformatstring(tname)("packages/misc/obit/%s.png", i < OBIT_START ? guns[i].modelname : texname[i - OBIT_START]);
 				tex[i] = textureload(tname);
 			}
 		}
@@ -207,7 +207,7 @@ struct obitlist
 		const int conwidth = VIRTW * ts - left; // draw all the way to the right
 		int linei = olines.length(), y = ts * VIRTH * .5f;
 		loopv(olines){
-			s_sprintfd(l)("%s    %s", olines[i].actor, olines[i].target); // four spaces to subsitute for unknown obit icon
+			defformatstring(l)("%s    %s", olines[i].actor, olines[i].target); // four spaces to subsitute for unknown obit icon
 			int width, height;
 			text_bounds(l, width, height, conwidth);
 			linei -= -1 + floor(float(height/FONTH));
@@ -279,7 +279,7 @@ void conoutf(const char *s, ...)
 
 int rendercommand(int x, int y, int w)
 {
-	s_sprintfd(s)("> %s", cmdline.buf);
+	defformatstring(s)("> %s", cmdline.buf);
 	int width, height;
 	text_bounds(s, width, height, w);
 	y -= height - FONTH;
@@ -374,7 +374,7 @@ void saycommand(char *init)						 // turns input to the command line on or off
 	SDL_EnableUNICODE(saycommandon = (init!=NULL));
 	setscope(false);
 	if(!editmode) keyrepeat(saycommandon);
-	s_strcpy(cmdline.buf, init ? init : "");
+	copystring(cmdline.buf, init ? init : "");
 	DELETEA(cmdaction);
 	DELETEA(cmdprompt);
 	cmdline.pos = -1;
@@ -392,13 +392,13 @@ void mapmsg(char *s)
 	string text;
 	filterrichtext(text, s);
 	filterservdesc(text, text);
-	s_strncpy(hdr.maptitle, text, 128);
+	copystring(hdr.maptitle, text, 128);
 }
 
 void getmapmsg(void)
 {
 	string text;
-	s_strncpy(text, hdr.maptitle, 128);
+	copystring(text, hdr.maptitle, 128);
 	result(text);
 }
 
@@ -418,7 +418,7 @@ void pasteconsole(char *dst)
 	if(!IsClipboardFormatAvailable(CF_TEXT)) return;
 	if(!OpenClipboard(NULL)) return;
 	char *cb = (char *)GlobalLock(GetClipboardData(CF_TEXT));
-	s_strcat(dst, cb);
+	concatstring(dst, cb);
 	GlobalUnlock(cb);
 	CloseClipboard();
 	#elif defined(__APPLE__)
@@ -463,7 +463,7 @@ struct hline
 
 	void restore()
 	{
-		s_strcpy(cmdline.buf, buf);
+		copystring(cmdline.buf, buf);
 		if(cmdline.pos >= (int)strlen(cmdline.buf)) cmdline.pos = -1;
 		DELETEA(cmdaction);
 		DELETEA(cmdprompt);

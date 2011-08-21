@@ -124,10 +124,10 @@ Texture *crosshairs[CROSSHAIR_NUM] = { NULL }; // weapon specific crosshairs
 
 Texture *loadcrosshairtexture(const char *c, int type = -1)
 {
-	s_sprintfd(p)("packages/misc/crosshairs/%s", c);
+	defformatstring(p)("packages/misc/crosshairs/%s", c);
 	Texture *crosshair = textureload(p, 3);
 	if(crosshair==notexture){
-		s_sprintf(p)("packages/misc/crosshairs/%s", crosshairnames[type < 0 || type >= CROSSHAIR_NUM ? CROSSHAIR_DEFAULT : type]);
+		formatstring(p)("packages/misc/crosshairs/%s", crosshairnames[type < 0 || type >= CROSSHAIR_NUM ? CROSSHAIR_DEFAULT : type]);
 		crosshair = textureload(p, 3);
 	}
 	return crosshair;
@@ -304,7 +304,7 @@ struct hudmessages : consolebuffer<hudline>
 		{
 			conlines[0].millis = totalmillis;
 			conlines[0].type = HUDMSG_INFO;
-			s_strcpy(conlines[0].line, sf);
+			copystring(conlines[0].line, sf);
 		}
 		else consolebuffer<hudline>::addline(sf, totalmillis);
 	}
@@ -314,7 +314,7 @@ struct hudmessages : consolebuffer<hudline>
 		{
 			conlines[0].millis = totalmillis;
 			conlines[0].type = type;
-			s_strcpy(conlines[0].line, sf);
+			copystring(conlines[0].line, sf);
 		}
 		else consolebuffer<hudline>::addline(sf, totalmillis).type = type;
 	}
@@ -780,7 +780,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	if(command) commandh -= rendercommand(20, 1570, VIRTW);
 	else if(infostr) draw_text(infostr, 20, 1570);
 	else if(targetplayer){
-		s_sprintfd(targetplayername)("\f%d%s \f4[\f%s\f4]", p==targetplayer?1:isteam(p, targetplayer)?0:3, colorname(targetplayer),
+		defformatstring(targetplayername)("\f%d%s \f4[\f%s\f4]", p==targetplayer?1:isteam(p, targetplayer)?0:3, colorname(targetplayer),
 			targetplayerzone==HIT_HEAD?"3HEAD":targetplayerzone==HIT_TORSO?"2TORSO":"0LEGS");
 		draw_text(targetplayername, 20, 1570);
 	}
@@ -820,7 +820,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 			rsec = 60 - rsec;
 		}
 		
-		s_sprintfd(gtime)("%02d:%02d/%02d:%02d", curmin, cursec, rmin, rsec);
+		defformatstring(gtime)("%02d:%02d/%02d:%02d", curmin, cursec, rmin, rsec);
 		draw_text(gtime, (2*VIRTW - text_width(gtime))/2, 2);
 	}
 
@@ -849,19 +849,19 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 			loopl(VOTE_NUM){
 				if(l == VOTE_NEUTRAL && VSU > 5) continue;
 				votepl[l].sort(votersort);
-				s_strcpy(votestr[l], "");
+				copystring(votestr[l], "");
 				loopv(votepl[l]){
 					playerent *vpl = votepl[l][i];
 					if(!vpl) continue;
-					s_sprintf(votestr[l])("%s\f%d%s \f6(%d)", votestr[l],
+					formatstring(votestr[l])("%s\f%d%s \f6(%d)", votestr[l],
 						vpl->priv ? 0 : vpl == player1 ? 6 : vpl->team ? 1 : 3, vpl->name, vpl->clientnum);
-					if(vpl->priv >= PRIV_ADMIN) s_sprintf(votestr[l])("%s \f8(!)", votestr[l]);
-					s_strcat(votestr[l], "\f5, ");
+					if(vpl->priv >= PRIV_ADMIN) formatstring(votestr[l])("%s \f8(!)", votestr[l]);
+					concatstring(votestr[l], "\f5, ");
 				}
 				if(!votepl[l].length())
-					s_strcpy(votestr[l], "\f4None");
+					copystring(votestr[l], "\f4None");
 				else
-					s_strncpy(votestr[l], votestr[l], strlen(votestr[l])-1);
+					copystring(votestr[l], votestr[l], strlen(votestr[l])-1);
 			}
 			#define VSY votepl[VOTE_YES].length()
 			#define VSN votepl[VOTE_NO].length()
@@ -930,7 +930,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		{
 			if(players.inrange(player1->followplayercn) && players[player1->followplayercn])
 			{
-				s_sprintfd(name)("Player \f%d%s", players[player1->followplayercn]->team ? 1 : 3, players[player1->followplayercn]->name);
+				defformatstring(name)("Player \f%d%s", players[player1->followplayercn]->team ? 1 : 3, players[player1->followplayercn]->name);
 				draw_text(name, VIRTW/40, VIRTH/10*8);
 			}
 		}
@@ -1013,7 +1013,7 @@ void loadingscreen(const char *fmt, ...)
 		if(fmt)
 		{
 			glEnable(GL_BLEND);
-			s_sprintfdlv(str, fmt, fmt);
+			defvformatstring(str, fmt, fmt);
 			int w = text_width(str);
 			draw_text(str, w>=VIRTW ? 0 : (VIRTW-w)/2, VIRTH*3/4);
 			glDisable(GL_BLEND);

@@ -32,7 +32,7 @@ bool addai(){
 		clients.add(c);
 	}
 	client &b = *clients[cn];
-	s_sprintf(b.name)("bot%d", cn);
+	formatstring(b.name)("bot%d", cn);
 	b.type = ST_AI;
 	b.reset();
 	b.isauthed = true;

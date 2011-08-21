@@ -227,14 +227,14 @@ void renderbounceents(){
 		switch(p->bouncetype)
 		{
 			case BT_KNIFE:
-				s_strcpy(model, "weapons/knife/static");
+				copystring(model, "weapons/knife/static");
 				break;
 			case BT_NADE:
-				s_strcpy(model, "weapons/grenade/static");
+				copystring(model, "weapons/grenade/static");
 				break;
 			case BT_SHELL:
 			{
-				s_strcpy(model, "weapons/shell");
+				copystring(model, "weapons/shell");
 				scale = shellsize / 24.f;
 				int t = lastmillis-p->millis;
 				if(t>p->timetolive-2000)
@@ -250,7 +250,7 @@ void renderbounceents(){
 			default:
 			{
 				uint n = (((4*(uint)(size_t)p)+(uint)p->timetolive)%3)+1;
-				s_sprintf(model)("misc/gib0%u", n);
+				formatstring(model)("misc/gib0%u", n);
 				int t = lastmillis-p->millis;
 				if(t>p->timetolive-2000)
 				{
@@ -395,8 +395,8 @@ void weapon::renderstats(){
 	string gunstats, ammostr;
 	const int clipsize = reloadsize(type);
 	itoa(ammostr, (int)floor((float)ammo / clipsize));
-	if(ammo % clipsize) s_sprintf(ammostr)("%s/%i", ammostr, ammo % clipsize);
-	s_sprintf(gunstats)(oldfashionedgunstats ? "%i/%s" : "%i", mag, ammostr);
+	if(ammo % clipsize) formatstring(ammostr)("%s/%i", ammostr, ammo % clipsize);
+	formatstring(gunstats)(oldfashionedgunstats ? "%i/%s" : "%i", mag, ammostr);
 	draw_text(gunstats, 590, 823);
 	if(!oldfashionedgunstats){
 		int offset = text_width(gunstats);
@@ -438,7 +438,7 @@ void weapon::renderhudmodel(int lastaction, bool akimboflip){
 	const bool flip = akimboflip ^ (lefthand > 0);
 	weaponmove wm;
 	if(!intermission) wm.calcmove(unitv, lastaction);
-	s_sprintfd(path)("weapons/%s", info.modelname);
+	defformatstring(path)("weapons/%s", info.modelname);
 	const bool emit = ((wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT) && (lastmillis - lastaction) < flashtime();
 	if(ads_gun(type) && (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT){ wm.anim = ANIM_GUN_IDLE; }
 	rendermodel(path, wm.anim|ANIM_DYNALLOC|(flip ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, -1, wm.pos, owner->yaw+90, owner->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, NULL, 1.28f);

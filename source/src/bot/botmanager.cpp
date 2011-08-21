@@ -193,7 +193,7 @@ void CBotManager::LoadBotNamesFile()
 			   {	 conoutf("Warning: bot name \"%s\" has to many characters(16 is max)",
 							szNameBuffer);
 			   }
-			   s_strncpy(m_szBotNames[m_sBotNameCount], szNameBuffer, 16);
+			   copystring(m_szBotNames[m_sBotNameCount], szNameBuffer, 16);
 			   m_sBotNameCount++;
 		  }
 	 }
@@ -285,7 +285,7 @@ void CBotManager::LoadBotTeamsFile()
 
 		  if (szNameBuffer[0] != 0)
 		  {
-			   s_strncpy(m_szBotTeams[m_sBotTeamCount], szNameBuffer, 5);
+			   copystring(m_szBotTeams[m_sBotTeamCount], szNameBuffer, 5);
 			   m_sBotTeamCount++;
 		  }
 	 }
@@ -948,9 +948,9 @@ botent *CBotManager::CreateBot(const char *team, const char *skill, const char *
 	 m->pBot->m_bSendC2SInit = false;
 
 	 if (name && *name)
-		  s_strncpy(m->name, name, 16);
+		  copystring(m->name, name, 16);
 	 else
-		  s_strncpy(m->name, BotManager.GetBotName(), 16);
+		  copystring(m->name, BotManager.GetBotName(), 16);
 	 
 	 if (team && *team && strcmp(team, "random"))
 		m->team = team_int(team);

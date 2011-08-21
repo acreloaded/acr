@@ -59,6 +59,6 @@ void answerchallenge(int cn, int hash[5]){
 	authrequest &r = authrequests.add();
 	r.id = cl.authreq;
 	r.answer = true;
-	s_sprintf(r.chal)("%08x%08x%08x%08x%08x", hash[0], hash[1], hash[2], hash[3], hash[4]);
+	formatstring(r.chal)("%08x%08x%08x%08x%08x", hash[0], hash[1], hash[2], hash[3], hash[4]);
 	sendf(cn, 1, "ri2", N_AUTHCHAL, 4);
 }

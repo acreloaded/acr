@@ -36,7 +36,7 @@ ENetSocket httpgetsend(ENetAddress &remoteaddress, const char *hostname, const c
 		return ENET_SOCKET_NULL;
 	}
 	ENetBuffer buf;
-	s_sprintfd(httpget)("GET %s HTTP/1.0\nHost: %s\nReferer: %s\nUser-Agent: %s\n\n", req, hostname, ref, agent);
+	defformatstring(httpget)("GET %s HTTP/1.0\nHost: %s\nReferer: %s\nUser-Agent: %s\n\n", req, hostname, ref, agent);
 	buf.data = httpget;
 	buf.dataLength = strlen((char *)buf.data);
 	//logline(ACLOG_INFO, "sending request to %s...", hostname);
@@ -85,8 +85,8 @@ vector<authrequest> authrequests;
 void updatemasterserver(int millis, const ENetAddress &localaddr){
 	if(!millis || millis/MSKEEPALIVE!=lastupdatemaster)
 	{
-		s_sprintfd(path)("%sregister/%d/%d", masterpath, PROTOCOL_VERSION, localaddr.port);
-		s_sprintfd(agent)("AssaultCube Server %d", AC_VERSION);
+		defformatstring(path)("%sregister/%d/%d", masterpath, PROTOCOL_VERSION, localaddr.port);
+		defformatstring(agent)("AssaultCube Server %d", AC_VERSION);
 		mssock = httpgetsend(masterserver, masterbase, path, "acse-serv", agent, &msaddress);
 		logline(ACLOG_INFO, "sending registration request to %s...", masterbase);
 		masterrep[0] = 0;
@@ -97,9 +97,9 @@ void updatemasterserver(int millis, const ENetAddress &localaddr){
 		authrequest r = authrequests.remove(0);
 		// request first auth
 		string path;
-		if(r.answer) s_sprintf(path)("%sauth/%d/%s", masterpath, r.id, r.chal);
-		else s_sprintf(path)("%sauth/%d", masterpath, r.id);
-		s_sprintfd(agent)("AssaultCube Server %d", AC_VERSION);
+		if(r.answer) formatstring(path)("%sauth/%d/%s", masterpath, r.id, r.chal);
+		else formatstring(path)("%sauth/%d", masterpath, r.id);
+		defformatstring(agent)("AssaultCube Server %d", AC_VERSION);
 		mssock = httpgetsend(masterserver, masterbase, path, "acse-sauth", agent, &msaddress);
 		masterrep[0] = 0;
 		masterb.data = masterrep;
@@ -183,15 +183,15 @@ uchar *retrieveservers(uchar *buf, int buflen)
 {
 	buf[0] = '\0';
 
-	s_sprintfd(path)("%scube", masterpath);
-	s_sprintfd(agent)("AssaultCube Client %d", AC_VERSION);
+	defformatstring(path)("%scube", masterpath);
+	defformatstring(agent)("AssaultCube Client %d", AC_VERSION);
 	ENetAddress address = masterserver;
 	ENetSocket sock = httpgetsend(address, masterbase, path, "acse-client", agent);
 	if(sock==ENET_SOCKET_NULL) return buf;
 	/* only cache this if connection succeeds */
 	masterserver = address;
 
-	s_sprintfd(text)("retrieving servers from %s... (esc to abort)", masterbase);
+	defformatstring(text)("retrieving servers from %s... (esc to abort)", masterbase);
 	show_out_of_renderloop_progress(0, text);
 
 	ENetBuffer eb;
@@ -356,9 +356,9 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
 void servermsinit(const char *master, const char *ip, int infoport, bool listen)
 {
 	const char *mid = strstr(master, "/");
-	if(mid) s_strncpy(masterbase, master, mid-master+1);
-	else s_strcpy(masterbase, (mid = master));
-	s_strcpy(masterpath, mid);
+	if(mid) copystring(masterbase, master, mid-master+1);
+	else copystring(masterbase, (mid = master));
+	copystring(masterpath, mid);
 
 	if(listen)
 	{

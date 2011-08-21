@@ -185,28 +185,28 @@ static inline const char *suicname(int obit){
 	*k = 0;
 	switch(obit){
 		case GUN_GRENADE:
-			s_strcat(k, "failed with nades");
+			concatstring(k, "failed with nades");
 			break;
 		case GUN_HEAL:
-			s_strcat(k, "overdosed on drugs");
+			concatstring(k, "overdosed on drugs");
 			break;
 		case GUN_BOW:
-			s_strcat(k, "failed to use an explosive crossbow");
+			concatstring(k, "failed to use an explosive crossbow");
 			break;
 		case OBIT_DEATH:
-			s_strcat(k, "requested suicide");
+			concatstring(k, "requested suicide");
 			break;
 		case OBIT_BOT:
-			s_strcat(k, "acted like a stupid bot");
+			concatstring(k, "acted like a stupid bot");
 			break;
 		case OBIT_DROWN:
-			s_strcat(k, "drowned");
+			concatstring(k, "drowned");
 			break;
 		case OBIT_FALL:
-			s_strcat(k, "failed to fly");
+			concatstring(k, "failed to fly");
 			break;
 		default:
-			s_strcat(k, "somehow suicided");
+			concatstring(k, "somehow suicided");
 			break;
 	}
 	return k;
@@ -231,56 +231,56 @@ static inline const char *killname(int obit, bool headshot){
 	*k = 0;
 	switch(obit){
 		case GUN_GRENADE:
-			s_strcat(k, "obliterated");
+			concatstring(k, "obliterated");
 			break;
 		case GUN_KNIFE:
-			s_strcat(k, headshot ? "decapitated" : "slashed");
+			concatstring(k, headshot ? "decapitated" : "slashed");
 			break;
 		case GUN_BOLT:
-			s_strcat(k, headshot ? "overkilled" : "quickly killed");
+			concatstring(k, headshot ? "overkilled" : "quickly killed");
 			break;
 		case GUN_SNIPER:
-			s_strcat(k, headshot ? "expertly sniped" : "sniped");
+			concatstring(k, headshot ? "expertly sniped" : "sniped");
 			break;
 		case GUN_SUBGUN:
-			s_strcat(k, headshot ? "perforated" : "spliced");
+			concatstring(k, headshot ? "perforated" : "spliced");
 			break;
 		case GUN_SHOTGUN:
-			s_strcat(k, headshot ? "splattered" : "scrambled");
+			concatstring(k, headshot ? "splattered" : "scrambled");
 			break;
 		case GUN_ASSAULT:
-			s_strcat(k, headshot ? "eliminated" : "shredded");
+			concatstring(k, headshot ? "eliminated" : "shredded");
 			break;
 		case GUN_PISTOL:
-			s_strcat(k, headshot ? "capped" : "pierced");
+			concatstring(k, headshot ? "capped" : "pierced");
 			break;
 		case GUN_AKIMBO:
-			s_strcat(k, headshot ? "blasted" : "skewered");
+			concatstring(k, headshot ? "blasted" : "skewered");
 			break;
 		case GUN_HEAL:
-			s_strcat(k, headshot ? "tranquilized" : "injected");
+			concatstring(k, headshot ? "tranquilized" : "injected");
 			break;
 		case GUN_WAVE:
-			s_strcat(k, headshot ? "disrupted" : "cooked");
+			concatstring(k, headshot ? "disrupted" : "cooked");
 			break;
 		case GUN_BOW:
-			s_strcat(k, "detonated");
+			concatstring(k, "detonated");
 			break;
 		// special obits
 		case OBIT_BOW_IMPACT:
-			s_strcat(k, "impacted");
+			concatstring(k, "impacted");
 			break;
 		case OBIT_BOW_STUCK:
-			s_strcat(k, "plastered");
+			concatstring(k, "plastered");
 			break;
 		case OBIT_KNIFE_BLEED:
-			s_strcat(k, "fatally wounded");
+			concatstring(k, "fatally wounded");
 			break;
 		case OBIT_KNIFE_IMPACT:
-			s_strcat(k, "thrown down");
+			concatstring(k, "thrown down");
 			break;
 		default:
-			s_strcat(k, headshot ? "pwned" : "killed");
+			concatstring(k, headshot ? "pwned" : "killed");
 			break;
 	}
 	return k;

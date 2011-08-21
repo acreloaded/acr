@@ -130,7 +130,7 @@ int weaponmove::lastsway = 0, weaponmove::swaymillis = 0;
 void preload_hudguns()
 {
 	loopi(NUMGUNS){
-		s_sprintfd(path)("weapons/%s", guns[i].modelname);
+		defformatstring(path)("weapons/%s", guns[i].modelname);
 		loadmodel(path);
 	}
 	loadmodel("weapons/shell");

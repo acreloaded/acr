@@ -380,7 +380,7 @@ void load_waypointtex(){
 		"grab", "enemy", "friendly", "stolen", "return", // mostly CTF
 	};
 	loopi(WP_NUM){
-		s_sprintfd(tname)("packages/misc/waypoints/%s.png", waypointtexname[i]);
+		defformatstring(tname)("packages/misc/waypoints/%s.png", waypointtexname[i]);
 		waypointtex[i] = textureload(tname);
 	}
 }

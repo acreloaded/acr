@@ -34,7 +34,7 @@ struct mapaction : serveraction
 		{
 			forceintermission = true;
 			nextgamemode = mode;
-			s_strcpy(nextmapname, map);
+			copystring(nextmapname, map);
 		}
 		else
 		{
@@ -66,7 +66,7 @@ struct mapaction : serveraction
 				{
 					role = PRIV_ADMIN;
 					string mapfail;
-					s_strcpy(mapfail + 1, behindpath(map));
+					copystring(mapfail + 1, behindpath(map));
 					*mapfail = mode;
 					if(!spawns) *mapfail |= 0x80;
 					if(!flags) *mapfail |= 0x40;
@@ -81,7 +81,7 @@ struct mapaction : serveraction
 		}
 		vetorole = PRIV_ADMIN; // don't let masters abuse maps
 		area |= EE_LOCAL_SERV; // local too
-		s_sprintf(desc)("load map '%s' in mode '%s'", map, modestr(mode));
+		formatstring(desc)("load map '%s' in mode '%s'", map, modestr(mode));
 	}
 	~mapaction() { DELETEA(map); }
 };
@@ -114,8 +114,8 @@ struct forceteamaction : playeraction
 		area |= EE_LOCAL_SERV;
 		if(cn != caller){ role = roleconf('f'); passratio = 0.65f;}
 		else passratio = 0.55f;
-		if(valid_client(cn)) s_sprintf(desc)("force player %s to the enemy team", clients[cn]->name);
-		else s_strcpy(desc, "invalid forceteam");
+		if(valid_client(cn)) formatstring(desc)("force player %s to the enemy team", clients[cn]->name);
+		else copystring(desc, "invalid forceteam");
 	}
 };
 
@@ -126,8 +126,8 @@ struct revokeaction : playeraction
 	revokeaction(int cn) : playeraction(cn){
 		role = max<int>(PRIV_ADMIN, valid_client(cn) ? clients[cn]->priv : 0);
 		passratio = 0.1f;
-		if(valid_client(cn)) s_sprintf(desc)("revoke %s's %s", clients[cn]->name, privname(clients[cn]->priv));
-		else s_sprintf(desc)("invalid revoke to %d", cn);
+		if(valid_client(cn)) formatstring(desc)("revoke %s's %s", clients[cn]->name, privname(clients[cn]->priv));
+		else formatstring(desc)("invalid revoke to %d", cn);
 	}
 };
 
@@ -138,8 +138,8 @@ struct spectaction : playeraction
 		area |= EE_LOCAL_SERV;
 		if(cn != caller){ role = roleconf('f'); passratio = 0.65f;}
 		else passratio = 0.55f;
-		if(valid_client(cn)) s_sprintf(desc)("toggle spectator for %s", clients[cn]->name);
-		else s_strcpy(desc, "invalid spect");
+		if(valid_client(cn)) formatstring(desc)("toggle spectator for %s", clients[cn]->name);
+		else copystring(desc, "invalid spect");
 	}
 };
 
@@ -155,8 +155,8 @@ struct giveadminaction : playeraction
 		give = min(wants, clients[from]->priv);
 		role = max(give, 1);
 		passratio = 0.1f;
-		if(valid_client(cn)) s_sprintf(desc)("give %s to %s", privname(give), clients[cn]->name);
-		else s_sprintf(desc)("invalid give-%s to %d", privname(give), cn);
+		if(valid_client(cn)) formatstring(desc)("give %s to %s", privname(give), clients[cn]->name);
+		else formatstring(desc)("invalid give-%s to %d", privname(give), cn);
 	}
 };
 
@@ -174,8 +174,8 @@ struct subdueaction : playeraction
 		role = protectAdminRole('Q', cn);
 		vetorole = PRIV_ADMIN; // don't let admins abuse this either!
 		length = 25000; // 25s
-		if(valid_client(cn)) s_sprintf(desc)("subdue player %s", clients[cn]->name);
-		else s_strcpy(desc, "invalid subdue");
+		if(valid_client(cn)) formatstring(desc)("subdue player %s", clients[cn]->name);
+		else copystring(desc, "invalid subdue");
 		area |= EE_LOCAL_SERV;
 	}
 };
@@ -186,12 +186,12 @@ struct kickaction : playeraction
 	void perform() { disconnect_client(cn, DISC_KICK); }
 	kickaction(int cn, const char *r) : playeraction(cn)
 	{
-		s_strcpy(reason, r);
+		copystring(reason, r);
 		passratio = 0.7f;
 		role = protectAdminRole('k', cn);
 		length = 35000; // 35s
-		if(valid_client(cn)) s_sprintf(desc)("kick player %s for %s", clients[cn]->name, reason);
-		else s_sprintf(desc)("invalid kick for %s", reason);
+		if(valid_client(cn)) formatstring(desc)("kick player %s for %s", clients[cn]->name, reason);
+		else formatstring(desc)("invalid kick for %s", reason);
 	}
 };
 
@@ -207,8 +207,8 @@ struct banaction : playeraction
 		passratio = 0.75f;
 		role = protectAdminRole('b', cn);
 		length = 30000; // 30s
-		if(isvalid()) s_sprintf(desc)("ban player %s for %d minutes", clients[cn]->name, (bantime = minutes));
-		else s_strcpy(desc, "invalid ban");
+		if(isvalid()) formatstring(desc)("ban player %s for %d minutes", clients[cn]->name, (bantime = minutes));
+		else copystring(desc, "invalid ban");
 	}
 };
 
@@ -219,7 +219,7 @@ struct removebansaction : serveraction
 	{
 		passratio = 0.7f;
 		role = roleconf('b');
-		s_strcpy(desc, "remove all bans");
+		copystring(desc, "remove all bans");
 	}
 };
 
@@ -231,7 +231,7 @@ struct mastermodeaction : serveraction
 	mastermodeaction(int mode) : mode(mode)
 	{
 		role = roleconf('M');
-		if(isvalid()) s_sprintf(desc)("change mastermode to '%s'", mmfullname(mode));
+		if(isvalid()) formatstring(desc)("change mastermode to '%s'", mmfullname(mode));
 	}
 };
 
@@ -249,7 +249,7 @@ struct autoteamaction : enableaction
 	}
 	autoteamaction(bool enable) : enableaction(enable){
 		role = roleconf('a');
-		if(isvalid()) s_sprintf(desc)("%s autoteam", enable ? "enable" : "disable");
+		if(isvalid()) formatstring(desc)("%s autoteam", enable ? "enable" : "disable");
 	}
 };
 
@@ -260,7 +260,7 @@ struct shuffleteamaction : serveraction
 	shuffleteamaction()
 	{
 		role = roleconf('s');
-		if(isvalid()) s_strcpy(desc, "shuffle teams");
+		if(isvalid()) copystring(desc, "shuffle teams");
 	}
 };
 
@@ -270,7 +270,7 @@ struct recorddemoaction : enableaction
 	recorddemoaction(bool enable) : enableaction(enable)
 	{
 		role = roleconf('R');
-		if(isvalid()) s_sprintf(desc)("%s demorecord", enable ? "enable" : "disable");
+		if(isvalid()) formatstring(desc)("%s demorecord", enable ? "enable" : "disable");
 	}
 };
 
@@ -285,7 +285,7 @@ struct stopdemoaction : serveraction
 	{
 		role = PRIV_ADMIN;
 		area |= EE_LOCAL_SERV;
-		s_strcpy(desc, "stop demo");
+		copystring(desc, "stop demo");
 	}
 };
 
@@ -296,7 +296,7 @@ struct cleardemosaction : serveraction
 	cleardemosaction(int demo) : demo(demo)
 	{
 		role = roleconf('C');
-		if(isvalid()) s_sprintf(desc)("clear demo %d", demo);
+		if(isvalid()) formatstring(desc)("clear demo %d", demo);
 	}
 };
 
@@ -308,7 +308,7 @@ struct botbalanceaction : serveraction
 	{
 		area |= EE_LOCAL_SERV;
 		role = roleconf('a');
-		if(isvalid()) s_sprintf(desc)("set botbalance to %d", b);
+		if(isvalid()) formatstring(desc)("set botbalance to %d", b);
 	}
 };
 
@@ -322,7 +322,7 @@ struct serverdescaction : serveraction
 	serverdescaction(char *sdesc, int cn) : sdesc(sdesc), cn(cn)
 	{
 		role = roleconf('D');
-		s_sprintf(desc)("set server description to '%s'", sdesc);
+		formatstring(desc)("set server description to '%s'", sdesc);
 		if(isvalid()) address = clients[cn]->peer->address;
 	}
 	~serverdescaction() { DELETEA(sdesc); }

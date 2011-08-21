@@ -57,7 +57,7 @@ COMMAND(fontskip, ARG_1INT);
 string myfont = "default";
 void newsetfont(const char *name)
 {
-    if (setfont(name)) s_strcpy(myfont,name);
+    if (setfont(name)) copystring(myfont,name);
 }
 
 bool setfont(const char *name)
@@ -95,7 +95,7 @@ int text_width(const char *str)
 
 void draw_textf(const char *fstr, int left, int top, ...)
 {
-	s_sprintfdlv(str, top, fstr);
+	defvformatstring(str, top, fstr);
 	draw_text(str, left, top);
 }
 

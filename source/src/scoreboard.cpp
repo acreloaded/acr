@@ -101,7 +101,7 @@ struct scoreratio{
 };
 
 void renderscore(void *menu, playerent *d){
-	s_sprintfd(status)("\f%d", privcolor(d->priv, d->state == CS_DEAD));
+	defformatstring(status)("\f%d", privcolor(d->priv, d->state == CS_DEAD));
 	static color localplayerc(0.2f, 0.2f, 0.2f, 0.2f), damagedplayerc(0.4f, 0.1f, 0.1f, 0.3f);
 	const char *clag = d->state==CS_LAGGED ? "LAG" : colorpj(d->plag), *cping = colorping(d->ping);
 	sline &line = scorelines.add();
@@ -109,8 +109,8 @@ void renderscore(void *menu, playerent *d){
 	string &s = line.s;
 	scoreratio sr;
 	sr.calc(d->frags, d->deaths);
-	if(m_flags) s_sprintf(s)("%d\t%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->points, d->flagscore, d->frags, d->assists, d->deaths, sr.precision, sr.ratio, clag, cping, d->clientnum, status, colorname(d, true));
-	else s_sprintf(s)("%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->points, d->frags, d->assists, d->deaths, sr.precision, sr.ratio, clag, cping, d->clientnum, status, colorname(d, true));
+	if(m_flags) formatstring(s)("%d\t%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->points, d->flagscore, d->frags, d->assists, d->deaths, sr.precision, sr.ratio, clag, cping, d->clientnum, status, colorname(d, true));
+	else formatstring(s)("%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->points, d->frags, d->assists, d->deaths, sr.precision, sr.ratio, clag, cping, d->clientnum, status, colorname(d, true));
 }
 
 void renderteamscore(void *menu, teamscore &t){
@@ -119,12 +119,12 @@ void renderteamscore(void *menu, teamscore &t){
 		space.s[0] = 0;
 	}
 	sline &line = scorelines.add();
-	s_sprintfd(plrs)("(%d %s)", t.teammembers.length(), t.team == TEAM_SPECT ? "spectating" : t.teammembers.length() == 1 ? "player" : "players");
+	defformatstring(plrs)("(%d %s)", t.teammembers.length(), t.team == TEAM_SPECT ? "spectating" : t.teammembers.length() == 1 ? "player" : "players");
 	scoreratio sr;
 	sr.calc(t.frags, t.deaths);
 	const char *teamname = m_team || t.team == TEAM_SPECT ? team_string(t.team) : "FFA Total";
-	if(m_flags) s_sprintf(line.s)("%d\t%d\t%d\t%d\t%d\t%.*f\t\t\t\t%s\t\t%s", t.points, t.flagscore, t.frags, t.assists, t.deaths, sr.precision, sr.ratio, teamname, plrs);
-	else s_sprintf(line.s)("%d\t%d\t%d\t%d\t%.*f\t\t\t\t%s\t\t%s", t.points, t.frags, t.assists, t.deaths, sr.precision, sr.ratio, teamname, plrs);
+	if(m_flags) formatstring(line.s)("%d\t%d\t%d\t%d\t%d\t%.*f\t\t\t\t%s\t\t%s", t.points, t.flagscore, t.frags, t.assists, t.deaths, sr.precision, sr.ratio, teamname, plrs);
+	else formatstring(line.s)("%d\t%d\t%d\t%d\t%.*f\t\t\t\t%s\t\t%s", t.points, t.frags, t.assists, t.deaths, sr.precision, sr.ratio, teamname, plrs);
 	static color teamcolors[TEAM_NUM+1] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f), color(.4f, .4f, .4f, .3f), color(.8f, .8f, .8f, .4f) };
 	line.bgcolor = &teamcolors[!m_team && t.team != TEAM_SPECT ? TEAM_NUM : t.team];
 	loopv(t.teammembers) renderscore(menu, t.teammembers[i]);
@@ -151,21 +151,21 @@ void renderscores(void *menu, bool init){
 
 	if(getclientmap()[0]){
 		bool fldrprefix = !strncmp(getclientmap(), "maps/", strlen("maps/"));
-		s_sprintf(modeline)("\"%s\" on map %s", modestr(gamemode, modeacronyms > 0), fldrprefix ? getclientmap()+strlen("maps/") : getclientmap());
+		formatstring(modeline)("\"%s\" on map %s", modestr(gamemode, modeacronyms > 0), fldrprefix ? getclientmap()+strlen("maps/") : getclientmap());
 	}
 
 	extern int minutesremaining;
 	if((gamemode>1 || (gamemode==0 && (multiplayer(false) || watchingdemo))) && minutesremaining >= 0){
-		if(!minutesremaining) s_strcat(modeline, ", intermission");
+		if(!minutesremaining) concatstring(modeline, ", intermission");
 		else{
-			s_sprintfd(timestr)(", %d %s remaining", minutesremaining, minutesremaining==1 ? "minute" : "minutes");
-			s_strcat(modeline, timestr);
+			defformatstring(timestr)(", %d %s remaining", minutesremaining, minutesremaining==1 ? "minute" : "minutes");
+			concatstring(modeline, timestr);
 		}
 	}
 
 	if(multiplayer(false)){
 		serverinfo *s = getconnectedserverinfo();
-		if(s) s_sprintf(serverline)("%s:%d %s", s->name, s->port, s->sdesc);
+		if(s) formatstring(serverline)("%s:%d %s", s->name, s->port, s->sdesc);
 	}
 
 	//if(m_team){
@@ -221,8 +221,8 @@ void consolescores(){
 	loopv(scores){
 		d = scores[i];
 		sr.calc(d->frags, d->deaths);
-		s_sprintf(team)(" %-4s", team_string(d->team));
-		s_sprintf(flags)(" %4d ", d->flagscore);
+		formatstring(team)(" %-4s", team_string(d->team));
+		formatstring(flags)(" %4d ", d->flagscore);
 		printf("%6d %s %4d %7d   %4d %5.2f %2d%s %s%s\n", d->points, m_flags ? flags : "", d->frags, d->assists, d->deaths, sr.ratio, d->clientnum,
 					m_team ? team : "", d->name,
 						d->priv == PRIV_MAX ? " (highest)" :

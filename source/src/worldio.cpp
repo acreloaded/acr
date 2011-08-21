@@ -6,7 +6,7 @@
 void backup(char *name, char *backupname)
 {
 	string backupfile;
-	s_strcpy(backupfile, findfile(backupname, "wb"));
+	copystring(backupfile, findfile(backupname, "wb"));
 	remove(backupfile);
 	rename(findfile(name, "wb"), backupfile);
 }
@@ -19,20 +19,20 @@ const char *setnames(const char *name)
 	const char *slash = strpbrk(name, "/\\");
 	if(slash)
 	{
-		s_strncpy(pakname, name, slash-name+1);
-		s_strcpy(mapname, slash+1);
+		copystring(pakname, name, slash-name+1);
+		copystring(mapname, slash+1);
 	}
 	else
 	{
-		s_strcpy(pakname, "maps");
-		s_strcpy(mapname, name);
+		copystring(pakname, "maps");
+		copystring(mapname, name);
 	}
-	s_sprintf(cgzname)("packages/%s/%s.cgz",	  pakname, mapname);
-	s_sprintf(ocgzname)("packages/maps/official/%s.cgz",   mapname);
-	s_sprintf(bakname)("packages/%s/%s_%s.BAK",   pakname, mapname, numtime());
-	s_sprintf(pcfname)("packages/%s/package.cfg", pakname);
-	s_sprintf(mcfname)("packages/%s/%s.cfg",	  pakname, mapname);
-	s_sprintf(omcfname)("packages/maps/official/%s.cfg",   mapname);
+	formatstring(cgzname)("packages/%s/%s.cgz",	  pakname, mapname);
+	formatstring(ocgzname)("packages/maps/official/%s.cgz",   mapname);
+	formatstring(bakname)("packages/%s/%s_%s.BAK",   pakname, mapname, numtime());
+	formatstring(pcfname)("packages/%s/package.cfg", pakname);
+	formatstring(mcfname)("packages/%s/%s.cfg",	  pakname, mapname);
+	formatstring(omcfname)("packages/maps/official/%s.cfg",   mapname);
 
 	path(cgzname);
 	path(bakname);
@@ -279,8 +279,8 @@ bool load_world(char *mname)		// still supports all map formats that have existe
 	maploaded = getfilesize(ocgzname);
 	if(maploaded > 0)
 	{
-		s_strcpy(cgzname, ocgzname);
-		s_strcpy(mcfname, omcfname);
+		copystring(cgzname, ocgzname);
+		copystring(mcfname, omcfname);
 	}
 	else maploaded = getfilesize(cgzname);
 	gzFile f = opengzfile(cgzname, "rb9");

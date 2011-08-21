@@ -821,7 +821,7 @@ struct servercommandline
 				filterservdesc(t, t);
 				break;
 			}
-			case 'P': s_strcat(voteperm, a); break;
+			case 'P': concatstring(voteperm, a); break;
 			case 'V': verbose++; break;
 #ifdef STANDALONE
 			case 'C': if(*a && clfilenesting < 3)

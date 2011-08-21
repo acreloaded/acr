@@ -110,7 +110,7 @@ void renderentities()
 		{
 			if(e.type==CTF_FLAG)
 			{
-				s_sprintfd(path)("pickups/flags/%s", team_string(e.attr2));
+				defformatstring(path)("pickups/flags/%s", team_string(e.attr2));
 				rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
 			}
 			else if((e.type==CLIP || e.type==PLCLIP) && !stenciling) renderclip(e);
@@ -133,8 +133,8 @@ void renderentities()
 	{
 		flaginfo &f = flaginfos[i];
 		entity &e = *f.flagent;
-		s_sprintfd(fpath)("pickups/flags/%s%s", m_ktf ? "" : team_string(i),  m_htf ? "_htf" : m_ktf ? "ktf" : "");
-		s_sprintfd(sfpath)("pickups/flags/small_%s%s", m_ktf ? "" : team_string(i), m_htf ? "_htf" : m_ktf ? "ktf" : "");
+		defformatstring(fpath)("pickups/flags/%s%s", m_ktf ? "" : team_string(i),  m_htf ? "_htf" : m_ktf ? "ktf" : "");
+		defformatstring(sfpath)("pickups/flags/small_%s%s", m_ktf ? "" : team_string(i), m_htf ? "_htf" : m_ktf ? "ktf" : "");
 		switch(f.state)
 		{
 			case CTFF_STOLEN:

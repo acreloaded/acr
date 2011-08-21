@@ -73,7 +73,7 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
 	}
 
 	connectrole = role;
-	s_strcpy(clientpassword, password ? password : "");
+	copystring(clientpassword, password ? password : "");
 
 	ENetAddress address;
 	int p = 0;
@@ -194,8 +194,8 @@ void trydisconnect()
 
 VARP(hudchat, 0, 1, 1);
 void saytext(playerent *d, char *text, int flags, int sound){
-	string nametag; s_strcpy(nametag, colorname(d));
-	if(flags & SAY_TEAM) s_sprintf(nametag)("%s \f5(\f%d%s\f5)", nametag, d->team ? 1 : 3, team_string(d->team));
+	string nametag; copystring(nametag, colorname(d));
+	if(flags & SAY_TEAM) formatstring(nametag)("%s \f5(\f%d%s\f5)", nametag, d->team ? 1 : 3, team_string(d->team));
 	if(sound > S_MAINEND && sound < S_NULL){
 		d->addicon(eventicon::VOICECOM);
 		playsound(sound, SP_HIGH);
@@ -204,14 +204,14 @@ void saytext(playerent *d, char *text, int flags, int sound){
 	if(flags&SAY_TEAM) textcolor = isteam(d, player1) ? 1 : 3; // friendly blue, enemy red
 	if(flags&SAY_DENY){
 		textcolor = 2; // denied yellow
-		s_strcat(text, " \f3Do not SPAM!");
+		concatstring(text, " \f3Do not SPAM!");
 	}
 	string textout;
 	const int col = d == player1 ? 1 : m_team ? d->team == player1->team ? 0 : 3 : 5;
-	if(flags & SAY_ACTION) s_sprintf(textout)("\f5* \f%d%s \f6(%d)", col, d->name, d->clientnum);
-	else s_sprintf(textout)("\f5<\f%d%s \f6(%d)\f5>", col, d->name, d->clientnum);
-	if(sound) s_sprintf(textout)("%s \f4[\f6%d\f4]", textout, sound);
-	s_sprintf(textout)("%s \f%d%s", textout, textcolor, text);
+	if(flags & SAY_ACTION) formatstring(textout)("\f5* \f%d%s \f6(%d)", col, d->name, d->clientnum);
+	else formatstring(textout)("\f5<\f%d%s \f6(%d)\f5>", col, d->name, d->clientnum);
+	if(sound) formatstring(textout)("%s \f4[\f6%d\f4]", textout, sound);
+	formatstring(textout)("%s \f%d%s", textout, textcolor, text);
 	chatout(textout);
 }
 
@@ -229,7 +229,7 @@ void toserver_voice(char *text){
 	string t;
 	*t = t[1] = 0;
 	if(s <= S_VOICETEAMEND) *t = '%';
-	s_strcat(t, text);
+	concatstring(t, text);
 	toserver(t, s - S_MAINEND);
 }
 void toserver_me(char *text){ toserver(text, 0, true); }

@@ -38,7 +38,7 @@ const vec *getTagPos(const char *mdl, const char *tag){
 }
 
 inline vec *hudgunTag(playerent *p, const char *tag){
-	s_sprintfd(hudmdl)("weapons/%s", p->weaponsel->info.modelname);
+	defformatstring(hudmdl)("weapons/%s", p->weaponsel->info.modelname);
 	const vec *v = getTagPos(hudmdl, tag);
 	if(!v) return NULL;
 	static vec v2;
