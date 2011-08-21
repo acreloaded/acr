@@ -178,7 +178,7 @@ static inline const int obit_suicide(int weap){
 		case 1: return OBIT_DROWN; // drown
 		case 2: return OBIT_FALL; // fall
 		case 3: return OBIT_FF; // ff
-		case 4: return OBIT_BOT;
+		case 4: return OBIT_BOT; // bot
 	}
 	return OBIT_DEATH;
 }

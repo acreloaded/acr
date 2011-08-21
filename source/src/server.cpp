@@ -3246,7 +3246,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(!hasclient(cl, cn)) break;
 				client *cp = clients[cn];
 				if(cp->state.state != CS_ALIVE) break;
-				serverdamage(cp, cp, 1000, cn == sender ? NUMGUNS : NUMGUNS + 3, cn == sender ? FRAG_GIB : FRAG_NONE, cp->state.o);
+				serverdamage(cp, cp, 1000, cn == sender ? NUMGUNS : NUMGUNS + 4, cn == sender ? FRAG_GIB : FRAG_NONE, cp->state.o);
 				break;
 			}
 
