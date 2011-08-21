@@ -1224,7 +1224,7 @@ void arenacheck(){
 	if(arenaround){ // start new arena round
 		arenaround = 0;
 		distributespawns();
-		loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connected && clients[i]->isonrightmap && clients[i]->team != TEAM_SPECT){
+		loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connected && valid_client(peerowner(i)) && clients[peerowner(i)]->isonrightmap && clients[i]->team != TEAM_SPECT){
 			clients[i]->state.lastdeath = 1;
 			sendspawn(clients[i]);
 		}
