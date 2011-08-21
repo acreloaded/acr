@@ -2963,7 +2963,7 @@ void checkmove(client &cp){
 		else if(m_ktf && f.state == CTFF_INBASE) flagaction(i, FA_PICKUP, sender);
 	}
 	// throwing knife pickup
-	loopv(sknives){
+	if(cp.state.ownernum < 0) loopv(sknives){
 		const bool pickup = cs.o.dist(sknives[i].o) < 5 && cs.ammo[GUN_KNIFE] < 3, expired = gamemillis - sknives[i].millis > KNIFETTL;
 		if(pickup || expired){
 			if(pickup) sendf(-1, 1, "ri5", N_RELOAD, sender, GUN_KNIFE, cs.mag[GUN_KNIFE], ++cs.ammo[GUN_KNIFE]);
