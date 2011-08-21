@@ -16,6 +16,7 @@ int findaiclient(int exclude = -1){ // person with least bots
 }
 
 bool addai(){
+	if(!(m_osok || m_lss || m_pistol)) return false;
 	int aiowner = findaiclient(), cn = -1, numbots = 0;
 	if(!valid_client(aiowner)) return false;
 	loopv(clients){
