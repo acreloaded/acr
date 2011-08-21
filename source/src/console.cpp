@@ -172,9 +172,10 @@ struct obitlist
 			case GUN_SHOTGUN:
 			case GUN_SNIPER:
 				aspect = 4; break;
-			case GUN_SUBGUN:
 			case GUN_BOLT:
 			case GUN_ASSAULT:
+				aspect = 3; break;
+			case GUN_SUBGUN:
 				aspect = 2; break;
 			case GUN_AKIMBO:
 				style = GUN_PISTOL; // break;
