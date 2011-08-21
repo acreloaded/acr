@@ -348,7 +348,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case N_DELBOT:
+			case N_DELAI:
 			{
 				int cn = getint(p);
 				if(players.inrange(cn)){
