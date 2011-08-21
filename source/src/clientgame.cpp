@@ -455,7 +455,7 @@ void spawnplayer(playerent *d)
 }
 
 void respawnself(){
-	if(!m_duel) addmsg(N_TRYSPAWN, "ri", getclientnum());
+	if(!m_duel) spawnplayer(player1);
 }
 
 bool tryrespawn(){
