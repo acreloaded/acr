@@ -401,7 +401,7 @@ void tryauth(){
 }
 COMMANDN(auth, tryauth, ARG_NONE);
 
-VAR(connectauth, 0, 0, 1);
+VARP(connectauth, 0, 0, 1);
 
 void sendintro()
 {
