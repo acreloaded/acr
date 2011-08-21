@@ -3392,9 +3392,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_PINGTIME:
 			{
-				int pingtime = clamp(getint(p), 0, 99999);
+				const int pingtime = clamp(getint(p), 0, 99999);
 				if(!cl) break;
-				cl->ping = cl->ping == 9999 ? pingtime : (cl->ping * 4 + pingtime) / 5;
+				const int newping = cl->ping == 9999 ? pingtime : (cl->ping * 4 + pingtime) / 5;
+				loopv(clients) if(clients[i]->type != ST_EMPTY && (i == sender || clients[i]->state.ownernum == sender)) clients[i]->ping = newping;
 				sendf(-1, 1, "i3", N_PINGTIME, sender, cl->ping);
 				break;
 			}
