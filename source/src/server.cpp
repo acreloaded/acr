@@ -3283,7 +3283,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						hcount--;
 					}
 					while(hcount--){
-						headevent &h = cl->addevent().head;
+						headevent &h = cp->addevent().head;
 						h.cn = getint(p);
 						loopk(3) h.o[k] = getfloat(p);
 					}
