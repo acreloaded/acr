@@ -113,7 +113,7 @@ void CBotManager::Think()
 		}
 		// handle the bots
 		loopv(players){
-			if(!players[i] || players[i]->clientnum != ourcn) continue;
+			if(!players[i] || players[i]->ownernum != ourcn) continue;
 			bc->m_pMyEnt = players[i];
 			bc->Think();
 		}
