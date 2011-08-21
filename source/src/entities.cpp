@@ -257,7 +257,7 @@ void setspawn(int i, bool on) { if(ents.inrange(i)) ents[i].spawned = on; }
 void selectnextprimary(int num)
 {
 	player1->setnextprimary(num);
-	addmsg(N_PRIMARYWEAP, "ri", player1->nextprimweap->type);
+	addmsg(N_PRIMARYWEAP, "ri2", getclientnum(), player1->nextprimweap->type);
 }
 
 VARFP(nextprimary, 0, GUN_ASSAULT, NUMGUNS, selectnextprimary(nextprimary));

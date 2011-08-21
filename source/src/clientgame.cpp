@@ -445,14 +445,17 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
 
 void spawnplayer(playerent *d)
 {
+	addmsg(N_TRYSPAWN, "ri", d->clientnum);
+	/*
 	d->respawn();
 	d->spawnstate(gamemode);
 	d->state = d==player1 && editmode ? CS_EDITING : CS_ALIVE;
 	findplayerstart(d);
+	*/
 }
 
 void respawnself(){
-	if(!m_duel) addmsg(N_TRYSPAWN, "r");
+	if(!m_duel) addmsg(N_TRYSPAWN, "ri", getclientnum());
 }
 
 bool tryrespawn(){

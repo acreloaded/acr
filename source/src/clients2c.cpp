@@ -404,7 +404,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_SPAWN:
 			{
-				playerent *s = d;
+				playerent *s = getclient(getint(p));
 				if(!s) { static playerent dummy; s = &dummy; }
 				s->respawn();
 				s->lifesequence = getint(p);
@@ -421,32 +421,35 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_SPAWNSTATE:
 			{
-				if(editmode) toggleedit(true);
-				showscores(false);
-				setscope(false);
-				player1->respawn();
-				player1->lifesequence = getint(p);
-				player1->health = getint(p);
-				player1->armour = getint(p);
-				player1->setprimary(getint(p));
-				player1->selectweapon(getint(p));
+				playerent *d = getclient(getint(p));
+				if(!d) break;
+				d->respawn();
+				d->lifesequence = getint(p);
+				d->health = getint(p);
+				d->armour = getint(p);
+				d->setprimary(getint(p));
+				d->selectweapon(getint(p));
 				int arenaspawn = getint(p);
-				loopi(NUMGUNS) player1->ammo[i] = getint(p);
-				loopi(NUMGUNS) player1->mag[i] = getint(p);
-				player1->state = CS_ALIVE;
-				findplayerstart(player1, false, arenaspawn);
-				extern int nextskin;
-				if(player1->skin!=nextskin) setskin(player1, nextskin);
-				arenaintermission = 0;
-				if(m_duel)
-				{
-					closemenu(NULL);
-					conoutf("new round starting... fight!");
-					hudeditf(HUDMSG_TIMER, "FIGHT!");
+				loopi(NUMGUNS) d->ammo[i] = getint(p);
+				loopi(NUMGUNS) d->mag[i] = getint(p);
+				d->state = CS_ALIVE;
+				findplayerstart(d, false, arenaspawn);
+				if(d == player1){
+					if(editmode) toggleedit(true);
+					showscores(false);
+					setscope(false);
+					extern int nextskin;
+					if(player1->skin!=nextskin) setskin(player1, nextskin);
+					arenaintermission = 0;
+					if(m_duel){
+						closemenu(NULL);
+						conoutf("new round starting... fight!");
+						hudeditf(HUDMSG_TIMER, "FIGHT!");
+					}
 				}
-				addmsg(N_SPAWN, "rii", player1->lifesequence, player1->weaponsel->type);
-				player1->weaponswitch(player1->primweap);
-				player1->weaponchanging -= weapon::weaponchangetime/2;
+				addmsg(N_SPAWN, "ri3", d->clientnum, d->lifesequence, d->weaponsel->type);
+				d->weaponswitch(d->primweap);
+				d->weaponchanging -= weapon::weaponchangetime/2;
 				break;
 			}
 

@@ -651,7 +651,7 @@ void sendspawn(client *c){
 	clientstate &gs = c->state;
 	if(gs.lastdeath) gs.respawn();
 	spawnstate(c);
-	sendf(c->clientnum, 1, "ri7vv", N_SPAWNSTATE, gs.lifesequence,
+	sendf(c->clientnum, 1, "ri8vv", N_SPAWNSTATE, c->clientnum, gs.lifesequence,
 		gs.health, gs.armour,
 		gs.primary, gs.gunselect, m_duel ? c->spawnindex : -1,
 		NUMGUNS, gs.ammo, NUMGUNS, gs.mag);
@@ -3203,43 +3203,51 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_PRIMARYWEAP:
 			{
-				int nextprimary = getint(p);
+				int cn = getint(p), nextprimary = getint(p);
+				if(!hasclient(*cl, cn)) break;
+				client &cp = *clients[cn];
 				if(nextprimary<0 && nextprimary>=NUMGUNS) break;
-				cl->state.nextprimary = nextprimary;
+				cp.state.nextprimary = nextprimary;
 				break;
 			}
 
 			case N_TRYSPAWN:
 			{
+				const int cn = getint(p);
+				if(!hasclient(*cl, cn)) break;
+				client &cp = *clients[cn];
 				if(!cl->isonrightmap){
-					sendf(sender, 1, "ri", N_MAPIDENT);
+					if(cn == sender) sendf(sender, 1, "ri", N_MAPIDENT);
 					break;
 				}
-				if(cl->state.state!=CS_DEAD || cl->state.lastspawn>=0 || m_duel) break;
-				const int waitremain = (m_flags ? 5000 : 1000) - gamemillis + cl->state.lastdeath;
+				if(cp.state.state!=CS_DEAD || cp.state.lastspawn>=0 || m_duel) break;
+				const int waitremain = (m_flags ? 5000 : 1000) - gamemillis + cp.state.lastdeath;
 				if(waitremain > 0) /*sendmsgi(41, waitremain, sender)*/;
-				else if(cl->team == TEAM_SPECT) updateclientteam(sender, freeteam(sender), FTR_PLAYERWISH);
-				else sendspawn(cl);
+				else if(cp.team == TEAM_SPECT) updateclientteam(sender, freeteam(sender), FTR_PLAYERWISH);
+				else sendspawn(&cp);
 				break;
 			}
 
 			case N_SPAWN:
 			{
-				int ls = getint(p), gunselect = getint(p);
-				if((cl->state.state!=CS_ALIVE && cl->state.state!=CS_DEAD) || ls!=cl->state.lifesequence || cl->state.lastspawn<0 || gunselect<0 || gunselect>=NUMGUNS) break;
-				cl->state.lastspawn = -1;
-				cl->state.spawnmillis = gamemillis;
-				cl->state.state = CS_ALIVE;
-				cl->state.gunselect = gunselect;
-				QUEUE_BUF(5*(5 + 2*NUMGUNS),
+				int cn = getint(p), ls = getint(p), gunselect = getint(p);
+				if(!hasclient(*cl, cn)) break;
+				client &cp = *clients[cn];
+				if((cp.state.state!=CS_ALIVE && cp.state.state!=CS_DEAD) || ls!=cp.state.lifesequence || cp.state.lastspawn<0 || gunselect<0 || gunselect>=NUMGUNS) break;
+				cp.state.lastspawn = -1;
+				cp.state.spawnmillis = gamemillis;
+				cp.state.state = CS_ALIVE;
+				cp.state.gunselect = gunselect;
+				QUEUE_BUF(5*(6 + 2*NUMGUNS),
 				{
 					putint(buf, N_SPAWN);
-					putint(buf, cl->state.lifesequence);
-					putint(buf, cl->state.health);
-					putint(buf, cl->state.armour);
-					putint(buf, cl->state.gunselect);
-					loopi(NUMGUNS) putint(buf, cl->state.ammo[i]);
-					loopi(NUMGUNS) putint(buf, cl->state.mag[i]);
+					putint(buf, cn);
+					putint(buf, ls);
+					putint(buf, cp.state.health);
+					putint(buf, cp.state.armour);
+					putint(buf, gunselect);
+					loopi(NUMGUNS) putint(buf, cp.state.ammo[i]);
+					loopi(NUMGUNS) putint(buf, cp.state.mag[i]);
 				});
 				break;
 			}
