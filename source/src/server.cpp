@@ -331,10 +331,10 @@ void cleanworldstate(ENetPacket *packet){
    }
 }
 
-bool hasclient(client &ci, int cn){
+bool hasclient(client *ci, int cn){
 	if(!valid_client(cn)) return false;
-	client &cp = *clients[cn];
-	return ci.clientnum == cn || cp.state.ownernum == ci.clientnum;
+	client *cp = clients[cn];
+	return ci->clientnum == cn || cp->state.ownernum == ci->clientnum;
 }
 
 bool allowbroadcast(int n){
@@ -3204,7 +3204,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case N_PRIMARYWEAP:
 			{
 				int cn = getint(p), nextprimary = getint(p);
-				if(!hasclient(*cl, cn)) break;
+				if(!hasclient(cl, cn)) break;
 				client &cp = *clients[cn];
 				if(nextprimary<0 && nextprimary>=NUMGUNS) break;
 				cp.state.nextprimary = nextprimary;
@@ -3214,7 +3214,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case N_TRYSPAWN:
 			{
 				const int cn = getint(p);
-				if(!hasclient(*cl, cn)) break;
+				if(!hasclient(cl, cn)) break;
 				client &cp = *clients[cn];
 				if(!cl->isonrightmap){
 					if(cn == sender) sendf(sender, 1, "ri", N_MAPIDENT);
@@ -3231,7 +3231,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case N_SPAWN:
 			{
 				int cn = getint(p), ls = getint(p), gunselect = getint(p);
-				if(!hasclient(*cl, cn)) break;
+				if(!hasclient(cl, cn)) break;
 				client &cp = *clients[cn];
 				if((cp.state.state!=CS_ALIVE && cp.state.state!=CS_DEAD) || ls!=cp.state.lifesequence || cp.state.lastspawn<0 || gunselect<0 || gunselect>=NUMGUNS) break;
 				cp.state.lastspawn = -1;
@@ -3350,7 +3350,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case N_SWITCHWEAP:
 			{
 				int cn = getint(p), weaponsel = getint(p);
-				if(!hasclient(*cl, cn)) break;
+				if(!hasclient(cl, cn)) break;
 				client &cp = *clients[cn];
 				if(weaponsel < 0 || weaponsel >= NUMGUNS) break;
 				cp.state.gunselect = weaponsel;
@@ -3541,7 +3541,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			{
 				const int cn = getint(p);
 				bool broadcast = true;
-				if(!hasclient(*cl, cn)) broadcast = false;
+				if(!hasclient(cl, cn)) broadcast = false;
 				vec newo, newaim, newvel;
 				loopi(3) newo[i] = getfloat(p);
 				loopi(3) newaim[i] = getfloat(p);
