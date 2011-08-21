@@ -7,7 +7,7 @@
 	docron();
 	
 	function isbanned($ip, $mask){
-		bool $banned = false;
+		$banned = false;
 		foreach($config['sbans'] as $b) if($b[0] <= $ip && $ip <= $b[1] && $b[2] & $mask){ $banned = true; break; }
 		foreach($config['sallows'] as $b) if($b[0] <= $ip && $ip <= $b[1] && $b[2] & $mask){ $banned = false; break; }
 		return $banned;
