@@ -73,7 +73,7 @@ uchar *stripheader(uchar *b)
 ENetSocket mssock = ENET_SOCKET_NULL;
 ENetAddress msaddress = { ENET_HOST_ANY, ENET_PORT_ANY };
 ENetAddress masterserver = { ENET_HOST_ANY, 80 };
-int lastupdatemaster = 0;
+int lastupdatemaster = -1;
 string masterbase;
 string masterpath;
 uchar masterrep[MAXTRANS];
@@ -84,7 +84,7 @@ vector<authrequest> authrequests;
 #define MSKEEPALIVE (20*60*1000)
 void updatemasterserver(int millis, const ENetAddress &localaddr){
 	if(mssock != ENET_SOCKET_NULL) return; // busy
-	if(!millis || millis/MSKEEPALIVE>=lastupdatemaster)
+	if(millis/MSKEEPALIVE>lastupdatemaster)
 	{
 		defformatstring(path)("%sregister/%d/%d", masterpath, PROTOCOL_VERSION, localaddr.port);
 		defformatstring(agent)("AssaultCube Server %d", AC_VERSION);
