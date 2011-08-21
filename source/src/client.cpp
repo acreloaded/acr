@@ -410,6 +410,7 @@ void sendintro()
 	putint(p, N_CONNECT);
 	sendstring(player1->name, p);
 	putint(p, player1->skin);
+	// TODO: put lvl here
 	sendstring(genpwdhash(player1->name, clientpassword, sessionid), p);
 	if(connectauth){
 		authtoken = rand();

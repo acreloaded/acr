@@ -380,6 +380,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
+			case N_LEVELUP:
+			{
+				playerent *d = getclient(getint(p));
+				int lvl = getint(p);
+				//if(d) d->lvl = lvl;
+				break;
+			}
+
 			case N_DISC:
 			{
 				int cn = getint(p), reason = getint(p);

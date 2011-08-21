@@ -122,8 +122,6 @@ COMMAND(curmode, ARG_IVAL);
 COMMAND(curmap, ARG_1INT);
 VARP(showscoresondeath, 0, 1, 1);
 
-#define MAXLEVEL 100
-#define MAXEXP 1000
 VARP(level, 1, 1, MAXLEVEL);
 VARP(experience, 0, 0, MAXEXP);
 void addexp(int xp){
@@ -132,8 +130,9 @@ void addexp(int xp){
 	experience += xp / factor;
 	if(experience >= MAXEXP){
 		level = clamp(level + 1, 1, MAXLEVEL);
+		addmsg(N_LEVELUP, "ri", level);
 		factor = xpfactor;
-		experience = max(0, (experience - MAXEXP) / factor);
+		experience = max(0.f, (experience - MAXEXP) / factor);
 	}
 	#undef xpfactor
 }

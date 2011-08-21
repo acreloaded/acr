@@ -3149,8 +3149,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			}
 
 			case N_SKIN:
-				cl->skin = getint(p);
-				sendf(-1, 1, "ri3x", N_SKIN, sender, cl->skin, sender);
+				sendf(-1, 1, "ri3x", N_SKIN, sender, cl->skin = getint(p), sender);
+				break;
+
+			case N_LEVELUP: // just relay for effect
+				sendf(-1, 1, "ri3x", N_LEVELUP, sender, clamp(getint(p), 1, MAXLEVEL), sender);
 				break;
 
 			case N_MAPIDENT:
