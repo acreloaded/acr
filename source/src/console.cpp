@@ -166,7 +166,7 @@ struct obitlist
 		return tex;
 	}
 
-	int drawobit(int style, int left, int top){
+	int drawobit(int style, int left, int top, uchar fade){
 		int aspect = 1;
 		switch(style){
 			case GUN_SHOTGUN:
@@ -184,7 +184,7 @@ struct obitlist
 		Texture **guntexs = obittex();
 		const int sz = FONTH;
 
-		glColor4f(1, 1, 1, style == OBIT_HEADSHOT ? fabs(sinf(totalmillis / 500.f * 2 * PI)) : 1);
+		glColor4f(1, 1, 1, fade * (style == OBIT_HEADSHOT ? fabs(sinf(totalmillis / 500.f * 2 * PI)) : 1) / 255);
 		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 		glBindTexture(GL_TEXTURE_2D, guntexs[style]->id);
 
@@ -232,8 +232,8 @@ struct obitlist
 					x += width + text_width(" ") / 2;
 				}
 				// now draw weapon symbol
-				x += drawobit(l.weap, left + x, y);
-				if(l.headshot) x += drawobit(OBIT_HEADSHOT, left + x, y);
+				x += drawobit(l.weap, left + x, y, fade);
+				if(l.headshot) x += drawobit(OBIT_HEADSHOT, left + x, y, fade);
 				// end of weapon symbol
 				x += text_width(" ") / 2;
 				draw_text(l.target, left + x, y, 0xFF, 0xFF, 0xFF, fade, -1, conwidth);
