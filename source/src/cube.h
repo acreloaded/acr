@@ -54,7 +54,7 @@ extern int noob;
 #include "protos.h"				// external function decls
 
 #define AC_VERSION 2140
-#define AC_MASTER_URI "ms.assaultcubes.tk/"
+#define AC_MASTER_URI "cdn.assaultcubes.tk/ms/"
 
 #endif
 
