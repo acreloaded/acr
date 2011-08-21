@@ -215,7 +215,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
 
 	float headspace = 10;
 
-	if(d->type!=ENT_CAMERA)
+	if(d->type!=ENT_PLAYER && d->type!=ENT_CAMERA)
 	{
 		loopv(players)	   // collide with other players
 		{
