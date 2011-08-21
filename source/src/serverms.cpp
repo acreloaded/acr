@@ -80,32 +80,30 @@ uchar masterrep[MAXTRANS];
 ENetBuffer masterb;
 vector<authrequest> authrequests;
 
-// send alive signal to masterserver every twenty minutes of uptime
-#define MSKEEPALIVE (20*60*1000)
+// send alive signal to masterserver every fifteen minutes of uptime
+#define MSKEEPALIVE (15*60*1000)
 void updatemasterserver(int millis, const ENetAddress &localaddr){
 	if(mssock != ENET_SOCKET_NULL) return; // busy
-	if(millis/MSKEEPALIVE>lastupdatemaster)
-	{
-		defformatstring(path)("%sregister/%d/%d", masterpath, PROTOCOL_VERSION, localaddr.port);
-		defformatstring(agent)("AssaultCube Server %d", AC_VERSION);
-		mssock = httpgetsend(masterserver, masterbase, path, "acse-serv", agent, &msaddress);
-		logline(ACLOG_INFO, "sending registration request to %s...", masterbase);
-		masterrep[0] = 0;
-		masterb.data = masterrep;
-		masterb.dataLength = MAXTRANS-1;
+	string path;
+	*path = 0;
+	if(millis/MSKEEPALIVE>lastupdatemaster){
+		logline(ACLOG_INFO, "sending registration request to master server");
+
+		formatstring(path)("%sregister/%d/%d", masterpath, PROTOCOL_VERSION, localaddr.port);
 		lastupdatemaster = millis/MSKEEPALIVE;
 	} else if (authrequests.length()){
-		authrequest r = authrequests.remove(0);
-		// request first auth
-		string path;
+		authrequest r = authrequests.pop(); // request auth as a stack, just because it's faster
+		logline(ACLOG_INFO, "sending auth #%d", r.id);
+		
 		if(r.answer) formatstring(path)("%sauth/%d/%s", masterpath, r.id, r.chal);
 		else formatstring(path)("%sauth/%d", masterpath, r.id);
-		defformatstring(agent)("AssaultCube Server %d", AC_VERSION);
-		mssock = httpgetsend(masterserver, masterbase, path, "acse-sauth", agent, &msaddress);
-		masterrep[0] = 0;
-		masterb.data = masterrep;
-		masterb.dataLength = MAXTRANS-1;
 	}
+	if(!*path) return; // no request
+	defformatstring(agent)("AssaultCube Server v%d", AC_VERSION);
+	mssock = httpgetsend(masterserver, masterbase, path, "acse-server", agent, &msaddress);
+	masterrep[0] = 0;
+	masterb.data = masterrep;
+	masterb.dataLength = MAXTRANS-1;
 }
 
 void checkmasterreply()

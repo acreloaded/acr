@@ -97,6 +97,7 @@ bool reqauth(int cn, int authtoken){
 	authrequest &r = authrequests.add();
 	r.id = cl.authreq = nextauthreq++;
 	r.answer = false;
+	logline(ACLOG_INFO, "[%s] requests auth #%d", cl.hostname, r.id);
 	sendf(cn, 1, "ri2", N_AUTHCHAL, 0);
 	return true;
 }
