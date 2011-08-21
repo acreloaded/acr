@@ -323,10 +323,11 @@ const int weapon::scopetime = ADSTIME;
 int weapon::flashtime() const { return min(max((int)info.attackdelay, 180)/3, 150); }
 
 void weapon::sendshoot(vec &from, vec &to){
-	if(owner!=player1) return;
+	if(owner!=player1 && owner->ownernum!=getclientnum()) return;
 	static uchar buf[MAXTRANS];
 	ucharbuf p(buf, MAXTRANS);
 	putint(p, N_SHOOT);
+	putint(p, owner->clientnum);
 	putint(p, lastmillis);
 	putint(p, owner->weaponsel->type);
 	to.sub(owner->o);
@@ -384,7 +385,7 @@ bool weapon::reload(){
 	owner->ammo[type] -= reloadsize(type);
 	owner->mag[type] = min<int>(magsize(type), owner->mag[type] + reloadsize(type));
 
-	if(player1 == owner) addmsg(N_RELOAD, "ri2", lastmillis, type);
+	if(player1 == owner || owner->ownernum == getclientnum()) addmsg(N_RELOAD, "ri3", owner->clientnum, lastmillis, type);
 	return true;
 }
 
@@ -490,7 +491,7 @@ enum { NS_NONE, NS_ACTIVATED = 0, NS_THROWED, NS_EXPLODED };
 grenadeent::grenadeent(playerent *owner, int millis){
 	ASSERT(owner);
 	nadestate = NS_NONE;
-	local = owner==player1;
+	local = owner==player1 || owner->ownernum == getclientnum();
 	bounceent::owner = owner;
 	bounceent::millis = id = lastmillis;
 	timetolive = NADETTL-millis;
@@ -507,7 +508,7 @@ grenadeent::~grenadeent(){
 void grenadeent::explode(){
 	if(nadestate!=NS_ACTIVATED && nadestate!=NS_THROWED ) return;
 	nadestate = NS_EXPLODED;
-	if(local) addmsg(N_PROJ, "ri3f3", lastmillis, GUN_GRENADE, id, o.x, o.y, o.z);
+	if(local) addmsg(N_PROJ, "ri4f3", owner->clientnum, lastmillis, GUN_GRENADE, id, o.x, o.y, o.z);
 }
 
 void grenadeent::activate(){
@@ -515,7 +516,7 @@ void grenadeent::activate(){
 	nadestate = NS_ACTIVATED;
 
 	if(local){
-		addmsg(N_SHOOTC, "ri2", millis, GUN_GRENADE);
+		addmsg(N_SHOOTC, "ri3", owner->clientnum, millis, GUN_GRENADE);
 		playsound(S_GRENADEPULL, SP_HIGH);
 	}
 }
@@ -976,10 +977,10 @@ bool akimbo::attack(vec &targ){
 
 void akimbo::onammopicked(){
 	akimbomillis = lastmillis + 30000;
-	if(owner==player1)
+	if(owner==player1 || owner->ownernum == getclientnum())
 	{
 		if(owner->weaponsel->type!=GUN_SNIPER && owner->weaponsel->type!=GUN_GRENADE) owner->weaponswitch(this);
-		addmsg(N_AKIMBO, "ri", lastmillis);
+		addmsg(N_AKIMBO, "ri2", owner->clientnum, lastmillis);
 	}
 }
 
@@ -1029,7 +1030,7 @@ vector<cknife> knives;
 knifeent::knifeent(playerent *owner, int millis){
 	ASSERT(owner);
 	knifestate = NS_NONE;
-	local = owner==player1;
+	local = owner==player1 || owner->ownernum == getclientnum();
 	bounceent::owner = owner;
 	bounceent::millis = lastmillis;
 	timetolive = KNIFETTL-millis;
@@ -1052,7 +1053,7 @@ void knifeent::explode(){
 	if(knifestate!=NS_ACTIVATED && knifestate!=NS_THROWED ) return;
 	knifestate = NS_EXPLODED;
 	static vec n(0,0,0);
-	if(local) addmsg(N_PROJ, "ri3f3", lastmillis, GUN_KNIFE, millis, o.x, o.y, o.z);
+	if(local) addmsg(N_PROJ, "ri4f3", owner->clientnum, lastmillis, GUN_KNIFE, millis, o.x, o.y, o.z);
 	playsound(S_GRENADEBOUNCE1+rnd(2), &o);
 	destroy();
 }
@@ -1062,7 +1063,7 @@ void knifeent::activate(){
 	knifestate = NS_ACTIVATED;
 
 	if(local){
-		addmsg(N_SHOOTC, "ri2", millis, GUN_KNIFE);
+		addmsg(N_SHOOTC, "ri3", owner->clientnum, millis, GUN_KNIFE);
 		//playsound(S_KNIFEPULL, SP_HIGH);
 	}
 }

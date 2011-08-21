@@ -2897,7 +2897,7 @@ void checkmove(client &cp){
 	else if(cs.drownmillis > 0) cs.drownmillis = -cs.drownmillis;
 	*/
 	// out of map check
-	if(/*cp.type==ST_TCPIP && !m_edit &&*/ checkpos(cs.o, false)){
+	if(cp.type==ST_TCPIP && !m_edit && checkpos(cs.o, false)){
 		logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cp.hostname, cp.name, ++cp.mapcollisions);
 		sendmsgi(40, sender);
 		sendf(sender, 1, "ri", N_MAPIDENT);
@@ -3107,6 +3107,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 		buf.put(&p.buf[curmsg], p.length() - curmsg); \
 		enet_packet_resize(packet, buf.length());
 
+	static gameevent dummy; // in case a client sends on behalf of somebody else's bot
+
 	int curmsg;
 	while((curmsg = p.length()) < p.maxlen)
 	{
@@ -3276,27 +3278,33 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case N_SHOOT:
 			case N_SHOOTC:
 			{
-				gameevent &shot = cl->addevent();
+				const int cn = getint(p);
+				const bool hascn = hasclient(cl, cn);
+				client *cp = hascn ? clients[cn] : NULL;
+				static gameevent dummy;
+				gameevent &shot = hascn ? cp->addevent() : dummy;
 				shot.type = GE_SHOT;
-				#define seteventmillis(event) \
+				#define seteventmillis(event, idm) \
 				{ \
-					event.id = getint(p); \
-					if(!cl->timesync || (cl->events.length()==1 && cl->state.waitexpired(gamemillis))) \
+					event.id = idm; \
+					if(!cp->timesync || (cp->events.length()==1 && cp->state.waitexpired(gamemillis))) \
 					{ \
-						cl->timesync = true; \
-						cl->gameoffset = gamemillis - event.id; \
+						cp->timesync = true; \
+						cp->gameoffset = gamemillis - event.id; \
 						event.millis = gamemillis; \
 					} \
-					else event.millis = cl->gameoffset + event.id; \
+					else event.millis = cp->gameoffset + event.id; \
 				}
-				seteventmillis(shot.shot);
+				int id = getint(p);
+				if(hascn) seteventmillis(shot.shot, id);
 				shot.shot.gun = getint(p);
 				shot.shot.compact = type == N_SHOOTC;
 				if(type == N_SHOOT){
 					loopk(3) shot.shot.to[k] = getfloat(p);
 					int hcount = getint(p);
 					if(hcount < 1) break;
-					while(hcount > numclients()){
+					const int maxheads = hascn ? numclients() : 0;
+					while(hcount > maxheads){
 						getint(p);
 						loopk(3) getfloat(p);
 						hcount--;
@@ -3312,9 +3320,13 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_PROJ:
 			{
-				gameevent &exp = cl->addevent();
+				const int cn = getint(p);
+				const bool hascn = hasclient(cl, cn);
+				client *cp = hascn ? clients[cn] : NULL;
+				gameevent &exp = hascn ? cp->addevent() : dummy;
 				exp.type = GE_PROJ;
-				seteventmillis(exp.proj);
+				int id = getint(p);
+				seteventmillis(exp.proj, id);
 				exp.proj.gun = getint(p);
 				exp.proj.flag = getint(p);
 				loopi(3) exp.proj.o[i] = getfloat(p);
@@ -3323,18 +3335,24 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_AKIMBO:
 			{
-				gameevent &akimbo = cl->addevent();
+				const int cn = getint(p), id = getint(p);
+				if(!hasclient(cl, cn)) break;
+				client *cp = clients[cn];
+				gameevent &akimbo = cp->addevent();
 				akimbo.type = GE_AKIMBO;
-				seteventmillis(akimbo.akimbo);
+				seteventmillis(akimbo.akimbo, id);
 				break;
 			}
 
 			case N_RELOAD:
 			{
-				gameevent &reload = cl->addevent();
+				int cn = getint(p), id = getint(p), gun = getint(p);
+				if(!hasclient(cl, cn)) break;
+				client *cp = clients[cn];
+				gameevent &reload = cp->addevent();
 				reload.type = GE_RELOAD;
-				seteventmillis(reload.reload);
-				reload.reload.gun = getint(p);
+				seteventmillis(reload.reload, id);
+				reload.reload.gun = gun;
 				break;
 			}
 

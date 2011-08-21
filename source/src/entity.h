@@ -506,7 +506,7 @@ struct playerstate
 			case I_GRENADE: return mag[GUN_GRENADE]<ammostats[GUN_GRENADE].max;
 			case I_HEALTH: return health<powerupstats[type-I_HEALTH].max;
 			case I_ARMOUR: return armour<powerupstats[type-I_HEALTH].max;
-			case I_AKIMBO: return !akimbo;
+			case I_AKIMBO: return !akimbo && ownernum < 0;
 			default: return false;
 		}
 	}
