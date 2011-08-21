@@ -199,9 +199,13 @@ struct obitlist
 	}
 
 	void render(){
-		const int left = VIRTW * 1.65f; // 82.5%
-		const int conwidth = VIRTW * 2 - left; // draw all the way to the right
-		int linei = olines.length(), y = 2 * VIRTH * 52 / 100;
+		const float ts = 1.6f; // factor that will alter the text size
+		glPushMatrix();
+		glLoadIdentity();
+		glOrtho(0, VIRTW*ts, VIRTH*ts, 0, -1, 1);
+		const int left = VIRTW * .8f * ts;
+		const int conwidth = VIRTW * ts - left; // draw all the way to the right
+		int linei = olines.length(), y = ts * VIRTH * .5f;
 		loopv(olines){
 			s_sprintfd(l)("%s    %s", olines[i].actor, olines[i].target); // four spaces to subsitute for unknown obit icon
 			int width, height;
@@ -235,6 +239,7 @@ struct obitlist
 				draw_text(l.target, left + x, y, 0xFF, 0xFF, 0xFF, fade, -1, conwidth);
 			}
         }
+		glPopMatrix();
     }
 };
 obitlist obits;
