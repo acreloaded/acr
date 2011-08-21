@@ -16,6 +16,7 @@
 
 #define DEBUGCOND (true)
 
+void checkai();
 void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = true);
 void disconnect_client(int n, int reason = -1);
 int clienthasflag(int cn);
@@ -1238,7 +1239,9 @@ void arenacheck(){
 		client &c = *clients[i];
 		if(c.type==ST_EMPTY || !c.connected || c.team == TEAM_SPECT) continue;
 		if(c.state.state==CS_ALIVE || (c.state.state==CS_DEAD && c.state.lastspawn>=0)){
-			if(!alive) alive = &c;
+			if(!alive){
+				if(c.state.ownernum < 0) alive = &c;
+			}
 			else if(!m_team || alive->team != c.team) return;
 		}
 		else if(c.state.state==CS_DEAD){
@@ -1986,7 +1989,6 @@ bool updateclientteam(int client, int team, int ftr){
 		clients[client]->removetimers(GE_PROJ);
 	}
 	sendf(-1, 1, "ri3", N_SETTEAM, client, (clients[client]->team = team) | (ftr << 4));
-	extern void checkai();
 	checkai();
 	if(m_team || team == TEAM_SPECT) forcedeath(clients[client]);
 	return true;
@@ -2314,7 +2316,6 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 			forcedeath(c);
 		}
 	}
-	checkai();
 	if(m_demo) setupdemoplayback();
 	else if((demonextmatch || scl.demoeverymatch) && *newname && numnonlocalclients() > 0){
 		demonextmatch = false;
