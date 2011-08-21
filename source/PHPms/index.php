@@ -5,6 +5,14 @@
 	require_once "bans.php"; // banning sysrem
 	require_once "auth.php"; // auths
 	docron();
+	
+	function isbanned($ip, $mask){
+		bool $banned = false;
+		foreach($config['sbans'] as $b) if($b[0] <= $ip && $ip <= $b[1] && $b[2] & $mask){ $banned = true; break; }
+		foreach($config['sallows'] as $b) if($b[0] <= $ip && $ip <= $b[1] && $b[2] & $mask){ $banned = false; break; }
+		return $banned;
+	}
+	
 	function getServers(){ // {string, int, bool, int}[] (void)
 		global $config;
 		$buffer = array();
@@ -32,7 +40,7 @@
 	if(isset($_GET['cube'])){ // cubescript
 		header('Content-type: text/plain');
 		$ip = getiplong();
-		foreach($config['sbans'] as $b) if($b[0] <= $ip && $ip <= $b[1] && $b[2] & 1) exit("echo You are not authorized to fetch the server list. {$config['contact']}");
+		if(isbanned($ip, 1)) exit("echo You are not authorized to fetch the server list. {$config['contact']}");
 		$srvs = getServers();
 		foreach($srvs as $s){
 			$wt = '';
@@ -67,7 +75,7 @@
 		if($config['servers']['autoapprove'] === false) exit("Automatic registration is closed. {$config['contact']}");
 		$ip = getiplong();
 		// check bans
-		foreach($config['sbans'] as $b) if($b[0] <= $ip && $ip <= $b[1] && $b[2] & 2) exit("You are not authorized to register a server. {$config['contact']}");
+		if(isbanned($ip, 2)) exit("You are not authorized to register a server. {$config['contact']}");
 		// check port
 		$port = intval($_GET['port']);
 		if($port < $config['servers']['minport'] || $port > $config['servers']['maxport']){
@@ -105,9 +113,10 @@
 			echo 'Your server has been renewed.';
 		else // registered
 			echo 'Your server has been registered.';
-		echo "\n*a";
+		echo "\n*e";
 		function u2i($n){ return $n > 2147483647 ? $n - 4294967296 : $n; }
 		foreach($config['sbans'] as $b) if($b[2] & 4) echo "\n*b".u2i($b[0])."|".u2i($b[1]);
+		foreach($config['sallows'] as $b) if($b[2] & 4) echo "\n*a".u2i($b[0])."|".u2i($b[1]);
 	}
 	elseif(isset($_GET['authreq'])){ // request auth
 		$ip = getiplong();
