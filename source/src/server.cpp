@@ -464,13 +464,13 @@ bool buildworldstate(){
 	}
 }
 
-int countclients(int type, bool exclude = false, bool includebots = false){
+int countclients(int type, bool exclude = false){
 	int num = 0;
-	loopv(clients) if((clients[i]->type!=type)==exclude && (includebots || clients[i]->state.ownernum < 0)) num++;
+	loopv(clients) if((clients[i]->type!=type)==exclude && clients[i]->state.ownernum < 0) num++;
 	return num;
 }
 
-int numclients(bool bots = false) { return countclients(ST_EMPTY, true, bots); }
+int numclients() { return countclients(ST_EMPTY, true); }
 int numlocalclients() { return countclients(ST_LOCAL); }
 int numnonlocalclients() { return countclients(ST_TCPIP); }
 
@@ -487,7 +487,7 @@ int freeteam(int pl = -1){
 	int teamscore[2] = {0};
 	int t;
 	int sum = calcscores();
-	loopv(clients) if(clients[i]->type!=ST_EMPTY && i != pl && clients[i]->connected && clients[i]->team != TEAM_SPECT)
+	loopv(clients) if(clients[i]->type!=ST_EMPTY && i != pl && clients[i]->connected && clients[i]->team < 2)
 	{
 		t = clients[i]->team;
 		teamsize[t]++;
@@ -1523,8 +1523,9 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 		target->position.setsize(0);
 		ts.state = CS_DEAD;
 		ts.lastdeath = gamemillis;
-		if(!suic) logline(ACLOG_INFO, "[%s] %s %s %s (%.2f m)", actor->hostname, actor->name, killname(toobit(gun, style), isheadshot(gun, style)), target->name, killdist);
-		else logline(ACLOG_INFO, "[%s] %s %s (%.2f m)", actor->hostname, actor->name, suicname(obit_suicide(gun)), killdist);
+		const char *h = valid_client(peerowner(actor->clientnum)) ? clients[peerowner(actor->clientnum)]->hostname : actor->hostname;
+		if(!suic) logline(ACLOG_INFO, "[%s] %s %s %s (%.2f m)", h, actor->name, killname(toobit(gun, style), isheadshot(gun, style)), target->name, killdist);
+		else logline(ACLOG_INFO, "[%s] %s %s (%.2f m)", h, actor->name, suicname(obit_suicide(gun)), killdist);
 
 		if(m_flags && targethasflag >= 0)
 		{
@@ -2900,7 +2901,7 @@ void checkmove(client &cp){
 	else if(cs.drownmillis > 0) cs.drownmillis = -cs.drownmillis;
 	*/
 	// out of map check
-	if(cp.type==ST_TCPIP && !m_edit && checkpos(cs.o, false)){
+	if(cp.type!=ST_LOCAL && !m_edit && checkpos(cs.o, false)){
 		logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cp.hostname, cp.name, ++cp.mapcollisions);
 		sendmsgi(40, sender);
 		sendf(sender, 1, "ri", N_MAPIDENT);
