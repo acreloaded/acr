@@ -26,10 +26,20 @@ weaponinfo_s WeaponInfoTable[MAX_WEAPONS] =
 	 { TYPE_AUTO, 0.0f, 25.0f, 0.0f, 60.0f, 10 },	 
 	 // SNIPER
 	 { TYPE_SNIPER, 30.0f, 50.0f, 20.0f, 200.0f, 3 },	
+	 // BOLT
+	 { TYPE_SNIPER, 30.0f, 50.0f, 20.0f, 200.0f, 2 },	
 	 // ASSAULT
-	 { TYPE_AUTO, 40.0f, 80.0f, 0.0f, 150.0f, 6 },
+	 { TYPE_AUTO, 0.0f, 25.0f, 0.0f, 60.0f, 10 },
 	 // GRENADE
-	 { TYPE_GRENADE, 30.0f, 25.0f, 0.0f, 50.0f, 1 }
+	 { TYPE_GRENADE, 30.0f, 25.0f, 0.0f, 50.0f, 1 },
+	 // AKIMBO?
+	 { TYPE_NORMAL, 0.0f, 20.0f, 0.0f, 50.0f, 6 },
+	 // HEAL
+	 { TYPE_AUTO, 40.0f, 80.0f, 0.0f, 150.0f, 6 },
+	 // WAVE
+	 { TYPE_AUTO, 0.0f, 25.0f, 0.0f, 60.0f, 10 },
+	 // CROSSBOW
+	 { TYPE_NORMAL, 0.0f, 20.0f, 0.0f, 50.0f, 2 },
 };
 
 // Code of CACBot - Start   
