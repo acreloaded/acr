@@ -3363,10 +3363,13 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_QUICKSWITCH:
 			{
-				cl->state.gunselect = cl->state.primary;
-				sendf(-1, 1, "ri2x", N_QUICKSWITCH, sender, sender);
-				cl->state.scoping = false;
-				cl->state.scopemillis = gamemillis - ADSTIME;
+				const int cn = getint(p);
+				if(!hasclient(cl, cn)) break;
+				client &cp = *clients[cn];
+				cp.state.gunselect = cp.state.primary;
+				sendf(-1, 1, "ri2x", N_QUICKSWITCH, cn, sender);
+				cp.state.scoping = false;
+				cp.state.scopemillis = gamemillis - ADSTIME;
 				break;
 			}
 

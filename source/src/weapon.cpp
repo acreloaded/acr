@@ -593,7 +593,7 @@ bool grenades::attack(vec &targ){
 				reset();
 				if(!mag && this==owner->weaponsel) // switch to primary immediately
 				{
-					addmsg(N_QUICKSWITCH, "r");
+					addmsg(N_QUICKSWITCH, "ri", owner->clientnum);
 					owner->weaponchanging = lastmillis-1-(weaponchangetime/2);
 					owner->nextweaponsel = owner->weaponsel = owner->primweap;
 				}
@@ -1121,7 +1121,7 @@ bool knife::attack(vec &targ){
 				if(attackmillis >= 250){
 					reset();
 					if(!ammo){
-						addmsg(N_QUICKSWITCH, "r");
+						addmsg(N_QUICKSWITCH, "ri", owner->clientnum);
 						owner->weaponchanging = lastmillis-1-(weaponchangetime/2);
 						owner->nextweaponsel = owner->weaponsel = owner->primweap;
 					}
