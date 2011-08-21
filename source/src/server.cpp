@@ -3349,12 +3349,14 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_SWITCHWEAP:
 			{
-				int weaponsel = getint(p);
+				int cn = getint(p), weaponsel = getint(p);
+				if(!hasclient(*cl, cn)) break;
+				client &cp = *clients[cn];
 				if(weaponsel < 0 || weaponsel >= NUMGUNS) break;
-				cl->state.gunselect = weaponsel;
-				sendf(-1, 1, "ri3x", N_SWITCHWEAP, sender, weaponsel, sender);
-				cl->state.scoping = false;
-				cl->state.scopemillis = gamemillis - ADSTIME;
+				cp.state.gunselect = weaponsel;
+				sendf(-1, 1, "ri3x", N_SWITCHWEAP, cn, weaponsel, sender);
+				cp.state.scoping = false;
+				cp.state.scopemillis = gamemillis - ADSTIME;
 				break;
 			}
 

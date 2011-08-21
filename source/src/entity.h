@@ -775,7 +775,7 @@ struct playerent : dynent, playerstate
 		prevweaponsel = weaponsel;
 		nextweaponsel = w;
 		extern void addmsg(int type, const char *fmt = NULL, ...);
-		if(this == player1) addmsg(N_SWITCHWEAP, "ri", w->type);
+		if(this == player1 || ownernum == player1->clientnum) addmsg(N_SWITCHWEAP, "ri2", clientnum, w->type);
 		w->onselecting();
 	}
 };
