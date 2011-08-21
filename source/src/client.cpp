@@ -7,6 +7,9 @@
 // Global Noob-Switch
 VARP(noob, 0, 0, 1);
 
+VARP(level, 1, 1, 100);
+VARP(experience, 0, 0, 1000);
+
 VAR(connected, 1, 0, 0);
 
 ENetHost *clienthost = NULL;
