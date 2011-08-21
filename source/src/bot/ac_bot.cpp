@@ -25,6 +25,7 @@ void CACBot::Spawn()
 {
 	 // Init all bot variabeles	 
 	 m_pMyEnt->nextprimary = 2 + rnd(4);
+	 addmsg(N_PRIMARYWEAP, "ri2", m_pMyEnt->clientnum, m_pMyEnt->nextprimary);
 	 m_pMyEnt->targetyaw = m_pMyEnt->targetpitch = 0.0f;
 	 m_pMyEnt->pBot = this;
 
