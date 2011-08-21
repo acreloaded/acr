@@ -122,16 +122,18 @@ COMMAND(curmode, ARG_IVAL);
 COMMAND(curmap, ARG_1INT);
 VARP(showscoresondeath, 0, 1, 1);
 
-VARP(level, 1, 1, 100);
-VARP(experience, 0, 0, 1000);
+#define MAXLEVEL 100
+#define MAXEXP 1000
+VARP(level, 1, 1, MAXLEVEL);
+VARP(experience, 0, 0, MAXEXP);
 void addexp(int xp){
 	#define xpfactor max(level, 1)
 	float factor = xpfactor; // factor to reduce experience collection
 	experience += xp / factor;
-	if(experience >= 1000){
-		level = clamp(level + 1, 1, 100);
+	if(experience >= MAXEXP){
+		level = clamp(level + 1, 1, MAXLEVEL);
 		factor = xpfactor;
-		experience = (experience - 1000) / factor;
+		experience = max(0, (experience - MAXEXP) / factor);
 	}
 	#undef xpfactor
 }
