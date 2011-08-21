@@ -111,8 +111,7 @@ void CBotManager::Think()
 				bc->m_pMyEnt = b;
 				// m->pBot->m_iLastBotUpdate = 0;
 				// m->pBot->m_bSendC2SInit = false;
-				bc->m_sSkillNr = 0; // because these bots suck anyways
-				// b.pBot->m_sSkillNr = BotManager.m_sBotSkill;
+				bc->m_sSkillNr = BotManager.m_sBotSkill;
 				bc->m_pBotSkill = &BotManager.m_BotSkills[bc->m_sSkillNr];
 
 				// Sync waypoints
