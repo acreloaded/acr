@@ -192,10 +192,7 @@ void freebotent(botent *d)
 	}
 }
 
-void zapplayer(playerent *&d)
-{
-	DELETEP(d);
-}
+void zapplayer(playerent *&d){ DELETEP(d); }
 
 void movelocalplayer()
 {

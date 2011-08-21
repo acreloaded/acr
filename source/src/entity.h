@@ -646,7 +646,7 @@ struct playerent : dynent, playerstate
 	vec head;
 
 	// AI
-	CBot *pBot; // ALWAYS STAYS AT NULL! ALWAYS!
+	CBot *pBot;
 
 	playerent *enemy;  // monster wants to kill this entity
 	float targetpitch, targetyaw; // monster wants to look in this direction
@@ -655,6 +655,7 @@ struct playerent : dynent, playerstate
 	{
 		// ai
 		enemy = NULL;
+		pBot = NULL;
 		targetpitch = targetyaw = 0;
 
 		lastupdate = plag = ping = lifesequence = points = frags = flagscore = deaths = lastpain = lasthitmarker = skin = eardamagemillis = respawnoffset = radarmillis = ads = 0;
