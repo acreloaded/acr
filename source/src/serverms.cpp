@@ -121,17 +121,18 @@ void checkmasterreply()
 			// process
 			char *tp = replytoken;
 			if(*tp++ == '*'){
-				if(*tp == 'a'){ // clear bans, before any ban data
+				if(*tp == 'e'){ // erase bans, before any ban data
 					extern void clearmbans();
 					clearmbans();
 				}
-				else if(*tp == 'b'){ // add a ban
+				else if(*tp == 'a' || *tp == 'b'){ // add an allow/ban
+					const bool allow = *tp == 'a';
 					char *start = ++tp, *end = strpbrk(tp, "|");
 					if(end && end[1]){
 						*end++ = 0;
 						unsigned rs = atoi(start), re = atoi(end);
-						extern void addmban(enet_uint32 start, enet_uint32 end);
-						addmban(rs, re);
+						extern void addmrange(enet_uint32 start, enet_uint32 end, bool allow);
+						addmrange(rs, re, allow);
 					}
 				}
 				else if(*tp == 'd' || *tp == 'f' || *tp == 's' || *tp == 'c'){ // auth
