@@ -91,22 +91,19 @@ static itemstat powerupstats[] =
 #define MAXLEVEL 100
 #define MAXEXP 1000
 
-// define the "powerful" arsenal
-#define POWERGUN(gun) (gun == GUN_SNIPER || gun == GUN_BOLT || gun == GUN_KNIFE)
-
 struct mul{
 	union{
 		struct{ float head, torso, leg; };
 		float val[3];
 	};
 };
-enum { MUL_NORMAL = 0, MUL_POWERFUL, MUL_SHOTGUN, MUL_NUM };
+enum { MUL_NORMAL = 0, MUL_SNIPER, MUL_SHOTGUN, MUL_NUM };
 
 static mul muls[MUL_NUM] =
 {
 	//{ head, torso, leg; }
 	{ 3.5f, 1.1f,	1 }, // normal
-	{ 5,	1.4f, 	1 }, // powerful
+	{ 5,	1.4f, 	1 }, // snipers
 	{ 4,	1.2f,	1 } // shotgun
 };
 

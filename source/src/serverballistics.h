@@ -80,7 +80,7 @@ int explosion(client &owner, const vec &o, int weap){
 int shot(client &owner, const vec &from, const vec &to, int weap, int exclude = -1){
 	int shotdamage = 0;
 	clientstate &gs = owner.state;
-	const int mulset = POWERGUN(weap) ? MUL_POWERFUL : MUL_NORMAL;
+	const int mulset = (weap == GUN_SNIPER || weap == GUN_BOLT) ? MUL_SNIPER : MUL_NORMAL;
 	loopv(clients){ // one ray, potentially multiple players
 		client &t = *clients[i];
 		clientstate &ts = t.state;
