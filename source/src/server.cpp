@@ -385,7 +385,7 @@ bool buildworldstate(){
 			if(c.type == ST_EMPTY || (j != i && c.state.ownernum != i)) continue;
 			// positions
 			loopvk(c.position) ws.positions.add(c.position[k]);
-			pkt[i].poslen += c.position.length();
+			pkt[j].poslen += c.position.length();
 			c.position.setsize(0);
 			// messages
 			ucharbuf p = ws.messages.reserve(16);
@@ -393,9 +393,9 @@ bool buildworldstate(){
 			putint(p, c.clientnum);
 			putuint(p, c.messages.length());
 			ws.messages.addbuf(p);
-			pkt[i].msglen += p.length();
+			pkt[j].msglen += p.length();
 			loopvk(c.messages) ws.messages.add(c.messages[k]);
-			pkt[i].msglen += c.messages.length();
+			pkt[j].msglen += c.messages.length();
 			c.messages.setsize(0);
 		}
 	}
