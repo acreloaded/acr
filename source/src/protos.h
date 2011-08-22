@@ -717,7 +717,7 @@ extern char msgsizelookup(int msg);
 extern const char *genpwdhash(const char *name, const char *pwd, int salt);
 extern void servermsinit(const char *master, const char *ip, int serverport, bool listen);
 extern bool serverpickup(int i, int sender);
-extern bool valid_client(int cn);
+extern bool valid_client(int cn, bool player = false);
 extern void extinfo_cnbuf(ucharbuf &p, int cn);
 extern void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENetAddress &addr, ENetBuffer &buf, int len);
 extern void extinfo_teamscorebuf(ucharbuf &p);

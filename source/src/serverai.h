@@ -4,7 +4,7 @@ int findaiclient(int exclude = -1){ // person with least bots
 	int cn = -1, bots = MAXBOTS;
 	loopv(clients){
 		client *c = clients[i];
-		if(i == exclude || !valid_client(i) || c->clientnum < 0 || c->state.ownernum >= 0 /*|| !*c->name || !c->connected*/) break;
+		if(i == exclude || !valid_client(i, true) || c->clientnum < 0 /*|| !*c->name || !c->connected*/) break;
 		int n = 0;
 		loopvj(clients) if(clients[j]->state.ownernum == i) n++;
 		if(n < bots){
@@ -21,7 +21,7 @@ bool addai(){
 	if(!valid_client(aiowner)) return false;
 	loopv(clients){
 		if(numbots > MAXBOTS) return false;
-		if(clients[i]->state.ownernum >= 0) numbots++;
+		if(clients[i]->type == ST_AI) numbots++;
 		else if(clients[i]->type == ST_EMPTY){
 			cn = i;
 			break;
@@ -52,14 +52,14 @@ void deleteai(client &c){
 }
 
 bool delai(){
-	loopvrev(clients) if(clients[i]->type == ST_AI && clients[i]->state.ownernum >= 0){
+	loopvrev(clients) if(clients[i]->type == ST_AI){
 		deleteai(*clients[i]);
 		return true;
 	}
 	return false;
 }
 
-void clearai(){ loopv(clients) if(clients[i]->type == ST_AI && clients[i]->state.ownernum >= 0) deleteai(*clients[i]); }
+void clearai(){ loopv(clients) if(clients[i]->type == ST_AI) deleteai(*clients[i]); }
 
 int countplayers(){
 	int num = 0;
@@ -79,7 +79,7 @@ void checkai(){
 	if(balance > 0){
 		if(m_team){
 			int plrs[2] = {0}, highest = -1;
-			loopv(clients) if(clients[i]->state.ownernum < 0 && clients[i]->team < 2){
+			loopv(clients) if(valid_client(i, true) && clients[i]->team < 2){
 				plrs[clients[i]->team]++;
 				if(highest < 0 || plrs[clients[i]->team] > plrs[highest]) highest = clients[i]->team;
 			}

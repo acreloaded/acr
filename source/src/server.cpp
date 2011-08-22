@@ -294,8 +294,8 @@ struct client				   // server side version of "dynent" type
 
 vector<client *> clients;
 
-bool valid_client(int cn){
-	return clients.inrange(cn) && clients[cn]->type != ST_EMPTY;
+bool valid_client(int cn, bool player){
+	return clients.inrange(cn) && clients[cn]->type != ST_EMPTY && (!player || clients[cn]->type != ST_AI);
 }
 
 struct ban
@@ -338,24 +338,15 @@ bool hasclient(client *ci, int cn){
 	return ci->clientnum == cn || cp->state.ownernum == ci->clientnum;
 }
 
-bool allowbroadcast(int n){
-	return valid_client(n) && clients[n]->connected && clients[n]->state.ownernum < 0;
-}
-
-int peerowner(int n){
-	if(valid_client(n) && clients[n]->state.ownernum >= 0) return clients[n]->state.ownernum;
-	return n;
-}
-
 int bsend = 0, brec = 0, laststatus = 0, servmillis = 0, lastfillup = 0;
 
 void recordpacket(int chan, void *data, int len);
 
 void sendpacket(int n, int chan, ENetPacket *packet, int exclude = -1){
-	if(n<0)
-	{
+	const int realexclude = valid_client(exclude) ? valid_client(clients[exclude]->state.ownernum) ? clients[exclude]->state.ownernum : exclude : -1;
+	if(n<0){
 		recordpacket(chan, packet->data, (int)packet->dataLength);
-		loopv(clients) if(i!=peerowner(exclude) && allowbroadcast(i)) sendpacket(i, chan, packet);
+		loopv(clients) if(i!=realexclude && valid_client(i, true)) sendpacket(i, chan, packet);
 		return;
 	}
 	switch(clients[n]->type)
@@ -363,9 +354,8 @@ void sendpacket(int n, int chan, ENetPacket *packet, int exclude = -1){
 		case ST_AI:
 		{
 			// reroute packets
-			const int owner = peerowner(n);
-			if(owner >= 0 && valid_client(owner) && owner != n && owner != peerowner(exclude))
-				sendpacket(owner, chan, packet, exclude);
+			const int owner = clients[n]->state.ownernum;
+			if(valid_client(owner) && owner != n && owner != realexclude) sendpacket(owner, chan, packet, exclude);
 			break;
 		}
 
@@ -383,7 +373,7 @@ void sendpacket(int n, int chan, ENetPacket *packet, int exclude = -1){
 static bool reliablemessages = false;
 
 bool buildworldstate(){
-	static struct { int posoff, msgoff, msglen; } pkt[MAXCLIENTS];
+	static struct { int posoff, poslen, msgoff, msglen; } pkt[MAXCLIENTS];
 	worldstate &ws = *new worldstate;
 	loopv(clients)
 	{
@@ -395,6 +385,8 @@ bool buildworldstate(){
 		{
 			pkt[i].posoff = ws.positions.length();
 			loopvj(c.position) ws.positions.add(c.position[j]);
+			pkt[i].poslen = ws.positions.length()-pkt[i].posoff;
+			c.position.setsize(0);
 		}
 		if(c.messages.empty()) pkt[i].msgoff = -1;
 		else
@@ -407,6 +399,7 @@ bool buildworldstate(){
 			ws.messages.addbuf(p);
 			loopvj(c.messages) ws.messages.add(c.messages[j]);
 			pkt[i].msglen = ws.messages.length()-pkt[i].msgoff;
+			c.messages.setsize(0);
 		}
 	}
 	int psize = ws.positions.length(), msize = ws.messages.length();
@@ -428,20 +421,19 @@ bool buildworldstate(){
 	loopv(clients)
 	{
 		client &c = *clients[i];
-		//if(c.type!=ST_TCPIP || !c.connected) continue;
+		if(c.type!=ST_TCPIP || !c.connected) continue;
 		ENetPacket *packet;
-		if(allowbroadcast(i) && psize && (pkt[i].posoff<0 || psize-c.position.length()>0))
+		if(psize && (pkt[i].posoff<0 || psize-pkt[i].poslen>0))
 		{
-			packet = enet_packet_create(&ws.positions[pkt[i].posoff<0 ? 0 : pkt[i].posoff+c.position.length()],
-										pkt[i].posoff<0 ? psize : psize-c.position.length(),
+			packet = enet_packet_create(&ws.positions[pkt[i].posoff<0 ? 0 : pkt[i].posoff+pkt[i].poslen],
+										pkt[i].posoff<0 ? psize : psize-pkt[i].poslen,
 										ENET_PACKET_FLAG_NO_ALLOCATE);
 			sendpacket(c.clientnum, 0, packet);
 			if(!packet->referenceCount) enet_packet_destroy(packet);
 			else { ++ws.uses; packet->freeCallback = cleanworldstate; }
 		}
-		c.position.setsize(0);
 
-		if(allowbroadcast(i) && msize && (pkt[i].msgoff<0 || msize-pkt[i].msglen>0))
+		if(msize && (pkt[i].msgoff<0 || msize-pkt[i].msglen>0))
 		{
 			packet = enet_packet_create(&ws.messages[pkt[i].msgoff<0 ? 0 : pkt[i].msgoff+pkt[i].msglen],
 										pkt[i].msgoff<0 ? msize : msize-pkt[i].msglen,
@@ -450,7 +442,6 @@ bool buildworldstate(){
 			if(!packet->referenceCount) enet_packet_destroy(packet);
 			else { ++ws.uses; packet->freeCallback = cleanworldstate; }
 		}
-		c.messages.setsize(0);
 	}
 	reliablemessages = false;
 	if(!ws.uses)
@@ -1233,7 +1224,8 @@ void arenacheck(){
 		arenaround = 0;
 		distributespawns();
 		purgesknives();
-		loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connected && valid_client(peerowner(i)) && clients[peerowner(i)]->isonrightmap && clients[i]->team != TEAM_SPECT){
+		loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connected && clients[i]->team != TEAM_SPECT &&
+				clients[valid_client(clients[i]->state.ownernum) ? clients[i]->state.ownernum : i]->isonrightmap){
 			clients[i]->state.lastdeath = 1;
 			sendspawn(clients[i]);
 		}
@@ -1248,7 +1240,7 @@ void arenacheck(){
 		if(c.type==ST_EMPTY || !c.connected || c.team == TEAM_SPECT) continue;
 		if(c.state.state==CS_ALIVE || (c.state.state==CS_DEAD && c.state.lastspawn>=0)){
 			if(!alive){
-				if(c.state.ownernum < 0) alive = &c;
+				if(c.type != ST_AI) alive = &c;
 			}
 			else if(!m_team || alive->team != c.team) return;
 		}
@@ -1320,7 +1312,7 @@ void sendtext(char *text, client &cl, int flags, int voice){
 	putint(p, (voice & 0x1F) | flags << 5);
 	sendstring(text, p);
 	enet_packet_resize(packet, p.length());
-	loopv(clients) if(allowbroadcast(i) && (!(flags&SAY_TEAM) || clients[i]->team == cl.team || clients[i]->priv >= PRIV_ADMIN)) sendpacket(i, 1, packet);
+	loopv(clients) if(clients[i]->type != ST_AI && clients[i]->type != ST_EMPTY && (!(flags&SAY_TEAM) || clients[i]->team == cl.team || clients[i]->priv >= PRIV_ADMIN)) sendpacket(i, 1, packet);
 	recordpacket(1, packet->data, (int)packet->dataLength);
 	if(!packet->referenceCount) enet_packet_destroy(packet);
 }
@@ -1534,7 +1526,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 		target->position.setsize(0);
 		ts.state = CS_DEAD;
 		ts.lastdeath = gamemillis;
-		const char *h = valid_client(peerowner(actor->clientnum)) ? clients[peerowner(actor->clientnum)]->hostname : actor->hostname;
+		const char *h = valid_client(actor->state.ownernum) ? clients[actor->state.ownernum]->hostname : actor->hostname;
 		if(!suic) logline(ACLOG_INFO, "[%s] %s %s %s (%.2f m)", h, actor->name, killname(toobit(gun, style), isheadshot(gun, style)), target->name, killdist);
 		else logline(ACLOG_INFO, "[%s] %s %s (%.2f m)", h, actor->name, suicname(obit_suicide(gun)), killdist);
 
@@ -2756,7 +2748,7 @@ void sendservinfo(client &c){
 }
 
 void putinitclient(client &c, ucharbuf &p){
-	if(c.type == ST_AI || c.state.ownernum >= 0) return putinitai(c, p);
+	if(c.type == ST_AI) return putinitai(c, p);
     putint(p, N_INITCLIENT);
     putint(p, c.clientnum);
 	putint(p, c.team);
@@ -2779,9 +2771,10 @@ void sendinitclient(client &c){
 }
 
 void welcomeinitclient(ucharbuf &p, int exclude = -1){
+	const int realexclude = valid_client(exclude) ? valid_client(clients[exclude]->state.ownernum) ? clients[exclude]->state.ownernum : exclude : -1;
     loopv(clients){
         client &c = *clients[i];
-        if(!c.connected || c.clientnum == peerowner(exclude)) continue;
+        if(!c.connected || c.clientnum == realexclude) continue;
         putinitclient(c, p);
     }
 }
@@ -2976,7 +2969,7 @@ void checkmove(client &cp){
 		else if(m_ktf && f.state == CTFF_INBASE) flagaction(i, FA_PICKUP, sender);
 	}
 	// throwing knife pickup
-	if(cp.state.ownernum < 0) loopv(sknives){
+	if(cp.type != ST_AI) loopv(sknives){
 		const bool pickup = cs.o.dist(sknives[i].o) < 5 && cs.ammo[GUN_KNIFE] < 3, expired = gamemillis - sknives[i].millis > KNIFETTL;
 		if(pickup || expired){
 			if(pickup) sendf(-1, 1, "ri5", N_RELOAD, sender, GUN_KNIFE, cs.mag[GUN_KNIFE], ++cs.ammo[GUN_KNIFE]);
@@ -3885,7 +3878,7 @@ void checkintermission(){
 	if(minremain>0)
 	{
 		minremain = gamemillis>=gamelimit || forceintermission ? 0 : (gamelimit - gamemillis + 60000 - 1)/60000;
-		if(isdedicated) loopv(clients) if(valid_client(i) && allowbroadcast(i)) sendf(i, 1, "ri3", N_ACCURACY, clients[i]->state.damage, clients[i]->state.shotdamage);
+		if(isdedicated) loopv(clients) if(valid_client(i, true)) sendf(i, 1, "ri3", N_ACCURACY, clients[i]->state.damage, clients[i]->state.shotdamage);
 		if(minremain < 2){
 			short nextmaptype = 0, nextmaptime = 0, nextmapmode = GMODE_TEAMDEATHMATCH;
 			string nextmapnm = "unknown";
