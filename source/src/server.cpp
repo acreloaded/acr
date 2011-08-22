@@ -2849,11 +2849,14 @@ void checkmove(client &cp){
 	*/
 	// out of map check
 	if(cp.type!=ST_LOCAL && !m_edit && checkpos(cs.o, false)){
-		logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cp.hostname, cp.name, ++cp.mapcollisions);
-		sendmsgi(40, sender);
-		sendf(sender, 1, "ri", N_MAPIDENT);
-		forcedeath(&cp);
-		cp.isonrightmap = false; // cannot spawn until you get the right map
+		if(cp.type == ST_AI) serverdamage(&cp, &cp, 1000, NUMGUNS + 4, FRAG_NONE, cs.o);
+		else{
+			logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cp.hostname, cp.name, ++cp.mapcollisions);
+			sendmsgi(40, sender);
+			sendf(sender, 1, "ri", N_MAPIDENT);
+			forcedeath(&cp);
+			cp.isonrightmap = false; // cannot spawn until you get the right map
+		}
 		return; // no pickups for you!
 	}
 	// item pickups
