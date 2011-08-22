@@ -99,7 +99,7 @@ void CBotManager::Think()
 				// Sync waypoints
 				bc->SyncWaypoints();
 				// Try spawn
-				//bc->Spawn();
+				bc->Spawn();
 			}
 			bc->Think();
 		}
