@@ -375,72 +375,79 @@ static bool reliablemessages = false;
 bool buildworldstate(){
 	static struct { int posoff, poslen, msgoff, msglen; } pkt[MAXCLIENTS];
 	worldstate &ws = *new worldstate;
-	loopv(clients)
-	{
-		client &c = *clients[i];
-		if((c.type!=ST_TCPIP && c.type != ST_AI) || !c.connected) continue;
-		c.overflow = 0;
-		if(c.position.empty()) pkt[i].posoff = -1;
-		else
-		{
-			pkt[i].posoff = ws.positions.length();
-			loopvj(c.position) ws.positions.add(c.position[j]);
-			pkt[i].poslen = ws.positions.length()-pkt[i].posoff;
+	loopv(clients){
+		if(clients[i]->type!=ST_TCPIP || !clients[i]->connected) continue;
+		clients[i]->overflow = 0;
+		pkt[i].posoff = ws.positions.length();
+		pkt[i].msgoff = ws.messages.length();
+		loopvj(clients){
+			client &c = *clients[j];
+			if(c.type == ST_EMPTY || (j != i && c.state.ownernum != i)) continue;
+			// positions
+			loopvk(c.position) ws.positions.add(c.position[k]);
+			pkt[i].poslen += c.position.length();
 			c.position.setsize(0);
-		}
-		if(c.messages.empty()) pkt[i].msgoff = -1;
-		else
-		{
-			pkt[i].msgoff = ws.messages.length();
+			// messages
 			ucharbuf p = ws.messages.reserve(16);
 			putint(p, N_CLIENT);
 			putint(p, c.clientnum);
 			putuint(p, c.messages.length());
 			ws.messages.addbuf(p);
-			loopvj(c.messages) ws.messages.add(c.messages[j]);
-			pkt[i].msglen = ws.messages.length()-pkt[i].msgoff;
+			pkt[i].msglen += p.length();
+			loopvk(c.messages) ws.messages.add(c.messages[k]);
+			pkt[i].msglen += c.messages.length();
 			c.messages.setsize(0);
 		}
 	}
-	int psize = ws.positions.length(), msize = ws.messages.length();
-	if(psize)
-	{
+	const int psize = ws.positions.length(), msize = ws.messages.length();
+	if(psize) {
 		recordpacket(0, ws.positions.getbuf(), psize);
 		ucharbuf p = ws.positions.reserve(psize);
 		p.put(ws.positions.getbuf(), psize);
 		ws.positions.addbuf(p);
 	}
-	if(msize)
-	{
+	if(msize) {
 		recordpacket(1, ws.messages.getbuf(), msize);
 		ucharbuf p = ws.messages.reserve(msize);
 		p.put(ws.messages.getbuf(), msize);
 		ws.messages.addbuf(p);
 	}
 	ws.uses = 0;
-	loopv(clients)
-	{
+	loopv(clients){
 		client &c = *clients[i];
 		if(c.type!=ST_TCPIP || !c.connected) continue;
 		ENetPacket *packet;
-		if(psize && (pkt[i].posoff<0 || psize-pkt[i].poslen>0))
-		{
-			packet = enet_packet_create(&ws.positions[pkt[i].posoff<0 ? 0 : pkt[i].posoff+pkt[i].poslen],
-										pkt[i].posoff<0 ? psize : psize-pkt[i].poslen,
-										ENET_PACKET_FLAG_NO_ALLOCATE);
-			sendpacket(c.clientnum, 0, packet);
-			if(!packet->referenceCount) enet_packet_destroy(packet);
-			else { ++ws.uses; packet->freeCallback = cleanworldstate; }
+		if(psize){
+			// positions before
+			if(pkt[i].posoff){
+				packet = enet_packet_create(&ws.positions[0], pkt[i].posoff, ENET_PACKET_FLAG_NO_ALLOCATE);
+				sendpacket(c.clientnum, 0, packet);
+				if(!packet->referenceCount) enet_packet_destroy(packet);
+				else { ++ws.uses; packet->freeCallback = cleanworldstate; }
+			}
+			// positions after
+			if(psize - pkt[i].posoff - pkt[i].poslen){
+				packet = enet_packet_create(&ws.positions[pkt[i].posoff+pkt[i].poslen], psize - pkt[i].posoff - pkt[i].poslen, ENET_PACKET_FLAG_NO_ALLOCATE);
+				sendpacket(c.clientnum, 0, packet);
+				if(!packet->referenceCount) enet_packet_destroy(packet);
+				else { ++ws.uses; packet->freeCallback = cleanworldstate; }
+			}
 		}
-
-		if(msize && (pkt[i].msgoff<0 || msize-pkt[i].msglen>0))
-		{
-			packet = enet_packet_create(&ws.messages[pkt[i].msgoff<0 ? 0 : pkt[i].msgoff+pkt[i].msglen],
-										pkt[i].msgoff<0 ? msize : msize-pkt[i].msglen,
-										(reliablemessages ? ENET_PACKET_FLAG_RELIABLE : 0) | ENET_PACKET_FLAG_NO_ALLOCATE);
-			sendpacket(c.clientnum, 1, packet);
-			if(!packet->referenceCount) enet_packet_destroy(packet);
-			else { ++ws.uses; packet->freeCallback = cleanworldstate; }
+		if(msize){
+			// messages before
+			if(pkt[i].msgoff){
+				packet = enet_packet_create(&ws.messages[0], pkt[i].msgoff, (reliablemessages ? ENET_PACKET_FLAG_RELIABLE : 0) | ENET_PACKET_FLAG_NO_ALLOCATE);
+				sendpacket(c.clientnum, 1, packet);
+				if(!packet->referenceCount) enet_packet_destroy(packet);
+				else { ++ws.uses; packet->freeCallback = cleanworldstate; }
+			}
+			// messages after
+			if(msize - pkt[i].msgoff - pkt[i].msglen){
+				packet = enet_packet_create(&ws.messages[pkt[i].msgoff+pkt[i].msglen], psize - pkt[i].msgoff - pkt[i].msglen, (reliablemessages ? ENET_PACKET_FLAG_RELIABLE : 0) | ENET_PACKET_FLAG_NO_ALLOCATE);
+				sendpacket(c.clientnum, 1, packet);
+				if(!packet->referenceCount) enet_packet_destroy(packet);
+				else { ++ws.uses; packet->freeCallback = cleanworldstate; }
+			}
 		}
 	}
 	reliablemessages = false;
