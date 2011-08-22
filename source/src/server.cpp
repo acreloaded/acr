@@ -309,29 +309,6 @@ vector<ban> bans;
 ssqr *maplayout = NULL;
 int maplayout_factor;
 
-struct worldstate
-{
-	enet_uint32 uses;
-	vector<uchar> positions, messages;
-};
-
-vector<worldstate *> worldstates;
-
-void cleanworldstate(ENetPacket *packet){
-   loopv(worldstates)
-   {
-	   worldstate *ws = worldstates[i];
-	   if(ws->positions.inbuf(packet->data) || ws->messages.inbuf(packet->data)) ws->uses--;
-	   else continue;
-	   if(!ws->uses)
-	   {
-		   delete ws;
-		   worldstates.remove(i);
-	   }
-	   break;
-   }
-}
-
 bool hasclient(client *ci, int cn){
 	if(!valid_client(cn)) return false;
 	client *cp = clients[cn];
@@ -372,95 +349,53 @@ void sendpacket(int n, int chan, ENetPacket *packet, int exclude = -1){
 
 static bool reliablemessages = false;
 
-bool buildworldstate(){
-	static struct { int posoff, poslen, msgoff, msglen; } pkt[MAXCLIENTS];
-	worldstate &ws = *new worldstate;
+bool buildworldstate(){ // WAY easier worldstates
+	bool flush = false;
+	vector<int> recorded;
+	vector<uchar> recordmsg, recordpos;
 	loopv(clients){
 		if(clients[i]->type!=ST_TCPIP || !clients[i]->connected) continue;
 		clients[i]->overflow = 0;
-		pkt[i].posoff = ws.positions.length();
-		pkt[i].msgoff = ws.messages.length();
+		ENetPacket *messagepacket = enet_packet_create(NULL, MAXTRANS, reliablemessages ? ENET_PACKET_FLAG_RELIABLE : 0);
+		ENetPacket *positionpacket = enet_packet_create(NULL, MAXTRANS, 0);
+		ucharbuf p(messagepacket->data, messagepacket->dataLength), pos(positionpacket->data, positionpacket->dataLength);
 		loopvj(clients){
 			client &c = *clients[j];
-			if(c.type == ST_EMPTY || (j != i && c.state.ownernum != i)) continue;
+			if(c.type == ST_EMPTY || j == i || c.state.ownernum == i) continue;
 			// positions
-			loopvk(c.position) ws.positions.add(c.position[k]);
-			pkt[j].poslen += c.position.length();
-			c.position.setsize(0);
+			const int pstart = pos.length();
+			pos.put(c.position.getbuf(), c.position.length());
 			// messages
-			ucharbuf p = ws.messages.reserve(16);
+			const int mstart = p.length();
 			putint(p, N_CLIENT);
-			putint(p, c.clientnum);
+			putint(p, j);
 			putuint(p, c.messages.length());
-			ws.messages.addbuf(p);
-			pkt[j].msglen += p.length();
-			loopvk(c.messages) ws.messages.add(c.messages[k]);
-			pkt[j].msglen += c.messages.length();
-			c.messages.setsize(0);
-		}
-	}
-	const int psize = ws.positions.length(), msize = ws.messages.length();
-	if(psize) {
-		recordpacket(0, ws.positions.getbuf(), psize);
-		ucharbuf p = ws.positions.reserve(psize);
-		p.put(ws.positions.getbuf(), psize);
-		ws.positions.addbuf(p);
-	}
-	if(msize) {
-		recordpacket(1, ws.messages.getbuf(), msize);
-		ucharbuf p = ws.messages.reserve(msize);
-		p.put(ws.messages.getbuf(), msize);
-		ws.messages.addbuf(p);
-	}
-	ws.uses = 0;
-	ENetPacket *packet;
-	loopv(clients){
-		client &c = *clients[i];
-		if(c.type!=ST_TCPIP || !c.connected) continue;
-		if(psize){
-			// positions before
-			if(pkt[i].posoff){
-				packet = enet_packet_create(&ws.positions[0], pkt[i].posoff, ENET_PACKET_FLAG_NO_ALLOCATE);
-				sendpacket(c.clientnum, 0, packet);
-				if(!packet->referenceCount) enet_packet_destroy(packet);
-				else { ++ws.uses; packet->freeCallback = cleanworldstate; }
-			}
-			// positions after
-			if(psize - pkt[i].posoff - pkt[i].poslen){
-				packet = enet_packet_create(&ws.positions[pkt[i].posoff+pkt[i].poslen], psize - pkt[i].posoff - pkt[i].poslen, ENET_PACKET_FLAG_NO_ALLOCATE);
-				sendpacket(c.clientnum, 0, packet);
-				if(!packet->referenceCount) enet_packet_destroy(packet);
-				else { ++ws.uses; packet->freeCallback = cleanworldstate; }
+			p.put(c.messages.getbuf(), c.messages.length());
+			const int mlen = p.length() - mstart;
+			if(c.position.length() || c.position.length()) flush = true;
+			if(recorded.find(j) < 0){
+				loopk(c.position.length()) recordpos.add(pos.buf[pstart + k]);
+				loopk(mlen) recordmsg.add(p.buf[mstart + k]);
+				recorded.add(j);
 			}
 		}
-		if(msize){
-			// messages before
-			if(pkt[i].msgoff){
-				packet = enet_packet_create(&ws.messages[0], pkt[i].msgoff, (reliablemessages ? ENET_PACKET_FLAG_RELIABLE : 0) | ENET_PACKET_FLAG_NO_ALLOCATE);
-				sendpacket(c.clientnum, 1, packet);
-				if(!packet->referenceCount) enet_packet_destroy(packet);
-				else { ++ws.uses; packet->freeCallback = cleanworldstate; }
-			}
-			// messages after
-			if(msize - pkt[i].msgoff - pkt[i].msglen){
-				packet = enet_packet_create(&ws.messages[pkt[i].msgoff+pkt[i].msglen], msize - pkt[i].msgoff - pkt[i].msglen, (reliablemessages ? ENET_PACKET_FLAG_RELIABLE : 0) | ENET_PACKET_FLAG_NO_ALLOCATE);
-				sendpacket(c.clientnum, 1, packet);
-				if(!packet->referenceCount) enet_packet_destroy(packet);
-				else { ++ws.uses; packet->freeCallback = cleanworldstate; }
-			}
-		}
+		enet_packet_resize(positionpacket, pos.length());
+		sendpacket(i, 0, positionpacket);
+		if(!positionpacket->referenceCount) enet_packet_destroy(positionpacket);
+		enet_packet_resize(messagepacket, p.length());
+		sendpacket(i, 1, messagepacket);
+		if(!messagepacket->referenceCount) enet_packet_destroy(messagepacket);
+	}
+	loopv(clients) if(clients[i]->type != ST_EMPTY){
+		clients[i]->position.setsize(0);
+		clients[i]->messages.setsize(0);
 	}
 	reliablemessages = false;
-	if(!ws.uses)
-	{
-		delete &ws;
-		return false;
+	if(flush){
+		recordpacket(0, recordpos.getbuf(), recordpos.length());
+		recordpacket(1, recordmsg.getbuf(), recordmsg.length());
 	}
-	else
-	{
-		worldstates.add(&ws);
-		return true;
-	}
+	return flush;
 }
 
 int countclients(int type, bool exclude = false){
