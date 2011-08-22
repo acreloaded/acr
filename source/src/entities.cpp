@@ -9,7 +9,7 @@ const char *entnames[] =
 {
 	"none?", "light", "playerstart",
 	"pistol", "ammobox","grenades",
-	"health", "armour", "akimbo",
+	"health", "armor", "akimbo",
 	"mapmodel", "trigger",
 	"ladder", "ctf-flag",
 	"sound", "clip", "plclip", "max"

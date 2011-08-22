@@ -235,8 +235,8 @@ void drawequipicons(playerent *p)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// health & armor
-	if(p->armour)
-		if(p->armour > 25) drawequipicon(560, 1650, (p->armour - 25) / 25, 2, 0);
+	if(p->armor)
+		if(p->armor > 25) drawequipicon(560, 1650, (p->armor - 25) / 25, 2, 0);
 		else drawequipicon(560, 1650, 3, 3, 0);
 	drawequipicon(20, 1650, 2, 3, (lastmillis - p->lastregen < 1000 ? 2 : 0) | ((p->state!=CS_DEAD && p->health<=35 && !m_osok) ? 1 : 0), p);
 	if(p->mag[GUN_GRENADE]) drawequipicon(1520, 1650, 3, 1, 0);
@@ -945,7 +945,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		{
 			pushfont("huddigits");
 			draw_textf("%d",  90, 823, p->health);
-			if(p->armour) draw_textf("%d", 360, 823, p->armour);
+			if(p->armor) draw_textf("%d", 360, 823, p->armor);
 			if(p->weapons[GUN_GRENADE] && p->weapons[GUN_GRENADE]->mag) p->weapons[GUN_GRENADE]->renderstats();
 			// The next set will alter the matrix - load the identity matrix and apply ortho after
 			if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS){

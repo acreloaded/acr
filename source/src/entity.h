@@ -4,7 +4,7 @@ enum							// static entity types
 	LIGHT,					  // lightsource, attr1 = radius, attr2 = intensity
 	PLAYERSTART,				// attr1 = angle, attr2 = team
 	I_CLIPS, I_AMMO, I_GRENADE,
-	I_HEALTH, I_ARMOUR, I_AKIMBO,
+	I_HEALTH, I_armor, I_AKIMBO,
 	MAPMODEL,				   // attr1 = angle, attr2 = idx
 	CARROT,					 // attr1 = tag, attr2 = type
 	LADDER,
@@ -69,7 +69,7 @@ static itemstat ammostats[] =
 static itemstat powerupstats[] =
 {
 	{35, STARTHEALTH, MAXHEALTH, S_ITEMHEALTH}, //health
-	{40, STARTARMOR, MAXARMOR, S_ITEMARMOUR}, //armour
+	{40, STARTARMOR, MAXARMOR, S_ITEMarmor}, //armor
 };
 
 #define ADSTIME 275
@@ -478,7 +478,7 @@ struct poshist
 
 struct playerstate
 {
-	int health, armour;
+	int health, armor;
 	int lastcut, cutter, ownernum;
 	int killstreak, assists;
 	int primary, nextprimary;
@@ -499,7 +499,7 @@ struct playerstate
 			case I_GRENADE: return ammostats[GUN_GRENADE];
 			case I_AKIMBO: return ammostats[GUN_AKIMBO];
 			case I_HEALTH: return powerupstats[0]; // FIXME: unify
-			case I_ARMOUR: return powerupstats[1];
+			case I_armor: return powerupstats[1];
 			default:
 				return *(itemstat *)0;
 		}
@@ -513,7 +513,7 @@ struct playerstate
 			case I_AMMO: return ammo[primary]<ammostats[primary].max;
 			case I_GRENADE: return mag[GUN_GRENADE]<ammostats[GUN_GRENADE].max;
 			case I_HEALTH: return health<powerupstats[type-I_HEALTH].max;
-			case I_ARMOUR: return armour<powerupstats[type-I_HEALTH].max;
+			case I_armor: return armor<powerupstats[type-I_HEALTH].max;
 			case I_AKIMBO: return !akimbo && ownernum < 0;
 			default: return false;
 		}
@@ -536,7 +536,7 @@ struct playerstate
 			case I_AMMO: additem(ammostats[primary], ammo[primary]); break;
 			case I_GRENADE: additem(ammostats[GUN_GRENADE], mag[GUN_GRENADE]); break;
 			case I_HEALTH: cutter = lastcut = 0; additem(powerupstats[type-I_HEALTH], health); break;
-			case I_ARMOUR: additem(powerupstats[type-I_HEALTH], armour); break;
+			case I_armor: additem(powerupstats[type-I_HEALTH], armor); break;
 			case I_AKIMBO:
 				akimbo = true;
 				mag[GUN_AKIMBO] = guns[GUN_AKIMBO].magsize;
@@ -548,9 +548,9 @@ struct playerstate
 	void respawn()
 	{
 		health = STARTHEALTH;
-		armour = STARTARMOR;
+		armor = STARTARMOR;
 		cutter = -1;
-		killstreak = assists = armour = lastcut = 0;
+		killstreak = assists = armor = lastcut = 0;
 		gunselect = GUN_PISTOL;
 		akimbo = scoping = false;
 		loopi(NUMGUNS) ammo[i] = mag[i] = gunwait[i] = 0;
@@ -586,9 +586,9 @@ struct playerstate
 
 	// just subtract damage here, can set death, etc. later in code calling this
 	int dodamage(int damage){
-		int ad = damage*30/100; // let armour absorb when possible
-		if(ad>armour) ad = armour;
-		armour -= ad;
+		int ad = damage*30/100; // let armor absorb when possible
+		if(ad>armor) ad = armor;
+		armor -= ad;
 		damage -= ad;
 		health -= damage;
 		return damage;

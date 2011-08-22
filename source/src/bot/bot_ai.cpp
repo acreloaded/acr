@@ -821,7 +821,7 @@ void CBot::MainAI()
 		  AddDebugText("Hunting to %s", m_pHuntTarget->name);
 		  m_eCurrentBotState = STATE_HUNT;
 	 }
-	 // Heading to an interesting entity(ammo, armour etc)
+	 // Heading to an interesting entity(ammo, armor etc)
 	 else if (CheckItems()) 
 	 {
 		  CheckReload();

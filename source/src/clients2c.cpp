@@ -417,7 +417,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				s->respawn();
 				s->lifesequence = getint(p);
 				s->health = getint(p);
-				s->armour = getint(p);
+				s->armor = getint(p);
 				int gunselect = getint(p);
 				s->setprimary(gunselect);
 				s->selectweapon(gunselect);
@@ -434,7 +434,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				d->respawn();
 				d->lifesequence = getint(p);
 				d->health = getint(p);
-				d->armour = getint(p);
+				d->armor = getint(p);
 				d->setprimary(getint(p));
 				d->selectweapon(getint(p));
 				int arenaspawn = getint(p);
@@ -595,13 +595,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				int tcn = getint(p),
 					acn = getint(p),
 					damage = getint(p),
-					armour = getint(p),
+					armor = getint(p),
 					health = getint(p),
 					weap = getint(p),
 					style = getint(p);
 				playerent *target = getclient(tcn), *actor = getclient(acn);
 				if(!target) break;
-				target->armour = armour;
+				target->armor = armor;
 				target->health = health;
 				if(!actor) break;
 				dodamage(damage, target, actor, weap, style);
@@ -645,7 +645,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				{
 					int cn = getint(p);
 					if(p.overread() || cn<0) break;
-					int state = getint(p), lifesequence = getint(p), gunselect = getint(p), points = getint(p), flagscore = getint(p), frags = getint(p), assists = getint(p), killstreak = getint(p), deaths = getint(p), health = getint(p), armour = getint(p);
+					int state = getint(p), lifesequence = getint(p), gunselect = getint(p), points = getint(p), flagscore = getint(p), frags = getint(p), assists = getint(p), killstreak = getint(p), deaths = getint(p), health = getint(p), armor = getint(p);
 					int ammo[NUMGUNS], mag[NUMGUNS];
 					loopi(NUMGUNS) ammo[i] = getint(p);
 					loopi(NUMGUNS) mag[i] = getint(p);
@@ -673,7 +673,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						d->setprimary(primary);
 						d->selectweapon(gunselect);
 						d->health = health;
-						d->armour = armour;
+						d->armor = armor;
 						memcpy(d->ammo, ammo, sizeof(ammo));
 						memcpy(d->mag, mag, sizeof(mag));
 					}

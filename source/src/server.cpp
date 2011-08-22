@@ -583,7 +583,7 @@ void sendspawn(client *c){
 	if(gs.lastdeath) gs.respawn();
 	spawnstate(c);
 	sendf(c->clientnum, 1, "ri8vv", N_SPAWNSTATE, c->clientnum, gs.lifesequence,
-		gs.health, gs.armour,
+		gs.health, gs.armor,
 		gs.primary, gs.gunselect, m_duel ? c->spawnindex : -1,
 		NUMGUNS, gs.ammo, NUMGUNS, gs.mag);
 	gs.lastspawn = gamemillis;
@@ -1269,7 +1269,7 @@ int spawntime(int type){
 		case I_AMMO:
 		case I_GRENADE: sec = np*2; break;
 		case I_HEALTH: sec = np*5; break;
-		case I_ARMOUR: sec = 20; break;
+		case I_armor: sec = 20; break;
 		case I_AKIMBO: sec = 60; break;
 	}
 	return sec*1000;
@@ -1489,7 +1489,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 		*/
 	}
 	else{
-		sendf(-1, 1, "ri8", N_DAMAGE, target->clientnum, actor->clientnum, int(damage * (gib ? GIBBLOODMUL : 1)), ts.armour, ts.health, gun, style & FRAG_VALID);
+		sendf(-1, 1, "ri8", N_DAMAGE, target->clientnum, actor->clientnum, int(damage * (gib ? GIBBLOODMUL : 1)), ts.armor, ts.health, gun, style & FRAG_VALID);
 		if(source != target->state.o && (gun == GUN_GRENADE || gun == GUN_BOW)) sendf(-1, 1, "ri4f3", N_PROJPUSH, target->clientnum, gun, damage, source.x, source.y, source.z);
 	}
 }
@@ -2679,7 +2679,7 @@ void sendresume(client &c, bool broadcast){
 			c.state.killstreak, // i9
 			c.state.deaths, // i9
 			c.state.health, // i9
-			c.state.armour, // i9
+			c.state.armor, // i9
 			NUMGUNS, c.state.ammo, // v
 			NUMGUNS, c.state.mag, // v
 			-1); // i
@@ -2797,7 +2797,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath){
 			putint(p, c.state.killstreak);
 			putint(p, c.state.deaths);
 			putint(p, c.state.health);
-			putint(p, c.state.armour);
+			putint(p, c.state.armor);
 			loopi(NUMGUNS) putint(p, c.state.ammo[i]);
 			loopi(NUMGUNS) putint(p, c.state.mag[i]);
 		}
@@ -3167,7 +3167,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					putint(buf, cn);
 					putint(buf, ls);
 					putint(buf, cp.state.health);
-					putint(buf, cp.state.armour);
+					putint(buf, cp.state.armor);
 					putint(buf, gunselect);
 					loopi(NUMGUNS) putint(buf, cp.state.ammo[i]);
 					loopi(NUMGUNS) putint(buf, cp.state.mag[i]);
@@ -4185,7 +4185,7 @@ void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENet
 		putint(p,clients[i]->state.deaths);	 //Death
 		putint(p,clients[i]->state.damage*100/max(clients[i]->state.shotdamage,1)); //Accuracy
 		putint(p,clients[i]->state.health);	 //Health
-		putint(p,clients[i]->state.armour);	 //Armour
+		putint(p,clients[i]->state.armor);	 //armor
 		putint(p,clients[i]->state.gunselect);  //Gun selected
 		putint(p,clients[i]->priv ? 1 : 0);		 //Role
 		putint(p,clients[i]->state.state);	  //State (Alive,Dead,Spawning,Lagged,Editing)
