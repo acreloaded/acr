@@ -413,10 +413,10 @@ bool buildworldstate(){
 		ws.messages.addbuf(p);
 	}
 	ws.uses = 0;
+	ENetPacket *packet;
 	loopv(clients){
 		client &c = *clients[i];
 		if(c.type!=ST_TCPIP || !c.connected) continue;
-		ENetPacket *packet;
 		if(psize){
 			// positions before
 			if(pkt[i].posoff){
