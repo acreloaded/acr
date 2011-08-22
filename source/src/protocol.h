@@ -1,4 +1,4 @@
-#define MAXCLIENTS 256				  // in a multiplayer game, can be arbitrarily changed
+#define MAXCLIENTS 32				  // in a multiplayer game, can be arbitrarily changed
 #define MAXBOTS 16
 #define DEFAULTCLIENTS 12
 #define MAXTRANS 5000				   // max amount of data to swallow in 1 go
