@@ -21,9 +21,10 @@ void processevent(client &c, projevent &e){
 
 		case GUN_KNIFE:
 		{
-			if(!gs.knives.remove(e.flag)) return;
+			if(!gs.knives.numprojs) return;
+			--gs.knives.numprojs;
 			ushort dmg = effectiveDamage(GUN_KNIFE, 0);
-			client *hit = knifehit(c, e.o);
+			client *hit = valid_client(e.flag) && e.flag != c.clientnum ? clients[e.flag] : NULL;
 			if(hit){
 				client &target = *hit;
 				clientstate &ts = target.state;

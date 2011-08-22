@@ -102,7 +102,7 @@ struct projectilestate
 	{
 		if(numprojs>=N) numprojs = 0;
 		projs[numprojs++] = val;
-		throwable++;
+		++throwable;
 	}
 
 	bool remove(int val)

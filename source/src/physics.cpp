@@ -70,6 +70,7 @@ bool raycubelos(const vec &from, const vec &to, float margin)
 }
 
 physent *hitplayer = NULL;
+playerent *tkhit = NULL;
 
 bool plcollide(physent *d, physent *o, float &headspace, float &hi, float &lo)		  // collide with physent
 {
@@ -221,9 +222,15 @@ bool collide(physent *d, bool spawn, float drop, float rise)
 		{
 			playerent *o = players[i];
 			if(!o || o==d || (o==player1 && d->type==ENT_CAMERA)) continue;
-			if(!plcollide(d, o, headspace, hi, lo)) return false;
+			if(!plcollide(d, o, headspace, hi, lo)){
+				tkhit = o;
+				return false;
+			}
 		}
-		if(d!=player1) if(!plcollide(d, player1, headspace, hi, lo)) return false;
+		if(d!=player1) if(!plcollide(d, player1, headspace, hi, lo)){
+			tkhit = player1;
+			return false;
+		}
 	}
 
 	headspace -= 0.01f;
@@ -486,6 +493,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 	bool collided = false;
 	vec oldorigin = pl->o;
 
+	tkhit = NULL;
 	if(!editfly) loopi(moveres)								// discrete steps collision detection & sliding
 	{
 		const float f = 1.0f/moveres;

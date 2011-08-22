@@ -1053,7 +1053,12 @@ void knifeent::explode(){
 	if(knifestate!=NS_ACTIVATED && knifestate!=NS_THROWED ) return;
 	knifestate = NS_EXPLODED;
 	static vec n(0,0,0);
-	if(local) addmsg(N_PROJ, "ri4f3", owner->clientnum, lastmillis, GUN_KNIFE, millis, o.x, o.y, o.z);
+	if(local){
+		extern playerent *tkhit;
+		const int hitcn = tkhit ? tkhit->clientnum : -1;
+		conoutf("test %d", hitcn);
+		addmsg(N_PROJ, "ri4f3", owner->clientnum, lastmillis, GUN_KNIFE, hitcn, o.x, o.y, o.z);
+	}
 	playsound(S_GRENADEBOUNCE1+rnd(2), &o);
 	destroy();
 }
