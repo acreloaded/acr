@@ -92,7 +92,7 @@ void updatemasterserver(int millis, const ENetAddress &localaddr){
 		formatstring(path)("%sregister/%d/%d", masterpath, PROTOCOL_VERSION, localaddr.port);
 		lastupdatemaster = millis/MSKEEPALIVE;
 	} else if (authrequests.length()){
-		authrequest r = authrequests.pop(); // request auth as a stack, just because it's faster
+		authrequest r = authrequests.remove(0);
 		logline(ACLOG_INFO, "sending auth #%d", r.id);
 		
 		if(r.answer) formatstring(path)("%sauth/%d/%s", masterpath, r.id, r.chal);
