@@ -2932,7 +2932,7 @@ int checktype(int type, client *cl){ // invalid defined types handled in the pro
 	if (type < 0 || type >= N_NUM) return -1; // out of range
 	if(!m_edit && cl && cl->type == ST_TCPIP && (type >= N_EDITH && type <= N_NEWMAP)) return -1; // edit
 	// overflow
-	static const int exempt[] = { N_POS, N_SPAWN, N_SHOOT, N_PROJ };
+	static const int exempt[] = { N_POS, N_SPAWN, N_SHOOT, N_SHOOTC, N_PROJ };
 	loopi(sizeof(exempt)/sizeof(int)) if(type == exempt[i]) return type; // does not contribute to overflow, just because the bots will have to send this too
 	if(cl && cl->type == ST_TCPIP && cl->overflow++ > MAXTRANS) return -2; // overflow
 	return type; // normal
