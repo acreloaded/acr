@@ -157,7 +157,7 @@ void parsepositions(ucharbuf &p)
 		}
 
 		default:
-			neterr("type in position packet: ", type);
+			neterr("type in position packet", type);
 			return;
 	}
 }
