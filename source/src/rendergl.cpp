@@ -467,7 +467,7 @@ float dynfov(){
 }
 
 VAR(fog, 64, 180, 1024);
-VAR(fogcolour, 0, 0x8099B3, 0xFFFFFF);
+VAR(fogcolor, 0, 0x8099B3, 0xFFFFFF);
 float fovy, aspect;
 int farplane;
 
@@ -927,7 +927,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps){
 
 	glFogi(GL_FOG_START, (fog+64)/8);
 	glFogi(GL_FOG_END, fog);
-	float fogc[4] = { (fogcolour>>16)/256.0f, ((fogcolour>>8)&255)/256.0f, (fogcolour&255)/256.0f, 1.0f },
+	float fogc[4] = { (fogcolor>>16)/256.0f, ((fogcolor>>8)&255)/256.0f, (fogcolor&255)/256.0f, 1.0f },
 		  wfogc[4] = { hdr.watercolor[0]/255.0f, hdr.watercolor[1]/255.0f, hdr.watercolor[2]/255.0f, 1.0f };
 	glFogfv(GL_FOG_COLOR, fogc);
 	glClearColor(fogc[0], fogc[1], fogc[2], 1.0f);

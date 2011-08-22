@@ -730,7 +730,7 @@ void resetmap()
 	setvar("gamespeed", 100);
 	setvar("paused", 0);
 	setvar("fog", 180);
-	setvar("fogcolour", 0x8099B3);
+	setvar("fogcolor", 0x8099B3);
 	setvar("shadowyaw", 45);
 }
 

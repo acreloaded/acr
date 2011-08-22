@@ -35,7 +35,7 @@ void setwatercolor(const char *r, const char *g, const char *b, const char *a)
 	sendwater();
 }
 
-COMMANDN(watercolour, setwatercolor, ARG_4STR);
+COMMANDN(watercolor, setwatercolor, ARG_4STR);
 
 // renders water for bounding rect area that contains water... simple but very inefficient
 

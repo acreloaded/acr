@@ -30,7 +30,7 @@ void lightray(float bx, float by, const persistent_entity &light, float fade = 1
 		l /= lightscale;
 		stepl /= lightscale;
 
-		if(light.attr3 || light.attr4)	  // coloured light version, special case because most lights are white
+		if(light.attr3 || light.attr4)	  // colored light version, special case because most lights are white
 		{
 			if(flicker)
 			{
