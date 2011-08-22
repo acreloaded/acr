@@ -58,20 +58,6 @@ void processevent(client &c, projevent &e){
 
 void processevent(client &c, shotevent &e)
 {
-	loopv(clients) if(valid_client(i)) clients[i]->state.head = clients[i]->state.o;
-	loopv(c.events){
-		if(c.events[i].type != GE_HEAD){
-			if(i) break;
-			else continue;
-		}
-		headevent &h = c.events[i].head;
-		if(valid_client(h.cn)){
-			clientstate &cs = clients[h.cn]->state;
-			loopi(3) cs.head[i] = h.o[i];
-			if(cs.head.magnitude() > 1) cs.head.normalize(); // how can the center of our heads deviate more than 25 cm from our necks?
-			cs.head.add(cs.o);
-		}
-	}
 	clientstate &gs = c.state;
 	int wait = e.millis - gs.lastshot;
 	if(!gs.isalive(gamemillis) ||
@@ -155,7 +141,7 @@ void processevent(client &c, shotevent &e)
 				if(t.type == ST_EMPTY || ts.state != CS_ALIVE || &c == &t) continue;
 				const float d = gs.o.dist(ts.o);
 				if(d > dist) continue;
-				vec head(ts.head);
+				vec head = generateHead(ts.o, ts.aim[0]);
 				const int hz = hitplayer(gs.o, gs.aim[0], gs.aim[1], to, ts.o, head);
 				if(!hz) continue;
 				cn = i;
@@ -254,10 +240,10 @@ void processevent(client &c, akimboevent &e){
 }
 
 void clearevent(client &c){
-	int n = 1;
+	/*int n = 1;
 	while(n<c.events.length() && c.events[n].type==GE_HEAD) n++;
-	c.events.remove(0, n);
-	//c.events.remove(0);
+	c.events.remove(0, n);*/
+	c.events.remove(0);
 }
 
 void processtimer(client &c, projevent &e){

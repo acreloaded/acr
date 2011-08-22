@@ -324,38 +324,8 @@ int weapon::flashtime() const { return min(max((int)info.attackdelay, 180)/3, 15
 
 void weapon::sendshoot(vec &from, vec &to){
 	if(owner!=player1 && owner->ownernum!=getclientnum()) return;
-	static uchar buf[MAXTRANS];
-	ucharbuf p(buf, MAXTRANS);
-	putint(p, N_SHOOT);
-	putint(p, owner->clientnum);
-	putint(p, lastmillis);
-	putint(p, owner->weaponsel->type);
 	to.sub(owner->o);
-	loopi(3) putfloat(p, to[i]);
-	vector<vec4> heads;
-	heads.setsize(0);
-	// add potential heads...
-	loopv(players){
-		playerent *p = players[i];
-		if(!p || p->state != CS_ALIVE || p == owner || p->head.x < 0) continue;
-		vec headoffset(p->head);
-		headoffset.sub(p->o);
-		vec4 &h = heads.add();
-		h[0] = headoffset.x;
-		h[1] = headoffset.y;
-		h[2] = headoffset.z;
-		h[3] = i;
-	}
-	putint(p, heads.length());
-	loopv(heads){
-		putint(p, (int)heads[i][3]);
-		loopk(3) putfloat(p, heads[i][k]);
-	}
-	int len = p.length();
-	extern vector<uchar> messages;
-	messages.add(len&0xFF);
-	messages.add((len>>8)| 0x80);
-	loopi(len) messages.add(buf[i]);
+	addmsg(N_SHOOT, "ri3f3", owner->clientnum, lastmillis, owner->weaponsel->type, to.x, to.y, to.z);
 }
 
 bool weapon::modelattacking(){

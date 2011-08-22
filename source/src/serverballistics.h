@@ -46,6 +46,10 @@ inline void sendhit(client &actor, int gun, const float *o){
 	sendf(-1, 1, "ri3f3", N_PROJ, actor.clientnum, gun, o[0], o[1], o[2]);
 }
 
+inline vec generateHead(const vec &o, float yaw){ // approximate location for the heads
+	return vec(.2f, -.25f, .25f).rotate_around_z(yaw * RAD).add(o);
+}
+
 // explosions
 int explosion(client &owner, const vec &o, int weap){
 	int damagedealt = 0;
@@ -82,7 +86,7 @@ int shot(client &owner, const vec &from, const vec &to, int weap, int exclude = 
 		clientstate &ts = t.state;
 		// basic checks
 		if(i == exclude || t.type == ST_EMPTY || ts.state != CS_ALIVE) continue;
-		vec head(ts.o), end(ts.head);
+		vec head = generateHead(ts.o, ts.aim[0]), end;
 		
 		// calculate the hit
 		const int hitzone = hitplayer(gs.o, gs.aim[0], gs.aim[1], to, ts.o, head, &end);
@@ -131,8 +135,8 @@ int shotgun(client &owner, const vec &from, const vec &to){
 
 		int damage = 0;
 		loopj(SGRAYS){ // check rays and sum damage
-			vec end;
-			const int hitzone = hitplayer(from, gs.aim[0], gs.aim[1], gs.sg[j], ts.o, ts.head, &end);
+			vec head = generateHead(ts.o, ts.aim[0]), end;
+			const int hitzone = hitplayer(from, gs.aim[0], gs.aim[1], gs.sg[j], ts.o, head, &end);
 			if(!hitzone) continue;
 			damage += effectiveDamage(GUN_SHOTGUN, end.dist(gs.o)) * muls[MUL_SHOTGUN].val[hitzone == HIT_HEAD ? 0 : hitzone == HIT_TORSO ? 1 : 2];
 		}

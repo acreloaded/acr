@@ -38,7 +38,7 @@ struct servercommandline scl;
 
 static const int DEATHMILLIS = 300;
 
-enum { GE_NONE = 0, GE_SHOT, GE_PROJ, GE_HEAD, GE_AKIMBO, GE_RELOAD };
+enum { GE_NONE = 0, GE_SHOT, GE_PROJ, GE_AKIMBO, GE_RELOAD };
 enum { ST_EMPTY, ST_LOCAL, ST_TCPIP, ST_AI };
 
 int mastermode = MM_OPEN, botbalance = -1;
@@ -55,12 +55,6 @@ struct shotevent{
 	int gun;
 	float to[3];
 	bool compact;
-};
-
-struct headevent{
-	eventcommon;
-	int cn;
-	float o[3];
 };
 
 struct projevent{
@@ -81,7 +75,6 @@ struct reloadevent{
 union gameevent{
 	struct { eventcommon; };
 	shotevent shot;
-	headevent head;
 	projevent proj;
 	akimboevent akimbo;
 	reloadevent reload;
@@ -118,7 +111,7 @@ struct projectilestate
 
 struct clientstate : playerstate
 {
-	vec o, aim, vel, lasto, sg[SGRAYS], head, flagpickupo;
+	vec o, aim, vel, lasto, sg[SGRAYS], flagpickupo;
 	float pitchvel;
 	int state, lastomillis, movemillis;
 	int lastdeath, lastffkill, lastspawn, lifesequence, spawnmillis;
@@ -160,7 +153,7 @@ struct clientstate : playerstate
 	{
 		playerstate::respawn();
 		o = lasto = vec(-1e10f, -1e10f, -1e10f);
-		aim = vel = head = vec(0, 0, 0);
+		aim = vel = vec(0, 0, 0);
 		pitchvel = 0;
 		lastomillis = movemillis = 0;
 		drownmillis = drownval = 0;
@@ -3227,19 +3220,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				shot.shot.compact = type == N_SHOOTC;
 				if(type == N_SHOOT){
 					loopk(3) shot.shot.to[k] = getfloat(p);
-					int hcount = getint(p);
-					if(hcount < 1) break;
-					const int maxheads = hascn ? numclients() : 0;
-					while(hcount > maxheads){
-						getint(p);
-						loopk(3) getfloat(p);
-						hcount--;
-					}
-					while(hcount--){
-						headevent &h = cp->addevent().head;
-						h.cn = getint(p);
-						loopk(3) h.o[k] = getfloat(p);
-					}
 				}
 				break;
 			}
