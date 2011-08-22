@@ -709,7 +709,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	bool menu = menuvisible();
 	bool command = getcurcommand() ? true : false;
 
-	if(p->lasthitmarker + 2000 > lastmillis){
+	if(p->lasthitmarker && p->lasthitmarker + 2000 > lastmillis){
 		glColor4f(1, 1, 1, (p->lasthitmarker + 2000 - lastmillis) / 1000.f);
 		Texture *ch = crosshairs[CROSSHAIR_HIT];
 		if(!ch) ch = textureload("packages/misc/crosshairs/hit.png", 3);
