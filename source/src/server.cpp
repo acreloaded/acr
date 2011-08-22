@@ -369,7 +369,7 @@ bool buildworldstate(){ // WAY easier worldstates
 			const int mstart = p.length();
 			putint(p, N_CLIENT);
 			putint(p, j);
-			putuint(p, c.messages.length());
+			//putuint(p, c.messages.length());
 			p.put(c.messages.getbuf(), c.messages.length());
 			const int mlen = p.length() - mstart;
 			if(c.position.length() || c.position.length()) flush = true;
@@ -3010,6 +3010,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 	#define QUEUE_INT(n) QUEUE_BUF(5, putint(buf, n))
 	#define QUEUE_UINT(n) QUEUE_BUF(4, putuint(buf, n))
 	#define QUEUE_STR(text) QUEUE_BUF(2*(int)strlen(text)+1, sendstring(text, buf))
+	/*
 	#define MSG_PACKET(packet) \
 		ENetPacket *packet = enet_packet_create(NULL, 16 + p.length() - curmsg, ENET_PACKET_FLAG_RELIABLE); \
 		ucharbuf buf(packet->data, packet->dataLength); \
@@ -3018,6 +3019,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 		putuint(buf, p.length() - curmsg); \
 		buf.put(&p.buf[curmsg], p.length() - curmsg); \
 		enet_packet_resize(packet, buf.length());
+		*/
 
 	static gameevent dummy; // in case a client sends on behalf of somebody else's bot
 

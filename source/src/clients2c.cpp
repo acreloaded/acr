@@ -219,8 +219,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_CLIENT:
 			{
-				int cn = getint(p), len = getuint(p);
-				ucharbuf q = p.subbuf(len);
+				int cn = getint(p);//, len = getuint(p);
+				ucharbuf q = p.subbuf(p.remaining());
 				parsemessages(cn, getclient(cn), q);
 				break;
 			}
