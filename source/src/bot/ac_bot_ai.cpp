@@ -160,8 +160,8 @@ entity *CACBot::SearchForEnts(bool bUseWPs, float flRange, float flMaxHeight)
 			   bInteresting = (m_pMyEnt->health < sMaxAmmo); 
 			   sAmmo = m_pMyEnt->health;
 			   break;
-		  case I_armor:
-			   sMaxAmmo = powerupstats[I_armor-I_HEALTH].max; // FIXME
+		  case I_ARMOR:
+			   sMaxAmmo = powerupstats[I_ARMOR-I_HEALTH].max; // FIXME
 			   bInteresting = (m_pMyEnt->armor < sMaxAmmo);
 			   sAmmo = m_pMyEnt->armor;
 			   break;

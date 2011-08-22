@@ -99,7 +99,7 @@ struct mapstats
 						break; \
 					case 9: /* armor */ \
 					case 10: /* armor */ \
-						e.type=I_armor; \
+						e.type=I_ARMOR; \
 						break; \
 					case 11: /* quad */ \
 						e.type=I_AKIMBO; \

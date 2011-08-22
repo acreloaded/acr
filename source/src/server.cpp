@@ -1269,7 +1269,7 @@ int spawntime(int type){
 		case I_AMMO:
 		case I_GRENADE: sec = np*2; break;
 		case I_HEALTH: sec = np*5; break;
-		case I_armor: sec = 20; break;
+		case I_ARMOR: sec = 20; break;
 		case I_AKIMBO: sec = 60; break;
 	}
 	return sec*1000;
