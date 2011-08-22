@@ -303,8 +303,8 @@ struct cleardemosaction : serveraction
 struct botbalanceaction : serveraction
 {
 	int bb;
-	void perform() { botbalance = bb; extern void checkai(); checkai(); }
-	botbalanceaction(int b) :bb(b)
+	void perform() { botbalance = bb; checkai(); }
+	botbalanceaction(int b) : bb(b)
 	{
 		area |= EE_LOCAL_SERV;
 		role = roleconf('a');
