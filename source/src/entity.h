@@ -105,8 +105,8 @@ enum { MUL_NORMAL = 0, MUL_POWERFUL, MUL_SHOTGUN, MUL_NUM };
 static mul muls[MUL_NUM] =
 {
 	//{ head, torso, leg; }
-	{ 3.5f, 1,		.67f }, // normal
-	{ 5,	1.1f, 	1 }, // powerful
+	{ 3.5f, 1.1f,	1 }, // normal
+	{ 5,	1.4f, 	1 }, // powerful
 	{ 4,	1.2f,	1 } // shotgun
 };
 
@@ -118,7 +118,7 @@ static guninfo guns[NUMGUNS] =
 	{ "pistol",     S_PISTOL,   S_RPISTOL,  1400,   90,     40,   40,  120,   20,   0,   0, 90,    9,   12,   6,  2,    32,    48,     70, 1,   false},
 	{ "shotgun",    S_SHOTGUN,  S_RSHOTGUN,  750,   200,    10,    4,   16,    6,   0,   0,  1,   12,    7,   9,  5,    60,    80,      5, 2,   false},
 	{ "subgun",     S_SUBGUN,   S_RSUBGUN,  2400,   67,     40,   32,   80,   22,   0,   0, 70,    4,   32,   1,  3,    23,    45,     65, 1,   true },
-	{ "sniper",     S_SNIPER,   S_RSNIPER,  2000,   100,   120,    1,    2,   70,   0,   0,250,   14,   10,   4,  4,    58,    65,     75, 2,   false},
+	{ "sniper",     S_SNIPER,   S_RSNIPER,  2000,   100,   120,    1,    2,   50,   0,   0,250,   14,   10,   4,  4,    58,    65,     75, 2,   false},
 	{ "bolt",       S_BOLT,     S_RBOLT,    2000,   1500,  150,   80,  800,   40,   0,   0,280,   36,    8,   4,  4,    86,    94,     80, 3,   false},
 	{ "assault",    S_ASSAULT,  S_RASSAULT, 2100,   73,     32,   40,  100,   12,   0,   0, 60,    3,   30,   0,  3,    24,    38,     60, 1,   true },
 	{ "grenade",    S_NULL,     S_NULL,     1000,   650,   350,    0,   32,  330,  20,   6,  1,    1,    1,   3,  1,     0,    0,       0, 4,   false},
