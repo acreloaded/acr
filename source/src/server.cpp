@@ -443,7 +443,7 @@ bool buildworldstate(){
 			}
 			// messages after
 			if(msize - pkt[i].msgoff - pkt[i].msglen){
-				packet = enet_packet_create(&ws.messages[pkt[i].msgoff+pkt[i].msglen], psize - pkt[i].msgoff - pkt[i].msglen, (reliablemessages ? ENET_PACKET_FLAG_RELIABLE : 0) | ENET_PACKET_FLAG_NO_ALLOCATE);
+				packet = enet_packet_create(&ws.messages[pkt[i].msgoff+pkt[i].msglen], msize - pkt[i].msgoff - pkt[i].msglen, (reliablemessages ? ENET_PACKET_FLAG_RELIABLE : 0) | ENET_PACKET_FLAG_NO_ALLOCATE);
 				sendpacket(c.clientnum, 1, packet);
 				if(!packet->referenceCount) enet_packet_destroy(packet);
 				else { ++ws.uses; packet->freeCallback = cleanworldstate; }
