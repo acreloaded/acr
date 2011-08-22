@@ -3010,6 +3010,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 	#define QUEUE_INT(n) QUEUE_BUF(5, putint(buf, n))
 	#define QUEUE_UINT(n) QUEUE_BUF(4, putuint(buf, n))
 	#define QUEUE_STR(text) QUEUE_BUF(2*(int)strlen(text)+1, sendstring(text, buf))
+	#define QUEUE_FLOAT(n) QUEUE_BUF(sizeof(float), putfloat(buf, n))
 	/*
 	#define MSG_PACKET(packet) \
 		ENetPacket *packet = enet_packet_create(NULL, 16 + p.length() - curmsg, ENET_PACKET_FLAG_RELIABLE); \
@@ -3305,33 +3306,34 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_THROWKNIFE:
 			{
+				const int cn = getint(p);
 				vec from, vel;
 				loopi(3) from[i] = getfloat(p);
 				loopi(3) vel[i] = getfloat(p);
-				if(cl->state.knives.throwable <= 0) break;
-				cl->state.knives.throwable--;
+				if(!hasclient(cl, cn)) break;
+				clientstate &cps = clients[cn]->state;
+				if(cps.knives.throwable <= 0) break;
+				cps.knives.throwable--;
 				checkpos(from);
 				if(vel.magnitude() > KNIFEPOWER) vel.normalize().mul(KNIFEPOWER);
-				ucharbuf newmsg(cl->messages.reserve(7 * sizeof(float)));
-				putint(newmsg, N_THROWKNIFE);
-				loopi(3) putfloat(newmsg, from[i]);
-				loopi(3) putfloat(newmsg, vel[i]);
-				cl->messages.addbuf(newmsg);
-				break;
+				sendf(-1, 1, "ri2f6x", N_THROWKNIFE, cn, from.x, from.y, from.z, vel.x, vel.y, vel.z, sender);
 				break;
 			}
 
 			case N_THROWNADE:
 			{
+				const int cn = getint(p);
 				vec from, vel;
 				loopi(3) from[i] = getfloat(p);
 				loopi(3) vel[i] = getfloat(p);
-				int elapsedmillis = getint(p);
-				if(cl->state.grenades.throwable <= 0) break;
-				cl->state.grenades.throwable--;
+				int cooked = clamp(getint(p), 1, NADETTL);
+				if(!hasclient(cl, cn)) break;
+				clientstate &cps = clients[cn]->state;
+				if(cps.grenades.throwable <= 0) break;
+				cps.grenades.throwable--;
 				checkpos(from);
 				if(vel.magnitude() > NADEPOWER) vel.normalize().mul(NADEPOWER);
-				sendf(-1, 1, "ri2f6ix", N_THROWNADE, sender, from.x, from.y, from.z, vel.x, vel.y, vel.z, elapsedmillis, sender);
+				sendf(-1, 1, "ri2f6ix", N_THROWNADE, cn, from.x, from.y, from.z, vel.x, vel.y, vel.z, cooked, sender);
 				break;
 			}
 

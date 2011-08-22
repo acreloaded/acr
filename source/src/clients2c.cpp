@@ -517,6 +517,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_THROWKNIFE:
 			{
+				playerent *d = getclient(getint(p));
 				vec from, to;
 				loopk(3) from[k] = getfloat(p);
 				loopk(3) to[k] = getfloat(p);
@@ -533,11 +534,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				vec from, to;
 				loopk(3) from[k] = getfloat(p);
 				loopk(3) to[k] = getfloat(p);
-				int nademillis = getint(p);
+				int cooked = getint(p);
 				if(!d) break;
 				updatelastaction(d);
 				d->lastattackweapon = d->weapons[GUN_GRENADE];
-				if(d->weapons[GUN_GRENADE]) d->weapons[GUN_GRENADE]->attackfx(from, to, nademillis);
+				if(d->weapons[GUN_GRENADE]) d->weapons[GUN_GRENADE]->attackfx(from, to, cooked);
 				break;
 			}
 

@@ -530,7 +530,7 @@ void grenadeent::_throw(const vec &from, const vec &vel){
 	inwater = hdr.waterlevel>o.z;
 
 	if(local){
-		addmsg(N_THROWNADE, "rf6i", o.x, o.y, o.z, vel.x, vel.y, vel.z, lastmillis-millis);
+		addmsg(N_THROWNADE, "rif6i", owner->clientnum, o.x, o.y, o.z, vel.x, vel.y, vel.z, lastmillis-millis);
 		playsound(S_GRENADETHROW, SP_HIGH);
 	}
 	else playsound(S_GRENADETHROW, owner);
@@ -1076,7 +1076,7 @@ void knifeent::_throw(const vec &from, const vec &vel){
 	resetinterp();
 	inwater = hdr.waterlevel>o.z;
 
-	if(local) addmsg(N_THROWKNIFE, "rf6", o.x, o.y, o.z, vel.x, vel.y, vel.z);
+	if(local) addmsg(N_THROWKNIFE, "rif6", owner->clientnum, o.x, o.y, o.z, vel.x, vel.y, vel.z);
 	playsound(S_GRENADETHROW, SP_HIGH);
 }
 
