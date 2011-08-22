@@ -3249,7 +3249,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				gameevent &exp = hascn ? cp->addevent() : dummy;
 				exp.type = GE_PROJ;
 				int id = getint(p);
-				seteventmillis(exp.proj, id);
+				if(hascn) seteventmillis(exp.proj, id);
 				exp.proj.gun = getint(p);
 				exp.proj.flag = getint(p);
 				loopi(3) exp.proj.o[i] = getfloat(p);
