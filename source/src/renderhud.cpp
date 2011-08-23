@@ -403,7 +403,7 @@ float easedradarsize = 64;
 void drawradar(playerent *p, int w, int h)
 {
 	vec center = showmap ? vec(ssize/2, ssize/2, 0) : p->o;
-	easedradarsize = clamp(((easedradarsize * 60.f + p->o.dist(worldpos) * 3.f) / 61.f), 50.f, ssize/2.f); // 2.5f is normal scaling; 3 for extra view
+	easedradarsize = clamp(((easedradarsize * 60.f + p->o.dist(worldpos) * 3.f) / 61.f), 100.f, ssize/2.f); // 2.5f is normal scaling; 3 for extra view
 	float res = showmap ? ssize : easedradarsize;
 
 	float worldsize = (float)ssize;
@@ -745,7 +745,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		int h = 1;
 		float aspect = 1, scalef = 1, offset = (lastmillis - icon.millis) / 3000.f * 160.f;
 		switch(icon.type){
-			case eventicon::VOICECOM: case eventicon::PICKUP: default: scalef = .4f; break;
+			case eventicon::VOICECOM: case eventicon::PICKUP: scalef = .4f; break;
 				case eventicon::HEADSHOT:
 				case eventicon::CRITICAL:
 				case eventicon::REVENGE:
