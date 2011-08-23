@@ -2672,8 +2672,8 @@ void getservermap(void){
 	DELETEA(cfgdata);
 }
 
-void sendresume(client &c, bool broadcast){
-	sendf(broadcast ? -1 : c.clientnum, 1, "rxi4i9vvi", broadcast ? c.clientnum : -1, // x
+void sendresume(client &c){
+	sendf(-1, 1, "ri4i9vvi",
 			N_RESUME, // i4
 			c.clientnum, // i4
 			c.state.state, // i4
