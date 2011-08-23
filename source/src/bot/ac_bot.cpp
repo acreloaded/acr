@@ -36,7 +36,7 @@ void CACBot::Spawn()
 		case 7: nextweap = WEAP_BOW; break;
 	}
 	 m_pMyEnt->nextprimary = nextweap;
-	 addmsg(N_PRIMARYWEAP, "ri2", m_pMyEnt->clientnum, nextweap);
+	 addmsg(N_LOADOUT, "ri3", m_pMyEnt->clientnum, nextweap, PERK_NONE);
 	 m_pMyEnt->targetyaw = m_pMyEnt->targetpitch = 0.0f;
 	 m_pMyEnt->pBot = this;
 

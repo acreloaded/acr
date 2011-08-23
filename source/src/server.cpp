@@ -600,15 +600,15 @@ void usestreak(client &c, int streak){
 void spawnstate(client *c){
 	clientstate &gs = c->state;
 	gs.spawnstate(smode);
-	gs.lifesequence++;
+	++gs.lifesequence;
 }
 
 void sendspawn(client *c){
 	clientstate &gs = c->state;
 	if(gs.lastdeath) gs.respawn();
 	spawnstate(c);
-	sendf(c->clientnum, 1, "ri8vv", N_SPAWNSTATE, c->clientnum, gs.lifesequence,
-		gs.health, gs.armor,
+	sendf(c->clientnum, 1, "ri9vv", N_SPAWNSTATE, c->clientnum, gs.lifesequence,
+		gs.health, gs.armor, gs.perk,
 		gs.primary, gs.gunselect, m_duel ? c->spawnindex : -1,
 		WEAP_MAX, gs.ammo, WEAP_MAX, gs.mag);
 	gs.lastspawn = gamemillis;
@@ -3018,6 +3018,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			copystring(cl->pwd, text);
 			int connectauth = getint(p);
 			cl->state.nextprimary = getint(p);
+			cl->state.perk = getint(p);
 
 			int clientversion = getint(p), clientdefs = getint(p);
 			logversion(*cl, clientversion, clientdefs);
@@ -3175,11 +3176,12 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				break;
 			}
 
-			case N_PRIMARYWEAP:
+			case N_LOADOUT:
 			{
-				int cn = getint(p), nextprimary = getint(p);
+				int cn = getint(p), nextprimary = getint(p), perk = getint(p);
 				if(!hasclient(cl, cn)) break;
 				client &cp = *clients[cn];
+				cp.state.nextperk = perk;
 				if(nextprimary<0 && nextprimary>=WEAP_MAX) break;
 				cp.state.nextprimary = nextprimary;
 				break;
@@ -3212,13 +3214,14 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				cp.state.spawnmillis = gamemillis;
 				cp.state.state = CS_ALIVE;
 				cp.state.gunselect = gunselect;
-				QUEUE_BUF(5*(6 + 2*WEAP_MAX),
+				QUEUE_BUF(5*(7 + 2*WEAP_MAX),
 				{
 					putint(buf, N_SPAWN);
 					putint(buf, cn);
 					putint(buf, ls);
 					putint(buf, cp.state.health);
 					putint(buf, cp.state.armor);
+					putint(buf, cp.state.perk);
 					putint(buf, gunselect);
 					loopi(WEAP_MAX) putint(buf, cp.state.ammo[i]);
 					loopi(WEAP_MAX) putint(buf, cp.state.mag[i]);

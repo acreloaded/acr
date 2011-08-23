@@ -484,18 +484,20 @@ struct poshist
 	}
 };
 
+enum { PERK_NONE = 0, PERK_AGILE, PERK_CLIMB, PERK_JAMMER, PERK_KILLSTREAK, PERK_VISION, PERK_STEADY, PERK_MAX };
+
 struct playerstate
 {
 	int health, armor;
 	int lastcut, cutter, ownernum;
 	int killstreak, deathstreak, assists, radarearned;
-	int primary, nextprimary;
+	int primary, nextprimary, perk, nextperk;
 	int gunselect, level;
 	bool akimbo, scoping;
 	int ammo[WEAP_MAX], mag[WEAP_MAX], gunwait[WEAP_MAX];
 	ivector damagelog;
 
-	playerstate() : primary(WEAP_ASSAULT), nextprimary(WEAP_ASSAULT), ownernum(-1), level(1), deathstreak(0) {}
+	playerstate() : primary(WEAP_ASSAULT), nextprimary(WEAP_ASSAULT), perk(PERK_NONE), nextperk(PERK_NONE), ownernum(-1), level(1), deathstreak(0) {}
 	virtual ~playerstate() {}
 
 	itemstat &itemstats(int type)
@@ -590,6 +592,9 @@ struct playerstate
 		gunselect = primary;
 
 		if(m_osok) health = /*guns[WEAP_KNIFE].damage + 1*/ 81;
+
+		perk = nextperk;
+		if(perk <= PERK_NONE || perk >= PERK_MAX) perk = rnd(PERK_MAX-1)+1;
 	}
 
 	// just subtract damage here, can set death, etc. later in code calling this

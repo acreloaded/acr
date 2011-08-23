@@ -254,13 +254,12 @@ void resetspawns()
 }
 void setspawn(int i, bool on) { if(ents.inrange(i)) ents[i].spawned = on; }
 
-void selectnextprimary(int num)
-{
-	player1->setnextprimary(num);
-	addmsg(N_PRIMARYWEAP, "ri2", getclientnum(), player1->nextprimweap->type);
-}
+void sendloadout() { addmsg(N_LOADOUT, "ri3", getclientnum(), player1->nextprimweap->type, player1->nextperk); }
+void selectnextprimary(int num) { player1->setnextprimary(num); sendloadout(); }
+void selectnextperk(int perk) { player1->nextperk = perk; sendloadout(); }
 
 VARFP(nextprimary, 0, WEAP_ASSAULT, WEAP_MAX, selectnextprimary(nextprimary));
+VARFP(nextperk, PERK_NONE, PERK_NONE, PERK_MAX-1, selectnextperk(nextperk));
 
 // flag ent actions done by the local player
 
