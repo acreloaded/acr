@@ -890,7 +890,7 @@ void traceShot(const vec &from, vec &to, float len){
 	tracer.sub(from).normalize();
 	vec s;
 	const float dist = raycube(from, tracer, s);
-	to = tracer.mul(dist).add(from);
+	to = tracer.mul(dist - .1f).add(from);
 }
 
 // stupid function to cater for stupid ATI linux drivers that return incorrect depth values
