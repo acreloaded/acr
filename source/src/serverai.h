@@ -46,9 +46,9 @@ void deleteai(client &c){
     const int cn = c.clientnum;
 	sdropflag(cn);
 	if(c.priv) setpriv(cn, PRIV_NONE, 0, true);
-    sendf(-1, 1, "ri2", N_DELAI, cn);
 	c.state.ownernum = -1;
 	c.zap();
+	sendf(-1, 1, "ri2", N_DELAI, cn);
 }
 
 bool delai(){

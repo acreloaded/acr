@@ -358,7 +358,6 @@ void sendmessages(){
 		p.put(messages.getbuf(), messages.length());
 		messages.setsize(0);
 	}
-    messages.remove(0, i);
 	if(totalmillis-lastping>250)
 	{
 		putint(p, N_PINGPONG);
