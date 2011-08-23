@@ -1327,15 +1327,16 @@ bool outofborder(const vec &p){
 bool checkpos(vec &p, bool alter = true){
 	bool ret = false;
 	vec fix = p;
+	const float epsilon = .1f; // the real value is much smaller than that
 	// xy
 	loopi(2){
-		if(fix[i] < 2){
-			fix[i] = 2;
+		if(fix[i] <= 2){
+			fix[i] = 2 + epsilon;
 			ret = true;
 			
 		}
-		else if((1 << maplayout_factor) - 2 < fix[i]){
-			fix[i] = (1 << maplayout_factor) - 2;
+		else if((1 << maplayout_factor) - 2 <= fix[i]){
+			fix[i] = (1 << maplayout_factor) - 2 - epsilon;
 			ret = true;
 		}
 	}
@@ -1343,12 +1344,12 @@ bool checkpos(vec &p, bool alter = true){
 		// z
 		const int mapi = getmaplayoutid(fix.x, fix.y);
 		const char ceil = getblockceil(mapi), floor = getblockfloor(mapi);
-		if(fix.z > ceil){
-			fix.z = ceil;
+		if(fix.z >= ceil){
+			fix.z = ceil - epsilon;
 			ret = true;
 		}
-		else if(floor > fix.z){
-			fix.z = floor;
+		else if(floor >= fix.z){
+			fix.z = floor + epsilon;
 			ret = true;
 		}
 	}
@@ -1356,7 +1357,8 @@ bool checkpos(vec &p, bool alter = true){
 	return ret;
 }
 
-float sraycube(const vec &o, const vec &ray){
+float sraycube(const vec &o, const vec &ray, vec *surface = NULL){ // server counterpart
+	if(surface) *surface = vec(0, 0, 0);
 	if(ray.iszero()) return 0;
 
 	vec v = o;
@@ -1371,6 +1373,17 @@ float sraycube(const vec &o, const vec &ray){
 		float floor = getblockfloor(mapid), ceil = getblockceil(mapid);
 		if(s.type == SOLID || v.z < floor || v.z > ceil){
 			if((!dx && !dy) || s.wtex==DEFAULT_SKY || (s.type != SOLID && v.z > ceil && s.ctex==DEFAULT_SKY)) return dist;
+			if(surface && s.type != CORNER){// && s->type!=FHF && s->type!=CHF)
+				if(dx<dy) surface->x = ray.x>0 ? -1 : 1;
+				else surface->y = ray.y>0 ? -1 : 1;
+				ssqr n = maplayout[getmaplayoutid(x+surface->x, y+surface->y)];
+				if(n.type == SOLID || (v.z < floor && v.z < n.floor) || (v.z > ceil && v.z > n.ceil)){
+					*surface = dx<dy ? vec(0, ray.y>0 ? -1 : 1, 0) : vec(ray.x>0 ? -1 : 1, 0, 0);
+					n = maplayout[getmaplayoutid(x+surface->x, y+surface->y)];
+					if(n.type == SOLID || (v.z < floor && v.z < n.floor) || (v.z > ceil && v.z > n.ceil))
+						*surface = vec(0, 0, ray.z>0 ? -1 : 1);
+				}
+			}
 			dist = max(dist-0.1f, 0.0f);
 			break;
 		}
@@ -1379,6 +1392,7 @@ float sraycube(const vec &o, const vec &ray){
 		dz = ray.z ? ((ray.z > 0 ? ceil : floor) - v.z)/ray.z : 1e16f;
 		if(dz < dx && dz < dy)
 		{
+			if(surface && s.type!=FHF && s.type!=CHF) surface->z = ray.z>0 && s.ctex!=DEFAULT_SKY ? -1 : 1;
 			dist += dz;
 			break;
 		}
@@ -1389,11 +1403,11 @@ float sraycube(const vec &o, const vec &ray){
 	return dist;
 }
 
-void straceShot(const vec &from, vec &to){
+void straceShot(const vec &from, vec &to, vec *surface = NULL){
 	vec tracer(to);
 	tracer.sub(from).normalize();
-	const float dist = sraycube(from, tracer);
-	to = tracer.mul(dist).add(from);
+	const float dist = sraycube(from, tracer, surface);
+	to = tracer.mul(dist - .1f).add(from);
 }
 
 void forcedeath(client *cl, bool gib = false, bool cheat = false){

@@ -790,7 +790,7 @@ void gun::attackfx(const vec &from2, const vec &too, int millis){
 	// trace shot
 	vec from(from2), to(too);
 	traceShot(from, to);
-	from.z -= WEAPONBELOWEYE;
+	if(!millis) from.z -= WEAPONBELOWEYE;
 
 	attackshell(to);
 	addbullethole(owner, from, to);
@@ -856,7 +856,7 @@ bool wavegun::selectable() { return weapon::selectable() && !m_noprimary && this
 
 void wavegun::attackfx(const vec &from2, const vec &to, int millis){
 	vec from(from2);
-	from.z -= WEAPONBELOWEYE;
+	if(!millis) from.z -= WEAPONBELOWEYE;
 	addbullethole(owner, from, to);
 	particle_splash(0, 50, 200, to);
 	//attacksound();
@@ -891,7 +891,7 @@ scopedprimary::scopedprimary(playerent *owner, int type) : gun(owner, type) {}
 bool scopedprimary::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 void scopedprimary::attackfx(const vec &from2, const vec &to, int millis){
 	vec from(from2);
-	from.z -= WEAPONBELOWEYE;
+	if(!millis)from.z -= WEAPONBELOWEYE;
 	attackshell(to);
 	addbullethole(owner, from, to);
 	addshotline(owner, from, to);
@@ -1025,9 +1025,7 @@ void knifeent::explode(){
 	static vec n(0,0,0);
 	if(local){
 		extern playerent *tkhit;
-		const int hitcn = tkhit ? tkhit->clientnum : -1;
-		conoutf("test %d", hitcn);
-		addmsg(N_PROJ, "ri4f3", owner->clientnum, lastmillis, GUN_KNIFE, hitcn, o.x, o.y, o.z);
+		addmsg(N_PROJ, "ri4f3", owner->clientnum, lastmillis, GUN_KNIFE, tkhit ? tkhit->clientnum : -1, o.x, o.y, o.z);
 	}
 	playsound(S_GRENADEBOUNCE1+rnd(2), &o);
 	destroy();

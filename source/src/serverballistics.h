@@ -51,8 +51,10 @@ inline vec generateHead(const vec &o, float yaw){ // approximate location for th
 }
 
 // explosions
-int explosion(client &owner, const vec &o, int weap){
+int explosion(client &owner, const vec &o2, int weap){
 	int damagedealt = 0;
+	vec o(o2);
+	checkpos(o);
 	sendhit(owner, weap, o.v);
 	loopv(clients){
 		client &target = *clients[i];
@@ -77,15 +79,16 @@ int explosion(client &owner, const vec &o, int weap){
 // hit checks
 
 // hitscans
-int shot(client &owner, const vec &from, const vec &to, int weap, int exclude = -1){
+int shot(client &owner, const vec &from, const vec &to, int weap, vec &surface, float dist = 0){
 	int shotdamage = 0;
 	clientstate &gs = owner.state;
 	const int mulset = (weap == GUN_SNIPER || weap == GUN_BOLT) ? MUL_SNIPER : MUL_NORMAL;
+	int playershit = 0;
 	loopv(clients){ // one ray, potentially multiple players
 		client &t = *clients[i];
 		clientstate &ts = t.state;
 		// basic checks
-		if(i == exclude || t.type == ST_EMPTY || ts.state != CS_ALIVE) continue;
+		if((!dist && i == owner.clientnum) || t.type == ST_EMPTY || ts.state != CS_ALIVE) continue;
 		vec head = generateHead(ts.o, ts.aim[0]), end;
 		
 		// calculate the hit
@@ -120,8 +123,19 @@ int shot(client &owner, const vec &from, const vec &to, int weap, int exclude = 
 		}
 		shotdamage += damage;
 		serverdamage(&t, &owner, damage, weap, style, gs.o);
+		++playershit;
 	}
-	return shotdamage + (false ? explosion(owner, to, GUN_BOW) : 0);
+	if(dist < 100 && surface.magnitude() && weap != GUN_KNIFE && weap != GUN_WAVE){ // material absorbs the radiation. too bad
+		const int penalty = 40 + playershit * 20; // 10 meters plus 5 meters per player
+		vec dir(to), newsurface;
+		//loopi(3) surface[i] = -fabs(surface[i]);
+		//dir.sub(from).mul(surface).add(to);
+		dir.add(surface);
+		straceShot(to, dir, &newsurface);
+		sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, weap, to.x, to.y, to.z, dir.x, dir.y, dir.z);
+		//shotdamage += shot(owner, to, vel, weap, newsurface, dist + penalty);
+	}
+	return shotdamage + (false && !dist ? explosion(owner, to, GUN_BOW) : 0);
 }
 
 int shotgun(client &owner, const vec &from, const vec &to){

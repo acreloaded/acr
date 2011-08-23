@@ -488,7 +488,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case N_SHOOT:
+			case N_SHOOT: case N_RICOCHET:
 			case N_SHOOTC:
 			{
 				int scn = getint(p), gun = getint(p);
@@ -502,7 +502,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(!s || !weapon::valid(gun)) break;
 				if(s == player1){
 					if(type == N_SHOOTC || gun == GUN_GRENADE) break;
-					s->weapons[gun]->attackfx(from, to, 0);
+					s->weapons[gun]->attackfx(from, to, type == N_SHOOT ? 0 : 1);
 					break;
 				}
 				s->mag[gun]--;

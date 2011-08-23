@@ -12,10 +12,7 @@ void processevent(client &c, projevent &e){
 		case GUN_GRENADE:
 		{
 			if(!gs.grenades.remove(e.flag)) return;
-			vec o(e.o);
-			checkpos(o);
-			
-			damagedealt += explosion(c, o, GUN_GRENADE);
+			damagedealt += explosion(c, vec(e.o), GUN_GRENADE);
 			break;
 		}
 
@@ -70,7 +67,7 @@ void processevent(client &c, shotevent &e)
 	gs.lastshot = e.millis;
 	gs.gunwait[e.gun] = attackdelay(e.gun);
 	// for ease of access
-	vec from(gs.o), to(e.to);
+	vec from(gs.o), to(e.to), surface;
 	// to = vec(sinf(c.state.aim[0]*RAD)*cosf(c.state.aim[1]*RAD), -cosf(c.state.aim[0]*RAD)*cosf(c.state.aim[1]*RAD), sinf(c.state.aim[1]*RAD));
 	to.normalize().add(from);
 	// apply spread
@@ -92,7 +89,7 @@ void processevent(client &c, shotevent &e)
 		applyspread(gs.o, to, spread, spreadf);
 	}
 	// trace shot
-	straceShot(from, to);
+	straceShot(from, to, &surface);
 	// create packet
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
@@ -127,10 +124,6 @@ void processevent(client &c, shotevent &e)
 		case GUN_BOW:
 		case GUN_HEAL:
 		{
-			// fix to position
-			vec tracer(to);
-			tracer.sub(from).normalize();
-			to = tracer.mul(sraycube(from, tracer) - .1f).add(from);
 			// check for stick
 			int cn = -1, hitzone = HIT_NONE;
 			float dist = 4e6f; // 1 million meters should be enough for a "stick"
@@ -201,7 +194,7 @@ void processevent(client &c, shotevent &e)
 			if(e.gun == GUN_SHOTGUN){ // many rays, many players
 				damagedealt += shotgun(c, gs.o, to);
 			}
-			else damagedealt += shot(c, gs.o, to, e.gun, c.clientnum);
+			else damagedealt += shot(c, gs.o, to, e.gun, surface);
 		}
 	}
 	gs.damage += damagedealt;

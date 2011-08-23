@@ -648,18 +648,22 @@ void addshotline(playerent *pl, const vec &from, const vec &to)
 {
 	sl s = {pl, {from.x, from.y}, {to.x, to.y}, lastmillis + shotlinettl * 2};
 	sls.add(s);
-	if(pl == player1 || !shotlinettl || !shotline) return;
-	   
-	int start = (camera1->o.dist(to) <= 10.0f) ? 8 : 5;
+	if(!shotlinettl || !shotline) return;
 	vec unitv;
 	float dist = to.dist(from, unitv);
 	unitv.div(dist);
+	if(pl == gamefocus){ // maybe make from go to the muzzle flash?
+		newparticle(from, to, shotlinettl, 6);
+	}
+	else {
+		int start = (camera1->o.dist(to) <= 10.0f) ? 8 : 5;
 
-	// shotline visuals
-	vec o = unitv, d = unitv;
-	o.mul(dist/10+start).add(from);
-	d.mul(dist/10*-(10-start-2)).add(to);
-	newparticle(o, d, shotlinettl, 6);
+		// shotline visuals
+		vec o = unitv, d = unitv;
+		o.mul(dist/10+start).add(from);
+		d.mul(dist/10*-(10-start-2)).add(to);
+		newparticle(o, d, shotlinettl, 6);
+	}
 
 	// shotline sound fx
 	if(!bulletairsoundrad) return;
