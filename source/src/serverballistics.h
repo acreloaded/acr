@@ -92,10 +92,10 @@ int shot(client &owner, const vec &from, const vec &to, int weap, vec &surface, 
 		vec head = generateHead(ts.o, ts.aim[0]), end;
 		
 		// calculate the hit
-		const int hitzone = hitplayer(gs.o, gs.aim[0], gs.aim[1], to, ts.o, head, &end);
+		const int hitzone = hitplayer(from, gs.aim[0], gs.aim[1], to, ts.o, head, &end);
 		if(!hitzone) continue;
 		// damage check
-		const float dist = end.dist(gs.o);
+		const float dist = end.dist(from);
 		int damage = effectiveDamage(weap, dist);
 		if(!damage) continue;
 		// damage multipliers
@@ -128,12 +128,11 @@ int shot(client &owner, const vec &from, const vec &to, int weap, vec &surface, 
 	if(dist < 100 && surface.magnitude() && weap != GUN_KNIFE && weap != GUN_WAVE){ // material absorbs the radiation. too bad
 		const int penalty = 40 + playershit * 20; // 10 meters plus 5 meters per player
 		vec dir(to), newsurface;
-		//loopi(3) surface[i] = -fabs(surface[i]);
-		//dir.sub(from).mul(surface).add(to);
-		dir.add(surface);
+		loopi(3) surface[i] = 1 - fabs(surface[i]) * 2;
+		dir.sub(from).mul(surface).add(to);
 		straceShot(to, dir, &newsurface);
 		sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, weap, to.x, to.y, to.z, dir.x, dir.y, dir.z);
-		//shotdamage += shot(owner, to, vel, weap, newsurface, dist + penalty);
+		shotdamage += shot(owner, to, dir, weap, newsurface, dist + penalty);
 	}
 	return shotdamage + (false && !dist ? explosion(owner, to, GUN_BOW) : 0);
 }
