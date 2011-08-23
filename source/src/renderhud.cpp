@@ -761,7 +761,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		float anim = lastmillis / 100 % (h * 2);
 		if(anim >= h) anim = h * 2 - anim + 1;
 		anim /= h;
-		const float xx = VIRTW * .15f * scalef, yy = /*VIRTH * .2f * scalef*/ xx / aspect, yoffset = VIRTH * -.15f - offset;
+		const float xx = VIRTW * .15f * scalef, yy = /*VIRTH * .2f * scalef*/ xx / aspect * VIRTW / VIRTH, yoffset = VIRTH * -.15f - offset;
 		glTexCoord2f(0, anim); glVertex2f(VIRTW / 2 - xx, VIRTH / 2 - yy + yoffset);
 		glTexCoord2f(1, anim); glVertex2f(VIRTW / 2 + xx, VIRTH / 2 - yy + yoffset);
 		anim += 1.f / h;
