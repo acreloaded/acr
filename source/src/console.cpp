@@ -137,7 +137,7 @@ struct obitlist
 		cl.millis = millis;						// for how long to keep line on screen
 		cl.weap = weap;
 		formatstring(cl.actor)("\f%d%s", actor == gamefocus ? 0 : isteam(actor, gamefocus) ? 1 : 3, actor == target ? "" : actor ? colorname(actor) : "unknown");
-		formatstring(cl.target)("\f%d%s", actor == gamefocus ? 9 : isteam(actor, gamefocus) ? 8 : 7, target ? colorname(target) : "unknown");
+		formatstring(cl.target)("\f%d%s", actor == gamefocus ? 8 : isteam(actor, gamefocus) ? 9 : 7, target ? colorname(target) : "unknown");
 		cl.headshot = headshot;
 		return olines.insert(0, cl);
 	}
