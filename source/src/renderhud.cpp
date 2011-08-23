@@ -443,12 +443,14 @@ void drawradar(playerent *p, int w, int h)
 
 	drawradarent(p->o, coordtrans, p->yaw, p->state!=CS_DEAD ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), 1.f, "\f1%s", colorname(p)); // local player
 
+	bool hasradar = false;
+	if(m_team) loopv(players) if(players[i] && players[i]->team == p->team && players[i]->radarearned > totalmillis) { hasradar = true; break; }
 	loopv(players) // other players
 	{
 		playerent *pl = players[i];
 		if(!pl || pl == p || !insideradar(centerpos, res/2, pl->o)) continue;
-		bool hasflag = pl == flaginfos[0].actor || pl == flaginfos[1].actor;
-		if(!hasflag && pl->state != CS_DEAD && !isteam(p, pl)){
+		bool force = hasradar || pl == flaginfos[0].actor || pl == flaginfos[1].actor;
+		if(!force && pl->state != CS_DEAD && !isteam(p, pl)){
 			playerent *seenby = NULL;
 			extern bool IsVisible(vec v1, vec v2, dynent *tracer = NULL, bool SkipTags=false);
 			if(IsVisible(p->o, pl->o)) seenby = p;
@@ -465,7 +467,7 @@ void drawradar(playerent *p, int w, int h)
 			}
 			else if(pl->radarmillis + radarenemyfade < lastmillis) continue;
 		}
-		if(isteam(p, pl) || p->team == TEAM_SPECT || hasflag || pl->state == CS_DEAD) // friendly, flag tracker or dead
+		if(isteam(p, pl) || p->team == TEAM_SPECT || force || pl->state == CS_DEAD) // friendly, flag tracker or dead
 			drawradarent(pl->o, coordtrans, pl->yaw, pl->state!=CS_DEAD ? (isattacking(pl) ? 2 : 0) : 1,
 				isteam(p, pl) ? 1 : 0, iconsize, isattacking(pl), 1.f, "\f%d%s", isteam(p, pl) ? 0 : 3, colorname(pl));
 		else

@@ -582,6 +582,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					case STREAK_AIRSTRIKE:
 						break;
 					case STREAK_RADAR:
+						d->radarmillis = totalmillis + info;
 						d->addicon(eventicon::RADAR);
 						break;
 					case STREAK_NUKE: // add sound?
@@ -696,7 +697,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				{
 					int cn = getint(p);
 					if(p.overread() || cn<0) break;
-					int state = getint(p), lifesequence = getint(p), gunselect = getint(p), points = getint(p), flagscore = getint(p), frags = getint(p), assists = getint(p), killstreak = getint(p), deathstreak = getint(p), deaths = getint(p), health = getint(p), armor = getint(p);
+					int state = getint(p), lifesequence = getint(p), gunselect = getint(p), points = getint(p), flagscore = getint(p), frags = getint(p), assists = getint(p), killstreak = getint(p), deathstreak = getint(p), deaths = getint(p), health = getint(p), armor = getint(p), radar = getint(p);
 					int ammo[WEAP_MAX], mag[WEAP_MAX];
 					loopi(WEAP_MAX) ammo[i] = getint(p);
 					loopi(WEAP_MAX) mag[i] = getint(p);
@@ -711,6 +712,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					d->killstreak = killstreak;
 					d->deathstreak = deathstreak;
 					d->deaths = deaths;
+					d->radarearned = totalmillis + radar;
 					if(d!=player1)
 					{
 						int primary = WEAP_KNIFE;

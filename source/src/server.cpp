@@ -146,6 +146,7 @@ struct clientstate : playerstate
 		knives.reset();
 		akimbos = akimbomillis = 0;
 		points = flagscore = frags = deaths = shotdamage = damage = lastffkill = 0;
+		radarearned = 0;
 		respawn();
 	}
 
@@ -566,6 +567,36 @@ inline void sendmsgi(int msg, int num, int client = -1){
 	sendf(client, 1, "ri3", N_CONFMSG, msg, num);
 }
 
+void streakready(client &c, int streak){
+	if(streak < 0 || streak >= STREAK_NUM) return;
+	sendf(-1, 1, "ri3", N_STREAKREADY, c.clientnum, streak);
+}
+
+void usestreak(client &c, int streak){
+	if(streak < 0 || streak >= STREAK_NUM) return;
+	int info = 0;
+	switch(streak){
+		//case STREAK_AIRSTRIKE:
+		case STREAK_RADAR:
+			c.state.radarearned = gamemillis + (info = 15000);
+			break;
+		case STREAK_NUKE:
+			info = 1;
+			break;
+		case STREAK_DROPNADE:
+		case STREAK_REVENGE:
+		{
+			info = rand();
+			c.state.grenades.add(info);
+			extern int explosion(client &owner, const vec &o2, int weap);
+			if(streak == STREAK_REVENGE) explosion(c, c.state.o, WEAP_GRENADE);
+			sendf(-1, 1, "ri4", N_STREAKUSE, c.clientnum, STREAK_DROPNADE, info);
+			break;
+		}
+	}
+	sendf(-1, 1, "ri4", N_STREAKUSE, c.clientnum, streak, info);
+}
+
 void spawnstate(client *c){
 	clientstate &gs = c->state;
 	gs.spawnstate(smode);
@@ -585,6 +616,7 @@ void sendspawn(client *c){
 	if(gs.deathstreak >= 8) gs.streakondeath = STREAK_REVENGE;
 	else if(gs.deathstreak >= 5) gs.streakondeath = STREAK_DROPNADE;
 	else gs.streakondeath = -1;
+	streakready(*c, gs.streakondeath);
 }
 
 // throwing knives
@@ -1413,36 +1445,6 @@ void straceShot(const vec &from, vec &to, vec *surface = NULL){
 	tracer.sub(from).normalize();
 	const float dist = sraycube(from, tracer, surface);
 	to = tracer.mul(dist - .1f).add(from);
-}
-
-void streakready(client &c, int streak){
-	if(streak < 0 || streak >= STREAK_NUM) return;
-	sendf(-1, 1, "ri3", N_STREAKREADY, c.clientnum, streak);
-}
-
-void usestreak(client &c, int streak){
-	if(streak < 0 || streak >= STREAK_NUM) return;
-	int info = 0;
-	switch(streak){
-		//case STREAK_AIRSTRIKE:
-		case STREAK_RADAR:
-			info = 15;
-			break;
-		case STREAK_NUKE:
-			info = 1;
-			break;
-		case STREAK_DROPNADE:
-		case STREAK_REVENGE:
-		{
-			info = rand();
-			c.state.grenades.add(info);
-			extern int explosion(client &owner, const vec &o2, int weap);
-			if(streak == STREAK_REVENGE) explosion(c, c.state.o, WEAP_GRENADE);
-			sendf(-1, 1, "ri4", N_STREAKUSE, c.clientnum, STREAK_DROPNADE, info);
-			break;
-		}
-	}
-	sendf(-1, 1, "ri4", N_STREAKUSE, c.clientnum, streak, info);
 }
 
 void forcedeath(client *cl, bool gib = false, bool cheat = false){
@@ -2713,21 +2715,22 @@ void getservermap(void){
 }
 
 void sendresume(client &c){
-	sendf(-1, 1, "ri5i9vvi",
-			N_RESUME, // i5
-			c.clientnum, // i5
-			c.state.state, // i5
-			c.state.lifesequence, // i5
-			c.state.gunselect, // i5
+	sendf(-1, 1, "ri9i6vvi",
+			N_RESUME, // i9
+			c.clientnum, // i9
+			c.state.state, // i9
+			c.state.lifesequence, // i9
+			c.state.gunselect, // i9
 			c.state.points, // i9
 			c.state.flagscore, // i9
 			c.state.frags, // i9
 			c.state.assists, // i9
-			c.state.killstreak, // i9
-			c.state.deathstreak,// i9
-			c.state.deaths, // i9
-			c.state.health, // i9
-			c.state.armor, // i9
+			c.state.killstreak, // i6
+			c.state.deathstreak,// i6
+			c.state.deaths, // i6
+			c.state.health, // i6
+			c.state.armor, // i6
+			c.state.radarearned - gamemillis, // i6
 			WEAP_MAX, c.state.ammo, // v
 			WEAP_MAX, c.state.mag, // v
 			-1); // i
@@ -2848,6 +2851,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath){
 			putint(p, c.state.deaths);
 			putint(p, c.state.health);
 			putint(p, c.state.armor);
+			putint(p, c.state.radarearned - gamemillis);
 			loopi(WEAP_MAX) putint(p, c.state.ammo[i]);
 			loopi(WEAP_MAX) putint(p, c.state.mag[i]);
 		}

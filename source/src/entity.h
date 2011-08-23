@@ -487,7 +487,7 @@ struct playerstate
 {
 	int health, armor;
 	int lastcut, cutter, ownernum;
-	int killstreak, deathstreak, assists;
+	int killstreak, deathstreak, assists, radarearned;
 	int primary, nextprimary;
 	int gunselect, level;
 	bool akimbo, scoping;
