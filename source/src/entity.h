@@ -619,7 +619,7 @@ class CBot;
 
 struct playerent : dynent, playerstate
 {
-	int clientnum, lastrecieve, plag, ping;
+	int clientnum, lastupdate, plag, ping;
 	int lifesequence;				   // sequence id for each respawn, used in damage test
 	int radarmillis; float lastloudpos[3];
 	int points, frags, flagscore, deaths;
@@ -663,7 +663,7 @@ struct playerent : dynent, playerstate
 		pBot = NULL;
 		targetpitch = targetyaw = 0;
 
-		lastrecieve = plag = ping = lifesequence = points = frags = flagscore = deaths = lastpain = lasthitmarker = skin = eardamagemillis = respawnoffset = radarmillis = ads = 0;
+		lastupdate = plag = ping = lifesequence = points = frags = flagscore = deaths = lastpain = lasthitmarker = skin = eardamagemillis = respawnoffset = radarmillis = ads = 0;
 		weaponsel = nextweaponsel = primweap = nextprimweap = lastattackweapon = prevweaponsel = NULL;
 		type = ENT_PLAYER;
 		clientnum = smoothmillis = followplayercn = wantsswitch = -1;

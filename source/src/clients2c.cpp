@@ -71,11 +71,11 @@ void updatepos(playerent *d)
 
 void updatelagtime(playerent *d)
 {
-	int lagtime = totalmillis-d->lastrecieve;
+	int lagtime = totalmillis-d->lastupdate;
 	if(lagtime)
 	{
-		if(d->state!=CS_SPAWNING && d->lastrecieve) d->plag = (d->plag*5+lagtime)/6;
-		d->lastrecieve = totalmillis;
+		if(d->state!=CS_SPAWNING && d->lastupdate) d->plag = (d->plag*5+lagtime)/6;
+		d->lastupdate = totalmillis;
 	}
 }
 
@@ -349,7 +349,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					filtername(d->name, text);
 					d->level = getint(p);
 					conoutf("connected: %s", colorname(d));
-					if(!joining) chatoutf("%s \f0joined \f2the \f1game", colorname(d));
+					if(!joining){
+						defformatstring(joinmsg)("%s \f0joined \f2the \f1game", colorname(d));
+						chatout(joinmsg);
+					}
 				}
 				else{ // AI
 					d->ownernum = getint(p);
@@ -410,7 +413,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(!d || d == player1) break;
 				if(*d->name){
 					conoutf("player %s disconnected (%s)", colorname(d), reason >= 0 ? disc_reason(reason) : "normally");
-					chatoutf("%s \f3left \f2the \f1game", colorname(d));
+					defformatstring(leavemsg)("%s \f3left \f2the \f1game", colorname(d));
+					chatout(leavemsg);
 				}
 				zapplayer(players[cn]);
 				break;
