@@ -3809,7 +3809,10 @@ void localclienttoserver(int chan, ENetPacket *packet){
 
 client &addclient(){
 	client *c = NULL;
-	loopv(clients) if(clients[i]->type==ST_EMPTY) { c = clients[i]; break; }
+	loopv(clients){
+		if(clients[i]->type==ST_EMPTY) { c = clients[i]; break; }
+		else if(clients[i]->type==ST_AI) { deleteai(*clients[i]); c = clients[i]; break; }
+	}
 	if(!c)
 	{
 		c = new client;
@@ -4017,7 +4020,6 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 		{
 			case ENET_EVENT_TYPE_CONNECT:
 			{
-				clearai(); // hack to give new clients the lowest clientnumber and redistribute bots!
 				client &c = addclient();
 				c.type = ST_TCPIP;
 				c.peer = event.peer;
