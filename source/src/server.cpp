@@ -3739,9 +3739,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				const int fall = isfall ? getint(p) : 0;
 				if(!hasclient(cl, cn)) break;
 				client *cp = clients[cn];
-				if(isfall){
+				if(isfall && typ == PHYS_HARDFALL){
 					// deal falling damage?
-					serverdamage(cp, cp, 1, NUMGUNS+2, FRAG_NONE, cp->state.o);
+					serverdamage(cp, cp, 99, NUMGUNS+2, FRAG_NONE, cp->state.o);
 				}
 				else if(typ == PHYS_AKIMBOOUT){
 					if(!cp->state.akimbomillis) break;
