@@ -4,10 +4,20 @@ client *findauth(uint id){
 	return NULL;
 }
 
-void authchallenged(uint id, int nonce){
-	client *c = findauth(id);
-	if(!c) return;
-	sendf(c->clientnum, 1, "ri3", N_AUTHREQ, nonce, c->authtoken);
+bool reqauth(int cn, int authtoken){
+	if(!valid_client(cn)) return false;
+	client &cl = *clients[cn];
+	if(!isdedicated){ sendf(cn, 1, "ri2", N_AUTHCHAL, 2); return false;} // not dedicated/connected
+	if(cl.authreq){ sendf(cn, 1, "ri2", N_AUTHCHAL, 1);	return false;	} // already pending
+	if(cl.authmillis + 2000 > servmillis){ sendf(cn, 1, "ri3", N_AUTHCHAL, 6, cl.authmillis + 2000 - servmillis); return false; } // flood check
+	cl.authmillis = servmillis;
+	cl.authtoken = authtoken;
+	authrequest &r = authrequests.add();
+	r.id = cl.authreq = nextauthreq++;
+	r.answer = false;
+	logline(ACLOG_INFO, "[%s] requests auth #%d", cl.hostname, r.id);
+	sendf(cn, 1, "ri2", N_AUTHCHAL, 0);
+	return true;
 }
 
 int allowconnect(client &ci, const char *pwd = "", int authreq = 0){
@@ -89,21 +99,9 @@ void authfail(uint id, bool disconnect){
 	}
 }
 
-// c2s2m
-bool reqauth(int cn, int authtoken){
-	if(!valid_client(cn)) return false;
-	client &cl = *clients[cn];
-	if(!isdedicated){ sendf(cn, 1, "ri2", N_AUTHCHAL, 2); return false;} // not dedicated/connected
-	if(cl.authreq){ sendf(cn, 1, "ri2", N_AUTHCHAL, 1);	return false;	} // already pending
-	if(cl.authmillis + 2000 > servmillis){ sendf(cn, 1, "ri3", N_AUTHCHAL, 6, cl.authmillis + 2000 - servmillis); return false; } // flood check
-	cl.authmillis = servmillis;
-	cl.authtoken = authtoken;
-	authrequest &r = authrequests.add();
-	r.id = cl.authreq = nextauthreq++;
-	r.answer = false;
-	logline(ACLOG_INFO, "[%s] requests auth #%d", cl.hostname, r.id);
-	sendf(cn, 1, "ri2", N_AUTHCHAL, 0);
-	return true;
+void authchallenged(uint id, int nonce){
+	client *c = findauth(id);
+	if(c) sendf(c->clientnum, 1, "ri3", N_AUTHREQ, nonce, c->authtoken);
 }
 
 bool answerchallenge(int cn, int hash[5]){
