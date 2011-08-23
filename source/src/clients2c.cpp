@@ -631,7 +631,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				playerent *d = getclient(cn);
 				if(gun != GUN_GRENADE && gun != GUN_BOW) break;
 				if(!d) break;
-				d->damagestack.add(damageinfo(src, lastmillis));
+				d->damagestack.add(damageinfo(src, lastmillis, damage));
 				if(d != player1 || d->o == src) break;
 				vec dir = d->o;
 				dir.sub(src).normalize();

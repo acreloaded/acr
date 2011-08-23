@@ -609,8 +609,8 @@ struct eventicon{
 
 struct damageinfo{
 	vec o;
-	int millis;
-	damageinfo(vec s, int t) : o(s), millis(t) {}
+	int millis, damage;
+	damageinfo(vec s, int t, int d) : o(s), millis(t), damage(d) {} // lol read the constructor's parameters
 };
 
 class CBot;

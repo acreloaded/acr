@@ -682,7 +682,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
 	loopv(p->damagestack){
 		damageinfo &pain = p->damagestack[i];
-		if(pain.millis + damageindicatorfade <= lastmillis) p->damagestack.remove(i--);
+		if(pain.millis + damageindicatorfade <= lastmillis + pain.damage * 20){ p->damagestack.remove(i--); continue; }
 		vec dir = pain.o;
 		if(dir == p->o) continue;
 		dir.sub(p->o).normalize();
