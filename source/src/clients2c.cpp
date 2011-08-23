@@ -54,6 +54,7 @@ void changemapserv(char *name, int mode, int download)		// forced map change fro
 
 void updatepos(playerent *d)
 {
+	/* // not needed
 	const float r = player1->radius+d->radius;
 	const float dx = player1->o.x-d->o.x;
 	const float dy = player1->o.y-d->o.y;
@@ -65,6 +66,7 @@ void updatepos(playerent *d)
 		if(fx<fy) d->o.y += dy<0 ? r-fy : -(r-fy);  // push aside
 		else	  d->o.x += dx<0 ? r-fx : -(r-fx);
 	}
+	*/
 }
 
 void updatelagtime(playerent *d)
