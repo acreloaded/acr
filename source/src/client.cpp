@@ -255,6 +255,7 @@ void cleanupclient()
 // collect c2s messages conveniently
 
 vector<uchar> messages;
+bool messagereliable = false;
 
 void addmsg(int type, const char *fmt, ...)
 {
@@ -292,10 +293,7 @@ void addmsg(int type, const char *fmt, ...)
 		}
 		va_end(args);
 	}
-	int len = p.length();
-	messages.add(len&0xFF);
-	messages.add((len>>8)|(reliable ? 0x80 : 0));
-	loopi(len) messages.add(buf[i]);
+	if(reliable) messagereliable = true;
 	loopi(p.length()) messages.add(buf[i]);
 }
 
@@ -314,86 +312,77 @@ void c2skeepalive()
 	if(clienthost && (curpeer || connpeer)) enet_host_service(clienthost, NULL, 0);
 }
 
-void c2sinfo(playerent*)				  // send update to the server
-{
-	playerent *d = player1;
+void sendposition(playerent *d){
+	if(d->state != CS_ALIVE && d->state != CS_EDITING) return;
+	ENetPacket *packet = enet_packet_create(NULL, 100, 0);
+	ucharbuf q(packet->data, packet->dataLength);
+
+	putint(q, N_POS);
+	putint(q, d->clientnum);
+	putfloat(q, d->o.x);
+	putfloat(q, d->o.y);
+	putfloat(q, d->o.z); // not subtracting the eyeheight
+	putfloat(q, d->yaw);
+	putfloat(q, d->pitch);
+	putfloat(q, d->roll);
+	putfloat(q, d->vel.x);
+	putfloat(q, d->vel.y);
+	putfloat(q, d->vel.z);
+	putfloat(q, d->pitchvel);
+	// pack rest in 1 int: strafe:2, move:2, onfloor:1, onladder: 1
+	putuint(q, (d->strafe&3) | ((d->move&3)<<2) | (((int)d->onfloor)<<4) | (((int)d->onladder)<<5) | ((d->lifesequence&1)<<6) | (((int)d->crouching)<<7));
+
+	enet_packet_resize(packet, q.length());
+	sendpackettoserv(0, packet);
+}
+
+void sendpositions(){
+	sendposition(player1);
+	loopv(players){
+		playerent *p = players[i];
+		if(p && p->ownernum == getclientnum()) sendposition(p);
+	}
+}
+
+void sendmessages(){
+	ENetPacket *packet = enet_packet_create (NULL, MAXTRANS, 0);
+	ucharbuf p(packet->data, packet->dataLength);
+	if(sendmapident)
+	{
+		if(!curpeer) spawnallitems();
+		messagereliable = true;
+		putint(p, N_MAPIDENT);
+		putint(p, maploaded);
+		sendmapident = false;
+	}
+	if(messages.length())
+	{
+		p.put(messages.getbuf(), messages.length());
+		messages.setsize(0);
+	}
+	if(totalmillis-lastping>250)
+	{
+		putint(p, N_PINGPONG);
+		putint(p, totalmillis);
+		lastping = totalmillis;
+	}
+	if(messagereliable) packet->flags |= ENET_PACKET_FLAG_RELIABLE;
+	messagereliable = false;
+	if(!p.length()) enet_packet_destroy(packet);
+	else
+	{
+		enet_packet_resize(packet, p.length());
+		sendpackettoserv(1, packet);
+	}
+}
+
+void c2sinfo(bool force){				  // send update to the server
 	static int lastupdate = -1000;
-	if(totalmillis-lastupdate<40) return;	// don't update faster than 25fps
-
-	if(d->state==CS_ALIVE || d->state==CS_EDITING)
-	{
-		ENetPacket *packet = enet_packet_create(NULL, 100, 0);
-		ucharbuf q(packet->data, packet->dataLength);
-
-		putint(q, N_POS);
-		putint(q, d->clientnum);
-		putfloat(q, d->o.x);
-		putfloat(q, d->o.y);
-		putfloat(q, d->o.z); // not subtracting the eyeheight
-		putfloat(q, d->yaw);
-		putfloat(q, d->pitch);
-		putfloat(q, d->roll);
-		putfloat(q, d->vel.x);
-		putfloat(q, d->vel.y);
-		putfloat(q, d->vel.z);
-		putfloat(q, d->pitchvel);
-		// pack rest in 1 int: strafe:2, move:2, onfloor:1, onladder: 1
-		putuint(q, (d->strafe&3) | ((d->move&3)<<2) | (((int)d->onfloor)<<4) | (((int)d->onladder)<<5) | ((d->lifesequence&1)<<6) | (((int)d->crouching)<<7));
-
-		enet_packet_resize(packet, q.length());
-		sendpackettoserv(0, packet);
-	}
-
-	if(sendmapident || messages.length() || totalmillis-lastping>250)
-	{
-		ENetPacket *packet = enet_packet_create (NULL, MAXTRANS, 0);
-		ucharbuf p(packet->data, packet->dataLength);
-
-		/*
-		if(!c2sinit)	// tell other clients who I am
-		{
-			packet->flags = ENET_PACKET_FLAG_RELIABLE;
-			c2sinit = true;
-			putint(p, N_INITC2S);
-			sendstring(player1->name, p);
-			sendstring(player1->team, p);
-			putint(p, player1->skin);
-		}
-		*/
-		if(sendmapident)
-		{
-			if(!curpeer) spawnallitems();
-			packet->flags = ENET_PACKET_FLAG_RELIABLE;
-			putint(p, N_MAPIDENT);
-			putint(p, maploaded);
-			sendmapident = false;
-		}
-		int i = 0;
-		while(i < messages.length()) // send messages collected during the previous frames
-		{
-			int len = messages[i] | ((messages[i+1]&0x7F)<<8);
-			if(p.remaining() < len) break;
-			if(messages[i+1]&0x80) packet->flags = ENET_PACKET_FLAG_RELIABLE;
-			p.put(&messages[i+2], len);
-			i += 2 + len;
-		}
-		messages.remove(0, i);
-		if(totalmillis-lastping>250)
-		{
-			putint(p, N_PINGPONG);
-			putint(p, totalmillis);
-			lastping = totalmillis;
-		}
-		if(!p.length()) enet_packet_destroy(packet);
-		else
-		{
-			enet_packet_resize(packet, p.length());
-			sendpackettoserv(1, packet);
-		}
-	}
-
-	if(clienthost) enet_host_flush(clienthost);
+	if(!force && totalmillis-lastupdate<40) return;	// don't update faster than 25fps
 	lastupdate = totalmillis;
+	sendpositions();
+	sendmessages();
+	if(clienthost) enet_host_flush(clienthost);
 }
 
 int authtoken = -1;
