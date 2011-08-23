@@ -2711,17 +2711,18 @@ void getservermap(void){
 }
 
 void sendresume(client &c){
-	sendf(-1, 1, "ri4i9vvi",
-			N_RESUME, // i4
-			c.clientnum, // i4
-			c.state.state, // i4
-			c.state.lifesequence, // i4
-			c.state.gunselect, // i9
+	sendf(-1, 1, "ri5i9vvi",
+			N_RESUME, // i5
+			c.clientnum, // i5
+			c.state.state, // i5
+			c.state.lifesequence, // i5
+			c.state.gunselect, // i5
 			c.state.points, // i9
 			c.state.flagscore, // i9
 			c.state.frags, // i9
 			c.state.assists, // i9
 			c.state.killstreak, // i9
+			c.state.deathstreak,// i9
 			c.state.deaths, // i9
 			c.state.health, // i9
 			c.state.armor, // i9
@@ -2841,6 +2842,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath){
 			putint(p, c.state.frags);
 			putint(p, c.state.assists);
 			putint(p, c.state.killstreak);
+			putint(p, c.state.deathstreak);
 			putint(p, c.state.deaths);
 			putint(p, c.state.health);
 			putint(p, c.state.armor);
