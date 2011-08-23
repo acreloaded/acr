@@ -349,10 +349,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					filtername(d->name, text);
 					d->level = getint(p);
 					conoutf("connected: %s", colorname(d));
-					if(!joining){
-						defformatstring(joinmsg)("%s \f0joined \f2the \f1game", colorname(d));
-						chatout(joinmsg);
-					}
+					if(!joining) chatoutf("%s \f0joined \f2the \f1game", colorname(d));
 				}
 				else{ // AI
 					d->ownernum = getint(p);
@@ -413,8 +410,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(!d || d == player1) break;
 				if(*d->name){
 					conoutf("player %s disconnected (%s)", colorname(d), reason >= 0 ? disc_reason(reason) : "normally");
-					defformatstring(leavemsg)("%s \f3left \f2the \f1game", colorname(d));
-					chatout(leavemsg);
+					chatoutf("%s \f3left \f2the \f1game", colorname(d));
 				}
 				zapplayer(players[cn]);
 				break;

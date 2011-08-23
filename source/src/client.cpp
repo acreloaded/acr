@@ -207,7 +207,7 @@ void saytext(playerent *d, char *text, int flags, int sound){
 	else formatstring(textout)("\f5<\f%d%s \f6(%d)\f5>", col, d->name, d->clientnum);
 	if(sound) formatstring(textout)("%s \f4[\f6%d\f4]", textout, sound);
 	formatstring(textout)("%s \f%d%s", textout, textcolor, text);
-	chatout(textout);
+	(flags&SAY_DENY ? conoutf : chatoutf)("%s", textout);
 }
 
 void toserver(char *text, int voice, bool action){
