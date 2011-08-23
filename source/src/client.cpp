@@ -205,9 +205,9 @@ void saytext(playerent *d, char *text, int flags, int sound){
 	const int col = d == player1 ? 1 : m_team ? d->team == player1->team ? 0 : 3 : 5;
 	if(flags & SAY_ACTION) formatstring(textout)("\f5* \f%d%s \f6(%d)", col, d->name, d->clientnum);
 	else formatstring(textout)("\f5<\f%d%s \f6(%d)\f5>", col, d->name, d->clientnum);
-	if(sound) formatstring(textout)("%s \f4[\f6%d\f4]", textout, sound);
-	formatstring(textout)("%s \f%d%s", textout, textcolor, text);
-	chatoutf("%s", textout);
+	void (*outf)(const char *s, ...) = flags&SAY_DENY ? conoutf : chatoutf;
+	if(sound) outf("%s \f4[\f6%d\f4]", textout, sound);
+	outf("%s \f%d%s", textout, textcolor, text);
 }
 
 void toserver(char *text, int voice, bool action){
@@ -292,10 +292,14 @@ void addmsg(int type, const char *fmt, ...)
 		}
 		va_end(args);
 	}
-	loopi(p.length()) messages.add(buf[i]);
+	//loopi(p.length()) messages.add(buf[i]);
+	int len = p.length();
+    messages.add(len&0xFF);
+    messages.add((len>>8)|(messagereliable ? 0x80 : 0));
+    loopi(len) messages.add(buf[i]);
 }
 
-static int lastping = 0;
+static int lastupdate = -1000, lastping = 0;
 bool sendmapident = false;
 
 void sendpackettoserv(int chan, ENetPacket *packet)
@@ -353,12 +357,24 @@ void sendmessages(){
 		putint(p, maploaded);
 		sendmapident = false;
 	}
+	/*
 	if(messages.length())
 	{
 		//p.put(messages.getbuf(), messages.length());
 		loopv(messages) p.put(messages[i]);
 		messages.setsize(0);
 	}
+	*/
+	int i = 0;
+	while(i < messages.length()) // send messages collected during the previous frames
+    {
+        int len = messages[i] | ((messages[i+1]&0x7F)<<8);
+        if(p.remaining() < len) break;
+        if(messages[i+1]&0x80) packet->flags = ENET_PACKET_FLAG_RELIABLE;
+        p.put(&messages[i+2], len);
+        i += 2 + len;
+    }
+    messages.remove(0, i);
 	if(totalmillis-lastping>250)
 	{
 		putint(p, N_PINGPONG);
@@ -376,7 +392,6 @@ void sendmessages(){
 }
 
 void c2sinfo(bool force){				  // send update to the server
-	static int lastupdate = 0;
 	if(!force && totalmillis-lastupdate<40) return;	// don't update faster than 25fps
 	lastupdate = totalmillis;
 	sendpositions();
