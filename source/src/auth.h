@@ -10,21 +10,25 @@ void authchallenged(uint id, int nonce){
 	sendf(c->clientnum, 1, "ri3", N_AUTHREQ, nonce, c->authtoken);
 }
 
-int allowconnect(client &ci, const char *pwd = "", bool log = false){
+int allowconnect(client &ci, const char *pwd = "", int authreq = 0){
 	if(ci.type == ST_LOCAL) return DISC_NONE;
 	//if(!m_valid(smode)) return DISC_PRIVATE;
 	if(ci.priv >= PRIV_ADMIN) return DISC_NONE;
+	if(authreq && reqauth(ci.clientnum, authreq)){
+		logline(ACLOG_INFO, "[%s] %s logged in requesting auth", ci.hostname, ci.name);
+		return DISC_NONE;
+	}
 	// nickname list
 	int bl = 0, wl = nbl.checknickwhitelist(ci);
 	const char *wlp = wl == NWL_PASS ? ", nickname whitelist match" : "";
 	if(wl == NWL_UNLISTED) bl = nbl.checknickblacklist(ci.name);
 	if(wl == NWL_IPFAIL || wl == NWL_PWDFAIL)
 	{ // nickname matches whitelist, but IP is not in the required range or PWD doesn't match
-		if(log) logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong %s", ci.hostname, ci.name, wl == NWL_IPFAIL ? "IP" : "PWD");
+		logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong %s", ci.hostname, ci.name, wl == NWL_IPFAIL ? "IP" : "PWD");
 		return DISC_PASSWORD;
 	}
 	else if(bl > 0){ // nickname matches blacklist
-		if(log) logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d", ci.hostname, ci.name, bl);
+		logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d", ci.hostname, ci.name, bl);
 		return DISC_NAME;
 	}
 	const bool banned = isbanned(ci.clientnum);
@@ -35,19 +39,19 @@ int allowconnect(client &ci, const char *pwd = "", bool log = false){
 		bool banremoved = false;
 		if(pd.priv) setpriv(ci.clientnum, pd.priv, NULL, true);
 		if(banned) loopv(bans) if(bans[i].host == ci.peer->address.host) { banremoved = true; bans.remove(i); break; } // remove admin bans
-		if(log) logline(ACLOG_INFO, "[%s] %s logged in using the password in line %d%s%s", ci.hostname, ci.name, pd.line, wlp, banremoved ? ", (ban removed)" : "");
+		logline(ACLOG_INFO, "[%s] %s logged in using the password in line %d%s%s", ci.hostname, ci.name, pd.line, wlp, banremoved ? ", (ban removed)" : "");
 		return DISC_NONE;
 	}
 	if(scl.serverpassword[0] && !(srvprivate || srvfull || banned)){ // server password required
 		if(!strcmp(genpwdhash(ci.name, scl.serverpassword, ci.salt), pwd)){
-			if(log) logline(ACLOG_INFO, "[%s] %s logged in using the server password%s", ci.hostname, ci.name, wlp);
+			logline(ACLOG_INFO, "[%s] %s logged in using the server password%s", ci.hostname, ci.name, wlp);
 		}
 		else return DISC_PASSWORD;
 	}
 	if(srvprivate) return DISC_PRIVATE;
 	if(srvfull) return DISC_FULL;
 	if(banned) return DISC_REFUSE;
-	if(log) logline(ACLOG_INFO, "[%s] %s logged in (default)%s", ci.hostname, ci.name, wlp);
+	logline(ACLOG_INFO, "[%s] %s logged in (default)%s", ci.hostname, ci.name, wlp);
 	return DISC_NONE;
 }
 

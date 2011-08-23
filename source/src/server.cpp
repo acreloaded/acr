@@ -2976,13 +2976,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			int clientversion = getint(p), clientdefs = getint(p);
 			logversion(*cl, clientversion, clientdefs);
 
-			int disc = allowconnect(*cl, cl->pwd, true);
-			if(connectauth && reqauth(sender, connectauth)){
-				cl->connectauth = true;
-				disc = DISC_NONE;
-			}
-
-			if(p.remaining()) disc = DISC_TAGT;
+			int disc = p.remaining() ? DISC_TAGT : allowconnect(*cl, cl->pwd, connectauth);
 
 			if(disc) disconnect_client(sender, disc);
 			else cl->connected = true;
