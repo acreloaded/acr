@@ -3781,19 +3781,21 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				const int cn = getint(p), typ = getint(p);
 				const bool isfall = typ == PHYS_HARDFALL || typ == PHYS_FALL;
 				const int fall = isfall ? getint(p) : 0;
-				if(!hasclient(cl, cn)) break;
+				if(!hasclient(cl, cn) || typ < 0 || type >= PHYS_NUM) break;
 				client *cp = clients[cn];
-				if(isfall && typ == PHYS_HARDFALL){
+				if(isfall){
 					// deal falling damage?
-					serverdamage(cp, cp, 99, WEAP_MAX+2, FRAG_NONE, cp->state.o);
+					serverdamage(cp, cp, typ == PHYS_HARDFALL ? 99 : 1, WEAP_MAX+2, FRAG_NONE, cp->state.o);
 				}
 				else if(typ == PHYS_AKIMBOOUT){
 					if(!cp->state.akimbomillis) break;
 					cp->state.akimbomillis = 0;
 				}
+				else if(typ == PHYS_NOAMMO && cp->state.mag) break;
 				QUEUE_INT(N_PHYS);
 				QUEUE_INT(cn);
 				QUEUE_INT(type);
+				break;
 			}
 
 			case N_EXT: // note that there is no guarantee that custom extensions will work in future AC versions

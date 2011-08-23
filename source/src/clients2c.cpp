@@ -248,7 +248,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						snd = S_NOAMMO;
 						break;
 				}
-				playsound(snd, d);
+				if(snd != S_NULL) playsound(snd, d);
 				break;
 			}
 
