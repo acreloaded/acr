@@ -158,11 +158,12 @@ void renderscores(void *menu, bool init){
 		formatstring(modeline)("\"%s\" on map %s", modestr(gamemode, modeacronyms > 0), fldrprefix ? getclientmap()+strlen("maps/") : getclientmap());
 	}
 
-	extern int minutesremaining;
+	extern int minutesremaining, gametimecurrent, lastgametimeupdate, gametimemaximum;
 	if((gamemode>1 || (gamemode==0 && (multiplayer(false) || watchingdemo))) && minutesremaining >= 0){
 		if(!minutesremaining) concatstring(modeline, ", intermission");
 		else{
-			defformatstring(timestr)(", %d %s remaining", minutesremaining, minutesremaining==1 ? "minute" : "minutes");
+			const int cssec = (gametimemaximum-gametimecurrent-(lastmillis-lastgametimeupdate))/1000;
+			defformatstring(timestr)(", %d:%d remaining", (int)floor(cssec/60.f), cssec%60);
 			concatstring(modeline, timestr);
 		}
 	}

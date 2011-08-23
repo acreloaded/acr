@@ -4028,7 +4028,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
 	if(!isdedicated) return;	 // below is network only
 
-	serverms(smode, numclients(), minremain, smapname, servmillis, serverhost->address, PROTOCOL_VERSION);
+	serverms(smode, numclients(), gamelimit-gamemillis, smapname, servmillis, serverhost->address, PROTOCOL_VERSION);
 
 	if(autoteam && m_team && !m_duel && !interm && servmillis - lastfillup > 5000 && refillteams()) lastfillup = servmillis;
 
