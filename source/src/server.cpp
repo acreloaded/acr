@@ -3732,26 +3732,20 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				senddemo(sender, getint(p));
 				break;
 
-			case N_SOUND:
+			case N_PHYS:
 			{
-				bool relay = false;
-				switch(getint(p)){
-					case S_AKIMBOOUT:
-						if(!cl->state.akimbomillis) break;
-						cl->state.akimbomillis = 0;
-						relay = true;
-					case S_NOAMMO:
-						if(!relay && (cl->state.mag[cl->state.gunselect])) break;
-					case S_JUMP:
-					case S_HARDLAND:
-					case S_SOFTLAND:
-						cl->messages.add(p.buf[curmsg]);
-						cl->messages.add(sender);
-						cl->messages.add(p.buf[curmsg+1]);
-					default:
-						break;
+				const int cn = getint(p), type = getint(p);
+				const bool isfall = type == PHYS_HARDFALL || type == PHYS_FALL;
+				const int fall = isfall ? getint(p) : 0;
+				if(!hasclient(cl, cn)) break;
+				if(isfall){
+					// deal falling damage?
+					client *cp = clients[cn];
+					serverdamage(cp, cp, 1, NUMGUNS+2, FRAG_NONE, cp->state.o);
 				}
-				break;
+				QUEUE_INT(N_PHYS);
+				QUEUE_INT(cn);
+				QUEUE_INT(type);
 			}
 
 			case N_EXT: // note that there is no guarantee that custom extensions will work in future AC versions

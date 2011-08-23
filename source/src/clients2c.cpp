@@ -227,12 +227,28 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case N_SOUND:
+			case N_PHYS:
 			{
-				int cn = getint(p);
-				playerent *d = getclient(cn);
-				if(!d) d = player1;
-				playsound(getint(p), d);
+				playerent *d = getclient(getint(p));
+				int snd = S_NULL;
+				switch(getint(p)){
+					case PHYS_FALL:
+						snd = S_HARDLAND;
+						break;
+					case PHYS_HARDFALL:
+						snd = S_SOFTLAND;
+						break;
+					case PHYS_JUMP:
+						snd = S_JUMP;
+						break;
+					case PHYS_AKIMBOOUT:
+						snd = S_AKIMBOOUT;
+						break;
+					case PHYS_NOAMMO:
+						snd = S_NOAMMO;
+						break;
+				}
+				playsound(snd, d);
 				break;
 			}
 

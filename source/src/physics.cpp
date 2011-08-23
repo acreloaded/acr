@@ -438,6 +438,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 		{
 			if(pl->type!=ENT_CAMERA)
 			{
+				playerent *p = pl->type == ENT_PLAYER ? ((playerent *)pl) : NULL;
 				if(pl->onladder)
 				{
 					const float climbspeed = 1.0f;
@@ -459,7 +460,10 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 							pl->jumpnext = false;
 							pl->vel.z = 2.0f;								  // physics impulse upwards
 							if(water) { pl->vel.x /= 8; pl->vel.y /= 8; }	  // dampen velocity change even harder, gives correct water feel
-							else if(pl==player1 || pl->type!=ENT_PLAYER) playsoundc(S_JUMP, pl);
+							else if(p && (p == player1 || p->clientnum == getclientnum())){
+								addmsg(N_PHYS, "ri2", p->clientnum, PHYS_JUMP);
+								playsound(S_JUMP, pl);
+							}
 						}
 						pl->timeinair = 0;
 					}
@@ -471,10 +475,9 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 
 				if(timeinair > 200 && !pl->timeinair)
 				{
-					int sound = timeinair > 800 ? S_HARDLAND : S_SOFTLAND;
-					if(pl->state!=CS_DEAD)
-					{
-						if(pl==player1 || pl->type!=ENT_PLAYER) playsoundc(sound, pl);
+					if(pl->state!=CS_DEAD && p) if(p == player1 || p->clientnum == getclientnum()){
+						addmsg(N_PHYS, "ri3", p->clientnum, timeinair > 800 ? PHYS_HARDFALL : PHYS_FALL, timeinair);
+						playsound(timeinair > 800 ? S_HARDLAND : S_SOFTLAND, pl);
 					}
 				}
 			}

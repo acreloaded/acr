@@ -733,7 +733,10 @@ bool gun::attack(vec &targ){
 		shots = 0;
 		if(!checkautoreload()){
 			if(!m_nopistol && owner->weapons[GUN_PISTOL]->mag || owner->weapons[GUN_PISTOL]->ammo) selectweapon(owner->weapons[GUN_PISTOL]);
-			else playsoundc(S_NOAMMO);
+			else{
+				playsound(S_NOAMMO, owner);
+				addmsg(N_PHYS, "ri2", owner->clientnum, PHYS_NOAMMO);
+			};
 		}
 		return false;
 	}
@@ -1241,7 +1244,8 @@ void checkakimbo(){
 				if(player1->primweap) player1->weaponswitch(player1->primweap);
 				else player1->weaponswitch(&p);
 			}
-			playsoundc(S_AKIMBOOUT);
+			playsound(S_AKIMBOOUT, player1);
+			addmsg(N_PHYS, "ri2", player1->clientnum, PHYS_AKIMBOOUT);
 		}
 	}
 }

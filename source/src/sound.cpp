@@ -1855,16 +1855,6 @@ void playsoundname(char *s, const vec *loc, int vol)
 void sound(int n) { playsound(n); }
 COMMAND(sound, ARG_1INT);
 
-void playsoundc(int n, physent *p)
-{
-	if(p && p!=player1) playsound(n, p);
-	else
-	{
-		addmsg(N_SOUND, "i", n);
-		playsound(n);
-	}
-}
-
 void detachsounds(playerent *owner)
 {
 	if(nosound) return;
