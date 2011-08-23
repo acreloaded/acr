@@ -354,8 +354,8 @@ void renderaboveheadicon(playerent *p){
 		uint h = 1; float aspect = 2, scalef = 3;
 		switch(icon.type){
 			case eventicon::HEADSHOT: case eventicon::CRITICAL: case eventicon::REVENGE: case eventicon::FIRSTBLOOD: h = 4; break;
-			case eventicon::DECAPITATED: case eventicon::BLEED: scalef = aspect = 1; break;
-			case eventicon::VOICECOM: case eventicon::PICKUP: scalef = aspect = 1; default: break;
+			case eventicon::DECAPITATED: case eventicon::BLEED: scalef = 2; aspect = 1; break;
+			default: scalef = aspect = 1; break;
 		}
 		glPushMatrix();
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

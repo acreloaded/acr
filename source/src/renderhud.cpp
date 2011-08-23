@@ -751,6 +751,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 				case eventicon::REVENGE:
 				case eventicon::FIRSTBLOOD: aspect = 2; h = 4; break;
 			case eventicon::DECAPITATED: case eventicon::BLEED: scalef = .4f; break;
+			default: scalef = .3f; break;
 		}
 		glBindTexture(GL_TEXTURE_2D, tex->id);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
