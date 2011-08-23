@@ -2702,6 +2702,7 @@ void putinitclient(client &c, ucharbuf &p){
     putint(p, c.clientnum);
 	putint(p, c.team);
     putint(p, c.skin);
+	putint(p, c.state.level);
     sendstring(c.name, p);
 	if(curvote && c.vote != VOTE_NEUTRAL){
 		putint(p, N_VOTE);
@@ -2966,6 +2967,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			filtername(text, text);
 			copystring(cl->name, text, MAXNAMELEN+1);
 			cl->skin = getint(p);
+			cl->state.level = getint(p);
 			getstring(text, p);
 			copystring(cl->pwd, text);
 			int connectauth = getint(p);
@@ -3113,8 +3115,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				sendf(-1, 1, "ri3x", N_SKIN, sender, cl->skin = getint(p), sender);
 				break;
 
-			case N_LEVELUP: // just relay for effect
-				sendf(-1, 1, "ri3x", N_LEVELUP, sender, clamp(getint(p), 1, MAXLEVEL), sender);
+			case N_LEVELUP:
+				sendf(-1, 1, "ri3x", N_LEVELUP, sender, cl->state.level = clamp(getint(p), 1, MAXLEVEL), sender);
 				break;
 
 			case N_MAPIDENT:

@@ -479,12 +479,12 @@ struct playerstate
 	int lastcut, cutter, ownernum;
 	int killstreak, assists;
 	int primary, nextprimary;
-	int gunselect;
+	int gunselect, level;
 	bool akimbo, scoping;
 	int ammo[NUMGUNS], mag[NUMGUNS], gunwait[NUMGUNS];
 	ivector damagelog;
 
-	playerstate() : primary(GUN_ASSAULT), nextprimary(GUN_ASSAULT), ownernum(-1) {}
+	playerstate() : primary(GUN_ASSAULT), nextprimary(GUN_ASSAULT), ownernum(-1), level(1) {}
 	virtual ~playerstate() {}
 
 	itemstat &itemstats(int type)

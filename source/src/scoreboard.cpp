@@ -30,9 +30,9 @@ struct sline{
 static vector<sline> scorelines;
 
 struct teamscore{
-	int team, points, frags, assists, deaths, flagscore;
+	int team, points, frags, assists, deaths, flagscore, lvl;
 	vector<playerent *> teammembers;
-	teamscore(int t) : team(t), frags(0), assists(0), deaths(0), points(0), flagscore(0) {}
+	teamscore(int t) : team(t), frags(0), assists(0), deaths(0), points(0), flagscore(0), lvl(0) {}
 
 	virtual void addscore(playerent *d){
 		if(!d) return;
@@ -41,6 +41,8 @@ struct teamscore{
 		assists += d->assists;
 		deaths += d->deaths;
 		points += d->points;
+		extern int level;
+		lvl += d == player1 ? level : d->ownernum < 0 ? d->level : 0;
 		if(m_flags) flagscore += d->flagscore;
 	}
 };
@@ -109,8 +111,10 @@ void renderscore(void *menu, playerent *d){
 	string &s = line.s;
 	scoreratio sr;
 	sr.calc(d->frags, d->deaths);
-	if(m_flags) formatstring(s)("%d\t%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->points, d->flagscore, d->frags, d->assists, d->deaths, sr.precision, sr.ratio, clag, cping, d->clientnum, status, colorname(d, true));
-	else formatstring(s)("%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->points, d->frags, d->assists, d->deaths, sr.precision, sr.ratio, clag, cping, d->clientnum, status, colorname(d, true));
+	extern int level;
+	defformatstring(levels)(d->ownernum < 0 ? "%d" : "ai", d == player1 ? level : d->level);
+	if(m_flags) formatstring(s)("%d\t%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%s\t%s%s", d->points, d->flagscore, d->frags, d->assists, d->deaths, sr.precision, sr.ratio, clag, cping, d->clientnum, levels, status, colorname(d, true));
+	else formatstring(s)("%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%s\t%s%s", d->points, d->frags, d->assists, d->deaths, sr.precision, sr.ratio, clag, cping, d->clientnum, levels, status, colorname(d, true));
 }
 
 void renderteamscore(void *menu, teamscore &t){
@@ -123,8 +127,8 @@ void renderteamscore(void *menu, teamscore &t){
 	scoreratio sr;
 	sr.calc(t.frags, t.deaths);
 	const char *teamname = m_team || t.team == TEAM_SPECT ? team_string(t.team) : "FFA Total";
-	if(m_flags) formatstring(line.s)("%d\t%d\t%d\t%d\t%d\t%.*f\t\t\t\t%s\t\t%s", t.points, t.flagscore, t.frags, t.assists, t.deaths, sr.precision, sr.ratio, teamname, plrs);
-	else formatstring(line.s)("%d\t%d\t%d\t%d\t%.*f\t\t\t\t%s\t\t%s", t.points, t.frags, t.assists, t.deaths, sr.precision, sr.ratio, teamname, plrs);
+	if(m_flags) formatstring(line.s)("%d\t%d\t%d\t%d\t%d\t%.*f\t\t\t\t%d\t%s\t\t%s", t.points, t.flagscore, t.frags, t.assists, t.deaths, sr.precision, sr.ratio, t.lvl, teamname, plrs);
+	else formatstring(line.s)("%d\t%d\t%d\t%d\t%.*f\t\t\t\t%d\t%s\t\t%s", t.points, t.frags, t.assists, t.deaths, sr.precision, sr.ratio, t.lvl, teamname, plrs);
 	static color teamcolors[TEAM_NUM+1] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f), color(.4f, .4f, .4f, .3f), color(.8f, .8f, .8f, .4f) };
 	line.bgcolor = &teamcolors[!m_team && t.team != TEAM_SPECT ? TEAM_NUM : t.team];
 	loopv(t.teammembers) renderscore(menu, t.teammembers[i]);
