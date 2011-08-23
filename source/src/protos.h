@@ -81,7 +81,7 @@ extern void writebinds(FILE *f);
 extern void pasteconsole(char *dst);
 extern void addobit(playerent *actor, int weap, bool headshot, playerent *target);
 extern void conoutf(const char *s, ...);
-extern void chatout(const char *s);
+extern void chatoutf(const char *s, ...);
 
 struct keym
 {
@@ -342,7 +342,7 @@ extern bool multiplayer(bool msg = true);
 extern bool allowedittoggle();
 extern void sendpackettoserv(int chan, ENetPacket *packet);
 extern void gets2c();
-extern void c2sinfo(playerent *d);
+extern void c2sinfo(bool force = false);
 extern void c2skeepalive();
 extern void neterr(const char *s, int info);
 extern int getclientnum();

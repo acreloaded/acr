@@ -172,7 +172,6 @@ void spawnstate(playerent *d)			  // reset player state not persistent accross s
 playerent *newplayerent()				 // create a new blank player
 {
 	playerent *d = new playerent;
-	d->lastupdate = totalmillis;
 	setskin(d, rnd(6));
 	weapon::equipplayer(d); // flowtron : avoid overwriting d->spawnstate(gamemode) stuff from the following line (this used to be called afterwards)
 	spawnstate(d);
@@ -182,7 +181,6 @@ playerent *newplayerent()				 // create a new blank player
 botent *newbotent()				 // create a new blank player
 {
 	botent *d = new botent;
-	d->lastupdate = totalmillis;
 	setskin(d, rnd(6));
 	spawnstate(d);
 	weapon::equipplayer(d);
@@ -255,10 +253,10 @@ void predictplayer(playerent *d, bool move)
 
 void moveotherplayers()
 {
-	loopv(players) if(players[i] && players[i]->type==ENT_PLAYER)
+	loopv(players) if(players[i] && players[i]->type==ENT_PLAYER && players[i]->ownernum != getclientnum())
 	{
 		playerent *d = players[i];
-		const int lagtime = totalmillis-d->lastupdate;
+		const int lagtime = totalmillis-d->lastrecieve;
 		if(!lagtime || intermission) continue;
 		else if(lagtime>1000 && d->state==CS_ALIVE)
 		{
@@ -380,10 +378,7 @@ void updateworld(int curtime, int lastmillis)		// main game update loop
 	BotManager.Think(); // let bots think
 
 	movelocalplayer();
-	if(getclientnum() >= 0){ // do this last, to reduce the effective frame lag
-		c2sinfo(player1);
-		loopv(players) if(players[i] && players[i]->ownernum == getclientnum()) c2sinfo(players[i]);
-	}
+	if(getclientnum() >= 0) c2sinfo(); // do this last, to reduce the effective frame lag
 }
 
 #define SECURESPAWNDIST 15
