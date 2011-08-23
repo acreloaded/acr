@@ -820,7 +820,7 @@ void setperspective(float fovy, float nearplane){
 	GLdouble ydist = nearplane * tan(fovy/2*RAD), xdist = ydist * aspect;
 
 	float adsmax = 864, zoomf = (float)adszoom;
-	if((gamefocus->weaponsel->type == GUN_SNIPER || gamefocus->weaponsel->type == GUN_BOLT) && gamefocus->ads){
+	if((gamefocus->weaponsel->type == WEAP_SNIPER || gamefocus->weaponsel->type == WEAP_BOLT) && gamefocus->ads){
 		adsmax = sniperrifle::adsscope;
 		zoomf = (float)scopezoom;
 	}

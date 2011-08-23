@@ -66,7 +66,7 @@ int explosion(client &owner, const vec &o2, int weap){
 		if(sraycube(o, ray) < dist) continue;
 		ushort dmg = effectiveDamage(weap, dist, true);
 		int expflags = FRAG_GIB;
-		if(weap == GUN_GRENADE && o.z >= target.state.o.z) expflags |= FRAG_FLAG;
+		if(weap == WEAP_GRENADE && o.z >= target.state.o.z) expflags |= FRAG_FLAG;
 		if(checkcrit(dist, 1.5f)){
 			expflags |= FRAG_CRITICAL;
 			dmg *= 2;
@@ -83,7 +83,7 @@ int explosion(client &owner, const vec &o2, int weap){
 int shot(client &owner, const vec &from, const vec &to, int weap, vec &surface, float dist = 0){
 	int shotdamage = 0;
 	clientstate &gs = owner.state;
-	const int mulset = (weap == GUN_SNIPER || weap == GUN_BOLT) ? MUL_SNIPER : MUL_NORMAL;
+	const int mulset = (weap == WEAP_SNIPER || weap == WEAP_BOLT) ? MUL_SNIPER : MUL_NORMAL;
 	int playershit = 0;
 	loopv(clients){ // one ray, potentially multiple players
 		client &t = *clients[i];
@@ -106,14 +106,14 @@ int shot(client &owner, const vec &from, const vec &to, int weap, vec &surface, 
 			case HIT_LEG: default: damage *= muls[mulset].leg; break;
 		}
 		// gib check
-		const bool gib = weap == GUN_KNIFE || hitzone == HIT_HEAD;
+		const bool gib = weap == WEAP_KNIFE || hitzone == HIT_HEAD;
 		int style = gib ? FRAG_GIB : FRAG_NONE;
 		// critical shots
 		if(checkcrit(dist, 2.5)){
 			style |= FRAG_CRITICAL;
 			damage *= 2.5f;
 		}
-		if(weap != GUN_KNIFE) sendhit(owner, weap, end.v);
+		if(weap != WEAP_KNIFE) sendhit(owner, weap, end.v);
 		else{
 			if(hitzone == HIT_HEAD) style |= FRAG_FLAG;
 			if(!isteam((&owner), (&t))){
@@ -126,7 +126,7 @@ int shot(client &owner, const vec &from, const vec &to, int weap, vec &surface, 
 		serverdamage(&t, &owner, damage, weap, style, gs.o);
 		++playershit;
 	}
-	if(!dist && from.dist(to) < 100 && surface.magnitude() && weap != GUN_KNIFE && weap != GUN_WAVE){ // material absorbs the radiation. too bad
+	if(!dist && from.dist(to) < 100 && surface.magnitude() && weap != WEAP_KNIFE && weap != WEAP_WAVE){ // material absorbs the radiation. too bad
 		const int penalty = 40 + playershit * 20; // 10 meters plus 5 meters per player
 		vec dir(to), newsurface;
 		loopi(3) surface[i] = 1 - fabs(surface[i]) * 2;
@@ -135,7 +135,7 @@ int shot(client &owner, const vec &from, const vec &to, int weap, vec &surface, 
 		sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, weap, to.x, to.y, to.z, dir.x, dir.y, dir.z);
 		shotdamage += shot(owner, to, dir, weap, newsurface, dist + penalty);
 	}
-	return shotdamage + (false && !dist ? explosion(owner, to, GUN_BOW) : 0);
+	return shotdamage + (false && !dist ? explosion(owner, to, WEAP_BOW) : 0);
 }
 
 int shotgun(client &owner, const vec &from, const vec &to){
@@ -152,11 +152,11 @@ int shotgun(client &owner, const vec &from, const vec &to){
 			vec head = generateHead(ts.o, ts.aim[0]), end;
 			const int hitzone = hitplayer(from, gs.aim[0], gs.aim[1], gs.sg[j], ts.o, head, &end);
 			if(!hitzone) continue;
-			damage += effectiveDamage(GUN_SHOTGUN, end.dist(gs.o)) * muls[MUL_SHOTGUN].val[hitzone == HIT_HEAD ? 0 : hitzone == HIT_TORSO ? 1 : 2];
+			damage += effectiveDamage(WEAP_SHOTGUN, end.dist(gs.o)) * muls[MUL_SHOTGUN].val[hitzone == HIT_HEAD ? 0 : hitzone == HIT_TORSO ? 1 : 2];
 		}
 		damagedealt += damage;
-		sendhit(owner, GUN_SHOTGUN, ts.o.v);
-		serverdamage(&t, &owner, damage, GUN_SHOTGUN, damage >= SGGIB ? FRAG_GIB : FRAG_NONE, from);
+		sendhit(owner, WEAP_SHOTGUN, ts.o.v);
+		serverdamage(&t, &owner, damage, WEAP_SHOTGUN, damage >= SGGIB ? FRAG_GIB : FRAG_NONE, from);
 	}
-	return damagedealt + (false ? explosion(owner, to, GUN_BOW) : 0);
+	return damagedealt + (false ? explosion(owner, to, WEAP_BOW) : 0);
 }

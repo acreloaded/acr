@@ -493,7 +493,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 
 	pl->respawnoffset = pl->lastpain = lastmillis;
 	if(actor != pl) actor->lasthitmarker;
-	if(actor == player1 && weapon == GUN_KNIFE && damage > 1000) return;
+	if(actor == player1 && weapon == WEAP_KNIFE && damage > 1000) return;
 
 	if(actor != pl && pl->damagelog.find(actor->clientnum) < 0) pl->damagelog.add(actor->clientnum);
 
@@ -503,7 +503,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 	}
 
 	if(pl==player1){
-		if(weapon != GUN_GRENADE && actor != pl){
+		if(weapon != WEAP_GRENADE && actor != pl){
 			vec dir = pl->o;
 			dir.sub(actor->o);
 			pl->hitpush(damage, dir, weapon);
@@ -511,7 +511,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 		pl->damageroll(damage);
 	}
 	if(pl != actor) pl->damagestack.add(damageinfo(actor->o, lastmillis, damage));
-	damageeffect(damage * (weapon == GUN_KNIFE && damage < guns[GUN_KNIFE].damage ? 5 : 1), pl);
+	damageeffect(damage * (weapon == WEAP_KNIFE && damage < guns[WEAP_KNIFE].damage ? 5 : 1), pl);
 
 	if(pl==player1) playsound(S_PAIN6, SP_HIGH);
 	else playsound(S_PAIN1+rnd(5), pl);

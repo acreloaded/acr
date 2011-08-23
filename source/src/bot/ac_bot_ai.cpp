@@ -54,7 +54,7 @@ bool CACBot::ChoosePreferredWeapon()
 
 	 if (m_iChangeWeaponDelay < lastmillis && m_pMyEnt->mag[m_pMyEnt->gunselect])
 	 {
-		 if ((WeaponInfoTable[m_pMyEnt->gunselect].eWeaponType != TYPE_MELEE) || (flDist <= WeaponInfoTable[GUN_KNIFE].flMaxFireDistance))
+		 if ((WeaponInfoTable[m_pMyEnt->gunselect].eWeaponType != TYPE_MELEE) || (flDist <= WeaponInfoTable[WEAP_KNIFE].flMaxFireDistance))
 			   return true;
 	 };
 			
@@ -141,9 +141,9 @@ entity *CACBot::SearchForEnts(bool bUseWPs, float flRange, float flMaxHeight)
 		  switch(e.type)
 		  {
 		  case I_CLIPS:
-			   sMaxAmmo = ammostats[GUN_PISTOL].max;
-			   bInteresting = (m_pMyEnt->ammo[GUN_PISTOL]<sMaxAmmo);
-			   sAmmo = m_pMyEnt->ammo[GUN_PISTOL];
+			   sMaxAmmo = ammostats[WEAP_PISTOL].max;
+			   bInteresting = (m_pMyEnt->ammo[WEAP_PISTOL]<sMaxAmmo);
+			   sAmmo = m_pMyEnt->ammo[WEAP_PISTOL];
 			   break;
 		  case I_AMMO:
 			   sMaxAmmo = ammostats[m_pMyEnt->primary].max;
@@ -151,9 +151,9 @@ entity *CACBot::SearchForEnts(bool bUseWPs, float flRange, float flMaxHeight)
 			   sAmmo = m_pMyEnt->ammo[m_pMyEnt->primary];
 			   break;
 		  case I_GRENADE:
-			   sMaxAmmo = ammostats[GUN_GRENADE].max;
-			   bInteresting = (m_pMyEnt->mag[GUN_GRENADE]<sMaxAmmo);
-			   sAmmo = m_pMyEnt->mag[GUN_GRENADE];
+			   sMaxAmmo = ammostats[WEAP_GRENADE].max;
+			   bInteresting = (m_pMyEnt->mag[WEAP_GRENADE]<sMaxAmmo);
+			   sAmmo = m_pMyEnt->mag[WEAP_GRENADE];
 			   break;
 		  case I_HEALTH:
 			   sMaxAmmo = powerupstats[I_HEALTH-I_HEALTH].max; //FIXME

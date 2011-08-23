@@ -128,7 +128,7 @@ static guninfo guns[NUMGUNS] =
 static inline ushort reloadtime(int gun) { return guns[gun].reloadtime; }
 static inline ushort attackdelay(int gun) { return guns[gun].attackdelay; }
 static inline ushort magsize(int gun) { return guns[gun].magsize; }
-static inline ushort reloadsize(int gun) { return gun == GUN_SHOTGUN ? 1 : guns[gun].magsize; }
+static inline ushort reloadsize(int gun) { return gun == WEAP_SHOTGUN ? 1 : guns[gun].magsize; }
 static inline ushort effectiveDamage(int gun, float dist, bool explosive = false) {
 	ushort finaldamage = 0;
 	if(dist <= guns[gun].range || (!guns[gun].range && !guns[gun].endrange)) finaldamage = guns[gun].damage;
@@ -184,13 +184,13 @@ static inline const char *suicname(int obit){
 	static string k;
 	*k = 0;
 	switch(obit){
-		case GUN_GRENADE:
+		case WEAP_GRENADE:
 			concatstring(k, "failed with nades");
 			break;
-		case GUN_HEAL:
+		case WEAP_HEAL:
 			concatstring(k, "overdosed on drugs");
 			break;
-		case GUN_BOW:
+		case WEAP_BOW:
 			concatstring(k, "failed to use an explosive crossbow");
 			break;
 		case OBIT_DEATH:
@@ -215,11 +215,11 @@ static inline const char *suicname(int obit){
 static inline const bool isheadshot(int weapon, int style){
 	if(!(style & FRAG_GIB)) return false; // all headshots gib
 	switch(weapon){
-		case GUN_KNIFE:
-		case GUN_GRENADE:
+		case WEAP_KNIFE:
+		case WEAP_GRENADE:
 			if(style & FRAG_FLAG) break; // these weapons headshot if FRAG_FLAG is set
-		case GUN_BOW:
-		case GUN_SHOTGUN:
+		case WEAP_BOW:
+		case WEAP_SHOTGUN:
 		case NUMGUNS:
 			return false; // these guns cannot gib
 	}
@@ -230,8 +230,8 @@ static inline const int toobit(int weap, int style){
 	const bool gib = (style & FRAG_GIB) > 0,
 				flag = (style & FRAG_FLAG) > 0;
 	switch(weap){
-		case GUN_KNIFE: return gib ? GUN_KNIFE : flag ? OBIT_KNIFE_IMPACT : OBIT_KNIFE_BLEED;
-		case GUN_BOW: return gib ? flag ? OBIT_BOW_STUCK : GUN_BOW : OBIT_BOW_IMPACT;
+		case WEAP_KNIFE: return gib ? WEAP_KNIFE : flag ? OBIT_KNIFE_IMPACT : OBIT_KNIFE_BLEED;
+		case WEAP_BOW: return gib ? flag ? OBIT_BOW_STUCK : WEAP_BOW : OBIT_BOW_IMPACT;
 	}
 	return weap < NUMGUNS ? weap : OBIT_DEATH;
 }
@@ -240,40 +240,40 @@ static inline const char *killname(int obit, bool headshot){
 	static string k;
 	*k = 0;
 	switch(obit){
-		case GUN_GRENADE:
+		case WEAP_GRENADE:
 			concatstring(k, "obliterated");
 			break;
-		case GUN_KNIFE:
+		case WEAP_KNIFE:
 			concatstring(k, headshot ? "decapitated" : "slashed");
 			break;
-		case GUN_BOLT:
+		case WEAP_BOLT:
 			concatstring(k, headshot ? "overkilled" : "quickly killed");
 			break;
-		case GUN_SNIPER:
+		case WEAP_SNIPER:
 			concatstring(k, headshot ? "expertly sniped" : "sniped");
 			break;
-		case GUN_SUBGUN:
+		case WEAP_SUBGUN:
 			concatstring(k, headshot ? "perforated" : "spliced");
 			break;
-		case GUN_SHOTGUN:
+		case WEAP_SHOTGUN:
 			concatstring(k, headshot ? "splattered" : "scrambled");
 			break;
-		case GUN_ASSAULT:
+		case WEAP_ASSAULT:
 			concatstring(k, headshot ? "eliminated" : "shredded");
 			break;
-		case GUN_PISTOL:
+		case WEAP_PISTOL:
 			concatstring(k, headshot ? "capped" : "pierced");
 			break;
-		case GUN_AKIMBO:
+		case WEAP_AKIMBO:
 			concatstring(k, headshot ? "blasted" : "skewered");
 			break;
-		case GUN_HEAL:
+		case WEAP_HEAL:
 			concatstring(k, headshot ? "tranquilized" : "injected");
 			break;
-		case GUN_WAVE:
+		case WEAP_WAVE:
 			concatstring(k, headshot ? "disrupted" : "cooked");
 			break;
-		case GUN_BOW:
+		case WEAP_BOW:
 			concatstring(k, "detonated");
 			break;
 		// special obits
@@ -299,28 +299,28 @@ static inline const char *killname(int obit, bool headshot){
 static float gunspeed(int gun, bool lightweight = false){
 	float ret = lightweight ? 1.07f : 1;
 	switch(gun){
-		case GUN_KNIFE:
-		case GUN_PISTOL:
-		case GUN_GRENADE:
-		case GUN_HEAL:
+		case WEAP_KNIFE:
+		case WEAP_PISTOL:
+		case WEAP_GRENADE:
+		case WEAP_HEAL:
 			//ret *= 1;
 			break;
-		case GUN_AKIMBO:
+		case WEAP_AKIMBO:
 			ret *= .99f;
 			break;
-		case GUN_SHOTGUN:
+		case WEAP_SHOTGUN:
 			ret *= .97f;
 			break;
-		case GUN_SNIPER:
-		case GUN_BOLT:
+		case WEAP_SNIPER:
+		case WEAP_BOLT:
 			ret *= .95f;
 			break;
-		case GUN_SUBGUN:
+		case WEAP_SUBGUN:
 			ret *= .93f;
 			break;
-		case GUN_ASSAULT:
-		case GUN_WAVE:
-		case GUN_BOW:
+		case WEAP_ASSAULT:
+		case WEAP_WAVE:
+		case WEAP_BOW:
 			ret *= .9f;
 			break;
 	}
@@ -494,17 +494,17 @@ struct playerstate
 	int ammo[NUMGUNS], mag[NUMGUNS], gunwait[NUMGUNS];
 	ivector damagelog;
 
-	playerstate() : primary(GUN_ASSAULT), nextprimary(GUN_ASSAULT), ownernum(-1), level(1) {}
+	playerstate() : primary(WEAP_ASSAULT), nextprimary(WEAP_ASSAULT), ownernum(-1), level(1) {}
 	virtual ~playerstate() {}
 
 	itemstat &itemstats(int type)
 	{
 		switch(type)
 		{
-			case I_CLIPS: return ammostats[GUN_PISTOL];
+			case I_CLIPS: return ammostats[WEAP_PISTOL];
 			case I_AMMO: return ammostats[primary];
-			case I_GRENADE: return ammostats[GUN_GRENADE];
-			case I_AKIMBO: return ammostats[GUN_AKIMBO];
+			case I_GRENADE: return ammostats[WEAP_GRENADE];
+			case I_AKIMBO: return ammostats[WEAP_AKIMBO];
 			case I_HEALTH: return powerupstats[0]; // FIXME: unify
 			case I_ARMOR: return powerupstats[1];
 			default:
@@ -516,9 +516,9 @@ struct playerstate
 	{
 		switch(type)
 		{
-			case I_CLIPS: return ammo[akimbo ? GUN_AKIMBO : GUN_PISTOL]<ammostats[akimbo ? GUN_AKIMBO : GUN_PISTOL].max;
+			case I_CLIPS: return ammo[akimbo ? WEAP_AKIMBO : WEAP_PISTOL]<ammostats[akimbo ? WEAP_AKIMBO : WEAP_PISTOL].max;
 			case I_AMMO: return ammo[primary]<ammostats[primary].max;
-			case I_GRENADE: return mag[GUN_GRENADE]<ammostats[GUN_GRENADE].max;
+			case I_GRENADE: return mag[WEAP_GRENADE]<ammostats[WEAP_GRENADE].max;
 			case I_HEALTH: return health<powerupstats[type-I_HEALTH].max;
 			case I_ARMOR: return armor<powerupstats[type-I_HEALTH].max;
 			case I_AKIMBO: return !akimbo && ownernum < 0;
@@ -537,17 +537,17 @@ struct playerstate
 		switch(type)
 		{
 			case I_CLIPS:
-				additem(ammostats[GUN_PISTOL], ammo[GUN_PISTOL]);
-				additem(ammostats[GUN_AKIMBO], ammo[GUN_AKIMBO]);
+				additem(ammostats[WEAP_PISTOL], ammo[WEAP_PISTOL]);
+				additem(ammostats[WEAP_AKIMBO], ammo[WEAP_AKIMBO]);
 				break;
 			case I_AMMO: additem(ammostats[primary], ammo[primary]); break;
-			case I_GRENADE: additem(ammostats[GUN_GRENADE], mag[GUN_GRENADE]); break;
+			case I_GRENADE: additem(ammostats[WEAP_GRENADE], mag[WEAP_GRENADE]); break;
 			case I_HEALTH: cutter = lastcut = 0; additem(powerupstats[type-I_HEALTH], health); break;
 			case I_ARMOR: additem(powerupstats[type-I_HEALTH], armor); break;
 			case I_AKIMBO:
 				akimbo = true;
-				mag[GUN_AKIMBO] = guns[GUN_AKIMBO].magsize;
-				additem(ammostats[GUN_AKIMBO], ammo[GUN_AKIMBO]);
+				mag[WEAP_AKIMBO] = guns[WEAP_AKIMBO].magsize;
+				additem(ammostats[WEAP_AKIMBO], ammo[WEAP_AKIMBO]);
 				break;
 		}
 	}
@@ -558,25 +558,25 @@ struct playerstate
 		armor = STARTARMOR;
 		cutter = -1;
 		killstreak = assists = armor = lastcut = 0;
-		gunselect = GUN_PISTOL;
+		gunselect = WEAP_PISTOL;
 		akimbo = scoping = false;
 		loopi(NUMGUNS) ammo[i] = mag[i] = gunwait[i] = 0;
-		ammo[GUN_KNIFE] = 2;
-		mag[GUN_KNIFE] = 1;
+		ammo[WEAP_KNIFE] = 2;
+		mag[WEAP_KNIFE] = 1;
 	}
 
 	virtual void spawnstate(int gamemode)
 	{
-		if(m_pistol) primary = GUN_PISTOL;
-		else if(m_osok) primary = GUN_BOLT;
-		else if(m_lss) primary = GUN_KNIFE;
+		if(m_pistol) primary = WEAP_PISTOL;
+		else if(m_osok) primary = WEAP_BOLT;
+		else if(m_lss) primary = WEAP_KNIFE;
 		else primary = nextprimary;
 
-		if(primary == GUN_GRENADE || primary == GUN_AKIMBO || primary < 0 || primary >= NUMGUNS) primary = GUN_ASSAULT;
+		if(primary == WEAP_GRENADE || primary == WEAP_AKIMBO || primary < 0 || primary >= NUMGUNS) primary = WEAP_ASSAULT;
 
 		if(!m_nopistol){
-			ammo[GUN_PISTOL] = ammostats[GUN_PISTOL].start-magsize(GUN_PISTOL);
-			mag[GUN_PISTOL] = magsize(GUN_PISTOL);
+			ammo[WEAP_PISTOL] = ammostats[WEAP_PISTOL].start-magsize(WEAP_PISTOL);
+			mag[WEAP_PISTOL] = magsize(WEAP_PISTOL);
 		}
 
 		if(!m_noprimary){
@@ -584,11 +584,11 @@ struct playerstate
 			mag[primary] = magsize(primary);
 		}
 
-		if(!m_noitems) mag[GUN_GRENADE] = ammostats[GUN_GRENADE].start;
+		if(!m_noitems) mag[WEAP_GRENADE] = ammostats[WEAP_GRENADE].start;
 
 		gunselect = primary;
 
-		if(m_osok) health = /*guns[GUN_KNIFE].damage + 1*/ 81;
+		if(m_osok) health = /*guns[WEAP_KNIFE].damage + 1*/ 81;
 	}
 
 	// just subtract damage here, can set death, etc. later in code calling this
@@ -734,7 +734,7 @@ struct playerent : dynent, playerstate
 		push.normalize().mul(damage/100.f*guns[gun].pushfactor);
 		vel.add(push);
 		extern int lastmillis;
-		if(gun==GUN_GRENADE && damage > 50) eardamagemillis = lastmillis+damage*100;
+		if(gun==WEAP_GRENADE && damage > 50) eardamagemillis = lastmillis+damage*100;
 	}
 
 	void resetspec()

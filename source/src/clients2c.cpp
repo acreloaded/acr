@@ -514,7 +514,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				}
 				playerent *s = getclient(scn);
 				if(!s || !weapon::valid(gun)) break;
-				if(s == player1 && (type == N_SHOOTC || gun == GUN_GRENADE)) break;
+				if(s == player1 && (type == N_SHOOTC || gun == WEAP_GRENADE)) break;
 				if(s != player1 && s->ownernum != getclientnum()){
 					s->mag[gun]--;
 					updatelastaction(s);
@@ -535,8 +535,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				loopk(3) to[k] = getfloat(p);
 				if(!d) break;
 				updatelastaction(d);
-				d->lastattackweapon = d->weapons[GUN_KNIFE];
-				if(d->weapons[GUN_KNIFE]) d->weapons[GUN_KNIFE]->attackfx(from, to, 1);
+				d->lastattackweapon = d->weapons[WEAP_KNIFE];
+				if(d->weapons[WEAP_KNIFE]) d->weapons[WEAP_KNIFE]->attackfx(from, to, 1);
 				break;
 			}
 
@@ -549,8 +549,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				int cooked = getint(p);
 				if(!d) break;
 				updatelastaction(d);
-				d->lastattackweapon = d->weapons[GUN_GRENADE];
-				if(d->weapons[GUN_GRENADE]) d->weapons[GUN_GRENADE]->attackfx(from, to, cooked);
+				d->lastattackweapon = d->weapons[WEAP_GRENADE];
+				if(d->weapons[WEAP_GRENADE]) d->weapons[WEAP_GRENADE]->attackfx(from, to, cooked);
 				break;
 			}
 
@@ -580,7 +580,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				p->ammo[gun] = ammo;
 				p->mag[gun] = mag;
 				if(guns[gun].reload != S_NULL) playsound(guns[gun].reload, p, p == player1 ? SP_HIGH : SP_NORMAL);
-				if(gun == GUN_KNIFE) p->addicon(eventicon::PICKUP);
+				if(gun == WEAP_KNIFE) p->addicon(eventicon::PICKUP);
 				break;
 			}
 
@@ -626,7 +626,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				int cn = getint(p), gun = getint(p), damage = getint(p);
 				vec src; loopk(3) src[k] = getfloat(p);
 				playerent *d = getclient(cn);
-				if(gun != GUN_GRENADE && gun != GUN_BOW) break;
+				if(gun != WEAP_GRENADE && gun != WEAP_BOW) break;
 				if(!d) break;
 				d->damagestack.add(damageinfo(src, lastmillis, damage));
 				if(d != player1 || d->o == src) break;
@@ -674,14 +674,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					d->deaths = deaths;
 					if(d!=player1)
 					{
-						int primary = GUN_KNIFE;
-						if(m_osok) primary = GUN_SNIPER;
-						else if(m_pistol) primary = GUN_PISTOL;
+						int primary = WEAP_KNIFE;
+						if(m_osok) primary = WEAP_SNIPER;
+						else if(m_pistol) primary = WEAP_PISTOL;
 						else if(!m_lss)
 						{
-							if(gunselect < GUN_GRENADE) primary = gunselect;
-							loopi(GUN_GRENADE) if(ammo[i] || mag[i]) primary = max(primary, i);
-							if(primary <= GUN_PISTOL) primary = GUN_ASSAULT;
+							if(gunselect < WEAP_GRENADE) primary = gunselect;
+							loopi(WEAP_GRENADE) if(ammo[i] || mag[i]) primary = max(primary, i);
+							if(primary <= WEAP_PISTOL) primary = WEAP_ASSAULT;
 						}
 						d->setprimary(primary);
 						d->selectweapon(gunselect);

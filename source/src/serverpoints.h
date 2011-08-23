@@ -17,8 +17,8 @@ void killpoints(client *target, client *actor, int gun, int style){
             if (m_ctf && clienthasflag(target->clientnum) >= 0) gain += CTFFRAGPT;
 		} else gain += BONUSPT;
 		if (style & FRAG_GIB) {
-            if (gun == GUN_KNIFE || gun != GUN_GRENADE) gain += KNIFENADEPT;
-            else if (gun == GUN_SHOTGUN) gain += SHOTGPT;
+            if (gun == WEAP_KNIFE || gun != WEAP_GRENADE) gain += KNIFENADEPT;
+            else if (gun == WEAP_SHOTGUN) gain += SHOTGPT;
 			else gain += HEADSHOTPT;
         }
         else gain += FRAGPT;

@@ -35,7 +35,7 @@ struct weaponmove
 		if(gamefocus->onfloor || gamefocus->onladder || gamefocus->inwater) swaymillis += lastmillis-lastsway;
 		lastsway = lastmillis;
 
-		anim = ANIM_GUN_IDLE;
+		anim = ANIM_WEAP_IDLE;
 
 		float k_back = 0.0f; vec sway = aimdir;
 		if(nosway) sway.x = sway.y = sway.z = 0;
@@ -67,9 +67,9 @@ struct weaponmove
 			k_rot = -90*sinf(progress*M_PI);
 		}
 		else if(gamefocus->weaponsel->reloading){
-			anim = ANIM_GUN_RELOAD;
+			anim = ANIM_WEAP_RELOAD;
 			basetime = gamefocus->weaponsel->reloading;
-			if(gamefocus->weaponsel->type == GUN_AKIMBO){
+			if(gamefocus->weaponsel->type == WEAP_AKIMBO){
 				float reloadtime = (float)gamefocus->weaponsel->info.reloadtime,
 					progress = clamp((lastmillis - gamefocus->weaponsel->reloading)/reloadtime, 0.0f,
 						clamp(1.0f - (gamefocus->lastaction + gamefocus->weaponsel->gunwait - lastmillis)/reloadtime, 0.5f, 1.0f));
@@ -103,11 +103,11 @@ struct weaponmove
 			int swayremove = 0;
 			if(ads_gun(gamefocus->weaponsel->type)){
 				swayremove = gamefocus->ads;
-				if((anim&ANIM_INDEX) == ANIM_GUN_IDLE || (anim&ANIM_INDEX) == ANIM_GUN_SHOOT)
+				if((anim&ANIM_INDEX) == ANIM_WEAP_IDLE || (anim&ANIM_INDEX) == ANIM_WEAP_SHOOT)
 					basetime = lastmillis - swayremove;
 			}
-			else if(gamefocus->weaponsel->type == GUN_AKIMBO) basetime = lastmillis;
-			else if(gamefocus->weaponsel->type == GUN_KNIFE && ((knife *)gamefocus->weaponsel)->state) swayremove = 680;
+			else if(gamefocus->weaponsel->type == WEAP_AKIMBO) basetime = lastmillis;
+			else if(gamefocus->weaponsel->type == WEAP_KNIFE && ((knife *)gamefocus->weaponsel)->state) swayremove = 680;
 
 			if(swayremove){
 				k_rot *= 1 - sqrtf(swayremove / 1000.f) / 2.f;

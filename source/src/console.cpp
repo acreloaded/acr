@@ -169,16 +169,16 @@ struct obitlist
 	int drawobit(int style, int left, int top, uchar fade){
 		int aspect = 1;
 		switch(style){
-			case GUN_SHOTGUN:
-			case GUN_SNIPER:
+			case WEAP_SHOTGUN:
+			case WEAP_SNIPER:
 				aspect = 4; break;
-			case GUN_BOLT:
-			case GUN_ASSAULT:
+			case WEAP_BOLT:
+			case WEAP_ASSAULT:
 				aspect = 3; break;
-			case GUN_SUBGUN:
+			case WEAP_SUBGUN:
 				aspect = 2; break;
-			case GUN_AKIMBO:
-				style = GUN_PISTOL; // break;
+			case WEAP_AKIMBO:
+				style = WEAP_PISTOL; // break;
 			default: break; // many are square
 		}
 

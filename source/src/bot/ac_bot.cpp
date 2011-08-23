@@ -24,16 +24,16 @@ extern void spawnstate(playerent *d);
 void CACBot::Spawn()
 {
 	 // Init all bot variabeles
-	int nextweap = GUN_ASSAULT;
+	int nextweap = WEAP_ASSAULT;
 	switch(rnd(8)){
-		case 0: nextweap = GUN_SHOTGUN; break;
-		case 1: nextweap = GUN_SUBGUN; break;
-		case 2: nextweap = GUN_SNIPER; break;
-		case 3: nextweap = GUN_BOLT; break;
-		case 4: nextweap = GUN_ASSAULT; break;
-		case 5: nextweap = GUN_HEAL; break;
-		case 6: nextweap = GUN_WAVE; break;
-		case 7: nextweap = GUN_BOW; break;
+		case 0: nextweap = WEAP_SHOTGUN; break;
+		case 1: nextweap = WEAP_SUBGUN; break;
+		case 2: nextweap = WEAP_SNIPER; break;
+		case 3: nextweap = WEAP_BOLT; break;
+		case 4: nextweap = WEAP_ASSAULT; break;
+		case 5: nextweap = WEAP_HEAL; break;
+		case 6: nextweap = WEAP_WAVE; break;
+		case 7: nextweap = WEAP_BOW; break;
 	}
 	 m_pMyEnt->nextprimary = nextweap;
 	 addmsg(N_PRIMARYWEAP, "ri2", m_pMyEnt->clientnum, nextweap);

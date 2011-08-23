@@ -1497,7 +1497,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 	}
 	else{
 		sendf(-1, 1, "ri8", N_DAMAGE, target->clientnum, actor->clientnum, int(damage * (gib ? GIBBLOODMUL : 1)), ts.armor, ts.health, gun, style & FRAG_VALID);
-		if(source != target->state.o && (gun == GUN_GRENADE || gun == GUN_BOW)) sendf(-1, 1, "ri4f3", N_PROJPUSH, target->clientnum, gun, damage, source.x, source.y, source.z);
+		if(source != target->state.o && (gun == WEAP_GRENADE || gun == WEAP_BOW)) sendf(-1, 1, "ri4f3", N_PROJPUSH, target->clientnum, gun, damage, source.x, source.y, source.z);
 	}
 }
 
@@ -2923,9 +2923,9 @@ void checkmove(client &cp){
 	}
 	// throwing knife pickup
 	if(cp.type != ST_AI) loopv(sknives){
-		const bool pickup = cs.o.dist(sknives[i].o) < 5 && cs.ammo[GUN_KNIFE] < 3, expired = gamemillis - sknives[i].millis > KNIFETTL;
+		const bool pickup = cs.o.dist(sknives[i].o) < 5 && cs.ammo[WEAP_KNIFE] < 3, expired = gamemillis - sknives[i].millis > KNIFETTL;
 		if(pickup || expired){
-			if(pickup) sendf(-1, 1, "ri5", N_RELOAD, sender, GUN_KNIFE, cs.mag[GUN_KNIFE], ++cs.ammo[GUN_KNIFE]);
+			if(pickup) sendf(-1, 1, "ri5", N_RELOAD, sender, WEAP_KNIFE, cs.mag[WEAP_KNIFE], ++cs.ammo[WEAP_KNIFE]);
 			sendf(-1, 1, "ri2", N_KNIFEREMOVE, sknives[i].id);
 			sknives.remove(i--);
 		}

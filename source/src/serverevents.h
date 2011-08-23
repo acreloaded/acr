@@ -9,18 +9,18 @@ void processevent(client &c, projevent &e){
 	clientstate &gs = c.state;
 	int damagepotential = effectiveDamage(e.gun, 0), damagedealt = 0;
 	switch(e.gun){
-		case GUN_GRENADE:
+		case WEAP_GRENADE:
 		{
 			if(!gs.grenades.remove(e.flag)) return;
-			damagedealt += explosion(c, vec(e.o), GUN_GRENADE);
+			damagedealt += explosion(c, vec(e.o), WEAP_GRENADE);
 			break;
 		}
 
-		case GUN_KNIFE:
+		case WEAP_KNIFE:
 		{
 			if(!gs.knives.numprojs) return;
 			--gs.knives.numprojs;
-			ushort dmg = effectiveDamage(GUN_KNIFE, 0);
+			ushort dmg = effectiveDamage(WEAP_KNIFE, 0);
 			client *hit = valid_client(e.flag) && e.flag != c.clientnum ? clients[e.flag] : NULL;
 			if(hit){
 				client &target = *hit;
@@ -31,7 +31,7 @@ void processevent(client &c, projevent &e){
 					dmg *= 2; // 80 * 2 = 160 damage instant kill!
 				}
 				damagedealt += dmg;
-				serverdamage(&target, &c, dmg, GUN_KNIFE, FRAG_FLAG, vec(0, 0, 0));
+				serverdamage(&target, &c, dmg, WEAP_KNIFE, FRAG_FLAG, vec(0, 0, 0));
 
 				e.o[0] = ts.o[0];
 				e.o[1] = ts.o[1];
@@ -39,7 +39,7 @@ void processevent(client &c, projevent &e){
 				e.o[2] = ts.o[2] > cubefloor ? (cubefloor + ts.o[2]) / 2 : cubefloor;
 			}
 
-			sendhit(c, GUN_KNIFE, e.o);
+			sendhit(c, WEAP_KNIFE, e.o);
 			sknife &k = sknives.add();
 			k.millis = gamemillis;
 			sendf(-1, 1, "ri2f3", N_KNIFEADD, (k.id = sknifeid++), (k.o.x = e.o[0]), (k.o.y = e.o[1]), (k.o.z = e.o[2]));
@@ -58,11 +58,11 @@ void processevent(client &c, shotevent &e)
 	clientstate &gs = c.state;
 	int wait = e.millis - gs.lastshot;
 	if(!gs.isalive(gamemillis) ||
-	   e.gun<GUN_KNIFE || e.gun>=NUMGUNS ||
+	   e.gun<WEAP_KNIFE || e.gun>=NUMGUNS ||
 	   wait<gs.gunwait[e.gun] ||
 	   gs.mag[e.gun]<=0)
 		return;
-	if(e.gun!=GUN_KNIFE) gs.mag[e.gun]--;
+	if(e.gun!=WEAP_KNIFE) gs.mag[e.gun]--;
 	loopi(NUMGUNS) if(gs.gunwait[i]) gs.gunwait[i] = max(gs.gunwait[i] - (e.millis-gs.lastshot), 0);
 	gs.lastshot = e.millis;
 	gs.gunwait[e.gun] = attackdelay(e.gun);
@@ -74,7 +74,7 @@ void processevent(client &c, shotevent &e)
 	const float spreadf = .001f,//to.dist(from)/1000,
 		crouchfactor = 1 - (gs.crouching ? min(gamemillis - gs.crouchmillis, CROUCHTIME) : CROUCHTIME - min(gamemillis - gs.crouchmillis, CROUCHTIME)) * .25f / CROUCHTIME;
 	float adsfactor = 1 - float(gs.scoping ? min(gamemillis - gs.scopemillis, ADSTIME) : ADSTIME - min(gamemillis - gs.scopemillis, ADSTIME)) / ADSTIME;
-	if(e.gun==GUN_SHOTGUN){
+	if(e.gun==WEAP_SHOTGUN){
 		// apply shotgun spread
 		adsfactor = (adsfactor + SGADSSPREADFACTOR - 1) / SGADSSPREADFACTOR;
 		if(spreadf*adsfactor) loopi(SGRAYS){
@@ -94,7 +94,7 @@ void processevent(client &c, shotevent &e)
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
 	// packet shotgun rays
-	if(e.gun==GUN_SHOTGUN){ putint(p, N_SG); loopi(SGRAYS) loopj(3) putfloat(p, gs.sg[i][j]); }
+	if(e.gun==WEAP_SHOTGUN){ putint(p, N_SG); loopi(SGRAYS) loopj(3) putfloat(p, gs.sg[i][j]); }
 	// packet shot message
 	putint(p, e.compact ? N_SHOOTC : N_SHOOT);
 	putint(p, c.clientnum);
@@ -108,21 +108,21 @@ void processevent(client &c, shotevent &e)
 		putfloat(p, to.z);
 	}
 	enet_packet_resize(packet, p.length());
-	sendpacket(-1, 1, packet, !e.compact && e.gun != GUN_GRENADE ? -1 : c.clientnum);
+	sendpacket(-1, 1, packet, !e.compact && e.gun != WEAP_GRENADE ? -1 : c.clientnum);
 	if(packet->referenceCount==0) enet_packet_destroy(packet);
 	int damagepotential = 0, damagedealt = 0;
-	if(e.gun == GUN_SHOTGUN){
+	if(e.gun == WEAP_SHOTGUN){
 		loopi(SGRAYS) damagepotential = effectiveDamage(e.gun, vec(gs.sg[i]).dist(gs.o));
 	}
-	else if(e.gun == GUN_KNIFE) damagepotential = guns[GUN_KNIFE].damage; // melee damage
-	else if(e.gun == GUN_BOW) damagepotential = 50; // potential stick damage
-	else if(e.gun == GUN_GRENADE) damagepotential = 0;
+	else if(e.gun == WEAP_KNIFE) damagepotential = guns[WEAP_KNIFE].damage; // melee damage
+	else if(e.gun == WEAP_BOW) damagepotential = 50; // potential stick damage
+	else if(e.gun == WEAP_GRENADE) damagepotential = 0;
 	else damagepotential = effectiveDamage(e.gun, to.dist(gs.o));
 
 	switch(e.gun){
-		case GUN_GRENADE: gs.grenades.add(e.id); break;
-		case GUN_BOW:
-		case GUN_HEAL:
+		case WEAP_GRENADE: gs.grenades.add(e.id); break;
+		case WEAP_BOW:
+		case WEAP_HEAL:
 		{
 			// check for stick
 			int cn = -1, hitzone = HIT_NONE;
@@ -142,10 +142,10 @@ void processevent(client &c, shotevent &e)
 				hitzone = hz;
 			}
 			switch(e.gun){
-				case GUN_BOW: // explosive tip is stuck to a player
+				case WEAP_BOW: // explosive tip is stuck to a player
 				{
 					if(cn >= 0 && !m_expert){
-						serverdamage(clients[cn], &c, hitzone == HIT_HEAD ? 50 : 25, GUN_BOW, FRAG_NONE, clients[cn]->state.o);
+						serverdamage(clients[cn], &c, hitzone == HIT_HEAD ? 50 : 25, WEAP_BOW, FRAG_NONE, clients[cn]->state.o);
 						if(clients[cn]->state.state != CS_ALIVE){
 							to = clients[cn]->state.o;
 							cn = -1;
@@ -158,12 +158,12 @@ void processevent(client &c, shotevent &e)
 					exp.type = GE_PROJ;
 					//gs.tips.add(exp.proj.id = rand());
 					exp.millis = gamemillis + TIPSTICKTTL;
-					exp.gun = GUN_BOW;
+					exp.gun = WEAP_BOW;
 					exp.flag = cn;
 					loopi(3) exp.o[i] = to[i];
 					break;
 				}
-				case GUN_HEAL: // healing a player
+				case WEAP_HEAL: // healing a player
 				{
 					//cn = c.clientnum;
 					if(cn < 0) break;
@@ -181,17 +181,17 @@ void processevent(client &c, shotevent &e)
 			}
 			break;
 		}
-		case GUN_KNIFE:
+		case WEAP_KNIFE:
 			if(e.compact){
-				if(gs.ammo[GUN_KNIFE]){
+				if(gs.ammo[WEAP_KNIFE]){
 					gs.knives.add(e.id);
-					gs.ammo[GUN_KNIFE]--;
+					gs.ammo[WEAP_KNIFE]--;
 				}
 				break;
 			}
 		default:
 		{
-			if(e.gun == GUN_SHOTGUN){ // many rays, many players
+			if(e.gun == WEAP_SHOTGUN){ // many rays, many players
 				damagedealt += shotgun(c, gs.o, to);
 			}
 			else damagedealt += shot(c, gs.o, to, e.gun, surface);
@@ -205,7 +205,7 @@ void processevent(client &c, reloadevent &e){
 	clientstate &gs = c.state;
 	int mag = magsize(e.gun), reload = reloadsize(e.gun);
 	if(!gs.isalive(gamemillis) ||
-	   e.gun<GUN_KNIFE || e.gun>=NUMGUNS ||
+	   e.gun<WEAP_KNIFE || e.gun>=NUMGUNS ||
 	   !reloadable_gun(e.gun) ||
 	   gs.mag[e.gun] >= mag ||
 	   gs.ammo[e.gun] < reload)
@@ -241,7 +241,7 @@ void clearevent(client &c){
 
 void processtimer(client &c, projevent &e){
 	vec o(valid_client(e.flag) ? clients[e.flag]->state.o : e.o);
-	int bowexplodedmgdealt = explosion(c, o, GUN_BOW);
+	int bowexplodedmgdealt = explosion(c, o, WEAP_BOW);
 	c.state.damage += bowexplodedmgdealt;
 	c.state.shotdamage += max<int>(effectiveDamage(e.gun, 0), bowexplodedmgdealt);
 }
@@ -267,7 +267,7 @@ void processevents(){
 				if(c.state.lastcut + 500 < gamemillis && valid_client(c.state.cutter)){
 					c.state.damage += 10;
 					c.state.shotdamage += 10;
-					serverdamage(&c, clients[c.state.cutter], 10, GUN_KNIFE, FRAG_NONE, clients[c.state.cutter]->state.o);
+					serverdamage(&c, clients[c.state.cutter], 10, WEAP_KNIFE, FRAG_NONE, clients[c.state.cutter]->state.o);
 					c.state.lastcut = gamemillis;
 				}
 			}

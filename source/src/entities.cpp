@@ -179,10 +179,10 @@ void pickupeffects(int n, playerent *d)
 	weapon *w = NULL;
 	switch(e.type)
 	{
-		case I_AKIMBO: w = d->weapons[GUN_AKIMBO]; break;
-		case I_CLIPS: w = d->weapons[GUN_PISTOL]; break;
+		case I_AKIMBO: w = d->weapons[WEAP_AKIMBO]; break;
+		case I_CLIPS: w = d->weapons[WEAP_PISTOL]; break;
 		case I_AMMO: w = d->primweap; break;
-		case I_GRENADE: w = d->weapons[GUN_GRENADE]; break;
+		case I_GRENADE: w = d->weapons[WEAP_GRENADE]; break;
 	}
 	if(w) w->onammopicked();
 }
@@ -260,7 +260,7 @@ void selectnextprimary(int num)
 	addmsg(N_PRIMARYWEAP, "ri2", getclientnum(), player1->nextprimweap->type);
 }
 
-VARFP(nextprimary, 0, GUN_ASSAULT, NUMGUNS, selectnextprimary(nextprimary));
+VARFP(nextprimary, 0, WEAP_ASSAULT, NUMGUNS, selectnextprimary(nextprimary));
 
 // flag ent actions done by the local player
 
