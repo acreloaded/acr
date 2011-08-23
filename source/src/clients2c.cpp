@@ -435,8 +435,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				int gunselect = getint(p);
 				s->setprimary(gunselect);
 				s->selectweapon(gunselect);
-				loopi(NUMGUNS) s->ammo[i] = getint(p);
-				loopi(NUMGUNS) s->mag[i] = getint(p);
+				loopi(WEAP_MAX) s->ammo[i] = getint(p);
+				loopi(WEAP_MAX) s->mag[i] = getint(p);
 				s->state = CS_SPAWNING;
 				break;
 			}
@@ -452,8 +452,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				d->setprimary(getint(p));
 				d->selectweapon(getint(p));
 				int arenaspawn = getint(p);
-				loopi(NUMGUNS) d->ammo[i] = getint(p);
-				loopi(NUMGUNS) d->mag[i] = getint(p);
+				loopi(WEAP_MAX) d->ammo[i] = getint(p);
+				loopi(WEAP_MAX) d->mag[i] = getint(p);
 				d->state = CS_ALIVE;
 				findplayerstart(d, false, arenaspawn);
 				if(d == player1){
@@ -575,7 +575,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				int cn = getint(p), gun = getint(p), mag = getint(p), ammo = getint(p);
 				playerent *p = getclient(cn);
-				if(!p || gun < 0 || gun >= NUMGUNS) break;
+				if(!p || gun < 0 || gun >= WEAP_MAX) break;
 				if(p != player1 && p->weapons[gun]) p->weapons[gun]->reload();
 				p->ammo[gun] = ammo;
 				p->mag[gun] = mag;
@@ -659,9 +659,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					int cn = getint(p);
 					if(p.overread() || cn<0) break;
 					int state = getint(p), lifesequence = getint(p), gunselect = getint(p), points = getint(p), flagscore = getint(p), frags = getint(p), assists = getint(p), killstreak = getint(p), deaths = getint(p), health = getint(p), armor = getint(p);
-					int ammo[NUMGUNS], mag[NUMGUNS];
-					loopi(NUMGUNS) ammo[i] = getint(p);
-					loopi(NUMGUNS) mag[i] = getint(p);
+					int ammo[WEAP_MAX], mag[WEAP_MAX];
+					loopi(WEAP_MAX) ammo[i] = getint(p);
+					loopi(WEAP_MAX) mag[i] = getint(p);
 					playerent *d = newclient(cn);
 					if(!d) continue;
 					if(d!=player1) d->state = state;
@@ -926,7 +926,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				int cn = getint(p), gun = getint(p);
 				playerent *d = getclient(cn);
-				if(!d || gun < 0 || gun >= NUMGUNS) break;
+				if(!d || gun < 0 || gun >= WEAP_MAX) break;
 				d->ads = 0;
 				d->weaponswitch(d->weapons[gun]);
 				//if(!d->weaponchanging) d->selectweapon(gun);

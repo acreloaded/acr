@@ -481,7 +481,7 @@ void preload_playermodels()
 {
 	model *playermdl = loadmodel("playermodels");
 	if(dynshadow && playermdl) playermdl->genshadows(8.0f, 4.0f);
-	loopi(NUMGUNS)
+	loopi(WEAP_MAX)
 	{
 		defformatstring(vwep)("weapons/%s/world", guns[i].modelname);
 		model *vwepmdl = loadmodel(vwep);

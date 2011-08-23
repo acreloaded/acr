@@ -260,7 +260,7 @@ void selectnextprimary(int num)
 	addmsg(N_PRIMARYWEAP, "ri2", getclientnum(), player1->nextprimweap->type);
 }
 
-VARFP(nextprimary, 0, WEAP_ASSAULT, NUMGUNS, selectnextprimary(nextprimary));
+VARFP(nextprimary, 0, WEAP_ASSAULT, WEAP_MAX, selectnextprimary(nextprimary));
 
 // flag ent actions done by the local player
 

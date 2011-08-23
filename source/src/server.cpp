@@ -133,7 +133,7 @@ struct clientstate : playerstate
 	bool waitexpired(int gamemillis)
 	{
 		int wait = gamemillis - lastshot;
-		loopi(NUMGUNS) if(wait < gunwait[i]) return false;
+		loopi(WEAP_MAX) if(wait < gunwait[i]) return false;
 		return true;
 	}
 
@@ -578,7 +578,7 @@ void sendspawn(client *c){
 	sendf(c->clientnum, 1, "ri8vv", N_SPAWNSTATE, c->clientnum, gs.lifesequence,
 		gs.health, gs.armor,
 		gs.primary, gs.gunselect, m_duel ? c->spawnindex : -1,
-		NUMGUNS, gs.ammo, NUMGUNS, gs.mag);
+		WEAP_MAX, gs.ammo, WEAP_MAX, gs.mag);
 	gs.lastspawn = gamemillis;
 }
 
@@ -1434,7 +1434,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 		if((damage *= 0.25) > target->state.health - 80) damage = target->state.health - 80; // no more TKs!
 		if(damage < 1) return;
 		const int returndamage = damage * (m_expert ? 1.5f : .4f);
-		if(returndamage) serverdamage(actor, actor, returndamage, NUMGUNS+3, style, source); // redirect damage to owner
+		if(returndamage) serverdamage(actor, actor, returndamage, WEAP_MAX+3, style, source); // redirect damage to owner
 		actor->state.shotdamage += damage; // reduce his accuracy
 	}
 	if(target->state.damagelog.find(actor->clientnum) < 0) target->state.damagelog.add(actor->clientnum);
@@ -2687,8 +2687,8 @@ void sendresume(client &c){
 			c.state.deaths, // i9
 			c.state.health, // i9
 			c.state.armor, // i9
-			NUMGUNS, c.state.ammo, // v
-			NUMGUNS, c.state.mag, // v
+			WEAP_MAX, c.state.ammo, // v
+			WEAP_MAX, c.state.mag, // v
 			-1); // i
 }
 
@@ -2806,8 +2806,8 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath){
 			putint(p, c.state.deaths);
 			putint(p, c.state.health);
 			putint(p, c.state.armor);
-			loopi(NUMGUNS) putint(p, c.state.ammo[i]);
-			loopi(NUMGUNS) putint(p, c.state.mag[i]);
+			loopi(WEAP_MAX) putint(p, c.state.ammo[i]);
+			loopi(WEAP_MAX) putint(p, c.state.mag[i]);
 		}
 		putint(p, -1);
 		welcomeinitclient(p, n);
@@ -2849,7 +2849,7 @@ void checkmove(client &cp){
 		char drownstate = (gamemillis - cs.drownmillis) / 1000;
 		while(cs.drownval < drownstate){
 			cs.drownval++;
-			serverdamage(&cp, &cp, powf(cs.drownval, 7.f)/100000, NUMGUNS+1, FRAG_NONE, cs.o);
+			serverdamage(&cp, &cp, powf(cs.drownval, 7.f)/100000, WEAP_MAX+1, FRAG_NONE, cs.o);
 			if(cs.state != CS_ALIVE) return; // dead!
 		}
 	}
@@ -2857,7 +2857,7 @@ void checkmove(client &cp){
 	*/
 	// out of map check
 	if(cp.type!=ST_LOCAL && !m_edit && checkpos(cs.o, false)){
-		if(cp.type == ST_AI) serverdamage(&cp, &cp, 1000, NUMGUNS + 4, FRAG_NONE, cs.o);
+		if(cp.type == ST_AI) serverdamage(&cp, &cp, 1000, WEAP_MAX + 4, FRAG_NONE, cs.o);
 		else{
 			logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cp.hostname, cp.name, ++cp.mapcollisions);
 			sendmsgi(40, sender);
@@ -3134,7 +3134,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				int cn = getint(p), nextprimary = getint(p);
 				if(!hasclient(cl, cn)) break;
 				client &cp = *clients[cn];
-				if(nextprimary<0 && nextprimary>=NUMGUNS) break;
+				if(nextprimary<0 && nextprimary>=WEAP_MAX) break;
 				cp.state.nextprimary = nextprimary;
 				break;
 			}
@@ -3161,12 +3161,12 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				int cn = getint(p), ls = getint(p), gunselect = getint(p);
 				if(!hasclient(cl, cn)) break;
 				client &cp = *clients[cn];
-				if((cp.state.state!=CS_ALIVE && cp.state.state!=CS_DEAD) || ls!=cp.state.lifesequence || cp.state.lastspawn<0 || gunselect<0 || gunselect>=NUMGUNS) break;
+				if((cp.state.state!=CS_ALIVE && cp.state.state!=CS_DEAD) || ls!=cp.state.lifesequence || cp.state.lastspawn<0 || gunselect<0 || gunselect>=WEAP_MAX) break;
 				cp.state.lastspawn = -1;
 				cp.state.spawnmillis = gamemillis;
 				cp.state.state = CS_ALIVE;
 				cp.state.gunselect = gunselect;
-				QUEUE_BUF(5*(6 + 2*NUMGUNS),
+				QUEUE_BUF(5*(6 + 2*WEAP_MAX),
 				{
 					putint(buf, N_SPAWN);
 					putint(buf, cn);
@@ -3174,15 +3174,15 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					putint(buf, cp.state.health);
 					putint(buf, cp.state.armor);
 					putint(buf, gunselect);
-					loopi(NUMGUNS) putint(buf, cp.state.ammo[i]);
-					loopi(NUMGUNS) putint(buf, cp.state.mag[i]);
+					loopi(WEAP_MAX) putint(buf, cp.state.ammo[i]);
+					loopi(WEAP_MAX) putint(buf, cp.state.mag[i]);
 				});
 				break;
 			}
 
 			/*
 			case N_FALL:
-				if(cl->state.state == CS_ALIVE) serverdamage(cl, cl, getint(p) * DAMAGESCALE, NUMGUNS+2, FRAG_NONE, cl->state.o);
+				if(cl->state.state == CS_ALIVE) serverdamage(cl, cl, getint(p) * DAMAGESCALE, WEAP_MAX+2, FRAG_NONE, cl->state.o);
 				break;
 			*/
 
@@ -3192,7 +3192,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(!hasclient(cl, cn)) break;
 				client *cp = clients[cn];
 				if(cp->state.state != CS_ALIVE) break;
-				serverdamage(cp, cp, 1000, cn == sender ? NUMGUNS : NUMGUNS + 4, cn == sender ? FRAG_GIB : FRAG_NONE, cp->state.o);
+				serverdamage(cp, cp, 1000, cn == sender ? WEAP_MAX : WEAP_MAX + 4, cn == sender ? FRAG_GIB : FRAG_NONE, cp->state.o);
 				break;
 			}
 
@@ -3291,7 +3291,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				int cn = getint(p), weaponsel = getint(p);
 				if(!hasclient(cl, cn)) break;
 				client &cp = *clients[cn];
-				if(weaponsel < 0 || weaponsel >= NUMGUNS) break;
+				if(weaponsel < 0 || weaponsel >= WEAP_MAX) break;
 				cp.state.gunselect = weaponsel;
 				sendf(-1, 1, "ri3x", N_SWITCHWEAP, cn, weaponsel, sender);
 				cp.state.scoping = false;
@@ -3739,7 +3739,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				client *cp = clients[cn];
 				if(isfall && typ == PHYS_HARDFALL){
 					// deal falling damage?
-					serverdamage(cp, cp, 99, NUMGUNS+2, FRAG_NONE, cp->state.o);
+					serverdamage(cp, cp, 99, WEAP_MAX+2, FRAG_NONE, cp->state.o);
 				}
 				else if(typ == PHYS_AKIMBOOUT){
 					if(!cp->state.akimbomillis) break;

@@ -259,7 +259,7 @@ void drawequipicons(playerent *p)
 	}
 	if(c > 3) { c -= 4; r = 1; }
 
-	if(p->weaponsel && p->weaponsel->type>=WEAP_KNIFE && p->weaponsel->type<NUMGUNS)
+	if(p->weaponsel && p->weaponsel->type>=WEAP_KNIFE && p->weaponsel->type<WEAP_MAX)
 		drawequipicon(1020, 1650, c, r, ((!p->weaponsel->ammo || p->weaponsel->mag < magsize(p->weaponsel->type) / 3) && p->weaponsel->type != WEAP_KNIFE && p->weaponsel->type != WEAP_GRENADE) ? 1 : 0);
 	glEnable(GL_BLEND);
 }
@@ -949,7 +949,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 			if(p->armor) draw_textf("%d", 360, 823, p->armor);
 			if(p->weapons[WEAP_GRENADE] && p->weapons[WEAP_GRENADE]->mag) p->weapons[WEAP_GRENADE]->renderstats();
 			// The next set will alter the matrix - load the identity matrix and apply ortho after
-			if(p->weaponsel && p->weaponsel->type>=WEAP_KNIFE && p->weaponsel->type<NUMGUNS){
+			if(p->weaponsel && p->weaponsel->type>=WEAP_KNIFE && p->weaponsel->type<WEAP_MAX){
 				if(p->weaponsel->type != WEAP_GRENADE) p->weaponsel->renderstats();
 				else if(p->prevweaponsel && p->prevweaponsel->type != WEAP_GRENADE) p->prevweaponsel->renderstats();
 				else if(p->nextweaponsel && p->nextweaponsel->type != WEAP_GRENADE) p->nextweaponsel->renderstats();

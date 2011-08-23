@@ -108,7 +108,7 @@ static mul muls[MUL_NUM] =
 };
 
 struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, range, endrange, rangeminus, projspeed, part, spread, kick, magsize, mdl_kick_rot, mdl_kick_back, recoil, maxrecoil, recoilangle, pushfactor; bool isauto; };
-static guninfo guns[NUMGUNS] =
+static guninfo guns[WEAP_MAX] =
 {
 //	{ modelname;     snd,	  rldsnd,  rldtime, atkdelay,  dmg, rngstart, rngend, rngm,psd,ptt,spr,kick,magsz,mkrot,mkback,rcoil,maxrcl,rca,pushf; auto;}
 	{ "knife",      S_KNIFE,    S_ITEMAMMO,    0,   500,    80,    3,    4,   80,   0,   0,  1,    1,   1,    0,  0,     0,    0,       0, 5,   true },
@@ -220,7 +220,7 @@ static inline const bool isheadshot(int weapon, int style){
 			if(style & FRAG_FLAG) break; // these weapons headshot if FRAG_FLAG is set
 		case WEAP_BOW:
 		case WEAP_SHOTGUN:
-		case NUMGUNS:
+		case WEAP_MAX:
 			return false; // these guns cannot gib
 	}
 	return true;
@@ -233,7 +233,7 @@ static inline const int toobit(int weap, int style){
 		case WEAP_KNIFE: return gib ? WEAP_KNIFE : flag ? OBIT_KNIFE_IMPACT : OBIT_KNIFE_BLEED;
 		case WEAP_BOW: return gib ? flag ? OBIT_BOW_STUCK : WEAP_BOW : OBIT_BOW_IMPACT;
 	}
-	return weap < NUMGUNS ? weap : OBIT_DEATH;
+	return weap < WEAP_MAX ? weap : OBIT_DEATH;
 }
 
 static inline const char *killname(int obit, bool headshot){
@@ -491,7 +491,7 @@ struct playerstate
 	int primary, nextprimary;
 	int gunselect, level;
 	bool akimbo, scoping;
-	int ammo[NUMGUNS], mag[NUMGUNS], gunwait[NUMGUNS];
+	int ammo[WEAP_MAX], mag[WEAP_MAX], gunwait[WEAP_MAX];
 	ivector damagelog;
 
 	playerstate() : primary(WEAP_ASSAULT), nextprimary(WEAP_ASSAULT), ownernum(-1), level(1) {}
@@ -560,7 +560,7 @@ struct playerstate
 		killstreak = assists = armor = lastcut = 0;
 		gunselect = WEAP_PISTOL;
 		akimbo = scoping = false;
-		loopi(NUMGUNS) ammo[i] = mag[i] = gunwait[i] = 0;
+		loopi(WEAP_MAX) ammo[i] = mag[i] = gunwait[i] = 0;
 		ammo[WEAP_KNIFE] = 2;
 		mag[WEAP_KNIFE] = 1;
 	}
@@ -572,7 +572,7 @@ struct playerstate
 		else if(m_lss) primary = WEAP_KNIFE;
 		else primary = nextprimary;
 
-		if(primary == WEAP_GRENADE || primary == WEAP_AKIMBO || primary < 0 || primary >= NUMGUNS) primary = WEAP_ASSAULT;
+		if(primary == WEAP_GRENADE || primary == WEAP_AKIMBO || primary < 0 || primary >= WEAP_MAX) primary = WEAP_ASSAULT;
 
 		if(!m_nopistol){
 			ammo[WEAP_PISTOL] = ammostats[WEAP_PISTOL].start-magsize(WEAP_PISTOL);
@@ -647,7 +647,7 @@ struct playerent : dynent, playerstate
 	bool allowmove() { return state!=CS_DEAD || spectatemode==SM_FLY; }
 	vector<eventicon> icons;
 
-	weapon *weapons[NUMGUNS];
+	weapon *weapons[WEAP_MAX];
 	weapon *prevweaponsel, *weaponsel, *nextweaponsel, *primweap, *nextprimweap, *lastattackweapon;
 
 	poshist history; // Previous stored locations of this player
@@ -729,7 +729,7 @@ struct playerent : dynent, playerstate
 
 	void hitpush(int damage, const vec &dir, int gun)
 	{
-		if(gun<0 || gun>NUMGUNS || dir.iszero()) return;
+		if(gun<0 || gun>WEAP_MAX || dir.iszero()) return;
 		vec push = dir;
 		push.normalize().mul(damage/100.f*guns[gun].pushfactor);
 		vel.add(push);

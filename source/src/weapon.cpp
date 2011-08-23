@@ -10,7 +10,7 @@ VARP(autoreload, 0, 1, 1);
 vec sg[SGRAYS];
 
 void updatelastaction(playerent *d){
-	loopi(NUMGUNS) d->weapons[i]->updatetimers();
+	loopi(WEAP_MAX) d->weapons[i]->updatetimers();
 	d->lastaction = lastmillis;
 }
 
@@ -39,7 +39,7 @@ void selectweapon(weapon *w){
 }
 
 void selectweaponi(int w){
-	if(player1->state == CS_ALIVE && w >= 0 && w < NUMGUNS)
+	if(player1->state == CS_ALIVE && w >= 0 && w < WEAP_MAX)
 	{
 		selectweapon(player1->weapons[w]);
 	}
@@ -55,7 +55,7 @@ void shiftweapon(int s){
 
 		// collect available weapons
 		vector<weapon *> availweapons;
-		loopi(NUMGUNS)
+		loopi(WEAP_MAX)
 		{
 			weapon *w = player1->weapons[i];
 			if(!w) continue;
@@ -93,8 +93,8 @@ int currentprimary() { return player1->primweap->type; }
 int prevweapon() { return player1->prevweaponsel->type; }
 int curweapon() { return player1->weaponsel->type; }
 
-int magcontent(int w) { if(w >= 0 && w < NUMGUNS) return player1->weapons[w]->mag; else return -1;}
-int magreserve(int w) { if(w >= 0 && w < NUMGUNS) return player1->weapons[w]->ammo; else return -1;}
+int magcontent(int w) { if(w >= 0 && w < WEAP_MAX) return player1->weapons[w]->mag; else return -1;}
+int magreserve(int w) { if(w >= 0 && w < WEAP_MAX) return player1->weapons[w]->ammo; else return -1;}
 
 COMMANDN(weapon, selectweaponi, ARG_1INT);
 COMMAND(shiftweapon, ARG_1INT);
@@ -452,7 +452,7 @@ void weapon::equipplayer(playerent *pl){
 	pl->setnextprimary(WEAP_ASSAULT);
 }
 
-bool weapon::valid(int id) { return id>=0 && id<NUMGUNS; }
+bool weapon::valid(int id) { return id>=0 && id<WEAP_MAX; }
 
 // grenadeent
 
@@ -1221,7 +1221,7 @@ void shoot(playerent *p, vec &targ){
 	weapon *weap = p->weaponsel;
 	if(weap){
 		weap->attack(targ);
-		loopi(NUMGUNS){
+		loopi(WEAP_MAX){
 			weapon *bweap = p->weapons[i];
 			if(bweap != weap && bweap->busy()) bweap->attack(targ);
 		}

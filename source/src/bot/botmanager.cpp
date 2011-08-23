@@ -912,7 +912,7 @@ botent *CBotManager::CreateBot(const char *team, const char *skill, const char *
 
 	 botent *m = newbotent();
 	 if (!m) return NULL;
-	 loopi(NUMGUNS) m->ammo[i] = m->mag[i] = 0;
+	 loopi(WEAP_MAX) m->ammo[i] = m->mag[i] = 0;
 	 m->lifesequence = 0;
 	 setskin(m, rnd(6));
 	 // Create new bot class, dependand on the current mod

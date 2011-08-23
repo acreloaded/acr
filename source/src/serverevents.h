@@ -58,12 +58,12 @@ void processevent(client &c, shotevent &e)
 	clientstate &gs = c.state;
 	int wait = e.millis - gs.lastshot;
 	if(!gs.isalive(gamemillis) ||
-	   e.gun<WEAP_KNIFE || e.gun>=NUMGUNS ||
+	   e.gun<WEAP_KNIFE || e.gun>=WEAP_MAX ||
 	   wait<gs.gunwait[e.gun] ||
 	   gs.mag[e.gun]<=0)
 		return;
 	if(e.gun!=WEAP_KNIFE) gs.mag[e.gun]--;
-	loopi(NUMGUNS) if(gs.gunwait[i]) gs.gunwait[i] = max(gs.gunwait[i] - (e.millis-gs.lastshot), 0);
+	loopi(WEAP_MAX) if(gs.gunwait[i]) gs.gunwait[i] = max(gs.gunwait[i] - (e.millis-gs.lastshot), 0);
 	gs.lastshot = e.millis;
 	gs.gunwait[e.gun] = attackdelay(e.gun);
 	// for ease of access
@@ -205,7 +205,7 @@ void processevent(client &c, reloadevent &e){
 	clientstate &gs = c.state;
 	int mag = magsize(e.gun), reload = reloadsize(e.gun);
 	if(!gs.isalive(gamemillis) ||
-	   e.gun<WEAP_KNIFE || e.gun>=NUMGUNS ||
+	   e.gun<WEAP_KNIFE || e.gun>=WEAP_MAX ||
 	   !reloadable_gun(e.gun) ||
 	   gs.mag[e.gun] >= mag ||
 	   gs.ammo[e.gun] < reload)
@@ -219,7 +219,7 @@ void processevent(client &c, reloadevent &e){
 	if(gs.gunwait[e.gun] && wait<gs.gunwait[e.gun]) gs.gunwait[e.gun] += reloadtime(e.gun);
 	else
 	{
-		loopi(NUMGUNS) if(gs.gunwait[i]) gs.gunwait[i] = max(gs.gunwait[i] - (e.millis-gs.lastshot), 0);
+		loopi(WEAP_MAX) if(gs.gunwait[i]) gs.gunwait[i] = max(gs.gunwait[i] - (e.millis-gs.lastshot), 0);
 		gs.lastshot = e.millis;
 		gs.gunwait[e.gun] += reloadtime(e.gun);
 	}
