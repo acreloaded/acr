@@ -644,25 +644,27 @@ VARP(bulletairsounddestrad, 0, 8, 1000);
 
 vector<sl> sls;
 
-void addshotline(playerent *pl, const vec &from, const vec &to)
+void addshotline(playerent *pl, const vec &from, const vec &to, int flags)
 {
 	sl s = {pl, {from.x, from.y}, {to.x, to.y}, lastmillis + shotlinettl * 2};
 	sls.add(s);
 	if(!shotlinettl || !shotline) return;
 	vec unitv;
+	
+	//if(pl == gamefocus); // maybe make from go to the muzzle flash?
 	float dist = to.dist(from, unitv);
 	unitv.div(dist);
-	if(pl == gamefocus){ // maybe make from go to the muzzle flash?
-		newparticle(from, to, shotlinettl, 6);
-	}
-	else {
-		int start = (camera1->o.dist(to) <= 10.0f) ? 8 : 5;
 
-		// shotline visuals
-		vec o = unitv, d = unitv;
-		o.mul(dist/10+start).add(from);
-		d.mul(dist/10*-(10-start-2)).add(to);
-		newparticle(o, d, shotlinettl, 6);
+	int start = (camera1->o.dist(to) <= 10.0f) ? 8 : 5;
+
+	// shotline visuals
+	vec o = unitv, d = unitv;
+	o.mul(dist/10+start).add(from);
+	d.mul(dist/10*-(10-start-2)).add(to);
+	if(flags & 2) newparticle(o, d, shotlinettl, 6);
+	else { // tracers
+		// flags & 1 = ricochet
+		particle_trail(flags & 1 ? 0 : 1, shotlinettl, from, to);
 	}
 
 	// shotline sound fx

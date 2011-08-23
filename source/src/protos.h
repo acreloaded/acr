@@ -572,7 +572,7 @@ extern vector<nadexplode> nxp;
 extern void particle_fireball(int type, const vec &o, playerent *pl = NULL);
 struct sl {playerent *owner; float from[2]; float to[2]; int expire;};
 extern vector<sl> sls;
-extern void addshotline(playerent *d, const vec &from, const vec &to);
+extern void addshotline(playerent *d, const vec &from, const vec &to, int flags);
 extern bool addbullethole(dynent *d, const vec &from, const vec &to, float radius = 1, bool noisy = true);
 extern bool addscorchmark(const vec &o, float radius = 7);
 

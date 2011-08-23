@@ -794,7 +794,7 @@ void gun::attackfx(const vec &from2, const vec &too, int millis){
 
 	attackshell(to);
 	addbullethole(owner, from, to);
-	addshotline(owner, from, to);
+	addshotline(owner, from, to, millis & 1);
 	particle_splash(0, 5, 250, to);
 	adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
 	attacksound();
@@ -815,7 +815,7 @@ void shotgun::attackfx(const vec &from2, const vec &to, int millis){
 	uchar filter = 0;
 	if(addbullethole(owner, from, to)) loopi(SGRAYS){
 		if(filter++ % 4){
-			addshotline(owner, from, sg[i]);
+			addshotline(owner, from, sg[i], 2);
 		}
 		if(filter >= 4) filter = 0;
 		traceShot(from, sg[i]);
@@ -874,7 +874,7 @@ void crossbow::attackfx(const vec &from2, const vec &too, int millis){
 	traceShot(from, to);
 	from.z -= WEAPONBELOWEYE;
 
-	addshotline(owner, from, to);
+	addshotline(owner, from, to, 2);
 	particle_trail(15, 400, from, to);
 	particle_splash(0, 5, 250, to);
 	attacksound();
@@ -894,7 +894,7 @@ void scopedprimary::attackfx(const vec &from2, const vec &to, int millis){
 	if(!millis)from.z -= WEAPONBELOWEYE;
 	attackshell(to);
 	addbullethole(owner, from, to);
-	addshotline(owner, from, to);
+	addshotline(owner, from, to, 2);
 	particle_splash(0, 50, 200, to);
 	particle_trail(1, 500, from, to);
 	adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
@@ -984,7 +984,7 @@ void heal::attackfx(const vec &from2, const vec &too, int millis){
 	traceShot(from, to);
 	from.z -= WEAPONBELOWEYE;
 
-	addshotline(owner, from, to);
+	addshotline(owner, from, to, 2);
 	particle_trail(14, 400, from, to);
 	particle_splash(0, 3, 200, to);
 	attacksound();
