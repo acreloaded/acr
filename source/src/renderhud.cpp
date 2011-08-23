@@ -682,11 +682,12 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
 	loopv(p->damagestack){
 		damageinfo &pain = p->damagestack[i];
-		if(pain.millis + damageindicatorfade <= lastmillis + pain.damage*20){ p->damagestack.remove(i--); continue; }
+		const float damagefade = damageindicatorfade + pain.damage*20;
+		if(pain.millis + damagefade <= lastmillis){ p->damagestack.remove(i--); continue; }
 		vec dir = pain.o;
 		if(dir == p->o) continue;
 		dir.sub(p->o).normalize();
-		const float fade = 1 - (lastmillis-pain.millis+pain.damage*20)/(float)damageindicatorfade, size = damageindicatorsize, dirangle = dir.x ? atan2f(dir.y, dir.x) / RAD : dir.y < 0 ? 270 : 90;
+		const float fade = 1 - (lastmillis-pain.millis)/damagefade, size = damageindicatorsize, dirangle = dir.x ? atan2f(dir.y, dir.x) / RAD : dir.y < 0 ? 270 : 90;
 		glPushMatrix();
 		glTranslatef(VIRTW/2, VIRTH/2, 0);
 		glRotatef(dirangle + 90 - player1->yaw, 0, 0, 1);
