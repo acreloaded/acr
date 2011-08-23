@@ -3781,7 +3781,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				const int cn = getint(p), typ = getint(p);
 				const bool isfall = typ == PHYS_HARDFALL || typ == PHYS_FALL;
 				const int fall = isfall ? getint(p) : 0;
-				if(!hasclient(cl, cn) || typ < 0 || type >= PHYS_NUM) break;
+				if(!hasclient(cl, cn) || typ < 0 || typ >= PHYS_NUM) break;
 				client *cp = clients[cn];
 				if(isfall){
 					// deal falling damage?
