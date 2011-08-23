@@ -135,7 +135,7 @@ int shot(client &owner, const vec &from, const vec &to, int weap, vec &surface, 
 		sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, weap, to.x, to.y, to.z, dir.x, dir.y, dir.z);
 		shotdamage += shot(owner, to, dir, weap, newsurface, dist + penalty);
 	}
-	return shotdamage + (false && !dist ? explosion(owner, to, WEAP_BOW) : 0);
+	return shotdamage;
 }
 
 int shotgun(client &owner, const vec &from, const vec &to){
@@ -158,5 +158,5 @@ int shotgun(client &owner, const vec &from, const vec &to){
 		sendhit(owner, WEAP_SHOTGUN, ts.o.v);
 		serverdamage(&t, &owner, damage, WEAP_SHOTGUN, damage >= SGGIB ? FRAG_GIB : FRAG_NONE, from);
 	}
-	return damagedealt + (false ? explosion(owner, to, WEAP_BOW) : 0);
+	return damagedealt;
 }
