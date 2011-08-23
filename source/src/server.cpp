@@ -118,6 +118,7 @@ struct clientstate : playerstate
 	bool crouching;
 	int crouchmillis, scopemillis;
 	int drownmillis; char drownval;
+	int streakondeath;
 	int lastshot, lastregen;
 	projectilestate<2> grenades, knives;
 	int akimbos, akimbomillis;
@@ -163,6 +164,7 @@ struct clientstate : playerstate
 		damagelog.setsize(0);
 		crouching = false;
 		crouchmillis = scopemillis = 0;
+		streakondeath = -1;
 	}
 };
 
@@ -580,6 +582,10 @@ void sendspawn(client *c){
 		gs.primary, gs.gunselect, m_duel ? c->spawnindex : -1,
 		WEAP_MAX, gs.ammo, WEAP_MAX, gs.mag);
 	gs.lastspawn = gamemillis;
+
+	if(gs.deathstreak >= 8) gs.streakondeath = STREAK_REVENGE;
+	else if(gs.deathstreak >= 5) gs.streakondeath = STREAK_DROPNADE;
+	else gs.streakondeath = -1;
 }
 
 // throwing knives
@@ -1410,6 +1416,44 @@ void straceShot(const vec &from, vec &to, vec *surface = NULL){
 	to = tracer.mul(dist - .1f).add(from);
 }
 
+void streakready(client &c, int streak){
+	if(streak < 0 || streak >= STREAK_NUM) return;
+	int info = 0;
+	switch(streak){
+		case STREAK_DROPNADE:
+		case STREAK_REVENGE:
+			info = rand();
+			loopi(streak == STREAK_REVENGE ? 3 : 1) c.state.grenades.add(info);
+			break;
+	}
+	sendf(-1, 1, "ri4", N_STREAKREADY, c.clientnum, streak, info);
+}
+
+void usestreak(client &c, int streak){
+	if(streak < 0 || streak >= STREAK_NUM) return;
+	int info = 0;
+	switch(streak){
+		//case STREAK_AIRSTRIKE:
+		case STREAK_RADAR:
+			info = 15;
+			break;
+		case STREAK_NUKE:
+			info = 1;
+			break;
+		case STREAK_DROPNADE:
+		case STREAK_REVENGE:
+		{
+			info = rand();
+			c.state.grenades.add(info);
+			extern int explosion(client &owner, const vec &o2, int weap);
+			if(streak == STREAK_REVENGE) explosion(c, c.state.o, WEAP_GRENADE);
+			sendf(-1, 1, "ri4", N_STREAKUSE, c.clientnum, STREAK_DROPNADE, info);
+			break;
+		}
+	}
+	sendf(-1, 1, "ri4", N_STREAKUSE, c.clientnum, streak, info);
+}
+
 void forcedeath(client *cl, bool gib = false, bool cheat = false){
 	sdropflag(cl->clientnum);
 	clientstate &cs = cl->state;
@@ -1450,9 +1494,10 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 			actor->state.frags--;
 			suic = true;
 		}
-		actor->state.killstreak++;
+		++actor->state.killstreak;
+		++ts.deathstreak;
+		actor->state.deathstreak = ts.killstreak = ts.lastcut = 0;
 		ts.cutter = -1;
-		ts.killstreak = ts.lastcut = 0;
 		ts.damagelog.removeobj(target->clientnum);
 		ts.damagelog.removeobj(actor->clientnum);
 		target->removetimers(GE_RELOAD);
@@ -1486,14 +1531,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 			else // ktf || tktf
 				flagaction(targethasflag, FA_RESET, -1);
 		}
-
-		/*
-		if(true){ // martyrdom testing O.o
-			const int n = rand();
-			ts.grenades.add(n);
-			sendf(-1, 1, "ri3", N_MARTYRDOM, target->clientnum, n);
-		}
-		*/
+		usestreak(*target, ts.streakondeath);
 	}
 	else{
 		sendf(-1, 1, "ri8", N_DAMAGE, target->clientnum, actor->clientnum, int(damage * (gib ? GIBBLOODMUL : 1)), ts.armor, ts.health, gun, style & FRAG_VALID);

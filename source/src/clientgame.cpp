@@ -555,7 +555,11 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 	}
 	// killstreak
 	if(act->killstreak++){
-		formatstring(text)(" (%d killstreak)", act->killstreak);
+		formatstring(text)(" resulting in a %d killstreak", act->killstreak);
+		concatstring(predicate, text);
+	}
+	if(pl->deathstreak++){
+		formatstring(text)(" (%d deathstreak)", act->killstreak);
 		concatstring(predicate, text);
 	}
 	// assist count
@@ -579,7 +583,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 		}
 	}
 	conoutf("%s %s", subject, predicate);
-	pl->killstreak = 0;
+	pl->killstreak = act->deathstreak = 0;
 	
 	int icon = -1;
 	if(style & FRAG_GIB){

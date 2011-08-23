@@ -487,14 +487,14 @@ struct playerstate
 {
 	int health, armor;
 	int lastcut, cutter, ownernum;
-	int killstreak, assists;
+	int killstreak, deathstreak, assists;
 	int primary, nextprimary;
 	int gunselect, level;
 	bool akimbo, scoping;
 	int ammo[WEAP_MAX], mag[WEAP_MAX], gunwait[WEAP_MAX];
 	ivector damagelog;
 
-	playerstate() : primary(WEAP_ASSAULT), nextprimary(WEAP_ASSAULT), ownernum(-1), level(1) {}
+	playerstate() : primary(WEAP_ASSAULT), nextprimary(WEAP_ASSAULT), ownernum(-1), level(1), deathstreak(0) {}
 	virtual ~playerstate() {}
 
 	itemstat &itemstats(int type)
@@ -612,7 +612,7 @@ struct playerstate
 #define WEAPONBELOWEYE .2f
 
 struct eventicon{
-    enum { VOICECOM = 0, HEADSHOT, DECAPITATED, FIRSTBLOOD, CRITICAL, REVENGE, BLEED, PICKUP, TOTAL };
+    enum { VOICECOM = 0, HEADSHOT, DECAPITATED, FIRSTBLOOD, CRITICAL, REVENGE, BLEED, PICKUP, RADAR, AIRSTRIKE, NUKE, DROPNADE, SUICIDEBOMB, TOTAL };
     int type, millis;
 	eventicon(int type, int millis) : type(type), millis(millis){}
 };

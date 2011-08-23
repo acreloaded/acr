@@ -554,20 +554,58 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case N_MARTYRDOM:
+			case N_STREAKREADY:
 			{
 				playerent *d = getclient(getint(p));
-				const int id = getint(p);
+				const int streak = getint(p);
 				if(!d) break;
-				grenadeent *g = new grenadeent(d, NADETTL - MARTYRDOMTTL);
-				bounceents.add(g);
-				g->id = id;
+				switch(streak){
+					case STREAK_AIRSTRIKE:
+						d->addicon(eventicon::AIRSTRIKE);
+						break;
+					case STREAK_DROPNADE:
+						d->addicon(eventicon::DROPNADE);
+						break;
+					case STREAK_REVENGE:
+						d->addicon(eventicon::SUICIDEBOMB);
+						break;
+				}
+				break;
+			}
 
-				g->nadestate = 1;//NS_THROWED;
-				g->o = d->o;
-				g->moveoutsidebbox((g->vel = vec(0, 0, 0)), d);
-				g->resetinterp();
-				g->inwater = hdr.waterlevel > g->o.z;
+			case N_STREAKUSE:
+			{
+				playerent *d = getclient(getint(p));
+				const int streak = getint(p), info = getint(p);
+				if(!d) break;
+				switch(streak){
+					case STREAK_AIRSTRIKE:
+						break;
+					case STREAK_RADAR:
+						d->addicon(eventicon::RADAR);
+						break;
+					case STREAK_NUKE: // add sound?
+						if(info){ // deploy nuke
+							d->addicon(eventicon::NUKE);
+						}
+						else{ // nuke cancelled
+							break;
+						}
+						break;
+					case STREAK_DROPNADE:
+						{
+							grenadeent *g = new grenadeent(d, NADETTL - MARTYRDOMTTL);
+							bounceents.add(g);
+							g->id = info;
+
+							g->nadestate = 1;//NS_THROWED;
+							g->o = d->o;
+							g->moveoutsidebbox((g->vel = vec(0, 0, 0)), d);
+							g->resetinterp();
+							g->inwater = hdr.waterlevel > g->o.z;
+							break;
+						}
+				}
 				break;
 			}
 
