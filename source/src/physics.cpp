@@ -476,7 +476,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 
 				if(!pl->timeinair)
 				{
-					if(timeinair > 200 && pl->state!=CS_DEAD && p) if(p == player1 || p->ownernum == getclientnum()){
+					if(timeinair > 200 && pl->state!=CS_DEAD && pl->fallz && p && (p == player1 || p->ownernum == getclientnum())){
 						addmsg(N_PHYS, "ri3", p->clientnum, timeinair > 800 ? PHYS_HARDFALL : PHYS_FALL, int((pl->fallz - pl->o.z) * DMF));
 						playsound(timeinair > 800 ? S_HARDLAND : S_SOFTLAND, pl);
 					}
