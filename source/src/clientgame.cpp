@@ -513,7 +513,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 		}
 		pl->damageroll(damage);
 	}
-	pl->damagestack.add(damageinfo(actor->o, lastmillis));
+	if(pl != actor) pl->damagestack.add(damageinfo(actor->o, lastmillis));
 	damageeffect(damage * (weapon == GUN_KNIFE && damage < guns[GUN_KNIFE].damage ? 5 : 1), pl);
 
 	if(pl==player1) playsound(S_PAIN6, SP_HIGH);
