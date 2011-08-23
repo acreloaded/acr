@@ -333,6 +333,11 @@ void resetgl()
 	c2skeepalive();
 	resetgamma();
 	c2skeepalive();
+	// preload some stuffs
+	extern Texture **obittex();
+	extern void load_waypointtex();
+	obittex(); geteventicons(); load_waypointtex();
+	c2skeepalive();
 	reloadfonts();
 	reloadtextures();
 	c2skeepalive();
