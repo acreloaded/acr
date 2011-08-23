@@ -213,7 +213,17 @@ static inline const char *suicname(int obit){
 }
 
 static inline const bool isheadshot(int weapon, int style){
-	return weapon != GUN_SHOTGUN && weapon != GUN_GRENADE && weapon != GUN_BOW && (style & FRAG_GIB) && (weapon != GUN_KNIFE || style & FRAG_FLAG);
+	if(!(style & FRAG_GIB)) return false; // all headshots gib
+	switch(weapon){
+		case GUN_KNIFE:
+		case GUN_GRENADE:
+			if(style & FRAG_FLAG) break; // these weapons headshot if FRAG_FLAG is set
+		case GUN_BOW:
+		case GUN_SHOTGUN:
+		case NUMGUNS:
+			return false; // these guns cannot gib
+	}
+	return true;
 }
 
 static inline const int toobit(int weap, int style){
