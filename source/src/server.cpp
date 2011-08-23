@@ -3734,14 +3734,18 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_PHYS:
 			{
-				const int cn = getint(p), type = getint(p);
-				const bool isfall = type == PHYS_HARDFALL || type == PHYS_FALL;
+				const int cn = getint(p), typ = getint(p);
+				const bool isfall = typ == PHYS_HARDFALL || type == PHYS_FALL;
 				const int fall = isfall ? getint(p) : 0;
 				if(!hasclient(cl, cn)) break;
+				client *cp = clients[cn];
 				if(isfall){
 					// deal falling damage?
-					client *cp = clients[cn];
 					serverdamage(cp, cp, 1, NUMGUNS+2, FRAG_NONE, cp->state.o);
+				}
+				else if(typ == PHYS_AKIMBOOUT){
+					if(!cp->state.akimbomillis) break;
+					cp->state.akimbomillis = 0;
 				}
 				QUEUE_INT(N_PHYS);
 				QUEUE_INT(cn);
