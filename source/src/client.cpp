@@ -262,14 +262,13 @@ void addmsg(int type, const char *fmt, ...)
 	static uchar buf[MAXTRANS];
 	ucharbuf p(buf, MAXTRANS);
 	putint(p, type);
-	bool reliable = false;
 	if(fmt)
 	{
 		va_list args;
 		va_start(args, fmt);
 		while(*fmt) switch(*fmt++)
 		{
-			case 'r': reliable = true; break;
+			case 'r': messagereliable = true; break;
 			/*case 'v':
 			{
 				int n = va_arg(args, int);
@@ -293,7 +292,6 @@ void addmsg(int type, const char *fmt, ...)
 		}
 		va_end(args);
 	}
-	if(reliable) messagereliable = true;
 	loopi(p.length()) messages.add(buf[i]);
 }
 
@@ -357,7 +355,8 @@ void sendmessages(){
 	}
 	if(messages.length())
 	{
-		p.put(messages.getbuf(), messages.length());
+		//p.put(messages.getbuf(), messages.length());
+		loopv(messages) p.put(messages[i]);
 		messages.setsize(0);
 	}
 	if(totalmillis-lastping>250)
@@ -377,7 +376,7 @@ void sendmessages(){
 }
 
 void c2sinfo(bool force){				  // send update to the server
-	static int lastupdate = -1000;
+	static int lastupdate = 0;
 	if(!force && totalmillis-lastupdate<40) return;	// don't update faster than 25fps
 	lastupdate = totalmillis;
 	sendpositions();
