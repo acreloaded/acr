@@ -555,11 +555,11 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 	}
 	// killstreak
 	if(act->killstreak++){
-		formatstring(text)(" resulting in a %d killstreak", act->killstreak);
+		formatstring(text)(" %d ks", act->killstreak);
 		concatstring(predicate, text);
 	}
 	if(pl->deathstreak++){
-		formatstring(text)(" (%d deathstreak)", act->killstreak);
+		formatstring(text)(" %d ds", pl->deathstreak);
 		concatstring(predicate, text);
 	}
 	// assist count
