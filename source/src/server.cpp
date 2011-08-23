@@ -2982,8 +2982,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				disc = DISC_NONE;
 			}
 
+			if(p.remaining()) disc = DISC_TAGT;
+
 			if(disc) disconnect_client(sender, disc);
 			else cl->connected = true;
+			return;
 		}
 		if(!cl->connected) return;
 

@@ -71,11 +71,11 @@ void updatepos(playerent *d)
 
 void updatelagtime(playerent *d)
 {
-	int lagtime = totalmillis-d->lastupdate;
+	int lagtime = totalmillis-d->lastrecieve;
 	if(lagtime)
 	{
-		if(d->state!=CS_SPAWNING && d->lastupdate) d->plag = (d->plag*5+lagtime)/6;
-		d->lastupdate = totalmillis;
+		if(d->state!=CS_SPAWNING && d->lastrecieve) d->plag = (d->plag*5+lagtime)/6;
+		d->lastrecieve = totalmillis;
 	}
 }
 

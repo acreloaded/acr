@@ -172,7 +172,6 @@ void spawnstate(playerent *d)			  // reset player state not persistent accross s
 playerent *newplayerent()				 // create a new blank player
 {
 	playerent *d = new playerent;
-	d->lastupdate = totalmillis;
 	setskin(d, rnd(6));
 	weapon::equipplayer(d); // flowtron : avoid overwriting d->spawnstate(gamemode) stuff from the following line (this used to be called afterwards)
 	spawnstate(d);
@@ -182,7 +181,6 @@ playerent *newplayerent()				 // create a new blank player
 botent *newbotent()				 // create a new blank player
 {
 	botent *d = new botent;
-	d->lastupdate = totalmillis;
 	setskin(d, rnd(6));
 	spawnstate(d);
 	weapon::equipplayer(d);
@@ -258,7 +256,7 @@ void moveotherplayers()
 	loopv(players) if(players[i] && players[i]->type==ENT_PLAYER && players[i]->ownernum != getclientnum())
 	{
 		playerent *d = players[i];
-		const int lagtime = totalmillis-d->lastupdate;
+		const int lagtime = totalmillis-d->lastrecieve;
 		if(!lagtime || intermission) continue;
 		else if(lagtime>1000 && d->state==CS_ALIVE)
 		{
