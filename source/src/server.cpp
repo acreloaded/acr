@@ -3118,7 +3118,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				break;
 
 			case N_LEVELUP:
-				sendf(-1, 1, "ri3x", N_LEVELUP, sender, cl->state.level = clamp(getint(p), 1, MAXLEVEL), sender);
+				sendf(-1, 1, "ri3x", N_LEVELUP, sender, cl->state.level = clamp(cl->state.level + 1, 1, MAXLEVEL), sender);
 				break;
 
 			case N_MAPIDENT:

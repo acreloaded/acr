@@ -126,13 +126,13 @@ VARP(noob, 0, 0, 1);
 VARP(level, 1, 1, MAXLEVEL);
 VARP(experience, 0, 0, MAXEXP);
 void addexp(int xp){
-	if(noob) xp *= 2;
+	xp = xp * xp * (noob ? 2 : 1);
 	#define xpfactor max(level, 1)
 	float factor = xpfactor; // factor to reduce experience collection
 	experience += xp / factor;
 	if(experience >= MAXEXP){
 		level = clamp(level + 1, 1, MAXLEVEL);
-		addmsg(N_LEVELUP, "ri", level);
+		addmsg(N_LEVELUP, "r");
 		factor = xpfactor;
 		experience = max(0.f, (experience - MAXEXP) / factor);
 	}

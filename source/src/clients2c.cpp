@@ -588,6 +588,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				int cn = getint(p), points = getint(p);
 				playerent *d = getclient(cn);
+				if(d == player1) addexp(points - player1->points);
 				if(d) d->points = points;
 				break;
 			}

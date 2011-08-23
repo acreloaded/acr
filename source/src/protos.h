@@ -364,6 +364,7 @@ extern void resetmap();
 extern void startmap(const char *name, bool reset = true);
 extern void changemap(const char *name);
 extern void initclient();
+extern void addexp(int xp);
 extern void deathstate(playerent *pl);
 extern void spawnplayer(playerent *d);
 extern void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style = FRAG_NONE);
