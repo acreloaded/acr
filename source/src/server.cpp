@@ -2999,7 +2999,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 		sendwelcome(cl);
 		sendinitclient(*cl);
-		if(findscore(*cl, false)) sendresume(*cl, true);
+		if(findscore(*cl, false)) sendresume(*cl);
 		if(clientrole != PRIV_NONE) setpriv(sender, clientrole, NULL, true);
 
 		if(curvote){
