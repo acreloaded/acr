@@ -664,7 +664,7 @@ void addshotline(playerent *pl, const vec &from, const vec &to, int flags)
 	if(flags & 2) newparticle(o, d, shotlinettl, 6);
 	else { // tracers
 		// flags & 1 = ricochet
-		particle_trail(flags & 1 ? 0 : 1, shotlinettl, from, to);
+		particle_trail(flags & 1 ? 1 : 0, shotlinettl, from, to);
 	}
 
 	// shotline sound fx

@@ -502,17 +502,15 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				}
 				playerent *s = getclient(scn);
 				if(!s || !weapon::valid(gun)) break;
-				if(s == player1){
-					if(type == N_SHOOTC || gun == GUN_GRENADE) break;
-					s->weapons[gun]->attackfx(from, to, type == N_SHOOT ? 0 : 1);
-					break;
+				if(s == player1 && (type == N_SHOOTC || gun == GUN_GRENADE)) break;
+				if(s != player1 && s->ownernum != getclientnum()){
+					s->mag[gun]--;
+					updatelastaction(s);
 				}
-				s->mag[gun]--;
-				updatelastaction(s);
 				if(s->weapons[gun]){
 					s->weapons[gun]->gunwait = s->weapons[gun]->info.attackdelay;
 					s->lastattackweapon = s->weapons[gun];
-					s->weapons[gun]->attackfx(from, to, -1);
+					s->weapons[gun]->attackfx(from, to, type == N_RICOCHET ? -2 : -1);
 				}
 				break;
 			}
