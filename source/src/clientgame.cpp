@@ -255,7 +255,7 @@ void predictplayer(playerent *d, bool move)
 
 void moveotherplayers()
 {
-	loopv(players) if(players[i] && players[i]->type==ENT_PLAYER)
+	loopv(players) if(players[i] && players[i]->type==ENT_PLAYER && players[i]->ownernum != getclientnum())
 	{
 		playerent *d = players[i];
 		const int lagtime = totalmillis-d->lastupdate;
