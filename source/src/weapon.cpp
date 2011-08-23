@@ -793,9 +793,10 @@ void gun::attackfx(const vec &from2, const vec &too, int millis){
 	// trace shot
 	vec from(from2), to(too);
 	traceShot(from, to);
-	if(!millis) from.z -= WEAPONBELOWEYE;
-
-	if(!millis) attackshell(to);
+	if(millis & 1){
+		from.z -= WEAPONBELOWEYE;
+		attackshell(to);
+	}
 	addbullethole(owner, from, to);
 	addshotline(owner, from, to, millis & 1);
 	particle_splash(0, 5, 250, to);
@@ -824,7 +825,7 @@ void shotgun::attackfx(const vec &from2, const vec &to, int millis){
 		traceShot(from, sg[i]);
 		addbullethole(owner, from, sg[i], 0, false);
 	}
-	if(!millis) attackshell(to);
+	if(millis & 1) attackshell(to);
 	adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
 	attacksound();
 }
@@ -859,7 +860,7 @@ bool wavegun::selectable() { return weapon::selectable() && !m_noprimary && this
 
 void wavegun::attackfx(const vec &from2, const vec &to, int millis){
 	vec from(from2);
-	if(!millis) from.z -= WEAPONBELOWEYE;
+	if(millis & 1) from.z -= WEAPONBELOWEYE;
 	addbullethole(owner, from, to);
 	particle_splash(0, 50, 200, to);
 	//attacksound();
@@ -894,8 +895,10 @@ scopedprimary::scopedprimary(playerent *owner, int type) : gun(owner, type) {}
 bool scopedprimary::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 void scopedprimary::attackfx(const vec &from2, const vec &to, int millis){
 	vec from(from2);
-	if(!millis) from.z -= WEAPONBELOWEYE;
-	if(!millis) attackshell(to);
+	if(millis & 1){
+		from.z -= WEAPONBELOWEYE;
+		attackshell(to);
+	}
 	addbullethole(owner, from, to);
 	addshotline(owner, from, to, 2);
 	particle_splash(0, 50, 200, to);
