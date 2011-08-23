@@ -292,11 +292,7 @@ void addmsg(int type, const char *fmt, ...)
 		}
 		va_end(args);
 	}
-	//loopi(p.length()) messages.add(buf[i]);
-	int len = p.length();
-    messages.add(len&0xFF);
-    messages.add((len>>8)|(messagereliable ? 0x80 : 0));
-    loopi(len) messages.add(buf[i]);
+	loopi(p.length()) messages.add(buf[i]);
 }
 
 static int lastupdate = -1000, lastping = 0;
@@ -357,23 +353,11 @@ void sendmessages(){
 		putint(p, maploaded);
 		sendmapident = false;
 	}
-	/*
 	if(messages.length())
 	{
-		//p.put(messages.getbuf(), messages.length());
-		loopv(messages) p.put(messages[i]);
+		p.put(messages.getbuf(), messages.length());
 		messages.setsize(0);
 	}
-	*/
-	int i = 0;
-	while(i < messages.length()) // send messages collected during the previous frames
-    {
-        int len = messages[i] | ((messages[i+1]&0x7F)<<8);
-        if(p.remaining() < len) break;
-        if(messages[i+1]&0x80) packet->flags = ENET_PACKET_FLAG_RELIABLE;
-        p.put(&messages[i+2], len);
-        i += 2 + len;
-    }
     messages.remove(0, i);
 	if(totalmillis-lastping>250)
 	{
