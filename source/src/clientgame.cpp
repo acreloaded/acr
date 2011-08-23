@@ -526,7 +526,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 	dodamage(damage, pl, act, weapon, style);
 
 	// kill message
-	bool headshot = false;
+	bool headshot = isheadshot(weapon, style);
 	int obit = OBIT_DEATH;
 	string subject, predicate, hashave, text;
 	formatstring(subject)("\f2\fs%s\f2", act == player1 ? "\f1you" : colorname(act));
@@ -553,7 +553,6 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 	}
 	else{
 		obit = toobit(weapon, style);
-		headshot = isheadshot(weapon, style);
 		formatstring(predicate)("%s %s%s (@%.2f m)", killname(obit, headshot),
 			isteam(pl, act) ? act==player1 ? "your teammate " : "his teammate " : "", pl == player1 ? "\f1you\f2" : colorname(pl), killdist);
 	}
