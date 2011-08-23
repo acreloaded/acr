@@ -144,8 +144,7 @@ struct clientstate : playerstate
 		lifesequence = -1;
 		grenades.reset();
 		knives.reset();
-		akimbos = 0;
-		akimbomillis = 0;
+		akimbos = akimbomillis = 0;
 		points = flagscore = frags = deaths = shotdamage = damage = lastffkill = 0;
 		respawn();
 	}
@@ -1418,15 +1417,7 @@ void straceShot(const vec &from, vec &to, vec *surface = NULL){
 
 void streakready(client &c, int streak){
 	if(streak < 0 || streak >= STREAK_NUM) return;
-	int info = 0;
-	switch(streak){
-		case STREAK_DROPNADE:
-		case STREAK_REVENGE:
-			info = rand();
-			loopi(streak == STREAK_REVENGE ? 3 : 1) c.state.grenades.add(info);
-			break;
-	}
-	sendf(-1, 1, "ri4", N_STREAKREADY, c.clientnum, streak, info);
+	sendf(-1, 1, "ri3", N_STREAKREADY, c.clientnum, streak);
 }
 
 void usestreak(client &c, int streak){
@@ -1530,6 +1521,17 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 				flagaction(targethasflag, FA_LOST, -1);
 			else // ktf || tktf
 				flagaction(targethasflag, FA_RESET, -1);
+		}
+		switch(actor->state.killstreak /* + (actor->state.perk == PERK_KILLSTREAK ? 1 : 0)*/){
+			case 7:
+				streakready(*actor, STREAK_AIRSTRIKE);
+				break;
+			case 9:
+				usestreak(*actor, STREAK_RADAR);
+				break;
+			case 11:
+				usestreak(*actor, STREAK_NUKE);
+				break;
 		}
 		usestreak(*target, ts.streakondeath);
 	}

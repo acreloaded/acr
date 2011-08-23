@@ -560,7 +560,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				const int streak = getint(p);
 				if(!d) break;
 				switch(streak){
-					case STREAK_AIRSTRIKE:
+					case STREAK_AIRSTRIKE: // add availbility
 						d->addicon(eventicon::AIRSTRIKE);
 						break;
 					case STREAK_DROPNADE:
