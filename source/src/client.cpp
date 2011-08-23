@@ -206,7 +206,7 @@ void saytext(playerent *d, char *text, int flags, int sound){
 	if(flags & SAY_ACTION) formatstring(textout)("\f5* \f%d%s \f6(%d)", col, d->name, d->clientnum);
 	else formatstring(textout)("\f5<\f%d%s \f6(%d)\f5>", col, d->name, d->clientnum);
 	void (*outf)(const char *s, ...) = flags&SAY_DENY ? conoutf : chatoutf;
-	if(sound) outf("%s \f4[\f6%d\f4]", textout, sound);
+	if(sound) outf("%s \f4[\f6%d\f4] \f%d%s", textout, sound, textcolor, text);
 	outf("%s \f%d%s", textout, textcolor, text);
 }
 
