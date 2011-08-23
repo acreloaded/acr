@@ -125,7 +125,7 @@ int shot(client &owner, const vec &from, const vec &to, int weap, vec &surface, 
 		serverdamage(&t, &owner, damage, weap, style, gs.o);
 		++playershit;
 	}
-	if(dist < 100 && surface.magnitude() && weap != GUN_KNIFE && weap != GUN_WAVE){ // material absorbs the radiation. too bad
+	if(!dist && from.dist(to) < 100 && surface.magnitude() && weap != GUN_KNIFE && weap != GUN_WAVE){ // material absorbs the radiation. too bad
 		const int penalty = 40 + playershit * 20; // 10 meters plus 5 meters per player
 		vec dir(to), newsurface;
 		loopi(3) surface[i] = 1 - fabs(surface[i]) * 2;
