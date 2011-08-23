@@ -3986,7 +3986,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
 	if(autoteam && m_team && !m_duel && !interm && servmillis - lastfillup > 5000 && refillteams()) lastfillup = servmillis;
 
-	loopv(clients) if(valid_client(i) && (!clients[i]->connected || clients[i]->connectauth) && clients[i]->connectmillis + 15000 <= servmillis) disconnect_client(i, DISC_TIMEOUT);
+	loopv(clients) if(valid_client(i) && (!clients[i]->connected || clients[i]->connectauth) && clients[i]->connectmillis + 10000 <= servmillis) disconnect_client(i, DISC_TIMEOUT);
 
 	if(servmillis-laststatus>60*1000)   // display bandwidth stats, useful for server ops
 	{
