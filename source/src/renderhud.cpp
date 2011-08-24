@@ -1098,7 +1098,7 @@ void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, 
 
 void renderhudwaypoints(){
 	// throwing knife pickups
-	loopv(knives) renderwaypoint(WP_KNIFE, knives[i].o, (float)(knives[i].millis - totalmillis) / KNIFETTL);
+	loopv(knives) renderwaypoint(WP_KNIFE, knives[i].o, (float)(knives[i].millis - totalmillis) / KNIFETTL, gamefocus->perk == PERK_VISION);
 	// pending stuck crossbow shots
 	loopv(sticks){
 		if(sticks[i].millis < totalmillis) sticks.remove(i--);
@@ -1106,13 +1106,19 @@ void renderhudwaypoints(){
 			playerent *stuck = getclient(sticks[i].cn);
 			vec o(stuck ? stuck->head.x >= 0 ? stuck->head : stuck->o : sticks[i].o);
 			const float flashfactor = float(sticks[i].millis - totalmillis) / TIPSTICKTTL * 350 + 200;
-			renderwaypoint(WP_EXP, o, fabs(sinf((totalmillis % 10000) / flashfactor)));
+			renderwaypoint(WP_EXP, o, fabs(sinf((totalmillis % 10000) / flashfactor)), gamefocus->perk == PERK_VISION);
 			if(sticks[i].lastlight < lastmillis){
 				const int nextflash = flashfactor;
 				adddynlight(stuck, o, 8, nextflash, nextflash, 12, 192, 16);
 				sticks[i].lastlight = lastmillis + nextflash;
 			}
 		}
+	}
+	if(gamefocus->perk == PERK_VISION) loopv(bounceents){
+		bounceent *b = bounceents[i];
+		if(!b || (b->bouncetype != BT_NADE && b->bouncetype != BT_KNIFE)) continue;
+		if(b->bouncetype == BT_NADE && ((grenadeent *)b)->nadestate != 1) continue;
+		renderwaypoint(b->bouncetype == BT_NADE ? WP_EXP : WP_KNIFE, b->o);
 	}
 	// flags
 	const int teamfix = gamefocus->team == TEAM_SPECT ? TEAM_RED : gamefocus->team;
