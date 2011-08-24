@@ -123,7 +123,7 @@ int shot(client &owner, const vec &from, const vec &to, int weap, vec &surface, 
 			}
 		}
 		shotdamage += damage;
-		serverdamage(&t, &owner, damage, weap, style, gs.o);
+		serverdamage(&t, &owner, damage, weap, style, from);
 		++playershit;
 	}
 	if(!dist && from.dist(to) < 100 && surface.magnitude() && weap != WEAP_KNIFE && weap != WEAP_WAVE){ // material absorbs the radiation. too bad
