@@ -407,7 +407,7 @@ void sendintro()
 	else putint(p, 0);
 	*clientpassword = 0;
 	putint(p, player1->nextprimweap->type);
-	putint(p, player1->perk);
+	putint(p, player1->nextperk);
 	putint(p, AC_VERSION);
 	putint(p, 
 			#ifdef WIN32
