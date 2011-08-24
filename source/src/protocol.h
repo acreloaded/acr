@@ -50,9 +50,9 @@ enum { FTR_SILENT = 0, FTR_PLAYERWISH, FTR_AUTOTEAM, FTR_NUM }; // forceteam rea
 enum { PHYS_FALL = 0, PHYS_HARDFALL, PHYS_JUMP, PHYS_AKIMBOOUT, PHYS_NOAMMO, PHYS_NUM };
 
 // network quantization scale
-#define DMF 16.0f           // for world locations
+#define DMF 32.0f           // for world locations
 #define DNF 1000.0f         // for normalized vectors
-#define DVELF 4.0f          // for playerspeed based velocity vectors
+#define DVELF 8.0f          // for playerspeed based velocity vectors
 
 enum { DISC_NONE = 0, DISC_EOP, DISC_KICK, DISC_BAN, DISC_TAGT, DISC_REFUSE, DISC_PASSWORD, DISC_LOGINFAIL, DISC_FULL, DISC_PRIVATE,
 		DISC_NAME, DISC_DUP, DISC_AKICK, DISC_ABAN, DISC_OVERFLOW, DISC_TIMEOUT, DISC_NUM };
