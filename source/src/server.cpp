@@ -213,7 +213,7 @@ struct client				   // server side version of "dynent" type
 	int ping, team, skin, vote, priv;
 	int connectmillis;
 	bool connected, connectauth;
-	int authtoken, authmillis; uint authreq;
+	int authtoken, authmillis, authpriv; uint authreq;
 	bool haswelcome;
 	bool isonrightmap;
 	bool timesync;
@@ -282,7 +282,7 @@ struct client				   // server side version of "dynent" type
 	void zap()
 	{
 		type = ST_EMPTY;
-		priv = PRIV_NONE;
+		priv = authpriv = PRIV_NONE;
 		connected = connectauth = haswelcome = false;
 	}
 };
@@ -3612,17 +3612,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				int wants = getint(p);
 				getstring(text, p);
 				if(wants){
-					int priv = PRIV_NONE; // cl->authpriv
+					int priv = PRIV_NONE;
 					if(cl->type == ST_LOCAL) priv = wants;
-					else if(wants == PRIV_MASTER){
-						priv = PRIV_MASTER;
-						if(!cl->priv) loopv(clients) if(clients[i]->type != ST_EMPTY && clients[i]->priv == PRIV_MASTER){
-							sendf(sender, 1, "ri3", N_REQPRIV, i, PRIV_MASTER | 0x40);
-							priv = PRIV_NONE;
-							break;
-						}
-					}
-					else if(*text){
+					else if(wants > PRIV_MASTER){
+						if(!*text) break;
 						pwddetail pd;
 						pd.line = -1;
 						if(!checkadmin(cl->name, text, cl->salt, &pd) || !pd.priv){
@@ -3633,6 +3626,17 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						} else {
 							priv = min(wants, pd.priv);
 							if(pd.line >= 0) logline(ACLOG_INFO,"[%s] %s used %s password in line %d", cl->hostname, cl->name, privname(wants), pd.line);
+						}
+					}
+					else{
+						priv = PRIV_MASTER;
+						if(cl->authpriv) priv = cl->authpriv;
+						else{
+							loopv(clients) if(clients[i]->type != ST_EMPTY && clients[i]->priv == PRIV_MASTER){
+								sendf(sender, 1, "ri3", N_REQPRIV, i, PRIV_MASTER | 0x40);
+								priv = PRIV_NONE;
+								break;
+							}
 						}
 					}
 					if(priv) setpriv(sender, priv);

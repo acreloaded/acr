@@ -79,10 +79,7 @@ void authsuceeded(uint id, char priv, char *name){
 	c->authreq = 0;
 	logline(ACLOG_INFO, "[%s] auth #%d suceeded for %s as '%s'", c->hostname, id, privname(priv), name);
 	sendf(-1, 1, "ri3s", N_AUTHCHAL, 5, c->clientnum, name);
-	if(priv){
-		priv = clamp<char>(priv, PRIV_MASTER, PRIV_MAX);
-		setpriv(c->clientnum, priv);
-	}
+	if(priv) setpriv(c->clientnum, c->authpriv = clamp<char>(priv, PRIV_MASTER, PRIV_MAX));
 	loopv(bans) if(bans[i].host == c->peer->address.host) bans.remove(i); // deban
 	checkauthdisc(*c);
 }
