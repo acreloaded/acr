@@ -387,7 +387,7 @@ void weapon::attackphysics(vec &from, vec &to) // physical fx to the owner
 	const float recoilshift = (rnd(info.recoilangle * 20 + 1) / 10.f - info.recoilangle) * RAD, recoilval = info.recoil * sqrtf(rnd(50) + 51) / 100.f;
 	owner->pitchvel += cosf(recoilshift) * recoilval;
 	owner->yawvel += sinf(recoilshift) * recoilval;
-	const float maxmagnitude = sqrtf(owner->pitchvel * owner->pitchvel + owner->yawvel + owner->yawvel) / info.maxrecoil * 10;
+	const float maxmagnitude = sqrtf(owner->pitchvel * owner->pitchvel + owner->yawvel + owner->yawvel) / info.maxrecoil * (owner->perk == PERK_HAND ? 7 : 10);
 	if(maxmagnitude > 1){
 		owner->pitchvel /= maxmagnitude;
 		owner->yawvel /= maxmagnitude;
