@@ -296,6 +296,8 @@ static inline const char *killname(int obit, bool headshot){
 	return k;
 }
 
+enum { PERK_NONE = 0, PERK_SPEED, PERK_CLIMB, PERK_JAMMER, PERK_KILLSTREAK, PERK_VISION, PERK_STEADY, PERK_FALL, PERK_MAX };
+
 static float gunspeed(int gun, bool lightweight = false){
 	float ret = lightweight ? 1.07f : 1;
 	switch(gun){
@@ -339,6 +341,7 @@ enum { TEAM_RED = 0, TEAM_BLUE, TEAM_SPECT, TEAM_NUM };
 enum { ENT_PLAYER = 0, ENT_BOT, ENT_CAMERA, ENT_BOUNCE };
 enum { CS_ALIVE = 0, CS_DEAD, CS_SPAWNING, CS_LAGGED, CS_EDITING, CS_SPECTATE };
 enum { PRIV_NONE = 0, PRIV_MASTER, PRIV_ADMIN, PRIV_MAX };
+
 static inline const uchar privcolor(int priv, bool dead = false){
 	switch(priv){
 		case PRIV_NONE: return dead ? 4 : 5;
@@ -348,6 +351,7 @@ static inline const uchar privcolor(int priv, bool dead = false){
 	}
 	return 5;
 }
+
 static inline const char *privname(int priv){ 
 	switch(priv){
 		case PRIV_NONE: return "user";
@@ -483,8 +487,6 @@ struct poshist
 		nextupdate = lastmillis + 100;
 	}
 };
-
-enum { PERK_NONE = 0, PERK_SPEED, PERK_CLIMB, PERK_JAMMER, PERK_KILLSTREAK, PERK_VISION, PERK_STEADY, PERK_MAX };
 
 struct playerstate
 {
