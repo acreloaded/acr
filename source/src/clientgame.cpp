@@ -492,10 +492,11 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 	if(pl->state != CS_ALIVE || intermission) return;
 
 	pl->respawnoffset = pl->lastpain = lastmillis;
-	if(actor != pl) actor->lasthitmarker;
-	if(actor == player1 && weapon == WEAP_KNIFE && damage > 1000) return;
-
-	if(actor != pl && pl->damagelog.find(actor->clientnum) < 0) pl->damagelog.add(actor->clientnum);
+	if(actor != pl){
+		actor->lasthitmarker;
+		if(pl->damagelog.find(actor->clientnum) < 0) pl->damagelog.add(actor->clientnum);
+	}
+	damageeffect(damage, pl);
 
 	if(style & FRAG_CRITICAL){
 		actor->addicon(eventicon::CRITICAL);

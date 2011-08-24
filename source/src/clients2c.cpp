@@ -671,7 +671,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				vec src; loopk(3) src[k] = getfloat(p);
 				playerent *d = getclient(cn);
 				if(!d) break;
-				damageeffect(damage, d);
 				d->damagestack.add(damageinfo(src, lastmillis, damage));
 				if(d->o == src) break;
 				vec dir = d->o;
