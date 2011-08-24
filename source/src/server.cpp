@@ -3020,7 +3020,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			copystring(cl->pwd, text);
 			int connectauth = getint(p);
 			cl->state.nextprimary = getint(p);
-			cl->state.perk = getint(p);
+			cl->state.nextperk = getint(p);
 
 			int clientversion = getint(p), clientdefs = getint(p);
 			logversion(*cl, clientversion, clientdefs);
