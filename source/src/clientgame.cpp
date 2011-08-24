@@ -1046,7 +1046,7 @@ COMMAND(whois, ARG_1INT);
 int sessionid = 0;
 
 void setmaster(int claim){
-	addmsg(N_SETROLE, "ris", claim ? PRIV_MASTER : PRIV_NONE, "");
+	addmsg(N_REQPRIV, "ris", claim ? PRIV_MASTER : PRIV_NONE, "");
 }
 COMMAND(setmaster, ARG_1INT);
 
@@ -1054,7 +1054,7 @@ SVARP(adminpass, "pwd"); // saved admin password
 
 void setadmin(char *claim, char *password){
 	if(!claim || !password) return;
-	else addmsg(N_SETROLE, "ris", atoi(claim)!=0?PRIV_MAX:PRIV_NONE, genpwdhash(player1->name, *password ? password : adminpass, sessionid));
+	else addmsg(N_REQPRIV, "ris", atoi(claim)!=0?PRIV_MAX:PRIV_NONE, genpwdhash(player1->name, *password ? password : adminpass, sessionid));
 }
 COMMAND(setadmin, ARG_2STR);
 

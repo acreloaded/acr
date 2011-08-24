@@ -1058,7 +1058,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case N_SETROLE:
+			case N_SETPRIV:
 			{
 				int cl = getint(p), r = getint(p);
 				playerent *p = newclient(cl);
@@ -1067,7 +1067,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case N_ROLECHANGE:
+			case N_REQPRIV:
 			{
 				int cl = getint(p), r = getint(p);
 				bool drop = (r >> 7) & 1, err = (r >> 6) & 1; r &= 0x3F;

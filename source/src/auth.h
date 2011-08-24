@@ -47,7 +47,7 @@ int allowconnect(client &ci, const char *pwd = "", int authreq = 0){
 	pwddetail pd;
 	if(checkadmin(ci.name, pwd, ci.salt, &pd) && (pd.priv >= PRIV_ADMIN || (banned && !srvfull && !srvprivate))){ // admin (or master or deban) password match
 		bool banremoved = false;
-		if(pd.priv) setpriv(ci.clientnum, pd.priv, NULL, true);
+		if(pd.priv) setpriv(ci.clientnum, pd.priv);
 		if(banned) loopv(bans) if(bans[i].host == ci.peer->address.host) { banremoved = true; bans.remove(i); break; } // remove admin bans
 		logline(ACLOG_INFO, "[%s] %s logged in using the password in line %d%s%s", ci.hostname, ci.name, pd.line, wlp, banremoved ? ", (ban removed)" : "");
 		return DISC_NONE;
@@ -80,8 +80,8 @@ void authsuceeded(uint id, char priv, char *name){
 	logline(ACLOG_INFO, "[%s] auth #%d suceeded for %s as '%s'", c->hostname, id, privname(priv), name);
 	sendf(-1, 1, "ri3s", N_AUTHCHAL, 5, c->clientnum, name);
 	if(priv){
-		priv = clamp(priv, (char)PRIV_MASTER, (char)PRIV_MAX);
-		setpriv(c->clientnum, priv, NULL, true);
+		priv = clamp<char>(priv, PRIV_MASTER, PRIV_MAX);
+		setpriv(c->clientnum, priv);
 	}
 	loopv(bans) if(bans[i].host == c->peer->address.host) bans.remove(i); // deban
 	checkauthdisc(*c);

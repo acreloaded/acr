@@ -22,7 +22,7 @@ void disconnect_client(int n, int reason = -1);
 int clienthasflag(int cn);
 bool updateclientteam(int client, int team, int ftr);
 bool refillteams(bool now = false, int ftr = FTR_AUTOTEAM);
-void setpriv(int client, int role, char *pwd = NULL, bool force=false);
+void setpriv(int client, int priv);
 int mapavailable(const char *mapname);
 void getservermap(void);
 mapstats *getservermapstats(const char *mapname, bool getlayout = false);
@@ -2367,7 +2367,7 @@ void banclient(client *c, int minutes){
 }
 
 void sendserveropinfo(int receiver = -1){
-	loopv(clients) if(valid_client(i)) sendf(receiver, 1, "ri3", N_SETROLE, i, clients[i]->priv);
+	loopv(clients) if(valid_client(i)) sendf(receiver, 1, "ri3", N_SETPRIV, i, clients[i]->priv);
 }
 
 #include "serveractions.h"
@@ -2471,49 +2471,23 @@ bool scallvote(voteinfo *v) // true if a regular vote was called
 	}
 }
 
-void setpriv(int cl, int wants, char *pwd, bool force){
+void setpriv(int cl, int priv){
 	if(!valid_client(cl)) return;
 	client &c = *clients[cl];
-	if(wants && c.type == ST_LOCAL) force = true; // force local user to be able to claim
-	if(force); // force passthru
-	else if(wants){ // claim
-		if(wants == PRIV_MASTER){
-			if(!c.priv) loopv(clients) if(valid_client(i) && clients[i]->priv == PRIV_MASTER){
-				sendf(cl, 1, "ri3", N_ROLECHANGE, i, PRIV_MASTER | 0x40);
-				return;
-			}
-		}
-		else{
-			if(!pwd || !*pwd) return;
-			pwddetail pd;
-			pd.line = -1;
-			if(!checkadmin(c.name, pwd, c.salt, &pd) || !pd.priv){
-				if(c.priv >= PRIV_ADMIN){
-					pd.priv = c.priv;
-					pd.line = -1;
-				}else{
-					disconnect_client(cl, DISC_LOGINFAIL); // avoid brute-force
-					return;
-				}
-			};
-			wants = min(wants, pd.priv);
-			if(pd.line >= 0) logline(ACLOG_INFO,"[%s] %s used %s password in line %d", c.hostname, c.name, privname(wants), pd.line);
-		}
-	}
-	if(!wants){ // relinquish
+	if(!priv){ // relinquish
 		if(!c.priv) return; // no privilege to relinquish
-		sendf(-1, 1, "ri3", N_ROLECHANGE, cl, c.priv | 0x80);
+		sendf(-1, 1, "ri3", N_REQPRIV, cl, c.priv | 0x80);
 		logline(ACLOG_INFO,"[%s] %s relinquished %s status", c.hostname, c.name, privname(c.priv));
 		c.priv = PRIV_NONE;
 		sendserveropinfo();
 		return;
 	}
-	if(c.priv >= wants){
-		sendf(cl, 1, "ri3", N_ROLECHANGE, cl, wants | 0x40);
+	else if(c.priv >= priv){
+		sendf(cl, 1, "ri3", N_REQPRIV, cl, priv | 0x40);
 		return;
 	}
-	c.priv = wants;
-	sendf(-1, 1, "ri3", N_ROLECHANGE, cl, c.priv);
+	c.priv = priv;
+	sendf(-1, 1, "ri3", N_REQPRIV, cl, c.priv);
 	logline(ACLOG_INFO,"[%s] %s claimed %s status", c.hostname, c.name, privname(c.priv));
 	sendserveropinfo();
 	//if(curvote) curvote->evaluate();
@@ -2532,7 +2506,7 @@ void disconnect_client(int n, int reason){
 	*/
 	client &c = *clients[n];
 	loopv(clients) if(clients[i]->state.ownernum == n) deleteai(*clients[i]);
-	if(c.priv) setpriv(n, PRIV_NONE, 0, true);
+	if(c.priv) setpriv(n, PRIV_NONE);
 	const char *scoresaved = "";
 	if(c.haswelcome)
 	{
@@ -3005,7 +2979,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 	int type;
 
 	if(cl && !cl->connected){
-		int clientrole = PRIV_NONE;
 		if(chan==0) return;
 		else if(chan!=1 || getint(p) != N_CONNECT) disconnect_client(sender, DISC_TAGT);
 		else
@@ -3043,7 +3016,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 		sendwelcome(cl);
 		sendinitclient(*cl);
 		if(findscore(*cl, false)) sendresume(*cl);
-		if(clientrole != PRIV_NONE) setpriv(sender, clientrole, NULL, true);
 
 		if(curvote){
 			sendcallvote(sender);
@@ -3635,11 +3607,37 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				break;
 			}
 
-			case N_SETROLE:
+			case N_REQPRIV:
 			{
 				int wants = getint(p);
 				getstring(text, p);
-				setpriv(sender, wants, text);
+				if(wants){
+					int priv = PRIV_NONE; // cl->authpriv
+					if(cl->type == ST_LOCAL) priv = wants;
+					else if(wants == PRIV_MASTER){
+						priv = PRIV_MASTER;
+						if(!cl->priv) loopv(clients) if(clients[i]->type != ST_EMPTY && clients[i]->priv == PRIV_MASTER){
+							sendf(sender, 1, "ri3", N_REQPRIV, i, PRIV_MASTER | 0x40);
+							priv = PRIV_NONE;
+							break;
+						}
+					}
+					else if(*text){
+						pwddetail pd;
+						pd.line = -1;
+						if(!checkadmin(cl->name, text, cl->salt, &pd) || !pd.priv){
+							if(cl->priv < PRIV_ADMIN && !priv){
+								disconnect_client(sender, DISC_LOGINFAIL); // avoid brute-force
+								return;
+							}
+						} else {
+							priv = min(wants, pd.priv);
+							if(pd.line >= 0) logline(ACLOG_INFO,"[%s] %s used %s password in line %d", cl->hostname, cl->name, privname(wants), pd.line);
+						}
+					}
+					if(priv) setpriv(sender, priv);
+				}
+				else setpriv(sender, PRIV_NONE);
 				break;
 			}
 

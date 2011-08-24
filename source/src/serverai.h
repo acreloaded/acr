@@ -45,7 +45,7 @@ void deleteai(client &c){
     if(c.type != ST_AI || c.state.ownernum < 0) return;
     const int cn = c.clientnum;
 	sdropflag(cn);
-	if(c.priv) setpriv(cn, PRIV_NONE, 0, true);
+	if(c.priv) setpriv(cn, PRIV_NONE);
 	c.state.ownernum = -1;
 	c.zap();
 	sendf(-1, 1, "ri2", N_DELAI, cn);

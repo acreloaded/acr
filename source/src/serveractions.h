@@ -147,8 +147,8 @@ struct giveadminaction : playeraction
 {
 	int give, from;
 	void perform() {
-		if(valid_client(from) && clients[from]->priv < PRIV_ADMIN) setpriv(from, PRIV_NONE, NULL, true);
-		setpriv(cn, give, NULL, true);
+		if(valid_client(from) && clients[from]->priv < PRIV_ADMIN) setpriv(from, PRIV_NONE);
+		setpriv(cn, give);
 	}
 	// virtual bool isvalid() { return valid_client(cn); } // give to anyone
 	giveadminaction(int cn, int wants, int caller) : from(caller), playeraction(cn){
