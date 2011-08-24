@@ -600,11 +600,12 @@ struct playerstate
 	}
 
 	// just subtract damage here, can set death, etc. later in code calling this
-	int dodamage(int damage){
-		int ad = damage*30/100; // let armor absorb when possible
+	int dodamage(int damage, bool penetration){
+		int ad = damage*3/10; // let armor absorb when possible
+		if(penetration) ad = ad * 9 / 10; // 10% less armor, half the absorption = 45% effective armor.
 		if(ad>armor) ad = armor;
 		armor -= ad;
-		damage -= ad;
+		damage -= ad / (penetration ? 2 : 1);
 		health -= damage;
 		return damage;
 	}
@@ -741,7 +742,7 @@ struct playerent : dynent, playerstate
 		const float pushf = damage/100.f*guns[gun].pushfactor;
 		vec push = dir;
 		push.normalize().mul(pushf);
-		vel.div(clamp<float>(pushf, 1, 5)).add(push);
+		vel.div(clamp<float>(pushf*5, 1, 5)).add(push);
 		extern int lastmillis;
 		if(gun==WEAP_GRENADE && damage > 50) eardamagemillis = lastmillis+damage*100;
 	}

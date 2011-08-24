@@ -1476,7 +1476,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 		actor->state.shotdamage += damage; // reduce his accuracy
 	}
 	if(target->state.damagelog.find(actor->clientnum) < 0) target->state.damagelog.add(actor->clientnum);
-	ts.dodamage(damage);
+	ts.dodamage(damage, actor->state.perk == PERK_POWER);
 	ts.lastregen = gamemillis + REGENDELAY - REGENINT;
 	const bool gib = style & FRAG_GIB;
 	if(ts.health<=0){
