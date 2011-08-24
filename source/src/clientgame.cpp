@@ -506,7 +506,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 		if(weapon != WEAP_GRENADE && actor != pl){
 			vec dir = pl->o;
 			dir.sub(actor->o);
-			pl->hitpush(damage, dir, weapon);
+			pl->hitpush(damage, dir, weapon, actor->perk == PERK_POWER);
 		}
 		pl->damageroll(damage);
 	}

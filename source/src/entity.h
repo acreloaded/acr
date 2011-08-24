@@ -296,7 +296,7 @@ static inline const char *killname(int obit, bool headshot){
 	return k;
 }
 
-enum { PERK_NONE = 0, PERK_SPEED, PERK_CLIMB, PERK_JAMMER, PERK_KILLSTREAK, PERK_VISION, PERK_STEADY, PERK_FALL, PERK_MAX };
+enum { PERK_NONE = 0, PERK_SPEED, PERK_CLIMB, PERK_JAMMER, PERK_VISION, PERK_KILLSTREAK, PERK_STEADY, PERK_FALL, PERK_POWER, PERK_PERSIST, PERK_MAX };
 
 static float gunspeed(int gun, bool lightweight = false){
 	float ret = lightweight ? 1.07f : 1;
@@ -735,12 +735,13 @@ struct playerent : dynent, playerstate
 		clamproll(this);
 	}
 
-	void hitpush(int damage, const vec &dir, int gun)
+	void hitpush(int damage, const vec &dir, int gun, bool slows)
 	{
 		if(gun<0 || gun>WEAP_MAX || dir.iszero()) return;
+		const float pushf = damage/100.f*guns[gun].pushfactor;
 		vec push = dir;
-		push.normalize().mul(damage/100.f*guns[gun].pushfactor);
-		vel.add(push);
+		push.normalize().mul(pushf);
+		vel.div(clamp<float>(pushf, 1, 5)).add(push);
 		extern int lastmillis;
 		if(gun==WEAP_GRENADE && damage > 50) eardamagemillis = lastmillis+damage*100;
 	}

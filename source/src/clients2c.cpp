@@ -664,7 +664,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_PROJPUSH:
 			{
-				int cn = getint(p), gun = getint(p), damage = getint(p);
+				int cn = getint(p), gun = getint(p), damage = getint(p), power = getint(p);
 				vec src; loopk(3) src[k] = getfloat(p);
 				playerent *d = getclient(cn);
 				if(gun != WEAP_GRENADE && gun != WEAP_BOW) break;
@@ -673,7 +673,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(d != player1 || d->o == src) break;
 				vec dir = d->o;
 				dir.sub(src).normalize();
-				d->hitpush(damage, dir, gun);
+				d->hitpush(damage, dir, gun, power > 0);
 				break;
 			}
 
