@@ -448,7 +448,7 @@ void drawradar(playerent *p, int w, int h)
 	loopv(players) // other players
 	{
 		playerent *pl = players[i];
-		if(!pl || pl == p || !insideradar(centerpos, res/2, pl->o)) continue;
+		if(!pl || pl == p || !insideradar(centerpos, res/2, pl->o) || pl->perk == PERK_JAMMER) continue;
 		bool force = hasradar || pl == flaginfos[0].actor || pl == flaginfos[1].actor;
 		if(!force && pl->state != CS_DEAD && !isteam(p, pl)){
 			playerent *seenby = NULL;
