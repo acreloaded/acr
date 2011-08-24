@@ -572,11 +572,13 @@ void streakready(client &c, int streak){
 	sendf(-1, 1, "ri3", N_STREAKREADY, c.clientnum, streak);
 }
 
-void usestreak(client &c, int streak){
+void usestreak(client &c, int streak, const vec &o = vec(0, 0, 0)){
 	if(streak < 0 || streak >= STREAK_NUM) return;
 	int info = 0;
 	switch(streak){
-		//case STREAK_AIRSTRIKE:
+		case STREAK_AIRSTRIKE: // SPECIAL
+			sendf(-1, 1, "ri3f3", N_STREAKUSE, c.clientnum, STREAK_AIRSTRIKE, info, o.x, o.y, o.z);
+			return;
 		case STREAK_RADAR:
 			c.state.radarearned = gamemillis + (info = 15000);
 			break;
@@ -590,7 +592,6 @@ void usestreak(client &c, int streak){
 			c.state.grenades.add(info);
 			extern int explosion(client &owner, const vec &o2, int weap);
 			if(streak == STREAK_REVENGE) explosion(c, c.state.o, WEAP_GRENADE);
-			sendf(-1, 1, "ri4", N_STREAKUSE, c.clientnum, STREAK_DROPNADE, info);
 			break;
 		}
 	}
@@ -3352,6 +3353,14 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				checkpos(from);
 				if(vel.magnitude() > NADEPOWER) vel.normalize().mul(NADEPOWER);
 				sendf(-1, 1, "ri2f6ix", N_THROWNADE, cn, from.x, from.y, from.z, vel.x, vel.y, vel.z, cooked, sender);
+				break;
+			}
+
+			case N_STREAKUSE:
+			{
+				vec o;
+				loopi(3) o[i] = getfloat(p);
+				//usestreak(*cl, STREAK_AIRSTRIKE, o);
 				break;
 			}
 

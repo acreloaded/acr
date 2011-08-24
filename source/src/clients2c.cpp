@@ -562,7 +562,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				const int streak = getint(p);
 				if(!d) break;
 				switch(streak){
-					case STREAK_AIRSTRIKE: // add availbility
+					case STREAK_AIRSTRIKE:
 						d->addicon(eventicon::AIRSTRIKE);
 						break;
 					case STREAK_DROPNADE:
@@ -578,7 +578,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_STREAKUSE:
 			{
 				playerent *d = getclient(getint(p));
-				const int streak = getint(p), info = getint(p);
+				const int streak = getint(p);
+				int info = -1; vec o;
+				if(streak == STREAK_AIRSTRIKE) loopi(3) o[i] = getfloat(p);
+				else info = getint(p);
 				if(!d) break;
 				switch(streak){
 					case STREAK_AIRSTRIKE:

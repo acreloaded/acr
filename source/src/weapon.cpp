@@ -116,6 +116,12 @@ void tryreload(playerent *p){
 void selfreload() { tryreload(player1); }
 COMMANDN(reload, selfreload, ARG_NONE);
 
+void selfuse(){
+	// for now we're using it for airstrikes
+	addmsg(N_STREAKUSE, "rf3", worldpos.x, worldpos.y, worldpos.z);
+}
+COMMANDN(use, selfuse, ARG_NONE);
+
 #include "ballistics.h"
 
 bool intersecthead(playerent *d, const vec &from, const vec &to, vec *end = NULL, float tolerance = 1){
