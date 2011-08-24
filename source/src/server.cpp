@@ -3788,8 +3788,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(!hasclient(cl, cn) || typ < 0 || typ >= PHYS_NUM) break;
 				client *cp = clients[cn];
 				if(isfall){
+					if(cp->state.state != CS_ALIVE) break;
 					// deal falling damage?
-					int damage = (fall - 10) / 2;
+					int damage = (fall - 10) / (cp->state.perk == PERK_FALL ? 10 : 2);
 					if(damage < 1) break; // don't heal the player
 					else if(damage > 200) damage = 200;
 					serverdamage(cp, cp, damage, WEAP_MAX+2, FRAG_NONE, cp->state.o);
