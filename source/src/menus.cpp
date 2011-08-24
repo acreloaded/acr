@@ -636,7 +636,9 @@ void menuitemvar(char *eval, char *action, char *hoveraction)
 void menuitemimage(char *name, char *text, char *action, char *hoveraction)
 {
 	if(!lastmenu) return;
-	lastmenu->items.add(new mitemimage(lastmenu, newstring(name), newstring(text), action[0] ? newstring(action) : NULL, hoveraction[0] ? newstring(hoveraction) : NULL, NULL));
+	if(fileexists(name, "r") || findfile(name, "r") != name)
+		lastmenu->items.add(new mitemimage(lastmenu, newstring(name), newstring(text), action[0] ? newstring(action) : NULL, hoveraction[0] ? newstring(hoveraction) : NULL, NULL));
+	else menuitem(text, action, hoveraction);
 }
 
 void menuitemtextinput(char *text, char *value, char *action, char *hoveraction, char *maxchars)
