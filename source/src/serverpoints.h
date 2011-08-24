@@ -1,7 +1,7 @@
 #include "points.h"
 
 inline void addpt(client *c, int points){
-	if(c->state.perk == PERK_BRIBE) points *= 1.35f;
+	if(c->state.perk == PERK_BRIBE) points *= points > 0 ? 1.35f : 1.1f;
 	sendf(-1, 1, "ri3", N_POINTS, c->clientnum, (c->state.points += points));
 }
 
