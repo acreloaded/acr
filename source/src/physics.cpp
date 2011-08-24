@@ -406,7 +406,10 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 		d.x += (float)(pl->strafe*cosf(RAD*(pl->yaw-180)));
 		d.y += (float)(pl->strafe*sinf(RAD*(pl->yaw-180)));
 
-		if(pl->type == ENT_PLAYER && ((playerent *)pl)->weaponsel) d.mul(gunspeed(((playerent *)pl)->weaponsel->type));
+		if(pl->type == ENT_PLAYER){
+			playerent *p = (playerent *)pl;
+			if(p->weaponsel) d.mul(gunspeed(p->weaponsel->type, p->perk == PERK_SPEED));
+		}
 
 		pl->vel.mul(fpsfric-1);   // slowly apply friction and direction to velocity, gives a smooth movement
 		pl->vel.add(d);
