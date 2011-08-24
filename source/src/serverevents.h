@@ -173,8 +173,8 @@ void processevent(client &c, shotevent &e)
 						reloadevent &heal = clients[cn]->addtimer().reload;
 						heal.type = GE_RELOAD;
 						heal.id = c.clientnum;
-						heal.millis = gamemillis + 1000 + i * 100;
-						heal.gun = 1;
+						heal.millis = gamemillis + (10 + i) * 100 / (gs.perk == PERK_PERSIST ? 2 : 1);
+						heal.gun = gs.perk == PERK_PERSIST ? 2 : 1;
 					}
 					break;
 				}
@@ -265,9 +265,10 @@ void processevents(){
 		if(c.state.state == CS_ALIVE){ // can't regen or bleed if dead
 			if(c.state.lastcut){ // bleeding; oh no!
 				if(c.state.lastcut + 500 < gamemillis && valid_client(c.state.cutter)){
-					c.state.damage += 10;
-					c.state.shotdamage += 10;
-					serverdamage(&c, clients[c.state.cutter], 10, WEAP_KNIFE, FRAG_NONE, clients[c.state.cutter]->state.o);
+					const int bleeddmg = clients[c.state.cutter]->state.perk == PERK_PERSIST ? 15 : 10;
+					c.state.damage += bleeddmg;
+					c.state.shotdamage += bleeddmg;
+					serverdamage(&c, clients[c.state.cutter], bleeddmg, WEAP_KNIFE, FRAG_NONE, clients[c.state.cutter]->state.o);
 					c.state.lastcut = gamemillis;
 				}
 			}
