@@ -105,8 +105,6 @@ void remip(const block &b, int level)
 	s.xs /= 2;
 	s.ys /= 2;
 	remip(s, level+1);
-	extern bool minimapdirty;
-	minimapdirty = true;
 }
 
 void remipmore(const block &b, int level)
