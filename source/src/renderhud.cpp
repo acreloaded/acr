@@ -1118,6 +1118,7 @@ void renderhudwaypoints(){
 		bounceent *b = bounceents[i];
 		if(!b || (b->bouncetype != BT_NADE && b->bouncetype != BT_KNIFE)) continue;
 		if(b->bouncetype == BT_NADE && ((grenadeent *)b)->nadestate != 1) continue;
+		if(b->bouncetype == BT_KNIFE && ((knifeent *)b)->knifestate != 1) continue;
 		renderwaypoint(b->bouncetype == BT_NADE ? WP_EXP : WP_KNIFE, b->o);
 	}
 	// flags
