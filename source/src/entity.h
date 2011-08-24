@@ -184,6 +184,15 @@ static inline const char *suicname(int obit){
 	static string k;
 	*k = 0;
 	switch(obit){
+		case WEAP_PISTOL:
+		case WEAP_SHOTGUN:
+		case WEAP_SUBGUN:
+		case WEAP_SNIPER:
+		case WEAP_BOLT:
+		case WEAP_ASSAULT:
+		case WEAP_AKIMBO:
+			concatstring(k, "mixed with your own crossfire");
+			break;
 		case WEAP_GRENADE:
 			concatstring(k, "failed with nades");
 			break;
