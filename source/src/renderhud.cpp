@@ -441,7 +441,7 @@ void drawradar(playerent *p, int w, int h)
 	}
 	glTranslatef(-(centerpos.x-res/2)/worldsize*radarsize, -(centerpos.y-res/2)/worldsize*radarsize, 0);
 
-	if(p->perk != PERK_JAMMER) drawradarent(p->o, coordtrans, p->yaw, p->state!=CS_DEAD ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), 1.f, "\f1%s", colorname(p)); // local player
+	drawradarent(p->o, coordtrans, p->yaw, p->state!=CS_DEAD ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), p->perk == PERK_JAMMER ? .5f : 1, "\f1%s", colorname(p)); // local player
 
 	bool hasradar = false;
 	if(m_team) loopv(players) if(players[i] && players[i]->team == p->team && players[i]->radarearned > totalmillis) { hasradar = true; break; }
