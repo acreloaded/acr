@@ -336,7 +336,7 @@ void resetgl()
 	// preload some stuffs
 	extern Texture **obittex();
 	extern void load_waypointtex();
-	obittex(); geteventicons(); load_waypointtex();
+	geteventicons(); getperktex(); obittex(); load_waypointtex();
 	c2skeepalive();
 	reloadfonts();
 	reloadtextures();

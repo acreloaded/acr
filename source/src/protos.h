@@ -311,7 +311,7 @@ extern void scaletmu(int n, int rgbscale, int alphascale = 0);
 extern void colortmu(int n, float r = 0, float g = 0, float b = 0, float a = 0);
 extern void setuptmu(int n, const char *rgbfunc = NULL, const char *alphafunc = NULL);
 
-extern Texture **geteventicons();
+extern Texture **geteventicons(), **getperktex();
 
 // rendercubes
 extern void mipstats(int a, int b, int c);
