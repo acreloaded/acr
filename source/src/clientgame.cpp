@@ -502,18 +502,9 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 		pl->addicon(eventicon::CRITICAL);
 	}
 
-	if(pl==player1){
-		if(weapon != WEAP_GRENADE && actor != pl){
-			vec dir = pl->o;
-			dir.sub(actor->o);
-			pl->hitpush(damage, dir, weapon, actor->perk == PERK_POWER);
-		}
-		pl->damageroll(damage);
-	}
-	if(pl != actor) pl->damagestack.add(damageinfo(actor->o, lastmillis, damage));
-	damageeffect(damage * (weapon == WEAP_KNIFE && damage < guns[WEAP_KNIFE].damage ? 5 : 1), pl);
+	if(pl==player1 || pl->ownernum==getclientnum()) pl->damageroll(damage);
 
-	if(pl==player1) playsound(S_PAIN6, SP_HIGH);
+	if(pl==gamefocus) playsound(S_PAIN6, SP_HIGH);
 	else playsound(S_PAIN1+rnd(5), pl);
 }
 

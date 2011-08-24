@@ -1541,8 +1541,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 	else{
 		if(actor->state.perk == PERK_POWER){ damage *= 2; }
 		sendf(-1, 1, "ri8", N_DAMAGE, target->clientnum, actor->clientnum, int(damage * (gib ? GIBBLOODMUL : 1)), ts.armor, ts.health, gun, style & FRAG_VALID);
-		if(source != target->state.o && (gun == WEAP_GRENADE || gun == WEAP_BOW))
-			sendf(-1, 1, "ri5f3", N_PROJPUSH, target->clientnum, gun, damage, actor->state.perk == PERK_POWER ? 1 : 0, source.x, source.y, source.z);
+		if(source != target->state.o) sendf(-1, 1, "ri5f3", N_HITPUSH, target->clientnum, gun, damage, actor->state.perk == PERK_POWER ? 1 : 0, source.x, source.y, source.z);
 	}
 }
 
