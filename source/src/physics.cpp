@@ -449,7 +449,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 					if(pl->type==ENT_BOT) pl->vel.z = climbspeed; // bots climb upwards only
 					else if(pl->type==ENT_PLAYER)
 					{
-						if(p->perk == PERK_CLIMB) climbspeed = 1.6f;
+						if(p->perk == PERK_HAND) climbspeed = 1.5f;
 						if(p->k_up) pl->vel.z = climbspeed;
 						else if(p->k_down) pl->vel.z = -climbspeed;
 					}
