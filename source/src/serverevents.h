@@ -79,14 +79,14 @@ void processevent(client &c, shotevent &e)
 		adsfactor = (adsfactor + SGADSSPREADFACTOR - 1) / SGADSSPREADFACTOR;
 		if(spreadf*adsfactor) loopi(SGRAYS){
 			gs.sg[i] = to;
-			applyspread(gs.o, gs.sg[i], SGSPREAD, spreadf*adsfactor);
+			applyspread(gs.o, gs.sg[i], SGSPREAD, (gs.perk == PERK_STEADY ? .65f : 1)*spreadf*adsfactor);
 			straceShot(from, gs.sg[i]);
 		}
 	}
 	else{
 		// apply normal ray spread
-		const int spread = guns[e.gun].spread * (gs.vel.magnitude() / 3.f + gs.pitchvel / 5.f + 0.4f) * 1.2f * crouchfactor * adsfactor;
-		applyspread(gs.o, to, spread, spreadf);
+		const int spread = guns[e.gun].spread * (gs.vel.magnitude() / 3.f + gs.pitchvel / 5.f + 0.4f) * 1.2f * crouchfactor;
+		applyspread(gs.o, to, spread, (gs.perk == PERK_STEADY ? .75f : 1)*spreadf*adsfactor);
 	}
 	// trace shot
 	straceShot(from, to, &surface);
