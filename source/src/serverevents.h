@@ -272,8 +272,9 @@ void processevents(){
 					c.state.lastcut = gamemillis;
 				}
 			}
-			else if(!m_duel && c.state.state == CS_ALIVE && c.state.health < STARTHEALTH && c.state.lastregen + REGENINT < gamemillis){
+			else if(!m_duel && c.state.state == CS_ALIVE && c.state.health < STARTHEALTH && c.state.lastregen + (c.state.perk == PERK_PERSIST ? REGENINT * .7f : REGENINT) < gamemillis){
 				int amt = round(float((STARTHEALTH - c.state.health) / 5 + 15));
+				if(c.state.perk == PERK_PERSIST) amt *= 1.4f;
 				if(amt >= STARTHEALTH - c.state.health){
 					amt = STARTHEALTH - c.state.health;
 					c.state.damagelog.setsize(0);
