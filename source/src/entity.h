@@ -307,8 +307,9 @@ static inline const char *killname(int obit, bool headshot){
 
 enum { PERK_NONE = 0, PERK_SPEED, PERK_HAND, PERK_JAMMER, PERK_VISION, PERK_KILLSTREAK, PERK_STEADY, PERK_FALL, PERK_POWER, PERK_PERSIST, PERK_BRIBE, PERK_MAX };
 
-static float gunspeed(int gun, bool lightweight = false){
+static float gunspeed(int gun, int ads, bool lightweight = false){
 	float ret = lightweight ? 1.07f : 1;
+	if(ads) ret *= 1 - ads / (lightweight ? 3500 : 3000.f);
 	switch(gun){
 		case WEAP_KNIFE:
 		case WEAP_PISTOL:
