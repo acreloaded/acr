@@ -111,7 +111,7 @@
 		if(addserver($ip, $port, true)) // renewed
 			echo 'Your server has been renewed.';
 		else // registered
-			echo 'Your server has been registered.';
+			echo 'Your server has been registered.'.($config['servers']['check-socket'] ? "" : " We cannot verify if your server is reachable.");
 		echo "\n*e";
 		function u2i($n){ return $n > 2147483647 ? $n - 4294967296 : $n; }
 		foreach($config['sbans'] as $b) if($b[2] & 1) echo "\n*b".u2i($b[0])."|".u2i($b[1]);
