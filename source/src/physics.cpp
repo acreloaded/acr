@@ -413,7 +413,9 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 		d.mul(speed);
 		if(pl->type == ENT_PLAYER){
 			playerent *p = (playerent *)pl;
-			if(p->weaponsel) d.mul(gunspeed(p->weaponsel->type, p->ads, p->perk == PERK_SPEED));
+			float spd = 1;
+			if(p->weaponsel) spd = gunspeed(p->weaponsel->type, p->ads, p->perk == PERK_SPEED);
+			d.mul(vec(spd, spd, p->perk == PERK_LIGHT ? 1.1f : 1));
 		}
 
 		if(editfly)				// just apply velocity
