@@ -1,7 +1,7 @@
 
-enum { WEAP_KNIFE = 0, WEAP_PISTOL, WEAP_SHOTGUN, WEAP_SUBGUN, WEAP_SNIPER, WEAP_BOLT, WEAP_ASSAULT, WEAP_GRENADE, WEAP_AKIMBO, WEAP_HEAL, WEAP_WAVE, WEAP_BOW, WEAP_MAX };
-#define reloadable_gun(g) (g != WEAP_KNIFE && g != WEAP_GRENADE)
-#define suppressed_gun(g) (!reloadable_gun(g) || g == WEAP_WAVE)
+enum { WEAP_KNIFE = 0, WEAP_PISTOL, WEAP_SHOTGUN, WEAP_SUBGUN, WEAP_SNIPER, WEAP_BOLT, WEAP_ASSAULT, WEAP_GRENADE, WEAP_AKIMBO, WEAP_HEAL, WEAP_SWORD, WEAP_BOW, WEAP_MAX };
+#define reloadable_gun(g) (g != WEAP_KNIFE && g != WEAP_GRENADE && g != WEAP_SWORD)
+#define suppressed_gun(g) (!reloadable_gun(g))
 #define ads_gun(g) (g != WEAP_KNIFE && g != WEAP_GRENADE && g != WEAP_AKIMBO)
 
 enum { FRAG_NONE = 0, FRAG_GIB = 1 << 0, FRAG_REVENGE = 1 << 1, FRAG_CRITICAL = 1 << 2, FRAG_FIRST = 1 << 3, FRAG_FLAG = 1 << 4,

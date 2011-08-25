@@ -279,8 +279,8 @@ static inline const char *killname(int obit, bool headshot){
 		case WEAP_HEAL:
 			concatstring(k, headshot ? "tranquilized" : "injected");
 			break;
-		case WEAP_WAVE:
-			concatstring(k, headshot ? "disrupted" : "cooked");
+		case WEAP_SWORD:
+			concatstring(k, headshot ? "sliced" : "impaled");
 			break;
 		case WEAP_BOW:
 			concatstring(k, "detonated");
@@ -320,6 +320,9 @@ static float gunspeed(int gun, int ads, bool lightweight = false){
 		case WEAP_AKIMBO:
 			ret *= .99f;
 			break;
+		case WEAP_SWORD:
+			ret *= .98f;
+			break;
 		case WEAP_SHOTGUN:
 			ret *= .97f;
 			break;
@@ -331,7 +334,6 @@ static float gunspeed(int gun, int ads, bool lightweight = false){
 			ret *= .93f;
 			break;
 		case WEAP_ASSAULT:
-		case WEAP_WAVE:
 		case WEAP_BOW:
 			ret *= .9f;
 			break;
