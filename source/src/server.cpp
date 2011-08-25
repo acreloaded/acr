@@ -304,7 +304,7 @@ vector<ban> bans;
 ssqr *maplayout = NULL;
 int maplayout_factor;
 
-const char *gethostname(int i){ valid_client(i) ? valid_client(clients[i]->state.ownernum) ? clients[clients[i]->state.ownernum]->hostname : clients[i]->hostname : "unknown"; }
+const char *gethostname(int i){ return valid_client(i) ? valid_client(clients[i]->state.ownernum) ? clients[clients[i]->state.ownernum]->hostname : clients[i]->hostname : "unknown"; }
 bool hasclient(client *ci, int cn){
 	if(!valid_client(cn)) return false;
 	client *cp = clients[cn];
