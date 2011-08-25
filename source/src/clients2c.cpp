@@ -150,7 +150,7 @@ void parsepositions(ucharbuf &p)
 				d->smoothmillis = lastmillis;
 			}
 			else d->smoothmillis = 0;
-			if(d->state==CS_LAGGED || d->state==CS_SPAWNING) d->state = CS_ALIVE;
+			if(d->state==CS_WAITING || d->state==CS_SPAWNING) d->state = CS_ALIVE;
 			// when playing a demo spectate first player we know about
 			if(player1->isspectating() && player1->spectatemode==SM_NONE) togglespect();
 			extern void clamproll(physent *pl);

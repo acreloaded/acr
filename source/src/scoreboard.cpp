@@ -105,7 +105,7 @@ struct scoreratio{
 void renderscore(void *menu, playerent *d){
 	defformatstring(status)("\f%d", privcolor(d->priv, d->state == CS_DEAD));
 	static color localplayerc(0.2f, 0.2f, 0.2f, 0.2f), damagedplayerc(0.4f, 0.1f, 0.1f, 0.3f);
-	const char *clag = d->state==CS_LAGGED ? "LAG" : colorpj(d->plag), *cping = colorping(d->ping);
+	const char *clag = d->state==CS_WAITING ? "LAG" : colorpj(d->plag), *cping = colorping(d->ping);
 	sline &line = scorelines.add();
 	line.bgcolor = d->lastpain + 500 > lastmillis ? &damagedplayerc : d==player1 ? &localplayerc : NULL;
 	string &s = line.s;

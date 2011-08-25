@@ -349,7 +349,7 @@ enum { TEAM_RED = 0, TEAM_BLUE, TEAM_SPECT, TEAM_NUM };
 #define team_color(t) ((t) == TEAM_RED ? 3 : (t) == TEAM_BLUE ? 1 : 4)
 
 enum { ENT_PLAYER = 0, ENT_BOT, ENT_CAMERA, ENT_BOUNCE };
-enum { CS_ALIVE = 0, CS_DEAD, CS_SPAWNING, CS_LAGGED, CS_EDITING, CS_SPECTATE };
+enum { CS_ALIVE = 0, CS_DEAD, CS_SPAWNING, CS_WAITING, CS_EDITING, CS_SPECTATE };
 enum { PRIV_NONE = 0, PRIV_MASTER, PRIV_ADMIN, PRIV_MAX };
 
 static inline const uchar privcolor(int priv, bool dead = false){

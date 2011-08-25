@@ -262,7 +262,7 @@ void moveotherplayers()
 		if(!lagtime || intermission) continue;
 		else if(lagtime>1000 && d->state==CS_ALIVE)
 		{
-			d->state = CS_LAGGED;
+			d->state = CS_WAITING;
 			continue;
 		}
 		if(d->state==CS_ALIVE || d->state==CS_EDITING)
