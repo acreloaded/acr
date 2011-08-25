@@ -40,7 +40,6 @@
 	if(isset($_GET['cube'])){ // cubescript
 		header('Content-type: text/plain');
 		$ip = getiplong();
-		if(isbanned($ip, 1)) exit("echo You are not authorized to fetch the server list. {$config['contact']}");
 		$srvs = getServers();
 		foreach($srvs as $s){
 			$wt = '';
@@ -115,8 +114,8 @@
 			echo 'Your server has been registered.';
 		echo "\n*e";
 		function u2i($n){ return $n > 2147483647 ? $n - 4294967296 : $n; }
-		foreach($config['sbans'] as $b) if($b[2] & 4) echo "\n*b".u2i($b[0])."|".u2i($b[1]);
-		foreach($config['sallows'] as $b) if($b[2] & 4) echo "\n*a".u2i($b[0])."|".u2i($b[1]);
+		foreach($config['sbans'] as $b) if($b[2] & 1) echo "\n*b".u2i($b[0])."|".u2i($b[1]);
+		foreach($config['sallows'] as $b) if($b[2] & 1) echo "\n*a".u2i($b[0])."|".u2i($b[1]);
 	}
 	elseif(isset($_GET['authreq'])){ // request auth
 		$ip = getiplong();
