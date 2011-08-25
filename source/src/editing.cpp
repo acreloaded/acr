@@ -32,6 +32,7 @@ int lasttype = 0, lasttex = 0;
 sqr rtex;
 
 VARF(editing, 0, 0, 1, editing = editmode ? 1 : 0);
+VARP(editspeed, 1, 2, 10);
 
 void toggleedit(bool force)
 {
