@@ -163,7 +163,7 @@ void renderscores(void *menu, bool init){
 		if(!minutesremaining) concatstring(modeline, ", intermission");
 		else{
 			const int cssec = (gametimemaximum-gametimecurrent-(lastmillis-lastgametimeupdate))/1000;
-			defformatstring(timestr)(", %d:%d remaining", (int)floor(cssec/60.f), cssec%60);
+			defformatstring(timestr)(", %d:%02d remaining", (int)floor(cssec/60.f), cssec%60);
 			concatstring(modeline, timestr);
 		}
 	}

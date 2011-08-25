@@ -990,7 +990,7 @@ void refreshservers(void *menu, bool init)
 					if(si.map[0])
 					{
 						s_strcatf(si.full, "%s, %s", si.map, modestr(si.mode, modeacronyms > 0));
-						if(showmr) s_strcatf(si.full, ", (%d:%d)", (int)floor(si.minremain/60.f), si.minremain%60);
+						if(showmr) s_strcatf(si.full, ", (%d:%02d)", (int)floor(si.minremain/60.f), si.minremain%60);
 					}
 					else s_strcatf(si.full, "empty");
 					s_strcatf(si.full, serverbrowserhideip < 2 ? ": \fs%s%s:%d\fr" : ": ", serverbrowserhideip == 1 ? "\f4" : "", si.name, si.port);
