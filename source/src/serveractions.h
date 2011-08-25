@@ -365,9 +365,9 @@ struct voteinfo
 			else end(veto, true);
 		}
 
-		if(stats[VOTE_YES]/(float)stats[VOTE_NUM] >= action->passratio || (!isdedicated && clients[owner]->type==ST_LOCAL))
+		if(stats[VOTE_YES]/(float)stats[VOTE_NUM] > action->passratio || (!isdedicated && clients[owner]->type==ST_LOCAL))
 			end(VOTE_YES);
-		else if(stats[VOTE_NO]/(float)stats[VOTE_NUM] >= action->passratio)
+		else if(stats[VOTE_NO]/(float)stats[VOTE_NUM] > action->passratio)
 			end(VOTE_NO);
 		else return;
 	}
