@@ -34,7 +34,7 @@
   
   <xs:simpleType name="urlType">
     <xs:restriction base="xs:string">
-      <xs:maxLength value="64">
+      <xs:maxLength value="256">
       </xs:maxLength>
     </xs:restriction>
   </xs:simpleType>
@@ -171,7 +171,7 @@
   <xs:complexType name="exampleType">
     <xs:sequence>
       <xs:element name="code" type="codeType" minOccurs="1" maxOccurs="1"/>
-      <xs:element name="explanation" type="descriptionType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="explanation" type="descriptionType" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
 
