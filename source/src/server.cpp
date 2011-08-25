@@ -2489,6 +2489,9 @@ void setpriv(int cl, int priv){
 		sendf(cl, 1, "ri3", N_REQPRIV, cl, priv | 0x40);
 		return;
 	}
+	else if(priv >= PRIV_ADMIN){
+		loopv(clients) if(clients[i]->type != ST_EMPTY && !clients[i]->authpriv && clients[i]->priv == PRIV_MASTER) setpriv(i, PRIV_NONE);
+	}
 	c.priv = priv;
 	sendf(-1, 1, "ri3", N_REQPRIV, cl, c.priv);
 	logline(ACLOG_INFO,"[%s] %s claimed %s status", gethostname(cl), c.name, privname(c.priv));
