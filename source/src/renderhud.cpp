@@ -989,7 +989,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	Texture *perk = getperktex()[p->perk%PERK_MAX];
-	if(perk) quad(perk->id, VIRTW-225-10-180-20, VIRTH - 180 - 10, 180, 0, 0, 1);
+	if(perk) quad(perk->id, VIRTW-225-10-180-30, VIRTH - 180 - 10, 180, 0, 0, 1);
 
 	glDisable(GL_BLEND);
 	glDisable(GL_TEXTURE_2D);
