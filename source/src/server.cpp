@@ -1505,7 +1505,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 			nokills = false;
 		}
 		killpoints(target, actor, gun, style);
-		const float killdist = ts.o == source ? 0 : ts.o.dist(source) / 4;
+		const float killdist = ts.o == source ? 0 : clamp<float>(ts.o.dist(source) / 4, -1, 1000);
 		sendf(-1, 1, "ri8vf", N_KILL, target->clientnum, actor->clientnum, actor->state.frags, gun, style & FRAG_VALID, int(damage * (gib ? GIBBLOODMUL : 1)),
 			ts.damagelog.length(), ts.damagelog.length(), ts.damagelog.getbuf(), killdist);
 		if(suic && (m_htf || m_ktf) && targethasflag >= 0){
