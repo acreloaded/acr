@@ -2009,7 +2009,7 @@ void shuffleteams(int ftr = FTR_AUTOTEAM){
 	int team, sums = calcscores();
 	if(gamemillis < 2 * 60 *1000){ // random
 		int teamsize[2] = {0, 0};
-		loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->team != TEAM_SPECT){
+		loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->team < 2){
 			sums += rnd(1000);
 			team = sums & 1;
 			if(teamsize[team] >= numplayers/2) team = team_opposite(team);
@@ -2022,7 +2022,7 @@ void shuffleteams(int ftr = FTR_AUTOTEAM){
 		shuffle.shrink(0);
 		sums /= 4 * numplayers + 2;
 		team = rnd(2);
-		loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->team != TEAM_SPECT) { clients[i]->at3_score += rnd(sums | 1); shuffle.add(i); }
+		loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->team < 2) { clients[i]->at3_score += rnd(sums | 1); shuffle.add(i); }
 		shuffle.sort(cmpscore);
 		loopi(shuffle.length()){
 			updateclientteam(shuffle[i], team, ftr);
@@ -2131,7 +2131,7 @@ bool refillteams(bool now, int ftr){ // force only minimal amounts of players
     loopv(clients) if(clients[i]->type!=ST_EMPTY){ // playerlist stocktaking
         client *c = clients[i];
         c->at3_dontmove = true;
-        if(c->connected && c->team != TEAM_SPECT){
+        if(c->connected && c->team < 2){
 			teamsize[c->team]++;
 			teamscore[c->team] += c->at3_score;
 			if(clienthasflag(i) < 0) {
@@ -3115,8 +3115,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(cl->team == t) break;
 				
 				if(m_team && cl->priv < PRIV_ADMIN && t != TEAM_SPECT){
-					int teamsizes[TEAM_NUM];
-					loopv(clients) if(i != sender && clients[i]->type!=ST_EMPTY && clients[i]->connected && clients[i]->isonrightmap && clients[i]->team != TEAM_SPECT)
+					int teamsizes[2] = {0};
+					loopv(clients) if(i != sender && clients[i]->type!=ST_EMPTY && clients[i]->connected && clients[i]->isonrightmap && clients[i]->team < 2)
 						teamsizes[clients[i]->team]++;
 					if(teamsizes[t] > teamsizes[team_opposite(t)]){
 						sendf(sender, 1, "ri2", N_SWITCHTEAM, t);
