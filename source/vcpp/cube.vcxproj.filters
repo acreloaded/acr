@@ -432,4 +432,7 @@
       <Filter>bot</Filter>
     </CustomBuildStep>
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="cube.rc" />
+  </ItemGroup>
 </Project>
