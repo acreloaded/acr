@@ -1,0 +1,19 @@
+All files without a licence are assumed to be public domain.
+
+The following will be replaced upon complaint from their copyright owners:
+audio/music/ac.ogg - © 2005 Dietmar "DCP" Pier
+misc/ - makkE
+	blood.png
+	bullethole.png
+	chars.png
+	chars_new.png
+	scorch.png
+	teams.png (is this even used?)
+misc/ - Infinity Ward
+	eventicons*
+	obit*
+	perks
+	waypoints (except knife.png)
+	damagedir.png
+models/mapmodels/laptop1 - © 2004 JCDPC
+models/playermodels (models only, no skins) - HitmanDaz[MT] (Darren Pattenden)
