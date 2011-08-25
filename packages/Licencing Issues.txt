@@ -13,7 +13,8 @@ misc/ - Infinity Ward
 	eventicons*
 	obit*
 	perks
-	waypoints (except knife.png)
+	waypoints* (except knife.png)
 	damagedir.png
+	*only portions of it
 models/mapmodels/laptop1 - © 2004 JCDPC
 models/playermodels (models only, no skins) - HitmanDaz[MT] (Darren Pattenden)
