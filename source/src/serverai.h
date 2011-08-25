@@ -1,6 +1,5 @@
 // ai (bots)
 int findaiclient(int exclude = -1){ // person with least bots
-	//return -1; // disable adding bots
 	int cn = -1, bots = MAXBOTS;
 	loopv(clients){
 		client *c = clients[i];
@@ -16,7 +15,6 @@ int findaiclient(int exclude = -1){ // person with least bots
 }
 
 bool addai(){
-	if(!(m_osok || m_lss || m_pistol)) return false;
 	int aiowner = findaiclient(), cn = -1, numbots = 0;
 	if(!valid_client(aiowner)) return false;
 	loopv(clients){
@@ -68,6 +66,7 @@ int countplayers(){
 }
 
 void checkai(){
+	if(!(m_osok || m_lss || m_pistol)) return clearai();
 	int balance = 0;
 	const int people = numclients();
 	if(people) switch(botbalance){
