@@ -443,7 +443,7 @@ void drawradar(playerent *p, int w, int h)
 
 	drawradarent(p->o, coordtrans, p->yaw, p->state!=CS_DEAD ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), p->perk == PERK_JAMMER ? .35f : 1, "\f1%s", colorname(p)); // local player
 
-	bool hasradar = false;
+	bool hasradar = isteam(p, player1) ? player1->radarearned > totalmillis : false;
 	if(m_team) loopv(players) if(players[i] && players[i]->team == p->team && players[i]->radarearned > totalmillis) { hasradar = true; break; }
 	loopv(players) // other players
 	{
