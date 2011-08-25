@@ -1,9 +1,5 @@
-Good ideas (1.1 implements these):
-	* better ranking system
-	* advanced GUI (key binding, inv mouse)
-	* separation of bot code
-	* kick/ban reason
+Good ideas (1.1 implements some of these):
+	* better bot code
 	* language add-ons, unicode support
 	* maxkills/maxflags
-	* better "game ended" msg
-	* sound sceduling
+	* sound scheduling

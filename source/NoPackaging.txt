@@ -1,1 +1,0 @@
-It's portable; just zip, gzip, tarball or lzip it.
