@@ -2041,7 +2041,7 @@ bool balanceteams(int ftr)  // pro vs noobs never more
 
     loopv(clients) if(clients[i]->type!=ST_EMPTY){
         client *c = clients[i];
-        if(c->connected){
+        if(c->connected && c->team < 2){
             int time = servmillis - c->connectmillis + 5000;
             if ( time > gamemillis ) time = gamemillis + 5000;
             tsize[c->team]++;
