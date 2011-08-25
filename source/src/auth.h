@@ -15,7 +15,7 @@ bool reqauth(int cn, int authtoken){
 	authrequest &r = authrequests.add();
 	r.id = cl.authreq = nextauthreq++;
 	r.answer = false;
-	logline(ACLOG_INFO, "[%s] requests auth #%d", cl.hostname, r.id);
+	logline(ACLOG_INFO, "[%s] requests auth #%d", gethostname(cn), r.id);
 	sendf(cn, 1, "ri2", N_AUTHCHAL, 0);
 	return true;
 }
@@ -25,7 +25,7 @@ int allowconnect(client &ci, const char *pwd = "", int authreq = 0){
 	//if(!m_valid(smode)) return DISC_PRIVATE;
 	if(ci.priv >= PRIV_ADMIN) return DISC_NONE;
 	if(authreq && reqauth(ci.clientnum, authreq)){
-		logline(ACLOG_INFO, "[%s] %s logged in requesting auth", ci.hostname, ci.name);
+		logline(ACLOG_INFO, "[%s] %s logged in requesting auth", gethostname(ci.clientnum), ci.name);
 		return DISC_NONE;
 	}
 	// nickname list
@@ -34,11 +34,11 @@ int allowconnect(client &ci, const char *pwd = "", int authreq = 0){
 	if(wl == NWL_UNLISTED) bl = nbl.checknickblacklist(ci.name);
 	if(wl == NWL_IPFAIL || wl == NWL_PWDFAIL)
 	{ // nickname matches whitelist, but IP is not in the required range or PWD doesn't match
-		logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong %s", ci.hostname, ci.name, wl == NWL_IPFAIL ? "IP" : "PWD");
+		logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong %s", gethostname(ci.clientnum), ci.name, wl == NWL_IPFAIL ? "IP" : "PWD");
 		return DISC_PASSWORD;
 	}
 	else if(bl > 0){ // nickname matches blacklist
-		logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d", ci.hostname, ci.name, bl);
+		logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d", gethostname(ci.clientnum), ci.name, bl);
 		return DISC_NAME;
 	}
 	const bool banned = isbanned(ci.clientnum);
@@ -49,19 +49,19 @@ int allowconnect(client &ci, const char *pwd = "", int authreq = 0){
 		bool banremoved = false;
 		if(pd.priv) setpriv(ci.clientnum, pd.priv);
 		if(banned) loopv(bans) if(bans[i].host == ci.peer->address.host) { banremoved = true; bans.remove(i); break; } // remove admin bans
-		logline(ACLOG_INFO, "[%s] %s logged in using the password in line %d%s%s", ci.hostname, ci.name, pd.line, wlp, banremoved ? ", (ban removed)" : "");
+		logline(ACLOG_INFO, "[%s] %s logged in using the password in line %d%s%s", gethostname(ci.clientnum), ci.name, pd.line, wlp, banremoved ? ", (ban removed)" : "");
 		return DISC_NONE;
 	}
 	if(scl.serverpassword[0] && !(srvprivate || srvfull || banned)){ // server password required
 		if(!strcmp(genpwdhash(ci.name, scl.serverpassword, ci.salt), pwd)){
-			logline(ACLOG_INFO, "[%s] %s logged in using the server password%s", ci.hostname, ci.name, wlp);
+			logline(ACLOG_INFO, "[%s] %s logged in using the server password%s", gethostname(ci.clientnum), ci.name, wlp);
 		}
 		else return DISC_PASSWORD;
 	}
 	if(srvprivate) return DISC_PRIVATE;
 	if(srvfull) return DISC_FULL;
 	if(banned) return DISC_REFUSE;
-	logline(ACLOG_INFO, "[%s] %s logged in (default)%s", ci.hostname, ci.name, wlp);
+	logline(ACLOG_INFO, "[%s] %s logged in (default)%s", gethostname(ci.clientnum), ci.name, wlp);
 	return DISC_NONE;
 }
 
@@ -77,7 +77,7 @@ void authsuceeded(uint id, char priv, char *name){
 	client *c = findauth(id);
 	if(!c) return;
 	c->authreq = 0;
-	logline(ACLOG_INFO, "[%s] auth #%d suceeded for %s as '%s'", c->hostname, id, privname(priv), name);
+	logline(ACLOG_INFO, "[%s] auth #%d suceeded for %s as '%s'", gethostname(c->clientnum), id, privname(priv), name);
 	sendf(-1, 1, "ri3s", N_AUTHCHAL, 5, c->clientnum, name);
 	if(priv) setpriv(c->clientnum, c->authpriv = clamp<char>(priv, PRIV_MASTER, PRIV_MAX));
 	loopv(bans) if(bans[i].host == c->peer->address.host) bans.remove(i); // deban
@@ -88,7 +88,7 @@ void authfail(uint id, bool disconnect){
 	client *c = findauth(id);
 	if(!c) return;
 	c->authreq = 0;
-	logline(ACLOG_INFO, "[%s] auth #%d failed!", c->hostname, id);
+	logline(ACLOG_INFO, "[%s] auth #%d failed!", gethostname(c->clientnum), id);
 	if(disconnect) disconnect_client(c->clientnum, DISC_LOGINFAIL);
 	else{
 		sendf(c->clientnum, 1, "ri2", N_AUTHCHAL, 3);
@@ -127,5 +127,5 @@ void logversion(client &ci, int clientversion, int defs){
 	if(defs & 0x20) concatstring(cdefs, "M");
 	if(defs & 0x8) concatstring(cdefs, "D");
 	if(defs & 0x4) concatstring(cdefs, "L");
-	logline(ACLOG_INFO, "[%s] %s runs %d [%s]", ci.hostname, ci.name, clientversion, cdefs);
+	logline(ACLOG_INFO, "[%s] %s runs %d [%s]", gethostname(ci.clientnum), ci.name, clientversion, cdefs);
 }
