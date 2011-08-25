@@ -3187,7 +3187,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if((cp.state.state!=CS_ALIVE && cp.state.state!=CS_DEAD) || ls!=cp.state.lifesequence || cp.state.lastspawn<0 || gunselect<0 || gunselect>=WEAP_MAX) break;
 				cp.state.lastspawn = -1;
 				cp.state.spawnmillis = gamemillis;
-				cp.state.state = CS_WAITING;
+				cp.state.state = CS_SPAWNING;
 				cp.state.gunselect = gunselect;
 				QUEUE_BUF(5*(7 + 2*WEAP_MAX),
 				{
@@ -3525,7 +3525,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(!valid_client(cn)) break;
 				client &cp = *clients[cn];
 				clientstate &cs = cp.state;
-				if(cs.state == CS_WAITING) cs.state = CS_ALIVE;
+				if(cs.state == CS_SPAWNING) cs.state = CS_ALIVE;
 				if((cs.state!=CS_ALIVE && cs.state!=CS_EDITING) || seqcolor!=(cs.lifesequence&1) || !broadcast) break;
 				// store location
 				cs.lasto = cs.o;
