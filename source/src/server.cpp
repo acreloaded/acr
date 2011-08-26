@@ -1413,15 +1413,21 @@ float sraycube(const vec &o, const vec &ray, vec *surface = NULL){ // server cou
 		float floor = getblockfloor(mapid), ceil = getblockceil(mapid);
 		if(s.type == SOLID || v.z < floor || v.z > ceil){
 			if((!dx && !dy) || s.wtex==DEFAULT_SKY || (s.type != SOLID && v.z > ceil && s.ctex==DEFAULT_SKY)) return dist;
-			if(surface && s.type != CORNER){// && s->type!=FHF && s->type!=CHF)
-				if(dx<dy) surface->x = ray.x>0 ? -1 : 1;
-				else surface->y = ray.y>0 ? -1 : 1;
-				ssqr n = maplayout[getmaplayoutid(x+surface->x, y+surface->y)];
-				if(n.type == SOLID || (v.z < floor && v.z < n.floor) || (v.z > ceil && v.z > n.ceil)){
-					*surface = dx<dy ? vec(0, ray.y>0 ? -1 : 1, 0) : vec(ray.x>0 ? -1 : 1, 0, 0);
-					n = maplayout[getmaplayoutid(x+surface->x, y+surface->y)];
-					if(n.type == SOLID || (v.z < floor && v.z < n.floor) || (v.z > ceil && v.z > n.ceil))
-						*surface = vec(0, 0, ray.z>0 ? -1 : 1);
+			if(surface){
+				if(s.type == CORNER){
+					surface->x = ray.x>0 ? -.7071f : .7071f;
+					surface->y = ray.y>0 ? -.7071f : .7071f;
+				}
+				else{ // make one for heightfields?
+					if(dx<dy) surface->x = ray.x>0 ? -1 : 1;
+					else surface->y = ray.y>0 ? -1 : 1;
+					ssqr n = maplayout[getmaplayoutid(x+surface->x, y+surface->y)];
+					if(n.type == SOLID || (v.z < floor && v.z < n.floor) || (v.z > ceil && v.z > n.ceil)){
+						*surface = dx<dy ? vec(0, ray.y>0 ? -1 : 1, 0) : vec(ray.x>0 ? -1 : 1, 0, 0);
+						n = maplayout[getmaplayoutid(x+surface->x, y+surface->y)];
+						if(n.type == SOLID || (v.z < floor && v.z < n.floor) || (v.z > ceil && v.z > n.ceil))
+							*surface = vec(0, 0, ray.z>0 ? -1 : 1);
+					}
 				}
 			}
 			dist = max(dist-0.1f, 0.0f);

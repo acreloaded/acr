@@ -26,8 +26,11 @@ float raycube(const vec &o, const vec &ray, vec &surface)
 		if(SOLID(s) || v.z < floor || v.z > ceil)
 		{
 			if((!dx && !dy) || s->wtex==DEFAULT_SKY || (!SOLID(s) && v.z > ceil && s->ctex==DEFAULT_SKY)) return dist;
-			if(s->type!=CORNER)// && s->type!=FHF && s->type!=CHF)
-			{
+			if(s->type==CORNER){
+				surface.x = ray.x>0 ? -.7071f : .7071f;
+				surface.y = ray.y>0 ? -.7071f : .7071f;
+			}
+			else{ // make one for heightfields?
 				if(dx<dy) surface.x = ray.x>0 ? -1 : 1;
 				else surface.y = ray.y>0 ? -1 : 1;
 				sqr *n = S(x+(int)surface.x, y+(int)surface.y);
