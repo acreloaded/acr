@@ -4455,7 +4455,7 @@ int main(int argc, char **argv){
 }
 #endif
 
-inline const int toobit(int weap, int style){
+inline const int toobit(int weap, int style){ // moved here to lower enum warnings
 	const bool gib = (style & FRAG_GIB) > 0,
 				flag = (style & FRAG_FLAG) > 0;
 	switch(weap){
