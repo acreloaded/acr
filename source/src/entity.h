@@ -235,15 +235,7 @@ static inline const bool isheadshot(int weapon, int style){
 	return true;
 }
 
-static inline const int toobit(int weap, int style){
-	const bool gib = (style & FRAG_GIB) > 0,
-				flag = (style & FRAG_FLAG) > 0;
-	switch(weap){
-		case WEAP_KNIFE: return gib ? WEAP_KNIFE : flag ? OBIT_KNIFE_IMPACT : OBIT_KNIFE_BLEED;
-		case WEAP_BOW: return gib ? flag ? OBIT_BOW_STUCK : WEAP_BOW : OBIT_BOW_IMPACT;
-	}
-	return weap < WEAP_MAX ? weap : OBIT_DEATH;
-}
+extern const int toobit(int weap, int style);
 
 static inline const char *killname(int obit, bool headshot){
 	static string k;
