@@ -51,7 +51,7 @@ extern int verbose;
 
 #include "protos.h"				// external function decls
 
-#define AC_VERSION 2140
+#define AC_VERSION 2200
 #define AC_MASTER_URI "cdn.assaultcubes.tk/ms/"
 
 #endif
