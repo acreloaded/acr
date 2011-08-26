@@ -1432,7 +1432,7 @@ float sraycube(const vec &o, const vec &ray, vec *surface = NULL){ // server cou
 		dz = ray.z ? ((ray.z > 0 ? ceil : floor) - v.z)/ray.z : 1e16f;
 		if(dz < dx && dz < dy)
 		{
-			if(surface && s.ctex!=DEFAULT_SKY && ((s.type!=FHF && s.type!=CHF) ||
+			if(surface && (s.ctex!=DEFAULT_SKY || ray.z<0) && ((s.type!=(ray.z>0?CHF:FHF)) ||
 					(maplayout[getmaplayoutid(x, y)].vdelta ==
 					maplayout[getmaplayoutid(x+1, y)].vdelta &&
 					maplayout[getmaplayoutid(x, y)].vdelta ==
