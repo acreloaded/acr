@@ -129,8 +129,11 @@ int shot(client &owner, const vec &from, const vec &to, int weap, vec &surface, 
 	if(!dist && from.dist(to) < 100 && surface.magnitude() && weap != WEAP_KNIFE){ // 25 meters
 		const int penalty = 40 + playershit * 20; // 10 meters plus 5 meters per player
 		vec dir(to), newsurface;
-		loopi(3) surface[i] = 1 - fabs(surface[i]) * 2;
-		dir.sub(from).mul(surface).add(to);
+		dir.sub(from).normalize();
+		// r = i - 2 n (i . n)
+		const float dot = dir.dot(surface);
+		loopi(3) dir[i] = dir[i] - (2 * surface[i] * dot);
+		dir.add(to);
 		straceShot(to, dir, &newsurface);
 		sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, weap, to.x, to.y, to.z, dir.x, dir.y, dir.z);
 		shotdamage += shot(owner, to, dir, weap, newsurface, dist + penalty);
