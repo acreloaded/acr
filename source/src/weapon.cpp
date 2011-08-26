@@ -807,7 +807,7 @@ void gun::attackfx(const vec &from2, const vec &too, int millis){
 	addshotline(owner, from, to, millis & 1);
 	particle_splash(0, 5, 250, to);
 	adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
-	attacksound();
+	if(millis & 1) attacksound();
 }
 
 int gun::modelanim() { return modelattacking() ? ANIM_WEAP_SHOOT|ANIM_LOOP : ANIM_WEAP_IDLE; }
