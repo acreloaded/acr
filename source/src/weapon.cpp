@@ -451,7 +451,7 @@ void weapon::equipplayer(playerent *pl){
 	pl->weapons[WEAP_SUBGUN] = new subgun(pl);
 	pl->weapons[WEAP_AKIMBO] = new akimbo(pl);
 	pl->weapons[WEAP_HEAL] = new heal(pl);
-	pl->weapons[WEAP_WAVE] = new wavegun(pl);
+	pl->weapons[WEAP_SWORD] = new wavegun(pl);
 	pl->weapons[WEAP_BOW] = new crossbow(pl);
 	pl->selectweapon(WEAP_ASSAULT);
 	pl->setprimary(WEAP_ASSAULT);
@@ -861,7 +861,7 @@ bool subgun::selectable() { return weapon::selectable() && !m_noprimary && this 
 
 // wavegun
 
-wavegun::wavegun(playerent *owner) : gun(owner, WEAP_WAVE) {}
+wavegun::wavegun(playerent *owner) : gun(owner, WEAP_SWORD) {}
 bool wavegun::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 
 void wavegun::attackfx(const vec &from2, const vec &to, int millis){

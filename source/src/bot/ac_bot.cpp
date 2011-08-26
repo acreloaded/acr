@@ -24,19 +24,18 @@ extern void spawnstate(playerent *d);
 void CACBot::Spawn()
 {
 	 // Init all bot variabeles
-	int nextweap = WEAP_ASSAULT;
-	switch(rnd(8)){
-		case 0: nextweap = WEAP_SHOTGUN; break;
-		case 1: nextweap = WEAP_SUBGUN; break;
-		case 2: nextweap = WEAP_SNIPER; break;
-		case 3: nextweap = WEAP_BOLT; break;
-		case 4: nextweap = WEAP_ASSAULT; break;
-		case 5: nextweap = WEAP_HEAL; break;
-		case 6: nextweap = WEAP_WAVE; break;
-		case 7: nextweap = WEAP_BOW; break;
-	}
-	 m_pMyEnt->nextprimary = nextweap;
-	 addmsg(N_LOADOUT, "ri3", m_pMyEnt->clientnum, nextweap, m_osok ? PERK_STEADY : PERK_NONE);
+	const int weaps[] = {
+		WEAP_SHOTGUN,
+		WEAP_SUBGUN,
+		WEAP_SNIPER,
+		WEAP_BOLT,
+		WEAP_ASSAULT,
+		WEAP_HEAL,
+		WEAP_SWORD,
+		WEAP_BOW
+	};
+	 m_pMyEnt->nextprimary = weaps[rnd(sizeof(weaps)/sizeof(int))];
+	 addmsg(N_LOADOUT, "ri3", m_pMyEnt->clientnum, m_pMyEnt->nextprimary, m_osok ? PERK_STEADY : PERK_NONE);
 	 m_pMyEnt->targetyaw = m_pMyEnt->targetpitch = 0.0f;
 	 m_pMyEnt->pBot = this;
 
