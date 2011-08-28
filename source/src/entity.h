@@ -62,7 +62,7 @@ static itemstat ammostats[] =
 	{1,  1,   3,	S_ITEMAMMO },   // grenade
 	{96, 0,   144,	S_ITEMAKIMBO },  // akimbo
 	{40, 60,  80,	S_ITEMAMMO },   // heal
-	{50, 100, 200,  S_ITEMAMMO }, // wave gun
+	{1,  1,   1,    S_ITEMAMMO }, // sword dummy
 	{2,  3,   5,    S_ITEMAMMO }, // crossbow
 };
 
@@ -111,7 +111,7 @@ struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay,
 static guninfo guns[WEAP_MAX] =
 {
 //	{ modelname;     snd,	  rldsnd,  rldtime, atkdelay,  dmg, rngstart, rngend, rngm,psd,ptt,spr,kick,magsz,mkrot,mkback,rcoil,maxrcl,rca,pushf; auto;}
-	{ "knife",      S_KNIFE,    S_ITEMAMMO,    0,   500,    80,    3,    4,   80,   0,   0,  1,    1,   1,    0,  0,     0,    0,       0, 5,   true },
+	{ "knife",      S_KNIFE,    S_ITEMAMMO,    0,   500,    80,    3,    4,   80,   0,   0,  1,    1,    1,   0,  0,     0,    0,       0, 5,   true },
 	{ "pistol",     S_PISTOL,   S_RPISTOL,  1400,   90,     40,   40,  120,   17,   0,   0, 90,    9,   12,   6,  2,    32,    48,     70, 1,   false},
 	{ "shotgun",    S_SHOTGUN,  S_RSHOTGUN,  750,   200,    10,    4,   16,    4,   0,   0,  1,   12,    7,   9,  5,    60,    80,      5, 2,   false},
 	{ "subgun",     S_SUBGUN,   S_RSUBGUN,  2400,   67,     40,   32,   80,   22,   0,   0, 70,    4,   32,   1,  3,    23,    45,     65, 1,   true },
@@ -121,7 +121,7 @@ static guninfo guns[WEAP_MAX] =
 	{ "grenade",    S_NULL,     S_NULL,     1000,   650,   350,    0,   32,  330,  20,   6,  1,    1,    1,   3,  1,     0,    0,       0, 4,   false},
 	{ "pistol",     S_PISTOL,   S_RAKIMBO,  1400,   80,     40,   45,  160,   17,   0,   0, 56,    8,   24,   6,  2,    28,    48,     70, 2,   true },
 	{ "heal",       S_SUBGUN,   S_NULL,     1200,   100,    20,    4,    8,   10,   0,   0,112,    1,   10,   0,  0,    10,    20,      8, 5,   true },
-	{ "wave",       S_NULL,     S_RASSAULT, 2500,   40,     10,    8,   12,    6,   0,   0,168,    2,   50,   0,  2,    16,    19,    360, 0,   true },
+	{ "sword",      S_NULL,     S_RASSAULT,    0,   400,    90,    4,    7,   90,   0,   0,  1,    1,    1,   0,  2,     0,     0,      0, 0,   true },
 	{ "bow",        S_NULL,     S_RASSAULT, 2000,   120,   300,    0,   24,  290,   0,   0, 84,    3,    1,   3,  1,    48,    64,      0, 4,   false},
 };
 
