@@ -297,7 +297,7 @@ static inline const char *killname(int obit, bool headshot){
 	return k;
 }
 
-enum { PERK_NONE = 0, PERK_SPEED, PERK_HAND, PERK_JAMMER, PERK_VISION, PERK_KILLSTREAK, PERK_STEADY, PERK_LIGHT, PERK_POWER, PERK_PERSIST, PERK_BRIBE, PERK_MAX };
+enum { PERK_NONE = 0, PERK_SPEED, PERK_HAND, PERK_JAMMER, PERK_VISION, PERK_KILLSTREAK, PERK_STEADY, PERK_LIGHT, PERK_POWER, PERK_PERSIST, PERK_BRIBE, PERK_HEALTHY, PERK_MAX };
 
 static float gunspeed(int gun, int ads, bool lightweight = false){
 	float ret = lightweight ? 1.07f : 1;
@@ -597,10 +597,11 @@ struct playerstate
 
 		gunselect = primary;
 
-		if(m_osok) health = /*guns[WEAP_KNIFE].damage + 1*/ 81;
-
 		perk = nextperk;
 		if(perk <= PERK_NONE || perk >= PERK_MAX) perk = rnd(PERK_MAX-1)+1;
+
+		const int healthsets[3] = { /*guns[WEAP_KNIFE].damage + 1*/ 81, 100, 120 };
+		health = healthsets[(m_osok ? 0 : 1) + (perk == PERK_HEALTHY ? 1 : 0)];
 	}
 
 	// just subtract damage here, can set death, etc. later in code calling this
