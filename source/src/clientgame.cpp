@@ -562,13 +562,12 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 		pl->damagelog.length(), pl->damagelog.length()==1?"":"s");
 	// assists
 	if(pl->damagelog.length()){
-		playerent *p = NULL;
 		concatstring(predicate, ", assisted by");
 		bool first = true;
 		loopv(pl->damagelog){
-			p = getclient(pl->damagelog.pop());
+			playerent *p = getclient(pl->damagelog.pop());
 			if(!p) continue;
-			p->assists++;
+			++p->assists;
 			formatstring(text)("%s \fs\f%d%s\fr", first ? "" : !pl->damagelog.length() ? " and" : ",", isteam(p, pl) ? 3 : 2, colorname(p));
 			concatstring(predicate, text);
 			first = false;
@@ -593,7 +592,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 	addobit(act, obit, headshot, pl);
 	
 	deathstate(pl);
-	pl->deaths++;
+	++pl->deaths;
 	playsound(S_DIE1+rnd(2), pl);
 }
 
