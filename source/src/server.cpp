@@ -1514,7 +1514,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 			if(valid_client(ts.damagelog[i])) clients[ts.damagelog[i]]->state.assists++;
 			else ts.damagelog.remove(i--);
 		}
-		if(!suic && nokills){
+		if(!suic && nokills && actor->type != ST_AI){
 			style |= FRAG_FIRST;
 			nokills = false;
 		}
