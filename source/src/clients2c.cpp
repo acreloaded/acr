@@ -338,16 +338,16 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			}
 
 			case N_INITAI: // cn team skin owner
-			case N_INITCLIENT: // cn team skin name level
+			case N_INITCLIENT: // cn team skin level name
 			{
 				playerent *d = newclient(getint(p));
 				d->team = getint(p);
 				setskin(d, getint(p));
 				if(type == N_INITCLIENT){ // human
+					d->level = getint(p);
 					getstring(text, p);
 					if(!*text) copystring(text, "unnamed");
 					filtername(d->name, text);
-					d->level = getint(p);
 					conoutf("connected: %s", colorname(d));
 					if(!joining) chatoutf("%s \f0joined \f2the \f1game", colorname(d));
 				}
