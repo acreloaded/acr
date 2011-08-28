@@ -118,7 +118,6 @@ struct heal : gun
 	bool selectable();
 
 	void attackfx(const vec &from, const vec &to, int millis);
-	void attackhit(const vec &o);
 
 	int flashtime() const;
 };
@@ -233,7 +232,6 @@ struct knife : weapon
 	void throwknife(const vec &vel);
 
 	void attackfx(const vec &from, const vec &to, int millis);
-	void attackhit(const vec &o);
 	void renderstats();
 	void renderaimhelp(int teamtype){}
 	void onownerdies();

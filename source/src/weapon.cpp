@@ -1016,10 +1016,6 @@ void heal::attackfx(const vec &from2, const vec &too, int millis){
 	attacksound();
 }
 
-void heal::attackhit(const vec &o){
-	particle_splash(0, 50, 300, o);
-}
-
 vector<cknife> knives;
 
 // knifeent
@@ -1204,9 +1200,6 @@ void knife::attackfx(const vec &from, const vec &to, int millis) {
 		g->_throw(from, to);
 	}
 	else attacksound();
-}
-void knife::attackhit(const vec &o){
-	particle_splash(0, 50, 300, o);
 }
 void knife::renderstats() { draw_textf("%i", 590, 823, ammo); }
 
