@@ -62,7 +62,7 @@ void processevent(client &c, shotevent &e)
 	   wait<gs.gunwait[e.gun] ||
 	   gs.mag[e.gun]<=0)
 		return;
-	if(e.gun!=WEAP_KNIFE) gs.mag[e.gun]--;
+	if(reloadtime(e.gun)) gs.mag[e.gun]--;
 	loopi(WEAP_MAX) if(gs.gunwait[i]) gs.gunwait[i] = max(gs.gunwait[i] - (e.millis-gs.lastshot), 0);
 	gs.lastshot = e.millis;
 	gs.gunwait[e.gun] = attackdelay(e.gun);
