@@ -328,7 +328,7 @@ const int weapon::scopetime = ADSTIME;
 
 int weapon::flashtime() const { return min(max((int)info.attackdelay, 180)/3, 150); }
 
-void weapon::sendshoot(vec &from, vec &to){
+void weapon::sendshoot(vec to){
 	if(owner!=player1 && owner->ownernum!=getclientnum()) return;
 	to.sub(owner->o);
 	addmsg(N_SHOOT, "ri3f3", owner->clientnum, lastmillis, owner->weaponsel->type, to.x, to.y, to.z);
@@ -381,7 +381,7 @@ void weapon::renderstats(){
 	}
 }
 
-void weapon::attackphysics(vec &from, vec &to) // physical fx to the owner
+void weapon::attackphysics(const vec &from, const vec &to) // physical fx to the owner
 {
 	vec unitv;
 	const float dist = to.dist(from, unitv);
@@ -451,7 +451,7 @@ void weapon::equipplayer(playerent *pl){
 	pl->weapons[WEAP_SUBGUN] = new subgun(pl);
 	pl->weapons[WEAP_AKIMBO] = new akimbo(pl);
 	pl->weapons[WEAP_HEAL] = new heal(pl);
-	pl->weapons[WEAP_SWORD] = new wavegun(pl);
+	pl->weapons[WEAP_SWORD] = new sword(pl);
 	pl->weapons[WEAP_BOW] = new crossbow(pl);
 	pl->selectweapon(WEAP_ASSAULT);
 	pl->setprimary(WEAP_ASSAULT);
@@ -760,7 +760,7 @@ bool gun::attack(vec &targ){
 	gunwait = info.attackdelay;
 	mag--;
 
-	sendshoot(from, to);
+	sendshoot(to);
 	return true;
 }
 
@@ -859,18 +859,32 @@ bool shotgun::checkautoreload() {
 subgun::subgun(playerent *owner) : gun(owner, WEAP_SUBGUN) {}
 bool subgun::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 
-// wavegun
+// sword
 
-wavegun::wavegun(playerent *owner) : gun(owner, WEAP_SWORD) {}
-bool wavegun::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
+sword::sword(playerent *owner) : weapon(owner, WEAP_SWORD) {}
+bool sword::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 
-void wavegun::attackfx(const vec &from2, const vec &to, int millis){
-	vec from(from2);
-	if(millis & 1) from.z -= WEAPONBELOWEYE;
-	addbullethole(owner, from, to);
-	particle_splash(0, 50, 200, to);
-	//attacksound();
+bool sword::attack(vec &targ){
+	int attackmillis = lastmillis-owner->lastaction;
+	if(attackmillis<gunwait) return false;
+	gunwait = reloading = 0;
+
+	if(!owner->attacking) return false;
+	updatelastaction(owner);
+
+	owner->lastattackweapon = this;
+	owner->attacking = info.isauto;
+
+	sendshoot(targ);
+	gunwait = info.attackdelay;
+	return true;
 }
+int sword::modelanim() { return modelattacking() ? ANIM_WEAP_SHOOT : ANIM_WEAP_IDLE; }
+
+void sword::attackfx(const vec &from, const vec &to, int millis) { attacksound(); }
+void sword::renderstats() {}
+
+int sword::flashtime() const { return 0; }
 
 // crossbow
 
@@ -1125,18 +1139,7 @@ bool knife::attack(vec &targ){
 	owner->lastattackweapon = this;
 	owner->attacking = info.isauto;
 
-	vec from = owner->o;
-	vec to = targ;
-	from.z -= WEAPONBELOWEYE;
-
-	vec unitv;
-	float dist = to.dist(from, unitv);
-	unitv.div(dist);
-	unitv.mul(guns[WEAP_KNIFE].endrange);
-	to = from;
-	to.add(unitv);
-
-	sendshoot(from, to);
+	sendshoot(targ);
 	gunwait = info.attackdelay;
 	return true;
 }

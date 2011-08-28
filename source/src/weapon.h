@@ -31,7 +31,7 @@ struct weapon
 
 	virtual bool attack(vec &targ) = 0;
 	virtual void attackfx(const vec &from, const vec &to, int millis) = 0;
-	virtual void attackphysics(vec &from, vec &to);
+	virtual void attackphysics(const vec &from, const vec &to);
 	virtual void attackhit(const vec &o);
 	virtual void attacksound();
 	virtual bool reload();
@@ -52,7 +52,7 @@ struct weapon
 	virtual void onownerdies() {}
 	virtual void removebounceent(bounceent *b) {}
 
-	void sendshoot(vec &from, vec &to);
+	void sendshoot(vec to);
 	bool modelattacking();
 	void renderhudmodel(int lastaction, bool flip = false);
 
@@ -123,13 +123,19 @@ struct heal : gun
 	int flashtime() const;
 };
 
-struct wavegun : gun
+struct sword : weapon
 {
-	wavegun(playerent *owner);
+    sword(playerent *owner);
+
 	bool selectable();
 
-	virtual void attackfx(const vec &from, const vec &to, int millis);
-	void attackshell(const vec &to){};
+    bool attack(vec &targ);
+    int modelanim();
+
+    void attackfx(const vec &from, const vec &to, int millis);
+    void renderstats();
+
+    int flashtime() const;
 };
 
 struct crossbow : gun
