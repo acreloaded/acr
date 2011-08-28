@@ -1558,6 +1558,11 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 	}
 }
 
+void cheat(client *cl, const char *reason = "unknown"){
+	logline(ACLOG_INFO, "[%s] %s cheat detected (%s)", gethostname(cl->clientnum), cl->name, reason);
+	if(cl->state.state != CS_DEAD) serverdamage(cl, cl, 2000, WEAP_MAX+5, FRAG_GIB, cl->state.o);
+}
+
 #include "serverevents.h"
 
 #define CONFIG_MAXPAR 6
@@ -3396,9 +3401,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			{
 				bool editing = getint(p) != 0;
 				if(!m_edit && cl->type == ST_TCPIP){ // unacceptable
-					if(cl->state.state == CS_DEAD) break;
-					logline(ACLOG_INFO, "[%s] %s tried editmode", gethostname(sender), cl->name);
-					serverdamage(cl, cl, 2000, WEAP_MAX+5, FRAG_GIB, cl->state.o);
+					cheat(cl, "tried editmode");
 					break;
 				}
 				if(cl->state.state != (editing ? CS_ALIVE : CS_EDITING)) break;
