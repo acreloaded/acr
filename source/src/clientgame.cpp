@@ -574,6 +574,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 			first = false;
 		}
 	}
+	if(style & FRAG_FIRST) concatstring(predicate, " for \f3\fbfirst blood");
 	conoutf("%s %s", subject, predicate);
 	pl->killstreak = act->deathstreak = 0;
 	
