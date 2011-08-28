@@ -518,6 +518,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 	bool headshot = isheadshot(weapon, style);
 	int obit = OBIT_DEATH;
 	string subject, predicate, hashave, text;
+	*subject = *predicate = *hashave = *text = 0;
 	formatstring(subject)("\f2\fs%s\f2", act == player1 ? "\f1you" : colorname(act));
 	copystring(hashave, act == player1 ? "have" : "has");
 	if(pl == act){
