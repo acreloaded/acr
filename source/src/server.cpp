@@ -41,7 +41,12 @@ static const int DEATHMILLIS = 300;
 enum { GE_NONE = 0, GE_SHOT, GE_PROJ, GE_AKIMBO, GE_RELOAD };
 enum { ST_EMPTY, ST_LOCAL, ST_TCPIP, ST_AI };
 
-int mastermode = MM_OPEN, botbalance = -1;
+int mastermode = MM_OPEN;
+#ifdef STANDALONE
+int botbalance = -1;
+#else
+int botbalance = 0;
+#endif
 
 // allows the gamemode macros to work with the server mode
 #define gamemode smode
