@@ -248,7 +248,8 @@ void drawequipicons(playerent *p)
 		else if(p->nextweaponsel && p->nextweaponsel->type != WEAP_GRENADE) c = p->nextweaponsel->type;
 		else c = 14; // unknown = HP symbol
 	}
-	else if(c == WEAP_AKIMBO) c = WEAP_PISTOL; // same icon for akimbo & pistol
+	if(c == WEAP_AKIMBO) c = WEAP_PISTOL; // same icon for akimbo & pistol
+	else if(c == WEAP_SWORD) c = WEAP_BOLT; // sword = bolt's death symbol
 	switch(c){
 		case WEAP_KNIFE: case WEAP_PISTOL: default: break; // aligned properly
 		case WEAP_SHOTGUN: c = 3; break;
@@ -260,7 +261,7 @@ void drawequipicons(playerent *p)
 	if(c > 3) { c -= 4; r = 1; }
 
 	if(p->weaponsel && p->weaponsel->type>=WEAP_KNIFE && p->weaponsel->type<WEAP_MAX)
-		drawequipicon(1020, 1650, c, r, ((!p->weaponsel->ammo || p->weaponsel->mag < magsize(p->weaponsel->type) / 3) && p->weaponsel->type != WEAP_KNIFE && p->weaponsel->type != WEAP_GRENADE) ? 1 : 0);
+		drawequipicon(1020, 1650, c, r, ((!p->weaponsel->ammo || p->weaponsel->mag < magsize(p->weaponsel->type) / 3) && p->weaponsel->type != WEAP_KNIFE && p->weaponsel->type != WEAP_GRENADE && p->weaponsel->type != WEAP_SWORD) ? 1 : 0);
 	glEnable(GL_BLEND);
 }
 
