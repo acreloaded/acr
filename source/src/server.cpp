@@ -1503,8 +1503,8 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 		}
 		++actor->state.killstreak;
 		++ts.deathstreak;
-		actor->state.deathstreak = ts.killstreak = ts.lastcut = 0;
-		ts.cutter = -1;
+		actor->state.deathstreak = ts.killstreak = ts.lastbleed = 0;
+		ts.lastbleedowner = -1;
 		ts.damagelog.removeobj(target->clientnum);
 		ts.damagelog.removeobj(actor->clientnum);
 		target->removetimers(GE_RELOAD);

@@ -113,12 +113,12 @@ int shot(client &owner, const vec &from, const vec &to, int weap, vec &surface, 
 			style |= FRAG_CRITICAL;
 			damage *= 2.5f;
 		}
-		if(weap != WEAP_KNIFE) sendhit(owner, weap, end.v);
+		if(weap != WEAP_KNIFE && weap != WEAP_SWORD) sendhit(owner, weap, end.v);
 		else{
 			if(hitzone == HIT_HEAD) style |= FRAG_FLAG;
 			if(!isteam((&owner), (&t))){
-				ts.cutter = owner.clientnum;
-				ts.lastcut = gamemillis;
+				ts.lastbleed = gamemillis;
+				ts.lastbleedowner = owner.clientnum;
 				sendf(-1, 1, "ri2", N_BLEED, i);
 			}
 		}

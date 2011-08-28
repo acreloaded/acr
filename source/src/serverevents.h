@@ -263,13 +263,13 @@ void processevents(){
 		client &c = *clients[i];
 		if(c.type==ST_EMPTY) continue;
 		if(c.state.state == CS_ALIVE){ // can't regen or bleed if dead
-			if(c.state.lastcut){ // bleeding; oh no!
-				if(c.state.lastcut + 500 < gamemillis && valid_client(c.state.cutter)){
-					const int bleeddmg = clients[c.state.cutter]->state.perk == PERK_PERSIST ? 15 : 10;
+			if(c.state.lastbleed){ // bleeding; oh no!
+				if(c.state.lastbleed + 500 < gamemillis && valid_client(c.state.lastbleedowner)){
+					const int bleeddmg = clients[c.state.lastbleedowner]->state.perk == PERK_PERSIST ? 15 : 10;
 					c.state.damage += bleeddmg;
 					c.state.shotdamage += bleeddmg;
-					serverdamage(&c, clients[c.state.cutter], bleeddmg, WEAP_KNIFE, FRAG_NONE, clients[c.state.cutter]->state.o);
-					c.state.lastcut = gamemillis;
+					serverdamage(&c, clients[c.state.lastbleedowner], bleeddmg, WEAP_KNIFE, FRAG_NONE, clients[c.state.lastbleedowner]->state.o);
+					c.state.lastbleed = gamemillis;
 				}
 			}
 			else if(!m_duel && c.state.state == CS_ALIVE && c.state.health < STARTHEALTH && c.state.lastregen + (c.state.perk == PERK_PERSIST ? REGENINT * .7f : REGENINT) < gamemillis){
