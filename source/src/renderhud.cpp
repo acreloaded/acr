@@ -14,7 +14,7 @@ void drawequipicon(float x, float y, int col, int row, int pulse, playerent *p =
 	if(tex)
 	{
 		glEnable(GL_BLEND);
-		float antiblue = (pulse&2) && p ? (lastmillis-p->lastregen)/1000.f : 1.f;
+		float antiblue = (pulse&2) && p && p->lastregen ? (lastmillis-p->lastregen)/1000.f : 1.f;
 		glColor4f(antiblue, antiblue, antiblue*2, (pulse&1) ? (0.2f+(sinf(lastmillis/100.0f)+1.0f)/2.0f) : 1.f);
 		drawicon(tex, x, y, 120, col, row, 1/4.0f);
 		glDisable(GL_BLEND);
