@@ -165,17 +165,19 @@ enum {
 	OBIT_FF,
 	OBIT_DROWN,
 	OBIT_FALL,
+	OBIT_CHEAT,
 	OBIT_NUM
 };
 
 static inline const int obit_suicide(int weap){
 	if(weap >= 0 && weap <= OBIT_START) return weap;
 	switch(weap - OBIT_START){
-		case 0: return OBIT_DEATH; // death
-		case 1: return OBIT_DROWN; // drown
-		case 2: return OBIT_FALL; // fall
-		case 3: return OBIT_FF; // ff
-		case 4: return OBIT_BOT; // bot
+		case 0: return OBIT_DEATH;
+		case 1: return OBIT_DROWN;
+		case 2: return OBIT_FALL;
+		case 3: return OBIT_FF;
+		case 4: return OBIT_BOT;
+		case 5: return OBIT_CHEAT;
 	}
 	return OBIT_DEATH;
 }
@@ -213,6 +215,9 @@ static inline const char *suicname(int obit){
 			break;
 		case OBIT_FALL:
 			concatstring(k, "failed to fly");
+			break;
+		case OBIT_CHEAT:
+			concatstring(k, "just got punished for cheating");
 			break;
 		default:
 			concatstring(k, "somehow suicided");

@@ -1041,22 +1041,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case N_HACKFAIL:
 			case N_FORCEGIB:
 			case N_FORCEDEATH:
 			{
 				int cn = getint(p);
 				playerent *d = newclient(cn);
 				if(!d) break;
-				if(type != N_FORCEDEATH) addgib(d);
+				if(type == N_FORCEGIB) addgib(d);
 				deathstate(d);
-				if(type == N_HACKFAIL){
-					string editorname;
-					copystring(editorname, d == player1 ? "\fs\f1you\fr" : colorname(d));
-					if(d == gamefocus)
-						hudonlyf("\f3%s %s just been outh4x0rd!", editorname, d == player1 ? "have" : "has");
-					conoutf("\f%d%s paid the ultimate repercussion for cheating!", d == player1 ? 3 : 2, editorname);
-				}
 				break;
 			}
 
