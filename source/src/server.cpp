@@ -1215,19 +1215,23 @@ void arenacheck(){
 	client *alive = NULL;
 	bool dead = false;
 	int lastdeath = 0;
+	bool keepround = false;
 	loopv(clients){
 		client &c = *clients[i];
 		if(c.type==ST_EMPTY || !c.connected || c.team == TEAM_SPECT) continue;
 		if(c.state.state==CS_ALIVE || (c.state.state==CS_DEAD && c.state.lastspawn>=0)){
-			if(!alive){
-				if(c.type != ST_AI) alive = &c;
-			}
-			else if(!m_team || alive->team != c.team) return;
+			if(!alive) alive = &c;
+			else if(!m_team || alive->team != c.team) keepround = true;
 		}
 		else if(c.state.state==CS_DEAD){
 			dead = true;
 			lastdeath = max(lastdeath, c.state.lastdeath);
 		}
+	}
+
+	if(keepround){
+		loopv(clients) if(clients[i]->type != ST_EMPTY && clients[i]->connected && clients[i]->type != ST_AI && clients[i]->state.state == CS_ALIVE) keepround = false;
+		if(!keepround) return; // now endround
 	}
 
 	if(!dead || gamemillis < lastdeath + 500) return;

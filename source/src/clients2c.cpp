@@ -1036,6 +1036,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(!alive) hudoutf("everyone died!");
 				else if(m_team) hudoutf("%s team %s is the victor!", alive->team == player1->team ? "your" : "the enemy", team_string(alive->team));
 				else if(alive==player1) hudoutf("you are the victor!");
+				else if(alive->ownernum >= 0) hudoutf("the bots have won the round!");
 				else hudoutf("%s is the victor!", colorname(alive));
 				arenaintermission = lastmillis;
 				break;
