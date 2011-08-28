@@ -191,7 +191,7 @@ static inline const char *suicname(int obit){
 		case WEAP_BOLT:
 		case WEAP_ASSAULT:
 		case WEAP_AKIMBO:
-			concatstring(k, "mixed with self crossfire");
+			concatstring(k, "ate a bullet");
 			break;
 		case WEAP_GRENADE:
 			concatstring(k, "failed with nades");
