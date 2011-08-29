@@ -17,7 +17,7 @@ int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &remot
 }
 #endif
 
-ENetSocket httpgetsend(ENetAddress &remoteaddress, const char *hostname, const char *req, const char *ref, const char *agent, ENetAddress *localaddress = NULL)
+ENetSocket httpgetsend(ENetAddress &remoteaddress, const char *hostname, const char *req, const char *agent, ENetAddress *localaddress = NULL)
 {
 	if(remoteaddress.host==ENET_HOST_ANY)
 	{
@@ -36,7 +36,7 @@ ENetSocket httpgetsend(ENetAddress &remoteaddress, const char *hostname, const c
 		return ENET_SOCKET_NULL;
 	}
 	ENetBuffer buf;
-	defformatstring(httpget)("GET %s HTTP/1.0\nHost: %s\nReferer: %s\nUser-Agent: %s\n\n", req, hostname, ref, agent);
+	defformatstring(httpget)("GET %s HTTP/1.0\nHost: %s\nUser-Agent: %s\n\n", req, hostname, agent);
 	buf.data = httpget;
 	buf.dataLength = strlen((char *)buf.data);
 	//logline(ACLOG_INFO, "sending request to %s...", hostname);
@@ -100,7 +100,7 @@ void updatemasterserver(int millis, const ENetAddress &localaddr){
 	}
 	if(!*path) return; // no request
 	defformatstring(agent)("AssaultCube Server v%d", AC_VERSION);
-	mssock = httpgetsend(masterserver, masterbase, path, "acse-server", agent, &msaddress);
+	mssock = httpgetsend(masterserver, masterbase, path, agent, &msaddress);
 	masterrep[0] = 0;
 	masterb.data = masterrep;
 	masterb.dataLength = MAXTRANS-1;
@@ -186,7 +186,7 @@ uchar *retrieveservers(uchar *buf, int buflen)
 	defformatstring(path)("%scube", masterpath);
 	defformatstring(agent)("AssaultCube Client %d", AC_VERSION);
 	ENetAddress address = masterserver;
-	ENetSocket sock = httpgetsend(address, masterbase, path, "acse-client", agent);
+	ENetSocket sock = httpgetsend(address, masterbase, path, agent);
 	if(sock==ENET_SOCKET_NULL) return buf;
 	/* only cache this if connection succeeds */
 	masterserver = address;
