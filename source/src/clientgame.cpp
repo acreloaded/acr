@@ -42,6 +42,7 @@ void setskin(playerent *pl, uint skin)
 	pl->skin = skin % (maxskin[pl->team]+1);
 }
 
+/*
 bool duplicatename(playerent *d, char *name = NULL)
 {
 	if(!name) name = d->name;
@@ -50,12 +51,13 @@ bool duplicatename(playerent *d, char *name = NULL)
 	loopv(players) if(players[i] && d!=players[i] && !strcmp(name, players[i]->name)) return true;
 	return false;
 }
+*/
 
 const char *colorname(playerent *d, bool stats)
 {
 	if(!d) return "unknown";
 	static string cname;
-	formatstring(cname)(d->ownernum < 0 ? "%s \fs\f%d(%d)" : "%s \fs\f%d(%d/%d)", d->name, duplicatename(d) ? 7 : 6, d->clientnum, d->ownernum);
+	formatstring(cname)("%s \fs\f%d(%d)", d->name, d->ownernum < 0 ? 7 : 6, d->ownernum < 0 ? d->clientnum : d->ownernum);
 	if(stats){
 		defformatstring(stat)("%d%d", d->health > 50 ? 0 : d->health > 25 ? 2 : d->health > 0 ? 3 : 4, d->health);
 		if(d->armor) formatstring(stat)("%s\f5-\f4%d", stat, d->armor);
