@@ -316,7 +316,7 @@ bool hasclient(client *ci, int cn){
 	return ci->clientnum == cn || cp->state.ownernum == ci->clientnum;
 }
 
-int bsend = 0, brec = 0, laststatus = 0, servmillis = 0, lastfillup = 0;
+int laststatus = 0, servmillis = 0, lastfillup = 0;
 
 void recordpacket(int chan, void *data, int len);
 
@@ -339,7 +339,6 @@ void sendpacket(int n, int chan, ENetPacket *packet, int exclude = -1){
 
 		case ST_TCPIP:
 			enet_peer_send(clients[n]->peer, chan, packet);
-			bsend += (int)packet->dataLength;
 			break;
 
 		case ST_LOCAL:
@@ -4083,12 +4082,12 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 	{
 		laststatus = servmillis;
 		rereadcfgs();
-		if(nonlocalclients || bsend || brec)
+		if(nonlocalclients || serverhost->totalSentData || serverhost->totalReceivedData)
 		{
 			if(nonlocalclients) loggamestatus(NULL);
-			logline(ACLOG_INFO, "Status at %s: %d remote clients, %.1f send, %.1f rec (KB/sec)", timestring(true, "%d-%m-%Y %H:%M:%S"), nonlocalclients, bsend/60.0f/1024, brec/60.0f/1024);
+			logline(ACLOG_INFO, "Status at %s: %d remote clients, %.1f send, %.1f rec (KB/sec)", timestring(true, "%d-%m-%Y %H:%M:%S"), nonlocalclients, serverhost->totalSentData/60.0f/1024, serverhost->totalReceivedData/60.0f/1024);
 		}
-		bsend = brec = 0;
+		serverhost->totalSentData = serverhost->totalReceivedData = 0;
 	}
 
 	ENetEvent event;
@@ -4120,7 +4119,6 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
 			case ENET_EVENT_TYPE_RECEIVE:
 			{
-				brec += (int)event.packet->dataLength;
 				int cn = (int)(size_t)event.peer->data;
 				if(valid_client(cn)) process(event.packet, cn, event.channelID);
 				if(event.packet->referenceCount==0) enet_packet_destroy(event.packet);
