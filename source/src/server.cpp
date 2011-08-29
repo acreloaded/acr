@@ -4158,7 +4158,7 @@ int getpongflags(enet_uint32 ip){
 	flags |= scl.serverpassword[0] ? 1 << PONGFLAG_PASSWORD : 0;
 	loopv(bans) if(bans[i].host == ip) { flags |= 1 << PONGFLAG_BANNED; break; }
 	flags |= checkipblacklist(ip) ? 1 << PONGFLAG_BLACKLIST : 0;
-	flags |= checkmasterbans(ip) ? 1 << PONGFLAG_MBLACKLIST : 0;
+	flags |= checkmasterbans(ip) && !checkmasterallows(ip) ? 1 << PONGFLAG_MBLACKLIST : 0;
 	return flags;
 }
 
