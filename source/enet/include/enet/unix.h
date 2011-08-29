@@ -15,7 +15,7 @@ typedef int ENetSocket;
 
 enum
 {
-	ENET_SOCKET_NULL = -1
+    ENET_SOCKET_NULL = -1
 };
 
 #define ENET_HOST_TO_NET_16(value) (htons (value)) /**< macro that converts host to net byte-order of a 16-bit value */
@@ -26,8 +26,8 @@ enum
 
 typedef struct
 {
-	void * data;
-	size_t dataLength;
+    void * data;
+    size_t dataLength;
 } ENetBuffer;
 
 #define ENET_CALLBACK
@@ -36,10 +36,10 @@ typedef struct
 
 typedef fd_set ENetSocketSet;
 
-#define ENET_SOCKETSET_EMPTY(sockset)		  FD_ZERO (& (sockset))
-#define ENET_SOCKETSET_ADD(sockset, socket)	FD_SET (socket, & (sockset))
+#define ENET_SOCKETSET_EMPTY(sockset)          FD_ZERO (& (sockset))
+#define ENET_SOCKETSET_ADD(sockset, socket)    FD_SET (socket, & (sockset))
 #define ENET_SOCKETSET_REMOVE(sockset, socket) FD_CLEAR (socket, & (sockset))
 #define ENET_SOCKETSET_CHECK(sockset, socket)  FD_ISSET (socket, & (sockset))
-	
+    
 #endif /* __ENET_UNIX_H__ */
 

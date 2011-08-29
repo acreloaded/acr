@@ -1,8 +1,11 @@
-AC_INIT(libenet, 9-15-2008)
-AM_INIT_AUTOMAKE(libenet.a, 9-15-2008)
+AC_INIT([libenet], [1.3.3])
+AC_CONFIG_SRCDIR([include/enet/enet.h])
+AM_INIT_AUTOMAKE([foreign])
+
+AC_CONFIG_MACRO_DIR([m4])
 
 AC_PROG_CC
-AC_PROG_RANLIB
+AC_PROG_LIBTOOL
 
 AC_CHECK_FUNC(gethostbyaddr_r, [AC_DEFINE(HAS_GETHOSTBYADDR_R)])
 AC_CHECK_FUNC(gethostbyname_r, [AC_DEFINE(HAS_GETHOSTBYNAME_R)])
@@ -21,16 +24,6 @@ AC_CHECK_TYPE(socklen_t, [AC_DEFINE(HAS_SOCKLEN_T)], ,
 AC_EGREP_HEADER(MSG_MAXIOVLEN, /usr/include/sys/socket.h, AC_DEFINE(ENET_BUFFER_MAXIMUM, [MSG_MAXIOVLEN]))
 AC_EGREP_HEADER(MSG_MAXIOVLEN, socket.h, AC_DEFINE(ENET_BUFFER_MAXIMUM, [MSG_MAXIOVLEN]))
 
-AC_MSG_CHECKING(whether to use CRC32)
-AC_ARG_ENABLE(crc32,
-    [  --enable-crc32   enable CRC32 packet verification ],
-    [if test "$enableval" = yes; then
-        AC_MSG_RESULT(yes)
-        AC_DEFINE(USE_CRC32)
-     else
-        AC_MSG_RESULT(no)
-     fi],
-    [AC_MSG_RESULT(no)])
-
-AC_OUTPUT([Makefile include/Makefile include/enet/Makefile])
-
+AC_CONFIG_FILES([Makefile
+	libenet.pc])
+AC_OUTPUT

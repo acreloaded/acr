@@ -91,11 +91,11 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
 		address.host = ENET_HOST_BROADCAST;
 	}
 
-	if(!clienthost) clienthost = enet_host_create(NULL, 2, 0, 0);
+	if(!clienthost) clienthost = enet_host_create(NULL, 2, 3, 0, 0);
 
 	if(clienthost)
 	{
-		connpeer = enet_host_connect(clienthost, &address, 3);
+		connpeer = enet_host_connect(clienthost, &address, 3, 0);
 		enet_host_flush(clienthost);
 		connmillis = totalmillis;
 		connattempts = 0;

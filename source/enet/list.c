@@ -3,12 +3,12 @@
  @brief ENet linked list functions
 */
 #define ENET_BUILDING_LIB 1
-#include "enet/list.h"
+#include "enet/enet.h"
 
 /** 
-	@defgroup list ENet linked list utility functions
-	@ingroup private
-	@{
+    @defgroup list ENet linked list utility functions
+    @ingroup private
+    @{
 */
 void
 enet_list_clear (ENetList * list)
@@ -40,6 +40,24 @@ enet_list_remove (ENetListIterator position)
    return position;
 }
 
+ENetListIterator
+enet_list_move (ENetListIterator position, void * dataFirst, void * dataLast)
+{
+   ENetListIterator first = (ENetListIterator) dataFirst,
+                    last = (ENetListIterator) dataLast;
+
+   first -> previous -> next = last -> next;
+   last -> next -> previous = first -> previous;
+
+   first -> previous = position -> previous;
+   last -> next = position;
+
+   first -> previous -> next = first;
+   position -> previous = last;
+    
+   return first;
+}
+
 size_t
 enet_list_size (ENetList * list)
 {
@@ -47,9 +65,9 @@ enet_list_size (ENetList * list)
    ENetListIterator position;
 
    for (position = enet_list_begin (list);
-		position != enet_list_end (list);
-		position = enet_list_next (position))
-	 ++ size;
+        position != enet_list_end (list);
+        position = enet_list_next (position))
+     ++ size;
    
    return size;
 }
