@@ -483,7 +483,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 }
 
 void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, float killdist){
-	if(pl->state!=CS_ALIVE || intermission) return;
+	if(pl->state==CS_DEAD || intermission) return;
 	// damage effect
 	dodamage(damage, pl, act, weapon, style);
 
