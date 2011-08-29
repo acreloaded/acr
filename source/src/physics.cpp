@@ -416,17 +416,18 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 		d.x += (float)(pl->strafe*cosf(RAD*(pl->yaw-180)));
 		d.y += (float)(pl->strafe*sinf(RAD*(pl->yaw-180)));
 
+		if(pl->type == ENT_PLAYER){
+			playerent *p = (playerent *)pl;
+			float spd = 1;
+			if(p->weaponsel) spd = gunspeed(p->weaponsel->type, p->ads, p->perk == PERK_SPEED);
+			pl->vel.mul(vec(spd, spd, p->perk == PERK_LIGHT ? 1.05f : 1));
+		}
+
 		pl->vel.mul(fpsfric-1);   // slowly apply friction and direction to velocity, gives a smooth movement
 		pl->vel.add(d);
 		pl->vel.div(fpsfric);
 		d = pl->vel;
 		d.mul(speed);
-		if(pl->type == ENT_PLAYER){
-			playerent *p = (playerent *)pl;
-			float spd = 1;
-			if(p->weaponsel) spd = gunspeed(p->weaponsel->type, p->ads, p->perk == PERK_SPEED);
-			d.mul(vec(spd, spd, p->perk == PERK_LIGHT ? 1.05f : 1));
-		}
 
 		if(editfly)				// just apply velocity
 		{
