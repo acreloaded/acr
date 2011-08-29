@@ -274,32 +274,35 @@ void serverms(int mode, int numplayers, int timeremain, char *smapname, int mill
 			if(pi.remaining())
 			{
 				int query = getint(pi);
+				putint(po, query);
 				switch(query)
 				{
 					case EXTPING_NAMELIST:
 					{
 						extern void extping_namelist(ucharbuf &p);
-						putint(po, query);
 						extping_namelist(po);
 						break;
 					}
 					case EXTPING_SERVERINFO:
 					{
 						extern void extping_serverinfo(ucharbuf &pi, ucharbuf &po);
-						putint(po, query);
 						extping_serverinfo(pi, po);
 						break;
 					}
 					case EXTPING_MAPROT:
 					{
 						extern void extping_maprot(ucharbuf &po);
-						putint(po, query);
 						extping_maprot(po);
+						break;
+					}
+					case EXTPING_UPLINKSTATS:
+					{
+						extern void extping_uplinkstats(ucharbuf &po);
+                        extping_uplinkstats(po);
 						break;
 					}
 					case EXTPING_NOP:
 					default:
-						putint(po, EXTPING_NOP);
 						break;
 				}
 			}

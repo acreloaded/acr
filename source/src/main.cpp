@@ -601,7 +601,7 @@ int main(int argc, char **argv)
 		ctfmenu = addmenu("ctf score", "score\tflag\tfrag\tassist\tdeath\tratio\tpj\tping\tcn\tlvl\tname", false, renderscores, NULL, false, true);
 		servmenu = addmenu("server", NULL, true, refreshservers, serverskey);
 		searchmenu = addmenu("search", NULL, true, refreshservers, serverskey);
-		serverinfomenu = addmenu("serverinfo", NULL, true, refreshservers, NULL);
+		serverinfomenu = addmenu("serverinfo", NULL, true, refreshservers, serverinfokey);
 		kickmenu = addmenu("kick player", NULL, true, refreshsopmenu);
 		banmenu = addmenu("ban player", NULL, true, refreshsopmenu);
 		forceteammenu = addmenu("force team", NULL, true, refreshsopmenu);

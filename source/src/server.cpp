@@ -236,6 +236,7 @@ struct client				   // server side version of "dynent" type
 	int salt;
 	string pwd;
 	int mapcollisions;
+	enet_uint32 bottomRTT;
 
 	gameevent &addevent()
 	{
@@ -270,7 +271,7 @@ struct client				   // server side version of "dynent" type
 	void reset()
 	{
 		name[0] = demoflags = authmillis = 0;
-		ping = 9999;
+		ping = bottomRTT = 9999;
 		skin = team = 0;
 		position.setsize(0);
 		messages.setsize(0);
@@ -316,7 +317,7 @@ bool hasclient(client *ci, int cn){
 	return ci->clientnum == cn || cp->state.ownernum == ci->clientnum;
 }
 
-int laststatus = 0, servmillis = 0, lastfillup = 0;
+int nextstatus = 0, servmillis = 0, lastfillup = 0;
 
 void recordpacket(int chan, void *data, int len);
 
@@ -1730,7 +1731,7 @@ void addmrange(enet_uint32 start, enet_uint32 end, bool allow){
 
 inline bool checkblacklist(enet_uint32 ip, vector<iprange> &ranges){ // ip: network byte order
 	iprange t;
-	t.lr = ntohl(ip); // blacklist uses host byte order
+	t.lr = ENET_NET_TO_HOST_32(ip); // blacklist uses host byte order
 	t.ur = 0;
 	return ranges.search(&t, cmpipmatch) != NULL;
 }
@@ -1863,7 +1864,7 @@ struct nickblacklist {
 	{
 		if(c.type != ST_TCPIP) return NWL_PASS;
 		iprange ipr;
-		ipr.lr = ntohl(c.peer->address.host); // blacklist uses host byte order
+		ipr.lr = ENET_NET_TO_HOST_32(c.peer->address.host); // blacklist uses host byte order
 		int *idx = whitelist.access(c.name);
 		if(!idx) return NWL_UNLISTED; // no matching entry
 		int i = *idx;
@@ -2238,8 +2239,7 @@ void resetserver(const char *newname, int newmode, int newtime){
 
 	mapreload = false;
 	interm = 0;
-	if(!laststatus) laststatus = servmillis-61*1000;
-	lastfillup = servmillis;
+	nextstatus = servmillis-1;
 	sents.shrink(0);
 	scores.shrink(0);
 	ctfreset();
@@ -4003,6 +4003,70 @@ void loggamestatus(const char *reason){
 	logline(ACLOG_INFO, "");
 }
 
+static unsigned char chokelog[MAXCLIENTS + 1] = { 0 };
+
+void linequalitystats(int elapsed)
+{
+    static unsigned int chokes[MAXCLIENTS + 1] = { 0 }, spent[MAXCLIENTS + 1] = { 0 }, chokes_raw[MAXCLIENTS + 1] = { 0 }, spent_raw[MAXCLIENTS + 1] = { 0 };
+    if(elapsed)
+    { // collect data
+        int c1 = 0, c2 = 0, r1 = 0, numc = 0;
+        loopv(clients)
+        {
+            client &c = *clients[i];
+            if(c.type != ST_TCPIP) continue;
+            numc++;
+            enet_uint32 &rtt = c.peer->lastRoundTripTime, &throttle = c.peer->packetThrottle;
+            if(rtt < c.bottomRTT + c.bottomRTT / 3)
+            {
+                if(servmillis - c.connectmillis < 5000)
+                    c.bottomRTT = rtt;
+                else
+                    c.bottomRTT = (c.bottomRTT * 15 + rtt) / 16; // simple IIR
+            }
+            if(throttle < 22) c1++;
+            if(throttle < 11) c2++;
+            if(rtt > c.bottomRTT * 2 && rtt - c.bottomRTT > 300) r1++;
+        }
+        spent_raw[numc] += elapsed;
+        int t = numc < 7 ? numc : (numc + 1) / 2 + 3;
+        chokes_raw[numc] +=  ((c1 >= t ? c1 + c2 : 0) + (r1 >= t ? r1 : 0)) * elapsed;
+    }
+    else
+    { // calculate compressed statistics
+        defformatstring(msg)("Uplink quality [ ");
+        int ncs = 0;
+        loopj(scl.maxclients)
+        {
+            int i = j + 1;
+            int nc = chokes_raw[i] / 1000 / i;
+            chokes[i] += nc;
+            ncs += nc;
+            spent[i] += spent_raw[i] / 1000;
+            chokes_raw[i] = spent_raw[i] = 0;
+            int s = 0, c = 0;
+            if(spent[i])
+            {
+                frexp((double)spent[i] / 30, &s);
+                if(s < 0) s = 0;
+                if(s > 15) s = 15;
+                if(chokes[i])
+                {
+                    frexp(((double)chokes[i]) / spent[i], &c);
+                    c = 15 + c;
+                    if(c < 0) c = 0;
+                    if(c > 15) c = 15;
+                }
+            }
+            chokelog[i] = (s << 4) + c;
+            concatformatstring(msg, "%02X ", chokelog[i]);
+			// mwhahahaha
+			chokelog[i] = 0;
+        }
+        logline(ACLOG_DEBUG, "%s] +%d", msg, ncs);
+    }
+}
+
 int lastmillis = 0, totalmillis = 0;
 
 void serverslice(uint timeout)   // main server update, called from cube main loop in sp, or dedicated server loop
@@ -4079,9 +4143,16 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
 	loopv(clients) if(valid_client(i) && (!clients[i]->connected || clients[i]->connectauth) && clients[i]->connectmillis + 10000 <= servmillis) disconnect_client(i, DISC_TIMEOUT);
 
-	if(servmillis-laststatus>60*1000)   // display bandwidth stats, useful for server ops
+	static unsigned int lastThrottleEpoch = 0;
+    if(serverhost->bandwidthThrottleEpoch != lastThrottleEpoch)
+    {
+        if(lastThrottleEpoch) linequalitystats(serverhost->bandwidthThrottleEpoch - lastThrottleEpoch);
+        lastThrottleEpoch = serverhost->bandwidthThrottleEpoch;
+    }
+
+	if(servmillis>nextstatus)   // display bandwidth stats, useful for server ops
 	{
-		laststatus = servmillis;
+		nextstatus = servmillis + 60 * 1000;
 		rereadcfgs();
 		if(nonlocalclients || serverhost->totalSentData || serverhost->totalReceivedData)
 		{
@@ -4238,6 +4309,12 @@ void extping_maprot(ucharbuf &po){
 		if(abort) break;
 	}
 	sendstring("", po);
+}
+
+void extping_uplinkstats(ucharbuf &po)
+{
+    if(scl.maxclients > 3)
+        po.put(chokelog + 4, scl.maxclients - 3); // send logs for 4..n used slots
 }
 
 void extinfo_cnbuf(ucharbuf &p, int cn){

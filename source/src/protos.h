@@ -189,6 +189,7 @@ extern int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress
 extern void writeservercfg();
 extern void refreshservers(void *menu, bool init);
 extern bool serverskey(void *menu, int code, bool isdown, int unicode);
+extern bool serverinfokey(void *menu, int code, bool isdown, int unicode);
 
 struct serverinfo
 {
@@ -200,7 +201,7 @@ struct serverinfo
 	string sdesc;
 	string description;
 	string cmd;
-	int mode, numplayers, maxclients, ping, protocol, minremain, resolved, port, lastpingmillis, pongflags, getnames, getinfo, menuline_from, menuline_to;
+	int mode, numplayers, maxclients, ping, protocol, minremain, resolved, port, lastpingmillis, pongflags, getinfo, menuline_from, menuline_to;
 	ENetAddress address;
 	vector<const char *> playernames;
 	uchar namedata[MAXTRANS];
@@ -210,11 +211,17 @@ struct serverinfo
 	color *bgcolor;
 	int favcat, msweight, weight;
 
+	int uplinkqual, uplinkqual_age;
+    unsigned char uplinkstats[MAXCLIENTS + 1];
+
 	serverinfo()
-	 : mode(0), numplayers(0), maxclients(0), ping(9999), protocol(0), minremain(0), resolved(UNRESOLVED), port(-1), lastpingmillis(0), pongflags(0), getnames(0), getinfo(0), bgcolor(NULL), favcat(-1), msweight(0), weight(0)
+	: mode(0), numplayers(0), maxclients(0), ping(9999), protocol(0), minremain(0),
+	  resolved(UNRESOLVED), port(-1), lastpingmillis(0), pongflags(0), getinfo(EXTPING_NOP),
+	  bgcolor(NULL), favcat(-1), msweight(0), weight(0), uplinkqual(0), uplinkqual_age(0)
 	{
 		name[0] = full[0] = map[0] = sdesc[0] = description[0] = '\0';
 		loopi(3) lang[i] = '\0';
+		loopi(MAXCLIENTS + 1) uplinkstats[i] = 0;
 	}
 };
 
