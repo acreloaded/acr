@@ -119,7 +119,7 @@ void CBotManager::DelWaypoint(node_s *pNode)
 	 CalculateMaxAStarCount();
 }
 
-void CBotManager::MakeBotFileName(const char *szFileName, const char *szDir1, const char *szDir2, char *szOutput)
+void CBotManager::MakeBotFileName(const char *szFileName, const char *szDir1, char *szOutput)
 {
 	 const char *DirSeperator;
 
@@ -131,15 +131,8 @@ void CBotManager::MakeBotFileName(const char *szFileName, const char *szDir1, co
 	 strcpy(szOutput, "bot/");
 #endif
 	 
-	 if (szDir1)
-	 {
+	 if (szDir1){
 		  strcat(szOutput, szDir1);
-		  strcat(szOutput, DirSeperator);
-	 }
-	 
-	 if (szDir2)
-	 {
-		  strcat(szOutput, szDir2);
 		  strcat(szOutput, DirSeperator);
 	 }
 	 
@@ -147,189 +140,6 @@ void CBotManager::MakeBotFileName(const char *szFileName, const char *szDir1, co
 }
 
 void CBotManager::CreateSkillData()
-{
-	 // First give the bot skill structure some default data
-	 InitSkillData();
-	 
-	 // Now see if we can load the skill.cfg file
-	 char SkillFileName[256] = "";
-	 FILE *pSkillFile = NULL;
-	 int SkillNr = -1;
-	 float value = 0;
-
-	 MakeBotFileName("bot_skill.cfg", NULL, NULL, SkillFileName);
-
-	 pSkillFile = fopen(SkillFileName, "r");
-
-	 conoutf("Reading bot_skill.cfg file... ");
-
-	 if (pSkillFile == NULL) // file doesn't exist
-	 {
-		  conoutf("skill file not found, default settings will be used\n");
-		  return;
-	 }
-
-	 int ch;
-	 char cmd_line[256];
-	 int cmd_index;
-	 char *cmd, *arg1;
-
-	 while (pSkillFile)
-	 {	
-		  cmd_index = 0;
-		  cmd_line[cmd_index] = 0;
-
-		  ch = fgetc(pSkillFile);
-
-		  // skip any leading blanks
-		  while (ch == ' ')
-			   ch = fgetc(pSkillFile);
-
-		  while ((ch != EOF) && (ch != '\r') && (ch != '\n'))
-		  {
-			   if (ch == '\t')  // convert tabs to spaces
-					ch = ' ';
-
-			   cmd_line[cmd_index] = ch;
-
-			   ch = fgetc(pSkillFile);
-
-			   // skip multiple spaces in input file
-			   while ((cmd_line[cmd_index] == ' ') && (ch == ' '))	  
-					ch = fgetc(pSkillFile);
-
-			   cmd_index++;
-		  }
-
-		  if (ch == '\r')  // is it a carriage return?
-		  {
-			   ch = fgetc(pSkillFile);  // skip the linefeed
-		  }
-
-		  // if reached end of file, then close it
-		  if (ch == EOF)
-		  {
-			   fclose(pSkillFile);
-			   pSkillFile = NULL;
-		  }
-
-		  cmd_line[cmd_index] = 0;  // terminate the command line
-
-		  cmd_index = 0;
-		  cmd = cmd_line;
-		  arg1 = NULL;
-
-		  // skip to blank or end of string...
-		  while ((cmd_line[cmd_index] != ' ') && (cmd_line[cmd_index] != 0))
-				cmd_index++;
-
-		  if (cmd_line[cmd_index] == ' ')
-		  {
-				cmd_line[cmd_index++] = 0;
-				arg1 = &cmd_line[cmd_index];
-		  }
-
-		  if ((cmd_line[0] == '#') || (cmd_line[0] == 0))
-			   continue;  // skip if comment or blank line
-
-
-		  if (strcasecmp(cmd, "[SKILL1]") == 0)
-			   SkillNr = 0;
-		  else if (strcasecmp(cmd, "[SKILL2]") == 0)
-			   SkillNr = 1;
-		  else if (strcasecmp(cmd, "[SKILL3]") == 0)
-			   SkillNr = 2;
-		  else if (strcasecmp(cmd, "[SKILL4]") == 0)
-			   SkillNr = 3;
-		  else if (strcasecmp(cmd, "[SKILL5]") == 0)
-			   SkillNr = 4;
-
-		  if ((arg1 == NULL) || (*arg1 == 0))
-			  continue;
-
-		  if (SkillNr == -1) // Not in a skill block yet?
-			   continue;
-
-		  value = atof(arg1);
-
-		  if (strcasecmp(cmd, "min_x_aim_speed") == 0)
-		  {
-			   m_BotSkills[SkillNr].flMinAimXSpeed = value;
-		  }
-		  else if (strcasecmp(cmd, "max_x_aim_speed") == 0)
-		  {
-			   m_BotSkills[SkillNr].flMaxAimXSpeed = value;
-		  }
-		  else if (strcasecmp(cmd, "min_y_aim_speed") == 0)
-		  {
-			   m_BotSkills[SkillNr].flMinAimYSpeed = value;
-		  }
-		  else if (strcasecmp(cmd, "max_y_aim_speed") == 0)
-		  {
-			   m_BotSkills[SkillNr].flMaxAimYSpeed = value;
-		  }
-		  else if (strcasecmp(cmd, "min_x_aim_offset") == 0)
-		  {
-			   m_BotSkills[SkillNr].flMinAimXOffset = value;
-		  }
-		  else if (strcasecmp(cmd, "max_x_aim_offset") == 0)
-		  {
-			   m_BotSkills[SkillNr].flMaxAimXOffset = value;
-		  }
-		  else if (strcasecmp(cmd, "min_y_aim_offset") == 0)
-		  {
-			   m_BotSkills[SkillNr].flMinAimYOffset = value;
-		  }
-		  else if (strcasecmp(cmd, "max_y_aim_offset") == 0)
-		  {
-			   m_BotSkills[SkillNr].flMaxAimYOffset = value;
-		  }
-		  else if (strcasecmp(cmd, "min_attack_delay") == 0)
-		  {
-			   m_BotSkills[SkillNr].flMinAttackDelay = value;
-		  }
-		  else if (strcasecmp(cmd, "max_attack_delay") == 0)
-		  {
-			   m_BotSkills[SkillNr].flMaxAttackDelay = value;
-		  }
-		  else if (strcasecmp(cmd, "min_enemy_search_delay") == 0)
-		  {
-			   m_BotSkills[SkillNr].flMinEnemySearchDelay = value;
-		  }
-		  else if (strcasecmp(cmd, "max_enemy_search_delay") == 0)
-		  {
-			   m_BotSkills[SkillNr].flMaxEnemySearchDelay = value;
-		  }
-		  else if (strcasecmp(cmd, "shoot_at_feet_percent") == 0)
-		  {
-			   if (value < 0) value = 0;
-			   else if (value > 100) value = 100;
-			   m_BotSkills[SkillNr].sShootAtFeetWithRLPercent = (short)value;
-		  }
-		  else if (strcasecmp(cmd, "can_predict_position") == 0)
-		  {
-			   m_BotSkills[SkillNr].bCanPredict = value!=0;
-		  }
-		  else if (strcasecmp(cmd, "max_hear_volume") == 0)
-		  {
-			   if (value < 0) value = 0;
-			   else if (value > 255) value = 100;
-			   m_BotSkills[SkillNr].iMaxHearVolume = (int)value;
-		  }
-		  else if (strcasecmp(cmd, "can_circle_strafe") == 0)
-		  {
-			   m_BotSkills[SkillNr].bCircleStrafe = value!=0;
-		  }	 
-		  else if (strcasecmp(cmd, "can_search_items_in_combat") == 0)
-		  {
-			   m_BotSkills[SkillNr].bCanSearchItemsInCombat = value!=0;
-		  }		  
-	 }
-
-	 conoutf("done");
-}
-
-void CBotManager::InitSkillData()
 {
 	 // Best skill
 	 m_BotSkills[0].flMinReactionDelay = 0.015f;

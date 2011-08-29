@@ -335,8 +335,6 @@ class CBotManager
 	 short m_sCurrentTriggerNr; // Current waypoint trigger bots should use
 
 	 void CreateSkillData(void);
-	 void InitSkillData(void);
-	 void InitBotItems(void);
 
 	 friend class CBot;
 	 friend class CCubeBot;
@@ -365,8 +363,7 @@ public:
 	 void CalculateMaxAStarCount(void);
 	 void PickNextTrigger(void);
 
-	 void MakeBotFileName(const char *szFileName, const char *szDir1, const char *szDir2,
-						  char *szOutput);
+	 void MakeBotFileName(const char *szFileName, const char *szDir1, char *szOutput);
 };
 
 #if defined VANILLA_CUBE
