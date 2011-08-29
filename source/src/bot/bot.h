@@ -322,10 +322,6 @@ public:
 
 class CBotManager
 {
-	 char m_szBotNames[150][16]; // Max 150 bot names with a length of 16 characters
-	 short m_sBotNameCount;
-	 char m_szBotTeams[20][5]; // Max 100 bot teams co a length of 5 characters
-	 short m_sBotTeamCount;
 	 bool m_bInit;
 	 bool m_bBotsShoot;
 	 bool m_bIdleBots;
@@ -338,9 +334,6 @@ class CBotManager
 	 short m_sUsingAStarBotsCount; // Number of bots that are using a*
 	 short m_sCurrentTriggerNr; // Current waypoint trigger bots should use
 
-	 void LoadBotNamesFile(void);
-	 void LoadBotTeamsFile(void);
-	 const char *GetBotTeam(void);
 	 void CreateSkillData(void);
 	 void InitSkillData(void);
 	 void InitBotItems(void);
