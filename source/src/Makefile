@@ -6,7 +6,7 @@ CXXFLAGS=$(CXXOPTFLAGS) $(INCLUDES1) $(INCLUDES2) $(CUSTOMFLAGS)
 CXXFLAGSSERVER=$(CXXOPTFLAGS) $(INCLUDES1) $(CUSTOMFLAGS)
 
 PLATFORM_PREFIX=linux
-CLIENT_LIBS=-L/usr/X11R6/lib -L../enet -lenet `sdl-config --libs` -lSDL_image -lz -lGL -lopenal -lvorbisfile
+CLIENT_LIBS=-L/usr/X11R6/lib -L../enet/.libs -lenet `sdl-config --libs` -lSDL_image -lz -lGL -lopenal -lvorbisfile
 CLIENT_OBJS1= \
 	client.o \
 	clientgame.o \
@@ -55,7 +55,7 @@ CLIENT_OBJS2= \
 	bot/ac_bot_ai.o 
 
 
-SERVER_LIBS=-L../enet -lenet -lz
+SERVER_LIBS=-L../enet/.libs -lenet -lz
 SERVER_FILES= \
 	log.cpp \
 	serverms.cpp \
