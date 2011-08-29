@@ -65,7 +65,7 @@ static const char *disc_reason(int reason)
 }
 
 #define EXT_ACK						 -1
-#define EXT_VERSION					 201
+#define EXT_VERSION					 100
 #define EXT_ERROR_NONE				  0
 #define EXT_ERROR					   1
 #define EXT_PLAYERSTATS_RESP_IDS		-10

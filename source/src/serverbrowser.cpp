@@ -674,7 +674,7 @@ int sicompare(serverinfo **ap, serverinfo **bp)
 	int dir = serversortdir ? -1 : 1;
 	if(a->weight > b->weight) return -dir;
 	if(a->weight < b->weight) return dir;
-	enet_uint32 ai = ntohl(a->address.host), bi = ntohl(b->address.host);
+    enet_uint32 ai = ENET_NET_TO_HOST_32(a->address.host), bi = ENET_NET_TO_HOST_32(b->address.host);
 	int ips = ai < bi ? -dir : (ai > bi ? dir : 0);  // most steady base sorting
 	switch(serversort)
 	{
@@ -932,7 +932,6 @@ void refreshservers(void *menu, bool init)
 	static int servermenumillis;
 	static bool usedselect = false;
 	static string title;
-	static serverinfo *lastselectedserver = NULL;
 	bool issearch = menu == searchmenu;
 	bool isinfo = menu == serverinfomenu;
 	bool isscoreboard = menu == NULL;
@@ -969,10 +968,10 @@ void refreshservers(void *menu, bool init)
 			formatstring(si.full)("%s:%d  %s", si.name, si.port, si.sdesc);
 			menumanual(menu, si.full);
 			menumanual(menu, &dummy);
-			if(si.infotexts.length())
+			if(si.infotexts.length() && !pinglastselected)
 			{
 				infotext[0] = '\0';
-				loopv(si.infotexts) menumanual(menu, si.infotexts[i]);
+				loopv(si.infotexts) menuimagemanual(menu, NULL, "bargraphs", si.infotexts[i]);
 			}
 			else
 			{
@@ -987,7 +986,7 @@ void refreshservers(void *menu, bool init)
 		if(*infotext) menumanual(menu, infotext);
 		return;
 	}
-	if((init && issearch) || totalmillis - lastinfo >= (servpingrate * (issearch ? 2 : 1))/(maxservpings ? (servers.length() + maxservpings - 1) / maxservpings : 1))
+    if((init && issearch) || totalmillis - lastinfo >= (servpingrate * (issearch ? 2 : 1))/(maxservpings ? max(1, (servers.length() + maxservpings - 1) / maxservpings) : 1))
 		pingservers(issearch, isscoreboard ? curserver : NULL);
 	if(!init && menu)// && servers.inrange(((gmenu *)menu)->menusel))
 	{
@@ -1023,7 +1022,7 @@ void refreshservers(void *menu, bool init)
 		menureset(menu);
 		string text;
 		int curnl = 0;
-		bool sbconnectexists = identexists("sbconnect");
+		//bool sbconnectexists = identexists("sbconnect");
 		loopv(servers)
 		{
 			serverinfo &si = *servers[i];
@@ -1074,15 +1073,15 @@ void refreshservers(void *menu, bool init)
 			{
 				cutcolorstring(si.full, 76); // cut off too long server descriptions
 				cutcolorstring(si.description, 76);
-				if(sbconnectexists)
+				/*if(sbconnectexists)
 				{
 					filtertext(text, si.sdesc);
 					for(char *p = text; (p = strchr(p, '\"')); *p++ = ' ');
 					text[30] = '\0';
 					formatstring(si.cmd)("sbconnect %s %d  %d %d %d %d \"%s\"", si.name, si.port, serverfull ?1:0, needspasswd ?1:0, isprivate ?1:0, banned, text);
 				}
-				else formatstring(si.cmd)("connect %s %d", si.name, si.port);
-				menuimagemanual(menu, NULL, "servqual", si.full, si.cmd, si.bgcolor, si.description);
+				else*/ formatstring(si.cmd)("connect %s %d", si.name, si.port);
+				menuimagemanual(menu, NULL, "servqual", si.full, si.cmd, si.bgcolor, si.description); // put map image here...
 				if(!issearch && servers[i] == oldsel)
 				{
 					((gmenu *)menu)->menusel = ((gmenu *)menu)->items.length() - 1;
