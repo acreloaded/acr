@@ -4007,6 +4007,7 @@ int lastmillis = 0, totalmillis = 0;
 
 void serverslice(uint timeout)   // main server update, called from cube main loop in sp, or dedicated server loop
 {
+	static int pnum = 0, psend = 0, prec = 0;
 #ifdef STANDALONE
 	int nextmillis = (int)enet_time_get();
 	if(svcctrl) svcctrl->keepalive();
@@ -4072,7 +4073,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
 	if(!isdedicated) return;	 // below is network only
 
-	serverms(smode, numclients(), gamelimit-gamemillis, smapname, servmillis, serverhost->address, PROTOCOL_VERSION);
+	serverms(smode, numclients(), gamelimit-gamemillis, smapname, servmillis, serverhost->address, pnum, psend, prec, PROTOCOL_VERSION);
 
 	if(autoteam && m_team && !m_duel && !interm && servmillis - lastfillup > 5000 && refillteams()) lastfillup = servmillis;
 
@@ -4085,7 +4086,9 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 		if(nonlocalclients || serverhost->totalSentData || serverhost->totalReceivedData)
 		{
 			if(nonlocalclients) loggamestatus(NULL);
-			logline(ACLOG_INFO, "Status at %s: %d remote clients, %.1f send, %.1f rec (KB/sec)", timestring(true, "%d-%m-%Y %H:%M:%S"), nonlocalclients, serverhost->totalSentData/60.0f/1024, serverhost->totalReceivedData/60.0f/1024);
+			logline(ACLOG_INFO, "Status at %s: %d remote clients, %.1f send, %.1f rec (KiB/s); %d pings: %d sent %d recieved", timestring(true, "%d-%m-%Y %H:%M:%S"), nonlocalclients, serverhost->totalSentData/60.0f/1024, serverhost->totalReceivedData/60.0f/1024, pnum, psend, prec);
+			pnum = psend = prec = 0;
+			// quality stats?
 		}
 		serverhost->totalSentData = serverhost->totalReceivedData = 0;
 	}
@@ -4249,7 +4252,7 @@ void extinfo_cnbuf(ucharbuf &p, int cn){
 	}
 }
 
-void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENetAddress &addr, ENetBuffer &buf, int len){
+void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENetAddress &addr, ENetBuffer &buf, int len, int &psend){
 	loopv(clients)
 	{
 		if(clients[i]->type != ST_TCPIP) continue;
@@ -4274,6 +4277,7 @@ void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENet
 
 		buf.dataLength = len + p.length();
 		enet_socket_send(pongsock, &addr, &buf, 1);
+		psend += buf.dataLength;
 
 		if(pid>-1) break;
 		p.len=bpos;

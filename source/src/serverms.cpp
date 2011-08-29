@@ -223,7 +223,7 @@ uchar *retrieveservers(uchar *buf, int buflen)
 ENetSocket pongsock = ENET_SOCKET_NULL, lansock = ENET_SOCKET_NULL;
 extern int getpongflags(enet_uint32 ip);
 
-void serverms(int mode, int numplayers, int timeremain, char *smapname, int millis, const ENetAddress &localaddr, int protocol_version)
+void serverms(int mode, int numplayers, int timeremain, char *smapname, int millis, const ENetAddress &localaddr, int &pnum, int &psend, int &prec, int protocol_version)
 {
 	checkmasterreply();
 	updatemasterserver(millis, localaddr);
@@ -254,6 +254,7 @@ void serverms(int mode, int numplayers, int timeremain, char *smapname, int mill
 		buf.dataLength = sizeof(data);
 		len = enet_socket_receive(sock, &addr, &buf, 1);
 		if(len < 0) continue;
+		++pnum; prec += len;
 
 		// ping & pong buf
 		ucharbuf pi(data, len), po(&data[len], sizeof(data)-len);
@@ -330,11 +331,11 @@ void serverms(int mode, int numplayers, int timeremain, char *smapname, int mill
 					int bpos = po.length();				  // remember buffer position
 					putint(po, EXT_PLAYERSTATS_RESP_IDS);	// send player ids following
 					extinfo_cnbuf(po, cn);
-					buf.dataLength = len + po.length();
+					psend += (buf.dataLength = len + po.length());
 					enet_socket_send(pongsock, &addr, &buf, 1); // send all available player ids
 					po.len = bpos;
 
-					extinfo_statsbuf(po, cn, bpos, pongsock, addr, buf, len);
+					extinfo_statsbuf(po, cn, bpos, pongsock, addr, buf, len, psend);
 					return;
 				}
 
@@ -350,6 +351,7 @@ void serverms(int mode, int numplayers, int timeremain, char *smapname, int mill
 
 		buf.dataLength = len + po.length();
 		enet_socket_send(pongsock, &addr, &buf, 1);
+		psend += buf.dataLength;
 	}
 }
 
