@@ -468,7 +468,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 
 	pl->respawnoffset = pl->lastpain = lastmillis;
 	if(actor != pl){
-		actor->lasthitmarker;
+		actor->lasthitmarker = lastmillis;
 		if(pl->damagelog.find(actor->clientnum) < 0) pl->damagelog.add(actor->clientnum);
 	}
 	damageeffect(damage, pl);
