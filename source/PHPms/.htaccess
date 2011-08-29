@@ -2,6 +2,7 @@ ErrorDocument 403 "403 You don't have clearance"
 ErrorDocument 404 "404 I lost it!"
 ErrorDocument 500 "500 Stupid failure"
 RewriteEngine On
+RewriteBase /ms # comment out this line or tweak as needed
 RewriteRule ^cube index.php?cube [L]
 RewriteRule ^xml index.php?xml [L]
 RewriteRule ^reg(?:ister)?/([0-9]+)/([0-9]{1,5})/?$ index.php?register&port=$2&proto=$1 [L]
