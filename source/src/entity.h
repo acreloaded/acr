@@ -227,7 +227,7 @@ static inline const char *suicname(int obit){
 }
 
 static inline const bool isheadshot(int weapon, int style){
-	if(!(style & FRAG_GIB)) return false; // all headshots gib
+	if(!(style & FRAG_GIB)) return false; // only headshots gib
 	switch(weapon){
 		case WEAP_KNIFE:
 		case WEAP_GRENADE:
@@ -235,6 +235,7 @@ static inline const bool isheadshot(int weapon, int style){
 		case WEAP_BOW:
 		case WEAP_SHOTGUN:
 		case WEAP_MAX:
+		case WEAP_MAX+5:
 			return false; // these guns cannot gib
 	}
 	return true;
