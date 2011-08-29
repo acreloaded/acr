@@ -69,7 +69,7 @@ default: all
 all: libenet client server
 
 ../enet/Makefile:
-	cd ../enet; ./configure
+	cd ../enet; ./configure --enable-shared=no --enable-static=yes
 
 libenet: ../enet/Makefile
 	-$(MAKE) -C ../enet all
