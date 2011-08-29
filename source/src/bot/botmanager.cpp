@@ -19,16 +19,10 @@ CBotManager BotManager;
 
 // Bot manager class begin
 
-CBotManager::~CBotManager(void)
-{
-	 EndMap();
-	 ClearStoredBots();
-}
+CBotManager::~CBotManager(void){  }
 
 void CBotManager::Init()
 {
-	 m_pBotToView = NULL;
-	 
 	 m_bBotsShoot = true;
 	 m_bIdleBots = false;
 	 m_iFrameTime = 0;
@@ -52,9 +46,6 @@ void CBotManager::Think()
 		  m_bInit = false;
 	 }
 
-	 if (m_pBotToView)
-		  ViewBot();
-
 	 AddDebugText("m_sMaxAStarBots: %d", m_sMaxAStarBots);
 	 AddDebugText("m_sCurrentTriggerNr: %d", m_sCurrentTriggerNr);
 	 short x, y;
@@ -65,26 +56,13 @@ void CBotManager::Think()
 	 if (m_iFrameTime > 250) m_iFrameTime = 250;
 	 m_iPrevTime = lastmillis;
 
-	 // Is it time to re-add bots?
-	 if ((m_fReAddBotDelay < lastmillis) && (m_fReAddBotDelay != -1.0f))
-	 {
-		  while(m_StoredBots.Empty() == false)
-		  {
-			   CStoredBot *pStoredBot = m_StoredBots.Pop();
-			   ReAddBot(pStoredBot);
-			   delete pStoredBot;
-		  }
-		  
-		  m_fReAddBotDelay = -1.0f;
-	 }
-
 	// Added by Victor: control multiplayer bots
 	const int ourcn = getclientnum();
 	if(ourcn >= 0){
 		// handle the bots
 		loopv(players){
 			if(!players[i] || players[i]->ownernum != ourcn) continue;
-			botent *b = players[i];
+			playerent *b = players[i];
 			#define bc b->pBot // this is the bot controller
 			if(!bc){
 				if(botcontrollers[i]) bc = botcontrollers[i];
@@ -104,18 +82,6 @@ void CBotManager::Think()
 			bc->Think();
 		}
 	}
-	 
-	 // Let all bots 'think'
-	 loopv(bots)
-	 {
-		  if (!bots[i])
-			   continue;
-
-		  if (bots[i]->pBot)
-			   bots[i]->pBot->Think();
-		  else
-			   condebug("Error: pBot == NULL in bot ent\n");
-	 }
 }
 
 void CBotManager::LoadBotNamesFile()
@@ -181,45 +147,7 @@ void CBotManager::LoadBotNamesFile()
 	 }
 	 fclose(fp);
 }
-	 
-const char *CBotManager::GetBotName()
-{
-	 const char *szOutput = NULL;
-	 TMultiChoice<const char *> BotNameChoices;
-	 short ChoiceVal;
-	 
-	 for(int j=0;j<m_sBotNameCount;j++)
-	 {
-		  ChoiceVal = 50;
-		  
-		  loopv(players)
-		  {
-			   if (players[i] && !strcasecmp(players[i]->name, m_szBotNames[j]))
-					ChoiceVal -= 10;
-		  }
-		  
-		  loopv(bots)
-		  {
-			   if (bots[i] && (!strcasecmp(bots[i]->name, m_szBotNames[j])))
-					ChoiceVal -= 10;
-		  }
-		  
-		  if (!strcasecmp(player1->name, m_szBotNames[j]))
-			   ChoiceVal -= 10;
-			   
-		  if (ChoiceVal <= 0)
-			   ChoiceVal = 1;
-		  
-		  BotNameChoices.Insert(m_szBotNames[j], ChoiceVal);
-	 }
-	 
-	 // Couldn't find a selection?
-	 if (!BotNameChoices.GetSelection(szOutput))
-		  szOutput = "Bot";
-	 
-	 return szOutput;
-}
-	 
+	  
 void CBotManager::LoadBotTeamsFile()
 {
 	 // Init bot teams array first
@@ -311,51 +239,8 @@ const char *CBotManager::GetBotTeam()
 	 return szOutput;
 }
 
-void CBotManager::RenderBots()
-{
-	 //static bool drawblue;
-	 
-	 loopv(bots)
-	 {
-		  if (bots[i] && (bots[i] != m_pBotToView))
-		  {
-			   /*drawblue = (m_sp || isteam(player1->team, bots[i]->team));
-			   renderclient(bots[i], drawblue, "playermodels/counterterrorist", 1.6f);*/
-			  renderclient(bots[i]);
-		  }
-	 }
-}
-
-void CBotManager::EndMap()
-{
-	 // Remove all bots
-	 loopv(bots)
-	 {				
-		  if(!bots[i] || !bots[i]->pBot)
-			   continue;
-
-		  // Store bots so they can be re-added after map change
-		  if (bots[i]->pBot && bots[i]->name[0])
-		  {
-			   CStoredBot *pStoredBot = new CStoredBot(bots[i]->name, bots[i]->team,
-													   bots[i]->pBot->m_sSkillNr);
-			   m_StoredBots.AddNode(pStoredBot);
-		  }
-		  delete bots[i]->pBot;
-		  
-		  bots[i]->pBot = NULL;
-		  freebotent(bots[i]);
-	 }
-	 bots.shrink(0);	 
-	 condebug("Cleared all bots");
-	 m_fReAddBotDelay = lastmillis + 7500;
-	 //if(ishost()) WaypointClass.SaveWPExpFile(); //UNDONE
-}
-
 void CBotManager::BeginMap(const char *szMapName)
-{
-	 EndMap(); // End previous map
-	 
+{ 
 	 WaypointClass.Init();
 	 WaypointClass.SetMapName(szMapName);
 	 if (*szMapName && !WaypointClass.LoadWaypoints())
@@ -366,91 +251,28 @@ void CBotManager::BeginMap(const char *szMapName)
 	 m_sUsingAStarBotsCount = 0;
 	 PickNextTrigger();
 }
-	 
-int CBotManager::GetBotIndex(botent *m)
-{
-	 loopv(bots)
-	 {
-		  if (!bots[i])
-			   continue;
-	 
-		  if (bots[i] == m)
-			   return i;
-	 }
-	 
-	 return -1;
-}
-
-void CBotManager::LetBotsUpdateStats()
-{
-	 loopv(bots) if (bots[i] && bots[i]->pBot) bots[i]->pBot->m_bSendC2SInit = false;
-}
 
 void CBotManager::LetBotsHear(int n, vec *loc)
 {
-	 if (bots.length() == 0 || !loc) return;
+	 if (!loc) return;
 		  
-	 loopv(bots)
+	 loopv(players)
 	 {
-		  if (!bots[i] || !bots[i]->pBot || (bots[i]->state == CS_DEAD)) continue;
-		  bots[i]->pBot->HearSound(n, loc);
+		  if (!players[i] || players[i]->ownernum < 0 || !players[i]->pBot || players[i]->state == CS_DEAD) continue;
+		  players[i]->pBot->HearSound(n, loc);
 	 }
 }
 
 // Notify all bots of a new waypoint
 void CBotManager::AddWaypoint(node_s *pNode)
 {
-	 if (bots.length())
-	 {
-		  short x, y;
-		  waypoint_s *pWP;
-	 
-		  loopv(bots)
-		  {
-			   if (!bots[i] || !bots[i]->pBot) continue;
-		  
-			   pWP = new waypoint_s;
-			   pWP->pNode = pNode;
-			   WaypointClass.GetNodeIndexes(pNode->v_origin, &x, &y);
-			   bots[i]->pBot->m_WaypointList[x][y].AddNode(pWP);
-			   
-#ifndef RELEASE_BUILD
-			   if (!bots[i]->pBot->GetWPFromNode(pNode)) condebug("Error adding bot wp!");
-#endif			   
-		  }
-	 }
-	 
+
 	 CalculateMaxAStarCount();
 }
 
 // Notify all bots of a deleted waypoint
 void CBotManager::DelWaypoint(node_s *pNode)
 {
-	 if (bots.length())
-	 {
-		  short x, y;
-		  TLinkedList<waypoint_s *>::node_s *p;
-	 
-		  loopv(bots)
-		  {
-			   if (!bots[i] || !bots[i]->pBot) continue;
-		  
-			   WaypointClass.GetNodeIndexes(pNode->v_origin, &x, &y);
-			   p = bots[i]->pBot->m_WaypointList[x][y].GetFirst();
-		  
-			   while(p)
-			   {
-					if (p->Entry->pNode == pNode)
-					{
-						 delete p->Entry;
-						 bots[i]->pBot->m_WaypointList[x][y].DeleteNode(p);
-						 break;
-					}
-					p = p->next;
-			   }		  
-		  }
-	 }
-	 
 	 CalculateMaxAStarCount();
 }
 
@@ -771,71 +593,6 @@ void CBotManager::InitSkillData()
 	 m_BotSkills[4].bCircleStrafe = false;
 	 m_BotSkills[4].bCanSearchItemsInCombat = false;
 }
-	
-void CBotManager::ChangeBotSkill(short Skill, botent *bot)
-{
-	 static const char *SkillNames[5] = { "best", "good", "medium", "worse", "bad" };
-	 
-	 if (bot && bot->pBot)
-	 {
-		  // Only change skill of a single bot
-		  bot->pBot->m_pBotSkill = &m_BotSkills[Skill];
-		  bot->pBot->m_sSkillNr = Skill;
-		  conoutf("Skill of %s is now %s", bot->name, SkillNames[Skill]);
-		  return;
-	 }
-	 
-	 // Change skill of all bots
-	 loopv(bots)
-	 {
-		  if (!bots[i] || !bots[i]->pBot) continue;
-		  
-		  bots[i]->pBot->m_pBotSkill = &m_BotSkills[Skill];
-		  bots[i]->pBot->m_sSkillNr = Skill;
-	 }
-	 
-	 // Change default bot skill
-	 m_sBotSkill = Skill;
-	 
-	 conoutf("Skill of all bots is now %s", SkillNames[Skill]);
-}
-
-void CBotManager::ViewBot()
-{   
-	 // Check if this bot is still in game
-	 bool bFound = false;
-	 loopv(bots)
-	 {
-		  if (bots[i] == m_pBotToView)
-		  {
-			   bFound = true;
-			   break;
-		  }
-	 }
-	 
-	 if (!bFound)
-	 {
-		  DisableBotView();
-		  return;
-	 }
-	 
-	 player1->state = CS_DEAD; // Fake dead
-	 
-	 player1->o = m_pBotToView->o;
-	 player1->o.z += 1.0f;
-	 player1->yaw = m_pBotToView->yaw;
-	 player1->pitch = m_pBotToView->pitch;
-	 player1->roll = m_pBotToView->roll;
-	 player1->radius = 0; // Don't collide
-	 player1->resetinterp();
-}
-
-void CBotManager::DisableBotView()
-{
-	 m_pBotToView = NULL;
-	 respawnself();
-	 player1->radius = PLAYERRADIUS;
-}
 
 void CBotManager::CalculateMaxAStarCount()
 {  
@@ -902,77 +659,6 @@ void CBotManager::PickNextTrigger()
 		  m_sCurrentTriggerNr = lowest;
 }
 
-botent *CBotManager::CreateBot(const char *team, const char *skill, const char *name)
-{
-	 if (m_bInit)
-	 {
-		  Init();
-		  m_bInit = false;
-	 }
-
-	 botent *m = newbotent();
-	 if (!m) return NULL;
-	 loopi(WEAP_MAX) m->ammo[i] = m->mag[i] = 0;
-	 m->lifesequence = 0;
-	 setskin(m, rnd(6));
-	 // Create new bot class, dependand on the current mod
-#if defined VANILLA_CUBE	 
-	 m->pBot = new CCubeBot;
-#elif defined AC_CUBE
-	 m->pBot = new CACBot;
-#else
-	 #error "Unsupported mod!"
-#endif
-	 m->type = ENT_BOT;
-	 m->pBot->m_pMyEnt = m;
-	 m->pBot->m_iLastBotUpdate = 0;
-	 m->pBot->m_bSendC2SInit = false;
-
-	 if (name && *name)
-		  copystring(m->name, name, 16);
-	 else
-		  copystring(m->name, BotManager.GetBotName(), 16);
-	 
-	 if (team && *team && strcmp(team, "random"))
-		m->team = team_int(team);
-	 else
-		  m->team = team_int(BotManager.GetBotTeam());
-	 
-	 if (skill && *skill && strcmp(skill, "random"))
-	 {
-		  if (!strcasecmp(skill, "best"))
-			   m->pBot->m_sSkillNr = 0;
-		  else if (!strcasecmp(skill, "good"))
-			   m->pBot->m_sSkillNr = 1;
-		  else if (!strcasecmp(skill, "medium"))
-			   m->pBot->m_sSkillNr = 2;
-		  else if (!strcasecmp(skill, "worse"))
-			   m->pBot->m_sSkillNr = 3;
-		  else if (!strcasecmp(skill, "bad"))
-			   m->pBot->m_sSkillNr = 4;
-		  else
-		  {
-			   conoutf("Wrong skill specified. Should be best, good, medium, "
-					   "worse or bad");
-			   conoutf("Using default skill instead...");
-			   m->pBot->m_sSkillNr = BotManager.m_sBotSkill;
-		  }
-	 }
-	 else // No skill specified, use default
-		  m->pBot->m_sSkillNr = BotManager.m_sBotSkill;
-		  
-	 m->pBot->m_pBotSkill = &BotManager.m_BotSkills[m->pBot->m_sSkillNr];
-
-	 // Sync waypoints
-	 m->pBot->SyncWaypoints();
-			  
-	 m->pBot->Spawn();
-	 
-	 bots.add(m);
-	 
-	 return m;	 
-}
-
 // Bot manager class end
 
 void togglegrap()
@@ -982,53 +668,6 @@ void togglegrap()
 }
 
 COMMAND(togglegrap, ARG_NONE);
-
-void botskill(char *bot, char *skill)
-{
-	 if (!skill || !(*skill))
-		  return;
-	 
-	 short SkillNr;
-	 
-	 if (!strcasecmp(skill, "best"))
-		  SkillNr = 0;
-	 else if (!strcasecmp(skill, "good"))
-		  SkillNr = 1;
-	 else if (!strcasecmp(skill, "medium"))
-		  SkillNr = 2;
-	 else if (!strcasecmp(skill, "worse"))
-		  SkillNr = 3;
-	 else if (!strcasecmp(skill, "bad"))
-		  SkillNr = 4;
-	 else
-	 {
-		  conoutf("Wrong skill specified. Should be best, good, medium, worse or bad");
-		  return;
-	 }
-	 
-	 if (bot)
-	  {
-		   loopv(bots)
-		   {
-				if (bots[i] && !strcmp(bots[i]->name, bot))
-				{
-					 BotManager.ChangeBotSkill(SkillNr, bots[i]);
-					 break;
-				}
-		   }
-	  }
-	  else
-		   BotManager.ChangeBotSkill(SkillNr);
-}
-
-COMMAND(botskill, ARG_2STR);
-
-void botskillall(char *skill)
-{
-	 botskill(NULL, skill);
-}
-
-COMMAND(botskillall, ARG_1STR);
 
 #ifndef RELEASE_BUILD
 
@@ -1059,33 +698,6 @@ void drawbeamtoteleporters()
 
 COMMAND(drawbeamtoteleporters, ARG_NONE);
 #endif
-
-void telebot(void)
-{
-	 vec dest = player1->o, forward, right, up;
-	 vec angles(player1->pitch, player1->yaw, player1->roll);
-	 traceresult_s tr;
-	 
-	 AnglesToVectors(angles, forward, right, up);
-	 forward.mul(4.0f);
-	 dest.add(forward);
-	 
-	 TraceLine(player1->o, dest, player1, true, &tr);
-	 
-	 if (!tr.collided)
-	 {
-		  // Get the first bot
-		  loopv(bots)
-		  {
-			   if (!bots[i] || !bots[i]->pBot) continue;
-			   bots[i]->o = tr.end;
-			   bots[i]->resetinterp();
-			   break;
-		  }
-	 }
-}
-
-COMMAND(telebot, ARG_NONE);
 
 void testvisible(int iDir)
 {

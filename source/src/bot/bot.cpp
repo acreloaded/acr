@@ -13,8 +13,6 @@
 #include "pch.h"
 #include "bot.h"
 
-vector<botent *> bots;
-
 extern int triggertime;
 extern itemstat itemstats[];
 extern ENetHost *clienthost;

@@ -179,7 +179,6 @@ void pickupeffects(int n, playerent *d)
 	d->pickup(e.type);
 	itemstat &is = d->itemstats(e.type);
 	if(&is) playsound(is.sound, d);
-	if(d != player1 && d->type != ENT_BOT) return;
 
 	weapon *w = NULL;
 	switch(e.type)
@@ -199,13 +198,6 @@ void trypickup(int n, playerent *d)
 	entity &e = ents[n];
 	switch(e.type)
 	{
-		default: // the server now picks up our items!
-			if(d->type==ENT_BOT && d->canpickup(e.type) && serverpickup(n, -1)){
-				pickupeffects(n, d);
-				e.spawned = false;
-			}
-			break;
-
 		case LADDER:
 			if(!d->crouching) d->onladder = true;
 			break;

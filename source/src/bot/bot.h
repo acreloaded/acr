@@ -151,7 +151,7 @@ struct unreachable_ent_s
 class CBot
 {
 public:
-	 botent *m_pMyEnt;
+	 playerent *m_pMyEnt;
 	 int m_iLastBotUpdate;
 
 	 // Combat variabels
@@ -320,8 +320,6 @@ public:
 		  { strcpy(m_szName, name); strcpy(m_szTeam, team_string(team)); };
 };
 
-extern vector<botent *> bots;
-
 class CBotManager
 {
 	 char m_szBotNames[150][16]; // Max 150 bot names with a length of 16 characters
@@ -339,11 +337,8 @@ class CBotManager
 	 short m_sMaxAStarBots; // Max bots that can use a* at the same time
 	 short m_sUsingAStarBotsCount; // Number of bots that are using a*
 	 short m_sCurrentTriggerNr; // Current waypoint trigger bots should use
-	 TLinkedList<CStoredBot *> m_StoredBots; // List of bots that should be re-added after map change
-	 float m_fReAddBotDelay;
 
 	 void LoadBotNamesFile(void);
-	 const char *GetBotName(void);
 	 void LoadBotTeamsFile(void);
 	 const char *GetBotTeam(void);
 	 void CreateSkillData(void);
@@ -356,23 +351,16 @@ class CBotManager
 	 friend class CWaypointClass;
 
 public:
-	 botent *m_pBotToView;
 
 	 // Construction
-	 CBotManager(void) { m_bInit = true; m_fReAddBotDelay = -1.0f; };
+	 CBotManager(void) { m_bInit = true; };
 
 	 // Destruction
 	 ~CBotManager(void);
 
 	 void Init(void);
 	 void Think(void);
-	 void RenderBots(void);
-	 void RespawnBots(void) { loopv(bots) if (bots[i] && bots[i]->pBot) bots[i]->pBot->Spawn(); };
-	 void ClearStoredBots(void) { while(!m_StoredBots.Empty()) delete m_StoredBots.Pop(); }
-	 void ReAddBot(CStoredBot *bot) { CreateBot(bot->m_szTeam, SkillNrToSkillName(bot->m_sSkillNr), bot->m_szName); };
-	 void EndMap(void);
 	 void BeginMap(const char *szMapName);
-	 int GetBotIndex(botent *m);
 	 void LetBotsUpdateStats(void);
 	 void LetBotsHear(int n, vec *loc);
 	 void AddWaypoint(node_s *pNode);
@@ -381,11 +369,6 @@ public:
 	 bool IdleBots(void) { return m_bIdleBots; };
 	 void SetBotsShoot(bool bShoot) { m_bBotsShoot = bShoot; };
 	 void SetIdleBots(bool bIdle) { m_bIdleBots = bIdle; };
-	 void EnableBotView(botent *bot) { m_pBotToView = bot; };
-	 void DisableBotView(void);
-	 void ChangeBotSkill(short Skill, botent *bot = NULL);
-	 botent *CreateBot(const char *team, const char *skill, const char *name);
-	 void ViewBot(void);
 	 void CalculateMaxAStarCount(void);
 	 void PickNextTrigger(void);
 

@@ -730,43 +730,6 @@ void CWaypointClass::DrawNearWaypoints()
 			   line(int(from.x), int(from.y), int(from.z), int(end.x), int(end.y), int(end.z));
 		  }
 	 }
-
-#ifndef RELEASE_BUILD					
-	 // check if path waypointing is on...
-	 if (m_bDrawWPPaths)
-	 {
-		  // Draw path from first bot
-		  if (bots.length() && bots[0] && bots[0]->pBot && bots[0]->pBot->m_pCurrentWaypoint &&
-			   bots[0]->pBot->m_pCurrentGoalWaypoint)
-		  {
-			   CBot *pB = bots[0]->pBot;
-			   if (!pB->m_bCalculatingAStarPath && !pB->m_AStarNodeList.Empty())
-			   {
-					TLinkedList<waypoint_s *>::node_s *pNode = pB->m_AStarNodeList.GetFirst(), *pNext;
-						 
-					linestyle(2.5f, 0xFF, 0x40, 0x40);
-						 
-					line((int)pB->m_pCurrentWaypoint->pNode->v_origin.x,
-						   (int)pB->m_pCurrentWaypoint->pNode->v_origin.y,
-						   (int)pB->m_pCurrentWaypoint->pNode->v_origin.z,
-						   (int)pNode->Entry->pNode->v_origin.x,
-						   (int)pNode->Entry->pNode->v_origin.y,
-						   (int)pNode->Entry->pNode->v_origin.z);
-								
-					while(pNode && pNode->next)
-					{
-						 pNext = pNode->next;
-						 vec &v1 = pNode->Entry->pNode->v_origin;
-						 vec &v2 = pNext->Entry->pNode->v_origin;
-							  
-						 line(int(v1.x), int(v1.y), int(v1.z), int(v2.x), int(v2.y), int(v2.z));
-								   
-						 pNode = pNode->next;
-					}
-			   }
-		  } 
-	 }
-#endif
 	
 	glEnable(GL_CULL_FACE);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -2087,42 +2050,6 @@ void addtriggerwps(void)
 COMMAND(addtriggerwps, ARG_NONE);
 #endif
 
-// Debug functions
-#ifdef WP_FLOOD
-
-#ifndef RELEASE_BUILD
-void botsheadtome(void)
-{
-	 loopv(bots)
-	 {
-		  if (!bots[i] || !bots[i]->pBot) continue;
-		  
-		  bots[i]->pBot->GoToDebugGoal(player1->o);
-	 }
-}
-
-COMMAND(botsheadtome, ARG_NONE);
-
-void setdebuggoal(void) { v_debuggoal = player1->o; };
-COMMAND(setdebuggoal, ARG_NONE);
-
-void botsheadtodebuggoal(void)
-{
-	 loopv(bots)
-	 {
-		  if (!bots[i] || !bots[i]->pBot) continue;
-		  
-		  bots[i]->pBot->GoToDebugGoal(v_debuggoal);
-	 }
-}
-
-COMMAND(botsheadtodebuggoal, ARG_NONE);
-
-#endif // RELEASE_BUILD
-
-#endif // WP_FLOOD
-
-// End debug functions
 // Waypoint commands end
 
 

@@ -370,8 +370,6 @@ extern void spawnplayer(playerent *d);
 extern void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style = FRAG_NONE);
 extern void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, float killdist);
 extern playerent *newplayerent();
-extern botent *newbotent();
-extern void freebotent(botent *d);
 extern char *getclientmap();
 extern void zapplayer(playerent *&d);
 extern playerent *getclient(int cn);

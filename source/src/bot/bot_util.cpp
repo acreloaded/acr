@@ -171,7 +171,7 @@ float WrapYZAngle(float angle)
 // (1337 description :-)
 // UNDONE: Optimize this as much as possible
 void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult_s *tr,
-			   bool SkipTags)
+			   bool SkipTags) // or of course we can also use raycube...
 {
 	 tr->end = from;
 	 tr->collided = false;
@@ -225,7 +225,7 @@ void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult
 
 		  // Check if the 'line' collides with the local player(player1)
 		  playerent *d = player1; // Shortcut
-		  if (d && (d!=pTracer) && !BotManager.m_pBotToView && (d->state == CS_ALIVE))
+		  if (d && (d!=pTracer) && (d->state == CS_ALIVE))
 		  {
 			   flDist = GetDistance(from, d->o); 
 			   
@@ -459,33 +459,8 @@ const char *SkillNrToSkillName(short skillnr)
 
 bool IsInGame(dynent *d)
 {
-	 if (!d) return false;
+	if (!d) return false;
 	 
-	 if (d->type==ENT_BOT)
-	 {
-		  loopv(bots)
-		  {
-			   if (bots[i] == d)
-					return true;
-		  }
-	 }
-	 else
-	 {
-		  if (d == player1)
-			   return true;
-		  else
-		  {
-			   loopv(players)
-			   {
-#ifdef VANILLA_CUBE			   
-					if (!players[i] || (players[i]->state == CS_DEDHOST)) continue;
-#elif defined(AC_CUBE)
-					if (!players[i]) continue;
-#endif					
-					if (players[i] == d)
-						 return true;
-			   }
-		  }
-	 }
-	 return false;
+	if (d == player1) return true;
+	else return players.find((playerent *) d) >= 0;
 }

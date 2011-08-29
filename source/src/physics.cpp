@@ -457,11 +457,10 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 				{
 					float climbspeed = 1.0f;
 
-					if(pl->type==ENT_BOT) pl->vel.z = climbspeed; // bots climb upwards only
-					else if(pl->type==ENT_PLAYER)
+					if(pl->type==ENT_PLAYER)
 					{
 						if(p->perk == PERK_HAND) climbspeed = 1.5f;
-						if(p->k_up) pl->vel.z = climbspeed;
+						if(p->k_up || p->ownernum >= 0) pl->vel.z = climbspeed;
 						else if(p->k_down) pl->vel.z = -climbspeed;
 					}
 					pl->timeinair = 0;
@@ -633,7 +632,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 	}
 
 	// store previous locations of all players/bots
-	if(pl->type==ENT_PLAYER || pl->type==ENT_BOT){
+	if(pl->type==ENT_PLAYER){
 		((playerent *)pl)->history.update(pl->o, lastmillis);
 	}
 

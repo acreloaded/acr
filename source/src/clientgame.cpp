@@ -180,33 +180,6 @@ playerent *newplayerent()				 // create a new blank player
 	return d;
 }
 
-botent *newbotent()				 // create a new blank player
-{
-	botent *d = new botent;
-	setskin(d, rnd(6));
-	spawnstate(d);
-	weapon::equipplayer(d);
-	loopv(players) if(i!=getclientnum() && !players[i])
-	{
-		players[i] = d;
-		d->clientnum = i;
-		return d;
-	}
-	if(players.length()==getclientnum()) players.add(NULL);
-	d->clientnum = players.length();
-	players.add(d);
-	return d;
-}
-
-void freebotent(botent *d)
-{
-	loopv(players) if(players[i]==d)
-	{
-		DELETEP(players[i]);
-		players.remove(i);
-	}
-}
-
 void zapplayer(playerent *&d){ DELETEP(d); }
 
 void movelocalplayer()
