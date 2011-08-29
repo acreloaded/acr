@@ -4157,7 +4157,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 		if(nonlocalclients || serverhost->totalSentData || serverhost->totalReceivedData)
 		{
 			if(nonlocalclients) loggamestatus(NULL);
-			logline(ACLOG_INFO, "Status at %s: %d remote clients, %.1f send, %.1f rec (KiB/s); %d pings: %d sent %d recieved", timestring(true, "%d-%m-%Y %H:%M:%S"), nonlocalclients, serverhost->totalSentData/60.0f/1024, serverhost->totalReceivedData/60.0f/1024, pnum, psend, prec);
+			logline(ACLOG_INFO, "Status at %s: %d remote client%s, %.1f send, %.1f rec (KiB/s); %d ping%s: %d sent %d recieved", timestring(true, "%d-%m-%Y %H:%M:%S"), nonlocalclients, nonlocalclients==1?"":"s", serverhost->totalSentData/60.0f/1024, serverhost->totalReceivedData/60.0f/1024, pnum, pnum==1?"":"s", psend, prec);
 			pnum = psend = prec = 0;
 			// quality stats?
 		}
