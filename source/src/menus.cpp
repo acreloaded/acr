@@ -220,42 +220,91 @@ struct mitemtextvar : mitemmanual
 	}
 };
 
-struct mitemimage : mitemmanual
+struct mitemimagemanual : mitemmanual
 {
-	const char *filename;
-	Texture *image;
+    const char *filename;
+    Texture *image;
+    font *altfont;
 
-	mitemimage(gmenu *parent, char *filename, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemmanual(parent, text, action, hoveraction, bgcolor, desc), filename(filename), image(NULL) {}
-	virtual int width()
-	{
-		if(!image) image = filename ? textureload(filename, 3) : notexture;
-		return (FONTH*image->xs)/image->ys + FONTH/2 + mitemmanual::width();
-	}
-	virtual void render(int x, int y, int w)
-	{
-		mitem::render(x, y, w);
-		if(!image) image = filename ? textureload(filename, 3) : notexture;
-		glBindTexture(GL_TEXTURE_2D, image->id);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glColor3f(1, 1, 1);
-		int xs = (FONTH*image->xs)/image->ys;
-		glBegin(GL_QUADS);
-		glTexCoord2f(0, 0); glVertex2f(x,	y);
-		glTexCoord2f(1, 0); glVertex2f(x+xs, y);
-		glTexCoord2f(1, 1); glVertex2f(x+xs, y+FONTH);
-		glTexCoord2f(0, 1); glVertex2f(x,	y+FONTH);
-		glEnd();
-		draw_text(text, x+xs + FONTH/2, y);
-		xtraverts += 4;
-	}
-	virtual ~mitemimage()
-	{
-		DELETEA(filename);
-		DELETEA(text);
-		DELETEA(action);
-		DELETEA(hoveraction);
-		DELETEA(desc);
-	}
+    mitemimagemanual(gmenu *parent, const char *filename, const char *altfontname, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemmanual(parent, text, action, hoveraction, bgcolor, desc), filename(filename)
+    {
+        image = filename ? textureload(filename, 3) : NULL;
+        altfont = altfontname ? getfont(altfontname) : NULL;
+    }
+    virtual ~mitemimagemanual() {}
+    virtual int width()
+    {
+        if(image && *text != '\t') return (FONTH*image->xs)/image->ys + FONTH/2 + mitemmanual::width();
+        return mitemmanual::width();
+    }
+    virtual void render(int x, int y, int w)
+    {
+        mitem::render(x, y, w);
+        if(image || altfont)
+        {
+            int xs = 0;
+            if(image)
+            {
+                glBindTexture(GL_TEXTURE_2D, image->id);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                glColor3f(1, 1, 1);
+                xs = (FONTH*image->xs)/image->ys;
+                glBegin(GL_TRIANGLE_STRIP);
+                glTexCoord2f(0, 0); glVertex2f(x,    y);
+                glTexCoord2f(1, 0); glVertex2f(x+xs, y);
+                glTexCoord2f(0, 1); glVertex2f(x,    y+FONTH);
+                glTexCoord2f(1, 1); glVertex2f(x+xs, y+FONTH);
+                glEnd();
+                xtraverts += 4;
+            }
+            draw_text(text, !image || *text == '\t' ? x : x+xs + FONTH/2, y);
+            if(altfont && strchr(text, '\a'))
+            {
+                char *r = newstring(text), *re, *l = r;
+                while((re = strchr(l, '\a')) && re[1])
+                {
+                    *re = '\0';
+                    x += text_width(l);
+                    l = re + 2;
+                    pushfont(altfont->name);
+                    draw_textf("%c", x, y, re[1]);
+                    popfont();
+                }
+                delete[] r;
+            }
+            if(image && isselection() && image->ys > FONTH)
+            {
+                w += FONTH;
+                int xs = (2 * VIRTW - w) / 5, ys = (xs * image->ys) / image->xs;
+                x = (6 * VIRTW + w - 2 * xs) / 4; y = VIRTH - ys / 2;
+                blendbox(x - FONTH, y - FONTH, x + xs + FONTH, y + ys + FONTH, false);
+                glBindTexture(GL_TEXTURE_2D, image->id);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                glColor3f(1, 1, 1);
+                glBegin(GL_TRIANGLE_STRIP);
+                glTexCoord2f(0, 0); glVertex2f(x,    y);
+                glTexCoord2f(1, 0); glVertex2f(x+xs, y);
+                glTexCoord2f(0, 1); glVertex2f(x,    y+ys);
+                glTexCoord2f(1, 1); glVertex2f(x+xs, y+ys);
+                glEnd();
+                xtraverts += 4;
+            }
+        }
+        else mitemmanual::render(x, y, w);
+    }
+};
+
+struct mitemimage : mitemimagemanual
+{
+    mitemimage(gmenu *parent, const char *filename, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemimagemanual(parent, filename, NULL, text, action, hoveraction, bgcolor, desc) {}
+    virtual ~mitemimage()
+    {
+        DELETEA(filename);
+        DELETEA(text);
+        DELETEA(action);
+        DELETEA(hoveraction);
+        DELETEA(desc);
+    }
 };
 
 // text input item
@@ -592,6 +641,12 @@ void menumanual(void *menu, char *text, char *action, color *bgcolor, const char
 {
 	gmenu &m = *(gmenu *)menu;
 	m.items.add(new mitemmanual(&m, text, action, NULL, bgcolor, desc));
+}
+
+void menuimagemanual(void *menu, const char *filename, const char *altfontname, char *text, char *action, color *bgcolor, const char *desc)
+{
+    gmenu &m = *(gmenu *)menu;
+    m.items.add(new mitemimagemanual(&m, filename, altfontname, text, action, NULL, bgcolor, desc));
 }
 
 void menutitle(void *menu, const char *title)

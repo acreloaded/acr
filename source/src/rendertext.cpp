@@ -193,6 +193,7 @@ void text_endcolumns()
 		else if(c==' ')  { x += curfont->defaultw; TEXTWHITE(i) }\
 		else if(c=='\n') { TEXTLINE(i) x = 0; y += FONTH; }\
 		else if(c=='\f') { if(str[i+1]) { i++; TEXTCOLOR(i) }}\
+		else if(c=='\a') { if(str[i+1]) { i++; }}\
 		else if(curfont->chars.inrange(c-curfont->skip))\
 		{\
 			if(maxwidth != -1)\
