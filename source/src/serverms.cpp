@@ -184,7 +184,7 @@ uchar *retrieveservers(uchar *buf, int buflen)
 	buf[0] = '\0';
 
 	defformatstring(path)("%scube", masterpath);
-	defformatstring(agent)("AssaultCube Client %d", AC_VERSION);
+	defformatstring(agent)("AssaultCube Client v%d", AC_VERSION);
 	ENetAddress address = masterserver;
 	ENetSocket sock = httpgetsend(address, masterbase, path, agent);
 	if(sock==ENET_SOCKET_NULL) return buf;
