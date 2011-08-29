@@ -236,7 +236,7 @@ static inline const bool isheadshot(int weapon, int style){
 		case WEAP_SHOTGUN:
 		case WEAP_MAX:
 		case WEAP_MAX+5:
-			return false; // these guns cannot gib
+			return false; // these weapons cannot headshot
 	}
 	return true;
 }
