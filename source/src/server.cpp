@@ -1840,8 +1840,8 @@ struct nickblacklist {
 			for(int i = idx; i >= 0; i = whitelistranges[i].next)
 			{
 				iprchain &ic = whitelistranges[i];
-				if(ic.pwd) s_strcatf(text, "  pwd:\"%s\"", hiddenpwd(ic.pwd));
-				else s_strcatf(text, "  %s", iprtoa(ic.ipr));
+				if(ic.pwd) concatformatstring(text, "  pwd:\"%s\"", hiddenpwd(ic.pwd));
+				else concatformatstring(text, "  %s", iprtoa(ic.ipr));
 			}
 			logline(ACLOG_VERBOSE, "  accept %s%s", key, text);
 		});
@@ -3982,9 +3982,9 @@ void loggamestatus(const char *reason){
 		client &c = *clients[i];
 		if(c.type == ST_EMPTY || !c.name[0]) continue;
 		formatstring(text)("%2d %-16s ", c.clientnum, c.name);		 // cn name
-		if(m_team) s_strcatf(text, "%-4s ", team_string(c.team)); // team
-		if(m_flags) s_strcatf(text, "%4d ", c.state.flagscore);	 // flag
-		s_strcatf(text, "%4d %5d", c.state.frags, c.state.deaths);  // frag death
+		if(m_team) concatformatstring(text, "%-4s ", team_string(c.team)); // team
+		if(m_flags) concatformatstring(text, "%4d ", c.state.flagscore);	 // flag
+		concatformatstring(text, "%4d %5d", c.state.frags, c.state.deaths);  // frag death
 		logline(ACLOG_INFO, "%s%5d %s %s", text, c.ping,
 			c.priv == PRIV_NONE ? "normal " :
 			c.priv == PRIV_MASTER ? "master " :

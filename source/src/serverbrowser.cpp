@@ -551,7 +551,7 @@ void checkpings()
 							if(*text && !p.overread())
 							{
 								text[MAXINFOLINELEN] = '\0';
-								loopi(n) s_strcatf(text, ", %d", getint(p));
+								loopi(n) concatformatstring(text, ", %d", getint(p));
 								si->infotexts.add((char *)si->textdata + q.length());
 								sendstring(text , q);
 							}
@@ -984,17 +984,17 @@ void refreshservers(void *menu, bool init)
 				else
 				{
 					filterrichtext(text, si.favcat > -1 ? favcattags[si.favcat] : "");
-					if(showweights) s_strcatf(text, "(%d)", si.weight);
+					if(showweights) concatformatstring(text, "(%d)", si.weight);
 					formatstring(si.full)(showfavtag ? "\fs%s\fr\t" : "", text);
-					s_strcatf(si.full, "\fs\f%c%d\t\fs\f%c%d/%d\fr\t", basecolor, si.ping, plnumcolor, si.numplayers, si.maxclients);
+					concatformatstring(si.full, "\fs\f%c%d\t\fs\f%c%d/%d\fr\t", basecolor, si.ping, plnumcolor, si.numplayers, si.maxclients);
 					if(si.map[0])
 					{
-						s_strcatf(si.full, "%s, %s", si.map, modestr(si.mode, modeacronyms > 0));
-						if(showmr) s_strcatf(si.full, ", (%d:%02d)", (int)floor(si.minremain/60.f), si.minremain%60);
+						concatformatstring(si.full, "%s, %s", si.map, modestr(si.mode, modeacronyms > 0));
+						if(showmr) concatformatstring(si.full, ", (%d:%02d)", (int)floor(si.minremain/60.f), si.minremain%60);
 					}
-					else s_strcatf(si.full, "empty");
-					s_strcatf(si.full, serverbrowserhideip < 2 ? ": \fs%s%s:%d\fr" : ": ", serverbrowserhideip == 1 ? "\f4" : "", si.name, si.port);
-					s_strcatf(si.full, "\fr %s", si.sdesc);
+					else concatformatstring(si.full, "empty");
+					concatformatstring(si.full, serverbrowserhideip < 2 ? ": \fs%s%s:%d\fr" : ": ", serverbrowserhideip == 1 ? "\f4" : "", si.name, si.port);
+					concatformatstring(si.full, "\fr %s", si.sdesc);
 				}
 			}
 			else
@@ -1039,7 +1039,7 @@ void refreshservers(void *menu, bool init)
 							t = namelists[curnl - 1];
 							copystring(t, showfavtag ? "\t\t" : "\t");
 						}
-						s_strcatf(t, " \t\fs%s%s\fr", !issearch || matchplayername(si.playernames[j]) ? "" : "\f4" ,si.playernames[j]);
+						concatformatstring(t, " \t\fs%s%s\fr", !issearch || matchplayername(si.playernames[j]) ? "" : "\f4" ,si.playernames[j]);
 						cur++;
 						if(cur == 4)
 						{

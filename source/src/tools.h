@@ -114,7 +114,7 @@ typedef char string[_MAXDEFSTR];
 inline void vformatstring(char *d, const char *fmt, va_list v) { _vsnprintf(d, _MAXDEFSTR, fmt, v); d[_MAXDEFSTR-1] = 0; }
 inline char *copystring(char *d, const char *s, size_t m = _MAXDEFSTR) { strncpy(d,s,m); d[m-1] = 0; return d; }
 inline char *concatstring(char *d, const char *s, size_t len = _MAXDEFSTR) { size_t used = strlen(d); return used < len ? copystring(d+used, s, len-used) : d; }
-extern char *s_strcatf(char *d, const char *s, ...);
+extern char *concatformatstring(char *d, const char *s, ...);
 
 struct stringformatter
 {

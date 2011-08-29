@@ -605,7 +605,7 @@ const char *iprtoa(const struct iprange &ipr)
 	return s[buf];
 }
 
-char *s_strcatf(char *d, const char *s, ...)
+char *concatformatstring(char *d, const char *s, ...)
 {
 	static s_sprintfdv(temp, s);
 	return concatstring(d, temp);

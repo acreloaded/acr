@@ -59,10 +59,10 @@ bool initlogging(const char *identity, int facility_, int consolethres, int file
 		if(!fp) printf("failed to open \"%s\" for writing\n", filepath);
 	}
 	defformatstring(msg)("logging started: console(%s), file(%s", levelname[consolethreshold], levelname[fp ? filethreshold : ACLOG_NUM]);
-	if(fp) s_strcatf(msg, ", \"%s\"", filepath);
-	s_strcatf(msg, "), syslog(%s", levelname[syslogthreshold]);
-	if(syslogthreshold < ACLOG_NUM) s_strcatf(msg, ", \"%s\", local%d", ident, facility);
-	s_strcatf(msg, "), timestamp(%s)", timestamp ? "ENABLED" : "DISABLED");
+	if(fp) concatformatstring(msg, ", \"%s\"", filepath);
+	concatformatstring(msg, "), syslog(%s", levelname[syslogthreshold]);
+	if(syslogthreshold < ACLOG_NUM) concatformatstring(msg, ", \"%s\", local%d", ident, facility);
+	concatformatstring(msg, "), timestamp(%s)", timestamp ? "ENABLED" : "DISABLED");
 	enabled = consolethreshold < ACLOG_NUM || fp || syslogthreshold < ACLOG_NUM;
 	if(enabled) printf("%s\n", msg);
 	return enabled;
