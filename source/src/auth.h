@@ -61,7 +61,7 @@ int allowconnect(client &ci, const char *pwd = "", int authreq = 0){
 	if(srvprivate) return DISC_PRIVATE;
 	if(srvfull) return DISC_FULL;
 	if(banned) return DISC_REFUSE;
-	logline(ACLOG_INFO, "[%s] %s logged in (default)%s", gethostname(ci.clientnum), ci.name, wlp);
+	logline(ACLOG_INFO, "[%s] %s logged in%s", gethostname(ci.clientnum), ci.name, wlp);
 	return DISC_NONE;
 }
 
@@ -81,7 +81,6 @@ void authsuceeded(uint id, char priv, char *name){
 	sendf(-1, 1, "ri3s", N_AUTHCHAL, 5, c->clientnum, name);
 	if(priv) setpriv(c->clientnum, c->authpriv = clamp<char>(priv, PRIV_MASTER, PRIV_MAX));
 	loopv(bans) if(bans[i].host == c->peer->address.host) bans.remove(i); // deban
-	checkauthdisc(*c);
 }
 
 void authfail(uint id, bool disconnect){
