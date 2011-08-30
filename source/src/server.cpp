@@ -3202,6 +3202,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case N_SPAWN:
 			{
 				int cn = getint(p), ls = getint(p), gunselect = getint(p);
+				vec o;
+				loopi(3) o[i] = getfloat(p);
 				if(!hasclient(cl, cn)) break;
 				client &cp = *clients[cn];
 				if((cp.state.state!=CS_ALIVE && cp.state.state!=CS_DEAD) || ls!=cp.state.lifesequence || cp.state.lastspawn<0 || gunselect<0 || gunselect>=WEAP_MAX) break;
@@ -3209,6 +3211,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				cp.state.spawnmillis = gamemillis;
 				cp.state.state = CS_SPAWNING;
 				cp.state.gunselect = gunselect;
+				cp.state.o = o;
 				QUEUE_BUF(5*(7 + 2*WEAP_MAX),
 				{
 					putint(buf, N_SPAWN);

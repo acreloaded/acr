@@ -468,7 +468,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						hudeditf(HUDMSG_TIMER, "FIGHT!");
 					}
 				}
-				addmsg(N_SPAWN, "ri3", d->clientnum, d->lifesequence, d->weaponsel->type);
+				addmsg(N_SPAWN, "ri3f3", d->clientnum, d->lifesequence, d->weaponsel->type, d->o.x, d->o.y, d->o.z);
 				d->weaponswitch(d->primweap);
 				d->weaponchanging -= weapon::weaponchangetime/2;
 				break;
