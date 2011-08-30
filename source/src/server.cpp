@@ -3977,12 +3977,12 @@ void loggamestatus(const char *reason){
 	logline(ACLOG_INFO, "");
 	logline(ACLOG_INFO, "Game status: %s on %s, %s, %s%c %s",
 					  modestr(gamemode), smapname, reason ? reason : text, mmfullname(mastermode), custom_servdesc ? ',' : '\0', servdesc_current);
-	logline(ACLOG_INFO, "cn name		    %s%sfrag death ping role	host", m_team ? "team " : "", m_flags ? "flag " : "");
+	logline(ACLOG_INFO, "cn  name		    %s%sfrag death ping role	host", m_team ? "team " : "", m_flags ? "flag " : "");
 	loopv(clients)
 	{
 		client &c = *clients[i];
 		if(c.type == ST_EMPTY || !c.name[0]) continue;
-		formatstring(text)("%2d %-16s ", c.clientnum, c.name);		 // cn name
+		formatstring(text)("%2d%s %-16s ", c.state.ownernum < 0 ? c.clientnum : c.state.ownernum, c.state.ownernum < 0 ? "" : "*", c.name); // cn name
 		if(m_team) concatformatstring(text, "%-4s ", team_string(c.team)); // team
 		if(m_flags) concatformatstring(text, "%4d ", c.state.flagscore);	 // flag
 		concatformatstring(text, "%4d %5d", c.state.frags, c.state.deaths);  // frag death
