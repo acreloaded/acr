@@ -1,6 +1,8 @@
 <?
 	if(function_exists("getip")) return false; // double include safety
 	function getip(){
+		return $_SERVER['REMOTE_ADDR'];
+		/*
 		if (getenv('HTTP_CLIENT_IP')) {
 			$ip = getenv('HTTP_CLIENT_IP');
 		}
@@ -20,6 +22,7 @@
 			$ip = $_SERVER['REMOTE_ADDR'];
 		}
 		return $ip;
+		*/
 	}
 	
 	function getipint(){ // int can be negative - but it still fits
