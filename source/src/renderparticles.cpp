@@ -644,14 +644,23 @@ VARP(bulletairsounddestrad, 0, 8, 1000);
 
 vector<sl> sls;
 
-void addshotline(playerent *pl, const vec &from, const vec &to, int flags)
+void addshotline(playerent *pl, const vec &from2, const vec &to, int flags)
 {
+	vec from(from2);
+
 	sl s = {pl, {from.x, from.y}, {to.x, to.y}, lastmillis + shotlinettl * 2};
 	sls.add(s);
 	if(!shotlinettl || !shotline) return;
 	vec unitv;
 	
-	//if(pl == gamefocus); // maybe make from go to the muzzle flash?
+	if(pl == gamefocus){ // just for fx
+		extern vec *hudgunTag(playerent *p, const char *tag);
+		vec *v = hudgunTag(pl, "tag_muzzle");
+		if(v){
+			v->div(1.28f).rotate_around_x(pl->roll * RAD).rotate_around_y(pl->pitch * RAD).rotate_around_z((pl->yaw - 90) * RAD);
+			from.add(*v);
+		}
+	}
 	float dist = to.dist(from, unitv);
 	unitv.div(dist);
 
