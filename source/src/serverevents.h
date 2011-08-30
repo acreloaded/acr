@@ -127,7 +127,8 @@ void processevent(client &c, shotevent &e)
 			// check for stick
 			int cn = -1, hitzone = HIT_NONE;
 			float dist = 4e6f; // 1 million meters should be enough for a "stick"
-			loopv(clients){
+			if(e.gun == WEAP_HEAL && gs.scoping) cn = c.clientnum;
+			else loopv(clients){
 				client &t = *clients[i];
 				clientstate &ts = t.state;
 				// basic checks
@@ -168,8 +169,8 @@ void processevent(client &c, shotevent &e)
 					//cn = c.clientnum;
 					if(cn < 0) break;
 					const int flags = (cn == c.clientnum ? FRAG_FLAG : FRAG_NONE) | (hitzone == HIT_HEAD ? FRAG_GIB : FRAG_NONE);
-					serverdamage(clients[cn], &c, effectiveDamage(e.gun, dist), e.gun, flags, gs.o);
-					loopi(15){ // 15 x 1hp heals over the next 1 to 2.5 seconds
+					if(!m_team || &c == clients[cn] || c.team != clients[cn]->team) serverdamage(clients[cn], &c, effectiveDamage(e.gun, dist), e.gun, flags, gs.o);
+					loopi(&c == clients[cn] ? 25 : 15){ // heals over the next 1 to 2.5 seconds (no perk, for others)
 						reloadevent &heal = clients[cn]->addtimer().reload;
 						heal.type = GE_RELOAD;
 						heal.id = c.clientnum;
