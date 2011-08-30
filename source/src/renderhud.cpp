@@ -1135,19 +1135,20 @@ void renderhudwaypoints(){
 	// flags
 	const int teamfix = gamefocus->team == TEAM_SPECT ? TEAM_RED : gamefocus->team;
 	if(m_flags) loopi(2){
-		float a = 1;
+		const float a = 1;
 		int wp = -1;
 		vec o;
 
 		flaginfo &f = flaginfos[i];
 		entity &e = *f.flagent;
+
+		// flag
 		switch(f.state)
 		{
 			case CTFF_STOLEN:
-				if(f.actor == player1) break;
+				if(f.actor == gamefocus) break;
 				if(OUTBORD(f.actor->o.x, f.actor->o.y)) break;
-				o = f.actor->head;
-				if(o.x < 0) o = f.actor->o;
+				o = f.actor->o;
 				wp = m_team && f.actor->team == teamfix ? m_ctf ? WP_ESCORT : WP_DEFEND : WP_KILL;
 				break;
 			case CTFF_DROPPED:
@@ -1156,15 +1157,19 @@ void renderhudwaypoints(){
 				o.z += PLAYERHEIGHT;
 				wp = i == teamfix ? m_ctf ? WP_RETURN : WP_FRIENDLY : m_ctf ? WP_ENEMY : WP_GRAB;
 				break;
-			case CTFF_INBASE:
-				wp = (m_ctf || m_htf) && i == teamfix ? WP_FRIENDLY : m_ktf || m_ctf ? WP_GRAB : WP_ENEMY;
-			case CTFF_IDLE:
-				if(f.state == CTFF_IDLE) wp = WP_STOLEN;
-			default:
-				o = vec(e.x, e.y, (float)S(int(e.x), int(e.y))->floor + PLAYERHEIGHT);
-				break;
 		}
 		o.z += PLAYERABOVEEYE;
 		if(wp >= 0 && wp < WP_NUM) renderwaypoint(wp, o, a);
+
+		// flag base
+		wp = WP_STOLEN;
+		switch(f.state){
+			default: if(i != teamfix) wp = -1; break;
+			case CTFF_INBASE:
+				wp = (m_ctf || m_htf) && i == teamfix ? WP_FRIENDLY : m_ktf || m_ctf ? WP_GRAB : WP_ENEMY;
+			case CTFF_IDLE:
+				break;
+		}
+		if(wp >= 0 && wp < WP_NUM) renderwaypoint(wp, vec(e.x, e.y, (float)S(int(e.x), int(e.y))->floor + PLAYERHEIGHT), a);
 	}
 }
