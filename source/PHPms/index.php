@@ -144,7 +144,7 @@
 		$q = mysql_result(mysql_query("SELECT `nonce` FROM `{$config['db']['pref']}auth` WHERE `ip`={$ip} AND `id`={$id}"), 0, 0);
 		mysql_query("DELETE FROM `{$config['db']['pref']}auth` WHERE `ip`={$ip} AND `id`={$id}"); // used auth
 		$ans = &$_GET['ans'];
-		foreach($config['auth'] as $authkey) if(strtolower($ans) == sha1($q.$authkey[0])) exit("*s{$id}|".$authkey[2].$authkey[1]);
+		foreach($config['auth'] as $authkey) if($ans == sha1($q.$authkey[0])) exit("*s{$id}|".$authkey[2].$authkey[1]);
 		echo "*d{$id}"; // no match
 	}
 	else{
