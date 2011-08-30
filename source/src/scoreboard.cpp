@@ -42,7 +42,7 @@ struct teamscore{
 		deaths += d->deaths;
 		points += d->points;
 		extern int level;
-		lvl += d == player1 ? level : d->ownernum < 0 ? d->level : 0;
+		lvl += d == player1 ? level : d->level;
 		if(m_flags) flagscore += d->flagscore;
 	}
 };
@@ -103,7 +103,6 @@ struct scoreratio{
 };
 
 void renderscore(void *menu, playerent *d){
-	defformatstring(status)("\f%d", privcolor(d->priv, d->state == CS_DEAD));
 	static color localplayerc(0.2f, 0.2f, 0.2f, 0.2f), damagedplayerc(0.4f, 0.1f, 0.1f, 0.3f);
 	const char *clag = d->state==CS_WAITING ? "LAG" : colorpj(d->plag), *cping = colorping(d->ping);
 	sline &line = scorelines.add();
@@ -112,9 +111,8 @@ void renderscore(void *menu, playerent *d){
 	scoreratio sr;
 	sr.calc(d->frags, d->deaths);
 	extern int level;
-	defformatstring(levels)(d->ownernum < 0 ? "%d" : "ai", d == player1 ? level : d->level);
-	if(m_flags) formatstring(s)("%d\t%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%s\t%s%s", d->points, d->flagscore, d->frags, d->assists, d->deaths, sr.precision, sr.ratio, clag, cping, d->clientnum, levels, status, colorname(d, true));
-	else formatstring(s)("%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%s\t%s%s", d->points, d->frags, d->assists, d->deaths, sr.precision, sr.ratio, clag, cping, d->clientnum, levels, status, colorname(d, true));
+	if(m_flags) formatstring(s)("%d\t%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%d\t\f%d%s", d->points, d->flagscore, d->frags, d->assists, d->deaths, sr.precision, sr.ratio, clag, cping, d->clientnum, d == player1 ? level : d->level, privcolor(d->priv, d->state == CS_DEAD), colorname(d, true));
+	else formatstring(s)("%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%d\t\f%d%s", d->points, d->frags, d->assists, d->deaths, sr.precision, sr.ratio, clag, cping, d->clientnum, d == player1 ? level : d->level, privcolor(d->priv, d->state == CS_DEAD), colorname(d, true));
 }
 
 void renderteamscore(void *menu, teamscore &t){
