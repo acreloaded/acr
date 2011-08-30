@@ -241,13 +241,13 @@ struct client				   // server side version of "dynent" type
 	gameevent &addevent()
 	{
 		static gameevent dummy;
-		if(events.length()>100) return dummy;
+		if(events.length()>32) return dummy;
 		return events.add();
 	}
 
 	gameevent &addtimer(){
 		static gameevent dummy;
-		if(timers.length()>200) return dummy;
+		if(timers.length()>40) return dummy;
 		return timers.add();
 	}
 
