@@ -1086,9 +1086,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				}
 				authtoken = -1;
 				conoutf("server is challenging authentication details");
-				defformatstring(buf)("%d%s", nonce, authkey);
-				unsigned hash[5];
-				sha1 s;
+				sha1 s = sha1(); unsigned hash[5] = {0};
+				s << authkey;
+				if(!s.Result(hash)){
+					conoutf("could not compute key digest");
+					break;
+				}
+				defformatstring(buf)("%d%x%x%x%x%x", nonce, hash[0], hash[1], hash[2], hash[3], hash[4]);
+				s.Reset();
 				s << buf;
 				if(!s.Result(hash)){
 					conoutf("could not compute message digest");
