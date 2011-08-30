@@ -33,8 +33,7 @@ void killpoints(client *target, client *actor, int gun, int style){
 		loopv(target->state.damagelog){
 			if(!valid_client(target->state.damagelog[i])) continue;
 			client *c = clients[target->state.damagelog[i]];
-			if(!c || isteam(c, actor)) continue;
-			addpt(c, gain);
+			if(!isteam(c, target)) addpt(c, gain);
 		}
 	}
 }
