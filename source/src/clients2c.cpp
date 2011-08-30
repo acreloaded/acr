@@ -1092,7 +1092,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					conoutf("could not compute key digest");
 					break;
 				}
-				defformatstring(buf)("%d%x%x%x%x%x", nonce, hash[0], hash[1], hash[2], hash[3], hash[4]);
+				defformatstring(buf)("%d%08x%08x%08x%08x%08x", nonce, hash[0], hash[1], hash[2], hash[3], hash[4]);
 				s.Reset();
 				s << buf;
 				if(!s.Result(hash)){
