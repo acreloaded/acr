@@ -718,7 +718,7 @@ void putinitai(client &c, ucharbuf &p){
 	putint(p, c.clientnum);
 	putint(p, c.team);
 	putint(p, c.skin);
-	putint(p, 80); // replace with bot skill
+	putint(p, c.state.level);
 	putint(p, c.state.ownernum);
 }
 

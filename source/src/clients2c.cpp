@@ -343,8 +343,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				playerent *d = newclient(getint(p));
 				d->team = getint(p);
 				setskin(d, getint(p));
+				d->level = getint(p);
 				if(type == N_INITCLIENT){ // human
-					d->level = getint(p);
 					getstring(text, p);
 					if(!*text) copystring(text, "unnamed");
 					filtername(d->name, text);
@@ -352,7 +352,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					if(!joining) chatoutf("%s \f0joined \f2the \f1game", colorname(d));
 				}
 				else{ // AI
-					getint(p); // set skill?
 					d->ownernum = getint(p);
 					formatstring(d->name)("bot%d", d->clientnum);
 				}
