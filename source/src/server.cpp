@@ -3544,7 +3544,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(!valid_client(cn)) break;
 				client &cp = *clients[cn];
 				clientstate &cs = cp.state;
-				if(cs.state == CS_SPAWNING) cs.state = CS_ALIVE;
+				if(broadcast && cs.state == CS_SPAWNING) cs.state = CS_ALIVE;
 				if((cs.state!=CS_ALIVE && cs.state!=CS_EDITING) || seqcolor!=(cs.lifesequence&1) || !broadcast) break;
 				// store location
 				cs.lasto = cs.o;
@@ -3559,7 +3559,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					cs.crouchmillis = gamemillis - CROUCHTIME + min(gamemillis - cl->state.crouchmillis, CROUCHTIME);
 				}
 				// broadcast
-				if(cs.spawnmillis + SPAWNPROTECT <= gamemillis){
+				if(cs.spawnmillis + SPAWNPROTECT <= gamemillis){ // maybe move this to damage prevention?
 					cp.position.setsize(0);
 					while(curmsg < p.length()) cp.position.add(p.buf[curmsg++]);
 				}
