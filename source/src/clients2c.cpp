@@ -883,6 +883,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						if(spawns && flags) concatstring(msg, " and ");
 						if(flags || !spawns) concatstring(msg, "flag bases");
 						concatstring(msg, " missing");
+						break;
 					}
 					case 20: // 2* demos
 						copystring(msg, "recording demo");
