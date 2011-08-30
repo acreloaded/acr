@@ -363,10 +363,18 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
+			
+			case N_DISC:
 			case N_DELAI:
 			{
-				int cn = getint(p);
-				if(players.inrange(cn)) zapplayer(players[cn]);
+				int cn = getint(p), reason = type == N_DISC ? getint(p) : 0;
+				playerent *d = getclient(cn);
+				if(!d || d == player1) break;
+				if(type == N_DISC && *d->name){
+					conoutf("player %s disconnected (%s)", colorname(d), reason >= 0 ? disc_reason(reason) : "normally");
+					chatoutf("%s \f3left \f2the \f1game", colorname(d));
+				}
+				zapplayer(players[cn]);
 				break;
 			}
 
@@ -397,19 +405,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				playerent *d = getclient(getint(p));
 				int lvl = getint(p);
 				if(d) d->level = lvl;
-				break;
-			}
-
-			case N_DISC:
-			{
-				int cn = getint(p), reason = getint(p);
-				playerent *d = getclient(cn);
-				if(!d || d == player1) break;
-				if(*d->name){
-					conoutf("player %s disconnected (%s)", colorname(d), reason >= 0 ? disc_reason(reason) : "normally");
-					chatoutf("%s \f3left \f2the \f1game", colorname(d));
-				}
-				zapplayer(players[cn]);
 				break;
 			}
 
