@@ -343,7 +343,7 @@ bool weapon::modelattacking(){
 void weapon::attacksound(){
 	if(info.sound == S_NULL) return;
 	bool local = (owner == player1);
-	if(!suppressed_gun(type)){
+	if(!suppressed_weap(type)){
 		owner->radarmillis = lastmillis;
 		owner->lastloudpos[0] = owner->o.x;
 		owner->lastloudpos[1] = owner->o.y;

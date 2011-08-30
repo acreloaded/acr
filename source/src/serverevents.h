@@ -206,7 +206,7 @@ void processevent(client &c, reloadevent &e){
 	int mag = magsize(e.gun), reload = reloadsize(e.gun);
 	if(!gs.isalive(gamemillis) ||
 	   e.gun<WEAP_KNIFE || e.gun>=WEAP_MAX ||
-	   !reloadable_gun(e.gun) ||
+	   !reloadable_weap(e.gun) ||
 	   gs.mag[e.gun] >= mag ||
 	   gs.ammo[e.gun] < reload)
 		return;

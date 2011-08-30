@@ -366,10 +366,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_DELAI:
 			{
 				int cn = getint(p);
-				if(players.inrange(cn)){
-					//if(players[cn]->ownernum == getclientnum()) bots.removeobj((botent *)players[cn]);
-					zapplayer(players[cn]);
-				}
+				if(players.inrange(cn)) zapplayer(players[cn]);
 				break;
 			}
 

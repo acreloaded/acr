@@ -126,7 +126,7 @@ int shot(client &owner, const vec &from, const vec &to, int weap, vec &surface, 
 		serverdamage(&t, &owner, damage, weap, style, from);
 		++playershit;
 	}
-	if(!dist && from.dist(to) < 100 && surface.magnitude() && weap != WEAP_KNIFE){ // 25 meters
+	if(!dist && from.dist(to) < 100 && surface.magnitude() && !melee_weap(weap)){ // 25 meters
 		const int penalty = 40 + playershit * 20; // 10 meters plus 5 meters per player
 		vec dir(to), newsurface;
 		dir.sub(from).normalize();
