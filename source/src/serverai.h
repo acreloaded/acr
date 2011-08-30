@@ -35,7 +35,7 @@ bool addai(){
 	formatstring(b.name)("bot%d", cn);
 	b.type = ST_AI;
 	b.connected = true;
-	sendf(-1, 1, "ri5", N_INITAI, cn, (b.team = freeteam()), (b.skin = rand()), (b.state.ownernum = aiowner));
+	sendf(-1, 1, "ri6", N_INITAI, cn, (b.team = freeteam()), (b.skin = rand()), 80, (b.state.ownernum = aiowner));
 	return true;
 }
 

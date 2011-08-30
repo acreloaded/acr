@@ -337,8 +337,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case N_INITAI: // cn team skin owner
 			case N_INITCLIENT: // cn team skin level name
+			case N_INITAI: // cn team skin skill owner
 			{
 				playerent *d = newclient(getint(p));
 				d->team = getint(p);
@@ -352,6 +352,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					if(!joining) chatoutf("%s \f0joined \f2the \f1game", colorname(d));
 				}
 				else{ // AI
+					getint(p); // set skill?
 					d->ownernum = getint(p);
 					formatstring(d->name)("bot%d", d->clientnum);
 				}
