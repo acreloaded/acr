@@ -534,8 +534,10 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 	pl->damagelog.removeobj(pl->clientnum);
 	pl->damagelog.removeobj(act->clientnum);
 	// HUD for first person
-	if(pl == gamefocus || act == gamefocus) hudonlyf(pl->damagelog.length() ? "%s %s %s, %d assister%s" : "%s %s %s", subject, hashave, predicate,
-		pl->damagelog.length(), pl->damagelog.length()==1?"":"s");
+	if(pl == gamefocus || act == gamefocus){
+		if(pl->damagelog.length()) hudonlyf("%s %s %s, %d assister%s", subject, hashave, predicate, pl->damagelog.length(), pl->damagelog.length()==1?"":"s");
+		else hudonlyf("%s %s %s", subject, hashave, predicate);
+	}
 	// assists
 	if(pl->damagelog.length()){
 		concatstring(predicate, ", assisted by");
@@ -550,6 +552,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 		}
 	}
 	if(style & FRAG_FIRST) concatstring(predicate, " for \f3\fbfirst blood");
+	if(style & FRAG_CRITICAL) concatstring(predicate, " with a \f1\fbcritical hit");
 	conoutf("%s %s", subject, predicate);
 	pl->killstreak = act->deathstreak = 0;
 	
