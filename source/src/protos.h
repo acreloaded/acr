@@ -265,7 +265,7 @@ extern void gl_drawframe(int w, int h, float changelod, float curfps);
 extern void clearminimap();
 extern void rendercursor(int x, int y, int w);
 extern void renderaboveheadicon(playerent *p);
-enum { WP_KNIFE = 0, WP_EXP, WP_KILL, WP_ESCORT, WP_DEFEND, WP_GRAB, WP_ENEMY, WP_FRIENDLY, WP_STOLEN, WP_RETURN, WP_NUM };
+enum { WP_KNIFE = 0, WP_BOMB, WP_EXP, WP_KILL, WP_ESCORT, WP_DEFEND, WP_GRAB, WP_ENEMY, WP_FRIENDLY, WP_STOLEN, WP_RETURN, WP_NUM };
 extern void renderwaypoint(int wp, const vec &o, float alpha = 1, bool disabledepthtest = true);
 
 extern void drawscope();
