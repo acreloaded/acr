@@ -149,7 +149,7 @@ void checkmasterreply()
 						case 's': // succeed
 						{
 							if(!*tp) return;
-							char priv = atoi(tp++);
+							char priv = *tp++-'0';
 							if(!priv || !*tp) return;
 							string name;
 							filtertext(name, tp, 1, MAXNAMELEN);

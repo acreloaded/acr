@@ -81,6 +81,7 @@ void authsuceeded(uint id, char priv, char *name){
 	sendf(-1, 1, "ri3s", N_AUTHCHAL, 5, c->clientnum, name);
 	if(priv) setpriv(c->clientnum, c->authpriv = clamp<char>(priv, PRIV_MASTER, PRIV_MAX));
 	loopv(bans) if(bans[i].host == c->peer->address.host) bans.remove(i); // deban
+	//checkauthdisc(*c); // can bypass passwords
 }
 
 void authfail(uint id, bool disconnect){
