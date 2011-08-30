@@ -1,4 +1,4 @@
-// ai (bots)
+// server-side ai (bot) manager
 int findaiclient(int exclude = -1){ // person with least bots
 	int cn = -1, bots = MAXBOTS;
 	loopv(clients){

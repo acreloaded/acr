@@ -369,6 +369,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\aiman.h" />
     <ClInclude Include="..\src\auth.h" />
     <ClInclude Include="..\src\ballistics.h" />
     <ClInclude Include="..\src\command.h" />
@@ -393,7 +394,6 @@
     <ClInclude Include="..\src\protocol.h" />
     <ClInclude Include="..\src\protos.h" />
     <ClInclude Include="..\src\serveractions.h" />
-    <ClInclude Include="..\src\serverai.h" />
     <ClInclude Include="..\src\serverballistics.h" />
     <ClInclude Include="..\src\servercontroller.h" />
     <ClInclude Include="..\src\serverevents.h" />

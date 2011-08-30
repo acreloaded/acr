@@ -146,10 +146,10 @@
     <ClInclude Include="..\src\ballistics.h">
       <Filter>headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\serverai.h">
+    <ClInclude Include="..\src\serverballistics.h">
       <Filter>headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\serverballistics.h">
+    <ClInclude Include="..\src\aiman.h">
       <Filter>headers</Filter>
     </ClInclude>
   </ItemGroup>

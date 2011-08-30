@@ -2516,7 +2516,7 @@ void setpriv(int cl, int priv){
 	//if(curvote) curvote->evaluate();
 }
 
-#include "serverai.h"
+#include "aiman.h"
 
 void disconnect_client(int n, int reason){
 	if(!clients.inrange(n) || clients[n]->type!=ST_TCPIP) return;
