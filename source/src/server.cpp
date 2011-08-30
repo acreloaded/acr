@@ -3664,7 +3664,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						priv = PRIV_MASTER;
 						if(cl->authpriv) priv = cl->authpriv;
 						else{
-							loopv(clients) if(clients[i]->type != ST_EMPTY && clients[i]->priv == PRIV_MASTER){
+							loopv(clients) if(clients[i]->type != ST_EMPTY && clients[i]->priv){
 								sendf(sender, 1, "ri3", N_REQPRIV, i, PRIV_MASTER | 0x40);
 								priv = PRIV_NONE;
 								break;
