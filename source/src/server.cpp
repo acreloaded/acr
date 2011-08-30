@@ -16,7 +16,7 @@
 
 #define DEBUGCOND (true)
 
-void checkai();
+void clearai(), checkai();
 void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = true);
 void disconnect_client(int n, int reason = -1);
 int clienthasflag(int cn);
@@ -2329,7 +2329,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 			forcedeath(c);
 		}
 	}
-	checkai();
+	clearai(); checkai();
 	purgesknives();
 	if(m_demo) setupdemoplayback();
 	else if((demonextmatch || scl.demoeverymatch) && *newname && numnonlocalclients() > 0){
@@ -4185,7 +4185,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 				copystring(c.hostname, (!enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))) ? hn : "unknown");
 				logline(ACLOG_INFO,"[%s] client #%d connected", c.hostname, c.clientnum);
 				sendservinfo(c);
-				checkai(); // reinit AI
+				checkai(); // check AI
 				break;
 			}
 
