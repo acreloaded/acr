@@ -157,7 +157,7 @@ struct clientstate : playerstate
 
 	void respawn()
 	{
-		playerstate::respawn();
+		playerstate::respawn(); spawnmillis = 0; // move spawnmillis to playerstate for clients to have opacity...
 		o = lasto = vec(-1e10f, -1e10f, -1e10f);
 		aim = vel = vec(0, 0, 0);
 		pitchvel = 0;
@@ -170,6 +170,13 @@ struct clientstate : playerstate
 		crouching = false;
 		crouchmillis = scopemillis = 0;
 		streakondeath = -1;
+	}
+
+	int protect(int millis){
+		const int delay = SPAWNPROTECT;
+		int amt = 0;
+        if(ownernum < 0 && spawnmillis && delay && millis-lastspawn <= delay) amt = delay-(millis-spawnmillis);
+        return amt;
 	}
 };
 
@@ -265,7 +272,7 @@ struct client				   // server side version of "dynent" type
 		isonrightmap = m_edit;
 		lastevent = 0;
 		at3_lastforce = 0;
-		mapcollisions;
+		mapcollisions = 0;
 	}
 
 	void reset()
@@ -1486,12 +1493,15 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 	if(!target || !actor || !damage) return;
 	if(m_expert && !(style & FRAG_GIB)) damage = 0;
 	clientstate &ts = target->state;
-	if(target != actor && isteam(actor, target)){ // friendly fire
-		if((damage *= 0.25) > target->state.health - 80) damage = target->state.health - 80; // no more TKs!
-		if(damage < 1) return;
-		const int returndamage = damage * (m_expert ? 1.5f : .4f);
-		if(returndamage) serverdamage(actor, actor, returndamage, WEAP_MAX+3, style, source); // redirect damage to owner
-		actor->state.shotdamage += damage; // reduce his accuracy
+	if(target != actor){
+		if(ts.protect(gamemillis)) return; // check for spawn protection
+		if(isteam(actor, target)){ // friendly fire
+			if((damage *= 0.25) > target->state.health - 80) damage = target->state.health - 80; // no more TKs!
+			if(damage < 1) return;
+			const int returndamage = damage * (m_expert ? 1.5f : .4f);
+			if(returndamage) serverdamage(actor, actor, returndamage, WEAP_MAX+3, style, source); // redirect damage to owner
+			actor->state.shotdamage += damage; // reduce his accuracy
+		}
 	}
 	if(target->state.damagelog.find(actor->clientnum) < 0) target->state.damagelog.add(actor->clientnum);
 	ts.dodamage(damage, actor->state.perk == PERK_POWER);
@@ -3560,11 +3570,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(cs.crouching != newcrouching){
 					cs.crouching = newcrouching;
 					cs.crouchmillis = gamemillis - CROUCHTIME + min(gamemillis - cl->state.crouchmillis, CROUCHTIME);
-				}
-				// broadcast
-				if(cs.spawnmillis + SPAWNPROTECT <= gamemillis){ // maybe move this to damage prevention?
-					cp.position.setsize(0);
-					while(curmsg < p.length()) cp.position.add(p.buf[curmsg++]);
 				}
 				// check movement
 				if(cs.state==CS_ALIVE) checkmove(cp);
