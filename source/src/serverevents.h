@@ -130,7 +130,7 @@ void processevent(client &c, shotevent &e)
 			//gs.tips.add(exp.proj.id = rand());
 			exp.millis = gamemillis + TIPSTICKTTL;
 			exp.gun = WEAP_BOW;
-			exp.flag = hit->clientnum;
+			exp.flag = hit ? hit->clientnum : -1;
 			loopi(3) exp.o[i] = to[i];
 			break;
 		}
