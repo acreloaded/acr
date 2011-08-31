@@ -795,10 +795,10 @@ void gun::attackshell(const vec &to){
 	s->resetinterp();
 }
 
-void gun::attackfx(const vec &from2, const vec &too, int millis){
+void gun::attackfx(const vec &from2, const vec &to, int millis){
 	// trace shot
-	vec from(from2), to(too);
-	traceShot(from, to);
+	vec from(from2);
+	//traceShot(from, to);
 	if(millis & 1){
 		from.z -= WEAPONBELOWEYE;
 		attackshell(to);
@@ -828,7 +828,7 @@ void shotgun::attackfx(const vec &from2, const vec &to, int millis){
 			addshotline(owner, from, sg[i], 2);
 		}
 		if(filter >= 4) filter = 0;
-		traceShot(from, sg[i]);
+		//traceShot(from, sg[i]);
 		addbullethole(owner, from, sg[i], 0, false);
 	}
 	if(millis & 1) attackshell(to);
@@ -893,9 +893,9 @@ vector<cstick> sticks;
 crossbow::crossbow(playerent *owner) : gun(owner, WEAP_BOW) {}
 bool crossbow::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 
-void crossbow::attackfx(const vec &from2, const vec &too, int millis){
-	vec from(from2), to(too);
-	traceShot(from, to);
+void crossbow::attackfx(const vec &from2, const vec &to, int millis){
+	vec from(from2);
+	//traceShot(from, to);
 	from.z -= WEAPONBELOWEYE;
 
 	addshotline(owner, from, to, 2);
@@ -1005,9 +1005,9 @@ int heal::flashtime() const { return 0; }
 bool heal::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 
 //void heal::renderaimhelp(int teamtype){ if(state) weapon::renderaimhelp(teamtype); }
-void heal::attackfx(const vec &from2, const vec &too, int millis){
-	vec from(from2), to(too);
-	traceShot(from, to);
+void heal::attackfx(const vec &from2, const vec &to, int millis){
+	vec from(from2);
+	//traceShot(from, to);
 	from.z -= WEAPONBELOWEYE;
 
 	addshotline(owner, from, to, 2);

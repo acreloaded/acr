@@ -99,17 +99,7 @@ void processevent(client &c, shotevent &e)
 	putint(p, e.compact ? N_SHOOTC : N_SHOOT);
 	putint(p, c.clientnum);
 	putint(p, e.gun);
-	if(!e.compact){
-		putfloat(p, from.x);
-		putfloat(p, from.y);
-		putfloat(p, from.z);
-		putfloat(p, to.x);
-		putfloat(p, to.y);
-		putfloat(p, to.z);
-	}
-	enet_packet_resize(packet, p.length());
-	sendpacket(-1, 1, packet, !e.compact && e.gun != WEAP_GRENADE ? -1 : c.clientnum);
-	if(packet->referenceCount==0) enet_packet_destroy(packet);
+	// finish packet later
 	int damagepotential = 0, damagedealt = 0;
 	if(e.gun == WEAP_SHOTGUN){
 		loopi(SGRAYS) damagepotential = effectiveDamage(e.gun, vec(gs.sg[i]).dist(gs.o));
@@ -121,51 +111,46 @@ void processevent(client &c, shotevent &e)
 
 	switch(e.gun){
 		case WEAP_GRENADE: gs.grenades.add(e.id); break;
-		case WEAP_BOW:
-		case WEAP_HEAL:
+		case WEAP_BOW: // explosive tip is stuck to a player
 		{
-			// check for stick
-			client *hit = NULL;
 			int hitzone = HIT_NONE;
-			if(e.gun == WEAP_HEAL && gs.scoping) hit = &c;
-			else hit = hitnearest(c, from, to, &hitzone);
-			switch(e.gun){
-				case WEAP_BOW: // explosive tip is stuck to a player
-				{
-					if(hit && !m_expert){
-						serverdamage(hit, &c, hitzone == HIT_HEAD ? 75 : 50, WEAP_BOW, FRAG_NONE, hit->state.o);
-						if(hit->state.state != CS_ALIVE){
-							to = hit->state.o;
-							hit = NULL;
-						}
-					}
-					if(hit) sendf(-1, 1, "ri2", N_STICK, hit->clientnum);
-					else sendf(-1, 1, "ri2f3", N_STICK, -1, to.x, to.y, to.z);
-					// timed explosion
-					projevent &exp = c.addtimer().proj;
-					exp.type = GE_PROJ;
-					//gs.tips.add(exp.proj.id = rand());
-					exp.millis = gamemillis + TIPSTICKTTL;
-					exp.gun = WEAP_BOW;
-					exp.flag = hit->clientnum;
-					loopi(3) exp.o[i] = to[i];
-					break;
-				}
-				case WEAP_HEAL: // healing a player
-				{
-					if(!hit) break;
-					const int flags = hitzone == HIT_HEAD ? FRAG_GIB : FRAG_NONE;
-					if(!m_team || &c == hit || c.team != hit->team) serverdamage(hit, &c, effectiveDamage(e.gun, hit->state.o.dist(from)), e.gun, flags, gs.o);
-					loopi(&c == hit ? 25 : 15){ // heals over the next 1 to 2.5 seconds (no perk, for others)
-						reloadevent &heal = hit->addtimer().reload;
-						heal.type = GE_RELOAD;
-						heal.id = c.clientnum;
-						heal.millis = gamemillis + (10 + i) * 100 / (gs.perk == PERK_PERSIST ? 2 : 1);
-						heal.gun = gs.perk == PERK_PERSIST ? 2 : 1;
-					}
-					break;
+			client *hit = nearesthit(c, from, to, hitzone, &c);
+			if(hit && !m_expert){
+				serverdamage(hit, &c, hitzone == HIT_HEAD ? 75 : 50, WEAP_BOW, FRAG_NONE, hit->state.o);
+				if(hit->state.state != CS_ALIVE){
+					to = hit->state.o;
+					hit = NULL;
 				}
 			}
+			if(hit) sendf(-1, 1, "ri2", N_STICK, hit->clientnum);
+			else sendf(-1, 1, "ri2f3", N_STICK, -1, to.x, to.y, to.z);
+			// timed explosion
+			projevent &exp = c.addtimer().proj;
+			exp.type = GE_PROJ;
+			//gs.tips.add(exp.proj.id = rand());
+			exp.millis = gamemillis + TIPSTICKTTL;
+			exp.gun = WEAP_BOW;
+			exp.flag = hit->clientnum;
+			loopi(3) exp.o[i] = to[i];
+			break;
+		}
+		case WEAP_HEAL: // healing a player
+		{
+			int hitzone = HIT_NONE;
+			vec end;
+			client *hit = gs.scoping ? &c : nearesthit(c, from, to, hitzone, &c, &end);
+			if(!hit) break;
+			const int flags = hitzone == HIT_HEAD ? FRAG_GIB : FRAG_NONE;
+			if(!m_team || &c == hit || c.team != hit->team) serverdamage(hit, &c, effectiveDamage(e.gun, hit->state.o.dist(from)), e.gun, flags, gs.o);
+			loopi(&c == hit ? 25 : 15){ // heals over the next 1 to 2.5 seconds (no perk, for others)
+				reloadevent &heal = hit->addtimer().reload;
+				heal.type = GE_RELOAD;
+				heal.id = c.clientnum;
+				heal.millis = gamemillis + (10 + i) * 100 / (gs.perk == PERK_PERSIST ? 2 : 1);
+				heal.gun = gs.perk == PERK_PERSIST ? 2 : 1;
+			}
+			if(hit = &c) (end = to).sub(from).normalize().add(from); // 25 cm fx
+			to = end;
 			break;
 		}
 		case WEAP_KNIFE:
@@ -181,11 +166,23 @@ void processevent(client &c, shotevent &e)
 			if(e.gun == WEAP_SHOTGUN){ // many rays, many players
 				damagedealt += shotgun(c, gs.o, to);
 			}
-			else damagedealt += shot(c, gs.o, to, e.gun, surface);
+			else damagedealt += shot(c, gs.o, to, e.gun, surface, &c); // WARNING: modifies to
 		}
 	}
 	gs.damage += damagedealt;
 	gs.shotdamage += max(damagepotential, damagedealt);
+	// now finish the packet off
+	if(!e.compact){
+		putfloat(p, from.x);
+		putfloat(p, from.y);
+		putfloat(p, from.z);
+		putfloat(p, to.x);
+		putfloat(p, to.y);
+		putfloat(p, to.z);
+	}
+	enet_packet_resize(packet, p.length());
+	sendpacket(-1, 1, packet, !e.compact && e.gun != WEAP_GRENADE ? -1 : c.clientnum);
+	if(packet->referenceCount==0) enet_packet_destroy(packet);
 }
 
 void processevent(client &c, reloadevent &e){

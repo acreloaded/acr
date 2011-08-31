@@ -79,7 +79,7 @@ int explosion(client &owner, const vec &o2, int weap){
 }
 
 // hit checks
-client *hitnearest(client &actor, const vec &from, const vec &to, int *hitzone){
+client *nearesthit(client &actor, const vec &from, const vec &to, int &hitzone, client *exclude, vec *end = NULL){
 	client *result = NULL;
 	float dist = 4e6f; // 1 million meters...
 	clientstate &gs = actor.state;
@@ -87,39 +87,30 @@ client *hitnearest(client &actor, const vec &from, const vec &to, int *hitzone){
 		client &t = *clients[i];
 		clientstate &ts = t.state;
 		// basic checks
-		if(t.type == ST_EMPTY || ts.state != CS_ALIVE || &actor == &t) continue;
+		if(t.type == ST_EMPTY || ts.state != CS_ALIVE || &t == exclude) continue;
 		const float d = gs.o.dist(from);
 		if(d > dist) continue;
 		vec head = generateHead(ts.o, ts.aim[0]);
-		const int hz = hitplayer(from, gs.aim[0], gs.aim[1], to, ts.o, head);
+		const int hz = hitplayer(from, gs.aim[0], gs.aim[1], to, ts.o, head, end);
 		if(!hz) continue;
 		result = &t;
 		dist = d;
-		if(hitzone) *hitzone = hz;
+		hitzone = hz;
 	}
 	return result;
 }
 
 // hitscans
-int shot(client &owner, const vec &from, const vec &to, int weap, vec &surface, float dist = 0){
+int shot(client &owner, const vec &from, vec &to, int weap, vec &surface, client *exclude, float dist = 0){
 	int shotdamage = 0;
-	clientstate &gs = owner.state;
 	const int mulset = (weap == WEAP_SNIPER || weap == WEAP_BOLT) ? MUL_SNIPER : MUL_NORMAL;
-	int playershit = 0;
-	loopv(clients){ // one ray, potentially multiple players
-		client &t = *clients[i];
-		clientstate &ts = t.state;
-		// basic checks
-		if((!dist && i == owner.clientnum) || t.type == ST_EMPTY || ts.state != CS_ALIVE) continue;
-		vec head = generateHead(ts.o, ts.aim[0]), end;
-		
-		// calculate the hit
-		const int hitzone = hitplayer(from, gs.aim[0], gs.aim[1], to, ts.o, head, &end);
-		if(!hitzone) continue;
-		// damage check
-		const float dist = end.dist(from);
-		int damage = effectiveDamage(weap, dist);
-		if(!damage) continue;
+	int hitzone = HIT_NONE; vec end = to;
+	// calculate the hit
+	client *hit = nearesthit(owner, from, to, hitzone, exclude, &end);
+	// damage check
+	const float dist2 = end.dist(from);
+	int damage = effectiveDamage(weap, dist+dist2);
+	if(hit && damage){
 		// damage multipliers
 		switch(hitzone){
 			case HIT_HEAD: damage *= muls[mulset].head; break;
@@ -134,30 +125,36 @@ int shot(client &owner, const vec &from, const vec &to, int weap, vec &surface, 
 			style |= FRAG_CRITICAL;
 			damage *= 2.5f;
 		}
-		if(weap != WEAP_KNIFE && weap != WEAP_SWORD) sendhit(owner, weap, end.v);
-		else{
+		if(weap == WEAP_KNIFE && weap == WEAP_SWORD){
 			if(hitzone == HIT_HEAD) style |= FRAG_FLAG;
-			if(!isteam((&owner), (&t))){
-				ts.lastbleed = gamemillis;
-				ts.lastbleedowner = owner.clientnum;
-				sendf(-1, 1, "ri2", N_BLEED, i);
+			if(!isteam((&owner), hit)){
+				hit->state.lastbleed = gamemillis;
+				hit->state.lastbleedowner = owner.clientnum;
+				sendf(-1, 1, "ri2", N_BLEED, hit->clientnum);
 			}
 		}
-		shotdamage += damage;
-		serverdamage(&t, &owner, damage, weap, style, from);
-		++playershit;
+		else sendhit(owner, weap, end.v);
+		serverdamage(hit, &owner, hit==&owner?1: damage, weap, style, from);
+		// distort ray and continue through...
+		vec dir(to = end), newsurface;
+		dir.sub(from).normalize().rotate_around_z((rnd(91)-45)*RAD).add(end); // 45 degrees (both ways = 90 degrees) distortion
+		// retrace
+		straceShot(end, dir, &newsurface);
+		shotdamage += shot(owner, end, dir, weap, newsurface, hit, dist + 40); // 10 meters penalty for penetrating the player
+		sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, weap, end.x, end.y, end.z, dir.x, dir.y, dir.z);
 	}
-	if(!dist && from.dist(to) < 100 && surface.magnitude() && !melee_weap(weap)){ // 25 meters
-		const int penalty = 40 + playershit * 20; // 10 meters plus 5 meters per player
+	else if(!dist && from.dist(to) < 100 && surface.magnitude() && !melee_weap(weap)){ // ricochet before 25 meters or going through a player
 		vec dir(to), newsurface;
+		// calculate reflected ray from incident ray and surface normal
 		dir.sub(from).normalize();
 		// r = i - 2 n (i . n)
 		const float dot = dir.dot(surface);
 		loopi(3) dir[i] = dir[i] - (2 * surface[i] * dot);
 		dir.add(to);
+		// retrace
 		straceShot(to, dir, &newsurface);
+		shotdamage += shot(owner, to, dir, weap, newsurface, NULL, dist + 60); // 15 meters penalty for ricochet
 		sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, weap, to.x, to.y, to.z, dir.x, dir.y, dir.z);
-		shotdamage += shot(owner, to, dir, weap, newsurface, dist + penalty);
 	}
 	return shotdamage;
 }
@@ -165,7 +162,7 @@ int shot(client &owner, const vec &from, const vec &to, int weap, vec &surface, 
 int shotgun(client &owner, const vec &from, const vec &to){
 	int damagedealt = 0;
 	clientstate &gs = owner.state;
-	loopv(clients){
+	loopv(clients){ // many rays many hits, but we want each client to get all the damage at once...
 		client &t = *clients[i];
 		clientstate &ts = t.state;
 		// basic checks
