@@ -134,7 +134,7 @@ int shot(client &owner, const vec &from, vec &to, int weap, vec &surface, client
 			}
 		}
 		else sendhit(owner, weap, end.v);
-		serverdamage(hit, &owner, hit==&owner?1: damage, weap, style, from);
+		serverdamage(hit, &owner, damage, weap, style, from);
 		// distort ray and continue through...
 		vec dir(to = end), newsurface;
 		dir.sub(from).normalize().rotate_around_z((rnd(71)-35)*RAD).add(end); // 35 degrees (both ways = 70 degrees) distortion
