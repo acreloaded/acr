@@ -57,7 +57,7 @@ const char *colorname(playerent *d, bool stats)
 {
 	if(!d) return "unknown";
 	static string cname;
-	formatstring(cname)("%s \fs\f%d(%d)", d->name, d->ownernum < 0 ? 6 : 7, d->ownernum < 0 ? d->clientnum : d->ownernum);
+	formatstring(cname)("%s \fs\f%d(%d)", d->name, d->ownernum < 0 ? 6 : 7, d->clientnum);
 	if(stats){
 		defformatstring(stat)("%d%d", d->health > 50 ? 0 : d->health > 25 ? 2 : d->health > 0 ? 3 : 4, d->health);
 		if(d->armor) formatstring(stat)("%s\f5-\f4%d", stat, d->armor);
