@@ -308,7 +308,9 @@ struct botbalanceaction : serveraction
 	{
 		area |= EE_LOCAL_SERV;
 		role = roleconf('a');
-		if(isvalid()) formatstring(desc)("set botbalance to %d", b);
+		if(isvalid()){
+			formatstring(desc)(b<0?"automatically balance bots":b==0?"disable all bots":"balance to %d bots", b);
+		}
 	}
 };
 

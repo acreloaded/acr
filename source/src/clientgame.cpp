@@ -820,7 +820,7 @@ COMMANDN(dropflag, tryflagdrop, ARG_NONE);
 const char *votestring(int type, char *arg1, char *arg2)
 {
 	if(type < 0 || type >= SA_NUM) return "<invalid vote type>";
-	const char *msgs[SA_NUM] = { "kick player %s for %s", "ban player %s for %d minutes", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "\f0give \f%d%s \f5to player %s", "load map %s in mode %s", "%s demo recording for the next match", "stop demo recording", "clear%s demo%s%s", "set server description to '%s'", "shuffle teams", "subdue player %s", "revoke \fs\f%d%s\fr from %s", "toggle spectator for %s", "set botbalance to %s"};
+	const char *msgs[SA_NUM] = { "kick player %s for %s", "ban player %s for %d minutes", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "\f0give \f%d%s \f5to player %s", "load map %s in mode %s", "%s demo recording for the next match", "stop demo recording", "clear%s demo%s%s", "set server description to '%s'", "shuffle teams", "subdue player %s", "revoke \fs\f%d%s\fr from %s", "toggle spectator for %s", "balance to %s bots"};
 	const char *msg = msgs[type];
 	char *out = newstring(_MAXDEFSTR);
 	out[_MAXDEFSTR] = '\0';
@@ -887,7 +887,7 @@ const char *votestring(int type, char *arg1, char *arg2)
 			break;
 		}
 		case SA_BOTBALANCE:
-			formatstring(out)(msg, *arg1=='-' ? "automatic" : arg1);
+			formatstring(out)(*arg1=='-'?"automatically balance bots":*arg1=='0'?"disable all bots":msg, arg1);
 			break;
 		default:
 			formatstring(out)(msg, arg1, arg2);
