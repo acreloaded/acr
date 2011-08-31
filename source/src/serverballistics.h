@@ -88,7 +88,7 @@ client *nearesthit(client &actor, const vec &from, const vec &to, int &hitzone, 
 		clientstate &ts = t.state;
 		// basic checks
 		if(t.type == ST_EMPTY || ts.state != CS_ALIVE || &t == exclude) continue;
-		const float d = gs.o.dist(from);
+		const float d = ts.o.dist(from);
 		if(d > dist) continue;
 		vec head = generateHead(ts.o, ts.aim[0]);
 		const int hz = hitplayer(from, gs.aim[0], gs.aim[1], to, ts.o, head, end);
