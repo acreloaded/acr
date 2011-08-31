@@ -137,7 +137,7 @@ int shot(client &owner, const vec &from, vec &to, int weap, vec &surface, client
 		serverdamage(hit, &owner, hit==&owner?1: damage, weap, style, from);
 		// distort ray and continue through...
 		vec dir(to = end), newsurface;
-		dir.sub(from).normalize().rotate_around_z((rnd(91)-45)*RAD).add(end); // 45 degrees (both ways = 90 degrees) distortion
+		dir.sub(from).normalize().rotate_around_z((rnd(71)-35)*RAD).add(end); // 35 degrees (both ways = 70 degrees) distortion
 		// retrace
 		straceShot(end, dir, &newsurface);
 		shotdamage += shot(owner, end, dir, weap, newsurface, hit, dist + 40); // 10 meters penalty for penetrating the player
