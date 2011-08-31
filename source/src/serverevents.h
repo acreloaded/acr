@@ -251,10 +251,10 @@ void processtimer(client &c, reloadevent &e){
 	if(c.state.state != CS_ALIVE || c.state.health >= MAXHEALTH) return c.removetimers(GE_RELOAD);
 	int heal = e.gun;
 	if(heal >= MAXHEALTH - c.state.health){
-		heal = MAXHEALTH - c.state.health;
 		c.state.damagelog.setsize(0);
+		return sendf(-1, 1, "ri4", N_HEAL, e.id, c.clientnum, c.state.health = MAXHEALTH);
 	}
-	sendf(-1, 1, "ri4", N_HEAL, e.id, c.clientnum, c.state.health += heal);
+	sendf(-1, 1, "ri3", N_REGEN, c.clientnum, c.state.health += heal);
 }
 
 void processevents(){

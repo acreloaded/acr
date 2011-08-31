@@ -645,7 +645,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(!d) break;
 				d->health = health;
 				d->lastregen = lastmillis;
-				if(healer && d->health == MAXHEALTH) addobit(healer, OBIT_HEADSHOT, false, d);
+				if(healer) addobit(healer, OBIT_REVIVE, false, d);
 				break;
 			}
 
