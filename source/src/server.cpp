@@ -2305,6 +2305,9 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 		// copyrevision = copymapsize == smapstats.cgzsize ? smapstats.hdr.maprevision : 0;
 	}
 	else sendmsg(11);
+
+	clearai(); // re-init ai (clear)
+
 	if(notify){
 		// change map
 		sknives.setsize(sknifeid = 0);
@@ -2338,7 +2341,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 			forcedeath(c);
 		}
 	}
-	clearai(); checkai();
+	checkai(); // re-init ai (init)
 	purgesknives();
 	if(m_demo) setupdemoplayback();
 	else if((demonextmatch || scl.demoeverymatch) && *newname && numnonlocalclients() > 0){
