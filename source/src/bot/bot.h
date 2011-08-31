@@ -84,7 +84,7 @@ enum EBotCommands // For voting of bot commands
 	COMMAND_BOTSKILL
 };
 
-struct bot_skill_s
+struct bot_skill_calc
 {
 	float flMinReactionDelay; // Minimal reaction time
 	float flMaxReactionDelay; // Maximal reaction time
@@ -108,6 +108,29 @@ struct bot_skill_s
 	bool bCanPredict; // Can this bot predict his enemy position?
 	bool bCircleStrafe; // Can this bot circle strafe?
 	bool bCanSearchItemsInCombat;
+	bot_skill_calc(float sk){ // sk is 1 to 100
+		const float isk100 = (101 - sk) / 100; // inverse sk 1 to 100 divided by 100
+		const float sk100 = sk / 100; // skill divided by 100
+		flMinReactionDelay = .015f + isk100 * .285f; // 0.300 to 0.015
+		flMaxReactionDelay = .035f + isk100 * .465f; // 0.500 to 0.035
+		flMinAimXOffset = 15.f + isk100 * 20; // 35 to 15
+		flMaxAimXOffset = 20.f + isk100 * 20; // 40 to 20
+		flMinAimYOffset = 10.f + isk100 * 20; // 30 to 10
+		flMaxAimYOffset = 15.f + isk100 * 20; // 35 to 15
+		flMinAimXSpeed = 45.f + sk100 * 285; // 330 to 45
+		flMaxAimXSpeed = 60.f + sk100 * 265; // 355 to 60
+		flMinAimYSpeed = 125.f + sk100 * 275; // 400 to 125
+		flMaxAimYSpeed = 180.f + sk100 * 270; // 450 to 180
+		flMinAttackDelay = .1f + isk100 * 1.4f; // 0.1 to 1.5
+		flMaxAttackDelay = .4f + isk100 * 1.6f; // 0.4 to 2.0
+		flMinEnemySearchDelay = .09f + isk100 * .21f; // 0.09 to 0.30
+		flMaxEnemySearchDelay = .12f + isk100 * .24f; // 0.12 to 0.36
+		sShootAtFeetWithRLPercent = sk100 * 85; // 85 to 0
+		bCanPredict = sk >= 80;
+		iMaxHearVolume = 15 + sk100 * 60; // 75 to 15
+		bCircleStrafe = sk >= 64;
+		bCanSearchItemsInCombat = sk >= 70;
+	}
 };
 
 enum EBotWeaponTypes
@@ -217,8 +240,8 @@ public:
 	int m_iCheckTriggersDelay;
 	int m_iAimDelay;
 	float m_fYawToTurn, m_fPitchToTurn;
-	bot_skill_s *m_pBotSkill; // Pointer to current bot skill
-	short m_sSkillNr; // Skill number, 0 == best 4 == worst
+	short m_sSkillNr; // legacy support...
+	bot_skill_calc *m_pBotSkill; // bot skill pointer
 
 	void AimToVec(const vec &o);
 	void AimToIdeal(void);
@@ -325,7 +348,6 @@ class CBotManager
 	bool m_bInit;
 	bool m_bBotsShoot;
 	bool m_bIdleBots;
-    public: bot_skill_s m_BotSkills[5]; // 5 different bot skills, 0 = best 4 = worst
     private:
 	int m_iFrameTime;
 	int m_iPrevTime;
@@ -333,8 +355,6 @@ class CBotManager
 	short m_sMaxAStarBots; // Max bots that can use a* at the same time
 	short m_sUsingAStarBotsCount; // Number of bots that are using a*
 	short m_sCurrentTriggerNr; // Current waypoint trigger bots should use
-
-	void CreateSkillData(void);
 
 	friend class CBot;
 	friend class CCubeBot;

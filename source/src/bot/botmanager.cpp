@@ -29,12 +29,12 @@ void CBotManager::Init()
 	m_iPrevTime = lastmillis;
 	m_sBotSkill = 1; // Default all bots have the skill 'Good'
 	
-	CreateSkillData();
 	//WaypointClass.Init();
 	lsrand(time(NULL));
 }
 
 CACBot *botcontrollers[MAXCLIENTS] = { NULL }; // reuse bot controllers
+bot_skill_calc *botskills[MAXCLIENTS] = { NULL }; // sad...
 
 void CBotManager::Think()
 {    
@@ -65,12 +65,11 @@ void CBotManager::Think()
 		  if(!bc){
 			 if(botcontrollers[i]) bc = botcontrollers[i];
 			 else bc = botcontrollers[i] = new CACBot();
-			 // m->type = ENT_BOT;
 			 bc->m_pMyEnt = b;
-			 // m->pBot->m_iLastBotUpdate = 0;
-			 // m->pBot->m_bSendC2SInit = false;
-			 bc->m_sSkillNr = BotManager.m_sBotSkill;
-			 bc->m_pBotSkill = &BotManager.m_BotSkills[bc->m_sSkillNr];
+			 // set bot skill
+			 bc->m_sSkillNr = clamp<short>(ceil(b->level / 20.f) - 1, 0, 4);
+			 if(!botskills[i]) botskills[i] = new bot_skill_calc(b->level); 
+			 bc->m_pBotSkill = botskills[i];
 
 			 // Sync waypoints
 			 bc->SyncWaypoints();
@@ -137,114 +136,6 @@ void CBotManager::MakeBotFileName(const char *szFileName, const char *szDir1, ch
 	}
 	
 	strcat(szOutput, szFileName);
-}
-
-void CBotManager::CreateSkillData()
-{
-	// Best skill
-	m_BotSkills[0].flMinReactionDelay = 0.015f;
-	m_BotSkills[0].flMaxReactionDelay = 0.035f;
-	m_BotSkills[0].flMinAimXOffset = 15.0f;
-	m_BotSkills[0].flMaxAimXOffset = 20.0f;
-	m_BotSkills[0].flMinAimYOffset = 10.0f;
-	m_BotSkills[0].flMaxAimYOffset = 15.0f;
-	m_BotSkills[0].flMinAimXSpeed = 330.0f;
-	m_BotSkills[0].flMaxAimXSpeed = 355.0f;
-	m_BotSkills[0].flMinAimYSpeed = 400.0f;
-	m_BotSkills[0].flMaxAimYSpeed = 450.0f;
-	m_BotSkills[0].flMinAttackDelay = 0.1f;
-	m_BotSkills[0].flMaxAttackDelay = 0.4f;
-	m_BotSkills[0].flMinEnemySearchDelay = 0.09f;
-	m_BotSkills[0].flMaxEnemySearchDelay = 0.12f;
-	m_BotSkills[0].sShootAtFeetWithRLPercent = 85;
-	m_BotSkills[0].bCanPredict = true;
-	m_BotSkills[0].iMaxHearVolume = 75;
-	m_BotSkills[0].bCircleStrafe = true;
-	m_BotSkills[0].bCanSearchItemsInCombat = true;
-
-	// Good skill
-	m_BotSkills[1].flMinReactionDelay = 0.035f;
-	m_BotSkills[1].flMaxReactionDelay = 0.045f;
-	m_BotSkills[1].flMinAimXOffset = 20.0f;
-	m_BotSkills[1].flMaxAimXOffset = 25.0f;
-	m_BotSkills[1].flMinAimYOffset = 15.0f;
-	m_BotSkills[1].flMaxAimYOffset = 20.0f;
-	m_BotSkills[1].flMinAimXSpeed = 250.0f;
-	m_BotSkills[1].flMaxAimXSpeed = 265.0f;
-	m_BotSkills[1].flMinAimYSpeed = 260.0f;
-	m_BotSkills[1].flMaxAimYSpeed = 285.0f;
-	m_BotSkills[1].flMinAttackDelay = 0.3f;
-	m_BotSkills[1].flMaxAttackDelay = 0.6f;
-	m_BotSkills[1].flMinEnemySearchDelay = 0.12f;
-	m_BotSkills[1].flMaxEnemySearchDelay = 0.17f;
-	m_BotSkills[1].sShootAtFeetWithRLPercent = 60;
-	m_BotSkills[1].bCanPredict = true;
-	m_BotSkills[1].iMaxHearVolume = 60;
-	m_BotSkills[1].bCircleStrafe = true;
-	m_BotSkills[1].bCanSearchItemsInCombat = true;
-
-	// Medium skill
-	m_BotSkills[2].flMinReactionDelay = 0.075f;
-	m_BotSkills[2].flMaxReactionDelay = 0.010f;
-	m_BotSkills[2].flMinAimXOffset = 25.0f;
-	m_BotSkills[2].flMaxAimXOffset = 30.0f;
-	m_BotSkills[2].flMinAimYOffset = 20.0f;
-	m_BotSkills[2].flMaxAimYOffset = 25.0f;
-	m_BotSkills[2].flMinAimXSpeed = 190.0f;
-	m_BotSkills[2].flMaxAimXSpeed = 125.0f;
-	m_BotSkills[2].flMinAimYSpeed = 210.0f;
-	m_BotSkills[2].flMaxAimYSpeed = 240.0f;
-	m_BotSkills[2].flMinAttackDelay = 0.75f;
-	m_BotSkills[2].flMaxAttackDelay = 1.0f;
-	m_BotSkills[2].flMinEnemySearchDelay = 0.18f;
-	m_BotSkills[2].flMaxEnemySearchDelay = 0.22f;
-	m_BotSkills[2].sShootAtFeetWithRLPercent = 25;
-	m_BotSkills[2].bCanPredict = false;
-	m_BotSkills[2].iMaxHearVolume = 45;
-	m_BotSkills[2].bCircleStrafe = true;
-	m_BotSkills[2].bCanSearchItemsInCombat = false;
-
-	// Worse skill
-	m_BotSkills[3].flMinReactionDelay = 0.15f;
-	m_BotSkills[3].flMaxReactionDelay = 0.20f;
-	m_BotSkills[3].flMinAimXOffset = 30.0f;
-	m_BotSkills[3].flMaxAimXOffset = 35.0f;
-	m_BotSkills[3].flMinAimYOffset = 25.0f;
-	m_BotSkills[3].flMaxAimYOffset = 30.0f;
-	m_BotSkills[3].flMinAimXSpeed = 155.0f;
-	m_BotSkills[3].flMaxAimXSpeed = 170.0f;
-	m_BotSkills[3].flMinAimYSpeed = 160.0f;
-	m_BotSkills[3].flMaxAimYSpeed = 210.0f;
-	m_BotSkills[3].flMinAttackDelay = 1.2f;
-	m_BotSkills[3].flMaxAttackDelay = 1.6f;
-	m_BotSkills[3].flMinEnemySearchDelay = 0.25f;
-	m_BotSkills[3].flMaxEnemySearchDelay = 0.30f;
-	m_BotSkills[3].sShootAtFeetWithRLPercent = 10;
-	m_BotSkills[3].bCanPredict = false;
-	m_BotSkills[3].iMaxHearVolume = 30;
-	m_BotSkills[3].bCircleStrafe = false;
-	m_BotSkills[3].bCanSearchItemsInCombat = false;
-
-	// Bad skill
-	m_BotSkills[4].flMinReactionDelay = 0.30f;
-	m_BotSkills[4].flMaxReactionDelay = 0.50f;
-	m_BotSkills[4].flMinAimXOffset = 35.0f;
-	m_BotSkills[4].flMaxAimXOffset = 40.0f;
-	m_BotSkills[4].flMinAimYOffset = 30.0f;
-	m_BotSkills[4].flMaxAimYOffset = 35.0f;
-	m_BotSkills[4].flMinAimXSpeed = 45.0f;
-	m_BotSkills[4].flMaxAimXSpeed = 60.0f;
-	m_BotSkills[4].flMinAimYSpeed = 125.0f;
-	m_BotSkills[4].flMaxAimYSpeed = 180.0f;
-	m_BotSkills[4].flMinAttackDelay = 1.5f;
-	m_BotSkills[4].flMaxAttackDelay = 2.0f;
-	m_BotSkills[4].flMinEnemySearchDelay = 0.30f;
-	m_BotSkills[4].flMaxEnemySearchDelay = 0.36f;
-	m_BotSkills[4].sShootAtFeetWithRLPercent = 0;
-	m_BotSkills[4].bCanPredict = false;
-	m_BotSkills[4].iMaxHearVolume = 15;
-	m_BotSkills[4].bCircleStrafe = false;
-	m_BotSkills[4].bCanSearchItemsInCombat = false;
 }
 
 void CBotManager::CalculateMaxAStarCount()
