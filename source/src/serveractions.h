@@ -335,10 +335,10 @@ struct voteinfo
 
 	voteinfo() : owner(0), callmillis(0), result(VOTE_NEUTRAL), action(NULL), type(SA_NUM) {}
 
-	void end(int result, bool veto = false)
+	void end(int result, int veto = -1)
 	{
 		if(!action || !action->isvalid()) result = VOTE_NO; // don't perform() invalid votes
-		sendf(-1, 1, "ri2", N_VOTERESULT, result | (veto ? 0x80 : 0));
+		sendf(-1, 1, "ri3", N_VOTERESULT, result, veto);
 		this->result = result;
 		if(result == VOTE_YES)
 		{
@@ -351,7 +351,7 @@ struct voteinfo
 	bool isvalid() { return valid_client(owner) && action != NULL && action->isvalid(); }
 	bool isalive() { return servmillis - callmillis < action->length; }
 
-	void evaluate(bool forceend = false, int veto = VOTE_NEUTRAL)
+	void evaluate(bool forceend = false, int veto = VOTE_NEUTRAL, int vetoowner = -1)
 	{
 		if(result!=VOTE_NEUTRAL) return; // block double action
 		if(!action || !action->isvalid()) end(VOTE_NO);
@@ -362,7 +362,7 @@ struct voteinfo
 		}
 		if(forceend){
 			if(veto == VOTE_NEUTRAL) end(stats[VOTE_YES]/(float)(stats[VOTE_NO]+stats[VOTE_YES]) >= action->passratio ? VOTE_YES : VOTE_NO);
-			else end(veto, true);
+			else end(veto, vetoowner);
 		}
 
 		if(stats[VOTE_YES]/(float)stats[VOTE_NUM] > action->passratio || (!isdedicated && clients[owner]->type==ST_LOCAL))

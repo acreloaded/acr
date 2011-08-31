@@ -1225,15 +1225,16 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_VOTERESULT:
 			{
-				int v = getint(p);
-				veto = ((v >> 7) & 1) > 0;
-				v &= 0x7F;
-				if(curvote && v >= 0 && v < VOTE_NUM)
+				int vr = getint(p);
+				playerent *d = getclient(getint(p));
+				veto = d != NULL;
+				if(curvote && vr >= 0 && vr < VOTE_NUM)
 				{
-					curvote->result = v;
+					curvote->result = vr;
 					curvote->millis = totalmillis + 5000;
-					conoutf("vote %s", v == VOTE_YES ? "\f0passed" : "\f3failed");
-					playsound(v == VOTE_YES ? S_VOTEPASS : S_VOTEFAIL, SP_HIGH);
+					if(d) conoutf("\f1%s vetoed the vote to %s", colorname(d), vr == VOTE_YES ? "\f0pass" : "\f3fail");
+					conoutf("vote %s", vr == VOTE_YES ? "\f0passed" : "\f3failed");
+					playsound(vr == VOTE_YES ? S_VOTEPASS : S_VOTEFAIL, SP_HIGH);
 				}
 				break;
 			}
