@@ -1352,7 +1352,8 @@ void checkitemspawns(int diff){
 }
 
 inline int getmaplayoutid(int x, int y){
-	return x + (y << maplayout_factor);
+	const int max = (1 << maplayout_factor) - 2;
+	return clamp(x, 2, max) + (clamp(y, 2, max) << maplayout_factor);
 }
 
 inline char maxvdelta(int id){
