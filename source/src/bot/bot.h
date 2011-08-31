@@ -352,7 +352,6 @@ class CBotManager
     private:
 	int m_iFrameTime;
 	int m_iPrevTime;
-	short m_sBotSkill; // Bad - Worse - Medium - Good - Best
 	short m_sMaxAStarBots; // Max bots that can use a* at the same time
 	short m_sUsingAStarBotsCount; // Number of bots that are using a*
 	short m_sCurrentTriggerNr; // Current waypoint trigger bots should use

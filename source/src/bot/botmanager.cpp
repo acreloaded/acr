@@ -27,7 +27,6 @@ void CBotManager::Init()
 	m_bIdleBots = false;
 	m_iFrameTime = 0;
 	m_iPrevTime = lastmillis;
-	m_sBotSkill = 1; // Default all bots have the skill 'Good'
 	
 	//WaypointClass.Init();
 	lsrand(time(NULL));
@@ -68,7 +67,8 @@ void CBotManager::Think()
 			 bc->m_pMyEnt = b;
 			 // set bot skill
 			 bc->m_sSkillNr = clamp<short>(ceil(b->level / 20.f) - 1, 0, 4);
-			 if(!botskills[i]) botskills[i] = new bot_skill_calc(b->level); 
+			 if(botskills[i]) *botskills[i] = bot_skill_calc(b->level);
+			 else botskills[i] = new bot_skill_calc(b->level);
 			 bc->m_pBotSkill = botskills[i];
 
 			 // Sync waypoints
