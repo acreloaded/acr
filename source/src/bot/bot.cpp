@@ -94,12 +94,12 @@ void CBot::Think()
 	// Bot is dead?
 	if (m_pMyEnt->state == CS_DEAD)
 	{
-		if(lastmillis-m_pMyEnt->lastaction<1200)
+		if(lastmillis-m_pMyEnt->respawnoffset<1200)
 		{
 			m_pMyEnt->move = 0;
 			moveplayer(m_pMyEnt, 1, true);
 		}
-		else if (!m_duel && lastmillis-m_pMyEnt->lastaction>5000)
+		else if (!m_duel && lastmillis-m_pMyEnt->respawnoffset>5000)
 			Spawn();
 	
 		SendBotInfo();
