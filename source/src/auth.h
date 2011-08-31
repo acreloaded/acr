@@ -52,15 +52,15 @@ int allowconnect(client &ci, const char *pwd = "", int authreq = 0){
 		logline(ACLOG_INFO, "[%s] %s logged in using the password in line %d%s%s", gethostname(ci.clientnum), ci.name, pd.line, wlp, banremoved ? ", (ban removed)" : "");
 		return DISC_NONE;
 	}
-	if(scl.serverpassword[0] && !(srvprivate || srvfull || banned)){ // server password required
+	if(srvprivate) return DISC_PRIVATE;
+	if(srvfull) return DISC_FULL;
+	if(banned) return DISC_REFUSE;
+	if(*scl.serverpassword){ // server password required
 		if(!strcmp(genpwdhash(ci.name, scl.serverpassword, ci.salt), pwd)){
 			logline(ACLOG_INFO, "[%s] %s logged in using the server password%s", gethostname(ci.clientnum), ci.name, wlp);
 		}
 		else return DISC_PASSWORD;
 	}
-	if(srvprivate) return DISC_PRIVATE;
-	if(srvfull) return DISC_FULL;
-	if(banned) return DISC_REFUSE;
 	logline(ACLOG_INFO, "[%s] %s logged in%s", gethostname(ci.clientnum), ci.name, wlp);
 	return DISC_NONE;
 }
@@ -80,8 +80,9 @@ void authsuceeded(uint id, char priv, char *name){
 	logline(ACLOG_INFO, "[%s] auth #%d suceeded for %s as '%s'", gethostname(c->clientnum), id, privname(priv), name);
 	sendf(-1, 1, "ri3s", N_AUTHCHAL, 5, c->clientnum, name);
 	if(priv) setpriv(c->clientnum, c->authpriv = clamp<char>(priv, PRIV_MASTER, PRIV_MAX));
+	else c->authpriv = PRIV_NONE; // bypass master ban
 	loopv(bans) if(bans[i].host == c->peer->address.host) bans.remove(i); // deban
-	//checkauthdisc(*c); // can bypass passwords
+	checkauthdisc(*c); // can bypass passwords
 }
 
 void authfail(uint id, bool disconnect){

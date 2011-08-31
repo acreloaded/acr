@@ -295,7 +295,8 @@ struct client				   // server side version of "dynent" type
 	void zap()
 	{
 		type = ST_EMPTY;
-		priv = authpriv = PRIV_NONE;
+		priv = PRIV_NONE;
+		authpriv = -1;
 		connected = connectauth = haswelcome = false;
 	}
 };
@@ -2383,7 +2384,7 @@ int nextcfgset(bool notify = true, bool nochange = false){ // load next maprotat
 bool isbanned(int cn){
 	if(!valid_client(cn)) return false;
 	client &c = *clients[cn];
-	if(c.type==ST_LOCAL) return false;
+	if(c.type==ST_LOCAL || c.authpriv >= 0) return false;
 	loopv(bans){
 		ban &b = bans[i];
 		if(b.host == c.peer->address.host) { return true; }
@@ -3664,7 +3665,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					}
 					else{
 						priv = PRIV_MASTER;
-						if(cl->authpriv) priv = cl->authpriv;
+						if(cl->authpriv > PRIV_NONE) priv = cl->authpriv;
 						else{
 							loopv(clients) if(clients[i]->type != ST_EMPTY && clients[i]->priv){
 								sendf(sender, 1, "ri3", N_REQPRIV, i, PRIV_MASTER | 0x40);
