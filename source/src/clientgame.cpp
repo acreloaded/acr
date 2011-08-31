@@ -179,7 +179,6 @@ playerent *newplayerent()				 // create a new blank player
 	setskin(d, rnd(6));
 	weapon::equipplayer(d); // flowtron : avoid overwriting d->spawnstate(gamemode) stuff from the following line (this used to be called afterwards)
 	spawnstate(d);
-	deathstate(d);
 	return d;
 }
 
