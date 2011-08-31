@@ -66,7 +66,8 @@ int explosion(client &owner, const vec &o2, int weap){
 		if(sraycube(o, ray) < dist) continue;
 		ushort dmg = effectiveDamage(weap, dist, true);
 		int expflags = FRAG_GIB;
-		if(weap == WEAP_GRENADE && owner.clientnum != i && o.z >= target.state.o.z) expflags |= FRAG_FLAG;
+		if((weap == WEAP_BOW && !dist) ||
+			(weap == WEAP_GRENADE && owner.clientnum != i && o.z >= target.state.o.z)) expflags |= FRAG_FLAG;
 		if(checkcrit(dist, 1.5f)){
 			expflags |= FRAG_CRITICAL;
 			dmg *= 2;
