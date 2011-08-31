@@ -591,6 +591,8 @@ VARP(damageindicatorfade, 0, 2000, 10000);
 VARP(damageindicatorsize, 0, 200, 10000);
 VARP(damageindicatordist, 0, 500, 10000);
 
+VARP(hitmarkerfade, 1, 1000, 5000);
+
 static int votersort(playerent **a, playerent **b){
 	return (*a)->voternum - (*b)->voternum;
 }
@@ -708,8 +710,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	bool menu = menuvisible();
 	bool command = getcurcommand() ? true : false;
 
-	if(p->lasthitmarker && p->lasthitmarker + 2000 > lastmillis){
-		glColor4f(1, 1, 1, (p->lasthitmarker + 2000 - lastmillis) / 1000.f);
+	if(p->lasthitmarker && p->lasthitmarker + hitmarkerfade > lastmillis){
+		glColor4f(1, 1, 1, (p->lasthitmarker + hitmarkerfade - lastmillis) / 1000.f);
 		Texture *ch = crosshairs[CROSSHAIR_HIT];
 		if(!ch) ch = textureload("packages/misc/crosshairs/hit.png", 3);
 		if(ch->bpp==32) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
