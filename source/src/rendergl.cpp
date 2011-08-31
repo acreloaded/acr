@@ -400,7 +400,7 @@ void renderwaypoint(int wp, const vec &o, float alpha, bool disabledepthtest){
 	glRotatef(camera1->pitch, 1, 0, 0);
 	glRotatef(camera1->roll, 0, -1, 0);
 	glColor4f(1, 1, 1, alpha);
-	const float dist = sqrtf(o.dist(camera1->o)), s = (wp==WP_KNIFE||wp==WP_EXP?waypointweapsize:waypointsize)/100.0f*dist;
+	const float dist = sqrtf(o.dist(camera1->o)), s = (wp==WP_KNIFE||wp==WP_BOMB||wp==WP_EXP?waypointweapsize:waypointsize)/100.0f*dist;
     quad(waypointtex[wp]->id, vec(s/2.0f, 0.0f, s), vec(s/-2.0f, 0.0f, 0.0f), 0.0f, 0.0f, 1.0f, 1.0f);
 	/*
 		float s = aboveheadiconsize/75.0f*scalef, offset =  (lastmillis - icon.millis) * 2.f / aboveheadiconfadetime, anim = lastmillis / 100 % (h * 2);
