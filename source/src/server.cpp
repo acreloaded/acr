@@ -371,6 +371,7 @@ bool buildworldstate(){ // WAY easier worldstates
 		loopvj(clients){
 			client &c = *clients[j];
 			if(c.type == ST_EMPTY || j == i || c.state.ownernum == i) continue;
+			// <insert cheap occlusion checks here to prevent wall hacks>
 			// positions
 			const int pstart = pos.length();
 			pos.put(c.position.getbuf(), c.position.length());
