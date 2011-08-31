@@ -438,6 +438,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				loopi(WEAP_MAX) s->ammo[i] = getint(p);
 				loopi(WEAP_MAX) s->mag[i] = getint(p);
 				s->state = CS_SPAWNING;
+				loopi(3) s->o[i] = getfloat(p);
 				break;
 			}
 
