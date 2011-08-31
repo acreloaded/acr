@@ -1505,12 +1505,11 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 			if(returndamage) serverdamage(actor, actor, returndamage, WEAP_MAX+3, style, source); // redirect damage to owner
 			actor->state.shotdamage += damage; // reduce his accuracy
 		}
-	}
+	} else damage = max<int>(damage*SELFDAMAGEMUL, 1);
 	if(target->state.damagelog.find(actor->clientnum) < 0) target->state.damagelog.add(actor->clientnum);
 	ts.dodamage(damage, actor->state.perk == PERK_POWER);
 	ts.lastregen = gamemillis + REGENDELAY - REGENINT;
 	const bool gib = style & FRAG_GIB;
-	sendf(-1, 1, "ri8f3", N_DAMAGE, target->clientnum, actor->clientnum, int(damage * (gib ? GIBBLOODMUL : 1)), ts.armor, ts.health, gun, style & FRAG_VALID, source.x, source.y, source.z);
 	if(ts.health<=0){
 		int targethasflag = clienthasflag(target->clientnum);
 		bool suic = false;
@@ -1537,8 +1536,8 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 		}
 		killpoints(target, actor, gun, style);
 		const float killdist = ts.o == source ? 0 : clamp<float>(ts.o.dist(source) / 4, -1, 1000);
-		sendf(-1, 1, "ri8fv", N_KILL, target->clientnum, actor->clientnum, actor->state.frags, gun, style & FRAG_VALID, int(damage * (gib ? GIBBLOODMUL : 1)),
-			ts.damagelog.length(), killdist, ts.damagelog.length(), ts.damagelog.getbuf());
+		sendf(-1, 1, "ri8f4v", N_KILL, target->clientnum, actor->clientnum, actor->state.frags, gun, style & FRAG_VALID, damage,
+			ts.damagelog.length(), killdist, source.x, source.y, source.z, ts.damagelog.length(), ts.damagelog.getbuf());
 		if(suic && (m_htf || m_ktf) && targethasflag >= 0){
 			actor->state.flagscore--;
 			sendf(-1, 1, "ri3", N_FLAGCNT, actor->clientnum, actor->state.flagscore);
@@ -1569,7 +1568,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 				break;
 		}
 		usestreak(*target, ts.streakondeath);
-	}
+	} else sendf(-1, 1, "ri8f3", N_DAMAGE, target->clientnum, actor->clientnum, damage, ts.armor, ts.health, gun, style & FRAG_VALID, source.x, source.y, source.z);
 }
 
 void cheat(client *cl, const char *reason = "unknown"){

@@ -659,19 +659,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					health = getint(p),
 					weap = getint(p),
 					style = getint(p);
+				vec src; loopi(3) src[i] = getfloat(p);
 				playerent *target = getclient(tcn), *actor = getclient(acn);
-				vec src;
-				loopi(3) src[i] = getfloat(p);
-				if(!target) break;
+				if(!target || !actor) break;
 				target->armor = armor;
 				target->health = health;
-				target->damagestack.add(damageinfo(src, lastmillis, damage));
-				if(src != target->o){
-					vec dir = target->o;
-					dir.sub(src).normalize();
-					target->hitpush(damage, dir, weap, actor && actor->perk == PERK_POWER);
-				}
-				if(actor) dodamage(damage, target, actor, weap, style);
+				dodamage(damage, target, actor, weap, style, src);
 				break;
 			}
 
@@ -679,6 +672,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				int vcn = getint(p), acn = getint(p), frags = getint(p), weap = getint(p), style = getint(p) & FRAG_VALID, damage = getint(p), assists = getint(p) & 0xFF;
 				float killdist = getfloat(p);
+				vec src; loopi(3) src[i] = getfloat(p);
 				playerent *victim = getclient(vcn), *actor = getclient(acn);
 				if(actor) actor->frags = frags;
 				if(victim){
@@ -687,6 +681,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				} else loopi(assists) getint(p);
 				if(!actor || !victim) break;
 				if((victim->health -= damage) > 0) victim->health = 0;
+				dodamage(damage, victim, actor, weap, style, src);
 				dokill(victim, actor, weap, damage, style, killdist);
 				break;
 			}

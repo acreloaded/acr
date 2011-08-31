@@ -85,6 +85,7 @@ static itemstat powerupstats[] =
 #define KNIFEPOWER 4.5f
 #define KNIFETTL 30000
 #define GIBBLOODMUL 1.5f
+#define SELFDAMAGEMUL .5f
 #define TIPSTICKTTL 1500
 #define SPAWNPROTECT 3000
 

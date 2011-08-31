@@ -463,24 +463,34 @@ bool tryrespawn(){
 
 // damage arriving from the network, monsters, yourself, all ends up here.
 
-void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style)
+void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style, vec src)
 {
 	if(pl->state != CS_ALIVE || intermission) return;
 
 	pl->respawnoffset = pl->lastpain = lastmillis;
-	if(actor != pl){
+	if(actor != pl){ // hit marker/assist
 		actor->lasthitmarker = lastmillis;
 		if(pl->damagelog.find(actor->clientnum) < 0) pl->damagelog.add(actor->clientnum);
 	}
-	damageeffect(damage, pl);
+	// damage direction/hit push
+	pl->damagestack.add(damageinfo(src, lastmillis, damage));
+	if(src != pl->o){
+		vec dir = pl->o;
+		dir.sub(src).normalize();
+		pl->hitpush(damage, dir, weapon, actor->perk == PERK_POWER);
+	}
+	// blood
+	damageeffect(damage * (style&FRAG_GIB) ? GIBBLOODMUL : 1, pl);
 
-	if(style & FRAG_CRITICAL){
+	if(style & FRAG_CRITICAL){ // critical damage
 		actor->addicon(eventicon::CRITICAL);
 		pl->addicon(eventicon::CRITICAL);
 	}
 
+	// roll if you are hit
 	if(pl==player1 || pl->ownernum==getclientnum()) pl->damageroll(damage);
 
+	// sound
 	if(pl==gamefocus) playsound(S_PAIN6, SP_HIGH);
 	else playsound(S_PAIN1+rnd(5), pl);
 }
