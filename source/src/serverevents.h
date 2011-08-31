@@ -248,14 +248,12 @@ void processtimer(client &c, projevent &e){
 }
 
 void processtimer(client &c, reloadevent &e){
-	// healer: e.id
 	int heal = e.gun;
 	if(heal >= MAXHEALTH - c.state.health){
 		heal = MAXHEALTH - c.state.health;
 		c.state.damagelog.setsize(0);
 	}
-	if(c.state.state == CS_ALIVE) c.state.health += heal;
-	sendf(-1, 1, "ri3", N_REGEN, c.clientnum, heal);
+	sendf(-1, 1, "ri4", N_HEAL, e.id, c.clientnum, c.state.health += heal);
 }
 
 void processevents(){
@@ -280,8 +278,7 @@ void processevents(){
 					amt = STARTHEALTH - c.state.health;
 					c.state.damagelog.setsize(0);
 				}
-				c.state.health += amt;
-				sendf(-1, 1, "ri3", N_REGEN, i, amt);
+				sendf(-1, 1, "ri3", N_REGEN, i, c.state.health += amt);
 				c.state.lastregen = gamemillis;
 			}
 		}
@@ -304,7 +301,7 @@ void processevents(){
 		loopvj(c.timers){ // unordered
 			gameevent &e = c.timers[j];
 			if(e.millis>gamemillis) continue;
-			if(e.type == GE_RELOAD && (c.state.state == CS_DEAD || c.state.health >= MAXHEALTH)){
+			if(e.type == GE_RELOAD && (c.state.state != CS_ALIVE || c.state.health >= MAXHEALTH)){
 				c.removetimers(GE_RELOAD);
 				continue;
 			}

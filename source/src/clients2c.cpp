@@ -637,12 +637,15 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			}
 
 			case N_REGEN:
+			case N_HEAL:
 			{
-				int cn = getint(p), amt = getint(p);
+				playerent *healer = type == N_HEAL ? getclient(getint(p)) : NULL;
+				int cn = getint(p), health = getint(p);
 				playerent *d = getclient(cn);
 				if(!d) break;
-				d->health += amt;
+				d->health = health;
 				d->lastregen = lastmillis;
+				if(healer && d->health == MAXHEALTH) addobit(healer, OBIT_HEADSHOT, false, d);
 				break;
 			}
 
