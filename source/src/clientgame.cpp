@@ -492,8 +492,8 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 	// kill message
 	bool headshot = isheadshot(weapon, style);
 	int obit = OBIT_DEATH;
-	string subject, predicate, hashave, text;
-	*subject = *predicate = *hashave = *text = 0;
+	string subject, predicate, hashave;
+	*subject = *predicate = *hashave = 0;
 	formatstring(subject)("\f2\fs%s\f2", act == player1 ? "\f1you" : colorname(act));
 	copystring(hashave, act == player1 ? "have" : "has");
 	if(pl == act){
@@ -511,25 +511,16 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 			concatstring(predicate, "\f3");
 		}
 		if(pl == gamefocus) concatstring(predicate, "!\f2");
-		if(killdist){
-			formatstring(text)(" (@%.2f m)", killdist);
-			concatstring(predicate, text);
-		}
 	}
 	else{
 		obit = toobit(weapon, style);
-		formatstring(predicate)("%s %s%s (@%.2f m)", killname(obit, headshot),
-			isteam(pl, act) ? act==player1 ? "your teammate " : "his teammate " : "", pl == player1 ? "\f1you\f2" : colorname(pl), killdist);
+		formatstring(predicate)("%s %s%s", killname(obit, headshot),
+			isteam(pl, act) ? act==player1 ? "your teammate " : "his teammate " : "", pl == player1 ? "\f1you\f2" : colorname(pl));
 	}
-	// killstreak
-	if(act->killstreak++){
-		formatstring(text)(" %d ks", act->killstreak);
-		concatstring(predicate, text);
-	}
-	if(pl->deathstreak++){
-		formatstring(text)(" %d ds", pl->deathstreak);
-		concatstring(predicate, text);
-	}
+	if(killdist) concatformatstring(predicate, " (@%.2f m)", killdist);
+	// streaks
+	if(act->killstreak++) concatformatstring(predicate, " %d ks", act->killstreak);
+	if(pl->deathstreak++) concatformatstring(predicate, " %d ds", pl->deathstreak);
 	// assist count
 	pl->damagelog.removeobj(pl->clientnum);
 	pl->damagelog.removeobj(act->clientnum);
@@ -546,8 +537,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 			playerent *p = getclient(pl->damagelog.pop());
 			if(!p) continue;
 			++p->assists;
-			formatstring(text)("%s \fs\f%d%s\fr", first ? "" : !pl->damagelog.length() ? " and" : ",", isteam(p, pl) ? 3 : 2, colorname(p));
-			concatstring(predicate, text);
+			concatformatstring(predicate, "%s \fs\f%d%s\fr", first ? "" : !pl->damagelog.length() ? " and" : ",", isteam(p, pl) ? 3 : 2, colorname(p));
 			first = false;
 		}
 	}
