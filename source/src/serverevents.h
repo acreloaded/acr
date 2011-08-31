@@ -248,6 +248,7 @@ void processtimer(client &c, projevent &e){
 }
 
 void processtimer(client &c, reloadevent &e){
+	if(c.state.state != CS_ALIVE || c.state.health >= MAXHEALTH) return c.removetimers(GE_RELOAD);
 	int heal = e.gun;
 	if(heal >= MAXHEALTH - c.state.health){
 		heal = MAXHEALTH - c.state.health;
@@ -301,11 +302,6 @@ void processevents(){
 		loopvj(c.timers){ // unordered
 			gameevent &e = c.timers[j];
 			if(e.millis>gamemillis) continue;
-			if(e.type == GE_RELOAD && (c.state.state != CS_ALIVE || c.state.health >= MAXHEALTH)){
-				c.removetimers(GE_RELOAD);
-				j = 0; // re-iterate the entire events list...
-				continue;
-			}
 			switch(e.type){
 				case GE_PROJ: processtimer(c, e.proj); break;
 				case GE_RELOAD: processtimer(c, e.reload); break;
