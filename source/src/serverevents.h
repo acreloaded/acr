@@ -285,7 +285,7 @@ void processevents(){
 			if(e.millis>gamemillis) continue;
 			if(e.type == GE_RELOAD && (c.state.state != CS_ALIVE || c.state.health >= MAXHEALTH)){
 				c.removetimers(GE_RELOAD);
-				j = 0;
+				j = 0; // better than a crash
 				break;
 			}
 			switch(e.type){
