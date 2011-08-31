@@ -157,7 +157,7 @@ void renderscores(void *menu, bool init){
 	}
 
 	extern int minutesremaining, gametimecurrent, lastgametimeupdate, gametimemaximum;
-	if((gamemode>1 || (gamemode==0 && (multiplayer(false) || watchingdemo))) && minutesremaining >= 0){
+	if(minutesremaining >= 0){
 		if(!minutesremaining) concatstring(modeline, ", intermission");
 		else{
 			const int cssec = (gametimemaximum-gametimecurrent-(lastmillis-lastgametimeupdate))/1000;
