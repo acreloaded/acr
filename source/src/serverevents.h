@@ -146,7 +146,7 @@ void processevent(client &c, shotevent &e)
 				case WEAP_BOW: // explosive tip is stuck to a player
 				{
 					if(cn >= 0 && !m_expert){
-						serverdamage(clients[cn], &c, hitzone == HIT_HEAD ? 50 : 25, WEAP_BOW, FRAG_NONE, clients[cn]->state.o);
+						serverdamage(clients[cn], &c, hitzone == HIT_HEAD ? 75 : 50, WEAP_BOW, FRAG_NONE, clients[cn]->state.o);
 						if(clients[cn]->state.state != CS_ALIVE){
 							to = clients[cn]->state.o;
 							cn = -1;
