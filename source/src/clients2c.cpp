@@ -363,6 +363,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
+			case N_REASSIGNAI:
+			{
+				playerent *d = getclient(getint(p));
+				const int newowner = getint(p);
+				if(d) d->ownernum = newowner;
+				break;
+			}
 			
 			case N_DISC:
 			case N_DELAI:

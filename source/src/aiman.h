@@ -66,13 +66,48 @@ int countplayers(){
 	return num;
 }
 
+bool reassignai(int exclude = -1){ // backport
+	ivector siblings;
+    while(siblings.length() < clients.length()) siblings.add(-1);
+    int hi = -1, lo = -1;
+    loopv(clients)
+    {
+        client *ci = clients[i];
+        if(ci->type == ST_EMPTY || ci->type == ST_AI || !ci->name[0] || !ci->connected || ci->clientnum == exclude)
+            siblings[i] = -1;
+        else
+        {
+            siblings[i] = 0;
+            loopvj(clients) if(clients[j]->state.ownernum == ci->clientnum)
+                siblings[i]++;
+            if(!siblings.inrange(hi) || siblings[i] > siblings[hi]) hi = i;
+            if(!siblings.inrange(lo) || siblings[i] < siblings[lo]) lo = i;
+        }
+    }
+    if(siblings.inrange(hi) && siblings.inrange(lo) && (siblings[hi]-siblings[lo]) > 1)
+    {
+        client *ci = clients[hi];
+        loopv(clients) if(clients[i]->type == ST_AI && clients[i]->state.ownernum == ci->clientnum)
+        {
+            sendf(-1, 1, "ri3", N_REASSIGNAI, i, clients[i]->state.ownernum = clients[lo]->clientnum);
+            return true;
+        }
+    }
+    return false;
+}
+
 void checkai(){
 	if(!(m_osok || m_lss || m_pistol)) return clearai();
 	int balance = 0;
 	const int people = numclients();
 	if(people) switch(botbalance){
-		case -1: balance = max(people, m_duel ? (maplayout_factor - 3) : (maplayout_factor * maplayout_factor / 6)); break; // auto
-			// map sizes 5/6/7/8/9/10/11 duel: 2, 3, 4, 5, 6, 7, 8 normal: 4, 6, 8, 11, 14, 17, 20
+		case -1: // auto
+			if(m_duel) balance = max(people, maplayout_factor - 3); // 3 - 5 - 8 (6 - 8 - 11 layout factor)
+			else{
+				const int spawns = m_team ? (smapstats.hasteamspawns ? smapstats.spawns[0] : 8) : (smapstats.hasffaspawns ? smapstats.spawns[2] : 6);
+				balance = max(people, spawns / 2);
+			}
+			break; // auto
 		case  0: balance = 0; break; // force no bots
 		default: balance = max(people, botbalance); break; // force bot count
 	}

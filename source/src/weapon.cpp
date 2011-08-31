@@ -737,7 +737,7 @@ bool gun::attack(vec &targ){
 		gunwait += 250;
 		owner->lastattackweapon = NULL;
 		shots = 0;
-		if(!checkautoreload()){
+		if(!checkautoreload() && owner == player1){
 			if(!m_nopistol && owner->weapons[WEAP_PISTOL]->mag || owner->weapons[WEAP_PISTOL]->ammo) selectweapon(owner->weapons[WEAP_PISTOL]);
 			else{
 				playsound(S_NOAMMO, owner);
