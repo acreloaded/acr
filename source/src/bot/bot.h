@@ -267,6 +267,7 @@ public:
 	void DoCombatNav(void);
 	void MainAI(void);
 	bool CheckStuck(void);
+	void StuckLastResort(void);
 	bool CheckJump(void);
 	bool CheckStrafe(void);
 	void CheckFOV(void);

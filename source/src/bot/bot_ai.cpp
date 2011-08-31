@@ -1250,6 +1250,11 @@ bool CBot::CheckStuck()
 	if (m_iStuckCheckDelay >= lastmillis)
 		return false;
 
+	if(OUTBORD(m_pMyEnt->o.x, m_pMyEnt->o.y)){
+		StuckLastResort();
+		return true;
+	}
+
 	if ((m_vGoal!=g_vecZero) && (GetDistance(m_vGoal) < 2.0f))
 		return false;
 				
@@ -1356,11 +1361,17 @@ bool CBot::CheckStuck()
 			m_pMyEnt->jumpnext = true;
 		else
 			m_pMyEnt->targetyaw = WrapYZAngle(m_pMyEnt->yaw + RandomLong(60, 160));
-		addmsg(N_SUICIDE, "ri", m_pMyEnt->clientnum);
+		StuckLastResort();
 		return true;
 	}
 	
 	return false;
+}
+
+void CBot::StuckLastResort(){
+	// ask for suicide!
+	deathstate(m_pMyEnt);
+	addmsg(N_SUICIDE, "ri", m_pMyEnt->clientnum);
 }
 
 // Check if a near wall is blocking and we can jump over it
