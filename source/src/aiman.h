@@ -32,7 +32,7 @@ bool addai(){
 	}
 	client &b = *clients[cn];
 	b.reset();
-	formatstring(b.name)("bot%d", cn);
+	formatstring(b.name)("bot%d-%d", cn, aiowner);
 	b.type = ST_AI;
 	b.connected = true;
 	b.state.level = 60 + rnd(36); // how smart/stupid the bot is can be set here (currently random from 60 to 95)
