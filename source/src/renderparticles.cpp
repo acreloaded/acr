@@ -670,7 +670,7 @@ void addshotline(playerent *pl, const vec &from2, const vec &to, int flags)
 	vec o = unitv, d = unitv;
 	o.mul(dist/10+start).add(from);
 	d.mul(dist/10*-(10-start-2)).add(to);
-	if(flags & 2) newparticle(o, d, shotlinettl, 6);
+	if(true /*flags & 2*/) newparticle(o, d, shotlinettl, 6);
 	else { // tracers
 		// flags & 1 = ricochet
 		particle_trail(flags & 1 ? 1 : 0, shotlinettl, from, to);
