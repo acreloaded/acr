@@ -127,7 +127,6 @@ void processevent(client &c, shotevent &e)
 			// timed explosion
 			projevent &exp = c.addtimer().proj;
 			exp.type = GE_PROJ;
-			//gs.tips.add(exp.proj.id = rand());
 			exp.millis = gamemillis + TIPSTICKTTL;
 			exp.gun = WEAP_BOW;
 			exp.flag = hit ? hit->clientnum : -1;
