@@ -591,7 +591,7 @@ VARP(damageindicatorfade, 0, 2000, 10000);
 VARP(damageindicatorsize, 0, 200, 10000);
 VARP(damageindicatordist, 0, 500, 10000);
 
-VARP(hitmarkerfade, 1, 1000, 5000);
+VARP(hitmarkerfade, 1, 750, 5000);
 
 static int votersort(playerent **a, playerent **b){
 	return (*a)->voternum - (*b)->voternum;
