@@ -3236,12 +3236,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				break;
 			}
 
-			/*
-			case N_FALL:
-				if(cl->state.state == CS_ALIVE) serverdamage(cl, cl, getint(p) * DAMAGESCALE, WEAP_MAX+2, FRAG_NONE, cl->state.o);
-				break;
-			*/
-
 			case N_SUICIDE:
 			{
 				const int cn = getint(p);
