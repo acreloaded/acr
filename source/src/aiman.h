@@ -97,7 +97,7 @@ bool reassignai(int exclude = -1){ // backport
 }
 
 void checkai(){
-	if(!(m_osok || m_lss || m_pistol)) return clearai();
+	//if(!(m_osok || m_lss || m_pistol)) return clearai();
 	int balance = 0;
 	const int people = numclients();
 	if(people) switch(botbalance){
