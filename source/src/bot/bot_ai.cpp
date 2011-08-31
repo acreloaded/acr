@@ -1370,7 +1370,6 @@ bool CBot::CheckStuck()
 
 void CBot::StuckLastResort(){
 	// ask for suicide!
-	deathstate(m_pMyEnt);
 	addmsg(N_SUICIDE, "ri", m_pMyEnt->clientnum);
 }
 
