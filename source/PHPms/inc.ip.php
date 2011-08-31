@@ -1,28 +1,24 @@
 <?
 	if(function_exists("getip")) return false; // double include safety
 	function getip(){
-		return $_SERVER['REMOTE_ADDR'];
-		/*
-		if (getenv('HTTP_CLIENT_IP')) {
-			$ip = getenv('HTTP_CLIENT_IP');
+		$ips = array($_SERVER['REMOTE_ADDR']);
+		
+		$bullshit = array( // bullshit provided to cope with backwards proxies
+			'HTTP_X_FORWARDED_FOR',
+			'HTTP_X_REAL_IP',
+			'HTTP_CLIENT_IP',
+			'HTTP_X_FORWARDED',
+			'HTTP_FORWARDED_FOR',
+			'HTTP_FORWARDED'
+		);
+		
+		foreach($bullshit as $pieceofshit){
+			preg_match("#[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}#s", getenv($pieceofshit), $m);
+			$ips = array_merge($ips, (array)$m[0]);
 		}
-		elseif (getenv('HTTP_X_FORWARDED_FOR')) {
-			$ip = getenv('HTTP_X_FORWARDED_FOR');
-		}
-		elseif (getenv('HTTP_X_FORWARDED')) {
-			$ip = getenv('HTTP_X_FORWARDED');
-		}
-		elseif (getenv('HTTP_FORWARDED_FOR')) {
-			$ip = getenv('HTTP_FORWARDED_FOR');
-		}
-		elseif (getenv('HTTP_FORWARDED')) {
-			$ip = getenv('HTTP_FORWARDED');
-		}
-		else {
-			$ip = $_SERVER['REMOTE_ADDR'];
-		}
-		return $ip;
-		*/
+
+		foreach($ips as $ip) if(!preg_match("#^(1?0|172\.(1[6-9]|2[0-9]|3[0-1])|192\.168)\.#s", $ip)) return $ip;
+		return "1.0.0.1";
 	}
 	
 	function getipint(){ // int can be negative - but it still fits
