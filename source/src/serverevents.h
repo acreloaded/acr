@@ -125,34 +125,21 @@ void processevent(client &c, shotevent &e)
 		case WEAP_HEAL:
 		{
 			// check for stick
-			int cn = -1, hitzone = HIT_NONE;
-			float dist = 4e6f; // 1 million meters should be enough for a "stick"
-			if(e.gun == WEAP_HEAL && gs.scoping) cn = c.clientnum;
-			else loopv(clients){
-				client &t = *clients[i];
-				clientstate &ts = t.state;
-				// basic checks
-				if(t.type == ST_EMPTY || ts.state != CS_ALIVE || &c == &t) continue;
-				const float d = gs.o.dist(ts.o);
-				if(d > dist) continue;
-				vec head = generateHead(ts.o, ts.aim[0]);
-				const int hz = hitplayer(gs.o, gs.aim[0], gs.aim[1], to, ts.o, head);
-				if(!hz) continue;
-				cn = i;
-				dist = d;
-				hitzone = hz;
-			}
+			client *hit = NULL;
+			int hitzone = HIT_NONE;
+			if(e.gun == WEAP_HEAL && gs.scoping) hit = &c;
+			else hit = hitnearest(c, from, to, &hitzone);
 			switch(e.gun){
 				case WEAP_BOW: // explosive tip is stuck to a player
 				{
-					if(cn >= 0 && !m_expert){
-						serverdamage(clients[cn], &c, hitzone == HIT_HEAD ? 75 : 50, WEAP_BOW, FRAG_NONE, clients[cn]->state.o);
-						if(clients[cn]->state.state != CS_ALIVE){
-							to = clients[cn]->state.o;
-							cn = -1;
+					if(hit && !m_expert){
+						serverdamage(hit, &c, hitzone == HIT_HEAD ? 75 : 50, WEAP_BOW, FRAG_NONE, hit->state.o);
+						if(hit->state.state != CS_ALIVE){
+							to = hit->state.o;
+							hit = NULL;
 						}
 					}
-					if(cn >= 0) sendf(-1, 1, "ri2", N_STICK, cn);
+					if(hit) sendf(-1, 1, "ri2", N_STICK, hit->clientnum);
 					else sendf(-1, 1, "ri2f3", N_STICK, -1, to.x, to.y, to.z);
 					// timed explosion
 					projevent &exp = c.addtimer().proj;
@@ -160,18 +147,17 @@ void processevent(client &c, shotevent &e)
 					//gs.tips.add(exp.proj.id = rand());
 					exp.millis = gamemillis + TIPSTICKTTL;
 					exp.gun = WEAP_BOW;
-					exp.flag = cn;
+					exp.flag = hit->clientnum;
 					loopi(3) exp.o[i] = to[i];
 					break;
 				}
 				case WEAP_HEAL: // healing a player
 				{
-					//cn = c.clientnum;
-					if(cn < 0) break;
-					const int flags = (cn == c.clientnum ? FRAG_FLAG : FRAG_NONE) | (hitzone == HIT_HEAD ? FRAG_GIB : FRAG_NONE);
-					if(!m_team || &c == clients[cn] || c.team != clients[cn]->team) serverdamage(clients[cn], &c, effectiveDamage(e.gun, dist), e.gun, flags, gs.o);
-					loopi(&c == clients[cn] ? 25 : 15){ // heals over the next 1 to 2.5 seconds (no perk, for others)
-						reloadevent &heal = clients[cn]->addtimer().reload;
+					if(!hit) break;
+					const int flags = hitzone == HIT_HEAD ? FRAG_GIB : FRAG_NONE;
+					if(!m_team || &c == hit || c.team != hit->team) serverdamage(hit, &c, effectiveDamage(e.gun, hit->state.o.dist(from)), e.gun, flags, gs.o);
+					loopi(&c == hit ? 25 : 15){ // heals over the next 1 to 2.5 seconds (no perk, for others)
+						reloadevent &heal = hit->addtimer().reload;
 						heal.type = GE_RELOAD;
 						heal.id = c.clientnum;
 						heal.millis = gamemillis + (10 + i) * 100 / (gs.perk == PERK_PERSIST ? 2 : 1);

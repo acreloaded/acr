@@ -79,6 +79,26 @@ int explosion(client &owner, const vec &o2, int weap){
 }
 
 // hit checks
+client *hitnearest(client &actor, const vec &from, const vec &to, int *hitzone){
+	client *result = NULL;
+	float dist = 4e6f; // 1 million meters...
+	clientstate &gs = actor.state;
+	loopv(clients){
+		client &t = *clients[i];
+		clientstate &ts = t.state;
+		// basic checks
+		if(t.type == ST_EMPTY || ts.state != CS_ALIVE || &actor == &t) continue;
+		const float d = gs.o.dist(from);
+		if(d > dist) continue;
+		vec head = generateHead(ts.o, ts.aim[0]);
+		const int hz = hitplayer(from, gs.aim[0], gs.aim[1], to, ts.o, head);
+		if(!hz) continue;
+		result = &t;
+		dist = d;
+		if(hitzone) *hitzone = hz;
+	}
+	return result;
+}
 
 // hitscans
 int shot(client &owner, const vec &from, const vec &to, int weap, vec &surface, float dist = 0){
