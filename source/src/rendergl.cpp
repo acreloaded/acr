@@ -823,7 +823,7 @@ void setperspective(float fovy, float nearplane){
 	if((gamefocus->weaponsel->type == WEAP_SNIPER || gamefocus->weaponsel->type == WEAP_BOLT) && gamefocus->ads){
 		adsmax = sniperrifle::adsscope;
 		zoomf = (float)scopezoom;
-	}
+	} else if(gamefocus->weaponsel->type == WEAP_HEAL) zoomf = 0;
 	xdist *= 100 / (min(player1->ads/adsmax,1.f) * zoomf + 100);
 	ydist *= 100 / (min(player1->ads/adsmax,1.f) * zoomf + 100);
 
