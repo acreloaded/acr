@@ -139,7 +139,7 @@ struct obitlist
 	int maxlines;
 	vector<oline> olines;
 
-	obitlist() : maxlines(15) {}
+	obitlist() : maxlines(12) {}
 
 	oline &addline(playerent *actor, int weap, bool headshot, playerent *target, int millis)	// add a line to the obit buffer
 	{
@@ -213,7 +213,6 @@ struct obitlist
 			text_bounds(l, width, height, conwidth);
 			linei -= -1 + floor(float(height/FONTH));
 		}
-		if(linei >= 12) linei = 12;
         loopi(linei){
 			oline &l = olines[i];
 			if(totalmillis-l.millis < chatfade*1000 || con.fullconsole){
