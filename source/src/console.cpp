@@ -213,6 +213,7 @@ struct obitlist
 			text_bounds(l, width, height, conwidth);
 			linei -= -1 + floor(float(height/FONTH));
 		}
+		if(linei >= 12) linei = 12;
         loopi(linei){
 			oline &l = olines[i];
 			if(totalmillis-l.millis < chatfade*1000 || con.fullconsole){
