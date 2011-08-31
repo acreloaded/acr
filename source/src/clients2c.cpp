@@ -649,25 +649,18 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					weap = getint(p),
 					style = getint(p);
 				playerent *target = getclient(tcn), *actor = getclient(acn);
+				vec src;
+				loopi(3) src[i] = getfloat(p);
 				if(!target) break;
 				target->armor = armor;
 				target->health = health;
-				if(!actor) break;
-				dodamage(damage, target, actor, weap, style);
-				break;
-			}
-
-			case N_HITPUSH:
-			{
-				int cn = getint(p), gun = getint(p), damage = getint(p), power = getint(p);
-				vec src; loopk(3) src[k] = getfloat(p);
-				playerent *d = getclient(cn);
-				if(!d) break;
-				d->damagestack.add(damageinfo(src, lastmillis, damage));
-				if(d->o == src) break;
-				vec dir = d->o;
-				dir.sub(src).normalize();
-				d->hitpush(damage, dir, gun, power > 0);
+				target->damagestack.add(damageinfo(src, lastmillis, damage));
+				if(src != target->o){
+					vec dir = target->o;
+					dir.sub(src).normalize();
+					target->hitpush(damage, dir, weap, actor && actor->perk == PERK_POWER);
+				}
+				if(actor) dodamage(damage, target, actor, weap, style);
 				break;
 			}
 

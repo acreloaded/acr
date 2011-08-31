@@ -1507,6 +1507,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 	ts.dodamage(damage, actor->state.perk == PERK_POWER);
 	ts.lastregen = gamemillis + REGENDELAY - REGENINT;
 	const bool gib = style & FRAG_GIB;
+	sendf(-1, 1, "ri8f3", N_DAMAGE, target->clientnum, actor->clientnum, int(damage * (gib ? GIBBLOODMUL : 1)), ts.armor, ts.health, gun, style & FRAG_VALID, source.x, source.y, source.z);
 	if(ts.health<=0){
 		int targethasflag = clienthasflag(target->clientnum);
 		bool suic = false;
@@ -1566,8 +1567,6 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 		}
 		usestreak(*target, ts.streakondeath);
 	}
-	else sendf(-1, 1, "ri8", N_DAMAGE, target->clientnum, actor->clientnum, int(damage * (gib ? GIBBLOODMUL : 1)), ts.armor, ts.health, gun, style & FRAG_VALID);
-	if(source != target->state.o) sendf(-1, 1, "ri5f3", N_HITPUSH, target->clientnum, gun, damage * (actor->state.perk == PERK_POWER ? 2 : 1), actor->state.perk == PERK_POWER ? 1 : 0, source.x, source.y, source.z);
 }
 
 void cheat(client *cl, const char *reason = "unknown"){

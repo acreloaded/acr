@@ -486,9 +486,6 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 
 void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, float killdist){
 	if(pl->state==CS_DEAD || intermission) return;
-	// damage effect
-	dodamage(damage, pl, act, weapon, style);
-
 	// kill message
 	bool headshot = isheadshot(weapon, style);
 	int obit = OBIT_DEATH;
@@ -524,6 +521,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 	// assist count
 	pl->damagelog.removeobj(pl->clientnum);
 	pl->damagelog.removeobj(act->clientnum);
+	loopv(pl->damagelog) if(!getclient(pl->damagelog[i])) pl->damagelog.remove(i--);
 	// HUD for first person
 	if(pl == gamefocus || act == gamefocus){
 		if(pl->damagelog.length()) hudonlyf("%s %s %s, %d assister%s", subject, hashave, predicate, pl->damagelog.length(), pl->damagelog.length()==1?"":"s");
@@ -533,9 +531,8 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 	if(pl->damagelog.length()){
 		concatstring(predicate, ", assisted by");
 		bool first = true;
-		loopv(pl->damagelog){
+		while(pl->damagelog.length()){
 			playerent *p = getclient(pl->damagelog.pop());
-			if(!p) continue;
 			++p->assists;
 			concatformatstring(predicate, "%s \fs\f%d%s\fr", first ? "" : !pl->damagelog.length() ? " and" : ",", isteam(p, pl) ? 3 : 2, colorname(p));
 			first = false;
