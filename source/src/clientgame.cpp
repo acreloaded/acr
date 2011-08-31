@@ -509,11 +509,8 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, fl
 		}
 		if(pl == gamefocus) concatstring(predicate, "!\f2");
 	}
-	else{
-		obit = toobit(weapon, style);
-		formatstring(predicate)("%s %s%s", killname(obit, headshot),
+	else formatstring(predicate)("%s %s%s", killname(obit = toobit(weapon, style), headshot),
 			isteam(pl, act) ? act==player1 ? "your teammate " : "his teammate " : "", pl == player1 ? "\f1you\f2" : colorname(pl));
-	}
 	if(killdist) concatformatstring(predicate, " (@%.2f m)", killdist);
 	// streaks
 	if(act->killstreak++) concatformatstring(predicate, " %d ks", act->killstreak);
