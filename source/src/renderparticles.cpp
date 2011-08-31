@@ -668,13 +668,12 @@ void addshotline(playerent *pl, const vec &from2, const vec &to, int flags)
 
 	// shotline visuals
 	vec o = unitv, d = unitv;
-	o.mul(dist/10+start).add(from);
-	d.mul(dist/10*-(10-start-2)).add(to);
-	if(true /*flags & 2*/) newparticle(o, d, shotlinettl, 6);
-	else { // tracers
-		// flags & 1 = ricochet
-		particle_trail(flags & 1 ? 1 : 0, shotlinettl, from, to);
+	if(flags & 2){ o = from; d = to;}
+	else{
+		o.mul(dist/10+start).add(from);
+		d.mul(dist/10*-(10-start-2)).add(to);
 	}
+	newparticle(o, d, shotlinettl, 6);
 
 	// shotline sound fx
 	if(!bulletairsoundrad) return;
