@@ -1122,7 +1122,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						playerent *d = getclient(cn);
 						if(!d) break;
 						filtertext(text, text, 1, MAXNAMELEN);
-						(d == player1 ? hudoutf : conoutf)("%s \f1identified as \f2'\f9%s\f2'", colorname(d), text);
+						chatoutf("%s \f1identified as \f2'\f9%s\f2'", colorname(d), text);
 						break;
 					}
 					case 6:
