@@ -1506,7 +1506,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 			if(returndamage) serverdamage(actor, actor, returndamage, WEAP_MAX+3, style, source); // redirect damage to owner
 			actor->state.shotdamage += damage; // reduce his accuracy
 		}
-	} else damage = max<int>(damage*SELFDAMAGEMUL, 1);
+	}
 	if(target->state.damagelog.find(actor->clientnum) < 0) target->state.damagelog.add(actor->clientnum);
 	ts.dodamage(damage, actor->state.perk == PERK_POWER);
 	ts.lastregen = gamemillis + REGENDELAY - REGENINT;
