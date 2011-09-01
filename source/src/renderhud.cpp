@@ -1117,7 +1117,7 @@ void renderhudwaypoints(){
 		if(sticks[i].millis < totalmillis) sticks.remove(i--);
 		else{
 			playerent *stuck = getclient(sticks[i].cn);
-			vec o(stuck ? stuck->head.x >= 0 ? stuck->head : stuck->o : sticks[i].o);
+			vec o(stuck ? stuck->o : sticks[i].o);
 			const float flashfactor = float(sticks[i].millis - totalmillis) / TIPSTICKTTL * 350 + 200;
 			renderwaypoint(WP_BOMB, o, fabs(sinf((totalmillis % 10000) / flashfactor)), gamefocus->perk == PERK_VISION);
 			if(sticks[i].lastlight < lastmillis){
