@@ -669,8 +669,13 @@ void addshotline(playerent *pl, const vec &from2, const vec &to, int flags)
 	// shotline visuals
 	vec o = unitv, d = unitv;
 	if(flags & 1){
+		/*
 		o.mul(dist/10+start).add(from);
 		d.mul(dist/10*-(10-start-2)).add(to);
+		*/
+		o = from;
+		o.z += WEAPONBELOWEYE;
+		d = to;
 	}
 	else { o = from; d = to;}
 	newparticle(o, d, shotlinettl, 6);
