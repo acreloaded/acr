@@ -37,7 +37,7 @@ void applyspread(const vec &from, vec &to, int spread, float factor){
 	to.add(r);
 }
 
-bool checkcrit(float dist, float m, int base = 0, int min = 1, int max = 100){
+bool checkcrit(float dist, float m, int base = 0, int min = 4, int max = 100){
 	return m_real || !rnd(base + clamp<int>(ceil(dist) * m, min, max));
 }
 
