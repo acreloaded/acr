@@ -364,7 +364,7 @@ struct voteinfo
 			stats[VOTE_NUM]++;
 		}
 		if(forceend){
-			if(veto == VOTE_NEUTRAL) end(stats[VOTE_YES]/(float)(stats[VOTE_NO]+stats[VOTE_YES]) >= action->passratio ? VOTE_YES : VOTE_NO);
+			if(veto == VOTE_NEUTRAL) end(stats[VOTE_YES]/(float)(stats[VOTE_NO]+stats[VOTE_YES]) > action->passratio ? VOTE_YES : VOTE_NO);
 			else end(veto, vetoowner);
 		}
 
