@@ -16,30 +16,18 @@
 // UNDONE
 weaponinfo_s WeaponInfoTable[MAX_WEAPONS] =
 {
-	// KNIFE
-	{ TYPE_MELEE, 0.0f, 2.0f, 0.0f, 3.5f, 1 },
-	// PISTOL
-	{ TYPE_NORMAL, 0.0f, 20.0f, 0.0f, 50.0f, 6 },
-	// SHOTGUN
-	{ TYPE_SHOTGUN, 0.0f, 15.0f, 0.0f, 40.0f, 3 },	
-	// SUBGUN
-	{ TYPE_AUTO, 0.0f, 25.0f, 0.0f, 60.0f, 10 },	
-	// SNIPER
-	{ TYPE_SNIPER, 30.0f, 50.0f, 20.0f, 200.0f, 3 },    
-	// BOLT
-	{ TYPE_SNIPER, 30.0f, 50.0f, 20.0f, 200.0f, 2 },    
-	// ASSAULT
-	{ TYPE_AUTO, 0.0f, 25.0f, 0.0f, 60.0f, 10 },
-	// GRENADE
-	{ TYPE_GRENADE, 30.0f, 25.0f, 0.0f, 50.0f, 1 },
-	// AKIMBO?
-	{ TYPE_NORMAL, 0.0f, 20.0f, 0.0f, 50.0f, 6 },
-	// HEAL
-	{ TYPE_AUTO, 40.0f, 80.0f, 0.0f, 150.0f, 6 },
-	// SWORD
-	{ TYPE_MELEE, 0.0f, 4.0f, 0.0f, 7.0f, 1 },
-	// CROSSBOW
-	{ TYPE_NORMAL, 0.0f, 20.0f, 0.0f, 50.0f, 2 },
+	{ TYPE_MELEE, 0.0f, 2.0f, 0.0f, 3.5f, 1 }, // KNIFE
+	{ TYPE_NORMAL, 0.0f, 20.0f, 0.0f, 50.0f, 6 }, // PISTOL
+	{ TYPE_SHOTGUN, 0.0f, 15.0f, 0.0f, 40.0f, 3 }, // SHOTGUN
+	{ TYPE_AUTO, 0.0f, 25.0f, 0.0f, 60.0f, 10 }, // SUBGUN
+	{ TYPE_SNIPER, 30.0f, 50.0f, 20.0f, 200.0f, 3 }, // SNIPER
+	{ TYPE_SNIPER, 30.0f, 50.0f, 20.0f, 200.0f, 2 }, // BOLT
+	{ TYPE_AUTO, 0.0f, 25.0f, 0.0f, 60.0f, 10 }, // ASSAULT
+	{ TYPE_GRENADE, 30.0f, 25.0f, 0.0f, 50.0f, 1 }, // GRENADE
+	{ TYPE_NORMAL, 0.0f, 20.0f, 0.0f, 50.0f, 6 }, // AKIMBO?
+	{ TYPE_AUTO, 40.0f, 80.0f, 0.0f, 150.0f, 6 }, // HEAL
+	{ TYPE_MELEE, 0.0f, 4.0f, 0.0f, 7.0f, 1 }, // SWORD
+	{ TYPE_ROCKET, 0.0f, 20.0f, 0.0f, 50.0f, 2 }, // CROSSBOW
 };
 
 // Code of CACBot - Start   
