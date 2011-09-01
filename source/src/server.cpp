@@ -1219,6 +1219,7 @@ void arenacheck(){
 			clients[i]->state.lastdeath = 1;
 			sendspawn(clients[i]);
 		}
+		nokills = true;
 		return;
 	}
 
