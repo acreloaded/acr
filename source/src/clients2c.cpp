@@ -368,7 +368,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				playerent *d = getclient(getint(p));
 				const int newowner = getint(p);
-				if(d) d->ownernum = newowner;
+				if(d) formatstring(d->name)("bot%d-%d", d->clientnum, d->ownernum = newowner);
 				break;
 			}
 			
