@@ -184,6 +184,7 @@ struct kickaction : playeraction
 {
 	string reason;
 	void perform() { disconnect_client(cn, DISC_KICK); }
+	virtual bool isvalid() { return playeraction::isvalid() && strlen(reason) >= 4; }
 	kickaction(int cn, const char *r) : playeraction(cn)
 	{
 		copystring(reason, r);
@@ -340,7 +341,7 @@ struct voteinfo
 	void end(int result, int veto = -1)
 	{
 		if(!action || !action->isvalid()) result = VOTE_NO; // don't perform() invalid votes
-		logline(ACLOG_INFO,"[%s] vote %s, forced by %s (%d)", gethostname(owner), result == VOTE_YES ? "passed" : "failed", valid_client(veto) ? clients[veto]->name : "winning votes", veto);
+		logline(ACLOG_INFO, valid_client(veto) ? "[%s] vote %s, forced by %s (%d)" : "[%s] vote %s", gethostname(owner), result == VOTE_YES ? "passed" : "failed", valid_client(veto) ? clients[veto]->name : "winning votes", veto);
 		sendf(-1, 1, "ri3", N_VOTERESULT, result, veto);
 		this->result = result;
 		if(result == VOTE_YES)
