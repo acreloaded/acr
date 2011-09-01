@@ -479,7 +479,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 		pl->hitpush(damage, dir, weapon, actor->perk == PERK_POWER);
 	}
 	// blood
-	damageeffect(damage * (style&FRAG_GIB) ? GIBBLOODMUL : 1, pl);
+	damageeffect(damage * (style&FRAG_GIB ? GIBBLOODMUL : 1), pl);
 
 	if(style & FRAG_CRITICAL){ // critical damage
 		actor->addicon(eventicon::CRITICAL);
