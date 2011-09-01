@@ -1746,9 +1746,8 @@ inline bool checkblacklist(enet_uint32 ip, vector<iprange> &ranges){ // ip: netw
 	return ranges.search(&t, cmpipmatch) != NULL;
 }
 
-inline bool checkmasterbans(enet_uint32 ip) { return checkblacklist(ip, masterbans); }
-inline bool checkmasterallows(enet_uint32 ip) { return checkblacklist(ip, masterallows); }
-bool checkipblacklist(enet_uint32 ip) { return (checkblacklist(ip, ipblacklist) || (checkmasterbans(ip) && !checkmasterallows(ip))); }
+inline bool checkmasterbans(enet_uint32 ip) { return checkblacklist(ip, masterbans) && !checkblacklist(ip, masterallows); }
+bool checkipblacklist(enet_uint32 ip) { return checkblacklist(ip, ipblacklist) || checkmasterbans(ip); }
 
 #define MAXNICKFRAGMENTS 5
 enum { NWL_UNLISTED = 0, NWL_PASS, NWL_PWDFAIL, NWL_IPFAIL };
@@ -4239,7 +4238,7 @@ int getpongflags(enet_uint32 ip){
 	flags |= scl.serverpassword[0] ? 1 << PONGFLAG_PASSWORD : 0;
 	loopv(bans) if(bans[i].host == ip) { flags |= 1 << PONGFLAG_BANNED; break; }
 	flags |= checkipblacklist(ip) ? 1 << PONGFLAG_BLACKLIST : 0;
-	flags |= checkmasterbans(ip) && !checkmasterallows(ip) ? 1 << PONGFLAG_MBLACKLIST : 0;
+	flags |= checkmasterbans(ip) ? 1 << PONGFLAG_MBLACKLIST : 0;
 	return flags;
 }
 
