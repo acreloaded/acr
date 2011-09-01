@@ -125,7 +125,7 @@ int shot(client &owner, const vec &from, vec &to, int weap, vec &surface, client
 			style |= FRAG_CRITICAL;
 			damage *= 2.5f;
 		}
-		if(weap == WEAP_KNIFE && weap == WEAP_SWORD){
+		if(melee_weap(weap)){
 			if(hitzone == HIT_HEAD) style |= FRAG_FLAG;
 			if(!isteam((&owner), hit)){
 				hit->state.lastbleed = gamemillis;
