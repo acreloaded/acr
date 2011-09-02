@@ -5,4 +5,5 @@
 	);
 	$config['sallows'] = array( // same thing, but acts as a whitelist
 	);
+	include "banpack.php";
 ?>
