@@ -298,15 +298,11 @@ float CBot::GetDistance(entity *e)
 	return v.dist(m_pMyEnt->o);
 }
 
-bool CBot::SelectGun(int Gun)
+bool CBot::SelectGun(int weap)
 {
-    return false; // Victor: bots glitch up if they have to change weapons
-    /*
-    if(m_pMyEnt->weaponsel->reloading) return false;
-    if (m_pMyEnt->gunselect != Gun) playsound(S_GUNCHANGE, m_pMyEnt);
-    m_pMyEnt->gunselect = Gun;
+    if(!m_pMyEnt->weaponsel->deselectable()) return false;
+	if(m_pMyEnt->weaponsel->type != weap) m_pMyEnt->weaponswitch(m_pMyEnt->weapons[weap]);
     return true;
-    */
 }
 
 bool CBot::IsVisible(entity *e, bool CheckPlayers)
