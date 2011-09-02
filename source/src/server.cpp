@@ -261,8 +261,11 @@ struct client				   // server side version of "dynent" type
 		return timers.add();
 	}
 
-	void removetimers(int type){
-		loopv(timers) if(timers[i].type == type) timers.remove(i--);
+	void removetimers(int type){ loopv(timers) if(timers[i].type == type) timers.remove(i--); }
+
+	void suicide(int weap, int flags = FRAG_NONE, int damage = 2000){
+		extern void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source);
+		serverdamage(this, this, damage, weap, flags, state.o);
 	}
 
 	void mapchange()
@@ -1579,7 +1582,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 
 void cheat(client *cl, const char *reason = "unknown"){
 	logline(ACLOG_INFO, "[%s] %s cheat detected (%s)", gethostname(cl->clientnum), cl->name, reason);
-	if(cl->state.state != CS_DEAD) serverdamage(cl, cl, 2000, WEAP_MAX+5, FRAG_GIB, cl->state.o);
+	if(cl->state.state != CS_DEAD) cl->suicide(WEAP_MAX+5, FRAG_GIB);
 }
 
 #include "serverevents.h"
@@ -2911,14 +2914,14 @@ void checkmove(client &cp){
 		char drownstate = (gamemillis - cs.drownmillis) / 1000;
 		while(cs.drownval < drownstate){
 			cs.drownval++;
-			serverdamage(&cp, &cp, powf(cs.drownval, 7.f)/1000000, WEAP_MAX+1, FRAG_NONE, cs.o);
+			cp.suicide(WEAP_MAX+1, FRAG_NONE, powf(cs.drownval, 7.f)/1000000);
 			if(cs.state != CS_ALIVE) return; // dead!
 		}
 	}
 	else if(cs.drownmillis > 0) cs.drownmillis = -cs.drownmillis;
 	// out of map check
 	if(cp.type!=ST_LOCAL && !m_edit && checkpos(cs.o, false)){
-		if(cp.type == ST_AI) serverdamage(&cp, &cp, 1000, WEAP_MAX + 4, FRAG_NONE, cs.o);
+		if(cp.type == ST_AI) cp.suicide(WEAP_MAX + 4);
 		else{
 			logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", gethostname(sender), cp.name, ++cp.mapcollisions);
 			sendmsgi(40, sender);
@@ -3252,8 +3255,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				const int cn = getint(p);
 				if(!hasclient(cl, cn)) break;
 				client *cp = clients[cn];
-				if(cp->state.state != CS_ALIVE) break;
-				serverdamage(cp, cp, 1000, cn == sender ? WEAP_MAX : WEAP_MAX + 4, cn == sender ? FRAG_GIB : FRAG_NONE, cp->state.o);
+				if(cp->state.state == CS_ALIVE) cp->suicide(cn == sender ? WEAP_MAX : WEAP_MAX + 4, cn == sender ? FRAG_GIB : FRAG_NONE);
 				break;
 			}
 
@@ -3840,7 +3842,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					int damage = (fall - 10) / (cp->state.perk == PERK_LIGHT ? 10 : 2);
 					if(damage < 1) break; // don't heal the player
 					else if(damage > 200) damage = 200;
-					serverdamage(cp, cp, damage, WEAP_MAX+2, FRAG_NONE, cp->state.o);
+					cp->suicide(WEAP_MAX+2, FRAG_NONE, damage);
 				}
 				else if(typ == PHYS_AKIMBOOUT){
 					if(!cp->state.akimbomillis) break;
