@@ -324,8 +324,6 @@ public:
 	friend class CBotManager;
 	friend class CWaypointClass;
 
-	bool m_bSendC2SInit;
-
 	virtual ~CBot(void);
 
 	virtual void Spawn(void);
