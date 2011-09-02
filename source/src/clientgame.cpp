@@ -464,7 +464,7 @@ bool tryrespawn(){
 
 void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style, vec src)
 {
-	if(pl->state != CS_ALIVE || intermission) return;
+	if(pl->state == CS_DEAD || intermission) return;
 
 	pl->respawnoffset = pl->lastpain = lastmillis;
 	if(actor != pl){ // hit marker/assist
