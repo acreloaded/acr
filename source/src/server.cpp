@@ -127,7 +127,7 @@ struct clientstate : playerstate
 	int streakondeath;
 	int lastshot, lastregen;
 	projectilestate<6> grenades; // 5000ms TLL / (we can throw one every 650ms+200ms) = 6 nades possible
-	projectilestate<2> knives;
+	projectilestate<3> knives;
 	int akimbos, akimbomillis;
 	int points, flagscore, frags, deaths, shotdamage, damage;
 
