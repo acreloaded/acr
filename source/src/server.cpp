@@ -120,6 +120,7 @@ struct clientstate : playerstate
 	float pitchvel;
 	int state, lastomillis, movemillis;
 	int lastdeath, lastffkill, lastspawn, lifesequence, spawnmillis;
+	int lastkill, combo;
 	bool crouching;
 	int crouchmillis, scopemillis;
 	int drownmillis; char drownval;
@@ -165,6 +166,7 @@ struct clientstate : playerstate
 		drownmillis = drownval = 0;
 		lastspawn = -1;
 		lastdeath = lastshot = lastregen = 0;
+		lastkill = combo = 0;
 		akimbos = akimbomillis = 0;
 		damagelog.setsize(0);
 		crouching = false;
@@ -1535,10 +1537,12 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 			style |= FRAG_FIRST;
 			nokills = false;
 		}
-		killpoints(target, actor, gun, style);
+		if(gamemillis >= actor->state.lastkill + 500) actor->state.combo = 0;
+		actor->state.lastkill = gamemillis;
 		const float killdist = ts.o == source ? 0 : clamp<float>(ts.o.dist(source) / 4, -1, 1000);
-		sendf(-1, 1, "ri8f4v", N_KILL, target->clientnum, actor->clientnum, actor->state.frags, gun, style & FRAG_VALID, damage,
+		sendf(-1, 1, "ri9f4v", N_KILL, target->clientnum, actor->clientnum, actor->state.frags, gun, style & FRAG_VALID, damage, ++actor->state.combo,
 			ts.damagelog.length(), killdist, source.x, source.y, source.z, ts.damagelog.length(), ts.damagelog.getbuf());
+		killpoints(target, actor, gun, style);
 		if(suic && (m_htf || m_ktf) && targethasflag >= 0){
 			actor->state.flagscore--;
 			sendf(-1, 1, "ri3", N_FLAGCNT, actor->clientnum, actor->state.flagscore);

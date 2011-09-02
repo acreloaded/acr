@@ -494,7 +494,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 	else playsound(S_PAIN1+rnd(5), pl);
 }
 
-void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, float killdist){
+void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, int combo, float killdist){
 	if(pl->state==CS_DEAD || intermission) return;
 	// kill message
 	bool headshot = isheadshot(weapon, style);

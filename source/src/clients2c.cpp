@@ -671,7 +671,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_KILL:
 			{
-				int vcn = getint(p), acn = getint(p), frags = getint(p), weap = getint(p), style = getint(p) & FRAG_VALID, damage = getint(p), assists = getint(p) & 0xFF;
+				int vcn = getint(p), acn = getint(p), frags = getint(p), weap = getint(p), style = getint(p) & FRAG_VALID, damage = getint(p), combo = getint(p), assists = getint(p) & 0xFF;
 				float killdist = getfloat(p);
 				vec src; loopi(3) src[i] = getfloat(p);
 				playerent *victim = getclient(vcn), *actor = getclient(acn);
@@ -683,7 +683,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(!actor || !victim) break;
 				if((victim->health -= damage) > 0) victim->health = 0;
 				dodamage(damage, victim, actor, weap, style, src);
-				dokill(victim, actor, weap, damage, style, killdist);
+				dokill(victim, actor, weap, damage, style, combo, killdist);
 				break;
 			}
 
