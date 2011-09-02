@@ -1250,7 +1250,8 @@ bool CBot::CheckStuck()
 	if (m_iStuckCheckDelay >= lastmillis)
 		return false;
 
-	if(OUTBORD(m_pMyEnt->o.x, m_pMyEnt->o.y)){
+	sqr *b = OUTBORD(m_pMyEnt->o.x, m_pMyEnt->o.y) ? NULL : S((int)m_pMyEnt->o.x, (int)m_pMyEnt->o.y);
+	if(!b || SOLID(b) || m_pMyEnt->o.z < b->floor || m_pMyEnt->o.z > b->ceil){
 		StuckLastResort();
 		return true;
 	}
