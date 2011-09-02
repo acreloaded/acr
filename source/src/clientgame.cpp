@@ -550,6 +550,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 		case 3: concatstring(predicate, ", \fs\f1\fbtriple-killing\fr"); break;
 		case 4: concatstring(predicate, ", \fs\f3\fbmulti-killing\fr"); break;
 		case 5: concatstring(predicate, ", \fs\f4\fbslaughering\fr"); break;
+		default: if(combo > 1)  concatstring(predicate, ", \fs\f5\fbPWNING\fr"); break;
 	}
 	if(style & FRAG_FIRST) concatstring(predicate, " for \fs\f3\fbfirst blood\fr");
 	if(style & FRAG_CRITICAL) concatstring(predicate, " with a \fs\f1\fbcritical hit\fr");
