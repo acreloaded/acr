@@ -444,8 +444,10 @@ void drawradar(playerent *p, int w, int h)
 
 	drawradarent(p->o, coordtrans, p->yaw, p->state!=CS_DEAD ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), p->perk == PERK_JAMMER ? .35f : 1, "\f1%s", colorname(p)); // local player
 
+	// radar check
 	bool hasradar = p == player1 || isteam(p, player1) ? player1->radarearned > totalmillis : false;
-	if(m_team) loopv(players) if(players[i] && (p == players[i] || players[i]->team == p->team) && players[i]->radarearned > totalmillis) { hasradar = true; break; }
+	loopv(players) if(players[i] && (p == players[i] || players[i]->team == p->team) && players[i]->radarearned > totalmillis) { hasradar = true; break; }
+
 	loopv(players) // other players
 	{
 		playerent *pl = players[i];
@@ -801,6 +803,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		draw_textf("y %05.3f", left, top-160, p->o.y);
 		draw_textf("z %04.1f", left, top-80, p->o.z);
 		*/
+		int radarremain = isteam(p, player1) ? player1->radarearned : 0;
+		loopv(players) if(players[i] && (p == players[i] || players[i]->team == p->team) && players[i]->radarearned > radarremain) radarremain = players[i]->radarmillis;
+		draw_textf("radar %03.1f", left, top-240, max((radarremain-totalmillis)/1000.f, 0.f));
 		draw_textf("sp2 %04.3f", left, top-160, p->vel.magnitudexy());
 		draw_textf("spd %04.3f", left, top-80, p->vel.magnitude());
 		draw_textf("fps %d", left, top, curfps);
