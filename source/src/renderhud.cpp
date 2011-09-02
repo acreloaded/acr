@@ -361,6 +361,12 @@ bool insideradar(const vec &centerpos, float radius, const vec &o)
 	return o.distxy(centerpos)<=radius;
 }
 
+vec fixradarpos(const vec &o, const vec &centerpos, float res){
+	if(insideradar(centerpos, res/2.15f, o)) return o;
+	vec ret(o);
+	return ret.sub(centerpos).normalize().mul(res/2.15f).add(centerpos);
+}
+
 bool isattacking(playerent *p) { return lastmillis-p->lastaction < 500; }
 
 vec getradarpos()
@@ -432,7 +438,6 @@ void drawradar(playerent *p, int w, int h)
 	{
 		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
 		quad(minimaptex, 0, 0, radarviewsize, (centerpos.x-res/2)/worldsize, (centerpos.y-res/2)/worldsize, res/worldsize);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL_BLEND);
 	}
 	else
@@ -441,8 +446,9 @@ void drawradar(playerent *p, int w, int h)
 		circle(minimaptex, radarviewsize/2, radarviewsize/2, radarviewsize/2, centerpos.x/worldsize, centerpos.y/worldsize, res/2/worldsize);
 	}
 	glTranslatef(-(centerpos.x-res/2)/worldsize*radarsize, -(centerpos.y-res/2)/worldsize*radarsize, 0);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	drawradarent(p->o, coordtrans, p->yaw, p->state!=CS_DEAD ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), p->perk == PERK_JAMMER ? .35f : 1, "\f1%s", colorname(p)); // local player
+	drawradarent(fixradarpos(p->o, centerpos, res), coordtrans, p->yaw, p->state!=CS_DEAD ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), p->perk == PERK_JAMMER ? .35f : 1, "\f1%s", colorname(p)); // local player
 
 	// radar check
 	bool hasradar = p == player1 || isteam(p, player1) ? player1->radarearned > totalmillis : false;
@@ -451,7 +457,7 @@ void drawradar(playerent *p, int w, int h)
 	loopv(players) // other players
 	{
 		playerent *pl = players[i];
-		if(!pl || pl == p || !insideradar(centerpos, res/2, pl->o) || pl->perk == PERK_JAMMER) continue;
+		if(!pl || pl == p || pl->perk == PERK_JAMMER) continue;
 		bool force = hasradar || pl == flaginfos[0].actor || pl == flaginfos[1].actor;
 		if(!force && pl->state != CS_DEAD && !isteam(p, pl)){
 			playerent *seenby = NULL;
@@ -471,17 +477,17 @@ void drawradar(playerent *p, int w, int h)
 			else if(pl->radarmillis + radarenemyfade < lastmillis) continue;
 		}
 		if(isteam(p, pl) || p->team == TEAM_SPECT || force || pl->state == CS_DEAD) // friendly, flag tracker or dead
-			drawradarent(pl->o, coordtrans, pl->yaw, pl->state!=CS_DEAD ? (isattacking(pl) ? 2 : 0) : 1,
+			drawradarent(fixradarpos(pl->o, centerpos, res), coordtrans, pl->yaw, pl->state!=CS_DEAD ? (isattacking(pl) ? 2 : 0) : 1,
 				isteam(p, pl) ? 1 : 0, iconsize, isattacking(pl), 1.f, "\f%d%s", isteam(p, pl) ? 0 : 3, colorname(pl));
 		else
-			drawradarent(pl->lastloudpos, coordtrans, pl->lastloudpos[2], pl->state!=CS_DEAD ? (isattacking(pl) ? 2 : 0) : 1,
+			drawradarent(fixradarpos(pl->lastloudpos, centerpos, res), coordtrans, pl->lastloudpos[2], pl->state!=CS_DEAD ? (isattacking(pl) ? 2 : 0) : 1,
 				isteam(p, pl) ? 1 : 0, iconsize, false, (radarenemyfade - lastmillis + pl->radarmillis) / (float)radarenemyfade, "\f3%s", colorname(pl));
 	}
 	loopv(bounceents){ // draw grenades
 		bounceent *b = bounceents[i];
 		if(!b || b->bouncetype != BT_NADE) continue;
 		if(((grenadeent *)b)->nadestate != 1) continue;
-		drawradarent(vec(b->o.x, b->o.y, 0), coordtrans, 0, b->owner == p ? 2 : isteam(b->owner, p) ? 1 : 0, 3, iconsize/1.5f, true);
+		drawradarent(fixradarpos(vec(b->o.x, b->o.y, 0), centerpos, res), coordtrans, 0, b->owner == p ? 2 : isteam(b->owner, p) ? 1 : 0, 3, iconsize/1.5f, true);
 	}
 	int col[3] = {255, 255, 255};
 	#define setcol(c1, c2, c3) col[0] = c1; col[1] = c2; col[2] = c3;
@@ -526,8 +532,7 @@ void drawradar(playerent *p, int w, int h)
 			entity *e = f.flagent;
 			if(!e || e->x == -1 && e-> y == -1) continue;
 			float yaw = showmap ? 0 : camera1->yaw;
-			if(insideradar(centerpos, res/2, vec(e->x, e->y, centerpos.z)))
-				drawradarent(vec(e->x, e->y, 0), coordtrans, yaw, m_ktf && f.state!=CTFF_IDLE ? 2 : f.team, 3, iconsize, false); // draw bases
+			drawradarent(fixradarpos(vec(e->x, e->y, 0), centerpos, res), coordtrans, yaw, m_ktf && f.state!=CTFF_IDLE ? 2 : f.team, 3, iconsize, false); // draw bases
 			vec pos(0.5f-0.1f, 0.5f-0.9f, 0);
 			pos.mul(iconsize/coordtrans).rotate_around_z(yaw*RAD);
 			if(f.state==CTFF_STOLEN){
@@ -535,8 +540,7 @@ void drawradar(playerent *p, int w, int h)
 				{
 					pos.add(f.actor->o);
 					// see flag position no matter what!
-					if(insideradar(centerpos, res/2, pos))
-						drawradarent(pos, coordtrans, yaw, 3, m_ktf ? 2 : f.team, iconsize, true); // draw near flag thief
+					drawradarent(fixradarpos(pos, centerpos, res), coordtrans, yaw, 3, m_ktf ? 2 : f.team, iconsize, true); // draw near flag thief
 				}
 			}
 			else{
@@ -548,8 +552,7 @@ void drawradar(playerent *p, int w, int h)
 				pos.x += f.pos.x;
 				pos.y += f.pos.y;
 				pos.z += f.pos.z;
-				if(insideradar(centerpos, res/2, pos))
-					drawradarent(pos, coordtrans, yaw, 3, m_ktf && f.state != CTFF_IDLE ? 2 : f.team, iconsize, false, f.state == CTFF_IDLE ? .3f : 1);
+				drawradarent(fixradarpos(pos, centerpos, res), coordtrans, yaw, 3, m_ktf && f.state != CTFF_IDLE ? 2 : f.team, iconsize, false, f.state == CTFF_IDLE ? .3f : 1);
 			}
 		}
 	}
