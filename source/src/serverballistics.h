@@ -135,13 +135,15 @@ int shot(client &owner, const vec &from, vec &to, int weap, vec &surface, client
 		}
 		else sendhit(owner, weap, end.v);
 		serverdamage(hit, &owner, damage, weap, style, from);
-		// distort ray and continue through...
-		vec dir(to = end), newsurface;
-		dir.sub(from).normalize().rotate_around_z((rnd(71)-35)*RAD).add(end); // 35 degrees (both ways = 70 degrees) distortion
-		// retrace
-		straceShot(end, dir, &newsurface);
-		shotdamage += shot(owner, end, dir, weap, newsurface, hit, dist + 40); // 10 meters penalty for penetrating the player
-		sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, weap, end.x, end.y, end.z, dir.x, dir.y, dir.z);
+		if(dist + end.dist(from) < 100){ // only penetrate players before 25 meters
+			// distort ray and continue through...
+			vec dir(to = end), newsurface;
+			dir.sub(from).normalize().rotate_around_z((rnd(71)-35)*RAD).add(end); // 35 degrees (both ways = 70 degrees) distortion
+			// retrace
+			straceShot(end, dir, &newsurface);
+			shotdamage += shot(owner, end, dir, weap, newsurface, hit, dist + 40); // 10 meters penalty for penetrating the player
+			sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, weap, end.x, end.y, end.z, dir.x, dir.y, dir.z);
+		}
 	}
 	else if(!dist && from.dist(to) < 100 && surface.magnitude() && !melee_weap(weap)){ // ricochet before 25 meters or going through a player
 		vec dir(to), newsurface;
