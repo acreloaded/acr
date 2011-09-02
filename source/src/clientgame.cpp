@@ -472,8 +472,8 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 		if(pl->damagelog.find(actor->clientnum) < 0) pl->damagelog.add(actor->clientnum);
 	}
 	// damage direction/hit push
-	pl->damagestack.add(damageinfo(src, lastmillis, damage));
 	if(src != pl->o){
+		pl->damagestack.add(damageinfo(src, lastmillis, damage));
 		vec dir = pl->o;
 		dir.sub(src).normalize();
 		pl->hitpush(damage, dir, weapon, actor->perk == PERK_POWER);
