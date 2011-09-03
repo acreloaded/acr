@@ -9,12 +9,15 @@
 	// tools
 	function u2i($n){ return $n > 2147483647 ? $n - 4294967296 : $n; }
 	function putrange($rs){
-		$ret = "";
-		foreach($rs as $r) if($r[2] & 1){
-			$ret .= u2i($r[0]);
-			if($r[0] != $r[1]) $ret .= "_".u2i($r[1]);
-			$ret .= '|';
+		global $config;
+		$ranges = array();
+		foreach($config[$rs] as $r) if($r[2] & 1){
+			$ranges[] = u2i($r[0]).($r[0] != $r[1] ? "_".u2i($r[1]) : '');
 		}
-		return $ret;
+		echo implode('|', $ranges);
+	}
+	function sendranges(){
+		echo "\n*b"; putrange('sbans'); // bans
+		echo "\n*a"; putrange('sallows'); // allows
 	}
 ?>

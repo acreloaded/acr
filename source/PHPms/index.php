@@ -108,8 +108,7 @@
 			echo 'Your server has been renewed.';
 		else // registered
 			echo 'Your server has been registered.'.($config['servers']['check-socket'] ? "" : " We cannot verify if your server is reachable.");
-		echo "\n*b".putrange($config['sbans']); // bans
-		echo "\n*a".putrange($config['sallows']); // allows
+		sendranges();
 	}
 	elseif(isset($_GET['authreq'])){ // request auth
 		$ip = getiplong();
@@ -138,7 +137,10 @@
 		$q = mysql_result(mysql_query("SELECT `nonce` FROM `{$config['db']['pref']}auth` WHERE `ip`={$ip} AND `id`={$id}"), 0, 0);
 		mysql_query("DELETE FROM `{$config['db']['pref']}auth` WHERE `ip`={$ip} AND `id`={$id}"); // used auth
 		$ans = &$_GET['ans'];
-		foreach($config['auth'] as $authkey) if($ans == sha1($q.$authkey[0])) exit("*s{$id}|".$authkey[2].$authkey[1]);
+		foreach($config['auth'] as $authkey) if($ans == sha1($q.$authkey[0])){ // match
+			sendranges(); // allow auth users to force a server to update its bans
+			exit("*s{$id}|".$authkey[2].$authkey[1]);
+		}
 		echo "*d{$id}"; // no match
 	}
 	else{
