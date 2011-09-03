@@ -296,6 +296,7 @@ struct client				   // server side version of "dynent" type
 		saychars = authreq = 0;
 		spawnindex = -1;
 		mapchange();
+		authpriv = -1;
 	}
 
 	void zap()
@@ -1737,14 +1738,20 @@ void readipblacklist(const char *name){
 	logline(ACLOG_INFO,"read %d (%d) blacklist entries from '%s', %d errors", ipblacklist.length(), orglength, blfilename, errors);
 }
 
-int countmbans() { return masterbans.length(); }
-
-void clearmbans(){ masterbans.setsize(0); }
-
-void addmrange(enet_uint32 start, enet_uint32 end, bool allow){
-	iprange &ir = allow ? masterallows.add() : masterbans.add();
-	ir.lr = start;
-	ir.ur = end;
+void addmrange(bool allow, char *text){
+	vector<iprange> &target = allow ? masterallows : masterbans;
+	target.shrink(0);
+	char *ptr = text;
+	while(ptr){
+		char *end = strchr(ptr, '_');
+		if(end) *end++ = 0;
+		else end = ptr;
+		iprange ir;
+		ir.lr = atol(ptr);
+		ir.ur = atol(end);
+		target.add(ir);
+		ptr = strchr(ptr, '|');
+	}
 }
 
 inline bool checkblacklist(enet_uint32 ip, vector<iprange> &ranges){ // ip: network byte order
@@ -1755,7 +1762,7 @@ inline bool checkblacklist(enet_uint32 ip, vector<iprange> &ranges){ // ip: netw
 }
 
 inline bool checkmasterbans(enet_uint32 ip) { return checkblacklist(ip, masterbans) && !checkblacklist(ip, masterallows); }
-bool checkipblacklist(enet_uint32 ip) { return checkblacklist(ip, ipblacklist) || checkmasterbans(ip); }
+inline bool checkipblacklist(enet_uint32 ip) { return checkblacklist(ip, ipblacklist); }
 
 #define MAXNICKFRAGMENTS 5
 enum { NWL_UNLISTED = 0, NWL_PASS, NWL_PWDFAIL, NWL_IPFAIL };

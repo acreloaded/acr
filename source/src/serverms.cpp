@@ -117,22 +117,13 @@ void checkmasterreply()
 		while(isspace(*text)) text++;
 		char *replytoken = strtok(text, "\n");
 		while(replytoken){
-			// process
+			// process commands
 			char *tp = replytoken;
 			if(*tp++ == '*'){
-				if(*tp == 'e'){ // erase bans, before any ban data
-					extern void clearmbans();
-					clearmbans();
-				}
-				else if(*tp == 'a' || *tp == 'b'){ // add an allow/ban
-					const bool allow = *tp == 'a';
-					char *start = ++tp, *end = strpbrk(tp, "|");
-					if(end && end[1]){
-						*end++ = 0;
-						unsigned rs = atoi(start), re = atoi(end);
-						extern void addmrange(enet_uint32 start, enet_uint32 end, bool allow);
-						addmrange(rs, re, allow);
-					}
+				if(*tp == 'a' || *tp == 'b'){ // add an allow/ban
+					const bool allow = *tp++ == 'a';
+					extern void addmrange(bool allow, char *text);
+					addmrange(allow, tp);
 				}
 				else if(*tp == 'd' || *tp == 'f' || *tp == 's' || *tp == 'c'){ // auth
 					char t = *tp++;
