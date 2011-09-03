@@ -16,8 +16,9 @@
 		}
 		echo implode('|', $ranges);
 	}
-	function sendranges(){
-		echo "\n*b"; putrange('sbans'); // bans
-		echo "\n*a"; putrange('sallows'); // allows
+	function sendranges($pad){
+		if($pad & 1) echo "\n";
+		echo "*b"; putrange('sbans')."\n*a"; putrange('sallows'); // bans / allows
+		if($pad & 2) echo "\n";
 	}
 ?>
