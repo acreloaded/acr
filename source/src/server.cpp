@@ -2265,7 +2265,7 @@ void resetserver(const char *newname, int newmode, int newtime){
 
 	mapreload = false;
 	interm = 0;
-	nextstatus = servmillis-1;
+	nextstatus = servmillis;
 	sents.shrink(0);
 	scores.shrink(0);
 	ctfreset();
