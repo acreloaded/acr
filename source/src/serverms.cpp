@@ -121,9 +121,8 @@ void checkmasterreply()
 			char *tp = replytoken;
 			if(*tp++ == '*'){
 				if(*tp == 'a' || *tp == 'b'){ // add an allow/ban
-					const bool allow = *tp++ == 'a';
 					extern void addmrange(bool allow, char *text);
-					addmrange(allow, tp);
+					addmrange(*tp == 'a', tp);
 				}
 				else if(*tp == 'd' || *tp == 'f' || *tp == 's' || *tp == 'c'){ // auth
 					char t = *tp++;

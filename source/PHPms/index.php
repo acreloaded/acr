@@ -112,8 +112,8 @@
 			echo 'Your server has been renewed.';
 		else // registered
 			echo 'Your server has been registered.'.($config['servers']['check-socket'] ? "" : " We cannot verify if your server is reachable.");
-		echo "\n*b".putrange($config['sbans'], 1); // bans
-		echo "\n*a".putrange($config['sallows'], 1); // allows
+		echo "\n*b".putrange($config['sbans']); // bans
+		echo "\n*a".putrange($config['sallows']); // allows
 	}
 	elseif(isset($_GET['authreq'])){ // request auth
 		$ip = getiplong();

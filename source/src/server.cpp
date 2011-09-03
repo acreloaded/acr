@@ -1742,15 +1742,16 @@ void addmrange(bool allow, char *text){
 	vector<iprange> &target = allow ? masterallows : masterbans;
 	target.shrink(0);
 	char *ptr = text;
-	while(ptr){
+	while(ptr && *++ptr){ // skips delimiter or first a/b
 		char *end = strchr(ptr, '_');
 		if(end) *end++ = 0;
 		else end = ptr;
 		iprange ir;
 		ir.lr = atol(ptr);
 		ir.ur = atol(end);
+		logline(ACLOG_INFO, "master %ss %u to %u", allow ? "allow" : "ban", ir.lr, ir.ur);
 		target.add(ir);
-		ptr = strchr(ptr, '|');
+		ptr = strchr(end, '|');
 	}
 }
 
