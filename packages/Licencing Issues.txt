@@ -4,10 +4,7 @@ The following will be replaced upon complaint from their copyright owners:
 audio/music/ac.ogg - © 2005 Dietmar "DCP" Pier
 misc/ - makkE
 	bullethole.png
-	chars.png
-	chars_new.png
 	scorch.png
-	teams.png (is this even used?)
 misc/ - Infinity Ward
 	eventicons*
 	obit*
