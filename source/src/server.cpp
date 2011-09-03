@@ -130,6 +130,7 @@ struct clientstate : playerstate
 	projectilestate<3> knives;
 	int akimbos, akimbomillis;
 	int points, flagscore, frags, deaths, shotdamage, damage;
+	ivector revengelog;
 
 	clientstate() : state(CS_DEAD), playerstate() {}
 
@@ -154,6 +155,7 @@ struct clientstate : playerstate
 		akimbos = akimbomillis = 0;
 		points = flagscore = frags = deaths = shotdamage = damage = lastffkill = 0;
 		radarearned = 0;
+		revengelog.setsize(0);
 		respawn();
 	}
 
@@ -1522,7 +1524,14 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 		int targethasflag = clienthasflag(target->clientnum);
 		bool suic = false;
 		target->state.deaths++;
-		if(target!=actor) actor->state.frags += /*isteam(target, actor) ? -1 :*/ gib ? 2 : 1;
+		if(target!=actor){
+			actor->state.frags += /*isteam(target, actor) ? -1 :*/ gib ? 2 : 1;
+			if(actor->state.revengelog.find(target->clientnum) >= 0){
+				style |= FRAG_REVENGE;
+				actor->state.revengelog.removeobj(target->clientnum);
+			}
+			target->state.revengelog.add(actor->clientnum);
+		}
 		else{ // suicide
 			actor->state.frags--;
 			suic = true;
