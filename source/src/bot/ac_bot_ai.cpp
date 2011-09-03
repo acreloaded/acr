@@ -153,6 +153,12 @@ entity *CACBot::SearchForEnts(bool bUseWPs, float flRange, float flMaxHeight)
 			bInteresting = (m_pMyEnt->armor < sMaxAmmo);
 			sAmmo = m_pMyEnt->armor;
 			break;
+		/*
+		case CTF_FLAG:
+			bInteresting = true; // verify
+			sAmmo = -1;
+			break;
+		*/
 		};
 		
 		if (!bInteresting)

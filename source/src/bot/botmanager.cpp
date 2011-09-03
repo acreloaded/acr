@@ -33,7 +33,7 @@ void CBotManager::Init()
 }
 
 CACBot *botcontrollers[MAXCLIENTS] = { NULL }; // reuse bot controllers
-bot_skill_calc *botskills[MAXCLIENTS] = { NULL }; // sad...
+bot_skill_s *botskills[MAXCLIENTS] = { NULL }; // sad...
 
 void CBotManager::Think()
 {    
@@ -67,8 +67,8 @@ void CBotManager::Think()
 			 bc->m_pMyEnt = b;
 			 // set bot skill
 			 bc->m_sSkillNr = clamp<short>(ceil(b->level / 20.f) - 1, 0, 4);
-			 if(botskills[i]) *botskills[i] = bot_skill_calc(b->level);
-			 else botskills[i] = new bot_skill_calc(b->level);
+			 if(botskills[i]) *botskills[i] = bot_skill_s(b->level);
+			 else botskills[i] = new bot_skill_s(b->level);
 			 bc->m_pBotSkill = botskills[i];
 
 			 // Sync waypoints

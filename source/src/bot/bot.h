@@ -84,7 +84,7 @@ enum EBotCommands // For voting of bot commands
 	COMMAND_BOTSKILL
 };
 
-struct bot_skill_calc
+struct bot_skill_s
 {
 	float flMinReactionDelay; // Minimal reaction time
 	float flMaxReactionDelay; // Maximal reaction time
@@ -108,7 +108,7 @@ struct bot_skill_calc
 	bool bCanPredict; // Can this bot predict his enemy position?
 	bool bCircleStrafe; // Can this bot circle strafe?
 	bool bCanSearchItemsInCombat;
-	bot_skill_calc(float sk){ // sk is 1 to 100
+	bot_skill_s(float sk){ // sk is 1 to 100
 		const float isk100 = (101 - sk) / 100; // inverse sk 1 to 100 divided by 100
 		const float sk100 = sk / 100; // skill divided by 100
 		flMinReactionDelay = .015f + isk100 * .285f; // 0.300 to 0.015
@@ -241,7 +241,7 @@ public:
 	int m_iAimDelay;
 	float m_fYawToTurn, m_fPitchToTurn;
 	short m_sSkillNr; // legacy support...
-	bot_skill_calc *m_pBotSkill; // bot skill pointer
+	bot_skill_s *m_pBotSkill; // bot skill pointer
 
 	void AimToVec(const vec &o);
 	void AimToIdeal(void);
