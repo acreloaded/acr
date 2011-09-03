@@ -301,7 +301,7 @@ float CBot::GetDistance(entity *e)
 bool CBot::SelectGun(int weap)
 {
     if(!m_pMyEnt->weaponsel->deselectable()) return false;
-	if(m_pMyEnt->weaponsel->type != weap) m_pMyEnt->weaponswitch(m_pMyEnt->weapons[weap]);
+	if(m_pMyEnt->weaponsel->type != weap && m_pMyEnt->weapons[weap]->selectable()) m_pMyEnt->weaponswitch(m_pMyEnt->weapons[weap]);
     return true;
 }
 
