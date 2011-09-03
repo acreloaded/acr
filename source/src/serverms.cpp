@@ -111,9 +111,9 @@ void checkmasterreply()
 	if(mssock!=ENET_SOCKET_NULL && !httpgetreceive(mssock, masterb))
 	{
 		mssock = ENET_SOCKET_NULL;
-		string replytext;
+		char replytext[MAXTRANS]; // enlarge more if bans get that bad...
 		char *text = replytext;
-		filtertext(text, (const char *) stripheader(masterrep), 2);
+		filtertext(text, (const char *) stripheader(masterrep), 2, MAXTRANS-1);
 		while(isspace(*text)) text++;
 		char *replytoken = strtok(text, "\n");
 		while(replytoken){
@@ -121,8 +121,8 @@ void checkmasterreply()
 			char *tp = replytoken;
 			if(*tp++ == '*'){
 				if(*tp == 'a' || *tp == 'b'){ // add an allow/ban
-					extern void addmrange(bool allow, char *text);
-					addmrange(*tp == 'a', tp);
+					extern void addmrange(char *text);
+					addmrange(tp);
 				}
 				else if(*tp == 'd' || *tp == 'f' || *tp == 's' || *tp == 'c'){ // auth
 					char t = *tp++;

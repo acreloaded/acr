@@ -1738,7 +1738,8 @@ void readipblacklist(const char *name){
 	logline(ACLOG_INFO,"read %d (%d) blacklist entries from '%s', %d errors", ipblacklist.length(), orglength, blfilename, errors);
 }
 
-void addmrange(bool allow, char *text){
+void addmrange(char *text){
+	const bool allow = *text == 'a'; // vs b
 	vector<iprange> &target = allow ? masterallows : masterbans;
 	target.shrink(0);
 	char *ptr = text;
