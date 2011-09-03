@@ -2546,7 +2546,7 @@ void setpriv(int cl, int priv){
 		return;
 	}
 	else if(priv >= PRIV_ADMIN){
-		loopv(clients) if(clients[i]->type != ST_EMPTY && !clients[i]->authpriv && clients[i]->priv == PRIV_MASTER) setpriv(i, PRIV_NONE);
+		loopv(clients) if(clients[i]->type != ST_EMPTY && clients[i]->authpriv < PRIV_MASTER && clients[i]->priv == PRIV_MASTER) setpriv(i, PRIV_NONE);
 	}
 	c.priv = priv;
 	sendf(-1, 1, "ri3", N_REQPRIV, cl, c.priv);
