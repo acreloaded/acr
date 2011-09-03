@@ -39,7 +39,6 @@
 	}
 	if(isset($_GET['cube'])){ // cubescript
 		header('Content-type: text/plain');
-		$ip = getiplong();
 		$srvs = getServers();
 		foreach($srvs as $s){
 			$wt = '';
@@ -50,13 +49,10 @@
 			echo ($s[2] ? '' : "//")."addserver {$s[0]} {$s[1]}{$wt}\r\n";
 		}
 	}
-	elseif(isset($_GET['xml'])){ // XML
-		header('Content-type: text/xml; charset=utf-8');
-		$header = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
-		echo $header.'<ServerList><Servers>';
-		$srvs = getServers();
-		foreach($srvs as $s) echo '<Server port="'.$s[1].'"'.($s[2] ? "" : ' disabled="disabled"').'>'.$s[0].'</Server>';
-		echo '</Servers></ServerList>';
+	elseif(isset($_GET['json'])){ // JSON
+		$buf = getServers();
+		foreach($buf as &$s) $s = array("server" => $s[0], "port" => $s[1], "ip" => long2ip($s[3]), "ipd" => $s[3]); // automatically converted to object...
+		echo json_encode($buf);
 	}
 	elseif(isset($_GET['register'])){ // register
 		function addserver($ip, $port, $add){ // returns if it is renewed
@@ -150,7 +146,7 @@
 AssaultCube Special Edition Master Server
 ====================
 Use /cube for CubeScript Server List
-Use /xml for XML Server List (Custom format)
+Use /json for JSON Server List
 Your server may register any port between {$config['servers']['minport']} and {$config['servers']['maxport']} if:
 your server is running protocol {$config['servers']['minprotocol']} or later.
 INFO
