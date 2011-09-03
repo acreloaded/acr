@@ -28,6 +28,7 @@ void killpoints(client *target, client *actor, int gun, int style){
 			else addpt(actor, TKPT);
 		}*/
 		if(style & FRAG_FIRST) gain += FIRSTKILLPT;
+		if(style & FRAG_REVENGE) gain += REVENGEKILLPT;
 		gain *= clamp(actor->state.combo, 1, 5);
 		addpt(actor, gain);
 		gain *= ASSISTMUL;

@@ -27,6 +27,7 @@
 #define KNIFENADEPT   20                           // player gibs with the knife or nades
 #define SHOTGPT       12                           // player gibs with the shotgun
 #define FIRSTKILLPT   25                           // player makes the first kill
+#define REVENGEKILLPT 10                           // player gets a payback
 // #define TKPT         -20                        // player tks
 // #define FLAGTKPT     -2*(10+cnumber)            // player tks the flag keeper/stealer
 #define ASSISTMUL 0.225f                             // multiply reward by this for assisters
