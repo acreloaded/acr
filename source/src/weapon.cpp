@@ -493,7 +493,7 @@ void grenadeent::activate(){
 
 	if(local){
 		addmsg(N_SHOOTC, "ri3", owner->clientnum, millis, WEAP_GRENADE);
-		playsound(S_GRENADEPULL, SP_HIGH);
+		playsound(S_GRENADEPULL, owner, SP_HIGH);
 	}
 }
 
@@ -505,11 +505,8 @@ void grenadeent::_throw(const vec &from, const vec &vel){
 	resetinterp();
 	inwater = hdr.waterlevel>o.z;
 
-	if(local){
-		addmsg(N_THROWNADE, "rif6i", owner->clientnum, o.x, o.y, o.z, vel.x, vel.y, vel.z, lastmillis-millis);
-		playsound(S_GRENADETHROW, SP_HIGH);
-	}
-	else playsound(S_GRENADETHROW, owner);
+	if(local) addmsg(N_THROWNADE, "rif6i", owner->clientnum, o.x, o.y, o.z, vel.x, vel.y, vel.z, lastmillis-millis);
+	playsound(S_GRENADETHROW, owner, SP_HIGH);
 }
 
 void grenadeent::moveoutsidebbox(const vec &direction, playerent *boundingbox){
@@ -1057,10 +1054,8 @@ void knifeent::activate(){
 	if(knifestate!=NS_NONE) return;
 	knifestate = NS_ACTIVATED;
 
-	if(local){
-		addmsg(N_SHOOTC, "ri3", owner->clientnum, millis, WEAP_KNIFE);
-		//playsound(S_KNIFEPULL, SP_HIGH);
-	}
+	if(local) addmsg(N_SHOOTC, "ri3", owner->clientnum, millis, WEAP_KNIFE);
+	//playsound(S_KNIFEPULL, owner,  local ? SP_HIGH : SP_NORMAL);
 }
 
 void knifeent::_throw(const vec &from, const vec &vel){
@@ -1072,7 +1067,7 @@ void knifeent::_throw(const vec &from, const vec &vel){
 	inwater = hdr.waterlevel>o.z;
 
 	if(local) addmsg(N_THROWKNIFE, "rif6", owner->clientnum, o.x, o.y, o.z, vel.x, vel.y, vel.z);
-	playsound(S_GRENADETHROW, SP_HIGH);
+	playsound(S_GRENADETHROW, SP_HIGH); // S_KNIFETHROW
 }
 
 void knifeent::moveoutsidebbox(const vec &direction, playerent *boundingbox){
@@ -1191,7 +1186,7 @@ void knife::throwknife(const vec &vel){
 void knife::attackfx(const vec &from, const vec &to, int millis) {
 	if(from.iszero() && to.iszero() && millis < 0){
 		state = GST_INHAND;
-		//playsound(S_GRENADEPULL, owner, SP_HIGH);
+		//playsound(S_KNIFEEPULL, owner, SP_HIGH);
 	}
 	else if(millis == 1){
 		knifeent *g = new knifeent(owner);
@@ -1231,13 +1226,13 @@ void shoot(playerent *p, vec &targ){
 }
 
 void checkakimbo(){
-	if(player1->akimbo)
-	{
-		akimbo &a = *((akimbo *)player1->weapons[WEAP_AKIMBO]);
-		if(a.timerout())
-		{
-			weapon &p = *player1->weapons[WEAP_PISTOL];
-			player1->akimbo = false;
+	loopv(players){
+		playerent *pl = players[i];
+		if(!pl || !pl->akimbo || (pl != player1 && pl->ownernum != getclientnum())) continue;
+		akimbo &a = *((akimbo *)pl->weapons[WEAP_AKIMBO]);
+		if(a.timerout()){
+			weapon &p = *pl->weapons[WEAP_PISTOL];
+			pl->akimbo = false;
 			a.reset();
 			// transfer ammo to pistol
 			p.mag = min((int)p.info.magsize, max(a.mag, p.mag));
@@ -1245,12 +1240,12 @@ void checkakimbo(){
 			// fix akimbo magcontent
 			a.mag = 0;
 			a.ammo = 0;
-			if(player1->weaponsel->type==WEAP_AKIMBO){
-				if(player1->primweap) player1->weaponswitch(player1->primweap);
-				else player1->weaponswitch(&p);
+			if(pl->weaponsel->type==WEAP_AKIMBO){
+				if(pl->primweap) pl->weaponswitch(pl->primweap);
+				else pl->weaponswitch(&p);
 			}
-			playsound(S_AKIMBOOUT, player1);
-			addmsg(N_PHYS, "ri2", player1->clientnum, PHYS_AKIMBOOUT);
+			playsound(S_AKIMBOOUT, pl, SP_HIGHEST);
+			addmsg(N_PHYS, "ri2", pl->clientnum, PHYS_AKIMBOOUT);
 		}
 	}
 }
