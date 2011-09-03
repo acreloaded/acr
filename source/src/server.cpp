@@ -2560,12 +2560,10 @@ void setpriv(int cl, int priv){
 void disconnect_client(int n, int reason){
 	if(!clients.inrange(n) || clients[n]->type!=ST_TCPIP) return;
 	sdropflag(n);
-	/*
-	loopv(sknives) if(sknives[i].owner == n){
-		sendf(-1, 1, "ri2", N_REMOVEKNIFE, sknives[n].id);
-		sknives.remove(i--);
+	loopv(clients) if(i != n){
+		clients[i]->state.damagelog.removeobj(n);
+		clients[i]->state.revengelog.removeobj(n);
 	}
-	*/
 	client &c = *clients[n];
 	loopv(clients) if(clients[i]->state.ownernum == n) deleteai(*clients[i]);
 	if(c.priv) setpriv(n, PRIV_NONE);

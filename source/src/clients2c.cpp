@@ -378,6 +378,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				int cn = getint(p), reason = type == N_DISC ? getint(p) : 0;
 				playerent *d = getclient(cn);
 				if(!d || d == player1) break;
+				loopv(players) if(players[i]) players[i]->damagelog.removeobj(cn);
 				if(type == N_DISC && *d->name){
 					conoutf("player %s disconnected (%s)", colorname(d), reason >= 0 ? disc_reason(reason) : "normally");
 					chatoutf("%s \f3left \f2the \f1game", colorname(d));
