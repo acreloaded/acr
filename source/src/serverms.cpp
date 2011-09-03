@@ -76,7 +76,8 @@ ENetAddress masterserver = { ENET_HOST_ANY, 80 };
 int lastupdatemaster = -1;
 string masterbase;
 string masterpath;
-uchar masterrep[MAXTRANS];
+#define MAXMASTERTRANS MAXTRANS // enlarge if bans get bad...
+uchar masterrep[MAXMASTERTRANS];
 ENetBuffer masterb;
 vector<authrequest> authrequests;
 
@@ -103,7 +104,7 @@ void updatemasterserver(int millis, const ENetAddress &localaddr){
 	mssock = httpgetsend(masterserver, masterbase, path, agent, &msaddress);
 	masterrep[0] = 0;
 	masterb.data = masterrep;
-	masterb.dataLength = MAXTRANS-1;
+	masterb.dataLength = MAXMASTERTRANS-1;
 }
 
 void checkmasterreply()
@@ -111,9 +112,9 @@ void checkmasterreply()
 	if(mssock!=ENET_SOCKET_NULL && !httpgetreceive(mssock, masterb))
 	{
 		mssock = ENET_SOCKET_NULL;
-		char replytext[MAXTRANS]; // enlarge more if bans get that bad...
+		char replytext[MAXMASTERTRANS];
 		char *text = replytext;
-		filtertext(text, (const char *) stripheader(masterrep), 2, MAXTRANS-1);
+		filtertext(text, (const char *) stripheader(masterrep), 2, MAXMASTERTRANS-1);
 		while(isspace(*text)) text++;
 		char *replytoken = strtok(text, "\n");
 		while(replytoken){
