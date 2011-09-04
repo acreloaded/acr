@@ -1759,7 +1759,7 @@ void addmrange(char *text){
 		iprange ir;
 		ir.lr = atol(ptr);
 		ir.ur = atol(end);
-		logline(ACLOG_INFO, "master %ss %u to %u", allow ? "allow" : "ban", ir.lr, ir.ur);
+		logline(ACLOG_DEBUG, "master %ss %u to %u", allow ? "allow" : "ban", ir.lr, ir.ur);
 		target.add(ir);
 		ptr = strchr(end, '|');
 	}
