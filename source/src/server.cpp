@@ -265,6 +265,8 @@ struct client				   // server side version of "dynent" type
 
 	void removetimers(int type){ loopv(timers) if(timers[i].type == type) timers.remove(i--); }
 
+	void removeexplosives() { state.grenades.reset(); state.knives.reset(); removetimers(GE_PROJ); }
+
 	void suicide(int weap, int flags = FRAG_NONE, int damage = 2000){
 		extern void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source);
 		serverdamage(this, this, damage, weap, flags, state.o);
@@ -1223,10 +1225,12 @@ void arenacheck(){
 		arenaround = 0;
 		distributespawns();
 		purgesknives();
-		loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connected && clients[i]->team != TEAM_SPECT &&
-				clients[valid_client(clients[i]->state.ownernum) ? clients[i]->state.ownernum : i]->isonrightmap){
-			clients[i]->state.lastdeath = 1;
-			sendspawn(clients[i]);
+		loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connected && clients[i]->team != TEAM_SPECT){
+			clients[i]->removeexplosives();
+			if(clients[valid_client(clients[i]->state.ownernum) ? clients[i]->state.ownernum : i]->isonrightmap){
+				clients[i]->state.lastdeath = 1;
+				sendspawn(clients[i]);
+			}
 		}
 		nokills = true;
 		return;
@@ -2033,11 +2037,7 @@ bool updateclientteam(int client, int team, int ftr){
 	if(clients[client]->team == team){
 		if (ftr != FTR_AUTOTEAM) return false;
 	}
-	else{
-		clients[client]->state.grenades.reset();
-		clients[client]->state.knives.reset();
-		clients[client]->removetimers(GE_PROJ);
-	}
+	else clients[client]->removeexplosives();
 	logline(ACLOG_INFO, "[%s] %s is now on team %s", gethostname(client), clients[client]->name, team_string(team));
 	sendf(-1, 1, "ri3", N_SETTEAM, client, (clients[client]->team = team) | (ftr << 4));
 	checkai();
