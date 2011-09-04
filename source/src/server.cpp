@@ -2958,10 +2958,6 @@ void checkmove(client &cp){
 		vec v(e.x, e.y, getmapz ? mapz + PLAYERHEIGHT : cs.o.z);
 		float dist = cs.o.dist(v);
 		if(dist > 3) continue;
-		if(arenaround && arenaround - gamemillis <= 2000){ // no nade pickup during last two seconds of lss intermission
-			sendf(sender, 1, "ri2", N_ITEMSPAWN, i);
-			continue;
-		}
 		serverpickup(i, sender);
 	}
 	// flags
