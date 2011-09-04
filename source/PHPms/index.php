@@ -56,8 +56,8 @@
 	}
 	elseif(isset($_GET['bans'])){ // list bans
 		function banflag2s($f){ return ($f&1 ? "playing" : "").($f&3 ? " and " : "").($f&2 ? "registering a server" : ""); } // FIXME
-		foreach($config['sbans'] as $r) echo "ban ".long2ip($r[0]).($r[0] != $r[1] ? " - ".long2ip($r[1]) : '')." from ".banflag2s($r[2]).($r[3] ? " because ".$r[3] : "")."\n";
-		foreach($config['sallows'] as $r) echo "allow ".long2ip($r[0]).($r[0] != $r[1] ? " - ".long2ip($r[1]) : '')." to be ".banflag2s($r[2]).($r[3] ? " because ".$r[3] : "")."\n";
+		foreach($config['sbans'] as $r) echo "ban ".long2ip($r[0]).($r[0] != $r[1] ? " - ".long2ip($r[1]) : '')." from ".banflag2s($r[2]).($r[3] ? " because ".$r[3] : "")."<br>\n";
+		foreach($config['sallows'] as $r) echo "allow ".long2ip($r[0]).($r[0] != $r[1] ? " - ".long2ip($r[1]) : '')." to be ".banflag2s($r[2]).($r[3] ? " because ".$r[3] : "")."<br>\n";
 		echo "that is all.";
 	}
 	elseif(isset($_GET['register'])){ // register
