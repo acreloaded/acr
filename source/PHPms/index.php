@@ -56,9 +56,17 @@
 	}
 	elseif(isset($_GET['bans'])){ // list bans
 		function banflag2s($f){ return ($f&1 ? "playing" : "").($f&3 ? " and " : "").($f&2 ? "registering a server" : ""); } // FIXME
-		foreach($config['sbans'] as $r) echo "ban ".long2ip($r[0]).($r[0] != $r[1] ? " - ".long2ip($r[1]) : '')." from ".banflag2s($r[2]).($r[3] ? " because ".$r[3] : "")."<br>\n";
-		foreach($config['sallows'] as $r) echo "allow ".long2ip($r[0]).($r[0] != $r[1] ? " - ".long2ip($r[1]) : '')." to be ".banflag2s($r[2]).($r[3] ? " because ".$r[3] : "")."<br>\n";
-		echo "that is all.";
+		$ip = getiplong();
+		$banned = $allowed = 0;
+		foreach($config['sbans'] as $r){
+			if($r[0] <= $ip && $ip <= $r[1]){ ++$banned; echo "*"; }
+			echo "ban ".long2ip($r[0]).($r[0] != $r[1] ? " - ".long2ip($r[1]) : '')." from ".banflag2s($r[2]).($r[3] ? " because ".$r[3] : "")."<br>\n";
+		}
+		foreach($config['sallows'] as $r){
+			if($r[0] <= $ip && $ip <= $r[1]){ ++$allowed; echo "*"; }
+			echo "allow ".long2ip($r[0]).($r[0] != $r[1] ? " - ".long2ip($r[1]) : '')." to be ".banflag2s($r[2]).($r[3] ? " because ".$r[3] : "")."<br>\n";
+		}
+		echo "Your IP is: ".long2ip($ip)." which is banned {$banned} times and allowed {$allowed} times<br>\nthat is all.";
 	}
 	elseif(isset($_GET['register'])){ // register
 		function addserver($ip, $port, $add){ // returns if it is renewed
