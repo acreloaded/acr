@@ -108,7 +108,8 @@ void checkai(){
 			if(m_duel) balance = max(people, maplayout_factor - 3); // 3 - 5 - 8 (6 - 8 - 11 layout factor)
 			else{
 				const int spawns = m_team ? (smapstats.hasteamspawns ? smapstats.spawns[0] + smapstats.spawns[1] : 16) : (smapstats.hasffaspawns ? smapstats.spawns[2] : 6);
-				balance = max(people, spawns / 2);
+				balance = max(people, spawns / 3);
+				if(balance % 1 && m_team) ++balance;
 			}
 			break; // auto
 		case  0: balance = 0; break; // force no bots
