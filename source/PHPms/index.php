@@ -54,6 +54,10 @@
 		foreach($buf as &$s) $s = array("server" => $s[0], "port" => $s[1], "ip" => long2ip($s[3]), "ipd" => $s[3]); // automatically converted to object...
 		echo json_encode($buf);
 	}
+	elseif(isset($_GET['bans'])){ // list bans
+		foreach($config['sbans'] as $r) echo "ban ".long2ip($r[0]).($r[0] != $r[1] ? " - ".long2ip($r[1]) : '')." with flags ".$r[2]."\n";
+		foreach($config['sallows'] as $r) echo "allow ".long2ip($r[0]).($r[0] != $r[1] ? " - ".long2ip($r[1]) : '')." with flags ".$r[2]."\n";
+	}
 	elseif(isset($_GET['register'])){ // register
 		function addserver($ip, $port, $add){ // returns if it is renewed
 			global $config;
