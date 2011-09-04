@@ -101,15 +101,15 @@ client *nearesthit(client &actor, const vec &from, const vec &to, int &hitzone, 
 }
 
 // hitscans
-int shot(client &owner, const vec &from, vec &to, int weap, vec &surface, client *exclude, float dist = 0){
+int shot(client &owner, const vec &from, vec &to, int weap, const vec &surface, client *exclude, float dist = 0){
 	int shotdamage = 0;
 	const int mulset = (weap == WEAP_SNIPER || weap == WEAP_BOLT) ? MUL_SNIPER : MUL_NORMAL;
 	int hitzone = HIT_NONE; vec end = to;
 	// calculate the hit
 	client *hit = nearesthit(owner, from, to, hitzone, exclude, &end);
 	// damage check
-	const float dist2 = end.dist(from);
-	int damage = effectiveDamage(weap, dist+dist2);
+	const float dist2 = dist + end.dist(from);
+	int damage = effectiveDamage(weap, dist2);
 	if(hit && damage){
 		// damage multipliers
 		switch(hitzone){
@@ -135,7 +135,7 @@ int shot(client &owner, const vec &from, vec &to, int weap, vec &surface, client
 		}
 		else sendhit(owner, weap, end.v);
 		serverdamage(hit, &owner, damage, weap, style, from);
-		if(dist + end.dist(from) < 100){ // only penetrate players before 25 meters
+		if(dist2 < 100){ // only penetrate players before 25 meters
 			// distort ray and continue through...
 			vec dir(to = end), newsurface;
 			dir.sub(from).normalize().rotate_around_z((rnd(71)-35)*RAD).add(end); // 35 degrees (both ways = 70 degrees) distortion

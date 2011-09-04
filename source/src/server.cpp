@@ -269,7 +269,7 @@ struct client				   // server side version of "dynent" type
 
 	void suicide(int weap, int flags = FRAG_NONE, int damage = 2000){
 		extern void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source);
-		serverdamage(this, this, damage, weap, flags, state.o);
+		if(state.state != CS_DEAD) serverdamage(this, this, damage, weap, flags, state.o);
 	}
 
 	void mapchange()
@@ -1596,7 +1596,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 
 void cheat(client *cl, const char *reason = "unknown"){
 	logline(ACLOG_INFO, "[%s] %s cheat detected (%s)", gethostname(cl->clientnum), cl->name, reason);
-	if(cl->state.state != CS_DEAD) cl->suicide(WEAP_MAX+5, FRAG_GIB);
+	cl->suicide(WEAP_MAX+5, FRAG_GIB);
 }
 
 #include "serverevents.h"

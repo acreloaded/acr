@@ -152,7 +152,7 @@ void processevent(client &c, shotevent &e)
 			to = end;
 			break;
 		}
-		case WEAP_KNIFE:
+		case WEAP_KNIFE: // falls through if not "compact" (throw)
 			if(e.compact){
 				if(gs.ammo[WEAP_KNIFE]){
 					gs.knives.add(e.id);
