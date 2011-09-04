@@ -607,7 +607,7 @@ struct playerstate
 		perk = nextperk;
 		if(perk <= PERK_NONE || perk >= PERK_MAX) perk = rnd(PERK_MAX-1)+1;
 
-		const int healthsets[3] = { /*guns[WEAP_KNIFE].damage + 1*/ 81, 100, 120 };
+		const int healthsets[3] = { 95, 100, 120 };
 		health = healthsets[(m_osok ? 0 : 1) + (perk == PERK_HEALTHY ? 1 : 0)];
 	}
 
