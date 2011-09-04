@@ -1508,8 +1508,9 @@ void forcedeath(client *cl, bool gib = false){
 
 void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source){
 	if(!target || !actor || !damage) return;
-	if(m_expert && !(style & FRAG_GIB)) damage = 0;
+	if(m_expert && !(style & FRAG_GIB || melee_weap(gun))) damage = 0;
 	clientstate &ts = target->state;
+	if(ts.state != CS_ALIVE) return;
 	if(target != actor){
 		if(ts.protect(gamemillis)) return; // check for spawn protection
 		if(isteam(actor, target)){ // friendly fire
