@@ -1,13 +1,13 @@
 <?
 	// server bans
 	$config['sbans'] = array(
-		// array(start, end, type), // use longs, don't overlap; type = blocked actions {1: play; 2: register}
+		// array(start, end, type, reason), // use longs, don't overlap; type = blocked actions {1: play; 2: register}
 	);
 	$config['sallows'] = array( // same thing, but acts as a whitelist
 	);
 	include "banpack.php";
 	// tools
-	function u2i($n){ return $n > 2147483647 ? $n - 4294967296 : $n; }
+	function u2i($n){ return $n > 0x7FFFFFFF ? $n - 0x100000000 : $n; }
 	function putrange($rs){
 		global $config;
 		$ranges = array();
