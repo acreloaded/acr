@@ -1,6 +1,6 @@
 // available server actions
 
-enum { EE_LOCAL_SERV = 1, EE_DED_SERV = 1<<1 }; // execution environment
+enum { EE_LOCAL_SERV = 1 << 0, EE_DED_SERV = 1 << 1, EE_ALL = (1 << 2) - 1 }; // execution environment
 
 int roleconf(int key)
 {
@@ -20,7 +20,7 @@ struct serveraction
 	virtual void perform() = 0;
 	virtual bool isvalid() { return true; }
 	virtual bool isdisabled() { return false; }
-	serveraction() : role(PRIV_NONE), length(40000), area(EE_DED_SERV), passratio(0.5f), vetorole(PRIV_MASTER) { desc[0] = '\0'; }
+	serveraction() : role(PRIV_NONE), length(40000), area(EE_ALL), passratio(0.5f), vetorole(PRIV_MASTER) { desc[0] = '\0'; }
 	virtual ~serveraction() { }
 };
 
@@ -80,7 +80,6 @@ struct mapaction : serveraction
 			if(notify) passratio = 0.6f; // you need 60% to vote a map without admin
 		}
 		vetorole = PRIV_ADMIN; // don't let masters abuse maps
-		area |= EE_LOCAL_SERV; // local too
 		formatstring(desc)("load map '%s' in mode '%s'", map, modestr(mode));
 	}
 	~mapaction() { DELETEA(map); }
@@ -111,7 +110,6 @@ struct forceteamaction : playeraction
 	virtual bool isvalid() { return playeraction::isvalid() && m_team; }
 	forceteamaction(int cn, int caller) : playeraction(cn)
 	{
-		area |= EE_LOCAL_SERV;
 		if(cn != caller){ role = roleconf('f'); passratio = 0.65f;}
 		else passratio = 0.55f;
 		if(valid_client(cn)) formatstring(desc)("force player %s to the enemy team", clients[cn]->name);
@@ -135,7 +133,6 @@ struct spectaction : playeraction
 {
 	void perform(){ if(isvalid()){ if(clients[cn]->team == TEAM_SPECT) updateclientteam(cn, freeteam(cn), FTR_AUTOTEAM); else updateclientteam(cn, TEAM_SPECT, FTR_AUTOTEAM); } }
 	spectaction(int cn, int caller) : playeraction(cn){
-		area |= EE_LOCAL_SERV;
 		if(cn != caller){ role = roleconf('f'); passratio = 0.65f;}
 		else passratio = 0.55f;
 		if(valid_client(cn)) formatstring(desc)("toggle spectator for %s", clients[cn]->name);
@@ -176,7 +173,6 @@ struct subdueaction : playeraction
 		length = 25000; // 25s
 		if(valid_client(cn)) formatstring(desc)("subdue player %s", clients[cn]->name);
 		else copystring(desc, "invalid subdue");
-		area |= EE_LOCAL_SERV;
 	}
 };
 
@@ -187,6 +183,7 @@ struct kickaction : playeraction
 	virtual bool isvalid() { return playeraction::isvalid() && strlen(reason) >= 4; }
 	kickaction(int cn, const char *r) : playeraction(cn)
 	{
+		area = EE_DED_SERV; // dedicated only
 		copystring(reason, r);
 		passratio = 0.7f;
 		role = protectAdminRole('k', cn);
@@ -205,6 +202,7 @@ struct banaction : playeraction
 	}
 	banaction(int cn, int minutes) : playeraction(cn)
 	{
+		area = EE_DED_SERV; // dedicated only
 		passratio = 0.75f;
 		role = protectAdminRole('b', cn);
 		length = 30000; // 30s
@@ -218,6 +216,7 @@ struct removebansaction : serveraction
 	void perform() { bans.shrink(0); }
 	removebansaction()
 	{
+		area = EE_DED_SERV; // dedicated only
 		passratio = 0.7f;
 		role = roleconf('b');
 		copystring(desc, "remove all bans");
@@ -270,6 +269,7 @@ struct recorddemoaction : enableaction
 	void perform() { demonextmatch = enable; }
 	recorddemoaction(bool enable) : enableaction(enable)
 	{
+		area = EE_DED_SERV; // dedicated only
 		role = roleconf('R');
 		if(isvalid()) formatstring(desc)("%s demorecord", enable ? "enable" : "disable");
 	}
@@ -284,8 +284,8 @@ struct stopdemoaction : serveraction
 	}
 	stopdemoaction()
 	{
+		area = EE_DED_SERV; // dedicated only
 		role = PRIV_ADMIN;
-		area |= EE_LOCAL_SERV;
 		copystring(desc, "stop demo");
 	}
 };
@@ -296,6 +296,7 @@ struct cleardemosaction : serveraction
 	void perform() { cleardemos(demo); }
 	cleardemosaction(int demo) : demo(demo)
 	{
+		area = EE_DED_SERV; // dedicated only
 		role = roleconf('C');
 		if(isvalid()) formatstring(desc)("clear demo %d", demo);
 	}
@@ -307,7 +308,6 @@ struct botbalanceaction : serveraction
 	void perform() { botbalance = bb; checkai(); }
 	botbalanceaction(int b) : bb(b)
 	{
-		area |= EE_LOCAL_SERV;
 		role = roleconf('a');
 		if(isvalid()){
 			formatstring(desc)(b<0?"automatically balance bots":b==0?"disable all bots":"balance to %d bots", b);
@@ -324,6 +324,7 @@ struct serverdescaction : serveraction
 	bool isvalid() { return serveraction::isvalid() && updatedescallowed() && valid_client(cn); }
 	serverdescaction(char *sdesc, int cn) : sdesc(sdesc), cn(cn)
 	{
+		area = EE_DED_SERV; // dedicated only
 		role = roleconf('D');
 		formatstring(desc)("set server description to '%s'", sdesc);
 		if(isvalid()) address = clients[cn]->peer->address;
