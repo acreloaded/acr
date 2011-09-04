@@ -55,8 +55,10 @@
 		echo json_encode($buf);
 	}
 	elseif(isset($_GET['bans'])){ // list bans
-		foreach($config['sbans'] as $r) echo "ban ".long2ip($r[0]).($r[0] != $r[1] ? " - ".long2ip($r[1]) : '')." with flags ".$r[2]."\n";
-		foreach($config['sallows'] as $r) echo "allow ".long2ip($r[0]).($r[0] != $r[1] ? " - ".long2ip($r[1]) : '')." with flags ".$r[2]."\n";
+		function banflag2s($f){ return ($f&1 ? "playing" : "").($f&3 ? " and " : "").($f&2 ? "registering a server" : ""); } // FIXME
+		foreach($config['sbans'] as $r) echo "ban ".long2ip($r[0]).($r[0] != $r[1] ? " - ".long2ip($r[1]) : '')." from ".banflag2s($r[2])."\n";
+		foreach($config['sallows'] as $r) echo "allow ".long2ip($r[0]).($r[0] != $r[1] ? " - ".long2ip($r[1]) : '')." to be ".banflag2s($r[2])."\n";
+		echo "that is all.";
 	}
 	elseif(isset($_GET['register'])){ // register
 		function addserver($ip, $port, $add){ // returns if it is renewed
