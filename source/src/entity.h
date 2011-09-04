@@ -35,8 +35,15 @@ struct entity : public persistent_entity
 	bool fitsmode(int gamemode) { return !m_noitems && isitem(type) && !(m_noitemsnade && type!=I_GRENADE) && !(m_pistol && type==I_AMMO); }
 	void transformtype(int gamemode)
 	{
-		if(m_noitemsnade && type==I_CLIPS) type = I_GRENADE;
-		else if(m_pistol && type==I_AMMO) type = I_CLIPS;
+		if(m_pistol && type == I_AMMO) type = I_CLIPS;
+		else if(m_noitemsnade) switch(type){
+			case I_CLIPS:
+			case I_AMMO:
+			case I_ARMOR:
+			case I_AKIMBO:
+				type = I_GRENADE;
+				break;
+		}
 	}
 };
 
