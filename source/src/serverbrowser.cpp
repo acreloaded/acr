@@ -627,7 +627,7 @@ void checkpings()
 		if(si->pongflags > 0)
 		{
 			const char *sp = "";
-			int mm = si->pongflags >> PONGFLAG_MASTERMODE;
+			int mm = (si->pongflags >> PONGFLAG_MASTERMODE) & MM_MASK;
 			if(si->pongflags & (1 << PONGFLAG_BANNED))
 				sp = "you are banned from this server";
 			if(si->pongflags & (1 << PONGFLAG_BLACKLIST))
@@ -1032,9 +1032,9 @@ void refreshservers(void *menu, bool init)
 			bool showthisone = !(banned && showonlygoodservers) && !(showonlyfavourites > 0 && si.favcat != showonlyfavourites - 1);
 			bool serverfull = si.numplayers >= si.maxclients;
 			bool needspasswd = (si.pongflags & (1 << PONGFLAG_PASSWORD)) > 0;
-			bool isprivate = (si.pongflags >> PONGFLAG_MASTERMODE) > 0;
+			int mmode = (si.pongflags >> PONGFLAG_MASTERMODE) & MM_MASK;
 			char basecolor = banned ? '4' : (curserver == servers[i] ? '1' : '5');
-			char plnumcolor = serverfull ? '2' : (needspasswd ? '3' : (isprivate ? '1' : basecolor));
+			char plnumcolor = serverfull ? '2' : (needspasswd ? '3' : (mmode >= MM_LOCKED ? '1' : basecolor));
 			if(si.address.host != ENET_HOST_ANY && si.ping != 9999)
 			{
 				if(si.protocol!=PROTOCOL_VERSION)

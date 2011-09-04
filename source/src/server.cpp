@@ -3066,6 +3066,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(dup->type==ST_TCPIP && dup->peer->address.host==cl->peer->address.host && dup->peer->address.port==cl->peer->address.port)
 					disconnect_client(i, DISC_DUP);
 			}
+			if(mastermode >= MM_LOCKED) updateclientteam(sender, TEAM_SPECT, FTR_SILENT);
 		}
 
 		sendwelcome(cl);
@@ -3171,13 +3172,19 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				int t = getint(p);
 				if(cl->team == t) break;
 				
-				if(m_team && cl->priv < PRIV_ADMIN && t != TEAM_SPECT){
-					int teamsizes[2] = {0};
-					loopv(clients) if(i != sender && clients[i]->type!=ST_EMPTY && clients[i]->connected && clients[i]->isonrightmap && clients[i]->team < 2)
-						teamsizes[clients[i]->team]++;
-					if(teamsizes[t] > teamsizes[team_opposite(t)]){
-						sendf(sender, 1, "ri2", N_SWITCHTEAM, t);
+				if(cl->priv < PRIV_ADMIN && t != TEAM_SPECT){
+					if(mastermode >= MM_LOCKED){
+						sendf(sender, 1, "ri2", N_SWITCHTEAM, t | (1 << 4));
 						break;
+					}
+					else if(m_team){
+						int teamsizes[2] = {0};
+						loopv(clients) if(i != sender && clients[i]->type!=ST_EMPTY && clients[i]->connected && clients[i]->isonrightmap && clients[i]->team < 2)
+							teamsizes[clients[i]->team]++;
+						if(teamsizes[t] > teamsizes[team_opposite(t)]){
+							sendf(sender, 1, "ri2", N_SWITCHTEAM, t);
+							break;
+						}
 					}
 				}
 				updateclientteam(sender, t, FTR_PLAYERWISH);
@@ -3229,7 +3236,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(cp.state.state!=CS_DEAD || cp.state.lastspawn>=0 || m_duel) break;
 				const int waitremain = (m_flags ? 5000 : 1000) - gamemillis + cp.state.lastdeath;
 				if(waitremain > 0) /*sendmsgi(41, waitremain, sender)*/;
-				else if(cp.team == TEAM_SPECT) updateclientteam(sender, freeteam(sender), FTR_PLAYERWISH);
+				else if(cp.team == TEAM_SPECT){ if(mastermode < MM_LOCKED) updateclientteam(sender, freeteam(sender), FTR_PLAYERWISH); }
 				else sendspawn(&cp);
 				break;
 			}

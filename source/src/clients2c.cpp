@@ -333,7 +333,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_SWITCHTEAM:
 			{
 				int t = getint(p);
-                if(m_team) conoutf("\f3Team %s is full", team_string(t));
+                if(m_team) conoutf(t & 0x10 ? "\f3You may not unspectate, the server is locked" : "\f3Team %s is full", team_string(t & 0xF));
 				break;
 			}
 
