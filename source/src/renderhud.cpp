@@ -281,7 +281,7 @@ void drawradarent(const vec &o, float coordtrans, float yaw, int col, int row, f
 		glTranslatef(iconsize/2, iconsize/2, 0);
 		glScalef(1/2.0f, 1/2.0f, 1/2.0f);
 		s_sprintfdv(lbl, label);
-		draw_text(lbl, (int)(o.x * coordtrans *2), (int)(o.y * coordtrans*2));
+		draw_text(lbl, (int)(o.x * coordtrans *2), (int)(o.y * coordtrans*2), 255, 255, 255, int(alpha * 255));
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL_BLEND);
 		glPopMatrix();
