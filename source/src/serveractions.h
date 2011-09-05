@@ -122,6 +122,7 @@ struct revokeaction : playeraction
 	void perform(){ setpriv(cn, PRIV_NONE); }
 	virtual bool isvalid() { return playeraction::isvalid() && clients[cn]->priv;}
 	revokeaction(int cn) : playeraction(cn){
+		area = EE_DED_SERV; // dedicated only
 		role = max<int>(PRIV_ADMIN, valid_client(cn) ? clients[cn]->priv : 0);
 		passratio = 0.1f;
 		if(valid_client(cn)) formatstring(desc)("revoke %s's %s", clients[cn]->name, privname(clients[cn]->priv));
@@ -169,7 +170,7 @@ struct subdueaction : playeraction
 	{
 		passratio = 0.8f;
 		role = protectAdminRole('Q', cn);
-		vetorole = PRIV_ADMIN; // don't let admins abuse this either!
+		vetorole = PRIV_ADMIN; // don't let admins abuse this either, it already prevents the masters from abusing it!
 		length = 25000; // 25s
 		if(valid_client(cn)) formatstring(desc)("subdue player %s", clients[cn]->name);
 		else copystring(desc, "invalid subdue");
@@ -230,6 +231,7 @@ struct mastermodeaction : serveraction
 	bool isvalid() { return mode >= 0 && mode < MM_NUM; }
 	mastermodeaction(int mode) : mode(mode)
 	{
+		area = EE_DED_SERV; // dedicated only
 		role = roleconf('M');
 		if(isvalid()) formatstring(desc)("change mastermode to '%s'", mmfullname(mode));
 	}
