@@ -2476,19 +2476,16 @@ void sendcallvote(int cl = -1){
 			default:
 				break;
 			case SA_KICK:
-				sendstring(((kickaction *)curvote->action)->reason, p);
+				if(curvote->type == SA_KICK) sendstring(((kickaction *)curvote->action)->reason, p);
+			case SA_BAN:
+				if(curvote->type == SA_BAN) putint(p, ((banaction *)curvote->action)->bantime);
 			case SA_SUBDUE:
 			case SA_REVOKE:
 			case SA_FORCETEAM:
 			case SA_SPECT:
 				putint(p, ((playeraction *)curvote->action)->cn);
 				break;
-			case SA_BAN:
-				putint(p, ((banaction *)curvote->action)->bantime);
-				putint(p, ((playeraction *)curvote->action)->cn);
-				break;
 			case SA_AUTOTEAM:
-			case SA_MASTERMODE:
 			case SA_RECORDDEMO:
 				putint(p, ((enableaction *)curvote->action)->enable ? 1 : 0);
 				break;
@@ -2497,6 +2494,9 @@ void sendcallvote(int cl = -1){
 				break;
 			case SA_BOTBALANCE:
 				putint(p, ((botbalanceaction *)curvote->action)->bb);
+				break;
+			case SA_MASTERMODE:
+				putint(p, ((mastermodeaction *)curvote->action)->mode);
 				break;
 		}
 		enet_packet_resize(packet, p.length());
@@ -3174,7 +3174,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				
 				if(cl->priv < PRIV_ADMIN && t != TEAM_SPECT){
 					if(mastermode >= MM_LOCKED){
-						sendf(sender, 1, "ri2", N_SWITCHTEAM, t | (1 << 4));
+						sendf(sender, 1, "ri2", N_SWITCHTEAM, 1 << 4);
 						break;
 					}
 					else if(m_team){
@@ -3236,7 +3236,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(cp.state.state!=CS_DEAD || cp.state.lastspawn>=0 || m_duel) break;
 				const int waitremain = (m_flags ? 5000 : 1000) - gamemillis + cp.state.lastdeath;
 				if(waitremain > 0) /*sendmsgi(41, waitremain, sender)*/;
-				else if(cp.team == TEAM_SPECT){ if(mastermode < MM_LOCKED) updateclientteam(sender, freeteam(sender), FTR_PLAYERWISH); }
+				else if(cp.team == TEAM_SPECT){
+					if(mastermode < MM_LOCKED || cp.type != ST_TCPIP || cp.priv >= PRIV_ADMIN) updateclientteam(sender, freeteam(sender), FTR_PLAYERWISH);
+					else sendf(sender, 1, "ri2", N_SWITCHTEAM, 1 << 4);
+				}
 				else sendspawn(&cp);
 				break;
 			}
