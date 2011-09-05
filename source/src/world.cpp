@@ -433,6 +433,8 @@ bool empty_world(int factor, bool force)	// main empty world creation routine, i
 		loopi(sizeof(hdr.reserved)/sizeof(hdr.reserved[0])) hdr.reserved[i] = 0;
 		loopk(3) loopi(256) hdr.texlists[k][i] = i;
 		ents.shrink(0);
+		// Victor's fix for new map -> bots crashing
+		loopv(players) if(players[i] && players[i]->pBot && players[i]->pBot->m_pTargetEnt) players[i]->pBot->m_pTargetEnt = NULL;
 		block b = { 8, 8, ssize-16, ssize-16 };
 		edittypexy(SPACE, b);
 	}
