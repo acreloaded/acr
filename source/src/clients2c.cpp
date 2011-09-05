@@ -1027,9 +1027,15 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				int acn = getint(p); playerent *alive = getclient(acn);
 				conoutf("the round is over! next round in 5 seconds...");
-				if(!alive) hudoutf("everyone died!");
-				else if(alive->ownernum >= 0) hudoutf("the bots have won the round!");
-				else if(m_team) hudoutf("%s team %s is the victor!", alive->team == player1->team ? "your" : "the enemy", team_string(alive->team));
+				// no survivors
+				if(acn == -1) hudoutf("everyone died; epic fail!");
+				// instead of waiting for bots to battle it out...
+				else if(acn == -2) hudoutf("the bots have won the round!");
+				// should not happen? better safe than sorry
+				else if(!alive) hudoutf("unknown winner...?");
+				// Teams
+				else if(m_team) hudoutf("%s team \fs\f%d%s\fr is the victor!", alive->team == player1->team ? "your" : "the enemy", team_color(alive->team), team_string(alive->team));
+				// FFA
 				else if(alive==player1) hudoutf("you are the victor!");
 				else hudoutf("%s is the victor!", colorname(alive));
 				arenaintermission = lastmillis;

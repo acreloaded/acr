@@ -1218,13 +1218,16 @@ void distributespawns(){
 	}
 }
 
+void checkitemspawns(int);
+
 void arenacheck(){
-	if(!m_duel || interm || gamemillis<arenaround || clients.empty()) return;
+	if(!m_duel || interm || gamemillis<arenaround || !numclients()) return;
 
 	if(arenaround){ // start new arena round
 		arenaround = 0;
 		distributespawns();
 		purgesknives();
+		checkitemspawns(60*1000); // spawn items now!
 		loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connected && clients[i]->team != TEAM_SPECT){
 			clients[i]->removeexplosives();
 			if(clients[valid_client(clients[i]->state.ownernum) ? clients[i]->state.ownernum : i]->isonrightmap){
@@ -1239,27 +1242,25 @@ void arenacheck(){
 	client *alive = NULL;
 	bool dead = false;
 	int lastdeath = 0;
-	bool keepround = false;
+	bool found = false; int ha = 0; // found a match to keep the round / humans alive
 	loopv(clients){
 		client &c = *clients[i];
 		if(c.type==ST_EMPTY || !c.connected || c.team == TEAM_SPECT) continue;
-		if(c.state.state==CS_ALIVE || (c.state.state==CS_DEAD && c.state.lastspawn>=0)){
+		if(c.state.state==CS_ALIVE || c.state.lastspawn >= 0){ // alive
+			if(c.type != ST_AI) ++ha;
+
 			if(!alive) alive = &c;
-			else if(!m_team || alive->team != c.team) keepround = true;
+			else if(!m_team || alive->team != c.team) found = true;
 		}
-		else if(c.state.state==CS_DEAD){
+		else if(c.state.state == CS_DEAD){ // dead
 			dead = true;
 			lastdeath = max(lastdeath, c.state.lastdeath);
 		}
 	}
-
-	if(keepround){
-		loopv(clients) if(clients[i]->type != ST_EMPTY && clients[i]->connected && clients[i]->type != ST_AI && clients[i]->state.state == CS_ALIVE) keepround = false;
-		if(!keepround) return; // now endround
-	}
+	if(found && ha) return;
 
 	if(!dead || gamemillis < lastdeath + 500) return;
-	sendf(-1, 1, "ri2", N_ARENAWIN, alive ? alive->clientnum : -1);
+	sendf(-1, 1, "ri2", N_ARENAWIN, !ha && found ? -2 : alive ? alive->clientnum : -1);
 	arenaround = gamemillis+5000;
 	if(autoteam && m_team) refillteams(true);
 }
