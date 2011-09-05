@@ -174,6 +174,7 @@ enum {
 	OBIT_FALL,
 	OBIT_CHEAT,
 	OBIT_REVIVE,
+	OBIT_NUKE,
 	OBIT_NUM
 };
 
@@ -303,6 +304,9 @@ static inline const char *killname(int obit, bool headshot){
 			break;
 		case OBIT_KNIFE_IMPACT:
 			concatstring(k, "thrown down");
+			break;
+		case OBIT_NUKE:
+			concatstring(k, "nuked");
 			break;
 		default:
 			concatstring(k, headshot ? "pwned" : "killed");
