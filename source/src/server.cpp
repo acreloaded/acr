@@ -154,7 +154,7 @@ struct clientstate : playerstate
 		knives.reset();
 		akimbos = akimbomillis = 0;
 		points = flagscore = frags = deaths = shotdamage = damage = lastffkill = 0;
-		radarearned = 0;
+		radarearned = nukemillis = 0;
 		revengelog.setsize(0);
 		respawn();
 	}
@@ -609,7 +609,7 @@ void usestreak(client &c, int streak, const vec &o = vec(0, 0, 0)){
 			c.state.radarearned = gamemillis + (info = 15000);
 			break;
 		case STREAK_NUKE:
-			info = 1;
+			c.state.nukemillis = gamemillis + (info = 30000);
 			break;
 		case STREAK_DROPNADE:
 		case STREAK_REVENGE:
@@ -1575,6 +1575,12 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 			else // ktf || tktf
 				flagaction(targethasflag, FA_RESET, -1);
 		}
+		
+		if(target->state.nukemillis){ // nuke cancelled!
+			target->state.nukemillis = 0;
+			sendf(-1, 1, "ri4", N_STREAKUSE, target->clientnum, STREAK_NUKE, -1);
+		}
+
 		switch(actor->state.killstreak + (actor->state.perk == PERK_KILLSTREAK ? 1 : 0)){
 			case 7:
 				streakready(*actor, STREAK_AIRSTRIKE);
@@ -2747,7 +2753,7 @@ void getservermap(void){
 }
 
 void sendresume(client &c){
-	sendf(-1, 1, "ri9i6vvi",
+	sendf(-1, 1, "ri9i7vvi",
 			N_RESUME, // i9
 			c.clientnum, // i9
 			c.state.state, // i9
@@ -2757,12 +2763,13 @@ void sendresume(client &c){
 			c.state.flagscore, // i9
 			c.state.frags, // i9
 			c.state.assists, // i9
-			c.state.killstreak, // i6
-			c.state.deathstreak,// i6
-			c.state.deaths, // i6
-			c.state.health, // i6
-			c.state.armor, // i6
-			c.state.radarearned - gamemillis, // i6
+			c.state.killstreak, // i7
+			c.state.deathstreak,// i7
+			c.state.deaths, // i7
+			c.state.health, // i7
+			c.state.armor, // i7
+			c.state.radarearned - gamemillis, // i7
+			c.state.nukemillis - gamemillis, // i7
 			WEAP_MAX, c.state.ammo, // v
 			WEAP_MAX, c.state.mag, // v
 			-1); // i
@@ -2888,6 +2895,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool nospawn){
 			putint(p, c.state.health);
 			putint(p, c.state.armor);
 			putint(p, c.state.radarearned - gamemillis);
+			putint(p, c.state.nukemillis - gamemillis);
 			loopi(WEAP_MAX) putint(p, c.state.ammo[i]);
 			loopi(WEAP_MAX) putint(p, c.state.mag[i]);
 		}
@@ -3951,19 +3959,19 @@ void checkintermission(){
 		if(minremain < 2){
 			short nextmaptype = 0, nextmaptime = 0, nextmapmode = GMODE_TEAMDEATHMATCH;
 			string nextmapnm = "unknown";
-			if(*nextmapname){
+			if(*nextmapname){ // map vote
 				nextmaptype = 1;
 				copystring(nextmapnm, nextmapname);
 				nextmapmode = nextgamemode;
 			}
-			else if(configsets.length()){
+			else if(configsets.length()){ // next map rotation
 				nextmaptype = 2;
 				configset nextmaprot = configsets[nextcfgset(false, true)];
 				copystring(nextmapnm, nextmaprot.mapname);
 				nextmapmode = nextmaprot.mode;
 				nextmaptime = nextmaprot.time;
 			}
-			else{
+			else{ // no map rotation entries
 				nextmaptype = 3;
 				copystring(nextmapnm, smapname);
 				nextmapmode = smode;

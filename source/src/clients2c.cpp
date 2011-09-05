@@ -592,12 +592,25 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						d->radarearned = totalmillis + info;
 						d->addicon(eventicon::RADAR);
 						break;
-					case STREAK_NUKE: // add sound?
-						if(info){ // deploy nuke
+					case STREAK_NUKE:
+						if(info > 0){ // deploy nuke
+							d->nukemillis = totalmillis + info;
 							d->addicon(eventicon::NUKE);
+							playsound(S_CALLVOTE, SP_HIGHEST);
+							// add voice?
+							chatoutf("\f2%s is deploying a nuke! \f%s!", colorname(d), d == player1 ? "0Stay alive" : isteam(d, player1) ? "1Defend him" : "3Stop him");
 						}
-						else{ // nuke cancelled
-							//d->nukemillis = 0;
+						else if(!info){ // nuke deployed
+							// gg...
+							chatoutf("\f3%s deployed his nuke!", colorname(d));
+							playsound(S_VOTEPASS, SP_HIGHEST);
+						}
+						else if(info == -1){
+							// nuke cancelled
+							d->nukemillis = 0;
+							chatoutf("\f2%s lost his nuke!", colorname(d));
+							// add icon?
+							playsound(S_VOTEFAIL, SP_HIGHEST);
 						}
 						break;
 					case STREAK_DROPNADE:
@@ -695,7 +708,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				{
 					int cn = getint(p);
 					if(p.overread() || cn<0) break;
-					int state = getint(p), lifesequence = getint(p), gunselect = getint(p), points = getint(p), flagscore = getint(p), frags = getint(p), assists = getint(p), killstreak = getint(p), deathstreak = getint(p), deaths = getint(p), health = getint(p), armor = getint(p), radar = getint(p);
+					int state = getint(p), lifesequence = getint(p), gunselect = getint(p), points = getint(p), flagscore = getint(p), frags = getint(p), assists = getint(p), killstreak = getint(p), deathstreak = getint(p), deaths = getint(p), health = getint(p), armor = getint(p), radar = getint(p), nuke = getint(p);
 					int ammo[WEAP_MAX], mag[WEAP_MAX];
 					loopi(WEAP_MAX) ammo[i] = getint(p);
 					loopi(WEAP_MAX) mag[i] = getint(p);
@@ -711,6 +724,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					d->deathstreak = deathstreak;
 					d->deaths = deaths;
 					d->radarearned = totalmillis + radar;
+					d->nukemillis = totalmillis + nuke;
 					if(d!=player1)
 					{
 						int primary = WEAP_KNIFE;

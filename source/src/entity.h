@@ -510,7 +510,7 @@ struct playerstate
 {
 	int health, armor;
 	int lastbleed, lastbleedowner, ownernum;
-	int killstreak, deathstreak, assists, radarearned;
+	int killstreak, deathstreak, assists, radarearned, nukemillis;
 	int primary, nextprimary, perk, nextperk;
 	int gunselect, level;
 	bool akimbo, scoping;

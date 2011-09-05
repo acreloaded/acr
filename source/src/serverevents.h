@@ -243,6 +243,15 @@ void processevents(){
 	{
 		client &c = *clients[i];
 		if(c.type==ST_EMPTY) continue;
+		// game ending nuke...
+		if(c.state.nukemillis && c.state.nukemillis <= gamemillis){
+			// boom... gg
+			forceintermission = true;
+			c.state.nukemillis = 0;
+			loopvj(clients) if(clients[j]->type != ST_EMPTY) forcedeath(clients[j]); // replace me!
+			sendf(-1, 1, "ri4", N_STREAKUSE, i, STREAK_NUKE, 0);
+		}
+		// regen/bleed
 		if(c.state.state == CS_ALIVE){ // can't regen or bleed if dead
 			if(c.state.lastbleed){ // bleeding; oh no!
 				if(c.state.lastbleed + 500 < gamemillis && valid_client(c.state.lastbleedowner)){
@@ -264,6 +273,7 @@ void processevents(){
 				c.state.lastregen = gamemillis;
 			}
 		}
+		// events
 		while(c.events.length()) // ordered
 		{
 			gameevent &e = c.events[0];
@@ -280,6 +290,7 @@ void processevents(){
 			}
 			clearevent(c);
 		}
+		// timers
 		loopvj(c.timers){ // unordered
 			gameevent &e = c.timers[j];
 			if(e.millis>gamemillis) continue;
