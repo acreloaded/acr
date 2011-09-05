@@ -527,8 +527,8 @@ bool isdedicated = false;
 ENetHost *serverhost = NULL;
 
 void process(ENetPacket *packet, int sender, int chan);
-void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath = false);
-void sendwelcome(client *cl, int chan = 1, bool forcedeath = false);
+void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool nospawn = false);
+void sendwelcome(client *cl, int chan = 1, bool nospawn = false);
 
 void sendf(int cn, int chan, const char *format, ...){
 	int exclude = -1;
@@ -1156,15 +1156,9 @@ void htf_forceflag(int flag){
 
 int arenaround = 0;
 
-inline bool canspawn(client *c, bool = false){
-	return !m_duel && c->team != TEAM_SPECT;
-}
-
-/*
 inline bool canspawn(client *c, bool connecting = false){
-	return !m_duel || (connecting && numauthedclients() <= 2);
+	return (!m_duel || (connecting && numauthedclients() <= 2)) && c->team != TEAM_SPECT;
 }
-*/
 
 struct twoint { int index, value; };
 int cmpscore(const int *a, const int *b) { return clients[*a]->at3_score - clients[*b]->at3_score; }
@@ -2811,7 +2805,7 @@ void welcomeinitclient(ucharbuf &p, int exclude = -1){
     }
 }
 
-void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath){
+void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool nospawn){
 	#define CHECKSPACE(n) \
 	{ \
 		int space = (n); \
@@ -2849,15 +2843,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath){
 	}
 	bool restored = false;
 	if(c){
-		CHECKSPACE(256);
 		sendserveropinfo(n);
-		putint(p, N_SETTEAM);
-        putint(p, n);
-        putint(p, (c->team = freeteam(n)) | (FTR_SILENT << 4));
-
-		putint(p, N_FORCEDEATH);
-		putint(p, n);
-		sendf(-1, 1, "ri2x", N_FORCEDEATH, n, n);
 		if(c->type==ST_TCPIP)
 		{
 			savedscore *sc = findscore(*c, false);
@@ -2867,6 +2853,18 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath){
 				restored = true;
 			}
 		}
+		CHECKSPACE(256);
+		putint(p, N_SETTEAM);
+        putint(p, n);
+        putint(p, (c->team = freeteam(n)) | (FTR_SILENT << 4));
+
+		if(nospawn || !canspawn(c, true))
+		{
+			putint(p, N_FORCEDEATH);
+            putint(p, n);
+            sendf(-1, 1, "ri2x", N_FORCEDEATH, n, n);
+		}
+        else sendspawn(c);
 	}
 	if(clients.length()>1 || restored || !c)
 	{
@@ -2900,10 +2898,10 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath){
 	#undef CHECKSPACE
 }
 
-void sendwelcome(client *cl, int chan, bool forcedeath){
+void sendwelcome(client *cl, int chan, bool nospawn){
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
-	welcomepacket(p, cl->clientnum, packet, forcedeath);
+	welcomepacket(p, cl->clientnum, packet, nospawn);
 	enet_packet_resize(packet, p.length());
 	sendpacket(cl->clientnum, chan, packet);
 	if(!packet->referenceCount) enet_packet_destroy(packet);
@@ -3234,7 +3232,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					if(cn == sender) sendf(sender, 1, "ri", N_MAPIDENT);
 					break;
 				}
-				if(cp.state.state!=CS_DEAD || cp.state.lastspawn>=0 || m_duel) break;
+				if(cp.state.state!=CS_DEAD || cp.state.lastspawn>=0 || m_duel) break; // canspawn(cp)?
 				const int waitremain = (m_flags ? 5000 : 1000) - gamemillis + cp.state.lastdeath;
 				if(waitremain > 0) /*sendmsgi(41, waitremain, sender)*/;
 				else if(cp.team == TEAM_SPECT){
