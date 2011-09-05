@@ -589,7 +589,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					case STREAK_AIRSTRIKE:
 						break;
 					case STREAK_RADAR:
-						d->radarmillis = totalmillis + info;
+						d->radarearned = totalmillis + info;
 						d->addicon(eventicon::RADAR);
 						break;
 					case STREAK_NUKE: // add sound?
@@ -597,10 +597,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 							d->addicon(eventicon::NUKE);
 						}
 						else{ // nuke cancelled
-							break;
+							//d->nukemillis = 0;
 						}
 						break;
 					case STREAK_DROPNADE:
+					case STREAK_REVENGE:
 						{
 							grenadeent *g = new grenadeent(d, NADETTL - MARTYRDOMTTL);
 							bounceents.add(g);

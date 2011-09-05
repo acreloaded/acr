@@ -517,7 +517,7 @@ struct playerstate
 	int ammo[WEAP_MAX], mag[WEAP_MAX], gunwait[WEAP_MAX];
 	ivector damagelog;
 
-	playerstate() : primary(WEAP_ASSAULT), nextprimary(WEAP_ASSAULT), perk(PERK_NONE), nextperk(PERK_NONE), ownernum(-1), level(1), deathstreak(0) {}
+	playerstate() : primary(WEAP_ASSAULT), nextprimary(WEAP_ASSAULT), perk(PERK_NONE), nextperk(PERK_NONE), ownernum(-1), level(1), deathstreak(0), radarearned(0) {}
 	virtual ~playerstate() {}
 
 	itemstat &itemstats(int type)
@@ -775,7 +775,7 @@ struct playerent : dynent, playerstate
 		playerstate::respawn();
 		history.reset();
 		if(weaponsel) weaponsel->reset();
-		lastregen = lasthitmarker = lastaction = weaponchanging = eardamagemillis = flashmillis = 0;
+		lastregen = lasthitmarker = lastaction = weaponchanging = eardamagemillis = radarmillis = flashmillis = 0;
 		lastattackweapon = NULL;
 		ads = 0.f;
 		wantsswitch = -1;

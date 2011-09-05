@@ -452,7 +452,7 @@ void drawradar(playerent *p, int w, int h)
 
 	// radar check
 	bool hasradar = p == player1 || isteam(p, player1) ? player1->radarearned > totalmillis : false;
-	loopv(players) if(players[i] && (p == players[i] || players[i]->team == p->team) && players[i]->radarearned > totalmillis) { hasradar = true; break; }
+	loopv(players) if(players[i] && (p == players[i] || isteam(p, players[i])) && players[i]->radarearned > totalmillis) { hasradar = true; break; }
 
 	loopv(players) // other players
 	{
@@ -802,8 +802,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	{
 		const int left = (VIRTW-225-10)*2, top = (VIRTH*7/8)*2;
 		// semi-debug info
-		int radarremain = isteam(p, player1) ? player1->radarearned : 0;
-		loopv(players) if(players[i] && (p == players[i] || players[i]->team == p->team) && players[i]->radarearned > radarremain) radarremain = players[i]->radarearned;
+		int radarremain = p == player1 || isteam(p, player1) ? player1->radarearned : 0;
+		loopv(players) if(players[i] && (p == players[i] || isteam(p, players[i])) && players[i]->radarearned > radarremain) radarremain = players[i]->radarearned;
 		draw_textf("radar %d", left, top-240, max(radarremain-totalmillis, 0));
 		draw_textf("sp2 %04.3f", left, top-160, p->vel.magnitudexy());
 		draw_textf("spd %04.3f", left, top-80, p->vel.magnitude());
