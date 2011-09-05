@@ -602,9 +602,10 @@ void usestreak(client &c, int streak, const vec &o = vec(0, 0, 0)){
 	if(streak < 0 || streak >= STREAK_NUM) return;
 	int info = 0;
 	switch(streak){
-		case STREAK_AIRSTRIKE: // SPECIAL
+		case STREAK_AIRSTRIKE:
+			explosion(c, o, WEAP_GRENADE); // add a delay?
 			sendf(-1, 1, "ri3f3", N_STREAKUSE, c.clientnum, STREAK_AIRSTRIKE, info, o.x, o.y, o.z);
-			return;
+			return; // special message
 		case STREAK_RADAR:
 			c.state.radarearned = gamemillis + (info = 15000);
 			break;
@@ -1578,7 +1579,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 		
 		if(target->state.nukemillis){ // nuke cancelled!
 			target->state.nukemillis = 0;
-			sendf(-1, 1, "ri4", N_STREAKUSE, target->clientnum, STREAK_NUKE, -1);
+			sendf(-1, 1, "ri4", N_STREAKUSE, target->clientnum, STREAK_NUKE, -2);
 		}
 
 		switch(actor->state.killstreak + (actor->state.perk == PERK_KILLSTREAK ? 1 : 0)){
@@ -3429,6 +3430,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			{
 				vec o;
 				loopi(3) o[i] = getfloat(p);
+				// check how many airstrikes available first
 				//usestreak(*cl, STREAK_AIRSTRIKE, o);
 				break;
 			}

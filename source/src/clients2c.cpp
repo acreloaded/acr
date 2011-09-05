@@ -587,6 +587,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(!d) break;
 				switch(streak){
 					case STREAK_AIRSTRIKE:
+						// nothing needed
 						break;
 					case STREAK_RADAR:
 						d->radarearned = totalmillis + info;
@@ -605,7 +606,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 							chatoutf("\f3%s deployed his nuke!", colorname(d));
 							playsound(S_VOTEPASS, SP_HIGHEST);
 						}
-						else if(info == -1){
+						else if(info == -2){
 							// nuke cancelled
 							d->nukemillis = 0;
 							chatoutf("\f2%s lost his nuke!", colorname(d));
