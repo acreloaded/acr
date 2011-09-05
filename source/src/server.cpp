@@ -154,7 +154,7 @@ struct clientstate : playerstate
 		knives.reset();
 		akimbos = akimbomillis = 0;
 		points = flagscore = frags = deaths = shotdamage = damage = lastffkill = 0;
-		radarearned = nukemillis = 0;
+		radarearned = airstrikes = nukemillis = 0;
 		revengelog.setsize(0);
 		respawn();
 	}
@@ -595,6 +595,7 @@ inline void sendmsgi(int msg, int num, int client = -1){
 
 void streakready(client &c, int streak){
 	if(streak < 0 || streak >= STREAK_NUM) return;
+	if(streak == STREAK_AIRSTRIKE) ++c.state.airstrikes;
 	sendf(-1, 1, "ri3", N_STREAKREADY, c.clientnum, streak);
 }
 
@@ -603,6 +604,7 @@ void usestreak(client &c, int streak, const vec &o = vec(0, 0, 0)){
 	int info = 0;
 	switch(streak){
 		case STREAK_AIRSTRIKE:
+			extern int explosion(client &owner, const vec &o2, int weap);
 			explosion(c, o, WEAP_GRENADE); // add a delay?
 			sendf(-1, 1, "ri3f3", N_STREAKUSE, c.clientnum, STREAK_AIRSTRIKE, info, o.x, o.y, o.z);
 			return; // special message
@@ -2754,7 +2756,7 @@ void getservermap(void){
 }
 
 void sendresume(client &c){
-	sendf(-1, 1, "ri9i7vvi",
+	sendf(-1, 1, "ri9i8vvi",
 			N_RESUME, // i9
 			c.clientnum, // i9
 			c.state.state, // i9
@@ -2764,13 +2766,14 @@ void sendresume(client &c){
 			c.state.flagscore, // i9
 			c.state.frags, // i9
 			c.state.assists, // i9
-			c.state.killstreak, // i7
-			c.state.deathstreak,// i7
-			c.state.deaths, // i7
-			c.state.health, // i7
-			c.state.armor, // i7
-			c.state.radarearned - gamemillis, // i7
-			c.state.nukemillis - gamemillis, // i7
+			c.state.killstreak, // i8
+			c.state.deathstreak,// i8
+			c.state.deaths, // i8
+			c.state.health, // i8
+			c.state.armor, // i8
+			c.state.radarearned - gamemillis, // i8
+			c.state.airstrikes,
+			c.state.nukemillis - gamemillis, // i8
 			WEAP_MAX, c.state.ammo, // v
 			WEAP_MAX, c.state.mag, // v
 			-1); // i
@@ -2896,6 +2899,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool nospawn){
 			putint(p, c.state.health);
 			putint(p, c.state.armor);
 			putint(p, c.state.radarearned - gamemillis);
+			putint(p, c.state.airstrikes);
 			putint(p, c.state.nukemillis - gamemillis);
 			loopi(WEAP_MAX) putint(p, c.state.ammo[i]);
 			loopi(WEAP_MAX) putint(p, c.state.mag[i]);
@@ -3431,7 +3435,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				vec o;
 				loopi(3) o[i] = getfloat(p);
 				// check how many airstrikes available first
-				//usestreak(*cl, STREAK_AIRSTRIKE, o);
+				if(cl->state.airstrikes > 0){
+					--cl->state.airstrikes;
+					usestreak(*cl, STREAK_AIRSTRIKE, o);
+				}
 				break;
 			}
 

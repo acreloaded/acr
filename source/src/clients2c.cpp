@@ -566,6 +566,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				switch(streak){
 					case STREAK_AIRSTRIKE:
 						d->addicon(eventicon::AIRSTRIKE);
+						++d->airstrikes;
 						break;
 					case STREAK_DROPNADE:
 						d->addicon(eventicon::DROPNADE);
@@ -587,7 +588,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(!d) break;
 				switch(streak){
 					case STREAK_AIRSTRIKE:
-						// nothing needed
+						// may be delayed?
 						break;
 					case STREAK_RADAR:
 						d->radarearned = totalmillis + info;
@@ -709,7 +710,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				{
 					int cn = getint(p);
 					if(p.overread() || cn<0) break;
-					int state = getint(p), lifesequence = getint(p), gunselect = getint(p), points = getint(p), flagscore = getint(p), frags = getint(p), assists = getint(p), killstreak = getint(p), deathstreak = getint(p), deaths = getint(p), health = getint(p), armor = getint(p), radar = getint(p), nuke = getint(p);
+					int state = getint(p), lifesequence = getint(p), gunselect = getint(p),
+						points = getint(p), flagscore = getint(p),
+						frags = getint(p), assists = getint(p),
+						killstreak = getint(p), deathstreak = getint(p),
+						deaths = getint(p), health = getint(p), armor = getint(p),
+						radar = getint(p), airstrikes = getint(p), nuke = getint(p);
 					int ammo[WEAP_MAX], mag[WEAP_MAX];
 					loopi(WEAP_MAX) ammo[i] = getint(p);
 					loopi(WEAP_MAX) mag[i] = getint(p);
@@ -725,6 +731,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					d->deathstreak = deathstreak;
 					d->deaths = deaths;
 					d->radarearned = totalmillis + radar;
+					d->airstrikes = airstrikes;
 					d->nukemillis = totalmillis + nuke;
 					if(d!=player1)
 					{
