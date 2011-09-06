@@ -1,10 +1,10 @@
 <?
 	require "config.php"; // get our configuration
-	require_once "inc.ip.php"; // function to detect IP
-	require_once "cron.php"; // take care of the tasks
-	require_once "bans.php"; // banning sysrem
-	require_once "auth.php"; // auths
-	docron();
+	require_once "config.auth.php"; // auths
+	require_once "config.bans.php"; // banning sysrem
+	
+	require_once "inc/ip.php"; // functions to detect our IP
+	require_once "inc/cron.php"; docron(); // take care of the tasks
 	
 	function isbanned($ip, $mask){
 		$banned = false;

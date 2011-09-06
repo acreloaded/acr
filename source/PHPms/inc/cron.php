@@ -1,5 +1,5 @@
 <?
-	require_once "config.php"; // of course I need it if I don't have it!
+	require_once "../config.php"; // of course I need it if I don't have it!
 	if(function_exists("docron")) return false; // double include safety
 	function docron(){
 		global $config;
