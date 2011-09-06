@@ -1,0 +1,1 @@
+All textures without a readme are either public domain or do not require attribution.
