@@ -1,6 +1,6 @@
 <?
 	// server ban-pack optimizer?
-	require "banpack/banpack_read.php";
+	require dirname(__FILE__)."/banpack_read.php";
 	ksort($banpack);
 	foreach($banpack as $bs => $be) $banpack2[] = array($bs, $be);
 	for($i = 1; $i < sizeof($banpack2); ++$i){
