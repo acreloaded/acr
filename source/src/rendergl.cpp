@@ -378,6 +378,7 @@ void load_waypointtex(){
 	const char *waypointtexname[WP_NUM] = {
 		"knife", "bomb", "exp", "kill", "escort", "defend",
 		"grab", "enemy", "friendly", "stolen", "return", // mostly CTF
+		"airstrike", "nuke", // lol
 	};
 	loopi(WP_NUM){
 		defformatstring(tname)("packages/misc/waypoints/%s.png", waypointtexname[i]);
