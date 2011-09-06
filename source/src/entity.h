@@ -703,6 +703,7 @@ struct playerent : dynent, playerstate
 		targetpitch = targetyaw = 0;
 
 		lastrecieve = plag = ping = lifesequence = points = frags = flagscore = deaths = lastpain = lastregen = lasthitmarker = skin = eardamagemillis = respawnoffset = radarmillis = ads = 0;
+		radarearned = airstrikes = nukemillis = 0;
 		weaponsel = nextweaponsel = primweap = nextprimweap = lastattackweapon = prevweaponsel = NULL;
 		type = ENT_PLAYER;
 		clientnum = smoothmillis = followplayercn = wantsswitch = -1;
@@ -780,6 +781,7 @@ struct playerent : dynent, playerstate
 		history.reset();
 		if(weaponsel) weaponsel->reset();
 		lastregen = lasthitmarker = lastaction = weaponchanging = eardamagemillis = radarmillis = flashmillis = 0;
+		nukemillis = 0;
 		lastattackweapon = NULL;
 		ads = 0.f;
 		wantsswitch = -1;

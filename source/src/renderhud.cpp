@@ -803,8 +803,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		const int left = (VIRTW-225-10)*2, top = (VIRTH*7/8)*2;
 		// semi-debug info
 		int nukepending = /*p == player1 || isteam(p, player1) ?*/ player1->nukemillis ;//: 0;
-		loopv(players) if(players[i] && /*(p == players[i] || isteam(p, players[i])) &&*/ players[i]->nukemillis && players[i]->nukemillis < nukepending) nukepending = players[i]->nukemillis;
-		draw_textf("nuke %5.2f", left, top-240, max((nukepending-totalmillis) / 1000.f, 0.f));
+		loopv(players) if(players[i] && /*(p == players[i] || isteam(p, players[i])) &&*/ players[i]->nukemillis && players[i]->nukemillis > totalmillis && players[i]->nukemillis < nukepending) nukepending = players[i]->nukemillis;
+		draw_textf("nuke %04.2f", left, top-240, max((nukepending-totalmillis) / 1000.f, 0.f));
 		draw_textf("sp2 %04.3f", left, top-160, p->vel.magnitudexy());
 		draw_textf("spd %04.3f", left, top-80, p->vel.magnitude());
 		// real info
