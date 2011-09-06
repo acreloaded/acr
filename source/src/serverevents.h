@@ -250,6 +250,7 @@ void processevents(){
 			c.state.nukemillis = 0;
 			loopvj(clients) if(clients[j]->type != ST_EMPTY){
 				clients[j]->state.state = CS_ALIVE;
+				clients[j]->state.spawnmillis = INT_MIN;
 				serverdamage(clients[j], &c, 2000, WEAP_MAX, !rnd(2) ? FRAG_GIB : FRAG_NONE, c.state.o);
 			}
 			sendf(-1, 1, "ri4", N_STREAKUSE, i, STREAK_NUKE, 0);
