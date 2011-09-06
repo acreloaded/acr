@@ -2415,13 +2415,13 @@ int nextcfgset(bool notify = true, bool nochange = false){ // load next maprotat
 bool isbanned(int cn){
 	if(!valid_client(cn)) return false;
 	client &c = *clients[cn];
-	if(c.type==ST_LOCAL || c.authpriv >= 0) return false;
+	if(c.type==ST_LOCAL || c.authpriv >= PRIV_MASTER) return false;
 	loopv(bans){
 		ban &b = bans[i];
 		if(b.host == c.peer->address.host) { return true; }
 		if(b.millis >= 0 && b.millis < servmillis) { bans.remove(i--); }
 	}
-	return checkipblacklist(c.peer->address.host) || checkmasterbans(c.peer->address.host);
+	return checkipblacklist(c.peer->address.host) || (c.authpriv < PRIV_NONE && checkmasterbans(c.peer->address.host));
 }
 
 void banclient(client *c, int minutes){
