@@ -5,7 +5,7 @@
 	);
 	$config['sallows'] = array( // same thing, but acts as a whitelist
 	);
-	include "banpack.php";
+	include "banpack/banpack.php";
 	// tools
 	function u2i($n){ return $n > 0x7FFFFFFF ? $n - 0x100000000 : $n; }
 	function putrange($rs){

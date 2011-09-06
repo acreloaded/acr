@@ -1,6 +1,6 @@
 <?
 	$banpack = array();
-	if(file_exists("banpack.txt") && ($f = @fopen("banpack.txt", "r"))) while (($buf = fgets($f, 81)) !== false ){
+	if($f = @fopen("banpack/banpack.txt", "r")) while (($buf = fgets($f, 81)) !== false ){
 		if($buf[0] == "#") continue; // speed it up!
 		if(!preg_match("#([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})(?:/([0-9]{1,2}))?#", $buf, $match)) continue;
 		$start = $end = ip2long($match[1]);
