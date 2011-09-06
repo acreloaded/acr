@@ -249,9 +249,9 @@ void processevents(){
 			forceintermission = true;
 			c.state.nukemillis = 0;
 			loopvj(clients) if(clients[j]->type != ST_EMPTY){
-				clients[j]->state.state = CS_ALIVE;
-				clients[j]->state.spawnmillis = INT_MIN;
 				serverdamage(clients[j], &c, 2000, WEAP_MAX, !rnd(2) ? FRAG_GIB : FRAG_NONE, c.state.o);
+				sendf(-1, 1, "ri9f4v", N_KILL, j, i, ++c.state.frags, WEAP_MAX, (!rnd(3) ? FRAG_GIB : FRAG_NONE) & FRAG_VALID, 1000, ++c.state.combo,
+					0, c.state.o.dist(clients[j]->state.o), c.state.o.x, c.state.o.y, c.state.o.z, 0, NULL);
 			}
 			sendf(-1, 1, "ri4", N_STREAKUSE, i, STREAK_NUKE, 0);
 		}

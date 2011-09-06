@@ -886,7 +886,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 								copystring(msg, "\f1Next on map rotation:");
 								break;
 							case 3:
-								copystring(msg, "\f2No map rotation entries,");
+								copystring(msg, "\f2No map rotation entries, reloading");
 								break;
 						}
 						formatstring(msg)("%s %s in mode %s for %d minutes", msg, text, modestr(mode), minutes);
