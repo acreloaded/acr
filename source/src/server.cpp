@@ -3991,8 +3991,9 @@ void checkintermission(){
 			}
 			if(nextmaptype) sendf(-1, 1, "ri4s", N_CONFMSG, 14, nextmaptime, nextmapmode | ((nextmaptype & 3) << 6), nextmapnm);
 		}
-		sendf(-1, 1, "ri3", N_TIMEUP, gamemillis, gamelimit);
-	} else sendf(-1, 1, "ri3", N_TIMEUP, gamelimit, gamelimit); // force intermission
+		if(!minremain) sendf(-1, 1, "ri3", N_TIMEUP, gamelimit, gamelimit - 60000 + 1); // force intermission
+		else sendf(-1, 1, "ri3", N_TIMEUP, gamemillis, gamelimit);
+	}
 	if(!interm && minremain<=0) interm = gamemillis+10000;
 	forceintermission = false;
 }
