@@ -152,7 +152,7 @@
 		$q = mysql_result(mysql_query("SELECT `nonce` FROM `{$config['db']['pref']}auth` WHERE `ip`={$ip} AND `id`={$id}"), 0, 0);
 		mysql_query("DELETE FROM `{$config['db']['pref']}auth` WHERE `ip`={$ip} AND `id`={$id}"); // used auth
 		$ans = &$_GET['ans'];
-		foreach($config['auth'] as $authkey) if($ans == sha1($q.$authkey[0])){ // match
+		foreach($config['auth'] as $authkey) if($ans == sha1($q.':'.$authkey[0])){ // match
 			sendranges(1); // allow auth users to force a server to update its bans
 			exit("*s{$id}|".$authkey[2].$authkey[1]);
 		}
