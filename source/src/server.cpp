@@ -1772,6 +1772,7 @@ void addmrange(char *text){
 		target.add(ir);
 		ptr = strchr(end, '|');
 	}
+	target.sort(cmpipmatch);
 }
 
 inline bool checkblacklist(enet_uint32 ip, vector<iprange> &ranges){ // ip: network byte order
