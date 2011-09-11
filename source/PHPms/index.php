@@ -159,7 +159,7 @@
 	}
 	else{
 	echo <<<INFO
-AssaultCube Special Edition Master Server
+AssaultCube Reloaded Server
 ====================
 Use /cube for CubeScript Server List
 Use /json for JSON Server List
