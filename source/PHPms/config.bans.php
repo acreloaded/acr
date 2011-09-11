@@ -12,7 +12,13 @@
 		global $config;
 		$ranges = array();
 		foreach($config[$rs] as $r) if($r[2] & 1){
-			$ranges[] = u2i($r[0]).($r[0] != $r[1] ? "_".u2i($r[1]) : '');
+			$ranges [] = array($r[0], $r[1]);
+		}
+		// remove this in 2.2.3+
+		usort($ranges, create_function('$a,$b', 'return - ($a[0] < $b[0]) + ($a[0] > $b[1]);'));
+		// end
+		foreach($ranges as &$r){
+			$r = u2i($r[0]).($r[0] != $r[1] ? "_".u2i($r[1]) : '');
 		}
 		echo implode('|', $ranges);
 	}
