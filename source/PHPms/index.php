@@ -7,6 +7,7 @@
 	require_once "inc/cron.php"; docron(); // take care of the tasks
 	
 	function isbanned($ip, $mask){
+		global $config;
 		$banned = false;
 		foreach($config['sbans'] as $b) if($b[0] <= $ip && $ip <= $b[1] && $b[2] & $mask){ $banned = true; break; }
 		foreach($config['sallows'] as $b) if($b[0] <= $ip && $ip <= $b[1] && $b[2] & $mask){ $banned = false; break; }
