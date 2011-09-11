@@ -653,7 +653,7 @@ void addshotline(playerent *pl, const vec &from2, const vec &to, int flags)
 	if(!shotlinettl || !shotline) return;
 	vec unitv;
 	
-	if(pl == gamefocus){ // just for fx
+	if(pl == gamefocus && flags & 1){ // just for fx
 		extern vec *hudgunTag(playerent *p, const char *tag);
 		vec *v = hudgunTag(pl, "tag_muzzle");
 		if(v){
