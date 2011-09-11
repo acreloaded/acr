@@ -1596,7 +1596,6 @@ void updateplayerfootsteps(playerent *p)
 	if(!p) return;
 
 	const int footstepradius = 20;
-	static float lastoffset = 0;
 
 	// find existing footstep sounds
 	physentreference ref(p);
@@ -1619,8 +1618,6 @@ void updateplayerfootsteps(playerent *p)
 			location *l = locs[i];
 			if(!l) continue;
 			if(l->playmillis+minplaytime>totalmillis) continue; // tolerate short interruptions by enforcing a minimal playtime
-			lastoffset = l->offset(); // save last offset
-			DEBUGVAR(lastoffset);
 			l->drop();
 		}
 	}
@@ -1628,7 +1625,8 @@ void updateplayerfootsteps(playerent *p)
 	{
 		// play footsteps
 
-		int grounddist = hdr.waterlevel-S((int)p->o.x, (int)p->o.y)->floor;
+		int grounddist = 0;
+		if(!OUTBORD((int)p->o.x, (int)p->o.y)) grounddist = hdr.waterlevel-S((int)p->o.x, (int)p->o.y)->floor;
 		bool water = p->o.z-p->eyeheight+0.25f<hdr.waterlevel;
 		if(water && grounddist>p->eyeheight) return; // don't play step sound when jumping into water
 
@@ -1803,7 +1801,7 @@ void writesoundconfig(FILE *f)
 	loopv(gamesounds) if(gamesounds[i].muted) fprintf(f, "mutesound %d\n", i);
 }
 
-VARP(maxsoundsatonce, 0, 10, 100);
+VARP(maxsoundsatonce, 0, 32, 100);
 
 location *playsound(int n, const worldobjreference &r, int priority, float offset, bool loop)
 {
