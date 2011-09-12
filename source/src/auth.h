@@ -102,7 +102,7 @@ void authchallenged(uint id, int nonce){
 	if(c) sendf(c->clientnum, 1, "ri3", N_AUTHREQ, nonce, c->authtoken);
 }
 
-bool answerchallenge(int cn, int hash[5]){
+bool answerchallenge(int cn, int *hash){
 	if(!valid_client(cn)) return false;
 	client &cl = *clients[cn];
 	if(!isdedicated){ sendf(cn, 1, "ri2", N_AUTHCHAL, 2); return false;}
@@ -116,7 +116,7 @@ bool answerchallenge(int cn, int hash[5]){
 	authrequest &r = authrequests.add();
 	r.id = cl.authreq;
 	r.answer = true;
-	formatstring(r.chal)("%08x%08x%08x%08x%08x", hash[0], hash[1], hash[2], hash[3], hash[4]);
+	memcpy(r.hash, hash, sizeof(hash) * 5);
 	sendf(cn, 1, "ri2", N_AUTHCHAL, 4);
 	return true;
 }

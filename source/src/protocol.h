@@ -126,5 +126,5 @@ enum
 #define m_demo			(gamemode == GMODE_DEMO)
 #define m_valid(mode)	(m_fight(mode) || mode == GMODE_COOPEDIT)
 
-struct authrequest{ uint id; bool answer; string chal; };
+struct authrequest{ uint id; bool answer; int hash[5]; };
 extern vector<authrequest> authrequests;

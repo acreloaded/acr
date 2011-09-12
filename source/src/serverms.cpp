@@ -94,9 +94,10 @@ void updatemasterserver(int millis, const ENetAddress &localaddr){
 		lastupdatemaster = millis/MSKEEPALIVE;
 	} else if (authrequests.length()){
 		authrequest r = authrequests.remove(0);
-		logline(ACLOG_INFO, "sending auth #%d", r.id);
+		logline(ACLOG_INFO, "%s auth #%d", r.answer ? "verifying" : "requesting", r.id);
 		
-		if(r.answer) formatstring(path)("%sauth/%d/%s", masterpath, r.id, r.chal);
+		if(r.answer) formatstring(path)("%sauth/%d/%08x%08x%08x%08x%08x", masterpath, r.id,
+			r.hash[0], r.hash[1], r.hash[2], r.hash[3], r.hash[4]);
 		else formatstring(path)("%sauth/%d", masterpath, r.id);
 	}
 	if(!*path) return; // no request
@@ -127,7 +128,7 @@ void checkmasterreply()
 				}
 				else if(*tp == 'd' || *tp == 'f' || *tp == 's' || *tp == 'c'){ // auth
 					char t = *tp++;
-					char *bar = strpbrk(tp, "|");
+					char *bar = strchr(tp, '|');
 					if(bar) *bar = 0;
 					uint authid = atoi(tp);
 					if(bar && bar[1]) tp = bar + 1;

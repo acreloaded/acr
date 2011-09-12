@@ -1763,8 +1763,7 @@ void addmrange(char *text){
 	char *ptr = text;
 	while(ptr && *++ptr){ // skips delimiter or first a/b
 		char *end = strchr(ptr, '_');
-		if(end) *end++ = 0;
-		else end = ptr;
+		end = end ? end + 1 : ptr;
 		iprange ir;
 		ir.lr = atol(ptr);
 		ir.ur = atol(end);
@@ -1772,7 +1771,7 @@ void addmrange(char *text){
 		target.add(ir);
 		ptr = strchr(end, '|');
 	}
-	target.sort(cmpipmatch);
+	target.sort(cmpipmatch); // or else bsearch fucks up
 }
 
 inline bool checkblacklist(enet_uint32 ip, vector<iprange> &ranges){ // ip: network byte order
