@@ -1239,7 +1239,7 @@ void arenacheck(){
 	client *alive = NULL;
 	bool dead = false;
 	int lastdeath = 0;
-	bool found = false; int ha = 0; // found a match to keep the round / humans alive
+	bool found = false; int ha = 0, hd = 0; // found a match to keep the round / humans alive / humans dead
 	loopv(clients){
 		client &c = *clients[i];
 		if(c.type==ST_EMPTY || !c.connected || c.team == TEAM_SPECT) continue;
@@ -1250,11 +1250,13 @@ void arenacheck(){
 			else if(!m_team || alive->team != c.team) found = true;
 		}
 		else if(c.state.state == CS_DEAD){ // dead
+			if(c.type != ST_AI) ++hd;
+
 			dead = true;
 			lastdeath = max(lastdeath, c.state.lastdeath);
 		}
 	}
-	if(found && ha) return;
+	if(found && (ha || !hd)) return;
 
 	if(!dead || gamemillis < lastdeath + 500) return;
 	sendf(-1, 1, "ri2", N_ARENAWIN, !ha && found ? -2 : alive ? alive->clientnum : -1);
