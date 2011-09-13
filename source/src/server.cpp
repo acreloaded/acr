@@ -1771,7 +1771,7 @@ void addmrange(char *text){
 		target.add(ir);
 		ptr = strchr(end, '|');
 	}
-	target.sort(cmpipmatch); // or else bsearch fucks up
+	target.sort(cmpiprange); // or else bsearch fucks up
 }
 
 inline bool checkblacklist(enet_uint32 ip, vector<iprange> &ranges){ // ip: network byte order
