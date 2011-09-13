@@ -501,8 +501,10 @@ void drawradar(playerent *p, int w, int h)
 			if(nxp[i].owner == p) {setcol(0xf7, 0xf5, 0x34)} // yellow for your explosions
 			else if(isteam(p, nxp[i].owner)) {setcol(0x02, 0x13, 0xFB)} // blue for friendlies' explosions
 			else {setcol(0xFB, 0x02, 0x02)} // red for enemies' explosions
-			if(ndelay / 400.f < 1) DrawCircle(nxp[i].o[0], nxp[i].o[1], ndelay / 100.f, coordtrans, col, 2.f, 1 - ndelay / 400.f);
-			DrawCircle(nxp[i].o[0], nxp[i].o[1], pow(ndelay, 1.5f) / 3094.0923f, coordtrans, col, 1.f, 1 - ndelay / 600.f);
+			vec nxpo(nxp[i].o[0], nxp[i].o[1], 0);
+			nxpo = fixradarpos(nxpo, centerpos, res);
+			if(ndelay / 400.f < 1) DrawCircle(nxpo.x, nxpo.y, ndelay / 100.f, coordtrans, col, 2.f, 1 - ndelay / 400.f);
+			DrawCircle(nxpo.x, nxpo.y, pow(ndelay, 1.5f) / 3094.0923f, coordtrans, col, 1.f, 1 - ndelay / 600.f);
 		}
 	}
 	loopv(sls){ // shotlines
@@ -512,12 +514,15 @@ void drawradar(playerent *p, int w, int h)
 			else if(isteam(p, sls[i].owner)) {setcol(0xB8, 0xDC, 0x78)} // light green-yellow for friendlies
 			else {setcol(0xFF, 0xFF, 0xFF)} // white for enemies
 			glBegin(GL_LINES);
+			vec from(sls[i].from[0], sls[i].from[1], 0), to(sls[i].to[0], sls[i].to[1], 0);
+			from = fixradarpos(from, centerpos, res);
+			to = fixradarpos(to, centerpos, res);
 			// source shot
 			glColor4ub(col[0], col[1], col[2], 200);
-			glVertex2f(sls[i].from[0]*coordtrans, sls[i].from[1]*coordtrans);
+			glVertex2f(from.x*coordtrans, from.y*coordtrans);
 			// dest shot
 			glColor4ub(col[0], col[1], col[2], 250);
-			glVertex2f(sls[i].to[0]*coordtrans, sls[i].to[1]*coordtrans);
+			glVertex2f(to.x*coordtrans, to.y*coordtrans);
 			glEnd();
 		}
 	}
