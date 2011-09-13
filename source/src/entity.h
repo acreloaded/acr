@@ -224,7 +224,7 @@ static inline const bool isheadshot(int weapon, int style){
 	return true;
 }
 
-const int toobit(int weap, int style){ // moved here to lower enum warnings
+static inline const int toobit(int weap, int style){ // moved here to lower enum warnings
 	const bool gib = (style & FRAG_GIB) > 0,
 				flag = (style & FRAG_FLAG) > 0;
 	switch(weap){
