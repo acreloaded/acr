@@ -438,9 +438,7 @@ void spawnplayer(playerent *d)
 	*/
 }
 
-void respawnself(){
-	if(!m_duel) spawnplayer(player1);
-}
+void respawnself(){ spawnplayer(player1); }
 
 bool tryrespawn(){
 	if(player1->state==CS_DEAD){
