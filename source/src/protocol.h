@@ -44,7 +44,7 @@ enum{
 extern void protocoldebug(bool enable);
 
 // converts message code to char
-const char *messagenames(int n){
+static const char *messagenames(int n){
 	const char *msgnames[N_NUM] = {
 		"N_SERVINFO", "N_WELCOME", "N_CONNECT", // before connection
 		"N_INITCLIENT", "N_INITAI", "N_SETTEAM", "N_RESUME", "N_MAPIDENT", "N_DISC", "N_DELAI", "N_REASSIGNAI", // sent after (dis)connection
