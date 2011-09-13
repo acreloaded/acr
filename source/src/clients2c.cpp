@@ -353,7 +353,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				else{ // AI
 					d->ownernum = getint(p);
 					formatstring(d->name)("bot%d-%d", d->clientnum, d->ownernum);
-					deathstate(d);
 				}
 				updateclientname(d);
 				if(m_flags) loopi(2){
