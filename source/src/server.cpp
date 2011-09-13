@@ -3279,7 +3279,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					putint(buf, gunselect);
 					loopi(WEAP_MAX) putint(buf, cp.state.ammo[i]);
 					loopi(WEAP_MAX) putint(buf, cp.state.mag[i]);
-					loopi(3) putint(buf, cp.state.o[i]);
+					loopi(3) putfloat(buf, cp.state.o[i]);
 				});
 				break;
 			}
