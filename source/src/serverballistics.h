@@ -127,10 +127,12 @@ int shot(client &owner, const vec &from, vec &to, int weap, const vec &surface, 
 		}
 		if(melee_weap(weap)){
 			if(hitzone == HIT_HEAD) style |= FRAG_FLAG;
-			if(!isteam((&owner), hit)){
-				hit->state.lastbleed = gamemillis;
-				hit->state.lastbleedowner = owner.clientnum;
-				sendf(-1, 1, "ri2", N_BLEED, hit->clientnum);
+			if(&owner == hit) return shotdamage; // not possible
+			else{
+				client &noob = isteam((&owner), hit) ? owner : *hit;
+				noob.state.lastbleed = gamemillis;
+				noob.state.lastbleedowner = owner.clientnum;
+				sendf(-1, 1, "ri2", N_BLEED, noob.clientnum);
 			}
 		}
 		else sendhit(owner, weap, end.v);
