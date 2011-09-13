@@ -148,37 +148,8 @@ static inline ushort effectiveDamage(int gun, float dist, bool explosive = false
 	return finaldamage;
 }
 
-enum {
-	OBIT_KNIFE = 0,
-	OBIT_PISTOL,
-	OBIT_SHOTGUN,
-	OBIT_SUBGUN,
-	OBIT_SNIPER,
-	OBIT_BOLT,
-	OBIT_ASSAULT,
-	OBIT_GRENADE,
-	OBIT_AKIMBO,
-	OBIT_HEAL,
-	OBIT_WAVE,
-	OBIT_BOW, // guns
-	OBIT_START,
-	OBIT_DEATH = OBIT_START,
-	OBIT_BOT,
-	OBIT_BOW_IMPACT,
-	OBIT_BOW_STUCK,
-	OBIT_KNIFE_BLEED,
-	OBIT_KNIFE_IMPACT,
-	OBIT_HEADSHOT,
-	OBIT_FF,
-	OBIT_DROWN,
-	OBIT_FALL,
-	OBIT_CHEAT,
-	OBIT_REVIVE,
-	OBIT_NUKE,
-	OBIT_NUM
-};
-
 static inline const int obit_suicide(int weap){
+	if(melee_weap(weap)) return OBIT_FF;
 	if(weap >= 0 && weap <= OBIT_START) return weap;
 	switch(weap - OBIT_START){
 		case 0: return OBIT_DEATH;
@@ -216,6 +187,9 @@ static inline const char *suicname(int obit){
 		case OBIT_DEATH:
 			concatstring(k, "requested suicide");
 			break;
+		case OBIT_FF:
+			concatstring(k, "tried to knife a teammate");
+			break;
 		case OBIT_BOT:
 			concatstring(k, "acted like a stupid bot");
 			break;
@@ -250,7 +224,16 @@ static inline const bool isheadshot(int weapon, int style){
 	return true;
 }
 
-extern const int toobit(int weap, int style);
+const int toobit(int weap, int style){ // moved here to lower enum warnings
+	const bool gib = (style & FRAG_GIB) > 0,
+				flag = (style & FRAG_FLAG) > 0;
+	switch(weap){
+		case WEAP_KNIFE: return gib ? WEAP_KNIFE : flag ? OBIT_KNIFE_IMPACT : OBIT_KNIFE_BLEED;
+		case WEAP_BOW: return gib ? flag ? OBIT_BOW_STUCK : WEAP_BOW : OBIT_BOW_IMPACT;
+		case WEAP_MAX: return OBIT_NUKE;
+	}
+	return weap < WEAP_MAX ? weap : OBIT_DEATH;
+}
 
 static inline const char *killname(int obit, bool headshot){
 	static string k;

@@ -4593,14 +4593,3 @@ int main(int argc, char **argv){
 	#endif
 }
 #endif
-
-const int toobit(int weap, int style){ // moved here to lower enum warnings
-	const bool gib = (style & FRAG_GIB) > 0,
-				flag = (style & FRAG_FLAG) > 0;
-	switch(weap){
-		case WEAP_KNIFE: return gib ? WEAP_KNIFE : flag ? OBIT_KNIFE_IMPACT : OBIT_KNIFE_BLEED;
-		case WEAP_BOW: return gib ? flag ? OBIT_BOW_STUCK : WEAP_BOW : OBIT_BOW_IMPACT;
-		case WEAP_MAX: return OBIT_NUKE;
-	}
-	return weap < WEAP_MAX ? weap : OBIT_DEATH;
-}
