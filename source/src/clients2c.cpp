@@ -184,8 +184,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 		if(type!=N_POS && type!=N_PINGTIME && type!=N_PINGPONG && type!=N_CLIENT)
 		{
 			DEBUGVAR(d);
-			ASSERT(type>=0 && type<N_NUM);
-			DEBUGVAR(messagenames[type]);
+			DEBUGVAR(messagenames(type));
 			protocoldebug(true);
 		}
 		else protocoldebug(false);

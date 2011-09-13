@@ -3131,8 +3131,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 		if(type!=N_POS && type!=N_PINGTIME && type!=N_PINGPONG)
 		{
 			DEBUGVAR(cl->name);
-			ASSERT(type>=0 && type<N_NUM);
-			DEBUGVAR(messagenames[type]);
+			DEBUGVAR(messagenames(type));
 			protocoldebug(true);
 		}
 		else protocoldebug(false);
