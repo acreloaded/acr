@@ -396,7 +396,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 						gzgetc(f); gzgetc(f);
 						break;
 					default:
-						if(sq.type<0 || sq.type>=MAXTYPE)  { fail = true; break; }
+						if(/*sq.type<0 ||*/ sq.type>=MAXTYPE)  { fail = true; break; }
 						sq.floor = gzgetc(f);
 						sq.ceil = gzgetc(f);
 						if(sq.floor >= sq.ceil && sq.ceil > -128) sq.floor = sq.ceil - 1;  // for pre 12_13
