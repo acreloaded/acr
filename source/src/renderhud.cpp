@@ -364,6 +364,7 @@ bool insideradar(const vec &centerpos, float radius, const vec &o)
 vec fixradarpos(const vec &o, const vec &centerpos, float res){
 	if(insideradar(centerpos, res/2.15f, o)) return o;
 	vec ret(o);
+	ret.z = 0;
 	return ret.sub(centerpos).normalize().mul(res/2.15f).add(centerpos);
 }
 
