@@ -361,8 +361,8 @@ bool insideradar(const vec &centerpos, float radius, const vec &o)
 	return o.distxy(centerpos)<=radius;
 }
 
-vec fixradarpos(const vec &o, const vec &centerpos, float res){
-	if(insideradar(centerpos, res/2.15f, o)) return o;
+vec fixradarpos(const vec &o, const vec &centerpos, float res, bool skip = false){
+	if(skip || insideradar(centerpos, res/2.15f, o)) return o;
 	vec ret(o);
 	ret.z = 0;
 	return ret.sub(centerpos).normalize().mul(res/2.15f).add(centerpos);
@@ -478,10 +478,10 @@ void drawradar(playerent *p, int w, int h)
 			else if(pl->radarmillis + radarenemyfade < lastmillis) continue;
 		}
 		if(isteam(p, pl) || p->team == TEAM_SPECT || force || pl->state == CS_DEAD) // friendly, flag tracker or dead
-			drawradarent(fixradarpos(pl->o, centerpos, res), coordtrans, pl->yaw, pl->state!=CS_DEAD ? (isattacking(pl) ? 2 : 0) : 1,
+			drawradarent(fixradarpos(pl->o, centerpos, res, pl->state==CS_DEAD), coordtrans, pl->yaw, pl->state!=CS_DEAD ? (isattacking(pl) ? 2 : 0) : 1,
 				isteam(p, pl) ? 1 : 0, iconsize, isattacking(pl), 1.f, "\f%d%s", isteam(p, pl) ? 0 : 3, colorname(pl));
 		else
-			drawradarent(fixradarpos(pl->lastloudpos, centerpos, res), coordtrans, pl->lastloudpos[2], pl->state!=CS_DEAD ? (isattacking(pl) ? 2 : 0) : 1,
+			drawradarent(fixradarpos(pl->lastloudpos, centerpos, res, pl->state==CS_DEAD), coordtrans, pl->lastloudpos[2], pl->state!=CS_DEAD ? (isattacking(pl) ? 2 : 0) : 1,
 				isteam(p, pl) ? 1 : 0, iconsize, false, (radarenemyfade - lastmillis + pl->radarmillis) / (float)radarenemyfade, "\f3%s", colorname(pl));
 	}
 	loopv(bounceents){ // draw grenades
