@@ -465,16 +465,18 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 	if(pl->state == CS_DEAD || intermission) return;
 
 	pl->respawnoffset = pl->lastpain = lastmillis;
-	if(actor != pl){ // hit marker/assist
-		actor->lasthitmarker = lastmillis;
-		if(pl->damagelog.find(actor->clientnum) < 0) pl->damagelog.add(actor->clientnum);
-	}
 	// damage direction/hit push
-	if(src != pl->o){
+	if(pl != actor || weapon == WEAP_GRENADE || weapon == WEAP_BOW || pl->o.dist(src) > 4){
+		// damage indicator
 		pl->damagestack.add(damageinfo(src, lastmillis, damage));
+		// push
 		vec dir = pl->o;
 		dir.sub(src).normalize();
 		pl->hitpush(damage, dir, weapon, actor->perk == PERK_POWER);
+		// hit markers
+		actor->lasthitmarker = lastmillis;
+		// assists
+		if(pl->damagelog.find(actor->clientnum) < 0) pl->damagelog.add(actor->clientnum);
 	}
 	// blood
 	damageeffect(damage * (style&FRAG_GIB ? GIBBLOODMUL : 1), pl);
