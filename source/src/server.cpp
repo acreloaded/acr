@@ -1699,6 +1699,31 @@ int cmpipmatch(const struct iprange *a, const struct iprange *b) { return - (a->
 
 vector<iprange> ipblacklist, masterbans, masterallows;
 
+int fixblacklist(vector<iprange> &target, const char *name){
+	target.sort(cmpiprange); // or else bsearch fucks up
+	const int orglength = target.length();
+	loopv(target)
+	{
+		if(!i) continue;
+		if(target[i].ur <= target[i - 1].ur)
+		{
+			if(target[i].lr == target[i - 1].lr && target[i].ur == target[i - 1].ur)
+				logline(ACLOG_INFO, " %s entry %s got dropped (double entry)", name, iprtoa(target[i]));
+			else
+				logline(ACLOG_INFO, " %s entry %s got dropped (already covered by %s)", name, iprtoa(target[i]), iprtoa(target[i - 1]));
+			target.remove(i--); continue;
+		}
+		if(target[i].lr <= target[i - 1].ur)
+		{
+			logline(ACLOG_INFO, " %s entries %s and %s are joined due to overlap", name, iprtoa(target[i - 1]), iprtoa(target[i]));
+			target[i - 1].ur = target[i].ur;
+			target.remove(i--); continue;
+		}
+	}
+	loopv(target) logline(ACLOG_VERBOSE," %s", iprtoa(target[i]));
+	return orglength;
+}
+
 void readipblacklist(const char *name){
 	static string blfilename;
 	static int blfilesize;
@@ -1729,27 +1754,7 @@ void readipblacklist(const char *name){
 		}
 	}
 	delete[] buf;
-	ipblacklist.sort(cmpiprange);
-	int orglength = ipblacklist.length();
-	loopv(ipblacklist)
-	{
-		if(!i) continue;
-		if(ipblacklist[i].ur <= ipblacklist[i - 1].ur)
-		{
-			if(ipblacklist[i].lr == ipblacklist[i - 1].lr && ipblacklist[i].ur == ipblacklist[i - 1].ur)
-				logline(ACLOG_VERBOSE," blacklist entry %s got dropped (double entry)", iprtoa(ipblacklist[i]));
-			else
-				logline(ACLOG_VERBOSE," blacklist entry %s got dropped (already covered by %s)", iprtoa(ipblacklist[i]), iprtoa(ipblacklist[i - 1]));
-			ipblacklist.remove(i--); continue;
-		}
-		if(ipblacklist[i].lr <= ipblacklist[i - 1].ur)
-		{
-			logline(ACLOG_VERBOSE," blacklist entries %s and %s are joined due to overlap", iprtoa(ipblacklist[i - 1]), iprtoa(ipblacklist[i]));
-			ipblacklist[i - 1].ur = ipblacklist[i].ur;
-			ipblacklist.remove(i--); continue;
-		}
-	}
-	loopv(ipblacklist) logline(ACLOG_VERBOSE," %s", iprtoa(ipblacklist[i]));
+	const int orglength = fixblacklist(ipblacklist, "blacklist");
 	logline(ACLOG_INFO,"read %d (%d) blacklist entries from '%s', %d errors", ipblacklist.length(), orglength, blfilename, errors);
 }
 
@@ -1768,7 +1773,7 @@ void addmrange(char *text){
 		target.add(ir);
 		ptr = strchr(end, '|');
 	}
-	target.sort(cmpiprange); // or else bsearch fucks up
+	fixblacklist(target, allow ? "master allow" : "master ban");
 }
 
 inline bool checkblacklist(enet_uint32 ip, vector<iprange> &ranges){ // ip: network byte order
