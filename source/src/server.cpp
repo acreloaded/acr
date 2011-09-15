@@ -4009,6 +4009,7 @@ void resetserverifempty(){
 	resetserver("", 0, 10);
 	mastermode = MM_OPEN;
 	autoteam = true;
+	botbalance = - 1;
 	nextmapname[0] = '\0';
 }
 
