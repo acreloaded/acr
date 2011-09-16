@@ -573,7 +573,7 @@ void checkpings()
                             int maxs = 0, maxc = 0, ts, tc;
                             loopi(si->maxclients /*- 3*/)
                             {
-                                ts = tc = si->uplinkstats[i + 4] = p.get();
+                                ts = tc = si->uplinkstats[i /*+ 4*/] = p.get();
                                 if(si->maxclients < 8 || i > 2)
                                 {
                                     ts &= 0xF0; tc &= 0x0F;
@@ -592,16 +592,16 @@ void checkpings()
                         if(si->getinfo == EXTPING_UPLINKSTATS)
                         {
                             RESETINFOLINES();
-                            if(si->maxclients < 4)
+                            /*if(si->maxclients < 4)
                             {
                                 ADDINFOLINE("server is too small for uplink quality statistics");
                             }
                             else
-                            {
+                            {*/
                                 ADDINFOLINE("\f1server uplink quality and usage statistics:");
                                 ADDINFOLINE("");
                                 ADDINFOLINE("players:\terrors/time");
-                                for(int i = 4; i <= si->maxclients; i++)
+                                for(int i = /*4*/ 0; i <= si->maxclients; i++)
                                 {
                                     defformatstring(msg)("   %d\t", i);
                                     loopj(15) concatformatstring(msg, "\a%c ", '0' + ((si->uplinkstats[i] & 0x0F) > j) + 2 * ((si->uplinkstats[i] & 0xF0) > (j << 4)));
@@ -610,7 +610,7 @@ void checkpings()
                                 }
                                 ADDINFOLINE("");
                                 ADDINFOLINE("\f4red bar: error rate, green bar: time played");
-                            }
+                            /*}*/
                         }
                         break;
                     }
