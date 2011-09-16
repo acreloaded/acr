@@ -4379,8 +4379,7 @@ void extping_maprot(ucharbuf &po){
 
 void extping_uplinkstats(ucharbuf &po)
 {
-    if(scl.maxclients > 3)
-        po.put(chokelog + 4, scl.maxclients - 3); // send logs for 4..n used slots
+	po.put(chokelog, scl.maxclients); // send logs for every used slot
 }
 
 void extinfo_cnbuf(ucharbuf &p, int cn){

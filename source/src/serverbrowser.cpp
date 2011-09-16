@@ -568,10 +568,10 @@ void checkpings()
                     case EXTPING_UPLINKSTATS:
                     {
                         si->uplinkqual_age = totalmillis;
-                        if(si->maxclients > 3)
-                        {
+                        /*if(si->maxclients > 3)
+                        {*/
                             int maxs = 0, maxc = 0, ts, tc;
-                            loopi(si->maxclients - 3)
+                            loopi(si->maxclients /*- 3*/)
                             {
                                 ts = tc = si->uplinkstats[i + 4] = p.get();
                                 if(si->maxclients < 8 || i > 2)
@@ -588,7 +588,7 @@ void checkpings()
                             else if(maxc == 6) si->uplinkqual = 3;
                             else if(maxc < 9) si->uplinkqual = 2;       // 1.6% (yep, that IS bad)
                             else si->uplinkqual = 1;
-                        }
+                        /*}*/
                         if(si->getinfo == EXTPING_UPLINKSTATS)
                         {
                             RESETINFOLINES();
