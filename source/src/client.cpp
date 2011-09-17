@@ -501,7 +501,7 @@ bool securemapcheck(char *map, bool msg)
 	if(strstr(map, "maps/")==map || strstr(map, "maps\\")==map) map += strlen("maps/");
 	loopv(securemaps) if(!strcmp(securemaps[i], map))
 	{
-		if(msg) conoutf("\f3map %s is secured, you can not send, receive or overwrite it", map);
+		if(msg) conoutf("\f3map %s is secured, you can not receive or overwrite it", map);
 		return true;
 	}
 	return false;
@@ -516,7 +516,7 @@ void sendmap(char *mapname)
 		changemap(mapname); // FIXME!!
 	}
 	else mapname = getclientmap();
-	if(securemapcheck(mapname)) return;
+	//if(securemapcheck(mapname)) return;
 
 	int mapsize, cfgsize, cfgsizegz;
 	uchar *mapdata = readmap(path(mapname), &mapsize);
