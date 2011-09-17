@@ -3689,8 +3689,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					sendf(-1, 1, "ri2s", N_MAPC2S, sender, text);
 					logline(ACLOG_INFO,"[%s] %s sent map %s, %d + %d(%d) bytes written",
 								gethostname(sender), clients[sender]->name, text, mapsize, cfgsize, cfgsizegz);
-					// propogate
-					loopv(clients) if(i != sender && clients[i]->type == ST_TCPIP) recvmapserv(clients[i]);
+					// reset
+					//loopv(clients) if(i != sender && clients[i]->type == ST_TCPIP) recvmapserv(clients[i]);
 					resetmap(smapname, smode);
 				}
 				else
@@ -3705,10 +3705,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			}
 
 			case N_MAPS2C:
-			{
 				recvmapserv(cl);
 				break;
-			}
 
 			case N_DROPFLAG:
 			{
