@@ -817,7 +817,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 				copystring(predicate, "scored!");
 				if(m_ctf) firstpersondrop = true;
 			}
-			else formatstring(predicate)("scored for %s team", teamstr);
+			else formatstring(predicate)("scored %s team's flag for %s team", teamstr, !own ? "your" : "the enemy");
 			break;
 		case FA_KTFSCORE:
 		{
