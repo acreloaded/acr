@@ -3664,12 +3664,12 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					p.forceoverread();
 					break;
 				}
-				if(sendmapserv(sender, text, mapsize, cfgsize, cfgsizegz, &p.buf[p.len]))
+				if((!maplayout || cl->priv >= PRIV_ADMIN) && sendmapserv(sender, text, mapsize, cfgsize, cfgsizegz, &p.buf[p.len]))
 				{
 					sendf(-1, 1, "ri2s", N_SENDMAP, sender, text);
 					logline(ACLOG_INFO,"[%s] %s sent map %s, %d + %d(%d) bytes written",
 								gethostname(sender), clients[sender]->name, text, mapsize, cfgsize, cfgsizegz);
-					if(!maplayout) resetmap(smapname, smode);
+					resetmap(smapname, smode);
 				}
 				else
 				{
