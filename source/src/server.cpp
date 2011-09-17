@@ -3690,7 +3690,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					logline(ACLOG_INFO,"[%s] %s sent map %s, %d + %d(%d) bytes written",
 								gethostname(sender), clients[sender]->name, text, mapsize, cfgsize, cfgsizegz);
 					// propogate
-					loopv(clients) if(clients[i]->type == ST_TCPIP) recvmapserv(clients[i]);
+					loopv(clients) if(i != sender && clients[i]->type == ST_TCPIP) recvmapserv(clients[i]);
 					resetmap(smapname, smode);
 				}
 				else

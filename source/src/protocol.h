@@ -54,7 +54,7 @@ static const char *messagenames(int n){
 		"N_LISTDEMOS", "N_DEMO", "N_DEMOPLAYBACK", // demos
 		"N_AUTHREQ", "N_AUTHCHAL", // auth
 		"N_REQPRIV", "N_SETPRIV", // privileges
-		"N_SENDMAP", "N_RECVMAP", // map transit
+		"N_MAPC2S", "N_MAPS2C", // map transit
 		// editmode ONLY
 		"N_EDITMODE", "N_EDITH", "N_EDITT", "N_EDITS", "N_EDITD", "N_EDITE", "N_EDITW", "N_EDITENT", "N_NEWMAP",
 		// game events
