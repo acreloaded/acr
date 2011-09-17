@@ -1362,13 +1362,26 @@ void checkitemspawns(int diff){
 	}
 }
 
+// server map geometry tools
+ssqr &getsblock(int id){
+	if(!maplayout){
+		static ssqr dummy;
+		dummy.type = SPACE;
+		dummy.ceil = 16;
+		dummy.floor = 0;
+		dummy.vdelta = 0;
+		return dummy;
+	}
+	return maplayout[clamp(id, 0, 1 << (maplayout_factor * 2))];
+}
+
 inline int getmaplayoutid(int x, int y){
 	const int max = (1 << maplayout_factor) - 2;
 	return clamp(x, 2, max) + (clamp(y, 2, max) << maplayout_factor);
 }
 
 inline char maxvdelta(int id){
-	ssqr &s = maplayout[id];
+	ssqr &s = getsblock(id);
 	char vdelta = s.vdelta;
 	if((&s + 1)->vdelta > vdelta) vdelta = (&s + 1)->vdelta;
 	if((&s + (1 << maplayout_factor))->vdelta > vdelta) vdelta = (&s + (1 << maplayout_factor))->vdelta;
@@ -1377,14 +1390,14 @@ inline char maxvdelta(int id){
 }
 
 float getblockfloor(int id){
-	if(!maplayout || maplayout[id].type == SOLID) return -128;
-	ssqr &s = maplayout[id];
+	if(!maplayout || getsblock(id).type == SOLID) return -128;
+	ssqr &s = getsblock(id);
 	return s.floor - (s.type == FHF ? maxvdelta(id) / 4.f : 0);
 }
 
 float getblockceil(int id){
-	if(!maplayout || maplayout[id].type == SOLID) return 127;
-	ssqr &s = maplayout[id];
+	if(!maplayout || getsblock(id).type == SOLID) return 127;
+	ssqr &s = getsblock(id);
 	return s.ceil + (s.type == CHF ? maxvdelta(id) / 4.f : 0);
 }
 
@@ -1438,7 +1451,7 @@ float sraycube(const vec &o, const vec &ray, vec *surface = NULL){ // server cou
 		int x = int(v.x), y = int(v.y);
 		if(x < 0 || y < 0 || x >= (1 << maplayout_factor) || y >= (1 << maplayout_factor)) return dist;
 		const int mapid = getmaplayoutid(x, y);
-		ssqr s = maplayout[getmaplayoutid(x, y)];
+		ssqr s = getsblock(getmaplayoutid(x, y));
 		float floor = getblockfloor(mapid), ceil = getblockceil(mapid);
 		if(s.type == SOLID || v.z < floor || v.z > ceil){
 			if((!dx && !dy) || s.wtex==DEFAULT_SKY || (s.type != SOLID && v.z > ceil && s.ctex==DEFAULT_SKY)) return dist;
@@ -1450,10 +1463,10 @@ float sraycube(const vec &o, const vec &ray, vec *surface = NULL){ // server cou
 				else{ // make one for heightfields?
 					if(dx<dy) surface->x = ray.x>0 ? -1 : 1;
 					else surface->y = ray.y>0 ? -1 : 1;
-					ssqr n = maplayout[getmaplayoutid(x+surface->x, y+surface->y)];
+					ssqr n = getsblock(getmaplayoutid(x+surface->x, y+surface->y));
 					if(n.type == SOLID || (v.z < floor && v.z < n.floor) || (v.z > ceil && v.z > n.ceil)){
 						*surface = dx<dy ? vec(0, ray.y>0 ? -1 : 1, 0) : vec(ray.x>0 ? -1 : 1, 0, 0);
-						n = maplayout[getmaplayoutid(x+surface->x, y+surface->y)];
+						n = getsblock(getmaplayoutid(x+surface->x, y+surface->y));
 						if(n.type == SOLID || (v.z < floor && v.z < n.floor) || (v.z > ceil && v.z > n.ceil))
 							*surface = vec(0, 0, ray.z>0 ? -1 : 1);
 					}
@@ -1468,12 +1481,12 @@ float sraycube(const vec &o, const vec &ray, vec *surface = NULL){ // server cou
 		if(dz < dx && dz < dy)
 		{
 			if(surface && (s.ctex!=DEFAULT_SKY || ray.z<0) && ((s.type!=(ray.z>0?CHF:FHF)) ||
-					(maplayout[getmaplayoutid(x, y)].vdelta ==
-					maplayout[getmaplayoutid(x+1, y)].vdelta &&
-					maplayout[getmaplayoutid(x, y)].vdelta ==
-					maplayout[getmaplayoutid(x, y+1)].vdelta &&
-					maplayout[getmaplayoutid(x, y)].vdelta ==
-					maplayout[getmaplayoutid(x+1, y+1)].vdelta)))
+					(getsblock(getmaplayoutid(x, y)).vdelta ==
+					getsblock(getmaplayoutid(x+1, y)).vdelta &&
+					getsblock(getmaplayoutid(x, y)).vdelta ==
+					getsblock(getmaplayoutid(x, y+1)).vdelta &&
+					getsblock(getmaplayoutid(x, y)).vdelta ==
+					getsblock(getmaplayoutid(x+1, y+1)).vdelta)))
 				surface->z = ray.z>0 ? -1 : 1;
 			dist += dz;
 			break;
@@ -2966,7 +2979,7 @@ void checkmove(client &cp){
 	loopv(sents){
 		server_entity &e = sents[i];
 		if(!e.spawned || !cs.canpickup(e.type)) continue;
-		const int ls = (1 << maplayout_factor) - 2, maplayoutid = e.x + (e.y << maplayout_factor);
+		const int ls = (1 << maplayout_factor) - 2, maplayoutid = getmaplayoutid(e.x, e.y);
 		const bool getmapz = maplayout && e.x > 2 && e.y > 2 && e.x < ls && e.y < ls;
 		const char &mapz = getmapz ? getblockfloor(maplayoutid) : 0;
 		vec v(e.x, e.y, getmapz ? mapz + PLAYERHEIGHT : cs.o.z);
@@ -3499,37 +3512,37 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						int offset = getint(p);
 						seditloop({
 							if(!v){ // ceil
-								maplayout[id].ceil += offset;
-								if(maplayout[id].ceil <= maplayout[id].floor) maplayout[id].ceil = maplayout[id].floor+1;
+								getsblock(id).ceil += offset;
+								if(getsblock(id).ceil <= getsblock(id).floor) getsblock(id).ceil = getsblock(id).floor+1;
 							}
 							else{ // floor
-								maplayout[id].floor += offset;
-								if(maplayout[id].floor >= maplayout[id].ceil) maplayout[id].floor = maplayout[id].ceil-1;
+								getsblock(id).floor += offset;
+								if(getsblock(id).floor >= getsblock(id).ceil) getsblock(id).floor = getsblock(id).ceil-1;
 							}
 						});
 						break;
 					}
 					case N_EDITS:
 						seditloop({
-							maplayout[id].type = v;
+							getsblock(id).type = v;
 						});
 						break;
 					case N_EDITD:
 						seditloop({
-							maplayout[id].vdelta += v;
-							if(maplayout[id].vdelta < 0) maplayout[id].vdelta = 0;
+							getsblock(id).vdelta += v;
+							if(getsblock(id).vdelta < 0) getsblock(id).vdelta = 0;
 						});
 						break;
 					case N_EDITE:
 					{
 						int low = 127, hi = -128;
 						seditloop({
-							if(maplayout[id].floor<low) low = maplayout[id].floor;
-							if(maplayout[id].ceil>hi) hi = maplayout[id].ceil;
+							if(getsblock(id).floor<low) low = getsblock(id).floor;
+							if(getsblock(id).ceil>hi) hi = getsblock(id).ceil;
 						});
 						seditloop({
-							if(!v) maplayout[id].ceil = hi; else maplayout[id].floor = low;
-							if(maplayout[id].floor >= maplayout[id].ceil) maplayout[id].floor = maplayout[id].ceil-1;
+							if(!v) getsblock(id).ceil = hi; else getsblock(id).floor = low;
+							if(getsblock(id).floor >= getsblock(id).ceil) getsblock(id).floor = getsblock(id).ceil-1;
 						});
 						break;
 					}
