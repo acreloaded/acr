@@ -4036,7 +4036,7 @@ void rereadcfgs(void){
 }
 
 void loggamestatus(const char *reason){
-	int fragscore[2] = {0, 0}, flagscore[2] = {0, 0}, pnum[2] = {0, 0}, n;
+	int fragscore[TEAM_NUM] = {0, 0}, flagscore[TEAM_NUM] = {0, 0}, pnum[TEAM_NUM] = {0, 0};
 	string text;
 	formatstring(text)("%d minutes remaining", minremain);
 	logline(ACLOG_INFO, "");
@@ -4057,14 +4057,16 @@ void loggamestatus(const char *reason){
 			c.priv == PRIV_ADMIN ? "admin  " :
 			c.priv == PRIV_MAX ? "highest" :
 			"unknown", gethostname(i));
-		n = c.team;
-		flagscore[n] += c.state.flagscore;
-		fragscore[n] += c.state.frags;
-		pnum[n] += 1;
+		flagscore[c.team] += c.state.flagscore;
+		fragscore[c.team] += c.state.frags;
+		pnum[c.team] += 1;
 	}
 	if(m_team)
 	{
-		loopi(2) logline(ACLOG_INFO, "Team %4s:%3d players,%5d frags%c%5d flags", team_string(i), pnum[i], fragscore[i], m_flags ? ',' : '\0', flagscore[i]);
+		loopi(TEAM_NUM) if(i == TEAM_SPECT)
+			if(pnum[i]) logline(ACLOG_INFO, "SPECTators: %d", pnum[i]);
+		else
+			logline(ACLOG_INFO, "Team %4s:%3d players,%5d frags%c%5d flags", team_string(i), pnum[i], fragscore[i], m_flags ? ',' : '\0', flagscore[i]);
 	}
 	logline(ACLOG_INFO, "");
 }
