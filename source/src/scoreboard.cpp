@@ -126,7 +126,7 @@ void renderteamscore(void *menu, teamscore &t){
 	defformatstring(plrs)("(%d %s)", t.teammembers.length(), t.team == TEAM_SPECT ? "spectating" : t.teammembers.length() == 1 ? "player" : "players");
 	scoreratio sr;
 	sr.calc(t.frags, t.deaths);
-	const char *tlag = colorpj(t.pj/t.teammembers.length()), *tping = colorping(t.ping/t.teammembers.length());
+	const char *tlag = colorpj(t.pj/max(t.teammembers.length(),1)), *tping = colorping(t.ping/max(t.teammembers.length(), 1));
 	const char *teamname = m_team || t.team == TEAM_SPECT ? team_string(t.team) : "FFA Total";
 	if(m_flags) formatstring(line.s)("%d\t%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t\t%d\t%s\t\t%s", t.points, t.flagscore, t.frags, t.assists, t.deaths, sr.precision, sr.ratio, tlag, tping, t.lvl, teamname, plrs);
 	else formatstring(line.s)("%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t\t%d\t%s\t\t%s", t.points, t.frags, t.assists, t.deaths, sr.precision, sr.ratio, tlag, tping, t.lvl, teamname, plrs);
