@@ -2047,8 +2047,8 @@ bool updateclientteam(int client, int team, int ftr){
 	else clients[client]->removeexplosives();
 	logline(ACLOG_INFO, "[%s] %s is now on team %s", gethostname(client), clients[client]->name, team_string(team));
 	sendf(-1, 1, "ri3", N_SETTEAM, client, (clients[client]->team = team) | (ftr << 4));
-	checkai();
 	if(m_team || team == TEAM_SPECT) forcedeath(clients[client]);
+	checkai();
 	return true;
 }
 
