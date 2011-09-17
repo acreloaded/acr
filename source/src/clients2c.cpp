@@ -844,7 +844,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			}
 
 			case N_MAPIDENT:
-				conoutf("\f3please \f1get the map \f3by typing \f0/getmap");
+				conoutf("\f3please \f1get the map \f3by typing \f0/getmap \f5OR \f1send the map \f2with \f0/sendmap");
 				break;
 
 			case N_SENDMAP:

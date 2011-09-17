@@ -1155,7 +1155,7 @@ void htf_forceflag(int flag){
 int arenaround = 0;
 
 inline bool canspawn(client *c, bool connecting = false){
-	return (!m_duel || (connecting && numauthedclients() <= 2)) && c->team != TEAM_SPECT;
+	return maplayout && c->team != TEAM_SPECT && (!m_duel || (connecting && numauthedclients() <= 2));
 }
 
 struct twoint { int index, value; };
@@ -3255,7 +3255,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				const int cn = getint(p);
 				if(!hasclient(cl, cn)) break;
 				client &cp = *clients[cn];
-				if(!cl->isonrightmap){
+				if(!cl->isonrightmap || !maplayout){
 					if(cn == sender) sendf(sender, 1, "ri", N_MAPIDENT);
 					break;
 				}
@@ -3669,6 +3669,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					sendf(-1, 1, "ri2s", N_SENDMAP, sender, text);
 					logline(ACLOG_INFO,"[%s] %s sent map %s, %d + %d(%d) bytes written",
 								gethostname(sender), clients[sender]->name, text, mapsize, cfgsize, cfgsizegz);
+					if(!maplayout) resetmap(smapname, smode);
 				}
 				else
 				{
