@@ -3669,6 +3669,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					sendf(-1, 1, "ri2s", N_SENDMAP, sender, text);
 					logline(ACLOG_INFO,"[%s] %s sent map %s, %d + %d(%d) bytes written",
 								gethostname(sender), clients[sender]->name, text, mapsize, cfgsize, cfgsizegz);
+					// just to make the layout work
 					resetmap(smapname, smode);
 				}
 				else
