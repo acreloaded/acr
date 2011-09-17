@@ -3228,7 +3228,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case N_MAPIDENT:
 			{
 				int gzs = getint(p);
-				if(!isdedicated || m_edit || smapstats.cgzsize == gzs){
+				if(!isdedicated || m_edit || !maplayout || !smapstats.cgzsize || smapstats.cgzsize == gzs){
 					if(cl->state.state == CS_DEAD && canspawn(cl, true)) sendspawn(cl);
 					cl->isonrightmap = true;
 				}
