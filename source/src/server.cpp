@@ -4036,19 +4036,19 @@ void rereadcfgs(void){
 }
 
 void loggamestatus(const char *reason){
-	int fragscore[TEAM_NUM] = {0, 0}, flagscore[TEAM_NUM] = {0, 0}, pnum[TEAM_NUM] = {0, 0};
+	int fragscore[TEAM_NUM] = {0}, flagscore[TEAM_NUM] = {0}, pnum[TEAM_NUM] = {0};
 	string text;
 	formatstring(text)("%d minutes remaining", minremain);
 	logline(ACLOG_INFO, "");
 	logline(ACLOG_INFO, "Game status: %s on %s, %s, %s%c %s",
 					  modestr(gamemode), smapname, reason ? reason : text, mmfullname(mastermode), custom_servdesc ? ',' : '\0', servdesc_current);
-	logline(ACLOG_INFO, "cn  name             %s%sfrag death ping role    host", m_team ? "team " : "", m_flags ? "flag " : "");
+	logline(ACLOG_INFO, "cn  name             %s%sfrag death ping role    host", m_team ? "team  " : "", m_flags ? "flag " : "");
 	loopv(clients)
 	{
 		client &c = *clients[i];
 		if(c.type == ST_EMPTY || !c.name[0]) continue;
 		formatstring(text)("%2d%c %-16s ", c.clientnum, c.state.ownernum < 0 ? ' ' : '*', c.name); // cn* name
-		if(m_team) concatformatstring(text, "%-4s ", team_string(c.team)); // team
+		if(m_team) concatformatstring(text, "%-5s ", team_string(c.team)); // team
 		if(m_flags) concatformatstring(text, "%4d ", c.state.flagscore);	 // flag
 		concatformatstring(text, "%4d %5d", c.state.frags, c.state.deaths);  // frag death
 		logline(ACLOG_INFO, "%s%5d %s %s", text, c.ping,
@@ -4064,7 +4064,7 @@ void loggamestatus(const char *reason){
 	if(m_team)
 	{
 		loopi(TEAM_NUM) if(i == TEAM_SPECT)
-			if(pnum[i]) logline(ACLOG_INFO, "SPECTators: %d", pnum[i]);
+			if(pnum[i]) logline(ACLOG_INFO, "Team SPECT: %d spectators", pnum[i]);
 		else
 			logline(ACLOG_INFO, "Team %4s:%3d players,%5d frags%c%5d flags", team_string(i), pnum[i], fragscore[i], m_flags ? ',' : '\0', flagscore[i]);
 	}
@@ -4227,7 +4227,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 			if(nonlocalclients) loggamestatus(NULL);
 			logline(ACLOG_INFO, "Status at %s: %d remote client%s, %.1f send, %.1f rec (KiB/s); %d ping%s: %d sent %d recieved", timestring(true, "%d-%m-%Y %H:%M:%S"), nonlocalclients, nonlocalclients==1?"":"s", serverhost->totalSentData/60.0f/1024, serverhost->totalReceivedData/60.0f/1024, pnum, pnum==1?"":"s", psend, prec);
 			pnum = psend = prec = 0;
-			// quality stats?
+			linequalitystats(0);
 		}
 		serverhost->totalSentData = serverhost->totalReceivedData = 0;
 	}
