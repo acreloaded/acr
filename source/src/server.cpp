@@ -2369,8 +2369,8 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 		if(m_fight(smode) || numnonlocalclients()) sendf(-1, 1, "ri3", N_TIMEUP, gamemillis, gamelimit);
 	}
 	logline(ACLOG_INFO, "");
-	logline(ACLOG_INFO, "Game start: %s on %s, %d players, %d minutes remaining, mastermode %d, (itemlist %spreloaded, 'getmap' %sprepared)",
-		modestr(smode), smapname, numclients(), minremain, mastermode, ms ? "" : "not ", mapavailable(smapname) ? "" : "not ");
+	logline(ACLOG_INFO, "Game start: %s on %s, %d players, %d minutes remaining, mastermode %d, (%s'getmap' %sprepared)",
+		modestr(smode), smapname, numclients(), minremain, mastermode, ms ? "" : "itemlist failed,", mapavailable(smapname) ? "" : "not ");
 	arenaround = 0;
 	nokills = true;
 	if(m_duel) distributespawns();
@@ -2681,7 +2681,7 @@ ENetPacket *getmapserv(int n){
 	if(!mapavailable(smapname)) return NULL;
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS + copysize, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
-	putint(p, N_RECVMAP);
+	putint(p, N_MAPS2C);
 	sendstring(copyname, p);
 	putint(p, copymapsize);
 	putint(p, copycfgsize);
@@ -2689,6 +2689,26 @@ ENetPacket *getmapserv(int n){
 	p.put(copydata, copysize);
 	enet_packet_resize(packet, p.length());
 	return packet;
+}
+
+void recvmapserv(client *cl){
+	const int sender = cl->clientnum;
+	ENetPacket *mappacket = getmapserv(cl->clientnum);
+	if(mappacket)
+	{
+		resetflag(sender); // drop ctf flag
+		// save score
+		savedscore *sc = findscore(*cl, true);
+		if(sc) sc->save(cl->state);
+		// resend state properly
+		sendpacket(sender, 2, mappacket);
+		cl->mapchange();
+		sendwelcome(cl, 2, true);
+	}
+	else{
+		cl->isonrightmap = true;
+		sendmsg(13, sender);
+	}
 }
 
 // provide maps by the server
@@ -3652,7 +3672,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				break;
 			}
 
-			case N_SENDMAP:
+			case N_MAPC2S:
 			{
 				getstring(text, p);
 				filtertext(text, text);
@@ -3666,39 +3686,27 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				}
 				if((!maplayout || cl->priv >= PRIV_ADMIN) && sendmapserv(sender, text, mapsize, cfgsize, cfgsizegz, &p.buf[p.len]))
 				{
-					sendf(-1, 1, "ri2s", N_SENDMAP, sender, text);
+					sendf(-1, 1, "ri2s", N_MAPC2S, sender, text);
 					logline(ACLOG_INFO,"[%s] %s sent map %s, %d + %d(%d) bytes written",
 								gethostname(sender), clients[sender]->name, text, mapsize, cfgsize, cfgsizegz);
-					// just to make the layout work
+					// propogate
+					loopv(clients) if(clients[i]->type == ST_TCPIP) recvmapserv(clients[i]);
 					resetmap(smapname, smode);
 				}
 				else
 				{
 					logline(ACLOG_INFO,"[%s] %s sent map %s, not written to file",
 								gethostname(sender), clients[sender]->name, text);
+					// could not write
+					sendmsg(16);
 				}
 				p.len += mapsize + cfgsizegz;
 				break;
 			}
 
-			case N_RECVMAP:
+			case N_MAPS2C:
 			{
-				ENetPacket *mappacket = getmapserv(cl->clientnum);
-				if(mappacket)
-				{
-					resetflag(sender); // drop ctf flag
-					// save score
-					savedscore *sc = findscore(*cl, true);
-					if(sc) sc->save(cl->state);
-					// resend state properly
-					sendpacket(sender, 2, mappacket);
-					cl->mapchange();
-					sendwelcome(cl, 2, true);
-				}
-				else{
-					cl->isonrightmap = true;
-					sendmsg(13, sender);
-				}
+				recvmapserv(cl);
 				break;
 			}
 

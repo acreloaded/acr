@@ -527,7 +527,7 @@ void sendmap(char *mapname)
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS + mapsize + cfgsizegz, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
 
-	putint(p, N_SENDMAP);
+	putint(p, N_MAPC2S);
 	sendstring(mapname, p);
 	putint(p, mapsize);
 	putint(p, cfgsize);
@@ -558,7 +558,7 @@ void getmap()
 	conoutf("requesting map from server...");
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
-	putint(p, N_RECVMAP);
+	putint(p, N_MAPS2C);
 	enet_packet_resize(packet, p.length());
 	sendpackettoserv(2, packet);
 }

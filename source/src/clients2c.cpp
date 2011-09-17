@@ -847,7 +847,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				conoutf("\f3please \f1get the map \f3by typing \f0/getmap \f5OR \f1send the map \f2with \f0/sendmap");
 				break;
 
-			case N_SENDMAP:
+			case N_MAPS2C:
 			{
 				int cn = getint(p); playerent *d = getclient(cn);
 				getstring(text, p);
@@ -903,6 +903,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						concatstring(msg, " missing");
 						break;
 					}
+					case 16:
+						copystring(msg, "could not send map to server");
+						break;
 					case 20: // 2* demos
 						copystring(msg, "recording demo");
 						break;
@@ -1385,7 +1388,7 @@ void receivefile(uchar *data, int len)
 			break;
 		}
 
-		case N_RECVMAP:
+		case N_MAPS2C:
 		{
 			static char text[MAXTRANS];
 			getstring(text, p);
