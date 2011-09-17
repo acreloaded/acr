@@ -30,9 +30,9 @@ struct sline{
 static vector<sline> scorelines;
 
 struct teamscore{
-	int team, points, frags, assists, deaths, flagscore, lvl;
+	int team, points, frags, assists, deaths, flagscore, lvl, ping, pj;
 	vector<playerent *> teammembers;
-	teamscore(int t) : team(t), frags(0), assists(0), deaths(0), points(0), flagscore(0), lvl(0) {}
+	teamscore(int t) : team(t), frags(0), assists(0), deaths(0), points(0), flagscore(0), lvl(0), ping(0), pj(0) {}
 
 	virtual void addscore(playerent *d){
 		if(!d) return;
@@ -44,6 +44,8 @@ struct teamscore{
 		extern int level;
 		lvl += d == player1 ? level : d->level;
 		if(m_flags) flagscore += d->flagscore;
+		ping += d->ping;
+		pj += d->plag;
 	}
 };
 
@@ -124,9 +126,10 @@ void renderteamscore(void *menu, teamscore &t){
 	defformatstring(plrs)("(%d %s)", t.teammembers.length(), t.team == TEAM_SPECT ? "spectating" : t.teammembers.length() == 1 ? "player" : "players");
 	scoreratio sr;
 	sr.calc(t.frags, t.deaths);
+	const char *tlag = colorpj(t.pj/t.teammembers.length()), *tping = colorping(t.ping/t.teammembers.length());
 	const char *teamname = m_team || t.team == TEAM_SPECT ? team_string(t.team) : "FFA Total";
-	if(m_flags) formatstring(line.s)("%d\t%d\t%d\t%d\t%d\t%.*f\t\t\t\t%d\t%s\t\t%s", t.points, t.flagscore, t.frags, t.assists, t.deaths, sr.precision, sr.ratio, t.lvl, teamname, plrs);
-	else formatstring(line.s)("%d\t%d\t%d\t%d\t%.*f\t\t\t\t%d\t%s\t\t%s", t.points, t.frags, t.assists, t.deaths, sr.precision, sr.ratio, t.lvl, teamname, plrs);
+	if(m_flags) formatstring(line.s)("%d\t%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t\t%d\t%s\t\t%s", t.points, t.flagscore, t.frags, t.assists, t.deaths, sr.precision, sr.ratio, tlag, tping, t.lvl, teamname, plrs);
+	else formatstring(line.s)("%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t\t%d\t%s\t\t%s", t.points, t.frags, t.assists, t.deaths, sr.precision, sr.ratio, tlag, tping, t.lvl, teamname, plrs);
 	static color teamcolors[TEAM_NUM+1] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f), color(.4f, .4f, .4f, .3f), color(.8f, .8f, .8f, .4f) };
 	line.bgcolor = &teamcolors[!m_team && t.team != TEAM_SPECT ? TEAM_NUM : t.team];
 	loopv(t.teammembers) renderscore(menu, t.teammembers[i]);
