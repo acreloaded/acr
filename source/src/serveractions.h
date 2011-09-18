@@ -364,7 +364,7 @@ struct voteinfo
 		if(!action || !action->isvalid()) end(VOTE_NO);
 		int stats[VOTE_NUM+1] = {0};
 		loopv(clients) if(valid_client(i, true)){
-			stats[clients[i]->vote]++;
+			stats[clients[i]->vote%VOTE_NUM]++;
 			stats[VOTE_NUM]++;
 		}
 		if(forceend){

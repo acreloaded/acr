@@ -3874,7 +3874,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						else sendf(sender, 1, "ri2", N_CALLVOTEERR, VOTEE_VETOPERM);
 						break;
 					}
-					else logline(ACLOG_INFO,"[%s] %s changed vote to %s", gethostname(sender), clients[sender]->name, vote == VOTE_NO ? "no" : "yes");
+					else logline(ACLOG_INFO,"[%s] %s changed his vote to %s", gethostname(sender), clients[sender]->name, vote == VOTE_NO ? "no" : "yes");
 				}
 				else logline(ACLOG_INFO,"[%s] %s voted %s", gethostname(sender), clients[sender]->name, vote == VOTE_NO ? "no" : "yes");
 				cl->vote = vote;
