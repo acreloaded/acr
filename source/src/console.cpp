@@ -176,6 +176,7 @@ struct obitlist
 			case WEAP_BOLT:
 			case WEAP_ASSAULT:
 				aspect = 3; break;
+			case WEAP_KNIFE:
 			case WEAP_SUBGUN:
 				aspect = 2; break;
 			case WEAP_AKIMBO:
