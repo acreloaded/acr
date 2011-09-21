@@ -49,7 +49,7 @@ struct mapaction : serveraction
 		{
 			const bool notify = valid_client(caller) && clients[caller]->priv < PRIV_ADMIN;
 			mapstats *ms = getservermapstats(map);
-			if(strchr(scl.voteperm, 'x') && !ms){ // admin needed for unknown maps
+			if(roleconf('x') && !ms){ // admin needed for unknown maps
 				role = PRIV_ADMIN;
 				if(notify) sendmsg(12, caller);
 			}
@@ -57,7 +57,7 @@ struct mapaction : serveraction
 				sendmsg(10, caller);
 				role = PRIV_ADMIN;
 			}
-			if(ms && !strchr(scl.voteperm, 'P')) // admin needed for mismatched modes
+			if(ms && !roleconf('P')) // admin needed for mismatched modes
 			{
 				int smode = mode;  // 'borrow' the mode macros by replacing a global by a local var
 				bool spawns = (m_team && !m_ktf) ? ms->hasteamspawns : ms->hasffaspawns;
