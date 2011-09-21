@@ -60,6 +60,7 @@ struct explosivehit{
 
 // a way to sort it
 int cmphitsort(explosivehit *a, explosivehit *b){ return b->damage - a->damage; }
+// if there is more damage, the distance is closer, therefore move it up ((-a) - (-b) -> -a + b -> b - a)
 
 // explosion call
 int explosion(client &owner, const vec &o2, int weap){
@@ -69,7 +70,6 @@ int explosion(client &owner, const vec &o2, int weap){
 	sendhit(owner, weap, o.v);
 	// these are our hits
 	vector<explosivehit> hits;
-	hits.setsize(0);
 	// find the hits
 	loopv(clients){
 		client &target = *clients[i];
@@ -99,6 +99,38 @@ int explosion(client &owner, const vec &o2, int weap){
 	// apply the hits
 	loopv(hits) serverdamage(hits[i].target, &owner, hits[i].damage, weap, hits[i].flags, o);
 	return damagedealt;
+}
+
+// let's order the nuke hits by distance
+struct nukehit{
+	client *target;
+	float distance; // it would be double if this engine wasn't so conservative
+};
+
+// a way to sort it
+int cmpnukesort(nukehit *a, nukehit *b){
+	if(a->distance < b->distance) return -1; // less distance, deal it faster
+	if(a->distance > b->distance) return 1; // more distance, deal it slower
+	return 0; // same?
+}
+
+void nuke(client &owner){
+	vector<nukehit> hits;
+	loopvj(clients){
+		client *cl = clients[j];
+		if(cl->type != ST_EMPTY && cl != &owner){
+			cl->state.state = CS_ALIVE;
+			cl->state.spawnmillis = INT_MIN;
+			// sort hits
+			nukehit &hit = hits.add();
+			hit.distance = cl->state.o.dist(owner.state.o);
+			hit.target = cl;
+		}
+	}
+	hits.sort(cmpnukesort);
+	loopv(hits) serverdamage(hits[i].target, &owner, 2000, WEAP_MAX, !rnd(3) ? FRAG_GIB : FRAG_NONE, owner.state.o);
+	// save the best for last!
+	owner.suicide(WEAP_MAX, FRAG_NONE);
 }
 
 // hit checks
