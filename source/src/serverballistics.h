@@ -51,19 +51,34 @@ inline vec generateHead(const vec &o, float yaw){ // approximate location for th
 }
 
 // explosions
+
+// let's order the explosion hits by distance
+struct explosivehit{
+	client *target;
+	int damage, flags;
+};
+
+// a way to sort it
+int cmphitsort(explosivehit *a, explosivehit *b){ return b->damage - a->damage; }
+
+// explosion call
 int explosion(client &owner, const vec &o2, int weap){
 	int damagedealt = 0;
 	vec o(o2);
 	checkpos(o);
 	sendhit(owner, weap, o.v);
+	// these are our hits
+	vector<explosivehit> hits;
+	hits.setsize(0);
+	// find the hits
 	loopv(clients){
 		client &target = *clients[i];
 		if(target.type == ST_EMPTY || target.state.state != CS_ALIVE) continue;
 		float dist = target.state.o.dist(o);
-		if(dist >= guns[weap].endrange) continue;
+		if(dist >= guns[weap].endrange) continue; // too far away
 		vec ray(target.state.o);
 		ray.sub(o).normalize();
-		if(sraycube(o, ray) < dist) continue;
+		if(sraycube(o, ray) < dist) continue; // not visible
 		ushort dmg = effectiveDamage(weap, dist, true);
 		int expflags = FRAG_GIB;
 		if((weap == WEAP_BOW && !dist) ||
@@ -73,8 +88,16 @@ int explosion(client &owner, const vec &o2, int weap){
 			dmg *= 2;
 		}
 		damagedealt += dmg;
-		serverdamage(&target, &owner, dmg, weap, expflags, o);
+		//serverdamage(&target, &owner, dmg, weap, expflags, o);
+		explosivehit &hit = hits.add();
+		hit.damage = dmg;
+		hit.flags = expflags;
+		hit.target = &target;
 	}
+	// sort the hits
+	hits.sort(cmphitsort);
+	// apply the hits
+	loopv(hits) serverdamage(hits[i].target, &owner, hits[i].damage, weap, hits[i].flags, o);
 	return damagedealt;
 }
 
