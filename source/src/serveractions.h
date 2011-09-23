@@ -57,7 +57,7 @@ struct mapaction : serveraction
 				sendmsg(10, caller);
 				role = PRIV_ADMIN;
 			}
-			if(ms && !roleconf('P')) // admin needed for mismatched modes
+			if(ms && roleconf('P')) // admin needed for mismatched modes
 			{
 				int smode = mode;  // 'borrow' the mode macros by replacing a global by a local var
 				bool spawns = (m_team && !m_ktf) ? ms->hasteamspawns : ms->hasffaspawns;
