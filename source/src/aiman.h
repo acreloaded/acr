@@ -102,6 +102,9 @@ bool reassignai(int exclude = -1){ // backport
 }
 
 void checkai(){
+	// check if bots are disallowed
+	if(!m_ai) return clearai();
+	// check balance
 	int balance = 0;
 	const int people = numclients();
 	if(people) switch(botbalance){

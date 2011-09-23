@@ -161,6 +161,7 @@ enum
 #define m_fight(mode)	((mode)>=0 && (mode) != GMODE_COOPEDIT && (mode)<GMODE_NUM)
 #define m_demo			(gamemode == GMODE_DEMO)
 #define m_valid(mode)	(m_fight(mode) || mode == GMODE_COOPEDIT)
+#define m_ai			(m_fight(gamemode)) // bots not available in coopedit
 
 struct authrequest{ uint id; bool answer; int hash[5]; };
 extern vector<authrequest> authrequests;
