@@ -158,6 +158,7 @@ static inline const int obit_suicide(int weap){
 		case 3: return OBIT_FF;
 		case 4: return OBIT_BOT;
 		case 5: return OBIT_CHEAT;
+		case 6: return OBIT_NUKE;
 	}
 	return OBIT_DEATH;
 }
@@ -186,6 +187,9 @@ static inline const char *suicname(int obit){
 			break;
 		case OBIT_DEATH:
 			concatstring(k, "requested suicide");
+			break;
+		case OBIT_NUKE:
+			concatstring(k, "deployed a nuke");
 			break;
 		case OBIT_FF:
 			concatstring(k, "tried to knife a teammate");
