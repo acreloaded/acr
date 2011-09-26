@@ -62,15 +62,13 @@ void CBotManager::Think()
 			 b->pBot = new CACBot;
 			 b->pBot->m_pMyEnt = b;
 
+			 // create skills
+			 b->pBot->MakeSkill();
+
 			 // Sync waypoints
 			 b->pBot->SyncWaypoints();
 			 // Try spawn
 			 b->pBot->Spawn();
-		  }
-		  // delete/null bot skill pointer to recalculate!
-		  if(!b->pBot->m_pBotSkill){
-			 b->pBot->m_sSkillNr = clamp<short>(ceil(b->level / 20.f) - 1, 0, 4);
-			 b->pBot->m_pBotSkill = new bot_skill_s(b->level);
 		  }
 		  b->pBot->Think();
 	   }

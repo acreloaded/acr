@@ -326,6 +326,7 @@ public:
 
 	virtual ~CBot(void);
 
+	virtual void MakeSkill(void);
 	virtual void Spawn(void);
 	virtual void Think(void);
 	void GoToDebugGoal(vec o);

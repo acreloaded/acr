@@ -413,7 +413,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				int lvl = clamp(getint(p), 1, MAXLEVEL);
 				if(d){
 					d->level = lvl;
-					if(d->pBot) DELETEP(d->pBot->m_pBotSkill);
+					if(d->pBot) d->pBot->MakeSkill();
 				}
 				break;
 			}

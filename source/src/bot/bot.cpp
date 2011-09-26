@@ -33,6 +33,13 @@ CBot::~CBot()
 	}
 }
 
+void CBot::MakeSkill(void)
+{
+	m_sSkillNr = clamp<short>(ceil(m_pMyEnt->level / 20.f) - 1, 0, 4);
+	DELETEP(m_pBotSkill);
+	m_pBotSkill = new bot_skill_s(m_pMyEnt->level);
+}
+
 void CBot::Spawn()
 {
 	// Init all bot variabeles
