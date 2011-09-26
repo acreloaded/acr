@@ -3091,7 +3091,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			filtername(text, text);
 			copystring(cl->name, text, MAXNAMELEN+1);
 			cl->skin = getint(p);
-			cl->state.level = getint(p);
+			cl->state.level = clamp(getint(p), 1, MAXLEVEL);
 			getstring(text, p);
 			copystring(cl->pwd, text);
 			int connectauth = getint(p);
