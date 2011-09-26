@@ -63,7 +63,8 @@ void CBotManager::Think()
 			 b->pBot->m_pMyEnt = b;
 
 			 // create skills
-			 b->pBot->MakeSkill();
+			 b->pBot->m_pBotSkill = NULL;
+			 b->pBot->MakeSkill(b->level);
 
 			 // Sync waypoints
 			 b->pBot->SyncWaypoints();
