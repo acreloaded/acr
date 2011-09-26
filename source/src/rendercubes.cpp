@@ -121,7 +121,10 @@ enum
 };
 
 int nquads;
-const float TEXTURESCALE = 32.0f;
+// texturescale (temporary)
+VAR(texturescale, 0, 32, 128);
+//const float TEXTURESCALE = 32.0f;
+#define TEXTURESCALE float(texturescale)
 int striptype = 0, striptex, oh, oy, ox, odir;						 // the o* vars are used by the stripification
 int ol1r, ol1g, ol1b, ol2r, ol2g, ol2b;	  
 float ofloor, oceil;
