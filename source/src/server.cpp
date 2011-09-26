@@ -36,6 +36,7 @@ struct servercommandline scl;
 #define SERVERMAP_PATH_BUILTIN  "packages/maps/official/"
 #define SERVERMAP_PATH_INCOMING "packages/maps/servermaps/incoming/"
 
+static int interm = 0, minremain = 0, gamemillis = 0, gamelimit = 0;
 static const int DEATHMILLIS = 300;
 
 enum { GE_NONE = 0, GE_SHOT, GE_PROJ, GE_AKIMBO, GE_RELOAD };
@@ -131,7 +132,6 @@ struct clientstate : playerstate
 
 	bool isalive(int gamemillis)
 	{
-		extern int interm;
 		if(interm) return false;
 		return state==CS_ALIVE || (state==CS_DEAD && gamemillis - lastdeath <= DEATHMILLIS);
 	}
@@ -513,7 +513,6 @@ void restoreserverstate(vector<entity> &ents)   // hack: called from savegame co
 	}
 }
 
-static int interm = 0, minremain = 0, gamemillis = 0, gamelimit = 0;
 static bool mapreload = false, autoteam = true, forceintermission = false, nokills = true;
 
 string servdesc_current;
