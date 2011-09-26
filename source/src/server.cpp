@@ -3219,16 +3219,16 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				int t = getint(p);
 				if(cl->team == t) break;
 				
-				if(cl->priv < PRIV_ADMIN && t != TEAM_SPECT){
+				if(cl->priv < PRIV_ADMIN && t < 2){
 					if(mastermode >= MM_LOCKED){
 						sendf(sender, 1, "ri2", N_SWITCHTEAM, 1 << 4);
 						break;
 					}
 					else if(m_team){
 						int teamsizes[2] = {0};
-						loopv(clients) if(i != sender && clients[i]->type!=ST_EMPTY && clients[i]->connected && clients[i]->isonrightmap && clients[i]->team < 2)
+						loopv(clients) if(i != sender && clients[i]->type!=ST_EMPTY && clients[i]->connected && clients[i]->team < 2)
 							teamsizes[clients[i]->team]++;
-						if(teamsizes[t] > teamsizes[team_opposite(t)]){
+						if(teamsizes[t] > teamsizes[t ^ 1]){
 							sendf(sender, 1, "ri2", N_SWITCHTEAM, t);
 							break;
 						}
