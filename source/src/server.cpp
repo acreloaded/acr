@@ -2557,7 +2557,7 @@ void setpriv(int cl, int priv){
 	if(!priv){ // relinquish
 		if(!c.priv) return; // no privilege to relinquish
 		sendf(-1, 1, "ri3", N_REQPRIV, cl, c.priv | 0x80);
-		logline(ACLOG_INFO,"[%s] %s relinquished %s status", gethostname(cl), c.name, privname(c.priv));
+		logline(ACLOG_INFO,"[%s] %s relinquished %s access", gethostname(cl), c.name, privname(c.priv));
 		c.priv = PRIV_NONE;
 		sendserveropinfo();
 		return;
@@ -2571,7 +2571,7 @@ void setpriv(int cl, int priv){
 	}
 	c.priv = priv;
 	sendf(-1, 1, "ri3", N_REQPRIV, cl, c.priv);
-	logline(ACLOG_INFO,"[%s] %s claimed %s status", gethostname(cl), c.name, privname(c.priv));
+	logline(ACLOG_INFO,"[%s] %s claimed %s access", gethostname(cl), c.name, privname(c.priv));
 	sendserveropinfo();
 	//if(curvote) curvote->evaluate();
 }

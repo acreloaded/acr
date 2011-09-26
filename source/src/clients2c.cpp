@@ -1102,7 +1102,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					else hudoutf("\f3there is already another \f1%s \f2(\f%d%s\f2)", privname(r), privcolor(r), n);
 					break;
 				}
-				chatoutf("%s \f2%s \f%d%s \f5status", n, drop ? "relinquished" : "claimed", privcolor(r), privname(r));
+				chatoutf("%s \f2%s \f%d%s \f5access", n, drop ? "relinquished" : "claimed", privcolor(r), privname(r));
 				break;
 			}
 
