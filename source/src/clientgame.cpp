@@ -539,7 +539,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 	pl->damagelog.removeobj(act->clientnum);
 	loopv(pl->damagelog) if(!getclient(pl->damagelog[i])) pl->damagelog.remove(i--);
 	// HUD for first person
-	if(pl == gamefocus || act == gamefocus){
+	if(pl == gamefocus || act == gamefocus || pl->damagelog.find(gamefocus->clientnum) >= 0){
 		if(pl->damagelog.length()) hudonlyf("%s %s %s, %d assister%s", subject, hashave, predicate, pl->damagelog.length(), pl->damagelog.length()==1?"":"s");
 		else hudonlyf("%s %s %s", subject, hashave, predicate);
 	}
