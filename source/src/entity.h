@@ -531,7 +531,7 @@ struct playerstate
 		switch(type)
 		{
 			case I_CLIPS: return ammo[akimbo ? WEAP_AKIMBO : WEAP_PISTOL]<ammostats[akimbo ? WEAP_AKIMBO : WEAP_PISTOL].max;
-			case I_AMMO: return ammo[primary]<ammostats[primary].max;
+			case I_AMMO: return primary == WEAP_SWORD || ammo[primary]<ammostats[primary].max;
 			case I_GRENADE: return mag[WEAP_GRENADE]<ammostats[WEAP_GRENADE].max;
 			case I_HEALTH: return health<powerupstats[type-I_HEALTH].max;
 			case I_ARMOR: return armor<powerupstats[type-I_HEALTH].max;
