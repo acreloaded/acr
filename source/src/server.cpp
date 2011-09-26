@@ -1391,13 +1391,13 @@ inline char maxvdelta(int id){
 }
 
 float getblockfloor(int id){
-	if(!maplayout || getsblock(id).type == SOLID) return -128;
+	if(!maplayout || getsblock(id).type == SOLID) return 127;
 	ssqr &s = getsblock(id);
 	return s.floor - (s.type == FHF ? maxvdelta(id) / 4.f : 0);
 }
 
 float getblockceil(int id){
-	if(!maplayout || getsblock(id).type == SOLID) return 127;
+	if(!maplayout || getsblock(id).type == SOLID) return -128;
 	ssqr &s = getsblock(id);
 	return s.ceil + (s.type == CHF ? maxvdelta(id) / 4.f : 0);
 }
@@ -2987,7 +2987,7 @@ void checkmove(client &cp){
 	}
 	else if(cs.drownmillis > 0) cs.drownmillis = -cs.drownmillis;
 	// out of map check
-	if(cp.type!=ST_LOCAL && !m_edit && checkpos(cs.o, false)){
+	if(!m_edit && checkpos(cs.o, false)){
 		if(cp.type == ST_AI) cp.suicide(WEAP_MAX + 4);
 		else{
 			logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", gethostname(sender), cp.name, ++cp.mapcollisions);
