@@ -131,6 +131,7 @@ struct clientstate : playerstate
 
 	bool isalive(int gamemillis)
 	{
+		extern int interm;
 		if(interm) return false;
 		return state==CS_ALIVE || (state==CS_DEAD && gamemillis - lastdeath <= DEATHMILLIS);
 	}
