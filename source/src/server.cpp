@@ -2964,9 +2964,11 @@ void checkmove(client &cp){
 	if(cs.lasto != cs.o) cs.movemillis = servmillis;
 	else if(cps && cs.lastomillis && gamemillis > cs.lastomillis){
 		cps *= 1000 / (gamemillis - cs.lastomillis);
-		if(cps > 64.f){ // 16 meters per second
+		if(cps > 32){ // 8 meters per second
 			defformatstring(fastmsg)("%s (%d) moved at %.3f meters/second", cp.name, sender, cps / 4);
 			sendservmsg(fastmsg);
+			if(cps > 64) // 16 meters per second
+				cheat(&cp, "speedhack");
 		}
 	}
 	// drown underwater
