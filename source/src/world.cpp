@@ -459,7 +459,8 @@ bool empty_world(int factor, bool force)	// main empty world creation routine, i
 	if(factor>=0)
 	{
 		findplayerstart(player1, true);
-		startmap("", false);
+		extern string clientmap;
+		startmap(clientmap, false);
 	}
 	return true;
 }
