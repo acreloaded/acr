@@ -32,9 +32,6 @@ void CBotManager::Init()
 	lsrand(time(NULL));
 }
 
-CACBot *botcontrollers[MAXCLIENTS] = { NULL }; // reuse bot controllers
-bot_skill_s *botskills[MAXCLIENTS] = { NULL }; // sad...
-
 void CBotManager::Think()
 {    
 	if (m_bInit)
@@ -60,23 +57,22 @@ void CBotManager::Think()
 	   loopv(players){
 		  if(!players[i] || players[i]->ownernum != ourcn) continue;
 		  playerent *b = players[i];
-		  #define bc b->pBot // this is the bot controller
-		  if(!bc){
-			 if(botcontrollers[i]) bc = botcontrollers[i];
-			 else bc = botcontrollers[i] = new CACBot();
-			 bc->m_pMyEnt = b;
-			 // set bot skill
-			 bc->m_sSkillNr = clamp<short>(ceil(b->level / 20.f) - 1, 0, 4);
-			 if(botskills[i]) *botskills[i] = bot_skill_s(b->level);
-			 else botskills[i] = new bot_skill_s(b->level);
-			 bc->m_pBotSkill = botskills[i];
+		  // ensure there is a bot controller
+		  if(!b->pBot){
+			 b->pBot = new CACBot;
+			 b->pBot->m_pMyEnt = b;
 
 			 // Sync waypoints
-			 bc->SyncWaypoints();
+			 b->pBot->SyncWaypoints();
 			 // Try spawn
-			 bc->Spawn();
+			 b->pBot->Spawn();
 		  }
-		  bc->Think();
+		  // delete/null bot skill pointer to recalculate!
+		  if(!b->pBot->m_pBotSkill){
+			 b->pBot->m_sSkillNr = clamp<short>(ceil(b->level / 20.f) - 1, 0, 4);
+			 b->pBot->m_pBotSkill = new bot_skill_s(b->level);
+		  }
+		  b->pBot->Think();
 	   }
     }
 }

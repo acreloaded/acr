@@ -182,7 +182,16 @@ playerent *newplayerent()				 // create a new blank player
 	return d;
 }
 
-void zapplayer(playerent *&d){ DELETEP(d); }
+void zapplayer(playerent *&d){
+	if(d){
+		if(d->pBot){
+			delete (CACBot *)d->pBot;
+			if(d->pBot->m_pBotSkill) delete d->pBot->m_pBotSkill;
+		}
+		delete d;
+		d = 0;
+	}
+}
 
 void movelocalplayer()
 {
