@@ -141,14 +141,26 @@ void addexp(int xp){
 	#undef xpfactor
 }
 
-void deathstate(playerent *pl)
+void deathstate(playerent *pl, playerent *act)
 {
 	if(pl == player1 && editmode) toggleedit(true);
 	pl->state = CS_DEAD;
 	pl->spectatemode = SM_DEATHCAM;
 	pl->respawnoffset = pl->lastpain = lastmillis;
 	pl->move = pl->strafe = 0;
-	pl->pitch = pl->roll = 0;
+	// position camera (used to be roll/pitch)
+	pl->roll = 0;
+	/*
+	// we should look at this
+	vec target = act ? act->o : pl->o;
+	target.sub(pl->o);
+	// look down at dead body
+	if(target.magnitude() < 1) target.z -= 1;
+	target.normalize();
+	pl->pitch = atan2(target.z, target.x) / RAD;
+	pl->yaw = atan2(target.y, target.x) / RAD;
+	*/
+
 	pl->attacking = false;
 	pl->weaponsel->onownerdies();
 	pl->damagelog.setsize(0);
@@ -580,7 +592,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 
 	addobit(act, obit, headshot, pl);
 	
-	deathstate(pl);
+	deathstate(pl, act);
 	++pl->deaths;
 	playsound(S_DIE1+rnd(2), pl);
 }
