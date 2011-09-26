@@ -1098,8 +1098,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				const char *n = (d == player1) ? "\f1you" : colorname(d);
 				if(!d) break;
 				if(err){
-					if(d == player1) hudoutf("\f1you \f3already \f2have \f%d%s \f5status", privcolor(r), privname(r));
-					else hudoutf("\f3there is already a \f1%s \f2(\f%d%s\f2)", privname(r), privcolor(r), n);
+					if(d == player1) hudoutf("\f1you \f3already \f2have \f%d%s \f5access", privcolor(r), privname(r));
+					else hudoutf("\f3there is already another \f1%s \f2(\f%d%s\f2)", privname(r), privcolor(r), n);
 					break;
 				}
 				chatoutf("%s \f2%s \f%d%s \f5status", n, drop ? "relinquished" : "claimed", privcolor(r), privname(r));
