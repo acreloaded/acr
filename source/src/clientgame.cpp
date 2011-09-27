@@ -141,6 +141,8 @@ void addexp(int xp){
 	#undef xpfactor
 }
 
+bool spawnenqueued = false;
+
 void deathstate(playerent *pl, playerent *act)
 {
 	if(pl == player1 && editmode) toggleedit(true);
@@ -170,11 +172,10 @@ void deathstate(playerent *pl, playerent *act)
 		if(showscoresondeath) showscores(true);
 		setscope(false);
 		//damageblend(-1);
+		spawnenqueued = false;
 	}
 	else pl->resetinterp();
 }
-
-bool spawnenqueued = false;
 
 void spawnstate(playerent *d)			  // reset player state not persistent across spawns
 {
@@ -184,7 +185,6 @@ void spawnstate(playerent *d)			  // reset player state not persistent across sp
 	{
 		if(player1->skin!=nextskin) setskin(player1, nextskin);
 		setscope(false);
-		spawnenqueued = false;
 	}
 }
 
