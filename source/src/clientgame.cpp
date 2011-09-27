@@ -297,7 +297,6 @@ void showrespawntimer()
 	}
 	else if(player1->state==CS_DEAD)// && (!player1->isspectating() || player1->spectatemode==SM_DEATHCAM))
 		showhudtimer(SPAWNDELAY, player1->respawnoffset, "READY!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
-	else hudeditf(HUDMSG_TIMER, "");
 }
 
 struct scriptsleep { int wait; char *cmd; };
