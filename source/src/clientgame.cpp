@@ -318,7 +318,7 @@ void showrespawntimer()
 		if(!arenaintermission) return;
 		showhudtimer(5, arenaintermission, "FIGHT!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
 	}
-	else if(player1->state==CS_DEAD && (!player1->isspectating() || player1->spectatemode==SM_DEATHCAM))
+	else if(player1->state==CS_DEAD)// && (!player1->isspectating() || player1->spectatemode==SM_DEATHCAM))
 		showhudtimer(m_flags ? 5 : 1, player1->respawnoffset, "READY!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
 }
 
