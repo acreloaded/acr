@@ -736,14 +736,17 @@ dir(right,	strafe, -1, k_right, k_left)
 void attack(bool on)
 {
 	if(intermission) return;
+	static bool died = false;
 	if(editmode) editdrag(on);
 	else if(player1->state==CS_DEAD)
 	{
-		if(!on) tryrespawn();
+		if(!on && died) tryrespawn();
+		died = true;
 	}
 	else{
 		extern int burst, burstfull;
 		player1->attacking = on || (player1->attacking && !on && burst && burstfull && player1->weaponsel && (player1->weaponsel->type == WEAP_ASSAULT || player1->weaponsel->type == WEAP_SUBGUN) && player1->weaponsel->shots < burst);
+		died = false;
 	}
 }
 

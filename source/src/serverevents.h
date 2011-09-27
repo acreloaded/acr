@@ -274,6 +274,11 @@ void processevents(){
 				c.state.lastregen = gamemillis;
 			}
 		}
+		else if(c.state.state == CS_WAITING){ // spawn queue
+			const int waitremain = (m_flags ? 5000 : 1000) - gamemillis + c.state.lastdeath;
+			if(canspawn(&c) && waitremain <= 0) sendspawn(&c);
+			//else sendmsgi(41, waitremain, sender);
+		}
 		// events
 		while(c.events.length()) // ordered
 		{

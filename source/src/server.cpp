@@ -627,6 +627,7 @@ void spawnstate(client *c){
 	clientstate &gs = c->state;
 	gs.spawnstate(smode);
 	++gs.lifesequence;
+	gs.state = CS_DEAD;
 }
 
 void sendspawn(client *c){
@@ -3286,15 +3287,18 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(cp.team == TEAM_SPECT){
 					if(mastermode < MM_LOCKED || cp.type != ST_TCPIP || cp.priv >= PRIV_ADMIN){
 						updateclientteam(cn, freeteam(cn), FTR_PLAYERWISH);
-						if(canspawn(&cp, true)) sendspawn(&cp);
+						if(canspawn(&cp, true)){
+							sendspawn(&cp);
+							break;
+						}
 					}
-					else sendf(sender, 1, "ri2", N_SWITCHTEAM, 1 << 4);
+					else{
+						sendf(sender, 1, "ri2", N_SWITCHTEAM, 1 << 4);
+						break; // no enqueue
+					}
 				}
-				else if(canspawn(&cp)){
-					const int waitremain = (m_flags ? 5000 : 1000) - gamemillis + cp.state.lastdeath;
-					if(waitremain <= 0) sendspawn(&cp);
-					//else sendmsgi(41, waitremain, sender);
-				}
+				// enqueue for spawning
+				cp.state.state = CS_WAITING;
 				break;
 			}
 
