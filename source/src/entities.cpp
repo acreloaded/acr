@@ -117,7 +117,7 @@ void renderentities()
 			else if(e.type == PLAYERSTART){
 				defformatstring(skin)(e.attr2 < 2 ? "packages/models/playermodels/%s/%s.jpg" : "packages/models/playermodels/skin.jpg",
 					team_string(e.attr2), e.attr2 ? "blue" : "red");
-				rendermodel("playermodels", ANIM_IDLE|ANIM_TRANSLUCENT|ANIM_LOOP|ANIM_DYNALLOC, -(int)textureload(skin)->id, 1.5f, vec(e.x, e.y, (float)S(e.x, e.y)->floor), e.attr1+90, 0/4);
+				rendermodel("playermodels", ANIM_IDLE|ANIM_TRANSLUCENT|/*ANIM_LOOP*/ANIM_END|ANIM_DYNALLOC, -(int)textureload(skin)->id, 1.5f, vec(e.x, e.y, (float)S(e.x, e.y)->floor), e.attr1+90, 0/4);
 			}
 			else if(showmodelclipping && e.type == MAPMODEL && !stenciling)
 			{
