@@ -50,6 +50,8 @@ struct entity : public persistent_entity
 #define STARTHEALTH 100
 #define MAXHEALTH 120
 
+#define SPAWNDELAY (m_flags ? 5000 : 1500)
+
 #define REGENDELAY 4250
 #define REGENINT 2500
 

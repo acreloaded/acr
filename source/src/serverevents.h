@@ -275,7 +275,7 @@ void processevents(){
 			}
 		}
 		else if(c.state.state == CS_WAITING){ // spawn queue
-			const int waitremain = (m_flags ? 5000 : 1000) - gamemillis + c.state.lastdeath;
+			const int waitremain = SPAWNDELAY - gamemillis + c.state.lastdeath;
 			if(canspawn(&c) && waitremain <= 0) sendspawn(&c);
 			//else sendmsgi(41, waitremain, sender);
 		}

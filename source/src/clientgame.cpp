@@ -174,7 +174,9 @@ void deathstate(playerent *pl, playerent *act)
 	else pl->resetinterp();
 }
 
-void spawnstate(playerent *d)			  // reset player state not persistent accross spawns
+bool spawnenqueued = false;
+
+void spawnstate(playerent *d)			  // reset player state not persistent across spawns
 {
 	d->respawn();
 	d->spawnstate(gamemode);
@@ -182,6 +184,7 @@ void spawnstate(playerent *d)			  // reset player state not persistent accross s
 	{
 		if(player1->skin!=nextskin) setskin(player1, nextskin);
 		setscope(false);
+		spawnenqueued = false;
 	}
 }
 
@@ -270,40 +273,14 @@ void moveotherplayers()
 	}
 }
 
-
-bool showhudtimer(int maxsecs, int startmillis, const char *msg, bool flash)
+bool showhudtimer(int maxmillis, int startmillis, const char *msg, bool flash)
 {
-	/*
-	static string str = "";
-	static int tickstart = 0, curticks = -1, maxticks = -1;
-	int nextticks = (lastmillis - startmillis) / 200;
-	if(tickstart!=startmillis || maxticks != 5*maxsecs)
-	{
-		tickstart = startmillis;
-		maxticks = 5*maxsecs;
-		curticks = -1;
-		copystring(str, "\f3");
-	}
-	if(curticks >= maxticks) return false;
-	nextticks = min(nextticks, maxticks);
-	while(curticks < nextticks)
-	{
-		if(++curticks%5) concatstring(str, ".");
-		else
-		{
-			defformatstring(sec)("%d", maxsecs - (curticks/5));
-			concatstring(str, sec);
-		}
-	}
-	if(nextticks < maxticks) hudeditf(HUDMSG_TIMER|HUDMSG_OVERWRITE, flash ? str : str+2);
-	else hudeditf(HUDMSG_TIMER, msg);
-	return true;
-	*/
 	static int lasttick = 0;
-	if(lasttick > startmillis + maxsecs * 1000) return false;
+	if(lasttick > startmillis + maxmillis) return false;
 	lasttick = lastmillis;
-	defformatstring(str)("\f3Waiting for respawn: %.1fs", maxsecs - (lastmillis - startmillis) / 1000.f);
-	if(lastmillis <= startmillis + maxsecs * 1000) hudeditf(HUDMSG_TIMER|HUDMSG_OVERWRITE, flash ? str : str+2);
+	const bool queued = spawnenqueued && !m_duel;
+	defformatstring(str)("\f%s: %.1fs", queued ? "2Queued for spawn" : "3Waiting for respawn", (startmillis + maxmillis - lastmillis) / 1000.f);
+	if(lastmillis <= startmillis + maxmillis) hudeditf(HUDMSG_TIMER|HUDMSG_OVERWRITE, flash || queued ? str : str+2);
 	else hudeditf(HUDMSG_TIMER, msg);
 	return true;
 }
@@ -316,10 +293,11 @@ void showrespawntimer()
 	if(m_duel)
 	{
 		if(!arenaintermission) return;
-		showhudtimer(5, arenaintermission, "FIGHT!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
+		showhudtimer(5000, arenaintermission, "FIGHT!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
 	}
 	else if(player1->state==CS_DEAD)// && (!player1->isspectating() || player1->spectatemode==SM_DEATHCAM))
-		showhudtimer(m_flags ? 5 : 1, player1->respawnoffset, "READY!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
+		showhudtimer(SPAWNDELAY, player1->respawnoffset, "READY!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
+	else hudeditf(HUDMSG_TIMER, "");
 }
 
 struct scriptsleep { int wait; char *cmd; };
@@ -459,11 +437,15 @@ void spawnplayer(playerent *d)
 	*/
 }
 
-void respawnself(){ spawnplayer(player1); }
+void respawnself(){
+	spawnplayer(player1);
+	spawnenqueued = true;
+}
 
 bool tryrespawn(){
 	if(player1->state==CS_DEAD){
 		respawnself();
+
 		int respawnmillis = player1->respawnoffset+(m_duel ? 0 : (m_flags ? 5000 : 1000));
 		if(lastmillis>respawnmillis){
 			player1->attacking = false;
