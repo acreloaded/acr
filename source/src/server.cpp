@@ -1581,7 +1581,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 		ts.lastdeath = gamemillis;
 		const char *h = gethostname(actor->clientnum);
 		if(!suic) logline(ACLOG_INFO, "[%s] %s %s %s (%.2f m)", h, actor->name, killname(toobit(gun, style), isheadshot(gun, style)), target->name, killdist);
-		else logline(ACLOG_INFO, "[%s] %s %s (%.2f m)", h, actor->name, suicname(obit_suicide(gun)), killdist);
+		else if(actor->type != ST_AI || target->type != ST_AI) logline(ACLOG_INFO, "[%s] %s %s (%.2f m)", h, actor->name, suicname(obit_suicide(gun)), killdist);
 
 		if(m_flags && targethasflag >= 0)
 		{
