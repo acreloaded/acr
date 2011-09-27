@@ -3183,7 +3183,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				int flags = getint(p), voice = flags & 0x1F; flags = (flags >> 5) & 3; // SAY_DENY is server only
 				getstring(text, p);
 				if(!cl) break;
-				filtertext(text, text);
+				filtertext(text, text, 1, 48);
 				sendtext(text, *cl, flags, voice);
 				break;
 			}
