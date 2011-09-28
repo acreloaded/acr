@@ -59,9 +59,9 @@ struct entity : public persistent_entity
 #define MAXARMOR 100
 
 struct itemstat { short add, start, max, sound; };
-static itemstat ammostats[] =
+static itemstat ammostats[WEAP_MAX] =
 {
-	{1,  1,   1,	S_ITEMAMMO },   // knife dummy
+	{1,  1,   2,	S_ITEMAMMO },   // knife dummy
 	{24, 60,  72,	S_ITEMAMMO },   // pistol
 	{21, 28,  42,	S_ITEMAMMO },   // shotgun
 	{96, 128,  192,	S_ITEMAMMO },   // subgun
@@ -577,7 +577,7 @@ struct playerstate
 		gunselect = WEAP_PISTOL;
 		akimbo = scoping = false;
 		loopi(WEAP_MAX) ammo[i] = mag[i] = gunwait[i] = 0;
-		ammo[WEAP_KNIFE] = 2;
+		ammo[WEAP_KNIFE] = ammostats[WEAP_KNIFE].start;
 		mag[WEAP_KNIFE] = 1;
 	}
 
@@ -607,7 +607,7 @@ struct playerstate
 		perk = nextperk;
 		if(perk <= PERK_NONE || perk >= PERK_MAX) perk = rnd(PERK_MAX-1)+1;
 
-		const int healthsets[3] = { 95, 100, 120 };
+		const int healthsets[3] = { 85, 100, 120 };
 		health = healthsets[(m_osok ? 0 : 1) + (perk == PERK_HEALTHY ? 1 : 0)];
 	}
 

@@ -3051,7 +3051,7 @@ void checkmove(client &cp){
 	}
 	// throwing knife pickup
 	if(cp.type != ST_AI) loopv(sknives){
-		const bool pickup = cs.o.dist(sknives[i].o) < 5 && cs.ammo[WEAP_KNIFE] < 3, expired = gamemillis - sknives[i].millis > KNIFETTL;
+		const bool pickup = cs.o.dist(sknives[i].o) < 5 && cs.ammo[WEAP_KNIFE] < ammostats[WEAP_KNIFE].max, expired = gamemillis - sknives[i].millis > KNIFETTL;
 		if(pickup || expired){
 			if(pickup) sendf(-1, 1, "ri5", N_RELOAD, sender, WEAP_KNIFE, cs.mag[WEAP_KNIFE], ++cs.ammo[WEAP_KNIFE]);
 			sendf(-1, 1, "ri2", N_KNIFEREMOVE, sknives[i].id);
