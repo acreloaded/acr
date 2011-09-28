@@ -30,7 +30,12 @@ void processevent(client &c, projevent &e){
 					tknifeflags |= FRAG_CRITICAL;
 					dmg *= 2; // 80 * 2 = 160 damage instant kill!
 				}
+				else dmg /= 2; // just because of the bleeding
 				damagedealt += dmg;
+				// bleeding damage
+				target.state.lastbleed = gamemillis;
+				target.state.lastbleedowner = c.clientnum;
+				sendf(-1, 1, "ri2", N_BLEED, e.flag);
 				serverdamage(&target, &c, dmg, WEAP_KNIFE, FRAG_FLAG, vec(0, 0, 0));
 
 				e.o[0] = ts.o[0];
