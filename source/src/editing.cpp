@@ -79,8 +79,9 @@ void correctsel()									   // ensures above invariant
 bool noteditmode()
 {
 	correctsel();
-	if(!editmode) conoutf("this function is only allowed in edit mode");
-	return !editmode;
+	const bool notedit = !editmode && !m_edit;
+	if(notedit) conoutf("this function is only allowed in edit mode");
+	return notedit;
 }
 
 bool noselection()
