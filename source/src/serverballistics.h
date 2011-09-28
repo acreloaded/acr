@@ -124,6 +124,7 @@ void nuke(client &owner){
 			// sort hits
 			nukehit &hit = hits.add();
 			hit.distance = cl->state.o.dist(owner.state.o);
+			if(cl->type != ST_AI) hit.distance += 40; // 10 meters, no big deal
 			hit.target = cl;
 		}
 	}
