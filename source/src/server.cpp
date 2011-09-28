@@ -3090,7 +3090,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 		else
 		{
 			getstring(text, p);
-			if(!*text) copystring(text, "unnamed");
+			if(!*text) copystring(text, "unarmed");
 			filtername(text, text);
 			copystring(cl->name, text, MAXNAMELEN+1);
 			cl->skin = getint(p);
@@ -3192,7 +3192,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case N_NEWNAME:
 				getstring(text, p);
 				filtername(text, text);
-				if(!text[0]) copystring(text, "unnamed");
+				if(!text[0]) copystring(text, "unarmed");
 				if(!strcmp(cl->name, text)) break; // same name!
 				switch(nbl.checknickwhitelist(*cl)){
 					case NWL_PWDFAIL:

@@ -345,7 +345,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				d->level = getint(p);
 				if(type == N_INITCLIENT){ // human
 					getstring(text, p);
-					if(!*text) copystring(text, "unnamed");
+					if(!*text) copystring(text, "unarmed");
 					filtername(d->name, text);
 					conoutf("connected: %s", colorname(d));
 					if(!joining) chatoutf("%s \f0joined \f2the \f1game", colorname(d));
@@ -390,7 +390,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				playerent *d = getclient(getint(p));
 				getstring(text, p);
 				filtertext(text, text, 1, MAXNAMELEN);
-				if(!text[0]) copystring(text, "unnamed");
+				if(!text[0]) copystring(text, "unarmed");
 				if(!d || !strcmp(d->name, text)) break;
 				if(d->name[0]) conoutf("%s \f6(%d) \f5is now known as \f1%s", d->name, d->clientnum, text);
 				filtername(d->name, text);
