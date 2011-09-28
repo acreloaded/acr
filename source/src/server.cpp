@@ -3090,7 +3090,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 		else
 		{
 			getstring(text, p);
-			if(!*text) copystring(text, "unarmed");
+			if(!*text) copystring(text, "unnamed");
 			filtername(text, text);
 			copystring(cl->name, text, MAXNAMELEN+1);
 			cl->skin = getint(p);

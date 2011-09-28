@@ -632,7 +632,7 @@ playerent *getclient(int cn)   // ensure valid entity
 void initclient()
 {
 	clientmap[0] = 0;
-	newname("unarmed");
+	newname("needsaname");
 	player1->team = TEAM_BLUE;
 }
 
