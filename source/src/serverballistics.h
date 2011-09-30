@@ -228,16 +228,19 @@ int shotgun(client &owner, const vec &from, const vec &to){
 		// basic checks
 		if(i == owner.clientnum || t.type == ST_EMPTY || ts.state != CS_ALIVE) continue;
 
-		int damage = 0;
+		int damage = 0, shothead = 0, shotnonhead = 0;
 		loopj(SGRAYS){ // check rays and sum damage
 			vec head = generateHead(ts.o, ts.aim[0]), end;
 			const int hitzone = hitplayer(from, gs.aim[0], gs.aim[1], gs.sg[j], ts.o, head, &end);
 			if(!hitzone) continue;
 			damage += effectiveDamage(WEAP_SHOTGUN, end.dist(gs.o)) * muls[MUL_SHOTGUN].val[hitzone == HIT_HEAD ? 0 : hitzone == HIT_TORSO ? 1 : 2];
+			++(hitzone == HIT_HEAD ? shothead : shotnonhead);
 		}
 		damagedealt += damage;
 		sendhit(owner, WEAP_SHOTGUN, ts.o.v);
-		serverdamage(&t, &owner, damage, WEAP_SHOTGUN, damage >= SGGIB ? FRAG_GIB : FRAG_NONE, from);
+		int shotgunflags = damage >= SGGIB ? FRAG_GIB : FRAG_NONE;
+		if(shothead >= shotnonhead) shotgunflags |= FRAG_FLAG;
+		serverdamage(&t, &owner, damage, WEAP_SHOTGUN, shotgunflags, from);
 	}
 	return damagedealt;
 }
