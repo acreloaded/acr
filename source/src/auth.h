@@ -4,6 +4,8 @@ client *findauth(uint id){
 	return NULL;
 }
 
+extern vector<authrequest> authrequests;
+
 bool reqauth(int cn, int authtoken){
 	if(!valid_client(cn)) return false;
 	client &cl = *clients[cn];
@@ -26,6 +28,7 @@ int allowconnect(client &ci, const char *pwd = "", int authreq = 0){
 	if(ci.priv >= PRIV_ADMIN) return DISC_NONE;
 	if(authreq && reqauth(ci.clientnum, authreq)){
 		logline(ACLOG_INFO, "[%s] %s logged in requesting auth", gethostname(ci.clientnum), ci.name);
+		ci.connectauth = true;
 		return DISC_NONE;
 	}
 	// nickname list
@@ -55,6 +58,8 @@ int allowconnect(client &ci, const char *pwd = "", int authreq = 0){
 	if(srvprivate) return DISC_PRIVATE;
 	if(srvfull) return DISC_FULL;
 	if(banned) return DISC_REFUSE;
+	// does the master server want a disconnection?
+	if(ci.authpriv < PRIV_NONE && ci.masterverdict) return ci.masterverdict;
 	if(*scl.serverpassword){ // server password required
 		if(!strcmp(genpwdhash(ci.name, scl.serverpassword, ci.salt), pwd)){
 			logline(ACLOG_INFO, "[%s] %s logged in using the server password%s", gethostname(ci.clientnum), ci.name, wlp);
@@ -65,8 +70,8 @@ int allowconnect(client &ci, const char *pwd = "", int authreq = 0){
 	return DISC_NONE;
 }
 
-void checkauthdisc(client &ci){
-	if(ci.connectauth){
+void checkauthdisc(client &ci, bool force = false){
+	if(ci.connectauth || force){
 		ci.connectauth = false;
 		const int disc = allowconnect(ci);
 		if(disc) disconnect_client(ci.clientnum, disc);
@@ -80,7 +85,7 @@ void authsuceeded(uint id, char priv, char *name){
 	logline(ACLOG_INFO, "[%s] auth #%d suceeded for %s as '%s'", gethostname(c->clientnum), id, privname(priv), name);
 	sendf(-1, 1, "ri3s", N_AUTHCHAL, 5, c->clientnum, name);
 	if(priv) setpriv(c->clientnum, c->authpriv = clamp<char>(priv, PRIV_MASTER, PRIV_MAX));
-	else c->authpriv = PRIV_NONE; // bypass master ban
+	else c->authpriv = PRIV_NONE; // bypass master bans
 	loopv(bans) if(bans[i].host == c->peer->address.host) bans.remove(i); // deban
 	checkauthdisc(*c); // can bypass passwords
 }
@@ -116,9 +121,16 @@ bool answerchallenge(int cn, int *hash){
 	authrequest &r = authrequests.add();
 	r.id = cl.authreq;
 	r.answer = true;
-	memcpy(r.hash, hash, sizeof(hash) * 5);
+	memcpy(r.hash, hash, sizeof(r.hash) * 5);
 	sendf(cn, 1, "ri2", N_AUTHCHAL, 4);
 	return true;
+}
+
+void masterverdict(int cn, int result){
+	if(!valid_client(cn)) return;
+	client &ci = *clients[cn];
+	ci.masterverdict = result;
+	if(!ci.connectauth) checkauthdisc(ci, true);
 }
 
 void logversion(client &ci, int clientversion, int defs){

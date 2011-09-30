@@ -227,7 +227,7 @@ struct client				   // server side version of "dynent" type
 	int ping, team, skin, vote, priv;
 	int connectmillis;
 	bool connected, connectauth;
-	int authtoken, authmillis, authpriv; uint authreq;
+	int authtoken, authmillis, authpriv, masterverdict; uint authreq;
 	bool haswelcome;
 	bool isonrightmap;
 	bool timesync;
@@ -298,6 +298,7 @@ struct client				   // server side version of "dynent" type
 		spawnindex = -1;
 		mapchange();
 		authpriv = -1;
+		masterverdict = DISC_NONE;
 	}
 
 	void zap()
@@ -305,6 +306,7 @@ struct client				   // server side version of "dynent" type
 		type = ST_EMPTY;
 		priv = PRIV_NONE;
 		authpriv = -1;
+		masterverdict = DISC_NONE;
 		connected = connectauth = haswelcome = false;
 	}
 };
@@ -1712,7 +1714,7 @@ int cmpiprange(const struct iprange *a, const struct iprange *b){
 
 int cmpipmatch(const struct iprange *a, const struct iprange *b) { return - (a->lr < b->lr) + (a->lr > b->ur); }
 
-vector<iprange> ipblacklist, masterbans, masterallows;
+vector<iprange> ipblacklist;
 
 int fixblacklist(vector<iprange> &target, const char *name){
 	target.sort(cmpiprange); // or else bsearch fucks up
@@ -1773,24 +1775,6 @@ void readipblacklist(const char *name){
 	logline(ACLOG_INFO,"read %d (%d) blacklist entries from '%s', %d errors", ipblacklist.length(), orglength, blfilename, errors);
 }
 
-void addmrange(char *text){
-	const bool allow = *text == 'a'; // vs b
-	vector<iprange> &target = allow ? masterallows : masterbans;
-	target.shrink(0);
-	char *ptr = text;
-	while(ptr && *++ptr){ // skips delimiter or first a/b
-		char *end = strchr(ptr, '_');
-		end = end ? end + 1 : ptr;
-		iprange ir;
-		ir.lr = atol(ptr);
-		ir.ur = atol(end);
-		logline(ACLOG_DEBUG, "master %ss %u to %u", allow ? "allow" : "ban", ir.lr, ir.ur);
-		target.add(ir);
-		ptr = strchr(end, '|');
-	}
-	fixblacklist(target, allow ? "master allow" : "master ban");
-}
-
 inline bool checkblacklist(enet_uint32 ip, vector<iprange> &ranges){ // ip: network byte order
 	iprange t;
 	t.lr = ENET_NET_TO_HOST_32(ip); // blacklist uses host byte order
@@ -1798,7 +1782,6 @@ inline bool checkblacklist(enet_uint32 ip, vector<iprange> &ranges){ // ip: netw
 	return ranges.search(&t, cmpipmatch) != NULL;
 }
 
-inline bool checkmasterbans(enet_uint32 ip) { return checkblacklist(ip, masterbans) && !checkblacklist(ip, masterallows); }
 inline bool checkipblacklist(enet_uint32 ip) { return checkblacklist(ip, ipblacklist); }
 
 #define MAXNICKFRAGMENTS 5
@@ -2438,7 +2421,7 @@ bool isbanned(int cn){
 		if(b.host == c.peer->address.host) { return true; }
 		if(b.millis >= 0 && b.millis < servmillis) { bans.remove(i--); }
 	}
-	return checkipblacklist(c.peer->address.host) || (c.authpriv < PRIV_NONE && checkmasterbans(c.peer->address.host));
+	return checkipblacklist(c.peer->address.host);
 }
 
 void banclient(client *c, int minutes){
@@ -2448,9 +2431,7 @@ void banclient(client *c, int minutes){
 	bans.add(b);
 }
 
-void sendserveropinfo(int receiver = -1){
-	loopv(clients) if(valid_client(i)) sendf(receiver, 1, "ri3", N_SETPRIV, i, clients[i]->priv);
-}
+void sendserveropinfo(int receiver = -1){ loopv(clients) if(valid_client(i)) sendf(receiver, 1, "ri3", N_SETPRIV, i, clients[i]->priv); }
 
 #include "serveractions.h"
 static voteinfo *curvote = NULL;
@@ -3118,6 +3099,13 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					disconnect_client(i, DISC_DUP);
 			}
 			if(mastermode >= MM_LOCKED) updateclientteam(sender, TEAM_SPECT, FTR_SILENT);
+
+			// ask masterserver for connection verdict
+			extern vector<connectrequest> connectrequests;
+			connectrequest &creq = connectrequests.add();
+			creq.cn = sender;
+			creq.ip = cl->peer->address.host;
+			creq.nick = cl->name;
 		}
 
 		sendwelcome(cl);
@@ -4325,7 +4313,6 @@ int getpongflags(enet_uint32 ip){
 	flags |= scl.serverpassword[0] ? 1 << PONGFLAG_PASSWORD : 0;
 	loopv(bans) if(bans[i].host == ip) { flags |= 1 << PONGFLAG_BANNED; break; }
 	flags |= checkipblacklist(ip) ? 1 << PONGFLAG_BLACKLIST : 0;
-	flags |= checkmasterbans(ip) ? 1 << PONGFLAG_MBLACKLIST : 0;
 	return flags;
 }
 

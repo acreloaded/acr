@@ -90,13 +90,13 @@ enum { PHYS_FALL = 0, PHYS_HARDFALL, PHYS_JUMP, PHYS_AKIMBOOUT, PHYS_NOAMMO, PHY
 //#define DNF 1000.0f         // for normalized vectors
 //#define DVELF 8.0f          // for playerspeed based velocity vectors
 
-enum { DISC_NONE = 0, DISC_EOP, DISC_KICK, DISC_BAN, DISC_TAGT, DISC_REFUSE, DISC_PASSWORD, DISC_LOGINFAIL, DISC_FULL, DISC_PRIVATE,
+enum { DISC_NONE = 0, DISC_EOP, DISC_KICK, DISC_BAN, DISC_MBAN, DISC_TAGT, DISC_REFUSE, DISC_PASSWORD, DISC_LOGINFAIL, DISC_FULL, DISC_PRIVATE,
 		DISC_NAME, DISC_DUP, DISC_OVERFLOW, DISC_TIMEOUT, DISC_NUM };
 
 static const char *disc_reason(int reason)
 {
 	static const char *disc_reasons[DISC_NUM] = {
-		"normal", "end of packet/overread", "kicked", "banned", "tag type", "connection refused", "wrong password", "failed login", "server is full", "private",
+		"normal", "end of packet/overread", "kicked", "banned", "globally banned", "tag type", "connection refused", "wrong password", "failed login", "server is full", "private",
 			"bad name", "duplicate connection", "overflow/packet flood", "timeout" };
 	return reason >= 0 && (size_t)reason < DISC_NUM ? disc_reasons[reason] : "unknown";
 }
@@ -164,4 +164,4 @@ enum
 #define m_ai			(m_fight(gamemode)) // bots not available in coopedit
 
 struct authrequest{ uint id; bool answer; int hash[5]; };
-extern vector<authrequest> authrequests;
+struct connectrequest{ int cn; enet_uint32 ip; const char *nick; };

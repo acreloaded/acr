@@ -76,12 +76,14 @@ ENetAddress masterserver = { ENET_HOST_ANY, 80 };
 int lastupdatemaster = -1;
 string masterbase;
 string masterpath;
-#define MAXMASTERTRANS MAXTRANS // enlarge if bans get bad...
+#define MAXMASTERTRANS MAXTRANS // enlarge if response is big...
 uchar masterrep[MAXMASTERTRANS];
 ENetBuffer masterb;
 vector<authrequest> authrequests;
+connectrequest *currentconnectrequest = NULL;
+vector<connectrequest> connectrequests;
 
-// send alive signal to masterserver every fifteen minutes of uptime
+// send alive signal to masterserver every fifteen (15) minutes of uptime
 #define MSKEEPALIVE (15*60*1000)
 void updatemasterserver(int millis, const ENetAddress &localaddr){
 	if(mssock != ENET_SOCKET_NULL) return; // busy
@@ -99,6 +101,9 @@ void updatemasterserver(int millis, const ENetAddress &localaddr){
 		if(r.answer) formatstring(path)("%sauth/%d/%08x%08x%08x%08x%08x", masterpath, r.id,
 			r.hash[0], r.hash[1], r.hash[2], r.hash[3], r.hash[4]);
 		else formatstring(path)("%sauth/%d", masterpath, r.id);
+	} else if(connectrequests.length()){
+		currentconnectrequest = new connectrequest(connectrequests.remove(0));
+		formatstring(path)("%sconnect/%ul/%s", masterpath, currentconnectrequest->ip, currentconnectrequest->nick);
 	}
 	if(!*path) return; // no request
 	defformatstring(agent)("AssaultCube Server v%d", AC_VERSION);
@@ -122,9 +127,28 @@ void checkmasterreply()
 			// process commands
 			char *tp = replytoken;
 			if(*tp++ == '*'){
-				if(*tp == 'a' || *tp == 'b'){ // add an allow/ban
-					extern void addmrange(char *text);
-					addmrange(tp);
+				if(*tp == 'a' || *tp == 'b'){ // verdict: allow/ban connect
+					if(currentconnectrequest){
+						extern void masterverdict(int cn, int result);
+						int verdict = DISC_NONE;
+						if(*tp == 'b') switch(*++tp){
+							case 'w': // nickname whitelisted, not actually a banned verdict
+								verdict = DISC_NONE;
+								break;
+							case 'm': // name is whitelisted, requires password
+							case 'I': // name is whitelisted, IP failure
+							case 'n': // name is blacklisted
+								verdict = DISC_NAME;
+								break;
+							case 'i': // IP banned
+								verdict = DISC_MBAN;
+								break;
+							default: // unknown reason
+								verdict = DISC_NUM;
+								break;
+						}
+						masterverdict(currentconnectrequest->cn, verdict);
+					}
 				}
 				else if(*tp == 'd' || *tp == 'f' || *tp == 's' || *tp == 'c'){ // auth
 					char t = *tp++;
@@ -164,6 +188,7 @@ void checkmasterreply()
 			}
 			replytoken = strtok(NULL, "\n");
 		}
+		DELETEP(currentconnectrequest);
 	}
 }
 
