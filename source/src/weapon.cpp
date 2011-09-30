@@ -1196,7 +1196,7 @@ void knife::attackfx(const vec &from, const vec &to, int millis) {
 	}
 	else attacksound();
 }
-void knife::renderstats() { draw_textf("%i", 590, 823, ammo); }
+void knife::renderstats() { if(ammo) draw_textf("%i", 590, 823, ammo); }
 
 // setscope for snipers and iron sights
 void setscope(bool enable){
