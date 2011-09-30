@@ -186,8 +186,6 @@ void trydisconnect()
 
 VARP(hudchat, 0, 1, 1);
 void saytext(playerent *d, char *text, int flags, int sound){
-	string nametag; copystring(nametag, colorname(d));
-	if(flags & SAY_TEAM) formatstring(nametag)("%s \f5(\f%d%s\f5)", nametag, d->team ? 1 : 3, team_string(d->team));
 	if(sound > S_MAINEND && sound < S_NULL){
 		d->addicon(eventicon::VOICECOM);
 		playsound(sound, SP_HIGH);
@@ -200,8 +198,13 @@ void saytext(playerent *d, char *text, int flags, int sound){
 	}
 	string textout;
 	const int col = d == player1 ? 1 : m_team ? d->team == player1->team ? 0 : 3 : 5;
-	if(flags & SAY_ACTION) formatstring(textout)("\f5* \f%d%s \f6(%d)", col, d->name, d->clientnum);
-	else formatstring(textout)("\f5<\f%d%s \f6(%d)\f5>", col, d->name, d->clientnum);
+	// nametag
+	defformatstring(nametag)("\f%d%s", col, colorname(d));
+	if(flags & SAY_TEAM) concatformatstring(nametag, " \f5(\f%d%s\f5)", d->team ? 1 : 3, team_string(d->team));
+	// more nametag
+	if(flags & SAY_ACTION) formatstring(textout)("\f5* %s", nametag);
+	else formatstring(textout)("\f5<%s\f5>", nametag);
+	// output with text
 	void (*outf)(const char *s, ...) = flags&SAY_DENY ? conoutf : chatoutf;
 	if(sound) outf("%s \f4[\f6%d\f4] \f%d%s", textout, sound, textcolor, text);
 	else outf("%s \f%d%s", textout, textcolor, text);
