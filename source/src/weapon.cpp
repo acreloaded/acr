@@ -822,7 +822,7 @@ void shotgun::attackfx(const vec &from2, const vec &to, int millis){
 	uchar filter = 0;
 	if(addbullethole(owner, from, to)) loopi(SGRAYS){
 		if(filter++ % 4){
-			addshotline(owner, from, sg[i], 2);
+			addshotline(owner, from, sg[i], 3);
 		}
 		if(filter >= 4) filter = 0;
 		//traceShot(from, sg[i]);
