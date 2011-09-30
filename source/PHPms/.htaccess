@@ -4,8 +4,9 @@ ErrorDocument 500 "500 Stupid failure"
 RewriteEngine On
 RewriteBase /ms
 RewriteRule ^cube index.php?cube [L]
-RewriteRule ^json index.php?json [L]
-RewriteRule ^bans index.php?bans [L]
+RewriteRule ^connect/([0-9]+)/(.*)/?$ index.php?connectcheck&id=$1&nick=$2 [L]
 RewriteRule ^reg(?:ister)?/([0-9]+)/([0-9]{1,5})/?$ index.php?register&port=$2&proto=$1 [L]
 RewriteRule ^auth/([0-9]+)/([0-9a-f]+)/? index.php?authchal&id=$1&ans=$2 [L]
 RewriteRule ^auth/([0-9]+)/? index.php?authreq&id=$1 [L]
+RewriteRule ^json index.php?json [L]
+RewriteRule ^bans index.php?bans [L]

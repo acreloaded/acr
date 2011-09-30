@@ -103,7 +103,8 @@ void updatemasterserver(int millis, const ENetAddress &localaddr){
 		else formatstring(path)("%sauth/%d", masterpath, r.id);
 	} else if(connectrequests.length()){
 		currentconnectrequest = new connectrequest(connectrequests.remove(0));
-		formatstring(path)("%sconnect/%ul/%s", masterpath, currentconnectrequest->ip, currentconnectrequest->nick);
+		formatstring(path)("%sconnect/%lu/%s", masterpath, currentconnectrequest->ip, currentconnectrequest->nick);
+		logline(ACLOG_INFO, "%s", path);
 	}
 	if(!*path) return; // no request
 	defformatstring(agent)("AssaultCube Server v%d", AC_VERSION);
@@ -136,7 +137,11 @@ void checkmasterreply()
 								verdict = DISC_NONE;
 								break;
 							case 'm': // name is whitelisted, requires password
+								verdict = DISC_NAME_PWD; // use auth deban to bypass
+								break;
 							case 'I': // name is whitelisted, IP failure
+								verdict = DISC_NAME_IP;
+								break;
 							case 'n': // name is blacklisted
 								verdict = DISC_NAME;
 								break;

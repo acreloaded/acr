@@ -38,6 +38,7 @@
 		}
 		return $buffer;
 	}
+	// clients
 	if(isset($_GET['cube'])){ // cubescript
 		header('Content-type: text/plain');
 		$srvs = getServers();
@@ -50,25 +51,8 @@
 			echo ($s[2] ? '' : "//")."addserver {$s[0]} {$s[1]}{$wt}\r\n";
 		}
 	}
-	elseif(isset($_GET['json'])){ // JSON
-		$buf = getServers();
-		foreach($buf as &$s) $s = array("server" => $s[0], "port" => $s[1], "ip" => long2ip($s[3]), "ipd" => $s[3]); // automatically converted to object...
-		echo json_encode($buf);
-	}
-	elseif(isset($_GET['bans'])){ // list bans
-		function banflag2s($f){ return ($f&1 ? "playing" : "").($f&3 ? " and " : "").($f&2 ? "registering a server" : ""); } // FIXME
-		$ip = getiplong();
-		$banned = $allowed = 0;
-		foreach($config['sbans'] as $r){
-			if($r[0] <= $ip && $ip <= $r[1]){ ++$banned; echo "*"; }
-			echo "ban ".long2ip($r[0]).($r[0] != $r[1] ? " - ".long2ip($r[1]) : '')." from ".banflag2s($r[2]).($r[3] ? "; remarks: ".$r[3] : "")."<br>\n";
-		}
-		foreach($config['sallows'] as $r){
-			if($r[0] <= $ip && $ip <= $r[1]){ ++$allowed; echo "*"; }
-			echo "allow ".long2ip($r[0]).($r[0] != $r[1] ? " - ".long2ip($r[1]) : '')." to be ".banflag2s($r[2]).($r[3] ? "; remarks: ".$r[3] : "")."<br>\n";
-		}
-		echo "Your IP is: ".long2ip($ip)." which is banned {$banned} times and allowed {$allowed} times<br>\nThat is all.";
-	}
+	
+	// servers
 	elseif(isset($_GET['register'])){ // register
 		function addserver($ip, $port, $add){ // returns if it is renewed
 			global $config;
@@ -123,8 +107,21 @@
 			echo 'Your server has been renewed.';
 		else // registered
 			echo 'Your server has been registered.'.($config['servers']['check-socket'] ? "" : " We cannot verify if your server is reachable.");
-		sendranges(1);
 	}
+	
+	// compulsory auth
+	elseif(isset($_GET['connectcheck'])){ // connect checks
+		// id as ip/nick as name
+		
+		// check ip bans
+		
+		// check nick whitelist w/ip
+		// check nick blacklist
+		
+		echo "*a"; // default
+	}
+	
+	// auth
 	elseif(isset($_GET['authreq'])){ // request auth
 		$ip = getiplong();
 		$q = mysql_num_rows(mysql_query("SELECT `ip` FROM `{$config['db']['pref']}servers` WHERE `ip`={$ip}"));
@@ -152,11 +149,29 @@
 		$q = mysql_result(mysql_query("SELECT `nonce` FROM `{$config['db']['pref']}auth` WHERE `ip`={$ip} AND `id`={$id}"), 0, 0);
 		mysql_query("DELETE FROM `{$config['db']['pref']}auth` WHERE `ip`={$ip} AND `id`={$id}"); // used auth
 		$ans = &$_GET['ans'];
-		foreach($config['auth'] as $authkey) if($ans == sha1($q.':'.$authkey[0])){ // match
-			sendranges(2); // allow auth users to force a server to update its bans
-			exit("*s{$id}|".$authkey[2].$authkey[1]);
-		}
+		foreach($config['auth'] as $authkey) if($ans == sha1($q.':'.$authkey[0])) exit("*s{$id}|".$authkey[2].$authkey[1]); // match
 		echo "*d{$id}"; // no match
+	}
+	
+	// user output
+	elseif(isset($_GET['json'])){ // JSON
+		$buf = getServers();
+		foreach($buf as &$s) $s = array("server" => $s[0], "port" => $s[1], "ip" => long2ip($s[3]), "ipd" => $s[3]); // automatically converted to object...
+		echo json_encode($buf);
+	}
+	elseif(isset($_GET['bans'])){ // list bans
+		function banflag2s($f){ return ($f&1 ? "playing" : "").($f&3 ? " and " : "").($f&2 ? "registering a server" : ""); } // FIXME
+		$ip = getiplong();
+		$banned = $allowed = 0;
+		foreach($config['sbans'] as $r){
+			if($r[0] <= $ip && $ip <= $r[1]){ ++$banned; echo "*"; }
+			echo "ban ".long2ip($r[0]).($r[0] != $r[1] ? " - ".long2ip($r[1]) : '')." from ".banflag2s($r[2]).($r[3] ? "; remarks: ".$r[3] : "")."<br>\n";
+		}
+		foreach($config['sallows'] as $r){
+			if($r[0] <= $ip && $ip <= $r[1]){ ++$allowed; echo "*"; }
+			echo "allow ".long2ip($r[0]).($r[0] != $r[1] ? " - ".long2ip($r[1]) : '')." to be ".banflag2s($r[2]).($r[3] ? "; remarks: ".$r[3] : "")."<br>\n";
+		}
+		echo "Your IP is: ".long2ip($ip)." which is banned {$banned} times and allowed {$allowed} times<br>\nThat is all.";
 	}
 	else{
 	echo <<<INFO

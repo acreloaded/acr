@@ -38,7 +38,7 @@ int allowconnect(client &ci, const char *pwd = "", int authreq = 0){
 	if(wl == NWL_IPFAIL || wl == NWL_PWDFAIL)
 	{ // nickname matches whitelist, but IP is not in the required range or PWD doesn't match
 		logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong %s", gethostname(ci.clientnum), ci.name, wl == NWL_IPFAIL ? "IP" : "PWD");
-		return DISC_PASSWORD;
+		return wl == NWL_IPFAIL ? DISC_NAME_IP : DISC_NAME_PWD;
 	}
 	else if(bl > 0){ // nickname matches blacklist
 		logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d", gethostname(ci.clientnum), ci.name, bl);
@@ -84,7 +84,7 @@ void authsuceeded(uint id, char priv, char *name){
 	c->authreq = 0;
 	logline(ACLOG_INFO, "[%s] auth #%d suceeded for %s as '%s'", gethostname(c->clientnum), id, privname(priv), name);
 	if(priv){
-		sendf(-1, 1, "ri3s", N_AUTHCHAL, 5, c->clientnum, name); // only say "identified" for priviledged users
+		sendf(-1, 1, "ri3s", N_AUTHCHAL, 5, c->clientnum, name); // only say "identified" for privileged users
 		setpriv(c->clientnum, c->authpriv = clamp<char>(priv, PRIV_MASTER, PRIV_MAX));
 	}
 	else c->authpriv = PRIV_NONE; // bypass master bans

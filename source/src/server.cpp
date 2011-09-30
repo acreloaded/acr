@@ -3182,11 +3182,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				filtername(text, text);
 				if(!text[0]) copystring(text, "unarmed");
 				if(!strcmp(cl->name, text)) break; // same name!
-				switch(nbl.checknickwhitelist(*cl)){
+				switch(const int nwl = nbl.checknickwhitelist(*cl)){
 					case NWL_PWDFAIL:
 					case NWL_IPFAIL:
-						logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong IP/PWD", gethostname(sender), cl->name);
-						disconnect_client(sender, DISC_PASSWORD);
+						logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong %s", gethostname(sender), cl->name, nwl == NWL_IPFAIL ? "IP" : "PWD");
+						disconnect_client(sender, nwl == NWL_IPFAIL ? DISC_NAME_IP : DISC_NAME_PWD);
 						break;
 
 					case NWL_UNLISTED:
