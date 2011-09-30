@@ -274,7 +274,7 @@ void drawradarent(const vec &o, float coordtrans, float yaw, int col, int row, f
 	glTranslatef(o.x * coordtrans, o.y * coordtrans, 0);
 	glRotatef(yaw, 0, 0, 1);
 	const sqr * const s = S(int(o.x), int(o.y));
-	float scl = 1 + (o.z - s->floor) / (float)s->ceil;
+	float scl = 1 + (o.z - s->floor) / (float)(s->ceil - s->floor);
 	glScalef(scl, scl, scl);
 	drawradaricon(-iconsize/2.0f, -iconsize/2.0f, iconsize, col, row);
 	glPopMatrix();
