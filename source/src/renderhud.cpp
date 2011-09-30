@@ -368,7 +368,7 @@ vec fixradarpos(const vec &o, const vec &centerpos, float res, bool skip = false
 		ret.z = 0;
 		ret.sub(centerpos).normalize().mul(res/2.15f).add(centerpos);
 	}
-	if(insideradar(centerpos, res/2.15f, ret)) return ret;
+	if(insideradar(centerpos, res/2, ret)) return ret;
 	return vec(-1, -1, -1);
 }
 
