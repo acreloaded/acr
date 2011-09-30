@@ -267,12 +267,15 @@ void drawequipicons(playerent *p)
 
 void drawradarent(const vec &o, float coordtrans, float yaw, int col, int row, float iconsize, bool pulse, float alpha = 1.f, const char *label = NULL, ...)
 {
-	if(o.z < 0) return;
+	if(OUTBORD(int(o.x), int(o.y))) return;
 	glPushMatrix();
 	if(pulse) glColor4f(1.0f, 1.0f, 1.0f, 0.2f+(sinf(lastmillis/30.0f)+1.0f)/2.0f);
 	else glColor4f(1, 1, 1, alpha);
 	glTranslatef(o.x * coordtrans, o.y * coordtrans, 0);
 	glRotatef(yaw, 0, 0, 1);
+	const sqr * const s = S(int(o.x), int(o.y));
+	float scl = 1 + (o.z - s->floor) / (float)s->ceil;
+	glScalef(scl, scl, scl);
 	drawradaricon(-iconsize/2.0f, -iconsize/2.0f, iconsize, col, row);
 	glPopMatrix();
 	if(label && showmap)
