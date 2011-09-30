@@ -267,6 +267,7 @@ void drawequipicons(playerent *p)
 
 void drawradarent(const vec &o, float coordtrans, float yaw, int col, int row, float iconsize, bool pulse, float alpha = 1.f, const char *label = NULL, ...)
 {
+	if(o.z < 0) return;
 	glPushMatrix();
 	if(pulse) glColor4f(1.0f, 1.0f, 1.0f, 0.2f+(sinf(lastmillis/30.0f)+1.0f)/2.0f);
 	else glColor4f(1, 1, 1, alpha);
@@ -362,10 +363,13 @@ bool insideradar(const vec &centerpos, float radius, const vec &o)
 }
 
 vec fixradarpos(const vec &o, const vec &centerpos, float res, bool skip = false){
-	if(skip || insideradar(centerpos, res/2.15f, o)) return o;
 	vec ret(o);
-	ret.z = 0;
-	return ret.sub(centerpos).normalize().mul(res/2.15f).add(centerpos);
+	if(!skip && !insideradar(centerpos, res/2.15f, o)){
+		ret.z = 0;
+		ret.sub(centerpos).normalize().mul(res/2.15f).add(centerpos);
+	}
+	if(insideradar(centerpos, res/2.15f, ret)) return ret;
+	return vec(-1, -1, -1);
 }
 
 bool isattacking(playerent *p) { return lastmillis-p->lastaction < 500; }
