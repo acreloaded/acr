@@ -1295,6 +1295,7 @@ bool spamdetect(client *cl, char *text) // checks doubled lines and average typi
 void sendtext(char *text, client &cl, int flags, int voice){
 	if(voice < 0 || voice > S_VOICEEND - S_MAINEND) voice = 0;
 	defformatstring(logmsg)("<%s> ", cl.name);
+	if(!m_team) flags &= ~SAY_TEAM;
 	if(flags & SAY_ACTION) formatstring(logmsg)("* %s ", cl.name);
 	string logappend;
 	if(flags & SAY_TEAM){
@@ -1310,7 +1311,6 @@ void sendtext(char *text, client &cl, int flags, int voice){
 		sendf(cl.clientnum, 1, "ri3s", N_TEXT, cl.clientnum, SAY_DENY << 5, text);
 		return;
 	}
-	if(!m_team) flags &= ~SAY_TEAM;
 	logline(ACLOG_INFO, "[%s] %s%s", gethostname(cl.clientnum), logmsg, text);
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);

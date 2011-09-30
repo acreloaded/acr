@@ -191,6 +191,7 @@ void saytext(playerent *d, char *text, int flags, int sound){
 		playsound(sound, SP_HIGH);
 	} else sound = 0;
 	int textcolor = 0; // normal text
+	if(!m_team) flags &= ~SAY_TEAM;
 	if(flags&SAY_TEAM) textcolor = isteam(d, player1) ? 1 : 3; // friendly blue, enemy red
 	if(flags&SAY_DENY){
 		textcolor = 2; // denied yellow
