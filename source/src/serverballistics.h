@@ -239,7 +239,7 @@ int shotgun(client &owner, const vec &from, const vec &to){
 		damagedealt += damage;
 		sendhit(owner, WEAP_SHOTGUN, ts.o.v);
 		int shotgunflags = damage >= SGGIB ? FRAG_GIB : FRAG_NONE;
-		if(shothead >= shotnonhead) shotgunflags |= FRAG_FLAG;
+		if(shothead >= (shothead + shotnonhead) * .25f) shotgunflags |= FRAG_FLAG;
 		serverdamage(&t, &owner, damage, WEAP_SHOTGUN, shotgunflags, from);
 	}
 	return damagedealt;
