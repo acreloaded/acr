@@ -129,12 +129,14 @@ void filtername(char *dst, const char *src){
 	{
 		if(c == '\f'){ ++src; continue; }
 		if(c == ' ' || isprint(c)){
-			if(c == ' ' && ((&c - 1 < dst) || (*(&c - 1))==' ' || len < 2 || (*(&c + 1))==' ')) continue;
+			//if(c == ' ' && ((&c - 1 < dst) || (*(&c - 1))==' ' || len < 2 || (*(&c + 1))==' ')) continue;
+			if(c == ' ' && (len == MAXNAMELEN || dst[-1] == ' ')) continue;
 			*dst++ = c;
 			if(!--len) break;
 		}
 	}
-	*dst = 0;
+	if(dst[-1] == ' ') dst[-1] = 0;
+	else *dst = 0;
 }
 
 void filterrichtext(char *dst, const char *src, int len)
