@@ -42,14 +42,16 @@
 	if(isset($_GET['cube'])){ // cubescript
 		header('Content-type: text/plain');
 		$srvs = getServers();
+		$lines = array();
 		foreach($srvs as $s){
 			$wt = '';
 			foreach($config['servers']['weights'] as $w) if($w[0] == $s[3] && (!$w[2] || $w[2] == $s[1])){
 				if($w[1]) $wt = ' '.$w[1];
 				break;
 			}
-			echo ($s[2] ? '' : "//")."addserver {$s[0]} {$s[1]}{$wt}\r\n";
+			$lines[] = ($s[2] ? '' : "//")."addserver {$s[0]} {$s[1]}{$wt}";
 		}
+		echo implode("\n", $lines);
 	}
 	
 	// servers
@@ -111,12 +113,46 @@
 	
 	// compulsory auth
 	elseif(isset($_GET['connectcheck'])){ // connect checks
-		// id as ip/nick as name
+		$ip = intval($_GET['id']);
+		$nick = $_GET['nick'];
 		
 		// check ip bans
+		if(isbanned($ip, 1)) exit("*bi");
 		
-		// check nick whitelist w/ip
+		// check nick whitelist
+		foreach($config['snickw'] as $w){
+			$w = (array) $w;
+			$callback = $w[1] ? "strcasecmp" : "strcmp";
+			if(!$callback($nick, $w[0])){
+				if($w['password']) exit("*bp"); // needs further auth
+				if($w['ip']){
+					$wiprs = (array)$w['ip'];
+					$iprok = false;
+					foreach($wiprs as $ipr) if($ip >= $ipr[0] || $ip <= $ipr[1]) //{ $iprok = true; break; }
+					{ $iprok = true;
+					echo "$ipr[0]-$ipr[1]=$ip";
+					break; }
+					if(!$iprok) exit("*bI"); // ip fail
+				}
+				exit("*bw"); // OK
+			}
+		}
 		// check nick blacklist
+		foreach($config['snickb'] as $b){
+			$b = (array) $b;
+			$match = false;
+			$fullmatch = true;
+			$callback = $b['nocase'] ? "stripos" : "strpos";
+			unset($b['nocase']);
+			foreach($b as $n){
+				if($callback($nick, $n) === false){
+					$fullmatch = false;
+					break;
+				}
+				else $match = true;
+			}
+			if($match && $fullmatch) exit("*bn"); // nickname is blacklisted
+		}
 		
 		echo "*a"; // default
 	}

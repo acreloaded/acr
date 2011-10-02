@@ -136,14 +136,14 @@ void checkmasterreply()
 							case 'w': // nickname whitelisted, not actually a banned verdict
 								verdict = DISC_NONE;
 								break;
-							case 'm': // name is whitelisted, requires password
-								verdict = DISC_NAME_PWD; // use auth deban to bypass
+							case 'p': // name is whitelisted, requires password
+								verdict = DISC_MNAME_PWD; // use auth deban to bypass
 								break;
 							case 'I': // name is whitelisted, IP failure
-								verdict = DISC_NAME_IP;
+								verdict = DISC_MNAME_IP;
 								break;
 							case 'n': // name is blacklisted
-								verdict = DISC_NAME;
+								verdict = DISC_MNAME;
 								break;
 							case 'i': // IP banned
 								verdict = DISC_MBAN;
