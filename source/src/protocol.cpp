@@ -135,7 +135,7 @@ void filtername(char *dst, const char *src){
 			if(!--len) break;
 		}
 	}
-	if(dst[-1] == ' ') dst[-1] = 0;
+	if(len != MAXNAMELEN && dst[-1] == ' ') dst[-1] = 0;
 	else *dst = 0;
 }
 
