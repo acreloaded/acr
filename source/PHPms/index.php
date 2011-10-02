@@ -128,10 +128,7 @@
 				if($w['ip']){
 					$wiprs = (array)$w['ip'];
 					$iprok = false;
-					foreach($wiprs as $ipr) if($ip >= $ipr[0] || $ip <= $ipr[1]) //{ $iprok = true; break; }
-					{ $iprok = true;
-					echo "$ipr[0]-$ipr[1]=$ip";
-					break; }
+					foreach($wiprs as $ipr) if($ip >= $ipr[0] && $ip <= $ipr[1]) { $iprok = true; break; }
 					if(!$iprok) exit("*bI"); // ip fail
 				}
 				exit("*bw"); // OK
