@@ -20,5 +20,3 @@
 // block dolor                   // block all nicknames that contain the substring 'dolor', for example 'dolores' or 'odolor'; does not block 'DOLOR'
 // block sit amet                // block all nicknames that contain both substrings, for example 'sitamet' or 'dametosit'
 // blocki consectetur            // block all nicknames that contain the substring 'consectetur', ignore case; block for example 'aconsectetur', 'oConSecTeTuR'
-
-accept test 0.0.0.2
