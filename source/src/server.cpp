@@ -3466,6 +3466,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			{
 				vec o;
 				loopi(3) o[i] = getfloat(p);
+				// can't use streaks unless alive
+				if(!cl->state.isalive(gamemillis)) break;
 				// check how many airstrikes available first
 				if(cl->state.airstrikes > 0){
 					--cl->state.airstrikes;
