@@ -632,8 +632,6 @@ void checkpings()
 				sp = "you are banned from this server";
 			if(si->pongflags & (1 << PONGFLAG_BLACKLIST))
 				sp = "you are blacklisted on this server";
-			if(si->pongflags & (1 << PONGFLAG_MBLACKLIST))
-				sp = "you are blacklisted globally!";
 			else if(si->pongflags & (1 << PONGFLAG_PASSWORD))
 				sp = "this server is password-protected";
 			else if(mm) sp = mmfullname(mm);
@@ -895,6 +893,7 @@ bool assignserverfavourites()
 			loopv(servers)
 			{
 				serverinfo &si = *servers[i];
+                if(si.address.host == ENET_HOST_ANY || si.ping == 9999 || si.protocol != PROTOCOL_VERSION) continue;
 				if((!alxn[FC_IGNORE] || showonlythiscat) && favcatcheckkey(si, k))
 				{
 					si.weight += alxn[FC_WEIGHT];
@@ -958,7 +957,7 @@ void refreshservers(void *menu, bool init)
 			loopv(servers) if(lastselectedserver == servers[i]) { found = true; break; }
 			if(!found) lastselectedserver = NULL;
 		}
-		menutitle(menu, "extended server information");
+        menutitle(menu, "extended server information (F5: refresh)");
 		menureset(menu);
 		static string infotext;
 		static char dummy = '\0';
@@ -1017,7 +1016,7 @@ void refreshservers(void *menu, bool init)
 			"%sping\tplr\tserver (\fs\f0description\fr)%s%s"				  // 7: description
 		};
 		bool showmr = showminremain || serversort == SBS_MINREM;
-		formatstring(title)(titles[serversort], showfavtag ? "fav\t" : "", issearch ? "	  search results for \f3" : "	 (F1: Help)", issearch ? cursearch : "");
+        formatstring(title)(titles[serversort], showfavtag ? "fav\t" : "", issearch ? "      search results for \f3" : "     (F1: Help/Settings)", issearch ? cursearch : "");
 		menutitle(menu, title);
 		menureset(menu);
 		string text;
@@ -1028,7 +1027,7 @@ void refreshservers(void *menu, bool init)
 			serverinfo &si = *servers[i];
 			si.menuline_to = si.menuline_from = ((gmenu *)menu)->items.length();
 			if(!showallservers && si.lastpingmillis < servermenumillis) continue; // no pong yet
-			int banned = ((si.pongflags >> PONGFLAG_BANNED) & 1) | ((si.pongflags >> PONGFLAG_BLACKLIST) & 1) | ((si.pongflags >> PONGFLAG_MBLACKLIST) & 1);
+			int banned = ((si.pongflags >> PONGFLAG_BANNED) & 1) | ((si.pongflags >> PONGFLAG_BLACKLIST) & 1);
 			bool showthisone = !(banned && showonlygoodservers) && !(showonlyfavourites > 0 && si.favcat != showonlyfavourites - 1);
 			bool serverfull = si.numplayers >= si.maxclients;
 			bool needspasswd = (si.pongflags & (1 << PONGFLAG_PASSWORD)) > 0;
