@@ -361,6 +361,7 @@ extern bool securemapcheck(char *map, bool msg = true);
 extern void sendintro();
 extern void getdemo(int i);
 extern void listdemos();
+extern bool gensha1(const char *s, unsigned int *dst);
 
 // clientgame
 extern flaginfo flaginfos[2];

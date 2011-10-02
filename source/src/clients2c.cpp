@@ -168,8 +168,6 @@ SVARP(authkey, "none");
 
 extern votedisplayinfo *curvote;
 
-#include "sha1.h"
-
 void parsemessages(int cn, playerent *d, ucharbuf &p)
 {
 	static char text[MAXTRANS];
@@ -1116,10 +1114,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				}
 				authtoken = -1;
 				conoutf("server is challenging authentication details");
-				sha1 s = sha1(); unsigned hash[5] = {0};
+				unsigned hash[5] = {0};
 				defformatstring(buf)("%d:%s", nonce, authkey);
-				s << buf;
-				if(!s.Result(hash)){
+				if(!gensha1(buf, hash)){
 					conoutf("could not compute message digest");
 					break;
 				}

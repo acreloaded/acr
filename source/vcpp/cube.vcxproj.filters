@@ -56,9 +56,6 @@
     <ClInclude Include="..\src\geom.h">
       <Filter>headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\hash.h">
-      <Filter>headers</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\hudgun.h">
       <Filter>headers</Filter>
     </ClInclude>
@@ -131,9 +128,6 @@
     <ClInclude Include="..\src\points.h">
       <Filter>headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\sha1.h">
-      <Filter>headers</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\auth.h">
       <Filter>headers</Filter>
     </ClInclude>
@@ -150,6 +144,9 @@
       <Filter>headers</Filter>
     </ClInclude>
     <ClInclude Include="..\src\aiman.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\crypto.h">
       <Filter>headers</Filter>
     </ClInclude>
   </ItemGroup>

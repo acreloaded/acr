@@ -228,6 +228,8 @@ const char *modestr(int n, bool acronyms) { return acronyms ? acronymmodestr (n)
 const char *voteerrorstr(int n) { return (n>=0 && n < VOTEE_NUM) ? voteerrors[n] : "unknown"; }
 const char *mmfullname(int n) { return (n>=0 && n < MM_NUM) ? mmfullnames[n] : "unknown"; }
 
+// cryptographic tools
+
 const char *genpwdhash(const char *name, const char *pwd, int salt)
 {
 	static string temp;
@@ -238,4 +240,8 @@ const char *genpwdhash(const char *name, const char *pwd, int salt)
 	return temp;
 }
 
-
+bool gensha1(const char *s, unsigned int *dst){
+	sha1 hasher = sha1();
+	hasher << s;
+	return hasher.Result(dst);
+}

@@ -374,10 +374,10 @@
     <ClInclude Include="..\src\ballistics.h" />
     <ClInclude Include="..\src\command.h" />
     <ClInclude Include="..\src\console.h" />
+    <ClInclude Include="..\src\crypto.h" />
     <ClInclude Include="..\src\cube.h" />
     <ClInclude Include="..\src\entity.h" />
     <ClInclude Include="..\src\geom.h" />
-    <ClInclude Include="..\src\hash.h" />
     <ClInclude Include="..\src\hudgun.h" />
     <CustomBuildStep Include="..\src\md2.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Standalone Debug|Win32'">true</ExcludedFromBuild>
@@ -398,7 +398,6 @@
     <ClInclude Include="..\src\servercontroller.h" />
     <ClInclude Include="..\src\serverevents.h" />
     <ClInclude Include="..\src\serverpoints.h" />
-    <ClInclude Include="..\src\sha1.h" />
     <ClInclude Include="..\src\sound.h" />
     <ClInclude Include="..\src\tools.h" />
     <CustomBuildStep Include="..\src\tristrip.h">
