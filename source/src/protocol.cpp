@@ -2,7 +2,7 @@
 
 #include "pch.h"
 #include "cube.h"
-#include "hash.h"
+#include "crypto.h"
 
 #ifdef _DEBUG
 bool protocoldbg = false;
