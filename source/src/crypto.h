@@ -329,8 +329,3 @@ class sha1{
 		// input a character
         void operator <<(const char src){ Input((unsigned char *) &src, 1); }
 };
-
-struct base64
-{
-
-};
