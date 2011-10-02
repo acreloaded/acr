@@ -2588,6 +2588,7 @@ void disconnect_client(int n, int reason){
 	clients[n]->zap();
 	sendf(-1, 1, "ri3", N_DISC, n, reason);
 	if(curvote) curvote->evaluate();
+	freeconnectcheck(n);
 	checkai();
 }
 
@@ -3101,11 +3102,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			if(mastermode >= MM_LOCKED) updateclientteam(sender, TEAM_SPECT, FTR_SILENT);
 
 			// ask masterserver for connection verdict
-			extern vector<connectrequest> connectrequests;
-			connectrequest &creq = connectrequests.add();
-			creq.cn = sender;
-			creq.ip = cl->peer->address.host;
-			creq.nick = cl->name;
+			connectcheck(sender, cl->peer->address.host, cl->name);
 		}
 
 		sendwelcome(cl);
@@ -3202,6 +3199,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				}
 				logline(ACLOG_INFO,"[%s] %s changed his name to %s", gethostname(sender), cl->name, text);
 				copystring(cl->name, text, MAXNAMELEN+1);
+				connectcheck(sender, cl->peer->address.host, cl->name);
 				sendf(-1, 1, "ri2s", N_NEWNAME, sender, cl->name);
 				break;
 

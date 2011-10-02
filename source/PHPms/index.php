@@ -114,7 +114,7 @@
 	// compulsory auth
 	elseif(isset($_GET['connectcheck'])){ // connect checks
 		$ip = intval($_GET['id']);
-		$nick = $_GET['nick'];
+		$nick = base64_decode(str_replace(array('-', '_'), array('+', '/'), $_GET['nick']));
 		
 		// check ip bans
 		if(isbanned($ip, 1)) exit("*bi");

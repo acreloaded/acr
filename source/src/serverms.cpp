@@ -83,6 +83,64 @@ vector<authrequest> authrequests;
 connectrequest *currentconnectrequest = NULL;
 vector<connectrequest> connectrequests;
 
+// marshal names for master-server
+void base64_encode(const char * in, unsigned int in_len, char * out) {
+	const char base64_chars[] = 
+             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+             "abcdefghijklmnopqrstuvwxyz"
+             //"0123456789+/";
+			 "0123456789-_";
+	int i = 0;
+	unsigned char char_array_3[3];
+	unsigned char char_array_4[4];
+
+	while (in_len--) {
+		char_array_3[i++] = *in++;
+		if (i == 3) {
+			char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+			char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+			char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+			char_array_4[3] = char_array_3[2] & 0x3f;
+
+			for(i = 0; (i <4) ; i++)
+				*out++ = base64_chars[char_array_4[i]];
+			i = 0;
+		}
+	}
+
+	if (i)
+	{
+		for(int j = i; j < 3; j++)
+			char_array_3[j] = '\0';
+
+		char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+		char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+		char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+		char_array_4[3] = char_array_3[2] & 0x3f;
+
+		loopj(i + 1)
+			*out++ = base64_chars[char_array_4[j]];
+
+		while((i++ < 3))
+			*out++ = '=';
+
+	}
+	*out++ = 0;
+}
+
+void freeconnectcheck(int cn){
+	if(currentconnectrequest && currentconnectrequest->cn == cn) DELETEP(currentconnectrequest);
+	loopv(connectrequests) if(connectrequests[i].cn == cn) connectrequests.remove(i--);
+}
+
+void connectcheck(int cn, enet_uint32 ip, const char *nick){
+	freeconnectcheck(cn);
+	connectrequest &creq = connectrequests.add();
+	creq.cn = cn;
+	creq.ip = ENET_NET_TO_HOST_32(ip);
+	creq.nick = nick;
+}
+
 // send alive signal to masterserver every fifteen (15) minutes of uptime
 #define MSKEEPALIVE (15*60*1000)
 void updatemasterserver(int millis, const ENetAddress &localaddr){
@@ -103,8 +161,9 @@ void updatemasterserver(int millis, const ENetAddress &localaddr){
 		else formatstring(path)("%sauth/%d", masterpath, r.id);
 	} else if(connectrequests.length()){
 		currentconnectrequest = new connectrequest(connectrequests.remove(0));
-		formatstring(path)("%sconnect/%lu/%s", masterpath, currentconnectrequest->ip, currentconnectrequest->nick);
-		logline(ACLOG_INFO, "%s", path);
+		char out[MAXNAMELEN*4/3+1];
+		base64_encode(currentconnectrequest->nick, min(MAXNAMELEN, (int)strlen(currentconnectrequest->nick)), out);
+		formatstring(path)("%sconnect/%lu/%s", masterpath, currentconnectrequest->ip, out);
 	}
 	if(!*path) return; // no request
 	defformatstring(agent)("AssaultCube Server v%d", AC_VERSION);
