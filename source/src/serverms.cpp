@@ -135,7 +135,8 @@ void freeconnectcheck(int cn){
 
 void connectcheck(int cn, ENetPeer *peer, const char *nick){
 	freeconnectcheck(cn);
-	if(!peer || !nick) return;
+	extern bool isdedicated;
+	if(!peer || !nick || !isdedicated) return;
 	connectrequest &creq = connectrequests.add();
 	creq.cn = cn;
 	creq.ip = ENET_NET_TO_HOST_32(peer->address.host); // master-server blacklist uses host byte order
