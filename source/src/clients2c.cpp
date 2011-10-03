@@ -1173,6 +1173,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					break;
 				}
 				p->team = fnt;
+				addobit(p, fnt == TEAM_SPECT ? OBIT_SPECT : OBIT_TEAM, false, false, p);
 				if(p == player1 && !watchingdemo){
 					switch(ftr){
 						case FTR_PLAYERWISH:

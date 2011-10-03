@@ -123,7 +123,7 @@ chatlist chat;
 Texture **obittex(){
 	static Texture *tex[OBIT_NUM];
 	if(!*tex){
-		const char *texname[OBIT_NUM-OBIT_START] = { "death", "bot", "bow_impact", "bow_stuck", "knife_bleed", "knife_impact", "headshot", "gib", "ff", "drown", "fall", "cheat", "revive", "nuke" };
+		const char *texname[OBIT_NUM-OBIT_START] = { "death", "bot", "bow_impact", "bow_stuck", "knife_bleed", "knife_impact", "headshot", "gib", "ff", "drown", "fall", "cheat", "nuke", "spect", "revive", "team", };
 		loopi(OBIT_NUM){
 			defformatstring(tname)("packages/misc/obit/%s.png", i < OBIT_START ? guns[i].modelname : texname[i - OBIT_START]);
 			tex[i] = textureload(tname);
@@ -150,7 +150,7 @@ struct obitlist
 		cl.weap = weap;
 		const int colorset[2][3] = {{0, 1, 3}, {8, 9, 7}};
 		formatstring(cl.actor)("\f%d%s", colorset[0][actor == gamefocus ? 0 : isteam(actor, gamefocus) ? 1 : 2], actor == target ? "" : actor ? colorname(actor) : "unknown");
-		formatstring(cl.target)("\f%d%s", colorset[weap == OBIT_REVIVE ? 0 : 1][target == gamefocus ? 0 : isteam(target, gamefocus) ? 1 : 2], target ? colorname(target) : "unknown");
+		formatstring(cl.target)("\f%d%s", colorset[weap >= OBIT_SPECIAL ? 0 : 1][target == gamefocus ? 0 : isteam(target, gamefocus) ? 1 : 2], target ? colorname(target) : "unknown");
 		cl.extra = extraobit;
 		return olines.insert(0, cl);
 	}
