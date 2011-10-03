@@ -175,9 +175,9 @@ struct clientstate : playerstate
 	}
 
 	int protect(int millis){
-		const int delay = SPAWNPROTECT;
+		const int delay = SPAWNPROTECT, spawndelay = millis - spawnmillis;
 		int amt = 0;
-        if(ownernum < 0 && spawnmillis && delay && millis-lastspawn <= delay) amt = delay-(millis-spawnmillis);
+        if(ownernum < 0 && spawnmillis && delay && spawndelay <= delay) amt = delay - spawndelay;
         return amt;
 	}
 };
