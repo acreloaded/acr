@@ -65,12 +65,6 @@ bool delai(){
 
 void clearai(){ loopv(clients) if(clients[i]->type == ST_AI) deleteai(*clients[i]); }
 
-int countplayers(){
-	int num = 0;
-	loopv(clients) if(clients[i]->type != ST_EMPTY && clients[i]->team != TEAM_SPECT) num++;
-	return num;
-}
-
 bool reassignai(int exclude = -1){ // backport
 	ivector siblings;
     while(siblings.length() < clients.length()) siblings.add(-1);

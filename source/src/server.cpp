@@ -424,9 +424,16 @@ int countclients(int type, bool exclude = false){
 	return num;
 }
 
+int countplayers(){
+	int num = 0;
+	loopv(clients) if(clients[i]->type != ST_EMPTY && clients[i]->team != TEAM_SPECT) num++;
+	return num;
+}
+
 int numclients() { return countclients(ST_EMPTY, true); }
 int numlocalclients() { return countclients(ST_LOCAL); }
 int numnonlocalclients() { return countclients(ST_TCPIP); }
+
 
 int numauthedclients(){
 	int num = 0;
@@ -2388,7 +2395,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 }
 
 int nextcfgset(bool notify = true, bool nochange = false){ // load next maprotation set
-	int n = numclients();
+	int n = countplayers();
 	int csl = configsets.length();
 	int ccs = curcfgset;
 	if(ccs >= 0 && ccs < csl) ccs += configsets[ccs].skiplines;
