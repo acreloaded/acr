@@ -1117,12 +1117,18 @@ void ctfreset(){
 
 void sdropflag(int cn){
 	int fl = clienthasflag(cn);
-	if(fl >= 0) flagaction(fl, FA_LOST, cn);
+	if(fl >= 0){
+		flagaction(fl, FA_LOST, cn);
+		sdropflag(cn);
+	}
 }
 
 void resetflag(int cn){
 	int fl = clienthasflag(cn);
-	if(fl >= 0) flagaction(fl, FA_RESET, -1);
+	if(fl >= 0){
+		flagaction(fl, FA_RESET, -1);
+		resetflag(cn);
+	}
 }
 
 void htf_forceflag(int flag){
@@ -3021,14 +3027,14 @@ void checkmove(client &cp){
 		if(m_ctf){
 			if(i == cp.team){ // it's our flag
 				if(f.state == CTFF_DROPPED){
-					if(m_return && (of.state != CTFF_STOLEN || of.actor_cn != sender)) flagaction(i, FA_PICKUP, sender);
+					if(m_return /*&& (of.state != CTFF_STOLEN || of.actor_cn != sender)*/) flagaction(i, FA_PICKUP, sender);
 					else flagaction(i, FA_RETURN, sender);
 				}
 				else if(f.state == CTFF_STOLEN && sender == f.actor_cn) flagaction(i, FA_RETURN, sender);
 				else if(f.state == CTFF_INBASE && of.state == CTFF_STOLEN && of.actor_cn == sender) flagaction(team_opposite(i), FA_SCORE, sender);
 			}
 			else if(f.drop_cn != sender || f.dropmillis + 2000 < servmillis){
-				if(m_return && of.state == CTFF_STOLEN && of.actor_cn == sender) flagaction(team_opposite(i), FA_RETURN, sender);
+				/*if(m_return && of.state == CTFF_STOLEN && of.actor_cn == sender)*/ flagaction(team_opposite(i), FA_RETURN, sender);
 				flagaction(i, FA_PICKUP, sender);
 			}
 		}
