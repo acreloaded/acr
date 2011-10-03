@@ -30,7 +30,7 @@ void processevent(client &c, projevent &e){
 					tknifeflags |= FRAG_CRITICAL;
 					dmg *= 2; // 80 * 2 = 160 damage instant kill!
 				}
-				else dmg /= 2; // just because of the bleeding
+				else dmg /= 4; //80 / 4 = 20 just because of the bleeding effect
 				damagedealt += dmg;
 				// bleeding damage
 				target.state.lastbleed = gamemillis;
