@@ -664,7 +664,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(!d) break;
 				d->health = health;
 				d->lastregen = lastmillis;
-				if(healer) addobit(healer, OBIT_REVIVE, false, d);
+				if(healer) addobit(healer, OBIT_REVIVE, false, false, d);
 				break;
 			}
 

@@ -123,7 +123,7 @@ chatlist chat;
 Texture **obittex(){
 	static Texture *tex[OBIT_NUM];
 	if(!*tex){
-		const char *texname[OBIT_NUM-OBIT_START] = { "death", "bot", "bow_impact", "bow_stuck", "knife_bleed", "knife_impact", "headshot", "ff", "drown", "fall", "cheat", "revive", "nuke" };
+		const char *texname[OBIT_NUM-OBIT_START] = { "death", "bot", "bow_impact", "bow_stuck", "knife_bleed", "knife_impact", "headshot", "gib", "ff", "drown", "fall", "cheat", "revive", "nuke" };
 		loopi(OBIT_NUM){
 			defformatstring(tname)("packages/misc/obit/%s.png", i < OBIT_START ? guns[i].modelname : texname[i - OBIT_START]);
 			tex[i] = textureload(tname);
@@ -133,7 +133,7 @@ Texture **obittex(){
 }
 
 VARP(obitfade, 0, 10, 60);
-struct oline { char *actor; char *target; int weap, millis; bool headshot; };
+struct oline { char *actor; char *target; int weap, millis, extra; };
 struct obitlist
 {
 	int maxlines;
@@ -141,7 +141,7 @@ struct obitlist
 
 	obitlist() : maxlines(12) {}
 
-	oline &addline(playerent *actor, int weap, bool headshot, playerent *target, int millis)	// add a line to the obit buffer
+	oline &addline(playerent *actor, int weap, int extraobit, playerent *target, int millis)	// add a line to the obit buffer
 	{
 		oline cl;
 		cl.actor = olines.length()>maxlines ? olines.pop().actor : newstringbuf("");   // constrain the buffer size
@@ -151,7 +151,7 @@ struct obitlist
 		const int colorset[2][3] = {{0, 1, 3}, {8, 9, 7}};
 		formatstring(cl.actor)("\f%d%s", colorset[0][actor == gamefocus ? 0 : isteam(actor, gamefocus) ? 1 : 2], actor == target ? "" : actor ? colorname(actor) : "unknown");
 		formatstring(cl.target)("\f%d%s", colorset[weap == OBIT_REVIVE ? 0 : 1][target == gamefocus ? 0 : isteam(target, gamefocus) ? 1 : 2], target ? colorname(target) : "unknown");
-		cl.headshot = headshot;
+		cl.extra = extraobit;
 		return olines.insert(0, cl);
 	}
 
@@ -236,7 +236,7 @@ struct obitlist
 				}
 				// now draw weapon symbol
 				x += drawobit(l.weap, left + x, y, fade);
-				if(l.headshot) x += drawobit(OBIT_HEADSHOT, left + x, y, fade);
+				if(l.extra) x += drawobit(l.extra, left + x, y, fade);
 				// end of weapon symbol
 				x += text_width(" ") / 2;
 				draw_text(l.target, left + x, y, 0xFF, 0xFF, 0xFF, fade, -1, conwidth);
@@ -247,7 +247,7 @@ struct obitlist
 };
 obitlist obits;
 
-void addobit(playerent *actor, int weap, bool headshot, playerent *target) { extern int totalmillis; obits.addline(actor, weap, headshot, target, totalmillis); }
+void addobit(playerent *actor, int weap, bool headshot, bool gib, playerent *target) { extern int totalmillis; obits.addline(actor, weap, headshot ? OBIT_HEADSHOT : gib ? OBIT_GIB : 0, target, totalmillis); }
 void renderobits() { obits.render(); }
 
 textinputbuffer cmdline;
