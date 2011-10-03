@@ -961,7 +961,7 @@ void check_afk(){
 	if (numclients() < 5 || (numnonlocalclients() < scl.maxclients && !m_team)) return;
 	loopv(clients){
 		client &c = *clients[i];
-		if (c.type != ST_TCPIP || c.connectmillis + 60 * 1000 > servmillis || c.team == TEAM_SPECT || c.priv >= PRIV_ADMIN ||
+		if (c.type != ST_TCPIP || c.connectmillis + 60 * 1000 > servmillis || c.team == TEAM_SPECT ||
 			c.state.movemillis + scl.afktimelimit > servmillis || clienthasflag(c.clientnum) > -1 ) continue;
 		if ( ( c.state.state == CS_DEAD && !m_duel && c.state.lastdeath + 45 * 1000 < gamemillis) ) {
 			logline(ACLOG_INFO, "[%s] %s is afk, forcing to spectator", gethostname(i), c.name);
