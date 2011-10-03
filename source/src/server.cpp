@@ -3034,7 +3034,7 @@ void checkmove(client &cp){
 				else if(f.state == CTFF_INBASE && of.state == CTFF_STOLEN && of.actor_cn == sender) flagaction(team_opposite(i), FA_SCORE, sender);
 			}
 			else if(f.drop_cn != sender || f.dropmillis + 2000 < servmillis){
-				/*if(m_return && of.state == CTFF_STOLEN && of.actor_cn == sender)*/ flagaction(team_opposite(i), FA_RETURN, sender);
+				/*if(m_return && of.state == CTFF_STOLEN && of.actor_cn == sender) flagaction(team_opposite(i), FA_RETURN, sender);*/
 				flagaction(i, FA_PICKUP, sender);
 			}
 		}
