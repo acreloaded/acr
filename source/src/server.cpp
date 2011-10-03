@@ -3115,7 +3115,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			if(mastermode >= MM_LOCKED) updateclientteam(sender, TEAM_SPECT, FTR_SILENT);
 
 			// ask masterserver for connection verdict
-			connectcheck(sender, cl->peer->address.host, cl->name);
+			connectcheck(sender, cl->peer, cl->name);
 		}
 
 		sendwelcome(cl);
@@ -3212,7 +3212,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				}
 				logline(ACLOG_INFO,"[%s] %s changed his name to %s", gethostname(sender), cl->name, text);
 				copystring(cl->name, text, MAXNAMELEN+1);
-				connectcheck(sender, cl->peer->address.host, cl->name);
+				connectcheck(sender, cl->peer, cl->name);
 				sendf(-1, 1, "ri2s", N_NEWNAME, sender, cl->name);
 				break;
 

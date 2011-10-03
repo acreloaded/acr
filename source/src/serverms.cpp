@@ -133,11 +133,12 @@ void freeconnectcheck(int cn){
 	loopv(connectrequests) if(connectrequests[i].cn == cn) connectrequests.remove(i--);
 }
 
-void connectcheck(int cn, enet_uint32 ip, const char *nick){
+void connectcheck(int cn, ENetPeer *peer, const char *nick){
 	freeconnectcheck(cn);
+	if(!peer || !nick) return;
 	connectrequest &creq = connectrequests.add();
 	creq.cn = cn;
-	creq.ip = ENET_NET_TO_HOST_32(ip);
+	creq.ip = ENET_NET_TO_HOST_32(peer->address.host); // master-server blacklist uses host byte order
 	creq.nick = nick;
 }
 
