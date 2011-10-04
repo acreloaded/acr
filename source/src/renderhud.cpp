@@ -873,7 +873,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 					playerent *vpl = votepl[l][i];
 					if(!vpl) continue;
 					formatstring(votestr[l])("%s\f%d%s \f6(%d)", votestr[l],
-						vpl->priv ? 0 : vpl == player1 ? 6 : vpl->team ? 1 : 3, vpl->name, vpl->clientnum);
+						vpl->priv ? 0 : vpl == player1 ? 6 : team_color(vpl->team), vpl->name, vpl->clientnum);
 					if(vpl->priv >= PRIV_ADMIN) formatstring(votestr[l])("%s \f8(!)", votestr[l]);
 					concatstring(votestr[l], "\f5, ");
 				}
@@ -949,7 +949,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		{
 			if(players.inrange(player1->followplayercn) && players[player1->followplayercn])
 			{
-				defformatstring(name)("Player \f%d%s", players[player1->followplayercn]->team ? 1 : 3, players[player1->followplayercn]->name);
+				defformatstring(name)("Player \f%d%s", team_color(players[player1->followplayercn]->team), players[player1->followplayercn]->name);
 				draw_text(name, VIRTW/40, VIRTH/10*8);
 			}
 		}

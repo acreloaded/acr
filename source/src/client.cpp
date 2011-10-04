@@ -200,7 +200,7 @@ void saytext(playerent *d, char *text, int flags, int sound){
 	const int col = d == player1 ? 1 : d->team == TEAM_SPECT ? 4 : m_team ? d->team == player1->team ? 0 : 3 : 5;
 	// nametag
 	defformatstring(nametag)("\f%d%s", col, colorname(d));
-	if(flags & SAY_TEAM) concatformatstring(nametag, " \f5(\f%d%s\f5)", d->team ? 1 : 3, team_string(d->team));
+	if(flags & SAY_TEAM) concatformatstring(nametag, " \f5(\f%d%s\f5)", team_color(d->team), team_string(d->team));
 	// more nametag
 	if(flags & SAY_ACTION) formatstring(textout)("\f5* %s", nametag);
 	else formatstring(textout)("\f5<%s\f5>", nametag);
