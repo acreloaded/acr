@@ -1308,7 +1308,7 @@ bool spamdetect(client *cl, char *text) // checks doubled lines and average typi
 void sendtext(char *text, client &cl, int flags, int voice){
 	if(voice < 0 || voice > S_VOICEEND - S_MAINEND) voice = 0;
 	defformatstring(logmsg)("<%s> ", cl.name);
-	if(!m_team) flags &= ~SAY_TEAM;
+	if(!m_team && cl.team != TEAM_SPECT) flags &= ~SAY_TEAM;
 	if(flags & SAY_ACTION) formatstring(logmsg)("* %s ", cl.name);
 	string logappend;
 	if(flags & SAY_TEAM){

@@ -191,14 +191,13 @@ void saytext(playerent *d, char *text, int flags, int sound){
 		playsound(sound, SP_HIGH);
 	} else sound = 0;
 	int textcolor = 0; // normal text
-	if(!m_team) flags &= ~SAY_TEAM;
 	if(flags&SAY_TEAM) textcolor = isteam(d, player1) ? 1 : 3; // friendly blue, enemy red
 	if(flags&SAY_DENY){
 		textcolor = 2; // denied yellow
 		concatstring(text, " \f3Do not SPAM!");
 	}
 	string textout;
-	const int col = d == player1 ? 1 : m_team ? d->team == player1->team ? 0 : 3 : 5;
+	const int col = d->team == TEAM_SPECT ? 4 : d == player1 ? 1 : m_team ? d->team == player1->team ? 0 : 3 : 5;
 	// nametag
 	defformatstring(nametag)("\f%d%s", col, colorname(d));
 	if(flags & SAY_TEAM) concatformatstring(nametag, " \f5(\f%d%s\f5)", d->team ? 1 : 3, team_string(d->team));
@@ -212,8 +211,8 @@ void saytext(playerent *d, char *text, int flags, int sound){
 }
 
 void toserver(char *text, int voice, bool action){
-	if(!text) return;
-	bool toteam = *text == '%' && m_team && strlen(text) > 1;
+	if(!text || !*text) return;
+	bool toteam = *text == '%' && strlen(text) > 1;
 	if(*text == '%') text++;
 	addmsg(N_TEXT, "ris", (voice & 0x1F) | (((action ? SAY_ACTION : 0) | (toteam ? SAY_TEAM : 0)) << 5), text);
 }
