@@ -629,14 +629,17 @@ void explosioneffect(const vec &o){
 	playsound(S_FEXPLODE, &o);
 }
 
+VARP(nadedetail, 0, 9, 50);// P
+
 void grenades::attackhit(const vec &o){
 	particle_fireball(5, o, owner);
 	addscorchmark(o);
 	explosioneffect(o);
 	extern int shotline, shotlinettl;
 	extern void newparticle(const vec &o, const vec &d, int fade, int type);
-	if(shotline && shotlinettl) loopi(9) loopj(9) loopk(9){
-		vec t(i/4.5f-1, j/4.5f-1, k/4.5f-1);
+	const float halfnadedetail = nadedetail / 2.f;
+	if(shotline && shotlinettl && nadedetail) loopi(nadedetail) loopj(nadedetail) loopk(nadedetail){
+		vec t(i/halfnadedetail-1, j/halfnadedetail-1, k/halfnadedetail-1);
 		t.add(o);
 		traceShot(o, t);
 		addshotline(owner, o, t, 2); // option 1
