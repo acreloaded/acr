@@ -65,34 +65,27 @@ bool delai(){
 
 void clearai(){ loopv(clients) if(clients[i]->type == ST_AI) deleteai(*clients[i]); }
 
-bool reassignai(int exclude = -1){ // backport
-	ivector siblings;
-    while(siblings.length() < clients.length()) siblings.add(-1);
-    int hi = -1, lo = -1;
-    loopv(clients)
-    {
-        client *ci = clients[i];
-        if(ci->type == ST_EMPTY || ci->type == ST_AI || !ci->name[0] || !ci->connected || ci->clientnum == exclude)
-            siblings[i] = -1;
-        else
-        {
-            siblings[i] = 0;
-            loopvj(clients) if(clients[j]->state.ownernum == ci->clientnum)
-                siblings[i]++;
-            if(!siblings.inrange(hi) || siblings[i] > siblings[hi]) hi = i;
-            if(!siblings.inrange(lo) || siblings[i] < siblings[lo]) lo = i;
-        }
-    }
-    if(siblings.inrange(hi) && siblings.inrange(lo) && (siblings[hi]-siblings[lo]) > 1)
-    {
-        client *ci = clients[hi];
-        loopv(clients) if(clients[i]->type == ST_AI && clients[i]->state.ownernum == ci->clientnum)
-        {
-            sendf(-1, 1, "ri3", N_REASSIGNAI, i, clients[i]->state.ownernum = clients[lo]->clientnum);
-            return true;
-        }
-    }
-    return false;
+bool reassignai(int exclude = -1){
+	int hi = -1, lo = -1, hicount = -1, locount = -1;
+	loopv(clients)
+	{
+		client *ci = clients[i];
+		if(ci->type == ST_EMPTY || ci->type == ST_AI || !ci->name[0] || !ci->connected || ci->clientnum == exclude) continue;
+		int thiscount = 0;
+		loopvj(clients) if(clients[j]->state.ownernum == ci->clientnum) ++thiscount;
+		if(hi < 0 || thiscount > hicount){ hi = i; hicount = thiscount; }
+		if(lo < 0 || thiscount < locount){ lo = i; locount = thiscount; }
+	}
+	if(hi >= 0 && lo >= 0 && hicount > locount + 1)
+	{
+		client *ci = clients[hi];
+		loopv(clients) if(clients[i]->type == ST_AI && clients[i]->state.ownernum == ci->clientnum)
+		{
+			sendf(-1, 1, "ri3", N_REASSIGNAI, i, clients[i]->state.ownernum = clients[lo]->clientnum);
+			return true;
+		}
+	}
+	return false;
 }
 
 void checkai(){

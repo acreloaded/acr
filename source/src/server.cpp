@@ -3127,7 +3127,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			curvote->evaluate();
 		}
 		checkai();
-		for(;;) if(!reassignai()) break;
+		while(reassignai());
 	}
 
 	if(packet->flags&ENET_PACKET_FLAG_RELIABLE) reliablemessages = true;
