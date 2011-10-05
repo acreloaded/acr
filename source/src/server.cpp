@@ -2620,7 +2620,7 @@ void sendwhois(int sender, int cn){
 		}
 		if(mask < 32) ip &= (1 << mask) - 1;
 
-		sendf(sender, 1, "ri4", N_WHOISINFO, cn, ip, mask);
+		sendf(sender, 1, "ri5", N_WHOISINFO, cn, ip, mask, clients[cn]->peer->address.port);
 	}
 }
 

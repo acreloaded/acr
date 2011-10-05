@@ -1283,7 +1283,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_WHOISINFO:
 			{
-				int cn = getint(p), ip = getint(p), mask = getint(p);
+				int cn = getint(p), ip = getint(p), mask = getint(p), port = getint(p);
 				playerent *pl = getclient(cn);
 
 				defformatstring(cip)("%d", ip & 0xFF);
@@ -1295,7 +1295,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					}
 				}
 				if(mask < 32) formatstring(cip)("%s\f7/\f4%d", cip, mask);
-				conoutf("\f2who\f0is \f1on \f3%s \f4returned \f5%s", pl ? colorname(pl) : "unknown", cip);
+				conoutf("\f2who\f0is \f1on \f3%s \f4returned \f5%s\f6:\f5%d", pl ? colorname(pl) : "unknown", cip, port);
 				break;
 			}
 
