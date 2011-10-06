@@ -664,7 +664,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(!d) break;
 				d->health = health;
 				d->lastregen = lastmillis;
-				if(healer) addobit(healer, OBIT_REVIVE, false, false, d);
+				if(healer) addobit(healer, OBIT_REVIVE, FRAG_NONE, d);
 				break;
 			}
 
@@ -1173,7 +1173,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					break;
 				}
 				p->team = fnt;
-				if(*p->name) addobit(p, fnt == TEAM_SPECT ? OBIT_SPECT : OBIT_TEAM, false, false, p);
+				if(*p->name) addobit(p, fnt == TEAM_SPECT ? OBIT_SPECT : OBIT_TEAM, FRAG_NONE, p);
 				if(p == player1 && !watchingdemo){
 					switch(ftr){
 						case FTR_PLAYERWISH:
