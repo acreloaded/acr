@@ -28,8 +28,8 @@
 #define SHOTGPT       12                           // player gibs with the shotgun
 #define FIRSTKILLPT   25                           // player makes the first kill
 #define REVENGEKILLPT 10                           // player gets a payback
-// #define TKPT         -20                        // player tks
-// #define FLAGTKPT     -2*(10+cnumber)            // player tks the flag keeper/stealer
+#define TKPT         -20                        // player tks
+#define FLAGTKPT     -2*(10+cnumber)            // player tks the flag keeper/stealer
 #define ASSISTMUL 0.225f                             // multiply reward by this for assisters
 
 // server point tools
@@ -39,38 +39,39 @@ inline void addpt(client *c, int points){
 	sendf(-1, 1, "ri3", N_POINTS, c->clientnum, (c->state.points += points));
 }
 
-void killpoints(client *target, client *actor, int gun, int style){
+void killpoints(client *target, client *actor, int gun, int style, bool assist = false){
 	int cnumber = numauthedclients(), tpts = target->state.points, gain = 0;
 	bool suic = target == actor;
 	addpt(target, DEATHPT);
 	if(!suic){
-		//if(tk){ // NO MORE TKs
-		if(m_team){
-			if(!m_flags) gain += TMBONUSPT;
-			else gain += FLBONUSPT;
-			if (m_htf && clienthasflag(actor->clientnum) >= 0) gain += HTFFRAGPT;
-            if (m_ctf && clienthasflag(target->clientnum) >= 0) gain += CTFFRAGPT;
-		} else gain += BONUSPT;
-		if (style & FRAG_GIB) {
-            if (gun == WEAP_KNIFE || gun != WEAP_GRENADE) gain += KNIFENADEPT;
-            else if (gun == WEAP_SHOTGUN) gain += SHOTGPT;
-			else gain += HEADSHOTPT;
-        }
-        else gain += FRAGPT;
-		/*}else{
-			if ( targethasflag >= 0 ) addpt(actor, FLAGTKPT);
+		if(isteam(actor, target)){ // friendly fire assists only
+			if(m_team){
+				if(!m_flags) gain += TMBONUSPT;
+				else gain += FLBONUSPT;
+				if (m_htf && clienthasflag(actor->clientnum) >= 0) gain += HTFFRAGPT;
+				if (m_ctf && clienthasflag(target->clientnum) >= 0) gain += CTFFRAGPT;
+			} else gain += BONUSPT;
+			if (style & FRAG_GIB) {
+				if (gun == WEAP_KNIFE || gun != WEAP_GRENADE) gain += KNIFENADEPT;
+				else if (gun == WEAP_SHOTGUN) gain += SHOTGPT;
+				else gain += HEADSHOTPT;
+			}
+			else gain += FRAGPT;
+		} else {
+			if (clienthasflag(target->clientnum) >= 0) addpt(actor, FLAGTKPT);
 			else addpt(actor, TKPT);
-		}*/
+		}
 		if(style & FRAG_FIRST) gain += FIRSTKILLPT;
 		if(style & FRAG_REVENGE) gain += REVENGEKILLPT;
 		gain *= clamp(actor->state.combo, 1, 5);
-		addpt(actor, gain);
-		gain *= ASSISTMUL;
-		loopv(target->state.damagelog){
+		if(assist) gain *= ASSISTMUL;
+		else loopv(target->state.damagelog){
 			if(!valid_client(target->state.damagelog[i])) continue;
 			client *c = clients[target->state.damagelog[i]];
 			if(!isteam(c, target)) addpt(c, gain);
+			killpoints(target, c, gun, style, true);
 		}
+		addpt(actor, gain);
 	}
 }
 
