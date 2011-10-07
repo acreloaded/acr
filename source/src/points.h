@@ -28,9 +28,10 @@
 #define SHOTGPT       12                           // player gibs with the shotgun
 #define FIRSTKILLPT   25                           // player makes the first kill
 #define REVENGEKILLPT 10                           // player gets a payback
-#define TKPT         -20                        // player tks
-#define FLAGTKPT     -2*(10+cnumber)            // player tks the flag keeper/stealer
-#define ASSISTMUL 0.225f                             // multiply reward by this for assisters
+#define TKPT         -20                           // player tks
+#define FLAGTKPT     -2*(10+cnumber)               // player tks the flag keeper/stealer
+#define ASSISTMUL 0.225f                           // multiply reward by this for assisters
+#define ASSISTRETMUL 0.125f                        // multiply assisters' rewards and return to original damager
 
 // server point tools
 
@@ -39,7 +40,7 @@ inline void addpt(client *c, int points){
 	sendf(-1, 1, "ri3", N_POINTS, c->clientnum, (c->state.points += points));
 }
 
-void killpoints(client *target, client *actor, int gun, int style, bool assist = false){
+int killpoints(client *target, client *actor, int gun, int style, bool assist = false){
 	int cnumber = numauthedclients(), tpts = target->state.points, gain = 0;
 	bool suic = target == actor;
 	addpt(target, DEATHPT);
@@ -58,18 +59,16 @@ void killpoints(client *target, client *actor, int gun, int style, bool assist =
 			}
 			else gain += FRAGPT;
 		} else {
-			if (clienthasflag(target->clientnum) >= 0) addpt(actor, FLAGTKPT);
-			else addpt(actor, TKPT);
+			if (clienthasflag(target->clientnum) >= 0) gain += FLAGTKPT;
+			else gain += TKPT;
 		}
 		if(style & FRAG_FIRST) gain += FIRSTKILLPT;
 		if(style & FRAG_REVENGE) gain += REVENGEKILLPT;
 		gain *= clamp(actor->state.combo, 1, 5);
 		if(assist) gain *= ASSISTMUL;
 		else loopv(target->state.damagelog){
-			if(!valid_client(target->state.damagelog[i])) continue;
-			client *c = clients[target->state.damagelog[i]];
-			if(!isteam(c, target)) addpt(c, gain);
-			killpoints(target, c, gun, style, true);
+			if(valid_client(target->state.damagelog[i])) continue;
+			gain += killpoints(target, clients[target->state.damagelog[i]], gun, style, true) * ASSISTRETMUL;
 		}
 		addpt(actor, gain);
 	}
