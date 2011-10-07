@@ -397,7 +397,6 @@
     <ClInclude Include="..\src\serverballistics.h" />
     <ClInclude Include="..\src\servercontroller.h" />
     <ClInclude Include="..\src\serverevents.h" />
-    <ClInclude Include="..\src\serverpoints.h" />
     <ClInclude Include="..\src\sound.h" />
     <ClInclude Include="..\src\tools.h" />
     <CustomBuildStep Include="..\src\tristrip.h">

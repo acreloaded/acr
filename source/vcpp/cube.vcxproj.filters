@@ -122,9 +122,6 @@
     <ClInclude Include="..\src\serverevents.h">
       <Filter>headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\serverpoints.h">
-      <Filter>headers</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\points.h">
       <Filter>headers</Filter>
     </ClInclude>

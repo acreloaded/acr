@@ -925,7 +925,7 @@ void readdemo(){
 	}
 }
 
-#include "serverpoints.h"
+#include "points.h"
 
 struct sflaginfo
 {
