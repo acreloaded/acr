@@ -963,7 +963,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		if(!hidehudequipment)
 		{
 			pushfont("huddigits");
-			draw_textf("%.*f",  90, 823, HEALTHPRECISION, HEALTHPRECISION, p->health / (float)HEALTHSCALE);
+			draw_textf("%.*f",  90, 823, HEALTHPRECISION, p->health / (float)HEALTHSCALE);
 			if(p->armor) draw_textf("%d", 360, 823, p->armor);
 			if(p->weapons[WEAP_GRENADE] && p->weapons[WEAP_GRENADE]->mag) p->weapons[WEAP_GRENADE]->renderstats();
 			// The next set will alter the matrix - load the identity matrix and apply ortho after
