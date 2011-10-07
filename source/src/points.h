@@ -72,6 +72,7 @@ int killpoints(client *target, client *actor, int gun, int style, bool assist = 
 		}
 		addpt(actor, gain);
 	}
+	return gain;
 }
 
 void flagpoints (client *c, int message)
