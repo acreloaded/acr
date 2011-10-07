@@ -46,8 +46,8 @@ struct entity : public persistent_entity
 	}
 };
 
-#define HEALTHPRECISION 2
-#define HEALTHSCALE 100 // 10^2
+#define HEALTHPRECISION 1
+#define HEALTHSCALE 10 // 10 ^ 1
 #define STARTHEALTH (100 * HEALTHSCALE)
 #define MAXHEALTH (120 * HEALTHSCALE)
 
