@@ -45,7 +45,10 @@ int killpoints(client *target, client *actor, int gun, int style, bool assist = 
 	bool suic = target == actor;
 	addpt(target, DEATHPT);
 	if(!suic){
-		if(isteam(actor, target)){ // friendly fire assists only
+		if(isteam(actor, target)){
+			if (clienthasflag(target->clientnum) >= 0) gain += FLAGTKPT;
+			else gain += TKPT;
+		} else { // friendly fire assists only
 			if(m_team){
 				if(!m_flags) gain += TMBONUSPT;
 				else gain += FLBONUSPT;
@@ -58,9 +61,6 @@ int killpoints(client *target, client *actor, int gun, int style, bool assist = 
 				else gain += HEADSHOTPT;
 			}
 			else gain += FRAGPT;
-		} else {
-			if (clienthasflag(target->clientnum) >= 0) gain += FLAGTKPT;
-			else gain += TKPT;
 		}
 		if(style & FRAG_FIRST) gain += FIRSTKILLPT;
 		if(style & FRAG_REVENGE) gain += REVENGEKILLPT;
