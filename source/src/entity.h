@@ -11,7 +11,6 @@ enum							// static entity types
 	CTF_FLAG,				   // attr1 = angle, attr2 = red/blue
 	SOUND,
 	CLIP,
-	PLCLIP,
 	MAXENTTYPES
 };
 

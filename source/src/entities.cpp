@@ -5,17 +5,17 @@
 
 vector<entity> ents;
 
-const char *entnames[] =
+const char *entnames[MAXENTTYPES + 1] =
 {
 	"none?", "light", "playerstart",
 	"pistol", "ammobox","grenades",
 	"health", "armor", "akimbo",
 	"mapmodel", "trigger",
 	"ladder", "ctf-flag",
-	"sound", "clip", "plclip", "max"
+	"sound", "clip", "max",
 };
 
-const char *entmdlnames[] =
+const char *entmdlnames[I_AKIMBO-I_CLIPS+1] =
 {
 	"pickups/pistolclips", "pickups/ammobox", "pickups/nade", "pickups/health", "pickups/kevlar", "pickups/akimbo",
 };
@@ -38,7 +38,7 @@ void renderclip(entity &e)
 	switch(e.type){
         case CLIP:		linestyle(1, 0xFF, 0xFF, 0); break;  // yellow
 		case MAPMODEL:	linestyle(1, 0xFF, 0, 0xFF);    break;  // magenta
-        case PLCLIP:	linestyle(1, 0, 0xFF, 0); break;  // green
+        //case PLCLIP:	linestyle(1, 0, 0xFF, 0); break;  // green
 		default:		linestyle(1, 0xFF, 0, 0); break;  // red
     }
 	glBegin(GL_LINES);
@@ -113,7 +113,7 @@ void renderentities()
 				defformatstring(path)("pickups/flags/%s", team_string(e.attr2));
 				rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
 			}
-			else if((e.type==CLIP || e.type==PLCLIP) && !stenciling) renderclip(e);
+			else if((e.type==CLIP /*|| e.type==PLCLIP*/) && !stenciling) renderclip(e);
 			else if(e.type == PLAYERSTART){
 				defformatstring(skin)(e.attr2 < 2 ? "packages/models/playermodels/%s/%s.jpg" : "packages/models/playermodels/skin.jpg",
 					team_string(e.attr2), e.attr2 ? "blue" : "red");
