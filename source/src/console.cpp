@@ -123,7 +123,7 @@ chatlist chat;
 Texture **obittex(){
 	static Texture *tex[OBIT_NUM];
 	if(!*tex){
-		const char *texname[OBIT_NUM-OBIT_START] = { "death", "bot", "bow_impact", "bow_stuck", "knife_bleed", "knife_impact", "headshot", "gib", "ff", "drown", "fall", "cheat", "nuke", "spect", "revive", "team", };
+		const char *texname[OBIT_NUM-OBIT_START] = { "death", "bot", "bow_impact", "bow_stuck", "knife_bleed", "knife_impact", "headshot", "gib", "crit", "first", "ff", "drown", "fall", "cheat", "nuke", "spect", "revive", "team", };
 		loopi(OBIT_NUM){
 			defformatstring(tname)("packages/misc/obit/%s.png", i < OBIT_START ? guns[i].modelname : texname[i - OBIT_START]);
 			tex[i] = textureload(tname);
@@ -238,6 +238,9 @@ struct obitlist
 				x += drawobit(l.weap, left + x, y, fade);
 				if(isheadshot(l.weap, l.style)) x += drawobit(OBIT_HEADSHOT, left + x, y, fade);
 				else if(l.style & FRAG_GIB) x += drawobit(OBIT_GIB, left + x, y, fade);
+				// next two shouldn't be grouped, but somehow is
+				if(l.style & FRAG_FIRST) x += drawobit(OBIT_FIRST, left + x, y, fade);
+				else if(l.style & FRAG_CRIT) x += drawobit(OBIT_CRIT, left + x, y, fade);
 				// end of weapon symbol
 				x += text_width(" ") / 2;
 				draw_text(l.target, left + x, y, 0xFF, 0xFF, 0xFF, fade, -1, conwidth);
