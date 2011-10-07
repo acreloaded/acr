@@ -164,8 +164,8 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 		else if(teamtype == 2) col = color(1.f, 0.f, 0.f);
 	}
 	else if(!m_osok){
-		if(p->health<=50) col = color(0.5f, 0.25f, 0.f); // orange-red
-		if(p->health<=25) col = color(0.5f, 0.125f, 0.f); // red-orange
+		if(p->health<=50 * HEALTHSCALE) col = color(0.5f, 0.25f, 0.f); // orange-red
+		if(p->health<=25 * HEALTHSCALE) col = color(0.5f, 0.125f, 0.f); // red-orange
 	}
 	if(n == CROSSHAIR_DEFAULT) col.alpha = 1.f + p->weaponsel->dynspread() / -1200.f;
 	if(n != CROSSHAIR_SCOPE && p->ads) col.alpha *= 1 - sqrtf(p->ads * (n == CROSSHAIR_SHOTGUN ? 0.5f : 1)) / sqrtf(600);
@@ -238,7 +238,7 @@ void drawequipicons(playerent *p)
 	if(p->armor)
 		if(p->armor > 25) drawequipicon(560, 1650, (p->armor - 25) / 25, 2, 0);
 		else drawequipicon(560, 1650, 3, 3, 0);
-	drawequipicon(20, 1650, 2, 3, (lastmillis - p->lastregen < 1000 ? 2 : 0) | ((p->state!=CS_DEAD && p->health<=35 && !m_osok) ? 1 : 0), p);
+	drawequipicon(20, 1650, 2, 3, (lastmillis - p->lastregen < 1000 ? 2 : 0) | ((p->state!=CS_DEAD && p->health<=35*HEALTHSCALE && !m_osok) ? 1 : 0), p);
 	if(p->mag[WEAP_GRENADE]) drawequipicon(1520, 1650, 3, 1, 0);
 
 	// weapons
@@ -681,7 +681,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
 	if(!m_osok){
 		static float fade = 0.f;
-		float newfade = p->state == CS_ALIVE ? ((1 - powf(p->health, 2) / powf(100, 2)) * damagescreenalpha / 100.f) : 0;
+		float newfade = p->state == CS_ALIVE ? ((1 - powf(p->health, 2) / powf(100 * HEALTHSCALE, 2)) * damagescreenalpha / 100.f) : 0;
 		fade = (fade * 40 + newfade) / 41.f;
 		if(fade){
 			glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -963,7 +963,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		if(!hidehudequipment)
 		{
 			pushfont("huddigits");
-			draw_textf("%d",  90, 823, p->health);
+			draw_textf("%.*f",  90, 823, HEALTHPRECISION, HEALTHPRECISION, p->health / (float)HEALTHSCALE);
 			if(p->armor) draw_textf("%d", 360, 823, p->armor);
 			if(p->weapons[WEAP_GRENADE] && p->weapons[WEAP_GRENADE]->mag) p->weapons[WEAP_GRENADE]->renderstats();
 			// The next set will alter the matrix - load the identity matrix and apply ortho after

@@ -46,8 +46,10 @@ struct entity : public persistent_entity
 	}
 };
 
-#define STARTHEALTH 1000
-#define MAXHEALTH 1020
+#define HEALTHPRECISION 2
+#define HEALTHSCALE 100 // 10^2
+#define STARTHEALTH (100 * HEALTHSCALE)
+#define MAXHEALTH (120 * HEALTHSCALE)
 
 #define SPAWNDELAY (m_flags ? 5000 : 1500)
 
@@ -115,25 +117,25 @@ static mul muls[MUL_NUM] =
 	{ 4,	1.2f,	1 } // shotgun
 };
 
-#define BLEEDDMG 100
-#define BLEEDDMGPLUS 150
+#define BLEEDDMG 10
+#define BLEEDDMGPLUS 15
 
 struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, range, endrange, rangeminus, projspeed, part, spread, kick, magsize, mdl_kick_rot, mdl_kick_back, recoil, maxrecoil, recoilangle, pushfactor; bool isauto; };
 static guninfo guns[WEAP_MAX] =
 {
 //	{ modelname;     snd,	  rldsnd,  rldtime, atkdelay,  dmg, rngstart, rngend, rngm,psd,ptt,spr,kick,magsz,mkrot,mkback,rcoil,maxrcl,rca,pushf; auto;}
-	{ "knife",      S_KNIFE,    S_ITEMAMMO,    0,   500,    800,    3,    4,   800,   0,   0,  1,    1,    1,   0,  0,     0,    0,       0, 5,   true },
-	{ "pistol",     S_PISTOL,   S_RPISTOL,  1400,   90,     400,   40,  120,   170,   0,   0, 90,    9,   12,   6,  2,    32,    48,     70, 1,   false},
-	{ "shotgun",    S_SHOTGUN,  S_RSHOTGUN,  750,   200,    100,    8,   16,    30,   0,   0,  1,   12,    7,   9,  5,    60,    70,      5, 2,   false},
-	{ "subgun",     S_SUBGUN,   S_RSUBGUN,  2400,   67,     400,   32,   80,   220,   0,   0, 70,    4,   32,   1,  3,    23,    45,     65, 1,   true },
-	{ "sniper",     S_SNIPER,   S_RSNIPER,  2000,   100,   1200,    1,    2,   500,   0,   0,240,   14,   10,   4,  4,    58,    64,     75, 2,   false},
-	{ "bolt",       S_BOLT,     S_RBOLT,    2000,   1500,  1340,   80,  180,   340,   0,   0,260,   36,    8,   4,  4,    86,    90,     80, 3,   false},
-	{ "assault",    S_ASSAULT,  S_RASSAULT, 2100,   73,     320,   40,  100,   120,   0,   0, 60,    3,   30,   0,  3,    24,    38,     60, 1,   true },
-	{ "grenade",    S_NULL,     S_NULL,     1000,   650,   3000,    0,   32,  2700,  20,   6,  1,    1,    1,   3,  1,     0,    0,       0, 4,   false},
-	{ "pistol",     S_PISTOL,   S_RAKIMBO,  1400,   80,     400,   45,  160,   170,   0,   0, 56,    8,   24,   6,  2,    28,    48,     70, 2,   true },
-	{ "heal",       S_SUBGUN,   S_NULL,     1200,   100,    200,    4,    8,   100,   0,   0, 62,    1,   10,   0,  0,    10,    20,      8, 5,   true },
-	{ "sword",      S_NULL,     S_RASSAULT,    0,   400,    900,    4,    7,   900,   0,   0,  1,    1,    1,   0,  2,     0,     0,      0, 0,   true },
-	{ "bow",        S_NULL,     S_RASSAULT, 2000,   120,   2500,    0,   24,  2400,   0,   0, 88,    3,    1,   3,  1,    48,    50,      0, 4,   false},
+	{ "knife",      S_KNIFE,    S_ITEMAMMO,    0,   500,    80,    3,    4,   80,   0,   0,  1,    1,    1,   0,  0,     0,    0,       0, 5,   true },
+	{ "pistol",     S_PISTOL,   S_RPISTOL,  1400,   90,     40,   40,  120,   17,   0,   0, 90,    9,   12,   6,  2,    32,    48,     70, 1,   false},
+	{ "shotgun",    S_SHOTGUN,  S_RSHOTGUN,  750,   200,    10,    8,   16,    3,   0,   0,  1,   12,    7,   9,  5,    60,    70,      5, 2,   false},
+	{ "subgun",     S_SUBGUN,   S_RSUBGUN,  2400,   67,     40,   32,   80,   22,   0,   0, 70,    4,   32,   1,  3,    23,    45,     65, 1,   true },
+	{ "sniper",     S_SNIPER,   S_RSNIPER,  2000,   100,   120,    1,    2,   50,   0,   0,240,   14,   10,   4,  4,    58,    64,     75, 2,   false},
+	{ "bolt",       S_BOLT,     S_RBOLT,    2000,   1500,  134,   80,  180,   34,   0,   0,260,   36,    8,   4,  4,    86,    90,     80, 3,   false},
+	{ "assault",    S_ASSAULT,  S_RASSAULT, 2100,   73,     32,   40,  100,   12,   0,   0, 60,    3,   30,   0,  3,    24,    38,     60, 1,   true },
+	{ "grenade",    S_NULL,     S_NULL,     1000,   650,   300,    0,   32,  270,  20,   6,  1,    1,    1,   3,  1,     0,    0,       0, 4,   false},
+	{ "pistol",     S_PISTOL,   S_RAKIMBO,  1400,   80,     40,   45,  160,   17,   0,   0, 56,    8,   24,   6,  2,    28,    48,     70, 2,   true },
+	{ "heal",       S_SUBGUN,   S_NULL,     1200,   100,    20,    4,    8,   10,   0,   0, 62,    1,   10,   0,  0,    10,    20,      8, 5,   true },
+	{ "sword",      S_NULL,     S_RASSAULT,    0,   400,    90,    4,    7,   90,   0,   0,  1,    1,    1,   0,  2,     0,     0,      0, 0,   true },
+	{ "bow",        S_NULL,     S_RASSAULT, 2000,   120,   250,    0,   24,  240,   0,   0, 88,    3,    1,   3,  1,    48,    50,      0, 4,   false},
 };
 
 static inline ushort reloadtime(int gun) { return guns[gun].reloadtime; }
@@ -609,7 +611,7 @@ struct playerstate
 		perk = nextperk;
 		if(perk <= PERK_NONE || perk >= PERK_MAX) perk = rnd(PERK_MAX-1)+1;
 
-		const int healthsets[3] = { STARTHEALTH - 150, STARTHEALTH, STARTHEALTH + 200 };
+		const int healthsets[3] = { STARTHEALTH - 15 * HEALTHSCALE, STARTHEALTH, STARTHEALTH + 20 * HEALTHSCALE };
 		health = healthsets[(m_osok ? 0 : 1) + (perk == PERK_HEALTHY ? 1 : 0)];
 	}
 
@@ -751,12 +753,12 @@ struct playerent : dynent, playerstate
 	void hitpush(int damage, const vec &dir, int gun, bool slows)
 	{
 		if(gun<0 || gun>WEAP_MAX || dir.iszero()) return;
-		const float pushf = damage/1000.f*guns[gun].pushfactor;
+		const float pushf = damage*guns[gun].pushfactor/100.f/HEALTHSCALE;
 		vec push = dir;
 		push.normalize().mul(pushf);
 		vel.div(clamp<float>(pushf*5, 1, 5)).add(push);
 		extern int lastmillis;
-		if(gun==WEAP_GRENADE && damage > 50) eardamagemillis = lastmillis+damage*10;
+		if(gun==WEAP_GRENADE && damage > 50 * HEALTHSCALE) eardamagemillis = lastmillis+damage*100/HEALTHSCALE;
 	}
 
 	void resetspec()

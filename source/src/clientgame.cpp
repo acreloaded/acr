@@ -59,7 +59,7 @@ const char *colorname(playerent *d, bool stats)
 	static string cname;
 	formatstring(cname)("%s \fs\f%d(%d)", d->name, d->ownernum < 0 ? 6 : 7, d->clientnum);
 	if(stats){
-		defformatstring(stat)("%d%d", d->health > 50 ? 0 : d->health > 25 ? 2 : d->health > 0 ? 3 : 4, d->health);
+		defformatstring(stat)("%d%.*f%%", d->health > 50 * HEALTHSCALE ? 0 : d->health > 25 * HEALTHSCALE ? 2 : d->health > 0 ? 3 : 4, HEALTHPRECISION, d->health / (float)HEALTHSCALE);
 		if(d->armor) formatstring(stat)("%s\f5-\f4%d", stat, d->armor);
 		formatstring(cname)("%s \f5[\f%s\f5]", cname, stat);
 	}
