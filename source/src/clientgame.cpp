@@ -483,7 +483,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 	// blood
 	damageeffect(damage * (style&FRAG_GIB ? GIBBLOODMUL : 1), pl);
 
-	if(style & FRAG_CRITICAL){ // critical damage
+	if(style & FRAG_CRIT){ // critical damage
 		actor->addicon(eventicon::CRITICAL);
 		pl->addicon(eventicon::CRITICAL);
 	}
@@ -555,7 +555,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 		default: if(combo > 1) concatstring(predicate, ", \fs\f5\fbPWNING\fr"); break;
 	}
 	if(style & FRAG_FIRST) concatstring(predicate, " for \fs\f3\fbfirst blood\fr");
-	if(style & FRAG_CRITICAL) concatstring(predicate, " with a \fs\f1\fbcritical hit\fr");
+	if(style & FRAG_CRIT) concatstring(predicate, " with a \fs\f1\fbcritical hit\fr");
 	conoutf("%s %s", subject, predicate);
 	pl->killstreak = act->deathstreak = 0;
 	

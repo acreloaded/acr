@@ -39,7 +39,7 @@ enum {
 #define suppressed_weap(g) (melee_weap(g) || g == WEAP_GRENADE)
 #define ads_gun(g) (!melee_weap(g) && g != WEAP_GRENADE && g != WEAP_AKIMBO)
 
-enum { FRAG_NONE = 0, FRAG_GIB = 1 << 0, FRAG_REVENGE = 1 << 1, FRAG_CRITICAL = 1 << 2, FRAG_FLAG = 1 << 3, FRAG_FIRST = 1 << 4,
+enum { FRAG_NONE = 0, FRAG_GIB = 1 << 0, FRAG_REVENGE = 1 << 1, FRAG_CRIT = 1 << 2, FRAG_FLAG = 1 << 3, FRAG_FIRST = 1 << 4,
 		FRAG_VALID = (1 << ((4) + 1)) - 1 }; // up to 1 << 6 is optimal
 
 enum { STREAK_AIRSTRIKE = 0, STREAK_RADAR, STREAK_NUKE, STREAK_DROPNADE, STREAK_REVENGE, STREAK_NUM };

@@ -84,7 +84,7 @@ int explosion(client &owner, const vec &o2, int weap){
 		if((weap == WEAP_BOW && !dist) ||
 			(weap == WEAP_GRENADE && owner.clientnum != i && o.z >= target.state.o.z)) expflags |= FRAG_FLAG;
 		if(checkcrit(dist, 1.5f)){
-			expflags |= FRAG_CRITICAL;
+			expflags |= FRAG_CRIT;
 			dmg *= 2;
 		}
 		damagedealt += dmg;
@@ -178,7 +178,7 @@ int shot(client &owner, const vec &from, vec &to, int weap, const vec &surface, 
 		int style = gib ? FRAG_GIB : FRAG_NONE;
 		// critical shots
 		if(checkcrit(dist, 2.5)){
-			style |= FRAG_CRITICAL;
+			style |= FRAG_CRIT;
 			damage *= 2.5f;
 		}
 		if(melee_weap(weap)){
