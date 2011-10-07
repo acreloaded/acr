@@ -261,7 +261,7 @@ void processevents(){
 		if(c.state.state == CS_ALIVE){ // can't regen or bleed if dead
 			if(c.state.lastbleed){ // bleeding; oh no!
 				if(c.state.lastbleed + 500 < gamemillis && valid_client(c.state.lastbleedowner)){
-					const int bleeddmg = clients[c.state.lastbleedowner]->state.perk == PERK_PERSIST ? 15 : 10;
+					const int bleeddmg = clients[c.state.lastbleedowner]->state.perk == PERK_PERSIST ? BLEEDDMGPLUS : BLEEDDMG;
 					c.state.damage += bleeddmg;
 					c.state.shotdamage += bleeddmg;
 					serverdamage(&c, clients[c.state.lastbleedowner], bleeddmg, WEAP_KNIFE, FRAG_NONE, clients[c.state.lastbleedowner]->state.o);
