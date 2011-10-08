@@ -651,10 +651,10 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 				if(ppl->wantsreload){
 					ppl->wantsreload = false;
 					tryreload(ppl);
-					setscope(true);
+					if(ppl->delayedscope) setscope(true);
 				}
 				else if(ppl->wantsswitch >= 0){
-					if(ads_gun(ppl->wantsswitch)) setscope(true);
+					if(ads_gun(ppl->wantsswitch) && ppl->delayedscope) setscope(true);
 					ppl->weaponswitch(ppl->weapons[ppl->wantsswitch]);
 				}
 			}

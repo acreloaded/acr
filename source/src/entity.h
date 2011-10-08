@@ -630,7 +630,7 @@ struct playerent : dynent, playerstate
 	int points, frags, flagscore, deaths;
 	int lastaction, lastmove, lastpain, lasthitmarker;
 	int priv, vote, voternum, lastregen;
-	int ads, wantsswitch; bool wantsreload;
+	int ads, wantsswitch; bool wantsreload, delayedscope;
 	bool attacking;
 	string name;
 	int weaponchanging;
@@ -682,6 +682,7 @@ struct playerent : dynent, playerstate
 		skin_noteam = skin_red = skin_blue = NULL;
 		respawn();
 		damagestack.setsize(0);
+		wantsreload = delayedscope = false;
 	}
 
 	void addicon(int type)
@@ -779,6 +780,7 @@ struct playerent : dynent, playerstate
 				extern void setscope(bool activate);
 				setscope(false);
 				wantsswitch = w->type;
+				delayedscope = true;
 			}
 			return;
 		}
