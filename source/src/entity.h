@@ -60,27 +60,8 @@ struct entity : public persistent_entity
 #define MAXARMOR 100
 
 struct itemstat { short add, start, max, sound; };
-static itemstat ammostats[WEAP_MAX] =
-{
-	{1,  1,   2,	S_ITEMAMMO },   // knife dummy
-	{24, 60,  72,	S_ITEMAMMO },   // pistol
-	{21, 28,  42,	S_ITEMAMMO },   // shotgun
-	{96, 128,  192,	S_ITEMAMMO },   // subgun
-	{30, 40,  80,	S_ITEMAMMO },   // sniper
-	{16, 24,  32,	S_ITEMAMMO },   // bolt sniper
-	{90, 120,  180,	S_ITEMAMMO },   // assault
-	{1,  1,   3,	S_ITEMAMMO },   // grenade
-	{96, 0,   144,	S_ITEMAKIMBO },  // akimbo
-	{40, 60,  80,	S_ITEMAMMO },   // heal
-	{1,  1,   1,    S_ITEMAMMO }, // sword dummy
-	{2,  3,   5,    S_ITEMAMMO }, // crossbow
-};
-
-static itemstat powerupstats[] =
-{
-	{35, STARTHEALTH, MAXHEALTH, S_ITEMHEALTH}, //health
-	{40, STARTARMOR, MAXARMOR, S_ITEMarmor}, //armor
-};
+extern itemstat ammostats[WEAP_MAX];
+extern itemstat powerupstats[];
 
 #define ADSTIME 275
 #define CROUCHTIME 500
@@ -121,22 +102,7 @@ static mul muls[MUL_NUM] =
 #define BLEEDDMGPLUS 15
 
 struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, range, endrange, rangeminus, projspeed, part, spread, kick, magsize, mdl_kick_rot, mdl_kick_back, recoil, maxrecoil, recoilangle, pushfactor; bool isauto; };
-static guninfo guns[WEAP_MAX] =
-{
-//	{ modelname;     snd,	  rldsnd,  rldtime, atkdelay,  dmg, rngstart, rngend, rngm,psd,ptt,spr,kick,magsz,mkrot,mkback,rcoil,maxrcl,rca,pushf; auto;}
-	{ "knife",      S_KNIFE,    S_ITEMAMMO,    0,   500,    80,    3,    4,   80,   0,   0,  1,    1,    1,   0,  0,     0,    0,       0, 5,   true },
-	{ "pistol",     S_PISTOL,   S_RPISTOL,  1400,   90,     40,   40,  120,   17,   0,   0, 90,    9,   12,   6,  2,    32,    48,     70, 1,   false},
-	{ "shotgun",    S_SHOTGUN,  S_RSHOTGUN,  750,   200,    10,    8,   16,    3,   0,   0,  1,   12,    7,   9,  5,    60,    70,      5, 2,   false},
-	{ "subgun",     S_SUBGUN,   S_RSUBGUN,  2400,   67,     40,   32,   80,   22,   0,   0, 70,    4,   32,   1,  3,    23,    45,     65, 1,   true },
-	{ "sniper",     S_SNIPER,   S_RSNIPER,  2000,   100,   120,    1,    2,   50,   0,   0,240,   14,   10,   4,  4,    58,    64,     75, 2,   false},
-	{ "bolt",       S_BOLT,     S_RBOLT,    2000,   1500,  134,   80,  180,   34,   0,   0,260,   36,    8,   4,  4,    86,    90,     80, 3,   false},
-	{ "assault",    S_ASSAULT,  S_RASSAULT, 2100,   73,     32,   40,  100,   12,   0,   0, 60,    3,   30,   0,  3,    24,    38,     60, 1,   true },
-	{ "grenade",    S_NULL,     S_NULL,     1000,   650,   300,    0,   32,  270,  20,   6,  1,    1,    1,   3,  1,     0,    0,       0, 4,   false},
-	{ "pistol",     S_PISTOL,   S_RAKIMBO,  1400,   80,     40,   45,  160,   17,   0,   0, 56,    8,   24,   6,  2,    28,    48,     70, 2,   true },
-	{ "heal",       S_SUBGUN,   S_NULL,     1200,   100,    20,    4,    8,   10,   0,   0, 62,    1,   10,   0,  0,    10,    20,      8, 5,   true },
-	{ "sword",      S_NULL,     S_RASSAULT,    0,   400,    90,    4,    7,   90,   0,   0,  1,    1,    1,   0,  2,     0,     0,      0, 0,   true },
-	{ "bow",        S_NULL,     S_RASSAULT, 2000,   120,   250,    0,   24,  240,   0,   0, 88,    3,    1,   3,  1,    48,    50,      0, 4,   false},
-};
+extern guninfo guns[WEAP_MAX];
 
 static inline ushort reloadtime(int gun) { return guns[gun].reloadtime; }
 static inline ushort attackdelay(int gun) { return guns[gun].attackdelay; }

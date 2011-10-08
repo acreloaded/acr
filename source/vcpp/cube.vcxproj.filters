@@ -146,6 +146,9 @@
     <ClInclude Include="..\src\crypto.h">
       <Filter>headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\server.h">
+      <Filter>headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\ChangeLog.txt">

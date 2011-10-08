@@ -12,321 +12,44 @@
 #endif
 
 #include "cube.h"
+#include "server.h"
 #include "servercontroller.h"
 
 #define DEBUGCOND (true)
 
-void clearai(), checkai();
-void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = true);
-void disconnect_client(int n, int reason = -1);
-int clienthasflag(int cn);
-bool updateclientteam(int client, int team, int ftr);
-bool refillteams(bool now = false, int ftr = FTR_AUTOTEAM);
-void setpriv(int client, int priv);
-int mapavailable(const char *mapname);
-void getservermap(void);
-mapstats *getservermapstats(const char *mapname, bool getlayout = false);
-
 servercontroller *svcctrl = NULL;
 struct servercommandline scl;
-
-#define valid_flag(f) (f >= 0 && f < 2)
 
 #define SERVERMAP_PATH		  "packages/maps/servermaps/"
 #define SERVERMAP_PATH_BUILTIN  "packages/maps/official/"
 #define SERVERMAP_PATH_INCOMING "packages/maps/servermaps/incoming/"
 
-static int interm = 0, minremain = 0, gamemillis = 0, gamelimit = 0;
-static const int DEATHMILLIS = 300;
-
-enum { GE_NONE = 0, GE_SHOT, GE_PROJ, GE_AKIMBO, GE_RELOAD };
-enum { ST_EMPTY, ST_LOCAL, ST_TCPIP, ST_AI };
-
-int mastermode = MM_OPEN, botbalance = -1;
-
-// allows the gamemode macros to work with the server mode
-#define gamemode smode
 string smapname, nextmapname;
-int smode = 0, nextgamemode;
+int nextgamemode;
 mapstats smapstats;
 
-#define eventcommon int type, millis, id
-struct shotevent{
-	eventcommon;
-	int gun;
-	float to[3];
-	bool compact;
-};
-
-struct projevent{
-	eventcommon;
-	int gun, flag;
-	float o[3];
-};
-
-struct akimboevent{
-	eventcommon;
-};
-
-struct reloadevent{
-	eventcommon;
-	int gun;
-};
-
-union gameevent{
-	struct { eventcommon; };
-	shotevent shot;
-	projevent proj;
-	akimboevent akimbo;
-	reloadevent reload;
-};
-
-template <int N>
-struct projectilestate
-{
-	int projs[N];
-	int numprojs;
-	int throwable;
-
-	projectilestate() : numprojs(0) {}
-
-	void reset() { numprojs = 0; }
-
-	void add(int val)
-	{
-		if(numprojs>=N) numprojs = 0;
-		projs[numprojs++] = val;
-		++throwable;
-	}
-
-	bool remove(int val)
-	{
-		loopi(numprojs) if(projs[i]==val)
-		{
-			projs[i] = projs[--numprojs];
-			return true;
-		}
-		return false;
-	}
-};
-
-struct clientstate : playerstate
-{
-	vec o, aim, vel, lasto, sg[SGRAYS], flagpickupo;
-	float pitchvel;
-	int state, lastomillis, movemillis;
-	int lastdeath, lastffkill, lastspawn, lifesequence, spawnmillis;
-	int lastkill, combo;
-	bool crouching;
-	int crouchmillis, scopemillis;
-	int drownmillis; char drownval;
-	int streakondeath;
-	int lastshot, lastregen;
-	projectilestate<6> grenades; // 5000ms TLL / (we can throw one every 650ms+200ms) = 6 nades possible
-	projectilestate<3> knives;
-	int akimbos, akimbomillis;
-	int points, flagscore, frags, deaths, shotdamage, damage;
-	ivector revengelog;
-
-	clientstate() : state(CS_DEAD), playerstate() {}
-
-	bool isalive(int gamemillis)
-	{
-		if(interm) return false;
-		return state==CS_ALIVE || (state==CS_DEAD && gamemillis - lastdeath <= DEATHMILLIS);
-	}
-
-	bool waitexpired(int gamemillis)
-	{
-		int wait = gamemillis - lastshot;
-		loopi(WEAP_MAX) if(wait < gunwait[i]) return false;
-		return true;
-	}
-
-	void reset()
-	{
-		state = CS_DEAD;
-		lifesequence = -1;
-		grenades.reset();
-		knives.reset();
-		akimbos = akimbomillis = 0;
-		points = flagscore = frags = deaths = shotdamage = damage = lastffkill = 0;
-		radarearned = airstrikes = nukemillis = 0;
-		revengelog.setsize(0);
-		respawn();
-	}
-
-	void respawn()
-	{
-		playerstate::respawn(); spawnmillis = 0; // move spawnmillis to playerstate for clients to have opacity...
-		o = lasto = vec(-1e10f, -1e10f, -1e10f);
-		aim = vel = vec(0, 0, 0);
-		pitchvel = 0;
-		lastomillis = movemillis = 0;
-		drownmillis = drownval = 0;
-		lastspawn = -1;
-		lastdeath = lastshot = lastregen = 0;
-		lastkill = combo = 0;
-		akimbos = akimbomillis = 0;
-		damagelog.setsize(0);
-		crouching = false;
-		crouchmillis = scopemillis = 0;
-		streakondeath = -1;
-	}
-
-	int protect(int millis){
-		const int delay = SPAWNPROTECT, spawndelay = millis - spawnmillis;
-		int amt = 0;
-        if(ownernum < 0 && spawnmillis && delay && spawndelay <= delay) amt = delay - spawndelay;
-        return amt;
-	}
-};
-
-struct savedscore
-{
-	string name;
-	uint ip;
-	int points, frags, assists, killstreak, flagscore, deaths, shotdamage, damage;
-
-	void save(clientstate &cs)
-	{
-		points = cs.points;
-		frags = cs.frags;
-		assists = cs.assists;
-		killstreak = cs.killstreak;
-		flagscore = cs.flagscore;
-		deaths = cs.deaths;
-		shotdamage = cs.shotdamage;
-		damage = cs.damage;
-	}
-
-	void restore(clientstate &cs)
-	{
-		cs.points = points;
-		cs.frags = frags;
-		cs.assists = assists;
-		cs.killstreak = killstreak;
-		cs.flagscore = flagscore;
-		cs.deaths = deaths;
-		cs.shotdamage = shotdamage;
-		cs.damage = damage;
-	}
-};
-
+vector<client *> clients;
 static vector<savedscore> scores;
-
 uint nextauthreq = 1;
 
-struct client				   // server side version of "dynent" type
-{
-	int type;
-	int clientnum;
-	ENetPeer *peer;
-	string hostname;
-	string name;
-	int ping, team, skin, vote, priv;
-	int connectmillis;
-	bool connected, connectauth;
-	int authtoken, authmillis, authpriv, masterverdict; uint authreq;
-	bool haswelcome;
-	bool isonrightmap;
-	bool timesync;
-	int overflow;
-	int gameoffset, lastevent, lastvotecall;
-	int demoflags;
-	clientstate state;
-	vector<gameevent> events, timers;
-	vector<uchar> position, messages;
-	string lastsaytext;
-	int saychars, lastsay, spamcount;
-	int at3_score, at3_lastforce, eff_score;
-	bool at3_dontmove;
-	int spawnindex;
-	int salt;
-	string pwd;
-	int mapcollisions;
-	enet_uint32 bottomRTT;
+vector<ban> bans;
+vector<server_entity> sents;
+vector<demofile> demos;
 
-	gameevent &addevent()
-	{
-		static gameevent dummy;
-		if(events.length()>32) return dummy;
-		return events.add();
-	}
+// throwing knives
+vector<sknife> sknives;
+int sknifeid = 0;
+void purgesknives(){
+	loopv(sknives) sendf(-1, 1, "ri2", N_KNIFEREMOVE, sknives[i].id);
+	sknives.setsize(0);
+}
 
-	gameevent &addtimer(){
-		static gameevent dummy;
-		if(timers.length()>320) return dummy;
-		return timers.add();
-	}
-
-	void removetimers(int type){ loopv(timers) if(timers[i].type == type) timers.remove(i--); }
-
-	void removeexplosives() { state.grenades.reset(); state.knives.reset(); removetimers(GE_PROJ); }
-
-	void suicide(int weap, int flags = FRAG_NONE, int damage = 2000){
-		extern void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source);
-		if(state.state != CS_DEAD) serverdamage(this, this, damage, weap, flags, state.o);
-	}
-
-	void mapchange()
-	{
-		state.reset();
-		events.setsize(0);
-		timers.setsize(0);
-		overflow = 0;
-		timesync = false;
-		isonrightmap = m_edit;
-		lastevent = 0;
-		at3_lastforce = 0;
-		mapcollisions = 0;
-	}
-
-	void reset()
-	{
-		name[0] = demoflags = authmillis = 0;
-		ping = bottomRTT = 9999;
-		skin = team = 0;
-		position.setsize(0);
-		messages.setsize(0);
-		connected = connectauth = haswelcome = false;
-		priv = PRIV_NONE;
-		lastvotecall = 0;
-		vote = VOTE_NEUTRAL;
-		lastsaytext[0] = '\0';
-		saychars = authreq = 0;
-		spawnindex = -1;
-		mapchange();
-		authpriv = -1;
-		masterverdict = DISC_NONE;
-	}
-
-	void zap()
-	{
-		type = ST_EMPTY;
-		priv = PRIV_NONE;
-		authpriv = -1;
-		masterverdict = DISC_NONE;
-		connected = connectauth = haswelcome = false;
-	}
-};
-
-vector<client *> clients;
+ssqr *maplayout = NULL;
+int maplayout_factor;
 
 bool valid_client(int cn, bool player){
 	return clients.inrange(cn) && clients[cn]->type != ST_EMPTY && (!player || clients[cn]->type != ST_AI);
 }
-
-struct ban
-{
-	enet_uint32 host;
-	int millis;
-};
-
-vector<ban> bans;
-
-ssqr *maplayout = NULL;
-int maplayout_factor;
 
 const char *gethostname(int i){ return valid_client(i) ? valid_client(clients[i]->state.ownernum) ? clients[clients[i]->state.ownernum]->hostname : clients[i]->hostname : "unknown"; }
 bool hasclient(client *ci, int cn){
@@ -498,21 +221,6 @@ savedscore *findscore(client &c, bool insert){
 	return &sc;
 }
 
-struct server_entity			// server side version of "entity" type
-{
-	int type;
-	bool spawned, hascoord;
-	int spawntime;
-	short x, y;
-};
-
-vector<server_entity> sents;
-
-struct sknife{
-	int id, millis;
-	vec o;
-};
-
 void restoreserverstate(vector<entity> &ents)   // hack: called from savegame code, only works in SP
 {
 	loopv(sents)
@@ -656,27 +364,7 @@ void sendspawn(client *c){
 	streakready(*c, gs.streakondeath);
 }
 
-// throwing knives
-
-vector<sknife> sknives;
-int sknifeid = 0;
-
-void purgesknives(){
-	loopv(sknives) sendf(-1, 1, "ri2", N_KNIFEREMOVE, sknives[i].id);
-	sknives.setsize(0);
-}
-
 // demo
-
-struct demofile
-{
-	string info;
-	uchar *data;
-	int len;
-};
-
-vector<demofile> demos;
-
 bool demonextmatch = false;
 FILE *demotmp = NULL;
 gzFile demorecord = NULL, demoplayback = NULL;

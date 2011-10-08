@@ -5,16 +5,6 @@
 
 vector<entity> ents;
 
-const char *entnames[MAXENTTYPES + 1] =
-{
-	"none?", "light", "playerstart",
-	"pistol", "ammobox","grenades",
-	"health", "armor", "akimbo",
-	"mapmodel", "trigger",
-	"ladder", "ctf-flag",
-	"sound", "clip", "max",
-};
-
 const char *entmdlnames[I_AKIMBO-I_CLIPS+1] =
 {
 	"pickups/pistolclips", "pickups/ammobox", "pickups/nade", "pickups/health", "pickups/kevlar", "pickups/akimbo",

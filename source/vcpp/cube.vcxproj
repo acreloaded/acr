@@ -393,6 +393,7 @@
     <ClInclude Include="..\src\points.h" />
     <ClInclude Include="..\src\protocol.h" />
     <ClInclude Include="..\src\protos.h" />
+    <ClInclude Include="..\src\server.h" />
     <ClInclude Include="..\src\serveractions.h" />
     <ClInclude Include="..\src\serverballistics.h" />
     <ClInclude Include="..\src\servercontroller.h" />
