@@ -108,10 +108,10 @@ void tryreload(playerent *p){
 	if(!p || p->state!=CS_ALIVE || p->weaponsel->reloading || p->weaponchanging) return;
 	if(p->ads){
 		p->wantsreload = true;
+		p->delayedscope = p->scoping;
 		setscope(false);
 	}
 	else p->weaponsel->reload();
-	p->delayedscope = p->scoping;
 }
 
 void selfreload() { tryreload(player1); }
