@@ -121,7 +121,7 @@ void processevent(client &c, shotevent &e)
 			int hitzone = HIT_NONE;
 			client *hit = nearesthit(c, from, to, hitzone, &c);
 			if(hit){
-				serverdamage(hit, &c, hitzone == HIT_HEAD ? 75 : 50, WEAP_BOW, FRAG_NONE, hit->state.o);
+				serverdamage(hit, &c, hitzone == HIT_HEAD ? 75 : 50, WEAP_BOW, FRAG_GIB, hit->state.o);
 				if(hit->state.state != CS_ALIVE){
 					to = hit->state.o;
 					hit = NULL;
@@ -229,7 +229,7 @@ void clearevent(client &c){
 
 void processtimer(client &c, projevent &e){
 	vec o(valid_client(e.flag) ? clients[e.flag]->state.o : e.o);
-	int bowexplodedmgdealt = explosion(c, o, WEAP_BOW);
+	int bowexplodedmgdealt = explosion(c, o, WEAP_BOW, false);
 	c.state.damage += bowexplodedmgdealt;
 	c.state.shotdamage += max<int>(effectiveDamage(e.gun, 0), bowexplodedmgdealt);
 }

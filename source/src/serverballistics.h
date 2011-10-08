@@ -60,10 +60,10 @@ struct explosivehit{
 
 // a way to sort it
 int cmphitsort(explosivehit *a, explosivehit *b){ return b->damage - a->damage; }
-// if there is more damage, the distance is closer, therefore move it up ((-a) - (-b) -> -a + b -> b - a)
+// if there is more damage, the distance is closer, therefore move it up ((-a) - (-b) = -a + b = b - a)
 
 // explosion call
-int explosion(client &owner, const vec &o2, int weap){
+int explosion(client &owner, const vec &o2, int weap, bool gib = true){
 	int damagedealt = 0;
 	vec o(o2);
 	checkpos(o);
@@ -80,7 +80,7 @@ int explosion(client &owner, const vec &o2, int weap){
 		ray.sub(o).normalize();
 		if(sraycube(o, ray) < dist) continue; // not visible
 		ushort dmg = effectiveDamage(weap, dist, true);
-		int expflags = FRAG_GIB;
+		int expflags = gib ? FRAG_GIB : FRAG_NONE;
 		if((weap == WEAP_BOW && !dist) ||
 			(weap == WEAP_GRENADE && owner.clientnum != i && o.z >= target.state.o.z)) expflags |= FRAG_FLAG;
 		if(checkcrit(dist, 1.5f)){
