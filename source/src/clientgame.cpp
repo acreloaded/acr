@@ -343,7 +343,11 @@ void updateworld(int curtime, int lastmillis)		// main game update loop
 	checkakimbo();
 	if(getclientnum()>=0){ // only shoot when connected to server
 		shoot(player1, worldpos);
-		loopv(players) if(players[i]) shoot(players[i], worldpos);
+		loopv(players) if(players[i]){
+			playerent *p = players[i];
+			vec targ(sinf(RAD*p->yaw) * cosf(RAD*p->pitch), -cosf(RAD*p->yaw)* cosf(RAD*p->pitch), sinf(RAD*p->pitch));
+			shoot(players[i], targ);
+		}
 	}
 	movebounceents();
 	moveotherplayers();
