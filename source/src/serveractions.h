@@ -100,7 +100,7 @@ struct demoplayaction : serveraction
 struct playeraction : serveraction
 {
 	int cn;
-	virtual bool isvalid() { return valid_client(cn); }
+	virtual bool isvalid() { return valid_client(cn, true); }
 	playeraction(int cn) : cn(cn) { };
 };
 
@@ -165,7 +165,7 @@ inline uchar protectAdminRole(const char conf, int cn){
 struct subdueaction : playeraction
 {
 	void perform() { forcedeath(clients[cn], true); }
-	virtual bool isvalid() { return !m_edit && valid_client(cn); }
+	virtual bool isvalid() { return playeraction::isvalid() && !m_edit; }
 	subdueaction(int cn) : playeraction(cn)
 	{
 		passratio = 0.8f;
