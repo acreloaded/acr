@@ -949,7 +949,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		{
 			if(players.inrange(player1->followplayercn) && players[player1->followplayercn])
 			{
-				defformatstring(name)("Player \f%d%s", team_color(players[player1->followplayercn]->team), players[player1->followplayercn]->name);
+				defformatstring(name)("Player \f%d%s", team_color(players[player1->followplayercn]->team), colorname(players[player1->followplayercn]));
 				draw_text(name, VIRTW/40, VIRTH/10*8);
 			}
 		}
