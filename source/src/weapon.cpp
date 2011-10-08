@@ -107,9 +107,8 @@ COMMAND(magreserve, ARG_1EXP);
 void tryreload(playerent *p){
 	if(!p || p->state!=CS_ALIVE || p->weaponsel->reloading || p->weaponchanging) return;
 	if(p->ads){
-		p->wantsreload = true;
-		p->delayedscope = p->scoping;
 		setscope(false);
+		p->delayedscope = p->wantsreload = true;
 	}
 	else p->weaponsel->reload();
 }
@@ -1204,7 +1203,7 @@ void knife::renderstats() { if(ammo) draw_textf("%i", 590, 823, ammo); }
 
 // setscope for snipers and iron sights
 void setscope(bool enable){
-	if(!player1->state == CS_ALIVE || player1->scoping == enable) return;
+	if(!player1->state == CS_ALIVE || player1->scoping == enable || (enable && (player1->wantsreload || player1->wantsswitch >= 0))) return;
 	if(player1->weaponsel->type == WEAP_KNIFE){
 		player1->scoping = enable;
 	}
