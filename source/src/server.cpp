@@ -1221,10 +1221,15 @@ void forcedeath(client *cl, bool gib = false){
 
 void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source){
 	if(!target || !actor || !damage) return;
+
 	if(m_expert && !(style & FRAG_GIB || melee_weap(gun))) damage = 0;
 	else damage *= HEALTHSCALE;
+
 	clientstate &ts = target->state;
 	if(ts.state != CS_ALIVE) return;
+
+	if(m_real) style &= ~FRAG_CRIT;
+
 	if(target != actor){
 		if(ts.protect(gamemillis)) return; // check for spawn protection
 		if(isteam(actor, target)){ // friendly fire
@@ -1235,10 +1240,13 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 			actor->state.shotdamage += damage; // reduce his accuracy
 		}
 	}
+
 	if(target->state.damagelog.find(actor->clientnum) < 0) target->state.damagelog.add(actor->clientnum);
+
 	ts.dodamage(damage, actor->state.perk == PERK_POWER);
 	ts.lastregen = gamemillis + REGENDELAY - REGENINT;
 	const bool gib = style & FRAG_GIB;
+
 	if(ts.health<=0){
 		int targethasflag = clienthasflag(target->clientnum);
 		bool suic = false;
