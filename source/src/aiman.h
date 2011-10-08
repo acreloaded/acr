@@ -63,12 +63,13 @@ bool delai(){
 	return false;
 }
 
-bool shiftai(client &c, int cn = -1, int exclude = -1){
-	if(!valid_client(cn, true)){
-		cn = findaiclient(exclude);
-		if(!valid_client(cn, true)) return false;
+bool shiftai(client &c, int ncn = -1, int exclude = -1){
+	if(!valid_client(ncn, true)){
+		ncn = findaiclient(exclude);
+		if(!valid_client(ncn, true)) return false;
 	}
-	sendf(-1, 1, "ri3", N_REASSIGNAI, c.clientnum, c.state.ownernum = cn);
+	formatstring(c.name)("bot%d-%d", c.clientnum, ncn);
+	sendf(-1, 1, "ri3", N_REASSIGNAI, c.clientnum, c.state.ownernum = ncn);
 	return true;
 }
 
