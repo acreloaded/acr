@@ -2270,7 +2270,7 @@ void disconnect_client(int n, int reason){
 		clients[i]->state.revengelog.removeobj(n);
 	}
 	client &c = *clients[n];
-	loopv(clients) if(clients[i]->state.ownernum == n) deleteai(*clients[i]);
+	loopv(clients) if(clients[i]->state.ownernum == n) if(!shiftai(*clients[i], -1, n)) deleteai(*clients[i]);
 	if(c.priv) setpriv(n, PRIV_NONE);
 	const char *scoresaved = "";
 	if(c.haswelcome)

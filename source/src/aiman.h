@@ -63,6 +63,15 @@ bool delai(){
 	return false;
 }
 
+bool shiftai(client &c, int cn = -1, int exclude = -1){
+	if(!valid_client(cn, true)){
+		cn = findaiclient(exclude);
+		if(!valid_client(cn, true)) return false;
+	}
+	sendf(-1, 1, "ri3", N_REASSIGNAI, c.clientnum, c.state.ownernum = cn);
+	return true;
+}
+
 void clearai(){ loopv(clients) if(clients[i]->type == ST_AI) deleteai(*clients[i]); }
 
 bool reassignai(int exclude = -1){
@@ -79,11 +88,7 @@ bool reassignai(int exclude = -1){
 	if(hi >= 0 && lo >= 0 && hicount > locount + 1)
 	{
 		client *ci = clients[hi];
-		loopv(clients) if(clients[i]->type == ST_AI && clients[i]->state.ownernum == ci->clientnum)
-		{
-			sendf(-1, 1, "ri3", N_REASSIGNAI, i, clients[i]->state.ownernum = clients[lo]->clientnum);
-			return true;
-		}
+		loopv(clients) if(clients[i]->type == ST_AI && clients[i]->state.ownernum == ci->clientnum) return shiftai(*clients[i], lo);
 	}
 	return false;
 }
