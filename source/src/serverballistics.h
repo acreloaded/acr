@@ -63,7 +63,7 @@ int cmphitsort(explosivehit *a, explosivehit *b){ return b->damage - a->damage; 
 // if there is more damage, the distance is closer, therefore move it up ((-a) - (-b) = -a + b = b - a)
 
 // explosion call
-int explosion(client &owner, const vec &o2, int weap, bool gib = true){
+int explosion(client &owner, const vec &o2, int weap, bool gib){
 	int damagedealt = 0;
 	vec o(o2);
 	checkpos(o);

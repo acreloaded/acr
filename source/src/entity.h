@@ -160,6 +160,9 @@ static inline const char *suicname(int obit){
 		case OBIT_DEATH:
 			concatstring(k, "requested suicide");
 			break;
+		case OBIT_AIRSTRIKE:
+			concatstring(k, "called in a danger close mission");
+			break;
 		case OBIT_NUKE:
 			concatstring(k, "deployed a nuke");
 			break;
@@ -200,12 +203,13 @@ static inline const bool isheadshot(int weapon, int style){
 	return true;
 }
 
-static inline const int toobit(int weap, int style){ // moved here to lower enum warnings
+static inline const int toobit(int weap, int style){
 	const bool gib = (style & FRAG_GIB) > 0,
 				flag = (style & FRAG_FLAG) > 0;
 	switch(weap){
 		case WEAP_KNIFE: return gib ? WEAP_KNIFE : flag ? OBIT_KNIFE_IMPACT : OBIT_KNIFE_BLEED;
 		case WEAP_BOW: return gib ? OBIT_BOW_IMPACT : flag ? OBIT_BOW_STUCK : WEAP_BOW;
+		case WEAP_GRENADE: return gib ? WEAP_GRENADE : OBIT_AIRSTRIKE;
 		case WEAP_MAX: return OBIT_NUKE;
 	}
 	return weap < WEAP_MAX ? weap : OBIT_DEATH;
@@ -263,6 +267,9 @@ static inline const char *killname(int obit, bool headshot){
 			break;
 		case OBIT_KNIFE_IMPACT:
 			concatstring(k, "thrown down");
+			break;
+		case OBIT_AIRSTRIKE:
+			concatstring(k, "bombarded");
 			break;
 		case OBIT_NUKE:
 			concatstring(k, "nuked");

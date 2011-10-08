@@ -317,8 +317,7 @@ void usestreak(client &c, int streak, const vec &o = vec(0, 0, 0)){
 	int info = 0;
 	switch(streak){
 		case STREAK_AIRSTRIKE:
-			extern int explosion(client &owner, const vec &o2, int weap);
-			explosion(c, o, WEAP_GRENADE); // add a delay?
+			explosion(c, o, WEAP_GRENADE, false); // add a delay?
 			sendf(-1, 1, "ri3f3", N_STREAKUSE, c.clientnum, STREAK_AIRSTRIKE, info, o.x, o.y, o.z);
 			return; // special message
 		case STREAK_RADAR:
@@ -332,7 +331,6 @@ void usestreak(client &c, int streak, const vec &o = vec(0, 0, 0)){
 		{
 			info = rand();
 			c.state.grenades.add(info);
-			extern int explosion(client &owner, const vec &o2, int weap);
 			if(streak == STREAK_REVENGE) explosion(c, c.state.o, WEAP_GRENADE);
 			break;
 		}

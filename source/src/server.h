@@ -308,6 +308,8 @@ void getservermap(void);
 // int findmappath(const char *mapname, char *filename = NULL);
 mapstats *getservermapstats(const char *mapname, bool getlayout = false);
 void sendf(int cn, int chan, const char *format, ...);
+
+int explosion(client &owner, const vec &o2, int weap, bool gib = false);
 /*
 int calcscores();
 void recordpacket(int chan, void *data, int len);
