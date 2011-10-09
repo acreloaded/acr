@@ -231,12 +231,12 @@ void checkmasterreply()
 						case 's': // succeed
 						{
 							if(!*tp) return;
-							char priv = *tp++-'0';
-							if(!priv || !*tp) return;
+							char privk = *tp++;
+							if(!privk || !*tp) return;
 							string name;
 							filtertext(name, tp, 1, MAXNAMELEN);
 							extern void authsuceeded(uint id, char priv, char *name);
-							authsuceeded(authid, priv, name);
+							authsuceeded(authid, privk - '0', name);
 							break;
 						}
 						case 'c': // challenge
