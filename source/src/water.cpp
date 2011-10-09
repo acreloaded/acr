@@ -17,12 +17,13 @@ VARF(waterlevel, -128, -128, 127, setwaterlevel(waterlevel));
 
 void setwatercolor(const char *r, const char *g, const char *b, const char *a)
 {
-	if(noteditmode("watercolor")) return;
-	if(r[0]){
+	if(r && b && g && *r){
+		if(noteditmode("watercolor")) return;
 		hdr.watercolor[0] = ATOI(r);
 		hdr.watercolor[1] = ATOI(g);
 		hdr.watercolor[2] = ATOI(b);
 		hdr.watercolor[3] = a[0] ? ATOI(a) : 178;
+		sendwater();
 	}
 	else{
 		hdr.watercolor[0] = 20;
@@ -30,7 +31,6 @@ void setwatercolor(const char *r, const char *g, const char *b, const char *a)
 		hdr.watercolor[2] = 20;
 		hdr.watercolor[3] = 178;
 	}
-	sendwater();
 }
 
 COMMANDN(watercolor, setwatercolor, ARG_4STR);
