@@ -536,8 +536,7 @@ void endianswap(void *memory, int stride, int length)   // little endian as stor
 
 bool isbigendian()
 {
-	long one = 1;
-	return !(*((char *)(&one)));
+	return !*(const uchar *)&islittleendian;
 }
 
 void strtoupper(char *t, const char *s)
@@ -605,6 +604,18 @@ const char *iprtoa(const struct iprange &ipr)
 	return s[buf];
 }
 
+int cmpiprange(const struct iprange *a, const struct iprange *b)
+{
+	if(a->lr < b->lr) return -1;
+	if(a->lr > b->lr) return 1;
+	return 0;
+}
+
+int cmpipmatch(const struct iprange *a, const struct iprange *b)
+{
+	return - (a->lr < b->lr) + (a->lr > b->ur);
+}
+
 char *concatformatstring(char *d, const char *s, ...)
 {
 	static s_sprintfdv(temp, s);
@@ -617,7 +628,7 @@ const char *hiddenpwd(const char *pwd, int showchars)
 	static string text;
 	copystring(text, pwd);
 	if(showchars > 0) sc = showchars;
-	for(int i = strlen(text) - 1; i >= sc; i--) text[i] = '*';
+	for(int i = (int)strlen(text) - 1; i >= sc; --i) text[i] = '*';
 	return text;
 }
 //////////////// geometry utils ////////////////
@@ -675,9 +686,10 @@ void glmatrixf::adjoint(const glmatrixf &m)
 
 bool glmatrixf::invert(const glmatrixf &m, float mindet)
 {
-	float det = m.determinant();
-	if(fabs(det) < mindet) return false;
+	float a1 = m.v[0], b1 = m.v[4], c1 = m.v[8], d1 = m.v[12];
 	adjoint(m);
+	float det = a1*v[0] + b1*v[1] + c1*v[2] + d1*v[3]; // float det = m.determinant();
+	if(fabs(det) < mindet) return false;
 	float invdet = 1/det;
 	loopi(16) v[i] *= invdet;
 	return true;

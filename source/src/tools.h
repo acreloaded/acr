@@ -197,8 +197,8 @@ struct databuf
 
 	int length() const { return len; }
 	int remaining() const { return maxlen-len; }
-	bool overread() const { return flags&OVERREAD; }
-	bool overwrote() const { return flags&OVERWROTE; }
+	bool overread() const { return (flags&OVERREAD)!=0; }
+	bool overwrote() const { return (flags&OVERWROTE)!=0; }
 
 	void forceoverread()
 	{
@@ -265,6 +265,7 @@ template <class T> struct vector
 	void drop() { buf[--ulen].~T(); }
 	bool empty() const { return ulen==0; }
 
+	int capacity() const { return alen; }
 	int length() const { return ulen; }
 	T &operator[](int i) { ASSERT(i>=0 && i<ulen); return buf[i]; }
 	const T &operator[](int i) const { ASSERT(i >= 0 && i<ulen); return buf[i]; }
@@ -657,6 +658,8 @@ extern const char *atoip(const char *s, enet_uint32 *ip);
 extern const char *atoipr(const char *s, iprange *ir);
 extern const char *iptoa(const enet_uint32 ip);
 extern const char *iprtoa(const struct iprange &ipr);
+extern int cmpiprange(const struct iprange *a, const struct iprange *b);
+extern int cmpipmatch(const struct iprange *a, const struct iprange *b);
 extern const char *hiddenpwd(const char *pwd, int showchars = 0);
 
 #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)

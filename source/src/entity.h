@@ -4,13 +4,14 @@ enum							// static entity types
 	LIGHT,					  // lightsource, attr1 = radius, attr2 = intensity
 	PLAYERSTART,				// attr1 = angle, attr2 = team
 	I_CLIPS, I_AMMO, I_GRENADE,
-	I_HEALTH, I_ARMOR, I_AKIMBO,
+	I_HEALTH, I_HELMET, I_ARMOR, I_AKIMBO,
 	MAPMODEL,				   // attr1 = angle, attr2 = idx
 	CARROT,					 // attr1 = tag, attr2 = type
 	LADDER,
 	CTF_FLAG,				   // attr1 = angle, attr2 = red/blue
 	SOUND,
 	CLIP,
+	PLCLIP,
 	MAXENTTYPES
 };
 
@@ -498,8 +499,8 @@ struct playerstate
 			case I_AMMO: return ammostats[primary];
 			case I_GRENADE: return ammostats[WEAP_GRENADE];
 			case I_AKIMBO: return ammostats[WEAP_AKIMBO];
-			case I_HEALTH: return powerupstats[0]; // FIXME: unify
-			case I_ARMOR: return powerupstats[1];
+			case I_HEALTH: case I_HELMET: case I_ARMOR:
+				return powerupstats[type - I_HEALTH];
 			default:
 				return *(itemstat *)0;
 		}
@@ -513,7 +514,9 @@ struct playerstate
 			case I_AMMO: return primary == WEAP_SWORD || ammo[primary]<ammostats[primary].max;
 			case I_GRENADE: return mag[WEAP_GRENADE]<ammostats[WEAP_GRENADE].max;
 			case I_HEALTH: return health<powerupstats[type-I_HEALTH].max;
-			case I_ARMOR: return armor<powerupstats[type-I_HEALTH].max;
+			case I_HELMET:
+			case I_ARMOR:
+				return armor<powerupstats[type-I_HEALTH].max;
 			case I_AKIMBO: return !akimbo && ownernum < 0;
 			default: return false;
 		}
@@ -536,6 +539,7 @@ struct playerstate
 			case I_AMMO: additem(ammostats[primary], ammo[primary]); break;
 			case I_GRENADE: additem(ammostats[WEAP_GRENADE], mag[WEAP_GRENADE]); break;
 			case I_HEALTH: lastbleed = lastbleedowner = 0; additem(powerupstats[type-I_HEALTH], health); break;
+			case I_HELMET:
 			case I_ARMOR: additem(powerupstats[type-I_HEALTH], armor); break;
 			case I_AKIMBO:
 				akimbo = true;

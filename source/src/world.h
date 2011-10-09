@@ -38,7 +38,7 @@ enum							// hardcoded texture numbers
 	DEFAULT_CEIL
 };
 
-#define MAPVERSION 6			// bump if map format changes, see worldio.cpp
+#define MAPVERSION 7			// bump if map format changes, see worldio.cpp
 
 struct header				   // map file format header
 {
@@ -51,7 +51,7 @@ struct header				   // map file format header
 	uchar texlists[3][256];
 	int waterlevel;
 	uchar watercolor[4];
-	int reserved[14];
+    int reserved[14];
 };
 
 struct mapstats
@@ -75,41 +75,46 @@ struct mapstats
 			if(!e.attr2) e.attr2 = 255; /* needed for MAPVERSION<=2 */ \
 			if(e.attr1>32) e.attr1 = 32; /* 12_03 and below */ \
 		} \
-		if(headr.version<MAPVERSION  && strncmp(headr.head,"CUBE",4)==0)  /* only render lights, pl starts and map models on old maps */ \
+		if(headr.version<6  && strncmp(headr.head,"CUBE",4)==0)  /* only render lights, pl starts and map models on old maps */ \
 		{ \
-				switch(e.type) \
-				{ \
-					case 1: /* old light */ \
-						e.type=LIGHT; \
-						break; \
-					case 2: /* old player start */ \
-						e.type=PLAYERSTART; \
-						break; \
-					case 3: \
-						case 4: \
-					case 5: \
-					case 6: \
-						e.type=I_AMMO; \
-						break; \
-					case 7: /* old health */ \
-						e.type=I_HEALTH; \
-						break; \
-					case 8: /* old boost */ \
-						e.type=I_HEALTH; \
-						break; \
-					case 9: /* armor */ \
-					case 10: /* armor */ \
-						e.type=I_ARMOR; \
-						break; \
-					case 11: /* quad */ \
-						e.type=I_AKIMBO; \
-						break; \
-					case 14: /* old map model */ \
-						e.type=MAPMODEL; \
-						break; \
-					default: \
-						e.type=NOTUSED; \
-				} \
+			switch(e.type) \
+			{ \
+				case 1: /* old light */ \
+					e.type=LIGHT; \
+					break; \
+				case 2: /* old player start */ \
+					e.type=PLAYERSTART; \
+					break; \
+				case 3: \
+					case 4: \
+				case 5: \
+				case 6: \
+					e.type=I_AMMO; \
+					break; \
+				case 7: /* old health */ \
+					e.type=I_HEALTH; \
+					break; \
+				case 8: /* old boost */ \
+					e.type=I_HEALTH; \
+					break; \
+				case 9: /* armor */ \
+					e.type=I_HELMET; \
+					break; \
+				case 10: /* armor */ \
+					e.type=I_ARMOR; \
+					break; \
+				case 11: /* quad */ \
+					e.type=I_AKIMBO; \
+					break; \
+				case 14: /* old map model */ \
+					e.type=MAPMODEL; \
+					break; \
+				default: \
+					e.type=NOTUSED; \
+			} \
+		} \
+		if(headr.version>=6 && headr.version<7) { \
+			if( e.type >= I_HELMET && e.type < (MAXENTTYPES - 1) ) ++e.type; \
 		}
 
 #define SWS(w,x,y,s) (&(w)[((y)<<(s))+(x)])

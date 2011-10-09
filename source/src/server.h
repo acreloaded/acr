@@ -362,12 +362,10 @@ static const char *messagenames(int n){
 
 const char *entnames[MAXENTTYPES + 1] =
 {
-	"none?", "light", "playerstart",
-	"pistol", "ammobox","grenades",
-	"health", "armor", "akimbo",
-	"mapmodel", "trigger",
-	"ladder", "ctf-flag",
-	"sound", "clip", "max",
+	"none?",
+	"light", "playerstart", "pistol", "ammobox","grenades",
+	"health", "helmet", "armor", "akimbo",
+	"mapmodel", "trigger", "ladder", "ctf-flag", "sound", "clip", "plclip", "max",
 };
 
 itemstat ammostats[WEAP_MAX] =
@@ -388,8 +386,9 @@ itemstat ammostats[WEAP_MAX] =
 
 itemstat powerupstats[] =
 {
-	{35, STARTHEALTH, MAXHEALTH, S_ITEMHEALTH}, //health
-	{40, STARTARMOR, MAXARMOR, S_ITEMarmor}, //armor
+	{35 * HEALTHSCALE, STARTHEALTH, MAXHEALTH, S_ITEMHEALTH }, //health
+	{15, STARTARMOR, MAXARMOR, S_ITEMARMOR }, // helmet
+	{40, STARTARMOR, MAXARMOR, S_ITEMARMOR }, // armor
 };
 
 guninfo guns[WEAP_MAX] =

@@ -1414,14 +1414,6 @@ void readscfg(const char *name){
 	logline(ACLOG_INFO,"read %d map rotation entries from '%s'", configsets.length(), cfgfilename);
 }
 
-int cmpiprange(const struct iprange *a, const struct iprange *b){
-	if(a->lr < b->lr) return -1;
-	if(a->lr > b->lr) return 1;
-	return 0;
-}
-
-int cmpipmatch(const struct iprange *a, const struct iprange *b) { return - (a->lr < b->lr) + (a->lr > b->ur); }
-
 vector<iprange> ipblacklist;
 
 int fixblacklist(vector<iprange> &target, const char *name){
