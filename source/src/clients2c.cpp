@@ -1172,8 +1172,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					if(p == player1 && ftr == FTR_AUTOTEAM) hudoutf("\f2you stay in team %s", nts);
 					break;
 				}
+				else if(*p->name && ftr == FTR_PLAYERWISH) addobit(p, fnt == TEAM_SPECT ? OBIT_SPECT : OBIT_TEAM, FRAG_NONE, p);
 				p->team = fnt;
-				if(*p->name) addobit(p, fnt == TEAM_SPECT ? OBIT_SPECT : OBIT_TEAM, FRAG_NONE, p);
 				if(p == player1 && !watchingdemo){
 					switch(ftr){
 						case FTR_PLAYERWISH:
