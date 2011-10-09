@@ -4,10 +4,7 @@
 int wx1, wy1, wx2, wy2;
 float wsx1, wsy1, wsx2, wsy2;
 
-inline void sendwater(){
-	if(noteditmode("sendwaterlevel")) return;
-	addmsg(N_EDITW, "ri5", hdr.waterlevel, hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], hdr.watercolor[3]);
-}
+inline void sendwater(){ addmsg(N_EDITW, "ri5", hdr.waterlevel, hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], hdr.watercolor[3]); }
 
 void setwaterlevel(int w){
 	if(noteditmode("waterlevel")) return;
@@ -20,6 +17,7 @@ VARF(waterlevel, -128, -128, 127, setwaterlevel(waterlevel));
 
 void setwatercolor(const char *r, const char *g, const char *b, const char *a)
 {
+	if(noteditmode("watercolor")) return;
 	if(r[0]){
 		hdr.watercolor[0] = ATOI(r);
 		hdr.watercolor[1] = ATOI(g);
