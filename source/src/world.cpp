@@ -131,7 +131,7 @@ COMMAND(closestenttype, ARG_1STR);
 
 int closestent()		// used for delent and edit mode ent display
 {
-	if(noteditmode()) return -1;
+	if(noteditmode("closestent")) return -1;
 	int best = -1, bcnt = 0;
 	float bdist = 99999;
 	loopj(3)
@@ -295,7 +295,7 @@ COMMAND(entset, ARG_5STR);
 void clearents(char *name)
 {
 	int type = findtype(name);
-	if(noteditmode() || multiplayer()) return;
+	if(noteditmode("clearents") || multiplayer()) return;
 	loopv(ents)
 	{
 		entity &e = ents[i];
@@ -355,7 +355,7 @@ void nextplayerstart(char *type)
 {
 	static int cycle = -1;
 
-	if(noteditmode()) return;
+	if(noteditmode("nextplayerstart")) return;
 	cycle = type[0] ? findentity(PLAYERSTART, cycle + 1, atoi(type)) : findentity(PLAYERSTART, cycle + 1);
 	if(cycle >= 0)
 	{
@@ -386,7 +386,7 @@ void setupworld(int factor)
 
 bool empty_world(int factor, bool force)	// main empty world creation routine, if passed factor -1 will enlarge old world by 1
 {
-	if(!force && noteditmode()) return false;
+	if(!force && noteditmode("empty world")) return false;
 	sqr *oldworld = world;
 	bool copy = false;
 	if(oldworld && factor<0) { factor = sfactor+1; copy = true; }

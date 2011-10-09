@@ -532,7 +532,7 @@ extern void editequalisexy(bool isfloor, block &sel);
 extern void edittypexy(int type, block &sel);
 extern void edittexxy(int type, int t, block &sel);
 extern void editheightxy(bool isfloor, int amount, block &sel);
-extern bool noteditmode();
+extern bool noteditmode(const char* func = NULL);
 extern void pruneundos(int maxremain = 0);
 
 // renderhud
