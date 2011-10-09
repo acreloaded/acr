@@ -72,7 +72,7 @@ static inline char popcount(unsigned i){ char c; for(c=0;i;++c){i&=i-1;} return 
 #define loopj(m) loop(j,m)
 #define loopk(m) loop(k,m)
 #define loopl(m) loop(l,m)
-#define loopirev(v) for(int i = v-1; i>=0; i--)
+#define loopirev(v) for(int i = v-1; i>=0; --i)
 
 
 #define DELETEP(p) if(p) { delete   p; p = 0; }
