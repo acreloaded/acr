@@ -83,12 +83,12 @@ void authsuceeded(uint id, char priv, char *name){
 	if(!c) return;
 	c->authreq = 0;
 	logline(ACLOG_INFO, "[%s] auth #%d suceeded for %s as '%s'", gethostname(c->clientnum), id, privname(priv), name);
-	if(priv){
-		sendf(-1, 1, "ri3s", N_AUTHCHAL, 5, c->clientnum, name); // only say "identified" for privileged users
-		setpriv(c->clientnum, c->authpriv = clamp<char>(priv, PRIV_MASTER, PRIV_MAX));
-	}
+	bool banremoved = false;
+	loopv(bans) if(bans[i].host == c->peer->address.host){ bans.remove(i--); banremoved = true; } // deban
+	// broadcast "identified" if privileged or a ban was removed
+	sendf(priv || banremoved ? -1 : c->clientnum, 1, "ri3s", N_AUTHCHAL, 5, c->clientnum, name);
+	if(priv) setpriv(c->clientnum, c->authpriv = clamp<char>(priv, PRIV_MASTER, PRIV_MAX));
 	else c->authpriv = PRIV_NONE; // bypass master bans
-	loopv(bans) if(bans[i].host == c->peer->address.host) bans.remove(i); // deban
 	checkauthdisc(*c); // can bypass passwords
 }
 
