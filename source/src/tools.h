@@ -153,6 +153,8 @@ struct databuf
 	int len, maxlen;
 	uchar flags;
 
+	databuf() : buf(NULL), len(0), maxlen(0), flags(0) {}
+
 	template <class U>
 	databuf(T *buf, U maxlen) : buf(buf), len(0), maxlen((int)maxlen), flags(0) {}
 
@@ -162,15 +164,6 @@ struct databuf
 		if(len<maxlen) return buf[len++];
 		flags |= OVERREAD;
 		return overreadval;
-	}
-
-	int get(T *vals, int numvals)
-	{
-		int read = min(maxlen-len, numvals);
-		if(read<numvals) flags |= OVERREAD;
-		memcpy(vals, &buf[len], read*sizeof(T));
-		len += read;
-		return read;
 	}
 
 	databuf subbuf(int sz)
@@ -184,6 +177,15 @@ struct databuf
 	{
 		if(len<maxlen) buf[len++] = val;
 		else flags |= OVERWROTE;
+	}
+
+	int get(T *vals, int numvals)
+	{
+		int read = min(maxlen-len, numvals);
+		if(read<numvals) flags |= OVERREAD;
+		memcpy(vals, &buf[len], read*sizeof(T));
+		len += read;
+		return read;
 	}
 
 	void put(const T *vals, int numvals)
