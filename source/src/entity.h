@@ -110,15 +110,15 @@ static inline ushort attackdelay(int gun) { return guns[gun].attackdelay; }
 static inline ushort magsize(int gun) { return guns[gun].magsize; }
 static inline ushort reloadsize(int gun) { return gun == WEAP_SHOTGUN ? 1 : guns[gun].magsize; }
 static inline ushort effectiveDamage(int gun, float dist, bool explosive = false) {
-	ushort finaldamage = 0;
+	float finaldamage = 0;
 	if(dist <= guns[gun].range || (!guns[gun].range && !guns[gun].endrange)) finaldamage = guns[gun].damage;
 	else if(dist >= guns[gun].endrange) finaldamage = guns[gun].damage - guns[gun].rangeminus;
 	else{
 		float subtractfactor = (dist - (float)guns[gun].range) / ((float)guns[gun].endrange - (float)guns[gun].range);
 		if(explosive) subtractfactor = sqrtf(subtractfactor);
-		finaldamage = (guns[gun].damage - subtractfactor * guns[gun].rangeminus)  * HEALTHSCALE;
+		finaldamage = guns[gun].damage - subtractfactor * guns[gun].rangeminus;
 	}
-	return finaldamage;
+	return finaldamage * HEALTHSCALE;
 }
 
 static inline const int obit_suicide(int weap){
