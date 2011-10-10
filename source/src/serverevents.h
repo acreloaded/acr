@@ -235,7 +235,7 @@ void processtimer(client &c, projevent &e){
 }
 
 void processtimer(client &c, reloadevent &e){
-	int heal = e.gun;
+	const int heal = e.gun * HEALTHSCALE;
 	if(heal >= MAXHEALTH - c.state.health){
 		c.state.damagelog.setsize(0);
 		return sendf(-1, 1, "ri4", N_HEAL, e.id, c.clientnum, c.state.health = MAXHEALTH);
@@ -285,7 +285,7 @@ void processevents(){
 			//else sendmsgi(41, waitremain, sender);
 		}
 		// events
-		while(c.events.length()) // ordered
+		while(c.events.length()) // are ordered
 		{
 			gameevent &e = c.events[0];
 			if(e.millis>gamemillis) break;
@@ -302,7 +302,7 @@ void processevents(){
 			clearevent(c);
 		}
 		// timers
-		loopvj(c.timers){ // unordered
+		loopvj(c.timers){ // are unordered
 			gameevent &e = c.timers[j];
 			if(e.millis>gamemillis) continue;
 			if(e.type == GE_RELOAD && (c.state.state != CS_ALIVE || c.state.health >= MAXHEALTH)){
