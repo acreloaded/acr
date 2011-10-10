@@ -65,7 +65,7 @@ void rendermapmodels()
 	}
 }
 
-VAR(showmodelclipping, 0, 0, 1);
+VARP(showmodelclipping, 0, 1, 1);
 
 void renderentities()
 {
