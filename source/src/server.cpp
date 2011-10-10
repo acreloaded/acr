@@ -1221,7 +1221,6 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 	if(!target || !actor || !damage) return;
 
 	if(m_expert && !(style & FRAG_GIB || melee_weap(gun))) damage = 0;
-	else damage *= HEALTHSCALE;
 
 	clientstate &ts = target->state;
 	if(ts.state != CS_ALIVE) return;
@@ -1234,7 +1233,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 			if((damage *= 0.25) > target->state.health - 80 * HEALTHSCALE) damage = target->state.health - 80 * HEALTHSCALE; // no more TKs!
 			if(damage < 1) return;
 			const int returndamage = damage * (m_expert ? 1.5f : .4f);
-			if(returndamage) serverdamage(actor, actor, returndamage / HEALTHSCALE, WEAP_MAX+3, style, source); // redirect damage to owner
+			if(returndamage) serverdamage(actor, actor, returndamage, WEAP_MAX+3, style, source); // redirect damage to owner
 			actor->state.shotdamage += damage; // reduce his accuracy
 		}
 	}

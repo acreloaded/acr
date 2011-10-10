@@ -222,7 +222,7 @@ struct client				   // server side version of "dynent" type
 
 	void removeexplosives() { state.grenades.reset(); state.knives.reset(); removetimers(GE_PROJ); }
 
-	void suicide(int weap, int flags = FRAG_NONE, int damage = 2000){
+	void suicide(int weap, int flags = FRAG_NONE, int damage = 2000 * HEALTHSCALE){
 		extern void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source);
 		if(state.state != CS_DEAD) serverdamage(this, this, damage, weap, flags, state.o);
 	}
