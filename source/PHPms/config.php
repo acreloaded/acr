@@ -13,7 +13,8 @@
 	$config['servers']['weights'] = array( // only for cubelist
 		// array(ip, weight, port), // use port 0 or omit for wildcard
 	);
-	$config['servers']['placeholder'] = "localhost:28770"; // dummy when out of servers
+	$config['servers']['defaultport'] = 28770; // used for following entry; does not send this port, client should have it as default
+	$config['servers']['placeholder'] = "localhost"; // dummy when out of servers
 	$config['servers']['minport'] = 1024; // end of primary reserved ports
 	$config['servers']['maxport'] = 65534; // 65535 is the max
 	$config['servers']['check-socket'] = true; // check server with UDP sockets or not

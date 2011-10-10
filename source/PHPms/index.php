@@ -23,10 +23,7 @@
 			preg_match("/([^:]+):([0-9]{1,5})/", $srv, $s);
 			$buffer[] = array($s[1], $s[2], true);
 		}
-		if(!mysql_num_rows($q2)){
-			preg_match("/([^:]+):([0-9]{1,5})/", $config['servers']['placeholder'], $s);
-			$buffer[] = array($s[1], $s[2], true);
-		}
+		if(!mysql_num_rows($q2)) $buffer[] = array($config['servers']['placeholder'], $config['servers']['defaultport'], true);
 		while ($r = mysql_fetch_row($q)){
 			$io = $ip = $r[0];
 			$i = long2ip($io);
@@ -49,7 +46,7 @@
 				if($w[1]) $wt = ' '.$w[1];
 				break;
 			}
-			$lines[] = ($s[2] ? '' : "//")."addserver {$s[0]} {$s[1]}{$wt}";
+			$lines[] = ($s[2] ? '' : "//")."addserver {$s[0]}".($wt || $s[1] != $config['servers']['defaultport'] ? " {$s[1]}{$wt}" : "");
 		}
 		echo implode("\n", $lines);
 	}
