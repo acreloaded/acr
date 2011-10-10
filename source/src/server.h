@@ -301,7 +301,7 @@ void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = 
 void disconnect_client(int n, int reason = -1);
 int clienthasflag(int cn);
 bool updateclientteam(int client, int team, int ftr);
-bool refillteams(bool now = false, int ftr = FTR_AUTOTEAM);
+bool refillteams(bool now = false, int ftr = FTR_AUTOTEAM, bool aionly = true);
 void setpriv(int client, int priv);
 int mapavailable(const char *mapname);
 void getservermap(void);

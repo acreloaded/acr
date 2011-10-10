@@ -1793,7 +1793,7 @@ void shuffleteams(int ftr = FTR_AUTOTEAM){
 }
 
 
-bool balanceteams(int ftr)  // pro vs noobs never more
+bool balanceteams(int ftr, bool aionly = true)  // pro vs noobs never more
 {
     if(mastermode != MM_OPEN || numauthedclients() < 3 ) return true;
     int tsize[2] = {0, 0}, tscore[2] = {0, 0};
@@ -1802,7 +1802,7 @@ bool balanceteams(int ftr)  // pro vs noobs never more
 
     loopv(clients) if(clients[i]->type!=ST_EMPTY){
         client *c = clients[i];
-        if(c->connected && c->team < 2){
+        if(c->connected && c->team < 2 && (!aionly || c->type == ST_AI)){
             int time = servmillis - c->connectmillis + 5000;
             if ( time > gamemillis ) time = gamemillis + 5000;
             tsize[c->team]++;
@@ -1878,12 +1878,12 @@ bool balanceteams(int ftr)  // pro vs noobs never more
             return true;
         }
     }
-    return false;
+    return aionly && balanceteams(ftr, false);
 }
 
 int lastbalance = 0, waitbalance = 2 * 60 * 1000;
 
-bool refillteams(bool now, int ftr){ // force only minimal amounts of players
+bool refillteams(bool now, int ftr, bool aionly){ // force only minimal amounts of players
 	static int lasttime_eventeams = 0;
     int teamsize[2] = {0, 0}, teamscore[2] = {0, 0}, moveable[2] = {0, 0};
     bool switched = false;
@@ -1892,7 +1892,7 @@ bool refillteams(bool now, int ftr){ // force only minimal amounts of players
     loopv(clients) if(clients[i]->type!=ST_EMPTY){ // playerlist stocktaking
         client *c = clients[i];
         c->at3_dontmove = true;
-        if(c->connected && c->team < 2){
+        if(c->connected && c->team < 2 && (!aionly || c->type == ST_AI)){
 			teamsize[c->team]++;
 			teamscore[c->team] += c->at3_score;
 			if(clienthasflag(i) < 0) {
@@ -1962,7 +1962,7 @@ bool refillteams(bool now, int ftr){ // force only minimal amounts of players
         }
         lasttime_eventeams = gamemillis;
     }
-    return switched;
+    return switched || (aionly && refillteams(now, ftr, false));
 }
 
 void resetserver(const char *newname, int newmode, int newtime){
