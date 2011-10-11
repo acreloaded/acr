@@ -17,7 +17,7 @@ int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &remot
 }
 #endif
 
-static bool canreachauthserv = false;
+bool canreachauthserv = false;
 
 ENetSocket httpgetsend(ENetAddress &remoteaddress, const char *hostname, const char *req, const char *agent, ENetAddress *localaddress = NULL)
 {
