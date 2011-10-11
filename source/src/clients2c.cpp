@@ -664,7 +664,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(!d) break;
 				d->health = health;
 				d->lastregen = lastmillis;
-				if(healer) addobit(healer, OBIT_REVIVE, FRAG_NONE, d);
+				if(healer) addobit(healer, OBIT_REVIVE, FRAG_NONE, false, d);
 				break;
 			}
 
@@ -1172,7 +1172,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					if(p == player1 && ftr == FTR_AUTOTEAM) hudoutf("\f2you stay in team %s", nts);
 					break;
 				}
-				else if(*p->name && ftr == FTR_PLAYERWISH) addobit(p, fnt == TEAM_SPECT ? OBIT_SPECT : OBIT_TEAM, FRAG_NONE, p);
+				else if(*p->name && ftr == FTR_PLAYERWISH) addobit(p, fnt == TEAM_SPECT ? OBIT_SPECT : OBIT_TEAM, FRAG_NONE, false, p);
 				p->team = fnt;
 				if(p == player1 && !watchingdemo){
 					switch(ftr){

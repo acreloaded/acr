@@ -133,7 +133,7 @@ Texture **obittex(){
 }
 
 VARP(obitfade, 0, 10, 60);
-struct oline { char *actor; char *target; int weap, millis, style; };
+struct oline { char *actor; char *target; int weap, millis, style; bool headshot; };
 struct obitlist
 {
 	int maxlines;
@@ -141,7 +141,7 @@ struct obitlist
 
 	obitlist() : maxlines(12) {}
 
-	oline &addline(playerent *actor, int weap, int style, playerent *target, int millis)	// add a line to the obit buffer
+	oline &addline(playerent *actor, int weap, int style, bool headshot, playerent *target, int millis)	// add a line to the obit buffer
 	{
 		oline cl;
 		cl.actor = olines.length()>maxlines ? olines.pop().actor : newstringbuf("");   // constrain the buffer size
@@ -152,6 +152,7 @@ struct obitlist
 		formatstring(cl.actor)("\f%d%s", colorset[0][actor == gamefocus ? 0 : isteam(actor, gamefocus) ? 1 : 2], actor == target ? "" : actor ? colorname(actor) : "unknown");
 		formatstring(cl.target)("\f%d%s", colorset[weap >= OBIT_SPECIAL ? 0 : 1][target == gamefocus ? 0 : isteam(target, gamefocus) ? 1 : 2], target ? colorname(target) : "unknown");
 		cl.style = style;
+		cl.headshot = headshot;
 		return olines.insert(0, cl);
 	}
 
@@ -235,7 +236,7 @@ struct obitlist
 				}
 				// now draw weapon symbol
 				x += drawobit(l.weap, left + x, y, fade);
-				if(isheadshot(l.weap, l.style)) x += drawobit(OBIT_HEADSHOT, left + x, y, fade);
+				if(l.headshot) x += drawobit(OBIT_HEADSHOT, left + x, y, fade);
 				else if(l.style & FRAG_GIB) x += drawobit(OBIT_GIB, left + x, y, fade);
 				// next two shouldn't be grouped, but somehow is
 				if(l.style & FRAG_FIRST) x += drawobit(OBIT_FIRST, left + x, y, fade);
@@ -250,7 +251,7 @@ struct obitlist
 };
 obitlist obits;
 
-void addobit(playerent *actor, int weap, int style, playerent *target) { extern int totalmillis; obits.addline(actor, weap, style, target, totalmillis); }
+void addobit(playerent *actor, int weap, int style, bool headshot, playerent *target) { extern int totalmillis; obits.addline(actor, weap, style, headshot, target, totalmillis); }
 void renderobits() { obits.render(); }
 
 textinputbuffer cmdline;

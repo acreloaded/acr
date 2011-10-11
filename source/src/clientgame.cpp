@@ -575,7 +575,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 	if(style & FRAG_FIRST) icon = eventicon::FIRSTBLOOD;
 	if(icon >= 0) act->addicon(icon);
 
-	addobit(act, obit, style, pl);
+	addobit(act, obit, style, headshot, pl);
 	
 	deathstate(pl, act);
 	++pl->deaths;
