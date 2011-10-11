@@ -185,15 +185,6 @@ int freeteam(int pl = -1){
 	return teamsize[1] < teamsize[0] ? 1 : 0;
 }
 
-int findcnbyaddress(ENetAddress *address){
-	loopv(clients)
-	{
-		if(clients[i]->type == ST_TCPIP && clients[i]->peer->address.host == address->host && clients[i]->peer->address.port == address->port)
-			return i;
-	}
-	return -1;
-}
-
 savedscore *findscore(client &c, bool insert){
 	if(c.type!=ST_TCPIP) return NULL;
 	if(!insert)
