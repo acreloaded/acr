@@ -180,8 +180,6 @@ struct obitlist
 			case WEAP_KNIFE:
 			case WEAP_SUBGUN:
 				aspect = 2; break;
-			case WEAP_AKIMBO:
-				style = WEAP_PISTOL; // break;
 			default: break; // many are square
 		}
 
