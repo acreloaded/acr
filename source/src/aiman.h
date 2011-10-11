@@ -36,7 +36,7 @@ bool addai(){
 	b.type = ST_AI;
 	b.connected = true;
 	b.state.level = 60 + rnd(36); // how smart/stupid the bot is can be set here (currently random from 60 to 95)
-	sendf(-1, 1, "ri6", N_INITAI, cn, (b.team = freeteam()), (b.skin = rand()), b.state.level, (b.state.ownernum = aiowner));
+	sendf(-1, 1, "ri6", N_INITAI, cn, (b.team = freeteam(cn)), (b.skin = rand()), b.state.level, (b.state.ownernum = aiowner));
 	forcedeath(&b);
 	return true;
 }

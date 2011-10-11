@@ -167,21 +167,16 @@ int numauthedclients(){
 int calcscores();
 
 int freeteam(int pl = -1){
-	const bool checkbots = valid_client(pl) && clients[pl]->type == ST_AI;
+	const bool checkbots = clients.inrange(pl) && clients[pl]->type == ST_AI;
 	int teamsize[2] = {0};
 	int teamscore[2] = {0};
-	int t;
 	int sum = calcscores();
 	loopv(clients) if(clients[i]->type!=ST_EMPTY && (checkbots || clients[i]->type!=ST_AI) && i != pl && clients[i]->connected && clients[i]->team < 2)
 	{
-		t = clients[i]->team;
-		teamsize[t]++;
-		teamscore[t] += clients[i]->at3_score;
+		++teamsize[clients[i]->team];
+		teamscore[clients[i]->team] += clients[i]->at3_score;
 	}
-	if(teamsize[0] == teamsize[1])
-	{
-		return sum > 200 ? (teamscore[0] < teamscore[1] ? 0 : 1) : rnd(2);
-	}
+	if(teamsize[0] == teamsize[1]) return sum > 200 ? (teamscore[0] < teamscore[1] ? 0 : 1) : rnd(2);
 	return teamsize[1] < teamsize[0] ? 1 : 0;
 }
 
