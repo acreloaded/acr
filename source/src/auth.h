@@ -9,7 +9,7 @@ extern vector<authrequest> authrequests;
 bool reqauth(int cn, int authtoken){
 	if(!valid_client(cn)) return false;
 	client &cl = *clients[cn];
-	if(!isdedicated){ sendf(cn, 1, "ri2", N_AUTHCHAL, 2); return false;} // not dedicated/connected
+	if(!isdedicated || !canreachauthserv){ sendf(cn, 1, "ri2", N_AUTHCHAL, 2); return false;} // not dedicated/connected
 	if(cl.authreq){ sendf(cn, 1, "ri2", N_AUTHCHAL, 1);	return false;	} // already pending
 	if(cl.authmillis + 2000 > servmillis){ sendf(cn, 1, "ri3", N_AUTHCHAL, 6, cl.authmillis + 2000 - servmillis); return false; } // flood check
 	cl.authmillis = servmillis;

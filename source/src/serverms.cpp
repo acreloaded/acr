@@ -17,6 +17,8 @@ int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &remot
 }
 #endif
 
+static bool canreachauthserv = false;
+
 ENetSocket httpgetsend(ENetAddress &remoteaddress, const char *hostname, const char *req, const char *agent, ENetAddress *localaddress = NULL)
 {
 	if(remoteaddress.host==ENET_HOST_ANY)
@@ -41,6 +43,7 @@ ENetSocket httpgetsend(ENetAddress &remoteaddress, const char *hostname, const c
 	buf.dataLength = strlen((char *)buf.data);
 	//logline(ACLOG_INFO, "sending request to %s...", hostname);
 	enet_socket_send(sock, NULL, &buf, 1);
+	canreachauthserv = true;
 	return sock;
 }
 
@@ -162,10 +165,13 @@ void updatemasterserver(int millis, const ENetAddress &localaddr){
 			r.hash[0], r.hash[1], r.hash[2], r.hash[3], r.hash[4]);
 		else formatstring(path)("%sauth/%d", masterpath, r.id);
 	} else if(connectrequests.length()){
-		currentconnectrequest = new connectrequest(connectrequests.remove(0));
-		char out[MAXNAMELEN*4/3+1];
-		base64_encode(currentconnectrequest->nick, min(MAXNAMELEN, (int)strlen(currentconnectrequest->nick)), out);
-		formatstring(path)("%sconnect/%lu/%s", masterpath, currentconnectrequest->ip, out);
+		if(!canreachauthserv) connectrequests.shrink(0);
+		else{
+			currentconnectrequest = new connectrequest(connectrequests.remove(0));
+			char out[MAXNAMELEN*4/3+1];
+			base64_encode(currentconnectrequest->nick, min(MAXNAMELEN, (int)strlen(currentconnectrequest->nick)), out);
+			formatstring(path)("%sconnect/%lu/%s", masterpath, currentconnectrequest->ip, out);
+		}
 	}
 	if(!*path) return; // no request
 	defformatstring(agent)("AssaultCube Server v%d", AC_VERSION);
