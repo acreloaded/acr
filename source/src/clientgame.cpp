@@ -200,11 +200,13 @@ playerent *newplayerent()				 // create a new blank player
 void zapplayer(playerent *&d){
 	if(d){
 		if(d->pBot){
+			// C++ guarantees that delete NULL; does nothing
+			//if(d->pBot->m_pBotSkill) 
+				delete d->pBot->m_pBotSkill;
 			delete (CACBot *)d->pBot;
-			if(d->pBot->m_pBotSkill) delete d->pBot->m_pBotSkill;
 		}
 		delete d;
-		d = 0;
+		d = NULL;
 	}
 }
 
