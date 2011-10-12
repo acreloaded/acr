@@ -18,8 +18,7 @@ void processevent(client &c, projevent &e){
 
 		case WEAP_KNIFE:
 		{
-			if(!gs.knives.numprojs) return;
-			--gs.knives.numprojs;
+			if(!gs.knives.removeany()) return;
 			ushort dmg = effectiveDamage(WEAP_KNIFE, 0);
 			client *hit = valid_client(e.flag) && e.flag != c.clientnum ? clients[e.flag] : NULL;
 			if(hit){

@@ -63,6 +63,13 @@ struct projectilestate
 		++throwable;
 	}
 
+	bool removeany()
+	{
+		if(!numprojs) return false;
+		--numprojs;
+		return true;
+	}
+
 	bool remove(int val)
 	{
 		loopi(numprojs) if(projs[i]==val)
