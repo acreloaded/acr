@@ -2104,8 +2104,8 @@ bool isbanned(int cn){
 	if(c.type==ST_LOCAL || c.authpriv >= PRIV_MASTER) return false;
 	loopv(bans){
 		ban &b = bans[i];
-		if(b.host == c.peer->address.host) { return true; }
-		if(b.millis >= 0 && b.millis < servmillis) { bans.remove(i--); }
+		if(b.millis >= 0 && b.millis < servmillis) bans.remove(i--);
+		else if(b.host == c.peer->address.host) return true;
 	}
 	return checkipblacklist(c.peer->address.host);
 }
