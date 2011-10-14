@@ -3016,7 +3016,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_SCOPE:
 			{
-				bool scope = !m_classic && getint(p) != 0;
+				bool scope = getint(p) != 0;
 				if(!cl->state.isalive(gamemillis) || !(ads_gun(cl->state.gunselect) && ads_classic_allowed(cl->state.gunselect)) || cl->state.scoping == scope) break;
 				cl->state.scoping = scope;
 				cl->state.scopemillis = gamemillis - ADSTIME + min(gamemillis - cl->state.scopemillis, ADSTIME);
