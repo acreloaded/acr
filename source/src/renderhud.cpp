@@ -42,7 +42,7 @@ void drawflagicons(const flaginfo &f, playerent *p)
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glColor4f(1, 1, 1,
 			f.state == CTFF_INBASE ? 0.2f :
-			f.actor == p ? (sinf(lastmillis/100.0f)+1.0f) / 2.0f :
+			f.actor == p && f.state == CTFF_STOLEN ? (sinf(lastmillis/100.0f)+1.0f) / 2.0f :
 			1
 		);
 		// CTF
@@ -62,7 +62,7 @@ void drawflagicons(const flaginfo &f, playerent *p)
 	// pulses
 	glColor4f(1, 1, 1, f.actor == p ? (sinf(lastmillis/100.0f)+1.0f) / 2.0f : .6f);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-	drawicon(m_ctf ? ctftex : hktftex, VIRTW-225-10, VIRTH*5/8, 225, f.team, row, 1/2.f);
+	drawicon(m_ctf ? ctftex : hktftex, VIRTW - 225 * (2 - f.team) - 10, VIRTH*5/8, 225, f.team, row, 1/2.f);
 }
 
 void drawvoteicon(float x, float y, int col, int row, bool noblend)
