@@ -206,7 +206,8 @@ const char *modefullnames[] =
 	"team survivor", "ctf", "pistol frenzy", "last swiss standing",
 	"one shot, one kill", "team one shot, one kill", "hunt the flag", "team keep the flag", "keep the flag",
 	"real-team deathmatch", "expert-teamdeathmatch", "real deathmatch", "expert deathmatch",
-	"knife-only", "handheld-only", "return-capture the flag"
+	"knife-only", "handheld-only", "return-capture the flag",
+	"classic deathmatch", "classic-team deathmatch",
 };
 
 const char *modeacronymnames[] =
@@ -216,7 +217,8 @@ const char *modeacronymnames[] =
 	"TSURV", "CTF", "PF", "LSS",
 	"OSOK", "TOSOK", "HTF", "TKTF", "KTF",
 	"rTDM", "eTDM", "rDM", "eDM",
-	"knife", "handheld", "eCTF"
+	"knife", "handheld", "eCTF",
+	"cDM", "cTDM",
 };
 
 const char *voteerrors[VOTEE_NUM] = { "voting is currently disabled", "there is already a vote pending", "no permission to veto", "can't vote that often", "this vote is not allowed in the current environment (singleplayer/multiplayer)", "no permission", "invalid vote" };
