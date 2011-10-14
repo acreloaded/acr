@@ -81,6 +81,7 @@ void processevent(client &c, shotevent &e)
 	if(e.gun==WEAP_SHOTGUN){
 		// apply shotgun spread
 		adsfactor = (adsfactor + SGADSSPREADFACTOR - 1) / SGADSSPREADFACTOR;
+		if(m_classic) adsfactor *= .75f;
 		if(spreadf*adsfactor) loopi(SGRAYS){
 			gs.sg[i] = to;
 			applyspread(gs.o, gs.sg[i], SGSPREAD, (gs.perk == PERK_STEADY ? .65f : 1)*spreadf*adsfactor);
@@ -90,6 +91,7 @@ void processevent(client &c, shotevent &e)
 	else{
 		// apply normal ray spread
 		const int spread = guns[e.gun].spread * (gs.vel.magnitude() / 3.f + gs.pitchvel / 5.f + 0.4f) * 1.2f * crouchfactor;
+		if(m_classic) adsfactor *= .6f;
 		applyspread(gs.o, to, spread, (gs.perk == PERK_STEADY ? .75f : 1)*spreadf*adsfactor);
 	}
 	// trace shot
