@@ -39,6 +39,7 @@ void drawflagicons(const flaginfo &f, playerent *p)
 					*flagtex = textureload("packages/misc/flagicons.png", 3);
 	if(flagtex)
 	{
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glColor4f(1, 1, 1,
 			f.state == CTFF_INBASE ? 0.2f :
 			f.actor == p ? (sinf(lastmillis/100.0f)+1.0f) / 2.0f :
@@ -60,6 +61,7 @@ void drawflagicons(const flaginfo &f, playerent *p)
 	if(m_ktf) row = 1;
 	// pulses
 	glColor4f(1, 1, 1, f.actor == p ? (sinf(lastmillis/100.0f)+1.0f) / 2.0f : .6f);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	drawicon(m_ctf ? ctftex : hktftex, VIRTW-225-10, VIRTH*5/8, 225, f.team, row, 1/2.f);
 }
 
@@ -991,7 +993,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		{
 			glLoadIdentity();
 			glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glEnable(GL_BLEND);
 			loopi(2) drawflagicons(flaginfos[i], p); // flag state
 		}
