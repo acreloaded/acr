@@ -30,6 +30,7 @@ static inline int hitplayer(const vec &from, float yaw, float pitch, const vec &
 
 // apply spread
 void applyspread(const vec &from, vec &to, int spread, float factor){
+	if(m_classic) factor /= 2;
 	if(spread <=1 ) return;
 	#define RNDD (rnd(spread)-spread/2.f)*factor
 	vec r(RNDD, RNDD, RNDD);
