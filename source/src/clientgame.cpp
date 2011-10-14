@@ -821,11 +821,8 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 			break;
 		case FA_SCORE:
 			playsound(S_FLAGSCORE, SP_HIGHEST);
-			if(firstperson){
-				copystring(predicate, "scored!");
-				if(m_ctf) firstpersondrop = true;
-			}
-			else formatstring(predicate)("scored %s team's flag for %s team", teamstr, !own ? "your" : "the enemy");
+			formatstring(predicate)("scored %s team's flag for %s team!", teamstr, !own ? "your" : "the enemy");
+			if(m_ctf) firstpersondrop = true;
 			break;
 		case FA_KTFSCORE:
 		{
