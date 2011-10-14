@@ -70,8 +70,8 @@ extern itemstat powerupstats[];
 #define SGRAYS 24
 #define SGSPREAD 295
 #define SGADSSPREADFACTOR 20
-#define SGGIB 180 // 18-26 rays (only have 24)
-#define NADEPOWER 3
+#define SGGIB 180 * HEALTHSCALE // 18-26 rays (only have 24)
+#define NADEPOWER 2
 #define NADETTL 4350
 #define MARTYRDOMTTL 2500
 #define KNIFEPOWER 4.5f
