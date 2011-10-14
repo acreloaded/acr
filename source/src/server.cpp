@@ -1208,7 +1208,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 	if(!target || !actor || !damage) return;
 
 	if(m_expert && !(style & FRAG_GIB || melee_weap(gun))) damage = 0;
-	else if(m_classic) damage /= 2.5f;
+	else if(m_classic) damage /= 2;
 
 	clientstate &ts = target->state;
 	if(ts.state != CS_ALIVE) return;

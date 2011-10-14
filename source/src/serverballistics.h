@@ -168,7 +168,7 @@ int shot(client &owner, const vec &from, vec &to, int weap, const vec &surface, 
 	int damage = effectiveDamage(weap, dist2);
 	if(hit && damage){
 		// damage multipliers
-		switch(hitzone){
+		if(!m_classic) switch(hitzone){
 			case HIT_HEAD: damage *= muls[mulset].head; break;
 			case HIT_TORSO: damage *= muls[mulset].torso; break;
 			case HIT_LEG: default: damage *= muls[mulset].leg; break;
