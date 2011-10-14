@@ -32,23 +32,35 @@ void drawradaricon(float x, float y, float s, int col, int row)
 	}
 }
 
-void drawctficon(float x, float y, float s, int col, int row, float ts)
+void drawflagicons(const flaginfo &f, playerent *p)
 {
 	static Texture *ctftex = textureload("packages/misc/ctficons.png", 3),
-		*htftex = textureload("packages/misc/htficons.png", 3),
-		*ktftex = textureload("packages/misc/ktficons.png", 3);
-	if(m_htf)
+					*hktftex = textureload("packages/misc/hktficons.png", 3),
+					*flagtex = textureload("packages/misc/flagicons.png", 3);
+	if(flagtex)
 	{
-		if(htftex) drawicon(htftex, x, y, s, col, row, ts);
+		glColor4f(1, 1, 1,
+			f.state == CTFF_INBASE ? 0.2f :
+			f.actor == p ? (sinf(lastmillis/100.0f)+1.0f) / 2.0f :
+			1
+		);
+		// CTF
+		int row = 0;
+		// HTF
+		if(m_htf) row = 1;
+		// KTF
+		else if(m_ktf) row = 2;
+		drawicon(flagtex, f.team*120+VIRTW/4.0f*3.0f, 1650, 120, f.team, row, 1/3.f);
 	}
-	else if(m_ktf)
-	{
-		if(ktftex) drawicon(ktftex, x, y, s, col, row, ts);
-	}
-	else
-	{
-		if(ctftex) drawicon(ctftex, x, y, s, col, row, ts);
-	}
+	// Must be stolen for big flag-stolen icon
+	if(f.state != CTFF_STOLEN) return;
+	// CTF/Returner
+	int row = m_ctf && f.actor && f.actor->team == f.team ? 1 : 0;
+	// HTF + KTF
+	if(m_ktf) row = 1;
+	// pulses
+	glColor4f(1, 1, 1, f.actor == p ? (sinf(lastmillis/100.0f)+1.0f) / 2.0f : .6f);
+	drawicon(m_ctf ? ctftex : hktftex, VIRTW-225-10, VIRTH*5/8, 225, f.team, row, 1/2.f);
 }
 
 void drawvoteicon(float x, float y, int col, int row, bool noblend)
@@ -955,12 +967,12 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		}
 	}
 
-	if(p->state==CS_ALIVE)
-	{
+	//if(p->state==CS_ALIVE)
+	//{
 		glLoadIdentity();
 		glOrtho(0, VIRTW/2, VIRTH/2, 0, -1, 1);
 
-		if(!hidehudequipment)
+		if(!hidehudequipment && p->state == CS_ALIVE)
 		{
 			pushfont("huddigits");
 			draw_textf("%d",  90, 823, p->health / HEALTHSCALE);
@@ -979,30 +991,14 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		{
 			glLoadIdentity();
 			glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
-			glColor4f(1.0f, 1.0f, 1.0f, 0.2f);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-
-			loopi(2) // flag state
-			{
-				if(flaginfos[i].state == CTFF_INBASE) glDisable(GL_BLEND); else glEnable(GL_BLEND);
-				drawctficon(i*120+VIRTW/4.0f*3.0f, 1650, 120, i, 0, 1/4.0f);
-			}
-
-			// big flag-stolen icon
-			int ft = 0;
-			if((flaginfos[0].state==CTFF_STOLEN && flaginfos[0].actor == p) ||
-			   (flaginfos[1].state==CTFF_STOLEN && flaginfos[1].actor == p && ++ft))
-			{
-				glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis/100.0f)+1.0f) / 2.0f);
-				glEnable(GL_BLEND);
-				drawctficon(VIRTW-225-10, VIRTH*5/8, 225, ft, 1, 1/2.0f);
-				glDisable(GL_BLEND);
-			}
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glEnable(GL_BLEND);
+			loopi(2) drawflagicons(flaginfos[i], p); // flag state
 		}
-	}
+	//}
 
 	// finally, draw the perk icon
-
+	
 	glLoadIdentity();
 	glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
 	glColor4f(1.0f, 1.0f, 1.0f, p->state == CS_ALIVE ? .78f : .3f);
