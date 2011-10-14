@@ -40,7 +40,7 @@ enum {
 #define melee_weap(g) (g == WEAP_KNIFE || g == WEAP_SWORD)
 #define reloadable_weap(g) (!melee_weap(g) && g != WEAP_GRENADE)
 #define suppressed_weap(g) (melee_weap(g) || g == WEAP_GRENADE)
-#define ads_gun(g) (!m_classic && !melee_weap(g) && g != WEAP_GRENADE && g != WEAP_AKIMBO)
+#define ads_gun(g) (!melee_weap(g) && g != WEAP_GRENADE && g != WEAP_AKIMBO)
 
 enum { FRAG_NONE = 0, FRAG_GIB = 1 << 0, FRAG_REVENGE = 1 << 1, FRAG_CRIT = 1 << 2, FRAG_FLAG = 1 << 3, FRAG_FIRST = 1 << 4,
 		FRAG_VALID = (1 << ((4) + 1)) - 1 }; // up to 1 << 6 is optimal
