@@ -79,7 +79,7 @@ int explosion(client &owner, const vec &o2, int weap, bool gib){
 		vec ray(target.state.o);
 		ray.sub(o).normalize();
 		if(sraycube(o, ray) < dist) continue; // not visible
-		ushort dmg = effectiveDamage(weap, dist, true);
+		ushort dmg = effectiveDamage(weap, dist, !m_classic);
 		int expflags = gib ? FRAG_GIB : FRAG_NONE;
 		if((weap == WEAP_BOW && !dist) ||
 			(weap == WEAP_GRENADE && owner.clientnum != i && o.z >= target.state.o.z)) expflags |= FRAG_FLAG;
