@@ -585,8 +585,11 @@ struct playerstate
 
 		gunselect = primary;
 
-		perk = nextperk;
-		if(perk <= PERK_NONE || perk >= PERK_MAX) perk = rnd(PERK_MAX-1)+1;
+		if(m_classic) perk = PERK_NONE;
+		else{
+			perk = nextperk;
+			if(perk <= PERK_NONE || perk >= PERK_MAX) perk = rnd(PERK_MAX-1)+1;
+		}
 
 		const int healthsets[3] = { STARTHEALTH - 15 * HEALTHSCALE, STARTHEALTH, STARTHEALTH + 20 * HEALTHSCALE };
 		health = healthsets[(m_osok ? 0 : 1) + (perk == PERK_HEALTHY ? 1 : 0)];
