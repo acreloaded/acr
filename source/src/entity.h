@@ -105,218 +105,22 @@ static mul muls[MUL_NUM] =
 struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, range, endrange, rangeminus, projspeed, part, spread, kick, magsize, mdl_kick_rot, mdl_kick_back, recoil, maxrecoil, recoilangle, pushfactor; bool isauto; };
 extern guninfo guns[WEAP_MAX];
 
-static inline ushort reloadtime(int gun) { return guns[gun].reloadtime; }
-static inline ushort attackdelay(int gun) { return guns[gun].attackdelay; }
-static inline ushort magsize(int gun) { return guns[gun].magsize; }
-static inline ushort reloadsize(int gun) { return gun == WEAP_SHOTGUN ? 1 : guns[gun].magsize; }
-static inline ushort effectiveDamage(int gun, float dist, bool explosive = false) {
-	float finaldamage = 0;
-	if(dist <= guns[gun].range || (!guns[gun].range && !guns[gun].endrange)) finaldamage = guns[gun].damage;
-	else if(dist >= guns[gun].endrange) finaldamage = guns[gun].damage - guns[gun].rangeminus;
-	else{
-		float subtractfactor = (dist - (float)guns[gun].range) / ((float)guns[gun].endrange - (float)guns[gun].range);
-		if(explosive) subtractfactor = sqrtf(subtractfactor);
-		finaldamage = guns[gun].damage - subtractfactor * guns[gun].rangeminus;
-	}
-	return finaldamage * HEALTHSCALE;
-}
+extern inline ushort reloadtime(int gun);
+extern inline ushort attackdelay(int gun);
+extern inline ushort magsize(int gun);
+extern inline ushort reloadsize(int gun);
+extern inline ushort effectiveDamage(int gun, float dist, bool explosive = false);
 
-static inline const int obit_suicide(int weap){
-	if(melee_weap(weap)) return OBIT_FF;
-	if(weap >= 0 && weap <= OBIT_START) return weap;
-	switch(weap - OBIT_START){
-		case 0: return OBIT_DEATH;
-		case 1: return OBIT_DROWN;
-		case 2: return OBIT_FALL;
-		case 3: return OBIT_FF;
-		case 4: return OBIT_BOT;
-		case 5: return OBIT_CHEAT;
-		case 6: return OBIT_NUKE;
-	}
-	return OBIT_DEATH;
-}
-
-static inline const char *suicname(int obit){
-	static string k;
-	*k = 0;
-	switch(obit){
-		case WEAP_PISTOL:
-		case WEAP_SHOTGUN:
-		case WEAP_SUBGUN:
-		case WEAP_SNIPER:
-		case WEAP_BOLT:
-		case WEAP_ASSAULT:
-		case WEAP_AKIMBO:
-			concatstring(k, "ate a bullet");
-			break;
-		case WEAP_GRENADE:
-			concatstring(k, "failed with nades");
-			break;
-		case WEAP_HEAL:
-			concatstring(k, "overdosed on drugs");
-			break;
-		case WEAP_BOW:
-			concatstring(k, "failed to use an explosive crossbow");
-			break;
-		case OBIT_DEATH:
-			concatstring(k, "requested suicide");
-			break;
-		case OBIT_AIRSTRIKE:
-			concatstring(k, "called in a danger close mission");
-			break;
-		case OBIT_NUKE:
-			concatstring(k, "deployed a nuke");
-			break;
-		case OBIT_FF:
-			concatstring(k, "tried to knife a teammate");
-			break;
-		case OBIT_BOT:
-			concatstring(k, "acted like a stupid bot");
-			break;
-		case OBIT_DROWN:
-			concatstring(k, "drowned");
-			break;
-		case OBIT_FALL:
-			concatstring(k, "failed to fly");
-			break;
-		case OBIT_CHEAT:
-			concatstring(k, "just got punished for cheating");
-			break;
-		default:
-			concatstring(k, "somehow suicided");
-			break;
-	}
-	return k;
-}
-
-static inline const bool isheadshot(int weapon, int style){
-	if(!(style & FRAG_GIB)) return false; // only headshots gib
-	switch(weapon){
-		case WEAP_KNIFE:
-		case WEAP_GRENADE:
-		case WEAP_SHOTGUN:
-			if(style & FRAG_FLAG) break; // these weapons headshot if FRAG_FLAG is set
-		case WEAP_BOW:
-		case WEAP_MAX:
-		case WEAP_MAX+5:
-			return false; // these weapons cannot headshot
-	}
-	return true;
-}
-
-static inline const int toobit(int weap, int style){
-	const bool gib = (style & FRAG_GIB) > 0,
-				flag = (style & FRAG_FLAG) > 0;
-	switch(weap){
-		case WEAP_KNIFE: return gib ? WEAP_KNIFE : flag ? OBIT_KNIFE_IMPACT : OBIT_KNIFE_BLEED;
-		case WEAP_BOW: return gib ? OBIT_BOW_IMPACT : flag ? OBIT_BOW_STUCK : WEAP_BOW;
-		case WEAP_GRENADE: return gib ? WEAP_GRENADE : OBIT_AIRSTRIKE;
-		case WEAP_MAX: return OBIT_NUKE;
-	}
-	return weap < WEAP_MAX ? weap : OBIT_DEATH;
-}
-
-static inline const char *killname(int obit, bool headshot){
-	static string k;
-	*k = 0;
-	switch(obit){
-		case WEAP_GRENADE:
-			concatstring(k, "obliterated");
-			break;
-		case WEAP_KNIFE:
-			concatstring(k, headshot ? "decapitated" : "slashed");
-			break;
-		case WEAP_BOLT:
-			concatstring(k, headshot ? "overkilled" : "quickly killed");
-			break;
-		case WEAP_SNIPER:
-			concatstring(k, headshot ? "expertly sniped" : "sniped");
-			break;
-		case WEAP_SUBGUN:
-			concatstring(k, headshot ? "perforated" : "spliced");
-			break;
-		case WEAP_SHOTGUN:
-			concatstring(k, headshot ? "splattered" : "scrambled");
-			break;
-		case WEAP_ASSAULT:
-			concatstring(k, headshot ? "eliminated" : "shredded");
-			break;
-		case WEAP_PISTOL:
-			concatstring(k, headshot ? "capped" : "pierced");
-			break;
-		case WEAP_AKIMBO:
-			concatstring(k, headshot ? "blasted" : "skewered");
-			break;
-		case WEAP_HEAL:
-			concatstring(k, headshot ? "tranquilized" : "injected");
-			break;
-		case WEAP_SWORD:
-			concatstring(k, headshot ? "sliced" : "impaled");
-			break;
-		case WEAP_BOW:
-			concatstring(k, "detonated");
-			break;
-		// special obits
-		case OBIT_BOW_IMPACT:
-			concatstring(k, "impacted");
-			break;
-		case OBIT_BOW_STUCK:
-			concatstring(k, "plastered");
-			break;
-		case OBIT_KNIFE_BLEED:
-			concatstring(k, "fatally wounded");
-			break;
-		case OBIT_KNIFE_IMPACT:
-			concatstring(k, "thrown down");
-			break;
-		case OBIT_AIRSTRIKE:
-			concatstring(k, "bombarded");
-			break;
-		case OBIT_NUKE:
-			concatstring(k, "nuked");
-			break;
-		default:
-			concatstring(k, headshot ? "pwned" : "killed");
-			break;
-	}
-	return k;
-}
+extern inline const int obit_suicide(int weap);
+extern inline const char *suicname(int obit);
+extern inline const bool isheadshot(int weapon, int style);
+extern inline const int toobit(int weap, int style);
+extern inline const char *killname(int obit, bool headshot);
 
 enum { PERK_NONE = 0, PERK_SPEED, PERK_HAND, PERK_JAMMER, PERK_VISION, PERK_KILLSTREAK, PERK_STEADY, PERK_LIGHT, PERK_POWER, PERK_PERSIST, PERK_BRIBE, PERK_HEALTHY, PERK_MAX };
 
-static float gunspeed(int gun, int ads, bool lightweight = false){
-	float ret = lightweight ? 1.07f : 1;
-	if(ads) ret *= 1 - ads / (lightweight ? 3500 : 3000.f);
-	switch(gun){
-		case WEAP_KNIFE:
-		case WEAP_PISTOL:
-		case WEAP_GRENADE:
-		case WEAP_HEAL:
-			//ret *= 1;
-			break;
-		case WEAP_AKIMBO:
-			ret *= .99f;
-			break;
-		case WEAP_SWORD:
-			ret *= .98f;
-			break;
-		case WEAP_SHOTGUN:
-			ret *= .97f;
-			break;
-		case WEAP_SNIPER:
-		case WEAP_BOLT:
-			ret *= .95f;
-			break;
-		case WEAP_SUBGUN:
-			ret *= .93f;
-			break;
-		case WEAP_ASSAULT:
-		case WEAP_BOW:
-			ret *= .9f;
-			break;
-	}
-	return ret;
-}
+extern float gunspeed(int gun, int ads, bool lightweight = false);
+extern int classic_forceperk(int primary);
 
 #define isteam(a,b)   (m_team && a->team == b->team)
 
@@ -585,7 +389,7 @@ struct playerstate
 
 		gunselect = primary;
 
-		if(m_classic) perk = PERK_NONE;
+		if(m_classic) perk = classic_forceperk(primary);
 		else{
 			perk = nextperk;
 			if(perk <= PERK_NONE || perk >= PERK_MAX) perk = rnd(PERK_MAX-1)+1;
