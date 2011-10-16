@@ -2201,7 +2201,7 @@ bool scallvote(voteinfo *v) // true if a regular vote was called
 	int error = -1;
 
 	if(!v || !v->isvalid()) error = VOTEE_INVALID;
-	else if(v->action->role > clients[v->owner]->priv) error = VOTEE_PERMISSION;
+	else if(v->action->reqpriv > clients[v->owner]->priv) error = VOTEE_PERMISSION;
 	else if(!(area & v->action->area)) error = VOTEE_AREA;
 	else if(curvote && curvote->result==VOTE_NEUTRAL) error = VOTEE_CUR;
 	else if(clients[v->owner]->priv < PRIV_ADMIN && v->action->isdisabled()) error = VOTEE_DISABLED;
@@ -3553,7 +3553,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(!curvote || !curvote->action || vote < VOTE_YES || vote > VOTE_NO) break;
 				if(cl->vote != VOTE_NEUTRAL){
 					if(cl->vote == vote){
-						if(cl->priv >= curvote->action->role && cl->priv >= curvote->action->vetorole) curvote->evaluate(true, vote, sender);
+						if(cl->priv >= curvote->action->reqpriv && cl->priv >= curvote->action->reqveto) curvote->evaluate(true, vote, sender);
 						else sendf(sender, 1, "ri2", N_CALLVOTEERR, VOTEE_VETOPERM);
 						break;
 					}
@@ -3746,7 +3746,7 @@ void loggamestatus(const char *reason){
 	logline(ACLOG_INFO, "");
 	logline(ACLOG_INFO, "Game status: %s on %s, %s, %s%c %s",
 					  modestr(gamemode), smapname, reason ? reason : text, mmfullname(mastermode), custom_servdesc ? ',' : '\0', servdesc_current);
-	logline(ACLOG_INFO, "cn  name             %s%sfrag death ping role    host", m_team ? "team  " : "", m_flags ? "flag " : "");
+	logline(ACLOG_INFO, "cn  name             %s%sfrag death ping priv    host", m_team ? "team  " : "", m_flags ? "flag " : "");
 	loopv(clients)
 	{
 		client &c = *clients[i];
