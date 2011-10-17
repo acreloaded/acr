@@ -241,6 +241,18 @@ COMMAND(connectadmin, ARG_3STR);
 COMMAND(lanconnect, ARG_NONE);
 COMMANDN(disconnect, trydisconnect, ARG_NONE);
 
+void current_version(int v, int p)
+{
+	if(AC_VERSION >= v && PROTOCOL_VERSION >= p) return;
+	static string notifications[2];
+    if (AC_VERSION < v) formatstring(notifications[0])("\f3UPDATE \f1to %d", v);
+	else copystring(notifications[0], "\f0OK");
+	if(PROTOCOL_VERSION < p) formatstring(notifications[1])("\f3UPDATE \f1to %d", p);
+	else copystring(notifications[1], "\f0OK");
+	hudoutf("\f3UPDATE YOUR CLIENT\n\f5Version %s\n\f2Protocol %s", notifications[0], notifications[1]);
+}
+COMMAND(current_version, ARG_2INT);
+
 void cleanupclient()
 {
 	abortconnect();
