@@ -977,7 +977,7 @@ char *getfiledesc(const char *dir, const char *name, const char *ext)
 		gzFile f = opengzfile(fn, "rb9");
 		if(!f) return NULL;
 		header hdr;
-		if(gzread(f, &hdr, sizeof(header))!=sizeof(header) || (strncmp(hdr.head, "CUBE", 4) && strncmp(hdr.head, "ACMP",4))) { gzclose(f); return NULL; }
+		if(gzread(f, &hdr, sizeof(header))!=sizeof(header) || (strncmp(hdr.head, "CUBE", 4) && strncmp(hdr.head, "ACMP",4) && strncmp(hdr.head, "ACRM",4))) { gzclose(f); return NULL; }
 		gzclose(f);
 		endianswap(&hdr.version, sizeof(int), 4);
 		formatstring(text)("%s%s", (hdr.version>MAPVERSION) ? "(incompatible file) " : "", hdr.maptitle);

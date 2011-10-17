@@ -346,7 +346,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 	gzFile f = opengzfile(filename, "rb9");
 	if(!f) return NULL;
 	memset(&s.hdr, 0, sizeof(header));
-	if(gzread(f, &s.hdr, sizeof(header)-sizeof(int)*16)!=sizeof(header)-sizeof(int)*16 || (strncmp(s.hdr.head, "CUBE", 4) && strncmp(s.hdr.head, "ACMP",4))) { gzclose(f); return NULL; }
+	if(gzread(f, &s.hdr, sizeof(header)-sizeof(int)*16)!=sizeof(header)-sizeof(int)*16 || (strncmp(s.hdr.head, "CUBE", 4) && strncmp(s.hdr.head, "ACMP",4) && strncmp(s.hdr.head, "ACRM",4))) { gzclose(f); return NULL; }
 	endianswap(&s.hdr.version, sizeof(int), 4);
 	if(s.hdr.version>MAPVERSION || s.hdr.numents > MAXENTITIES || (s.hdr.version>=4 && gzread(f, &s.hdr.waterlevel, sizeof(int)*16)!=sizeof(int)*16)) { gzclose(f); return NULL; }
 	if(s.hdr.version>=4) endianswap(&s.hdr.waterlevel, sizeof(int), 1); else s.hdr.waterlevel = -100000;

@@ -408,7 +408,7 @@ bool empty_world(int factor, bool force)	// main empty world creation routine, i
 		s->defer = 0;
 	}
 
-	strncpy(hdr.head, "ACMP", 4);
+	strncpy(hdr.head, "ACRM", 4);
 	hdr.version = MAPVERSION;
 	hdr.headersize = sizeof(header);
 	hdr.sfactor = sfactor;
