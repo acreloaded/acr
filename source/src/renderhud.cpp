@@ -1176,7 +1176,8 @@ void renderhudwaypoints(){
 				if(OUTBORD(f.pos.x, f.pos.y)) break;
 				o = f.pos;
 				o.z += PLAYERHEIGHT;
-				wp = i == teamfix ? m_ctf ? WP_RETURN : WP_FRIENDLY : m_ctf ? WP_ENEMY : WP_GRAB;
+				if(m_ctf) wp = i == teamfix ? WP_RETURN : WP_ENEMY;
+				else wp = i == teamfix ? WP_FRIENDLY : WP_GRAB;
 				break;
 		}
 		o.z += PLAYERABOVEEYE;
@@ -1188,6 +1189,7 @@ void renderhudwaypoints(){
 			default: if(i != teamfix) wp = -1; break;
 			case CTFF_INBASE:
 				wp = (m_ctf || m_htf) && i == teamfix ? WP_FRIENDLY : m_ktf || m_ctf ? WP_GRAB : WP_ENEMY;
+				break;
 			case CTFF_IDLE:
 				wp = WP_ENEMY;
 				break;
