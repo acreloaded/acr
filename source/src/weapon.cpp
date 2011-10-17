@@ -796,9 +796,7 @@ void gun::attackshell(const vec &to){
 }
 
 void gun::attackfx(const vec &from2, const vec &to, int millis){
-	// trace shot
 	vec from(from2);
-	//traceShot(from, to);
 	if(millis & 1){
 		from.z -= WEAPONBELOWEYE;
 		attackshell(to);
@@ -828,7 +826,6 @@ void shotgun::attackfx(const vec &from2, const vec &to, int millis){
 			addshotline(owner, from, sg[i], 3);
 		}
 		if(filter >= 4) filter = 0;
-		//traceShot(from, sg[i]);
 		addbullethole(owner, from, sg[i], 0, false);
 	}
 	if(millis & 1) attackshell(to);
@@ -895,7 +892,6 @@ bool crossbow::selectable() { return weapon::selectable() && !m_noprimary && thi
 
 void crossbow::attackfx(const vec &from2, const vec &to, int millis){
 	vec from(from2);
-	//traceShot(from, to);
 	from.z -= WEAPONBELOWEYE;
 
 	addshotline(owner, from, to, 2);
@@ -1007,7 +1003,6 @@ bool heal::selectable() { return weapon::selectable() && !m_noprimary && this ==
 //void heal::renderaimhelp(int teamtype){ if(state) weapon::renderaimhelp(teamtype); }
 void heal::attackfx(const vec &from2, const vec &to, int millis){
 	vec from(from2);
-	//traceShot(from, to);
 	from.z -= WEAPONBELOWEYE;
 
 	addshotline(owner, from, to, 2);
