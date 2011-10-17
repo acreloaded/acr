@@ -162,6 +162,7 @@ COMMAND(loadcrosshair, ARG_2STR);
 
 void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 {
+	if(!crosshairsize || intermission) return;
 	Texture *crosshair = crosshairs[n];
 	if(!crosshair)
 	{
