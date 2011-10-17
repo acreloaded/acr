@@ -1170,7 +1170,11 @@ void renderhudwaypoints(){
 				if(f.actor == gamefocus) break;
 				if(OUTBORD(f.actor->o.x, f.actor->o.y)) break;
 				o = f.actor->o;
-				wp = m_team && f.actor->team == teamfix ? m_ctf ? WP_ESCORT : WP_DEFEND : WP_KILL;
+				wp = m_team && f.actor->team == teamfix ?
+					// friendly
+					m_ctf ? WP_ESCORT : WP_DEFEND
+					: // hostile below
+					WP_KILL;
 				break;
 			case CTFF_DROPPED:
 				if(OUTBORD(f.pos.x, f.pos.y)) break;
@@ -1188,7 +1192,14 @@ void renderhudwaypoints(){
 		switch(f.state){
 			default: if(i != teamfix) wp = -1; break;
 			case CTFF_INBASE:
-				wp = (m_ctf || m_htf) && i == teamfix ? WP_FRIENDLY : m_ktf || m_ctf ? WP_GRAB : WP_ENEMY;
+				if(m_ctf){
+					wp = i == teamfix ? WP_FRIENDLY : WP_GRAB;
+				}else if(m_htf){
+					wp = i == teamfix ? WP_FRIENDLY : WP_ENEMY;
+				}
+				else{ // if(m_ktf){
+					wp = WP_GRAB;
+				}
 				break;
 			case CTFF_IDLE:
 				wp = WP_ENEMY;
