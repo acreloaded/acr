@@ -3,6 +3,7 @@
 	$config['contact'] = 'Please contact the masterserver admin at domain.invalid.'; // include some form of contact
 	// servers
 	$config['servers']['minprotocol'] = 100; // protocol requirements
+	$config['servers']['currentgame'] = 200; // broadcast this as the current version
 	$config['servers']['autoapprove'] = true; // servers can be registered
 	$config['servers']['translate'] = array( // IP translation
 		// array(ip, "domain", port), // use port 0 or omit for wildcard
