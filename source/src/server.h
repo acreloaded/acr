@@ -633,5 +633,10 @@ inline float gunspeed(int gun, int ads, bool lightweight){
 }
 
 inline int classic_forceperk(int primary){
+	switch(primary){ // no need for break;
+		case WEAP_SNIPER:
+		case WEAP_BOLT:
+			return PERK_STEADY;
+	}
 	return PERK_NONE;
 }
