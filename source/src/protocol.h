@@ -96,20 +96,20 @@ enum
 	GMODE_DEATHMATCH,
 	GMODE_SURVIVOR,
 	GMODE_TEAMSURVIVOR,
-	GMODE_CTF,
+	GMODE_CTF, // capture the flag
 	GMODE_PISTOLFRENZY,
 	GMODE_LASTSWISSSTANDING,
 	GMODE_ONESHOTONEKILL,
 	GMODE_TEAMONESHOTONEKILL,
-	GMODE_HTF,
-	GMODE_TEAMKTF,
-	GMODE_KTF,
+	GMODE_HTF, // hunt the flag/VIP
+	GMODE_TKTF, // team keep the flag
+	GMODE_KTF, // keep the flag
 	GMODE_REALTDM, GMODE_EXPERTTDM,
 	GMODE_REALDM, GMODE_EXPERTDM,
 	GMODE_KNIFE, GMODE_HANDHELD,
-	GMODE_RCTF,
-	GMODE_CDM, GMODE_CTDM,
-	GMODE_KTF2, GMODE_TKTF2,
+	GMODE_RCTF, // return-CTF
+	GMODE_CDM, GMODE_CTDM, // classic DM/TDM
+	GMODE_KTF2, GMODE_TKTF2, // double KTF/TKTF
 	GMODE_NUM
 };
 
@@ -120,7 +120,7 @@ enum
 #define m_lss		(gamemode == GMODE_LASTSWISSSTANDING || gamemode == GMODE_HANDHELD || gamemode == GMODE_KNIFE)
 #define m_osok		(gamemode == GMODE_ONESHOTONEKILL || gamemode == GMODE_TEAMONESHOTONEKILL)
 #define m_htf		(gamemode == GMODE_HTF)
-#define m_ktf		(gamemode == GMODE_TEAMKTF || gamemode == GMODE_KTF || gamemode == GMODE_TKTF2 || gamemode == GMODE_KTF2)
+#define m_ktf		(gamemode == GMODE_TKTF || gamemode == GMODE_KTF || gamemode == GMODE_TKTF2 || gamemode == GMODE_KTF2)
 #define m_edit		(gamemode == GMODE_COOPEDIT)
 #define	m_expert	(gamemode == GMODE_EXPERTTDM || gamemode == GMODE_EXPERTDM)
 #define m_real		(gamemode == GMODE_REALTDM || gamemode == GMODE_REALDM)
@@ -133,7 +133,7 @@ enum
 #define m_duel			(m_lms || gamemode == GMODE_LASTSWISSSTANDING || m_osok)
 #define m_flags			(m_ctf || m_htf || m_ktf)
 #define m_team			(gamemode==GMODE_TEAMDEATHMATCH || gamemode==GMODE_TEAMONESHOTONEKILL || \
-							gamemode==GMODE_TEAMSURVIVOR || m_ctf || m_htf || gamemode==GMODE_TEAMKTF || \
+							gamemode==GMODE_TEAMSURVIVOR || m_ctf || m_htf || gamemode==GMODE_TKTF || gamemode==GMODE_TKTF2 || \
 							gamemode==GMODE_REALTDM || gamemode == GMODE_EXPERTTDM || gamemode == GMODE_CTDM)
 #define m_fight(mode)	((mode)>=0 && (mode) != GMODE_COOPEDIT && (mode)<GMODE_NUM)
 #define m_demo			(gamemode == GMODE_DEMO)
