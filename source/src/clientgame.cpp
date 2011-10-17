@@ -841,7 +841,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 			playsound(S_FLAGRETURN, SP_HIGHEST);
 			copystring(subject, "\f1the server");
 			copystring(hashave, "had");
-			copystring(predicate, "reset the flag");
+			formatstring(predicate)("reset the %s flag", team_string(flag));
 			firstpersondrop = true;
 			break;
 	}
