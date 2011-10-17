@@ -1189,6 +1189,7 @@ void renderhudwaypoints(){
 			case CTFF_INBASE:
 				wp = (m_ctf || m_htf) && i == teamfix ? WP_FRIENDLY : m_ktf || m_ctf ? WP_GRAB : WP_ENEMY;
 			case CTFF_IDLE:
+				wp = WP_ENEMY;
 				break;
 		}
 		if(wp >= 0 && wp < WP_NUM) renderwaypoint(wp, vec(e.x, e.y, (float)S(int(e.x), int(e.y))->floor + PLAYERHEIGHT), a);
