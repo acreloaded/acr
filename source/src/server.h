@@ -634,9 +634,24 @@ inline float gunspeed(int gun, int ads, bool lightweight){
 
 inline int classic_forceperk(int primary){
 	switch(primary){ // no need for break;
+		case WEAP_KNIFE:
+		case WEAP_PISTOL:
+		case WEAP_GRENADE:
+		case WEAP_SWORD:
+			// one handed: move faster
+			return PERK_SPEED;
+		case WEAP_SHOTGUN:
+		case WEAP_SUBGUN: return PERK_VISION;
 		case WEAP_SNIPER:
-		case WEAP_BOLT:
-			return PERK_STEADY;
+		case WEAP_BOLT: return PERK_STEADY; // AC had lower spread for snipers
+		case WEAP_ASSAULT: return PERK_POWER;
+		case WEAP_HEAL: return PERK_PERSIST; // hard to kill, easy to heal
+		/*
+		// undefined
+		case WEAP_BOW:
+		case WEAP_AKIMBO:
+			break;
+		*/
 	}
 	return PERK_NONE;
 }
