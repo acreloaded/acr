@@ -90,7 +90,7 @@ enum { EXTPING_NOP = 0, EXTPING_NAMELIST, EXTPING_SERVERINFO, EXTPING_MAPROT, EX
 
 enum
 {
-	GMODE_DEMO = -1,
+	GMODE_DEMO = -1, // treat as GMODE_START
 	GMODE_TEAMDEATHMATCH = 0,
 	GMODE_COOPEDIT,
 	GMODE_DEATHMATCH,
@@ -109,6 +109,7 @@ enum
 	GMODE_KNIFE, GMODE_HANDHELD,
 	GMODE_RCTF,
 	GMODE_CDM, GMODE_CTDM,
+	GMODE_KTF2, GMODE_TKTF2,
 	GMODE_NUM
 };
 
@@ -119,7 +120,7 @@ enum
 #define m_lss		(gamemode == GMODE_LASTSWISSSTANDING || gamemode == GMODE_HANDHELD || gamemode == GMODE_KNIFE)
 #define m_osok		(gamemode == GMODE_ONESHOTONEKILL || gamemode == GMODE_TEAMONESHOTONEKILL)
 #define m_htf		(gamemode == GMODE_HTF)
-#define m_ktf		(gamemode == GMODE_TEAMKTF || gamemode == GMODE_KTF)
+#define m_ktf		(gamemode == GMODE_TEAMKTF || gamemode == GMODE_KTF || gamemode == GMODE_TKTF2 || gamemode == GMODE_KTF2)
 #define m_edit		(gamemode == GMODE_COOPEDIT)
 #define	m_expert	(gamemode == GMODE_EXPERTTDM || gamemode == GMODE_EXPERTDM)
 #define m_real		(gamemode == GMODE_REALTDM || gamemode == GMODE_REALDM)

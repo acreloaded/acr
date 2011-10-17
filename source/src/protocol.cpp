@@ -199,7 +199,7 @@ void cutcolorstring(char *text, int len)
 	}
 }
 
-const char *modefullnames[] =
+const char *modefullnames[GMODE_NUM-GMODE_DEMO] =
 {
 	"demo playback",
 	"team deathmatch", "coopedit", "deathmatch", "survivor",
@@ -208,17 +208,19 @@ const char *modefullnames[] =
 	"real-team deathmatch", "expert-teamdeathmatch", "real deathmatch", "expert deathmatch",
 	"knife-only", "handheld-only", "return-capture the flag",
 	"classic deathmatch", "classic-team deathmatch",
+	"double keep the flag", "team-double keep the flag"
 };
 
-const char *modeacronymnames[] =
+const char *modeacronymnames[GMODE_NUM-GMODE_DEMO] =
 {
 	"demo",
 	"TDM", "edit", "DM", "SURV",
 	"TSURV", "CTF", "PF", "LSS",
 	"OSOK", "TOSOK", "HTF", "TKTF", "KTF",
 	"rTDM", "eTDM", "rDM", "eDM",
-	"knife", "handheld", "eCTF",
+	"knife", "handheld", "rCTF",
 	"cDM", "cTDM",
+	"DKTF2", "DTKTF2"
 };
 
 const char *voteerrors[VOTEE_NUM] = { "voting is currently disabled", "there is already a vote pending", "no permission to veto", "can't vote that often", "this vote is not allowed in the current environment (singleplayer/multiplayer)", "no permission", "invalid vote" };
