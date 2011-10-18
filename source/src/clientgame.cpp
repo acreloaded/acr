@@ -837,7 +837,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 			break;
 		}
 		case FA_SCOREFAIL: // sound?
-			copystring(predicate, "failed to score because his flag is in base");
+			copystring(predicate, "failed to score");
 			break;
 		case FA_RESET:
 			playsound(S_FLAGRETURN, SP_HIGHEST);
