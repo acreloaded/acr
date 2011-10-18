@@ -181,6 +181,7 @@ struct crossbow : gun
 {
 	crossbow(playerent *owner);
 	bool selectable();
+	int modelanim();
 
 	virtual void attackfx(const vec &from, const vec &to, int millis);
 	void attackhit(const vec &o);

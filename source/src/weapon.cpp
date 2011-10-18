@@ -889,6 +889,10 @@ vector<cstick> sticks;
 
 crossbow::crossbow(playerent *owner) : gun(owner, WEAP_BOW) {}
 bool crossbow::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
+int crossbow::modelanim(){
+	return modelattacking() ? ANIM_WEAP_SHOOT : // did we just shoot the crossbow?
+		ANIM_WEAP_IDLE; // loaded crossbow
+}
 
 void crossbow::attackfx(const vec &from2, const vec &to, int millis){
 	vec from(from2);
