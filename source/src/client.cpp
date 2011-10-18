@@ -394,7 +394,7 @@ void c2sinfo(bool force){				  // send update to the server
 	if(clienthost) enet_host_flush(clienthost);
 }
 
-VARP(authlock, 0, 0, 1);
+VARP(authlock, 0, 1, 1);
 int authtoken = -1;
 void tryauth(){
 	if(authlock) return;
