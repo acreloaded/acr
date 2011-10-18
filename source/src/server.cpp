@@ -800,9 +800,10 @@ void ctfreset(){
 
 void sdropflag(int cn){
 	int fl = clienthasflag(cn);
-	if(fl >= 0){
+	while(fl >= 0){
 		flagaction(fl, FA_LOST, cn);
 		sdropflag(cn);
+		fl = clienthasflag(cn);
 	}
 }
 
@@ -811,6 +812,7 @@ void resetflag(int cn){
 	if(fl >= 0){
 		flagaction(fl, FA_RESET, -1);
 		resetflag(cn);
+		fl = clienthasflag(cn);
 	}
 }
 
@@ -1292,12 +1294,13 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 		if(!suic) logline(ACLOG_INFO, "[%s] %s %s %s (%.2f m)", h, actor->name, killname(toobit(gun, style), isheadshot(gun, style)), target->name, killdist);
 		else logline(actor->type == ST_AI && target->type == ST_AI ? ACLOG_VERBOSE : ACLOG_INFO, "[%s] %s %s (%.2f m)", h, actor->name, suicname(obit_suicide(gun)), killdist);
 
-		if(m_flags && targethasflag >= 0)
+		if(m_flags) while(targethasflag >= 0)
 		{
 			if(m_ctf || m_htf || m_ktf2)
 				flagaction(targethasflag, FA_LOST, -1);
 			else // if(m_ktf || m_tktf)
 				flagaction(targethasflag, FA_RESET, -1);
+			targethasflag = clienthasflag(target->clientnum);
 		}
 		
 		if(target->state.nukemillis){ // nuke cancelled!
@@ -3413,11 +3416,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_DROPFLAG:
 			{
-				loopi(2){
-					int fl = clienthasflag(sender);
-					if(fl >= 0){
-						flagaction(fl, FA_DROP, sender);
-					} else break;
+				int fl = clienthasflag(sender);
+				while(fl >= 0){
+					flagaction(fl, FA_DROP, sender);
+					fl = clienthasflag(sender);
 				}
 				break;
 			}
