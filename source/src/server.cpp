@@ -2729,7 +2729,15 @@ void checkmove(client &cp){
 			if(i == cp.team) flagaction(i, FA_PICKUP, sender);
 			else if(f.state == CTFF_DROPPED) flagaction(i, FA_SCORE, sender);
 		}
-		else if(m_ktf && (f.state == CTFF_INBASE || (m_ktf2 && f.state == CTFF_DROPPED))) flagaction(i, FA_PICKUP, sender);
+		else if(m_ktf && f.state == CTFF_INBASE) flagaction(i, FA_PICKUP, sender);
+		else if(m_ktf2 && f.state != CTFF_STOLEN){
+			bool cantake = of.actor_cn != sender || !m_team;
+			if(!cantake){
+				cantake = true;
+				loopv(clients) if(valid_client(i, true) && clients[i]->team == cp.team) { cantake = false; break; }
+			}
+			if(cantake) flagaction(i, FA_PICKUP, sender);
+		}
 	}
 	// throwing knife pickup
 	if(cp.type != ST_AI) loopv(sknives){
