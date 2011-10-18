@@ -59,7 +59,7 @@ void drawflagicons(const flaginfo &f, playerent *p)
 	// CTF OR KTF2/Returner
 	int row = (m_ctf || m_ktf2 && m_team) && f.actor && f.actor->team == f.team ? 1 : 0;
 	// HTF + KTF
-	if(m_ktf && !m_ktf2) row = 1;
+	if(m_ktf && !(m_ktf2 && m_team)) row = 1;
 	// pulses
 	glColor4f(1, 1, 1, f.actor == p ? (sinf(lastmillis/100.0f)+1.0f) / 2.0f : .6f);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
@@ -564,7 +564,7 @@ void drawradar(playerent *p, int w, int h)
 			entity *e = f.flagent;
 			if(!e || e->x == -1 && e-> y == -1) continue;
 			float yaw = showmap ? 0 : camera1->yaw;
-			drawradarent(fixradarpos(vec(e->x, e->y, 0), centerpos, res), coordtrans, yaw, m_ktf && f.state!=CTFF_IDLE ? 2 : f.team, 3, iconsize, false); // draw bases
+			drawradarent(fixradarpos(vec(e->x, e->y, e->z), centerpos, res), coordtrans, yaw, m_ktf && f.state!=CTFF_IDLE ? 2 : f.team, 3, iconsize, false); // draw bases
 			vec pos(0.5f-0.1f, 0.5f-0.9f, 0);
 			pos.mul(iconsize/coordtrans).rotate_around_z(yaw*RAD);
 			if(f.state==CTFF_STOLEN){
@@ -576,14 +576,17 @@ void drawradar(playerent *p, int w, int h)
 				}
 			}
 			else{
-				/*
-				pos.x += e->x;
-				pos.y += e->y;
-				pos.z += centerpos.z;
-				*/
-				pos.x += f.pos.x;
-				pos.y += f.pos.y;
-				pos.z += f.pos.z;
+				if(f.state == CTFF_DROPPED){
+					pos.x += f.pos.x;
+					pos.y += f.pos.y;
+					pos.z += f.pos.z;
+				}
+				else{
+					pos.x += e->x;
+					pos.y += e->y;
+					pos.z += centerpos.z;
+				}
+				
 				drawradarent(fixradarpos(pos, centerpos, res), coordtrans, yaw, 3, m_ktf && f.state != CTFF_IDLE ? 2 : f.team, iconsize, false, f.state == CTFF_IDLE ? .3f : 1);
 			}
 		}
