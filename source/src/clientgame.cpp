@@ -788,7 +788,9 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 	bool own = flag == player1->team;
 	bool firstperson = actor == getclientnum();
 	bool firstpersondrop = false;
-	const char *teamstr = m_ktf ? "the" : own ? "your" : "the enemy";
+	string teamstr_absolute;
+	formatstring(teamstr_absolute)("the %s", team_string(flag));
+	const char *teamstr = m_ktf2 ? teamstr_absolute : m_ktf ? "the" : own ? "your" : "the enemy";
 	string subject, predicate, hashave;
 
 	copystring(subject, firstperson ? "you" : colorname(act));
@@ -811,13 +813,13 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 		case FA_DROP:
 		{
 			playsound(S_FLAGDROP, SP_HIGHEST);
-			formatstring(predicate)("%s %s flag", message == FA_LOST ? "lost" : "dropped", firstperson ? "the" : teamstr);
+			formatstring(predicate)("%s %s flag", message == FA_LOST ? "lost" : "dropped", teamstr);
 			if(firstperson) firstpersondrop = true;
 			break;
 		}
 		case FA_RETURN:
 			playsound(S_FLAGRETURN, SP_HIGHEST);
-			formatstring(predicate)("returned %s flag", firstperson ? "your" : teamstr);
+			formatstring(predicate)("returned %s flag", teamstr);
 			break;
 		case FA_SCORE:
 			playsound(S_FLAGSCORE, SP_HIGHEST);
@@ -828,7 +830,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 		{
 			playsound(S_VOTEPASS, SP_HIGHEST); // need better ktf sound here
 			const int m = flagtime / 60, s = flagtime % 60;
-			copystring(predicate, "kept the flag for ");
+			formatstring(predicate)("kept %s flag for ", teamstr_absolute);
 			if(m) formatstring(predicate)("%s%d minute%s", predicate, m, m==1 ? " " : "s ");
 			if(s) formatstring(predicate)("%s%d second%s", predicate, s, s==1 ? " " : "s ");;
 			concatstring(predicate, "now");
@@ -841,7 +843,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 			playsound(S_FLAGRETURN, SP_HIGHEST);
 			copystring(subject, "\f1the server");
 			copystring(hashave, "had");
-			formatstring(predicate)("reset the %s flag", team_string(flag));
+			formatstring(predicate)("reset %s flag", teamstr_absolute);
 			firstpersondrop = true;
 			break;
 	}

@@ -667,13 +667,14 @@ void flagaction(int flag, int action, int actor){
 	int score = 0;
 	int message = -1;
 
-	if(m_ctf || m_htf)
+	if(m_ctf || m_htf || m_ktf2)
 	{
 		switch(action)
 		{
 			case FA_PICKUP:
 				f.state = CTFF_STOLEN;
 				f.actor_cn = actor;
+				f.stolentime = gamemillis; // needed for KTF2
 				break;
 			case FA_LOST:
 			case FA_DROP:
@@ -686,10 +687,18 @@ void flagaction(int flag, int action, int actor){
 				break;
 			case FA_SCORE:  // ctf: f = carried by actor flag,  htf: f = hunted flag (run over by actor)
 				if(m_ctf) score = 1;
+				else if(m_ktf2){
+					if(valid_client(f.actor_cn) && clients[f.actor_cn]->state.state == CS_ALIVE)
+					{
+						actor = f.actor_cn;
+						score = 1;
+						message = FA_KTFSCORE;
+						break;
+					}
+				}
 				else{ // htf
-					score = (of.state == CTFF_STOLEN) ? 1 : 0;
+					score = (of.state == CTFF_STOLEN) ? of.actor_cn == actor ? 2 : 1 : 0;
 					message = score ? FA_SCORE : FA_SCOREFAIL;
-					if(of.actor_cn == actor) score = 2;
 				}
 				f.state = CTFF_INBASE;
 				break;
@@ -779,7 +788,7 @@ int clienthasflag(int cn){
 }
 
 void ctfreset(){
-	int idleflag = m_ktf ? rnd(2) : -1;
+	int idleflag = m_ktf && !m_ktf2 ? rnd(2) : -1;
 	loopi(2)
 	{
 		sflaginfos[i].actor_cn = -1;
@@ -1283,9 +1292,9 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 
 		if(m_flags && targethasflag >= 0)
 		{
-			if(m_ctf || m_htf)
+			if(m_ctf || m_htf || m_ktf2)
 				flagaction(targethasflag, FA_LOST, -1);
-			else // ktf || tktf
+			else // if(m_ktf || m_tktf)
 				flagaction(targethasflag, FA_RESET, -1);
 		}
 		
@@ -2717,7 +2726,7 @@ void checkmove(client &cp){
 			if(i == cp.team) flagaction(i, FA_PICKUP, sender);
 			else if(f.state == CTFF_DROPPED) flagaction(i, FA_SCORE, sender);
 		}
-		else if(m_ktf && f.state == CTFF_INBASE) flagaction(i, FA_PICKUP, sender);
+		else if(m_ktf && (f.state == CTFF_INBASE || (m_ktf2 && f.state == CTFF_DROPPED))) flagaction(i, FA_PICKUP, sender);
 	}
 	// throwing knife pickup
 	if(cp.type != ST_AI) loopv(sknives){
@@ -3864,14 +3873,14 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 		if(m_flags) loopi(2)
 		{
 			sflaginfo &f = sflaginfos[i];
-			if(f.state == CTFF_DROPPED && gamemillis-f.lastupdate > (m_ctf ? 30000 : 10000)) flagaction(i, FA_RESET, -1);
+			if(f.state == CTFF_DROPPED && gamemillis-f.lastupdate > (m_ctf ? 30000 : m_ktf2 ? 20000 : 10000)) flagaction(i, FA_RESET, -1);
 			if(m_htf && f.state == CTFF_INBASE && gamemillis-f.lastupdate > (smapstats.hasflags ? 10000 : 1000))
 				htf_forceflag(i);
 			if(m_ktf && f.state == CTFF_STOLEN && gamemillis-f.lastupdate > 15000)
 				flagaction(i, FA_SCORE, -1);
 			if(f.state == CTFF_INBASE || f.state == CTFF_STOLEN) ktfflagingame = true;
 		}
-		if(m_ktf && !ktfflagingame) flagaction(rnd(2), FA_RESET, -1); // ktf flag watchdog
+		if(m_ktf && !m_ktf2 && !ktfflagingame) flagaction(rnd(2), FA_RESET, -1); // ktf flag watchdog
 		if(m_duel) arenacheck();
 		if(scl.afktimelimit && mastermode == MM_OPEN && next_afk_check < servmillis && gamemillis > 20000 ) check_afk();
 	}

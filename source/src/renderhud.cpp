@@ -1181,6 +1181,7 @@ void renderhudwaypoints(){
 				o = f.pos;
 				o.z += PLAYERHEIGHT;
 				if(m_ctf) wp = i == teamfix ? WP_RETURN : WP_ENEMY;
+				else if(m_ktf_2) wp = WP_ENEMY;
 				else wp = i == teamfix ? WP_FRIENDLY : WP_GRAB;
 				break;
 		}
