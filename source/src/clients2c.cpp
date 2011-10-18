@@ -880,16 +880,16 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						copystring(msg, "nextmap:");
 						switch(nextt){
 							case 1:
-								copystring(msg, "\f2Next map loaded:");
+								copystring(msg, "\f2Voted for next map:");
 								break;
 							case 2:
-								copystring(msg, "\f1Next on map rotation:");
+								copystring(msg, "\f1Potential next on map rotation:");
 								break;
 							case 3:
 								copystring(msg, "\f2No map rotation entries, reloading");
 								break;
 						}
-						formatstring(msg)("%s %s in mode %s for %d minutes", msg, text, modestr(mode), minutes);
+						formatstring(msg)("%s \fs\f3%s\fr in mode \fs\f3%s\fr for %d minutes", msg, text, modestr(mode), minutes);
 						break;
 					}
 					case 15:
