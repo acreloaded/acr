@@ -2731,7 +2731,7 @@ void checkmove(client &cp){
 		}
 		else if(m_ktf && f.state == CTFF_INBASE) flagaction(i, FA_PICKUP, sender);
 		else if(m_ktf2 && f.state != CTFF_STOLEN){
-			bool cantake = of.actor_cn != sender || !m_team;
+			bool cantake = of.state != CTFF_STOLEN || of.actor_cn != sender || !m_team;
 			if(!cantake){
 				cantake = true;
 				loopv(clients) if(valid_client(i, true) && clients[i]->team == cp.team) { cantake = false; break; }
