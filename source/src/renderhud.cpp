@@ -41,7 +41,8 @@ void drawflagicons(const flaginfo &f, playerent *p)
 	{
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glColor4f(1, 1, 1,
-			f.state == CTFF_INBASE ? 0.2f :
+			f.state == CTFF_INBASE ? .2f :
+			f.state == CTFF_IDLE ? .1f :
 			f.actor == p && f.state == CTFF_STOLEN ? (sinf(lastmillis/100.0f)+1.0f) / 2.0f :
 			1
 		);
@@ -55,14 +56,14 @@ void drawflagicons(const flaginfo &f, playerent *p)
 	}
 	// Must be stolen for big flag-stolen icon
 	if(f.state != CTFF_STOLEN) return;
-	// CTF/Returner
-	int row = m_ctf && f.actor && f.actor->team == f.team ? 1 : 0;
+	// CTF OR KTF2/Returner
+	int row = (m_ctf || m_ktf2 && m_team) && f.actor && f.actor->team == f.team ? 1 : 0;
 	// HTF + KTF
-	if(m_ktf) row = 1;
+	if(m_ktf && !m_ktf2) row = 1;
 	// pulses
 	glColor4f(1, 1, 1, f.actor == p ? (sinf(lastmillis/100.0f)+1.0f) / 2.0f : .6f);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-	drawicon(m_ctf ? ctftex : hktftex, VIRTW - 225 * (!f.team && flaginfos[1].state != CTFF_STOLEN ? 1 : 2 - f.team) - 10, VIRTH*5/8, 225, f.team, row, 1/2.f);
+	drawicon(m_ctf || m_ktf2 && m_team ? ctftex : hktftex, VIRTW - 225 * (!f.team && flaginfos[1].state != CTFF_STOLEN ? 1 : 2 - f.team) - 10, VIRTH*5/8, 225, f.team, row, 1/2.f);
 }
 
 void drawvoteicon(float x, float y, int col, int row, bool noblend)
@@ -1181,7 +1182,7 @@ void renderhudwaypoints(){
 				o = f.pos;
 				o.z += PLAYERHEIGHT;
 				if(m_ctf) wp = i == teamfix ? WP_RETURN : WP_ENEMY;
-				else if(m_ktf_2) wp = WP_ENEMY;
+				else if(m_ktf) wp = WP_ENEMY;
 				else wp = i == teamfix ? WP_FRIENDLY : WP_GRAB;
 				break;
 		}

@@ -122,7 +122,6 @@ enum
 #define m_htf		(gamemode == GMODE_HTF)
 #define m_ktf2		(gamemode == GMODE_TKTF2 || gamemode == GMODE_KTF2)
 #define m_ktf		(gamemode == GMODE_TKTF || gamemode == GMODE_KTF || m_ktf2)
-#define m_ktf_2		m_ktf2 // this could also apply to m_ktf
 #define m_edit		(gamemode == GMODE_COOPEDIT)
 #define	m_expert	(gamemode == GMODE_EXPERTTDM || gamemode == GMODE_EXPERTDM)
 #define m_real		(gamemode == GMODE_REALTDM || gamemode == GMODE_REALDM)
