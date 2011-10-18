@@ -729,10 +729,7 @@ void flagaction(int flag, int action, int actor){
 			case FA_DROP:
 				if(actor == -1) actor = f.actor_cn;
 			case FA_RESET:
-				if(f.state == CTFF_STOLEN){
-					actor = f.actor_cn;
-					message = FA_LOST;
-				}
+				if(f.state == CTFF_STOLEN) actor = f.actor_cn;
 				f.state = CTFF_IDLE;
 				of.state = CTFF_INBASE;
 				sendflaginfo(team_opposite(flag));
@@ -1296,10 +1293,12 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 
 		if(m_flags) while(targethasflag >= 0)
 		{
-			if(m_ctf || m_htf || m_ktf2)
-				flagaction(targethasflag, FA_LOST, -1);
-			else // if(m_ktf || m_tktf)
+			/*
+			if(tk)
 				flagaction(targethasflag, FA_RESET, -1);
+			else
+				*/
+				flagaction(targethasflag, FA_LOST, -1);
 			targethasflag = clienthasflag(target->clientnum);
 		}
 		
