@@ -663,6 +663,7 @@ void flagmessage(int flag, int message, int actor, int cn = -1){
 void flagaction(int flag, int action, int actor){
 	if(!valid_flag(flag)) return;
 	sflaginfo &f = sflaginfos[flag];
+	if(action == FA_PICKUP && f.drop_cn == actor && f.dropmillis + 2000 > servmillis) return;
 	sflaginfo &of = sflaginfos[team_opposite(flag)];
 	int score = 0;
 	int message = -1;
@@ -842,6 +843,7 @@ void htf_forceflag(int flag){
 				f.state = CTFF_STOLEN;
 				f.actor_cn = i;
 				sendflaginfo(flag);
+				f.drop_cn = -1; // force pickup
 				flagmessage(flag, FA_PICKUP, i);
 				logline(ACLOG_INFO,"[%s] %s got forced to pickup the flag", gethostname(i), clients[i]->name);
 				break;
@@ -2711,18 +2713,19 @@ void checkmove(client &cp){
 		if(m_ctf){
 			if(i == cp.team){ // it's our flag
 				if(f.state == CTFF_DROPPED){
-					if(m_return /*&& (of.state != CTFF_STOLEN || of.actor_cn != sender)*/ && (f.drop_cn != sender || f.dropmillis + 2000 < servmillis)) flagaction(i, FA_PICKUP, sender);
+					if(m_return /*&& (of.state != CTFF_STOLEN || of.actor_cn != sender)*/) flagaction(i, FA_PICKUP, sender);
 					else flagaction(i, FA_RETURN, sender);
 				}
 				else if(f.state == CTFF_STOLEN && sender == f.actor_cn) flagaction(i, FA_RETURN, sender);
 				else if(f.state == CTFF_INBASE && of.state == CTFF_STOLEN && of.actor_cn == sender) flagaction(team_opposite(i), FA_SCORE, sender);
 			}
-			else if(f.drop_cn != sender || f.dropmillis + 2000 < servmillis){
+			else{
 				/*if(m_return && of.state == CTFF_STOLEN && of.actor_cn == sender) flagaction(team_opposite(i), FA_RETURN, sender);*/
 				flagaction(i, FA_PICKUP, sender);
 			}
 		}
 		else if(m_htf){
+			f.drop_cn = -1; // force pickup
 			if(i == cp.team) flagaction(i, FA_PICKUP, sender);
 			else if(f.state == CTFF_DROPPED) flagaction(i, FA_SCORE, sender);
 		}
