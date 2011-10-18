@@ -3770,7 +3770,7 @@ void loggamestatus(const char *reason){
 	loopv(clients)
 	{
 		client &c = *clients[i];
-		if(c.type == ST_EMPTY || !c.name[0]) continue;
+		if(c.type == ST_EMPTY) continue;
 		formatstring(text)("%2d%c %-16s ", c.clientnum, c.state.ownernum < 0 ? ' ' : '*', c.name); // cn* name
 		if(m_team) concatformatstring(text, "%-5s ", team_string(c.team)); // team
 		if(m_flags) concatformatstring(text, "%4d ", c.state.flagscore);	 // flag
