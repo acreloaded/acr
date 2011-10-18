@@ -69,14 +69,29 @@ struct weaponmove
 		else if(gamefocus->weaponsel->reloading){
 			anim = ANIM_WEAP_RELOAD;
 			basetime = gamefocus->weaponsel->reloading;
-			if(gamefocus->weaponsel->type == WEAP_AKIMBO){
-				float reloadtime = (float)gamefocus->weaponsel->info.reloadtime,
-					progress = clamp((lastmillis - gamefocus->weaponsel->reloading)/reloadtime, 0.0f,
-						clamp(1.0f - (gamefocus->lastaction + gamefocus->weaponsel->gunwait - lastmillis)/reloadtime, 0.5f, 1.0f));
-				if((progress -= .4f) > 0){
-					progress /= .6f;
-					k_rot = -90 * sinf(progress*M_PI);
+			const float reloadtime = gamefocus->weaponsel->info.reloadtime,
+						reloadelasped = lastmillis - gamefocus->weaponsel->reloading,
+						gunwaitelasped = lastmillis - gamefocus->weaponsel->gunwait;
+			float progress = clamp(reloadelasped/reloadtime, 0.0f,
+							clamp(1.0f - (gamefocus->lastaction - gunwaitelasped)/reloadtime, 0.5f, 1.0f));
+			switch(gamefocus->weaponsel->type){
+				case WEAP_AKIMBO: // nothing we can do by the nature of this weapon
+				{
+					if((progress -= .4f) > 0){
+						progress /= .6f;
+						k_rot = -90 * sinf(progress*M_PI);
+					}
+					break;
 				}
+				case WEAP_SUBGUN: // add reload animations and remove this!
+				case WEAP_ASSAULT:
+				case WEAP_BOLT:
+				/*
+				case WEAP_HEAL: // these need models
+				case WEAP_BOW: // this one is "adding another arrow"
+				*/
+					k_rot = -90*sinf(progress*M_PI);
+					break;
 			}
 		}
 		else{
