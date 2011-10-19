@@ -52,6 +52,7 @@ struct entity : public persistent_entity
 #define STARTHEALTH (100 * HEALTHSCALE)
 #define MAXHEALTH (120 * HEALTHSCALE)
 #define ZOMBIEHEALTHFACTOR 5
+#define MAXDMG (STARTHEALTH * ZOMBIEHEALTHFACTOR)
 
 #define SPAWNDELAY (m_flags ? 5000 : 1500)
 
