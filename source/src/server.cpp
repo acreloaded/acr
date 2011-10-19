@@ -3564,7 +3564,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					case SA_BOTBALANCE:
 					{
 						int b = getint(p);
-						b = clamp(b, -1, MAXBOTS);
+						b = clamp(b, -1, MAXBOTBALANCE);
 						vi->action = new botbalanceaction(b);
 						break;
 					}
