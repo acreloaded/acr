@@ -1,6 +1,6 @@
 // server-side ai (bot) manager
 int findaiclient(int exclude = -1){ // person with least bots
-	int cn = -1, bots = MAXBOTBALANCE;
+	int cn = -1, bots = m_zombies ? MAXCLIENTS : MAXBOTBALANCE;
 	loopv(clients){
 		client *c = clients[i];
 		if(i == exclude || !valid_client(i, true) || c->clientnum < 0 /*|| !*c->name || !c->connected*/) break;
