@@ -1,6 +1,6 @@
 // server-side ai (bot) manager
 int findaiclient(int exclude = -1){ // person with least bots
-	int cn = -1, bots = MAXCLIENTS - MAXBOTS;
+	int cn = -1, bots = MAXBOTBALANCE;
 	loopv(clients){
 		client *c = clients[i];
 		if(i == exclude || !valid_client(i, true) || c->clientnum < 0 /*|| !*c->name || !c->connected*/) break;
@@ -100,7 +100,7 @@ void checkai(){
 	// check balance
 	int balance = 0;
 	const int people = numclients();
-	if(m_zombies) balance = MAXBOTZ;
+	if(m_zombies) balance = people + MAXBOTZ;
 	else if(people) switch(botbalance){
 		case -1: // auto
 			if(m_duel) balance = max(people, maplayout_factor - 3); // 3 - 5 - 8 (6 - 8 - 11 layout factor)
