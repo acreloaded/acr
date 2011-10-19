@@ -1,5 +1,6 @@
-#define MAXCLIENTS 32				  // in a multiplayer game, can be arbitrarily changed
+#define MAXCLIENTS 64				  // in a multiplayer game, can be arbitrarily changed
 #define MAXBOTS 16
+#define MAXBOTZ 48 // note the 'Z' at the end
 #define DEFAULTCLIENTS 12
 #define MAXTRANS 5000				   // max amount of data to swallow in 1 go
 #define CUBE_DEFAULT_SERVER_PORT 28770
@@ -132,15 +133,16 @@ enum
 #define m_noitemsnade	(m_lss && gamemode != GMODE_KNIFE)
 #define m_nopistol		(m_osok || m_lss)
 #define m_noprimary		(m_pistol || m_lss)
-#define m_duel			(m_lms || gamemode == GMODE_LASTSWISSSTANDING || m_osok)
+#define m_duel			(m_lms || gamemode == GMODE_LASTSWISSSTANDING || m_osok || m_zombies)
 #define m_flags			(m_ctf || m_htf || m_ktf)
 #define m_team			(gamemode==GMODE_TEAMDEATHMATCH || gamemode==GMODE_TEAMONESHOTONEKILL || \
 							gamemode==GMODE_TEAMSURVIVOR || m_ctf || m_htf || gamemode==GMODE_TKTF || gamemode==GMODE_TKTF2 || \
-							gamemode==GMODE_REALTDM || gamemode == GMODE_EXPERTTDM || gamemode == GMODE_CTDM)
+							gamemode==GMODE_REALTDM || gamemode == GMODE_EXPERTTDM || gamemode == GMODE_CTDM || m_zombies)
 #define m_fight(mode)	((mode)>=0 && (mode) != GMODE_COOPEDIT && (mode)<GMODE_NUM)
 #define m_demo			(gamemode == GMODE_DEMO)
 #define m_valid(mode)	(m_fight(mode) || mode == GMODE_COOPEDIT)
 #define m_ai			(m_fight(gamemode)) // bots not available in coopedit
+#define m_zombies		(gamemode==GMODE_ZOMBIES) // extra bots!
 
 struct authrequest{ uint id; bool answer; int hash[5]; };
 struct connectrequest{ int cn; enet_uint32 ip; const char *nick; };

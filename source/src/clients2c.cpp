@@ -429,7 +429,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				const int cn = getint(p), enqueued = getint(p);
 				if(cn == getclientnum()){
 					extern bool spawnenqueued;
-					spawnenqueued = enqueued;
+					spawnenqueued = enqueued != 0;
 				}
 				break;
 			}
@@ -1065,6 +1065,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				conoutf("the round is over! next round in 5 seconds...");
 				// no survivors
 				if(acn == -1) hudoutf("everyone died; epic fail!");
+				else if(m_zombies) hudoutf(acn < 0 ? "\f0the humans have prevailed!" : "\f3the zombies have overrun the humans");
 				// instead of waiting for bots to battle it out...
 				else if(acn == -2) hudoutf("the bots have won the round!");
 				// should not happen? better safe than sorry

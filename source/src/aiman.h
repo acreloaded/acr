@@ -1,12 +1,12 @@
 // server-side ai (bot) manager
 int findaiclient(int exclude = -1){ // person with least bots
-	int cn = -1, bots = MAXBOTS;
+	int cn = -1, bots = MAXCLIENTS - MAXBOTS;
 	loopv(clients){
 		client *c = clients[i];
 		if(i == exclude || !valid_client(i, true) || c->clientnum < 0 /*|| !*c->name || !c->connected*/) break;
 		int n = 0;
 		loopvj(clients) if(clients[j]->state.ownernum == i) n++;
-		if(n < bots){
+		if(n < bots || cn < 0){
 			bots = n;
 			cn = i;
 		}
@@ -18,7 +18,7 @@ bool addai(){
 	int aiowner = findaiclient(), cn = -1, numbots = 0;
 	if(!valid_client(aiowner)) return false;
 	loopv(clients){
-		if(numbots > MAXBOTS) return false;
+		if(numbots > (m_zombies ? MAXBOTZ : MAXBOTS)) return false;
 		if(clients[i]->type == ST_AI) numbots++;
 		else if(clients[i]->type == ST_EMPTY){
 			cn = i;
@@ -100,7 +100,8 @@ void checkai(){
 	// check balance
 	int balance = 0;
 	const int people = numclients();
-	if(people) switch(botbalance){
+	if(m_zombies) balance = MAXBOTZ;
+	else if(people) switch(botbalance){
 		case -1: // auto
 			if(m_duel) balance = max(people, maplayout_factor - 3); // 3 - 5 - 8 (6 - 8 - 11 layout factor)
 			else{
@@ -113,7 +114,7 @@ void checkai(){
 		default: balance = max(people, botbalance); break; // force bot count
 	}
 	if(balance > 0){
-		if(m_team){
+		if(m_team && !m_zombies){
 			int plrs[2] = {0}, highest = -1;
 			loopv(clients) if(valid_client(i, true) && clients[i]->team < 2){
 				plrs[clients[i]->team]++;

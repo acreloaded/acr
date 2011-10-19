@@ -168,6 +168,7 @@ int calcscores();
 
 int freeteam(int pl = -1){
 	const bool checkbots = clients.inrange(pl) && clients[pl]->type == ST_AI;
+	if(m_zombies) return checkbots ? TEAM_RED : TEAM_BLUE;
 	int teamsize[2] = {0};
 	int teamscore[2] = {0};
 	int sum = calcscores();
@@ -956,7 +957,7 @@ void arenacheck(){
 	if(!dead || gamemillis < lastdeath + 500) return;
 	sendf(-1, 1, "ri2", N_ARENAWIN, !ha && found ? -2 : alive ? alive->clientnum : -1);
 	arenaround = gamemillis+5000;
-	if(autoteam && m_team) refillteams(true);
+	if(autoteam && m_team && !m_zombies) refillteams(true);
 }
 
 #define SPAMREPEATINTERVAL  20   // detect doubled lines only if interval < 20 seconds
@@ -2067,7 +2068,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 	if(m_duel) distributespawns();
 	if(notify){
 		// shuffle if previous mode wasn't a team-mode
-		if(m_team){
+		if(m_team && !m_zombies){
 			if(!lastteammode)
 				shuffleteams(FTR_SILENT);
 			else if(autoteam)
