@@ -3416,10 +3416,13 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case N_DROPFLAG:
 			{
 				int fl = clienthasflag(sender);
+				flagaction(fl, FA_DROP, sender);
+				/*
 				while(fl >= 0){
 					flagaction(fl, FA_DROP, sender);
 					fl = clienthasflag(sender);
 				}
+				*/
 				break;
 			}
 
