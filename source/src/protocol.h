@@ -110,6 +110,7 @@ enum
 	GMODE_RCTF, // return-CTF
 	GMODE_CDM, GMODE_CTDM, // classic DM/TDM
 	GMODE_KTF2, GMODE_TKTF2, // double KTF/TKTF
+	GMODE_ZOMBIES, // awesome!
 	GMODE_NUM
 };
 
