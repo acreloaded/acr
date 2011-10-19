@@ -329,14 +329,12 @@ void usestreak(client &c, int streak, const vec &o = vec(0, 0, 0)){
 void spawnstate(client *c){
 	clientstate &gs = c->state;
 	if(m_zombies && c->team == TEAM_RED){
-		gs.nextperk = PERK_SPEED;
-		gs.nextprimary = !rnd(3) ? WEAP_SWORD : WEAP_KNIFE;
+		gs.gunselect = gs.primary = gs.nextprimary = !rnd(3) ? WEAP_SWORD : WEAP_KNIFE;
+		gs.ammo[gs.primary] = magsize(gs.primary);
+		gs.perk = gs.nextperk = PERK_SPEED;
+		gs.health = STARTHEALTH + rnd(STARTHEALTH * ZOMBIEHEALTHFACTOR);
 	}
-	gs.spawnstate(smode);
-	if(m_zombies && c->team == TEAM_RED){
-		gs.mag[WEAP_GRENADE] = 0;
-		gs.health += rnd(gs.health * ZOMBIEHEALTHFACTOR);
-	}
+	else gs.spawnstate(smode);
 	++gs.lifesequence;
 	gs.state = CS_DEAD;
 }
