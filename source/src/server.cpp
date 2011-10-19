@@ -1261,8 +1261,10 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 			actor->state.frags--;
 			suic = true;
 		}
-		++actor->state.killstreak;
-		++ts.deathstreak;
+		if(!m_nostreaks){
+			++actor->state.killstreak;
+			++ts.deathstreak;
+		}
 		actor->state.deathstreak = ts.killstreak = ts.lastbleed = 0;
 		ts.lastbleedowner = -1;
 		ts.damagelog.removeobj(target->clientnum);
