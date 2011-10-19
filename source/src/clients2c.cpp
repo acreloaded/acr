@@ -1065,7 +1065,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				conoutf("the round is over! next round in 5 seconds...");
 				// no survivors
 				if(acn == -1) hudoutf("everyone died; epic fail!");
-				else if(m_zombies) hudoutf(acn < 0 ? "\f0the humans have prevailed!" : "\f3the zombies have overrun the humans");
+				else if(m_zombies) hudoutf(acn < 0 ? "\f3the zombies have overrun the humans" : "\f0the humans have prevailed!");
 				// instead of waiting for bots to battle it out...
 				else if(acn == -2) hudoutf("the bots have won the round!");
 				// should not happen? better safe than sorry
