@@ -782,7 +782,7 @@ COMMAND(suicide, ARG_NONE);
 
 void flagmsg(int flag, int message, int actor, int flagtime)
 {
-	static int musicplaying = -1;
+	static uint flagmusic = 0;
 	playerent *act = getclient(actor);
 	if(actor != getclientnum() && !act && message != FA_RESET) return;
 	bool own = flag == player1->team;
@@ -804,7 +804,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 				formatstring(predicate)("picked up %s flag", teamstr);
 				if(!m_ctf || !own){
 					musicsuggest(M_FLAGGRAB, m_ctf ? 90*1000 : 900*1000, true);
-					musicplaying = flag;
+					flagmusic |= 1 << flag;
 				}
 			}
 			else formatstring(predicate)("got %s flag", teamstr);
@@ -849,10 +849,8 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 	}
 	conoutf("\f2%s %s", subject, predicate);
 	hudonlyf("\f2%s %s %s", subject, hashave, predicate);
-	if(firstpersondrop && flag == musicplaying)
-	{
-		musicfadeout(M_FLAGGRAB);
-		musicplaying = -1;
+	if(firstpersondrop && flagmusic){
+		if(!(flagmusic &= ~(1 << flag))) musicfadeout(M_FLAGGRAB);
 	}
 }
 
