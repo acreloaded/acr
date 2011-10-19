@@ -335,7 +335,7 @@ void spawnstate(client *c){
 	gs.spawnstate(smode);
 	if(m_zombies && c->team == TEAM_RED){
 		gs.mag[WEAP_GRENADE] = 0;
-		gs.health *= ZOMBIEHEALTHFACTOR;
+		gs.health += rnd(gs.health * ZOMBIEHEALTHFACTOR);
 	}
 	++gs.lifesequence;
 	gs.state = CS_DEAD;
