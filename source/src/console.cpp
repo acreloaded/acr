@@ -82,9 +82,7 @@ struct console : consolebuffer<cline>
 	}
 
 	console() : consolebuffer<cline>(200), fullconsole(false) { maxlines = 8; }
-};
-
-console con;
+} con;
 
 VARP(chatfade, 0, 15, 30);
 struct chatlist : consolebuffer<cline>{
@@ -117,8 +115,7 @@ struct chatlist : consolebuffer<cline>{
         }
     }
     chatlist() : consolebuffer<cline>(6) {}
-};
-chatlist chat;
+} chat;
 
 Texture **obittex(){
 	static Texture *tex[OBIT_NUM];
@@ -144,9 +141,15 @@ struct obitlist
 	oline &addline(playerent *actor, int weap, int style, bool headshot, playerent *target, int millis)	// add a line to the obit buffer
 	{
 		oline cl;
-		cl.actor = olines.length()>maxlines ? olines.pop().actor : newstringbuf("");   // constrain the buffer size
-		cl.target = olines.length()>maxlines ? olines.pop().target : newstringbuf("");   // constrain the buffer size
-		cl.millis = millis;						// for how long to keep line on screen
+		// constrain the buffer size
+		cl.actor = olines.length() ? olines.last().actor : NULL;
+		cl.target = olines.length() ? olines.last().target : NULL;
+		if(olines.length() && olines.length()>maxlines) olines.pop();
+		else{
+			cl.actor = newstringbuf("");
+			cl.target = newstringbuf("");
+		}
+		cl.millis = millis; // for how long to keep line on screen
 		cl.weap = weap;
 		const int colorset[2][3] = {{0, 1, 3}, {8, 9, 7}};
 		formatstring(cl.actor)("\f%d%s", colorset[0][actor == gamefocus ? 0 : isteam(actor, gamefocus) ? 1 : 2], actor == target ? "" : actor ? colorname(actor) : "unknown");
@@ -248,8 +251,7 @@ struct obitlist
         }
 		glPopMatrix();
     }
-};
-obitlist obits;
+} obits;
 
 void addobit(playerent *actor, int weap, int style, bool headshot, playerent *target) { extern int totalmillis; obits.addline(actor, weap, style, headshot, target, totalmillis); }
 void renderobits() { obits.render(); }
