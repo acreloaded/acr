@@ -169,7 +169,7 @@ int shot(client &owner, const vec &from, vec &to, int weap, const vec &surface, 
 	if(hit && damage){
 		// damage multipliers
 		if(!m_classic) switch(hitzone){
-			case HIT_HEAD: damage *= muls[mulset].head; break;
+			case HIT_HEAD: if(m_zombies) damage = INT_MAX; else damage *= muls[mulset].head; break;
 			case HIT_TORSO: damage *= muls[mulset].torso; break;
 			case HIT_LEG: default: damage *= muls[mulset].leg; break;
 		}
@@ -233,6 +233,10 @@ int shotgun(client &owner, const vec &from, const vec &to){
 			vec head = generateHead(ts.o, ts.aim[0]), end;
 			const int hitzone = hitplayer(from, gs.aim[0], gs.aim[1], gs.sg[j], ts.o, head, &end);
 			if(!hitzone) continue;
+			if(hitzone == HIT_HEAD && m_zombies){
+				damage = INT_MAX;
+				break;
+			}
 			damage += effectiveDamage(WEAP_SHOTGUN, end.dist(gs.o)) * muls[MUL_SHOTGUN].val[hitzone == HIT_HEAD ? 0 : hitzone == HIT_TORSO ? 1 : 2];
 			++(hitzone == HIT_HEAD ? shothead : shotnonhead);
 		}
