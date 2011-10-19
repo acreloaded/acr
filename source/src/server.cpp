@@ -330,11 +330,11 @@ void spawnstate(client *c){
 	clientstate &gs = c->state;
 	if(m_zombies && c->team == TEAM_RED){
 		gs.nextperk = PERK_SPEED;
-		gs.nextprimary = !rnd(4) ? WEAP_SWORD : WEAP_KNIFE;
+		gs.nextprimary = !rnd(3) ? WEAP_SWORD : WEAP_KNIFE;
 	}
 	gs.spawnstate(smode);
 	if(m_zombies && c->team == TEAM_RED){
-		mag[WEAP_GRENADE] = 0;
+		gs.mag[WEAP_GRENADE] = 0;
 		gs.health *= ZOMBIEHEALTHFACTOR;
 	}
 	++gs.lifesequence;
