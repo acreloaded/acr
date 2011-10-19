@@ -780,10 +780,7 @@ void flagaction(int flag, int action, int actor){
 int clienthasflag(int cn){
 	if(m_flags && valid_client(cn))
 	{
-		int i = rnd(2); // check flags randomly
-		if(sflaginfos[i].state==CTFF_STOLEN && sflaginfos[i].actor_cn==cn) return i;
-		i ^= 1;
-		if(sflaginfos[i].state==CTFF_STOLEN && sflaginfos[i].actor_cn==cn) return i;
+		loopi(2) { if(sflaginfos[i].state==CTFF_STOLEN && sflaginfos[i].actor_cn==cn) return i; }
 	}
 	return -1;
 }
@@ -1294,17 +1291,18 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 		if(!suic) logline(ACLOG_INFO, "[%s] %s %s %s (%.2f m)", h, actor->name, killname(toobit(gun, style), isheadshot(gun, style)), target->name, killdist);
 		else logline(actor->type == ST_AI && target->type == ST_AI ? ACLOG_VERBOSE : ACLOG_INFO, "[%s] %s %s (%.2f m)", h, actor->name, suicname(obit_suicide(gun)), killdist);
 
-		if(m_flags) while(targethasflag >= 0)
-		{
-			/*
-			if(tk)
-				flagaction(targethasflag, FA_RESET, -1);
-			else
-				*/
-				flagaction(targethasflag, FA_LOST, -1);
-			targethasflag = clienthasflag(target->clientnum);
-			if(m_ktf2 && targethasflag >= 0){
-				flagaction(targethasflag, FA_RESET, -1);
+		if(m_flags){
+			if(m_ktf2 && // KTF2 only
+				targethasflag >= 0 && // he has any flag
+				sflaginfos[0].state == sflaginfos[1].state && // both are same state (stolen)
+				sflaginfos[0].actor_cn == sflaginfos[1].actor_cn){ // he has both
+				const int farflag = ts.o.distxy(vec(sflaginfos[0].x, sflaginfos[0].y, 0)) > ts.o.distxy(vec(sflaginfos[1].x, sflaginfos[1].y, 0)) ? 0 : 1;
+				flagaction(farflag, FA_RESET, -1);
+				targethasflag = farflag ^ 1;
+			}
+			while(targethasflag >= 0)
+			{
+				flagaction(targethasflag, /*tk ? FA_RESET : */FA_LOST, -1);
 				targethasflag = clienthasflag(target->clientnum);
 			}
 		}
