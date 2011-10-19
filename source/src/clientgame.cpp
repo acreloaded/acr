@@ -444,7 +444,7 @@ void spawnplayer(playerent *d)
 
 void respawnself(){
 	spawnplayer(player1);
-	spawnenqueued = true;
+	// spawnenqueued = true;
 }
 
 bool tryrespawn(){

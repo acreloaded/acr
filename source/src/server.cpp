@@ -2980,12 +2980,17 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				const int cn = getint(p);
 				if(!hasclient(cl, cn)) break;
 				client &cp = *clients[cn];
-				if(!cl->isonrightmap || !maplayout){
+				if(cp.state.state == CS_WAITING){ // dequeue for spawning
+					cp.state.state = CS_DEAD;
+					sendf(sender, 1, "ri3", N_TRYSPAWN, cn, 0);
+					break;
+				}
+				if(!cl->isonrightmap || !maplayout){ // need the map for spawning
 					if(cn == sender) sendf(sender, 1, "ri", N_MAPIDENT);
 					break;
 				}
-				if(cp.state.state!=CS_DEAD || cp.state.lastspawn>=0) break;
-				if(cp.team == TEAM_SPECT){
+				if(cp.state.state!=CS_DEAD || cp.state.lastspawn>=0) break; // not dead or already enqueued
+				if(cp.team == TEAM_SPECT){ // need to unspectate
 					if(mastermode < MM_LOCKED || cp.type != ST_TCPIP || cp.priv >= PRIV_ADMIN){
 						updateclientteam(cn, freeteam(cn), FTR_PLAYERWISH);
 						if(canspawn(&cp, true)){
@@ -3000,6 +3005,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				}
 				// enqueue for spawning
 				cp.state.state = CS_WAITING;
+				sendf(sender, 1, "ri3", N_TRYSPAWN, cn, 1);
 				break;
 			}
 

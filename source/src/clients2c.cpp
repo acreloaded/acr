@@ -418,9 +418,19 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_EDITMODE:
 			{
-				int cn = getint(p), val = getint(p);
+				const int cn = getint(p), val = getint(p);
 				playerent *d = getclient(cn);
 				if(d) d->state = val ? CS_EDITING : CS_ALIVE;
+				break;
+			}
+
+			case N_TRYSPAWN:
+			{
+				const int cn = getint(p), enqueued = getint(p);
+				if(cn == getclientnum()){
+					extern bool spawnenqueued;
+					spawnenqueued = enqueued;
+				}
 				break;
 			}
 
