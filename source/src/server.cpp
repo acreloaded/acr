@@ -330,7 +330,7 @@ void spawnstate(client *c){
 	clientstate &gs = c->state;
 	if(m_zombies && c->team == TEAM_RED){
 		gs.gunselect = gs.primary = gs.nextprimary = !rnd(3) ? WEAP_SWORD : WEAP_KNIFE;
-		gs.ammo[gs.primary] = magsize(gs.primary);
+		gs.mag[gs.primary] = magsize(gs.primary);
 		gs.perk = gs.nextperk = PERK_SPEED;
 		gs.health = STARTHEALTH + rnd(STARTHEALTH * ZOMBIEHEALTHFACTOR);
 	}
