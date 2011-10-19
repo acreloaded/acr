@@ -328,7 +328,7 @@ void usestreak(client &c, int streak, const vec &o = vec(0, 0, 0)){
 
 void spawnstate(client *c){
 	clientstate &gs = c->state;
-	if(m_zombies && c->team == TEAM_RED) gs.nextprimary = WEAP_SWORD;
+	if(m_zombies && c->team == TEAM_RED) gs.nextprimary = !rnd(4) ? WEAP_SWORD : WEAP_KNIFE;
 	gs.spawnstate(smode);
 	++gs.lifesequence;
 	gs.state = CS_DEAD;
