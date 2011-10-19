@@ -1261,10 +1261,8 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 			actor->state.frags--;
 			suic = true;
 		}
-		if(!m_nostreaks){
-			++actor->state.killstreak;
-			++ts.deathstreak;
-		}
+		++actor->state.killstreak;
+		++ts.deathstreak;
 		actor->state.deathstreak = ts.killstreak = ts.lastbleed = 0;
 		ts.lastbleedowner = -1;
 		ts.damagelog.removeobj(target->clientnum);
@@ -1321,10 +1319,10 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 				streakready(*actor, STREAK_AIRSTRIKE);
 				break;
 			case 9:
-				usestreak(*actor, STREAK_RADAR);
+				if(!m_noradar) usestreak(*actor, STREAK_RADAR);
 				break;
 			case 11:
-				usestreak(*actor, STREAK_NUKE);
+				if(!m_nonuke) usestreak(*actor, STREAK_NUKE);
 				break;
 		}
 		usestreak(*target, ts.streakondeath);

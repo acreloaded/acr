@@ -134,7 +134,8 @@ enum
 #define m_noitemsnade	(m_lss && gamemode != GMODE_KNIFE)
 #define m_nopistol		(m_osok || m_lss)
 #define m_noprimary		(m_pistol || m_lss)
-#define m_nostreaks		(m_zombies)
+#define m_noradar		(m_zombies || m_classic)
+#define m_nonuke		(m_zombies)
 #define m_duel			(m_lms || gamemode == GMODE_LASTSWISSSTANDING || m_osok || m_zombies)
 #define m_flags			(m_ctf || m_htf || m_ktf)
 #define m_team			(gamemode==GMODE_TEAMDEATHMATCH || gamemode==GMODE_TEAMONESHOTONEKILL || \
