@@ -98,7 +98,7 @@ struct demoplayaction : serveraction
 struct playeraction : serveraction
 {
 	int cn;
-	virtual bool isvalid() { return valid_client(cn, true); }
+	virtual bool isvalid() { return valid_client(cn); }
 	playeraction(int cn) : cn(cn) { };
 };
 
@@ -179,7 +179,7 @@ struct kickaction : playeraction
 {
 	string reason;
 	void perform() { disconnect_client(cn, DISC_KICK); }
-	virtual bool isvalid() { return playeraction::isvalid() && strlen(reason) >= 4; }
+	virtual bool isvalid() { return playeraction::isvalid() && valid_client(cn, true) && strlen(reason) >= 4; }
 	kickaction(int cn, const char *r) : playeraction(cn)
 	{
 		area = EE_DED_SERV; // dedicated only
@@ -199,6 +199,7 @@ struct banaction : playeraction
 		banclient(clients[cn], bantime);
 		disconnect_client(cn, DISC_BAN);
 	}
+	virtual bool isvalid() { return playeraction::isvalid() && valid_client(cn, true); }
 	banaction(int cn, int minutes) : playeraction(cn)
 	{
 		area = EE_DED_SERV; // dedicated only
