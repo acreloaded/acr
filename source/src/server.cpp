@@ -1775,6 +1775,7 @@ int calcscores() // skill eval
 ivector shuffle;
 
 void shuffleteams(int ftr = FTR_AUTOTEAM){
+	if(m_zombies) return; // in case a vote is called
 	int numplayers = numclients();
 	int team, sums = calcscores();
 	if(gamemillis < 2 * 60 *1000){ // random
@@ -1893,6 +1894,12 @@ bool balanceteams(int ftr, bool aionly = true)  // pro vs noobs never more
 int lastbalance = 0, waitbalance = 2 * 60 * 1000;
 
 bool refillteams(bool now, int ftr, bool aionly){ // force only minimal amounts of players
+	if(m_zombies){ // force to zombie teams
+		loopv(clients)
+			if(clients[i]->type != ST_EMPTY)
+				updateclientteam(i, clients[i]->type == ST_AI ? TEAM_RED : TEAM_BLUE, ftr);
+		return false;
+	}
 	static int lasttime_eventeams = 0;
     int teamsize[2] = {0, 0}, teamscore[2] = {0, 0}, moveable[2] = {0, 0};
     bool switched = false;
@@ -2068,11 +2075,10 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 	nokills = true;
 	if(m_duel) distributespawns();
 	if(notify){
-		// shuffle if previous mode wasn't a team-mode
-		if(m_team && !m_zombies){
-			if(!lastteammode)
+		if(m_team){
+			if(!lastteammode && !m_zombies) // shuffle if previous mode wasn't a team-mode
 				shuffleteams(FTR_SILENT);
-			else if(autoteam)
+			else if(m_zombies || autoteam) // force teams for zombies
 				refillteams(true, FTR_SILENT);
 		}
 		// prepare spawns; players will spawn, once they've loaded the correct map
@@ -3948,7 +3954,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
 	serverms(smode, numclients(), gamelimit-gamemillis, smapname, servmillis, serverhost->address, pnum, psend, prec, PROTOCOL_VERSION);
 
-	if(autoteam && m_team && !m_duel && !interm && servmillis - lastfillup > 5000 && refillteams()) lastfillup = servmillis;
+	if(autoteam && m_team && !m_zombies && !m_duel && !interm && servmillis - lastfillup > 5000 && refillteams()) lastfillup = servmillis;
 
 	loopv(clients) if(valid_client(i) && (!clients[i]->connected || clients[i]->connectauth) && clients[i]->connectmillis + 10000 <= servmillis) disconnect_client(i, DISC_TIMEOUT);
 
