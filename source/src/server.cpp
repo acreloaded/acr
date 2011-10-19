@@ -333,7 +333,10 @@ void spawnstate(client *c){
 		gs.nextprimary = !rnd(4) ? WEAP_SWORD : WEAP_KNIFE;
 	}
 	gs.spawnstate(smode);
-	if(m_zombies && c->team == TEAM_RED) gs.health *= ZOMBIEHEALTHFACTOR;
+	if(m_zombies && c->team == TEAM_RED){
+		mag[WEAP_GRENADE] = 0;
+		gs.health *= ZOMBIEHEALTHFACTOR;
+	}
 	++gs.lifesequence;
 	gs.state = CS_DEAD;
 }
