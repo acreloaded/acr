@@ -123,7 +123,9 @@ void renderteamscore(void *menu, teamscore &t){
 		space.s[0] = 0;
 	}
 	sline &line = scorelines.add();
-	defformatstring(plrs)("(%d %s)", t.teammembers.length(), t.team == TEAM_SPECT ? "spectating" : t.teammembers.length() == 1 ? "player" : "players");
+	defformatstring(plrs)("(%d %s)", t.teammembers.length(), t.team == TEAM_SPECT ? "spectating" :
+															m_zombies && t.team == TEAM_RED ? "remaining zombies" :
+															t.teammembers.length() == 1 ? "player" : "players");
 	scoreratio sr;
 	sr.calc(t.frags, t.deaths);
 	const char *tlag = colorpj(t.pj/max(t.teammembers.length(),1)), *tping = colorping(t.ping/max(t.teammembers.length(), 1));
@@ -180,6 +182,7 @@ void renderscores(void *menu, bool init){
 		#define fixteam(pl) (pl->team == TEAM_BLUE && !m_team ? TEAM_RED : pl->team)
 		loopv(players){
 			if(!players[i]) continue;
+			if(m_zombies && players[i]->team == TEAM_RED && players[i]->state == CS_DEAD) continue;
 			teamscores[fixteam(players[i])].addscore(players[i]);
 		}
 		if(!watchingdemo) teamscores[fixteam(player1)].addscore(player1);
