@@ -124,7 +124,7 @@ void renderteamscore(void *menu, teamscore &t){
 	}
 	sline &line = scorelines.add();
 	defformatstring(plrs)("(%d %s)", t.teammembers.length(), t.team == TEAM_SPECT ? "spectating" :
-															m_zombies && t.team == TEAM_RED ? "remaining zombies" :
+															m_zombies && t.team == TEAM_RED ? "zombies" :
 															t.teammembers.length() == 1 ? "player" : "players");
 	scoreratio sr;
 	sr.calc(t.frags, t.deaths);
@@ -134,7 +134,10 @@ void renderteamscore(void *menu, teamscore &t){
 	else formatstring(line.s)("%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t\t%d\t%s\t\t%s", t.points, t.frags, t.assists, t.deaths, sr.precision, sr.ratio, tlag, tping, t.lvl, teamname, plrs);
 	static color teamcolors[TEAM_NUM+1] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f), color(.4f, .4f, .4f, .3f), color(.8f, .8f, .8f, .4f) };
 	line.bgcolor = &teamcolors[!m_team && t.team != TEAM_SPECT ? TEAM_NUM : t.team];
-	loopv(t.teammembers) renderscore(menu, t.teammembers[i]);
+	loopv(t.teammembers){
+		if(m_zombies && t.teammembers[i]->team == TEAM_RED && t.teammembers[i]->state == CS_DEAD) continue;
+		renderscore(menu, t.teammembers[i]);
+	}
 }
 
 extern bool watchingdemo;
@@ -182,7 +185,6 @@ void renderscores(void *menu, bool init){
 		#define fixteam(pl) (pl->team == TEAM_BLUE && !m_team ? TEAM_RED : pl->team)
 		loopv(players){
 			if(!players[i]) continue;
-			if(m_zombies && players[i]->team == TEAM_RED && players[i]->state == CS_DEAD) continue;
 			teamscores[fixteam(players[i])].addscore(players[i]);
 		}
 		if(!watchingdemo) teamscores[fixteam(player1)].addscore(player1);
