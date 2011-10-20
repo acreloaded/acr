@@ -906,7 +906,7 @@ void distributespawns(){
 	{
 		clients[i]->spawnindex = -1;
 	}
-	if(m_team)
+	if(m_team && !m_zombies) // zombies uses FFA spawns
 	{
 		distributeteam(0);
 		distributeteam(1);
