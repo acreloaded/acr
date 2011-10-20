@@ -394,7 +394,7 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
 			loopi(arenaspawn + 1) x = findentity(PLAYERSTART, x+1, type);
 			if(x >= 0) e = &ents[x];
 		}
-		else if((m_team || m_duel) && !m_ktf) // ktf uses ffa spawns
+		else if((m_team || m_duel) && !m_ktf && !m_zombies) // ktf and zombies uses ffa spawns
 		{
 			loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1, type);
 			if(spawncycle >= 0) e = &ents[spawncycle];
@@ -405,7 +405,7 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
 
 			loopi(r)
 			{
-				spawncycle = m_ktf && numspawn[2] > 5 ? findentity(PLAYERSTART, spawncycle+1, 100) : findentity(PLAYERSTART, spawncycle+1);
+				spawncycle = (m_ktf || m_zombies) && numspawn[2] > 5 ? findentity(PLAYERSTART, spawncycle+1, 100) : findentity(PLAYERSTART, spawncycle+1);
 				if(spawncycle < 0) continue;
 				float dist = nearestenemy(vec(ents[spawncycle].x, ents[spawncycle].y, ents[spawncycle].z), d->team);
 				if(!e || dist < 0 || (bestdist >= 0 && dist > bestdist)) { e = &ents[spawncycle]; bestdist = dist; }
