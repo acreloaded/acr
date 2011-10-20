@@ -69,9 +69,9 @@ struct console : consolebuffer<cline>
             if(l.millis+confade*1000-totalmillis<1000 && !fullconsole){ // fading out
 				fade = (l.millis+confade*1000-totalmillis)*255/1000;
 				y -= FONTH * (totalmillis + 1000 - l.millis - confade*1000) / 1000;
-			} else if(i+1 == numl && lastmillis - l.millis < 500){ // fading in
-				fade = (lastmillis - l.millis)*255/500;
-				y += FONTH * (l.millis + 500 - lastmillis) / 500;
+			} else if(i+1 == numl && totalmillis - l.millis < 500){ // fading in
+				fade = (totalmillis - l.millis)*255/500;
+				y += FONTH * (l.millis + 500 - totalmillis) / 500;
 			}
 
 			draw_text(line, CONSPAD+FONTH/3, y, 0xFF, 0xFF, 0xFF, fade, -1, conwidth);
@@ -103,9 +103,9 @@ struct chatlist : consolebuffer<cline>{
 					fade = (l.millis + chatfade*1000 - totalmillis) * 255/1000;
 					y -= FONTH * (totalmillis + 1000 - l.millis - chatfade*1000) / 1000;
 				}
-				else if(i == 0 && lastmillis-l.millis < 500){ // fading in
-					fade = (lastmillis - l.millis)*255/500;
-					y += FONTH * (l.millis + 500 - lastmillis) / 500;
+				else if(i == 0 && totalmillis-l.millis < 500){ // fading in
+					fade = (totalmillis - l.millis)*255/500;
+					y += FONTH * (l.millis + 500 - totalmillis) / 500;
 				}
 				int width, height;
 				text_bounds(l.line, width, height, conwidth);
@@ -226,9 +226,9 @@ struct obitlist
 					fade = (l.millis + chatfade*1000 - totalmillis) * 255/1000;
 					y -= FONTH * (totalmillis + 1000 - l.millis - chatfade*1000) / 1000;
 				}
-				else if(i == 0 && lastmillis-l.millis < 500){ // fading in
-					fade = (lastmillis - l.millis)*255/500;
-					y += FONTH * (l.millis + 500 - lastmillis) / 500;
+				else if(i == 0 && totalmillis-l.millis < 500){ // fading in
+					fade = (totalmillis - l.millis)*255/500;
+					y += FONTH * (l.millis + 500 - totalmillis) / 500;
 				}
 				int width, height;
 				text_bounds(l.actor, width, height, conwidth);
@@ -633,4 +633,3 @@ void writebinds(FILE *f)
 		if(*keyms[i].action) fprintf(f, "bind \"%s\" [%s]\n",	 keyms[i].name, keyms[i].action);
 	}
 }
-
