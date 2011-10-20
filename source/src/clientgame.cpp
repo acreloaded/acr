@@ -387,7 +387,7 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
 	entity *e = NULL;
 	if(!mapcenter)
 	{
-		int type = m_team ? d->team : 100;
+		int type = m_team && !m_zombies ? d->team : 100;
 		if(m_duel && arenaspawn >= 0)
 		{
 			int x = -1;
