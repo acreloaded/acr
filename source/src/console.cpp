@@ -240,7 +240,6 @@ struct obitlist
 				// now draw weapon symbol
 				x += drawobit(l.weap, left + x, y, fade);
 				if(l.headshot) x += drawobit(OBIT_HEADSHOT, left + x, y, fade);
-				else if(l.style & FRAG_GIB) x += drawobit(OBIT_GIB, left + x, y, fade);
 				// next two shouldn't be grouped, but somehow is
 				if(l.style & FRAG_FIRST) x += drawobit(OBIT_FIRST, left + x, y, fade);
 				else if(l.style & FRAG_CRIT) x += drawobit(OBIT_CRIT, left + x, y, fade);
