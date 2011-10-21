@@ -164,6 +164,8 @@ void deathstate(playerent *pl, playerent *act)
 	*/
 
 	pl->attacking = false;
+	pl->wantsreload = false;
+	pl->wantsswitch = -1;
 	pl->weaponsel->onownerdies();
 	pl->damagelog.setsize(0);
 	pl->radarmillis = 0;
