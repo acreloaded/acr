@@ -286,7 +286,7 @@ int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &addre
 
 vector<serverinfo *> servers;
 ENetSocket pingsock = ENET_SOCKET_NULL;
-int lastinfo = 0;
+int lastinfo = INT_MIN;
 
 char *getservername(int n) { return servers[n]->name; }
 
