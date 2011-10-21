@@ -2701,7 +2701,7 @@ void checkmove(client &cp){
 		return; // no pickups for you!
 	}
 	// item pickups
-	loopv(sents){
+	if(!m_zombies || cp.team != TEAM_RED) loopv(sents){
 		server_entity &e = sents[i];
 		if(!e.spawned || !cs.canpickup(e.type)) continue;
 		const int ls = (1 << maplayout_factor) - 2, maplayoutid = getmaplayoutid(e.x, e.y);
