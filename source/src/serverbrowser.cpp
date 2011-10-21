@@ -286,7 +286,7 @@ int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &addre
 
 vector<serverinfo *> servers;
 ENetSocket pingsock = ENET_SOCKET_NULL;
-int lastinfo = INT_MIN;
+int lastinfo = 0;
 
 char *getservername(int n) { return servers[n]->name; }
 
@@ -985,7 +985,7 @@ void refreshservers(void *menu, bool init)
 		if(*infotext) menumanual(menu, infotext);
 		return;
 	}
-    if((init && issearch) || totalmillis - lastinfo >= (servpingrate * (issearch ? 2 : 1))/(maxservpings ? max(1, (servers.length() + maxservpings - 1) / maxservpings) : 1))
+    if((init && issearch) || !lastinfo || totalmillis - lastinfo >= (servpingrate * (issearch ? 2 : 1))/(maxservpings ? max(1, (servers.length() + maxservpings - 1) / maxservpings) : 1))
 		pingservers(issearch, isscoreboard ? curserver : NULL);
 	if(!init && menu)// && servers.inrange(((gmenu *)menu)->menusel))
 	{
