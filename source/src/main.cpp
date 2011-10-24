@@ -571,7 +571,7 @@ int main(int argc, char **argv)
 		setupscreen(usedcolorbits, useddepthbits, usedfsaa);
 
 		initlog("video: misc");
-		SDL_WM_SetCaption("AssaultCube", NULL);
+		SDL_WM_SetCaption("AssaultCube Reloaded", NULL);
 		keyrepeat(false);
 		SDL_ShowCursor(0);
 
