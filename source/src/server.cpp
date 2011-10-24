@@ -1030,7 +1030,7 @@ void sendtext(char *text, client &cl, int flags, int voice){
 		concatstring(logmsg, logappend);
 	}
 	if(spamdetect(&cl, text)){
-		//logline(ACLOG_INFO, "%s, SPAM detected", logmsg);
+		logline(ACLOG_VERBOSE, "%s, SPAM detected", logmsg);
 		sendf(cl.clientnum, 1, "ri3s", N_TEXT, cl.clientnum, SAY_DENY << 5, text);
 		return;
 	}
