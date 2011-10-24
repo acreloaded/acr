@@ -1752,6 +1752,7 @@ void updatesdesc(const char *newdesc, ENetAddress *caller = NULL){
 
 bool updateclientteam(int client, int team, int ftr){
 	if(!valid_client(client) || !team_valid(team)) return false;
+	if(m_zombies && team != TEAM_SPECT) team = clients[client]->type == ST_AI ? TEAM_RED : TEAM_BLUE;
 	if(clients[client]->team == team){
 		if (ftr != FTR_AUTOTEAM) return false;
 	}
