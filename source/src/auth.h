@@ -27,7 +27,7 @@ int allowconnect(client &ci, const char *pwd = "", int authreq = 0){
 	//if(!m_valid(smode)) return DISC_PRIVATE;
 	if(ci.priv >= PRIV_ADMIN) return DISC_NONE;
 	if(authreq && reqauth(ci.clientnum, authreq)){
-		logline(ACLOG_INFO, "[%s] %s logged in requesting auth", gethostname(ci.clientnum), ci.name);
+		logline(ACLOG_INFO, "[%s] %s logged in, requesting auth", gethostname(ci.clientnum), ci.name);
 		ci.connectauth = true;
 		return DISC_NONE;
 	}
