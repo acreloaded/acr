@@ -109,7 +109,6 @@ struct forceteamaction : playeraction
 	{
 		if(cn != caller){ reqpriv = privconf('f'); passratio = 0.65f;}
 		else passratio = 0.55f;
-		reqveto = PRIV_MASTER; // forceteam
 		if(valid_client(cn)) formatstring(desc)("force player %s to the enemy team", clients[cn]->name);
 		else copystring(desc, "invalid forceteam");
 	}
@@ -262,7 +261,6 @@ struct shuffleteamaction : serveraction
 	shuffleteamaction()
 	{
 		reqpriv = privconf('s');
-		reqveto = PRIV_MASTER; // shuffleteam
 		if(isvalid()) copystring(desc, "shuffle teams");
 	}
 };
