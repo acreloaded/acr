@@ -20,7 +20,7 @@ struct serveraction
 	virtual void perform() = 0;
 	virtual bool isvalid() { return true; }
 	virtual bool isdisabled() { return false; }
-	serveraction() : reqpriv(PRIV_NONE), length(40000), area(EE_ALL), passratio(0.5f), reqveto(PRIV_MASTER) { *desc = 0; }
+	serveraction() : reqpriv(PRIV_NONE), length(40000), area(EE_ALL), passratio(0.5f), reqveto(PRIV_ADMIN) { *desc = 0; }
 	virtual ~serveraction() { }
 };
 
@@ -77,7 +77,6 @@ struct mapaction : serveraction
 				if(!strcmp(behindpath(map), scl.adminonlymaps[i])) reqpriv = PRIV_ADMIN;
 			if(notify) passratio = 0.6f; // you need 60% to vote a map without admin
 		}
-		reqveto = PRIV_ADMIN; // don't let masters abuse maps
 		formatstring(desc)("load map '%s' in mode '%s'", map, modestr(mode));
 	}
 	~mapaction() { DELETEA(map); }
@@ -110,6 +109,7 @@ struct forceteamaction : playeraction
 	{
 		if(cn != caller){ reqpriv = privconf('f'); passratio = 0.65f;}
 		else passratio = 0.55f;
+		reqveto = PRIV_MASTER; // forceteam
 		if(valid_client(cn)) formatstring(desc)("force player %s to the enemy team", clients[cn]->name);
 		else copystring(desc, "invalid forceteam");
 	}
@@ -150,6 +150,7 @@ struct giveadminaction : playeraction
 	giveadminaction(int cn, int wants, int caller) : from(caller), playeraction(cn){
 		give = min(wants, clients[from]->priv);
 		reqpriv = max(give, 1);
+		reqveto = PRIV_MASTER; // giverole
 		passratio = 0.1f;
 		if(valid_client(cn)) formatstring(desc)("give %s to %s", privname(give), clients[cn]->name);
 		else formatstring(desc)("invalid give-%s to %d", privname(give), cn);
@@ -168,7 +169,6 @@ struct subdueaction : playeraction
 	{
 		passratio = 0.8f;
 		reqpriv = protectAdminPriv('Q', cn);
-		reqveto = PRIV_ADMIN; // don't let admins abuse this either, it already prevents the masters from abusing it!
 		length = 25000; // 25s
 		if(valid_client(cn)) formatstring(desc)("subdue player %s", clients[cn]->name);
 		else copystring(desc, "invalid subdue");
@@ -186,6 +186,7 @@ struct kickaction : playeraction
 		copystring(reason, r);
 		passratio = 0.7f;
 		reqpriv = protectAdminPriv('k', cn);
+		reqveto = PRIV_MASTER; // kick
 		length = 35000; // 35s
 		if(valid_client(cn)) formatstring(desc)("kick player %s for %s", clients[cn]->name, reason);
 		else formatstring(desc)("invalid kick for %s", reason);
@@ -261,6 +262,7 @@ struct shuffleteamaction : serveraction
 	shuffleteamaction()
 	{
 		reqpriv = privconf('s');
+		reqveto = PRIV_MASTER; // shuffleteam
 		if(isvalid()) copystring(desc, "shuffle teams");
 	}
 };
@@ -310,6 +312,7 @@ struct botbalanceaction : serveraction
 	botbalanceaction(int b) : bb(b)
 	{
 		reqpriv = privconf('a');
+		reqveto = PRIV_MASTER; // botbalance
 		if(isvalid()){
 			formatstring(desc)(b<0?"automatically balance bots":b==0?"disable all bots":"balance to %d bots", b);
 		}
