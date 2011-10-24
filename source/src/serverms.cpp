@@ -136,12 +136,13 @@ void freeconnectcheck(int cn){
 	loopv(connectrequests) if(connectrequests[i].cn == cn) connectrequests.remove(i--);
 }
 
-void connectcheck(int cn, ENetPeer *peer, const char *nick){
+void connectcheck(int cn, int guid, ENetPeer *peer, const char *nick){
 	freeconnectcheck(cn);
 	extern bool isdedicated;
 	if(!peer || !nick || !isdedicated) return;
 	connectrequest &creq = connectrequests.add();
 	creq.cn = cn;
+	creq.guid = guid;
 	creq.ip = ENET_NET_TO_HOST_32(peer->address.host); // master-server blacklist uses host byte order
 	creq.nick = nick;
 }
@@ -170,7 +171,7 @@ void updatemasterserver(int millis, const ENetAddress &localaddr){
 			currentconnectrequest = new connectrequest(connectrequests.remove(0));
 			char out[MAXNAMELEN*4/3+1];
 			base64_encode(currentconnectrequest->nick, min(MAXNAMELEN, (int)strlen(currentconnectrequest->nick)), out);
-			formatstring(path)("%sconnect/%lu/%s", masterpath, currentconnectrequest->ip, out);
+			formatstring(path)("%sconnect/%lu/%lu/%s", masterpath, currentconnectrequest->ip, currentconnectrequest->guid, out);
 		}
 	}
 	if(!*path) return; // no request

@@ -135,12 +135,12 @@ void masterverdict(int cn, int result){
 	if(!ci.connectauth) checkauthdisc(ci, true);
 }
 
-void logversion(client &ci, int clientversion, int defs){
+void logversion(client &ci, int ver, int defs, int guid){
 	string cdefs;
 	*cdefs = 0;
 	if(defs & 0x40) concatstring(cdefs, "W");
 	if(defs & 0x20) concatstring(cdefs, "M");
 	if(defs & 0x8) concatstring(cdefs, "D");
 	if(defs & 0x4) concatstring(cdefs, "L");
-	logline(ACLOG_INFO, "[%s] %s runs %d [%s]", gethostname(ci.clientnum), ci.name, clientversion, cdefs);
+	logline(ACLOG_INFO, "[%s] %s runs %d [%s-%u]", gethostname(ci.clientnum), ci.name, ver, cdefs, ci.guid = guid);
 }

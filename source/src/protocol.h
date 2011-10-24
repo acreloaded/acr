@@ -148,4 +148,4 @@ enum
 #define m_zombies		(gamemode==GMODE_ZOMBIES) // extra bots!
 
 struct authrequest{ uint id; bool answer; int hash[5]; };
-struct connectrequest{ int cn; enet_uint32 ip; const char *nick; };
+struct connectrequest{ int cn, guid; enet_uint32 ip; const char *nick; };

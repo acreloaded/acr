@@ -194,7 +194,7 @@ struct client				   // server side version of "dynent" type
 	int ping, team, skin, vote, priv;
 	int connectmillis;
 	bool connected, connectauth;
-	int authtoken, authmillis, authpriv, masterverdict; uint authreq;
+	int authtoken, authmillis, authpriv, masterverdict, guid; uint authreq;
 	bool haswelcome;
 	bool isonrightmap;
 	bool timesync;
@@ -257,7 +257,6 @@ struct client				   // server side version of "dynent" type
 		position.setsize(0);
 		messages.setsize(0);
 		connected = connectauth = haswelcome = false;
-		priv = PRIV_NONE;
 		lastvotecall = 0;
 		vote = VOTE_NEUTRAL;
 		lastsaytext[0] = '\0';
@@ -265,7 +264,6 @@ struct client				   // server side version of "dynent" type
 		spawnindex = -1;
 		mapchange();
 		authpriv = -1;
-		masterverdict = DISC_NONE;
 	}
 
 	void zap()
@@ -273,6 +271,7 @@ struct client				   // server side version of "dynent" type
 		type = ST_EMPTY;
 		priv = PRIV_NONE;
 		authpriv = -1;
+		guid = 0;
 		masterverdict = DISC_NONE;
 		connected = connectauth = haswelcome = false;
 	}
