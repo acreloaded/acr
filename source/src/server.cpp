@@ -30,6 +30,7 @@ mapstats smapstats;
 
 vector<client *> clients;
 static vector<savedscore> scores;
+static vector<savedlimit> savedlimits;
 uint nextauthreq = 1;
 
 vector<ban> bans;
@@ -207,6 +208,25 @@ savedscore *findscore(client &c, bool insert){
 	copystring(sc.name, c.name);
 	sc.ip = c.peer->address.host;
 	return &sc;
+}
+
+bool findlimit(client &c, bool insert){
+	if(c.type!=ST_TCPIP) return false;
+	if(insert){
+		if(savedlimits.length() >= 32) savedlimits.remove(0, 16); // halve the saved limits before it reaches 33
+		savedlimit &sl = savedlimits.add();
+		sl.ip = c.peer->address.host;
+		sl.save(c);
+		return true;
+	}
+	else loopv(scores){
+		savedlimit &sl = savedlimits[i];
+		if(sl.ip == c.peer->address.host){
+			sl.restore(c);
+			return true;
+		}
+	}
+	return false;
 }
 
 void restoreserverstate(vector<entity> &ents)   // hack: called from savegame code, only works in SP
@@ -2299,6 +2319,7 @@ void disconnect_client(int n, int reason){
 			sc->save(c.state);
 			scoresaved = ", score saved";
 		}
+		findlimit(c, true);
 	}
 	int sp = (servmillis - c.connectmillis) / 1000;
 	if(reason>=0) logline(ACLOG_INFO, "[%s] disconnecting client %s (%s) cn %d, %d seconds played%s", gethostname(n), c.name, disc_reason(reason), n, sp, scoresaved);
@@ -2837,6 +2858,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 		sendwelcome(cl);
 		sendinitclient(*cl);
 		if(findscore(*cl, false)) sendresume(*cl);
+		findlimit(*cl, false);
 
 		if(curvote){
 			sendcallvote(sender);
@@ -3760,14 +3782,16 @@ void checkintermission(){
 void resetserverifempty(){
 	loopv(clients) if(clients[i]->type!=ST_EMPTY) return;
 	resetserver("", 0, 10);
-	mastermode = MM_OPEN;
-	autoteam = true;
+	nextmapname[0] = 0;
+
 	#ifdef STANDALONE
 	botbalance = -1;
 	#else
 	botbalance = 0;
 	#endif
-	nextmapname[0] = '\0';
+	mastermode = MM_OPEN;
+	autoteam = true;
+	savedlimits.shrink(0);
 }
 
 void sendworldstate(){

@@ -156,7 +156,7 @@ struct clientstate : playerstate
 struct savedscore
 {
 	string name;
-	uint ip;
+	enet_uint32 ip;
 	int points, frags, assists, killstreak, flagscore, deaths, shotdamage, damage;
 
 	void save(clientstate &cs)
@@ -275,6 +275,31 @@ struct client				   // server side version of "dynent" type
 		authpriv = -1;
 		masterverdict = DISC_NONE;
 		connected = connectauth = haswelcome = false;
+	}
+};
+
+struct savedlimit
+{
+	enet_uint32 ip;
+	int lastvotecall;
+	int saychars, lastsay, spamcount;
+
+	void save(client &cl)
+	{
+		ip = cl.peer->address.host;
+		lastvotecall = cl.lastvotecall;
+		saychars = cl.saychars;
+		lastsay = cl.lastsay;
+		spamcount = cl.spamcount;
+	}
+
+	void restore(client &cl)
+	{
+		// obviously don't set his IP
+		cl.lastvotecall = lastvotecall;
+		cl.saychars = saychars;
+		cl.lastsay = lastsay;
+		cl.spamcount = spamcount;
 	}
 };
 
