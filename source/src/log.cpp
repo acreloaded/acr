@@ -84,7 +84,7 @@ bool logline(int level, const char *msg, ...)
 	if(level < 0 || level >= ACLOG_NUM) return false;
 	s_sprintfdv(sf, msg);
 	filtertext(sf, sf, 2);
-	const char *ts = timestamp ? timestring(true, "%b %d %H:%M:%S ") : "", *ld = levelprefix[level];
+	const char *ts = timestamp ? timestring(true, "%b %d %Y %H:%M:%S ") : "", *ld = levelprefix[level];
 	char *p, *l = sf;
 	do
 	{ // break into single lines first
