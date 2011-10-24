@@ -2833,7 +2833,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			cl->state.nextprimary = getint(p);
 			cl->state.nextperk = getint(p);
 
-			int clientversion = getint(p), clientdefs = getint(p);
+			int clientversion = getint(p), clientdefs = getint(p), clientguid = getint(p);
 			logversion(*cl, clientversion, clientdefs);
 
 			int disc = p.remaining() ? DISC_TAGT : allowconnect(*cl, cl->pwd, connectauth);

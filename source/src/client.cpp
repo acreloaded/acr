@@ -405,6 +405,29 @@ COMMANDN(auth, tryauth, ARG_NONE);
 
 VARP(connectauth, 0, 0, 1);
 
+unsigned int &genguid(int, uint, int, const char*)
+{
+	static unsigned int value = 0;
+	unsigned int temp = 0;
+	loopi(4){
+		//temp = inpStr[i];
+		temp = 0;
+		temp += value;
+		value = temp << 10;
+		temp += value;
+		value = temp >> 6;
+		value ^= temp;
+	}
+	temp = value << 3;
+	temp += value;
+	unsigned int temp2 = temp >> 11;
+	temp = temp2 ^ temp;
+	temp2 = temp << 15;
+	value = temp2 + temp;
+	if(value < 2) value += 2;
+	return value;
+}
+
 void sendintro()
 {
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
@@ -439,6 +462,7 @@ void sendintro()
 				0x04 |
 			#endif
 				1);
+	putint(p, *&genguid(213409, 9983240, 23489090, "24788rt792"));
 	// other post-connect stuff goes here
 	enet_packet_resize(packet, p.length());
 	sendpackettoserv(1, packet);
