@@ -222,14 +222,20 @@ int shot(client &owner, const vec &from, vec &to, int weap, const vec &surface, 
 int shotgun(client &owner, const vec &from, const vec &to){
 	int damagedealt = 0;
 	clientstate &gs = owner.state;
-	loopv(clients){ // many rays many hits, but we want each client to get all the damage at once...
+
+	ushort sgdamage[MAXCLIENTS] = {0}; // many rays many hits, but we want each client to get all the damage at once...
+	loopj(SGRAYS){ // check rays and sum damage
+
+	}
+	/*
+	loopv(clients){ // check rays and sum damage
 		client &t = *clients[i];
 		clientstate &ts = t.state;
 		// basic checks
 		if(i == owner.clientnum || t.type == ST_EMPTY || ts.state != CS_ALIVE) continue;
 
 		int damage = 0, shothead = 0, shotnonhead = 0;
-		loopj(SGRAYS){ // check rays and sum damage
+		loopj(SGRAYS){ 
 			vec head = generateHead(ts.o, ts.aim[0]), end;
 			const int hitzone = hitplayer(from, gs.aim[0], gs.aim[1], gs.sg[j], ts.o, head, &end);
 			if(!hitzone) continue;
@@ -247,5 +253,6 @@ int shotgun(client &owner, const vec &from, const vec &to){
 		if(shothead >= (shothead + shotnonhead) * .25f) shotgunflags |= FRAG_FLAG;
 		serverdamage(&t, &owner, damage, WEAP_SHOTGUN, shotgunflags, from);
 	}
+	*/
 	return damagedealt;
 }
