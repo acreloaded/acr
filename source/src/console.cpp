@@ -130,6 +130,7 @@ Texture **obittex(){
 }
 
 VARP(obitfade, 0, 10, 60);
+VARP(obitalpha, 0, 80, 100);
 struct oline { char *actor; char *target; int weap, millis, style; bool headshot; };
 struct obitlist
 {
@@ -171,7 +172,7 @@ struct obitlist
 		
 	virtual ~obitlist() { setmaxlines(0); }
 
-	int drawobit(int style, int left, int top, uchar fade){
+	int drawobit(int style, int left, int top, float fade){
 		int aspect = 1;
 		switch(style){
 			case WEAP_SHOTGUN:
@@ -190,7 +191,7 @@ struct obitlist
 		Texture **guntexs = obittex();
 		const int sz = FONTH;
 
-		glColor4f(1, 1, 1, fade * (style == OBIT_HEADSHOT ? fabs(sinf(totalmillis / 2000.f * 2 * PI)) : 1.f) / 255);
+		glColor4f(1, 1, 1, fade * (style == OBIT_HEADSHOT ? fabs(sinf(totalmillis / 2000.f * 2 * PI)) : 1));
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glBindTexture(GL_TEXTURE_2D, guntexs[style]->id);
 
@@ -221,20 +222,22 @@ struct obitlist
         loopi(linei){
 			oline &l = olines[i];
 			if(totalmillis-l.millis < chatfade*1000 || con.fullconsole){
-				int x = 0, fade = 255;
+				int x = 0;
+				float fade = 1;
 				if(l.millis + chatfade*1000 - totalmillis < 1000 && !con.fullconsole){ // fading out
-					fade = (l.millis + chatfade*1000 - totalmillis) * 255/1000;
+					fade = float(l.millis + chatfade*1000 - totalmillis)/1000;
 					y -= FONTH * (totalmillis + 1000 - l.millis - chatfade*1000) / 1000;
 				}
 				else if(i == 0 && totalmillis-l.millis < 500){ // fading in
-					fade = (totalmillis - l.millis)*255/500;
+					fade = float(totalmillis - l.millis)/500;
 					y += FONTH * (l.millis + 500 - totalmillis) / 500;
 				}
+				fade *= obitalpha/100.f;
 				int width, height;
 				text_bounds(l.actor, width, height, conwidth);
 				y -= height;
 				if(*l.actor){
-					draw_text(l.actor, left, y, 0xFF, 0xFF, 0xFF, fade, -1, conwidth);
+					draw_text(l.actor, left, y, 0xFF, 0xFF, 0xFF, fade * 255, -1, conwidth);
 					x += width + text_width(" ") / 2;
 				}
 				// now draw weapon symbol
@@ -245,7 +248,7 @@ struct obitlist
 				else if(l.style & FRAG_CRIT) x += drawobit(OBIT_CRIT, left + x, y, fade);
 				// end of weapon symbol
 				x += text_width(" ") / 2;
-				draw_text(l.target, left + x, y, 0xFF, 0xFF, 0xFF, fade, -1, conwidth);
+				draw_text(l.target, left + x, y, 0xFF, 0xFF, 0xFF, fade * 255, -1, conwidth);
 			}
         }
 		glPopMatrix();
