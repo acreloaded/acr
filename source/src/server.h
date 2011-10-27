@@ -533,7 +533,6 @@ inline const bool isheadshot(int weapon, int style){
 	switch(weapon){
 		case WEAP_KNIFE:
 		case WEAP_GRENADE:
-		case WEAP_SHOTGUN:
 			if(style & FRAG_FLAG) break; // these weapons headshot if FRAG_FLAG is set
 		case WEAP_BOW:
 		case WEAP_MAX:

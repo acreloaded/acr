@@ -569,7 +569,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 	
 	int icon = -1;
 	if(style & FRAG_GIB){
-		if(headshot){
+		if(headshot && weapon != WEAP_SHOTGUN){
 			playsound(S_HEADSHOT, act, act == gamefocus ? SP_HIGHEST : SP_HIGH);
 			playsound(S_HEADSHOT, pl, pl == gamefocus ? SP_HIGHEST : SP_HIGH); // both get headshot sound
 			icon = eventicon::HEADSHOT; pl->addicon(eventicon::DECAPITATED); // both get headshot info
