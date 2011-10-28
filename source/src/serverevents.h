@@ -160,7 +160,7 @@ void processevent(client &c, shotevent &e)
 		default:
 		{
 			if(e.gun == WEAP_SHOTGUN){ // many rays, many players
-				damagedealt += shotgun(c, gs.o, surface); // WARNING: modifies gs.sg
+				damagedealt += shotgun(c); // WARNING: modifies gs.sg
 			}
 			else damagedealt += shot(c, gs.o, to, e.gun, surface, &c); // WARNING: modifies to
 		}

@@ -220,12 +220,16 @@ int shot(client &owner, const vec &from, vec &to, int weap, const vec &surface, 
 	return shotdamage;
 }
 
-int shotgun(client &owner, const vec &from, vec &surface){
+int shotgun(client &owner){
 	int damagedealt = 0;
 	clientstate &gs = owner.state;
+	const vec &from = gs.o;
 	ushort sgdamage[MAXCLIENTS] = {0}; // many rays many hits, but we want each client to get all the damage at once...
-	loopi(SGRAYS) // check rays and sum damage
+	loopi(SGRAYS){// check rays and sum damage
+		vec surface;
+		straceShot(from, gs.sg[i], &surface);
 		shot(owner, from, gs.sg[i], WEAP_SHOTGUN, surface, &owner, 0, sgdamage);
+	}
 	loopv(clients){ // apply damage
 		client &t = *clients[i];
 		clientstate &ts = t.state;
