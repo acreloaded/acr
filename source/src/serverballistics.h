@@ -200,7 +200,7 @@ int shot(client &owner, const vec &from, vec &to, int weap, const vec &surface, 
 			dir.sub(from).normalize().rotate_around_z((rnd(71)-35)*RAD).add(end); // 35 degrees (both ways = 70 degrees) distortion
 			// retrace
 			straceShot(end, dir, &newsurface);
-			shotdamage += shot(owner, end, dir, weap, newsurface, hit, dist + 40); // 10 meters penalty for penetrating the player
+			shotdamage += shot(owner, end, dir, weap, newsurface, hit, dist + 40, save); // 10 meters penalty for penetrating the player
 			sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, weap, end.x, end.y, end.z, dir.x, dir.y, dir.z);
 		}
 	}
@@ -214,7 +214,7 @@ int shot(client &owner, const vec &from, vec &to, int weap, const vec &surface, 
 		dir.add(to);
 		// retrace
 		straceShot(to, dir, &newsurface);
-		shotdamage += shot(owner, to, dir, weap, newsurface, NULL, dist + 60); // 15 meters penalty for ricochet
+		shotdamage += shot(owner, to, dir, weap, newsurface, NULL, dist + 60, save); // 15 meters penalty for ricochet
 		sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, weap, to.x, to.y, to.z, dir.x, dir.y, dir.z);
 	}
 	return shotdamage;
