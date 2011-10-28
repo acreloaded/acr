@@ -99,7 +99,7 @@ void processevent(client &c, shotevent &e)
 	// calculate shot properties
 	int damagepotential = 0, damagedealt = 0;
 	if(e.gun == WEAP_SHOTGUN){
-		loopi(SGRAYS) damagepotential = effectiveDamage(e.gun, vec(gs.sg[i]).dist(gs.o));
+		loopi(SGRAYS) damagepotential += effectiveDamage(e.gun, vec(gs.sg[i]).dist(gs.o));
 	}
 	else if(e.gun == WEAP_KNIFE) damagepotential = guns[WEAP_KNIFE].damage; // melee damage
 	else if(e.gun == WEAP_BOW) damagepotential = 50; // potential stick damage
@@ -160,7 +160,7 @@ void processevent(client &c, shotevent &e)
 		default:
 		{
 			if(e.gun == WEAP_SHOTGUN){ // many rays, many players
-				damagedealt += shotgun(c, gs.o, to, surface); // WARNING: modifies gs.sg
+				damagedealt += shotgun(c, gs.o, surface); // WARNING: modifies gs.sg
 			}
 			else damagedealt += shot(c, gs.o, to, e.gun, surface, &c); // WARNING: modifies to
 		}
