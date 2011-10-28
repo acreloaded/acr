@@ -832,8 +832,8 @@ void shotgun::attackfx(const vec &from2, const vec &to, int millis){
 		adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
 	}
 	else{
-		if(++filter2 % 8) addshotline(owner, from2, to, 2);
-		if(filter2 >= 8) filter2 = 0;
+		if(++filter2 % 3) addshotline(owner, from2, to, 2);
+		if(filter2 >= 3) filter2 = 0;
 		addbullethole(owner, from2, to, 0, false);
 		adddynlight(owner, from2, 4, 100, 50, 96, 80, 64);
 	}
