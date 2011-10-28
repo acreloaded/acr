@@ -816,7 +816,7 @@ bool gun::checkautoreload() { if(autoreload && owner==player1 && !mag && ammo) {
 
 shotgun::shotgun(playerent *owner) : gun(owner, WEAP_SHOTGUN), autoreloading(false) {}
 
-void shotgun::attackfx(const vec &from2, const vec &to, int millis){
+void shotgun::attackfx(const vec &from2, const vec &to, int millis){ // millis & 1 = normal
 	vec from(from2);
 	from.z -= WEAPONBELOWEYE;
 	loopi(SGRAYS) particle_splash(0, 5, 200, sg[i]);

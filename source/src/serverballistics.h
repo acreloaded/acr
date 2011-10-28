@@ -157,7 +157,7 @@ client *nearesthit(client &actor, const vec &from, const vec &to, int &hitzone, 
 }
 
 // hitscans
-int shot(client &owner, const vec &from, vec &to, int weap, const vec &surface, client *exclude, float dist = 0){
+int shot(client &owner, const vec &from, vec &to, int weap, const vec &surface, client *exclude, float dist = 0, ushort *save = NULL){
 	int shotdamage = 0;
 	const int mulset = (weap == WEAP_SNIPER || weap == WEAP_BOLT) ? MUL_SNIPER : MUL_NORMAL;
 	int hitzone = HIT_NONE; vec end = to;
@@ -192,7 +192,8 @@ int shot(client &owner, const vec &from, vec &to, int weap, const vec &surface, 
 			}
 		}
 		else sendhit(owner, weap, end.v);
-		serverdamage(hit, &owner, damage, weap, style, from);
+		if(save) save[hit->clientnum] += damage; // save damage for shotgun ray
+		else serverdamage(hit, &owner, damage, weap, style, from);
 		if(!m_classic && dist2 < 100){ // only penetrate players before 25 meters
 			// distort ray and continue through...
 			vec dir(to = end), newsurface;
@@ -203,7 +204,7 @@ int shot(client &owner, const vec &from, vec &to, int weap, const vec &surface, 
 			sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, weap, end.x, end.y, end.z, dir.x, dir.y, dir.z);
 		}
 	}
-	else if(!m_classic && !dist && from.dist(to) < 100 && surface.magnitude() && !melee_weap(weap)){ // ricochet before 25 meters or going through a player
+	else if(!m_classic && !dist && from.dist(to) < 100 && surface.magnitude() && !melee_weap(weap)){ // ricochet once before 25 meters or going through a player
 		vec dir(to), newsurface;
 		// calculate reflected ray from incident ray and surface normal
 		dir.sub(from).normalize();
@@ -219,40 +220,21 @@ int shot(client &owner, const vec &from, vec &to, int weap, const vec &surface, 
 	return shotdamage;
 }
 
-int shotgun(client &owner, const vec &from, const vec &to){
+int shotgun(client &owner, const vec &from, const vec &to, vec &surface){
 	int damagedealt = 0;
 	clientstate &gs = owner.state;
-
 	ushort sgdamage[MAXCLIENTS] = {0}; // many rays many hits, but we want each client to get all the damage at once...
-	loopj(SGRAYS){ // check rays and sum damage
-
-	}
-	/*
-	loopv(clients){ // check rays and sum damage
+	loopi(SGRAYS) // check rays and sum damage
+		shot(owner, from, gs.sg[i], WEAP_SHOTGUN, surface, &owner, 0, sgdamage);
+	loopv(clients){ // apply damage
 		client &t = *clients[i];
 		clientstate &ts = t.state;
 		// basic checks
-		if(i == owner.clientnum || t.type == ST_EMPTY || ts.state != CS_ALIVE) continue;
-
-		int damage = 0, shothead = 0, shotnonhead = 0;
-		loopj(SGRAYS){ 
-			vec head = generateHead(ts.o, ts.aim[0]), end;
-			const int hitzone = hitplayer(from, gs.aim[0], gs.aim[1], gs.sg[j], ts.o, head, &end);
-			if(!hitzone) continue;
-			if(hitzone == HIT_HEAD && m_zombies){
-				++shothead;
-				damage = MAXDMG;
-				break;
-			}
-			damage += effectiveDamage(WEAP_SHOTGUN, end.dist(gs.o)) * muls[MUL_SHOTGUN].val[hitzone == HIT_HEAD ? 0 : hitzone == HIT_TORSO ? 1 : 2];
-			++(hitzone == HIT_HEAD ? shothead : shotnonhead);
-		}
-		damagedealt += damage;
+		if(i == owner.clientnum || t.type == ST_EMPTY || !sgdamage[i] || ts.state != CS_ALIVE) continue;
+		damagedealt += sgdamage[i];
 		sendhit(owner, WEAP_SHOTGUN, ts.o.v);
-		int shotgunflags = damage >= SGGIB ? FRAG_GIB : FRAG_NONE;
-		if(shothead >= (shothead + shotnonhead) * .25f) shotgunflags |= FRAG_FLAG;
-		serverdamage(&t, &owner, damage, WEAP_SHOTGUN, shotgunflags, from);
+		const int shotgunflags = sgdamage[i] >= SGGIB ? FRAG_GIB : FRAG_NONE;
+		serverdamage(&t, &owner, sgdamage[i], WEAP_SHOTGUN, shotgunflags, from);
 	}
-	*/
 	return damagedealt;
 }

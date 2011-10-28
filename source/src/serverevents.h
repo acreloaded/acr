@@ -96,16 +96,7 @@ void processevent(client &c, shotevent &e)
 	}
 	// trace shot
 	straceShot(from, to, &surface);
-	// create packet
-	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-	ucharbuf p(packet->data, packet->dataLength);
-	// packet shotgun rays
-	if(e.gun==WEAP_SHOTGUN){ putint(p, N_SG); loopi(SGRAYS) loopj(3) putfloat(p, gs.sg[i][j]); }
-	// packet shot message
-	putint(p, e.compact ? N_SHOOTC : N_SHOOT);
-	putint(p, c.clientnum);
-	putint(p, e.gun);
-	// finish packet later
+	// calculate shot properties
 	int damagepotential = 0, damagedealt = 0;
 	if(e.gun == WEAP_SHOTGUN){
 		loopi(SGRAYS) damagepotential = effectiveDamage(e.gun, vec(gs.sg[i]).dist(gs.o));
@@ -169,14 +160,23 @@ void processevent(client &c, shotevent &e)
 		default:
 		{
 			if(e.gun == WEAP_SHOTGUN){ // many rays, many players
-				damagedealt += shotgun(c, gs.o, to);
+				damagedealt += shotgun(c, gs.o, to, surface); // WARNING: modifies gs.sg
 			}
 			else damagedealt += shot(c, gs.o, to, e.gun, surface, &c); // WARNING: modifies to
 		}
 	}
 	gs.damage += damagedealt;
 	gs.shotdamage += max(damagepotential, damagedealt);
-	// now finish the packet off
+
+	// create packet
+	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+	ucharbuf p(packet->data, packet->dataLength);
+	// packet shotgun rays
+	if(e.gun==WEAP_SHOTGUN){ putint(p, N_SG); loopi(SGRAYS) loopj(3) putfloat(p, gs.sg[i][j]); }
+	// packet shot message
+	putint(p, e.compact ? N_SHOOTC : N_SHOOT);
+	putint(p, c.clientnum);
+	putint(p, e.gun);
 	if(!e.compact){
 		putfloat(p, from.x);
 		putfloat(p, from.y);
