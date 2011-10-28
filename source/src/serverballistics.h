@@ -234,7 +234,7 @@ int shotgun(client &owner){
 		client &t = *clients[i];
 		clientstate &ts = t.state;
 		// basic checks
-		if(i == owner.clientnum || t.type == ST_EMPTY || !sgdamage[i] || ts.state != CS_ALIVE) continue;
+		if(t.type == ST_EMPTY || !sgdamage[i] || ts.state != CS_ALIVE) continue;
 		damagedealt += sgdamage[i];
 		sendhit(owner, WEAP_SHOTGUN, ts.o.v);
 		const int shotgunflags = sgdamage[i] >= SGGIB ? FRAG_GIB : FRAG_NONE;
