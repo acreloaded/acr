@@ -479,15 +479,23 @@ inline const char *suicname(int obit){
 	static string k;
 	*k = 0;
 	switch(obit){
-		case WEAP_PISTOL:
+		// ricochet specific
 		case WEAP_SHOTGUN:
+			concatstring(k, "discovered that buckshot bounces");
+			break;
 		case WEAP_SUBGUN:
+		case WEAP_ASSAULT:
+			concatstring(k, "sprayed a wall");
+			break;
 		case WEAP_SNIPER:
 		case WEAP_BOLT:
-		case WEAP_ASSAULT:
+			concatstring(k, "sniped wrong");
+			break;
+		case WEAP_PISTOL:
 		case WEAP_AKIMBO:
 			concatstring(k, "ate a bullet");
 			break;
+		// END of ricochet
 		case WEAP_GRENADE:
 			concatstring(k, "failed with nades");
 			break;
