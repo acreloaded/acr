@@ -823,8 +823,8 @@ void shotgun::attackfx(const vec &from2, const vec &to, int millis){
 		from.z -= WEAPONBELOWEYE;
 		loopi(SGRAYS) particle_splash(0, 5, 200, sg[i]);
 		if(addbullethole(owner, from, to)) loopi(SGRAYS){
-			if(filter1++ % 4) addshotline(owner, from, sg[i], 3);
-			if(filter1 >= 4) filter1 = 0;
+			if(++filter1 >= 3) filter1 = 0;
+			else addshotline(owner, from, sg[i], 3);
 			addbullethole(owner, from, sg[i], 0, false);
 		}
 		if(millis & 1) attackshell(to);
@@ -832,8 +832,8 @@ void shotgun::attackfx(const vec &from2, const vec &to, int millis){
 		adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
 	}
 	else{
-		if(++filter2 % 3) addshotline(owner, from2, to, 2);
-		if(filter2 >= 3) filter2 = 0;
+		if(++filter2 >= 2) filter2 = 0;
+		else addshotline(owner, from2, to, 2);
 		addbullethole(owner, from2, to, 0, false);
 		adddynlight(owner, from2, 4, 100, 50, 96, 80, 64);
 	}
