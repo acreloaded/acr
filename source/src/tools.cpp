@@ -695,3 +695,30 @@ bool glmatrixf::invert(const glmatrixf &m, float mindet)
 	return true;
 }
 
+#ifndef STANDALONE
+
+struct langdef { string key; string val; };
+vector<langdef> locales;
+
+langdef *findlang(const char *key){
+	loopv(locales) if(!stricmp(locales[i].key, key)) return &locales[i];
+	return NULL;
+}
+
+void lang(char *lang, char *key, char *val){
+	if(!lang || !key || !val || !*lang || !*key || !*val) return;
+	langdef *langfound = findlang(key);
+
+	if(!langfound) langfound = &locales.add();
+	copystring(langfound->key, key);
+	copystring(langfound->val, val);
+}
+COMMAND(lang, ARG_3STR);
+
+inline const char *_gettext(const char *msgid)
+{
+	langdef *langfound = findlang(msgid);
+	if(langfound) return langfound->val;
+	return msgid;
+}
+#endif

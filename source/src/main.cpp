@@ -620,6 +620,7 @@ int main(int argc, char **argv)
 		exec("config/sounds.cfg");
 		exec("config/securemaps.cfg");
 		exec("config/admin.cfg");
+		execfile("config/locale.cfg");
 		execfile("config/servers.cfg");
 		persistidents = true;
 

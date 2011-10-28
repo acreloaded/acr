@@ -596,6 +596,11 @@ inline char *newstring(const char *s)		   { return newstring(s, strlen(s)); }
 inline char *newstringbuf()					 { return newstring(_MAXDEFSTR-1); }
 inline char *newstringbuf(const char *s)		{ return newstring(s, _MAXDEFSTR-1); }
 
+#ifndef STANDALONE
+extern const char *_gettext(const char *msgid);
+#endif
+#define _(s) _gettext(s)
+
 const int islittleendian = 1;
 #ifdef SDL_BYTEORDER
 #define endianswap16 SDL_Swap16
