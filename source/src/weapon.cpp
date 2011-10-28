@@ -817,14 +817,14 @@ bool gun::checkautoreload() { if(autoreload && owner==player1 && !mag && ammo) {
 shotgun::shotgun(playerent *owner) : gun(owner, WEAP_SHOTGUN), autoreloading(false) {}
 
 void shotgun::attackfx(const vec &from2, const vec &to, int millis){
-	static uchar filter = 0;
+	static uchar filter1 = 0, filter2 = 0;
 	if(millis & 1){
 		vec from(from2);
 		from.z -= WEAPONBELOWEYE;
 		loopi(SGRAYS) particle_splash(0, 5, 200, sg[i]);
 		if(addbullethole(owner, from, to)) loopi(SGRAYS){
-			if(filter++ % 4) addshotline(owner, from, sg[i], 3);
-			if(filter >= 4) filter = 0;
+			if(filter1++ % 4) addshotline(owner, from, sg[i], 3);
+			if(filter1 >= 4) filter1 = 0;
 			addbullethole(owner, from, sg[i], 0, false);
 		}
 		if(millis & 1) attackshell(to);
@@ -832,7 +832,8 @@ void shotgun::attackfx(const vec &from2, const vec &to, int millis){
 		adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
 	}
 	else{
-		addshotline(owner, from2, to, 2);
+		if(++filter2 % 8) addshotline(owner, from2, to, 2);
+		if(filter2 >= 8) filter2 = 0;
 		addbullethole(owner, from2, to, 0, false);
 		adddynlight(owner, from2, 4, 100, 50, 96, 80, 64);
 	}
