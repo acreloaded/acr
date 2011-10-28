@@ -929,7 +929,7 @@ void scopedprimary::attackfx(const vec &from2, const vec &to, int millis){
 	particle_splash(0, 50, 200, to);
 	particle_trail(1, 500, from, to);
 	adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
-	attacksound();
+	if(millis & 1) attacksound();
 }
 
 float scopedprimary::dynrecoil() { return weapon::dynrecoil() * 1 - owner->ads / 1500; } // 1/3 spread when ADS
