@@ -816,21 +816,26 @@ bool gun::checkautoreload() { if(autoreload && owner==player1 && !mag && ammo) {
 
 shotgun::shotgun(playerent *owner) : gun(owner, WEAP_SHOTGUN), autoreloading(false) {}
 
-void shotgun::attackfx(const vec &from2, const vec &to, int millis){ // millis & 1 = normal
-	vec from(from2);
-	from.z -= WEAPONBELOWEYE;
-	loopi(SGRAYS) particle_splash(0, 5, 200, sg[i]);
-	uchar filter = 0;
-	if(addbullethole(owner, from, to)) loopi(SGRAYS){
-		if(filter++ % 4){
-			addshotline(owner, from, sg[i], 3);
+void shotgun::attackfx(const vec &from2, const vec &to, int millis){
+	static uchar filter = 0;
+	if(millis & 1){
+		vec from(from2);
+		from.z -= WEAPONBELOWEYE;
+		loopi(SGRAYS) particle_splash(0, 5, 200, sg[i]);
+		if(addbullethole(owner, from, to)) loopi(SGRAYS){
+			if(filter++ % 4) addshotline(owner, from, sg[i], 3);
+			if(filter >= 4) filter = 0;
+			addbullethole(owner, from, sg[i], 0, false);
 		}
-		if(filter >= 4) filter = 0;
-		addbullethole(owner, from, sg[i], 0, false);
+		if(millis & 1) attackshell(to);
+		attacksound();
+		adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
 	}
-	if(millis & 1) attackshell(to);
-	adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
-	attacksound();
+	else{
+		addshotline(owner, from2, to, 2);
+		addbullethole(owner, from2, to, 0, false);
+		adddynlight(owner, from2, 4, 100, 50, 96, 80, 64);
+	}
 }
 
 bool shotgun::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
