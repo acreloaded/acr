@@ -1099,19 +1099,25 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case N_REQPRIV:
+			case N_CLAIMPRIV:
 			{
-				int cl = getint(p), r = getint(p);
-				bool drop = (r >> 7) & 1, err = (r >> 6) & 1; r &= 0x3F;
+				int cl = getint(p), r = getint(p), t = getint(p);
 				playerent *d = getclient(cl);
-				const char *n = (d == player1) ? "\f1you" : colorname(d);
 				if(!d) break;
-				if(err){
-					if(d == player1) hudoutf("\f1you \f3already \f2have \f%d%s \f5access", privcolor(r), privname(r));
-					else hudoutf("\f3there is already another \f1%s \f2(\f%d%s\f2)", privname(r), privcolor(r), n);
-					break;
+				const char *n = (d == player1) ? "\f1you" : colorname(d);
+				switch(t){
+					case 0:
+					case 1:
+						chatoutf("%s \f2%s \f%d%s \f5access", n, t ? "relinquished" : "claimed", privcolor(r), privname(r));
+						break;
+					case 2:
+						if(d == player1) hudoutf("\f1you \f3already \f2have \f%d%s \f5access", privcolor(r), privname(r));
+						else hudoutf("\f3there is already another \f1%s \f2(\f%d%s\f2)", privname(r), privcolor(r), n);
+						break;
+					case 3:
+						chatoutf("%s \f2was authorized for \f%d%s \f5access", n, privcolor(r), privname(r));
+						break;
 				}
-				chatoutf("%s \f2%s \f%d%s \f5access", n, drop ? "relinquished" : "claimed", privcolor(r), privname(r));
 				break;
 			}
 
