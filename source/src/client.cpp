@@ -574,7 +574,7 @@ void sendmap(char *mapname)
 	putint(p, cfgsizegz);
 	if(MAXMAPSENDSIZE - p.length() < mapsize + cfgsizegz || cfgsize > MAXCFGFILESIZE)
 	{
-		conoutf("map %s is too large to send", mapname);
+		conoutf("%s %s %s", _("map"), mapname, _("map_oversized"));
 		delete[] mapdata;
 		if(cfgsize) delete[] cfgdata;
 		enet_packet_destroy(packet);
@@ -590,12 +590,12 @@ void sendmap(char *mapname)
 
 	enet_packet_resize(packet, p.length());
 	sendpackettoserv(2, packet);
-	conoutf("sending map %s to server...", mapname);
+	conoutf("%s %s %s", _("map_sending"), mapname, _("map_sending_to_serv"));
 }
 
 void getmap()
 {
-	conoutf("requesting map from server...");
+	conoutf("%s", _("map_req"));
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
 	putint(p, N_MAPS2C);
@@ -605,14 +605,14 @@ void getmap()
 
 void getdemo(int i)
 {
-	if(i<=0) conoutf("getting demo...");
-	else conoutf("getting demo %d...", i);
+	if(i<=0) conoutf("%s...", _("demo_get"));
+	else conoutf("%s %d...", _("demo_get"), i);
 	addmsg(N_DEMO, "ri", i);
 }
 
 void listdemos()
 {
-	conoutf("listing demos...");
+	conoutf("%s...", _("demo_list"));
 	addmsg(N_LISTDEMOS, "r");
 }
 
