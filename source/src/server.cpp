@@ -369,7 +369,7 @@ void sendspawn(client *c){
 		WEAP_MAX, gs.ammo, WEAP_MAX, gs.mag);
 	gs.lastspawn = gamemillis;
 
-	int dstreak = gs.deathstreak + (gs.perk == PERK_KILLSTREAK ? 1 : 0);
+	int dstreak = gs.deathstreak + (gs.perk == PERK_STREAK ? 1 : 0);
 	if(dstreak >= 8) gs.streakondeath = STREAK_REVENGE;
 	else if(dstreak >= 5 && c->type != ST_AI) gs.streakondeath = STREAK_DROPNADE;
 	else gs.streakondeath = -1;
@@ -1339,7 +1339,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 			sendf(-1, 1, "ri4", N_STREAKUSE, target->clientnum, STREAK_NUKE, -2);
 		}
 
-		switch(actor->state.killstreak + (actor->state.perk == PERK_KILLSTREAK ? 1 : 0)){
+		switch(actor->state.killstreak + (actor->state.perk == PERK_STREAK ? 1 : 0)){
 			case 7:
 				streakready(*actor, STREAK_AIRSTRIKE);
 				break;

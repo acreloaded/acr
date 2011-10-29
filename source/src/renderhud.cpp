@@ -475,7 +475,7 @@ void drawradar(playerent *p, int w, int h)
 	glTranslatef(-(centerpos.x-res/2)/worldsize*radarsize, -(centerpos.y-res/2)/worldsize*radarsize, 0);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	drawradarent(fixradarpos(p->o, centerpos, res), coordtrans, p->yaw, p->state!=CS_DEAD ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), p->perk == PERK_JAMMER ? .35f : 1, "\f1%s", colorname(p)); // local player
+	drawradarent(fixradarpos(p->o, centerpos, res), coordtrans, p->yaw, p->state!=CS_DEAD ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), p->perk == PERK_JAM ? .35f : 1, "\f1%s", colorname(p)); // local player
 
 	// radar check
 	bool hasradar = p == player1 || isteam(p, player1) ? player1->radarearned > totalmillis : false;
@@ -484,7 +484,7 @@ void drawradar(playerent *p, int w, int h)
 	loopv(players) // other players
 	{
 		playerent *pl = players[i];
-		if(!pl || pl == p || pl->perk == PERK_JAMMER) continue;
+		if(!pl || pl == p || pl->perk == PERK_JAM) continue;
 		bool force = hasradar || pl == flaginfos[0].actor || pl == flaginfos[1].actor;
 		if(!force && pl->state != CS_DEAD && !isteam(p, pl)){
 			playerent *seenby = NULL;
