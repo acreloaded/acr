@@ -613,9 +613,7 @@ int main(int argc, char **argv)
 		applymenu = addmenu("apply", "apply changes now?", true, refreshapplymenu);
 
 		exec("config/scontext.cfg");
-		execfile("locale/_.cfg");
 		exec("config/keymap.cfg");
-		exec("config/menus.cfg");
 		exec("config/scripts.cfg");
 		exec("config/prefabs.cfg");
 		exec("config/sounds.cfg");
@@ -651,6 +649,9 @@ int main(int argc, char **argv)
 		execfile("config/autoexec.cfg");
 		execute("addallfavcatmenus");  // exec here, to add all categories (including those defined in autoexec.cfg)
 		initing = NOT_INITING;
+
+		execfile("locale/_.cfg"); // load locale after settings, before menus
+		exec("config/menus.cfg");
 
 		initlog("models");
 		preload_playermodels();
