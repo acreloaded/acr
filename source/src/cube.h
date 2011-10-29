@@ -12,7 +12,6 @@
 
 #ifndef STANDALONE
  #include "command.h"
- #include "vote.h"
  #include "console.h"
 #endif
 
