@@ -100,14 +100,14 @@ void newteam(char *name)
 {
 	if(name[0]){
 		if(strcmp(name, "BLUE") && strcmp(name, "RED") && strcmp(name, "SPECT")){
-			conoutf("\f3\"%s\" is not a valid team name (try RED, BLUE or SPECT)", name);
+			conoutf("\f3\"%s\" %s (try RED, BLUE or SPECT)", name, _("team_invalid"));
 			return;
 		}
 		int nt = team_int(name);
 		if(nt == player1->team) return; // same team
 		addmsg(N_SWITCHTEAM, "ri", nt);
 	}
-	else conoutf("your team is: %s", team_string(player1->team));
+	else conoutf("%s: %s", _("team_you"), team_string(player1->team));
 }
 
 VARNP(skin, nextskin, 0, 0, 1000);
@@ -283,7 +283,7 @@ bool showhudtimer(int maxmillis, int startmillis, const char *msg, bool flash)
 	if(lasttick > startmillis + maxmillis) return false;
 	lasttick = lastmillis;
 	const bool queued = spawnenqueued && !m_duel;
-	defformatstring(str)("\f%s: %.1fs", queued ? "2Queued for spawn" : "3Waiting for respawn", (startmillis + maxmillis - lastmillis) / 1000.f);
+	defformatstring(str)("\f%d%s: %.1fs", queued ? 2 : 3, queued ? _("spawn_queued") : _("spawn_wait"), (startmillis + maxmillis - lastmillis) / 1000.f);
 	if(lastmillis <= startmillis + maxmillis) hudeditf(HUDMSG_TIMER|HUDMSG_OVERWRITE, flash || queued ? str : str+2);
 	else hudeditf(HUDMSG_TIMER, msg);
 	return true;
@@ -297,10 +297,10 @@ void showrespawntimer()
 	if(m_duel)
 	{
 		if(!arenaintermission) return;
-		showhudtimer(5000, arenaintermission, "FIGHT!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
+		showhudtimer(5000, arenaintermission, _("spawn_fight"), lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
 	}
 	else if(player1->state==CS_DEAD)// && (!player1->isspectating() || player1->spectatemode==SM_DEATHCAM))
-		showhudtimer(SPAWNDELAY, player1->respawnoffset, "READY!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
+		showhudtimer(SPAWNDELAY, player1->respawnoffset, _("spawn_ready"), lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
 }
 
 struct scriptsleep { int wait; char *cmd; };
@@ -457,7 +457,7 @@ bool tryrespawn(){
 		if(lastmillis>respawnmillis){
 			player1->attacking = false;
 			if(m_duel){
-				if(!arenaintermission) hudeditf(HUDMSG_TIMER, "waiting for new round to start...");
+				if(!arenaintermission) hudeditf(HUDMSG_TIMER, _("spawn_nextround"));
 				else lastspawnattempt = lastmillis;
 				return false;
 			}
@@ -600,15 +600,14 @@ void timeupdate(int milliscur, int millismax){
 	if(minutesremaining){
 		if(minutesremaining==1){
 			musicsuggest(M_LASTMINUTE1 + rnd(2), 70000, true);
-			hudoutf("1 minute left!");
+			hudoutf("%s", _("timer_lastminute"));
 		}
-		else conoutf("time remaining: %d minutes", minutesremaining);
+		else conoutf("%s %d minutes", _("timer_remain"), minutesremaining);
 	}
 	else{
 		intermission = true;
 		player1->attacking = false;
-		conoutf("intermission:");
-		conoutf("game has ended!");
+		conoutf("%s\n%s", _("timer_intermission"), _("timer_intermission2"));
 		consolescores();
 		showscores(true);
 		if(identexists("start_intermission")) execute("start_intermission");
