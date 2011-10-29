@@ -850,7 +850,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		draw_textf("evt %d", left, top+320, xtraverts);
 	}
 
-	if(!intermission){
+	if(!intermission && !m_edit){
 		extern int gametimecurrent, lastgametimeupdate, gametimemaximum;
 		int cssec = (gametimecurrent+(lastmillis-lastgametimeupdate))/1000;
 		int cursec = cssec%60;

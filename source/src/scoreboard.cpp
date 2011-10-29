@@ -165,13 +165,16 @@ void renderscores(void *menu, bool init){
 	}
 
 	extern int minutesremaining, gametimecurrent, lastgametimeupdate, gametimemaximum;
-	if(minutesremaining >= 0){
-		if(!minutesremaining) concatstring(modeline, ", intermission");
-		else{
-			const int cssec = (gametimemaximum-gametimecurrent-(lastmillis-lastgametimeupdate))/1000;
-			defformatstring(timestr)(", %d:%02d remaining", (int)floor(cssec/60.f), cssec%60);
-			concatstring(modeline, timestr);
-		}
+	if(!minutesremaining) concatstring(modeline, ", intermission");
+	else if(minutesremaining > 0){
+		const int cssec = (gametimemaximum-gametimecurrent-(lastmillis-lastgametimeupdate))/1000;
+		defformatstring(timestr)(", %d:%02d remaining", (int)floor(cssec/60.f), cssec%60);
+		concatstring(modeline, timestr);
+	}
+	else{
+		const int cssec = (gametimecurrent+(lastmillis-lastgametimeupdate))/1000;
+		defformatstring(timestr)(", %d:%02d elasped", (int)floor(cssec/60.f), cssec%60);
+		concatstring(modeline, timestr);
 	}
 
 	if(multiplayer(false)){
