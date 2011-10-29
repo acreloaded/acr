@@ -263,6 +263,7 @@ struct client				   // server side version of "dynent" type
 		saychars = authreq = 0;
 		spawnindex = -1;
 		mapchange();
+		priv = PRIV_NONE;
 		authpriv = -1;
 	}
 

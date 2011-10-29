@@ -1114,9 +1114,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						if(d == player1) hudoutf("\f1you \f3already \f2have \f%d%s \f5access", privcolor(r), privname(r));
 						else hudoutf("\f3there is already another \f1%s \f2(\f%d%s\f2)", privname(r), privcolor(r), n);
 						break;
-					case 3:
-						chatoutf("%s \f2was authorized for \f%d%s \f5access", n, privcolor(r), privname(r));
-						break;
 				}
 				break;
 			}

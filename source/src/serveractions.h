@@ -364,8 +364,8 @@ struct voteinfo
 		if(!action || !action->isvalid()) end(VOTE_NO);
 		int stats[VOTE_NUM+1] = {0};
 		loopv(clients) if(valid_client(i, true)){
-			stats[clients[i]->vote%VOTE_NUM]++;
-			stats[VOTE_NUM]++;
+			++stats[clients[i]->vote%VOTE_NUM];
+			++stats[VOTE_NUM];
 		}
 		if(forceend){
 			if(veto == VOTE_NEUTRAL) end(stats[VOTE_YES]/(float)(stats[VOTE_NO]+stats[VOTE_YES]) > action->passratio ? VOTE_YES : VOTE_NO);

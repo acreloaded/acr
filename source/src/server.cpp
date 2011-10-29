@@ -2288,9 +2288,11 @@ void setpriv(int cl, int priv){
 		sendf(cl, 1, "ri4", N_CLAIMPRIV, cl, priv, 2);
 		return;
 	}
+	/*
 	else if(priv >= PRIV_ADMIN){
 		loopv(clients) if(clients[i]->type != ST_EMPTY && clients[i]->authpriv < PRIV_MASTER && clients[i]->priv == PRIV_MASTER) setpriv(i, PRIV_NONE);
 	}
+	*/
 	c.priv = priv;
 	sendf(-1, 1, "ri4", N_CLAIMPRIV, cl, c.priv, 0);
 	logline(ACLOG_INFO,"[%s] %s claimed %s access", gethostname(cl), c.name, privname(c.priv));
@@ -3473,31 +3475,28 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				break;
 			}
 
-			case N_CLAIMPRIV:
+			case N_CLAIMPRIV: // claim
 			{
 				getstring(text, p);
 				if(!*text) break;
 				pwddetail pd;
 				pd.line = -1;
-				if(!checkadmin(cl->name, text, cl->salt, &pd) || !pd.priv){
-					if(cl->authpriv < PRIV_ADMIN){
+				if(cl->type == ST_LOCAL) setpriv(sender, PRIV_MAX);
+				else if(!checkadmin(cl->name, text, cl->salt, &pd) || !pd.priv){
+					if(cl->priv < PRIV_ADMIN){
 						disconnect_client(sender, DISC_LOGINFAIL); // avoid brute-force
 						return;
 					}
 				} else {
-					sendf(-1, 1, "ri4", N_CLAIMPRIV, sender, cl->authpriv = pd.priv, 3);
+					setpriv(sender, pd.priv);
 					if(pd.line >= 0) logline(ACLOG_INFO,"[%s] %s used %s password in line %d", gethostname(sender), cl->name, privname(pd.priv), pd.line);
 				}
 				break;
 			}
 
-			case N_SETPRIV:
+			case N_SETPRIV: // relinquish
 			{
-				int claim = getint(p) != 0;
-				if(claim){
-					if(cl->authpriv >= PRIV_MASTER) setpriv(sender, cl->authpriv);
-				}
-				else setpriv(sender, PRIV_NONE);
+				setpriv(sender, PRIV_NONE);
 				break;
 			}
 
