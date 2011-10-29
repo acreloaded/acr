@@ -123,9 +123,9 @@ void renderteamscore(void *menu, teamscore &t){
 		space.s[0] = 0;
 	}
 	sline &line = scorelines.add();
-	defformatstring(plrs)("(%d %s)", t.teammembers.length(), t.team == TEAM_SPECT ? "spectating" :
-															m_zombies && t.team == TEAM_RED ? "zombies" :
-															t.teammembers.length() == 1 ? "player" : "players");
+	defformatstring(plrs)("(%d %s)", t.teammembers.length(), t.team == TEAM_SPECT ? _("sb_spectating") :
+															m_zombies && t.team == TEAM_RED ? _("sb_zombies") :
+															t.teammembers.length() == 1 ? _("sb_player") : _("sb_players"));
 	scoreratio sr;
 	sr.calc(t.frags, t.deaths);
 	const char *tlag = colorpj(t.pj/max(t.teammembers.length(),1)), *tping = colorping(t.ping/max(t.teammembers.length(), 1));
