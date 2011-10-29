@@ -87,7 +87,10 @@ void authsuceeded(uint id, char priv, char *name){
 	loopv(bans) if(bans[i].host == c->peer->address.host){ bans.remove(i--); banremoved = true; } // deban
 	// broadcast "identified" if privileged or a ban was removed
 	sendf(priv || banremoved ? -1 : c->clientnum, 1, "ri3s", N_AUTHCHAL, 5, c->clientnum, name);
-	if(priv) setpriv(c->clientnum, c->authpriv = clamp<char>(priv, PRIV_MASTER, PRIV_MAX));
+	if(priv){
+		c->authpriv = clamp<char>(priv, PRIV_MASTER, PRIV_MAX);
+		if(c->connectauth) setpriv(c->clientnum, c->authpriv);
+	}
 	else c->authpriv = PRIV_NONE; // bypass master bans
 	checkauthdisc(*c); // can bypass passwords
 }

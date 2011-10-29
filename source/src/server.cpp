@@ -3478,12 +3478,12 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case N_CLAIMPRIV: // claim
 			{
 				getstring(text, p);
-				if(!*text) break;
 				pwddetail pd;
 				pd.line = -1;
 				if(cl->type == ST_LOCAL) setpriv(sender, PRIV_MAX);
 				else if(!checkadmin(cl->name, text, cl->salt, &pd) || !pd.priv){
-					if(cl->priv < PRIV_ADMIN){
+					if(cl->authpriv >= PRIV_MASTER) setpriv(sender, cl->authpriv);
+					else if(cl->priv < PRIV_ADMIN && text){
 						disconnect_client(sender, DISC_LOGINFAIL); // avoid brute-force
 						return;
 					}
