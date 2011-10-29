@@ -22,7 +22,11 @@ struct servercommandline scl;
 
 #define SERVERMAP_PATH		  "packages/maps/servermaps/"
 #define SERVERMAP_PATH_BUILTIN  "packages/maps/official/"
+#ifdef STANDALONE
 #define SERVERMAP_PATH_INCOMING "packages/maps/servermaps/incoming/"
+#else
+#define SERVERMAP_PATH_INCOMING "home/packages/maps"
+#endif
 
 string smapname, nextmapname;
 int nextgamemode;
