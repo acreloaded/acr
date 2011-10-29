@@ -16,14 +16,14 @@ int getclientnum() { return player1 ? player1->clientnum : -1; }
 bool multiplayer(bool msg)
 {
 	// check not correct on listen server?
-	if(curpeer && msg) conoutf("operation not available in multiplayer");
+	if(curpeer && msg) conoutf(_("op_mp_disallowed"));
 	return curpeer!=NULL;
 }
 
 VAR(edithack, 0, 0, 1); // USE AT YOUR OWN RISK
 bool allowedittoggle(){
 	bool allow = edithack || !curpeer || m_edit;
-	if(!allow) conoutf("editing in multiplayer requires coopedit mode (/coop or /mode 1)");
+	if(!allow) conoutf("%s", _("op_mp_edit_disallowed"));
 	return allow;
 }
 
@@ -63,7 +63,7 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
 	if(watchingdemo) enddemoplayback();
 	if(connpeer)
 	{
-		conoutf("aborting connection attempt");
+		conoutf("%s", _("connection_abort"));
 		abortconnect();
 	}
 
@@ -77,17 +77,17 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
 	if(servername)
 	{
 		addserver(servername, serverport, "0");
-		conoutf("attempting to connect to %s%c%s", servername, address.port != CUBE_DEFAULT_SERVER_PORT ? ':' : 0, serverport);
+		conoutf("%s %s%c%s", _("connection_attempt"), servername, address.port != CUBE_DEFAULT_SERVER_PORT ? ':' : 0, serverport);
 		if(!resolverwait(servername, &address))
 		{
-			conoutf("\f3could not resolve server %s", servername);
+			conoutf("\f3%s %s", _("connection_resolverfail"), servername);
 			clientpassword[0] = '\0';
 			return;
 		}
 	}
 	else
 	{
-		conoutf("attempting to connect over LAN");
+		conoutf("%s", _("connection_attempt_lan"));
 		address.host = ENET_HOST_BROADCAST;
 	}
 
@@ -103,7 +103,7 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
 	}
 	else
 	{
-		conoutf("\f3could not connect to server");
+		conoutf("\f3%s", _("connection_fail"));
 		clientpassword[0] = '\0';
 	}
 }
@@ -143,7 +143,7 @@ void disconnect(int onlyclean, int async)
 		curpeer = NULL;
 		discmillis = 0;
 		connected = 0;
-		conoutf("disconnected");
+		conoutf("%s", _("disconnected"));
 		cleanup = true;
 	}
 
@@ -171,16 +171,16 @@ void trydisconnect()
 {
 	if(connpeer)
 	{
-		conoutf("aborting connection attempt");
+		conoutf("%s", _("connection_abort"));
 		abortconnect();
 		return;
 	}
 	if(!curpeer)
 	{
-		conoutf("not connected");
+		conoutf("%s", _("not_connected"));
 		return;
 	}
-	conoutf("attempting to disconnect...");
+	conoutf("%s", _("disconnection_attempt"));
 	disconnect(0, !discmillis);
 }
 
@@ -194,7 +194,7 @@ void saytext(playerent *d, char *text, int flags, int sound){
 	if(flags&SAY_TEAM) textcolor = d->team == TEAM_SPECT ? 4 : isteam(d, player1) ? 1 : 3; // spect grey, friendly blue, enemy red
 	if(flags&SAY_DENY){
 		textcolor = 2; // denied yellow
-		concatstring(text, " \f3Do not SPAM!");
+		concatformatstring(text, " \f3%s", _("spam_detected"));
 	}
 	string textout;
 	const int col = d == player1 ? 1 : d->team == TEAM_SPECT ? 4 : m_team ? d->team == player1->team ? 0 : 3 : 5;
@@ -474,12 +474,12 @@ void gets2c()		   // get updates from the server
 	if(!clienthost || (!curpeer && !connpeer)) return;
 	if(connpeer && totalmillis/3000 > connmillis/3000)
 	{
-		conoutf("attempting to connect...");
+		conoutf("%s", _("connection_attempt_try"));
 		connmillis = totalmillis;
 		++connattempts;
 		if(connattempts > 3)
 		{
-			conoutf("\f3could not connect to server");
+			conoutf("\f3%s", _("connection_fail"));
 			abortconnect();
 			return;
 		}
@@ -492,7 +492,7 @@ void gets2c()		   // get updates from the server
 			curpeer = connpeer;
 			connpeer = NULL;
 			connected = 1;
-			conoutf("connected to server");
+			conoutf("%s", _("connection_success"));
 			throttle();
 			if(editmode) toggleedit(true);
 			break;
@@ -502,7 +502,7 @@ void gets2c()		   // get updates from the server
 			extern packetqueue pktlogger;
 			pktlogger.queue(event.packet);
 
-			if(discmillis) conoutf("attempting to disconnect...");
+			if(discmillis) conoutf("%s", _("disconnection_attempt"));
 			else servertoclient(event.channelID, event.packet->data, (int)event.packet->dataLength);
 			// destroyed in logger
 			//enet_packet_destroy(event.packet);
@@ -514,12 +514,12 @@ void gets2c()		   // get updates from the server
 			if(event.data>=DISC_NUM) event.data = DISC_NONE;
 			if(event.peer==connpeer)
 			{
-				conoutf("\f3could not connect to server");
+				conoutf("\f3%s", _("connection_fail"));
 				abortconnect();
 			}
 			else
 			{
-				if(!discmillis || event.data) conoutf("\f3server network error, disconnecting (%s) ...", disc_reason(event.data));
+				if(!discmillis || event.data) conoutf("\f3%s (%s) ...", _("disconnection_error"), disc_reason(event.data));
 				disconnect();
 			}
 			return;
@@ -541,7 +541,7 @@ bool securemapcheck(char *map, bool msg)
 	if(strstr(map, "maps/")==map || strstr(map, "maps\\")==map) map += strlen("maps/");
 	loopv(securemaps) if(!strcmp(securemaps[i], map))
 	{
-		if(msg) conoutf("\f3map %s is secured, you can not receive or overwrite it", map);
+		if(msg) conoutf("\f3%s %s %s", _("map"), map, _("map_secured"));
 		return true;
 	}
 	return false;
