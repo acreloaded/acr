@@ -205,6 +205,7 @@ struct banaction : playeraction
 		area = EE_DED_SERV; // dedicated only
 		passratio = 0.75f;
 		reqpriv = protectAdminPriv('b', cn);
+		reqveto = PRIV_MASTER; // ban
 		length = 30000; // 30s
 		if(isvalid()) formatstring(desc)("ban player %s for %d minutes", clients[cn]->name, (bantime = minutes));
 		else copystring(desc, "invalid ban");
