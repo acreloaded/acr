@@ -3648,7 +3648,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(isfall){
 					if(cp->state.state != CS_ALIVE) break;
 					// deal falling damage?
-					int damage = (fall - 10) / (cp->state.perk == PERK_LIGHT ? 10 : 2);
+					int damage = (fall - 10) * HEALTHSCALE / (cp->state.perk == PERK_LIGHT ? 10 : 2);
 					if(damage < 1) break; // don't heal the player
 					else if(damage > 200) damage = 200;
 					cp->suicide(WEAP_MAX+2, FRAG_NONE, damage);
