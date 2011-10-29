@@ -265,6 +265,8 @@ struct client				   // server side version of "dynent" type
 		mapchange();
 		priv = PRIV_NONE;
 		authpriv = -1;
+		guid = 0;
+		masterverdict = DISC_NONE;
 	}
 
 	void zap()
