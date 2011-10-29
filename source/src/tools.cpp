@@ -726,5 +726,5 @@ inline const char *_gettext(const char *msgid)
 void getlang(const char *key){
 	if(key) result(_(key));
 }
-COMMANDN(getlang, _gettext, ARG_1STR);
+COMMAND(getlang, ARG_1STR);
 #endif
