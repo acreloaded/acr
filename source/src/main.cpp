@@ -657,6 +657,10 @@ int main(int argc, char **argv)
 		preload_playermodels();
 		preload_hudguns();
 		preload_entmodels();
+		// preload some stuffs
+		extern Texture **obittex();
+		extern void load_waypointtex();
+		geteventicons(); getperktex(); obittex(); load_waypointtex();
 
 		initlog("docs");
 		persistidents = false;
