@@ -1,6 +1,10 @@
 AssaultCube Mapmodels
 __________________________________________________________________________________________________
 
+ac_iced
+Barrel_ice and tree_snow mapmodels are from makKe (c) (All rights reserved) => deathstar adapted the mapmodels skins for his map.
+Ventflap BY DCP
+__________________________________________________________________________________________________
 Modelled/Skinned by JCDPC
 =========================
 Laptop 
