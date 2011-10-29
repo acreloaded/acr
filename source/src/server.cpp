@@ -3650,7 +3650,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					// deal falling damage?
 					int damage = (fall - 10) * HEALTHSCALE / (cp->state.perk == PERK_LIGHT ? 10 : 2);
 					if(damage < 1) break; // don't heal the player
-					else if(damage > 200) damage = 200;
+					else if(damage > 200* HEALTHSCALE) damage = 200 * HEALTHSCALE;
 					cp->suicide(WEAP_MAX+2, FRAG_NONE, damage);
 				}
 				else if(typ == PHYS_AKIMBOOUT){
