@@ -14,11 +14,11 @@ packetqueue pktlogger;
 
 void neterr(const char *s, int info)
 {
-	conoutf("\f3illegal network message (%s %d)", s, info);
+	conoutf("\f3%s (%s %d)", _("neterr"), s, info);
 
 	// might indicate a client/server communication bug, create error report
 	pktlogger.flushtolog("packetlog.txt");
-	hudoutf("\f3wrote a network error report to packetlog.txt, please post this file to the bugtracker now!");
+	hudoutf("\f3%s", _("neterr_logged"));
 
 	disconnect();
 }
@@ -42,8 +42,8 @@ void changemapserv(char *name, int mode, int download)		// forced map change fro
 		}
 		else
 		{
-			if(!loaded || download < 10) conoutf("\"getmap\" to download the current map from the server");
-			else conoutf("\"getmap\" to download a different version of the current map from the server");
+			if(!loaded || download < 10) conoutf("%s", _("getmap"));
+			else conoutf("%s", _("getmap_diff"));
 		}
 	}
 }
@@ -478,8 +478,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					arenaintermission = 0;
 					if(m_duel){
 						closemenu(NULL);
-						conoutf("new round starting... fight!");
-						hudeditf(HUDMSG_TIMER, "FIGHT!");
+						conoutf("%s", _("spawn_newround"));
+						hudeditf(HUDMSG_TIMER, _("spawn_fight"));
 					}
 				}
 				addmsg(N_SPAWN, "ri3f3", d->clientnum, d->lifesequence, d->weaponsel->type, d->o.x, d->o.y, d->o.z);
@@ -1313,7 +1313,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_LISTDEMOS:
 			{
 				int demos = getint(p);
-				if(!demos) conoutf("no demos available");
+				if(!demos) conoutf("%s", _("demo_none"));
 				else loopi(demos)
 				{
 					getstring(text, p);
