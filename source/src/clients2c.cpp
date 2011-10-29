@@ -106,7 +106,7 @@ void parsepositions(ucharbuf &p)
 			pitchvel = getfloat(p);
 			int f = getuint(p), seqcolor = (f>>6)&1;
 			playerent *d = getclient(cn);
-			if(!d || d == player1 || d->ownernum == getclientnum() || seqcolor!=(d->lifesequence&1)) continue;
+			if(!d || d == player1 || isowned(d) || seqcolor!=(d->lifesequence&1)) continue;
 			vec oldpos(d->o);
 			float oldyaw = d->yaw, oldpitch = d->pitch;
 			d->o = o;
@@ -528,7 +528,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				playerent *s = getclient(scn);
 				if(!s || !weapon::valid(gun)) break;
 				if(s == player1 && (type == N_SHOOTC || gun == WEAP_GRENADE)) break;
-				if(s != player1 && s->ownernum != getclientnum()){
+				if(s != player1 && !isowned(s)){
 					s->mag[gun]--;
 					updatelastaction(s);
 				}
@@ -648,7 +648,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				int cn = getint(p), gun = getint(p), mag = getint(p), ammo = getint(p);
 				playerent *p = getclient(cn);
 				if(!p || gun < 0 || gun >= WEAP_MAX) break;
-				if(p != player1 && p->ownernum != getclientnum() && p->weapons[gun]) p->weapons[gun]->reload();
+				if(p != player1 && !isowned(p) && p->weapons[gun]) p->weapons[gun]->reload();
 				p->ammo[gun] = ammo;
 				p->mag[gun] = mag;
 				if(guns[gun].reload != S_NULL) playsound(guns[gun].reload, p, p == player1 ? SP_HIGH : SP_NORMAL);

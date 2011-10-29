@@ -329,7 +329,7 @@ const int weapon::scopetime = ADSTIME;
 int weapon::flashtime() const { return min(max((int)info.attackdelay, 180)/3, 150); }
 
 void weapon::sendshoot(vec to){
-	if(owner!=player1 && owner->ownernum!=getclientnum()) return;
+	if(owner!=player1 && !isowned(owner)) return;
 	to.sub(owner->o);
 	addmsg(N_SHOOT, "ri3f3", owner->clientnum, lastmillis, owner->weaponsel->type, to.x, to.y, to.z);
 }
@@ -361,7 +361,7 @@ bool weapon::reload(){
 	owner->ammo[type] -= reloadsize(type);
 	owner->mag[type] = min<int>(magsize(type), owner->mag[type] + reloadsize(type));
 
-	if(player1 == owner || owner->ownernum == getclientnum()) addmsg(N_RELOAD, "ri3", owner->clientnum, lastmillis, type);
+	if(player1 == owner || isowned(owner)) addmsg(N_RELOAD, "ri3", owner->clientnum, lastmillis, type);
 	return true;
 }
 
@@ -467,7 +467,7 @@ enum { NS_NONE, NS_ACTIVATED = 0, NS_THROWED, NS_EXPLODED };
 grenadeent::grenadeent(playerent *owner, int millis){
 	ASSERT(owner);
 	nadestate = NS_NONE;
-	local = owner==player1 || owner->ownernum == getclientnum();
+	local = owner==player1 || isowned(owner);
 	bounceent::owner = owner;
 	bounceent::millis = id = lastmillis;
 	timetolive = NADETTL-millis;
@@ -979,7 +979,7 @@ bool akimbo::attack(vec &targ){
 
 void akimbo::onammopicked(){
 	akimbomillis = lastmillis + 30000;
-	if(owner==player1 || owner->ownernum == getclientnum())
+	if(owner==player1 || isowned(owner))
 	{
 		if(owner->weaponsel->type!=WEAP_SNIPER && owner->weaponsel->type!=WEAP_GRENADE) owner->weaponswitch(this);
 		addmsg(N_AKIMBO, "ri2", owner->clientnum, lastmillis);
@@ -1027,7 +1027,7 @@ vector<cknife> knives;
 knifeent::knifeent(playerent *owner, int millis){
 	ASSERT(owner);
 	knifestate = NS_NONE;
-	local = owner==player1 || owner->ownernum == getclientnum();
+	local = owner==player1 || isowned(owner);
 	bounceent::owner = owner;
 	bounceent::millis = lastmillis;
 	timetolive = KNIFETTL-millis;
@@ -1237,7 +1237,7 @@ void shoot(playerent *p, vec &targ){
 void checkakimbo(){
 	loopv(players){
 		playerent *pl = players[i];
-		if(!pl || !pl->akimbo || (pl != player1 && pl->ownernum != getclientnum())) continue;
+		if(!pl || !pl->akimbo || !isowned(pl)) continue;
 		akimbo &a = *((akimbo *)pl->weapons[WEAP_AKIMBO]);
 		if(a.timerout()){
 			weapon &p = *pl->weapons[WEAP_PISTOL];

@@ -258,7 +258,7 @@ void predictplayer(playerent *d, bool move)
 
 void moveotherplayers()
 {
-	loopv(players) if(players[i] && players[i]->type==ENT_PLAYER && players[i]->ownernum != getclientnum())
+	loopv(players) if(players[i] && players[i]->type==ENT_PLAYER && !isowned(players[i]))
 	{
 		playerent *d = players[i];
 		const int lagtime = totalmillis-d->lastrecieve;
@@ -497,7 +497,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 	}
 
 	// roll if you are hit
-	if(pl==player1 || pl->ownernum==getclientnum()) pl->damageroll(damage);
+	if(pl==player1 || isowned(pl)) pl->damageroll(damage);
 
 	// sound
 	if(pl==gamefocus) playsound(S_PAIN6, SP_HIGH);

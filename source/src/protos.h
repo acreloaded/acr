@@ -354,6 +354,7 @@ extern void c2sinfo(bool force = false);
 extern void c2skeepalive();
 extern void neterr(const char *s, int info);
 extern int getclientnum();
+extern bool isowned(playerent *p);
 extern void changemapserv(char *name, int mode, bool download = false);
 extern void getmap();
 extern void newteam(char *name);

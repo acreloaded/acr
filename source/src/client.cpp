@@ -12,6 +12,7 @@ int connmillis = 0, connattempts = 0, discmillis = 0;
 bool watchingdemo = false;		  // flowtron : enables N_ITEMLIST in demos - req. because mapchanged == false by then
 
 int getclientnum() { return player1 ? player1->clientnum : -1; }
+bool isowned(playerent *p) { return player1 && p && p->ownernum >= 0 && p->ownernum == player1->clientnum; }
 
 bool multiplayer(bool msg)
 {
@@ -350,7 +351,7 @@ void sendpositions(){
 	sendposition(player1);
 	loopv(players){
 		playerent *p = players[i];
-		if(p && p->ownernum == getclientnum()) sendposition(p);
+		if(p && isowned(p)) sendposition(p);
 	}
 }
 
