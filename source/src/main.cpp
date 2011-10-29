@@ -613,6 +613,7 @@ int main(int argc, char **argv)
 		applymenu = addmenu("apply", "apply changes now?", true, refreshapplymenu);
 
 		exec("config/scontext.cfg");
+		execfile("locale/_.cfg");
 		exec("config/keymap.cfg");
 		exec("config/menus.cfg");
 		exec("config/scripts.cfg");
@@ -620,7 +621,6 @@ int main(int argc, char **argv)
 		exec("config/sounds.cfg");
 		exec("config/securemaps.cfg");
 		exec("config/admin.cfg");
-		execfile("config/locale.cfg");
 		execfile("config/servers.cfg");
 		persistidents = true;
 
