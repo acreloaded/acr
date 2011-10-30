@@ -358,7 +358,7 @@ void renderaboveheadicon(playerent *p){
 			default: scalef = aspect = 1; break;
 		}
 		glPushMatrix();
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 		glEnable(GL_BLEND);
 		glTranslatef(p->o.x, p->o.y, p->o.z+p->aboveeye);
 		glRotatef(camera1->yaw-180, 0, 0, 1);
