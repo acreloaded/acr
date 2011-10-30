@@ -50,7 +50,7 @@
 extern itemstat itemstats[];
 
 //#ifdef RELEASE_BUILD
-#if true
+#if 0
 inline void condebug(const char *s, int a = 0, int b = 0, int c = 0) {}
 inline void debugnav(const char *s, int a = 0, int b = 0, int c = 0) {}
 inline void debugbeam(vec &s, vec &e) { }
