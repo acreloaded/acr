@@ -640,6 +640,7 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
 		}
 	}
 	else if(d->state==CS_EDITING)				   { anim = ANIM_JUMP|ANIM_END; }
+	else if(d->state==CS_SPAWNING)					{ anim = ANIM_SALUTE|ANIM_LOOP|ANIM_TRANSLUCENT; }
 	else if(d->state==CS_WAITING)					{ anim = ANIM_TAUNT|ANIM_LOOP|ANIM_TRANSLUCENT; }
 	else if(lastmillis-d->lastpain<300)			 { anim = d->crouching ? ANIM_CROUCH_PAIN : ANIM_PAIN; speed = 300.0f/4; varseed += d->lastpain; basetime = d->lastpain; }
 	else if(!d->onfloor && d->timeinair>50)		 { anim = (d->crouching ? ANIM_CROUCH_IDLE : ANIM_JUMP)|ANIM_END; }
@@ -674,6 +675,9 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
 		anim |= ANIM_TRANSLUCENT; // see through followed player
 		if(stenciling) return;
 	}
+
+	if(d->protect(lastmillis)) anim |= ANIM_TRANSLUCENT;
+
 	rendermodel(mdlname, anim|ANIM_DYNALLOC, tex, 1.5f, o, d->yaw+90, d->pitch/4, speed, basetime, d, a);
 	if(!stenciling && !reflecting && !refracting)
 	{
@@ -755,7 +759,7 @@ void renderclient(playerent *d)
 void renderclients()
 {
 	playerent *d;
-	loopv(players) if((d = players[i]) && d->state!=CS_SPAWNING && (!player1->isspectating() || player1->spectatemode != SM_FOLLOW1ST || player1->followplayercn != i)) renderclient(d);
+	loopv(players) if((d = players[i])/* && d->state!=CS_SPAWNING*/ && (!player1->isspectating() || player1->spectatemode != SM_FOLLOW1ST || player1->followplayercn != i)) renderclient(d);
 	if(player1->state==CS_DEAD || (reflecting && !refracting)) renderclient(player1);
 }
 

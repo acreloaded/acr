@@ -86,7 +86,7 @@ struct clientstate : playerstate
 	vec o, aim, vel, lasto, sg[SGRAYS], flagpickupo;
 	float pitchvel;
 	int state, lastomillis, movemillis;
-	int lastdeath, lastffkill, lastspawn, lifesequence, spawnmillis;
+	int lastdeath, lastffkill, lastspawn, lifesequence;
 	int lastkill, combo;
 	bool crouching;
 	int crouchmillis, scopemillis;
@@ -129,7 +129,7 @@ struct clientstate : playerstate
 
 	void respawn()
 	{
-		playerstate::respawn(); spawnmillis = 0; // move spawnmillis to playerstate for clients to have opacity...
+		playerstate::respawn();
 		o = lasto = vec(-1e10f, -1e10f, -1e10f);
 		aim = vel = vec(0, 0, 0);
 		pitchvel = 0;
@@ -143,13 +143,6 @@ struct clientstate : playerstate
 		crouching = false;
 		crouchmillis = scopemillis = 0;
 		streakondeath = -1;
-	}
-
-	int protect(int millis){
-		const int delay = SPAWNPROTECT, spawndelay = millis - spawnmillis;
-		int amt = 0;
-        if(ownernum < 0 && spawnmillis && delay && spawndelay <= delay) amt = delay - spawndelay;
-        return amt;
 	}
 };
 
