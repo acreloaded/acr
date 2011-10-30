@@ -988,6 +988,13 @@ void arenacheck(){
 
 	if(!dead || gamemillis < lastdeath + 500) return;
 	sendf(-1, 1, "ri2", N_ARENAWIN, !ha && found ? -2 : alive ? alive->clientnum : -1);
+	loopv(clients) if(clients[i]->type != ST_EMPTY)
+		addpt(clients[i],
+			clients[i]->state.state != CS_ALIVE ?
+			(alive && m_team && alive->team == clients[i]->team) ? ARENAWINDPT : // his team wins
+			ARENALOSEPT : // he died
+			ARENAWINPT // he survives
+		);
 	arenaround = gamemillis+5000;
 	if(autoteam && m_team && !m_zombies) refillteams(true);
 }
