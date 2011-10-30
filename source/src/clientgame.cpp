@@ -163,8 +163,7 @@ void deathstate(playerent *pl, playerent *act)
 	pl->yaw = atan2(target.y, target.x) / RAD;
 	*/
 
-	pl->attacking = false;
-	pl->wantsreload = false;
+	pl->scoping = pl->attacking = pl->wantsreload = false;
 	pl->wantsswitch = -1;
 	pl->weaponsel->onownerdies();
 	pl->damagelog.setsize(0);
