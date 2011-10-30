@@ -134,7 +134,7 @@ enum { TEAM_RED = 0, TEAM_BLUE, TEAM_SPECT, TEAM_NUM };
 #define team_color(t) ((t) == TEAM_SPECT ? 4 : (t) ? 1 : 3)
 
 enum { ENT_PLAYER = 0, ENT_CAMERA, ENT_BOUNCE };
-enum { CS_ALIVE = 0, CS_DEAD, CS_SPAWNING, CS_WAITING, CS_EDITING, CS_SPECTATE };
+enum { CS_ALIVE = 0, CS_DEAD, CS_SPAWNING, CS_WAITING, CS_EDITING };
 enum { PRIV_NONE = 0, PRIV_MASTER, PRIV_ADMIN, PRIV_MAX };
 
 static inline const uchar privcolor(int priv, bool dead = false){
@@ -583,7 +583,7 @@ struct playerent : dynent, playerstate
 	void selectweapon(int w) { prevweaponsel = weaponsel = weapons[(gunselect = w)]; }
 	void setprimary(int w) { primweap = weapons[(primary = w)]; }
 	void setnextprimary(int w) { nextprimweap = weapons[(nextprimary = w)]; }
-	bool isspectating() { return state==CS_SPECTATE || (state==CS_DEAD && spectatemode > SM_NONE); }
+	bool isspectating() { return team==TEAM_SPECT || (state==CS_DEAD && spectatemode > SM_NONE); }
 	void weaponswitch(weapon *w)
 	{
 		if(!w) return;

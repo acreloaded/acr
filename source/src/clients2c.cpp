@@ -1333,7 +1333,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					conoutf("playing demo \"%s\"", text);
 					player1->resetspec();
 					player1->team = TEAM_SPECT;
-					player1->state = CS_SPECTATE;
 					player1->spectatemode = SM_FLY;
 				}
 				else
