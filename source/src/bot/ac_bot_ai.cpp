@@ -153,12 +153,6 @@ entity *CACBot::SearchForEnts(bool bUseWPs, float flRange, float flMaxHeight)
 			bInteresting = (m_pMyEnt->armor < sMaxAmmo);
 			sAmmo = m_pMyEnt->armor;
 			break;
-		/*
-		case CTF_FLAG:
-			bInteresting = true; // verify
-			sAmmo = -1;
-			break;
-		*/
 		};
 		
 		if (!bInteresting)
@@ -245,9 +239,14 @@ entity *CACBot::SearchForEnts(bool bUseWPs, float flRange, float flMaxHeight)
 
 flaginfo *CACBot::SearchForFlags(bool bUseWPs, float flRange, float flMaxHeight)
 {
+	/*
+		Flags are scored on the following:
+		- Distance
+	*/
 	float flDist;
 	flaginfo *pNewTargetFlag = NULL;
 	waypoint_s *pWptNearBot = NULL, *pBestWpt = NULL;
+	short sScore, sHighestScore = 0;
 	vec vNewGoal = g_vecZero;
 	
 	if ((WaypointClass.m_iWaypointCount >= 1) && bUseWPs)
@@ -259,11 +258,12 @@ flaginfo *CACBot::SearchForFlags(bool bUseWPs, float flRange, float flMaxHeight)
 #endif
 
 	loopi(2){
+		sScore = 0;
 		flaginfo &f = flaginfos[i];
 		flaginfo &of = flaginfos[team_opposite(i)];
 		if(f.state == CTFF_IDLE) continue;
 		//vec o = g_vecZero;
-		vec o = vec(f.flagent->x, f.flagent->y, S(f.flagent->x, f.flagent->y)->floor + PLAYERHEIGHT / 2);
+		vec o = vec(f.flagent->x, f.flagent->y, S(f.flagent->x, f.flagent->y)->floor + PLAYERHEIGHT);
 		switch(f.state){
 			case CTFF_INBASE: // go to this base
 				// if CTF capturing our flag
@@ -278,12 +278,17 @@ flaginfo *CACBot::SearchForFlags(bool bUseWPs, float flRange, float flMaxHeight)
 				break;
 			case CTFF_DROPPED: // take every dropped flag, regardless of anything!
 				o = f.pos;
-				o.z += PLAYERHEIGHT / 2;
+				o.z += PLAYERHEIGHT;
 				break;
 		}
 		if(OUTBORD((int)o.x, (int)o.y)) continue;
 		flDist = GetDistance(o);
 		if (flDist > flRange) continue;
+
+		// Score on distance
+		float ff = flDist;
+		if (ff > 100.0f) ff = 100.0f;
+		sScore += ((100 - short(ff)) / 2);
 
 		waypoint_s *pWptNearEnt = NULL;
 		// If this flag entity isn't visible check if there is a nearby waypoint
@@ -301,11 +306,19 @@ flaginfo *CACBot::SearchForFlags(bool bUseWPs, float flRange, float flMaxHeight)
 			if (!pWptNearEnt) continue;						
 		}
 
-		if (pWptNearEnt) pBestWpt = pWptNearEnt;
-		else pBestWpt = NULL; // best flag doesn't need any waypoints
+		// Score on visibility
+		if (pWptNearEnt == NULL) // Ent is visible
+			sScore += 6;
+		else
+			sScore += 3;
 
-		vNewGoal = o;
-		pNewTargetFlag = &f;
+		if(sScore > sHighestScore){
+			if (pWptNearEnt) pBestWpt = pWptNearEnt;
+			else pBestWpt = NULL; // best flag doesn't need any waypoints
+
+			vNewGoal = o;
+			pNewTargetFlag = &f;
+		}
 	}
 	
 	if (pNewTargetFlag)
@@ -317,9 +330,9 @@ flaginfo *CACBot::SearchForFlags(bool bUseWPs, float flRange, float flMaxHeight)
 			SetCurrentWaypoint(pWptNearBot);
 			SetCurrentGoalWaypoint(pBestWpt);
 		}
-		
-		m_vGoal = vNewGoal;
 	}
+
+	m_vGoal = vNewGoal;
 	return pNewTargetFlag;
 }
 

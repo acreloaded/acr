@@ -1826,7 +1826,7 @@ bool CBot::CheckItems()
 			return false;
 		else
 		{
-			m_pTargetEnt = SearchForEnts(!m_classicsp);
+			m_pTargetEnt = SearchForEnts(false);
 			m_iCheckEntsDelay = lastmillis + RandomLong(2500, 5000);
 		}
 	}
@@ -1867,7 +1867,7 @@ bool CBot::CheckFlags()
 			return false;
 		else
 		{
-			m_pTargetFlag = SearchForFlags(!m_classicsp);
+			m_pTargetFlag = SearchForFlags(true);
 			m_iCheckFlagsDelay = lastmillis + RandomLong(1000, 1500);
 		}
 	}

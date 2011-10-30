@@ -54,9 +54,9 @@ inline void condebug(const char *s, int a = 0, int b = 0, int c = 0) {}
 inline void debugnav(const char *s, int a = 0, int b = 0, int c = 0) {}
 inline void debugbeam(vec &s, vec &e) { }
 #else
-inline void condebug(const char *s, int a = 0, int b = 0, int c = 0) { /*conoutf(s, a, b, c);*/ }
-inline void debugnav(const char *s, int a = 0, int b = 0, int c = 0) { /*conoutf(s, a, b, c);*/ }
-inline void debugbeam(vec &s, vec &e) { /*if (!dedserv) particle_trail(1, 500, s, e);*/ }
+inline void condebug(const char *s, int a = 0, int b = 0, int c = 0) { conoutf(s, a, b, c); }
+inline void debugnav(const char *s, int a = 0, int b = 0, int c = 0) { conoutf(s, a, b, c); }
+inline void debugbeam(vec &s, vec &e) { particle_trail(1, 500, s, e); }
 #endif
 
 #define JUMP_HEIGHT	 4.0f // NOT accurate
