@@ -228,8 +228,8 @@ const char *modeacronymnames[GMODE_NUM-GMODE_DEMO] =
 const char *voteerrors[VOTEE_NUM] = { "voting is currently disabled", "there is already a vote pending", "no permission to veto", "can't vote that often", "this vote is not allowed in the current environment (singleplayer/multiplayer)", "no permission", "invalid vote" };
 const char *mmfullnames[MM_NUM] = { "open", "locked", "private" };
 
-inline const char *fullmodestr(int n) { return (n>=-1 && size_t(n+1) < sizeof(modefullnames)/sizeof(*modefullnames)) ? modefullnames[n+1] : "unknown"; }
-inline const char *acronymmodestr(int n) { return (n>=-1 && size_t(n+1) < sizeof(modeacronymnames)/sizeof(*modeacronymnames)) ? modeacronymnames[n+1] : "n/a"; }
+inline const char *fullmodestr(int n) { return (n>=GMODE_DEMO && n < GMODE_NUM) ? modefullnames[n - GMODE_DEMO] : "unknown"; }
+inline const char *acronymmodestr(int n) { return (n>=GMODE_DEMO && n < GMODE_NUM) ? modeacronymnames[n - GMODE_DEMO] : "n/a"; }
 const char *modestr(int n, bool acronyms) { return acronyms ? acronymmodestr (n) : fullmodestr(n); }
 const char *voteerrorstr(int n) { return (n>=0 && n < VOTEE_NUM) ? voteerrors[n] : "unknown"; }
 const char *mmfullname(int n) { return (n>=0 && n < MM_NUM) ? mmfullnames[n] : "unknown"; }

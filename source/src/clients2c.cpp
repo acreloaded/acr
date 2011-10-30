@@ -1331,9 +1331,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				{
 					getstring(text, p);
 					conoutf("playing demo \"%s\"", text);
-					player1->resetspec();
-					player1->team = TEAM_SPECT;
-					player1->spectatemode = SM_FLY;
+					//player1->resetspec();
+					//player1->team = TEAM_SPECT;
 				}
 				else
 				{

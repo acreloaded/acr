@@ -115,7 +115,6 @@ bool buildworldstate(){ // WAY easier worldstates
 			putint(p, j);
 			//putuint(p, c.messages.length());
 			p.put(c.messages.getbuf(), c.messages.length());
-			if(c.position.length() || c.position.length()) flush = true;
 		}
 		enet_packet_resize(positionpacket, pos.length());
 		sendpacket(i, 0, positionpacket);
@@ -124,10 +123,18 @@ bool buildworldstate(){ // WAY easier worldstates
 		sendpacket(i, 1, messagepacket);
 		if(!messagepacket->referenceCount) enet_packet_destroy(messagepacket);
 	}
-	if(flush) loopv(clients) if(clients[i]->type != ST_EMPTY){ // next, flush it to the packet recorder
+	loopv(clients) if(clients[i]->type != ST_EMPTY){ // next, flush it to the packet recorder
+		if(clients[i]->position.length() || clients[i]->position.length()) flush = true;
+		else continue;
+
 		recordpacket(0, clients[i]->position.getbuf(), clients[i]->position.length());
-		recordpacket(1, clients[i]->messages.getbuf(), clients[i]->messages.length());
 		clients[i]->position.setsize(0);
+
+		ucharbuf msg;
+		putint(msg, N_CLIENT);
+		putint(msg, i);
+		msg.put(clients[i]->messages.getbuf(), clients[i]->messages.length());
+		recordpacket(1, msg.buf, msg.length());
 		clients[i]->messages.setsize(0);
 	}
 	reliablemessages = false;
