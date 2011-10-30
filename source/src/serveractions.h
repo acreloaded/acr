@@ -286,7 +286,6 @@ struct stopdemoaction : serveraction
 	}
 	stopdemoaction()
 	{
-		area = EE_DED_SERV; // dedicated only
 		reqpriv = PRIV_ADMIN;
 		copystring(desc, "stop demo");
 	}
