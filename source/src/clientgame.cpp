@@ -344,7 +344,7 @@ void updateworld(int curtime, int lastmillis)		// main game update loop
 	physicsframe();
 	checkweaponswitch();
 	checkakimbo();
-	if(getclientnum()>=0){ // only shoot when connected to server
+	if(player1){ // only shoot when connected to server
 		shoot(player1, worldpos);
 		loopv(players) if(players[i]){
 			playerent *p = players[i];
