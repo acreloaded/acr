@@ -125,6 +125,7 @@ bool buildworldstate(){ // WAY easier worldstates
 	}
 	static uchar recorddatap[MAXTRANS], recorddatam[MAXTRANS];
 	ucharbuf recordpos(recorddatap, MAXTRANS), recordmsg(recorddatam, MAXTRANS);
+	extern bool recordpackets;
 	loopv(clients) if(clients[i]->type != ST_EMPTY){ // next, flush it to the packet recorder
 		if(clients[i]->position.length() || clients[i]->messages.length()) flush = true;
 		else continue;
