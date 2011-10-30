@@ -702,7 +702,7 @@ struct langdef { string key; string val; };
 vector<langdef> langdefs;
 
 langdef *findlang(const char *key){
-	if(key) loopv(langdefs) if(!stricmp(langdefs[i].key, key)) return &langdefs[i];
+	if(key) loopv(langdefs) if(!strcmp(langdefs[i].key, key)) return &langdefs[i];
 	return NULL;
 }
 

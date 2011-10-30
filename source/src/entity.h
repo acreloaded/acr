@@ -107,17 +107,17 @@ static mul muls[MUL_NUM] =
 struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, range, endrange, rangeminus, projspeed, part, spread, kick, magsize, mdl_kick_rot, mdl_kick_back, recoil, maxrecoil, recoilangle, pushfactor; bool isauto; };
 extern guninfo guns[WEAP_MAX];
 
-extern inline ushort reloadtime(int gun);
-extern inline ushort attackdelay(int gun);
-extern inline ushort magsize(int gun);
-extern inline ushort reloadsize(int gun);
-extern inline ushort effectiveDamage(int gun, float dist, bool explosive = false);
+extern ushort reloadtime(int gun);
+extern ushort attackdelay(int gun);
+extern ushort magsize(int gun);
+extern ushort reloadsize(int gun);
+extern ushort effectiveDamage(int gun, float dist, bool explosive = false);
 
-extern inline const int obit_suicide(int weap);
-extern inline const char *suicname(int obit);
-extern inline const bool isheadshot(int weapon, int style);
-extern inline const int toobit(int weap, int style);
-extern inline const char *killname(int obit, bool headshot);
+extern const int obit_suicide(int weap);
+extern const char *suicname(int obit);
+extern const bool isheadshot(int weapon, int style);
+extern const int toobit(int weap, int style);
+extern const char *killname(int obit, bool headshot);
 
 enum { PERK_NONE = 0, PERK_SPEED, PERK_HAND, PERK_JAM, PERK_VISION, PERK_STREAK, PERK_STEADY, PERK_LIGHT, PERK_POWER, PERK_PERSIST, PERK_BRIBE, PERK_HEALTHY, PERK_MAX };
 
