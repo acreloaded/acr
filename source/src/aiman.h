@@ -100,7 +100,8 @@ void checkai(){
 	// check balance
 	int balance = 0;
 	const int people = numclients();
-	if(m_zombies){
+	if(!botbalance) balance = 0;
+	else if(m_zombies){
 		balance = (MAXBOTZ - BOTZDEV + min(people - 1, BOTZDEV)) + people;
 	}
 	else if(people) switch(botbalance){
@@ -112,7 +113,7 @@ void checkai(){
 				if(balance % 1 && m_team) ++balance;
 			}
 			break; // auto
-		case  0: balance = 0; break; // force no bots
+		//case  0: balance = 0; break; // force no bots
 		default: balance = max(people, botbalance); break; // force bot count
 	}
 	if(balance > 0){
