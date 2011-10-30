@@ -98,9 +98,7 @@ static bool reliablemessages = false;
 
 bool buildworldstate(){ // WAY easier worldstates
 	bool flush = false;
-	vector<int> recorded;
-	vector<uchar> recordmsg, recordpos;
-	loopv(clients){
+	loopv(clients){ // first, broadcast the needed packets
 		if(clients[i]->type!=ST_TCPIP || !clients[i]->connected) continue;
 		clients[i]->overflow = 0;
 		ENetPacket *messagepacket = enet_packet_create(NULL, MAXTRANS, reliablemessages ? ENET_PACKET_FLAG_RELIABLE : 0);
@@ -111,21 +109,13 @@ bool buildworldstate(){ // WAY easier worldstates
 			if(c.type == ST_EMPTY || j == i || c.state.ownernum == i) continue;
 			// <insert cheap occlusion checks here to prevent wall hacks>
 			// positions
-			const int pstart = pos.length();
 			pos.put(c.position.getbuf(), c.position.length());
 			// messages
-			const int mstart = p.length();
 			putint(p, N_CLIENT);
 			putint(p, j);
 			//putuint(p, c.messages.length());
 			p.put(c.messages.getbuf(), c.messages.length());
-			const int mlen = p.length() - mstart;
 			if(c.position.length() || c.position.length()) flush = true;
-			if(recorded.find(j) < 0){
-				loopk(c.position.length()) recordpos.add(pos.buf[pstart + k]);
-				loopk(mlen) recordmsg.add(p.buf[mstart + k]);
-				recorded.add(j);
-			}
 		}
 		enet_packet_resize(positionpacket, pos.length());
 		sendpacket(i, 0, positionpacket);
@@ -134,15 +124,13 @@ bool buildworldstate(){ // WAY easier worldstates
 		sendpacket(i, 1, messagepacket);
 		if(!messagepacket->referenceCount) enet_packet_destroy(messagepacket);
 	}
-	loopv(clients) if(clients[i]->type != ST_EMPTY){
+	if(flush) loopv(clients) if(clients[i]->type != ST_EMPTY){ // next, flush it to the packet recorder
+		recordpacket(0, clients[i]->position.getbuf(), clients[i]->position.length());
+		recordpacket(1, clients[i]->messages.getbuf(), clients[i]->messages.length());
 		clients[i]->position.setsize(0);
 		clients[i]->messages.setsize(0);
 	}
 	reliablemessages = false;
-	if(flush){
-		recordpacket(0, recordpos.getbuf(), recordpos.length());
-		recordpacket(1, recordmsg.getbuf(), recordmsg.length());
-	}
 	return flush;
 }
 
