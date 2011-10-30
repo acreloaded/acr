@@ -263,20 +263,22 @@ flaginfo *CACBot::SearchForFlags(bool bUseWPs, float flRange, float flMaxHeight)
 		flaginfo &of = flaginfos[team_opposite(i)];
 		if(f.state == CTFF_IDLE) continue;
 		//vec o = g_vecZero;
-		vec o = vec(f.flagent->x, f.flagent->y, S(f.flagent->x, f.flagent->y)->floor + m_pMyEnt->eyeheight);
+		vec o = vec(f.flagent->x, f.flagent->y, S(f.flagent->x, f.flagent->y)->floor + PLAYERHEIGHT / 2);
 		switch(f.state){
-			case CTFF_INBASE:
-				if(m_ctf && i == m_pMyEnt->team && of.actor != m_pMyEnt) continue;
+			case CTFF_INBASE: // go to this base
+				// if CTF capturing our flag
+				if(m_ctf && (i != m_pMyEnt->team || of.state != CTFF_STOLEN || of.actor != m_pMyEnt)) continue;
+				// in HTF to take out own flag
 				else if(m_htf && i != m_pMyEnt->team) continue;
-				// can be taken in KTF
+				// if KTF
 				break;
-			case CTFF_STOLEN:
-				// only return flag if stolen
+			case CTFF_STOLEN: // go to our stolen flag's base
+				// if rCTF and we have the flag
 				if(!m_return || f.actor != m_pMyEnt) continue;
 				break;
-			case CTFF_DROPPED:
-				// take every dropped flag, regardless of anything!
+			case CTFF_DROPPED: // take every dropped flag, regardless of anything!
 				o = f.pos;
+				o.z += PLAYERHEIGHT / 2;
 				break;
 		}
 		if(OUTBORD((int)o.x, (int)o.y)) continue;
