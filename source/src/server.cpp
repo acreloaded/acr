@@ -1769,6 +1769,7 @@ bool updateclientteam(int client, int team, int ftr){
 		if (ftr != FTR_AUTOTEAM) return false;
 	}
 	else clients[client]->removeexplosives();
+	if(clients[client]->team == TEAM_SPECT) clients[client]->state.lastdeath = gamemillis;
 	logline(ftr == FTR_SILENT ? ACLOG_DEBUG : ACLOG_INFO, "[%s] %s is now on team %s", gethostname(client), clients[client]->name, team_string(team));
 	sendf(-1, 1, "ri3", N_SETTEAM, client, (clients[client]->team = team) | (ftr << 4));
 	if(m_team || team == TEAM_SPECT) forcedeath(clients[client]);
@@ -3023,16 +3024,14 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(cp.team == TEAM_SPECT){ // need to unspectate
 					if(mastermode < MM_LOCKED || cp.type != ST_TCPIP || cp.priv >= PRIV_ADMIN){
 						updateclientteam(cn, freeteam(cn), FTR_PLAYERWISH);
-						if(canspawn(&cp, true)){
-							sendspawn(&cp);
-							break;
-						}
+						if(!canspawn(&cp, true)) break;
 					}
 					else{
 						sendf(sender, 1, "ri2", N_SWITCHTEAM, 1 << 4);
 						break; // no enqueue
 					}
 				}
+				else if(!canspawn(&cp)) break;
 				// enqueue for spawning
 				cp.state.state = CS_WAITING;
 				sendf(sender, 1, "ri3", N_TRYSPAWN, cn, 1);
