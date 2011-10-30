@@ -25,7 +25,7 @@ struct servercommandline scl;
 #ifdef STANDALONE
 #define SERVERMAP_PATH_INCOMING "packages/maps/servermaps/incoming/"
 #else
-#define SERVERMAP_PATH_INCOMING "home/packages/maps"
+#define SERVERMAP_PATH_INCOMING "home/packages/maps/"
 #endif
 
 string smapname, nextmapname;
