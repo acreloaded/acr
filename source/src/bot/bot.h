@@ -70,15 +70,7 @@ inline void debugbeam(vec &s, vec &e) { /*if (!dedserv) particle_trail(1, 500, s
 #define DIR_NONE	 0
 
 //fixmebot
-#define m_sp 1000
-#define m_classicsp 1000
-
-enum EBotCommands // For voting of bot commands
-{
-	COMMAND_ADDBOT=0,
-	COMMAND_KICKBOT,
-	COMMAND_BOTSKILL
-};
+#define m_classicsp false
 
 struct bot_skill_s
 {
@@ -156,6 +148,7 @@ enum ECurrentBotState
 	STATE_HUNT, // Bot is hunting an enemy
 	STATE_ENT, // Bot is heading to an entity
 	STATE_SP, // Bot is doing sp specific stuff
+	STATE_FLAG, // Bot is taking care of the flags
 	STATE_NORMAL // Bot is doing normal navigation
 };
 
@@ -229,10 +222,12 @@ public:
 	// Misc stuff
 	ECurrentBotState m_eCurrentBotState;
 	entity *m_pTargetEnt;
+	flaginfo *m_pTargetFlag;
 	TLinkedList<unreachable_ent_s *> m_UnreachableEnts;
 	int m_iCheckTeleporterDelay;
 	int m_iCheckJumppadsDelay;
 	int m_iCheckEntsDelay;
+	int m_iCheckFlagsDelay;
 	int m_iCheckTriggersDelay;
 	int m_iAimDelay;
 	float m_fYawToTurn, m_fPitchToTurn;
@@ -283,8 +278,12 @@ public:
 	virtual bool ChoosePreferredWeapon(void);
 	virtual entity *SearchForEnts(bool bUseWPs, float flRange=9999.0f,
 							float flMaxHeight=JUMP_HEIGHT) = 0;
+	virtual flaginfo *SearchForFlags(bool bUseWPs, float flRange=9999.0f,
+							float flMaxHeight=JUMP_HEIGHT) = 0;
 	virtual bool HeadToTargetEnt(void) = 0;
+	virtual bool HeadToTargetFlag(void) = 0;
 	bool CheckItems(void);
+	bool CheckFlags(void);
 	bool InUnreachableList(entity *e);
 	virtual bool DoSPStuff(void) = 0;
 	vec GetEnemyPos(playerent *d);

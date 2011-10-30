@@ -30,7 +30,10 @@ public:
 	void Reload(int Gun);
 	virtual entity *SearchForEnts(bool bUseWPs, float flRange=9999.0f,
 							float flMaxHeight=JUMP_HEIGHT);
+	virtual flaginfo *SearchForFlags(bool bUseWPs, float flRange=9999.0f,
+							float flMaxHeight=JUMP_HEIGHT);
 	virtual bool HeadToTargetEnt(void);
+	virtual bool HeadToTargetFlag(void);
 	virtual bool DoSPStuff(void);
 
 	virtual void Spawn(void);

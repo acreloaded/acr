@@ -243,6 +243,84 @@ entity *CACBot::SearchForEnts(bool bUseWPs, float flRange, float flMaxHeight)
 	return pNewTargetEnt;
 }
 
+flaginfo *CACBot::SearchForFlags(bool bUseWPs, float flRange, float flMaxHeight)
+{
+	float flDist;
+	flaginfo *pNewTargetFlag = NULL;
+	waypoint_s *pWptNearBot = NULL, *pBestWpt = NULL;
+	vec vNewGoal = g_vecZero;
+	
+	if ((WaypointClass.m_iWaypointCount >= 1) && bUseWPs)
+		pWptNearBot = GetNearestWaypoint(15.0f);
+
+#ifdef WP_FLOOD				
+	if (!pWptNearBot && bUseWPs)
+		pWptNearBot = GetNearestFloodWP(5.0f);
+#endif
+
+	loopi(2){
+		flaginfo &f = flaginfos[i];
+		flaginfo &of = flaginfos[team_opposite(i)];
+		if(f.state == CTFF_IDLE) continue;
+		//vec o = g_vecZero;
+		vec o = vec(f.flagent->x, f.flagent->y, S(f.flagent->x, f.flagent->y)->floor + m_pMyEnt->eyeheight);
+		switch(f.state){
+			case CTFF_INBASE:
+				if(m_ctf && i == m_pMyEnt->team && of.actor != m_pMyEnt) continue;
+				else if(m_htf && i != m_pMyEnt->team) continue;
+				// can be taken in KTF
+				break;
+			case CTFF_STOLEN:
+				// only return flag if stolen
+				if(!m_return || f.actor != m_pMyEnt) continue;
+				break;
+			case CTFF_DROPPED:
+				// take every dropped flag, regardless of anything!
+				o = f.pos;
+				break;
+		}
+		if(OUTBORD((int)o.x, (int)o.y)) continue;
+		flDist = GetDistance(o);
+		if (flDist > flRange) continue;
+
+		waypoint_s *pWptNearEnt = NULL;
+		// If this flag entity isn't visible check if there is a nearby waypoint
+		if (!IsReachable(o, flMaxHeight))//(!IsVisible(o))
+		{
+			if (!pWptNearBot) continue;
+			
+#ifdef WP_FLOOD			
+			if (pWptNearBot->pNode->iFlags & W_FL_FLOOD)
+				pWptNearEnt = GetNearestFloodWP(o, 8.0f);
+			else
+#endif			
+				pWptNearEnt = GetNearestWaypoint(o, 15.0f);
+				
+			if (!pWptNearEnt) continue;						
+		}
+
+		if (pWptNearEnt) pBestWpt = pWptNearEnt;
+		else pBestWpt = NULL; // best flag doesn't need any waypoints
+
+		vNewGoal = o;
+		pNewTargetFlag = &f;
+	}
+	
+	if (pNewTargetFlag)
+	{		
+		// Need waypoints to reach it?
+		if (pBestWpt)
+		{
+			ResetWaypointVars();
+			SetCurrentWaypoint(pWptNearBot);
+			SetCurrentGoalWaypoint(pBestWpt);
+		}
+		
+		m_vGoal = vNewGoal;
+	}
+	return pNewTargetFlag;
+}
+
 bool CACBot::HeadToTargetEnt()
 {	
 	if (m_pTargetEnt)
@@ -310,7 +388,72 @@ bool CACBot::HeadToTargetEnt()
 	
 	return false;
 }
-		
+
+bool CACBot::HeadToTargetFlag()
+{
+	if(m_pTargetFlag)
+	{
+		const vec o = m_vGoal;
+		if(!UnderWater(m_pMyEnt->o) || !UnderWater(o))
+		{
+			bool bIsVisible = false;
+			if (m_pCurrentGoalWaypoint)
+			{
+				if ((GetDistance(o) <= 20.0f) && IsReachable(o, 1.0f))
+					bIsVisible = true;
+				else if (HeadToGoal())
+				{
+					//debugbeam(m_pMyEnt->o, m_pCurrentWaypoint->pNode->v_origin);
+					//debugbeam(m_pMyEnt->o,
+					//		  m_pCurrentGoalWaypoint->pNode->v_origin);
+					AddDebugText("Using WPs for flag");
+					return true;
+				}
+			}
+			else
+				bIsVisible = IsVisible(o);
+							
+			if (bIsVisible)
+			{
+				if (m_pCurrentWaypoint || m_pCurrentGoalWaypoint)
+				{
+					condebug("flag is now visible");
+					ResetWaypointVars();
+				}
+				
+				float flHeightDiff = o.z - m_pMyEnt->o.z;
+				bool bToHigh = false;
+				if (Get2DDistance(o) <= 2.0f)
+				{
+					if (flHeightDiff >= 1.5f)
+					{
+						if (flHeightDiff <= JUMP_HEIGHT)
+						{
+#ifndef RELEASE_BUILD				
+							char sz[64];
+							sprintf(sz, "Flag z diff: %f", o.z-m_pMyEnt->o.z);
+							condebug(sz);
+#endif					
+							// Jump if close to ent and the ent is high
+							m_pMyEnt->jumpnext = true;
+						}
+						else
+							bToHigh = true;
+					}
+				}
+				
+				if (!bToHigh)
+				{
+					AimToVec(o);
+					return true;						
+				}								
+			}
+		}
+	}
+
+	return false;
+}
+
 bool CACBot::DoSPStuff()
 {
 	return false;

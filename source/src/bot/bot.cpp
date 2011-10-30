@@ -78,9 +78,11 @@ void CBot::Spawn()
 	   
 	m_iLastJumpPad = 0;
 	m_pTargetEnt = NULL;
+	m_pTargetFlag = NULL;
 	while(!m_UnreachableEnts.Empty()) delete m_UnreachableEnts.Pop();
 	m_iCheckTeleporterDelay = m_iCheckJumppadsDelay = 0;
 	m_iCheckEntsDelay = 0;
+	m_iCheckFlagsDelay = 0;
 	m_iCheckTriggersDelay = 0;
 	m_iLookForWaypointTime = 0;
 	   
@@ -405,6 +407,9 @@ void CBot::ResetCurrentTask()
 		m_bCombatJump = false;
 		m_vGoal = g_vecZero;
 		break;
+	case STATE_FLAG:
+		m_pTargetFlag = NULL;
+		// note the fall through
 	case STATE_ENT:
 		m_pTargetEnt = NULL;
 		m_vGoal = g_vecZero;

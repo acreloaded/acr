@@ -66,8 +66,10 @@ void CACBot::Spawn()
 	   
 	m_iLastJumpPad = 0;
 	m_pTargetEnt = NULL;
+	m_pTargetFlag = NULL;
 	m_iCheckTeleporterDelay = m_iCheckJumppadsDelay = 0;
 	m_iCheckEntsDelay = 0;
+	m_iCheckFlagsDelay = 0;
 	m_iCheckTriggersDelay = 0;
 	m_iLookForWaypointTime = 0;
 	   

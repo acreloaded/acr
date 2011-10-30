@@ -814,6 +814,13 @@ void CBot::MainAI()
 		if (!CheckJump())
 			DoCombatNav();
 	}
+	// Taking care of the flags
+	else if (CheckFlags())
+	{
+		CheckReload();
+		AddDebugText("has flag");
+		m_eCurrentBotState = STATE_FLAG;
+	}
 	else if (CheckHunt() && HuntEnemy())
 	{
 		CheckReload();
@@ -1805,7 +1812,7 @@ bool CBot::CheckItems()
 {		
 	if (!m_pCurrentGoalWaypoint && !CheckJump() && CheckStuck())
 	{
-		// Don't check for ents a while when stuck			    
+		// Don't check for ents for a while when stuck			    
 		m_iCheckEntsDelay = lastmillis + RandomLong(1000, 2000);
 		return false;
 	}
@@ -1838,7 +1845,48 @@ bool CBot::CheckItems()
 	}
 	
 	return false;
-}		
+}
+
+bool CBot::CheckFlags()
+{
+	if (!m_flags) return false;
+
+	if (!m_pCurrentGoalWaypoint && !CheckJump() && CheckStuck())
+	{
+		// Don't check for flags for a while when stuck			    
+		m_iCheckFlagsDelay = lastmillis + RandomLong(500, 1500);
+		return false;
+	}
+	
+	if (m_vGoal==g_vecZero)
+		m_pTargetFlag = NULL;
+ 
+	if (!m_pTargetFlag)
+	{
+		if (m_iCheckFlagsDelay > lastmillis)
+			return false;
+		else
+		{
+			m_pTargetFlag = SearchForFlags(!m_classicsp);
+			m_iCheckFlagsDelay = lastmillis + RandomLong(1000, 1500);
+		}
+	}
+			   
+	if (m_pTargetFlag)
+	{
+		if (HeadToTargetFlag())
+			return true;
+	}
+	
+	if (m_eCurrentBotState == STATE_FLAG)
+	{
+		ResetWaypointVars();
+		m_vGoal = g_vecZero;
+		m_pTargetFlag = NULL;
+	}
+	
+	return false;
+}
 
 bool CBot::InUnreachableList(entity *e)
 {

@@ -434,7 +434,13 @@ bool empty_world(int factor, bool force)	// main empty world creation routine, i
 		loopk(3) loopi(256) hdr.texlists[k][i] = i;
 		ents.shrink(0);
 		// Victor's fix for new map -> bots crashing
-		loopv(players) if(players[i] && players[i]->pBot && players[i]->pBot->m_pTargetEnt) players[i]->pBot->m_pTargetEnt = NULL;
+		loopv(players) if(players[i] && players[i]->pBot && players[i]->pBot){
+			players[i]->pBot->ResetCurrentTask();
+			// don't just be sure, be double sure
+			players[i]->enemy = NULL;
+			players[i]->pBot->m_pTargetEnt = NULL;
+			players[i]->pBot->m_pTargetFlag = NULL;
+		}
 		block b = { 8, 8, ssize-16, ssize-16 };
 		edittypexy(SPACE, b);
 	}
