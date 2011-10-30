@@ -107,6 +107,22 @@ static mul muls[MUL_NUM] =
 struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, range, endrange, rangeminus, projspeed, part, spread, kick, magsize, mdl_kick_rot, mdl_kick_back, recoil, maxrecoil, recoilangle, pushfactor; bool isauto; };
 extern guninfo guns[WEAP_MAX];
 
+static inline ushort reloadtime(int gun) { return guns[gun].reloadtime; }
+static inline ushort attackdelay(int gun) { return guns[gun].attackdelay; }
+static inline ushort magsize(int gun) { return guns[gun].magsize; }
+static inline ushort reloadsize(int gun) { return gun == WEAP_SHOTGUN ? 1 : guns[gun].magsize; }
+static inline ushort effectiveDamage(int gun, float dist, bool explosive) {
+	float finaldamage = 0;
+	if(dist <= guns[gun].range || (!guns[gun].range && !guns[gun].endrange)) finaldamage = guns[gun].damage;
+	else if(dist >= guns[gun].endrange) finaldamage = guns[gun].damage - guns[gun].rangeminus;
+	else{
+		float subtractfactor = (dist - (float)guns[gun].range) / ((float)guns[gun].endrange - (float)guns[gun].range);
+		if(explosive) subtractfactor = sqrtf(subtractfactor);
+		finaldamage = guns[gun].damage - subtractfactor * guns[gun].rangeminus;
+	}
+	return finaldamage * HEALTHSCALE;
+}
+
 extern ushort reloadtime(int gun);
 extern ushort attackdelay(int gun);
 extern ushort magsize(int gun);

@@ -440,23 +440,7 @@ guninfo guns[WEAP_MAX] =
 	{ "bow",        S_NULL,     S_RASSAULT, 2000,   120,   250,    0,   24,  240,   0,   0, 88,    3,    1,   3,  1,    48,    50,      0, 4,   false},
 };
 
-inline ushort reloadtime(int gun) { return guns[gun].reloadtime; }
-inline ushort attackdelay(int gun) { return guns[gun].attackdelay; }
-inline ushort magsize(int gun) { return guns[gun].magsize; }
-inline ushort reloadsize(int gun) { return gun == WEAP_SHOTGUN ? 1 : guns[gun].magsize; }
-inline ushort effectiveDamage(int gun, float dist, bool explosive) {
-	float finaldamage = 0;
-	if(dist <= guns[gun].range || (!guns[gun].range && !guns[gun].endrange)) finaldamage = guns[gun].damage;
-	else if(dist >= guns[gun].endrange) finaldamage = guns[gun].damage - guns[gun].rangeminus;
-	else{
-		float subtractfactor = (dist - (float)guns[gun].range) / ((float)guns[gun].endrange - (float)guns[gun].range);
-		if(explosive) subtractfactor = sqrtf(subtractfactor);
-		finaldamage = guns[gun].damage - subtractfactor * guns[gun].rangeminus;
-	}
-	return finaldamage * HEALTHSCALE;
-}
-
-inline const int obit_suicide(int weap){
+const int obit_suicide(int weap){
 	if(melee_weap(weap)) return OBIT_FF;
 	if(weap >= 0 && weap <= OBIT_START) return weap;
 	switch(weap - OBIT_START){
@@ -471,7 +455,7 @@ inline const int obit_suicide(int weap){
 	return OBIT_DEATH;
 }
 
-inline const char *suicname(int obit){
+const char *suicname(int obit){
 	static string k;
 	*k = 0;
 	switch(obit){
@@ -532,7 +516,7 @@ inline const char *suicname(int obit){
 	return k;
 }
 
-inline const bool isheadshot(int weapon, int style){
+const bool isheadshot(int weapon, int style){
 	if(!(style & FRAG_GIB)) return false; // only headshots gib
 	switch(weapon){
 		case WEAP_KNIFE:
@@ -546,7 +530,7 @@ inline const bool isheadshot(int weapon, int style){
 	return true;
 }
 
-inline const int toobit(int weap, int style){
+const int toobit(int weap, int style){
 	const bool gib = (style & FRAG_GIB) > 0,
 				flag = (style & FRAG_FLAG) > 0;
 	switch(weap){
@@ -558,7 +542,7 @@ inline const int toobit(int weap, int style){
 	return weap < WEAP_MAX ? weap : OBIT_DEATH;
 }
 
-inline const char *killname(int obit, bool headshot){
+const char *killname(int obit, bool headshot){
 	static string k;
 	*k = 0;
 	switch(obit){
@@ -625,7 +609,7 @@ inline const char *killname(int obit, bool headshot){
 }
 
 // perk-related
-inline float gunspeed(int gun, int ads, bool lightweight){
+float gunspeed(int gun, int ads, bool lightweight){
 	float ret = lightweight ? 1.07f : 1;
 	if(ads) ret *= 1 - ads / (lightweight ? 3500 : 3000.f);
 	switch(gun){
@@ -659,7 +643,7 @@ inline float gunspeed(int gun, int ads, bool lightweight){
 	return ret;
 }
 
-inline int classic_forceperk(int primary){
+int classic_forceperk(int primary){
 	switch(primary){ // no need for break;
 		case WEAP_KNIFE:
 		case WEAP_PISTOL:

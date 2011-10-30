@@ -598,8 +598,8 @@ inline char *newstringbuf(const char *s)		{ return newstring(s, _MAXDEFSTR-1); }
 
 #ifndef STANDALONE
 extern const char *_gettext(const char *msgid);
-#endif
 #define _(s) _gettext(s)
+#endif
 
 const int islittleendian = 1;
 #ifdef SDL_BYTEORDER

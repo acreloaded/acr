@@ -716,7 +716,7 @@ void deflang(char *key, char *val){
 }
 COMMANDN(lang, deflang, ARG_2STR);
 
-inline const char *_gettext(const char *msgid)
+const char *_gettext(const char *msgid)
 {
 	langdef *langfound = findlang(msgid);
 	if(langfound) return langfound->val;
