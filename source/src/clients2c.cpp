@@ -469,7 +469,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				loopi(WEAP_MAX) d->ammo[i] = getint(p);
 				loopi(WEAP_MAX) d->mag[i] = getint(p);
 				d->state = CS_ALIVE;
-				s->spawnmillis = lastmillis;
+				d->spawnmillis = lastmillis;
 				findplayerstart(d, false, arenaspawn);
 				if(d == player1){
 					if(editmode) toggleedit(true);
