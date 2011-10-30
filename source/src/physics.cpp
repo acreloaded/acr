@@ -513,7 +513,6 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 	bool collided = false;
 	vec oldorigin = pl->o;
 
-	tkhit = NULL;
 	if(!editfly) loopi(moveres)								// discrete steps collision detection & sliding
 	{
 		const float f = 1.0f/moveres;
@@ -721,6 +720,7 @@ void moveplayer(physent *pl, int moveres, bool local)
 
 void movebounceent(bounceent *p, int moveres, bool local)
 {
+	tkhit = NULL;
 	moveplayer(p, moveres, local);
 }
 

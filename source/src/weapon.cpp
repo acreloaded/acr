@@ -1052,6 +1052,7 @@ void knifeent::explode(){
 	static vec n(0,0,0);
 	if(local){
 		extern playerent *tkhit;
+		conoutf(tkhit ? "\f3HIT" : "\f0MISS");
 		addmsg(N_PROJ, "ri4f3", owner->clientnum, lastmillis, WEAP_KNIFE, tkhit ? tkhit->clientnum : -1, o.x, o.y, o.z);
 	}
 	playsound(S_GRENADEBOUNCE1+rnd(2), &o);
