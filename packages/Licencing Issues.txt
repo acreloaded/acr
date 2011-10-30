@@ -8,9 +8,11 @@ misc/ - makkE
 misc/ - Infinity Ward
 	eventicons*
 	obit*
-	perks
 	waypoints* (except knife.png)
 	damagedir.png
 	*only portions of it
-models/mapmodels/laptop1 - © 2004 JCDPC
+models/mapmodels/
+	laptop1 - © 2004 JCDPC
+	barrel_ice, tree_snow - © makKe
+	Ventflap - DCP (unknown copyright status)
 models/playermodels (models only, no skins) - HitmanDaz[MT] (Darren Pattenden)
