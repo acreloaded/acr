@@ -172,7 +172,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 {
 	static char text[MAXTRANS];
 	int type, joining = 0;
-	bool demoplayback = false;
 
 	while(p.remaining())
 	{
@@ -1327,13 +1326,15 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_DEMOPLAYBACK:
 			{
-				watchingdemo = demoplayback = getint(p)!=0;
-				if(demoplayback)
+				watchingdemo = getint(p)!=0;
+				if(watchingdemo)
 				{
 					getstring(text, p);
 					conoutf("playing demo \"%s\"", text);
 					player1->resetspec();
+					player1->team = TEAM_SPECT;
 					player1->state = CS_SPECTATE;
+					player1->spectatemode = SM_FLY;
 				}
 				else
 				{

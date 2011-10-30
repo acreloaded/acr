@@ -190,7 +190,7 @@ void renderscores(void *menu, bool init){
 			if(!players[i]) continue;
 			teamscores[fixteam(players[i])].addscore(players[i]);
 		}
-		if(!watchingdemo) teamscores[fixteam(player1)].addscore(player1);
+		teamscores[fixteam(player1)].addscore(player1);
 		loopi(TEAM_NUM) teamscores[i].teammembers.sort(scorecmp);
 
 		int sort = teamscorecmp(&teamscores[TEAM_RED], &teamscores[TEAM_BLUE]);
