@@ -20,8 +20,6 @@
 	-If a bot gets ammo it should ignore that kind of ammo for the next 10 seconds. ?
 	-bots should ignore players that are too far away ?
 	-bots should dodge/jump when shot at
-	-If the bot's only weapon is the fist it should make looking for ammo its priority - Done ?
-	-bots should rocket jump to get quads and the 150 armor if normal jumping doesn't
 	 work (only if health is x so they don't suicide).
 	-Make all the "UNDONE's" done :)
 	-Finish waypoint navigation
@@ -33,8 +31,6 @@
 	-Waypoint experience file
 	-Bots should avoid team mates
 	-Handle failed goals better(ie remember them)
-	-Test multiplayer
-	-Fix bots getting stuck in each other
 	-Optimize hunting code
 	-Check/Fix msg code
 */
