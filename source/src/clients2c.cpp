@@ -653,7 +653,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(p != player1 && !isowned(p) && p->weapons[gun]) p->weapons[gun]->reload();
 				p->ammo[gun] = ammo;
 				p->mag[gun] = mag;
-				if(guns[gun].reload != S_NULL) playsound(guns[gun].reload, p, p == player1 ? SP_HIGH : SP_NORMAL);
 				if(gun == WEAP_KNIFE) p->addicon(eventicon::PICKUP);
 				break;
 			}

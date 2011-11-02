@@ -360,6 +360,7 @@ bool weapon::reload(){
 
 	owner->ammo[type] -= reloadsize(type);
 	owner->mag[type] = min<int>(magsize(type), owner->mag[type] + reloadsize(type));
+	if(info.reload != S_NULL) playsound(info.reload, owner, owner == player1 ? SP_HIGH : SP_NORMAL);
 
 	if(player1 == owner || isowned(owner)) addmsg(N_RELOAD, "ri3", owner->clientnum, lastmillis, type);
 	return true;
