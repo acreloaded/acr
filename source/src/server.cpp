@@ -1266,7 +1266,6 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 	if(m_real) style &= ~FRAG_CRIT;
 
 	if(target != actor){
-		if(ts.protect(gamemillis)) return; // check for spawn protection
 		if(isteam(actor, target)){ // friendly fire
 			if(m_classic) return;
 			if((damage *= 0.25) > target->state.health - 80 * HEALTHSCALE) damage = target->state.health - 80 * HEALTHSCALE; // no more TKs!

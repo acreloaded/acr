@@ -73,7 +73,7 @@ int explosion(client &owner, const vec &o2, int weap, bool gib){
 	// find the hits
 	loopv(clients){
 		client &target = *clients[i];
-		if(target.type == ST_EMPTY || target.state.state != CS_ALIVE) continue;
+		if(target.type == ST_EMPTY || target.state.state != CS_ALIVE || target.state.protect(gamemillis)) continue;
 		float dist = target.state.o.dist(o);
 		if(dist >= guns[weap].endrange) continue; // too far away
 		vec ray(target.state.o);
@@ -120,7 +120,6 @@ void nuke(client &owner){
 		client *cl = clients[j];
 		if(cl->type != ST_EMPTY && cl != &owner){
 			cl->state.state = CS_ALIVE;
-			cl->state.spawnmillis = INT_MIN;
 			// sort hits
 			nukehit &hit = hits.add();
 			hit.distance = cl->state.o.dist(owner.state.o);
@@ -143,7 +142,7 @@ client *nearesthit(client &actor, const vec &from, const vec &to, int &hitzone, 
 		client &t = *clients[i];
 		clientstate &ts = t.state;
 		// basic checks
-		if(t.type == ST_EMPTY || ts.state != CS_ALIVE || &t == exclude) continue;
+		if(t.type == ST_EMPTY || ts.state != CS_ALIVE || &t == exclude || ts.protect(gamemillis)) continue;
 		const float d = ts.o.dist(from);
 		if(d > dist) continue;
 		vec head = generateHead(ts.o, ts.aim[0]);
