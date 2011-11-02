@@ -756,6 +756,7 @@ bool gun::attack(vec &targ){
 	from.z -= WEAPONBELOWEYE;
 
 	attackphysics(from, to);
+	attacksound();
 
 	gunwait = info.attackdelay;
 	mag--;
@@ -805,7 +806,7 @@ void gun::attackfx(const vec &from2, const vec &to, int millis){
 	addshotline(owner, from, to, millis & 1);
 	particle_splash(0, 5, 250, to);
 	adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
-	if(millis & 1) attacksound();
+	if((millis & 1) && owner != player1 && !isowned(owner)) attacksound();
 }
 
 int gun::modelanim() { return modelattacking() ? ANIM_WEAP_SHOOT|ANIM_LOOP : ANIM_WEAP_IDLE; }
@@ -828,7 +829,7 @@ void shotgun::attackfx(const vec &from2, const vec &to, int millis){
 			addbullethole(owner, from, sg[i], 0, false);
 		}
 		if(millis & 1) attackshell(to);
-		attacksound();
+		if(owner != player1 && !isowned(owner)) attacksound();
 		adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
 	}
 	else{
@@ -907,7 +908,7 @@ void crossbow::attackfx(const vec &from2, const vec &to, int millis){
 	addshotline(owner, from, to, 2);
 	particle_trail(15, 400, from, to);
 	particle_splash(0, 5, 250, to);
-	attacksound();
+	if(owner != player1 && !isowned(owner)) attacksound();
 }
 
 void crossbow::attackhit(const vec &o){
@@ -930,7 +931,7 @@ void scopedprimary::attackfx(const vec &from2, const vec &to, int millis){
 	particle_splash(0, 50, 200, to);
 	particle_trail(1, 500, from, to);
 	adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
-	if(millis & 1) attacksound();
+	if(millis & 1 && owner != player1 && !isowned(owner)) attacksound();
 }
 
 float scopedprimary::dynrecoil() { return weapon::dynrecoil() * 1 - owner->ads / 1500; } // 1/3 spread when ADS
@@ -1018,7 +1019,7 @@ void heal::attackfx(const vec &from2, const vec &to, int millis){
 	addshotline(owner, from, to, 2);
 	particle_trail(14, 400, from, to);
 	particle_splash(0, 3, 200, to);
-	attacksound();
+	if(owner != player1 && !isowned(owner)) attacksound();
 }
 
 vector<cknife> knives;
@@ -1139,6 +1140,8 @@ bool knife::attack(vec &targ){
 	owner->lastattackweapon = this;
 	owner->attacking = info.isauto;
 
+	attacksound();
+
 	sendshoot(targ);
 	gunwait = info.attackdelay;
 	return true;
@@ -1203,7 +1206,7 @@ void knife::attackfx(const vec &from, const vec &to, int millis) {
 		bounceents.add(g);
 		g->_throw(from, to);
 	}
-	else attacksound();
+	else if(owner != player1 && !isowned(owner)) attacksound();
 }
 void knife::renderstats() { if(ammo) draw_textf("%i", 590, 823, ammo); }
 
