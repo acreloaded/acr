@@ -132,8 +132,6 @@ struct weaponmove
 			}
 		}
 
-		if(gamefocus->protect(lastmillis)) anim |= ANIM_TRANSLUCENT;
-
 		pos.add(swaydir);
 		pos.x -= aimdir.x*k_back+sway.x;
 		pos.y -= aimdir.y*k_back+sway.y;

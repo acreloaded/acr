@@ -417,8 +417,11 @@ void weapon::renderhudmodel(int lastaction, bool akimboflip){
 	if(!intermission) wm.calcmove(unitv, lastaction);
 	defformatstring(path)("weapons/%s", info.modelname);
 	const bool emit = ((wm.anim&ANIM_INDEX)==ANIM_WEAP_SHOOT) && (lastmillis - lastaction) < flashtime();
-	if(ads_gun(type) && (wm.anim&ANIM_INDEX)==ANIM_WEAP_SHOOT){ wm.anim &= ~ANIM_INDEX; wm.anim |= ANIM_WEAP_IDLE; }
-	rendermodel(path, wm.anim|ANIM_DYNALLOC|(flip ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, -1, wm.pos, owner->yaw+90, owner->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, NULL, 1.28f);
+	if(ads_gun(type) && (wm.anim&ANIM_INDEX)==ANIM_WEAP_SHOOT) wm.anim = ANIM_WEAP_IDLE;
+	if(flip) wm.anim |= ANIM_MIRROR;
+	if(emit) wm.anim |= ANIM_PARTICLE;
+	if(gamefocus->protect(lastmillis)) wm.anim |= ANIM_TRANSLUCENT;
+	rendermodel(path, wm.anim|ANIM_DYNALLOC, 0, -1, wm.pos, owner->yaw+90, owner->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, NULL, 1.28f);
 }
 
 void weapon::updatetimers(){
