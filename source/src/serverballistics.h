@@ -203,7 +203,7 @@ int shot(client &owner, const vec &from, vec &to, int weap, const vec &surface, 
 			sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, weap, end.x, end.y, end.z, dir.x, dir.y, dir.z);
 		}
 	}
-	else if(!m_classic && !dist && from.dist(to) < 100 && surface.magnitude() && !melee_weap(weap)){ // ricochet once before 25 meters or going through a player
+	else if(!dist && from.dist(to) < 100 && surface.magnitude() && !melee_weap(weap)){ // ricochet once before 25 meters or going through a player
 		vec dir(to), newsurface;
 		// calculate reflected ray from incident ray and surface normal
 		dir.sub(from).normalize();
