@@ -2653,6 +2653,14 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool nospawn){
 		}
         else sendspawn(c);
 	}
+	else{
+		//sendserveropinfo(-1);
+		loopv(clients) if(valid_client(i)){
+			putint(p, N_SETPRIV);
+			putint(p, i);
+			putint(p, clients[i]->priv);
+		}
+	}
 	if(clients.length()>1 || restored || !c)
 	{
 		putint(p, N_RESUME);
