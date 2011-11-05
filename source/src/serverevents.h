@@ -21,26 +21,28 @@ void processevent(client &c, projevent &e){
 			if(!gs.knives.removeany()) return;
 			ushort dmg = effectiveDamage(WEAP_KNIFE, 0);
 			client *hit = valid_client(e.flag) && e.flag != c.clientnum ? clients[e.flag] : NULL;
-			if(hit){
+			if(hit){ // maybe change this to server-sided collision?
 				client &target = *hit;
 				clientstate &ts = target.state;
-				int tknifeflags = FRAG_FLAG;
-				if(checkcrit(0, 0, 20)){ // 5% critical hit chance
-					tknifeflags |= FRAG_CRIT;
-					dmg *= 2; // 80 * 2 = 160 damage instant kill!
-				}
-				else dmg /= 4; //80 / 4 = 20 just because of the bleeding effect
-				damagedealt += dmg;
-				// bleeding damage
-				target.state.lastbleed = gamemillis;
-				target.state.lastbleedowner = c.clientnum;
-				sendf(-1, 1, "ri2", N_BLEED, e.flag);
-				serverdamage(&target, &c, dmg, WEAP_KNIFE, FRAG_FLAG, vec(0, 0, 0));
+				if(ts.state == CS_ALIVE && !ts.protect(gamemillis)){
+					int tknifeflags = FRAG_FLAG;
+					if(checkcrit(0, 0, 20)){ // 5% critical hit chance
+						tknifeflags |= FRAG_CRIT;
+						dmg *= 2; // 80 * 2 = 160 damage instant kill!
+					}
+					else dmg /= 4; //80 / 4 = 20 just because of the bleeding effect
+					damagedealt += dmg;
+					// bleeding damage
+					target.state.lastbleed = gamemillis;
+					target.state.lastbleedowner = c.clientnum;
+					sendf(-1, 1, "ri2", N_BLEED, e.flag);
+					serverdamage(&target, &c, dmg, WEAP_KNIFE, FRAG_FLAG, vec(0, 0, 0));
 
-				e.o[0] = ts.o[0];
-				e.o[1] = ts.o[1];
-				int cubefloor = getblockfloor(getmaplayoutid(e.o[0], e.o[1]));
-				e.o[2] = ts.o[2] > cubefloor ? (cubefloor + ts.o[2]) / 2 : cubefloor;
+					e.o[0] = ts.o[0];
+					e.o[1] = ts.o[1];
+					int cubefloor = getblockfloor(getmaplayoutid(e.o[0], e.o[1]));
+					e.o[2] = ts.o[2] > cubefloor ? (cubefloor + ts.o[2]) / 2 : cubefloor;
+				}
 			}
 
 			sendhit(c, WEAP_KNIFE, e.o);
