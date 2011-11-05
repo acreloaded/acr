@@ -475,7 +475,7 @@ void drawradar(playerent *p, int w, int h)
 	glTranslatef(-(centerpos.x-res/2)/worldsize*radarsize, -(centerpos.y-res/2)/worldsize*radarsize, 0);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	drawradarent(fixradarpos(p->o, centerpos, res), coordtrans, p->yaw, p->state!=CS_DEAD ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), p->perk == PERK_JAM ? .35f : 1, "\f1%s", colorname(p)); // local player
+	drawradarent(fixradarpos(p->o, centerpos, res), coordtrans, p->yaw, p->state!=CS_DEAD ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), p->state==CS_DEAD ? .2f : p->perk == PERK_JAM ? .35f : 1, "\f1%s", colorname(p)); // local player
 
 	// radar check
 	bool hasradar = p == player1 || isteam(p, player1) ? player1->radarearned > totalmillis : false;
@@ -505,7 +505,7 @@ void drawradar(playerent *p, int w, int h)
 		}
 		if(isteam(p, pl) || p->team == TEAM_SPECT || force || pl->state == CS_DEAD) // friendly, flag tracker or dead
 			drawradarent(fixradarpos(pl->o, centerpos, res, pl->state==CS_DEAD), coordtrans, pl->yaw, pl->state!=CS_DEAD ? (isattacking(pl) ? 2 : 0) : 1,
-				isteam(p, pl) ? 1 : 0, iconsize, isattacking(pl), 1.f, "\f%d%s", isteam(p, pl) ? 0 : 3, colorname(pl));
+				isteam(p, pl) ? 1 : 0, iconsize, isattacking(pl), pl->state==CS_DEAD ? .2f : 1, "\f%d%s", isteam(p, pl) ? 0 : 3, colorname(pl));
 		else
 			drawradarent(fixradarpos(pl->lastloudpos, centerpos, res, pl->state==CS_DEAD), coordtrans, pl->lastloudpos[2], pl->state!=CS_DEAD ? (isattacking(pl) ? 2 : 0) : 1,
 				isteam(p, pl) ? 1 : 0, iconsize, false, (radarenemyfade - lastmillis + pl->radarmillis) / (float)radarenemyfade, "\f3%s", colorname(pl));
