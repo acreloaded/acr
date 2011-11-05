@@ -137,7 +137,7 @@ void renderentities()
 				if(OUTBORD(f.actor->o.x, f.actor->o.y)) break;
 				vec flagpos(f.actor->o);
 				flagpos.add(vec(0, 0, 0.3f+(sinf(lastmillis/100.0f)+1)/10));
-				rendermodel(sfpath, ANIM_FLAG|ANIM_START|ANIM_DYNALLOC, 0, 0, flagpos, lastmillis/2.5f, 0, 120.0f);
+				rendermodel(sfpath, ANIM_FLAG|ANIM_START|ANIM_DYNALLOC, 0, 0, flagpos, lastmillis/2.5f + (i ? 180 : 0), 0, 120.0f);
 				break;
 			}
 			case CTFF_DROPPED:
