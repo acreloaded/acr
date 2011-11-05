@@ -822,7 +822,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	if(command) commandh -= rendercommand(20, 1570, VIRTW);
 	else if(infostr) draw_text(infostr, 20, 1570);
 	else{
-		defformatstring(hudtext)("\f0[\f1%03.1f\f3m\f0]", p->o.dist(worldpos) / 4.f);
+		defformatstring(hudtext)("\f0[\f1%04.1f\f3m\f0]", p->o.dist(worldpos) / 4.f);
 		static string hudtarget;
 		static int lasttarget = INT_MIN;
 		if(targetplayer){
@@ -832,7 +832,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 			lasttarget = lastmillis;
 		}
 		else if(lastmillis - lasttarget < 800){
-			const int a = (800 - lastmillis + lasttarget) * 255 / 800;
+			const short a = (800 - lastmillis + lasttarget) * 255 / 800;
 			draw_text(hudtarget, 20 + text_width(hudtext), 1570, a, a, a, a);
 		}
 		draw_text(hudtext, 20, 1570);
