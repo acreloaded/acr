@@ -821,12 +821,22 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	int commandh = 1570 + FONTH;
 	if(command) commandh -= rendercommand(20, 1570, VIRTW);
 	else if(infostr) draw_text(infostr, 20, 1570);
-	else if(targetplayer){
-		defformatstring(targetplayername)("\f%d%s \f4[\f%s\f4]", p==targetplayer?1:isteam(p, targetplayer)?0:3, colorname(targetplayer),
-			targetplayerzone==HIT_HEAD?"3HEAD":targetplayerzone==HIT_TORSO?"2TORSO":"0LEGS");
-		draw_text(targetplayername, 20, 1570);
+	else{
+		defformatstring(hudtext)("\f0[\f1%03.1f\f3m\f0]", p->o.dist(worldpos) / 4.f);
+		static string hudtarget;
+		static int lasttarget = INT_MIN;
+		if(targetplayer){
+			formatstring(hudtarget)(" \f2[\f%d%s\f2] \f4[\f%s\f4]", p==targetplayer?1:isteam(p, targetplayer)?0:3, colorname(targetplayer),
+				targetplayerzone==HIT_HEAD?"3HEAD":targetplayerzone==HIT_TORSO?"2TORSO":"0LEGS");
+			concatstring(hudtext, hudtarget);
+			lasttarget = lastmillis;
+		}
+		else if(lastmillis - lasttarget < 800){
+			const int a = (800 - lastmillis + lasttarget) * 255 / 800;
+			draw_text(hudtarget, 20 + text_width(hudtext), 1570, a, a, a, a);
+		}
+		draw_text(hudtext, 20, 1570);
 	}
-	else draw_textf("\f0%s\f2: \f1%.1f\f3m", 20, 1570, _("dist"), p->o.dist(worldpos) / 4.f);
 
 	glLoadIdentity();
 	glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
