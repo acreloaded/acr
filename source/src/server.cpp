@@ -715,6 +715,7 @@ void flagaction(int flag, int action, int actor){
 				if(actor == -1) actor = f.actor_cn;
 				f.state = CTFF_DROPPED;
 				loopi(3) f.pos[i] = clients[actor]->state.o[i];
+				if(f.pos[2] < smapstats.hdr.waterlevel) f.pos[2] = smapstats.hdr.waterlevel;
 				break;
 			case FA_RETURN:
 				f.state = CTFF_INBASE;
