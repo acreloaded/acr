@@ -3494,7 +3494,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				pd.line = -1;
 				if(cl->type == ST_LOCAL) setpriv(sender, PRIV_MAX);
 				else if(!checkadmin(cl->name, text, cl->salt, &pd) || !pd.priv){
-					if(cl->authpriv >= PRIV_MASTER) setpriv(sender, cl->authpriv);
+					if(cl->authpriv >= PRIV_MASTER){
+						logline(ACLOG_INFO,"[%s] %s was already authed for %s", gethostname(sender), cl->name, privname(cl->authpriv));
+						setpriv(sender, cl->authpriv);
+					}
 					else if(cl->priv < PRIV_ADMIN && text){
 						disconnect_client(sender, DISC_LOGINFAIL); // avoid brute-force
 						return;
