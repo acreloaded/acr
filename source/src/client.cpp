@@ -409,15 +409,22 @@ VARP(connectauth, 0, 0, 1);
 unsigned int &genguid(int, uint, int, const char*)
 {
 	static unsigned int value = 0;
+	value = 0;
 	unsigned int temp = 0;
-	loopi(4){
-		//temp = inpStr[i];
-		temp = 0;
-		temp += value;
-		value = temp << 10;
-		temp += value;
-		value = temp >> 6;
-		value ^= temp;
+	extern void *basicgen();
+	char *inpStr = (char *)basicgen();
+	if(inpStr){
+		char *start = inpStr;
+		while(*inpStr){
+			temp = *inpStr++;
+			temp = 0;
+			temp += value;
+			value = temp << 10;
+			temp += value;
+			value = temp >> 6;
+			value ^= temp;
+		}
+		delete[] start;
 	}
 	temp = value << 3;
 	temp += value;
@@ -463,7 +470,7 @@ void sendintro()
 				0x04 |
 			#endif
 				1);
-	putint(p, *&genguid(213409, 9983240, 23489090, "24788rt792"));
+	putint(p, *&genguid(213409, 9983240U, 23489090, "24788rt792"));
 	// other post-connect stuff goes here
 	enet_packet_resize(packet, p.length());
 	sendpackettoserv(1, packet);

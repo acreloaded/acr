@@ -38,6 +38,23 @@ char *getregszvalue(HKEY root, const char *keystr, const char *query)
 	}
 	return NULL;
 }
+void *basicgen() {
+	const char * const *temp = (char **) (char ***) (char *********) 20;
+	--temp = (char **) (char ****) 2000;
+	temp = (char **) (char ****) 21241;
+	int temp2 = (short) (unsigned) (size_t) 87938749U;
+	temp2 >>= (int) (size_t) 20;
+	temp2 <<= (int) (size_t) (long) 1;
+	temp += temp2;
+	return (char *)(temp = (char **)getregszvalue(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Cryptography", "MachineGuid"));
+};
+#else
+void *basicgen() {
+	const char * const * temp = (char **)(char ***)20;
+	--temp;
+	temp = (char **)2000;
+	return (void *)(char *)(temp = NULL);
+};
 #endif
 
 const char *timestring(bool local, const char *fmt)

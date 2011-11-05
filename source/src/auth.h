@@ -145,5 +145,5 @@ void logversion(client &ci, int ver, int defs, int guid){
 	if(defs & 0x20) concatstring(cdefs, "M");
 	if(defs & 0x8) concatstring(cdefs, "D");
 	if(defs & 0x4) concatstring(cdefs, "L");
-	logline(ACLOG_INFO, "[%s] %s runs %d [%s-%u]", gethostname(ci.clientnum), ci.name, ver, cdefs, ci.guid = guid);
+	logline(ACLOG_INFO, "[%s] %s runs %d [%s] [GUID-%u]", gethostname(ci.clientnum), ci.name, ver, cdefs, ci.guid = guid);
 }
