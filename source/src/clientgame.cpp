@@ -922,7 +922,7 @@ const char *votestring(int type, char *arg1, char *arg2)
 		case SA_CLEARDEMOS:
 		{
 			bool demo = atoi(arg1) > 0;
-			formatstring(out)(msg, !demo ? "all " : "", demo ? "s" : " ", demo ? "" : arg1);
+			formatstring(out)(msg, demo ? "" : " all", demo ? " " : "s", demo ? arg1 : "");
 			break;
 		}
 		case SA_BOTBALANCE:
