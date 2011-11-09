@@ -101,9 +101,6 @@ void checkai(){
 	int balance = 0;
 	const int people = numclients();
 	if(!botbalance) balance = 0;
-	else if(m_zombies){
-		balance = (MAXBOTZ - BOTZDEV + min(people - 1, BOTZDEV)) + people;
-	}
 	else if(people) switch(botbalance){
 		case -1: // auto
 			if(m_duel) balance = max(people, maplayout_factor - 3); // 3 - 5 - 8 (6 - 8 - 11 layout factor)
