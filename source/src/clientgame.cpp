@@ -1101,11 +1101,8 @@ playerent *updatefollowplayer(int shiftdirection)
 
 	// collect spec-able players
 	vector<playerent *> available;
-	loopv(players) if(players[i])
-	{
-		if(players[i]->state==CS_DEAD && m_duel) continue;
+	loopv(players) if(players[i] && players[i]->team != TEAM_SPECT && (players[i]->state != CS_DEAD || !m_duel))
 		available.add(players[i]);
-	}
 	if(!available.length()) return NULL;
 
 	// rotate
