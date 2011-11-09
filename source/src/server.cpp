@@ -154,9 +154,9 @@ int countclients(int type, bool exclude = false){
 	return num;
 }
 
-int countplayers(){
+int countplayers(bool includebots = true){
 	int num = 0;
-	loopv(clients) if(clients[i]->type != ST_EMPTY && clients[i]->team != TEAM_SPECT) num++;
+	loopv(clients) if(clients[i]->type != ST_EMPTY && clients[i]->team != TEAM_SPECT && (includebots || clients[i]->type != ST_AI)) num++;
 	return num;
 }
 
@@ -2142,7 +2142,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 }
 
 int nextcfgset(bool notify = true, bool nochange = false){ // load next maprotation set
-	int n = countplayers();
+	int n = countplayers(false);
 	int csl = configsets.length();
 	int ccs = curcfgset;
 	if(ccs >= 0 && ccs < csl) ccs += configsets[ccs].skiplines;
