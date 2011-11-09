@@ -1333,12 +1333,20 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 
 		if(m_flags){
 			if(m_ktf2 && // KTF2 only
-				targethasflag >= 0 && // he has any flag
-				sflaginfos[0].state == sflaginfos[1].state && // both are same state (stolen)
-				sflaginfos[0].actor_cn == sflaginfos[1].actor_cn){ // he has both
-				const int farflag = ts.o.distxy(vec(sflaginfos[0].x, sflaginfos[0].y, 0)) > ts.o.distxy(vec(sflaginfos[1].x, sflaginfos[1].y, 0)) ? 0 : 1;
-				flagaction(farflag, FA_RESET, -1);
-				targethasflag = farflag ^ 1;
+				targethasflag >= 0 && //he has any flag
+				sflaginfos[targethasflag ^ 1].state != CTFF_INBASE){ // other flag is not in base
+				if(sflaginfos[0].actor_cn == sflaginfos[1].actor_cn){ // he has both
+					// reset the far one
+					const int farflag = ts.o.distxy(vec(sflaginfos[0].x, sflaginfos[0].y, 0)) > ts.o.distxy(vec(sflaginfos[1].x, sflaginfos[1].y, 0)) ? 0 : 1;
+					flagaction(farflag, FA_RESET, -1);
+					// drop the close one
+					targethasflag = farflag ^ 1;
+				}
+				else{ // he only has this one
+					// reset this
+					flagaction(targethasflag, FA_RESET, -1);
+					targethasflag = -1;
+				}
 			}
 			while(targethasflag >= 0)
 			{
