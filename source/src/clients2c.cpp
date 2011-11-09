@@ -1063,19 +1063,23 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_ARENAWIN:
 			{
 				int acn = getint(p); playerent *alive = getclient(acn);
-				conoutf("the round is over! next round in 5 seconds...");
+				conoutf("%s", _("arenawin_over"));
 				// no survivors
-				if(acn == -1) hudoutf("everyone died; epic fail!");
-				else if(m_zombies) hudoutf(!alive || alive->team == TEAM_RED ? "\f3the zombies have overrun the humans" : "\f0the humans have prevailed!");
+				if(acn == -1) hudoutf("\f3%s", _("arenawin_fail"));
+				// zombies
+				else if(m_zombies){
+					if(!alive || alive->team == TEAM_RED) hudoutf("\f3%s", _("arenawin_zombies_zombie"));
+					else hudoutf("\f0%s", _("arenawin_zombies_humans"));
+				}
 				// instead of waiting for bots to battle it out...
-				else if(acn == -2) hudoutf("the bots have won the round!");
+				else if(acn == -2) hudoutf("%s", _("arenawin_bots"));
 				// should not happen? better safe than sorry
 				else if(!alive) hudoutf("unknown winner...?");
 				// Teams
-				else if(m_team) hudoutf("%s team \fs\f%d%s\fr is the victor!", alive->team == player1->team ? "your" : "the enemy", team_color(alive->team), team_string(alive->team));
+				else if(m_team) hudoutf("%s", _(alive->team == player1->team ? "arenawin_teamwin" : "arenawin_teamlose"));
 				// FFA
-				else if(alive==player1) hudoutf("you are the victor!");
-				else hudoutf("%s is the victor!", colorname(alive));
+				else if(alive==player1) hudoutf("%s", _("arenawin_youwin"));
+				else hudoutf("%s %s", colorname(alive), _("arenawin_ffa"));
 				arenaintermission = lastmillis;
 				break;
 			}
