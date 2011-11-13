@@ -2114,7 +2114,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 		sendpacket(-1, 1, packet);
 		if(!packet->referenceCount) enet_packet_destroy(packet);
 		// time remaining
-		if(m_fight(smode) || numnonlocalclients()) sendf(-1, 1, "ri3", N_TIMEUP, gamemillis, gamelimit);
+		if(m_fight(smode) || numnonlocalclients()) sendf(-1, 1, "ri4", N_TIMEUP, gamemillis, gamelimit, 0);
 	}
 	logline(ACLOG_INFO, "");
 	logline(ACLOG_INFO, "Game start: %s on %s, %d players, %d minutes remaining, mastermode %d, (%s'getmap' %sprepared)",
@@ -2630,6 +2630,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool nospawn){
 			putint(p, N_TIMEUP);
 			putint(p, gamemillis);
 			putint(p, gamelimit);
+			putint(p, 0);
 		}
 		if(m_flags){
 			CHECKSPACE(256);
@@ -3792,8 +3793,8 @@ void checkintermission(){
 			}
 			if(nextmaptype) sendf(-1, 1, "ri4s", N_CONFMSG, 14, nextmaptime, nextmapmode | ((nextmaptype & 3) << 6), nextmapnm);
 		}
-		if(!minremain) sendf(-1, 1, "ri3", N_TIMEUP, gamelimit, gamelimit - 60000 + 1); // force intermission
-		else sendf(-1, 1, "ri3", N_TIMEUP, gamemillis, gamelimit);
+		if(!minremain) sendf(-1, 1, "ri4", N_TIMEUP, gamelimit, gamelimit - 60000 + 1, 0); // force intermission
+		else sendf(-1, 1, "ri4", N_TIMEUP, gamemillis, gamelimit, 0);
 	}
 	if(!interm && minremain<=0) interm = gamemillis+10000;
 	forceintermission = false;
