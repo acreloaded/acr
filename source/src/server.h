@@ -9,7 +9,7 @@ enum { ST_EMPTY, ST_LOCAL, ST_TCPIP, ST_AI };
 
 extern bool canreachauthserv;
 
-static int interm = 0, minremain = 0, gamemillis = 0, gamelimit = 0;
+static int interm = 0, minremain = 0, gamemillis = 0, gamelimit = 0, gamemusicseed = 0;
 static const int DEATHMILLIS = 300;
 int smode = GMODE_TEAMDEATHMATCH, mastermode = MM_OPEN, botbalance = -1;
 
