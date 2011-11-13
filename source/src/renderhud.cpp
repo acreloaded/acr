@@ -704,7 +704,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
 	if(!m_osok){
 		static float fade = 0.f;
-		float newfade = p->state == CS_ALIVE ? ((1 - powf(p->health, 2) / powf(100 * HEALTHSCALE, 2)) * damagescreenalpha / 100.f) : 0;
+		float newfade = (p->state != CS_DEAD && p->state != CS_EDITING) ? ((1 - powf(p->health, 2) / powf(100 * HEALTHSCALE, 2)) * damagescreenalpha / 100.f) : 0;
 		fade = (fade * 40 + newfade) / 41.f;
 		if(fade){
 			glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -768,9 +768,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	}
 
 	if(!p->weaponsel->reloading && !p->weaponchanging){
-		if(p->state==CS_ALIVE) p->weaponsel->renderaimhelp(targetplayer && targetplayer->state==CS_ALIVE ? isteam(targetplayer, p) ? 1 : 2 : 0);
-		else if(p->state==CS_EDITING) 
-			drawcrosshair(p, CROSSHAIR_SCOPE, targetplayer && targetplayer->state==CS_ALIVE ? isteam(targetplayer, p) ? 1 : 2 : 0, NULL, 48.f);
+		if(p->state==CS_EDITING) drawcrosshair(p, CROSSHAIR_SCOPE, targetplayer && targetplayer->state==CS_ALIVE ? isteam(targetplayer, p) ? 1 : 2 : 0, NULL, 48.f);
+		else if(p->state!=CS_DEAD) p->weaponsel->renderaimhelp(targetplayer && targetplayer->state==CS_ALIVE ? isteam(targetplayer, p) ? 1 : 2 : 0);
 	}
 
 	static Texture **texs = geteventicons();
@@ -810,7 +809,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		glEnd();
 	}
 
-	if(p->state==CS_ALIVE && !hidehudequipment) drawequipicons(p);
+	if(p->state != CS_DEAD && p->state != CS_EDITING && !hidehudequipment) drawequipicons(p);
 
 	glMatrixMode(GL_MODELVIEW);
 	if(/*!menu &&*/ (!hideradar || showmap)) drawradar(p, w, h);
@@ -993,7 +992,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		glLoadIdentity();
 		glOrtho(0, VIRTW/2, VIRTH/2, 0, -1, 1);
 
-		if(!hidehudequipment && p->state == CS_ALIVE)
+		if(!hidehudequipment && p->state != CS_DEAD && p->state != CS_EDITING)
 		{
 			pushfont("huddigits");
 			draw_textf("%d",  90, 823, p->health / HEALTHSCALE);
@@ -1021,7 +1020,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	
 	glLoadIdentity();
 	glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
-	glColor4f(1.0f, 1.0f, 1.0f, p->perk /* != PERK_NONE */ && p->state == CS_ALIVE ? .78f : .3f);
+	glColor4f(1.0f, 1.0f, 1.0f, p->perk /* != PERK_NONE */ && p->state != CS_DEAD ? .78f : .3f);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	Texture *perk = getperktex()[p->perk%PERK_MAX];
