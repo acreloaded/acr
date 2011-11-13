@@ -590,7 +590,7 @@ VAR(gametimecurrent, 1, 0, 0);
 VAR(gametimemaximum, 1, 0, 0);
 VAR(lastgametimeupdate, 1, 0, 0);
 
-void timeupdate(int milliscur, int millismax){
+void timeupdate(int milliscur, int millismax, int musicseed){
 	// if( lastmillis - lastgametimeupdate < 1000 ) return; // avoid double-output, but possibly omit new message if joined 1s before server switches to next minute
 	lastgametimeupdate = lastmillis;
 	gametimecurrent = milliscur;
@@ -598,7 +598,7 @@ void timeupdate(int milliscur, int millismax){
 	minutesremaining = (gametimemaximum - gametimecurrent + 60000 - 1) / 60000;
 	if(minutesremaining){
 		if(minutesremaining==1){
-			musicsuggest(M_LASTMINUTE1 + rnd(2), 70000, true);
+			musicsuggest(M_LASTMINUTE1 + (musicseed%2), 70000, true);
 			hudoutf("%s", _("timer_lastminute"));
 		}
 		else conoutf("%s %d minutes", _("timer_remain"), minutesremaining);

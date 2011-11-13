@@ -384,7 +384,7 @@ extern char *getclientmap();
 extern void zapplayer(playerent *&d);
 extern playerent *getclient(int cn);
 extern playerent *newclient(int cn);
-extern void timeupdate(int milliscur, int millismax);
+extern void timeupdate(int milliscur, int millismax, int musicseed);
 extern void respawnself();
 extern void setskin(playerent *pl, uint skin);
 extern void callvote(int type, char *arg1 = NULL, char *arg2 = NULL);

@@ -983,7 +983,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_TIMEUP:
 			{
 				int curgamemillis = getint(p), curgamelimit = getint(p), curgameseed = getint(p);
-				timeupdate(curgamemillis, curgamelimit);
+				timeupdate(curgamemillis, curgamelimit, curgameseed);
 				break;
 			}
 
