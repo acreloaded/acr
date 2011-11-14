@@ -1121,12 +1121,15 @@ inline int getmaplayoutid(int x, int y){
 	return clamp(x, 2, max) + (clamp(y, 2, max) << maplayout_factor);
 }
 
-inline char maxvdelta(int id){
-	ssqr &s = getsblock(id);
-	char vdelta = s.vdelta;
-	if((&s + 1)->vdelta > vdelta) vdelta = (&s + 1)->vdelta;
-	if((&s + (1 << maplayout_factor))->vdelta > vdelta) vdelta = (&s + (1 << maplayout_factor))->vdelta;
-	if((&s + (1 << maplayout_factor) + 1)->vdelta > vdelta) vdelta = (&s + (1 << maplayout_factor) + 1)->vdelta;
+inline uchar maxvdelta(int id){
+	if(!maplayout) return 0;
+	ssqr *s = &getsblock(id);
+	uchar vdelta = s++->vdelta;
+	if(uchar(s->vdelta) > vdelta) vdelta = s->vdelta;
+	s += (1 << maplayout_factor) - 1; // new row, left one
+	if(uchar(s->vdelta) > vdelta) vdelta = s->vdelta;
+	++s;
+	if(uchar(s->vdelta) > vdelta) vdelta = s->vdelta;
 	return vdelta;
 }
 
@@ -2745,7 +2748,7 @@ void checkmove(client &cp){
 	}
 	else if(cs.drownmillis > 0) cs.drownmillis = -cs.drownmillis;
 	// out of map check
-	if(cp.type != ST_LOCAL && !m_edit && checkpos(cs.o, false)){
+	if(/*cp.type != ST_LOCAL &&*/ !m_edit && checkpos(cs.o, false)){
 		if(cp.type == ST_AI) cp.suicide(WEAP_MAX + 4);
 		else{
 			logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", gethostname(sender), cp.name, ++cp.mapcollisions);
