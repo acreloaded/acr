@@ -195,7 +195,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(prot != PROTOCOL_VERSION)
 				{
 					conoutf("\f3you are using a different game protocol (you: %d, server: %d)", PROTOCOL_VERSION, prot);
-					neterr("different protocol", prot);
+					//neterr("different protocol", prot);
+					disconnect();
 					return;
 				}
 				sessionid = salt;
