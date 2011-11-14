@@ -1201,8 +1201,14 @@ float sraycube(const vec &o, const vec &ray, vec *surface = NULL){ // server cou
 			if((!dx && !dy) || s.wtex==DEFAULT_SKY || (s.type != SOLID && v.z > ceil && s.ctex==DEFAULT_SKY)) return dist;
 			if(surface){
 				if(s.type == CORNER){
-					surface->x = ray.x>0 ? -.7071f : .7071f;
-					surface->y = ray.y>0 ? -.7071f : .7071f;
+					if(dx < dy){ // up/down
+						surface->x = dx>0 ? -.7071f : .7071f;
+						surface->y = dy>0 ? -.7071f : .7071f;
+					}
+					else if(dx > dy){ // left/right
+						surface->x = dx<0 ? -.7071f : .7071f;
+						surface->y = dy<0 ? -.7071f : .7071f;
+					}
 				}
 				else{ // make one for heightfields?
 					if(dx<dy) surface->x = ray.x>0 ? -1 : 1;
