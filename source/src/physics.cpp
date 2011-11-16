@@ -6,6 +6,24 @@
 #include "pch.h"
 #include "cube.h"
 
+inline char cornertype(int x, int y){
+	sqr &me = *S(x, y);
+	if(me.type != CORNER) return 0;
+	sqr &up = *S(x, y-1);
+	sqr &left = *S(x-1, y);
+	sqr &right = *S(x+1, y);
+	sqr &down = *S(x, y+1);
+	const uchar mes = me.ceil - me.floor;
+	const bool
+		u = up.type == SOLID || uchar(up.ceil - up.floor) < mes,
+		l = left.type == SOLID || uchar(left.ceil - left.floor) < mes,
+		r = right.type == SOLID || uchar(right.ceil - right.floor) < mes,
+		d = down.type == SOLID || uchar(down.ceil - down.floor) < mes;
+	if((u && d) || (l && r)) return 0; // more than 2 cubes, or two adjecent ones
+	if((u && !l) || (l && !u)) return 2; // topright
+	return 1; // topleft
+}
+
 float raycube(const vec &o, const vec &ray, vec &surface)
 {
 	surface = vec(0, 0, 0);
@@ -26,15 +44,21 @@ float raycube(const vec &o, const vec &ray, vec &surface)
 		if(SOLID(s) || v.z < floor || v.z > ceil)
 		{
 			if((!dx && !dy) || s->wtex==DEFAULT_SKY || (!SOLID(s) && v.z > ceil && s->ctex==DEFAULT_SKY)) return dist;
-			if(s->type==CORNER){
-				if(dx < dy){ // up/down
-					surface.x = dx>0 ? -.7071f : .7071f;
-					surface.y = dy>0 ? -.7071f : .7071f;
-				}
-				else if(dx > dy){ // left/right
-					surface.x = dx<0 ? -.7071f : .7071f;
-					surface.y = dy<0 ? -.7071f : .7071f;
-				}
+			int cornert = 0;
+			if(s->type==CORNER && (cornert = cornertype(x, y))){
+				float angle = atan2(v.y - o.y, v.x - o.x) / RAD;
+					while(angle < 0) angle += 360;
+					while(angle > 360) angle -= 360;
+					// maybe there is a faster way?
+
+					// topleft
+					if(cornert == 1)
+						surface.x = surface.y = (angle >= 135 && angle <= 315) ? -.7071f : .7071f;
+					// topright
+					else if(cornert == 2){
+						surface.x = (angle >= 45 && angle <= 225) ? -.7071f : .7071f;
+						surface.y = -surface.x;
+					}
 			}
 			else{ // make one for heightfields?
 				if(dx<dy) surface.x = ray.x>0 ? -1 : 1;
@@ -110,7 +134,7 @@ bool cornertest(int mip, int x, int y, int dx, int dy, int &bx, int &by, int &bs
 	sqr *w = wmip[mip];
 	int mfactor = sfactor - mip;
 	bool stest = SOLID(SWS(w, x+dx, y, mfactor)) && SOLID(SWS(w, x, y+dy, mfactor));
-	mip++;
+	++mip;
 	x /= 2;
 	y /= 2;
 	if(SWS(wmip[mip], x, y, mfactor-1)->type==CORNER)

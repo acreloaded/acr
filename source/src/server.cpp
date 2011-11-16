@@ -1122,6 +1122,25 @@ inline int getmaplayoutid(int x, int y){
 	return clamp(x, 2, max) + (clamp(y, 2, max) << maplayout_factor);
 }
 
+inline char cornertype(int x, int y){
+	if(!maplayout) return 0;
+	ssqr &me = getsblock(getmaplayoutid(x, y));
+	if(me.type != CORNER) return 0;
+	ssqr &up = getsblock(getmaplayoutid(x, y-1));
+	ssqr &left = getsblock(getmaplayoutid(x-1, y));
+	ssqr &right = getsblock(getmaplayoutid(x+1, y));
+	ssqr &down = getsblock(getmaplayoutid(x, y+1));
+	const uchar mes = me.ceil - me.floor;
+	const bool
+		u = up.type == SOLID || uchar(up.ceil - up.floor) < mes,
+		l = left.type == SOLID || uchar(left.ceil - left.floor) < mes,
+		r = right.type == SOLID || uchar(right.ceil - right.floor) < mes,
+		d = down.type == SOLID || uchar(down.ceil - down.floor) < mes;
+	if((u && d) || (l && r)) return 0; // more than 2 cubes, or two adjecent ones
+	if((u && !l) || (l && !u)) return 2; // topright
+	return 1; // topleft
+}
+
 inline uchar maxvdelta(int id){
 	if(!maplayout) return 0;
 	ssqr *s = &getsblock(id);
@@ -1201,14 +1220,20 @@ float sraycube(const vec &o, const vec &ray, vec *surface = NULL){ // server cou
 		if(s.type == SOLID || v.z < floor || v.z > ceil){
 			if((!dx && !dy) || s.wtex==DEFAULT_SKY || (s.type != SOLID && v.z > ceil && s.ctex==DEFAULT_SKY)) return dist;
 			if(surface){
-				if(s.type == CORNER){
-					if(dx < dy){ // up/down
-						surface->x = dx>0 ? -.7071f : .7071f;
-						surface->y = dy>0 ? -.7071f : .7071f;
-					}
-					else if(dx > dy){ // left/right
-						surface->x = dx<0 ? -.7071f : .7071f;
-						surface->y = dy<0 ? -.7071f : .7071f;
+				int cornert = 0;
+				if(s.type == CORNER && (cornert = cornertype(x, y))){
+					float angle = atan2(v.y - o.y, v.x - o.x) / RAD;
+					while(angle < 0) angle += 360;
+					while(angle > 360) angle -= 360;
+					// maybe there is a faster way?
+
+					// topleft
+					if(cornert == 1)
+						surface->x = surface->y = (angle >= 135 && angle <= 315) ? -.7071f : .7071f;
+					// topright
+					else if(cornert == 2){
+						surface->x = (angle >= 45 && angle <= 225) ? -.7071f : .7071f;
+						surface->y = -surface->x;
 					}
 				}
 				else{ // make one for heightfields?
