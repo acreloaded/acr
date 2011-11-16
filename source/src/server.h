@@ -85,7 +85,7 @@ struct wound
 {
 	int inflictor;
 	int lastdealt;
-	vec o;
+	vec offset;
 };
 
 struct clientstate : playerstate
@@ -154,12 +154,13 @@ struct clientstate : playerstate
 		streakondeath = -1;
 	}
 
-	void addwound(int owner, vec o)
+	void addwound(int owner, vec woundloc)
 	{
 		wound &w = wounds.length() >= 8 ? wounds.last() : wounds.add();
 		w.inflictor = owner;
 		w.lastdealt = gamemillis;
-		w.o = o;
+		w.offset = woundloc;
+		w.offset.sub(o);
 	}
 };
 

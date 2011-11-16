@@ -273,7 +273,7 @@ void processevents(){
 						const int bleeddmg = (owner.state.perk == PERK_PERSIST ? BLEEDDMGPLUS : BLEEDDMG) * HEALTHSCALE;
 						owner.state.damage += bleeddmg;
 						owner.state.shotdamage += bleeddmg;
-						sendhit(owner, WEAP_KNIFE, w.o.v, bleeddmg);
+						sendhit(owner, WEAP_KNIFE, vec(c.state.o).add(w.offset).v, bleeddmg);
 						serverdamage(&c, &owner, bleeddmg, WEAP_KNIFE, FRAG_NONE, owner.state.o);
 						w.lastdealt = gamemillis;
 					}
