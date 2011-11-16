@@ -187,10 +187,12 @@ int shot(client &owner, const vec &from, vec &to, int weap, const vec &surface, 
 			if(hitzone == HIT_HEAD) style |= FRAG_FLAG;
 			if(&owner == hit) return shotdamage; // not possible
 			else{
+				/*
 				client &noob = isteam((&owner), hit) ? owner : *hit;
 				noob.state.lastbleed = gamemillis;
 				noob.state.lastbleedowner = owner.clientnum;
 				sendf(-1, 1, "ri2", N_BLEED, noob.clientnum);
+				*/
 			}
 		}
 		sendhit(owner, weap, end.v, damage);

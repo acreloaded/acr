@@ -1085,6 +1085,7 @@ bool serverpickup(int i, int sender) // server side item pickup, acknowledge fir
 	e.spawntime = spawntime(e.type);
 	if(!valid_client(sender)) return true;
 	sendf(-1, 1, "ri3", N_ITEMACC, i, sender);
+	//if(sents[i].type == I_HEALTH) clients[sender]->state.lastbleed;
 	clients[sender]->state.pickup(sents[i].type);
 	return true;
 }
@@ -1310,8 +1311,8 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 		}
 		++actor->state.killstreak;
 		++ts.deathstreak;
-		actor->state.deathstreak = ts.killstreak = ts.lastbleed = 0;
-		ts.lastbleedowner = -1;
+		actor->state.deathstreak = ts.killstreak = 0;//ts.lastbleed = 0;
+		//ts.lastbleedowner = -1;
 		ts.damagelog.removeobj(target->clientnum);
 		ts.damagelog.removeobj(actor->clientnum);
 		target->removetimers(GE_RELOAD);

@@ -301,8 +301,8 @@ struct poshist
 
 struct playerstate
 {
+	int ownernum; // for bots
 	int health, armor, spawnmillis;
-	int lastbleed, lastbleedowner, ownernum;
 	int killstreak, deathstreak, assists, radarearned, airstrikes, nukemillis;
 	int primary, nextprimary, perk, nextperk;
 	int gunselect, level;
@@ -360,7 +360,7 @@ struct playerstate
 				break;
 			case I_AMMO: additem(ammostats[primary], ammo[primary]); break;
 			case I_GRENADE: additem(ammostats[WEAP_GRENADE], mag[WEAP_GRENADE]); break;
-			case I_HEALTH: lastbleed = lastbleedowner = 0; additem(powerupstats[type-I_HEALTH], health); break;
+			case I_HEALTH: additem(powerupstats[type-I_HEALTH], health); break;
 			case I_HELMET:
 			case I_ARMOR: additem(powerupstats[type-I_HEALTH], armor); break;
 			case I_AKIMBO:
@@ -376,8 +376,7 @@ struct playerstate
 		health = STARTHEALTH;
 		armor = STARTARMOR;
 		spawnmillis = 0;
-		lastbleedowner = -1;
-		killstreak = assists = armor = lastbleed = 0;
+		killstreak = assists = armor = 0;
 		gunselect = WEAP_PISTOL;
 		akimbo = scoping = false;
 		loopi(WEAP_MAX) ammo[i] = mag[i] = gunwait[i] = 0;

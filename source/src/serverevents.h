@@ -34,8 +34,8 @@ void processevent(client &c, projevent &e){
 					else dmg /= 4; //80 / 4 = 20 just because of the bleeding effect
 					damagedealt += dmg;
 					// bleeding damage
-					target.state.lastbleed = gamemillis;
-					target.state.lastbleedowner = c.clientnum;
+					//target.state.lastbleed = gamemillis;
+					//target.state.lastbleedowner = c.clientnum;
 					sendf(-1, 1, "ri2", N_BLEED, e.flag);
 					done = true;
 					serverdamage(&target, &c, dmg, WEAP_KNIFE, FRAG_FLAG, vec(0, 0, 0));
@@ -264,16 +264,19 @@ void processevents(){
 		}
 		// regen/bleed
 		if(c.state.state == CS_ALIVE){ // can't regen or bleed if dead
+			/*
 			if(c.state.lastbleed){ // bleeding; oh no!
 				if(c.state.lastbleed + 500 < gamemillis && valid_client(c.state.lastbleedowner)){
-					const int bleeddmg = (clients[c.state.lastbleedowner]->state.perk == PERK_PERSIST ? BLEEDDMGPLUS : BLEEDDMG) * HEALTHSCALE;
+					client &owner = *clients[c.state.lastbleedowner];
+					const int bleeddmg = (owner.state.perk == PERK_PERSIST ? BLEEDDMGPLUS : BLEEDDMG) * HEALTHSCALE;
 					c.state.damage += bleeddmg;
 					c.state.shotdamage += bleeddmg;
-					serverdamage(&c, clients[c.state.lastbleedowner], bleeddmg, WEAP_KNIFE, FRAG_NONE, clients[c.state.lastbleedowner]->state.o);
+					sendhit(owner, WEAP_KNIFE, , bleeddmg);
+					serverdamage(&c, &owner, bleeddmg, WEAP_KNIFE, FRAG_NONE, clients[c.state.lastbleedowner]->state.o);
 					c.state.lastbleed = gamemillis;
 				}
 			}
-			else if(!m_osok && c.state.state == CS_ALIVE && c.state.health < STARTHEALTH && c.state.lastregen + (c.state.perk == PERK_PERSIST ? REGENINT * .7f : REGENINT) < gamemillis){
+			else*/ if(!m_osok && c.state.state == CS_ALIVE && c.state.health < STARTHEALTH && c.state.lastregen + (c.state.perk == PERK_PERSIST ? REGENINT * .7f : REGENINT) < gamemillis){
 				int amt = round(float((STARTHEALTH - c.state.health) / 5 + 15));
 				if(c.state.perk == PERK_PERSIST) amt *= 1.4f;
 				if(amt >= STARTHEALTH - c.state.health){
