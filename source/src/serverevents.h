@@ -40,8 +40,9 @@ void processevent(client &c, projevent &e){
 					e.o[2] = ts.o[2] > cubefloor ? (cubefloor + ts.o[2]) / 2 : cubefloor;
 
 					// bleeding damage
-					target.state.addwound(c.clientnum, vec(e.o));
-					sendf(-1, 1, "ri2", N_BLEED, e.flag);
+					client &noob = isteam((&c), hit) ? c : target;
+					noob.state.addwound(c.clientnum, vec(e.o));
+					sendf(-1, 1, "ri2", N_BLEED, noob.clientnum);
 					done = true;
 					serverdamage(&target, &c, dmg, WEAP_KNIFE, FRAG_FLAG, vec(0, 0, 0));
 				}
