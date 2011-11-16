@@ -730,7 +730,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						frags = getint(p), assists = getint(p),
 						killstreak = getint(p), deathstreak = getint(p),
 						deaths = getint(p), health = getint(p), armor = getint(p),
-						radar = getint(p), airstrikes = getint(p), nuke = getint(p);
+						radar = getint(p), airstrikes = getint(p), nuke = getint(p), spawnmillis = getint(p);
 					int ammo[WEAP_MAX], mag[WEAP_MAX];
 					loopi(WEAP_MAX) ammo[i] = getint(p);
 					loopi(WEAP_MAX) mag[i] = getint(p);
@@ -748,6 +748,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					d->radarearned = totalmillis + radar;
 					d->airstrikes = airstrikes;
 					d->nukemillis = totalmillis + nuke;
+					d->spawnmillis = lastmillis + spawnmillis;
 					if(d!=player1)
 					{
 						int primary = WEAP_KNIFE;

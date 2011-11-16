@@ -2553,7 +2553,7 @@ void getservermap(void){
 }
 
 void sendresume(client &c){
-	sendf(-1, 1, "ri9i8vvi",
+	sendf(-1, 1, "ri9i9vvi",
 			N_RESUME, // i9
 			c.clientnum, // i9
 			c.state.state, // i9
@@ -2563,14 +2563,15 @@ void sendresume(client &c){
 			c.state.flagscore, // i9
 			c.state.frags, // i9
 			c.state.assists, // i9
-			c.state.killstreak, // i8
-			c.state.deathstreak,// i8
-			c.state.deaths, // i8
-			c.state.health, // i8
-			c.state.armor, // i8
-			c.state.radarearned - gamemillis, // i8
-			c.state.airstrikes,
-			c.state.nukemillis - gamemillis, // i8
+			c.state.killstreak, // i9
+			c.state.deathstreak,// i9
+			c.state.deaths, // i9
+			c.state.health, // i9
+			c.state.armor, // i9
+			c.state.radarearned - gamemillis, // i9
+			c.state.airstrikes, // i9
+			c.state.nukemillis - gamemillis, // i9
+			c.state.spawnmillis - gamemillis, // i9
 			WEAP_MAX, c.state.ammo, // v
 			WEAP_MAX, c.state.mag, // v
 			-1); // i
@@ -2707,6 +2708,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool nospawn){
 			putint(p, c.state.radarearned - gamemillis);
 			putint(p, c.state.airstrikes);
 			putint(p, c.state.nukemillis - gamemillis);
+			putint(p, c.state.spawnmillis - gamemillis);
 			loopi(WEAP_MAX) putint(p, c.state.ammo[i]);
 			loopi(WEAP_MAX) putint(p, c.state.mag[i]);
 		}
