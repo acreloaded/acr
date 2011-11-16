@@ -102,6 +102,7 @@ static mul muls[MUL_NUM] =
 };
 
 #define BLEEDDMG 10
+#define BLEEDDMGZ 5
 #define BLEEDDMGPLUS 15
 
 struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, range, endrange, rangeminus, projspeed, part, spread, kick, magsize, mdl_kick_rot, mdl_kick_back, recoil, maxrecoil, recoilangle, pushfactor; bool isauto; };

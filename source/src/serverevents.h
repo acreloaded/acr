@@ -270,7 +270,7 @@ void processevents(){
 					if(!valid_client(w.inflictor)) c.state.wounds.remove(i--);
 					else if(w.lastdealt + 500 < gamemillis){
 						client &owner = *clients[w.inflictor];
-						const int bleeddmg = (owner.state.perk == PERK_PERSIST ? BLEEDDMGPLUS : BLEEDDMG) * HEALTHSCALE;
+						const int bleeddmg = (m_zombies ? BLEEDDMGZ : owner.state.perk == PERK_PERSIST ? BLEEDDMGPLUS : BLEEDDMG) * HEALTHSCALE;
 						owner.state.damage += bleeddmg;
 						owner.state.shotdamage += bleeddmg;
 						sendhit(owner, WEAP_KNIFE, vec(c.state.o).add(w.offset).v, bleeddmg);
