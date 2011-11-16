@@ -2339,8 +2339,10 @@ void disconnect_client(int n, int reason){
 	if(!clients.inrange(n) || clients[n]->type!=ST_TCPIP) return;
 	sdropflag(n);
 	loopv(clients) if(i != n){
-		clients[i]->state.damagelog.removeobj(n);
-		clients[i]->state.revengelog.removeobj(n);
+		clientstate &cs = clients[i]->state;
+		cs.damagelog.removeobj(n);
+		cs.revengelog.removeobj(n);
+		loopvj(cs.wounds) if(cs.wounds[j].inflictor == n) cs.wounds.remove(j--);
 	}
 	client &c = *clients[n];
 	loopv(clients) if(clients[i]->state.ownernum == n) if(!shiftai(*clients[i], -1, n)) deleteai(*clients[i]);
