@@ -298,7 +298,7 @@ flaginfo *CACBot::SearchForFlags(bool bUseWPs, float flRange, float flMaxHeight)
 			
 #ifdef WP_FLOOD			
 			if (pWptNearBot->pNode->iFlags & W_FL_FLOOD)
-				pWptNearEnt = GetNearestFloodWP(o, 8.0f);
+				pWptNearEnt = GetNearestFloodWP(o, 100.0f);
 			else
 #endif			
 				pWptNearEnt = GetNearestWaypoint(o, 200.f);
