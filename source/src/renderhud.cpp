@@ -1201,6 +1201,8 @@ void renderhudwaypoints(){
 		o.z += PLAYERABOVEEYE;
 		if(wp >= 0 && wp < WP_NUM) renderwaypoint(wp, o, a);
 
+		if(OUTBORD(e.x, e.y)) continue;
+
 		// flag base
 		wp = WP_STOLEN;
 		switch(f.state){
