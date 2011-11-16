@@ -33,17 +33,17 @@ void processevent(client &c, projevent &e){
 					}
 					else dmg /= 4; //80 / 4 = 20 just because of the bleeding effect
 					damagedealt += dmg;
-					// bleeding damage
-					//target.state.lastbleed = gamemillis;
-					//target.state.lastbleedowner = c.clientnum;
-					sendf(-1, 1, "ri2", N_BLEED, e.flag);
-					done = true;
-					serverdamage(&target, &c, dmg, WEAP_KNIFE, FRAG_FLAG, vec(0, 0, 0));
 
 					e.o[0] = ts.o[0];
 					e.o[1] = ts.o[1];
 					int cubefloor = getblockfloor(getmaplayoutid(e.o[0], e.o[1]));
 					e.o[2] = ts.o[2] > cubefloor ? (cubefloor + ts.o[2]) / 2 : cubefloor;
+
+					// bleeding damage
+					target.state.addwound(c.clientnum, vec(e.o));
+					sendf(-1, 1, "ri2", N_BLEED, e.flag);
+					done = true;
+					serverdamage(&target, &c, dmg, WEAP_KNIFE, FRAG_FLAG, vec(0, 0, 0));
 				}
 			}
 
@@ -264,19 +264,22 @@ void processevents(){
 		}
 		// regen/bleed
 		if(c.state.state == CS_ALIVE){ // can't regen or bleed if dead
-			/*
-			if(c.state.lastbleed){ // bleeding; oh no!
-				if(c.state.lastbleed + 500 < gamemillis && valid_client(c.state.lastbleedowner)){
-					client &owner = *clients[c.state.lastbleedowner];
-					const int bleeddmg = (owner.state.perk == PERK_PERSIST ? BLEEDDMGPLUS : BLEEDDMG) * HEALTHSCALE;
-					c.state.damage += bleeddmg;
-					c.state.shotdamage += bleeddmg;
-					sendhit(owner, WEAP_KNIFE, , bleeddmg);
-					serverdamage(&c, &owner, bleeddmg, WEAP_KNIFE, FRAG_NONE, clients[c.state.lastbleedowner]->state.o);
-					c.state.lastbleed = gamemillis;
+			if(c.state.wounds.length()){ // bleeding; oh no!
+				loopv(c.state.wounds){
+					wound &w = c.state.wounds[i];
+					if(!valid_client(w.inflictor)) c.state.wounds.remove(i--);
+					else if(w.lastdealt + 500 < gamemillis){
+						client &owner = *clients[w.inflictor];
+						const int bleeddmg = (owner.state.perk == PERK_PERSIST ? BLEEDDMGPLUS : BLEEDDMG) * HEALTHSCALE;
+						owner.state.damage += bleeddmg;
+						owner.state.shotdamage += bleeddmg;
+						sendhit(owner, WEAP_KNIFE, w.o.v, bleeddmg);
+						serverdamage(&c, &owner, bleeddmg, WEAP_KNIFE, FRAG_NONE, owner.state.o);
+						w.lastdealt = gamemillis;
+					}
 				}
 			}
-			else*/ if(!m_osok && c.state.state == CS_ALIVE && c.state.health < STARTHEALTH && c.state.lastregen + (c.state.perk == PERK_PERSIST ? REGENINT * .7f : REGENINT) < gamemillis){
+			else if(!m_osok && c.state.state == CS_ALIVE && c.state.health < STARTHEALTH && c.state.lastregen + (c.state.perk == PERK_PERSIST ? REGENINT * .7f : REGENINT) < gamemillis){
 				int amt = round(float((STARTHEALTH - c.state.health) / 5 + 15));
 				if(c.state.perk == PERK_PERSIST) amt *= 1.4f;
 				if(amt >= STARTHEALTH - c.state.health){

@@ -81,6 +81,13 @@ struct projectilestate
 	}
 };
 
+struct wound
+{
+	int inflictor;
+	int lastdealt;
+	vec o;
+};
+
 struct clientstate : playerstate
 {
 	vec o, aim, vel, lasto, sg[SGRAYS], flagpickupo;
@@ -98,6 +105,7 @@ struct clientstate : playerstate
 	int akimbos, akimbomillis;
 	int points, flagscore, frags, deaths, shotdamage, damage;
 	ivector revengelog;
+	vector<wound> wounds;
 
 	clientstate() : state(CS_DEAD), playerstate() {}
 
@@ -140,9 +148,18 @@ struct clientstate : playerstate
 		lastkill = combo = 0;
 		akimbos = akimbomillis = 0;
 		damagelog.setsize(0);
+		wounds.shrink(0); // no more wounds!
 		crouching = false;
 		crouchmillis = scopemillis = 0;
 		streakondeath = -1;
+	}
+
+	void addwound(int owner, vec o)
+	{
+		wound &w = wounds.length() >= 8 ? wounds.last() : wounds.add();
+		w.inflictor = owner;
+		w.lastdealt = gamemillis;
+		w.o = o;
 	}
 };
 
