@@ -250,11 +250,11 @@ flaginfo *CACBot::SearchForFlags(bool bUseWPs, float flRange, float flMaxHeight)
 	vec vNewGoal = g_vecZero;
 	
 	if ((WaypointClass.m_iWaypointCount >= 1) && bUseWPs)
-		pWptNearBot = GetNearestWaypoint(15.0f);
+		pWptNearBot = GetNearestWaypoint(200.0f);
 
 #ifdef WP_FLOOD				
 	if (!pWptNearBot && bUseWPs)
-		pWptNearBot = GetNearestFloodWP(5.0f);
+		pWptNearBot = GetNearestFloodWP(64.0f);
 #endif
 
 	loopi(2){
@@ -273,8 +273,8 @@ flaginfo *CACBot::SearchForFlags(bool bUseWPs, float flRange, float flMaxHeight)
 				// if KTF
 				break;
 			case CTFF_STOLEN: // go to our stolen flag's base
-				// if rCTF and we have the flag
-				if(!m_return || f.actor != m_pMyEnt) continue;
+				// if rCTF and we have our flag
+				if(!m_return || f.actor != m_pMyEnt || f.team != m_pMyEnt->team) continue;
 				break;
 			case CTFF_DROPPED: // take every dropped flag, regardless of anything!
 				o = f.pos;
