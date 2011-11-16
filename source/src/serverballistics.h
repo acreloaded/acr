@@ -42,8 +42,8 @@ bool checkcrit(float dist, float m, int base = 0, int min = 4, int max = 100){
 }
 
 // easy to send shot damage messages
-inline void sendhit(client &actor, int gun, const float *o){
-	sendf(-1, 1, "ri3f3", N_PROJ, actor.clientnum, gun, o[0], o[1], o[2]);
+inline void sendhit(client &actor, int gun, const float *o, int dmg){
+	sendf(-1, 1, "ri4f3", N_PROJ, actor.clientnum, gun, dmg, o[0], o[1], o[2]);
 }
 
 inline vec generateHead(const vec &o, float yaw){ // approximate location for the heads
@@ -67,7 +67,7 @@ int explosion(client &owner, const vec &o2, int weap, bool gib){
 	int damagedealt = 0;
 	vec o(o2);
 	checkpos(o);
-	sendhit(owner, weap, o.v);
+	sendhit(owner, weap, o.v, 0);
 	// these are our hits
 	vector<explosivehit> hits;
 	// find the hits
@@ -190,7 +190,7 @@ int shot(client &owner, const vec &from, vec &to, int weap, const vec &surface, 
 				sendf(-1, 1, "ri2", N_BLEED, noob.clientnum);
 			}
 		}
-		else sendhit(owner, weap, end.v);
+		else sendhit(owner, weap, end.v, damage);
 		if(save) save[hit->clientnum] += damage; // save damage for shotgun ray
 		else serverdamage(hit, &owner, damage, weap, style, from);
 		if(!m_classic && dist2 < 100){ // only penetrate players before 25 meters
@@ -235,7 +235,7 @@ int shotgun(client &owner){
 		// basic checks
 		if(t.type == ST_EMPTY || !sgdamage[i] || ts.state != CS_ALIVE) continue;
 		damagedealt += sgdamage[i];
-		sendhit(owner, WEAP_SHOTGUN, ts.o.v);
+		//sendhit(owner, WEAP_SHOTGUN, ts.o.v);
 		const int shotgunflags = sgdamage[i] >= SGGIB ? FRAG_GIB : FRAG_NONE;
 		serverdamage(&t, &owner, sgdamage[i], WEAP_SHOTGUN, shotgunflags, from);
 	}

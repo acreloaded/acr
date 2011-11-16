@@ -487,8 +487,6 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 		// assists
 		if(pl->damagelog.find(actor->clientnum) < 0) pl->damagelog.add(actor->clientnum);
 	}
-	// blood
-	damageeffect(damage * (style&FRAG_GIB ? GIBBLOODMUL : 1), pl);
 
 	if(style & FRAG_CRIT){ // critical damage
 		actor->addicon(eventicon::CRITICAL);

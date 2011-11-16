@@ -21,6 +21,7 @@ void processevent(client &c, projevent &e){
 			if(!gs.knives.removeany()) return;
 			ushort dmg = effectiveDamage(WEAP_KNIFE, 0);
 			client *hit = valid_client(e.flag) && e.flag != c.clientnum ? clients[e.flag] : NULL;
+			bool done = false;
 			if(hit){ // maybe change this to server-sided collision?
 				client &target = *hit;
 				clientstate &ts = target.state;
@@ -36,6 +37,7 @@ void processevent(client &c, projevent &e){
 					target.state.lastbleed = gamemillis;
 					target.state.lastbleedowner = c.clientnum;
 					sendf(-1, 1, "ri2", N_BLEED, e.flag);
+					done = true;
 					serverdamage(&target, &c, dmg, WEAP_KNIFE, FRAG_FLAG, vec(0, 0, 0));
 
 					e.o[0] = ts.o[0];
@@ -45,7 +47,7 @@ void processevent(client &c, projevent &e){
 				}
 			}
 
-			sendhit(c, WEAP_KNIFE, e.o);
+			sendhit(c, WEAP_KNIFE, e.o, done ? dmg : 0);
 			sknife &k = sknives.add();
 			k.millis = gamemillis;
 			sendf(-1, 1, "ri2f3", N_KNIFEADD, (k.id = sknifeid++), (k.o.x = e.o[0]), (k.o.y = e.o[1]), (k.o.z = e.o[2]));

@@ -509,12 +509,15 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_PROJ:
 			{
-				int cn = getint(p), weap = getint(p);
+				int cn = getint(p), weap = getint(p), dmg = getint(p);
 				playerent *d = getclient(cn);
 				vec o;
 				loopi(3) o[i] = getfloat(p);
 				if(!d) break;
+				// hit effect
 				if(d->weapons[weap]) d->weapons[weap]->attackhit(o);
+				// blood
+				damageeffect(dmg, o);
 				break;
 			}
 

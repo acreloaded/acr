@@ -663,7 +663,7 @@ struct traceresult_s{
 	 vec end;
 	 bool collided;
 };
-extern void damageeffect(int damage, playerent *d);
+extern void damageeffect(int damage, const vec &o);
 extern void tryreload(playerent *p);
 extern void checkakimbo();
 extern struct projectile *newprojectile(vec &from, vec &to, float speed, bool local, playerent *owner, int gun, int id = lastmillis);
