@@ -67,7 +67,7 @@ int explosion(client &owner, const vec &o2, int weap, bool gib){
 	int damagedealt = 0;
 	vec o(o2);
 	checkpos(o);
-	sendhit(owner, weap, o.v, 0);
+	sendhit(owner, weap, o.v, 0); // 0 means display explosion
 	// these are our hits
 	vector<explosivehit> hits;
 	// find the hits
@@ -97,7 +97,10 @@ int explosion(client &owner, const vec &o2, int weap, bool gib){
 	// sort the hits
 	hits.sort(cmphitsort);
 	// apply the hits
-	loopv(hits) serverdamage(hits[i].target, &owner, hits[i].damage, weap, hits[i].flags, o);
+	loopv(hits){
+		sendhit(owner, weap, hits[i].target->state.o.v, hits[i].damage);
+		serverdamage(hits[i].target, &owner, hits[i].damage, weap, hits[i].flags, o);
+	}
 	return damagedealt;
 }
 
@@ -190,7 +193,7 @@ int shot(client &owner, const vec &from, vec &to, int weap, const vec &surface, 
 				sendf(-1, 1, "ri2", N_BLEED, noob.clientnum);
 			}
 		}
-		else sendhit(owner, weap, end.v, damage);
+		sendhit(owner, weap, end.v, damage);
 		if(save) save[hit->clientnum] += damage; // save damage for shotgun ray
 		else serverdamage(hit, &owner, damage, weap, style, from);
 		if(!m_classic && dist2 < 100){ // only penetrate players before 25 meters

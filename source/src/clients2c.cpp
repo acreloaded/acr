@@ -515,9 +515,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				loopi(3) o[i] = getfloat(p);
 				if(!d) break;
 				// hit effect
-				if(d->weapons[weap]) d->weapons[weap]->attackhit(o);
+				if(d->weapons[weap] && (!dmg || !explosive_weap(weap))) d->weapons[weap]->attackhit(o);
 				// blood
-				damageeffect(dmg, o);
+				if(dmg) damageeffect(dmg, o);
 				break;
 			}
 
