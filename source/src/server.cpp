@@ -2902,11 +2902,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			cl->state.level = clamp(getint(p), 1, MAXLEVEL);
 			getstring(text, p);
 			copystring(cl->pwd, text);
-			int connectauth = getint(p);
+			const int connectauth = getint(p);
+			getstring(text, p); // authname
 			cl->state.nextprimary = getint(p);
 			cl->state.nextperk = getint(p);
-			// authname
-			getstring(text, p);
 
 			int clientversion = getint(p), clientdefs = getint(p), clientguid = getint(p);
 			logversion(*cl, clientversion, clientdefs, clientguid);
