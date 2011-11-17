@@ -156,7 +156,7 @@ struct clientstate : playerstate
 
 	void addwound(int owner, vec woundloc)
 	{
-		wound &w = wounds.length() >= 8 ? wounds.last() : wounds.add();
+		wound &w = wounds.length() >= 8 ? wounds[0] : wounds.add();
 		w.inflictor = owner;
 		w.lastdealt = gamemillis;
 		w.offset = woundloc;
