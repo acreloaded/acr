@@ -162,9 +162,15 @@ void updatemasterserver(int millis, const ENetAddress &localaddr){
 		authrequest r = authrequests.remove(0);
 		logline(ACLOG_INFO, "%s auth #%d", r.answer ? "verifying" : "requesting", r.id);
 		
-		if(r.answer) formatstring(path)("%sauth/%d/%08x%08x%08x%08x%08x", masterpath, r.id,
-			r.hash[0], r.hash[1], r.hash[2], r.hash[3], r.hash[4]);
-		else formatstring(path)("%sauth/%d", masterpath, r.id);
+		if(r.answer){
+			formatstring(path)("%sa2p/%d/%08x%08x%08x%08x%08x", masterpath, r.id,
+				r.hash[0], r.hash[1], r.hash[2], r.hash[3], r.hash[4]);
+			delete[] r.hash;
+		}
+		else{
+			formatstring(path)("%sa2r/%d/%s", masterpath, r.id, r.usr);
+			delete[] r.usr;
+		}
 	} else if(connectrequests.length()){
 		if(!canreachauthserv) connectrequests.shrink(0);
 		else{

@@ -400,7 +400,8 @@ int authtoken = -1;
 void tryauth(){
 	if(authlock) return;
 	authtoken = rand();
-	addmsg(N_AUTHREQ, "ri", authtoken);
+	extern char *authname;
+	addmsg(N_AUTHREQ, "rsi", authname, authtoken);
 }
 COMMANDN(auth, tryauth, ARG_NONE);
 
@@ -450,8 +451,13 @@ void sendintro()
 		authtoken = rand();
 		if(!authtoken) authtoken = 1;
 		putint(p, authtoken);
+		extern char *authname;
+		sendstring(authname, p);
 	}
-	else putint(p, 0);
+	else{
+		putint(p, 0);
+		putint(p, 0); // no authname
+	}
 	*clientpassword = 0;
 	putint(p, player1->nextprimweap->type);
 	putint(p, player1->nextperk);

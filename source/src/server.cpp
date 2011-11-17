@@ -2905,11 +2905,13 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			int connectauth = getint(p);
 			cl->state.nextprimary = getint(p);
 			cl->state.nextperk = getint(p);
+			// authname
+			getstring(text, p);
 
 			int clientversion = getint(p), clientdefs = getint(p), clientguid = getint(p);
 			logversion(*cl, clientversion, clientdefs, clientguid);
 
-			int disc = p.remaining() ? DISC_TAGT : allowconnect(*cl, cl->pwd, connectauth);
+			int disc = p.remaining() ? DISC_TAGT : allowconnect(*cl, cl->pwd, connectauth, text);
 
 			if(disc) disconnect_client(sender, disc);
 			else cl->connected = true;
@@ -3573,7 +3575,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			}
 
 			case N_AUTHREQ:
-				reqauth(sender, getint(p));
+				getstring(text, p);
+				reqauth(sender, text, getint(p));
 				break;
 
 			case N_AUTHCHAL:

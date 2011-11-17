@@ -146,5 +146,5 @@ enum
 #define m_ai			(m_fight(gamemode)) // bots not available in coopedit
 #define m_zombies		(gamemode==GMODE_ZOMBIES) // extra bots!
 
-struct authrequest{ uint id; bool answer; int hash[5]; };
+struct authrequest{ uint id; bool answer; union { int *hash; char *usr; }; };
 struct connectrequest{ int cn, guid; enet_uint32 ip; const char *nick; };

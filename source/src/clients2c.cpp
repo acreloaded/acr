@@ -164,6 +164,7 @@ void parsepositions(ucharbuf &p)
 	}
 }
 
+SVARP(authname, "nobody");
 SVARP(authkey, "none");
 
 extern votedisplayinfo *curvote;
@@ -1138,7 +1139,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				authtoken = -1;
 				conoutf("server is challenging authentication details");
 				unsigned hash[5] = {0};
-				defformatstring(buf)("%d:%s", nonce, authkey);
+				defformatstring(buf)("%s:%s!%d", authname, authkey, nonce);
 				if(!gensha1(buf, hash)){
 					conoutf("could not compute message digest");
 					break;
@@ -1160,7 +1161,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						conoutf("not connected to authentication server");
 						break;
 					case 3:
-						conoutf("authority request failed");
+						conoutf("authority request failed, please check your credentials");
 						break;
 					case 4:
 						conoutf("please wait, requesting credential match");

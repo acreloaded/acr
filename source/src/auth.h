@@ -6,7 +6,7 @@ client *findauth(uint id){
 
 extern vector<authrequest> authrequests;
 
-bool reqauth(int cn, int authtoken){
+bool reqauth(int cn, char *name, int authtoken){
 	if(!valid_client(cn)) return false;
 	client &cl = *clients[cn];
 	if(!isdedicated || !canreachauthserv){ sendf(cn, 1, "ri2", N_AUTHCHAL, 2); return false;} // not dedicated/connected
@@ -17,16 +17,18 @@ bool reqauth(int cn, int authtoken){
 	authrequest &r = authrequests.add();
 	r.id = cl.authreq = nextauthreq++;
 	r.answer = false;
-	logline(ACLOG_INFO, "[%s] requests auth #%d", gethostname(cn), r.id);
+	r.usr = new char[MAXNAMELEN];
+	copystring(r.usr, name, MAXNAMELEN);
+	logline(ACLOG_INFO, "[%s] requests auth #%d as %s", gethostname(cn), r.id, r.usr);
 	sendf(cn, 1, "ri2", N_AUTHCHAL, 0);
 	return true;
 }
 
-int allowconnect(client &ci, const char *pwd = "", int authreq = 0){
+int allowconnect(client &ci, const char *pwd = "", int authreq = 0, char *authname = NULL){
 	if(ci.type == ST_LOCAL) return DISC_NONE;
 	//if(!m_valid(smode)) return DISC_PRIVATE;
 	if(ci.priv >= PRIV_ADMIN) return DISC_NONE;
-	if(authreq && reqauth(ci.clientnum, authreq)){
+	if(authreq && reqauth(ci.clientnum, authname, authreq)){
 		logline(ACLOG_INFO, "[%s] %s logged in, requesting auth", gethostname(ci.clientnum), ci.name);
 		ci.connectauth = true;
 		return DISC_NONE;
@@ -126,7 +128,8 @@ bool answerchallenge(int cn, int *hash){
 	authrequest &r = authrequests.add();
 	r.id = cl.authreq;
 	r.answer = true;
-	memcpy(r.hash, hash, sizeof(r.hash) * 5);
+	r.hash = new int[5];
+	memcpy(r.hash, hash, sizeof(int) * 5);
 	sendf(cn, 1, "ri2", N_AUTHCHAL, 4);
 	return true;
 }
