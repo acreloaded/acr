@@ -172,13 +172,13 @@ void updatemasterserver(int millis, const ENetAddress &localaddr){
 		if(r.answer){
 			currentmsrequest->type = MSR_AUTH_ANSWER;
 
-			formatstring(path)("%sa2v/%d/%08x%08x%08x%08x%08x", masterpath, r.id, r.hash[0], r.hash[1], r.hash[2], r.hash[3], r.hash[4]);
+			formatstring(path)("%sa2v/%d/%d/%08x%08x%08x%08x%08x", masterpath, localaddr.port, r.id, r.hash[0], r.hash[1], r.hash[2], r.hash[3], r.hash[4]);
 			delete[] r.hash;
 		}
 		else{
 			currentmsrequest->type = MSR_AUTH_REQUEST;
 
-			formatstring(path)("%sa2r/%d/%s", masterpath, r.id, r.usr);
+			formatstring(path)("%sa2r/%d/%d/%s", masterpath, localaddr.port, r.id, r.usr);
 			delete[] r.usr;
 		}
 	} else if(connectrequests.length()){
@@ -192,7 +192,7 @@ void updatemasterserver(int millis, const ENetAddress &localaddr){
 
 			char out[MAXNAMELEN * 4 / 3 + 2] = {0};
 			base64_encode(currentmsrequest->c->nick, min(MAXNAMELEN, (int)strlen(c->nick)), out);
-			formatstring(path)("%sconnect/%lu/%lu/%s", masterpath, c->ip, c->guid, out);
+			formatstring(path)("%sconnect/%d/%lu/%lu/%s", masterpath, localaddr.port, c->ip, c->guid, out);
 		}
 	}
 	if(!*path) return; // no request
