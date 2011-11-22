@@ -175,9 +175,10 @@ void updatemasterserver(int millis, const ENetAddress &localaddr){
 		if(!canreachauthserv) connectrequests.shrink(0);
 		else{
 			currentconnectrequest = new connectrequest(connectrequests.remove(0));
-			char out[MAXNAMELEN*4/3+1];
+			char *out = new char[(size_t)ceil(strlen(currentconnectrequest->nick) * 4 / 3.f) + 2];
 			base64_encode(currentconnectrequest->nick, min(MAXNAMELEN, (int)strlen(currentconnectrequest->nick)), out);
 			formatstring(path)("%sconnect/%lu/%lu/%s", masterpath, currentconnectrequest->ip, currentconnectrequest->guid, out);
+			delete[] out;
 		}
 	}
 	if(!*path) return; // no request
