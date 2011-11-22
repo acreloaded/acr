@@ -257,7 +257,7 @@ void processevents(){
 		// game ending nuke...
 		if(c.state.nukemillis && c.state.nukemillis <= gamemillis && minremain){
 			// boom... gg
-			forceintermission = true;
+			//forceintermission = true;
 			c.state.nukemillis = 0;
 			sendf(-1, 1, "ri4", N_STREAKUSE, i, STREAK_NUKE, 0);
 			// apply the nuke effect
