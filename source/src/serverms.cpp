@@ -83,8 +83,10 @@ string masterpath;
 uchar masterrep[MAXMASTERTRANS];
 ENetBuffer masterb;
 vector<authrequest> authrequests;
-connectrequest *currentconnectrequest = NULL;
 vector<connectrequest> connectrequests;
+
+enum { MSR_REG = 0, MSR_AUTH_REQUEST, MSR_AUTH_ANSWER, MSR_CONNECT };
+struct msrequest{ int type; union { void *data; authrequest *a; connectrequest *c; }; } *currentmsrequest = NULL;
 
 // marshal names for master-server
 void base64_encode(const char * in, unsigned int in_len, char * out) {
@@ -132,7 +134,7 @@ void base64_encode(const char * in, unsigned int in_len, char * out) {
 }
 
 void freeconnectcheck(int cn){
-	if(currentconnectrequest && currentconnectrequest->cn == cn) DELETEP(currentconnectrequest);
+	if(currentmsrequest && currentmsrequest->type == MSR_CONNECT && ((connectrequest *)currentmsrequest->data)->cn) DELETEP(currentmsrequest);
 	loopv(connectrequests) if(connectrequests[i].cn == cn) connectrequests.remove(i--);
 }
 
@@ -156,29 +158,41 @@ void updatemasterserver(int millis, const ENetAddress &localaddr){
 	if(millis/MSKEEPALIVE>lastupdatemaster){
 		logline(ACLOG_INFO, "sending registration request to master server");
 
+		currentmsrequest = new msrequest;
+		currentmsrequest->type = MSR_REG;
+		currentmsrequest->data = NULL;
+
 		formatstring(path)("%sregister/%d/%d", masterpath, PROTOCOL_VERSION, localaddr.port);
 		lastupdatemaster = millis/MSKEEPALIVE;
 	} else if (authrequests.length()){
-		authrequest r = authrequests.remove(0);
-		logline(ACLOG_INFO, "%s auth #%d", r.answer ? "verifying" : "requesting", r.id);
+		currentmsrequest = new msrequest;
+		currentmsrequest->a = new authrequest(authrequests.remove(0));
+		authrequest &r = *currentmsrequest->a;
 		
 		if(r.answer){
-			formatstring(path)("%sa2p/%d/%08x%08x%08x%08x%08x", masterpath, r.id,
-				r.hash[0], r.hash[1], r.hash[2], r.hash[3], r.hash[4]);
+			currentmsrequest->type = MSR_AUTH_ANSWER;
+
+			formatstring(path)("%sa2v/%d/%08x%08x%08x%08x%08x", masterpath, r.id, r.hash[0], r.hash[1], r.hash[2], r.hash[3], r.hash[4]);
 			delete[] r.hash;
 		}
 		else{
+			currentmsrequest->type = MSR_AUTH_REQUEST;
+
 			formatstring(path)("%sa2r/%d/%s", masterpath, r.id, r.usr);
 			delete[] r.usr;
 		}
 	} else if(connectrequests.length()){
 		if(!canreachauthserv) connectrequests.shrink(0);
 		else{
-			currentconnectrequest = new connectrequest(connectrequests.remove(0));
-			char *out = new char[(size_t)ceil(strlen(currentconnectrequest->nick) * 4 / 3.f) + 2];
-			base64_encode(currentconnectrequest->nick, min(MAXNAMELEN, (int)strlen(currentconnectrequest->nick)), out);
-			formatstring(path)("%sconnect/%lu/%lu/%s", masterpath, currentconnectrequest->ip, currentconnectrequest->guid, out);
-			delete[] out;
+			connectrequest *c = new connectrequest(connectrequests.remove(0));
+
+			currentmsrequest = new msrequest;
+			currentmsrequest->type = MSR_CONNECT;
+			currentmsrequest->c = c;
+
+			char out[MAXNAMELEN * 4 / 3 + 2] = {0};
+			base64_encode(currentmsrequest->c->nick, min(MAXNAMELEN, (int)strlen(c->nick)), out);
+			formatstring(path)("%sconnect/%lu/%lu/%s", masterpath, c->ip, c->guid, out);
 		}
 	}
 	if(!*path) return; // no request
@@ -204,7 +218,7 @@ void checkmasterreply()
 			char *tp = replytoken;
 			if(*tp++ == '*'){
 				if(*tp == 'a' || *tp == 'b'){ // verdict: allow/ban connect
-					if(currentconnectrequest){
+					if(currentmsrequest && currentmsrequest->type == MSR_CONNECT && currentmsrequest->c){
 						extern void masterverdict(int cn, int result);
 						int verdict = DISC_NONE;
 						if(*tp == 'b') switch(*++tp){
@@ -227,15 +241,19 @@ void checkmasterreply()
 								verdict = DISC_NUM;
 								break;
 						}
-						masterverdict(currentconnectrequest->cn, verdict);
+						masterverdict(currentmsrequest->c->cn, verdict);
 					}
 				}
 				else if(*tp == 'd' || *tp == 'f' || *tp == 's' || *tp == 'c'){ // auth
 					char t = *tp++;
-					char *bar = strchr(tp, '|');
+					/*char *bar = strchr(tp, '|');
 					if(bar) *bar = 0;
 					uint authid = atoi(tp);
 					if(bar && bar[1]) tp = bar + 1;
+					*/
+					uint authid = 0;
+					if(currentmsrequest && (currentmsrequest->type == MSR_AUTH_REQUEST || currentmsrequest->type == MSR_AUTH_ANSWER) && currentmsrequest->a)
+						authid = currentmsrequest->a->id;
 					if(authid) switch(t){
 						case 'd': // fail to claim
 						case 'f': // failure
@@ -268,7 +286,20 @@ void checkmasterreply()
 			}
 			replytoken = strtok(NULL, "\n");
 		}
-		DELETEP(currentconnectrequest);
+		if(currentmsrequest){
+			switch(currentmsrequest->type){
+				case MSR_REG:
+					break;
+				case MSR_AUTH_REQUEST:
+				case MSR_AUTH_ANSWER:
+					DELETEP(currentmsrequest->a);
+					break;
+				case MSR_CONNECT:
+					DELETEP(currentmsrequest->c);
+					break;
+			}
+			delete currentmsrequest;
+		}
 	}
 }
 
