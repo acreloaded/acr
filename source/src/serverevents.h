@@ -29,7 +29,7 @@ void processevent(client &c, projevent &e){
 					int tknifeflags = FRAG_FLAG;
 					if(checkcrit(0, 0, 20)){ // 5% critical hit chance
 						tknifeflags |= FRAG_CRIT;
-						dmg *= 2; // 80 * 2 = 160 damage instant kill!
+						dmg *= 1.6f; // 80 * 1.6 = 128 damage = almost instant kill!
 					}
 					else dmg /= 4; //80 / 4 = 20 just because of the bleeding effect
 					damagedealt += dmg;

@@ -85,7 +85,7 @@ int explosion(client &owner, const vec &o2, int weap, bool gib){
 			(weap == WEAP_GRENADE && owner.clientnum != i && o.z >= target.state.o.z)) expflags |= FRAG_FLAG;
 		if(checkcrit(dist, 1.5f)){
 			expflags |= FRAG_CRIT;
-			dmg *= 2;
+			dmg *= 1.4f;
 		}
 		damagedealt += dmg;
 		//serverdamage(&target, &owner, dmg, weap, expflags, o);
@@ -181,7 +181,7 @@ int shot(client &owner, const vec &from, vec &to, int weap, const vec &surface, 
 		// critical shots
 		if(checkcrit(dist, 2.5)){
 			style |= FRAG_CRIT;
-			damage *= 2.5f;
+			damage *= 1.5f;
 		}
 		if(melee_weap(weap)){
 			if(hitzone == HIT_HEAD) style |= FRAG_FLAG;
