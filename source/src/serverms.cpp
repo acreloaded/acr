@@ -267,9 +267,10 @@ void checkmasterreply()
 						{
 							if(!*tp) break;
 							char privk = *tp++;
-							if(!privk || !*tp) break;
+							if(!privk) break;
 							string name;
 							filtertext(name, tp, 1, MAXNAMELEN);
+							if(!*name) copystring(name, "<unnamed>");
 							error = false;
 							extern void authsuceeded(uint id, char priv, char *name);
 							authsuceeded(authid, privk - '0', name);
