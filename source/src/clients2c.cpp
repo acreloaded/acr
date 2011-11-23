@@ -1152,7 +1152,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				switch(getint(p)){
 					case 0:
-						conoutf("please wait, requesting challenge");
+						conoutf("please wait, requesting credential match");
 						break;
 					case 1:
 						conoutf("waiting for previous attempt...");
@@ -1164,7 +1164,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						conoutf("authority request failed, please check your credentials");
 						break;
 					case 4:
-						conoutf("please wait, requesting credential match");
+						conoutf("please wait, requesting authentication");
 						break;
 					case 5:
 					{
