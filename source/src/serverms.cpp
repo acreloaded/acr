@@ -217,7 +217,7 @@ void checkmasterreply()
 			// process commands
 			char *tp = replytoken;
 			if(*tp++ == '*'){
-				bool error = false;
+				bool error = true;
 				if(*tp == 'a' || *tp == 'b'){ // verdict: allow/ban connect
 					if(currentmsrequest && currentmsrequest->type == MSR_CONNECT && currentmsrequest->c){
 						extern void masterverdict(int cn, int result);
