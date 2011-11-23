@@ -91,7 +91,7 @@ void authsuceeded(uint id, char priv, char *name){
 	sendf(priv || banremoved ? -1 : c->clientnum, 1, "ri3s", N_AUTHCHAL, 5, c->clientnum, name);
 	if(priv){
 		c->authpriv = clamp<char>(priv, PRIV_MASTER, PRIV_MAX);
-		if(c->connectauth) setpriv(c->clientnum, c->authpriv);
+		/*if(c->connectauth)*/ setpriv(c->clientnum, c->authpriv);
 	}
 	else c->authpriv = PRIV_NONE; // bypass master bans
 	checkauthdisc(*c); // can bypass passwords
