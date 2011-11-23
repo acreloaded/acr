@@ -130,6 +130,7 @@ bool answerchallenge(int cn, int *hash){
 	r.answer = true;
 	r.hash = new int[5];
 	memcpy(r.hash, hash, sizeof(int) * 5);
+	logline(ACLOG_INFO, "[%s] answers auth #%d", gethostname(cn), r.id);
 	sendf(cn, 1, "ri2", N_AUTHCHAL, 4);
 	return true;
 }
