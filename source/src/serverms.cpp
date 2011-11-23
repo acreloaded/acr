@@ -217,6 +217,7 @@ void checkmasterreply()
 			// process commands
 			char *tp = replytoken;
 			if(*tp++ == '*'){
+				bool error = false;
 				if(*tp == 'a' || *tp == 'b'){ // verdict: allow/ban connect
 					if(currentmsrequest && currentmsrequest->type == MSR_CONNECT && currentmsrequest->c){
 						extern void masterverdict(int cn, int result);
@@ -251,34 +252,38 @@ void checkmasterreply()
 					uint authid = atoi(tp);
 					if(bar && bar[1]) tp = bar + 1;
 					*/
+					error = true;
 					uint authid = 0;
 					if(currentmsrequest && (currentmsrequest->type == MSR_AUTH_REQUEST || currentmsrequest->type == MSR_AUTH_ANSWER) && currentmsrequest->a)
 						authid = currentmsrequest->a->id;
 					if(authid) switch(t){
 						case 'd': // fail to claim
 						case 'f': // failure
+							error = false;
 							extern void authfail(uint id, bool disconnect);
 							authfail(authid, t == 'd');
 							break;
 						case 's': // succeed
 						{
-							if(!*tp) return;
+							if(!*tp) break;
 							char privk = *tp++;
-							if(!privk || !*tp) return;
+							if(!privk || !*tp) break;
 							string name;
 							filtertext(name, tp, 1, MAXNAMELEN);
+							error = false;
 							extern void authsuceeded(uint id, char priv, char *name);
 							authsuceeded(authid, privk - '0', name);
 							break;
 						}
 						case 'c': // challenge
-							if(!*tp) return;
+							if(!*tp) break;
+							error = false;
 							extern void authchallenged(uint id, int nonce);
 							authchallenged(authid, atoi(tp));
 							break;
 					}
 				}
-				else logline(ACLOG_INFO, "masterserver sent an unknown command: %s", replytoken);
+				if(error) logline(ACLOG_INFO, "masterserver sent an unknown command: %s", replytoken);
 			}
 			else{
 				while(isspace(*replytoken)) replytoken++;
