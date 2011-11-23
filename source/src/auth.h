@@ -101,7 +101,7 @@ void authfail(uint id, bool disconnect){
 	client *c = findauth(id);
 	if(!c) return;
 	c->authreq = 0;
-	logline(ACLOG_INFO, "[%s] auth #%d failed!", gethostname(c->clientnum), id);
+	logline(ACLOG_INFO, "[%s] auth #%d %s!", gethostname(c->clientnum), id, disconnect ? "failed" : "mismatch");
 	if(disconnect) disconnect_client(c->clientnum, DISC_LOGINFAIL);
 	else{
 		sendf(c->clientnum, 1, "ri2", N_AUTHCHAL, 3);
