@@ -1805,6 +1805,8 @@ VARP(maxsoundsatonce, 0, 32, 100);
 
 location *playsound(int n, const worldobjreference &r, int priority, float offset, bool loop)
 {
+	extern void LetBotsHear(int n, const vec *loc);
+	LetBotsHear(n, &r.currentposition());
 	if(nosound || !soundvol) return NULL;
 
 	DEBUGVAR(n);

@@ -2003,7 +2003,7 @@ bool CBot::IsReachable(vec to, float flMaxHeight)
 	return false;
 }
 
-void CBot::HearSound(int n, vec *o)
+void CBot::HearSound(int n, const vec *o)
 {
 	// Has the bot already an enemy?
 	if (m_pMyEnt->enemy) return;

@@ -271,7 +271,7 @@ public:
 	void CleanAStarLists(bool bPathFailed);
 	bool IsReachable(vec to, float flMaxHeight=JUMP_HEIGHT);
 	bool WaterNav(void);
-	void HearSound(int n, vec *o);
+	void HearSound(int n, const vec *o);
 
 	// Waypoint functions
 	bool HeadToWaypoint(void);
@@ -346,7 +346,7 @@ public:
 	void Think(void);
 	void BeginMap(const char *szMapName);
 	void LetBotsUpdateStats(void);
-	void LetBotsHear(int n, vec *loc);
+	void LetBotsHear(int n, const vec *loc);
 	void AddWaypoint(node_s *pNode);
 	void DelWaypoint(node_s *pNode);
 	bool BotsShoot(void) { return m_bBotsShoot; };

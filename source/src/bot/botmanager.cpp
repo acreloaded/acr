@@ -89,7 +89,7 @@ void CBotManager::BeginMap(const char *szMapName)
 	PickNextTrigger();
 }
 
-void CBotManager::LetBotsHear(int n, vec *loc)
+void CBotManager::LetBotsHear(int n, const vec *loc)
 {
 	if (!loc) return;
 		
@@ -99,6 +99,8 @@ void CBotManager::LetBotsHear(int n, vec *loc)
 		players[i]->pBot->HearSound(n, loc);
 	}
 }
+
+void LetBotsHear(int n, const vec *loc) { BotManager.LetBotsHear(n, loc); }
 
 // Notify all bots of a new waypoint
 void CBotManager::AddWaypoint(node_s *pNode)

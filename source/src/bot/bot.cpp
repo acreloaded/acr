@@ -38,7 +38,7 @@ bot_skill_s::bot_skill_s(float sk)
 	flMaxEnemySearchDelay = .12f + isk100 * .24f; // 0.12 to 0.36
 	sShootAtFeetWithRLPercent = sk100 * 85; // 85 to 0
 	bCanPredict = sk >= 80;
-	iMaxHearVolume = 15 + sk100 * 60; // 75 to 15
+	iMaxHearVolume = 15 + sk100 * 60; // 15 to 75
 	//bCircleStrafe = sk >= 64;
 	bCircleStrafe = false;
 	bCanSearchItemsInCombat = sk >= 70;
