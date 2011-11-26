@@ -329,7 +329,7 @@ struct playerstate
 		}
 	}
 
-	bool canpickup(int type)
+	virtual bool canpickup(int type)
 	{
 		switch(type)
 		{
