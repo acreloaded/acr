@@ -76,7 +76,7 @@ uchar *stripheader(uchar *b)
 ENetSocket mssock = ENET_SOCKET_NULL;
 ENetAddress msaddress = { ENET_HOST_ANY, ENET_PORT_ANY };
 ENetAddress masterserver = { ENET_HOST_ANY, 80 };
-int lastupdatemaster = -1;
+int lastupdatemaster = -1, lastauthreq = INT_MIN;
 string masterbase;
 string masterpath;
 #define MAXMASTERTRANS MAXTRANS // enlarge if response is big...
@@ -164,7 +164,7 @@ void updatemasterserver(int millis, const ENetAddress &localaddr){
 
 		formatstring(path)("%sregister/%d/%d", masterpath, PROTOCOL_VERSION, localaddr.port);
 		lastupdatemaster = millis/MSKEEPALIVE;
-	} else if (authrequests.length()){
+	} else if (millis > lastauthreq + 2500 && authrequests.length()){
 		currentmsrequest = new msrequest;
 		currentmsrequest->a = new authrequest(authrequests.remove(0));
 		authrequest &r = *currentmsrequest->a;
@@ -181,6 +181,7 @@ void updatemasterserver(int millis, const ENetAddress &localaddr){
 			formatstring(path)("%sa2r/%d/%d/%s", masterpath, localaddr.port, r.id, r.usr);
 			delete[] r.usr;
 		}
+		lastauthreq = millis;
 	} else if(connectrequests.length()){
 		if(!canreachauthserv) connectrequests.shrink(0);
 		else{
