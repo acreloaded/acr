@@ -782,7 +782,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_ITEMACC:
 			{
 				int i = getint(p), cn = getint(p);
-				playerent *d = cn==getclientnum() ? player1 : getclient(cn);
+				playerent *d = getclient(cn);
 				pickupeffects(i, d);
 				break;
 			}
