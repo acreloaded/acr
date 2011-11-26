@@ -1072,6 +1072,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_ARENAWIN:
 			{
 				int acn = getint(p); playerent *alive = getclient(acn);
+				// check for multiple survivors
+				bool multi = false;
+				if(m_team && alive) loopv(players) if(players[i] && players[i] != alive && players[i]->state == CS_ALIVE && isteam(players[i], alive)){ multi = true; break; }
 				conoutf("%s", _("arenawin_over"));
 				// no survivors
 				if(acn == -1) hudoutf("\f3%s", _("arenawin_fail"));
@@ -1085,8 +1088,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				// should not happen? better safe than sorry
 				else if(!alive) hudoutf("unknown winner...?");
 				// Teams
-				else if(m_team) hudoutf("%s", _(alive->team == player1->team ? "arenawin_teamwin" : "arenawin_teamlose"));
-				// FFA
+				else if(m_team && multi) hudoutf("%s", _(alive->team == player1->team ? "arenawin_teamwin" : "arenawin_teamlose"));
+				// FFA or one team member
 				else if(alive==player1) hudoutf("%s", _("arenawin_youwin"));
 				else hudoutf("%s %s", colorname(alive), _("arenawin_ffa"));
 				arenaintermission = lastmillis;
