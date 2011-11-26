@@ -365,8 +365,8 @@ void spawnstate(client *c){
 				break;
 			case TEAM_BLUE:
 				if(m_onslaught){
-					gs.health = STARTHEALTH * ZOMBIEHEALTHFACTOR * 2;
-					gs.armor = 1000;
+					gs.health = STARTHEALTH * ZOMBIEHEALTHFACTOR;
+					gs.armor = 2000;
 				}
 				break;
 		}
