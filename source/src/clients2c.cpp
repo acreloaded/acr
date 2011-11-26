@@ -518,7 +518,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				// hit effect
 				if(d->weapons[weap]){
 					if(explosive_weap(weap) && dmg);
-					else if(melee_weap(weap));
+					else if(melee_weap(weap) && dmg < 20 * HEALTHSCALE);
 					else d->weapons[weap]->attackhit(o);
 				}
 				// blood
