@@ -3518,7 +3518,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					p.forceoverread();
 					break;
 				}
-				if((!maplayout || cl->priv >= PRIV_ADMIN) && sendmapserv(sender, text, mapsize, cfgsize, cfgsizegz, &p.buf[p.len]))
+				if((!mapavailable(text) || cl->priv >= PRIV_ADMIN) && sendmapserv(sender, text, mapsize, cfgsize, cfgsizegz, &p.buf[p.len]))
 				{
 					sendf(-1, 1, "ri2s", N_MAPC2S, sender, text);
 					logline(ACLOG_INFO,"[%s] %s sent map %s, %d + %d(%d) bytes written",
