@@ -52,7 +52,7 @@ extern int verbose;
 
 #define AC_VERSION 230
 #define AC_MASTER_DOMAIN "ms.acr"
-#define AC_MASTER_URI AC_MASTER_DOMAIN "/beta/"
+#define AC_MASTER_URI AC_MASTER_DOMAIN "/"
 #define AC_MASTER_IPS "216.34.181.97"
 
 #endif
