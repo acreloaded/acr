@@ -1836,17 +1836,18 @@ void updatesdesc(const char *newdesc, ENetAddress *caller = NULL){
 	}
 }
 
-bool updateclientteam(int client, int team, int ftr){
-	if(!valid_client(client) || !team_valid(team)) return false;
-	if(m_zombies && team != TEAM_SPECT) team = clients[client]->type == ST_AI ? TEAM_RED : TEAM_BLUE;
-	if(clients[client]->team == team){
+bool updateclientteam(int cn, int team, int ftr){
+	if(!valid_client(cn) || !team_valid(team)) return false;
+	client &ci = *clients[cn];
+	if(m_zombies && team != TEAM_SPECT) team = ci.type == ST_AI ? TEAM_RED : TEAM_BLUE;
+	if(ci.team == team){
 		if (ftr != FTR_AUTOTEAM) return false;
 	}
-	else clients[client]->removeexplosives();
-	if(clients[client]->team == TEAM_SPECT) clients[client]->state.lastdeath = gamemillis;
-	logline(ftr == FTR_SILENT ? ACLOG_DEBUG : ACLOG_INFO, "[%s] %s is now on team %s", gethostname(client), clients[client]->name, team_string(team));
-	sendf(-1, 1, "ri3", N_SETTEAM, client, (clients[client]->team = team) | (ftr << 4));
-	if(m_team || team == TEAM_SPECT) forcedeath(clients[client]);
+	else ci.removeexplosives();
+	if(ci.team == TEAM_SPECT) ci.state.lastdeath = gamemillis;
+	logline(ftr == FTR_SILENT ? ACLOG_DEBUG : ACLOG_INFO, "[%s] %s is now on team %s", gethostname(cn), ci.name, team_string(team));
+	sendf(-1, 1, "ri3", N_SETTEAM, cn, (ci.team = team) | (ftr << 4));
+	if(m_team || team == TEAM_SPECT) forcedeath(&ci);
 	checkai();
 	return true;
 }
