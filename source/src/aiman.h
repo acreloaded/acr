@@ -103,7 +103,8 @@ void checkai(){
 	if(!botbalance) balance = 0;
 	else if(people) switch(botbalance){
 		case -1: // auto
-			if(m_duel) balance = max(people, maplayout_factor - 3); // 3 - 5 - 8 (6 - 8 - 11 layout factor)
+			if(m_zombies) balance = 10 + 2 * people;
+			else if(m_duel) balance = max(people, maplayout_factor - 3); // 3 - 5 - 8 (6 - 8 - 11 layout factor)
 			else{
 				const int spawns = m_team ? (smapstats.hasteamspawns ? smapstats.spawns[0] + smapstats.spawns[1] : 16) : (smapstats.hasffaspawns ? smapstats.spawns[2] : 6);
 				balance = max(people, spawns / 3);
