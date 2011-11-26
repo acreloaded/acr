@@ -111,7 +111,7 @@ enum
 	GMODE_RCTF, // return-CTF
 	GMODE_CDM, GMODE_CTDM, // classic DM/TDM
 	GMODE_KTF2, GMODE_TKTF2, // double KTF/TKTF
-	GMODE_ZOMBIES, // awesome!
+	GMODE_ZOMBIES, GMODE_ONSLAUGHT, // awesome!
 	GMODE_NUM
 };
 
@@ -135,7 +135,7 @@ enum
 #define m_noprimary		(m_pistol || m_lss)
 #define m_noradar		(m_zombies || m_classic)
 #define m_nonuke		(m_zombies)
-#define m_duel			(m_lms || gamemode == GMODE_LASTSWISSSTANDING || m_osok || m_zombies)
+#define m_duel			(m_lms || gamemode == GMODE_LASTSWISSSTANDING || m_osok || m_zombies_rounds)
 #define m_flags			(m_ctf || m_htf || m_ktf)
 #define m_team			(gamemode==GMODE_TEAMDEATHMATCH || gamemode==GMODE_TEAMONESHOTONEKILL || \
 							gamemode==GMODE_TEAMSURVIVOR || m_ctf || m_htf || gamemode==GMODE_TKTF || gamemode==GMODE_TKTF2 || \
@@ -144,7 +144,9 @@ enum
 #define m_demo			(gamemode == GMODE_DEMO)
 #define m_valid(mode)	(m_fight(mode) || mode == GMODE_COOPEDIT)
 #define m_ai			(m_fight(gamemode)) // bots not available in coopedit
-#define m_zombies		(gamemode==GMODE_ZOMBIES) // extra bots!
+#define m_zombies		(m_zombies_rounds || m_onslaught) // extra bots!
+#define m_zombies_rounds (gamemode==GMODE_ZOMBIES)
+#define m_onslaught		(gamemode==GMODE_ONSLAUGHT)
 
 struct authrequest{ uint id; bool answer; union { int *hash; char *usr; }; };
 struct connectrequest{ int cn, guid; enet_uint32 ip; const char *nick; };
