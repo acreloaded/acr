@@ -2412,7 +2412,8 @@ void sendwhois(int sender, int cn){
 		sendf(-1, 1, "ri3", N_WHOIS, cn, sender);
 		uint ip = clients[cn]->peer->address.host;
 		uchar mask = 0;
-		switch(clients[cn]->priv){
+		if(cn == sender) mask = 32;
+		else switch(clients[cn]->priv){
 			// admins and server owner: f.f.f.f/32 full ip
 			case PRIV_MAX: case PRIV_ADMIN: mask = 32; break;
 			// masters and users: f.f.h/12 full, full, half, empty
