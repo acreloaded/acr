@@ -354,6 +354,7 @@ void usestreak(client &c, int streak, const vec &o = vec(0, 0, 0)){
 
 void spawnstate(client *c){
 	clientstate &gs = c->state;
+	gs.spawnstate(smode);
 	if(m_zombies){
 		switch(c->team){
 			case TEAM_RED:
@@ -365,12 +366,11 @@ void spawnstate(client *c){
 			case TEAM_BLUE:
 				if(m_onslaught){
 					gs.health = STARTHEALTH * ZOMBIEHEALTHFACTOR * 2;
-					gs.armor = STARTHEALTH * ZOMBIEHEALTHFACTOR * 4;
+					gs.armor = 1000;
 				}
 				break;
 		}
 	}
-	else gs.spawnstate(smode);
 	++gs.lifesequence;
 	gs.state = CS_DEAD;
 }
@@ -1073,7 +1073,7 @@ void sendtext(char *text, client &cl, int flags, int voice){
 
 int spawntime(int type){
 	int np = numclients();
-	np = np<3 ? 4 : (np>4 ? 2 : 3);		 // spawn times are dependent on number of players
+	np = np<3 ? 4 : (np>4 ? 2 : 3);		 // some spawn times are dependent on number of players
 	int sec = 0;
 	switch(type)
 	{
