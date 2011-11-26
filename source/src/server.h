@@ -154,12 +154,6 @@ struct clientstate : playerstate
 		streakondeath = -1;
 	}
 
-	virtual bool canpickup(int type){
-		// heal if bleeding, and health is maxed out
-		if(type == I_HEALTH && wounds.length()) return true;
-		return playerstate::canpickup(type);
-	}
-
 	void addwound(int owner, vec woundloc)
 	{
 		wound &w = wounds.length() >= 8 ? wounds[0] : wounds.add();
