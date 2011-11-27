@@ -390,8 +390,8 @@ void sendmessages(){
 void c2sinfo(bool force){				  // send update to the server
 	if(!force && totalmillis-lastupdate<40) return;	// don't update faster than 25fps
 	lastupdate = totalmillis;
-	sendpositions();
 	sendmessages();
+	sendpositions();
 	if(clienthost) enet_host_flush(clienthost);
 }
 
