@@ -172,7 +172,7 @@ struct obitlist
 		
 	virtual ~obitlist() { setmaxlines(0); }
 
-	int drawobit(int style, int left, int top, float fade){
+	int obitaspect(int style){
 		int aspect = 1;
 		switch(style){
 			case WEAP_SHOTGUN:
@@ -187,9 +187,12 @@ struct obitlist
 				aspect = 2; break;
 			default: break; // many are square
 		}
+		return aspect;
+	}
 
+	int drawobit(int style, int left, int top, float fade){
 		Texture **guntexs = obittex();
-		const int sz = FONTH;
+		const int aspect = obitaspect(style), sz = FONTH;
 
 		glColor4f(1, 1, 1, fade * (style == OBIT_HEADSHOT ? fabs(sinf(totalmillis / 2000.f * 2 * PI)) : 1));
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -210,7 +213,7 @@ struct obitlist
 		glPushMatrix();
 		glLoadIdentity();
 		glOrtho(0, VIRTW*ts, VIRTH*ts, 0, -1, 1);
-		const int left = VIRTW * .8f * ts;
+		int left = VIRTW * .6f * ts; // minimum left position
 		const int conwidth = VIRTW * ts - left; // draw all the way to the right
 		int linei = olines.length(), y = ts * VIRTH * .5f;
 		loopv(olines){
@@ -233,7 +236,17 @@ struct obitlist
 					y += FONTH * (l.millis + 500 - totalmillis) / 500;
 				}
 				fade *= obitalpha/100.f;
+
 				int width, height;
+				// correct alignment
+				defformatstring(obitalign)("%s %s", l.actor, l.target); // two half spaces = one space
+				text_bounds(obitalign, width, height, conwidth);
+				// and the obit...
+				left = (VIRTW - 16) * ts - width - obitaspect(l.weap) * FONTH;
+				if(l.style & FRAG_FIRST) left -= obitaspect(OBIT_FIRST) * FONTH;
+				else if(l.style & FRAG_CRIT) left -=  obitaspect(OBIT_CRIT) * FONTH;
+
+				// continue...
 				text_bounds(l.actor, width, height, conwidth);
 				y -= height;
 				if(*l.actor){
