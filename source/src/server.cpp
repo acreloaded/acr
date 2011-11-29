@@ -1300,6 +1300,100 @@ void forcedeath(client *cl, bool gib = false){
 	sendf(-1, 1, "ri2", gib ? N_FORCEGIB : N_FORCEDEATH, cl->clientnum);
 }
 
+void serverdied(client *target, client *actor, int damage, int gun, int style, const vec &source){
+	clientstate &ts = target->state;
+	const bool gib = style & FRAG_GIB;
+
+	int targethasflag = clienthasflag(target->clientnum);
+	bool suic = false;
+	target->state.deaths++;
+	if(target!=actor){
+		actor->state.frags += /*isteam(target, actor) ? -1 :*/ gib ? 2 : 1;
+		if(actor->state.revengelog.find(target->clientnum) >= 0){
+			style |= FRAG_REVENGE;
+			actor->state.revengelog.removeobj(target->clientnum);
+		}
+		target->state.revengelog.add(actor->clientnum);
+	}
+	else{ // suicide
+		actor->state.frags--;
+		suic = true;
+	}
+	++actor->state.killstreak;
+	++ts.deathstreak;
+	actor->state.deathstreak = ts.killstreak = 0;
+	ts.wounds.shrink(0);
+	ts.damagelog.removeobj(target->clientnum);
+	ts.damagelog.removeobj(actor->clientnum);
+	target->removetimers(GE_RELOAD);
+	loopv(ts.damagelog){
+		if(valid_client(ts.damagelog[i])) clients[ts.damagelog[i]]->state.assists++;
+		else ts.damagelog.remove(i--);
+	}
+	if(!suic && nokills && actor->type != ST_AI){
+		style |= FRAG_FIRST;
+		nokills = false;
+	}
+	if(gamemillis >= actor->state.lastkill + 500) actor->state.combo = 0;
+	actor->state.lastkill = gamemillis;
+	const float killdist = ts.o == source ? 0 : clamp<float>(ts.o.dist(source) / 4, -1, 1000);
+	sendf(-1, 1, "ri9f4v", N_KILL, target->clientnum, actor->clientnum, actor->state.frags, gun, style & FRAG_VALID, damage, ++actor->state.combo,
+		ts.damagelog.length(), killdist, source.x, source.y, source.z, ts.damagelog.length(), ts.damagelog.getbuf());
+	killpoints(target, actor, gun, style);
+	if(suic && (m_htf || m_ktf) && targethasflag >= 0){
+		actor->state.flagscore--;
+		sendf(-1, 1, "ri3", N_FLAGCNT, actor->clientnum, actor->state.flagscore);
+	}
+	target->position.setsize(0);
+	ts.state = CS_DEAD;
+	ts.lastdeath = gamemillis;
+	const char *h = gethostname(actor->clientnum);
+	if(!suic) logline(ACLOG_INFO, "[%s] %s %s %s (%.2f m)", h, actor->name, killname(toobit(gun, style), isheadshot(gun, style)), target->name, killdist);
+	else logline(actor->type == ST_AI && target->type == ST_AI ? ACLOG_VERBOSE : ACLOG_INFO, "[%s] %s %s (%.2f m)", h, actor->name, suicname(obit_suicide(gun)), killdist);
+
+	if(m_flags){
+		if(m_ktf2 && // KTF2 only
+			targethasflag >= 0 && //he has any flag
+			sflaginfos[targethasflag ^ 1].state != CTFF_INBASE){ // other flag is not in base
+			if(sflaginfos[0].actor_cn == sflaginfos[1].actor_cn){ // he has both
+				// reset the far one
+				const int farflag = ts.o.distxy(vec(sflaginfos[0].x, sflaginfos[0].y, 0)) > ts.o.distxy(vec(sflaginfos[1].x, sflaginfos[1].y, 0)) ? 0 : 1;
+				flagaction(farflag, FA_RESET, -1);
+				// drop the close one
+				targethasflag = farflag ^ 1;
+			}
+			else{ // he only has this one
+				// reset this
+				flagaction(targethasflag, FA_RESET, -1);
+				targethasflag = -1;
+			}
+		}
+		while(targethasflag >= 0)
+		{
+			flagaction(targethasflag, /*tk ? FA_RESET : */FA_LOST, -1);
+			targethasflag = clienthasflag(target->clientnum);
+		}
+	}
+		
+	if(target->state.nukemillis){ // nuke cancelled!
+		target->state.nukemillis = 0;
+		sendf(-1, 1, "ri4", N_STREAKUSE, target->clientnum, STREAK_NUKE, -2);
+	}
+
+	switch(actor->state.killstreak + (actor->state.perk == PERK_STREAK ? 1 : 0)){
+		case 7:
+			streakready(*actor, STREAK_AIRSTRIKE);
+			break;
+		case 9:
+			if(!m_noradar) usestreak(*actor, STREAK_RADAR);
+			break;
+		case 11:
+			if(!m_nonuke) usestreak(*actor, STREAK_NUKE);
+			break;
+	}
+	usestreak(*target, ts.streakondeath);
+}
+
 void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source){
 	if(!target || !actor || !damage) return;
 
@@ -1326,98 +1420,9 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 
 	ts.dodamage(damage, actor->state.perk == PERK_POWER);
 	ts.lastregen = gamemillis + REGENDELAY - REGENINT;
-	const bool gib = style & FRAG_GIB;
 
-	if(ts.health<=0){
-		int targethasflag = clienthasflag(target->clientnum);
-		bool suic = false;
-		target->state.deaths++;
-		if(target!=actor){
-			actor->state.frags += /*isteam(target, actor) ? -1 :*/ gib ? 2 : 1;
-			if(actor->state.revengelog.find(target->clientnum) >= 0){
-				style |= FRAG_REVENGE;
-				actor->state.revengelog.removeobj(target->clientnum);
-			}
-			target->state.revengelog.add(actor->clientnum);
-		}
-		else{ // suicide
-			actor->state.frags--;
-			suic = true;
-		}
-		++actor->state.killstreak;
-		++ts.deathstreak;
-		actor->state.deathstreak = ts.killstreak = 0;
-		ts.wounds.shrink(0);
-		ts.damagelog.removeobj(target->clientnum);
-		ts.damagelog.removeobj(actor->clientnum);
-		target->removetimers(GE_RELOAD);
-		loopv(ts.damagelog){
-			if(valid_client(ts.damagelog[i])) clients[ts.damagelog[i]]->state.assists++;
-			else ts.damagelog.remove(i--);
-		}
-		if(!suic && nokills && actor->type != ST_AI){
-			style |= FRAG_FIRST;
-			nokills = false;
-		}
-		if(gamemillis >= actor->state.lastkill + 500) actor->state.combo = 0;
-		actor->state.lastkill = gamemillis;
-		const float killdist = ts.o == source ? 0 : clamp<float>(ts.o.dist(source) / 4, -1, 1000);
-		sendf(-1, 1, "ri9f4v", N_KILL, target->clientnum, actor->clientnum, actor->state.frags, gun, style & FRAG_VALID, damage, ++actor->state.combo,
-			ts.damagelog.length(), killdist, source.x, source.y, source.z, ts.damagelog.length(), ts.damagelog.getbuf());
-		killpoints(target, actor, gun, style);
-		if(suic && (m_htf || m_ktf) && targethasflag >= 0){
-			actor->state.flagscore--;
-			sendf(-1, 1, "ri3", N_FLAGCNT, actor->clientnum, actor->state.flagscore);
-		}
-		target->position.setsize(0);
-		ts.state = CS_DEAD;
-		ts.lastdeath = gamemillis;
-		const char *h = gethostname(actor->clientnum);
-		if(!suic) logline(ACLOG_INFO, "[%s] %s %s %s (%.2f m)", h, actor->name, killname(toobit(gun, style), isheadshot(gun, style)), target->name, killdist);
-		else logline(actor->type == ST_AI && target->type == ST_AI ? ACLOG_VERBOSE : ACLOG_INFO, "[%s] %s %s (%.2f m)", h, actor->name, suicname(obit_suicide(gun)), killdist);
-
-		if(m_flags){
-			if(m_ktf2 && // KTF2 only
-				targethasflag >= 0 && //he has any flag
-				sflaginfos[targethasflag ^ 1].state != CTFF_INBASE){ // other flag is not in base
-				if(sflaginfos[0].actor_cn == sflaginfos[1].actor_cn){ // he has both
-					// reset the far one
-					const int farflag = ts.o.distxy(vec(sflaginfos[0].x, sflaginfos[0].y, 0)) > ts.o.distxy(vec(sflaginfos[1].x, sflaginfos[1].y, 0)) ? 0 : 1;
-					flagaction(farflag, FA_RESET, -1);
-					// drop the close one
-					targethasflag = farflag ^ 1;
-				}
-				else{ // he only has this one
-					// reset this
-					flagaction(targethasflag, FA_RESET, -1);
-					targethasflag = -1;
-				}
-			}
-			while(targethasflag >= 0)
-			{
-				flagaction(targethasflag, /*tk ? FA_RESET : */FA_LOST, -1);
-				targethasflag = clienthasflag(target->clientnum);
-			}
-		}
-		
-		if(target->state.nukemillis){ // nuke cancelled!
-			target->state.nukemillis = 0;
-			sendf(-1, 1, "ri4", N_STREAKUSE, target->clientnum, STREAK_NUKE, -2);
-		}
-
-		switch(actor->state.killstreak + (actor->state.perk == PERK_STREAK ? 1 : 0)){
-			case 7:
-				streakready(*actor, STREAK_AIRSTRIKE);
-				break;
-			case 9:
-				if(!m_noradar) usestreak(*actor, STREAK_RADAR);
-				break;
-			case 11:
-				if(!m_nonuke) usestreak(*actor, STREAK_NUKE);
-				break;
-		}
-		usestreak(*target, ts.streakondeath);
-	} else sendf(-1, 1, "ri8f3", N_DAMAGE, target->clientnum, actor->clientnum, damage, ts.armor, ts.health, gun, style & FRAG_VALID, source.x, source.y, source.z);
+	if(ts.health<=0) serverdied(target, actor, damage, gun, style, source);
+	else sendf(-1, 1, "ri8f3", N_DAMAGE, target->clientnum, actor->clientnum, damage, ts.armor, ts.health, gun, style & FRAG_VALID, source.x, source.y, source.z);
 }
 
 void cheat(client *cl, const char *reason = "unknown"){
@@ -2789,8 +2794,7 @@ void checkmove(client &cp){
 		}
 		char drownstate = (gamemillis - cs.drownmillis) / 1000;
 		while(cs.drownval < drownstate){
-			cs.drownval++;
-			cp.suicide(WEAP_MAX+1, FRAG_NONE, powf(cs.drownval, 7.f)/1000000);
+			serverdamage(&cp, &cp, powf(++cs.drownval, 7.f)/1000000, WEAP_MAX+1, FRAG_NONE, cs.o);
 			if(cs.state != CS_ALIVE) return; // dead!
 		}
 	}
@@ -3737,7 +3741,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					int damage = (fall - 10) * HEALTHSCALE / (cp->state.perk == PERK_LIGHT ? 10 : 2);
 					if(damage < 1) break; // don't heal the player
 					else if(damage > 200* HEALTHSCALE) damage = 200 * HEALTHSCALE;
-					cp->suicide(WEAP_MAX+2, FRAG_NONE, damage);
+					serverdamage(cp, cp, damage, WEAP_MAX + 2, FRAG_NONE, cp->state.o);
 				}
 				else if(typ == PHYS_AKIMBOOUT){
 					if(!cp->state.akimbomillis) break;
