@@ -213,13 +213,11 @@ struct obitlist
 		glPushMatrix();
 		glLoadIdentity();
 		glOrtho(0, VIRTW*ts, VIRTH*ts, 0, -1, 1);
-		int left = VIRTW * .6f * ts; // minimum left position
-		const int conwidth = VIRTW * ts - left; // draw all the way to the right
 		int linei = olines.length(), y = ts * VIRTH * .5f;
 		loopv(olines){
 			defformatstring(l)("%s    %s", olines[i].actor, olines[i].target); // four spaces to subsitute for unknown obit icon
 			int width, height;
-			text_bounds(l, width, height, conwidth);
+			text_bounds(l, width, height);
 			linei -= -1 + floor(float(height/FONTH));
 		}
         loopi(linei){
@@ -240,17 +238,17 @@ struct obitlist
 				// correct alignment
 				defformatstring(obitalign)("%s %s", l.actor, l.target); // two half spaces = one space
 				// and the obit...
-				left = (VIRTW - 16) * ts - text_width(obitalign) - obitaspect(l.weap) * FONTH;
+				int left = (VIRTW - 16) * ts - text_width(obitalign) - obitaspect(l.weap) * FONTH;
 				if(l.headshot) left -= obitaspect(OBIT_HEADSHOT) * FONTH;
 				if(l.style & FRAG_FIRST) left -= obitaspect(OBIT_FIRST) * FONTH;
 				else if(l.style & FRAG_CRIT) left -=  obitaspect(OBIT_CRIT) * FONTH;
 
 				// continue...
 				int width, height;
-				text_bounds(l.actor, width, height, conwidth);
+				text_bounds(l.actor, width, height);
 				y -= height;
 				if(*l.actor){
-					draw_text(l.actor, left, y, 0xFF, 0xFF, 0xFF, fade * 255, -1, conwidth);
+					draw_text(l.actor, left, y, 0xFF, 0xFF, 0xFF, fade * 255, -1);
 					x += width + text_width(" ") / 2;
 				}
 				// now draw weapon symbol
@@ -261,7 +259,7 @@ struct obitlist
 				else if(l.style & FRAG_CRIT) x += drawobit(OBIT_CRIT, left + x, y, fade);
 				// end of weapon symbol
 				x += text_width(" ") / 2;
-				draw_text(l.target, left + x, y, 0xFF, 0xFF, 0xFF, fade * 255, -1, conwidth);
+				draw_text(l.target, left + x, y, 0xFF, 0xFF, 0xFF, fade * 255, -1);
 			}
         }
 		glPopMatrix();
