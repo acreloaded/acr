@@ -224,12 +224,12 @@ struct obitlist
 		}
         loopi(linei){
 			oline &l = olines[i];
-			if(totalmillis-l.millis < chatfade*1000 || con.fullconsole){
+			if(totalmillis-l.millis < obitfade*1000 || con.fullconsole){
 				int x = 0;
 				float fade = 1;
-				if(l.millis + chatfade*1000 - totalmillis < 1000 && !con.fullconsole){ // fading out
-					fade = float(l.millis + chatfade*1000 - totalmillis)/1000;
-					y -= FONTH * (totalmillis + 1000 - l.millis - chatfade*1000) / 1000;
+				if(l.millis + obitfade*1000 - totalmillis < 1000 && !con.fullconsole){ // fading out
+					fade = float(l.millis + obitfade*1000 - totalmillis)/1000;
+					y -= FONTH * (totalmillis + 1000 - l.millis - obitfade*1000) / 1000;
 				}
 				else if(i == 0 && totalmillis-l.millis < 500){ // fading in
 					fade = float(totalmillis - l.millis)/500;
