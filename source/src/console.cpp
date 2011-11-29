@@ -237,17 +237,16 @@ struct obitlist
 				}
 				fade *= obitalpha/100.f;
 
-				int width, height;
 				// correct alignment
 				defformatstring(obitalign)("%s %s", l.actor, l.target); // two half spaces = one space
-				text_bounds(obitalign, width, height, conwidth);
 				// and the obit...
-				left = (VIRTW - 16) * ts - width - obitaspect(l.weap) * FONTH;
+				left = (VIRTW - 16) * ts - text_width(obitalign) - obitaspect(l.weap) * FONTH;
 				if(l.headshot) left -= obitaspect(OBIT_HEADSHOT) * FONTH;
 				if(l.style & FRAG_FIRST) left -= obitaspect(OBIT_FIRST) * FONTH;
 				else if(l.style & FRAG_CRIT) left -=  obitaspect(OBIT_CRIT) * FONTH;
 
 				// continue...
+				int width, height;
 				text_bounds(l.actor, width, height, conwidth);
 				y -= height;
 				if(*l.actor){
