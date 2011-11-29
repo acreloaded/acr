@@ -172,7 +172,7 @@ struct obitlist
 		
 	virtual ~obitlist() { setmaxlines(0); }
 
-	int obitaspect(int style){
+	int obitaspect(int style) const{
 		int aspect = 1;
 		switch(style){
 			case WEAP_SHOTGUN:
@@ -243,6 +243,7 @@ struct obitlist
 				text_bounds(obitalign, width, height, conwidth);
 				// and the obit...
 				left = (VIRTW - 16) * ts - width - obitaspect(l.weap) * FONTH;
+				if(l.headshot) left -= obitaspect(OBIT_HEADSHOT) * FONTH;
 				if(l.style & FRAG_FIRST) left -= obitaspect(OBIT_FIRST) * FONTH;
 				else if(l.style & FRAG_CRIT) left -=  obitaspect(OBIT_CRIT) * FONTH;
 
