@@ -470,7 +470,7 @@ void putinitai(client &c, ucharbuf &p){
 void putinitclient(client &c, ucharbuf &p);
 
 void setupdemorecord(){
-	if(numlocalclients() || !m_valid(gamemode)) return;
+	if(numlocalclients() || !m_valid(smode)) return;
 
 #ifdef WIN32
 	gzFile f = gzopen(path("demos/demorecord", true), "wb9");
@@ -2088,7 +2088,7 @@ void resetserver(const char *newname, int newmode, int newtime){
 	smode = newmode;
 	copystring(smapname, newname);
 
-	minremain = newtime >= 0 ? newtime : (m_team ? 15 : 10);
+	minremain = m_edit ? 1440 : newtime >= 0 ? newtime : (m_team ? 15 : 10);
 	gamemillis = 0;
 	gamelimit = minremain*60000;
 	gamemusicseed = rand();
@@ -2167,7 +2167,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 		sendpacket(-1, 1, packet);
 		if(!packet->referenceCount) enet_packet_destroy(packet);
 		// time remaining
-		if(m_valid(smode) || numnonlocalclients()) sendf(-1, 1, "ri4", N_TIMEUP, gamemillis, gamelimit, gamemusicseed);
+		if(m_valid(smode)) sendf(-1, 1, "ri4", N_TIMEUP, gamemillis, gamelimit, gamemusicseed);
 	}
 	logline(ACLOG_INFO, "");
 	logline(ACLOG_INFO, "Game start: %s on %s, %d players, %d minutes remaining, mastermode %d, (%s'getmap' %sprepared)",
@@ -2684,7 +2684,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool nospawn){
 	} else putint(p, 0);
 	if(smapname[0] && !m_demo){
 		putmap(p);
-		if(m_valid(smode) || numnonlocalclients()){
+		if(m_valid(smode)){
 			putint(p, N_TIMEUP);
 			putint(p, gamemillis);
 			putint(p, gamelimit);
@@ -4038,7 +4038,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
 	int nonlocalclients = numnonlocalclients();
 
-	if(forceintermission || ((m_valid(smode) || numnonlocalclients()) && gamemillis-diff>0 && gamemillis/60000!=(gamemillis-diff)/60000))
+	if(forceintermission || (m_valid(smode) && !m_edit && gamemillis-diff>0 && gamemillis/60000!=(gamemillis-diff)/60000))
 		checkintermission();
 	if(interm && gamemillis>interm)
 	{
