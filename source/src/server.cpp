@@ -367,9 +367,7 @@ void spawnstate(client *c){
 				if(!m_onslaught) break;
 				// everyone gets same onslaught health
 				gs.health = STARTHEALTH * ZOMBIEHEALTHFACTOR;
-				if(c->team == TEAM_RED) break;
-				// blue get extra armor
-				gs.armor = 2000;
+				gs.armor = c->team == TEAM_RED ? 50 : 2000;
 				break;
 		}
 	}
