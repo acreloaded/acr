@@ -239,6 +239,9 @@ void checkmasterreply()
 							case 'i': // IP banned
 								verdict = DISC_MBAN;
 								break;
+							case 'c': // master-server registered clan protection
+								verdict = DISC_MCLAN;
+								break;
 							default: // unknown reason
 								verdict = DISC_NUM;
 								break;
