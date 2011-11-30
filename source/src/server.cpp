@@ -896,10 +896,10 @@ void htf_forceflag(int flag){
 	f.lastupdate = gamemillis;
 }
 
-int arenaround = 0;
+int arenaround = 0, arenastart = 0;
 
 inline bool canspawn(client *c, bool connecting = false){
-	return maplayout && c->team != TEAM_SPECT && (!m_duel || (connecting && numauthedclients() <= 2));
+	return maplayout && c->team != TEAM_SPECT && (!m_duel || (connecting && (gamemillis - arenastart < 2500 || numauthedclients() <= 2)));
 }
 
 struct twoint { int index, value; };
@@ -961,6 +961,7 @@ void arenacheck(){
 
 	if(arenaround){ // start new arena round
 		arenaround = 0;
+		arenastart = gamemillis;
 		distributespawns();
 		purgesknives();
 		checkitemspawns(60*1000); // spawn items now!
