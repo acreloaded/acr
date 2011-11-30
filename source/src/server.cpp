@@ -1095,7 +1095,7 @@ bool serverpickup(int i, int sender) // server side item pickup, acknowledge fir
 	e.spawntime = spawntime(e.type);
 	if(!valid_client(sender)) return true;
 	sendf(-1, 1, "ri3", N_ITEMACC, i, sender);
-	if(sents[i].type == I_HEALTH) clients[sender]->state.wounds.shrink(0);
+	if(sents[i].type == I_HEALTH && !m_onslaught) clients[sender]->state.wounds.shrink(0);
 	clients[sender]->state.pickup(sents[i].type);
 	return true;
 }
