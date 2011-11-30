@@ -3482,7 +3482,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				client &cp = *clients[cn];
 				clientstate &cs = cp.state;
 				if(broadcast && cs.state == CS_SPAWNING) cs.state = CS_ALIVE;
-				if((cs.state!=CS_ALIVE && cs.state!=CS_EDITING) || interm || seqcolor!=(cs.lifesequence&1) || !broadcast) break;
+				if(interm || !broadcast || (cs.state!=CS_ALIVE && cs.state!=CS_EDITING) || seqcolor!=(cs.lifesequence&1)) break;
 				// store location
 				cs.lasto = cs.o;
 				cs.lastomillis = gamemillis;

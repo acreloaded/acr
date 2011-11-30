@@ -176,7 +176,7 @@ playerent *playerincrosshairhit(int &hitzone){
 	int zone;
 	loopv(players){
 		playerent *o = players[i];
-		if(!o || o==at || (o->state!=CS_ALIVE && o->state!=CS_EDITING)) continue;
+		if(!o || o==at || o->state==CS_DEAD) continue;
 		float dist = at->o.dist(o->o);
 		if(dist < bestdist && (zone = intersect(o, from, to))){
 			best = o;
