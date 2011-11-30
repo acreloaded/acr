@@ -1050,7 +1050,7 @@ void refreshservers(void *menu, bool init)
 					if(si.map[0])
 					{
 						concatformatstring(si.full, "%s, %s", si.map, modestr(si.mode, modeacronyms > 0));
-						if(showmr) concatformatstring(si.full, ", (%d:%02d)", (int)floor(si.minremain/60.f), si.minremain%60);
+						if(showmr && si.mode != GMODE_COOPEDIT) concatformatstring(si.full, ", (%d:%02d)", (int)floor(si.minremain/60.f), si.minremain%60);
 					}
 					else concatformatstring(si.full, "empty");
 					concatformatstring(si.full, serverbrowserhideip < 2 ? ": \fs%s%s:%d\fr" : ": ", serverbrowserhideip == 1 ? "\f4" : "", si.name, si.port);
