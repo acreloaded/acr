@@ -118,7 +118,7 @@ void processevent(client &c, shotevent &e)
 			int hitzone = HIT_NONE;
 			client *hit = nearesthit(c, from, to, hitzone, &c);
 			if(hit){
-				serverdamage(hit, &c, m_zombies ? (hitzone == HIT_HEAD ? MAXDMG : hitzone * 100) : ((hitzone == HIT_HEAD ? 75 : 50) * HEALTHSCALE), WEAP_BOW, FRAG_GIB, hit->state.o);
+				serverdamage(hit, &c, m_zombies_rounds ? (hitzone == HIT_HEAD ? MAXDMG : hitzone * 115) : ((hitzone == HIT_HEAD ? 75 : 50) * HEALTHSCALE), WEAP_BOW, FRAG_GIB, hit->state.o);
 				if(hit->state.state != CS_ALIVE){
 					to = hit->state.o;
 					hit = NULL;
