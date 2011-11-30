@@ -2171,7 +2171,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 	logline(ACLOG_INFO, "");
 	logline(ACLOG_INFO, "Game start: %s on %s, %d players, %d minutes remaining, mastermode %d, (%s'getmap' %sprepared)",
 		modestr(smode), smapname, numclients(), minremain, mastermode, ms ? "" : "itemlist failed,", mapavailable(smapname) ? "" : "not ");
-	arenaround = 0;
+	arenaround = m_duel ? 1 : 0;
 	nokills = true;
 	if(m_duel) distributespawns();
 	if(notify){
