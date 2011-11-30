@@ -967,7 +967,7 @@ void arenacheck(){
 		checkitemspawns(60*1000); // spawn items now!
 		loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connected && clients[i]->team != TEAM_SPECT){
 			clients[i]->removeexplosives();
-			if(arenaround == 1 || clients[valid_client(clients[i]->state.ownernum) ? clients[i]->state.ownernum : i]->isonrightmap){
+			if(clients[valid_client(clients[i]->state.ownernum) ? clients[i]->state.ownernum : i]->isonrightmap){
 				clients[i]->state.lastdeath = 1;
 				sendspawn(clients[i]);
 			}
@@ -2172,7 +2172,8 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 	logline(ACLOG_INFO, "");
 	logline(ACLOG_INFO, "Game start: %s on %s, %d players, %d minutes remaining, mastermode %d, (%s'getmap' %sprepared)",
 		modestr(smode), smapname, numclients(), minremain, mastermode, ms ? "" : "itemlist failed,", mapavailable(smapname) ? "" : "not ");
-	arenaround = m_duel ? 1 : 0;
+	arenaround = 0;
+	arenastart = gamemillis;
 	nokills = true;
 	if(m_duel) distributespawns();
 	if(notify){
