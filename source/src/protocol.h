@@ -142,10 +142,9 @@ enum
 #define m_team			(gamemode==GMODE_TEAMDEATHMATCH || gamemode==GMODE_TEAMONESHOTONEKILL || \
 							gamemode==GMODE_TEAMSURVIVOR || m_ctf || m_htf || gamemode==GMODE_TKTF || gamemode==GMODE_TKTF2 || \
 							gamemode==GMODE_REALTDM || gamemode == GMODE_EXPERTTDM || gamemode == GMODE_CTDM || m_zombies)
-#define m_fight(mode)	((mode)>=0 && (mode) != GMODE_COOPEDIT && (mode)<GMODE_NUM)
+#define m_valid(mode)	((mode)>=0 && (mode)<GMODE_NUM)
 #define m_demo			(gamemode == GMODE_DEMO)
-#define m_valid(mode)	(m_fight(mode) || mode == GMODE_COOPEDIT)
-#define m_ai			(m_fight(gamemode)) // bots not available in coopedit
+#define m_ai			(m_valid(gamemode) && !m_edit) // bots not available in coopedit
 #define m_zombies		(m_zombies_rounds || m_onslaught) // extra bots!
 #define m_zombies_rounds (gamemode==GMODE_ZOMBIES)
 #define m_onslaught		(gamemode==GMODE_ONSLAUGHT)
