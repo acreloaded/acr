@@ -362,12 +362,14 @@ void spawnstate(client *c){
 				gs.mag[gs.primary] = magsize(gs.primary);
 				gs.perk = gs.nextperk = PERK_SPEED;
 				gs.health = STARTHEALTH + rnd(STARTHEALTH * ZOMBIEHEALTHFACTOR);
-				break;
+				// INTENTIONAL FALLTHROUGH
 			case TEAM_BLUE:
-				if(m_onslaught){
-					gs.health = STARTHEALTH * ZOMBIEHEALTHFACTOR;
-					gs.armor = 2000;
-				}
+				if(!m_onslaught) break;
+				// everyone gets same onslaught health
+				gs.health = STARTHEALTH * ZOMBIEHEALTHFACTOR;
+				if(c->team == TEAM_RED) break;
+				// blue get extra armor
+				gs.armor = 2000;
 				break;
 		}
 	}
