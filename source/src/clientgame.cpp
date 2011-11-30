@@ -800,7 +800,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 			playsound(S_FLAGPICKUP, SP_HIGHEST);
 			if(firstperson){
 				formatstring(predicate)("picked up %s flag", teamstr);
-				if(!m_ctf || !own){
+				if(!own || !m_ctf){
 					musicsuggest(M_FLAGGRAB, m_ctf ? 90*1000 : 900*1000, true);
 					flagmusic |= 1 << flag;
 				}
@@ -840,7 +840,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 		case FA_RESET:
 			playsound(S_FLAGRETURN, SP_HIGHEST);
 			copystring(subject, "\f1the server");
-			copystring(hashave, "had");
+			copystring(hashave, "had just");
 			formatstring(predicate)("reset %s flag", teamstr_absolute);
 			firstpersondrop = true;
 			break;
