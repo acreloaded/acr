@@ -1036,7 +1036,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	glLoadIdentity();
 	glOrtho(0, VIRTW * streakscale, VIRTH * streakscale, 0, -1, 1);
 	loopi(11){
-		quad(streakt[i][gamefocus->killstreak > i ? 0 : gamefocus->killstreak == i ? 1 : 2]->id,
+		quad(streakt[i & 1][gamefocus->killstreak > i ? 0 : gamefocus->killstreak == i ? 1 : 2]->id,
 				(VIRTW-225-10-180-30 - 80 - 55 -(11*45) + i*45) * streakscale, (VIRTH - 80 - 35) * streakscale, 80 * streakscale, 0, 0, 1);
 	}
 
