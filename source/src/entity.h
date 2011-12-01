@@ -149,7 +149,7 @@ enum { TEAM_RED = 0, TEAM_BLUE, TEAM_SPECT, TEAM_NUM };
 #define team_int(t) (!strcmp((t), "RED") ? TEAM_RED : !strcmp((t), "BLUE") ? TEAM_BLUE : TEAM_SPECT)
 #define team_opposite(o) ((o) < TEAM_SPECT ? (o) ^ 1 : TEAM_SPECT)
 #define team_color(t) ((t) == TEAM_SPECT ? 4 : (t) ? 1 : 3)
-#define team_rel_color(a, b) (a == b ? 1 : isteam(a, b) ? 0 : 3)
+#define team_rel_color(a, b) (a == b ? 1 : a && b && b->team != TEAM_SPECT ? isteam(a, b) ? 0 : 4 : 3)
 
 enum { ENT_PLAYER = 0, ENT_CAMERA, ENT_BOUNCE };
 enum { CS_ALIVE = 0, CS_DEAD, CS_SPAWNING, CS_WAITING, CS_EDITING };
