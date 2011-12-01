@@ -390,6 +390,10 @@ extern void setskin(playerent *pl, uint skin);
 extern void callvote(int type, char *arg1 = NULL, char *arg2 = NULL);
 extern void addsleep(int msec, const char *cmd);
 extern void resetsleep();
+// streak-related
+extern void radarinfo(int &total, playerent *&last, int &lastremain, const playerent *asSeenBy = NULL);
+extern bool radarup(const playerent *who = NULL);
+extern void nukeinfo(int &total, playerent *&first, int &firstremain);
 //game mode extras
 extern void flagpickup(int fln);
 extern void tryflagdrop();

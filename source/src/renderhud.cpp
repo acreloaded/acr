@@ -478,8 +478,7 @@ void drawradar(playerent *p, int w, int h)
 	drawradarent(fixradarpos(p->o, centerpos, res), coordtrans, p->yaw, p->state!=CS_DEAD ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), p->state==CS_DEAD ? .5f : p->perk == PERK_JAM ? .35f : 1, "\f1%s", colorname(p)); // local player
 
 	// radar check
-	bool hasradar = p == player1 || isteam(p, player1) ? player1->radarearned > totalmillis : false;
-	loopv(players) if(players[i] && (p == players[i] || isteam(p, players[i])) && players[i]->radarearned > totalmillis) { hasradar = true; break; }
+	const bool hasradar = radarup(gamefocus);
 
 	loopv(players) // other players
 	{
@@ -846,9 +845,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	{
 		const int left = (VIRTW-225-10)*2, top = (VIRTH*7/8)*2;
 		// semi-debug info
-		int nukepending = /*p == player1 || isteam(p, player1) ?*/ player1->nukemillis ;//: 0;
-		loopv(players) if(players[i] && /*(p == players[i] || isteam(p, players[i])) &&*/ players[i]->nukemillis && players[i]->nukemillis > totalmillis && players[i]->nukemillis < nukepending) nukepending = players[i]->nukemillis;
-		draw_textf("nuke %04.2f", left, top-240, max((nukepending-totalmillis) / 1000.f, 0.f));
 		draw_textf("sp2 %04.3f", left, top-160, p->vel.magnitudexy());
 		draw_textf("spd %04.3f", left, top-80, p->vel.magnitude());
 		// real info
@@ -1045,16 +1041,15 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	// airstrikes
 	draw_textf("\f4x\f%c%d", (VIRTW-225-10-180-22 - 80 - 55 - 5*50) * streakscale, (VIRTH - 50) * streakscale,gamefocus->airstrikes ? '0' : '5', gamefocus->airstrikes);
 	// radar time
-	int etime = 0;
-	bool isown = true;
-	if(player1->radarearned > totalmillis && (player1 == gamefocus || isteam(player1, gamefocus))) etime = player1->radarearned - totalmillis;
-	loopv(players) if(players[i] && (gamefocus == players[i] || isteam(players[i], gamefocus)) && players[i]->radarearned - totalmillis > etime){
-		etime = players[i]->radarearned - totalmillis;
-		isown = false;
-	}
-	draw_textf("\f%d%04.1f", (VIRTW-225-10-180-22 - 80 - 55 - 3*50) * streakscale, (VIRTH - 50 - 80 - 20) * streakscale, etime ? isown ? 1 : 0: 5, etime / 1000.f);
+	int stotal, sr;
+	playerent *spl;
+	radarinfo(stotal, spl, sr, gamefocus);
+	if(!sr || !spl) stotal = 0; // safety
+	draw_textf("%d:\f%d%04.1f", (VIRTW-225-10-180-22 - 80 - 55 - 3*50) * streakscale, (VIRTH - 50 - 80 - 20) * streakscale, stotal, stotal ? team_rel_color(spl, gamefocus) : 5, sr / 1000.f);
 	// nuke timer
-	draw_textf("\f%d%04.1f", (VIRTW-225-10-180-22 - 80 - 55 - 50) * streakscale, (VIRTH - 50) * streakscale, etime ? isown ? 1 : 0: 5, etime / 1000.f);
+	nukeinfo(stotal, spl, sr);
+	if(!sr || !spl) stotal = 0; // more safety
+	draw_textf("%d:\f%d%04.1f", (VIRTW-225-10-180-22 - 80 - 55 - 50) * streakscale, (VIRTH - 50) * streakscale, stotal, stotal ? team_rel_color(spl, gamefocus) : 5, sr / 1000.f);
 
 	// finally, we're done
 	glDisable(GL_BLEND);

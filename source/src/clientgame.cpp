@@ -1182,3 +1182,50 @@ void serverextension(char *ext, char *args)
 
 COMMAND(serverextension, ARG_2STR);
 
+void radarinfo(int &total, playerent *&last, int &lastremain, const playerent *asSeenBy){
+	// we return with the parameters!
+	total = 0;
+	last = NULL;
+	lastremain = 0;
+	// loop through players
+	loopi(players.length() + 1){
+		playerent *pl = players.inrange(i) ? players[i] : player1;
+		if(!pl) continue; // null
+		if(pl->radarearned <= totalmillis) continue; // no radar!
+		if(asSeenBy && asSeenBy != pl && asSeenBy->team != TEAM_SPECT && asSeenBy->team != pl->team) continue; // not the same team
+		// add to total
+		++total;
+		// we want the HIGHEST number possible
+		if(pl->radarearned > totalmillis + lastremain){
+			lastremain = pl->radarearned - totalmillis;
+			last = pl;
+		}
+	}
+}
+
+bool radarup(const playerent *who){ // maybe revise into a faster version?
+	int total, lastremain;
+	playerent *last;
+	radarinfo(total, last, lastremain, who);
+	return total > 0;
+}
+
+void nukeinfo(int &total, playerent *&first, int &firstremain){
+	// we return with the parameters!
+	total = 0;
+	first = NULL;
+	firstremain = 0;
+	// loop through players
+	loopi(players.length() + 1){
+		playerent *pl = players.inrange(i) ? players[i] : player1;
+		if(!pl) continue; // null
+		if(pl->nukemillis <= totalmillis) continue; // no upcoming nuke
+		// add to total
+		++total;
+		// we want the LEAST number possible
+		if(!firstremain || pl->nukemillis < totalmillis + firstremain){
+			firstremain = pl->nukemillis - totalmillis;
+			first = pl;
+		}
+	}
+}
