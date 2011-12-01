@@ -608,7 +608,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(!d) break;
 				switch(streak){
 					case STREAK_AIRSTRIKE:
-						// may be delayed?
+						// may be delayed? in the future?
+						--d->airstrikes;
 						break;
 					case STREAK_RADAR:
 						d->radarearned = totalmillis + info;
