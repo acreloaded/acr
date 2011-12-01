@@ -1028,21 +1028,16 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
 	// streak meter
 	const float streakscale = 1.5f;
-	static Texture *streak0 = NULL,
-		*streak1 = NULL,
-		*streak0_off = NULL,
-		*streak1_off = NULL;
-	if(!streak0) streak0 = textureload("packages/misc/streak/0.png");
-	if(!streak1) streak1 = textureload("packages/misc/streak/1.png");
-	if(!streak0_off) streak0_off = textureload("packages/misc/streak/0o.png");
-	if(!streak1_off) streak1_off = textureload("packages/misc/streak/1o.png");
+	static Texture *streakt[2][3] = { NULL };
+	loopi(2) loopj(3){
+		defformatstring(path)("packages/misc/streak/%d%s.png", i, j ? j > 1 ? "" : "c" : "o");
+		streakt[i][j] = textureload(path);
+	}
 	glLoadIdentity();
 	glOrtho(0, VIRTW * streakscale, VIRTH * streakscale, 0, -1, 1);
 	loopi(11){
-		quad(gamefocus->killstreak > i ?
-			(i&1) ?	streak1->id : streak0->id :
-			(i&1) ? streak1_off->id : streak0_off->id,
-				(VIRTW-225-10-180-30 - 60 - 30) * streakscale - i*38, VIRTH * streakscale - 100, 60, 0, 0, 1);
+		quad(streakt[i][gamefocus->killstreak > i ? 0 : gamefocus->killstreak == i ? 1 : 2]->id,
+				(VIRTW-225-10-180-30 - 80 - 55 -(11*45) + i*45) * streakscale, (VIRTH - 80 - 35) * streakscale, 80 * streakscale, 0, 0, 1);
 	}
 
 	// finally, we're done
