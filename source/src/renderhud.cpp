@@ -1042,7 +1042,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		quad(gamefocus->killstreak > i ?
 			(i&1) ?	streak1->id : streak0->id :
 			(i&1) ? streak1_off->id : streak0_off->id,
-				(VIRTW-225-10-180-30 - 60 - 30) * streakscale, VIRTH * streakscale - 100 - i*38, 60, 0, 0, 1);
+				(VIRTW-225-10-180-30 - 60 - 30) * streakscale - i*38, VIRTH * streakscale - 100, 60, 0, 0, 1);
 	}
 
 	// finally, we're done
