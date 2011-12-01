@@ -1039,22 +1039,22 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	// we have the color/blend function set by the perk icon
 	loopi(11){
 		quad(streakt[i & 1][gamefocus->killstreak > i ? 2 : gamefocus->killstreak == i ? 1 : 0]->id,
-				(VIRTW-225-10-180-30 - 80 - 55 -(11*45) + i*45) * streakscale, (VIRTH - 80 - 35) * streakscale, 80 * streakscale, 0, 0, 1);
+				(VIRTW-225-10-180-30 - 80 - 55 -(12*50) + i*50 + (gamefocus->killstreak == i ? 55 : 50)) * streakscale, (VIRTH - 80 - 35) * streakscale, (gamefocus->killstreak == i ? 90 : 80) * streakscale, 0, 0, 1);
 	}
 	// streak misc
 	// airstrikes
-	draw_textf("x%d", (VIRTW-225-10-180-22 - 80 - 55 - 5*45) * streakscale, (VIRTH - 50) * streakscale, gamefocus->airstrikes);
+	draw_textf("\f4x\f%c%d", (VIRTW-225-10-180-22 - 80 - 55 - 5*50) * streakscale, (VIRTH - 50) * streakscale,gamefocus->airstrikes ? '0' : '5', gamefocus->airstrikes);
 	// radar time
-	int radartime = 0;
+	int etime = 0;
 	bool isown = true;
-	if(player1->radarearned > totalmillis && (player1 == gamefocus || isteam(player1, gamefocus))) radartime = player1->radarearned - totalmillis;
-	loopv(players) if(players[i] && (gamefocus == players[i] || isteam(players[i], gamefocus)) && players[i]->radarearned - totalmillis > radartime){
-		radartime = players[i]->radarearned - totalmillis;
+	if(player1->radarearned > totalmillis && (player1 == gamefocus || isteam(player1, gamefocus))) etime = player1->radarearned - totalmillis;
+	loopv(players) if(players[i] && (gamefocus == players[i] || isteam(players[i], gamefocus)) && players[i]->radarearned - totalmillis > etime){
+		etime = players[i]->radarearned - totalmillis;
 		isown = false;
 	}
-	draw_textf("\f%d%04.1f", (VIRTW-225-10-180-22 - 80 - 55 - 3*45) * streakscale, (VIRTH - 50 - 80 - 20) * streakscale, radartime ? isown ? 1 : 0: 5, radartime / 1000.f);
+	draw_textf("\f%d%04.1f", (VIRTW-225-10-180-22 - 80 - 55 - 3*50) * streakscale, (VIRTH - 50 - 80 - 20) * streakscale, etime ? isown ? 1 : 0: 5, etime / 1000.f);
 	// nuke timer
-	draw_text("nuke", (VIRTW-225-10-180-35 - 80 - 55 - 45) * streakscale, (VIRTH - 50) * streakscale);
+	draw_textf("\f%d%04.1f", (VIRTW-225-10-180-22 - 80 - 55 - 50) * streakscale, (VIRTH - 50) * streakscale, etime ? isown ? 1 : 0: 5, etime / 1000.f);
 
 	// finally, we're done
 	glDisable(GL_BLEND);
