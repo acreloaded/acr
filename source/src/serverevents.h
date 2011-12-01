@@ -282,8 +282,13 @@ void processevents(){
 						const int bleeddmg = (m_zombies ? BLEEDDMGZ : owner.state.perk == PERK_PERSIST ? BLEEDDMGPLUS : BLEEDDMG) * HEALTHSCALE;
 						owner.state.damage += bleeddmg;
 						owner.state.shotdamage += bleeddmg;
-						sendhit(owner, WEAP_KNIFE, vec(c.state.o).add(w.offset).v, bleeddmg);
-						serverdamage(&c, &owner, bleeddmg, WEAP_KNIFE, FRAG_NONE, owner.state.o);
+						// where were we wounded?
+						vec woundloc = c.state.o;
+						woundloc.add(w.offset);
+						// blood fx and stuff
+						sendhit(owner, WEAP_KNIFE, woundloc.v, bleeddmg);
+						// use wounded location as damage source
+						serverdamage(&c, &owner, bleeddmg, WEAP_KNIFE, FRAG_NONE, woundloc);
 						w.lastdealt = gamemillis;
 					}
 				}
