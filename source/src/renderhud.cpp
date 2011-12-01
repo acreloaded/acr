@@ -1016,7 +1016,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		}
 	//}
 
-	// finally, draw the perk icon
+	// draw the perk icon
 	
 	glLoadIdentity();
 	glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
@@ -1024,8 +1024,28 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	Texture *perk = getperktex()[p->perk%PERK_MAX];
-	if(perk) quad(perk->id, VIRTW-225-10-180-30, VIRTH - 180 - 10, 180, 0, 0, 1);
+	if(perk) quad(perk->id, VIRTW-225-10 - 180 - 30, VIRTH - 180 - 10, 180, 0, 0, 1);
 
+	// streak meter
+	const float streakscale = 1.5f;
+	static Texture *streak0 = NULL,
+		*streak1 = NULL,
+		*streak0_off = NULL,
+		*streak1_off = NULL;
+	if(!streak0) streak0 = textureload("packages/misc/streak/0.png");
+	if(!streak1) streak1 = textureload("packages/misc/streak/1.png");
+	if(!streak0_off) streak0_off = textureload("packages/misc/streak/0o.png");
+	if(!streak1_off) streak1_off = textureload("packages/misc/streak/1o.png");
+	glLoadIdentity();
+	glOrtho(0, VIRTW * streakscale, VIRTH * streakscale, 0, -1, 1);
+	loopi(11){
+		quad(gamefocus->killstreak > i ?
+			(i&1) ?	streak1->id : streak0->id :
+			(i&1) ? streak1_off->id : streak0_off->id,
+				(VIRTW-225-10-180-30 - 60 - 30) * streakscale, VIRTH * streakscale - 100 - i*38, 60, 0, 0, 1);
+	}
+
+	// finally, we're done
 	glDisable(GL_BLEND);
 	glDisable(GL_TEXTURE_2D);
 	glEnable(GL_DEPTH_TEST);
