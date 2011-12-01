@@ -359,6 +359,8 @@ void spawnstate(client *c){
 		switch(c->team){
 			case TEAM_RED:
 				gs.gunselect = gs.primary = gs.nextprimary = !rnd(3) ? WEAP_SWORD : WEAP_KNIFE;
+				memset(gs.mag, 0, sizeof(gs.mag));
+				memset(gs.ammo, 0, sizeof(gs.ammo));
 				gs.mag[gs.primary] = magsize(gs.primary);
 				gs.perk = gs.nextperk = PERK_SPEED;
 				gs.health = STARTHEALTH + rnd(STARTHEALTH * ZOMBIEHEALTHFACTOR);
