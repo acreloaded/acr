@@ -1030,13 +1030,14 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	const float streakscale = 1.5f;
 	static Texture *streakt[2][3] = { NULL };
 	loopi(2) loopj(3){
+		// done, current, outstanding
 		defformatstring(path)("packages/misc/streak/%d%s.png", i, j ? j > 1 ? "" : "c" : "o");
 		streakt[i][j] = textureload(path);
 	}
 	glLoadIdentity();
 	glOrtho(0, VIRTW * streakscale, VIRTH * streakscale, 0, -1, 1);
 	loopi(11){
-		quad(streakt[i & 1][gamefocus->killstreak > i ? 0 : gamefocus->killstreak == i ? 1 : 2]->id,
+		quad(streakt[i & 1][gamefocus->killstreak > i ? 2 : gamefocus->killstreak == i ? 1 : 0]->id,
 				(VIRTW-225-10-180-30 - 80 - 55 -(11*45) + i*45) * streakscale, (VIRTH - 80 - 35) * streakscale, 80 * streakscale, 0, 0, 1);
 	}
 
