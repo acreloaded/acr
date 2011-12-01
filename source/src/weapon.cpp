@@ -330,8 +330,44 @@ int weapon::flashtime() const { return min(max((int)info.attackdelay, 180)/3, 15
 
 void weapon::sendshoot(vec to){
 	if(owner!=player1 && !isowned(owner)) return;
+	
+	static uchar buf[MAXTRANS];
+	ucharbuf p(buf, MAXTRANS);
+	// standard shoot packet
+	putint(p, N_SHOOT);
+	putint(p, owner->clientnum);
+	putint(p, lastmillis);
+	putint(p, owner->weaponsel->type);
+	// send as delta from owner's position
 	to.sub(owner->o);
-	addmsg(N_SHOOT, "ri3f3", owner->clientnum, lastmillis, owner->weaponsel->type, to.x, to.y, to.z);
+	putfloat(p, to.x);
+	putfloat(p, to.y);
+	putfloat(p, to.z);
+
+	// get heads
+	struct head_t{
+		int cn;
+		vec delta;
+	};
+	vector<head_t> heads;
+	loopv(players) if(players[i] && players[i]->head.x > 0){
+		head_t &h = heads.add();
+		h.cn = i;
+		(h.delta = players[i]->head).sub(players[i]->o);
+	}
+	// write them
+	putint(p, heads.length());
+	loopv(heads){
+		putint(p, heads[i].cn);
+		putfloat(p, heads[i].delta.x);
+		putfloat(p, heads[i].delta.y);
+		putfloat(p, heads[i].delta.z);
+	}
+
+	extern bool messagereliable;
+	messagereliable = true;
+	extern vector<uchar> messages;
+	loopi(p.length()) messages.add(buf[i]);
 }
 
 bool weapon::modelattacking(){

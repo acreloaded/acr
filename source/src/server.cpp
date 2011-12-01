@@ -3207,8 +3207,17 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(hascn) seteventmillis(shot.shot, id);
 				shot.shot.gun = getint(p);
 				shot.shot.compact = type == N_SHOOTC;
+				shot.shot.pheads = new vector<head_t>;
+				shot.shot.pheads->setsize(0);
 				if(type == N_SHOOT){
-					loopk(3) shot.shot.to[k] = getfloat(p);
+					loopi(3) shot.shot.to[i] = getfloat(p);
+					const int heads = getint(p), maxheads = numclients();
+					loopi(heads){
+						head_t head;
+						head.cn = getint(p);
+						loopk(3) head.delta[k] = getfloat(p);
+						if(hascn && heads < maxheads) shot.shot.pheads->add(head);
+					}
 				}
 				break;
 			}

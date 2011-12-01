@@ -13,11 +13,17 @@ static int interm = 0, minremain = 0, gamemillis = 0, gamelimit = 0, gamemusicse
 static const int DEATHMILLIS = 300;
 int smode = GMODE_TEAMDEATHMATCH, mastermode = MM_OPEN, botbalance = -1;
 
+struct head_t{
+	int cn;
+	vec delta;
+};
+
 #define eventcommon int type, millis, id
 struct shotevent{
 	eventcommon;
 	int gun;
 	float to[3];
+	vector<head_t> *pheads;
 	bool compact;
 };
 

@@ -64,6 +64,14 @@ void processevent(client &c, projevent &e){
 
 void processevent(client &c, shotevent &e)
 {
+	// transfer heads to the stack
+	static vector<head_t> heads;
+	heads.setsize(0);
+	if(e.pheads){
+		loopv(*e.pheads) heads.add((*e.pheads)[i]);
+		delete e.pheads;
+	}
+
 	clientstate &gs = c.state;
 	int wait = e.millis - gs.lastshot;
 	if(!gs.isalive(gamemillis) ||
@@ -116,7 +124,7 @@ void processevent(client &c, shotevent &e)
 		case WEAP_BOW: // explosive tip is stuck to a player
 		{
 			int hitzone = HIT_NONE;
-			client *hit = nearesthit(c, from, to, hitzone, &c);
+			client *hit = nearesthit(c, from, to, hitzone, heads, &c);
 			if(hit){
 				serverdamage(hit, &c, m_zombies_rounds ? (hitzone == HIT_HEAD ? MAXDMG : hitzone * 115) : ((hitzone == HIT_HEAD ? 75 : 50) * HEALTHSCALE), WEAP_BOW, FRAG_GIB, hit->state.o);
 				if(hit->state.state != CS_ALIVE){
@@ -139,7 +147,7 @@ void processevent(client &c, shotevent &e)
 		{
 			int hitzone = HIT_NONE;
 			vec end;
-			client *hit = gs.scoping ? &c : nearesthit(c, from, to, hitzone, &c, &end);
+			client *hit = gs.scoping ? &c : nearesthit(c, from, to, hitzone, heads, &c, &end);
 			if(!hit) break;
 			const int flags = hitzone == HIT_HEAD ? FRAG_GIB : FRAG_NONE;
 			if(!m_team || &c == hit || c.team != hit->team) serverdamage(hit, &c, effectiveDamage(e.gun, hit->state.o.dist(from)), e.gun, flags, gs.o);
@@ -165,9 +173,9 @@ void processevent(client &c, shotevent &e)
 		default:
 		{
 			if(e.gun == WEAP_SHOTGUN){ // many rays, many players
-				damagedealt += shotgun(c); // WARNING: modifies gs.sg
+				damagedealt += shotgun(c, heads); // WARNING: modifies gs.sg
 			}
-			else damagedealt += shot(c, gs.o, to, e.gun, surface, &c); // WARNING: modifies to
+			else damagedealt += shot(c, gs.o, to, heads, e.gun, surface, &c); // WARNING: modifies to
 		}
 	}
 	gs.damage += damagedealt;
