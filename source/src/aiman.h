@@ -108,7 +108,6 @@ void checkai(){
 			else{
 				const int spawns = m_team ? (smapstats.hasteamspawns ? smapstats.spawns[0] + smapstats.spawns[1] : 16) : (smapstats.hasffaspawns ? smapstats.spawns[2] : 6);
 				balance = max(people, spawns / 3);
-				if(balance % 1 && m_team) ++balance;
 			}
 			break; // auto
 		//case  0: balance = 0; break; // force no bots
@@ -118,7 +117,7 @@ void checkai(){
 		if(m_team && !m_zombies){
 			int plrs[2] = {0}, highest = -1;
 			loopv(clients) if(valid_client(i, true) && clients[i]->team < 2){
-				plrs[clients[i]->team]++;
+				++plrs[clients[i]->team];
 				if(highest < 0 || plrs[clients[i]->team] > plrs[highest]) highest = clients[i]->team;
 			}
 			if(highest >= 0){
@@ -129,6 +128,8 @@ void checkai(){
 				}
 			}
 		}
+		// correct automatic setting
+		if(botbalance < 0 && balance & 1 && m_team) ++balance;
 		while(countplayers() < balance) if(!addai()) break;
 		while(countplayers() > balance) if(!delai()) break;
 	}
