@@ -1182,7 +1182,7 @@ void renderhudwaypoints(playerent *p){
 			playerent *stuck = getclient(sticks[i].cn);
 			vec o(stuck ? stuck->o : sticks[i].o);
 			const float flashfactor = float(sticks[i].millis - totalmillis) / TIPSTICKTTL * 350 + 200;
-			renderwaypoint(WP_BOMB, o, fabs(sinf((totalmillis % 10000) / flashfactor)), p->perk == PERK_VISION);
+			renderwaypoint(WP_EXP, o, fabs(sinf((totalmillis % 10000) / flashfactor)), p->perk == PERK_VISION);
 			if(sticks[i].lastlight < lastmillis){
 				const int nextflash = flashfactor;
 				adddynlight(stuck, o, 8, nextflash, nextflash, 12, 192, 16);
@@ -1216,7 +1216,7 @@ void renderhudwaypoints(playerent *p){
 				o = f.actor->o;
 				wp = m_team && f.actor->team == teamfix ?
 					// friendly
-					m_ctf ? WP_ESCORT : WP_DEFEND
+					(m_ctf || m_btf) ? WP_ESCORT : WP_DEFEND
 					: // hostile below
 					WP_KILL;
 				break;
@@ -1226,6 +1226,7 @@ void renderhudwaypoints(playerent *p){
 				o.z += PLAYERHEIGHT;
 				if(m_ctf) wp = i == teamfix ? WP_RETURN : WP_ENEMY;
 				else if(m_ktf) wp = WP_ENEMY;
+				else if(m_btf) wp = i == teamfix ? WP_BOMB : WP_DEFUSE;
 				else wp = i == teamfix ? WP_FRIENDLY : WP_GRAB;
 				break;
 		}
@@ -1235,15 +1236,16 @@ void renderhudwaypoints(playerent *p){
 		if(OUTBORD(e.x, e.y)) continue;
 
 		// flag base
-		wp = WP_STOLEN;
+		wp = m_btf ? WP_DEFEND : WP_STOLEN; // empty base
 		switch(f.state){
 			default: if(i != teamfix) wp = -1; break;
 			case CTFF_INBASE:
 				if(m_ctf){
 					wp = i == teamfix ? WP_FRIENDLY : WP_GRAB;
-				}else if(m_htf){
+				} else if(m_btf)
+					wp = i == teamfix ? WP_BOMB : WP_TARGET;
+				else if(m_htf)
 					wp = i == teamfix ? WP_FRIENDLY : WP_ENEMY;
-				}
 				else{ // if(m_ktf){
 					wp = WP_GRAB;
 				}
