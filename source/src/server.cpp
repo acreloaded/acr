@@ -2861,7 +2861,7 @@ void checkmove(client &cp){
 		}
 		else if(m_htf || m_btf){
 			if(i == cp.team){
-				f.drop_cn = -1; // force pickup
+				if(m_htf) f.drop_cn = -1; // force pickup
 				flagaction(i, FA_PICKUP, sender);
 			}
 			else if(m_htf && f.state == CTFF_DROPPED) flagaction(i, FA_SCORE, sender);
