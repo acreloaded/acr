@@ -1198,33 +1198,32 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				int cn = getint(p), fnt = getint(p), ftr = fnt >> 4; fnt &= 0xF;
 				playerent *p = getclient(cn);
 				if(!p) break;
-				string nts;
-				formatstring(nts)("\f%d%s", team_color(fnt), team_string(fnt));
-				if(p->team == fnt){
-					if(p == player1 && ftr == FTR_AUTOTEAM) hudoutf("\f2you stay in team %s", nts);
-					break;
-				}
-				else if(*p->name && ftr == FTR_PLAYERWISH) addobit(p, fnt == TEAM_SPECT ? OBIT_SPECT : OBIT_TEAM, FRAG_NONE, false, p);
-				p->team = fnt;
-				if(p == player1 && !watchingdemo){
-					switch(ftr){
-						case FTR_PLAYERWISH:
-							conoutf("\f2you're now in team %s", nts);
-							break;
-						case FTR_AUTOTEAM:
-							hudoutf("\f2the server forced you to team %s", nts);
-							break;
-					}
-				}
-				else{
+				defformatstring(nts)("team \f%d%s", team_color(fnt), team_string(fnt));
+				const bool own = (p == player1 && !watchingdemo);
+				if(p->team == fnt){ // no change
                     switch(ftr){
                         case FTR_PLAYERWISH:
-                            conoutf("\f2%s switched to team %s", colorname(p), nts);
+							if(own) hudoutf("%s", "\f1you \f2did \f3not \f2switch teams");
+                            else conoutf("\f2%s did not switch teams", colorname(p));
                             break;
                         case FTR_AUTOTEAM:
-                            conoutf("\f2the server forced %s to team %s", colorname(p), nts);
+							if(own) hudoutf("\f1you stay in \f2%s", nts);
+                            else conoutf("\f2%s stays on %s", colorname(p), nts);
                             break;
                     }
+                }
+				else{ // changed
+                    switch(ftr){
+                        case FTR_PLAYERWISH:
+							if(own) hudoutf("\f1you're \f2now in %s", nts);
+                            else conoutf("\f2%s switched to %s", colorname(p), nts);
+                            break;
+                        case FTR_AUTOTEAM:
+							if(own) hudoutf("\f2the server \f1forced you \f2to %s", nts);
+                            else conoutf("\f2the server forced %s to %s", colorname(p), nts);
+                            break;
+                    }
+					p->team = fnt;
                 }
 				break;
 			}

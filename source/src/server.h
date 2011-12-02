@@ -475,6 +475,8 @@ const int obit_suicide(int weap){
 		case 4: return OBIT_BOT;
 		case 5: return OBIT_CHEAT;
 		case 6: return OBIT_NUKE;
+		case 7: return OBIT_TEAM;
+		case 8: return OBIT_SPECT;
 	}
 	return OBIT_DEATH;
 }
@@ -500,6 +502,14 @@ const char *suicname(int obit){
 			concatstring(k, "ate a bullet");
 			break;
 		// END of ricochet
+		// teams
+		case OBIT_SPECT:
+			concatstring(k, "abnegated from gameplay");
+			break;
+		case OBIT_TEAM:
+			concatstring(k, "renounced and defected from an old team");
+			break;
+		// weapons
 		case WEAP_GRENADE:
 			concatstring(k, "exploded friendly ordnance");
 			break;
