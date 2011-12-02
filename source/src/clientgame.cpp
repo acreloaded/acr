@@ -821,7 +821,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 			break;
 		case FA_SCORE:
 			playsound(S_FLAGSCORE, SP_HIGHEST);
-			formatstring(predicate)("scored %s team's flag for %s team!", teamstr, !own ? "your" : "the enemy");
+			formatstring(predicate)("scored for \fs\f%d%s\fr team!", team_rel_color(player1, act), firstperson || isteam(act, player1) ? "your" : "the enemy");
 			if(m_ctf) firstpersondrop = true;
 			break;
 		case FA_KTFSCORE:
