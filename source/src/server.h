@@ -501,7 +501,7 @@ const char *suicname(int obit){
 			break;
 		// END of ricochet
 		case WEAP_GRENADE:
-			concatstring(k, "failed with nades");
+			concatstring(k, "exploded friendly ordnance");
 			break;
 		case WEAP_HEAL:
 			concatstring(k, "overdosed on drugs");
