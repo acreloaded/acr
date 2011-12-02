@@ -127,8 +127,8 @@ void renderentities()
 	{
 		flaginfo &f = flaginfos[i];
 		entity &e = *f.flagent;
-		defformatstring(fpath)("pickups/flags/%s%s", m_ktf && !m_ktf2 ? "" : team_string(i),  m_htf ? "_htf" : m_ktf && !m_ktf2 ? "ktf" : "");
-		defformatstring(sfpath)("pickups/flags/small_%s%s", m_ktf && !m_ktf2 ? "" : team_string(i), m_htf ? "_htf" : m_ktf && !m_ktf2 ? "ktf" : "");
+		defformatstring(fpath)("pickups/flags/%s%s", m_ktf && !m_ktf2 ? "" : team_string(i),  (m_htf || m_btf) ? "_htf" : m_ktf && !m_ktf2 ? "ktf" : "");
+		defformatstring(sfpath)("pickups/flags/small_%s%s", m_ktf && !m_ktf2 ? "" : team_string(i), (m_htf || m_btf) ? "_htf" : m_ktf && !m_ktf2 ? "ktf" : "");
 		switch(f.state)
 		{
 			case CTFF_STOLEN:

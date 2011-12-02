@@ -268,8 +268,8 @@ flaginfo *CACBot::SearchForFlags(bool bUseWPs, float flRange, float flMaxHeight)
 			case CTFF_INBASE: // go to this base
 				// if CTF capturing our flag
 				if(m_ctf && (i != m_pMyEnt->team || of.state != CTFF_STOLEN || of.actor != m_pMyEnt)) continue;
-				// in HTF to take out own flag
-				else if(m_htf && i != m_pMyEnt->team) continue;
+				// in HTF or BTF to take out own flag
+				else if((m_htf || m_btf) && i != m_pMyEnt->team) continue;
 				// if KTF
 				break;
 			case CTFF_STOLEN: // go to our stolen flag's base

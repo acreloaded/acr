@@ -713,7 +713,7 @@ void flagaction(int flag, int action, int actor){
 	int score = 0;
 	int message = -1;
 
-	if(m_ctf || m_htf || m_ktf2)
+	if(m_ctf || m_htf || m_ktf2 || m_btf)
 	{
 		switch(action)
 		{
@@ -743,7 +743,7 @@ void flagaction(int flag, int action, int actor){
 						break;
 					}
 				}
-				else{ // htf
+				else if(m_htf){ // htf
 					score = (of.state == CTFF_STOLEN) ? of.actor_cn == actor ? 2 : 1 : 0;
 					message = score ? FA_SCORE : FA_SCOREFAIL;
 				}
@@ -2859,10 +2859,21 @@ void checkmove(client &cp){
 				flagaction(i, FA_PICKUP, sender);
 			}
 		}
-		else if(m_htf){
-			f.drop_cn = -1; // force pickup
-			if(i == cp.team) flagaction(i, FA_PICKUP, sender);
-			else if(f.state == CTFF_DROPPED) flagaction(i, FA_SCORE, sender);
+		else if(m_htf || m_btf){
+			if(i == cp.team){
+				f.drop_cn = -1; // force pickup
+				flagaction(i, FA_PICKUP, sender);
+			}
+			else if(m_htf && f.state == CTFF_DROPPED) flagaction(i, FA_SCORE, sender);
+			else if (m_btf){
+				// score their flag by bombing their base!
+				if(f.state == CTFF_INBASE && of.state == CTFF_STOLEN && of.actor_cn == sender){
+					flagaction(team_opposite(i), FA_SCORE, sender);
+					explosion(cp, cs.o, WEAP_GRENADE, false); // identical to the airstrike, replace with something else?
+				}
+				// make the enemy's flag go right back to base
+				if(f.state == CTFF_DROPPED) flagaction(i, FA_RETURN, sender);
+			}
 		}
 		else if(m_ktf && f.state == CTFF_INBASE) flagaction(i, FA_PICKUP, sender);
 		else if(m_ktf2 && f.state != CTFF_STOLEN){
