@@ -637,7 +637,7 @@ static int votersort(playerent **a, playerent **b){
 }
 
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater){
-	playerent * const p = p;
+	playerent * const p = gamefocus;
 	bool spectating = player1->isspectating();
 
 	glDisable(GL_DEPTH_TEST);
