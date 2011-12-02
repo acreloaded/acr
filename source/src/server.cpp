@@ -2870,7 +2870,7 @@ void checkmove(client &cp){
 				// score their flag by bombing their base!
 				if(f.state == CTFF_INBASE && of.state == CTFF_STOLEN && of.actor_cn == sender){
 					flagaction(team_opposite(i), FA_SCORE, sender);
-					explosion(cp, cs.o, WEAP_GRENADE, false); // identical to the airstrike, replace with something else?
+					explosion(cp, cs.o, WEAP_GRENADE); // identical to self-nades, replace with something else?
 				}
 				// make the enemy's flag go right back to base
 				if(f.state == CTFF_DROPPED) flagaction(i, FA_RETURN, sender);
