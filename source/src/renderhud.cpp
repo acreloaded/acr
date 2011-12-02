@@ -1238,7 +1238,7 @@ void renderhudwaypoints(playerent *p){
 		wp = WP_STOLEN; // stolen or dropped
 		switch(f.state){
 			default:
-				if(m_btf) wp = i == teamfix ? WP_DEFEND : WP_TARGET;
+				if(m_btf) wp = flaginfos[team_opposite(i)].state != CTFF_INBASE ? i == teamfix ? WP_DEFEND : WP_TARGET : -1;
 				else if(i != teamfix) wp = -1; break;
 			case CTFF_INBASE:
 				if(m_ctf){
