@@ -704,7 +704,7 @@ int main(int argc, char **argv)
 
 			serverslice(0);
 
-			fps = (1000.0f/elapsed+fps*10)/11;
+			fps = (1000.0f/max(1,elapsed)+fps*10)/11;
 			frames++;
 
 			updateaudio();
