@@ -121,6 +121,7 @@ enum
 #define m_lms		(gamemode == GMODE_SURVIVOR || gamemode == GMODE_TEAMSURVIVOR)
 #define m_return	(gamemode == GMODE_RCTF)
 #define m_ctf		(gamemode == GMODE_CTF || gamemode == GMODE_RCTF)
+#define m_btf		(gamemode == GMODE_BOMBER)
 #define m_pistol	(gamemode == GMODE_PISTOLFRENZY)
 #define m_lss		(gamemode == GMODE_LASTSWISSSTANDING || gamemode == GMODE_HANDHELD || gamemode == GMODE_KNIFE)
 #define m_osok		(gamemode == GMODE_ONESHOTONEKILL || gamemode == GMODE_TEAMONESHOTONEKILL)
@@ -139,9 +140,9 @@ enum
 #define m_noradar		(m_zombies || m_classic)
 #define m_nonuke		(m_zombies)
 #define m_duel			(m_lms || gamemode == GMODE_LASTSWISSSTANDING || m_osok || m_zombies_rounds)
-#define m_flags			(m_ctf || m_htf || m_ktf)
+#define m_flags			(m_ctf || m_htf || m_ktf || m_btf)
 #define m_team			(gamemode==GMODE_TEAMDEATHMATCH || gamemode==GMODE_TEAMONESHOTONEKILL || \
-							gamemode==GMODE_TEAMSURVIVOR || m_ctf || m_htf || gamemode==GMODE_TKTF || gamemode==GMODE_TKTF2 || \
+							gamemode==GMODE_TEAMSURVIVOR || m_ctf || m_htf || m_btf || gamemode==GMODE_TKTF || gamemode==GMODE_TKTF2 || \
 							gamemode==GMODE_REALTDM || gamemode == GMODE_EXPERTTDM || gamemode == GMODE_CTDM || m_zombies)
 #define m_valid(mode)	((mode)>=0 && (mode)<GMODE_NUM)
 #define m_demo			(gamemode == GMODE_DEMO)
