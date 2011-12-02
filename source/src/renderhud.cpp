@@ -824,7 +824,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		static string hudtarget;
 		static int lasttarget = INT_MIN;
 		if(targetplayer){
-			formatstring(hudtarget)(" \f2[\f%d%s\f2] \f4[\f%s\f4]", p==targetplayer?1:isteam(p, targetplayer)?0:3, colorname(targetplayer),
+			formatstring(hudtarget)(" \f2[\f%d%s\f2] \f4[\f%s\f4]", team_rel_color(p, targetplayer), colorname(targetplayer),
 				targetplayerzone==HIT_HEAD?"3HEAD":targetplayerzone==HIT_TORSO?"2TORSO":"0LEGS");
 			concatstring(hudtext, hudtarget);
 			lasttarget = lastmillis;

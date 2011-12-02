@@ -527,7 +527,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 		if(pl == gamefocus) concatstring(predicate, "!\f2");
 	}
 	else formatstring(predicate)("%s%s %s%s", style&FRAG_REVENGE ? "\fs\f0vengefully \fr" : "", killname(obit = toobit(weapon, style), headshot),
-			isteam(pl, act) ? act==player1 ? "your teammate " : "his teammate " : "", pl == player1 ? "\f1you\f2" : colorname(pl));
+			isteam(pl, act) ? act==player1 ? "\f3your teammate " : "\f3his teammate " : "", pl == player1 ? "\f1you\f2" : colorname(pl));
 	if(killdist) concatformatstring(predicate, " (@%.2f m)", killdist);
 	// streaks
 	if(act->killstreak++) concatformatstring(predicate, " %d ks", act->killstreak);
