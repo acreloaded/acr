@@ -328,6 +328,11 @@ const int weapon::scopetime = ADSTIME;
 
 int weapon::flashtime() const { return min(max((int)info.attackdelay, 180)/3, 150); }
 
+struct head_t{
+	int cn;
+	vec delta;
+};
+
 void weapon::sendshoot(vec to){
 	if(owner!=player1 && !isowned(owner)) return;
 	
@@ -345,10 +350,6 @@ void weapon::sendshoot(vec to){
 	putfloat(p, to.z);
 
 	// get heads
-	struct head_t{
-		int cn;
-		vec delta;
-	};
 	vector<head_t> heads;
 	loopv(players) if(players[i] && players[i]->head.x > 0){
 		head_t &h = heads.add();
