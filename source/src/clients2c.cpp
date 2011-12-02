@@ -542,12 +542,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(s != player1 && !isowned(s)){
 					s->mag[gun]--;
 					updatelastaction(s);
-				}
-				if(s->weapons[gun]){
-					s->weapons[gun]->gunwait = s->weapons[gun]->info.attackdelay;
 					s->lastattackweapon = s->weapons[gun];
-					s->weapons[gun]->attackfx(from, to, type == N_RICOCHET ? -2 : -1);
+					s->weapons[gun]->gunwait = s->weapons[gun]->info.attackdelay;
 				}
+				if(s->weapons[gun]) s->weapons[gun]->attackfx(from, to, type == N_RICOCHET ? -2 : -1);
 				break;
 			}
 
