@@ -1235,9 +1235,11 @@ void renderhudwaypoints(playerent *p){
 		if(OUTBORD(e.x, e.y)) continue;
 
 		// flag base
-		wp = m_btf ? WP_DEFEND : WP_STOLEN; // empty base
+		wp = WP_STOLEN; // stolen or dropped
 		switch(f.state){
-			default: if(i != teamfix) wp = -1; break;
+			default:
+				if(m_btf) wp = i == teamfix ? WP_DEFEND : WP_TARGET;
+				else if(i != teamfix) wp = -1; break;
 			case CTFF_INBASE:
 				if(m_ctf){
 					wp = i == teamfix ? WP_FRIENDLY : WP_GRAB;
