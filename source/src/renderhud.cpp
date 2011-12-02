@@ -1036,21 +1036,21 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	loopi(11){
 		glColor4f(1, 1, 1, p->state != CS_DEAD ? p->killstreak == i ? (0.2f+(sinf(lastmillis/100.0f)+1.0f)/2.0f) : .78f : .3f);
 		quad(streakt[i & 1][p->killstreak > i ? 2 : p->killstreak == i ? 1 : 0]->id,
-				(VIRTW-225-10-180-30 - 80 - 55 -(11*50) + i*50) * streakscale, (VIRTH - 80 - 35) * streakscale, 80 * streakscale, 0, 0, 1);
+				(VIRTW-225-10-180-30 - 80 - 15 -(11*50) + i*50) * streakscale, (VIRTH - 80 - 35) * streakscale, 80 * streakscale, 0, 0, 1);
 	}
 	// streak misc
 	// airstrikes
-	draw_textf("\f4x\f%c%d", (VIRTW-225-10-180-22 - 80 - 55 - 5*50) * streakscale, (VIRTH - 50) * streakscale, p->airstrikes ? '0' : '5', p->airstrikes);
+	draw_textf("\f4x\f%c%d", (VIRTW-225-10-180-22 - 80 - 23 - 5*50) * streakscale, (VIRTH - 50) * streakscale, p->airstrikes ? '0' : '5', p->airstrikes);
 	// radar time
 	int stotal, sr;
 	playerent *spl;
 	radarinfo(stotal, spl, sr, p);
 	if(!sr || !spl) stotal = 0; // safety
-	draw_textf("%d:\f%d%04.1f", (VIRTW-225-10-180-22 - 80 - 55 - 3*50) * streakscale, (VIRTH - 50 - 80 - 20) * streakscale, stotal, stotal ? team_rel_color(spl, p) : 5, sr / 1000.f);
+	draw_textf("%d:\f%d%04.1f", (VIRTW-225-10-180-22 - 80 - 40 - 3*50) * streakscale, (VIRTH - 50 - 80 - 20) * streakscale, stotal, stotal ? team_rel_color(spl, p) : 5, sr / 1000.f);
 	// nuke timer
 	nukeinfo(stotal, spl, sr);
 	if(!sr || !spl) stotal = 0; // more safety
-	draw_textf("%d:\f%d%04.1f", (VIRTW-225-10-180-22 - 80 - 55 - 50) * streakscale, (VIRTH - 50) * streakscale, stotal, stotal ? team_rel_color(spl, p) : 5, sr / 1000.f);
+	draw_textf("%d:\f%d%04.1f", (VIRTW-225-10-180-22 - 80 - 40 - 50) * streakscale, (VIRTH - 50) * streakscale, stotal, stotal ? team_rel_color(spl, p) : 5, sr / 1000.f);
 
 	// finally, we're done
 	glDisable(GL_BLEND);
