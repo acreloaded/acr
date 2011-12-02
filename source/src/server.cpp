@@ -1303,6 +1303,7 @@ void forcedeath(client *cl, bool gib = false){
 	sendf(-1, 1, "ri2", gib ? N_FORCEGIB : N_FORCEDEATH, cl->clientnum);
 }
 
+// needs major cleanup...
 void serverdied(client *target, client *actor, int damage, int gun, int style, const vec &source){
 	clientstate &ts = target->state;
 	const bool gib = style & FRAG_GIB;
@@ -1357,13 +1358,13 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	if(m_flags){
 		if(m_ktf2 && // KTF2 only
 			targethasflag >= 0 && //he has any flag
-			sflaginfos[targethasflag ^ 1].state != CTFF_INBASE){ // other flag is not in base
+			sflaginfos[team_opposite(targethasflag)].state != CTFF_INBASE){ // other flag is not in base
 			if(sflaginfos[0].actor_cn == sflaginfos[1].actor_cn){ // he has both
 				// reset the far one
 				const int farflag = ts.o.distxy(vec(sflaginfos[0].x, sflaginfos[0].y, 0)) > ts.o.distxy(vec(sflaginfos[1].x, sflaginfos[1].y, 0)) ? 0 : 1;
 				flagaction(farflag, FA_RESET, -1);
 				// drop the close one
-				targethasflag = farflag ^ 1;
+				targethasflag = team_opposite(farflag);
 			}
 			else{ // he only has this one
 				// reset this
