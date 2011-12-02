@@ -1039,6 +1039,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 			glColor4f(1, 1, 1, p->state != CS_DEAD ? p->killstreak == i ? (0.2f+(sinf(lastmillis/500.0f)+1.0f)/2.0f) : .78f : .3f);
 			quad(streakt[i & 1][p->killstreak > i ? 2 : p->killstreak == i ? 1 : 0]->id,
 					(VIRTW-225-10-180-30 - 80 - 15 -(11*50) + i*50) * streakscale, (VIRTH - 80 - 35) * streakscale, 80 * streakscale, 0, 0, 1);
+			xtraverts += 4;
 		}
 		// streak misc
 		// airstrikes
