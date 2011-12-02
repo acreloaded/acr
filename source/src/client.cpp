@@ -185,7 +185,6 @@ void trydisconnect()
 	disconnect(0, !discmillis);
 }
 
-VARP(hudchat, 0, 1, 1);
 void saytext(playerent *d, char *text, int flags, int sound){
 	if(sound > S_MAINEND && sound < S_NULL){
 		d->addicon(eventicon::VOICECOM);
