@@ -478,7 +478,7 @@ void drawradar(playerent *p, int w, int h)
 	drawradarent(fixradarpos(p->o, centerpos, res), coordtrans, p->yaw, p->state!=CS_DEAD ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), p->state==CS_DEAD ? .5f : p->perk == PERK_JAM ? .35f : 1, "\f1%s", colorname(p)); // local player
 
 	// radar check
-	const bool hasradar = radarup(gamefocus);
+	const bool hasradar = radarup(p);
 
 	loopv(players) // other players
 	{
@@ -637,7 +637,7 @@ static int votersort(playerent **a, playerent **b){
 }
 
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater){
-	playerent * const p = gamefocus;
+	playerent * const p = p;
 	bool spectating = player1->isspectating();
 
 	glDisable(GL_DEPTH_TEST);
@@ -1032,24 +1032,25 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	}
 	glLoadIdentity();
 	glOrtho(0, VIRTW * streakscale, VIRTH * streakscale, 0, -1, 1);
-	// we have the color/blend function set by the perk icon
+	// we have the blend function set by the perk icon
 	loopi(11){
-		quad(streakt[i & 1][gamefocus->killstreak > i ? 2 : gamefocus->killstreak == i ? 1 : 0]->id,
-				(VIRTW-225-10-180-30 - 80 - 55 -(12*50) + i*50 + (gamefocus->killstreak == i ? 55 : 50)) * streakscale, (VIRTH - 80 - 35) * streakscale, (gamefocus->killstreak == i ? 90 : 80) * streakscale, 0, 0, 1);
+		glColor4f(1, 1, 1, p->state != CS_DEAD ? p->killstreak == i ? (0.2f+(sinf(lastmillis/100.0f)+1.0f)/2.0f) : .78f : .3f);
+		quad(streakt[i & 1][p->killstreak > i ? 2 : p->killstreak == i ? 1 : 0]->id,
+				(VIRTW-225-10-180-30 - 80 - 55 -(11*50) + i*50) * streakscale, (VIRTH - 80 - 35) * streakscale, 80 * streakscale, 0, 0, 1);
 	}
 	// streak misc
 	// airstrikes
-	draw_textf("\f4x\f%c%d", (VIRTW-225-10-180-22 - 80 - 55 - 5*50) * streakscale, (VIRTH - 50) * streakscale,gamefocus->airstrikes ? '0' : '5', gamefocus->airstrikes);
+	draw_textf("\f4x\f%c%d", (VIRTW-225-10-180-22 - 80 - 55 - 5*50) * streakscale, (VIRTH - 50) * streakscale, p->airstrikes ? '0' : '5', p->airstrikes);
 	// radar time
 	int stotal, sr;
 	playerent *spl;
-	radarinfo(stotal, spl, sr, gamefocus);
+	radarinfo(stotal, spl, sr, p);
 	if(!sr || !spl) stotal = 0; // safety
-	draw_textf("%d:\f%d%04.1f", (VIRTW-225-10-180-22 - 80 - 55 - 3*50) * streakscale, (VIRTH - 50 - 80 - 20) * streakscale, stotal, stotal ? team_rel_color(spl, gamefocus) : 5, sr / 1000.f);
+	draw_textf("%d:\f%d%04.1f", (VIRTW-225-10-180-22 - 80 - 55 - 3*50) * streakscale, (VIRTH - 50 - 80 - 20) * streakscale, stotal, stotal ? team_rel_color(spl, p) : 5, sr / 1000.f);
 	// nuke timer
 	nukeinfo(stotal, spl, sr);
 	if(!sr || !spl) stotal = 0; // more safety
-	draw_textf("%d:\f%d%04.1f", (VIRTW-225-10-180-22 - 80 - 55 - 50) * streakscale, (VIRTH - 50) * streakscale, stotal, stotal ? team_rel_color(spl, gamefocus) : 5, sr / 1000.f);
+	draw_textf("%d:\f%d%04.1f", (VIRTW-225-10-180-22 - 80 - 55 - 50) * streakscale, (VIRTH - 50) * streakscale, stotal, stotal ? team_rel_color(spl, p) : 5, sr / 1000.f);
 
 	// finally, we're done
 	glDisable(GL_BLEND);
@@ -1167,9 +1168,9 @@ void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, 
 	SDL_GL_SwapBuffers();
 }
 
-void renderhudwaypoints(){
+void renderhudwaypoints(playerent *p){
 	// throwing knife pickups
-	loopv(knives) renderwaypoint(WP_KNIFE, knives[i].o, (float)(knives[i].millis - totalmillis) / KNIFETTL, gamefocus->perk == PERK_VISION);
+	loopv(knives) renderwaypoint(WP_KNIFE, knives[i].o, (float)(knives[i].millis - totalmillis) / KNIFETTL, p->perk == PERK_VISION);
 	// pending stuck crossbow shots
 	loopv(sticks){
 		if(sticks[i].millis < totalmillis) sticks.remove(i--);
@@ -1177,7 +1178,7 @@ void renderhudwaypoints(){
 			playerent *stuck = getclient(sticks[i].cn);
 			vec o(stuck ? stuck->o : sticks[i].o);
 			const float flashfactor = float(sticks[i].millis - totalmillis) / TIPSTICKTTL * 350 + 200;
-			renderwaypoint(WP_BOMB, o, fabs(sinf((totalmillis % 10000) / flashfactor)), gamefocus->perk == PERK_VISION);
+			renderwaypoint(WP_BOMB, o, fabs(sinf((totalmillis % 10000) / flashfactor)), p->perk == PERK_VISION);
 			if(sticks[i].lastlight < lastmillis){
 				const int nextflash = flashfactor;
 				adddynlight(stuck, o, 8, nextflash, nextflash, 12, 192, 16);
@@ -1185,7 +1186,7 @@ void renderhudwaypoints(){
 			}
 		}
 	}
-	if(gamefocus->perk == PERK_VISION) loopv(bounceents){
+	if(p->perk == PERK_VISION) loopv(bounceents){
 		bounceent *b = bounceents[i];
 		if(!b || (b->bouncetype != BT_NADE && b->bouncetype != BT_KNIFE)) continue;
 		if(b->bouncetype == BT_NADE && ((grenadeent *)b)->nadestate != 1) continue;
@@ -1193,7 +1194,7 @@ void renderhudwaypoints(){
 		renderwaypoint(b->bouncetype == BT_NADE ? WP_EXP : WP_KNIFE, b->o);
 	}
 	// flags
-	const int teamfix = gamefocus->team == TEAM_SPECT ? TEAM_RED : gamefocus->team;
+	const int teamfix = p->team == TEAM_SPECT ? TEAM_RED : p->team;
 	if(m_flags) loopi(2){
 		const float a = 1;
 		int wp = -1;
@@ -1206,7 +1207,7 @@ void renderhudwaypoints(){
 		switch(f.state)
 		{
 			case CTFF_STOLEN:
-				if(f.actor == gamefocus) break;
+				if(f.actor == p) break;
 				if(OUTBORD(f.actor->o.x, f.actor->o.y)) break;
 				o = f.actor->o;
 				wp = m_team && f.actor->team == teamfix ?
@@ -1249,8 +1250,8 @@ void renderhudwaypoints(){
 		}
 		if(wp >= 0 && wp < WP_NUM) renderwaypoint(wp, vec(e.x, e.y, (float)S(int(e.x), int(e.y))->floor + PLAYERHEIGHT), a);
 	}
-	loopv(players) if(players[i] && players[i] != gamefocus && players[i]->nukemillis >= totalmillis){
-		renderwaypoint(isteam(gamefocus, players[i]) ? WP_DEFEND : WP_KILL, players[i]->o);
+	loopv(players) if(players[i] && players[i] != p && players[i]->nukemillis >= totalmillis){
+		renderwaypoint(isteam(p, players[i]) ? WP_DEFEND : WP_KILL, players[i]->o);
 		renderwaypoint(WP_NUKE, vec(players[i]->o.x, players[i]->o.y, players[i]->o.z + PLAYERHEIGHT));
 	}
 }

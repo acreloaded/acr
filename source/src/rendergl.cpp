@@ -1006,7 +1006,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps){
 	renderentities();
 	endmodelbatches();
 
-	renderhudwaypoints();
+	renderhudwaypoints(gamefocus);
 
 	readdepth(w, h, worldpos);
 
