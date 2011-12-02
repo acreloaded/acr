@@ -4040,7 +4040,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 		if(m_flags) loopi(2)
 		{
 			sflaginfo &f = sflaginfos[i];
-			if(f.state == CTFF_DROPPED && gamemillis-f.lastupdate > (m_ctf ? 30000 : m_ktf2 ? 20000 : 10000)) flagaction(i, FA_RESET, -1);
+			if(f.state == CTFF_DROPPED && gamemillis-f.lastupdate > (m_ctf ? 30000 : (m_ktf2 || m_btf) ? 20000 : 10000)) flagaction(i, FA_RESET, -1);
 			if(m_htf && f.state == CTFF_INBASE && gamemillis-f.lastupdate > (smapstats.hasflags ? 10000 : 1000))
 				htf_forceflag(i);
 			if(m_ktf && f.state == CTFF_STOLEN && gamemillis-f.lastupdate > 15000)
