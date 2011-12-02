@@ -537,15 +537,17 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					loopk(3) to[k] = getfloat(p);
 				}
 				playerent *s = getclient(scn);
-				if(!s || !weapon::valid(gun)) break;
+				if(!s || !weapon::valid(gun) || !s->weapons[gun]) break;
 				if(s == player1 && (type == N_SHOOTC || gun == WEAP_GRENADE)) break;
+				// if it's somebody else's players, remove a bit of ammo
 				if(s != player1 && !isowned(s)){
-					s->mag[gun]--;
+					--s->mag[gun];
 					updatelastaction(s);
 					s->lastattackweapon = s->weapons[gun];
 					s->weapons[gun]->gunwait = s->weapons[gun]->info.attackdelay;
 				}
-				if(s->weapons[gun]) s->weapons[gun]->attackfx(from, to, type == N_RICOCHET ? -2 : -1);
+				// all have to do attackfx
+				s->weapons[gun]->attackfx(from, to, type == N_RICOCHET ? -2 : -1);
 				break;
 			}
 
