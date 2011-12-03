@@ -246,6 +246,7 @@ void checkmasterreply()
 								verdict = DISC_NUM;
 								break;
 						}
+						error = false;
 						masterverdict(currentmsrequest->c->cn, verdict);
 					}
 				}
