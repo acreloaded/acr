@@ -1192,7 +1192,7 @@ void radarinfo(int &total, playerent *&last, int &lastremain, const playerent *a
 		playerent *pl = players.inrange(i) ? players[i] : player1;
 		if(!pl) continue; // null
 		if(pl->radarearned <= totalmillis) continue; // no radar!
-		if(asSeenBy && asSeenBy != pl && asSeenBy->team != TEAM_SPECT && asSeenBy->team != pl->team) continue; // not the same team
+		if(asSeenBy && asSeenBy != pl && asSeenBy->team != TEAM_SPECT && !isteam(asSeenBy, pl)) continue; // not the same team
 		// add to total
 		++total;
 		// we want the HIGHEST number possible
