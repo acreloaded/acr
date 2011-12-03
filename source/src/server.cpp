@@ -2834,7 +2834,7 @@ void checkmove(client &cp){
 		const int ls = (1 << maplayout_factor) - 2, maplayoutid = getmaplayoutid(e.x, e.y);
 		const bool getmapz = maplayout && e.x > 2 && e.y > 2 && e.x < ls && e.y < ls;
 		const char &mapz = getmapz ? getblockfloor(maplayoutid) : 0;
-		vec v(e.x, e.y, getmapz ? mapz + PLAYERHEIGHT : cs.o.z);
+		vec v(e.x, e.y, getmapz ? (mapz + e.elevation + PLAYERHEIGHT) : cs.o.z);
 		float dist = cs.o.dist(v);
 		if(dist > 3) continue;
 		serverpickup(i, sender);
