@@ -734,6 +734,7 @@ void flagaction(int flag, int action, int actor){
 				break;
 			case FA_SCORE:  // ctf: f = carried by actor flag,  htf: f = hunted flag (run over by actor)
 				if(m_ctf) score = 1;
+				else if(m_btf) score = of.state == CTFF_INBASE ? 3 : of.state == CTFF_DROPPED ? 2 : 1;
 				else if(m_ktf2){
 					if(valid_client(f.actor_cn) && clients[f.actor_cn]->state.state == CS_ALIVE)
 					{
@@ -2843,7 +2844,11 @@ void checkmove(client &cp){
 		sflaginfo &f = sflaginfos[i];
 		sflaginfo &of = sflaginfos[team_opposite(i)];
 		vec v(-1, -1, cs.o.z);
-		switch(f.state){
+		if(m_btf && i == cp.team && f.state == CTFF_STOLEN && f.actor_cn == sender){
+			v.x = of.x;
+			v.y = of.y;
+		}
+		else switch(f.state){
 			case CTFF_STOLEN:
 				if(!m_return || i != cp.team) break;
 			case CTFF_INBASE:
@@ -2871,20 +2876,16 @@ void checkmove(client &cp){
 			}
 		}
 		else if(m_htf || m_btf){
-			if(i == cp.team){
+			// BTF only: score their flag by bombing their base!
+			if(f.state == CTFF_STOLEN){
+				flagaction(i, FA_SCORE, sender);
+				explosion(cp, cs.o, WEAP_GRENADE); // identical to self-nades, replace with something else?
+			}
+			else if(i == cp.team){
 				if(m_htf) f.drop_cn = -1; // force pickup
 				flagaction(i, FA_PICKUP, sender);
 			}
-			else if(m_htf && f.state == CTFF_DROPPED) flagaction(i, FA_SCORE, sender);
-			else if (m_btf){
-				// score their flag by bombing their base!
-				if(f.state == CTFF_INBASE && of.state == CTFF_STOLEN && of.actor_cn == sender){
-					flagaction(team_opposite(i), FA_SCORE, sender);
-					explosion(cp, cs.o, WEAP_GRENADE); // identical to self-nades, replace with something else?
-				}
-				// make the enemy's flag go right back to base
-				if(f.state == CTFF_DROPPED) flagaction(i, FA_RETURN, sender);
-			}
+			else if(f.state == CTFF_DROPPED) flagaction(i, m_htf ? FA_SCORE : FA_RETURN, sender);
 		}
 		else if(m_ktf && f.state == CTFF_INBASE) flagaction(i, FA_PICKUP, sender);
 		else if(m_ktf2 && f.state != CTFF_STOLEN){
