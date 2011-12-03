@@ -191,8 +191,8 @@ void updatemasterserver(int millis, const ENetAddress &localaddr){
 			currentmsrequest->type = MSR_CONNECT;
 			currentmsrequest->c = c;
 
-			char out[MAXNAMELEN * 4 / 3 + 2] = {0};
-			base64_encode(currentmsrequest->c->nick, min(MAXNAMELEN, (int)strlen(c->nick)), out);
+			string out;
+			base64_encode(c->nick, min(MAXNAMELEN, (int)strlen(c->nick)), out);
 			formatstring(path)("%sconnect/%d/%lu/%lu/%s", masterpath, localaddr.port, c->ip, c->guid, out);
 		}
 	}
