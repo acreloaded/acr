@@ -331,7 +331,7 @@ struct ban
 struct server_entity			// server side version of "entity" type
 {
 	short type, elevation;
-	bool spawned, hascoord;
+	bool spawned;
 	int spawntime;
 	short x, y;
 };

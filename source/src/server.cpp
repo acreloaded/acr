@@ -2161,7 +2161,6 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 			se.type = e.type;
 			se.elevation = e.attr1;
 			se.spawned = e.fitsmode(smode);
-			se.hascoord = true;
 			se.spawntime = 0;
 			se.x = smapstats.entposs[i * 3];
 			se.y = smapstats.entposs[i * 3 + 1];
