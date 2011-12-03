@@ -485,7 +485,7 @@ void drawradar(playerent *p, int w, int h)
 	{
 		playerent *pl = players[i];
 		if(!pl || pl == p || pl->perk == PERK_JAM) continue;
-		bool force = hasradar || pl == flaginfos[0].actor || pl == flaginfos[1].actor;
+		bool force = hasradar || (flaginfos[0].state == CTFF_STOLEN && pl == flaginfos[0].actor) || (flaginfos[1].state == CTFF_STOLEN && pl == flaginfos[1].actor);
 		if(!force && pl->state != CS_DEAD && !isteam(p, pl)){
 			playerent *seenby = NULL;
 			extern bool IsVisible(vec v1, vec v2, dynent *tracer = NULL, bool SkipTags=false);
