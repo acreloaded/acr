@@ -30,7 +30,7 @@ struct mapaction : serveraction
 	int mode;
 	void perform()
 	{
-		if(isdedicated && numclients() > 2 && smode >= 0 && smode != 1 && gamemillis > gamelimit/4)
+		if(isdedicated && numclients() > 2 && smode >= 0 && !m_edit && gamemillis > gamelimit/5)
 		{
 			forceintermission = true;
 			nextgamemode = mode;
