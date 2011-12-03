@@ -246,7 +246,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						snd = S_NOAMMO;
 						break;
 				}
-				if(snd != S_NULL) playsound(snd, d);
+				if(snd != S_NULL && d && d != player1 && !isowned(d)) playsound(snd, d);
 				break;
 			}
 
@@ -742,7 +742,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					loopi(WEAP_MAX) mag[i] = getint(p);
 					playerent *d = getclient(cn);
 					if(!d) continue;
-					if(d!=player1 && !isowned(d)) d->state = state;
+					//if(d!=player1 && !isowned(d)) d->state = state;
 					d->lifesequence = lifesequence;
 					d->points = points;
 					d->flagscore = flagscore;
@@ -754,9 +754,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					d->radarearned = totalmillis + radar;
 					d->airstrikes = airstrikes;
 					d->nukemillis = totalmillis + nuke;
-					d->spawnmillis = lastmillis + spawnmillis;
 					if(d!=player1 && !isowned(d))
 					{
+						d->state = state;
+						d->spawnmillis = lastmillis + spawnmillis;
+
 						int primary = WEAP_KNIFE;
 						if(m_osok) primary = WEAP_SNIPER;
 						else if(m_pistol) primary = WEAP_PISTOL;

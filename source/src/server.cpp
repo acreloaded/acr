@@ -2743,6 +2743,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool nospawn){
 	}
 	if(clients.length()>1 || restored || !c)
 	{
+		welcomeinitclient(p, n);
 		putint(p, N_RESUME);
 		loopv(clients)
 		{
@@ -2770,7 +2771,6 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool nospawn){
 			loopi(WEAP_MAX) putint(p, c.state.mag[i]);
 		}
 		putint(p, -1);
-		welcomeinitclient(p, n);
 	}
 
 	#undef CHECKSPACE
