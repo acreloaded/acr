@@ -2156,9 +2156,15 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 		{
 			e.type = smapstats.enttypes[i];
 			e.transformtype(smode);
-			server_entity se = { e.type, false, true, 0, smapstats.entposs[i * 3], smapstats.entposs[i * 3 + 1]};
-			sents.add(se);
-			if(e.fitsmode(smode)) sents[i].spawned = true;
+			// add to server entitles
+			server_entity &se = sents.add();
+			se.type = e.type;
+			se.elevation = e.attr1;
+			se.spawned = e.fitsmode(smode);
+			se.hascoord = true;
+			se.spawntime = 0;
+			se.x = smapstats.entposs[i * 3];
+			se.y = smapstats.entposs[i * 3 + 1];
 		}
 		// copyrevision = copymapsize == smapstats.cgzsize ? smapstats.hdr.maprevision : 0;
 	}
