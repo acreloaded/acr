@@ -205,11 +205,12 @@ const char *modefullnames[GMODE_NUM-GMODE_DEMO] =
 	"team deathmatch", "coopedit", "deathmatch", "survivor",
 	"team survivor", "ctf", "pistol frenzy", "last swiss standing",
 	"one shot, one kill", "team one shot, one kill", "hunt the flag", "team keep the flag", "keep the flag",
-	"real-team deathmatch", "expert-teamdeathmatch", "real deathmatch", "expert deathmatch",
+	"real-team deathmatch", "expert-team deathmatch", "real deathmatch", "expert deathmatch",
 	"knife-only", "handheld-only", "return-capture the flag",
 	"classic deathmatch", "classic-team deathmatch",
 	"double keep the flag", "team-double keep the flag",
-	"zombies"
+	"zombies", "onslaught",
+	"bomber",
 };
 
 const char *modeacronymnames[GMODE_NUM-GMODE_DEMO] =
@@ -222,7 +223,8 @@ const char *modeacronymnames[GMODE_NUM-GMODE_DEMO] =
 	"knife", "handheld", "rCTF",
 	"cDM", "cTDM",
 	"DKTF2", "DTKTF2",
-	"ZOM"
+	"ZOM", "ONZ",
+	"BOMB",
 };
 
 const char *voteerrors[VOTEE_NUM] = { "voting is currently disabled", "there is already a vote pending", "no permission to veto", "can't vote that often", "this vote is not allowed in the current environment (singleplayer/multiplayer)", "no permission", "invalid vote" };
