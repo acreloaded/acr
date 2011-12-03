@@ -3463,18 +3463,22 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				vec o;
 				loopi(3) o[i] = getint(p);
 				// placeholders
-				server_entity see = { NOTUSED, false, false, 0, 0, 0};
+				server_entity see = { NOTUSED, 0, false, 0, 0, 0};
 				while(sents.length()<=id) sents.add(see);
 				// entity
 				entity e;
 				e.type = type;
 				e.transformtype(smode);
 				// server entity
-				server_entity se = { e.type, false, true, 0, o.x, o.y};
-				if(e.fitsmode(smode)) se.spawned = true;
-				sents[id] = se;
+				server_entity &se = sents[id];
+				se.type = e.type;
+				se.elevation = getint(p); // NOTICE: attr1 consumed here
+				se.spawned = e.fitsmode(smode);
+				se.spawntime = 0;
+				se.x = o.x;
+				se.y = o.y;
 				// skip attributes
-				loopi(4) getint(p);
+				loopi(3) getint(p); // do not consume attr1, only attr2-attr4
 				QUEUE_MSG;
 				break;
 			}
