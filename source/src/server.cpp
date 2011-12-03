@@ -4432,7 +4432,7 @@ void initserver(bool dedicated){
 void localservertoclient(int chan, uchar *buf, int len) {}
 void fatal(const char *s, ...){
 	defvformatstring(msg,s,s);
-	defformatstring(out)("AssaultCube fatal error: %s", msg);
+	defformatstring(out)("ACR fatal error: %s", msg);
 	if (logline(ACLOG_ERROR, "%s", out));
 	else puts(out);
 	cleanupserver();

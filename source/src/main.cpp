@@ -15,7 +15,7 @@ void cleanup(char *msg)		 // single program exit point;
 	if(msg)
 	{
 		#ifdef WIN32
-		MessageBox(NULL, msg, "AssaultCube fatal error", MB_OK|MB_SYSTEMMODAL|MB_ICONERROR);
+		MessageBox(NULL, msg, "ACR fatal error", MB_OK|MB_SYSTEMMODAL|MB_ICONERROR);
 		#else
 		printf("%s", msg);
 		#endif
@@ -580,7 +580,7 @@ int main(int argc, char **argv)
 		gl_init(scr_w, scr_h, usedcolorbits, useddepthbits, usedfsaa);
 
 		notexture = noworldtexture = textureload("packages/misc/notexture.jpg");
-		if(!notexture) fatal("could not find core textures (hint: run AssaultCube from the parent of the bin directory)");
+		if(!notexture) fatal("could not find core textures (hint: run ACR from the parent of the bin directory)");
 
 		initlog("console");
 		persistidents = false;

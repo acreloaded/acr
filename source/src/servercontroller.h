@@ -35,7 +35,7 @@ struct winservice : servercontroller
 	{
 		SERVICE_TABLE_ENTRY	dispatchtable[] = { { (LPSTR)name, (LPSERVICE_MAIN_FUNCTION)callbacks::main }, { NULL, NULL } };
 		if(StartServiceCtrlDispatcher(dispatchtable)) exit(EXIT_SUCCESS);
-		else fatal("an error occurred running the AC server as windows service. make sure you start the server from the service control manager and not from the command line.");
+		else fatal("an error occurred running the ACR server as windows service. make sure you start the server from the service control manager and not from the command line.");
 	}
 
 	void keepalive()
