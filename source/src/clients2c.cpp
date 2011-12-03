@@ -740,9 +740,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					int ammo[WEAP_MAX], mag[WEAP_MAX];
 					loopi(WEAP_MAX) ammo[i] = getint(p);
 					loopi(WEAP_MAX) mag[i] = getint(p);
-					playerent *d = newclient(cn);
+					playerent *d = getclient(cn);
 					if(!d) continue;
-					if(d!=player1) d->state = state;
+					if(d!=player1 && !isowned(d)) d->state = state;
 					d->lifesequence = lifesequence;
 					d->points = points;
 					d->flagscore = flagscore;
@@ -755,7 +755,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					d->airstrikes = airstrikes;
 					d->nukemillis = totalmillis + nuke;
 					d->spawnmillis = lastmillis + spawnmillis;
-					if(d!=player1)
+					if(d!=player1 && !isowned(d))
 					{
 						int primary = WEAP_KNIFE;
 						if(m_osok) primary = WEAP_SNIPER;

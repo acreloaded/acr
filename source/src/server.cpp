@@ -1352,8 +1352,8 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	ts.state = CS_DEAD;
 	ts.lastdeath = gamemillis;
 	const char *h = gethostname(actor->clientnum);
-	if(!suic) logline(ACLOG_INFO, "[%s] %s %s %s (%.2f m)", h, actor->name, killname(toobit(gun, style), isheadshot(gun, style)), target->name, killdist);
-	else logline(actor->type == ST_AI && target->type == ST_AI ? ACLOG_VERBOSE : ACLOG_INFO, "[%s] %s %s (%.2f m)", h, actor->name, suicname(obit_suicide(gun)), killdist);
+	if(!suic) logline(actor->type == ST_AI && target->type == ST_AI ? ACLOG_VERBOSE : ACLOG_INFO, "[%s] %s %s %s (%.2f m)", h, actor->name, killname(toobit(gun, style), isheadshot(gun, style)), target->name, killdist);
+	else logline(ACLOG_INFO, "[%s] %s %s (%.2f m)", h, actor->name, suicname(obit_suicide(gun)), killdist);
 
 	if(m_flags){
 		if(m_ktf2 && // KTF2 only
@@ -2620,7 +2620,7 @@ void sendresume(client &c){
 			c.state.flagscore, // i9
 			c.state.frags, // i9
 			c.state.assists, // i9
-			c.state.killstreak, // i9
+			c.state.killstreak, // i9_
 			c.state.deathstreak,// i9
 			c.state.deaths, // i9
 			c.state.health, // i9
@@ -2747,7 +2747,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool nospawn){
 		loopv(clients)
 		{
 			client &c = *clients[i];
-			if((c.type!=ST_TCPIP && c.type != ST_AI) || (c.clientnum==n && !restored)) continue;
+			if((c.type!=ST_TCPIP && c.type != ST_AI) || (c.clientnum==n && !restored) || (c.type == ST_AI && c.state.ownernum == n)) continue;
 			CHECKSPACE(512);
 			putint(p, c.clientnum);
 			putint(p, c.state.state);
