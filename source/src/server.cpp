@@ -2145,8 +2145,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 			{
 				short *fe = smapstats.entposs + smapstats.flagents[i] * 3;
 				f.x = *fe;
-				fe++;
-				f.y = *fe;
+				f.y = *++fe;
 			}
 			else f.x = f.y = -1;
 		}
@@ -2159,7 +2158,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 			// add to server entitles
 			server_entity &se = sents.add();
 			se.type = e.type;
-			se.elevation = e.attr1;
+			se.elevation = smapstats.entelevations[i];
 			se.spawned = e.fitsmode(smode);
 			se.spawntime = 0;
 			se.x = smapstats.entposs[i * 3];

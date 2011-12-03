@@ -60,7 +60,7 @@ struct mapstats
 	int entcnt[MAXENTTYPES];
 	int cgzsize;
 	uchar *enttypes;
-	short *entposs;
+	short *entposs, *entelevations;
 	int spawns[3];
 	int flags[2];
 	int flagents[2];
