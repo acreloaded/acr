@@ -450,7 +450,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				s->selectweapon(gunselect);
 				loopi(WEAP_MAX) s->ammo[i] = getint(p);
 				loopi(WEAP_MAX) s->mag[i] = getint(p);
-				s->state = CS_SPAWNING;
+				//s->state = CS_SPAWNING;
+				s->state = CS_ALIVE;
 				s->spawnmillis = lastmillis;
 				loopi(3) s->o[i] = getfloat(p);
 				updatepos(s);
@@ -1199,7 +1200,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_SETTEAM:
 			{
 				int cn = getint(p), fnt = getint(p), ftr = fnt >> 4; fnt &= 0xF;
-				playerent *p = getclient(cn);
+				playerent *p = newclient(cn);
 				if(!p) break;
 				defformatstring(nts)("team \f%d%s", team_color(fnt), team_string(fnt));
 				const bool own = (p == player1 && !watchingdemo);
