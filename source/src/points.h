@@ -54,7 +54,7 @@ int killpoints(client *target, client *actor, int gun, int style, bool assist = 
 		if(isteam(actor, target)){
 			if (clienthasflag(target->clientnum) >= 0) gain += FLAGTKPT;
 			else gain += TKPT;
-		} else { // friendly fire assists only
+		} else {
 			if(m_team){
 				if(!m_flags) gain += TMBONUSPT;
 				else gain += FLBONUSPT;
@@ -74,8 +74,8 @@ int killpoints(client *target, client *actor, int gun, int style, bool assist = 
 		gain *= clamp(actor->state.combo, 1, 5);
 		if(assist) gain *= ASSISTMUL;
 		else loopv(target->state.damagelog){
-			if(valid_client(target->state.damagelog[i])) continue;
-			gain += killpoints(target, clients[target->state.damagelog[i]], gun, style, true) * ASSISTRETMUL;
+			if(!valid_client(target->state.damagelog[i])) continue;
+			gain += max(0, killpoints(target, clients[target->state.damagelog[i]], gun, style, true)) * ASSISTRETMUL;
 		}
 		addpt(actor, gain);
 	}
