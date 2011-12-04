@@ -254,8 +254,8 @@ bool isdedicated = false;
 ENetHost *serverhost = NULL;
 
 void process(ENetPacket *packet, int sender, int chan);
-void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool nospawn = false);
-void sendwelcome(client *cl, int chan = 1, bool nospawn = false);
+void welcomepacket(ucharbuf &p, int n, ENetPacket *packet);
+void sendwelcome(client *cl, int chan = 1);
 
 void sendf(int cn, int chan, const char *format, ...){
 	int exclude = -1;
@@ -2523,7 +2523,7 @@ void recvmapserv(client *cl){
 		// resend state properly
 		sendpacket(sender, 2, mappacket);
 		cl->mapchange();
-		sendwelcome(cl, 2, true);
+		sendwelcome(cl, 2);
 	}
 	else{
 		cl->isonrightmap = true;
@@ -2663,16 +2663,7 @@ void sendinitclient(client &c){
 	if(!packet->referenceCount) enet_packet_destroy(packet);
 }
 
-void welcomeinitclient(ucharbuf &p, int exclude = -1){
-	const int realexclude = valid_client(exclude) ? valid_client(clients[exclude]->state.ownernum) ? clients[exclude]->state.ownernum : exclude : -1;
-    loopv(clients){
-        client &c = *clients[i];
-        if(!c.connected || c.clientnum == realexclude) continue;
-        putinitclient(c, p);
-    }
-}
-
-void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool nospawn){
+void welcomepacket(ucharbuf &p, int n, ENetPacket *packet){
 	#define CHECKSPACE(n) \
 	{ \
 		int space = (n); \
@@ -2691,11 +2682,8 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool nospawn){
 
 	putint(p, N_WELCOME);
 	putint(p, smapname[0] && !m_demo ? numcl : -1);
-	if(scl.motd[0])
-	{
-		CHECKSPACE(5+2*(int)strlen(scl.motd)+1);
-		sendstring(scl.motd, p);
-	} else putint(p, 0);
+	CHECKSPACE(5+2*(int)strlen(scl.motd)+1);
+	sendstring(scl.motd, p);
 	if(smapname[0] && !m_demo){
 		putmap(p);
 		if(m_valid(smode)){
@@ -2709,9 +2697,16 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool nospawn){
 			loopi(2) putflaginfo(p, i);
 		}
 	}
+
+	// sendservopinfo(*)
+	loopv(clients) if(valid_client(i)){
+		putint(p, N_SETPRIV);
+		putint(p, i);
+		putint(p, clients[i]->priv);
+	}
+
 	bool restored = false;
 	if(c){
-		sendserveropinfo(n);
 		if(c->type==ST_TCPIP)
 		{
 			savedscore *sc = findscore(*c, false);
@@ -2726,25 +2721,19 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool nospawn){
         putint(p, n);
         putint(p, (c->team = freeteam(n)) | (FTR_SILENT << 4));
 
-		if(nospawn || !canspawn(c, true))
-		{
-			putint(p, N_FORCEDEATH);
-            putint(p, n);
-            sendf(-1, 1, "ri2x", N_FORCEDEATH, n, n);
-		}
-        else sendspawn(c);
-	}
-	else{
-		//sendserveropinfo(-1);
-		loopv(clients) if(valid_client(i)){
-			putint(p, N_SETPRIV);
-			putint(p, i);
-			putint(p, clients[i]->priv);
-		}
+		putint(p, N_FORCEDEATH);
+        putint(p, n);
+        sendf(-1, 1, "ri2x", N_FORCEDEATH, n, n);
 	}
 	if(clients.length()>1 || restored || !c)
 	{
-		welcomeinitclient(p, n);
+		// welcomeinitclient
+		loopv(clients){
+			client &c = *clients[i];
+			if(c.type == ST_EMPTY || !c.connected || c.clientnum == n) continue;
+			putinitclient(c, p);
+		}
+
 		putint(p, N_RESUME);
 		loopv(clients)
 		{
@@ -2777,10 +2766,10 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool nospawn){
 	#undef CHECKSPACE
 }
 
-void sendwelcome(client *cl, int chan, bool nospawn){
+void sendwelcome(client *cl, int chan){
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
-	welcomepacket(p, cl->clientnum, packet, nospawn);
+	welcomepacket(p, cl->clientnum, packet);
 	enet_packet_resize(packet, p.length());
 	sendpacket(cl->clientnum, chan, packet);
 	if(!packet->referenceCount) enet_packet_destroy(packet);
@@ -2974,6 +2963,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 		sendwelcome(cl);
 		sendinitclient(*cl);
+		if(canspawn(cl, true)) sendspawn(cl);
 		if(findscore(*cl, false)) sendresume(*cl);
 		findlimit(*cl, false);
 

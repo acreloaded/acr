@@ -460,7 +460,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_SPAWNSTATE:
 			{
 				playerent *d = getclient(getint(p));
-				if(!d) break;
+				if(!d || (d != player1 && !isowned(d))) break;
 				d->respawn();
 				d->lifesequence = getint(p);
 				d->health = getint(p);
@@ -757,7 +757,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					d->nukemillis = totalmillis + nuke;
 					if(d!=player1 && !isowned(d))
 					{
-						d->state = state;
+						d->state = state == CS_WAITING ? CS_DEAD : state;
 						d->spawnmillis = lastmillis + spawnmillis;
 
 						int primary = WEAP_KNIFE;
