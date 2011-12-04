@@ -1857,7 +1857,7 @@ bool updateclientteam(int cn, int team, int ftr){
 	if(ci.team == TEAM_SPECT) ci.state.lastdeath = gamemillis;
 	logline(ftr == FTR_SILENT ? ACLOG_DEBUG : ACLOG_INFO, "[%s] %s is now on team %s", gethostname(cn), ci.name, team_string(team));
 	// force a death if needed
-	if(m_team || team == TEAM_SPECT){
+	if(ci.state.state != CS_DEAD && (m_team || team == TEAM_SPECT)){
 		if(ftr == FTR_PLAYERWISH) serverdied(&ci, &ci, 0, WEAP_MAX + ((team == TEAM_SPECT) ? 8 : 7), FRAG_NONE, ci.state.o);
 		else forcedeath(&ci);
 	}
