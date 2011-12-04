@@ -2,7 +2,7 @@
 #define MAXBOTS 16
 #define MAXBOTBALANCE 20
 #define DEFAULTCLIENTS 12
-#define MAXTRANS 5000				   // max amount of data to swallow in 1 go
+#define MAXTRANS 8192				   // max amount of data to swallow in 1 go
 #define CUBE_DEFAULT_SERVER_PORT 28770
 #define CUBE_SERVINFO_PORT_LAN 28778
 #define CUBE_SERVINFO_OFFSET 1

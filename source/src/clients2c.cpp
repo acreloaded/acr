@@ -339,6 +339,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_INITAI: // cn team skin skill owner
 			{
 				playerent *d = newclient(getint(p));
+				if(d == player1) break;
 				d->team = getint(p);
 				setskin(d, getint(p));
 				d->level = getint(p);
@@ -365,7 +366,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				playerent *d = getclient(getint(p));
 				const int newowner = getint(p);
-				if(d) formatstring(d->name)("bot%d-%d", d->clientnum, d->ownernum = newowner);
+				if(d && d != player1) formatstring(d->name)("bot%d-%d", d->clientnum, d->ownernum = newowner);
 				break;
 			}
 			
@@ -438,7 +439,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_SPAWN:
 			{
 				playerent *s = getclient(getint(p));
-				if(!s) { static playerent dummy; s = &dummy; }
+				if(!s || s == player1 || isowned(s)) { static playerent dummy; s = &dummy; }
 				s->respawn();
 				s->lifesequence = getint(p);
 				s->health = getint(p);

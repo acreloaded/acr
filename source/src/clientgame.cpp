@@ -623,8 +623,8 @@ playerent *newclient(int cn)   // ensure valid entity
 	playerent *d = players[cn];
 	if(d) return d;
 	d = newplayerent();
-	players[cn] = d;
-	d->clientnum = cn;
+	players[d->clientnum = cn] = d;
+	d->ownernum = -1;
 	return d;
 }
 
