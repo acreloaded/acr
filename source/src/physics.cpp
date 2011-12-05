@@ -99,7 +99,7 @@ float raycube(const vec &o, const vec &ray, vec &surface)
 					surface = vec(0, 0, s->vdelta); // as a
 					b.sub(surface);
 					c.sub(surface);
-					dz *= surface.cross(b, c).normalize().z;
+					dz *= surface.cross(c, b).normalize().z;
 				}
 			}
 			dist += dz;

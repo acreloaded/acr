@@ -1280,7 +1280,7 @@ float sraycube(const vec &o, const vec &ray, vec *surface = NULL){ // server cou
 					*surface = vec(0, 0, s.vdelta); // as a
 					b.sub(*surface);
 					c.sub(*surface);
-					dz *= surface->cross(b, c).normalize().z;
+					dz *= surface->cross(c, b).normalize().z;
 				}
 			/*
 			(getsblock(getmaplayoutid(x, y)).vdelta ==
