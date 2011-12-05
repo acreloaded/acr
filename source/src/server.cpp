@@ -1270,14 +1270,27 @@ float sraycube(const vec &o, const vec &ray, vec *surface = NULL){ // server cou
 		dz = ray.z ? ((ray.z > 0 ? ceil : floor) - v.z)/ray.z : 1e16f;
 		if(dz < dx && dz < dy)
 		{
-			if(surface && (s.ctex!=DEFAULT_SKY || ray.z<0) && ((s.type!=(ray.z>0?CHF:FHF)) ||
-					(getsblock(getmaplayoutid(x, y)).vdelta ==
-					getsblock(getmaplayoutid(x+1, y)).vdelta &&
-					getsblock(getmaplayoutid(x, y)).vdelta ==
-					getsblock(getmaplayoutid(x, y+1)).vdelta &&
-					getsblock(getmaplayoutid(x, y)).vdelta ==
-					getsblock(getmaplayoutid(x+1, y+1)).vdelta)))
-				surface->z = ray.z>0 ? -1 : 1;
+			if(surface && (s.ctex!=DEFAULT_SKY || ray.z<0)){
+				if(s.type != ((ray.z > 0) ? CHF : FHF)) // flat part
+					surface->z = ray.z>0 ? -1 : 1;
+				else{ // use top left surface
+					// of a plane, n = (b - a) x (c - a)
+					const char f = (ray.z > 0) ? 1 : -1;
+					vec b(1, 0, getsblock(getmaplayoutid(x+1, y)).vdelta + s.vdelta * f), c(0, 1, getsblock(getmaplayoutid(x, y+1)).vdelta + s.vdelta * f);
+					*surface = vec(0, 0, s.vdelta); // as a
+					b.sub(*surface);
+					c.sub(*surface);
+					dz *= surface->cross(b, c).normalize().z;
+				}
+			/*
+			(getsblock(getmaplayoutid(x, y)).vdelta ==
+			getsblock(getmaplayoutid(x+1, y)).vdelta &&
+			getsblock(getmaplayoutid(x, y)).vdelta ==
+			getsblock(getmaplayoutid(x, y+1)).vdelta &&
+			getsblock(getmaplayoutid(x, y)).vdelta ==
+			getsblock(getmaplayoutid(x+1, y+1)).vdelta)
+			*/
+			}
 			dist += dz;
 			break;
 		}

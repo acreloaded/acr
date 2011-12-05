@@ -80,6 +80,7 @@ float raycube(const vec &o, const vec &ray, vec &surface)
 		dz = ray.z ? ((ray.z > 0 ? ceil : floor) - v.z)/ray.z : 1e16f;
 		if(dz < dx && dz < dy)
 		{
+			/*
 			if((s->ctex!=DEFAULT_SKY || ray.z<0) && ((s->type!=(ray.z>0?CHF:FHF)) ||
 				S(x, y)->vdelta ==
 				S(x+1, y)->vdelta &&
@@ -88,6 +89,19 @@ float raycube(const vec &o, const vec &ray, vec &surface)
 				S(x, y)->vdelta ==
 				S(x+1, y+1)->vdelta
 				)) surface.z = ray.z>0 ? -1 : 1;
+			*/
+			if(s->ctex!=DEFAULT_SKY || ray.z<0){
+				if(s->type!=(ray.z>0?CHF:FHF)) // flat
+					surface.z = ray.z>0 ? -1 : 1;
+				else{ // top left surface
+					const char f = (ray.z > 0) ? 1 : -1;
+					vec b(1, 0, S(x+1, y)->vdelta + s->vdelta * f), c(0, 1, S(x, y+1)->vdelta + s->vdelta * f);
+					surface = vec(0, 0, s->vdelta); // as a
+					b.sub(surface);
+					c.sub(surface);
+					dz *= surface.cross(b, c).normalize().z;
+				}
+			}
 			dist += dz;
 			break;
 		}
