@@ -1026,10 +1026,10 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	// streak meter
 	if(showstreak){
 		const float streakscale = 1.5f;
-		static Texture *streakt[2][3] = { NULL };
-		loopi(2) loopj(3){
+		static Texture *streakt[2][4] = { NULL };
+		loopi(2) loopj(4){
 			// done, current, outstanding
-			defformatstring(path)("packages/misc/streak/%d%s.png", i, j ? j > 1 ? "" : "c" : "o");
+			defformatstring(path)("packages/misc/streak/%d%s.png", i, j ? j > 1 ? j > 2 ? "d" : "" : "c" : "o");
 			streakt[i][j] = textureload(path);
 		}
 		glLoadIdentity();
@@ -1037,7 +1037,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		// we have the blend function set by the perk icon
 		loopi(11){
 			glColor4f(1, 1, 1, p->state != CS_DEAD ? (p->killstreak == i || i >= 10) ? (0.3f+fabs(sinf(lastmillis/500.0f))/2) : .8f : .3f);
-			quad(streakt[i & 1][p->killstreak > i ? 2 : p->killstreak == i ? 1 : 0]->id,
+			quad(streakt[i & 1][p->killstreak > i ? 2 : p->killstreak == i ? 1 : p->deathstreak >= i ? 3 : 0]->id,
 					(VIRTW-225-10-180-30 - 80 - 15 -(11*50) + i*50) * streakscale, (VIRTH - 80 - 35) * streakscale, 80 * streakscale, 0, 0, 1);
 		}
 		// streak misc
