@@ -17,8 +17,7 @@ bool reqauth(int cn, char *name, int authtoken){
 	authrequest &r = authrequests.add();
 	r.id = cl.authreq = nextauthreq++;
 	r.answer = false;
-	r.usr = new char[MAXNAMELEN];
-	copystring(r.usr, name, MAXNAMELEN);
+	r.usr = newstring(name, MAXNAMELEN);
 	logline(ACLOG_INFO, "[%s] requests auth #%d as %s", gethostname(cn), r.id, r.usr);
 	sendf(cn, 1, "ri2", N_AUTHCHAL, 0);
 	return true;
