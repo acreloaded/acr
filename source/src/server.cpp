@@ -132,13 +132,13 @@ bool buildworldstate(){ // WAY easier worldstates
 
 		if(recordpackets){
 			recordpos.put(clients[i]->position.getbuf(), clients[i]->position.length());
-			clients[i]->position.setsize(0);
 
 			putint(recordmsg, N_CLIENT);
 			putint(recordmsg, i);
 			recordmsg.put(clients[i]->messages.getbuf(), clients[i]->messages.length());
-			clients[i]->messages.setsize(0);
 		}
+		clients[i]->position.setsize(0);
+		clients[i]->messages.setsize(0);
 	}
 	if(flush && recordpackets){
 		recordpacket(0, recordpos.buf, recordpos.length());
