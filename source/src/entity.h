@@ -378,7 +378,7 @@ struct playerstate
 		health = STARTHEALTH;
 		armor = STARTARMOR;
 		spawnmillis = 0;
-		killstreak = assists = armor = 0;
+		assists = armor = 0;
 		gunselect = WEAP_PISTOL;
 		akimbo = scoping = false;
 		loopi(WEAP_MAX) ammo[i] = mag[i] = gunwait[i] = 0;
