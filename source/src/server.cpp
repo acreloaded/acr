@@ -2936,7 +2936,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 	if(cl && !cl->connected){
 		if(chan==0) return;
-		else if(chan!=1 || getint(p) != N_CONNECT) disconnect_client(sender, DISC_TAGT);
+		else if(chan!=1 || getint(p) != N_WELCOME) disconnect_client(sender, DISC_TAGT);
 		else
 		{
 			getstring(text, p);
