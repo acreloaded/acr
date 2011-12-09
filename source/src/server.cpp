@@ -2623,31 +2623,6 @@ void getservermap(void){
 	DELETEA(cfgdata);
 }
 
-void sendresume(client &c){
-	sendf(-1, 1, "ri9i9vvi",
-			N_RESUME, // i9
-			c.clientnum, // i9
-			c.state.state, // i9
-			c.state.lifesequence, // i9
-			c.state.gunselect, // i9
-			c.state.points, // i9
-			c.state.flagscore, // i9
-			c.state.frags, // i9
-			c.state.assists, // i9
-			c.state.killstreak, // i9_
-			c.state.deathstreak,// i9
-			c.state.deaths, // i9
-			c.state.health, // i9
-			c.state.armor, // i9
-			c.state.radarearned - gamemillis, // i9
-			c.state.airstrikes, // i9
-			c.state.nukemillis - gamemillis, // i9
-			c.state.spawnmillis - gamemillis, // i9
-			WEAP_MAX, c.state.ammo, // v
-			WEAP_MAX, c.state.mag, // v
-			-1); // i
-}
-
 void sendservinfo(client &c){
 	sendf(c.clientnum, 1, "ri4", N_SERVINFO, c.clientnum, PROTOCOL_VERSION, c.salt);
 }
@@ -2754,24 +2729,25 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet){
 			if((c.type!=ST_TCPIP && c.type != ST_AI) || (c.clientnum==n && !restored) || (c.type == ST_AI && c.state.ownernum == n)) continue;
 			CHECKSPACE(512);
 			putint(p, c.clientnum);
-			putint(p, c.state.state);
-			putint(p, c.state.lifesequence);
-			putint(p, c.state.gunselect);
-			putint(p, c.state.points);
-			putint(p, c.state.flagscore);
-			putint(p, c.state.frags);
-			putint(p, c.state.assists);
-			putint(p, c.state.killstreak);
-			putint(p, c.state.deathstreak);
-			putint(p, c.state.deaths);
-			putint(p, c.state.health);
-			putint(p, c.state.armor);
-			putint(p, c.state.radarearned - gamemillis);
-			putint(p, c.state.airstrikes);
-			putint(p, c.state.nukemillis - gamemillis);
-			putint(p, c.state.spawnmillis - gamemillis);
-			loopi(WEAP_MAX) putint(p, c.state.ammo[i]);
-			loopi(WEAP_MAX) putint(p, c.state.mag[i]);
+			clientstate &cs = c.state;
+			putint(p, cs.state == CS_WAITING ? CS_DEAD : cs.state);
+			putint(p, cs.lifesequence);
+			putint(p, cs.gunselect);
+			putint(p, cs.points);
+			putint(p, cs.flagscore);
+			putint(p, cs.frags);
+			putint(p, cs.assists);
+			putint(p, cs.killstreak);
+			putint(p, cs.deathstreak);
+			putint(p, cs.deaths);
+			putint(p, cs.health);
+			putint(p, cs.armor);
+			putint(p, cs.radarearned - gamemillis);
+			putint(p, cs.airstrikes);
+			putint(p, cs.nukemillis - gamemillis);
+			putint(p, cs.spawnmillis - gamemillis);
+			loopi(WEAP_MAX) putint(p, cs.ammo[i]);
+			loopi(WEAP_MAX) putint(p, cs.mag[i]);
 		}
 		putint(p, -1);
 	}
@@ -2977,7 +2953,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 		sendwelcome(cl);
 		sendinitclient(*cl);
 		if(canspawn(cl, true)) sendspawn(cl);
-		if(findscore(*cl, false)) sendresume(*cl);
 		findlimit(*cl, false);
 
 		if(curvote){

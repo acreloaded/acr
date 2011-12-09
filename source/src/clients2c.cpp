@@ -74,7 +74,7 @@ void updatelagtime(playerent *d)
 	int lagtime = totalmillis-d->lastrecieve;
 	if(lagtime)
 	{
-		if(d->state!=CS_SPAWNING && d->lastrecieve) d->plag = (d->plag*5+lagtime)/6;
+		if(d->lastrecieve) d->plag = (d->plag*5+lagtime)/6;
 		d->lastrecieve = totalmillis;
 	}
 }
@@ -150,7 +150,7 @@ void parsepositions(ucharbuf &p)
 				d->smoothmillis = lastmillis;
 			}
 			else d->smoothmillis = 0;
-			if(d->state==CS_WAITING || d->state==CS_SPAWNING) d->state = CS_ALIVE;
+			if(d->state==CS_WAITING) d->state = CS_ALIVE;
 			// when playing a demo spectate first player we know about
 			if(player1->isspectating() && player1->spectatemode==SM_NONE) togglespect();
 			extern void clamproll(physent *pl);

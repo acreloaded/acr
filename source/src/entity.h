@@ -152,7 +152,7 @@ enum { TEAM_RED = 0, TEAM_BLUE, TEAM_SPECT, TEAM_NUM };
 #define team_rel_color(a, b) (a == b ? 1 : a && b && b->team != TEAM_SPECT ? isteam(a, b) ? 0 : 3 : 4)
 
 enum { ENT_PLAYER = 0, ENT_CAMERA, ENT_BOUNCE };
-enum { CS_ALIVE = 0, CS_DEAD, CS_SPAWNING, CS_WAITING, CS_EDITING };
+enum { CS_ALIVE = 0, CS_DEAD, CS_WAITING, CS_EDITING };
 enum { PRIV_NONE = 0, PRIV_MASTER, PRIV_ADMIN, PRIV_MAX };
 
 static inline const uchar privcolor(int priv, bool dead = false){
