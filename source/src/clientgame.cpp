@@ -149,7 +149,7 @@ void deathstate(playerent *pl, playerent *act)
 	pl->state = CS_DEAD;
 	pl->spectatemode = SM_DEATHCAM;
 	pl->respawnoffset = pl->lastpain = lastmillis;
-	pl->move = pl->strafe = pl->pitchvel = pl->pitchreturn = 0;
+	pl->move = pl->strafe = pl->pitchvel = pl->pitchreturn = pl->ads = 0;
 	// position camera (used to be roll/pitch)
 	pl->roll = 0;
 	/*
