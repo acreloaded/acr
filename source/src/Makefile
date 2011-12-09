@@ -83,17 +83,17 @@ mrproper: clean
 	-$(MAKE) -C ../enet/ clean
 
 client: $(CLIENT_OBJS1) $(CLIENT_OBJS2)
-	$(CXX) $(CXXFLAGS) -o ac_client $(CLIENT_OBJS1) $(CLIENT_OBJS2) $(CLIENT_LIBS)
+	$(CXX) $(CXXFLAGS) -o $(PLATFORM_PREFIX)_client $(CLIENT_OBJS1) $(CLIENT_OBJS2) $(CLIENT_LIBS)
 
 server: libenet $(SERVER_FILES)
-	$(CXX) $(CXXFLAGSSERVER) -o ac_server -DSTANDALONE $(SERVER_FILES) $(SERVER_LIBS)
+	$(CXX) $(CXXFLAGSSERVER) -o $(PLATFORM_PREFIX)_server -DSTANDALONE $(SERVER_FILES) $(SERVER_LIBS)
 
 install: all
-	cp ac_client ../$(PLATFORM_PREFIX)_client
-	cp ac_server ../$(PLATFORM_PREFIX)_server
+	cp $(PLATFORM_PREFIX)_client ../../bin_linux/$(PLATFORM_PREFIX)_client
+	cp $(PLATFORM_PREFIX)_server ../../bin_linux/$(PLATFORM_PREFIX)_server
 #	strip ../../bin_unix/$(PLATFORM_PREFIX)_client
 #	strip ../../bin_unix/$(PLATFORM_PREFIX)_server
 
 server_install: server
-	cp ac_server ../$(PLATFORM_PREFIX)_server
+	cp $(PLATFORM_PREFIX)_server ../../bin_linux/$(PLATFORM_PREFIX)_server
 #	strip ../../bin_unix/$(PLATFORM_PREFIX)_server
