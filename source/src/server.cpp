@@ -106,7 +106,7 @@ bool buildworldstate(){ // WAY easier worldstates
 		ucharbuf p(messagepacket->data, messagepacket->dataLength), pos(positionpacket->data, positionpacket->dataLength);
 		loopvj(clients){
 			client &c = *clients[j];
-			if(c.type == ST_EMPTY || j == i || c.state.ownernum == i) continue;
+			if(c.type == ST_EMPTY || !c.connected || j == i || (c.type == ST_AI && c.state.ownernum == i)) continue;
 			// <insert cheap occlusion checks here to prevent wall hacks>
 			// positions
 			pos.put(c.position.getbuf(), c.position.length());
@@ -126,7 +126,7 @@ bool buildworldstate(){ // WAY easier worldstates
 	static uchar recorddatap[MAXTRANS], recorddatam[MAXTRANS];
 	ucharbuf recordpos(recorddatap, MAXTRANS), recordmsg(recorddatam, MAXTRANS);
 	extern bool recordpackets;
-	loopv(clients) if(clients[i]->type != ST_EMPTY){ // next, flush it to the packet recorder
+	loopv(clients) if(clients[i]->type != ST_EMPTY && clients[i]->connected){ // next, flush it to the packet recorder
 		if(clients[i]->position.length() || clients[i]->messages.length()) flush = true;
 		else continue;
 
