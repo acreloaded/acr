@@ -402,7 +402,7 @@ void renderwaypoint(int wp, const vec &o, float alpha, bool disabledepthtest){
 	glRotatef(camera1->pitch, 1, 0, 0);
 	glRotatef(camera1->roll, 0, -1, 0);
 	glColor4f(1, 1, 1, alpha);
-	const float dist = sqrtf(o.dist(camera1->o)), s = (wp==WP_KNIFE||wp==WP_EXP?waypointweapsize:waypointsize)/100.0f*dist;
+	const float scale = sqrt(o.dist(camera1->o)*zoomfactor(gamefocus)), s = (wp==WP_KNIFE||wp==WP_EXP?waypointweapsize:waypointsize)/100.0f*scale;
     quad(waypointtex[wp]->id, vec(s/2.0f, 0.0f, s), vec(s/-2.0f, 0.0f, 0.0f), 0.0f, 0.0f, 1.0f, 1.0f);
 	/*
 		float s = aboveheadiconsize/75.0f*scalef, offset =  (lastmillis - icon.millis) * 2.f / aboveheadiconfadetime, anim = lastmillis / 100 % (h * 2);
@@ -818,16 +818,22 @@ int xtraverts;
 
 VARP(hudgun, 0, 1, 1);
 
+float zoomfactor(playerent *who){
+	if(!who) return 1;
+	float adsmax = 864, zoomf = (float)adszoom;
+	if((who->weaponsel->type == WEAP_SNIPER || who->weaponsel->type == WEAP_BOLT) && who->ads){
+		adsmax = sniperrifle::adsscope;
+		zoomf = (float)scopezoom;
+	} else if(who->weaponsel->type == WEAP_HEAL) zoomf = 0;
+	return 100 / (min(who->ads/adsmax,1.f) * zoomf + 100);
+}
+
 void setperspective(float fovy, float nearplane){
 	GLdouble ydist = nearplane * tan(fovy/2*RAD), xdist = ydist * aspect;
 
-	float adsmax = 864, zoomf = (float)adszoom;
-	if((gamefocus->weaponsel->type == WEAP_SNIPER || gamefocus->weaponsel->type == WEAP_BOLT) && gamefocus->ads){
-		adsmax = sniperrifle::adsscope;
-		zoomf = (float)scopezoom;
-	} else if(gamefocus->weaponsel->type == WEAP_HEAL) zoomf = 0;
-	xdist *= 100 / (min(gamefocus->ads/adsmax,1.f) * zoomf + 100);
-	ydist *= 100 / (min(gamefocus->ads/adsmax,1.f) * zoomf + 100);
+	const float zoomf = zoomfactor(gamefocus);
+	xdist *= zoomf;
+	ydist *= zoomf;
 
 	glFrustum(-xdist, xdist, -ydist, ydist, nearplane, farplane);
 }
