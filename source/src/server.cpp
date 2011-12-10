@@ -1301,10 +1301,14 @@ float sraycube(const vec &o, const vec &ray, vec *surface = NULL){ // server cou
 	return dist;
 }
 
+float srayclip(const vec &o, const vec &ray, vec *surface = NULL){
+	return sraycube(o, ray, surface);
+}
+
 void straceShot(const vec &from, vec &to, vec *surface = NULL){
 	vec tracer(to);
 	tracer.sub(from).normalize();
-	const float dist = sraycube(from, tracer, surface);
+	const float dist = srayclip(from, tracer, surface);
 	to = tracer.mul(dist - .1f).add(from);
 }
 

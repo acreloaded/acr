@@ -85,7 +85,7 @@ int explosion(client &owner, const vec &o2, int weap, bool gib){
 		if(dist >= guns[weap].endrange) continue; // too far away
 		vec ray(target.state.o);
 		ray.sub(o).normalize();
-		if(sraycube(o, ray) < dist) continue; // not visible
+		if(srayclip(o, ray) < dist) continue; // not visible
 		ushort dmg = effectiveDamage(weap, dist, !m_classic);
 		int expflags = gib ? FRAG_GIB : FRAG_NONE;
 		if((weap == WEAP_BOW && !dist) ||
