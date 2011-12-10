@@ -39,6 +39,7 @@ uint nextauthreq = 1;
 
 vector<ban> bans;
 vector<server_entity> sents;
+vector<server_clip *> sclips;
 vector<demofile> demos;
 
 // throwing knives
@@ -1301,17 +1302,6 @@ float sraycube(const vec &o, const vec &ray, vec *surface = NULL){ // server cou
 	return dist;
 }
 
-float srayclip(const vec &o, const vec &ray, vec *surface = NULL){
-	return sraycube(o, ray, surface);
-}
-
-void straceShot(const vec &from, vec &to, vec *surface = NULL){
-	vec tracer(to);
-	tracer.sub(from).normalize();
-	const float dist = srayclip(from, tracer, surface);
-	to = tracer.mul(dist - .1f).add(from);
-}
-
 void forcedeath(client *cl, bool gib = false){
 	sdropflag(cl->clientnum);
 	clientstate &cs = cl->state;
@@ -2124,6 +2114,7 @@ void resetserver(const char *newname, int newmode, int newtime){
 	interm = 0;
 	nextstatus = servmillis;
 	sents.shrink(0);
+	sclips.deletecontents();
 	scores.shrink(0);
 	ctfreset();
 }
@@ -2161,7 +2152,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 			sflaginfo &f = sflaginfos[i];
 			if(smapstats.flags[i] == 1)	// don't check flag positions, if there is more than one flag per team
 			{
-				short *fe = smapstats.entposs + smapstats.flagents[i] * 3;
+				short *fe = smapstats.entposs + smapstats.flagents[i] * 4;
 				f.x = *fe;
 				f.y = *++fe;
 			}
@@ -2176,11 +2167,21 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 			// add to server entitles
 			server_entity &se = sents.add();
 			se.type = e.type;
-			se.elevation = smapstats.entelevations[i];
 			se.spawned = e.fitsmode(smode);
 			se.spawntime = 0;
-			se.x = smapstats.entposs[i * 3];
-			se.y = smapstats.entposs[i * 3 + 1];
+			se.x = smapstats.entposs[i * 4];
+			se.y = smapstats.entposs[i * 4 + 1];
+			se.elevation = smapstats.entposs[i * 4 + 3];
+			if(e.type == CLIP){
+				server_clip &sc = *sclips.add();
+				sc.x = se.x;
+				sc.y = se.y;
+				sc.z = se.elevation;
+				sc.xrad = smapstats.entdatas[i * 3];
+				sc.yrad = smapstats.entdatas[i * 3 + 1];
+				sc.height = smapstats.entdatas[i * 3 + 2];
+			}
+			else sclips.add(NULL);
 		}
 		// copyrevision = copymapsize == smapstats.cgzsize ? smapstats.hdr.maprevision : 0;
 	}
@@ -3444,9 +3445,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				const int id = getint(p), type = getint(p);
 				vec o;
 				loopi(3) o[i] = getint(p);
+				int attr1 = getint(p), attr2 = getint(p), attr3 = getint(p), attr4 = getint(p);
 				// placeholders
 				server_entity see = { NOTUSED, 0, false, 0, 0, 0};
 				while(sents.length()<=id) sents.add(see);
+				while(sclips.length()<=id) sclips.add(NULL);
 				// entity
 				entity e;
 				e.type = type;
@@ -3454,13 +3457,22 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				// server entity
 				server_entity &se = sents[id];
 				se.type = e.type;
-				se.elevation = getint(p); // NOTICE: attr1 consumed here
+				se.elevation = attr1;
 				se.spawned = e.fitsmode(smode);
 				se.spawntime = 0;
 				se.x = o.x;
 				se.y = o.y;
-				// skip attributes
-				loopi(3) getint(p); // do not consume attr1, only attr2-attr4
+				// is it a clip?
+				if(type == CLIP){
+					DELETEP(sclips[id]);
+					server_clip sc = *(sclips[id] = new server_clip);
+					sc.x = o.x;
+					sc.y = o.y;
+					sc.z = attr1;
+					sc.xrad = attr2;
+					sc.yrad = attr3;
+					sc.height = attr4;
+				}
 				QUEUE_MSG;
 				break;
 			}
@@ -3473,6 +3485,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				DELETEA(maplayout)
 				if(maplayout_factor >= 0){
 					sents.shrink(0);
+					sclips.deletecontents();
 					maplayout_factor = clamp(maplayout_factor, SMALLEST_FACTOR, LARGEST_FACTOR);
 					smapstats.hdr.waterlevel = -100000;
 					const int layoutsize = 1 << (maplayout_factor * 2);

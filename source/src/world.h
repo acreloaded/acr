@@ -59,8 +59,8 @@ struct mapstats
 	struct header hdr;
 	int entcnt[MAXENTTYPES];
 	int cgzsize;
-	uchar *enttypes;
-	short *entposs, *entelevations;
+	uchar *enttypes, *entdatas;
+	short *entposs;
 	int spawns[3];
 	int flags[2];
 	int flagents[2];

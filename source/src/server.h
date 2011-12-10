@@ -336,6 +336,11 @@ struct server_entity			// server side version of "entity" type
 	short x, y;
 };
 
+struct server_clip{
+	short x, y, z;
+	uchar xrad, yrad, height;
+};
+
 struct sknife{
 	int id, millis;
 	vec o;

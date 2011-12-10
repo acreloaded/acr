@@ -1,7 +1,6 @@
 // processing of server events
 
-// ballistics
-#include "ballistics.h"
+// server ballistics (will automatically include ballistic.h)
 #include "serverballistics.h"
 
 // processing events

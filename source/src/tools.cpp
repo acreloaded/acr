@@ -352,13 +352,12 @@ extern int maplayout_factor;
 mapstats *loadmapstats(const char *filename, bool getlayout)
 {
 	static mapstats s;
-	static uchar *enttypes = NULL;
+	static uchar *enttypes = NULL, *entdatas = NULL;
 	static short *entposs = NULL;
-	static short *entelevations = NULL;
 
 	DELETEA(enttypes);
 	DELETEA(entposs);
-	DELETEA(entelevations);
+	DELETEA(entdatas);
 	loopi(MAXENTTYPES) s.entcnt[i] = 0;
 	loopi(3) s.spawns[i] = 0;
 	loopi(2) s.flags[i] = 0;
@@ -372,8 +371,8 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 	if(s.hdr.version>=4) endianswap(&s.hdr.waterlevel, sizeof(int), 1); else s.hdr.waterlevel = -100000;
 	entity e;
 	enttypes = new uchar[s.hdr.numents];
-	entposs = new short[s.hdr.numents * 3];
-	entelevations = new short[s.hdr.numents];
+	entposs = new short[s.hdr.numents * 4];
+	entdatas = new uchar[s.hdr.numents * 3];
 	loopi(s.hdr.numents)
 	{
 		gzread(f, &e, sizeof(persistent_entity));
@@ -383,8 +382,8 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 		if(e.type == CTF_FLAG && (e.attr2 == 0 || e.attr2 == 1)) { s.flags[e.attr2]++; s.flagents[e.attr2] = i; }
 		s.entcnt[e.type]++;
 		enttypes[i] = e.type;
-		entposs[i * 3] = e.x; entposs[i * 3 + 1] = e.y; entposs[i * 3 + 2] = e.z;
-		entelevations[i] = e.attr1;
+		entposs[i * 4] = e.x; entposs[i * 4 + 1] = e.y; entposs[i * 4 + 2] = e.z; entposs[i * 4 + 3] = e.attr1;
+		entdatas[i * 3] = e.attr2; entdatas[i * 3 + 1] = e.attr3; entdatas[i * 3 + 2] = e.attr4;
 	}
 	if(getlayout)
 	{
@@ -450,7 +449,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 	s.hasflags = s.flags[0] > 0 && s.flags[1] > 0;
 	s.enttypes = enttypes;
 	s.entposs = entposs;
-	s.entelevations = entelevations;
+	s.entdatas = entdatas;
 	s.cgzsize = getfilesize(filename);
 	return &s;
 }

@@ -1,3 +1,28 @@
+#include "ballistics.h"
+
+float srayclip(const vec &o, const vec &ray, vec *surface = NULL){
+	float dist = sraycube(o, ray, surface);
+	vec to = ray;
+	to.mul(dist);
+	bool collided = false;
+	vec end;
+	loopv(sclips){
+		if(!sclips[i]) continue;
+		server_clip &sc = *sclips[i];
+		if(intersectbox(vec(sc.x, sc.y, sc.z + sc.height / 2), vec(sc.xrad, sc.yrad, sc.height / 2), o, to, &end)){
+			to = end;
+		}
+	}
+	return collided ? to.dist(o) : dist;
+}
+
+void straceShot(const vec &from, vec &to, vec *surface = NULL){
+	vec tracer(to);
+	tracer.sub(from).normalize();
+	const float dist = srayclip(from, tracer, surface);
+	to = tracer.mul(dist - .1f).add(from);
+}
+
 // normal shots (ray through sphere and cylinder check)
 static inline int hitplayer(const vec &from, float yaw, float pitch, const vec &to, const vec &target, const vec &head, vec *end = NULL){
 	// intersect head
