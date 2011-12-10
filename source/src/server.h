@@ -337,7 +337,7 @@ struct server_entity			// server side version of "entity" type
 };
 
 struct server_clip{
-	short x, y, z;
+	short x, y, elevation;
 	uchar xrad, yrad, height;
 };
 

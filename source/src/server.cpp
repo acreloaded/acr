@@ -2172,11 +2172,11 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 			se.x = smapstats.entposs[i * 4];
 			se.y = smapstats.entposs[i * 4 + 1];
 			se.elevation = smapstats.entposs[i * 4 + 3];
-			if((e.type == CLIP || e.type == MAPMODEL) && smapstats.entdatas[i * 3] && smapstats.entdatas[i * 3 + 1] && smapstats.entdatas[i * 3 + 2]){
-				server_clip &sc = *sclips.add();
+			if((e.type == CLIP /*|| e.type == MAPMODEL*/) && smapstats.entdatas[i * 3] && smapstats.entdatas[i * 3 + 1] && smapstats.entdatas[i * 3 + 2]){
+				server_clip &sc = *(sclips.add() = new server_clip);
 				sc.x = se.x;
 				sc.y = se.y;
-				sc.z = se.elevation;
+				sc.elevation = se.elevation;
 				sc.xrad = smapstats.entdatas[i * 3];
 				sc.yrad = smapstats.entdatas[i * 3 + 1];
 				sc.height = smapstats.entdatas[i * 3 + 2];
@@ -3464,11 +3464,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				se.y = o.y;
 				// is it a clip?
 				DELETEP(sclips[id]);
-				if((type == CLIP || type == MAPMODEL) && attr2 && attr3 && attr4){
+				if((type == CLIP /*|| type == MAPMODEL*/) && attr2 && attr3 && attr4){
 					server_clip sc = *(sclips[id] = new server_clip);
 					sc.x = o.x;
 					sc.y = o.y;
-					sc.z = attr1;
+					sc.elevation = attr1;
 					sc.xrad = attr2;
 					sc.yrad = attr3;
 					sc.height = attr4;

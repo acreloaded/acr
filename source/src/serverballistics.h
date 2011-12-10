@@ -3,19 +3,25 @@
 float srayclip(const vec &o, const vec &ray, vec *surface = NULL){
 	float dist = sraycube(o, ray, surface);
 	vec to = ray;
-	to.mul(dist);
+	to.mul(dist).add(o);
 	bool collided = false;
 	vec end;
 	loopv(sclips){
 		if(!sclips[i]) continue;
 		server_clip &sc = *sclips[i];
-		if(intersectbox(vec(sc.x, sc.y, sc.z + sc.height / 2), vec(sc.xrad, sc.yrad, sc.height / 2), o, to, &end)){
+		if(intersectbox(vec(sc.x, sc.y, getblockfloor(getmaplayoutid(sc.x, sc.y)) + sc.elevation + sc.height / 2), vec(sc.xrad, sc.yrad, sc.height / 2), o, to, &end)){
 			to = end;
+			collided = true;
+			if(surface){
+				*surface = vec(0, 0, 0);
+				// which surface did it hit?
+			}
 		}
 	}
 	return collided ? to.dist(o) : dist;
 }
 
+// trace a shot
 void straceShot(const vec &from, vec &to, vec *surface = NULL){
 	vec tracer(to);
 	tracer.sub(from).normalize();
