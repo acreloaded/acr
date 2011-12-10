@@ -112,6 +112,10 @@ float raycube(const vec &o, const vec &ray, vec &surface)
 	return dist;
 }
 
+float rayclip(const vec &o, const vec &ray, vec &surface){
+	return raycube(o, ray, surface);
+}
+
 bool raycubelos(const vec &from, const vec &to, float margin)
 {
 	vec dir(to);

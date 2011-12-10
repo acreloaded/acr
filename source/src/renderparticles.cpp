@@ -610,7 +610,7 @@ bool addbullethole(dynent *d, const vec &from, const vec &to, float radius, bool
 	vec surface, ray(to);
 	ray.sub(from);
 	ray.normalize();
-	float dist = raycube(from, ray, surface), mag = to.dist(from);
+	float dist = rayclip(from, ray, surface), mag = to.dist(from);
 	if(surface.iszero() || (radius>0 && (dist < mag-radius || dist > mag+radius))) return false;
 	vec o(from);
 	o.add(ray.mul(dist));
