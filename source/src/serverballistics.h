@@ -9,7 +9,7 @@ float srayclip(const vec &o, const vec &ray, vec *surface = NULL){
 	loopv(sclips){
 		if(!sclips[i]) continue;
 		server_clip &sc = *sclips[i];
-		if(intersectbox(vec(sc.x, sc.y, getblockfloor(getmaplayoutid(sc.x, sc.y)) + sc.elevation + sc.height / 2), vec(sc.xrad, sc.yrad, sc.height / 2), o, to, &end)){
+		if(intersectbox(vec(sc.x, sc.y, getblockfloor(getmaplayoutid(sc.x, sc.y)) + sc.elevation + sc.height / 2), vec(max(0.1f, (float)sc.xrad), max(0.1f, (float)sc.yrad), max(0.1f, (float)sc.height / 2)), o, to, &end)){
 			to = end;
 			collided = true;
 			if(surface){
