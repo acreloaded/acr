@@ -2172,7 +2172,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 			se.x = smapstats.entposs[i * 4];
 			se.y = smapstats.entposs[i * 4 + 1];
 			se.elevation = smapstats.entposs[i * 4 + 3];
-			if(e.type == CLIP){
+			if((e.type == CLIP || e.type == MAPMODEL) && smapstats.entdatas[i * 3] && smapstats.entdatas[i * 3 + 1] && smapstats.entdatas[i * 3 + 2]){
 				server_clip &sc = *sclips.add();
 				sc.x = se.x;
 				sc.y = se.y;
@@ -3463,8 +3463,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				se.x = o.x;
 				se.y = o.y;
 				// is it a clip?
-				if(type == CLIP){
-					DELETEP(sclips[id]);
+				DELETEP(sclips[id]);
+				if((type == CLIP || type == MAPMODEL) && attr2 && attr3 && attr4){
 					server_clip sc = *(sclips[id] = new server_clip);
 					sc.x = o.x;
 					sc.y = o.y;
