@@ -30,7 +30,7 @@ void processevent(client &c, projevent &e){
 						tknifeflags |= FRAG_CRIT;
 						dmg *= 1.6f; // 80 * 1.6 = 128 damage = almost instant kill!
 					}
-					else dmg /= 4; //80 / 4 = 20 just because of the bleeding effect
+					else dmg /= 1.5f; //80 / 2 = 53 just because of the bleeding effect
 					damagedealt += dmg;
 
 					e.o[0] = ts.o[0];
