@@ -149,6 +149,9 @@
     <ClInclude Include="..\src\server.h">
       <Filter>headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\gamemode.h">
+      <Filter>headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\ChangeLog.txt">

@@ -377,6 +377,7 @@
     <ClInclude Include="..\src\crypto.h" />
     <ClInclude Include="..\src\cube.h" />
     <ClInclude Include="..\src\entity.h" />
+    <ClInclude Include="..\src\gamemode.h" />
     <ClInclude Include="..\src\geom.h" />
     <ClInclude Include="..\src\hudgun.h" />
     <CustomBuildStep Include="..\src\md2.h">
