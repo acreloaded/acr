@@ -163,7 +163,7 @@ inline uchar protectAdminPriv(const char conf, int cn){
 struct subdueaction : playeraction
 {
 	void perform() { forcedeath(clients[cn], true); }
-	virtual bool isvalid() { return playeraction::isvalid() && !m_edit; }
+	virtual bool isvalid() { return playeraction::isvalid() && !m_edit && clients[cn]->team != TEAM_SPECT; }
 	subdueaction(int cn) : playeraction(cn)
 	{
 		passratio = 0.8f;
