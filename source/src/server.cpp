@@ -435,7 +435,7 @@ void enddemorecord(){
 		demos.remove(0);
 	}
 	demofile &d = demos.add();
-	formatstring(d.info)("%s: %s, %s, %.2f%s", asctime(), modestr(gamemode), smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB");
+	formatstring(d.info)("%s: %s, %s, %.2f%s", asctime(), modestr(gamemode, mutators), smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB");
 	sendmsgs(26, d.info);
 	logline(ACLOG_INFO, "Demo \"%s\" recorded.", d.info);
 	d.data = new uchar[len];
@@ -714,7 +714,7 @@ void flagaction(int flag, int action, int actor){
 	int score = 0;
 	int message = -1;
 
-	if(m_capture(gamemode) || m_hunt(gamemode) || m_ktf2(gamemode, mutators) || m_bomber(gamemode, mutators))
+	if(m_capture(gamemode) || m_hunt(gamemode) || m_ktf2(gamemode, mutators) || m_bomber(gamemode))
 	{
 		switch(action)
 		{
@@ -735,7 +735,7 @@ void flagaction(int flag, int action, int actor){
 				break;
 			case FA_SCORE:  // ctf: f = carried by actor flag,  htf: f = hunted flag (run over by actor)
 				if(m_capture(gamemode)) score = 1;
-				else if(m_bomber(gamemode, mutators)) score = of.state == CTFF_INBASE ? 3 : of.state == CTFF_DROPPED ? 2 : 1;
+				else if(m_bomber(gamemode)) score = of.state == CTFF_INBASE ? 3 : of.state == CTFF_DROPPED ? 2 : 1;
 				else if(m_ktf2(gamemode, mutators)){
 					if(valid_client(f.actor_cn) && clients[f.actor_cn]->state.state == CS_ALIVE)
 					{
@@ -2224,7 +2224,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 	}
 	logline(ACLOG_INFO, "");
 	logline(ACLOG_INFO, "Game start: %s on %s, %d players, %d minutes remaining, mastermode %d, (%s'getmap' %sprepared)",
-		modestr(smode), smapname, numclients(), minremain, mastermode, ms ? "" : "itemlist failed,", mapavailable(smapname) ? "" : "not ");
+		modestr(smode, smuts), smapname, numclients(), minremain, mastermode, ms ? "" : "itemlist failed,", mapavailable(smapname) ? "" : "not ");
 	//arenaround = 0;
 	arenastart = gamemillis;
 	nokills = true;
@@ -2848,7 +2848,7 @@ void checkmove(client &cp){
 		sflaginfo &f = sflaginfos[i];
 		sflaginfo &of = sflaginfos[team_opposite(i)];
 		vec v(-1, -1, cs.o.z);
-		if(m_bomber(gamemode, mutators) && i == cp.team && f.state == CTFF_STOLEN && f.actor_cn == sender){
+		if(m_bomber(gamemode) && i == cp.team && f.state == CTFF_STOLEN && f.actor_cn == sender){
 			v.x = of.x;
 			v.y = of.y;
 		}
@@ -2879,7 +2879,7 @@ void checkmove(client &cp){
 				flagaction(i, FA_PICKUP, sender);
 			}
 		}
-		else if(m_hunt(gamemode) || m_bomber(gamemode, mutators)){
+		else if(m_hunt(gamemode) || m_bomber(gamemode)){
 			// BTF only: score their flag by bombing their base!
 			if(f.state == CTFF_STOLEN){
 				flagaction(i, FA_SCORE, sender);
@@ -3882,7 +3882,7 @@ void checkintermission(){
 		minremain = gamemillis>=gamelimit || forceintermission ? 0 : (gamelimit - gamemillis + 60000 - 1)/60000;
 		if(isdedicated) loopv(clients) if(valid_client(i, true)) sendf(i, 1, "ri3", N_ACCURACY, clients[i]->state.damage, clients[i]->state.shotdamage);
 		if(minremain < 2){
-			short nextmaptype = 0, nextmaptime = 0, nextmapmode = G_DM;
+			short nextmaptype = 0, nextmaptime = 0, nextmapmode = G_DM, nextmapmuts = G_M_NONE;
 			string nextmapnm = "unknown";
 			if(*nextmapname){ // map vote
 				nextmaptype = 1;
@@ -3905,7 +3905,7 @@ void checkintermission(){
 				int smode = nextmapmode;
 				nextmaptime = m_team(gamemode, mutators) ? 15 : 10;
 			}
-			if(nextmaptype) sendf(-1, 1, "ri4s", N_CONFMSG, 14, nextmaptime, nextmapmode | ((nextmaptype & 3) << 6), nextmapnm);
+			if(nextmaptype) sendf(-1, 1, "ri4s", N_CONFMSG, 14, nextmaptime, nextmapmode, nextmapmuts, nextmaptype, nextmapnm);
 		}
 		if(!minremain) sendf(-1, 1, "ri4", N_TIMEUP, gamelimit, gamelimit - 60000 + 1, gamemusicseed); // force intermission
 		else sendf(-1, 1, "ri4", N_TIMEUP, gamemillis, gamelimit, gamemusicseed);
@@ -3953,7 +3953,7 @@ void loggamestatus(const char *reason){
 	formatstring(text)("%d minutes remaining", minremain);
 	logline(ACLOG_INFO, "");
 	logline(ACLOG_INFO, "Game status: %s on %s, %s, %s%c %s",
-					  modestr(gamemode), smapname, reason ? reason : text, mmfullname(mastermode), custom_servdesc ? ',' : '\0', servdesc_current);
+					  modestr(gamemode, mutators), smapname, reason ? reason : text, mmfullname(mastermode), custom_servdesc ? ',' : '\0', servdesc_current);
 	logline(ACLOG_INFO, "cn  name             %s%sfrag death ping priv    host", m_team(gamemode, mutators) ? "team  " : "", m_affinity(gamemode) ? "flag " : "");
 	loopv(clients)
 	{
@@ -4072,7 +4072,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 		if(m_affinity(gamemode)) loopi(2)
 		{
 			sflaginfo &f = sflaginfos[i];
-			if(f.state == CTFF_DROPPED && gamemillis-f.lastupdate > (m_capture(gamemode) ? 30000 : (m_ktf2(gamemode, mutators) || m_bomber(gamemode, mutators)) ? 20000 : 10000)) flagaction(i, FA_RESET, -1);
+			if(f.state == CTFF_DROPPED && gamemillis-f.lastupdate > (m_capture(gamemode) ? 30000 : (m_ktf2(gamemode, mutators) || m_bomber(gamemode)) ? 20000 : 10000)) flagaction(i, FA_RESET, -1);
 			if(m_hunt(gamemode) && f.state == CTFF_INBASE && gamemillis-f.lastupdate > (smapstats.hasflags ? 10000 : 1000))
 				htf_forceflag(i);
 			if(m_keep(gamemode) && f.state == CTFF_STOLEN && gamemillis-f.lastupdate > 15000)

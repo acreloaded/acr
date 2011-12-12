@@ -700,7 +700,7 @@ extern int stringsort(const char **a, const char **b);
 extern int modeacronyms;
 extern void servertoclient(int chan, uchar *buf, int len);
 extern void localservertoclient(int chan, uchar *buf, int len);
-extern const char *modestr(int n, bool acronyms = false);
+extern const char *modestr(int gamemode, int mutators, bool acronyms = false);
 extern const char *voteerrorstr(int n);
 extern const char *mmfullname(int n);
 extern void fatal(const char *s, ...);

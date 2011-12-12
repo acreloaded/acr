@@ -127,8 +127,8 @@ void renderentities()
 	{
 		flaginfo &f = flaginfos[i];
 		entity &e = *f.flagent;
-		defformatstring(fpath)("pickups/flags/%s%s", m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? "" : team_string(i),  (m_hunt(gamemode) || m_bomber(gamemode, mutators)) ? "_htf" : m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? "ktf" : "");
-		defformatstring(sfpath)("pickups/flags/small_%s%s", m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? "" : team_string(i), (m_hunt(gamemode) || m_bomber(gamemode, mutators)) ? "_htf" : m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? "ktf" : "");
+		defformatstring(fpath)("pickups/flags/%s%s", m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? "" : team_string(i),  (m_hunt(gamemode) || m_bomber(gamemode)) ? "_htf" : m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? "ktf" : "");
+		defformatstring(sfpath)("pickups/flags/small_%s%s", m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? "" : team_string(i), (m_hunt(gamemode) || m_bomber(gamemode)) ? "_htf" : m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? "ktf" : "");
 		switch(f.state)
 		{
 			case CTFF_STOLEN:

@@ -1215,7 +1215,7 @@ void renderhudwaypoints(playerent *p){
 				o = f.actor->o;
 				wp = m_team(gamemode, mutators) && f.actor->team == teamfix ?
 					// friendly
-					(m_capture(gamemode) || m_bomber(gamemode, mutators)) ? WP_ESCORT : WP_DEFEND
+					(m_capture(gamemode) || m_bomber(gamemode)) ? WP_ESCORT : WP_DEFEND
 					: // hostile below
 					WP_KILL;
 				break;
@@ -1225,7 +1225,7 @@ void renderhudwaypoints(playerent *p){
 				o.z += PLAYERHEIGHT;
 				if(m_capture(gamemode)) wp = i == teamfix ? WP_RETURN : WP_ENEMY;
 				else if(m_keep(gamemode)) wp = WP_ENEMY;
-				else if(m_bomber(gamemode, mutators)) wp = i == teamfix ? WP_BOMB : WP_DEFUSE;
+				else if(m_bomber(gamemode)) wp = i == teamfix ? WP_BOMB : WP_DEFUSE;
 				else wp = i == teamfix ? WP_FRIENDLY : WP_GRAB;
 				break;
 		}
@@ -1238,12 +1238,12 @@ void renderhudwaypoints(playerent *p){
 		wp = WP_STOLEN; // stolen or dropped
 		switch(f.state){
 			default:
-				if(m_bomber(gamemode, mutators)) wp = flaginfos[team_opposite(i)].state != CTFF_INBASE ? i == teamfix ? WP_DEFEND : WP_TARGET : -1;
+				if(m_bomber(gamemode)) wp = flaginfos[team_opposite(i)].state != CTFF_INBASE ? i == teamfix ? WP_DEFEND : WP_TARGET : -1;
 				else if(i != teamfix) wp = -1; break;
 			case CTFF_INBASE:
 				if(m_capture(gamemode)){
 					wp = i == teamfix ? WP_FRIENDLY : WP_GRAB;
-				} else if(m_bomber(gamemode, mutators))
+				} else if(m_bomber(gamemode))
 					wp = i == teamfix ? WP_BOMB : WP_TARGET;
 				else if(m_hunt(gamemode))
 					wp = i == teamfix ? WP_FRIENDLY : WP_ENEMY;

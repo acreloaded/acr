@@ -65,19 +65,14 @@ struct mapaction : serveraction
 				if(!spawns || !flags)
 				{
 					reqpriv = PRIV_ADMIN;
-					string mapfail;
-					copystring(mapfail + 1, behindpath(map));
-					*mapfail = mode;
-					if(!spawns) *mapfail |= 0x80;
-					if(!flags) *mapfail |= 0x40;
-					sendmsgs(15, mapfail, caller);
+					sendf(caller, 1, "ri5s", N_CONFMSG, 15, mode, G_M_NONE, (spawns ? 0 : 1) | (flags ? 0 : 2), behindpath(map));
 				}
 			}
 			loopv(scl.adminonlymaps) // admin needed for these maps
 				if(!strcmp(behindpath(map), scl.adminonlymaps[i])) reqpriv = PRIV_ADMIN;
 			if(notify) passratio = 0.6f; // you need 60% to vote a map without admin
 		}
-		formatstring(desc)("load map '%s' in mode '%s'", map, modestr(mode));
+		formatstring(desc)("load map '%s' in mode '%s'", map, modestr(mode, G_M_NONE));
 	}
 	~mapaction() { DELETEA(map); }
 };

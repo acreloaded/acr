@@ -202,9 +202,36 @@ void cutcolorstring(char *text, int len)
 const char *voteerrors[VOTEE_NUM] = { "voting is currently disabled", "there is already a vote pending", "no permission to veto", "can't vote that often", "this vote is not allowed in the current environment (singleplayer/multiplayer)", "no permission", "invalid vote" };
 const char *mmfullnames[MM_NUM] = { "open", "locked", "private" };
 
-inline const char *fullmodestr(int n) { return (n>=GMODE_DEMO && n < GMODE_NUM) ? modefullnames[n - GMODE_DEMO] : "unknown"; }
-inline const char *acronymmodestr(int n) { return (n>=GMODE_DEMO && n < GMODE_NUM) ? modeacronymnames[n - GMODE_DEMO] : "n/a"; }
-const char *modestr(int n, bool acronyms) { return acronyms ? acronymmodestr (n) : fullmodestr(n); }
+inline const char *gamename(int mode, int muts, int compact = 0)
+{
+	if(!m_valid(mode))
+		return compact ? "n/a" : "unknown";
+    static string gname;
+    gname[0] = 0;
+    if(gametype[mode].mutators[0] && muts) loopi(G_M_NUM)
+    {
+        int implied = m_implied(mode, muts);
+        if((gametype[mode].mutators[0]&mutstype[i].type) && (muts&mutstype[i].type) && (!implied || !(implied&mutstype[i].type)))
+        {
+            const char *mut = i < G_M_GSP ? mutstype[i].name : gametype[mode].gsp[i-G_M_GSP];
+            if(mut && *mut)
+            {
+                string name;
+                switch(compact)
+                {
+                    case 2: formatstring(name)("%s%c", *gname ? gname : "", mut[0]); break;
+                    case 1: formatstring(name)("%s%s%c", *gname ? gname : "", *gname ? "-" : "", mut[0]); break;
+                    case 0: default: formatstring(name)("%s%s%s", *gname ? gname : "", *gname ? "-" : "", mut); break;
+                }
+                copystring(gname, name);
+            }
+        }
+    }
+    defformatstring(mname)("%s%s%s", *gname ? gname : "", *gname ? " " : "", gametype[mode].name);
+    copystring(gname, mname);
+    return gname;
+}
+const char *modestr(int gamemode, int mutators, bool acronyms) { return gamename(gamemode, mutators, acronyms ? 1 : 0); }
 const char *voteerrorstr(int n) { return (n>=0 && n < VOTEE_NUM) ? voteerrors[n] : "unknown"; }
 const char *mmfullname(int n) { return (n>=0 && n < MM_NUM) ? mmfullnames[n] : "unknown"; }
 

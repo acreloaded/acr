@@ -271,7 +271,7 @@ flaginfo *CACBot::SearchForFlags(bool bUseWPs, float flRange, float flMaxHeight)
 				// in HTF to take out own flag
 				else if(m_hunt(gamemode) && i != m_pMyEnt->team) continue;
 				// in BTF to take own flag, and to score it on the enemy base
-				else if(m_bomber(gamemode, mutators) && i != m_pMyEnt->team && (of.state != CTFF_STOLEN || of.actor != m_pMyEnt)) continue;
+				else if(m_bomber(gamemode) && i != m_pMyEnt->team && (of.state != CTFF_STOLEN || of.actor != m_pMyEnt)) continue;
 				// if KTF
 				break;
 			case CTFF_STOLEN: // go to our stolen flag's base

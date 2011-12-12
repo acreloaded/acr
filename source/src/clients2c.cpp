@@ -901,7 +901,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						break;
 					case 14:
 					{
-						int minutes = getint(p), mode = getint(p), nextt = (mode >> 6) & 3; mode &= 0x3F;
+						int minutes = getint(p), mode = getint(p), muts = getint(p), nextt = getint(p);
 						getstring(text, p);
 						copystring(msg, "nextmap:");
 						switch(nextt){
@@ -915,15 +915,15 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 								copystring(msg, "\f2No map rotation entries, reloading");
 								break;
 						}
-						formatstring(msg)("%s \fs\f3%s\fr in mode \fs\f3%s\fr for %d minutes", msg, text, modestr(mode), minutes);
+						formatstring(msg)("%s \fs\f3%s\fr in mode \fs\f3%s\fr for %d minutes", msg, text, modestr(mode, muts), minutes);
 						break;
 					}
 					case 15:
 					{
+						int mode = getint(p), muts = getint(p), reason = getint(p);
 						getstring(text, p);
-						bool spawns = (*text & 0x80) != 0, flags = (*text & 0x40) != 0;
-						*text &= 0x3F;
-						formatstring(msg)("\f3map \"%s\" does not support \"%s\": ", text + 1, modestr(*text));
+						bool spawns = (reason & 1) != 0, flags = (reason & 2) != 0;
+						formatstring(msg)("\f3map \"%s\" does not support \"%s\": ", text, modestr(mode, muts));
 						if(spawns || !flags) concatstring(msg, "player spawns");
 						if(spawns && flags) concatstring(msg, " and ");
 						if(flags || !spawns) concatstring(msg, "flag bases");
