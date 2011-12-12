@@ -6,7 +6,7 @@
 void *scoremenu = NULL, *teammenu = NULL, *ctfmenu = NULL;
 
 void showscores(int on){
-	if(on) showmenu(m_affinity(gamemode) ? "ctf score" : (m_team(gamemode) ? "team score" : "score"), false);
+	if(on) showmenu(m_affinity(gamemode) ? "ctf score" : (m_team(gamemode, mutators) ? "team score" : "score"), false);
 	else if (!intermission){
 		closemenu("score");
 		closemenu("team score");
@@ -129,11 +129,11 @@ void renderteamscore(void *menu, teamscore &t){
 	scoreratio sr;
 	sr.calc(t.frags, t.deaths);
 	const char *tlag = colorpj(t.pj/max(t.teammembers.length(),1)), *tping = colorping(t.ping/max(t.teammembers.length(), 1));
-	const char *teamname = m_team(gamemode) || t.team == TEAM_SPECT ? team_string(t.team) : "FFA Total";
+	const char *teamname = m_team(gamemode, mutators) || t.team == TEAM_SPECT ? team_string(t.team) : "FFA Total";
 	if(m_affinity(gamemode)) formatstring(line.s)("%d\t%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t\t%d\t%s\t\t%s", t.points, t.flagscore, t.frags, t.assists, t.deaths, sr.precision, sr.ratio, tlag, tping, t.lvl, teamname, plrs);
 	else formatstring(line.s)("%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t\t%d\t%s\t\t%s", t.points, t.frags, t.assists, t.deaths, sr.precision, sr.ratio, tlag, tping, t.lvl, teamname, plrs);
 	static color teamcolors[TEAM_NUM+1] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f), color(.4f, .4f, .4f, .3f), color(.8f, .8f, .8f, .4f) };
-	line.bgcolor = &teamcolors[!m_team(gamemode) && t.team != TEAM_SPECT ? TEAM_NUM : t.team];
+	line.bgcolor = &teamcolors[!m_team(gamemode, mutators) && t.team != TEAM_SPECT ? TEAM_NUM : t.team];
 	loopv(t.teammembers){
 		if(m_zombie(gamemode) && t.teammembers[i]->team == TEAM_RED && t.teammembers[i]->state == CS_DEAD) continue;
 		renderscore(menu, t.teammembers[i]);
@@ -182,10 +182,10 @@ void renderscores(void *menu, bool init){
 		if(s) formatstring(serverline)("%s:%d %s", s->name, s->port, s->sdesc);
 	}
 
-	//if(m_team(gamemode)){
+	//if(m_team(gamemode, mutators)){
 		teamscore teamscores[TEAM_NUM] = { teamscore(TEAM_RED), teamscore(TEAM_BLUE), spectscore() };
 
-		#define fixteam(pl) (pl->team == TEAM_BLUE && !m_team(gamemode) ? TEAM_RED : pl->team)
+		#define fixteam(pl) (pl->team == TEAM_BLUE && !m_team(gamemode, mutators) ? TEAM_RED : pl->team)
 		loopv(players){
 			if(!players[i]) continue;
 			teamscores[fixteam(players[i])].addscore(players[i]);
@@ -194,7 +194,7 @@ void renderscores(void *menu, bool init){
 		loopi(TEAM_NUM) teamscores[i].teammembers.sort(scorecmp);
 
 		int sort = teamscorecmp(&teamscores[TEAM_RED], &teamscores[TEAM_BLUE]);
-		if(!m_team(gamemode)) renderteamscore(menu, teamscores[TEAM_RED]);
+		if(!m_team(gamemode, mutators)) renderteamscore(menu, teamscores[TEAM_RED]);
 		else loopi(2) renderteamscore(menu, teamscores[sort < 0 ? i : i^1]);
 		if(teamscores[TEAM_SPECT].teammembers.length()) renderteamscore(menu, teamscores[TEAM_SPECT]);
 	//}
@@ -231,14 +231,14 @@ void consolescores(){
 			printf(", %s:%d %s", s->name, s->port, text);
 		}
 	}
-	printf("\npoints %sfrags assists deaths ratio cn%s name\n", m_affinity(gamemode) ? "flags " : "", m_team(gamemode) ? " team" : "");
+	printf("\npoints %sfrags assists deaths ratio cn%s name\n", m_affinity(gamemode) ? "flags " : "", m_team(gamemode, mutators) ? " team" : "");
 	loopv(scores){
 		d = scores[i];
 		sr.calc(d->frags, d->deaths);
 		formatstring(team)(" %-4s", team_string(d->team));
 		formatstring(flags)(" %4d ", d->flagscore);
 		printf("%6d %s %4d %7d   %4d %5.2f %2d%s %s%s\n", d->points, m_affinity(gamemode) ? flags : "", d->frags, d->assists, d->deaths, sr.ratio, d->clientnum,
-					m_team(gamemode) ? team : "", d->name,
+					m_team(gamemode, mutators) ? team : "", d->name,
 						d->priv == PRIV_MAX ? " (highest)" :
 						d->priv == PRIV_ADMIN ? " (admin)" :
 						d->priv == PRIV_MASTER ? " (master)" :

@@ -226,7 +226,7 @@ void checkitems(playerent *d)
 void spawnallitems() // spawns items them locally
 {
 	loopv(ents)
-		if(ents[i].fitsmode(gamemode) || (multiplayer(false) && gamespeed!=100 && (i=-1)))
+		if(ents[i].fitsmode(gamemode, mutators) || (multiplayer(false) && gamespeed!=100 && (i=-1)))
 			ents[i].spawned = true;
 }
 
@@ -235,7 +235,7 @@ void resetspawns()
 	loopv(ents) ents[i].spawned = false;
 	if(m_noitemsnade(gamemode, mutators) || m_pistol(gamemode, mutators))
 	{
-		loopv(ents) ents[i].transformtype(gamemode);
+		loopv(ents) ents[i].transformtype(gamemode, mutators);
 	}
 }
 void setspawn(int i, bool on) { if(ents.inrange(i)) ents[i].spawned = on; }

@@ -57,13 +57,13 @@ void drawflagicons(const flaginfo &f, playerent *p)
 	// Must be stolen for big flag-stolen icon
 	if(f.state != CTFF_STOLEN) return;
 	// CTF OR KTF2/Returner
-	int row = (m_capture(gamemode) || m_ktf2(gamemode, mutators) && m_team(gamemode)) && f.actor && f.actor->team == f.team ? 1 : 0;
+	int row = (m_capture(gamemode) || m_ktf2(gamemode, mutators) && m_team(gamemode, mutators)) && f.actor && f.actor->team == f.team ? 1 : 0;
 	// HTF + KTF
-	if(m_keep(gamemode) && !(m_ktf2(gamemode, mutators) && m_team(gamemode))) row = 1;
+	if(m_keep(gamemode) && !(m_ktf2(gamemode, mutators) && m_team(gamemode, mutators))) row = 1;
 	// pulses
 	glColor4f(1, 1, 1, f.actor == p ? (sinf(lastmillis/100.0f)+1.0f) / 2.0f : .6f);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-	drawicon(m_capture(gamemode) || m_ktf2(gamemode, mutators) && m_team(gamemode) ? ctftex : hktftex, VIRTW - 225 * (!f.team && flaginfos[1].state != CTFF_STOLEN ? 1 : 2 - f.team) - 10, VIRTH*5/8, 225, f.team, row, 1/2.f);
+	drawicon(m_capture(gamemode) || m_ktf2(gamemode, mutators) && m_team(gamemode, mutators) ? ctftex : hktftex, VIRTW - 225 * (!f.team && flaginfos[1].state != CTFF_STOLEN ? 1 : 2 - f.team) - 10, VIRTH*5/8, 225, f.team, row, 1/2.f);
 }
 
 void drawvoteicon(float x, float y, int col, int row, bool noblend)
@@ -192,7 +192,7 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 		usz *= 3.5f;
 		float ct = usz / 1.8f;
 		chsize = p->weaponsel->dynspread() * 100 * (p->perk == PERK_STEADY ? .65f : 1) / dynfov();
-		if(m_classic(gamemode, mutators)(gamemode, mutators)) chsize *= .6f;
+		if(m_classic(gamemode, mutators)) chsize *= .6f;
 		Texture *cv = crosshairs[CROSSHAIR_V], *ch = crosshairs[CROSSHAIR_H];
 		if(!cv) cv = textureload("packages/misc/crosshairs/vertical.png", 3);
 		if(!ch) ch = textureload("packages/misc/crosshairs/horizontal.png", 3);
@@ -234,7 +234,7 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 	else{
 		if(n == CROSSHAIR_SHOTGUN){
 			chsize = SGSPREAD * 100 * (1 - p->ads / 1000.f / SGADSSPREADFACTOR) * (p->perk == PERK_STEADY ? .75f : 1) / dynfov();
-			if(m_classic(gamemode, mutators)(gamemode, mutators)) chsize *= .75f;
+			if(m_classic(gamemode, mutators)) chsize *= .75f;
 		}
 
 		if(crosshair->bpp==32) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -813,7 +813,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
 	glMatrixMode(GL_MODELVIEW);
 	if(/*!menu &&*/ (!hideradar || showmap)) drawradar(p, w, h);
-	if(!hideteam && m_team(gamemode)) drawteamicons(w, h);
+	if(!hideteam && m_team(gamemode, mutators)) drawteamicons(w, h);
 	glMatrixMode(GL_PROJECTION);
 
 	char *infostr = editinfo();
@@ -1213,7 +1213,7 @@ void renderhudwaypoints(playerent *p){
 				if(f.actor == p) break;
 				if(OUTBORD(f.actor->o.x, f.actor->o.y)) break;
 				o = f.actor->o;
-				wp = m_team(gamemode) && f.actor->team == teamfix ?
+				wp = m_team(gamemode, mutators) && f.actor->team == teamfix ?
 					// friendly
 					(m_capture(gamemode) || m_bomber(gamemode, mutators)) ? WP_ESCORT : WP_DEFEND
 					: // hostile below

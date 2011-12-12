@@ -182,7 +182,7 @@ void deathstate(playerent *pl, playerent *act)
 void spawnstate(playerent *d)			  // reset player state not persistent across spawns
 {
 	d->respawn();
-	d->spawnstate(gamemode);
+	d->spawnstate(gamemode, mutators);
 	if(d==player1)
 	{
 		if(player1->skin!=nextskin) setskin(player1, nextskin);
@@ -375,7 +375,7 @@ float nearestenemy(vec place, int team)
 	loopv(players)
 	{
 		playerent *other = players[i];
-		if(!other || (m_team(gamemode) && team == other->team)) continue;
+		if(!other || (m_team(gamemode, mutators) && team == other->team)) continue;
 		float dist = place.dist(other->o);
 		if(dist < nearestenemydist || nearestenemydist == -1) nearestenemydist = dist;
 	}
@@ -389,14 +389,14 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
 	entity *e = NULL;
 	if(!mapcenter)
 	{
-		int type = m_team(gamemode) && !m_zombie(gamemode) ? d->team : 100;
+		int type = m_team(gamemode, mutators) && !m_zombie(gamemode) ? d->team : 100;
 		if(m_duke(gamemode, mutators) && arenaspawn >= 0)
 		{
 			int x = -1;
 			loopi(arenaspawn + 1) x = findentity(PLAYERSTART, x+1, type);
 			if(x >= 0) e = &ents[x];
 		}
-		else if((m_team(gamemode) || m_duke(gamemode, mutators)) && !m_keep(gamemode) && !m_zombie(gamemode)) // ktf and zombies uses ffa spawns
+		else if((m_team(gamemode, mutators) || m_duke(gamemode, mutators)) && !m_keep(gamemode) && !m_zombie(gamemode)) // ktf and zombies uses ffa spawns
 		{
 			loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1, type);
 			if(spawncycle >= 0) e = &ents[spawncycle];

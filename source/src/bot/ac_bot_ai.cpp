@@ -276,7 +276,7 @@ flaginfo *CACBot::SearchForFlags(bool bUseWPs, float flRange, float flMaxHeight)
 				break;
 			case CTFF_STOLEN: // go to our stolen flag's base
 				// if rCTF and we have our flag
-				if(!m_return || f.actor != m_pMyEnt || f.team != m_pMyEnt->team) continue;
+				if(!m_return(gamemode, mutators) || f.actor != m_pMyEnt || f.team != m_pMyEnt->team) continue;
 				break;
 			case CTFF_DROPPED: // take every dropped flag, regardless of anything!
 				o = f.pos;

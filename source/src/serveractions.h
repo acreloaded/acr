@@ -53,14 +53,14 @@ struct mapaction : serveraction
 				reqpriv = PRIV_ADMIN;
 				if(notify) sendmsg(12, caller);
 			}
-			if(mode == GMODE_COOPEDIT && notify){ // admin needed for coopedit
+			if(m_edit(mode) && notify){ // admin needed for coopedit
 				sendmsg(10, caller);
 				reqpriv = PRIV_ADMIN;
 			}
 			if(ms && privconf('P')) // admin needed for mismatched modes
 			{
 				int smode = mode;  // 'borrow' the mode macros by replacing a global by a local var
-				bool spawns = (m_team(gamemode) && !m_keep(gamemode) && !m_zombie(gamemode)) ? ms->hasteamspawns : ms->hasffaspawns;
+				bool spawns = (m_team(gamemode, mutators) && !m_keep(gamemode) && !m_zombie(gamemode)) ? ms->hasteamspawns : ms->hasffaspawns;
 				bool flags = m_affinity(gamemode) && !m_hunt(gamemode) ? ms->hasflags : true;
 				if(!spawns || !flags)
 				{
@@ -85,7 +85,7 @@ struct mapaction : serveraction
 struct demoplayaction : serveraction
 {
 	char *map;
-	void perform() { resetmap(map, GMODE_DEMO); }
+	void perform() { resetmap(map, G_DEMO); }
 	demoplayaction(char *map) : map(map)
 	{
 		area = EE_LOCAL_SERV; // only local
@@ -104,7 +104,7 @@ struct playeraction : serveraction
 struct forceteamaction : playeraction
 {
 	void perform() { updateclientteam(cn, team_opposite(clients[cn]->team), FTR_AUTOTEAM); }
-	virtual bool isvalid() { return playeraction::isvalid() && m_team(gamemode); }
+	virtual bool isvalid() { return playeraction::isvalid() && m_team(gamemode, mutators); }
 	forceteamaction(int cn, int caller) : playeraction(cn)
 	{
 		if(cn != caller){ reqpriv = privconf('f'); passratio = 0.65f;}
@@ -247,7 +247,7 @@ struct autoteamaction : enableaction
 {
 	void perform(){
 		autoteam = enable;
-		if(m_team(gamemode) && enable) refillteams(true);
+		if(m_team(gamemode, mutators) && enable) refillteams(true);
 	}
 	autoteamaction(bool enable) : enableaction(enable){
 		reqpriv = privconf('a');
@@ -258,7 +258,7 @@ struct autoteamaction : enableaction
 struct shuffleteamaction : serveraction
 {
 	void perform() { shuffleteams(); }
-	bool isvalid() { return serveraction::isvalid() && m_team(gamemode); }
+	bool isvalid() { return serveraction::isvalid() && m_team(gamemode, mutators); }
 	shuffleteamaction()
 	{
 		reqpriv = privconf('s');
@@ -281,7 +281,7 @@ struct stopdemoaction : serveraction
 {
 	void perform()
 	{
-		if(m_demo) enddemoplayback();
+		if(m_demo(gamemode)) enddemoplayback();
 		else enddemorecord();
 	}
 	stopdemoaction()

@@ -28,7 +28,7 @@ VARP(autogetmap, 0, 1, 1);
 void changemapserv(char *name, int mode, int download)		// forced map change from the server
 {
 	gamemode = mode;
-	if(m_demo) return;
+	if(m_demo(gamemode)) return;
 	bool loaded = load_world(name);
 	if(download > 0)
 	{
@@ -331,7 +331,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_SWITCHTEAM:
 			{
 				int t = getint(p);
-                if(m_team(gamemode)) conoutf(t & 0x10 ? "\f3You may not unspectate, the server is locked" : "\f3Team %s is full", team_string(t & 0xF));
+                if(m_team(gamemode, mutators)) conoutf(t & 0x10 ? "\f3You may not unspectate, the server is locked" : "\f3Team %s is full", team_string(t & 0xF));
 				break;
 			}
 
@@ -764,7 +764,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						int primary = WEAP_KNIFE;
 						if(m_insta(gamemode, mutators)) primary = WEAP_SNIPER;
 						else if(m_pistol(gamemode, mutators)) primary = WEAP_PISTOL;
-						else if(!m_lss)
+						else if(!m_lss(gamemode, mutators))
 						{
 							if(gunselect < WEAP_GRENADE) primary = gunselect;
 							loopi(WEAP_GRENADE) if(ammo[i] || mag[i]) primary = max(primary, i);
@@ -1079,7 +1079,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				int acn = getint(p); playerent *alive = getclient(acn);
 				// check for multiple survivors
 				bool multi = false;
-				if(m_team(gamemode) && alive) loopv(players) if(players[i] && players[i] != alive && players[i]->state == CS_ALIVE && isteam(players[i], alive)){ multi = true; break; }
+				if(m_team(gamemode, mutators) && alive) loopv(players) if(players[i] && players[i] != alive && players[i]->state == CS_ALIVE && isteam(players[i], alive)){ multi = true; break; }
 				conoutf("%s", _("arenawin_over"));
 				// no survivors
 				if(acn == -1) hudoutf("\f3%s", _("arenawin_fail"));
@@ -1093,7 +1093,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				// should not happen? better safe than sorry
 				else if(!alive) hudoutf("unknown winner...?");
 				// Teams
-				else if(m_team(gamemode) && multi) hudoutf("%s", _(alive->team == player1->team ? "arenawin_teamwin" : "arenawin_teamlose"));
+				else if(m_team(gamemode, mutators) && multi) hudoutf("%s", _(alive->team == player1->team ? "arenawin_teamwin" : "arenawin_teamlose"));
 				// FFA or one team member
 				else if(alive==player1) hudoutf("%s", _("arenawin_youwin"));
 				else hudoutf("%s %s", colorname(alive), _("arenawin_ffa"));

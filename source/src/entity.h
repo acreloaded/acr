@@ -32,8 +32,8 @@ struct entity : public persistent_entity
 	bool spawned;			   //the only dynamic state of a map entity
 	entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4) : persistent_entity(x, y, z, type, attr1, attr2, attr3, attr4), spawned(false) {}
 	entity() {}
-	bool fitsmode(int gamemode) { return !m_noitems(gamemode, mutators) && isitem(type) && !(m_noitemsnade(gamemode, mutators) && type!=I_GRENADE) && !(m_pistol(gamemode, mutators) && type==I_AMMO); }
-	void transformtype(int gamemode)
+	bool fitsmode(int gamemode, int mutators) { return !m_noitems(gamemode, mutators) && isitem(type) && !(m_noitemsnade(gamemode, mutators) && type!=I_GRENADE) && !(m_pistol(gamemode, mutators) && type==I_AMMO); }
+	void transformtype(int gamemode, int mutators)
 	{
 		if(m_pistol(gamemode, mutators) && type == I_AMMO) type = I_CLIPS;
 		else if(m_noitemsnade(gamemode, mutators)) switch(type){
@@ -141,7 +141,7 @@ enum { PERK_NONE = 0, PERK_SPEED, PERK_HAND, PERK_JAM, PERK_VISION, PERK_STREAK,
 extern float gunspeed(int gun, int ads, bool lightweight = false);
 extern int classic_forceperk(int primary);
 
-#define isteam(a,b)   (m_team(gamemode) && a->team == b->team)
+#define isteam(a,b)   (m_team(gamemode, mutators) && a->team == b->team)
 
 enum { TEAM_RED = 0, TEAM_BLUE, TEAM_SPECT, TEAM_NUM };
 #define team_valid(t) ((t) >= 0 && (t) < TEAM_NUM)
@@ -386,11 +386,11 @@ struct playerstate
 		mag[WEAP_KNIFE] = 1;
 	}
 
-	virtual void spawnstate(int gamemode)
+	virtual void spawnstate(int gamemode, int mutators)
 	{
 		if(m_pistol(gamemode, mutators)) primary = WEAP_PISTOL;
 		else if(m_insta(gamemode, mutators)) primary = WEAP_BOLT;
-		else if(m_lss) primary = WEAP_KNIFE;
+		else if(m_lss(gamemode, mutators)) primary = WEAP_KNIFE;
 		else primary = nextprimary;
 
 		if(primary == WEAP_GRENADE || primary == WEAP_AKIMBO || primary < 0 || primary >= WEAP_MAX) primary = WEAP_ASSAULT;
@@ -409,7 +409,7 @@ struct playerstate
 
 		gunselect = primary;
 
-		if(m_classic(gamemode, mutators)(gamemode, mutators)) perk = classic_forceperk(primary);
+		if(m_classic(gamemode, mutators)) perk = classic_forceperk(primary);
 		else{
 			perk = nextperk;
 			if(perk <= PERK_NONE || perk >= PERK_MAX) perk = rnd(PERK_MAX-1)+1;
@@ -597,9 +597,9 @@ struct playerent : dynent, playerstate
 		damagestack.setsize(0);
 	}
 
-	void spawnstate(int gamemode)
+	void spawnstate(int gamemode, int mutators)
 	{
-		playerstate::spawnstate(gamemode);
+		playerstate::spawnstate(gamemode, mutators);
 		prevweaponsel = weaponsel = weapons[gunselect];
 		primweap = weapons[primary];
 		nextprimweap = weapons[nextprimary];

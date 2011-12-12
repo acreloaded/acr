@@ -55,7 +55,7 @@ int killpoints(client *target, client *actor, int gun, int style, bool assist = 
 			if (clienthasflag(target->clientnum) >= 0) gain += FLAGTKPT;
 			else gain += TKPT;
 		} else {
-			if(m_team(gamemode)){
+			if(m_team(gamemode, mutators)){
 				if(!m_affinity(gamemode)) gain += TMBONUSPT;
 				else gain += FLBONUSPT;
 				if (m_hunt(gamemode) && clienthasflag(actor->clientnum) >= 0) gain += HTFFRAGPT;

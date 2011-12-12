@@ -107,7 +107,7 @@ void checkai(){
 			if(m_zombie(gamemode)) balance = 12 + 3 * people; // effectively 12 + 2n
 			else if(m_duke(gamemode, mutators)) balance = max(people, maplayout_factor - 3); // 3 - 5 - 8 (6 - 8 - 11 layout factor)
 			else{
-				const int spawns = m_team(gamemode) ? (smapstats.hasteamspawns ? smapstats.spawns[0] + smapstats.spawns[1] : 16) : (smapstats.hasffaspawns ? smapstats.spawns[2] : 6);
+				const int spawns = m_team(gamemode, mutators) ? (smapstats.hasteamspawns ? smapstats.spawns[0] + smapstats.spawns[1] : 16) : (smapstats.hasffaspawns ? smapstats.spawns[2] : 6);
 				balance = max(people, spawns / 3);
 			}
 			break; // auto
@@ -115,7 +115,7 @@ void checkai(){
 		default: balance = max(people, botbalance); break; // force bot count
 	}
 	if(balance > 0){
-		if(m_team(gamemode) && !m_zombie(gamemode)){
+		if(m_team(gamemode, mutators) && !m_zombie(gamemode)){
 			int plrs[2] = {0}, highest = -1;
 			loopv(clients) if(valid_client(i, true) && clients[i]->team < 2){
 				++plrs[clients[i]->team];
@@ -130,7 +130,7 @@ void checkai(){
 			}
 		}
 		// correct automatic setting
-		if(botbalance < 0 && balance & 1 && m_team(gamemode)) ++balance;
+		if(botbalance < 0 && balance & 1 && m_team(gamemode, mutators)) ++balance;
 		while(countplayers() < balance) if(!addai()) break;
 		while(countplayers() > balance) if(!delai()) break;
 	}
