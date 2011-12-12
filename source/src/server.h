@@ -1,6 +1,7 @@
 // server.h
 
 #define gamemode smode   // allows the gamemode macros to work with the server mode
+#define mutators smuts // and mutators too
 
 #define valid_flag(f) (f >= 0 && f < 2)
 
@@ -11,7 +12,7 @@ extern bool canreachauthserv;
 
 static int interm = 0, minremain = 0, gamemillis = 0, gamelimit = 0, gamemusicseed = 0;
 static const int DEATHMILLIS = 300;
-int smode = GMODE_TEAMDEATHMATCH, mastermode = MM_OPEN, botbalance = -1;
+int smode = G_DM, smuts = G_M_TEAM, mastermode = MM_OPEN, botbalance = -1;
 
 struct head_t{
 	int cn;
@@ -260,7 +261,7 @@ struct client				   // server side version of "dynent" type
 		timers.setsize(0);
 		overflow = 0;
 		timesync = false;
-		isonrightmap = m_edit;
+		isonrightmap = m_edit(gamemode);
 		lastevent = 0;
 		at3_lastforce = 0;
 		mapcollisions = 0;

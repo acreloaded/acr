@@ -18,7 +18,7 @@ bool addai(){
 	int aiowner = findaiclient(), cn = -1, numbots = 0;
 	if(!valid_client(aiowner)) return false;
 	loopv(clients){
-		if(numbots > (m_zombies ? MAXCLIENTS : MAXBOTS)) return false;
+		if(numbots > (m_zombie(gamemode) ? MAXCLIENTS : MAXBOTS)) return false;
 		if(clients[i]->type == ST_AI) ++numbots;
 		else if(clients[i]->type == ST_EMPTY){
 			cn = i;
@@ -97,17 +97,17 @@ bool reassignai(int exclude = -1){
 
 void checkai(){
 	// check if bots are disallowed
-	if(!m_ai) return clearai();
+	if(!m_ai(gamemode)) return clearai();
 	// check balance
 	int balance = 0;
 	const int people = numclients();
 	if(!botbalance) balance = 0;
 	else if(people) switch(botbalance){
 		case -1: // auto
-			if(m_zombies) balance = 12 + 3 * people; // effectively 12 + 2n
-			else if(m_duel) balance = max(people, maplayout_factor - 3); // 3 - 5 - 8 (6 - 8 - 11 layout factor)
+			if(m_zombie(gamemode)) balance = 12 + 3 * people; // effectively 12 + 2n
+			else if(m_duke(gamemode, mutators)) balance = max(people, maplayout_factor - 3); // 3 - 5 - 8 (6 - 8 - 11 layout factor)
 			else{
-				const int spawns = m_team ? (smapstats.hasteamspawns ? smapstats.spawns[0] + smapstats.spawns[1] : 16) : (smapstats.hasffaspawns ? smapstats.spawns[2] : 6);
+				const int spawns = m_team(gamemode) ? (smapstats.hasteamspawns ? smapstats.spawns[0] + smapstats.spawns[1] : 16) : (smapstats.hasffaspawns ? smapstats.spawns[2] : 6);
 				balance = max(people, spawns / 3);
 			}
 			break; // auto
@@ -115,7 +115,7 @@ void checkai(){
 		default: balance = max(people, botbalance); break; // force bot count
 	}
 	if(balance > 0){
-		if(m_team && !m_zombies){
+		if(m_team(gamemode) && !m_zombie(gamemode)){
 			int plrs[2] = {0}, highest = -1;
 			loopv(clients) if(valid_client(i, true) && clients[i]->team < 2){
 				++plrs[clients[i]->team];
@@ -130,7 +130,7 @@ void checkai(){
 			}
 		}
 		// correct automatic setting
-		if(botbalance < 0 && balance & 1 && m_team) ++balance;
+		if(botbalance < 0 && balance & 1 && m_team(gamemode)) ++balance;
 		while(countplayers() < balance) if(!addai()) break;
 		while(countplayers() > balance) if(!delai()) break;
 	}

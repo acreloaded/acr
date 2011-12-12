@@ -780,7 +780,7 @@ bool gun::attack(vec &targ){
 		owner->lastattackweapon = NULL;
 		shots = 0;
 		if(!checkautoreload() && owner == player1){
-			if(!m_nopistol && owner->weapons[WEAP_PISTOL]->mag || owner->weapons[WEAP_PISTOL]->ammo) selectweapon(owner->weapons[WEAP_PISTOL]);
+			if(!m_nopistol(gamemode, mutators) && owner->weapons[WEAP_PISTOL]->mag || owner->weapons[WEAP_PISTOL]->ammo) selectweapon(owner->weapons[WEAP_PISTOL]);
 			else{
 				playsound(S_NOAMMO, owner);
 				addmsg(N_PHYS, "ri2", owner->clientnum, PHYS_NOAMMO);
@@ -882,7 +882,7 @@ void shotgun::attackfx(const vec &from2, const vec &to, int millis){
 	}
 }
 
-bool shotgun::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
+bool shotgun::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && this == owner->primweap; }
 
 void shotgun::renderaimhelp(int teamtype){ drawcrosshair(owner, CROSSHAIR_SHOTGUN, teamtype); }
 
@@ -903,12 +903,12 @@ bool shotgun::checkautoreload() {
 // subgun
 
 subgun::subgun(playerent *owner) : gun(owner, WEAP_SUBGUN) {}
-bool subgun::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
+bool subgun::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && this == owner->primweap; }
 
 // sword
 
 sword::sword(playerent *owner) : weapon(owner, WEAP_SWORD) {}
-bool sword::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
+bool sword::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && this == owner->primweap; }
 
 bool sword::attack(vec &targ){
 	int attackmillis = lastmillis-owner->lastaction;
@@ -937,7 +937,7 @@ int sword::flashtime() const { return 0; }
 vector<cstick> sticks;
 
 crossbow::crossbow(playerent *owner) : gun(owner, WEAP_BOW) {}
-bool crossbow::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
+bool crossbow::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && this == owner->primweap; }
 int crossbow::modelanim(){
 	return modelattacking() ? ANIM_WEAP_SHOOT : // did we just shoot the crossbow?
 		ANIM_WEAP_IDLE; // loaded crossbow
@@ -961,7 +961,7 @@ void crossbow::attackhit(const vec &o){
 // scopedprimary
 scopedprimary::scopedprimary(playerent *owner, int type) : gun(owner, type) {}
 
-bool scopedprimary::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
+bool scopedprimary::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && this == owner->primweap; }
 void scopedprimary::attackfx(const vec &from2, const vec &to, int millis){
 	vec from(from2);
 	if(millis & 1){
@@ -995,13 +995,13 @@ boltrifle::boltrifle(playerent* owner) : scopedprimary(owner, WEAP_BOLT) {}
 assaultrifle::assaultrifle(playerent *owner) : gun(owner, WEAP_ASSAULT) {}
 
 float assaultrifle::dynrecoil() { return weapon::dynrecoil() + (rnd(8)*-0.01f); }
-bool assaultrifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
+bool assaultrifle::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && this == owner->primweap; }
 
 
 // pistol
 
 pistol::pistol(playerent *owner) : gun(owner, WEAP_PISTOL) {}
-bool pistol::selectable() { return weapon::selectable() && !m_nopistol; }
+bool pistol::selectable() { return weapon::selectable() && !m_nopistol(gamemode, mutators); }
 
 
 // akimbo
@@ -1034,7 +1034,7 @@ void akimbo::onselecting(){
 	akimbolastaction[0] = akimbolastaction[1] = lastmillis;
 }
 
-bool akimbo::selectable() { return weapon::selectable() && !m_nopistol && owner->akimbo; }
+bool akimbo::selectable() { return weapon::selectable() && !m_nopistol(gamemode, mutators) && owner->akimbo; }
 void akimbo::updatetimers() { weapon::updatetimers(); /*loopi(2) akimbolastaction[i] = lastmillis;*/ }
 void akimbo::reset() { akimbolastaction[0] = akimbolastaction[1] = akimbomillis = 0; akimboside = false; }
 
@@ -1051,7 +1051,7 @@ heal::heal(playerent *owner) : gun(owner, WEAP_HEAL) {}
 
 int heal::flashtime() const { return 0; }
 
-bool heal::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
+bool heal::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && this == owner->primweap; }
 
 //void heal::renderaimhelp(int teamtype){ if(state) weapon::renderaimhelp(teamtype); }
 void heal::attackfx(const vec &from2, const vec &to, int millis){

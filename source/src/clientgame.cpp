@@ -6,6 +6,7 @@
 
 int nextmode = 0;		 // nextmode becomes gamemode after next map load
 VAR(gamemode, 1, 0, 0);
+VAR(mutators, 1, 0, 0);
 VARP(modeacronyms, 0, 0, 1);
 
 flaginfo flaginfos[2];
@@ -281,7 +282,7 @@ bool showhudtimer(int maxmillis, int startmillis, const char *msg, bool flash)
 	static int lasttick = 0;
 	if(lasttick > startmillis + maxmillis) return false;
 	lasttick = lastmillis;
-	const bool queued = spawnenqueued && !m_duel;
+	const bool queued = spawnenqueued && !m_duke(gamemode, mutators);
 	defformatstring(str)("\f%d%s: %.1fs", queued ? 2 : 3, queued ? _("spawn_queued") : _("spawn_wait"), (startmillis + maxmillis - lastmillis) / 1000.f);
 	if(lastmillis <= startmillis + maxmillis) hudeditf(HUDMSG_TIMER|HUDMSG_OVERWRITE, flash || queued ? str : str+2);
 	else hudeditf(HUDMSG_TIMER, msg);
@@ -293,7 +294,7 @@ int lastspawnattempt = 0;
 void showrespawntimer()
 {
 	if(intermission) return;
-	if(m_duel)
+	if(m_duke(gamemode, mutators))
 	{
 		if(!arenaintermission) return;
 		showhudtimer(5000, arenaintermission, _("spawn_fight"), lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
@@ -374,7 +375,7 @@ float nearestenemy(vec place, int team)
 	loopv(players)
 	{
 		playerent *other = players[i];
-		if(!other || (m_team && team == other->team)) continue;
+		if(!other || (m_team(gamemode) && team == other->team)) continue;
 		float dist = place.dist(other->o);
 		if(dist < nearestenemydist || nearestenemydist == -1) nearestenemydist = dist;
 	}
@@ -388,14 +389,14 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
 	entity *e = NULL;
 	if(!mapcenter)
 	{
-		int type = m_team && !m_zombies ? d->team : 100;
-		if(m_duel && arenaspawn >= 0)
+		int type = m_team(gamemode) && !m_zombie(gamemode) ? d->team : 100;
+		if(m_duke(gamemode, mutators) && arenaspawn >= 0)
 		{
 			int x = -1;
 			loopi(arenaspawn + 1) x = findentity(PLAYERSTART, x+1, type);
 			if(x >= 0) e = &ents[x];
 		}
-		else if((m_team || m_duel) && !m_ktf && !m_zombies) // ktf and zombies uses ffa spawns
+		else if((m_team(gamemode) || m_duke(gamemode, mutators)) && !m_keep(gamemode) && !m_zombie(gamemode)) // ktf and zombies uses ffa spawns
 		{
 			loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1, type);
 			if(spawncycle >= 0) e = &ents[spawncycle];
@@ -406,7 +407,7 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
 
 			loopi(r)
 			{
-				spawncycle = (m_ktf || m_zombies) && numspawn[2] > 5 ? findentity(PLAYERSTART, spawncycle+1, 100) : findentity(PLAYERSTART, spawncycle+1);
+				spawncycle = (m_keep(gamemode) || m_zombie(gamemode)) && numspawn[2] > 5 ? findentity(PLAYERSTART, spawncycle+1, 100) : findentity(PLAYERSTART, spawncycle+1);
 				if(spawncycle < 0) continue;
 				float dist = nearestenemy(vec(ents[spawncycle].x, ents[spawncycle].y, ents[spawncycle].z), d->team);
 				if(!e || dist < 0 || (bestdist >= 0 && dist > bestdist)) { e = &ents[spawncycle]; bestdist = dist; }
@@ -452,10 +453,10 @@ bool tryrespawn(){
 	if(player1->state==CS_DEAD){
 		respawnself();
 
-		int respawnmillis = player1->respawnoffset+(m_duel ? 0 : (m_flags ? 5000 : 1000));
+		int respawnmillis = player1->respawnoffset+(m_duke(gamemode, mutators) ? 0 : (m_affinity(gamemode) ? 5000 : 1000));
 		if(lastmillis>respawnmillis){
 			player1->attacking = false;
-			if(m_duel){
+			if(m_duke(gamemode, mutators)){
 				if(!arenaintermission) hudeditf(HUDMSG_TIMER, _("spawn_nextround"));
 				else lastspawnattempt = lastmillis;
 				return false;
@@ -654,7 +655,7 @@ void initflag(int i)
 	f.actor = NULL;
 	f.actor_cn = -1;
 	f.team = i;
-	f.state = m_ktf ? CTFF_IDLE : CTFF_INBASE;
+	f.state = m_keep(gamemode) ? CTFF_IDLE : CTFF_INBASE;
 }
 
 void zapplayerflags(playerent *p)
@@ -720,7 +721,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
 	BotManager.BeginMap(name); // Added by Rick
 	clearbounceents();
 	resetspawns();
-	preparectf(!m_flags);
+	preparectf(!m_affinity(gamemode));
 	spawncycle = -1;
 	findplayerstart(player1);
 
@@ -751,7 +752,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
 	showscores(false);
 	minutesremaining = -1;
 	arenaintermission = 0;
-	bool noflags = (m_ctf || m_ktf) && (!numflagspawn[0] || !numflagspawn[1]);
+	bool noflags = (m_capture(gamemode) || m_keep(gamemode)) && (!numflagspawn[0] || !numflagspawn[1]);
 	if(*clientmap) conoutf("game mode is \"%s\"%s", modestr(gamemode, modeacronyms > 0), noflags ? " - \f2but there are no flag bases on this map" : "");
 	loopv(gmdescs) if(gmdescs[i].mode == gamemode) conoutf("\f1%s", gmdescs[i].desc);
 
@@ -788,7 +789,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 	bool firstpersondrop = false;
 	string teamstr_absolute;
 	formatstring(teamstr_absolute)("the %s", team_string(flag));
-	const char *teamstr = m_ktf2 ? teamstr_absolute : m_ktf ? "the" : own ? "your" : "the enemy";
+	const char *teamstr = m_ktf2(gamemode, mutators) ? teamstr_absolute : m_keep(gamemode) ? "the" : own ? "your" : "the enemy";
 	string subject, predicate, hashave;
 
 	copystring(subject, firstperson ? "you" : colorname(act));
@@ -800,8 +801,8 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 			playsound(S_FLAGPICKUP, SP_HIGHEST);
 			if(firstperson){
 				formatstring(predicate)("picked up %s flag", teamstr);
-				if(!own || !m_ctf){
-					musicsuggest(M_FLAGGRAB, m_ctf ? 90*1000 : 900*1000, true);
+				if(!own || !m_capture(gamemode)){
+					musicsuggest(M_FLAGGRAB, m_capture(gamemode) ? 90*1000 : 900*1000, true);
 					flagmusic |= 1 << flag;
 				}
 			}
@@ -822,7 +823,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 		case FA_SCORE:
 			playsound(S_FLAGSCORE, SP_HIGHEST);
 			formatstring(predicate)("scored for \fs\f%d%s\fr team!", team_rel_color(player1, act), firstperson || isteam(act, player1) ? "your" : "the enemy");
-			if(m_ctf || m_btf) firstpersondrop = true;
+			if(m_capture(gamemode) || m_bomber(gamemode, mutators)) firstpersondrop = true;
 			break;
 		case FA_KTFSCORE:
 		{
@@ -1099,7 +1100,7 @@ playerent *updatefollowplayer(int shiftdirection)
 
 	// collect spec-able players
 	vector<playerent *> available;
-	loopv(players) if(players[i] && players[i]->team != TEAM_SPECT && (players[i]->state != CS_DEAD || !m_duel))
+	loopv(players) if(players[i] && players[i]->team != TEAM_SPECT && (players[i]->state != CS_DEAD || !m_duke(gamemode, mutators)))
 		available.add(players[i]);
 	if(!available.length()) return NULL;
 

@@ -69,7 +69,7 @@ void applyspread(const vec &from, vec &to, int spread, float factor){
 }
 
 bool checkcrit(float dist, float m, int base = 0, int min = 4, int max = 100){
-	return m_real || !rnd((base + clamp<int>(ceil(dist) * m, min, max)) * (m_classic ? 3 : 1));
+	return m_real(gamemode, mutators) || !rnd((base + clamp<int>(ceil(dist) * m, min, max)) * (m_classic(gamemode, mutators)(gamemode, mutators) ? 3 : 1));
 }
 
 // easy to send shot damage messages
@@ -117,7 +117,7 @@ int explosion(client &owner, const vec &o2, int weap, bool gib){
 		vec ray(target.state.o);
 		ray.sub(o).normalize();
 		if(srayclip(o, ray) < dist) continue; // not visible
-		ushort dmg = effectiveDamage(weap, dist, !m_classic);
+		ushort dmg = effectiveDamage(weap, dist, !m_classic(gamemode, mutators)(gamemode, mutators));
 		int expflags = gib ? FRAG_GIB : FRAG_NONE;
 		if((weap == WEAP_BOW && !dist) ||
 			(weap == WEAP_GRENADE && owner.clientnum != i && o.z >= target.state.o.z)) expflags |= FRAG_FLAG;
@@ -208,8 +208,8 @@ int shot(client &owner, const vec &from, vec &to, const vector<head_t> &h, int w
 	int damage = effectiveDamage(weap, dist2);
 	if(hit && damage){
 		// damage multipliers
-		if(!m_classic) switch(hitzone){
-			case HIT_HEAD: if(m_zombies_rounds) damage = MAXDMG; else damage *= muls[mulset].head; break;
+		if(!m_classic(gamemode, mutators)(gamemode, mutators)) switch(hitzone){
+			case HIT_HEAD: if(m_zombie(gamemode)_rounds(gamemode, mutators)) damage = MAXDMG; else damage *= muls[mulset].head; break;
 			case HIT_TORSO: damage *= muls[mulset].torso; break;
 			case HIT_LEG: default: damage *= muls[mulset].leg; break;
 		}
@@ -233,7 +233,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<head_t> &h, int w
 		sendhit(owner, weap, end.v, damage);
 		if(save) save[hit->clientnum] += damage; // save damage for shotgun ray
 		else serverdamage(hit, &owner, damage, weap, style, from);
-		if(!m_classic && dist2 < 100){ // only penetrate players before 25 meters
+		if(!m_classic(gamemode, mutators)(gamemode, mutators) && dist2 < 100){ // only penetrate players before 25 meters
 			// distort ray and continue through...
 			vec dir(to = end), newsurface;
 			dir.sub(from).normalize().rotate_around_z((rnd(71)-35)*RAD).add(end); // 35 degrees (both ways = 70 degrees) distortion
@@ -277,7 +277,7 @@ int shotgun(client &owner, vector<head_t> &h){
 		damagedealt += sgdamage[i];
 		//sendhit(owner, WEAP_SHOTGUN, ts.o.v);
 		const int shotgunflags = sgdamage[i] >= SGGIB ? FRAG_GIB : FRAG_NONE;
-		serverdamage(&t, &owner, max<int>(sgdamage[i], (m_zombies_rounds && shotgunflags & FRAG_GIB) ? MAXDMG : 0), WEAP_SHOTGUN, shotgunflags, from);
+		serverdamage(&t, &owner, max<int>(sgdamage[i], (m_zombie(gamemode)_rounds(gamemode, mutators) && shotgunflags & FRAG_GIB) ? MAXDMG : 0), WEAP_SHOTGUN, shotgunflags, from);
 	}
 	return damagedealt;
 }

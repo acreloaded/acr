@@ -79,7 +79,7 @@ void correctsel()									   // ensures above invariant
 bool noteditmode(const char *func)
 {
 	correctsel();
-	const bool notedit = !editmode && !m_edit;
+	const bool notedit = !editmode && !m_edit(gamemode);
 	if(notedit) conoutf(func && *func ? "\f4[\f3%s\f4]\f5 is only allowed in edit mode" : "this function is only allowed in edit mode", func);
 	return notedit;
 }

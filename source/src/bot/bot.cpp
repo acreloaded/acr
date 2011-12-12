@@ -133,7 +133,7 @@ void CBot::Think()
 			m_pMyEnt->move = 0;
 			moveplayer(m_pMyEnt, 1, true);
 		}
-		else if (!m_duel && lastmillis-m_pMyEnt->respawnoffset>5000)
+		else if (!m_duke(gamemode, mutators) && lastmillis-m_pMyEnt->respawnoffset>5000)
 			Spawn();
 	
 		SendBotInfo();

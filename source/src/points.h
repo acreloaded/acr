@@ -55,11 +55,11 @@ int killpoints(client *target, client *actor, int gun, int style, bool assist = 
 			if (clienthasflag(target->clientnum) >= 0) gain += FLAGTKPT;
 			else gain += TKPT;
 		} else {
-			if(m_team){
-				if(!m_flags) gain += TMBONUSPT;
+			if(m_team(gamemode)){
+				if(!m_affinity(gamemode)) gain += TMBONUSPT;
 				else gain += FLBONUSPT;
-				if (m_htf && clienthasflag(actor->clientnum) >= 0) gain += HTFFRAGPT;
-				if (m_ctf && clienthasflag(target->clientnum) >= 0) gain += CTFFRAGPT;
+				if (m_hunt(gamemode) && clienthasflag(actor->clientnum) >= 0) gain += HTFFRAGPT;
+				if (m_capture(gamemode) && clienthasflag(target->clientnum) >= 0) gain += CTFFRAGPT;
 			} else gain += BONUSPT;
 			if (style & FRAG_GIB) {
 				if (gun == WEAP_KNIFE || gun != WEAP_GRENADE) gain += KNIFENADEPT;
@@ -89,14 +89,14 @@ void flagpoints (client *c, int message)
     switch (message){
         case FA_PICKUP:
 			c->state.flagpickupo = c->state.o;
-            if (m_ctf) addpt(c, CTFPICKPT);
+            if (m_capture(gamemode)) addpt(c, CTFPICKPT);
             break;
         case FA_DROP:
-            if (m_ctf) addpt(c, CTFDROPPT);
+            if (m_capture(gamemode)) addpt(c, CTFDROPPT);
             break;
         case FA_LOST:
-            if (m_htf) addpt(c, HTFLOSTPT);
-            else if (m_ctf) {
+            if (m_hunt(gamemode)) addpt(c, HTFLOSTPT);
+            else if (m_capture(gamemode)) {
                 distance = c->state.flagpickupo.dist(c->state.o);
                 if (distance > 200) distance = 200;      // ~200 is the distance between the flags in ac_depot
                 addpt(c, CTFLOSTPT);
@@ -106,7 +106,7 @@ void flagpoints (client *c, int message)
             addpt(c, CTFRETURNPT);
             break;
         case FA_SCORE:
-			if (m_ctf){
+			if (m_capture(gamemode)){
 				distance = c->state.o.dist(c->state.flagpickupo);
 				if (distance > 200) distance = 200;
 				addpt(c, CTFSCOREPT);

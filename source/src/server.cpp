@@ -176,7 +176,7 @@ int calcscores();
 
 int freeteam(int pl = -1){
 	const bool checkbots = clients.inrange(pl) && clients[pl]->type == ST_AI;
-	if(m_zombies) return checkbots ? TEAM_RED : TEAM_BLUE;
+	if(m_zombie(gamemode)) return checkbots ? TEAM_RED : TEAM_BLUE;
 	int teamsize[2] = {0};
 	int teamscore[2] = {0};
 	int sum = calcscores();
@@ -356,7 +356,7 @@ void usestreak(client &c, int streak, const vec &o = vec(0, 0, 0)){
 void spawnstate(client *c){
 	clientstate &gs = c->state;
 	gs.spawnstate(smode);
-	if(m_zombies){
+	if(m_zombie(gamemode)){
 		switch(c->team){
 			case TEAM_RED:
 				gs.gunselect = gs.primary = gs.nextprimary = !rnd(3) ? WEAP_SWORD : WEAP_KNIFE;
@@ -367,7 +367,7 @@ void spawnstate(client *c){
 				gs.health = STARTHEALTH + rnd(STARTHEALTH * ZOMBIEHEALTHFACTOR);
 				// INTENTIONAL FALLTHROUGH
 			case TEAM_BLUE:
-				if(!m_onslaught) break;
+				if(!m_onslaught(gamemode, mutators)) break;
 				// everyone gets same onslaught health
 				gs.health = STARTHEALTH * ZOMBIEHEALTHFACTOR;
 				gs.armor = c->team == TEAM_RED ? 50 : 2000;
@@ -384,7 +384,7 @@ void sendspawn(client *c){
 	spawnstate(c);
 	sendf(c->clientnum, 1, "ri9vv", N_SPAWNSTATE, c->clientnum, gs.lifesequence,
 		gs.health, gs.armor, gs.perk,
-		gs.primary, gs.gunselect, m_duel ? c->spawnindex : -1,
+		gs.primary, gs.gunselect, m_duke(gamemode, mutators) ? c->spawnindex : -1,
 		WEAP_MAX, gs.ammo, WEAP_MAX, gs.mag);
 	gs.lastspawn = gamemillis;
 
@@ -677,12 +677,12 @@ int next_afk_check = 200;
 void check_afk(){
 	next_afk_check = servmillis + 7 * 1000;
 	// if we have less than five players or a non-teammode is not full: do nothing!
-	if (numclients() < 5 || (numnonlocalclients() < scl.maxclients && !m_team)) return;
+	if (numclients() < 5 || (numnonlocalclients() < scl.maxclients && !m_team(gamemode))) return;
 	loopv(clients){
 		client &c = *clients[i];
 		if (c.type != ST_TCPIP || c.connectmillis + 60 * 1000 > servmillis || c.team == TEAM_SPECT ||
 			c.state.movemillis + scl.afktimelimit > servmillis || clienthasflag(c.clientnum) > -1 ) continue;
-		if ( ( c.state.state == CS_DEAD && !m_duel && c.state.lastdeath + 45 * 1000 < gamemillis) ) {
+		if ( ( c.state.state == CS_DEAD && !m_duke(gamemode, mutators) && c.state.lastdeath + 45 * 1000 < gamemillis) ) {
 			logline(ACLOG_INFO, "[%s] %s is afk, forcing to spectator", gethostname(i), c.name);
 			updateclientteam(i, TEAM_SPECT, FTR_AUTOTEAM);
 		}
@@ -714,7 +714,7 @@ void flagaction(int flag, int action, int actor){
 	int score = 0;
 	int message = -1;
 
-	if(m_ctf || m_htf || m_ktf2 || m_btf)
+	if(m_capture(gamemode) || m_hunt(gamemode) || m_ktf2(gamemode, mutators) || m_bomber(gamemode, mutators))
 	{
 		switch(action)
 		{
@@ -734,9 +734,9 @@ void flagaction(int flag, int action, int actor){
 				f.state = CTFF_INBASE;
 				break;
 			case FA_SCORE:  // ctf: f = carried by actor flag,  htf: f = hunted flag (run over by actor)
-				if(m_ctf) score = 1;
-				else if(m_btf) score = of.state == CTFF_INBASE ? 3 : of.state == CTFF_DROPPED ? 2 : 1;
-				else if(m_ktf2){
+				if(m_capture(gamemode)) score = 1;
+				else if(m_bomber(gamemode, mutators)) score = of.state == CTFF_INBASE ? 3 : of.state == CTFF_DROPPED ? 2 : 1;
+				else if(m_ktf2(gamemode, mutators)){
 					if(valid_client(f.actor_cn) && clients[f.actor_cn]->state.state == CS_ALIVE)
 					{
 						actor = f.actor_cn;
@@ -745,7 +745,7 @@ void flagaction(int flag, int action, int actor){
 						break;
 					}
 				}
-				else if(m_htf){ // htf
+				else if(m_hunt(gamemode)){ // htf
 					score = (of.state == CTFF_STOLEN) ? of.actor_cn == actor ? 2 : 1 : 0;
 					message = score ? FA_SCORE : FA_SCOREFAIL;
 				}
@@ -756,7 +756,7 @@ void flagaction(int flag, int action, int actor){
 				break;
 		}
 	}
-	else if(m_ktf)  // f: active flag, of: idle flag
+	else if(m_keep(gamemode))  // f: active flag, of: idle flag
 	{
 		switch(action)
 		{
@@ -826,7 +826,7 @@ void flagaction(int flag, int action, int actor){
 }
 
 int clienthasflag(int cn){
-	if(m_flags && valid_client(cn))
+	if(m_affinity(gamemode) && valid_client(cn))
 	{
 		loopi(2) { if(sflaginfos[i].state==CTFF_STOLEN && sflaginfos[i].actor_cn==cn) return i; }
 	}
@@ -834,7 +834,7 @@ int clienthasflag(int cn){
 }
 
 void ctfreset(){
-	int idleflag = m_ktf && !m_ktf2 ? rnd(2) : -1;
+	int idleflag = m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? rnd(2) : -1;
 	loopi(2)
 	{
 		sflaginfos[i].actor_cn = -1;
@@ -903,7 +903,7 @@ void htf_forceflag(int flag){
 int arenaround = 0, arenastart = 0;
 
 inline bool canspawn(client *c, bool connecting = false){
-	return maplayout && c->team != TEAM_SPECT && (!m_duel || (connecting && (gamemillis - arenastart < 2500 || numauthedclients() <= 2)));
+	return maplayout && c->team != TEAM_SPECT && (!m_duke(gamemode, mutators) || (connecting && (gamemillis - arenastart < 2500 || numauthedclients() <= 2)));
 }
 
 struct twoint { int index, value; };
@@ -947,7 +947,7 @@ void distributespawns(){
 	{
 		clients[i]->spawnindex = -1;
 	}
-	if(m_team && !m_zombies) // zombies uses FFA spawns
+	if(m_team(gamemode) && !m_zombie(gamemode)) // zombies uses FFA spawns
 	{
 		distributeteam(0);
 		distributeteam(1);
@@ -961,7 +961,7 @@ void distributespawns(){
 void checkitemspawns(int);
 
 void arenacheck(){
-	if(!m_duel || interm || gamemillis<arenaround || !numclients()) return;
+	if(!m_duke(gamemode, mutators) || interm || gamemillis<arenaround || !numclients()) return;
 
 	if(arenaround){ // start new arena round
 		arenaround = 0;
@@ -991,7 +991,7 @@ void arenacheck(){
 			if(c.type != ST_AI) ++ha;
 
 			if(!alive) alive = &c;
-			else if(!m_team || alive->team != c.team) found = true;
+			else if(!m_team(gamemode) || alive->team != c.team) found = true;
 		}
 		else if(c.state.state == CS_DEAD){ // dead
 			if(c.type != ST_AI) ++hd;
@@ -1007,12 +1007,12 @@ void arenacheck(){
 	loopv(clients) if(clients[i]->type != ST_EMPTY)
 		addpt(clients[i],
 			clients[i]->state.state != CS_ALIVE ?
-			(alive && m_team && alive->team == clients[i]->team) ? ARENAWINDPT : // his team wins
+			(alive && m_team(gamemode) && alive->team == clients[i]->team) ? ARENAWINDPT : // his team wins
 			ARENALOSEPT : // he died
 			ARENAWINPT // he survives
 		);
 	arenaround = gamemillis+5000;
-	if(autoteam && m_team && !m_zombies) refillteams(true);
+	if(autoteam && m_team(gamemode) && !m_zombie(gamemode)) refillteams(true);
 }
 
 #define SPAMREPEATINTERVAL  20   // detect doubled lines only if interval < 20 seconds
@@ -1047,7 +1047,7 @@ bool spamdetect(client *cl, char *text) // checks doubled lines and average typi
 void sendtext(char *text, client &cl, int flags, int voice){
 	if(voice < 0 || voice > S_VOICEEND - S_MAINEND) voice = 0;
 	defformatstring(logmsg)("<%s> ", cl.name);
-	if(!m_team && cl.team != TEAM_SPECT) flags &= ~SAY_TEAM;
+	if(!m_team(gamemode) && cl.team != TEAM_SPECT) flags &= ~SAY_TEAM;
 	if(flags & SAY_ACTION) formatstring(logmsg)("* %s ", cl.name);
 	string logappend;
 	if(flags & SAY_TEAM){
@@ -1100,7 +1100,7 @@ bool serverpickup(int i, int sender) // server side item pickup, acknowledge fir
 	e.spawntime = spawntime(e.type);
 	if(!valid_client(sender)) return true;
 	sendf(-1, 1, "ri3", N_ITEMACC, i, sender);
-	if(sents[i].type == I_HEALTH && !m_onslaught) clients[sender]->state.wounds.shrink(0);
+	if(sents[i].type == I_HEALTH && !m_onslaught(gamemode, mutators)) clients[sender]->state.wounds.shrink(0);
 	clients[sender]->state.pickup(sents[i].type);
 	return true;
 }
@@ -1352,7 +1352,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	sendf(-1, 1, "ri9f4v", N_KILL, target->clientnum, actor->clientnum, actor->state.frags, gun, style & FRAG_VALID, damage, ++actor->state.combo,
 		ts.damagelog.length(), killdist, source.x, source.y, source.z, ts.damagelog.length(), ts.damagelog.getbuf());
 	killpoints(target, actor, gun, style);
-	if(suic && (m_htf || m_ktf) && targethasflag >= 0){
+	if(suic && (m_hunt(gamemode) || m_keep(gamemode)) && targethasflag >= 0){
 		actor->state.flagscore--;
 		sendf(-1, 1, "ri3", N_FLAGCNT, actor->clientnum, actor->state.flagscore);
 	}
@@ -1363,8 +1363,8 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	if(!suic) logline(actor->type == ST_AI && target->type == ST_AI ? ACLOG_VERBOSE : ACLOG_INFO, "[%s] %s %s %s (%.2f m)", h, actor->name, killname(toobit(gun, style), isheadshot(gun, style)), target->name, killdist);
 	else logline(ACLOG_INFO, "[%s] %s %s (%.2f m)", h, actor->name, suicname(obit_suicide(gun)), killdist);
 
-	if(m_flags){
-		if(m_ktf2 && // KTF2 only
+	if(m_affinity(gamemode)){
+		if(m_ktf2(gamemode, mutators) && // KTF2 only
 			targethasflag >= 0 && //he has any flag
 			sflaginfos[team_opposite(targethasflag)].state != CTFF_INBASE){ // other flag is not in base
 			if(sflaginfos[0].actor_cn == sflaginfos[1].actor_cn){ // he has both
@@ -1397,7 +1397,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 			streakready(*actor, STREAK_AIRSTRIKE);
 			break;
 		case 9:
-			if(!m_noradar) usestreak(*actor, STREAK_RADAR);
+			if(!m_noradar(gamemode, mutators)) usestreak(*actor, STREAK_RADAR);
 			break;
 		case 10:
 			/*
@@ -1416,7 +1416,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 			*/
 			break;
 		case 11:
-			if(!m_nonuke) usestreak(*actor, STREAK_NUKE);
+			if(!m_nonuke(gamemode, mutators)) usestreak(*actor, STREAK_NUKE);
 			break;
 	}
 	usestreak(*target, ts.streakondeath);
@@ -1425,21 +1425,21 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source){
 	if(!target || !actor || !damage) return;
 
-	if(m_expert && !(style & FRAG_GIB || melee_weap(gun))) damage = 0;
-	else if(m_classic) damage /= 2;
+	if(m_expert(gamemode, mutators) && !(style & FRAG_GIB || melee_weap(gun))) damage = 0;
+	else if(m_classic(gamemode, mutators)(gamemode, mutators)) damage /= 2;
 
 	clientstate &ts = target->state;
 	if(ts.state != CS_ALIVE) return;
 
-	if(m_real) style &= ~FRAG_CRIT;
+	if(m_real(gamemode, mutators)) style &= ~FRAG_CRIT;
 
 	if(target != actor){
 		if(isteam(actor, target)){ // friendly fire
-			if(m_classic) return;
+			if(m_classic(gamemode, mutators)(gamemode, mutators)) return;
 			/*
 			if((damage *= 0.25) > target->state.health - 80 * HEALTHSCALE) damage = target->state.health - 80 * HEALTHSCALE; // no more TKs!
 			if(damage < 1) return;
-			const int returndamage = damage * (m_expert ? 1.5f : .4f);
+			const int returndamage = damage * (m_expert(gamemode, mutators) ? 1.5f : .4f);
 			if(returndamage) serverdamage(actor, actor, returndamage, WEAP_MAX+3, style, source); // redirect damage to owner
 			*/
 			actor->state.shotdamage += damage; // reduce his accuracy
@@ -1877,7 +1877,7 @@ void updatesdesc(const char *newdesc, ENetAddress *caller = NULL){
 bool updateclientteam(int cn, int team, int ftr){
 	if(!valid_client(cn) || !team_valid(team)) return false;
 	client &ci = *clients[cn];
-	if(m_zombies && !m_convert && team != TEAM_SPECT) team = ci.type == ST_AI ? TEAM_RED : TEAM_BLUE;
+	if(m_zombie(gamemode) && !m_convert && team != TEAM_SPECT) team = ci.type == ST_AI ? TEAM_RED : TEAM_BLUE;
 	if(ci.team == team){
 		if (ftr != FTR_AUTOTEAM) return false;
 	}
@@ -1885,7 +1885,7 @@ bool updateclientteam(int cn, int team, int ftr){
 	if(ci.team == TEAM_SPECT) ci.state.lastdeath = gamemillis;
 	logline(ftr == FTR_SILENT ? ACLOG_DEBUG : ACLOG_INFO, "[%s] %s is now on team %s", gethostname(cn), ci.name, team_string(team));
 	// force a death if needed
-	if(ci.state.state != CS_DEAD && (m_team || team == TEAM_SPECT)){
+	if(ci.state.state != CS_DEAD && (m_team(gamemode) || team == TEAM_SPECT)){
 		if(ftr == FTR_PLAYERWISH) serverdied(&ci, &ci, 0, WEAP_MAX + ((team == TEAM_SPECT) ? 8 : 7), FRAG_NONE, ci.state.o);
 		else forcedeath(&ci);
 	}
@@ -1898,8 +1898,8 @@ bool updateclientteam(int cn, int team, int ftr){
 
 int calcscores() // skill eval
 {
-	int fp12 = (m_ctf || m_htf) ? 55 : 33;
-	int fp3 = (m_ctf || m_htf) ? 25 : 15;
+	int fp12 = (m_capture(gamemode) || m_hunt(gamemode)) ? 55 : 33;
+	int fp3 = (m_capture(gamemode) || m_hunt(gamemode)) ? 25 : 15;
 	int sum = 0;
 	loopv(clients) if(clients[i]->type!=ST_EMPTY)
 	{
@@ -1913,7 +1913,7 @@ int calcscores() // skill eval
 ivector shuffle;
 
 void shuffleteams(int ftr = FTR_AUTOTEAM){
-	if(m_zombies) return; // in case a vote is called
+	if(m_zombie(gamemode)) return; // in case a vote is called
 	int numplayers = numclients();
 	int team, sums = calcscores();
 	if(gamemillis < 2 * 60 *1000){ // random
@@ -1946,7 +1946,7 @@ bool balanceteams(int ftr, bool aionly = true)  // pro vs noobs never more
     if(mastermode != MM_OPEN || numauthedclients() < 3 ) return true;
     int tsize[2] = {0, 0}, tscore[2] = {0, 0};
     int totalscore = 0, nplayers = 0;
-    int flagmult = (m_ctf ? 50 : (m_htf ? 25 : 12));
+    int flagmult = (m_capture(gamemode) ? 50 : (m_hunt(gamemode) ? 25 : 12));
 
     loopv(clients) if(clients[i]->type!=ST_EMPTY){
         client *c = clients[i];
@@ -2032,7 +2032,7 @@ bool balanceteams(int ftr, bool aionly = true)  // pro vs noobs never more
 int lastbalance = 0, waitbalance = 2 * 60 * 1000;
 
 bool refillteams(bool now, int ftr, bool aionly){ // force only minimal amounts of players
-	if(m_zombies){ // force to zombie teams
+	if(m_zombie(gamemode)){ // force to zombie teams
 		loopv(clients)
 			if(clients[i]->type != ST_EMPTY)
 				updateclientteam(i, clients[i]->type == ST_AI ? TEAM_RED : TEAM_BLUE, ftr);
@@ -2126,7 +2126,7 @@ void resetserver(const char *newname, int newmode, int newtime){
 	smode = newmode;
 	copystring(smapname, newname);
 
-	minremain = m_edit ? 1440 : newtime >= 0 ? newtime : (m_team ? 15 : 10);
+	minremain = m_edit(gamemode) ? 1440 : newtime >= 0 ? newtime : (m_team(gamemode) ? 15 : 10);
 	gamemillis = 0;
 	gamelimit = minremain*60000;
 	gamemusicseed = rand();
@@ -2160,7 +2160,7 @@ inline void putmap(ucharbuf &p){
 }
 
 void resetmap(const char *newname, int newmode, int newtime, bool notify){
-	bool lastteammode = m_team;
+	bool lastteammode = m_team(gamemode);
 	resetserver(newname, newmode, newtime);
 
 	if(isdedicated) getservermap();
@@ -2228,12 +2228,12 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 	//arenaround = 0;
 	arenastart = gamemillis;
 	nokills = true;
-	if(m_duel) distributespawns();
+	if(m_duke(gamemode, mutators)) distributespawns();
 	if(notify){
-		if(m_team){
-			if(!lastteammode && !m_zombies) // shuffle if previous mode wasn't a team-mode
+		if(m_team(gamemode)){
+			if(!lastteammode && !m_zombie(gamemode)) // shuffle if previous mode wasn't a team-mode
 				shuffleteams(FTR_SILENT);
-			else if(m_zombies || autoteam) // force teams for zombies
+			else if(m_zombie(gamemode) || autoteam) // force teams for zombies
 				refillteams(true, FTR_SILENT);
 		}
 		// prepare spawns; players will spawn, once they've loaded the correct map
@@ -2250,7 +2250,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify){
 		demonextmatch = false;
 		setupdemorecord();
 	}
-	if(notify && m_ktf) sendflaginfo();
+	if(notify && m_keep(gamemode)) sendflaginfo();
 
 	*nextmapname = 0;
 	forceintermission = false;
@@ -2706,7 +2706,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet){
 			putint(p, gamelimit);
 			putint(p, gamemusicseed);
 		}
-		if(m_flags){
+		if(m_affinity(gamemode)){
 			CHECKSPACE(256);
 			loopi(2) putflaginfo(p, i);
 		}
@@ -2820,7 +2820,7 @@ void checkmove(client &cp){
 	}
 	else if(cs.drownmillis > 0) cs.drownmillis = -cs.drownmillis;
 	// out of map check
-	if(/*cp.type != ST_LOCAL &&*/ !m_edit && checkpos(cs.o, false)){
+	if(/*cp.type != ST_LOCAL &&*/ !m_edit(gamemode) && checkpos(cs.o, false)){
 		if(cp.type == ST_AI) cp.suicide(WEAP_MAX + 4);
 		else{
 			logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", gethostname(sender), cp.name, ++cp.mapcollisions);
@@ -2832,7 +2832,7 @@ void checkmove(client &cp){
 		return; // no pickups for you!
 	}
 	// item pickups
-	if(!m_zombies || cp.team != TEAM_RED) loopv(sents){
+	if(!m_zombie(gamemode) || cp.team != TEAM_RED) loopv(sents){
 		server_entity &e = sents[i];
 		if(!e.spawned || !cs.canpickup(e.type)) continue;
 		const int ls = (1 << maplayout_factor) - 2, maplayoutid = getmaplayoutid(e.x, e.y);
@@ -2844,11 +2844,11 @@ void checkmove(client &cp){
 		serverpickup(i, sender);
 	}
 	// flags
-	if(m_flags) loopi(2){ // check flag pickup
+	if(m_affinity(gamemode)) loopi(2){ // check flag pickup
 		sflaginfo &f = sflaginfos[i];
 		sflaginfo &of = sflaginfos[team_opposite(i)];
 		vec v(-1, -1, cs.o.z);
-		if(m_btf && i == cp.team && f.state == CTFF_STOLEN && f.actor_cn == sender){
+		if(m_bomber(gamemode, mutators) && i == cp.team && f.state == CTFF_STOLEN && f.actor_cn == sender){
 			v.x = of.x;
 			v.y = of.y;
 		}
@@ -2865,7 +2865,7 @@ void checkmove(client &cp){
 		if(v.x < 0) continue;
 		float dist = cs.o.dist(v);
 		if(dist > 2) continue;
-		if(m_ctf){
+		if(m_capture(gamemode)){
 			if(i == cp.team){ // it's our flag
 				if(f.state == CTFF_DROPPED){
 					if(m_return /*&& (of.state != CTFF_STOLEN || of.actor_cn != sender)*/) flagaction(i, FA_PICKUP, sender);
@@ -2879,21 +2879,21 @@ void checkmove(client &cp){
 				flagaction(i, FA_PICKUP, sender);
 			}
 		}
-		else if(m_htf || m_btf){
+		else if(m_hunt(gamemode) || m_bomber(gamemode, mutators)){
 			// BTF only: score their flag by bombing their base!
 			if(f.state == CTFF_STOLEN){
 				flagaction(i, FA_SCORE, sender);
 				explosion(cp, cs.o, WEAP_GRENADE); // identical to self-nades, replace with something else?
 			}
 			else if(i == cp.team){
-				if(m_htf) f.drop_cn = -1; // force pickup
+				if(m_hunt(gamemode)) f.drop_cn = -1; // force pickup
 				flagaction(i, FA_PICKUP, sender);
 			}
-			else if(f.state == CTFF_DROPPED) flagaction(i, m_htf ? FA_SCORE : FA_RETURN, sender);
+			else if(f.state == CTFF_DROPPED) flagaction(i, m_hunt(gamemode) ? FA_SCORE : FA_RETURN, sender);
 		}
-		else if(m_ktf && f.state == CTFF_INBASE) flagaction(i, FA_PICKUP, sender);
-		else if(m_ktf2 && f.state != CTFF_STOLEN){
-			bool cantake = of.state != CTFF_STOLEN || of.actor_cn != sender || !m_team;
+		else if(m_keep(gamemode) && f.state == CTFF_INBASE) flagaction(i, FA_PICKUP, sender);
+		else if(m_ktf2(gamemode, mutators) && f.state != CTFF_STOLEN){
+			bool cantake = of.state != CTFF_STOLEN || of.actor_cn != sender || !m_team(gamemode);
 			if(!cantake){
 				cantake = true;
 				loopv(clients) if(i != sender && valid_client(i, true) && clients[i]->team == cp.team) { cantake = false; break; }
@@ -2918,7 +2918,7 @@ int checktype(int type, client *cl){ // invalid defined types handled in the pro
 	if(cl && cl->type==ST_LOCAL) return type; // local
 	// tag type
 	if (type < 0 || type >= N_NUM) return -1; // out of range
-	if(!m_edit && cl && cl->type == ST_TCPIP && (type >= N_EDITH && type <= N_NEWMAP)) return -1; // edit
+	if(!m_edit(gamemode) && cl && cl->type == ST_TCPIP && (type >= N_EDITH && type <= N_NEWMAP)) return -1; // edit
 	// overflow
 	static const int exempt[] = { N_POS, N_SPAWN, N_SHOOT, N_SHOOTC, N_PROJ };
 	loopi(sizeof(exempt)/sizeof(int)) if(type == exempt[i]) return type; // does not contribute to overflow, just because the bots will have to send this too
@@ -3085,7 +3085,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						sendf(sender, 1, "ri2", N_SWITCHTEAM, 1 << 4);
 						break;
 					}
-					else if(m_team){
+					else if(m_team(gamemode)){
 						int teamsizes[2] = {0};
 						loopv(clients) if(i != sender && clients[i]->type!=ST_EMPTY && clients[i]->connected && clients[i]->team < 2)
 							teamsizes[clients[i]->team]++;
@@ -3110,7 +3110,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case N_MAPIDENT:
 			{
 				int gzs = getint(p);
-				if(!isdedicated || m_edit || !maplayout || !smapstats.cgzsize || smapstats.cgzsize == gzs){
+				if(!isdedicated || m_edit(gamemode) || !maplayout || !smapstats.cgzsize || smapstats.cgzsize == gzs){
 					if(cl->state.state == CS_DEAD && canspawn(cl, true)) sendspawn(cl);
 					cl->isonrightmap = true;
 				}
@@ -3378,7 +3378,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case N_EDITMODE:
 			{
 				bool editing = getint(p) != 0;
-				if(!m_edit && cl->type == ST_TCPIP){ // unacceptable
+				if(!m_edit(gamemode) && cl->type == ST_TCPIP){ // unacceptable
 					cheat(cl, "tried editmode");
 					break;
 				}
@@ -3903,7 +3903,7 @@ void checkintermission(){
 			}
 			if(nextmaptime < 1){
 				int smode = nextmapmode;
-				nextmaptime = m_team ? 15 : 10;
+				nextmaptime = m_team(gamemode) ? 15 : 10;
 			}
 			if(nextmaptype) sendf(-1, 1, "ri4s", N_CONFMSG, 14, nextmaptime, nextmapmode | ((nextmaptype & 3) << 6), nextmapnm);
 		}
@@ -3954,14 +3954,14 @@ void loggamestatus(const char *reason){
 	logline(ACLOG_INFO, "");
 	logline(ACLOG_INFO, "Game status: %s on %s, %s, %s%c %s",
 					  modestr(gamemode), smapname, reason ? reason : text, mmfullname(mastermode), custom_servdesc ? ',' : '\0', servdesc_current);
-	logline(ACLOG_INFO, "cn  name             %s%sfrag death ping priv    host", m_team ? "team  " : "", m_flags ? "flag " : "");
+	logline(ACLOG_INFO, "cn  name             %s%sfrag death ping priv    host", m_team(gamemode) ? "team  " : "", m_affinity(gamemode) ? "flag " : "");
 	loopv(clients)
 	{
 		client &c = *clients[i];
 		if(c.type == ST_EMPTY) continue;
 		formatstring(text)("%2d%c %-16s ", c.clientnum, c.state.ownernum < 0 ? ' ' : '*', c.name); // cn* name
-		if(m_team) concatformatstring(text, "%-5s ", team_string(c.team)); // team
-		if(m_flags) concatformatstring(text, "%4d ", c.state.flagscore);	 // flag
+		if(m_team(gamemode)) concatformatstring(text, "%-5s ", team_string(c.team)); // team
+		if(m_affinity(gamemode)) concatformatstring(text, "%4d ", c.state.flagscore);	 // flag
 		concatformatstring(text, "%4d %5d", c.state.frags, c.state.deaths);  // frag death
 		logline(ACLOG_INFO, "%s%5d %s %s", text, c.ping,
 			c.priv == PRIV_NONE ? "normal " :
@@ -3973,12 +3973,12 @@ void loggamestatus(const char *reason){
 		fragscore[c.team] += c.state.frags;
 		pnum[c.team] += 1;
 	}
-	if(m_team)
+	if(m_team(gamemode))
 	{
 		loopi(TEAM_NUM) if(i == TEAM_SPECT)
 			if(pnum[i]) logline(ACLOG_INFO, "Team SPECT: %d spectators", pnum[i]);
 		else
-			logline(ACLOG_INFO, "Team %4s:%3d players,%5d frags%c%5d flags", team_string(i), pnum[i], fragscore[i], m_flags ? ',' : '\0', flagscore[i]);
+			logline(ACLOG_INFO, "Team %4s:%3d players,%5d frags%c%5d flags", team_string(i), pnum[i], fragscore[i], m_affinity(gamemode) ? ',' : '\0', flagscore[i]);
 	}
 	logline(ACLOG_INFO, "");
 }
@@ -4069,18 +4069,18 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 		processevents();
 		checkitemspawns(diff);
 		bool ktfflagingame = false;
-		if(m_flags) loopi(2)
+		if(m_affinity(gamemode)) loopi(2)
 		{
 			sflaginfo &f = sflaginfos[i];
-			if(f.state == CTFF_DROPPED && gamemillis-f.lastupdate > (m_ctf ? 30000 : (m_ktf2 || m_btf) ? 20000 : 10000)) flagaction(i, FA_RESET, -1);
-			if(m_htf && f.state == CTFF_INBASE && gamemillis-f.lastupdate > (smapstats.hasflags ? 10000 : 1000))
+			if(f.state == CTFF_DROPPED && gamemillis-f.lastupdate > (m_capture(gamemode) ? 30000 : (m_ktf2(gamemode, mutators) || m_bomber(gamemode, mutators)) ? 20000 : 10000)) flagaction(i, FA_RESET, -1);
+			if(m_hunt(gamemode) && f.state == CTFF_INBASE && gamemillis-f.lastupdate > (smapstats.hasflags ? 10000 : 1000))
 				htf_forceflag(i);
-			if(m_ktf && f.state == CTFF_STOLEN && gamemillis-f.lastupdate > 15000)
+			if(m_keep(gamemode) && f.state == CTFF_STOLEN && gamemillis-f.lastupdate > 15000)
 				flagaction(i, FA_SCORE, -1);
 			if(f.state == CTFF_INBASE || f.state == CTFF_STOLEN) ktfflagingame = true;
 		}
-		if(m_ktf && !m_ktf2 && !ktfflagingame) flagaction(rnd(2), FA_RESET, -1); // ktf flag watchdog
-		if(m_duel) arenacheck();
+		if(m_keep(gamemode) && !m_ktf2(gamemode, mutators) && !ktfflagingame) flagaction(rnd(2), FA_RESET, -1); // ktf flag watchdog
+		if(m_duke(gamemode, mutators)) arenacheck();
 		if(scl.afktimelimit && mastermode == MM_OPEN && next_afk_check < servmillis && gamemillis > 20000 ) check_afk();
 	}
 
@@ -4092,7 +4092,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
 	int nonlocalclients = numnonlocalclients();
 
-	if(forceintermission || (m_valid(smode) && !m_edit && gamemillis-diff>0 && gamemillis/60000!=(gamemillis-diff)/60000))
+	if(forceintermission || (m_valid(smode) && !m_edit(gamemode) && gamemillis-diff>0 && gamemillis/60000!=(gamemillis-diff)/60000))
 		checkintermission();
 	if(interm && gamemillis>interm)
 	{
@@ -4119,7 +4119,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
 	serverms(smode, numclients(), gamelimit-gamemillis, smapname, servmillis, serverhost->address, pnum, psend, prec, PROTOCOL_VERSION);
 
-	if(autoteam && m_team && !m_zombies && !m_duel && !interm && servmillis - lastfillup > 5000 && refillteams()) lastfillup = servmillis;
+	if(autoteam && m_team(gamemode) && !m_zombie(gamemode) && !m_duke(gamemode, mutators) && !interm && servmillis - lastfillup > 5000 && refillteams()) lastfillup = servmillis;
 
 	loopv(clients) if(valid_client(i) && (!clients[i]->connected || clients[i]->connectauth) && clients[i]->connectmillis + 10000 <= servmillis) disconnect_client(i, DISC_TIMEOUT);
 
@@ -4340,10 +4340,10 @@ void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENet
 }
 
 void extinfo_teamscorebuf(ucharbuf &p){
-	putint(p, m_team ? EXT_ERROR_NONE : EXT_ERROR);
+	putint(p, m_team(gamemode) ? EXT_ERROR_NONE : EXT_ERROR);
 	putint(p, gamemode);
 	putint(p, minremain);
-	if(!m_team) return;
+	if(!m_team(gamemode)) return;
 
 	ivector teams;
 	bool addteam;
@@ -4373,7 +4373,7 @@ void extinfo_teamscorebuf(ucharbuf &p){
 			flagscore += clients[j]->state.flagscore;
 		}
 		putint(p,fragscore); //add fragscore per team
-		if(m_flags) //when capture mode
+		if(m_affinity(gamemode)) //when capture mode
 		{
 			putint(p,flagscore); //add flagscore per team
 		}

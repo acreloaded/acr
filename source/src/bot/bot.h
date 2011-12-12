@@ -71,7 +71,7 @@ inline void debugbeam(vec &s, vec &e) { particle_trail(1, 500, s, e); }
 #define DIR_NONE	 0
 
 //fixmebot
-#define m_classicsp false
+#define m_classic_sp false
 
 struct bot_skill_s
 {

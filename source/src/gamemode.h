@@ -38,12 +38,12 @@ enum // game modes
 enum // game mutators
 {
 	G_M_NONE = 0,
-	G_M_TEAM = 1 << 0, G_M_SURVIVOR = 1 << 1, G_M_CONVERT = 1 << 2, // alters gameplay
-	G_M_REAL = 1 << 3, G_M_EXPERT = 1 << 4, // alters damage
-	G_M_PISTOL = 1 << 5, G_M_GIB = 1 << 6, G_M_KNIFE = 1 << 7, // alters weapons
-	G_M_GSP1 = 1 << 8,
+	G_M_TEAM = 1 << 0, G_M_SURVIVOR = 1 << 1, G_M_INSTA = 1 << 2, G_M_CLASSIC = 1 << 3, G_M_CONVERT = 1 << 4, // alters gameplay mostly
+	G_M_REAL = 1 << 5, G_M_EXPERT = 1 << 6, // alters damage mostly
+	G_M_PISTOL = 1 << 7, G_M_GIB = 1 << 8, G_M_KNIFE = 1 << 9, // alters weapons mostly
+	G_M_GSP1 = 1 << 10,
 
-	G_M_GAMEPLAY = G_M_TEAM|G_M_SURVIVOR|G_M_CONVERT,
+	G_M_GAMEPLAY = G_M_TEAM|G_M_SURVIVOR|G_M_INSTA|G_M_CLASSIC|G_M_CONVERT,
 	G_M_DAMAGE = G_M_REAL|G_M_EXPERT,
 	G_M_WEAPON = G_M_PISTOL|G_M_GIB|G_M_KNIFE,
 	G_M_GSP = G_M_GSP1,
@@ -51,7 +51,7 @@ enum // game mutators
 	G_M_MOST = G_M_GAMEPLAY|G_M_DAMAGE|G_M_WEAPON,
 	G_M_ALL = G_M_MOST|G_M_GSP,
 
-	G_M_GSN = 1, G_M_NUM = 9,
+	G_M_GSN = 1, G_M_NUM = 11,
 };
 
 struct gametypes
@@ -68,40 +68,74 @@ struct mutstypes
 extern gametypes gametype[G_MAX-G_FIRST];
 extern mutstypes mutstype[G_M_NUM];
 
-/*
-#define m_lms		(gamemode == GMODE_SURVIVOR || gamemode == GMODE_TEAMSURVIVOR)
-#define m_return	(gamemode == GMODE_RCTF)
-#define m_ctf		(gamemode == GMODE_CTF || gamemode == GMODE_RCTF)
-#define m_pistol	(gamemode == GMODE_PISTOLFRENZY)
-#define m_lss		(gamemode == GMODE_LASTSWISSSTANDING || gamemode == GMODE_HANDHELD || gamemode == GMODE_KNIFE)
-#define m_osok		(gamemode == GMODE_ONESHOTONEKILL || gamemode == GMODE_TEAMONESHOTONEKILL)
-#define m_htf		(gamemode == GMODE_HTF)
-#define m_btf		(gamemode == GMODE_BOMBER)
-#define m_ktf2		(gamemode == GMODE_TKTF2 || gamemode == GMODE_KTF2)
-#define m_ktf		(gamemode == GMODE_TKTF || gamemode == GMODE_KTF || m_ktf2)
-#define m_edit		(gamemode == GMODE_COOPEDIT)
-#define	m_expert	(gamemode == GMODE_EXPERTTDM || gamemode == GMODE_EXPERTDM)
-#define m_real		(gamemode == GMODE_REALTDM || gamemode == GMODE_REALDM)
-#define m_classic	(gamemode == GMODE_CDM || gamemode == GMODE_CTDM)
+#define m_valid(g) ((g)>=G_FIRST && (g)<G_MAX)
 
-#define m_noitems		(m_lms || m_osok || gamemode == GMODE_KNIFE)
-#define m_noitemsnade	(m_lss && gamemode != GMODE_KNIFE)
-#define m_nopistol		(m_osok || m_lss)
-#define m_noprimary		(m_pistol || m_lss)
-#define m_noradar		(m_classic)
-#define m_nonuke		(m_zombies_rounds)
-#define m_duel			(m_lms || gamemode == GMODE_LASTSWISSSTANDING || m_osok || m_zombies_rounds)
-#define m_flags			(m_ctf || m_htf || m_ktf || m_btf)
-#define m_team			(gamemode==GMODE_TEAMDEATHMATCH || gamemode==GMODE_TEAMONESHOTONEKILL || \
-							gamemode==GMODE_TEAMSURVIVOR || m_ctf || m_htf || m_btf || gamemode==GMODE_TKTF || gamemode==GMODE_TKTF2 || \
-							gamemode==GMODE_REALTDM || gamemode == GMODE_EXPERTTDM || gamemode == GMODE_CTDM || m_zombies)
-#define m_valid(mode)	((mode)>=0 && (mode)<GMODE_NUM)
-#define m_demo			(gamemode == GMODE_DEMO)
-#define m_ai			(m_valid(gamemode) && !m_edit) // bots not available in coopedit
-#define m_zombies		(m_zombies_rounds || m_onslaught) // extra bots!
-#define m_zombies_rounds (gamemode==GMODE_ZOMBIES)
-#define m_onslaught		(gamemode==GMODE_ONSLAUGHT)
+#define m_demo(g)           (g == G_DEMO)
+#define m_edit(g)           (g == G_EDIT)
+#define m_dm(g)             (g == G_DM)
+#define m_capture(g)        (g == G_CTF)
+#define m_hunt(g)           (g == G_HTF)
+#define m_keep(g)           (g == G_KTF)
+#define m_bomber(g)         (g == G_BOMBER)
+#define m_zombie(g)         (g == G_ZOMBIE)
+
+// rename to m_flags
+#define m_affinity(g)       (m_capture(g) || m_hunt(g) || m_keep(g) || m_bomber(g))
+#define m_ai(g)             (m_valid(g) && !m_demo(g) && !m_edit(g)) // extra bots not available in demo/edit
+
+// can add gsp implieds below
+#define m_implied(a,b)      (gametype[a].implied)
+#define m_doimply(a,b,c)    (gametype[a].implied|mutstype[c].implied)
+
+#define m_team(a,b)         ((b & G_M_TEAM) || (m_implied(a,b) & G_M_TEAM))
+#define m_survivor(a,b)     ((b & G_M_SURVIVOR) || (m_implied(a,b) & G_M_SURVIVOR))
+#define m_insta(a,b)        ((b & G_M_INSTA) || (m_implied(a,b) & G_M_INSTA))
+#define m_classic(a,b)      ((b & G_M_CLASSIC) || (m_implied(a,b) & G_M_CLASSIC))
+#define m_convert(a,b)      ((b & G_M_CONVERT) || (m_implied(a,b) & G_M_CONVERT))
+#define m_real(a,b)         ((b & G_M_REAL) || (m_implied(a,b) & G_M_REAL))
+#define m_expert(a,b)       ((b & G_M_EXPERT) || (m_implied(a,b) & G_M_EXPERT))
+#define m_pistol(a,b)       ((b & G_M_PISTOL) || (m_implied(a,b) & G_M_PISTOL))
+#define m_gib(a,b)          ((b & G_M_GIB) || (m_implied(a,b) & G_M_GIB))
+#define m_knife(a,b)        ((b & G_M_KNIFE) || (m_implied(a,b) & G_M_KNIFE))
+
+#define m_gsp1(a,b)         ((b & G_M_GSP1) || (m_implied(a,b) & G_M_GSP1))
+#define m_gsp(a,b)          (m_gsp1(a,b))
+
+#define m_noitems(a,b)      (m_insta(a, b) || m_knife(a, b) || m_gib(a, b))
+#define m_noitemsnade(a,b)  (m_lss(a,b))
+#define m_nopistol(a,b)     (m_insta(a,b) || m_lss)
+#define m_noprimary(a,b)    (m_pistol(a,b) || m_lss)
+
+#define m_duke(a,b)         (m_survivor(a,b))
+#define m_regen(a,b)        (!m_duke(a, b) && !m_insta(a, b))
+/*
+#define m_scores(a)         (a >= G_EDITMODE && a <= G_DEATHMATCH)
+#define m_sweaps(a,b)       (m_medieval(a, b) || m_ballistic(a, b) || m_arena(a, b) || m_league(a ,b))
+
+#define m_weapon(a,b)       (m_loadout(a,b) ? (m_arena(a, b) ? -WEAP_ITEM : -WEAP_MAX) : (m_medieval(a,b) ? WEAP_SWORD : (m_ballistic(a,b) ? WEAP_ROCKET : (m_insta(a,b) ? GAME(instaweapon) : (m_trial(a) ? GAME(trialweapon) : GAME(spawnweapon))))))
+#define m_delay(a,b)        (m_play(a) && !m_duke(a,b) ? (m_trial(a) ? GAME(trialdelay) : (m_bomber(a) ? GAME(bomberdelay) : (m_insta(a, b) ? GAME(instadelay) : GAME(spawndelay)))) : 0)
+#define m_protect(a,b)      (m_duke(a,b) ? GAME(duelprotect) : (m_insta(a, b) ? GAME(instaprotect) : GAME(spawnprotect)))
+#define m_noitems(gamemode, mutators)(a,b)      (m_trial(a) || GAME(itemsallowed) < (m_limited(a,b) ? 2 : 1))
+#define m_spawnhp(a,b)      (m_insta(a,b) ? 1 : GAME(spawnhealth))
+#define m_health(a,b,c)     (int(ceilf(m_spawnhp(a,b)*(!m_insta(a, b) && m_league(a, b) && isweap(c) ? WEAP(c, leaguehealth) : 1.f))))
+
+#define w_reload(w1,w2)     (w1 != WEAP_MELEE && ((isweap(w2) ? w1 == w2 : w1 < -w2) || (isweap(w1) && WEAP(w1, reloads))))
+#define w_carry(w1,w2)      (w1 > WEAP_MELEE && (isweap(w2) ? w1 != w2 : w1 >= -w2) && (isweap(w1) && WEAP(w1, carried)))
+#define w_attr(a,w1,w2)     (m_edit(gamemode)(a) || (w1 >= WEAP_OFFSET && w1 != w2) ? w1 : (w2 == WEAP_GRENADE ? WEAP_ROCKET : WEAP_GRENADE))
+#define w_spawn(weap)       int(ceilf(GAME(itemspawntime)*WEAP(weap, frequency)))
+#define w_lmax(a,b)         (m_league(a, b) ? WEAP_MAX : WEAP_ITEM)
 */
+
+#define m_lss(a,b)          (m_survivor(a,b) && m_gib(a,b))
+#define m_return(a,b)       (m_capture(a) && m_gsp1(a,b))
+#define m_suicide(a,b)      (m_bomber(a) && m_gsp1(a,b))
+#define m_ktf2(a,b)         (m_keep(a) && m_gsp1(a,b))
+#define m_zombies_rounds(a,b) (m_zombie(a) && !m_gsp1(a,b))
+#define m_onslaught(a,b)    (m_zombie(a) && m_gsp1(a,b))
+
+#define m_noradar(a,b)      (m_classic(a,b))
+#define m_nonuke(a,b)       (m_zombie(a) && !m_gsp1(a,b))
+
 #else
 // gamemode definitions
 gametypes gametype[G_MAX-G_FIRST] = {
@@ -197,6 +231,16 @@ mutstypes mutstype[G_M_NUM] = {
 		G_M_SURVIVOR, G_M_SURVIVOR,
 		G_M_ALL,
 		"survivor",
+	},
+	{
+		G_M_INSTA, G_M_INSTA,
+		G_M_ALL,
+		"insta",
+	},
+	{
+		G_M_CLASSIC, G_M_CLASSIC,
+		G_M_ALL,
+		"classic",
 	},
 	{
 		G_M_CONVERT, G_M_CONVERT|G_M_TEAM|G_M_SURVIVOR, // convert forces team and survivor

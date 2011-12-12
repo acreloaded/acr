@@ -39,7 +39,7 @@ void processevent(client &c, projevent &e){
 					e.o[2] = ts.o[2] > cubefloor ? (cubefloor + ts.o[2]) / 2 : cubefloor;
 
 					// bleeding damage
-					if(!m_zombies || !isteam((&c), hit)){
+					if(!m_zombie(gamemode) || !isteam((&c), hit)){
 						client &noob = isteam((&c), hit) ? c : target;
 						noob.state.addwound(c.clientnum, vec(e.o));
 						sendf(-1, 1, "ri2", N_BLEED, noob.clientnum);
@@ -95,7 +95,7 @@ void processevent(client &c, shotevent &e)
 	if(e.gun==WEAP_SHOTGUN){
 		// apply shotgun spread
 		adsfactor = (adsfactor + SGADSSPREADFACTOR - 1) / SGADSSPREADFACTOR;
-		if(m_classic) adsfactor *= .75f;
+		if(m_classic(gamemode, mutators)(gamemode, mutators)) adsfactor *= .75f;
 		if(spreadf*adsfactor) loopi(SGRAYS){
 			gs.sg[i] = to;
 			applyspread(gs.o, gs.sg[i], SGSPREAD, (gs.perk == PERK_STEADY ? .65f : 1)*spreadf*adsfactor);
@@ -105,7 +105,7 @@ void processevent(client &c, shotevent &e)
 	else{
 		// apply normal ray spread
 		const int spread = guns[e.gun].spread * (gs.vel.magnitude() / 3.f + gs.pitchvel / 5.f + 0.4f) * 1.2f * crouchfactor;
-		if(m_classic) adsfactor *= .6f;
+		if(m_classic(gamemode, mutators)(gamemode, mutators)) adsfactor *= .6f;
 		applyspread(gs.o, to, spread, (gs.perk == PERK_STEADY ? .75f : 1)*spreadf*adsfactor);
 	}
 	// trace shot
@@ -127,7 +127,7 @@ void processevent(client &c, shotevent &e)
 			int hitzone = HIT_NONE;
 			client *hit = nearesthit(c, from, to, hitzone, heads, &c);
 			if(hit){
-				serverdamage(hit, &c, m_zombies_rounds ? (hitzone == HIT_HEAD ? MAXDMG : hitzone * 115) : ((hitzone == HIT_HEAD ? 75 : 50) * HEALTHSCALE), WEAP_BOW, FRAG_GIB, hit->state.o);
+				serverdamage(hit, &c, m_zombie(gamemode)_rounds(gamemode, mutators) ? (hitzone == HIT_HEAD ? MAXDMG : hitzone * 115) : ((hitzone == HIT_HEAD ? 75 : 50) * HEALTHSCALE), WEAP_BOW, FRAG_GIB, hit->state.o);
 				if(hit->state.state != CS_ALIVE){
 					to = hit->state.o;
 					hit = NULL;
@@ -151,7 +151,7 @@ void processevent(client &c, shotevent &e)
 			client *hit = gs.scoping ? &c : nearesthit(c, from, to, hitzone, heads, &c, &end);
 			if(!hit) break;
 			const int flags = hitzone == HIT_HEAD ? FRAG_GIB : FRAG_NONE;
-			if(!m_team || &c == hit || c.team != hit->team) serverdamage(hit, &c, effectiveDamage(e.gun, hit->state.o.dist(from)), e.gun, flags, gs.o);
+			if(!m_team(gamemode) || &c == hit || c.team != hit->team) serverdamage(hit, &c, effectiveDamage(e.gun, hit->state.o.dist(from)), e.gun, flags, gs.o);
 			loopi(&c == hit ? 25 : 15){ // heals over the next 1 to 2.5 seconds (no perk, for others)
 				reloadevent &heal = hit->addtimer().reload;
 				heal.type = GE_RELOAD;
@@ -280,7 +280,7 @@ void processevents(){
 					if(!valid_client(w.inflictor)) c.state.wounds.remove(i--);
 					else if(w.lastdealt + 500 < gamemillis){
 						client &owner = *clients[w.inflictor];
-						const int bleeddmg = (m_zombies ? BLEEDDMGZ : owner.state.perk == PERK_PERSIST ? BLEEDDMGPLUS : BLEEDDMG) * HEALTHSCALE;
+						const int bleeddmg = (m_zombie(gamemode) ? BLEEDDMGZ : owner.state.perk == PERK_PERSIST ? BLEEDDMGPLUS : BLEEDDMG) * HEALTHSCALE;
 						owner.state.damage += bleeddmg;
 						owner.state.shotdamage += bleeddmg;
 						// where were we wounded?
@@ -294,7 +294,7 @@ void processevents(){
 					}
 				}
 			}
-			else if(!m_osok && c.state.state == CS_ALIVE && c.state.health < STARTHEALTH && c.state.lastregen + (c.state.perk == PERK_PERSIST ? REGENINT * .7f : REGENINT) < gamemillis){
+			else if(!m_regen(gamemode, mutators) && c.state.state == CS_ALIVE && c.state.health < STARTHEALTH && c.state.lastregen + (c.state.perk == PERK_PERSIST ? REGENINT * .7f : REGENINT) < gamemillis){
 				int amt = round(float((STARTHEALTH - c.state.health) / 5 + 15));
 				if(c.state.perk == PERK_PERSIST) amt *= 1.4f;
 				if(amt >= STARTHEALTH - c.state.health){

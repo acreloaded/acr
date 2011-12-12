@@ -35,7 +35,7 @@ void CACBot::Spawn()
 	   WEAP_BOW
     };
 	m_pMyEnt->nextprimary = weaps[rnd(sizeof(weaps)/sizeof(int))];
-	addmsg(N_LOADOUT, "ri3", m_pMyEnt->clientnum, m_pMyEnt->nextprimary, m_osok ? PERK_STEADY : PERK_NONE);
+	addmsg(N_LOADOUT, "ri3", m_pMyEnt->clientnum, m_pMyEnt->nextprimary, m_insta(gamemode, mutators) ? PERK_STEADY : PERK_NONE);
 	m_pMyEnt->targetyaw = m_pMyEnt->targetpitch = 0.0f;
 	m_pMyEnt->pBot = this;
 

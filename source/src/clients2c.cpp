@@ -331,7 +331,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_SWITCHTEAM:
 			{
 				int t = getint(p);
-                if(m_team) conoutf(t & 0x10 ? "\f3You may not unspectate, the server is locked" : "\f3Team %s is full", team_string(t & 0xF));
+                if(m_team(gamemode)) conoutf(t & 0x10 ? "\f3You may not unspectate, the server is locked" : "\f3Team %s is full", team_string(t & 0xF));
 				break;
 			}
 
@@ -355,7 +355,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					formatstring(d->name)("bot%d-%d", d->clientnum, d->ownernum);
 				}
 				updateclientname(d);
-				if(m_flags) loopi(2){
+				if(m_affinity(gamemode)) loopi(2){
 					flaginfo &f = flaginfos[i];
 					if(!f.actor) f.actor = getclient(f.actor_cn);
 				}
@@ -482,7 +482,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					extern int nextskin;
 					if(player1->skin!=nextskin) setskin(player1, nextskin);
 					arenaintermission = 0;
-					if(m_duel){
+					if(m_duke(gamemode, mutators)){
 						closemenu(NULL);
 						conoutf("%s", _("spawn_newround"));
 						hudeditf(HUDMSG_TIMER, _("spawn_fight"));
@@ -762,8 +762,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						d->spawnmillis = totalmillis + spawnmillis;
 
 						int primary = WEAP_KNIFE;
-						if(m_osok) primary = WEAP_SNIPER;
-						else if(m_pistol) primary = WEAP_PISTOL;
+						if(m_insta(gamemode, mutators)) primary = WEAP_SNIPER;
+						else if(m_pistol(gamemode, mutators)) primary = WEAP_PISTOL;
 						else if(!m_lss)
 						{
 							if(gunselect < WEAP_GRENADE) primary = gunselect;
@@ -1079,12 +1079,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				int acn = getint(p); playerent *alive = getclient(acn);
 				// check for multiple survivors
 				bool multi = false;
-				if(m_team && alive) loopv(players) if(players[i] && players[i] != alive && players[i]->state == CS_ALIVE && isteam(players[i], alive)){ multi = true; break; }
+				if(m_team(gamemode) && alive) loopv(players) if(players[i] && players[i] != alive && players[i]->state == CS_ALIVE && isteam(players[i], alive)){ multi = true; break; }
 				conoutf("%s", _("arenawin_over"));
 				// no survivors
 				if(acn == -1) hudoutf("\f3%s", _("arenawin_fail"));
 				// zombies
-				else if(m_zombies){
+				else if(m_zombie(gamemode)){
 					if(!alive || alive->team == TEAM_RED) hudoutf("\f3%s", _("arenawin_zombies_zombie"));
 					else hudoutf("\f0%s", _("arenawin_zombies_humans"));
 				}
@@ -1093,7 +1093,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				// should not happen? better safe than sorry
 				else if(!alive) hudoutf("unknown winner...?");
 				// Teams
-				else if(m_team && multi) hudoutf("%s", _(alive->team == player1->team ? "arenawin_teamwin" : "arenawin_teamlose"));
+				else if(m_team(gamemode) && multi) hudoutf("%s", _(alive->team == player1->team ? "arenawin_teamwin" : "arenawin_teamlose"));
 				// FFA or one team member
 				else if(alive==player1) hudoutf("%s", _("arenawin_youwin"));
 				else hudoutf("%s %s", colorname(alive), _("arenawin_ffa"));

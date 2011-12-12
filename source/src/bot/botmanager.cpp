@@ -52,7 +52,7 @@ void CBotManager::Think()
 
     // Added by Victor: control multiplayer bots
     const int ourcn = getclientnum();
-    if(ourcn >= 0 && m_ai){
+    if(ourcn >= 0 && m_ai(gamemode)){
 	   // handle the bots
 	   loopv(players){
 		  if(!players[i] || players[i]->ownernum != ourcn) continue;

@@ -30,7 +30,7 @@ struct mapaction : serveraction
 	int mode;
 	void perform()
 	{
-		if(isdedicated && numclients() > 2 && smode >= 0 && !m_edit && gamemillis > gamelimit/5)
+		if(isdedicated && numclients() > 2 && smode >= 0 && !m_edit(gamemode) && gamemillis > gamelimit/5)
 		{
 			forceintermission = true;
 			nextgamemode = mode;
@@ -60,8 +60,8 @@ struct mapaction : serveraction
 			if(ms && privconf('P')) // admin needed for mismatched modes
 			{
 				int smode = mode;  // 'borrow' the mode macros by replacing a global by a local var
-				bool spawns = (m_team && !m_ktf && !m_zombies) ? ms->hasteamspawns : ms->hasffaspawns;
-				bool flags = m_flags && !m_htf ? ms->hasflags : true;
+				bool spawns = (m_team(gamemode) && !m_keep(gamemode) && !m_zombie(gamemode)) ? ms->hasteamspawns : ms->hasffaspawns;
+				bool flags = m_affinity(gamemode) && !m_hunt(gamemode) ? ms->hasflags : true;
 				if(!spawns || !flags)
 				{
 					reqpriv = PRIV_ADMIN;
@@ -104,7 +104,7 @@ struct playeraction : serveraction
 struct forceteamaction : playeraction
 {
 	void perform() { updateclientteam(cn, team_opposite(clients[cn]->team), FTR_AUTOTEAM); }
-	virtual bool isvalid() { return playeraction::isvalid() && m_team; }
+	virtual bool isvalid() { return playeraction::isvalid() && m_team(gamemode); }
 	forceteamaction(int cn, int caller) : playeraction(cn)
 	{
 		if(cn != caller){ reqpriv = privconf('f'); passratio = 0.65f;}
@@ -163,7 +163,7 @@ inline uchar protectAdminPriv(const char conf, int cn){
 struct subdueaction : playeraction
 {
 	void perform() { forcedeath(clients[cn], true); }
-	virtual bool isvalid() { return playeraction::isvalid() && !m_edit && clients[cn]->team != TEAM_SPECT; }
+	virtual bool isvalid() { return playeraction::isvalid() && !m_edit(gamemode) && clients[cn]->team != TEAM_SPECT; }
 	subdueaction(int cn) : playeraction(cn)
 	{
 		passratio = 0.8f;
@@ -247,7 +247,7 @@ struct autoteamaction : enableaction
 {
 	void perform(){
 		autoteam = enable;
-		if(m_team && enable) refillteams(true);
+		if(m_team(gamemode) && enable) refillteams(true);
 	}
 	autoteamaction(bool enable) : enableaction(enable){
 		reqpriv = privconf('a');
@@ -258,7 +258,7 @@ struct autoteamaction : enableaction
 struct shuffleteamaction : serveraction
 {
 	void perform() { shuffleteams(); }
-	bool isvalid() { return serveraction::isvalid() && m_team; }
+	bool isvalid() { return serveraction::isvalid() && m_team(gamemode); }
 	shuffleteamaction()
 	{
 		reqpriv = privconf('s');

@@ -32,11 +32,11 @@ struct entity : public persistent_entity
 	bool spawned;			   //the only dynamic state of a map entity
 	entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4) : persistent_entity(x, y, z, type, attr1, attr2, attr3, attr4), spawned(false) {}
 	entity() {}
-	bool fitsmode(int gamemode) { return !m_noitems && isitem(type) && !(m_noitemsnade && type!=I_GRENADE) && !(m_pistol && type==I_AMMO); }
+	bool fitsmode(int gamemode) { return !m_noitems(gamemode, mutators) && isitem(type) && !(m_noitemsnade(gamemode, mutators) && type!=I_GRENADE) && !(m_pistol(gamemode, mutators) && type==I_AMMO); }
 	void transformtype(int gamemode)
 	{
-		if(m_pistol && type == I_AMMO) type = I_CLIPS;
-		else if(m_noitemsnade) switch(type){
+		if(m_pistol(gamemode, mutators) && type == I_AMMO) type = I_CLIPS;
+		else if(m_noitemsnade(gamemode, mutators)) switch(type){
 			case I_CLIPS:
 			case I_AMMO:
 			case I_ARMOR:
@@ -54,7 +54,7 @@ struct entity : public persistent_entity
 #define ZOMBIEHEALTHFACTOR 5
 #define MAXDMG (STARTHEALTH * ZOMBIEHEALTHFACTOR)
 
-#define SPAWNDELAY (m_flags ? 5000 : 1500)
+#define SPAWNDELAY (m_affinity(gamemode) ? 5000 : 1500)
 
 #define REGENDELAY 4250
 #define REGENINT 2500
@@ -141,7 +141,7 @@ enum { PERK_NONE = 0, PERK_SPEED, PERK_HAND, PERK_JAM, PERK_VISION, PERK_STREAK,
 extern float gunspeed(int gun, int ads, bool lightweight = false);
 extern int classic_forceperk(int primary);
 
-#define isteam(a,b)   (m_team && a->team == b->team)
+#define isteam(a,b)   (m_team(gamemode) && a->team == b->team)
 
 enum { TEAM_RED = 0, TEAM_BLUE, TEAM_SPECT, TEAM_NUM };
 #define team_valid(t) ((t) >= 0 && (t) < TEAM_NUM)
@@ -388,35 +388,35 @@ struct playerstate
 
 	virtual void spawnstate(int gamemode)
 	{
-		if(m_pistol) primary = WEAP_PISTOL;
-		else if(m_osok) primary = WEAP_BOLT;
+		if(m_pistol(gamemode, mutators)) primary = WEAP_PISTOL;
+		else if(m_insta(gamemode, mutators)) primary = WEAP_BOLT;
 		else if(m_lss) primary = WEAP_KNIFE;
 		else primary = nextprimary;
 
 		if(primary == WEAP_GRENADE || primary == WEAP_AKIMBO || primary < 0 || primary >= WEAP_MAX) primary = WEAP_ASSAULT;
 
-		if(!m_nopistol){
+		if(!m_nopistol(gamemode, mutators)){
 			ammo[WEAP_PISTOL] = ammostats[WEAP_PISTOL].start-magsize(WEAP_PISTOL);
 			mag[WEAP_PISTOL] = magsize(WEAP_PISTOL);
 		}
 
-		if(!m_noprimary){
+		if(!m_noprimary(gamemode, mutators)){
 			ammo[primary] = ammostats[primary].start-magsize(primary);
 			mag[primary] = magsize(primary);
 		}
 
-		if(!m_noitems) mag[WEAP_GRENADE] = ammostats[WEAP_GRENADE].start;
+		if(!m_noitems(gamemode, mutators)) mag[WEAP_GRENADE] = ammostats[WEAP_GRENADE].start;
 
 		gunselect = primary;
 
-		if(m_classic) perk = classic_forceperk(primary);
+		if(m_classic(gamemode, mutators)(gamemode, mutators)) perk = classic_forceperk(primary);
 		else{
 			perk = nextperk;
 			if(perk <= PERK_NONE || perk >= PERK_MAX) perk = rnd(PERK_MAX-1)+1;
 		}
 
 		const int healthsets[3] = { STARTHEALTH - 15 * HEALTHSCALE, STARTHEALTH, STARTHEALTH + 20 * HEALTHSCALE };
-		health = healthsets[(m_osok ? 0 : 1) + (perk == PERK_HEALTHY ? 1 : 0)];
+		health = healthsets[(m_insta(gamemode, mutators) ? 0 : 1) + (perk == PERK_HEALTHY ? 1 : 0)];
 	}
 
 	// just subtract damage here, can set death, etc. later in code calling this

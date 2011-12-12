@@ -834,7 +834,7 @@ void CBot::MainAI()
 		AddDebugText("has ent");
 		m_eCurrentBotState = STATE_ENT;
 	}
-	else if (m_classicsp && DoSPStuff()) // Home to goal, find/follow friends etc.
+	else if (m_classic_sp && DoSPStuff()) // Home to goal, find/follow friends etc.
 	{
 		
 		AddDebugText("SP stuff");
@@ -1849,7 +1849,7 @@ bool CBot::CheckItems()
 
 bool CBot::CheckFlags()
 {
-	if (!m_flags) return false;
+	if (!m_affinity(gamemode)) return false;
 
 	if (!m_pCurrentGoalWaypoint && !CheckJump() && CheckStuck())
 	{

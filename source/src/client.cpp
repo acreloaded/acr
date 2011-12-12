@@ -23,7 +23,7 @@ bool multiplayer(bool msg)
 
 VAR(edithack, 0, 0, 1); // USE AT YOUR OWN RISK
 bool allowedittoggle(){
-	bool allow = edithack || !curpeer || m_edit;
+	bool allow = edithack || !curpeer || m_edit(gamemode);
 	if(!allow) conoutf("%s", _("op_mp_edit_disallowed"));
 	return allow;
 }

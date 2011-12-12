@@ -96,7 +96,7 @@ void renderentities()
 				renderent(e);
 			}
 		}
-		else if(editmode || m_edit)
+		else if(editmode || m_edit(gamemode))
 		{
 			if(e.type==CTF_FLAG)
 			{
@@ -123,12 +123,12 @@ void renderentities()
 			}
 		}
 	}
-	if(m_flags) loopi(2)
+	if(m_affinity(gamemode)) loopi(2)
 	{
 		flaginfo &f = flaginfos[i];
 		entity &e = *f.flagent;
-		defformatstring(fpath)("pickups/flags/%s%s", m_ktf && !m_ktf2 ? "" : team_string(i),  (m_htf || m_btf) ? "_htf" : m_ktf && !m_ktf2 ? "ktf" : "");
-		defformatstring(sfpath)("pickups/flags/small_%s%s", m_ktf && !m_ktf2 ? "" : team_string(i), (m_htf || m_btf) ? "_htf" : m_ktf && !m_ktf2 ? "ktf" : "");
+		defformatstring(fpath)("pickups/flags/%s%s", m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? "" : team_string(i),  (m_hunt(gamemode) || m_bomber(gamemode, mutators)) ? "_htf" : m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? "ktf" : "");
+		defformatstring(sfpath)("pickups/flags/small_%s%s", m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? "" : team_string(i), (m_hunt(gamemode) || m_bomber(gamemode, mutators)) ? "_htf" : m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? "ktf" : "");
 		switch(f.state)
 		{
 			case CTFF_STOLEN:
@@ -233,7 +233,7 @@ void spawnallitems() // spawns items them locally
 void resetspawns()
 {
 	loopv(ents) ents[i].spawned = false;
-	if(m_noitemsnade || m_pistol)
+	if(m_noitemsnade(gamemode, mutators) || m_pistol(gamemode, mutators))
 	{
 		loopv(ents) ents[i].transformtype(gamemode);
 	}
