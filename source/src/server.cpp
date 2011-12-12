@@ -1400,7 +1400,8 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 			if(!m_noradar) usestreak(*actor, STREAK_RADAR);
 			break;
 		case 10:
-			if(m_onslaught && actor->team == TEAM_BLUE && target->team == TEAM_RED){
+			/*
+			if(m_convert && actor->team == TEAM_BLUE && target->team == TEAM_RED){
 				// convert our tenth kill in a row to human
 				updateclientteam(target->clientnum, TEAM_BLUE, FTR_SILENT);
 				bool found = false;
@@ -1412,6 +1413,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 				// game ends if all zombies are converted
 				if(!found) forceintermission = true;
 			}
+			*/
 			break;
 		case 11:
 			if(!m_nonuke) usestreak(*actor, STREAK_NUKE);
@@ -1875,7 +1877,7 @@ void updatesdesc(const char *newdesc, ENetAddress *caller = NULL){
 bool updateclientteam(int cn, int team, int ftr){
 	if(!valid_client(cn) || !team_valid(team)) return false;
 	client &ci = *clients[cn];
-	if(m_zombies && ftr != FTR_SILENT && team != TEAM_SPECT) team = ci.type == ST_AI ? TEAM_RED : TEAM_BLUE;
+	if(m_zombies && !m_convert && team != TEAM_SPECT) team = ci.type == ST_AI ? TEAM_RED : TEAM_BLUE;
 	if(ci.team == team){
 		if (ftr != FTR_AUTOTEAM) return false;
 	}
