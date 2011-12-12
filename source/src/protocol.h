@@ -123,7 +123,7 @@ enum
 
 enum // game modes
 {
-	G_DEMO = -1, G_EDIT, G_DM, G_CTF, G_HTF, G_KTF, G_BOMBER, G_MAX,
+	G_DEMO = -1, G_EDIT, G_DM, G_CTF, G_HTF, G_KTF, G_BOMBER, G_ZOMBIE, G_MAX,
 	G_FIRST = G_DEMO,
 };
 
@@ -134,6 +134,15 @@ enum // game mutators
 	G_M_REAL = 1 << 3, G_M_EXPERT = 1 << 4, // alters damage
 	G_M_PISTOL = 1 << 5, G_M_GIB = 1 << 6, G_M_KNIFE = 1 << 7, // alters weapons
 	G_M_GSP1 = 1 << 8,
+
+	G_M_GAMEPLAY = G_M_TEAM|G_M_SURVIVOR|G_M_CONVERT,
+	G_M_DAMAGE = G_M_REAL|G_M_EXPERT,
+	G_M_WEAPON = G_M_PISTOL|G_M_GIB|G_M_KNIFE,
+	G_M_GSP = G_M_GSP1,
+
+	G_M_MOST = G_M_GAMEPLAY|G_M_DAMAGE|G_M_WEAPON,
+	G_M_ALL = G_M_MOST|G_M_GSP,
+
 	G_M_GSN = 1, G_M_NUM = 9,
 };
 
