@@ -206,14 +206,15 @@ inline const char *gamename(int mode, int muts, int compact = 0)
 {
 	if(!m_valid(mode))
 		return compact ? "n/a" : "unknown";
+	gametypes &gt = gametype[mode-G_FIRST];
     static string gname;
     gname[0] = 0;
-    if(gametype[mode].mutators[0] && muts) loopi(G_M_NUM)
+    if(gt.mutators[0] && muts) loopi(G_M_NUM)
     {
-        int implied = m_implied(mode, muts);
-        if((gametype[mode].mutators[0]&mutstype[i].type) && (muts&mutstype[i].type) && (!implied || !(implied&mutstype[i].type)))
+        int implied = m_implied(mode-G_FIRST, muts);
+        if((gt.mutators[0]&mutstype[i].type) && (muts&mutstype[i].type) && (!implied || !(implied&mutstype[i].type)))
         {
-            const char *mut = i < G_M_GSP ? mutstype[i].name : gametype[mode].gsp[i-G_M_GSP];
+            const char *mut = i < G_M_GSP ? mutstype[i].name : gt.gsp[i-G_M_GSP];
             if(mut && *mut)
             {
                 string name;
@@ -227,7 +228,7 @@ inline const char *gamename(int mode, int muts, int compact = 0)
             }
         }
     }
-    defformatstring(mname)("%s%s%s", *gname ? gname : "", *gname ? " " : "", gametype[mode].name);
+    defformatstring(mname)("%s%s%s", *gname ? gname : "", *gname ? " " : "", gt.name);
     copystring(gname, mname);
     return gname;
 }

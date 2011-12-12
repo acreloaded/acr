@@ -4,7 +4,7 @@
 #include "cube.h"
 #include "bot/bot.h"
 
-int nextmode = 0;		 // nextmode becomes gamemode after next map load
+int nextmode = 0, nextmuts = 0; // nextmode becomes gamemode, nextmuts becomes mutators - after next map load
 VAR(gamemode, 1, 0, 0);
 VAR(mutators, 1, 0, 0);
 VARP(modeacronyms, 0, 0, 1);
@@ -913,7 +913,7 @@ const char *votestring(int type, char *arg1, char *arg2)
 			formatstring(out)(msg, atoi(arg1) == 0 ? "disable" : "enable");
 			break;
 		case SA_MAP:
-			formatstring(out)(msg, arg2, modestr(atoi(arg1), modeacronyms > 0));
+			formatstring(out)(msg, arg2, modestr(atoi(arg1), atoi(arg1), modeacronyms > 0));
 			break;
 		case SA_SERVERDESC:
 			formatstring(out)(msg, arg2);
@@ -962,6 +962,7 @@ void callvote(int type, char *arg1, char *arg2)
 			case SA_MAP:
 				sendstring(arg1, p);
 				putint(p, nextmode);
+				putint(p, nextmuts);
 				break;
 			case SA_SERVERDESC:
 				sendstring(arg1, p);
@@ -1062,6 +1063,7 @@ void changemap(const char *name){ // silently request map change, server may ign
 	putint(p, N_NEXTMAP);
 	sendstring(name, p);
 	putint(p, nextmode);
+	putint(p, nextmuts);
 	enet_packet_resize(packet, p.length());
 	sendpackettoserv(1, packet);
 }

@@ -356,7 +356,7 @@ struct demofile
 
 void clearai(), checkai();
 //void startgame(const char *newname, int newmode, int newtime = -1, bool notify = true);
-void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = true);
+void resetmap(const char *newname, int newmode, int newmuts, int newtime = -1, bool notify = true);
 void disconnect_client(int n, int reason = -1);
 int clienthasflag(int cn);
 bool updateclientteam(int client, int team, int ftr);

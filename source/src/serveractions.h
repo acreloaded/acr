@@ -27,23 +27,24 @@ struct serveraction
 struct mapaction : serveraction
 {
 	char *map;
-	int mode;
+	int mode, muts;
 	void perform()
 	{
 		if(isdedicated && numclients() > 2 && smode >= 0 && !m_edit(gamemode) && gamemillis > gamelimit/5)
 		{
 			forceintermission = true;
 			nextgamemode = mode;
+			nextgamemuts = muts;
 			copystring(nextmapname, map);
 		}
 		else
 		{
-			resetmap(map, mode);
+			resetmap(map, mode, muts);
 		}
 	}
 	bool isvalid() { return serveraction::isvalid() && map[0] && m_valid(mode); }
 	bool isdisabled() { return configsets.inrange(curcfgset) && !configsets[curcfgset].vote; }
-	mapaction(char *map, int mode, int caller) : map(map), mode(mode)
+	mapaction(char *map, int mode, int muts, int caller) : map(map), mode(mode), muts(muts)
 	{
 		if(isdedicated)
 		{
@@ -65,14 +66,14 @@ struct mapaction : serveraction
 				if(!spawns || !flags)
 				{
 					reqpriv = PRIV_ADMIN;
-					sendf(caller, 1, "ri5s", N_CONFMSG, 15, mode, G_M_NONE, (spawns ? 0 : 1) | (flags ? 0 : 2), behindpath(map));
+					sendf(caller, 1, "ri5s", N_CONFMSG, 15, mode, muts, (spawns ? 0 : 1) | (flags ? 0 : 2), behindpath(map));
 				}
 			}
 			loopv(scl.adminonlymaps) // admin needed for these maps
 				if(!strcmp(behindpath(map), scl.adminonlymaps[i])) reqpriv = PRIV_ADMIN;
 			if(notify) passratio = 0.6f; // you need 60% to vote a map without admin
 		}
-		formatstring(desc)("load map '%s' in mode '%s'", map, modestr(mode, G_M_NONE));
+		formatstring(desc)("load map '%s' in mode '%s'", map, modestr(mode, muts));
 	}
 	~mapaction() { DELETEA(map); }
 };
@@ -80,7 +81,7 @@ struct mapaction : serveraction
 struct demoplayaction : serveraction
 {
 	char *map;
-	void perform() { resetmap(map, G_DEMO); }
+	void perform() { resetmap(map, G_DEMO, G_M_NONE); }
 	demoplayaction(char *map) : map(map)
 	{
 		area = EE_LOCAL_SERV; // only local

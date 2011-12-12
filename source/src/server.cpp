@@ -29,7 +29,7 @@ struct servercommandline scl;
 #endif
 
 string smapname, nextmapname;
-int nextgamemode;
+int nextgamemode, nextgamemuts;
 mapstats smapstats;
 
 vector<client *> clients;
@@ -1472,7 +1472,7 @@ struct configset
 	string mapname;
 	union
 	{
-		struct { int mode, time, vote, minplayer, maxplayer, skiplines; };
+		struct { int mode, muts, time, vote, minplayer, maxplayer, skiplines; };
 		int par[CONFIG_MAXPAR];
 	};
 };
@@ -2119,11 +2119,12 @@ bool refillteams(bool now, int ftr, bool aionly){ // force only minimal amounts 
     return switched || (aionly && refillteams(now, ftr, false));
 }
 
-void resetserver(const char *newname, int newmode, int newtime){
+void resetserver(const char *newname, int newmode, int newmuts, int newtime){
 	if(m_demo(gamemode)) enddemoplayback();
 	else enddemorecord();
 
 	smode = newmode;
+	smuts = newmuts;
 	copystring(smapname, newname);
 
 	minremain = m_edit(gamemode) ? 1440 : newtime >= 0 ? newtime : (m_team(gamemode, mutators) ? 15 : 10);
@@ -2143,6 +2144,7 @@ void resetserver(const char *newname, int newmode, int newtime){
 inline void putmap(ucharbuf &p){
 	putint(p, N_MAPCHANGE);
 	putint(p, smode);
+	putint(p, smuts);
 	putint(p, mapavailable(smapname));
 	sendstring(smapname, p);
 	loopv(sents) if(sents[i].spawned){
@@ -2159,9 +2161,9 @@ inline void putmap(ucharbuf &p){
 	}
 }
 
-void resetmap(const char *newname, int newmode, int newtime, bool notify){
+void resetmap(const char *newname, int newmode, int newmuts, int newtime, bool notify){
 	bool lastteammode = m_team(gamemode, mutators);
-	resetserver(newname, newmode, newtime);
+	resetserver(newname, newmode, newmuts, newtime);
 
 	if(isdedicated) getservermap();
 
@@ -2276,7 +2278,7 @@ int nextcfgset(bool notify = true, bool nochange = false){ // load next maprotat
 	if(!nochange)
 	{
 		curcfgset = ccs;
-		resetmap(c->mapname, c->mode, c->time, notify);
+		resetmap(c->mapname, c->mode, c->muts, c->time, notify);
 	}
 	return ccs;
 }
@@ -2333,6 +2335,7 @@ void sendcallvote(int cl = -1){
 			case SA_MAP:
 				sendstring(((mapaction *)curvote->action)->map, p);
 				putint(p, ((mapaction *)curvote->action)->mode);
+				putint(p, ((mapaction *)curvote->action)->muts);
 				break;
 			case SA_SERVERDESC:
 				sendstring(((serverdescaction *)curvote->action)->sdesc, p);
@@ -3563,8 +3566,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			{
 				getstring(text, p);
 				filtertext(text, text);
-				int mode = getint(p);
-				if(mapreload || numclients() == 1) resetmap(text, mode);
+				const int mode = getint(p), muts = getint(p);
+				if(mapreload || numclients() == 1) resetmap(text, mode, muts);
 				break;
 			}
 
@@ -3580,14 +3583,15 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					p.forceoverread();
 					break;
 				}
-				if((!mapavailable(text) || cl->priv >= PRIV_ADMIN) && sendmapserv(sender, text, mapsize, cfgsize, cfgsizegz, &p.buf[p.len]))
+				bool found = mapavailable(text);
+				if((!found || cl->priv >= PRIV_ADMIN) && sendmapserv(sender, text, mapsize, cfgsize, cfgsizegz, &p.buf[p.len]))
 				{
 					sendf(-1, 1, "ri2s", N_MAPC2S, sender, text);
 					logline(ACLOG_INFO,"[%s] %s sent map %s, %d + %d(%d) bytes written",
 								gethostname(sender), clients[sender]->name, text, mapsize, cfgsize, cfgsizegz);
 					// reset
 					//loopv(clients) if(i != sender && clients[i]->type == ST_TCPIP) recvmapserv(clients[i]);
-					resetmap(smapname, smode);
+					if(!found) resetmap(smapname, smode, smuts);
 				}
 				else
 				{
@@ -3672,7 +3676,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						filtertext(text, text);
 						int mode = getint(p);
 						if(mode==G_DEMO) vi->action = new demoplayaction(text);
-						else vi->action = new mapaction(newstring(text), mode, sender);
+						else vi->action = new mapaction(newstring(text), mode, getint(p), sender);
 						break;
 					}
 					case SA_KICK:
@@ -3916,7 +3920,7 @@ void checkintermission(){
 
 void resetserverifempty(){
 	loopv(clients) if(clients[i]->type!=ST_EMPTY) return;
-	resetserver("", 0, 10);
+	resetserver("", 0, G_M_NONE, 10);
 	nextmapname[0] = 0;
 
 	#ifdef STANDALONE
@@ -4101,7 +4105,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 		interm = 0;
 
 		//start next game
-		if(nextmapname[0]) resetmap(nextmapname, nextgamemode);
+		if(nextmapname[0]) resetmap(nextmapname, nextgamemode, nextgamemuts);
 		else if(configsets.length()) nextcfgset();
 		else if(!isdedicated){
 			loopv(clients) if(clients[i]->type!=ST_EMPTY){
@@ -4110,7 +4114,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 				break;
 			}
 		}
-		else resetmap(smapname, smode);
+		else resetmap(smapname, smode, smuts);
 	}
 
 	resetserverifempty();

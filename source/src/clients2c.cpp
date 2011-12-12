@@ -25,9 +25,10 @@ void neterr(const char *s, int info)
 
 VARP(autogetmap, 0, 1, 1);
 
-void changemapserv(char *name, int mode, int download)		// forced map change from the server
+void changemapserv(char *name, int mode, int muts, int download)		// forced map change from the server
 {
 	gamemode = mode;
+	mutators = muts;
 	if(m_demo(gamemode)) return;
 	bool loaded = load_world(name);
 	if(download > 0)
@@ -265,9 +266,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_MAPCHANGE:
 			{
 				// get map info
-				int mode = getint(p), downloadable = getint(p);
+				int mode = getint(p), muts = getint(p), downloadable = getint(p);
 				getstring(text, p);
-				changemapserv(text, mode, downloadable);
+				changemapserv(text, mode, muts, downloadable);
 				// get items
 				int n;
 				resetspawns();
@@ -1254,6 +1255,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					case SA_KICK:
 						getstring(text, p);
 						filtertext(text, text);
+						itoa(a, getint(p));
 					default:
 						itoa(a, getint(p));	
 					case SA_STOPDEMO:
