@@ -91,6 +91,8 @@ static const char *disc_reason(int reason)
 enum { PONGFLAG_PASSWORD = 0, PONGFLAG_BANNED, PONGFLAG_BLACKLIST, PONGFLAG_MASTERMODE = 6, PONGFLAG_NUM };
 enum { EXTPING_NOP = 0, EXTPING_NAMELIST, EXTPING_SERVERINFO, EXTPING_MAPROT, EXTPING_UPLINKSTATS, EXTPING_NUM };
 
+// old game modes
+/*
 enum
 {
 	GMODE_DEMO = -1, // treat as GMODE_START
@@ -117,6 +119,37 @@ enum
 	GMODE_BOMBER,
 	GMODE_NUM
 };
+*/
+
+enum // game modes
+{
+	G_DEMO = -1, G_EDIT, G_DM, G_CTF, G_HTF, G_KTF, G_BOMBER, G_MAX,
+	G_FIRST = G_DEMO,
+};
+
+enum // game mutators
+{
+	G_M_NONE = 0,
+	G_M_TEAM = 1 << 0, G_M_SURVIVOR = 1 << 1, G_M_CONVERT = 1 << 2, // alters gameplay
+	G_M_REAL = 1 << 3, G_M_EXPERT = 1 << 4, // alters damage
+	G_M_PISTOL = 1 << 5, G_M_GIB = 1 << 6, G_M_KNIFE = 1 << 7, // alters weapons
+	G_M_GSP1 = 1 << 8,
+	G_M_GSN = 1, G_M_NUM = 9,
+};
+
+struct gametypes
+{
+    int type, implied, mutators[G_M_GSN+1];
+    const char *name, *gsp[G_M_GSN];
+};
+struct mutstypes
+{
+    int type, implied, mutators;
+    const char *name;
+};
+
+extern gametypes gametype[G_MAX-G_FIRST];
+extern mutstypes mutstype[G_M_NUM];
 
 #define m_lms		(gamemode == GMODE_SURVIVOR || gamemode == GMODE_TEAMSURVIVOR)
 #define m_return	(gamemode == GMODE_RCTF)
