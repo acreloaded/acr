@@ -134,7 +134,10 @@ void base64_encode(const char * in, unsigned int in_len, char * out) {
 }
 
 void freeconnectcheck(int cn){
-	if(currentmsrequest && currentmsrequest->type == MSR_CONNECT && ((connectrequest *)currentmsrequest->data)->cn) DELETEP(currentmsrequest);
+	if(currentmsrequest && currentmsrequest->type == MSR_CONNECT && currentmsrequest->c->cn){
+		DELETEP(currentmsrequest->c);
+		DELETEP(currentmsrequest);
+	}
 	loopv(connectrequests) if(connectrequests[i].cn == cn) connectrequests.remove(i--);
 }
 
