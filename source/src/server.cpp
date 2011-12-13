@@ -1332,21 +1332,6 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 			style |= FRAG_FIRST;
 			nokills = false;
 		}
-		// conversions
-		if(m_convert(gamemode, mutators) && target->team != actor->team){
-			updateclientteam(target->clientnum, actor->team, FTR_SILENT);
-			if(!m_duke(gamemode, mutators)){
-				bool found = false;
-				loopv(clients)
-					if(clients[i]->type != ST_EMPTY && clients[i]->team != TEAM_SPECT && clients[i]->team != actor->team){
-						found = true;
-						break;
-					}
-				// game ends if not arena, and all enemies are converted
-				if(!found)
-					forceintermission = true;
-			}
-		}
 	}
 	else{ // suicide
 		--actor->state.frags;
@@ -1437,6 +1422,22 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 			break;
 	}
 	usestreak(*target, ts.streakondeath);
+
+	// conversions
+	if(!suic && m_convert(gamemode, mutators) && target->team != actor->team){
+		updateclientteam(target->clientnum, actor->team, FTR_SILENT);
+		if(!m_duke(gamemode, mutators)){
+			bool found = false;
+			loopv(clients)
+				if(clients[i]->type != ST_EMPTY && clients[i]->team != TEAM_SPECT && clients[i]->team != actor->team){
+					found = true;
+					break;
+				}
+			// game ends if not arena, and all enemies are converted
+			if(!found)
+				forceintermission = true;
+		}
+	}
 }
 
 void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source){
