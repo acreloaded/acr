@@ -161,7 +161,7 @@ void renderscores(void *menu, bool init){
 
 	if(getclientmap()[0]){
 		bool fldrprefix = !strncmp(getclientmap(), "maps/", strlen("maps/"));
-		formatstring(modeline)("\"%s\" on map %s", modestr(gamemode, modeacronyms > 0), fldrprefix ? getclientmap()+strlen("maps/") : getclientmap());
+		formatstring(modeline)("\"%s\" on map %s", modestr(gamemode, mutators, modeacronyms > 0), fldrprefix ? getclientmap()+strlen("maps/") : getclientmap());
 	}
 
 	extern int minutesremaining, gametimecurrent, lastgametimeupdate, gametimemaximum;

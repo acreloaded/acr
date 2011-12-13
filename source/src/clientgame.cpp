@@ -753,7 +753,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
 	minutesremaining = -1;
 	arenaintermission = 0;
 	bool noflags = (m_capture(gamemode) || m_keep(gamemode)) && (!numflagspawn[0] || !numflagspawn[1]);
-	if(*clientmap) conoutf("game mode is \"%s\"%s", modestr(gamemode, modeacronyms > 0), noflags ? " - \f2but there are no flag bases on this map" : "");
+	if(*clientmap) conoutf("game mode is \"%s\"%s", modestr(gamemode, mutators, modeacronyms > 0), noflags ? " - \f2but there are no flag bases on this map" : "");
 	loopv(gmdescs) if(gmdescs[i].mode == gamemode) conoutf("\f1%s", gmdescs[i].desc);
 
 	// run once
