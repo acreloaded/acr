@@ -616,8 +616,8 @@ struct mitemmuts : mitem
 	*/
 
 	const char *gettext(){
-		if(num >= 0 && num < G_M_NUM){
-			if(num >= G_M_GSP && *gametype[nextmode].gsp[num-G_M_GSP+1]) gametype[nextmode].gsp[num-G_M_GSP];
+		if(m_valid(nextmode) && num >= 0 && num < G_M_NUM){
+			if(num >= G_M_GSP && *gametype[nextmode].gsp[num-G_M_GSP+1]) gametype[nextmode].gsp[num-G_M_GSP+1];
 			return mutstype[num].name;
 		}
 		return "unknown mutator";
@@ -628,12 +628,8 @@ struct mitemmuts : mitem
 	int status(){
 		int stats = nextmuts & (1 << num) ? 1 : 0;
 		// forced on?
-		if(stats && (m_implied(nextmode, nextmuts) & (1 << num)))
+		if(m_implied(nextmode, nextmuts) & (1 << num))
 			stats |= 2;
-		// depended on?
-		int mm = nextmode, mt = nextmuts;
-		modecheck(mm, mt, 1 << num);
-		if(mt != nextmuts) stats |= 2;
 		return stats;
 	}
 
@@ -657,7 +653,7 @@ struct mitemmuts : mitem
 		const int stats = status();
 		draw_text(gettext(), x, y);
 		if(isselection()) renderbg(x+w-boxsize, y, boxsize, NULL);
-		blendbox(x+w-boxsize, y, x+w, y+boxsize, false, -1, stats & 2 ? &red : &gray);
+		blendbox(x+w-boxsize, y, x+w, y+boxsize, false, -1, (stats & 2) ? &red : &gray);
 		if(stats & 1)
 		{
 			int x1 = x+w-boxsize-FONTH/6, x2 = x+w+FONTH/6, y1 = y-FONTH/6, y2 = y+boxsize+FONTH/6;

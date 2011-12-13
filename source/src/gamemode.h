@@ -83,8 +83,8 @@ extern mutstypes mutstype[G_M_NUM];
 #define m_ai(g)             (m_valid(g) && !m_demo(g) && !m_edit(g)) // extra bots not available in demo/edit
 
 // can add gsp implieds below
-#define m_implied(a,b)      (gametype[a].implied)
-#define m_doimply(a,b,c)    (gametype[a].implied|mutstype[c].implied)
+#define m_implied(a,b)      (gametype[a-G_FIRST].implied)
+#define m_doimply(a,b,c)    (gametype[a-G_FIRST].implied|mutstype[c].implied)
 
 #define m_team(a,b)         ((b & G_M_TEAM) || (m_implied(a,b) & G_M_TEAM))
 #define m_survivor(a,b)     ((b & G_M_SURVIVOR) || (m_implied(a,b) & G_M_SURVIVOR))

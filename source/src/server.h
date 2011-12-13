@@ -808,7 +808,7 @@ mutstypes mutstype[G_M_NUM] = {
 		"classic",
 	},
 	{
-		G_M_CONVERT, G_M_CONVERT|G_M_TEAM|G_M_SURVIVOR, // convert forces team and survivor
+		G_M_CONVERT, G_M_CONVERT|G_M_TEAM, // convert forces team
 		G_M_ALL,
 		"convert",
 	},
