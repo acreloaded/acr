@@ -708,7 +708,7 @@ int classic_forceperk(int primary){
 }
 
 // gamemode definitions
-gametypes gametype[G_MAX-G_FIRST] = {
+gametypes gametype[G_MAX] = {
 	/*
 	{
 		type, implied,
