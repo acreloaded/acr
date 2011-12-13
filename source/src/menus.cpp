@@ -602,6 +602,62 @@ struct mitemcheckbox : mitem
 	}
 };
 
+struct mitemmuts : mitem
+{
+	int num;
+
+	mitemmuts(gmenu *parent, int num) : mitem(parent, bgcolor), num(num) {};
+
+	/*
+	~mitemmuts()
+	{
+	}
+	*/
+
+	const char *gettext(){
+		if(num >= 0 && num < G_M_NUM){
+			if(num >= G_M_GSP && *gametype[nextmode].gsp[num-G_M_GSP+1]) gametype[nextmode].gsp[num-G_M_GSP];
+			return mutstype[num].name;
+		}
+		return "unknown mutator";
+	}
+
+	// 1: Selected
+	// 2: Disallowed
+	int status(){
+		int stats = nextmuts & (1 << num) ? 1 : 0;
+		return stats;
+	}
+
+	virtual int width() { return text_width(gettext()) + FONTH + FONTH/3; }
+
+	virtual void select()
+	{
+		// should toggle a mutator, if allowed
+		const int stats = status();
+		if(!(stats & 2)){
+			if(stats & 1) nextmuts &= ~(1 << num);
+			else nextmuts |= 1 << num;
+		}
+	}
+
+	virtual void render(int x, int y, int w)
+	{
+		bool sel = isselection();
+		const static int boxsize = FONTH;
+		const int stats = status();
+		draw_text(gettext(), x, y);
+		if(isselection()) renderbg(x+w-boxsize, y, boxsize, NULL);
+		blendbox(x+w-boxsize, y, x+w, y+boxsize, false, -1, &gray);
+		if(stats & 1)
+		{
+			int x1 = x+w-boxsize-FONTH/6, x2 = x+w+FONTH/6, y1 = y-FONTH/6, y2 = y+boxsize+FONTH/6;
+			line(x1, y1, x2, y2, sel ? &whitepulse : &white);
+			line(x2, y1, x1, y2, sel ? &whitepulse : &white);
+		}
+	}
+};
+
 
 // console iface
 
@@ -720,6 +776,12 @@ void menuitemcheckbox(char *text, char *value, char *action)
 	lastmenu->items.add(new mitemcheckbox(lastmenu, newstring(text), newstring(value), action[0] ? newstring(action) : NULL, NULL));
 }
 
+void menuitemmuts(char *num)
+{
+	if(!lastmenu) return;
+	lastmenu->items.add(new mitemmuts(lastmenu, atoi(num)));
+}
+
 void menumdl(char *mdl, char *anim, char *rotspeed, char *scale)
 {
 	if(!lastmenu || !mdl || !anim) return;
@@ -787,6 +849,7 @@ COMMAND(menuitemtextinput, ARG_5STR);
 COMMAND(menuitemslider, ARG_7STR);
 COMMAND(menuitemkeyinput, ARG_2STR);
 COMMAND(menuitemcheckbox, ARG_3STR);
+COMMAND(menuitemmuts, ARG_2STR);
 COMMAND(menuselectionbgcolor, ARG_4STR);
 
 bool menukey(int code, bool isdown, int unicode, SDLMod mod)

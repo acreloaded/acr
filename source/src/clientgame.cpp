@@ -11,9 +11,9 @@ VARP(modeacronyms, 0, 0, 1);
 
 flaginfo flaginfos[2];
 
-void mode(int n){ nextmode = n; }
+void mode(int n){ modecheck(nextmode = n, nextmuts); }
 COMMAND(mode, ARG_1INT);
-void muts(int n){ nextmuts = n; }
+void muts(int n){ modecheck(nextmode, nextmuts = n); }
 COMMAND(muts, ARG_1INT);
 
 bool intermission = false;

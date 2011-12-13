@@ -276,7 +276,7 @@ mutstypes mutstype[G_M_NUM] = {
 	{
 		G_M_GSP1, G_M_GSP1,
 		G_M_ALL,
-		"",
+		"gsp1",
 	},
 };
 #undef GAMEMODE
