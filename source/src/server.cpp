@@ -3930,7 +3930,7 @@ void checkintermission(){
 				int smode = nextmapmode;
 				nextmaptime = m_team(gamemode, mutators) ? 15 : 10;
 			}
-			if(nextmaptype) sendf(-1, 1, "ri4s", N_CONFMSG, 14, nextmaptime, nextmapmode, nextmapmuts, nextmaptype, nextmapnm);
+			if(nextmaptype) sendf(-1, 1, "ri6s", N_CONFMSG, 14, nextmaptime, nextmapmode, nextmapmuts, nextmaptype, nextmapnm);
 		}
 		if(!minremain) sendf(-1, 1, "ri4", N_TIMEUP, gamelimit, gamelimit - 60000 + 1, gamemusicseed); // force intermission
 		else sendf(-1, 1, "ri4", N_TIMEUP, gamemillis, gamelimit, gamemusicseed);
