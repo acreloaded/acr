@@ -244,15 +244,15 @@ void modecheck(int &mode, int &muts, int trying)
         muts = m_implied(mode, G_M_NONE);
     }
     #define modecheckreset(a) { if(muts && ++count < G_M_NUM*(G_M_GSN+5)) { i = -1; a; } else { muts = 0; i = G_M_NUM; break; } }
-    if(!gametype[mode].mutators[0]) muts = G_M_NONE;
+    if(!gametype[mode-G_FIRST].mutators[0]) muts = G_M_NONE;
     else
     {
-        int count = 0, implied = m_implied(mode, muts);
+        int count = 0, implied = m_implied(mode-G_FIRST, muts);
         if(implied) muts |= implied;
         loopi(G_M_GSN)
         {
             int m = 1<<(i+G_M_GSP);
-            if(!(gametype[mode].mutators[0]&m))
+            if(!(gametype[mode-G_FIRST].mutators[0]&m))
             {
                 muts &= ~m;
                 trying &= ~m;
@@ -260,9 +260,9 @@ void modecheck(int &mode, int &muts, int trying)
         }
         if(muts) loopi(G_M_NUM)
         {
-            if(trying && !(gametype[mode].mutators[0]&mutstype[i].type) && (trying&mutstype[i].type))
+            if(trying && !(gametype[mode-G_FIRST].mutators[0]&mutstype[i].type) && (trying&mutstype[i].type))
                 trying &= ~mutstype[i].type;
-            if(!(gametype[mode].mutators[0]&mutstype[i].type) && (muts&mutstype[i].type))
+            if(!(gametype[mode-G_FIRST].mutators[0]&mutstype[i].type) && (muts&mutstype[i].type))
             {
                 muts &= ~mutstype[i].type;
                 trying &= ~mutstype[i].type;
@@ -270,15 +270,15 @@ void modecheck(int &mode, int &muts, int trying)
             }
             loopj(G_M_GSN)
             {
-                if(!gametype[mode].mutators[j+1]) continue;
+                if(!gametype[mode-G_FIRST].mutators[j+1]) continue;
                 int m = 1<<(j+G_M_GSP);
                 if(!(muts&m)) continue;
                 loopk(G_M_GSN)
                 {
-                    if(!gametype[mode].mutators[k+1]) continue;
+                    if(!gametype[mode-G_FIRST].mutators[k+1]) continue;
                     int n = 1<<(k+G_M_GSP);
                     if(!(muts&n)) continue;
-                    if(trying && (trying&m) && !(gametype[mode].mutators[k+1]&m))
+                    if(trying && (trying&m) && !(gametype[mode-G_FIRST].mutators[k+1]&m))
                     {
                         muts &= ~n;
                         trying &= ~n;
@@ -292,7 +292,7 @@ void modecheck(int &mode, int &muts, int trying)
             {
                 if(mutstype[i].mutators && !(mutstype[i].mutators&mutstype[j].type) && (muts&mutstype[j].type))
                 {
-                    implied = m_implied(mode, muts);
+                    implied = m_implied(mode-G_FIRST, muts);
                     if(trying && (trying&mutstype[j].type) && !(implied&mutstype[i].type))
                     {
                         muts &= ~mutstype[i].type;
@@ -305,7 +305,7 @@ void modecheck(int &mode, int &muts, int trying)
                     }
                     modecheckreset(break);
                 }
-                int implying = m_doimply(mode, muts, i);
+                int implying = m_doimply(mode-G_FIRST, muts, i);
                 if(implying && (implying&mutstype[j].type) && !(muts&mutstype[j].type))
                 {
                     muts |= mutstype[j].type;
