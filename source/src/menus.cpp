@@ -617,7 +617,7 @@ struct mitemmuts : mitem
 
 	const char *gettext(){
 		if(m_valid(nextmode) && num >= 0 && num < G_M_NUM){
-			if(num >= G_M_GSP && *gametype[nextmode].gsp[num-G_M_GSP+1]) gametype[nextmode].gsp[num-G_M_GSP+1];
+			if(num >= G_M_GSP && *gametype[nextmode].gsp[num-G_M_GSP]) gametype[nextmode].gsp[num-G_M_GSP];
 			return mutstype[num].name;
 		}
 		return "unknown mutator";

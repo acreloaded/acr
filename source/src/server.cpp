@@ -1326,24 +1326,9 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 			actor->state.revengelog.removeobj(target->clientnum);
 		}
 		target->state.revengelog.add(actor->clientnum);
-	}
-	else{ // suicide
-		actor->state.frags--;
-		suic = true;
-	}
-	++actor->state.killstreak;
-	++ts.deathstreak;
-	actor->state.deathstreak = ts.killstreak = 0;
-	ts.wounds.shrink(0);
-	ts.damagelog.removeobj(target->clientnum);
-	ts.damagelog.removeobj(actor->clientnum);
-	target->removetimers(GE_RELOAD);
-	loopv(ts.damagelog){
-		if(valid_client(ts.damagelog[i])) clients[ts.damagelog[i]]->state.assists++;
-		else ts.damagelog.remove(i--);
-	}
-	if(!suic && actor->type != ST_AI){
-		if(nokills){
+
+		// first blood (not for AI)
+		if(actor->type != ST_AI && nokills){
 			style |= FRAG_FIRST;
 			nokills = false;
 		}
@@ -1362,6 +1347,21 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 					forceintermission = true;
 			}
 		}
+	}
+	else{ // suicide
+		--actor->state.frags;
+		suic = true;
+	}
+	++actor->state.killstreak;
+	++ts.deathstreak;
+	actor->state.deathstreak = ts.killstreak = 0;
+	ts.wounds.shrink(0);
+	ts.damagelog.removeobj(target->clientnum);
+	ts.damagelog.removeobj(actor->clientnum);
+	target->removetimers(GE_RELOAD);
+	loopv(ts.damagelog){
+		if(valid_client(ts.damagelog[i])) clients[ts.damagelog[i]]->state.assists++;
+		else ts.damagelog.remove(i--);
 	}
 	if(gamemillis >= actor->state.lastkill + 500) actor->state.combo = 0;
 	actor->state.lastkill = gamemillis;
