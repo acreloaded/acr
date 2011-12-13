@@ -685,18 +685,28 @@ void preparectf(bool cleanonly=false)
 	}
 }
 
-struct gmdesc { int mode; char *desc; };
-vector<gmdesc> gmdescs;
+struct mdesc { int mode; char *desc; };
+vector<mdesc> gmdescs, mutdescs;
 
 void gamemodedesc(char *modenr, char *desc)
 {
 	if(!modenr || !desc) return;
-	struct gmdesc &gd = gmdescs.add();
+	struct mdesc &gd = gmdescs.add();
 	gd.mode = atoi(modenr);
 	gd.desc = newstring(desc);
 }
 
 COMMAND(gamemodedesc, ARG_2STR);
+
+void modifierdesc(char *mutnr, char *desc)
+{
+	if(!mutnr || !desc) return;
+	struct mdesc &md = mutdescs.add();
+	md.mode = atoi(mutnr);
+	md.desc = newstring(desc);
+}
+
+COMMANDN(mutatorsdesc, modifierdesc, ARG_2STR);
 
 void resetmap()
 {
@@ -755,6 +765,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
 	bool noflags = (m_capture(gamemode) || m_keep(gamemode)) && (!numflagspawn[0] || !numflagspawn[1]);
 	if(*clientmap) conoutf("game mode is \"%s\"%s", modestr(gamemode, mutators, modeacronyms > 0), noflags ? " - \f2but there are no flag bases on this map" : "");
 	loopv(gmdescs) if(gmdescs[i].mode == gamemode) conoutf("\f1%s", gmdescs[i].desc);
+	loopv(mutdescs) if((1 << mutdescs[i].mode) & mutators) conoutf("\f2%s", mutdescs[i].desc);
 
 	// run once
 	if(firstrun)
