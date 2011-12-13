@@ -4,17 +4,17 @@
 #include "cube.h"
 #include "bot/bot.h"
 
-int nextmode = 0, nextmuts = 0; // nextmode becomes gamemode, nextmuts becomes mutators - after next map load
+int nextmode = G_DM, nextmuts = G_M_TEAM; // nextmode becomes gamemode, nextmuts becomes mutators - after next map load
 VAR(gamemode, 1, 0, 0);
 VAR(mutators, 1, 0, 0);
 VARP(modeacronyms, 0, 0, 1);
 
 flaginfo flaginfos[2];
 
-void mode(int n){
-	nextmode = n;
-}
+void mode(int n){ nextmode = n; }
 COMMAND(mode, ARG_1INT);
+void muts(int n){ nextmuts = n; }
+COMMAND(muts, ARG_1INT);
 
 bool intermission = false;
 bool autoteambalance = false;
@@ -1000,18 +1000,55 @@ void callvote(int type, const votedata &vote)
 
 void callvote_parser(char *type, char *arg1, char *arg2, char *arg3)
 {
-	if(type && *type && inmainloop)
+	if(type && inmainloop)
 	{
 		int t = atoi(type);
-		/*
-		if(t==SA_MAP) // FIXME
+		if(t < 0 || t >= SA_NUM)
+			conoutf("\f3invalid vote: \f2%s %s %s %s", type, arg1, arg2, arg3);
+		else
 		{
-			string n;
-			itoa(n, nextmode);
-			callvote(t, arg1, n);
+			// storage of vote data
+			static string str1;
+			static votedata vote(str1);
+			vote = votedata(str1); // reset
+			switch(t)
+			{
+				case SA_MAP:
+					vote.int1 = atoi(arg2);
+					vote.int2 = atoi(arg3);
+					// fallthrough
+				case SA_SERVERDESC:
+					copystring(str1, arg1);
+					break;
+
+				case SA_KICK:
+					vote.int1 = atoi(arg1);
+					copystring(str1, arg2);
+					break;
+				case SA_BAN:
+				case SA_GIVEROLE:
+					vote.int2 = atoi(arg2);
+					// fallthrough
+				case SA_MASTERMODE:
+				case SA_AUTOTEAM:
+				case SA_FORCETEAM:
+				case SA_RECORDDEMO:
+				case SA_CLEARDEMOS:
+				case SA_SUBDUE:
+				case SA_REVOKE:
+				case SA_SPECT:
+				case SA_BOTBALANCE:
+					vote.int1 = atoi(arg1);
+					// fallthrough
+				default:
+				case SA_REMBANS:
+				case SA_STOPDEMO:
+				case SA_SHUFFLETEAMS:
+					break;
+			}
+			callvote(t, vote);
 		}
-		else callvote(t, arg1, arg2);
-		*/
+		
 	}
 }
 

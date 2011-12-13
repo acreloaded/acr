@@ -2123,8 +2123,7 @@ void resetserver(const char *newname, int newmode, int newmuts, int newtime){
 	if(m_demo(gamemode)) enddemoplayback();
 	else enddemorecord();
 
-	smode = newmode;
-	smuts = newmuts;
+	modecheck(smode = newmode, smuts = newmuts);
 	copystring(smapname, newname);
 
 	minremain = m_edit(gamemode) ? 1440 : newtime >= 0 ? newtime : (m_team(gamemode, mutators) ? 15 : 10);
@@ -3676,9 +3675,12 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					{
 						getstring(text, p);
 						filtertext(text, text);
-						int mode = getint(p);
+						int mode = getint(p), muts = getint(p);
 						if(mode==G_DEMO) vi->action = new demoplayaction(text);
-						else vi->action = new mapaction(newstring(text), mode, getint(p), sender);
+						else{
+							modecheck(mode, muts);
+							vi->action = new mapaction(newstring(text), mode, muts, sender);
+						}
 						break;
 					}
 					case SA_KICK:

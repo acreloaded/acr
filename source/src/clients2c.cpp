@@ -27,8 +27,7 @@ VARP(autogetmap, 0, 1, 1);
 
 void changemapserv(char *name, int mode, int muts, int download)		// forced map change from the server
 {
-	gamemode = mode;
-	mutators = muts;
+	modecheck(gamemode = mode, mutators = muts);
 	if(m_demo(gamemode)) return;
 	bool loaded = load_world(name);
 	if(download > 0)

@@ -236,6 +236,86 @@ const char *modestr(int gamemode, int mutators, bool acronyms) { return gamename
 const char *voteerrorstr(int n) { return (n>=0 && n < VOTEE_NUM) ? voteerrors[n] : "unknown"; }
 const char *mmfullname(int n) { return (n>=0 && n < MM_NUM) ? mmfullnames[n] : "unknown"; }
 
+void modecheck(int &mode, int &muts, int trying)
+{
+    if(!m_valid(mode))
+    {
+        mode = G_DM;
+        muts = m_implied(mode, G_M_NONE);
+    }
+    #define modecheckreset(a) { if(muts && ++count < G_M_NUM*(G_M_GSN+5)) { i = -1; a; } else { muts = 0; i = G_M_NUM; break; } }
+    if(!gametype[mode].mutators[0]) muts = G_M_NONE;
+    else
+    {
+        int count = 0, implied = m_implied(mode, muts);
+        if(implied) muts |= implied;
+        loopi(G_M_GSN)
+        {
+            int m = 1<<(i+G_M_GSP);
+            if(!(gametype[mode].mutators[0]&m))
+            {
+                muts &= ~m;
+                trying &= ~m;
+            }
+        }
+        if(muts) loopi(G_M_NUM)
+        {
+            if(trying && !(gametype[mode].mutators[0]&mutstype[i].type) && (trying&mutstype[i].type))
+                trying &= ~mutstype[i].type;
+            if(!(gametype[mode].mutators[0]&mutstype[i].type) && (muts&mutstype[i].type))
+            {
+                muts &= ~mutstype[i].type;
+                trying &= ~mutstype[i].type;
+                modecheckreset(continue);
+            }
+            loopj(G_M_GSN)
+            {
+                if(!gametype[mode].mutators[j+1]) continue;
+                int m = 1<<(j+G_M_GSP);
+                if(!(muts&m)) continue;
+                loopk(G_M_GSN)
+                {
+                    if(!gametype[mode].mutators[k+1]) continue;
+                    int n = 1<<(k+G_M_GSP);
+                    if(!(muts&n)) continue;
+                    if(trying && (trying&m) && !(gametype[mode].mutators[k+1]&m))
+                    {
+                        muts &= ~n;
+                        trying &= ~n;
+                        modecheckreset(break);
+                    }
+                }
+                if(i < 0) break;
+            }
+            if(i < 0) continue;
+            if(muts&mutstype[i].type) loopj(G_M_NUM)
+            {
+                if(mutstype[i].mutators && !(mutstype[i].mutators&mutstype[j].type) && (muts&mutstype[j].type))
+                {
+                    implied = m_implied(mode, muts);
+                    if(trying && (trying&mutstype[j].type) && !(implied&mutstype[i].type))
+                    {
+                        muts &= ~mutstype[i].type;
+                        trying &= ~mutstype[i].type;
+                    }
+                    else
+                    {
+                        muts &= ~mutstype[j].type;
+                        trying &= ~mutstype[j].type;
+                    }
+                    modecheckreset(break);
+                }
+                int implying = m_doimply(mode, muts, i);
+                if(implying && (implying&mutstype[j].type) && !(muts&mutstype[j].type))
+                {
+                    muts |= mutstype[j].type;
+                    modecheckreset(break);
+                }
+            }
+        }
+    }
+}
+
 // cryptographic tools
 
 const char *genpwdhash(const char *name, const char *pwd, int salt)
