@@ -38,14 +38,14 @@ enum // game modes
 enum // game mutators
 {
 	G_M_NONE = 0,
-	G_M_TEAM = 1 << 0, G_M_SURVIVOR = 1 << 1, G_M_INSTA = 1 << 2, G_M_CLASSIC = 1 << 3, G_M_CONVERT = 1 << 4, // alters gameplay mostly
-	G_M_REAL = 1 << 5, G_M_EXPERT = 1 << 6, // alters damage mostly
-	G_M_PISTOL = 1 << 7, G_M_GIB = 1 << 8, G_M_KNIFE = 1 << 9, // alters weapons mostly
-	G_M_GSP1 = 1 << 10,
+	G_M_TEAM = 1 << 0, G_M_SURVIVOR = 1 << 1, G_M_CLASSIC = 1 << 2, G_M_CONVERT = 1 << 3, // alters gameplay mostly
+	G_M_REAL = 1 << 4, G_M_EXPERT = 1 << 5, // alters damage mostly
+	G_M_INSTA = 1 << 6, G_M_PISTOL = 1 << 7, G_M_GIB = 1 << 8, G_M_KNIFE = 1 << 9, // alters weapons mostly
+	G_M_GSP1 = 1 << 10, // game-specific
 
-	G_M_GAMEPLAY = G_M_TEAM|G_M_SURVIVOR|G_M_INSTA|G_M_CLASSIC|G_M_CONVERT,
+	G_M_GAMEPLAY = G_M_TEAM|G_M_SURVIVOR|G_M_CLASSIC|G_M_CONVERT,
 	G_M_DAMAGE = G_M_REAL|G_M_EXPERT,
-	G_M_WEAPON = G_M_PISTOL|G_M_GIB|G_M_KNIFE,
+	G_M_WEAPON = G_M_INSTA|G_M_PISTOL|G_M_GIB|G_M_KNIFE,
 	G_M_GSP = G_M_GSP1,
 
 	G_M_MOST = G_M_GAMEPLAY|G_M_DAMAGE|G_M_WEAPON,
@@ -233,11 +233,6 @@ mutstypes mutstype[G_M_NUM] = {
 		"survivor",
 	},
 	{
-		G_M_INSTA, G_M_INSTA,
-		G_M_ALL,
-		"insta",
-	},
-	{
 		G_M_CLASSIC, G_M_CLASSIC,
 		G_M_ALL,
 		"classic",
@@ -257,20 +252,25 @@ mutstypes mutstype[G_M_NUM] = {
 		G_M_ALL & ~(G_M_REAL), // expert conflicts with real
 		"expert",
 	},
-	// pistol, gib, knife are mutually exclusive
+	// weapons are mutually exclusive
+	{
+		G_M_INSTA, G_M_INSTA,
+		G_M_ALL & ~(G_M_PISTOL|G_M_GIB|G_M_KNIFE),
+		"insta",
+	},
 	{
 		G_M_PISTOL, G_M_PISTOL,
-		G_M_ALL & ~(G_M_GIB|G_M_KNIFE),
+		G_M_ALL & ~(G_M_INSTA|G_M_GIB|G_M_KNIFE),
 		"pistol",
 	},
 	{
 		G_M_GIB, G_M_GIB,
-		G_M_ALL & ~(G_M_PISTOL|G_M_KNIFE),
+		G_M_ALL & ~(G_M_INSTA|G_M_PISTOL|G_M_KNIFE),
 		"gibbing",
 	},
 	{
 		G_M_KNIFE, G_M_KNIFE,
-		G_M_ALL & ~(G_M_PISTOL|G_M_GIB),
+		G_M_ALL & ~(G_M_INSTA|G_M_PISTOL|G_M_GIB),
 		"knife",
 	},
 	// game specific ones
