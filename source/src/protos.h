@@ -388,7 +388,13 @@ extern playerent *newclient(int cn);
 extern void timeupdate(int milliscur, int millismax, int musicseed);
 extern void respawnself();
 extern void setskin(playerent *pl, uint skin);
-extern void callvote(int type, char *arg1 = NULL, char *arg2 = NULL);
+struct votedata
+{
+	int int1, int2;
+	const char *str1;
+	votedata(const char *str1) : str1(str1) { int1 = int2 = 0; }
+};
+extern void callvote(int type, votedata *vote);
 extern void addsleep(int msec, const char *cmd);
 extern void resetsleep();
 // streak-related
@@ -426,7 +432,7 @@ struct votedisplayinfo
 };
 extern bool veto;
 
-extern votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, char *arg1, char *arg2);
+extern votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, const votedata &vote);
 extern void callvoteerr(int e);
 extern void displayvote(votedisplayinfo *v);
 extern void clearvote();
@@ -737,7 +743,6 @@ extern bool valid_client(int cn, bool player = false);
 extern void extinfo_cnbuf(ucharbuf &p, int cn);
 extern void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENetAddress &addr, ENetBuffer &buf, int len, int &psend);
 extern void extinfo_teamscorebuf(ucharbuf &p);
-extern const char *votestring(int type, char *arg1, char *arg2);
 extern int wizardmain(int argc, char **argv);
 
 // demo

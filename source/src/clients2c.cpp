@@ -1239,7 +1239,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				playerent *d = getclient(cn);
 				if(type < 0 || type >= SA_NUM || !d) break;
 				votedisplayinfo *v = NULL;
-				string a;
+				// vote data storage
+				static votedata vote = votedata(text);
+				vote = votedata(text); // reset it
+				// vote parsing
 				switch(type)
 				{
 					case SA_SERVERDESC:
@@ -1247,23 +1250,26 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						filtertext(text, text);
 						break;
 					case SA_BAN:
-					case SA_GIVEADMIN:
-						itoa(a, getint(p));
-						itoa(text, getint(p));
+					case SA_GIVEROLE:
+						vote.int2 = getint(p);
+						vote.int1 = getint(p);
 						break;
+
 					case SA_MAP:
+						vote.int2 = getint(p);
+						// fallthrough
 					case SA_KICK:
 						getstring(text, p);
 						filtertext(text, text);
-						itoa(a, getint(p));
+						// more fallthrough
 					default:
-						itoa(a, getint(p));	
+						vote.int1 = getint(p);
 					case SA_STOPDEMO:
 					case SA_REMBANS:
 					case SA_SHUFFLETEAMS:
 						break;
 				}
-				v = newvotedisplayinfo(d, type, a, text);
+				v = newvotedisplayinfo(d, type, vote);
 				if(v) v->expiremillis = totalmillis;
 				if(type == SA_KICK) v->expiremillis += 35000;
 				else if(type == SA_BAN) v->expiremillis += 25000;

@@ -2333,14 +2333,14 @@ void sendcallvote(int cl = -1){
 		switch(curvote->type)
 		{
 			case SA_MAP:
+				putint(p, ((mapaction *)curvote->action)->muts);
 				sendstring(((mapaction *)curvote->action)->map, p);
 				putint(p, ((mapaction *)curvote->action)->mode);
-				putint(p, ((mapaction *)curvote->action)->muts);
 				break;
 			case SA_SERVERDESC:
 				sendstring(((serverdescaction *)curvote->action)->sdesc, p);
 				break;
-			case SA_GIVEADMIN:
+			case SA_GIVEROLE:
 				putint(p, ((giveadminaction *)curvote->action)->cn);
 				putint(p, ((giveadminaction *)curvote->action)->give);
 				break;
@@ -2351,8 +2351,10 @@ void sendcallvote(int cl = -1){
 				break;
 			case SA_KICK:
 				if(curvote->type == SA_KICK) sendstring(((kickaction *)curvote->action)->reason, p);
+				// fallthrough
 			case SA_BAN:
 				if(curvote->type == SA_BAN) putint(p, ((banaction *)curvote->action)->bantime);
+				// fallthrough
 			case SA_SUBDUE:
 			case SA_REVOKE:
 			case SA_FORCETEAM:
@@ -3583,7 +3585,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					p.forceoverread();
 					break;
 				}
-				bool found = mapavailable(text);
+				bool found = mapavailable(text) > 0;
 				if((!found || cl->priv >= PRIV_ADMIN) && sendmapserv(sender, text, mapsize, cfgsize, cfgsizegz, &p.buf[p.len]))
 				{
 					sendf(-1, 1, "ri2s", N_MAPC2S, sender, text);
@@ -3719,7 +3721,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					case SA_SPECT:
 						vi->action = new spectaction(getint(p), sender);
 						break;
-					case SA_GIVEADMIN:
+					case SA_GIVEROLE:
 					{
 						int c = getint(p), r = getint(p);
 						vi->action = new giveadminaction(c, r, sender);
