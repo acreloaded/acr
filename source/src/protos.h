@@ -133,7 +133,7 @@ struct mitem
 	virtual const char *getdesc() { return NULL; }
 	bool isselection();
 	void renderbg(int x, int y, int w, color *c);
-	static color gray, white, whitepulse;
+	static color gray, white, whitepulse, red;
 };
 
 struct mdirlist

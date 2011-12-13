@@ -145,6 +145,7 @@ bool mitem::isselection() { return parent->allowinput && !parent->hotkeys && par
 color mitem::gray(0.2f, 0.2f, 0.2f);
 color mitem::white(1.0f, 1.0f, 1.0f);
 color mitem::whitepulse(1.0f, 1.0f, 1.0f);
+color mitem::red(1.0f, 0.2f, 0.1f);
 
 // text item
 
@@ -626,6 +627,13 @@ struct mitemmuts : mitem
 	// 2: Disallowed
 	int status(){
 		int stats = nextmuts & (1 << num) ? 1 : 0;
+		// forced on?
+		if(stats && (m_implied(nextmode, nextmuts) & (1 << num)))
+			stats |= 2;
+		// depended on?
+		int mm = nextmode, mt = nextmuts;
+		modecheck(mm, mt, 1 << num);
+		if(mt != nextmuts) stats |= 2;
 		return stats;
 	}
 
@@ -638,6 +646,7 @@ struct mitemmuts : mitem
 		if(!(stats & 2)){
 			if(stats & 1) nextmuts &= ~(1 << num);
 			else nextmuts |= 1 << num;
+			modecheck(nextmode, nextmuts);
 		}
 	}
 
@@ -648,7 +657,7 @@ struct mitemmuts : mitem
 		const int stats = status();
 		draw_text(gettext(), x, y);
 		if(isselection()) renderbg(x+w-boxsize, y, boxsize, NULL);
-		blendbox(x+w-boxsize, y, x+w, y+boxsize, false, -1, &gray);
+		blendbox(x+w-boxsize, y, x+w, y+boxsize, false, -1, stats & 2 ? &red : &gray);
 		if(stats & 1)
 		{
 			int x1 = x+w-boxsize-FONTH/6, x2 = x+w+FONTH/6, y1 = y-FONTH/6, y2 = y+boxsize+FONTH/6;

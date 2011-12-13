@@ -707,5 +707,146 @@ int classic_forceperk(int primary){
 	return PERK_NONE;
 }
 
-#define GAMEMODE
-#include "gamemode.h"
+// gamemode definitions
+gametypes gametype[G_MAX-G_FIRST] = {
+	/*
+	{
+		type, implied,
+		{
+			mutators
+		},
+		name, { gsp },
+	},
+	*/
+	{
+		G_DEMO, G_M_NONE,
+		{
+			G_M_NONE,
+			G_M_NONE,
+		},
+		"demo", { "" },
+	},
+	{
+		G_EDIT, G_M_NONE,
+		{
+			G_M_DAMAGE|G_M_WEAPON, // probably superfluous for editmode anyways
+			G_M_NONE,
+		},
+		"coopedit", { "" },
+	},
+	{
+		G_DM, G_M_NONE,
+		{
+			G_M_ALL,
+			G_M_NONE,
+		},
+		"deathmatch", { "extended" },
+	},
+	{
+		G_CTF, G_M_TEAM,
+		{
+			G_M_ALL,
+			G_M_ALL,
+		},
+		"capture the flag", { "return" },
+	},
+	{
+		G_HTF, G_M_TEAM,
+		{
+			G_M_MOST,
+			G_M_NONE,
+		},
+		"hunt the flag", { "" },
+	},
+	{
+		G_KTF, G_M_NONE,
+		{
+			G_M_ALL,
+			G_M_ALL,
+		},
+		"keep the flag", { "double" },
+	},
+	{
+		G_BOMBER, G_M_NONE,
+		{
+			G_M_ALL,
+			G_M_ALL,
+		},
+		"bomber", { "suicide" },
+	},
+	{
+		G_ZOMBIE, G_M_TEAM,
+		{
+			G_M_ALL,
+			G_M_ALL,
+		},
+		"zombies", { "onslaught" },
+	}
+};
+// mutator definitions
+mutstypes mutstype[G_M_NUM] = {
+	/*
+	{
+		type, implied,
+		mutators,
+		name,
+	},
+	*/
+	{
+		G_M_TEAM, G_M_TEAM,
+		G_M_ALL,
+		"team",
+	},
+	{
+		G_M_SURVIVOR, G_M_SURVIVOR,
+		G_M_ALL,
+		"survivor",
+	},
+	{
+		G_M_CLASSIC, G_M_CLASSIC,
+		G_M_ALL,
+		"classic",
+	},
+	{
+		G_M_CONVERT, G_M_CONVERT|G_M_TEAM|G_M_SURVIVOR, // convert forces team and survivor
+		G_M_ALL,
+		"convert",
+	},
+	{
+		G_M_REAL, G_M_REAL,
+		G_M_ALL & ~(G_M_EXPERT), // real conflicts with expert
+		"real",
+	},
+	{
+		G_M_EXPERT, G_M_EXPERT,
+		G_M_ALL & ~(G_M_REAL), // expert conflicts with real
+		"expert",
+	},
+	// weapons are mutually exclusive
+	{
+		G_M_INSTA, G_M_INSTA,
+		G_M_ALL & ~(G_M_PISTOL|G_M_GIB|G_M_KNIFE),
+		"insta",
+	},
+	{
+		G_M_PISTOL, G_M_PISTOL,
+		G_M_ALL & ~(G_M_INSTA|G_M_GIB|G_M_KNIFE),
+		"pistol",
+	},
+	{
+		G_M_GIB, G_M_GIB,
+		G_M_ALL & ~(G_M_INSTA|G_M_PISTOL|G_M_KNIFE),
+		"gibbing",
+	},
+	{
+		G_M_KNIFE, G_M_KNIFE,
+		G_M_ALL & ~(G_M_INSTA|G_M_PISTOL|G_M_GIB),
+		"knife",
+	},
+	// game specific ones
+	{
+		G_M_GSP1, G_M_GSP1,
+		G_M_ALL,
+		"gsp1",
+	},
+};
