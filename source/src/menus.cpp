@@ -627,12 +627,12 @@ struct mitemmuts : mitem
 	// 2: Disallowed
 	int status(){
 		int stats = nextmuts & (1 << num) ? 1 : 0;
-		if(m_valid(nextmode)){
-		// forced on?
+		if(m_valid(nextmode) && num >= 0 && num < G_M_NUM){
+			// forced on?
 			if(m_implied(nextmode, nextmuts) & (1 << num))
 				return stats | 2;
-		// gsp not available?
-			if(num >= G_M_GSP && !*gametype[nextmode].gsp[num-G_M_GSP+1])
+			// gsp not available?
+			if(num >= G_M_GSP && !*gametype[nextmode].gsp[num-G_M_GSP])
 				return stats | 2;
 		}
 		// return unmodified
