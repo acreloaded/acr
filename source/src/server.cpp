@@ -1461,8 +1461,8 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 			if(returndamage) serverdamage(actor, actor, returndamage, WEAP_MAX+3, style, source); // redirect damage to owner
 			*/
 			actor->state.shotdamage += damage; // reduce his accuracy
-			// NEW way: no friendly fire, but reflection
-			serverdamage(actor, actor, damage * .2f, gun, style, source);
+			// NEW way: no friendly fire, but tiny reflection
+			serverdamage(actor, actor, damage * .1f, gun, style, source);
 			return; // haha, all FF redirection is enough
 		}
 	}
