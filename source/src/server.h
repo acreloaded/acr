@@ -247,7 +247,17 @@ struct client				   // server side version of "dynent" type
 
 	void removetimers(int type){ loopv(timers) if(timers[i].type == type) timers.remove(i--); }
 
-	void removeexplosives() { state.grenades.reset(); state.knives.reset(); removetimers(GE_PROJ); }
+	void removeexplosives() {
+		state.grenades.reset(); // remove nades
+		state.knives.reset(); // remove knives (usually useless, since knives are fast)
+		removetimers(GE_PROJ); // remove crossbow
+		// remove all dealt wounds
+		extern vector<client *> clients;
+		loopv(clients){
+			clientstate &cs = clients[i]->state;
+			loopvj(cs.wounds) if(cs.wounds[j].inflictor == clientnum) cs.wounds.remove(j--);
+		}
+	}
 
 	void suicide(int weap, int flags = FRAG_NONE){
 		extern void serverdied(client *target, client *actor, int damage, int gun, int style, const vec &source);
@@ -295,6 +305,7 @@ struct client				   // server side version of "dynent" type
 		guid = 0;
 		masterverdict = DISC_NONE;
 		connected = connectauth = haswelcome = false;
+		removeexplosives();
 	}
 };
 
