@@ -452,7 +452,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				loopi(WEAP_MAX) s->mag[i] = getint(p);
 				//s->state = CS_SPAWNING;
 				s->state = CS_ALIVE;
-				s->spawnmillis = totalmillis;
+				s->spawnmillis = lastmillis;
 				loopi(3) s->o[i] = getfloat(p);
 				updatepos(s);
 				break;
@@ -473,7 +473,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				loopi(WEAP_MAX) d->ammo[i] = getint(p);
 				loopi(WEAP_MAX) d->mag[i] = getint(p);
 				d->state = CS_ALIVE;
-				d->spawnmillis = totalmillis;
+				d->spawnmillis = lastmillis;
 				findplayerstart(d, false, arenaspawn);
 				if(d == player1){
 					if(editmode) toggleedit(true);
@@ -614,12 +614,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						--d->airstrikes;
 						break;
 					case STREAK_RADAR:
-						d->radarearned = totalmillis + info;
+						d->radarearned = lastmillis + info;
 						d->addicon(eventicon::RADAR);
 						break;
 					case STREAK_NUKE:
 						if(info > 0){ // deploy nuke
-							d->nukemillis = totalmillis + info;
+							d->nukemillis = lastmillis + info;
 							d->addicon(eventicon::NUKE);
 							playsound(S_CALLVOTE, SP_HIGHEST);
 							// add voice?
@@ -753,13 +753,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					d->killstreak = killstreak;
 					d->deathstreak = deathstreak;
 					d->deaths = deaths;
-					d->radarearned = totalmillis + radar;
+					d->radarearned = lastmillis + radar;
 					d->airstrikes = airstrikes;
-					d->nukemillis = totalmillis + nuke;
+					d->nukemillis = lastmillis + nuke;
 					if(d!=player1 && !isowned(d))
 					{
 						d->state = state == CS_WAITING ? CS_DEAD : state;
-						d->spawnmillis = totalmillis + spawnmillis;
+						d->spawnmillis = lastmillis + spawnmillis;
 
 						int primary = WEAP_KNIFE;
 						if(m_insta(gamemode, mutators)) primary = WEAP_SNIPER;

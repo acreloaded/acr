@@ -1249,13 +1249,13 @@ void radarinfo(int &total, playerent *&last, int &lastremain, const playerent *a
 	loopi(players.length() + 1){
 		playerent *pl = players.inrange(i) ? players[i] : player1;
 		if(!pl) continue; // null
-		if(pl->radarearned <= totalmillis) continue; // no radar!
+		if(pl->radarearned <= lastmillis) continue; // no radar!
 		if(asSeenBy && asSeenBy != pl && asSeenBy->team != TEAM_SPECT && !isteam(asSeenBy, pl)) continue; // not the same team
 		// add to total
 		++total;
 		// we want the HIGHEST number possible
-		if(pl->radarearned > totalmillis + lastremain){
-			lastremain = pl->radarearned - totalmillis;
+		if(pl->radarearned > lastmillis + lastremain){
+			lastremain = pl->radarearned - lastmillis;
 			last = pl;
 		}
 	}
@@ -1277,12 +1277,12 @@ void nukeinfo(int &total, playerent *&first, int &firstremain){
 	loopi(players.length() + 1){
 		playerent *pl = players.inrange(i) ? players[i] : player1;
 		if(!pl) continue; // null
-		if(pl->nukemillis <= totalmillis) continue; // no upcoming nuke
+		if(pl->nukemillis <= lastmillis) continue; // no upcoming nuke
 		// add to total
 		++total;
 		// we want the LEAST number possible
-		if(!firstremain || pl->nukemillis < totalmillis + firstremain){
-			firstremain = pl->nukemillis - totalmillis;
+		if(!firstremain || pl->nukemillis < lastmillis + firstremain){
+			firstremain = pl->nukemillis - lastmillis;
 			first = pl;
 		}
 	}
