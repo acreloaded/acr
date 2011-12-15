@@ -100,9 +100,9 @@ extern mutstypes mutstype[G_M_NUM];
 #define m_gsp(a,b)          (m_gsp1(a,b))
 
 #define m_noitems(a,b)      (m_insta(a, b) || m_knife(a, b) || m_gib(a, b))
-#define m_noitemsnade(a,b)  (m_lss(a,b))
-#define m_nopistol(a,b)     (m_insta(a,b) || m_lss(a,b))
-#define m_noprimary(a,b)    (m_pistol(a,b) || m_lss(a,b))
+#define m_noitemsnade(a,b)  (m_gib(a,b))
+#define m_nopistol(a,b)     (m_insta(a,b) || m_gib(a,b))
+#define m_noprimary(a,b)    (m_pistol(a,b) || m_gib(a,b))
 
 #define m_duke(a,b)         (m_survivor(a,b))
 #define m_regen(a,b)        (!m_duke(a,b) && !m_insta(a,b))

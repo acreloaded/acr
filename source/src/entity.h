@@ -390,7 +390,7 @@ struct playerstate
 	{
 		if(m_pistol(gamemode, mutators)) primary = WEAP_PISTOL;
 		else if(m_insta(gamemode, mutators)) primary = WEAP_BOLT;
-		else if(m_lss(gamemode, mutators)) primary = WEAP_KNIFE;
+		else if(m_gib(gamemode, mutators) || m_knife(gamemode, mutators)) primary = WEAP_KNIFE;
 		else primary = nextprimary;
 
 		if(primary == WEAP_GRENADE || primary == WEAP_AKIMBO || primary < 0 || primary >= WEAP_MAX) primary = WEAP_ASSAULT;
