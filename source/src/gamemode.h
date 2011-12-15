@@ -37,19 +37,19 @@ enum // game modes
 enum // game mutators
 {
 	G_M_NONE = 0,
-	G_M_TEAM = 1 << 0, G_M_SURVIVOR = 1 << 1, G_M_CLASSIC = 1 << 2, G_M_CONVERT = 1 << 3, // alters gameplay mostly
-	G_M_REAL = 1 << 4, G_M_EXPERT = 1 << 5, // alters damage mostly
-	G_M_SNIPER = 1 << 6, G_M_PISTOL = 1 << 7, G_M_GIB = 1 << 8, G_M_KNIFE = 1 << 9, // alters weapons mostly
-	G_M_GSP1 = 1 << 10, // game-specific
+	G_M_TEAM = 1 << 0, G_M_CLASSIC = 1 << 1, G_M_CONVERT = 1 << 2, // alters gameplay mostly
+	G_M_REAL = 1 << 3, G_M_EXPERT = 1 << 4, // alters damage mostly
+	G_M_SNIPER = 1 << 5, G_M_PISTOL = 1 << 6, G_M_GIB = 1 << 7, G_M_KNIFE = 1 << 8, // alters weapons mostly
+	G_M_GSP1 = 1 << 9, // game-specific
 
-	G_M_GAMEPLAY = G_M_TEAM|G_M_SURVIVOR|G_M_CLASSIC|G_M_CONVERT,
+	G_M_GAMEPLAY = G_M_TEAM|G_M_CLASSIC|G_M_CONVERT,
 	G_M_DAMAGE = G_M_REAL|G_M_EXPERT,
 	G_M_WEAPON = G_M_SNIPER|G_M_PISTOL|G_M_GIB|G_M_KNIFE,
 
 	G_M_MOST = G_M_GAMEPLAY|G_M_DAMAGE|G_M_WEAPON,
 	G_M_ALL = G_M_MOST|G_M_GSP1,
 
-	G_M_GSN = 1, G_M_GSP = 10, G_M_NUM = 11,
+	G_M_GSN = 1, G_M_GSP = 9, G_M_NUM = 10,
 };
 
 struct gametypes
@@ -86,7 +86,6 @@ extern mutstypes mutstype[G_M_NUM];
 #define m_doimply(a,b,c)    (gametype[a].implied|mutstype[c].implied)
 
 #define m_team(a,b)         ((b & G_M_TEAM) || (m_implied(a,b) & G_M_TEAM))
-#define m_survivor(a,b)     ((b & G_M_SURVIVOR) || (m_implied(a,b) & G_M_SURVIVOR))
 #define m_sniper(a,b)        ((b & G_M_SNIPER) || (m_implied(a,b) & G_M_SNIPER))
 #define m_classic(a,b)      ((b & G_M_CLASSIC) || (m_implied(a,b) & G_M_CLASSIC))
 #define m_convert(a,b)      ((b & G_M_CONVERT) || (m_implied(a,b) & G_M_CONVERT))
@@ -130,6 +129,7 @@ extern mutstypes mutstype[G_M_NUM];
 #define m_ktf2(a,b)         (m_keep(a) && m_gsp1(a,b))
 #define m_zombies_rounds(a,b) (m_zombie(a) && !m_gsp1(a,b))
 #define m_onslaught(a,b)    (m_zombie(a) && m_gsp1(a,b))
+#define m_survivor(a,b)     (m_dm(a) && m_gsp(a,b))
 
 #define m_noradar(a,b)      (m_classic(a,b))
 #define m_nonuke(a,b)       (m_zombie(a) && !m_gsp1(a,b))

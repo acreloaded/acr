@@ -751,7 +751,7 @@ gametypes gametype[G_MAX] = {
 			G_M_ALL,
 			G_M_NONE,
 		},
-		"deathmatch", { "extended" },
+		"deathmatch", { "survivor" },
 	},
 	{
 		G_CTF, G_M_TEAM,
@@ -807,11 +807,6 @@ mutstypes mutstype[G_M_NUM] = {
 		G_M_TEAM, G_M_TEAM,
 		G_M_ALL,
 		"team",
-	},
-	{
-		G_M_SURVIVOR, G_M_SURVIVOR,
-		G_M_ALL,
-		"survivor",
 	},
 	{
 		G_M_CLASSIC, G_M_CLASSIC,
