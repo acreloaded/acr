@@ -762,7 +762,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						d->spawnmillis = lastmillis + spawnmillis;
 
 						int primary = WEAP_KNIFE;
-						if(m_insta(gamemode, mutators)) primary = WEAP_SNIPER;
+						if(m_sniper(gamemode, mutators)) primary = WEAP_SNIPER;
 						else if(m_pistol(gamemode, mutators)) primary = WEAP_PISTOL;
 						else if(!m_lss(gamemode, mutators))
 						{

@@ -389,7 +389,7 @@ struct playerstate
 	virtual void spawnstate(int gamemode, int mutators)
 	{
 		if(m_pistol(gamemode, mutators)) primary = WEAP_PISTOL;
-		else if(m_insta(gamemode, mutators)) primary = WEAP_BOLT;
+		else if(m_sniper(gamemode, mutators)) primary = WEAP_BOLT;
 		else if(m_gib(gamemode, mutators) || m_knife(gamemode, mutators)) primary = WEAP_KNIFE;
 		else primary = nextprimary;
 
@@ -416,7 +416,7 @@ struct playerstate
 		}
 
 		const int healthsets[3] = { STARTHEALTH - 15 * HEALTHSCALE, STARTHEALTH, STARTHEALTH + 20 * HEALTHSCALE };
-		health = healthsets[(m_insta(gamemode, mutators) ? 0 : 1) + (perk == PERK_HEALTHY ? 1 : 0)];
+		health = healthsets[(m_sniper(gamemode, mutators) ? 0 : 1) + (perk == PERK_HEALTHY ? 1 : 0)];
 	}
 
 	// just subtract damage here, can set death, etc. later in code calling this

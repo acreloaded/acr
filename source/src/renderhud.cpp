@@ -180,7 +180,7 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 		if(teamtype == 1) col = color(0.f, 1.f, 0.f);
 		else if(teamtype == 2) col = color(1.f, 0.f, 0.f);
 	}
-	else if(!m_insta(gamemode, mutators)){
+	else if(!m_sniper(gamemode, mutators)){
 		if(p->health<=50 * HEALTHSCALE) col = color(0.5f, 0.25f, 0.f); // orange-red
 		if(p->health<=25 * HEALTHSCALE) col = color(0.5f, 0.125f, 0.f); // red-orange
 	}
@@ -259,7 +259,7 @@ void drawequipicons(playerent *p)
 	if(p->armor)
 		if(p->armor > 25) drawequipicon(560, 1650, (p->armor - 25) / 25, 2, 0);
 		else drawequipicon(560, 1650, 3, 3, 0);
-	drawequipicon(20, 1650, 2, 3, (lastmillis - p->lastregen < 1000 ? 2 : 0) | ((p->state!=CS_DEAD && p->health<=35*HEALTHSCALE && !m_insta(gamemode, mutators)) ? 1 : 0), p);
+	drawequipicon(20, 1650, 2, 3, (lastmillis - p->lastregen < 1000 ? 2 : 0) | ((p->state!=CS_DEAD && p->health<=35*HEALTHSCALE && !m_sniper(gamemode, mutators)) ? 1 : 0), p);
 	if(p->mag[WEAP_GRENADE]) drawequipicon(1520, 1650, 3, 1, 0);
 
 	// weapons
@@ -702,7 +702,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	static Texture *damagetex = textureload("packages/misc/damage.png", 3), *damagedirtex = textureload("packages/misc/damagedir.png");
 	glEnable(GL_TEXTURE_2D);
 
-	if(!m_insta(gamemode, mutators)){
+	if(!m_sniper(gamemode, mutators)){
 		static float fade = 0.f;
 		float newfade = (p->state != CS_DEAD && p->state != CS_EDITING) ? ((1 - powf(p->health, 2) / powf(100 * HEALTHSCALE, 2)) * damagescreenalpha / 100.f) : 0;
 		fade = (fade * 40 + newfade) / 41.f;
