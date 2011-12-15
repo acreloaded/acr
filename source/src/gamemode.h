@@ -99,7 +99,7 @@ extern mutstypes mutstype[G_M_NUM];
 #define m_gsp1(a,b)         ((b & G_M_GSP1) || (m_implied(a,b) & G_M_GSP1))
 #define m_gsp(a,b)          (m_gsp1(a,b))
 
-#define m_noitems(a,b)      (m_sniper(a, b) || m_knife(a, b) || m_gib(a, b))
+#define m_noitems(a,b)      (m_sniper(a, b) || m_knife(a, b))
 #define m_noitemsnade(a,b)  (m_gib(a,b))
 #define m_nopistol(a,b)     (m_sniper(a,b) || m_gib(a,b))
 #define m_noprimary(a,b)    (m_pistol(a,b) || m_gib(a,b))
