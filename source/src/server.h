@@ -749,7 +749,7 @@ gametypes gametype[G_MAX] = {
 		G_DM, G_M_NONE,
 		{
 			G_M_ALL,
-			G_M_NONE,
+			G_M_ALL & ~(G_M_CONVERT),
 		},
 		"deathmatch", { "survivor" },
 	},
