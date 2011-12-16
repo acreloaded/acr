@@ -626,16 +626,17 @@ struct mitemmuts : mitem
 	// 1: Selected
 	// 2: Disallowed
 	int status(){
+		// is it set?
 		int stats = nextmuts & (1 << num) ? 1 : 0;
-		if(m_valid(nextmode) && num >= 0 && num < G_M_NUM){
-			// can we apply it?
-			int trying = 1 << num,
-				target = stats ? (nextmuts | trying) : (nextmuts & ~trying),
-				muts = target;
-			modecheck(nextmode, muts/*, trying*/);
-			if(muts != target) return stats | 2;
-		}
-		// return unmodified
+
+		// can we apply it?
+		int trying = 1 << num,
+			target = stats ? (nextmuts & ~trying) : (nextmuts | trying),
+			muts = target;
+		modecheck(nextmode, muts/*, trying*/);
+		if(muts != target) return stats | 2;
+
+		// yes, we can! return unmodified
 		return stats;
 	}
 
