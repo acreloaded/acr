@@ -832,7 +832,7 @@ mutstypes mutstype[G_M_NUM] = {
 	{
 		G_M_SNIPER, G_M_SNIPER,
 		G_M_ALL & ~(G_M_PISTOL|G_M_GIB|G_M_KNIFE),
-		"sniper",
+		"sniping",
 	},
 	{
 		G_M_PISTOL, G_M_PISTOL,
@@ -847,7 +847,7 @@ mutstypes mutstype[G_M_NUM] = {
 	{
 		G_M_KNIFE, G_M_KNIFE,
 		G_M_ALL & ~(G_M_SNIPER|G_M_PISTOL|G_M_GIB),
-		"knife",
+		"knifing",
 	},
 	// game specific ones
 	{
