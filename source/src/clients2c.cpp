@@ -364,8 +364,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				playerent *d = getclient(getint(p));
 				const int newowner = getint(p);
+				getstring(text, p);
 				if(!d || d == player1) break;
-				formatstring(d->name)("bot%d-%d", d->clientnum, d->ownernum = newowner);
+				if(!*text) copystring(text, "unarmed");
+				filtername(d->name, text);
+				// state bugs
 				if(d->state == CS_WAITING) d->state = CS_ALIVE;
 				break;
 			}
