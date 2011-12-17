@@ -702,7 +702,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	static Texture *damagetex = textureload("packages/misc/damage.png", 3), *damagedirtex = textureload("packages/misc/damagedir.png");
 	glEnable(GL_TEXTURE_2D);
 
-	if(!m_regen(gamemode, mutators)){
+	if(m_regen(gamemode, mutators)){
 		static float fade = 0.f;
 		float newfade = (p->state != CS_DEAD && p->state != CS_EDITING) ? ((1 - powf(p->health, 2) / powf(100 * HEALTHSCALE, 2)) * damagescreenalpha / 100.f) : 0;
 		fade = (fade * 40 + newfade) / 41.f;
