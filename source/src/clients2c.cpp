@@ -366,6 +366,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				const int newowner = getint(p);
 				getstring(text, p);
 				if(!d || d == player1) break;
+				d->ownernum = newowner;
 				if(!*text) copystring(text, "unarmed");
 				filtername(d->name, text);
 				// state bugs
