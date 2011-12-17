@@ -1037,7 +1037,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		// we have the blend function set by the perk icon
 		loopi(11){
 			glColor4f(1, 1, 1, p->state != CS_DEAD ? (p->pointstreak == i || i >= 10) ? (0.3f+fabs(sinf(lastmillis/500.0f))/2) : .8f : .3f);
-			quad(streakt[i & 1][p->pointstreak > i ? 2 : p->pointstreak == i ? 1 : p->deathstreak >= i ? 3 : 0]->id,
+			quad(streakt[i & 1][p->pointstreak > i * 5 ? 2 : p->pointstreak/5 == i ? 1 : p->deathstreak >= i ? 3 : 0]->id,
 					(VIRTW-225-10-180-30 - 80 - 15 -(11*50) + i*50) * streakscale, (VIRTH - 80 - 35) * streakscale, 80 * streakscale, 0, 0, 1);
 		}
 		// streak misc

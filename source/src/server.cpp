@@ -1337,6 +1337,8 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 		--actor->state.frags;
 		suic = true;
 	}
+
+	// streak/assist
 	++actor->state.pointstreak;
 	++ts.deathstreak;
 	actor->state.deathstreak = ts.pointstreak = 0;
@@ -1345,19 +1347,36 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	ts.damagelog.removeobj(actor->clientnum);
 	target->removetimers(GE_RELOAD);
 	loopv(ts.damagelog){
-		if(valid_client(ts.damagelog[i])) clients[ts.damagelog[i]]->state.assists++;
+		if(valid_client(ts.damagelog[i])){
+			// add assist/assiststreak
+			++clients[ts.damagelog[i]]->state.assists;
+			clients[ts.damagelog[i]]->state.pointstreak += 2;
+		}
 		else ts.damagelog.remove(i--);
 	}
+
+	// fixme
+	switch(actor->state.pointstreak + (actor->state.perk == PERK_STREAK ? 5 : 0)){
+		case 7 * 5:
+			streakready(*actor, STREAK_AIRSTRIKE);
+			break;
+		case 9 * 5:
+			if(!m_noradar(gamemode, mutators)) usestreak(*actor, STREAK_RADAR);
+			break;
+		case 11 * 5:
+			if(!m_nonuke(gamemode, mutators)) usestreak(*actor, STREAK_NUKE);
+			break;
+	}
+	usestreak(*target, ts.streakondeath);
+
 	if(gamemillis >= actor->state.lastkill + 500) actor->state.combo = 0;
 	actor->state.lastkill = gamemillis;
 	const float killdist = ts.o == source ? 0 : clamp<float>(ts.o.dist(source) / 4, -1, 1000);
 	sendf(-1, 1, "ri9f4v", N_KILL, target->clientnum, actor->clientnum, actor->state.frags, gun, style & FRAG_VALID, damage, ++actor->state.combo,
 		ts.damagelog.length(), killdist, source.x, source.y, source.z, ts.damagelog.length(), ts.damagelog.getbuf());
 	killpoints(target, actor, gun, style);
-	if(suic && (m_hunt(gamemode) || m_keep(gamemode)) && targethasflag >= 0){
-		actor->state.flagscore--;
-		sendf(-1, 1, "ri3", N_FLAGCNT, actor->clientnum, actor->state.flagscore);
-	}
+	if(suic && (m_hunt(gamemode) || m_keep(gamemode)) && targethasflag >= 0)
+		sendf(-1, 1, "ri3", N_FLAGCNT, actor->clientnum, --actor->state.flagscore);
 	target->position.setsize(0);
 	ts.state = CS_DEAD;
 	ts.lastdeath = gamemillis;
@@ -1393,35 +1412,6 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 		target->state.nukemillis = 0;
 		sendf(-1, 1, "ri4", N_STREAKUSE, target->clientnum, STREAK_NUKE, -2);
 	}
-
-	switch(actor->state.pointstreak + (actor->state.perk == PERK_STREAK ? 1 : 0)){
-		case 7:
-			streakready(*actor, STREAK_AIRSTRIKE);
-			break;
-		case 9:
-			if(!m_noradar(gamemode, mutators)) usestreak(*actor, STREAK_RADAR);
-			break;
-		case 10:
-			/*
-			if(m_convert && actor->team == TEAM_BLUE && target->team == TEAM_RED){
-				// convert our tenth kill in a row to human
-				updateclientteam(target->clientnum, TEAM_BLUE, FTR_SILENT);
-				bool found = false;
-				loopv(clients)
-					if(clients[i]->type != ST_EMPTY && clients[i]->team == TEAM_RED){
-						found = true;
-						break;
-					}
-				// game ends if all zombies are converted
-				if(!found) forceintermission = true;
-			}
-			*/
-			break;
-		case 11:
-			if(!m_nonuke(gamemode, mutators)) usestreak(*actor, STREAK_NUKE);
-			break;
-	}
-	usestreak(*target, ts.streakondeath);
 
 	// conversions
 	if(!suic && m_convert(gamemode, mutators) && target->team != actor->team){
