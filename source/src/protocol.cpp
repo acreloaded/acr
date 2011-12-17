@@ -238,15 +238,47 @@ const char *mmfullname(int n) { return (n>=0 && n < MM_NUM) ? mmfullnames[n] : "
 
 void modecheck(int &mode, int &muts, int trying)
 {
-    if(!m_valid(mode))
-    {
-        mode = G_DM;
-        muts = m_implied(mode, G_M_NONE);
-    }
-    #define modecheckreset(a) { if(muts && ++count < G_M_NUM*(G_M_GSN+5)) { i = -1; a; } else { muts = 0; i = G_M_NUM; break; } }
-    if(!gametype[mode].mutators[0]) muts = G_M_NONE;
-    else
-    {
+	if(!m_valid(mode))
+	{
+		mode = G_DM;
+		muts = m_implied(mode, G_M_NONE);
+	}
+	//#define modecheckreset(a) { if(muts && ++count < G_M_NUM*(G_M_GSN+5)) { i = -1; a; } else { muts = 0; i = G_M_NUM; break; } }
+	if(!gametype[mode].mutators[0]) muts = G_M_NONE;
+	else
+	{
+		int implied = m_implied(mode, muts);
+		if(implied) muts |= implied;
+
+		implied = 0;
+		int gsps = 0;
+		int allowed = G_M_ALL;
+
+		loopi(G_M_GSN)
+		{
+			if(i > G_M_GSN)
+			{
+				int m = 1<<(i+G_M_GSP);
+				if(!(gametype[mode].mutators[0]&m))
+				{
+					gsps |= 1 << i;
+					allowed &= gametype[mode].mutators[i+1];
+
+					muts &= ~m;
+					trying &= ~m;
+				}
+			}
+
+			allowed &= mutstype[i].mutators;
+			implied |= mutstype[i].implied;
+		}
+
+		if(!gsps)
+			allowed &= gametype[mode].mutators[0];
+
+		muts = (muts & allowed) | implied;
+
+		/*
         int count = 0, implied = m_implied(mode, muts);
         if(implied) muts |= implied;
         loopi(G_M_GSN)
@@ -313,6 +345,7 @@ void modecheck(int &mode, int &muts, int trying)
                 }
             }
         }
+		*/
     }
 }
 
@@ -365,8 +398,8 @@ gametypes gametype[G_MAX] = {
 	{
 		G_DM, G_M_NONE,
 		{
-			G_M_ALL & ~(G_M_CLASSIC),
 			G_M_ALL & ~(G_M_CONVERT),
+			G_M_ALL & ~(G_M_CLASSIC), // fixme
 		},
 		"deathmatch", { "survivor" },
 	},
