@@ -614,6 +614,12 @@ struct botname
 		delete[] name;
 	}
 };
+vector<botname> botnames;
+
+void mkbotname(client &c){
+	if(!m_zombie(gamemode) && botnames.length()) botnames[rnd(botnames.length())].putname(c.name, c.state.level);
+	else formatstring(c.name)("bot%d-%d", c.clientnum, c.state.ownernum);
+}
 
 void clearai(), checkai();
 //void startgame(const char *newname, int newmode, int newtime = -1, bool notify = true);

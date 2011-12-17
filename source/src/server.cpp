@@ -45,8 +45,6 @@ vector<demofile> demos;
 vector<configset> configsets;
 int curcfgset = -1;
 
-vector<botname> botnames;
-
 // throwing knives
 vector<sknife> sknives;
 int sknifeid = 0;
