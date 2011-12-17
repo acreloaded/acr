@@ -599,7 +599,7 @@ struct botname
 		{
 			// skill is from 45 to 95
 			if(sk >= 90) lrank = "Lt. "; // 10%
-			if(sk >= 80) lrank = "Sgt. "; // 20%
+			else if(sk >= 80) lrank = "Sgt. "; // 20%
 			else if(sk >= 65) lrank = "Cpl. "; // 30%
 			else lrank = "Pvt. "; // 40%
 		}
