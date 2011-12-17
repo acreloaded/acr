@@ -45,7 +45,7 @@ vector<demofile> demos;
 vector<configset> configsets;
 int curcfgset = -1;
 
-vector<const char *> botnames;
+vector<botname> botnames;
 
 // throwing knives
 vector<sknife> sknives;
@@ -1486,7 +1486,7 @@ void readbotnames(const char *name)
 	int len, line = 0;
 
 	if(!name && getfilesize(botfilename) == botfilesize) return;
-	botnames.deletearrays();
+	botnames.shrink(0);
 	char *buf = loadcfgfile(botfilename, name, &len);
 	botfilesize = len;
 	if(!buf) return;
@@ -1495,11 +1495,13 @@ void readbotnames(const char *name)
 	while(p < buf + len)
 	{
 		l = p; p += strlen(p) + 1; line++;
-		l = strtok(l, sep);
-		if(l)
+		char *n = strchr(l, *sep);
+		if(l && n)
 		{
-			// as simple as this...
-			botnames.add(newstring(l, MAXNAMELEN));
+			*n++ = 0;
+			botname &bn = botnames.add();
+			copystring(bn.rank, l, MAXNAMELEN);
+			copystring(bn.name, n, MAXNAMELEN);
 		}
 	}
 	delete[] buf;

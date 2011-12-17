@@ -32,7 +32,7 @@ bool addai(){
 	}
 	client &b = *clients[cn];
 	b.reset();
-	if(botnames.length()) copystring(b.name, botnames[rnd(botnames.length())], MAXNAMELEN);
+	if(botnames.length()) botnames[rnd(botnames.length())].putname(b.name);
 	else formatstring(b.name)("bot%d-%d", cn, aiowner);
 	b.type = ST_AI;
 	b.connected = true;

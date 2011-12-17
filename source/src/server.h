@@ -576,6 +576,36 @@ struct configset
 	};
 };
 
+struct botname
+{
+	char *rank;
+	char *name;
+
+	botname(){
+		rank = new char[MAXNAMELEN];
+		name = new char[MAXNAMELEN];
+	}
+
+	void putname(char *target, int len = MAXNAMELEN){
+		const char *ranks[] = { "Pvt.", "Cpl." };
+		string fname;
+		if(*rank == '!'){ // no rank
+			copystring(target, name);
+			return;
+		}
+		else if(*rank == '*') // random rank
+			formatstring(fname)("%s %s", ranks[rnd(sizeof(ranks)/sizeof(*ranks))], name);
+		else // provided rank
+			formatstring(fname)("%s %s", rank, name);
+		copystring(target, fname, len);
+	}
+
+	~botname(){
+		delete[] rank;
+		delete[] name;
+	}
+};
+
 void clearai(), checkai();
 //void startgame(const char *newname, int newmode, int newtime = -1, bool notify = true);
 void resetmap(const char *newname, int newmode, int newmuts, int newtime = -1, bool notify = true);
