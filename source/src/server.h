@@ -175,14 +175,14 @@ struct savedscore
 {
 	string name;
 	enet_uint32 ip;
-	int points, frags, assists, killstreak, flagscore, deaths, shotdamage, damage;
+	int points, frags, assists, pointstreak, flagscore, deaths, shotdamage, damage;
 
 	void save(clientstate &cs)
 	{
 		points = cs.points;
 		frags = cs.frags;
 		assists = cs.assists;
-		killstreak = cs.killstreak;
+		pointstreak = cs.pointstreak;
 		flagscore = cs.flagscore;
 		deaths = cs.deaths;
 		shotdamage = cs.shotdamage;
@@ -194,7 +194,7 @@ struct savedscore
 		cs.points = points;
 		cs.frags = frags;
 		cs.assists = assists;
-		cs.killstreak = killstreak;
+		cs.pointstreak = pointstreak;
 		cs.flagscore = flagscore;
 		cs.deaths = deaths;
 		cs.shotdamage = shotdamage;

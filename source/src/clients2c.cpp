@@ -738,7 +738,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					int state = getint(p), lifesequence = getint(p), gunselect = getint(p),
 						points = getint(p), flagscore = getint(p),
 						frags = getint(p), assists = getint(p),
-						killstreak = getint(p), deathstreak = getint(p),
+						pointstreak = getint(p), deathstreak = getint(p),
 						deaths = getint(p), health = getint(p), armor = getint(p),
 						radar = getint(p), airstrikes = getint(p), nuke = getint(p), spawnmillis = getint(p);
 					int ammo[WEAP_MAX], mag[WEAP_MAX];
@@ -752,7 +752,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					d->flagscore = flagscore;
 					d->frags = frags;
 					d->assists = assists;
-					d->killstreak = killstreak;
+					d->pointstreak = pointstreak;
 					d->deathstreak = deathstreak;
 					d->deaths = deaths;
 					d->radarearned = lastmillis + radar;

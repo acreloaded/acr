@@ -531,7 +531,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 			isteam(pl, act) ? act==player1 ? "\f3your teammate " : "\f3his teammate " : "", pl == player1 ? "\f1you\f2" : colorname(pl));
 	if(killdist) concatformatstring(predicate, " (@%.2f m)", killdist);
 	// streaks
-	if(act->killstreak++) concatformatstring(predicate, " %d ks", act->killstreak);
+	if(act->pointstreak++) concatformatstring(predicate, " %d ks", act->pointstreak);
 	if(pl->deathstreak++) concatformatstring(predicate, " %d ds", pl->deathstreak);
 	// assist count
 	pl->damagelog.removeobj(pl->clientnum);
@@ -563,7 +563,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 	if(style & FRAG_FIRST) concatstring(predicate, " for \fs\f3\fbfirst blood\fr");
 	if(style & FRAG_CRIT) concatstring(predicate, " with a \fs\f1\fbcritical hit\fr");
 	conoutf("%s %s", subject, predicate);
-	pl->killstreak = act->deathstreak = 0;
+	pl->pointstreak = act->deathstreak = 0;
 	
 	int icon = -1;
 	if(style & FRAG_GIB){

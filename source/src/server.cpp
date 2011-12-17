@@ -1337,9 +1337,9 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 		--actor->state.frags;
 		suic = true;
 	}
-	++actor->state.killstreak;
+	++actor->state.pointstreak;
 	++ts.deathstreak;
-	actor->state.deathstreak = ts.killstreak = 0;
+	actor->state.deathstreak = ts.pointstreak = 0;
 	ts.wounds.shrink(0);
 	ts.damagelog.removeobj(target->clientnum);
 	ts.damagelog.removeobj(actor->clientnum);
@@ -1394,7 +1394,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 		sendf(-1, 1, "ri4", N_STREAKUSE, target->clientnum, STREAK_NUKE, -2);
 	}
 
-	switch(actor->state.killstreak + (actor->state.perk == PERK_STREAK ? 1 : 0)){
+	switch(actor->state.pointstreak + (actor->state.perk == PERK_STREAK ? 1 : 0)){
 		case 7:
 			streakready(*actor, STREAK_AIRSTRIKE);
 			break;
@@ -2785,7 +2785,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet){
 			putint(p, cs.flagscore);
 			putint(p, cs.frags);
 			putint(p, cs.assists);
-			putint(p, cs.killstreak);
+			putint(p, cs.pointstreak);
 			putint(p, cs.deathstreak);
 			putint(p, cs.deaths);
 			putint(p, cs.health);

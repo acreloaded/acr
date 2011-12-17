@@ -305,14 +305,14 @@ struct playerstate
 {
 	int ownernum; // for bots
 	int health, armor, spawnmillis;
-	int killstreak, deathstreak, assists, radarearned, airstrikes, nukemillis;
+	int pointstreak, deathstreak, assists, radarearned, airstrikes, nukemillis;
 	int primary, nextprimary, perk, nextperk;
 	int gunselect, level;
 	bool akimbo, scoping;
 	int ammo[WEAP_MAX], mag[WEAP_MAX], gunwait[WEAP_MAX];
 	ivector damagelog;
 
-	playerstate() : primary(WEAP_ASSAULT), nextprimary(WEAP_ASSAULT), perk(PERK_NONE), nextperk(PERK_NONE), ownernum(-1), level(1), killstreak(0), deathstreak(0), airstrikes(0), radarearned(0), nukemillis(0), spawnmillis(0) {}
+	playerstate() : primary(WEAP_ASSAULT), nextprimary(WEAP_ASSAULT), perk(PERK_NONE), nextperk(PERK_NONE), ownernum(-1), level(1), pointstreak(0), deathstreak(0), airstrikes(0), radarearned(0), nukemillis(0), spawnmillis(0) {}
 	virtual ~playerstate() {}
 
 	itemstat &itemstats(int type)
