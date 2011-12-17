@@ -366,6 +366,216 @@ struct demofile
     int len;
 };
 
+char *loadcfgfile(char *cfg, const char *name, int *len){
+	if(name && name[0])
+	{
+		copystring(cfg, name);
+		path(cfg);
+	}
+	char *p, *buf = loadfile(cfg, len);
+	if(!buf)
+	{
+		if(name) logline(ACLOG_INFO,"could not read config file '%s'", name);
+		return NULL;
+	}
+	if('\r' != '\n') // this is not a joke!
+	{
+		char c = strchr(buf, '\n') ? ' ' : '\n'; // in files without /n substitute /r with /n, otherwise remove /r
+		for(p = buf; (p = strchr(p, '\r')); p++) *p = c;
+	}
+	for(p = buf; (p = strstr(p, "//")); ) // remove comments
+	{
+		while(*p != '\n' && *p != '\0') p++[0] = ' ';
+	}
+	for(p = buf; (p = strchr(p, '\t')); p++) *p = ' ';
+	for(p = buf; (p = strchr(p, '\n')); p++) *p = '\0'; // one string per line
+	return buf;
+}
+
+#define MAXNICKFRAGMENTS 5
+enum { NWL_UNLISTED = 0, NWL_PASS, NWL_PWDFAIL, NWL_IPFAIL };
+
+struct nickblacklist {
+	struct iprchain	 { struct iprange ipr; const char *pwd; int next; };
+	struct blackline	{ int frag[MAXNICKFRAGMENTS]; bool ignorecase; int line; void clear() { loopi(MAXNICKFRAGMENTS) frag[i] = -1; } };
+	hashtable<const char *, int> whitelist;
+	vector<iprchain> whitelistranges;
+	vector<blackline> blacklines;
+	vector<const char *> blfraglist;
+
+	void destroylists()
+	{
+		whitelistranges.setsize(0);
+		enumeratek(whitelist, const char *, key, delete key);
+		whitelist.clear(false);
+		blfraglist.deletecontents();
+		blacklines.setsize(0);
+	}
+
+	void readnickblacklist(const char *name)
+	{
+		static string nbfilename;
+		static int nbfilesize;
+		const char *sep = " ";
+		int len, line = 1, errors = 0;
+		iprchain iprc;
+		blackline bl;
+
+		if(!name && getfilesize(nbfilename) == nbfilesize) return;
+		destroylists();
+		char *buf = loadcfgfile(nbfilename, name, &len);
+		nbfilesize = len;
+		if(!buf) return;
+		char *l, *s, *r, *p = buf;
+		logline(ACLOG_VERBOSE,"reading nickname blacklist '%s'", nbfilename);
+		while(p < buf + len)
+		{
+			l = p; p += strlen(p) + 1;
+			l = strtok(l, sep);
+			if(l)
+			{
+				s = strtok(NULL, sep);
+				int ic = 0;
+				if(s && (!strcmp(l, "accept") || !strcmp(l, "a")))
+				{ // accept nickname IP-range
+					int *i = whitelist.access(s);
+					if(!i) i = &whitelist.access(newstring(s), -1);
+					s += strlen(s) + 1;
+					while(s < p)
+					{
+						r = (char *) atoipr(s, &iprc.ipr);
+						s += strspn(s, sep);
+						iprc.pwd = r && *s ? NULL : newstring(s, strcspn(s, sep));
+						if(r || *s)
+						{
+							iprc.next = *i;
+							*i = whitelistranges.length();
+							whitelistranges.add(iprc);
+							s = r ? r : s + strlen(iprc.pwd);
+						}
+						else break;
+					}
+					s = NULL;
+				}
+				else if(s && (!strcmp(l, "block") || !strcmp(l, "b") || ic++ || !strcmp(l, "blocki") || !strcmp(l, "bi")))
+				{ // block nickname fragments (ic == ignore case)
+					bl.clear();
+					loopi(MAXNICKFRAGMENTS)
+					{
+						if(ic) strtoupper(s);
+						loopvj(blfraglist)
+						{
+							if(!strcmp(s, blfraglist[j])) { bl.frag[i] = j; break; }
+						}
+						if(bl.frag[i] < 0)
+						{
+							bl.frag[i] = blfraglist.length();
+							blfraglist.add(newstring(s));
+						}
+						s = strtok(NULL, sep);
+						if(!s) break;
+					}
+					bl.ignorecase = ic > 0;
+					bl.line = line;
+					blacklines.add(bl);
+				}
+				else { logline(ACLOG_INFO," error in line %d, file %s: unknown keyword '%s'", line, nbfilename, l); errors++; }
+				if(s && s[strspn(s, " ")]) { logline(ACLOG_INFO," error in line %d, file %s: ignored '%s'", line, nbfilename, s); errors++; }
+			}
+			line++;
+		}
+		delete[] buf;
+		logline(ACLOG_VERBOSE," nickname whitelist (%d entries):", whitelist.numelems);
+		string text;
+		enumeratekt(whitelist, const char *, key, int, idx,
+		{
+			text[0] = '\0';
+			for(int i = idx; i >= 0; i = whitelistranges[i].next)
+			{
+				iprchain &ic = whitelistranges[i];
+				if(ic.pwd) concatformatstring(text, "  pwd:\"%s\"", hiddenpwd(ic.pwd));
+				else concatformatstring(text, "  %s", iprtoa(ic.ipr));
+			}
+			logline(ACLOG_VERBOSE, "  accept %s%s", key, text);
+		});
+		logline(ACLOG_VERBOSE," nickname blacklist (%d entries):", blacklines.length());
+		loopv(blacklines)
+		{
+			text[0] = '\0';
+			loopj(MAXNICKFRAGMENTS)
+			{
+				int k = blacklines[i].frag[j];
+				if(k >= 0) { concatstring(text, " "); concatstring(text, blfraglist[k]); }
+			}
+			logline(ACLOG_VERBOSE, "  %2d block%s%s", blacklines[i].line, blacklines[i].ignorecase ? "i" : "", text);
+		}
+		logline(ACLOG_INFO,"read %d + %d entries from nickname blacklist file '%s', %d errors", whitelist.numelems, blacklines.length(), nbfilename, errors);
+	}
+
+	int checknickwhitelist(const client &c)
+	{
+		if(c.type != ST_TCPIP) return NWL_PASS;
+		iprange ipr;
+		ipr.lr = ENET_NET_TO_HOST_32(c.peer->address.host); // blacklist uses host byte order
+		int *idx = whitelist.access(c.name);
+		if(!idx) return NWL_UNLISTED; // no matching entry
+		int i = *idx;
+		bool needipr = false, iprok = false, needpwd = false, pwdok = false;
+		while(i >= 0)
+		{
+			iprchain &ic = whitelistranges[i];
+			if(ic.pwd)
+			{ // check pwd
+				needpwd = true;
+				if(pwdok || !strcmp(genpwdhash(c.name, ic.pwd, c.salt), c.pwd)) pwdok = true;
+			}
+			else
+			{ // check IP
+				needipr = true;
+				if(!cmpipmatch(&ipr, &ic.ipr)) iprok = true; // range match found
+			}
+			i = whitelistranges[i].next;
+		}
+		if(needpwd && !pwdok) return NWL_PWDFAIL; // wrong PWD
+		if(needipr && !iprok) return NWL_IPFAIL; // wrong IP
+		return NWL_PASS;
+	}
+
+	int checknickblacklist(const char *name)
+	{
+		if(blacklines.empty()) return -2;  // no nickname blacklist loaded
+		string nameuc;
+		copystring(nameuc, name);
+		strtoupper(nameuc);
+		loopv(blacklines)
+		{
+			loopj(MAXNICKFRAGMENTS)
+			{
+				int k = blacklines[i].frag[j];
+				if(k < 0) return blacklines[i].line; // no more fragments to check
+				if(strstr(blacklines[i].ignorecase ? nameuc : name, blfraglist[k]))
+				{
+					if(j == MAXNICKFRAGMENTS - 1) return blacklines[i].line; // all fragments match
+				}
+				else break; // this line no match
+			}
+		}
+		return -1; // no match
+	}
+} nbl;
+
+#define CONFIG_MAXPAR 6
+
+struct configset
+{
+	string mapname;
+	union
+	{
+		struct { int mode, muts, time, vote, minplayer, maxplayer, skiplines; };
+		int par[CONFIG_MAXPAR];
+	};
+};
+
 void clearai(), checkai();
 //void startgame(const char *newname, int newmode, int newtime = -1, bool notify = true);
 void resetmap(const char *newname, int newmode, int newmuts, int newtime = -1, bool notify = true);

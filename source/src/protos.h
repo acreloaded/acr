@@ -768,7 +768,7 @@ extern bool logline(int level, const char *msg, ...);
 struct servercommandline
 {
 	int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, verbose, demodownloadpriv, afktimelimit;
-	const char *ip, *master, *logident, *serverpassword, *demopath, *maprot, *pwdfile, *blfile, *nbfile, *infopath;
+	const char *ip, *master, *logident, *serverpassword, *demopath, *maprot, *pwdfile, *blfile, *nbfile, *infopath, *botfile;
 	bool demoeverymatch, logtimestamp;
 	string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm;
 	int clfilenesting;
@@ -778,7 +778,7 @@ struct servercommandline
 							maxclients(DEFAULTCLIENTS), verbose(0), afktimelimit(45000),
 							ip(""), master(NULL), logident(""), serverpassword(""), demopath(""),
 							maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), nbfile("config/nicknameblacklist.cfg"),
-							infopath("config/serverinfo"),
+							infopath("config/serverinfo"), botfile("config/default.botnames.cfg"),
 							demoeverymatch(false), logtimestamp(false),
 							clfilenesting(0)
 	{
