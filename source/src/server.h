@@ -587,22 +587,25 @@ struct botname
 	}
 
 	void putname(char *target, int sk){
-		if(*rank == '!'){ // no rank
-			copystring(target, name, MAXNAMELEN);
-			return;
-		}
-
+		string fname;
 		char *lrank = rank; // local rank (given rank)
-		if(*rank == '*') // rank based on skill
+		char *lsep = " "; // seperator between ranks
+
+		if(*rank == '!') // don't have a rank
+		{
+			lsep = lrank = "";
+		}
+		else if(*rank == '*') // rank based on skill
 		{
 			// skill is from 45 to 95
 			if(sk >= 90) lrank = "Lt. "; // 10%
-			if(sk >= 80) lrank = "Sgt."; // 20%
-			else if(sk >= 65) lrank = "Cpl."; // 30%
+			if(sk >= 80) lrank = "Sgt. "; // 20%
+			else if(sk >= 65) lrank = "Cpl. "; // 30%
 			else lrank = "Pvt. "; // 40%
 		}
+		// given rank
 		
-		defformatstring(fname)("[BOT]%s %s", lrank, name);
+		formatstring(fname)("[BOT]%s%s%s", lrank, lsep, name);
 		copystring(target, fname, MAXNAMELEN);
 	}
 
