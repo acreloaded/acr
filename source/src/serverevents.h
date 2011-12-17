@@ -40,9 +40,8 @@ void processevent(client &c, projevent &e){
 
 					// bleeding damage
 					if(!m_zombie(gamemode) || !isteam((&c), hit)){
-						client &noob = isteam((&c), hit) ? c : target;
-						noob.state.addwound(c.clientnum, vec(e.o));
-						sendf(-1, 1, "ri2", N_BLEED, noob.clientnum);
+						target.state.addwound(c.clientnum, vec(e.o));
+						sendf(-1, 1, "ri2", N_BLEED, target.clientnum);
 					}
 					done = true;
 					serverdamage(&target, &c, dmg, WEAP_KNIFE, FRAG_FLAG, vec(0, 0, 0));

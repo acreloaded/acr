@@ -162,7 +162,7 @@ struct clientstate : playerstate
 		streakondeath = -1;
 	}
 
-	void addwound(int owner, vec woundloc)
+	void addwound(int owner, const vec &woundloc)
 	{
 		wound &w = wounds.length() >= 8 ? wounds[0] : wounds.add();
 		w.inflictor = owner;
