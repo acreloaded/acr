@@ -529,7 +529,7 @@ const char *suicname(int obit){
 			break;
 		// weapons
 		case WEAP_GRENADE:
-			concatstring(k, "exploded friendly ordnance");
+			concatstring(k, "experienced fragmentation");
 			break;
 		case WEAP_HEAL:
 			concatstring(k, "overdosed on drugs");
@@ -556,7 +556,7 @@ const char *suicname(int obit){
 			concatstring(k, "drowned");
 			break;
 		case OBIT_FALL:
-			concatstring(k, "failed to fly");
+			concatstring(k, "hit the ground");
 			break;
 		case OBIT_CHEAT:
 			concatstring(k, "just got punished for cheating");
@@ -579,6 +579,7 @@ const bool isheadshot(int weapon, int style){
 		case WEAP_MAX+5:
 			return false; // these weapons cannot headshot
 	}
+	// headshot = gib if otherwise
 	return true;
 }
 
