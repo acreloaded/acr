@@ -602,7 +602,7 @@ struct botname
 			else lrank = "Pvt. "; // 40%
 		}
 		
-		defformatstring(fname)("%s %s", lrank, name);
+		defformatstring(fname)("[BOT]%s %s", lrank, name);
 		copystring(target, fname, len);
 	}
 
