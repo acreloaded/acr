@@ -255,6 +255,7 @@ struct client				   // server side version of "dynent" type
 		// remove all dealt wounds
 		extern vector<client *> clients;
 		loopv(clients){
+			if(clients[i]->type == ST_EMPTY) continue;
 			clientstate &cs = clients[i]->state;
 			loopvj(cs.wounds) if(cs.wounds[j].inflictor == clientnum) cs.wounds.remove(j--);
 		}
