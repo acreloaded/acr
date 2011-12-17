@@ -605,7 +605,7 @@ struct botname
 		}
 		// given rank
 		
-		formatstring(fname)("[BOT]%s%s%s", lrank, lsep, name);
+		formatstring(fname)("%s%s%s", lrank, lsep, name);
 		copystring(target, fname, MAXNAMELEN);
 	}
 
