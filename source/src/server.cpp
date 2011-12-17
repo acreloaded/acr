@@ -1339,7 +1339,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	}
 
 	// streak/assist
-	++actor->state.pointstreak;
+	actor->state.pointstreak += 5;
 	++ts.deathstreak;
 	actor->state.deathstreak = ts.pointstreak = ts.streakused = 0;
 	ts.wounds.shrink(0);
