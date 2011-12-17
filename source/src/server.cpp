@@ -1007,7 +1007,7 @@ void arenacheck(){
 	loopv(clients) if(clients[i]->type != ST_EMPTY)
 		addpt(clients[i],
 			clients[i]->state.state != CS_ALIVE ?
-			(alive && m_team(gamemode, mutators) && alive->team == clients[i]->team) ? ARENAWINDPT : // his team wins
+			(alive && isteam(alive, clients[i])) ? ARENAWINDPT : // his team wins
 			ARENALOSEPT : // he died
 			ARENAWINPT // he survives
 		);
