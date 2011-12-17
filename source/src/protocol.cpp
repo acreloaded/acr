@@ -247,34 +247,30 @@ void modecheck(int &mode, int &muts, int trying)
 	if(!gametype[mode].mutators[0]) muts = G_M_NONE;
 	else
 	{
-		int implied = m_implied(mode, muts);
-		if(implied) muts |= implied;
-
-		implied = 0;
 		int gsps = 0;
+		int implied = m_implied(mode, muts);
 		int allowed = G_M_ALL;
 
-		loopi(G_M_GSN)
+		loopi(G_M_NUM)
 		{
-			if(i > G_M_GSN)
+			if(!(muts & (1 << i))) continue;
+			if(i >= G_M_GSP)
 			{
-				int m = 1<<(i+G_M_GSP);
-				if(!(gametype[mode].mutators[0]&m))
-				{
-					gsps |= 1 << i;
-					allowed &= gametype[mode].mutators[i+1];
-
-					muts &= ~m;
-					trying &= ~m;
-				}
+				gsps |= 1 << (i - G_M_GSP);
+				allowed &= gametype[mode].mutators[i-G_M_GSP+1];
 			}
 
 			allowed &= mutstype[i].mutators;
-			implied |= mutstype[i].implied;
 		}
 
 		if(!gsps)
 			allowed &= gametype[mode].mutators[0];
+
+		loopi(G_M_NUM)
+		{
+			if(!((muts & allowed) & (1 << i))) continue;
+			implied |= mutstype[i].implied;
+		}
 
 		muts = (muts & allowed) | implied;
 
