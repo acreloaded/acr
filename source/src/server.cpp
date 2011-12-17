@@ -249,6 +249,7 @@ void restoreserverstate(vector<entity> &ents)   // hack: called from savegame co
 }
 
 static bool mapreload = false, autoteam = true, forceintermission = false, nokills = true;
+#define autobalance (autoteam && !m_zombie(gamemode) && !m_convert(gamemode, mutators))
 
 string servdesc_current;
 ENetAddress servdesc_caller;
@@ -1016,7 +1017,7 @@ void arenacheck(){
 			ARENAWINPT // he survives
 		);
 	arenaround = gamemillis+5000;
-	if(autoteam && m_team(gamemode, mutators) && !m_zombie(gamemode)) refillteams(true);
+	if(autobalance && m_team(gamemode, mutators) && !m_zombie(gamemode)) refillteams(true);
 }
 
 #define SPAMREPEATINTERVAL  20   // detect doubled lines only if interval < 20 seconds
@@ -2062,7 +2063,7 @@ void resetmap(const char *newname, int newmode, int newmuts, int newtime, bool n
 		if(m_team(gamemode, mutators)){
 			if(!lastteammode && !m_zombie(gamemode)) // shuffle if previous mode wasn't a team-mode
 				shuffleteams(FTR_SILENT);
-			else if(m_zombie(gamemode) || autoteam) // force teams for zombies
+			else if(m_zombie(gamemode) || autobalance) // force teams for zombies
 				refillteams(true, FTR_SILENT);
 		}
 		// prepare spawns; players will spawn, once they've loaded the correct map
@@ -3956,7 +3957,8 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
 	serverms(smode, numclients(), gamelimit-gamemillis, smapname, servmillis, serverhost->address, pnum, psend, prec, PROTOCOL_VERSION);
 
-	if(autoteam && m_team(gamemode, mutators) && !m_zombie(gamemode) && !m_duke(gamemode, mutators) && !interm && servmillis - lastfillup > 5000 && refillteams()) lastfillup = servmillis;
+	if(autobalance && m_team(gamemode, mutators) && !m_zombie(gamemode) && !m_duke(gamemode, mutators) && !interm && servmillis - lastfillup > 5000 && refillteams())
+		lastfillup = servmillis;
 
 	loopv(clients) if(valid_client(i) && (!clients[i]->connected || clients[i]->connectauth) && clients[i]->connectmillis + 10000 <= servmillis) disconnect_client(i, DISC_TIMEOUT);
 
