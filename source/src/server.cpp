@@ -1341,7 +1341,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	// streak/assist
 	++actor->state.pointstreak;
 	++ts.deathstreak;
-	actor->state.deathstreak = ts.pointstreak = 0;
+	actor->state.deathstreak = ts.pointstreak = ts.streakused = 0;
 	ts.wounds.shrink(0);
 	ts.damagelog.removeobj(target->clientnum);
 	ts.damagelog.removeobj(actor->clientnum);
@@ -1354,20 +1354,18 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 		}
 		else ts.damagelog.remove(i--);
 	}
-
-	// fixme
-	switch(actor->state.pointstreak + (actor->state.perk == PERK_STREAK ? 5 : 0)){
-		case 7 * 5:
-			streakready(*actor, STREAK_AIRSTRIKE);
-			break;
-		case 9 * 5:
-			if(!m_noradar(gamemode, mutators)) usestreak(*actor, STREAK_RADAR);
-			break;
-		case 11 * 5:
-			if(!m_nonuke(gamemode, mutators)) usestreak(*actor, STREAK_NUKE);
-			break;
-	}
 	usestreak(*target, ts.streakondeath);
+	int virtualstreak = actor->state.pointstreak + (actor->state.perk == PERK_STREAK ? 5 : 0);
+	if(virtualstreak >= 7 * 5 && actor->state.streakused < 7 * 5){
+		streakready(*actor, STREAK_AIRSTRIKE);
+	}
+	if(virtualstreak >= 9 * 5 && actor->state.streakused < 9 * 5){
+		if(!m_noradar(gamemode, mutators)) usestreak(*actor, STREAK_RADAR);
+	}
+	if(virtualstreak >= 11 * 5 && actor->state.streakused < 11 * 5){
+		if(!m_nonuke(gamemode, mutators)) usestreak(*actor, STREAK_NUKE);
+	}
+	actor->state.streakused = actor->state.pointstreak;
 
 	if(gamemillis >= actor->state.lastkill + 500) actor->state.combo = 0;
 	actor->state.lastkill = gamemillis;

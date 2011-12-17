@@ -100,7 +100,7 @@ struct clientstate : playerstate
 	vec o, aim, vel, lasto, sg[SGRAYS], flagpickupo;
 	float pitchvel;
 	int state, lastomillis, movemillis;
-	int lastdeath, lastffkill, lastspawn, lifesequence;
+	int lastdeath, lastffkill, lastspawn, lifesequence, streakused;
 	int lastkill, combo;
 	bool crouching;
 	int crouchmillis, scopemillis;
@@ -139,6 +139,7 @@ struct clientstate : playerstate
 		points = flagscore = frags = deaths = shotdamage = damage = lastffkill = 0;
 		radarearned = airstrikes = nukemillis = 0;
 		revengelog.setsize(0);
+		streakused = 0;
 		respawn();
 	}
 
