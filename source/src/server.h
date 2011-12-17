@@ -602,7 +602,9 @@ struct botname
 			if(sk >= 90) lrank = "Lt. "; // 10%
 			else if(sk >= 80) lrank = "Sgt. "; // 20%
 			else if(sk >= 65) lrank = "Cpl. "; // 30%
-			else lrank = "Pvt. "; // 40%
+			// 40% Private
+			else if(sk >= 55) lrank = "Pfc. "; // 20%
+			else lrank = "Pvt. "; // 20%
 		}
 		// given rank
 		
