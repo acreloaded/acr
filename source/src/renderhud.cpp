@@ -666,6 +666,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
 	glDisable(GL_TEXTURE_2D);
 
+	/*
 	if(p->flashmillis > 0 && lastmillis<=p->flashmillis){
 		extern GLuint flashtex;
 		if(flashtex){
@@ -698,6 +699,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		glVertex2f(0, VIRTH);
 		glEnd();
 	}
+	*/
 
 	static Texture *damagetex = textureload("packages/misc/damage.png", 3), *damagedirtex = textureload("packages/misc/damagedir.png");
 	glEnable(GL_TEXTURE_2D);
