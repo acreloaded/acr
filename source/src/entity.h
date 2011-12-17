@@ -586,7 +586,6 @@ struct playerent : dynent, playerstate
 		history.reset();
 		if(weaponsel) weaponsel->reset();
 		lastregen = lasthitmarker = lastaction = weaponchanging = eardamagemillis = radarmillis = flashmillis = 0;
-		nukemillis = 0;
 		lastattackweapon = NULL;
 		ads = 0.f;
 		wantsswitch = -1;
