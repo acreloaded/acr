@@ -1371,7 +1371,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	if(virtualstreak >= 11 * 5 && actor->state.streakused < 11 * 5){
 		if(!m_nonuke(gamemode, mutators)) usestreak(*actor, STREAK_NUKE);
 	}
-	actor->state.streakused = actor->state.pointstreak;
+	actor->state.streakused = virtualstreak;
 
 	if(gamemillis >= actor->state.lastkill + 500) actor->state.combo = 0;
 	actor->state.lastkill = gamemillis;
