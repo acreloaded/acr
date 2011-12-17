@@ -434,7 +434,7 @@ gametypes gametype[G_MAX] = {
 	{
 		G_ZOMBIE, G_M_TEAM,
 		{
-			G_M_ALL,
+			G_M_ALL & ~(G_M_CONVERT),
 			G_M_ALL,
 		},
 		"zombies", { "onslaught" },
