@@ -587,16 +587,22 @@ struct botname
 	}
 
 	void putname(char *target, int len = MAXNAMELEN){
-		const char *ranks[] = { "Pvt.", "Cpl." };
-		string fname;
 		if(*rank == '!'){ // no rank
 			copystring(target, name);
 			return;
 		}
-		else if(*rank == '*') // random rank
-			formatstring(fname)("%s %s", ranks[rnd(sizeof(ranks)/sizeof(*ranks))], name);
-		else // provided rank
-			formatstring(fname)("%s %s", rank, name);
+
+		char *lrank = rank; // local rank (given rank)
+		if(*rank == '*') // random rank
+		{
+			int num = rnd(1000);
+			if(num > 900) lrank = "Lt. "; // 10%
+			if(num > 700) lrank = "Sgt."; // 20%
+			else if(num > 400) lrank = "Cpl."; // 30%
+			else lrank = "Pvt. "; // 40%
+		}
+		
+		defformatstring(fname)("%s %s", lrank, name);
 		copystring(target, fname, len);
 	}
 
