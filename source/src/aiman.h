@@ -32,11 +32,11 @@ bool addai(){
 	}
 	client &b = *clients[cn];
 	b.reset();
-	if(botnames.length()) botnames[rnd(botnames.length())].putname(b.name);
-	else formatstring(b.name)("bot%d-%d", cn, aiowner);
 	b.type = ST_AI;
 	b.connected = true;
-	b.state.level = 60 + rnd(36); // how smart/stupid the bot is can be set here (currently random from 60 to 95)
+	b.state.level = 45 + rnd(51); // how smart/stupid the bot is can be set here (currently random from 45 to 95)
+	if(botnames.length()) botnames[rnd(botnames.length())].putname(b.name, b.state.level);
+	else formatstring(b.name)("bot%d-%d", cn, aiowner);
 	sendf(-1, 1, "ri5si", N_INITAI, cn, (b.team = freeteam(cn)), (b.skin = rand()), b.state.level, b.name, (b.state.ownernum = aiowner));
 	forcedeath(&b);
 	if(canspawn(&b, true)) sendspawn(&b);

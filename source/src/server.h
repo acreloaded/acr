@@ -586,24 +586,24 @@ struct botname
 		name = new char[MAXNAMELEN];
 	}
 
-	void putname(char *target, int len = MAXNAMELEN){
+	void putname(char *target, int sk){
 		if(*rank == '!'){ // no rank
-			copystring(target, name);
+			copystring(target, name, MAXNAMELEN);
 			return;
 		}
 
 		char *lrank = rank; // local rank (given rank)
-		if(*rank == '*') // random rank
+		if(*rank == '*') // rank based on skill
 		{
-			int num = rnd(1000);
-			if(num > 900) lrank = "Lt. "; // 10%
-			if(num > 700) lrank = "Sgt."; // 20%
-			else if(num > 400) lrank = "Cpl."; // 30%
+			// skill is from 45 to 95
+			if(sk >= 90) lrank = "Lt. "; // 10%
+			if(sk >= 80) lrank = "Sgt."; // 20%
+			else if(sk >= 65) lrank = "Cpl."; // 30%
 			else lrank = "Pvt. "; // 40%
 		}
 		
 		defformatstring(fname)("[BOT]%s %s", lrank, name);
-		copystring(target, fname, len);
+		copystring(target, fname, MAXNAMELEN);
 	}
 
 	~botname(){
