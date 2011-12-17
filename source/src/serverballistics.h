@@ -224,7 +224,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<head_t> &h, int w
 		if(melee_weap(weap)){
 			if(hitzone == HIT_HEAD) style |= FRAG_FLAG;
 			if(&owner == hit) return shotdamage; // not possible
-			else{
+			else if(!isteam((&owner), hit)){
 				hit->state.addwound(owner.clientnum, end);
 				sendf(-1, 1, "ri2", N_BLEED, hit->clientnum);
 			}
