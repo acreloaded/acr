@@ -2775,8 +2775,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 		else
 		{
 			getstring(text, p);
-			if(!*text) copystring(text, "unarmed");
 			filtername(text, text);
+			if(!*text) copystring(text, "unarmed");
 			copystring(cl->name, text, MAXNAMELEN+1);
 			cl->skin = getint(p);
 			cl->state.level = clamp(getint(p), 1, MAXLEVEL);
@@ -2882,7 +2882,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case N_NEWNAME:
 				getstring(text, p);
 				filtername(text, text);
-				if(!text[0]) copystring(text, "unarmed");
+				if(!*text) copystring(text, "unarmed");
 				if(!strcmp(cl->name, text)) break; // same name!
 				switch(const int nwl = nbl.checknickwhitelist(*cl)){
 					case NWL_PWDFAIL:
