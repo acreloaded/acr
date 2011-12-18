@@ -663,6 +663,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
+			case N_STREAK: // used for streak resetting
+			{
+				int scn = getint(p), streak = getint(p);
+				playerent *d = getclient(scn);
+				if(d) d->pointstreak = streak;
+			}
+
 			case N_RELOAD:
 			{
 				int cn = getint(p), gun = getint(p), mag = getint(p), ammo = getint(p);
@@ -1075,7 +1082,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				int fcn = getint(p);
 				int flags = getint(p);
-				playerent *p = (fcn == getclientnum() ? player1 : getclient(fcn));
+				playerent *p = getclient(fcn);
 				if(p) p->flagscore = flags;
 				break;
 			}
