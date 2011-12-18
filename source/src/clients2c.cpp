@@ -344,8 +344,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				setskin(d, getint(p));
 				d->level = getint(p); // skill for bots
 				getstring(text, p);
+				filtername(text, text);
 				if(!*text) copystring(text, "unarmed");
-				filtername(d->name, text);
+				copystring(d->name, text);
 				if(type == N_INITCLIENT){ // human
 					conoutf("connected: %s", colorname(d));
 					if(!joining) chatoutf("%s \f0joined \f2the \f1game", colorname(d));
@@ -367,8 +368,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				getstring(text, p);
 				if(!d || d == player1) break;
 				d->ownernum = newowner;
+				filtername(text, text);
 				if(!*text) copystring(text, "unarmed");
-				filtername(d->name, text);
+				copystring(d->name, text);
 				// state bugs
 				if(d->state == CS_WAITING) d->state = CS_ALIVE;
 				break;
