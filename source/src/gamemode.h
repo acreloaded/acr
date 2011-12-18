@@ -77,7 +77,6 @@ extern mutstypes mutstype[G_M_NUM];
 #define m_bomber(g)         (g == G_BOMBER)
 #define m_zombie(g)         (g == G_ZOMBIE)
 
-// rename to m_flags
 #define m_affinity(g)       (m_capture(g) || m_hunt(g) || m_keep(g) || m_bomber(g))
 #define m_ai(g)             (m_valid(g) && !m_demo(g) && !m_edit(g)) // extra bots not available in demo/edit
 
