@@ -1037,9 +1037,10 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		glLoadIdentity();
 		glOrtho(0, VIRTW * streakscale, VIRTH * streakscale, 0, -1, 1);
 		// we have the blend function set by the perk icon
+		const int currentstreak = floor(p->pointstreak/5.f);
 		loopi(11){
-			glColor4f(1, 1, 1, p->state != CS_DEAD ? (p->pointstreak/5 == i || i >= 10) ? (0.3f+fabs(sinf(lastmillis/500.0f))/2) : .8f : .3f);
-			quad(streakt[i & 1][p->pointstreak > i * 5 ? 2 : p->pointstreak/5 == i ? 1 : p->deathstreak >= i ? 3 : 0]->id,
+			glColor4f(1, 1, 1, p->state != CS_DEAD ? (currentstreak == i || i >= 10) ? (0.3f+fabs(sinf(lastmillis/500.0f))/2 * ((i-1)%5)/4.f) : .8f : .3f);
+			quad(streakt[i & 1][currentstreak > i ? 2 : currentstreak == i ? 1 : p->deathstreak >= i ? 3 : 0]->id,
 					(VIRTW-225-10-180-30 - 80 - 15 -(11*50) + i*50) * streakscale, (VIRTH - 80 - 35) * streakscale, 80 * streakscale, 0, 0, 1);
 		}
 		// streak misc

@@ -532,7 +532,8 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 			isteam(pl, act) ? act==player1 ? "\f3your teammate " : "\f3his teammate " : "", pl == player1 ? "\f1you\f2" : colorname(pl));
 	if(killdist) concatformatstring(predicate, " (@%.2f m)", killdist);
 	// streaks
-	if(act->pointstreak++) concatformatstring(predicate, " %d ks", act->pointstreak);
+	//if(act->pointstreak >= 2) concatformatstring(predicate, " %d ks", act->pointstreak);
+	act->pointstreak += 5;
 	if(pl->deathstreak++) concatformatstring(predicate, " %d ds", pl->deathstreak);
 	// assist count
 	pl->damagelog.removeobj(pl->clientnum);
