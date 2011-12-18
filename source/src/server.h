@@ -621,7 +621,7 @@ vector<botname> botnames;
 
 void mkbotname(client &c){
 	if(!m_zombie(gamemode) && botnames.length()) botnames[rnd(botnames.length())].putname(c.name, c.state.level);
-	else formatstring(c.name)("bot%d-%d", c.clientnum, c.state.ownernum);
+	else copystring(c.name, "bot");
 }
 
 void clearai(), checkai();
