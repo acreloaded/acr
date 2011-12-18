@@ -975,9 +975,11 @@ int classic_forceperk(int primary){
 const char *formatname(client *c)
 {
 	if(!c) return "unknown";
-	static string cname;
-	formatstring(cname)(c->type == ST_AI ? "%s (%d-%d)" : "%s (%d)", c->name, c->clientnum, c->state.ownernum);
-	return cname;
+	static string cname[3];
+	static int idx = 0;
+	if(idx >= 3) idx %= 3;
+	formatstring(cname[idx])(c->type == ST_AI ? "%s (%d-%d)" : "%s (%d)", c->name, c->clientnum, c->state.ownernum);
+	return cname[idx++];
 }
 
 // overloading!
