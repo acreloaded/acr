@@ -688,7 +688,7 @@ void check_afk(){
 		if (c.type != ST_TCPIP || c.connectmillis + 60 * 1000 > servmillis || c.team == TEAM_SPECT ||
 			c.state.movemillis + scl.afktimelimit > servmillis || clienthasflag(c.clientnum) > -1 ) continue;
 		if ( ( c.state.state == CS_DEAD && !m_duke(gamemode, mutators) && c.state.lastdeath + 45 * 1000 < gamemillis) ) {
-			logline(ACLOG_INFO, "[%s] %s is afk, forcing to spectator", gethostname(i), c.name);
+			logline(ACLOG_INFO, "[%s] %s is afk, forcing to spectator", gethostname(i), formatname(c));
 			updateclientteam(i, TEAM_SPECT, FTR_AUTOTEAM);
 		}
 	}
@@ -799,27 +799,27 @@ void flagaction(int flag, int action, int actor){
 		switch(message)
 		{
 			case FA_PICKUP:
-				logline(ACLOG_INFO,"[%s] %s stole the flag", gethostname(actor), c.name);
+				logline(ACLOG_INFO,"[%s] %s stole the flag", gethostname(actor), formatname(c));
 				break;
 			case FA_DROP:
 				f.drop_cn = actor;
 				f.dropmillis = servmillis;
-				logline(ACLOG_INFO,"[%s] %s dropped the flag", gethostname(actor), c.name);
+				logline(ACLOG_INFO,"[%s] %s dropped the flag", gethostname(actor), formatname(c));
 				break;
 			case FA_LOST:
-				logline(ACLOG_INFO,"[%s] %s lost the flag", gethostname(actor), c.name);
+				logline(ACLOG_INFO,"[%s] %s lost the flag", gethostname(actor), formatname(c));
 				break;
 			case FA_RETURN:
-				logline(ACLOG_INFO,"[%s] %s returned the flag", gethostname(actor), c.name);
+				logline(ACLOG_INFO,"[%s] %s returned the flag", gethostname(actor), formatname(c));
 				break;
 			case FA_SCORE:
-				logline(ACLOG_INFO, "[%s] %s scored with the flag for %s, new score %d", gethostname(actor), c.name, team_string(c.team), c.state.flagscore);
+				logline(ACLOG_INFO, "[%s] %s scored with the flag for %s, new score %d", gethostname(actor), formatname(c), team_string(c.team), c.state.flagscore);
 				break;
 			case FA_KTFSCORE:
-				logline(ACLOG_INFO, "[%s] %s scored, carrying for %d seconds, new score %d", gethostname(actor), c.name, (gamemillis - f.stolentime) / 1000, c.state.flagscore);
+				logline(ACLOG_INFO, "[%s] %s scored, carrying for %d seconds, new score %d", gethostname(actor), formatname(c), (gamemillis - f.stolentime) / 1000, c.state.flagscore);
 				break;
 			case FA_SCOREFAIL:
-				logline(ACLOG_INFO, "[%s] %s failed to score", gethostname(actor), c.name);
+				logline(ACLOG_INFO, "[%s] %s failed to score", gethostname(actor), formatname(c));
 				break;
 		}
 	}
@@ -1051,9 +1051,9 @@ bool spamdetect(client *cl, char *text) // checks doubled lines and average typi
 
 void sendtext(char *text, client &cl, int flags, int voice){
 	if(voice < 0 || voice > S_VOICEEND - S_MAINEND) voice = 0;
-	defformatstring(logmsg)("<%s> ", cl.name);
+	defformatstring(logmsg)("<%s> ", formatname(cl));
 	if(!m_team(gamemode, mutators) && cl.team != TEAM_SPECT) flags &= ~SAY_TEAM;
-	if(flags & SAY_ACTION) formatstring(logmsg)("* %s ", cl.name);
+	if(flags & SAY_ACTION) formatstring(logmsg)("* %s ", formatname(cl));
 	string logappend;
 	if(flags & SAY_TEAM){
 		formatstring(logappend)("(%s) ", team_string(cl.team));
@@ -1384,8 +1384,8 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	ts.state = CS_DEAD;
 	ts.lastdeath = gamemillis;
 	const char *h = gethostname(actor->clientnum);
-	if(!suic) logline(actor->type == ST_AI && target->type == ST_AI ? ACLOG_VERBOSE : ACLOG_INFO, "[%s] %s %s %s (%.2f m)", h, actor->name, killname(toobit(gun, style), isheadshot(gun, style)), target->name, killdist);
-	else logline(ACLOG_INFO, "[%s] %s %s (%.2f m)", h, actor->name, suicname(obit_suicide(gun)), killdist);
+	if(!suic) logline(actor->type == ST_AI && target->type == ST_AI ? ACLOG_VERBOSE : ACLOG_INFO, "[%s] %s %s %s (%.2f m)", h, formatname(actor), killname(toobit(gun, style), isheadshot(gun, style)), formatname(target), killdist);
+	else logline(ACLOG_INFO, "[%s] %s %s (%.2f m)", h, formatname(actor), suicname(obit_suicide(gun)), killdist);
 
 	if(m_affinity(gamemode)){
 		if(m_ktf2(gamemode, mutators) && // KTF2 only
@@ -1470,7 +1470,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 }
 
 void cheat(client *cl, const char *reason = "unknown"){
-	logline(ACLOG_INFO, "[%s] %s cheat detected (%s)", gethostname(cl->clientnum), cl->name, reason);
+	logline(ACLOG_INFO, "[%s] %s cheat detected (%s)", gethostname(cl->clientnum), formatname(cl), reason);
 	cl->suicide(WEAP_MAX+5, FRAG_GIB);
 }
 
@@ -2147,13 +2147,13 @@ void scallvotesuc(voteinfo *v){
 	DELETEP(curvote);
 	curvote = v;
 	clients[v->owner]->lastvotecall = servmillis;
-	logline(ACLOG_INFO, "[%s] client %s called a vote: %s", gethostname(v->owner), clients[v->owner]->name, v->action->desc ? v->action->desc : "[unknown]");
+	logline(ACLOG_INFO, "[%s] client %s called a vote: %s", gethostname(v->owner), formatname(clients[v->owner]), v->action->desc ? v->action->desc : "[unknown]");
 }
 
 void scallvoteerr(voteinfo *v, int error){
 	if(!valid_client(v->owner)) return;
 	sendf(v->owner, 1, "ri2", N_CALLVOTEERR, error);
-	logline(ACLOG_INFO, "[%s] client %s failed to call a vote: %s (%s)", gethostname(v->owner), clients[v->owner]->name, v->action->desc ? v->action->desc : "[unknown]", voteerrorstr(error));
+	logline(ACLOG_INFO, "[%s] client %s failed to call a vote: %s (%s)", gethostname(v->owner), formatname(clients[v->owner]), v->action->desc ? v->action->desc : "[unknown]", voteerrorstr(error));
 }
 
 
@@ -2248,7 +2248,7 @@ void setpriv(int cl, int priv){
 	if(!priv){ // relinquish
 		if(!c.priv) return; // no privilege to relinquish
 		sendf(-1, 1, "ri4", N_CLAIMPRIV, cl, c.priv, 1);
-		logline(ACLOG_INFO,"[%s] %s relinquished %s access", gethostname(cl), c.name, privname(c.priv));
+		logline(ACLOG_INFO,"[%s] %s relinquished %s access", gethostname(cl), formatname(c), privname(c.priv));
 		c.priv = PRIV_NONE;
 		sendserveropinfo();
 		return;
@@ -2264,7 +2264,7 @@ void setpriv(int cl, int priv){
 	*/
 	c.priv = priv;
 	sendf(-1, 1, "ri4", N_CLAIMPRIV, cl, c.priv, 0);
-	logline(ACLOG_INFO,"[%s] %s claimed %s access", gethostname(cl), c.name, privname(c.priv));
+	logline(ACLOG_INFO,"[%s] %s claimed %s access", gethostname(cl), formatname(c), privname(c.priv));
 	sendserveropinfo();
 	//if(curvote) curvote->evaluate();
 }
@@ -2295,8 +2295,8 @@ void disconnect_client(int n, int reason){
 		findlimit(c, true);
 	}
 	int sp = (servmillis - c.connectmillis) / 1000;
-	if(reason>=0) logline(ACLOG_INFO, "[%s] disconnecting client %s (%s) cn %d, %d seconds played%s", gethostname(n), c.name, disc_reason(reason), n, sp, scoresaved);
-	else logline(ACLOG_INFO, "[%s] disconnected client %s cn %d, %d seconds played%s", gethostname(n), c.name, n, sp, scoresaved);
+	if(reason>=0) logline(ACLOG_INFO, "[%s] disconnecting client %s (%s) cn %d, %d seconds played%s", gethostname(n), formatname(c), disc_reason(reason), n, sp, scoresaved);
+	else logline(ACLOG_INFO, "[%s] disconnected client %s cn %d, %d seconds played%s", gethostname(n), formatname(c), n, sp, scoresaved);
 	c.peer->data = (void *)-1;
 	if(reason>=0) enet_peer_disconnect(c.peer, reason);
 	clients[n]->zap();
@@ -2663,7 +2663,7 @@ void checkmove(client &cp){
 	if(/*cp.type != ST_LOCAL &&*/ !m_edit(gamemode) && checkpos(cs.o, false)){
 		if(cp.type == ST_AI) cp.suicide(WEAP_MAX + 4);
 		else{
-			logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", gethostname(sender), cp.name, ++cp.mapcollisions);
+			logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", gethostname(sender), formatname(cp), ++cp.mapcollisions);
 			sendmsgi(40, sender);
 			sendf(sender, 1, "ri", N_MAPIDENT);
 			forcedeath(&cp);
@@ -2894,7 +2894,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				switch(const int nwl = nbl.checknickwhitelist(*cl)){
 					case NWL_PWDFAIL:
 					case NWL_IPFAIL:
-						logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong %s", gethostname(sender), cl->name, nwl == NWL_IPFAIL ? "IP" : "PWD");
+						logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong %s", gethostname(sender), formatname(cl), nwl == NWL_IPFAIL ? "IP" : "PWD");
 						disconnect_client(sender, nwl == NWL_IPFAIL ? DISC_NAME_IP : DISC_NAME_PWD);
 						break;
 
@@ -2903,13 +2903,13 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						int l = nbl.checknickblacklist(cl->name);
 						if(l >= 0)
 						{
-							logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d", gethostname(sender), cl->name, l);
+							logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d", gethostname(sender), formatname(cl), l);
 							disconnect_client(sender, DISC_NAME);
 						}
 						break;
 					}
 				}
-				logline(ACLOG_INFO,"[%s] %s changed his name to %s", gethostname(sender), cl->name, text);
+				logline(ACLOG_INFO,"[%s] %s changed his name to %s", gethostname(sender), formatname(cl), text);
 				copystring(cl->name, text, MAXNAMELEN+1);
 				connectcheck(sender, cl->guid, cl->peer, cl->name);
 				sendf(-1, 1, "ri2s", N_NEWNAME, sender, cl->name);
@@ -3425,7 +3425,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				{
 					sendf(-1, 1, "ri2s", N_MAPC2S, sender, text);
 					logline(ACLOG_INFO,"[%s] %s sent map %s, %d + %d(%d) bytes written",
-								gethostname(sender), clients[sender]->name, text, mapsize, cfgsize, cfgsizegz);
+								gethostname(sender), formatname(clients[sender]), text, mapsize, cfgsize, cfgsizegz);
 					// reset
 					//loopv(clients) if(i != sender && clients[i]->type == ST_TCPIP) recvmapserv(clients[i]);
 					if(!found) resetmap(smapname, smode, smuts);
@@ -3433,7 +3433,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				else
 				{
 					logline(ACLOG_INFO,"[%s] %s sent map %s, not written to file",
-								gethostname(sender), clients[sender]->name, text);
+								gethostname(sender), formatname(clients[sender]), text);
 					// could not write
 					sendmsg(16);
 				}
@@ -3466,7 +3466,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(cl->type == ST_LOCAL) setpriv(sender, PRIV_MAX);
 				else if(!checkadmin(cl->name, text, cl->salt, &pd) || !pd.priv){
 					if(cl->authpriv >= PRIV_MASTER){
-						logline(ACLOG_INFO,"[%s] %s was already authed for %s", gethostname(sender), cl->name, privname(cl->authpriv));
+						logline(ACLOG_INFO,"[%s] %s was already authed for %s", gethostname(sender), formatname(cl), privname(cl->authpriv));
 						setpriv(sender, cl->authpriv);
 					}
 					else if(cl->priv < PRIV_ADMIN && text){
@@ -3475,7 +3475,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					}
 				} else {
 					setpriv(sender, pd.priv);
-					if(pd.line >= 0) logline(ACLOG_INFO,"[%s] %s used %s password in line %d", gethostname(sender), cl->name, privname(pd.priv), pd.line);
+					if(pd.line >= 0) logline(ACLOG_INFO,"[%s] %s used %s password in line %d", gethostname(sender), formatname(cl), privname(pd.priv), pd.line);
 				}
 				break;
 			}
@@ -3607,9 +3607,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						else sendf(sender, 1, "ri2", N_CALLVOTEERR, VOTEE_VETOPERM);
 						break;
 					}
-					else logline(ACLOG_INFO,"[%s] %s changed his vote to %s", gethostname(sender), clients[sender]->name, vote == VOTE_NO ? "no" : "yes");
+					else logline(ACLOG_INFO,"[%s] %s changed his vote to %s", gethostname(sender), formatname(clients[sender]), vote == VOTE_NO ? "no" : "yes");
 				}
-				else logline(ACLOG_INFO,"[%s] %s voted %s", gethostname(sender), clients[sender]->name, vote == VOTE_NO ? "no" : "yes");
+				else logline(ACLOG_INFO,"[%s] %s voted %s", gethostname(sender), formatname(clients[sender]), vote == VOTE_NO ? "no" : "yes");
 				cl->vote = vote;
 				sendf(-1, 1, "ri3x", N_VOTE, sender, vote, sender);
 				curvote->evaluate();

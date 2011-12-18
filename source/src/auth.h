@@ -28,7 +28,7 @@ int allowconnect(client &ci, const char *pwd = "", int authreq = 0, char *authna
 	//if(!m_valid(smode)) return DISC_PRIVATE;
 	if(ci.priv >= PRIV_ADMIN) return DISC_NONE;
 	if(authreq && reqauth(ci.clientnum, authname, authreq)){
-		logline(ACLOG_INFO, "[%s] %s logged in, requesting auth", gethostname(ci.clientnum), ci.name);
+		logline(ACLOG_INFO, "[%s] %s logged in, requesting auth", gethostname(ci.clientnum), formatname(ci));
 		ci.connectauth = true;
 		return DISC_NONE;
 	}
@@ -38,11 +38,11 @@ int allowconnect(client &ci, const char *pwd = "", int authreq = 0, char *authna
 	if(wl == NWL_UNLISTED) bl = nbl.checknickblacklist(ci.name);
 	if(wl == NWL_IPFAIL || wl == NWL_PWDFAIL)
 	{ // nickname matches whitelist, but IP is not in the required range or PWD doesn't match
-		logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong %s", gethostname(ci.clientnum), ci.name, wl == NWL_IPFAIL ? "IP" : "PWD");
+		logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong %s", gethostname(ci.clientnum), formatname(ci), wl == NWL_IPFAIL ? "IP" : "PWD");
 		return wl == NWL_IPFAIL ? DISC_NAME_IP : DISC_NAME_PWD;
 	}
 	else if(bl > 0){ // nickname matches blacklist
-		logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d", gethostname(ci.clientnum), ci.name, bl);
+		logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d", gethostname(ci.clientnum), formatname(ci), bl);
 		return DISC_NAME;
 	}
 	const bool banned = isbanned(ci.clientnum);
@@ -53,7 +53,7 @@ int allowconnect(client &ci, const char *pwd = "", int authreq = 0, char *authna
 		bool banremoved = false;
 		if(pd.priv) setpriv(ci.clientnum, pd.priv);
 		if(banned) loopv(bans) if(bans[i].host == ci.peer->address.host) { banremoved = true; bans.remove(i); break; } // remove admin bans
-		logline(ACLOG_INFO, "[%s] %s logged in using the password in line %d%s%s", gethostname(ci.clientnum), ci.name, pd.line, wlp, banremoved ? ", (ban removed)" : "");
+		logline(ACLOG_INFO, "[%s] %s logged in using the password in line %d%s%s", gethostname(ci.clientnum), formatname(ci), pd.line, wlp, banremoved ? ", (ban removed)" : "");
 		return DISC_NONE;
 	}
 	if(srvprivate) return DISC_PRIVATE;
@@ -63,11 +63,11 @@ int allowconnect(client &ci, const char *pwd = "", int authreq = 0, char *authna
 	if(ci.authpriv < PRIV_NONE && ci.masterverdict) return ci.masterverdict;
 	if(*scl.serverpassword){ // server password required
 		if(!strcmp(genpwdhash(ci.name, scl.serverpassword, ci.salt), pwd)){
-			logline(ACLOG_INFO, "[%s] %s logged in using the server password%s", gethostname(ci.clientnum), ci.name, wlp);
+			logline(ACLOG_INFO, "[%s] %s logged in using the server password%s", gethostname(ci.clientnum), formatname(ci), wlp);
 		}
 		else return DISC_PASSWORD;
 	}
-	logline(ACLOG_INFO, "[%s] %s logged in%s", gethostname(ci.clientnum), ci.name, wlp);
+	logline(ACLOG_INFO, "[%s] %s logged in%s", gethostname(ci.clientnum), formatname(ci), wlp);
 	return DISC_NONE;
 }
 
@@ -148,5 +148,5 @@ void logversion(client &ci, int ver, int defs, int guid){
 	if(defs & 0x20) concatstring(cdefs, "M");
 	if(defs & 0x8) concatstring(cdefs, "D");
 	if(defs & 0x4) concatstring(cdefs, "L");
-	logline(ACLOG_INFO, "[%s] %s runs %d [%s] [GUID-%u]", gethostname(ci.clientnum), ci.name, ver, cdefs, ci.guid = guid);
+	logline(ACLOG_INFO, "[%s] %s runs %d [%s] [GUID-%u]", gethostname(ci.clientnum), formatname(ci), ver, cdefs, ci.guid = guid);
 }

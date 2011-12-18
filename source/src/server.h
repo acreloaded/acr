@@ -970,3 +970,18 @@ int classic_forceperk(int primary){
 	}
 	return PERK_NONE;
 }
+
+// format names for the server
+const char *formatname(client *c)
+{
+	if(!c) return "unknown";
+	static string cname;
+	formatstring(cname)(c->type == ST_AI ? "%s (%d-%d)" : "%s (%d)", c->name, c->clientnum, c->state.ownernum);
+	return cname;
+}
+
+// overloading!
+const char *formatname(client &c)
+{
+	return formatname(&c);
+}
