@@ -1480,7 +1480,7 @@ void readbotnames(const char *name)
 {
 	static string botfilename;
 	static int botfilesize;
-	const char *sep = " ";
+	//const char *sep = " ";
 	char *p, *l;
 	int len, line = 0;
 
@@ -1494,14 +1494,21 @@ void readbotnames(const char *name)
 	while(p < buf + len)
 	{
 		l = p; p += strlen(p) + 1; line++;
+		if(*l)
+		{
+			botname &bn = botnames.add();
+			copystring(bn.storage, l, MAXNAMELEN+1);
+		}
+		/*
 		char *n = strchr(l, *sep);
-		if(l && n)
+		if(*l && n)
 		{
 			*n++ = 0;
 			botname &bn = botnames.add();
 			copystring(bn.rank, l, MAXNAMELEN);
 			copystring(bn.name, n, MAXNAMELEN);
 		}
+		*/
 	}
 	delete[] buf;
 	logline(ACLOG_INFO,"read %d bot names from '%s'", botnames.length(), botfilename);

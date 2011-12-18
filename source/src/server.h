@@ -577,44 +577,37 @@ struct configset
 	};
 };
 
+// managed character allocation...
 struct botname
 {
-	char *rank;
-	char *name;
+	char *storage;
 
 	botname(){
-		rank = new char[MAXNAMELEN];
-		name = new char[MAXNAMELEN];
+		storage = new char[MAXNAMELEN+1];
 	}
 
 	void putname(char *target, int sk){
-		string fname;
-		char *lrank = rank; // local rank (given rank)
-		char *lsep = " "; // seperator between ranks
+		char *name = storage;
+		char *rank = ""; // prepend rank (only if based on skill)
 
-		if(*rank == '!') // don't have a rank
+		if(*name == '*') // rank based on skill
 		{
-			lsep = lrank = "";
-		}
-		else if(*rank == '*') // rank based on skill
-		{
+			if(*++name == ' ') ++name; // skip space
 			// skill is from 45 to 95
-			if(sk >= 90) lrank = "Lt. "; // 10%
-			else if(sk >= 80) lrank = "Sgt. "; // 20%
-			else if(sk >= 65) lrank = "Cpl. "; // 30%
+			if(sk >= 90) rank = "Lt. "; // 10%
+			else if(sk >= 80) rank = "Sgt. "; // 20%
+			else if(sk >= 65) rank = "Cpl. "; // 30%
 			// 40% Private
-			else if(sk >= 55) lrank = "Pfc. "; // 20%
-			else lrank = "Pvt. "; // 20%
+			else if(sk >= 55) rank = "Pfc. "; // 20%
+			else rank = "Pvt. "; // 20%
 		}
-		// given rank
-		
-		formatstring(fname)("%s%s%s", lrank, lsep, name);
-		copystring(target, fname, MAXNAMELEN);
+
+		defformatstring(fname)("%s%s", rank, name);
+		copystring(target, fname, MAXNAMELEN+1);
 	}
 
 	~botname(){
-		delete[] rank;
-		delete[] name;
+		delete[] storage;
 	}
 };
 vector<botname> botnames;
