@@ -249,9 +249,9 @@ struct client				   // server side version of "dynent" type
 	void removetimers(int type){ loopv(timers) if(timers[i].type == type) timers.remove(i--); }
 
 	void removeexplosives() {
-		state.grenades.reset(); // remove nades
-		state.knives.reset(); // remove knives (usually useless, since knives are fast)
-		removetimers(GE_PROJ); // remove crossbow
+		state.grenades.reset(); // remove active/flying nades
+		state.knives.reset(); // remove active/flying knives (usually useless, since knives are fast)
+		removetimers(GE_PROJ); // remove stuck crossbows
 		// remove all dealt wounds
 		extern vector<client *> clients;
 		loopv(clients){

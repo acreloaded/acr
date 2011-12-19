@@ -1241,6 +1241,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                             break;
                     }
 					p->team = fnt;
+					// client version of removeexplosives()
+					removebounceents(p);
+					loopv(sticks) if(sticks[i].cn == cn) sticks.remove(i--);
                 }
 				break;
 			}
