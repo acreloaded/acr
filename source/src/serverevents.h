@@ -242,8 +242,8 @@ void clearevent(client &c){
 }
 
 void processtimer(client &c, projevent &e){
-	vec o(valid_client(e.flag) ? clients[e.flag]->state.o : e.o);
-	int bowexplodedmgdealt = explosion(c, o, WEAP_BOW, false);
+	vec o(valid_client(e.flag) && clients[e.flag]->state.lastdeath + TIPSTICKTTL < e.millis ? clients[e.flag]->state.o : e.o);
+	int bowexplodedmgdealt = explosion(c, o, e.gun, false);
 	c.state.damage += bowexplodedmgdealt;
 	c.state.shotdamage += max<int>(effectiveDamage(e.gun, 0), bowexplodedmgdealt);
 }
