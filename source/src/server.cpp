@@ -1313,6 +1313,7 @@ void forcedeath(client *cl, bool gib = false){
 	cs.state = CS_DEAD;
 	//cs.respawn();
 	cs.lastdeath = gamemillis;
+	cs.nukemillis = 0;
 	sendf(-1, 1, "ri2", gib ? N_FORCEGIB : N_FORCEDEATH, cl->clientnum);
 }
 
@@ -1736,12 +1737,10 @@ bool updateclientteam(int cn, int team, int ftr){
 	if(ci.team == TEAM_SPECT) ci.state.lastdeath = gamemillis;
 	logline(ftr == FTR_SILENT ? ACLOG_DEBUG : ACLOG_INFO, "[%s] %s is now on team %s", gethostname(cn), ci.name, team_string(team));
 	// force a death if needed
-	/*
 	if(ci.state.state != CS_DEAD && (m_team(gamemode, mutators) || team == TEAM_SPECT)){
 		if(ftr == FTR_PLAYERWISH) serverdied(&ci, &ci, 0, WEAP_MAX + ((team == TEAM_SPECT) ? 8 : 7), FRAG_NONE, ci.state.o);
 		else forcedeath(&ci);
 	}
-	*/
 	// set new team
 	sendf(-1, 1, "ri3", N_SETTEAM, cn, (ci.team = team) | (ftr << 4));
 	// check bots
