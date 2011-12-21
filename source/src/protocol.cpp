@@ -427,7 +427,7 @@ gametypes gametype[G_MAX] = {
 		"keep the flag", { "double" },
 	},
 	{
-		G_BOMBER, G_M_NONE,
+		G_BOMBER, G_M_TEAM,
 		{
 			G_M_ALL,
 			G_M_ALL,
