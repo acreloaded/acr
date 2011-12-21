@@ -131,7 +131,7 @@ Texture **obittex(){
 
 VARP(obitfade, 0, 10, 60);
 VARP(obitalpha, 0, 80, 100);
-struct oline { char *actor; char *target; int weap, millis, style; bool headshot; };
+struct oline { char *actor; char *target; int weap, millis, style; bool headshot, bot; };
 struct obitlist
 {
 	int maxlines;
@@ -157,6 +157,7 @@ struct obitlist
 		formatstring(cl.target)("\f%d%s", colorset[weap >= OBIT_SPECIAL ? 0 : 1][target == gamefocus ? 0 : isteam(target, gamefocus) ? 1 : 2], target ? colorname(target) : "unknown");
 		cl.style = style;
 		cl.headshot = headshot;
+		cl.bot = (target->ownernum >= 0) && (actor != target || weap != WEAP_MAX + 4); // transform the target into a bot symbol if needed
 		return olines.insert(0, cl);
 	}
 
@@ -236,12 +237,13 @@ struct obitlist
 				fade *= obitalpha/100.f;
 
 				// correct alignment
-				defformatstring(obitalign)("%s %s", l.actor, l.target); // two half spaces = one space
+				defformatstring(obitalign)("%s %s", l.actor, l.bot ? "" : l.target); // two half spaces = one space
 				// and the obit...
 				int left = (VIRTW - 16) * ts - text_width(obitalign) - obitaspect(l.weap) * FONTH;
 				if(l.headshot) left -= obitaspect(OBIT_HEADSHOT) * FONTH;
 				if(l.style & FRAG_FIRST) left -= obitaspect(OBIT_FIRST) * FONTH;
-				else if(l.style & FRAG_CRIT) left -=  obitaspect(OBIT_CRIT) * FONTH;
+				else if(l.style & FRAG_CRIT) left -= obitaspect(OBIT_CRIT) * FONTH;
+				if(l.bot) left -= obitaspect(OBIT_BOT) * FONTH;
 
 				// continue...
 				int width, height;
@@ -259,7 +261,8 @@ struct obitlist
 				else if(l.style & FRAG_CRIT) x += drawobit(OBIT_CRIT, left + x, y, fade);
 				// end of weapon symbol
 				x += text_width(" ") / 2;
-				draw_text(l.target, left + x, y, 0xFF, 0xFF, 0xFF, fade * 255, -1);
+				if(l.bot) x += drawobit(OBIT_BOT, left + x, y, fade);
+				else draw_text(l.target, left + x, y, 0xFF, 0xFF, 0xFF, fade * 255, -1);
 			}
         }
 		glPopMatrix();
