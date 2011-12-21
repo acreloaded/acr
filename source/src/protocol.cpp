@@ -228,8 +228,11 @@ inline const char *gamename(int mode, int muts, int compact = 0)
             }
         }
     }
-    defformatstring(mname)("%s%s%s", *gname ? gname : "", *gname ? " " : "", gt.name);
-    copystring(gname, mname);
+	if(!(muts & (G_M_GSP1)))
+	{
+		defformatstring(mname)("%s%s%s", *gname ? gname : "", *gname ? " " : "", gt.name);
+		copystring(gname, mname);
+	}
     return gname;
 }
 const char *modestr(int gamemode, int mutators, bool acronyms) { return gamename(gamemode, mutators, acronyms ? 1 : 0); }
