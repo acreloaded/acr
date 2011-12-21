@@ -228,7 +228,7 @@ inline const char *gamename(int mode, int muts, int compact = 0)
             }
         }
     }
-	if(!(muts & (G_M_GSP1)))
+	if(!m_mimplied(mode, muts))
 	{
 		defformatstring(mname)("%s%s%s", *gname ? gname : "", *gname ? " " : "", gt.name);
 		copystring(gname, mname);

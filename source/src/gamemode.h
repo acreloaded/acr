@@ -83,6 +83,7 @@ extern mutstypes mutstype[G_M_NUM];
 // can add gsp implieds below
 #define m_implied(a,b)      (gametype[a].implied)
 #define m_doimply(a,b,c)    (gametype[a].implied|mutstype[c].implied)
+#define m_mimplied(a,b)     ((muts & (G_M_GSP1)) && (mode == G_DM || mode == G_ZOMBIE))
 
 #define m_team(a,b)         ((b & G_M_TEAM) || (m_implied(a,b) & G_M_TEAM))
 #define m_sniper(a,b)        ((b & G_M_SNIPER) || (m_implied(a,b) & G_M_SNIPER))
