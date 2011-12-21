@@ -663,13 +663,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case N_STREAK: // used for streak resetting
-			{
-				int scn = getint(p), streak = getint(p);
-				playerent *d = getclient(scn);
-				if(d) d->pointstreak = streak;
-			}
-
 			case N_RELOAD:
 			{
 				int cn = getint(p), gun = getint(p), mag = getint(p), ammo = getint(p);
@@ -724,15 +717,43 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_KILL:
 			{
-				int vcn = getint(p), acn = getint(p), frags = getint(p), weap = getint(p), style = getint(p) & FRAG_VALID, damage = getint(p), combo = getint(p), assists = getint(p) & 0xFF;
+				/*
+				// i9
+
+		damage, // finishing damage
+		++actor->state.combo, // combo
+		actor->state.pointstreak, // streak
+		killdist, // distance (f4)
+		source.x, // source
+		source.y,
+		source.z, // below: assists (iv)
+				*/
+				const int vcn = getint(p),
+					acn = getint(p),
+					frags = getint(p),
+					weap = getint(p),
+					style = getint(p) & FRAG_VALID,
+					damage = getint(p),
+					combo = getint(p),
+					streak = getint(p);
+
 				float killdist = getfloat(p);
 				vec src; loopi(3) src[i] = getfloat(p);
+
+				const int assists = getint(p);
+				// assists consumed later
+
 				playerent *victim = getclient(vcn), *actor = getclient(acn);
-				if(actor) actor->frags = frags;
+				if(actor){
+					actor->frags = frags;
+					actor->pointstreak = streak;
+				}
 				if(victim){
 					victim->damagelog.setsize(0);
 					loopi(assists) victim->damagelog.add(getint(p));
 				} else loopi(assists) getint(p);
+				// assists consumed
+
 				if(!actor || !victim) break;
 				if((victim->health -= damage) > 0) victim->health = 0;
 				dodamage(damage, victim, actor, weap, style, src);

@@ -1370,15 +1370,27 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	if(virtualstreak >= 11 * 5 && actor->state.streakused < 11 * 5){
 		if(!m_nonuke(gamemode, mutators)) usestreak(*actor, STREAK_NUKE);
 		// restart streak
-		sendf(-1, 1, "ri3", N_STREAK, actor->clientnum, actor->state.pointstreak %= 11 * 5);
+		actor->state.pointstreak %= 11 * 5;
 	}
 	actor->state.streakused = virtualstreak;
 
 	if(gamemillis >= actor->state.lastkill + 500) actor->state.combo = 0;
 	actor->state.lastkill = gamemillis;
 	const float killdist = ts.o == source ? 0 : clamp<float>(ts.o.dist(source) / 4, -1, 1000);
-	sendf(-1, 1, "ri9f4v", N_KILL, target->clientnum, actor->clientnum, actor->state.frags, gun, style & FRAG_VALID, damage, ++actor->state.combo,
-		ts.damagelog.length(), killdist, source.x, source.y, source.z, ts.damagelog.length(), ts.damagelog.getbuf());
+	sendf(-1, 1, "ri9f4iv", N_KILL, // i9
+		target->clientnum, // victim
+		actor->clientnum, // actor
+		actor->state.frags, // frags
+		gun, // weap
+		style & FRAG_VALID, // style
+		damage, // finishing damage
+		++actor->state.combo, // combo
+		actor->state.pointstreak, // streak
+		killdist, // distance (f4)
+		source.x, // source
+		source.y,
+		source.z, // below: assists (iv)
+		ts.damagelog.length(), ts.damagelog.length(), ts.damagelog.getbuf());
 	killpoints(target, actor, gun, style);
 	if(suic && (m_hunt(gamemode) || m_keep(gamemode)) && targethasflag >= 0)
 		sendf(-1, 1, "ri3", N_FLAGCNT, actor->clientnum, --actor->state.flagscore);
