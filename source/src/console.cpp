@@ -153,16 +153,12 @@ struct obitlist
 		cl.millis = millis; // for how long to keep line on screen
 		cl.obit = obit;
 		const int colorset[2][3] = {{0, 1, 3}, {8, 9, 7}};
-		if(actor != target && actor->ownernum < 0)
-			formatstring(cl.actor)("\f%d%s", colorset[0][actor == gamefocus ? 0 : isteam(actor, gamefocus) ? 1 : 2], actor ? colorname(actor) : "unknown");
-		else{
-			*cl.actor = 0;
-			cl.actor[1] = actor == target ? 'a' : 'b'; // memory hack...
-		}
-		if(actor == target || target->ownernum < 0)
-			formatstring(cl.target)("\f%d%s", colorset[obit >= OBIT_SPECIAL ? 0 : 1][target == gamefocus ? 0 : isteam(target, gamefocus) ? 1 : 2], target ? colorname(target) : "unknown");
-		else
-			*cl.target = 0;
+		// actor
+		int currentcolor = colorset[0][actor == gamefocus ? 0 : actor && isteam(actor, gamefocus) ? 1 : 2]
+		formatstring(cl.actor)("\f%d%s", currentcolor, actor ? ((actor != target && actor->ownernum < 0) ? colorname(actor) : (actor && isteam(actor, gamefocus) ? "+" : "-")) : "unknown");
+		// target
+		currentcolor = colorset[obit >= OBIT_SPECIAL ? 0 : 1][target == gamefocus ? 0 : isteam(target, gamefocus) ? 1 : 2];
+		formatstring(cl.target)("\f%d%s", currentcolor, target ? ((actor == target || target->ownernum < 0) ? colorname(target) : (target && isteam(target, gamefocus) ? "-" : "+")) : "unknown");
 		cl.style = style;
 		cl.headshot = headshot;
 		return olines.insert(0, cl);
@@ -261,7 +257,6 @@ struct obitlist
 					draw_text(l.actor, left, y, 0xFF, 0xFF, 0xFF, fade * 255, -1);
 					x += width + text_width(" ") / 2;
 				}
-				else if(l.actor[1] == 'b') x += drawobit(OBIT_BOT, left + x, y, fade);
 				// now draw obituary symbol
 				x += drawobit(l.obit, left + x, y, fade);
 				if(l.headshot) x += drawobit(OBIT_HEADSHOT, left + x, y, fade);
@@ -270,8 +265,8 @@ struct obitlist
 				else if(l.style & FRAG_CRIT) x += drawobit(OBIT_CRIT, left + x, y, fade);
 				// end of weapon symbol
 				x += text_width(" ") / 2;
-				if(*l.target) draw_text(l.target, left + x, y, 0xFF, 0xFF, 0xFF, fade * 255, -1);
-				else x += drawobit(OBIT_BOT, left + x, y, fade);
+				if(*l.target)
+					draw_text(l.target, left + x, y, 0xFF, 0xFF, 0xFF, fade * 255, -1);
 			}
         }
 		glPopMatrix();
