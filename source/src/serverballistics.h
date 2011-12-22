@@ -209,7 +209,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<head_t> &h, int w
 	if(hit && damage){
 		// damage multipliers
 		if(!m_classic(gamemode, mutators)) switch(hitzone){
-			case HIT_HEAD: if(m_zombies_rounds(gamemode, mutators)) damage = MAXDMG; else damage *= muls[mulset].head; break;
+			case HIT_HEAD: if(m_zombies_rounds(gamemode, mutators)) damage *= 7; else damage *= muls[mulset].head; break;
 			case HIT_TORSO: damage *= muls[mulset].torso; break;
 			case HIT_LEG: default: damage *= muls[mulset].leg; break;
 		}
@@ -276,7 +276,7 @@ int shotgun(client &owner, vector<head_t> &h){
 		damagedealt += sgdamage[i];
 		//sendhit(owner, WEAP_SHOTGUN, ts.o.v);
 		const int shotgunflags = sgdamage[i] >= SGGIB ? FRAG_GIB : FRAG_NONE;
-		serverdamage(&t, &owner, max<int>(sgdamage[i], (m_zombies_rounds(gamemode, mutators) && shotgunflags & FRAG_GIB) ? MAXDMG : 0), WEAP_SHOTGUN, shotgunflags, from);
+		serverdamage(&t, &owner, max<int>(sgdamage[i], (m_zombies_rounds(gamemode, mutators) && shotgunflags & FRAG_GIB) ? (350 * HEALTHSCALE) : 0), WEAP_SHOTGUN, shotgunflags, from);
 	}
 	return damagedealt;
 }
