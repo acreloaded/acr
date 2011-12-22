@@ -129,6 +129,15 @@ Texture **obittex(){
 	return tex;
 }
 
+const char *obit_prefix(playerent *pl, bool dark){
+	static string ret = {0};
+
+	const int colorset[2][3] = {{0, 1, 3}, {8, 9, 7}};
+	int color2 = pl == gamefocus ? 1 : isteam(pl, gamefocus) ? 0 : 2;
+	formatstring(ret)("\f%d%c", colorset[dark ? 1 : 0][color2], color2 <= 1 ? '+' : '-');
+	return ret;
+}
+
 VARP(obitfade, 0, 10, 60);
 VARP(obitalpha, 0, 80, 100);
 struct oline { char *actor; char *target; int obit, millis, style; bool headshot; };
@@ -152,13 +161,18 @@ struct obitlist
 		}
 		cl.millis = millis; // for how long to keep line on screen
 		cl.obit = obit;
-		const int colorset[2][3] = {{0, 1, 3}, {8, 9, 7}};
 		// actor
-		int currentcolor = colorset[0][actor == gamefocus ? 0 : actor && isteam(actor, gamefocus) ? 1 : 2];
-		formatstring(cl.actor)("\f%d%s", currentcolor, actor ? ((actor != target && actor->ownernum < 0) ? colorname(actor) : (actor && isteam(actor, gamefocus) ? "+" : "-")) : "unknown");
+		const char *opf = obit_prefix(actor, false);
+		if(actor == target) *cl.actor = 0;
+		else formatstring(cl.actor)("%s%s", opf, actor ?
+			(actor != target && actor->ownernum < 0) ? colorname(actor) :
+			(actor->ownernum < 0) ? obit_prefix(actor, false) + 2 : ""
+		: "");
 		// target
-		currentcolor = colorset[obit >= OBIT_SPECIAL ? 0 : 1][target == gamefocus ? 0 : isteam(target, gamefocus) ? 1 : 2];
-		formatstring(cl.target)("\f%d%s", currentcolor, target ? ((actor == target || target->ownernum < 0) ? colorname(target) : (target && isteam(target, gamefocus) ? "-" : "+")) : "unknown");
+		opf = obit_prefix(target, obit < OBIT_SPECIAL);
+		formatstring(cl.target)("%s%s", opf, target ?
+			(actor == target || target->ownernum < 0) ? colorname(target) : ""
+		: "");
 		cl.style = style;
 		cl.headshot = headshot;
 		return olines.insert(0, cl);
