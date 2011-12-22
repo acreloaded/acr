@@ -140,6 +140,7 @@ const char *obit_prefix(playerent *pl, bool dark){
 
 VARP(obitfade, 0, 10, 60);
 VARP(obitalpha, 0, 80, 100);
+VARP(obitamt, 0, 1, 2); // 0: very compact, 1: show humans, 2: show all
 struct oline { char *actor; char *target; int obit, millis, style; bool headshot; };
 struct obitlist
 {
@@ -165,13 +166,14 @@ struct obitlist
 		const char *opf = obit_prefix(actor, false);
 		if(actor == target) *cl.actor = 0;
 		else formatstring(cl.actor)("%s%s", opf, actor ?
-			(actor != target && actor->ownernum < 0) ? colorname(actor) :
-			(actor->ownernum < 0) ? obit_prefix(actor, false) + 2 : ""
+			(obitamt >= 2 || (target->ownernum < 0 && obitamt >= 1)) ? colorname(actor) :
+			(actor->ownernum < 0) ? opf + 2 : ""
 		: "");
 		// target
 		opf = obit_prefix(target, obit < OBIT_SPECIAL);
 		formatstring(cl.target)("%s%s", opf, target ?
-			(actor == target || target->ownernum < 0) ? colorname(target) : ""
+			(actor == target || obitamt >= 2 || (target->ownernum < 0 && obitamt >= 1)) ? colorname(target) :
+			(target->ownernum < 0) ? opf + 2 : ""
 		: "");
 		cl.style = style;
 		cl.headshot = headshot;
