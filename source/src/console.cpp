@@ -159,7 +159,7 @@ struct obitlist
 			*cl.actor = 0;
 			cl.actor[1] = actor == target ? 'a' : 'b'; // memory hack...
 		}
-		if(actor != target || target->ownernum < 0)
+		if(actor == target || target->ownernum < 0)
 			formatstring(cl.target)("\f%d%s", colorset[obit >= OBIT_SPECIAL ? 0 : 1][target == gamefocus ? 0 : isteam(target, gamefocus) ? 1 : 2], target ? colorname(target) : "unknown");
 		else
 			*cl.target = 0;
