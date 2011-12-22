@@ -172,7 +172,7 @@ struct obitlist
 		// target
 		opf = obit_prefix(target, obit < OBIT_SPECIAL);
 		formatstring(cl.target)("%s%s", opf, target ?
-			(actor == target || obitamt >= 2 || (target->ownernum < 0 && obitamt >= 1)) ? colorname(target) :
+			(obitamt >= 2 || ((actor == target || target->ownernum < 0) && obitamt >= 1)) ? colorname(target) :
 			(target->ownernum < 0) ? opf + 2 : ""
 		: "");
 		cl.style = style;
