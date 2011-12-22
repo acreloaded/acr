@@ -2568,6 +2568,11 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet){
 		}
 	}
 
+	if(demorecord){
+		putint(p, N_CONFMSG);
+		putint(p, 20);
+	}
+
 	// sendservopinfo(*)
 	loopv(clients) if(valid_client(i)){
 		putint(p, N_SETPRIV);
