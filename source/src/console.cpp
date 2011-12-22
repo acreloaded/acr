@@ -131,7 +131,7 @@ Texture **obittex(){
 
 VARP(obitfade, 0, 10, 60);
 VARP(obitalpha, 0, 80, 100);
-struct oline { char *actor; char *target; int weap, millis, style; bool headshot, bot; };
+struct oline { char *actor; char *target; int obit, millis, style; bool headshot; };
 struct obitlist
 {
 	int maxlines;
@@ -139,7 +139,7 @@ struct obitlist
 
 	obitlist() : maxlines(12) {}
 
-	oline &addline(playerent *actor, int weap, int style, bool headshot, playerent *target, int millis)	// add a line to the obit buffer
+	oline &addline(playerent *actor, int obit, int style, bool headshot, playerent *target, int millis)	// add a line to the obit buffer
 	{
 		oline cl;
 		// constrain the buffer size
@@ -151,13 +151,20 @@ struct obitlist
 			cl.target = newstringbuf("");
 		}
 		cl.millis = millis; // for how long to keep line on screen
-		cl.weap = weap;
+		cl.obit = obit;
 		const int colorset[2][3] = {{0, 1, 3}, {8, 9, 7}};
-		formatstring(cl.actor)("\f%d%s", colorset[0][actor == gamefocus ? 0 : isteam(actor, gamefocus) ? 1 : 2], actor == target ? "" : actor ? colorname(actor) : "unknown");
-		formatstring(cl.target)("\f%d%s", colorset[weap >= OBIT_SPECIAL ? 0 : 1][target == gamefocus ? 0 : isteam(target, gamefocus) ? 1 : 2], target ? colorname(target) : "unknown");
+		if(actor != target && actor->ownernum < 0)
+			formatstring(cl.actor)("\f%d%s", colorset[0][actor == gamefocus ? 0 : isteam(actor, gamefocus) ? 1 : 2], actor ? colorname(actor) : "unknown");
+		else{
+			*cl.actor = 0;
+			cl.actor[1] = actor == target ? 'a' : 'b'; // memory hack...
+		}
+		if(target->ownernum < 0 && obit != OBIT_BOT)
+			formatstring(cl.target)("\f%d%s", colorset[obit >= OBIT_SPECIAL ? 0 : 1][target == gamefocus ? 0 : isteam(target, gamefocus) ? 1 : 2], target ? colorname(target) : "unknown");
+		else
+			*cl.target = 0;
 		cl.style = style;
 		cl.headshot = headshot;
-		cl.bot = (target->ownernum >= 0) && (actor != target || weap != WEAP_MAX + 4); // transform the target into a bot symbol if needed
 		return olines.insert(0, cl);
 	}
 
@@ -237,13 +244,14 @@ struct obitlist
 				fade *= obitalpha/100.f;
 
 				// correct alignment
-				defformatstring(obitalign)("%s %s", l.actor, l.bot ? "" : l.target); // two half spaces = one space
+				defformatstring(obitalign)("%s %s", l.actor, l.target); // two half spaces = one space
 				// and the obit...
-				int left = (VIRTW - 16) * ts - text_width(obitalign) - obitaspect(l.weap) * FONTH;
+				int left = (VIRTW - 16) * ts - text_width(obitalign) - obitaspect(l.obit) * FONTH;
 				if(l.headshot) left -= obitaspect(OBIT_HEADSHOT) * FONTH;
 				if(l.style & FRAG_FIRST) left -= obitaspect(OBIT_FIRST) * FONTH;
 				else if(l.style & FRAG_CRIT) left -= obitaspect(OBIT_CRIT) * FONTH;
-				if(l.bot) left -= obitaspect(OBIT_BOT) * FONTH;
+				if(!*l.actor) left -= obitaspect(OBIT_BOT) * FONTH;
+				if(!*l.target) left -= obitaspect(OBIT_BOT) * FONTH;
 
 				// continue...
 				int width, height;
@@ -253,23 +261,24 @@ struct obitlist
 					draw_text(l.actor, left, y, 0xFF, 0xFF, 0xFF, fade * 255, -1);
 					x += width + text_width(" ") / 2;
 				}
-				// now draw weapon symbol
-				x += drawobit(l.weap, left + x, y, fade);
+				else if(l.actor[1] == 'b') x += drawobit(OBIT_BOT, left + x, y, fade);
+				// now draw obituary symbol
+				x += drawobit(l.obit, left + x, y, fade);
 				if(l.headshot) x += drawobit(OBIT_HEADSHOT, left + x, y, fade);
 				// next two shouldn't be grouped, but somehow is
 				if(l.style & FRAG_FIRST) x += drawobit(OBIT_FIRST, left + x, y, fade);
 				else if(l.style & FRAG_CRIT) x += drawobit(OBIT_CRIT, left + x, y, fade);
 				// end of weapon symbol
 				x += text_width(" ") / 2;
-				if(l.bot) x += drawobit(OBIT_BOT, left + x, y, fade);
-				else draw_text(l.target, left + x, y, 0xFF, 0xFF, 0xFF, fade * 255, -1);
+				if(*l.target) draw_text(l.target, left + x, y, 0xFF, 0xFF, 0xFF, fade * 255, -1);
+				else x += drawobit(OBIT_BOT, left + x, y, fade);
 			}
         }
 		glPopMatrix();
     }
 } obits;
 
-void addobit(playerent *actor, int weap, int style, bool headshot, playerent *target) { extern int totalmillis; obits.addline(actor, weap, style, headshot, target, totalmillis); }
+void addobit(playerent *actor, int obit, int style, bool headshot, playerent *target) { extern int totalmillis; obits.addline(actor, obit, style, headshot, target, totalmillis); }
 void renderobits() { obits.render(); }
 
 textinputbuffer cmdline;
