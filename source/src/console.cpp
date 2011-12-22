@@ -154,7 +154,7 @@ struct obitlist
 		cl.obit = obit;
 		const int colorset[2][3] = {{0, 1, 3}, {8, 9, 7}};
 		// actor
-		int currentcolor = colorset[0][actor == gamefocus ? 0 : actor && isteam(actor, gamefocus) ? 1 : 2]
+		int currentcolor = colorset[0][actor == gamefocus ? 0 : actor && isteam(actor, gamefocus) ? 1 : 2];
 		formatstring(cl.actor)("\f%d%s", currentcolor, actor ? ((actor != target && actor->ownernum < 0) ? colorname(actor) : (actor && isteam(actor, gamefocus) ? "+" : "-")) : "unknown");
 		// target
 		currentcolor = colorset[obit >= OBIT_SPECIAL ? 0 : 1][target == gamefocus ? 0 : isteam(target, gamefocus) ? 1 : 2];
