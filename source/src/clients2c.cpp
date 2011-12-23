@@ -581,8 +581,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				int cooked = getint(p);
 				if(!d) break;
 				updatelastaction(d);
+				d->weaponchanging = 0;
 				d->lastattackweapon = d->weapons[WEAP_GRENADE];
-				if(d->weapons[WEAP_GRENADE]) d->weapons[WEAP_GRENADE]->attackfx(from, to, cooked);
+				if(d->weapons[WEAP_GRENADE]){
+					d->weapons[WEAP_GRENADE]->attackfx(from, to, cooked);
+					d->weapons[WEAP_GRENADE]->reloading = 0;
+				}
 				break;
 			}
 
