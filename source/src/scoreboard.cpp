@@ -58,10 +58,10 @@ struct spectscore : teamscore{
 };
 
 #define doscorecompare \
-	if(x->flagscore > y->flagscore) return -1; \
-	if(x->flagscore < y->flagscore) return 1; \
 	if(x->points > y->points) return -1; \
 	if(x->points < y->points) return 1; \
+	if(x->flagscore > y->flagscore) return -1; \
+	if(x->flagscore < y->flagscore) return 1; \
 	if(x->frags > y->frags) return -1; \
 	if(x->frags < y->frags) return 1; \
 	if(x->assists > y->assists) return -1; \
