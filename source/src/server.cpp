@@ -3396,7 +3396,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				loopi(3) newvel[i] = getfloat(p);
 				const float newpitchvel = getfloat(p);
 				const int f = getuint(p), seqcolor = (f>>6)&1;
-				const bool newcrouching = (f>>7)&1;
 				if(!valid_client(cn)) break;
 				client &cp = *clients[cn];
 				clientstate &cs = cp.state;
@@ -3410,12 +3409,24 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				cs.vel = newvel;
 				cs.pitchvel = newpitchvel;
 				// crouch
+				const bool newcrouching = (f>>7)&1;
 				if(cs.crouching != newcrouching){
 					cs.crouching = newcrouching;
 					cs.crouchmillis = gamemillis - CROUCHTIME + min(gamemillis - cl->state.crouchmillis, CROUCHTIME);
 				}
 				// check movement
-				if(cs.state==CS_ALIVE) checkmove(cp);
+				if(cs.state==CS_ALIVE)
+				{
+					const bool newonfloor = (f>>4)&1;
+					// deal falling damage?
+					/*
+					int damage = (fall - 10) * HEALTHSCALE / (cp->state.perk == PERK_LIGHT ? 10 : 2);
+					if(damage < 1) break; // don't heal the player
+					else if(damage > 200* HEALTHSCALE) damage = 200 * HEALTHSCALE;
+					serverdamage(cp, cp, damage, WEAP_MAX + 2, FRAG_NONE, cp->state.o);
+					*/
+					checkmove(cp);
+				}
 				// relay
 				cp.position.setsize(0);
  				while(curmsg < p.length()) cp.position.add(p.buf[curmsg++]);
