@@ -57,34 +57,27 @@ struct spectscore : teamscore{
 	}
 };
 
-static int teamscorecmp(const teamscore *x, const teamscore *y){
-	if(x->flagscore > y->flagscore) return -1;
-	if(x->flagscore < y->flagscore) return 1;
-	if(x->points > y->points) return -1;
-	if(x->points < y->points) return 1;
-	if(x->frags > y->frags) return -1;
-	if(x->frags < y->frags) return 1;
-	if(x->assists > y->assists) return -1;
-	if(x->assists < y->assists) return 1;
-	if(x->deaths < y->deaths) return -1;
+#define doscorecompare \
+	if(x->flagscore > y->flagscore) return -1; \
+	if(x->flagscore < y->flagscore) return 1; \
+	if(x->points > y->points) return -1; \
+	if(x->points < y->points) return 1; \
+	if(x->frags > y->frags) return -1; \
+	if(x->frags < y->frags) return 1; \
+	if(x->assists > y->assists) return -1; \
+	if(x->assists < y->assists) return 1; \
+	if(x->deaths < y->deaths) return -1; \
 	if(x->deaths > y->deaths) return 1;
+
+static int teamscorecmp(const teamscore *x, const teamscore *y){
+	doscorecompare
 	return x->team > y->team;
 }
 
-static int scorecmp(const playerent **x, const playerent **y){
-	if((*x)->flagscore > (*y)->flagscore) return -1;
-	if((*x)->flagscore < (*y)->flagscore) return 1;
-	if((*x)->points > (*y)->points) return -1;
-	if((*x)->points < (*y)->points) return 1;
-	if((*x)->frags > (*y)->frags) return -1;
-	if((*x)->frags < (*y)->frags) return 1;
-	if((*x)->assists > (*y)->assists) return -1;
-	if((*x)->assists < (*y)->assists) return 1;
-	if((*x)->deaths > (*y)->deaths) return 1;
-	if((*x)->deaths < (*y)->deaths) return -1;
-	if((*x)->lifesequence > (*y)->lifesequence) return 1;
-	if((*x)->lifesequence < (*y)->lifesequence) return -1;
-	return strcmp((*x)->name, (*y)->name);
+static int scorecmp(const playerent **a, const playerent **b){
+	const playerent *x = *a, *y = *b;
+	doscorecompare
+	return strcmp(x->name, y->name);
 }
 
 struct scoreratio{
