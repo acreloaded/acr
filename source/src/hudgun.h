@@ -15,24 +15,24 @@ struct weaponmove
 	
 	weaponmove() : k_rot(0), kick(0), anim(0), basetime(0) { pos.x = pos.y = pos.z = 0.0f; }
 
-	void calcmove(vec aimdir, int lastaction)
+	void calcmove(vec aimdir, int lastaction, playerent *p)
 	{
 		kick = k_rot = 0.0f;
-		pos = gamefocus->o;
+		pos = p->o;
 		
 		if(!nosway)
 		{
 			float k = pow(0.7f, (lastmillis-lastsway)/10.0f);
 			swaydir.mul(k);
-			vec dv(gamefocus->vel);
-			dv.mul((1-k)/max(gamefocus->vel.magnitude(), gamefocus->maxspeed));
+			vec dv(p->vel);
+			dv.mul((1-k)/max(p->vel.magnitude(), p->maxspeed));
 			dv.x *= 1.5f;
 			dv.y *= 1.5f;
 			dv.z *= 0.4f;
 			swaydir.add(dv);
 		}
 
-		if(gamefocus->onfloor || gamefocus->onladder || gamefocus->inwater) swaymillis += lastmillis-lastsway;
+		if(p->onfloor || p->onladder || p->inwater) swaymillis += lastmillis-lastsway;
 		lastsway = lastmillis;
 
 		anim = ANIM_WEAP_IDLE;
@@ -43,7 +43,7 @@ struct weaponmove
 			float swayspeed = sinf((float)swaymillis/swayspeeddiv)/(swaymovediv/10.0f);
 			float swayupspeed = cosf((float)swaymillis/swayupspeeddiv)/(swayupmovediv/10.0f);
 
-			float plspeed = min(1.0f, sqrtf(gamefocus->vel.x*gamefocus->vel.x + gamefocus->vel.y*gamefocus->vel.y));
+			float plspeed = min(1.0f, sqrtf(p->vel.x*p->vel.x + p->vel.y*p->vel.y));
 				
 			swayspeed *= plspeed/2;
 			swayupspeed *= plspeed/2;
@@ -58,23 +58,23 @@ struct weaponmove
 			sway.y *= swayspeed;
 			sway.z *= swayupspeed;
 
-			sway.mul(gamefocus->eyeheight / gamefocus->maxeyeheight);
+			sway.mul(p->eyeheight / p->maxeyeheight);
 		}
 
-		if(gamefocus->weaponchanging){
-			basetime = ads_gun(gamefocus->weaponsel->type) ? lastmillis : gamefocus->weaponchanging;
-			float progress = clamp((lastmillis - gamefocus->weaponchanging)/(float)weapon::weaponchangetime, 0.0f, 1.0f);
+		if(p->weaponchanging){
+			basetime = ads_gun(p->weaponsel->type) ? lastmillis : p->weaponchanging;
+			float progress = clamp((lastmillis - p->weaponchanging)/(float)weapon::weaponchangetime, 0.0f, 1.0f);
 			k_rot = -90*sinf(progress*M_PI);
 		}
-		else if(gamefocus->weaponsel->reloading){
+		else if(p->weaponsel->reloading){
 			anim = ANIM_WEAP_RELOAD;
-			basetime = gamefocus->weaponsel->reloading;
-			const float reloadtime = gamefocus->weaponsel->info.reloadtime,
-						reloadelasped = lastmillis - gamefocus->weaponsel->reloading,
-						gunwaitelasped = lastmillis - gamefocus->weaponsel->gunwait;
+			basetime = p->weaponsel->reloading;
+			const float reloadtime = p->weaponsel->info.reloadtime,
+						reloadelasped = lastmillis - p->weaponsel->reloading,
+						gunwaitelasped = lastmillis - p->weaponsel->gunwait;
 			float progress = clamp(reloadelasped/reloadtime, 0.0f,
-							clamp(1.0f - (gamefocus->lastaction - gunwaitelasped)/reloadtime, 0.5f, 1.0f));
-			switch(gamefocus->weaponsel->type){
+							clamp(1.0f - (p->lastaction - gunwaitelasped)/reloadtime, 0.5f, 1.0f));
+			switch(p->weaponsel->type){
 				case WEAP_AKIMBO: // nothing we can do by the nature of this weapon
 				{
 					if((progress -= .4f) > 0){
@@ -98,31 +98,31 @@ struct weaponmove
 			basetime = lastaction;
 
 			int timediff = lastmillis-lastaction, 
-				animtime = min(gamefocus->weaponsel->gunwait, (int)gamefocus->weaponsel->info.attackdelay);
+				animtime = min(p->weaponsel->gunwait, (int)p->weaponsel->info.attackdelay);
 			
 			float progress = 0.0f;
 			
-			if(gamefocus->weaponsel==gamefocus->lastattackweapon){
+			if(p->weaponsel==p->lastattackweapon){
 				progress = max(0.0f, min(1.0f, timediff/(float)animtime));
 				// f(x) = -sin(x-1.5)^3
 				kick = -sinf(pow((1.5f*progress)-1.5f,3));
-				kick *= gamefocus->eyeheight / gamefocus->maxeyeheight;
-				if(gamefocus->lastaction) anim = gamefocus->weaponsel->modelanim();
+				kick *= p->eyeheight / p->maxeyeheight;
+				if(p->lastaction) anim = p->weaponsel->modelanim();
 			}
 			
-			if(gamefocus->weaponsel->info.mdl_kick_rot || gamefocus->weaponsel->info.mdl_kick_back){
-				k_rot = gamefocus->weaponsel->info.mdl_kick_rot*kick;
-				k_back = gamefocus->weaponsel->info.mdl_kick_back*kick/10;
+			if(p->weaponsel->info.mdl_kick_rot || p->weaponsel->info.mdl_kick_back){
+				k_rot = p->weaponsel->info.mdl_kick_rot*kick;
+				k_back = p->weaponsel->info.mdl_kick_back*kick/10;
 			}
 			
 			int swayremove = 0;
-			if(ads_gun(gamefocus->weaponsel->type)){
-				swayremove = gamefocus->ads;
+			if(ads_gun(p->weaponsel->type)){
+				swayremove = p->ads;
 				if((anim&ANIM_INDEX) == ANIM_WEAP_IDLE || (anim&ANIM_INDEX) == ANIM_WEAP_SHOOT)
 					basetime = lastmillis - swayremove;
 			}
-			else if(gamefocus->weaponsel->type == WEAP_AKIMBO) basetime = lastmillis;
-			else if(gamefocus->weaponsel->type == WEAP_KNIFE && ((knife *)gamefocus->weaponsel)->state) swayremove = 680;
+			else if(p->weaponsel->type == WEAP_AKIMBO) basetime = lastmillis;
+			else if(p->weaponsel->type == WEAP_KNIFE && ((knife *)p->weaponsel)->state) swayremove = 680;
 
 			if(swayremove){
 				k_rot *= 1 - sqrtf(swayremove / 1000.f) / 2.f;

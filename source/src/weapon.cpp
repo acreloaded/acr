@@ -451,7 +451,7 @@ void weapon::renderhudmodel(int lastaction, bool akimboflip){
 
 	const bool flip = akimboflip ^ (lefthand > 0);
 	weaponmove wm;
-	if(!intermission) wm.calcmove(unitv, lastaction);
+	if(!intermission) wm.calcmove(unitv, lastaction, owner);
 	defformatstring(path)("weapons/%s", info.modelname);
 	const bool emit = ((wm.anim&ANIM_INDEX)==ANIM_WEAP_SHOOT) && (lastmillis - lastaction) < flashtime();
 	if(ads_gun(type) && (wm.anim&ANIM_INDEX)==ANIM_WEAP_SHOOT) wm.anim = ANIM_WEAP_IDLE;
