@@ -125,7 +125,6 @@ extern mutstypes mutstype[G_M_NUM];
 
 #define m_lss(a,b)          (m_survivor(a,b) && m_gib(a,b))
 #define m_return(a,b)       (m_capture(a) && m_gsp1(a,b))
-#define m_suicide(a,b)      (m_bomber(a) && m_gsp1(a,b))
 #define m_ktf2(a,b)         (m_keep(a) && m_gsp1(a,b))
 #define m_zombies_rounds(a,b) (m_zombie(a) && !m_gsp1(a,b))
 #define m_onslaught(a,b)    (m_zombie(a) && m_gsp1(a,b))

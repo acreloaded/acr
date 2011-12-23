@@ -35,7 +35,6 @@ void classicmode(int n)
 		{ G_CTF, G_M_TEAM },
 		{ G_CTF, G_M_GSP1|G_M_TEAM },
 		{ G_BOMBER, G_M_TEAM },
-		{ G_BOMBER, G_M_GSP1|G_M_TEAM },
 		{ G_HTF, G_M_TEAM },
 		{ G_KTF, G_M_NONE },
 		{ G_KTF, G_M_TEAM },
