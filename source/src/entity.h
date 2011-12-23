@@ -589,7 +589,7 @@ struct playerent : dynent, playerstate
 		wantsswitch = -1;
 		scoping = attacking = false;
 		lastaction = 0;
-		airstrikes = nukemillis = 0;
+		nukemillis = 0;
 		resetspec();
 		eyeheight = maxeyeheight;
 		damagestack.setsize(0);
