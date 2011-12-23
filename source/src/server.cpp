@@ -318,7 +318,7 @@ inline void sendservmsg(const char *msg, int client = -1){ // compact to below e
 inline void sendmsg(int msg, int client = -1){
 	sendf(client, 1, "ri2", N_CONFMSG, msg);
 }
-inline void sendmsgs(int msg, char *str, int client = -1){
+inline void sendmsgs(int msg, const char *str, int client = -1){
 	sendf(client, 1, "ri2s", N_CONFMSG, msg, str);
 }
 inline void sendmsgi(int msg, int num, int client = -1){
@@ -1487,6 +1487,8 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 
 void cheat(client *cl, const char *reason = "unknown"){
 	logline(ACLOG_INFO, "[%s] %s cheat detected (%s)", gethostname(cl->clientnum), formatname(cl), reason);
+	defformatstring(cheats)("\f2%s \fs\f6(%d) \f3cheat detected \f4(%s)", cl->name, cl->clientnum, reason);
+	sendservmsg(cheats);
 	cl->suicide(WEAP_MAX+5, FRAG_GIB);
 }
 
