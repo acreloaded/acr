@@ -183,7 +183,6 @@ struct physent
 	float pitchvel, yawvel, pitchreturn, yawreturn;
 	float maxspeed;					 // cubes per second, 24 for player
 	int timeinair;					  // used for fake gravity
-	float fallz; // used for falling damage
 	float radius, eyeheight, maxeyeheight, aboveeye;  // bounding box size
 	bool inwater;
 	bool onfloor, onladder, jumpnext, crouching, trycrouch, cancollide, stuck;
@@ -193,7 +192,7 @@ struct physent
 	float eyeheightvel;
 
 	physent() : o(0, 0, 0), deltapos(0, 0, 0), newpos(0, 0, 0), yaw(270), pitch(0), pitchreturn(0), roll(0), pitchvel(0),
-				crouching(false), trycrouch(false), cancollide(true), stuck(false), lastsplash(0), state(CS_ALIVE), fallz(0)
+				crouching(false), trycrouch(false), cancollide(true), stuck(false), lastsplash(0), state(CS_ALIVE)
 	{
 		reset();
 	}
@@ -208,7 +207,7 @@ struct physent
 
 	void reset()
 	{
-		vel.x = vel.y = vel.z = eyeheightvel = fallz = 0.0f;
+		vel.x = vel.y = vel.z = eyeheightvel = 0.0f;
 		move = strafe = 0;
 		timeinair = lastsplash = 0;
 		onfloor = onladder = inwater = jumpnext = crouching = trycrouch = stuck = false;

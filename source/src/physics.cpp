@@ -552,18 +552,16 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 					}
 					else
 					{
-						pl->fallz = max(pl->fallz, pl->o.z);
 						pl->timeinair += curtime;
 					}
 				}
 
 				if(!pl->timeinair)
 				{
-					if(timeinair > 200 && pl->state!=CS_DEAD && pl->fallz && p && (p == player1 || isowned(p))){
-						addmsg(N_PHYS, "ri3", p->clientnum, timeinair > 800 ? PHYS_HARDFALL : PHYS_FALL, int((pl->fallz - pl->o.z) * DMF));
+					if(timeinair > 200 && pl->state!=CS_DEAD && p && (p == player1 || isowned(p))){
+						addmsg(N_PHYS, "ri2", p->clientnum, timeinair > 800 ? PHYS_HARDFALL : PHYS_FALL);
 						playsound(timeinair > 800 ? S_HARDLAND : S_SOFTLAND, pl);
 					}
-					pl->fallz = 0;
 				}
 			}
 

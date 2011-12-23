@@ -3649,29 +3649,17 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				senddemo(sender, getint(p));
 				break;
 
-			case N_PHYS:
+			case N_PHYS: // simple physics related stuff (jump/hit the ground) mostly sounds
 			{
 				const int cn = getint(p), typ = getint(p);
-				const bool isfall = typ == PHYS_HARDFALL || typ == PHYS_FALL;
-				const float fall = isfall ? getint(p)/DMF : 0;
 				if(!hasclient(cl, cn) || typ < 0 || typ >= PHYS_NUM) break;
 				client *cp = clients[cn];
-				if(isfall){
-					if(cp->state.state != CS_ALIVE) break;
-					// deal falling damage?
-					int damage = (fall - 10) * HEALTHSCALE / (cp->state.perk == PERK_LIGHT ? 10 : 2);
-					if(damage < 1) break; // don't heal the player
-					else if(damage > 200* HEALTHSCALE) damage = 200 * HEALTHSCALE;
-					serverdamage(cp, cp, damage, WEAP_MAX + 2, FRAG_NONE, cp->state.o);
-				}
-				else if(typ == PHYS_AKIMBOOUT){
+				if(typ == PHYS_AKIMBOOUT){
 					if(!cp->state.akimbomillis) break;
 					cp->state.akimbomillis = 0;
 				}
 				else if(typ == PHYS_NOAMMO && cp->state.mag) break;
-				QUEUE_INT(N_PHYS);
-				QUEUE_INT(cn);
-				QUEUE_INT(typ);
+				QUEUE_MSG;
 				break;
 			}
 
