@@ -680,7 +680,7 @@ void addshotline(playerent *pl, const vec &from2, const vec &to, int flags)
 	newparticle(o, d, shotlinettl, 6);
 
 	// shotline sound fx
-	if(!bulletairsoundrad) return;
+	if(!bulletairsoundrad || (flags & 2)) return;
 	vec fromuv, touv;
 	float fd = camera1->o.dist(from, fromuv);
 	float td = camera1->o.dist(to, touv);
