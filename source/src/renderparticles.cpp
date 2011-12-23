@@ -646,6 +646,7 @@ vector<sl> sls;
 
 void addshotline(playerent *pl, const vec &from2, const vec &to, int flags)
 {
+	// flags: 1: first shot 2: silence
 	vec from(from2);
 
 	sl s = {pl, {from.x, from.y}, {to.x, to.y}, lastmillis + shotlinettl * 2};
