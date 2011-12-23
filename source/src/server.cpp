@@ -3419,12 +3419,17 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				{
 					const bool newonfloor = (f>>4)&1;
 					// deal falling damage?
-					/*
-					int damage = (fall - 10) * HEALTHSCALE / (cp->state.perk == PERK_LIGHT ? 10 : 2);
-					if(damage < 1) break; // don't heal the player
-					else if(damage > 200* HEALTHSCALE) damage = 200 * HEALTHSCALE;
-					serverdamage(cp, cp, damage, WEAP_MAX + 2, FRAG_NONE, cp->state.o);
-					*/
+					if(!newonfloor){
+						if(cs.onfloor || cs.fallz < newo.z) cs.fallz = newo.z;
+						cs.onfloor = false;
+					}
+					else if(!cs.onfloor){
+						int damage = ((cs.fallz - newo.z) - 16) * HEALTHSCALE / (cp.state.perk == PERK_LIGHT ? 12 : 3);
+						if(damage < 1) break; // don't heal the player
+						else if(damage > 200* HEALTHSCALE) damage = 200 * HEALTHSCALE;
+						serverdamage(&cp, &cp, damage, WEAP_MAX + 2, FRAG_NONE, cp.state.o);
+						cs.onfloor = true;
+					}
 					checkmove(cp);
 				}
 				// relay

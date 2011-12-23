@@ -102,7 +102,7 @@ struct clientstate : playerstate
 	int state, lastomillis, movemillis;
 	int lastdeath, lastffkill, lastspawn, lifesequence, streakused;
 	int lastkill, combo;
-	bool crouching;
+	bool crouching, onfloor; float fallz;
 	int crouchmillis, scopemillis;
 	int drownmillis; char drownval;
 	int streakondeath;
@@ -159,6 +159,8 @@ struct clientstate : playerstate
 		wounds.shrink(0); // no more wounds!
 		crouching = false;
 		crouchmillis = scopemillis = 0;
+		onfloor = false;
+		fallz = 0;
 		streakondeath = -1;
 	}
 
