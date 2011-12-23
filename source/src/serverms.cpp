@@ -24,7 +24,11 @@ ENetSocket httpgetsend(ENetAddress &remoteaddress, const char *hostname, const c
 	if(remoteaddress.host==ENET_HOST_ANY)
 	{
 		logline(ACLOG_INFO, "looking up %s...", hostname);
+		#if defined AC_MASTER_DOMAIN && defined AC_MASTER_IPS
 		if(!resolverwait(!strcmp(hostname, AC_MASTER_DOMAIN) ? AC_MASTER_IPS : hostname, &remoteaddress)) return ENET_SOCKET_NULL;
+		#else
+		if(!resolverwait(hostname, &remoteaddress)) return ENET_SOCKET_NULL;
+		#endif
 	}
 	ENetSocket sock = enet_socket_create(ENET_SOCKET_TYPE_STREAM);
 	if(sock!=ENET_SOCKET_NULL && localaddress && enet_socket_bind(sock, localaddress) < 0)

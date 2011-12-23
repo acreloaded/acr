@@ -51,9 +51,13 @@ extern int verbose;
 #include "protos.h"				// external function decls
 
 #define AC_VERSION 231
+#define AC_MASTER_URI "ms.acreloaded.tk/"
+
+#ifndef AC_MASTER_URI
 #define AC_MASTER_DOMAIN "ms.acr"
 #define AC_MASTER_URI AC_MASTER_DOMAIN "/"
 #define AC_MASTER_IPS "216.34.181.97"
+#endif
 
 #endif
 
