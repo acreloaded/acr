@@ -1354,9 +1354,9 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	target->removetimers(GE_RELOAD);
 	loopv(ts.damagelog){
 		if(valid_client(ts.damagelog[i])){
-			// add assist/assiststreak
-			++clients[ts.damagelog[i]]->state.assists;
-			clients[ts.damagelog[i]]->state.pointstreak += 2;
+			const int factor = isteam(clients[ts.damagelog[i]], target) ? -1 : 1;
+			clients[ts.damagelog[i]]->state.assists += factor;
+			clients[ts.damagelog[i]]->state.pointstreak += factor * 2;
 		}
 		else ts.damagelog.remove(i--);
 	}
