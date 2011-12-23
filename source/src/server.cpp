@@ -681,8 +681,8 @@ void putflaginfo(ucharbuf &p, int flag){
 int next_afk_check = 200;
 void check_afk(){
 	next_afk_check = servmillis + 7 * 1000;
-	// if we have less than five players or a non-teammode is not full: do nothing!
-	if (numclients() < 5 || (numnonlocalclients() < scl.maxclients && !m_team(gamemode, mutators))) return;
+	// OLD LOGIC: if we have less than five players or a non-teammode is not full: do nothing!
+	// if (numclients() < 5 || (numnonlocalclients() < scl.maxclients && !m_team(gamemode, mutators))) return;
 	loopv(clients){
 		client &c = *clients[i];
 		if (c.type != ST_TCPIP || c.connectmillis + 60 * 1000 > servmillis || c.team == TEAM_SPECT ||
