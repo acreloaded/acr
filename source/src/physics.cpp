@@ -124,7 +124,7 @@ float rayclip(const vec &o, const vec &ray, vec &surface){
 	loopv(ents){
 		entity &c = ents[i];
 		if(c.type != CLIP) continue;
-		extern inline bool intersectbox(const vec &o, const vec &rad, const vec &from, const vec &to, vec *end);
+		extern bool intersectbox(const vec &o, const vec &rad, const vec &from, const vec &to, vec *end);
 		const short z = OUTBORD(c.x, c.y) ? 0 : S(c.x, c.y)->floor;
 		if(intersectbox(vec(c.x, c.y, z + c.attr1 + c.attr4 / 2), vec(max(0.1f, (float)c.attr2), max(0.1f, (float)c.attr3), max(0.1f, (float)c.attr4 / 2)), o, to, &end)){
 			to = end;

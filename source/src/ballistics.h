@@ -1,4 +1,4 @@
-static inline bool intersectbox(const vec &o, const vec &rad, const vec &from, const vec &to, vec *end){ // if line segment hits entity bounding box
+static bool intersectbox(const vec &o, const vec &rad, const vec &from, const vec &to, vec *end){ // if line segment hits entity bounding box
 	const vec *p;
 	vec v = to, w = o;
 	v.sub(from);

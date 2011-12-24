@@ -590,7 +590,7 @@ struct botname
 
 	void putname(char *target, int sk){
 		char *name = storage;
-		char *rank = ""; // prepend rank (only if based on skill)
+		const char *rank = ""; // prepend rank (only if based on skill)
 
 		if(*name == '*') // rank based on skill
 		{
