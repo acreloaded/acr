@@ -5,7 +5,7 @@ CXXCUSTOMFLAGS=-fsigned-char -Wall -Wextra -Wno-missing-field-initializers -Wno-
 CXXFLAGS=$(CXXOPTFLAGS) $(INCLUDES1) $(INCLUDES2) $(CUSTOMFLAGS)
 CXXFLAGSSERVER=$(CXXOPTFLAGS) $(INCLUDES1) $(CUSTOMFLAGS)
 
-PLATFORM_PREFIX=linux
+PLATFORM_PREFIX=$(shell uname -s)
 CLIENT_LIBS=-L/usr/X11R6/lib -L../enet/.libs -lenet `sdl-config --libs` -lSDL_image -lz -lGL -lopenal -lvorbisfile
 CLIENT_OBJS1= \
 	client.o \
