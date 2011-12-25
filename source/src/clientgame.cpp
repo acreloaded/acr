@@ -574,7 +574,6 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 	if(killdist) concatformatstring(predicate, " (@%.2f m)", killdist);
 	// streaks
 	//if(act->pointstreak >= 2) concatformatstring(predicate, " %d ks", act->pointstreak);
-	act->pointstreak += 5;
 	if(pl->deathstreak++) concatformatstring(predicate, " %d ds", pl->deathstreak);
 	// assist count
 	pl->damagelog.removeobj(pl->clientnum);

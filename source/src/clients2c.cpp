@@ -721,17 +721,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_KILL:
 			{
-				/*
-				// i9
-
-		damage, // finishing damage
-		++actor->state.combo, // combo
-		actor->state.pointstreak, // streak
-		killdist, // distance (f4)
-		source.x, // source
-		source.y,
-		source.z, // below: assists (iv)
-				*/
 				const int vcn = getint(p),
 					acn = getint(p),
 					frags = getint(p),
