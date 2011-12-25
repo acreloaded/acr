@@ -3781,6 +3781,7 @@ void checkintermission(){
 				configset nextmaprot = configsets[nextcfgset(false, true)];
 				copystring(nextmapnm, nextmaprot.mapname);
 				nextmapmode = nextmaprot.mode;
+				nextmapmuts = nextmaprot.muts;
 				nextmaptime = nextmaprot.time;
 			}
 			else{ // no map rotation entries
