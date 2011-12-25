@@ -14,6 +14,12 @@
 -o \f1Welcome \f3to \f2this \f0server\f7! // MOTD
 -D // keep demos
 
+-r config/default.maprot.cfg
+-X config/default.serverpwd.cfg
+-B config/default.serverblacklist.cfg
+-K config/default.nicknameblacklist.cfg
+-I config/default.serverinfo_en.txt
+
 // commonly used commandline switches:
 
 // -o     // MOTD
