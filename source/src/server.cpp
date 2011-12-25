@@ -105,12 +105,13 @@ static bool reliablemessages = false;
 
 bool buildworldstate(){ // WAY easier worldstates
 	bool flush = false;
-	loopvj(clients){ // first, broadcast the needed packets
+	loopvj(clients){ // broadcast the needed packets AND record at the same time!
 		client &c = *clients[j];
-		if(c.type == ST_EMPTY || !c.connected /*|| j == i || (c.type == ST_AI && c.state.ownernum == i)*/) continue;
+		if(c.type == ST_EMPTY || !c.connected) continue;
 		c.overflow = 0;
 
 		if(c.position.length()){
+			flush = true;
 			// positions
 			ENetPacket *positionpacket = enet_packet_create(NULL, MAXTRANS, 0);
 			ucharbuf pos(positionpacket->data, positionpacket->dataLength);
@@ -118,14 +119,17 @@ bool buildworldstate(){ // WAY easier worldstates
 
 			enet_packet_resize(positionpacket, pos.length());
 			// possibly inspect every packet recipient with <cheap occlusion checks here to prevent wall hacks>
-			// loopv(clients){
-				sendpacket(-1, 0, positionpacket, j);
-			// }
+			loopv(clients) if(clients[i]->type != ST_EMPTY && clients[i]->type != ST_AI && clients[i]->connected){
+				if(j == i || (c.type == ST_AI && c.state.ownernum == i)) continue;
+				sendpacket(i, 0, positionpacket);
+			}
+			recordpacket(0, pos.buf, pos.length()); // record positions
 			if(!positionpacket->referenceCount) enet_packet_destroy(positionpacket);
 		}
 
-		// messages
 		if(c.messages.length()){
+			flush = true;
+			// messages
 			ENetPacket *messagepacket = enet_packet_create(NULL, MAXTRANS, reliablemessages ? ENET_PACKET_FLAG_RELIABLE : 0);
 			ucharbuf p(messagepacket->data, messagepacket->dataLength);
 			putint(p, N_CLIENT);
@@ -134,31 +138,12 @@ bool buildworldstate(){ // WAY easier worldstates
 			p.put(c.messages.getbuf(), c.messages.length());
 
 			enet_packet_resize(messagepacket, p.length());
-			sendpacket(-1, 1, messagepacket, j);
+			sendpacket(-1, 1, messagepacket, j); // recorded by broadcast
 			if(!messagepacket->referenceCount) enet_packet_destroy(messagepacket);
 		}
-	}
 
-	static uchar recorddatap[MAXTRANS], recorddatam[MAXTRANS];
-	ucharbuf recordpos(recorddatap, MAXTRANS), recordmsg(recorddatam, MAXTRANS);
-	extern bool recordpackets;
-	loopv(clients) if(clients[i]->type != ST_EMPTY && clients[i]->connected){ // next, flush it to the packet recorder
-		if(clients[i]->position.length() || clients[i]->messages.length()) flush = true;
-		else continue;
-
-		if(recordpackets){
-			recordpos.put(clients[i]->position.getbuf(), clients[i]->position.length());
-
-			putint(recordmsg, N_CLIENT);
-			putint(recordmsg, i);
-			recordmsg.put(clients[i]->messages.getbuf(), clients[i]->messages.length());
-		}
-		clients[i]->position.setsize(0);
-		clients[i]->messages.setsize(0);
-	}
-	if(flush && recordpackets){
-		recordpacket(0, recordpos.buf, recordpos.length());
-		recordpacket(1, recordmsg.buf, recordmsg.length());
+		c.position.setsize(0);
+		c.messages.setsize(0);
 	}
 	reliablemessages = false;
 	return flush;
