@@ -2662,15 +2662,18 @@ void sendwelcome(client *cl, int chan){
 void checkmove(client &cp){
 	const int sender = cp.clientnum;
 	clientstate &cs = cp.state;
+	// detect speedhack
 	float cps = cs.lasto.dist(cs.o);
-	if(cs.lasto != cs.o) cs.movemillis = servmillis;
-	else if(cps && cs.lastomillis && gamemillis > cs.lastomillis){
-		cps *= 1000 / (gamemillis - cs.lastomillis);
-		if(cps > 32){ // 8 meters per second
-			defformatstring(fastmsg)("%s (%d) moved at %.3f meters/second", cp.name, sender, cps / 4);
-			sendservmsg(fastmsg);
-			if(cps > 64) // 16 meters per second
-				cheat(&cp, "speedhack");
+	if(cs.lasto != cs.o){
+		cs.movemillis = servmillis;
+		if(cps && cs.lastomillis && gamemillis > cs.lastomillis){
+			cps *= 1000 / (gamemillis - cs.lastomillis);
+			if(cps > 32){ // 8 meters per second
+				defformatstring(fastmsg)("%s (%d) moved at %.3f meters/second", cp.name, sender, cps / 4);
+				sendservmsg(fastmsg);
+				if(cps > 64) // 16 meters per second
+					cheat(&cp, "speedhack");
+			}
 		}
 	}
 	// drown underwater
@@ -3419,6 +3422,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					cs.crouching = newcrouching;
 					cs.crouchmillis = gamemillis - CROUCHTIME + min(gamemillis - cl->state.crouchmillis, CROUCHTIME);
 				}
+
+				// relay
+				cp.position.setsize(0);
+ 				while(curmsg < p.length()) cp.position.add(p.buf[curmsg++]);
+
 				// check movement
 				if(cs.state==CS_ALIVE)
 				{
@@ -3430,17 +3438,15 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						if(cs.onfloor || cs.fallz < newo.z) cs.fallz = newo.z;
 						cs.onfloor = false;
 					}
+					// WARNING: NEXT BLOCK CAUSES GLITCHES
 					else if(!cs.onfloor){
-						int damage = ((cs.fallz - newo.z) - 16) * HEALTHSCALE / (cp.state.perk == PERK_LIGHT ? 12 : 3);
+						int damage = ((cs.fallz - newo.z) - 16) * HEALTHSCALE / (cs.perk == PERK_LIGHT ? 12 : 3);
 						if(damage < 1*HEALTHSCALE) break; // don't heal the player
-						else if(damage > 200* HEALTHSCALE) damage = 200 * HEALTHSCALE;
-						serverdamage(&cp, &cp, damage, WEAP_MAX + 2, FRAG_NONE, cp.state.o);
+						else if(damage > 200*HEALTHSCALE) damage = 200 * HEALTHSCALE;
+						serverdamage(&cp, &cp, damage, WEAP_MAX + 2, FRAG_NONE, cs.o);
 						cs.onfloor = true;
 					}
 				}
-				// relay
-				cp.position.setsize(0);
- 				while(curmsg < p.length()) cp.position.add(p.buf[curmsg++]);
 				break;
 			}
 
