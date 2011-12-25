@@ -1045,7 +1045,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		}
 		// streak misc
 		// streak num
-		if(p->deathstreak) draw_textf("\f3-%d", (VIRTW-225-10-180-22 - 80 - 23 - max(11-p->deaths,1)*50) * streakscale, (VIRTH - 50 - 40) * streakscale, p->deathstreak);
+		if(p->deathstreak) draw_textf("\f3-%d", (VIRTW-225-10-180-22 - 80 - 23 - max(11-p->deathstreak,1)*50) * streakscale, (VIRTH - 50 - 40) * streakscale, p->deathstreak);
 		else draw_textf("\f%c%.1f", (VIRTW-225-10-180-22 - 80 - 23 - max(11-currentstreak,1)*50) * streakscale, (VIRTH - 50 - 40) * streakscale,
 			p->pointstreak >= 9*5 ? '1' :
 			p->pointstreak >= 7*5 ? '0' :
