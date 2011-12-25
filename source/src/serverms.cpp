@@ -204,7 +204,7 @@ void updatemasterserver(int millis, const ENetAddress &localaddr){
 		}
 	}
 	if(!*path) return; // no request
-	defformatstring(agent)("ACR Server v%d", AC_VERSION);
+	defformatstring(agent)("ACR-Server/%d", AC_VERSION);
 	mssock = httpgetsend(masterserver, masterbase, path, agent, &msaddress);
 	masterrep[0] = 0;
 	masterb.data = masterrep;
@@ -330,7 +330,7 @@ uchar *retrieveservers(uchar *buf, int buflen)
 	buf[0] = '\0';
 
 	defformatstring(path)("%scube", masterpath);
-	defformatstring(agent)("ACR Client v%d", AC_VERSION);
+	defformatstring(agent)("ACR-Client/%d", AC_VERSION);
 	ENetAddress address = masterserver;
 	ENetSocket sock = httpgetsend(address, masterbase, path, agent);
 	if(sock==ENET_SOCKET_NULL) return buf;
