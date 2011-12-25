@@ -3247,6 +3247,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				}
 				if(cl->state.state != (editing ? CS_ALIVE : CS_EDITING)) break;
 				cl->state.state = editing ? CS_EDITING : CS_ALIVE;
+				cl->state.onfloor = true; // prevent falling damage
 				sendf(-1, 1, "ri3x", N_EDITMODE, sender, editing ? 1 : 0, sender);
 				break;
 			}
