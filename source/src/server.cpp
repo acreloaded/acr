@@ -102,31 +102,40 @@ static bool reliablemessages = false;
 
 bool buildworldstate(){ // WAY easier worldstates
 	bool flush = false;
-	loopv(clients){ // first, broadcast the needed packets
-		if(clients[i]->type!=ST_TCPIP || !clients[i]->connected) continue;
-		clients[i]->overflow = 0;
-		ENetPacket *messagepacket = enet_packet_create(NULL, MAXTRANS, reliablemessages ? ENET_PACKET_FLAG_RELIABLE : 0);
-		ENetPacket *positionpacket = enet_packet_create(NULL, MAXTRANS, 0);
-		ucharbuf p(messagepacket->data, messagepacket->dataLength), pos(positionpacket->data, positionpacket->dataLength);
-		loopvj(clients){
-			client &c = *clients[j];
-			if(c.type == ST_EMPTY || !c.connected || j == i || (c.type == ST_AI && c.state.ownernum == i)) continue;
-			// <insert cheap occlusion checks here to prevent wall hacks>
+	loopvj(clients){ // first, broadcast the needed packets
+		client &c = *clients[j];
+		if(c.type == ST_EMPTY || !c.connected /*|| j == i || (c.type == ST_AI && c.state.ownernum == i)*/) continue;
+		c.overflow = 0;
+
+		if(c.position.length()){
 			// positions
+			ENetPacket *positionpacket = enet_packet_create(NULL, MAXTRANS, 0);
+			ucharbuf pos(positionpacket->data, positionpacket->dataLength);
 			pos.put(c.position.getbuf(), c.position.length());
-			// messages
+
+			enet_packet_resize(positionpacket, pos.length());
+			// possibly inspect every packet recipient with <cheap occlusion checks here to prevent wall hacks>
+			// loopv(clients){
+				sendpacket(-1, 0, positionpacket, j);
+			// }
+			if(!positionpacket->referenceCount) enet_packet_destroy(positionpacket);
+		}
+
+		// messages
+		if(c.messages.length()){
+			ENetPacket *messagepacket = enet_packet_create(NULL, MAXTRANS, reliablemessages ? ENET_PACKET_FLAG_RELIABLE : 0);
+			ucharbuf p(messagepacket->data, messagepacket->dataLength);
 			putint(p, N_CLIENT);
 			putint(p, j);
 			//putuint(p, c.messages.length());
 			p.put(c.messages.getbuf(), c.messages.length());
+
+			enet_packet_resize(messagepacket, p.length());
+			sendpacket(-1, 1, messagepacket, j);
+			if(!messagepacket->referenceCount) enet_packet_destroy(messagepacket);
 		}
-		enet_packet_resize(positionpacket, pos.length());
-		sendpacket(i, 0, positionpacket);
-		if(!positionpacket->referenceCount) enet_packet_destroy(positionpacket);
-		enet_packet_resize(messagepacket, p.length());
-		sendpacket(i, 1, messagepacket);
-		if(!messagepacket->referenceCount) enet_packet_destroy(messagepacket);
 	}
+
 	static uchar recorddatap[MAXTRANS], recorddatam[MAXTRANS];
 	ucharbuf recordpos(recorddatap, MAXTRANS), recordmsg(recorddatam, MAXTRANS);
 	extern bool recordpackets;
