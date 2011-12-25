@@ -74,19 +74,23 @@ void recordpacket(int chan, void *data, int len);
 void sendpacket(int n, int chan, ENetPacket *packet, int exclude = -1){
 	const int realexclude = valid_client(exclude) ? clients[exclude]->type == ST_AI ? clients[exclude]->state.ownernum : exclude : -1;
 	if(!valid_client(n)){
-		recordpacket(chan, packet->data, (int)packet->dataLength);
-		loopv(clients)
-			if(i!=realexclude && clients[i]->type != ST_EMPTY && clients[i]->type != ST_AI)
-				sendpacket(i, chan, packet);
+		if(n<0)
+		{
+			recordpacket(chan, packet->data, (int)packet->dataLength);
+			loopv(clients)
+				if(i!=realexclude && clients[i]->type != ST_EMPTY && clients[i]->type != ST_AI)
+					sendpacket(i, chan, packet);
+		}
 		return;
 	}
+
 	switch(clients[n]->type)
 	{
 		case ST_AI:
 		{
 			// reroute packets
 			const int owner = clients[n]->state.ownernum;
-			if(valid_client(owner) && owner != n && owner != realexclude)
+			if(valid_client(owner, true) && owner != n && owner != realexclude)
 				sendpacket(owner, chan, packet, exclude);
 			break;
 		}
@@ -110,8 +114,10 @@ bool buildworldstate(){ // WAY easier worldstates
 		if(c.type == ST_EMPTY || !c.connected) continue;
 		c.overflow = 0;
 
+		if(c.position.length() || c.messages.length()) flush = true;
+		else continue;
+
 		if(c.position.length()){
-			flush = true;
 			// positions
 			ENetPacket *positionpacket = enet_packet_create(NULL, MAXTRANS, 0);
 			ucharbuf pos(positionpacket->data, positionpacket->dataLength);
@@ -125,10 +131,11 @@ bool buildworldstate(){ // WAY easier worldstates
 			}
 			recordpacket(0, pos.buf, pos.length()); // record positions
 			if(!positionpacket->referenceCount) enet_packet_destroy(positionpacket);
+
+			c.position.setsize(0);
 		}
 
 		if(c.messages.length()){
-			flush = true;
 			// messages
 			ENetPacket *messagepacket = enet_packet_create(NULL, MAXTRANS, reliablemessages ? ENET_PACKET_FLAG_RELIABLE : 0);
 			ucharbuf p(messagepacket->data, messagepacket->dataLength);
@@ -140,10 +147,9 @@ bool buildworldstate(){ // WAY easier worldstates
 			enet_packet_resize(messagepacket, p.length());
 			sendpacket(-1, 1, messagepacket, j); // recorded by broadcast
 			if(!messagepacket->referenceCount) enet_packet_destroy(messagepacket);
-		}
 
-		c.position.setsize(0);
-		c.messages.setsize(0);
+			c.messages.setsize(0);
+		}
 	}
 	reliablemessages = false;
 	return flush;
@@ -3388,8 +3394,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case N_POS:
 			{
 				const int cn = getint(p);
-				bool broadcast = true;
-				if(!hasclient(cl, cn)) broadcast = false;
+				const bool broadcast = hasclient(cl, cn);
 				vec newo, newaim, newvel;
 				loopi(3) newo[i] = getfloat(p);
 				loopi(3) newaim[i] = getfloat(p);
