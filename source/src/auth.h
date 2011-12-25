@@ -23,7 +23,7 @@ bool reqauth(int cn, char *name, int authtoken){
 	return true;
 }
 
-int allowconnect(client &ci, const char *pwd = "", int authreq = 0, char *authname = NULL){
+int allowconnect(client &ci, const char *pwd = NULL, int authreq = 0, char *authname = NULL){
 	if(ci.type == ST_LOCAL) return DISC_NONE;
 	//if(!m_valid(smode)) return DISC_PRIVATE;
 	if(ci.priv >= PRIV_ADMIN) return DISC_NONE;
@@ -49,7 +49,7 @@ int allowconnect(client &ci, const char *pwd = "", int authreq = 0, char *authna
 	const bool srvfull = numnonlocalclients() > scl.maxclients;
 	const bool srvprivate = mastermode >= MM_PRIVATE;
 	pwddetail pd;
-	if(checkadmin(ci.name, pwd, ci.salt, &pd) && (pd.priv >= PRIV_ADMIN || (banned && !srvfull && !srvprivate))){ // admin (or master or deban) password match
+	if(pwd && checkadmin(ci.name, pwd, ci.salt, &pd) && (pd.priv >= PRIV_ADMIN || (banned && !srvfull && !srvprivate))){ // admin (or master or deban) password match
 		bool banremoved = false;
 		if(pd.priv) setpriv(ci.clientnum, pd.priv);
 		if(banned) loopv(bans) if(bans[i].host == ci.peer->address.host) { banremoved = true; bans.remove(i); break; } // remove admin bans
@@ -61,7 +61,7 @@ int allowconnect(client &ci, const char *pwd = "", int authreq = 0, char *authna
 	if(banned) return DISC_REFUSE;
 	// does the master server want a disconnection?
 	if(ci.authpriv < PRIV_NONE && ci.masterverdict) return ci.masterverdict;
-	if(*scl.serverpassword){ // server password required
+	if(pwd && *scl.serverpassword){ // server password required
 		if(!strcmp(genpwdhash(ci.name, scl.serverpassword, ci.salt), pwd)){
 			logline(ACLOG_INFO, "[%s] %s logged in using the server password%s", gethostname(ci.clientnum), formatname(ci), wlp);
 		}
