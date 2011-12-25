@@ -172,7 +172,9 @@ int countclients(int type, bool exclude = false){
 
 int countplayers(bool includebots = true){
 	int num = 0;
-	loopv(clients) if(clients[i]->type != ST_EMPTY && clients[i]->team != TEAM_SPECT && (includebots || clients[i]->type != ST_AI)) num++;
+	loopv(clients)
+		if(clients[i]->type != ST_EMPTY && clients[i]->team != TEAM_SPECT && (includebots || clients[i]->type != ST_AI))
+			++num;
 	return num;
 }
 
@@ -2131,7 +2133,7 @@ int nextcfgset(bool notify = true, bool nochange = false){ // load next maprotat
 	configset *c = NULL;
 	loopi(csl)
 	{
-		ccs++;
+		++ccs;
 		if(ccs >= csl || ccs < 0) ccs = 0;
 		c = &configsets[ccs];
 		if(n >= c->minplayer && (!c->maxplayer || n <= c->maxplayer))
