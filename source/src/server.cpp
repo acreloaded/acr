@@ -1568,7 +1568,7 @@ void readscfg(const char *name){
 		if(l)
 		{
 			copystring(c.mapname, behindpath(l));
-			for(i = 3; i < CONFIG_MAXPAR; i++) c.par[i] = 0;  // default values
+			for(i = 4; i < CONFIG_MAXPAR; i++) c.par[i] = 0;  // default values
 			for(i = 0; i < CONFIG_MAXPAR; i++)
 			{
 				if((l = strtok(NULL, sep)) != NULL)
@@ -1576,10 +1576,10 @@ void readscfg(const char *name){
 				else
 					break;
 			}
-			if(i > 2)
+			if(i > 3)
 			{
 				configsets.add(c);
-				logline(ACLOG_VERBOSE," %s, %s, %d minutes, vote:%d, minplayer:%d, maxplayer:%d, skiplines:%d", c.mapname, modestr(c.mode, false), c.time, c.vote, c.minplayer, c.maxplayer, c.skiplines);
+				logline(ACLOG_VERBOSE," %s, %s, %d minutes, vote:%d, minplayer:%d, maxplayer:%d, skiplines:%d", c.mapname, modestr(c.mode, c.muts, false), c.time, c.vote, c.minplayer, c.maxplayer, c.skiplines);
 			}
 			else
 			{
