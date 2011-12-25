@@ -567,7 +567,7 @@ struct nickblacklist {
 	}
 } nbl;
 
-#define CONFIG_MAXPAR 6
+#define CONFIG_MAXPAR 7
 
 struct configset
 {

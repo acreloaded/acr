@@ -3987,16 +3987,16 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 		interm = 0;
 
 		//start next game
-		if(nextmapname[0]) resetmap(nextmapname, nextgamemode, nextgamemuts);
+		if(*nextmapname) resetmap(nextmapname, nextgamemode, nextgamemuts);
 		else if(configsets.length()) nextcfgset();
-		else if(!isdedicated){
+		else if(isdedicated && *smapname) resetmap(smapname, smode, smuts);
+		else{
 			loopv(clients) if(clients[i]->type!=ST_EMPTY){
 				sendf(i, 1, "ri2", N_NEXTMAP, 0);	// ask a client for the next map
 				mapreload = true;
 				break;
 			}
 		}
-		else resetmap(smapname, smode, smuts);
 	}
 
 	resetserverifempty();
