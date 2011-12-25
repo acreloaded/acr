@@ -1044,6 +1044,15 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 					(VIRTW-225-10-180-30 - 80 - 15 -(11*50) + i*50) * streakscale, (VIRTH - 80 - 35) * streakscale, 80 * streakscale, 0, 0, 1);
 		}
 		// streak misc
+		// streak num
+		if(p->deathstreak) draw_textf("\f3-%d", (VIRTW-225-10-180-22 - 80 - 23 - max(11-p->deaths,1)*50) * streakscale, (VIRTH - 50 - 40) * streakscale, p->deathstreak);
+		else draw_textf("\f%c%.1f", (VIRTW-225-10-180-22 - 80 - 23 - max(11-currentstreak,1)*50) * streakscale, (VIRTH - 50 - 40) * streakscale,
+			p->pointstreak >= 9*5 ? '1' :
+			p->pointstreak >= 7*5 ? '0' :
+			p->pointstreak >= 3*5 ? '2' :
+			p->pointstreak ? '2' :
+			'4',
+			p->pointstreak/5.f);
 		// airstrikes
 		draw_textf("\f4x\f%c%d", (VIRTW-225-10-180-22 - 80 - 23 - 5*50) * streakscale, (VIRTH - 50) * streakscale, p->airstrikes ? '0' : '5', p->airstrikes);
 		// radar time
