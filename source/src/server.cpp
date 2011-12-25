@@ -114,10 +114,8 @@ bool buildworldstate(){ // WAY easier worldstates
 		if(c.type == ST_EMPTY || !c.connected) continue;
 		c.overflow = 0;
 
-		if(c.position.length() || c.messages.length()) flush = true;
-		else continue;
-
 		if(c.position.length()){
+			flush = true;
 			// positions
 			ENetPacket *positionpacket = enet_packet_create(NULL, MAXTRANS, 0);
 			ucharbuf pos(positionpacket->data, positionpacket->dataLength);
@@ -136,6 +134,7 @@ bool buildworldstate(){ // WAY easier worldstates
 		}
 
 		if(c.messages.length()){
+			flush = true;
 			// messages
 			ENetPacket *messagepacket = enet_packet_create(NULL, MAXTRANS, reliablemessages ? ENET_PACKET_FLAG_RELIABLE : 0);
 			ucharbuf p(messagepacket->data, messagepacket->dataLength);
