@@ -72,10 +72,12 @@ int nextstatus = 0, servmillis = 0, lastfillup = 0;
 void recordpacket(int chan, void *data, int len);
 
 void sendpacket(int n, int chan, ENetPacket *packet, int exclude = -1){
-	const int realexclude = valid_client(exclude) ? valid_client(clients[exclude]->state.ownernum) ? clients[exclude]->state.ownernum : exclude : -1;
-	if(n<0){
+	const int realexclude = valid_client(exclude) ? clients[exclude]->type == ST_AI ? clients[exclude]->state.ownernum : exclude : -1;
+	if(!valid_client(n)){
 		recordpacket(chan, packet->data, (int)packet->dataLength);
-		loopv(clients) if(i!=realexclude && valid_client(i, true)) sendpacket(i, chan, packet);
+		loopv(clients)
+			if(i!=realexclude && clients[i]->type != ST_EMPTY && clients[i]->type != ST_AI)
+				sendpacket(i, chan, packet);
 		return;
 	}
 	switch(clients[n]->type)
@@ -84,7 +86,8 @@ void sendpacket(int n, int chan, ENetPacket *packet, int exclude = -1){
 		{
 			// reroute packets
 			const int owner = clients[n]->state.ownernum;
-			if(valid_client(owner) && owner != n && owner != realexclude) sendpacket(owner, chan, packet, exclude);
+			if(valid_client(owner) && owner != n && owner != realexclude)
+				sendpacket(owner, chan, packet, exclude);
 			break;
 		}
 
