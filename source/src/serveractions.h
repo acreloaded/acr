@@ -60,9 +60,8 @@ struct mapaction : serveraction
 			}
 			if(ms && privconf('P')) // admin needed for mismatched modes
 			{
-				int smode = mode;  // 'borrow' the mode macros by replacing a global by a local var
-				bool spawns = (m_team(gamemode, mutators) && !m_keep(gamemode) && !m_zombie(gamemode)) ? ms->hasteamspawns : ms->hasffaspawns;
-				bool flags = m_affinity(gamemode) && !m_hunt(gamemode) ? ms->hasflags : true;
+				const bool spawns = (m_team(mode, muts) && !m_keep(mode) && !m_zombie(mode)) ? ms->hasteamspawns : ms->hasffaspawns;
+				const bool flags = ms->hasflags || m_hunt(mode) || !m_affinity(mode);
 				if(!spawns || !flags)
 				{
 					reqpriv = PRIV_ADMIN;
@@ -70,8 +69,10 @@ struct mapaction : serveraction
 				}
 			}
 			loopv(scl.adminonlymaps) // admin needed for these maps
-				if(!strcmp(behindpath(map), scl.adminonlymaps[i])) reqpriv = PRIV_ADMIN;
-			if(notify) passratio = 0.6f; // you need 60% to vote a map without admin
+				if(!strcmp(behindpath(map), scl.adminonlymaps[i]))
+					reqpriv = PRIV_ADMIN;
+			if(notify)
+				passratio = 0.6f; // you need 60% to vote a map without admin
 		}
 		formatstring(desc)("load map '%s' in mode '%s'", map, modestr(mode, muts));
 	}
