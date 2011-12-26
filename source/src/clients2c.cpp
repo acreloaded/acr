@@ -228,25 +228,17 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_SOUND:
 			{
 				playerent *d = getclient(getint(p));
-				int snd = S_NULL;
-				switch(getint(p)){
-					case PHYS_FALL:
-						snd = S_HARDLAND;
-						break;
-					case PHYS_HARDFALL:
-						snd = S_SOFTLAND;
-						break;
-					case PHYS_JUMP:
-						snd = S_JUMP;
-						break;
-					case PHYS_AKIMBOOUT:
-						snd = S_AKIMBOOUT;
-						break;
-					case PHYS_NOAMMO:
-						snd = S_NOAMMO;
+				const int snd = getint(p);
+				switch(snd){
+					case S_NOAMMO:
+					case S_JUMP:
+					case S_SOFTLAND:
+					case S_HARDLAND:
+					case S_AKIMBOOUT:
+						if(d && d != player1 && !isowned(d))
+							playsound(snd, d);
 						break;
 				}
-				if(snd != S_NULL && d && d != player1 && !isowned(d)) playsound(snd, d);
 				break;
 			}
 

@@ -544,8 +544,8 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 							pl->vel.z = 2.0f;								  // physics impulse upwards
 							if(water) { pl->vel.x /= 8; pl->vel.y /= 8; }	  // dampen velocity change even harder, gives correct water feel
 							else if(p && (p == player1 || isowned(p))){
-								addmsg(N_SOUND, "ri2", p->clientnum, PHYS_JUMP);
-								playsound(S_JUMP, pl);
+								// cast is OK because it is owned by us
+								playsoundc(S_JUMP, (playerent *)pl);
 							}
 						}
 						pl->timeinair = 0;
@@ -559,8 +559,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 				if(!pl->timeinair)
 				{
 					if(timeinair > 200 && pl->state!=CS_DEAD && p && (p == player1 || isowned(p))){
-						addmsg(N_SOUND, "ri2", p->clientnum, timeinair > 800 ? PHYS_HARDFALL : PHYS_FALL);
-						playsound(timeinair > 800 ? S_HARDLAND : S_SOFTLAND, pl);
+						playsoundc(timeinair > 800 ? S_HARDLAND : S_SOFTLAND, (playerent *)pl);
 					}
 				}
 			}

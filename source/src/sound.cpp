@@ -1857,12 +1857,10 @@ COMMAND(sound, ARG_1INT);
 
 void playsoundc(int n, playerent *p)
 {
+	playsound(n, p);
     if(p && p!=player1 && !isowned(p)) playsound(n, p);
-    else
-    {
-        addmsg(N_SOUND, "i2", p ? p->clientnum : -1, n);
-        playsound(n);
-    }
+    if(!p || p == player1 || isowned(p))
+        addmsg(N_SOUND, "i2", p ? p->clientnum : getclientnum(), n);
 }
 
 void detachsounds(playerent *owner)

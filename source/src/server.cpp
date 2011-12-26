@@ -2894,7 +2894,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 		type = checktype(getint(p), cl);
 
 		#ifdef _DEBUG
-		if(type!=N_POS && type!=N_PINGTIME && type!=N_PINGPONG)
+		if(type!=N_POS && type!=N_SOUND && type!=N_PINGTIME && type!=N_PINGPONG)
 		{
 			DEBUGVAR(cl->name);
 			DEBUGVAR(messagenames(type));
@@ -3679,14 +3679,25 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_SOUND: // simple physics related stuff (jump/hit the ground) mostly sounds
 			{
-				const int cn = getint(p), typ = getint(p);
-				if(!hasclient(cl, cn) || typ < 0 || typ >= PHYS_NUM) break;
-				client *cp = clients[cn];
-				if(typ == PHYS_AKIMBOOUT){
-					if(!cp->state.akimbomillis) break;
-					cp->state.akimbomillis = 0;
+				int cn = getint(p), snd = getint(p);
+				if(!valid_client(cn)) // fix for them...
+					cn = sender;
+				if(!hasclient(cl, cn)) break;
+				switch(snd){
+					case S_NOAMMO:
+						if(clients[cn]->state.mag) break;
+						// INTENTIONAL FALLTHROUGH
+					case S_JUMP:
+					case S_SOFTLAND:
+					case S_HARDLAND:
+						QUEUE_MSG;
+						break;
+					case S_AKIMBOOUT:
+						if(!clients[cn]->state.akimbomillis) break;
+						clients[cn]->state.akimbomillis = 0;
+						QUEUE_MSG;
+						break;
 				}
-				else if(typ == PHYS_NOAMMO && cp->state.mag) break;
 				QUEUE_MSG;
 				break;
 			}

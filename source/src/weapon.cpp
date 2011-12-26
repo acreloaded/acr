@@ -781,10 +781,7 @@ bool gun::attack(vec &targ){
 		shots = 0;
 		if(!checkautoreload() && owner == player1){
 			if(!m_nopistol(gamemode, mutators) && owner->weapons[WEAP_PISTOL]->mag || owner->weapons[WEAP_PISTOL]->ammo) selectweapon(owner->weapons[WEAP_PISTOL]);
-			else{
-				playsound(S_NOAMMO, owner);
-				addmsg(N_PHYS, "ri2", owner->clientnum, PHYS_NOAMMO);
-			};
+			else playsoundc(S_NOAMMO, owner);
 		}
 		return false;
 	}
@@ -1298,8 +1295,7 @@ void checkakimbo(){
 				if(pl->primweap) pl->weaponswitch(pl->primweap);
 				else pl->weaponswitch(&p);
 			}
-			playsound(S_AKIMBOOUT, pl, SP_HIGHEST);
-			addmsg(N_PHYS, "ri2", pl->clientnum, PHYS_AKIMBOOUT);
+			playsoundc(S_AKIMBOOUT, pl);
 		}
 	}
 }

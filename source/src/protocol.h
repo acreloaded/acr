@@ -6,7 +6,7 @@
 #define CUBE_DEFAULT_SERVER_PORT 28770
 #define CUBE_SERVINFO_PORT_LAN 28778
 #define CUBE_SERVINFO_OFFSET 1
-#define PROTOCOL_VERSION 110			   // bump when protocol changes
+#define PROTOCOL_VERSION 111			   // bump when protocol changes
 #define DEMO_VERSION 2				  // bump when demo format changes
 #define DEMO_MAGIC "ACS_DEMO"
 #define MAXMAPSENDSIZE 65536
@@ -55,7 +55,6 @@ enum { MM_OPEN, MM_LOCKED, MM_PRIVATE, MM_NUM };
 enum { AT_DISABLED = 0, AT_ENABLED, AT_SHUFFLE, AT_NUM };
 enum { FA_PICKUP = 0, FA_DROP, FA_LOST, FA_RETURN, FA_SCORE, FA_KTFSCORE, FA_SCOREFAIL, FA_RESET };
 enum { FTR_SILENT = 0, FTR_PLAYERWISH, FTR_AUTOTEAM, FTR_NUM }; // forceteam reasons
-enum { PHYS_FALL = 0, PHYS_HARDFALL, PHYS_JUMP, PHYS_AKIMBOOUT, PHYS_NOAMMO, PHYS_NUM };
 
 // network quantization scale
 #define DMF 32.0f           // for world locations
