@@ -310,13 +310,13 @@ void checkmasterreply()
 					break;
 				case MSR_AUTH_REQUEST:
 				case MSR_AUTH_ANSWER:
-					DELETEP(currentmsrequest->a);
+					delete currentmsrequest->a;
 					break;
 				case MSR_CONNECT:
-					DELETEP(currentmsrequest->c);
+					delete currentmsrequest->c;
 					break;
 			}
-			delete currentmsrequest;
+			DELETEP(currentmsrequest);
 		}
 	}
 }
