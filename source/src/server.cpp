@@ -3421,31 +3421,30 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					cs.crouching = newcrouching;
 					cs.crouchmillis = gamemillis - CROUCHTIME + min(gamemillis - cl->state.crouchmillis, CROUCHTIME);
 				}
-
-				// relay
-				cp.position.setsize(0);
- 				while(curmsg < p.length()) cp.position.add(p.buf[curmsg++]);
-
-				// check movement
+				// alive block
 				if(cs.state==CS_ALIVE)
 				{
-					// check movement
-					checkmove(cp);
 					// deal falling damage
 					const bool newonfloor = (f>>4)&1;
 					if(!newonfloor){
 						if(cs.onfloor || cs.fallz < newo.z) cs.fallz = newo.z;
 						cs.onfloor = false;
 					}
-					// WARNING: NEXT BLOCK CAUSES GLITCHES
 					else if(!cs.onfloor){
-						int damage = ((cs.fallz - newo.z) - 16) * HEALTHSCALE / (cs.perk == PERK_LIGHT ? 12 : 3);
-						if(damage < 1*HEALTHSCALE) break; // don't heal the player
-						else if(damage > 200*HEALTHSCALE) damage = 200 * HEALTHSCALE;
-						serverdamage(&cp, &cp, damage, WEAP_MAX + 2, FRAG_NONE, cs.o);
+						// 3.5 meters without damage + 1/0.4 HP/meter
+						int damage = ((cs.fallz - newo.z) - 14) * HEALTHSCALE / (cs.perk == PERK_LIGHT ? 10 : 4);
+						if(damage >= 1*HEALTHSCALE){ // don't heal the player
+							// maximum damage is 175
+							serverdamage(&cp, &cp, min(damage, 175 * HEALTHSCALE), WEAP_MAX + 2, FRAG_NONE, cs.o);
+						}
 						cs.onfloor = true;
 					}
+					// check movement if alive
+					checkmove(cp);
 				}
+				// relay
+				cp.position.setsize(0);
+ 				while(curmsg < p.length()) cp.position.add(p.buf[curmsg++]);
 				break;
 			}
 
