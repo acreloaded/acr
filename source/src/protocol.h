@@ -16,7 +16,7 @@
 enum{
 	N_SERVINFO = 0, N_WELCOME, // before connection is complete
 	N_INITCLIENT, N_INITAI, N_SETTEAM, N_RESUME, N_MAPIDENT, N_DISC, N_DELAI, N_REASSIGNAI, // sent after (dis)connection
-	N_CLIENT, N_POS, N_PHYS, N_PINGPONG, N_PINGTIME, // automatic from client
+	N_CLIENT, N_POS, N_SOUND, N_PINGPONG, N_PINGTIME, // automatic from client
 	N_TEXT, N_WHOIS, N_WHOISINFO, N_NEWNAME, N_SKIN, N_LEVELUP, N_SWITCHTEAM, // user-initiated
 	N_CALLVOTE, N_CALLVOTEERR, N_VOTE, N_VOTERESULT, // votes
 	N_LISTDEMOS, N_DEMO, N_DEMOPLAYBACK, // demos

@@ -225,7 +225,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case N_PHYS:
+			case N_SOUND:
 			{
 				playerent *d = getclient(getint(p));
 				int snd = S_NULL;

@@ -3677,7 +3677,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				senddemo(sender, getint(p));
 				break;
 
-			case N_PHYS: // simple physics related stuff (jump/hit the ground) mostly sounds
+			case N_SOUND: // simple physics related stuff (jump/hit the ground) mostly sounds
 			{
 				const int cn = getint(p), typ = getint(p);
 				if(!hasclient(cl, cn) || typ < 0 || typ >= PHYS_NUM) break;
