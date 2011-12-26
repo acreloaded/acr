@@ -3431,8 +3431,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						cs.onfloor = false;
 					}
 					else if(!cs.onfloor){
-						// 3.5 meters without damage + 1/0.4 HP/meter
-						int damage = ((cs.fallz - newo.z) - 14) * HEALTHSCALE / (cs.perk == PERK_LIGHT ? 10 : 4);
+						// 4 meters without damage + 2/0.5 HP/meter
+						int damage = ((cs.fallz - newo.z) - 16) * HEALTHSCALE / (cs.perk == PERK_LIGHT ? 8 : 2);
 						if(damage >= 1*HEALTHSCALE){ // don't heal the player
 							// maximum damage is 175
 							serverdamage(&cp, &cp, min(damage, 175 * HEALTHSCALE), WEAP_MAX + 2, FRAG_NONE, cs.o);
