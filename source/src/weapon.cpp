@@ -188,7 +188,7 @@ playerent *playerincrosshairhit(int &hitzone){
 }
 
 void damageeffect(int damage, const vec &o){
-	particle_splash(3, clamp(damage/10/HEALTHSCALE, 1, 100), 1000, o);
+	particle_splash(3, clamp(damage/10/HEALTHSCALE, 0, 100), 1000, o);
 }
 
 
