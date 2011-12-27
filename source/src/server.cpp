@@ -3275,9 +3275,14 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				switch(type)
 				{
 					#define seditloop(body) \
-						loop(xx, xs) loop(yy, ys) \
-						if(x + xx > 0 && x + xx < (1 << maplayout_factor) && y + yy > 0 && y + yy < (1 << maplayout_factor)){ \
-						const int id = (x + xx) + ((y + yy) << maplayout_factor); body }
+					{ \
+						const int ssize = 1 << maplayout_factor; /* borrow the OUTBORD macro */ \
+						loop(xx, xs) loop(yy, ys) if(!OUTBORD(x + xx, y + yy)) \
+						{ \
+							const int id = getmaplayoutid(x + xx, y + yy); \
+							body \
+						} \
+					}
 					case N_EDITH:
 					{
 						int offset = getint(p);
