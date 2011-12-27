@@ -138,7 +138,7 @@ void base64_encode(const char * in, unsigned int in_len, char * out) {
 }
 
 void freeconnectcheck(int cn){
-	if(currentmsrequest && currentmsrequest->type == MSR_CONNECT && cn == currentmsrequest->c->cn){
+	if(currentmsrequest && currentmsrequest->type == MSR_CONNECT && currentmsrequest->c && cn == currentmsrequest->c->cn){
 		delete currentmsrequest->c;
 		DELETEP(currentmsrequest);
 	}
