@@ -74,9 +74,13 @@ static inline char popcount(unsigned i){ char c; for(c=0;i;++c){i&=i-1;} return 
 #define loopl(m) loop(l,m)
 #define loopirev(v) for(int i = v-1; i>=0; --i)
 
-
+/*
 #define DELETEP(p) if(p) { delete   p; p = 0; }
 #define DELETEA(p) if(p) { delete[] p; p = 0; }
+*/
+// C++ guarantees that deleting NULL does nothing
+#define DELETEP(p) { delete   p; p = NULL; }
+#define DELETEA(p) { delete[] p; p = NULL; }
 
 #define PI  (3.1415927f)
 #define PI2 (2*PI)
