@@ -1516,7 +1516,8 @@ void readbotnames(const char *name)
 	while(p < buf + len)
 	{
 		l = p; p += strlen(p) + 1; line++;
-		if(*l)
+		l += strspn(l, " ");
+		if(l && *l)
 		{
 			botname &bn = botnames.add();
 			copystring(bn.storage, l, MAXNAMELEN+1);
