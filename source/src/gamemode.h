@@ -96,7 +96,7 @@ extern mutstypes mutstype[G_M_NUM];
 #define m_knife(a,b)        ((b & G_M_KNIFE) || (m_implied(a,b) & G_M_KNIFE))
 
 #define m_gsp1(a,b)         ((b & G_M_GSP1) || (m_implied(a,b) & G_M_GSP1))
-#define m_gsp(a,b)          (m_gsp1(a,b))
+//#define m_gsp(a,b)          (m_gsp1(a,b))
 
 #define m_noitems(a,b)      (m_sniper(a, b) || m_knife(a, b))
 #define m_noitemsnade(a,b)  (m_gib(a,b))
@@ -128,7 +128,7 @@ extern mutstypes mutstype[G_M_NUM];
 #define m_ktf2(a,b)         (m_keep(a) && m_gsp1(a,b))
 #define m_zombies_rounds(a,b) (m_zombie(a) && !m_gsp1(a,b))
 #define m_onslaught(a,b)    (m_zombie(a) && m_gsp1(a,b))
-#define m_survivor(a,b)     ((m_dm(a) && m_gsp(a,b)) || (m_zombie(a) && !m_gsp1(a,b)))
+#define m_survivor(a,b)     ((m_dm(a) && m_gsp1(a,b)) || (m_zombie(a) && !m_gsp1(a,b)))
 
 #define m_noradar(a,b)      (m_classic(a,b))
 #define m_nonuke(a,b)       (m_zombie(a) && !m_gsp1(a,b))
