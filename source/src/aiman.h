@@ -1,11 +1,11 @@
 // server-side ai (bot) manager
-int findaiclient(int exclude = -1){ // person with least bots
+int findaiclient(int exclude = -1){ // person with least bots, if possible
 	int cn = -1, bots = MAXCLIENTS;
 	loopv(clients){
 		client *c = clients[i];
 		if(i == exclude || !valid_client(i, true) || c->clientnum < 0 /*|| !*c->name || !c->connected*/) break;
 		int n = 0;
-		loopvj(clients) if(clients[j]->state.ownernum == i) n++;
+		loopvj(clients) if(clients[j]->type == ST_AI && clients[j]->state.ownernum == i) ++n;
 		if(n < bots || cn < 0){
 			bots = n;
 			cn = i;
@@ -113,7 +113,7 @@ void checkai(){
 				balance = max(people, spawns / 3);
 			}
 			break; // auto
-		//case  0: balance = 0; break; // force no bots
+		// case  0: balance = 0; break; // force no bots
 		default: balance = max(people, botbalance); break; // force bot count
 	}
 	if(balance > 0){
@@ -126,13 +126,13 @@ void checkai(){
 			if(highest >= 0){
 				int bots = balance-people;
 				loopi(2) if(i != highest && plrs[i] < plrs[highest]) loopj(plrs[highest]-plrs[i]){
-					if(bots > 0) bots--;
-					else balance++;
+					if(bots > 0) --bots;
+					else ++balance;
 				}
 			}
 		}
 		// correct automatic setting
-		if(botbalance < 0 && balance & 1 && m_team(gamemode, mutators)) ++balance;
+		if(botbalance < 0 && (balance & 1) && m_team(gamemode, mutators)) ++balance;
 		while(countplayers() < balance) if(!addai()) break;
 		while(countplayers() > balance) if(!delai()) break;
 	}
