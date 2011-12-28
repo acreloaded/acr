@@ -1567,7 +1567,7 @@ void readscfg(const char *name){
 				else
 					break;
 			}
-			if(i > 3)
+			if(i > 4)
 			{
 				configsets.add(c);
 				logline(ACLOG_VERBOSE," %s, %s, %d minutes, vote:%d, minplayer:%d, maxplayer:%d, skiplines:%d", c.mapname, modestr(c.mode, c.muts, false), c.time, c.vote, c.minplayer, c.maxplayer, c.skiplines);

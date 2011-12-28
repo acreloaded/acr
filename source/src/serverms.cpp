@@ -159,7 +159,7 @@ void connectcheck(int cn, int guid, ENetPeer *peer, const char *nick){
 // send alive signal to masterserver every fifteen (15) minutes of uptime
 #define MSKEEPALIVE (15*60*1000)
 void updatemasterserver(int millis, const ENetAddress &localaddr){
-	if(mssock != ENET_SOCKET_NULL) return; // busy
+	if(mssock != ENET_SOCKET_NULL || currentmsrequest) return; // busy
 	string path;
 	*path = 0;
 	if(millis/MSKEEPALIVE>lastupdatemaster){
