@@ -42,16 +42,16 @@ x86_64)
   ;;
 esac
 
-if [ -x ${CUBE_DIR}/bin_unix/native_client ]
+if [ -x ${CUBE_DIR}/bin_linux/native_client ]
 then
   SYSTEM_NAME=native_
   MACHINE_NAME=
 fi
 
-if [ -x ${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}client ]
+if [ -x ${CUBE_DIR}/bin_linux/${SYSTEM_NAME}${MACHINE_NAME}client ]
 then
   cd ${CUBE_DIR}
-  exec ${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}client ${CUBE_OPTIONS} "$@" 
+  exec ${CUBE_DIR}/bin_linux/${SYSTEM_NAME}${MACHINE_NAME}client ${CUBE_OPTIONS} "$@" 
 else
   echo "Your platform does not have a pre-compiled Cube client."
   echo "Please follow the following steps to build a native client:"
