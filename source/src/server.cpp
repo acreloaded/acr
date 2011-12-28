@@ -1559,7 +1559,7 @@ void readscfg(const char *name){
 		if(l)
 		{
 			copystring(c.mapname, behindpath(l));
-			for(i = 4; i < CONFIG_MAXPAR; i++) c.par[i] = 0;  // default values
+			for(i = 5; i < CONFIG_MAXPAR; i++) c.par[i] = 0;  // default values
 			for(i = 0; i < CONFIG_MAXPAR; i++)
 			{
 				if((l = strtok(NULL, sep)) != NULL)
