@@ -102,7 +102,7 @@ void checkai(){
 	if(!m_ai(gamemode)) return clearai();
 	// check balance
 	int balance = 0;
-	const int people = countplayers();
+	const int people = countplayers(false);
 	if(!botbalance) balance = 0;
 	else if(people) switch(botbalance){
 		case -1: // auto
