@@ -613,7 +613,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 	int icon = -1;
 	if(headshot){
 		// make bloody stain (approximated)
-		addheadshot(pl->o, act->o);
+		addheadshot(pl->o, act->o, damage);
 		// headshot sound/icon
 		if(weapon != WEAP_SHOTGUN){
 			playsound(S_HEADSHOT, act, act == gamefocus ? SP_HIGHEST : SP_HIGH);

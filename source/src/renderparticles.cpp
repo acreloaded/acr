@@ -693,7 +693,7 @@ void addshotline(playerent *pl, const vec &from2, const vec &to, int flags)
 	playsound(S_BULLETAIR1 + rnd(2), &soundpos, SP_LOW);
 }
 
-void addheadshot(const vec &pl, const vec &act){
+void addheadshot(const vec &pl, const vec &act, int damage){
 	if(!blood || !bloodttl) return;
 	// make bloody stain
 	vec o(pl), surface;
@@ -702,5 +702,6 @@ void addheadshot(const vec &pl, const vec &act){
 	if(!surface.magnitude()) return; // no bloody skies!
 	o.mul(dist).add(vec(surface).mul(0.005f)).add(act);
 	// add it!
-	newparticle(o, surface, bloodttl*2, 8);
+	int num = clamp(damage, 20, 180)/5;
+	loopi(num) newparticle(o, surface, bloodttl*2, 8);
 }
