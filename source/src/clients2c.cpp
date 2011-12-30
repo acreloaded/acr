@@ -331,7 +331,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_INITAI: // cn team skin skill name owner
 			{
 				playerent *d = newclient(getint(p));
-				if(d == player1) break;
+				if(!d || d == player1) break;
 				d->team = getint(p);
 				setskin(d, getint(p));
 				d->level = getint(p); // skill for bots
