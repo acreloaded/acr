@@ -694,23 +694,21 @@ void addshotline(playerent *pl, const vec &from2, const vec &to, int flags)
 }
 
 void addheadshot(const vec &pl, const vec &act, int damage){
-	if(!blood || !bloodttl) return;
-	// make bloody stain
-	vec o(pl), surface;
-	// raycube because blood shouldn't go to clips
-	float dist = raycube(act, o.sub(act).normalize(), surface);
-	if(!surface.magnitude()) return; // no bloody skies!
-	// add it! multiple times...
+	if(!blood || !bloodttl || pl.dist(act) < 1) return;
+	// make bloody stains! multiple times...
 	int num = clamp(damage, 20, 180)/5;
-	vec finaladd(act);
-	finaladd.add(vec(surface).mul(0.005f));
 	loopi(num){
-		const float f = pl.dist(act)/1000;
-		vec stain(o);
-		stain.rotate_around_x((rnd(401)-200)*RAD/100*f)
-			.rotate_around_y((rnd(401)-200)*RAD/100*f)
-			.rotate_around_z((rnd(401)-200)*RAD/100*f);
-		stain.mul(dist).add(finaladd);
-		newparticle(stain, surface, bloodttl*2, 8);
+		vec o(pl), surface;
+		// raycube because blood shouldn't go to clips
+		float dist = raycube(act, o.sub(act).normalize().add(vec(
+			// spread x
+			(rnd(401)-200)/1000,
+			// spread y
+			(rnd(401)-200)/1000,
+			// spread z
+			(rnd(401)-200)/1000
+		)).normalize(), surface);
+		if(!surface.magnitude()) continue; // no bloody skies!
+		newparticle(o.mul(dist).add(vec(surface).mul(0.005f)).add(act), surface, bloodttl*2, 8);
 	}
 }
