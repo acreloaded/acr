@@ -470,7 +470,7 @@ mutstypes mutstype[G_M_NUM] = {
 	{
 		G_M_REAL, G_M_REAL,
 		G_M_ALL & ~(G_M_EXPERT), // real conflicts with expert
-		"real",
+		"realistic",
 	},
 	{
 		G_M_EXPERT, G_M_EXPERT,
