@@ -700,8 +700,17 @@ void addheadshot(const vec &pl, const vec &act, int damage){
 	// raycube because blood shouldn't go to clips
 	float dist = raycube(act, o.sub(act).normalize(), surface);
 	if(!surface.magnitude()) return; // no bloody skies!
-	o.mul(dist).add(vec(surface).mul(0.005f)).add(act);
-	// add it!
+	// add it! multiple times...
 	int num = clamp(damage, 20, 180)/5;
-	loopi(num) newparticle(o, surface, bloodttl*2, 8);
+	vec finaladd(act);
+	finaladd.add(vec(surface).mul(0.005f));
+	loopi(num){
+		const float f = pl.dist(act)/1000;
+		vec stain(o);
+		stain.rotate_around_x((rnd(401)-200)*RAD/100*f)
+			.rotate_around_y((rnd(401)-200)*RAD/100*f)
+			.rotate_around_z((rnd(401)-200)*RAD/100*f);
+		stain.mul(dist).add(finaladd);
+		newparticle(stain, surface, bloodttl*2, 8);
+	}
 }
