@@ -708,13 +708,7 @@ void addheadshot(const vec &pl, const vec &act, int damage){
 			// spread z
 			(rnd(61)-30)/1000.f
 		)).normalize(), surface);
-		if(!surface.magnitude()) continue; // no bloody skies!
+		if(surface.iszero()) continue; // no bloody skies!
 		newparticle(o.mul(dist).add(vec(surface).mul(0.005f)).add(act), surface, bloodttl*2, 8);
 	}
 }
-
-void hd(int n)
-{
-	addheadshot(worldpos, player1->o, n);
-}
-COMMAND(hd, ARG_1INT);
