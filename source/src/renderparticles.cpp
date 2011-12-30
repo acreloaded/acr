@@ -699,6 +699,7 @@ void addheadshot(const vec &pl, const vec &act){
 	vec o(pl), surface;
 	// raycube because blood shouldn't go to clips
 	float dist = raycube(act, o.sub(act).normalize(), surface);
+	if(!surface.magnitude()) return; // no bloody skies!
 	o.mul(dist).add(vec(surface).mul(0.005f)).add(act);
 	// add it!
 	newparticle(o, surface, bloodttl*2, 8);
