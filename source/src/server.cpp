@@ -685,13 +685,14 @@ void putflaginfo(ucharbuf &p, int flag){
 int next_afk_check = 200;
 void check_afk(){
 	next_afk_check = servmillis + 7 * 1000;
-	// OLD LOGIC: if we have less than five players or a non-teammode is not full: do nothing!
-	// if (numclients() < 5 || (numnonlocalclients() < scl.maxclients && !m_team(gamemode, mutators))) return;
+	// if we have less than five players or a non-teammode is not full: do nothing!
+	if (numclients() < 5 || (numnonlocalclients() < scl.maxclients && !m_team(gamemode, mutators))) return;
 	loopv(clients){
 		client &c = *clients[i];
 		if (c.type != ST_TCPIP || c.connectmillis + 60 * 1000 > servmillis || c.team == TEAM_SPECT ||
 			c.state.movemillis + scl.afktimelimit > servmillis || clienthasflag(c.clientnum) > -1 ) continue;
-		if ( ( c.state.state == CS_DEAD && !m_duke(gamemode, mutators) && c.state.lastdeath + 45 * 1000 < gamemillis) ) {
+		if ( ( c.state.state == CS_DEAD && !m_duke(gamemode, mutators) && c.state.lastdeath + 45 * 1000 < gamemillis) ||
+			(c.state.state == CS_ALIVE /*&& c.state.upspawnp */)) {
 			logline(ACLOG_INFO, "[%s] %s is afk, forcing to spectator", gethostname(i), formatname(c));
 			updateclientteam(i, TEAM_SPECT, FTR_AUTOTEAM);
 		}
@@ -1742,7 +1743,7 @@ bool updateclientteam(int cn, int team, int ftr){
 	}
 	else ci.removeexplosives(); // no nade switch
 	if(ci.team == TEAM_SPECT) ci.state.lastdeath = gamemillis;
-	logline(ftr == FTR_SILENT ? ACLOG_DEBUG : ACLOG_INFO, "[%s] %s is now on team %s", gethostname(cn), ci.name, team_string(team));
+	logline(ftr == FTR_SILENT ? ACLOG_DEBUG : ACLOG_INFO, "[%s] %s is now on team %s", gethostname(cn), formatname(ci), team_string(team));
 	// force a death if needed
 	if(ci.state.state != CS_DEAD && (m_team(gamemode, mutators) || team == TEAM_SPECT)){
 		if(ftr == FTR_PLAYERWISH) serverdied(&ci, &ci, 0, WEAP_MAX + ((team == TEAM_SPECT) ? 8 : 7), FRAG_NONE, ci.state.o);
