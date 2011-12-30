@@ -114,7 +114,7 @@ void checkai(){
 			}
 			break; // auto
 		// case  0: balance = 0; break; // force no bots
-		default: balance = max(people, botbalance); break; // force bot count
+		default: balance = botbalance; break; // force bot count
 	}
 	if(balance > 0){
 		if(m_team(gamemode, mutators) && !m_zombie(gamemode)){
