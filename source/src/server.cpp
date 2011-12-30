@@ -1457,7 +1457,12 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source){
 	if(!target || !actor || !damage) return;
 
-	if(m_expert(gamemode, mutators) && !(style & FRAG_GIB || melee_weap(gun))) damage = 0;
+	if(m_expert(gamemode, mutators))
+	{
+		if(explosive_weap(gun)) damage /= 2;
+		else if(style & FRAG_GIB || melee_weap(gun)) damage *= 2;
+		else damage /= 3;
+	}
 	else if(m_classic(gamemode, mutators)) damage /= 2;
 
 	clientstate &ts = target->state;
