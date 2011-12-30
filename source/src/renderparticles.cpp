@@ -693,3 +693,13 @@ void addshotline(playerent *pl, const vec &from2, const vec &to, int flags)
 	playsound(S_BULLETAIR1 + rnd(2), &soundpos, SP_LOW);
 }
 
+void addheadshot(const vec &pl, const vec &act){
+	if(!blood || !bloodttl) return;
+	// make bloody stain
+	vec o(pl), surface;
+	// raycube because blood shouldn't go to clips
+	float dist = raycube(act, o.sub(act).normalize(), surface);
+	o.mul(dist).add(vec(surface).mul(0.005f)).add(act);
+	// add it!
+	newparticle(o, surface, bloodttl*2, 8);
+}
