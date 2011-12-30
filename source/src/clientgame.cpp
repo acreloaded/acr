@@ -608,14 +608,13 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 	conoutf("%s %s", subject, predicate);
 	pl->pointstreak = act->deathstreak = 0;
 	
+	if(style & FRAG_GIB) addgib(pl);
+
 	int icon = -1;
-	if(style & FRAG_GIB){
-		if(headshot && weapon != WEAP_SHOTGUN){
-			playsound(S_HEADSHOT, act, act == gamefocus ? SP_HIGHEST : SP_HIGH);
-			playsound(S_HEADSHOT, pl, pl == gamefocus ? SP_HIGHEST : SP_HIGH); // both get headshot sound
-			icon = eventicon::HEADSHOT; pl->addicon(eventicon::DECAPITATED); // both get headshot info
-		}
-		addgib(pl);
+	if(headshot && weapon != WEAP_SHOTGUN){
+		playsound(S_HEADSHOT, act, act == gamefocus ? SP_HIGHEST : SP_HIGH);
+		playsound(S_HEADSHOT, pl, pl == gamefocus ? SP_HIGHEST : SP_HIGH); // both get headshot sound
+		icon = eventicon::HEADSHOT; pl->addicon(eventicon::DECAPITATED); // both get headshot info
 	}
 	if(style & FRAG_FIRST) icon = eventicon::FIRSTBLOOD;
 	if(icon >= 0) act->addicon(icon);
