@@ -2959,7 +2959,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					}
 					else if(m_team(gamemode, mutators)){
 						int teamsizes[2] = {0};
-						loopv(clients) if(i != sender && clients[i]->type!=ST_EMPTY && clients[i]->connected && clients[i]->team < 2)
+						loopv(clients) if(i != sender && clients[i]->type!=ST_EMPTY && clients[i]->type!=ST_AI && clients[i]->connected && clients[i]->team < 2)
 							teamsizes[clients[i]->team]++;
 						if(teamsizes[t] > teamsizes[t ^ 1]){
 							sendf(sender, 1, "ri2", N_SWITCHTEAM, t);
