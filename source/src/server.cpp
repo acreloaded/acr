@@ -4068,7 +4068,6 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 				copystring(c.hostname, (!enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))) ? hn : "unknown");
 				logline(ACLOG_INFO,"[%s] client #%d connected", c.hostname, c.clientnum);
 				sendservinfo(c);
-				checkai(); // check AI
 				break;
 			}
 
