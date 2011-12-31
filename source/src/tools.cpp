@@ -368,7 +368,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 	endianswap(&s.hdr.version, sizeof(int), 4);
 	if(s.hdr.version>MAPVERSION || s.hdr.numents > MAXENTITIES || (s.hdr.version>=4 && gzread(f, &s.hdr.waterlevel, sizeof(int)*16)!=sizeof(int)*16)) { gzclose(f); return NULL; }
 	if(s.hdr.version>=4) endianswap(&s.hdr.waterlevel, sizeof(int), 1); else s.hdr.waterlevel = -100000;
-	entity e;
+	persistent_entity e;
 	ents = new persistent_entity[s.hdr.numents];
 	loopi(s.hdr.numents)
 	{

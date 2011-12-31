@@ -51,7 +51,7 @@ void processevent(client &c, projevent &e){
 			sendhit(c, WEAP_KNIFE, e.o, done ? dmg : 0);
 			sknife &k = sknives.add();
 			k.millis = gamemillis;
-			sendf(-1, 1, "ri2f3", N_KNIFEADD, (k.id = sknifeid++), (k.o.x = e.o[0]), (k.o.y = e.o[1]), (k.o.z = e.o[2]));
+			sendf(-1, 1, "ri2f3", N_KNIFEADD, (k.id = sknives.length()-1), (k.o.x = e.o[0]), (k.o.y = e.o[1]), (k.o.z = e.o[2]));
 			break;
 		}
 

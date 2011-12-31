@@ -46,7 +46,6 @@ int curcfgset = -1;
 
 // throwing knives
 vector<sknife> sknives;
-int sknifeid = 0;
 void purgesknives(){
 	loopv(sknives) sendf(-1, 1, "ri2", N_KNIFEREMOVE, sknives[i].id);
 	sknives.setsize(0);
@@ -2033,8 +2032,16 @@ void resetmap(const char *newname, int newmode, int newmuts, int newtime, bool n
 		loopi(smapstats.hdr.numents)
 		{
 			entity &e = sents.add();
-			e = smapstats.ents[i];
+			persistent_entity &pe = smapstats.ents[i];
+			e.type = pe.type;
 			e.transformtype(smode, smuts);
+			e.x = pe.x;
+			e.y = pe.y;
+			e.z = pe.z;
+			e.attr1 = pe.attr1;
+			e.attr2 = pe.attr2;
+			e.attr3 = pe.attr3;
+			e.attr4 = pe.attr4;
 			e.spawned = e.fitsmode(smode, smuts);
 			e.spawntime = 0;
 		}
@@ -2046,7 +2053,7 @@ void resetmap(const char *newname, int newmode, int newmuts, int newtime, bool n
 
 	if(notify){
 		// change map
-		sknives.setsize(sknifeid = 0);
+		sknives.setsize(0);
 		ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 		ucharbuf p(packet->data, packet->dataLength);
 		putmap(p);
