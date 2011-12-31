@@ -314,6 +314,16 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
+			case N_HEADSHOT:
+			{
+				// make bloody stain
+				vec from, to;
+				loopi(3) from[i] = getfloat(p);
+				loopi(3) to[i] = getfloat(p);
+				addheadshot(from, to, getint(p));
+				break;
+			}
+
 			case N_NEXTMAP: // server requests next map
 			{
 				getint(p);
