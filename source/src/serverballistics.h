@@ -241,7 +241,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<head_t> &h, int w
 			}
 		}
 		// the shotgun will send blood if it does headshot damage, regardless of its effect on killing
-		else if(weap == WEAP_SHOTGUN && hitzone == HIT_HEAD) sendheadshot(from, end, 1);
+		else if(weap == WEAP_SHOTGUN && hitzone == HIT_HEAD) sendheadshot(from, end, damage);
 
 		sendhit(owner, weap, end.v, damage);
 		if(save) save[hit->clientnum] += damage; // save damage for shotgun ray

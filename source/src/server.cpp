@@ -1359,7 +1359,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 
 	// shotgun has different headshot methods
 	if(gun != WEAP_SHOTGUN && isheadshot(gun, style))
-		sendheadshot(ts.o, source, damage);
+		sendheadshot(source, ts.o, damage);
 
 	if(gamemillis >= actor->state.lastkill + 500) actor->state.combo = 0;
 	actor->state.lastkill = gamemillis;

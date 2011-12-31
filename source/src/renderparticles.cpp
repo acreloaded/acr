@@ -693,7 +693,8 @@ void addshotline(playerent *pl, const vec &from2, const vec &to, int flags)
 	playsound(S_BULLETAIR1 + rnd(2), &soundpos, SP_LOW);
 }
 
-void addheadshot(const vec &pl, const vec &act, int damage){
+// from = act, to = pl
+void addheadshot(const vec &act, const vec &pl, int damage){
 	if(!blood || !bloodttl || pl.dist(act) < 1) return;
 	// make bloody stains! multiple times...
 	int num = clamp(damage, 5, 75)/5;

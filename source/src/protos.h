@@ -595,7 +595,7 @@ extern vector<sl> sls;
 extern void addshotline(playerent *d, const vec &from, const vec &to, int flags);
 extern bool addbullethole(dynent *d, const vec &from, const vec &to, float radius = 1, bool noisy = true);
 extern bool addscorchmark(const vec &o, float radius = 7);
-extern void addheadshot(const vec &pl, const vec &act, int damage = 0);
+extern void addheadshot(const vec &from, const vec &to, int damage = 0);
 
 extern void render_particles(int time, int typemask = ~0);
 
