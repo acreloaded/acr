@@ -352,12 +352,18 @@ extern int maplayout_factor;
 mapstats *loadmapstats(const char *filename, bool getlayout)
 {
 	static mapstats s;
-	static uchar *enttypes = NULL, *entdatas = NULL;
-	static short *entposs = NULL;
+	//static uchar *enttypes = NULL, *entdatas = NULL;
+	//static short *entposs = NULL;
+	static persistent_entity *ents = NULL;
 
+	/*
 	DELETEA(enttypes);
 	DELETEA(entposs);
 	DELETEA(entdatas);
+	*/
+	DELETEA(ents);
+
+	// following block should be put into an initializer?
 	loopi(MAXENTTYPES) s.entcnt[i] = 0;
 	loopi(3) s.spawns[i] = 0;
 	loopi(2) s.flags[i] = 0;
@@ -370,20 +376,26 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 	if(s.hdr.version>MAPVERSION || s.hdr.numents > MAXENTITIES || (s.hdr.version>=4 && gzread(f, &s.hdr.waterlevel, sizeof(int)*16)!=sizeof(int)*16)) { gzclose(f); return NULL; }
 	if(s.hdr.version>=4) endianswap(&s.hdr.waterlevel, sizeof(int), 1); else s.hdr.waterlevel = -100000;
 	entity e;
+	/*
 	enttypes = new uchar[s.hdr.numents];
 	entposs = new short[s.hdr.numents * 4];
 	entdatas = new uchar[s.hdr.numents * 3];
+	*/
+	ents = new persistent_entity[s.hdr.numents];
 	loopi(s.hdr.numents)
 	{
 		gzread(f, &e, sizeof(persistent_entity));
 		endianswap(&e, sizeof(short), 4);
 		TRANSFORMOLDENTITIES(s.hdr)
 		if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100)) ++s.spawns[e.attr2 == 100 ? 2 : e.attr2];
-		if(e.type == CTF_FLAG && (e.attr2 == 0 || e.attr2 == 1)) { s.flags[e.attr2]++; s.flagents[e.attr2] = i; }
+		if(e.type == CTF_FLAG && (e.attr2 == 0 || e.attr2 == 1)) { ++s.flags[e.attr2]; s.flagents[e.attr2] = i; }
 		s.entcnt[e.type]++;
+		/*
 		enttypes[i] = e.type;
 		entposs[i * 4] = e.x; entposs[i * 4 + 1] = e.y; entposs[i * 4 + 2] = e.z; entposs[i * 4 + 3] = e.attr1;
 		entdatas[i * 3] = e.attr2; entdatas[i * 3 + 1] = e.attr3; entdatas[i * 3 + 2] = e.attr4;
+		*/
+		ents[i] = e;
 	}
 	if(getlayout)
 	{
@@ -447,9 +459,12 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 	s.hasffaspawns = s.spawns[2] > 0;
 	s.hasteamspawns = s.spawns[0] > 0 && s.spawns[1] > 0;
 	s.hasflags = s.flags[0] > 0 && s.flags[1] > 0;
+	/*
 	s.enttypes = enttypes;
 	s.entposs = entposs;
 	s.entdatas = entdatas;
+	*/
+	s.ents = ents;
 	s.cgzsize = getfilesize(filename);
 	return &s;
 }

@@ -2039,13 +2039,18 @@ void resetmap(const char *newname, int newmode, int newmuts, int newtime, bool n
 			sflaginfo &f = sflaginfos[i];
 			if(smapstats.flags[i] == 1)	// don't check flag positions, if there is more than one flag per team
 			{
+				/*
 				short *fe = smapstats.entposs + smapstats.flagents[i] * 4;
 				f.x = *fe;
 				f.y = *++fe;
+				*/
+				f.x = smapstats.ents[smapstats.flagents[i]].x;
+				f.y = smapstats.ents[smapstats.flagents[i]].y;
 			}
 			else f.x = f.y = -1;
 		}
 
+		/*
 		entity e;
 		loopi(smapstats.hdr.numents)
 		{
@@ -2059,7 +2064,7 @@ void resetmap(const char *newname, int newmode, int newmuts, int newtime, bool n
 			se.x = smapstats.entposs[i * 4];
 			se.y = smapstats.entposs[i * 4 + 1];
 			se.elevation = smapstats.entposs[i * 4 + 3];
-			if((e.type == CLIP /*|| e.type == MAPMODEL*/) && smapstats.entdatas[i * 3] && smapstats.entdatas[i * 3 + 1] && smapstats.entdatas[i * 3 + 2]){
+			if((e.type == CLIP /*|| e.type == MAPMODEL* /) && smapstats.entdatas[i * 3] && smapstats.entdatas[i * 3 + 1] && smapstats.entdatas[i * 3 + 2]){
 				server_clip &sc = *(sclips.add() = new server_clip);
 				sc.x = se.x;
 				sc.y = se.y;
@@ -2067,6 +2072,33 @@ void resetmap(const char *newname, int newmode, int newmuts, int newtime, bool n
 				sc.xrad = smapstats.entdatas[i * 3];
 				sc.yrad = smapstats.entdatas[i * 3 + 1];
 				sc.height = smapstats.entdatas[i * 3 + 2];
+			}
+			else sclips.add(NULL);
+		}
+		*/
+
+		entity e;
+		loopi(smapstats.hdr.numents)
+		{
+			persistent_entity &spe = smapstats.ents[i];
+			e.type = spe.type;
+			e.transformtype(smode, smuts);
+			// add to server entitles
+			server_entity &se = sents.add();
+			se.type = e.type;
+			se.spawned = e.fitsmode(smode, smuts);
+			se.spawntime = 0;
+			se.x = spe.x;
+			se.y = spe.y;
+			se.elevation = spe.attr1;
+			if((e.type == CLIP /*|| e.type == MAPMODEL*/) && spe.attr2 && spe.attr3 && spe.attr4){
+				server_clip &sc = *(sclips.add() = new server_clip);
+				sc.x = se.x;
+				sc.y = se.y;
+				sc.elevation = se.elevation;
+				sc.xrad = spe.attr2;
+				sc.yrad = spe.attr3;
+				sc.height = spe.attr4;
 			}
 			else sclips.add(NULL);
 		}
