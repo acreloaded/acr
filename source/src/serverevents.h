@@ -160,7 +160,6 @@ void processevent(client &c, shotevent &e)
 			const int flags = hitzone == HIT_HEAD ? FRAG_GIB : FRAG_NONE,
 				dmg = effectiveDamage(e.gun, hit->state.o.dist(from));
 			if(flags & FRAG_GIB) sendheadshot(from, to, dmg);
-			sendhit(c, WEAP_HEAL, end.v, dmg);
 			// don't damage teammates (which this weapon was intended for)
 			if(&c == hit || !isteam(&c, hit))
 				serverdamage(hit, &c, dmg, e.gun, flags, gs.o);
@@ -172,7 +171,7 @@ void processevent(client &c, shotevent &e)
 				heal.gun = gs.perk == PERK_PERSIST ? 2 : 1;
 			}
 			if(hit == &c) (end = to).sub(from).normalize().add(from); // 25 cm fx
-			to = end;
+			sendhit(c, WEAP_HEAL, (to = end).v, dmg);
 			break;
 		}
 		case WEAP_KNIFE: // falls through if not "compact" (throw)
