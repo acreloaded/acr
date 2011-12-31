@@ -156,8 +156,10 @@ void processevent(client &c, shotevent &e)
 			vec end;
 			client *hit = gs.scoping ? &c : nearesthit(c, from, to, hitzone, heads, &c, &end);
 			if(!hit) break;
-			const int flags = hitzone == HIT_HEAD ? FRAG_GIB : FRAG_NONE;
-			if(!m_team(gamemode, mutators) || &c == hit || c.team != hit->team) serverdamage(hit, &c, effectiveDamage(e.gun, hit->state.o.dist(from)), e.gun, flags, gs.o);
+			const int flags = hitzone == HIT_HEAD ? FRAG_GIB : FRAG_NONE,
+				dmg = effectiveDamage(e.gun, hit->state.o.dist(from));
+			if(flags & FRAG_GIB) sendheadshot(from, to, dmg);
+			if(!m_team(gamemode, mutators) || &c == hit || c.team != hit->team) serverdamage(hit, &c, dmg, e.gun, flags, gs.o);
 			loopi(&c == hit ? 25 : 15){ // heals over the next 1 to 2.5 seconds (no perk, for others)
 				reloadevent &heal = hit->addtimer().reload;
 				heal.type = GE_RELOAD;
