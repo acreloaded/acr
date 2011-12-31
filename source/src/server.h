@@ -344,19 +344,6 @@ struct ban
 	int millis;
 };
 
-struct server_entity			// server side version of "entity" type
-{
-	short type, elevation;
-	bool spawned;
-	int spawntime;
-	short x, y;
-};
-
-struct server_clip{
-	short x, y, elevation;
-	uchar xrad, yrad, height;
-};
-
 struct sknife{
 	int id, millis;
 	vec o;

@@ -38,8 +38,7 @@ static vector<savedlimit> savedlimits;
 uint nextauthreq = 1;
 
 vector<ban> bans;
-vector<server_entity> sents;
-vector<server_clip *> sclips;
+vector<entity> sents;
 vector<demofile> demos;
 
 vector<configset> configsets;
@@ -1104,13 +1103,15 @@ int spawntime(int type){
 
 bool serverpickup(int i, int sender) // server side item pickup, acknowledge first client that moves to the entity
 {
-	server_entity &e = sents[i];
-	if(!e.spawned) return false;
+	if(!sents.inrange(i) || !valid_client(sender)) return false;
+	entity &e = sents[i];
+	//if(!e.spawned) return false;
 	e.spawned = false;
 	e.spawntime = spawntime(e.type);
-	if(!valid_client(sender)) return true;
+	//if(!valid_client(sender)) return true;
 	sendf(-1, 1, "ri3", N_ITEMACC, i, sender);
-	if(sents[i].type == I_HEALTH && !m_onslaught(gamemode, mutators)) clients[sender]->state.wounds.shrink(0);
+	if(sents[i].type == I_HEALTH && !m_onslaught(gamemode, mutators))
+		clients[sender]->state.wounds.shrink(0);
 	clients[sender]->state.pickup(sents[i].type);
 	return true;
 }
@@ -2000,7 +2001,6 @@ void resetserver(const char *newname, int newmode, int newmuts, int newtime){
 	interm = 0;
 	nextstatus = servmillis;
 	sents.shrink(0);
-	sclips.deletecontents();
 	scores.shrink(0);
 	ctfreset();
 }
@@ -2077,30 +2077,13 @@ void resetmap(const char *newname, int newmode, int newmuts, int newtime, bool n
 		}
 		*/
 
-		entity e;
 		loopi(smapstats.hdr.numents)
 		{
-			persistent_entity &spe = smapstats.ents[i];
-			e.type = spe.type;
+			entity &e = sents.add();
+			e = smapstats.ents[i];
 			e.transformtype(smode, smuts);
-			// add to server entitles
-			server_entity &se = sents.add();
-			se.type = e.type;
-			se.spawned = e.fitsmode(smode, smuts);
-			se.spawntime = 0;
-			se.x = spe.x;
-			se.y = spe.y;
-			se.elevation = spe.attr1;
-			if((e.type == CLIP /*|| e.type == MAPMODEL*/) && spe.attr2 && spe.attr3 && spe.attr4){
-				server_clip &sc = *(sclips.add() = new server_clip);
-				sc.x = se.x;
-				sc.y = se.y;
-				sc.elevation = se.elevation;
-				sc.xrad = spe.attr2;
-				sc.yrad = spe.attr3;
-				sc.height = spe.attr4;
-			}
-			else sclips.add(NULL);
+			e.spawned = e.fitsmode(smode, smuts);
+			e.spawntime = 0;
 		}
 		// copyrevision = copymapsize == smapstats.cgzsize ? smapstats.hdr.maprevision : 0;
 	}
@@ -2742,12 +2725,12 @@ void checkmove(client &cp){
 	}
 	// item pickups
 	if(!m_zombie(gamemode) || cp.team != TEAM_RED) loopv(sents){
-		server_entity &e = sents[i];
+		entity &e = sents[i];
 		if(!e.spawned || !cs.canpickup(e.type)) continue;
 		const int ls = (1 << maplayout_factor) - 2, maplayoutid = getmaplayoutid(e.x, e.y);
 		const bool getmapz = maplayout && e.x > 2 && e.y > 2 && e.x < ls && e.y < ls;
 		const char &mapz = getmapz ? getblockfloor(maplayoutid) : 0;
-		vec v(e.x, e.y, getmapz ? (mapz + e.elevation + PLAYERHEIGHT) : cs.o.z);
+		vec v(e.x, e.y, getmapz ? (mapz + e.attr1 + PLAYERHEIGHT) : cs.o.z);
 		float dist = cs.o.dist(v);
 		if(dist > 3) continue;
 		serverpickup(i, sender);
@@ -3378,6 +3361,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_EDITENT:
 			{
+				/*
 				const int id = getint(p), type = getint(p);
 				vec o;
 				loopi(3) o[i] = getint(p);
@@ -3400,7 +3384,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				se.y = o.y;
 				// is it a clip?
 				DELETEP(sclips[id]);
-				if((type == CLIP /*|| type == MAPMODEL*/) && attr2 && attr3 && attr4){
+				if((type == CLIP /*|| type == MAPMODEL) && attr2 && attr3 && attr4){
 					server_clip sc = *(sclips[id] = new server_clip);
 					sc.x = o.x;
 					sc.y = o.y;
@@ -3408,7 +3392,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					sc.xrad = attr2;
 					sc.yrad = attr3;
 					sc.height = attr4;
-				}
+				}*/
 				QUEUE_MSG;
 				break;
 			}
@@ -3421,7 +3405,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				DELETEA(maplayout)
 				if(maplayout_factor >= 0){
 					sents.shrink(0);
-					sclips.deletecontents();
 					maplayout_factor = clamp(maplayout_factor, SMALLEST_FACTOR, LARGEST_FACTOR);
 					smapstats.hdr.waterlevel = -100000;
 					const int layoutsize = 1 << (maplayout_factor * 2);

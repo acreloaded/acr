@@ -6,6 +6,7 @@ float srayclip(const vec &o, const vec &ray, vec *surface = NULL){
 	to.mul(dist).add(o);
 	bool collided = false;
 	vec end;
+	/*
 	loopv(sclips){
 		if(!sclips[i]) continue;
 		server_clip &sc = *sclips[i];
@@ -18,6 +19,7 @@ float srayclip(const vec &o, const vec &ray, vec *surface = NULL){
 			}
 		}
 	}
+	*/
 	return collided ? to.dist(o) : dist;
 }
 
