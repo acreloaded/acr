@@ -216,6 +216,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<head_t> &h, int w
 	// damage check
 	const float dist2 = dist + end.dist(from);
 	int damage = effectiveDamage(weap, dist2);
+	// we hit somebody
 	if(hit && damage){
 		// damage multipliers
 		if(!m_classic(gamemode, mutators)) switch(hitzone){
@@ -240,12 +241,16 @@ int shot(client &owner, const vec &from, vec &to, const vector<head_t> &h, int w
 				sendf(-1, 1, "ri2", N_BLEED, hit->clientnum);
 			}
 		}
-		// the shotgun will send blood if it does headshot damage, regardless of its effect on killing
-		else if(weap == WEAP_SHOTGUN && hitzone == HIT_HEAD) sendheadshot(from, end, damage);
 
+		// send bloody headshot hits...
+		if(hitzone == HIT_HEAD) sendheadshot(from, end, damage);
+		// send the real hit (blood fx)
 		sendhit(owner, weap, end.v, damage);
+		// apply damage
 		if(save) save[hit->clientnum] += damage; // save damage for shotgun ray
 		else serverdamage(hit, &owner, damage, weap, style, from);
+
+		// penetration
 		if(!m_classic(gamemode, mutators) && dist2 < 100){ // only penetrate players before 25 meters
 			// distort ray and continue through...
 			vec dir(to = end), newsurface;
@@ -256,6 +261,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<head_t> &h, int w
 			sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, weap, end.x, end.y, end.z, dir.x, dir.y, dir.z);
 		}
 	}
+	// ricochet
 	else if(!dist && from.dist(to) < 100 && surface.magnitude() && !melee_weap(weap)){ // ricochet once before 25 meters or going through a player
 		vec dir(to), newsurface;
 		// calculate reflected ray from incident ray and surface normal
