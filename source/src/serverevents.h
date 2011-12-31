@@ -39,7 +39,7 @@ void processevent(client &c, projevent &e){
 					e.o[2] = ts.o[2] > cubefloor ? (cubefloor + ts.o[2]) / 2 : cubefloor;
 
 					// bleeding damage
-					if(!m_zombie(gamemode) || !isteam((&c), hit)){
+					if(!m_zombie(gamemode) || !isteam(&c, hit)){
 						target.state.addwound(c.clientnum, vec(e.o));
 						sendf(-1, 1, "ri2", N_BLEED, target.clientnum);
 					}
@@ -161,7 +161,9 @@ void processevent(client &c, shotevent &e)
 				dmg = effectiveDamage(e.gun, hit->state.o.dist(from));
 			if(flags & FRAG_GIB) sendheadshot(from, to, dmg);
 			sendhit(c, WEAP_HEAL, end.v, dmg);
-			if(!m_team(gamemode, mutators) || &c == hit || c.team != hit->team) serverdamage(hit, &c, dmg, e.gun, flags, gs.o);
+			// don't damage teammates (which this weapon was intended for)
+			if(&c == hit || !isteam(&c, hit))
+				serverdamage(hit, &c, dmg, e.gun, flags, gs.o);
 			loopi(&c == hit ? 25 : 15){ // heals over the next 1 to 2.5 seconds (no perk, for others)
 				reloadevent &heal = hit->addtimer().reload;
 				heal.type = GE_RELOAD;

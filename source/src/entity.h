@@ -143,7 +143,7 @@ enum { PERK_NONE = 0, PERK_SPEED, PERK_HAND, PERK_JAM, PERK_VISION, PERK_STREAK,
 extern float gunspeed(int gun, int ads, bool lightweight = false);
 extern int classic_forceperk(int primary);
 
-#define isteam(a,b)   (m_team(gamemode, mutators) && a->team == b->team)
+#define isteam(a,b)   (m_team(gamemode, mutators) && (a)->team == (b)->team)
 
 enum { TEAM_RED = 0, TEAM_BLUE, TEAM_SPECT, TEAM_NUM };
 #define team_valid(t) ((t) >= 0 && (t) < TEAM_NUM)
