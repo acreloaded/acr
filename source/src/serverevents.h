@@ -159,6 +159,7 @@ void processevent(client &c, shotevent &e)
 			const int flags = hitzone == HIT_HEAD ? FRAG_GIB : FRAG_NONE,
 				dmg = effectiveDamage(e.gun, hit->state.o.dist(from));
 			if(flags & FRAG_GIB) sendheadshot(from, to, dmg);
+			sendhit(c, WEAP_HEAL, end.v, dmg);
 			if(!m_team(gamemode, mutators) || &c == hit || c.team != hit->team) serverdamage(hit, &c, dmg, e.gun, flags, gs.o);
 			loopi(&c == hit ? 25 : 15){ // heals over the next 1 to 2.5 seconds (no perk, for others)
 				reloadevent &heal = hit->addtimer().reload;
@@ -167,7 +168,7 @@ void processevent(client &c, shotevent &e)
 				heal.millis = gamemillis + (10 + i) * 100 / (gs.perk == PERK_PERSIST ? 2 : 1);
 				heal.gun = gs.perk == PERK_PERSIST ? 2 : 1;
 			}
-			if(hit = &c) (end = to).sub(from).normalize().add(from); // 25 cm fx
+			if(hit == &c) (end = to).sub(from).normalize().add(from); // 25 cm fx
 			to = end;
 			break;
 		}
