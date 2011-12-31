@@ -637,6 +637,7 @@ extern string smapname;
 extern mapstats smapstats;
 extern char *maplayout;
 */
+void sendheadshot(const vec &from, const vec &to, int damage);
 
 #ifdef _DEBUG
 // converts message code to char

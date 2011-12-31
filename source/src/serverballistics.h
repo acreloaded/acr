@@ -127,12 +127,14 @@ int explosion(client &owner, const vec &o2, int weap, bool gib){
 		if(srayclip(o, ray) < dist) continue; // not visible
 		ushort dmg = effectiveDamage(weap, dist, !m_classic(gamemode, mutators));
 		int expflags = gib ? FRAG_GIB : FRAG_NONE;
-		if((weap == WEAP_BOW && !dist) ||
-			(weap == WEAP_GRENADE && owner.clientnum != i && o.z >= target.state.o.z)) expflags |= FRAG_FLAG;
+		// check for critical
 		if(checkcrit(dist, 1.5f)){
 			expflags |= FRAG_CRIT;
 			dmg *= 1.4f;
 		}
+		// was the bow stuck? or did the nade headshot?
+		if((weap == WEAP_BOW && !dist) || (weap == WEAP_GRENADE && owner.clientnum != i && o.z >= target.state.o.z))
+			expflags |= FRAG_FLAG;
 		damagedealt += dmg;
 		//serverdamage(&target, &owner, dmg, weap, expflags, o);
 		explosivehit &hit = hits.add();
@@ -229,6 +231,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<head_t> &h, int w
 			style |= FRAG_CRIT;
 			damage *= 1.5f;
 		}
+		// melee weapons (bleed/check for self)
 		if(melee_weap(weap)){
 			if(hitzone == HIT_HEAD) style |= FRAG_FLAG;
 			if(&owner == hit) return shotdamage; // not possible
@@ -237,6 +240,9 @@ int shot(client &owner, const vec &from, vec &to, const vector<head_t> &h, int w
 				sendf(-1, 1, "ri2", N_BLEED, hit->clientnum);
 			}
 		}
+		// the shotgun will send blood if it does headshot damage, regardless of its effect on killing
+		else if(weap == WEAP_SHOTGUN && hitzone == HIT_HEAD) sendheadshot(from, end, 1);
+
 		sendhit(owner, weap, end.v, damage);
 		if(save) save[hit->clientnum] += damage; // save damage for shotgun ray
 		else serverdamage(hit, &owner, damage, weap, style, from);

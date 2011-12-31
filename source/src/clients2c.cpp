@@ -317,10 +317,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_HEADSHOT:
 			{
 				// make bloody stain
-				vec source, target;
-				loopi(3) source[i] = getfloat(p);
-				loopi(3) target[i] = getfloat(p);
-				addheadshot(target, source, getint(p));
+				vec from, to;
+				loopi(3) from[i] = getfloat(p);
+				loopi(3) to[i] = getfloat(p);
+				addheadshot(to, from, getint(p));
 				break;
 			}
 

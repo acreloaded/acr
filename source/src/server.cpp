@@ -1357,6 +1357,10 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	}
 	actor->state.streakused = virtualstreak;
 
+	// shotgun has different headshot methods
+	if(gun != WEAP_SHOTGUN && isheadshot(gun, style))
+		sendheadshot(ts.o, source, damage);
+
 	if(gamemillis >= actor->state.lastkill + 500) actor->state.combo = 0;
 	actor->state.lastkill = gamemillis;
 	const float killdist = ts.o == source ? 0 : clamp<float>(ts.o.dist(source) / 4, -1, 1000);
