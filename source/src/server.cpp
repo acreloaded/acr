@@ -1357,9 +1357,6 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	}
 	actor->state.streakused = virtualstreak;
 
-	if(isheadshot(gun, style)) // merge with N_KILL?
-		sendf(-1, 1, "rif6i", N_HEADSHOT, source.x, source.y, source.z, actor->state.o.x, actor->state.o.y, actor->state.o.z, damage);
-
 	if(gamemillis >= actor->state.lastkill + 500) actor->state.combo = 0;
 	actor->state.lastkill = gamemillis;
 	const float killdist = ts.o == source ? 0 : clamp<float>(ts.o.dist(source) / 4, -1, 1000);

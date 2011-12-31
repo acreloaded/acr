@@ -81,6 +81,10 @@ inline void sendhit(client &actor, int gun, const float *o, int dmg){
 	sendf(-1, 1, "ri4f3", N_PROJ, actor.clientnum, gun, dmg, o[0], o[1], o[2]);
 }
 
+inline void sendheadshot(const vec &from, const vec &to, int damage){
+	sendf(-1, 1, "rif6i", N_HEADSHOT, from.x, from.y, from.z, to.x, to.y, to.z, damage);
+}
+
 inline vec generateHead(client &c, const vector<head_t> &h){
 	//ts.o, ts.aim[0]
 	loopv(h) if(h[i].cn == c.clientnum){
