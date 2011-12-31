@@ -343,12 +343,19 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_INITCLIENT: // cn team skin level name
 			case N_INITAI: // cn team skin skill name owner
 			{
-				playerent *d = newclient(getint(p));
-				if(!d || d == player1) break;
-				d->team = getint(p);
-				setskin(d, getint(p));
-				d->level = getint(p); // skill for bots
+				const int cn = getint(p),
+						team = getint(p),
+						skin = getint(p),
+						level = getint(p);
 				getstring(text, p);
+				const int owner = type == N_INITAI ? getint(p) : -1;
+
+				playerent *d = newclient(cn);
+				if(!d || d == player1) break;
+				d->team = team;
+				setskin(d, skin);
+				d->level = level; // skill for bots
+				// filter incoming name
 				filtername(text, text);
 				if(!*text) copystring(text, "unarmed");
 				copystring(d->name, text);
@@ -357,8 +364,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					if(!joining) chatoutf("%s \f0joined \f2the \f1game", colorname(d));
 				}
 				else // AI
-					d->ownernum = getint(p);
+					d->ownernum = owner;
+
 				updateclientname(d);
+
 				if(m_affinity(gamemode)) loopi(2){
 					flaginfo &f = flaginfos[i];
 					if(!f.actor) f.actor = getclient(f.actor_cn);
