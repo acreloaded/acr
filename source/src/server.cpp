@@ -242,15 +242,6 @@ bool findlimit(client &c, bool insert){
 	return false;
 }
 
-void restoreserverstate(vector<entity> &ents)   // hack: called from savegame code, only works in SP
-{
-	loopv(sents)
-	{
-		sents[i].spawned = ents[i].spawned;
-		sents[i].spawntime = 0;
-	}
-}
-
 static bool mapreload = false, autoteam = true, forceintermission = false, nokills = true;
 #define autobalance (autoteam && !m_zombie(gamemode) && !m_convert(gamemode, mutators))
 
