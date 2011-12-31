@@ -159,11 +159,12 @@ void renderentities()
 // these two functions are called when the server acknowledges that you really
 // picked up the item (in multiplayer someone may grab it before you).
 
-void pickupeffects(int n, playerent *d)
+void pickupeffects(int n, playerent *d, int spawntime)
 {
 	if(!ents.inrange(n)) return;
 	entity &e = ents[n];
 	e.spawned = false;
+	e.spawntime = lastmillis + spawntime;
 	if(!d) return;
 	d->pickup(e.type);
 	itemstat &is = d->itemstats(e.type);
@@ -238,7 +239,11 @@ void resetspawns()
 		loopv(ents) ents[i].transformtype(gamemode, mutators);
 	}
 }
-void setspawn(int i, bool on) { if(ents.inrange(i)) ents[i].spawned = on; }
+void setspawn(int i, int spawntime) {
+	if(!ents.inrange(i)) return;
+	ents[i].spawned = spawntime >= 0;
+	ents[i].spawntime = lastmillis + spawntime;
+}
 
 void sendloadout() { addmsg(N_LOADOUT, "ri3", getclientnum(), player1->nextprimweap->type, player1->nextperk); }
 void selectnextprimary(int num) { player1->setnextprimary(num); sendloadout(); }

@@ -1,16 +1,19 @@
 #include "ballistics.h"
 
-float srayclip(const vec &o, const vec &ray, vec *surface = NULL){
+float srayclip(const vec &o, const vec &ray, vec *surface = NULL)
+{
 	float dist = sraycube(o, ray, surface);
 	vec to = ray;
 	to.mul(dist).add(o);
 	bool collided = false;
 	vec end;
-	/*
-	loopv(sclips){
-		if(!sclips[i]) continue;
-		server_clip &sc = *sclips[i];
-		if(intersectbox(vec(sc.x, sc.y, getblockfloor(getmaplayoutid(sc.x, sc.y)) + sc.elevation + sc.height / 2), vec(max(0.1f, (float)sc.xrad), max(0.1f, (float)sc.yrad), max(0.1f, (float)sc.height / 2)), o, to, &end)){
+	loopv(sents)
+	{
+		if(sents[i].type != CLIP /*&& sents[i] != MAPMODEL*/) continue;
+		entity &e = sents[i];
+		// attr1, attr2, attr3, attr4
+		// elevation, xrad, yrad, height
+		if(intersectbox(vec(e.x, e.y, getblockfloor(getmaplayoutid(e.x, e.y)) + e.attr1 + e.attr4 / 2), vec(max(0.1f, (float)e.attr2), max(0.1f, (float)e.attr3), max(0.1f, e.attr4 / 2.f)), o, to, &end)){
 			to = end;
 			collided = true;
 			if(surface){
@@ -19,7 +22,6 @@ float srayclip(const vec &o, const vec &ray, vec *surface = NULL){
 			}
 		}
 	}
-	*/
 	return collided ? to.dist(o) : dist;
 }
 

@@ -260,11 +260,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				int mode = getint(p), muts = getint(p), downloadable = getint(p);
 				getstring(text, p);
 				changemapserv(text, mode, muts, downloadable);
+
 				// get items
-				int n;
+				int n = getint(p);
 				resetspawns();
-				while((n = getint(p)) != -1 && !p.overread()) setspawn(n, true);
-				n = getint(p);
+				loopi(n) setspawn(n, getint(p));
+
+				// get knives
+				n = getint(p); // reuse
 				knives.setsize(0);
 				loopi(n){
 					cknife &k = knives.add();
@@ -803,15 +806,15 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_ITEMSPAWN:
 			{
 				int i = getint(p);
-				setspawn(i, true);
+				setspawn(i, 0);
 				break;
 			}
 
 			case N_ITEMACC:
 			{
-				int i = getint(p), cn = getint(p);
+				int i = getint(p), cn = getint(p), spawntime = getint(p);
 				playerent *d = getclient(cn);
-				pickupeffects(i, d);
+				pickupeffects(i, d, spawntime);
 				break;
 			}
 

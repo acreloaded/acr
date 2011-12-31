@@ -1092,21 +1092,6 @@ int spawntime(int type){
 	return sec*1000;
 }
 
-bool serverpickup(int i, int sender) // server side item pickup, acknowledge first client that moves to the entity
-{
-	if(!sents.inrange(i) || !valid_client(sender)) return false;
-	entity &e = sents[i];
-	//if(!e.spawned) return false;
-	e.spawned = false;
-	e.spawntime = spawntime(e.type);
-	//if(!valid_client(sender)) return true;
-	sendf(-1, 1, "ri3", N_ITEMACC, i, sender);
-	if(sents[i].type == I_HEALTH && !m_onslaught(gamemode, mutators))
-		clients[sender]->state.wounds.shrink(0);
-	clients[sender]->state.pickup(sents[i].type);
-	return true;
-}
-
 void checkitemspawns(int diff){
 	if(!diff) return;
 	loopv(sents) if(sents[i].spawntime)
@@ -2002,10 +1987,10 @@ inline void putmap(ucharbuf &p){
 	putint(p, smuts);
 	putint(p, mapavailable(smapname));
 	sendstring(smapname, p);
-	loopv(sents) if(sents[i].spawned){
-		putint(p, i);
-	}
-	putint(p, -1);
+
+	putint(p, sents.length());
+	loopv(sents) putint(p, sents[i].spawned ? sents[i].spawntime : -1);
+
 	putint(p, sknives.length());
 	loopv(sknives){
 		putint(p, sknives[i].id);
@@ -2040,33 +2025,6 @@ void resetmap(const char *newname, int newmode, int newmuts, int newtime, bool n
 			}
 			else f.x = f.y = -1;
 		}
-
-		/*
-		entity e;
-		loopi(smapstats.hdr.numents)
-		{
-			e.type = smapstats.enttypes[i];
-			e.transformtype(smode, smuts);
-			// add to server entitles
-			server_entity &se = sents.add();
-			se.type = e.type;
-			se.spawned = e.fitsmode(smode, smuts);
-			se.spawntime = 0;
-			se.x = smapstats.entposs[i * 4];
-			se.y = smapstats.entposs[i * 4 + 1];
-			se.elevation = smapstats.entposs[i * 4 + 3];
-			if((e.type == CLIP /*|| e.type == MAPMODEL* /) && smapstats.entdatas[i * 3] && smapstats.entdatas[i * 3 + 1] && smapstats.entdatas[i * 3 + 2]){
-				server_clip &sc = *(sclips.add() = new server_clip);
-				sc.x = se.x;
-				sc.y = se.y;
-				sc.elevation = se.elevation;
-				sc.xrad = smapstats.entdatas[i * 3];
-				sc.yrad = smapstats.entdatas[i * 3 + 1];
-				sc.height = smapstats.entdatas[i * 3 + 2];
-			}
-			else sclips.add(NULL);
-		}
-		*/
 
 		loopi(smapstats.hdr.numents)
 		{
@@ -2724,7 +2682,12 @@ void checkmove(client &cp){
 		vec v(e.x, e.y, getmapz ? (mapz + e.attr1 + PLAYERHEIGHT) : cs.o.z);
 		float dist = cs.o.dist(v);
 		if(dist > 3) continue;
-		serverpickup(i, sender);
+		// server side item pickup, acknowledge first client that moves to the entity
+		e.spawned = false;
+		sendf(-1, 1, "ri4", N_ITEMACC, i, sender, e.spawntime = spawntime(e.type));
+		if(sents[i].type == I_HEALTH && !m_onslaught(gamemode, mutators))
+			cs.wounds.shrink(0);
+		cs.pickup(sents[i].type);
 	}
 	// flags
 	if(m_affinity(gamemode)) loopi(2){ // check flag pickup
@@ -3352,38 +3315,26 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_EDITENT:
 			{
-				/*
 				const int id = getint(p), type = getint(p);
 				vec o;
 				loopi(3) o[i] = getint(p);
 				int attr1 = getint(p), attr2 = getint(p), attr3 = getint(p), attr4 = getint(p);
-				// placeholders
-				server_entity see = { NOTUSED, 0, false, 0, 0, 0};
-				while(sents.length()<=id) sents.add(see);
-				while(sclips.length()<=id) sclips.add(NULL);
-				// entity
-				entity e;
+				while(sents.length() <= id) sents.add().type = NOTUSED;
+				entity &e = sents[max(id, 0)];
+				// server entity
 				e.type = type;
 				e.transformtype(smode, smuts);
-				// server entity
-				server_entity &se = sents[id];
-				se.type = e.type;
-				se.elevation = attr1;
-				se.spawned = e.fitsmode(smode, smuts);
-				se.spawntime = 0;
-				se.x = o.x;
-				se.y = o.y;
-				// is it a clip?
-				DELETEP(sclips[id]);
-				if((type == CLIP /*|| type == MAPMODEL) && attr2 && attr3 && attr4){
-					server_clip sc = *(sclips[id] = new server_clip);
-					sc.x = o.x;
-					sc.y = o.y;
-					sc.elevation = attr1;
-					sc.xrad = attr2;
-					sc.yrad = attr3;
-					sc.height = attr4;
-				}*/
+				e.x = o.x;
+				e.y = o.y;
+				e.z = o.z;
+				e.attr1 = attr1;
+				e.attr2 = attr2;
+				e.attr3 = attr3;
+				e.attr4 = attr4;
+				// is it spawned?
+				if(e.spawned = e.fitsmode(smode, smuts))
+					sendf(-1, 1, "ri2", N_ITEMSPAWN, id);
+				e.spawntime = 0;
 				QUEUE_MSG;
 				break;
 			}

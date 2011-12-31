@@ -686,11 +686,11 @@ extern struct projectile *newprojectile(vec &from, vec &to, float speed, bool lo
 extern const char *entnames[];
 
 extern void spawnallitems();
-extern void pickupeffects(int n, playerent *d);
+extern void pickupeffects(int n, playerent *d, int spawntime);
 extern void renderentities();
 extern void rendermapmodels();
 extern void resetspawns();
-extern void setspawn(int i, bool on);
+extern void setspawn(int i, int spawntime);
 extern void checkitems(playerent *d);
 
 // rndmap
@@ -741,7 +741,6 @@ extern void connectcheck(int cn, int guid, ENetPeer *peer, const char *nick);
 extern char msgsizelookup(int msg);
 extern const char *genpwdhash(const char *name, const char *pwd, int salt);
 extern void servermsinit(const char *master, const char *ip, int serverport, bool listen);
-extern bool serverpickup(int i, int sender);
 extern bool valid_client(int cn, bool player = false);
 extern void extinfo_cnbuf(ucharbuf &p, int cn);
 extern void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENetAddress &addr, ENetBuffer &buf, int len, int &psend);
