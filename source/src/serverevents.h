@@ -138,8 +138,9 @@ void processevent(client &c, shotevent &e)
 					to = hit->state.o;
 					hit = NULL;
 				}
+				sendhit(c, WEAP_BOW, to.v, dmg);
+				sendf(-1, 1, "ri2", N_STICK, hit->clientnum);
 			}
-			if(hit) sendf(-1, 1, "ri2", N_STICK, hit->clientnum);
 			else sendf(-1, 1, "ri2f3", N_STICK, -1, to.x, to.y, to.z);
 			// timed explosion
 			projevent &exp = c.addtimer().proj;
