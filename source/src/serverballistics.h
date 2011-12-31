@@ -133,7 +133,12 @@ int explosion(client &owner, const vec &o2, int weap, bool gib){
 			dmg *= 1.4f;
 		}
 		// was the bow stuck? or did the nade headshot?
-		if((weap == WEAP_BOW && !dist) || (weap == WEAP_GRENADE && owner.clientnum != i && o.z >= target.state.o.z))
+		// did the nade headshot?
+		if(weap == WEAP_GRENADE && owner.clientnum != i && o.z >= target.state.o.z){
+			expflags |= FRAG_FLAG;
+			sendheadshot(o, target.state.o, dmg);
+		}
+		else if(weap == WEAP_BOW && !dist)
 			expflags |= FRAG_FLAG;
 		damagedealt += dmg;
 		//serverdamage(&target, &owner, dmg, weap, expflags, o);
