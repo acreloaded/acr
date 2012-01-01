@@ -1332,7 +1332,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	ts.wounds.shrink(0);
 	ts.damagelog.removeobj(target->clientnum);
 	ts.damagelog.removeobj(actor->clientnum);
-	target->cleartimedevents(false); // to remove healing
+	target->heals.shrink(0);
 	loopv(ts.damagelog){
 		if(valid_client(ts.damagelog[i])){
 			const int factor = isteam(clients[ts.damagelog[i]], target) ? -1 : 1;

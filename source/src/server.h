@@ -257,6 +257,7 @@ struct client				   // server side version of "dynent" type
 	int demoflags;
 	clientstate state;
 	vector<timedevent *> events, timers;
+	vector<healevent> heals;
 	vector<uchar> position, messages;
 	string lastsaytext;
 	int saychars, lastsay, spamcount;
@@ -270,14 +271,20 @@ struct client				   // server side version of "dynent" type
 
 	void addevent(timedevent *e)
 	{
-		if(events.length()>256) delete e;
-		else events.add(e);
+		if(events.length()<256) events.add(e);
+		else delete e;
 	}
 
 	void addtimer(timedevent *e)
 	{
-		if(timers.length()>256) delete e;
-		else timers.add(e);
+		if(timers.length()<256) timers.add(e);
+		else delete e;
+	}
+
+	healevent &addheal()
+	{
+		static healevent dummy;
+		return heals.length()<256 ? heals.add() : dummy;
 	}
 
 	int getmillis(int millis, int id)
