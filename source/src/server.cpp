@@ -1460,7 +1460,8 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 		*/
 	}
 
-	if(target->state.damagelog.find(actor->clientnum) < 0) target->state.damagelog.add(actor->clientnum);
+	if(damage && target->state.damagelog.find(actor->clientnum) < 0)
+		target->state.damagelog.add(actor->clientnum);
 
 	ts.dodamage(damage, actor->state.perk == PERK_POWER);
 	ts.lastregen = gamemillis + REGENDELAY - REGENINT;
