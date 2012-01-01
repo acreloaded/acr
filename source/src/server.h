@@ -233,26 +233,6 @@ struct savedscore
 	}
 };
 
-void clearevents(vector<timedevent *> &target, bool explosives)
-{
-	int keep = 0;
-	loopv(target)
-	{
-		if(target[i]->keepable(explosives))
-		{
-			if(keep < i)
-			{
-				for(int j = keep; j < i; ++j) delete target[j];
-				target.remove(keep, i - keep);
-				i = keep;
-			}
-			keep = i+1;
-			continue;
-		}
-	}
-	while(target.length() > keep) delete target.pop();
-}
-
 struct client				   // server side version of "dynent" type
 {
 	int type;
@@ -306,20 +286,10 @@ struct client				   // server side version of "dynent" type
 		return gameoffset+id;
 	}
 
-	void cleartimedevents(bool explosives){
-		clearevents(events, explosives);
-		clearevents(timers, explosives);
-	}
-
-	void cleartimers()
-	{
-		clearevents(timers, false); // clear healing
-	}
-
 	void removeexplosives() {
 		state.grenades.reset(); // remove active/flying nades
 		state.knives.reset(); // remove active/flying knives (usually useless, since knives are fast)
-		cleartimedevents(true); // to remove stuck crossbows
+		// cleartimedevents(true); // to remove stuck crossbows
 		// remove all dealt wounds
 		extern vector<client *> clients;
 		loopv(clients){
