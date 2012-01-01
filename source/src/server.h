@@ -19,38 +19,66 @@ struct head_t{
 	vec delta;
 };
 
-#define eventcommon int type, millis, id
-struct shotevent{
-	eventcommon;
-	int gun;
-	float to[3];
-	vector<head_t> *pheads;
+struct client;
+
+struct gameevent
+{ // superfluous?
+	virtual ~gameevent() {}
+	virtual bool flush(client *ci, int fmillis) { return true; }
+	virtual void process(client *ci) { }
+	virtual bool keepable(bool explosive) const { return false; }
+};
+
+struct timedevent : gameevent
+{
+	int id, millis;
+	bool flush(client *ci, int fmillis);
+};
+
+struct shotevent : timedevent
+{
+	int weap;
+	vec to;
+	vector<head_t> heads;
 	bool compact;
+	void process(client *ci);
 };
 
-struct projevent{
-	eventcommon;
-	int gun, flag;
-	float o[3];
+// switchevent?
+
+struct akimboevent : timedevent
+{
+	void process(client *ci);
 };
 
-struct akimboevent{
-	eventcommon;
+struct reloadevent : timedevent
+{
+	int weap;
+	void process(client *ci);
 };
 
-struct reloadevent{
-	eventcommon;
-	int gun;
+struct destroyevent : timedevent
+{
+	int weap, flags;
+	vec o;
+	bool keepable(bool explosive) const { return !explosive; }
+	void process(client *ci);
 };
 
-union gameevent{
-	struct { eventcommon; };
-	shotevent shot;
-	projevent proj;
-	akimboevent akimbo;
-	reloadevent reload;
+// unordered
+struct bowevent : timedevent
+{
+	vec o;
+	bool keepable(bool explosive) const { return !explosive; }
+	void process(client *ci);
 };
 
+struct healevent : timedevent
+{
+	int hp;
+	bool keepable(bool explosive) const { return explosive; }
+	void process(client *ci);
+};
 
 template <int N>
 struct projectilestate
@@ -205,6 +233,26 @@ struct savedscore
 	}
 };
 
+void clearevents(vector<timedevent *> &target, bool explosives)
+{
+	int keep = 0;
+	loopv(target)
+	{
+		if(target[i]->keepable(explosives))
+		{
+			if(keep < i)
+			{
+				for(int j = keep; j < i; ++j) delete target[j];
+				target.remove(keep, i - keep);
+				i = keep;
+			}
+			keep = i+1;
+			continue;
+		}
+	}
+	while(target.length() > keep) delete target.pop();
+}
+
 struct client				   // server side version of "dynent" type
 {
 	int type;
@@ -223,7 +271,7 @@ struct client				   // server side version of "dynent" type
 	int gameoffset, lastevent, lastvotecall;
 	int demoflags;
 	clientstate state;
-	vector<gameevent> events, timers;
+	vector<timedevent *> events, timers;
 	vector<uchar> position, messages;
 	string lastsaytext;
 	int saychars, lastsay, spamcount;
@@ -235,25 +283,38 @@ struct client				   // server side version of "dynent" type
 	int mapcollisions;
 	enet_uint32 bottomRTT;
 
-	gameevent &addevent()
+	void addevent(timedevent *e)
 	{
-		static gameevent dummy;
-		if(events.length()>32) return dummy;
-		return events.add();
+		if(events.length()>256) delete e;
+		else events.add(e);
 	}
 
-	gameevent &addtimer(){
-		static gameevent dummy;
-		if(timers.length()>256) return dummy;
-		return timers.add();
+	void addtimer(timedevent *e)
+	{
+		if(timers.length()>256) delete e;
+		else timers.add(e);
 	}
 
-	void removetimers(int type){ loopv(timers) if(timers[i].type == type) timers.remove(i--); }
+	int getmillis(int millis, int id)
+	{
+		if(!timesync || (events.length() == 1 && state.waitexpired(millis)))
+		{
+			timesync = true;
+			gameoffset = millis-id;
+			return millis;
+		}
+		return gameoffset+id;
+	}
+
+	void cleartimedevents(bool explosives){
+		clearevents(events, explosives);
+		clearevents(timers, explosives);
+	}
 
 	void removeexplosives() {
 		state.grenades.reset(); // remove active/flying nades
 		state.knives.reset(); // remove active/flying knives (usually useless, since knives are fast)
-		removetimers(GE_PROJ); // remove stuck crossbows
+		cleartimedevents(true); // to remove stuck crossbows
 		// remove all dealt wounds
 		extern vector<client *> clients;
 		loopv(clients){
@@ -271,8 +332,8 @@ struct client				   // server side version of "dynent" type
 	void mapchange()
 	{
 		state.reset();
-		events.setsize(0);
-		timers.setsize(0);
+		events.deletecontents();
+		timers.deletecontents();
 		overflow = 0;
 		timesync = false;
 		isonrightmap = m_edit(gamemode);

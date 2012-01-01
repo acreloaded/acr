@@ -1332,7 +1332,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	ts.wounds.shrink(0);
 	ts.damagelog.removeobj(target->clientnum);
 	ts.damagelog.removeobj(actor->clientnum);
-	target->removetimers(GE_RELOAD);
+	target->cleartimedevents(false); // to remove healing
 	loopv(ts.damagelog){
 		if(valid_client(ts.damagelog[i])){
 			const int factor = isteam(clients[ts.damagelog[i]], target) ? -1 : 1;
@@ -2871,8 +2871,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 		enet_packet_resize(packet, buf.length());
 		*/
 
-	static gameevent dummy; // in case a client sends on behalf of somebody else's bot
-
 	int curmsg;
 	while((curmsg = p.length()) < p.maxlen)
 	{
@@ -3067,84 +3065,80 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				break;
 			}
 
-			case N_SHOOT:
-			case N_SHOOTC:
+			case N_SHOOT: // cn id weap to.dx to.dy to.dz heads.length heads.v
+			case N_SHOOTC: // cn id weap
 			{
+				shotevent *ev = new shotevent;
 				const int cn = getint(p);
-				const bool hascn = hasclient(cl, cn);
-				client *cp = hascn ? clients[cn] : NULL;
-				static gameevent dummy;
-				gameevent &shot = hascn ? cp->addevent() : dummy;
-				shot.type = GE_SHOT;
-				#define seteventmillis(event, idm) \
-				{ \
-					event.id = idm; \
-					if(!cp->timesync || (cp->events.length()==1 && cp->state.waitexpired(gamemillis))) \
-					{ \
-						cp->timesync = true; \
-						cp->gameoffset = gamemillis - event.id; \
-						event.millis = gamemillis; \
-					} \
-					else event.millis = cp->gameoffset + event.id; \
-				}
-				int id = getint(p);
-				if(hascn) seteventmillis(shot.shot, id);
-				shot.shot.gun = getint(p);
-				shot.shot.compact = type == N_SHOOTC;
-				shot.shot.pheads = new vector<head_t>;
-				shot.shot.pheads->setsize(0);
-				if(type == N_SHOOT){
-					loopi(3) shot.shot.to[i] = getfloat(p);
+				ev->id = getint(p);
+				ev->weap = getint(p);
+				if(!(ev->compact = (type == N_SHOOTC)))
+				{
+					loopi(3) ev->to[i] = getfloat(p);
 					const int heads = getint(p), maxheads = numclients();
-					loopi(heads){
-						head_t head;
-						head.cn = getint(p);
-						loopk(3) head.delta[k] = getfloat(p);
-						if(hascn && heads < maxheads) shot.shot.pheads->add(head);
+					loopi(heads)
+					{
+						head_t h;
+						h.cn = getint(p);
+						loopj(3) h.delta[i] = getfloat(p);
+						
+						if(i < maxheads) ev->heads.add(h);
 					}
 				}
+
+				client *cp = hasclient(cl, cn) ? clients[cn] : NULL;
+				if(cp)
+				{
+					ev->millis = cp->getmillis(gamemillis, ev->id);
+					cp->addevent(ev);
+				}
+				else delete ev;
 				break;
 			}
 
-			case N_PROJ:
+			case N_PROJ: // cn id weap flags x y z
 			{
 				const int cn = getint(p);
-				const bool hascn = hasclient(cl, cn);
-				client *cp = hascn ? clients[cn] : NULL;
-				gameevent &exp = hascn ? cp->addevent() : dummy;
-				exp.type = GE_PROJ;
-				int id = getint(p);
-				if(hascn) seteventmillis(exp.proj, id);
-				exp.proj.gun = getint(p);
-				exp.proj.flag = getint(p);
-				loopi(3) exp.proj.o[i] = getfloat(p);
+				destroyevent *ev = new destroyevent;
+				ev->id = getint(p);
+				ev->weap = getint(p);
+				ev->flags = getint(p);
+				loopi(3) ev->o[i] = getfloat(p);
+
+				client *cp = hasclient(cl, cn) ? clients[cn] : NULL;
+				if(cp)
+				{
+					ev->millis = cp->getmillis(gamemillis, ev->id);
+					cp->addevent(ev);
+				}
+				else delete ev;
 				break;
 			}
 
-			case N_AKIMBO:
+			case N_AKIMBO: // cn id
 			{
 				const int cn = getint(p), id = getint(p);
 				if(!hasclient(cl, cn)) break;
 				client *cp = clients[cn];
-				gameevent &akimbo = cp->addevent();
-				akimbo.type = GE_AKIMBO;
-				seteventmillis(akimbo.akimbo, id);
+				akimboevent *ev = new akimboevent;
+				ev->millis = cp->getmillis(gamemillis, ev->id = id);
+				cp->addevent(ev);
 				break;
 			}
 
-			case N_RELOAD:
+			case N_RELOAD: // cn id weap
 			{
-				int cn = getint(p), id = getint(p), gun = getint(p);
+				int cn = getint(p), id = getint(p), weap = getint(p);
 				if(!hasclient(cl, cn)) break;
 				client *cp = clients[cn];
-				gameevent &reload = cp->addevent();
-				reload.type = GE_RELOAD;
-				seteventmillis(reload.reload, id);
-				reload.reload.gun = gun;
+				reloadevent *ev = new reloadevent;
+				ev->millis = cp->getmillis(gamemillis, ev->id = id);
+				ev->weap = weap;
+				cp->addevent(ev);
 				break;
 			}
 
-			case N_QUICKSWITCH:
+			case N_QUICKSWITCH: // cn
 			{
 				const int cn = getint(p);
 				if(!hasclient(cl, cn)) break;
@@ -3156,7 +3150,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				break;
 			}
 
-			case N_SWITCHWEAP:
+			case N_SWITCHWEAP: // cn weap
 			{
 				int cn = getint(p), weaponsel = getint(p);
 				if(!hasclient(cl, cn)) break;
@@ -3178,7 +3172,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(!hasclient(cl, cn)) break;
 				clientstate &cps = clients[cn]->state;
 				if(cps.knives.throwable <= 0) break;
-				cps.knives.throwable--;
+				--cps.knives.throwable;
 				checkpos(from);
 				if(vel.magnitude() > KNIFEPOWER) vel.normalize().mul(KNIFEPOWER);
 				sendf(-1, 1, "ri2f6x", N_THROWKNIFE, cn, from.x, from.y, from.z, vel.x, vel.y, vel.z, sender);
@@ -3195,7 +3189,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(!hasclient(cl, cn)) break;
 				clientstate &cps = clients[cn]->state;
 				if(cps.grenades.throwable <= 0) break;
-				cps.grenades.throwable--;
+				--cps.grenades.throwable;
 				checkpos(from);
 				if(vel.magnitude() > NADEPOWER) vel.normalize().mul(NADEPOWER);
 				sendf(-1, 1, "ri2f6ix", N_THROWNADE, cn, from.x, from.y, from.z, vel.x, vel.y, vel.z, cooked, sender);
