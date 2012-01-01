@@ -1447,19 +1447,17 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 	if(m_real(gamemode, mutators)) style &= ~FRAG_CRIT;
 
 	if(target != actor){
-		if(isteam(actor, target)){ // friendly fire
+		if(isteam(actor, target))
+			return; // no friendly fire!
+		/*
+		{ // friendly fire
 			if(m_classic(gamemode, mutators)) return;
-			/*
-			if((damage *= 0.25) > target->state.health - 80 * HEALTHSCALE) damage = target->state.health - 80 * HEALTHSCALE; // no more TKs!
-			if(damage < 1) return;
-			const int returndamage = damage * (m_expert(gamemode, mutators) ? 1.5f : .4f);
-			if(returndamage) serverdamage(actor, actor, returndamage, WEAP_MAX+3, style, source); // redirect damage to owner
-			*/
 			actor->state.shotdamage += damage; // reduce his accuracy
 			// NEW way: no friendly fire, but tiny reflection
 			serverdamage(actor, actor, damage * .1f, gun, style, source);
 			return; // haha, all FF redirection is enough
 		}
+		*/
 	}
 
 	if(target->state.damagelog.find(actor->clientnum) < 0) target->state.damagelog.add(actor->clientnum);
