@@ -165,7 +165,7 @@ void shotevent::process(client *ci)
 				h.id = c.clientnum; // from this person
 				h.millis = gamemillis + (10 + i) * 100 / (gs.perk == PERK_PERSIST ? 2 : 1);
 				h.hp = (gs.perk == PERK_PERSIST ? 2 : 1);
-				if(c.heals.length()<128) c.heals.add(h);
+				if(hit->heals.length()<128) hit->heals.add(h);
 			}
 			if(hit == &c) (end = to).sub(from).normalize().add(from); // 25 cm fx
 			sendhit(c, WEAP_HEAL, (to = end).v, dmg); // blood
