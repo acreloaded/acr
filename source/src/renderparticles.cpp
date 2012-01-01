@@ -701,7 +701,7 @@ void addheadshot(const vec &act, const vec &pl, int damage){
 	loopi(num){
 		vec o(pl), surface;
 		// raycube because blood shouldn't go to clips
-		float dist = raycube(act, o.sub(act).normalize().add(vec(
+		float dist = raycube(pl, o.sub(act).normalize().add(vec(
 			// spread x
 			(rnd(61)-30)/1000.f,
 			// spread y
@@ -710,6 +710,6 @@ void addheadshot(const vec &act, const vec &pl, int damage){
 			(rnd(61)-30)/1000.f
 		)).normalize(), surface);
 		if(surface.iszero()) continue; // no bloody skies!
-		newparticle(o.mul(dist).add(vec(surface).mul(0.005f)).add(act), surface, bloodttl*2, 8);
+		newparticle(o.mul(dist).add(vec(surface).mul(0.005f)).add(pl), surface, bloodttl*2, 8);
 	}
 }
