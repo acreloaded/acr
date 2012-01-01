@@ -21,18 +21,15 @@ struct head_t{
 
 struct client;
 
-struct gameevent
-{ // superfluous?
-	virtual ~gameevent() {}
-	virtual bool flush(client *ci, int fmillis) { return true; }
-	virtual void process(client *ci) { }
-	virtual bool keepable(bool explosive) const { return false; }
-};
-
-struct timedevent : gameevent
+struct timedevent
 {
+	bool valid;
 	int id, millis;
+	timedevent() : valid(true) { }
+	virtual ~timedevent() {}
 	bool flush(client *ci, int fmillis);
+	virtual void process(client *ci) = 0;
+	virtual bool keepable(bool explosive) const { return false; }
 };
 
 struct shotevent : timedevent
@@ -80,6 +77,14 @@ struct healevent : timedevent
 	void process(client *ci);
 };
 
+void clearevents(vector<timedevent *> &target, bool explosives)	
+{
+	loopvrev(target)
+		if(!target[i]->keepable(explosives))
+			//delete target.pop();
+			target[i]->valid = false;
+}
+
 template <int N>
 struct projectilestate
 {
@@ -118,6 +123,7 @@ struct projectilestate
 
 struct wound
 {
+	bool valid;
 	int inflictor;
 	int lastdealt;
 	vec offset;
@@ -286,16 +292,24 @@ struct client				   // server side version of "dynent" type
 		return gameoffset+id;
 	}
 
+	void cleartimedevents(bool explosives){
+ 		clearevents(events, explosives);
+		clearevents(timers, explosives);
+	}
+
 	void removeexplosives() {
 		state.grenades.reset(); // remove active/flying nades
 		state.knives.reset(); // remove active/flying knives (usually useless, since knives are fast)
-		// cleartimedevents(true); // to remove stuck crossbows
+		cleartimedevents(true); // to remove stuck crossbows
 		// remove all dealt wounds
 		extern vector<client *> clients;
 		loopv(clients){
 			if(clients[i]->type == ST_EMPTY) continue;
 			clientstate &cs = clients[i]->state;
-			loopvj(cs.wounds) if(cs.wounds[j].inflictor == clientnum) cs.wounds.remove(j--);
+			loopvjrev(cs.wounds)
+				if(cs.wounds[j].inflictor == clientnum)
+					//cs.wounds.remove(j);
+					cs.wounds[j].valid = false;
 		}
 	}
 

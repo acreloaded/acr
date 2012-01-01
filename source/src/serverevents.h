@@ -268,7 +268,7 @@ bool timedevent::flush(client *ci, int fmillis)
 	if(millis > fmillis) return false;
 	else if(millis >= ci->lastevent){
 		ci->lastevent = millis;
-		process(ci);
+		if(valid) process(ci);
 	}
 	return true;
 }
@@ -292,7 +292,7 @@ void processevents(){
 			if(c.state.wounds.length()){ // bleeding; oh no!
 				loopv(c.state.wounds){
 					wound &w = c.state.wounds[i];
-					if(!valid_client(w.inflictor)) c.state.wounds.remove(i--);
+					if(!valid_client(w.inflictor) || !w.valid) c.state.wounds.remove(i--);
 					else if(w.lastdealt + 500 < gamemillis){
 						client &owner = *clients[w.inflictor];
 						const int bleeddmg = (m_zombie(gamemode) ? BLEEDDMGZ : owner.state.perk == PERK_PERSIST ? BLEEDDMGPLUS : BLEEDDMG) * HEALTHSCALE;
