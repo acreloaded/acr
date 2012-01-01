@@ -305,9 +305,9 @@ struct client				   // server side version of "dynent" type
 		loopv(clients){
 			if(clients[i]->type == ST_EMPTY) continue;
 			clientstate &cs = clients[i]->state;
-			loopvjrev(cs.wounds)
+			loopvj(cs.wounds)
 				if(cs.wounds[j].inflictor == clientnum)
-					//cs.wounds.remove(j);
+					//cs.wounds.remove(j--);
 					cs.wounds[j].inflictor = -1;
 		}
 	}
