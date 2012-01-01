@@ -1029,7 +1029,8 @@ const char *formatname(client *c)
 	static string cname[3];
 	static int idx = 0;
 	if(idx >= 3) idx %= 3;
-	formatstring(cname[idx])(c->type == ST_AI ? "%s (%d-%d)" : "%s (%d)", c->name, c->clientnum, c->state.ownernum);
+	if(c->type == ST_AI) formatstring(cname[idx])("%s [%d-%d]", c->name, c->clientnum, c->state.ownernum);
+	else formatstring(cname[idx])("%s (%d)", c->name, c->clientnum);
 	return cname[idx++];
 }
 
