@@ -3,7 +3,7 @@ int findaiclient(int exclude = -1){ // person with least bots, if possible
 	int cn = -1, bots = MAXCLIENTS;
 	loopv(clients){
 		client *c = clients[i];
-		if(i == exclude || !valid_client(i, true) || c->clientnum < 0 /*|| !*c->name || !c->connected*/) break;
+		if(i == exclude || !valid_client(i, true) || c->clientnum < 0 /*|| !*c->name || !c->connected*/) continue;
 		int n = 0;
 		loopvj(clients) if(clients[j]->type == ST_AI && clients[j]->state.ownernum == i) ++n;
 		if(n < bots || cn < 0){
