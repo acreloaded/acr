@@ -335,16 +335,22 @@ void processevents(){
 		}
 		// timers
 		#define processtimer(timer) \
-			loopvjrev(c.timer##s) \
+			loopvj(c.timer##s) \
 			{ \
-				if(c.timer##s[j].millis <= gamemillis) \
+				if(!c.timer##s[j].valid) \
+				{ \
+					c.timer##s.remove(j--); \
+					continue; \
+				} \
+				else if(c.timer##s[j].millis <= gamemillis) \
+				{ \
 					c.timer##s[j].process(&c); \
-				if(!c.timer##s[j].valid || c.timer##s[j].millis <= gamemillis) \
-					c.timer##s.remove(j); \
+					c.timer##s.remove(j--); \
+				} \
 			}
+		if(c.state.health >= MAXHEALTH || c.state.state != CS_ALIVE)
+			c.heals.shrink(0);
 		processtimer(heal);
 		processtimer(bow);
-		if(c.state.health >= MAXHEALTH)
-			c.heals.shrink(0);
 	}
 }

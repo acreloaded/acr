@@ -278,7 +278,7 @@ struct client				   // server side version of "dynent" type
 	void removeexplosives() {
 		state.grenades.reset(); // remove active/flying nades
 		state.knives.reset(); // remove active/flying knives (usually useless, since knives are fast)
-		bows.setsize(0); // to remove stuck crossbows
+		loopv(bows) bows[i].valid = false; // to remove stuck crossbows
 		// remove all dealt wounds
 		extern vector<client *> clients;
 		loopv(clients){
