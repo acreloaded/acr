@@ -334,7 +334,14 @@ void processevents(){
 			else break;
 		}
 		// timers
-		#define processtimer(timer) loopvj(c.timer##s) if(c.timer##s[i].millis <= gamemillis) c.timer##s[i].process(&c);
+		#define processtimer(timer) \
+			loopvjrev(c.timer##s) \
+			{ \
+				if(c.timer##s[j].millis <= gamemillis) \
+					c.timer##s[j].process(&c); \
+				if(!c.timer##s[j].valid || c.timer##s[j].millis <= gamemillis) \
+					c.timer##s.remove(j); \
+			}
 		processtimer(heal);
 		processtimer(bow);
 		if(c.state.health >= MAXHEALTH)
