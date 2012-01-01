@@ -123,7 +123,6 @@ struct projectilestate
 
 struct wound
 {
-	bool valid;
 	int inflictor;
 	int lastdealt;
 	vec offset;
@@ -309,7 +308,7 @@ struct client				   // server side version of "dynent" type
 			loopvjrev(cs.wounds)
 				if(cs.wounds[j].inflictor == clientnum)
 					//cs.wounds.remove(j);
-					cs.wounds[j].valid = false;
+					cs.wounds[j].inflictor = -1;
 		}
 	}
 
