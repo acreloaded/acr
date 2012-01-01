@@ -133,14 +133,14 @@ void processevent(client &c, shotevent &e)
 				}
 				else
 					dmg *= m_zombies_rounds(gamemode, mutators) ? (hitzone * 75) : (50);
+				sendhit(c, WEAP_BOW, to.v, dmg); // blood, not explosion
 				serverdamage(hit, &c, dmg, WEAP_BOW, FRAG_GIB, hit->state.o);
 				if(hit->state.state != CS_ALIVE){
 					to = hit->state.o;
-					hit = NULL;
+					hit = NULL; // warning
 				}
-				sendhit(c, WEAP_BOW, to.v, dmg);
-				sendf(-1, 1, "ri2", N_STICK, hit->clientnum);
 			}
+			if(hit) sendf(-1, 1, "ri2", N_STICK, hit->clientnum);
 			else sendf(-1, 1, "ri2f3", N_STICK, -1, to.x, to.y, to.z);
 			// timed explosion
 			projevent &exp = c.addtimer().proj;
@@ -159,7 +159,8 @@ void processevent(client &c, shotevent &e)
 			if(!hit) break;
 			const int flags = hitzone == HIT_HEAD ? FRAG_GIB : FRAG_NONE,
 				dmg = effectiveDamage(e.gun, hit->state.o.dist(from));
-			if(flags & FRAG_GIB) sendheadshot(from, to, dmg);
+			if(flags & FRAG_GIB)
+				sendheadshot(from, to, dmg);
 			// don't damage teammates (which this weapon was intended for)
 			if(&c == hit || !isteam(&c, hit))
 				serverdamage(hit, &c, dmg, e.gun, flags, gs.o);
@@ -171,7 +172,7 @@ void processevent(client &c, shotevent &e)
 				heal.gun = gs.perk == PERK_PERSIST ? 2 : 1;
 			}
 			if(hit == &c) (end = to).sub(from).normalize().add(from); // 25 cm fx
-			sendhit(c, WEAP_HEAL, (to = end).v, dmg);
+			sendhit(c, WEAP_HEAL, (to = end).v, dmg); // blood
 			break;
 		}
 		case WEAP_KNIFE: // falls through if not "compact" (throw)
