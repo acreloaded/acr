@@ -156,9 +156,7 @@ void shotevent::process(client *ci)
 				dmg = effectiveDamage(weap, hit->state.o.dist(from));
 			if(flags & FRAG_GIB)
 				sendheadshot(from, to, dmg);
-			// don't damage teammates (which this weapon was intended for)
-			if(&c == hit || !isteam(&c, hit))
-				serverdamage(hit, &c, dmg, weap, flags, gs.o);
+			serverdamage(hit, &c, dmg, weap, flags, gs.o);
 			loopi(&c == hit ? 25 : 15){
 				// heals over the next 1 to 2.5 seconds (no perk, for others)
 				healevent h;
@@ -168,7 +166,8 @@ void shotevent::process(client *ci)
 				if(hit->heals.length()<128) hit->heals.add(h);
 			}
 			if(hit == &c) (end = to).sub(from).normalize().add(from); // 25 cm fx
-			sendhit(c, WEAP_HEAL, (to = end).v, dmg); // blood
+			// hide blood for healing weapon
+			// sendhit(c, WEAP_HEAL, (to = end).v, dmg); // blood
 			break;
 		}
 		case WEAP_KNIFE: // falls through if not "compact" (throw)
