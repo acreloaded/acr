@@ -1107,7 +1107,7 @@ void checkitemspawns(int diff){
 
 // server map geometry tools
 ssqr &getsblock(int id){
-	if(!maplayout){
+	if(!maplayout || id < 2 || id >= ((1 << (maplayout_factor * 2)) - 2)){
 		static ssqr dummy;
 		dummy.type = SPACE;
 		dummy.ceil = 16;
@@ -1115,7 +1115,7 @@ ssqr &getsblock(int id){
 		dummy.vdelta = 0;
 		return dummy;
 	}
-	return maplayout[clamp(id, 0, 1 << (maplayout_factor * 2))];
+	return maplayout[id];
 }
 
 inline int getmaplayoutid(int x, int y){

@@ -48,7 +48,7 @@ void destroyevent::process(client *ci)
 				}
 			}
 
-			sendhit(c, WEAP_KNIFE, o.v, done ? dmg : 0);
+			sendhit(c, WEAP_KNIFE, o, done ? dmg : 0);
 			sknife &k = sknives.add();
 			k.millis = gamemillis;
 			sendf(-1, 1, "ri2f3", N_KNIFEADD, (k.id = sknives.length()-1), (k.o.x = o.x), (k.o.y = o.y), (k.o.z = o.z));
@@ -129,7 +129,7 @@ void shotevent::process(client *ci)
 				}
 				else
 					dmg *= m_zombies_rounds(gamemode, mutators) ? (hitzone * 75) : (50);
-				sendhit(c, WEAP_BOW, to.v, dmg); // blood, not explosion
+				sendhit(c, WEAP_BOW, to, dmg); // blood, not explosion
 				serverdamage(hit, &c, dmg, WEAP_BOW, FRAG_GIB, hit->state.o);
 				if(hit->state.state != CS_ALIVE){
 					to = hit->state.o;
@@ -167,7 +167,7 @@ void shotevent::process(client *ci)
 			}
 			if(hit == &c) (end = to).sub(from).normalize().add(from); // 25 cm fx
 			// hide blood for healing weapon
-			// sendhit(c, WEAP_HEAL, (to = end).v, dmg); // blood
+			// sendhit(c, WEAP_HEAL, (to = end), dmg); // blood
 			break;
 		}
 		case WEAP_KNIFE: // falls through if not "compact" (throw)
@@ -302,7 +302,7 @@ void processevents(){
 						vec woundloc = c.state.o;
 						woundloc.add(w.offset);
 						// blood fx and stuff
-						sendhit(owner, WEAP_KNIFE, woundloc.v, bleeddmg);
+						sendhit(owner, WEAP_KNIFE, woundloc, bleeddmg);
 						// use wounded location as damage source
 						serverdamage(&c, &owner, bleeddmg, WEAP_KNIFE, FRAG_NONE, woundloc);
 						w.lastdealt = gamemillis;

@@ -77,8 +77,8 @@ bool checkcrit(float dist, float m, int base = 0, int min = 4, int max = 100){
 }
 
 // easy to send shot damage messages
-inline void sendhit(client &actor, int gun, const float *o, int dmg){
-	sendf(-1, 1, "ri4f3", N_PROJ, actor.clientnum, gun, dmg, o[0], o[1], o[2]);
+inline void sendhit(client &actor, int gun, const vec &o, int dmg){
+	sendf(-1, 1, "ri4f3", N_PROJ, actor.clientnum, gun, dmg, o.x, o.y, o.z);
 }
 
 inline void sendheadshot(const vec &from, const vec &to, int damage){
@@ -113,7 +113,7 @@ int explosion(client &owner, const vec &o2, int weap, bool gib){
 	int damagedealt = 0;
 	vec o(o2);
 	checkpos(o);
-	sendhit(owner, weap, o.v, 0); // 0 means display explosion
+	sendhit(owner, weap, o, 0); // 0 means display explosion
 	// these are our hits
 	vector<explosivehit> hits;
 	// find the hits
@@ -151,7 +151,7 @@ int explosion(client &owner, const vec &o2, int weap, bool gib){
 	hits.sort(cmphitsort);
 	// apply the hits
 	loopv(hits){
-		sendhit(owner, weap, hits[i].target->state.o.v, hits[i].damage);
+		sendhit(owner, weap, hits[i].target->state.o, hits[i].damage);
 		serverdamage(hits[i].target, &owner, hits[i].damage, weap, hits[i].flags, o);
 	}
 	return damagedealt;
@@ -250,7 +250,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<head_t> &h, int w
 		// send bloody headshot hits...
 		if(hitzone == HIT_HEAD) sendheadshot(from, end, damage);
 		// send the real hit (blood fx)
-		sendhit(owner, weap, end.v, damage);
+		sendhit(owner, weap, end, damage);
 		// apply damage
 		if(save) save[hit->clientnum] += damage; // save damage for shotgun ray
 		else serverdamage(hit, &owner, damage, weap, style, from);
@@ -299,7 +299,7 @@ int shotgun(client &owner, vector<head_t> &h){
 		// basic checks
 		if(t.type == ST_EMPTY || !sgdamage[i] || ts.state != CS_ALIVE) continue;
 		damagedealt += sgdamage[i];
-		//sendhit(owner, WEAP_SHOTGUN, ts.o.v);
+		//sendhit(owner, WEAP_SHOTGUN, ts.o);
 		const int shotgunflags = sgdamage[i] >= SGGIB ? FRAG_GIB : FRAG_NONE;
 		serverdamage(&t, &owner, max<int>(sgdamage[i], (m_zombies_rounds(gamemode, mutators) && shotgunflags & FRAG_GIB) ? (350 * HEALTHSCALE) : 0), WEAP_SHOTGUN, shotgunflags, from);
 	}
