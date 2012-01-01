@@ -198,7 +198,7 @@ client *nearesthit(client &actor, const vec &from, const vec &to, int &hitzone, 
 		client &t = *clients[i];
 		clientstate &ts = t.state;
 		// basic checks
-		if(t.type == ST_EMPTY || ts.state != CS_ALIVE || &t == exclude || ((&actor != &t) && isteam(&actor, &t) || ts.protect(gamemillis)) continue;
+		if(t.type == ST_EMPTY || ts.state != CS_ALIVE || &t == exclude || ((&actor != &t) && isteam(&actor, &t)) || ts.protect(gamemillis)) continue;
 		const float d = ts.o.dist(from);
 		if(d > dist) continue;
 		vec head = generateHead(t, h);

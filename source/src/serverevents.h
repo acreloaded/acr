@@ -213,8 +213,7 @@ void shotevent::process(client *ci)
 }
 
 void reloadevent::process(client *ci){
-	client &c = *ci;
-	clientstate &gs = c.state;
+	clientstate &gs = ci->state;
 	int mag = magsize(weap), reload = reloadsize(weap);
 	if(!gs.isalive(gamemillis) || // dead
 	   weap<0 || weap>=WEAP_MAX || // invalid weapon
@@ -227,7 +226,7 @@ void reloadevent::process(client *ci){
 	gs.ammo[weap] -= reload;
 
 	int wait = millis - gs.lastshot;
-	sendf(-1, 1, "ri5", N_RELOAD, c.clientnum, weap, gs.mag[weap], gs.ammo[weap]);
+	sendf(-1, 1, "ri5", N_RELOAD, ci->clientnum, weap, gs.mag[weap], gs.ammo[weap]);
 	if(gs.gunwait[weap] && wait<gs.gunwait[weap]) gs.gunwait[weap] += reloadtime(weap);
 	else
 	{
@@ -238,8 +237,7 @@ void reloadevent::process(client *ci){
 }
 
 void akimboevent::process(client *ci){
-	client &c = *ci;
-	clientstate &gs = c.state;
+	clientstate &gs = ci->state;
 	if(!gs.isalive(gamemillis) || gs.akimbos<=0) return;
 	--gs.akimbos;
 	gs.akimbomillis = millis + 30000;
@@ -328,6 +326,7 @@ void processevents(){
 			//else sendmsgi(41, waitremain, sender);
 		}
 		// events
+		// crash occurs in the following line???
 		while(c.events.length()) // are ordered
 		{
 			timedevent *ev = c.events[0];
