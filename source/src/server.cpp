@@ -3079,7 +3079,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					{
 						head_t h;
 						h.cn = getint(p);
-						loopj(3) h.delta[i] = getfloat(p);
+						loopj(3) h.delta[j] = getfloat(p);
 						
 						if(i < maxheads) ev->heads.add(h);
 					}
