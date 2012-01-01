@@ -311,6 +311,11 @@ struct client				   // server side version of "dynent" type
 		clearevents(timers, explosives);
 	}
 
+	void cleartimers()
+	{
+		clearevents(timers, false); // clear healing
+	}
+
 	void removeexplosives() {
 		state.grenades.reset(); // remove active/flying nades
 		state.knives.reset(); // remove active/flying knives (usually useless, since knives are fast)

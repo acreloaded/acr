@@ -326,7 +326,6 @@ void processevents(){
 			//else sendmsgi(41, waitremain, sender);
 		}
 		// events
-		// crash occurs in the following line???
 		while(c.events.length()) // are ordered
 		{
 			timedevent *ev = c.events[0];
