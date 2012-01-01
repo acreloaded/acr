@@ -139,11 +139,11 @@ void shotevent::process(client *ci)
 			if(hit) sendf(-1, 1, "ri2", N_STICK, hit->clientnum);
 			else sendf(-1, 1, "ri2f3", N_STICK, -1, to.x, to.y, to.z);
 			// timed explosion
-			bowevent *ev = new bowevent;
-			ev->millis = gamemillis + TIPSTICKTTL;
-			ev->id = hit ? hit->clientnum : -1;
-			loopi(3) ev->o[i] = to[i];
-			c.addtimer(ev); // add it
+			bowevent b;
+			b.millis = gamemillis + TIPSTICKTTL;
+			b.id = hit ? hit->clientnum : -1;
+			loopi(3) b.o[i] = to[i];
+			if(c.bows.length()<128) c.bows.add(b);
 			break;
 		}
 		case WEAP_HEAL: // healing a player
@@ -161,10 +161,11 @@ void shotevent::process(client *ci)
 				serverdamage(hit, &c, dmg, weap, flags, gs.o);
 			loopi(&c == hit ? 25 : 15){
 				// heals over the next 1 to 2.5 seconds (no perk, for others)
-				healevent &ev = hit->addheal();
-				ev.id = c.clientnum; // from this person
-				ev.millis = gamemillis + (10 + i) * 100 / (gs.perk == PERK_PERSIST ? 2 : 1);
-				ev.hp = (gs.perk == PERK_PERSIST ? 2 : 1);
+				healevent h;
+				h.id = c.clientnum; // from this person
+				h.millis = gamemillis + (10 + i) * 100 / (gs.perk == PERK_PERSIST ? 2 : 1);
+				h.hp = (gs.perk == PERK_PERSIST ? 2 : 1);
+				if(c.heals.length()<128) c.heals.add(h);
 			}
 			if(hit == &c) (end = to).sub(from).normalize().add(from); // 25 cm fx
 			sendhit(c, WEAP_HEAL, (to = end).v, dmg); // blood
@@ -333,15 +334,9 @@ void processevents(){
 			else break;
 		}
 		// timers
-		loopvj(c.timers){ // are unordered
-			timedevent *t = c.timers[j];
-			if(t->millis > gamemillis) continue;
-			t->process(&c);
-			delete c.timers.remove(j--);
-		}
-		loopvj(c.heals)
-			if(c.heals[i].millis <= gamemillis)
-				c.heals[i].process(&c);
+		#define processtimer(timer) loopvj(c.timer##s) if(c.timer##s[i].millis <= gamemillis) c.timer##s[i].process(&c);
+		processtimer(heal);
+		processtimer(bow);
 		if(c.state.health >= MAXHEALTH)
 			c.heals.shrink(0);
 	}

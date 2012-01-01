@@ -29,7 +29,6 @@ struct timedevent
 	virtual ~timedevent() {}
 	bool flush(client *ci, int fmillis);
 	virtual void process(client *ci) = 0;
-	virtual bool keepable(bool explosive) const { return false; }
 };
 
 struct shotevent : timedevent
@@ -58,7 +57,6 @@ struct destroyevent : timedevent
 {
 	int weap, flags;
 	vec o;
-	bool keepable(bool explosive) const { return !explosive; }
 	void process(client *ci);
 };
 
@@ -66,24 +64,14 @@ struct destroyevent : timedevent
 struct bowevent : timedevent
 {
 	vec o;
-	bool keepable(bool explosive) const { return !explosive; }
 	void process(client *ci);
 };
 
 struct healevent : timedevent
 {
 	int hp;
-	bool keepable(bool explosive) const { return explosive; }
 	void process(client *ci);
 };
-
-void clearevents(vector<timedevent *> &target, bool explosives)	
-{
-	loopvrev(target)
-		if(!target[i]->keepable(explosives))
-			//delete target.pop();
-			target[i]->valid = false;
-}
 
 template <int N>
 struct projectilestate
@@ -256,8 +244,9 @@ struct client				   // server side version of "dynent" type
 	int gameoffset, lastevent, lastvotecall;
 	int demoflags;
 	clientstate state;
-	vector<timedevent *> events, timers;
+	vector<timedevent *> events;
 	vector<healevent> heals;
+	vector<bowevent> bows;
 	vector<uchar> position, messages;
 	string lastsaytext;
 	int saychars, lastsay, spamcount;
@@ -275,18 +264,6 @@ struct client				   // server side version of "dynent" type
 		else delete e;
 	}
 
-	void addtimer(timedevent *e)
-	{
-		if(timers.length()<256) timers.add(e);
-		else delete e;
-	}
-
-	healevent &addheal()
-	{
-		static healevent dummy;
-		return heals.length()<256 ? heals.add() : dummy;
-	}
-
 	int getmillis(int millis, int id)
 	{
 		if(!timesync || (events.length() == 1 && state.waitexpired(millis)))
@@ -298,15 +275,10 @@ struct client				   // server side version of "dynent" type
 		return gameoffset+id;
 	}
 
-	void cleartimedevents(bool explosives){
- 		clearevents(events, explosives);
-		clearevents(timers, explosives);
-	}
-
 	void removeexplosives() {
 		state.grenades.reset(); // remove active/flying nades
 		state.knives.reset(); // remove active/flying knives (usually useless, since knives are fast)
-		cleartimedevents(true); // to remove stuck crossbows
+		bows.setsize(0); // to remove stuck crossbows
 		// remove all dealt wounds
 		extern vector<client *> clients;
 		loopv(clients){
@@ -328,7 +300,8 @@ struct client				   // server side version of "dynent" type
 	{
 		state.reset();
 		events.deletecontents();
-		timers.deletecontents();
+		heals.setsize(0);
+		bows.setsize(0);
 		overflow = 0;
 		timesync = false;
 		isonrightmap = m_edit(gamemode);
