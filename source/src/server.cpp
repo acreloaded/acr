@@ -1867,7 +1867,8 @@ bool balanceteams(int ftr, bool aionly = true)  // pro vs noobs never more
             return true;
         }
     }
-    return aionly && balanceteams(ftr, false);
+	if(!aionly) return false;
+	return balanceteams(ftr, false);
 }
 
 int lastbalance = 0, waitbalance = 2 * 60 * 1000;
@@ -1957,7 +1958,8 @@ bool refillteams(bool now, int ftr, bool aionly){ // force only minimal amounts 
         }
         lasttime_eventeams = gamemillis;
     }
-    return switched || (aionly && refillteams(now, ftr, false));
+    if(switched) return true;
+	return aionly ? false : refillteams(now, ftr, false);
 }
 
 void resetserver(const char *newname, int newmode, int newmuts, int newtime){
