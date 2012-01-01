@@ -1258,7 +1258,11 @@ bool CBot::CheckStuck()
 
 	if ((m_vGoal!=g_vecZero) && (GetDistance(m_vGoal) < 2.0f))
 		return false;
-				
+	
+	if(OUTBORD(m_pMyEnt->o.x, m_pMyEnt->o.y))
+		StuckLastResort();
+	return true;
+
 	bool IsStuck = false;
 	
 	vec CurPos = m_pMyEnt->o, PrevPos = m_vPrevOrigin;
