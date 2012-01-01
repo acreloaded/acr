@@ -1448,7 +1448,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 
 	if(target != actor){
 		if(isteam(actor, target))
-			return; // no friendly fire!
+			damage = 0; // no friendly fire, but show hitmarker!
 		/*
 		{ // friendly fire
 			if(m_classic(gamemode, mutators)) return;
