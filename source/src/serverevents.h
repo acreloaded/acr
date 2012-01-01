@@ -348,9 +348,8 @@ void processevents(){
 					c.timer##s.remove(j--); \
 				} \
 			}
-		if(c.state.health >= MAXHEALTH || c.state.state != CS_ALIVE)
-			c.heals.shrink(0);
-		processtimer(heal);
+		if(c.state.health >= MAXHEALTH || c.state.state != CS_ALIVE) c.heals.shrink(0);
+		else processtimer(heal);
 		processtimer(bow);
 	}
 }
