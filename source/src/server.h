@@ -670,7 +670,7 @@ void sendheadshot(const vec &from, const vec &to, int damage);
 
 #ifdef _DEBUG
 // converts message code to char
-static const char *messagenames(int n){
+const char *messagenames(int n){
 	const char *msgnames[N_NUM] = {
 		"N_SERVINFO", "N_WELCOME", // before connection
 		"N_INITCLIENT", "N_INITAI", "N_SETTEAM", "N_RESUME", "N_MAPIDENT", "N_DISC", "N_DELAI", "N_REASSIGNAI", // sent after (dis)connection
