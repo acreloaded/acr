@@ -80,9 +80,12 @@ void shotevent::process(client *ci)
 	gs.lastshot = millis;
 	gs.gunwait[weap] = attackdelay(weap);
 	// for ease of access
-	vec from(gs.o), to(to), surface;
-	// to = vec(sinf(c.stataim[0]*RAD)*cosf(c.stataim[1]*RAD), -cosf(c.stataim[0]*RAD)*cosf(c.stataim[1]*RAD), sinf(c.stataim[1]*RAD));
-	to.normalize().add(from);
+	vec from(gs.o), /*to(to), */surface;
+	// if using their aim position
+		// #define RADD (PI/180.)
+		// to = vec(sin(gs.aim[0]*RADD)*cos(gs.aim[1]*RADD), -cos(gs.aim[0]*RADD)*cos(gs.aim[1]*RADD), sin(gs.aim[1]*RADD));
+	// if using delta position (or the above)
+		// to.normalize().add(from);
 	// apply spread
 	const float spreadf = .001f,//to.dist(from)/1000,
 		crouchfactor = 1 - (gs.crouching ? min(gamemillis - gs.crouchmillis, CROUCHTIME) : CROUCHTIME - min(gamemillis - gs.crouchmillis, CROUCHTIME)) * .25f / CROUCHTIME;

@@ -91,7 +91,7 @@ struct weapon
 	virtual void onownerdies() {}
 	virtual void removebounceent(bounceent *b) {}
 
-	void sendshoot(vec to);
+	void sendshoot(const vec &to);
 	bool modelattacking();
 	void renderhudmodel(int lastaction, bool flip = false);
 

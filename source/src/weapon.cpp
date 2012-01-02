@@ -333,7 +333,7 @@ struct head_t{
 	vec delta;
 };
 
-void weapon::sendshoot(vec to){
+void weapon::sendshoot(const vec &to){
 	if(owner!=player1 && !isowned(owner)) return;
 	
 	static uchar buf[MAXTRANS];
@@ -343,8 +343,11 @@ void weapon::sendshoot(vec to){
 	putint(p, owner->clientnum);
 	putint(p, lastmillis);
 	putint(p, owner->weaponsel->type);
+	/*
 	// send as delta from owner's position
 	to.sub(owner->o);
+	*/
+	// send as exact target
 	putfloat(p, to.x);
 	putfloat(p, to.y);
 	putfloat(p, to.z);
