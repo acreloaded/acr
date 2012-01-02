@@ -186,7 +186,7 @@ void addexp(int xp){
 
 bool spawnenqueued = false;
 
-void deathstate(playerent *pl, playerent *act)
+void deathstate(playerent *pl)
 {
 	if(pl == player1 && editmode) toggleedit(true);
 	pl->state = CS_DEAD;
@@ -195,16 +195,6 @@ void deathstate(playerent *pl, playerent *act)
 	pl->move = pl->strafe = pl->pitchvel = pl->pitchreturn = pl->ads = 0;
 	// position camera (used to be roll/pitch)
 	pl->roll = 0;
-	/*
-	// we should look at this
-	vec target = act ? act->o : pl->o;
-	target.sub(pl->o);
-	// look down at dead body
-	if(target.magnitude() < 1) target.z -= 1;
-	target.normalize();
-	pl->pitch = atan2(target.z, target.x) / RAD;
-	pl->yaw = atan2(target.y, target.x) / RAD;
-	*/
 
 	pl->scoping = pl->attacking = pl->wantsreload = false;
 	pl->wantsswitch = -1;
@@ -516,6 +506,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 {
 	if(pl->state == CS_DEAD || intermission) return;
 
+	pl->lastattacker = actor->clientnum;
 	pl->respawnoffset = pl->lastpain = lastmillis;
 	// damage direction/hit push
 	if(pl != actor || weapon == WEAP_GRENADE || weapon == WEAP_BOW || pl->o.dist(src) > 4){
@@ -623,7 +614,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 
 	addobit(act, obit, style, headshot, pl);
 	
-	deathstate(pl, act);
+	deathstate(pl);
 	++pl->deaths;
 	playsound(S_DIE1+rnd(2), pl);
 }

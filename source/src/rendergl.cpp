@@ -479,13 +479,28 @@ void resetcamera(){
 	camera1 = player1;
 }
 
+VARNP(deathcam, deathcamstyle, 0, 1, 1);
+
 void recomputecamera(){
 	if((player1->team == TEAM_SPECT || player1->state==CS_DEAD) && !editmode){
 		switch(player1->spectatemode){
 			case SM_DEATHCAM:
 			{
 				static physent deathcam;
-				if(camera1==&deathcam) return;
+				if(camera1==&deathcam)
+				{
+					if(deathcamstyle)
+					{
+						playerent *a = getclient(player1->lastattacker); // player1's killer?
+						if(a)
+						{
+							vec v = vec(a->o).sub(camera1->o)/*.normalize()*/;
+							camera1->yaw = 180-atan2(v.x, v.y)/RAD;
+							camera1->pitch = asin(v.z/v.magnitude())/RAD;
+						}
+					}
+					return;
+				}
 				deathcam = *(physent *)player1;
 				deathcam.reset();
 				deathcam.type = ENT_CAMERA;
