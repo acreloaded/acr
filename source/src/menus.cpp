@@ -121,8 +121,8 @@ bool menuvisible()
 
 void rendermenu()
 {
-	extern void *scoremenu;
-	if(curmenu != scoremenu) setscope(false);
+	extern void *scoremenu, *teammenu, *ctfmenu;
+	if(curmenu != scoremenu && curmenu != teammenu && curmenu != ctfmenu) setscope(false);
 	gmenu &m = *curmenu;
 	m.refresh();
 	m.render();
