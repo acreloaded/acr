@@ -1260,8 +1260,10 @@ bool CBot::CheckStuck()
 		return false;
 	
 	if(OUTBORD(m_pMyEnt->o.x, m_pMyEnt->o.y))
+	{
 		StuckLastResort();
-	return true;
+		return true;
+	}
 
 	bool IsStuck = false;
 	
