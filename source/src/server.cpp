@@ -338,14 +338,13 @@ void usestreak(client &c, int streak, const vec &o = vec(0, 0, 0)){
 		case STREAK_NUKE:
 			c.state.nukemillis = gamemillis + (info = 30000);
 			break;
-		case STREAK_DROPNADE:
 		case STREAK_REVENGE:
-		{
+			explosion(c, c.state.o, WEAP_GRENADE);
+			// fallthrough
+		case STREAK_DROPNADE:
 			info = rand();
 			c.state.grenades.add(info);
-			if(streak == STREAK_REVENGE) explosion(c, c.state.o, WEAP_GRENADE);
 			break;
-		}
 	}
 	sendf(-1, 1, "ri4", N_STREAKUSE, c.clientnum, streak, info);
 }
@@ -1189,7 +1188,7 @@ bool checkpos(vec &p, bool alter = true){
 	}
 	if(!ret){
 		// z
-		const int mapi = getmaplayoutid(fix.x, fix.y);
+		const int mapi = getmaplayoutid((int)fix.x, (int)fix.y);
 		const char ceil = getblockceil(mapi), floor = getblockfloor(mapi);
 		if(fix.z >= ceil){
 			fix.z = ceil - epsilon;
