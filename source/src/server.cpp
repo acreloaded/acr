@@ -1438,8 +1438,8 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 
 	if(m_expert(gamemode, mutators))
 	{
-		if(explosive_weap(gun)) damage /= 2;
-		else if(style & FRAG_GIB || melee_weap(gun)) damage *= 2;
+		if((gun == WEAP_GRENADE && (style & FRAG_FLAG)) || (style & FRAG_GIB) || melee_weap(gun)) damage *= 2;
+		else if(gun == WEAP_GRENADE) damage /= 2;
 		else damage /= 8;
 	}
 	else if(m_classic(gamemode, mutators)) damage /= 2;
