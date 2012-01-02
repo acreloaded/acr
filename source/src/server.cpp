@@ -1462,7 +1462,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 		}
 		*/
 
-		if(damage && target->state.damagelog.find(actor->clientnum) < 0)
+		if(target->state.damagelog.find(actor->clientnum) < 0)
 			target->state.damagelog.add(actor->clientnum);
 	}
 
