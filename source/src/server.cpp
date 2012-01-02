@@ -1304,7 +1304,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 
 	int targethasflag = clienthasflag(target->clientnum);
 	bool suic = false;
-	target->state.deaths++;
+	++target->state.deaths;
 	if(target!=actor){
 		actor->state.frags += /*isteam(target, actor) ? -1 :*/ gib ? 2 : 1;
 		if(actor->state.revengelog.find(target->clientnum) >= 0){
@@ -1449,11 +1449,11 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 
 	if(m_real(gamemode, mutators)) style &= ~FRAG_CRIT;
 
-	if(target != actor){
-		if(isteam(actor, target))
-			damage = 0; // no friendly fire, but show hitmarker!
+	if(target != actor)
+	{
+		if(isteam(actor, target)) damage = 0; // no friendly fire, but show hitmarker!
 		/*
-		{ // friendly fire
+		{ // friendly fire handler
 			if(m_classic(gamemode, mutators)) return;
 			actor->state.shotdamage += damage; // reduce his accuracy
 			// NEW way: no friendly fire, but tiny reflection
@@ -1461,10 +1461,10 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 			return; // haha, all FF redirection is enough
 		}
 		*/
-	}
 
-	if(damage && target->state.damagelog.find(actor->clientnum) < 0)
-		target->state.damagelog.add(actor->clientnum);
+		if(damage && target->state.damagelog.find(actor->clientnum) < 0)
+			target->state.damagelog.add(actor->clientnum);
+	}
 
 	ts.dodamage(damage, actor->state.perk == PERK_POWER);
 	ts.lastregen = gamemillis + REGENDELAY - REGENINT;
