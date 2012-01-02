@@ -77,11 +77,11 @@ bool checkcrit(float dist, float m, int base = 0, int min = 4, int max = 100){
 }
 
 // easy to send shot damage messages
-void sendhit(client &actor, int gun, const vec &o, int dmg){
+inline void sendhit(client &actor, int gun, const vec &o, int dmg){
 	sendf(-1, 1, "ri4f3", N_PROJ, actor.clientnum, gun, dmg, o.x, o.y, o.z);
 }
 
-void sendheadshot(const vec &from, const vec &to, int damage){
+inline void sendheadshot(const vec &from, const vec &to, int damage){
 	sendf(-1, 1, "rif6i", N_HEADSHOT, from.x, from.y, from.z, to.x, to.y, to.z, damage);
 }
 

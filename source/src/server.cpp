@@ -1188,7 +1188,7 @@ bool checkpos(vec &p, bool alter = true){
 	}
 	if(!ret){
 		// z
-		const int mapi = getmaplayoutid((int)fix.x, (int)fix.y);
+		const int mapi = getmaplayoutid(fix.x, fix.y);
 		const char ceil = getblockceil(mapi), floor = getblockfloor(mapi);
 		if(fix.z >= ceil){
 			fix.z = ceil - epsilon;
@@ -1340,7 +1340,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 		}
 		else ts.damagelog.remove(i--);
 	}
-	usestreak(*target, ts.streakondeath);
+	// kills
 	int virtualstreak = actor->state.pointstreak + (actor->state.perk == PERK_STREAK ? 5 : 0);
 	if(virtualstreak >= 7 * 5 && actor->state.streakused < 7 * 5){
 		streakready(*actor, STREAK_AIRSTRIKE);
@@ -1406,11 +1406,15 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 			targethasflag = clienthasflag(target->clientnum);
 		}
 	}
-		
+
+	// target streaks
 	if(target->state.nukemillis){ // nuke cancelled!
 		target->state.nukemillis = 0;
 		sendf(-1, 1, "ri4", N_STREAKUSE, target->clientnum, STREAK_NUKE, -2);
 	}
+
+	// put this here to prevent crash
+	usestreak(*target, ts.streakondeath);
 
 	// conversions
 	if(!suic && m_convert(gamemode, mutators) && target->team != actor->team){
