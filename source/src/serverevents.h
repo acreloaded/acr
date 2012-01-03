@@ -87,7 +87,7 @@ void shotevent::process(client *ci)
 	// if using delta position (or the above)
 		// to.normalize().add(from);
 	// apply spread
-	const float spreadf = .001f,//to.dist(from)/1000,
+	const float spreadf = to.dist(from)/1000.f,
 		crouchfactor = 1 - (gs.crouching ? min(gamemillis - gs.crouchmillis, CROUCHTIME) : CROUCHTIME - min(gamemillis - gs.crouchmillis, CROUCHTIME)) * .25f / CROUCHTIME;
 	float adsfactor = 1 - float(gs.scoping ? min(gamemillis - gs.scopemillis, ADSTIME) : ADSTIME - min(gamemillis - gs.scopemillis, ADSTIME)) / ADSTIME;
 	if(weap==WEAP_SHOTGUN){
