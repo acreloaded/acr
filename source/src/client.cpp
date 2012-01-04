@@ -191,15 +191,14 @@ void saytext(playerent *d, char *text, int flags, int sound){
 		playsound(sound, SP_HIGH);
 	} else sound = 0;
 	int textcolor = 0; // normal text
-	if(flags&SAY_TEAM) textcolor = d->team == TEAM_SPECT ? 4 : team_rel_color(d, player1);
+	if(flags&SAY_TEAM) textcolor = d->team == TEAM_SPECT ? 4 : (d == player1 || isteam(player1, d)) ? 1 : 3;
 	if(flags&SAY_DENY){
 		textcolor = 2; // denied yellow
 		concatformatstring(text, " \f3%s", _("spam_detected"));
 	}
 	string textout;
-	const int col = team_rel_color(d, player1);
 	// nametag
-	defformatstring(nametag)("\f%d%s", col, colorname(d));
+	defformatstring(nametag)("\f%d%s", team_rel_color(player1, d), colorname(d));
 	if(flags & SAY_TEAM) concatformatstring(nametag, " \f5(\f%d%s\f5)", team_color(d->team), team_string(d->team));
 	// more nametag
 	if(flags & SAY_ACTION) formatstring(textout)("\f5* %s", nametag);
