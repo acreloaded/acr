@@ -487,16 +487,20 @@ void recomputecamera(){
 			case SM_DEATHCAM:
 			{
 				static physent deathcam;
+				static int lastdeathcamswitch = 0;
 				if(camera1==&deathcam)
 				{
-					if(deathcamstyle)
+					if(deathcamstyle && totalmillis - lastdeathcamswitch <= 3000)
 					{
 						playerent *a = getclient(player1->lastattacker); // player1's killer?
 						if(a)
 						{
 							vec v = vec(a->o).sub(camera1->o)/*.normalize()*/;
-							camera1->yaw = 180-atan2(v.x, v.y)/RAD;
-							camera1->pitch = asin(v.z/v.magnitude())/RAD;
+							if(v.magnitude() >= 0.1f)
+							{
+								camera1->yaw = 180-atan2(v.x, v.y)/RAD;
+								camera1->pitch = asin(v.z/v.magnitude())/RAD;
+							}
 						}
 					}
 					return;
@@ -507,6 +511,7 @@ void recomputecamera(){
 				deathcam.roll = 0;
 				deathcam.move = -1;
 				camera1 = &deathcam;
+				lastdeathcamswitch = totalmillis;
 				loopi(10) moveplayer(camera1, 10, true, 50);
 				break;
 			}
