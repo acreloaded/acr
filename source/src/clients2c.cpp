@@ -1120,7 +1120,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				int acn = getint(p); playerent *alive = getclient(acn);
 				// check for multiple survivors
 				bool multi = false;
-				if(m_team(gamemode, mutators) && alive) loopv(players) if(players[i] && players[i] != alive && players[i]->state == CS_ALIVE && isteam(players[i], alive)){ multi = true; break; }
+				if(m_team(gamemode, mutators) && alive){
+					#define teammate(p) (p != alive && p->state == CS_ALIVE && isteam(p, alive))
+					if(teammate(player1)) multi = true;
+					else loopv(players) if(players[i] && teammate(players[i])){ multi = true; break; }
+				}
 				conoutf("%s", _("arenawin_over"));
 				// no survivors
 				if(acn == -1) hudoutf("\f3%s", _("arenawin_fail"));
