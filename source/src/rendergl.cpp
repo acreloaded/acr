@@ -486,6 +486,11 @@ void recomputecamera(){
 		switch(player1->spectatemode){
 			case SM_DEATHCAM:
 			{
+				if(player1->team == TEAM_SPECT)
+				{
+					player1->spectatemode = SM_FLY;
+					break;
+				}
 				static physent deathcam;
 				static int lastdeathcamswitch = 0;
 				if(camera1==&deathcam)
