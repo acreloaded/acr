@@ -985,7 +985,7 @@ void arenacheck(){
 	loopv(clients){
 		client &c = *clients[i];
 		if(c.type==ST_EMPTY || !c.connected || c.team == TEAM_SPECT) continue;
-		if(c.state.lastspawn < 0 || c.state.state == CS_DEAD){ // dead...
+		if(c.state.lastspawn < 0 && c.state.state == CS_DEAD){ // dead...
 			if(c.type != ST_AI) ++hd;
 
 			dead = true;
