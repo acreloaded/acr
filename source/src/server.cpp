@@ -985,23 +985,29 @@ void arenacheck(){
 	loopv(clients){
 		client &c = *clients[i];
 		if(c.type==ST_EMPTY || !c.connected || c.team == TEAM_SPECT) continue;
-		if(c.state.state==CS_ALIVE || c.state.lastspawn >= 0){ // alive
-			if(c.type != ST_AI) ++ha;
-
-			if(!alive) alive = &c;
-			else if(!m_team(gamemode, mutators) || alive->team != c.team) found = true;
-		}
-		else if(c.state.state == CS_DEAD){ // dead
+		if(c.state.lastspawn < 0 || c.state.state == CS_DEAD){ // dead...
 			if(c.type != ST_AI) ++hd;
 
 			dead = true;
 			lastdeath = max(lastdeath, c.state.lastdeath);
 		}
-	}
-	if(found && (ha || !hd)) return;
+		else if(c.state.state==CS_ALIVE){ // or alive?
+			if(c.type != ST_AI) ++ha;
 
-	if(!dead || gamemillis < lastdeath + 500) return;
-	sendf(-1, 1, "ri2", N_ARENAWIN, !ha && found ? -2 : alive ? alive->clientnum : -1);
+			if(!alive) alive = &c;
+			else if(!m_team(gamemode, mutators) || alive->team != c.team) found = true;
+		}
+		// or something stupid?
+	}
+	if((found && (ha || !hd)) || !dead || gamemillis < lastdeath + 500) return;
+	// what happened?
+	const int cn = !ha && found ? -2 : // bots win
+		alive ? alive->clientnum : // someone/a team wins
+		-1 // everyone died
+	;
+	// send message
+	sendf(-1, 1, "ri2", N_ARENAWIN, cn);
+	// award points
 	loopv(clients) if(clients[i]->type != ST_EMPTY)
 		addpt(clients[i],
 			clients[i]->state.state != CS_ALIVE ?
@@ -1009,8 +1015,11 @@ void arenacheck(){
 			ARENALOSEPT : // he died
 			ARENAWINPT // he survives
 		);
+	// arena intermission
 	arenaround = gamemillis+5000;
-	if(autobalance && m_team(gamemode, mutators) && !m_zombie(gamemode)) refillteams(true);
+	// check teams
+	if(m_team(gamemode, mutators) && autobalance)
+		refillteams(true);
 }
 
 #define SPAMREPEATINTERVAL  20   // detect doubled lines only if interval < 20 seconds
