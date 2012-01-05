@@ -142,12 +142,15 @@ void newname(const char *name)
 void newteam(char *name)
 {
 	if(name[0]){
-		if(strcmp(name, "BLUE") && strcmp(name, "RED") && strcmp(name, "SPECT")){
-			conoutf("\f3\"%s\" %s (try RED, BLUE or SPECT)", name, _("team_invalid"));
-			return;
+		int nt = atoi(name);
+		if(*name != '0' && !nt){
+			if(strcmp(name, "BLUE") && strcmp(name, "RED") && strcmp(name, "SPECT")){
+				conoutf("\f3\"%s\" %s (try 0 to 2, RED, BLUE or SPECT)", name, _("team_invalid"));
+				return;
+			}
+			else nt = team_int(name);
 		}
-		int nt = team_int(name);
-		if(nt == player1->team) return; // same team
+		if(!team_valid(nt) || nt == player1->team) return; // invalid/same team
 		addmsg(N_SWITCHTEAM, "ri", nt);
 	}
 	else conoutf("%s: %s", _("team_you"), team_string(player1->team));
