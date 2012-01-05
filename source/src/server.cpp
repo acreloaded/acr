@@ -3547,6 +3547,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						getstring(text, p);
 						filtertext(text, text);
 						int mode = getint(p), muts = getint(p);
+						modecheck(mode, muts);
 						if(mode==G_DEMO) vi->action = new demoplayaction(text);
 						else{
 							modecheck(mode, muts);
