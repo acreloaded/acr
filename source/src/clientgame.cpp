@@ -581,9 +581,10 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 		bool first = true;
 		while(pl->damagelog.length()){
 			playerent *p = getclient(pl->damagelog.pop());
-			++p->assists;
-			p->pointstreak += 2;
-			concatformatstring(predicate, "%s \fs\f%d%s\fr", first ? "" : !pl->damagelog.length() ? " and" : ",", isteam(p, pl) ? 3 : 2, colorname(p));
+			const bool tk = isteam(p, pl);
+			p->assists += tk ? -1 : 1;
+			p->pointstreak += tk ? -2 : 2;
+			concatformatstring(predicate, "%s \fs\f%d%s\fr", first ? "" : !pl->damagelog.length() ? " and" : ",", tk ? 3 : 2, colorname(p));
 			first = false;
 		}
 	}
