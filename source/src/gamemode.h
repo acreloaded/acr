@@ -103,7 +103,10 @@ extern mutstypes mutstype[G_M_NUM];
 #define m_nopistol(a,b)     (m_sniper(a,b) || m_gib(a,b))
 #define m_noprimary(a,b)    (m_pistol(a,b) || m_gib(a,b))
 
-#define m_duke(a,b)         (m_survivor(a,b))
+#define m_survivor(a,b)     (m_dm(a) && m_gsp1(a,b))
+#define m_zombies_rounds(a,b) (m_zombie(a) && !m_gsp1(a,b))
+
+#define m_duke(a,b)         (m_survivor(a,b) || m_zombies_rounds(a,b))
 #define m_regen(a,b)        (!m_duke(a,b) && !m_sniper(a,b))
 /*
 #define m_scores(a)         (a >= G_EDITMODE && a <= G_DEATHMATCH)
@@ -123,12 +126,10 @@ extern mutstypes mutstype[G_M_NUM];
 #define w_lmax(a,b)         (m_league(a, b) ? WEAP_MAX : WEAP_ITEM)
 */
 
-#define m_lss(a,b)          (m_survivor(a,b) && m_gib(a,b))
+#define m_lss(a,b)          (m_duke(a,b) && m_gib(a,b))
 #define m_return(a,b)       (m_capture(a) && m_gsp1(a,b))
 #define m_ktf2(a,b)         (m_keep(a) && m_gsp1(a,b))
-#define m_zombies_rounds(a,b) (m_zombie(a) && !m_gsp1(a,b))
 #define m_onslaught(a,b)    (m_zombie(a) && m_gsp1(a,b))
-#define m_survivor(a,b)     ((m_dm(a) && m_gsp1(a,b)) || (m_zombie(a) && !m_gsp1(a,b)))
 
 #define m_noradar(a,b)      (m_classic(a,b))
 #define m_nonuke(a,b)       (m_zombie(a) && !m_gsp1(a,b))
