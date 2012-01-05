@@ -942,7 +942,7 @@ const char *votestring(int type, const votedata &vote)
 
 		case SA_BAN: // int1, int2
 		{
-			int minutes = vote.int1, cn = vote.int2;
+			int cn = vote.int1, minutes = vote.int2;
 			playerent *p = getclient(cn);
 			if(p) formatstring(out)("ban %s for %d minutes", colorname(p), minutes);
 			break;
