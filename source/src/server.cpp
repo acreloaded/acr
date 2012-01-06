@@ -1462,16 +1462,17 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 
 	if(target != actor)
 	{
-		if(isteam(actor, target)) damage = 0; // no friendly fire, but show hitmarker!
-		/*
+		if(isteam(actor, target))
 		{ // friendly fire handler
-			if(m_classic(gamemode, mutators)) return;
+			if(m_classic(gamemode, mutators)) return; // no return/hitmarket for classic
+
 			actor->state.shotdamage += damage; // reduce his accuracy
+
 			// NEW way: no friendly fire, but tiny reflection
 			serverdamage(actor, actor, damage * .1f, gun, style, source);
-			return; // haha, all FF redirection is enough
+			// return; // we don't want this
+			damage = 0; // we want to show a hitmarker...
 		}
-		*/
 
 		if(target->state.damagelog.find(actor->clientnum) < 0)
 			target->state.damagelog.add(actor->clientnum);
