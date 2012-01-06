@@ -927,8 +927,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 				case VOTE_NEUTRAL:
 					drawvoteicon(left, top, 0, 0, true);
 					if(player1->vote == VOTE_NEUTRAL)
-						draw_textf("\f3please vote yes or no", left, top+560);
-					else draw_textf("\f2you voted \f%s", left, top+560, player1->vote == VOTE_NO ? "3no" : "0yes");
+						draw_textf("\f3please vote yes or no (F1/F2)", left, top+560);
+					else draw_textf("\f2you voted \f%s \f1(F%d to change)", left, top+560, player1->vote == VOTE_NO ? "3no" : "0yes", player1->vote == VOTE_NO ? 1 : 2);
 					break;
 				default:
 					drawvoteicon(left, top, (curvote->result-1)&1, 1, false);
