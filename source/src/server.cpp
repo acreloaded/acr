@@ -988,13 +988,13 @@ void arenacheck(){
 	loopv(clients){
 		client &c = *clients[i];
 		if(c.type==ST_EMPTY || !c.connected || c.team == TEAM_SPECT) continue;
-		if(c.state.lastspawn < 0 && c.state.state == CS_DEAD){ // dead...
+		if(c.state.lastspawn < 0 && c.state.state == CS_DEAD){ // dead... (and killed)
 			if(c.type != ST_AI) ++hd;
 
 			dead = true;
 			lastdeath = max(lastdeath, c.state.lastdeath);
 		}
-		else if(c.state.state==CS_ALIVE){ // or alive?
+		else if(c.state.state==CS_ALIVE){ // ...or alive?
 			if(c.type != ST_AI) ++ha;
 
 			if(!alive) alive = &c;
@@ -2079,7 +2079,7 @@ void resetmap(const char *newname, int newmode, int newmuts, int newtime, bool n
 	logline(ACLOG_INFO, "Game start: %s on %s, %d players, %d minutes remaining, mastermode %d, (%s'getmap' %sprepared)",
 		modestr(smode, smuts), smapname, numclients(), minremain, mastermode, ms ? "" : "itemlist failed,", mapavailable(smapname) ? "" : "not ");
 	//arenaround = 0;
-	arenastart = gamemillis;
+	//arenastart = gamemillis;
 	nokills = true;
 	if(m_duke(gamemode, mutators)) distributespawns();
 	if(notify){
@@ -3037,25 +3037,25 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				vec o;
 				loopi(3) o[i] = getfloat(p);
 				if(!hasclient(cl, cn)) break;
-				client &cp = *clients[cn];
-				if((cp.state.state!=CS_ALIVE && cp.state.state!=CS_DEAD) || ls!=cp.state.lifesequence || cp.state.lastspawn<0 || gunselect<0 || gunselect>=WEAP_MAX) break;
-				cp.state.lastspawn = -1;
-				cp.state.spawnmillis = gamemillis;
-				cp.state.state = CS_ALIVE;
-				cp.state.gunselect = gunselect;
-				cp.state.o = o;
+				clientstate &cs = clients[cn]->state;
+				if((cs.state!=CS_ALIVE && cs.state!=CS_DEAD) || ls!=cs.lifesequence || cs.lastspawn<0 || gunselect<0 || gunselect>=WEAP_MAX) break;
+				cs.lastspawn = -1;
+				cs.spawnmillis = gamemillis;
+				cs.state = CS_ALIVE;
+				cs.gunselect = gunselect;
+				cs.o = o;
 				QUEUE_BUF(5*(7 + 2*WEAP_MAX) + 4*(3),
 				{
 					putint(buf, N_SPAWN);
 					putint(buf, cn);
 					putint(buf, ls);
-					putint(buf, cp.state.health);
-					putint(buf, cp.state.armor);
-					putint(buf, cp.state.perk);
+					putint(buf, cs.health);
+					putint(buf, cs.armor);
+					putint(buf, cs.perk);
 					putint(buf, gunselect);
-					loopi(WEAP_MAX) putint(buf, cp.state.ammo[i]);
-					loopi(WEAP_MAX) putint(buf, cp.state.mag[i]);
-					loopi(3) putfloat(buf, cp.state.o[i]);
+					loopi(WEAP_MAX) putint(buf, cs.ammo[i]);
+					loopi(WEAP_MAX) putint(buf, cs.mag[i]);
+					loopi(3) putfloat(buf, cs.o[i]);
 				});
 				break;
 			}
