@@ -825,7 +825,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_ITEMSPAWN:
 			{
 				int i = getint(p);
-				setspawn(i, 0);
+				setspawn(i, -1);
 				break;
 			}
 

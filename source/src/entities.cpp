@@ -241,7 +241,7 @@ void resetspawns()
 }
 void setspawn(int i, int spawntime) {
 	if(!ents.inrange(i)) return;
-	ents[i].spawned = spawntime >= 0;
+	ents[i].spawned = spawntime < 0;
 	ents[i].spawntime = lastmillis + spawntime;
 }
 
