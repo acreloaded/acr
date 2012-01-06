@@ -901,10 +901,10 @@ void htf_forceflag(int flag){
 	f.lastupdate = gamemillis;
 }
 
-int arenaround = 0, arenastart = 0;
+int arenaround = 0;
 
 inline bool canspawn(client *c, bool connecting = false){
-	return maplayout && c->team != TEAM_SPECT && (!m_duke(gamemode, mutators) || (connecting && (gamemillis - arenastart < 2500 || numauthedclients() <= 2)));
+	return maplayout && c->team != TEAM_SPECT && (!m_duke(gamemode, mutators) || (connecting && numauthedclients() <= 2));
 }
 
 struct twoint { int index, value; };
@@ -966,7 +966,6 @@ void arenacheck(){
 
 	if(arenaround){ // start new arena round
 		arenaround = 0;
-		arenastart = gamemillis;
 		distributespawns();
 		purgesknives();
 		checkitemspawns(60*1000); // spawn items now!
@@ -2078,8 +2077,7 @@ void resetmap(const char *newname, int newmode, int newmuts, int newtime, bool n
 	logline(ACLOG_INFO, "");
 	logline(ACLOG_INFO, "Game start: %s on %s, %d players, %d minutes remaining, mastermode %d, (%s'getmap' %sprepared)",
 		modestr(smode, smuts), smapname, numclients(), minremain, mastermode, ms ? "" : "itemlist failed,", mapavailable(smapname) ? "" : "not ");
-	//arenaround = 0;
-	//arenastart = gamemillis;
+	arenaround = 0;
 	nokills = true;
 	if(m_duke(gamemode, mutators)) distributespawns();
 	if(notify){
