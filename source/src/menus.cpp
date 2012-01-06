@@ -319,13 +319,13 @@ struct mitemtextinput : mitemtext
 	mitemtextinput(gmenu *parent, char *text, char *value, char *action, char *hoveraction, color *bgcolor, int maxchars) : mitemtext(parent, text, action, hoveraction, bgcolor), defaultvalueexp(value), modified(false)
 	{
 		copystring(input.buf, value);
-		input.max = maxchars>0 ? maxchars : 15;
+		input.max = maxchars>0 ? maxchars : 16;
 	}
 
 	virtual int width()
 	{
 		int labelw = text_width(text);
-		int maxw = min(input.max, 15)*text_width("w"); // w is broadest, not a - but limit to 15*w
+		int maxw = min(input.max, 16)*text_width("w"); // w is broadest, not a - but limit to 15*w
 		return labelw + maxw;
 	}
 
