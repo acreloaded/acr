@@ -114,7 +114,7 @@ struct chatlist : consolebuffer<cline>{
 			}
         }
     }
-    chatlist() : consolebuffer<cline>(6) {}
+    chatlist() : consolebuffer<cline>(100) { maxlines = 6; }
 } chat;
 
 Texture **obittex(){
