@@ -132,6 +132,7 @@ void shotevent::process(client *ci)
 				}
 				else
 					dmg *= m_zombies_rounds(gamemode, mutators) ? (hitzone * 75) : (50);
+				damagedealt += dmg;
 				sendhit(c, WEAP_BOW, to, dmg); // blood, not explosion
 				serverdamage(hit, &c, dmg, WEAP_BOW, FRAG_GIB, hit->state.o);
 				if(hit->state.state != CS_ALIVE){
@@ -171,6 +172,7 @@ void shotevent::process(client *ci)
 			if(hit == &c) (end = to).sub(from).normalize().add(from); // 25 cm fx
 			// hide blood for healing weapon
 			// sendhit(c, WEAP_HEAL, (to = end), dmg); // blood
+			damagedealt += dmg;
 			break;
 		}
 		case WEAP_KNIFE: // falls through if not "compact" (throw)
