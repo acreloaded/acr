@@ -120,7 +120,7 @@ struct chatlist : consolebuffer<cline>{
 Texture **obittex(){
 	static Texture *tex[OBIT_NUM];
 	if(!*tex){
-		const char *texname[OBIT_NUM-OBIT_START] = { "death", "bot", "bow_impact", "bow_stuck", "knife_bleed", "knife_impact", "headshot", "crit", "first", "ff", "drown", "fall", "cheat", "airstrike", "nuke", "spect", "revive", "team", };
+		const char *texname[OBIT_NUM-OBIT_START] = { "death", "bot", "bow_impact", "bow_stuck", "knife_bleed", "knife_impact", "ff", "drown", "fall", "cheat", "airstrike", "nuke", "spect", "revive", "team", "headshot", "crit", "first", "revenge" };
 		loopi(OBIT_NUM){
 			defformatstring(tname)("packages/misc/obit/%s.png", i == WEAP_AKIMBO ? "akimbo" : i < OBIT_START ? guns[i].modelname : texname[i - OBIT_START]);
 			tex[i] = textureload(tname);
@@ -259,8 +259,9 @@ struct obitlist
 				defformatstring(obitalign)("%s %s", l.actor, l.target); // two half spaces = one space
 				// and the obit...
 				int left = (VIRTW - 16) * ts - text_width(obitalign) - obitaspect(l.obit) * FONTH;
-				if(l.headshot) left -= obitaspect(OBIT_HEADSHOT) * FONTH;
 				if(l.style & FRAG_FIRST) left -= obitaspect(OBIT_FIRST) * FONTH;
+				if(l.headshot) left -= obitaspect(OBIT_HEADSHOT) * FONTH;
+				if(l.style & FRAG_REVENGE) left -= obitaspect(OBIT_REVENGE) * FONTH;
 				else if(l.style & FRAG_CRIT) left -= obitaspect(OBIT_CRIT) * FONTH;
 				if(!*l.actor) left -= obitaspect(OBIT_BOT) * FONTH;
 				if(!*l.target) left -= obitaspect(OBIT_BOT) * FONTH;
@@ -273,11 +274,13 @@ struct obitlist
 					draw_text(l.actor, left, y, 0xFF, 0xFF, 0xFF, fade * 255, -1);
 					x += width + text_width(" ") / 2;
 				}
+				// 1st before the obit
+				if(l.style & FRAG_FIRST) x += drawobit(OBIT_FIRST, left + x, y, fade);
 				// now draw obituary symbol
 				x += drawobit(l.obit, left + x, y, fade);
 				if(l.headshot) x += drawobit(OBIT_HEADSHOT, left + x, y, fade);
 				// next two shouldn't be grouped, but somehow is
-				if(l.style & FRAG_FIRST) x += drawobit(OBIT_FIRST, left + x, y, fade);
+				if(l.style & FRAG_REVENGE) x += drawobit(OBIT_REVENGE, left + x, y, fade);
 				else if(l.style & FRAG_CRIT) x += drawobit(OBIT_CRIT, left + x, y, fade);
 				// end of weapon symbol
 				x += text_width(" ") / 2;
