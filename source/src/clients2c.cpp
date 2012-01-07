@@ -264,7 +264,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				// get items
 				int n = getint(p);
 				resetspawns();
-				loopi(n) setspawn(n, getint(p));
+				loopi(n) setspawn(getint(p));
 
 				// get knives
 				n = getint(p); // reuse
@@ -825,7 +825,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_ITEMSPAWN:
 			{
 				int i = getint(p);
-				setspawn(i, -1);
+				setspawn(i);
 				break;
 			}
 

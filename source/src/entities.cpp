@@ -239,10 +239,10 @@ void resetspawns()
 		loopv(ents) ents[i].transformtype(gamemode, mutators);
 	}
 }
-void setspawn(int i, int spawntime) {
+void setspawn(int i) {
 	if(!ents.inrange(i)) return;
-	ents[i].spawned = spawntime < 0;
-	ents[i].spawntime = lastmillis + spawntime;
+	ents[i].spawned = true;
+	ents[i].spawntime = 0;
 }
 
 void sendloadout() { addmsg(N_LOADOUT, "ri3", getclientnum(), player1->nextprimweap->type, player1->nextperk); }

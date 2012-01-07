@@ -690,7 +690,7 @@ extern void pickupeffects(int n, playerent *d, int spawntime);
 extern void renderentities();
 extern void rendermapmodels();
 extern void resetspawns();
-extern void setspawn(int i, int spawntime);
+extern void setspawn(int i);
 extern void checkitems(playerent *d);
 
 // rndmap

@@ -2003,8 +2003,10 @@ inline void putmap(ucharbuf &p){
 	putint(p, mapavailable(smapname));
 	sendstring(smapname, p);
 
-	putint(p, sents.length());
-	loopv(sents) putint(p, sents[i].spawned ? -1 : sents[i].spawntime);
+	int n = 0;
+	loopv(sents) if(sents[i].spawned) ++n;
+	putint(p, n);
+	loopv(sents) if(sents[i].spawned) putint(p, i);
 
 	putint(p, sknives.length());
 	loopv(sknives){
