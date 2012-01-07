@@ -3648,7 +3648,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				}
 				else logline(ACLOG_INFO,"[%s] %s voted %s", gethostname(sender), formatname(clients[sender]), vote == VOTE_NO ? "no" : "yes");
 				cl->vote = vote;
-				sendf(-1, 1, "ri3x", N_VOTE, sender, vote, sender);
+				sendf(-1, 1, "ri3", N_VOTE, sender, vote);
 				curvote->evaluate();
 				break;
 			}
