@@ -2181,7 +2181,7 @@ void sendcallvote(int cl = -1){
 		putint(p, N_CALLVOTE);
 		putint(p, curvote->owner);
 		putint(p, curvote->type);
-		putint(p, servmillis - curvote->callmillis);
+		putint(p, curvote->action->length - servmillis + curvote->callmillis);
 		switch(curvote->type)
 		{
 			case SA_MAP:

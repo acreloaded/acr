@@ -1282,7 +1282,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_CALLVOTE:
 			{
-				int cn = getint(p), type = getint(p), votewasted = getint(p);
+				int cn = getint(p), type = getint(p), voteremain = getint(p);
 				playerent *d = getclient(cn);
 				if(type < 0 || type >= SA_NUM || !d) break;
 				votedisplayinfo *v = NULL;
@@ -1317,11 +1317,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						break;
 				}
 				v = newvotedisplayinfo(d, type, vote);
-				if(v) v->expiremillis = totalmillis;
-				if(type == SA_KICK) v->expiremillis += 35000;
-				else if(type == SA_BAN) v->expiremillis += 25000;
-				else v->expiremillis += 40000;
-				v->expiremillis -= votewasted;
+				if(v) v->expiremillis = totalmillis + voteremain;
 				displayvote(v);
 				break;
 			}
