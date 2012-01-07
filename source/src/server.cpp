@@ -3860,8 +3860,9 @@ void loggamestatus(const char *reason){
 	}
 	if(m_team(gamemode, mutators))
 	{
-		loopi(TEAM_NUM) if(i == TEAM_SPECT)
-			if(pnum[i]) logline(ACLOG_INFO, "Team SPECT: %d spectators", pnum[i]);
+		loopi(TEAM_NUM)
+		if(i == TEAM_SPECT)
+			{ if(pnum[i]) logline(ACLOG_INFO, "Team SPECT: %d spectators", pnum[i]); }
 		else
 			logline(ACLOG_INFO, "Team %4s:%3d players,%5d frags%c%5d flags", team_string(i), pnum[i], fragscore[i], m_affinity(gamemode) ? ',' : '\0', flagscore[i]);
 	}
