@@ -940,11 +940,11 @@ const char *votestring(int type, const votedata &vote)
 			break;
 		}
 
-		case SA_BAN: // int1, int2
+		case SA_BAN: // int1, int2, str1
 		{
 			int cn = vote.int1, minutes = vote.int2;
 			playerent *p = getclient(cn);
-			if(p) formatstring(out)("ban %s for %d minutes", colorname(p), minutes);
+			if(p) formatstring(out)("ban %s for %d minutes for %s", colorname(p), minutes, vote.str1);
 			break;
 		}
 
@@ -1044,6 +1044,7 @@ void callvote(int type, const votedata &vote)
 				putint(p, vote.int2 ? vote.int2 : PRIV_MAX);
 				break;
 			case SA_BAN:
+				sendstring(vote.str1, p);
 				putint(p, vote.int1);
 				putint(p, vote.int2);
 				break;
@@ -1092,6 +1093,7 @@ void callvote_parser(char *type, char *arg1, char *arg2, char *arg3)
 					copystring(str1, arg2);
 					break;
 				case SA_BAN:
+					copystring(str1, arg3);
 				case SA_GIVEROLE:
 					vote.int2 = atoi(arg2);
 					// fallthrough

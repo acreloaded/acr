@@ -1297,6 +1297,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						filtertext(text, text);
 						break;
 					case SA_BAN:
+						getstring(text, p);
+						filtertext(text, text);
+						// fallthrough
 					case SA_GIVEROLE:
 						vote.int2 = getint(p);
 						vote.int1 = getint(p);

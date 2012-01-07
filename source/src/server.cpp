@@ -2205,7 +2205,11 @@ void sendcallvote(int cl = -1){
 				if(curvote->type == SA_KICK) sendstring(((kickaction *)curvote->action)->reason, p);
 				// fallthrough
 			case SA_BAN:
-				if(curvote->type == SA_BAN) putint(p, ((banaction *)curvote->action)->bantime);
+				if(curvote->type == SA_BAN)
+				{
+					sendstring(((banaction *)curvote->action)->reason, p);
+					putint(p, ((banaction *)curvote->action)->bantime);
+				}
 				// fallthrough
 			case SA_SUBDUE:
 			case SA_REVOKE:
@@ -3572,10 +3576,12 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						break;
 					case SA_BAN:
 					{
+						getstring(text, p);
+						filtertext(text, text, 1, 16);
 						int m = getint(p), c = getint(p);
 						m = clamp(m, 1, 60);
 						if(cl->priv < PRIV_ADMIN && m >= 10) m = 10;
-						vi->action = new banaction(c, m);
+						vi->action = new banaction(c, m, text);
 						break;
 					}
 					case SA_REMBANS:

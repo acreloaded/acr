@@ -191,20 +191,22 @@ struct kickaction : playeraction
 
 struct banaction : playeraction
 {
+	string reason;
 	int bantime;
 	void perform(){
 		banclient(clients[cn], bantime);
 		disconnect_client(cn, DISC_BAN);
 	}
 	virtual bool isvalid() { return playeraction::isvalid() && valid_client(cn, true); }
-	banaction(int cn, int minutes) : playeraction(cn)
+	banaction(int cn, int minutes, const char *r) : playeraction(cn)
 	{
 		area = EE_DED_SERV; // dedicated only
+		copystring(reason, r);
 		passratio = 0.75f;
 		reqpriv = protectAdminPriv('b', cn);
 		reqveto = PRIV_MASTER; // ban
 		length = 30000; // 30s
-		if(isvalid()) formatstring(desc)("ban player %s for %d minutes", clients[cn]->name, (bantime = minutes));
+		if(isvalid()) formatstring(desc)("ban player %s for %d minutes for %s", clients[cn]->name, (bantime = minutes), reason);
 		else copystring(desc, "invalid ban");
 	}
 };
