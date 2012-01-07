@@ -120,7 +120,7 @@ struct chatlist : consolebuffer<cline>{
 Texture **obittex(){
 	static Texture *tex[OBIT_NUM];
 	if(!*tex){
-		const char *texname[OBIT_NUM-OBIT_START] = { "death", "bot", "bow_impact", "bow_stuck", "knife_bleed", "knife_impact", "ff", "drown", "fall", "cheat", "airstrike", "nuke", "spect", "revive", "team", "headshot", "crit", "first", "revenge" };
+		const char *texname[OBIT_NUM-OBIT_START] = { "death", "bot", "bow_impact", "bow_stuck", "knife_bleed", "knife_impact", "ff", "drown", "fall", "cheat", "airstrike", "nuke", "spect", "revive", "team", "headshot", "crit", "first", "revenge", "stealth" };
 		loopi(OBIT_NUM){
 			defformatstring(tname)("packages/misc/obit/%s.png", i == WEAP_AKIMBO ? "akimbo" : i < OBIT_START ? guns[i].modelname : texname[i - OBIT_START]);
 			tex[i] = textureload(tname);
@@ -260,6 +260,7 @@ struct obitlist
 				// and the obit...
 				int left = (VIRTW - 16) * ts - text_width(obitalign) - obitaspect(l.obit) * FONTH;
 				if(l.style & FRAG_FIRST) left -= obitaspect(OBIT_FIRST) * FONTH;
+				else if(l.style & FRAG_STEALTH)  left -= obitaspect(OBIT_STEALTH) * FONTH;
 				if(l.headshot) left -= obitaspect(OBIT_HEADSHOT) * FONTH;
 				if(l.style & FRAG_REVENGE) left -= obitaspect(OBIT_REVENGE) * FONTH;
 				else if(l.style & FRAG_CRIT) left -= obitaspect(OBIT_CRIT) * FONTH;
@@ -276,6 +277,7 @@ struct obitlist
 				}
 				// 1st before the obit
 				if(l.style & FRAG_FIRST) x += drawobit(OBIT_FIRST, left + x, y, fade);
+				else if(l.style & FRAG_STEALTH) x += drawobit(OBIT_STEALTH, left + x, y, fade);
 				// now draw obituary symbol
 				x += drawobit(l.obit, left + x, y, fade);
 				if(l.headshot) x += drawobit(OBIT_HEADSHOT, left + x, y, fade);
