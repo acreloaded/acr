@@ -213,7 +213,7 @@ client *nearesthit(client &actor, const vec &from, const vec &to, int &hitzone, 
 
 // hitscans
 int shot(client &owner, const vec &from, vec &to, const vector<head_t> &h, int weap, const vec &surface, client *exclude, float dist = 0, ushort *save = NULL){
-	int shotdamage = 0;
+	int damagedealt = 0;
 	const int mulset = (weap == WEAP_SNIPER || weap == WEAP_BOLT) ? MUL_SNIPER : MUL_NORMAL;
 	int hitzone = HIT_NONE; vec end = to;
 	// calculate the hit
@@ -237,10 +237,14 @@ int shot(client &owner, const vec &from, vec &to, const vector<head_t> &h, int w
 			style |= FRAG_CRIT;
 			damage *= 1.5f;
 		}
+
+		// this is the damage we inflicted
+		damagedealt += damage;
+
 		// melee weapons (bleed/check for self)
 		if(melee_weap(weap)){
 			if(hitzone == HIT_HEAD) style |= FRAG_FLAG;
-			if(&owner == hit) return shotdamage; // not possible
+			if(&owner == hit) return damagedealt; // not possible
 			else if(!isteam(&owner, hit)){
 				hit->state.addwound(owner.clientnum, end);
 				sendf(-1, 1, "ri2", N_BLEED, hit->clientnum);
@@ -262,7 +266,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<head_t> &h, int w
 			dir.sub(from).normalize().rotate_around_z((rnd(71)-35)*RAD).add(end); // 35 degrees (both ways = 70 degrees) distortion
 			// retrace
 			straceShot(end, dir, &newsurface);
-			shotdamage += shot(owner, end, dir, h, weap, newsurface, hit, dist + 40, save); // 10 meters penalty for penetrating the player
+			damagedealt += shot(owner, end, dir, h, weap, newsurface, hit, dist + 40, save); // 10 meters penalty for penetrating the player
 			sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, weap, end.x, end.y, end.z, dir.x, dir.y, dir.z);
 		}
 	}
@@ -277,10 +281,10 @@ int shot(client &owner, const vec &from, vec &to, const vector<head_t> &h, int w
 		dir.add(to);
 		// retrace
 		straceShot(to, dir, &newsurface);
-		shotdamage += shot(owner, to, dir, h, weap, newsurface, NULL, dist + 60, save); // 15 meters penalty for ricochet
+		damagedealt += shot(owner, to, dir, h, weap, newsurface, NULL, dist + 60, save); // 15 meters penalty for ricochet
 		sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, weap, to.x, to.y, to.z, dir.x, dir.y, dir.z);
 	}
-	return shotdamage;
+	return damagedealt;
 }
 
 int shotgun(client &owner, vector<head_t> &h){
