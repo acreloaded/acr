@@ -369,7 +369,7 @@ uchar *retrieveservers(uchar *buf, int buflen)
 ENetSocket pongsock = ENET_SOCKET_NULL, lansock = ENET_SOCKET_NULL;
 extern int getpongflags(enet_uint32 ip);
 
-void serverms(int mode, int numplayers, int timeremain, char *smapname, int millis, const ENetAddress &localaddr, int &pnum, int &psend, int &prec, int protocol_version)
+void serverms(int mode, int muts, int numplayers, int timeremain, char *smapname, int millis, const ENetAddress &localaddr, int &pnum, int &psend, int &prec, int protocol_version)
 {
 	checkmasterreply();
 	updatemasterserver(millis, localaddr);
@@ -411,6 +411,7 @@ void serverms(int mode, int numplayers, int timeremain, char *smapname, int mill
 			extern string servdesc_current;
 			putint(po, protocol_version);
 			putint(po, mode);
+			putint(po, muts);
 			putint(po, numplayers);
 			putint(po, timeremain/1000);
 			sendstring(smapname, po);

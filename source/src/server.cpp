@@ -3996,7 +3996,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
 	if(!isdedicated) return;	 // below is network only
 
-	serverms(smode, numclients(), gamelimit-gamemillis, smapname, servmillis, serverhost->address, pnum, psend, prec, PROTOCOL_VERSION);
+	serverms(smode, smuts, numclients(), gamelimit-gamemillis, smapname, servmillis, serverhost->address, pnum, psend, prec, PROTOCOL_VERSION);
 
 	if(autobalance && m_team(gamemode, mutators) && !m_zombie(gamemode) && !m_duke(gamemode, mutators) && !interm && servmillis - lastfillup > 5000 && refillteams())
 		lastfillup = servmillis;

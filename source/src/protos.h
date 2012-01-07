@@ -201,7 +201,7 @@ struct serverinfo
 	string sdesc;
 	string description;
 	string cmd;
-	int mode, numplayers, maxclients, ping, protocol, minremain, resolved, port, lastpingmillis, pongflags, getinfo, menuline_from, menuline_to;
+	int mode, muts, numplayers, maxclients, ping, protocol, minremain, resolved, port, lastpingmillis, pongflags, getinfo, menuline_from, menuline_to;
 	ENetAddress address;
 	vector<const char *> playernames;
 	uchar namedata[MAXTRANS];
@@ -215,7 +215,7 @@ struct serverinfo
     unsigned char uplinkstats[MAXCLIENTS + 1];
 
 	serverinfo()
-	: mode(0), numplayers(0), maxclients(0), ping(9999), protocol(0), minremain(0),
+	: mode(G_DM), muts(G_M_NONE), numplayers(0), maxclients(0), ping(9999), protocol(0), minremain(0),
 	  resolved(UNRESOLVED), port(-1), lastpingmillis(0), pongflags(0), getinfo(EXTPING_NOP),
 	  bgcolor(NULL), favcat(-1), msweight(0), weight(0), uplinkqual(0), uplinkqual_age(0)
 	{
@@ -735,7 +735,7 @@ extern void cutcolorstring(char *text, int len);
 extern void startintermission();
 extern void restoreserverstate(vector<entity> &ents);
 extern uchar *retrieveservers(uchar *buf, int buflen);
-extern void serverms(int mode, int numplayers, int timeremain, char *smapname, int millis, const ENetAddress &localaddr, int &pnum, int &psend, int &prec, int protocol_version);
+extern void serverms(int mode, int muts, int numplayers, int timeremain, char *smapname, int millis, const ENetAddress &localaddr, int &pnum, int &psend, int &prec, int protocol_version);
 extern void freeconnectcheck(int cn);
 extern void connectcheck(int cn, int guid, ENetPeer *peer, const char *nick);
 extern char msgsizelookup(int msg);
