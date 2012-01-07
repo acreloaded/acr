@@ -1473,16 +1473,23 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 			// return; // we don't want this
 			damage = 0; // we want to show a hitmarker...
 		}
-
-		if(target->state.damagelog.find(actor->clientnum) < 0)
-			target->state.damagelog.add(actor->clientnum);
 	}
 
 	ts.dodamage(damage, actor->state.perk == PERK_POWER);
 	ts.lastregen = gamemillis + REGENDELAY - REGENINT;
 
-	if(ts.health<=0) serverdied(target, actor, damage, gun, style, source);
-	else sendf(-1, 1, "ri8f3", N_DAMAGE, target->clientnum, actor->clientnum, damage, ts.armor, ts.health, gun, style & FRAG_VALID, source.x, source.y, source.z);
+	if(ts.health<=0){
+		// if they made a 1-shot kill without being damaged, it's a stealth kill
+		if(target != actor && ts.damagelog.find(actor->clientnum) < 0 && actor->state.damagelog.find(target->clientnum) < 0)
+			style |= FRAG_STEALTH;
+		serverdied(target, actor, damage, gun, style, source);
+	}
+	else
+	{
+		if(ts.damagelog.find(actor->clientnum) < 0)
+			ts.damagelog.add(actor->clientnum);
+		sendf(-1, 1, "ri8f3", N_DAMAGE, target->clientnum, actor->clientnum, damage, ts.armor, ts.health, gun, style & FRAG_VALID, source.x, source.y, source.z);
+	}
 }
 
 void cheat(client *cl, const char *reason = "unknown"){
