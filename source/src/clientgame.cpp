@@ -240,7 +240,7 @@ void zapplayer(playerent *&d){
 			// C++ guarantees that delete NULL; does nothing
 			//if(d->pBot->m_pBotSkill) 
 				delete d->pBot->m_pBotSkill;
-			delete (CACBot *)d->pBot;
+			delete d->pBot;
 		}
 		delete d;
 		d = NULL;
