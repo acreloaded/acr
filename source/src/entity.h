@@ -304,7 +304,7 @@ struct poshist
 
 struct playerstate
 {
-	int ownernum; // for bots
+	int ownernum, lastattacker; // for bots
 	int health, armor, spawnmillis;
 	int pointstreak, deathstreak, assists, radarearned, airstrikes, nukemillis;
 	int primary, nextprimary, perk, nextperk;
@@ -313,7 +313,7 @@ struct playerstate
 	int ammo[WEAP_MAX], mag[WEAP_MAX], gunwait[WEAP_MAX];
 	ivector damagelog;
 
-	playerstate() : primary(WEAP_ASSAULT), nextprimary(WEAP_ASSAULT), perk(PERK_NONE), nextperk(PERK_NONE), ownernum(-1), level(1), pointstreak(0), deathstreak(0), airstrikes(0), radarearned(0), nukemillis(0), spawnmillis(0) {}
+	playerstate() : primary(WEAP_ASSAULT), nextprimary(WEAP_ASSAULT), perk(PERK_NONE), nextperk(PERK_NONE), ownernum(-1), lastattacker(-1), level(1), pointstreak(0), deathstreak(0), airstrikes(0), radarearned(0), nukemillis(0), spawnmillis(0) {}
 	virtual ~playerstate() {}
 
 	itemstat &itemstats(int type)
@@ -385,6 +385,7 @@ struct playerstate
 		loopi(WEAP_MAX) ammo[i] = mag[i] = gunwait[i] = 0;
 		ammo[WEAP_KNIFE] = ammostats[WEAP_KNIFE].start;
 		mag[WEAP_KNIFE] = 1;
+		lastattacker = -1;
 	}
 
 	virtual void spawnstate(int gamemode, int mutators)
@@ -467,7 +468,7 @@ struct playerent : dynent, playerstate
 	int lifesequence;				   // sequence id for each respawn, used in damage test
 	int radarmillis; float lastloudpos[3];
 	int points, frags, flagscore, deaths;
-	int lastaction, lastmove, lastpain, lastattacker, lasthitmarker;
+	int lastaction, lastmove, lastpain, lasthitmarker;
 	int priv, vote, voternum, lastregen;
 	int ads, wantsswitch; bool wantsreload, delayedscope;
 	bool attacking;
@@ -508,7 +509,6 @@ struct playerent : dynent, playerstate
 		targetpitch = targetyaw = 0;
 
 		lastrecieve = plag = ping = lifesequence = points = frags = flagscore = deaths = lastpain = lastregen = lasthitmarker = skin = eardamagemillis = respawnoffset = radarmillis = ads = 0;
-		lastattacker = -1;
 		radarearned = airstrikes = nukemillis = 0;
 		weaponsel = nextweaponsel = primweap = nextprimweap = lastattackweapon = prevweaponsel = NULL;
 		type = ENT_PLAYER;
@@ -588,7 +588,6 @@ struct playerent : dynent, playerstate
 		history.reset();
 		if(weaponsel) weaponsel->reset();
 		lastregen = lasthitmarker = lastaction = weaponchanging = eardamagemillis = radarmillis = flashmillis = 0;
-		lastattacker = -1;
 		lastattackweapon = NULL;
 		ads = 0.f;
 		wantsswitch = -1;

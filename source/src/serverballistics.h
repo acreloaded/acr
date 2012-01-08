@@ -146,11 +146,13 @@ int explosion(client &owner, const vec &o2, int weap, bool gib){
 	sendhit(owner, weap, o, 0); // 0 means display explosion
 	// these are our hits
 	vector<explosivehit> hits;
+	// give credits to the shooter for killing the zombie!
+	client *own = (m_zombie(gamemode) && owner.team == TEAM_RED && valid_client(owner.state.lastattacker)) ? clients[owner.state.lastattacker] : &owner;
 	// find the hits
 	loopv(clients){
 		client &target = *clients[i];
 		if(target.type == ST_EMPTY || target.state.state != CS_ALIVE || target.state.protect(gamemillis)) continue;
-		damagedealt += radialeffect(owner, target, hits, o, weap, gib);
+		damagedealt += radialeffect((own == &target) ? owner : *own, target, hits, o, weap, gib);
 	}
 	// sort the hits
 	hits.sort(cmphitsort);
