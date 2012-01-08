@@ -108,6 +108,36 @@ struct explosivehit{
 int cmphitsort(explosivehit *a, explosivehit *b){ return b->damage - a->damage; }
 // if there is more damage, the distance is closer, therefore move it up ((-a) - (-b) = -a + b = b - a)
 
+// explosions call this to check
+int radialeffect(client &owner, client &target, vector<explosivehit> &hits, const vec &o, int weap, bool gib){
+	float dist = target.state.o.dist(o);
+	if(dist >= guns[weap].endrange) return 0; // too far away
+	vec ray(target.state.o);
+	ray.sub(o).normalize();
+	if(srayclip(o, ray) < dist) return 0; // not visible
+	ushort dmg = effectiveDamage(weap, dist, !m_classic(gamemode, mutators));
+	int expflags = gib ? FRAG_GIB : FRAG_NONE;
+	// check for critical
+	if(checkcrit(dist, 1.5f)){
+		expflags |= FRAG_CRIT;
+		dmg *= 1.4f;
+	}
+	// was the bow stuck? or did the nade headshot?
+	// did the nade headshot?
+	if(weap == WEAP_GRENADE && owner.clientnum != target.clientnum && o.z >= target.state.o.z){
+		expflags |= FRAG_FLAG;
+		sendheadshot(o, target.state.o, dmg);
+	}
+	else if(weap == WEAP_BOW && !dist)
+		expflags |= FRAG_FLAG;
+	//serverdamage(&target, &owner, dmg, weap, expflags, o);
+	explosivehit &hit = hits.add();
+	hit.damage = dmg;
+	hit.flags = expflags;
+	hit.target = &target;
+	return dmg;
+}
+
 // explosion call
 int explosion(client &owner, const vec &o2, int weap, bool gib){
 	int damagedealt = 0;
@@ -120,32 +150,7 @@ int explosion(client &owner, const vec &o2, int weap, bool gib){
 	loopv(clients){
 		client &target = *clients[i];
 		if(target.type == ST_EMPTY || target.state.state != CS_ALIVE || target.state.protect(gamemillis)) continue;
-		float dist = target.state.o.dist(o);
-		if(dist >= guns[weap].endrange) continue; // too far away
-		vec ray(target.state.o);
-		ray.sub(o).normalize();
-		if(srayclip(o, ray) < dist) continue; // not visible
-		ushort dmg = effectiveDamage(weap, dist, !m_classic(gamemode, mutators));
-		int expflags = gib ? FRAG_GIB : FRAG_NONE;
-		// check for critical
-		if(checkcrit(dist, 1.5f)){
-			expflags |= FRAG_CRIT;
-			dmg *= 1.4f;
-		}
-		// was the bow stuck? or did the nade headshot?
-		// did the nade headshot?
-		if(weap == WEAP_GRENADE && owner.clientnum != i && o.z >= target.state.o.z){
-			expflags |= FRAG_FLAG;
-			sendheadshot(o, target.state.o, dmg);
-		}
-		else if(weap == WEAP_BOW && !dist)
-			expflags |= FRAG_FLAG;
-		damagedealt += dmg;
-		//serverdamage(&target, &owner, dmg, weap, expflags, o);
-		explosivehit &hit = hits.add();
-		hit.damage = dmg;
-		hit.flags = expflags;
-		hit.target = &target;
+		damagedealt += radialeffect(owner, target, hits, o, weap, gib);
 	}
 	// sort the hits
 	hits.sort(cmphitsort);
