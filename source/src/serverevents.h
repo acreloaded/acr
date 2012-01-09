@@ -146,7 +146,7 @@ void shotevent::process(client *ci)
 			bowevent b;
 			b.millis = gamemillis + TIPSTICKTTL;
 			b.id = hit ? hit->clientnum : -1;
-			loopi(3) b.o[i] = to[i];
+			(b.o = to).sub(from).normalize().mul(to.dist(from) - .01f).add(from);
 			if(c.bows.length()<128) c.bows.add(b);
 			break;
 		}
@@ -171,7 +171,8 @@ void shotevent::process(client *ci)
 			}
 			if(hit == &c) (end = to).sub(from).normalize().add(from); // 25 cm fx
 			// hide blood for healing weapon
-			// sendhit(c, WEAP_HEAL, (to = end), dmg); // blood
+			// sendhit(c, WEAP_HEAL, end, dmg); // blood
+			to = end;
 			damagedealt += dmg;
 			break;
 		}
