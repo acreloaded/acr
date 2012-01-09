@@ -672,16 +672,17 @@ void putflaginfo(ucharbuf &p, int flag){
 
 int next_afk_check = 200;
 void check_afk(){
+	//* remove one preceeding slash to disable AFK checks
 	next_afk_check = INT_MAX;
 	return;
-	// disabled for now
+	// */
 	next_afk_check = servmillis + 7 * 1000;
-	// if we have less than five players or a non-teammode is not full: do nothing!
-	if (numclients() < 5 || (numnonlocalclients() < scl.maxclients && !m_team(gamemode, mutators))) return;
+	// OLD LOGIC if we have less than five players or a non-teammode is not full: do nothing!
+	// if (numclients() < 5 || (numnonlocalclients() < scl.maxclients && !m_team(gamemode, mutators))) return;
 	loopv(clients){
 		client &c = *clients[i];
 		if (c.type != ST_TCPIP || c.connectmillis + 60 * 1000 > servmillis || c.team == TEAM_SPECT ||
-			c.state.movemillis + scl.afktimelimit > servmillis || clienthasflag(c.clientnum) > -1 ) continue;
+			!c.state.movemillis || c.state.movemillis + scl.afktimelimit > servmillis || clienthasflag(c.clientnum) > -1 ) continue;
 		if ( ( c.state.state == CS_DEAD && !m_duke(gamemode, mutators) && c.state.lastdeath + 45 * 1000 < gamemillis) ||
 			(c.state.state == CS_ALIVE /*&& c.state.upspawnp */)) {
 			logline(ACLOG_INFO, "[%s] %s is afk, forcing to spectator", gethostname(i), formatname(c));
