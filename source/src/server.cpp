@@ -2670,7 +2670,7 @@ void checkmove(client &cp){
 	clientstate &cs = cp.state;
 	// detect speedhack
 	float cps = cs.lasto.dist(cs.o);
-	if(cs.lasto != cs.o){
+	if(cs.lasto.dist(cs.o) >= .001f){
 		cs.movemillis = servmillis;
 		if(cps && cs.lastomillis && gamemillis > cs.lastomillis){
 			cps *= 1000 / (gamemillis - cs.lastomillis);
