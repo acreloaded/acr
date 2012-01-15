@@ -2721,8 +2721,12 @@ void checkmove(client &cp){
 		// server side item pickup, acknowledge first client that moves to the entity
 		e.spawned = false;
 		sendf(-1, 1, "ri4", N_ITEMACC, i, sender, e.spawntime = spawntime(e.type));
-		if(sents[i].type == I_HEALTH && !m_onslaught(gamemode, mutators))
+		if(sents[i].type == I_HEALTH && !m_onslaught(gamemode, mutators)){
+			// make the message more compact...
+			defformatstring(bleedsurvmsg)("\f1you \f2survived a \f3bleedout!");
+			sendservmsg(bleedsurvmsg, sender);
 			cs.wounds.shrink(0);
+		}
 		cs.pickup(sents[i].type);
 	}
 	// flags
