@@ -3424,19 +3424,21 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(cs.state==CS_ALIVE)
 				{
 					// deal falling damage
-					const bool newonfloor = (f>>4)&1;
-					if(!newonfloor){
-						if(cs.onfloor || cs.fallz < newo.z) cs.fallz = newo.z;
-						cs.onfloor = false;
-					}
-					else if(!cs.onfloor){
-						// 4 meters without damage + 2/0.5 HP/meter
-						int damage = ((cs.fallz - newo.z) - 16) * HEALTHSCALE / (cs.perk == PERK_LIGHT ? 8 : 2);
-						if(damage >= 1*HEALTHSCALE){ // don't heal the player
-							// maximum damage is 175
-							serverdamage(&cp, &cp, min(damage, 175 * HEALTHSCALE), WEAP_MAX + 2, FRAG_NONE, cs.o);
+					const bool newonfloor = (f>>4)&1, newonladder = (f>>5)&1;
+					if((newonfloor || newonladder) && !cs.onfloor){
+						if(newonfloor){
+							// 4 meters without damage + 2/0.5 HP/meter
+							int damage = ((cs.fallz - newo.z) - 16) * HEALTHSCALE / (cs.perk == PERK_LIGHT ? 8 : 2);
+							if(damage >= 1*HEALTHSCALE){ // don't heal the player
+								// maximum damage is 175
+								serverdamage(&cp, &cp, min(damage, 175 * HEALTHSCALE), WEAP_MAX + 2, FRAG_NONE, cs.o);
+							}
 						}
 						cs.onfloor = true;
+					}
+					else if(!newonfloor){ // airborne
+						if(cs.onfloor || cs.fallz < newo.z) cs.fallz = newo.z;
+						cs.onfloor = false;
 					}
 					// check movement if alive
 					checkmove(cp);
