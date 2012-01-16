@@ -781,7 +781,7 @@ struct servercommandline
 							maxclients(DEFAULTCLIENTS), verbose(0), afktimelimit(45000),
 							ip(""), master(NULL), logident(""), serverpassword(""), demopath(""),
 							maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), nbfile("config/nicknameblacklist.cfg"),
-							infopath("config/serverinfo"), botfile("config/default.botnames.cfg"),
+							infopath("config/serverinfo"), botfile("config/botnames.cfg"),
 							demoeverymatch(false), logtimestamp(false),
 							clfilenesting(0)
 	{
@@ -831,6 +831,7 @@ struct servercommandline
 			case 'r': maprot = a; break;
 			case 'X': pwdfile = a; break;
 			case 'B': blfile = a; break;
+			case 'b': botfile = a; break;
 			case 'K': nbfile = a; break;
 			case 'I': infopath = a; break;
 			case 'o': filterrichtext(motd, a); break;

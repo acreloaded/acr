@@ -17,6 +17,7 @@
 -r config/default.maprot.cfg
 -X config/default.serverpwd.cfg
 -B config/default.serverblacklist.cfg
+-b config/default.botnames.cfg
 -K config/default.nicknameblacklist.cfg
 -I config/default.serverinfo_en.txt
 
@@ -42,6 +43,7 @@
 // -r     // server maprot file, default config/maprot.cfg
 // -X     // server passwords file, default config/serverpwd.cfg
 // -B     // server IP blacklist file, default config/serverblacklist.cfg
+// -b     // server bot names file, default config/botnames.cfg
 // -K     // server nickname blacklist file, default config/nicknameblacklist.cfg
 // -P     // voting permission string
           //    k kick players
