@@ -2675,7 +2675,7 @@ void checkmove(client &cp){
 		if(cps && cs.lastomillis && gamemillis > cs.lastomillis){
 			cps *= 1000 / (gamemillis - cs.lastomillis);
 			if(cps > 32){ // 8 meters per second
-				defformatstring(fastmsg)("%s (%d) moved at %.3f meters/second", cp.name, sender, cps / 4);
+				defformatstring(fastmsg)("%s moved at %.3f meters/second", formatname(cp), cps / 4);
 				sendservmsg(fastmsg);
 				if(cps > 64) // 16 meters per second
 					cheat(&cp, "speedhack");
@@ -2722,9 +2722,7 @@ void checkmove(client &cp){
 		e.spawned = false;
 		sendf(-1, 1, "ri4", N_ITEMACC, i, sender, e.spawntime = spawntime(e.type));
 		if(sents[i].type == I_HEALTH && !m_onslaught(gamemode, mutators)){
-			// make the message more compact...
-			defformatstring(bleedsurvmsg)("\f1you \f2survived a \f3bleedout!");
-			sendservmsg(bleedsurvmsg, sender);
+			if(cp.type != ST_AI) sendmsg(30, sender);
 			cs.wounds.shrink(0);
 		}
 		cs.pickup(sents[i].type);

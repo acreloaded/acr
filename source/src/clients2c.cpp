@@ -1011,6 +1011,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					case 29:
 						formatstring(msg)("you need %s to download demos", privname(getint(p)));
 						break;
+					case 30: // 3* gameplay
+						copystring(msg, "\f1you \f2survived a \f3bleedout!");
+						break;
 					case 40: // 4* gameplay errors
 					{
 						int cn = getint(p); playerent *d = getclient(cn);
