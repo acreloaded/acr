@@ -261,6 +261,7 @@ void healevent::process(client *ci){
 	if(heal >= todo){
 		// fully healed!
 		ci->state.damagelog.setsize(0);
+		loopv(ci->heals) ci->heals[i].valid = false;
 		return sendf(-1, 1, "ri4", N_HEAL, id, ci->clientnum, ci->state.health = MAXHEALTH);
 	}
 	// partial heal
