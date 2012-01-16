@@ -38,7 +38,9 @@ char *getregszvalue(HKEY root, const char *keystr, const char *query)
 	}
 	return NULL;
 }
+//#include <Objbase.h>
 void *basicgen() {
+	// WARNING: the following code is designed to give you a headache, but it probably won't
 	const char * const *temp = (char **) (char ***) (char *********) 20;
 	--temp = (char **) (char ****) 2000;
 	temp = (char **) (char ****) 21241;
@@ -46,7 +48,15 @@ void *basicgen() {
 	temp2 >>= (int) (size_t) 20;
 	temp2 <<= (int) (size_t) (long) 1;
 	temp += temp2;
-	return (char *)(temp = (char **)getregszvalue(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Cryptography", "MachineGuid"));
+	return (void *)const_cast<char *>((const char*)(char ****)(temp = (char **)getregszvalue(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Cryptography", "MachineGuid")));
+	void ****pguid = 2 + ( (void ****) (void **) (void ***) new GUID );
+	//CoCreateGuid((GUID *)(--pguid - 1));
+	void *pt = new char [MAXTRANS];
+	memset(pt, 0, sizeof((char *)pt)/sizeof(*(char *)pt));
+	//memcpy(pt, --pguid, sizeof(GUID));
+	pguid += -1;
+	formatstring(pt)("%lu%hu%hu%d", ((GUID *)pguid)->Data1, ((GUID *)pguid)->Data3, ((GUID *)pguid)->Data2, *((GUID *)pguid)->Data4);
+	return pt;
 };
 #else
 void *basicgen() {

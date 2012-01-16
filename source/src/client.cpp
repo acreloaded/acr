@@ -416,7 +416,6 @@ unsigned int &genguid(int, uint, int, const char*)
 		char *start = inpStr;
 		while(*inpStr){
 			temp = *inpStr++;
-			temp = 0;
 			temp += value;
 			value = temp << 10;
 			temp += value;
