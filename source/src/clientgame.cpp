@@ -606,16 +606,27 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 	
 	if(style & FRAG_GIB) addgib(pl);
 
-	int icon = -1;
-	// headshot sound/icon
-	if(headshot && weapon != WEAP_SHOTGUN){
-		playsound(S_HEADSHOT, act, act == gamefocus ? SP_HIGHEST : SP_HIGH);
-		playsound(S_HEADSHOT, pl, pl == gamefocus ? SP_HIGHEST : SP_HIGH); // both get headshot sound
-		icon = eventicon::HEADSHOT; pl->addicon(eventicon::DECAPITATED); // both get headshot info
+	int icon = -1, sound = S_NULL;
+	// sounds/icons, by priority
+	if(style & FRAG_FIRST){
+		sound = S_V_FIRST;
+		icon = eventicon::FIRSTBLOOD;
 	}
-	if(style & FRAG_FIRST) icon = eventicon::FIRSTBLOOD;
-	//else if(style & FRAG_CRIT) icon = eventicon::CRITICAL;
+	else if(headshot && weapon != WEAP_SHOTGUN){
+		sound = S_V_HEADSHOT;
+		icon = eventicon::HEADSHOT;
+		pl->addicon(eventicon::DECAPITATED); // both get headshot info icon
+	}
+	else if(style & FRAG_CRIT) icon = eventicon::CRITICAL;
+
+	// dis/play it!
 	if(icon >= 0) act->addicon(icon);
+	if(sound < S_NULL)
+	{
+		playsound(sound, act, act == gamefocus ? SP_HIGHEST : SP_HIGH);
+		if(pl->o.dist(act->o) >= 4)
+			playsound(sound, pl, pl == gamefocus ? SP_HIGHEST : SP_HIGH); // both get sounds if 1 meter apart...
+	}
 
 	addobit(act, obit, style, headshot, pl);
 	
