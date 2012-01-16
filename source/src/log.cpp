@@ -34,14 +34,25 @@ static int facility = -1,
 	consolethreshold = ACLOG_INFO;
 static bool timestamp = false, enabled = false;
 
-bool initlogging(const char *identity, int facility_, int consolethres, int filethres, int syslogthres, bool logtimestamp)
+bool initlogging(const servercommandline *scl)
 {
-	facility = facility_;
-	timestamp = logtimestamp;
-	if(consolethres >= 0) consolethreshold = min(consolethres, (int)ACLOG_NUM);
-	if(filethres >= 0) filethreshold = min(filethres, (int)ACLOG_NUM);
-	if(syslogthres >= 0) syslogthreshold = min(syslogthres, (int)ACLOG_NUM);
+	static const servercommandline *lastscl = NULL;
+	if(!scl) scl = lastscl;
+	if(!scl) return false;
+	lastscl = scl;
+
+	const int conthres = scl->verbose > 1 ? ACLOG_DEBUG : (scl->verbose ? ACLOG_VERBOSE : ACLOG_INFO);
+	facility = scl->syslogfacility;
+	timestamp = scl->logtimestamp;
+	if(conthres >= 0) consolethreshold = min(conthres, (int)ACLOG_NUM);
+	if(scl->filethres >= 0) filethreshold = min(scl->filethres, (int)ACLOG_NUM);
+	if(scl->syslogthres >= 0) syslogthreshold = min(scl->syslogthres, (int)ACLOG_NUM);
 	facility &= 7;
+
+	string identity;
+	if(scl->logident[0]) filtertext(identity, scl->logident, 0);
+	else formatstring(identity)("%s#%d", scl->ip[0] ? scl->ip : "local", scl->serverport);
+
 	formatstring(ident)("AssaultCube[%s]", identity);
 	if(syslogthreshold < ACLOG_NUM)
 	{
@@ -51,7 +62,8 @@ bool initlogging(const char *identity, int facility_, int consolethres, int file
 		if((logsock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM)) == ENET_SOCKET_NULL || enet_address_set_host(&logdest, "localhost") < 0) syslogthreshold = ACLOG_NUM;
 #endif
 	}
-	formatstring(filepath)("serverlog_%s_%s.txt", timestring(true), identity);
+	static int lognum = 0;
+	formatstring(filepath)("serverlog_%s_%s.part%d.txt", timestring(true), identity, ++lognum);
 	if(fp) { fclose(fp); fp = NULL; }
 	if(filethreshold < ACLOG_NUM)
 	{
@@ -82,6 +94,7 @@ bool logline(int level, const char *msg, ...)
 {
 	if(!enabled) return false;
 	if(level < 0 || level >= ACLOG_NUM) return false;
+	static int flogsz = 0;
 	s_sprintfdv(sf, msg);
 	filtertext(sf, sf, 2);
 	const char *ts = timestamp ? timestring(true, "%b %d %Y %H:%M:%S ") : "", *ld = levelprefix[level];
@@ -90,7 +103,7 @@ bool logline(int level, const char *msg, ...)
 	{ // break into single lines first
 		if((p = strchr(l, '\n'))) *p = '\0';
 		if(consolethreshold <= level) printf("%s%s%s\n", ts, ld, l);
-		if(fp && filethreshold <= level) fprintf(fp, "%s%s%s\n", ts, ld, l);
+		if(fp && filethreshold <= level) flogsz += max(0, fprintf(fp, "%s%s%s\n", ts, ld, l));
 		if(syslogthreshold <= level)
 #ifdef AC_USE_SYSLOG
 			syslog(levels[level], "%s", l);
@@ -107,6 +120,13 @@ bool logline(int level, const char *msg, ...)
 	}
 	while(p);
 	if(consolethreshold <= level) fflush(stdout);
-	if(fp && filethreshold <= level) fflush(fp);
+	if(fp && filethreshold <= level){
+		fflush(fp);
+		// reset log if too big
+		if(flogsz >= ACLOG_LIMIT){
+			initlogging(NULL);
+			flogsz = 0;
+		}
+	}
 	return consolethreshold <= level;
 }

@@ -759,8 +759,10 @@ struct demoheader
 // logging
 
 enum { ACLOG_DEBUG = 0, ACLOG_VERBOSE, ACLOG_INFO, ACLOG_WARNING, ACLOG_ERROR, ACLOG_NUM };
+#define ACLOG_LIMIT (2 * 1024 * 1024) // 2 MiB
 
-extern bool initlogging(const char *identity, int facility_, int consolethres, int filethres, int syslogthres, bool logtimestamp);
+struct servercommandline;
+extern bool initlogging(const servercommandline *scl);
 extern void exitlogging();
 extern bool logline(int level, const char *msg, ...);
 

@@ -4303,11 +4303,7 @@ void localconnect(){
 void initserver(bool dedicated){
 	srand(time(NULL));
 
-	string identity;
-	if(scl.logident[0]) filtertext(identity, scl.logident, 0);
-	else formatstring(identity)("%s#%d", scl.ip[0] ? scl.ip : "local", scl.serverport);
-	int conthres = scl.verbose > 1 ? ACLOG_DEBUG : (scl.verbose ? ACLOG_VERBOSE : ACLOG_INFO);
-	if(dedicated && !initlogging(identity, scl.syslogfacility, conthres, scl.filethres, scl.syslogthres, scl.logtimestamp))
+	if(dedicated && !initlogging(&scl))
 		printf("WARNING: logging not started!\n");
 	logline(ACLOG_INFO, "logging local AssaultCube server (version %d, protocol %d/%d) now..", AC_VERSION, PROTOCOL_VERSION, EXT_VERSION);
 
