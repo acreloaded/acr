@@ -947,7 +947,7 @@ void crossbow::attackfx(const vec &from2, const vec &to, int millis){
 	vec from(from2);
 	from.z -= WEAPONBELOWEYE;
 
-	addshotline(owner, from, to, 0);
+	addshotline(owner, from, to, 1);
 	particle_trail(15, 400, from, to);
 	particle_splash(0, 5, 250, to);
 	if(owner != player1 && !isowned(owner)) attacksound();
@@ -1058,7 +1058,7 @@ void heal::attackfx(const vec &from2, const vec &to, int millis){
 	vec from(from2);
 	from.z -= WEAPONBELOWEYE;
 
-	addshotline(owner, from, to, 0);
+	addshotline(owner, from, to, 1);
 	particle_trail(14, 400, from, to);
 	particle_splash(0, 3, 200, to);
 	if(owner != player1 && !isowned(owner)) attacksound();
