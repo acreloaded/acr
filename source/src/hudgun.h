@@ -86,10 +86,6 @@ struct weaponmove
 				case WEAP_SUBGUN: // add reload animations and remove this!
 				case WEAP_ASSAULT:
 				case WEAP_BOLT:
-				/*
-				case WEAP_HEAL: // these need models
-				case WEAP_BOW: // this one is "adding another arrow"
-				*/
 					k_rot = -90*sinf(progress*M_PI);
 					break;
 			}
