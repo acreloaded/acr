@@ -749,7 +749,7 @@ guninfo guns[WEAP_MAX] =
 	{ "pistol",     S_PISTOL,   S_RAKIMBO,  1400,   80,     40,   45,  160,   17,   0,   0, 56,    8,   24,   6,  2,    28,    48,     70, 2,   true },
 	{ "heal",       S_SUBGUN,   S_NULL,     1200,   100,    20,    4,    8,   10,   0,   0, 62,    1,   10,   0,  0,    10,    20,      8, 5,   true },
 	{ "sword",      S_NULL,     S_RASSAULT,    0,   480,    90,    4,    7,   90,   0,   0,  1,    1,    1,   0,  2,     0,     0,      0, 0,   true },
-	{ "bow",        S_NULL,     S_RASSAULT, 2000,   120,   250,    0,   24,  240,   0,   0,128,    3,    1,   3,  1,    48,    50,      0, 4,   false},
+	{ "bow",        S_BOW,      S_NULL,     2000,   120,   250,    0,   24,  240,   0,   0,128,    3,    1,   3,  1,    48,    50,      0, 4,   false},
 };
 
 const int obit_suicide(int weap){
