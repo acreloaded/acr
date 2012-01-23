@@ -1815,7 +1815,11 @@ bool CBot::WaterNav()
 }
 		
 bool CBot::CheckItems()
-{		
+{
+	// zombies + pickups = no
+	if (m_zombie(gamemode) && m_pMyEnt->team == TEAM_RED)
+		return false;
+
 	if (!m_pCurrentGoalWaypoint && !CheckJump() && CheckStuck())
 	{
 		// Don't check for ents for a while when stuck			    
