@@ -135,8 +135,6 @@ void CBot::Think()
 		}
 		else if (!m_duke(gamemode, mutators) && lastmillis-m_pMyEnt->respawnoffset>5000)
 			Spawn();
-	
-		SendBotInfo();
 		return;
 	}
 	
@@ -177,9 +175,6 @@ void CBot::Think()
 		
 	// Move the bot
 	moveplayer(m_pMyEnt, 1, true);
-	
-	// Update bot info on all clients
-	SendBotInfo();
 }
 
 void CBot::AimToVec(const vec &o)
@@ -308,12 +303,6 @@ float CBot::ChangeAngle(float speed, float ideal, float current)
 
 
 	return current;	
-}
-
-void CBot::SendBotInfo()
-{
-	if(lastmillis-m_iLastBotUpdate<40) return;    // don't update faster than 25fps
-	m_iLastBotUpdate = lastmillis;
 }
 
 float CBot::GetDistance(const vec &o)

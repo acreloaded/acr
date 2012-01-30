@@ -143,7 +143,6 @@ class CBot
 {
 public:
 	playerent *m_pMyEnt;
-	int m_iLastBotUpdate;
 
 	// Combat variabels
 	playerent *m_pPrevEnemy;
@@ -218,7 +217,6 @@ public:
 	float ChangeAngle(float speed, float ideal, float current);
 	bool SelectGun(int Gun);
 	virtual void CheckItemPickup(void) = 0;
-	void SendBotInfo(void);
 	float GetDistance(const vec &o);
 	float GetDistance(const vec &v1, const vec &v2);
 	float GetDistance(entity *e);
