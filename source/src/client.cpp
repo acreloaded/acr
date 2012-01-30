@@ -386,7 +386,7 @@ void sendmessages(){
 }
 
 void c2sinfo(bool force){				  // send update to the server
-	if(!force && totalmillis-lastupdate<40) return;	// don't update faster than 25fps
+	if(!force && totalmillis-lastupdate<25) return;	// don't update faster than 40fps
 	lastupdate = totalmillis;
 	sendmessages();
 	if(!intermission) sendpositions();
