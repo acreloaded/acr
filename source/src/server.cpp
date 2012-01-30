@@ -2343,7 +2343,7 @@ void sendwhois(int sender, int cn){
 		uint ip = clients[cn]->peer->address.host;
 		uchar mask = 0;
 		if(cn == sender) mask = 32;
-		else switch(clients[cn]->priv){
+		else switch(clients[sender]->priv){
 			// admins and server owner: f.f.f.f/32 full ip
 			case PRIV_MAX: case PRIV_ADMIN: mask = 32; break;
 			// masters and users: f.f.h/12 full, full, half, empty
