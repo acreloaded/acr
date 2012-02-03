@@ -286,11 +286,11 @@ void drawequipicons(playerent *p)
 	glEnable(GL_BLEND);
 }
 
-void drawradarent(const vec &o, float coordtrans, float yaw, int col, int row, float iconsize, bool pulse, float alpha = 1.f, const char *label = NULL, ...)
+void drawradarent(const vec &o, float coordtrans, float yaw, int col, int row, float iconsize, int pulse, float alpha = 1.f, const char *label = NULL, ...)
 {
 	if(OUTBORD(int(o.x), int(o.y))) return;
 	glPushMatrix();
-	if(pulse) glColor4f(1.0f, 1.0f, 1.0f, 0.2f+(sinf(lastmillis/30.0f)+1.0f)/2.0f);
+	if(pulse) glColor4f(1.0f, 1.0f, 1.0f, 0.2f+(sinf(lastmillis/30.0f+pulse)+1.0f)/2.0f);
 	else glColor4f(1, 1, 1, alpha);
 	glTranslatef(o.x * coordtrans, o.y * coordtrans, 0);
 	glRotatef(yaw, 0, 0, 1);
@@ -572,7 +572,7 @@ void drawradar(playerent *p, int w, int h)
 				{
 					pos.add(f.actor->o);
 					// see flag position no matter what!
-					drawradarent(fixradarpos(pos, centerpos, res), coordtrans, yaw, 3, m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? 2 : f.team, iconsize, true); // draw near flag thief
+					drawradarent(fixradarpos(pos, centerpos, res), coordtrans, yaw, 3, m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? 2 : f.team, iconsize, f.team); // draw near flag thief
 				}
 			}
 			else{
