@@ -189,7 +189,7 @@ void shotevent::process(client *ci)
 			if(weap == WEAP_SHOTGUN){ // many rays, many players
 				damagedealt += shotgun(c, heads); // WARNING: modifies gs.sg
 			}
-			else damagedealt += shot(c, gs.o, to, heads, weap, surface, &c); // WARNING: modifies to
+			else damagedealt += shot(c, gs.o, to, heads, weap, FRAG_NONE, surface, &c); // WARNING: modifies to
 		}
 	}
 	gs.damage += damagedealt;

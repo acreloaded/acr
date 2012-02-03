@@ -219,7 +219,7 @@ client *nearesthit(client &actor, const vec &from, const vec &to, int &hitzone, 
 }
 
 // hitscans
-int shot(client &owner, const vec &from, vec &to, const vector<head_t> &h, int weap, const vec &surface, client *exclude, float dist = 0, ushort *save = NULL){
+int shot(client &owner, const vec &from, vec &to, const vector<head_t> &h, int weap, int style, const vec &surface, client *exclude, float dist = 0, ushort *save = NULL){
 	int damagedealt = 0;
 	const int mulset = (weap == WEAP_SNIPER || weap == WEAP_BOLT) ? MUL_SNIPER : MUL_NORMAL;
 	int hitzone = HIT_NONE; vec end = to;
@@ -238,7 +238,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<head_t> &h, int w
 		}
 		// gib check
 		const bool gib = weap == WEAP_KNIFE || hitzone == HIT_HEAD;
-		int style = gib ? FRAG_GIB : FRAG_NONE;
+		if(gib) style |= FRAG_GIB;
 		// critical shots
 		if(checkcrit(dist, 2.5)){
 			style |= FRAG_CRIT;
@@ -273,7 +273,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<head_t> &h, int w
 			dir.sub(from).normalize().rotate_around_z((rnd(71)-35)*RAD).add(end); // 35 degrees (both ways = 70 degrees) distortion
 			// retrace
 			straceShot(end, dir, &newsurface);
-			damagedealt += shot(owner, end, dir, h, weap, newsurface, hit, dist + 40, save); // 10 meters penalty for penetrating the player
+			damagedealt += shot(owner, end, dir, h, weap, FRAG_PENETRATE, newsurface, hit, dist + 40, save); // 10 meters penalty for penetrating the player
 			sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, weap, end.x, end.y, end.z, dir.x, dir.y, dir.z);
 		}
 	}
@@ -288,7 +288,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<head_t> &h, int w
 		dir.add(to);
 		// retrace
 		straceShot(to, dir, &newsurface);
-		damagedealt += shot(owner, to, dir, h, weap, newsurface, NULL, dist + 60, save); // 15 meters penalty for ricochet
+		damagedealt += shot(owner, to, dir, h, weap, FRAG_RICOCHET, newsurface, NULL, dist + 60, save); // 15 meters penalty for ricochet
 		sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, weap, to.x, to.y, to.z, dir.x, dir.y, dir.z);
 	}
 	return damagedealt;
@@ -302,7 +302,7 @@ int shotgun(client &owner, vector<head_t> &h){
 	loopi(SGRAYS){// check rays and sum damage
 		vec surface;
 		straceShot(from, gs.sg[i], &surface);
-		shot(owner, from, gs.sg[i], h, WEAP_SHOTGUN, surface, &owner, 0, sgdamage);
+		shot(owner, from, gs.sg[i], h, WEAP_SHOTGUN, FRAG_NONE, surface, &owner, 0, sgdamage);
 	}
 	loopv(clients){ // apply damage
 		client &t = *clients[i];
