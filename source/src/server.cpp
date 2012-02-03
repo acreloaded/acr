@@ -1367,7 +1367,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	}
 	actor->state.streakused = virtualstreak;
 
-	if(gamemillis >= actor->state.lastkill + 500) actor->state.combo = 0;
+	if(gamemillis >= actor->state.lastkill + COMBOTIME) actor->state.combo = 0;
 	actor->state.lastkill = gamemillis;
 	const float killdist = ts.o == source ? 0 : clamp<float>(ts.o.dist(source) / 4, -1, 1000);
 	sendf(-1, 1, "ri9f4iv", N_KILL, // i9
