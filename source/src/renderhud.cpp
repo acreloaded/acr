@@ -286,7 +286,7 @@ void drawequipicons(playerent *p)
 	glEnable(GL_BLEND);
 }
 
-void drawradarent(const vec &o, float coordtrans, float yaw, int col, int row, float iconsize, int pulse, float alpha = 1.f, const char *label = NULL, ...)
+void drawradarent(const vec &o, float coordtrans, float yaw, int col, int row, float iconsize, int pulse = 0, float alpha = 1.f, const char *label = NULL, ...)
 {
 	if(OUTBORD(int(o.x), int(o.y))) return;
 	glPushMatrix();
@@ -476,7 +476,7 @@ void drawradar(playerent *p, int w, int h)
 	glTranslatef(-(centerpos.x-res/2)/worldsize*radarsize, -(centerpos.y-res/2)/worldsize*radarsize, 0);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	drawradarent(fixradarpos(p->o, centerpos, res), coordtrans, p->yaw, p->state!=CS_DEAD ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), p->state==CS_DEAD ? .5f : p->perk == PERK_JAM ? .35f : 1, "\f1%s", colorname(p)); // local player
+	drawradarent(fixradarpos(p->o, centerpos, res), coordtrans, p->yaw, p->state!=CS_DEAD ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p) ? 1 : 0, p->state==CS_DEAD ? .5f : p->perk == PERK_JAM ? .35f : 1, "\f1%s", colorname(p)); // local player
 
 	// radar check
 	const bool hasradar = radarup(p);
@@ -505,16 +505,16 @@ void drawradar(playerent *p, int w, int h)
 		}
 		if(isteam(p, pl) || p->team == TEAM_SPECT || force || pl->state == CS_DEAD) // friendly, flag tracker or dead
 			drawradarent(fixradarpos(pl->o, centerpos, res, pl->state==CS_DEAD), coordtrans, pl->yaw, pl->state!=CS_DEAD ? (isattacking(pl) ? 2 : 0) : 1,
-				isteam(p, pl) ? 1 : 0, iconsize, isattacking(pl), pl->state==CS_DEAD ? .5f : 1, "\f%d%s", isteam(p, pl) ? 0 : 3, colorname(pl));
+				isteam(p, pl) ? 1 : 0, iconsize, isattacking(pl) ? 1 : 0, pl->state==CS_DEAD ? .5f : 1, "\f%d%s", isteam(p, pl) ? 0 : 3, colorname(pl));
 		else
 			drawradarent(fixradarpos(pl->lastloudpos, centerpos, res, pl->state==CS_DEAD), coordtrans, pl->lastloudpos[2], pl->state!=CS_DEAD ? (isattacking(pl) ? 2 : 0) : 1,
-				isteam(p, pl) ? 1 : 0, iconsize, false, (radarenemyfade - lastmillis + pl->radarmillis) / (float)radarenemyfade, "\f3%s", colorname(pl));
+				isteam(p, pl) ? 1 : 0, iconsize, 0, (radarenemyfade - lastmillis + pl->radarmillis) / (float)radarenemyfade, "\f3%s", colorname(pl));
 	}
 	loopv(bounceents){ // draw grenades
 		bounceent *b = bounceents[i];
 		if(!b || b->bouncetype != BT_NADE) continue;
 		if(((grenadeent *)b)->nadestate != 1) continue;
-		drawradarent(fixradarpos(vec(b->o.x, b->o.y, 0), centerpos, res), coordtrans, 0, b->owner == p ? 2 : isteam(b->owner, p) ? 1 : 0, 3, iconsize/1.5f, true);
+		drawradarent(fixradarpos(vec(b->o.x, b->o.y, 0), centerpos, res), coordtrans, 0, b->owner == p ? 2 : isteam(b->owner, p) ? 1 : 0, 3, iconsize/1.5f, 1);
 	}
 	int col[3] = {255, 255, 255};
 	#define setcol(c1, c2, c3) col[0] = c1; col[1] = c2; col[2] = c3;
@@ -564,7 +564,7 @@ void drawradar(playerent *p, int w, int h)
 			entity *e = f.flagent;
 			if(!e || e->x == -1 && e-> y == -1) continue;
 			float yaw = showmap ? 0 : camera1->yaw;
-			drawradarent(fixradarpos(vec(e->x, e->y, e->z), centerpos, res), coordtrans, yaw, m_keep(gamemode) && !m_ktf2(gamemode, mutators) && f.state!=CTFF_IDLE ? 2 : f.team, 3, iconsize, false); // draw bases
+			drawradarent(fixradarpos(vec(e->x, e->y, e->z), centerpos, res), coordtrans, yaw, m_keep(gamemode) && !m_ktf2(gamemode, mutators) && f.state!=CTFF_IDLE ? 2 : f.team, 3, iconsize); // draw bases
 			vec pos(0.5f-0.1f, 0.5f-0.9f, 0);
 			pos.mul(iconsize/coordtrans).rotate_around_z(yaw*RAD);
 			if(f.state==CTFF_STOLEN){
@@ -587,7 +587,7 @@ void drawradar(playerent *p, int w, int h)
 					pos.z += centerpos.z;
 				}
 				
-				drawradarent(fixradarpos(pos, centerpos, res), coordtrans, yaw, 3, m_keep(gamemode) && !m_ktf2(gamemode, mutators) && f.state != CTFF_IDLE ? 2 : f.team, iconsize, false, f.state == CTFF_IDLE ? .3f : 1);
+				drawradarent(fixradarpos(pos, centerpos, res), coordtrans, yaw, 3, m_keep(gamemode) && !m_ktf2(gamemode, mutators) && f.state != CTFF_IDLE ? 2 : f.team, iconsize, 0, f.state == CTFF_IDLE ? .3f : 1);
 			}
 		}
 	}
