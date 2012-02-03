@@ -572,7 +572,7 @@ void drawradar(playerent *p, int w, int h)
 				{
 					pos.add(f.actor->o);
 					// see flag position no matter what!
-					drawradarent(fixradarpos(pos, centerpos, res), coordtrans, yaw, 3, m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? 2 : f.team, iconsize, f.team); // draw near flag thief
+					drawradarent(fixradarpos(pos, centerpos, res), coordtrans, yaw, 3, m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? 2 : f.team, iconsize, f.team+1); // draw near flag thief
 				}
 			}
 			else{
