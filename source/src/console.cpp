@@ -262,8 +262,10 @@ struct obitlist
 				if(l.style & FRAG_FIRST) left -= obitaspect(OBIT_FIRST) * FONTH;
 				else if(l.style & FRAG_STEALTH)  left -= obitaspect(OBIT_STEALTH) * FONTH;
 
+				if(l.style & FRAG_PENETRATE) left -= obitaspect(OBIT_PENETRATE) * FONTH;
+				else if(l.style & FRAG_RICOCHET) left -= obitaspect(OBIT_RICOCHET) * FONTH;
+
 				if(l.headshot) left -= obitaspect(OBIT_HEADSHOT) * FONTH;
-				if(l.style & FRAG_RICOCHET) left -= obitaspect(OBIT_RICOCHET) * FONTH;
 
 				if(l.style & FRAG_REVENGE) left -= obitaspect(OBIT_REVENGE) * FONTH;
 				else if(l.style & FRAG_CRIT) left -= obitaspect(OBIT_CRIT) * FONTH;
@@ -283,8 +285,9 @@ struct obitlist
 				else if(l.style & FRAG_STEALTH) x += drawobit(OBIT_STEALTH, left + x, y, fade);
 				// now draw obituary symbol
 				x += drawobit(l.obit, left + x, y, fade);
+				if(l.style & FRAG_PENETRATE) x += drawobit(OBIT_PENETRATE, left + x, y, fade);
+				else if(l.style & FRAG_RICOCHET) x += drawobit(OBIT_RICOCHET, left + x, y, fade);
 				if(l.headshot) x += drawobit(OBIT_HEADSHOT, left + x, y, fade);
-				if(l.style & FRAG_RICOCHET) x += drawobit(OBIT_RICOCHET, left + x, y, fade);
 				// next two shouldn't be grouped, but somehow is
 				if(l.style & FRAG_REVENGE) x += drawobit(OBIT_REVENGE, left + x, y, fade);
 				else if(l.style & FRAG_CRIT) x += drawobit(OBIT_CRIT, left + x, y, fade);
