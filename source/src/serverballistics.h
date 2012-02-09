@@ -283,9 +283,12 @@ int shot(client &owner, const vec &from, vec &to, const vector<head_t> &h, int w
 		// calculate reflected ray from incident ray and surface normal
 		dir.sub(from).normalize();
 		// r = i - 2 n (i . n)
-		const float dot = dir.dot(surface);
-		loopi(3) dir[i] = dir[i] - (2 * surface[i] * dot);
-		dir.add(to);
+		dir
+			.sub(
+				vec(surface)
+					.mul(2 * dir.dot(surface))
+			)
+			.add(to);
 		// retrace
 		straceShot(to, dir, &newsurface);
 		damagedealt += shot(owner, to, dir, h, weap, style|FRAG_RICOCHET, newsurface, NULL, dist + 60, save); // 15 meters penalty for ricochet
