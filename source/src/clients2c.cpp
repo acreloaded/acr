@@ -563,7 +563,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(!s || !weapon::valid(gun) || !s->weapons[gun]) break;
 				if(s == player1 && (type == N_SHOOTC || gun == WEAP_GRENADE)) break;
 				// if it's somebody else's players, remove a bit of ammo
-				if(s != player1 && !isowned(s)){
+				if(type != N_RICOCHET && s != player1 && !isowned(s)){
 					--s->mag[gun];
 					updatelastaction(s);
 					s->lastattackweapon = s->weapons[gun];
