@@ -329,7 +329,7 @@ uchar *retrieveservers(uchar *buf, int buflen)
 {
 	buf[0] = '\0';
 
-	defformatstring(path)("%scube", masterpath);
+	defformatstring(path)("%scube/%d/%d", masterpath, AC_VERSION, getbuildtype());
 	defformatstring(agent)("ACR-Client/%d", AC_VERSION);
 	ENetAddress address = masterserver;
 	ENetSocket sock = httpgetsend(address, masterbase, path, agent);
