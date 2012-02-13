@@ -387,6 +387,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				copystring(d->name, text);
 				// state bugs
 				if(d->state == CS_WAITING) d->state = CS_ALIVE;
+				d->plag = 0;
 				break;
 			}
 			
