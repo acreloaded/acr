@@ -360,6 +360,7 @@ extern void changemapserv(char *name, int mode, int muts, bool download = false)
 extern void getmap();
 extern void newteam(char *name);
 extern bool securemapcheck(char *map, bool msg = true);
+extern int getbuildtype();
 extern void sendintro();
 extern void getdemo(int i);
 extern void listdemos();

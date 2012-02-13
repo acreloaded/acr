@@ -434,6 +434,23 @@ unsigned int &genguid(int, uint, int, const char*)
 	return value;
 }
 
+int getbuildtype(){
+	return (isbigendian() ? 0x80 : 0 ) |
+	#ifdef WIN32
+		0x40 |
+	#endif
+	#ifdef __APPLE__
+		0x20 |
+		#endif
+	#ifdef _DEBUG
+		0x08 |
+	#endif
+	#ifdef __GNUC__
+		0x04 |
+	#endif
+		1;
+}
+
 void sendintro()
 {
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
@@ -459,20 +476,7 @@ void sendintro()
 	putint(p, player1->nextprimweap->type);
 	putint(p, player1->nextperk);
 	putint(p, AC_VERSION);
-	putint(p, 
-			#ifdef WIN32
-				0x40 |
-			#endif
-			#ifdef __APPLE__
-				0x20 |
-				#endif
-			#ifdef _DEBUG
-				0x08 |
-			#endif
-			#ifdef __GNUC__
-				0x04 |
-			#endif
-				1);
+	putint(p, getbuildtype());
 	putint(p, *&genguid(213409, 9983240U, 23489090, "24788rt792"));
 	// other post-connect stuff goes here
 	enet_packet_resize(packet, p.length());
