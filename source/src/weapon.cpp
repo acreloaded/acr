@@ -1101,7 +1101,7 @@ void knifeent::explode(){
 		addmsg(N_PROJ, "ri4f3", owner->clientnum, lastmillis, WEAP_KNIFE, tkhit ? tkhit->clientnum : -1, o.x, o.y, o.z);
 	}
 	playsound(S_GRENADEBOUNCE1+rnd(2), &o);
-	destroy();
+	timetolive = 0;
 }
 
 void knifeent::activate(){
@@ -1134,10 +1134,10 @@ void knifeent::moveoutsidebbox(const vec &direction, playerent *boundingbox){
 	boundingbox->cancollide = true;
 }
 
-void knifeent::destroy() { timetolive = 0; }
+void knifeent::destroy() { explode(); }
 bool knifeent::applyphysics() { return knifestate==NS_THROWED; }
 
-void knifeent::oncollision(){ explode(); }
+void knifeent::oncollision(){ timetolive = 1; }
 
 // knife
 
