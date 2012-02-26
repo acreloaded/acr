@@ -82,7 +82,7 @@ extern itemstat powerupstats[];
 #define KNIFETTL 30000
 #define GIBBLOODMUL 1.5f
 #define TIPSTICKTTL 1500
-#define SPAWNPROTECT 3000
+#define SPAWNPROTECT 2000
 #define COMBOTIME 1000
 
 #define MAXLEVEL 100
