@@ -1067,6 +1067,8 @@ void heal::attackfx(const vec &from2, const vec &to, int millis){
 	if(owner != player1 && !isowned(owner)) attacksound();
 }
 
+vector<cconfirm> confirms; // weird place to put this
+
 vector<cknife> knives;
 
 // knifeent

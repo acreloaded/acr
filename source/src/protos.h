@@ -903,3 +903,9 @@ struct cstick{
 	vec o;
 };
 extern vector<cstick> sticks;
+
+struct cconfirm{
+	int id, team;
+	vec o;
+};
+extern vector<cconfirm> confirms;

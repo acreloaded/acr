@@ -275,6 +275,17 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					k.millis = totalmillis + getint(p);
 					loopi(3) k.o[i] = getfloat(p);
 				}
+				// get confirms
+				n = getint(p); // more reuse
+				confirms.setsize(0);
+				loopi(n){
+					cconfirm &c = confirms.add();
+					c.id = getint(p);
+					c.team = getint(p);
+					loopi(3) c.o[i] = getfloat(p);
+				}
+
+				sticks.setsize(0);
 				break;
 			}
 
@@ -291,6 +302,22 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				int id = getint(p);
 				loopv(knives) if(knives[i].id == id) knives.remove(i--);
+				break;
+			}
+
+			case N_CONFIRMADD:
+			{
+				cconfirm &k = confirms.add();
+				k.id = getint(p);
+				k.team = getint(p);
+				loopi(3) k.o[i] = getfloat(p);
+				break;
+			}
+			
+			case N_CONFIRMREMOVE:
+			{
+				int id = getint(p);
+				loopv(confirms) if(confirms[i].id == id) confirms.remove(i--);
 				break;
 			}
 

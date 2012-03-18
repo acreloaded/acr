@@ -373,6 +373,12 @@ struct ban
 	int millis;
 };
 
+struct sconfirm{
+	int id;
+	int team, points, frag, death;
+	vec o;
+};
+
 struct sknife{
 	int id, millis;
 	vec o;

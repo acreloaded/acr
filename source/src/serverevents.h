@@ -51,7 +51,7 @@ void destroyevent::process(client *ci)
 			sendhit(c, WEAP_KNIFE, o, done ? dmg : 0);
 			sknife &k = sknives.add();
 			k.millis = gamemillis;
-			sendf(-1, 1, "ri2f3", N_KNIFEADD, (k.id = sknives.length()-1), (k.o.x = o.x), (k.o.y = o.y), (k.o.z = o.z));
+			sendf(-1, 1, "ri2f3", N_KNIFEADD, k.id = ++knifeseq, (k.o.x = o.x), (k.o.y = o.y), (k.o.z = o.z));
 			break;
 		}
 

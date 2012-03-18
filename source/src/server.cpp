@@ -47,6 +47,9 @@ int curcfgset = -1;
 
 // throwing knives
 vector<sknife> sknives;
+int knifeseq = 0;
+vector<sconfirm> sconfirms;
+int confirmseq = 0;
 void purgesknives(){
 	loopv(sknives) sendf(-1, 1, "ri2", N_KNIFEREMOVE, sknives[i].id);
 	sknives.setsize(0);
@@ -1401,10 +1404,12 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	if(m_confirm(gamemode, mutators)){
 		// create confirm object?
 		if(earnedpts > 0 || kills > 0){
-			// c.team = actor->team;
-			// c.points = max(0, earnedpts);
-			// c.frags = max(0, kills);
-			// c.death = target->team;
+			sconfirm &c = sconfirms.add();
+			c.o = ts.o;
+			sendf(-1, 1, "ri3f3", N_CONFIRMADD, c.id = ++confirmseq, c.team = actor->team, c.o.x, c.o.y, c.o.z);
+			c.points = max(0, earnedpts);
+			c.frag = max(0, kills);
+			c.death = target->team;
 		}
 	}
 	else{
@@ -2052,6 +2057,15 @@ inline void putmap(ucharbuf &p){
 		putfloat(p, sknives[i].o.x);
 		putfloat(p, sknives[i].o.y);
 		putfloat(p, sknives[i].o.z);
+	}
+
+	putint(p, sconfirms.length());
+	loopv(sconfirms){
+		putint(p, sconfirms[i].id);
+		putint(p, sconfirms[i].team);
+		putfloat(p, sconfirms[i].o.x);
+		putfloat(p, sconfirms[i].o.y);
+		putfloat(p, sconfirms[i].o.z);
 	}
 }
 
@@ -2846,6 +2860,22 @@ void checkmove(client &cp){
 			}
 			if(cantake) flagaction(i, FA_PICKUP, sender);
 		}
+	}
+	// kill confirmed
+	loopv(sconfirms) if(sconfirms[i].o.dist(cs.o) < 5){
+		if(cp.team == sconfirms[i].team){
+			steamscores[sconfirms[i].team].points += sconfirms[i].points;
+			steamscores[sconfirms[i].team].frags += sconfirms[i].frag;
+			++steamscores[sconfirms[i].death].deaths;
+
+			sendteamscore(sconfirms[i].team);
+			if(sconfirms[i].team != sconfirms[i].death) sendteamscore(sconfirms[i].death);
+		}
+		// else
+		// award deny pts?
+
+		sendf(-1, 1, "ri2", N_CONFIRMREMOVE, sconfirms[i].id);
+		sconfirms.remove(i--);
 	}
 	// throwing knife pickup
 	if(cp.type != ST_AI) loopv(sknives){
