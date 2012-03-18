@@ -1318,9 +1318,16 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 
 	int targethasflag = clienthasflag(target->clientnum);
 	bool suic = false;
+	
+	// only things on target team that changes
+	++steamscores[target->team].deaths;
+	steamscores[target->team].points += DEATHPT;
+	// commit
+	if(actor->team != target->team) sendteamscore(target->team);
+	// apply to individual
 	++target->state.deaths;
-	steamscores[target->team].deaths++;
-	if(actor->team != target->team) sendteamscore(target->team); // only thing on target team that changes
+	addpt(target, DEATHPT);
+
 	if(target!=actor){
 		const int kills = /*isteam(target, actor) ? -1 :*/ gib ? 2 : 1;
 		actor->state.frags += kills;
@@ -1396,6 +1403,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 		ts.damagelog.length(), ts.damagelog.length(), ts.damagelog.getbuf());
 	steamscores[actor->team].points += killpoints(target, actor, gun, style);
 	sendteamscore(actor->team); // last team score change
+
 	if(suic && (m_hunt(gamemode) || m_keep(gamemode)) && targethasflag >= 0)
 		sendf(-1, 1, "ri3", N_FLAGCNT, actor->clientnum, --actor->state.flagscore);
 	target->position.setsize(0);

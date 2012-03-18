@@ -47,10 +47,10 @@ inline void addpt(client *c, int points){
 	sendf(-1, 1, "ri3", N_POINTS, c->clientnum, (c->state.points += points));
 }
 
-int killpoints(client *target, client *actor, int gun, int style, bool assist = false){
+int killpoints(const client *target, client *actor, int gun, int style, bool assist = false){
 	int cnumber = numauthedclients(), tpts = target->state.points, gain = 0;
 	bool suic = target == actor;
-	addpt(target, DEATHPT);
+	// addpt(target, DEATHPT);
 	if(!suic){
 		if(isteam(actor, target)){
 			if (clienthasflag(target->clientnum) >= 0) gain += FLAGTKPT;
@@ -78,8 +78,8 @@ int killpoints(client *target, client *actor, int gun, int style, bool assist = 
 			if(!valid_client(target->state.damagelog[i])) continue;
 			gain += max(0, killpoints(target, clients[target->state.damagelog[i]], gun, style, true)) * ASSISTRETMUL;
 		}
-		addpt(actor, gain);
 	}
+	if(gain) addpt(actor, gain);
 	return gain;
 }
 
