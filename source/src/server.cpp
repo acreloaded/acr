@@ -3786,6 +3786,7 @@ void checkintermission(){
 				nextmaptype = 1;
 				copystring(nextmapnm, nextmapname);
 				nextmapmode = nextgamemode;
+				nextmapmuts = nextgamemuts;
 			}
 			else if(configsets.length()){ // next map rotation
 				nextmaptype = 2;
@@ -3799,6 +3800,7 @@ void checkintermission(){
 				nextmaptype = 3;
 				copystring(nextmapnm, smapname);
 				nextmapmode = smode;
+				nextmapmuts = smuts;
 			}
 			if(nextmaptime < 1) nextmaptime = m_team(nextmapmode, nextmapmuts) ? 15 : 10;
 			if(nextmaptype) sendf(-1, 1, "ri6s", N_CONFMSG, 14, nextmaptime, nextmapmode, nextmapmuts, nextmaptype, nextmapnm);
