@@ -439,6 +439,7 @@ extern void displayvote(votedisplayinfo *v);
 extern void clearvote();
 
 // scoreboard
+extern teamscore teamscores[TEAM_NUM];
 extern void showscores(int on);
 extern void renderscores(void *menu, bool init);
 extern void consolescores();

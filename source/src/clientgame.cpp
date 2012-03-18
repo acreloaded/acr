@@ -802,6 +802,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
 	if(!reset) return;
 
 	// resets...
+	loopi(TEAM_NUM) teamscores[i] = teamscore(i);
 	player1->points =
 		player1->frags =
 		player1->assists =

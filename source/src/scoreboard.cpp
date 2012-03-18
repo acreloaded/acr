@@ -29,31 +29,20 @@ struct sline{
 
 static vector<sline> scorelines;
 
-struct teamscore{
-	int team, points, frags, assists, deaths, flagscore, lvl, ping, pj;
+teamscore teamscores[TEAM_NUM] = { teamscore(TEAM_RED), teamscore(TEAM_BLUE), teamscore(TEAM_SPECT) };
+
+struct teamsum{
+	int team, lvl, ping, pj;
 	vector<playerent *> teammembers;
-	teamscore(int t) : team(t), frags(0), assists(0), deaths(0), points(0), flagscore(0), lvl(0), ping(0), pj(0) {}
+	teamsum(int t) : team(t), lvl(0), ping(0), pj(0) {}
 
 	virtual void addscore(playerent *d){
 		if(!d) return;
 		teammembers.add(d);
-		frags += d->frags;
-		assists += d->assists;
-		deaths += d->deaths;
-		points += d->points;
 		extern int level;
 		lvl += d == player1 ? level : d->level;
-		if(m_affinity(gamemode)) flagscore += d->flagscore;
 		ping += d->ping;
 		pj += d->plag;
-	}
-};
-
-struct spectscore : teamscore{
-	spectscore() : teamscore(TEAM_SPECT) {}
-
-	void addscore(playerent *d){
-		if(d) teammembers.add(d);
 	}
 };
 
@@ -69,9 +58,10 @@ struct spectscore : teamscore{
 	if(x->deaths < y->deaths) return -1; \
 	if(x->deaths > y->deaths) return 1;
 
-static int teamscorecmp(const teamscore *x, const teamscore *y){
+static int teamscorecmp(const teamsum *a, const teamsum *b){
+	teamscore *x = &teamscores[a->team], *y = &teamscores[b->team];
 	doscorecompare
-	return x->team > y->team;
+	return a->team > b->team;
 }
 
 static int scorecmp(const playerent **a, const playerent **b){
@@ -110,7 +100,7 @@ void renderscore(void *menu, playerent *d){
 	else formatstring(s)("%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%d\t\f%d%s", d->points, d->frags, d->assists, d->deaths, sr.precision, sr.ratio, clag, cping, d->clientnum, d == player1 ? level : d->level, privcolor(d->priv, d->state == CS_DEAD), colorname(d, true));
 }
 
-void renderteamscore(void *menu, teamscore &t){
+void renderteamscore(void *menu, teamsum &t){
 	if(!scorelines.empty()){ // space between teams
 		sline &space = scorelines.add();
 		space.s[0] = 0;
@@ -119,12 +109,13 @@ void renderteamscore(void *menu, teamscore &t){
 	defformatstring(plrs)("(%d %s)", t.teammembers.length(), t.team == TEAM_SPECT ? _("sb_spectating") :
 															m_zombie(gamemode) && t.team == TEAM_RED ? _("sb_zombies") :
 															t.teammembers.length() == 1 ? _("sb_player") : _("sb_players"));
+	const teamscore &ts = teamscores[t.team];
 	scoreratio sr;
-	sr.calc(t.frags, t.deaths);
+	sr.calc(ts.frags, ts.deaths);
 	const char *tlag = colorpj(t.pj/max(t.teammembers.length(),1)), *tping = colorping(t.ping/max(t.teammembers.length(), 1));
 	const char *teamname = m_team(gamemode, mutators) || t.team == TEAM_SPECT ? team_string(t.team) : "FFA Total";
-	if(m_affinity(gamemode)) formatstring(line.s)("%d\t%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t\t%d\t%s\t\t%s", t.points, t.flagscore, t.frags, t.assists, t.deaths, sr.precision, sr.ratio, tlag, tping, t.lvl, teamname, plrs);
-	else formatstring(line.s)("%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t\t%d\t%s\t\t%s", t.points, t.frags, t.assists, t.deaths, sr.precision, sr.ratio, tlag, tping, t.lvl, teamname, plrs);
+	if(m_affinity(gamemode)) formatstring(line.s)("%d\t%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t\t%d\t%s\t\t%s", ts.points, ts.flagscore, ts.frags, ts.assists, ts.deaths, sr.precision, sr.ratio, tlag, tping, t.lvl, teamname, plrs);
+	else formatstring(line.s)("%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t\t%d\t%s\t\t%s", ts.points, ts.frags, ts.assists, ts.deaths, sr.precision, sr.ratio, tlag, tping, t.lvl, teamname, plrs);
 	static color teamcolors[TEAM_NUM+1] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f), color(.4f, .4f, .4f, .3f), color(.8f, .8f, .8f, .4f) };
 	line.bgcolor = &teamcolors[!m_team(gamemode, mutators) && t.team != TEAM_SPECT ? TEAM_NUM : t.team];
 	loopv(t.teammembers){
@@ -176,20 +167,20 @@ void renderscores(void *menu, bool init){
 	}
 
 	//if(m_team(gamemode, mutators)){
-		teamscore teamscores[TEAM_NUM] = { teamscore(TEAM_RED), teamscore(TEAM_BLUE), spectscore() };
+		teamsum teamsums[TEAM_NUM] = { teamsum(TEAM_RED), teamsum(TEAM_BLUE), teamsum(TEAM_SPECT) };
 
 		#define fixteam(pl) (pl->team == TEAM_BLUE && !m_team(gamemode, mutators) ? TEAM_RED : pl->team)
 		loopv(players){
 			if(!players[i]) continue;
-			teamscores[fixteam(players[i])].addscore(players[i]);
+			teamsums[fixteam(players[i])].addscore(players[i]);
 		}
-		teamscores[fixteam(player1)].addscore(player1);
-		loopi(TEAM_NUM) teamscores[i].teammembers.sort(scorecmp);
+		teamsums[fixteam(player1)].addscore(player1);
+		loopi(TEAM_NUM) teamsums[i].teammembers.sort(scorecmp);
 
-		int sort = teamscorecmp(&teamscores[TEAM_RED], &teamscores[TEAM_BLUE]);
-		if(!m_team(gamemode, mutators)) renderteamscore(menu, teamscores[TEAM_RED]);
-		else loopi(2) renderteamscore(menu, teamscores[sort < 0 ? i : i^1]);
-		if(teamscores[TEAM_SPECT].teammembers.length()) renderteamscore(menu, teamscores[TEAM_SPECT]);
+		int sort = teamscorecmp(&teamsums[TEAM_RED], &teamsums[TEAM_BLUE]);
+		if(!m_team(gamemode, mutators)) renderteamscore(menu, teamsums[TEAM_RED]);
+		else loopi(2) renderteamscore(menu, teamsums[sort < 0 ? i : i^1]);
+		if(teamsums[TEAM_SPECT].teammembers.length()) renderteamscore(menu, teamsums[TEAM_SPECT]);
 	//}
 	//else loopv(scores) renderscore(menu, scores[i]);
 

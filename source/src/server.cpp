@@ -35,6 +35,7 @@ mapstats smapstats;
 vector<client *> clients;
 static vector<savedscore> scores;
 static vector<savedlimit> savedlimits;
+teamscore steamscores[TEAM_NUM-1] = { teamscore(TEAM_RED), teamscore(TEAM_BLUE) };
 uint nextauthreq = 1;
 
 vector<ban> bans;
@@ -824,7 +825,8 @@ void flagaction(int flag, int action, int actor){
 	f.lastupdate = gamemillis;
 	sendflaginfo(flag);
 	flagmessage(flag, message, valid_client(actor) ? actor : -1);
-	flagpoints(clients[actor], message);
+	steamscores[clients[actor]->team].points += max(0, flagpoints(clients[actor], message));
+	sendteamscore(clients[actor]->team);
 }
 
 int clienthasflag(int cn){
@@ -1317,8 +1319,13 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	int targethasflag = clienthasflag(target->clientnum);
 	bool suic = false;
 	++target->state.deaths;
+	steamscores[target->team].deaths++;
+	if(actor->team != target->team) sendteamscore(target->team); // only thing on target team that changes
 	if(target!=actor){
-		actor->state.frags += /*isteam(target, actor) ? -1 :*/ gib ? 2 : 1;
+		const int kills = /*isteam(target, actor) ? -1 :*/ gib ? 2 : 1;
+		actor->state.frags += kills;
+		steamscores[actor->team].frags += kills;
+
 		if(actor->state.revengelog.find(target->clientnum) >= 0){
 			style |= FRAG_REVENGE;
 			actor->state.revengelog.removeobj(target->clientnum);
@@ -1333,6 +1340,8 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	}
 	else{ // suicide
 		--actor->state.frags;
+		// do we really want to allow minus team pts?
+		//--steamscores[actor->team].frags;
 		suic = true;
 	}
 
@@ -1348,6 +1357,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 		if(valid_client(ts.damagelog[i])){
 			const int factor = isteam(clients[ts.damagelog[i]], target) ? -1 : 1;
 			clients[ts.damagelog[i]]->state.assists += factor;
+			steamscores[actor->team].assists += factor; // add to assists
 			clients[ts.damagelog[i]]->state.pointstreak += factor * 2;
 		}
 		else ts.damagelog.remove(i--);
@@ -1384,7 +1394,8 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 		source.y,
 		source.z, // below: assists (iv)
 		ts.damagelog.length(), ts.damagelog.length(), ts.damagelog.getbuf());
-	killpoints(target, actor, gun, style);
+	steamscores[actor->team].points += killpoints(target, actor, gun, style);
+	sendteamscore(actor->team); // last team score change
 	if(suic && (m_hunt(gamemode) || m_keep(gamemode)) && targethasflag >= 0)
 		sendf(-1, 1, "ri3", N_FLAGCNT, actor->clientnum, --actor->state.flagscore);
 	target->position.setsize(0);
@@ -2546,6 +2557,28 @@ void sendinitclient(client &c){
 	if(!packet->referenceCount) enet_packet_destroy(packet);
 }
 
+void putteamscore(int team, ucharbuf &p){
+	if(!team_valid(team) || team == TEAM_SPECT) return;
+	teamscore &t = steamscores[team];
+	putint(p, N_TEAMSCORE);
+	putint(p, team);
+	putint(p, t.points);
+	putint(p, t.flagscore);
+	putint(p, t.frags);
+	putint(p, t.assists);
+	putint(p, t.deaths);
+}
+
+void sendteamscore(int team, int reciever){
+	if(!team_valid(team) || team == TEAM_SPECT) return;
+	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+	ucharbuf p(packet->data, packet->dataLength);
+	putteamscore(team, p);
+	enet_packet_resize(packet, p.length());
+	sendpacket(reciever, 1, packet);
+	if(!packet->referenceCount) enet_packet_destroy(packet);
+}
+
 void welcomepacket(ucharbuf &p, int n, ENetPacket *packet){
 	#define CHECKSPACE(n) \
 	{ \
@@ -2623,6 +2656,15 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet){
 		}
 
 		putint(p, N_RESUME);
+		loopi(TEAM_NUM-1)
+		{
+			teamscore &t = steamscores[i];
+			putint(p, t.points);
+			putint(p, t.flagscore);
+			putint(p, t.frags);
+			putint(p, t.assists);
+			putint(p, t.deaths);
+		}
 		loopv(clients)
 		{
 			client &c = *clients[i];

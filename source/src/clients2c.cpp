@@ -685,6 +685,24 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
+			case N_TEAMSCORE:
+			{
+				const int team = getint(p),
+					points = getint(p),
+					flags = getint(p),
+					frags = getint(p),
+					assist = getint(p),
+					death = getint(p);
+				if(!team_valid(team) || team == TEAM_SPECT) break;
+				teamscore &t = teamscores[team];
+				t.points = points;
+				t.flagscore = flags;
+				t.frags = frags;
+				t.assists = assist;
+				t.deaths = death;
+				break;
+			}
+
 			case N_POINTS:
 			{
 				int cn = getint(p), points = getint(p);
@@ -762,6 +780,21 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_RESUME:
 			{
+				loopi(TEAM_NUM-1)
+				{
+					const int
+						points = getint(p),
+						flags = getint(p),
+						frags = getint(p),
+						assist = getint(p),
+						death = getint(p);
+					teamscore &t = teamscores[i];
+					t.points = points;
+					t.flagscore = flags;
+					t.frags = frags;
+					t.assists = assist;
+					t.deaths = death;
+				}
 				loopi(MAXCLIENTS)
 				{
 					int cn = getint(p);

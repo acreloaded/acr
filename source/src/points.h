@@ -42,6 +42,7 @@
 // server point tools
 
 inline void addpt(client *c, int points){
+	if(!c || !points) return;
 	if(c->state.perk == PERK_BRIBE) points *= points > 0 ? 1.35f : 1.1f;
 	sendf(-1, 1, "ri3", N_POINTS, c->clientnum, (c->state.points += points));
 }
@@ -82,40 +83,44 @@ int killpoints(client *target, client *actor, int gun, int style, bool assist = 
 	return gain;
 }
 
-void flagpoints (client *c, int message)
+int flagpoints (client *c, int message)
 {
+	int total = 0;
+
     float distance = 0;
     int cnumber = numauthedclients() < 12 ? numauthedclients() : 12;
     switch (message){
         case FA_PICKUP:
 			c->state.flagpickupo = c->state.o;
-            if (m_capture(gamemode)) addpt(c, CTFPICKPT);
+            if (m_capture(gamemode)) total += CTFPICKPT;
             break;
         case FA_DROP:
-            if (m_capture(gamemode)) addpt(c, CTFDROPPT);
+            if (m_capture(gamemode)) total += CTFDROPPT;
             break;
         case FA_LOST:
-            if (m_hunt(gamemode)) addpt(c, HTFLOSTPT);
+            if (m_hunt(gamemode)) total += HTFLOSTPT;
             else if (m_capture(gamemode)) {
                 distance = c->state.flagpickupo.dist(c->state.o);
                 if (distance > 200) distance = 200;      // ~200 is the distance between the flags in ac_depot
-                addpt(c, CTFLOSTPT);
+                total += CTFLOSTPT;
             }
             break;
         case FA_RETURN:
-            addpt(c, CTFRETURNPT);
+            total += CTFRETURNPT;
             break;
         case FA_SCORE:
 			if (m_capture(gamemode)){
 				distance = c->state.o.dist(c->state.flagpickupo);
 				if (distance > 200) distance = 200;
-				addpt(c, CTFSCOREPT);
-			} else addpt(c, HTFSCOREPT);
+				total += CTFSCOREPT;
+			} else total += HTFSCOREPT;
 			break;
 		case FA_KTFSCORE:
-            addpt(c, KTFSCOREPT);
+            total += KTFSCOREPT;
             break;
         default:
             break;
     }
+	addpt(c, total);
+	return total;
 }

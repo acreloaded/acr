@@ -154,6 +154,12 @@ enum { TEAM_RED = 0, TEAM_BLUE, TEAM_SPECT, TEAM_NUM };
 #define team_color(t) ((t) == TEAM_SPECT ? 4 : (t) ? 1 : 3)
 #define team_rel_color(a, b) (a == b ? 1 : a && b && b->team != TEAM_SPECT ? isteam(a, b) ? 0 : 3 : 4)
 
+struct teamscore
+{
+	int team, points, flagscore, frags, assists, deaths;
+	teamscore(int team) : team(team), points(0), flagscore(0), frags(0), assists(0), deaths(0) { }
+};
+
 enum { ENT_PLAYER = 0, ENT_CAMERA, ENT_BOUNCE };
 enum { CS_ALIVE = 0, CS_DEAD, CS_WAITING, CS_EDITING };
 enum { PRIV_NONE = 0, PRIV_MASTER, PRIV_ADMIN, PRIV_MAX };
