@@ -2117,6 +2117,8 @@ void resetmap(const char *newname, int newmode, int newmuts, int newtime, bool n
 		}
 	}
 	checkai(); // re-init ai (init)
+	// reset team scores
+	loopi(TEAM_NUM - 1) steamscores[i] = teamscore(i);
 	purgesknives();
 	if(m_demo(gamemode)) setupdemoplayback();
 	else if((demonextmatch || scl.demoeverymatch) && *newname && numnonlocalclients() > 0){
