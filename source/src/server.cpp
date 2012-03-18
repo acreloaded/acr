@@ -1328,11 +1328,9 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	++target->state.deaths;
 	addpt(target, DEATHPT);
 
+	const int kills = (actor == target || isteam(target, actor)) ? -1 : gib ? 2 : 1;
+	actor->state.frags += kills;
 	if(target!=actor){
-		const int kills = /*isteam(target, actor) ? -1 :*/ gib ? 2 : 1;
-		actor->state.frags += kills;
-		steamscores[actor->team].frags += kills;
-
 		if(actor->state.revengelog.find(target->clientnum) >= 0){
 			style |= FRAG_REVENGE;
 			actor->state.revengelog.removeobj(target->clientnum);
@@ -1345,12 +1343,8 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 			nokills = false;
 		}
 	}
-	else{ // suicide
-		--actor->state.frags;
-		// do we really want to allow minus team pts?
-		//--steamscores[actor->team].frags;
+	else // suicide
 		suic = true;
-	}
 
 	// streak/assist
 	actor->state.pointstreak += 5;
@@ -1401,7 +1395,15 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 		source.y,
 		source.z, // below: assists (iv)
 		ts.damagelog.length(), ts.damagelog.length(), ts.damagelog.getbuf());
-	steamscores[actor->team].points += killpoints(target, actor, gun, style);
+	int earnedpts = killpoints(target, actor, gun, style);
+	if(m_confirm(gamemode, mutators)){
+		// create confirm object?
+	}
+	else{
+		steamscores[actor->team].points += earnedpts;
+		steamscores[actor->team].frags += kills;
+	}
+	// assists/tk-deaths
 	sendteamscore(actor->team); // last team score change
 
 	if(suic && (m_hunt(gamemode) || m_keep(gamemode)) && targethasflag >= 0)
