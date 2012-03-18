@@ -1257,13 +1257,8 @@ void knife::renderstats() { if(ammo) draw_textf("%i", 590, 823, ammo); }
 // setscope for snipers and iron sights
 void setscope(bool enable){
 	if(!player1->state == CS_ALIVE || player1->scoping == enable || (enable && (player1->wantsreload || player1->wantsswitch >= 0))) return;
-	if(player1->weaponsel->type == WEAP_KNIFE){
+	if(player1->weaponsel->type == WEAP_KNIFE || (ads_gun(player1->weaponsel->type) && ads_classic_allowed(player1->weaponsel->type)))
 		player1->scoping = enable;
-	}
-	else if(ads_gun(player1->weaponsel->type) && ads_classic_allowed(player1->weaponsel->type)){
-		player1->scoping = enable;
-		addmsg(N_SCOPE, "ri", enable ? 1 : 0);
-	}
 	player1->delayedscope = player1->scoping;
 }
 

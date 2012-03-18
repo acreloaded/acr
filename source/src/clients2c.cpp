@@ -104,9 +104,9 @@ void parsepositions(ucharbuf &p)
 			vel.y = getfloat(p);
 			vel.z = getfloat(p);
 			pitchvel = getfloat(p);
-			int f = getuint(p), seqcolor = (f>>6)&1;
+			int f = getuint(p);
 			playerent *d = getclient(cn);
-			if(intermission || !d || d == player1 || isowned(d) || seqcolor!=(d->lifesequence&1)) continue;
+			if(intermission || !d || d == player1 || isowned(d) || ((f>>4)&1)!=(d->lifesequence&1)) continue;
 			vec oldpos(d->o);
 			float oldyaw = d->yaw, oldpitch = d->pitch;
 			d->o = o;
@@ -118,12 +118,12 @@ void parsepositions(ucharbuf &p)
 			d->strafe = (f&3)==3 ? -1 : f&3;
 			f >>= 2;
 			d->move = (f&3)==3 ? -1 : f&3;
-			f >>= 2;
-			d->onfloor = f&1;
-			f >>= 1;
-			d->onladder = f&1;
-			f >>= 2;
+			f >>= 3; // 2 + lifeseq
 			updatecrouch(d, f&1);
+			d->scoping = (f & 2) == 1;
+			d->onfloor = ads_gun(d->weaponsel->type) && (f & 4);
+			d->onladder = (f & 8) == 1;
+
 			updatepos(d);
 			updatelagtime(d);
 			extern int smoothmove, smoothdist;
@@ -512,15 +512,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				addmsg(N_SPAWN, "ri3f3", d->clientnum, d->lifesequence, d->weaponsel->type, d->o.x, d->o.y, d->o.z);
 				d->weaponswitch(d->primweap);
 				d->weaponchanging -= weapon::weaponchangetime/2;
-				break;
-			}
-
-			case N_SCOPE:
-			{
-				int cn = getint(p); playerent *d = getclient(cn);
-				bool scope = getint(p) != 0;
-				if(!d || d->state != CS_ALIVE || !ads_gun(d->weaponsel->type)) break;
-				d->scoping = scope;
 				break;
 			}
 

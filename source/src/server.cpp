@@ -3084,16 +3084,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				break;
 			}
 
-			case N_SCOPE:
-			{
-				bool scope = getint(p) != 0;
-				if(!cl->state.isalive(gamemillis) || !(ads_gun(cl->state.gunselect) && ads_classic_allowed(cl->state.gunselect)) || cl->state.scoping == scope) break;
-				cl->state.scoping = scope;
-				cl->state.scopemillis = gamemillis - ADSTIME + min(gamemillis - cl->state.scopemillis, ADSTIME);
-				sendf(-1, 1, "ri3x", N_SCOPE, sender, scope ? 1 : 0, sender);
-				break;
-			}
-
 			case N_SHOOT: // cn id weap to.dx to.dy to.dz heads.length heads.v
 			case N_SHOOTC: // cn id weap
 			{
@@ -3403,12 +3393,12 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				loopi(3) newaim[i] = getfloat(p);
 				loopi(3) newvel[i] = getfloat(p);
 				const float newpitchvel = getfloat(p);
-				const int f = getuint(p), seqcolor = (f>>6)&1;
+				const int f = getuint(p);
 				if(!valid_client(cn)) break;
 				client &cp = *clients[cn];
 				clientstate &cs = cp.state;
 				//if(broadcast && cs.state == CS_SPAWNING) cs.state = CS_ALIVE;
-				if(interm || !broadcast || (cs.state!=CS_ALIVE && cs.state!=CS_EDITING) || seqcolor!=(cs.lifesequence&1)) break;
+				if(interm || !broadcast || (cs.state!=CS_ALIVE && cs.state!=CS_EDITING) || ((f>>4)&1)!=(cs.lifesequence&1)) break;
 				// store location
 				cs.lasto = cs.o;
 				cs.lastomillis = gamemillis;
@@ -3417,16 +3407,26 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				cs.vel = newvel;
 				cs.pitchvel = newpitchvel;
 				// crouch
-				const bool newcrouching = (f>>7)&1;
+				const bool newcrouching = (f>>5)&1;
 				if(cs.crouching != newcrouching){
 					cs.crouching = newcrouching;
 					cs.crouchmillis = gamemillis - CROUCHTIME + min(gamemillis - cl->state.crouchmillis, CROUCHTIME);
+				}
+				// scoping
+				const bool newscoping = (f>>6)&1;
+				if(newscoping != cs.scoping){
+					if(!newscoping || (ads_gun(cl->state.gunselect) && ads_classic_allowed(cs.gunselect))){
+						cs.scoping = newscoping;
+						cl->state.scopemillis = gamemillis - ADSTIME + min(gamemillis - cl->state.scopemillis, ADSTIME);
+					}
+					// else
+					// clear the scope from the packet?
 				}
 				// alive block
 				if(cs.state==CS_ALIVE)
 				{
 					// deal falling damage
-					const bool newonfloor = (f>>4)&1, newonladder = (f>>5)&1;
+					const bool newonfloor = (f>>7)&1, newonladder = (f>>8)&1;
 					if((newonfloor || newonladder) && !cs.onfloor){
 						if(newonfloor){
 							// 4 meters without damage + 2/0.5 HP/meter
