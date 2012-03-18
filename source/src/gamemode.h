@@ -42,7 +42,7 @@ enum // game mutators
 	G_M_SNIPER = 1 << 6, G_M_PISTOL = 1 << 7, G_M_GIB = 1 << 8, G_M_KNIFE = 1 << 9, // alters weapons mostly
 	G_M_GSP1 = 1 << 10, // game-specific
 
-	G_M_GAMEPLAY = G_M_TEAM|G_M_CLASSIC|G_M_CONVERT,
+	G_M_GAMEPLAY = G_M_TEAM|G_M_CLASSIC|G_M_CONFIRM|G_M_CONVERT,
 	G_M_DAMAGE = G_M_REAL|G_M_EXPERT,
 	G_M_WEAPON = G_M_SNIPER|G_M_PISTOL|G_M_GIB|G_M_KNIFE,
 
