@@ -123,6 +123,13 @@ void renderentities()
 			}
 		}
 	}
+	/*if(m_confirm(gamemode, mutators))*/ loopv(confirms){
+		// unconfirmed kills
+		const int fixteam = player1->team == TEAM_SPECT ? TEAM_BLUE : player1->team;
+		float z = (float)(1+sinf(lastmillis/100.0f+confirms[i].o.x+confirms[i].o.y)/20),
+			yaw = lastmillis/10.0f;
+		rendermodel(fixteam == confirms[i].team ? "pickups/flags/ktf" : "pickups/flags/RED_htf", ANIM_FLAG|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(confirms[i].o.x, confirms[i].o.y, z+S((int)confirms[i].o.x, (int)confirms[i].o.y)->floor), yaw, 0);
+	}
 	if(m_affinity(gamemode)) loopi(2)
 	{
 		flaginfo &f = flaginfos[i];
