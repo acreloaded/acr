@@ -1320,10 +1320,12 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	bool suic = false;
 	
 	// only things on target team that changes
-	++steamscores[target->team].deaths;
-	steamscores[target->team].points += DEATHPT;
-	// commit
-	if(actor->team != target->team) sendteamscore(target->team);
+	if(!m_confirm(gamemode, mutators)){
+		++steamscores[target->team].deaths;
+		// commit, if needed
+		if(actor->team != target->team)
+			sendteamscore(target->team);
+	}
 	// apply to individual
 	++target->state.deaths;
 	addpt(target, DEATHPT);
@@ -1398,10 +1400,16 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	int earnedpts = killpoints(target, actor, gun, style);
 	if(m_confirm(gamemode, mutators)){
 		// create confirm object?
+		if(earnedpts > 0 || kills > 0){
+			// c.team = actor->team;
+			// c.points = max(0, earnedpts);
+			// c.frags = max(0, kills);
+			// c.death = target->team;
+		}
 	}
 	else{
-		steamscores[actor->team].points += earnedpts;
-		steamscores[actor->team].frags += kills;
+		if(earnedpts > 0) steamscores[actor->team].points += earnedpts;
+		if(kills > 0) steamscores[actor->team].frags += kills;
 	}
 	// assists/tk-deaths
 	sendteamscore(actor->team); // last team score change

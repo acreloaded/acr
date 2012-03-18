@@ -463,7 +463,7 @@ mutstypes mutstype[G_M_NUM] = {
 		"classic",
 	},
 	{
-		G_M_CONFIRM, G_M_CONFIRM,
+		G_M_CONFIRM, G_M_CONFIRM|G_M_TEAM, // confirm forces team
 		G_M_ALL,
 		"confirm",
 	},
