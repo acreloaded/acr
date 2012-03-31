@@ -173,16 +173,25 @@ VARP(showscoresondeath, 0, 1, 1);
 VARP(noob, 0, 0, 1); // pretty useless, just doubles level-up rate
 VARFP(level, 1, 1, MAXLEVEL, addexp(0));
 VARFP(experience, 0, 0, MAXEXP, addexp(0));
+int lastexpadd = INT_MIN, lastexpaddamt = 0;
 void addexp(int xp){
+	if(xp){
+		if(lastmillis <= lastexpadd + 1000)
+			lastexpaddamt += xp;
+		else
+			lastexpaddamt = xp;
+		lastexpadd = lastmillis;
+	}
+	// no boost from negative points
+	if(xp < 0)
+		return;
 	xp = xp * xp * (noob ? 2 : 1);
-	#define xpfactor clamp(level, 1, 20)
-	float factor = xpfactor; // factor to reduce experience collection
-	experience += fabs(xp / factor);
+	#define xpfactor ((float)clamp(level, 1, 20))
+	experience += fabs((float)xp / xpfactor);
 	if(experience >= MAXEXP){
 		level = clamp(level + 1, 1, MAXLEVEL);
 		addmsg(N_LEVELUP, "r");
-		factor = xpfactor;
-		experience = max(0.f, (experience - MAXEXP) / factor);
+		experience = max(0.f, (experience - MAXEXP) / xpfactor);
 	}
 	#undef xpfactor
 }
