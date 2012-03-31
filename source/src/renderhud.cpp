@@ -841,9 +841,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	}
 
 	extern int lastexpadd, lastexpaddamt;
-	if(lastmillis <= lastexpadd + 1000){
+	if(lastmillis <= lastexpadd + COMBOTIME){
 		defformatstring(scoreaddtxt)("\f%c%+d", !lastexpaddamt ? '4' : lastexpaddamt >= 0 ? '2' : '3', lastexpaddamt);
-		const short a = (lastexpadd + 1000 - lastmillis) * 255 / 1000;
+		const short a = (lastexpadd + COMBOTIME - lastmillis) * 255 / COMBOTIME;
 		draw_text(scoreaddtxt, VIRTW*11/20, VIRTH*9/20, a, a, a, a);
 	}
 

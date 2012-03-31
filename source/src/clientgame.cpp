@@ -176,7 +176,7 @@ VARFP(experience, 0, 0, MAXEXP, addexp(0));
 int lastexpadd = INT_MIN, lastexpaddamt = 0;
 void addexp(int xp){
 	if(xp){
-		if(lastmillis <= lastexpadd + 1000)
+		if(lastmillis <= lastexpadd + COMBOTIME)
 			lastexpaddamt += xp;
 		else
 			lastexpaddamt = xp;
