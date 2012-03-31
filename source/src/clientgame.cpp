@@ -975,8 +975,8 @@ const char *votestring(int type, const votedata &vote)
 		case SA_REVOKE: // int1
 		case SA_GIVEROLE: // int1, int2
 		{
-			const char priv = (type == SA_GIVEROLE ? vote.int1 : p->priv);
 			playerent *p = getclient(vote.int2);
+			const char priv = (type == SA_GIVEROLE ? vote.int1 : p->priv);
 			if(p) formatstring(out)(
 				type == SA_GIVEROLE ? "\f0give \f%d%s \f5to player %s" :
 				type == SA_REVOKE ? "revoke \fs\f%d%s\fr from %s" :
