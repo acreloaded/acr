@@ -113,7 +113,7 @@ const char *colorname(playerent *d, bool stats)
 const char *colorping(int ping)
 {
 	static string cping;
-	if(multiplayer(false)) formatstring(cping)("\fs\f%d%d\fr", ping <= 500 ? 0 : ping <= 1000 ? 2 : 3, ping);
+	if(multiplayer(false)) formatstring(cping)("\fs\f%d%d\fr", ping <= 190 ? 0 : ping <= 300 ? 2 : 3, ping);
 	else formatstring(cping)("%d", ping);
 	return cping;
 }
