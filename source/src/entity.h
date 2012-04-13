@@ -414,7 +414,8 @@ struct playerstate
 			mag[primary] = magsize(primary);
 		}
 
-		if(!m_noitems(gamemode, mutators)) mag[WEAP_GRENADE] = ammostats[WEAP_GRENADE].start;
+		if(!m_noitems(gamemode, mutators) && !m_noitemsnade(gamemode, mutators))
+			mag[WEAP_GRENADE] = ammostats[WEAP_GRENADE].start;
 
 		gunselect = primary;
 
