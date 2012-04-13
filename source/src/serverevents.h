@@ -39,7 +39,7 @@ void destroyevent::process(client *ci)
 					o.z = ts.o.z > cubefloor ? (cubefloor + ts.o.z) / 2 : cubefloor;
 
 					// bleeding damage
-					if(!m_zombie(gamemode) || !isteam(&c, hit)){
+					if(!m_zombie(gamemode) && !isteam(&c, hit)){
 						target.state.addwound(c.clientnum, o);
 						sendf(-1, 1, "ri2", N_BLEED, target.clientnum);
 					}
