@@ -231,7 +231,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<head_t> &h, int w
 	// we hit somebody
 	if(hit && damage){
 		// damage multipliers
-		if(!m_classic(gamemode, mutators)) switch(hitzone){
+		if(!m_classic(gamemode, mutators) || hitzone >= HIT_HEAD) switch(hitzone){
 			case HIT_HEAD: if(m_zombies_rounds(gamemode, mutators)) damage *= 7; else damage *= muls[mulset].head; break;
 			case HIT_TORSO: damage *= muls[mulset].torso; break;
 			case HIT_LEG: default: damage *= muls[mulset].leg; break;
