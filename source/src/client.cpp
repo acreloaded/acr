@@ -212,7 +212,7 @@ void saytext(playerent *d, char *text, int flags, int sound){
 void toserver(char *text, int voice, bool action){
 	if(!text || !*text) return;
 	bool toteam = *text == '%' && strlen(text) > 1;
-	if(*text == '%') text++;
+	if(*text == '%') ++text;
 	addmsg(N_TEXT, "ris", (voice & 0x1F) | (((action ? SAY_ACTION : 0) | (toteam ? SAY_TEAM : 0)) << 5), text);
 }
 
