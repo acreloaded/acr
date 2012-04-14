@@ -182,7 +182,7 @@ void nuke(client &owner){
 	vector<nukehit> hits;
 	loopvj(clients){
 		client *cl = clients[j];
-		if(cl->type != ST_EMPTY && cl != &owner){
+		if(cl->type != ST_EMPTY && cl->team != TEAM_SPECT && cl != &owner){
 			cl->state.state = CS_ALIVE;
 			// sort hits
 			nukehit &hit = hits.add();
