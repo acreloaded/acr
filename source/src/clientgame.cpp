@@ -1220,7 +1220,7 @@ void refreshsopmenu(void *menu, bool init)
 		mline &m = mlines.add();
 		copystring(m.name, colorname(p[i]));
 		formatstring(m.cmd)("%s %d", menu==kickmenu ? "kick" : (menu==banmenu ? "ban 10" : (menu==forceteammenu ? "forceteam" : (menu==revokemenu ? "revoke" : (menu==giveadminmenu ? "giverole" : (menu==whoismenu ? "whois" : (menu==spectmenu ? "forcespect" : "unknownplayeraction")))))), p[i]->clientnum);
-		if(menu==kickmenu && getalias("_kickbanreason")!=NULL) formatstring(m.cmd)("%s [ %s ]", m.cmd, getalias("_kickbanreason"));
+		if((menu==kickmenu||menu==banmenu) && getalias("_kickbanreason")!=NULL) formatstring(m.cmd)("%s \"%s\"", m.cmd, getalias("_kickbanreason"));
 		menumanual(menu, m.name, m.cmd);
 	}
 }
