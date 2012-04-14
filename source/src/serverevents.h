@@ -123,8 +123,8 @@ void shotevent::process(client *ci)
 		case WEAP_BOW: // explosive tip is stuck to a player
 		{
 			int hitzone = HIT_NONE;
-			client *hit = nearesthit(c, from, to, hitzone, heads, &c);
-			vec expc; // explosion center
+			vec expc;
+			client *hit = nearesthit(c, from, to, hitzone, heads, &c, &expc);
 			if(hit){
 				int dmg = HEALTHSCALE;
 				if(hitzone == HIT_HEAD){
@@ -135,8 +135,11 @@ void shotevent::process(client *ci)
 					dmg *= m_zombies_rounds(gamemode, mutators) ? (hitzone * 75) : (50);
 				damagedealt += dmg;
 				sendhit(c, WEAP_BOW, to, dmg); // blood, not explosion
+				/*
 				expc = hit->state.o;
 				serverdamage(hit, &c, dmg, WEAP_BOW, FRAG_GIB, hit->state.o);
+				*/
+				serverdamage(hit, &c, dmg, WEAP_BOW, FRAG_GIB, expc);
 			}
 			else (expc = to).sub(from).normalize().mul(to.dist(from) - .01f).add(from);
 			// instant explosion
