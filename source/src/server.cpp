@@ -1019,7 +1019,7 @@ void arenacheck(){
 	loopv(clients) if(clients[i]->type != ST_EMPTY)
 		addpt(clients[i],
 			clients[i]->state.state != CS_ALIVE ?
-			(alive && isteam(alive, clients[i])) ? ARENAWINDPT : // his team wins
+			(alive && isteam(alive, clients[i])) ? ARENAWINDPT : // his team wins, but he's dead
 			ARENALOSEPT : // he died
 			ARENAWINPT // he survives
 		);
