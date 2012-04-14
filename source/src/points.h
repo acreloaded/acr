@@ -63,7 +63,7 @@ int killpoints(const client *target, client *actor, int gun, int style, bool ass
 				if (m_capture(gamemode) && clienthasflag(target->clientnum) >= 0) gain += CTFFRAGPT;
 			} else gain += BONUSPT;
 			if (style & FRAG_GIB) {
-				if (gun == WEAP_KNIFE || gun != WEAP_GRENADE) gain += KNIFENADEPT;
+				if (melee_weap(gun) || gun == WEAP_GRENADE) gain += KNIFENADEPT;
 				else if (gun == WEAP_SHOTGUN) gain += SHOTGPT;
 				else if (isheadshot(gun, style)) gain += HEADSHOTPT;
 				else gain += GIBPT;
