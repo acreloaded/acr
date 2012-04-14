@@ -934,8 +934,6 @@ int sword::flashtime() const { return 0; }
 
 // crossbow
 
-vector<cstick> sticks;
-
 crossbow::crossbow(playerent *owner) : gun(owner, WEAP_BOW) {}
 bool crossbow::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && this == owner->primweap; }
 int crossbow::modelanim(){

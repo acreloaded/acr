@@ -283,8 +283,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					c.team = getint(p);
 					loopi(3) c.o[i] = getfloat(p);
 				}
-
-				sticks.setsize(0);
 				break;
 			}
 
@@ -323,19 +321,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_BLEED:
 			{
 				playerent *d = getclient(getint(p));
-				if(d) d->addicon(eventicon::BLEED);
-				break;
-			}
-
-			case N_STICK:
-			{
-				int cn = getint(p);
-				cstick &s = sticks.add();
-				s.cn = cn;
-				s.millis = totalmillis + TIPSTICKTTL;
-				s.lastlight = 0;
-				if(cn < 0) loopi(3) s.o[i] = getfloat(p);
-				playerent *d = getclient(cn);
 				if(d) d->addicon(eventicon::BLEED);
 				break;
 			}
@@ -1329,7 +1314,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					p->team = fnt;
 					// client version of removeexplosives()
 					removebounceents(p);
-					loopv(sticks) if(sticks[i].cn == cn) sticks.remove(i--);
                 }
 				break;
 			}

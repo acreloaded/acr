@@ -898,12 +898,6 @@ struct cknife{
 
 extern vector<cknife> knives;
 
-struct cstick{
-	int millis, cn, lastlight;
-	vec o;
-};
-extern vector<cstick> sticks;
-
 struct cconfirm{
 	int id, team;
 	vec o;

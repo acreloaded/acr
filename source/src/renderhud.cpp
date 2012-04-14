@@ -1194,21 +1194,7 @@ void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, 
 void renderhudwaypoints(playerent *p){
 	// throwing knife pickups
 	loopv(knives) renderwaypoint(WP_KNIFE, knives[i].o, (float)(knives[i].millis - totalmillis) / KNIFETTL, p->perk == PERK_VISION);
-	// pending stuck crossbow shots
-	loopv(sticks){
-		if(sticks[i].millis < totalmillis) sticks.remove(i--);
-		else{
-			playerent *stuck = getclient(sticks[i].cn);
-			vec o(stuck ? stuck->o : sticks[i].o);
-			const float flashfactor = float(sticks[i].millis - totalmillis) / TIPSTICKTTL * 350 + 200;
-			renderwaypoint(WP_EXP, o, fabs(sinf((totalmillis % 10000) / flashfactor)), p->perk == PERK_VISION);
-			if(sticks[i].lastlight < lastmillis){
-				const int nextflash = flashfactor;
-				adddynlight(stuck, o, 8, nextflash, nextflash, 12, 192, 16);
-				sticks[i].lastlight = lastmillis + nextflash;
-			}
-		}
-	}
+	// vision perk
 	if(p->perk == PERK_VISION) loopv(bounceents){
 		bounceent *b = bounceents[i];
 		if(!b || (b->bouncetype != BT_NADE && b->bouncetype != BT_KNIFE)) continue;

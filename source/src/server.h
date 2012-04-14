@@ -61,11 +61,13 @@ struct destroyevent : timedevent
 };
 
 // unordered
+/*
 struct bowevent : timedevent
 {
 	vec o;
 	void process(client *ci);
 };
+*/
 
 struct healevent : timedevent
 {
@@ -246,7 +248,6 @@ struct client				   // server side version of "dynent" type
 	clientstate state;
 	vector<timedevent *> events;
 	vector<healevent> heals;
-	vector<bowevent> bows;
 	vector<uchar> position, messages;
 	string lastsaytext;
 	int saychars, lastsay, spamcount;
@@ -278,7 +279,6 @@ struct client				   // server side version of "dynent" type
 	void removeexplosives() {
 		state.grenades.reset(); // remove active/flying nades
 		state.knives.reset(); // remove active/flying knives (usually useless, since knives are fast)
-		loopv(bows) bows[i].valid = false; // to remove stuck crossbows
 		// remove all dealt wounds
 		extern vector<client *> clients;
 		loopv(clients){
@@ -301,7 +301,6 @@ struct client				   // server side version of "dynent" type
 		state.reset();
 		events.deletecontents();
 		heals.setsize(0);
-		bows.setsize(0);
 		overflow = 0;
 		timesync = false;
 		isonrightmap = m_edit(gamemode);
@@ -695,7 +694,7 @@ const char *messagenames(int n){
 		// game events
 		"N_SHOOT", "N_SHOOTC", "N_PROJ", "N_AKIMBO", "N_RELOAD", // clients to server events
 		"N_SG", "N_SUICIDE", "N_QUICKSWITCH", "N_SWITCHWEAP", "N_LOADOUT", "N_THROWNADE", "N_THROWKNIFE", // server directly handled
-		"N_RICOCHET", "N_POINTS", "N_KILL", "N_DAMAGE", "N_REGEN", "N_HEAL", "N_KNIFEADD", "N_KNIFEREMOVE", "N_BLEED", "N_STICK", "N_STREAKREADY", "N_STREAKUSE", // server to client
+		"N_RICOCHET", "N_POINTS", "N_KILL", "N_DAMAGE", "N_REGEN", "N_HEAL", "N_KNIFEADD", "N_KNIFEREMOVE", "N_BLEED", "N_STREAKREADY", "N_STREAKUSE", // server to client
 		// gameplay
 		"N_TRYSPAWN", "N_SPAWNSTATE", "N_SPAWN", "N_FORCEDEATH", "N_FORCEGIB", // spawning
 		"N_ITEMSPAWN", "N_ITEMACC", // items

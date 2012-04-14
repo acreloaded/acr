@@ -124,6 +124,7 @@ void shotevent::process(client *ci)
 		{
 			int hitzone = HIT_NONE;
 			client *hit = nearesthit(c, from, to, hitzone, heads, &c);
+			vec expc; // explosion center
 			if(hit){
 				int dmg = HEALTHSCALE;
 				if(hitzone == HIT_HEAD){
@@ -134,20 +135,14 @@ void shotevent::process(client *ci)
 					dmg *= m_zombies_rounds(gamemode, mutators) ? (hitzone * 75) : (50);
 				damagedealt += dmg;
 				sendhit(c, WEAP_BOW, to, dmg); // blood, not explosion
+				expc = hit->state.o;
 				serverdamage(hit, &c, dmg, WEAP_BOW, FRAG_GIB, hit->state.o);
-				if(hit->state.state != CS_ALIVE){
-					to = hit->state.o;
-					hit = NULL; // warning
-				}
 			}
-			if(hit) sendf(-1, 1, "ri2", N_STICK, hit->clientnum);
-			else sendf(-1, 1, "ri2f3", N_STICK, -1, to.x, to.y, to.z);
-			// timed explosion
-			bowevent b;
-			b.millis = gamemillis + TIPSTICKTTL;
-			b.id = hit ? hit->clientnum : -1;
-			(b.o = to).sub(from).normalize().mul(to.dist(from) - .01f).add(from);
-			if(c.bows.length()<128) c.bows.add(b);
+			else (expc = to).sub(from).normalize().mul(to.dist(from) - .01f).add(from);
+			// instant explosion
+			int bowexplodedmgdealt = explosion(*ci, expc, WEAP_BOW, false);
+			gs.damage += bowexplodedmgdealt;
+			gs.shotdamage += max<int>(effectiveDamage(WEAP_BOW, 0), bowexplodedmgdealt);
 			break;
 		}
 		case WEAP_HEAL: // healing a player
@@ -249,12 +244,6 @@ void akimboevent::process(client *ci){
 }
 
 // unordered
-void bowevent::process(client *ci){
-	vec o((valid_client(id) && clients[id]->state.lastdeath + TIPSTICKTTL < millis) ? clients[id]->state.o : o);
-	int bowexplodedmgdealt = explosion(*ci, o, WEAP_BOW, false);
-	ci->state.damage += bowexplodedmgdealt;
-	ci->state.shotdamage += max<int>(effectiveDamage(WEAP_BOW, 0), bowexplodedmgdealt);
-}
 
 void healevent::process(client *ci){
 	const int heal = hp * HEALTHSCALE, todo = MAXHEALTH - ci->state.health;
@@ -356,6 +345,5 @@ void processevents(){
 			}
 		if(c.state.health >= MAXHEALTH || c.state.state != CS_ALIVE) c.heals.shrink(0);
 		else processtimer(heal);
-		processtimer(bow);
 	}
 }
