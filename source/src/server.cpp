@@ -1030,10 +1030,12 @@ void arenacheck(){
 		refillteams(true);
 }
 
-#define SPAMREPEATINTERVAL  20   // detect doubled lines only if interval < 20 seconds
-#define SPAMMAXREPEAT	   3	// 4th time is SPAM
-#define SPAMCHARPERMINUTE   220  // good typist
-#define SPAMCHARINTERVAL	30   // allow 20 seconds typing at maxspeed
+#define SPAMREPEATINTERVAL  20    // detect doubled lines only if interval < 20 seconds
+#define SPAMMAXREPEAT        3    // 4th time is SPAM
+#define SPAMCHARPERMINUTE  220    // good typist
+#define SPAMCHARINTERVAL    30    // allow 20 seconds typing at maxspeed
+
+#define SPAMTHROTTLE       800    // disallow messages before this delay from the last message (milliseconds)
 
 bool spamdetect(client *cl, char *text) // checks doubled lines and average typing speed
 {
@@ -1041,6 +1043,7 @@ bool spamdetect(client *cl, char *text) // checks doubled lines and average typi
 	bool spam = false;
 	int pause = servmillis - cl->lastsay;
 	if(pause < 0 || pause > 90*1000) pause = 90*1000;
+	else if(pause < SPAMTHROTTLE) return true;
 	cl->saychars -= (SPAMCHARPERMINUTE * pause) / (60*1000);
 	cl->saychars += (int)strlen(text);
 	if(cl->saychars < 0) cl->saychars = 0;
