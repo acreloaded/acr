@@ -2874,15 +2874,17 @@ void checkmove(client &cp){
 	// kill confirmed
 	loopv(sconfirms) if(sconfirms[i].o.dist(cs.o) < 5){
 		if(cp.team == sconfirms[i].team){
+			addpt(&cp, KCKILLPTS);
 			steamscores[sconfirms[i].team].points += sconfirms[i].points;
 			steamscores[sconfirms[i].team].frags += sconfirms[i].frag;
 			++steamscores[sconfirms[i].death].deaths;
 
 			sendteamscore(sconfirms[i].team);
-			if(sconfirms[i].team != sconfirms[i].death) sendteamscore(sconfirms[i].death);
+			if(sconfirms[i].team != sconfirms[i].death)
+				sendteamscore(sconfirms[i].death);
 		}
 		// else
-		// award deny pts?
+		addpt(&cp, KCDENYPTS);
 
 		sendf(-1, 1, "ri2", N_CONFIRMREMOVE, sconfirms[i].id);
 		sconfirms.remove(i--);

@@ -37,7 +37,10 @@
 
 #define ARENAWINPT  20                              // player survives the arena round
 #define ARENAWINDPT 15                              // player's team won the arena round
-#define ARENALOSEPT 1                              // player lost the arena round
+#define ARENALOSEPT 1                               // player lost the arena round
+
+#define KCKILLPTS   3                               // player confirms a kill for himself or his teammate
+#define KCDENYPTS   2                               // player prevents the enemy from scoring KC points
 
 // server point tools
 
