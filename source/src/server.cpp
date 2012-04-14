@@ -1328,6 +1328,17 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	clientstate &ts = target->state;
 	const bool gib = style & FRAG_GIB;
 
+	if(actor == target && ts.damagelog.length()){
+		loopv(ts.damagelog)
+			if(valid_client(ts.damagelog[i]) && !isteam(target, clients[ts.damagelog[i]])){
+				actor = clients[ts.damagelog[i]];
+				style = isheadshot(gun, style) ? FRAG_GIB : FRAG_NONE;
+				gun = WEAP_MAX + 3;
+				ts.damagelog.remove(i/*--*/);
+				break;
+			}
+	}
+
 	int targethasflag = clienthasflag(target->clientnum);
 	bool suic = false;
 	
@@ -1540,7 +1551,7 @@ void cheat(client *cl, const char *reason = "unknown"){
 	logline(ACLOG_INFO, "[%s] %s cheat detected (%s)", gethostname(cl->clientnum), formatname(cl), reason);
 	defformatstring(cheats)("\f2%s \fs\f6(%d) \f3cheat detected \f4(%s)", cl->name, cl->clientnum, reason);
 	sendservmsg(cheats);
-	cl->suicide(WEAP_MAX+5, FRAG_GIB);
+	cl->suicide(WEAP_MAX + 5, FRAG_GIB);
 }
 
 #include "serverevents.h"
@@ -2777,7 +2788,7 @@ void checkmove(client &cp){
 		}
 		char drownstate = (gamemillis - cs.drownmillis) / 1000;
 		while(cs.drownval < drownstate){
-			serverdamage(&cp, &cp, powf(++cs.drownval, 7.f)/1000000, WEAP_MAX+1, FRAG_NONE, cs.o);
+			serverdamage(&cp, &cp, powf(++cs.drownval, 7.f)/1000000, WEAP_MAX + 1, FRAG_NONE, cs.o);
 			if(cs.state != CS_ALIVE) return; // dead!
 		}
 	}

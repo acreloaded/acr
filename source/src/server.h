@@ -855,7 +855,7 @@ const bool isheadshot(int weapon, int style){
 			if(style & FRAG_FLAG) break; // these weapons headshot if FRAG_FLAG is set
 		case WEAP_BOW:
 		case WEAP_MAX:
-		case WEAP_MAX+5:
+		case WEAP_MAX + 5:
 			return false; // these weapons cannot headshot
 	}
 	// headshot = gib if otherwise
@@ -870,6 +870,7 @@ const int toobit(int weap, int style){
 		case WEAP_BOW: return gib ? OBIT_BOW_IMPACT : flag ? OBIT_BOW_STUCK : WEAP_BOW;
 		case WEAP_GRENADE: return gib ? WEAP_GRENADE : OBIT_AIRSTRIKE;
 		case WEAP_MAX: return OBIT_NUKE;
+		case WEAP_MAX + 3: return OBIT_FF; // assisted suicide
 	}
 	return weap < WEAP_MAX ? weap : OBIT_DEATH;
 }
@@ -929,6 +930,9 @@ const char *killname(int obit, bool headshot){
 			break;
 		case OBIT_AIRSTRIKE:
 			concatstring(k, "bombarded");
+			break;
+		case OBIT_FF:
+			concatstring(k, headshot ? "helped" : "assisted");
 			break;
 		case OBIT_NUKE:
 			concatstring(k, "nuked");

@@ -432,8 +432,9 @@ struct playerstate
 	int dodamage(int damage, bool penetration){
 		int ad = penetration ? 0 : damage*3/10; // let armor absorb when possible
 		if(ad>armor) ad = armor;
-		armor -= ad;
 		damage -= ad;
+		// apply it!
+		armor -= ad;
 		health -= damage;
 		return damage;
 	}
