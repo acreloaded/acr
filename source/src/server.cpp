@@ -2809,6 +2809,7 @@ void checkmove(client &cp){
 		sendf(-1, 1, "ri4", N_ITEMACC, i, sender, e.spawntime = spawntime(e.type));
 		if(sents[i].type == I_HEALTH && !m_onslaught(gamemode, mutators) && cs.wounds.length()){
 			if(cp.type != ST_AI) sendmsg(30, sender);
+			addpt(&cp, HEALWOUNDPT * cs.wounds.length());
 			cs.wounds.shrink(0);
 		}
 		cs.pickup(sents[i].type);

@@ -34,6 +34,7 @@
 #define FLAGTKPT     -2*(10+cnumber)               // player tks the flag keeper/stealer
 #define ASSISTMUL 0.225f                           // multiply reward by this for assisters
 #define ASSISTRETMUL 0.125f                        // multiply assisters' rewards and return to original damager
+#define HEALWOUNDPT    4                           // player heals his wound or wounds, times the number of his wounds
 
 #define ARENAWINPT  20                              // player survives the arena round
 #define ARENAWINDPT 15                              // player's team won the arena round
