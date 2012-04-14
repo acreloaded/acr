@@ -1039,7 +1039,6 @@ void arenacheck(){
 
 bool spamdetect(client *cl, char *text) // checks doubled lines and average typing speed
 {
-	if(cl->type != ST_TCPIP || cl->priv >= PRIV_ADMIN) return false;
 	bool spam = false;
 	int pause = servmillis - cl->lastsay;
 	if(pause < 0 || pause > 90*1000) pause = 90*1000;
@@ -1076,12 +1075,13 @@ void sendtext(char *text, client &cl, int flags, int voice){
 		formatstring(logappend)("[%d] ", voice + S_MAINEND);
 		concatstring(logmsg, logappend);
 	}
-	if(spamdetect(&cl, text)){
+	if(cl.type != ST_TCPIP || cl.priv >= PRIV_ADMIN);
+	else if(spamdetect(&cl, text)){
 		logline(ACLOG_VERBOSE, "%s, SPAM detected", logmsg);
 		sendf(cl.clientnum, 1, "ri4s", N_TEXT, cl.clientnum, 0, SAY_DENY, text);
 		return;
 	}
-	else if(false){
+	else if(cl.muted){
 		logline(ACLOG_VERBOSE, "%s, MUTED", logmsg);
 		sendf(cl.clientnum, 1, "ri4s", N_TEXT, cl.clientnum, 0, SAY_MUTE, text);
 		return;

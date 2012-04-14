@@ -233,7 +233,7 @@ struct client				   // server side version of "dynent" type
 	ENetPeer *peer;
 	string hostname;
 	string name;
-	int ping, team, skin, vote, priv;
+	int ping, team, skin, vote, priv; bool muted;
 	int connectmillis;
 	bool connected, connectauth;
 	int authtoken, authmillis, authpriv, masterverdict, guid; uint authreq;
@@ -325,6 +325,7 @@ struct client				   // server side version of "dynent" type
 		spawnindex = -1;
 		mapchange();
 		priv = PRIV_NONE;
+		muted = false;
 		authpriv = -1;
 		guid = 0;
 		masterverdict = DISC_NONE;
@@ -334,6 +335,7 @@ struct client				   // server side version of "dynent" type
 	{
 		type = ST_EMPTY;
 		priv = PRIV_NONE;
+		muted = false;
 		authpriv = -1;
 		guid = 0;
 		masterverdict = DISC_NONE;

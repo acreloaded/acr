@@ -134,6 +134,12 @@ bool answerchallenge(int cn, int *hash){
 	return true;
 }
 
+void mastermute(int cn){
+	if(!valid_client(cn)) return;
+	client &ci = *clients[cn];
+	ci.muted = true;
+}
+
 void masterverdict(int cn, int result){
 	if(!valid_client(cn)) return;
 	client &ci = *clients[cn];

@@ -228,9 +228,13 @@ void checkmasterreply()
 				bool error = true;
 				if(*tp == 'a' || *tp == 'b'){ // verdict: allow/ban connect
 					if(currentmsrequest && currentmsrequest->type == MSR_CONNECT && currentmsrequest->c){
+						extern void mastermute(int cn);
 						extern void masterverdict(int cn, int result);
 						int verdict = DISC_NONE;
 						if(*tp == 'b') switch(*++tp){
+							case 'm': // muted and not allowed to speak
+								mastermute(currentmsrequest->c->cn);
+								// fallthrough
 							case 'w': // nickname whitelisted, not actually a banned verdict
 								verdict = DISC_NONE;
 								break;
