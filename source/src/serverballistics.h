@@ -127,6 +127,7 @@ int radialeffect(client &owner, client &target, vector<explosivehit> &hits, cons
 	if(weap == WEAP_GRENADE && owner.clientnum != target.clientnum && o.z >= target.state.o.z){
 		expflags |= FRAG_FLAG;
 		sendheadshot(o, target.state.o, dmg);
+		dmg *= 1.2f;
 	}
 	else if(weap == WEAP_BOW && !dist)
 		expflags |= FRAG_FLAG;
