@@ -113,7 +113,7 @@ void shotevent::process(client *ci)
 	if(weap == WEAP_SHOTGUN){
 		loopi(SGRAYS) damagepotential += effectiveDamage(weap, vec(gs.sg[i]).dist(gs.o));
 	}
-	else if(weap == WEAP_KNIFE) damagepotential = guns[WEAP_KNIFE].damage; // melee damage
+	else if(melee_weap(weap)) damagepotential = guns[weap].damage; // melee damage
 	else if(weap == WEAP_BOW) damagepotential = 50; // potential stick damage
 	else if(weap == WEAP_GRENADE) damagepotential = 0;
 	else damagepotential = effectiveDamage(weap, to.dist(gs.o));

@@ -237,7 +237,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<head_t> &h, int w
 			case HIT_LEG: default: damage *= muls[mulset].leg; break;
 		}
 		// gib check
-		const bool gib = weap == WEAP_KNIFE || hitzone == HIT_HEAD;
+		const bool gib = melee_weap(weap) || hitzone == HIT_HEAD;
 		if(gib) style |= FRAG_GIB;
 		// critical shots
 		if(checkcrit(dist, 2.5)){

@@ -849,6 +849,7 @@ const bool isheadshot(int weapon, int style){
 	if(!(style & FRAG_GIB)) return false; // only headshots gib
 	switch(weapon){
 		case WEAP_KNIFE:
+		case WEAP_SWORD:
 		case WEAP_GRENADE:
 			if(style & FRAG_FLAG) break; // these weapons headshot if FRAG_FLAG is set
 		case WEAP_BOW:
