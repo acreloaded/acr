@@ -196,6 +196,10 @@ void saytext(playerent *d, char *text, int flags, int sound){
 		textcolor = 2; // denied yellow
 		concatformatstring(text, " \f3%s", _("spam_detected"));
 	}
+	else if(flags&SAY_MUTE){
+		textcolor = 2; // denied yellow
+		concatformatstring(text, " \f3%s", "MUTED BY THE SERVER");
+	}
 	string textout;
 	// nametag
 	defformatstring(nametag)("\f%d%s", team_rel_color(player1, d), colorname(d));

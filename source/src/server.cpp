@@ -1078,7 +1078,12 @@ void sendtext(char *text, client &cl, int flags, int voice){
 	}
 	if(spamdetect(&cl, text)){
 		logline(ACLOG_VERBOSE, "%s, SPAM detected", logmsg);
-		sendf(cl.clientnum, 1, "ri3s", N_TEXT, cl.clientnum, SAY_DENY << 5, text);
+		sendf(cl.clientnum, 1, "ri4s", N_TEXT, cl.clientnum, 0, SAY_DENY, text);
+		return;
+	}
+	else if(false){
+		logline(ACLOG_VERBOSE, "%s, MUTED", logmsg);
+		sendf(cl.clientnum, 1, "ri4s", N_TEXT, cl.clientnum, 0, SAY_MUTE, text);
 		return;
 	}
 	logline(ACLOG_INFO, "[%s] %s%s", gethostname(cl.clientnum), logmsg, text);
@@ -1086,7 +1091,8 @@ void sendtext(char *text, client &cl, int flags, int voice){
 	ucharbuf p(packet->data, packet->dataLength);
 	putint(p, N_TEXT);
 	putint(p, cl.clientnum);
-	putint(p, (voice & 0x1F) | flags << 5);
+	putint(p, voice);
+	putint(p, flags);
 	sendstring(text, p);
 	enet_packet_resize(packet, p.length());
 	loopv(clients) if(clients[i]->type != ST_AI && clients[i]->type != ST_EMPTY && (!(flags&SAY_TEAM) || clients[i]->team == cl.team || clients[i]->priv >= PRIV_ADMIN)) sendpacket(i, 1, packet);

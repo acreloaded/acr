@@ -885,7 +885,7 @@ struct servercommandline
 
 // chat
 
-enum { SAY_TEXT = 0, SAY_TEAM = 1 << 0, SAY_ACTION = 1 << 1, SAY_DENY = 1 << 2 };
+enum { SAY_TEXT = 0, SAY_TEAM = 1 << 0, SAY_ACTION = 1 << 1, SAY_DENY = 1 << 2, SAY_MUTE = 1 << 3 };
 extern void saytext(playerent *d, char *text, int flags, int sound);
 
 // tag info
