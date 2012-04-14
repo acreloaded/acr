@@ -629,12 +629,15 @@ void checkpings()
 		{
 			const char *sp = "";
 			int mm = (si->pongflags >> PONGFLAG_MASTERMODE) & MM_MASK;
-			if(si->pongflags & (1 << PONGFLAG_BANNED))
-				sp = "you are banned from this server";
+			
 			if(si->pongflags & (1 << PONGFLAG_BLACKLIST))
 				sp = "you are blacklisted on this server";
+			else if(si->pongflags & (1 << PONGFLAG_BANNED))
+				sp = "you are banned from this server";
 			else if(si->pongflags & (1 << PONGFLAG_PASSWORD))
 				sp = "this server is password-protected";
+			else if(si->pongflags & (1 << PONGFLAG_MUTE))
+				sp = "you are muted on this server";
 			else if(mm) sp = mmfullname(mm);
 			formatstring(si->description)("%s  \f1(%s)", si->sdesc, sp);
 		}

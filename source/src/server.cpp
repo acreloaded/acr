@@ -1629,7 +1629,7 @@ void readscfg(const char *name){
 	logline(ACLOG_INFO,"read %d map rotation entries from '%s'", configsets.length(), cfgfilename);
 }
 
-vector<iprange> ipblacklist;
+vector<iprange> ipblacklist, ipmutelist;
 
 int fixblacklist(vector<iprange> &target, const char *name){
 	target.sort(cmpiprange); // or else bsearch fucks up
@@ -1698,6 +1698,7 @@ inline bool checkblacklist(enet_uint32 ip, vector<iprange> &ranges){ // ip: netw
 }
 
 inline bool checkipblacklist(enet_uint32 ip) { return checkblacklist(ip, ipblacklist); }
+inline bool checkmutelist(enet_uint32 ip) { return checkblacklist(ip, ipmutelist); }
 
 struct pwddetail
 {
@@ -4207,9 +4208,13 @@ void cleanupserver(){
 
 int getpongflags(enet_uint32 ip){
 	int flags = mastermode << PONGFLAG_MASTERMODE;
-	flags |= scl.serverpassword[0] ? 1 << PONGFLAG_PASSWORD : 0;
+	if(*scl.serverpassword)
+		flags |= PONGFLAG_PASSWORD;
 	loopv(bans) if(bans[i].host == ip) { flags |= 1 << PONGFLAG_BANNED; break; }
-	flags |= checkipblacklist(ip) ? 1 << PONGFLAG_BLACKLIST : 0;
+	if(checkipblacklist(ip))
+		flags |= 1 << PONGFLAG_BLACKLIST;
+	if(checkmutelist(ip))
+		flags |= 1 << PONGFLAG_MUTE;
 	return flags;
 }
 
