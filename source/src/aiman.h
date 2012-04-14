@@ -26,6 +26,7 @@ bool addai(){
 		}
 	}
 	if(cn < 0){
+		if(clients.length() >= MAXCLIENTS) return false;
 		client *c = new client;
 		c->clientnum = cn = clients.length();
 		clients.add(c);
