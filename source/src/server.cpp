@@ -2080,7 +2080,7 @@ inline void putmap(ucharbuf &p){
 }
 
 void resetmap(const char *newname, int newmode, int newmuts, int newtime, bool notify){
-	bool lastteammode = m_team(gamemode, mutators);
+	bool lastteammode = m_team(gamemode, mutators) && !m_zombie(gamemode);
 	resetserver(newname, newmode, newmuts, newtime);
 
 	if(isdedicated) getservermap();
@@ -2146,7 +2146,7 @@ void resetmap(const char *newname, int newmode, int newmuts, int newtime, bool n
 	if(m_duke(gamemode, mutators)) distributespawns();
 	if(notify){
 		if(m_team(gamemode, mutators)){
-			if(!lastteammode && !m_zombie(gamemode)) // shuffle if previous mode wasn't a team-mode
+			if(!lastteammode && !m_zombie(gamemode)) // shuffle if previous mode wasn't a team-mode, or was a zombie mode
 				shuffleteams(FTR_SILENT);
 			else if(m_zombie(gamemode) || autobalance) // force teams for zombies
 				refillteams(true, FTR_SILENT);
@@ -3067,14 +3067,18 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(cl->team == t) break;
 				
 				if(cl->priv < PRIV_ADMIN && t < 2){
-					if(mastermode >= MM_LOCKED){
+					if(mastermode >= MM_LOCKED && cl->team >= 2){
 						sendf(sender, 1, "ri2", N_SWITCHTEAM, 1 << 4);
+						break;
+					}
+					else if(m_zombie(gamemode)){
+						sendf(sender, 1, "ri2", N_SWITCHTEAM, 1 << 5);
 						break;
 					}
 					else if(m_team(gamemode, mutators)){
 						int teamsizes[2] = {0};
 						loopv(clients) if(i != sender && clients[i]->type!=ST_EMPTY && clients[i]->type!=ST_AI && clients[i]->connected && clients[i]->team < 2)
-							teamsizes[clients[i]->team]++;
+							++teamsizes[clients[i]->team];
 						if(teamsizes[t] > teamsizes[t ^ 1]){
 							sendf(sender, 1, "ri2", N_SWITCHTEAM, t);
 							break;

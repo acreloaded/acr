@@ -347,7 +347,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_SWITCHTEAM:
 			{
 				int t = getint(p);
-                if(m_team(gamemode, mutators)) conoutf(t & 0x10 ? "\f3You may not unspectate, the server is locked" : "\f3Team %s is full", team_string(t & 0xF));
+                if(m_team(gamemode, mutators))
+					conoutf(t & 0x20 ? "\f3You may not switch teams in zombies!" : t & 0x10 ? "\f3You may not unspectate, the server is locked" : "\f3Team %s is full", team_string(t & 0xF));
 				break;
 			}
 
