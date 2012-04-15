@@ -2845,6 +2845,7 @@ void checkmove(client &cp){
 				break;
 		}
 		if(v.x < 0) continue;
+		v.z = getblockfloor(getmaplayoutid(v.x, v.y));
 		float dist = cs.o.dist(v);
 		if(dist > 2) continue;
 		if(m_capture(gamemode)){
@@ -2865,7 +2866,7 @@ void checkmove(client &cp){
 			// BTF only: score their flag by bombing their base!
 			if(f.state == CTFF_STOLEN){
 				flagaction(i, FA_SCORE, sender);
-				explosion(cp, cs.o, WEAP_GRENADE); // identical to self-nades, replace with something else?
+				explosion(cp, v, WEAP_GRENADE); // identical to self-nades, replace with something else?
 			}
 			else if(i == cp.team){
 				if(m_hunt(gamemode)) f.drop_cn = -1; // force pickup
