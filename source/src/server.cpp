@@ -1328,6 +1328,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	clientstate &ts = target->state;
 	const bool gib = style & FRAG_GIB;
 
+	ts.damagelog.removeobj(target->clientnum);
 	if(actor == target && ts.damagelog.length()){
 		loopv(ts.damagelog)
 			if(valid_client(ts.damagelog[i]) && !isteam(target, clients[ts.damagelog[i]])){
@@ -1376,7 +1377,6 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	++ts.deathstreak;
 	actor->state.deathstreak = ts.pointstreak = ts.streakused = 0;
 	ts.wounds.shrink(0);
-	ts.damagelog.removeobj(target->clientnum);
 	ts.damagelog.removeobj(ts.lastattacker = actor->clientnum);
 	target->heals.shrink(0);
 	loopv(ts.damagelog){
