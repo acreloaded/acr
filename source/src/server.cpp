@@ -2780,7 +2780,7 @@ void checkmove(client &cp){
 		}
 	}
 	// drown underwater
-	if(cs.o.z < smapstats.hdr.waterlevel){
+	if(!m_classic(gamemode, mutators) && cs.o.z < smapstats.hdr.waterlevel){
 		if(cs.drownmillis <= 0){
 			if(cs.drownmillis)
 				cs.drownval = max(cs.drownval - ((servmillis + cs.drownmillis) / 1000), 0);
