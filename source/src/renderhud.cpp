@@ -84,7 +84,7 @@ VARP(hideradar, 0, 0, 1);
 VARP(hidecompass, 0, 0, 1);
 VARP(hideteam, 0, 0, 1);
 //VARP(radarres, 1, 64, 1024); // auto
-VARP(radarentsize, 1, 4, 64);
+VARP(radarentsize, 1, 6, 64);
 VARP(hidectfhud, 0, 0, 1);
 VARP(hidevote, 0, 0, 2);
 VARP(showstreak, 0, 1, 1);
