@@ -202,17 +202,19 @@ void cutcolorstring(char *text, int len)
 const char *voteerrors[VOTEE_NUM] = { "voting is currently disabled", "there is already a vote pending", "no permission to veto", "can't vote that often", "this vote is not allowed in the current environment (singleplayer/multiplayer)", "no permission", "invalid vote" };
 const char *mmfullnames[MM_NUM] = { "open", "locked", "private" };
 
+void modecheck(int &mode, int &muts, int trying);
 inline const char *gamename(int mode, int muts, int compact = 0)
 {
 	if(!m_valid(mode))
 		return compact ? "n/a" : "unknown";
+	modecheck(mode, muts);
 	gametypes &gt = gametype[mode];
     static string gname;
     gname[0] = 0;
-    if(gt.mutators[0] && muts) loopi(G_M_NUM)
-    {
-        int implied = m_implied(mode, muts);
-        if((gt.mutators[0]&mutstype[i].type) && (muts&mutstype[i].type) && (!implied || !(implied&mutstype[i].type)))
+	if(gt.mutators[0] && muts) loopi(G_M_NUM)
+	{
+		int implied = m_implied(mode, muts);
+        if(/*(gt.mutators[0]&mutstype[i].type) && */(muts&mutstype[i].type) && (!implied || !(implied&mutstype[i].type)))
         {
             const char *mut = i < G_M_GSP ? mutstype[i].name : gt.gsp[i-G_M_GSP];
             if(mut && *mut)
@@ -227,7 +229,7 @@ inline const char *gamename(int mode, int muts, int compact = 0)
                 copystring(gname, name);
             }
         }
-    }
+	}
 	if(!m_mimplied(mode, muts))
 	{
 		defformatstring(mname)("%s%s%s", *gname ? gname : "", *gname ? " " : "", gt.name);
