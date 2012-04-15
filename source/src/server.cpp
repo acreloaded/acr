@@ -2845,7 +2845,7 @@ void checkmove(client &cp){
 				break;
 		}
 		if(v.x < 0) continue;
-		v.z = getblockfloor(getmaplayoutid(v.x, v.y));
+		v.z = getsblock(getmaplayoutid((int)v.x, (int)v.y)).floor + PLAYERHEIGHT;
 		float dist = cs.o.dist(v);
 		if(dist > 2) continue;
 		if(m_capture(gamemode)){
