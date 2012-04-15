@@ -2854,7 +2854,7 @@ void checkmove(client &cp){
 					else flagaction(i, FA_RETURN, sender);
 				}
 				else if(f.state == CTFF_STOLEN && sender == f.actor_cn) flagaction(i, FA_RETURN, sender);
-				else if(f.state == CTFF_INBASE && of.state == CTFF_STOLEN && of.actor_cn == sender && gamemillis >= of.stolentime + 500) flagaction(team_opposite(i), FA_SCORE, sender);
+				else if(f.state == CTFF_INBASE && of.state == CTFF_STOLEN && of.actor_cn == sender && gamemillis >= of.stolentime + 750) flagaction(team_opposite(i), FA_SCORE, sender);
 			}
 			else{
 				/*if(m_return && of.state == CTFF_STOLEN && of.actor_cn == sender) flagaction(team_opposite(i), FA_RETURN, sender);*/
@@ -2871,7 +2871,7 @@ void checkmove(client &cp){
 				if(m_hunt(gamemode)) f.drop_cn = -1; // force pickup
 				flagaction(i, FA_PICKUP, sender);
 			}
-			else if(f.state == CTFF_DROPPED && gamemillis >= of.stolentime + 500) flagaction(i, m_hunt(gamemode) ? FA_SCORE : FA_RETURN, sender);
+			else if(f.state == CTFF_DROPPED /*&& gamemillis >= of.stolentime + 500*/) flagaction(i, m_hunt(gamemode) ? FA_SCORE : FA_RETURN, sender);
 		}
 		else if(m_keep(gamemode) && f.state == CTFF_INBASE) flagaction(i, FA_PICKUP, sender);
 		else if(m_ktf2(gamemode, mutators) && f.state != CTFF_STOLEN){
