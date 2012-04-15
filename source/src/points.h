@@ -17,9 +17,9 @@
 #define COVERPT       cnumber*2                    // player covered teammate
 */
 #define DEATHPT       -4                           // player died
-#define BONUSPT       tpts/400                     // bonus (for killing high level enemies :: beware with exponential behavior!)
-#define FLBONUSPT     tpts/300                     // bonus if flag team mode
-#define TMBONUSPT     tpts/200                     // bonus if team mode (to give some extra reward for playing tdm modes)
+#define BONUSPT       clamp(tpts/400,2,80)         // bonus (for killing high level enemies :: beware with exponential behavior!)
+#define FLBONUSPT     clamp(tpts/300,2,60)         // bonus if flag team mode
+#define TMBONUSPT     clamp(tpts/200,1,40)         // bonus if team mode (to give some extra reward for playing tdm modes)
 #define HTFFRAGPT     cnumber/2                    // player frags while carrying the flag
 #define CTFFRAGPT     2*cnumber                    // player frags the flag stealer
 #define FRAGPT        10                           // player frags (normal)
