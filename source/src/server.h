@@ -751,7 +751,7 @@ guninfo guns[WEAP_MAX] =
 	{ "shotgun",    S_SHOTGUN,  S_RSHOTGUN,  750,   200,    10,    8,   16,    7,   0,   0,  1,   12,    7,   9,  5,    60,    70,      5, 2,   false},
 	{ "subgun",     S_SUBGUN,   S_RSUBGUN,  2400,   67,     36,   32,   80,   21,   0,   0, 70,    4,   32,   1,  3,    27,    45,     65, 1,   true },
 	{ "sniper",     S_SNIPER,   S_RSNIPER,  2000,   100,   120,    1,    2,   80,   0,   0,240,   14,   10,   4,  4,    58,    64,     75, 2,   false},
-	{ "bolt",       S_BOLT,     S_RBOLT,    2000,   1500,  134,   80,  130,   62,   0,   0,260,   36,    8,   4,  4,    86,    90,     80, 3,   false},
+	{ "bolt",       S_BOLT,     S_RBOLT,    2000,   1500,  120,   80,  130,   50,   0,   0,260,   36,    8,   4,  4,    86,    90,     80, 3,   false},
 	{ "assault",    S_ASSAULT,  S_RASSAULT, 2100,   73,     32,   40,   92,   10,   0,   0, 60,    3,   30,   0,  3,    25,    38,     60, 1,   true },
 	{ "grenade",    S_NULL,     S_NULL,     1000,   650,   230,    0,   28,  225,  20,   6,  1,    1,    1,   3,  1,     0,    0,       0, 4,   false},
 	{ "pistol",     S_PISTOL,   S_RAKIMBO,  1400,   80,     36,   30,   90,   17,   0,   0, 56,    8,   24,   6,  2,    28,    49,     72, 2,   true },
