@@ -753,11 +753,11 @@ guninfo guns[WEAP_MAX] =
 	{ "sniper",     S_SNIPER,   S_RSNIPER,  2000,   100,   120,    1,    2,   80,   0,   0,240,   14,   10,   4,  4,    58,    64,     75, 2,   false},
 	{ "bolt",       S_BOLT,     S_RBOLT,    2000,   1500,  134,   80,  130,   62,   0,   0,260,   36,    8,   4,  4,    86,    90,     80, 3,   false},
 	{ "assault",    S_ASSAULT,  S_RASSAULT, 2100,   73,     32,   40,   92,   10,   0,   0, 60,    3,   30,   0,  3,    25,    38,     60, 1,   true },
-	{ "grenade",    S_NULL,     S_NULL,     1000,   650,   230,    0,   32,  225,  20,   6,  1,    1,    1,   3,  1,     0,    0,       0, 4,   false},
+	{ "grenade",    S_NULL,     S_NULL,     1000,   650,   230,    0,   28,  225,  20,   6,  1,    1,    1,   3,  1,     0,    0,       0, 4,   false},
 	{ "pistol",     S_PISTOL,   S_RAKIMBO,  1400,   80,     36,   30,   90,   17,   0,   0, 56,    8,   24,   6,  2,    28,    49,     72, 2,   true },
 	{ "heal",       S_SUBGUN,   S_NULL,     1200,   100,    20,    4,    8,   10,   0,   0, 62,    1,   10,   0,  0,    10,    20,      8, 5,   true },
 	{ "sword",      S_NULL,     S_RASSAULT,    0,   480,    90,    4,    7,   90,   0,   0,  1,    1,    1,   0,  2,     0,     0,      0, 0,   true },
-	{ "bow",        S_BOW,      S_NULL,     2000,   120,   210,    0,   24,  200,   0,   0,128,    3,    1,   3,  1,    48,    50,      0, 4,   false},
+	{ "bow",        S_BOW,      S_NULL,     2000,   120,   100,    0,   16,   95,   0,   0,128,    3,    1,   3,  1,    48,    50,      0, 4,   false},
 };
 
 const int obit_suicide(int weap){
