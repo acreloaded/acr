@@ -135,11 +135,9 @@ void shotevent::process(client *ci)
 					dmg *= m_zombies_rounds(gamemode, mutators) ? (hitzone * 75) : (50);
 				damagedealt += dmg;
 				sendhit(c, WEAP_BOW, to, dmg); // blood, not explosion
-				/*
-				expc = hit->state.o;
-				serverdamage(hit, &c, dmg, WEAP_BOW, FRAG_GIB, hit->state.o);
-				*/
 				serverdamage(hit, &c, dmg, WEAP_BOW, FRAG_GIB, expc);
+				// we have to do this so that it can detect if it is "stuck"
+				expc = hit->state.o;
 			}
 			else (expc = to).sub(from).normalize().mul(to.dist(from) - .01f).add(from);
 			// instant explosion
