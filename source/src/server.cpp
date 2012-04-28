@@ -790,9 +790,11 @@ void flagaction(int flag, int action, int actor){
 				break;
 		}
 	}
-	if(score){
+	if(score && valid_client(actor)){
 		clients[actor]->state.flagscore += score;
 		sendf(-1, 1, "ri3", N_FLAGCNT, actor, clients[actor]->state.flagscore);
+		steamscores[clients[actor]->team].flagscore += score;
+		sendteamscore(clients[actor]->team);
 	}
 	if(message < 0) message = action;
 	if(valid_client(actor)){
