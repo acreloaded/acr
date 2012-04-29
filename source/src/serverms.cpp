@@ -29,6 +29,8 @@ ENetSocket httpgetsend(ENetAddress &remoteaddress, const char *hostname, const c
 		#else
 		if(!resolverwait(hostname, &remoteaddress)) return ENET_SOCKET_NULL;
 		#endif
+		char hn[1024];
+		logline(ACLOG_INFO, "[%s] resolved %s", (!enet_address_get_host_ip(&remoteaddress, hn, sizeof(hn))) ? hn : "unknown", hostname);
 	}
 	ENetSocket sock = enet_socket_create(ENET_SOCKET_TYPE_STREAM);
 	if(sock!=ENET_SOCKET_NULL && localaddress && enet_socket_bind(sock, localaddress) < 0)
