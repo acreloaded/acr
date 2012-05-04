@@ -216,7 +216,7 @@ void saytext(playerent *d, char *text, int flags, int sound){
 void toserver(char *text, int voice, bool action){
 	if(!text || !*text) return;
 	bool toteam = *text == '%' && strlen(text) > 1;
-	if(*text == '%') ++text;
+	if(toteam) ++text;
 	addmsg(N_TEXT, "ris", (voice & 0x1F) | (((action ? SAY_ACTION : 0) | (toteam ? SAY_TEAM : 0)) << 5), text);
 }
 
@@ -224,11 +224,12 @@ void toserver_(char *text){ toserver(text); }
 void toserver_voice(char *text){
 	extern int findvoice();
 	int s = findvoice();
-	string t;
-	*t = t[1] = 0;
-	if(s <= S_VOICETEAMEND) *t = '%';
-	concatstring(t, text);
-	toserver(t, s - S_MAINEND);
+	bool voice = false;
+	if(*text == '!'){
+		voice = true;
+		++text;
+	}
+	toserver(text, s - S_MAINEND, voice);
 }
 void toserver_me(char *text){ toserver(text, 0, true); }
 
