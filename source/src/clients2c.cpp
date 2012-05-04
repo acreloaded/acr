@@ -1405,7 +1405,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				int cn = getint(p), wants = getint(p);
 				playerent *pl = getclient(cn), *owner = getclient(wants);
-				conoutf("\fs%s \f1requests \f2who\f0is \f3on \fr%s", owner ? colorname(owner) : "someone", pl ? colorname(pl) : "unknown");
+				string targetname;
+				copystring(targetname, pl ? colorname(pl) : "unknown");
+				conoutf("\fs%s \f1requests \f2who\f0is \f3on \fr%s", owner ? colorname(owner) : "someone", targetname);
 				break;
 			}
 
