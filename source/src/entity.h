@@ -389,7 +389,6 @@ struct playerstate
 		gunselect = WEAP_PISTOL;
 		akimbo = scoping = false;
 		loopi(WEAP_MAX) ammo[i] = mag[i] = gunwait[i] = 0;
-		ammo[WEAP_KNIFE] = ammostats[WEAP_KNIFE].start;
 		mag[WEAP_KNIFE] = 1;
 		lastattacker = -1;
 	}
@@ -413,6 +412,8 @@ struct playerstate
 			mag[primary] = magsize(primary);
 		}
 
+		// extras
+		ammo[WEAP_KNIFE] = ammostats[WEAP_KNIFE].start;
 		if(!m_noitems(gamemode, mutators) && !m_noitemsammo(gamemode, mutators))
 			mag[WEAP_GRENADE] = ammostats[WEAP_GRENADE].start;
 
