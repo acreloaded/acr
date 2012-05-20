@@ -335,7 +335,9 @@ uchar *retrieveservers(uchar *buf, int buflen)
 {
 	buf[0] = '\0';
 
-	defformatstring(path)("%scube/%d/%d", masterpath, AC_VERSION, getbuildtype());
+	static string out;
+	base64_encode(player1->name, min(MAXNAMELEN, (int)strlen(player1->name)), out);
+	defformatstring(path)("%scube/update/%d/%s", masterpath, getbuildtype(), out);
 	defformatstring(agent)("ACR-Client/%d", AC_VERSION);
 	ENetAddress address = masterserver;
 	ENetSocket sock = httpgetsend(address, masterbase, path, agent);

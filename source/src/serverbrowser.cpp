@@ -926,6 +926,7 @@ bool assignserverfavourites()
 
 COMMAND(addfavcategory, ARG_1STR);
 COMMAND(listfavcats, ARG_NONE);
+VAR(masterserver_flags, 0, 0, 15);
 
 static serverinfo *lastselectedserver = NULL;
 static bool pinglastselected = false;
@@ -1021,11 +1022,22 @@ void refreshservers(void *menu, bool init)
 		};
 		bool showmr = showminremain || serversort == SBS_MINREM;
         formatstring(title)(titles[serversort], showfavtag ? "fav\t" : "", issearch ? "      search results for \f3" : "     (F1: Help/Settings)", issearch ? cursearch : "");
+		// master-server flags
+		if(masterserver_flags){
+			switch(masterserver_flags & 3){
+				case 1: concatstring(title, "\n\f1prohibited name: prepare AUTH!"); break;
+				case 2: concatstring(title, "\n\f1registered clan! unlisted user: prepare AUTH!"); break;
+				case 3: concatstring(title, "\n\f0your name is whitelisted!"); break;
+			}
+			if(masterserver_flags & 4) concatstring(title, "\n\f3your IP is globally banned! prepare AUTH!");
+			if(masterserver_flags & 8) concatstring(title, "\n\f2you are globally muted!");
+		}
 		menutitle(menu, title);
 		menureset(menu);
 		string text;
 		int curnl = 0;
 		//bool sbconnectexists = identexists("sbconnect");
+		// list servers
 		loopv(servers)
 		{
 			serverinfo &si = *servers[i];
