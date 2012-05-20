@@ -91,6 +91,8 @@ void authsuceeded(uint id, char priv, char *name){
 	if(priv){
 		c->authpriv = clamp<char>(priv, PRIV_MASTER, PRIV_MAX);
 		/*if(c->connectauth)*/ setpriv(c->clientnum, c->authpriv);
+		// unmute if auth has privilege
+		c->muted = false;
 	}
 	else c->authpriv = PRIV_NONE; // bypass master bans
 	checkauthdisc(*c); // can bypass passwords
