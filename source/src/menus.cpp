@@ -739,6 +739,12 @@ void menuinitselection(int line)
 	if(lastmenu->items.inrange(line)) lastmenu->menusel = line;
 }
 
+void menuclear()
+{
+	if(!lastmenu) return;
+	lastmenu->items.shrink(0);
+}
+
 void menuitem(char *text, char *action, char *hoveraction)
 {
 	if(!lastmenu) return;
