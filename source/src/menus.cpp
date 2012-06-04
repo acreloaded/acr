@@ -855,6 +855,7 @@ COMMAND(menudirlist, ARG_4STR);
 COMMAND(chmenumdl, ARG_6STR);
 COMMANDN(showmenu, showmenu_, ARG_1STR);
 COMMAND(closemenu, ARG_1STR);
+COMMAND(menuclear, ARG_NONE);
 COMMAND(menuinit, ARG_1STR);
 COMMAND(menuinitselection, ARG_1INT);
 COMMAND(menuitem, ARG_3STR);
