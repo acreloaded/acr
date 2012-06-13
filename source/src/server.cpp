@@ -1385,7 +1385,8 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 		if(valid_client(ts.damagelog[i])){
 			const int factor = isteam(clients[ts.damagelog[i]], target) ? -1 : 1;
 			clients[ts.damagelog[i]]->state.assists += factor;
-			steamscores[actor->team].assists += factor; // add to assists
+			if(factor > 0)
+				steamscores[actor->team].assists += factor; // add to assists
 			clients[ts.damagelog[i]]->state.pointstreak += factor * 2;
 		}
 		else ts.damagelog.remove(i--);
