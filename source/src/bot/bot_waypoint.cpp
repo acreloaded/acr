@@ -2072,7 +2072,7 @@ bool CBot::FindWaypoint()
 
 	while (pNode)
 	{
-		if ((pNode->Entry->iFlags & W_FL_INTAG) &&
+		if ((pNode->Entry->iFlags & W_FL_INTAG) && !OUTBORD(pNode->Entry->v_origin.x, pNode->Entry->v_origin.y) &&
 		    SOLID(S((int)pNode->Entry->v_origin.x, (int)pNode->Entry->v_origin.y)))
 		{
 			pNode = pNode->next;
