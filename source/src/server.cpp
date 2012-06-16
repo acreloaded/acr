@@ -3148,6 +3148,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(!hasclient(cl, cn)) break;
 				client &cp = *clients[cn];
 				if(cp.state.state == CS_WAITING){ // dequeue for spawning
+					// bots may not cancel their spawn queue
+					if(cp.type == ST_AI) break;
 					cp.state.state = CS_DEAD;
 					sendf(sender, 1, "ri3", N_TRYSPAWN, cn, 0);
 					break;
