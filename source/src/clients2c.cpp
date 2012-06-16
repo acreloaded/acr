@@ -121,8 +121,8 @@ void parsepositions(ucharbuf &p)
 			f >>= 3; // 2 + lifeseq
 			updatecrouch(d, f&1);
 			d->scoping = (f & 2) == 1 /*&& ads_gun(d->weaponsel->type)*/;
-			d->onfloor = (f & 4) == 1;
-			d->onladder = (f & 8) == 1;
+			d->onfloor = (f & 4) == 4;
+			d->onladder = (f & 8) == 8;
 
 			updatepos(d);
 			updatelagtime(d);
