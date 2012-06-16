@@ -3828,11 +3828,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					case S_HARDLAND:
 						QUEUE_MSG;
 						break;
-					case S_AKIMBOOUT:
-						if(!clients[cn]->state.akimbomillis) break;
-						clients[cn]->state.akimbomillis = 0;
-						QUEUE_MSG;
-						break;
 				}
 				QUEUE_MSG;
 				break;

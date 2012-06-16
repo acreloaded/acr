@@ -234,7 +234,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					case S_JUMP:
 					case S_SOFTLAND:
 					case S_HARDLAND:
-					case S_AKIMBOOUT:
 						if(d && d != player1 && !isowned(d))
 							playsound(snd, d);
 						break;
@@ -574,6 +573,30 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				}
 				// all have to do attackfx
 				s->weapons[gun]->attackfx(from, to, type == N_RICOCHET ? -2 : -1);
+				break;
+			}
+
+			case N_AKIMBO:
+			{
+				int cn = getint(p);
+				playerent *d = getclient(cn);
+				if(!d) break;
+				playsound(S_AKIMBOOUT, d, SP_HIGH);
+				if(d == player1 || isowned(d)){
+					weapon &a = *d->weapons[WEAP_AKIMBO], &p = *d->weapons[WEAP_PISTOL];
+					d->akimbo = false;
+					a.reset();
+					// transfer ammo to pistol
+					p.mag = min((int)p.info.magsize, max(a.mag, p.mag));
+					p.ammo = max(p.ammo, p.ammo);
+					// fix akimbo magcontent
+					a.mag = 0;
+					a.ammo = 0;
+					if(d->weaponsel->type==WEAP_AKIMBO){
+						if(d->primweap) d->weaponswitch(d->primweap);
+						else d->weaponswitch(&p);
+					}
+				}
 				break;
 			}
 

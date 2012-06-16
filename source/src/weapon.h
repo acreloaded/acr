@@ -246,7 +246,6 @@ struct akimbo : gun
 	akimbo(playerent *owner);
 
 	bool akimboside;
-	int akimbomillis;
 	int akimbolastaction[2];
 
 	bool attack(vec &targ);
@@ -256,7 +255,6 @@ struct akimbo : gun
 	void updatetimers();
 	void reset();
 	void renderhudmodel();
-	bool timerout();
 };
 
 struct knifeent;

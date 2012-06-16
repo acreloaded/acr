@@ -69,6 +69,7 @@ void shotevent::process(client *ci)
 	int wait = millis - gs.lastshot;
 	if(!gs.isalive(gamemillis) || // dead
 	   weap<0 || weap>=WEAP_MAX || // invalid weapon
+	   (weap == WEAP_AKIMBO && gs.akimbomillis < gamemillis) || // akimbo when out
 	   wait<gs.gunwait[weap] || // not allowed
 	   gs.mag[weap]<=0) // out of ammo in mag
 		return;
@@ -218,6 +219,7 @@ void reloadevent::process(client *ci){
 	int mag = magsize(weap), reload = reloadsize(weap);
 	if(!gs.isalive(gamemillis) || // dead
 	   weap<0 || weap>=WEAP_MAX || // invalid weapon
+	   (weap == WEAP_AKIMBO && gs.akimbomillis < gamemillis) || // akimbo when out
 	   !reloadable_weap(weap) || // cannot reload
 	   gs.mag[weap] >= mag || // already full
 	   gs.ammo[weap] < reload) // no ammo
@@ -239,9 +241,9 @@ void reloadevent::process(client *ci){
 
 void akimboevent::process(client *ci){
 	clientstate &gs = ci->state;
-	if(!gs.isalive(gamemillis) || gs.akimbos<=0) return;
-	--gs.akimbos;
-	gs.akimbomillis = millis + 30000;
+	if(!gs.isalive(gamemillis) || !gs.akimbo || gs.akimbomillis) return;
+	// WHY DOES THIS EVEN EXIST?!
+	gs.akimbomillis = gamemillis + 30000;
 }
 
 // unordered
@@ -321,6 +323,12 @@ void processevents(){
 			const int waitremain = SPAWNDELAY - gamemillis + c.state.lastdeath;
 			if(canspawn(&c) && waitremain <= 0) sendspawn(&c);
 			//else sendmsgi(41, waitremain, sender);
+		}
+		// akimbo out!
+		if(c.state.akimbomillis && c.state.akimbomillis < gamemillis) {
+			c.state.akimbomillis = 0;
+			c.state.akimbo = false;
+			sendf(-1, 1, "ri2", N_AKIMBO, c.clientnum);
 		}
 		// events
 		while(c.events.length()) // are ordered

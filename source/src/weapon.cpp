@@ -1007,7 +1007,7 @@ bool pistol::selectable() { return weapon::selectable() && !m_nopistol(gamemode,
 
 // akimbo
 
-akimbo::akimbo(playerent *owner) : gun(owner, WEAP_AKIMBO), akimbomillis(0){
+akimbo::akimbo(playerent *owner) : gun(owner, WEAP_AKIMBO){
 	akimbolastaction[0] = akimbolastaction[1] = 0;
 }
 
@@ -1022,7 +1022,6 @@ bool akimbo::attack(vec &targ){
 }
 
 void akimbo::onammopicked(){
-	akimbomillis = lastmillis + 30000;
 	if(owner==player1 || isowned(owner))
 	{
 		if(owner->weaponsel->type!=WEAP_SNIPER && owner->weaponsel->type!=WEAP_GRENADE) owner->weaponswitch(this);
@@ -1037,14 +1036,12 @@ void akimbo::onselecting(){
 
 bool akimbo::selectable() { return weapon::selectable() && !m_nopistol(gamemode, mutators) && owner->akimbo; }
 void akimbo::updatetimers() { weapon::updatetimers(); /*loopi(2) akimbolastaction[i] = lastmillis;*/ }
-void akimbo::reset() { akimbolastaction[0] = akimbolastaction[1] = akimbomillis = 0; akimboside = false; }
+void akimbo::reset() { akimbolastaction[0] = akimbolastaction[1] = 0; akimboside = false; }
 
 void akimbo::renderhudmodel(){
 	weapon::renderhudmodel(*akimbolastaction, false);
 	weapon::renderhudmodel(akimbolastaction[1], true);
 }
-
-bool akimbo::timerout() { return akimbomillis && akimbomillis <= lastmillis; }
 
 // heal
 
@@ -1273,30 +1270,6 @@ void shoot(playerent *p, vec &targ){
 		loopi(WEAP_MAX){
 			weapon *bweap = p->weapons[i];
 			if(bweap != weap && bweap->busy()) bweap->attack(targ);
-		}
-	}
-}
-
-void checkakimbo(){
-	loopv(players){
-		playerent *pl = players[i];
-		if(!pl || !pl->akimbo || !isowned(pl)) continue;
-		akimbo &a = *((akimbo *)pl->weapons[WEAP_AKIMBO]);
-		if(a.timerout()){
-			weapon &p = *pl->weapons[WEAP_PISTOL];
-			pl->akimbo = false;
-			a.reset();
-			// transfer ammo to pistol
-			p.mag = min((int)p.info.magsize, max(a.mag, p.mag));
-			p.ammo = max(p.ammo, p.ammo);
-			// fix akimbo magcontent
-			a.mag = 0;
-			a.ammo = 0;
-			if(pl->weaponsel->type==WEAP_AKIMBO){
-				if(pl->primweap) pl->weaponswitch(pl->primweap);
-				else pl->weaponswitch(&p);
-			}
-			playsoundc(S_AKIMBOOUT, pl);
 		}
 	}
 }

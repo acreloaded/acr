@@ -132,7 +132,7 @@ struct clientstate : playerstate
 	int lastshot, lastregen;
 	projectilestate<6> grenades; // 5000ms TLL / (we can throw one every 650ms+200ms) = 6 nades possible
 	projectilestate<3> knives;
-	int akimbos, akimbomillis;
+	int akimbomillis;
 	int points, flagscore, frags, deaths, shotdamage, damage;
 	ivector revengelog;
 	vector<wound> wounds;
@@ -158,7 +158,7 @@ struct clientstate : playerstate
 		lifesequence = -1;
 		grenades.reset();
 		knives.reset();
-		akimbos = akimbomillis = 0;
+		akimbomillis = 0;
 		points = flagscore = frags = deaths = shotdamage = damage = lastffkill = 0;
 		revengelog.setsize(0);
 		pointstreak = streakused = 0;
@@ -177,7 +177,7 @@ struct clientstate : playerstate
 		lastspawn = -1;
 		lastdeath = lastshot = lastregen = 0;
 		lastkill = combo = 0;
-		akimbos = akimbomillis = 0;
+		akimbomillis = 0;
 		damagelog.setsize(0);
 		wounds.shrink(0); // no more wounds!
 		crouching = false;
