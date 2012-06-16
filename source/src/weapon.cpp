@@ -1024,7 +1024,7 @@ bool akimbo::attack(vec &targ){
 void akimbo::onammopicked(){
 	if(owner==player1 || isowned(owner))
 	{
-		if(owner->weaponsel->type!=WEAP_SNIPER && owner->weaponsel->type!=WEAP_GRENADE) owner->weaponswitch(this);
+		if(owner->weaponsel->type!=WEAP_GRENADE) owner->weaponswitch(this);
 		addmsg(N_AKIMBO, "ri2", owner->clientnum, lastmillis);
 	}
 }
