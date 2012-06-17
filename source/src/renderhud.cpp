@@ -711,10 +711,10 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		if(p->state != CS_DEAD && p->health >= 0 && p->state != CS_EDITING)
 			newfade = (1 - powf(clamp<float>(p->health, 0.f, maxhealth) / maxhealth, 2)) * damagescreenalpha / 100.f;
 		fade = clamp((fade * 40 + newfade) / 41.f, 0.f, 1.f);
-		if(fade >= 0.1f){
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		if(fade >= 0.05f){
+			glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 			glBindTexture(GL_TEXTURE_2D, damagetex->id);
-			glColor4f(fade, fade, fade, fade);
+			glColor4f(1, 1, 1, fade);
 
 			glBegin(GL_QUADS);
 			glTexCoord2f(0, 0); glVertex2f(0, 0);
