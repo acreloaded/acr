@@ -2828,24 +2828,26 @@ void checkmove(client &cp){
 	// item pickups
 	if(!m_zombie(gamemode) || cp.team != TEAM_RED) loopv(sents){
 		entity &e = sents[i];
-		if(!e.spawned || !cs.canpickup(e.type)) continue;
+		const bool cantake = (e.spawned && cs.canpickup(e.type)), canheal = (e.type == I_HEALTH && cs.wounds.length());
+		if(!cantake && !canheal) continue;
 		const int ls = (1 << maplayout_factor) - 2, maplayoutid = getmaplayoutid(e.x, e.y);
 		const bool getmapz = maplayout && e.x > 2 && e.y > 2 && e.x < ls && e.y < ls;
 		const char &mapz = getmapz ? getblockfloor(maplayoutid) : 0;
 		vec v(e.x, e.y, getmapz ? (mapz + e.attr1 + PLAYERHEIGHT) : cs.o.z);
 		float dist = cs.o.dist(v);
 		if(dist > 3) continue;
-		// server side item pickup, acknowledge first client that moves to the entity
-		e.spawned = false;
-		sendf(-1, 1, "ri4", N_ITEMACC, i, sender, e.spawntime = spawntime(e.type));
-		cs.pickup(sents[i].type);
-		if(sents[i].type == I_HEALTH){
-			if(!m_onslaught(gamemode, mutators) && cs.wounds.length()){
-				if(cp.type != ST_AI) sendmsg(30, sender);
-				addpt(&cp, HEALWOUNDPT * cs.wounds.length());
-				cs.wounds.shrink(0);
-			}
-			if(cs.health >= STARTHEALTH)
+		if(canheal){
+			// healing station
+			if(cp.type != ST_AI) sendmsg(30, sender);
+			addpt(&cp, HEALWOUNDPT * cs.wounds.length());
+			cs.wounds.shrink(0);
+		}
+		if(cantake){
+			// server side item pickup, acknowledge first client that moves to the entity
+			e.spawned = false;
+			sendf(-1, 1, "ri4", N_ITEMACC, i, sender, e.spawntime = spawntime(e.type));
+			cs.pickup(sents[i].type);
+			if(sents[i].type == I_HEALTH && cs.health >= STARTHEALTH)
 				cs.damagelog.setsize(0);
 		}
 	}
