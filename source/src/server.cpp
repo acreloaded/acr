@@ -355,6 +355,23 @@ void usestreak(client &c, int streak, const vec &o = vec(0, 0, 0)){
 
 void spawnstate(client *c){
 	clientstate &gs = c->state;
+	if(c->type == ST_AI){
+		// random loadout settings
+		const int weap1[] = {
+			WEAP_SHOTGUN,
+			WEAP_SUBGUN,
+			WEAP_SNIPER,
+			WEAP_BOLT,
+			WEAP_ASSAULT,
+			WEAP_SWORD,
+		}, weap2[] = {
+			WEAP_PISTOL,
+			WEAP_HEAL,
+			WEAP_BOW,
+		};
+		gs.nextprimary = weap1[rnd(sizeof(weap1)/sizeof(int))];
+		gs.nextperk = (gs.nextprimary == WEAP_BOLT || m_sniper(gamemode, mutators)) ? PERK_STEADY : PERK_NONE;
+	}
 	gs.spawnstate(smode, smuts);
 	if(m_zombie(gamemode)){
 		switch(c->team){
@@ -3133,12 +3150,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_LOADOUT:
 			{
-				int cn = getint(p), nextprimary = getint(p), perk = getint(p);
-				if(!hasclient(cl, cn)) break;
-				client &cp = *clients[cn];
-				cp.state.nextperk = perk;
-				if(nextprimary<0 && nextprimary>=WEAP_MAX) break;
-				cp.state.nextprimary = nextprimary;
+				int nextprimary = getint(p), nextsecondary = getint(p), perk1 = getint(p), perk2 = getint(p);
+				clientstate &cs = cl->state;
+				cs.nextperk = perk1;
+				if(nextprimary >= 0 && nextprimary < WEAP_MAX)
+					cs.nextprimary = nextprimary;
 				break;
 			}
 

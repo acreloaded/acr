@@ -252,7 +252,7 @@ void setspawn(int i) {
 	ents[i].spawntime = 0;
 }
 
-void sendloadout() { addmsg(N_LOADOUT, "ri3", getclientnum(), player1->nextprimweap->type, player1->nextperk); }
+void sendloadout() { addmsg(N_LOADOUT, "ri4", player1->nextprimweap->type, WEAP_PISTOL, player1->nextperk, PERK_NONE); }
 void selectnextprimary(int num) { player1->setnextprimary(num); sendloadout(); }
 void selectnextperk(int perk) { player1->nextperk = perk; sendloadout(); }
 
