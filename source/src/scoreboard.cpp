@@ -119,7 +119,7 @@ void renderteamscore(void *menu, teamsum &t){
 	static color teamcolors[TEAM_NUM+1] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f), color(.4f, .4f, .4f, .3f), color(.8f, .8f, .8f, .4f) };
 	line.bgcolor = &teamcolors[!m_team(gamemode, mutators) && t.team != TEAM_SPECT ? TEAM_NUM : t.team];
 	loopv(t.teammembers){
-		if(m_zombie(gamemode) && t.teammembers[i]->team == TEAM_RED && t.teammembers[i]->state == CS_DEAD) continue;
+		if(m_zombie(gamemode) && t.teammembers[i]->team == TEAM_RED && t.teammembers[i]->ownernum >= 0 && t.teammembers[i]->state == CS_DEAD) continue;
 		renderscore(menu, t.teammembers[i]);
 	}
 }
