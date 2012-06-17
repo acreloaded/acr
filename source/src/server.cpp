@@ -1120,7 +1120,7 @@ void sendtext(char *text, client &cl, int flags, int voice){
 }
 
 int spawntime(int type){
-	int np = numclients();
+	int np = countplayers();
 	np = np<3 ? 4 : (np>4 ? 2 : 3);		 // some spawn times are dependent on number of players
 	int sec = 0;
 	switch(type)
