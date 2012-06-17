@@ -3144,24 +3144,21 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_TRYSPAWN:
 			{
-				const int cn = getint(p);
-				if(!hasclient(cl, cn)) break;
-				client &cp = *clients[cn];
-				if(cp.state.state == CS_WAITING){ // dequeue for spawning
-					// bots may not cancel their spawn queue
-					if(cp.type == ST_AI) break;
-					cp.state.state = CS_DEAD;
-					sendf(sender, 1, "ri3", N_TRYSPAWN, cn, 0);
+				client &cp = *cl;
+				clientstate &cs = cp.state;
+				if(cs.state == CS_WAITING){ // dequeue for spawning
+					cs.state = CS_DEAD;
+					sendf(sender, 1, "ri2", N_TRYSPAWN, 0);
 					break;
 				}
 				if(!cl->isonrightmap || !maplayout){ // need the map for spawning
-					if(cn == sender) sendf(sender, 1, "ri", N_MAPIDENT);
+					sendf(sender, 1, "ri", N_MAPIDENT);
 					break;
 				}
-				if(cp.state.state!=CS_DEAD || cp.state.lastspawn>=0) break; // not dead or already enqueued
+				if(cs.state!=CS_DEAD || cs.lastspawn>=0) break; // not dead or already enqueued
 				if(cp.team == TEAM_SPECT){ // need to unspectate
 					if(mastermode < MM_LOCKED || cp.type != ST_TCPIP || cp.priv >= PRIV_ADMIN){
-						updateclientteam(cn, freeteam(cn), FTR_PLAYERWISH);
+						updateclientteam(sender, freeteam(sender), FTR_PLAYERWISH);
 						if(!canspawn(&cp, true)) break;
 					}
 					else{
@@ -3171,8 +3168,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				}
 				else if(!canspawn(&cp)) break;
 				// enqueue for spawning
-				cp.state.state = CS_WAITING;
-				sendf(sender, 1, "ri3", N_TRYSPAWN, cn, 1);
+				cs.state = CS_WAITING;
+				sendf(sender, 1, "ri2", N_TRYSPAWN, 1);
 				break;
 			}
 

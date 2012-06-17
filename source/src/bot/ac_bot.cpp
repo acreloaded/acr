@@ -24,6 +24,7 @@ extern void spawnstate(playerent *d);
 void CACBot::Spawn()
 {
 	// Init all bot variabeles
+	/*
     const int weaps[] = {
 	   WEAP_SHOTGUN,
 	   WEAP_SUBGUN,
@@ -39,7 +40,8 @@ void CACBot::Spawn()
 	m_pMyEnt->targetyaw = m_pMyEnt->targetpitch = 0.0f;
 	m_pMyEnt->pBot = this;
 
-	spawnplayer(m_pMyEnt);
+	addmsg(N_TRYSPAWN, "ri", m_pMyEnt->clientnum);
+	*/
 	
 	m_eCurrentBotState = STATE_NORMAL;
 	m_iShootDelay = m_iChangeWeaponDelay = 0;

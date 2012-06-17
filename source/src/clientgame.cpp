@@ -476,19 +476,8 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
 	entinmap(d);
 }
 
-void spawnplayer(playerent *d)
-{
-	addmsg(N_TRYSPAWN, "ri", d->clientnum);
-	/*
-	d->respawn();
-	d->spawnstate(gamemode);
-	d->state = d==player1 && editmode ? CS_EDITING : CS_ALIVE;
-	findplayerstart(d);
-	*/
-}
-
 void respawnself(){
-	spawnplayer(player1);
+	addmsg(N_TRYSPAWN, "r");
 	spawnenqueued = !spawnenqueued;
 }
 

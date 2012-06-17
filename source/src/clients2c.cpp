@@ -460,11 +460,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_TRYSPAWN:
 			{
-				const int cn = getint(p), enqueued = getint(p);
-				if(cn == getclientnum()){
-					extern bool spawnenqueued;
-					spawnenqueued = enqueued != 0;
-				}
+				const int enqueued = getint(p);
+				extern bool spawnenqueued;
+				spawnenqueued = (enqueued != 0);
 				break;
 			}
 

@@ -378,7 +378,6 @@ extern void changemap(const char *name);
 extern void initclient();
 extern void addexp(int xp);
 extern void deathstate(playerent *pl);
-extern void spawnplayer(playerent *d);
 extern void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style, vec src);
 extern void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, int combo, float killdist);
 extern playerent *newplayerent();
