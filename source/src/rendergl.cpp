@@ -497,7 +497,7 @@ void recomputecamera(){
 				{
 					if(deathcamstyle && totalmillis - lastdeathcamswitch <= 3000)
 					{
-						playerent *a = getclient(player1->lastattacker); // player1's killer?
+						playerent *a = getclient(player1->lastkiller); // player1's killer?
 						if(a)
 						{
 							vec v = vec(a->o).sub(camera1->o)/*.normalize()*/;

@@ -506,7 +506,6 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 {
 	if(pl->state == CS_DEAD || intermission) return;
 
-	pl->lastattacker = actor->clientnum;
 	pl->respawnoffset = pl->lastpain = lastmillis;
 	// damage direction/hit push
 	if(pl != actor || weapon == WEAP_GRENADE || weapon == WEAP_BOW || pl->o.dist(src) > 4){
@@ -537,6 +536,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 
 void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, int combo, float killdist){
 	if(!pl || !act || pl->state==CS_DEAD || intermission) return;
+	pl->lastkiller = act->clientnum;
 	// kill message
 	bool headshot = isheadshot(weapon, style);
 	int obit = OBIT_DEATH;

@@ -148,7 +148,7 @@ int explosion(client &owner, const vec &o2, int weap, bool gib){
 	// these are our hits
 	vector<explosivehit> hits;
 	// give credits to the shooter for killing the zombie!
-	client *own = (m_zombie(gamemode) && owner.team == TEAM_RED && valid_client(owner.state.lastattacker)) ? clients[owner.state.lastattacker] : &owner;
+	client *own = (m_zombie(gamemode) && owner.team == TEAM_RED && valid_client(owner.state.lastkiller)) ? clients[owner.state.lastkiller] : &owner;
 	// find the hits
 	loopv(clients){
 		client &target = *clients[i];

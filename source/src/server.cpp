@@ -1396,7 +1396,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	++ts.deathstreak;
 	actor->state.deathstreak = ts.pointstreak = ts.streakused = 0;
 	ts.wounds.shrink(0);
-	ts.damagelog.removeobj(ts.lastattacker = actor->clientnum);
+	ts.damagelog.removeobj(ts.lastkiller = actor->clientnum);
 	target->heals.shrink(0);
 	loopv(ts.damagelog){
 		if(valid_client(ts.damagelog[i])){
