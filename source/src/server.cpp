@@ -3585,7 +3585,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						if(cs.onfloor || cs.fallz < newo.z) cs.fallz = newo.z;
 						cs.onfloor = false;
 					}
-					// check movement if alive
+					// continue if and only if still alive
+					if(cs.state!=CS_ALIVE) break;
+					// check movement
 					checkmove(cp);
 				}
 				// relay
