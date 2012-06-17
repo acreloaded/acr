@@ -626,7 +626,7 @@ void drawteamicons(int w, int h){
 	}
 }
 
-VARP(damagescreenalpha, 40, 90, 100);
+VARP(damagescreenalpha, 50, 60, 100);
 VARP(damageindicatorfade, 0, 2000, 10000);
 VARP(damageindicatorsize, 0, 200, 10000);
 VARP(damageindicatordist, 0, 500, 10000);
@@ -708,13 +708,14 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		static float fade = 0.f;
 		const int maxhealth = 100 * HEALTHSCALE;
 		float newfade = 0;
-		if(p->state != CS_DEAD && p->health >= 0 && p->state != CS_EDITING)
-			newfade = (1 - powf(clamp<float>(p->health, 0.f, maxhealth) / maxhealth, 2)) * damagescreenalpha / 100.f;
+		if(p->state == CS_ALIVE && p->health >= 0 && p->health < maxhealth)
+			newfade = (1 - powf(p->health / maxhealth, 2)) * damagescreenalpha / 100.f;
 		fade = clamp((fade * 40 + newfade) / 41.f, 0.f, 1.f);
 		if(fade >= 0.05f){
-			glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glBindTexture(GL_TEXTURE_2D, damagetex->id);
-			glColor4f(1, 1, 1, fade);
+			const float c = clamp(fade, .1f, .9f);
+			glColor4f(c, c, c, fade);
 
 			glBegin(GL_QUADS);
 			glTexCoord2f(0, 0); glVertex2f(0, 0);
