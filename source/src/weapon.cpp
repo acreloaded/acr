@@ -393,7 +393,7 @@ void weapon::attacksound(){
 }
 
 bool weapon::reload(){
-	if(mag >= magsize(type) || ammo < reloadsize(type)) return false;
+	if(mag > magsize(type) || ammo < reloadsize(type)) return false;
 	updatelastaction(owner);
 	reloading = lastmillis;
 	gunwait += info.reloadtime;

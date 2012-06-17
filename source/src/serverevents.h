@@ -221,11 +221,11 @@ void reloadevent::process(client *ci){
 	   weap<0 || weap>=WEAP_MAX || // invalid weapon
 	   (weap == WEAP_AKIMBO && gs.akimbomillis < gamemillis) || // akimbo when out
 	   !reloadable_weap(weap) || // cannot reload
-	   gs.mag[weap] >= mag || // already full
+	   gs.mag[weap] > mag || // already full
 	   gs.ammo[weap] < reload) // no ammo
 		return;
 
-	gs.mag[weap]   = min(mag + (gs.mag[weap] && reload > 1), gs.mag[weap] + reload);
+	gs.mag[weap]   = min(mag + (gs.mag[weap] && reload > 1) + (gs.mag[weap] && weap == WEAP_AKIMBO), gs.mag[weap] + reload);
 	gs.ammo[weap] -= reload;
 
 	int wait = millis - gs.lastshot;
