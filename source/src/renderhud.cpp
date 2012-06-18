@@ -490,7 +490,7 @@ void drawradar(playerent *p, int w, int h)
 			int taggedmillis = 0;
 			extern bool IsVisible(vec v1, vec v2, dynent *tracer = NULL, bool SkipTags=false);
 			if(pl->perk1 != PERK_RADAR){
-				if(IsVisible(p->o, pl->o)) taggedmillis = 750;
+				if(p->perk2 == PERK_RADAR && IsVisible(p->o, pl->o)) taggedmillis = 750;
 				else loopvj(players){
 					playerent *pll = players[j];
 					if(!pll || p == pll || !isteam(p, pll) || pll->state == CS_DEAD || pll->perk2 != PERK_RADAR) continue;
