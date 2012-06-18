@@ -7,6 +7,7 @@ OR
 
 1) Change the directory to "source/src"
 2) "make *" where * is:
-	install - both of the following
-	client_install - client game
-	server_install - server application
+	all - both of the following
+	client - client game
+	server - server application
+3) Look for native_client or native_server.

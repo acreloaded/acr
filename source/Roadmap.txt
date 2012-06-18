@@ -1,5 +1,0 @@
-Good ideas (1.1 implements some of these):
-	* better bot code
-	* language add-ons, unicode support
-	* maxkills/maxflags
-	* sound scheduling
