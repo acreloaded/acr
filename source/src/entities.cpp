@@ -252,12 +252,17 @@ void setspawn(int i) {
 	ents[i].spawntime = 0;
 }
 
-void sendloadout() { addmsg(N_LOADOUT, "ri4", player1->nextprimweap->type, WEAP_PISTOL, player1->nextperk, PERK_NONE); }
-void selectnextprimary(int num) { player1->setnextprimary(num); sendloadout(); }
-void selectnextperk(int perk) { player1->nextperk = perk; sendloadout(); }
+// FIXME: sendloadout() should be replaced!
+void sendloadout() { addmsg(N_LOADOUT, "ri4", player1->nextprimary, player1->nextsecondary, player1->nextperk1, player1->nextperk2); }
+void selectnextprimary(int weap) { player1->nextprimary = weap; sendloadout(); }
+void selectnextsecondary(int weap) { player1->nextsecondary = weap; sendloadout(); }
+void selectnextperk1(int perk) { player1->nextperk1 = perk; sendloadout(); }
+void selectnextperk2(int perk) { player1->nextperk2 = perk; sendloadout(); }
 
 VARFP(nextprimary, 0, WEAP_ASSAULT, WEAP_MAX, selectnextprimary(nextprimary));
-VARFP(nextperk, PERK_NONE, PERK_NONE, PERK_MAX-1, selectnextperk(nextperk));
+VARFP(nextsecondary, 0, WEAP_PISTOL, WEAP_MAX, selectnextsecondary(nextsecondary));
+VARFP(nextperk1, PERK1_NONE, PERK1_NONE, PERK1_MAX-1, selectnextperk1(nextperk1));
+VARFP(nextperk2, PERK2_NONE, PERK2_NONE, PERK2_MAX-1, selectnextperk2(nextperk2));
 
 // flag ent actions done by the local player
 

@@ -97,7 +97,7 @@ void shotevent::process(client *ci)
 		if(m_classic(gamemode, mutators)) adsfactor *= .75f;
 		if(spreadf*adsfactor) loopi(SGRAYS){
 			gs.sg[i] = to;
-			applyspread(gs.o, gs.sg[i], SGSPREAD, (gs.perk == PERK_STEADY ? .65f : 1)*spreadf*adsfactor);
+			applyspread(gs.o, gs.sg[i], SGSPREAD, (gs.perk2 == PERK2_STEADY ? .65f : 1)*spreadf*adsfactor);
 			straceShot(from, gs.sg[i]);
 		}
 	}
@@ -105,7 +105,7 @@ void shotevent::process(client *ci)
 		// apply normal ray spread
 		const int spread = guns[weap].spread * (gs.vel.magnitude() / 3.f + gs.pitchvel / 5.f + 0.4f) * 1.2f * crouchfactor;
 		if(m_classic(gamemode, mutators)) adsfactor *= .6f;
-		applyspread(gs.o, to, spread, (gs.perk == PERK_STEADY ? .75f : 1)*spreadf*adsfactor);
+		applyspread(gs.o, to, spread, (gs.perk2 == PERK2_STEADY ? .75f : 1)*spreadf*adsfactor);
 	}
 	// trace shot
 	straceShot(from, to, &surface);
@@ -159,11 +159,11 @@ void shotevent::process(client *ci)
 				sendheadshot(from, to, dmg);
 			serverdamage(hit, &c, dmg, weap, flags, gs.o);
 			loopi(&c == hit ? 25 : 15){
-				// heals over the next 1 to 2.5 seconds (no perk, for others)
+				// heals over the next 1 to 2.5 seconds (no time perk, for others)
 				healevent h;
 				h.id = c.clientnum; // from this person
-				h.millis = gamemillis + (10 + i) * 100 / (gs.perk == PERK_PERSIST ? 2 : 1);
-				h.hp = (gs.perk == PERK_PERSIST ? 2 : 1);
+				h.millis = gamemillis + (10 + i) * 100 / (gs.perk1 == PERK_TIME ? 2 : 1);
+				h.hp = (gs.perk1 == PERK_TIME ? 2 : 1);
 				if(hit->heals.length()<128) hit->heals.add(h);
 			}
 			if(hit == &c) (end = to).sub(from).normalize().add(from); // 25 cm fx
@@ -294,7 +294,7 @@ void processevents(){
 					if(!valid_client(w.inflictor)) c.state.wounds.remove(i--);
 					else if(w.lastdealt + 500 < gamemillis){
 						client &owner = *clients[w.inflictor];
-						const int bleeddmg = (m_zombie(gamemode) ? BLEEDDMGZ : owner.state.perk == PERK_PERSIST ? BLEEDDMGPLUS : BLEEDDMG) * HEALTHSCALE;
+						const int bleeddmg = (m_zombie(gamemode) ? BLEEDDMGZ : owner.state.perk1 == PERK_TIME ? BLEEDDMGPLUS : BLEEDDMG) * HEALTHSCALE;
 						owner.state.damage += bleeddmg;
 						owner.state.shotdamage += bleeddmg;
 						// where were we wounded?
@@ -308,9 +308,9 @@ void processevents(){
 					}
 				}
 			}
-			else if(m_regen(gamemode, mutators) && c.state.state == CS_ALIVE && c.state.health < STARTHEALTH && c.state.lastregen + (c.state.perk == PERK_PERSIST ? REGENINT * .7f : REGENINT) < gamemillis){
+			else if(m_regen(gamemode, mutators) && c.state.state == CS_ALIVE && c.state.health < STARTHEALTH && c.state.lastregen + (c.state.perk1 == PERK_TIME ? REGENINT * .7f : REGENINT) < gamemillis){
 				int amt = round(float((STARTHEALTH - c.state.health) / 5 + 15));
-				if(c.state.perk == PERK_PERSIST) amt *= 1.4f;
+				if(c.state.perk1 == PERK_TIME) amt *= 1.4f;
 				if(amt >= STARTHEALTH - c.state.health){
 					amt = STARTHEALTH - c.state.health;
 					c.state.damagelog.setsize(0);

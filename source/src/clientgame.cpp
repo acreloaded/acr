@@ -514,7 +514,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 		// push
 		vec dir = pl->o;
 		dir.sub(src).normalize();
-		pl->hitpush(damage, dir, weapon, actor->perk == PERK_POWER);
+		pl->hitpush(damage, dir, weapon, actor->perk1 == PERK_POWER);
 		// hit markers
 		actor->lasthitmarker = lastmillis;
 		// assists

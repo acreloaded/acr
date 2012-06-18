@@ -479,8 +479,10 @@ void sendintro()
 		putint(p, 0); // no authname
 	}
 	*clientpassword = 0;
-	putint(p, player1->nextprimweap->type);
-	putint(p, player1->nextperk);
+	putint(p, player1->nextprimary);
+	putint(p, player1->nextsecondary);
+	putint(p, player1->nextperk1);
+	putint(p, player1->nextperk2);
 	putint(p, AC_VERSION);
 	putint(p, getbuildtype());
 	putint(p, *&genguid(213409, 9983240U, 23489090, "24788rt792"));

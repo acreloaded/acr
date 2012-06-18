@@ -138,10 +138,11 @@ extern const bool isheadshot(int weapon, int style);
 extern const int toobit(int weap, int style);
 extern const char *killname(int obit, bool headshot);
 
-enum { PERK_NONE = 0, PERK_SPEED, PERK_HAND, PERK_JAM, PERK_VISION, PERK_STREAK, PERK_STEADY, PERK_LIGHT, PERK_POWER, PERK_PERSIST, PERK_BRIBE, PERK_HEALTHY, PERK_MAX };
+enum { PERK_NONE = 0, PERK_JAM, PERK_POWER, PERK_TIME, PERK_MAX };
+enum { PERK1_NONE = 0, PERK1_AGILE = PERK_MAX, PERK1_HAND, PERK1_LIGHT, PERK1_SCORE, PERK1_MAX, };
+enum { PERK2_NONE = 0, PERK2_VISION = PERK_MAX, PERK2_STREAK, PERK2_STEADY, PERK2_HEALTHY, PERK2_MAX };
 
 extern float gunspeed(int gun, int ads, bool lightweight = false);
-extern int classic_forceperk(int primary);
 
 #define isteam(a,b)   (m_team(gamemode, mutators) && (a)->team == (b)->team)
 
@@ -313,13 +314,15 @@ struct playerstate
 	int ownernum; // for bots
 	int health, armor, spawnmillis, lastkiller;
 	int pointstreak, deathstreak, assists, radarearned, airstrikes, nukemillis;
-	int primary, nextprimary, perk, nextperk;
+	int primary, secondary, perk1, perk2, nextprimary, nextsecondary, nextperk1, nextperk2;
 	int gunselect, level;
 	bool akimbo, scoping;
 	int ammo[WEAP_MAX], mag[WEAP_MAX], gunwait[WEAP_MAX];
 	ivector damagelog;
 
-	playerstate() : primary(WEAP_ASSAULT), nextprimary(WEAP_ASSAULT), perk(PERK_NONE), nextperk(PERK_NONE), ownernum(-1), level(1), pointstreak(0), deathstreak(0), airstrikes(0), radarearned(0), nukemillis(0), spawnmillis(0), lastkiller(-1) {}
+	playerstate() : primary(WEAP_ASSAULT), secondary(WEAP_PISTOL), perk1(PERK1_NONE), perk2(PERK2_NONE),
+		nextprimary(WEAP_ASSAULT), nextsecondary(WEAP_PISTOL), nextperk1(PERK1_NONE), nextperk2(PERK2_NONE),
+		ownernum(-1), level(1), pointstreak(0), deathstreak(0), airstrikes(0), radarearned(0), nukemillis(0), spawnmillis(0), lastkiller(-1) {}
 	virtual ~playerstate() {}
 
 	itemstat &itemstats(int type)
@@ -419,14 +422,19 @@ struct playerstate
 
 		gunselect = primary;
 
-		if(m_classic(gamemode, mutators)) perk = classic_forceperk(primary);
-		else{
-			perk = nextperk;
-			if(perk <= PERK_NONE || perk >= PERK_MAX) perk = rnd(PERK_MAX-1)+1;
-		}
+		perk1 = nextperk1;
+		perk2 = nextperk2;
+
+		// no classic override
+
+		if(perk1 <= PERK1_NONE || perk1 >= PERK1_MAX) perk1 = rnd(PERK1_MAX-1)+1;
+		if(perk2 <= PERK1_NONE || perk1 >= PERK2_MAX) perk2 = rnd(PERK2_MAX-1)+1;
+
+		// special perks need both slots
+		if(perk1 < PERK_MAX) perk2 = perk1;
 
 		const int healthsets[3] = { STARTHEALTH - 15 * HEALTHSCALE, STARTHEALTH, STARTHEALTH + 20 * HEALTHSCALE };
-		health = healthsets[(!m_regen(gamemode, mutators) && m_sniper(gamemode, mutators) ? 0 : 1) + (perk == PERK_HEALTHY ? 1 : 0)];
+		health = healthsets[(!m_regen(gamemode, mutators) && m_sniper(gamemode, mutators) ? 0 : 1) + (perk2 == PERK2_HEALTHY ? 1 : 0)];
 	}
 
 	// just subtract damage here, can set death, etc. later in code calling this
@@ -492,7 +500,7 @@ struct playerent : dynent, playerstate
 	vector<eventicon> icons;
 
 	weapon *weapons[WEAP_MAX];
-	weapon *prevweaponsel, *weaponsel, *nextweaponsel, *primweap, *nextprimweap, *lastattackweapon;
+	weapon *prevweaponsel, *weaponsel, *nextweaponsel, *primweap, *lastattackweapon;
 
 	poshist history; // Previous stored locations of this player
 
@@ -519,7 +527,7 @@ struct playerent : dynent, playerstate
 
 		lastrecieve = plag = ping = lifesequence = points = frags = flagscore = deaths = lastpain = lastregen = lasthitmarker = skin = eardamagemillis = respawnoffset = radarmillis = ads = 0;
 		radarearned = airstrikes = nukemillis = 0;
-		weaponsel = nextweaponsel = primweap = nextprimweap = lastattackweapon = prevweaponsel = NULL;
+		weaponsel = nextweaponsel = primweap = lastattackweapon = prevweaponsel = NULL;
 		type = ENT_PLAYER;
 		clientnum = smoothmillis = followplayercn = wantsswitch = -1;
 		name[0] = 0;
@@ -613,12 +621,10 @@ struct playerent : dynent, playerstate
 		playerstate::spawnstate(gamemode, mutators);
 		prevweaponsel = weaponsel = weapons[gunselect];
 		primweap = weapons[primary];
-		nextprimweap = weapons[nextprimary];
 	}
 
 	void selectweapon(int w) { prevweaponsel = weaponsel = weapons[(gunselect = w)]; }
 	void setprimary(int w) { primweap = weapons[(primary = w)]; }
-	void setnextprimary(int w) { nextprimweap = weapons[(nextprimary = w)]; }
 	bool isspectating() { return team==TEAM_SPECT || (state==CS_DEAD && spectatemode > SM_NONE); }
 	void weaponswitch(weapon *w)
 	{

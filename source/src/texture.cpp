@@ -592,7 +592,7 @@ Texture **geteventicons(){
 Texture **getperktex(){
 	static Texture *tex[PERK_MAX];
 	if(!*tex){
-		const char *texname[PERK_MAX] = { "none", "speed", "hand", "jam", "vision", "streak", "steady", "light", "power", "persist", "bribe", "health" };
+		const char *texname[PERK_MAX] = { "none", "speed", "hand", "jam" }; //, "vision", "streak", "steady", "light", "power", "persist", "bribe", "health" };
 		loopi(PERK_MAX){
 			defformatstring(tname)("packages/misc/perks/%s.png", texname[i]);
 			tex[i] = textureload(tname);

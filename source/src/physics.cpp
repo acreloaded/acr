@@ -487,8 +487,8 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 		if(pl->type == ENT_PLAYER){
 			playerent *p = (playerent *)pl;
 			float spd = 1;
-			if(p->weaponsel) spd = gunspeed(p->weaponsel->type, p->ads, p->perk == PERK_SPEED);
-			d.mul(vec(spd, spd, p->perk == PERK_LIGHT ? 1.05f : 1));
+			if(p->weaponsel) spd = gunspeed(p->weaponsel->type, p->ads, p->perk1 == PERK1_AGILE);
+			d.mul(vec(spd, spd, p->perk1 == PERK1_LIGHT ? 1.05f : 1));
 		}
 
 		pl->vel.mul(fpsfric-1);   // slowly apply friction and direction to velocity, gives a smooth movement
@@ -528,7 +528,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 
 					if(pl->type==ENT_PLAYER)
 					{
-						if(p->perk == PERK_HAND) climbspeed = 1.5f;
+						if(p->perk1 == PERK1_HAND) climbspeed = 1.5f;
 						if(p->k_up || p->ownernum >= 0) pl->vel.z = climbspeed;
 						else if(p->k_down) pl->vel.z = -climbspeed;
 					}

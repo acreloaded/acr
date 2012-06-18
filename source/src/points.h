@@ -47,7 +47,7 @@
 
 inline void addpt(client *c, int points){
 	if(!c || !points) return;
-	if(c->state.perk == PERK_BRIBE) points *= points > 0 ? 1.35f : 1.1f;
+	if(c->state.perk1 == PERK1_SCORE) points *= points > 0 ? 1.35f : 1.1f;
 	sendf(-1, 1, "ri3", N_POINTS, c->clientnum, (c->state.points += points));
 }
 

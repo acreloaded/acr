@@ -474,7 +474,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				s->lifesequence = getint(p);
 				s->health = getint(p);
 				s->armor = getint(p);
-				s->perk = getint(p);
+				s->perk1 = getint(p);
+				s->perk2 = getint(p);
 				int gunselect = getint(p);
 				s->setprimary(gunselect);
 				s->selectweapon(gunselect);
@@ -496,7 +497,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				d->lifesequence = getint(p);
 				d->health = getint(p);
 				d->armor = getint(p);
-				d->perk = getint(p);
+				d->perk1 = getint(p);
+				d->perk2 = getint(p);
 				d->setprimary(getint(p));
 				d->selectweapon(getint(p));
 				int arenaspawn = getint(p);

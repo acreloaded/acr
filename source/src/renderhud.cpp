@@ -191,7 +191,7 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 	if(n == CROSSHAIR_DEFAULT){
 		usz *= 3.5f;
 		float ct = usz / 1.8f;
-		chsize = p->weaponsel->dynspread() * 100 * (p->perk == PERK_STEADY ? .65f : 1) / dynfov();
+		chsize = p->weaponsel->dynspread() * 100 * (p->perk2 == PERK2_STEADY ? .65f : 1) / dynfov();
 		if(m_classic(gamemode, mutators)) chsize *= .6f;
 		Texture *cv = crosshairs[CROSSHAIR_V], *ch = crosshairs[CROSSHAIR_H];
 		if(!cv) cv = textureload("packages/misc/crosshairs/vertical.png", 3);
@@ -233,7 +233,7 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 	}
 	else{
 		if(n == CROSSHAIR_SHOTGUN){
-			chsize = SGSPREAD * 100 * (1 - p->ads / 1000.f / SGADSSPREADFACTOR) * (p->perk == PERK_STEADY ? .75f : 1) / dynfov();
+			chsize = SGSPREAD * 100 * (1 - p->ads / 1000.f / SGADSSPREADFACTOR) * (p->perk2 == PERK2_STEADY ? .75f : 1) / dynfov();
 			if(m_classic(gamemode, mutators)) chsize *= .75f;
 		}
 
@@ -476,7 +476,7 @@ void drawradar(playerent *p, int w, int h)
 	glTranslatef(-(centerpos.x-res/2)/worldsize*radarsize, -(centerpos.y-res/2)/worldsize*radarsize, 0);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	drawradarent(fixradarpos(p->o, centerpos, res), coordtrans, p->yaw, p->state!=CS_DEAD ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p) ? 1 : 0, p->state==CS_DEAD ? .5f : p->perk == PERK_JAM ? .35f : 1, "\f1%s", colorname(p)); // local player
+	drawradarent(fixradarpos(p->o, centerpos, res), coordtrans, p->yaw, p->state!=CS_DEAD ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p) ? 1 : 0, p->state==CS_DEAD ? .5f : p->perk1 == PERK_JAM ? .35f : 1, "\f1%s", colorname(p)); // local player
 
 	// radar check
 	const bool hasradar = radarup(p);
@@ -484,19 +484,21 @@ void drawradar(playerent *p, int w, int h)
 	loopv(players) // other players
 	{
 		playerent *pl = players[i];
-		if(!pl || pl == p || pl->perk == PERK_JAM) continue;
+		if(!pl || pl == p) continue;
 		bool force = hasradar || (flaginfos[0].state == CTFF_STOLEN && pl == flaginfos[0].actor) || (flaginfos[1].state == CTFF_STOLEN && pl == flaginfos[1].actor);
 		if(!force && pl->state != CS_DEAD && !isteam(p, pl)){
-			playerent *seenby = NULL;
+			int taggedmillis = 0;
 			extern bool IsVisible(vec v1, vec v2, dynent *tracer = NULL, bool SkipTags=false);
-			if(IsVisible(p->o, pl->o)) seenby = p;
-			else loopvj(players){
-				playerent *pll = players[j];
-				if(!pll || pll == p || !isteam(p, pll) || pll->state == CS_DEAD) continue;
-				if(IsVisible(pll->o, pl->o)) { seenby = pll; break;}
+			if(pl->perk1 != PERK_JAM){
+				if(IsVisible(p->o, pl->o)) taggedmillis = 750;
+				else loopvj(players){
+					playerent *pll = players[j];
+					if(!pll || p == pll || !isteam(p, pll) || pll->state == CS_DEAD || pll->perk1 != PERK_JAM) continue;
+					if(IsVisible(pll->o, pl->o)) { taggedmillis = 250; break;}
+				}
 			}
-			if(seenby){
-				pl->radarmillis = lastmillis + (seenby == p ? 750 : 250);
+			if(taggedmillis){
+				pl->radarmillis = lastmillis + taggedmillis;
 				pl->lastloudpos[0] = pl->o.x;
 				pl->lastloudpos[1] = pl->o.y;
 				pl->lastloudpos[2] = pl->yaw;
@@ -1030,10 +1032,10 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	
 	glLoadIdentity();
 	glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
-	glColor4f(1.0f, 1.0f, 1.0f, p->perk /* != PERK_NONE */ && p->state != CS_DEAD ? .78f : .3f);
+	glColor4f(1.0f, 1.0f, 1.0f, p->perk1 /* != PERK_NONE */ && p->state != CS_DEAD ? .78f : .3f);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	Texture *perk = getperktex()[p->perk%PERK_MAX];
+	Texture *perk = getperktex()[p->perk1%PERK_MAX];
 	if(perk) quad(perk->id, VIRTW-225-10 - 180 - 30, VIRTH - 180 - 10, 180, 0, 0, 1);
 
 	// streak meter
@@ -1196,9 +1198,18 @@ void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, 
 
 void renderhudwaypoints(playerent *p){
 	// throwing knife pickups
-	loopv(knives) renderwaypoint(WP_KNIFE, knives[i].o, (float)(knives[i].millis - totalmillis) / KNIFETTL, p->perk == PERK_VISION);
+	loopv(knives){
+		vec s;
+		bool ddt = p->perk2 == PERK2_VISION;
+		if(!ddt){
+			vec dir, s;
+			(dir = p->o).sub(knives[i].o);
+			ddt = rayclip(knives[i].o, dir, s) >= p->o.dist(knives[i].o);
+		}
+		renderwaypoint(WP_KNIFE, knives[i].o, (float)(knives[i].millis - totalmillis) / KNIFETTL, ddt);
+	}
 	// vision perk
-	if(p->perk == PERK_VISION) loopv(bounceents){
+	if(p->perk2 == PERK2_VISION) loopv(bounceents){
 		bounceent *b = bounceents[i];
 		if(!b || (b->bouncetype != BT_NADE && b->bouncetype != BT_KNIFE)) continue;
 		if(b->bouncetype == BT_NADE && ((grenadeent *)b)->nadestate != 1) continue;

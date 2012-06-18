@@ -431,10 +431,10 @@ void weapon::attackphysics(const vec &from, const vec &to) // physical fx to the
 	// kickback
 	owner->vel.add(vec(unitv).mul(kick * owner->eyeheight / owner->maxeyeheight));
 	// recoil
-	const float recoilshift = (rnd(info.recoilangle * 20 + 1) / 10.f - info.recoilangle) * RAD, recoilval = info.recoil * sqrtf(rnd(50) + 51) / 100.f;
+	const float recoilshift = (rnd(info.recoilangle * 20 + 1) / 10.f - info.recoilangle) * RAD, recoilval = info.recoil * sqrtf(rnd(50) + 51) / (owner->perk1 == PERK1_HAND ? 100.f : 120.f);
 	owner->pitchvel += cosf(recoilshift) * recoilval;
 	owner->yawvel += sinf(recoilshift) * recoilval;
-	const float maxmagnitude = sqrtf(owner->pitchvel * owner->pitchvel + owner->yawvel + owner->yawvel) / info.maxrecoil * (owner->perk == PERK_HAND ? 7 : 10);
+	const float maxmagnitude = sqrtf(owner->pitchvel * owner->pitchvel + owner->yawvel + owner->yawvel) / info.maxrecoil * (owner->perk1 == PERK1_HAND ? 7 : 10);
 	if(maxmagnitude > 1){
 		owner->pitchvel /= maxmagnitude;
 		owner->yawvel /= maxmagnitude;
@@ -499,7 +499,6 @@ void weapon::equipplayer(playerent *pl){
 	pl->weapons[WEAP_BOW] = new crossbow(pl);
 	pl->selectweapon(WEAP_ASSAULT);
 	pl->setprimary(WEAP_ASSAULT);
-	pl->setnextprimary(WEAP_ASSAULT);
 }
 
 bool weapon::valid(int id) { return id>=0 && id<WEAP_MAX; }

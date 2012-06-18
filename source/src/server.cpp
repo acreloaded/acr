@@ -370,7 +370,9 @@ void spawnstate(client *c){
 			WEAP_BOW,
 		};
 		gs.nextprimary = weap1[rnd(sizeof(weap1)/sizeof(int))];
-		gs.nextperk = (gs.nextprimary == WEAP_BOLT || m_sniper(gamemode, mutators)) ? PERK_STEADY : PERK_NONE;
+		gs.nextsecondary = weap2[rnd(sizeof(weap2)/sizeof(int))];
+		gs.nextperk1 = PERK_NONE;
+		gs.nextperk2 = (gs.nextprimary == WEAP_BOLT || m_sniper(gamemode, mutators)) ? PERK2_STEADY : PERK2_NONE;
 	}
 	gs.spawnstate(smode, smuts);
 	if(m_zombie(gamemode)){
@@ -380,7 +382,8 @@ void spawnstate(client *c){
 				memset(gs.mag, 0, sizeof(gs.mag));
 				memset(gs.ammo, 0, sizeof(gs.ammo));
 				gs.mag[gs.primary] = magsize(gs.primary);
-				gs.perk = gs.nextperk = PERK_SPEED;
+				gs.perk1 = gs.nextperk1 = PERK1_AGILE;
+				gs.perk2 = gs.nextperk2 = PERK2_STREAK;
 				gs.health = STARTHEALTH + rnd(STARTHEALTH * ZOMBIEHEALTHFACTOR);
 				// INTENTIONAL FALLTHROUGH
 			case TEAM_BLUE:
@@ -399,13 +402,13 @@ void sendspawn(client *c){
 	clientstate &gs = c->state;
 	if(gs.lastdeath) gs.respawn();
 	spawnstate(c);
-	sendf(c->clientnum, 1, "ri9vv", N_SPAWNSTATE, c->clientnum, gs.lifesequence,
-		gs.health, gs.armor, gs.perk,
-		gs.primary, gs.gunselect, m_duke(gamemode, mutators) ? c->spawnindex : -1,
+	sendf(c->clientnum, 1, "ri9ivv", N_SPAWNSTATE, c->clientnum, gs.lifesequence, // 1-3
+		gs.health, gs.armor, gs.perk1, gs.perk2, // 4-7
+		gs.primary, gs.gunselect, m_duke(gamemode, mutators) ? c->spawnindex : -1, // 8-9, 1
 		WEAP_MAX, gs.ammo, WEAP_MAX, gs.mag);
 	gs.lastspawn = gamemillis;
 
-	int dstreak = gs.deathstreak + (gs.perk == PERK_STREAK ? 1 : 0);
+	int dstreak = gs.deathstreak + (gs.perk2 == PERK2_STREAK ? 1 : 0);
 	if(dstreak >= 8) gs.streakondeath = STREAK_REVENGE;
 	else if(dstreak >= 5 && c->type != ST_AI) gs.streakondeath = STREAK_DROPNADE;
 	else gs.streakondeath = -1;
@@ -1409,7 +1412,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 		else ts.damagelog.remove(i--);
 	}
 	// kills
-	int virtualstreak = actor->state.pointstreak + (actor->state.perk == PERK_STREAK ? 5 : 0);
+	int virtualstreak = actor->state.pointstreak + (actor->state.perk2 == PERK2_STREAK ? 5 : 0);
 	if(virtualstreak >= 7 * 5 && actor->state.streakused < 7 * 5){
 		streakready(*actor, STREAK_AIRSTRIKE);
 	}
@@ -1550,7 +1553,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 		}
 	}
 
-	ts.dodamage(damage, actor->state.perk == PERK_POWER);
+	ts.dodamage(damage, actor->state.perk1 == PERK_POWER);
 	ts.lastregen = gamemillis + REGENDELAY - REGENINT;
 
 	if(ts.health<=0){
@@ -2979,7 +2982,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			const int connectauth = getint(p);
 			getstring(text, p); // authname
 			cl->state.nextprimary = getint(p);
-			cl->state.nextperk = getint(p);
+			cl->state.nextsecondary = getint(p);
+			cl->state.nextperk1 = getint(p);
+			cl->state.nextperk2 = getint(p);
 
 			int clientversion = getint(p), clientdefs = getint(p), clientguid = getint(p);
 			logversion(*cl, clientversion, clientdefs, clientguid);
@@ -3154,9 +3159,12 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			{
 				int nextprimary = getint(p), nextsecondary = getint(p), perk1 = getint(p), perk2 = getint(p);
 				clientstate &cs = cl->state;
-				cs.nextperk = perk1;
+				cs.nextperk1 = perk1;
+				cs.nextperk2 = perk2;
 				if(nextprimary >= 0 && nextprimary < WEAP_MAX)
 					cs.nextprimary = nextprimary;
+				if(nextsecondary >= 0 && nextsecondary < WEAP_MAX)
+					cs.nextsecondary = nextsecondary;
 				break;
 			}
 
@@ -3204,14 +3212,15 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				cs.state = CS_ALIVE;
 				cs.gunselect = gunselect;
 				cs.o = o;
-				QUEUE_BUF(5*(7 + 2*WEAP_MAX) + 4*(3),
+				QUEUE_BUF(5*(8 + 2*WEAP_MAX) + 4*(3),
 				{
 					putint(buf, N_SPAWN);
 					putint(buf, cn);
 					putint(buf, ls);
 					putint(buf, cs.health);
 					putint(buf, cs.armor);
-					putint(buf, cs.perk);
+					putint(buf, cs.perk1);
+					putint(buf, cs.perk2);
 					putint(buf, gunselect);
 					loopi(WEAP_MAX) putint(buf, cs.ammo[i]);
 					loopi(WEAP_MAX) putint(buf, cs.mag[i]);
@@ -3575,7 +3584,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					if((newonfloor || newonladder) && !cs.onfloor){
 						if(newonfloor){
 							// 4 meters without damage + 2/0.5 HP/meter
-							int damage = ((cs.fallz - newo.z) - 16) * HEALTHSCALE / (cs.perk == PERK_LIGHT ? 8 : 2);
+							int damage = ((cs.fallz - newo.z) - 16) * HEALTHSCALE / (cs.perk1 == PERK1_LIGHT ? 8 : 2);
 							if(damage >= 1*HEALTHSCALE){ // don't heal the player
 								// maximum damage is 175
 								serverdamage(&cp, &cp, min(damage, 175 * HEALTHSCALE), WEAP_MAX + 2, FRAG_NONE, cs.o);
