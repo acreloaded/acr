@@ -162,8 +162,8 @@ void shotevent::process(client *ci)
 				// heals over the next 1 to 2.5 seconds (no time perk, for others)
 				healevent h;
 				h.id = c.clientnum; // from this person
-				h.millis = gamemillis + (10 + i) * 100 / (gs.perk1 == PERK_TIME ? 2 : 1);
-				h.hp = (gs.perk1 == PERK_TIME ? 2 : 1);
+				h.millis = gamemillis + (10 + i) * 100 / (gs.perk1 == PERK_POWER ? 2 : 1);
+				h.hp = (gs.perk1 == PERK_POWER ? 2 : 1);
 				if(hit->heals.length()<128) hit->heals.add(h);
 			}
 			if(hit == &c) (end = to).sub(from).normalize().add(from); // 25 cm fx
@@ -294,7 +294,7 @@ void processevents(){
 					if(!valid_client(w.inflictor)) c.state.wounds.remove(i--);
 					else if(w.lastdealt + 500 < gamemillis){
 						client &owner = *clients[w.inflictor];
-						const int bleeddmg = (m_zombie(gamemode) ? BLEEDDMGZ : owner.state.perk1 == PERK_TIME ? BLEEDDMGPLUS : BLEEDDMG) * HEALTHSCALE;
+						const int bleeddmg = (m_zombie(gamemode) ? BLEEDDMGZ : owner.state.perk2 == PERK_POWER ? BLEEDDMGPLUS : BLEEDDMG) * HEALTHSCALE;
 						owner.state.damage += bleeddmg;
 						owner.state.shotdamage += bleeddmg;
 						// where were we wounded?
@@ -308,9 +308,9 @@ void processevents(){
 					}
 				}
 			}
-			else if(m_regen(gamemode, mutators) && c.state.state == CS_ALIVE && c.state.health < STARTHEALTH && c.state.lastregen + (c.state.perk1 == PERK_TIME ? REGENINT * .7f : REGENINT) < gamemillis){
+			else if(m_regen(gamemode, mutators) && c.state.state == CS_ALIVE && c.state.health < STARTHEALTH && c.state.lastregen + (c.state.perk1 == PERK_POWER ? REGENINT * .7f : REGENINT) < gamemillis){
 				int amt = round(float((STARTHEALTH - c.state.health) / 5 + 15));
-				if(c.state.perk1 == PERK_TIME) amt *= 1.4f;
+				if(c.state.perk1 == PERK_POWER) amt *= 1.4f;
 				if(amt >= STARTHEALTH - c.state.health){
 					amt = STARTHEALTH - c.state.health;
 					c.state.damagelog.setsize(0);
