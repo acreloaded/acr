@@ -1,8 +1,10 @@
 Licence
 ============
-AssaultCube Reloaded, formerly AssaultCube Special Edition, is released under the GPL v3. Please see Readme-GPL3.txt.
+AssaultCube Reloaded, formerly AssaultCube Special Edition, has most of itself released under the GPL v3. Please see Readme-GPL3.txt.
 
-except /enet, which is licenced under the MIT Licence by Lee Salzman.
+/source/enet is licenced under the MIT Licence by Lee Salzman.
+/packages is special, read that directory's 'Readme's.
+Everything else is GPL 3.
 
 Cheat Protection
 ================
