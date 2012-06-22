@@ -711,7 +711,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		const int maxhealth = 100 * HEALTHSCALE;
 		float newfade = 0;
 		if(p->state == CS_ALIVE && p->health >= 0 && p->health < maxhealth)
-			newfade = (1 - powf(p->health / maxhealth, 2)) * damagescreenalpha / 100.f;
+			newfade = (1 - powf(p->health / (float)maxhealth, 2)) * damagescreenalpha / 100.f;
 		fade = clamp((fade * 40 + newfade) / 41.f, 0.f, 1.f);
 		if(fade >= 0.05f){
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
