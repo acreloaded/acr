@@ -650,8 +650,10 @@ int main(int argc, char **argv)
 		execute("addallfavcatmenus");  // exec here, to add all categories (including those defined in autoexec.cfg)
 		initing = NOT_INITING;
 
+		persistidents = false;
 		execfile("locale/_.cfg"); // load locale after settings, before menus
 		exec("config/menus.cfg");
+		persistidents = true;
 
 		initlog("models");
 		preload_playermodels();
