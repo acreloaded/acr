@@ -102,8 +102,8 @@ extern mutstypes mutstype[G_M_NUM];
 #define m_noitems(a,b)      (m_knife(a, b))
 #define m_noitemsammo(a,b)  (m_sniper(a, b))
 #define m_noitemsnade(a,b)  (m_gib(a,b))
-#define m_nopistol(a,b)     (m_sniper(a,b) || m_gib(a,b) || m_knife(a,b))
 #define m_noprimary(a,b)    (m_pistol(a,b) || m_gib(a,b))
+#define m_nosecondary(a,b)  (m_sniper(a,b) || m_gib(a,b) || m_knife(a,b))
 
 #define m_survivor(a,b)     (m_dm(a) && m_gsp1(a,b))
 #define m_zombies_rounds(a,b) (m_zombie(a) && !m_gsp1(a,b))

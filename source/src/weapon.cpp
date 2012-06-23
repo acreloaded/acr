@@ -55,9 +55,25 @@ void shiftweapon(int s){
 
 		// collect available weapons
 		vector<weapon *> availweapons;
+		const int weap_check_order[WEAP_MAX] = {
+			WEAP_AKIMBO,
+			WEAP_KNIFE,
+			WEAP_GRENADE,
+			// secondary
+			WEAP_PISTOL,
+			WEAP_HEAL,
+			WEAP_BOW,
+			// primary
+			WEAP_SHOTGUN,
+			WEAP_SUBGUN,
+			WEAP_SNIPER,
+			WEAP_BOLT,
+			WEAP_ASSAULT,
+			WEAP_SWORD,
+		};
 		loopi(WEAP_MAX)
 		{
-			weapon *w = player1->weapons[i];
+			weapon *w = player1->weapons[weap_check_order[i]];
 			if(!w) continue;
 			if(w->selectable() || w==curweapon || (w->type==WEAP_PISTOL && player1->akimbo))
 			{
@@ -65,7 +81,7 @@ void shiftweapon(int s){
 			}
 		}
 
-		// replace pistol by akimbo
+		// replace pistol with akimbo
 		if(player1->akimbo)
 		{
 			availweapons.removeobj(akimbo); // and remove initial akimbo
@@ -89,9 +105,10 @@ void shiftweapon(int s){
 	else if(player1->isspectating()) updatefollowplayer(s);
 }
 
-int currentprimary() { return player1->primweap->type; }
+int currentprimary() { return player1->primary; }
+int currentsecondary() { return player1->secondary; }
 int prevweapon() { return player1->prevweaponsel->type; }
-int curweapon() { return player1->weaponsel->type; }
+int curweapon() { return player1->gunselect; }
 
 int magcontent(int w) { if(w >= 0 && w < WEAP_MAX) return player1->weapons[w]->mag; else return -1;}
 int magreserve(int w) { if(w >= 0 && w < WEAP_MAX) return player1->weapons[w]->ammo; else return -1;}
@@ -99,6 +116,7 @@ int magreserve(int w) { if(w >= 0 && w < WEAP_MAX) return player1->weapons[w]->a
 COMMANDN(weapon, selectweaponi, ARG_1INT);
 COMMAND(shiftweapon, ARG_1INT);
 COMMAND(currentprimary, ARG_IVAL);
+COMMAND(currentsecondary, ARG_IVAL);
 COMMAND(prevweapon, ARG_IVAL);
 COMMAND(curweapon, ARG_IVAL);
 COMMAND(magcontent, ARG_1EXP);
@@ -611,7 +629,7 @@ bool grenades::attack(vec &targ){
 				{
 					addmsg(N_QUICKSWITCH, "ri", owner->clientnum);
 					owner->weaponchanging = lastmillis-1-(weaponchangetime/(owner->perk2 == PERK_TIME ? 4 : 2));
-					owner->nextweaponsel = owner->weaponsel = owner->primweap;
+					owner->nextweaponsel = owner->weaponsel = owner->weapons[owner->primary];
 				}
 				return false;
 			}
@@ -782,7 +800,8 @@ bool gun::attack(vec &targ){
 		owner->lastattackweapon = NULL;
 		shots = 0;
 		if(!checkautoreload() && owner == player1){
-			if(!m_nopistol(gamemode, mutators) && owner->weapons[WEAP_PISTOL]->mag || owner->weapons[WEAP_PISTOL]->ammo) selectweapon(owner->weapons[WEAP_PISTOL]);
+			if(!m_nosecondary(gamemode, mutators) && owner->weapons[owner->secondary]->mag || owner->weapons[owner->secondary]->ammo)
+				selectweapon(owner->weapons[owner->secondary]);
 			else playsoundc(S_NOAMMO, owner);
 		}
 		return false;
@@ -881,7 +900,7 @@ void shotgun::attackfx(const vec &from2, const vec &to, int millis){
 	}
 }
 
-bool shotgun::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && this == owner->primweap; }
+bool shotgun::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && type == owner->primary; }
 
 void shotgun::renderaimhelp(int teamtype){ drawcrosshair(owner, CROSSHAIR_SHOTGUN, teamtype); }
 
@@ -902,12 +921,12 @@ bool shotgun::checkautoreload() {
 // subgun
 
 subgun::subgun(playerent *owner) : gun(owner, WEAP_SUBGUN) {}
-bool subgun::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && this == owner->primweap; }
+bool subgun::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && type == owner->primary; }
 
 // sword
 
 sword::sword(playerent *owner) : weapon(owner, WEAP_SWORD) {}
-bool sword::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && this == owner->primweap; }
+bool sword::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && type == owner->primary; }
 
 bool sword::attack(vec &targ){
 	int attackmillis = lastmillis-owner->lastaction;
@@ -934,7 +953,7 @@ int sword::flashtime() const { return 0; }
 // crossbow
 
 crossbow::crossbow(playerent *owner) : gun(owner, WEAP_BOW) {}
-bool crossbow::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && this == owner->primweap; }
+bool crossbow::selectable() { return weapon::selectable() && !m_nosecondary(gamemode, mutators) && type == owner->secondary; }
 int crossbow::modelanim(){
 	// very stupid system
 	// "gun *"  | scoping | reloading
@@ -961,7 +980,7 @@ void crossbow::attackhit(const vec &o){
 // scopedprimary
 scopedprimary::scopedprimary(playerent *owner, int type) : gun(owner, type) {}
 
-bool scopedprimary::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && this == owner->primweap; }
+bool scopedprimary::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && type == owner->primary; }
 void scopedprimary::attackfx(const vec &from2, const vec &to, int millis){
 	vec from(from2);
 	if(millis & 1){
@@ -995,13 +1014,13 @@ boltrifle::boltrifle(playerent* owner) : scopedprimary(owner, WEAP_BOLT) {}
 assaultrifle::assaultrifle(playerent *owner) : gun(owner, WEAP_ASSAULT) {}
 
 float assaultrifle::dynrecoil() { return weapon::dynrecoil() + (rnd(8)*-0.01f); }
-bool assaultrifle::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && this == owner->primweap; }
+bool assaultrifle::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && type == owner->primary; }
 
 
 // pistol
 
 pistol::pistol(playerent *owner) : gun(owner, WEAP_PISTOL) {}
-bool pistol::selectable() { return weapon::selectable() && !m_nopistol(gamemode, mutators); }
+bool pistol::selectable() { return weapon::selectable() && !m_nosecondary(gamemode, mutators) && type == owner->secondary; }
 
 
 // akimbo
@@ -1033,7 +1052,7 @@ void akimbo::onselecting(){
 	akimbolastaction[0] = akimbolastaction[1] = lastmillis;
 }
 
-bool akimbo::selectable() { return weapon::selectable() && !m_nopistol(gamemode, mutators) && owner->akimbo; }
+bool akimbo::selectable() { return weapon::selectable() && !m_nosecondary(gamemode, mutators) && owner->akimbo; }
 void akimbo::updatetimers() { weapon::updatetimers(); /*loopi(2) akimbolastaction[i] = lastmillis;*/ }
 void akimbo::reset() { akimbolastaction[0] = akimbolastaction[1] = 0; akimboside = false; }
 
@@ -1048,7 +1067,7 @@ heal::heal(playerent *owner) : gun(owner, WEAP_HEAL) {}
 
 int heal::flashtime() const { return 0; }
 
-bool heal::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && this == owner->primweap; }
+bool heal::selectable() { return weapon::selectable() && !m_nosecondary(gamemode, mutators) && type == owner->secondary; }
 
 //void heal::renderaimhelp(int teamtype){ if(state) weapon::renderaimhelp(teamtype); }
 void heal::attackfx(const vec &from2, const vec &to, int millis){
@@ -1163,7 +1182,7 @@ bool knife::attack(vec &targ){
 					if(!ammo){
 						addmsg(N_QUICKSWITCH, "ri", owner->clientnum);
 						owner->weaponchanging = lastmillis-1-(weaponchangetime/(owner->perk2 == PERK_TIME ? 4 : 2));
-						owner->nextweaponsel = owner->weaponsel = owner->primweap;
+						owner->nextweaponsel = owner->weaponsel = owner->weapons[owner->primary];
 					}
 					return false;
 				}

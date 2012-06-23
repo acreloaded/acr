@@ -402,9 +402,9 @@ void sendspawn(client *c){
 	clientstate &gs = c->state;
 	if(gs.lastdeath) gs.respawn();
 	spawnstate(c);
-	sendf(c->clientnum, 1, "ri9ivv", N_SPAWNSTATE, c->clientnum, gs.lifesequence, // 1-3
+	sendf(c->clientnum, 1, "ri9i2vv", N_SPAWNSTATE, c->clientnum, gs.lifesequence, // 1-3
 		gs.health, gs.armor, gs.perk1, gs.perk2, // 4-7
-		gs.primary, gs.gunselect, m_duke(gamemode, mutators) ? c->spawnindex : -1, // 8-9, 1
+		gs.primary, gs.secondary, gs.gunselect, m_duke(gamemode, mutators) ? c->spawnindex : -1, // 8-9, 2
 		WEAP_MAX, gs.ammo, WEAP_MAX, gs.mag);
 	gs.lastspawn = gamemillis;
 
@@ -2753,6 +2753,8 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet){
 			putint(p, cs.state == CS_WAITING ? CS_DEAD : cs.state);
 			putint(p, cs.lifesequence);
 			putint(p, cs.gunselect);
+			putint(p, cs.primary);
+			putint(p, cs.secondary);
 			putint(p, cs.points);
 			putint(p, cs.flagscore);
 			putint(p, cs.frags);
@@ -3212,7 +3214,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				cs.state = CS_ALIVE;
 				cs.gunselect = gunselect;
 				cs.o = o;
-				QUEUE_BUF(5*(8 + 2*WEAP_MAX) + 4*(3),
+				QUEUE_BUF(5*(9 + 2*WEAP_MAX) + 4*(3),
 				{
 					putint(buf, N_SPAWN);
 					putint(buf, cn);
@@ -3222,6 +3224,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					putint(buf, cs.perk1);
 					putint(buf, cs.perk2);
 					putint(buf, gunselect);
+					putint(buf, cs.secondary);
 					loopi(WEAP_MAX) putint(buf, cs.ammo[i]);
 					loopi(WEAP_MAX) putint(buf, cs.mag[i]);
 					loopi(3) putfloat(buf, cs.o[i]);

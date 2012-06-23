@@ -479,6 +479,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				int gunselect = getint(p);
 				s->setprimary(gunselect);
 				s->selectweapon(gunselect);
+				s->secondary = getint(p);
 				loopi(WEAP_MAX) s->ammo[i] = getint(p);
 				loopi(WEAP_MAX) s->mag[i] = getint(p);
 				//s->state = CS_SPAWNING;
@@ -500,6 +501,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				d->perk1 = getint(p);
 				d->perk2 = getint(p);
 				d->setprimary(getint(p));
+				d->secondary = getint(p);
 				d->selectweapon(getint(p));
 				int arenaspawn = getint(p);
 				loopi(WEAP_MAX) d->ammo[i] = getint(p);
@@ -521,7 +523,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					}
 				}
 				addmsg(N_SPAWN, "ri3f3", d->clientnum, d->lifesequence, d->weaponsel->type, d->o.x, d->o.y, d->o.z);
-				d->weaponswitch(d->primweap);
+				d->weaponswitch(d->weapons[d->primary]);
 				d->weaponchanging -= weapon::weaponchangetime/(d->perk2 == PERK_TIME ? 4 : 2);
 				break;
 			}
@@ -593,7 +595,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					a.mag = 0;
 					a.ammo = 0;
 					if(d->weaponsel->type==WEAP_AKIMBO){
-						if(d->primweap) d->weaponswitch(d->primweap);
+						if(d->weapons[d->primary]) d->weaponswitch(d->weapons[d->primary]);
 						else d->weaponswitch(&p);
 					}
 				}
@@ -835,6 +837,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					int cn = getint(p);
 					if(p.overread() || cn<0) break;
 					int state = getint(p), lifesequence = getint(p), gunselect = getint(p),
+						primary = getint(p), secondary = getint(p),
 						points = getint(p), flagscore = getint(p),
 						frags = getint(p), assists = getint(p),
 						pointstreak = getint(p), deathstreak = getint(p),
@@ -862,16 +865,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						d->state = state == CS_WAITING ? CS_DEAD : state;
 						d->spawnmillis = lastmillis + spawnmillis;
 
-						int primary = WEAP_KNIFE;
-						if(m_sniper(gamemode, mutators)) primary = WEAP_SNIPER;
-						else if(m_pistol(gamemode, mutators)) primary = WEAP_PISTOL;
-						else if(!m_lss(gamemode, mutators))
-						{
-							if(gunselect < WEAP_GRENADE) primary = gunselect;
-							loopi(WEAP_GRENADE) if(ammo[i] || mag[i]) primary = max(primary, i);
-							if(primary <= WEAP_PISTOL) primary = WEAP_ASSAULT;
-						}
 						d->setprimary(primary);
+						d->secondary = secondary;
 						d->selectweapon(gunselect);
 						d->health = health;
 						d->armor = armor;
@@ -1112,7 +1107,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				playerent *d = getclient(cn);
 				if(!d) break;
 				d->weaponchanging = lastmillis-1-(weapon::weaponchangetime/(d->perk2 == PERK_TIME ? 4 : 2));
-				d->nextweaponsel = d->weaponsel = d->primweap;
+				d->nextweaponsel = d->weaponsel = d->weapons[d->primary];
 				break;
 			}
 

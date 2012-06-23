@@ -403,16 +403,39 @@ struct playerstate
 		else if(m_gib(gamemode, mutators) || m_knife(gamemode, mutators)) primary = WEAP_KNIFE;
 		else primary = nextprimary;
 
-		if(primary == WEAP_GRENADE || primary == WEAP_AKIMBO || primary < 0 || primary >= WEAP_MAX) primary = WEAP_ASSAULT;
+		if(m_pistol(gamemode, mutators)) secondary = WEAP_PISTOL;
+		else secondary = nextsecondary;
 
-		if(!m_nopistol(gamemode, mutators)){
-			ammo[WEAP_PISTOL] = ammostats[WEAP_PISTOL].start-magsize(WEAP_PISTOL);
-			mag[WEAP_PISTOL] = magsize(WEAP_PISTOL);
+		switch(primary){
+			default: primary = WEAP_ASSAULT; break;
+			case WEAP_KNIFE:
+			case WEAP_SHOTGUN:
+			case WEAP_SUBGUN:
+			case WEAP_SNIPER:
+			case WEAP_BOLT:
+			case WEAP_ASSAULT:
+			case WEAP_GRENADE:
+			case WEAP_AKIMBO:
+			case WEAP_SWORD:
+				break;
+		}
+
+		switch(secondary){
+			default: secondary = WEAP_PISTOL; break;
+			case WEAP_PISTOL:
+			case WEAP_HEAL:
+			case WEAP_BOW:
+				break;
 		}
 
 		if(!m_noprimary(gamemode, mutators)){
 			ammo[primary] = ammostats[primary].start-magsize(primary);
 			mag[primary] = magsize(primary);
+		}
+
+		if(primary != secondary && !m_nosecondary(gamemode, mutators)){
+			ammo[secondary] = ammostats[secondary].start-magsize(secondary);
+			mag[secondary] = magsize(secondary);
 		}
 
 		// extras
@@ -500,7 +523,7 @@ struct playerent : dynent, playerstate
 	vector<eventicon> icons;
 
 	weapon *weapons[WEAP_MAX];
-	weapon *prevweaponsel, *weaponsel, *nextweaponsel, *primweap, *lastattackweapon;
+	weapon *prevweaponsel, *weaponsel, *nextweaponsel, *lastattackweapon;
 
 	poshist history; // Previous stored locations of this player
 
@@ -527,7 +550,7 @@ struct playerent : dynent, playerstate
 
 		lastrecieve = plag = ping = lifesequence = points = frags = flagscore = deaths = lastpain = lastregen = lasthitmarker = skin = eardamagemillis = respawnoffset = radarmillis = ads = 0;
 		radarearned = airstrikes = nukemillis = 0;
-		weaponsel = nextweaponsel = primweap = lastattackweapon = prevweaponsel = NULL;
+		weaponsel = nextweaponsel = lastattackweapon = prevweaponsel = NULL;
 		type = ENT_PLAYER;
 		clientnum = smoothmillis = followplayercn = wantsswitch = -1;
 		name[0] = 0;
@@ -620,11 +643,10 @@ struct playerent : dynent, playerstate
 	{
 		playerstate::spawnstate(gamemode, mutators);
 		prevweaponsel = weaponsel = weapons[gunselect];
-		primweap = weapons[primary];
 	}
 
 	void selectweapon(int w) { prevweaponsel = weaponsel = weapons[(gunselect = w)]; }
-	void setprimary(int w) { primweap = weapons[(primary = w)]; }
+	void setprimary(int w) { primary = w; }
 	bool isspectating() { return team==TEAM_SPECT || (state==CS_DEAD && spectatemode > SM_NONE); }
 	void weaponswitch(weapon *w)
 	{

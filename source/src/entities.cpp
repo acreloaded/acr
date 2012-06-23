@@ -181,8 +181,8 @@ void pickupeffects(int n, playerent *d, int spawntime)
 	switch(e.type)
 	{
 		case I_AKIMBO: w = d->weapons[WEAP_AKIMBO]; break;
-		case I_CLIPS: w = d->weapons[WEAP_PISTOL]; break;
-		case I_AMMO: w = d->primweap; break;
+		case I_CLIPS: w = d->weapons[d->secondary]; break;
+		case I_AMMO: w = d->weapons[d->primary]; break;
 		case I_GRENADE: w = d->weapons[WEAP_GRENADE]; break;
 	}
 	if(w) w->onammopicked();
