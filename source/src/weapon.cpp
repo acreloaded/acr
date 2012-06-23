@@ -1096,12 +1096,13 @@ knifeent::knifeent(playerent *owner, int millis){
 	bouncetype = BT_KNIFE;
 	maxspeed = 25.0f;
 	radius = .1f;
-	aboveeye = .7f;
-	eyeheight = .3f;
+	aboveeye = .2f;
+	eyeheight = .2f;
 	yaw = owner->yaw+180;
 	pitch = 75-owner->pitch;
 	roll = owner->roll;
 	rotspeed = 0;
+	hit = NULL;
 }
 
 knifeent::~knifeent(){
@@ -1112,10 +1113,8 @@ void knifeent::explode(){
 	if(knifestate!=NS_ACTIVATED && knifestate!=NS_THROWED ) return;
 	knifestate = NS_EXPLODED;
 	static vec n(0,0,0);
-	if(local){
-		extern playerent *tkhit;
-		addmsg(N_PROJ, "ri4f3", owner->clientnum, lastmillis, WEAP_KNIFE, tkhit ? tkhit->clientnum : -1, o.x, o.y, o.z);
-	}
+	if(local)
+		addmsg(N_PROJ, "ri4f3", owner->clientnum, lastmillis, WEAP_KNIFE, hit ? hit->clientnum : -1, o.x, o.y, o.z);
 	playsound(S_GRENADEBOUNCE1+rnd(2), &o);
 	timetolive = 0;
 }
@@ -1151,9 +1150,17 @@ void knifeent::moveoutsidebbox(const vec &direction, playerent *boundingbox){
 }
 
 void knifeent::destroy() { explode(); }
-bool knifeent::applyphysics() { return knifestate==NS_THROWED; }
+bool knifeent::applyphysics() { return timetolive && knifestate==NS_THROWED; }
 
-void knifeent::oncollision(){ timetolive = 1; }
+void knifeent::oncollision(){
+	extern playerent *tkhit;
+	if(tkhit || vel.magnitude() < 1.f){
+		timetolive = 0;
+		if(!hit)
+			hit = tkhit;
+	}
+	else vel.mul(0.4f);
+}
 
 // knife
 

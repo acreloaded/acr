@@ -734,6 +734,7 @@ struct knifeent : bounceent
 {
 	bool local;
 	int knifestate;
+	playerent *hit;
 	knifeent(playerent *owner, int millis = 0);
 	~knifeent();
 	void activate();
