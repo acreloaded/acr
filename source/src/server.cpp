@@ -1551,13 +1551,8 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 			// return; // we don't want this
 			damage = 0; // we want to show a hitmarker...
 		}
-		else if(m_vampire(gamemode, mutators)){
-			healevent h;
-			h.id = actor->clientnum; // from this person
-			h.millis = gamemillis;
-			h.hp = damage / 5;
-			actor->heals.add(h);
-		}
+		else if(m_vampire(gamemode, mutators))
+			sendf(-1, 1, "ri3", N_REGEN, actor->clientnum, actor->state.health += damage / 5);
 	}
 
 	ts.dodamage(damage, actor->state.perk1 == PERK_POWER);
