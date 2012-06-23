@@ -1213,7 +1213,7 @@ playerent *updatefollowplayer(int shiftdirection)
 
 	// collect spec-able players
 	vector<playerent *> available;
-	loopv(players) if(players[i] && players[i]->team != TEAM_SPECT && (players[i]->state != CS_DEAD || !m_duke(gamemode, mutators)))
+	loopv(players) if(players[i] && players[i]->team != TEAM_SPECT && (players[i]->ownernum < 0 || player1->spectatemode != SM_FOLLOW1ST) && (players[i]->state != CS_DEAD || !m_duke(gamemode, mutators)))
 		available.add(players[i]);
 	if(!available.length()) return NULL;
 
