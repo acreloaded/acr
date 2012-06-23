@@ -118,6 +118,12 @@ void alias(const char *name, const char *action)
 
 COMMAND(alias, ARG_2STR);
 
+void checkalias(const char *name)
+{
+    intret(getalias(name) ? 1 : 0);
+}
+COMMAND(checkalias, ARG_1STR);
+
 // variable's and commands are registered through globals, see cube.h
 
 int variable(const char *name, int minval, int cur, int maxval, int *storage, void (*fun)(), bool persist)
@@ -179,6 +185,12 @@ const char *getalias(const char *name)
 	ident *i = idents->access(name);
 	return i && i->type==ID_ALIAS ? i->action : NULL;
 }
+void _getalias(char *name)
+{
+    const char *action = getalias(name);
+    result(action ? action : "");
+}
+COMMANDN(getalias, _getalias, ARG_1STR);
 
 bool addcommand(const char *name, void (*fun)(), int narg)
 {
