@@ -411,13 +411,14 @@ void weapon::attacksound(){
 }
 
 bool weapon::reload(){
-	if(mag > magsize(type) || ammo < reloadsize(type)) return false;
+	const ushort ms = magsize(type), rs = reloadsize(type);
+	if(mag > ms || (rs == 1 && mag == ms) || ammo < rs) return false;
 	updatelastaction(owner);
 	reloading = lastmillis;
 	gunwait += info.reloadtime / (owner->perk2 == PERK_TIME ? 2 : 1);
 
-	owner->ammo[type] -= reloadsize(type);
-	owner->mag[type] = min<int>(magsize(type), owner->mag[type] + reloadsize(type));
+	owner->ammo[type] -= rs;
+	owner->mag[type] = min<int>(ms, owner->mag[type] + rs);
 	if(info.reload != S_NULL) playsound(info.reload, owner, owner == player1 ? SP_HIGH : SP_NORMAL);
 
 	if(player1 == owner || isowned(owner)) addmsg(N_RELOAD, "ri3", owner->clientnum, lastmillis, type);

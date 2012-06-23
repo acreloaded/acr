@@ -225,7 +225,12 @@ void reloadevent::process(client *ci){
 	   gs.ammo[weap] < reload) // no ammo
 		return;
 
-	gs.mag[weap]   = min(mag + (gs.mag[weap] && reload > 1) + (gs.mag[weap] && weap == WEAP_AKIMBO), gs.mag[weap] + reload);
+	// chamber reload bonus
+	if(gs.mag[weap]){
+		if(weap == WEAP_AKIMBO) mag += 2;
+		else if(reload > 1) ++mag;
+	}
+	gs.mag[weap]   = min(mag, gs.mag[weap] + reload);
 	gs.ammo[weap] -= reload;
 
 	int wait = millis - gs.lastshot;
