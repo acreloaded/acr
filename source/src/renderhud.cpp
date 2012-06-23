@@ -1203,8 +1203,8 @@ void renderhudwaypoints(playerent *p){
 		bool ddt = p->perk2 == PERK2_VISION;
 		if(!ddt){
 			vec dir, s;
-			(dir = p->o).sub(knives[i].o);
-			ddt = rayclip(knives[i].o, dir, s) >= p->o.dist(knives[i].o);
+			(dir = p->o).sub(knives[i].o).normalize();
+			ddt = rayclip(knives[i].o, dir, s) + 1.f >= p->o.dist(knives[i].o);
 		}
 		renderwaypoint(WP_KNIFE, knives[i].o, (float)(knives[i].millis - totalmillis) / KNIFETTL, ddt);
 	}
