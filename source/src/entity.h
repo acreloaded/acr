@@ -329,7 +329,7 @@ struct playerstate
 	{
 		switch(type)
 		{
-			case I_CLIPS: return ammostats[WEAP_PISTOL];
+			case I_CLIPS: return ammostats[secondary];
 			case I_AMMO: return ammostats[primary];
 			case I_GRENADE: return ammostats[WEAP_GRENADE];
 			case I_AKIMBO: return ammostats[WEAP_AKIMBO];
