@@ -17,8 +17,8 @@ void updatelastaction(playerent *d){
 inline void _checkweaponswitch(playerent *p){
 	if(!p->weaponchanging) return;
 	int timeprogress = lastmillis - p->weaponchanging;
-	if(timeprogress > weapon::weaponchangetime) p->weaponchanging = 0;
-	else if(timeprogress > weapon::weaponchangetime / 2) p->weaponsel = p->nextweaponsel;
+	if(timeprogress > weapon::weaponchangetime / (p->perk2 == PERK_TIME ? 2 : 1)) p->weaponchanging = 0;
+	else if(timeprogress > weapon::weaponchangetime / (p->perk2 == PERK_TIME ? 4 : 2)) p->weaponsel = p->nextweaponsel;
 }
 
 void checkweaponswitch(){
@@ -610,7 +610,7 @@ bool grenades::attack(vec &targ){
 				if(!mag && this==owner->weaponsel) // switch to primary immediately
 				{
 					addmsg(N_QUICKSWITCH, "ri", owner->clientnum);
-					owner->weaponchanging = lastmillis-1-(weaponchangetime/2);
+					owner->weaponchanging = lastmillis-1-(weaponchangetime/(owner->perk2 == PERK_TIME ? 4 : 2));
 					owner->nextweaponsel = owner->weaponsel = owner->primweap;
 				}
 				return false;
@@ -1162,7 +1162,7 @@ bool knife::attack(vec &targ){
 					reset();
 					if(!ammo){
 						addmsg(N_QUICKSWITCH, "ri", owner->clientnum);
-						owner->weaponchanging = lastmillis-1-(weaponchangetime/2);
+						owner->weaponchanging = lastmillis-1-(weaponchangetime/(owner->perk2 == PERK_TIME ? 4 : 2));
 						owner->nextweaponsel = owner->weaponsel = owner->primweap;
 					}
 					return false;
