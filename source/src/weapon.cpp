@@ -1112,7 +1112,6 @@ knifeent::~knifeent(){
 void knifeent::explode(){
 	if(knifestate!=NS_ACTIVATED && knifestate!=NS_THROWED ) return;
 	knifestate = NS_EXPLODED;
-	static vec n(0,0,0);
 	if(local)
 		addmsg(N_PROJ, "ri4f3", owner->clientnum, lastmillis, WEAP_KNIFE, hit ? hit->clientnum : -1, o.x, o.y, o.z);
 	playsound(S_GRENADEBOUNCE1+rnd(2), &o);
@@ -1155,9 +1154,9 @@ bool knifeent::applyphysics() { return timetolive && knifestate==NS_THROWED; }
 void knifeent::oncollision(){
 	extern playerent *tkhit;
 	if(tkhit || vel.magnitude() < 1.f){
-		timetolive = 0;
 		if(!hit)
 			hit = tkhit;
+		timetolive = 0;
 	}
 	else vel.mul(0.4f);
 }
