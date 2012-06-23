@@ -1542,7 +1542,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 	{
 		if(isteam(actor, target))
 		{ // friendly fire handler
-			if(m_classic(gamemode, mutators)) return; // no return/hitmarket for classic
+			if(m_classic(gamemode, mutators)) return; // no return/hitmarker for classic
 
 			actor->state.shotdamage += damage; // reduce his accuracy
 
@@ -1550,6 +1550,13 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 			serverdamage(actor, actor, damage * .1f, gun, style, source);
 			// return; // we don't want this
 			damage = 0; // we want to show a hitmarker...
+		}
+		else if(m_vampire(gamemode, mutators)){
+			healevent h;
+			h.id = actor->clientnum; // from this person
+			h.millis = gamemillis;
+			h.hp = damage / 5;
+			actor->heals.add(h);
 		}
 	}
 

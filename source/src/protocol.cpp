@@ -470,10 +470,16 @@ mutstypes mutstype[G_M_NUM] = {
 		"confirm",
 	},
 	{
+		G_M_VAMPIRE, G_M_VAMPIRE,
+		G_M_ALL,
+		"vampire",
+	},
+	{
 		G_M_CONVERT, G_M_CONVERT|G_M_TEAM, // convert forces team
 		G_M_ALL,
 		"convert",
 	},
+	// damage
 	{
 		G_M_REAL, G_M_REAL,
 		G_M_ALL & ~(G_M_EXPERT), // real conflicts with expert

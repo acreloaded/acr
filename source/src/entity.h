@@ -458,6 +458,7 @@ struct playerstate
 
 		const int healthsets[3] = { STARTHEALTH - 15 * HEALTHSCALE, STARTHEALTH, STARTHEALTH + 20 * HEALTHSCALE };
 		health = healthsets[(!m_regen(gamemode, mutators) && m_sniper(gamemode, mutators) ? 0 : 1) + (perk2 == PERK2_HEALTHY ? 1 : 0)];
+		if(m_vampire(gamemode, mutators)) health /= 2;
 	}
 
 	// just subtract damage here, can set death, etc. later in code calling this
