@@ -228,7 +228,7 @@ void reloadevent::process(client *ci){
 	// chamber reload bonus
 	if(gs.mag[weap]){
 		if(weap == WEAP_AKIMBO) mag += 2;
-		else if(reload > 1) ++mag;
+		else ++mag;
 	}
 	gs.mag[weap]   = min(mag, gs.mag[weap] + reload);
 	gs.ammo[weap] -= reload;

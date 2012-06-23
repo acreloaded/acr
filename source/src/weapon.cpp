@@ -412,7 +412,7 @@ void weapon::attacksound(){
 
 bool weapon::reload(){
 	const ushort ms = magsize(type), rs = reloadsize(type);
-	if(mag > ms || (rs == 1 && mag == ms) || ammo < rs) return false;
+	if(mag > ms || ammo < rs) return false;
 	updatelastaction(owner);
 	reloading = lastmillis;
 	gunwait += info.reloadtime / (owner->perk2 == PERK_TIME ? 2 : 1);
