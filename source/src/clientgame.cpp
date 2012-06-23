@@ -20,24 +20,14 @@ void classicmode(int n)
 {
 	static const int cmodes[][2] = {
 		{ G_DM, G_M_TEAM },
-		{ G_DM, G_M_TEAM|G_M_REAL },
-		{ G_DM, G_M_TEAM|G_M_EXPERT },
-		{ G_DM, G_M_TEAM|G_M_CLASSIC },
-
 		{ G_DM, G_M_NONE },
-		{ G_DM, G_M_REAL },
-		{ G_DM, G_M_EXPERT },
-		{ G_DM, G_M_CLASSIC },
 
 		{ G_DM, G_M_GSP1|G_M_TEAM|G_M_SNIPER },
 		{ G_DM, G_M_GSP1|G_M_SNIPER },
 
-		{ G_CTF, G_M_TEAM },
 		{ G_CTF, G_M_GSP1|G_M_TEAM },
 		{ G_BOMBER, G_M_TEAM },
 		{ G_HTF, G_M_TEAM },
-		{ G_KTF, G_M_NONE },
-		{ G_KTF, G_M_TEAM },
 		{ G_KTF, G_M_GSP1 },
 		{ G_KTF, G_M_GSP1|G_M_TEAM },
 
@@ -48,9 +38,6 @@ void classicmode(int n)
 		{ G_DM, G_M_GSP1 },
 		{ G_ZOMBIE, G_M_TEAM },
 		{ G_ZOMBIE, G_M_GSP1|G_M_TEAM },
-
-		{ G_DM, G_M_KNIFE, },
-		{ G_DM, G_M_GIB, },
 	};
 	if(n >= 0 && n < sizeof(cmodes)/sizeof(*cmodes))
 		modecheck(nextmode = cmodes[n][0], nextmuts = cmodes[n][1]);
