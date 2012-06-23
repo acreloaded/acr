@@ -9,11 +9,11 @@ struct weaponmove
 	static vec swaydir;
 	static int swaymillis, lastsway;
 
-	float k_rot, kick;
+	float k_rot, kick, speed;
 	vec pos;
 	int anim, basetime;
 	
-	weaponmove() : k_rot(0), kick(0), anim(0), basetime(0) { pos.x = pos.y = pos.z = 0.0f; }
+	weaponmove() : k_rot(0), kick(0), speed(0), anim(0), basetime(0) { pos.x = pos.y = pos.z = 0.0f; }
 
 	void calcmove(vec aimdir, int lastaction, playerent *p)
 	{
@@ -69,7 +69,11 @@ struct weaponmove
 		else if(p->weaponsel->reloading){
 			anim = ANIM_WEAP_RELOAD;
 			basetime = p->weaponsel->reloading;
-			const float reloadtime = p->weaponsel->info.reloadtime,
+			if(p->perk2 == PERK_TIME){
+				//basetime -= (lastmillis - p->weaponsel->reloading) / 2;
+				basetime += p->weaponsel->reloading - lastmillis;
+			}
+			const float reloadtime = p->weaponsel->info.reloadtime / (p->perk2 == PERK_TIME ? 2 : 1),
 						reloadelasped = lastmillis - p->weaponsel->reloading,
 						gunwaitelasped = lastmillis - p->weaponsel->gunwait;
 			float progress = clamp(reloadelasped/reloadtime, 0.0f,

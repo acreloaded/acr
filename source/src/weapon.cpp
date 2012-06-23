@@ -396,7 +396,7 @@ bool weapon::reload(){
 	if(mag > magsize(type) || ammo < reloadsize(type)) return false;
 	updatelastaction(owner);
 	reloading = lastmillis;
-	gunwait += info.reloadtime;
+	gunwait += info.reloadtime / (owner->perk2 == PERK_TIME ? 2 : 1);
 
 	owner->ammo[type] -= reloadsize(type);
 	owner->mag[type] = min<int>(magsize(type), owner->mag[type] + reloadsize(type));

@@ -230,12 +230,12 @@ void reloadevent::process(client *ci){
 
 	int wait = millis - gs.lastshot;
 	sendf(-1, 1, "ri5", N_RELOAD, ci->clientnum, weap, gs.mag[weap], gs.ammo[weap]);
-	if(gs.gunwait[weap] && wait<gs.gunwait[weap]) gs.gunwait[weap] += reloadtime(weap);
+	if(gs.gunwait[weap] && wait<gs.gunwait[weap]) gs.gunwait[weap] += reloadtime(weap) / (gs.perk2 == PERK_TIME ? 2 : 1);
 	else
 	{
 		loopi(WEAP_MAX) if(gs.gunwait[i]) gs.gunwait[i] = max(gs.gunwait[i] - (millis-gs.lastshot), 0);
 		gs.lastshot = millis;
-		gs.gunwait[weap] += reloadtime(weap);
+		gs.gunwait[weap] += reloadtime(weap) / (gs.perk2 == PERK_TIME ? 2 : 1);
 	}
 }
 
