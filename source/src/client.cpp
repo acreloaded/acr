@@ -312,7 +312,7 @@ void addmsg(int type, const char *fmt, ...)
 }
 
 static int lastupdate = -1000, lastping = 0;
-bool sendmapident = false;
+bool sendmapident = false, sendloadout = false;
 
 void sendpackettoserv(int chan, ENetPacket *packet)
 {
@@ -362,6 +362,15 @@ void sendpositions(){
 void sendmessages(){
 	ENetPacket *packet = enet_packet_create (NULL, MAXTRANS, 0);
 	ucharbuf p(packet->data, packet->dataLength);
+	if(sendloadout){
+		// addmsg(N_LOADOUT, "ri4", player1->nextprimary, player1->nextsecondary, player1->nextperk1, player1->nextperk2);
+		putint(p, N_LOADOUT);
+		putint(p, player1->nextprimary);
+		putint(p, player1->nextsecondary);
+		putint(p, player1->nextperk1);
+		putint(p, player1->nextperk2);
+		sendloadout = false;
+	}
 	if(sendmapident)
 	{
 		if(!curpeer) spawnallitems();

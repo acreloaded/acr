@@ -252,12 +252,11 @@ void setspawn(int i) {
 	ents[i].spawntime = 0;
 }
 
-// FIXME: sendloadout() should be replaced!
-void sendloadout() { addmsg(N_LOADOUT, "ri4", player1->nextprimary, player1->nextsecondary, player1->nextperk1, player1->nextperk2); }
-void selectnextprimary(int weap) { player1->nextprimary = weap; sendloadout(); }
-void selectnextsecondary(int weap) { player1->nextsecondary = weap; sendloadout(); }
-void selectnextperk1(int perk) { player1->nextperk1 = perk; sendloadout(); }
-void selectnextperk2(int perk) { player1->nextperk2 = perk; sendloadout(); }
+extern bool sendloadout;
+void selectnextprimary(int weap) { player1->nextprimary = weap; sendloadout = true; }
+void selectnextsecondary(int weap) { player1->nextsecondary = weap; sendloadout = true; }
+void selectnextperk1(int perk) { player1->nextperk1 = perk; sendloadout = true; }
+void selectnextperk2(int perk) { player1->nextperk2 = perk; sendloadout = true; }
 
 VARFP(nextprimary, 0, WEAP_ASSAULT, WEAP_MAX, selectnextprimary(nextprimary));
 VARFP(nextsecondary, 0, WEAP_PISTOL, WEAP_MAX, selectnextsecondary(nextsecondary));
