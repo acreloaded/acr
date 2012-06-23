@@ -979,7 +979,7 @@ void rendermenumdl()
 
 	vec pos;
 	if(isplayermodel) pos = vec(2.0f, 1.2f, -0.4f);
-	else pos = vec(2.0f, 0, 1.7f);
+	else pos = vec(2.0f, 0, 1.4f);
 
 	float yaw = 1.0f;
 	if(m.rotspeed) yaw += lastmillis/5.0f/100.0f*m.rotspeed;
