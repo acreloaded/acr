@@ -852,10 +852,13 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		const short a = (lastexpadd + COMBOTIME - lastmillis) * 255 / COMBOTIME;
 		draw_text(scoreaddtxt, VIRTW*11/20, VIRTH*9/20, a, a, a, a);
 	}
+
 	if(lastmillis <= lastexptexttime + COMBOTIME){
+		glLoadIdentity();
+		glOrtho(0, VIRTW*3/2, VIRTH*3/2, 0, -1, 1);
 		extern string lastexptext;
 		const short a = (lastexptexttime + COMBOTIME - lastmillis) * 255 / COMBOTIME;
-		draw_text(lastexptext, VIRTW*11/20, VIRTH*9/20 + FONTH, a, a, a, a);
+		draw_text(lastexptext, VIRTW*3/2*23/40, VIRTH*3/2*9/20 + FONTH*3/2, a, a, a, a);
 	}
 
 	glLoadIdentity();
