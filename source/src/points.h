@@ -52,7 +52,7 @@ inline void addpt(client *c, int points, int reason = -1){
 	if(!c || !points) return;
 	if(c->state.perk1 == PERK1_SCORE) points *= points > 0 ? 1.35f : 1.1f;
 	sendf(-1, 1, "ri3", N_POINTS, c->clientnum, (c->state.points += points));
-	if(reason >= 0) sendf(c->clientnum, 1, "ri2", N_POINTR, reason);
+	if(c->type != ST_AI && reason >= 0) sendf(c->clientnum, 1, "ri2", N_POINTR, reason);
 }
 
 int killpoints(const client *target, client *actor, int gun, int style, bool assist = false){
