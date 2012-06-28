@@ -130,19 +130,20 @@ void shotevent::process(client *ci)
 				int dmg = HEALTHSCALE;
 				if(hitzone == HIT_HEAD){
 					sendheadshot(from, to, dmg);
-					dmg *= m_zombies_rounds(gamemode, mutators) ? (250) : (75);
+					dmg *= m_zombies_rounds(gamemode, mutators) ? (250) : (150);
 				}
 				else
-					dmg *= m_zombies_rounds(gamemode, mutators) ? (hitzone * 75) : (50);
+					dmg *= m_zombies_rounds(gamemode, mutators) ? (hitzone * 75) : (55);
 				damagedealt += dmg;
 				sendhit(c, WEAP_BOW, to, dmg); // blood, not explosion
 				serverdamage(hit, &c, dmg, WEAP_BOW, FRAG_GIB, expc);
 				// we have to do this so that it can detect if it is "stuck"
 				expc = hit->state.o;
 			}
-			else (expc = to).sub(from).normalize().mul(to.dist(from) - .01f).add(from);
+			// fix explosion
+			(expc = to).sub(from).normalize().mul(to.dist(from) - .1f).add(from);
 			// instant explosion
-			int bowexplodedmgdealt = explosion(*ci, expc, WEAP_BOW, false);
+			int bowexplodedmgdealt = explosion(*ci, expc, WEAP_BOW, false, hit);
 			gs.damage += bowexplodedmgdealt;
 			gs.shotdamage += max<int>(effectiveDamage(WEAP_BOW, 0), bowexplodedmgdealt);
 			break;
@@ -153,11 +154,14 @@ void shotevent::process(client *ci)
 			vec end;
 			client *hit = gs.scoping ? &c : nearesthit(c, from, to, hitzone, heads, &c, &end);
 			if(!hit) break;
-			const int flags = hitzone == HIT_HEAD ? FRAG_GIB : FRAG_NONE,
-				dmg = effectiveDamage(weap, hit->state.o.dist(from));
-			if(flags & FRAG_GIB)
-				sendheadshot(from, to, dmg);
-			serverdamage(hit, &c, dmg, weap, flags, gs.o);
+			if(!isteam(&c, hit) && (&c != hit || gs.health < MAXHEALTH)){ // that's right, no more self-heal abuse
+				const int flags = hitzone == HIT_HEAD ? FRAG_GIB : FRAG_NONE;
+				int dmg = effectiveDamage(weap, hit->state.o.dist(from)) * muls[MUL_NORMAL].val[hitzone];
+				if(flags & FRAG_GIB)
+					sendheadshot(from, to, dmg);
+				serverdamage(hit, &c, dmg, weap, flags, gs.o);
+				damagedealt += dmg;
+			}
 			loopi(&c == hit ? 25 : 15){
 				// heals over the next 1 to 2.5 seconds (no time perk, for others)
 				healevent h;
@@ -170,7 +174,6 @@ void shotevent::process(client *ci)
 			// hide blood for healing weapon
 			// sendhit(c, WEAP_HEAL, end, dmg); // blood
 			to = end;
-			damagedealt += dmg;
 			break;
 		}
 		case WEAP_KNIFE: // falls through if not "compact" (throw)

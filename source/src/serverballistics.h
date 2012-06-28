@@ -109,8 +109,8 @@ int cmphitsort(explosivehit *a, explosivehit *b){ return b->damage - a->damage; 
 // if there is more damage, the distance is closer, therefore move it up ((-a) - (-b) = -a + b = b - a)
 
 // explosions call this to check
-int radialeffect(client &owner, client &target, vector<explosivehit> &hits, const vec &o, int weap, bool gib){
-	float dist = target.state.o.dist(o);
+int radialeffect(client &owner, client &target, vector<explosivehit> &hits, const vec &o, int weap, bool gib, bool max_damage = false){
+	float dist = max_damage ? 0 : target.state.o.dist(o);
 	if(dist >= guns[weap].endrange) return 0; // too far away
 	vec ray(target.state.o);
 	ray.sub(o).normalize();
@@ -129,7 +129,7 @@ int radialeffect(client &owner, client &target, vector<explosivehit> &hits, cons
 		sendheadshot(o, target.state.o, dmg);
 		dmg *= 1.2f;
 	}
-	else if(weap == WEAP_BOW && !dist)
+	else if(weap == WEAP_BOW && max_damage)
 		expflags |= FRAG_FLAG;
 	//serverdamage(&target, &owner, dmg, weap, expflags, o);
 	explosivehit &hit = hits.add();
@@ -140,7 +140,7 @@ int radialeffect(client &owner, client &target, vector<explosivehit> &hits, cons
 }
 
 // explosion call
-int explosion(client &owner, const vec &o2, int weap, bool gib){
+int explosion(client &owner, const vec &o2, int weap, bool gib, client *cflag){
 	int damagedealt = 0;
 	vec o(o2);
 	checkpos(o);
@@ -153,7 +153,7 @@ int explosion(client &owner, const vec &o2, int weap, bool gib){
 	loopv(clients){
 		client &target = *clients[i];
 		if(target.type == ST_EMPTY || target.state.state != CS_ALIVE || target.state.protect(gamemillis)) continue;
-		damagedealt += radialeffect((own == &target) ? owner : *own, target, hits, o, weap, gib);
+		damagedealt += radialeffect((own == &target) ? owner : *own, target, hits, o, weap, gib, weap == WEAP_BOW && clients[i] == cflag);
 	}
 	// sort the hits
 	hits.sort(cmphitsort);
