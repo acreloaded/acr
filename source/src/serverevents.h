@@ -137,11 +137,9 @@ void shotevent::process(client *ci)
 				damagedealt += dmg;
 				sendhit(c, WEAP_BOW, to, dmg); // blood, not explosion
 				serverdamage(hit, &c, dmg, WEAP_BOW, FRAG_GIB, expc);
-				// we have to do this so that it can detect if it is "stuck"
-				expc = hit->state.o;
 			}
-			// fix explosion
-			(expc = to).sub(from).normalize().mul(to.dist(from) - .1f).add(from);
+			// fix explosion on walls
+			else (expc = to).sub(from).normalize().mul(to.dist(from) - .1f).add(from);
 			// instant explosion
 			int bowexplodedmgdealt = explosion(*ci, expc, WEAP_BOW, false, hit);
 			gs.damage += bowexplodedmgdealt;
