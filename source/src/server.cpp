@@ -1978,7 +1978,7 @@ int lastbalance = 0, waitbalance = 2 * 60 * 1000;
 bool refillteams(bool now, int ftr, bool aionly){ // force only minimal amounts of players
 	if(m_zombie(gamemode)){ // force to zombie teams
 		loopv(clients)
-			if(clients[i]->type != ST_EMPTY)
+			if(clients[i]->type != ST_EMPTY && clients[i]->team != TEAM_SPECT)
 				updateclientteam(i, clients[i]->type == ST_AI ? TEAM_RED : TEAM_BLUE, ftr);
 		return false;
 	}
