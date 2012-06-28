@@ -261,8 +261,8 @@ void healevent::process(client *ci){
 		loopv(ci->heals) ci->heals[i].valid = false;
 		if(valid_client(id)){
 			if(id==ci->clientnum) addpt(clients[id], HEALSELFPT, PR_HEALSELF);
-			else if(isteam(ci, clients[id])) addpt(clients[id], HEALPT, PR_HEALTEAM);
-			else addpt(clients[id], HEALPT, PR_HEALENEMY);
+			else if(isteam(ci, clients[id])) addpt(clients[id], HEALTEAMPT, PR_HEALTEAM);
+			else addpt(clients[id], HEALENEMYPT, PR_HEALENEMY);
 		}
 		return sendf(-1, 1, "ri4", N_HEAL, id, ci->clientnum, ci->state.health = MAXHEALTH);
 	}
