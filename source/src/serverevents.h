@@ -259,6 +259,7 @@ void healevent::process(client *ci){
 		// fully healed!
 		ci->state.damagelog.setsize(0);
 		loopv(ci->heals) ci->heals[i].valid = false;
+		if(valid_client(id)) addpt(clients[id], id==ci->clientnum ? HEALSELFPT : HEALPT);
 		return sendf(-1, 1, "ri4", N_HEAL, id, ci->clientnum, ci->state.health = MAXHEALTH);
 	}
 	// partial heal
