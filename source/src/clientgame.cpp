@@ -183,6 +183,15 @@ void addexp(int xp){
 	#undef xpfactor
 }
 
+int lastexptexttime = INT_MIN;
+string lastexptext;
+
+void expreason(char *reason){
+	formatstring(lastexptext)(*reason == '\f' ? "%s" : "\f2%s", reason);
+	lastexptexttime = lastmillis;
+}
+COMMAND(expreason, ARG_1STR);
+
 bool spawnenqueued = false;
 
 void deathstate(playerent *pl)

@@ -845,11 +845,17 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		draw_text(hudtext, 20, 1570);
 	}
 
-	extern int lastexpadd, lastexpaddamt;
+	extern int lastexpadd, lastexptexttime;
 	if(lastmillis <= lastexpadd + COMBOTIME){
+		extern int lastexpaddamt;
 		defformatstring(scoreaddtxt)("\f%c%+d", !lastexpaddamt ? '4' : lastexpaddamt >= 0 ? '2' : '3', lastexpaddamt);
 		const short a = (lastexpadd + COMBOTIME - lastmillis) * 255 / COMBOTIME;
 		draw_text(scoreaddtxt, VIRTW*11/20, VIRTH*9/20, a, a, a, a);
+	}
+	if(lastmillis <= lastexptexttime + COMBOTIME){
+		extern string lastexptext;
+		const short a = (lastexptexttime + COMBOTIME - lastmillis) * 255 / COMBOTIME;
+		draw_text(lastexptext, VIRTW*11/20, VIRTH*9/20 + FONTH, a, a, a, a);
 	}
 
 	glLoadIdentity();
