@@ -47,15 +47,17 @@
 
 // server point tools
 
-inline void addpt(client *c, int points){
+inline void addpt(client *c, int points, int reason = -1){
 	if(!c || !points) return;
 	if(c->state.perk1 == PERK1_SCORE) points *= points > 0 ? 1.35f : 1.1f;
 	sendf(-1, 1, "ri3", N_POINTS, c->clientnum, (c->state.points += points));
+	if(reason >= 0) sendf(c->clientnum, 1, "ri2", N_POINTR, reason);
 }
 
 int killpoints(const client *target, client *actor, int gun, int style, bool assist = false){
 	int cnumber = numauthedclients(), tpts = target->state.points, gain = 0;
 	bool suic = target == actor;
+	int reason = -1;
 	// addpt(target, DEATHPT);
 	if(!suic){
 		if(isteam(actor, target)){
@@ -70,8 +72,14 @@ int killpoints(const client *target, client *actor, int gun, int style, bool ass
 			} else gain += BONUSPT;
 			if (style & FRAG_GIB) {
 				if (melee_weap(gun) || gun == WEAP_GRENADE) gain += KNIFENADEPT;
-				else if (gun == WEAP_SHOTGUN) gain += SHOTGPT;
-				else if (isheadshot(gun, style)) gain += HEADSHOTPT;
+				else if (gun == WEAP_SHOTGUN){
+					gain += SHOTGPT;
+					reason = PR_SPLAT;
+				}
+				else if (isheadshot(gun, style)){
+					gain += HEADSHOTPT;
+					reason = PR_HS;
+				}
 				else gain += GIBPT;
 			}
 			else gain += FRAGPT;
@@ -85,7 +93,7 @@ int killpoints(const client *target, client *actor, int gun, int style, bool ass
 			gain += max(0, killpoints(target, clients[target->state.damagelog[i]], gun, style, true)) * ASSISTRETMUL;
 		}
 	}
-	if(gain) addpt(actor, gain);
+	if(gain) addpt(actor, gain, assist ? PR_ASSIST : reason);
 	return gain;
 }
 

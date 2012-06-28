@@ -749,6 +749,29 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
+			case N_POINTR:
+			{
+				int reason = getint(p);
+				const char* pointreasons[PR_MAX] = {
+					// TODO: Migrate to locales
+					"",
+					"Assist",
+					"SPLAT!",
+					"Kill Confirmed",
+					"Kill Denied",
+					"HEADSHOT!",
+					"Healed Self",
+					"Healed Teammate",
+					"\f3Healed Enemy",
+					"Prevented Bleedout!",
+					"\f0You won!",
+					"\f1Your team wins!",
+					"\f3You lost!",
+				};
+				expreason(pointreasons[reason%PR_MAX]);
+				break;
+			}
+
 			case N_REGEN:
 			case N_HEAL:
 			{

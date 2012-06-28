@@ -1038,13 +1038,22 @@ void arenacheck(){
 	// send message
 	sendf(-1, 1, "ri2", N_ARENAWIN, cn);
 	// award points
-	loopv(clients) if(clients[i]->type != ST_EMPTY)
-		addpt(clients[i],
-			clients[i]->state.state != CS_ALIVE ?
-			(alive && isteam(alive, clients[i])) ? ARENAWINDPT : // his team wins, but he's dead
-			ARENALOSEPT : // he died
-			ARENAWINPT // he survives
-		);
+	loopv(clients) if(clients[i]->type != ST_EMPTY){
+		int pts = 0, pr = -1;
+		if(clients[i]->state.state == CS_ALIVE){ // he survives
+			pts = ARENAWINPT;
+			pr = PR_ARENA_WIN;
+		}
+		else if(alive && isteam(alive, clients[i])){ // his team wins, but he's dead
+			pts = ARENAWINDPT;
+			pr = PR_ARENA_WIND;
+		}
+		else{ // he died with this team
+			pts = ARENALOSEPT;
+			pr = PR_ARENA_LOSE;
+		}
+		addpt(clients[i], pts, pr);
+	}
 	// arena intermission
 	arenaround = gamemillis+5000;
 	// check teams
@@ -2846,7 +2855,7 @@ void checkmove(client &cp){
 		if(canheal){
 			// healing station
 			if(cp.type != ST_AI) sendmsg(30, sender);
-			addpt(&cp, HEALWOUNDPT * cs.wounds.length());
+			addpt(&cp, HEALWOUNDPT * cs.wounds.length(), PR_HEALWOUND);
 			cs.wounds.shrink(0);
 		}
 		if(cantake){
@@ -2920,7 +2929,7 @@ void checkmove(client &cp){
 	// kill confirmed
 	loopv(sconfirms) if(sconfirms[i].o.dist(cs.o) < 5){
 		if(cp.team == sconfirms[i].team){
-			addpt(&cp, KCKILLPTS);
+			addpt(&cp, KCKILLPTS, PR_KC);
 			steamscores[sconfirms[i].team].points += sconfirms[i].points;
 			steamscores[sconfirms[i].team].frags += sconfirms[i].frag;
 			++steamscores[sconfirms[i].death].deaths;
@@ -2930,7 +2939,7 @@ void checkmove(client &cp){
 				sendteamscore(sconfirms[i].death);
 		}
 		// else
-		addpt(&cp, KCDENYPTS);
+		addpt(&cp, KCDENYPTS, PR_KD);
 
 		sendf(-1, 1, "ri2", N_CONFIRMREMOVE, sconfirms[i].id);
 		sconfirms.remove(i--);

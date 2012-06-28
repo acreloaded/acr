@@ -186,7 +186,7 @@ void addexp(int xp){
 int lastexptexttime = INT_MIN;
 string lastexptext;
 
-void expreason(char *reason){
+void expreason(const char *reason){
 	formatstring(lastexptext)(*reason == '\f' ? "%s" : "\f2%s", reason);
 	lastexptexttime = lastmillis;
 }
