@@ -2854,7 +2854,6 @@ void checkmove(client &cp){
 		if(dist > 3) continue;
 		if(canheal){
 			// healing station
-			if(cp.type != ST_AI) sendmsg(30, sender);
 			addpt(&cp, HEALWOUNDPT * cs.wounds.length(), PR_HEALWOUND);
 			cs.wounds.shrink(0);
 		}
