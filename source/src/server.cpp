@@ -1542,12 +1542,12 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 	{
 		if(isteam(actor, target))
 		{ // friendly fire handler
-			if(m_classic(gamemode, mutators)) return; // no return/hitmarker for classic
-
-			actor->state.shotdamage += damage; // reduce his accuracy
-
-			// NEW way: no friendly fire, but tiny reflection
-			serverdamage(actor, actor, damage * .1f, gun, style, source);
+			// no friendly return for classic and healing gun
+			if(gun != WEAP_HEAL && !m_classic(gamemode, mutators)){
+				actor->state.shotdamage += damage; // reduce his accuracy (more)
+				// NEW way: no friendly fire, but tiny reflection
+				serverdamage(actor, actor, damage * .1f, gun, style, source);
+			}
 			// return; // we don't want this
 			damage = 0; // we want to show a hitmarker...
 		}
