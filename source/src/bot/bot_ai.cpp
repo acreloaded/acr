@@ -1871,14 +1871,14 @@ bool CBot::CheckFlags()
 	if (m_vGoal==g_vecZero)
 		m_pTargetFlag = NULL;
  
-	if (!m_pTargetFlag)
+	if (!m_pTargetFlag || m_iCheckFlagsDelay <= lastmillis)
 	{
 		if (m_iCheckFlagsDelay > lastmillis)
 			return false;
 		else
 		{
-			m_pTargetFlag = SearchForFlags(true);
-			m_iCheckFlagsDelay = lastmillis + RandomLong(1000, 1500);
+			m_pTargetFlag = SearchForFlags(false); // FIXME: using waypoints = crash
+			m_iCheckFlagsDelay = lastmillis + RandomLong(3000, 5500);
 		}
 	}
 			   

@@ -263,7 +263,7 @@ flaginfo *CACBot::SearchForFlags(bool bUseWPs, float flRange, float flMaxHeight)
 		flaginfo &of = flaginfos[team_opposite(i)];
 		if(f.state == CTFF_IDLE) continue;
 		//vec o = g_vecZero;
-		vec o = vec(f.flagent->x, f.flagent->y, S(f.flagent->x, f.flagent->y)->floor + PLAYERHEIGHT);
+		vec o = vec(f.flagent->x, f.flagent->y, S(f.flagent->x, f.flagent->y)->floor + PLAYERHEIGHT + PLAYERABOVEEYE);
 		switch(f.state){
 			case CTFF_INBASE: // go to this base
 				// if CTF capturing our flag
@@ -280,7 +280,7 @@ flaginfo *CACBot::SearchForFlags(bool bUseWPs, float flRange, float flMaxHeight)
 				break;
 			case CTFF_DROPPED: // take every dropped flag, regardless of anything!
 				o = f.pos;
-				o.z += PLAYERHEIGHT;
+				o.z += PLAYERHEIGHT + PLAYERABOVEEYE;
 				break;
 		}
 		if(OUTBORD((int)o.x, (int)o.y)) continue;
@@ -408,7 +408,6 @@ bool CACBot::HeadToTargetEnt()
 
 bool CACBot::HeadToTargetFlag()
 {
-	return false;
 	if(m_pTargetFlag)
 	{
 		const vec o = m_vGoal;
@@ -419,7 +418,7 @@ bool CACBot::HeadToTargetFlag()
 			{
 				if ((GetDistance(o) <= 20.0f) && IsReachable(o, 1.0f))
 					bIsVisible = true;
-				else if (HeadToGoal()) // CRASH!
+				else if (HeadToGoal())
 				{
 					//debugbeam(m_pMyEnt->o, m_pCurrentWaypoint->pNode->v_origin);
 					//debugbeam(m_pMyEnt->o,
