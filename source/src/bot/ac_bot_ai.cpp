@@ -332,9 +332,9 @@ flaginfo *CACBot::SearchForFlags(bool bUseWPs, float flRange, float flMaxHeight)
 			SetCurrentWaypoint(pWptNearBot);
 			SetCurrentGoalWaypoint(pBestWpt);
 		}
+		m_vGoal = vNewGoal;
 	}
 
-	m_vGoal = vNewGoal;
 	return pNewTargetFlag;
 }
 
@@ -408,6 +408,7 @@ bool CACBot::HeadToTargetEnt()
 
 bool CACBot::HeadToTargetFlag()
 {
+	return false;
 	if(m_pTargetFlag)
 	{
 		const vec o = m_vGoal;
@@ -418,7 +419,7 @@ bool CACBot::HeadToTargetFlag()
 			{
 				if ((GetDistance(o) <= 20.0f) && IsReachable(o, 1.0f))
 					bIsVisible = true;
-				else if (HeadToGoal())
+				else if (HeadToGoal()) // CRASH!
 				{
 					//debugbeam(m_pMyEnt->o, m_pCurrentWaypoint->pNode->v_origin);
 					//debugbeam(m_pMyEnt->o,
