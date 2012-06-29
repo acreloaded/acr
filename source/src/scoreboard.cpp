@@ -70,6 +70,13 @@ static int scorecmp(const playerent **a, const playerent **b){
 	return strcmp(x->name, y->name);
 }
 
+static int pointcmp(const playerent **a, const playerent **b){
+	const playerent *x = *a, *y = *b;
+	if(x->points > y->points) return -1;
+	if(x->points < y->points) return 1;
+	return 0;
+}
+
 struct scoreratio{
 	float ratio;
 	int precision;
@@ -89,15 +96,17 @@ struct scoreratio{
 
 void renderscore(void *menu, playerent *d){
 	static color localplayerc(0.2f, 0.2f, 0.2f, 0.2f), damagedplayerc(0.4f, 0.1f, 0.1f, 0.3f);
-	const char *clag = d->state==CS_WAITING ? "LAG" : colorpj(d->plag), *cping = colorping(d->ping);
+	defformatstring(lagping)("%s/%s", d->state==CS_WAITING ? "LAG" : colorpj(d->plag), colorping(d->ping));
+	int rmod10 = d->rank % 10;
+	defformatstring(rankstr)("%d%s", d->rank, (d->rank / 10 == 1) ? "th" : rmod10 == 1 ? "st" : rmod10 == 2 ? "nd" : rmod10 == 3 ? "rd" : "th");
 	sline &line = scorelines.add();
 	line.bgcolor = d->lastpain + 500 > lastmillis ? &damagedplayerc : d==player1 ? &localplayerc : NULL;
 	string &s = line.s;
 	scoreratio sr;
 	sr.calc(d->frags, d->deaths);
 	extern int level;
-	if(m_affinity(gamemode)) formatstring(s)("%d\t%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%d\t\f%d%s", d->points, d->flagscore, d->frags, d->assists, d->deaths, sr.precision, sr.ratio, clag, cping, d->clientnum, d == player1 ? level : d->level, privcolor(d->priv, d->state == CS_DEAD), colorname(d, true));
-	else formatstring(s)("%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%d\t\f%d%s", d->points, d->frags, d->assists, d->deaths, sr.precision, sr.ratio, clag, cping, d->clientnum, d == player1 ? level : d->level, privcolor(d->priv, d->state == CS_DEAD), colorname(d, true));
+	if(m_affinity(gamemode)) formatstring(s)("%d\t%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%d\t\f%d%s", d->points, d->flagscore, d->frags, d->assists, d->deaths, sr.precision, sr.ratio, lagping, rankstr, d->clientnum, d == player1 ? level : d->level, privcolor(d->priv, d->state == CS_DEAD), colorname(d, true));
+	else formatstring(s)("%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%d\t\f%d%s", d->points, d->frags, d->assists, d->deaths, sr.precision, sr.ratio, lagping, rankstr, d->clientnum, d == player1 ? level : d->level, privcolor(d->priv, d->state == CS_DEAD), colorname(d, true));
 }
 
 void renderteamscore(void *menu, teamsum &t){
@@ -112,10 +121,10 @@ void renderteamscore(void *menu, teamsum &t){
 	const teamscore &ts = teamscores[t.team];
 	scoreratio sr;
 	sr.calc(ts.frags, ts.deaths);
-	const char *tlag = colorpj(t.pj/max(t.teammembers.length(),1)), *tping = colorping(t.ping/max(t.teammembers.length(), 1));
+	defformatstring(lagping)("%s/%s", colorpj(t.pj/max(t.teammembers.length(),1)), colorping(t.ping/max(t.teammembers.length(), 1)));
 	const char *teamname = m_team(gamemode, mutators) || t.team == TEAM_SPECT ? team_string(t.team) : "FFA Total";
-	if(m_affinity(gamemode)) formatstring(line.s)("%d\t%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t\t%d\t%s\t\t%s", ts.points, ts.flagscore, ts.frags, ts.assists, ts.deaths, sr.precision, sr.ratio, tlag, tping, t.lvl, teamname, plrs);
-	else formatstring(line.s)("%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t\t%d\t%s\t\t%s", ts.points, ts.frags, ts.assists, ts.deaths, sr.precision, sr.ratio, tlag, tping, t.lvl, teamname, plrs);
+	if(m_affinity(gamemode)) formatstring(line.s)("%d\t%d\t%d\t%d\t%d\t%.*f\t%s\t\t\t%d\t%s\t\t%s", ts.points, ts.flagscore, ts.frags, ts.assists, ts.deaths, sr.precision, sr.ratio, lagping, t.lvl, teamname, plrs);
+	else formatstring(line.s)("%d\t%d\t%d\t%d\t%.*f\t%s\t\t\t%d\t%s\t\t%s", ts.points, ts.frags, ts.assists, ts.deaths, sr.precision, sr.ratio, lagping, t.lvl, teamname, plrs);
 	static color teamcolors[TEAM_NUM+1] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f), color(.4f, .4f, .4f, .3f), color(.8f, .8f, .8f, .4f) };
 	line.bgcolor = &teamcolors[!m_team(gamemode, mutators) && t.team != TEAM_SPECT ? TEAM_NUM : t.team];
 	loopv(t.teammembers){
@@ -164,6 +173,19 @@ void renderscores(void *menu, bool init){
 	if(multiplayer(false)){
 		serverinfo *s = getconnectedserverinfo();
 		if(s) formatstring(serverline)("%s:%d %s", s->name, s->port, s->sdesc);
+	}
+
+	// rank players
+	vector<playerent *> rpl;
+	rpl.add(player1);
+	loopv(players) if(players[i]) rpl.add(players[i]);
+	rpl.sort(pointcmp);
+
+	int n = -1;
+	loopv(rpl){
+		// same as previous
+		if(i > 0 && rpl[i-1]->points == rpl[i]->points) ++n;
+		rpl[i]->rank = i - n;
 	}
 
 	//if(m_team(gamemode, mutators)){
