@@ -181,7 +181,7 @@ void renderscores(void *menu, bool init){
 	loopv(players) if(players[i]) rpl.add(players[i]);
 	rpl.sort(pointcmp);
 
-	int n = 1;
+	int n = 0;
 	loopv(rpl){
 		// same as previous
 		if(i <= 0 || rpl[i-1]->points != rpl[i]->points) ++n;
