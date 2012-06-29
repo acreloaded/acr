@@ -810,14 +810,18 @@ void flagaction(int flag, int action, int actor){
 				break;
 		}
 	}
-	if(score && valid_client(actor)){
-		clients[actor]->state.flagscore += score;
-		sendf(-1, 1, "ri3", N_FLAGCNT, actor, clients[actor]->state.flagscore);
-		steamscores[clients[actor]->team].flagscore += score;
-		sendteamscore(clients[actor]->team);
-	}
 	if(message < 0) message = action;
 	if(valid_client(actor)){
+		if(score){
+			clients[actor]->state.flagscore += score;
+			sendf(-1, 1, "ri3", N_FLAGCNT, actor, clients[actor]->state.flagscore);
+			steamscores[clients[actor]->team].flagscore += score;
+			sendteamscore(clients[actor]->team);
+		}
+
+		steamscores[clients[actor]->team].points += max(0, flagpoints(clients[actor], message));
+		sendteamscore(clients[actor]->team);
+
 		client &c = *clients[actor];
 		switch(message)
 		{
@@ -850,10 +854,6 @@ void flagaction(int flag, int action, int actor){
 	f.lastupdate = gamemillis;
 	sendflaginfo(flag);
 	flagmessage(flag, message, valid_client(actor) ? actor : -1);
-	if(valid_client(actor)){
-		steamscores[clients[actor]->team].points += max(0, flagpoints(clients[actor], message));
-		sendteamscore(clients[actor]->team);
-	}
 }
 
 int clienthasflag(int cn){
