@@ -122,14 +122,14 @@ int radialeffect(client &owner, client &target, vector<explosivehit> &hits, cons
 		expflags |= FRAG_CRIT;
 		dmg *= 1.4f;
 	}
-	// was the bow stuck? or did the nade headshot?
 	// did the nade headshot?
+	// was the RPG direct?
 	if(weap == WEAP_GRENADE && owner.clientnum != target.clientnum && o.z >= target.state.o.z){
 		expflags |= FRAG_FLAG;
 		sendheadshot(o, target.state.o, dmg);
 		dmg *= 1.2f;
 	}
-	else if(weap == WEAP_BOW && max_damage)
+	else if(weap == WEAP_RPG && max_damage)
 		expflags |= FRAG_FLAG;
 	//serverdamage(&target, &owner, dmg, weap, expflags, o);
 	explosivehit &hit = hits.add();
@@ -153,7 +153,7 @@ int explosion(client &owner, const vec &o2, int weap, bool gib, client *cflag){
 	loopv(clients){
 		client &target = *clients[i];
 		if(target.type == ST_EMPTY || target.state.state != CS_ALIVE || target.state.protect(gamemillis, gamemode, mutators)) continue;
-		damagedealt += radialeffect((own == &target) ? owner : *own, target, hits, o, weap, gib, weap == WEAP_BOW && clients[i] == cflag);
+		damagedealt += radialeffect((own == &target) ? owner : *own, target, hits, o, weap, gib, weap == WEAP_RPG && clients[i] == cflag);
 	}
 	// sort the hits
 	hits.sort(cmphitsort);

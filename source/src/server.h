@@ -732,7 +732,7 @@ itemstat ammostats[WEAP_MAX] =
 	{96, 0,   144,	S_ITEMAKIMBO },  // akimbo
 	{40, 60,  80,	S_ITEMAMMO },   // heal
 	{1,  1,   1,    S_ITEMAMMO }, // sword dummy
-	{2,  3,   5,    S_ITEMAMMO }, // crossbow
+	{3,  4,   5,    S_ITEMAMMO }, // RPG
 };
 
 itemstat powerupstats[] =
@@ -757,7 +757,7 @@ guninfo guns[WEAP_MAX] =
 	{ "pistol",     S_PISTOL,   S_RAKIMBO,  1400,   80,     36,   30,   90,   17,   0,   0, 56,    8,   24,   6,  2,    28,    49,     72, 2,   true },
 	{ "heal",       S_SUBGUN,   S_NULL,     1200,   100,    20,    4,    8,   10,   0,   0, 62,    1,   10,   0,  0,    10,    20,      8, 5,   true },
 	{ "sword",      S_NULL,     S_RASSAULT,    0,   480,    90,    7,    9,   81,   0,   0,  1,    1,    1,   0,  2,     0,     0,      0, 0,   true },
-	{ "bow",        S_BOW,      S_NULL,     2000,   120,   100,    0,   16,   95,   0,   0,128,    3,    1,   3,  1,    48,    50,      0, 4,   false},
+	{ "rpg",        S_RPG,      S_NULL,     2000,   120,   100,    0,   16,   95,   0,   0,128,    3,    1,   3,  1,    48,    50,      0, 4,   false},
 };
 
 const int obit_suicide(int weap){
@@ -812,8 +812,8 @@ const char *suicname(int obit){
 		case WEAP_HEAL:
 			concatstring(k, "overdosed on drugs");
 			break;
-		case WEAP_BOW:
-			concatstring(k, "failed to use an explosive crossbow");
+		case WEAP_RPG:
+			concatstring(k, "experienced rocket-propelled suicide");
 			break;
 		case OBIT_DEATH:
 			concatstring(k, "requested suicide");
@@ -853,7 +853,7 @@ const bool isheadshot(int weapon, int style){
 		case WEAP_SWORD:
 		case WEAP_GRENADE:
 			if(style & FRAG_FLAG) break; // these weapons headshot if FRAG_FLAG is set
-		case WEAP_BOW:
+		case WEAP_RPG:
 		case WEAP_MAX:
 		case WEAP_MAX + 5:
 			return false; // these weapons cannot headshot
@@ -867,7 +867,7 @@ const int toobit(int weap, int style){
 				flag = (style & FRAG_FLAG) > 0;
 	switch(weap){
 		case WEAP_KNIFE: return gib ? WEAP_KNIFE : flag ? OBIT_KNIFE_IMPACT : OBIT_KNIFE_BLEED;
-		case WEAP_BOW: return gib ? OBIT_BOW_IMPACT : flag ? OBIT_BOW_STUCK : WEAP_BOW;
+		case WEAP_RPG: return gib ? OBIT_BOW_IMPACT : flag ? OBIT_BOW_STUCK : WEAP_RPG;
 		case WEAP_GRENADE: return gib ? WEAP_GRENADE : OBIT_AIRSTRIKE;
 		case WEAP_MAX: return OBIT_NUKE;
 		case WEAP_MAX + 3: return OBIT_FF; // assisted suicide
@@ -912,7 +912,7 @@ const char *killname(int obit, bool headshot){
 		case WEAP_SWORD:
 			concatstring(k, headshot ? "sliced" : "impaled");
 			break;
-		case WEAP_BOW:
+		case WEAP_RPG:
 			concatstring(k, "detonated");
 			break;
 		// special obits
@@ -972,7 +972,7 @@ float gunspeed(int gun, int ads, bool lightweight){
 			ret *= .92f;
 			break;
 		case WEAP_ASSAULT:
-		case WEAP_BOW:
+		case WEAP_RPG:
 			ret *= .9f;
 			break;
 	}

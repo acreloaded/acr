@@ -62,7 +62,7 @@ void shiftweapon(int s){
 			// secondary
 			WEAP_PISTOL,
 			WEAP_HEAL,
-			WEAP_BOW,
+			WEAP_RPG,
 			// primary
 			WEAP_SHOTGUN,
 			WEAP_SUBGUN,
@@ -476,7 +476,7 @@ void weapon::renderhudmodel(int lastaction, bool akimboflip){
 	if(!intermission) wm.calcmove(unitv, lastaction, owner);
 	defformatstring(path)("weapons/%s", info.modelname);
 	const bool emit = ((wm.anim&ANIM_INDEX)==ANIM_WEAP_SHOOT) && (lastmillis - lastaction) < flashtime();
-	if(ads_gun(type) && type != WEAP_BOW && (wm.anim&ANIM_INDEX)==ANIM_WEAP_SHOOT) wm.anim = ANIM_WEAP_IDLE;
+	if(ads_gun(type) && type != WEAP_RPG && (wm.anim&ANIM_INDEX)==ANIM_WEAP_SHOOT) wm.anim = ANIM_WEAP_IDLE;
 	if(flip) wm.anim |= ANIM_MIRROR;
 	if(emit) wm.anim |= ANIM_PARTICLE;
 	if(gamefocus->protect(lastmillis, gamemode, mutators)) wm.anim |= ANIM_TRANSLUCENT;
@@ -515,7 +515,7 @@ void weapon::equipplayer(playerent *pl){
 	pl->weapons[WEAP_AKIMBO] = new akimbo(pl);
 	pl->weapons[WEAP_HEAL] = new heal(pl);
 	pl->weapons[WEAP_SWORD] = new sword(pl);
-	pl->weapons[WEAP_BOW] = new crossbow(pl);
+	pl->weapons[WEAP_RPG] = new crossbow(pl);
 	pl->selectweapon(WEAP_ASSAULT);
 	pl->setprimary(WEAP_ASSAULT);
 }
@@ -950,7 +950,7 @@ int sword::flashtime() const { return 0; }
 
 // crossbow
 
-crossbow::crossbow(playerent *owner) : gun(owner, WEAP_BOW) {}
+crossbow::crossbow(playerent *owner) : gun(owner, WEAP_RPG) {}
 bool crossbow::selectable() { return weapon::selectable() && !m_nosecondary(gamemode, mutators) && type == owner->secondary; }
 int crossbow::modelanim(){
 	// very stupid system

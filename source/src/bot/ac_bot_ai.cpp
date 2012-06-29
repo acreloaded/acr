@@ -27,7 +27,7 @@ weaponinfo_s WeaponInfoTable[MAX_WEAPONS] =
 	{ TYPE_NORMAL, 0.0f, 20.0f, 0.0f, 50.0f, 6 }, // AKIMBO?
 	{ TYPE_AUTO, 40.0f, 80.0f, 0.0f, 150.0f, 6 }, // HEAL
 	{ TYPE_MELEE, 0.0f, 4.0f, 0.0f, 7.0f, 1 }, // SWORD
-	{ TYPE_ROCKET, 0.0f, 20.0f, 0.0f, 50.0f, 2 }, // CROSSBOW
+	{ TYPE_ROCKET, 0.0f, 20.0f, 0.0f, 50.0f, 2 }, // RPG
 };
 
 // Code of CACBot - Start   

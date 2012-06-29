@@ -264,9 +264,9 @@ static struct parttype { int type; float r, g, b; int gr, tex; float sz; } partt
 	{ PT_HUDFLASH,   1.0f, 1.0f, 1.0f, 0,  6, 0.7f  }, // hudgun muzzle flash 
 	{ PT_FLASH,	  1.0f, 1.0f, 1.0f, 0,  6, 0.7f  }, // muzzle flash 
 	{ PT_PART,	   1.0f, 0.5f, 0.2f, 20, 0, 0.08f }, // orange: edit mode closest ent
-	{ PT_FIREBALL,   1.0f, 1.0f, 0.5f, 0,  2, 2.0f  }, // crossbow explosion fireball
+	{ PT_FIREBALL,   1.0f, 1.0f, 0.5f, 0,  2, 2.0f  }, // RPG explosion fireball
 	{ PT_PART,   0.2f, 1.0f, 0.3f, 18, 1, 0.13f  }, // green: heal-line
-	{ PT_PART,	 1.0f, 0.2f, 0.2f, 15, 1, 0.11f }, // red: crossbow smokeline
+	{ PT_PART,	 1.0f, 0.2f, 0.2f, 15, 1, 0.11f }, // red: RPG smokeline
 };
 
 VAR(particlesize, 20, 100, 500);

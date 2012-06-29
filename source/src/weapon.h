@@ -10,7 +10,7 @@ enum {
 	WEAP_AKIMBO,
 	WEAP_HEAL,
 	WEAP_SWORD,
-	WEAP_BOW,
+	WEAP_RPG,
 	WEAP_MAX,
 	// extra obits
 	OBIT_START = WEAP_MAX,
@@ -42,7 +42,7 @@ enum {
 };
 
 #define melee_weap(g) (g == WEAP_KNIFE || g == WEAP_SWORD)
-#define explosive_weap(g) (g == WEAP_GRENADE || g == WEAP_BOW)
+#define explosive_weap(g) (g == WEAP_GRENADE || g == WEAP_RPG)
 #define reloadable_weap(g) (!melee_weap(g) && g != WEAP_GRENADE)
 #define suppressed_weap(g) (melee_weap(g) || g == WEAP_GRENADE)
 #define ads_gun(g) (!melee_weap(g) && g != WEAP_GRENADE && g != WEAP_AKIMBO)

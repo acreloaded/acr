@@ -367,7 +367,7 @@ void spawnstate(client *c){
 		}, weap2[] = {
 			WEAP_PISTOL,
 			WEAP_HEAL,
-			WEAP_BOW,
+			WEAP_RPG,
 		};
 		gs.nextprimary = weap1[rnd(sizeof(weap1)/sizeof(int))];
 		gs.nextsecondary = weap2[rnd(sizeof(weap2)/sizeof(int))];

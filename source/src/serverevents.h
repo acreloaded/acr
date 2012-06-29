@@ -115,13 +115,13 @@ void shotevent::process(client *ci)
 		loopi(SGRAYS) damagepotential += effectiveDamage(weap, vec(gs.sg[i]).dist(gs.o));
 	}
 	else if(melee_weap(weap)) damagepotential = guns[weap].damage; // melee damage
-	else if(weap == WEAP_BOW) damagepotential = 50; // potential stick damage
+	else if(weap == WEAP_RPG) damagepotential = 50; // potential stick damage
 	else if(weap == WEAP_GRENADE) damagepotential = 0;
 	else damagepotential = effectiveDamage(weap, to.dist(gs.o));
 
 	switch(weap){
 		case WEAP_GRENADE: gs.grenades.add(id); break;
-		case WEAP_BOW: // explosive tip is stuck to a player
+		case WEAP_RPG: // explosive tip is stuck to a player
 		{
 			int hitzone = HIT_NONE;
 			vec expc;
@@ -135,15 +135,15 @@ void shotevent::process(client *ci)
 				else
 					dmg *= m_zombies_rounds(gamemode, mutators) ? (hitzone * 75) : (55);
 				damagedealt += dmg;
-				sendhit(c, WEAP_BOW, to, dmg); // blood, not explosion
-				serverdamage(hit, &c, dmg, WEAP_BOW, FRAG_GIB, expc);
+				sendhit(c, WEAP_RPG, to, dmg); // blood, not explosion
+				serverdamage(hit, &c, dmg, WEAP_RPG, FRAG_GIB, expc);
 			}
 			// fix explosion on walls
 			else (expc = to).sub(from).normalize().mul(to.dist(from) - .1f).add(from);
 			// instant explosion
-			int bowexplodedmgdealt = explosion(*ci, expc, WEAP_BOW, false, hit);
-			gs.damage += bowexplodedmgdealt;
-			gs.shotdamage += max<int>(effectiveDamage(WEAP_BOW, 0), bowexplodedmgdealt);
+			int rpgexplodedmgdealt = explosion(*ci, expc, WEAP_RPG, false, hit);
+			gs.damage += rpgexplodedmgdealt;
+			gs.shotdamage += max<int>(effectiveDamage(WEAP_RPG, 0), rpgexplodedmgdealt);
 			break;
 		}
 		case WEAP_HEAL: // healing a player

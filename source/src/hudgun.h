@@ -90,7 +90,7 @@ struct weaponmove
 				case WEAP_SUBGUN: // add reload animations and remove this!
 				case WEAP_ASSAULT:
 				case WEAP_BOLT:
-				case WEAP_BOW:
+				case WEAP_RPG:
 					k_rot = -90*sinf(progress*M_PI);
 					break;
 			}

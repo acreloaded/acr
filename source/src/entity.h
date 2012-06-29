@@ -426,7 +426,7 @@ struct playerstate
 			default: secondary = WEAP_PISTOL; break;
 			case WEAP_PISTOL:
 			case WEAP_HEAL:
-			case WEAP_BOW:
+			case WEAP_RPG:
 				break;
 		}
 

@@ -504,7 +504,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 
 	pl->respawnoffset = pl->lastpain = lastmillis;
 	// damage direction/hit push
-	if(pl != actor || weapon == WEAP_GRENADE || weapon == WEAP_BOW || pl->o.dist(src) > 4){
+	if(pl != actor || weapon == WEAP_GRENADE || weapon == WEAP_RPG || pl->o.dist(src) > 4){
 		// damage indicator
 		pl->damagestack.add(damageinfo(src, lastmillis, damage));
 		// push
