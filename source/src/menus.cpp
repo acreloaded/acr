@@ -533,7 +533,7 @@ struct mitemkeyinput : mitem
 
 	virtual void key(int code, bool isdown, int unicode)
 	{
-		if(!capture || code < -5 || code > SDLK_MENU) return;
+		if(!capture || code < -7 || code > SDLK_MENU) return;
 		keym *km;
 		while((km = findbinda(bindcmd))) { bindkey(km, ""); } // clear existing binds to this cmd
 		if(bindc(code, bindcmd)) parent->init(); // re-init all bindings
