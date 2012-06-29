@@ -796,7 +796,7 @@ bool gun::attack(vec &targ){
 	if(!mag)
 	{
 		gunwait += 250;
-		//owner->lastattackweapon = NULL;
+		owner->lastattackweapon = NULL;
 		shots = 0;
 		if(!checkautoreload() && owner == player1){
 			if(!m_nosecondary(gamemode, mutators) && owner->weapons[owner->secondary]->mag || owner->weapons[owner->secondary]->ammo)
@@ -948,16 +948,13 @@ void sword::attackfx(const vec &from, const vec &to, int millis) { attacksound()
 
 int sword::flashtime() const { return 0; }
 
-// crossbow
+// crossbow (RPG)
 
 crossbow::crossbow(playerent *owner) : gun(owner, WEAP_RPG) {}
 bool crossbow::selectable() { return weapon::selectable() && !m_nosecondary(gamemode, mutators) && type == owner->secondary; }
 int crossbow::modelanim(){
-	// very stupid system
-	// "gun *"  | scoping | reloading
-	// loaded   | idle    | N/A
-	// unloaded | shoot   | reload
-	return mag ? ANIM_WEAP_IDLE : ANIM_WEAP_SHOOT;
+	// very simple and stupid animation system
+	return mag ? ANIM_WEAP_SHOOT : ANIM_WEAP_IDLE;
 }
 
 void crossbow::attackfx(const vec &from2, const vec &to, int millis){

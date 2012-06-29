@@ -103,12 +103,12 @@ struct weaponmove
 			
 			float progress = 0.0f;
 			
-			if(p->weaponsel==p->lastattackweapon){
+			if(p->weaponsel==p->lastattackweapon || p->weaponsel->type == WEAP_RPG){
 				progress = max(0.0f, min(1.0f, timediff/(float)animtime));
 				// f(x) = -sin(x-1.5)^3
 				kick = -sinf(pow((1.5f*progress)-1.5f,3));
 				kick *= p->eyeheight / p->maxeyeheight;
-				if(p->lastaction) anim = p->weaponsel->modelanim();
+				if(p->lastaction || p->weaponsel->type == WEAP_RPG) anim = p->weaponsel->modelanim();
 			}
 			
 			if(p->weaponsel->info.mdl_kick_rot || p->weaponsel->info.mdl_kick_back){
