@@ -433,11 +433,11 @@ void weapon::renderstats(){
 	itoa(ammostr, (int)floor((float)ammo / clipsize));
 	if(ammo % clipsize) formatstring(ammostr)("%s/%i", ammostr, ammo % clipsize);
 	formatstring(gunstats)(oldfashionedgunstats ? "%i/%s" : "%i", mag, ammostr);
-	draw_text(gunstats, 590, 823);
+	draw_text(gunstats, 360, 823);
 	if(!oldfashionedgunstats){
 		int offset = text_width(gunstats);
 		glScalef(0.5f, 0.5f, 1.0f);
-		draw_textf("%s", (590 + offset)*2, 826*2, ammostr);
+		draw_textf("%s", (360 + offset)*2, 826*2, ammostr);
 	}
 }
 
@@ -757,8 +757,6 @@ void grenades::dropnade(){
 	thrownade(n);
 }
 
-void grenades::renderstats(){ draw_textf("%i", 830, 823, mag); }
-
 bool grenades::selectable() { return weapon::selectable() && state != GST_INHAND && mag; }
 void grenades::reset() { state = GST_NONE; }
 
@@ -947,7 +945,6 @@ bool sword::attack(vec &targ){
 int sword::modelanim() { return modelattacking() ? ANIM_WEAP_SHOOT : ANIM_WEAP_IDLE; }
 
 void sword::attackfx(const vec &from, const vec &to, int millis) { attacksound(); }
-void sword::renderstats() {}
 
 int sword::flashtime() const { return 0; }
 
@@ -1274,7 +1271,6 @@ void knife::attackfx(const vec &from, const vec &to, int millis) {
 	}
 	else if(owner != player1 && !isowned(owner)) attacksound();
 }
-void knife::renderstats() { if(ammo) draw_textf("%i", 590, 823, ammo); }
 
 // setscope for snipers and iron sights
 void setscope(bool enable){

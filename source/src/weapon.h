@@ -124,7 +124,6 @@ struct grenades : weapon
 	void thrownade();
 	void thrownade(const vec &vel);
 	void dropnade();
-	void renderstats();
 	bool selectable();
 	void reset();
 	bool busy();
@@ -176,7 +175,7 @@ struct sword : weapon
     int modelanim();
 
     void attackfx(const vec &from, const vec &to, int millis);
-    void renderstats();
+	void renderstats(){}
 	void renderaimhelp(int teamtype){}
 
     int flashtime() const;
@@ -275,7 +274,7 @@ struct knife : weapon
 	void throwknife(const vec &vel);
 
 	void attackfx(const vec &from, const vec &to, int millis);
-	void renderstats();
+	void renderstats() {}
 	void renderaimhelp(int teamtype){}
 	void onownerdies();
 

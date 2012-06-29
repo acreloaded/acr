@@ -256,11 +256,20 @@ void drawequipicons(playerent *p)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// health & armor
+	/*
 	if(p->armor)
 		if(p->armor > 25) drawequipicon(560, 1650, (p->armor - 25) / 25, 2, 0);
 		else drawequipicon(560, 1650, 3, 3, 0);
 	drawequipicon(20, 1650, 2, 3, (lastmillis - p->lastregen < 1000 ? 2 : 0) | ((p->state!=CS_DEAD && p->health<=35*HEALTHSCALE && !m_sniper(gamemode, mutators)) ? 1 : 0), p);
-	if(p->mag[WEAP_GRENADE]) drawequipicon(1520, 1650, 3, 1, 0);
+	*/
+	int hc = 2, hr = 3;
+	if(p->armor)
+		if(p->armor > 25) { hc = (p->armor - 25) / 25; hr = 2; }
+		else { hc = hr = 3; }
+	drawequipicon(20, 1650, hc, hr, (lastmillis - p->lastregen < 1000 ? 2 : 0) | ((p->state!=CS_DEAD && p->health<=35*HEALTHSCALE && !m_sniper(gamemode, mutators)) ? 1 : 0), p);
+
+	// grenades
+	loopi(min(3, p->mag[WEAP_GRENADE])) drawequipicon(1020 + i * 25, 1650, 3, 1, 0);
 
 	// weapons
 	int c = p->weaponsel->type, r = 0;
@@ -270,19 +279,18 @@ void drawequipicons(playerent *p)
 		else c = 14; // unknown = HP symbol
 	}
 	if(c == WEAP_AKIMBO) c = WEAP_PISTOL; // same icon for akimbo & pistol
-	else if(c == WEAP_SWORD) c = WEAP_BOLT; // sword = bolt's death symbol
 	switch(c){
 		case WEAP_KNIFE: case WEAP_PISTOL: default: break; // aligned properly
 		case WEAP_SHOTGUN: c = 3; break;
 		case WEAP_SUBGUN: c = 4; break;
-		case WEAP_SNIPER: c = 5; break;
-		case WEAP_BOLT: c = 2; break;
+		case WEAP_SNIPER: case WEAP_BOLT: c = 5; break;
+		case WEAP_SWORD: c = 2; break;
 		case WEAP_ASSAULT: c = 6; break;
 	}
 	if(c > 3) { c -= 4; r = 1; }
 
 	if(p->weaponsel && p->weaponsel->type>=WEAP_KNIFE && p->weaponsel->type<WEAP_MAX)
-		drawequipicon(1020, 1650, c, r, ((!p->weaponsel->ammo || p->weaponsel->mag < magsize(p->weaponsel->type) / 3) && p->weaponsel->type != WEAP_KNIFE && p->weaponsel->type != WEAP_GRENADE && p->weaponsel->type != WEAP_SWORD) ? 1 : 0);
+		drawequipicon(560, 1650, c, r, ((!p->weaponsel->ammo || p->weaponsel->mag < magsize(p->weaponsel->type) / 3) && p->weaponsel->type != WEAP_KNIFE && p->weaponsel->type != WEAP_GRENADE && p->weaponsel->type != WEAP_SWORD) ? 1 : 0);
 	glEnable(GL_BLEND);
 }
 
@@ -1016,9 +1024,17 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		if(!hidehudequipment && p->state != CS_DEAD && p->state != CS_EDITING)
 		{
 			pushfont("huddigits");
-			draw_textf("%d",  90, 823, p->health / HEALTHSCALE);
-			if(p->armor) draw_textf("%d", 360, 823, p->armor);
-			if(p->weapons[WEAP_GRENADE] && p->weapons[WEAP_GRENADE]->mag) p->weapons[WEAP_GRENADE]->renderstats();
+			defformatstring(healthstr)("%d", p->health / HEALTHSCALE);
+			draw_text(healthstr, 90, 823);
+			if(p->armor){
+				int offset = text_width(healthstr);
+				glPushMatrix();
+				glScalef(0.5f, 0.5f, 1.0f);
+				draw_textf("%d", (90 + offset)*2, 826*2, (p->health / HEALTHSCALE) + p->armor * 3 / 10);
+				glPopMatrix();
+			}
+			//if(p->armor) draw_textf("%d", 360, 823, p->armor);
+			//if(p->weapons[WEAP_GRENADE] && p->weapons[WEAP_GRENADE]->mag) p->weapons[WEAP_GRENADE]->renderstats();
 			// The next set will alter the matrix - load the identity matrix and apply ortho after
 			if(p->weaponsel && p->weaponsel->type>=WEAP_KNIFE && p->weaponsel->type<WEAP_MAX){
 				if(p->weaponsel->type != WEAP_GRENADE) p->weaponsel->renderstats();
@@ -1037,22 +1053,21 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		}
 	//}
 
-	// draw the perk icon
+	// draw the perk icons
 	
 	glLoadIdentity();
 	glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	Texture *perk1 = getperktex1()[p->perk1%PERK1_MAX];
-	if(perk1){
+	Texture *perk1 = getperktex1()[p->perk1%PERK1_MAX], *perk2 = getperktex2()[p->perk2%PERK2_MAX];
+	if(perk1 != perk2){
 		glColor4f(1.0f, 1.0f, 1.0f, p->perk1 /* != PERK_NONE */ && p->state != CS_DEAD ? .78f : .3f);
-		quad(perk1->id, VIRTW-225-10 - 180 - 30, VIRTH - 180 - 10, 180, 0, 0, 1);
+		quad(perk1->id, VIRTW-225-10 - 100 - 15 - 100 - 20, VIRTH - 100 - 10, 100, 0, 0, 1);
 	}
 
-	Texture *perk2 = getperktex2()[p->perk2%PERK2_MAX];
 	if(perk2){
 		glColor4f(1.0f, 1.0f, 1.0f, p->perk2 /* != PERK_NONE */ && p->state != CS_DEAD ? .78f : .3f);
-		quad(perk2->id, VIRTW-225-10 - 180 - 30, VIRTH - 180*2 - 10*2, 180, 0, 0, 1);
+		quad(perk2->id, VIRTW-225-10 - 100 - 20, VIRTH - 100 - 10, 100, 0, 0, 1);
 	}
 
 	// streak meter
