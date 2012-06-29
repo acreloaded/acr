@@ -83,7 +83,7 @@ extern itemstat powerupstats[];
 #define KNIFEPOWER 4.5f
 #define KNIFETTL 30000
 #define GIBBLOODMUL 1.5f
-#define SPAWNPROTECT 2000
+#define SPAWNPROTECT (m_affinity(gamemode) ? 1000 : m_team(gamemode, mutators) ? 1500 : 1250)
 #define COMBOTIME 1000
 
 #define MAXLEVEL 100
