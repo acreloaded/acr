@@ -476,7 +476,7 @@ void weapon::renderhudmodel(int lastaction, bool akimboflip){
 	if(!intermission) wm.calcmove(unitv, lastaction, owner);
 	defformatstring(path)("weapons/%s", info.modelname);
 	const bool emit = ((wm.anim&ANIM_INDEX)==ANIM_WEAP_SHOOT) && (lastmillis - lastaction) < flashtime();
-	if(ads_gun(type) && (wm.anim&ANIM_INDEX)==ANIM_WEAP_SHOOT) wm.anim = ANIM_WEAP_IDLE;
+	if(ads_gun(type) && type != WEAP_BOW && (wm.anim&ANIM_INDEX)==ANIM_WEAP_SHOOT) wm.anim = ANIM_WEAP_IDLE;
 	if(flip) wm.anim |= ANIM_MIRROR;
 	if(emit) wm.anim |= ANIM_PARTICLE;
 	if(gamefocus->protect(lastmillis, gamemode, mutators)) wm.anim |= ANIM_TRANSLUCENT;
@@ -796,7 +796,7 @@ bool gun::attack(vec &targ){
 	if(!mag)
 	{
 		gunwait += 250;
-		owner->lastattackweapon = NULL;
+		//owner->lastattackweapon = NULL;
 		shots = 0;
 		if(!checkautoreload() && owner == player1){
 			if(!m_nosecondary(gamemode, mutators) && owner->weapons[owner->secondary]->mag || owner->weapons[owner->secondary]->ammo)
