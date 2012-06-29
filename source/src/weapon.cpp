@@ -836,7 +836,7 @@ void gun::attackshell(const vec &to){
 	s->timetolive = gibttl;
 	s->bouncetype = BT_SHELL;
 	
-	const bool akimboflip = (type == WEAP_AKIMBO && ((akimbo *)this)->akimboside) ^ (lefthand > 0);
+	const bool akimboflip = (type == WEAP_AKIMBO && !((akimbo *)this)->akimboside) ^ (lefthand > 0);
 	s->vel = vec(1, rnd(101) / 800.f - .1f, (rnd(51) + 50) / 100.f);
 	s->vel.rotate_around_z(owner->yaw*RAD);
 	s->o = owner->o;
@@ -864,7 +864,7 @@ void gun::attackfx(const vec &from2, const vec &to, int millis){
 		attackshell(to);
 	}
 	addbullethole(owner, from, to);
-	addshotline(owner, from, to, millis & 1);
+	addshotline(owner, from, to, (millis & 1) | (((type == WEAP_AKIMBO && !((akimbo *)this)->akimboside) ^ (lefthand > 0)) ? 4 : 0));
 	particle_splash(0, 5, 250, to);
 	adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
 	if((millis & 1) && owner != player1 && !isowned(owner)) attacksound();

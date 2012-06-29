@@ -646,7 +646,7 @@ vector<sl> sls;
 
 void addshotline(playerent *pl, const vec &from2, const vec &to, int flags)
 {
-	// flags: 1: first shot 2: silence
+	// flags: 1: first shot 2: silence 4: flipped
 	vec from(from2);
 
 	sl s = {pl, {from.x, from.y}, {to.x, to.y}, lastmillis + shotlinettl * 2};
@@ -658,6 +658,7 @@ void addshotline(playerent *pl, const vec &from2, const vec &to, int flags)
 		extern vec *hudgunTag(playerent *p, const char *tag);
 		vec *v = hudgunTag(pl, "tag_muzzle");
 		if(v){
+			if(flags & 4) v->y = -v->y;
 			v->div(1.28f).rotate_around_x(pl->roll * RAD).rotate_around_y(pl->pitch * RAD).rotate_around_z((pl->yaw - 90) * RAD);
 			from.add(*v);
 		}
