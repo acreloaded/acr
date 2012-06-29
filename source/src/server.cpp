@@ -850,8 +850,10 @@ void flagaction(int flag, int action, int actor){
 	f.lastupdate = gamemillis;
 	sendflaginfo(flag);
 	flagmessage(flag, message, valid_client(actor) ? actor : -1);
-	steamscores[clients[actor]->team].points += max(0, flagpoints(clients[actor], message));
-	sendteamscore(clients[actor]->team);
+	if(valid_client(actor)){
+		steamscores[clients[actor]->team].points += max(0, flagpoints(clients[actor], message));
+		sendteamscore(clients[actor]->team);
+	}
 }
 
 int clienthasflag(int cn){
