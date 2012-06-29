@@ -34,8 +34,8 @@
 #define FLAGTKPT     -2*(10+cnumber)               // player tks the flag keeper/stealer
 #define ASSISTMUL 0.225f                           // multiply reward by this for assisters
 #define ASSISTRETMUL 0.125f                        // multiply assisters' rewards and return to original damager
-#define HEALTEAMPT    10                           // player heals his teammate else with the heal gun
-#define HEALSELFPT     3                           // player heals himself with the heal gun
+#define HEALTEAMPT     8                           // player heals his teammate else with the heal gun
+#define HEALSELFPT     2                           // player heals himself with the heal gun
 #define HEALENEMYPT   -1                           // player heals his enemy with the heal gun
 #define HEALWOUNDPT    4                           // player heals his wound or wounds, times the number of his wounds
 
