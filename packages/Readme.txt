@@ -76,7 +76,7 @@ misc
 		nuke.png
 		sword.png
 			© Possibly Copyrighted - Unknown Source/Origin/Author/s
-	perks - Perks Icons for ACR by Protox CC-BY 3.0
+	perks - Colored Perk Icons for ACR Victor CC-BY 3.0 - from Perks Icons for ACR by Protox CC-BY 3.0
 	streak - Crystal Icons LGPL - Colorized/Modified by Victor LGPL
 	waypoints - © Activision
 	bargraphs.png
