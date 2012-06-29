@@ -2939,8 +2939,7 @@ void checkmove(client &cp){
 			if(sconfirms[i].team != sconfirms[i].death)
 				sendteamscore(sconfirms[i].death);
 		}
-		// else
-		addpt(&cp, KCDENYPTS, PR_KD);
+		else addpt(&cp, KCDENYPTS, PR_KD);
 
 		sendf(-1, 1, "ri2", N_CONFIRMREMOVE, sconfirms[i].id);
 		sconfirms.remove(i--);
