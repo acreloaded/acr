@@ -1041,11 +1041,19 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	
 	glLoadIdentity();
 	glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
-	glColor4f(1.0f, 1.0f, 1.0f, p->perk1 /* != PERK_NONE */ && p->state != CS_DEAD ? .78f : .3f);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	Texture *perk = getperktex()[p->perk1%PERK_MAX];
-	if(perk) quad(perk->id, VIRTW-225-10 - 180 - 30, VIRTH - 180 - 10, 180, 0, 0, 1);
+	Texture *perk1 = getperktex1()[p->perk1%PERK1_MAX];
+	if(perk1){
+		glColor4f(1.0f, 1.0f, 1.0f, p->perk1 /* != PERK_NONE */ && p->state != CS_DEAD ? .78f : .3f);
+		quad(perk1->id, VIRTW-225-10 - 180 - 30, VIRTH - 180 - 10, 180, 0, 0, 1);
+	}
+
+	Texture *perk2 = getperktex2()[p->perk2%PERK2_MAX];
+	if(perk2){
+		glColor4f(1.0f, 1.0f, 1.0f, p->perk2 /* != PERK_NONE */ && p->state != CS_DEAD ? .78f : .3f);
+		quad(perk2->id, VIRTW-225-10 - 180 - 30, VIRTH - 180*2 - 10*2, 180, 0, 0, 1);
+	}
 
 	// streak meter
 	if(showstreak){

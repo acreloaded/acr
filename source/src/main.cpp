@@ -336,7 +336,7 @@ void resetgl()
 	// preload some stuffs
 	extern Texture **obittex();
 	extern void load_waypointtex();
-	geteventicons(); getperktex(); obittex(); load_waypointtex();
+	geteventicons(); getperktex1(); getperktex2(); obittex(); load_waypointtex();
 	c2skeepalive();
 	reloadfonts();
 	reloadtextures();
@@ -662,7 +662,7 @@ int main(int argc, char **argv)
 		// preload some stuffs
 		extern Texture **obittex();
 		extern void load_waypointtex();
-		geteventicons(); getperktex(); obittex(); load_waypointtex();
+		geteventicons(); getperktex1(); getperktex2(); obittex(); load_waypointtex();
 
 		initlog("docs");
 		persistidents = false;

@@ -589,11 +589,23 @@ Texture **geteventicons(){
 	return tex;
 }
 
-Texture **getperktex(){
-	static Texture *tex[PERK_MAX];
+Texture **getperktex1(){
+	static Texture *tex[PERK1_MAX];
 	if(!*tex){
-		const char *texname[PERK_MAX] = { "none", "speed", "hand", "jam" }; //, "vision", "streak", "steady", "light", "power", "persist", "bribe", "health" };
-		loopi(PERK_MAX){
+		const char *texname[PERK1_MAX] = { "none", "radar", "power", "time", "speed", "hand", "light", "score", };
+		loopi(PERK1_MAX){
+			defformatstring(tname)("packages/misc/perks/%s.png", texname[i]);
+			tex[i] = textureload(tname);
+		}
+	}
+	return tex;
+}
+
+Texture **getperktex2(){
+	static Texture *tex[PERK2_MAX];
+	if(!*tex){
+		const char *texname[PERK2_MAX] = { "none", "radar", "power", "time", "vision", "streak", "steady", "health", };
+		loopi(PERK2_MAX){
 			defformatstring(tname)("packages/misc/perks/%s.png", texname[i]);
 			tex[i] = textureload(tname);
 		}
