@@ -26,7 +26,7 @@ void destroyevent::process(client *ci)
 			if(hit){ // maybe change this to server-sided collision?
 				client &target = *hit;
 				clientstate &ts = target.state;
-				if(ts.state == CS_ALIVE && !ts.protect(gamemillis)){
+				if(ts.state == CS_ALIVE && !ts.protect(gamemillis, gamemode, mutators)){
 					int tknifeflags = FRAG_FLAG;
 					if(checkcrit(0, 0, 20)){ // 5% critical hit chance
 						tknifeflags |= FRAG_CRIT;

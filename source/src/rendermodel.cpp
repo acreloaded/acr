@@ -676,7 +676,7 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
 		if(stenciling) return;
 	}
 
-	if(d->protect(lastmillis)) anim |= ANIM_TRANSLUCENT;
+	if(d->protect(lastmillis, gamemode, mutators)) anim |= ANIM_TRANSLUCENT;
 
 	rendermodel(mdlname, anim|ANIM_DYNALLOC, tex, 1.5f, o, d->yaw+90, d->pitch/4, speed, basetime, d, a);
 	if(!stenciling && !reflecting && !refracting)

@@ -474,7 +474,7 @@ struct playerstate
 		return damage;
 	}
 
-	int protect(int millis){
+	int protect(int millis, int gamemode, int mutators){
 		const int delay = SPAWNPROTECT, spawndelay = millis - spawnmillis;
 		int amt = 0;
         if(spawnmillis && delay && spawndelay < delay) amt = delay - spawndelay;

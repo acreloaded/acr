@@ -152,7 +152,7 @@ int explosion(client &owner, const vec &o2, int weap, bool gib, client *cflag){
 	// find the hits
 	loopv(clients){
 		client &target = *clients[i];
-		if(target.type == ST_EMPTY || target.state.state != CS_ALIVE || target.state.protect(gamemillis)) continue;
+		if(target.type == ST_EMPTY || target.state.state != CS_ALIVE || target.state.protect(gamemillis, gamemode, mutators)) continue;
 		damagedealt += radialeffect((own == &target) ? owner : *own, target, hits, o, weap, gib, weap == WEAP_BOW && clients[i] == cflag);
 	}
 	// sort the hits
@@ -206,7 +206,7 @@ client *nearesthit(client &actor, const vec &from, const vec &to, int &hitzone, 
 		client &t = *clients[i];
 		clientstate &ts = t.state;
 		// basic checks
-		if(t.type == ST_EMPTY || ts.state != CS_ALIVE || &t == exclude || ts.protect(gamemillis)) continue;
+		if(t.type == ST_EMPTY || ts.state != CS_ALIVE || &t == exclude || ts.protect(gamemillis, gamemode, mutators)) continue;
 		const float d = ts.o.dist(from);
 		if(d > dist) continue;
 		vec head = generateHead(t, h);

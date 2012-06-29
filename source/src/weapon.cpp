@@ -479,7 +479,7 @@ void weapon::renderhudmodel(int lastaction, bool akimboflip){
 	if(ads_gun(type) && (wm.anim&ANIM_INDEX)==ANIM_WEAP_SHOOT) wm.anim = ANIM_WEAP_IDLE;
 	if(flip) wm.anim |= ANIM_MIRROR;
 	if(emit) wm.anim |= ANIM_PARTICLE;
-	if(gamefocus->protect(lastmillis)) wm.anim |= ANIM_TRANSLUCENT;
+	if(gamefocus->protect(lastmillis, gamemode, mutators)) wm.anim |= ANIM_TRANSLUCENT;
 	rendermodel(path, wm.anim|ANIM_DYNALLOC, 0, -1, wm.pos, owner->yaw+90, owner->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, NULL, 1.28f);
 }
 
