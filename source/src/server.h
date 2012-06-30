@@ -732,7 +732,7 @@ itemstat ammostats[WEAP_MAX] =
 	{96, 0,   144,	S_ITEMAKIMBO },  // akimbo
 	{40, 60,  80,	S_ITEMAMMO },   // heal
 	{1,  1,   1,    S_ITEMAMMO }, // sword dummy
-	{3,  4,   5,    S_ITEMAMMO }, // RPG
+	{3,  3,   6,    S_ITEMAMMO }, // RPG
 };
 
 itemstat powerupstats[] =
