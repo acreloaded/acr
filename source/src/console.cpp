@@ -97,15 +97,15 @@ struct chatlist : consolebuffer<cline>{
 		}
         loopi(linei){
 			cline &l = conlines[i];
-			if(totalmillis-l.millis < chatfade*1000 || con.fullconsole){
+			if(totalmillis <= l.millis + chatfade*1000 || con.fullconsole){
 				int fade = 255;
-				if(l.millis + chatfade*1000 - totalmillis < 1000 && !con.fullconsole){ // fading out
+				if(l.millis + chatfade*1000 <= totalmillis + 1000 && !con.fullconsole){ // fading out
 					fade = (l.millis + chatfade*1000 - totalmillis) * 255/1000;
 					y -= FONTH * (totalmillis + 1000 - l.millis - chatfade*1000) / 1000;
 				}
-				else if(i == 0 && totalmillis-l.millis < 500){ // fading in
+				else if(/*!i &&*/ totalmillis - l.millis < 500){ // fading in
 					fade = (totalmillis - l.millis)*255/500;
-					y += FONTH * (l.millis + 500 - totalmillis) / 500;
+					y += FONTH * (500 - totalmillis + l.millis) / 500;
 				}
 				int width, height;
 				text_bounds(l.line, width, height, conwidth);
