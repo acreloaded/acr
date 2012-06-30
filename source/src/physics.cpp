@@ -160,7 +160,7 @@ bool plcollide(physent *d, physent *o, float &headspace, float &hi, float &lo)		
 		if(d->o.z-deyeheight<o->o.z-oeyeheight) { if(o->o.z-oeyeheight<hi) hi = o->o.z-oeyeheight-1; }
 		else if(o->o.z+o->aboveeye>lo) lo = o->o.z+o->aboveeye+1;
 
-		if(fabs(o->o.z-d->o.z)<o->aboveeye+deyeheight) { hitplayer = o; return false; }
+		if(fabs(o->o.z-d->o.z)<o->aboveeye+deyeheight) { hitplayer = o; if(o->type == ENT_PLAYER) tkhit = (playerent *)o; return false; }
 		headspace = d->o.z-o->o.z-o->aboveeye-deyeheight;
 		if(headspace<0) headspace = 10;
 	}
@@ -300,15 +300,9 @@ bool collide(physent *d, bool spawn, float drop, float rise)
 		{
 			playerent *o = players[i];
 			if(!o || o==d || (o==player1 && d->type==ENT_CAMERA)) continue;
-			if(!plcollide(d, o, headspace, hi, lo)){
-				tkhit = o;
-				return false;
-			}
+			if(!plcollide(d, o, headspace, hi, lo)) return false;
 		}
-		if(d!=player1) if(!plcollide(d, player1, headspace, hi, lo)){
-			tkhit = player1;
-			return false;
-		}
+		if(d!=player1) if(!plcollide(d, player1, headspace, hi, lo)) return false;
 	}
 
 	headspace -= 0.01f;

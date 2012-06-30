@@ -1080,7 +1080,7 @@ vector<cconfirm> confirms; // weird place to put this
 vector<cknife> knives;
 
 // knifeent
-knifeent::knifeent(playerent *owner, int millis){
+knifeent::knifeent(playerent *owner, int millis) {
 	ASSERT(owner);
 	knifestate = NS_NONE;
 	local = owner==player1 || isowned(owner);
@@ -1089,9 +1089,9 @@ knifeent::knifeent(playerent *owner, int millis){
 	timetolive = KNIFETTL-millis;
 	bouncetype = BT_KNIFE;
 	maxspeed = 25.0f;
-	radius = .1f;
-	aboveeye = .2f;
-	eyeheight = .2f;
+	radius = .2f;
+	aboveeye = 0;
+	eyeheight = maxeyeheight = .5f;
 	yaw = owner->yaw+180;
 	pitch = 75-owner->pitch;
 	roll = owner->roll;
@@ -1147,9 +1147,8 @@ bool knifeent::applyphysics() { return timetolive && knifestate==NS_THROWED; }
 
 void knifeent::oncollision(){
 	extern playerent *tkhit;
-	if(tkhit || vel.magnitude() < 1.f){
-		if(!hit)
-			hit = tkhit;
+	if(tkhit || vel.magnitude() < 2.f){
+		hit = tkhit;
 		timetolive = 0;
 	}
 	else vel.mul(0.4f);
