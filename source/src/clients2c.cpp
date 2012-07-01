@@ -119,8 +119,8 @@ void parsepositions(ucharbuf &p)
 			f >>= 2;
 			d->move = (f&3)==3 ? -1 : f&3;
 			f >>= 3; // 2 + lifeseq
-			updatecrouch(d, f&1);
-			d->scoping = (f & 2) == 1 /*&& ads_gun(d->weaponsel->type)*/;
+			updatecrouch(d, (f & 1) == 1);
+			d->scoping = (f & 2) == 2 /*&& ads_gun(d->weaponsel->type)*/;
 			d->onfloor = (f & 4) == 4;
 			d->onladder = (f & 8) == 8;
 
