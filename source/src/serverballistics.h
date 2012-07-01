@@ -229,6 +229,8 @@ int shot(client &owner, const vec &from, vec &to, const vector<head_t> &h, int w
 	// damage check
 	const float dist2 = dist + end.dist(from);
 	int damage = effectiveDamage(weap, dist2);
+	if(melee_weap(weap) && dist2 > guns[weap].endrange)
+		damage = 0;
 	// we hit somebody
 	if(hit && damage){
 		// damage multipliers
