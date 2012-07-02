@@ -618,7 +618,7 @@ bool grenades::attack(vec &targ){
 			if(waitdone)
 			{
 				if(!owner->attacking || this!=owner->weaponsel) thrownade(); // throw
-				else if(!inhandnade->isalive(lastmillis)) dropnade(); // drop & have fun
+				else if(inhandnade && !inhandnade->isalive(lastmillis)) dropnade(); // drop & have fun
 			}
 			break;
 
