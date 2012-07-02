@@ -867,7 +867,7 @@ const int toobit(int weap, int style){
 				flag = (style & FRAG_FLAG) > 0;
 	switch(weap){
 		case WEAP_KNIFE: return gib ? WEAP_KNIFE : flag ? OBIT_KNIFE_IMPACT : OBIT_KNIFE_BLEED;
-		case WEAP_RPG: return gib ? OBIT_BOW_IMPACT : flag ? OBIT_BOW_STUCK : WEAP_RPG;
+		case WEAP_RPG: return gib ? OBIT_IMPACT : flag ? OBIT_RPG_STUCK : WEAP_RPG;
 		case WEAP_GRENADE: return gib ? WEAP_GRENADE : OBIT_AIRSTRIKE;
 		case WEAP_MAX: return OBIT_NUKE;
 		case WEAP_MAX + 3: return OBIT_FF; // assisted suicide
@@ -916,11 +916,11 @@ const char *killname(int obit, bool headshot){
 			concatstring(k, "detonated");
 			break;
 		// special obits
-		case OBIT_BOW_IMPACT:
+		case OBIT_IMPACT:
 			concatstring(k, "impacted");
 			break;
-		case OBIT_BOW_STUCK:
-			concatstring(k, "plastered");
+		case OBIT_RPG_STUCK:
+			concatstring(k, "rocket-propelled");
 			break;
 		case OBIT_KNIFE_BLEED:
 			concatstring(k, "fatally wounded");
