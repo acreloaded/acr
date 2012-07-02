@@ -277,6 +277,7 @@ struct knife : weapon
 	void renderstats() {}
 	void renderaimhelp(int teamtype){}
 	void onownerdies();
+	void removebounceent(bounceent *b);
 
 	int flashtime() const;
 };
