@@ -2303,8 +2303,8 @@ void sendcallvote(int cl = -1){
 				sendstring(((serverdescaction *)curvote->action)->sdesc, p);
 				break;
 			case SA_GIVEROLE:
-				putint(p, ((giveadminaction *)curvote->action)->cn);
 				putint(p, ((giveadminaction *)curvote->action)->give);
+				putint(p, ((playeraction *)curvote->action)->cn);
 				break;
 			case SA_STOPDEMO:
 			case SA_REMBANS:
