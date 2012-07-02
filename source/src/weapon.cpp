@@ -1173,7 +1173,7 @@ bool knife::attack(vec &targ){
 			case GST_INHAND:
 				if(waitdone){
 					if(!owner->scoping || this!=owner->weaponsel) throwknife(); // throw
-					else if(!inhandknife->isalive(lastmillis)) throwknife(true);
+					else if(inhandknife && !inhandknife->isalive(lastmillis)) throwknife(true);
 				}
 				break;
 			case GST_THROWING:
