@@ -1563,7 +1563,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 			damage = 0; // we want to show a hitmarker...
 		}
 		else if(m_vampire(gamemode, mutators))
-			sendf(-1, 1, "ri3", N_REGEN, actor->clientnum, actor->state.health += damage / 5);
+			sendf(-1, 1, "ri3", N_REGEN, actor->clientnum, actor->state.health = min(actor->state.health + damage / (rnd(3) + 3), 300));
 	}
 
 	ts.dodamage(damage, actor->state.perk1 == PERK_POWER);
