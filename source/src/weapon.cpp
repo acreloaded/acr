@@ -994,7 +994,7 @@ void scopedprimary::attackfx(const vec &from2, const vec &to, int millis){
 	if(millis & 1 && owner != player1 && !isowned(owner)) attacksound();
 }
 
-float scopedprimary::dynrecoil() { return weapon::dynrecoil() * 1 - owner->ads / 1500; } // 1/3 spread when ADS
+float scopedprimary::dynrecoil() { return weapon::dynrecoil() * 1 - owner->ads / 3000; } // 2/3 recoil when ADS
 void scopedprimary::renderhudmodel() { if(owner->ads < adsscope) weapon::renderhudmodel(); }
 
 void scopedprimary::renderaimhelp(int teamtype){
