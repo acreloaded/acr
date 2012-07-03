@@ -242,8 +242,11 @@ struct obitlist
 			int width, height;
 			text_bounds(l, width, height);
 			consumed += ceil(float(height/FONTH));
-			if(consumed > maxlines) break;
+			// Write too high, or don't fill more lines than possible... the first one is better
 			++linei;
+			if(consumed >= maxlines) break;
+			//if(consumed > maxlines) break;
+			//++linei;
 		}
         loopi(linei){
 			oline &l = olines[i];
