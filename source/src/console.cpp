@@ -88,17 +88,20 @@ VARP(chatfade, 0, 15, 30);
 struct chatlist : consolebuffer<cline>{
     void render(){
         const int conwidth = 2 * VIRTW * 3 / 10;
-		int linei = conlines.length(), y = 2 * VIRTH * 52 / 100;
+		int linei = 0, consumed = 0, y = 2 * VIRTH * 52 / 100;
 		loopi(conlines.length()){
 			char *l = conlines[i].line;
 			int width, height;
 			text_bounds(l, width, height, conwidth);
-			linei -= -1 + floor(float(height/FONTH));
+			consumed += ceil(float(height/FONTH));
+			if(consumed > maxlines) break;
+			++linei;
 		}
         loopi(linei){
 			cline &l = conlines[i];
 			if(totalmillis <= l.millis + chatfade*1000 || con.fullconsole){
 				int fade = 255;
+
 				if(l.millis + chatfade*1000 <= totalmillis + 1000 && !con.fullconsole){ // fading out
 					fade = (l.millis + chatfade*1000 - totalmillis) * 255/1000;
 					y -= FONTH * (totalmillis + 1000 - l.millis - chatfade*1000) / 1000;
@@ -233,12 +236,14 @@ struct obitlist
 		glPushMatrix();
 		glLoadIdentity();
 		glOrtho(0, VIRTW*ts, VIRTH*ts, 0, -1, 1);
-		int linei = olines.length(), y = ts * VIRTH * .5f;
+		int linei = 0, consumed = 0, y = ts * VIRTH * .5f;
 		loopv(olines){
 			defformatstring(l)("%s    %s", olines[i].actor, olines[i].target); // four spaces to subsitute for unknown obit icon
 			int width, height;
 			text_bounds(l, width, height);
-			linei -= -1 + floor(float(height/FONTH));
+			consumed += ceil(float(height/FONTH));
+			if(consumed > maxlines) break;
+			++linei;
 		}
         loopi(linei){
 			oline &l = olines[i];
