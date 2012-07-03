@@ -752,23 +752,24 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_POINTR:
 			{
 				int reason = getint(p);
-				const char* pointreasons[PR_MAX] = {
-					// TODO: Migrate to locales
-					"",
-					"Assist",
-					"SPLAT!",
-					"HEADSHOT!",
-					"Kill Confirmed",
-					"Kill Denied",
-					"Healed Self",
-					"Healed Teammate",
-					"\f3Healed Enemy",
-					"Prevented Bleedout!",
-					"\f0You won!",
-					"\f1Your team wins!",
-					"\f3You lost!",
+				const char* pointreasons_templates[PR_MAX] = {
+					"", // N/A
+					"%s", // Assist
+					"%s", // Splat
+					"%s", // Headshot
+					"%s", // Kill Confirmed
+					"%s", // Kill Denied
+					"%s", // Healed Self
+					"%s", // Healed Teammate
+					"\f3%s", // Healed Enemy
+					"%s", // Prevented Bleedout
+					"\f0%s", // You won
+					"\f1%s", // Your team wins
+					"\f3%s", // You lost
 				};
-				expreason(pointreasons[reason%PR_MAX]);
+				defformatstring(pr_lookup_str)("point_reason_%d", reason);
+				defformatstring(pr_str)(pointreasons_templates[reason%PR_MAX], _(pr_lookup_str));
+				expreason(pr_str);
 				break;
 			}
 
