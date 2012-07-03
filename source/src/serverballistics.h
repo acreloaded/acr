@@ -73,7 +73,7 @@ void applyspread(const vec &from, vec &to, int spread, float factor){
 }
 
 bool checkcrit(float dist, float m, int base = 0, int min = 4, int max = 100){
-	return m_real(gamemode, mutators) || !rnd((base + clamp<int>(ceil(dist) * m, min, max)) * (m_classic(gamemode, mutators) ? 3 : 1));
+	return !m_real(gamemode, mutators) && !rnd((base + clamp<int>(ceil(dist) * m, min, max)) * (m_classic(gamemode, mutators) ? 3 : 1));
 }
 
 // easy to send shot damage messages

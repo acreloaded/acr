@@ -1542,12 +1542,14 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 		else if(gun == WEAP_GRENADE) damage /= 2;
 		else damage /= 8;
 	}
+	else if(m_real(gamemode, mutators)){
+		if(gun == WEAP_HEAL && target == actor) damage /= 2;
+		else damage *= 2;
+	}
 	else if(m_classic(gamemode, mutators)) damage /= 2;
 
 	clientstate &ts = target->state;
 	if(ts.state != CS_ALIVE) return;
-
-	if(m_real(gamemode, mutators)) style &= ~FRAG_CRIT;
 
 	if(target != actor)
 	{
