@@ -530,73 +530,79 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 	else playsound(S_PAIN1+rnd(5), pl);
 }
 
+VARP(consoleobit, 0, 1, 1);
 void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, int combo, float killdist){
 	if(!pl || !act || pl->state==CS_DEAD || intermission) return;
 	pl->lastkiller = act->clientnum;
-	// kill message
+
 	bool headshot = isheadshot(weapon, style);
 	int obit = OBIT_DEATH;
-	string subject, predicate, hashave;
-	*subject = *predicate = *hashave = 0;
-	formatstring(subject)("\f2\fs%s\f2", act == player1 ? "\f1you" : colorname(act));
-	copystring(hashave, act == player1 ? "have" : "has");
-	if(pl == act){
-		copystring(predicate, suicname(obit = obit_suicide(weapon)));
-		if(pl == player1){
-			// radar scan
-			loopv(players){
-				playerent *p = players[i];
-				if(!p || isteam(p, pl)) continue;
-				p->radarmillis = lastmillis + 1000;
-				p->lastloudpos[0] = p->o.x;
-				p->lastloudpos[1] = p->o.y;
-				p->lastloudpos[2] = p->yaw;
+
+	// kill message
+	if(consoleobit){
+		string subject, predicate, hashave;
+		*subject = *predicate = *hashave = 0;
+		formatstring(subject)("\f2\fs%s\f2", act == player1 ? "\f1you" : colorname(act));
+		copystring(hashave, act == player1 ? "have" : "has");
+		if(pl == act){
+			copystring(predicate, suicname(obit = obit_suicide(weapon)));
+			if(pl == player1){
+				// radar scan
+				loopv(players){
+					playerent *p = players[i];
+					if(!p || isteam(p, pl)) continue;
+					p->radarmillis = lastmillis + 1000;
+					p->lastloudpos[0] = p->o.x;
+					p->lastloudpos[1] = p->o.y;
+					p->lastloudpos[2] = p->yaw;
+				}
+				concatstring(predicate, "\f3");
 			}
-			concatstring(predicate, "\f3");
+			if(pl == gamefocus) concatstring(predicate, "!\f2");
 		}
-		if(pl == gamefocus) concatstring(predicate, "!\f2");
-	}
-	else formatstring(predicate)("%s%s %s%s", style&FRAG_REVENGE ? "\fs\f0vengefully \fr" : "", killname(obit = toobit(weapon, style), headshot),
-			isteam(pl, act) ? act==player1 ? "\f3your teammate " : "\f3his teammate " : "", pl == player1 ? "\f1you\f2" : colorname(pl));
-	if(killdist) concatformatstring(predicate, " (@%.2f m)", killdist);
-	// streaks
-	//if(act->pointstreak >= 2) concatformatstring(predicate, " %d ks", act->pointstreak);
-	if(pl->deathstreak++) concatformatstring(predicate, " %d ds", pl->deathstreak);
-	// assist count
-	pl->damagelog.removeobj(pl->clientnum);
-	pl->damagelog.removeobj(act->clientnum);
-	loopv(pl->damagelog) if(!getclient(pl->damagelog[i])) pl->damagelog.remove(i--);
-	// HUD for first person
-	if(pl == gamefocus || act == gamefocus || pl->damagelog.find(gamefocus->clientnum) >= 0){
-		if(pl->damagelog.length()) hudonlyf("%s %s %s, %d assister%s", subject, hashave, predicate, pl->damagelog.length(), pl->damagelog.length()==1?"":"s");
-		else hudonlyf("%s %s %s", subject, hashave, predicate);
-	}
-	// assists
-	if(pl->damagelog.length()){
-		concatstring(predicate, ", assisted by");
-		bool first = true;
-		while(pl->damagelog.length()){
-			playerent *p = getclient(pl->damagelog.pop());
-			const bool tk = isteam(p, pl);
-			p->assists += tk ? -1 : 1;
-			p->pointstreak += tk ? -2 : 2;
-			concatformatstring(predicate, "%s \fs\f%d%s\fr", first ? "" : !pl->damagelog.length() ? " and" : ",", tk ? 3 : 2, colorname(p));
-			first = false;
+		else formatstring(predicate)("%s%s %s%s", style&FRAG_REVENGE ? "\fs\f0vengefully \fr" : "", killname(obit = toobit(weapon, style), headshot),
+				isteam(pl, act) ? act==player1 ? "\f3your teammate " : "\f3his teammate " : "", pl == player1 ? "\f1you\f2" : colorname(pl));
+		if(killdist) concatformatstring(predicate, " (@%.2f m)", killdist);
+		// streaks
+		//if(act->pointstreak >= 2) concatformatstring(predicate, " %d ks", act->pointstreak);
+		if(pl->deathstreak++) concatformatstring(predicate, " %d ds", pl->deathstreak);
+		// assist count
+		pl->damagelog.removeobj(pl->clientnum);
+		pl->damagelog.removeobj(act->clientnum);
+		loopv(pl->damagelog) if(!getclient(pl->damagelog[i])) pl->damagelog.remove(i--);
+		// HUD for first person
+		if(pl == gamefocus || act == gamefocus || pl->damagelog.find(gamefocus->clientnum) >= 0){
+			if(pl->damagelog.length()) hudonlyf("%s %s %s, %d assister%s", subject, hashave, predicate, pl->damagelog.length(), pl->damagelog.length()==1?"":"s");
+			else hudonlyf("%s %s %s", subject, hashave, predicate);
 		}
+		// assists
+		if(pl->damagelog.length()){
+			concatstring(predicate, ", assisted by");
+			bool first = true;
+			while(pl->damagelog.length()){
+				playerent *p = getclient(pl->damagelog.pop());
+				const bool tk = isteam(p, pl);
+				p->assists += tk ? -1 : 1;
+				p->pointstreak += tk ? -2 : 2;
+				concatformatstring(predicate, "%s \fs\f%d%s\fr", first ? "" : !pl->damagelog.length() ? " and" : ",", tk ? 3 : 2, colorname(p));
+				first = false;
+			}
+		}
+		switch(combo){
+			case 2: concatstring(predicate, ", \fs\f0\fbdouble-killing\fr"); break;
+			case 3: concatstring(predicate, ", \fs\f1\fbtriple-killing\fr"); break;
+			case 4: concatstring(predicate, ", \fs\f3\fbmulti-killing\fr"); break;
+			case 5: concatstring(predicate, ", \fs\f4\fbslaughering\fr"); break;
+			default: if(combo > 1) concatstring(predicate, ", \fs\f5\fbPWNING\fr"); break;
+		}
+		if(style & FRAG_PENETRATE) concatstring(predicate, " through penetrating \fs\f0\fbsomeone\fr");
+		if(style & FRAG_RICOCHET) concatstring(predicate, " off the \fs\f0\fbwall\fr");
+		if(style & FRAG_FIRST) concatstring(predicate, " for \fs\f3\fbfirst blood\fr");
+		if(style & FRAG_CRIT) concatstring(predicate, " with a \fs\f1\fbcritical hit\fr");
+		if(style & FRAG_STEALTH) concatstring(predicate, " with one \fs\f2\fbspecter\fr hit");
+		conoutf("%s %s", subject, predicate);
 	}
-	switch(combo){
-		case 2: concatstring(predicate, ", \fs\f0\fbdouble-killing\fr"); break;
-		case 3: concatstring(predicate, ", \fs\f1\fbtriple-killing\fr"); break;
-		case 4: concatstring(predicate, ", \fs\f3\fbmulti-killing\fr"); break;
-		case 5: concatstring(predicate, ", \fs\f4\fbslaughering\fr"); break;
-		default: if(combo > 1) concatstring(predicate, ", \fs\f5\fbPWNING\fr"); break;
-	}
-	if(style & FRAG_PENETRATE) concatstring(predicate, " through penetrating \fs\f0\fbsomeone\fr");
-	if(style & FRAG_RICOCHET) concatstring(predicate, " off the \fs\f0\fbwall\fr");
-	if(style & FRAG_FIRST) concatstring(predicate, " for \fs\f3\fbfirst blood\fr");
-	if(style & FRAG_CRIT) concatstring(predicate, " with a \fs\f1\fbcritical hit\fr");
-	if(style & FRAG_STEALTH) concatstring(predicate, " with one \fs\f2\fbspecter\fr hit");
-	conoutf("%s %s", subject, predicate);
+
 	pl->pointstreak = act->deathstreak = 0;
 	
 	if(style & FRAG_GIB) addgib(pl);
