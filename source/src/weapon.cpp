@@ -799,8 +799,13 @@ bool gun::attack(vec &targ){
 		owner->lastattackweapon = NULL;
 		shots = 0;
 		if(!checkautoreload() && owner == player1){
-			if(!m_nosecondary(gamemode, mutators) && owner->weapons[owner->secondary]->mag || owner->weapons[owner->secondary]->ammo)
-				selectweapon(owner->weapons[owner->secondary]);
+			if(owner->secondary != owner->primary){
+				if(type != owner->secondary && (owner->weapons[owner->secondary]->mag || owner->weapons[owner->secondary]->ammo))
+					selectweapon(owner->weapons[owner->secondary]);
+				else if(type != owner->primary && (owner->weapons[owner->primary]->mag || owner->weapons[owner->primary]->ammo))
+					selectweapon(owner->weapons[owner->primary]);
+				else playsoundc(S_NOAMMO, owner);
+			}
 			else playsoundc(S_NOAMMO, owner);
 		}
 		return false;
