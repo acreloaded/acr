@@ -74,8 +74,6 @@ extern itemstat powerupstats[];
 #define CROUCHTIME 500
 
 #define SGRAYS 24
-#define SGSPREAD 295
-#define SGADSSPREADFACTOR 20
 #define SGGIB 180 * HEALTHSCALE // 18-26 rays (only have 24)
 #define NADEPOWER 2
 #define NADETTL 4350
@@ -109,7 +107,7 @@ static mul muls[MUL_NUM] =
 #define BLEEDDMGZ 5
 #define BLEEDDMGPLUS 15
 
-struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, range, endrange, rangeminus, projspeed, part, spread, kick, magsize, mdl_kick_rot, mdl_kick_back, recoil, maxrecoil, recoilangle, pushfactor; bool isauto; };
+struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, range, endrange, rangeminus, projspeed, part, spread, spreadrem, kick, magsize, mdl_kick_rot, mdl_kick_back, recoil, maxrecoil, recoilangle, pushfactor; bool isauto; };
 extern guninfo guns[WEAP_MAX];
 
 static inline ushort reloadtime(int gun) { return guns[gun].reloadtime; }

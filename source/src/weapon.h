@@ -216,6 +216,7 @@ struct boltrifle : scopedprimary
 struct shotgun : gun
 {
 	shotgun(playerent *owner);
+	int dynspread();
 	void attackfx(const vec &from, const vec &to, int millis);
 	bool selectable();
 	void renderaimhelp(int teamtype);

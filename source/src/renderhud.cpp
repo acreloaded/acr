@@ -193,6 +193,7 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 		float ct = usz / 1.8f;
 		chsize = p->weaponsel->dynspread() * 100 * (p->perk2 == PERK2_STEADY ? .65f : 1) / dynfov();
 		if(m_classic(gamemode, mutators)) chsize *= .6f;
+
 		Texture *cv = crosshairs[CROSSHAIR_V], *ch = crosshairs[CROSSHAIR_H];
 		if(!cv) cv = textureload("packages/misc/crosshairs/vertical.png", 3);
 		if(!ch) ch = textureload("packages/misc/crosshairs/horizontal.png", 3);
@@ -233,7 +234,7 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 	}
 	else{
 		if(n == CROSSHAIR_SHOTGUN){
-			chsize = SGSPREAD * 100 * (1 - p->ads / 1000.f / SGADSSPREADFACTOR) * (p->perk2 == PERK2_STEADY ? .75f : 1) / dynfov();
+			chsize = p->weaponsel->dynspread() * 100 * (p->perk2 == PERK2_STEADY ? .75f : 1) / dynfov();
 			if(m_classic(gamemode, mutators)) chsize *= .75f;
 		}
 

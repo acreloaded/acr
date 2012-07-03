@@ -90,14 +90,13 @@ void shotevent::process(client *ci)
 	// apply spread
 	const float spreadf = to.dist(from)/1000.f,
 		crouchfactor = 1 - (gs.crouching ? min(gamemillis - gs.crouchmillis, CROUCHTIME) : CROUCHTIME - min(gamemillis - gs.crouchmillis, CROUCHTIME)) * .25f / CROUCHTIME;
-	float adsfactor = 1 - float(gs.scoping ? min(gamemillis - gs.scopemillis, ADSTIME) : ADSTIME - min(gamemillis - gs.scopemillis, ADSTIME)) / ADSTIME;
+	float adsfactor = 1 - float(gs.scoping ? min(gamemillis - gs.scopemillis, ADSTIME) : ADSTIME - min(gamemillis - gs.scopemillis, ADSTIME)) * guns[weap].spreadrem / 100 / ADSTIME;
 	if(weap==WEAP_SHOTGUN){
 		// apply shotgun spread
-		adsfactor = (adsfactor + SGADSSPREADFACTOR - 1) / SGADSSPREADFACTOR;
 		if(m_classic(gamemode, mutators)) adsfactor *= .75f;
 		if(spreadf*adsfactor) loopi(SGRAYS){
 			gs.sg[i] = to;
-			applyspread(gs.o, gs.sg[i], SGSPREAD, (gs.perk2 == PERK2_STEADY ? .65f : 1)*spreadf*adsfactor);
+			applyspread(gs.o, gs.sg[i], guns[weap].spread, (gs.perk2 == PERK2_STEADY ? .65f : 1)*spreadf*adsfactor);
 			straceShot(from, gs.sg[i]);
 		}
 	}

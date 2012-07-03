@@ -496,7 +496,7 @@ void weapon::renderhudmodel() { renderhudmodel(owner->lastaction); }
 void weapon::renderaimhelp(int teamtype) { if(owner->ads != 1000) drawcrosshair(owner, CROSSHAIR_DEFAULT, teamtype); }
 int weapon::dynspread() {
 	if(info.spread <= 1) return 1;
-	return (int)(info.spread * (owner->vel.magnitude() / 3.f + owner->pitchvel / 5.f + 0.4f) * 2.4f * owner->eyeheight / owner->maxeyeheight * (1 - sqrtf(owner->ads / 1000.f)));
+	return (int)(info.spread * (owner->vel.magnitude() / 3.f + owner->pitchvel / 5.f + 0.4f) * 2.4f * owner->eyeheight / owner->maxeyeheight * (1 - sqrtf(owner->ads * info.spreadrem / 100 / 1000.f)));
 }
 float weapon::dynrecoil() { return info.kick * (1 - owner->ads / 2000.f); }
 bool weapon::selectable() { return this != owner->weaponsel && owner->state == CS_ALIVE && !owner->weaponchanging; }
@@ -875,6 +875,10 @@ bool gun::checkautoreload() { if(autoreload && owner==player1 && !mag && ammo) {
 // shotgun
 
 shotgun::shotgun(playerent *owner) : gun(owner, WEAP_SHOTGUN), autoreloading(false) {}
+
+int shotgun::dynspread(){
+	return (int)(info.spread * (1 - owner->ads * info.spreadrem / 100000.f));
+}
 
 void shotgun::attackfx(const vec &from2, const vec &to, int millis){
 	static uchar filter1 = 0, filter2 = 0;
