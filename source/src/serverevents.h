@@ -151,7 +151,7 @@ void shotevent::process(client *ci)
 			vec end;
 			client *hit = gs.scoping ? &c : nearesthit(c, from, to, hitzone, heads, &c, &end);
 			if(!hit) break;
-			if(!isteam(&c, hit) && (&c != hit || gs.health < MAXHEALTH)){ // that's right, no more self-heal abuse
+			if((&c == hit) ? gs.health < MAXHEALTH : !isteam(&c, hit)){ // that's right, no more self-heal abuse
 				const int flags = hitzone == HIT_HEAD ? FRAG_GIB : FRAG_NONE;
 				int dmg = effectiveDamage(weap, hit->state.o.dist(from)) * muls[MUL_NORMAL].val[hitzone];
 				if(flags & FRAG_GIB)
