@@ -485,7 +485,7 @@ void drawradar(playerent *p, int w, int h)
 	glTranslatef(-(centerpos.x-res/2)/worldsize*radarsize, -(centerpos.y-res/2)/worldsize*radarsize, 0);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	drawradarent(fixradarpos(p->o, centerpos, res), coordtrans, p->yaw, p->state!=CS_DEAD ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p) ? 1 : 0, p->state==CS_DEAD ? .5f : p->perk1 == PERK_RADAR ? .35f : 1, "\f1%s", colorname(p)); // local player
+	drawradarent(fixradarpos(p->o, centerpos, res), coordtrans, p->yaw, p->state!=CS_DEAD ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p) ? 1 : 0, p->state==CS_DEAD ? .5f : 1, "\f1%s", colorname(p)); // local player
 
 	// radar check
 	const bool hasradar = radarup(p);
@@ -498,12 +498,12 @@ void drawradar(playerent *p, int w, int h)
 		if(!force && pl->state != CS_DEAD && !isteam(p, pl)){
 			int taggedmillis = 0;
 			extern bool IsVisible(vec v1, vec v2, dynent *tracer = NULL, bool SkipTags=false);
-			if(pl->perk1 != PERK_RADAR){
+			if(pl->perk1 != PERK_NINJA){
 				if(p->perk2 == PERK_RADAR && IsVisible(p->o, pl->o)) taggedmillis = 750;
 				else loopvj(players){
 					playerent *pll = players[j];
 					if(!pll || p == pll || !isteam(p, pll) || pll->state == CS_DEAD || pll->perk2 != PERK_RADAR) continue;
-					if(IsVisible(pll->o, pl->o)) { taggedmillis = 250; break;}
+					if(IsVisible(pll->o, pl->o)) { taggedmillis = 500; break;}
 				}
 			}
 			if(taggedmillis){

@@ -138,7 +138,7 @@ extern const bool isheadshot(int weapon, int style);
 extern const int toobit(int weap, int style);
 extern const char *killname(int obit, bool headshot);
 
-enum { PERK_NONE = 0, PERK_RADAR, PERK_POWER, PERK_TIME, PERK_MAX };
+enum { PERK_NONE = 0, PERK_RADAR, PERK_NINJA, PERK_POWER, PERK_TIME, PERK_MAX };
 enum { PERK1_NONE = 0, PERK1_AGILE = PERK_MAX, PERK1_HAND, PERK1_LIGHT, PERK1_SCORE, PERK1_MAX, };
 enum { PERK2_NONE = 0, PERK2_VISION = PERK_MAX, PERK2_STREAK, PERK2_STEADY, PERK2_HEALTHY, PERK2_MAX };
 
