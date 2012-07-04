@@ -94,51 +94,6 @@ vector<connectrequest> connectrequests;
 enum { MSR_REG = 0, MSR_AUTH_REQUEST, MSR_AUTH_ANSWER, MSR_CONNECT };
 struct msrequest{ int type; union { void *data; authrequest *a; connectrequest *c; }; } *currentmsrequest = NULL;
 
-// marshal names for master-server
-void base64_encode(const char * in, unsigned int in_len, char * out) {
-	const char base64_chars[] = 
-             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-             "abcdefghijklmnopqrstuvwxyz"
-             //"0123456789+/";
-			 "0123456789-_";
-	int i = 0;
-	unsigned char char_array_3[3];
-	unsigned char char_array_4[4];
-
-	while (in_len--) {
-		char_array_3[i++] = *in++;
-		if (i == 3) {
-			char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
-			char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
-			char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
-			char_array_4[3] = char_array_3[2] & 0x3f;
-
-			for(i = 0; (i <4) ; i++)
-				*out++ = base64_chars[char_array_4[i]];
-			i = 0;
-		}
-	}
-
-	if (i)
-	{
-		for(int j = i; j < 3; j++)
-			char_array_3[j] = '\0';
-
-		char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
-		char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
-		char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
-		char_array_4[3] = char_array_3[2] & 0x3f;
-
-		loopj(i + 1)
-			*out++ = base64_chars[char_array_4[j]];
-
-		while((i++ < 3))
-			*out++ = '=';
-
-	}
-	*out++ = 0;
-}
-
 void freeconnectcheck(int cn){
 	if(currentmsrequest && currentmsrequest->type == MSR_CONNECT && currentmsrequest->c && cn == currentmsrequest->c->cn){
 		delete currentmsrequest->c;
@@ -147,15 +102,14 @@ void freeconnectcheck(int cn){
 	loopv(connectrequests) if(connectrequests[i].cn == cn) connectrequests.remove(i--);
 }
 
-void connectcheck(int cn, int guid, ENetPeer *peer, const char *nick){
+void connectcheck(int cn, int guid, enet_uint32 host){
 	freeconnectcheck(cn);
 	extern bool isdedicated;
-	if(!peer || !nick || !isdedicated) return;
+	if(!isdedicated) return;
 	connectrequest &creq = connectrequests.add();
 	creq.cn = cn;
 	creq.guid = guid;
-	creq.ip = ENET_NET_TO_HOST_32(peer->address.host); // master-server blacklist uses host byte order
-	creq.nick = nick;
+	creq.ip = ENET_NET_TO_HOST_32(host); // master-server blacklist uses host byte order
 }
 
 // send alive signal to masterserver every fifteen (15) minutes of uptime
@@ -200,9 +154,7 @@ void updatemasterserver(int millis, const ENetAddress &localaddr){
 			currentmsrequest->type = MSR_CONNECT;
 			currentmsrequest->c = c;
 
-			static string out;
-			base64_encode(c->nick, min(MAXNAMELEN, (int)strlen(c->nick)), out);
-			formatstring(path)("%sconnect/%d/%lu/%lu/%s", masterpath, localaddr.port, c->ip, c->guid, out);
+			formatstring(path)("%sconnect/%lu/%lu", masterpath, c->ip, c->guid);
 		}
 	}
 	if(!*path) return; // no request
@@ -234,26 +186,16 @@ void checkmasterreply()
 						extern void masterverdict(int cn, int result);
 						int verdict = DISC_NONE;
 						if(*tp == 'b') switch(*++tp){
+							// GOOD reasons
 							case 'm': // muted and not allowed to speak
 								mastermute(currentmsrequest->c->cn);
 								// fallthrough
-							case 'w': // nickname whitelisted, not actually a banned verdict
+							case 'w': // IP whitelisted, not actually a banned verdict
 								verdict = DISC_NONE;
 								break;
-							case 'p': // name is whitelisted, requires password
-								verdict = DISC_MNAME_PWD; // use auth deban to bypass
-								break;
-							case 'I': // name is whitelisted, IP failure
-								verdict = DISC_MNAME_IP;
-								break;
-							case 'n': // name is blacklisted
-								verdict = DISC_MNAME;
-								break;
+							// BAD reasons
 							case 'i': // IP banned
 								verdict = DISC_MBAN;
-								break;
-							case 'c': // master-server registered clan protection
-								verdict = DISC_MCLAN;
 								break;
 							default: // unknown reason
 								verdict = DISC_NUM;
@@ -335,9 +277,7 @@ uchar *retrieveservers(uchar *buf, int buflen)
 {
 	buf[0] = '\0';
 
-	static string out;
-	base64_encode(player1->name, min(MAXNAMELEN, (int)strlen(player1->name)), out);
-	defformatstring(path)("%scube/update/%d/%s", masterpath, getbuildtype(), out);
+	defformatstring(path)("%scube/update/%d", masterpath, getbuildtype());
 	defformatstring(agent)("ACR-Client/%d", AC_VERSION);
 	ENetAddress address = masterserver;
 	ENetSocket sock = httpgetsend(address, masterbase, path, agent);

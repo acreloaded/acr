@@ -738,7 +738,7 @@ extern void restoreserverstate(vector<entity> &ents);
 extern uchar *retrieveservers(uchar *buf, int buflen);
 extern void serverms(int mode, int muts, int numplayers, int timeremain, char *smapname, int millis, const ENetAddress &localaddr, int &pnum, int &psend, int &prec, int protocol_version);
 extern void freeconnectcheck(int cn);
-extern void connectcheck(int cn, int guid, ENetPeer *peer, const char *nick);
+extern void connectcheck(int cn, int guid, enet_uint32 host);
 extern char msgsizelookup(int msg);
 extern const char *genpwdhash(const char *name, const char *pwd, int salt);
 extern void servermsinit(const char *master, const char *ip, int serverport, bool listen);

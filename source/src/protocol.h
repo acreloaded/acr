@@ -66,7 +66,7 @@ enum { FTR_SILENT = 0, FTR_PLAYERWISH, FTR_AUTOTEAM, FTR_NUM }; // forceteam rea
 
 enum { DISC_NONE = 0, DISC_EOP, DISC_KICK, DISC_BAN, DISC_TAGT, DISC_REFUSE, DISC_PASSWORD, DISC_LOGINFAIL, DISC_FULL, DISC_PRIVATE,
 		DISC_NAME, DISC_NAME_IP, DISC_NAME_PWD, DISC_DUP, DISC_OVERFLOW, DISC_TIMEOUT,
-		DISC_MBAN, DISC_MNAME, DISC_MNAME_IP, DISC_MNAME_PWD, DISC_MCLAN,
+		DISC_MBAN,
 		DISC_EXT, DISC_EXT2, DISC_EXT3, DISC_NUM };
 
 static const char *disc_reason(int reason)
@@ -74,7 +74,7 @@ static const char *disc_reason(int reason)
 	static const char *disc_reasons[DISC_NUM] = {
 		"normal", "end of packet/overread", "kicked", "banned", "tag type", "connection refused", "wrong password", "failed login", "server is full", "private",
 			"bad nickname", "nickname IP protected", "unauthorized nickname", "duplicate connection", "overflow/packet flood", "timeout",
-			"globally banned", "global banned name", "global IP protected nickname", "globally unauthorized nickname", "registered clan tag",
+			"globally banned IP address",
 			"extension", "ext2", "ext3",
 	};
 	return reason >= 0 && (size_t)reason < DISC_NUM ? disc_reasons[reason] : "unknown";
@@ -96,4 +96,4 @@ enum { EXTPING_NOP = 0, EXTPING_NAMELIST, EXTPING_SERVERINFO, EXTPING_MAPROT, EX
 #include "gamemode.h"
 
 struct authrequest{ uint id; bool answer; union { int *hash; char *usr; }; };
-struct connectrequest{ int cn, guid; enet_uint32 ip; const char *nick; };
+struct connectrequest{ int cn, guid; enet_uint32 ip; };
