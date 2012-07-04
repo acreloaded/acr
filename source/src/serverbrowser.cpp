@@ -1024,13 +1024,9 @@ void refreshservers(void *menu, bool init)
         formatstring(title)(titles[serversort], showfavtag ? "fav\t" : "", issearch ? "      search results for \f3" : "     (F1: Help/Settings)", issearch ? cursearch : "");
 		// master-server flags
 		if(masterserver_flags){
-			switch(masterserver_flags & 3){
-				case 1: concatstring(title, "\n\f1prohibited name: prepare AUTH!"); break;
-				case 2: concatstring(title, "\n\f1registered clan! unlisted user: prepare AUTH!"); break;
-				case 3: concatstring(title, "\n\f0your name is whitelisted!"); break;
-			}
-			if(masterserver_flags & 4) concatstring(title, "\n\f3your IP is globally banned! prepare AUTH!");
-			if(masterserver_flags & 8) concatstring(title, "\n\f2you are globally muted!");
+			if(masterserver_flags & 1) concatstring(title, "\n\f0your IP is whitelisted!");
+			else if(masterserver_flags & 2) concatstring(title, "\n\f3your IP is globally banned! prepare AUTH!");
+			else if(masterserver_flags & 4) concatstring(title, "\n\f2you are globally muted!");
 		}
 		menutitle(menu, title);
 		menureset(menu);
