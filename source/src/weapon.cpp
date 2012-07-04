@@ -498,8 +498,9 @@ int weapon::dynspread() {
 	if(info.spread <= 1) return 1;
 	return (int)(info.spread * (owner->vel.magnitude() / 3.f + owner->pitchvel / 5.f + 0.4f) * 2.4f * owner->eyeheight / owner->maxeyeheight * (1 - sqrtf(owner->ads * info.spreadrem / 100 / 1000.f)));
 }
-float weapon::dynrecoil() { return info.kick * (1 - owner->ads / 2000.f); }
-bool weapon::selectable() { return this != owner->weaponsel && owner->state == CS_ALIVE && !owner->weaponchanging; }
+float weapon::dynrecoil() { return info.kick * (1 - owner->ads / 2000.f); } // 1/2 recoil when ADS
+bool weapon::selectable() { return this != owner->weaponsel && owner->state == CS_ALIVE && !owner->weaponchanging &&
+	(type == WEAP_KNIFE || type == WEAP_GRENADE || type == WEAP_AKIMBO || type == owner->primary || type == owner->secondary); }
 bool weapon::deselectable() { return !reloading; }
 
 void weapon::equipplayer(playerent *pl){
@@ -908,8 +909,6 @@ void shotgun::attackfx(const vec &from2, const vec &to, int millis){
 	}
 }
 
-bool shotgun::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && type == owner->primary; }
-
 void shotgun::renderaimhelp(int teamtype){ drawcrosshair(owner, CROSSHAIR_SHOTGUN, teamtype); }
 
 bool shotgun::reload(){
@@ -929,12 +928,10 @@ bool shotgun::checkautoreload() {
 // subgun
 
 subgun::subgun(playerent *owner) : gun(owner, WEAP_SUBGUN) {}
-bool subgun::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && type == owner->primary; }
 
 // sword
 
 sword::sword(playerent *owner) : weapon(owner, WEAP_SWORD) {}
-bool sword::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && type == owner->primary; }
 
 bool sword::attack(vec &targ){
 	int attackmillis = lastmillis-owner->lastaction;
@@ -960,7 +957,6 @@ int sword::flashtime() const { return 0; }
 // crossbow (RPG)
 
 crossbow::crossbow(playerent *owner) : gun(owner, WEAP_RPG) {}
-bool crossbow::selectable() { return weapon::selectable() && !m_nosecondary(gamemode, mutators) && type == owner->secondary; }
 int crossbow::modelanim(){
 	// very simple and stupid animation system
 	return mag ? ANIM_WEAP_SHOOT : ANIM_WEAP_IDLE;
@@ -984,7 +980,6 @@ void crossbow::attackhit(const vec &o){
 // scopedprimary
 scopedprimary::scopedprimary(playerent *owner, int type) : gun(owner, type) {}
 
-bool scopedprimary::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && type == owner->primary; }
 void scopedprimary::attackfx(const vec &from2, const vec &to, int millis){
 	vec from(from2);
 	if(millis & 1){
@@ -999,7 +994,7 @@ void scopedprimary::attackfx(const vec &from2, const vec &to, int millis){
 	if(millis & 1 && owner != player1 && !isowned(owner)) attacksound();
 }
 
-float scopedprimary::dynrecoil() { return weapon::dynrecoil() * 1 - owner->ads / 3000; } // 2/3 recoil when ADS
+float scopedprimary::dynrecoil() { return weapon::dynrecoil() * 1 - owner->ads / 3000; } // 1/2 * 2/3 = 1/3 recoil when ADS
 void scopedprimary::renderhudmodel() { if(owner->ads < adsscope) weapon::renderhudmodel(); }
 
 void scopedprimary::renderaimhelp(int teamtype){
@@ -1018,13 +1013,11 @@ boltrifle::boltrifle(playerent* owner) : scopedprimary(owner, WEAP_BOLT) {}
 assaultrifle::assaultrifle(playerent *owner) : gun(owner, WEAP_ASSAULT) {}
 
 float assaultrifle::dynrecoil() { return weapon::dynrecoil() + (rnd(8)*-0.01f); }
-bool assaultrifle::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && type == owner->primary; }
 
 
 // pistol
 
 pistol::pistol(playerent *owner) : gun(owner, WEAP_PISTOL) {}
-bool pistol::selectable() { return weapon::selectable() && !m_nosecondary(gamemode, mutators) && type == owner->secondary; }
 
 
 // akimbo
@@ -1070,8 +1063,6 @@ void akimbo::renderhudmodel(){
 heal::heal(playerent *owner) : gun(owner, WEAP_HEAL) {}
 
 int heal::flashtime() const { return 0; }
-
-bool heal::selectable() { return weapon::selectable() && !m_nosecondary(gamemode, mutators) && type == owner->secondary; }
 
 //void heal::renderaimhelp(int teamtype){ if(state) weapon::renderaimhelp(teamtype); }
 void heal::attackfx(const vec &from2, const vec &to, int millis){

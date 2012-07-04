@@ -151,14 +151,11 @@ struct gun : weapon
 struct subgun : gun
 {
 	subgun(playerent *owner);
-	bool selectable();
 };
 
 struct heal : gun
 {
 	heal(playerent *owner);
-
-	bool selectable();
 
 	void attackfx(const vec &from, const vec &to, int millis);
 
@@ -168,8 +165,6 @@ struct heal : gun
 struct sword : weapon
 {
     sword(playerent *owner);
-
-	bool selectable();
 
     bool attack(vec &targ);
     int modelanim();
@@ -184,7 +179,6 @@ struct sword : weapon
 struct crossbow : gun
 {
 	crossbow(playerent *owner);
-	bool selectable();
 	int modelanim();
 
 	virtual void attackfx(const vec &from, const vec &to, int millis);
@@ -198,7 +192,6 @@ struct scopedprimary : gun
 	void attackfx(const vec &from, const vec &to, int millis);
 
 	float dynrecoil();
-	bool selectable();
 	void renderhudmodel();
 	void renderaimhelp(int teamtype);
 };
@@ -218,7 +211,6 @@ struct shotgun : gun
 	shotgun(playerent *owner);
 	int dynspread();
 	void attackfx(const vec &from, const vec &to, int millis);
-	bool selectable();
 	void renderaimhelp(int teamtype);
 	bool autoreloading;
 	bool reload();
@@ -230,14 +222,12 @@ struct assaultrifle : gun
 {
 	assaultrifle(playerent *owner);
 	float dynrecoil();
-	bool selectable();
 };
 
 
 struct pistol : gun
 {
 	pistol(playerent *owner);
-	bool selectable();
 };
 
 

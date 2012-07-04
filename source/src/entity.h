@@ -399,14 +399,10 @@ struct playerstate
 	virtual void spawnstate(int gamemode, int mutators)
 	{
 		if(m_pistol(gamemode, mutators)) primary = WEAP_PISTOL;
+		else if(m_gib(gamemode, mutators)) primary = WEAP_KNIFE;
 		else if(m_sniper(gamemode, mutators)) primary = WEAP_BOLT;
-		else if(m_gib(gamemode, mutators) || m_knife(gamemode, mutators)) primary = WEAP_KNIFE;
-		else primary = nextprimary;
-
-		if(m_pistol(gamemode, mutators)) secondary = WEAP_PISTOL;
-		else secondary = nextsecondary;
-
-		switch(primary){
+		else if(m_demolition(gamemode, mutators)) primary = WEAP_RPG; // inversion
+		else switch(primary){
 			default: primary = WEAP_ASSAULT; break;
 			case WEAP_KNIFE:
 			case WEAP_SHOTGUN:
@@ -417,23 +413,27 @@ struct playerstate
 			case WEAP_GRENADE:
 			case WEAP_AKIMBO:
 			case WEAP_SWORD:
+				primary = nextprimary;
 				break;
 		}
 
-		switch(secondary){
+		if(m_pistol(gamemode, mutators) || m_gib(gamemode, mutators)) secondary = primary; // no secondary
+		else if(m_sniper(gamemode, mutators) || m_demolition(gamemode, mutators)) secondary = WEAP_SWORD; // inversion
+		else switch(secondary){
 			default: secondary = WEAP_PISTOL; break;
 			case WEAP_PISTOL:
 			case WEAP_HEAL:
 			case WEAP_RPG:
+				secondary = nextsecondary;
 				break;
 		}
 
-		if(!m_noprimary(gamemode, mutators)){
+		// always have a primary now
+		if(true){
 			ammo[primary] = ammostats[primary].start-magsize(primary);
 			mag[primary] = magsize(primary);
 		}
-
-		if(primary != secondary && !m_nosecondary(gamemode, mutators)){
+		if(primary != secondary){
 			ammo[secondary] = ammostats[secondary].start-magsize(secondary);
 			mag[secondary] = magsize(secondary);
 		}

@@ -39,12 +39,12 @@ enum // game mutators
 	G_M_NONE = 0,
 	G_M_TEAM = 1 << 0, G_M_CLASSIC = 1 << 1, G_M_CONFIRM = 1 << 2, G_M_VAMPIRE = 1 << 3, G_M_CONVERT = 1 << 4, // alters gameplay mostly
 	G_M_REAL = 1 << 5, G_M_EXPERT = 1 << 6, // alters damage mostly
-	G_M_SNIPER = 1 << 7, G_M_PISTOL = 1 << 8, G_M_GIB = 1 << 9, G_M_KNIFE = 1 << 10, // alters weapons mostly
+	G_M_SNIPER = 1 << 7, G_M_PISTOL = 1 << 8, G_M_GIB = 1 << 9, G_M_DEMOLITION = 1 << 10, // alters weapons mostly
 	G_M_GSP1 = 1 << 11, // game-specific
 
 	G_M_GAMEPLAY = G_M_TEAM|G_M_CLASSIC|G_M_CONFIRM|G_M_VAMPIRE|G_M_CONVERT,
 	G_M_DAMAGE = G_M_REAL|G_M_EXPERT,
-	G_M_WEAPON = G_M_SNIPER|G_M_PISTOL|G_M_GIB|G_M_KNIFE,
+	G_M_WEAPON = G_M_SNIPER|G_M_PISTOL|G_M_GIB|G_M_DEMOLITION,
 
 	G_M_MOST = G_M_GAMEPLAY|G_M_DAMAGE|G_M_WEAPON,
 	G_M_ALL = G_M_MOST|G_M_GSP1,
@@ -95,16 +95,16 @@ extern mutstypes mutstype[G_M_NUM];
 #define m_expert(a,b)       ((b & G_M_EXPERT) || (m_implied(a,b) & G_M_EXPERT))
 #define m_pistol(a,b)       ((b & G_M_PISTOL) || (m_implied(a,b) & G_M_PISTOL))
 #define m_gib(a,b)          ((b & G_M_GIB) || (m_implied(a,b) & G_M_GIB))
-#define m_knife(a,b)        ((b & G_M_KNIFE) || (m_implied(a,b) & G_M_KNIFE))
+#define m_demolition(a,b)        ((b & G_M_DEMOLITION) || (m_implied(a,b) & G_M_DEMOLITION))
 
 #define m_gsp1(a,b)         ((b & G_M_GSP1) || (m_implied(a,b) & G_M_GSP1))
 //#define m_gsp(a,b)          (m_gsp1(a,b))
 
-#define m_noitems(a,b)      (m_knife(a, b))
-#define m_noitemsammo(a,b)  (m_sniper(a, b))
+#define m_noitems(a,b)      (false)
+#define m_noitemsammo(a,b)  (m_sniper(a,b) || m_demolition(a,b))
 #define m_noitemsnade(a,b)  (m_gib(a,b))
 #define m_noprimary(a,b)    (m_pistol(a,b) || m_gib(a,b))
-#define m_nosecondary(a,b)  (m_sniper(a,b) || m_gib(a,b) || m_knife(a,b))
+#define m_nosecondary(a,b)  (m_gib(a,b))
 
 #define m_survivor(a,b)     (m_dm(a) && m_gsp1(a,b))
 #define m_zombies_rounds(a,b) (m_zombie(a) && !m_gsp1(a,b))
