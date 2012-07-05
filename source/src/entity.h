@@ -402,7 +402,7 @@ struct playerstate
 		else if(m_gib(gamemode, mutators)) primary = WEAP_KNIFE;
 		else if(m_sniper(gamemode, mutators)) primary = WEAP_BOLT;
 		else if(m_demolition(gamemode, mutators)) primary = WEAP_RPG; // inversion
-		else switch(primary){
+		else switch(nextprimary){
 			default: primary = WEAP_ASSAULT; break;
 			case WEAP_KNIFE:
 			case WEAP_SHOTGUN:
@@ -419,7 +419,7 @@ struct playerstate
 
 		if(m_pistol(gamemode, mutators) || m_gib(gamemode, mutators)) secondary = primary; // no secondary
 		else if(m_sniper(gamemode, mutators) || m_demolition(gamemode, mutators)) secondary = WEAP_SWORD; // inversion
-		else switch(secondary){
+		else switch(nextsecondary){
 			default: secondary = WEAP_PISTOL; break;
 			case WEAP_PISTOL:
 			case WEAP_HEAL:
