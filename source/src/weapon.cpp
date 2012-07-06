@@ -616,7 +616,7 @@ bool grenades::attack(vec &targ){
 			break;
 
 		case GST_INHAND:
-			if(waitdone)
+			if(waitdone && inhandnade)
 			{
 				if(!owner->attacking || this!=owner->weaponsel) thrownade(); // throw
 				else if(!inhandnade->isalive(lastmillis)) dropnade(); // drop & have fun
