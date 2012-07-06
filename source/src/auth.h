@@ -146,7 +146,7 @@ void masterverdict(int cn, int result){
 	if(!valid_client(cn)) return;
 	client &ci = *clients[cn];
 	ci.masterverdict = result;
-	if(!ci.connectauth) checkauthdisc(ci, true);
+	if(!ci.connectauth && result) checkauthdisc(ci, true);
 }
 
 void logversion(client &ci, int ver, int defs, int guid){
