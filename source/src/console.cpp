@@ -69,7 +69,7 @@ struct console : consolebuffer<cline>
             if(l.millis+confade*1000-totalmillis<1000 && !fullconsole){ // fading out
 				fade = (l.millis+confade*1000-totalmillis)*255/1000;
 				y -= FONTH * (totalmillis + 1000 - l.millis - confade*1000) / 1000;
-			} else if(i+1 == numl && totalmillis - l.millis < 500){ // fading in
+			} else if(/*i+1 == numl &&*/ totalmillis - l.millis < 500){ // fading in
 				fade = (totalmillis - l.millis)*255/500;
 				y += FONTH * (l.millis + 500 - totalmillis) / 500;
 			}
@@ -237,6 +237,9 @@ struct obitlist
 		glLoadIdentity();
 		glOrtho(0, VIRTW*ts, VIRTH*ts, 0, -1, 1);
 		int linei = 0, consumed = 0, y = ts * VIRTH * .5f;
+		// every line is 1 line
+		linei = min(maxlines, olines.length());
+		/*
 		loopv(olines){
 			defformatstring(l)("%s    %s", olines[i].actor, olines[i].target); // four spaces to subsitute for unknown obit icon
 			int width, height;
@@ -248,6 +251,7 @@ struct obitlist
 			//if(consumed > maxlines) break;
 			//++linei;
 		}
+		*/
         loopi(linei){
 			oline &l = olines[i];
 			if(totalmillis-l.millis < obitfade*1000 || con.fullconsole){
@@ -257,7 +261,7 @@ struct obitlist
 					fade = float(l.millis + obitfade*1000 - totalmillis)/1000;
 					y -= FONTH * (totalmillis + 1000 - l.millis - obitfade*1000) / 1000;
 				}
-				else if(i == 0 && totalmillis-l.millis < 500){ // fading in
+				else if(/*!i*/ totalmillis-l.millis < 500){ // fading in
 					fade = float(totalmillis - l.millis)/500;
 					y += FONTH * (l.millis + 500 - totalmillis) / 500;
 				}
