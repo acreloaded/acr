@@ -128,7 +128,7 @@ void renderentities()
 		const int fixteam = player1->team == TEAM_SPECT ? TEAM_BLUE : player1->team;
 		const float yaw = lastmillis/10.0f;
 		vec o = confirms[i].o;
-		o.z += (float)(1+sinf(lastmillis/100.0f+confirms[i].o.x+confirms[i].o.y)/20);
+		o.z += (float)(1+sinf(lastmillis/100.0f+confirms[i].o.x+confirms[i].o.y)/20) - PLAYERHEIGHT;
 		rendermodel(fixteam == confirms[i].team ? "pickups/flags/ktf" : "pickups/flags/RED_htf", ANIM_FLAG|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, o, yaw, 0);
 	}
 	if(m_affinity(gamemode)) loopi(2)
