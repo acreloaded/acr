@@ -502,8 +502,8 @@ void drawradar(playerent *p, int w, int h)
 				if(p->perk2 == PERK_RADAR && IsVisible(p->o, pl->o)) taggedmillis = 750;
 				else loopvj(players){
 					playerent *pll = players[j];
-					if(!pll || p == pll || !isteam(p, pll) || pll->state == CS_DEAD || pll->perk2 != PERK_RADAR) continue;
-					if(IsVisible(pll->o, pl->o)) { taggedmillis = 500; break;}
+					if(!pll || p == pll || !isteam(p, pll) || (pll->state != CS_ALIVE && pll->state != CS_EDITING) || pll->perk2 != PERK_RADAR) continue;
+					if(IsVisible(pll->o, pl->o)) { taggedmillis = 600; break; }
 				}
 			}
 			if(taggedmillis){
