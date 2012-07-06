@@ -698,7 +698,7 @@ void addshotline(playerent *pl, const vec &from2, const vec &to, int flags)
 void addheadshot(const vec &act, const vec &pl, int damage){
 	if(!blood || !bloodttl || pl.dist(act) < 1) return;
 	// make bloody stains! multiple times...
-	int num = clamp(damage, 15, 195)/15;
+	int num = clamp<int>(damage/15, 1, 7);
 	loopi(num){
 		vec o(pl), surface;
 		// raycube because blood shouldn't go to clips
