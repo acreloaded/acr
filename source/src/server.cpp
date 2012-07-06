@@ -1042,17 +1042,17 @@ void arenacheck(){
 	// award points
 	loopv(clients) if(clients[i]->type != ST_EMPTY){
 		int pts = 0, pr = -1;
-		if(clients[i]->state.state == CS_ALIVE){ // he survives
+		if(cn < 0){ // he died with this team, or bots win
+			pts = ARENALOSEPT;
+			pr = PR_ARENA_LOSE;
+		}
+		else if(clients[i]->state.state == CS_ALIVE){ // he survives
 			pts = ARENAWINPT;
 			pr = PR_ARENA_WIN;
 		}
 		else if(alive && isteam(alive, clients[i])){ // his team wins, but he's dead
 			pts = ARENAWINDPT;
 			pr = PR_ARENA_WIND;
-		}
-		else{ // he died with this team
-			pts = ARENALOSEPT;
-			pr = PR_ARENA_LOSE;
 		}
 		addpt(clients[i], pts, pr);
 	}
