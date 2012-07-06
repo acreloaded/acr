@@ -283,6 +283,8 @@ void flagdropped(int flag, float x, float y, float z)
 {
 	flaginfo &f = flaginfos[flag];
 	if(OUTBORD(x, y)) return; // valid pos
+
+	/*
 	bounceent p;
 	p.rotspeed = 0.0f;
 	p.o.x = x;
@@ -304,11 +306,16 @@ void flagdropped(int flag, float x, float y, float z)
 		if(p.stuck) break;
 	}
 	if(f.actor) f.actor->cancollide = oldcancollide; // restore settings
-
+	*/
+	/*
 	f.pos.x = round(p.o.x);
 	f.pos.y = round(p.o.y);
 	f.pos.z = round(p.o.z);
 	if(f.pos.z < hdr.waterlevel) f.pos.z = (short) hdr.waterlevel;
+	*/
+	f.pos.x = x;
+	f.pos.y = y;
+	f.pos.z = z - (f.actor ? f.actor->eyeheight : PLAYERHEIGHT);
 	f.flagent->spawned = true;
 }
 

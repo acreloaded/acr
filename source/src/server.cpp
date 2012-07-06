@@ -754,7 +754,7 @@ void flagaction(int flag, int action, int actor){
 				if(actor == -1) actor = f.actor_cn;
 				f.state = CTFF_DROPPED;
 				loopi(3) f.pos[i] = clients[actor]->state.o[i];
-				if(f.pos[2] < smapstats.hdr.waterlevel) f.pos[2] = smapstats.hdr.waterlevel;
+				//if(f.pos[2] < smapstats.hdr.waterlevel) f.pos[2] = smapstats.hdr.waterlevel;
 				break;
 			case FA_RETURN:
 				f.state = CTFF_INBASE;
@@ -2878,6 +2878,7 @@ void checkmove(client &cp){
 	if(m_affinity(gamemode)) loopi(2){ // check flag pickup
 		sflaginfo &f = sflaginfos[i];
 		sflaginfo &of = sflaginfos[team_opposite(i)];
+		bool forcez = false;
 		vec v(-1, -1, cs.o.z);
 		if(m_bomber(gamemode) && i == cp.team && f.state == CTFF_STOLEN && f.actor_cn == sender){
 			v.x = of.x;
@@ -2891,10 +2892,14 @@ void checkmove(client &cp){
 				break;
 			case CTFF_DROPPED:
 				v.x = f.pos[0]; v.y = f.pos[1];
+				forcez = true;
 				break;
 		}
 		if(v.x < 0) continue;
-		v.z = getsblock(getmaplayoutid((int)v.x, (int)v.y)).floor + PLAYERHEIGHT;
+		if(forcez)
+			v.z = f.pos[2];
+		else
+			v.z = getsblock(getmaplayoutid((int)v.x, (int)v.y)).floor + PLAYERHEIGHT;
 		float dist = cs.o.dist(v);
 		if(dist > 2) continue;
 		if(m_capture(gamemode)){
