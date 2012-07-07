@@ -1250,8 +1250,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				int cl = getint(p), r = getint(p), t = getint(p);
 				playerent *d = getclient(cl);
-				if(!d) break;
-				const char *n = (d == player1) ? "\f1you" : colorname(d);
+				const char *n = (d == player1) ? "\f1you" : d ? colorname(d) : "\f2(a connecting admin)";
 				switch(t){
 					case 0:
 					case 1:
