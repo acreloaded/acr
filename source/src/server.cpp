@@ -3635,7 +3635,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				getstring(text, p);
 				filtertext(text, text);
 				const int mode = getint(p), muts = getint(p);
-				if(mapreload || numclients() == 1) resetmap(text, mode, muts);
+				if(mapreload || numclients() == 1) resetmap(text, max<const int>(G_DM, mode), muts);
 				break;
 			}
 
