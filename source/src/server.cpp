@@ -2737,7 +2737,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet){
 		CHECKSPACE(256);
 		putint(p, N_SETTEAM);
         putint(p, n);
-        putint(p, (c->team = freeteam(n)) | (FTR_SILENT << 4));
+        putint(p, (c->team = (mastermode >= MM_LOCKED) ? TEAM_SPECT : freeteam(n)) | (FTR_SILENT << 4));
 
 		putint(p, N_FORCEDEATH);
         putint(p, n);
@@ -3026,7 +3026,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(dup->type==ST_TCPIP && dup->peer->address.host==cl->peer->address.host && dup->peer->address.port==cl->peer->address.port)
 					disconnect_client(i, DISC_DUP);
 			}
-			if(mastermode >= MM_LOCKED) updateclientteam(sender, TEAM_SPECT, FTR_SILENT);
 
 			// ask masterserver for connection verdict
 			connectcheck(sender, cl->guid, cl->peer->address.host);
