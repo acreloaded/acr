@@ -287,28 +287,44 @@ void processevents(){
 	{
 		client &c = *clients[i];
 		if(c.type==ST_EMPTY) continue;
+		clientstate &cs = c.state;
 		// game ending nuke...
-		if(c.state.nukemillis && c.state.nukemillis <= gamemillis && minremain){
+		if(cs.nukemillis && cs.nukemillis <= gamemillis && minremain){
 			// boom... gg
 			//forceintermission = true;
-			c.state.nukemillis = 0;
+			cs.nukemillis = 0;
 			sendf(-1, 1, "ri4", N_STREAKUSE, i, STREAK_NUKE, 0);
 			// apply the nuke effect
 			nuke(c);
 		}
-		// regen/bleed
-		if(c.state.state == CS_ALIVE){ // can't regen or bleed if dead
-			if(c.state.wounds.length()){ // bleeding; oh no!
-				loopv(c.state.wounds){
-					wound &w = c.state.wounds[i];
-					if(!valid_client(w.inflictor)) c.state.wounds.remove(i--);
+		// drown,(bleed+regen)
+		if(cs.state == CS_ALIVE){ // can't regen or drown or bleed if dead
+			// drown underwater
+			if(!m_classic(gamemode, mutators) && cs.o.z < smapstats.hdr.waterlevel){
+				if(cs.drownmillis <= 0){
+					if(cs.drownmillis) // resume partial drowning
+						cs.drownval = max(cs.drownval - ((servmillis + cs.drownmillis) / 1000), 0);
+					cs.drownmillis = gamemillis;
+				}
+				char drownstate = (gamemillis - cs.drownmillis) / 1000;
+				while(cs.drownval < drownstate){
+					serverdamage(&cp, &cp, powf(++cs.drownval, 7.f)/1000000, WEAP_MAX + 1, FRAG_NONE, cs.o);
+					if(cs.state != CS_ALIVE) break; // dead!
+				}
+			}
+			else if(cs.drownmillis > 0) cs.drownmillis = -cs.drownmillis;
+			// bleed = no drown
+			if(cs.wounds.length()){ // bleeding; oh no!
+				loopv(cs.wounds){
+					wound &w = cs.wounds[i];
+					if(!valid_client(w.inflictor)) cs.wounds.remove(i--);
 					else if(w.lastdealt + 500 < gamemillis){
 						client &owner = *clients[w.inflictor];
 						const int bleeddmg = (m_zombie(gamemode) ? BLEEDDMGZ : owner.state.perk2 == PERK_POWER ? BLEEDDMGPLUS : BLEEDDMG) * HEALTHSCALE;
 						owner.state.damage += bleeddmg;
 						owner.state.shotdamage += bleeddmg;
 						// where were we wounded?
-						vec woundloc = c.state.o;
+						vec woundloc = cs.o;
 						woundloc.add(w.offset);
 						// blood fx and stuff
 						sendhit(owner, WEAP_KNIFE, woundloc, bleeddmg);
@@ -318,26 +334,26 @@ void processevents(){
 					}
 				}
 			}
-			else if(m_regen(gamemode, mutators) && c.state.state == CS_ALIVE && c.state.health < STARTHEALTH && c.state.lastregen + (c.state.perk1 == PERK_POWER ? REGENINT * .7f : REGENINT) < gamemillis){
-				int amt = round(float((STARTHEALTH - c.state.health) / 5 + 15));
-				if(c.state.perk1 == PERK_POWER) amt *= 1.4f;
-				if(amt >= STARTHEALTH - c.state.health){
-					amt = STARTHEALTH - c.state.health;
-					c.state.damagelog.setsize(0);
+			else if(m_regen(gamemode, mutators) && cs.state == CS_ALIVE && cs.health < STARTHEALTH && cs.lastregen + (cs.perk1 == PERK_POWER ? REGENINT * .7f : REGENINT) < gamemillis){
+				int amt = round(float((STARTHEALTH - cs.health) / 5 + 15));
+				if(cs.perk1 == PERK_POWER) amt *= 1.4f;
+				if(amt >= STARTHEALTH - cs.health){
+					amt = STARTHEALTH - cs.health;
+					cs.damagelog.setsize(0);
 				}
-				sendf(-1, 1, "ri3", N_REGEN, i, c.state.health += amt);
-				c.state.lastregen = gamemillis;
+				sendf(-1, 1, "ri3", N_REGEN, i, cs.health += amt);
+				cs.lastregen = gamemillis;
 			}
 		}
-		else if(c.state.state == CS_WAITING || (c.type == ST_AI && c.state.state == CS_DEAD && c.state.lastspawn<0)){ // spawn queue
-			const int waitremain = SPAWNDELAY - gamemillis + c.state.lastdeath;
+		else if(cs.state == CS_WAITING || (c.type == ST_AI && cs.state == CS_DEAD && cs.lastspawn<0)){ // spawn queue
+			const int waitremain = SPAWNDELAY - gamemillis + cs.lastdeath;
 			if(canspawn(&c) && waitremain <= 0) sendspawn(&c);
 			//else sendmsgi(41, waitremain, sender);
 		}
 		// akimbo out!
-		if(c.state.akimbomillis && c.state.akimbomillis < gamemillis) {
-			c.state.akimbomillis = 0;
-			c.state.akimbo = false;
+		if(cs.akimbomillis && cs.akimbomillis < gamemillis) {
+			cs.akimbomillis = 0;
+			cs.akimbo = false;
 			sendf(-1, 1, "ri2", N_AKIMBO, c.clientnum);
 		}
 		// events
@@ -362,7 +378,7 @@ void processevents(){
 					c.timer##s.remove(j--); \
 				} \
 			}
-		if(c.state.health >= MAXHEALTH || c.state.state != CS_ALIVE) c.heals.shrink(0);
+		if(cs.health >= MAXHEALTH || cs.state != CS_ALIVE) c.heals.shrink(0);
 		else processtimer(heal);
 	}
 }

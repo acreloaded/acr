@@ -2823,20 +2823,6 @@ void checkmove(client &cp){
 			}
 		}
 	}
-	// drown underwater
-	if(!m_classic(gamemode, mutators) && cs.o.z < smapstats.hdr.waterlevel){
-		if(cs.drownmillis <= 0){
-			if(cs.drownmillis)
-				cs.drownval = max(cs.drownval - ((servmillis + cs.drownmillis) / 1000), 0);
-			cs.drownmillis = gamemillis;
-		}
-		char drownstate = (gamemillis - cs.drownmillis) / 1000;
-		while(cs.drownval < drownstate){
-			serverdamage(&cp, &cp, powf(++cs.drownval, 7.f)/1000000, WEAP_MAX + 1, FRAG_NONE, cs.o);
-			if(cs.state != CS_ALIVE) return; // dead!
-		}
-	}
-	else if(cs.drownmillis > 0) cs.drownmillis = -cs.drownmillis;
 	// out of map check
 	if(/*cp.type != ST_LOCAL &&*/ !m_edit(gamemode) && checkpos(cs.o, false)){
 		if(cp.type == ST_AI) cp.suicide(WEAP_MAX + 4);
