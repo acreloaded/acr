@@ -810,7 +810,7 @@ const char *suicname(int obit){
 			concatstring(k, "experienced fragmentation");
 			break;
 		case WEAP_HEAL:
-			concatstring(k, "overdosed on drugs");
+			concatstring(k, "overdosed");
 			break;
 		case WEAP_RPG:
 			concatstring(k, "experienced rocket-propelled suicide");
