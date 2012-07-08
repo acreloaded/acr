@@ -3108,7 +3108,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						break;
 					}
 				}
-				logline(ACLOG_INFO,"[%s] %s changed his name to %s", gethostname(sender), formatname(cl), text);
+				logline(ACLOG_INFO,"[%s] %s is now called %s", gethostname(sender), formatname(cl), text);
 				copystring(cl->name, text, MAXNAMELEN+1);
 				sendf(-1, 1, "ri2s", N_NEWNAME, sender, cl->name);
 				break;
@@ -3827,7 +3827,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						else sendf(sender, 1, "ri2", N_CALLVOTEERR, VOTEE_VETOPERM);
 						break;
 					}
-					else logline(ACLOG_INFO,"[%s] %s changed his vote to %s", gethostname(sender), formatname(clients[sender]), vote == VOTE_NO ? "no" : "yes");
+					else logline(ACLOG_INFO,"[%s] %s now votes %s", gethostname(sender), formatname(clients[sender]), vote == VOTE_NO ? "no" : "yes");
 				}
 				else logline(ACLOG_INFO,"[%s] %s voted %s", gethostname(sender), formatname(clients[sender]), vote == VOTE_NO ? "no" : "yes");
 				cl->vote = vote;

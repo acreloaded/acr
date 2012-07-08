@@ -681,13 +681,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						else if(!info){ // nuke deployed
 							// gg...
 							loopv(players) if(players[i]) { players[i]->state = CS_ALIVE; }
-							chatoutf("\f3%s deployed his nuke!", colorname(d));
+							chatoutf("\f3%s deployed a nuke!", colorname(d));
 							playsound(S_VOTEPASS, SP_HIGHEST);
 						}
 						else if(info == -2){
 							// nuke cancelled
 							d->nukemillis = 0;
-							chatoutf("\f2%s lost his nuke!", colorname(d));
+							chatoutf("\f2%s lost the nuke!", colorname(d));
 							// add icon?
 							playsound(S_VOTEFAIL, SP_HIGHEST);
 						}
