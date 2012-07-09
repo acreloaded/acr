@@ -54,6 +54,9 @@ void purgesknives(){
 	loopv(sknives) sendf(-1, 1, "ri2", N_KNIFEREMOVE, sknives[i].id);
 	sknives.setsize(0);
 }
+void purgesconfirms(){
+	loopv(sconfirms) sendf(-1, 1, "ri2", N_CONFIRMREMOVE, sconfirms[i].id);
+}
 
 ssqr *maplayout = NULL;
 int maplayout_factor;
@@ -2219,6 +2222,7 @@ void resetmap(const char *newname, int newmode, int newmuts, int newtime, bool n
 	// reset team scores
 	loopi(TEAM_NUM - 1) steamscores[i] = teamscore(i);
 	purgesknives();
+	purgesconfirms(); // but leave the confirms for team modes in arena
 	if(m_demo(gamemode)) setupdemoplayback();
 	else if((demonextmatch || scl.demoeverymatch) && *newname && numnonlocalclients() > 0){
 		demonextmatch = false;
