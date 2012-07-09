@@ -312,7 +312,7 @@ void processevents(){
 				}
 				char drownstate = (gamemillis - cs.drownmillis) / 1000;
 				while(cs.drownval < drownstate){
-					serverdamage(&cp, &cp, powf(++cs.drownval, 7.f)/1000000, WEAP_MAX + 1, FRAG_NONE, cs.o);
+					serverdamage(&c, &c, powf(++cs.drownval, 7.f)/1000000, WEAP_MAX + 1, FRAG_NONE, cs.o);
 					if(cs.state != CS_ALIVE) break; // dead!
 				}
 			}
