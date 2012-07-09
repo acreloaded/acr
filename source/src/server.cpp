@@ -343,8 +343,12 @@ void usestreak(client &c, int streak, const vec &o = vec(0, 0, 0)){
 			c.state.nukemillis = gamemillis + (info = 30000);
 			break;
 		case STREAK_REVENGE:
-			explosion(c, c.state.o, WEAP_GRENADE);
+		{
+			suicidebomberevent *ev = new suicidebomberevent;
+			ev->millis = 0;
+			c.events.insert(0, ev);
 			// fallthrough
+		}
 		case STREAK_DROPNADE:
 			info = rand();
 			c.state.grenades.add(info);

@@ -75,6 +75,11 @@ struct healevent : timedevent
 	void process(client *ci);
 };
 
+struct suicidebomberevent : timedevent
+{
+	void process(client *ci);
+};
+
 template <int N>
 struct projectilestate
 {
