@@ -553,7 +553,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 				if(!pl->timeinair)
 				{
 					if(timeinair > 200 && pl->state!=CS_DEAD && p && (p == player1 || isowned(p))){
-						playsoundc(timeinair > 800 ? S_HARDLAND : S_SOFTLAND, (playerent *)pl);
+						playsoundc((timeinair > 800 && p->perk2 != PERK_NINJA) ? S_HARDLAND : S_SOFTLAND, p);
 					}
 				}
 			}
