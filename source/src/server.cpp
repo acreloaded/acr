@@ -36,6 +36,9 @@ vector<client *> clients;
 static vector<savedscore> scores;
 static vector<savedlimit> savedlimits;
 teamscore steamscores[TEAM_NUM-1] = { teamscore(TEAM_RED), teamscore(TEAM_BLUE) };
+inline teamscore &getsteamscore(client *c){
+	return steamscores[(m_team(gamemode, mutators) && c->team == TEAM_BLUE) ? TEAM_BLUE : TEAM_RED];
+}
 uint nextauthreq = 1;
 
 vector<ban> bans;
@@ -822,11 +825,11 @@ void flagaction(int flag, int action, int actor){
 		if(score){
 			clients[actor]->state.flagscore += score;
 			sendf(-1, 1, "ri3", N_FLAGCNT, actor, clients[actor]->state.flagscore);
-			steamscores[clients[actor]->team].flagscore += score;
+			getsteamscore(clients[actor]).flagscore += score;
 			sendteamscore(clients[actor]->team);
 		}
 
-		steamscores[clients[actor]->team].points += max(0, flagpoints(clients[actor], message));
+		getsteamscore(clients[actor]).points += max(0, flagpoints(clients[actor], message));
 		sendteamscore(clients[actor]->team);
 
 		client &c = *clients[actor];
@@ -1385,7 +1388,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	
 	// only things on target team that changes
 	if(!m_confirm(gamemode, mutators)){
-		++steamscores[target->team].deaths;
+		++getsteamscore(target).deaths;
 		// commit, if needed
 		if(actor->team != target->team)
 			sendteamscore(target->team);
@@ -1424,7 +1427,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 			const int factor = isteam(clients[ts.damagelog[i]], target) ? -1 : 1;
 			clients[ts.damagelog[i]]->state.assists += factor;
 			if(factor > 0)
-				steamscores[actor->team].assists += factor; // add to assists
+				getsteamscore(actor).assists += factor; // add to assists
 			clients[ts.damagelog[i]]->state.pointstreak += factor * 2;
 		}
 		else ts.damagelog.remove(i--);
@@ -1474,8 +1477,8 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 		}
 	}
 	else{
-		if(earnedpts > 0) steamscores[actor->team].points += earnedpts;
-		if(kills > 0) steamscores[actor->team].frags += kills;
+		if(earnedpts > 0) getsteamscore(actor).points += earnedpts;
+		if(kills > 0) getsteamscore(actor).frags += kills;
 	}
 	// assists/tk-deaths
 	sendteamscore(actor->team); // last team score change
