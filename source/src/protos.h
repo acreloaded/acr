@@ -81,6 +81,7 @@ extern void writebinds(FILE *f);
 extern void pasteconsole(char *dst);
 extern void addobit(playerent *actor, int weap, int style, bool headshot, playerent *target);
 extern void conoutf(const char *s, ...);
+extern void obitoutf(int cn, const char *s, ...);
 extern void chatoutf(const char *s, ...);
 
 struct keym

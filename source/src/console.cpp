@@ -346,6 +346,12 @@ void conoutf(const char *s, ...)
 	conout(con, sf);
 }
 
+void obitoutf(int cn, const char *s, ...)
+{
+	s_sprintfdv(sf, s);
+	con.addobit(sf, cn);
+}
+
 int rendercommand(int x, int y, int w)
 {
 	defformatstring(s)("> %s", cmdline.buf);
