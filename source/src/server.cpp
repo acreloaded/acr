@@ -1574,7 +1574,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 			// return; // we don't want this
 			damage = 0; // we want to show a hitmarker...
 		}
-		else if(m_vampire(gamemode, mutators) && actor->state.health >= 300 * HEALTHSCALE){
+		else if(m_vampire(gamemode, mutators) && actor->state.health < 300 * HEALTHSCALE){
 			int hpadd = damage / (rnd(3) + 3);
 			// cap at 300 HP
 			if(actor->state.health + hpadd > 300 * HEALTHSCALE)
