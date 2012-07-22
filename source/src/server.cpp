@@ -1524,7 +1524,10 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	}
 
 	// put this here to prevent crash
-	usestreak(*target, ts.streakondeath, m_zombie(gamemode) ? actor : NULL);
+	int deathstreak = ts.streakondeath;
+	if((explosive_weap(gun) || isheadshot(gun, style)) && deathstreak == STREAK_REVENGE)
+		deathstreak = STREAK_DROPNADE;
+	usestreak(*target, deathstreak, m_zombie(gamemode) ? actor : NULL);
 
 	// conversions
 	if(!suic && m_convert(gamemode, mutators) && target->team != actor->team){
