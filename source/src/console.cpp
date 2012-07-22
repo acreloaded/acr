@@ -167,7 +167,7 @@ const char *obit_prefix(playerent *pl, bool dark){
 VARP(obitfade, 0, 10, 60);
 VARP(obitalpha, 0, 80, 100);
 VARP(obitamt, 0, 1, 2); // 0: very compact, 1: show humans, 2: show all
-struct oline { char *actor; char *target; int obit, millis, style; bool headshot; };
+struct oline { char *actor; char *target; int obit, millis, style, combo; bool headshot; };
 struct obitlist
 {
 	int maxlines;
@@ -202,7 +202,17 @@ struct obitlist
 			(target->ownernum < 0) ? opf + 2 : ""
 		: "");
 		cl.style = style;
+		cl.combo = 1;
 		cl.headshot = headshot;
+		if(olines.length()){
+			oline &l = olines[0];
+			if(l.obit == cl.obit && l.style == cl.style && l.headshot == cl.headshot && !strcmp(l.actor, cl.actor) && !strcmp(l.target, cl.target)){
+				delete[] cl.actor;
+				delete[] cl.target;
+				++olines[0].combo;
+				return olines[0];
+			}
+		}
 		return olines.insert(0, cl);
 	}
 
@@ -290,8 +300,9 @@ struct obitlist
 				}
 				fade *= obitalpha/100.f;
 
+				defformatstring(combotext)(l.combo > 1 ? " (x%d)" : "", l.combo);
 				// correct alignment
-				defformatstring(obitalign)("%s %s", l.actor, l.target); // two half spaces = one space
+				defformatstring(obitalign)("%s %s%s", l.actor, l.target, combotext); // two half spaces = one space; 1 for combo if needed
 				// and the obit...
 				int left = (VIRTW - 16) * ts - text_width(obitalign) - obitaspect(l.obit) * FONTH;
 				if(l.style & FRAG_FIRST) left -= obitaspect(OBIT_FIRST) * FONTH;
@@ -309,10 +320,10 @@ struct obitlist
 
 				// continue...
 				int width, height;
-				text_bounds(l.actor, width, height);
-				y -= height;
+				y -= FONTH;
 				if(*l.actor){
-					draw_text(l.actor, left, y, 0xFF, 0xFF, 0xFF, fade * 255, -1);
+					text_bounds(l.actor, width, height);
+					draw_text(l.actor, left, y, 0xFF, 0xFF, 0xFF, fade * 255);
 					x += width + text_width(" ") / 2;
 				}
 				// 1st before the obit
@@ -328,8 +339,13 @@ struct obitlist
 				else if(l.style & FRAG_CRIT) x += drawobit(OBIT_CRIT, left + x, y, fade);
 				// end of weapon symbol
 				x += text_width(" ") / 2;
-				if(*l.target)
-					draw_text(l.target, left + x, y, 0xFF, 0xFF, 0xFF, fade * 255, -1);
+				if(*l.target){
+					text_bounds(l.target, width, height);
+					draw_text(l.target, left + x, y, 0xFF, 0xFF, 0xFF, fade * 255);
+					x += width;
+				}
+				if(*combotext)
+					draw_text(combotext, left + x, y, 0xFF, 0xFF, 0xFF, fade * 255);
 			}
         }
 		glPopMatrix();
