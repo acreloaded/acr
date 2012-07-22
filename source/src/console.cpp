@@ -175,6 +175,12 @@ struct obitlist
 
 	obitlist() : maxlines(12) {}
 
+	int filterstyle(int style){
+		return style & (
+			FRAG_FIRST | FRAG_STEALTH | FRAG_PENETRATE | FRAG_RICOCHET | FRAG_REVENGE | FRAG_CRIT
+		);
+	}
+
 	oline &addline(playerent *actor, int obit, int style, bool headshot, playerent *target, int millis)	// add a line to the obit buffer
 	{
 		oline cl;
@@ -201,7 +207,7 @@ struct obitlist
 			(obitamt >= 2 || ((actor == target || target->ownernum < 0) && obitamt >= 1)) ? colorname(target) :
 			(target->ownernum < 0) ? opf + 2 : ""
 		: "");
-		cl.style = style;
+		cl.style = filterstyle(style);
 		cl.combo = 1;
 		cl.headshot = headshot;
 		if(olines.length()){
