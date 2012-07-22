@@ -799,6 +799,7 @@ bool gun::attack(vec &targ){
 		gunwait += 250;
 		owner->lastattackweapon = NULL;
 		shots = 0;
+		owner->attacking = false;
 		if(!checkautoreload() && owner == player1){
 			if(owner->secondary != owner->primary){
 				if(type != owner->secondary && (owner->weapons[owner->secondary]->mag || owner->weapons[owner->secondary]->ammo))
@@ -812,7 +813,7 @@ bool gun::attack(vec &targ){
 		return false;
 	}
 
-	shots++;
+	++shots;
 	owner->lastattackweapon = this;
 	if(!info.isauto || ((type == WEAP_ASSAULT || type == WEAP_SUBGUN) && burst && shots >= burst)) owner->attacking = false;
 
