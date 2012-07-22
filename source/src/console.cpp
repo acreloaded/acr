@@ -36,7 +36,7 @@ struct console : consolebuffer<cline>
 			}
 			else{
 				playerent *d = getclient(cn);
-				formatstring(conlines[1].line)("\f1%+d kills that were made by %s", ++conlines[1].obit, d ? colorname(d) : "someone");
+				formatstring(conlines[1].line)("\f2%+d kills that were caused by %s", ++conlines[1].obit, d ? colorname(d) : "someone");
 				conlines[1].millis = totalmillis;
 				// overwrite
 				copystring(conlines[0].line, sf);
