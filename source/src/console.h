@@ -19,31 +19,6 @@ template<class LINE> struct consolebuffer
 
 	void addline(const char *sf) { extern int totalmillis; addline(sf, totalmillis); }
 
-	void addobit(const char *sf, int cn) {
-		extern int totalmillis;
-		if(conlines[0].obit == cn && conlines.length() > 2){ // last one was our kill
-			if(conlines[1].obit == -1){ // not 2+ kills yet
-				playerent *d = getclient(cn);
-				formatstring(conlines[0].line)("\f2+1 kill that was made by %s", d ? colorname(d) : "someone");
-				conlines[0].obit = 1;
-				addline(sf, totalmillis, cn);
-			}
-			else{
-				playerent *d = getclient(cn);
-				formatstring(conlines[1].line)("\f1%+d kills that were made by %s", ++conlines[1].obit, d ? colorname(d) : "someone");
-				conlines[1].millis = totalmillis;
-				// overwrite
-				copystring(conlines[0].line, sf);
-				conlines[0].millis = totalmillis;
-			}
-		}
-		else{
-			conlines[0].obit = -1; // force no overwrite
-			addline(sf, totalmillis, cn);
-		}
-		conlines[0].obit = cn;
-	}
-
 	void setmaxlines(int numlines)
 	{
 		maxlines = numlines;

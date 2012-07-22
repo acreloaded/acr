@@ -27,6 +27,29 @@ struct console : consolebuffer<cline>
 		else fullconsole = ++fullconsole % 3;
 	}
 
+	void addobit(const char *sf, int cn) {
+		extern int totalmillis;
+		if(conlines[0].obit == cn && conlines.length() > 2){ // last one was our kill
+			if(conlines[1].obit == -1){ // not 2+ kills yet
+				conlines[0].obit = 1; // prepare to be overwritten
+				addline(sf, totalmillis, cn);
+			}
+			else{
+				playerent *d = getclient(cn);
+				formatstring(conlines[1].line)("\f1%+d kills that were made by %s", ++conlines[1].obit, d ? colorname(d) : "someone");
+				conlines[1].millis = totalmillis;
+				// overwrite
+				copystring(conlines[0].line, sf);
+				conlines[0].millis = totalmillis;
+			}
+		}
+		else{
+			conlines[0].obit = -1; // force no overwrite
+			addline(sf, totalmillis, cn);
+		}
+		conlines[0].obit = cn;
+	}
+
 	void render()
 	{
 		int conwidth = (fullconsole ? VIRTW : int(floor(getradarpos().x)))*2 - 2*CONSPAD - 2*FONTH/3;
