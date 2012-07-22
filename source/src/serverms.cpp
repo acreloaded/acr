@@ -112,8 +112,8 @@ void connectcheck(int cn, int guid, enet_uint32 host){
 	creq.ip = ENET_NET_TO_HOST_32(host); // master-server blacklist uses host byte order
 }
 
-// send alive signal to masterserver every fifteen (15) minutes of uptime
-#define MSKEEPALIVE (15*60*1000)
+// send alive signal to masterserver every hour of uptime
+#define MSKEEPALIVE (60*60*1000)
 void updatemasterserver(int millis, const ENetAddress &localaddr){
 	if(mssock != ENET_SOCKET_NULL || currentmsrequest) return; // busy
 	string path;
