@@ -207,6 +207,7 @@ struct obitlist
 		if(olines.length()){
 			oline &l = olines[0];
 			if(l.obit == cl.obit && l.style == cl.style && l.headshot == cl.headshot && !strcmp(l.actor, cl.actor) && !strcmp(l.target, cl.target)){
+				olines[0].millis = millis; // refresh that line (overwrite effect)
 				delete[] cl.actor;
 				delete[] cl.target;
 				++olines[0].combo;
