@@ -334,7 +334,7 @@ void streakready(client &c, int streak){
 	sendf(-1, 1, "ri3", N_STREAKREADY, c.clientnum, streak);
 }
 
-void usestreak(client &c, int streak, const vec &o = vec(0, 0, 0)){
+void usestreak(client &c, int streak, client *actor = NULL, const vec &o = vec(0, 0, 0)){
 	if(streak < 0 || streak >= STREAK_NUM) return;
 	int info = 0;
 	switch(streak){
@@ -351,7 +351,7 @@ void usestreak(client &c, int streak, const vec &o = vec(0, 0, 0)){
 		case STREAK_REVENGE:
 		{
 			suicidebomberevent *ev = new suicidebomberevent;
-			ev->millis = 0;
+			ev->id = actor ? actor->clientnum : -1;
 			c.events.insert(0, ev);
 			// fallthrough
 		}
@@ -1524,7 +1524,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	}
 
 	// put this here to prevent crash
-	usestreak(*target, ts.streakondeath);
+	usestreak(*target, ts.streakondeath, m_zombie(gamemode) ? actor : NULL);
 
 	// conversions
 	if(!suic && m_convert(gamemode, mutators) && target->team != actor->team){
@@ -3399,7 +3399,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				// check how many airstrikes available first
 				if(cl->state.airstrikes > 0){
 					--cl->state.airstrikes;
-					usestreak(*cl, STREAK_AIRSTRIKE, o);
+					usestreak(*cl, STREAK_AIRSTRIKE, NULL, o);
 				}
 				break;
 			}

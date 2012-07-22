@@ -276,7 +276,7 @@ bool suicidebomberevent::flush(client *ci, int fmillis){
 }
 
 void suicidebomberevent::process(client *ci){
-	explosion(*ci, ci->state.o, WEAP_GRENADE);
+	explosion(*ci, ci->state.o, WEAP_GRENADE, true, valid_client(id) ? clients[id] : NULL);
 }
 
 // processing events

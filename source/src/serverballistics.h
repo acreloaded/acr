@@ -100,7 +100,7 @@ inline vec generateHead(client &c, const vector<head_t> &h){
 
 // let's order the explosion hits by distance
 struct explosivehit{
-	client *target;
+	client *target, *owner;
 	int damage, flags;
 };
 
@@ -136,6 +136,7 @@ int radialeffect(client &owner, client &target, vector<explosivehit> &hits, cons
 	hit.damage = dmg;
 	hit.flags = expflags;
 	hit.target = &target;
+	hit.owner = &owner;
 	return dmg;
 }
 
@@ -148,19 +149,18 @@ int explosion(client &owner, const vec &o2, int weap, bool gib, client *cflag){
 	// these are our hits
 	vector<explosivehit> hits;
 	// give credits to the shooter for killing the zombie!
-	client *own = (m_zombie(gamemode) && owner.team == TEAM_RED && valid_client(owner.state.lastkiller)) ? clients[owner.state.lastkiller] : &owner;
 	// find the hits
 	loopv(clients){
 		client &target = *clients[i];
 		if(target.type == ST_EMPTY || target.state.state != CS_ALIVE || target.state.protect(gamemillis, gamemode, mutators)) continue;
-		damagedealt += radialeffect((own == &target) ? owner : *own, target, hits, o, weap, gib, weap == WEAP_RPG && clients[i] == cflag);
+		damagedealt += radialeffect((weap != WEAP_GRENADE || !cflag) ? owner : *cflag, target, hits, o, weap, gib, weap == WEAP_RPG && clients[i] == cflag);
 	}
 	// sort the hits
 	hits.sort(cmphitsort);
 	// apply the hits
 	loopv(hits){
 		sendhit(owner, weap, hits[i].target->state.o, hits[i].damage);
-		serverdamage(hits[i].target, &owner, hits[i].damage, weap, hits[i].flags, o);
+		serverdamage(hits[i].target, hits[i].owner, hits[i].damage, weap, hits[i].flags, o);
 	}
 	return damagedealt;
 }
