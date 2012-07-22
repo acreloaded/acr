@@ -270,8 +270,13 @@ void healevent::process(client *ci){
 	sendf(-1, 1, "ri3", N_REGEN, ci->clientnum, ci->state.health += heal);
 }
 
+bool suicidebomberevent::flush(client *ci, int fmillis){
+	process(ci);
+	return true;
+}
+
 void suicidebomberevent::process(client *ci){
-	 explosion(*ci, ci->state.o, WEAP_GRENADE);
+	explosion(*ci, ci->state.o, WEAP_GRENADE);
 }
 
 // processing events

@@ -27,7 +27,7 @@ struct timedevent
 	int id, millis;
 	timedevent() : valid(true) { }
 	virtual ~timedevent() {}
-	bool flush(client *ci, int fmillis);
+	virtual bool flush(client *ci, int fmillis);
 	virtual void process(client *ci) = 0;
 };
 
@@ -77,6 +77,7 @@ struct healevent : timedevent
 
 struct suicidebomberevent : timedevent
 {
+	bool flush(client *ci, int fmillis);
 	void process(client *ci);
 };
 
