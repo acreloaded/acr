@@ -236,7 +236,7 @@ struct obitlist
 		glPushMatrix();
 		glLoadIdentity();
 		glOrtho(0, VIRTW*ts, VIRTH*ts, 0, -1, 1);
-		int linei = 0, consumed = 0, y = ts * VIRTH * .5f;
+		int linei = 0, /*consumed = 0,*/ y = ts * VIRTH * .5f;
 		// every line is 1 line
 		linei = min(maxlines, olines.length());
 		/*
