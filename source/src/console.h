@@ -25,6 +25,7 @@ template<class LINE> struct consolebuffer
 			LINE &l = conlines[1];
 			if(l.obit == -1){ // not 2+ kills yet
 				playerent *d = getclient(cn);
+				// THIS SHOULD NOT BE OVERWRITTEN?!
 				formatstring(l.line)("\f2+1 kill that was made by %s", d ? colorname(d) : "someone");
 				l.obit = 1;
 			}
