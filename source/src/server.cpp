@@ -4115,8 +4115,6 @@ void linequalitystats(int elapsed)
             }
             chokelog[i] = (s << 4) + c;
             concatformatstring(msg, "%02X ", chokelog[i]);
-			// mwhahahaha
-			chokelog[i] = 0;
         }
         logline(ACLOG_DEBUG, "%s] +%d", msg, ncs);
     }
