@@ -3,6 +3,23 @@
 #include "pch.h"
 #include "cube.h"
 
+// entity
+bool entity::fitsmode(int gamemode, int mutators) { return !m_noitems(gamemode, mutators) && isitem(type) && !(m_noitemsammo(gamemode, mutators) && type!=I_AMMO) && !(m_noitemsnade(gamemode, mutators) && type!=I_GRENADE) && !(m_pistol(gamemode, mutators) && type==I_AMMO); }
+void entity::transformtype(int gamemode, int mutators)
+{
+	if(m_noitemsammo(gamemode, mutators) && type == I_CLIPS) type = I_AMMO;
+	else if(m_pistol(gamemode, mutators) && type == I_AMMO) type = I_CLIPS;
+	else if(m_noitemsnade(gamemode, mutators)) switch(type){
+		case I_CLIPS:
+		case I_AMMO:
+		case I_ARMOR:
+		case I_AKIMBO:
+			type = I_GRENADE;
+			break;
+	}
+}
+
+// others
 vector<entity> ents;
 
 const char *entmdlnames[I_AKIMBO-I_CLIPS+1] =
