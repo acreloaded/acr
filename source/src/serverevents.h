@@ -152,10 +152,8 @@ void shotevent::process(client *ci)
 			client *hit = gs.scoping ? &c : nearesthit(c, from, to, hitzone, heads, &c, &end);
 			if(!hit) break;
 			if(hit->state.wounds.length()){
-				// healing station
-				addpt(hit, HEALWOUNDPT * hit->state.wounds.length(), PR_HEALWOUND);
-				if(hit != ci)
-					addpt(ci, HEALWOUNDPT * hit->state.wounds.length(), PR_HEALWOUND);
+				// healing by a player
+				addpt(ci, HEALWOUNDPT * hit->state.wounds.length(), PR_HEALWOUND);
 				hit->state.wounds.shrink(0);
 			}
 			if((&c == hit) ? gs.health < MAXHEALTH : !isteam(&c, hit)){ // that's right, no more self-heal abuse
