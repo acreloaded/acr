@@ -123,10 +123,11 @@ COMMAND(magcontent, ARG_1EXP);
 COMMAND(magreserve, ARG_1EXP);
 
 void tryreload(playerent *p){
-	if(!p || p->state!=CS_ALIVE || p->weaponsel->reloading || p->weaponchanging) return;
+	if(!p || p->state!=CS_ALIVE || p->weaponsel->reloading || p->wantsreload || p->weaponchanging) return;
 	if(p->ads){
-		setscope(false);
-		p->delayedscope = p->wantsreload = true;
+		p->wantsreload = true;
+		p->delayedscope = p->scoping;
+		p->scoping = false;
 	}
 	else p->weaponsel->reload();
 }
@@ -779,7 +780,7 @@ VARP(burstfull, 0, 1, 1); // full burst before stopping
 gun::gun(playerent *owner, int type) : weapon(owner, type) {}
 
 bool gun::attack(vec &targ){
-	if(type == WEAP_SHOTGUN && owner == player1 && player1->attacking) ((shotgun *)this)->autoreloading = false;
+	if(type == WEAP_SHOTGUN && owner == player1 && owner->attacking) ((shotgun *)this)->autoreloading = false;
 	int attackmillis = lastmillis-owner->lastaction;
 	if(timebalance < gunwait) attackmillis += timebalance;
 	if(attackmillis<gunwait) return false;
@@ -789,7 +790,8 @@ bool gun::attack(vec &targ){
 	if(!owner->attacking)
 	{
 		shots = 0;
-		checkautoreload();
+		if(owner == player1)
+			checkautoreload();
 		return false;
 	}
 
@@ -800,7 +802,7 @@ bool gun::attack(vec &targ){
 		owner->lastattackweapon = NULL;
 		shots = 0;
 		owner->attacking = false;
-		if(!checkautoreload() && owner == player1){
+		if(owner == player1 && !checkautoreload()){
 			if(owner->secondary != owner->primary){
 				if(type != owner->secondary && (owner->weapons[owner->secondary]->mag || owner->weapons[owner->secondary]->ammo))
 					selectweapon(owner->weapons[owner->secondary]);
@@ -1275,10 +1277,13 @@ void knife::attackfx(const vec &from, const vec &to, int millis) {
 
 // setscope for snipers and iron sights
 void setscope(bool enable){
-	if(!player1->state == CS_ALIVE || player1->scoping == enable || (enable && (player1->wantsreload || player1->wantsswitch >= 0))) return;
+	if(player1->wantsreload || player1->wantsswitch >= 0){
+		player1->delayedscope = enable;
+		return;
+	}
+	if(player1->state != CS_ALIVE || player1->scoping == enable) return;
 	if(player1->weaponsel->type == WEAP_KNIFE || (ads_gun(player1->weaponsel->type) && ads_classic_allowed(player1->weaponsel->type)))
-		player1->scoping = enable;
-	player1->delayedscope = player1->scoping;
+		player1->delayedscope = player1->scoping = enable;
 }
 
 COMMAND(setscope, ARG_1INT);

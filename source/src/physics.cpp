@@ -706,15 +706,16 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 			ppl->ads += curtime * (ppl->scoping ? 1000 : -1000) / ppl->weaponsel->scopetime;
 			ppl->ads = clamp(ppl->ads, 0, 1000);
 			if(!ppl->ads && ppl == player1){
+				bool shouldscope = ppl->delayedscope;
 				if(ppl->wantsreload){
 					ppl->wantsreload = false;
 					tryreload(ppl);
-					if(ppl->delayedscope) setscope(true);
 				}
 				else if(ppl->wantsswitch >= 0){
-					if(ads_gun(ppl->wantsswitch) && ppl->delayedscope) setscope(true);
+					shouldscope = shouldscope && ads_gun(ppl->wantsswitch);
 					ppl->weaponswitch(ppl->weapons[ppl->wantsswitch]);
 				}
+				if(shouldscope) setscope(true);
 			}
 		}
 	}

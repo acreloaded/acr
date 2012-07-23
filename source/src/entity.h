@@ -656,10 +656,9 @@ struct playerent : dynent, playerstate
 		extern playerent *player1;
 		if(ads){
 			if(this == player1){
-				extern void setscope(bool activate);
-				setscope(false);
 				wantsswitch = w->type;
-				delayedscope = true;
+				delayedscope = scoping;
+				scoping = false;
 			}
 			return;
 		}
