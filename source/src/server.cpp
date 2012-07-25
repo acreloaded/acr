@@ -394,13 +394,18 @@ void spawnstate(client *c){
 				gs.mag[gs.primary] = magsize(gs.primary);
 				gs.perk1 = gs.nextperk1 = PERK1_AGILE;
 				gs.perk2 = gs.nextperk2 = PERK2_STREAK;
-				gs.health = STARTHEALTH + rnd(STARTHEALTH * ZOMBIEHEALTHFACTOR);
-				// INTENTIONAL FALLTHROUGH
+				if(m_onslaught(gamemode, mutators)){
+					gs.health = STARTHEALTH * ZOMBIEHEALTHFACTOR;
+					gs.armor += 50;
+				}
+				else gs.health = STARTHEALTH + rnd(STARTHEALTH * ZOMBIEHEALTHFACTOR);
+				break;
 			case TEAM_BLUE:
 				if(!m_onslaught(gamemode, mutators)) break;
-				// everyone gets same onslaught health
-				gs.health = STARTHEALTH * ZOMBIEHEALTHFACTOR;
-				gs.armor = c->team == TEAM_RED ? 50 : 2000;
+				// humans for onslaught only
+				if(gs.perk2 == PERK2_HEALTHLY) gs.health = STARTHEALTH * ZOMBIEHEALTHFACTOR;
+				else gs.health = STARTHEALTH * (rnd(ZOMBIEHEALTHFACTOR - 1) + 1); // 100 - 400
+				gs.armor += 2000;
 				break;
 		}
 	}
