@@ -404,7 +404,7 @@ void spawnstate(client *c){
 				if(!m_onslaught(gamemode, mutators)) break;
 				// humans for onslaught only
 				if(gs.perk2 == PERK2_HEALTHLY) gs.health = STARTHEALTH * ZOMBIEHEALTHFACTOR;
-				else gs.health = STARTHEALTH * (rnd(ZOMBIEHEALTHFACTOR - 1) + 1); // 100 - 400
+				else gs.health = STARTHEALTH * (rnd(ZOMBIEHEALTHFACTOR - 1) + 1) + (STARTHEALTH/2); // 150 - 450
 				gs.armor += 2000;
 				break;
 		}
