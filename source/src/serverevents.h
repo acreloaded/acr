@@ -158,8 +158,8 @@ void shotevent::process(client *ci)
 			}
 			if((&c == hit) ? gs.health < MAXHEALTH : !isteam(&c, hit)){ // that's right, no more self-heal abuse
 				const int flags = hitzone == HIT_HEAD ? FRAG_GIB : FRAG_NONE;
-				int dmg = effectiveDamage(weap, hit->state.o.dist(from)) * muls[MUL_NORMAL].val[hitzone];
-				if(flags & FRAG_GIB)
+				int dmg = effectiveDamage(weap, hit->state.o.dist(from)) * (hitzone == HIT_HEAD ? muls[MUL_NORMAL].head : muls[MUL_NORMAL].leg);
+				if(hitzone == HIT_HEAD)
 					sendheadshot(from, to, dmg);
 				serverdamage(hit, &c, dmg, weap, flags, gs.o);
 				damagedealt += dmg;
