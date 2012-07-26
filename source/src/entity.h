@@ -141,7 +141,7 @@ extern const char *killname(int obit, bool headshot);
 
 enum { PERK_NONE = 0, PERK_RADAR, PERK_NINJA, PERK_POWER, PERK_TIME, PERK_MAX };
 enum { PERK1_NONE = 0, PERK1_AGILE = PERK_MAX, PERK1_HAND, PERK1_LIGHT, PERK1_SCORE, PERK1_MAX, };
-enum { PERK2_NONE = 0, PERK2_VISION = PERK_MAX, PERK2_STREAK, PERK2_STEADY, PERK2_HEALTHY, PERK2_MAX };
+enum { PERK2_NONE = 0, PERK2_VISION = PERK_MAX, PERK2_STREAK, PERK2_STEADY, PERK2_HEALTH, PERK2_MAX };
 
 extern float gunspeed(int gun, int ads, bool lightweight = false);
 
@@ -458,7 +458,7 @@ struct playerstate
 		if(perk1 < PERK_MAX) perk2 = perk1;
 
 		const int healthsets[3] = { STARTHEALTH - 15 * HEALTHSCALE, STARTHEALTH, STARTHEALTH + 20 * HEALTHSCALE };
-		health = healthsets[(!m_regen(gamemode, mutators) && m_sniper(gamemode, mutators) ? 0 : 1) + (perk2 == PERK2_HEALTHY ? 1 : 0)];
+		health = healthsets[(!m_regen(gamemode, mutators) && m_sniper(gamemode, mutators) ? 0 : 1) + (perk2 == PERK2_HEALTH ? 1 : 0)];
 		if(m_vampire(gamemode, mutators)) health /= 2;
 	}
 

@@ -403,7 +403,7 @@ void spawnstate(client *c){
 			case TEAM_BLUE:
 				if(!m_onslaught(gamemode, mutators)) break;
 				// humans for onslaught only
-				if(gs.perk2 == PERK2_HEALTHLY) gs.health = STARTHEALTH * ZOMBIEHEALTHFACTOR;
+				if(gs.perk2 == PERK2_HEALTH) gs.health = STARTHEALTH * ZOMBIEHEALTHFACTOR;
 				else gs.health = STARTHEALTH * (rnd(ZOMBIEHEALTHFACTOR - 1) + 1) + (STARTHEALTH/2); // 150 - 450
 				gs.armor += 2000;
 				break;
