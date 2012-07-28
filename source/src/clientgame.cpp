@@ -895,6 +895,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 		case FA_RETURN:
 			playsound(S_FLAGRETURN, SP_HIGHEST);
 			formatstring(predicate)("returned %s flag", teamstr);
+			firstpersondrop = true;
 			break;
 		case FA_SCORE:
 			playsound(S_FLAGSCORE, SP_HIGHEST);
