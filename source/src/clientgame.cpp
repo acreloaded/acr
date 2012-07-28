@@ -986,9 +986,10 @@ const char *votestring(int type, const votedata &vote)
 		// int action
 		case SA_BOTBALANCE: // int1
 			formatstring(out)(
+				vote.int1 == 1 ? "bots balance teams only" :
 				!vote.int1 ? "disable all bots" :
 				vote.int1 < 0 ? "automatically balance bots" :
-				"balance to %d bots", vote.int1);
+				"balance to %d players", vote.int1);
 			break;
 
 		case SA_MASTERMODE: // int1
