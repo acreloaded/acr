@@ -2746,27 +2746,17 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet){
 		putint(p, clients[i]->priv);
 	}
 
-	bool restored = false;
 	if(c){
-		if(c->type==ST_TCPIP)
-		{
-			savedscore *sc = findscore(*c, false);
-			if(sc)
-			{
-				sc->restore(c->state);
-				restored = true;
-			}
-		}
 		CHECKSPACE(256);
 		putint(p, N_SETTEAM);
         putint(p, n);
-        putint(p, (c->team = (mastermode >= MM_LOCKED) ? TEAM_SPECT : chooseteam(*c)) | (FTR_SILENT << 4));
+        putint(p, c->team | (FTR_SILENT << 4));
 
 		putint(p, N_FORCEDEATH);
         putint(p, n);
         sendf(-1, 1, "ri2x", N_FORCEDEATH, n, n);
 	}
-	if(clients.length()>1 || restored || !c)
+	if(!c || clients.length()>1)
 	{
 		// welcomeinitclient
 		loopv(clients){
@@ -2788,7 +2778,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet){
 		loopv(clients)
 		{
 			client &c = *clients[i];
-			if((c.type!=ST_TCPIP && c.type != ST_AI) || (c.clientnum==n && !restored) || (c.type == ST_AI && c.state.ownernum == n)) continue;
+			if(c.type != ST_TCPIP && c.type != ST_AI) continue;
 			CHECKSPACE(512);
 			putint(p, c.clientnum);
 			clientstate &cs = c.state;
@@ -3038,6 +3028,15 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			// ask masterserver for connection verdict
 			connectcheck(sender, cl->guid, cl->peer->address.host);
+			// restore the score
+			savedscore *sc = findscore(*cl, false);
+			if(sc)
+			{
+				sc->restore(cl->state);
+				// sendresume TODO
+			}
+			// check teams
+			cl->team = (mastermode >= MM_LOCKED) ? TEAM_SPECT : chooseteam(*cl);
 		}
 
 		sendwelcome(cl);
