@@ -1871,7 +1871,7 @@ bool updateclientteam(int cn, int team, int ftr){
 	// set new team
 	sendf(-1, 1, "ri3", N_SETTEAM, cn, (ci.team = team) | (ftr << 4));
 	// check bots
-	checkai();
+	if(ci.type != ST_AI) checkai();
 	return true; // success!
 }
 
