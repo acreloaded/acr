@@ -3033,7 +3033,33 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			if(sc)
 			{
 				sc->restore(cl->state);
-				// sendresume TODO
+				// sendresume
+				clientstate &cs = cl->state;
+				sendf(-1, 1, "rii5i5i9i9vvi", N_RESUME,
+					steamscores[0].points, steamscores[0].flagscore, steamscores[0].frags, steamscores[0].assists, steamscores[0].deaths, // 5
+					steamscores[1].points, steamscores[1].flagscore, steamscores[1].frags, steamscores[1].assists, steamscores[1].deaths, // 5
+					cs.state == CS_WAITING ? CS_DEAD : cs.state, // 1
+					cs.lifesequence,
+					cs.gunselect,
+					cs.primary,
+					cs.secondary,
+					cs.points,
+					cs.flagscore,
+					cs.frags,
+					cs.assists, // 9
+					cs.pointstreak, // 1
+					cs.deathstreak,
+					cs.deaths,
+					cs.health,
+					cs.armor,
+					cs.radarearned - gamemillis,
+					cs.airstrikes,
+					cs.nukemillis - gamemillis,
+					cs.spawnmillis - gamemillis, // 9
+					WEAP_MAX, cs.ammo,
+					WEAP_MAX, cs.mag,
+					-1
+				);
 			}
 			// check teams
 			cl->team = (mastermode >= MM_LOCKED) ? TEAM_SPECT : chooseteam(*cl);
