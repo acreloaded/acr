@@ -2765,6 +2765,11 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet){
 			putinitclient(c, p);
 		}
 
+		loopi(TEAM_NUM-1)
+		{
+			putteamscore(i, p);
+			if(!m_team(gamemode, mutators)) break;
+		}
 		putint(p, N_RESUME);
 		loopi(TEAM_NUM-1)
 		{
