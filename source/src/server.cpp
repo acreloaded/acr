@@ -2693,7 +2693,7 @@ void sendteamscore(int team, int reciever){
 	if(!team_valid(team) || team == TEAM_SPECT) return;
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
-	putteamscore(team, p);
+	putteamscore((m_team(gamemode, mutators) && team == TEAM_BLUE) ? TEAM_BLUE : TEAM_RED, p);
 	enet_packet_resize(packet, p.length());
 	sendpacket(reciever, 1, packet);
 	if(!packet->referenceCount) enet_packet_destroy(packet);
