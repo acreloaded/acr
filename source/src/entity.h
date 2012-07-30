@@ -35,7 +35,7 @@ struct entity : public persistent_entity
 
 	entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4) : persistent_entity(x, y, z, type, attr1, attr2, attr3, attr4), spawned(false), spawntime(0) {}
 	entity() {}
-	bool fitsmode(int gamemode, int mutators) { return !m_noitems(gamemode, mutators) && isitem(type) && !(m_noitemsammo(gamemode, mutators) && type!=I_AMMO) && !(m_noitemsnade(gamemode, mutators) && type!=I_GRENADE) && !(m_pistol(gamemode, mutators) && type==I_AMMO); }
+	bool fitsmode(int gamemode, int mutators) { return !m_noitems(gamemode, mutators) && isitem(type) && !(m_noitemsammo(gamemode, mutators) && type!=I_AMMO) && !(m_noitemsnade(gamemode, mutators) && type!=I_GRENADE); }
 	void transformtype(int gamemode, int mutators)
 	{
 		if(m_noitemsammo(gamemode, mutators) && type == I_CLIPS) type = I_AMMO;
