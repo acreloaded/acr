@@ -72,7 +72,6 @@ bool shiftai(client &c, int ncn = -1, int exclude = -1){
 		if(!valid_client(ncn, true)) return false;
 	}
 	c.state.ownernum = ncn;
-	mkbotname(c);
 	sendf(-1, 1, "ri3s", N_REASSIGNAI, c.clientnum, c.state.ownernum, c.name);
 	return true;
 }
