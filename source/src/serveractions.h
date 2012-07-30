@@ -72,7 +72,7 @@ struct mapaction : serveraction
 				if(!strcmp(behindpath(map), scl.adminonlymaps[i]))
 					reqpriv = PRIV_ADMIN;
 			if(notify)
-				passratio = 0.6f; // you need 60% to vote a map without admin
+				passratio = 0.59f; // you need 60% to vote a map without admin
 		}
 		formatstring(desc)("load map '%s' in mode '%s'", map, modestr(mode, muts));
 	}
