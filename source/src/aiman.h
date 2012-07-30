@@ -35,6 +35,7 @@ bool addai(){
 	b.reset();
 	b.type = ST_AI;
 	b.connected = true;
+	b.state.reset();
 	b.state.level = 45 + rnd(51); // how smart/stupid the bot is can be set here (currently random from 45 to 95)
 	b.state.ownernum = aiowner;
 	mkbotname(b);
