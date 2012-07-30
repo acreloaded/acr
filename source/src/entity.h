@@ -452,7 +452,7 @@ struct playerstate
 		// no classic override
 
 		if(perk1 <= PERK1_NONE || perk1 >= PERK1_MAX) perk1 = rnd(PERK1_MAX-1)+1;
-		if(perk2 <= PERK1_NONE || perk1 >= PERK2_MAX) perk2 = rnd(PERK2_MAX-1)+1;
+		if(perk2 <= PERK1_NONE || perk2 >= PERK2_MAX) perk2 = rnd(PERK2_MAX-PERK_MAX-1)+PERK_MAX+1;
 
 		// special perks need both slots
 		if(perk1 < PERK_MAX) perk2 = perk1;
