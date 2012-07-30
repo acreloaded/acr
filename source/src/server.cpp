@@ -189,13 +189,14 @@ int numauthedclients(){
 
 int calcscores();
 
-int freeteam(int pl = -1){
-	const bool checkbots = clients.inrange(pl) && clients[pl]->type == ST_AI;
-	if(m_zombie(gamemode)) return checkbots ? TEAM_RED : TEAM_BLUE;
+int chooseteam(client &ci, int suggest = -1){ // suggest doesn't do anything?
+	// zombies override
+	if(m_zombie(gamemode) && !m_convert(gamemode, mutators)) return ci.type == ST_AI ? TEAM_RED : TEAM_BLUE;
+	// by team size, then by rank
 	int teamsize[2] = {0};
 	int teamscore[2] = {0};
 	int sum = calcscores();
-	loopv(clients) if(clients[i]->type!=ST_EMPTY && (checkbots || clients[i]->type!=ST_AI) && i != pl && clients[i]->connected && clients[i]->team < 2)
+	loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connected && clients[i] != &ci && (ci.type == ST_AI || clients[i]->type!=ST_AI) && clients[i]->team < 2)
 	{
 		++teamsize[clients[i]->team];
 		teamscore[clients[i]->team] += clients[i]->at3_score;
@@ -385,6 +386,7 @@ void spawnstate(client *c){
 		gs.nextperk2 = (gs.nextprimary == WEAP_BOLT || m_sniper(gamemode, mutators)) ? PERK2_STEADY : PERK2_NONE;
 	}
 	gs.spawnstate(smode, smuts);
+	// FIXME Move to entity.h
 	if(m_zombie(gamemode)){
 		switch(c->team){
 			case TEAM_RED:
@@ -409,6 +411,7 @@ void spawnstate(client *c){
 				break;
 		}
 	}
+	// end fixme
 	++gs.lifesequence;
 	gs.state = CS_DEAD;
 }
@@ -2012,7 +2015,7 @@ bool balanceteams(int ftr, bool aionly = true)  // pro vs noobs never more
 int lastbalance = 0, waitbalance = 2 * 60 * 1000;
 
 bool refillteams(bool now, int ftr, bool aionly){ // force only minimal amounts of players
-	if(m_zombie(gamemode)){ // force to zombie teams
+	if(m_zombie(gamemode) && !m_convert(gamemode, mutators)){ // force to zombie teams
 		loopv(clients)
 			if(clients[i]->type != ST_EMPTY && clients[i]->team != TEAM_SPECT)
 				updateclientteam(i, clients[i]->type == ST_AI ? TEAM_RED : TEAM_BLUE, ftr);
@@ -2757,7 +2760,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet){
 		CHECKSPACE(256);
 		putint(p, N_SETTEAM);
         putint(p, n);
-        putint(p, (c->team = (mastermode >= MM_LOCKED) ? TEAM_SPECT : freeteam(n)) | (FTR_SILENT << 4));
+        putint(p, (c->team = (mastermode >= MM_LOCKED) ? TEAM_SPECT : chooseteam(*c)) | (FTR_SILENT << 4));
 
 		putint(p, N_FORCEDEATH);
         putint(p, n);
@@ -3212,7 +3215,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(cs.state!=CS_DEAD || cs.lastspawn>=0) break; // not dead or already enqueued
 				if(cp.team == TEAM_SPECT){ // need to unspectate
 					if(mastermode < MM_LOCKED || cp.type != ST_TCPIP || cp.priv >= PRIV_ADMIN){
-						updateclientteam(sender, freeteam(sender), FTR_PLAYERWISH);
+						updateclientteam(sender, chooseteam(cp), FTR_PLAYERWISH);
 						if(!canspawn(&cp, true)) break;
 					}
 					else{

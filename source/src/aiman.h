@@ -38,7 +38,7 @@ bool addai(){
 	b.state.level = 45 + rnd(51); // how smart/stupid the bot is can be set here (currently random from 45 to 95)
 	b.state.ownernum = aiowner;
 	mkbotname(b);
-	sendf(-1, 1, "ri5si", N_INITAI, cn, (b.team = freeteam(cn)), (b.skin = rand()), b.state.level, b.name, b.state.ownernum);
+	sendf(-1, 1, "ri5si", N_INITAI, cn, (b.team = chooseteam(b)), (b.skin = rand()), b.state.level, b.name, b.state.ownernum);
 	forcedeath(&b);
 	if(canspawn(&b, true)) sendspawn(&b);
 	return true;
@@ -130,11 +130,17 @@ void checkai(){
 					else ++balance;
 				}
 			}
+			// fix if odd
+			if(botbalance < 0 && (balance & 1)) ++balance;
 		}
-		// correct automatic setting
-		if(botbalance < 0 && (balance & 1) && m_team(gamemode, mutators)) ++balance;
 		while(countplayers() < balance) if(!addai()) break;
 		while(countplayers() > balance) if(!delai()) break;
+		if(m_team(gamemode, mutators)) loopvrev(clients){
+			client &ci = *clients[i];
+			if(ci.type != ST_AI) continue;
+			int teamb = chooseteam(ci, ci.team);
+			if(ci.team != teamb) updateclientteam(i, teamb, FTR_SILENT);
+		}
 	}
 	else clearai();
 }

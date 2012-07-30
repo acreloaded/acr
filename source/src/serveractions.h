@@ -126,7 +126,7 @@ struct revokeaction : playeraction
 
 struct spectaction : playeraction
 {
-	void perform(){ if(isvalid()){ if(clients[cn]->team == TEAM_SPECT) updateclientteam(cn, freeteam(cn), FTR_AUTOTEAM); else updateclientteam(cn, TEAM_SPECT, FTR_AUTOTEAM); } }
+	void perform(){ if(isvalid()){ if(clients[cn]->team == TEAM_SPECT) updateclientteam(cn, chooseteam(*clients[cn]), FTR_AUTOTEAM); else updateclientteam(cn, TEAM_SPECT, FTR_AUTOTEAM); } }
 	spectaction(int cn, int caller) : playeraction(cn){
 		if(cn != caller){ reqpriv = privconf('f'); passratio = 0.65f;}
 		else passratio = 0.55f;
