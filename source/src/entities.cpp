@@ -242,7 +242,7 @@ void spawnallitems() // spawns items them locally
 void resetspawns()
 {
 	loopv(ents) ents[i].spawned = false;
-	if(m_noitemsnade(gamemode, mutators) || m_pistol(gamemode, mutators))
+	if(m_noitemsnade(gamemode, mutators) || m_pistol(gamemode, mutators) || m_noitemsammo(gamemode, mutators))
 	{
 		loopv(ents) ents[i].transformtype(gamemode, mutators);
 	}
