@@ -3984,7 +3984,6 @@ client &addclient(){
 		clients.add(c);
 	}
 	c->reset();
-	c->state.reset();
 	return *c;
 }
 
