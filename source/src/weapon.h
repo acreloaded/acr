@@ -58,7 +58,6 @@ struct bounceent;
 struct weapon
 {
 	const static int weaponchangetime = 400;
-	const static int scopetime;
 	static void equipplayer(playerent *pl);
 
 	weapon(struct playerent *owner, int type);

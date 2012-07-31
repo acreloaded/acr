@@ -3370,7 +3370,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				cp.state.gunselect = cp.state.primary;
 				sendf(-1, 1, "ri2x", N_QUICKSWITCH, cn, sender);
 				cp.state.scoping = false;
-				cp.state.scopemillis = gamemillis - ADSTIME;
+				cp.state.scopemillis = gamemillis - ADSTIME / (cp.state.perk2 == PERK_TIME ? 2 : 1);
 				break;
 			}
 
@@ -3383,7 +3383,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				cp.state.gunselect = weaponsel;
 				sendf(-1, 1, "ri3x", N_SWITCHWEAP, cn, weaponsel, sender);
 				cp.state.scoping = false;
-				cp.state.scopemillis = gamemillis - ADSTIME;
+				cp.state.scopemillis = gamemillis - ADSTIME / (cp.state.perk2 == PERK_TIME ? 2 : 1);
 				break;
 			}
 
@@ -3622,7 +3622,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(newscoping != cs.scoping){
 					if(!newscoping || (ads_gun(cl->state.gunselect) && ads_classic_allowed(cs.gunselect))){
 						cs.scoping = newscoping;
-						cl->state.scopemillis = gamemillis - ADSTIME + min(gamemillis - cl->state.scopemillis, ADSTIME);
+						cs.scopemillis = gamemillis - ADSTIME / (cs.perk2 == PERK_TIME ? 2 : 1) + min(gamemillis - cl->state.scopemillis, ADSTIME / (cs.perk2 == PERK_TIME ? 2 : 1));
 					}
 					// else
 					// clear the scope from the packet?

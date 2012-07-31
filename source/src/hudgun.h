@@ -63,17 +63,13 @@ struct weaponmove
 
 		if(p->weaponchanging){
 			basetime = ads_gun(p->weaponsel->type) ? lastmillis : p->weaponchanging;
-			float progress = clamp((lastmillis - p->weaponchanging)/(float)weapon::weaponchangetime/(p->perk2 == PERK_TIME ? 2 : 1), 0.0f, 1.0f);
+			float progress = clamp((lastmillis - p->weaponchanging)/(float)weapon::weaponchangetime/(p->perk1 == PERK_TIME ? 2 : 1), 0.0f, 1.0f);
 			k_rot = -90*sinf(progress*M_PI);
 		}
 		else if(p->weaponsel->reloading){
 			anim = ANIM_WEAP_RELOAD;
 			basetime = p->weaponsel->reloading;
-			if(p->perk2 == PERK_TIME){
-				//basetime -= (lastmillis - p->weaponsel->reloading) / 2;
-				basetime += p->weaponsel->reloading - lastmillis;
-			}
-			const float reloadtime = p->weaponsel->info.reloadtime / (p->perk2 == PERK_TIME ? 2 : 1),
+			const float reloadtime = p->weaponsel->info.reloadtime,
 						reloadelasped = lastmillis - p->weaponsel->reloading,
 						gunwaitelasped = lastmillis - p->weaponsel->gunwait;
 			float progress = clamp(reloadelasped/reloadtime, 0.0f,

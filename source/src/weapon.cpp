@@ -17,8 +17,8 @@ void updatelastaction(playerent *d){
 inline void _checkweaponswitch(playerent *p){
 	if(!p->weaponchanging) return;
 	int timeprogress = lastmillis - p->weaponchanging;
-	if(timeprogress > weapon::weaponchangetime / (p->perk2 == PERK_TIME ? 2 : 1)) p->weaponchanging = 0;
-	else if(timeprogress > weapon::weaponchangetime / (p->perk2 == PERK_TIME ? 4 : 2)) p->weaponsel = p->nextweaponsel;
+	if(timeprogress > weapon::weaponchangetime / (p->perk1 == PERK_TIME ? 2 : 1)) p->weaponchanging = 0;
+	else if(timeprogress > weapon::weaponchangetime / (p->perk1 == PERK_TIME ? 4 : 2)) p->weaponsel = p->nextweaponsel;
 }
 
 void checkweaponswitch(){
@@ -343,8 +343,6 @@ weapon::weapon(struct playerent *owner, int type) : type(type), owner(owner), in
 	ammo(owner->ammo[type]), mag(owner->mag[type]), gunwait(owner->gunwait[type]), reloading(0){
 }
 
-const int weapon::scopetime = ADSTIME;
-
 int weapon::flashtime() const { return min(max((int)info.attackdelay, 180)/3, 150); }
 
 struct head_t{
@@ -416,7 +414,7 @@ bool weapon::reload(){
 	if(mag >= ms || ammo < /*rs*/ 1) return false;
 	updatelastaction(owner);
 	reloading = lastmillis;
-	gunwait += info.reloadtime / (owner->perk2 == PERK_TIME ? 2 : 1);
+	gunwait += info.reloadtime;
 
 	owner->ammo[type] -= /*rs*/ 1;
 	owner->mag[type] = min<int>(ms, owner->mag[type] + rs);

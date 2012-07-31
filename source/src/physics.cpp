@@ -701,7 +701,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 		resizephysent(pl, moveres, curtime, croucheyeheight, pl->maxeyeheight);
 		if(!intermission && pl->state == CS_ALIVE && (ppl->scoping ? ppl->ads < 1000 : ppl->ads > 0) && ads_gun(ppl->weaponsel->type) &&
 				!ppl->weaponsel->reloading && !ppl->weaponchanging ){
-			ppl->ads += curtime * (ppl->scoping ? 1000 : -1000) / ppl->weaponsel->scopetime;
+			ppl->ads += curtime * (ppl->scoping ? 1000 : -1000) / ADSTIME * (ppl->perk2 == PERK_TIME ? 2 : 1);
 			ppl->ads = clamp(ppl->ads, 0, 1000);
 			if(!ppl->ads && ppl == player1){
 				bool shouldscope = ppl->delayedscope;

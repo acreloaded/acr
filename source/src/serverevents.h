@@ -90,7 +90,8 @@ void shotevent::process(client *ci)
 	// apply spread
 	const float spreadf = to.dist(from)/1000.f,
 		crouchfactor = 1 - (gs.crouching ? min(gamemillis - gs.crouchmillis, CROUCHTIME) : CROUCHTIME - min(gamemillis - gs.crouchmillis, CROUCHTIME)) * .25f / CROUCHTIME;
-	float adsfactor = 1 - float(gs.scoping ? min(gamemillis - gs.scopemillis, ADSTIME) : ADSTIME - min(gamemillis - gs.scopemillis, ADSTIME)) * guns[weap].spreadrem / 100 / ADSTIME;
+	const int zoomtime = ADSTIME / (gs.perk2 == PERK_TIME ? 2 : 1);
+	float adsfactor = 1 - float(gs.scoping ? min(gamemillis - gs.scopemillis, zoomtime) : zoomtime - min(gamemillis - gs.scopemillis, zoomtime)) * guns[weap].spreadrem / 100 / zoomtime;
 	if(weap==WEAP_SHOTGUN){
 		// apply shotgun spread
 		if(m_classic(gamemode, mutators)) adsfactor *= .75f;
@@ -239,12 +240,12 @@ void reloadevent::process(client *ci){
 
 	int wait = millis - gs.lastshot;
 	sendf(-1, 1, "ri5", N_RELOAD, ci->clientnum, weap, gs.mag[weap], gs.ammo[weap]);
-	if(gs.gunwait[weap] && wait<gs.gunwait[weap]) gs.gunwait[weap] += reloadtime(weap) / (gs.perk2 == PERK_TIME ? 2 : 1);
+	if(gs.gunwait[weap] && wait<gs.gunwait[weap]) gs.gunwait[weap] += reloadtime(weap);
 	else
 	{
 		loopi(WEAP_MAX) if(gs.gunwait[i]) gs.gunwait[i] = max(gs.gunwait[i] - (millis-gs.lastshot), 0);
 		gs.lastshot = millis;
-		gs.gunwait[weap] += reloadtime(weap) / (gs.perk2 == PERK_TIME ? 2 : 1);
+		gs.gunwait[weap] += reloadtime(weap);
 	}
 }
 
