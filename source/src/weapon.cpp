@@ -413,12 +413,12 @@ void weapon::attacksound(){
 
 bool weapon::reload(){
 	const ushort ms = magsize(type), rs = reloadsize(type);
-	if(mag > ms || ammo < rs) return false;
+	if(mag >= ms || ammo < /*rs*/ 1) return false;
 	updatelastaction(owner);
 	reloading = lastmillis;
 	gunwait += info.reloadtime / (owner->perk2 == PERK_TIME ? 2 : 1);
 
-	owner->ammo[type] -= rs;
+	owner->ammo[type] -= /*rs*/ 1;
 	owner->mag[type] = min<int>(ms, owner->mag[type] + rs);
 	if(info.reload != S_NULL) playsound(info.reload, owner, owner == player1 ? SP_HIGH : SP_NORMAL);
 
@@ -429,16 +429,13 @@ bool weapon::reload(){
 VARP(oldfashionedgunstats, 0, 0, 1);
 
 void weapon::renderstats(){
-	string gunstats, ammostr;
-	const int clipsize = reloadsize(type);
-	itoa(ammostr, (int)floor((float)ammo / clipsize));
-	if(ammo % clipsize) formatstring(ammostr)("%s/%i", ammostr, ammo % clipsize);
-	formatstring(gunstats)(oldfashionedgunstats ? "%i/%s" : "%i", mag, ammostr);
+	string gunstats;
+	formatstring(gunstats)(oldfashionedgunstats ? "%i/%i" : "%i", mag, ammo);
 	draw_text(gunstats, 360, 823);
 	if(!oldfashionedgunstats){
 		int offset = text_width(gunstats);
 		glScalef(0.5f, 0.5f, 1.0f);
-		draw_textf("%s", (360 + offset)*2, 826*2, ammostr);
+		draw_textf("%i", (360 + offset)*2, 826*2, ammo);
 	}
 }
 

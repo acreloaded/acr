@@ -154,7 +154,7 @@ void shotevent::process(client *ci)
 			if(hit->state.wounds.length()){
 				// healing by a player
 				addpt(ci, HEALWOUNDPT * hit->state.wounds.length(), PR_HEALWOUND);
-				if(&c != hit) addptreason(c->clientnum, PR_HEALEDBYTEAMMATE);
+				if(&c != hit) addptreason(c.clientnum, PR_HEALEDBYTEAMMATE);
 				hit->state.wounds.shrink(0);
 			}
 			if((&c == hit) ? gs.health < MAXHEALTH : !isteam(&c, hit)){ // that's right, no more self-heal abuse
@@ -222,22 +222,20 @@ void shotevent::process(client *ci)
 
 void reloadevent::process(client *ci){
 	clientstate &gs = ci->state;
-	int mag = magsize(weap), reload = reloadsize(weap);
 	if(!gs.isalive(gamemillis) || // dead
-	   weap<0 || weap>=WEAP_MAX || // invalid weapon
-	   (weap == WEAP_AKIMBO && gs.akimbomillis < gamemillis) || // akimbo when out
-	   !reloadable_weap(weap) || // cannot reload
-	   gs.mag[weap] > mag || // already full
-	   gs.ammo[weap] < reload) // no ammo
-		return;
+		weap<0 || weap>=WEAP_MAX || // invalid weapon
+		(weap == WEAP_AKIMBO && gs.akimbomillis < gamemillis) || // akimbo when out
+		gs.ammo[weap] < 1 /*reload*/) // no ammo
+			return;
+	const int mag = magsize(weap), reload = reloadsize(weap);
 
-	// chamber reload bonus
-	if(gs.mag[weap]){
-		if(weap == WEAP_AKIMBO) mag += 2;
-		else ++mag;
-	}
+	if(!reload || // cannot reload
+		gs.mag[weap] >= mag) // already full
+			return;
+
+	// perform the reload
 	gs.mag[weap]   = min(mag, gs.mag[weap] + reload);
-	gs.ammo[weap] -= reload;
+	gs.ammo[weap] -= /*reload*/ 1;
 
 	int wait = millis - gs.lastshot;
 	sendf(-1, 1, "ri5", N_RELOAD, ci->clientnum, weap, gs.mag[weap], gs.ammo[weap]);

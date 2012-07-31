@@ -108,13 +108,13 @@ static mul muls[MUL_NUM] =
 #define BLEEDDMGZ 5
 #define BLEEDDMGPLUS 15
 
-struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, range, endrange, rangeminus, projspeed, part, spread, spreadrem, kick, magsize, mdl_kick_rot, mdl_kick_back, recoil, maxrecoil, recoilangle, pushfactor; bool isauto; };
+struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, range, endrange, rangeminus, projspeed, part, spread, spreadrem, kick, addsize, magsize, mdl_kick_rot, mdl_kick_back, recoil, maxrecoil, recoilangle, pushfactor; bool isauto; };
 extern guninfo guns[WEAP_MAX];
 
 static inline ushort reloadtime(int gun) { return guns[gun].reloadtime; }
 static inline ushort attackdelay(int gun) { return guns[gun].attackdelay; }
 static inline ushort magsize(int gun) { return guns[gun].magsize; }
-static inline ushort reloadsize(int gun) { return gun == WEAP_SHOTGUN ? 1 : guns[gun].magsize; }
+static inline ushort reloadsize(int gun) { return guns[gun].addsize; }
 static inline ushort effectiveDamage(int gun, float dist, bool explosive) {
 	float finaldamage = 0;
 	if(dist <= guns[gun].range || (!guns[gun].range && !guns[gun].endrange)) finaldamage = guns[gun].damage;
@@ -431,11 +431,11 @@ struct playerstate
 
 		// always have a primary now
 		if(true){
-			ammo[primary] = ammostats[primary].start-magsize(primary);
+			ammo[primary] = (ammostats[primary].start-1);
 			mag[primary] = magsize(primary);
 		}
 		if(primary != secondary){
-			ammo[secondary] = ammostats[secondary].start-magsize(secondary);
+			ammo[secondary] = (ammostats[secondary].start-1);
 			mag[secondary] = magsize(secondary);
 		}
 
