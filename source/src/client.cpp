@@ -582,13 +582,9 @@ bool securemapcheck(char *map, bool msg)
 
 void sendmap(char *mapname)
 {
-	if(*mapname && gamemode==1)
-	{
-		save_world(mapname);
-		changemap(mapname); // FIXME!!
-	}
-	else mapname = getclientmap();
-	//if(securemapcheck(mapname)) return;
+	if(!*mapname) mapname = getclientmap();
+	if(securemapcheck(mapname)) return;
+	if(m_edit(gamemode)) save_world(mapname);
 
 	int mapsize, cfgsize, cfgsizegz;
 	uchar *mapdata = readmap(path(mapname), &mapsize);
