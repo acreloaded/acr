@@ -3642,15 +3642,23 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(cs.state==CS_ALIVE)
 				{
 					// deal falling damage
-					const bool newonfloor = (f>>7)&1, newonladder = (f>>8)&1;
-					if((newonfloor || newonladder) && !cs.onfloor){
-						if(newonfloor){
+					const bool newonfloor = (f>>7)&1, newonladder = (f>>8)&1, newunderwater = newo.z < hdr.waterlevel;
+					if((newonfloor || newonladder || newunderwater) && !cs.onfloor){
+						if(newonfloor){ // air to solid
 							// 4 meters without damage + 2/0.5 HP/meter
-							int damage = ((cs.fallz - newo.z) - 16) * HEALTHSCALE / (cs.perk1 == PERK1_LIGHT ? 8 : 2);
-							if(damage >= 1*HEALTHSCALE){ // don't heal the player
-								// maximum damage is 175
-								serverdamage(&cp, &cp, min(damage, 175 * HEALTHSCALE), WEAP_MAX + 2, FRAG_NONE, cs.o);
+							//int damage = ((cs.fallz - newo.z) - 16) * HEALTHSCALE / (cs.perk1 == PERK1_LIGHT ? 8 : 2);
+							// 2 meters without damage, then square up to 10^2 = 100 for up to 20m (50m with lightweight)
+							int damage = 0;
+							if((cs.fallz - newo.z) > 8){
+								damage = powf(min<float>((cs.fallz - newo.z - 8) / 4 / (cs.perk1 == PERK1_LIGHT ? 5 : 2), 10), 2.f) * HEALTHSCALE; // 10 * 10 = 100
 							}
+							if(damage >= 1*HEALTHSCALE){ // don't heal the player
+								// maximum damage is 99 for balance purposes
+								serverdamage(&cp, &cp, min(damage, 99 * HEALTHSCALE), WEAP_MAX + 2, FRAG_NONE, cs.o);
+							}
+						}
+						else if(newunderwater && (cs.fallz - newo.z) > 32){ // air to liquid, more than 8 meters
+							serverdamage(&cp, &cp, 35 * HEALTHSCALE, WEAP_MAX + 2, FRAG_NONE, cs.o); // fixed damage @ 35
 						}
 						cs.onfloor = true;
 					}
