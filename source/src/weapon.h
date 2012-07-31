@@ -47,8 +47,8 @@ enum {
 #define ads_gun(g) (!melee_weap(g) && g != WEAP_GRENADE && g != WEAP_AKIMBO)
 #define ads_classic_allowed(g) (!m_classic(gamemode, mutators) || g == WEAP_SNIPER || g == WEAP_BOLT || g == WEAP_HEAL)
 
-enum { FRAG_NONE = 0, FRAG_GIB = 1 << 0, FRAG_REVENGE = 1 << 1, FRAG_CRIT = 1 << 2, FRAG_FLAG = 1 << 3, FRAG_FIRST = 1 << 4, FRAG_STEALTH = 1 << 5, FRAG_RICOCHET = 1 << 6, FRAG_PENETRATE = 1 << 7,
-		FRAG_VALID = (1 << ((7) + 1)) - 1 }; // up to 1 << 6 is optimal
+enum { FRAG_NONE = 0, FRAG_SCOPE_NONE = 1 << 0, FRAG_SCOPE_FULL = 1 << 1, FRAG_GIB = 1 << 2, FRAG_REVENGE = 1 << 3, FRAG_CRIT = 1 << 4, FRAG_FLAG = 1 << 5, FRAG_FIRST = 1 << 6,
+		FRAG_VALID = (1 << ((6) + 1)) - 1 }; // up to 1 << 6 is optimal
 
 enum { STREAK_AIRSTRIKE = 0, STREAK_RADAR, STREAK_NUKE, STREAK_DROPNADE, STREAK_REVENGE, STREAK_NUM };
 
