@@ -763,6 +763,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					"%s", // Healed Teammate
 					"\f3%s", // Healed Enemy
 					"%s", // Prevented Bleedout
+					"%s", // Bleedout prevented by teammate
 					"\f0%s", // You won
 					"\f1%s", // Your team wins
 					"\f3%s", // You lost

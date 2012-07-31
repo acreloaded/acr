@@ -154,6 +154,7 @@ void shotevent::process(client *ci)
 			if(hit->state.wounds.length()){
 				// healing by a player
 				addpt(ci, HEALWOUNDPT * hit->state.wounds.length(), PR_HEALWOUND);
+				if(&c != hit) addptreason(c->clientnum, PR_HEALEDBYTEAMMATE);
 				hit->state.wounds.shrink(0);
 			}
 			if((&c == hit) ? gs.health < MAXHEALTH : !isteam(&c, hit)){ // that's right, no more self-heal abuse
