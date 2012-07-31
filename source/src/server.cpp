@@ -1421,12 +1421,12 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 		}
 
 		// type of scoping
-		const int zoomtime = ADSTIME(actor->state.perk2 == PERK_TIME), scopeelapsed = min(gamemillis - actor->state.scopemillis, zoomtime + 500);
+		const int zoomtime = ADSTIME(actor->state.perk2 == PERK_TIME), scopeelapsed = gamemillis - actor->state.scopemillis;
 		if(actor->state.scoping){
 			// quick/recent/full
 			if(scopeelapsed >= zoomtime){
 				style |= FRAG_SCOPE_FULL;
-				if(scopeelapsed < zoomtime + 500)
+				if(scopeelapsed < zoomtime + 300)
 					style |= FRAG_SCOPE_NONE; // recent, not hard
 			}
 		}
