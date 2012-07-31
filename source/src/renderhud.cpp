@@ -726,7 +726,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glBindTexture(GL_TEXTURE_2D, damagetex->id);
 			const float c = clamp(fade, .05f, .95f);
-			glColor4f(c, c, c, c);
+			glColor4f(1, 1, 1, c);
 
 			glBegin(GL_QUADS);
 			glTexCoord2f(0, 0); glVertex2f(0, 0);
