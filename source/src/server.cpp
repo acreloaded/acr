@@ -189,20 +189,21 @@ int numauthedclients(){
 
 int calcscores();
 
-int chooseteam(client &ci, int suggest = -1){ // suggest doesn't do anything?
+int chooseteam(client &ci, int suggest = -1){
 	// zombies override
 	if(m_zombie(gamemode) && !m_convert(gamemode, mutators)) return ci.type == ST_AI ? TEAM_RED : TEAM_BLUE;
 	// by team size, then by rank
 	int teamsize[2] = {0};
 	int teamscore[2] = {0};
 	int sum = calcscores();
-	loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connected && clients[i] != &ci && (ci.type == ST_AI || clients[i]->type!=ST_AI) && clients[i]->team < 2)
+	loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connected && (clients[i] != &ci || team_valid(suggest)) && (ci.type == ST_AI || clients[i]->type!=ST_AI) && clients[i]->team < 2)
 	{
 		++teamsize[clients[i]->team];
 		teamscore[clients[i]->team] += clients[i]->at3_score;
 	}
-	if(teamsize[0] == teamsize[1]) return sum > 200 ? (teamscore[0] < teamscore[1] ? 0 : 1) : rnd(2);
-	return teamsize[1] < teamsize[0] ? 1 : 0;
+	if(teamsize[0] != teamsize[1]) return teamsize[1] < teamsize[0] ? 1 : 0;
+	if(team_valid(suggest)) return suggest;
+	return sum > 200 ? (teamscore[0] < teamscore[1] ? 0 : 1) : rnd(2);
 }
 
 savedscore *findscore(client &c, bool insert){
@@ -1369,6 +1370,7 @@ void forcedeath(client *cl, bool gib = false){
 	clientstate &cs = cl->state;
 	cs.state = CS_DEAD;
 	//cs.respawn();
+	cs.lastspawn = -1;
 	cs.lastdeath = gamemillis;
 	cs.nukemillis = 0;
 	sendf(-1, 1, "ri2", gib ? N_FORCEGIB : N_FORCEDEATH, cl->clientnum);
