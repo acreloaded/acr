@@ -1419,6 +1419,21 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 			style |= FRAG_FIRST;
 			nokills = false;
 		}
+
+		// type of scoping
+		const int zoomtime = ADSTIME(actor->state.perk2 == PERK_TIME), scopeelapsed = min(gamemillis - actor->state.scopemillis, zoomtime + 500);
+		if(actor->state.scoping){
+			// quick/recent/full
+			if(scopeelapsed >= zoomtime){
+				style |= FRAG_SCOPE_FULL;
+				if(scopeelapsed < zoomtime + 500)
+					style |= FRAG_SCOPE_NONE; // recent, not hard
+			}
+		}
+		else{
+			// no/quick
+			if(scopeelapsed >= zoomtime) style |= FRAG_SCOPE_NONE;
+		}
 	}
 	else // suicide
 		suic = true;

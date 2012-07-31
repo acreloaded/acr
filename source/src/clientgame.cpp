@@ -593,12 +593,12 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 	}
 	if(style & FRAG_FIRST) concatstring(predicate, " for \fs\f3\fbfirst blood\fr");
 	if(style & FRAG_CRIT) concatstring(predicate, " with a \fs\f1\fbcritical hit\fr");
-	if(weapon < WEAP_MAX && ads_gun(weapon)){
+	if(pl != act && weapon < WEAP_MAX && ads_gun(weapon)){
 		char scopestyle = 0;
 		if(style & FRAG_SCOPE_NONE) scopestyle = (style & FRAG_SCOPE_FULL) ? 3 : 1;
 		else scopestyle = (style & FRAG_SCOPE_FULL) ? 4 : 2;
 		switch(scopestyle){
-			case 1: concatstring(predicate, " \fs\f2without\fr scoping"); break;
+			//case 1: concatstring(predicate, " \fs\f2without\fr scoping"); break;
 			case 2: concatstring(predicate, " \fs\f0\fbquickly\fr scoping"); break;
 			case 3: concatstring(predicate, " \fs\f1recently\fr scoping"); break;
 			case 4: concatstring(predicate, " \fs\f3hard\frscoping"); break;
