@@ -90,7 +90,7 @@ void shotevent::process(client *ci)
 	// apply spread
 	const float spreadf = to.dist(from)/1000.f,
 		crouchfactor = 1 - (gs.crouching ? min(gamemillis - gs.crouchmillis, CROUCHTIME) : CROUCHTIME - min(gamemillis - gs.crouchmillis, CROUCHTIME)) * .25f / CROUCHTIME;
-	const int zoomtime = ADSTIME / (gs.perk2 == PERK_TIME ? 2 : 1);
+	const int zoomtime = ADSTIME(gs.perk2 == PERK_TIME);
 	float adsfactor = 1 - float(gs.scoping ? min(gamemillis - gs.scopemillis, zoomtime) : zoomtime - min(gamemillis - gs.scopemillis, zoomtime)) * guns[weap].spreadrem / 100 / zoomtime;
 	if(weap==WEAP_SHOTGUN){
 		// apply shotgun spread

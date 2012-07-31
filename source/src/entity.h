@@ -71,7 +71,7 @@ struct itemstat { short add, start, max, sound; };
 extern itemstat ammostats[WEAP_MAX];
 extern itemstat powerupstats[];
 
-#define ADSTIME 400
+#define ADSTIME(perk) ((perk) ? 200 : 300)
 #define CROUCHTIME 500
 
 #define SGRAYS 24
