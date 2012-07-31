@@ -841,26 +841,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_RESUME:
 			{
-				loopi(TEAM_NUM-1)
-				{
-					const int
-						points = getint(p),
-						flags = getint(p),
-						frags = getint(p),
-						assist = getint(p),
-						death = getint(p);
-					teamscore &t = teamscores[i];
-					t.points = points;
-					t.flagscore = flags;
-					t.frags = frags;
-					t.assists = assist;
-					t.deaths = death;
-				}
 				loopi(MAXCLIENTS)
 				{
 					int cn = getint(p);
 					if(p.overread() || cn<0) break;
-					int state = getint(p), lifesequence = getint(p), gunselect = getint(p),
+					const int state = getint(p), lifesequence = getint(p), gunselect = getint(p),
 						primary = getint(p), secondary = getint(p),
 						points = getint(p), flagscore = getint(p),
 						frags = getint(p), assists = getint(p),

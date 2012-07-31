@@ -2771,15 +2771,6 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet){
 			if(!m_team(gamemode, mutators)) break;
 		}
 		putint(p, N_RESUME);
-		loopi(TEAM_NUM-1)
-		{
-			teamscore &t = steamscores[i];
-			putint(p, t.points);
-			putint(p, t.flagscore);
-			putint(p, t.frags);
-			putint(p, t.assists);
-			putint(p, t.deaths);
-		}
 		loopv(clients)
 		{
 			client &c = *clients[i];
@@ -3041,8 +3032,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				// sendresume
 				clientstate &cs = cl->state;
 				sendf(-1, 1, "rii5i5i9i9vvi", N_RESUME,
-					steamscores[0].points, steamscores[0].flagscore, steamscores[0].frags, steamscores[0].assists, steamscores[0].deaths, // 5
-					steamscores[1].points, steamscores[1].flagscore, steamscores[1].frags, steamscores[1].assists, steamscores[1].deaths, // 5
 					cs.state == CS_WAITING ? CS_DEAD : cs.state, // 1
 					cs.lifesequence,
 					cs.gunselect,
