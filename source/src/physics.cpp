@@ -537,10 +537,8 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 							pl->jumpnext = false;
 							pl->vel.z = 2.0f;								  // physics impulse upwards
 							if(water) { pl->vel.x /= 8; pl->vel.y /= 8; }	  // dampen velocity change even harder, gives correct water feel
-							else if(p && (p == player1 || isowned(p))){
-								// cast is OK because it is owned by us
+							else if(p && p->type == ENT_PLAYER && (p == player1 || isowned(p)) && p->perk2 != PERK_NINJA)
 								playsoundc(S_JUMP, (playerent *)pl);
-							}
 						}
 						pl->timeinair = 0;
 					}
