@@ -61,14 +61,11 @@ misc
 		crit.png
 		drown.png
 		fall.png
+		fall_water.png
 		grenade.png
 		heal.png
-		penetrate.png
 		revenge.png
 		revive.png
-		ricochet.png
-		spect.png
-		stealth.png
 		team.png
 			Crystal Icons LGPL
 		first.png - Deleket (http://deleket.deviantart.com/) CC-BY 3.0

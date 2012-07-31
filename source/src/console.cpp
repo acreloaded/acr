@@ -146,7 +146,7 @@ struct chatlist : consolebuffer<cline>{
 Texture **obittex(){
 	static Texture *tex[OBIT_NUM];
 	if(!*tex){
-		const char *texname[OBIT_NUM-OBIT_START] = { "death", "bot", "impact", "rpg_stuck", "knife_bleed", "knife_impact", "ff", "drown", "fall", "cheat", "airstrike", "nuke", "spect", "revive", "team", "headshot", "crit", "first", "revenge", "stealth", "penetrate", "ricochet" };
+		const char *texname[OBIT_NUM-OBIT_START] = { "death", "bot", "impact", "rpg_stuck", "knife_bleed", "knife_impact", "ff", "drown", "fall", "fall_water", "cheat", "airstrike", "nuke", "spect", "revive", "team", "headshot", "crit", "first", "revenge", };
 		loopi(OBIT_NUM){
 			defformatstring(tname)("packages/misc/obit/%s.png", i == WEAP_AKIMBO ? "akimbo" : i < OBIT_START ? guns[i].modelname : texname[i - OBIT_START]);
 			tex[i] = textureload(tname);
@@ -177,7 +177,7 @@ struct obitlist
 
 	int filterstyle(int style){
 		return style & (
-			FRAG_FIRST | FRAG_STEALTH | FRAG_PENETRATE | FRAG_RICOCHET | FRAG_REVENGE | FRAG_CRIT
+			FRAG_SCOPE_NONE | FRAG_SCOPE_FULL /* gib */ | FRAG_REVENGE | FRAG_CRIT /* flag */ | FRAG_FIRST
 		);
 	}
 
@@ -312,16 +312,14 @@ struct obitlist
 				defformatstring(obitalign)("%s %s%s", l.actor, l.target, combotext); // two half spaces = one space; 1 for combo if needed
 				// and the obit...
 				int left = (VIRTW - 16) * ts - text_width(obitalign) - obitaspect(l.obit) * FONTH;
+				// first
 				if(l.style & FRAG_FIRST) left -= obitaspect(OBIT_FIRST) * FONTH;
-				else if(l.style & FRAG_STEALTH)  left -= obitaspect(OBIT_STEALTH) * FONTH;
-
-				if(l.style & FRAG_PENETRATE) left -= obitaspect(OBIT_PENETRATE) * FONTH;
-				else if(l.style & FRAG_RICOCHET) left -= obitaspect(OBIT_RICOCHET) * FONTH;
-
+				// headshot
 				if(l.headshot) left -= obitaspect(OBIT_HEADSHOT) * FONTH;
-
+				// extra
 				if(l.style & FRAG_REVENGE) left -= obitaspect(OBIT_REVENGE) * FONTH;
 				else if(l.style & FRAG_CRIT) left -= obitaspect(OBIT_CRIT) * FONTH;
+				// bot obit width?
 				if(!*l.actor) left -= obitaspect(OBIT_BOT) * FONTH;
 				if(!*l.target) left -= obitaspect(OBIT_BOT) * FONTH;
 
@@ -335,13 +333,11 @@ struct obitlist
 				}
 				// 1st before the obit
 				if(l.style & FRAG_FIRST) x += drawobit(OBIT_FIRST, left + x, y, fade);
-				else if(l.style & FRAG_STEALTH) x += drawobit(OBIT_STEALTH, left + x, y, fade);
 				// now draw obituary symbol
 				x += drawobit(l.obit, left + x, y, fade);
-				if(l.style & FRAG_PENETRATE) x += drawobit(OBIT_PENETRATE, left + x, y, fade);
-				else if(l.style & FRAG_RICOCHET) x += drawobit(OBIT_RICOCHET, left + x, y, fade);
+				// then the headshot
 				if(l.headshot) x += drawobit(OBIT_HEADSHOT, left + x, y, fade);
-				// next two shouldn't be grouped, but somehow is
+				// revenge and crit are "extras"
 				if(l.style & FRAG_REVENGE) x += drawobit(OBIT_REVENGE, left + x, y, fade);
 				else if(l.style & FRAG_CRIT) x += drawobit(OBIT_CRIT, left + x, y, fade);
 				// end of weapon symbol

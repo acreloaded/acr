@@ -1377,7 +1377,7 @@ void forcedeath(client *cl, bool gib = false){
 // needs major cleanup...
 void serverdied(client *target, client *actor, int damage, int gun, int style, const vec &source){
 	clientstate &ts = target->state;
-	const bool gib = style & FRAG_GIB;
+	const bool gib = (style & FRAG_GIB) != 0;
 
 	ts.damagelog.removeobj(target->clientnum);
 	if(actor == target && ts.damagelog.length()){
@@ -1597,12 +1597,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 	ts.dodamage(damage, actor->state.perk1 == PERK_POWER);
 	ts.lastregen = gamemillis + REGENDELAY - REGENINT;
 
-	if(ts.health<=0){
-		// if they made a 1-shot kill without being damaged, it's a stealth kill
-		if(target != actor && ts.damagelog.find(actor->clientnum) < 0 && actor->state.damagelog.find(target->clientnum) < 0)
-			style |= FRAG_STEALTH;
-		serverdied(target, actor, damage, gun, style, source);
-	}
+	if(ts.health<=0) serverdied(target, actor, damage, gun, style, source);
 	else
 	{
 		if(ts.damagelog.find(actor->clientnum) < 0)
@@ -3630,30 +3625,33 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				// alive block
 				if(cs.state==CS_ALIVE)
 				{
-					// deal falling damage
-					const bool newonfloor = (f>>7)&1, newonladder = (f>>8)&1, newunderwater = newo.z < hdr.waterlevel;
-					if((newonfloor || newonladder || newunderwater) && !cs.onfloor){
-						if(newonfloor){ // air to solid
-							// 4 meters without damage + 2/0.5 HP/meter
-							//int damage = ((cs.fallz - newo.z) - 16) * HEALTHSCALE / (cs.perk1 == PERK1_LIGHT ? 8 : 2);
-							// 2 meters without damage, then square up to 10^2 = 100 for up to 20m (50m with lightweight)
-							int damage = 0;
-							if((cs.fallz - newo.z) > 8){
-								damage = powf(min<float>((cs.fallz - newo.z - 8) / 4 / (cs.perk1 == PERK1_LIGHT ? 5 : 2), 10), 2.f) * HEALTHSCALE; // 10 * 10 = 100
+					// deal damaage
+					if(!cs.protect(gamemillis, gamemode, mutators)){
+						// medium transfer (falling damage)
+						const bool newonfloor = (f>>7)&1, newonladder = (f>>8)&1, newunderwater = newo.z < hdr.waterlevel;
+						if((newonfloor || newonladder || newunderwater) && !cs.onfloor){
+							if(newonfloor){ // air to solid
+								// 4 meters without damage + 2/0.5 HP/meter
+								//int damage = ((cs.fallz - newo.z) - 16) * HEALTHSCALE / (cs.perk1 == PERK1_LIGHT ? 8 : 2);
+								// 2 meters without damage, then square up to 10^2 = 100 for up to 20m (50m with lightweight)
+								int damage = 0;
+								if((cs.fallz - newo.z) > 8){
+									damage = powf(min<float>((cs.fallz - newo.z - 8) / 4 / (cs.perk1 == PERK1_LIGHT ? 5 : 2), 10), 2.f) * HEALTHSCALE; // 10 * 10 = 100
+								}
+								if(damage >= 1*HEALTHSCALE){ // don't heal the player
+									// maximum damage is 99 for balance purposes
+									serverdamage(&cp, &cp, min(damage, 99 * HEALTHSCALE), WEAP_MAX + 2, FRAG_NONE, cs.o);
+								}
 							}
-							if(damage >= 1*HEALTHSCALE){ // don't heal the player
-								// maximum damage is 99 for balance purposes
-								serverdamage(&cp, &cp, min(damage, 99 * HEALTHSCALE), WEAP_MAX + 2, FRAG_NONE, cs.o);
+							else if(newunderwater && (cs.fallz - newo.z) > 32){ // air to liquid, more than 8 meters
+								serverdamage(&cp, &cp, 35 * HEALTHSCALE, WEAP_MAX + 9, FRAG_NONE, cs.o); // fixed damage @ 35
 							}
+							cs.onfloor = true;
 						}
-						else if(newunderwater && (cs.fallz - newo.z) > 32){ // air to liquid, more than 8 meters
-							serverdamage(&cp, &cp, 35 * HEALTHSCALE, WEAP_MAX + 2, FRAG_NONE, cs.o); // fixed damage @ 35
+						else if(!newonfloor){ // airborne
+							if(cs.onfloor || cs.fallz < newo.z) cs.fallz = newo.z;
+							cs.onfloor = false;
 						}
-						cs.onfloor = true;
-					}
-					else if(!newonfloor){ // airborne
-						if(cs.onfloor || cs.fallz < newo.z) cs.fallz = newo.z;
-						cs.onfloor = false;
 					}
 					// continue if and only if still alive
 					if(cs.state!=CS_ALIVE) break;

@@ -773,6 +773,7 @@ const int obit_suicide(int weap){
 		case 0: return OBIT_DEATH;
 		case 1: return OBIT_DROWN;
 		case 2: return OBIT_FALL;
+		case 9: return OBIT_FALL_WATER; // out of sequence
 		case 3: return OBIT_FF;
 		case 4: return OBIT_BOT;
 		case 5: return OBIT_CHEAT;
@@ -841,6 +842,9 @@ const char *suicname(int obit){
 			break;
 		case OBIT_FALL:
 			concatstring(k, "hit the ground");
+			break;
+		case OBIT_FALL_WATER:
+			concatstring(k, "dived from too high above");
 			break;
 		case OBIT_CHEAT:
 			concatstring(k, "just got punished for cheating");

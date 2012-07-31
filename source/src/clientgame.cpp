@@ -591,11 +591,19 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 		case 5: concatstring(predicate, ", \fs\f4\fbslaughering\fr"); break;
 		default: if(combo > 1) concatstring(predicate, ", \fs\f5\fbPWNING\fr"); break;
 	}
-	if(style & FRAG_PENETRATE) concatstring(predicate, " through penetrating \fs\f0\fbsomeone\fr");
-	if(style & FRAG_RICOCHET) concatstring(predicate, " off the \fs\f0\fbwall\fr");
 	if(style & FRAG_FIRST) concatstring(predicate, " for \fs\f3\fbfirst blood\fr");
 	if(style & FRAG_CRIT) concatstring(predicate, " with a \fs\f1\fbcritical hit\fr");
-	if(style & FRAG_STEALTH) concatstring(predicate, " with one \fs\f2\fbspecter\fr hit");
+	if(weapon < WEAP_MAX && ads_gun(weapon)){
+		char scopestyle = 0;
+		if(style & FRAG_SCOPE_NONE) scopestyle = (style & FRAG_SCOPE_FULL) ? 3 : 1;
+		else scopestyle = (style & FRAG_SCOPE_FULL) ? 4 : 2;
+		switch(scopestyle){
+			case 1: concatstring(predicate, " \fs\f2without\fr scoping"); break;
+			case 2: concatstring(predicate, " \fs\f0\fbquickly\fr scoping"); break;
+			case 3: concatstring(predicate, " \fs\f1recently\fr scoping"); break;
+			case 4: concatstring(predicate, " \fs\f3hard\frscoping"); break;
+		}
+	}
 	obitoutf(act->clientnum, "%s %s", subject, predicate);
 
 	++pl->deathstreak;
