@@ -328,7 +328,7 @@ struct botbalanceaction : serveraction
 		reqpriv = privconf('a');
 		reqveto = PRIV_MASTER; // botbalance
 		if(isvalid()){
-			formatstring(desc)(b<0?"automatically balance bots":b==0?"disable all bots":"balance to %d bots", b);
+			formatstring(desc)(b<0?"automatically balance bots":b==0?"disable all bots":b==1?"bots balance teams only":"balance to %d players", b);
 		}
 	}
 };
