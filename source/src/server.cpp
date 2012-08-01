@@ -3722,7 +3722,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						sendservmsg("\f3map upload failed -- no incoming", sender);
 					}
 				}
-				if (reject) logline(ACLOG_INFO,"[%s] %s sent map '%s', rejected: %s", cl->hostname, cl->name, sentmap, reject);
+				if (reject) logline(ACLOG_INFO,"[%s] %s sent map '%s', %d + %d(%d) bytes rejected: %s", cl->hostname, cl->name, sentmap, mapsize, cfgsize, cfgsizegz, reject);
 				p.len += mapsize + cfgsizegz;
 				break;
 			}
