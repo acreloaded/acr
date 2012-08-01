@@ -957,7 +957,7 @@ void htf_forceflag(int flag){
 int arenaround = 0;
 
 inline bool canspawn(client *c, bool connecting = false){
-	return maplayout && c->team != TEAM_SPECT && (!m_duke(gamemode, mutators) || (connecting && numauthedclients() <= 2) || (m_progressive(gamemode, mutators) && c->team == TEAM_BLUE));
+	return maplayout && c->team != TEAM_SPECT && (!m_duke(gamemode, mutators) || (connecting && numauthedclients() <= 2));
 }
 
 struct twoint { int index, value; };
