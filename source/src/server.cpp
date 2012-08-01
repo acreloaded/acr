@@ -2576,7 +2576,7 @@ bool sendmapserv(int n, string mapname, int mapsize, int cfgsize, int cfgsizegz,
         fp = fopen(name, "wb");
         if(fp)
         {
-			uchar *rawcfg = new uchar[cfgsizegz];
+			uchar *rawcfg = new uchar[cfgsize];
             uLongf rawsize = cfgsize;
             if(uncompress(rawcfg, &rawsize, data + mapsize, cfgsizegz) == Z_OK && rawsize == cfgsize) // rawsize - cfgsize == 0 (why?!)
                 fwrite(rawcfg, 1, cfgsize, fp);
