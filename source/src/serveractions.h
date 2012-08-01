@@ -53,7 +53,7 @@ struct mapaction : serveraction
 			mapstats *ms = (map && *map) ? getservermapstats(map, false, &maploc) : NULL;
 			mapok = true;
 			if(!ms){
-				sendmsg(12, caller);
+				sendservmsg("\f3the server does not have this map (sendmap first)", caller);
 				mapok = false;
 			}
 			else{
@@ -61,13 +61,18 @@ struct mapaction : serveraction
 				const bool flags = ms->hasflags || m_hunt(mode) || !m_affinity(mode);
 				if(m_edit(mode)){ // admin needed for coopedit
 					reqpriv = privconf('E');
-					if(reqpriv) sendmsg(10, caller);
+					if(reqpriv) sendservmsg("\f3INFO: coopedit is restricted", caller);
 				}
 				if(!spawns || !flags)
 				{
 					reqpriv = privconf('P');
 					if(reqpriv && !strchr(scl.voteperm, 'P')) mapok = false;
-					sendf(caller, 1, "ri5s", N_CONFMSG, 15, mode, muts, (spawns ? 0 : 1) | (flags ? 0 : 2), behindpath(map));
+					defformatstring(msg)("\f3map \"%s\" does not support \"%s\": ", behindpath(map), modestr(mode, muts, false));
+					if(!spawns) concatstring(msg, "player spawns");
+					if(!spawns && !flags) concatstring(msg, " and ");
+					if(!flags) concatstring(msg, "flag bases");
+					concatstring(msg, " missing");
+					sendservmsg(msg, caller);
 				}
 			}
 			loopv(scl.adminonlymaps) // admin needed for these maps

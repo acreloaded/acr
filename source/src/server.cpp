@@ -316,18 +316,8 @@ void sendf(int cn, int chan, const char *format, ...){
 	if(!packet->referenceCount) enet_packet_destroy(packet);
 }
 
-inline void sendservmsg(const char *msg, int client = -1){ // compact to below every new protocol
+inline void sendservmsg(const char *msg, int client = -1){
 	sendf(client, 1, "ris", N_SERVMSG, msg);
-}
-
-inline void sendmsg(int msg, int client = -1){
-	sendf(client, 1, "ri2", N_CONFMSG, msg);
-}
-inline void sendmsgs(int msg, const char *str, int client = -1){
-	sendf(client, 1, "ri2s", N_CONFMSG, msg, str);
-}
-inline void sendmsgi(int msg, int num, int client = -1){
-	sendf(client, 1, "ri3", N_CONFMSG, msg, num);
 }
 
 void streakready(client &c, int streak){
@@ -475,8 +465,9 @@ void enddemorecord(){
 	}
 	demofile &d = demos.add();
 	formatstring(d.info)("%s: %s, %s, %.2f%s", asctime(), modestr(gamemode, mutators), smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB");
-	sendmsgs(26, d.info);
-	logline(ACLOG_INFO, "Demo \"%s\" recorded.", d.info);
+	defformatstring(msg)("Demo \"%s\" recorded.", d.info);
+	sendservmsg(msg);
+	logline(ACLOG_INFO, "%s", msg);
 	d.data = new uchar[len];
 	d.len = len;
 	fread(d.data, 1, len, demotmp);
@@ -532,7 +523,7 @@ void setupdemorecord(){
 	}
 #endif
 
-	sendmsg(20);
+	sendservmsg("recording demo");
 	logline(ACLOG_INFO, "Demo recording started.");
 
 	demorecord = f;
@@ -596,13 +587,17 @@ static void cleardemos(int n){
 void senddemo(int cn, int num){
 	if(!valid_client(cn)) return;
 	if(clients[cn]->priv < scl.demodownloadpriv){
-		sendmsgi(29, scl.demodownloadpriv, cn);
+		defformatstring(msg)("you need %s to download demos", privname(scl.demodownloadpriv));
+		sendservmsg(msg);
 		return;
 	}
 	if(!num) num = demos.length();
 	if(!demos.inrange(num-1)){
-		if(demos.empty()) sendmsg(27, cn);
-		else sendmsgi(28, num, cn);
+		if(demos.empty()) sendservmsg("no demos available", cn);
+		else{
+			defformatstring(msg)("no demo #%d available", num);
+			sendservmsg(msg, cn);
+		}
 		return;
 	}
 	demofile &d = demos[num-1];
@@ -616,30 +611,31 @@ void enddemoplayback(){
 
 	loopv(clients) sendf(i, 1, "ri3", N_DEMOPLAYBACK, 0, i);
 
-	sendmsg(21);
+	sendservmsg("demo playback finished");
 
 	loopv(clients) sendwelcome(clients[i]);
 }
 
 void setupdemoplayback(){
 	demoheader hdr;
-	int msg = 0;
+	string msg;
+	*msg = '\0';
 	defformatstring(file)("demos/%s.dmo", smapname);
 	path(file);
 	demoplayback = opengzfile(file, "rb9");
-	if(!demoplayback) msg = 22;
+	if(!demoplayback) formatstring(msg)("could not read demo \"%s\"", file);
 	else if(gzread(demoplayback, &hdr, sizeof(demoheader))!=sizeof(demoheader) || memcmp(hdr.magic, DEMO_MAGIC, sizeof(hdr.magic)))
-		msg = 23;
+		formatstring(msg)("\"%s\" is not a demo file", file);
 	else
 	{
 		endianswap(&hdr.version, sizeof(int), 1);
 		endianswap(&hdr.protocol, sizeof(int), 1);
-		if(hdr.version!=DEMO_VERSION) msg = hdr.version<DEMO_VERSION ? 24 : 25;
-		else if(hdr.protocol != PROTOCOL_VERSION && !(hdr.protocol < 0 && hdr.protocol == -PROTOCOL_VERSION)) msg = hdr.protocol<PROTOCOL_VERSION ? 24 : 25;
+		if(hdr.version!=DEMO_VERSION) formatstring(msg)("demo \"%s\" requires a %s version (demo)", file, hdr.version<DEMO_VERSION ? "older" : "newer");
+		else if(hdr.protocol != PROTOCOL_VERSION && !(hdr.protocol < 0 && hdr.protocol == -PROTOCOL_VERSION)) formatstring(msg)("demo \"%s\" requires a %s version (protocol)", file, hdr.protocol<PROTOCOL_VERSION ? "older" : "newer");
 	}
-	if(msg){
+	if(msg[0]){
 		if(demoplayback) { gzclose(demoplayback); demoplayback = NULL; }
-		sendmsgs(msg, file);
+		sendservmsg(msg);
 		return;
 	}
 
@@ -2209,7 +2205,7 @@ void resetmap(const char *newname, int newmode, int newmuts, int newtime, bool n
 		}
 		// copyrevision = copymapsize == smapstats.cgzsize ? smapstats.hdr.maprevision : 0;
 	}
-	else sendmsg(11);
+	else sendservmsg("\f3map not found - start another map or send the map to the server");
 
 	clearai(); // re-init ai (clear)
 
@@ -2733,10 +2729,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet){
 		}
 	}
 
-	if(demorecord){
-		putint(p, N_CONFMSG);
-		putint(p, 20);
-	}
+	if(demorecord) sendservmsg("currently recording demo", n);
 
 	// sendservopinfo(*)
 	loopv(clients) if(valid_client(i)){
@@ -2836,7 +2829,8 @@ void checkmove(client &cp){
 		if(cp.type == ST_AI) cp.suicide(WEAP_MAX + 4);
 		else{
 			logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", gethostname(sender), formatname(cp), ++cp.mapcollisions);
-			sendmsgi(40, sender);
+			defformatstring(msg)("%s (%d) \f2collides with the map \f5- \f3forcing death", cp.name, sender);
+			sendservmsg(msg);
 			sendf(sender, 1, "ri", N_MAPIDENT);
 			forcedeath(&cp);
 			cp.isonrightmap = false; // cannot spawn until you get the right map
@@ -3757,7 +3751,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				}
 				else{
 					cl->isonrightmap = true;
-					sendmsg(13, sender);
+					sendservmsg("no map is available for you to get", sender);
 				}
 				break;
 
@@ -4068,16 +4062,17 @@ void checkintermission(){
 		minremain = gamemillis>=gamelimit || forceintermission ? 0 : (gamelimit - gamemillis + 60000 - 1)/60000;
 		if(isdedicated) loopv(clients) if(valid_client(i, true)) sendf(i, 1, "ri3", N_ACCURACY, clients[i]->state.damage, clients[i]->state.shotdamage);
 		if(minremain < 2){
-			short nextmaptype = 0, nextmaptime = 0, nextmapmode = G_DM, nextmapmuts = G_M_NONE;
+			short nextmaptime = 0, nextmapmode = G_DM, nextmapmuts = G_M_NONE;
 			string nextmapnm = "unknown";
+			string msg;
 			if(*nextmapname){ // map vote
-				nextmaptype = 1;
+				copystring(msg, "\f2Voted for next map:");
 				copystring(nextmapnm, nextmapname);
 				nextmapmode = nextgamemode;
 				nextmapmuts = nextgamemuts;
 			}
 			else if(configsets.length()){ // next map rotation
-				nextmaptype = 2;
+				copystring(msg, "\f1Potential next on map rotation:");
 				configset nextmaprot = configsets[nextcfgset(false, true)];
 				copystring(nextmapnm, nextmaprot.mapname);
 				nextmapmode = nextmaprot.mode;
@@ -4085,13 +4080,14 @@ void checkintermission(){
 				nextmaptime = nextmaprot.time;
 			}
 			else{ // no map rotation entries
-				nextmaptype = 3;
+				copystring(msg, "\f2No map rotation entries--reloading");
 				copystring(nextmapnm, smapname);
 				nextmapmode = smode;
 				nextmapmuts = smuts;
 			}
 			if(nextmaptime < 1) nextmaptime = m_team(nextmapmode, nextmapmuts) ? 15 : 10;
-			if(nextmaptype) sendf(-1, 1, "ri6s", N_CONFMSG, 14, nextmaptime, nextmapmode, nextmapmuts, nextmaptype, nextmapnm);
+			concatformatstring(msg, " \fs\f3%s\fr in mode \fs\f3%s\fr for %d minutes", nextmapnm, modestr(nextmapmode, nextmapmuts), nextmaptime);
+			sendservmsg(msg);
 		}
 		if(!minremain) sendf(-1, 1, "ri4", N_TIMEUP, gamelimit, gamelimit - 60000 + 1, gamemusicseed); // force intermission
 		else sendf(-1, 1, "ri4", N_TIMEUP, gamemillis, gamelimit, gamemusicseed);
