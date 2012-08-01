@@ -28,6 +28,7 @@ struct mapaction : serveraction
 {
 	char *map;
 	int mode, muts;
+	bool mapok;
 	void perform()
 	{
 		if(isdedicated && numclients() > 2 && smode >= 0 && !m_edit(gamemode) && gamemillis > gamelimit/5)
@@ -42,37 +43,36 @@ struct mapaction : serveraction
 			resetmap(map, mode, muts);
 		}
 	}
-	bool isvalid() { return serveraction::isvalid() && map[0] && m_valid(mode); }
+	bool isvalid() { return serveraction::isvalid() && *map && m_valid(mode) && mode != G_DEMO && mapok; }
 	bool isdisabled() { return configsets.inrange(curcfgset) && !configsets[curcfgset].vote; }
 	mapaction(char *map, int mode, int muts, int caller) : map(map), mode(mode), muts(muts)
 	{
 		if(isdedicated)
 		{
-			const bool notify = valid_client(caller) && clients[caller]->priv < PRIV_ADMIN;
 			mapstats *ms = getservermapstats(map);
-			if(privconf('x') && !ms){ // admin needed for unknown maps
-				reqpriv = PRIV_ADMIN;
-				if(notify) sendmsg(12, caller);
+			mapok = true;
+			if(!ms){
+				sendmsg(12, caller);
+				mapok = false;
 			}
-			if(m_edit(mode) && notify){ // admin needed for coopedit
-				sendmsg(10, caller);
-				reqpriv = PRIV_ADMIN;
-			}
-			if(ms && privconf('P')) // admin needed for mismatched modes
-			{
+			else{
 				const bool spawns = (m_team(mode, muts) && !m_keep(mode) && !m_zombie(mode)) ? ms->hasteamspawns : ms->hasffaspawns;
 				const bool flags = ms->hasflags || m_hunt(mode) || !m_affinity(mode);
+				if(m_edit(mode)){ // admin needed for coopedit
+					reqpriv = privconf('E');
+					if(reqpriv) sendmsg(10, caller);
+				}
 				if(!spawns || !flags)
 				{
-					reqpriv = PRIV_ADMIN;
+					reqpriv = privconf('P');
+					if(reqpriv && !strchr(scl.voteperm, 'P')) mapok = false;
 					sendf(caller, 1, "ri5s", N_CONFMSG, 15, mode, muts, (spawns ? 0 : 1) | (flags ? 0 : 2), behindpath(map));
 				}
 			}
 			loopv(scl.adminonlymaps) // admin needed for these maps
 				if(!strcmp(behindpath(map), scl.adminonlymaps[i]))
 					reqpriv = PRIV_ADMIN;
-			if(notify)
-				passratio = 0.59f; // you need 60% to vote a map without admin
+			passratio = 0.59f; // you need 60% to vote a map
 		}
 		formatstring(desc)("load map '%s' in mode '%s'", map, modestr(mode, muts));
 	}

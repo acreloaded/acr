@@ -22,7 +22,7 @@ enum{
 	N_LISTDEMOS, N_DEMO, N_DEMOPLAYBACK, // demos
 	N_AUTHREQ, N_AUTHCHAL, // auth
 	N_CLAIMPRIV, N_SETPRIV, // privileges
-	N_MAPC2S, N_MAPS2C, // map transit
+	N_MAPC2S, N_MAPS2C, N_MAPDELETE, // map transit
 	// editmode ONLY
 	N_EDITMODE, N_EDITH, N_EDITT, N_EDITS, N_EDITD, N_EDITE, N_EDITW, N_EDITENT, N_NEWMAP,
 	// game events

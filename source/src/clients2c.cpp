@@ -994,13 +994,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				string msg = "server sent unknown message";
 				switch(n){
 					case 10: // 1* maps
-						copystring(msg, "\f3coopedit is restricted to admins!");
+						copystring(msg, "\f3coopedit is restricted!");
 						break;
 					case 11:
 						copystring(msg, "\f3map not found - start another map or send the map to the server");
 						break;
 					case 12:
-						copystring(msg, "\f3the server does not have this map");
+						copystring(msg, "\f3the server does not have this map (sendmap first)");
 						break;
 					case 13:
 						copystring(msg, "no map to get");

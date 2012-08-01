@@ -56,9 +56,14 @@
           //    r record a demo of the next game
           //    c clear all demos on server
           //    d change server description
-          //    x vote for maps, that are not present on the server
-          //    p vote for a gamemode that is not supported by the map
-          //    default: fkbMasRCDxPQ (lowercase: a user can vote for it; uppercase: admin role is required to vote)
+          //    e vote for coopedit mode
+          //    p vote for a gamemode that is not supported by the map (default: no one can)
+          //    default: fkbMasRCDEQ (lowercase: a user can vote for it; uppercase: admin role is required to vote)
+// -M     // sendmap permission string (read docs/commandline.html)
+          //    c create new map (initial map upload)
+          //    u update existing map (r is not available)
+          //    d delete map (default: no one can)
+          //    default: cU (lowercase: any user is allowed to do it; uppercase: admin role is required)
 
 // rarely used switches:
 
@@ -80,7 +85,7 @@
           //    5  do not write to the log
 // -A     // Restricts voting for a map to admins. This switch can be used several times. 
 
-// don't use this switches, unless you really know what you're doing:
+// don't use these switches, unless you really know what you're doing:
 
 // -u     // uprate
 // -i     // ip, only for machines with multiple network interfaces

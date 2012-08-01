@@ -2507,6 +2507,55 @@ bool copyrw = false;
 
 int mapavailable(const char *mapname) { return copydata && !strcmp(copyname, behindpath(mapname)) ? copymapsize : 0; }
 
+// provide maps by the server
+enum { MAP_NOTFOUND = 0, MAP_TEMP, MAP_CUSTOM, MAP_LOCAL, MAP_OFFICIAL, MAP_MAX };
+const char *maplocstr[MAP_MAX] = { "not found", "incoming", "custom", "local", "official", };
+#define readonlymap(x) ((x) >= MAP_CUSTOM)
+#define distributablemap(x) ((x) == MAP_TEMP || (x) == MAP_CUSTOM)
+
+int findmappath(const char *mapname, char *filename)
+{
+	string tempname;
+	if(!filename) filename = tempname;
+	const char *name = behindpath(mapname);
+	if(!mapname[0]) return MAP_NOTFOUND;
+	formatstring(filename)(SERVERMAP_PATH_BUILTIN "%s.cgz", name);
+	path(filename);
+	int loc = MAP_NOTFOUND;
+	if(getfilesize(filename) > 10) loc = MAP_OFFICIAL;
+	else
+	{
+#ifndef STANDALONE
+		copystring(filename, setnames(name));
+		if(!isdedicated && getfilesize(filename) > 10) loc = MAP_LOCAL;
+		else
+		{
+#endif
+			formatstring(filename)(SERVERMAP_PATH "%s.cgz", name);
+			path(filename);
+			if(isdedicated && getfilesize(filename) > 10) loc = MAP_CUSTOM;
+			else
+			{
+				formatstring(filename)(SERVERMAP_PATH_INCOMING "%s.cgz", name);
+				path(filename);
+				if(isdedicated && getfilesize(filename) > 10) loc = MAP_TEMP;
+			}
+#ifndef STANDALONE
+		}
+#endif
+	}
+	return loc;
+}
+
+mapstats *getservermapstats(const char *mapname, bool getlayout, int *maploc){
+	string filename;
+	int ml;
+	if(!maploc) maploc = &ml; // prevent null dereference
+	*maploc = findmappath(mapname, filename);
+	if(getlayout) DELETEA(maplayout);
+    return *maploc == MAP_NOTFOUND ? NULL : loadmapstats(filename, getlayout);
+}
+
 bool sendmapserv(int n, string mapname, int mapsize, int cfgsize, int cfgsizegz, uchar *data){
 	string name;
 	FILE *fp;
@@ -2546,63 +2595,6 @@ bool sendmapserv(int n, string mapname, int mapsize, int cfgsize, int cfgsizegz,
 		}
 	}
 	return written;
-}
-
-ENetPacket *getmapserv(int n){
-	if(!mapavailable(smapname)) return NULL;
-	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS + copysize, ENET_PACKET_FLAG_RELIABLE);
-	ucharbuf p(packet->data, packet->dataLength);
-	putint(p, N_MAPS2C);
-	sendstring(copyname, p);
-	putint(p, copymapsize);
-	putint(p, copycfgsize);
-	putint(p, copycfgsizegz);
-	p.put(copydata, copysize);
-	enet_packet_resize(packet, p.length());
-	return packet;
-}
-
-void recvmapserv(client *cl){
-	const int sender = cl->clientnum;
-	ENetPacket *mappacket = getmapserv(cl->clientnum);
-	if(mappacket)
-	{
-		resetflag(sender); // drop ctf flag
-		// save score
-		savedscore *sc = findscore(*cl, true);
-		if(sc) sc->save(cl->state);
-		// resend state properly
-		sendpacket(sender, 2, mappacket);
-		cl->mapchange();
-		sendwelcome(cl, 2);
-	}
-	else{
-		cl->isonrightmap = true;
-		sendmsg(13, sender);
-	}
-}
-
-// provide maps by the server
-
-mapstats *getservermapstats(const char *mapname, bool getlayout){
-	const char *name = behindpath(mapname);
-	defformatstring(filename)(SERVERMAP_PATH "%s.cgz", name);
-	path(filename);
-	bool found = fileexists(filename, "r");
-	if(!found)
-	{
-		formatstring(filename)(SERVERMAP_PATH_INCOMING "%s.cgz", name);
-		path(filename);
-		found = fileexists(filename, "r");
-		if(!found)
-		{
-			formatstring(filename)(SERVERMAP_PATH_BUILTIN "%s.cgz", name);
-			path(filename);
-			found = fileexists(filename, "r");
-		}
-	}
-	if(getlayout) DELETEA(maplayout);
-	return found ? loadmapstats(filename, getlayout) : NULL;
 }
 
 #define GZBUFSIZE ((MAXCFGFILESIZE * 11) / 10)
@@ -3645,7 +3637,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					// deal damaage
 					if(!cs.protect(gamemillis, gamemode, mutators)){
 						// medium transfer (falling damage)
-						const bool newonfloor = (f>>7)&1, newonladder = (f>>8)&1, newunderwater = newo.z < hdr.waterlevel;
+						const bool newonfloor = (f>>7)&1, newonladder = (f>>8)&1, newunderwater = newo.z < smapstats.hdr.waterlevel;
 						if((newonfloor || newonladder || newunderwater) && !cs.onfloor){
 							if(newonfloor){ // air to solid
 								// 4 meters without damage + 2/0.5 HP/meter
@@ -3690,42 +3682,118 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				break;
 			}
 
-			case N_MAPC2S:
+			case N_MAPC2S: // client sendmap
 			{
 				getstring(text, p);
 				filtertext(text, text);
 				int mapsize = getint(p);
 				int cfgsize = getint(p);
 				int cfgsizegz = getint(p);
-				if(p.remaining() < mapsize + cfgsizegz)
+				if(p.remaining() < mapsize + cfgsizegz || MAXMAPSENDSIZE < mapsize + mapsize || MAXCFGFILESIZE < mapsize + cfgsizegz)
 				{
 					p.forceoverread();
 					break;
 				}
-				bool found = mapavailable(text) > 0;
-				if((!found || cl->priv >= PRIV_ADMIN) && sendmapserv(sender, text, mapsize, cfgsize, cfgsizegz, &p.buf[p.len]))
+				const char *sentmap = behindpath(text), *reject = NULL;
+				const int mp = findmappath(sentmap);
+				if(readonlymap(mp))
 				{
-					sendf(-1, 1, "ri2s", N_MAPC2S, sender, text);
-					logline(ACLOG_INFO,"[%s] %s sent map %s, %d + %d(%d) bytes written",
-								gethostname(sender), formatname(clients[sender]), text, mapsize, cfgsize, cfgsizegz);
-					// reset
-					//loopv(clients) if(i != sender && clients[i]->type == ST_TCPIP) recvmapserv(clients[i]);
-					if(!found) resetmap(smapname, smode, smuts);
+					reject = "map is read-only";
+					defformatstring(msg)("\f3map upload rejected: map %s is readonly", sentmap);
+					sendservmsg(msg, sender);
+				}
+				else if(!strcmp(sentmap, behindpath(smapname)))
+				{
+					reject = "currently loaded";
+					sendservmsg("\f3you cannot upload the currently loaded map", sender);
+				}
+				// too much uploaded?
+				// initial upload
+				else if(mp == MAP_NOTFOUND && strchr(scl.mapperm, 'C') && cl->priv < PRIV_ADMIN) // default: everyone can upload the initial map
+				{
+					reject = "no permission for initial upload";
+					sendservmsg("\f3initial map upload rejected: you need admin", sender);
+				}
+				else if(mp == MAP_TEMP /*&& revision >= mapbuffer.revision*/ && !strchr(scl.mapperm, 'u') && cl->priv < PRIV_ADMIN) // default: only admins can update maps
+				{
+					reject = "no permission to update";
+					sendservmsg("\f3map update rejected: you need admin", sender);
 				}
 				else
 				{
-					logline(ACLOG_INFO,"[%s] %s sent map %s, not written to file",
-								gethostname(sender), formatname(clients[sender]), text);
-					// could not write
-					sendmsg(16);
+					if(sendmapserv(sender, text, mapsize, cfgsize, cfgsizegz, &p.buf[p.len]))
+					{
+						//incoming_size += mapsize + cfgsizegz;
+						logline(ACLOG_INFO,"[%s] %s sent map %s, %d + %d(%d) bytes written",
+							cl->hostname, cl->name, sentmap, mapsize, cfgsize, cfgsizegz);
+						sendf(-1, 1, "ri2s", N_MAPC2S, sender, sentmap);
+					}
+					else
+					{
+						reject = "write failed (no 'incoming'?)";
+						sendservmsg("\f3map upload failed -- no incoming", sender);
+					}
 				}
+				if (reject) logline(ACLOG_INFO,"[%s] %s sent map '%s', rejected: %s", cl->hostname, cl->name, sentmap, reject);
 				p.len += mapsize + cfgsizegz;
 				break;
 			}
 
-			case N_MAPS2C:
-				recvmapserv(cl);
+			case N_MAPS2C: // client getmap
+				if(mapavailable(smapname))
+				{
+					resetflag(sender); // drop ctf flag
+					savedscore *sc = findscore(*cl, true); // save score
+					if(sc) sc->save(cl->state);
+					// send packet
+					ENetPacket *packet = enet_packet_create(NULL, MAXTRANS + copysize, ENET_PACKET_FLAG_RELIABLE);
+					ucharbuf pp(packet->data, packet->dataLength);
+					putint(pp, N_MAPS2C);
+					sendstring(copyname, pp);
+					putint(pp, copymapsize);
+					putint(pp, copycfgsize);
+					putint(pp, copycfgsizegz);
+					pp.put(copydata, copysize);
+					enet_packet_resize(packet, pp.length());
+					sendpacket(sender, 2, packet);
+					// restore
+					cl->mapchange();
+					sendwelcome(cl, 2); // resend state properly
+				}
+				else{
+					cl->isonrightmap = true;
+					sendmsg(13, sender);
+				}
 				break;
+
+			case N_MAPDELETE:
+			{
+				getstring(text, p);
+				break; // TODO
+				filtertext(text, text);
+				const char *rmmap = behindpath(text), *reject = NULL;
+				if(cl->priv < PRIV_ADMIN) reject = "no permission";
+				// reject = "map is readonly";
+				// reject = "map is not found";
+				else
+				{
+					string tmp;
+					formatstring(tmp)(SERVERMAP_PATH_INCOMING "%s.cgz", rmmap);
+					remove(tmp);
+					formatstring(tmp)(SERVERMAP_PATH_INCOMING "%s.cfg", rmmap);
+					remove(tmp);
+					formatstring(tmp)("map '%s' deleted", rmmap);
+					sendservmsg(tmp, sender);
+					logline(ACLOG_INFO,"[%s] deleted map %s", cl->hostname, rmmap);
+				}
+				if (reject)
+				{
+					logline(ACLOG_INFO,"[%s] deleting map %s failed: %s", cl->hostname, rmmap, reject);
+					defformatstring(msg)("\f3can't delete map '%s', %s", rmmap, reject);
+					sendservmsg(msg, sender);
+				}
+				break;
+			}
 
 			case N_DROPFLAG:
 			{

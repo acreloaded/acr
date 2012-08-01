@@ -775,7 +775,7 @@ struct servercommandline
 	int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, verbose, demodownloadpriv, afktimelimit;
 	const char *ip, *master, *logident, *serverpassword, *demopath, *maprot, *pwdfile, *blfile, *nbfile, *infopath, *botfile;
 	bool demoeverymatch, logtimestamp;
-	string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm;
+	string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm, mapperm;
 	int clfilenesting;
 	vector<const char *> adminonlymaps;
 
@@ -787,7 +787,7 @@ struct servercommandline
 							demoeverymatch(false), logtimestamp(false),
 							clfilenesting(0)
 	{
-		motd[0] = servdesc_full[0] = servdesc_pre[0] = servdesc_suf[0] = voteperm[0] = '\0';
+		motd[0] = servdesc_full[0] = servdesc_pre[0] = servdesc_suf[0] = voteperm[0] = mapperm[0] = '\0';
 	}
 
 	bool checkarg(const char *arg)
@@ -850,14 +850,15 @@ struct servercommandline
 				break;
 			}
 			case 'P': concatstring(voteperm, a); break;
-			case 'V': verbose++; break;
+			case 'M': concatstring(mapperm, a); break;
+			case 'V': ++verbose; break;
 #ifdef STANDALONE
 			case 'C': if(*a && clfilenesting < 3)
 			{
 				extern char *loadcfgfile(char *cfg, const char *name, int *len);
 				string clfilename;
 				int len, line = 1;
-				clfilenesting++;
+				++clfilenesting;
 				char *buf = loadcfgfile(clfilename, a, &len);
 				if(buf)
 				{
@@ -873,7 +874,7 @@ struct servercommandline
 					// don't free *buf - we may still have pointers using it
 				}
 				else printf("failed to read file '%s'\n", clfilename);
-				clfilenesting--;
+				--clfilenesting;
 				break;
 			}
 #endif

@@ -659,7 +659,8 @@ void setpriv(int client, int priv);
 int mapavailable(const char *mapname);
 void getservermap(void);
 // int findmappath(const char *mapname, char *filename = NULL);
-mapstats *getservermapstats(const char *mapname, bool getlayout = false);
+mapstats *getservermapstats(const char *mapname, bool getlayout = false, int *maploc = NULL);
+int findmappath(const char *mapname, char *filename = NULL);
 void sendf(int cn, int chan, const char *format, ...);
 void sendteamscore(int team, int reciever = -1);
 
