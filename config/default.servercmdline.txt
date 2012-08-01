@@ -62,7 +62,7 @@
 // -M     // sendmap permission string (read docs/commandline.html)
           //    c create new map (initial map upload)
           //    u update existing map (r is not available)
-          //    d delete map (default: no one can)
+          //    d delete map (default: owner only)
           //    default: cU (lowercase: any user is allowed to do it; uppercase: admin role is required)
 
 // rarely used switches:

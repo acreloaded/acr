@@ -3758,16 +3758,15 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case N_MAPDELETE:
 			{
 				getstring(text, p);
-				break; // TODO
 				filtertext(text, text);
 				const char *rmmap = behindpath(text), *reject = NULL;
-				if(cl->priv < PRIV_ADMIN) reject = "no permission";
-				// reject = "map is readonly";
-				// reject = "map is not found";
+				const int mp = findmappath(rmmap), reqrole = strchr(scl.mapperm, 'D') ? PRIV_ADMIN : (strchr(scl.mapperm, 'd') ? PRIV_MASTER : PRIV_MAX);
+				if(cl->priv < reqrole) reject = "no permission";
+				else if(readonlymap(mp)) reject = "map is readonly";
+				else if(mp == MAP_NOTFOUND) reject = "map was not found";
 				else
 				{
-					string tmp;
-					formatstring(tmp)(SERVERMAP_PATH_INCOMING "%s.cgz", rmmap);
+					defformatstring(tmp)(SERVERMAP_PATH_INCOMING "%s.cgz", rmmap);
 					remove(tmp);
 					formatstring(tmp)(SERVERMAP_PATH_INCOMING "%s.cfg", rmmap);
 					remove(tmp);
