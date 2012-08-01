@@ -359,7 +359,7 @@ void processevents(){
 				cs.lastregen = gamemillis;
 			}
 		}
-		else if(cs.state == CS_WAITING || (c.type == ST_AI && cs.state == CS_DEAD && cs.lastspawn<0)){ // spawn queue
+		else if(cs.state == CS_WAITING || (c.type == ST_AI && valid_client(c.state.ownernum) && clients[c.state.ownernum]->isonrightmap && cs.state == CS_DEAD && cs.lastspawn<0)){ // spawn queue
 			const int waitremain = SPAWNDELAY - gamemillis + cs.lastdeath;
 			if(canspawn(&c) && waitremain <= 0) sendspawn(&c);
 			//else sendmsgi(41, waitremain, sender);
