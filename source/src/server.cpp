@@ -2571,7 +2571,7 @@ bool sendmapserv(int n, string mapname, int mapsize, int cfgsize, int cfgsizegz,
     {
         fwrite(data, 1, mapsize, fp);
         fclose(fp);
-		//if(!cfgsize || !cfgsizegz) return true;
+		if(!cfgsize || !cfgsizegz) return true;
         formatstring(name)(SERVERMAP_PATH_INCOMING "%s.cfg", mapname);
         path(name);
         fp = fopen(name, "wb");
