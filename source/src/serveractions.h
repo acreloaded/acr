@@ -106,7 +106,7 @@ struct playeraction : serveraction
 
 struct forceteamaction : playeraction
 {
-	void perform() { updateclientteam(cn, team_opposite(clients[cn]->team), FTR_AUTOTEAM); }
+	void perform() { updateclientteam(cn, team_opposite(clients[cn]->team), FTR_AUTOTEAM); checkai(); }
 	virtual bool isvalid() { return playeraction::isvalid() && m_team(gamemode, mutators); }
 	forceteamaction(int cn, int caller) : playeraction(cn)
 	{
@@ -132,7 +132,7 @@ struct revokeaction : playeraction
 
 struct spectaction : playeraction
 {
-	void perform(){ if(isvalid()){ if(clients[cn]->team == TEAM_SPECT) updateclientteam(cn, chooseteam(*clients[cn]), FTR_AUTOTEAM); else updateclientteam(cn, TEAM_SPECT, FTR_AUTOTEAM); } }
+	void perform(){ if(isvalid()){ if(clients[cn]->team == TEAM_SPECT) updateclientteam(cn, chooseteam(*clients[cn]), FTR_AUTOTEAM); else updateclientteam(cn, TEAM_SPECT, FTR_AUTOTEAM); checkai(); } }
 	spectaction(int cn, int caller) : playeraction(cn){
 		if(cn != caller){ reqpriv = privconf('f'); passratio = 0.65f;}
 		else passratio = 0.55f;

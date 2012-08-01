@@ -734,6 +734,7 @@ void check_afk(){
 			(c.state.state == CS_ALIVE /*&& c.state.upspawnp */)) {
 			logline(ACLOG_INFO, "[%s] %s is afk, forcing to spectator", gethostname(i), formatname(c));
 			updateclientteam(i, TEAM_SPECT, FTR_AUTOTEAM);
+			checkai();
 		}
 	}
 }
@@ -1602,6 +1603,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	// conversions
 	if(!suic && m_convert(gamemode, mutators) && target->team != actor->team){
 		updateclientteam(target->clientnum, actor->team, FTR_SILENT);
+		// checkai(); // DO NOT balance bots here
 		if(!m_duke(gamemode, mutators)){
 			bool found = false;
 			loopv(clients)
@@ -1934,8 +1936,6 @@ bool updateclientteam(int cn, int team, int ftr){
 	}
 	// set new team
 	sendf(-1, 1, "ri3", N_SETTEAM, cn, (ci.team = team) | (ftr << 4));
-	// check bots
-	if(ci.type != ST_AI) checkai();
 	return true; // success!
 }
 
@@ -1981,6 +1981,7 @@ void shuffleteams(int ftr){
 			team = !team;
 		}
 	}
+	checkai(); // end of shuffle
 }
 
 
@@ -2036,6 +2037,7 @@ bool balanceteams(int ftr, bool aionly = true)  // pro vs noobs never more
         if ( hid >= 0 )
         {
             updateclientteam(hid, l, ftr);
+			// checkai(); // balance big to small
             clients[hid]->at3_lastforce = gamemillis;
             return true;
         }
@@ -2065,6 +2067,7 @@ bool balanceteams(int ftr, bool aionly = true)  // pro vs noobs never more
         {
             updateclientteam(bestpair[h], l, ftr);
             updateclientteam(bestpair[l], h, ftr);
+			checkai(); // balance switch
             clients[bestpair[h]]->at3_lastforce = clients[bestpair[l]]->at3_lastforce = gamemillis;
             return true;
         }
@@ -2137,6 +2140,7 @@ bool refillteams(bool now, int ftr, bool aionly){ // force only minimal amounts 
                     diffscore -= 2 * clients[pick]->at3_score;
                     clients[pick]->at3_lastforce = gamemillis;  // try not to force this player again for the next 5 minutes
                     switched = true;
+					// checkai(); // refill
                 }
             }
         }
@@ -2525,7 +2529,7 @@ void disconnect_client(int n, int reason){
 	sendf(-1, 1, "ri3", N_DISC, n, reason);
 	if(curvote) curvote->evaluate();
 	freeconnectcheck(n);
-	checkai();
+	checkai(); // disconnect
 }
 
 void sendwhois(int sender, int cn){
@@ -3116,7 +3120,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			sendcallvote(sender);
 			curvote->evaluate();
 		}
-		checkai();
+		checkai(); // connect
 		while(reassignai());
 	}
 
@@ -3228,6 +3232,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					}
 				}
 				updateclientteam(sender, t, FTR_PLAYERWISH);
+				checkai(); // user switch
 				break;
 			}
 
@@ -3283,6 +3288,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(cp.team == TEAM_SPECT){ // need to unspectate
 					if(mastermode < MM_LOCKED || cp.type != ST_TCPIP || cp.priv >= PRIV_ADMIN){
 						updateclientteam(sender, chooseteam(cp), FTR_PLAYERWISH);
+						checkai(); // spawn unspect
 						if(!canspawn(&cp, true)) break;
 					}
 					else{
