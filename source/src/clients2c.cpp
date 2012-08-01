@@ -1112,7 +1112,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_CONVERTWIN:
 			{
-				hudoutf("%s", _("arenawin_convert"));
+				hudoutf("\f1\fb%s", _("arenawin_convert"));
 				arenaintermission = lastmillis;
 				break;
 			}
