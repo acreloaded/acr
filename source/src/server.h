@@ -699,22 +699,25 @@ const char *messagenames(int n){
 		"N_CALLVOTE", "N_CALLVOTEERR", "N_VOTE", "N_VOTERESULT", // votes
 		"N_LISTDEMOS", "N_DEMO", "N_DEMOPLAYBACK", // demos
 		"N_AUTHREQ", "N_AUTHCHAL", // auth
-		"N_REQPRIV", "N_SETPRIV", // privileges
+		"N_CLAIMPRIV", "N_SETPRIV", // privileges
 		"N_MAPC2S", "N_MAPS2C", // map transit
 		// editmode ONLY
 		"N_EDITMODE", "N_EDITH", "N_EDITT", "N_EDITS", "N_EDITD", "N_EDITE", "N_EDITW", "N_EDITENT", "N_NEWMAP",
 		// game events
 		"N_SHOOT", "N_SHOOTC", "N_PROJ", "N_AKIMBO", "N_RELOAD", // clients to server events
 		"N_SG", "N_SUICIDE", "N_QUICKSWITCH", "N_SWITCHWEAP", "N_LOADOUT", "N_THROWNADE", "N_THROWKNIFE", // server directly handled
-		"N_RICOCHET", "N_POINTS", "N_KILL", "N_DAMAGE", "N_REGEN", "N_HEAL", "N_KNIFEADD", "N_KNIFEREMOVE", "N_BLEED", "N_STREAKREADY", "N_STREAKUSE", // server to client
+		"N_RICOCHET", "N_REGEN", "N_HEAL", "N_BLEED", "N_STREAKREADY", "N_STREAKUSE", "N_HEADSHOT", // server to client
+		"N_KNIFEADD", "N_KNIFEREMOVE", // knives
+		"N_CONFIRMADD", "N_CONFIRMREMOVE", // kill confirmed
 		// gameplay
+		"N_POINTS", "N_POINTR", "N_TEAMSCORE", "N_KILL", "N_DAMAGE", // scoring
 		"N_TRYSPAWN", "N_SPAWNSTATE", "N_SPAWN", "N_FORCEDEATH", "N_FORCEGIB", // spawning
 		"N_ITEMSPAWN", "N_ITEMACC", // items
 		"N_DROPFLAG", "N_FLAGINFO", "N_FLAGMSG", "N_FLAGCNT", // flags
 		"N_MAPCHANGE", "N_NEXTMAP", // map changes
 		"N_TIMEUP", "N_ACCURACY", "N_ARENAWIN", // round end/remaining
 		// extensions
-		"N_SERVMSG", "N_CONFMSG", "N_EXT",
+		"N_SERVMSG", "N_EXT",
 	};
 	if(n < 0 || n >= N_NUM) return "unknown";
 	return msgnames[n];

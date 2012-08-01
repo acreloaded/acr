@@ -39,7 +39,7 @@ enum{
 	N_MAPCHANGE, N_NEXTMAP, // map changes
 	N_TIMEUP, N_ACCURACY, N_ARENAWIN, // round end/remaining
 	// extensions
-	N_SERVMSG, N_CONFMSG, N_EXT,
+	N_SERVMSG, N_EXT,
 	N_NUM
 };
 
