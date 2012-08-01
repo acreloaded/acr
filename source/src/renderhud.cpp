@@ -270,7 +270,9 @@ void drawequipicons(playerent *p)
 	drawequipicon(20, 1650, hc, hr, (lastmillis - p->lastregen < 1000 ? 2 : 0) | ((p->state!=CS_DEAD && p->health<=35*HEALTHSCALE && !m_sniper(gamemode, mutators)) ? 1 : 0), p);
 
 	// grenades
-	loopi(min(3, p->mag[WEAP_GRENADE])) drawequipicon(1020 + i * 25, 1650, 3, 1, 0);
+	int equipx = 0;
+	loopi(min(3, p->mag[WEAP_GRENADE])) drawequipicon(1020 + equipx++ * 25, 1650, 3, 1, 0);
+	loopi(min(3, p->ammo[WEAP_KNIFE])) drawequipicon(1040 + equipx++ * 30, 1650, 0, 0, 0);
 
 	// weapons
 	int c = p->weaponsel->type, r = 0;
