@@ -49,7 +49,8 @@ struct mapaction : serveraction
 	{
 		if(isdedicated)
 		{
-			mapstats *ms = getservermapstats(map);
+			int maploc = MAP_NOTFOUND;
+			mapstats *ms = (map && *map) ? getservermapstats(map, false, &maploc) : NULL;
 			mapok = true;
 			if(!ms){
 				sendmsg(12, caller);

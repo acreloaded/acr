@@ -2508,11 +2508,6 @@ bool copyrw = false;
 int mapavailable(const char *mapname) { return copydata && !strcmp(copyname, behindpath(mapname)) ? copymapsize : 0; }
 
 // provide maps by the server
-enum { MAP_NOTFOUND = 0, MAP_TEMP, MAP_CUSTOM, MAP_LOCAL, MAP_OFFICIAL, MAP_MAX };
-const char *maplocstr[MAP_MAX] = { "not found", "incoming", "custom", "local", "official", };
-#define readonlymap(x) ((x) >= MAP_CUSTOM)
-#define distributablemap(x) ((x) == MAP_TEMP || (x) == MAP_CUSTOM)
-
 int findmappath(const char *mapname, char *filename)
 {
 	string tempname;

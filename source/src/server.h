@@ -683,6 +683,11 @@ extern char *maplayout;
 */
 void sendheadshot(const vec &from, const vec &to, int damage);
 
+enum { MAP_NOTFOUND = 0, MAP_TEMP, MAP_CUSTOM, MAP_LOCAL, MAP_OFFICIAL, MAP_MAX };
+const char *maplocstr[MAP_MAX] = { "not found", "incoming", "custom", "local", "official", };
+#define readonlymap(x) ((x) >= MAP_CUSTOM)
+#define distributablemap(x) ((x) == MAP_TEMP || (x) == MAP_CUSTOM)
+
 #ifdef _DEBUG
 // converts message code to char
 const char *messagenames(int n){
