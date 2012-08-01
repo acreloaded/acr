@@ -977,14 +977,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			}
 
 			case N_MAPIDENT:
-				conoutf("\f3please \f1get the map \f3by typing \f0/getmap \f5OR \f1send the map \f2with \f0/sendmap");
+				conoutf("\f3please \f1get the map \f2by typing \f0/getmap");
 				break;
 
 			case N_MAPC2S:
 			{
 				int cn = getint(p); playerent *d = getclient(cn);
 				getstring(text, p);
-				conoutf("%s \f0sent the map %s to the server, \f1type /getmap to get it", d ? colorname(d) : "someone", text);
+				conoutf("%s \f0sent the map %s to the server; \f1it can now be voted", d ? colorname(d) : "someone", text);
 				break;
 			}
 
