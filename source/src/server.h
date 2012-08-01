@@ -655,6 +655,7 @@ void resetmap(const char *newname, int newmode, int newmuts, int newtime = -1, b
 void disconnect_client(int n, int reason = -1);
 int clienthasflag(int cn);
 bool updateclientteam(int client, int team, int ftr);
+void shuffleteams(int ftr = FTR_AUTOTEAM);
 bool refillteams(bool now = false, int ftr = FTR_AUTOTEAM, bool aionly = true);
 void setpriv(int client, int priv);
 int mapavailable(const char *mapname);

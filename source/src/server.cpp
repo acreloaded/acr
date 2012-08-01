@@ -1014,27 +1014,30 @@ void distributespawns(){
 
 void checkitemspawns(int);
 
+void arenanext(){
+	arenaround = 0;
+	distributespawns();
+	purgesknives();
+	checkitemspawns(60*1000); // spawn items now!
+	loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connected && clients[i]->team != TEAM_SPECT){
+		clients[i]->removeexplosives();
+		if(clients[valid_client(clients[i]->state.ownernum) ? clients[i]->state.ownernum : i]->isonrightmap){
+			clients[i]->state.lastdeath = 1;
+			sendspawn(clients[i]);
+		}
+	}
+	nokills = true;
+}
+
 void arenacheck(){
 	if(!m_duke(gamemode, mutators) || interm || gamemillis<arenaround || !numclients()) return;
 
 	if(arenaround){ // start new arena round
-		arenaround = 0;
 		if(m_progressive(gamemode, mutators) && progressiveround < MAXZOMBIEROUND){
 			defformatstring(zombiemsg)("\f1Round #\f0%d \f3has started\f2!", progressiveround);
 			sendservmsg(zombiemsg);
 		}
-		distributespawns();
-		purgesknives();
-		checkitemspawns(60*1000); // spawn items now!
-		loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connected && clients[i]->team != TEAM_SPECT){
-			clients[i]->removeexplosives();
-			if(clients[valid_client(clients[i]->state.ownernum) ? clients[i]->state.ownernum : i]->isonrightmap){
-				clients[i]->state.lastdeath = 1;
-				sendspawn(clients[i]);
-			}
-		}
-		nokills = true;
-		return;
+		return arenanext();
 	}
 
 	client *alive = NULL;
@@ -1117,6 +1120,11 @@ void arenacheck(){
 }
 
 void convertcheck(){
+	if(!m_convert(gamemode, mutators) || interm || gamemillis < arenaround || !numclients()) return;
+	if(arenaround){ // start new convert round
+		shuffleteams(FTR_SILENT);
+		return arenanext();
+	}
 }
 
 #define SPAMREPEATINTERVAL  20    // detect doubled lines only if interval < 20 seconds
@@ -1602,8 +1610,10 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 					break;
 				}
 			// game ends if not arena, and all enemies are converted
-			if(!found)
-				forceintermission = true;
+			if(!found){
+				sendf(-1, 1, "ri", N_CONVERTWIN);
+				arenaround = gamemillis + 5000;
+			}
 		}
 	}
 }
@@ -1908,7 +1918,9 @@ void updatesdesc(const char *newdesc, ENetAddress *caller = NULL){
 bool updateclientteam(int cn, int team, int ftr){
 	if(!valid_client(cn) || !team_valid(team)) return false;
 	client &ci = *clients[cn];
+	// zombies override
 	if(m_zombie(gamemode) && !m_convert(gamemode, mutators) && team != TEAM_SPECT) team = ci.type == ST_AI ? TEAM_RED : TEAM_BLUE;
+
 	if(ci.team == team){
 		if (ftr != FTR_AUTOTEAM) return false;
 	}
@@ -1943,7 +1955,7 @@ int calcscores() // skill eval
 
 ivector shuffle;
 
-void shuffleteams(int ftr = FTR_AUTOTEAM){
+void shuffleteams(int ftr){
 	if(m_zombie(gamemode)) return; // in case a vote is called
 	int numplayers = numclients();
 	int team, sums = calcscores();

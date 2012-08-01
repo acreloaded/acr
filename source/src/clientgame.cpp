@@ -334,7 +334,7 @@ int lastspawnattempt = 0;
 void showrespawntimer()
 {
 	if(intermission) return;
-	if(m_duke(gamemode, mutators))
+	if(m_duke(gamemode, mutators) || m_convert(gamemode, mutators))
 	{
 		if(!arenaintermission) return;
 		showhudtimer(5000, arenaintermission, _("spawn_fight"), lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
@@ -484,7 +484,7 @@ bool tryrespawn(){
 		int respawnmillis = player1->respawnoffset+(m_duke(gamemode, mutators) ? 0 : (m_affinity(gamemode) ? 5000 : 1000));
 		if(lastmillis>respawnmillis){
 			player1->attacking = false;
-			if(m_duke(gamemode, mutators)){
+			if(m_duke(gamemode, mutators) || m_convert(gamemode, mutators)){
 				if(!arenaintermission) hudeditf(HUDMSG_TIMER, _("spawn_nextround"));
 				else lastspawnattempt = lastmillis;
 				return false;
