@@ -2548,23 +2548,23 @@ mapstats *getservermapstats(const char *mapname, bool getlayout, int *maploc){
 }
 
 bool sendmapserv(int n, string mapname, int mapsize, int cfgsize, int cfgsizegz, uchar *data){
-	string name;
 	FILE *fp;
-	bool written = false;
 
-	if(!mapname[0] || mapsize <= 0 || mapsize + cfgsizegz > MAXMAPSENDSIZE || cfgsize > MAXCFGFILESIZE) return false;
-	if(smode != 1 && (strcmp(behindpath(mapname), behindpath(smapname)) || (mapavailable(smapname) && !copyrw))) return false; // map is R/O
-	copystring(copyname, mapname);
-	copymapsize = mapsize;
-	copycfgsize = cfgsize;
-	copycfgsizegz = cfgsizegz;
-	copysize = mapsize + cfgsizegz;
-	copyrw = true;
-	DELETEA(copydata);
-	copydata = new uchar[copysize];
-	memcpy(copydata, data, copysize);
+	if(!mapname[0] || mapsize <= 0 || cfgsizegz <= 0 || mapsize + cfgsizegz > MAXMAPSENDSIZE || cfgsize > MAXCFGFILESIZE) return false; // malformed: probably modded client
+	if(m_edit(gamemode) && !strcmp(mapname, behindpath(smapname)))
+	{ // update mapbuffer only in coopedit mode (and on same map)
+		copystring(copyname, mapname);
+		copymapsize = mapsize;
+		copycfgsize = cfgsize;
+		copycfgsizegz = cfgsizegz;
+		copysize = mapsize + cfgsizegz;
+		copyrw = true;
+		DELETEA(copydata);
+		copydata = new uchar[copysize];
+		memcpy(copydata, data, copysize);
+	}
 
-	formatstring(name)(SERVERMAP_PATH_INCOMING "%s.cgz", behindpath(copyname));
+	defformatstring(name)(SERVERMAP_PATH_INCOMING "%s.cgz", behindpath(copyname));
 	path(name);
 	fp = fopen(name, "wb");
 	if(fp)
@@ -2582,10 +2582,10 @@ bool sendmapserv(int n, string mapname, int mapsize, int cfgsize, int cfgsizegz,
 				fwrite(rawcfg, 1, copycfgsize, fp);
 			fclose(fp);
 			DELETEA(rawcfg);
-			written = true;
+			return true;
 		}
 	}
-	return written;
+	return false;
 }
 
 #define GZBUFSIZE ((MAXCFGFILESIZE * 11) / 10)
