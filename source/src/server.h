@@ -728,7 +728,7 @@ const char *entnames[MAXENTTYPES + 1] =
 
 itemstat ammostats[WEAP_MAX] =
 {
-	{ 1,  1,  1,  S_ITEMAMMO },    // knife dummy
+	{ 1,  1,  2,  S_ITEMAMMO },    // knife dummy
 	{ 2,  5,  6,  S_ITEMAMMO },    // pistol
 	{21, 28, 42,  S_ITEMAMMO },    // shotgun
 	{ 3,  4,  6,  S_ITEMAMMO },    // subgun
