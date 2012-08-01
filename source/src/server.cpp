@@ -2564,27 +2564,27 @@ bool sendmapserv(int n, string mapname, int mapsize, int cfgsize, int cfgsizegz,
 		memcpy(copydata, data, copysize);
 	}
 
-	defformatstring(name)(SERVERMAP_PATH_INCOMING "%s.cgz", behindpath(copyname));
-	path(name);
-	fp = fopen(name, "wb");
-	if(fp)
-	{
-		fwrite(copydata, 1, copymapsize, fp);
-		fclose(fp);
-		formatstring(name)(SERVERMAP_PATH_INCOMING "%s.cfg", behindpath(copyname));
-		path(name);
-		fp = fopen(name, "wb");
-		if(fp)
-		{
+	defformatstring(name)(SERVERMAP_PATH_INCOMING "%s.cgz", mapname);
+    path(name);
+    fp = fopen(name, "wb");
+    if(fp)
+    {
+        fwrite(data, 1, mapsize, fp);
+        fclose(fp);
+        formatstring(name)(SERVERMAP_PATH_INCOMING "%s.cfg", mapname);
+        path(name);
+        fp = fopen(name, "wb");
+        if(fp)
+        {
 			uchar *rawcfg = new uchar[copycfgsize];
-			uLongf rawsize = copycfgsize;
-			if(uncompress(rawcfg, &rawsize, copydata + copymapsize, copycfgsizegz) == Z_OK && rawsize - copycfgsize == 0)
-				fwrite(rawcfg, 1, copycfgsize, fp);
-			fclose(fp);
+            uLongf rawsize = cfgsize;
+            if(uncompress(rawcfg, &rawsize, data + mapsize, cfgsizegz) == Z_OK && rawsize - cfgsize == 0)
+                fwrite(rawcfg, 1, cfgsize, fp);
+            fclose(fp);
 			DELETEA(rawcfg);
-			return true;
-		}
-	}
+            return true;
+        }
+    }
 	return false;
 }
 
@@ -3678,7 +3678,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				int mapsize = getint(p);
 				int cfgsize = getint(p);
 				int cfgsizegz = getint(p);
-				if(p.remaining() < mapsize + cfgsizegz || MAXMAPSENDSIZE < mapsize + mapsize || MAXCFGFILESIZE < mapsize + cfgsizegz)
+				if(p.remaining() < mapsize + cfgsizegz || MAXMAPSENDSIZE < mapsize + cfgsizegz)
 				{
 					p.forceoverread();
 					break;
@@ -3696,8 +3696,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					reject = "currently loaded";
 					sendservmsg("\f3you cannot upload the currently loaded map", sender);
 				}
-				// too much uploaded?
-				// initial upload
+				// else if // too much uploaded?
 				else if(mp == MAP_NOTFOUND && strchr(scl.mapperm, 'C') && cl->priv < PRIV_ADMIN) // default: everyone can upload the initial map
 				{
 					reject = "no permission for initial upload";
