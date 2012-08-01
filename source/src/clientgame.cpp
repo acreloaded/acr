@@ -322,7 +322,7 @@ bool showhudtimer(int maxmillis, int startmillis, const char *msg, bool flash)
 	static int lasttick = 0;
 	if(lasttick > startmillis + maxmillis) return false;
 	lasttick = lastmillis;
-	const bool queued = spawnenqueued && !m_duke(gamemode, mutators);
+	const bool queued = spawnenqueued && !m_duke(gamemode, mutators) && !m_progressive(gamemode, mutators);
 	defformatstring(str)("\f%d%s: %.1fs", queued ? 2 : 3, queued ? _("spawn_queued") : _("spawn_wait"), (startmillis + maxmillis - lastmillis) / 1000.f);
 	if(lastmillis <= startmillis + maxmillis) hudeditf(HUDMSG_TIMER|HUDMSG_OVERWRITE, flash || queued ? str : str+2);
 	else hudeditf(HUDMSG_TIMER, msg);
