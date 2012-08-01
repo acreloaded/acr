@@ -272,7 +272,7 @@ void drawequipicons(playerent *p)
 	// grenades
 	int equipx = 0;
 	loopi(min(3, p->mag[WEAP_GRENADE])) drawequipicon(1020 + equipx++ * 25, 1650, 3, 1, 0);
-	loopi(min(3, p->ammo[WEAP_KNIFE])) drawequipicon(1040 + equipx++ * 30, 1650, 0, 0, 0);
+	loopi(min(3, p->ammo[WEAP_KNIFE])) drawequipicon(1050 + equipx++ * 30, 1650, 0, 0, 0);
 
 	// weapons
 	int c = p->weaponsel->type, r = 0;
