@@ -1024,6 +1024,7 @@ const char *votestring(int type, const votedata &vote)
 		case SA_REMBANS: copystring(out, "remove all temporary bans"); break;
 		case SA_STOPDEMO: copystring(out, "stop demo recording"); break;
 		case SA_SHUFFLETEAMS: copystring(out, "shuffle teams"); break;
+		case SA_NEXTMAP: copystring(out, "load the next map"); break;
 	}
 	return out;
 }
@@ -1071,6 +1072,7 @@ void callvote(int type, const votedata &vote)
 			case SA_STOPDEMO:
 			case SA_REMBANS:
 			case SA_SHUFFLETEAMS:
+			case SA_NEXTMAP:
 				break;
 			case SA_KICK:
 				sendstring(vote.str1, p);
@@ -1132,6 +1134,7 @@ void callvote_parser(char *type, char *arg1, char *arg2, char *arg3)
 				case SA_REMBANS:
 				case SA_STOPDEMO:
 				case SA_SHUFFLETEAMS:
+				case SA_NEXTMAP:
 					break;
 			}
 			callvote(t, vote);

@@ -2404,6 +2404,7 @@ void sendcallvote(int cl = -1){
 			case SA_STOPDEMO:
 			case SA_REMBANS:
 			case SA_SHUFFLETEAMS:
+			case SA_NEXTMAP:
 			default:
 				break;
 			case SA_KICK:
@@ -3918,6 +3919,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						}
 						break;
 					}
+					case SA_NEXTMAP:
+						vi->action = new nextroundaction();
+						break;
 					case SA_KICK:
 					{
 						getstring(text, p);

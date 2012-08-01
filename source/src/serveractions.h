@@ -271,6 +271,17 @@ struct shuffleteamaction : serveraction
 	}
 };
 
+struct nextroundaction : serveraction
+{
+	void perform() { forceintermission = true; }
+	bool isvalid() { return serveraction::isvalid(); }
+	nextroundaction()
+	{
+		reqpriv = privconf('n');
+		if(isvalid()) copystring(desc, "start next map");
+	}
+};
+
 struct recorddemoaction : enableaction
 {
 	void perform() { demonextmatch = enable; }

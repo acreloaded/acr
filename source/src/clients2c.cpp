@@ -1286,6 +1286,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					case SA_STOPDEMO:
 					case SA_REMBANS:
 					case SA_SHUFFLETEAMS:
+					case SA_NEXTMAP:
 						break;
 				}
 				v = newvotedisplayinfo(d, type, vote);
