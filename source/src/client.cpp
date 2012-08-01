@@ -568,7 +568,7 @@ cvector securemaps;
 
 void resetsecuremaps() { securemaps.deletearrays(); }
 void securemap(char *map) { if(map) securemaps.add(newstring(map)); }
-bool securemapcheck(char *map, bool msg)
+bool securemapcheck(const char *map, bool msg)
 {
 	if(strstr(map, "maps/")==map || strstr(map, "maps\\")==map) map += strlen("maps/");
 	loopv(securemaps) if(!strcmp(securemaps[i], map))
@@ -631,6 +631,13 @@ void getmap()
 	sendpackettoserv(2, packet);
 }
 
+void deleteservermap(char *mapname)
+{
+	const char *name = behindpath(mapname);
+	if(!*name || securemapcheck(name)) return;
+	addmsg(N_MAPDELETE, "rs", name);
+}
+
 void getdemo(int i)
 {
 	if(i<=0) conoutf("%s...", _("demo_get"));
@@ -646,6 +653,7 @@ void listdemos()
 
 COMMAND(sendmap, ARG_1STR);
 COMMAND(getmap, ARG_NONE);
+COMMAND(deleteservermap, ARG_1STR);
 COMMAND(resetsecuremaps, ARG_NONE);
 COMMAND(securemap, ARG_1STR);
 COMMAND(getdemo, ARG_1INT);
