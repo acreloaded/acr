@@ -176,6 +176,14 @@ int countplayers(bool includebots = true){
 	return num;
 }
 
+int countbots(){
+	int num = 0;
+	loopv(clients)
+		if(clients[i]->type != ST_EMPTY && clients[i]->team != TEAM_SPECT && clients[i]->type == ST_AI)
+			++num;
+	return num;
+}
+
 int numclients() { return countclients(ST_EMPTY, true); }
 int numlocalclients() { return countclients(ST_LOCAL); }
 int numnonlocalclients() { return countclients(ST_TCPIP); }
@@ -949,7 +957,7 @@ void htf_forceflag(int flag){
 int arenaround = 0;
 
 inline bool canspawn(client *c, bool connecting = false){
-	return maplayout && c->team != TEAM_SPECT && (!m_duke(gamemode, mutators) || (connecting && numauthedclients() <= 2));
+	return maplayout && c->team != TEAM_SPECT && (!m_duke(gamemode, mutators) || (connecting && numauthedclients() <= 2) || (m_progressive(gamemode, mutators) && c->team == TEAM_BLUE));
 }
 
 struct twoint { int index, value; };
@@ -1011,6 +1019,10 @@ void arenacheck(){
 
 	if(arenaround){ // start new arena round
 		arenaround = 0;
+		if(m_progressive(gamemode, mutators) && progressiveround < MAXZOMBIEROUND){
+			defformatstring(zombiemsg)("\f1Round #\f0%d \f3has started\f2!", progressiveround);
+			sendservmsg(zombiemsg);
+		}
 		distributespawns();
 		purgesknives();
 		checkitemspawns(60*1000); // spawn items now!
@@ -1048,34 +1060,63 @@ void arenacheck(){
 	}
 	if((found && (ha || !hd)) || !dead || gamemillis < lastdeath + 500) return;
 	// what happened?
-	const int cn = !ha && found ? -2 : // bots win
-		alive ? alive->clientnum : // someone/a team wins
-		-1 // everyone died
-	;
-	// send message
-	sendf(-1, 1, "ri2", N_ARENAWIN, cn);
-	// award points
-	loopv(clients) if(clients[i]->type != ST_EMPTY){
-		int pts = 0, pr = -1;
-		if(cn < 0){ // he died with this team, or bots win
-			pts = ARENALOSEPT;
-			pr = PR_ARENA_LOSE;
+	if(m_progressive(gamemode, mutators)){
+		const bool humanswin = alive && alive->team == TEAM_BLUE;
+		progressiveround += humanswin ? 1 : -1;
+		if(progressiveround < 1) progressiveround = 1; // epic fail
+		else if(progressiveround > MAXZOMBIEROUND){
+			sendservmsg("\f0Good work! \f1The zombies have been defeated!");
+			forceintermission = true;
 		}
-		else if(clients[i]->state.state == CS_ALIVE){ // he survives
-			pts = ARENAWINPT;
-			pr = PR_ARENA_WIN;
+		checkai();
+		sendf(-1, 1, "ri2", N_ZOMBIESWIN, (progressiveround << 1) | (humanswin ? 1 : 0));
+		loopv(clients) if(clients[i]->type != ST_EMPTY && clients[i]->connected && clients[i]->team != TEAM_SPECT){
+			int pts = 0, pr = -1;
+			if((clients[i]->team == TEAM_RED) == humanswin){ // he died
+				pts = ARENALOSEPT;
+				pr = PR_ARENA_LOSE;
+			}
+			else{ // he survives
+				pts = ARENAWINPT;
+				pr = PR_ARENA_WIN;
+			}
+			addpt(clients[i], pts, pr);
 		}
-		else if(alive && isteam(alive, clients[i])){ // his team wins, but he's dead
-			pts = ARENAWINDPT;
-			pr = PR_ARENA_WIND;
+	}
+	else{
+		// duke
+		const int cn = !ha && found ? -2 : // bots win
+			alive ? alive->clientnum : // someone/a team wins
+			-1 // everyone died
+		;
+		// send message
+		sendf(-1, 1, "ri2", N_ARENAWIN, cn);
+		// award points
+		loopv(clients) if(clients[i]->type != ST_EMPTY && clients[i]->connected && clients[i]->team != TEAM_SPECT){
+			int pts = 0, pr = -1;
+			if(cn < 0){ // he died with this team, or bots win
+				pts = ARENALOSEPT;
+				pr = PR_ARENA_LOSE;
+			}
+			else if(clients[i]->state.state == CS_ALIVE){ // he survives
+				pts = ARENAWINPT;
+				pr = PR_ARENA_WIN;
+			}
+			else if(alive && isteam(alive, clients[i])){ // his team wins, but he's dead
+				pts = ARENAWINDPT;
+				pr = PR_ARENA_WIND;
+			}
+			addpt(clients[i], pts, pr);
 		}
-		addpt(clients[i], pts, pr);
 	}
 	// arena intermission
 	arenaround = gamemillis+5000;
 	// check teams
 	if(m_team(gamemode, mutators) && autobalance)
 		refillteams(true);
+}
+
+void convertcheck(){
 }
 
 #define SPAMREPEATINTERVAL  20    // detect doubled lines only if interval < 20 seconds
@@ -2227,6 +2268,7 @@ void resetmap(const char *newname, int newmode, int newmuts, int newtime, bool n
 	arenaround = 0;
 	nokills = true;
 	if(m_duke(gamemode, mutators)) distributespawns();
+	if(m_progressive(gamemode, mutators)) progressiveround = 1;
 	if(notify){
 		if(m_team(gamemode, mutators)){
 			if(!lastteammode && !m_zombie(gamemode)) // shuffle if previous mode wasn't a team-mode, or was a zombie mode
@@ -4262,6 +4304,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 		}
 		if(m_keep(gamemode) && !m_ktf2(gamemode, mutators) && !ktfflagingame) flagaction(rnd(2), FA_RESET, -1); // ktf flag watchdog
 		if(m_duke(gamemode, mutators)) arenacheck();
+		if(m_convert(gamemode, mutators)) convertcheck();
 		if(scl.afktimelimit && mastermode == MM_OPEN && next_afk_check < servmillis && gamemillis > 20000 ) check_afk();
 	}
 

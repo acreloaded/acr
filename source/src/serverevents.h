@@ -130,10 +130,10 @@ void shotevent::process(client *ci)
 				int dmg = HEALTHSCALE;
 				if(hitzone == HIT_HEAD){
 					sendheadshot(from, to, dmg);
-					dmg *= m_zombies_rounds(gamemode, mutators) ? (250) : (150);
+					dmg *= m_progressive(gamemode, mutators) ? (250) : (150);
 				}
 				else
-					dmg *= m_zombies_rounds(gamemode, mutators) ? (hitzone * 75) : (55);
+					dmg *= m_progressive(gamemode, mutators) ? (hitzone * 75) : (55);
 				damagedealt += dmg;
 				sendhit(c, WEAP_RPG, to, dmg); // blood, not explosion
 				serverdamage(hit, &c, dmg, WEAP_RPG, FRAG_GIB, expc);

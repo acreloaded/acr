@@ -37,7 +37,7 @@ enum{
 	N_ITEMSPAWN, N_ITEMACC, // items
 	N_DROPFLAG, N_FLAGINFO, N_FLAGMSG, N_FLAGCNT, // flags
 	N_MAPCHANGE, N_NEXTMAP, // map changes
-	N_TIMEUP, N_ACCURACY, N_ARENAWIN, // round end/remaining
+	N_TIMEUP, N_ACCURACY, N_ARENAWIN, N_ZOMBIESWIN, N_CONVERTWIN, // round end/remaining
 	// extensions
 	N_SERVMSG, N_EXT,
 	N_NUM

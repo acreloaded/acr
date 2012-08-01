@@ -1087,11 +1087,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				conoutf("%s", _("arenawin_over"));
 				// no survivors
 				if(acn == -1) hudoutf("\f3%s", _("arenawin_fail"));
-				// zombies
-				else if(m_zombie(gamemode)){
-					if(!alive || alive->team == TEAM_RED) hudoutf("\f3%s", _("arenawin_zombies_zombie"));
-					else hudoutf("\f0%s", _("arenawin_zombies_humans"));
-				}
 				// instead of waiting for bots to battle it out...
 				else if(acn == -2) hudoutf("%s", _("arenawin_bots"));
 				// should not happen? better safe than sorry
@@ -1101,6 +1096,22 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				// FFA or one team member
 				else if(alive==player1) hudoutf("%s", _("arenawin_youwin"));
 				else hudoutf("%s %s", colorname(alive), _("arenawin_ffa"));
+				arenaintermission = lastmillis;
+				break;
+			}
+
+			case N_ZOMBIESWIN:
+			{
+				const int info = getint(p), round = (info >> 1) & 0x7F;
+				if(info & 1) hudoutf("\f2%s \f1%d\f4; \f0%s", _("arenawin_zombies_prefix"), round, _("arenawin_zombies_humans"));
+				else hudoutf("\f2%s\f1 %d\f4; \f3%s", _("arenawin_zombies_prefix"), round, _("arenawin_zombies_zombie"));
+				arenaintermission = lastmillis;
+				break;
+			}
+
+			case N_CONVERTWIN:
+			{
+				hudoutf("%s", _("arenawin_convert"));
 				arenaintermission = lastmillis;
 				break;
 			}

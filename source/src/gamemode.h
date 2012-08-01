@@ -83,7 +83,7 @@ extern mutstypes mutstype[G_M_NUM];
 // can add gsp implieds below
 #define m_implied(a,b)      (gametype[a].implied)
 #define m_doimply(a,b,c)    (gametype[a].implied|mutstype[c].implied)
-#define m_mimplied(a,b)     ((muts & (G_M_GSP1)) && (mode == G_DM || mode == G_ZOMBIE))
+#define m_mimplied(a,b)     ((muts & (G_M_GSP1)) && (mode == G_DM))
 
 #define m_team(a,b)         ((b & G_M_TEAM) || (m_implied(a,b) & G_M_TEAM))
 #define m_sniper(a,b)       ((b & G_M_SNIPER) || (m_implied(a,b) & G_M_SNIPER))
@@ -107,9 +107,10 @@ extern mutstypes mutstype[G_M_NUM];
 #define m_nosecondary(a,b)  (m_gib(a,b))
 
 #define m_survivor(a,b)     (m_dm(a) && m_gsp1(a,b))
-#define m_zombies_rounds(a,b) (m_zombie(a) && !m_gsp1(a,b))
+#define m_onslaught(a,b)    (m_zombie(a) && !m_gsp1(a,b))
+#define m_progressive(a,b) (m_zombie(a) && m_gsp1(a,b))
 
-#define m_duke(a,b)         (m_survivor(a,b) || m_zombies_rounds(a,b))
+#define m_duke(a,b)         (m_survivor(a,b) || m_progressive(a,b))
 #define m_regen(a,b)        (!m_duke(a,b) && !m_vampire(a,b) && !m_sniper(a,b))
 /*
 #define m_scores(a)         (a >= G_EDITMODE && a <= G_DEATHMATCH)
@@ -132,7 +133,7 @@ extern mutstypes mutstype[G_M_NUM];
 #define m_lss(a,b)          (m_duke(a,b) && m_gib(a,b))
 #define m_return(a,b)       (m_capture(a) && m_gsp1(a,b))
 #define m_ktf2(a,b)         (m_keep(a) && m_gsp1(a,b))
-#define m_onslaught(a,b)    (m_zombie(a) && m_gsp1(a,b))
+#define m_progressive(a,b)  (m_zombie(a) && m_gsp1(a,b))
 
 #define m_noradar(a,b)      (m_classic(a,b))
 #define m_nonuke(a,b)       (m_zombie(a) && !m_gsp1(a,b))

@@ -101,46 +101,62 @@ void checkai(){
 	// check if bots are disallowed
 	if(!m_ai(gamemode)) return clearai();
 	// check balance
-	int balance = 0;
-	const int people = countplayers(false);
-	if(!botbalance) balance = 0;
-	else if(people) switch(botbalance){
-		case -1: // auto
-			if(m_zombie(gamemode)) balance = min(15 + 2 * people, 30); // effectively 15 + n
-			else if(m_duke(gamemode, mutators)) balance = max(people, maplayout_factor - 3); // 3 - 5 - 8 (6 - 8 - 11 layout factor)
-			else{
-				const int spawns = m_team(gamemode, mutators) ? (smapstats.hasteamspawns ? smapstats.spawns[0] + smapstats.spawns[1] : 16) : (smapstats.hasffaspawns ? smapstats.spawns[2] : 6);
-				balance = max(people, spawns / 3);
-			}
-			break; // auto
-		// case  0: balance = 0; break; // force no bots
-		default: balance = max(people, botbalance); break; // force bot count
+	if(m_progressive(gamemode, mutators)){
+		if(progressiveround > MAXZOMBIEROUND) return clearai();
+		const int zombies = clamp(progressiveround, 1, 20),
+			zombies_suicide = max((int)floor(progressiveround / 2.f), progressiveround - 10);
+		int zombies_suicide_given = 0;
+		while(countbots() < zombies) if(!addai()) break;
+		while(countbots() > zombies) if(!delai()) break;
+		// force suicide bombers
+		loopv(clients) if(clients[i]->type == ST_AI){
+			bool has_bomber = (++zombies_suicide_given <= zombies_suicide);
+			clients[i]->state.deathstreak = has_bomber ? 10 : 0;
+			clients[i]->state.streakondeath = has_bomber ? STREAK_REVENGE : -1;
+		}
 	}
-	if(balance > 0){
-		if(m_team(gamemode, mutators) && !m_zombie(gamemode)){
-			int plrs[2] = {0}, highest = -1;
-			loopv(clients) if(valid_client(i, true) && clients[i]->team < 2){
-				++plrs[clients[i]->team];
-				if(highest < 0 || plrs[clients[i]->team] > plrs[highest]) highest = clients[i]->team;
-			}
-			if(highest >= 0){
-				int bots = balance-people;
-				loopi(2) if(i != highest && plrs[i] < plrs[highest]) loopj(plrs[highest]-plrs[i]){
-					if(bots > 0) --bots;
-					else ++balance;
+	else{
+		int balance = 0;
+		const int people = countplayers(false);
+		if(!botbalance) balance = 0;
+		else if(people) switch(botbalance){
+			case -1: // auto
+				if(m_zombie(gamemode)) balance = min(15 + 2 * people, 30); // effectively 15 + n
+				else if(m_duke(gamemode, mutators)) balance = max(people, maplayout_factor - 3); // 3 - 5 - 8 (6 - 8 - 11 layout factor)
+				else{
+					const int spawns = m_team(gamemode, mutators) ? (smapstats.hasteamspawns ? smapstats.spawns[0] + smapstats.spawns[1] : 16) : (smapstats.hasffaspawns ? smapstats.spawns[2] : 6);
+					balance = max(people, spawns / 3);
 				}
+				break; // auto
+			// case  0: balance = 0; break; // force no bots
+			default: balance = max(people, botbalance); break; // force bot count
+		}
+		if(balance > 0){
+			if(m_team(gamemode, mutators) && !m_zombie(gamemode)){
+				int plrs[2] = {0}, highest = -1;
+				loopv(clients) if(valid_client(i, true) && clients[i]->team < 2){
+					++plrs[clients[i]->team];
+					if(highest < 0 || plrs[clients[i]->team] > plrs[highest]) highest = clients[i]->team;
+				}
+				if(highest >= 0){
+					int bots = balance-people;
+					loopi(2) if(i != highest && plrs[i] < plrs[highest]) loopj(plrs[highest]-plrs[i]){
+						if(bots > 0) --bots;
+						else ++balance;
+					}
+				}
+				// fix if odd
+				if(botbalance < 0 && (balance & 1)) ++balance;
 			}
-			// fix if odd
-			if(botbalance < 0 && (balance & 1)) ++balance;
+			while(countplayers() < balance) if(!addai()) break;
+			while(countplayers() > balance) if(!delai()) break;
+			if(m_team(gamemode, mutators)) loopvrev(clients){
+				client &ci = *clients[i];
+				if(ci.type != ST_AI) continue;
+				int teamb = chooseteam(ci, ci.team);
+				if(ci.team != teamb) updateclientteam(i, teamb, FTR_SILENT);
+			}
 		}
-		while(countplayers() < balance) if(!addai()) break;
-		while(countplayers() > balance) if(!delai()) break;
-		if(m_team(gamemode, mutators)) loopvrev(clients){
-			client &ci = *clients[i];
-			if(ci.type != ST_AI) continue;
-			int teamb = chooseteam(ci, ci.team);
-			if(ci.team != teamb) updateclientteam(i, teamb, FTR_SILENT);
-		}
+		else clearai();
 	}
-	else clearai();
 }
