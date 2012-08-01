@@ -1103,7 +1103,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_ZOMBIESWIN:
 			{
 				const int info = getint(p), round = (info >> 1) & 0x7F;
-				if(info & 1) hudoutf("\f2%s \f1%d\f4; \f0%s", _("arenawin_zombies_prefix"), round, _("arenawin_zombies_humans"));
+				if(round > MAXZOMBIEROUND) hudoutf("\f0%s", _("arenawin_zombies_humans"));
+				else if(info & 1) hudoutf("\f2%s \f1%d\f4; \f0%s", _("arenawin_zombies_prefix"), round, _("arenawin_zombies_humans"));
 				else hudoutf("\f2%s\f1 %d\f4; \f3%s", _("arenawin_zombies_prefix"), round, _("arenawin_zombies_zombie"));
 				arenaintermission = lastmillis;
 				break;
