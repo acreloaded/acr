@@ -2550,7 +2550,7 @@ mapstats *getservermapstats(const char *mapname, bool getlayout, int *maploc){
 bool sendmapserv(int n, string mapname, int mapsize, int cfgsize, int cfgsizegz, uchar *data){
 	FILE *fp;
 
-	if(!mapname[0] || mapsize <= 0 || cfgsizegz <= 0 || mapsize + cfgsizegz > MAXMAPSENDSIZE || cfgsize > MAXCFGFILESIZE) return false; // malformed: probably modded client
+	if(!mapname[0] || mapsize <= 0 || mapsize + cfgsizegz > MAXMAPSENDSIZE || cfgsize > MAXCFGFILESIZE) return false; // malformed: probably modded client
 	if(m_edit(gamemode) && !strcmp(mapname, behindpath(smapname)))
 	{ // update mapbuffer only in coopedit mode (and on same map)
 		copystring(copyname, mapname);
@@ -2571,7 +2571,7 @@ bool sendmapserv(int n, string mapname, int mapsize, int cfgsize, int cfgsizegz,
     {
         fwrite(data, 1, mapsize, fp);
         fclose(fp);
-		if(!cfgsize || !cfgsizegz) return true;
+		//if(!cfgsize || !cfgsizegz) return true;
         formatstring(name)(SERVERMAP_PATH_INCOMING "%s.cfg", mapname);
         path(name);
         fp = fopen(name, "wb");
