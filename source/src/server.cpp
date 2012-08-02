@@ -1022,7 +1022,7 @@ void arenanext(bool forcespawn = true){
 	checkitemspawns(60*1000); // spawn items now!
 	loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connected && clients[i]->team != TEAM_SPECT){
 		clients[i]->removeexplosives();
-		if((forcespawn || clients[i]->state == CS_DEAD) && clients[valid_client(clients[i]->state.ownernum) ? clients[i]->state.ownernum : i]->isonrightmap){
+		if((forcespawn || clients[i]->state.state == CS_DEAD) && clients[valid_client(clients[i]->state.ownernum) ? clients[i]->state.ownernum : i]->isonrightmap){
 			clients[i]->state.lastdeath = 1;
 			sendspawn(clients[i]);
 		}
