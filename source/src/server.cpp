@@ -1035,7 +1035,7 @@ void arenacheck(){
 
 	if(arenaround){ // start new arena round
 		if(m_progressive(gamemode, mutators) && progressiveround < MAXZOMBIEROUND){
-			defformatstring(zombiemsg)("\f1Round #\f0%d \f3has started\f2!", progressiveround);
+			defformatstring(zombiemsg)("\f1Wave #\f0%d \f3has started\f2!", progressiveround);
 			sendservmsg(zombiemsg);
 			return arenanext(false); // bypass forced spawning
 		}
@@ -1077,7 +1077,7 @@ void arenacheck(){
 		sendf(-1, 1, "ri2", N_ZOMBIESWIN, (progressiveround << 1) | (humanswin ? 1 : 0));
 		loopv(clients) if(clients[i]->type != ST_EMPTY && clients[i]->connected && clients[i]->team != TEAM_SPECT){
 			// early repawn for humans
-			if(clients[i]->team == TEAM_BLUE && clients[i]->state.state == CS_DEAD){
+			if(clients[i]->team == TEAM_BLUE && clients[i]->isonrightmap && clients[i]->state.state == CS_DEAD){
 				clients[i]->state.lastdeath = 1;
 				sendspawn(clients[i]);
 			}
