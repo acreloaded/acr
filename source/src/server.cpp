@@ -1015,14 +1015,14 @@ void distributespawns(){
 
 void checkitemspawns(int);
 
-void arenanext(){
+void arenanext(bool forcespawn = true){
 	arenaround = 0;
 	distributespawns();
 	purgesknives();
 	checkitemspawns(60*1000); // spawn items now!
 	loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connected && clients[i]->team != TEAM_SPECT){
 		clients[i]->removeexplosives();
-		if(clients[valid_client(clients[i]->state.ownernum) ? clients[i]->state.ownernum : i]->isonrightmap){
+		if((forcespawn || clients[i]->state == CS_DEAD) && clients[valid_client(clients[i]->state.ownernum) ? clients[i]->state.ownernum : i]->isonrightmap){
 			clients[i]->state.lastdeath = 1;
 			sendspawn(clients[i]);
 		}
@@ -1037,6 +1037,7 @@ void arenacheck(){
 		if(m_progressive(gamemode, mutators) && progressiveround < MAXZOMBIEROUND){
 			defformatstring(zombiemsg)("\f1Round #\f0%d \f3has started\f2!", progressiveround);
 			sendservmsg(zombiemsg);
+			return arenanext(false); // bypass forced spawning
 		}
 		return arenanext();
 	}
