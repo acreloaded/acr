@@ -1076,6 +1076,11 @@ void arenacheck(){
 		checkai();
 		sendf(-1, 1, "ri2", N_ZOMBIESWIN, (progressiveround << 1) | (humanswin ? 1 : 0));
 		loopv(clients) if(clients[i]->type != ST_EMPTY && clients[i]->connected && clients[i]->team != TEAM_SPECT){
+			// early repawn for humans
+			if(clients[i]->team == TEAM_BLUE && clients[i]->state.state == CS_DEAD){
+				clients[i]->state.lastdeath = 1;
+				sendspawn(clients[i]);
+			}
 			int pts = 0, pr = -1;
 			if((clients[i]->team == TEAM_RED) == humanswin){ // he died
 				pts = ARENALOSEPT;
