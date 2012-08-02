@@ -1065,7 +1065,7 @@ void arenacheck(){
 	if((found && (ha || !hd)) || !dead || gamemillis < lastdeath + 500) return;
 	// what happened?
 	if(m_progressive(gamemode, mutators)){
-		const bool humanswin = alive && alive->team == TEAM_BLUE;
+		const bool humanswin = !alive || alive->team == TEAM_BLUE;
 		progressiveround += humanswin ? 1 : -1;
 		if(progressiveround < 1) progressiveround = 1; // epic fail
 		else if(progressiveround > MAXZOMBIEROUND){
