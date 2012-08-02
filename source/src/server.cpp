@@ -1098,12 +1098,8 @@ void arenacheck(){
 		sendf(-1, 1, "ri2", N_ARENAWIN, cn);
 		// award points
 		loopv(clients) if(clients[i]->type != ST_EMPTY && clients[i]->connected && clients[i]->team != TEAM_SPECT){
-			int pts = 0, pr = -1;
-			if(cn < 0){ // he died with this team, or bots win
-				pts = ARENALOSEPT;
-				pr = PR_ARENA_LOSE;
-			}
-			else if(clients[i]->state.state == CS_ALIVE){ // he survives
+			int pts = ARENALOSEPT, pr = PR_ARENA_LOSE; // he died with this team, or bots win
+			if(clients[i]->state.state == CS_ALIVE){ // he survives
 				pts = ARENAWINPT;
 				pr = PR_ARENA_WIN;
 			}
