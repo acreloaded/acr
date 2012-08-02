@@ -1078,7 +1078,8 @@ void arenacheck(){
 		loopv(clients) if(clients[i]->type != ST_EMPTY && clients[i]->connected && clients[i]->team != TEAM_SPECT){
 			switch(clients[i]->team){
 				case TEAM_RED: // give humans time to prepare
-					if(clients[i]->state != CS_DEAD) forcedeath(clients[i]);
+					extern void forcedeath(client *cl, bool gib = false);
+					if(clients[i]->state.state != CS_DEAD) forcedeath(clients[i]);
 					break;
 				case TEAM_BLUE: // early repawn for humans
 					if(clients[i]->isonrightmap && clients[i]->state.state == CS_DEAD){
