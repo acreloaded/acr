@@ -515,8 +515,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					setscope(false);
 					extern int nextskin;
 					if(player1->skin!=nextskin) setskin(player1, nextskin);
-					arenaintermission = 0;
 					if(m_duke(gamemode, mutators)){
+						// arenaintermission = 0;
 						closemenu(NULL);
 						conoutf("%s", _("spawn_newround"));
 						hudeditf(HUDMSG_TIMER, _("spawn_fight"));

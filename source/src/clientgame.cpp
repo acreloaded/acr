@@ -324,7 +324,7 @@ bool showhudtimer(int maxmillis, int startmillis, const char *msg, bool flash)
 	lasttick = lastmillis;
 	const bool wave = m_progressive(gamemode, mutators), queued = !wave && spawnenqueued && !m_duke(gamemode, mutators);
 	defformatstring(str)("\f%d%s %.1fs", wave ? 1 : queued ? 2 : 3, _(wave ? "spawn_wave" : queued ? "spawn_queued" : "spawn_wait"), (startmillis + maxmillis - lastmillis) / 1000.f);
-	if(lastmillis <= startmillis + maxmillis) hudeditf(HUDMSG_TIMER|HUDMSG_OVERWRITE, flash || queued ? str : str+2);
+	if(lastmillis <= startmillis + maxmillis) hudeditf(HUDMSG_TIMER|HUDMSG_OVERWRITE, flash || wave || queued ? str : str+2);
 	else hudeditf(HUDMSG_TIMER, msg);
 	return true;
 }
