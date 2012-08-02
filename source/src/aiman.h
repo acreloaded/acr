@@ -99,7 +99,7 @@ bool reassignai(int exclude = -1){
 
 void checkai(){
 	// check if bots are disallowed
-	if(!m_ai(gamemode)) return clearai();
+	if(!m_ai(gamemode) || !botbalance) return clearai();
 	// check balance
 	if(m_progressive(gamemode, mutators)){
 		if(progressiveround > MAXZOMBIEROUND) return clearai();
@@ -117,19 +117,18 @@ void checkai(){
 	}
 	else{
 		int balance = 0;
-		const int people = countplayers(false);
-		if(!botbalance) balance = 0;
-		else if(people) switch(botbalance){
+		const int humans = countplayers(false);
+		if(humans) switch(botbalance){
 			case -1: // auto
-				if(m_zombie(gamemode)) balance = min(15 + 2 * people, 30); // effectively 15 + n
-				else if(m_duke(gamemode, mutators)) balance = max(people, maplayout_factor - 3); // 3 - 5 - 8 (6 - 8 - 11 layout factor)
+				if(m_zombie(gamemode)) balance = min(15 + 2 * humans, 30); // effectively 15 + n
+				else if(m_duke(gamemode, mutators)) balance = max(humans, maplayout_factor - 3); // 3 - 5 - 8 (6 - 8 - 11 layout factor)
 				else{
 					const int spawns = m_team(gamemode, mutators) ? (smapstats.hasteamspawns ? smapstats.spawns[0] + smapstats.spawns[1] : 16) : (smapstats.hasffaspawns ? smapstats.spawns[2] : 6);
-					balance = max(people, spawns / 3);
+					balance = max(humans, spawns / 3);
 				}
 				break; // auto
 			// case  0: balance = 0; break; // force no bots
-			default: balance = max(people, botbalance); break; // force bot count
+			default: balance = max(humans, botbalance); break; // force bot count
 		}
 		if(balance > 0){
 			if(m_team(gamemode, mutators) && !m_zombie(gamemode)){
@@ -139,7 +138,7 @@ void checkai(){
 					if(highest < 0 || plrs[clients[i]->team] > plrs[highest]) highest = clients[i]->team;
 				}
 				if(highest >= 0){
-					int bots = balance-people;
+					int bots = balance-humans;
 					loopi(2) if(i != highest && plrs[i] < plrs[highest]) loopj(plrs[highest]-plrs[i]){
 						if(bots > 0) --bots;
 						else ++balance;
