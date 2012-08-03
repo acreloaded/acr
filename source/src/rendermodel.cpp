@@ -658,7 +658,7 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
 
 	if(!stenciling && !reflecting && !refracting)
 	{
-		if(d->weaponsel==d->lastattackweapon && lastmillis-d->lastaction < d->weaponsel->flashtime())
+		if(d->weaponsel==d->lastattackweapon && d->weaponsel->modelattacking() && lastmillis-d->lastaction < d->weaponsel->flashtime())
 			anim |= ANIM_PARTICLE;
 		if(d != player1 && d->state==CS_ALIVE)
 		{
