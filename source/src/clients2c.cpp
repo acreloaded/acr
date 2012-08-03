@@ -588,12 +588,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					weapon &a = *d->weapons[WEAP_AKIMBO], &p = *d->weapons[WEAP_PISTOL];
 					d->akimbo = false;
 					a.reset();
+					/*
 					// transfer ammo to pistol
 					p.mag = min((int)p.info.magsize, max(a.mag, p.mag));
 					p.ammo = max(p.ammo, p.ammo);
 					// fix akimbo magcontent
 					a.mag = 0;
 					a.ammo = 0;
+					*/
 					if(d->weaponsel->type==WEAP_AKIMBO){
 						if(d->weapons[d->primary]) d->weaponswitch(d->weapons[d->primary]);
 						else d->weaponswitch(&p);
