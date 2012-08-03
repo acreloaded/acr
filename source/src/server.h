@@ -154,9 +154,18 @@ struct clientstate : playerstate
 
 	bool waitexpired(int gamemillis)
 	{
-		int wait = gamemillis - lastshot;
+		const int wait = gamemillis - lastshot;
 		loopi(WEAP_MAX) if(wait < gunwait[i]) return false;
 		return true;
+	}
+
+	void updateshot(int gamemillis)
+	{
+		const int wait = gamemillis-lastshot;
+		loopi(WEAP_MAX)
+			if(gunwait[i])
+				gunwait[i] = max(gunwait[i] - wait, 0);
+		lastshot = gamemillis;
 	}
 
 	void reset()

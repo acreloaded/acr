@@ -75,10 +75,7 @@ void shotevent::process(client *ci)
 		return;
 	if(!melee_weap(weap)) // ammo cost
 		--gs.mag[weap];
-	loopi(WEAP_MAX)
-		if(gs.gunwait[i])
-			gs.gunwait[i] = max(gs.gunwait[i] - (millis-gs.lastshot), 0);
-	gs.lastshot = millis;
+	gs.updateshot(gamemillis);
 	gs.gunwait[weap] = attackdelay(weap);
 	// for ease of access
 	vec from(gs.o), /*to(to), */surface;
@@ -240,13 +237,8 @@ void reloadevent::process(client *ci){
 
 	int wait = millis - gs.lastshot;
 	sendf(-1, 1, "ri5", N_RELOAD, ci->clientnum, weap, gs.mag[weap], gs.ammo[weap]);
-	if(gs.gunwait[weap] && wait<gs.gunwait[weap]) gs.gunwait[weap] += reloadtime(weap);
-	else
-	{
-		loopi(WEAP_MAX) if(gs.gunwait[i]) gs.gunwait[i] = max(gs.gunwait[i] - (millis-gs.lastshot), 0);
-		gs.lastshot = millis;
-		gs.gunwait[weap] += reloadtime(weap);
-	}
+	if(!gs.gunwait[weap] || wait >= gs.gunwait[weap]) gs.updateshot(gamemillis);
+	gs.gunwait[weap] += reloadtime(weap);
 }
 
 void akimboevent::process(client *ci){
