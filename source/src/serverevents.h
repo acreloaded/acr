@@ -66,16 +66,16 @@ void shotevent::process(client *ci)
 {
 	client &c = *ci;
 	clientstate &gs = c.state;
-	int wait = millis - gs.lastshot;
+	int wait = millis - gs.lastshot; // use event millis, not gamemillis
 	if(!gs.isalive(gamemillis) || // dead
-	   weap<0 || weap>=WEAP_MAX || // invalid weapon
-	   (weap == WEAP_AKIMBO && gs.akimbomillis < gamemillis) || // akimbo when out
-	   wait<gs.gunwait[weap] || // not allowed
-	   gs.mag[weap]<=0) // out of ammo in mag
-		return;
+		weap<0 || weap>=WEAP_MAX || // invalid weapon
+		(weap == WEAP_AKIMBO && gs.akimbomillis < gamemillis) || // akimbo when out
+		wait<gs.gunwait[weap] || // not allowed
+		gs.mag[weap]<=0) // out of ammo in mag
+			return;
 	if(!melee_weap(weap)) // ammo cost
 		--gs.mag[weap];
-	gs.updateshot(gamemillis);
+	gs.updateshot(millis); // use event millis, not gamemillis
 	gs.gunwait[weap] = attackdelay(weap);
 	// for ease of access
 	vec from(gs.o), /*to(to), */surface;

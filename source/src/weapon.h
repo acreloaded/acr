@@ -67,7 +67,7 @@ struct weapon
 	int &ammo, &mag, &gunwait, shots;
 	virtual int dynspread();
 	virtual float dynrecoil();
-	int reloading, timebalance;
+	int reloading;
 
 	virtual bool attack(vec &targ) = 0;
 	virtual void attackfx(const vec &from, const vec &to, int millis) = 0;
@@ -75,7 +75,7 @@ struct weapon
 	virtual void attackhit(const vec &o);
 	virtual void attacksound();
 	virtual bool reload();
-	virtual void reset() { timebalance = 0; }
+	virtual void reset() { }
 	virtual bool busy() { return false; }
 
 	virtual int modelanim() = 0;
