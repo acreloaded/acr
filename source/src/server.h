@@ -274,7 +274,7 @@ struct client				   // server side version of "dynent" type
 
 	int getmillis(int millis, int id)
 	{
-		if(!timesync || (events.length() == 1 && state.waitexpired(millis)))
+		if(!timesync || (!events.length() && state.waitexpired(millis)))
 		{
 			timesync = true;
 			gameoffset = millis-id;
