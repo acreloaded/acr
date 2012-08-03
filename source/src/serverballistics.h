@@ -270,15 +270,16 @@ int shot(client &owner, const vec &from, vec &to, const vector<head_t> &h, int w
 		else serverdamage(hit, &owner, damage, weap, style, from);
 
 		// penetration
-		if(!m_classic(gamemode, mutators) && dist2 < 100){ // only penetrate players before 25 meters
+		//if(!m_classic(gamemode, mutators) && dist2 < 100){ // only penetrate players before 25 meters
 			// distort ray and continue through...
 			vec dir(to = end), newsurface;
-			dir.sub(from).normalize().rotate_around_z((rnd(71)-35)*RAD).add(end); // 35 degrees (both ways = 70 degrees) distortion
+			//dir.sub(from).normalize().rotate_around_z((rnd(71)-35)*RAD).add(end); // 35 degrees (both ways = 70 degrees) distortion
+			dir.sub(from).normalize().rotate_around_x((rnd(45)-22)*RAD).rotate_around_y((rnd(45)-22)*RAD).rotate_around_z((rnd(45)-22)*RAD).add(end); // 22 degrees (both ways = 44 degrees) distortion on all axis
 			// retrace
 			straceShot(end, dir, &newsurface);
 			damagedealt += shot(owner, end, dir, h, weap, style, newsurface, hit, dist + 40, save); // 10 meters penalty for penetrating the player
 			sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, weap, end.x, end.y, end.z, dir.x, dir.y, dir.z);
-		}
+		//}
 	}
 	// ricochet
 	else if(!dist && from.dist(to) < 100 && surface.magnitude() && !melee_weap(weap)){ // ricochet once before 25 meters or going through a player
