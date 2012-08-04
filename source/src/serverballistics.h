@@ -85,15 +85,23 @@ inline void sendheadshot(const vec &from, const vec &to, int damage){
 	sendf(-1, 1, "rif6i", N_HEADSHOT, from.x, from.y, from.z, to.x, to.y, to.z, damage);
 }
 
-inline vec generateHead(client &c, const vector<head_t> &h){
-	//ts.o, ts.aim[0]
-	loopv(h) if(h[i].cn == c.clientnum){
-		vec result(h[i].delta);
-		if(result.magnitude() > 2) result.normalize().mul(2); // the center of our head cannot deviate from our neck more than 50 cm
-		return result.add(c.state.o);
+void parsepos(client &c, const vector<posinfo> &pos, vec &out_o, vec &out_head){
+	const posinfo *info = NULL;
+	loopv(pos) if(pos[i].cn == c.clientnum) { info = &pos[i]; break; }
+	// position
+	if(scl.lagtrust >= 2 && info) out_o = info->o;
+	else out_o = c.state.o; // don't trust the client's position, or not provided
+	// head delta
+	if(scl.lagtrust >= 1 && info && info->head.x > 0 && info->head.y > 0 && info->head.z > 0)
+	{
+		out_head = info->head;
+		// sanity check (no insane headshot OPK)
+		out_head.sub(out_o);
+		if(out_head.magnitude() > 2) out_head.normalize().mul(2); // the center of our head cannot deviate from our neck more than 50 cm
+		out_head.add(out_o);
 	}
-	// no match? approximate location for the head
-	return vec(.2f, -.25f, .25f).rotate_around_z(c.state.aim[0] * RAD).add(c.state.o);
+	// no match? not trusted? approximate location for the head
+	else out_head = vec(.2f, -.25f, .25f).rotate_around_z(c.state.aim[0] * RAD).add(out_o);
 }
 
 // explosions
@@ -198,7 +206,7 @@ void nuke(client &owner){
 }
 
 // hit checks
-client *nearesthit(client &actor, const vec &from, const vec &to, int &hitzone, const vector<head_t> &h, client *exclude, vec *end = NULL){
+client *nearesthit(client &actor, const vec &from, const vec &to, int &hitzone, const vector<posinfo> &pos, client *exclude, vec *end = NULL){
 	client *result = NULL;
 	float dist = 4e6f; // 1 million meters...
 	clientstate &gs = actor.state;
@@ -209,8 +217,9 @@ client *nearesthit(client &actor, const vec &from, const vec &to, int &hitzone, 
 		if(t.type == ST_EMPTY || ts.state != CS_ALIVE || &t == exclude || ts.protect(gamemillis, gamemode, mutators)) continue;
 		const float d = ts.o.dist(from);
 		if(d > dist) continue;
-		vec head = generateHead(t, h);
-		const int hz = hitplayer(from, gs.aim[0], gs.aim[1], to, ts.o, head, end);
+		vec o, head;
+		parsepos(t, pos, o, head);
+		const int hz = hitplayer(from, gs.aim[0], gs.aim[1], to, o, head, end);
 		if(!hz) continue;
 		result = &t;
 		dist = d;
@@ -220,12 +229,12 @@ client *nearesthit(client &actor, const vec &from, const vec &to, int &hitzone, 
 }
 
 // hitscans
-int shot(client &owner, const vec &from, vec &to, const vector<head_t> &h, int weap, int style, const vec &surface, client *exclude, float dist = 0, ushort *save = NULL){
+int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, int weap, int style, const vec &surface, client *exclude, float dist = 0, ushort *save = NULL){
 	int damagedealt = 0;
 	const int mulset = (weap == WEAP_SNIPER || weap == WEAP_BOLT) ? MUL_SNIPER : MUL_NORMAL;
 	int hitzone = HIT_NONE; vec end = to;
 	// calculate the hit
-	client *hit = nearesthit(owner, from, to, hitzone, h, exclude, &end);
+	client *hit = nearesthit(owner, from, to, hitzone, pos, exclude, &end);
 	// damage check
 	const float dist2 = dist + end.dist(from);
 	int damage = effectiveDamage(weap, dist2);
@@ -277,7 +286,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<head_t> &h, int w
 			dir.sub(from).normalize().rotate_around_x((rnd(45)-22)*RAD).rotate_around_y((rnd(11)-5)*RAD).rotate_around_z((rnd(11)-5)*RAD).add(end); // 5 degrees (both ways = 10 degrees) distortion on all axis
 			// retrace
 			straceShot(end, dir, &newsurface);
-			damagedealt += shot(owner, end, dir, h, weap, style, newsurface, hit, dist + 40, save); // 10 meters penalty for penetrating the player
+			damagedealt += shot(owner, end, dir, pos, weap, style, newsurface, hit, dist + 40, save); // 10 meters penalty for penetrating the player
 			sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, weap, end.x, end.y, end.z, dir.x, dir.y, dir.z);
 		//}
 	}
@@ -295,13 +304,13 @@ int shot(client &owner, const vec &from, vec &to, const vector<head_t> &h, int w
 			.add(to);
 		// retrace
 		straceShot(to, dir, &newsurface);
-		damagedealt += shot(owner, to, dir, h, weap, style, newsurface, NULL, dist + 60, save); // 15 meters penalty for ricochet
+		damagedealt += shot(owner, to, dir, pos, weap, style, newsurface, NULL, dist + 60, save); // 15 meters penalty for ricochet
 		sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, weap, to.x, to.y, to.z, dir.x, dir.y, dir.z);
 	}
 	return damagedealt;
 }
 
-int shotgun(client &owner, vector<head_t> &h){
+int shotgun(client &owner, vector<posinfo> &pos){
 	int damagedealt = 0;
 	clientstate &gs = owner.state;
 	const vec &from = gs.o;
@@ -309,7 +318,7 @@ int shotgun(client &owner, vector<head_t> &h){
 	loopi(SGRAYS){// check rays and sum damage
 		vec surface;
 		straceShot(from, gs.sg[i], &surface);
-		shot(owner, from, gs.sg[i], h, WEAP_SHOTGUN, FRAG_NONE, surface, &owner, 0, sgdamage);
+		shot(owner, from, gs.sg[i], pos, WEAP_SHOTGUN, FRAG_NONE, surface, &owner, 0, sgdamage);
 	}
 	loopv(clients){ // apply damage
 		client &t = *clients[i];

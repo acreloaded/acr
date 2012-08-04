@@ -3363,14 +3363,17 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(!(ev->compact = (type == N_SHOOTC)))
 				{
 					loopi(3) ev->to[i] = getfloat(p);
-					const int heads = getint(p), maxheads = numclients();
-					loopi(heads)
+					loopi(MAXCLIENTS)
 					{
-						head_t h;
-						h.cn = getint(p);
-						loopj(3) h.delta[j] = getfloat(p);
-						
-						if(i < maxheads) ev->heads.add(h);
+						posinfo info;
+						info.cn = getint(p);
+						if(info.cn < 0) break; // we didn't use all
+						loopj(3) info.o[j] = getfloat(p);
+						loopj(3) info.head[j] = getfloat(p);
+						// remove duplicates
+						int k = 0;
+						for(k = 0; k < ev->pos.length(); k++) if(ev->pos[k].cn == info.cn) break;
+						if(k >= ev->pos.length()) ev->pos.add(info);
 					}
 				}
 

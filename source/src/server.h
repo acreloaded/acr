@@ -15,12 +15,13 @@ static const int DEATHMILLIS = 300;
 int smode = G_DM, smuts = G_M_TEAM, mastermode = MM_OPEN, botbalance = -1;
 int progressiveround = 1;
 
-struct head_t{
-	int cn;
-	vec delta;
-};
-
 struct client;
+
+struct posinfo
+{
+	int cn;
+	vec o, head;
+};
 
 struct timedevent
 {
@@ -36,7 +37,7 @@ struct shotevent : timedevent
 {
 	int weap;
 	vec to;
-	vector<head_t> heads;
+	vector<posinfo> pos;
 	bool compact;
 	void process(client *ci);
 };

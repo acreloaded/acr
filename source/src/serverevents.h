@@ -122,7 +122,7 @@ void shotevent::process(client *ci)
 		{
 			int hitzone = HIT_NONE;
 			vec expc;
-			client *hit = nearesthit(c, from, to, hitzone, heads, &c, &expc);
+			client *hit = nearesthit(c, from, to, hitzone, pos, &c, &expc);
 			if(hit){
 				int dmg = HEALTHSCALE;
 				if(hitzone == HIT_HEAD){
@@ -147,7 +147,7 @@ void shotevent::process(client *ci)
 		{
 			int hitzone = HIT_NONE;
 			vec end;
-			client *hit = gs.scoping ? &c : nearesthit(c, from, to, hitzone, heads, &c, &end);
+			client *hit = gs.scoping ? &c : nearesthit(c, from, to, hitzone, pos, &c, &end);
 			if(!hit) break;
 			if(hit->state.wounds.length()){
 				// healing by a player
@@ -187,10 +187,9 @@ void shotevent::process(client *ci)
 			}
 		default:
 		{
-			if(weap == WEAP_SHOTGUN){ // many rays, many players
-				damagedealt += shotgun(c, heads); // WARNING: modifies gs.sg
-			}
-			else damagedealt += shot(c, gs.o, to, heads, weap, FRAG_NONE, surface, &c); // WARNING: modifies to
+			if(weap == WEAP_SHOTGUN) // many rays, many players
+				damagedealt += shotgun(c, pos); // WARNING: modifies gs.sg
+			else damagedealt += shot(c, gs.o, to, pos, weap, FRAG_NONE, surface, &c); // WARNING: modifies to
 		}
 	}
 	gs.damage += damagedealt;

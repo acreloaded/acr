@@ -369,22 +369,17 @@ void weapon::sendshoot(const vec &to){
 	putfloat(p, to.y);
 	putfloat(p, to.z);
 
-	// get heads
-	vector<head_t> heads;
-	loopv(players) if(players[i] && players[i]->head.x > 0){
-		head_t &h = heads.add();
-		h.cn = i;
-		(h.delta = players[i]->head).sub(players[i]->o);
+	// write positions
+	loopv(players) if(players[i] && players[i]->state != CS_DEAD){
+		putint(p, i);
+		putfloat(p, players[i]->o.x);
+		putfloat(p, players[i]->o.y);
+		putfloat(p, players[i]->o.z);
+		putfloat(p, players[i]->head.x);
+		putfloat(p, players[i]->head.y);
+		putfloat(p, players[i]->head.z);
 	}
-	// write them
-	putint(p, heads.length());
-	loopv(heads){
-		putint(p, heads[i].cn);
-		putfloat(p, heads[i].delta.x);
-		putfloat(p, heads[i].delta.y);
-		putfloat(p, heads[i].delta.z);
-	}
-
+	putint(p, -1);
 	extern bool messagereliable;
 	messagereliable = true;
 	extern vector<uchar> messages;
