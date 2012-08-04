@@ -63,7 +63,7 @@ struct weaponmove
 
 		if(p->weaponchanging){
 			basetime = ads_gun(p->weaponsel->type) ? lastmillis : p->weaponchanging;
-			float progress = clamp((lastmillis - p->weaponchanging)/(float)weapon::weaponchangetime/(p->perk1 == PERK_TIME ? 2 : 1), 0.0f, 1.0f);
+			float progress = clamp((lastmillis - p->weaponchanging)/(float)SWITCHTIME(p->perk1 == PERK_TIME), 0.0f, 1.0f);
 			k_rot = -90*sinf(progress*M_PI);
 		}
 		else if(p->weaponsel->reloading){

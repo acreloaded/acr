@@ -3435,7 +3435,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				const int cn = getint(p);
 				if(!hasclient(cl, cn)) break;
 				client &cp = *clients[cn];
-				cp.state.gunselect = cp.state.primary;
+				cp.state.gunwait[cp.state.gunselect = cp.state.primary] += SWITCHTIME(cp.state.perk1 == PERK_TIME)/2;
 				sendf(-1, 1, "ri2x", N_QUICKSWITCH, cn, sender);
 				cp.state.scoping = false;
 				cp.state.scopemillis = gamemillis - ADSTIME(cp.state.perk2 == PERK_TIME);
@@ -3448,7 +3448,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(!hasclient(cl, cn)) break;
 				client &cp = *clients[cn];
 				if(weaponsel < 0 || weaponsel >= WEAP_MAX) break;
-				cp.state.gunselect = weaponsel;
+				cp.state.gunwait[cp.state.gunselect = weaponsel] += SWITCHTIME(cp.state.perk1 == PERK_TIME);
 				sendf(-1, 1, "ri3x", N_SWITCHWEAP, cn, weaponsel, sender);
 				cp.state.scoping = false;
 				cp.state.scopemillis = gamemillis - ADSTIME(cp.state.perk2 == PERK_TIME);

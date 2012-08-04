@@ -524,7 +524,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				}
 				addmsg(N_SPAWN, "ri3f3", d->clientnum, d->lifesequence, d->weaponsel->type, d->o.x, d->o.y, d->o.z);
 				d->weaponswitch(d->weapons[d->primary]);
-				d->weaponchanging -= weapon::weaponchangetime/(d->perk1 == PERK_TIME ? 4 : 2);
+				d->weaponchanging -= SWITCHTIME(d->perk1 == PERK_TIME)/2;
 				break;
 			}
 
@@ -1009,7 +1009,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				int cn = getint(p);
 				playerent *d = getclient(cn);
 				if(!d) break;
-				d->weaponchanging = lastmillis-1-(weapon::weaponchangetime/(d->perk1 == PERK_TIME ? 4 : 2));
+				d->weaponchanging = lastmillis-1-(SWITCHTIME(d->perk1 == PERK_TIME)/2);
 				d->nextweaponsel = d->weaponsel = d->weapons[d->primary];
 				break;
 			}
