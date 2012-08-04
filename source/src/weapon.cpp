@@ -345,11 +345,6 @@ weapon::weapon(struct playerent *owner, int type) : type(type), owner(owner), in
 
 int weapon::flashtime() const { return min(max((int)info.attackdelay, 180)/3, 150); }
 
-struct head_t{
-	int cn;
-	vec delta;
-};
-
 void weapon::sendshoot(const vec &to){
 	if(owner!=player1 && !isowned(owner)) return;
 	
