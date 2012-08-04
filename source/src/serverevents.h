@@ -69,6 +69,7 @@ void shotevent::process(client *ci)
 	int wait = millis - gs.lastshot; // use event millis, not gamemillis
 	if(!gs.isalive(gamemillis) || // dead
 		weap<0 || weap>=WEAP_MAX || // invalid weapon
+		weap!=gs.gunselect || // not selected
 		(weap == WEAP_AKIMBO && gs.akimbomillis < gamemillis) || // akimbo when out
 		wait<gs.gunwait[weap] || // not allowed
 		gs.mag[weap]<=0) // out of ammo in mag
