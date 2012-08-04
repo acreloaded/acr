@@ -809,17 +809,17 @@ const char *suicname(int obit){
 	static string k;
 	*k = 0;
 	switch(obit){
-		// ricochet specific
+		// ricochet from teamkill specific
 		case WEAP_SHOTGUN:
 			concatstring(k, "discovered that buckshot bounces");
 			break;
 		case WEAP_SUBGUN:
 		case WEAP_ASSAULT:
-			concatstring(k, "sprayed a wall");
+			concatstring(k, "fired on a teammate");
 			break;
 		case WEAP_SNIPER:
 		case WEAP_BOLT:
-			concatstring(k, "sniped wrong");
+			concatstring(k, "sniped a teammate");
 			break;
 		case WEAP_PISTOL:
 		case WEAP_AKIMBO:
@@ -853,7 +853,7 @@ const char *suicname(int obit){
 			concatstring(k, "deployed a nuke");
 			break;
 		case OBIT_FF:
-			concatstring(k, "tried to knife a teammate");
+			concatstring(k, "tried to melee a teammate");
 			break;
 		case OBIT_BOT:
 			concatstring(k, "acted like a stupid bot");
