@@ -923,7 +923,7 @@ const char *killname(int obit, bool headshot){
 			concatstring(k, headshot ? "expertly sniped" : "sniped");
 			break;
 		case WEAP_SUBGUN:
-			concatstring(k, headshot ? "perforated" : "spliced");
+			concatstring(k, headshot ? "spliced" : "perforated");
 			break;
 		case WEAP_SHOTGUN:
 			concatstring(k, headshot ? "splattered" : "scrambled");
