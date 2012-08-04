@@ -3360,6 +3360,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				const int cn = getint(p);
 				ev->id = getint(p);
 				ev->weap = getint(p);
+				ev->pos.setsize(0);
 				if(!(ev->compact = (type == N_SHOOTC)))
 				{
 					loopi(3) ev->to[i] = getfloat(p);

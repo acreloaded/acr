@@ -206,7 +206,7 @@ void nuke(client &owner){
 }
 
 // hit checks
-client *nearesthit(client &actor, const vec &from, const vec &to, int &hitzone, const vector<posinfo> &pos, client *exclude, vec *end = NULL){
+client *nearesthit(client &actor, const vec &from, const vec &to, int &hitzone, const vector<posinfo> &pos, ivector &exclude, vec *end = NULL){
 	client *result = NULL;
 	float dist = 4e6f; // 1 million meters...
 	clientstate &gs = actor.state;
@@ -214,7 +214,7 @@ client *nearesthit(client &actor, const vec &from, const vec &to, int &hitzone, 
 		client &t = *clients[i];
 		clientstate &ts = t.state;
 		// basic checks
-		if(t.type == ST_EMPTY || ts.state != CS_ALIVE || &t == exclude || ts.protect(gamemillis, gamemode, mutators)) continue;
+		if(t.type == ST_EMPTY || ts.state != CS_ALIVE || exclude.find(i) >= 0 || ts.protect(gamemillis, gamemode, mutators)) continue;
 		const float d = ts.o.dist(from);
 		if(d > dist) continue;
 		vec o, head;
@@ -229,7 +229,7 @@ client *nearesthit(client &actor, const vec &from, const vec &to, int &hitzone, 
 }
 
 // hitscans
-int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, int weap, int style, const vec &surface, client *exclude, float dist = 0, ushort *save = NULL){
+int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, int weap, int style, const vec &surface, ivector &exclude, float dist = 0, ushort *save = NULL){
 	int damagedealt = 0;
 	const int mulset = (weap == WEAP_SNIPER || weap == WEAP_BOLT) ? MUL_SNIPER : MUL_NORMAL;
 	int hitzone = HIT_NONE; vec end = to;
@@ -277,6 +277,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
 		// apply damage
 		if(save) save[hit->clientnum] += damage; // save damage for shotgun ray
 		else serverdamage(hit, &owner, damage, weap, style, from);
+		exclude.add(hit->clientnum); // add hit to the exclude list
 
 		// penetration
 		//if(!m_classic(gamemode, mutators) && dist2 < 100){ // only penetrate players before 25 meters
@@ -286,7 +287,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
 			dir.sub(from).normalize().rotate_around_x((rnd(45)-22)*RAD).rotate_around_y((rnd(11)-5)*RAD).rotate_around_z((rnd(11)-5)*RAD).add(end); // 5 degrees (both ways = 10 degrees) distortion on all axis
 			// retrace
 			straceShot(end, dir, &newsurface);
-			damagedealt += shot(owner, end, dir, pos, weap, style, newsurface, hit, dist + 40, save); // 10 meters penalty for penetrating the player
+			damagedealt += shot(owner, end, dir, pos, weap, style, newsurface, exclude, dist + 40, save); // 10 meters penalty for penetrating the player
 			sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, weap, end.x, end.y, end.z, dir.x, dir.y, dir.z);
 		//}
 	}
@@ -304,7 +305,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
 			.add(to);
 		// retrace
 		straceShot(to, dir, &newsurface);
-		damagedealt += shot(owner, to, dir, pos, weap, style, newsurface, NULL, dist + 60, save); // 15 meters penalty for ricochet
+		damagedealt += shot(owner, to, dir, pos, weap, style, newsurface, exclude, dist + 60, save); // 15 meters penalty for ricochet
 		sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, weap, to.x, to.y, to.z, dir.x, dir.y, dir.z);
 	}
 	return damagedealt;
@@ -318,7 +319,10 @@ int shotgun(client &owner, vector<posinfo> &pos){
 	loopi(SGRAYS){// check rays and sum damage
 		vec surface;
 		straceShot(from, gs.sg[i], &surface);
-		shot(owner, from, gs.sg[i], pos, WEAP_SHOTGUN, FRAG_NONE, surface, &owner, 0, sgdamage);
+		static ivector exclude;
+		exclude.setsize(0);
+		exclude.add(owner.clientnum);
+		shot(owner, from, gs.sg[i], pos, WEAP_SHOTGUN, FRAG_NONE, surface, exclude, 0, sgdamage);
 	}
 	loopv(clients){ // apply damage
 		client &t = *clients[i];
