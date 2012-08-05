@@ -788,14 +788,14 @@ guninfo guns[WEAP_MAX] =
 };
 
 const int obit_suicide(int weap){
-	if(melee_weap(weap)) return OBIT_ASSIST;
+	if(melee_weap(weap)) return OBIT_FF;
 	if(weap >= 0 && weap <= OBIT_START) return weap;
 	switch(weap - OBIT_START){
 		case 0: return OBIT_DEATH;
 		case 1: return OBIT_DROWN;
 		case 2: return OBIT_FALL;
 		case 9: return OBIT_FALL_WATER; // out of sequence
-		case 3: return OBIT_FF;
+		case 3: return OBIT_ASSIST;
 		case 4: return OBIT_BOT;
 		case 5: return OBIT_CHEAT;
 		case 6: return OBIT_NUKE;
@@ -901,7 +901,7 @@ const int toobit(int weap, int style){
 		case WEAP_RPG: return gib ? OBIT_IMPACT : flag ? OBIT_RPG_STUCK : WEAP_RPG;
 		case WEAP_GRENADE: return gib ? WEAP_GRENADE : OBIT_AIRSTRIKE;
 		case WEAP_MAX: return OBIT_NUKE;
-		case WEAP_MAX + 3: return OBIT_FF; // assisted suicide
+		case WEAP_MAX + 3: return OBIT_ASSIST; // assisted suicide
 	}
 	return weap < WEAP_MAX ? weap : OBIT_DEATH;
 }
@@ -962,7 +962,7 @@ const char *killname(int obit, bool headshot){
 		case OBIT_AIRSTRIKE:
 			concatstring(k, "bombarded");
 			break;
-		case OBIT_FF:
+		case OBIT_ASSIST:
 			concatstring(k, headshot ? "helped" : "assisted");
 			break;
 		case OBIT_NUKE:
