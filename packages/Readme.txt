@@ -43,11 +43,13 @@ misc
 		airstrike.png
 		akimbo.png
 		assault.png
+		assist.png
 		bolt.png
 		bow.png
 		bow_impact.png
 		bow_stuck.png
 		death.png
+		ff.png
 		headshot.png
 		knife_bleed.png
 		knife_impact.png
