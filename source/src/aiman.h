@@ -149,7 +149,7 @@ void checkai(){
 			}
 			while(countplayers() < balance) if(!addai()) break;
 			while(countplayers() > balance) if(!delai()) break;
-			if(m_team(gamemode, mutators)) loopvrev(clients){
+			if(m_team(gamemode, mutators) && !m_convert(gamemode, mutators)) loopvrev(clients){
 				client &ci = *clients[i];
 				if(ci.type != ST_AI) continue;
 				int teamb = chooseteam(ci, ci.team);
