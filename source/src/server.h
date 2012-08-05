@@ -788,7 +788,7 @@ guninfo guns[WEAP_MAX] =
 };
 
 const int obit_suicide(int weap){
-	if(melee_weap(weap)) return OBIT_FF;
+	if(melee_weap(weap)) return OBIT_ASSIST;
 	if(weap >= 0 && weap <= OBIT_START) return weap;
 	switch(weap - OBIT_START){
 		case 0: return OBIT_DEATH;

@@ -146,7 +146,7 @@ struct chatlist : consolebuffer<cline>{
 Texture **obittex(){
 	static Texture *tex[OBIT_NUM];
 	if(!*tex){
-		const char *texname[OBIT_NUM-OBIT_START] = { "death", "bot", "impact", "rpg_stuck", "knife_bleed", "knife_impact", "ff", "drown", "fall", "fall_water", "cheat", "airstrike", "nuke", "spect", "revive", "team", "headshot", "crit", "first", "revenge", };
+		const char *texname[OBIT_NUM-OBIT_START] = { "death", "bot", "impact", "rpg_stuck", "knife_bleed", "knife_impact", "ff", "assist", "drown", "fall", "fall_water", "cheat", "airstrike", "nuke", "spect", "revive", "team", "headshot", "crit", "first", "revenge", };
 		loopi(OBIT_NUM){
 			defformatstring(tname)("packages/misc/obit/%s.png", i == WEAP_AKIMBO ? "akimbo" : i < OBIT_START ? guns[i].modelname : texname[i - OBIT_START]);
 			tex[i] = textureload(tname);
