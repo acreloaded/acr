@@ -614,7 +614,8 @@ struct playerent : dynent, playerstate
 		const float pushf = damage*guns[gun].pushfactor/100.f/HEALTHSCALE;
 		vec push = dir;
 		push.normalize().mul(pushf);
-		vel.div(clamp<float>(pushf*5, 1, 5)).add(push);
+		if(slows) vel.div(clamp<float>(pushf*5, 1, 5));
+		vel.add(push);
 		extern int lastmillis;
 		if(gun==WEAP_GRENADE && damage > 50 * HEALTHSCALE) eardamagemillis = lastmillis+damage*100/HEALTHSCALE;
 	}
