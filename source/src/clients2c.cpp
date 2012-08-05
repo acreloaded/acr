@@ -785,7 +785,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(!d) break;
 				d->health = health;
 				d->lastregen = lastmillis;
-				if(healer) addobit(healer, OBIT_REVIVE, FRAG_NONE, false, d);
+				if(!healer) break;
+				addobit(healer, OBIT_REVIVE, FRAG_NONE, false, d);
+				if(d == player1) hudoutf("\fs\f1REVIVED \f2by \fr%s", colorname(healer));
 				break;
 			}
 
