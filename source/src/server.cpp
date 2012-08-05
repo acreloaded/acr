@@ -2184,7 +2184,7 @@ void resetserver(const char *newname, int newmode, int newmuts, int newtime){
 	modecheck(smode = newmode, smuts = newmuts);
 	copystring(smapname, newname);
 
-	minremain = m_edit(gamemode) ? 1440 : newtime >= 0 ? newtime : (m_team(gamemode, mutators) ? 15 : 10);
+	minremain = (!m_edit(gamemode) && newtime >= 0) ? newtime : m_time(gamemode, mutators);
 	gamemillis = 0;
 	gamelimit = minremain*60000;
 	gamemusicseed = rand();
@@ -4161,7 +4161,7 @@ void checkintermission(){
 				nextmapmode = smode;
 				nextmapmuts = smuts;
 			}
-			if(nextmaptime < 1) nextmaptime = m_team(nextmapmode, nextmapmuts) ? 15 : 10;
+			if(nextmaptime < 1) nextmaptime = m_time(nextmapmode, nextmapmuts);
 			concatformatstring(msg, " \fs\f3%s\fr in mode \fs\f3%s\fr for %d minutes", nextmapnm, modestr(nextmapmode, nextmapmuts), nextmaptime);
 			sendservmsg(msg);
 		}
