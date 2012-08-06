@@ -262,7 +262,8 @@ bool findlimit(client &c, bool insert){
 }
 
 static bool mapreload = false, autoteam = true, forceintermission = false, nokills = true;
-#define autobalance (autoteam && !m_zombie(gamemode) && !m_convert(gamemode, mutators))
+#define autobalance_mode (!m_zombie(gamemode) && !m_convert(gamemode, mutators))
+#define autobalance (autoteam && autobalance_mode)
 
 string servdesc_current;
 ENetAddress servdesc_caller;
@@ -3227,7 +3228,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						sendf(sender, 1, "ri2", N_SWITCHTEAM, 1 << 4);
 						break;
 					}
-					else if(m_zombie(gamemode)){
+					else if(!autobalance_mode){
 						sendf(sender, 1, "ri2", N_SWITCHTEAM, 1 << 5);
 						break;
 					}
