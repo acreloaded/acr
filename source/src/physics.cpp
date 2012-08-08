@@ -598,7 +598,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 				pl->vel.mul(0.7f);
 				continue;
 			}
-			pl->o == oo;
+			//pl->o = oo;
 		}
 		if(pl->type==ENT_CAMERA || (pl->type==ENT_PLAYER && pl->state==CS_DEAD && ((playerent *)pl)->spectatemode != SM_FLY))
 		{
