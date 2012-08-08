@@ -254,7 +254,7 @@ struct client				   // server side version of "dynent" type
 	string name;
 	int ping, team, skin, vote, priv;
 	bool muted;
-	int acversion, acbuildtype;
+	int acversion, acbuildtype, acthirdperson;
 	int connectmillis;
 	bool connected, connectauth;
 	int authtoken, authmillis, authpriv, masterverdict, guid; uint authreq;
@@ -345,7 +345,7 @@ struct client				   // server side version of "dynent" type
 		priv = PRIV_NONE;
 		muted = false;
 		authpriv = -1;
-		acversion = acbuildtype = guid = 0;
+		acversion = acbuildtype = acthirdperson = guid = 0;
 		masterverdict = DISC_NONE;
 	}
 
@@ -709,7 +709,7 @@ const char *messagenames(int n){
 		"N_SERVINFO", "N_WELCOME", // before connection
 		"N_INITCLIENT", "N_INITAI", "N_SETTEAM", "N_RESUME", "N_MAPIDENT", "N_DISC", "N_DELAI", "N_REASSIGNAI", // sent after (dis)connection
 		"N_CLIENT", "N_POS", "N_SOUND", "N_PINGPONG", "N_PINGTIME", // automatic from client
-		"N_TEXT", "N_WHOIS", "N_WHOISINFO", "N_NEWNAME", "N_SKIN", "N_LEVELUP", "N_SWITCHTEAM", // user-initiated
+		"N_TEXT", "N_WHOIS", "N_WHOISINFO", "N_NEWNAME", "N_SKIN", "N_THIRDPERSON", "N_LEVELUP", "N_SWITCHTEAM", // user-initiated
 		"N_CALLVOTE", "N_CALLVOTEERR", "N_VOTE", "N_VOTERESULT", // votes
 		"N_LISTDEMOS", "N_DEMO", "N_DEMOPLAYBACK", // demos
 		"N_AUTHREQ", "N_AUTHCHAL", // auth

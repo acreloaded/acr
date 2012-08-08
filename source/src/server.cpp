@@ -2727,6 +2727,7 @@ void putinitclient(client &c, ucharbuf &p){
 	putint(p, c.state.level);
     sendstring(c.name, p);
 	putint(p, c.acbuildtype);
+	putint(p, c.acthirdperson);
 	if(curvote && c.vote != VOTE_NEUTRAL){
 		putint(p, N_VOTE);
 		putint(p, c.clientnum);
@@ -3072,6 +3073,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			int clientversion = getint(p), clientdefs = getint(p), clientguid = getint(p);
 			logversion(*cl, clientversion, clientdefs, clientguid);
 
+			cl->acthirdperson = getint(p);
+
 			int disc = p.remaining() ? DISC_TAGT : allowconnect(*cl, cl->pwd, connectauth, text);
 
 			if(disc) disconnect_client(sender, disc);
@@ -3250,6 +3253,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_SKIN:
 				sendf(-1, 1, "ri3x", N_SKIN, sender, cl->skin = getint(p), sender);
+				break;
+
+			case N_THIRDPERSON:
+				sendf(-1, 1, "ri3x", N_THIRDPERSON, sender, cl->acthirdperson = getint(p), sender);
 				break;
 
 			case N_LEVELUP:

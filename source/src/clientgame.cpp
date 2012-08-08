@@ -1224,7 +1224,7 @@ void refreshsopmenu(void *menu, bool init)
 }
 
 extern bool watchingdemo;
-VARP(thirdperson, 0, 0, 50);
+VARFP(thirdperson, 0, 0, 50, addmsg(N_THIRDPERSON, "ri", thirdperson)); // FIXME use a different protocol message for thirdperson?
 
 // rotate through all spec-able players
 playerent *updatefollowplayer(int shiftdirection)

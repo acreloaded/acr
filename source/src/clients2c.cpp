@@ -351,7 +351,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case N_INITCLIENT: // cn team skin level name cdefs
+			case N_INITCLIENT: // cn team skin level name cdefs thirdperson
 			case N_INITAI: // cn team skin skill name owner
 			{
 				const int cn = getint(p),
@@ -359,7 +359,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						skin = getint(p),
 						level = getint(p);
 				getstring(text, p);
-				const int defown = getint(p);
+				const int extra1 = getint(p),
+					extra2 = (type == N_INITCLIENT) ? getint(p) : 0;
 
 				playerent *d = newclient(cn);
 				if(!d || d == player1) break;
@@ -373,10 +374,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(type == N_INITCLIENT){ // human
 					conoutf("connected: %s", colorname(d));
 					if(!joining) chatoutf("%s \f0joined \f2the \f1game", colorname(d));
-					d->build = defown;
+					d->build = extra1;
+					d->thirdperson = extra2;
 				}
 				else // AI
-					d->ownernum = defown;
+					d->ownernum = extra1;
 
 				updateclientname(d);
 
@@ -433,10 +435,21 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			}
 
 			case N_SKIN:
+			case N_THIRDPERSON:
 			{
 				playerent *d = getclient(getint(p));
-				int s = getint(p);
-				if(d) setskin(d, s);
+				int info = getint(p);
+				if(d && d != player1){
+					switch(type)
+					{
+						case N_SKIN:
+							setskin(d, info);
+							break;
+						case N_THIRDPERSON:
+							d->thirdperson = info;
+							break;
+					}
+				}
 				break;
 			}
 
