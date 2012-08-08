@@ -144,9 +144,9 @@ struct chatlist : consolebuffer<cline>{
 } chat;
 
 Texture **obittex(){
-	static Texture *tex[OBIT_NUM];
+	static Texture *tex[OBIT_NUM] = { NULL };
 	if(!*tex){
-		const char *texname[OBIT_NUM-OBIT_START] = { "death", "bot", "impact", "rpg_stuck", "knife_bleed", "knife_impact", "ff", "assist", "drown", "fall", "fall_water", "cheat", "airstrike", "nuke", "spect", "revive", "team", "headshot", "crit", "first", "revenge", };
+		const char *texname[OBIT_NUM-OBIT_START] = { "death", "bot", "impact", "rpg_stuck", "knife_bleed", "knife_impact", "ff", "assist", "drown", "fall", "fall_water", "cheat", "airstrike", "nuke", "spect", "revive", "team", "multi", "headshot", "crit", "first", "revenge", };
 		loopi(OBIT_NUM){
 			defformatstring(tname)("packages/misc/obit/%s.png", i == WEAP_AKIMBO ? "akimbo" : i < OBIT_START ? guns[i].modelname : texname[i - OBIT_START]);
 			tex[i] = textureload(tname);
@@ -241,6 +241,7 @@ struct obitlist
 			case WEAP_SHOTGUN:
 			case WEAP_SNIPER:
 			case OBIT_AIRSTRIKE:
+			case OBIT_MULTI:
 				aspect = 4; break;
 			case WEAP_BOLT:
 			case WEAP_ASSAULT:
@@ -254,7 +255,7 @@ struct obitlist
 	}
 
 	int drawobit(int style, int left, int top, float fade){
-		Texture **guntexs = obittex();
+		static Texture **guntexs = obittex();
 		const int aspect = obitaspect(style), sz = FONTH;
 
 		glColor4f(1, 1, 1, fade * (style == OBIT_HEADSHOT ? fabs(sinf(totalmillis / 2000.f * 2 * PI)) : 1));
@@ -267,6 +268,7 @@ struct obitlist
 		glTexCoord2f(1, 1); glVertex2f(left + sz * aspect, top + sz);
 		glTexCoord2f(0, 1); glVertex2f(left, top + sz);
 		glEnd();
+		xtraverts += 4;
 
 		return aspect * sz;
 	}

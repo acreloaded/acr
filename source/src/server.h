@@ -718,7 +718,7 @@ const char *messagenames(int n){
 		// game events
 		"N_SHOOT", "N_SHOOTC", "N_PROJ", "N_AKIMBO", "N_RELOAD", // clients to server events
 		"N_SG", "N_SUICIDE", "N_QUICKSWITCH", "N_SWITCHWEAP", "N_LOADOUT", "N_THROWNADE", "N_THROWKNIFE", // server directly handled
-		"N_RICOCHET", "N_REGEN", "N_HEAL", "N_BLEED", "N_STREAKREADY", "N_STREAKUSE", "N_HEADSHOT", // server to client
+		"N_RICOCHET", "N_REGEN", "N_HEAL", "N_BLEED", "N_STREAKREADY", "N_STREAKUSE", "N_HEADSHOT", "N_MULTI", // server to client
 		"N_KNIFEADD", "N_KNIFEREMOVE", // knives
 		"N_CONFIRMADD", "N_CONFIRMREMOVE", // kill confirmed
 		// gameplay

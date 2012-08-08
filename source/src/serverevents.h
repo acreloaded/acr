@@ -161,6 +161,8 @@ void shotevent::process(client *ci)
 				addpt(ci, HEALWOUNDPT * hit->state.wounds.length(), PR_HEALWOUND);
 				if(&c != hit) addptreason(c.clientnum, PR_HEALEDBYTEAMMATE);
 				hit->state.wounds.shrink(0);
+				// heal wounds = revive
+				sendf(-1, 1, "ri4", N_HEAL, c.clientnum, hit->clientnum, hit->state.health);
 			}
 			if((&c == hit) ? gs.health < MAXHEALTH : !isteam(&c, hit)){ // that's right, no more self-heal abuse
 				const int flags = hitzone == HIT_HEAD ? FRAG_GIB : FRAG_NONE;
@@ -265,17 +267,19 @@ void healevent::process(client *ci){
 	const int heal = hp * HEALTHSCALE, todo = MAXHEALTH - ci->state.health;
 	if(heal >= todo){
 		// fully healed!
-		ci->state.damagelog.setsize(0);
 		loopv(ci->heals) ci->heals[i].valid = false;
 		if(valid_client(id)){
 			if(id==ci->clientnum) addpt(clients[id], HEALSELFPT, PR_HEALSELF);
 			else if(isteam(ci, clients[id])) addpt(clients[id], HEALTEAMPT, PR_HEALTEAM);
 			else addpt(clients[id], HEALENEMYPT, PR_HEALENEMY);
 		}
-		return sendf(-1, 1, "ri4", N_HEAL, id, ci->clientnum, ci->state.health = MAXHEALTH);
+		ci->state.health = MAXHEALTH;
+		if(!m_zombie(gamemode)) return sendf(-1, 1, "ri4", N_HEAL, id, ci->clientnum, ci->state.health);
+		else ci->state.damagelog.setsize(0);
 	}
 	// partial heal
-	sendf(-1, 1, "ri3", N_REGEN, ci->clientnum, ci->state.health += heal);
+	else ci->state.health += heal;
+	sendf(-1, 1, "ri3", N_REGEN, ci->clientnum, ci->state.health);
 }
 
 bool suicidebomberevent::flush(client *ci, int fmillis){

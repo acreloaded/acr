@@ -53,6 +53,7 @@ misc
 		headshot.png
 		knife_bleed.png
 		knife_impact.png
+		multi.png
 		pistol.png
 		shotgun.png
 		sniper.png

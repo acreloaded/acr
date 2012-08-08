@@ -578,7 +578,7 @@ void cleanuptmus()
 }
 
 Texture **geteventicons(){
-	static Texture *tex[eventicon::TOTAL];
+	static Texture *tex[eventicon::TOTAL] = { NULL };
 	if(!*tex){
 		const char *texname[eventicon::TOTAL] = { "com", "headshot", "decapitated", "firstblood", "critical", "revenge", "bleed", "up", "radar", "airstrike", "nuke", "dropnade", "suicidebomb" };
 		loopi(eventicon::TOTAL){
@@ -590,7 +590,7 @@ Texture **geteventicons(){
 }
 
 Texture **getperktex1(){
-	static Texture *tex[PERK1_MAX];
+	static Texture *tex[PERK1_MAX] = { NULL };
 	if(!*tex){
 		const char *texname[PERK1_MAX] = { "none", "radar", "ninja", "power", "time", "speed", "hand", "light", "point", };
 		loopi(PERK1_MAX){
@@ -602,7 +602,7 @@ Texture **getperktex1(){
 }
 
 Texture **getperktex2(){
-	static Texture *tex[PERK2_MAX];
+	static Texture *tex[PERK2_MAX] = { NULL };
 	if(!*tex){
 		const char *texname[PERK2_MAX] = { "none", "radar", "ninja", "power", "time", "vision", "streak", "steady", "health", };
 		loopi(PERK2_MAX){
