@@ -436,6 +436,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_SKIN:
 			case N_THIRDPERSON:
+			case N_LEVEL:
 			{
 				playerent *d = getclient(getint(p));
 				int info = getint(p);
@@ -448,18 +449,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						case N_THIRDPERSON:
 							d->thirdperson = info;
 							break;
+						case N_LEVEL:
+							info = clamp(info, 1, MAXLEVEL);
+							d->level = info;
+							if(d->pBot) d->pBot->MakeSkill(info);
+							break;
 					}
-				}
-				break;
-			}
-
-			case N_LEVELUP:
-			{
-				playerent *d = getclient(getint(p));
-				int lvl = clamp(getint(p), 1, MAXLEVEL);
-				if(d){
-					d->level = lvl;
-					if(d->pBot) d->pBot->MakeSkill(lvl);
 				}
 				break;
 			}
