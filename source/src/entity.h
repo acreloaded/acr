@@ -519,7 +519,7 @@ struct playerent : dynent, playerstate
 	string name;
 	int weaponchanging;
 	int nextweapon; // weapon we switch to
-	int team, skin;
+	int team, skin, build;
 	int spectatemode, followplayercn;
 	int eardamagemillis, flashmillis;
 	int respawnoffset;
@@ -552,7 +552,7 @@ struct playerent : dynent, playerstate
 		pBot = NULL;
 		targetpitch = targetyaw = 0;
 
-		lastrecieve = plag = ping = rank = lifesequence = points = frags = flagscore = deaths = lastpain = lastregen = lasthitmarker = skin = eardamagemillis = respawnoffset = radarmillis = ads = 0;
+		lastrecieve = plag = ping = rank = lifesequence = points = frags = flagscore = deaths = lastpain = lastregen = lasthitmarker = skin = build = eardamagemillis = respawnoffset = radarmillis = ads = 0;
 		radarearned = airstrikes = nukemillis = 0;
 		weaponsel = nextweaponsel = lastattackweapon = prevweaponsel = NULL;
 		type = ENT_PLAYER;

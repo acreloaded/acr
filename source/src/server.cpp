@@ -2726,6 +2726,7 @@ void putinitclient(client &c, ucharbuf &p){
     putint(p, c.skin);
 	putint(p, c.state.level);
     sendstring(c.name, p);
+	putint(p, c.acbuildtype);
 	if(curvote && c.vote != VOTE_NEUTRAL){
 		putint(p, N_VOTE);
 		putint(p, c.clientnum);

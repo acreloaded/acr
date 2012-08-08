@@ -450,20 +450,20 @@ unsigned int &genguid(int, uint, int, const char*)
 }
 
 int getbuildtype(){
-	return (isbigendian() ? 0x80 : 0 ) |
+	return
 	#ifdef WIN32
 		0x40 |
 	#endif
 	#ifdef __APPLE__
 		0x20 |
-		#endif
-	#ifdef _DEBUG
-		0x08 |
 	#endif
 	#ifdef __GNUC__
-		0x04 |
+		0x10 |
 	#endif
-		1;
+	#ifdef _DEBUG
+		0x02 |
+	#endif
+		(isbigendian() ? 0x04 : 0 );
 }
 
 void sendintro()
