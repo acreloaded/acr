@@ -240,7 +240,7 @@ struct mitemimagemanual : mitemmanual
     }
     virtual void render(int x, int y, int w)
     {
-        mitem::render(x, y, w);
+        //mitem::render(x, y, w);
         if(image || altfont)
         {
             int xs = 0;
