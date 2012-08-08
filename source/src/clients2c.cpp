@@ -780,7 +780,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_HEAL:
 			{
 				playerent *healer = type == N_HEAL ? getclient(getint(p)) : NULL;
-				int cn = getint(p), health = getint(p);
+				const int cn = getint(p), health = getint(p);
 				playerent *d = getclient(cn);
 				if(!d) break;
 				d->health = health;
@@ -788,6 +788,15 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(!healer) break;
 				addobit(healer, OBIT_REVIVE, FRAG_NONE, false, d);
 				if(d == player1) hudoutf("\fs\f1REVIVED \f2by \fr%s", colorname(healer));
+				break;
+			}
+
+			case N_MULTI:
+			{
+				const int cn = getint(p), multi = getint(p);
+				playerent *d = getclient(cn);
+				if(!d) break;
+				addobit(d, OBIT_MULTI, FRAG_NONE, false, NULL, multi);
 				break;
 			}
 
