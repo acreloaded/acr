@@ -371,7 +371,7 @@ extern bool gensha1(const char *s, unsigned int *dst);
 extern flaginfo flaginfos[2];
 extern int sessionid;
 extern bool watchingdemo;
-extern bool autoteambalance;
+extern int thirdperson;
 extern void updateworld(int curtime, int lastmillis);
 extern void resetmap();
 extern void startmap(const char *name, bool reset = true);

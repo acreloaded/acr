@@ -45,7 +45,6 @@ void classicmode(int n)
 COMMAND(classicmode, ARG_1INT);
 
 bool intermission = false;
-bool autoteambalance = false;
 int arenaintermission = 0;
 
 playerent *player1 = newplayerent();		  // our client
@@ -1225,6 +1224,7 @@ void refreshsopmenu(void *menu, bool init)
 }
 
 extern bool watchingdemo;
+VARP(thirdperson, 0, 0, 10);
 
 // rotate through all spec-able players
 playerent *updatefollowplayer(int shiftdirection)

@@ -567,8 +567,31 @@ void recomputecamera(){
 				resetcamera();
 				break;
 		}
-	}else{
-		resetcamera();
+	}
+	else
+	{
+		if(thirdperson)
+		{
+			static physent thirdcam;
+			if(camera1 != &thirdcam)
+			{
+				thirdcam = *(physent *)player1;
+				thirdcam.type = ENT_CAMERA;
+				thirdcam.reset();
+				thirdcam.roll = 0;
+				thirdcam.move = -1;
+				camera1 = &thirdcam;
+			}
+			thirdcam.o = player1->o;
+			const float thirdpersondist = thirdperson*player1->radius*(1.f-player1->ads/((player1->weaponsel->type == WEAP_SNIPER || player1->weaponsel->type == WEAP_BOLT) ? 500.f : 2000.f));
+			thirdcam.vel.x = thirdpersondist*player1->radius*-sinf(RAD*player1->yaw)*cosf(RAD*-player1->pitch);
+			thirdcam.vel.y = thirdpersondist*player1->radius*cosf(RAD*player1->yaw)*cosf(RAD*-player1->pitch);
+			thirdcam.vel.z = thirdpersondist*player1->radius*sinf(RAD*-player1->pitch);
+			loopi(5) moveplayer(&thirdcam, 20, true, 5);
+			thirdcam.pitch = player1->pitch;
+			thirdcam.yaw = player1->yaw;
+		}
+		else resetcamera();
 	}
 }
 

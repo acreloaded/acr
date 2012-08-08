@@ -1310,8 +1310,11 @@ void renderhudwaypoints(playerent *p){
 		}
 		if(wp >= 0 && wp < WP_NUM) renderwaypoint(wp, vec(e.x, e.y, (float)S(int(e.x), int(e.y))->floor + PLAYERHEIGHT), a);
 	}
-	loopv(players) if(players[i] && players[i] != p && players[i]->nukemillis >= totalmillis){
-		renderwaypoint(isteam(p, players[i]) ? WP_DEFEND : WP_KILL, players[i]->o);
-		renderwaypoint(WP_NUKE, vec(players[i]->o.x, players[i]->o.y, players[i]->o.z + PLAYERHEIGHT));
+	loopv(players){
+		playerent *pl = i == getclientnum() ? player1 : players[i];
+		if(pl && (thirdperson || pl != p) && pl->nukemillis >= totalmillis){
+			renderwaypoint(isteam(p, pl) ? WP_DEFEND : WP_KILL, pl->o);
+			renderwaypoint(WP_NUKE, vec(pl->o.x, pl->o.y, pl->o.z + PLAYERHEIGHT));
+		}
 	}
 }

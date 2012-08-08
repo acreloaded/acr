@@ -760,6 +760,6 @@ void renderclients()
 {
 	playerent *d;
 	loopv(players) if((d = players[i])/* && d->state!=CS_SPAWNING*/ && (!player1->isspectating() || player1->spectatemode != SM_FOLLOW1ST || player1->followplayercn != i)) renderclient(d);
-	if(player1->state==CS_DEAD || (reflecting && !refracting)) renderclient(player1);
+	if(thirdperson || player1->state==CS_DEAD || (reflecting && !refracting)) renderclient(player1);
 }
 
