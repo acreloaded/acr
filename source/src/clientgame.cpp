@@ -1224,7 +1224,7 @@ void refreshsopmenu(void *menu, bool init)
 }
 
 extern bool watchingdemo;
-VARP(thirdperson, 0, 0, 10);
+VARP(thirdperson, 0, 0, 50);
 
 // rotate through all spec-able players
 playerent *updatefollowplayer(int shiftdirection)
