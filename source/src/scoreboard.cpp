@@ -23,8 +23,9 @@ COMMANDN(showscores, showscores_, ARG_1STR);
 
 struct sline{
 	string s;
+	const char *altfont;
 	color *bgcolor;
-	sline() : bgcolor(NULL) {}
+	sline() : altfont(NULL), bgcolor(NULL) { *s = '\0'; }
 };
 
 static vector<sline> scorelines;
@@ -101,12 +102,19 @@ void renderscore(void *menu, playerent *d){
 	defformatstring(rankstr)("%d%s", d->rank, (d->rank / 10 == 1) ? "th" : rmod10 == 1 ? "st" : rmod10 == 2 ? "nd" : rmod10 == 3 ? "rd" : "th");
 	sline &line = scorelines.add();
 	line.bgcolor = d->lastpain + 500 > lastmillis ? &damagedplayerc : d==player1 ? &localplayerc : NULL;
-	string &s = line.s;
-	scoreratio sr;
+	static scoreratio sr;
 	sr.calc(d->frags, d->deaths);
+	formatstring(line.s)("%d\t", d->points);
+	if(m_affinity(gamemode)) concatformatstring(line.s, "%d\t", d->flagscore);
 	extern int level;
-	if(m_affinity(gamemode)) formatstring(s)("%d\t%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%d\t\f%d%s", d->points, d->flagscore, d->frags, d->assists, d->deaths, sr.precision, sr.ratio, lagping, rankstr, d->clientnum, d == player1 ? level : d->level, privcolor(d->priv, d->state == CS_DEAD), colorname(d, true));
-	else formatstring(s)("%d\t%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%d\t\f%d%s", d->points, d->frags, d->assists, d->deaths, sr.precision, sr.ratio, lagping, rankstr, d->clientnum, d == player1 ? level : d->level, privcolor(d->priv, d->state == CS_DEAD), colorname(d, true));
+	concatformatstring(line.s, "%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%d\t\f%d%s ", d->frags, d->assists, d->deaths, sr.precision, sr.ratio, lagping, rankstr, d->clientnum, d == player1 ? level : d->level, privcolor(d->priv, d->state == CS_DEAD), colorname(d, true));
+	line.altfont = "build";
+	const int buildinfo = (d == player1) ? getbuildtype() : d->build;
+	if(buildinfo & 0x40) concatstring(line.s, "\a4  ");
+	if(buildinfo & 0x20) concatstring(line.s, "\a3  ");
+	if(buildinfo & 0x10) concatstring(line.s, "\a2  ");
+	if(buildinfo & 0x02) concatstring(line.s, "\a1  ");
+	//if(d->thirdperson) concatstring(line.s, "\a0");
 }
 
 void renderteamscore(void *menu, teamsum &t){
@@ -119,12 +127,13 @@ void renderteamscore(void *menu, teamsum &t){
 															m_zombie(gamemode) && t.team == TEAM_RED ? _("sb_zombies") :
 															t.teammembers.length() == 1 ? _("sb_player") : _("sb_players"));
 	const teamscore &ts = teamscores[t.team];
-	scoreratio sr;
+	static scoreratio sr;
 	sr.calc(ts.frags, ts.deaths);
 	defformatstring(lagping)("%s/%s", colorpj(t.pj/max(t.teammembers.length(),1)), colorping(t.ping/max(t.teammembers.length(), 1)));
 	const char *teamname = m_team(gamemode, mutators) || t.team == TEAM_SPECT ? team_string(t.team) : "FFA Total";
-	if(m_affinity(gamemode)) formatstring(line.s)("%d\t%d\t%d\t%d\t%d\t%.*f\t%s\t\t\t%d\t%s\t\t%s", ts.points, ts.flagscore, ts.frags, ts.assists, ts.deaths, sr.precision, sr.ratio, lagping, t.lvl, teamname, plrs);
-	else formatstring(line.s)("%d\t%d\t%d\t%d\t%.*f\t%s\t\t\t%d\t%s\t\t%s", ts.points, ts.frags, ts.assists, ts.deaths, sr.precision, sr.ratio, lagping, t.lvl, teamname, plrs);
+	formatstring(line.s)("%d\t", ts.points);
+	if(m_affinity(gamemode)) concatformatstring(line.s, "%d\t", ts.flagscore);
+	concatformatstring(line.s, "%d\t%d\t%d\t%.*f\t%s\t\t\t%d\t%s\t\t%s", ts.frags, ts.assists, ts.deaths, sr.precision, sr.ratio, lagping, t.lvl, teamname, plrs);
 	static color teamcolors[TEAM_NUM+1] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f), color(.4f, .4f, .4f, .3f), color(.8f, .8f, .8f, .4f) };
 	line.bgcolor = &teamcolors[!m_team(gamemode, mutators) && t.team != TEAM_SPECT ? TEAM_NUM : t.team];
 	loopv(t.teammembers){
@@ -207,7 +216,7 @@ void renderscores(void *menu, bool init){
 	//else loopv(scores) renderscore(menu, scores[i]);
 
 	menureset(menu);
-	loopv(scorelines) menumanual(menu, scorelines[i].s, NULL, scorelines[i].bgcolor);
+	loopv(scorelines) menuimagemanual(menu, NULL, scorelines[i].altfont, scorelines[i].s, NULL, scorelines[i].bgcolor);
 	menuheader(menu, modeline, serverline);
 
 	// update server stats
