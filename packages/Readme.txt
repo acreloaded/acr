@@ -60,6 +60,7 @@ misc
 		subgun.png
 			© Activision
 		bot.png
+		build.png - Combined by Victor, LGPL
 		cheat.png
 		crit.png
 		drown.png
