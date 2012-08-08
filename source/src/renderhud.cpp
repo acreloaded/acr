@@ -57,13 +57,13 @@ void drawflagicons(const flaginfo &f, playerent *p)
 	// Must be stolen for big flag-stolen icon
 	if(f.state != CTFF_STOLEN) return;
 	// CTF OR KTF2/Returner
-	int row = (m_capture(gamemode) || m_ktf2(gamemode, mutators) && m_team(gamemode, mutators)) && f.actor && f.actor->team == f.team ? 1 : 0;
+	int row = (m_capture(gamemode) || (m_ktf2(gamemode, mutators) && m_team(gamemode, mutators))) && f.actor && f.actor->team == f.team ? 1 : 0;
 	// HTF + KTF
 	if(m_keep(gamemode) && !(m_ktf2(gamemode, mutators) && m_team(gamemode, mutators))) row = 1;
 	// pulses
 	glColor4f(1, 1, 1, f.actor == p ? (sinf(lastmillis/100.0f)+1.0f) / 2.0f : .6f);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-	drawicon(m_capture(gamemode) || m_ktf2(gamemode, mutators) && m_team(gamemode, mutators) ? ctftex : hktftex, VIRTW - 225 * (!f.team && flaginfos[1].state != CTFF_STOLEN ? 1 : 2 - f.team) - 10, VIRTH*5/8, 225, f.team, row, 1/2.f);
+	drawicon((m_capture(gamemode) || (m_ktf2(gamemode, mutators) && m_team(gamemode, mutators))) ? ctftex : hktftex, VIRTW - 225 * (!f.team && flaginfos[1].state != CTFF_STOLEN ? 1 : 2 - f.team) - 10, VIRTH*5/8, 225, f.team, row, 1/2.f);
 }
 
 void drawvoteicon(float x, float y, int col, int row, bool noblend)
@@ -265,8 +265,10 @@ void drawequipicons(playerent *p)
 	*/
 	int hc = 2, hr = 3;
 	if(p->armor)
+	{
 		if(p->armor > 25) { hc = (p->armor - 25) / 25; hr = 2; }
 		else { hc = hr = 3; }
+	}
 	drawequipicon(20, 1650, hc, hr, (lastmillis - p->lastregen < 1000 ? 2 : 0) | ((p->state!=CS_DEAD && p->health<=35*HEALTHSCALE && !m_sniper(gamemode, mutators)) ? 1 : 0), p);
 
 	// grenades
@@ -575,7 +577,7 @@ void drawradar(playerent *p, int w, int h)
 		{
 			flaginfo &f = flaginfos[i];
 			entity *e = f.flagent;
-			if(!e || e->x == -1 && e-> y == -1) continue;
+			if(!e || (e->x == -1 && e-> y == -1)) continue;
 			float yaw = showmap ? 0 : camera1->yaw;
 			drawradarent(fixradarpos(vec(e->x, e->y, e->z), centerpos, res), coordtrans, yaw, m_keep(gamemode) && !m_ktf2(gamemode, mutators) && f.state!=CTFF_IDLE ? 2 : f.team, 3, iconsize); // draw bases
 			vec pos(0.5f-0.1f, 0.5f-0.9f, 0);
