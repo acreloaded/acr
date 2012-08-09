@@ -1145,7 +1145,7 @@ void convertcheck(){
 
 #define SPAMTHROTTLE       800    // disallow messages before this delay from the last message (milliseconds)
 
-bool spamdetect(client *cl, char *text) // checks doubled lines and average typing speed
+bool spamdetect(client *cl, const char *text) // checks doubled lines and average typing speed
 {
 	bool spam = false;
 	int pause = servmillis - cl->lastsay;
@@ -1169,7 +1169,7 @@ bool spamdetect(client *cl, char *text) // checks doubled lines and average typi
 	return spam;
 }
 
-void sendtext(char *text, client &cl, int flags, int voice){
+void sendtext(const char *text, client &cl, int flags, int voice){
 	if(voice < 0 || voice > S_VOICEEND - S_MAINEND) voice = 0;
 	defformatstring(logmsg)("<%s> ", formatname(cl));
 	if(!m_team(gamemode, mutators) && cl.team != TEAM_SPECT) flags &= ~SAY_TEAM;
