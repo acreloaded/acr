@@ -903,6 +903,7 @@ const int toobit(int weap, int style){
 		case WEAP_RPG: return gib ? OBIT_IMPACT : flag ? OBIT_RPG_STUCK : WEAP_RPG;
 		case WEAP_GRENADE: return gib ? WEAP_GRENADE : OBIT_AIRSTRIKE;
 		case WEAP_MAX: return OBIT_NUKE;
+		case WEAP_MAX + 2: return OBIT_FALL;
 		case WEAP_MAX + 3: return OBIT_ASSIST; // assisted suicide
 	}
 	return weap < WEAP_MAX ? weap : OBIT_DEATH;
@@ -966,6 +967,9 @@ const char *killname(int obit, bool headshot){
 			break;
 		case OBIT_ASSIST:
 			concatstring(k, headshot ? "helped" : "assisted");
+			break;
+		case OBIT_FALL:
+			concatstring(k, "jumped onto");
 			break;
 		case OBIT_NUKE:
 			concatstring(k, "nuked");
