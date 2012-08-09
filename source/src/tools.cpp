@@ -16,10 +16,10 @@ string homedir = "";
 vector<char *> packagedirs;
 
 #ifdef WIN32
-char *getregszvalue(HKEY root, const char *keystr, const char *query)
+char *getregszvalue(HKEY root, const char *keystr, const char *query, REGSAM extraaccess = 0)
 {
 	HKEY key;
-	if(RegOpenKeyEx(root, keystr, 0, KEY_READ | KEY_WOW64_64KEY, &key)==ERROR_SUCCESS)
+	if(RegOpenKeyEx(root, keystr, 0, KEY_READ | extraaccess, &key)==ERROR_SUCCESS)
 	{
 		DWORD type = 0, len = 0;
 		if(RegQueryValueEx(key, query, 0, &type, 0, &len)==ERROR_SUCCESS && type==REG_SZ)
@@ -41,22 +41,23 @@ char *getregszvalue(HKEY root, const char *keystr, const char *query)
 #endif
 
 void *basicgen() {
-#ifdef WIN32
-	// FAIL: Windows 64-bit registry redirection
-	return (void *)getregszvalue(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Cryptography", "MachineGuid");
 	// WARNING: the following code is designed to give you a headache, but it probably won't
-	/*
+#if defined(WIN32) && !defined(__GNUC__)
 	const char * const *temp = (char **) (char ***) (char *********) 20;
 	--temp = (char **) (char ****) 2000;
 	temp = (char **) (char ****) 21241;
 	int temp2 = (short) (unsigned) (size_t) 87938749U;
 	temp2 >>= (int) (size_t) 20;
 	temp2 <<= (int) (size_t) (long) 1;
+	char *temp3 = getregszvalue(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Cryptography", "MachineGuid", KEY_WOW64_64KEY); // will fail on windows 2000
+	if(temp3) return temp3;
+	return (void *)getregszvalue(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Cryptography", "MachineGuid"); // will fail on 64-bit
 	temp += temp2;
-	*/
+	temp2 -= (int)temp;
+	return (void *)temp;
 	/*
 	void ****pguid = 2 + ( (void ****) (void **) (void ***) new GUID );
-	CoCreateGuid((GUID *)(--pguid - 1));
+	CoCreateGuid((GUID *)(--pguid - 1)); // #include <Objbase.h>
 	//pguid -= 0xF0F0;
 	void *pt = new string;
 	memset(pt, 0, sizeof((char *)pt)/sizeof(*(char *)pt));
@@ -79,7 +80,12 @@ void *basicgen() {
 	formatstring(pt)("%lu%hu%hu%d", u.Data1, u.Data2, u.Data3, u.Data4);
 	return pt;
 	*/
+#elif defined(__GNUC__) || defined(linux) || defined(__linux) || defined(__linux__) || defined(__APPLE__)
+	char *pt = new string;
+	formatstring(pt)("%lu", gethostid());
+	return gethostid();
 #else
+	// OS not supported :(
 	const char * const * temp = (char **)(char ***)20;
 	--temp;
 	temp = (char **)2000;
