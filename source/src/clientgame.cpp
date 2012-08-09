@@ -525,7 +525,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 	if(pl==player1 || isowned(pl)) pl->damageroll(damage);
 
 	// sound
-	if(pl==gamefocus) playsound(S_PAIN6, SP_HIGH);
+	if(pl==focus) playsound(S_PAIN6, SP_HIGH);
 	else playsound(S_PAIN1+rnd(5), pl);
 }
 
@@ -555,7 +555,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 			}
 			concatstring(predicate, "\f3");
 		}
-		if(pl == gamefocus) concatstring(predicate, "!\f2");
+		if(pl == focus) concatstring(predicate, "!\f2");
 	}
 	else formatstring(predicate)("%s%s %s%s", style&FRAG_REVENGE ? "\fs\f0vengefully \fr" : "", killname(obit = toobit(weapon, style), headshot),
 			isteam(pl, act) ? act==player1 ? "\f3your teammate " : "\f3his teammate " : "", pl == player1 ? "\f1you\f2" : colorname(pl));
@@ -566,7 +566,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 	pl->damagelog.removeobj(act->clientnum);
 	loopv(pl->damagelog) if(!getclient(pl->damagelog[i])) pl->damagelog.remove(i--);
 	// HUD for first person
-	if(pl == gamefocus || act == gamefocus || pl->damagelog.find(gamefocus->clientnum) >= 0){
+	if(pl == focus || act == focus || pl->damagelog.find(focus->clientnum) >= 0){
 		if(pl->damagelog.length()) hudonlyf("%s %s %s, %d assister%s", subject, hashave, predicate, pl->damagelog.length(), pl->damagelog.length()==1?"":"s");
 		else hudonlyf("%s %s %s", subject, hashave, predicate);
 	}
@@ -627,9 +627,9 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 	if(icon >= 0) act->addicon(icon);
 	if(sound < S_NULL)
 	{
-		playsound(sound, act, act == gamefocus ? SP_HIGHEST : SP_HIGH);
+		playsound(sound, act, act == focus ? SP_HIGHEST : SP_HIGH);
 		if(pl->o.dist(act->o) >= 4)
-			playsound(sound, pl, pl == gamefocus ? SP_HIGHEST : SP_HIGH); // both get sounds if 1 meter apart...
+			playsound(sound, pl, pl == focus ? SP_HIGHEST : SP_HIGH); // both get sounds if 1 meter apart...
 	}
 
 	addobit(act, obit, style, headshot, pl);

@@ -402,7 +402,7 @@ void renderwaypoint(int wp, const vec &o, float alpha, bool disabledepthtest){
 	glRotatef(camera1->pitch, 1, 0, 0);
 	glRotatef(camera1->roll, 0, -1, 0);
 	glColor4f(1, 1, 1, alpha);
-	const float scale = sqrt(o.dist(camera1->o)*zoomfactor(gamefocus)), s = (wp==WP_KNIFE||wp==WP_EXP?waypointweapsize:waypointsize)/100.0f*scale;
+	const float scale = sqrt(o.dist(camera1->o)*zoomfactor(focus)), s = (wp==WP_KNIFE||wp==WP_EXP?waypointweapsize:waypointsize)/100.0f*scale;
     quad(waypointtex[wp]->id, vec(s/2.0f, 0.0f, s), vec(s/-2.0f, 0.0f, 0.0f), 0.0f, 0.0f, 1.0f, 1.0f);
 	/*
 		float s = aboveheadiconsize/75.0f*scalef, offset =  (lastmillis - icon.millis) * 2.f / aboveheadiconfadetime, anim = lastmillis / 100 % (h * 2);
@@ -474,9 +474,10 @@ float fovy, aspect;
 int farplane;
 
 physent *camera1 = NULL;
+playerent *focus = NULL;
 
 void resetcamera(){
-	camera1 = player1;
+	camera1 = focus = player1;
 }
 
 VARNP(deathcam, deathcamstyle, 0, 1, 1);
@@ -516,6 +517,7 @@ void recomputecamera(){
 				deathcam.roll = 0;
 				deathcam.move = -1;
 				camera1 = &deathcam;
+				focus = player1;
 				lastdeathcamswitch = totalmillis;
 				loopi(10) moveplayer(camera1, 10, true, 50);
 				break;
@@ -529,6 +531,7 @@ void recomputecamera(){
 				playerent *f = updatefollowplayer();
 				if(!f) { togglespect(); return; }
 				camera1 = f;
+				focus = f;
 				break;
 			}
 			case SM_FOLLOW3RD:
@@ -544,8 +547,8 @@ void recomputecamera(){
 					followcam.reset();
 					followcam.roll = 0;
 					followcam.move = -1;
-					lastplayer = p;
 					camera1 = &followcam;
+					focus = lastplayer = p;
 				}
 				followcam.o = p->o;
 
@@ -581,6 +584,7 @@ void recomputecamera(){
 				thirdcam.roll = 0;
 				thirdcam.move = -1;
 				camera1 = &thirdcam;
+				focus = player1;
 			}
 			thirdcam.o = player1->o;
 			const float thirdpersondist = thirdperson*player1->radius*(1.f-player1->ads/((player1->weaponsel->type == WEAP_SNIPER || player1->weaponsel->type == WEAP_BOLT) ? 500.f : 2000.f));
@@ -793,9 +797,11 @@ void drawminimap(int w, int h){
 
 	disableraytable();
 
-	physent *oldcam = camera1;
+	physent * const oldcam = camera1;
+	playerent * const oldfocus = focus;
 	physent minicam;
 	camera1 = &minicam;
+	focus = player1;
 	camera1->type = ENT_CAMERA;
 	camera1->o.x = camera1->o.y = ssize/2;
 	camera1->o.z = 128;
@@ -838,6 +844,7 @@ void drawminimap(int w, int h){
 	renderwater(hf, 0, 0);
 
 	camera1 = oldcam;
+	focus = oldfocus;
 	minimap = false;
 
 	glBindTexture(GL_TEXTURE_2D, minimaptex);
@@ -879,7 +886,7 @@ float zoomfactor(playerent *who){
 void setperspective(float fovy, float nearplane){
 	GLdouble ydist = nearplane * tan(fovy/2*RAD), xdist = ydist * aspect;
 
-	const float zoomf = zoomfactor(gamefocus);
+	const float zoomf = zoomfactor(focus);
 	xdist *= zoomf;
 	ydist *= zoomf;
 
@@ -972,7 +979,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps){
 	fovy = 2*atan2(tan(float(dynfov())/2*RAD), aspect)/RAD;
 
 	float hf = hdr.waterlevel-0.3f;
-	const bool underwater = camera1->o.z<hf/*, flashed = gamefocus->flashmillis > 0 && lastmillis <= gamefocus->flashmillis*/;
+	const bool underwater = camera1->o.z<hf/*, flashed = focus->flashmillis > 0 && lastmillis <= focus->flashmillis*/;
 
 	glFogi(GL_FOG_START, (fog+64)/8);
 	glFogi(GL_FOG_END, fog);
@@ -1054,7 +1061,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps){
 	renderentities();
 	endmodelbatches();
 
-	renderhudwaypoints(gamefocus);
+	renderhudwaypoints(focus);
 
 	readdepth(w, h, worldpos);
 

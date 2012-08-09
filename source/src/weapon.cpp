@@ -465,7 +465,7 @@ void weapon::renderhudmodel(int lastaction, bool akimboflip){
 	if(ads_gun(type) && type != WEAP_RPG && (wm.anim&ANIM_INDEX)==ANIM_WEAP_SHOOT) wm.anim = ANIM_WEAP_IDLE;
 	if(flip) wm.anim |= ANIM_MIRROR;
 	if(emit) wm.anim |= ANIM_PARTICLE;
-	if(gamefocus->protect(lastmillis, gamemode, mutators)) wm.anim |= ANIM_TRANSLUCENT;
+	if(focus->protect(lastmillis, gamemode, mutators)) wm.anim |= ANIM_TRANSLUCENT;
 	rendermodel(path, wm.anim|ANIM_DYNALLOC, 0, -1, wm.pos, owner->yaw+90, owner->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, NULL, 1.28f);
 }
 
@@ -642,7 +642,7 @@ void grenades::attackfx(const vec &from, const vec &to, int millis) // other pla
 
 GLuint flashtex;
 void flashme(float dist){
-	gamefocus->flashmillis = lastmillis + 3000 - sqrtf(dist) * 300;
+	focus->flashmillis = lastmillis + 3000 - sqrtf(dist) * 300;
 	// store last render
 	SDL_Surface *image = SDL_CreateRGBSurface(SDL_SWSURFACE, screen->w, screen->h, 24, 0x0000FF, 0x00FF00, 0xFF0000, 0);
 	if(!image){
@@ -695,7 +695,7 @@ void grenades::attackhit(const vec &o){
 		//newparticle(o, t, shotlinettl, 6); // option 2
 		particle_splash(0, 8, 250, t);
 	}
-	//if(gamefocus->state == CS_ALIVE && gamefocus->o.dist(o) < 30.f) flashme(gamefocus->o.dist(o));
+	//if(focus->state == CS_ALIVE && focus->o.dist(o) < 30.f) flashme(focus->o.dist(o));
 }
 
 int grenades::modelanim(){
