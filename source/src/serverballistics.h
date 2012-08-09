@@ -200,9 +200,9 @@ void nuke(client &owner){
 		}
 	}
 	hits.sort(cmpnukesort);
-	loopv(hits) serverdied(hits[i].target, &owner, 0, WEAP_MAX, !rnd(3) ? FRAG_GIB : FRAG_NONE, owner.state.o);
+	loopv(hits) serverdied(hits[i].target, &owner, 0, WEAP_MAX + 1, !rnd(3) ? FRAG_GIB : FRAG_NONE, owner.state.o);
 	// save the best for last!
-	owner.suicide(WEAP_MAX + 6, FRAG_NONE);
+	owner.suicide(WEAP_MAX + 1, FRAG_NONE);
 }
 
 // hit checks

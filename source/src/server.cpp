@@ -1443,7 +1443,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 			if(valid_client(ts.damagelog[i]) && !isteam(target, clients[ts.damagelog[i]])){
 				actor = clients[ts.damagelog[i]];
 				style = isheadshot(gun, style) ? FRAG_GIB : FRAG_NONE;
-				gun = WEAP_MAX + 3;
+				gun = WEAP_MAX + 0;
 				ts.damagelog.remove(i/*--*/);
 				break;
 			}
@@ -1686,7 +1686,7 @@ void cheat(client *cl, const char *reason = "unknown"){
 	logline(ACLOG_INFO, "[%s] %s cheat detected (%s)", gethostname(cl->clientnum), formatname(cl), reason);
 	defformatstring(cheats)("\f2%s \fs\f6(%d) \f3cheat detected \f4(%s)", cl->name, cl->clientnum, reason);
 	sendservmsg(cheats);
-	cl->suicide(WEAP_MAX + 5, FRAG_GIB);
+	cl->suicide(WEAP_MAX + 12, FRAG_GIB);
 }
 
 #include "serverevents.h"
@@ -1941,7 +1941,7 @@ bool updateclientteam(int cn, int team, int ftr){
 	logline(ftr == FTR_SILENT ? ACLOG_DEBUG : ACLOG_INFO, "[%s] %s is now on team %s", gethostname(cn), formatname(ci), team_string(team));
 	// force a death if needed
 	if(ci.state.state != CS_DEAD && (m_team(gamemode, mutators) || team == TEAM_SPECT)){
-		if(ftr == FTR_PLAYERWISH) serverdied(&ci, &ci, 0, WEAP_MAX + ((team == TEAM_SPECT) ? 8 : 7), FRAG_NONE, ci.state.o);
+		if(ftr == FTR_PLAYERWISH) serverdied(&ci, &ci, 0, WEAP_MAX + ((team == TEAM_SPECT) ? 22 : 21), FRAG_NONE, ci.state.o);
 		else forcedeath(&ci);
 	}
 	// set new team
@@ -2936,7 +2936,7 @@ bool checkmove(client &cp, int f){
 				}
 			}
 			else if(newunderwater && dz > 32){ // air to liquid, more than 8 meters
-				serverdamage(&cp, &cp, 35 * HEALTHSCALE, WEAP_MAX + 9, FRAG_NONE, cs.o); // fixed damage @ 35
+				serverdamage(&cp, &cp, 35 * HEALTHSCALE, WEAP_MAX + 3, FRAG_NONE, cs.o); // fixed damage @ 35
 			}
 			cs.onfloor = true;
 		}
@@ -3413,7 +3413,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				const int cn = getint(p);
 				if(!hasclient(cl, cn)) break;
 				client *cp = clients[cn];
-				if(cp->state.state != CS_DEAD) cp->suicide(cn == sender ? WEAP_MAX : WEAP_MAX + 4, cn == sender ? FRAG_GIB : FRAG_NONE);
+				if(cp->state.state != CS_DEAD) cp->suicide( WEAP_MAX + (cn == sender ? 10 : 11), cn == sender ? FRAG_GIB : FRAG_NONE);
 				break;
 			}
 

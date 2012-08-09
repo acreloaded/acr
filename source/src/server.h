@@ -793,16 +793,16 @@ const int obit_suicide(int weap){
 	if(melee_weap(weap)) return OBIT_FF;
 	if(weap >= 0 && weap <= OBIT_START) return weap;
 	switch(weap - OBIT_START){
-		case 0: return OBIT_DEATH;
-		case 1: return OBIT_DROWN;
+		case 0: return OBIT_ASSIST;
+		case 1: return OBIT_NUKE;
 		case 2: return OBIT_FALL;
-		case 9: return OBIT_FALL_WATER; // out of sequence
-		case 3: return OBIT_ASSIST;
-		case 4: return OBIT_BOT;
-		case 5: return OBIT_CHEAT;
-		case 6: return OBIT_NUKE;
-		case 7: return OBIT_TEAM;
-		case 8: return OBIT_SPECT;
+		case 3: return OBIT_FALL_WATER;
+		case 10: return OBIT_DEATH;
+		case 11: return OBIT_BOT;
+		case 12: return OBIT_CHEAT;
+		case 13: return OBIT_DROWN;
+		case 21: return OBIT_TEAM;
+		case 22: return OBIT_SPECT;
 	}
 	return OBIT_DEATH;
 }
@@ -887,8 +887,8 @@ const bool isheadshot(int weapon, int style){
 		case WEAP_GRENADE:
 			if(style & FRAG_FLAG) break; // these weapons headshot if FRAG_FLAG is set
 		case WEAP_RPG:
-		case WEAP_MAX:
-		case WEAP_MAX + 5:
+		case WEAP_MAX + 1:
+		case WEAP_MAX + 10:
 			return false; // these weapons cannot headshot
 	}
 	// headshot = gib if otherwise
@@ -902,9 +902,10 @@ const int toobit(int weap, int style){
 		case WEAP_KNIFE: return gib ? WEAP_KNIFE : flag ? OBIT_KNIFE_IMPACT : OBIT_KNIFE_BLEED;
 		case WEAP_RPG: return gib ? OBIT_IMPACT : flag ? OBIT_RPG_STUCK : WEAP_RPG;
 		case WEAP_GRENADE: return gib ? WEAP_GRENADE : OBIT_AIRSTRIKE;
-		case WEAP_MAX: return OBIT_NUKE;
+		case WEAP_MAX + 0: return OBIT_ASSIST; // assisted suicide
+		case WEAP_MAX + 1: return OBIT_NUKE;
 		case WEAP_MAX + 2: return OBIT_FALL;
-		case WEAP_MAX + 3: return OBIT_ASSIST; // assisted suicide
+		case WEAP_MAX + 3: return OBIT_FALL_WATER; // splash?
 	}
 	return weap < WEAP_MAX ? weap : OBIT_DEATH;
 }
