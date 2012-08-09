@@ -494,7 +494,7 @@ void camera3(playerent *p, int dist){
 		focus = lastplayer = p;
 	}
 	camera3.o = p->o;
-	const float thirdpersondist = thirdperson*p->radius*(1.f-p->ads/((p->weaponsel->type == WEAP_SNIPER || p->weaponsel->type == WEAP_BOLT) ? 500.f : 2000.f));
+	const float thirdpersondist = dist*p->radius*(1.f-p->ads/((p->weaponsel->type == WEAP_SNIPER || p->weaponsel->type == WEAP_BOLT) ? 500.f : 2000.f));
 	camera3.vel.x = thirdpersondist*-sinf(RAD*p->yaw)*cosf(RAD*-p->pitch);
 	camera3.vel.y = thirdpersondist*cosf(RAD*p->yaw)*cosf(RAD*-p->pitch);
 	camera3.vel.z = thirdpersondist*sinf(RAD*-p->pitch);
