@@ -480,6 +480,42 @@ void resetcamera(){
 	camera1 = focus = player1;
 }
 
+void camera3(playerent *p, int dist){
+	static physent camera3; // previously known as followcam and thirdcam
+	static playerent *lastplayer = NULL;
+	if(lastplayer != p || camera1 != &camera3)
+	{
+		camera3 = *(physent *)p;
+		camera3.type = ENT_CAMERA;
+		camera3.reset();
+		camera3.roll = 0;
+		camera3.move = -1;
+		camera1 = &camera3;
+		focus = lastplayer = p;
+	}
+	camera3.o = p->o;
+	const float thirdpersondist = thirdperson*p->radius*(1.f-p->ads/((p->weaponsel->type == WEAP_SNIPER || p->weaponsel->type == WEAP_BOLT) ? 500.f : 2000.f));
+	camera3.vel.x = thirdpersondist*-sinf(RAD*p->yaw)*cosf(RAD*-p->pitch);
+	camera3.vel.y = thirdpersondist*cosf(RAD*p->yaw)*cosf(RAD*-p->pitch);
+	camera3.vel.z = thirdpersondist*sinf(RAD*-p->pitch);
+	/*loopi(5)*/ moveplayer(&camera3, 100, true, 25);
+	camera3.pitch = p->pitch;
+	camera3.yaw = p->yaw;
+	/*
+	// move camera into the desired direction using physics to avoid getting stuck in map geometry
+	if(player1->spectatemode == SM_FOLLOW3RD)
+	{
+		followcam.vel.x = -(float)(cosf(RAD*(p->yaw-90)))*p->radius;
+		followcam.vel.y = -(float)(sinf(RAD*(p->yaw-90)))*p->radius;
+		followcam.vel.z = p->eyeheight;
+	}
+	else followcam.vel.z = p->eyeheight/6.0f;
+	loopi(5) moveplayer(&followcam, 20, true, 5);
+	followcam.vel.x = followcam.vel.y = followcam.vel.z = 0.0f;
+	followcam.yaw = p->yaw;
+	*/
+}
+
 VARNP(deathcam, deathcamstyle, 0, 1, 1);
 
 void recomputecamera(){
@@ -539,30 +575,7 @@ void recomputecamera(){
 			{
 				playerent *p = updatefollowplayer();
 				if(!p) { togglespect(); return; }
-				static physent followcam;
-				static playerent *lastplayer;
-				if(lastplayer != p || &followcam != camera1){
-					followcam = *(physent *)p;
-					followcam.type = ENT_CAMERA;
-					followcam.reset();
-					followcam.roll = 0;
-					followcam.move = -1;
-					camera1 = &followcam;
-					focus = lastplayer = p;
-				}
-				followcam.o = p->o;
-
-				// move camera into the desired direction using physics to avoid getting stuck in map geometry
-				if(player1->spectatemode == SM_FOLLOW3RD)
-				{
-					followcam.vel.x = -(float)(cosf(RAD*(p->yaw-90)))*p->radius;
-					followcam.vel.y = -(float)(sinf(RAD*(p->yaw-90)))*p->radius;
-					followcam.vel.z = p->eyeheight;
-				}
-				else followcam.vel.z = p->eyeheight/6.0f;
-				loopi(5) moveplayer(&followcam, 20, true, 5);
-				followcam.vel.x = followcam.vel.y = followcam.vel.z = 0.0f;
-				followcam.yaw = p->yaw;
+				camera3(p, p->thirdperson ? p->thirdperson : 10);
 				break;
 			}
 
@@ -573,28 +586,7 @@ void recomputecamera(){
 	}
 	else
 	{
-		if(thirdperson)
-		{
-			static physent thirdcam;
-			if(camera1 != &thirdcam)
-			{
-				thirdcam = *(physent *)player1;
-				thirdcam.type = ENT_CAMERA;
-				thirdcam.reset();
-				thirdcam.roll = 0;
-				thirdcam.move = -1;
-				camera1 = &thirdcam;
-				focus = player1;
-			}
-			thirdcam.o = player1->o;
-			const float thirdpersondist = thirdperson*player1->radius*(1.f-player1->ads/((player1->weaponsel->type == WEAP_SNIPER || player1->weaponsel->type == WEAP_BOLT) ? 500.f : 2000.f));
-			thirdcam.vel.x = thirdpersondist*-sinf(RAD*player1->yaw)*cosf(RAD*-player1->pitch);
-			thirdcam.vel.y = thirdpersondist*cosf(RAD*player1->yaw)*cosf(RAD*-player1->pitch);
-			thirdcam.vel.z = thirdpersondist*sinf(RAD*-player1->pitch);
-			/*loopi(5)*/ moveplayer(&thirdcam, 100, true, 25);
-			thirdcam.pitch = player1->pitch;
-			thirdcam.yaw = player1->yaw;
-		}
+		if(thirdperson) camera3(player1, thirdperson);
 		else resetcamera();
 	}
 }

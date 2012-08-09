@@ -192,7 +192,7 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 		usz *= 3.5f;
 		float ct = usz / 1.8f;
 		chsize = p->weaponsel->dynspread() * 100 * (p->perk2 == PERK2_STEADY ? .65f : 1) / dynfov();
-		if(thirdperson) chsize *= worldpos.dist(player1->o)/worldpos.dist(camera1->o);
+		if(isthirdperson) chsize *= worldpos.dist(player1->o)/worldpos.dist(camera1->o);
 		if(m_classic(gamemode, mutators)) chsize *= .6f;
 
 		Texture *cv = crosshairs[CROSSHAIR_V], *ch = crosshairs[CROSSHAIR_H];
@@ -236,7 +236,7 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 	else{
 		if(n == CROSSHAIR_SHOTGUN){
 			chsize = p->weaponsel->dynspread() * 100 * (p->perk2 == PERK2_STEADY ? .75f : 1) / dynfov();
-			if(thirdperson) chsize *= worldpos.dist(player1->o)/worldpos.dist(camera1->o);
+			if(isthirdperson) chsize *= worldpos.dist(player1->o)/worldpos.dist(camera1->o);
 			if(m_classic(gamemode, mutators)) chsize *= .75f;
 		}
 
@@ -1315,7 +1315,7 @@ void renderhudwaypoints(playerent *p){
 	}
 	loopv(players){
 		playerent *pl = i == getclientnum() ? player1 : players[i];
-		if(pl && (thirdperson || pl != p) && pl->nukemillis >= totalmillis){
+		if(pl && (isthirdperson || pl != p) && pl->nukemillis >= totalmillis){
 			renderwaypoint((p == pl || isteam(p, pl)) ? WP_DEFEND : WP_KILL, pl->o);
 			renderwaypoint(WP_NUKE, vec(pl->o.x, pl->o.y, pl->o.z + PLAYERHEIGHT));
 		}

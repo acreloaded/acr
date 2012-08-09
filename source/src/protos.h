@@ -372,6 +372,7 @@ extern flaginfo flaginfos[2];
 extern int sessionid;
 extern bool watchingdemo;
 extern int thirdperson;
+#define isthirdperson (camera1 != focus)
 extern void updateworld(int curtime, int lastmillis);
 extern void resetmap();
 extern void startmap(const char *name, bool reset = true);
