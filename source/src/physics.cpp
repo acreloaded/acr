@@ -357,11 +357,11 @@ void resizephysent(physent *pl, int moveres, int curtime, float min, float max)
 	loopi(moveres)
 	{
 		pl->eyeheight += h;
-		if(!pl->crouching || pl->onfloor || pl->timeinair < 50) pl->o.z += h;
+		if((!pl->crouching || pl->onfloor) && pl->timeinair < 50 /*|| pl->timeinair < 50*/) pl->o.z += h;
 		if(!collide(pl))
 		{
 			pl->eyeheight -= h; // collided, revert mini-step
-			if(!pl->crouching || pl->onfloor || pl->timeinair < 50) pl->o.z -= h;
+			if((!pl->crouching || pl->onfloor) && pl->timeinair < 50 /*|| pl->timeinair < 50*/) pl->o.z -= h;
 			break;
 		}
 		if(pl->eyeheight<min) // clamp to min
