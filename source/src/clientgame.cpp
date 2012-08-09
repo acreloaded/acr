@@ -90,7 +90,7 @@ const char *colorname(playerent *d, bool stats)
 	if(stats){
 		defformatstring(stat)("%d%.*f", d->health > 50 * HEALTHSCALE ? 0 : d->health > 25 * HEALTHSCALE ? 2 : d->health > 0 ? 3 : 4, HEALTHPRECISION, d->health / (float)HEALTHSCALE);
 		if(d->armor) formatstring(stat)("%s\f5-\f4%d", stat, d->armor);
-		formatstring(cname)("%s \f5[\f%s\f5]", cname, stat);
+		concatformatstring(cname, "%s \f5[\f%s\f5]", stat);
 	}
 	concatstring(cname, "\fr");
 	return cname;
