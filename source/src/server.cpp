@@ -2879,22 +2879,58 @@ void sendwelcome(client *cl, int chan){
 	cl->haswelcome = true;
 }
 
-void checkmove(client &cp){
-	const int sender = cp.clientnum;
+bool checkmove(client &cp, int f){
 	clientstate &cs = cp.state;
+	// editmode already?
+	if(cs.state != CS_ALIVE) return true;
+	const int sender = cp.clientnum;
 	// detect speedhack
 	float cps = cs.lasto.dist(cs.o);
 	if(cs.lasto.dist(cs.o) >= .001f){
 		cs.movemillis = servmillis;
 		if(cps && cs.lastomillis && gamemillis > cs.lastomillis){
 			cps *= 1000 / (gamemillis - cs.lastomillis);
-			if(cps > 32){ // 8 meters per second
+			if(cps > 16){ // 4 meters per second
 				defformatstring(fastmsg)("%s moved at %.3f meters/second", formatname(cp), cps / 4);
 				sendservmsg(fastmsg);
-				if(cps > 64) // 16 meters per second
+				if(cps > 32){ // 8 meters per second
 					cheat(&cp, "speedhack");
+					return false;
+				}
 			}
 		}
+	}
+	// deal damaage of movement
+	if(!cs.protect(gamemillis, gamemode, mutators)){
+		// medium transfer (falling damage)
+		const bool newonfloor = (f>>7)&1, newonladder = (f>>8)&1, newunderwater = cs.o.z < smapstats.hdr.waterlevel;
+		if((newonfloor || newonladder || newunderwater) && !cs.onfloor){
+			const float dz = cs.fallz - cs.o.z;
+			if(newonfloor){ // air to solid
+				// mario jump
+
+				// 4 meters without damage + 2/0.5 HP/meter
+				//int damage = ((cs.fallz - newo.z) - 16) * HEALTHSCALE / (cs.perk1 == PERK1_LIGHT ? 8 : 2);
+				// 2 meters without damage, then square up to 10^2 = 100 for up to 20m (50m with lightweight)
+				int damage = 0;
+				if(dz > 8)
+					damage = powf(min<float>((dz - 8) / 4 / (cs.perk1 == PERK1_LIGHT ? 5 : 2), 10), 2.f) * HEALTHSCALE; // 10 * 10 = 100
+				if(damage >= 1*HEALTHSCALE){ // don't heal the player
+					// maximum damage is 99 for balance purposes
+					serverdamage(&cp, &cp, min(damage, 99 * HEALTHSCALE), WEAP_MAX + 2, FRAG_NONE, cs.o);
+				}
+			}
+			else if(newunderwater && dz > 32){ // air to liquid, more than 8 meters
+				serverdamage(&cp, &cp, 35 * HEALTHSCALE, WEAP_MAX + 9, FRAG_NONE, cs.o); // fixed damage @ 35
+			}
+			cs.onfloor = true;
+		}
+		else if(!newonfloor){ // airborne
+			if(cs.onfloor || cs.fallz < cs.o.z) cs.fallz = cs.o.z;
+			cs.onfloor = false;
+		}
+		// did we die?
+		if(cs.state != CS_ALIVE) return false;
 	}
 	// out of map check
 	if(/*cp.type != ST_LOCAL &&*/ !m_edit(gamemode) && checkpos(cs.o, false)){
@@ -2907,8 +2943,11 @@ void checkmove(client &cp){
 			forcedeath(&cp);
 			cp.isonrightmap = false; // cannot spawn until you get the right map
 		}
-		return; // no pickups for you!
+		return false; // no pickups for you!
 	}
+
+	// the rest can proceed without killing
+
 	// item pickups
 	if(!m_zombie(gamemode) || cp.team != TEAM_RED) loopv(sents){
 		entity &e = sents[i];
@@ -3024,6 +3063,7 @@ void checkmove(client &cp){
 			sknives.remove(i--);
 		}
 	}
+	return true;
 }
 
 #include "auth.h"
@@ -3704,43 +3744,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					// else
 					// clear the scope from the packet?
 				}
-				// alive block
-				if(cs.state==CS_ALIVE)
-				{
-					// deal damaage
-					if(!cs.protect(gamemillis, gamemode, mutators)){
-						// medium transfer (falling damage)
-						const bool newonfloor = (f>>7)&1, newonladder = (f>>8)&1, newunderwater = newo.z < smapstats.hdr.waterlevel;
-						if((newonfloor || newonladder || newunderwater) && !cs.onfloor){
-							if(newonfloor){ // air to solid
-								// 4 meters without damage + 2/0.5 HP/meter
-								//int damage = ((cs.fallz - newo.z) - 16) * HEALTHSCALE / (cs.perk1 == PERK1_LIGHT ? 8 : 2);
-								// 2 meters without damage, then square up to 10^2 = 100 for up to 20m (50m with lightweight)
-								int damage = 0;
-								if((cs.fallz - newo.z) > 8){
-									damage = powf(min<float>((cs.fallz - newo.z - 8) / 4 / (cs.perk1 == PERK1_LIGHT ? 5 : 2), 10), 2.f) * HEALTHSCALE; // 10 * 10 = 100
-								}
-								if(damage >= 1*HEALTHSCALE){ // don't heal the player
-									// maximum damage is 99 for balance purposes
-									serverdamage(&cp, &cp, min(damage, 99 * HEALTHSCALE), WEAP_MAX + 2, FRAG_NONE, cs.o);
-								}
-							}
-							else if(newunderwater && (cs.fallz - newo.z) > 32){ // air to liquid, more than 8 meters
-								serverdamage(&cp, &cp, 35 * HEALTHSCALE, WEAP_MAX + 9, FRAG_NONE, cs.o); // fixed damage @ 35
-							}
-							cs.onfloor = true;
-						}
-						else if(!newonfloor){ // airborne
-							if(cs.onfloor || cs.fallz < newo.z) cs.fallz = newo.z;
-							cs.onfloor = false;
-						}
-					}
-					// continue if and only if still alive
-					if(cs.state!=CS_ALIVE) break;
-					// check movement
-					checkmove(cp);
-				}
-				// relay
+				// relay, if and only if still alive
+				if(!checkmove(cp, f)) break;
 				cp.position.setsize(0);
  				while(curmsg < p.length()) cp.position.add(p.buf[curmsg++]);
 				break;
