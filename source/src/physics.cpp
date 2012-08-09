@@ -148,7 +148,6 @@ bool raycubelos(const vec &from, const vec &to, float margin)
 }
 
 physent *hitplayer = NULL;
-playerent *tkhit = NULL;
 
 bool plcollide(physent *d, physent *o, float &headspace, float &hi, float &lo)		  // collide with physent
 {
@@ -160,7 +159,8 @@ bool plcollide(physent *d, physent *o, float &headspace, float &hi, float &lo)		
 		if(d->o.z-deyeheight<o->o.z-oeyeheight) { if(o->o.z-oeyeheight<hi) hi = o->o.z-oeyeheight-1; }
 		else if(o->o.z+o->aboveeye>lo) lo = o->o.z+o->aboveeye+1;
 
-		if(fabs(o->o.z-d->o.z)<o->aboveeye+deyeheight) { hitplayer = o; if(o->type == ENT_PLAYER) tkhit = (playerent *)o; return false; }
+		//if(fabs(o->o.z-d->o.z)<o->aboveeye+deyeheight) { hitplayer = o; return false; }
+		if((d->o.z >= o->o.z && d->o.z-o->o.z <= o->aboveeye+deyeheight) || (o->o.z >= d->o.z && o->o.z-d->o.z <= d->aboveeye+oeyeheight)) { hitplayer = o; return false; }
 		headspace = d->o.z-o->o.z-o->aboveeye-deyeheight;
 		if(headspace<0) headspace = 10;
 	}
@@ -581,24 +581,29 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 		hitplayer = NULL;
 		if(collide(pl, false, drop, rise)) continue;
 		else collided = true;
-		if(pl->type==ENT_BOUNCE && cornersurface)
-		{ // try corner bounce
-			float ct2f = cornersurface == 2 ? -1.0 : 1.0;
-			vec oo = pl->o, xd = d;
-			xd.x = d.y * ct2f;
-			xd.y = d.x * ct2f;
-			pl->o.x += f * (-d.x + xd.x);
-			pl->o.y += f * (-d.y + xd.y);
-			if(collide(pl, false, drop, rise))
-			{
-				d = xd;
-				float sw = pl->vel.x * ct2f;
-				pl->vel.x = pl->vel.y * ct2f;
-				pl->vel.y = sw;
-				pl->vel.mul(0.7f);
-				continue;
+		if(pl->type==ENT_BOUNCE)
+		{
+			// stick to players
+			if(hitplayer && hitplayer->type == ENT_PLAYER && pl->trystick((playerent *)hitplayer)) return;
+			if(cornersurface)
+			{ // try corner bounce
+				float ct2f = cornersurface == 2 ? -1.0 : 1.0;
+				vec oo = pl->o, xd = d;
+				xd.x = d.y * ct2f;
+				xd.y = d.x * ct2f;
+				pl->o.x += f * (-d.x + xd.x);
+				pl->o.y += f * (-d.y + xd.y);
+				if(collide(pl, false, drop, rise))
+				{
+					d = xd;
+					float sw = pl->vel.x * ct2f;
+					pl->vel.x = pl->vel.y * ct2f;
+					pl->vel.y = sw;
+					pl->vel.mul(0.7f);
+					continue;
+				}
+				//pl->o = oo;
 			}
-			//pl->o = oo;
 		}
 		if(pl->type==ENT_CAMERA || (pl->type==ENT_PLAYER && pl->state==CS_DEAD && ((playerent *)pl)->spectatemode != SM_FLY))
 		{
@@ -778,7 +783,6 @@ void moveplayer(physent *pl, int moveres, bool local)
 
 void movebounceent(bounceent *p, int moveres, bool local)
 {
-	tkhit = NULL;
 	moveplayer(p, moveres, local);
 }
 

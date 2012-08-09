@@ -226,6 +226,7 @@ struct physent
 		onfloor = onladder = inwater = jumpnext = crouching = trycrouch = stuck = false;
 	}
 
+	virtual bool trystick(playerent *pl) { return false; }
 	virtual void oncollision() {}
 	virtual void onmoved(const vec &dist) {}
 };
@@ -746,4 +747,5 @@ struct knifeent : bounceent
 	virtual bool applyphysics();
 	void moveoutsidebbox(const vec &direction, playerent *boundingbox);
 	void oncollision();
+	bool trystick(playerent *pl);
 };

@@ -1076,8 +1076,8 @@ knifeent::knifeent(playerent *owner, int millis) {
 	bouncetype = BT_KNIFE;
 	maxspeed = 25.0f;
 	radius = .2f;
-	aboveeye = 0;
-	eyeheight = maxeyeheight = .5f;
+	aboveeye = .25f;
+	eyeheight = maxeyeheight = .25f;
 	yaw = owner->yaw+180;
 	pitch = 75-owner->pitch;
 	roll = owner->roll;
@@ -1132,12 +1132,14 @@ void knifeent::destroy() { explode(); }
 bool knifeent::applyphysics() { return timetolive && knifestate==NS_THROWED; }
 
 void knifeent::oncollision(){
-	extern playerent *tkhit;
-	if(tkhit || vel.magnitude() < 2.f){
-		hit = tkhit;
-		timetolive = 0;
-	}
+	if(vel.magnitude() < 2.f) timetolive = 0;
 	else vel.mul(0.4f);
+}
+
+bool knifeent::trystick(playerent *pl){
+	hit = pl;
+	timetolive = 0;
+	return true;
 }
 
 // knife
