@@ -1317,7 +1317,7 @@ void renderhudwaypoints(playerent *p){
 	loopv(players){
 		playerent *pl = i == getclientnum() ? player1 : players[i];
 		if(pl && (thirdperson || pl != p) && pl->nukemillis >= totalmillis){
-			renderwaypoint(isteam(p, pl) ? WP_DEFEND : WP_KILL, pl->o);
+			renderwaypoint((p == pl || isteam(p, pl)) ? WP_DEFEND : WP_KILL, pl->o);
 			renderwaypoint(WP_NUKE, vec(pl->o.x, pl->o.y, pl->o.z + PLAYERHEIGHT));
 		}
 	}
