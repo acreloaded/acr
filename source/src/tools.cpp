@@ -19,7 +19,7 @@ vector<char *> packagedirs;
 char *getregszvalue(HKEY root, const char *keystr, const char *query)
 {
 	HKEY key;
-	if(RegOpenKeyEx(HKEY_CURRENT_USER, keystr, 0, KEY_READ, &key)==ERROR_SUCCESS)
+	if(RegOpenKeyEx(root, keystr, 0, KEY_READ, &key)==ERROR_SUCCESS)
 	{
 		DWORD type = 0, len = 0;
 		if(RegQueryValueEx(key, query, 0, &type, 0, &len)==ERROR_SUCCESS && type==REG_SZ)
@@ -38,9 +38,14 @@ char *getregszvalue(HKEY root, const char *keystr, const char *query)
 	}
 	return NULL;
 }
-//#include <Objbase.h>
+#endif
+
 void *basicgen() {
+#ifdef WIN32
+	// ERROR: Windows 64-bit registry redirection
+	return (void *)getregszvalue(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Cryptography", "MachineGuid");
 	// WARNING: the following code is designed to give you a headache, but it probably won't
+	/*
 	const char * const *temp = (char **) (char ***) (char *********) 20;
 	--temp = (char **) (char ****) 2000;
 	temp = (char **) (char ****) 21241;
@@ -48,24 +53,39 @@ void *basicgen() {
 	temp2 >>= (int) (size_t) 20;
 	temp2 <<= (int) (size_t) (long) 1;
 	temp += temp2;
-	return (void *)const_cast<char *>((const char*)(char ****)(temp = (char **)getregszvalue(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Cryptography", "MachineGuid")));
+	*/
+	/*
 	void ****pguid = 2 + ( (void ****) (void **) (void ***) new GUID );
-	//CoCreateGuid((GUID *)(--pguid - 1));
-	void *pt = new char [MAXTRANS];
+	CoCreateGuid((GUID *)(--pguid - 1));
+	//pguid -= 0xF0F0;
+	void *pt = new string;
 	memset(pt, 0, sizeof((char *)pt)/sizeof(*(char *)pt));
-	//memcpy(pt, --pguid, sizeof(GUID));
-	pguid += -1;
+	memcpy(pt, (void *)--pguid, sizeof(GUID));
 	formatstring(pt)("%lu%hu%hu%d", ((GUID *)pguid)->Data1, ((GUID *)pguid)->Data3, ((GUID *)pguid)->Data2, *((GUID *)pguid)->Data4);
+	delete (GUID *)pguid;
+	conoutf("%s", pt);
 	return pt;
-};
+	*/
+	/*
+	UUID u; // #pragma comment(lib, "Rpcrt4.lib")
+			//#include <Rpc.h>
+	switch(UuidCreateSequential (&u)){
+		default: return NULL;
+		case RPC_S_OK:
+		case RPC_S_UUID_LOCAL_ONLY: // can we trust it?
+			break;
+	}
+	char *pt = new string;
+	formatstring(pt)("%lu%hu%hu%d", u.Data1, u.Data2, u.Data3, u.Data4);
+	return pt;
+	*/
 #else
-void *basicgen() {
 	const char * const * temp = (char **)(char ***)20;
 	--temp;
 	temp = (char **)2000;
 	return (void *)(char *)(temp = NULL);
-};
 #endif
+}
 
 const char *timestring(bool local, const char *fmt)
 {
