@@ -186,7 +186,7 @@ static inline const char *privname(int priv){
 	}
 	return "unknown";
 }
-enum { SM_NONE = 0, SM_DEATHCAM, SM_FOLLOW1ST, SM_FOLLOW3RD, SM_FOLLOW3RD_TRANSPARENT, SM_FLY, SM_NUM };
+enum { SM_NONE = 0, SM_DEATHCAM, SM_FOLLOWSAME, SM_FOLLOWALT, SM_FLY, SM_NUM };
 
 struct physent
 {

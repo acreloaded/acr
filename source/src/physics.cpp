@@ -857,7 +857,7 @@ VARP(invmouse, 0, 0, 1);
 void mousemove(int dx, int dy)
 {
 	if(intermission) return;
-	if(player1->isspectating() && player1->spectatemode==SM_FOLLOW1ST) return;
+	if(player1->isspectating() && (player1->spectatemode==SM_FOLLOWSAME || player1->spectatemode==SM_FOLLOWALT)) return;
 
 	const float SENSF = 33.0f;	 // try match quake sens
 	camera1->yaw += (dx/SENSF)*sensitivity;

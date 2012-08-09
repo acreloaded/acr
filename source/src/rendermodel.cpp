@@ -674,7 +674,7 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
 	}
 	// FIXME: while networked my state as spectator seems to stay CS_DEAD, not CS_SPECTATE
 	// flowtron: I fixed this for following at least (see followplayer())
-	if((thirdperson && d == player1 && player1->allowmove()) || (player1->isspectating() && d->clientnum == player1->followplayercn && player1->spectatemode == SM_FOLLOW3RD_TRANSPARENT) ||  d->protect(lastmillis, gamemode, mutators))
+	if((thirdperson && d == player1 && player1->allowmove()) || (player1->isspectating() && d->clientnum == player1->followplayercn && isthirdperson) ||  d->protect(lastmillis, gamemode, mutators))
 	{
 		anim |= ANIM_TRANSLUCENT; // see through followed player
 		if(stenciling) return;
@@ -761,7 +761,7 @@ void renderclient(playerent *d)
 void renderclients()
 {
 	playerent *d;
-	loopv(players) if((d = players[i])/* && d->state!=CS_SPAWNING*/ && (!player1->isspectating() || player1->spectatemode != SM_FOLLOW1ST || player1->followplayercn != i)) renderclient(d);
-	if(thirdperson || player1->state==CS_DEAD || (reflecting && !refracting)) renderclient(player1);
+	loopv(players) if((d = players[i])/* && d->state!=CS_SPAWNING*/ && (!player1->isspectating() || isthirdperson || player1->followplayercn != i)) renderclient(d);
+	if(isthirdperson || player1->state==CS_DEAD || (reflecting && !refracting)) renderclient(player1);
 }
 

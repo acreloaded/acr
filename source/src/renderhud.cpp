@@ -1009,8 +1009,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	{
 		glLoadIdentity();
 		glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
-		draw_text("SPECTATING", VIRTW/40, VIRTH/10*7);
-		if(player1->spectatemode==SM_FOLLOW1ST || player1->spectatemode==SM_FOLLOW3RD || player1->spectatemode==SM_FOLLOW3RD_TRANSPARENT)
+		draw_text(player1->spectatemode==SM_FOLLOWSAME ? "FOLLOWING" : "SPECTATING", VIRTW/40, VIRTH/10*7);
+		if(player1->spectatemode==SM_FOLLOWSAME || player1->spectatemode==SM_FOLLOWALT)
 		{
 			if(players.inrange(player1->followplayercn) && players[player1->followplayercn])
 			{

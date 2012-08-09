@@ -562,20 +562,17 @@ void recomputecamera(){
 				resetcamera();
 				camera1->eyeheight = 1.0f;
 				break;
-			case SM_FOLLOW1ST:
+			case SM_FOLLOWSAME:
+			case SM_FOLLOWALT:
 			{
 				playerent *f = updatefollowplayer();
 				if(!f) { togglespect(); return; }
-				camera1 = f;
-				focus = f;
-				break;
-			}
-			case SM_FOLLOW3RD:
-			case SM_FOLLOW3RD_TRANSPARENT:
-			{
-				playerent *p = updatefollowplayer();
-				if(!p) { togglespect(); return; }
-				camera3(p, p->thirdperson ? p->thirdperson : 10);
+				if(!f->thirdperson == (player1->spectatemode == SM_FOLLOWSAME))
+				{
+					camera1 = f;
+					focus = f;
+				}
+				else camera3(f, f->thirdperson ? f->thirdperson : 10);
 				break;
 			}
 

@@ -1260,9 +1260,8 @@ void spectate(int mode)
 	showscores(false);
 	switch(mode)
 	{
-		case SM_FOLLOW1ST:
-		case SM_FOLLOW3RD:
-		case SM_FOLLOW3RD_TRANSPARENT:
+		case SM_FOLLOWSAME:
+		case SM_FOLLOWALT:
 		{
 			if(players.length() && updatefollowplayer()) break;
 			else mode = SM_FLY;
@@ -1293,8 +1292,8 @@ void spectate(int mode)
 void togglespect() // cycle through all spectating modes
 {
 	int mode;
-	if(player1->spectatemode==SM_NONE) mode = SM_FOLLOW1ST; // start with 1st person spect
-	else mode = SM_FOLLOW1ST + ((player1->spectatemode - SM_FOLLOW1ST + 1) % (SM_NUM-SM_FOLLOW1ST));
+	if(player1->spectatemode==SM_NONE) mode = SM_FOLLOWSAME; // start with 1st person spect
+	else mode = SM_FOLLOWSAME + ((player1->spectatemode - SM_FOLLOWSAME + 1) % (SM_NUM-SM_FOLLOWSAME));
 	spectate(mode);
 }
 
