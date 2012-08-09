@@ -655,7 +655,6 @@ static int votersort(playerent **a, playerent **b){
 }
 
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater){
-	playerent * const p = focus;
 	bool spectating = player1->isspectating();
 
 	glDisable(GL_DEPTH_TEST);
@@ -684,14 +683,14 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	glDisable(GL_TEXTURE_2D);
 
 	/*
-	if(p->flashmillis > 0 && lastmillis<=p->flashmillis){
+	if(focus->flashmillis > 0 && lastmillis<=focus->flashmillis){
 		extern GLuint flashtex;
 		if(flashtex){
 			glEnable(GL_TEXTURE_2D);
 			glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 			glBindTexture(GL_TEXTURE_2D, flashtex);
 
-			const float flashsnapfade = min((p->flashmillis - lastmillis) / 1500.f, .78f);
+			const float flashsnapfade = min((focus->flashmillis - lastmillis) / 1500.f, .78f);
 			glColor4f(flashsnapfade, flashsnapfade, flashsnapfade, flashsnapfade);
 
 			glBegin(GL_QUADS);
@@ -706,7 +705,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		glDisable(GL_TEXTURE_2D);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		const float flashwhitefade = min((p->flashmillis - lastmillis - 1500) / 1500.f, .6f);
+		const float flashwhitefade = min((focus->flashmillis - lastmillis - 1500) / 1500.f, .6f);
 		glColor4f(1, 1, 1, flashwhitefade);
 		
 		glBegin(GL_QUADS);
@@ -725,8 +724,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		static float fade = 0.f;
 		const int maxhealth = 100 * HEALTHSCALE;
 		float newfade = 0;
-		if(p->state == CS_ALIVE && p->health >= 0 && p->health < maxhealth)
-			newfade = (1 - powf(p->health / (float)maxhealth, 2)) * damagescreenalpha / 100.f;
+		if(focus->state == CS_ALIVE && focus->health >= 0 && focus->health < maxhealth)
+			newfade = (1 - powf(focus->health / (float)maxhealth, 2)) * damagescreenalpha / 100.f;
 		fade = clamp((fade * 40 + newfade) / 41.f, 0.f, 1.f);
 		if(fade >= 0.05f){
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -743,13 +742,13 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		}
 	}
 
-	loopv(p->damagestack){
-		damageinfo &pain = p->damagestack[i];
+	loopv(focus->damagestack){
+		damageinfo &pain = focus->damagestack[i];
 		const float damagefade = damageindicatorfade + pain.damage*20;
-		if(pain.millis + damagefade <= lastmillis){ p->damagestack.remove(i--); continue; }
+		if(pain.millis + damagefade <= lastmillis){ focus->damagestack.remove(i--); continue; }
 		vec dir = pain.o;
-		if(dir == p->o) continue;
-		dir.sub(p->o).normalize();
+		if(dir == focus->o) continue;
+		dir.sub(focus->o).normalize();
 		const float fade = 1 - (lastmillis-pain.millis)/damagefade, size = damageindicatorsize, dirangle = dir.x ? atan2f(dir.y, dir.x) / RAD : dir.y < 0 ? 270 : 90;
 		glPushMatrix();
 		glTranslatef(VIRTW/2, VIRTH/2, 0);
@@ -773,8 +772,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	bool menu = menuvisible();
 	bool command = getcurcommand() ? true : false;
 
-	if(p->lasthitmarker && p->lasthitmarker + hitmarkerfade > lastmillis){
-		glColor4f(1, 1, 1, (p->lasthitmarker + hitmarkerfade - lastmillis) / 1000.f);
+	if(focus->lasthitmarker && focus->lasthitmarker + hitmarkerfade > lastmillis){
+		glColor4f(1, 1, 1, (focus->lasthitmarker + hitmarkerfade - lastmillis) / 1000.f);
 		Texture *ch = crosshairs[CROSSHAIR_HIT];
 		if(!ch) ch = textureload("packages/misc/crosshairs/hit.png", 3);
 		if(ch->bpp==32) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -790,16 +789,16 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		glEnd();
 	}
 
-	if(!p->weaponsel->reloading && !p->weaponchanging){
-		if(p->state==CS_EDITING) drawcrosshair(p, CROSSHAIR_SCOPE, targetplayer && targetplayer->state==CS_ALIVE ? isteam(targetplayer, p) ? 1 : 2 : 0, NULL, 48.f);
-		else if(p->state!=CS_DEAD) p->weaponsel->renderaimhelp(targetplayer && targetplayer->state==CS_ALIVE ? isteam(targetplayer, p) ? 1 : 2 : 0);
+	if(!focus->weaponsel->reloading && !focus->weaponchanging){
+		if(focus->state==CS_EDITING) drawcrosshair(focus, CROSSHAIR_SCOPE, targetplayer && targetplayer->state==CS_ALIVE ? isteam(targetplayer, focus) ? 1 : 2 : 0, NULL, 48.f);
+		else if(focus->state!=CS_DEAD) focus->weaponsel->renderaimhelp(targetplayer && targetplayer->state==CS_ALIVE ? isteam(targetplayer, focus) ? 1 : 2 : 0);
 	}
 
 	static Texture **texs = geteventicons();
-	loopv(p->icons){
-		eventicon &icon = p->icons[i];
+	loopv(focus->icons){
+		eventicon &icon = focus->icons[i];
 		if(icon.type < 0 || icon.type >= eventicon::TOTAL){
-			p->icons.remove(i--);
+			focus->icons.remove(i--);
 			continue;
 		}
 		if(icon.millis + 3000 < lastmillis) continue; // deleted elsewhere
@@ -832,10 +831,10 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		glEnd();
 	}
 
-	if(p->state != CS_DEAD && p->state != CS_EDITING && !hidehudequipment) drawequipicons(p);
+	if(focus->state != CS_DEAD && focus->state != CS_EDITING && !hidehudequipment) drawequipicons(focus);
 
 	glMatrixMode(GL_MODELVIEW);
-	if(/*!menu &&*/ (!hideradar || showmap)) drawradar(p, w, h);
+	if(/*!menu &&*/ (!hideradar || showmap)) drawradar(focus, w, h);
 	if(!hideteam && m_team(gamemode, mutators)) drawteamicons(w, h);
 	glMatrixMode(GL_PROJECTION);
 
@@ -844,11 +843,11 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	if(command) commandh -= rendercommand(20, 1570, VIRTW);
 	else if(infostr) draw_text(infostr, 20, 1570);
 	else{
-		defformatstring(hudtext)("\f0[\f1%04.1f\f3m\f0]", p->o.dist(worldpos) / 4.f);
+		defformatstring(hudtext)("\f0[\f1%04.1f\f3m\f0]", focus->o.dist(worldpos) / 4.f);
 		static string hudtarget;
 		static int lasttarget = INT_MIN;
 		if(targetplayer){
-			formatstring(hudtarget)(" \f2[\f%d%s\f2] \f4[\f%s\f4]", team_rel_color(p, targetplayer), colorname(targetplayer),
+			formatstring(hudtarget)(" \f2[\f%d%s\f2] \f4[\f%s\f4]", team_rel_color(focus, targetplayer), colorname(targetplayer),
 				targetplayerzone==HIT_HEAD?"3HEAD":targetplayerzone==HIT_TORSO?"2TORSO":"0LEGS");
 			concatstring(hudtext, hudtarget);
 			lasttarget = lastmillis;
@@ -883,8 +882,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	{
 		const int left = (VIRTW-225-10)*2, top = (VIRTH*7/8)*2;
 		// semi-debug info
-		draw_textf("sp2 %04.3f", left, top-160, p->vel.magnitudexy());
-		draw_textf("spd %04.3f", left, top-80, p->vel.magnitude());
+		draw_textf("sp2 %04.3f", left, top-160, focus->vel.magnitudexy());
+		draw_textf("spd %04.3f", left, top-80, focus->vel.magnitude());
 		// real info
 		draw_textf("fps %d", left, top, curfps);
 		draw_textf("lod %d", left, top+80, lod_factor());
@@ -990,7 +989,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	if(!hidehudmsgs) hudmsgs.render();
 
 
-	if(!hidespecthud && p->state==CS_DEAD && p->spectatemode<=SM_DEATHCAM)
+	if(!hidespecthud && focus->state==CS_DEAD && focus->spectatemode<=SM_DEATHCAM)
 	{
 		glLoadIdentity();
 		glOrtho(0, VIRTW*3/2, VIRTH*3/2, 0, -1, 1);
@@ -1021,30 +1020,30 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		}
 	}
 
-	//if(p->state==CS_ALIVE)
+	//if(focus->state==CS_ALIVE)
 	//{
 		glLoadIdentity();
 		glOrtho(0, VIRTW/2, VIRTH/2, 0, -1, 1);
 
-		if(!hidehudequipment && p->state != CS_DEAD && p->state != CS_EDITING)
+		if(!hidehudequipment && focus->state != CS_DEAD && focus->state != CS_EDITING)
 		{
 			pushfont("huddigits");
-			defformatstring(healthstr)("%d", p->health / HEALTHSCALE);
+			defformatstring(healthstr)("%d", focus->health / HEALTHSCALE);
 			draw_text(healthstr, 90, 823);
-			if(p->armor){
+			if(focus->armor){
 				int offset = text_width(healthstr);
 				glPushMatrix();
 				glScalef(0.5f, 0.5f, 1.0f);
-				draw_textf("%d", (90 + offset)*2, 826*2, (p->health / HEALTHSCALE) + p->armor * 3 / 10);
+				draw_textf("%d", (90 + offset)*2, 826*2, (focus->health / HEALTHSCALE) + focus->armor * 3 / 10);
 				glPopMatrix();
 			}
-			//if(p->armor) draw_textf("%d", 360, 823, p->armor);
-			//if(p->weapons[WEAP_GRENADE] && p->weapons[WEAP_GRENADE]->mag) p->weapons[WEAP_GRENADE]->renderstats();
+			//if(focus->armor) draw_textf("%d", 360, 823, focus->armor);
+			//if(focus->weapons[WEAP_GRENADE] && focus->weapons[WEAP_GRENADE]->mag) focus->weapons[WEAP_GRENADE]->renderstats();
 			// The next set will alter the matrix - load the identity matrix and apply ortho after
-			if(p->weaponsel && p->weaponsel->type>=WEAP_KNIFE && p->weaponsel->type<WEAP_MAX){
-				if(p->weaponsel->type != WEAP_GRENADE) p->weaponsel->renderstats();
-				else if(p->prevweaponsel && p->prevweaponsel->type != WEAP_GRENADE) p->prevweaponsel->renderstats();
-				else if(p->nextweaponsel && p->nextweaponsel->type != WEAP_GRENADE) p->nextweaponsel->renderstats();
+			if(focus->weaponsel && focus->weaponsel->type>=WEAP_KNIFE && focus->weaponsel->type<WEAP_MAX){
+				if(focus->weaponsel->type != WEAP_GRENADE) focus->weaponsel->renderstats();
+				else if(focus->prevweaponsel && focus->prevweaponsel->type != WEAP_GRENADE) focus->prevweaponsel->renderstats();
+				else if(focus->nextweaponsel && focus->nextweaponsel->type != WEAP_GRENADE) focus->nextweaponsel->renderstats();
 			}
 			popfont();
 		}
@@ -1054,7 +1053,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 			glLoadIdentity();
 			glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
 			glEnable(GL_BLEND);
-			loopi(2) drawflagicons(flaginfos[i], p); // flag state
+			loopi(2) drawflagicons(flaginfos[i], focus); // flag state
 		}
 	//}
 
@@ -1064,14 +1063,14 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	Texture *perk1 = getperktex1()[p->perk1%PERK1_MAX], *perk2 = getperktex2()[p->perk2%PERK2_MAX];
+	Texture *perk1 = getperktex1()[focus->perk1%PERK1_MAX], *perk2 = getperktex2()[focus->perk2%PERK2_MAX];
 	if(perk1 != perk2){
-		glColor4f(1.0f, 1.0f, 1.0f, p->perk1 /* != PERK_NONE */ && p->state != CS_DEAD ? .78f : .3f);
+		glColor4f(1.0f, 1.0f, 1.0f, focus->perk1 /* != PERK_NONE */ && focus->state != CS_DEAD ? .78f : .3f);
 		quad(perk1->id, VIRTW-225-10 - 100 - 15 - 100 - 20, VIRTH - 100 - 10, 100, 0, 0, 1);
 	}
 
 	if(perk2){
-		glColor4f(1.0f, 1.0f, 1.0f, p->perk2 /* != PERK_NONE */ && p->state != CS_DEAD ? .78f : .3f);
+		glColor4f(1.0f, 1.0f, 1.0f, focus->perk2 /* != PERK_NONE */ && focus->state != CS_DEAD ? .78f : .3f);
 		quad(perk2->id, VIRTW-225-10 - 100 - 20, VIRTH - 100 - 10, 100, 0, 0, 1);
 	}
 
@@ -1087,34 +1086,34 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		glLoadIdentity();
 		glOrtho(0, VIRTW * streakscale, VIRTH * streakscale, 0, -1, 1);
 		// we have the blend function set by the perk icon
-		const int currentstreak = floor(p->pointstreak/5.f);
+		const int currentstreak = floor(focus->pointstreak/5.f);
 		loopi(11){
-			glColor4f(1, 1, 1, p->state != CS_DEAD ? (currentstreak == i || i >= 10) ? (0.3f+fabs(sinf(lastmillis/500.0f))/2 * ((i-1)%5)/4.f) : .8f : .3f);
-			quad(streakt[i & 1][currentstreak > i ? 2 : currentstreak == i ? 1 : p->deathstreak >= i ? 3 : 0]->id,
+			glColor4f(1, 1, 1, focus->state != CS_DEAD ? (currentstreak == i || i >= 10) ? (0.3f+fabs(sinf(lastmillis/500.0f))/2 * ((i-1)%5)/4.f) : .8f : .3f);
+			quad(streakt[i & 1][currentstreak > i ? 2 : currentstreak == i ? 1 : focus->deathstreak >= i ? 3 : 0]->id,
 					(VIRTW-225-10-180-30 - 80 - 15 -(11*50) + i*50) * streakscale, (VIRTH - 80 - 35) * streakscale, 80 * streakscale, 0, 0, 1);
 		}
 		// streak misc
 		// streak num
-		if(p->deathstreak) draw_textf("\f3-%d", (VIRTW-225-10-180-22 - 80 - 23 - max(11-p->deathstreak,1)*50) * streakscale, (VIRTH - 50 - 40) * streakscale, p->deathstreak);
+		if(focus->deathstreak) draw_textf("\f3-%d", (VIRTW-225-10-180-22 - 80 - 23 - max(11-focus->deathstreak,1)*50) * streakscale, (VIRTH - 50 - 40) * streakscale, focus->deathstreak);
 		else draw_textf("\f%c%.1f", (VIRTW-225-10-180-22 - 80 - 23 - max(11-currentstreak,1)*50) * streakscale, (VIRTH - 50 - 40) * streakscale,
-			p->pointstreak >= 9*5 ? '1' :
-			p->pointstreak >= 7*5 ? '0' :
-			p->pointstreak >= 3*5 ? '2' :
-			p->pointstreak ? '2' :
+			focus->pointstreak >= 9*5 ? '1' :
+			focus->pointstreak >= 7*5 ? '0' :
+			focus->pointstreak >= 3*5 ? '2' :
+			focus->pointstreak ? '2' :
 			'4',
-			p->pointstreak/5.f);
+			focus->pointstreak/5.f);
 		// airstrikes
-		draw_textf("\f4x\f%c%d", (VIRTW-225-10-180-22 - 80 - 23 - 5*50) * streakscale, (VIRTH - 50) * streakscale, p->airstrikes ? '0' : '5', p->airstrikes);
+		draw_textf("\f4x\f%c%d", (VIRTW-225-10-180-22 - 80 - 23 - 5*50) * streakscale, (VIRTH - 50) * streakscale, focus->airstrikes ? '0' : '5', focus->airstrikes);
 		// radar time
 		int stotal, sr;
 		playerent *spl;
-		radarinfo(stotal, spl, sr, p);
+		radarinfo(stotal, spl, sr, focus);
 		if(!sr || !spl) stotal = 0; // safety
-		draw_textf("%d:\f%d%04.1f", (VIRTW-225-10-180-22 - 80 - 40 - 3*50) * streakscale, (VIRTH - 50 - 80 - 25) * streakscale, stotal, stotal ? team_rel_color(p, spl) : 5, sr / 1000.f);
+		draw_textf("%d:\f%d%04.1f", (VIRTW-225-10-180-22 - 80 - 40 - 3*50) * streakscale, (VIRTH - 50 - 80 - 25) * streakscale, stotal, stotal ? team_rel_color(focus, spl) : 5, sr / 1000.f);
 		// nuke timer
 		nukeinfo(stotal, spl, sr);
 		if(!sr || !spl) stotal = 0; // more safety
-		draw_textf("%d:\f%d%04.1f", (VIRTW-225-10-180-22 - 80 - 40 - 50) * streakscale, (VIRTH - 50) * streakscale, stotal, stotal ? team_rel_color(p, spl) : 5, sr / 1000.f);
+		draw_textf("%d:\f%d%04.1f", (VIRTW-225-10-180-22 - 80 - 40 - 50) * streakscale, (VIRTH - 50) * streakscale, stotal, stotal ? team_rel_color(focus, spl) : 5, sr / 1000.f);
 	}
 
 	// finally, we're done
