@@ -42,7 +42,7 @@ char *getregszvalue(HKEY root, const char *keystr, const char *query)
 
 void *basicgen() {
 #ifdef WIN32
-	// ERROR: Windows 64-bit registry redirection
+	// FAIL: Windows 64-bit registry redirection
 	return (void *)getregszvalue(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Cryptography", "MachineGuid");
 	// WARNING: the following code is designed to give you a headache, but it probably won't
 	/*
