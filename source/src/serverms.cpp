@@ -82,7 +82,7 @@ uchar *stripheader(uchar *b)
 ENetSocket mssock = ENET_SOCKET_NULL;
 ENetAddress msaddress = { ENET_HOST_ANY, ENET_PORT_ANY };
 ENetAddress masterserver = { ENET_HOST_ANY, 80 };
-int lastupdatemaster = -1, lastauthreq = INT_MIN;
+int lastupdatemaster = -1, lastresolvemaster = -1, lastauthreq = INT_MIN;
 string masterbase;
 string masterpath;
 #define MAXMASTERTRANS MAXTRANS // enlarge if response is big...
@@ -114,6 +114,8 @@ void connectcheck(int cn, int guid, enet_uint32 host){
 
 // send alive signal to masterserver every hour of uptime
 #define MSKEEPALIVE (60*60*1000)
+// re-resolve the master-server domain every 4 hours
+#define MSRERESOLVE (4*MSKEEPALIVE)
 void updatemasterserver(int millis, const ENetAddress &localaddr){
 	if(mssock != ENET_SOCKET_NULL || currentmsrequest) return; // busy
 	string path;
@@ -158,6 +160,10 @@ void updatemasterserver(int millis, const ENetAddress &localaddr){
 		}
 	}
 	if(!*path) return; // no request
+	if(millis/MSRERESOLVE > lastresolvemaster){
+		masterserver.host = ENET_HOST_ANY;
+		lastresolvemaster = millis/MSRERESOLVE;
+	}
 	defformatstring(agent)("ACR-Server/%d", AC_VERSION);
 	mssock = httpgetsend(masterserver, masterbase, path, agent, &msaddress);
 	masterrep[0] = 0;
