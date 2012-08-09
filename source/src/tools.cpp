@@ -83,7 +83,7 @@ void *basicgen() {
 #elif defined(__GNUC__) || defined(linux) || defined(__linux) || defined(__linux__) || defined(__APPLE__)
 	char *pt = new string;
 	formatstring(pt)("%lu", gethostid());
-	return gethostid();
+	return pt;
 #else
 	// OS not supported :(
 	const char * const * temp = (char **)(char ***)20;
