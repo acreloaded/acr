@@ -494,8 +494,8 @@ void sendintro()
 	putint(p, player1->nextperk2);
 	putint(p, AC_VERSION);
 	putint(p, getbuildtype());
-	putint(p, thirdperson);
 	putint(p, *&genguid(213409, 9983240U, 23489090, "24788rt792"));
+	putint(p, thirdperson);
 	// other post-connect stuff goes here
 	enet_packet_resize(packet, p.length());
 	sendpackettoserv(1, packet);
