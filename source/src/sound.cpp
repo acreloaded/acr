@@ -1610,7 +1610,7 @@ void updateplayerfootsteps(playerent *p)
 	bool local = (p == camera1);
 	bool inrange = footsteps && (local || (camera1->o.dist(p->o) < footstepradius));
 
-	if(!footsteps || (local && !localfootsteps) || !inrange || p->state != CS_ALIVE || p->perk2 == PERK_NINJA || lastmillis-p->lastpain < 300 || (!p->onfloor && p->timeinair>50) || (!p->move && !p->strafe) || p->inwater)
+	if(!footsteps || (local && !localfootsteps) || !inrange || p->state != CS_ALIVE || lastmillis-p->lastpain < 300 || (!p->onfloor && p->timeinair>50) || (!p->move && !p->strafe) || p->inwater)
 	{
 		const int minplaytime = 200;
 		loopi(sizeof(locs)/sizeof(locs[0]))
@@ -1632,7 +1632,7 @@ void updateplayerfootsteps(playerent *p)
 
 		int stepsound;
 		// since sprint = walk
-		if(p->crouching || p->sprinting) stepsound = water ? S_WATERFOOTSTEPSCROUCH : S_FOOTSTEPSCROUCH; // crouch
+		if(p->crouching || p->sprinting || p->perk2 == PERK_NINJA) stepsound = water ? S_WATERFOOTSTEPSCROUCH : S_FOOTSTEPSCROUCH; // crouch
 		else stepsound = water ? S_WATERFOOTSTEPS : S_FOOTSTEPS; // normal
 
 		// proc existing sounds
