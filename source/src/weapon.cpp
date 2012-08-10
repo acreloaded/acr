@@ -762,10 +762,10 @@ VARP(burstfull, 0, 1, 1); // full burst before stopping
 
 // gun base class
 
-gun::gun(playerent *owner, int type) : weapon(owner, type) {}
+gun::gun(playerent *owner, int type) : weapon(owner, type), autoreloading(false) {}
 
 bool gun::attack(vec &targ){
-	if(type == WEAP_SHOTGUN && owner == player1 && owner->attacking) ((shotgun *)this)->autoreloading = false;
+	if(owner == player1 && owner->attacking) autoreloading = false;
 	int attackmillis = lastmillis-owner->lastaction;
 	if(attackmillis<gunwait) return false;
 	gunwait = reloading = 0;
@@ -773,8 +773,7 @@ bool gun::attack(vec &targ){
 	if(!owner->attacking)
 	{
 		shots = 0;
-		if(owner == player1)
-			checkautoreload();
+		if(owner == player1) checkautoreload();
 		return false;
 	}
 
@@ -861,12 +860,28 @@ void gun::attackfx(const vec &from2, const vec &to, int millis){
 }
 
 int gun::modelanim() { return modelattacking() ? ANIM_WEAP_SHOOT|ANIM_LOOP : ANIM_WEAP_IDLE; }
-bool gun::checkautoreload() { if(autoreload && owner==player1 && !mag && ammo) { tryreload(owner); return true; } return false; }
+
+bool gun::reload()
+{
+	if(owner == player1) autoreloading = mag < magsize(type) && ammo;
+	return weapon::reload();
+}
+
+bool gun::checkautoreload()
+{
+	if(owner==player1 && !mag && ammo)
+	{
+		if(autoreload)
+			tryreload(owner);
+		return true;
+	}
+	return false;
+}
 
 
 // shotgun
 
-shotgun::shotgun(playerent *owner) : gun(owner, WEAP_SHOTGUN), autoreloading(false) {}
+shotgun::shotgun(playerent *owner) : gun(owner, WEAP_SHOTGUN) {}
 
 int shotgun::dynspread(){
 	return (int)(info.spread * (1 - owner->ads * info.spreadrem / 100000.f));
@@ -896,20 +911,6 @@ void shotgun::attackfx(const vec &from2, const vec &to, int millis){
 }
 
 void shotgun::renderaimhelp(int teamtype){ drawcrosshair(owner, CROSSHAIR_SHOTGUN, teamtype); }
-
-bool shotgun::reload(){
-	if(owner == player1) autoreloading = mag < magsize(type) && ammo;
-	if(!gun::reload()) return false;
-	return true;
-}
-
-bool shotgun::checkautoreload() {
-	if(owner != player1 || !autoreload) return false;
-	if(!mag && ammo) autoreloading = true;
-	if(autoreloading) tryreload(owner);
-	else return gun::checkautoreload();
-	return true;
-}
 
 // subgun
 

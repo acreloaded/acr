@@ -136,11 +136,13 @@ struct grenades : weapon
 struct gun : weapon
 {
 	const static int adsscope = 550;
+	bool autoreloading;
 	gun(playerent *owner, int type);
 	virtual bool attack(vec &targ);
 	virtual void attackshell(const vec &to);
 	virtual void attackfx(const vec &from, const vec &to, int millis);
 	int modelanim();
+	virtual bool reload();
 	virtual bool checkautoreload();
 };
 
@@ -209,9 +211,6 @@ struct shotgun : gun
 	int dynspread();
 	void attackfx(const vec &from, const vec &to, int millis);
 	void renderaimhelp(int teamtype);
-	bool autoreloading;
-	bool reload();
-	bool checkautoreload();
 };
 
 
