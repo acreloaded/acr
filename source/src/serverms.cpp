@@ -282,8 +282,8 @@ void checkmasterreply()
 uchar *retrieveservers(uchar *buf, int buflen)
 {
 	buf[0] = '\0';
-
-	defformatstring(path)("%scube/update/%d", masterpath, getbuildtype());
+	extern unsigned int &genguid(int, uint, int, const char*);
+	defformatstring(path)("%scube/update/%d/%lu", masterpath, getbuildtype(), *&genguid(234534, 546456456U, 345345453, "3458739874jetrgjk"));
 	defformatstring(agent)("ACR-Client/%d", AC_VERSION);
 	ENetAddress address = masterserver;
 	ENetSocket sock = httpgetsend(address, masterbase, path, agent);

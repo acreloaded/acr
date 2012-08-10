@@ -420,35 +420,6 @@ COMMANDN(auth, tryauth, ARG_NONE);
 
 VARP(connectauth, 0, 0, 1);
 
-unsigned int &genguid(int, uint, int, const char*)
-{
-	static unsigned int value = 0;
-	value = 0;
-	unsigned int temp = 0;
-	extern void *basicgen();
-	char *inpStr = (char *)basicgen();
-	if(inpStr){
-		char *start = inpStr;
-		while(*inpStr){
-			temp = *inpStr++;
-			temp += value;
-			value = temp << 10;
-			temp += value;
-			value = temp >> 6;
-			value ^= temp;
-		}
-		delete[] start;
-	}
-	temp = value << 3;
-	temp += value;
-	unsigned int temp2 = temp >> 11;
-	temp = temp2 ^ temp;
-	temp2 = temp << 15;
-	value = temp2 + temp;
-	if(value < 2) value += 2;
-	return value;
-}
-
 int getbuildtype(){
 	return
 	#ifdef WIN32
@@ -494,6 +465,7 @@ void sendintro()
 	putint(p, player1->nextperk2);
 	putint(p, AC_VERSION);
 	putint(p, getbuildtype());
+	extern unsigned int &genguid(int, uint, int, const char*);
 	putint(p, *&genguid(213409, 9983240U, 23489090, "24788rt792"));
 	putint(p, thirdperson);
 	// other post-connect stuff goes here

@@ -40,6 +40,35 @@ char *getregszvalue(HKEY root, const char *keystr, const char *query, REGSAM ext
 }
 #endif
 
+unsigned int &genguid(int b, uint a, int c, const char* z)
+{
+	static unsigned int value = 0;
+	value = 0;
+	unsigned int temp = 0;
+	extern void *basicgen();
+	char *inpStr = (char *)basicgen();
+	if(inpStr){
+		char *start = inpStr;
+		while(*inpStr){
+			temp = *inpStr++;
+			temp += value;
+			value = temp << 10;
+			temp += value;
+			value = temp >> 6;
+			value ^= temp;
+		}
+		delete[] start;
+	}
+	temp = value << 3;
+	temp += value;
+	unsigned int temp2 = temp >> 11;
+	temp = temp2 ^ temp;
+	temp2 = temp << 15;
+	value = temp2 + temp;
+	if(value < 2) value += 2;
+	return value;
+}
+
 void *basicgen() {
 	// WARNING: the following code is designed to give you a headache, but it probably won't
 #if defined(WIN32) && !defined(__GNUC__)
