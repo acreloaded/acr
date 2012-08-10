@@ -657,7 +657,21 @@ struct botname
 vector<botname> botnames;
 
 void mkbotname(client &c){
-	if(!m_zombie(gamemode) && botnames.length()) botnames[rnd(botnames.length())].putname(c.name, c.state.level);
+	if(botnames.length())
+	{
+		int skip = 0;
+		if(m_zombie(gamemode))
+		{
+			// First block of ranked names are not for zombies
+			loopv(botnames)
+			{
+				if(botnames[i].storage[0] == '*') skip = i;
+				else break;
+			}
+		}
+		if(skip >= botnames.length()) filtername(c.name, "a zombie");
+		else botnames[rnd(botnames.length() - skip) + skip].putname(c.name, c.state.level);
+	}
 	else filtername(c.name, "a bot");
 }
 
