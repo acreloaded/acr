@@ -204,7 +204,7 @@ int chooseteam(client &ci, int suggest = -1){
 	int teamsize[2] = {0};
 	int teamscore[2] = {0};
 	int sum = calcscores();
-	loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connected && (clients[i] != &ci || team_valid(suggest)) && (ci.type == ST_AI || clients[i]->type!=ST_AI) && clients[i]->team < 2)
+	loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connected && clients[i] != &ci && (ci.type == ST_AI || clients[i]->type!=ST_AI) && clients[i]->team < 2)
 	{
 		++teamsize[clients[i]->team];
 		teamscore[clients[i]->team] += clients[i]->at3_score;
@@ -1970,14 +1970,24 @@ void shuffleteams(int ftr){
 	int numplayers = numclients();
 	int team, sums = calcscores();
 	if(gamemillis < 2 * 60 *1000){ // random
+		team = -1; // use this for the smaller team
 		int teamsize[2] = {0, 0};
 		loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->team < 2){
+			/*
 			sums += rnd(1000);
 			team = sums & 1;
 			if(teamsize[team] >= numplayers/2) team = team_opposite(team);
 			updateclientteam(i, team, ftr);
 			teamsize[team]++;
 			sums >>= 1;
+			*/
+			if(team_valid(team)) updateclientteam(i, team, ftr);
+			else
+			{
+				int randomteam = rnd(2);
+				updateclientteam(i, randomteam, ftr);
+				if(++teamsize[randomteam] >= numplayers/2) team = team_opposite(randomteam);
+			}
 		}
 	}
 	else{ // skill sorted
