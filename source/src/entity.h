@@ -320,7 +320,7 @@ struct playerstate
 	int pointstreak, deathstreak, assists, radarearned, airstrikes, nukemillis;
 	int primary, secondary, perk1, perk2, nextprimary, nextsecondary, nextperk1, nextperk2;
 	int gunselect, level;
-	bool akimbo, scoping;
+	bool akimbo, scoping, sprinting;
 	int ammo[WEAP_MAX], mag[WEAP_MAX], gunwait[WEAP_MAX];
 	ivector damagelog;
 
@@ -394,7 +394,7 @@ struct playerstate
 		spawnmillis = 0;
 		assists = armor = 0;
 		gunselect = WEAP_PISTOL;
-		akimbo = scoping = false;
+		akimbo = scoping = sprinting = false;
 		loopi(WEAP_MAX) ammo[i] = mag[i] = gunwait[i] = 0;
 		mag[WEAP_KNIFE] = 1;
 		lastkiller = -1;

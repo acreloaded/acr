@@ -482,6 +482,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 			playerent *p = (playerent *)pl;
 			float spd = 1;
 			if(p->weaponsel) spd = gunspeed(p->weaponsel->type, p->ads, p->perk1 == PERK1_AGILE);
+			if(p->sprinting) spd *= 0.6f; // sprint = walk lol
 			d.mul(vec(spd, spd, p->perk1 == PERK1_LIGHT ? 1.05f : 1));
 		}
 
@@ -838,6 +839,12 @@ void crouch(bool on)
 	player1->trycrouch = on;
 }
 
+void sprint(bool on)
+{
+	if(intermission) return;
+	player1->sprinting = on;
+}
+
 COMMAND(backward, ARG_DOWN);
 COMMAND(forward, ARG_DOWN);
 COMMAND(left, ARG_DOWN);
@@ -845,6 +852,7 @@ COMMAND(right, ARG_DOWN);
 COMMANDN(jump, jumpn, ARG_DOWN);
 COMMAND(attack, ARG_DOWN);
 COMMAND(crouch, ARG_DOWN);
+COMMAND(sprint, ARG_DOWN);
 
 void fixcamerarange(physent *cam)
 {

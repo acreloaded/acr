@@ -1631,7 +1631,8 @@ void updateplayerfootsteps(playerent *p)
 		if(water && grounddist>p->eyeheight) return; // don't play step sound when jumping into water
 
 		int stepsound;
-		if(p->crouching) stepsound = water ? S_WATERFOOTSTEPSCROUCH : S_FOOTSTEPSCROUCH; // crouch
+		// since sprint = walk
+		if(p->crouching || p->sprinting) stepsound = water ? S_WATERFOOTSTEPSCROUCH : S_FOOTSTEPSCROUCH; // crouch
 		else stepsound = water ? S_WATERFOOTSTEPS : S_FOOTSTEPS; // normal
 
 		// proc existing sounds
