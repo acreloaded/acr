@@ -720,7 +720,7 @@ void putflaginfo(ucharbuf &p, int flag){
 
 int next_afk_check = 200;
 void check_afk(){
-	//* remove one preceeding slash to disable AFK checks
+	/* remove one preceeding slash to disable AFK checks
 	next_afk_check = INT_MAX;
 	return;
 	// */
@@ -730,12 +730,14 @@ void check_afk(){
 	loopv(clients){
 		client &c = *clients[i];
 		if (c.type != ST_TCPIP || c.connectmillis + 60 * 1000 > servmillis || c.team == TEAM_SPECT ||
-			!c.state.movemillis || c.state.movemillis + scl.afktimelimit > servmillis || clienthasflag(c.clientnum) > -1 ) continue;
+			c.state.movemillis + scl.afktimelimit > servmillis || clienthasflag(c.clientnum) > -1 ) continue;
 		if ( ( c.state.state == CS_DEAD && !m_duke(gamemode, mutators) && c.state.lastdeath + 45 * 1000 < gamemillis) ||
-			(c.state.state == CS_ALIVE /*&& c.state.upspawnp */)) {
-			logline(ACLOG_INFO, "[%s] %s is afk, forcing to spectator", gethostname(i), formatname(c));
+			(c.state.state == CS_ALIVE && c.state.movemillis /* roughly upspawnp */)) {
+			defformatstring(msg)("%s is afk, forcing to spectator", formatname(c));
+			sendservmsg(msg);
+			logline(ACLOG_INFO, "[%s] %s", gethostname(i), msg);
 			updateclientteam(i, TEAM_SPECT, FTR_AUTOTEAM);
-			checkai();
+			checkai(); // AFK check
 		}
 	}
 }
