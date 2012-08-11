@@ -761,7 +761,7 @@ void renderclient(playerent *d)
 void renderclients()
 {
 	playerent *d;
-	loopv(players) if((d = players[i])/* && d->state!=CS_SPAWNING*/ && (!player1->isspectating() || !player1->allowmove() || isthirdperson || player1->followplayercn != i)) renderclient(d);
-	if(isthirdperson || player1->state==CS_DEAD || (reflecting && !refracting)) renderclient(player1);
+	loopv(players) if((d = players[i])/* && d->state!=CS_SPAWNING*/ && (!player1->isspectating() || isthirdperson || d != focus)) renderclient(d);
+	if(isthirdperson || player1->state==CS_DEAD || focus != player1 || (reflecting && !refracting)) renderclient(player1);
 }
 
