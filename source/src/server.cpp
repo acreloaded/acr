@@ -1122,8 +1122,7 @@ void arenacheck(){
 void convertcheck(bool quick){
 	if(!m_convert(gamemode, mutators) || interm || gamemillis < arenaround || !numclients()) return;
 	if(arenaround){ // start new convert round
-		//shuffleteams(FTR_SILENT);
-		refillteams(true, FTR_SILENT, false);
+		shuffleteams(FTR_SILENT);
 		return arenanext();
 	}
 	if(quick) return;
