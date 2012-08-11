@@ -2918,7 +2918,7 @@ bool checkmove(client &cp, int f){
 	// help detect AFK
 	if(cs.lasto.dist(cs.o) >= 0.1f) cs.movemillis = servmillis;
 	// detect speedhack
-	if(!m_edit(gamemode) && gamemillis >= cs.speedmillis + 200){
+	if(!m_edit(gamemode) && gamemillis >= cs.speedmillis + 500){
 		if(cs.speedmillis){
 			//cs.movespeed = (cs.movespeed * 4 + (movedistxy * 1000 / (gamemillis - cs.lastomillis))) / 5.f;
 			//cs.movespeed = (cs.movespeed * 3 + (movedistxy * 1000 / (gamemillis - cs.lastomillis))) / 4.f;
