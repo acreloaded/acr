@@ -711,6 +711,7 @@ void check_afk(){
 	next_afk_check = servmillis + 7 * 1000;
 	// OLD LOGIC if we have less than five players or a non-teammode is not full: do nothing!
 	// if (numclients() < 5 || (numnonlocalclients() < scl.maxclients && !m_team(gamemode, mutators))) return;
+	if(m_edit(gamemode)) return;
 	loopv(clients){
 		client &c = *clients[i];
 		if (c.type != ST_TCPIP || c.connectmillis + 60 * 1000 > servmillis || c.team == TEAM_SPECT ||
@@ -2917,7 +2918,7 @@ bool checkmove(client &cp, int f){
 	// help detect AFK
 	if(cs.lasto.dist(cs.o) >= 0.1f) cs.movemillis = servmillis;
 	// detect speedhack
-	if(gamemillis >= cs.speedmillis + 200){
+	if(!m_edit(gamemode) && gamemillis >= cs.speedmillis + 200){
 		if(cs.speedmillis){
 			//cs.movespeed = (cs.movespeed * 4 + (movedistxy * 1000 / (gamemillis - cs.lastomillis))) / 5.f;
 			//cs.movespeed = (cs.movespeed * 3 + (movedistxy * 1000 / (gamemillis - cs.lastomillis))) / 4.f;
