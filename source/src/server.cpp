@@ -1122,25 +1122,25 @@ void arenacheck(){
 void convertcheck(bool quick){
 	if(!m_convert(gamemode, mutators) || interm || gamemillis < arenaround || !numclients()) return;
 	if(arenaround){ // start new convert round
-		shuffleteams(FTR_SILENT);
+		//shuffleteams(FTR_SILENT);
+		refillteams(true, FTR_SILENT, false);
 		return arenanext();
 	}
 	if(quick) return;
 	// check if converted
-	bool found = false;
-	int bigteam = -1;
+	int bigteam = -1, found = 0;
 	loopv(clients)
-		if(clients[i]->type != ST_EMPTY && clients[i]->team != TEAM_SPECT && clients[i]->team != bigteam)
+		if(clients[i]->type != ST_EMPTY && clients[i]->team != TEAM_SPECT)
 		{
-			if(team_valid(bigteam))
+			if(!team_valid(bigteam)) bigteam = clients[i]->team;
+			if(clients[i]->team == bigteam)
 			{
-				found = true;
-				break;
+				if(++found >= 2) break;
 			}
-			else bigteam = clients[i]->team;
+			else return; // nope
 		}
 	// game ends if not arena, and all enemies are converted
-	if(!found){
+	if(found >= 2){
 		sendf(-1, 1, "ri", N_CONVERTWIN);
 		arenaround = gamemillis + 5000;
 	}
@@ -1976,40 +1976,22 @@ int calcscores() // skill eval
 ivector shuffle;
 
 void shuffleteams(int ftr){
-	if(m_zombie(gamemode)) return; // in case a vote is called
+	if(m_zombie(gamemode) && !m_convert(gamemode, mutators)) return; // in case a vote is called
 	int numplayers = countplayers();
-	int team, sums = calcscores();
+	int team = rnd(2);
+	shuffle.shrink(0);
 	if(gamemillis < 2 * 60 *1000){ // random
-		team = -1; // use this for the smaller team
-		int teamsize[2] = {0, 0};
-		loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->team < 2){
-			/*
-			sums += rnd(1000);
-			team = sums & 1;
-			if(teamsize[team] >= numplayers/2) team = team_opposite(team);
-			updateclientteam(i, team, ftr);
-			teamsize[team]++;
-			sums >>= 1;
-			*/
-			if(team_valid(team)) updateclientteam(i, team, ftr);
-			else
-			{
-				int randomteam = rnd(2);
-				updateclientteam(i, randomteam, ftr);
-				if(++teamsize[randomteam] >= numplayers/2) team = team_opposite(randomteam);
-			}
-		}
+		loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->team < 2) { clients[i]->at3_score = rand(); shuffle.add(i); }
 	}
 	else{ // skill sorted
-		shuffle.shrink(0);
+		int sums = calcscores();
 		sums /= 4 * numplayers + 2;
-		team = rnd(2);
 		loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->team < 2) { clients[i]->at3_score += rnd(sums | 1); shuffle.add(i); }
-		shuffle.sort(cmpscore);
-		loopi(shuffle.length()){
-			updateclientteam(shuffle[i], team, ftr);
-			team = !team;
-		}
+	}
+	shuffle.sort(cmpscore);
+	loopi(shuffle.length()){
+		updateclientteam(shuffle[i], team, ftr);
+		team = !team;
 	}
 	checkai(); // end of shuffle
 	// convertcheck();
