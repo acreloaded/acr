@@ -1045,7 +1045,7 @@ void refreshservers(void *menu, bool init)
 			bool needspasswd = (si.pongflags & (1 << PONGFLAG_PASSWORD)) > 0;
 			int mmode = (si.pongflags >> PONGFLAG_MASTERMODE) & MM_MASK;
 			char basecolor = banned ? '4' : (curserver == servers[i] ? '1' : '5');
-			char plnumcolor = serverfull ? '2' : (needspasswd ? '3' : (mmode >= MM_LOCKED ? '1' : basecolor));
+			char plnumcolor = serverfull ? '2' : (needspasswd ? '3' : (mmode >= MM_PRIVATE ? '9' : mmode >= MM_LOCKED ? '1' : basecolor));
 			if(si.address.host != ENET_HOST_ANY && si.ping != 9999)
 			{
 				if(si.protocol!=PROTOCOL_VERSION)
