@@ -123,6 +123,7 @@ void parsepositions(ucharbuf &p)
 			d->scoping = (f & 2) == 2 /*&& ads_gun(d->weaponsel->type)*/;
 			d->onfloor = (f & 4) == 4;
 			d->onladder = (f & 8) == 8;
+			d->sprinting = (f & 16) == 16;
 
 			updatepos(d);
 			updatelagtime(d);
