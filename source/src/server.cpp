@@ -1132,11 +1132,24 @@ void arenacheck(){
 		refillteams(true);
 }
 
-void convertcheck(){
+void convertcheck(bool quick = false){
 	if(!m_convert(gamemode, mutators) || interm || gamemillis < arenaround || !numclients()) return;
 	if(arenaround){ // start new convert round
 		shuffleteams(FTR_SILENT);
 		return arenanext();
+	}
+	if(quick) return;
+	// check if converted
+	bool found = false;
+	loopv(clients)
+		if(clients[i]->type != ST_EMPTY && clients[i]->team != TEAM_SPECT && clients[i]->team != actor->team){
+			found = true;
+			break;
+		}
+	// game ends if not arena, and all enemies are converted
+	if(!found){
+		sendf(-1, 1, "ri", N_CONVERTWIN);
+		arenaround = gamemillis + 5000;
 	}
 }
 
@@ -1616,19 +1629,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	if(!suic && m_convert(gamemode, mutators) && target->team != actor->team){
 		updateclientteam(target->clientnum, actor->team, FTR_SILENT);
 		// checkai(); // DO NOT balance bots here
-		if(!m_duke(gamemode, mutators)){
-			bool found = false;
-			loopv(clients)
-				if(clients[i]->type != ST_EMPTY && clients[i]->team != TEAM_SPECT && clients[i]->team != actor->team){
-					found = true;
-					break;
-				}
-			// game ends if not arena, and all enemies are converted
-			if(!found){
-				sendf(-1, 1, "ri", N_CONVERTWIN);
-				arenaround = gamemillis + 5000;
-			}
-		}
+		convertcheck();
 	}
 }
 
@@ -2896,21 +2897,25 @@ bool checkmove(client &cp, int f){
 	// editmode already?
 	if(cs.state != CS_ALIVE) return true;
 	const int sender = cp.clientnum;
+	// help detect AFK
+	if(cs.lasto.dist(cs.o) >= 0.1f) cs.movemillis = servmillis;
 	// detect speedhack
-	const float movedist = cs.lasto.dist(cs.o), movedistxy = cs.lasto.distxy(cs.o);
-	if(movedist >= 0.1f){
-		cs.movemillis = servmillis;
-		if(cs.lastomillis && gamemillis > cs.lastomillis){
-			cs.movespeed = (cs.movespeed * 24 + (movedistxy * 1000 / (gamemillis - cs.lastomillis))) / 25.f;
-			if(cs.lastpain + 1000 < gamemillis && cs.movespeed > 26){ // 6.5 meters per second
-				defformatstring(fastmsg)("%s moved at %.3f meters/second", formatname(cp), cs.movespeed / 4);
+	if(gamemillis >= cs.speedmillis + 500){
+		if(cs.speedmillis){
+			//cs.movespeed = (cs.movespeed * 4 + (movedistxy * 1000 / (gamemillis - cs.lastomillis))) / 5.f;
+			//cs.movespeed = (cs.movespeed * 3 + (movedistxy * 1000 / (gamemillis - cs.lastomillis))) / 4.f;
+			const float movespeed = (cs.speedo.distxy(cs.o) * 1000 / (gamemillis - cs.speedmillis));
+			if(cs.lastpain + 2000 < gamemillis && movespeed > 23){ // 5.75 meters per second
+				defformatstring(fastmsg)("%s moved at %.3f meters/second", formatname(cp), movespeed / 4);
 				sendservmsg(fastmsg);
-				if(cs.movespeed > 28){ // 7 meters per second
+				if(movespeed > 24){ // 6 meters per second
 					cheat(&cp, "speedhack");
 					return false;
 				}
 			}
 		}
+		cs.speedo = cs.o;
+		cs.speedmillis = gamemillis;
 	}
 	// deal damaage of movement
 	if(!cs.protect(gamemillis, gamemode, mutators)){
