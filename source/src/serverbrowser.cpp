@@ -1046,11 +1046,12 @@ void refreshservers(void *menu, bool init)
 			int mmode = (si.pongflags >> PONGFLAG_MASTERMODE) & MM_MASK;
 			char basecolor = banned ? '4' : (curserver == servers[i] ? '1' : '5');
 			char plnumcolor = serverfull ? '2' : (needspasswd ? '3' : (mmode >= MM_PRIVATE ? '9' : mmode >= MM_LOCKED ? '1' : basecolor));
+			defformatstring(serverportpart)((serverbrowseripport == 3 || (serverbrowseripport == 2 && si.port != CUBE_DEFAULT_SERVER_PORT)) ? ":%d" : "", si.port);
 			if(si.address.host != ENET_HOST_ANY && si.ping != 9999)
 			{
 				if(si.protocol!=PROTOCOL_VERSION)
 				{
-					if(!showonlygoodservers) formatstring(si.full)("%s:%d [%s]", si.name, si.port, si.protocol<0 ? "modded version" : (si.protocol<PROTOCOL_VERSION ? "older protocol" : "newer protocol"));
+					if(!showonlygoodservers) formatstring(si.full)("%s%s [%s]", si.name, serverportpart, si.protocol<0 ? "modded version" : (si.protocol<PROTOCOL_VERSION ? "older protocol" : "newer protocol"));
 					else showthisone = false;
 				}
 				else
@@ -1066,13 +1067,13 @@ void refreshservers(void *menu, bool init)
 					}
 					else concatformatstring(si.full, "empty");
 					// serverbrowseripport: 0 - hide, 1 - show ip, 2 - show port if different, 3 - show all 
-					concatformatstring(si.full, !serverbrowseripport ? ": " : (serverbrowseripport == 3 || (serverbrowseripport == 2 && si.port != CUBE_DEFAULT_SERVER_PORT)) ? ": %s:%d" : ": %s", si.name, si.port);
+					concatformatstring(si.full, !serverbrowseripport ? ": " : ": %s%s", si.name, serverportpart);
 					concatformatstring(si.full, "\fr %s", si.sdesc);
 				}
 			}
 			else
 			{
-				if(!showonlygoodservers) formatstring(si.full)(si.address.host != ENET_HOST_ANY ? "%s:%d [waiting for server response]" : "%s:%d [unknown host]", si.name, si.port);
+				if(!showonlygoodservers) formatstring(si.full)("%s%s [%s]", si.name, serverportpart, si.address.host == ENET_HOST_ANY ? "unknown host" : "waiting for server response");
 				else showthisone = false;
 			}
 			if(issearch && showthisone)
