@@ -755,7 +755,7 @@ bool matchplayername(const char *name)
 	return strstr(nameuc, cursearchuc) != NULL;
 }
 
-VARP(serverbrowserhideip, 0, 0, 2);
+VARP(serverbrowseripport, 0, 2, 3);
 VARP(serverbrowserhidefavtag, 0, 1, 2);
 VAR(showweights, 0, 0, 1);
 
@@ -1065,7 +1065,8 @@ void refreshservers(void *menu, bool init)
 						if(showmr && !m_edit(si.mode)) concatformatstring(si.full, ", (%d:%02d)", (int)floor(si.minremain/60.f), si.minremain%60);
 					}
 					else concatformatstring(si.full, "empty");
-					concatformatstring(si.full, serverbrowserhideip < 2 ? ": \fs%s%s:%d\fr" : ": ", serverbrowserhideip == 1 ? "\f4" : "", si.name, si.port);
+					// serverbrowseripport: 0 - hide, 1 - show ip, 2 - show port if different, 3 - show all 
+					concatformatstring(si.full, !serverbrowseripport ? ": " : (serverbrowseripport == 3 || (serverbrowseripport == 2 && si.port != CUBE_DEFAULT_SERVER_PORT)) ? ": %s:%d" : ": %s", si.name, si.port);
 					concatformatstring(si.full, "\fr %s", si.sdesc);
 				}
 			}
