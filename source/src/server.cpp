@@ -738,6 +738,7 @@ void check_afk(){
 			logline(ACLOG_INFO, "[%s] %s", gethostname(i), msg);
 			updateclientteam(i, TEAM_SPECT, FTR_AUTOTEAM);
 			checkai(); // AFK check
+			convertcheck();
 		}
 	}
 }
@@ -1076,7 +1077,8 @@ void arenacheck(){
 			sendservmsg("\f0Good work! \f1The zombies have been defeated!");
 			forceintermission = true;
 		}
-		checkai();
+		checkai(); // progressive zombies
+		// convertcheck();
 		sendf(-1, 1, "ri2", N_ZOMBIESWIN, (progressiveround << 1) | (humanswin ? 1 : 0));
 		loopv(clients) if(clients[i]->type != ST_EMPTY && clients[i]->connected && clients[i]->team != TEAM_SPECT){
 			switch(clients[i]->team){
@@ -1132,7 +1134,7 @@ void arenacheck(){
 		refillteams(true);
 }
 
-void convertcheck(bool quick = false){
+void convertcheck(bool quick){
 	if(!m_convert(gamemode, mutators) || interm || gamemillis < arenaround || !numclients()) return;
 	if(arenaround){ // start new convert round
 		shuffleteams(FTR_SILENT);
@@ -1141,10 +1143,16 @@ void convertcheck(bool quick = false){
 	if(quick) return;
 	// check if converted
 	bool found = false;
+	int bigteam = -1;
 	loopv(clients)
-		if(clients[i]->type != ST_EMPTY && clients[i]->team != TEAM_SPECT && clients[i]->team != actor->team){
-			found = true;
-			break;
+		if(clients[i]->type != ST_EMPTY && clients[i]->team != TEAM_SPECT && clients[i]->team != bigteam)
+		{
+			if(team_valid(bigteam))
+			{
+				found = true;
+				break;
+			}
+			else bigteam = clients[i]->team;
 		}
 	// game ends if not arena, and all enemies are converted
 	if(!found){
@@ -1629,7 +1637,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	if(!suic && m_convert(gamemode, mutators) && target->team != actor->team){
 		updateclientteam(target->clientnum, actor->team, FTR_SILENT);
 		// checkai(); // DO NOT balance bots here
-		convertcheck();
+		convertcheck(true);
 	}
 }
 
@@ -2005,6 +2013,7 @@ void shuffleteams(int ftr){
 		}
 	}
 	checkai(); // end of shuffle
+	// convertcheck();
 }
 
 
@@ -2061,6 +2070,7 @@ bool balanceteams(int ftr, bool aionly = true)  // pro vs noobs never more
         {
             updateclientteam(hid, l, ftr);
 			// checkai(); // balance big to small
+			// convertcheck();
             clients[hid]->at3_lastforce = gamemillis;
             return true;
         }
@@ -2091,6 +2101,7 @@ bool balanceteams(int ftr, bool aionly = true)  // pro vs noobs never more
             updateclientteam(bestpair[h], l, ftr);
             updateclientteam(bestpair[l], h, ftr);
 			checkai(); // balance switch
+			// convertcheck();
             clients[bestpair[h]]->at3_lastforce = clients[bestpair[l]]->at3_lastforce = gamemillis;
             return true;
         }
@@ -2164,6 +2175,7 @@ bool refillteams(bool now, int ftr, bool aionly){ // force only minimal amounts 
                     clients[pick]->at3_lastforce = gamemillis;  // try not to force this player again for the next 5 minutes
                     switched = true;
 					// checkai(); // refill
+					// convertcheck();
                 }
             }
         }
@@ -2323,6 +2335,7 @@ void resetmap(const char *newname, int newmode, int newmuts, int newtime, bool n
 		}
 	}
 	checkai(); // re-init ai (init)
+	// convertcheck();
 	// reset team scores
 	loopi(TEAM_NUM - 1) steamscores[i] = teamscore(i);
 	purgesknives();
@@ -2554,6 +2567,7 @@ void disconnect_client(int n, int reason){
 	if(curvote) curvote->evaluate();
 	freeconnectcheck(n);
 	checkai(); // disconnect
+	convertcheck();
 }
 
 void sendwhois(int sender, int cn){
@@ -3208,6 +3222,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			curvote->evaluate();
 		}
 		checkai(); // connect
+		// convertcheck();
 		while(reassignai());
 	}
 
@@ -3320,6 +3335,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				}
 				updateclientteam(sender, t, FTR_PLAYERWISH);
 				checkai(); // user switch
+				// convertcheck();
 				break;
 			}
 
@@ -3380,6 +3396,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					if(mastermode < MM_LOCKED || cp.type != ST_TCPIP || cp.priv >= PRIV_ADMIN){
 						updateclientteam(sender, chooseteam(cp), FTR_PLAYERWISH);
 						checkai(); // spawn unspect
+						// convertcheck();
 						if(!canspawn(&cp, true)) break;
 					}
 					else{
@@ -4385,8 +4402,8 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 			if(f.state == CTFF_INBASE || f.state == CTFF_STOLEN) ktfflagingame = true;
 		}
 		if(m_keep(gamemode) && !m_ktf2(gamemode, mutators) && !ktfflagingame) flagaction(rnd(2), FA_RESET, -1); // ktf flag watchdog
-		if(m_duke(gamemode, mutators)) arenacheck();
-		if(m_convert(gamemode, mutators)) convertcheck();
+		arenacheck();
+		convertcheck();
 		if(scl.afktimelimit && mastermode == MM_OPEN && next_afk_check < servmillis && gamemillis > 20000 ) check_afk();
 	}
 
