@@ -309,7 +309,7 @@ void processevents(){
 	loopv(clients)
 	{
 		client &c = *clients[i];
-		if(c.type==ST_EMPTY) continue;
+		if(c.type==ST_EMPTY || !c.connected || c.team == TEAM_SPECT) continue;
 		clientstate &cs = c.state;
 		// game ending nuke...
 		if(cs.nukemillis && cs.nukemillis <= gamemillis && minremain){
