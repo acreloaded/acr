@@ -482,7 +482,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 			playerent *p = (playerent *)pl;
 			float spd = 1;
 			if(p->weaponsel) spd = gunspeed(p->weaponsel->type, p->ads, p->perk1 == PERK1_AGILE);
-			if(p->sprinting) spd *= 0.6f; // sprint = walk lol
+			if(p->sprinting) spd *= 1.5f; // sprint = walk lol
 			d.mul(vec(spd, spd, p->perk1 == PERK1_LIGHT ? 1.05f : 1));
 		}
 
