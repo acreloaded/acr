@@ -716,7 +716,7 @@ void check_afk(){
 		client &c = *clients[i];
 		if (c.type != ST_TCPIP || c.connectmillis + 60 * 1000 > servmillis || c.team == TEAM_SPECT ||
 			c.state.movemillis + scl.afktimelimit > servmillis || clienthasflag(c.clientnum) > -1 ) continue;
-		if ( ( c.state.state == CS_DEAD && !m_duke(gamemode, mutators) && c.state.lastdeath + 45 * 1000 < gamemillis) ||
+		if ( ( c.state.state == CS_DEAD && !m_duke(gamemode, mutators) && c.state.lastdeath + scl.afktimelimit < gamemillis) ||
 			(c.state.state == CS_ALIVE && c.state.movemillis /* roughly upspawnp */)) {
 			defformatstring(msg)("%s is afk, forcing to spectator", formatname(c));
 			sendservmsg(msg);
