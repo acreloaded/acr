@@ -1977,7 +1977,7 @@ ivector shuffle;
 
 void shuffleteams(int ftr){
 	if(m_zombie(gamemode)) return; // in case a vote is called
-	int numplayers = numclients();
+	int numplayers = countplayers();
 	int team, sums = calcscores();
 	if(gamemillis < 2 * 60 *1000){ // random
 		team = -1; // use this for the smaller team
