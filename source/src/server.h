@@ -131,7 +131,7 @@ struct clientstate : playerstate
 	vec o, aim, vel, lasto, sg[SGRAYS], flagpickupo;
 	float pitchvel, movespeed;
 	int state, omillis, lastomillis, movemillis;
-	int lastdeath, lastffkill, lastspawn, lifesequence, streakused;
+	int lastdeath, lastpain, lastffkill, lastspawn, lifesequence, streakused;
 	int lastkill, combo;
 	bool crouching, onfloor; float fallz;
 	int crouchmillis, scopemillis;
@@ -192,7 +192,7 @@ struct clientstate : playerstate
 		omillis = lastomillis = movemillis = 0;
 		drownmillis = drownval = 0;
 		lastspawn = -1;
-		lastdeath = lastshot = lastregen = 0;
+		lastdeath = lastpain = lastshot = lastregen = 0;
 		lastkill = combo = 0;
 		akimbomillis = 0;
 		damagelog.setsize(0);

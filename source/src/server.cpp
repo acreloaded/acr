@@ -1673,7 +1673,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 	}
 
 	ts.dodamage(damage, actor->state.perk1 == PERK_POWER);
-	ts.lastregen = gamemillis + REGENDELAY - REGENINT;
+	ts.lastregen = (ts.lastpain = gamemillis) + REGENDELAY - REGENINT;
 
 	if(ts.health<=0) serverdied(target, actor, damage, gun, style, source);
 	else
@@ -2902,11 +2902,10 @@ bool checkmove(client &cp, int f){
 		cs.movemillis = servmillis;
 		if(cs.lastomillis && gamemillis > cs.lastomillis){
 			cs.movespeed = (cs.movespeed * 24 + (movedistxy * 1000 / (gamemillis - cs.lastomillis))) / 25.f;
-			// OLD: 6.5/7
-			if(cs.movespeed > 34){ // 8.5 meters per second
+			if(cs.lastpain + 1000 < gamemillis && cs.movespeed > 26){ // 6.5 meters per second
 				defformatstring(fastmsg)("%s moved at %.3f meters/second", formatname(cp), cs.movespeed / 4);
 				sendservmsg(fastmsg);
-				if(cs.movespeed > 36){ // 9 meters per second
+				if(cs.movespeed > 28){ // 7 meters per second
 					cheat(&cp, "speedhack");
 					return false;
 				}
