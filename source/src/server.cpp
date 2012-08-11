@@ -2895,15 +2895,15 @@ bool checkmove(client &cp, int f){
 	if(cs.state != CS_ALIVE) return true;
 	const int sender = cp.clientnum;
 	// detect speedhack
-	float cps = cs.lasto.dist(cs.o);
-	if(cs.lasto.dist(cs.o) >= .001f){
+	float movedist = cs.lasto.distxy(cs.o); // XY only
+	if(movedist >= 0.1f){
 		cs.movemillis = servmillis;
-		if(cps && cs.lastomillis && gamemillis > cs.lastomillis){
-			cps *= 1000 / (gamemillis - cs.lastomillis);
-			if(cps > 16){ // 4 meters per second
-				defformatstring(fastmsg)("%s moved at %.3f meters/second", formatname(cp), cps / 4);
+		if(cs.lastomillis && gamemillis > cs.lastomillis){
+			cs.movespeed = (cs.movespeed * 24 + (movedist * 1000 / (gamemillis - cs.lastomillis))) / 25.f;
+			if(cs.movespeed > 26){ // 6.5 meters per second
+				defformatstring(fastmsg)("%s moved at %.3f meters/second", formatname(cp), cs.movespeed / 4);
 				sendservmsg(fastmsg);
-				if(cps > 32){ // 8 meters per second
+				if(cs.movespeed > 28){ // 7 meters per second
 					cheat(&cp, "speedhack");
 					return false;
 				}
@@ -3748,8 +3748,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(interm || !broadcast || (cs.state!=CS_ALIVE && cs.state!=CS_EDITING) || ((f>>4)&1)!=(cs.lifesequence&1)) break;
 				// store location
 				cs.lasto = cs.o;
-				cs.lastomillis = gamemillis;
+				cs.lastomillis = cs.omillis;
 				cs.o = newo;
+				cs.omillis = gamemillis;
 				cs.aim = newaim;
 				cs.vel = newvel;
 				cs.pitchvel = newpitchvel;
