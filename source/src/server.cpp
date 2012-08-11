@@ -2923,10 +2923,10 @@ bool checkmove(client &cp, int f){
 			//cs.movespeed = (cs.movespeed * 4 + (movedistxy * 1000 / (gamemillis - cs.lastomillis))) / 5.f;
 			//cs.movespeed = (cs.movespeed * 3 + (movedistxy * 1000 / (gamemillis - cs.lastomillis))) / 4.f;
 			const float movespeed = (cs.speedo.distxy(cs.o) * 1000 / (gamemillis - cs.speedmillis));
-			if(cs.lastpain + 2000 < gamemillis && movespeed > 25){ // 6.25 meters per second
+			if(cs.lastpain + 2000 < gamemillis && movespeed > 27){ // 6.75 meters per second
 				defformatstring(fastmsg)("%s moved at %.3f meters/second", formatname(cp), movespeed / 4);
 				sendservmsg(fastmsg);
-				if(movespeed > 26){ // 6.5 meters per second
+				if(movespeed > 32){ // 8 meters per second
 					cheat(&cp, "speedhack");
 					return false;
 				}
