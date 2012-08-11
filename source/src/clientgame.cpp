@@ -794,7 +794,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
 	copystring(clientmap, name);
 	sendmapident = true;
 	localfirstkill = false;
-	BotManager.BeginMap(name); // Added by Rick
+	if(m_ai(gamemode)) BotManager.BeginMap(name); // Added by Rick
 	clearbounceents();
 	resetspawns();
 	preparectf(!m_affinity(gamemode));
