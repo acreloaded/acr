@@ -2888,15 +2888,15 @@ bool checkmove(client &cp, int f){
 	// help detect AFK
 	if(cs.lasto.dist(cs.o) >= 0.1f) cs.movemillis = servmillis;
 	// detect speedhack
-	if(gamemillis >= cs.speedmillis + 500){
+	if(gamemillis >= cs.speedmillis + 200){
 		if(cs.speedmillis){
 			//cs.movespeed = (cs.movespeed * 4 + (movedistxy * 1000 / (gamemillis - cs.lastomillis))) / 5.f;
 			//cs.movespeed = (cs.movespeed * 3 + (movedistxy * 1000 / (gamemillis - cs.lastomillis))) / 4.f;
 			const float movespeed = (cs.speedo.distxy(cs.o) * 1000 / (gamemillis - cs.speedmillis));
-			if(cs.lastpain + 2000 < gamemillis && movespeed > 23){ // 5.75 meters per second
+			if(cs.lastpain + 2000 < gamemillis && movespeed > 25){ // 6.25 meters per second
 				defformatstring(fastmsg)("%s moved at %.3f meters/second", formatname(cp), movespeed / 4);
 				sendservmsg(fastmsg);
-				if(movespeed > 24){ // 6 meters per second
+				if(movespeed > 26){ // 6.5 meters per second
 					cheat(&cp, "speedhack");
 					return false;
 				}
