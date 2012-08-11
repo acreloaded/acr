@@ -57,7 +57,7 @@ struct mapaction : serveraction
 				mapok = false;
 			}
 			else{
-				const bool spawns = (m_team(mode, muts) && !m_keep(mode) && !m_zombie(mode)) ? ms->hasteamspawns : ms->hasffaspawns;
+				const bool spawns = ms->hasteamspawns || ((!m_team(mode, muts) || m_keep(mode)|| m_zombie(mode)) ? ms->hasffaspawns : false);
 				const bool flags = ms->hasflags || m_hunt(mode) || !m_affinity(mode);
 				if(m_edit(mode)){ // admin needed for coopedit
 					reqpriv = privconf('E');
