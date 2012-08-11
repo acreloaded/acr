@@ -937,7 +937,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 				loopv(votepl[l]){
 					playerent *vpl = votepl[l][i];
 					if(!vpl) continue;
-					conatformatstring(votestr[l], "\f%d%s \f6(%d)", vpl->priv ? 0 : vpl == player1 ? 6 : team_color(vpl->team), vpl->name, vpl->clientnum);
+					concatformatstring(votestr[l], "\f%d%s \f6(%d)", vpl->priv ? 0 : vpl == player1 ? 6 : team_color(vpl->team), vpl->name, vpl->clientnum);
 					if(vpl->priv >= PRIV_ADMIN) concatstring(votestr[l], " \f8(!)");
 					concatstring(votestr[l], "\f5, ");
 				}
