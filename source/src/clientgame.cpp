@@ -914,8 +914,8 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 			playsound(S_VOTEPASS, SP_HIGHEST); // need better ktf sound here
 			const int m = flagtime / 60, s = flagtime % 60;
 			formatstring(predicate)("kept %s flag for ", teamstr_absolute);
-			if(m) formatstring(predicate)("%s%d minute%s", predicate, m, m==1 ? " " : "s ");
-			if(s) formatstring(predicate)("%s%d second%s", predicate, s, s==1 ? " " : "s ");;
+			if(m) concatformatstring(predicate, "%d minute%s", m, m==1 ? " " : "s ");
+			if(s) concatformatstring(predicate, "%d second%s", s, s==1 ? " " : "s ");
 			concatstring(predicate, "now");
 			break;
 		}
@@ -1218,7 +1218,7 @@ void refreshsopmenu(void *menu, bool init)
 		mline &m = mlines.add();
 		copystring(m.name, colorname(p[i]));
 		formatstring(m.cmd)("%s %d", menu==kickmenu ? "kick" : (menu==banmenu ? "ban 10" : (menu==forceteammenu ? "forceteam" : (menu==revokemenu ? "revoke" : (menu==giveadminmenu ? "giverole" : (menu==whoismenu ? "whois" : (menu==spectmenu ? "forcespect" : "unknownplayeraction")))))), p[i]->clientnum);
-		if((menu==kickmenu||menu==banmenu) && getalias("_kickbanreason")!=NULL) formatstring(m.cmd)("%s \"%s\"", m.cmd, getalias("_kickbanreason"));
+		if((menu==kickmenu||menu==banmenu) && getalias("_kickbanreason")!=NULL) concatformatstring(m.cmd, " \"%s\"", getalias("_kickbanreason"));
 		menumanual(menu, m.name, m.cmd);
 	}
 }

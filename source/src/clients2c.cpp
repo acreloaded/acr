@@ -1372,13 +1372,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 				defformatstring(cip)("%d", ip & 0xFF);
 				if(mask > 8 || (ip >> 8) & 0xFF){
-					formatstring(cip)("%s.%d", cip, (ip >> 8) & 0xFF);
+					concatformatstring(cip, ".%d", (ip >> 8) & 0xFF);
 					if(mask > 16 || (ip >> 16) & 0xFF){
-						formatstring(cip)("%s.%d", cip, (ip >> 16) & 0xFF);
-						if(mask > 24 || (ip >> 24) & 0xFF) formatstring(cip)("%s.%d", cip, (ip >> 24) & 0xFF);
+						concatformatstring(cip, ".%d", (ip >> 16) & 0xFF);
+						if(mask > 24 || (ip >> 24) & 0xFF) concatformatstring(cip, ".%d", (ip >> 24) & 0xFF);
 					}
 				}
-				if(mask < 32) formatstring(cip)("%s\f7/\f4%d", cip, mask);
+				if(mask < 32) concatformatstring(cip, "\f7/\f4%d", mask);
 				conoutf("\f2who\f0is \f1on \f3%s \f4returned \f5%s\f6:\f5%d", pl ? colorname(pl) : "unknown", cip, port);
 				break;
 			}
