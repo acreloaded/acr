@@ -30,12 +30,13 @@ void changemapserv(char *name, int mode, int muts, int download)		// forced map 
 	modecheck(gamemode = mode, mutators = muts);
 	if(m_demo(gamemode)) return;
 	bool loaded = load_world(name);
+	if(!loaded && m_edit(gamemode)) loaded |= empty_world(0, true);
 	if(download > 0)
 	{
 		if(securemapcheck(name, false)) return;
 		bool sizematch = maploaded == download || download < 10;
 		if(loaded && sizematch) return;
-		if(autogetmap)
+		else if(autogetmap)
 		{
 			if(!loaded) getmap(); // no need to ask
 			else showmenu("getmap");

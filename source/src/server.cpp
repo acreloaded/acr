@@ -1334,6 +1334,20 @@ bool checkpos(vec &p, bool alter = true){
 	return ret;
 }
 
+void snewmap(int maplayout_factor){
+	sents.shrink(0);
+	maplayout_factor = clamp(maplayout_factor, SMALLEST_FACTOR, LARGEST_FACTOR);
+	smapstats.hdr.waterlevel = -100000;
+	const int layoutsize = 1 << (maplayout_factor * 2);
+	ssqr defaultblock;
+	defaultblock.type = SPACE;
+	defaultblock.floor = 0;
+	defaultblock.ceil = 16;
+	defaultblock.vdelta = 0;
+	maplayout = new ssqr[layoutsize + 256];
+	loopi(layoutsize) memcpy(maplayout + i, &defaultblock, sizeof(ssqr));
+}
+
 float sraycube(const vec &o, const vec &ray, vec *surface = NULL){ // server counterpart
 	if(surface) *surface = vec(0, 0, 0);
 	if(ray.iszero()) return 0;
@@ -2271,6 +2285,7 @@ void resetmap(const char *newname, int newmode, int newmuts, int newtime, bool n
 		}
 		// copyrevision = copymapsize == smapstats.cgzsize ? smapstats.hdr.maprevision : 0;
 	}
+	else if(m_edit(gamemode)) snewmap(0);
 	else sendservmsg("\f3map not found - start another map or send the map to the server");
 
 	clearai(); // re-init ai (clear)
@@ -2632,6 +2647,7 @@ bool sendmapserv(int n, string mapname, int mapsize, int cfgsize, int cfgsizegz,
 		DELETEA(copydata);
 		copydata = new uchar[copysize];
 		memcpy(copydata, data, copysize);
+		return true; // do not write
 	}
 
 	defformatstring(name)(SERVERMAP_PATH_INCOMING "%s.cgz", mapname);
@@ -3713,19 +3729,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(size < 0) maplayout_factor++;
 				else maplayout_factor = size;
 				DELETEA(maplayout)
-				if(maplayout_factor >= 0){
-					sents.shrink(0);
-					maplayout_factor = clamp(maplayout_factor, SMALLEST_FACTOR, LARGEST_FACTOR);
-					smapstats.hdr.waterlevel = -100000;
-					const int layoutsize = 1 << (maplayout_factor * 2);
-					ssqr defaultblock;
-					defaultblock.type = SPACE;
-					defaultblock.floor = 0;
-					defaultblock.ceil = 16;
-					defaultblock.vdelta = 0;
-					maplayout = new ssqr[layoutsize + 256];
-					loopi(layoutsize) memcpy(maplayout + i, &defaultblock, sizeof(ssqr));
-				}
+				if(maplayout_factor >= 0) snewmap(maplayout_factor);
 				QUEUE_MSG;
 				break;
 			}
@@ -3805,10 +3809,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					defformatstring(msg)("\f3map upload rejected: map %s is readonly", sentmap);
 					sendservmsg(msg, sender);
 				}
-				else if(!strcmp(sentmap, behindpath(smapname)))
+				else if(!m_edit(gamemode) && !strcmp(sentmap, behindpath(smapname)))
 				{
 					reject = "currently loaded";
-					sendservmsg("\f3you cannot upload the currently loaded map", sender);
+					sendservmsg("\f3you cannot upload the currently loaded map (except coopedit)", sender);
 				}
 				// else if // too much uploaded?
 				else if(mp == MAP_NOTFOUND && strchr(scl.mapperm, 'C') && cl->priv < PRIV_ADMIN) // default: everyone can upload the initial map

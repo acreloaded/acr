@@ -47,39 +47,39 @@ struct mapaction : serveraction
 	bool isdisabled() { return configsets.inrange(curcfgset) && !configsets[curcfgset].vote; }
 	mapaction(char *map, int mode, int muts, int caller) : map(map), mode(mode), muts(muts)
 	{
-		if(isdedicated)
-		{
-			int maploc = MAP_NOTFOUND;
-			mapstats *ms = (map && *map) ? getservermapstats(map, false, &maploc) : NULL;
-			mapok = true;
-			if(!ms){
+		int maploc = MAP_NOTFOUND;
+		mapstats *ms = (map && *map) ? getservermapstats(map, false, &maploc) : NULL;
+		mapok = true;
+		if(!ms){
+			if(m_edit(mode)){ // admin needed for coopedit
+				reqpriv = privconf('E');
+				if(reqpriv) sendservmsg("\f3INFO: coopedit is restricted", caller);
+			}
+			else{
 				sendservmsg("\f3the server does not have this map (sendmap first)", caller);
 				mapok = false;
 			}
-			else{
-				const bool spawns = ms->hasteamspawns || ((!m_team(mode, muts) || m_keep(mode)|| m_zombie(mode)) ? ms->hasffaspawns : false);
-				const bool flags = ms->hasflags || m_hunt(mode) || !m_affinity(mode);
-				if(m_edit(mode)){ // admin needed for coopedit
-					reqpriv = privconf('E');
-					if(reqpriv) sendservmsg("\f3INFO: coopedit is restricted", caller);
-				}
-				if(!spawns || !flags)
-				{
-					reqpriv = privconf('P');
-					if(reqpriv && !strchr(scl.voteperm, 'P')) mapok = false;
-					defformatstring(msg)("\f3map \"%s\" does not support \"%s\": ", behindpath(map), modestr(mode, muts, false));
-					if(!spawns) concatstring(msg, "player spawns");
-					if(!spawns && !flags) concatstring(msg, " and ");
-					if(!flags) concatstring(msg, "flag bases");
-					concatstring(msg, " missing");
-					sendservmsg(msg, caller);
-				}
-			}
-			loopv(scl.adminonlymaps) // admin needed for these maps
-				if(!strcmp(behindpath(map), scl.adminonlymaps[i]))
-					reqpriv = PRIV_ADMIN;
-			passratio = 0.59f; // you need 60% to vote a map
 		}
+		else{
+			const bool spawns = ms->hasteamspawns || ((!m_team(mode, muts) || m_keep(mode)|| m_zombie(mode)) ? ms->hasffaspawns : false);
+			const bool flags = ms->hasflags || m_hunt(mode) || !m_affinity(mode);
+				
+			if(!m_edit(mode) && (!spawns || !flags))
+			{
+				reqpriv = privconf('P');
+				if(reqpriv && !strchr(scl.voteperm, 'P')) mapok = false;
+				defformatstring(msg)("\f3map \"%s\" does not support \"%s\": ", behindpath(map), modestr(mode, muts, false));
+				if(!spawns) concatstring(msg, "player spawns");
+				if(!spawns && !flags) concatstring(msg, " and ");
+				if(!flags) concatstring(msg, "flag bases");
+				concatstring(msg, " missing");
+				sendservmsg(msg, caller);
+			}
+		}
+		loopv(scl.adminonlymaps) // admin needed for these maps
+			if(!strcmp(behindpath(map), scl.adminonlymaps[i]))
+				reqpriv = PRIV_ADMIN;
+		passratio = 0.59f; // you need 60% to vote a map
 		formatstring(desc)("load map '%s' in mode '%s'", map, modestr(mode, muts));
 	}
 	~mapaction() { DELETEA(map); }
