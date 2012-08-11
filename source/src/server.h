@@ -885,7 +885,7 @@ const char *suicname(int obit){
 			concatstring(k, "dived from too high above");
 			break;
 		case OBIT_CHEAT:
-			concatstring(k, "just got punished for cheating");
+			concatstring(k, "cheated");
 			break;
 		default:
 			concatstring(k, "somehow suicided");
