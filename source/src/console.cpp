@@ -29,7 +29,7 @@ struct console : consolebuffer<cline>
 
 	void addobit(const char *sf, int cn) {
 		extern int totalmillis;
-		if(conlines[0].obit == cn && conlines.length() > 2){ // last one was our kill
+		if(conlines.length() > 2 && conlines[0].obit == cn){ // last one was our kill
 			if(conlines[1].obit == -1){ // not 2+ kills yet
 				conlines[0].obit = 1; // prepare to be overwritten
 				addline(sf, totalmillis, cn);
@@ -44,7 +44,8 @@ struct console : consolebuffer<cline>
 			}
 		}
 		else{
-			conlines[0].obit = -1; // force no overwrite
+			if(conlines.length())
+				conlines[0].obit = -1; // force no overwrite
 			addline(sf, totalmillis, cn);
 		}
 		conlines[0].obit = cn;
