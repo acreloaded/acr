@@ -2897,15 +2897,16 @@ bool checkmove(client &cp, int f){
 	if(cs.state != CS_ALIVE) return true;
 	const int sender = cp.clientnum;
 	// detect speedhack
-	float movedist = cs.lasto.distxy(cs.o); // XY only
+	const float movedist = cs.lasto.dist(cs.o), movedistxy = cs.lasto.distxy(cs.o);
 	if(movedist >= 0.1f){
 		cs.movemillis = servmillis;
 		if(cs.lastomillis && gamemillis > cs.lastomillis){
-			cs.movespeed = (cs.movespeed * 24 + (movedist * 1000 / (gamemillis - cs.lastomillis))) / 25.f;
-			if(cs.movespeed > 26){ // 6.5 meters per second
+			cs.movespeed = (cs.movespeed * 24 + (movedistxy * 1000 / (gamemillis - cs.lastomillis))) / 25.f;
+			// OLD: 6.5/7
+			if(cs.movespeed > 34){ // 8.5 meters per second
 				defformatstring(fastmsg)("%s moved at %.3f meters/second", formatname(cp), cs.movespeed / 4);
 				sendservmsg(fastmsg);
-				if(cs.movespeed > 28){ // 7 meters per second
+				if(cs.movespeed > 36){ // 9 meters per second
 					cheat(&cp, "speedhack");
 					return false;
 				}
