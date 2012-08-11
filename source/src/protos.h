@@ -358,7 +358,7 @@ extern void neterr(const char *s, int info);
 extern int getclientnum();
 extern bool isowned(playerent *p);
 extern void changemapserv(char *name, int mode, int muts, bool download = false);
-extern void getmap();
+extern void getmap(), sendmap(char *mapname = NULL);
 extern void newteam(char *name);
 extern bool securemapcheck(const char *map, bool msg = true);
 extern int getbuildtype();
@@ -370,7 +370,7 @@ extern bool gensha1(const char *s, unsigned int *dst);
 // clientgame
 extern flaginfo flaginfos[2];
 extern int sessionid;
-extern bool watchingdemo;
+extern bool watchingdemo, needsmap, gettingmap;
 extern int thirdperson;
 #define isthirdperson (camera1 != focus)
 extern void updateworld(int curtime, int lastmillis);

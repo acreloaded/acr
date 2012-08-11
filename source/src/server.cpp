@@ -214,6 +214,16 @@ int chooseteam(client &ci, int suggest = -1){
 	return sum > 200 ? (teamscore[0] < teamscore[1] ? 0 : 1) : rnd(2);
 }
 
+client *findbestmapclient(){
+	client *best = NULL;
+	loopv(clients){
+		client &ci = *clients[i];
+		if(ci.type == ST_EMPTY || !ci.connected || !*ci.name || ci.type == ST_AI || ci.wantsmap) continue;
+		if(!best || ci.connectmillis < best->connectmillis) best = &ci;
+	}
+	return best;
+}
+
 savedscore *findscore(client &c, bool insert){
 	if(c.type!=ST_TCPIP) return NULL;
 	if(!insert)
@@ -261,7 +271,7 @@ bool findlimit(client &c, bool insert){
 	return false;
 }
 
-static bool mapreload = false, autoteam = true, forceintermission = false, nokills = true;
+static bool mapreload = false, autoteam = true, forceintermission = false, nokills = true, mapsending = false;
 #define autobalance_mode (!m_zombie(gamemode) && !m_convert(gamemode, mutators))
 #define autobalance (autoteam && autobalance_mode)
 
@@ -1334,9 +1344,9 @@ bool checkpos(vec &p, bool alter = true){
 	return ret;
 }
 
-void snewmap(int maplayout_factor){
+void snewmap(int factor){
 	sents.shrink(0);
-	maplayout_factor = clamp(maplayout_factor, SMALLEST_FACTOR, LARGEST_FACTOR);
+	maplayout_factor = clamp(factor, SMALLEST_FACTOR, LARGEST_FACTOR);
 	smapstats.hdr.waterlevel = -100000;
 	const int layoutsize = 1 << (maplayout_factor * 2);
 	ssqr defaultblock;
@@ -2829,14 +2839,17 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet){
 
 	if(c){
 		CHECKSPACE(256);
+		// set team
 		putint(p, N_SETTEAM);
         putint(p, n);
         putint(p, c->team | (FTR_SILENT << 4));
 
+		// force death
 		putint(p, N_FORCEDEATH);
         putint(p, n);
         sendf(-1, 1, "ri2x", N_FORCEDEATH, n, n);
 	}
+
 	if(!c || clients.length()>1)
 	{
 		// welcomeinitclient
@@ -3198,6 +3211,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					-1
 				);
 			}
+
+			// connect + will need the map
+			if(m_edit(gamemode)) DELETEA(copydata)
+
 			// check teams
 			cl->team = (mastermode >= MM_LOCKED) ? TEAM_SPECT : chooseteam(*cl);
 		}
@@ -3840,12 +3857,21 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						sendservmsg("\f3map upload failed -- no incoming", sender);
 					}
 				}
+				mapsending = false;
 				if (reject) logline(ACLOG_INFO,"[%s] %s sent map '%s', %d + %d(%d) bytes rejected: %s", cl->hostname, cl->name, sentmap, mapsize, cfgsize, cfgsizegz, reject);
 				p.len += mapsize + cfgsizegz;
 				break;
 			}
 
 			case N_MAPS2C: // client getmap
+			{
+				cl->wantsmap = true;
+				client *best = findbestmapclient();
+				if(cl == best) // we asked it, but it doesn't have the map
+				{
+					mapsending = false;
+					best = findbestmapclient();
+				}
 				if(mapavailable(smapname))
 				{
 					resetflag(sender); // drop ctf flag
@@ -3866,11 +3892,21 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					cl->mapchange();
 					sendwelcome(cl, 2); // resend state properly
 				}
-				else{
+				else if(best)
+				{
+					sendservmsg("the map is being requested, please wait...", sender);
+					if(!mapsending) sendf(best->clientnum, 1, "ri", N_MAPREQ);
+					mapsending = true;
+				}
+				else
+				{
 					cl->isonrightmap = true;
-					sendservmsg("no map is available for you to get", sender);
+					sendf(-1, 1, "ri", N_MAPFAIL);
+					mapsending = false;
+					loopv(clients) clients[i]->wantsmap = false;
 				}
 				break;
+			}
 
 			case N_MAPDELETE:
 			{

@@ -256,7 +256,7 @@ struct client				   // server side version of "dynent" type
 	bool muted;
 	int acversion, acbuildtype, acthirdperson;
 	int connectmillis;
-	bool connected, connectauth;
+	bool connected, connectauth, wantsmap;
 	int authtoken, authmillis, authpriv, masterverdict, guid; uint authreq;
 	bool haswelcome;
 	bool isonrightmap;
@@ -321,7 +321,7 @@ struct client				   // server side version of "dynent" type
 		events.deletecontents();
 		heals.setsize(0);
 		overflow = 0;
-		timesync = false;
+		timesync = wantsmap = false;
 		isonrightmap = m_edit(gamemode);
 		lastevent = 0;
 		at3_lastforce = 0;
@@ -335,7 +335,7 @@ struct client				   // server side version of "dynent" type
 		skin = team = 0;
 		position.setsize(0);
 		messages.setsize(0);
-		connected = connectauth = haswelcome = false;
+		connected = connectauth = wantsmap = haswelcome = false;
 		lastvotecall = 0;
 		vote = VOTE_NEUTRAL;
 		lastsaytext[0] = '\0';
@@ -357,7 +357,7 @@ struct client				   // server side version of "dynent" type
 		authpriv = -1;
 		guid = 0;
 		masterverdict = DISC_NONE;
-		connected = connectauth = haswelcome = false;
+		connected = connectauth = wantsmap = haswelcome = false;
 		removeexplosives();
 	}
 };
@@ -729,7 +729,7 @@ const char *messagenames(int n){
 		"N_LISTDEMOS", "N_DEMO", "N_DEMOPLAYBACK", // demos
 		"N_AUTHREQ", "N_AUTHCHAL", // auth
 		"N_CLAIMPRIV", "N_SETPRIV", // privileges
-		"N_MAPC2S", "N_MAPS2C", // map transit
+		"N_MAPC2S", "N_MAPS2C", "N_MAPDELETE", "N_MAPREQ", "N_MAPFAIL", // map transit
 		// editmode ONLY
 		"N_EDITMODE", "N_EDITH", "N_EDITT", "N_EDITS", "N_EDITD", "N_EDITE", "N_EDITW", "N_EDITENT", "N_NEWMAP",
 		// game events

@@ -30,7 +30,11 @@ void changemapserv(char *name, int mode, int muts, int download)		// forced map 
 	modecheck(gamemode = mode, mutators = muts);
 	if(m_demo(gamemode)) return;
 	bool loaded = load_world(name);
-	if(!loaded && m_edit(gamemode)) loaded |= empty_world(0, true);
+	if(!loaded && m_edit(gamemode) && empty_world(0, true)){
+		startmap(name);
+		loaded = true;
+	}
+	else needsmap = false;
 	if(download > 0)
 	{
 		if(securemapcheck(name, false)) return;
@@ -1009,6 +1013,30 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				int cn = getint(p); playerent *d = getclient(cn);
 				getstring(text, p);
 				conoutf("%s \f0sent the map %s to the server; \f1it can now be voted", d ? colorname(d) : "someone", text);
+				if(needsmap && !gettingmap)
+                {
+                    conoutf("\f0we want the map, so let's get it");
+                    getmap();
+                }
+				break;
+			}
+
+			case N_MAPREQ:
+			{
+				conoutf("\f1the server wants us to send it the map...");
+				if(!needsmap && !gettingmap) sendmap();
+				else
+				{
+					conoutf(gettingmap ? "...but we are trying to get it" : "...but we don't have it, so let's ask for it");
+					getmap();
+				}
+				break;
+			}
+
+			case N_MAPFAIL:
+			{
+				conoutf("\f3everyone failed to get the map");
+				needsmap = gettingmap = false;
 				break;
 			}
 
@@ -1493,6 +1521,7 @@ void receivefile(uchar *data, int len)
 				p.len += size;
 				break;
 			}
+			gettingmap = true;
 			writemap(path(text), mapsize, &p.buf[p.len]);
 			p.len += mapsize;
 			writecfggz(path(text), cfgsize, cfgsizegz, &p.buf[p.len]);

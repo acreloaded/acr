@@ -10,6 +10,7 @@ ENetHost *clienthost = NULL;
 ENetPeer *curpeer = NULL, *connpeer = NULL;
 int connmillis = 0, connattempts = 0, discmillis = 0;
 bool watchingdemo = false;		  // flowtron : enables N_ITEMLIST in demos - req. because mapchanged == false by then
+bool needsmap = false, gettingmap = false;
 
 int getclientnum() { return player1 ? player1->clientnum : -1; }
 bool isowned(playerent *p) { return player1 && p && p->ownernum >= 0 && p->ownernum == player1->clientnum; }
@@ -555,7 +556,7 @@ bool securemapcheck(const char *map, bool msg)
 
 void sendmap(char *mapname)
 {
-	if(!*mapname) mapname = getclientmap();
+	if(!mapname || !*mapname) mapname = getclientmap();
 	if(securemapcheck(mapname)) return;
 	if(m_edit(gamemode)) save_world(mapname);
 
@@ -597,6 +598,7 @@ void sendmap(char *mapname)
 void getmap()
 {
 	conoutf("%s", _("map_req"));
+	needsmap = true;
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
 	putint(p, N_MAPS2C);

@@ -50,17 +50,18 @@ struct mapaction : serveraction
 		int maploc = MAP_NOTFOUND;
 		mapstats *ms = (map && *map) ? getservermapstats(map, false, &maploc) : NULL;
 		mapok = true;
-		if(!ms){
-			if(m_edit(mode)){ // admin needed for coopedit
-				reqpriv = privconf('E');
-				if(reqpriv) sendservmsg("\f3INFO: coopedit is restricted", caller);
-			}
-			else{
-				sendservmsg("\f3the server does not have this map (sendmap first)", caller);
-				mapok = false;
-			}
+		if(m_edit(mode))
+		{ // admin needed for coopedit
+			reqpriv = privconf('E');
+			if(reqpriv) sendservmsg("\f3INFO: coopedit is restricted", caller);
 		}
-		else{
+		else if(!ms)
+		{
+			sendservmsg("\f3the server does not have this map (sendmap first)", caller);
+			mapok = false;
+		}
+		else
+		{
 			const bool spawns = ms->hasteamspawns || ((!m_team(mode, muts) || m_keep(mode)|| m_zombie(mode)) ? ms->hasffaspawns : false);
 			const bool flags = ms->hasflags || m_hunt(mode) || !m_affinity(mode);
 				

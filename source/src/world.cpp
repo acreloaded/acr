@@ -387,6 +387,8 @@ void setupworld(int factor)
 bool empty_world(int factor, bool force)	// main empty world creation routine, if passed factor -1 will enlarge old world by 1
 {
 	if(!force && noteditmode("empty world")) return false;
+	needsmap = false;
+
 	sqr *oldworld = world;
 	bool copy = false;
 	if(oldworld && factor<0) { factor = sfactor+1; copy = true; }
