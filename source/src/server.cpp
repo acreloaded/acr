@@ -385,33 +385,7 @@ void spawnstate(client *c){
 		gs.nextperk1 = PERK_NONE;
 		gs.nextperk2 = (gs.nextprimary == WEAP_BOLT || m_sniper(gamemode, mutators)) ? PERK2_STEADY : PERK2_NONE;
 	}
-	gs.spawnstate(smode, smuts);
-	// FIXME Move to entity.h
-	if(m_zombie(gamemode)){
-		switch(c->team){
-			case TEAM_RED:
-				gs.gunselect = gs.primary = !rnd(3) ? WEAP_SWORD : WEAP_KNIFE;
-				memset(gs.mag, 0, sizeof(gs.mag));
-				memset(gs.ammo, 0, sizeof(gs.ammo));
-				gs.mag[gs.primary] = magsize(gs.primary);
-				gs.perk1 = gs.nextperk1 = PERK1_AGILE;
-				gs.perk2 = gs.nextperk2 = PERK2_STREAK;
-				if(m_onslaught(gamemode, mutators)){
-					gs.health = STARTHEALTH * ZOMBIEHEALTHFACTOR;
-					gs.armor += 50;
-				}
-				else gs.health = STARTHEALTH + rnd(STARTHEALTH * ZOMBIEHEALTHFACTOR);
-				break;
-			case TEAM_BLUE:
-				if(!m_onslaught(gamemode, mutators)) break;
-				// humans for onslaught only
-				if(gs.perk2 == PERK2_HEALTH) gs.health = STARTHEALTH * ZOMBIEHEALTHFACTOR;
-				else gs.health = STARTHEALTH * (rnd(ZOMBIEHEALTHFACTOR - 2) + 2) + (STARTHEALTH/2); // 250 - 450
-				gs.armor += 2000;
-				break;
-		}
-	}
-	// end fixme
+	gs.spawnstate(c->team, smode, smuts);
 	++gs.lifesequence;
 	gs.state = CS_DEAD;
 }

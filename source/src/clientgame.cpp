@@ -221,7 +221,7 @@ void deathstate(playerent *pl)
 void spawnstate(playerent *d)			  // reset player state not persistent across spawns
 {
 	d->respawn();
-	d->spawnstate(gamemode, mutators);
+	d->spawnstate(d->team, gamemode, mutators);
 	if(d==player1)
 	{
 		if(player1->skin!=nextskin) setskin(player1, nextskin);

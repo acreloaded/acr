@@ -400,9 +400,10 @@ struct playerstate
 		lastkiller = -1;
 	}
 
-	virtual void spawnstate(int gamemode, int mutators)
+	virtual void spawnstate(int team, int gamemode, int mutators)
 	{
-		if(m_pistol(gamemode, mutators)) primary = WEAP_PISTOL;
+		if(m_zombie(gamemode) && team == TEAM_RED) primary = WEAP_SWORD;
+		else if(m_pistol(gamemode, mutators)) primary = WEAP_PISTOL;
 		else if(m_gib(gamemode, mutators)) primary = WEAP_KNIFE;
 		else if(m_sniper(gamemode, mutators)) primary = WEAP_BOLT;
 		else if(m_demolition(gamemode, mutators)) primary = WEAP_RPG; // inversion
@@ -421,7 +422,8 @@ struct playerstate
 				break;
 		}
 
-		if(m_pistol(gamemode, mutators) || m_gib(gamemode, mutators)) secondary = primary; // no secondary
+		if(m_zombie(gamemode) && team == TEAM_RED) secondary = WEAP_KNIFE;
+		else if(m_pistol(gamemode, mutators) || m_gib(gamemode, mutators)) secondary = primary; // no secondary
 		else if(m_sniper(gamemode, mutators) || m_demolition(gamemode, mutators)) secondary = WEAP_SWORD; // inversion
 		else switch(nextsecondary){
 			default: secondary = WEAP_PISTOL; break;
@@ -449,8 +451,16 @@ struct playerstate
 
 		gunselect = primary;
 
-		perk1 = nextperk1;
-		perk2 = nextperk2;
+		if(m_zombie(gamemode) && team == TEAM_RED)
+		{
+			perk1 = PERK1_AGILE;
+			perk2 = PERK2_STREAK;
+		}
+		else
+		{
+			perk1 = nextperk1;
+			perk2 = nextperk2;
+		}
 
 		// no classic override
 
@@ -463,6 +473,24 @@ struct playerstate
 		const int healthsets[3] = { STARTHEALTH - 15 * HEALTHSCALE, STARTHEALTH, STARTHEALTH + 20 * HEALTHSCALE };
 		health = healthsets[(!m_regen(gamemode, mutators) && m_sniper(gamemode, mutators) ? 0 : 1) + (perk2 == PERK2_HEALTH ? 1 : 0)];
 		if(m_vampire(gamemode, mutators)) health /= 2;
+		else if(m_zombie(gamemode)){
+			switch(team){
+				case TEAM_RED:
+					if(m_onslaught(gamemode, mutators)){
+						health = STARTHEALTH * ZOMBIEHEALTHFACTOR;
+						armor += 50;
+					}
+					else health = STARTHEALTH + rnd(STARTHEALTH * ZOMBIEHEALTHFACTOR);
+					break;
+				case TEAM_BLUE:
+					if(!m_onslaught(gamemode, mutators)) break;
+					// humans for onslaught only
+					if(perk2 == PERK2_HEALTH) health = STARTHEALTH * ZOMBIEHEALTHFACTOR; // all 500
+					else health = STARTHEALTH * (rnd(ZOMBIEHEALTHFACTOR - 2) + 2) + (STARTHEALTH/2); // 250 - 450
+					armor += 2000;
+					break;
+			}
+		}
 	}
 
 	// just subtract damage here, can set death, etc. later in code calling this
@@ -644,9 +672,9 @@ struct playerent : dynent, playerstate
 		damagestack.setsize(0);
 	}
 
-	void spawnstate(int gamemode, int mutators)
+	void spawnstate(int team, int gamemode, int mutators)
 	{
-		playerstate::spawnstate(gamemode, mutators);
+		playerstate::spawnstate(team, gamemode, mutators);
 		prevweaponsel = weaponsel = weapons[gunselect];
 	}
 
