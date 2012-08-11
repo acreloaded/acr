@@ -412,7 +412,7 @@ inline void applyrecoil(float addfactor, float fric, float &dir, float &vel, flo
 	}
 }
 
-FVAR(spd, 0, 1, 10.f);
+FVAR(spd, 0, 1, 1000.f);
 
 void moveplayer(physent *pl, int moveres, bool local, int curtime)
 {
