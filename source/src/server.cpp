@@ -1037,7 +1037,7 @@ void arenacheck(){
 	bool found = false; int ha = 0, hd = 0; // found a match to keep the round / humans alive / humans dead
 	loopv(clients){
 		client &c = *clients[i];
-		if(c.type==ST_EMPTY || !c.connected || !c.isonrightmap || c.team == TEAM_SPECT) continue;
+		if(c.type==ST_EMPTY || !c.connected || !(valid_client(c.state.ownernum) ? clients[c.state.ownernum]->isonrightmap : c.isonrightmap) || c.team == TEAM_SPECT) continue;
 		if(c.state.lastspawn < 0 && c.state.state == CS_DEAD){ // dead... (and killed)
 			if(c.type != ST_AI) ++hd;
 
