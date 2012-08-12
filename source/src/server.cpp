@@ -2961,18 +2961,6 @@ bool checkmove(client &cp, int f){
 		// did we die?
 		if(cs.state != CS_ALIVE) return false;
 	}
-	loopv(clients){
-		client &t = *clients[i];
-		clientstate &ts = t.state;
-		// basic checks
-		if(t.type == ST_EMPTY || ts.state != CS_ALIVE || i == sender || isteam(&t, &cp) || ts.protect(gamemillis, gamemode, mutators)) continue;
-		// check from above
-		if(ts.o.distxy(cs.o) > 2*PLAYERRADIUS) continue;
-		//const float dz2 = cs.o.z - ts.o.z;
-		//if(dz2 > PLAYERABOVEEYE + 2 || -dz2 > PLAYERHEIGHT + 2) continue;
-		//hit.add(&t);
-		serverdied(&t, &cp, 0, WEAP_MAX, FRAG_NONE, cs.o);
-	}
 	// out of map check
 	if(/*cp.type != ST_LOCAL &&*/ !m_edit(gamemode) && checkpos(cs.o, false)){
 		if(cp.type == ST_AI) cp.suicide(WEAP_MAX + 4);
