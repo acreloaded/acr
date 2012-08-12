@@ -200,7 +200,7 @@ struct clientstate : playerstate
 		crouching = false;
 		crouchmillis = scopemillis = 0;
 		onfloor = false;
-		fallz = 0;
+		fallz = -1e10f;
 		streakondeath = -1;
 	}
 
