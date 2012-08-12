@@ -3386,17 +3386,18 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						updateclientteam(sender, chooseteam(cp), FTR_PLAYERWISH);
 						checkai(); // spawn unspect
 						// convertcheck();
-						if(!canspawn(&cp, true)) break;
 					}
 					else{
 						sendf(sender, 1, "ri2", N_SWITCHTEAM, 1 << 4);
 						break; // no enqueue
 					}
 				}
-				else if(!canspawn(&cp)) break;
+				// can he be enqueued?
+				if(!canspawn(&cp)) break;
 				// enqueue for spawning
 				cs.state = CS_WAITING;
-				sendf(sender, 1, "ri2", N_TRYSPAWN, 1);
+				const int waitremain = SPAWNDELAY - gamemillis + cs.lastdeath;
+				sendf(sender, 1, "ri2", N_TRYSPAWN, waitremain >= 1 ? waitremain : 1);
 				break;
 			}
 

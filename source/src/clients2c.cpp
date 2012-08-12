@@ -477,7 +477,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				const int enqueued = getint(p);
 				extern bool spawnenqueued;
-				spawnenqueued = (enqueued != 0);
+				spawnenqueued = (enqueued > 0);
+				if(enqueued) player1->respawnoffset = lastmillis - SPAWNDELAY + enqueued;
 				break;
 			}
 
