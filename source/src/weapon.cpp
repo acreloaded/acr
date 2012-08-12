@@ -863,16 +863,16 @@ int gun::modelanim() { return modelattacking() ? ANIM_WEAP_SHOOT|ANIM_LOOP : ANI
 
 bool gun::reload()
 {
-	if(owner == player1) autoreloading = mag < magsize(type) && ammo;
+	if(owner == player1) autoreloading = mag + 1 < magsize(type) && ammo;
 	return weapon::reload();
 }
 
 bool gun::checkautoreload()
 {
-	if(owner==player1 && !mag && ammo)
+	if(owner != player1) return false;
+	if(autoreloading || (!mag && ammo && autoreload))
 	{
-		if(autoreload)
-			tryreload(owner);
+		tryreload(owner);
 		return true;
 	}
 	return false;
