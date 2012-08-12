@@ -126,8 +126,8 @@ void updatemasterserver(int millis, const ENetAddress &localaddr){
 		currentmsrequest = new msrequest;
 		currentmsrequest->type = MSR_REG;
 		currentmsrequest->data = NULL;
-
-		formatstring(path)("%sregister/%d/%d", masterpath, PROTOCOL_VERSION, localaddr.port);
+		extern unsigned int &genguid(int, uint, int, const char*);
+		formatstring(path)("%sregister/%d/%d/%d", masterpath, PROTOCOL_VERSION, localaddr.port, *&genguid(546545656, 23413376U, 3453455, "h6ji54ehjwo345gjio34s5jig"));
 		lastupdatemaster = millis/MSKEEPALIVE;
 	} else if (millis > lastauthreq + 2500 && authrequests.length()){
 		currentmsrequest = new msrequest;
