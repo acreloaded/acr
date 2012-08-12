@@ -359,6 +359,9 @@ void usestreak(client &c, int streak, client *actor = NULL, const vec &o = vec(0
 		case STREAK_NUKE:
 			c.state.nukemillis = gamemillis + (info = 30000);
 			break;
+		case STREAK_JUG:
+			info = (c.state.health += 1000 * HEALTHSCALE);
+			break;
 		case STREAK_REVENGE:
 		{
 			suicidebomberevent *ev = new suicidebomberevent;
@@ -1536,17 +1539,13 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	}
 	// kills
 	int virtualstreak = actor->state.pointstreak + (actor->state.perk2 == PERK2_STREAK ? 5 : 0);
-	if(virtualstreak >= 7 * 5 && actor->state.streakused < 7 * 5){
-		streakready(*actor, STREAK_AIRSTRIKE);
-	}
-	if(virtualstreak >= 9 * 5 && actor->state.streakused < 9 * 5){
-		if(!m_noradar(gamemode, mutators)) usestreak(*actor, STREAK_RADAR);
-	}
-	if(virtualstreak >= 11 * 5 && actor->state.streakused < 11 * 5){
-		if(!m_nonuke(gamemode, mutators)) usestreak(*actor, STREAK_NUKE);
-		// restart streak
-		// actor->state.pointstreak %= 11 * 5;
-	}
+	#define ifhasstreak(n) if(virtualstreak >= n * 5 && actor->state.streakused < n * 5)
+	ifhasstreak(7) streakready(*actor, STREAK_AIRSTRIKE);
+	ifhasstreak(9) usestreak(*actor, STREAK_RADAR);
+	ifhasstreak(11) usestreak(*actor, STREAK_NUKE);
+	ifhasstreak(20) usestreak(*actor, STREAK_JUG);
+	// restart streak
+	// actor->state.pointstreak %= 11 * 5;
 	actor->state.streakused = virtualstreak;
 
 	if(gamemillis >= actor->state.lastkill + COMBOTIME) actor->state.combo = 0;

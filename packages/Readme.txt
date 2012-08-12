@@ -29,6 +29,7 @@ misc
 	eventicons
 		airstrike.png
 		dropnade.png
+		juggernaut.png
 		nuke.png
 		radar.png
 		suicidebomb.png

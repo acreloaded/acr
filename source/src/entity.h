@@ -522,7 +522,7 @@ struct playerstate
 #define WEAPONBELOWEYE .2f
 
 struct eventicon{
-    enum { VOICECOM = 0, HEADSHOT, DECAPITATED, FIRSTBLOOD, CRITICAL, REVENGE, BLEED, PICKUP, RADAR, AIRSTRIKE, NUKE, DROPNADE, SUICIDEBOMB, TOTAL };
+    enum { VOICECOM = 0, HEADSHOT, DECAPITATED, FIRSTBLOOD, CRITICAL, REVENGE, BLEED, PICKUP, RADAR, AIRSTRIKE, NUKE, JUGGERNAUT, DROPNADE, SUICIDEBOMB, TOTAL };
     int type, millis;
 	eventicon(int type, int millis) : type(type), millis(millis){}
 };

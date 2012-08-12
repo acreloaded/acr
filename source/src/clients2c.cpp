@@ -711,6 +711,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 							playsound(S_VOTEFAIL, SP_HIGHEST);
 						}
 						break;
+					case STREAK_JUG:
+						d->health = info;
+						d->addicon(eventicon::JUGGERNAUT);
+						break;
 					case STREAK_DROPNADE:
 					case STREAK_REVENGE:
 						{

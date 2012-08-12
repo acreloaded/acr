@@ -134,6 +134,3 @@ extern mutstypes mutstype[G_M_NUM];
 #define m_return(a,b)       (m_capture(a) && m_gsp1(a,b))
 #define m_ktf2(a,b)         (m_keep(a) && m_gsp1(a,b))
 #define m_progressive(a,b)  (m_zombie(a) && m_gsp1(a,b))
-
-#define m_noradar(a,b)      (m_classic(a,b))
-#define m_nonuke(a,b)       (false)
