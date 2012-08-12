@@ -1446,7 +1446,10 @@ void forcedeath(client *cl, bool gib = false){
 	//cs.respawn();
 	cs.lastspawn = -1;
 	cs.lastdeath = gamemillis;
-	cs.nukemillis = 0;
+	if(cs.nukemillis){ // nuke cancelled!
+		cs.nukemillis = 0;
+		sendf(-1, 1, "ri4", N_STREAKUSE, cl->clientnum, STREAK_NUKE, -2);
+	}
 	sendf(-1, 1, "ri2", gib ? N_FORCEGIB : N_FORCEDEATH, cl->clientnum);
 }
 
