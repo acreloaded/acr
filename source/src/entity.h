@@ -446,7 +446,7 @@ struct playerstate
 
 		// extras
 		ammo[WEAP_KNIFE] = ammostats[WEAP_KNIFE].start;
-		if(!m_noitems(gamemode, mutators) && !m_noitemsammo(gamemode, mutators))
+		if(!m_noitems(gamemode, mutators) && !m_noitemsammo(gamemode, mutators) && (team != TEAM_RED || !m_zombie(gamemode)))
 			mag[WEAP_GRENADE] = ammostats[WEAP_GRENADE].start;
 
 		gunselect = primary;
