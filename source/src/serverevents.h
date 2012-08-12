@@ -159,7 +159,7 @@ void shotevent::process(client *ci)
 			if(hit->state.wounds.length()){
 				// healing by a player
 				addpt(ci, HEALWOUNDPT * hit->state.wounds.length(), PR_HEALWOUND);
-				if(&c != hit) addptreason(c.clientnum, PR_HEALEDBYTEAMMATE);
+				if(&c != hit) addptreason(hit->clientnum, PR_HEALEDBYTEAMMATE);
 				hit->state.wounds.shrink(0);
 				// heal wounds = revive
 				sendf(-1, 1, "ri4", N_HEAL, c.clientnum, hit->clientnum, hit->state.health);
