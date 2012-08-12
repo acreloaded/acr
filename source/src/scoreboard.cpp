@@ -47,7 +47,7 @@ struct teamsum{
 	}
 };
 
-#define doscorecompare \
+#define doscorecompare(x,y) \
 	if(x->points > y->points) return -1; \
 	if(x->points < y->points) return 1; \
 	if(x->flagscore > y->flagscore) return -1; \
@@ -154,6 +154,16 @@ void renderscores(void *menu, bool init){
 	vector<playerent *> scores;
 	if(!watchingdemo) scores.add(player1);
 	loopv(players) if(players[i]) scores.add(players[i]);
+
+	// rank players
+	scores.sort(pointcmp);
+	int n = 0;
+	loopv(scores){
+		// same as previous
+		if(i <= 0 || scores[i-1]->points != scores[i]->points) ++n;
+		scores[i]->rank = n;
+	}
+	// sort for the scoreboard
 	scores.sort(scorecmp);
 
 	if(init){
@@ -184,32 +194,15 @@ void renderscores(void *menu, bool init){
 		if(s) formatstring(serverline)("%s:%d %s", s->name, s->port, s->sdesc);
 	}
 
-	// rank players
-	vector<playerent *> rpl;
-	rpl.add(player1);
-	loopv(players) if(players[i]) rpl.add(players[i]);
-	rpl.sort(pointcmp);
-
-	int n = 0;
-	loopv(rpl){
-		// same as previous
-		if(i <= 0 || rpl[i-1]->points != rpl[i]->points) ++n;
-		rpl[i]->rank = n;
-	}
-
 	//if(m_team(gamemode, mutators)){
 		teamsum teamsums[TEAM_NUM] = { teamsum(TEAM_RED), teamsum(TEAM_BLUE), teamsum(TEAM_SPECT) };
 
 		#define fixteam(pl) (pl->team == TEAM_BLUE && !m_team(gamemode, mutators) ? TEAM_RED : pl->team)
-		loopv(players){
-			if(!players[i]) continue;
-			teamsums[fixteam(players[i])].addscore(players[i]);
-		}
-		teamsums[fixteam(player1)].addscore(player1);
-		loopi(TEAM_NUM) teamsums[i].teammembers.sort(scorecmp);
+		loopv(scores) teamsums[fixteam(scores[i])].addscore(scores[i]);
 
+		loopi(TEAM_NUM) teamsums[i].teammembers.sort(scorecmp);
 		int sort = teamscorecmp(&teamsums[TEAM_RED], &teamsums[TEAM_BLUE]);
-		if(!m_team(gamemode, mutators)) renderteamscore(menu, teamsums[TEAM_RED]);
+		if(!m_team(gamemode, mutators)) renderteamscore(menu, teamsums[0]);
 		else loopi(2) renderteamscore(menu, teamsums[sort < 0 ? i : i^1]);
 		if(teamsums[TEAM_SPECT].teammembers.length()) renderteamscore(menu, teamsums[TEAM_SPECT]);
 	//}
