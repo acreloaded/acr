@@ -627,7 +627,7 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
 	int basetime = -((int)(size_t)d&0xFFF);
 	if(d->state==CS_DEAD)
 	{
-		if(d==player1 && d->allowmove()) return;
+		//if(d==player1 && d->allowmove()) return;
 		loopv(bounceents) if(bounceents[i]->bouncetype==BT_GIB && bounceents[i]->owner==d) return;
 		d->pitch = 0.1f;
 		anim = ANIM_DEATH;
@@ -674,7 +674,7 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
 	}
 	// FIXME: while networked my state as spectator seems to stay CS_DEAD, not CS_SPECTATE
 	// flowtron: I fixed this for following at least (see followplayer())
-	if((thirdperson && d == player1 && player1->allowmove()) || (player1->isspectating() && d->clientnum == player1->followplayercn && isthirdperson) ||  d->protect(lastmillis, gamemode, mutators))
+	if((isthirdperson && d == focus) ||  d->protect(lastmillis, gamemode, mutators))
 	{
 		anim |= ANIM_TRANSLUCENT; // see through followed player
 		if(stenciling) return;

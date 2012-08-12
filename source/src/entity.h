@@ -552,7 +552,6 @@ struct playerent : dynent, playerstate
 	int spectatemode, followplayercn;
 	int eardamagemillis, flashmillis;
 	int respawnoffset;
-	bool allowmove() { return state!=CS_DEAD || spectatemode==SM_FLY; }
 	vector<eventicon> icons;
 
 	weapon *weapons[WEAP_MAX];

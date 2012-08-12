@@ -253,7 +253,7 @@ void zapplayer(playerent *&d){
 
 void movelocalplayer()
 {
-	if(player1->state==CS_DEAD && !player1->allowmove())
+	if(player1->state==CS_DEAD && player1->spectatemode != SM_FLY)
 	{
 		if(lastmillis-player1->lastpain<2000)
 		{
