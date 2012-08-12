@@ -1132,10 +1132,7 @@ void convertcheck(bool quick){
 		if(clients[i]->type != ST_EMPTY && clients[i]->team != TEAM_SPECT)
 		{
 			if(!team_valid(bigteam)) bigteam = clients[i]->team;
-			if(clients[i]->team == bigteam)
-			{
-				if(++found >= 2) break;
-			}
+			if(clients[i]->team == bigteam) ++found;
 			else return; // nope
 		}
 	// game ends if not arena, and all enemies are converted
