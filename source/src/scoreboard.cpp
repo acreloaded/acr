@@ -56,7 +56,7 @@ struct teamsum{
 	if((x)->frags < (y)->frags) return 1; \
 	if((x)->assists > (y)->assists) return -1; \
 	if((x)->assists < (y)->assists) return 1; \
-	if((x)->deaths < (y)->deaths) return -1; \
+	if((x)->deaths < (y)->deaths) return -1; /* less is better */ \
 	if((x)->deaths > (y)->deaths) return 1;
 
 static int teamscorecmp(const teamsum *a, const teamsum *b){
