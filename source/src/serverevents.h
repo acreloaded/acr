@@ -204,7 +204,12 @@ void shotevent::process(client *ci)
 				exclude.add(c.clientnum);
 				damagedealt += shot(c, gs.o, to, pos, weap, FRAG_NONE, surface, exclude); // WARNING: modifies to
 				// collateral
-				if(exclude.length() > 3) sendf(-1, 1, "ri3", N_MULTI, c.clientnum, exclude.length() - 1);
+				if(exclude.length() > 3)
+				{
+					int collat = 0;
+					loopv(exclude) if(/*exclude[i] != c.clientnum && */valid_client(exclude[i]) && clients[exclude[i]]->state.state == CS_DEAD) ++collat;
+					if(collat >= 2) sendf(-1, 1, "ri3", N_MULTI, c.clientnum, collat);
+				}
 			}
 		}
 	}
