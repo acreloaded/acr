@@ -47,28 +47,27 @@ struct teamsum{
 	}
 };
 
-#define doscorecompare(x,y) \
-	if(x->points > y->points) return -1; \
-	if(x->points < y->points) return 1; \
-	if(x->flagscore > y->flagscore) return -1; \
-	if(x->flagscore < y->flagscore) return 1; \
-	if(x->frags > y->frags) return -1; \
-	if(x->frags < y->frags) return 1; \
-	if(x->assists > y->assists) return -1; \
-	if(x->assists < y->assists) return 1; \
-	if(x->deaths < y->deaths) return -1; \
-	if(x->deaths > y->deaths) return 1;
+#define doscorecompare(x, y) \
+	if((x)->flagscore > (y)->flagscore) return -1; \
+	if((x)->flagscore < (y)->flagscore) return 1; \
+	if((x)->points > (y)->points) return -1; \
+	if((x)->points < (y)->points) return 1; \
+	if((x)->frags > (y)->frags) return -1; \
+	if((x)->frags < (y)->frags) return 1; \
+	if((x)->assists > (y)->assists) return -1; \
+	if((x)->assists < (y)->assists) return 1; \
+	if((x)->deaths < (y)->deaths) return -1; \ // less is better
+	if((x)->deaths > (y)->deaths) return 1;
 
 static int teamscorecmp(const teamsum *a, const teamsum *b){
-	teamscore *x = &teamscores[a->team], *y = &teamscores[b->team];
-	doscorecompare
+	teamscore *tsa = &teamscores[a->team], *tsb = &teamscores[b->team];
+	doscorecompare(tsa, tsb)
 	return a->team > b->team;
 }
 
 static int scorecmp(const playerent **a, const playerent **b){
-	const playerent *x = *a, *y = *b;
-	doscorecompare
-	return strcmp(x->name, y->name);
+	doscorecompare(*a, *b)
+	return strcmp((**a).name, (**b).name);
 }
 
 static int pointcmp(const playerent **a, const playerent **b){
