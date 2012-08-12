@@ -65,7 +65,7 @@ struct mapaction : serveraction
 			const bool spawns = ms->hasteamspawns || ((!m_team(mode, muts) || m_keep(mode)|| m_zombie(mode)) ? ms->hasffaspawns : false);
 			const bool flags = ms->hasflags || m_hunt(mode) || !m_affinity(mode);
 				
-			if(!m_edit(mode) && (!spawns || !flags))
+			if(!spawns || !flags)
 			{
 				reqpriv = privconf('P');
 				if(reqpriv && !strchr(scl.voteperm, 'P')) mapok = false;

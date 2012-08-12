@@ -558,7 +558,7 @@ void sendmap(char *mapname)
 {
 	if(!mapname || !*mapname) mapname = getclientmap();
 	if(securemapcheck(mapname)) return;
-	if(m_edit(gamemode)) save_world(mapname);
+	if(m_edit(gamemode) && !strcmp(mapname, getclientmap())) save_world(mapname);
 
 	int mapsize, cfgsize, cfgsizegz;
 	uchar *mapdata = readmap(path(mapname), &mapsize);
