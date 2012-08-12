@@ -627,7 +627,7 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
 	int basetime = -((int)(size_t)d&0xFFF);
 	if(d->state==CS_DEAD)
 	{
-		//if(d==player1 && d->allowmove()) return;
+		if(d==player1 && d->spectatemode == SM_FLY) return;
 		loopv(bounceents) if(bounceents[i]->bouncetype==BT_GIB && bounceents[i]->owner==d) return;
 		d->pitch = 0.1f;
 		anim = ANIM_DEATH;

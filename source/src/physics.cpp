@@ -299,7 +299,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
 		loopv(players)	   // collide with other players
 		{
 			playerent *o = players[i];
-			if(!o || o==d || (o==player1 && d->type==ENT_CAMERA)) continue;
+			if(!o || o==d) continue;
 			if(!plcollide(d, o, headspace, hi, lo)) return false;
 		}
 		if(d!=player1) if(!plcollide(d, player1, headspace, hi, lo)) return false;
@@ -875,7 +875,7 @@ void mousemove(int dx, int dy)
 	camera1->yaw += (dx/SENSF)*sensitivity;
 	camera1->pitch += (dy/SENSF) * sensitivity * (invmouse ? 1 : -1);
 	fixcamerarange();
-	if(camera1!=player1 && player1->spectatemode!=SM_FLY)
+	if(camera1!=player1 && player1->spectatemode!=SM_DEATHCAM)
 	{
 		player1->yaw = camera1->yaw;
 		player1->pitch = camera1->pitch;
