@@ -19,7 +19,7 @@
 -B config/default.serverblacklist.cfg
 -b config/default.botnames.cfg
 -K config/default.nicknameblacklist.cfg
--I config/default.serverinfo_en.txt
+-I config/default.serverinfo
 
 // commonly used commandline switches:
 
