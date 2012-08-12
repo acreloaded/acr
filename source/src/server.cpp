@@ -714,10 +714,10 @@ void check_afk(){
 	if(m_edit(gamemode)) return;
 	loopv(clients){
 		client &c = *clients[i];
-		if (c.type != ST_TCPIP || c.connectmillis + 60 * 1000 > servmillis || c.team == TEAM_SPECT ||
-			c.state.movemillis + scl.afktimelimit > servmillis || clienthasflag(c.clientnum) > -1 ) continue;
-		if ( ( c.state.state == CS_DEAD && !m_duke(gamemode, mutators) && c.state.lastdeath + scl.afktimelimit < gamemillis) ||
-			(c.state.state == CS_ALIVE && c.state.movemillis /* roughly upspawnp */)) {
+		if (c.type != ST_TCPIP || c.connectmillis + 60 * 1000 > servmillis || c.team == TEAM_SPECT || clienthasflag(c.clientnum) > -1 ) continue;
+		if ( ( c.state.state == CS_DEAD && !m_duke(gamemode, mutators) && c.state.lastdeath + scl.afktimelimit < gamemillis)
+			|| (c.state.state == CS_ALIVE && m_duke(gamemode, mutators) && c.state.movemillis + scl.afktimelimit <= servmillis && c.state.movemillis /* && c.state.upspawnp */)
+			) {
 			defformatstring(msg)("%s is afk, forcing to spectator", formatname(c));
 			sendservmsg(msg);
 			logline(ACLOG_INFO, "[%s] %s", gethostname(i), msg);
