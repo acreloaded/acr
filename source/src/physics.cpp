@@ -412,8 +412,6 @@ inline void applyrecoil(float addfactor, float fric, float &dir, float &vel, flo
 	}
 }
 
-FVAR(spd, 0, 1, 1000.f);
-
 void moveplayer(physent *pl, int moveres, bool local, int curtime)
 {
 	bool water = false;
@@ -484,7 +482,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 			playerent *p = (playerent *)pl;
 			float spd = 1;
 			if(p->weaponsel) spd = gunspeed(p->weaponsel->type, p->ads, p->perk1 == PERK1_AGILE);
-			if(p->sprinting) spd *= ::spd; // sprint = walk lol
+			if(p->sprinting) spd *= .6f; // sprint = walk lol
 			d.mul(vec(spd, spd, p->perk1 == PERK1_LIGHT ? 1.05f : 1));
 		}
 
