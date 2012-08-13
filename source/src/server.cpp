@@ -261,7 +261,7 @@ bool findlimit(client &c, bool insert){
 		sl.save(c);
 		return true;
 	}
-	else loopv(scores){
+	else loopv(savedlimits){
 		savedlimit &sl = savedlimits[i];
 		if(sl.ip == c.peer->address.host){
 			sl.restore(c);
