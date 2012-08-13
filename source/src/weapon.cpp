@@ -188,14 +188,13 @@ bool intersect(entity *e, const vec &from, const vec &to, vec *end){
 
 playerent *playerincrosshairhit(int &hitzone){
 	const vec &from = camera1->o, &to = worldpos;
-	const physent *at = camera1;
 
 	playerent *best = NULL;
 	float bestdist = 1e16f;
 	int zone;
 	loopv(players){
 		playerent *o = players[i];
-		if(!o || o==at || o->state==CS_DEAD) continue;
+		if(!o || o==focus || o->state==CS_DEAD) continue;
 		float dist = at->o.dist(o->o);
 		if(dist < bestdist && (zone = intersect(o, from, to))){
 			best = o;
