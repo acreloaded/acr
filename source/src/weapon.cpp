@@ -186,23 +186,23 @@ bool intersect(entity *e, const vec &from, const vec &to, vec *end){
 	return intersectbox(vec(e->x, e->y, lo+mmi.h/2.0f), vec(mmi.rad, mmi.rad, mmi.h/2.0f), from, to, end);
 }
 
-playerent *playerincrosshairhit(int &hitzone){
+void playerincrosshair(playerent *pl, int &hitzone){
 	const vec &from = camera1->o, &to = worldpos;
 
-	playerent *best = NULL;
+	pl = NULL;
+	hitzone = HIT_NONE;
 	float bestdist = 1e16f;
-	int zone;
 	loopv(players){
 		playerent *o = players[i];
 		if(!o || o==focus || o->state==CS_DEAD) continue;
-		float dist = at->o.dist(o->o);
+		float dist = focus->o.dist(o->o);
+		int zone = HIT_NONE;
 		if(dist < bestdist && (zone = intersect(o, from, to))){
-			best = o;
-			bestdist = dist;
+			pl = o;
 			hitzone = zone;
+			bestdist = dist;
 		}
 	}
-	return best;
 }
 
 void damageeffect(int damage, const vec &o){
