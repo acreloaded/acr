@@ -824,12 +824,12 @@ struct servercommandline
                 }
 				else if(arg[2]=='s' && arg[3]!='\0')
 				{
-					if ((ai = atoi(&arg[3])) >= 31) warnspeed = ai;
+					if ((ai = atoi(&arg[3])) >= 15) warnspeed = ai;
 					else warnspeed = 0;
 				}
 				else if(arg[2]=='S' && arg[3]!='\0')
 				{
-					if ((ai = atoi(&arg[3])) >= 32) gibspeed = ai;
+					if ((ai = atoi(&arg[3])) >= 16) gibspeed = ai;
 					else gibspeed = 0;
 				}
                 //else if(ai < 0) kickthreshold = ai;
