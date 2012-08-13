@@ -767,9 +767,10 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		glPopMatrix();
 	}
 
-	int targetplayerzone = 0;
 	playerent *targetplayer = NULL;
+	int targetplayerzone = HIT_NONE;
 	playerincrosshair(targetplayer, targetplayerzone);
+
 	bool menu = menuvisible();
 	bool command = getcurcommand() ? true : false;
 
