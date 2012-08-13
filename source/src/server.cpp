@@ -2897,22 +2897,32 @@ bool checkmove(client &cp, int f){
 	// help detect AFK
 	if(cs.lasto.dist(cs.o) >= 0.1f) cs.movemillis = servmillis;
 	// detect speedhack
-	if(!m_edit(gamemode) && gamemillis >= cs.speedmillis + 500){
-		if(cs.speedmillis){
-			//cs.movespeed = (cs.movespeed * 4 + (movedistxy * 1000 / (gamemillis - cs.lastomillis))) / 5.f;
-			//cs.movespeed = (cs.movespeed * 3 + (movedistxy * 1000 / (gamemillis - cs.lastomillis))) / 4.f;
-			const float movespeed = (cs.speedo.distxy(cs.o) * 1000 / (gamemillis - cs.speedmillis));
-			if(scl.warnspeed && cs.lastpain + 2000 < gamemillis && movespeed > scl.warnspeed){ // 7.75 meters per second
-				defformatstring(fastmsg)("%s moved at %.3f meters/second", formatname(cp), movespeed / 4);
-				sendservmsg(fastmsg);
-				if(scl.gibspeed && movespeed > scl.gibspeed){ // 8 meters per second
-					cheat(&cp, "speedhack");
-					return false;
+	if(!m_edit(gamemode) && cs.lastpain + 2000 < gamemillis){
+		// immediate velocity
+		if(cs.vel.magnitudexy() > 1.9f /* 1.07f * 1.42f = 1.5194 */){ // real cheat detect
+			cheat(&cp, "real speedhack");
+			return false;
+		}
+		// interval analysis
+		if(gamemillis >= cs.speedmillis + 500){
+			if(cs.speedmillis){
+				//cs.movespeed = (cs.movespeed * 4 + (movedistxy * 1000 / (gamemillis - cs.lastomillis))) / 5.f;
+				//cs.movespeed = (cs.movespeed * 3 + (movedistxy * 1000 / (gamemillis - cs.lastomillis))) / 4.f;
+				const float movespeed = (cs.speedo.distxy(cs.o) * 1000 / (gamemillis - cs.speedmillis));
+				if(scl.warnspeedlimit && movespeed > scl.warnspeedlimit){
+					defformatstring(fastmsg)("\f3%s moved at %.3f m/sec with %d ping", formatname(cp), movespeed / 4, cp.ping);
+					sendservmsg(fastmsg);
+					/*
+					if(scl.gibspeed && movespeed > scl.gibspeed){
+						cheat(&cp, "speedhack");
+						return false;
+					}
+					*/
 				}
 			}
+			cs.speedo = cs.o;
+			cs.speedmillis = gamemillis;
 		}
-		cs.speedo = cs.o;
-		cs.speedmillis = gamemillis;
 	}
 	// deal damaage of movement
 	if(!cs.protect(gamemillis, gamemode, mutators)){
