@@ -3176,8 +3176,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				sc->restore(cl->state);
 				// sendresume
 				clientstate &cs = cl->state;
-				sendf(-1, 1, "rii9i9vvi", N_RESUME,
-					sender, // i
+				sendf(-1, 1, "ri2i9i9vvi", N_RESUME, sender, // i2
 					cs.state == CS_WAITING ? CS_DEAD : cs.state, // 1
 					cs.lifesequence,
 					cs.gunselect,
