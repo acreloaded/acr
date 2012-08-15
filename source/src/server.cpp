@@ -2848,7 +2848,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet){
 		loopv(clients)
 		{
 			client &c = *clients[i];
-			if(c.type != ST_TCPIP && c.type != ST_AI) continue;
+			if((c.type != ST_TCPIP && c.type != ST_AI) || c.clientnum == n) continue;
 			CHECKSPACE(512);
 			putint(p, c.clientnum);
 			clientstate &cs = c.state;
@@ -3178,6 +3178,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				// sendresume
 				clientstate &cs = cl->state;
 				sendf(-1, 1, "rii9i9vvi", N_RESUME,
+					sender, // i
 					cs.state == CS_WAITING ? CS_DEAD : cs.state, // 1
 					cs.lifesequence,
 					cs.gunselect,
