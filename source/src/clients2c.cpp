@@ -510,7 +510,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_SPAWNSTATE:
 			{
 				playerent *d = getclient(getint(p));
-				if(!d || (d != player1 && !isowned(d))) break;
+				if(!d || (d != player1 && !isowned(d))) { static playerent dummy; d = &dummy; }
 				d->respawn();
 				d->lifesequence = getint(p);
 				d->health = getint(p);
