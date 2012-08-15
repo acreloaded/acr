@@ -2973,7 +2973,7 @@ bool checkmove(client &cp, int f){
 	}
 	// out of map check
 	if(/*cp.type != ST_LOCAL &&*/ !m_edit(gamemode) && checkpos(cs.o, false)){
-		if(cp.type == ST_AI) cp.suicide(WEAP_MAX + 4);
+		if(cp.type == ST_AI) cp.suicide(WEAP_MAX + 11);
 		else{
 			logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", gethostname(sender), formatname(cp), ++cp.mapcollisions);
 			defformatstring(msg)("%s (%d) \f2collides with the map \f5- \f3forcing death", cp.name, sender);
