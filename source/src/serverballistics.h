@@ -230,7 +230,7 @@ client *nearesthit(client &actor, const vec &from, const vec &to, int &hitzone, 
 }
 
 // hitscans
-int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, int weap, int style, const vec &surface, ivector &exclude, float dist = 0, float penaltydist = 0, ushort *save = NULL){
+int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, int weap, int style, const vec &surface, ivector &exclude, float dist = 0, float penaltydist = 0, ushort *save = NULL, float *bestdist = NULL){
 	int damagedealt = 0;
 	const int mulset = (weap == WEAP_SNIPER || weap == WEAP_BOLT) ? MUL_SNIPER : MUL_NORMAL;
 	int hitzone = HIT_NONE; vec end = to;
@@ -278,6 +278,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
 		// apply damage
 		if(save) save[hit->clientnum] += damage; // save damage for shotgun ray
 		else serverdamage(hit, &owner, damage, weap, style, from, dist2);
+		if(bestdist && bestdist[hit->clientnum] < dist2) bestdist[hit->clientnum] = dist2;
 		exclude.add(hit->clientnum); // add hit to the exclude list
 
 		// penetration
@@ -317,6 +318,7 @@ int shotgun(client &owner, vector<posinfo> &pos){
 	clientstate &gs = owner.state;
 	const vec &from = gs.o;
 	ushort sgdamage[MAXCLIENTS] = {0}; // many rays many hits, but we want each client to get all the damage at once...
+	float bestdist[MAXCLIENTS] = {0};
 	loopi(SGRAYS){// check rays and sum damage
 		vec surface;
 		straceShot(from, gs.sg[i], &surface);
@@ -333,7 +335,7 @@ int shotgun(client &owner, vector<posinfo> &pos){
 		damagedealt += sgdamage[i];
 		//sendhit(owner, WEAP_SHOTGUN, ts.o);
 		const int shotgunflags = sgdamage[i] >= SGGIB ? FRAG_GIB : FRAG_NONE;
-		serverdamage(&t, &owner, max<int>(sgdamage[i], (m_progressive(gamemode, mutators) && shotgunflags & FRAG_GIB) ? (350 * HEALTHSCALE) : 0), WEAP_SHOTGUN, shotgunflags, from);
+		serverdamage(&t, &owner, max<int>(sgdamage[i], (m_progressive(gamemode, mutators) && shotgunflags & FRAG_GIB) ? (350 * HEALTHSCALE) : 0), WEAP_SHOTGUN, shotgunflags, from, bestdist[i]);
 	}
 	return damagedealt;
 }
