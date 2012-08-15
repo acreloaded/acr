@@ -647,7 +647,7 @@ struct botname
 		}
 
 		defformatstring(fname)("%s%s", rank, name);
-		copystring(target, fname, MAXNAMELEN+1);
+		filtername(target, fname);
 	}
 
 	~botname(){
@@ -657,22 +657,18 @@ struct botname
 vector<botname> botnames;
 
 void mkbotname(client &c){
-	if(botnames.length())
+	int skip = 0;
+	if(m_zombie(gamemode))
 	{
-		int skip = 0;
-		if(m_zombie(gamemode))
+		// First block of ranked names are not for zombies
+		loopv(botnames)
 		{
-			// First block of ranked names are not for zombies
-			loopv(botnames)
-			{
-				if(botnames[i].storage[0] == '*') skip = i;
-				else break;
-			}
+			if(botnames[i].storage[0] == '*') skip = i + 1;
+			else break;
 		}
-		if(skip >= botnames.length()) filtername(c.name, "a zombie");
-		else botnames[rnd(botnames.length() - skip) + skip].putname(c.name, c.state.level);
 	}
-	else filtername(c.name, "a bot");
+	if(skip >= botnames.length()) filtername(c.name, m_zombie(gamemode) ? "a zombie" : "a bot");
+	else botnames[rnd(botnames.length() - skip) + skip].putname(c.name, c.state.level);
 }
 
 void clearai(), checkai();
