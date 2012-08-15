@@ -1026,10 +1026,10 @@ void arenacheck(){
 	if(!m_duke(gamemode, mutators) || interm || gamemillis<arenaround || !numclients()) return;
 
 	if(arenaround){ // start new arena round
-		if(m_progressive(gamemode, mutators) && progressiveround < MAXZOMBIEROUND){
+		if(m_progressive(gamemode, mutators) && progressiveround <= MAXZOMBIEROUND){
 			defformatstring(zombiemsg)("\f1Wave #\f0%d \f3has started\f2!", progressiveround);
 			sendservmsg(zombiemsg);
-			return arenanext(false); // bypass forced spawning
+			return arenanext(progressiveround == MAXZOMBIEROUND); // bypass forced spawning, except for the last level
 		}
 		return arenanext();
 	}
