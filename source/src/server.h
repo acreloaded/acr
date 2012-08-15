@@ -1004,25 +1004,23 @@ float gunspeed(int gun, int ads, bool lightweight){
 		case WEAP_HEAL:
 			//ret *= 1;
 			break;
-		case WEAP_AKIMBO:
+		case WEAP_SWORD:
 			ret *= .98f;
 			break;
-		case WEAP_SWORD:
-			ret *= .97f;
-			break;
-		case WEAP_SHOTGUN:
+		case WEAP_AKIMBO:
 			ret *= .96f;
 			break;
 		case WEAP_SNIPER:
 		case WEAP_BOLT:
 			ret *= .93f;
 			break;
+		case WEAP_SHOTGUN:
 		case WEAP_SUBGUN:
-			ret *= .92f;
+			ret *= .93f;
 			break;
 		case WEAP_ASSAULT:
 		case WEAP_RPG:
-			ret *= .9f;
+			ret *= .92f;
 			break;
 	}
 	return ret;
