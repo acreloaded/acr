@@ -110,8 +110,8 @@ void renderscore(void *menu, playerent *d){
 	line.altfont = "build";
 	const int buildinfo = (d == player1) ? getbuildtype() : d->build, third = (d == player1) ? thirdperson : d->thirdperson;
 	if(buildinfo & 0x40) concatstring(line.s, "\a4  ");
-	if(buildinfo & 0x20) concatstring(line.s, "\a3  ");
-	else if(buildinfo & 0x10) concatstring(line.s, "\a2  "); // mac is linux, so hide it if it's already used
+	else if(buildinfo & 0x20) concatstring(line.s, "\a3  ");
+	else /*if(buildinfo & 0x10)*/ concatstring(line.s, "\a2  ");
 	if(buildinfo & 0x02) concatstring(line.s, "\a1  ");
 	if(third) concatstring(line.s, "\a0");
 }
