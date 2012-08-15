@@ -2933,14 +2933,14 @@ bool checkmove(client &cp, int f){
 			if(newonfloor){ // air to solid
 				// mario jump
 				vector<client *> hit;
-				if(dz > 12){ // three meters to fall onto others
+				if(dz > 10){ // 2.5 meters to fall onto others
 					loopv(clients){
 						client &t = *clients[i];
 						clientstate &ts = t.state;
 						// basic checks
 						if(t.type == ST_EMPTY || ts.state != CS_ALIVE || i == sender || isteam(&t, &cp) || ts.protect(gamemillis, gamemode, mutators)) continue;
 						// check from above
-						if(ts.o.distxy(cs.o) > 2*PLAYERRADIUS) continue;
+						if(ts.o.distxy(cs.o) > 2.5f*PLAYERRADIUS) continue;
 						const float dz2 = cs.o.z - ts.o.z;
 						if(dz2 > PLAYERABOVEEYE + 2 || -dz2 > PLAYERHEIGHT + 2) continue;
 						hit.add(&t);
