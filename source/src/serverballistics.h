@@ -206,6 +206,13 @@ void nuke(client &owner){
 	owner.suicide(WEAP_MAX + 1, FRAG_NONE);
 }
 
+// hitscans
+struct shothit{
+	client *target;
+	int damage, flags;
+	float dist;
+};
+
 // hit checks
 client *nearesthit(client &actor, const vec &from, const vec &to, int &hitzone, const vector<posinfo> &pos, ivector &exclude, vec *end = NULL){
 	client *result = NULL;
@@ -229,8 +236,8 @@ client *nearesthit(client &actor, const vec &from, const vec &to, int &hitzone, 
 	return result;
 }
 
-// hitscans
-int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, int weap, int style, const vec &surface, ivector &exclude, float dist = 0, float penaltydist = 0, ushort *save = NULL, float *bestdist = NULL){
+// do a single line
+int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, int weap, int style, const vec &surface, ivector &exclude, float dist = 0, float penaltydist = 0, vector<shothit> *save = NULL){
 	int damagedealt = 0;
 	const int mulset = (weap == WEAP_SNIPER || weap == WEAP_BOLT) ? MUL_SNIPER : MUL_NORMAL;
 	int hitzone = HIT_NONE; vec end = to;
@@ -276,9 +283,16 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
 		// send the real hit (blood fx)
 		sendhit(owner, weap, end, damage);
 		// apply damage
-		if(save) save[hit->clientnum] += damage; // save damage for shotgun ray
+		if(save)
+		{
+			// save damage for shotgun rays
+			shothit &h = save->add();
+			h.target = hit;
+			h.damage = damage;
+			h.flags = style;
+			h.dist = dist2;
+		}
 		else serverdamage(hit, &owner, damage, weap, style, from, dist2);
-		if(bestdist && bestdist[hit->clientnum] < dist2) bestdist[hit->clientnum] = dist2;
 		exclude.add(hit->clientnum); // add hit to the exclude list
 
 		// penetration
@@ -317,25 +331,38 @@ int shotgun(client &owner, vector<posinfo> &pos){
 	int damagedealt = 0;
 	clientstate &gs = owner.state;
 	const vec &from = gs.o;
-	ushort sgdamage[MAXCLIENTS] = {0}; // many rays many hits, but we want each client to get all the damage at once...
-	float bestdist[MAXCLIENTS] = {0};
+	// many rays many hits, but we want each client to get all the damage at once...
+	static vector<shothit> hits;
+	hits.setsize(0);
 	loopi(SGRAYS){// check rays and sum damage
 		vec surface;
 		straceShot(from, gs.sg[i], &surface);
 		static ivector exclude;
 		exclude.setsize(0);
 		exclude.add(owner.clientnum);
-		shot(owner, from, gs.sg[i], pos, WEAP_SHOTGUN, FRAG_NONE, surface, exclude, 0, 0, sgdamage, bestdist);
+		shot(owner, from, gs.sg[i], pos, WEAP_SHOTGUN, FRAG_NONE, surface, exclude, 0, 0, &hits);
 	}
 	loopv(clients){ // apply damage
 		client &t = *clients[i];
 		clientstate &ts = t.state;
 		// basic checks
-		if(t.type == ST_EMPTY || !sgdamage[i] || ts.state != CS_ALIVE) continue;
-		damagedealt += sgdamage[i];
+		if(t.type == ST_EMPTY || ts.state != CS_ALIVE) continue;
+		int damage = 0, shotgunflags = 0;
+		float bestdist = 0;
+		loopvrev(hits) if(hits[i].target == &t)
+		{
+			damage += hits[i].damage;
+			shotgunflags |= hits[i].flags; // merge crit, etc.
+			if(hits[i].dist > bestdist) bestdist = hits[i].dist;
+			hits.remove(i/*--*/);
+		}
+		if(!damage) continue;
+		damagedealt += damage;
+		shotgunflags |= damage >= SGGIB ? FRAG_GIB : FRAG_NONE;
+		if(m_progressive(gamemode, mutators) && shotgunflags & FRAG_GIB)
+			damage = max(damage, 350 * HEALTHSCALE);
+		serverdamage(&t, &owner, damage, WEAP_SHOTGUN, shotgunflags, from, bestdist);
 		//sendhit(owner, WEAP_SHOTGUN, ts.o);
-		const int shotgunflags = sgdamage[i] >= SGGIB ? FRAG_GIB : FRAG_NONE;
-		serverdamage(&t, &owner, max<int>(sgdamage[i], (m_progressive(gamemode, mutators) && shotgunflags & FRAG_GIB) ? (350 * HEALTHSCALE) : 0), WEAP_SHOTGUN, shotgunflags, from, bestdist[i]);
 	}
 	return damagedealt;
 }
