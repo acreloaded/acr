@@ -1457,7 +1457,7 @@ void forcedeath(client *cl, bool gib = false){
 }
 
 // needs major cleanup...
-void serverdied(client *target, client *actor, int damage, int gun, int style, const vec &source){
+void serverdied(client *target, client *actor, int damage, int gun, int style, const vec &source, float killdist = 0){
 	clientstate &ts = target->state;
 	const bool gib = (style & FRAG_GIB) != 0;
 
@@ -1550,7 +1550,6 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 
 	if(gamemillis >= actor->state.lastkill + COMBOTIME) actor->state.combo = 0;
 	actor->state.lastkill = gamemillis;
-	const float killdist = ts.o == source ? 0 : clamp<float>(ts.o.dist(source) / 4, -1, 1000);
 	sendf(-1, 1, "ri9f4iv", N_KILL, // i9
 		target->clientnum, // victim
 		actor->clientnum, // actor
@@ -1638,7 +1637,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	}
 }
 
-void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source){
+void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source, float dist = 0){
 	if(!target || !actor || !damage) return;
 
 	if(m_expert(gamemode, mutators))
@@ -1664,7 +1663,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 			if(gun != WEAP_HEAL && !m_classic(gamemode, mutators)){
 				actor->state.shotdamage += damage; // reduce his accuracy (more)
 				// NEW way: no friendly fire, but tiny reflection
-				serverdamage(actor, actor, damage * .1f, gun, style, source);
+				serverdamage(actor, actor, damage * .1f, gun, style, source, dist);
 			}
 			// return; // we don't want this
 			damage = 0; // we want to show a hitmarker...
@@ -1681,7 +1680,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 	ts.dodamage(damage, actor->state.perk1 == PERK_POWER);
 	ts.lastregen = (ts.lastpain = gamemillis) + REGENDELAY - REGENINT;
 
-	if(ts.health<=0) serverdied(target, actor, damage, gun, style, source);
+	if(ts.health<=0) serverdied(target, actor, damage, gun, style, source, dist);
 	else
 	{
 		if(ts.damagelog.find(actor->clientnum) < 0)
@@ -1949,7 +1948,7 @@ bool updateclientteam(int cn, int team, int ftr){
 	logline(ftr == FTR_SILENT ? ACLOG_DEBUG : ACLOG_INFO, "[%s] %s is now on team %s", gethostname(cn), formatname(ci), team_string(team));
 	// force a death if needed
 	if(ci.state.state != CS_DEAD && (m_team(gamemode, mutators) || team == TEAM_SPECT)){
-		if(ftr == FTR_PLAYERWISH) serverdied(&ci, &ci, 0, WEAP_MAX + ((team == TEAM_SPECT) ? 22 : 21), FRAG_NONE, ci.state.o);
+		if(ftr == FTR_PLAYERWISH) ci.suicide(WEAP_MAX + ((team == TEAM_SPECT) ? 22 : 21), FRAG_NONE);
 		else forcedeath(&ci);
 	}
 	// set new team

@@ -137,7 +137,7 @@ void shotevent::process(client *ci)
 					dmg *= m_progressive(gamemode, mutators) ? (hitzone * 75) : (55);
 				damagedealt += dmg;
 				sendhit(c, WEAP_RPG, to, dmg); // blood, not explosion
-				serverdamage(hit, &c, dmg, WEAP_RPG, FRAG_GIB, expc);
+				serverdamage(hit, &c, dmg, WEAP_RPG, FRAG_GIB, expc, expc.dist(from));
 			}
 			// fix explosion on walls
 			else (expc = to).sub(from).normalize().mul(to.dist(from) - .1f).add(from);
@@ -166,10 +166,11 @@ void shotevent::process(client *ci)
 			}
 			if((&c == hit) ? gs.health < MAXHEALTH : !isteam(&c, hit)){ // that's right, no more self-heal abuse
 				const int flags = hitzone == HIT_HEAD ? FRAG_GIB : FRAG_NONE;
-				int dmg = effectiveDamage(weap, hit->state.o.dist(from)) * (hitzone == HIT_HEAD ? muls[MUL_NORMAL].head : muls[MUL_NORMAL].leg);
+				const float dist = hit->state.o.dist(from);
+				int dmg = effectiveDamage(weap, dist) * (hitzone == HIT_HEAD ? muls[MUL_NORMAL].head : muls[MUL_NORMAL].leg);
 				if(hitzone == HIT_HEAD)
 					sendheadshot(from, to, dmg);
-				serverdamage(hit, &c, dmg, weap, flags, gs.o);
+				serverdamage(hit, &c, dmg, weap, flags, gs.o, dist);
 				damagedealt += dmg;
 			}
 			loopi(&c == hit ? 25 : 15){
@@ -357,7 +358,7 @@ void processevents(){
 						// blood fx and stuff
 						sendhit(owner, WEAP_KNIFE, woundloc, bleeddmg);
 						// use wounded location as damage source
-						serverdamage(&c, &owner, bleeddmg, WEAP_KNIFE, FRAG_NONE, woundloc);
+						serverdamage(&c, &owner, bleeddmg, WEAP_KNIFE, FRAG_NONE, woundloc, c.state.o.dist(owner.state.o));
 						w.lastdealt = gamemillis;
 					}
 				}

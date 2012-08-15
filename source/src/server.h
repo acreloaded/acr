@@ -311,7 +311,7 @@ struct client				   // server side version of "dynent" type
 	}
 
 	void suicide(int weap, int flags = FRAG_NONE){
-		extern void serverdied(client *target, client *actor, int damage, int gun, int style, const vec &source);
+		extern void serverdied(client *target, client *actor, int damage, int gun, int style, const vec &source, float killdist = 0.f);
 		if(state.state != CS_DEAD) serverdied(this, this, 0, weap, flags, state.o);
 	}
 

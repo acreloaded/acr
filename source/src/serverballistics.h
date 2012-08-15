@@ -110,6 +110,7 @@ void parsepos(client &c, const vector<posinfo> &pos, vec &out_o, vec &out_head){
 struct explosivehit{
 	client *target, *owner;
 	int damage, flags;
+	float dist;
 };
 
 // a way to sort it
@@ -139,12 +140,12 @@ int radialeffect(client &owner, client &target, vector<explosivehit> &hits, cons
 	}
 	else if(weap == WEAP_RPG && max_damage)
 		expflags |= FRAG_FLAG;
-	//serverdamage(&target, &owner, dmg, weap, expflags, o);
 	explosivehit &hit = hits.add();
 	hit.damage = dmg;
 	hit.flags = expflags;
 	hit.target = &target;
 	hit.owner = &owner;
+	hit.dist = dist;
 	return dmg;
 }
 
@@ -168,7 +169,7 @@ int explosion(client &owner, const vec &o2, int weap, bool gib, client *cflag){
 	// apply the hits
 	loopv(hits){
 		sendhit(owner, weap, hits[i].target->state.o, hits[i].damage);
-		serverdamage(hits[i].target, hits[i].owner, hits[i].damage, weap, hits[i].flags, o);
+		serverdamage(hits[i].target, hits[i].owner, hits[i].damage, weap, hits[i].flags, o, hits[i].dist);
 	}
 	return damagedealt;
 }
@@ -176,7 +177,7 @@ int explosion(client &owner, const vec &o2, int weap, bool gib, client *cflag){
 // let's order the nuke hits by distance
 struct nukehit{
 	client *target;
-	float distance; // it would be double if this engine wasn't so conservative
+	float distance; // it would be double if this engine wern't so conservative
 };
 
 // a way to sort it
@@ -200,7 +201,7 @@ void nuke(client &owner){
 		}
 	}
 	hits.sort(cmpnukesort);
-	loopv(hits) serverdied(hits[i].target, &owner, 0, WEAP_MAX + 1, !rnd(3) ? FRAG_GIB : FRAG_NONE, owner.state.o);
+	loopv(hits) serverdied(hits[i].target, &owner, 0, WEAP_MAX + 1, !rnd(3) ? FRAG_GIB : FRAG_NONE, owner.state.o, hits[i].distance);
 	// save the best for last!
 	owner.suicide(WEAP_MAX + 1, FRAG_NONE);
 }
@@ -229,7 +230,7 @@ client *nearesthit(client &actor, const vec &from, const vec &to, int &hitzone, 
 }
 
 // hitscans
-int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, int weap, int style, const vec &surface, ivector &exclude, float dist = 0, ushort *save = NULL){
+int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, int weap, int style, const vec &surface, ivector &exclude, float dist = 0, float penaltydist = 0, ushort *save = NULL){
 	int damagedealt = 0;
 	const int mulset = (weap == WEAP_SNIPER || weap == WEAP_BOLT) ? MUL_SNIPER : MUL_NORMAL;
 	int hitzone = HIT_NONE; vec end = to;
@@ -237,7 +238,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
 	client *hit = nearesthit(owner, from, to, hitzone, pos, exclude, &end);
 	// damage check
 	const float dist2 = dist + end.dist(from);
-	int damage = effectiveDamage(weap, dist2);
+	int damage = effectiveDamage(weap, dist2 + penaltydist);
 	if(melee_weap(weap) && dist2 > guns[weap].endrange)
 		damage = 0;
 	// we hit somebody
@@ -276,7 +277,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
 		sendhit(owner, weap, end, damage);
 		// apply damage
 		if(save) save[hit->clientnum] += damage; // save damage for shotgun ray
-		else serverdamage(hit, &owner, damage, weap, style, from);
+		else serverdamage(hit, &owner, damage, weap, style, from, dist2);
 		exclude.add(hit->clientnum); // add hit to the exclude list
 
 		// penetration
@@ -287,7 +288,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
 			dir.sub(from).normalize().rotate_around_x((rnd(45)-22)*RAD).rotate_around_y((rnd(11)-5)*RAD).rotate_around_z((rnd(11)-5)*RAD).add(end); // 5 degrees (both ways = 10 degrees) distortion on all axis
 			// retrace
 			straceShot(end, dir, &newsurface);
-			damagedealt += shot(owner, end, dir, pos, weap, style, newsurface, exclude, dist + 40, save); // 10 meters penalty for penetrating the player
+			damagedealt += shot(owner, end, dir, pos, weap, style, newsurface, exclude, dist2, penaltydist + 40, save); // 10 meters penalty for penetrating the player
 			sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, weap, end.x, end.y, end.z, dir.x, dir.y, dir.z);
 		//}
 	}
@@ -305,7 +306,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
 			.add(to);
 		// retrace
 		straceShot(to, dir, &newsurface);
-		damagedealt += shot(owner, to, dir, pos, weap, style, newsurface, exclude, dist + 60, save); // 15 meters penalty for ricochet
+		damagedealt += shot(owner, to, dir, pos, weap, style, newsurface, exclude, dist2, penaltydist + 60, save); // 15 meters penalty for ricochet
 		sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, weap, to.x, to.y, to.z, dir.x, dir.y, dir.z);
 	}
 	return damagedealt;
@@ -322,7 +323,7 @@ int shotgun(client &owner, vector<posinfo> &pos){
 		static ivector exclude;
 		exclude.setsize(0);
 		exclude.add(owner.clientnum);
-		shot(owner, from, gs.sg[i], pos, WEAP_SHOTGUN, FRAG_NONE, surface, exclude, 0, sgdamage);
+		shot(owner, from, gs.sg[i], pos, WEAP_SHOTGUN, FRAG_NONE, surface, exclude, 0, 0, sgdamage);
 	}
 	loopv(clients){ // apply damage
 		client &t = *clients[i];

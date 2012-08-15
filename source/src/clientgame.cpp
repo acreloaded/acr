@@ -559,7 +559,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 	}
 	else formatstring(predicate)("%s%s %s%s", style&FRAG_REVENGE ? "\fs\f0vengefully \fr" : "", killname(obit = toobit(weapon, style), headshot),
 			isteam(pl, act) ? act==player1 ? "\f3your teammate " : "\f3his teammate " : "", pl == player1 ? "\f1you\f2" : colorname(pl));
-	if(killdist) concatformatstring(predicate, " (@%.2f m)", killdist);
+	if(killdist) concatformatstring(predicate, " (@%.2f m)", killdist / 4.f);
 	// streaks
 	// assist count
 	pl->damagelog.removeobj(pl->clientnum);
