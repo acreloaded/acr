@@ -325,7 +325,7 @@ int shotgun(client &owner, vector<posinfo> &pos){
 		static ivector exclude;
 		exclude.setsize(0);
 		exclude.add(owner.clientnum);
-		shot(owner, from, gs.sg[i], pos, WEAP_SHOTGUN, FRAG_NONE, surface, exclude, 0, 0, sgdamage);
+		shot(owner, from, gs.sg[i], pos, WEAP_SHOTGUN, FRAG_NONE, surface, exclude, 0, 0, sgdamage, bestdist);
 	}
 	loopv(clients){ // apply damage
 		client &t = *clients[i];
