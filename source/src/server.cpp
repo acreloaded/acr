@@ -4534,9 +4534,9 @@ void cleanupserver(){
 }
 
 int getpongflags(enet_uint32 ip){
-	int flags = mastermode << PONGFLAG_MASTERMODE;
+	int flags = (mastermode & MM_MASK) << PONGFLAG_MASTERMODE;
 	if(*scl.serverpassword)
-		flags |= PONGFLAG_PASSWORD;
+		flags |= 1 << PONGFLAG_PASSWORD;
 	loopv(bans) if(bans[i].host == ip) { flags |= 1 << PONGFLAG_BANNED; break; }
 	if(checkipblacklist(ip))
 		flags |= 1 << PONGFLAG_BLACKLIST;
