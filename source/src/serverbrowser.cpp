@@ -513,7 +513,7 @@ void checkpings()
 						loopi(si->numplayers)
 						{
 							getstring(text, p);
-							filtertext(text, text, 0);
+							filtername(text, text);
 							if(text[0] && !p.overread())
 							{
 								si->playernames.add((const char *)si->namedata + q.length());
