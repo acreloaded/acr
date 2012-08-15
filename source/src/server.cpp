@@ -3823,15 +3823,15 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					sendservmsg("\f3you cannot upload the currently loaded map (except coopedit)", sender);
 				}
 				// else if // too much uploaded?
-				else if(mp == MAP_NOTFOUND && strchr(scl.mapperm, 'C') && cl->priv < PRIV_ADMIN) // default: everyone can upload the initial map
+				else if(!m_edit(gamemode) && mp == MAP_NOTFOUND && strchr(scl.mapperm, 'C') && cl->priv < PRIV_ADMIN) // default: everyone can upload the initial map
 				{
 					reject = "no permission for initial upload";
-					sendservmsg("\f3initial map upload rejected: you need admin", sender);
+					sendservmsg("\f3initial map upload rejected: you need admin (except coopedit)", sender);
 				}
-				else if(mp == MAP_TEMP /*&& revision >= mapbuffer.revision*/ && !strchr(scl.mapperm, 'u') && cl->priv < PRIV_ADMIN) // default: only admins can update maps
+				else if(!m_edit(gamemode) && mp == MAP_TEMP /*&& revision >= mapbuffer.revision*/ && !strchr(scl.mapperm, 'u') && cl->priv < PRIV_ADMIN) // default: only admins can update maps
 				{
 					reject = "no permission to update";
-					sendservmsg("\f3map update rejected: you need admin", sender);
+					sendservmsg("\f3map update rejected: you need admin (except coopedit)", sender);
 				}
 				else
 				{
