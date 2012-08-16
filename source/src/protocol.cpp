@@ -183,6 +183,12 @@ void filterservdesc(char *dst, const char *src, int len)
 		{
 			*dst++ = c;
 			if(!--len) break;
+			if(c == '\f' && src[1] == 'b')
+			{
+				*dst++ = 'c';
+				++src;
+				if(!--len) break;
+			}
 		}
 	}
 	*dst = '\0';

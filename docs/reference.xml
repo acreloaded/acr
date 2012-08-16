@@ -738,7 +738,7 @@
 		</command>
 		<variable name="allowblinkingtext">
 		  <description>Allows you to disable blinking text from rendering.</description>
-		  <value token="B" description="" minValue="0" maxValue="1" defaultValue="1"/>
+		  <value token="B" description="" minValue="0" maxValue="2" defaultValue="1"/>
 		</variable>
 		<variable name="edithack">
 		  <description>Allows the use of editmode in multiplayer without coopedit. Use at your own risk.</description>
