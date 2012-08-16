@@ -23,14 +23,20 @@ ENetSocket httpgetsend(ENetAddress &remoteaddress, const char *hostname, const c
 {
 	if(remoteaddress.host==ENET_HOST_ANY)
 	{
-		logline(ACLOG_INFO, "looking up %s...", hostname);
 		#if defined AC_MASTER_DOMAIN && defined AC_MASTER_IPS
-		if(!resolverwait(!strcmp(hostname, AC_MASTER_DOMAIN) ? AC_MASTER_IPS : hostname, &remoteaddress)) return ENET_SOCKET_NULL;
-		#else
-		if(!resolverwait(hostname, &remoteaddress)) return ENET_SOCKET_NULL;
+		if(!strcmp(hostname, AC_MASTER_DOMAIN))
+		{
+			logline(ACLOG_INFO, "[%s] using %s...", AC_MASTER_IPS, AC_MASTER_DOMAIN);
+			if(!resolverwait(AC_MASTER_IPS, &remoteaddress)) return ENET_SOCKET_NULL;
+		}
+		else
 		#endif
-		char hn[1024];
-		logline(ACLOG_INFO, "[%s] resolved %s", (!enet_address_get_host_ip(&remoteaddress, hn, sizeof(hn))) ? hn : "unknown", hostname);
+		{
+			logline(ACLOG_INFO, "looking up %s...", hostname);
+			if(!resolverwait(hostname, &remoteaddress)) return ENET_SOCKET_NULL;
+			char hn[1024];
+			logline(ACLOG_INFO, "[%s] resolved %s", (!enet_address_get_host_ip(&remoteaddress, hn, sizeof(hn))) ? hn : "unknown", hostname);
+		}
 	}
 	ENetSocket sock = enet_socket_create(ENET_SOCKET_TYPE_STREAM);
 	if(sock!=ENET_SOCKET_NULL && localaddress && enet_socket_bind(sock, localaddress) < 0)
