@@ -769,7 +769,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
 	playerent *targetplayer = NULL;
 	int targetplayerzone = HIT_NONE;
-	playerincrosshair(targetplayer, targetplayerzone);
+	vec targetpos = worldpos;
+	playerincrosshair(targetplayer, targetplayerzone, targetpos);
 
 	bool menu = menuvisible();
 	bool command = getcurcommand() ? true : false;
@@ -845,7 +846,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	if(command) commandh -= rendercommand(20, 1570, VIRTW);
 	else if(infostr) draw_text(infostr, 20, 1570);
 	else{
-		defformatstring(hudtext)("\f0[\f1%04.1f\f3m\f0]", focus->o.dist(worldpos) / 4.f);
+		defformatstring(hudtext)("\f0[\f1%04.1f\f3m\f0]", focus->o.dist(targetpos) / 4.f);
 		static string hudtarget;
 		static int lasttarget = INT_MIN;
 		if(targetplayer){

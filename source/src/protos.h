@@ -669,7 +669,7 @@ extern void movebounceents();
 extern void clearbounceents();
 extern void renderbounceents();
 extern void addgib(playerent *d);
-extern void playerincrosshair(playerent * &pl, int &hitzone);
+extern void playerincrosshair(playerent * &pl, int &hitzone, vec &pos);
 extern ushort magsize(int gun);
 extern void updatelastaction(playerent *d);
 extern void checkweaponswitch();
