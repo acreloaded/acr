@@ -49,14 +49,14 @@
 // server point tools
 
 inline void addptreason(int cn, int reason){
-	sendf(cn, 1, "ri2", N_POINTR, reason);
+	if(valid_client(cn) && clients[cn]->type != ST_AI) sendf(cn, 1, "ri2", N_POINTR, reason);
 }
 
 inline void addpt(client *c, int points, int reason = -1){
 	if(!c || !points) return;
 	if(c->state.perk1 == PERK1_SCORE) points *= points > 0 ? 1.35f : 1.1f;
 	sendf(-1, 1, "ri3", N_POINTS, c->clientnum, (c->state.points += points));
-	if(c->type != ST_AI && reason >= 0) addptreason(c->clientnum, reason);
+	if(reason >= 0) addptreason(c->clientnum, reason);
 }
 
 int killpoints(const client *target, client *actor, int gun, int style, bool assist = false){
