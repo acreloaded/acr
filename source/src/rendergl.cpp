@@ -358,7 +358,8 @@ void renderaboveheadicon(playerent *p){
 			default: scalef = aspect = 1; break;
 		}
 		glPushMatrix();
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+		glDepthMask(GL_FALSE);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
 		glTranslatef(p->o.x, p->o.y, p->o.z+p->aboveeye);
 		glRotatef(camera1->yaw-180, 0, 0, 1);
@@ -368,6 +369,7 @@ void renderaboveheadicon(playerent *p){
 		anim /= h;
 		quad(tex->id, vec(s, 0, s*2/aspect + offset), vec(-s, 0, 0.0f + offset), 0.0f, anim, 1.0f, 1.f/h);
 		glDisable(GL_BLEND);
+		glDepthMask(GL_TRUE);
 		glPopMatrix();
 	}
 }
