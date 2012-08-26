@@ -917,6 +917,7 @@ bool outsidemap(physent *pl){
 float cursordepth = 0.9f;
 glmatrixf mvmatrix, projmatrix, mvpmatrix, invmvmatrix, invmvpmatrix;
 vec worldpos, camdir, camup, camright;
+playerent *worldhit = NULL; int worldhitzone = HIT_NONE; vec worldhitpos;
 
 void readmatrices(){
 	glGetFloatv(GL_MODELVIEW_MATRIX, mvmatrix.v);
@@ -1053,6 +1054,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps){
 	renderhudwaypoints(focus);
 
 	readdepth(w, h, worldpos);
+	playerincrosshair(worldhit, worldhitzone, worldhitpos);
 
 	startmodelbatches();
 	renderclients();

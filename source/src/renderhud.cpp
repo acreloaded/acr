@@ -767,11 +767,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		glPopMatrix();
 	}
 
-	playerent *targetplayer = NULL;
-	int targetplayerzone = HIT_NONE;
-	vec targetpos = worldpos;
-	playerincrosshair(targetplayer, targetplayerzone, targetpos);
-
 	bool menu = menuvisible();
 	bool command = getcurcommand() ? true : false;
 
@@ -793,8 +788,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	}
 
 	if(!focus->weaponsel->reloading && !focus->weaponchanging){
-		if(focus->state==CS_EDITING) drawcrosshair(focus, CROSSHAIR_SCOPE, targetplayer && targetplayer->state==CS_ALIVE ? isteam(targetplayer, focus) ? 1 : 2 : 0, NULL, 48.f);
-		else if(focus->state!=CS_DEAD) focus->weaponsel->renderaimhelp(targetplayer && targetplayer->state==CS_ALIVE ? isteam(targetplayer, focus) ? 1 : 2 : 0);
+		if(focus->state==CS_EDITING) drawcrosshair(focus, CROSSHAIR_SCOPE, worldhit && worldhit->state==CS_ALIVE ? isteam(worldhit, focus) ? 1 : 2 : 0, NULL, 48.f);
+		else if(focus->state!=CS_DEAD) focus->weaponsel->renderaimhelp(worldhit && worldhit->state==CS_ALIVE ? isteam(worldhit, focus) ? 1 : 2 : 0);
 	}
 
 	static Texture **texs = geteventicons();
@@ -846,12 +841,12 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	if(command) commandh -= rendercommand(20, 1570, VIRTW);
 	else if(infostr) draw_text(infostr, 20, 1570);
 	else{
-		defformatstring(hudtext)("\f0[\f1%04.1f\f3m\f0]", focus->o.dist(targetpos) / 4.f);
+		defformatstring(hudtext)("\f0[\f1%04.1f\f3m\f0]", focus->o.dist(worldhitpos) / 4.f);
 		static string hudtarget;
 		static int lasttarget = INT_MIN;
-		if(targetplayer){
-			formatstring(hudtarget)(" \f2[\f%d%s\f2] \f4[\f%s\f4]", team_rel_color(focus, targetplayer), colorname(targetplayer),
-				targetplayerzone==HIT_HEAD?"3HEAD":targetplayerzone==HIT_TORSO?"2TORSO":"0LEGS");
+		if(worldhit){
+			formatstring(hudtarget)(" \f2[\f%d%s\f2] \f4[\f%s\f4]", team_rel_color(focus, worldhit), colorname(worldhit),
+				worldhitzone==HIT_HEAD?"3HEAD":worldhitzone==HIT_TORSO?"2TORSO":"0LEGS");
 			concatstring(hudtext, hudtarget);
 			lasttarget = lastmillis;
 		}

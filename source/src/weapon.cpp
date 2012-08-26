@@ -137,7 +137,7 @@ COMMANDN(reload, selfreload, ARG_NONE);
 
 void selfuse(){
 	// for now we're using it for airstrikes
-	addmsg(N_STREAKUSE, "rf3", worldpos.x, worldpos.y, worldpos.z);
+	addmsg(N_STREAKUSE, "rf3", worldhitpos.x, worldhitpos.y, worldhitpos.z);
 }
 COMMANDN(use, selfuse, ARG_NONE);
 

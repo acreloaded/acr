@@ -384,7 +384,7 @@ void updateworld(int curtime, int lastmillis)		// main game update loop
 	physicsframe();
 	checkweaponswitch();
 	if(player1){ // only shoot when connected to server
-		shoot(player1, worldpos);
+		shoot(player1, worldhitpos);
 		loopv(players) if(players[i]){
 			playerent *p = players[i];
 			vec targ(sinf(RAD*p->yaw) * cosf(RAD*p->pitch), -cosf(RAD*p->yaw)* cosf(RAD*p->pitch), sinf(RAD*p->pitch));
