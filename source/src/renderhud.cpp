@@ -1187,7 +1187,7 @@ void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, 
 {
 	c2skeepalive();
 
-	glDisable(GL_DEPTH_TEST);
+	glDepthFunc(GL_ALWAYS);
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glLoadIdentity();
@@ -1225,7 +1225,7 @@ void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, 
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
 
-	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
 	SDL_GL_SwapBuffers();
 }
 
