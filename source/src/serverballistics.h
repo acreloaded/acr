@@ -111,6 +111,7 @@ struct explosivehit{
 	client *target, *owner;
 	int damage, flags;
 	float dist;
+	vec o;
 };
 
 // a way to sort it
@@ -119,11 +120,16 @@ int cmphitsort(explosivehit *a, explosivehit *b){ return b->damage - a->damage; 
 
 // explosions call this to check
 int radialeffect(client &owner, client &target, vector<explosivehit> &hits, const vec &o, int weap, bool gib, bool max_damage = false){
-	float dist = max_damage ? 0 : target.state.o.dist(o);
+	// which is closer? the head or middle?
+	vec hit_location = target.state.o;
+	hit_location.z += (PLAYERABOVEEYE-PLAYERHEIGHT)/2.f;
+	// distance calculations
+	float dist = max_damage ? 0 : min(hit_location.dist(o), target.state.o.dist(o));
 	if(dist >= guns[weap].endrange) return 0; // too far away
-	vec ray(target.state.o);
-	ray.sub(o).normalize();
-	if(srayclip(o, ray) < dist) return 0; // not visible
+	vec ray1(hit_location), ray2(target.state.o);
+	ray1.sub(o).normalize();
+	ray2.sub(o).normalize();
+	if(srayclip(o, ray1) < dist && srayclip(o, ray2) < dist) return 0; // not visible
 	ushort dmg = effectiveDamage(weap, dist, !m_classic(gamemode, mutators));
 	int expflags = gib ? FRAG_GIB : FRAG_NONE;
 	// check for critical
@@ -135,7 +141,7 @@ int radialeffect(client &owner, client &target, vector<explosivehit> &hits, cons
 	// was the RPG direct?
 	if(weap == WEAP_GRENADE && owner.clientnum != target.clientnum && o.z > target.state.o.z){
 		expflags |= FRAG_FLAG;
-		sendheadshot(o, target.state.o, dmg);
+		sendheadshot(o, (hit_location = target.state.o), dmg);
 		dmg *= 1.2f;
 	}
 	else if(weap == WEAP_RPG && max_damage)
@@ -146,6 +152,7 @@ int radialeffect(client &owner, client &target, vector<explosivehit> &hits, cons
 	hit.target = &target;
 	hit.owner = &owner;
 	hit.dist = dist;
+	hit.o = hit_location;
 	return dmg;
 }
 
@@ -168,7 +175,7 @@ int explosion(client &owner, const vec &o2, int weap, bool gib, client *cflag){
 	hits.sort(cmphitsort);
 	// apply the hits
 	loopv(hits){
-		sendhit(owner, weap, hits[i].target->state.o, hits[i].damage);
+		sendhit(owner, weap, hits[i].o, hits[i].damage);
 		serverdamage(hits[i].target, hits[i].owner, hits[i].damage, weap, hits[i].flags, o, hits[i].dist);
 	}
 	return damagedealt;
