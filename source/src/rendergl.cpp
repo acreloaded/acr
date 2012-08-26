@@ -389,13 +389,13 @@ void load_waypointtex(){
 	}
 }
 
-void renderwaypoint(int wp, const vec &o, float alpha, bool disabledepthtest){
+void renderwaypoint(int wp, const vec &o, float alpha, bool thruwalls){
 	if(!waypointtex[wp]){
 		load_waypointtex();
 		if(!waypointtex[wp]) return;
 	}
 	glPushMatrix();
-	if(disabledepthtest) glDisable(GL_DEPTH_TEST);
+	if(thruwalls) glDepthFunc(GL_ALWAYS);
 	glDisable(GL_FOG);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
@@ -414,7 +414,7 @@ void renderwaypoint(int wp, const vec &o, float alpha, bool disabledepthtest){
 	*/
 	glDisable(GL_BLEND);
 	glEnable(GL_FOG);
-	if(disabledepthtest) glEnable(GL_DEPTH_TEST);
+	if(thruwalls) glDepthFunc(GL_LESS);
 	glPopMatrix();
 }
 
