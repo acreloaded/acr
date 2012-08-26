@@ -1263,7 +1263,7 @@ void renderhudwaypoints(playerent *p){
 		switch(f.state)
 		{
 			case CTFF_STOLEN:
-				if(f.actor == p) break;
+				if(f.actor == p && !isthirdperson) break;
 				if(OUTBORD(f.actor->o.x, f.actor->o.y)) break;
 				o = f.actor->o;
 				wp = m_team(gamemode, mutators) && f.actor->team == teamfix ?
