@@ -899,7 +899,7 @@ void drawhudgun(int w, int h, float aspect, int farplane){
 	if(hudgun && camera1->type==ENT_PLAYER)
 	{
 		playerent *p = (playerent *)camera1;
-		if(p->state==CS_ALIVE) p->weaponsel->renderhudmodel();
+		if(p->state!=CS_DEAD && p->state != CS_EDITING) p->weaponsel->renderhudmodel();
 	}
 	rendermenumdl();
 
