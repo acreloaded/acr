@@ -1071,7 +1071,10 @@ void arenacheck(){
 		loopv(clients) if(clients[i]->type != ST_EMPTY && clients[i]->connected && clients[i]->team != TEAM_SPECT){
 			if(clients[i]->team == TEAM_RED || progressiveround == MAXZOMBIEROUND){ // give humans time to prepare, except wave 30
 				extern void forcedeath(client *cl, bool gib = false);
-				if(clients[i]->state.state != CS_DEAD) forcedeath(clients[i]);
+				if(clients[i]->state.state != CS_DEAD){
+					clients[i]->removeexplosives();
+					forcedeath(clients[i]);
+				}
 			}
 			else if(clients[i]->isonrightmap && clients[i]->state.state == CS_DEAD){ // early repawn for humans
 				clients[i]->state.lastdeath = 1;
