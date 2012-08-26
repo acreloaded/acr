@@ -1029,7 +1029,7 @@ void arenacheck(){
 		if(m_progressive(gamemode, mutators) && progressiveround <= MAXZOMBIEROUND){
 			defformatstring(zombiemsg)("\f1Wave #\f0%d \f3has started\f2!", progressiveround);
 			sendservmsg(zombiemsg);
-			return arenanext(progressiveround == MAXZOMBIEROUND); // bypass forced spawning, except for the last level
+			return arenanext(false); // bypass forced spawning
 		}
 		return arenanext();
 	}
@@ -1069,17 +1069,13 @@ void arenacheck(){
 		// convertcheck();
 		sendf(-1, 1, "ri2", N_ZOMBIESWIN, (progressiveround << 1) | (humanswin ? 1 : 0));
 		loopv(clients) if(clients[i]->type != ST_EMPTY && clients[i]->connected && clients[i]->team != TEAM_SPECT){
-			switch(clients[i]->team){
-				case TEAM_RED: // give humans time to prepare
-					extern void forcedeath(client *cl, bool gib = false);
-					if(clients[i]->state.state != CS_DEAD) forcedeath(clients[i]);
-					break;
-				case TEAM_BLUE: // early repawn for humans
-					if(clients[i]->isonrightmap && clients[i]->state.state == CS_DEAD){
-						clients[i]->state.lastdeath = 1;
-						sendspawn(clients[i]);
-					}
-					break;
+			if(clients[i]->team == TEAM_RED || progressiveround == MAXZOMBIEROUND){ // give humans time to prepare, except wave 30
+				extern void forcedeath(client *cl, bool gib = false);
+				if(clients[i]->state.state != CS_DEAD) forcedeath(clients[i]);
+			}
+			else if(clients[i]->isonrightmap && clients[i]->state.state == CS_DEAD){ // early repawn for humans
+				clients[i]->state.lastdeath = 1;
+				sendspawn(clients[i]);
 			}
 			int pts = 0, pr = -1;
 			if((clients[i]->team == TEAM_RED) == humanswin){ // he died
