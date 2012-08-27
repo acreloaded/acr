@@ -759,7 +759,7 @@ const char *entnames[MAXENTTYPES + 1] =
 
 // pickup stats
 
-itemstat ammostats[WEAP_MAX] =
+const itemstat ammostats[WEAP_MAX] =
 {
 	{ 1,  1,  2,  S_ITEMAMMO },    // knife dummy
 	{ 2,  5,  6,  S_ITEMAMMO },    // pistol
@@ -775,7 +775,7 @@ itemstat ammostats[WEAP_MAX] =
 	{ 3,  3,  6,  S_ITEMAMMO },    // RPG
 };
 
-itemstat powerupstats[] =
+const itemstat powerupstats[] =
 {
 	{35 * HEALTHSCALE, STARTHEALTH, MAXHEALTH, S_ITEMHEALTH }, //health
 	{15, STARTARMOR, MAXARMOR, S_ITEMARMOR }, // helmet
@@ -783,7 +783,15 @@ itemstat powerupstats[] =
 };
 
 // weaponry
-guninfo guns[WEAP_MAX] =
+const mul muls[MUL_NUM] =
+{
+	//{ head, torso, leg; }
+	{ 3.5f, 1.1f,	1 }, // normal
+	{ 5,	1.4f, 	1 }, // snipers
+	{ 4,	1.2f,	1 } // shotgun
+};
+
+const guninfo guns[WEAP_MAX] =
 {
 //	{ modelname;     snd,	  rldsnd,  rldtime, atkdelay,  dmg, rngstart, rngend, rngm,psd,ptt,spr,sprrem,kick,addsz,magsz,mkrot,mkback,rcoil,maxrcl,rca,pushf; auto;}
 	{ "knife",      S_KNIFE,    S_ITEMAMMO,    0,   500,    80,    4,    5,   72,   0,   0,  1,      0,    1,    0,    1,   0,  0,     0,    0,       0, 3,   true },
@@ -792,7 +800,7 @@ guninfo guns[WEAP_MAX] =
 	{ "subgun",     S_SUBGUN,   S_RSUBGUN,  2400,   67,     36,   32,   80,   21,   0,   0, 70,     97,    4,   32,   33,   1,  3,    27,    45,     65, 1,   true },
 	{ "sniper",     S_SNIPER,   S_RSNIPER,  2000,   120,   120,    1,    2,   80,   0,   0,235,    100,   14,   10,   11,   4,  4,    59,    68,     75, 2,   false},
 	{ "bolt",       S_BOLT,     S_RBOLT,    2000,   1500,  120,   80,  130,   50,   0,   0,250,    100,   36,    8,    9,   4,  4,    86,    90,     80, 3,   false},
-	{ "assault",    S_ASSAULT,  S_RASSAULT, 2100,   73,     32,   40,   92,   10,   0,   0, 65,     98,    3,   30,   31,   0,  3,    25,    42,     60, 1,   true },
+	{ "assault",    S_ASSAULT,  S_RASSAULT, 2100,   73,     32,   45,   92,   10,   0,   0, 65,     98,    3,   30,   31,   0,  3,    25,    42,     60, 1,   true },
 	{ "grenade",    S_NULL,     S_NULL,     1000,   650,   230,    0,   28,  225,  20,   6,  1,      0,    1,    0,    1,   3,  1,     0,    0,       0, 3,   false},
 	{ "pistol",     S_PISTOL,   S_RAKIMBO,  1400,   80,     36,   30,   90,   17,   0,   0, 60,      0,    8,   24,   26,   6,  2,    28,    49,     72, 2,   true },
 	{ "heal",       S_SUBGUN,   S_NULL,     1200,   100,    20,    4,    8,   10,   0,   0, 50,      1,    1,   10,   11,   0,  0,    10,    20,      8, 4,   true },

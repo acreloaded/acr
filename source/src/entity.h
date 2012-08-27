@@ -69,8 +69,8 @@ enum { PR_CLEAR = 0, PR_ASSIST, PR_SPLAT, PR_HS, PR_KC, PR_KD, PR_HEALSELF, PR_H
 #define MAXARMOR 100
 
 struct itemstat { short add, start, max, sound; };
-extern itemstat ammostats[WEAP_MAX];
-extern itemstat powerupstats[];
+extern const itemstat ammostats[WEAP_MAX];
+extern const itemstat powerupstats[];
 
 #define SWITCHTIME(perk) ((perk) ? 200 : 400)
 #define ADSTIME(perk) ((perk) ? 200 : 300)
@@ -90,28 +90,16 @@ extern itemstat powerupstats[];
 #define MAXLEVEL 100
 #define MAXEXP 1000
 
-struct mul{
-	union{
-		struct{ float head, torso, leg; };
-		float val[3];
-	};
-};
+struct mul{ float head, torso, leg; };
 enum { MUL_NORMAL = 0, MUL_SNIPER, MUL_SHOTGUN, MUL_NUM };
-
-static mul muls[MUL_NUM] =
-{
-	//{ head, torso, leg; }
-	{ 3.5f, 1.1f,	1 }, // normal
-	{ 5,	1.4f, 	1 }, // snipers
-	{ 4,	1.2f,	1 } // shotgun
-};
+extern const mul muls[MUL_NUM];
 
 #define BLEEDDMG 10
 #define BLEEDDMGZ 5
 #define BLEEDDMGPLUS 15
 
 struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, range, endrange, rangeminus, projspeed, part, spread, spreadrem, kick, addsize, magsize, mdl_kick_rot, mdl_kick_back, recoil, maxrecoil, recoilangle, pushfactor; bool isauto; };
-extern guninfo guns[WEAP_MAX];
+extern const guninfo guns[WEAP_MAX];
 
 static inline ushort reloadtime(int gun) { return guns[gun].reloadtime; }
 static inline ushort attackdelay(int gun) { return guns[gun].attackdelay; }
@@ -329,7 +317,7 @@ struct playerstate
 		ownernum(-1), level(1), pointstreak(0), deathstreak(0), airstrikes(0), radarearned(0), nukemillis(0), spawnmillis(0), lastkiller(-1) {}
 	virtual ~playerstate() {}
 
-	itemstat &itemstats(int type)
+	const itemstat &itemstats(int type)
 	{
 		switch(type)
 		{
@@ -360,7 +348,7 @@ struct playerstate
 		}
 	}
 
-	void additem(itemstat &is, int &v)
+	void additem(const itemstat &is, int &v)
 	{
 		v += is.add;
 		if(v > is.max) v = is.max;
