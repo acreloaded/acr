@@ -358,10 +358,11 @@ struct voteinfo
 
 	voteinfo() : owner(0), callmillis(0), result(VOTE_NEUTRAL), action(NULL), type(SA_NUM) {}
 
-	void end(int result, int veto = -1)
+	void end(int result, int veto)
 	{
 		if(!action || !action->isvalid()) result = VOTE_NO; // don't perform() invalid votes
-		logline(ACLOG_INFO, valid_client(veto) ? "[%s] vote %s, forced by %s (%d)" : "[%s] vote %s", gethostname(owner), result == VOTE_YES ? "passed" : "failed", valid_client(veto) ? clients[veto]->name : "winning votes", veto);
+		if(valid_client(veto)) logline(ACLOG_INFO, "[%s] vote %s, forced by %s (%d)", gethostname(owner), result == VOTE_YES ? "passed" : "failed", clients[veto]->name, veto);
+		else logline(ACLOG_INFO, "[%s] vote %s -- %s", gethostname(owner), result == VOTE_YES ? "passed" : "failed", veto == -2 ? "enough votes" : veto == -3 ? "expiry" : "unknown");
 		sendf(-1, 1, "ri3", N_VOTERESULT, result, veto);
 		this->result = result;
 		if(result == VOTE_YES)
@@ -378,21 +379,21 @@ struct voteinfo
 	void evaluate(bool forceend = false, int veto = VOTE_NEUTRAL, int vetoowner = -1)
 	{
 		if(result!=VOTE_NEUTRAL) return; // block double action
-		if(!action || !action->isvalid()) end(VOTE_NO);
+		if(!action || !action->isvalid()) end(VOTE_NO, -1);
 		int stats[VOTE_NUM+1] = {0};
 		loopv(clients) if(valid_client(i, true)){
 			++stats[clients[i]->vote%VOTE_NUM];
 			++stats[VOTE_NUM];
 		}
 		if(forceend){
-			if(veto == VOTE_NEUTRAL) end(stats[VOTE_YES]/(float)(stats[VOTE_NO]+stats[VOTE_YES]) > action->passratio ? VOTE_YES : VOTE_NO);
+			if(veto == VOTE_NEUTRAL) end(stats[VOTE_YES]/(float)(stats[VOTE_NO]+stats[VOTE_YES]) > action->passratio ? VOTE_YES : VOTE_NO, -3);
 			else end(veto, vetoowner);
 		}
 
 		if(stats[VOTE_YES]/(float)stats[VOTE_NUM] > action->passratio || (!isdedicated && clients[owner]->type==ST_LOCAL))
-			end(VOTE_YES);
+			end(VOTE_YES, -2);
 		else if(stats[VOTE_NO]/(float)stats[VOTE_NUM] > action->passratio)
-			end(VOTE_NO);
+			end(VOTE_NO, -2);
 		else return;
 	}
 };
