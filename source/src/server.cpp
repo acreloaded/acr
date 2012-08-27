@@ -22,11 +22,7 @@ struct servercommandline scl;
 
 #define SERVERMAP_PATH		  "packages/maps/servermaps/"
 #define SERVERMAP_PATH_BUILTIN  "packages/maps/official/"
-#ifdef STANDALONE
 #define SERVERMAP_PATH_INCOMING "packages/maps/servermaps/incoming/"
-#else
-#define SERVERMAP_PATH_INCOMING "home/packages/maps/"
-#endif
 
 string smapname, nextmapname;
 int nextgamemode, nextgamemuts;
@@ -4751,6 +4747,15 @@ void initserver(bool dedicated){
 		if(!serverhost) fatal("could not create server host");
 		loopi(scl.maxclients) serverhost->peers[i].data = (void *)-1;
 
+		// check for official maps
+		cvector found_map_files;
+		if(!listfiles(SERVERMAP_PATH_BUILTIN, "cgz", found_map_files)) fatal("could not find official maps (%s)", SERVERMAP_PATH_BUILTIN);
+		else
+		{
+			logline(ACLOG_INFO, "detected %d official maps", found_map_files.length());
+			found_map_files.shrink(0);
+		}
+		// read config
 		readscfg(scl.maprot);
 		readpwdfile(scl.pwdfile);
 		readipblacklist(scl.blfile);
