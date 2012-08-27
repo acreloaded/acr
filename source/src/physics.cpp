@@ -866,14 +866,24 @@ void fixcamerarange(physent *cam)
 FVARP(sensitivity, 1e-3f, 3.0f, 1000.0f);
 VARP(invmouse, 0, 0, 1);
 
+inline void adjustangle(float &angle, const float &dangle, float &ret)
+{
+	angle += dangle;
+	if(ret * dangle < 0){
+		if(fabs(dangle) > fabs(ret)) ret = 0;
+		else ret += dangle;
+	}
+}
+
 void mousemove(int dx, int dy)
 {
 	if(intermission) return;
 	if(player1->isspectating() && (player1->spectatemode==SM_FOLLOWSAME || player1->spectatemode==SM_FOLLOWALT)) return;
 
 	const float SENSF = 33.0f;	 // try match quake sens
-	camera1->yaw += (dx/SENSF)*sensitivity;
-	camera1->pitch += (dy/SENSF) * sensitivity * (invmouse ? 1 : -1);
+	const float dyaw = (dx/SENSF)*sensitivity, dpitch = (dy/SENSF) * sensitivity * (invmouse ? 1 : -1);
+	adjustangle(camera1->yaw, dyaw, camera1->yawreturn);
+	adjustangle(camera1->pitch, dpitch, camera1->pitchreturn);
 	fixcamerarange();
 	if(camera1!=player1 && player1->spectatemode!=SM_DEATHCAM)
 	{
