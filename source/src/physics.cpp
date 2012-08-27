@@ -405,8 +405,8 @@ inline void applyrecoil(float addfactor, float fric, float &dir, float &vel, flo
 		else vel = 0;
 	}
 
-	if(fabs(vel) < .15f){  // new slide back!
-		const float returnamount = sqrtf(back < 0 ? -back : back) * (back < 0 ? -.032f : .032f);
+	if(fabs(vel) < .1f){  // new slide back!
+		const float returnamount = sqrtf(fabs(back)) * (back < 0 ? -.030f : .030f);
 		dir -= returnamount;
 		back -= returnamount;
 	}
