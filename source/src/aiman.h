@@ -122,10 +122,8 @@ void checkai(){
 			case -1: // auto
 				if(m_zombie(gamemode)) balance = min(15 + 2 * humans, 30); // effectively 15 + n
 				else if(m_duke(gamemode, mutators)) balance = max(humans, maplayout_factor - 3); // 3 - 5 - 8 (6 - 8 - 11 layout factor)
-				else{
-					const int spawns = m_team(gamemode, mutators) ? (smapstats.hasteamspawns ? smapstats.spawns[0] + smapstats.spawns[1] : 12) : (smapstats.hasffaspawns ? smapstats.spawns[2] : 6);
-					balance = max(humans, spawns / 3);
-				}
+				else if(m_team(gamemode, mutators)) balance = clamp((smapstats.hasteamspawns ? smapstats.spawns[0] + smapstats.spawns[1] : 0) / 3, max(6, humans), 14);
+				else balance = clamp((smapstats.hasffaspawns ? smapstats.spawns[2] : 0) / 3, max(4, humans), 10);
 				break; // auto
 			// case  0: balance = 0; break; // force no bots
 			default: balance = max(humans, botbalance); break; // force bot count
