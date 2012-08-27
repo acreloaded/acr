@@ -245,7 +245,6 @@ client *nearesthit(client &actor, const vec &from, const vec &to, int &hitzone, 
 
 // do a single line
 int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, int weap, int style, const vec &surface, ivector &exclude, float dist = 0, float penaltydist = 0, vector<shothit> *save = NULL){
-	int damagedealt = 0;
 	const int mulset = (weap == WEAP_SNIPER || weap == WEAP_BOLT) ? MUL_SNIPER : MUL_NORMAL;
 	int hitzone = HIT_NONE; vec end = to;
 	// calculate the hit
@@ -253,8 +252,8 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
 	// damage check
 	const float dist2 = dist + end.dist(from);
 	int damage = effectiveDamage(weap, dist2 + penaltydist);
-	if(melee_weap(weap) && dist2 > guns[weap].endrange)
-		damage = 0;
+	// out of range?
+	if(melee_weap(weap) && dist2 > guns[weap].endrange) return 0;
 	// we hit somebody
 	if(hit && damage){
 		// damage multipliers
@@ -272,13 +271,10 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
 			damage *= 1.5f;
 		}
 
-		// this is the damage we inflicted
-		damagedealt += damage;
-
 		// melee weapons (bleed/check for self)
 		if(melee_weap(weap)){
 			if(hitzone == HIT_HEAD) style |= FRAG_FLAG;
-			if(&owner == hit) return damagedealt; // not possible
+			if(&owner == hit) return 0; // not possible
 			else if(!isteam(&owner, hit)){
 				hit->state.addwound(owner.clientnum, end);
 				sendf(-1, 1, "ri2", N_BLEED, hit->clientnum);
@@ -300,7 +296,9 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
 			h.dist = dist2;
 		}
 		else serverdamage(hit, &owner, damage, weap, style, from, dist2);
-		exclude.add(hit->clientnum); // add hit to the exclude list
+
+		// add hit to the exclude list
+		exclude.add(hit->clientnum);
 
 		// penetration
 		//if(!m_classic(gamemode, mutators) && dist2 < 100){ // only penetrate players before 25 meters
@@ -310,12 +308,13 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
 			dir.sub(from).normalize().rotate_around_x((rnd(45)-22)*RAD).rotate_around_y((rnd(11)-5)*RAD).rotate_around_z((rnd(11)-5)*RAD).add(end); // 5 degrees (both ways = 10 degrees) distortion on all axis
 			// retrace
 			straceShot(end, dir, &newsurface);
-			damagedealt += shot(owner, end, dir, pos, weap, style, newsurface, exclude, dist2, penaltydist + 40, save); // 10 meters penalty for penetrating the player
+			const int penetratedamage = shot(owner, end, dir, pos, weap, style, newsurface, exclude, dist2, penaltydist + 40, save); // 10 meters penalty for penetrating the player
 			sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, weap, end.x, end.y, end.z, dir.x, dir.y, dir.z);
+			return damage + penetratedamage;
 		//}
 	}
 	// ricochet
-	else if(!dist && from.dist(to) < 100 && surface.magnitude() && !melee_weap(weap)){ // ricochet once before 25 meters or going through a player
+	else if(!dist && from.dist(to) < 100 && surface.magnitude()){ // ricochet once before 25 meters or going through a player
 		vec dir(to), newsurface;
 		// calculate reflected ray from incident ray and surface normal
 		dir.sub(from).normalize();
@@ -328,10 +327,11 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
 			.add(to);
 		// retrace
 		straceShot(to, dir, &newsurface);
-		damagedealt += shot(owner, to, dir, pos, weap, style, newsurface, exclude, dist2, penaltydist + 60, save); // 15 meters penalty for ricochet
+		const int ricochetdamage = shot(owner, to, dir, pos, weap, style, newsurface, exclude, dist2, penaltydist + 60, save); // 15 meters penalty for ricochet
 		sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, weap, to.x, to.y, to.z, dir.x, dir.y, dir.z);
+		return damage + ricochetdamage;
 	}
-	return damagedealt;
+	return 0;
 }
 
 int shotgun(client &owner, vector<posinfo> &pos){
