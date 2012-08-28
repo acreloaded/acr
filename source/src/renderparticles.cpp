@@ -667,18 +667,16 @@ void addshotline(playerent *pl, const vec &from2, const vec &to, int flags)
 	unitv.div(dist);
 
 	// shotline visuals
-	vec o = unitv, d = unitv;
+	//vec o = unitv, d = unitv;
+	vec o = from, d = to;
 	if(flags & 1){
 		/*
 		const int start = (camera1->o.dist(to) <= 10.0f) ? 8 : 5;
 		o.mul(dist/10+start).add(from);
 		d.mul(dist/10*-(10-start-2)).add(to);
 		*/
-		o = from;
-		o.z += WEAPONBELOWEYE;
-		d = to;
 	}
-	else { o = from; d = to;}
+	else { o.z -= WEAPONBELOWEYE; }
 	newparticle(o, d, shotlinettl, 6);
 
 	// shotline sound fx

@@ -804,7 +804,6 @@ bool gun::attack(vec &targ){
 
 	vec from = owner->o;
 	vec to = targ;
-	from.z -= WEAPONBELOWEYE;
 
 	attackphysics(from, to);
 	attacksound();
@@ -847,17 +846,15 @@ void gun::attackshell(const vec &to){
 	s->resetinterp();
 }
 
-void gun::attackfx(const vec &from2, const vec &to, int millis){
-	vec from(from2);
-	if(millis & 1){
-		from.z -= WEAPONBELOWEYE;
-		attackshell(to);
-	}
+void gun::attackfx(const vec &from, const vec &to, int millis){
 	addbullethole(owner, from, to);
 	addshotline(owner, from, to, (millis & 1) | (((type == WEAP_AKIMBO && !((akimbo *)this)->akimboside) ^ (lefthand > 0)) ? 4 : 0));
 	particle_splash(0, 5, 250, to);
 	adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
-	if((millis & 1) && owner != player1 && !isowned(owner)) attacksound();
+	if(millis & 1){
+		if(owner != player1 && !isowned(owner)) attacksound();
+		attackshell(to);
+	}
 }
 
 int gun::modelanim() { return modelattacking() ? ANIM_WEAP_SHOOT|ANIM_LOOP : ANIM_WEAP_IDLE; }
@@ -888,11 +885,9 @@ int shotgun::dynspread(){
 	return (int)(info.spread * (1 - owner->ads * info.spreadrem / 100000.f));
 }
 
-void shotgun::attackfx(const vec &from2, const vec &to, int millis){
+void shotgun::attackfx(const vec &from, const vec &to, int millis){
 	static uchar filter1 = 0, filter2 = 0;
 	if(millis & 1){
-		vec from(from2);
-		from.z -= WEAPONBELOWEYE;
 		loopi(SGRAYS) particle_splash(0, 5, 200, sg[i]);
 		if(addbullethole(owner, from, to)) loopi(SGRAYS){
 			if(++filter1 >= 3) filter1 = 0;
@@ -907,10 +902,10 @@ void shotgun::attackfx(const vec &from2, const vec &to, int millis){
 	}
 	else{
 		if(++filter2 >= 2) filter2 = 0;
-		else addshotline(owner, from2, to, 2);
-		addbullethole(owner, from2, to, 0, false);
-		adddynlight(owner, from2, 4, 100, 50, 96, 80, 64);
+		else addshotline(owner, from, to, 2);
+		addbullethole(owner, from, to, 0, false);
 	}
+	adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
 }
 
 void shotgun::renderaimhelp(int teamtype){ drawcrosshair(owner, CROSSHAIR_SHOTGUN, teamtype); }
@@ -954,12 +949,13 @@ int crossbow::modelanim(){
 
 void crossbow::attackfx(const vec &from2, const vec &to, int millis){
 	vec from(from2);
-	from.z -= WEAPONBELOWEYE;
-
+	if(millis & 1){
+		from.z -= WEAPONBELOWEYE;
+		if(owner != player1 && !isowned(owner)) attacksound();
+	}
 	addshotline(owner, from, to, 1);
 	particle_trail(15, 400, from, to);
 	particle_splash(0, 5, 250, to);
-	if((millis & 1) && owner != player1 && !isowned(owner)) attacksound();
 }
 
 void crossbow::attackhit(const vec &o){
@@ -975,13 +971,13 @@ void scopedprimary::attackfx(const vec &from2, const vec &to, int millis){
 	if(millis & 1){
 		from.z -= WEAPONBELOWEYE;
 		attackshell(to);
+		if(owner != player1 && !isowned(owner)) attacksound();
 	}
 	addbullethole(owner, from, to);
 	addshotline(owner, from, to, 0);
 	particle_splash(0, 50, 200, to);
 	particle_trail(1, 500, from, to);
 	adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
-	if((millis & 1) && owner != player1 && !isowned(owner)) attacksound();
 }
 
 float scopedprimary::dynrecoil() { return weapon::dynrecoil() * 1 - owner->ads / 3000; } // 1/2 * 2/3 = 1/3 recoil when ADS
@@ -1057,12 +1053,14 @@ int heal::flashtime() const { return 0; }
 //void heal::renderaimhelp(int teamtype){ if(state) weapon::renderaimhelp(teamtype); }
 void heal::attackfx(const vec &from2, const vec &to, int millis){
 	vec from(from2);
-	from.z -= WEAPONBELOWEYE;
+	if(millis & 1){
+		from.z -= WEAPONBELOWEYE;
+		if(owner != player1 && !isowned(owner)) attacksound();
+	}
 
-	addshotline(owner, from, to, 1);
+	addshotline(owner, from, to, 0);
 	particle_trail(14, 400, from, to);
 	particle_splash(0, 3, 200, to);
-	if((millis & 1) && owner != player1 && !isowned(owner)) attacksound();
 }
 
 vector<cconfirm> confirms; // weird place to put this
