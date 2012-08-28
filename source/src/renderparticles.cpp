@@ -675,8 +675,8 @@ void addshotline(playerent *pl, const vec &from2, const vec &to, int flags)
 		o.mul(dist/10+start).add(from);
 		d.mul(dist/10*-(10-start-2)).add(to);
 		*/
+		o.z -= WEAPONBELOWEYE;
 	}
-	else { o.z -= WEAPONBELOWEYE; }
 	newparticle(o, d, shotlinettl, 6);
 
 	// shotline sound fx

@@ -953,7 +953,7 @@ void crossbow::attackfx(const vec &from2, const vec &to, int millis){
 		from.z -= WEAPONBELOWEYE;
 		if(owner != player1 && !isowned(owner)) attacksound();
 	}
-	addshotline(owner, from, to, 1);
+	addshotline(owner, from, to, 0);
 	particle_trail(15, 400, from, to);
 	particle_splash(0, 5, 250, to);
 }
