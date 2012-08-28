@@ -899,8 +899,10 @@ void shotgun::attackfx(const vec &from2, const vec &to, int millis){
 			else addshotline(owner, from, sg[i], 3);
 			addbullethole(owner, from, sg[i], 0, false);
 		}
-		if(millis & 1) attackshell(to);
-		if(owner != player1 && !isowned(owner)) attacksound();
+		if(millis & 1){
+			attackshell(to);
+			if(owner != player1 && !isowned(owner)) attacksound();
+		}
 		adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
 	}
 	else{
@@ -957,7 +959,7 @@ void crossbow::attackfx(const vec &from2, const vec &to, int millis){
 	addshotline(owner, from, to, 1);
 	particle_trail(15, 400, from, to);
 	particle_splash(0, 5, 250, to);
-	if(owner != player1 && !isowned(owner)) attacksound();
+	if((millis & 1) && owner != player1 && !isowned(owner)) attacksound();
 }
 
 void crossbow::attackhit(const vec &o){
@@ -979,7 +981,7 @@ void scopedprimary::attackfx(const vec &from2, const vec &to, int millis){
 	particle_splash(0, 50, 200, to);
 	particle_trail(1, 500, from, to);
 	adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
-	if(millis & 1 && owner != player1 && !isowned(owner)) attacksound();
+	if((millis & 1) && owner != player1 && !isowned(owner)) attacksound();
 }
 
 float scopedprimary::dynrecoil() { return weapon::dynrecoil() * 1 - owner->ads / 3000; } // 1/2 * 2/3 = 1/3 recoil when ADS
@@ -1060,7 +1062,7 @@ void heal::attackfx(const vec &from2, const vec &to, int millis){
 	addshotline(owner, from, to, 1);
 	particle_trail(14, 400, from, to);
 	particle_splash(0, 3, 200, to);
-	if(owner != player1 && !isowned(owner)) attacksound();
+	if((millis & 1) && owner != player1 && !isowned(owner)) attacksound();
 }
 
 vector<cconfirm> confirms; // weird place to put this
@@ -1259,7 +1261,7 @@ void knife::attackfx(const vec &from, const vec &to, int millis) {
 		bounceents.add(g);
 		g->_throw(from, to);
 	}
-	else if(owner != player1 && !isowned(owner)) attacksound();
+	else if((millis & 1) && owner != player1 && !isowned(owner)) attacksound();
 }
 
 // setscope for snipers and iron sights
