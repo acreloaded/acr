@@ -1585,8 +1585,8 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	ts.lastdeath = gamemillis;
 	const char *h = gethostname(actor->clientnum);
 	const int logtype = actor->type == ST_AI && target->type == ST_AI ? ACLOG_VERBOSE : ACLOG_INFO;
-	if(!suic) logline(logtype, "[%s] %s %s %s (%.2f m)", h, formatname(actor), killname(toobit(gun, style), isheadshot(gun, style)), formatname(target), killdist);
-	else logline(logtype, "[%s] %s %s (%.2f m)", h, formatname(actor), suicname(obit_suicide(gun)), killdist);
+	if(!suic) logline(logtype, "[%s] %s %s %s (%.2f m)", h, formatname(actor), killname(toobit(gun, style), isheadshot(gun, style)), formatname(target), killdist / 4.f);
+	else logline(logtype, "[%s] %s %s (%.2f m)", h, formatname(actor), suicname(obit_suicide(gun)), killdist / 4.f);
 
 	if(m_affinity(gamemode)){
 		if(m_ktf2(gamemode, mutators) && // KTF2 only
