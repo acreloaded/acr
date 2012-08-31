@@ -4749,12 +4749,15 @@ void initserver(bool dedicated){
 
 		// check for official maps
 		cvector found_map_files;
-		if(!listfiles(SERVERMAP_PATH_BUILTIN, "cgz", found_map_files)) fatal("could not find official maps (%s)", SERVERMAP_PATH_BUILTIN);
-		else
+		int num_official = 0;
+		if(listfiles(SERVERMAP_PATH_BUILTIN, "cgz", found_map_files))
+			num_official = found_map_files.length();
+		if(num_official)
 		{
-			logline(ACLOG_INFO, "detected %d official maps", found_map_files.length());
-			found_map_files.shrink(0);
+			logline(ACLOG_INFO, "detected %d official maps", num_official);
+			found_map_files.deletearrays();
 		}
+		else fatal("could not find official maps (%s)", SERVERMAP_PATH_BUILTIN);
 		// read config
 		readscfg(scl.maprot);
 		readpwdfile(scl.pwdfile);
