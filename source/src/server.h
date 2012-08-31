@@ -986,7 +986,7 @@ const char *killname(int obit, bool headshot){
 			concatstring(k, "bombarded");
 			break;
 		case OBIT_ASSIST:
-			concatstring(k, headshot ? "helped to suicide" : "assisted the suicide of");
+			concatstring(k, headshot ? "helped with the suicide of" : "assisted the suicide of");
 			break;
 		case OBIT_FALL:
 			concatstring(k, "jumped onto");
