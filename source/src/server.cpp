@@ -4284,7 +4284,7 @@ void loggamestatus(const char *reason){
 		client &c = *clients[i];
 		if(c.type == ST_EMPTY) continue;
 		formatstring(text)("%2d%c %-16s ", c.clientnum, c.state.ownernum < 0 ? ' ' : '*', c.name); // cn* name
-		concatformatstring(text, "%s%-5s ", (c.team != TEAM_SPECT && !m_team(gamemode, mutators) ? "*" : ""), team_string(c.team)); // team
+		concatformatstring(text, c.team != TEAM_SPECT && !m_team(gamemode, mutators) ? "*%-4s " : "%-5s ", team_string(c.team)); // team
 		if(m_affinity(gamemode)) concatformatstring(text, "%4d ", c.state.flagscore);	 // flag
 		concatformatstring(text, "%4d %5d", c.state.frags, c.state.deaths);  // frag death
 		logline(ACLOG_INFO, "%s%5d %s %s", text, c.ping,
