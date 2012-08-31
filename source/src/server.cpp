@@ -4278,13 +4278,13 @@ void loggamestatus(const char *reason){
 	logline(ACLOG_INFO, "");
 	logline(ACLOG_INFO, "Game status: %s on %s, %s, %s%c %s",
 					  modestr(gamemode, mutators), smapname, reason ? reason : text, mmfullname(mastermode), custom_servdesc ? ',' : '\0', servdesc_current);
-	logline(ACLOG_INFO, "cn  name             %s%sfrag death ping priv    host", m_team(gamemode, mutators) ? "team  " : "", m_affinity(gamemode) ? "flag " : "");
+	logline(ACLOG_INFO, "cn  name             team  %sfrag death ping priv    host", m_affinity(gamemode) ? "flag " : "");
 	loopv(clients)
 	{
 		client &c = *clients[i];
 		if(c.type == ST_EMPTY) continue;
 		formatstring(text)("%2d%c %-16s ", c.clientnum, c.state.ownernum < 0 ? ' ' : '*', c.name); // cn* name
-		if(m_team(gamemode, mutators)) concatformatstring(text, "%-5s ", team_string(c.team)); // team
+		concatformatstring(text, "%s%-5s ", (c.team != TEAM_SPECT && !m_team(gamemode, mutators) ? "*" : ""), team_string(c.team)); // team
 		if(m_affinity(gamemode)) concatformatstring(text, "%4d ", c.state.flagscore);	 // flag
 		concatformatstring(text, "%4d %5d", c.state.frags, c.state.deaths);  // frag death
 		logline(ACLOG_INFO, "%s%5d %s %s", text, c.ping,
