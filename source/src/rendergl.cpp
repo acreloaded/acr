@@ -395,7 +395,7 @@ void renderwaypoint(int wp, const vec &o, float alpha, bool thruwalls){
 		if(!waypointtex[wp]) return;
 	}
 	glPushMatrix();
-	if(thruwalls) glDepthFunc(GL_ALWAYS);
+	if(thruwalls) glDisable(GL_DEPTH_TEST);
 	glDisable(GL_FOG);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
@@ -414,7 +414,7 @@ void renderwaypoint(int wp, const vec &o, float alpha, bool thruwalls){
 	*/
 	glDisable(GL_BLEND);
 	glEnable(GL_FOG);
-	if(thruwalls) glDepthFunc(GL_LESS);
+	if(thruwalls) glEnable(GL_DEPTH_TEST);
 	glPopMatrix();
 }
 
