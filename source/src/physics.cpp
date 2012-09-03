@@ -869,7 +869,7 @@ VARP(invmouse, 0, 0, 1);
 inline void adjustangle(float &angle, const float &dangle, float &ret)
 {
 	angle += dangle;
-	if(ret * dangle < 0){
+	if(ret * dangle < 0){ // one is negative
 		if(fabs(dangle) > fabs(ret)) ret = 0;
 		else ret += dangle;
 	}
@@ -888,7 +888,8 @@ void mousemove(int dx, int dy)
 	if(camera1!=player1 && player1->spectatemode!=SM_DEATHCAM)
 	{
 		player1->yaw = camera1->yaw;
-		player1->pitch = (m_zombie(gamemode) && player1->thirdperson < 0) ? 0 : camera1->pitch;
+		if(m_zombie(gamemode) && thirdperson < 0) player1->pitch += dpitch;
+		else player1->pitch = camera1->pitch;
 	}
 }
 
