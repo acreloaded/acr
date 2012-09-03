@@ -511,7 +511,7 @@ void camera3(playerent *p, int dist){
 		// allow going out of bounds...
 		//if(!OUTBORD((int)p->o.x, (int)p->o.y) && camera3.o.z + 1 > S((int)p->o.x, (int)p->o.y)->ceil)
 			//camera3.o.z = S((int)p->o.x, (int)p->o.y)->ceil - 1;
-		camera3.pitch = -90 * (1000 - p->ads) / 1000.f;
+		camera3.pitch = max(p->pitch - 90 * (1000 - p->ads) / 1000.f, -90.f);
 	}
 	camera3.yaw = p->yaw;
 	/*

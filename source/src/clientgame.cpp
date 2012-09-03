@@ -384,16 +384,15 @@ void updateworld(int curtime, int lastmillis)		// main game update loop
 	physicsframe();
 	checkweaponswitch();
 	if(player1){ // only shoot when connected to server
-		vec targ(worldhitpos);
-		if(m_zombie(gamemode) && thirdperson < 0){
-			targ = vec(sinf(RAD*player1->yaw), -cosf(RAD*player1->yaw), 0);
-			targ.add(player1->o);
-		}
-		shoot(player1, targ);
-		loopv(players) if(players[i]){
-			playerent *p = players[i];
-			targ = vec(sinf(RAD*p->yaw) * cosf(RAD*p->pitch), -cosf(RAD*p->yaw)* cosf(RAD*p->pitch), sinf(RAD*p->pitch));
-			shoot(p, targ.add(p->o));
+		vec targ;
+		loopi(players.length()+1) if(!players.inrange(i) || players[i]){
+			playerent *p = !players.inrange(i) ? player1 : players[i];
+			if(p == player1 && !(m_zombie(gamemode) && thirdperson < 0)) targ = worldhitpos;
+			else{
+				targ = vec(sinf(RAD*p->yaw) * cosf(RAD*p->pitch), -cosf(RAD*p->yaw)* cosf(RAD*p->pitch), sinf(RAD*p->pitch));
+				targ.add(p->o);
+			}
+			shoot(p, targ);
 		}
 	}
 	movebounceents();
