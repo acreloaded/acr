@@ -498,15 +498,17 @@ void camera3(playerent *p, int dist){
 	camera3.o = p->o;
 	if(!m_zombie(gamemode)) dist = abs(dist);
 	if(dist > 0){
-		const float thirdpersondist = dist*p->radius*(1.f-p->ads/((p->weaponsel->type == WEAP_SNIPER || p->weaponsel->type == WEAP_BOLT) ? 500.f : 2000.f));
-		camera3.vel.x = thirdpersondist*-sinf(RAD*p->yaw)*cosf(RAD*-p->pitch);
-		camera3.vel.y = thirdpersondist*cosf(RAD*p->yaw)*cosf(RAD*-p->pitch);
-		camera3.vel.z = thirdpersondist*sinf(RAD*-p->pitch);
-		/*loopi(5)*/ moveplayer(&camera3, 100, true, 25);
+		const float thirdpersondist = dist*(1.f-p->ads/((p->weaponsel->type == WEAP_SNIPER || p->weaponsel->type == WEAP_BOLT) ? 500.f : 2000.f));
+		camera3.vel.x = -sinf(RAD*p->yaw)*cosf(RAD*-p->pitch);
+		camera3.vel.y = cosf(RAD*p->yaw)*cosf(RAD*-p->pitch);
+		camera3.vel.z = sinf(RAD*-p->pitch);
+		vec s; // not used
+		camera3.o.add(camera3.vel.mul(max(0.f, min(rayclip(camera3.o, camera3.vel, s) - 1.1f, thirdpersondist))));
 		camera3.pitch = p->pitch;
 	}
 	else{
 		camera3.o.z -= dist * (1000 - p->ads) / 1000.f; // two negatives make a positive
+		// allow going out of bounds...
 		//if(!OUTBORD((int)p->o.x, (int)p->o.y) && camera3.o.z + 1 > S((int)p->o.x, (int)p->o.y)->ceil)
 			//camera3.o.z = S((int)p->o.x, (int)p->o.y)->ceil - 1;
 		camera3.pitch = -90 * (1000 - p->ads) / 1000.f;
