@@ -1289,10 +1289,11 @@ inline uchar maxvdelta(int id){
 	return vdelta;
 }
 
-float getblockfloor(int id){
+float getblockfloor(int id, bool check_vdelta = true){
 	if(!maplayout || getsblock(id).type == SOLID) return 127;
 	ssqr &s = getsblock(id);
-	return s.floor - (s.type == FHF ? maxvdelta(id) / 4.f : 0);
+	if(check_vdelta) return s.floor - (s.type == FHF ? maxvdelta(id) / 4.f : 0);
+	else return s.floor;
 }
 
 float getblockceil(int id){
@@ -2989,7 +2990,7 @@ bool checkmove(client &cp, int f){
 		if(!cantake && !canheal) continue;
 		const int ls = (1 << maplayout_factor) - 2, maplayoutid = getmaplayoutid(e.x, e.y);
 		const bool getmapz = maplayout && e.x > 2 && e.y > 2 && e.x < ls && e.y < ls;
-		const char &mapz = getmapz ? getblockfloor(maplayoutid) : 0;
+		const char &mapz = getmapz ? getblockfloor(maplayoutid, false) : 0;
 		vec v(e.x, e.y, getmapz ? (mapz + e.attr1 + PLAYERHEIGHT) : cs.o.z);
 		float dist = cs.o.dist(v);
 		if(dist > 3) continue;
