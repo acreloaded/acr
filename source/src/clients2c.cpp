@@ -254,7 +254,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				filtertext(text, text);
 				playerent *d = getclient(cn);
 				if(d) saytext(d, text, flags, voice);
-				else if(cn == -1) chatoutf("\f3Server Admin: \f5%s", text);
+				else if(cn == -1) chatoutf("\f5[\f0CONSOLE\f5] \f2%s", text);
 				break;
 			}
 
