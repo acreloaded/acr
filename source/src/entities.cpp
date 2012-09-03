@@ -174,7 +174,7 @@ void pickupeffects(int n, playerent *d, int spawntime)
 	e.spawntime = lastmillis + spawntime;
 	if(!d) return;
 	d->pickup(e.type);
-	itemstat &is = d->itemstats(e.type);
+	const itemstat &is = d->itemstats(e.type);
 	if(&is) playsound(is.sound, d);
 
 	weapon *w = NULL;
