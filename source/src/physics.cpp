@@ -888,7 +888,7 @@ void mousemove(int dx, int dy)
 	if(camera1!=player1 && player1->spectatemode!=SM_DEATHCAM)
 	{
 		player1->yaw = camera1->yaw;
-		player1->pitch = camera1->pitch;
+		player1->pitch = (m_zombie(gamemode) && player1->thirdperson < 0) ? 0 : camera1->pitch;
 	}
 }
 

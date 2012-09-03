@@ -496,12 +496,21 @@ void camera3(playerent *p, int dist){
 		focus = lastplayer = p;
 	}
 	camera3.o = p->o;
-	const float thirdpersondist = dist*p->radius*(1.f-p->ads/((p->weaponsel->type == WEAP_SNIPER || p->weaponsel->type == WEAP_BOLT) ? 500.f : 2000.f));
-	camera3.vel.x = thirdpersondist*-sinf(RAD*p->yaw)*cosf(RAD*-p->pitch);
-	camera3.vel.y = thirdpersondist*cosf(RAD*p->yaw)*cosf(RAD*-p->pitch);
-	camera3.vel.z = thirdpersondist*sinf(RAD*-p->pitch);
-	/*loopi(5)*/ moveplayer(&camera3, 100, true, 25);
-	camera3.pitch = p->pitch;
+	if(!m_zombie(gamemode)) dist = abs(dist);
+	if(dist > 0){
+		const float thirdpersondist = dist*p->radius*(1.f-p->ads/((p->weaponsel->type == WEAP_SNIPER || p->weaponsel->type == WEAP_BOLT) ? 500.f : 2000.f));
+		camera3.vel.x = thirdpersondist*-sinf(RAD*p->yaw)*cosf(RAD*-p->pitch);
+		camera3.vel.y = thirdpersondist*cosf(RAD*p->yaw)*cosf(RAD*-p->pitch);
+		camera3.vel.z = thirdpersondist*sinf(RAD*-p->pitch);
+		/*loopi(5)*/ moveplayer(&camera3, 100, true, 25);
+		camera3.pitch = p->pitch;
+	}
+	else{
+		camera3.o.z -= dist * (1000 - p->ads) / 1000.f; // two negatives make a positive
+		//if(!OUTBORD((int)p->o.x, (int)p->o.y) && camera3.o.z + 1 > S((int)p->o.x, (int)p->o.y)->ceil)
+			//camera3.o.z = S((int)p->o.x, (int)p->o.y)->ceil - 1;
+		camera3.pitch = -90 * (1000 - p->ads) / 1000.f;
+	}
 	camera3.yaw = p->yaw;
 	/*
 	// move camera into the desired direction using physics to avoid getting stuck in map geometry

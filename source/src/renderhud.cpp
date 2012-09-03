@@ -789,7 +789,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
 	if(!focus->weaponsel->reloading && !focus->weaponchanging){
 		if(focus->state==CS_EDITING) drawcrosshair(focus, CROSSHAIR_SCOPE, worldhit && worldhit->state==CS_ALIVE ? isteam(worldhit, focus) ? 1 : 2 : 0, NULL, 48.f);
-		else if(focus->state!=CS_DEAD) focus->weaponsel->renderaimhelp(worldhit && worldhit->state==CS_ALIVE ? isteam(worldhit, focus) ? 1 : 2 : 0);
+		else if(focus->state!=CS_DEAD && (!m_zombie(gamemode) || focus->thirdperson >= 0)) focus->weaponsel->renderaimhelp(worldhit && worldhit->state==CS_ALIVE ? isteam(worldhit, focus) ? 1 : 2 : 0);
 	}
 
 	static Texture **texs = geteventicons();

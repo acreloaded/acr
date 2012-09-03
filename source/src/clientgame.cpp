@@ -384,10 +384,15 @@ void updateworld(int curtime, int lastmillis)		// main game update loop
 	physicsframe();
 	checkweaponswitch();
 	if(player1){ // only shoot when connected to server
-		shoot(player1, worldhitpos);
+		vec targ(worldhitpos);
+		if(m_zombie(gamemode) && thirdperson < 0){
+			targ = vec(sinf(RAD*player1->yaw), -cosf(RAD*player1->yaw), 0);
+			targ.add(player1->o);
+		}
+		shoot(player1, targ);
 		loopv(players) if(players[i]){
 			playerent *p = players[i];
-			vec targ(sinf(RAD*p->yaw) * cosf(RAD*p->pitch), -cosf(RAD*p->yaw)* cosf(RAD*p->pitch), sinf(RAD*p->pitch));
+			targ = vec(sinf(RAD*p->yaw) * cosf(RAD*p->pitch), -cosf(RAD*p->yaw)* cosf(RAD*p->pitch), sinf(RAD*p->pitch));
 			shoot(p, targ.add(p->o));
 		}
 	}
@@ -1224,7 +1229,7 @@ void refreshsopmenu(void *menu, bool init)
 }
 
 extern bool watchingdemo;
-VARFP(thirdperson, 0, 0, 25, addmsg(N_THIRDPERSON, "ri", thirdperson)); // FIXME use a different protocol message for thirdperson?
+VARFP(thirdperson, -MAXTHIRDPERSON, 0, MAXTHIRDPERSON, addmsg(N_THIRDPERSON, "ri", thirdperson)); // FIXME use a different protocol message for thirdperson?
 
 // rotate through all spec-able players
 playerent *updatefollowplayer(int shiftdirection)
