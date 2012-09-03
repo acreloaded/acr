@@ -2517,7 +2517,7 @@ Output:
 		</variable>
 		<variable name="hidestats">
 		  <description>Turns on/off display of fps/rendering stats on the HUD.</description>
-		  <value token="B" description="Turns the stats off (1) or on (0)" minValue="0" maxValue="1" defaultValue="1"/>
+		  <value token="B" description="Turns the stats off (2), FPS-only (1), or on (0)" minValue="0" maxValue="2" defaultValue="1"/>
 		</variable>
 		<variable name="recoiltest">
 		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>

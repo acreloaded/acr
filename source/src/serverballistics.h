@@ -253,7 +253,14 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
 	const float dist2 = dist + end.dist(from);
 	int damage = effectiveDamage(weap, dist2 + penaltydist);
 	// out of range?
-	if(melee_weap(weap) && dist2 > guns[weap].endrange) return 0;
+	//if(melee_weap(weap) && dist2 > guns[weap].endrange) return 0;
+	if(melee_weap(weap)){
+		if(m_gib(gamemode, mutators)){
+			const int lulz[3] = {WEAP_SNIPER, WEAP_HEAL, WEAP_RPG};
+			sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, lulz[rnd(3)], from.x, from.y, from.z, to.x, to.y, to.z);
+		}
+		else if(dist2 > guns[weap].endrange) return 0;
+	}
 	// we hit somebody
 	if(hit && damage){
 		// damage multipliers

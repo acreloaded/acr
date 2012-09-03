@@ -78,7 +78,7 @@ void drawvoteicon(float x, float y, int col, int row, bool noblend)
 }
 
 VARP(crosshairsize, 0, 15, 50);
-VARP(hidestats, 0, 1, 1);
+VARP(hidestats, 0, 1, 2);
 VARP(hideobits, 0, 0, 1);
 VARP(hideradar, 0, 0, 1);
 VARP(hidecompass, 0, 0, 1);
@@ -889,6 +889,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		draw_textf("wvt %d", left, top+240, curvert);
 		draw_textf("evt %d", left, top+320, xtraverts);
 	}
+	else if(hidestats == 1) draw_textf("fps %d", (VIRTW-225-10)*2, VIRTH*2-100, curfps);
 
 	if(!intermission && !m_edit(gamemode)){
 		extern int gametimecurrent, lastgametimeupdate, gametimemaximum;
