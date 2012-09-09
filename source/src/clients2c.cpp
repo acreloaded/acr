@@ -713,7 +713,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						break;
 					case STREAK_JUG:
 						d->health = info;
-						chatoutf("\f1%s has equipped juggernaut armor!", colorname(d));
+						chatoutf("\f1%s has juggernaut!", colorname(d));
 						d->addicon(eventicon::JUGGERNAUT);
 						break;
 					case STREAK_DROPNADE:
