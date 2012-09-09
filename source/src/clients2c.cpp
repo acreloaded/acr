@@ -1356,7 +1356,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_CALLVOTEERR:
 			{
-				int e = getint(p);
+				const int e = getint(p);
 				if(e < 0 || e >= VOTEE_NUM) break;
 				conoutf("\f3could not vote: %s", voteerrorstr(e));
 				break;
@@ -1364,9 +1364,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_VOTE:
 			{
-				int cn = getint(p), vote = getint(p);
+				int cn = getint(p), vote = getint(p), expireresult = (vote >> 2) & 3; vote &= 3;
+				if(!curvote) break;
+				curvote->expiryresult = expireresult;
 				playerent *d = getclient(cn);
-				if(!curvote || !d || vote < VOTE_NEUTRAL || vote > VOTE_NO) break;
+				if(!d || vote < VOTE_NEUTRAL || vote > VOTE_NO) break;
 				d->vote = vote;
 				if(vote == VOTE_NEUTRAL) break;
 				d->voternum = curvote->nextvote++;
@@ -1377,7 +1379,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_VOTERESULT:
 			{
-				int vr = getint(p);
+				const int vr = getint(p);
 				playerent *d = getclient(getint(p));
 				veto = d != NULL;
 				if(curvote && vr >= 0 && vr < VOTE_NUM)

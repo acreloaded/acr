@@ -376,6 +376,15 @@ struct voteinfo
 	bool isvalid() { return valid_client(owner) && action != NULL && action->isvalid(); }
 	bool isalive() { return servmillis - callmillis < action->length; }
 
+	int expireresult(int *stats = NULL) {
+		if(!stats){
+			int stats_stack[VOTE_NUM] = {0};
+			stats = stats_stack;
+			loopv(clients) if(valid_client(i, true)) ++stats[clients[i]->vote%VOTE_NUM];
+		}
+		return stats[VOTE_YES]/(float)(stats[VOTE_NO]+stats[VOTE_YES]) > action->passratio ? VOTE_YES : VOTE_NO;
+	}
+
 	void evaluate(bool forceend = false, int veto = VOTE_NEUTRAL, int vetoowner = -1)
 	{
 		if(result!=VOTE_NEUTRAL) return; // block double action
@@ -386,7 +395,7 @@ struct voteinfo
 			++stats[VOTE_NUM];
 		}
 		if(forceend){
-			if(veto == VOTE_NEUTRAL) end(stats[VOTE_YES]/(float)(stats[VOTE_NO]+stats[VOTE_YES]) > action->passratio ? VOTE_YES : VOTE_NO, -3);
+			if(veto == VOTE_NEUTRAL) end(expireresult(stats), -3);
 			else end(veto, vetoowner);
 		}
 

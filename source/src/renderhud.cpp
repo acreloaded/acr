@@ -945,11 +945,12 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 				else
 					copystring(votestr[l], votestr[l], strlen(votestr[l])-1);
 			}
-			#define VSY votepl[VOTE_YES].length()
-			#define VSN votepl[VOTE_NO].length()
-			draw_textf("%d yes vs. %d no; %d neutral", left, top+480, VSY, VSN, VSU);
-			#undef VSY
-			#undef VSN
+			draw_textf("\fs\f%c%d yes\fr vs. \fs\f%c%d no\fr; %d neutral", left, top+480,
+				curvote->expiryresult == VOTE_YES ? '0' : '5',
+				votepl[VOTE_YES].length(),
+				curvote->expiryresult == VOTE_NO ? '3' : '5',
+				votepl[VOTE_NO].length(),
+				VSU);
 
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 			glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis/100.0f)+1.0f) / 2.0f);
