@@ -643,10 +643,29 @@ void drawteamicons(int w, int h){
 	}
 }
 
+int damageblendmillis = 0; // non-regen only
+
+VARFP(damagescreen, 0, 1, 1, { if(!damagescreen) damageblendmillis = 0; });
 VARP(damagescreenalpha, 50, 60, 100);
+VARP(damagescreenfactor, 1, 7, 100); // non-regen only
+VARP(damagescreenfade, 0, 125, 1000); // non-regen only
 VARP(damageindicatorfade, 0, 2000, 10000);
 VARP(damageindicatorsize, 0, 200, 10000);
 VARP(damageindicatordist, 0, 500, 10000);
+
+void damageblend(int n)
+{
+	if(!damagescreen || m_regen(gamemode, mutators)) return;
+	if(n <= 0)
+	{
+		damageblendmillis = 0;
+	}
+	else
+	{
+		if(lastmillis > damageblendmillis) damageblendmillis = lastmillis;
+		damageblendmillis += n*damagescreenfactor;
+	}
+}
 
 VARP(hitmarkerfade, 1, 750, 5000);
 
@@ -720,14 +739,23 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	static Texture *damagetex = textureload("packages/misc/damage.png", 3), *damagedirtex = textureload("packages/misc/damagedir.png");
 	glEnable(GL_TEXTURE_2D);
 
-	if(m_regen(gamemode, mutators)){
+	if(damagescreen){
 		static float fade = 0.f;
-		const int maxhealth = 100 * HEALTHSCALE;
-		float newfade = 0;
-		if(focus->state == CS_ALIVE && focus->health >= 0 && focus->health < maxhealth)
-			newfade = (1 - powf(focus->health / (float)maxhealth, 2)) * damagescreenalpha / 100.f;
-		fade = clamp((fade * 40 + newfade) / 41.f, 0.f, 1.f);
-		if(fade >= 0.05f){
+		if(m_regen(gamemode, mutators)){
+			const int maxhealth = 100 * HEALTHSCALE;
+			float newfade = 0;
+			if(focus->state == CS_ALIVE && focus->health >= 0 && focus->health < maxhealth)
+				newfade = (1 - powf(focus->health / (float)maxhealth, 2)) * damagescreenalpha / 100.f;
+			fade = clamp((fade * 40 + newfade) / 41.f, 0.f, 1.f);
+		}
+		else if(lastmillis < damageblendmillis)
+		{
+			fade = damagescreenalpha/100.0f;
+			if(damageblendmillis - lastmillis < damagescreenfade)
+				fade *= float(damageblendmillis - lastmillis)/damagescreenfade;
+		}
+		else fade = 0;
+		if(fade >= .05f){
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glBindTexture(GL_TEXTURE_2D, damagetex->id);
 			const float c = clamp(fade, .05f, .95f);

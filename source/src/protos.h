@@ -272,7 +272,7 @@ extern void renderwaypoint(int wp, const vec &o, float alpha = 1, bool thruwalls
 
 extern void drawscope();
 extern float dynfov();
-//extern void damageblend(int n);
+extern void damageblend(int n);
 
 enum
 {

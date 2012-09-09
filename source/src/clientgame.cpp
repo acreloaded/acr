@@ -212,7 +212,7 @@ void deathstate(playerent *pl)
 	if(pl==player1){
 		if(showscoresondeath) showscores(true);
 		setscope(false);
-		//damageblend(-1);
+		damageblend(-1);
 		spawnenqueued = false;
 	}
 	else pl->resetinterp();
@@ -526,7 +526,11 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 	}
 
 	// roll if you are hit
-	if(pl==player1 || isowned(pl)) pl->damageroll(damage);
+	if(pl==player1 || isowned(pl))
+	{
+		pl->damageroll(damage);
+		if(pl==player1) damageblend(damage);
+	}
 
 	// sound
 	if(pl==focus) playsound(S_PAIN6, SP_HIGH);
