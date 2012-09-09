@@ -488,12 +488,12 @@ mutstypes mutstype[G_M_NUM] = {
 	// damage
 	{
 		G_M_REAL, G_M_REAL,
-		G_M_ALL & ~(G_M_EXPERT), // real conflicts with expert
-		"realistic",
+		G_M_ALL & ~(G_M_EXPERT), // hardcore conflicts with expert
+		"hardcore",
 	},
 	{
 		G_M_EXPERT, G_M_EXPERT,
-		G_M_ALL & ~(G_M_REAL), // expert conflicts with real
+		G_M_ALL & ~(G_M_REAL), // expert conflicts with hardcore
 		"expert",
 	},
 	// weapons are mutually exclusive
