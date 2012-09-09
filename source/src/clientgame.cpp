@@ -1148,7 +1148,7 @@ void callvote_parser(char *type, char *arg1, char *arg2, char *arg3)
 
 bool vote(int v)
 {
-	if(!curvote || v < 0 || v >= VOTE_NUM) return false;
+	if(!curvote || curvote->result != VOTE_NEUTRAL || v < 0 || v >= VOTE_NUM) return false;
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
 	putint(p, N_VOTE);
