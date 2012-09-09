@@ -87,7 +87,7 @@ void updatelagtime(playerent *d)
 extern void trydisconnect();
 
 VARP(maxrollremote, 0, 1, 1); // bound remote "roll" values by our maxroll?!
-VARP(voteid, 0, 1, 1); // display votes
+VARP(voteid, 0, 0, 1); // display votes
 
 void parsepositions(ucharbuf &p)
 {
