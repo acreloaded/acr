@@ -2347,7 +2347,8 @@ int nextcfgset(bool notify = true, bool nochange = false){ // load next maprotat
 	if(!nochange)
 	{
 		curcfgset = ccs;
-		resetmap(c->mapname, c->mode, c->muts, c->time, notify);
+		// no demo, minimum 3 minutes
+		resetmap(c->mapname, m_demo(c->mode) ? G_DM : c->mode, c->muts, c->time >= 0 ? max(c->time, 3) : 0, notify);
 	}
 	return ccs;
 }
