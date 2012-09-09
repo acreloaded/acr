@@ -1535,11 +1535,12 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	}
 	// kills
 	int virtualstreak = actor->state.pointstreak + (actor->state.perk2 == PERK2_STREAK ? 5 : 0);
-	#define ifhasstreak(n) if(virtualstreak >= n * 5 && actor->state.streakused < n * 5)
-	ifhasstreak(7) streakready(*actor, STREAK_AIRSTRIKE);
-	ifhasstreak(9) usestreak(*actor, STREAK_RADAR);
-	ifhasstreak(11) usestreak(*actor, STREAK_NUKE);
-	ifhasstreak(20) usestreak(*actor, STREAK_JUG);
+#define checkstreak(n) if(virtualstreak >= n * 5 && actor->state.streakused < n * 5)
+	checkstreak(7) streakready(*actor, STREAK_AIRSTRIKE);
+	checkstreak(9) usestreak(*actor, STREAK_RADAR);
+	checkstreak(11) usestreak(*actor, STREAK_NUKE);
+	checkstreak(17) usestreak(*actor, STREAK_JUG);
+#undef checkstreak
 	// restart streak
 	// actor->state.pointstreak %= 11 * 5;
 	actor->state.streakused = virtualstreak;
