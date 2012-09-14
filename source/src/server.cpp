@@ -990,7 +990,7 @@ void distributespawns(){
 	{
 		clients[i]->spawnindex = -1;
 	}
-	if(m_team(gamemode, mutators) && !m_zombie(gamemode)) // zombies uses FFA spawns
+	if(m_spawn_team(gamemode, mutators))
 	{
 		distributeteam(0);
 		distributeteam(1);
@@ -2922,7 +2922,7 @@ bool checkmove(client &cp, int f){
 			cs.speedmillis = gamemillis;
 		}
 	}
-	// deal damaage of movement
+	// deal damage of movement
 	if(!cs.protect(gamemillis, gamemode, mutators)){
 		// medium transfer (falling damage)
 		const bool newonfloor = (f>>7)&1, newonladder = (f>>8)&1, newunderwater = cs.o.z < smapstats.hdr.waterlevel;
@@ -3419,8 +3419,23 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				cs.spawnmillis = gamemillis;
 				cs.state = CS_ALIVE;
 				cs.gunselect = gunselect;
-				cs.o = o;
-				QUEUE_BUF(5*(9 + 2*WEAP_MAX) + 4*(3),
+				cs.o = cs.lasto = o;
+				cs.movemillis = gamemillis;
+				// spawn position check
+				bool found = false, found_ok = false;
+				if(smapstats.hdr.numents && smapstats.ents) loopi(smapstats.hdr.numents)
+				{
+					persistent_entity &e = smapstats.ents[i];
+					if(e.type != PLAYERSTART) continue;
+					if(o.distxy(vec(e.x, e.y, e.z)) > PLAYERRADIUS) continue;
+					found = true;
+					if(e.attr2 == (m_spawn_team(gamemode, mutators) ? clients[cn]->team : 100)){
+						found_ok = true;
+						break;
+					}
+				}
+				if(found && !found_ok) cheat(cl, "bad spawn position");
+				else QUEUE_BUF(5*(9 + 2*WEAP_MAX) + 4*(3),
 				{
 					putint(buf, N_SPAWN);
 					putint(buf, cn);

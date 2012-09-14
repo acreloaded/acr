@@ -431,14 +431,14 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
 	entity *e = NULL;
 	if(!mapcenter)
 	{
-		int type = m_team(gamemode, mutators) && !m_zombie(gamemode) ? d->team : 100;
+		int type = m_spawn_team(gamemode, mutators) ? d->team : 100;
 		if(m_duke(gamemode, mutators) && arenaspawn >= 0)
 		{
 			int x = -1;
 			loopi(arenaspawn + 1) x = findentity(PLAYERSTART, x+1, type);
 			if(x >= 0) e = &ents[x];
 		}
-		else if((m_team(gamemode, mutators) || m_duke(gamemode, mutators)) && !m_keep(gamemode) && !m_zombie(gamemode)) // ktf and zombies uses ffa spawns
+		else if(m_team(gamemode, mutators) || m_duke(gamemode, mutators))
 		{
 			loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1, type);
 			if(spawncycle >= 0) e = &ents[spawncycle];
@@ -449,7 +449,7 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
 
 			loopi(r)
 			{
-				spawncycle = (m_keep(gamemode) || m_zombie(gamemode)) && numspawn[2] > 5 ? findentity(PLAYERSTART, spawncycle+1, 100) : findentity(PLAYERSTART, spawncycle+1);
+				spawncycle = !m_spawn_team(gamemode, mutators) && numspawn[2] > 5 ? findentity(PLAYERSTART, spawncycle+1, 100) : findentity(PLAYERSTART, spawncycle+1);
 				if(spawncycle < 0) continue;
 				float dist = nearestenemy(vec(ents[spawncycle].x, ents[spawncycle].y, ents[spawncycle].z), d->team);
 				if(!e || dist < 0 || (bestdist >= 0 && dist > bestdist)) { e = &ents[spawncycle]; bestdist = dist; }
