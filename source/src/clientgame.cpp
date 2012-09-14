@@ -431,7 +431,7 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
 	entity *e = NULL;
 	if(!mapcenter)
 	{
-		int type = m_spawn_team(gamemode, mutators) ? d->team : 100;
+		const int type = m_spawn_team(gamemode, mutators) ? d->team : 100;
 		if(m_duke(gamemode, mutators) && arenaspawn >= 0)
 		{
 			int x = -1;

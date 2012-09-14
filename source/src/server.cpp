@@ -3429,7 +3429,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					if(e.type != PLAYERSTART) continue;
 					if(o.distxy(vec(e.x, e.y, e.z)) > PLAYERRADIUS) continue;
 					found = true;
-					if(e.attr2 == (m_spawn_team(gamemode, mutators) ? clients[cn]->team : 100)){
+					if(e.attr2 == (m_spawn_team(gamemode, mutators) || smapstats.spawns[2] <= 5 ? clients[cn]->team : 100)){
 						found_ok = true;
 						break;
 					}
