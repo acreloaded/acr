@@ -1691,7 +1691,7 @@ void cheat(client *cl, const char *reason = "unknown"){
 	logline(ACLOG_INFO, "[%s] %s cheat detected (%s)", gethostname(cl->clientnum), formatname(cl), reason);
 	defformatstring(cheats)("\f2%s \fs\f6(%d) \f3cheat detected \f4(%s)", cl->name, cl->clientnum, reason);
 	sendservmsg(cheats);
-	cl->suicide(WEAP_MAX + 12, FRAG_GIB);
+	cl->suicide(WEAP_MAX + (cl->type == ST_AI ? 11 : 12), FRAG_GIB);
 }
 
 #include "serverevents.h"
@@ -3438,7 +3438,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						}
 					}
 				}
-				if(/*found &&*/ !found_ok) cheat(cl, "bad spawn position");
+				if(/*found &&*/ !found_ok) cheat(clients[cn], "bad spawn position");
 				else QUEUE_BUF(5*(9 + 2*WEAP_MAX) + 4*(3),
 				{
 					putint(buf, N_SPAWN);
