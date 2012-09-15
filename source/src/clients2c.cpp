@@ -496,11 +496,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				s->secondary = getint(p);
 				loopi(WEAP_MAX) s->ammo[i] = getint(p);
 				loopi(WEAP_MAX) s->mag[i] = getint(p);
+				d->yaw = getint(p);
+				d->pitch = d->roll = 0;
+				loopi(3) s->o[i] = getfloat(p);
+				s->resetinterp();
+				updatepos(s);
 				//s->state = CS_SPAWNING;
 				s->state = CS_ALIVE;
 				s->spawnmillis = lastmillis;
-				loopi(3) s->o[i] = getfloat(p);
-				updatepos(s);
 				break;
 			}
 
@@ -518,12 +521,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				d->setprimary(getint(p));
 				d->secondary = getint(p);
 				d->selectweapon(getint(p));
-				int arenaspawn = getint(p);
+				d->yaw = getint(p);
+				d->pitch = d->roll = 0;
+				loopi(3) d->o[i] = getfloat(p);
+				d->resetinterp();
 				loopi(WEAP_MAX) d->ammo[i] = getint(p);
 				loopi(WEAP_MAX) d->mag[i] = getint(p);
 				d->state = CS_ALIVE;
 				d->spawnmillis = lastmillis;
-				findplayerstart(d, false, arenaspawn);
 				if(d == player1){
 					if(editmode) toggleedit(true);
 					showscores(false);
@@ -535,7 +540,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						hudeditf(HUDMSG_TIMER, _("spawn_fight"));
 					}
 				}
-				addmsg(N_SPAWN, "ri3f3", d->clientnum, d->lifesequence, d->weaponsel->type, d->o.x, d->o.y, d->o.z);
+				addmsg(N_SPAWN, "ri3", d->clientnum, d->lifesequence, d->weaponsel->type);
 				d->weaponswitch(d->weapons[d->primary]);
 				d->weaponchanging -= SWITCHTIME(d->perk1 == PERK_TIME)/2;
 				break;

@@ -466,7 +466,10 @@ bool empty_world(int factor, bool force)	// main empty world creation routine, i
 	}
 	if(factor>=0)
 	{
-		findplayerstart(player1, true);
+		// mapcenter
+		player1->o.x = player1->o.y = (float)ssize/2;
+		player1->o.z = 4;
+		entinmap(player1);
 		extern string clientmap;
 		startmap(clientmap, false);
 	}
