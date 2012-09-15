@@ -35,10 +35,12 @@ bool addai(){
 	b.reset();
 	b.type = ST_AI;
 	b.connected = true;
+	b.team = chooseteam(b); // choose its team
+	b.state.skin = rand();// random skin
 	b.state.level = 45 + rnd(51); // how smart/stupid the bot is can be set here (currently random from 45 to 95)
 	b.state.ownernum = aiowner;
 	mkbotname(b);
-	sendf(-1, 1, "ri5si", N_INITAI, cn, (b.team = chooseteam(b)), (b.skin = rand()), b.state.level, b.name, b.state.ownernum);
+	sendf(-1, 1, "ri5si", N_INITAI, cn, b.team, b.state.skin, b.state.level, b.name, b.state.ownernum);
 	forcedeath(&b);
 	if(canspawn(&b, true)) sendspawn(&b);
 	return true;

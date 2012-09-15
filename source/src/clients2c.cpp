@@ -441,7 +441,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case N_SKIN:
 			case N_THIRDPERSON:
 			case N_LEVEL:
 			{
@@ -450,9 +449,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(d && d != player1){
 					switch(type)
 					{
-						case N_SKIN:
-							setskin(d, info);
-							break;
 						case N_THIRDPERSON:
 							d->thirdperson = info;
 							break;
@@ -489,6 +485,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(!s || s == player1 || isowned(s)) { static playerent dummy; s = &dummy; }
 				s->respawn();
 				s->lifesequence = getint(p);
+				setskin(s, getint(p));
 				s->health = getint(p);
 				s->armor = getint(p);
 				s->perk1 = getint(p);
@@ -513,6 +510,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(!d || (d != player1 && !isowned(d))) { static playerent dummy; d = &dummy; }
 				d->respawn();
 				d->lifesequence = getint(p);
+				setskin(d, getint(p));
 				d->health = getint(p);
 				d->armor = getint(p);
 				d->perk1 = getint(p);
@@ -530,8 +528,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					if(editmode) toggleedit(true);
 					showscores(false);
 					setscope(false);
-					extern int nextskin;
-					if(player1->skin!=nextskin) setskin(player1, nextskin);
 					if(m_duke(gamemode, mutators)){
 						// arenaintermission = 0;
 						closemenu(NULL);

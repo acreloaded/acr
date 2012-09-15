@@ -131,7 +131,7 @@ struct clientstate : playerstate
 	vec o, aim, vel, lasto, speedo, sg[SGRAYS], flagpickupo;
 	float pitchvel;
 	int state, omillis, lastomillis, movemillis, speedmillis;
-	int lastdeath, lastpain, lastffkill, lastspawn, lifesequence, streakused;
+	int lastdeath, lastpain, lastffkill, lastspawn, lifesequence, skin, streakused;
 	int lastkill, combo;
 	bool crouching, onfloor; float fallz;
 	int crouchmillis, scopemillis;
@@ -173,6 +173,7 @@ struct clientstate : playerstate
 	{
 		state = CS_DEAD;
 		lifesequence = -1;
+		skin = 0;
 		grenades.reset();
 		knives.reset();
 		akimbomillis = 0;
@@ -252,7 +253,7 @@ struct client				   // server side version of "dynent" type
 	ENetPeer *peer;
 	string hostname;
 	string name;
-	int ping, team, skin, vote, priv;
+	int ping, team, vote, priv;
 	bool muted;
 	int acversion, acbuildtype, acthirdperson;
 	int connectmillis;
@@ -332,7 +333,7 @@ struct client				   // server side version of "dynent" type
 	{
 		name[0] = demoflags = authmillis = 0;
 		ping = bottomRTT = 9999;
-		skin = team = 0;
+		team = 0; // TEAM_RED
 		position.setsize(0);
 		messages.setsize(0);
 		connected = connectauth = wantsmap = haswelcome = false;

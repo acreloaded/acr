@@ -142,7 +142,11 @@ void newteam(char *name)
 	else conoutf("%s: %s", _("team_you"), team_string(player1->team));
 }
 
-VARNP(skin, nextskin, 0, 0, 1000);
+void nextskin(int skin)
+{
+	addmsg(N_SKIN, "ri", skin);
+}
+COMMANDN(skin, nextskin, ARG_1INT);
 
 int curteam() { return player1->team; }
 int currole() { return player1->priv; }
@@ -222,11 +226,7 @@ void spawnstate(playerent *d)			  // reset player state not persistent across sp
 {
 	d->respawn();
 	d->spawnstate(d->team, gamemode, mutators);
-	if(d==player1)
-	{
-		if(player1->skin!=nextskin) setskin(player1, nextskin);
-		setscope(false);
-	}
+	if(d==player1) setscope(false);
 }
 
 playerent *newplayerent()				 // create a new blank player

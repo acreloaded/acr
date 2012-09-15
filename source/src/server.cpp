@@ -403,9 +403,9 @@ void sendspawn(client *c){
 	clientstate &gs = c->state;
 	if(gs.lastdeath) gs.respawn();
 	spawnstate(c);
-	sendf(c->clientnum, 1, "ri9i2vv", N_SPAWNSTATE, c->clientnum, gs.lifesequence, // 1-3
-		gs.health, gs.armor, gs.perk1, gs.perk2, // 4-7
-		gs.primary, gs.secondary, gs.gunselect, m_duke(gamemode, mutators) ? c->spawnindex : -1, // 8-9, 2
+	sendf(c->clientnum, 1, "ri9i3vv", N_SPAWNSTATE, c->clientnum, gs.lifesequence, // 1-3
+		gs.skin, gs.health, gs.armor, gs.perk1, gs.perk2, // 4-8
+		gs.primary, gs.secondary, gs.gunselect, m_duke(gamemode, mutators) ? c->spawnindex : -1, // 8-9, 3
 		WEAP_MAX, gs.ammo, WEAP_MAX, gs.mag);
 	gs.lastspawn = gamemillis;
 
@@ -487,7 +487,7 @@ void putinitai(client &c, ucharbuf &p){
 	putint(p, N_INITAI);
 	putint(p, c.clientnum);
 	putint(p, c.team);
-	putint(p, c.skin);
+	putint(p, c.state.skin);
 	putint(p, c.state.level);
 	sendstring(c.name, p);
 	putint(p, c.state.ownernum);
@@ -2728,7 +2728,7 @@ void putinitclient(client &c, ucharbuf &p){
     putint(p, N_INITCLIENT);
     putint(p, c.clientnum);
 	putint(p, c.team);
-    putint(p, c.skin);
+    putint(p, c.state.skin);
 	putint(p, c.state.level);
     sendstring(c.name, p);
 	putint(p, c.acbuildtype);
@@ -3136,7 +3136,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			filtername(text, text);
 			if(!*text) copystring(text, "unarmed");
 			copystring(cl->name, text, MAXNAMELEN+1);
-			cl->skin = getint(p);
+			cl->state.skin = getint(p);
 			cl->state.level = clamp(getint(p), 1, MAXLEVEL);
 			getstring(text, p);
 			copystring(cl->pwd, text);
@@ -3335,7 +3335,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			}
 
 			case N_SKIN:
-				sendf(-1, 1, "ri3x", N_SKIN, sender, cl->skin = getint(p), sender);
+				cl->state.skin = getint(p);
 				break;
 
 			case N_THIRDPERSON:
@@ -3444,6 +3444,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					putint(buf, N_SPAWN);
 					putint(buf, cn);
 					putint(buf, ls);
+					putint(buf, cs.skin);
 					putint(buf, cs.health);
 					putint(buf, cs.armor);
 					putint(buf, cs.perk1);
