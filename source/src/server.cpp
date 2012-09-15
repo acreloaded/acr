@@ -460,7 +460,7 @@ void sendspawn(client *c){
 	{
 		spawnpos.x = spawn_ent->x;
 		spawnpos.y = spawn_ent->y;
-		spawnpos.z = spawn_ent->z;
+		spawnpos.z = spawn_ent->z /*+ PLAYERABOVEEYE*/;
 		gs.aim[0] = spawn_ent->attr1; // yaw
 	}
 	else
@@ -471,8 +471,12 @@ void sendspawn(client *c){
 		gs.aim[0] = 0; // yaw
 		extern float getblockfloor(int id, bool check_vdelta = true);
 		extern int getmaplayoutid(int x, int y);
-		spawnpos.z = getblockfloor(getmaplayoutid(spawnpos.x, spawnpos.y), false) + PLAYERHEIGHT + PLAYERABOVEEYE;
+		spawnpos.z = getblockfloor(getmaplayoutid(spawnpos.x, spawnpos.y), false) + PLAYERHEIGHT /*+ PLAYERABOVEEYE*/;
 	}
+	extern bool checkpos(vec &p, bool alter = true);
+	spawnpos.z -= PLAYERHEIGHT;
+	checkpos(spawnpos); // fix spawn being stuck
+	spawnpos.z += PLAYERHEIGHT;
 	gs.aim[1] = gs.aim[2] = 0; // pitch, roll
 	gs.o = gs.lasto = spawnpos;
 	sendf(c->clientnum, 1, "ri9i3f3vv", N_SPAWNSTATE, c->clientnum, gs.lifesequence, // 1-3
