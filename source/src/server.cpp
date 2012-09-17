@@ -1534,7 +1534,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	const bool gib = (style & FRAG_GIB) != 0;
 
 	ts.damagelog.removeobj(target->clientnum);
-	if(actor == target && ts.damagelog.length()){
+	if(actor == target && ts.damagelog.length() && gun != WEAP_MAX + 1){
 		loopv(ts.damagelog)
 			if(valid_client(ts.damagelog[i]) && !isteam(target, clients[ts.damagelog[i]])){
 				actor = clients[ts.damagelog[i]];
