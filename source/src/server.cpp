@@ -2969,7 +2969,11 @@ bool checkmove(client &cp, int f){
 	if(cs.state != CS_ALIVE) return true;
 	const int sender = cp.clientnum;
 	// help detect AFK
-	if(cs.lasto.dist(cs.o) >= 0.1f) cs.movemillis = servmillis;
+	if(!cs.movemillis){
+		if(cs.lasto.distxy(cs.o) >= 4*PLAYERRADIUS) cheat(&cp, "bad spawn adjustment");
+		cs.movemillis = servmillis;
+	}
+	else if(cs.lasto.dist(cs.o) >= 0.1f) cs.movemillis = servmillis;
 	// detect speedhack
 	if(!m_edit(gamemode) && cs.lastpain + 2000 < gamemillis){
 		// immediate velocity
@@ -3493,7 +3497,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				cs.spawnmillis = gamemillis;
 				cs.state = CS_ALIVE;
 				cs.gunselect = gunselect;
-				cs.movemillis = gamemillis;
 				QUEUE_BUF(5*(11 + 2*WEAP_MAX) + 4*(3),
 				{
 					putint(buf, N_SPAWN);

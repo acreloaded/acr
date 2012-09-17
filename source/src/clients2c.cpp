@@ -524,7 +524,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				d->yaw = getint(p);
 				d->pitch = d->roll = 0;
 				loopi(3) d->o[i] = getfloat(p);
-				d->resetinterp();
+				entinmap(d);
 				loopi(WEAP_MAX) d->ammo[i] = getint(p);
 				loopi(WEAP_MAX) d->mag[i] = getint(p);
 				d->state = CS_ALIVE;
