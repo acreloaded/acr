@@ -833,67 +833,67 @@ const char *suicname(int obit){
 	switch(obit){
 		// ricochet from teamkill specific
 		case WEAP_SHOTGUN:
-			concatstring(k, "discovered that buckshot bounces");
+			concatstring(k, "suic_shotgun");
 			break;
 		case WEAP_SUBGUN:
 		case WEAP_ASSAULT:
-			concatstring(k, "fired on a teammate");
+			concatstring(k, "suic_rifle");
 			break;
 		case WEAP_SNIPER:
 		case WEAP_BOLT:
-			concatstring(k, "sniped a teammate");
+			concatstring(k, "suic_snipe");
 			break;
 		case WEAP_PISTOL:
 		case WEAP_AKIMBO:
-			concatstring(k, "ate a bullet");
+			concatstring(k, "suic_pistol");
 			break;
 		// END of ricochet
 		// teams
 		case OBIT_SPECT:
-			concatstring(k, "abnegated from gameplay");
+			concatstring(k, "suic_spect");
 			break;
 		case OBIT_TEAM:
-			concatstring(k, "renounced and defected from an old team");
+			concatstring(k, "suic_team");
 			break;
 		// weapons
 		case WEAP_GRENADE:
-			concatstring(k, "experienced fragmentation");
+			concatstring(k, "suic_nade");
 			break;
 		case WEAP_HEAL:
-			concatstring(k, "overdosed");
+			concatstring(k, "suic_heal");
 			break;
 		case WEAP_RPG:
-			concatstring(k, "experienced rocket-propelled suicide");
+			concatstring(k, "suic_rpg");
 			break;
 		case OBIT_DEATH:
-			concatstring(k, "requested suicide");
+			concatstring(k, "suic_death");
 			break;
 		case OBIT_AIRSTRIKE:
-			concatstring(k, "called in a danger close mission");
+			concatstring(k, "suic_airstrike");
 			break;
 		case OBIT_NUKE:
-			concatstring(k, "deployed a nuke");
+			concatstring(k, "suic_nuke");
 			break;
 		case OBIT_FF:
-			concatstring(k, "tried to melee a teammate");
+			concatstring(k, "suic_ff");
 			break;
 		case OBIT_BOT:
-			concatstring(k, "acted like a stupid bot");
+			concatstring(k, "suic_bot");
 			break;
 		case OBIT_DROWN:
-			concatstring(k, "drowned");
+			concatstring(k, "suic_drown");
 			break;
 		case OBIT_FALL:
-			concatstring(k, "hit the ground");
+			concatstring(k, "suic_fall");
 			break;
 		case OBIT_FALL_WATER:
-			concatstring(k, "dived from too high above");
+			concatstring(k, "suic_fall_water");
 			break;
 		case OBIT_CHEAT:
-			concatstring(k, "cheated");
+			concatstring(k, "suic_cheat");
 			break;
 		default:
-			concatstring(k, "somehow suicided");
+			concatstring(k, "suicide");
 			break;
 	}
 	return k;

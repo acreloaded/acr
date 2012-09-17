@@ -436,12 +436,12 @@ void sendspawn(client *c){
 	if(m_duke(gamemode, mutators) && c->spawnindex >= 0)
 	{
 		int x = -1;
-		loopi(c->spawnindex + 1) x = findentity(PLAYERSTART, x+1, type);
+		loopi(c->spawnindex + 1) x = findspawn(PLAYERSTART, x+1, type);
 		if(x >= 0) spawn_ent = &ents[x];
 	}
 	else if(m_team(gamemode, mutators) || m_duke(gamemode, mutators))
 	{
-		loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1, type);
+		loopi(r) spawncycle = findspawn(PLAYERSTART, spawncycle+1, type);
 		if(spawncycle >= 0) spawn_ent = &ents[spawncycle];
 	}
 	else
@@ -1663,8 +1663,8 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	ts.lastdeath = gamemillis;
 	const char *h = gethostname(actor->clientnum);
 	const int logtype = actor->type == ST_AI && target->type == ST_AI ? ACLOG_VERBOSE : ACLOG_INFO;
-	if(!suic) logline(logtype, "[%s] %s %s %s (%.2f m)", h, formatname(actor), killname(toobit(gun, style), isheadshot(gun, style)), formatname(target), killdist / 4.f);
-	else logline(logtype, "[%s] %s %s (%.2f m)", h, formatname(actor), suicname(obit_suicide(gun)), killdist / 4.f);
+	if(!suic) logline(logtype, "[%s] %s [%s] %s (%.2f m)", h, formatname(actor), killname(toobit(gun, style), isheadshot(gun, style)), formatname(target), killdist / 4.f);
+	else logline(logtype, "[%s] %s [%s] (%.2f m)", h, formatname(actor), suicname(obit_suicide(gun)), killdist / 4.f);
 
 	if(m_affinity(gamemode)){
 		if(m_ktf2(gamemode, mutators) && // KTF2 only

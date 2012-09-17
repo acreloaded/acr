@@ -481,7 +481,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 	formatstring(subject)("\f2\fs%s\f2", act == player1 ? "\f1you" : colorname(act));
 	copystring(hashave, act == player1 ? "have" : "has");
 	if(pl == act){
-		copystring(predicate, suicname(obit = obit_suicide(weapon)));
+		copystring(predicate, _(suicname(obit = obit_suicide(weapon))));
 		if(pl == player1){
 			// radar scan
 			loopv(players){
@@ -496,8 +496,11 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 		}
 		if(pl == focus) concatstring(predicate, "!\f2");
 	}
-	else formatstring(predicate)("%s%s %s%s", style&FRAG_REVENGE ? "\fs\f0vengefully \fr" : "", killname(obit = toobit(weapon, style), headshot),
+	else{
+		if(style&FRAG_REVENGE) formatstring(predicate)("\fs\f0%s \fr", _("obit_revenge"));
+		concatformatstring(predicate, "%s %s%s", _(killname(obit = toobit(weapon, style), headshot)),
 			isteam(pl, act) ? act==player1 ? "\f3your teammate " : "\f3his teammate " : "", pl == player1 ? "\f1you\f2" : colorname(pl));
+	}
 	if(killdist) concatformatstring(predicate, " (@%.2f m)", killdist / 4.f);
 	// streaks
 	// assist count
@@ -511,7 +514,7 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 	}
 	// assists
 	if(pl->damagelog.length()){
-		concatstring(predicate, ", assisted by");
+		concatstring(predicate, _("obit_assist"));
 		bool first = true;
 		while(pl->damagelog.length()){
 			playerent *p = getclient(pl->damagelog.pop());
@@ -523,14 +526,14 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 		}
 	}
 	switch(combo){
-		case 2: concatstring(predicate, ", \fs\f0\fbdouble-killing\fr"); break;
-		case 3: concatstring(predicate, ", \fs\f1\fbtriple-killing\fr"); break;
-		case 4: concatstring(predicate, ", \fs\f3\fbmulti-killing\fr"); break;
-		case 5: concatstring(predicate, ", \fs\f4\fbslaughering\fr"); break;
-		default: if(combo > 1) concatstring(predicate, ", \fs\f5\fbPWNING\fr"); break;
+		case 2: concatformatstring(predicate, ", \fs\f0\fb%s\fr", _("obit_combo_2")); break;
+		case 3: concatformatstring(predicate, ", \fs\f1\fb%s\fr", _("obit_combo_3")); break;
+		case 4: concatformatstring(predicate, ", \fs\f3\fb%s\fr", _("obit_combo_4")); break;
+		case 5: concatformatstring(predicate, ", \fs\f4\fb%s\fr", _("obit_combo_5")); break;
+		default: if(combo > 1) concatformatstring(predicate, ", \fs\f5\fb%s\fr", _("obit_combo_6")); break;
 	}
-	if(style & FRAG_FIRST) concatstring(predicate, " for \fs\f3\fbfirst blood\fr");
-	if(style & FRAG_CRIT) concatstring(predicate, " with a \fs\f1\fbcritical hit\fr");
+	if(style & FRAG_FIRST) concatformatstring(predicate, " %s\fs\f3\fb%s\fr%s", _("obit_first_pre"), _("obit_first_mid"), _("obit_first_post"));
+	if(style & FRAG_CRIT) concatformatstring(predicate, " %s\fs\f1\fb%s\fr%s", _("obit_crit_pre"), _("obit_crit_mid"), _("obit_crit_post"));
 	if(pl != act && weapon < WEAP_MAX && ads_gun(weapon)){
 		char scopestyle = 0;
 		if(style & FRAG_SCOPE_NONE) scopestyle = (style & FRAG_SCOPE_FULL) ? 3 : 1;
