@@ -4808,6 +4808,8 @@ void localconnect(){
 }
 #endif
 
+cvector found_map_files;
+
 void initserver(bool dedicated){
 	srand(time(NULL));
 
@@ -4818,6 +4820,9 @@ void initserver(bool dedicated){
 	copystring(servdesc_current, scl.servdesc_full);
 	servermsinit(scl.master ? scl.master : AC_MASTER_URI, scl.ip, scl.serverport + CUBE_SERVINFO_OFFSET, dedicated);
 
+	// check for official maps
+	if(!found_map_files.length()) listfiles(SERVERMAP_PATH_BUILTIN, "cgz", found_map_files);
+
 	if((isdedicated = dedicated))
 	{
 		ENetAddress address = { ENET_HOST_ANY, scl.serverport };
@@ -4826,14 +4831,10 @@ void initserver(bool dedicated){
 		if(!serverhost) fatal("could not create server host");
 		loopi(scl.maxclients) serverhost->peers[i].data = (void *)-1;
 
-		// check for official maps
-		cvector found_map_files;
-		int num_official = 0;
-		if(listfiles(SERVERMAP_PATH_BUILTIN, "cgz", found_map_files))
-			num_official = found_map_files.length();
-		if(num_official)
+		// must have official maps
+		if(found_map_files.length())
 		{
-			logline(ACLOG_INFO, "detected %d official maps", num_official);
+			logline(ACLOG_INFO, "detected %d official maps", found_map_files.length());
 			found_map_files.deletearrays();
 		}
 		else fatal("could not find official maps (%s)", SERVERMAP_PATH_BUILTIN);

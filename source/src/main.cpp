@@ -552,19 +552,9 @@ VARFP(clockfix, 0, 0, 1, clockreset());
 
 const char *rndmapname()
 {
-	// "ac_depot_classic",
-	static const char * const mapnames[] = {
-		"ac_aqueous",  "ac_arabian",  "ac_arctic",  "ac_arid", "ac_complex",
-		"ac_depot",  "ac_desert",  "ac_desert2", "ac_desert3",  "ac_douze",
-		"ac_elevation",  "ac_gothic",  "ac_iceroad",  "ac_ingress", "ac_keller",
-		"ac_mines",  "ac_outpost",  "ac_power",  "ac_rattrap",  "ac_scaffold",
-		"ac_shine",  "ac_snow",  "ac_sunset",  "ac_toxic",  "ac_urban",
-		"ac_werk",
-	};
-	srand(time(NULL));
-	int l = sizeof(mapnames)/sizeof(mapnames[0]);
-	int n = rnd(l);
-	return mapnames[n];
+	extern cvector found_map_files;
+	if(!found_map_files.length()) return "ac_desert";
+	return found_map_files[rnd(found_map_files.length())];
 }
 
 int main(int argc, char **argv)
@@ -582,7 +572,7 @@ int main(int argc, char **argv)
 	bool dedicated = false;
 	bool quitdirectly = false;
 
-	const char *initmap = rndmapname();
+	const char *initmap = NULL;
 
 	pushscontext(IEXC_CFG);
 
@@ -778,7 +768,7 @@ int main(int argc, char **argv)
 
 		initlog("localconnect");
 		localconnect();
-		changemap(initmap);
+		changemap(initmap ? initmap : rndmapname());
 
 		initlog("mainloop");
 
