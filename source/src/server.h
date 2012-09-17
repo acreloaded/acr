@@ -935,68 +935,68 @@ const char *killname(int obit, bool headshot){
 	*k = 0;
 	switch(obit){
 		case WEAP_GRENADE:
-			concatstring(k, "obliterated");
+			concatstring(k, headshot ? "nade_hs" : "nade");
 			break;
 		case WEAP_KNIFE:
-			concatstring(k, headshot ? "decapitated" : "slashed");
+			concatstring(k, headshot ? "knife_hs" : "knife");
 			break;
 		case WEAP_BOLT:
-			concatstring(k, headshot ? "overkilled" : "quickly killed");
+			concatstring(k, headshot ? "bolt_hs" : "bolt");
 			break;
 		case WEAP_SNIPER:
-			concatstring(k, headshot ? "expertly sniped" : "sniped");
+			concatstring(k, headshot ? "sniper_hs" : "sniper");
 			break;
 		case WEAP_SUBGUN:
-			concatstring(k, headshot ? "spliced" : "perforated");
+			concatstring(k, headshot ? "smg_hs" : "smg");
 			break;
 		case WEAP_SHOTGUN:
-			concatstring(k, headshot ? "splattered" : "scrambled");
+			concatstring(k, headshot ? "shotgun_hs" : "shotgun");
 			break;
 		case WEAP_ASSAULT:
-			concatstring(k, headshot ? "eliminated" : "shredded");
+			concatstring(k, headshot ? "ar_hs" : "ar");
 			break;
 		case WEAP_PISTOL:
-			concatstring(k, headshot ? "capped" : "pierced");
+			concatstring(k, headshot ? "pistol_hs" : "pistol");
 			break;
 		case WEAP_AKIMBO:
-			concatstring(k, headshot ? "blasted" : "skewered");
+			concatstring(k, headshot ? "akimbo_hs" : "akimbo");
 			break;
 		case WEAP_HEAL:
-			concatstring(k, headshot ? "tranquilized" : "injected");
+			concatstring(k, headshot ? "heal_hs" : "heal");
 			break;
 		case WEAP_SWORD:
-			concatstring(k, headshot ? "sliced" : "impaled");
+			concatstring(k, headshot ? "sword_hs" : "sword");
 			break;
 		case WEAP_RPG:
-			concatstring(k, "detonated");
+			concatstring(k, "rpg");
 			break;
 		// special obits
 		case OBIT_IMPACT:
-			concatstring(k, "impacted");
+			concatstring(k, "impact");
 			break;
 		case OBIT_RPG_STUCK:
-			concatstring(k, "rocket-propelled");
+			concatstring(k, "rpg_stuck");
 			break;
 		case OBIT_KNIFE_BLEED:
-			concatstring(k, "fatally wounded");
+			concatstring(k, "knife_bleed");
 			break;
 		case OBIT_KNIFE_IMPACT:
-			concatstring(k, "thrown down");
+			concatstring(k, "knife_impact");
 			break;
 		case OBIT_AIRSTRIKE:
-			concatstring(k, "bombarded");
+			concatstring(k, "airstrike");
 			break;
 		case OBIT_ASSIST:
-			concatstring(k, headshot ? "helped with the suicide of" : "assisted the suicide of");
+			concatstring(k, headshot ? "assist_hs" : "assist");
 			break;
 		case OBIT_FALL:
-			concatstring(k, "jumped onto");
+			concatstring(k, "fall");
 			break;
 		case OBIT_NUKE:
-			concatstring(k, "nuked");
+			concatstring(k, "nuke");
 			break;
 		default:
-			concatstring(k, headshot ? "pwned" : "killed");
+			concatstring(k, headshot ? "kill_hs" : "kill");
 			break;
 	}
 	return k;
