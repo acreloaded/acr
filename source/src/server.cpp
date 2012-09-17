@@ -403,6 +403,13 @@ void spawnstate(client *c){
 int spawncycle = -1;
 int fixspawn = 2;
 
+int findspawn(int index)
+{
+	for(int i = index; i<smapstats.hdr.numents; i++) if(smapstats.ents[i].type==PLAYERSTART) return i;
+	loopj(index) if(smapstats.ents[j].type==PLAYERSTART) return j;
+	return -1;
+}
+
 int findspawn(int index, uchar attr2)
 {
 	for(int i = index; i<smapstats.hdr.numents; i++) if(smapstats.ents[i].type==PLAYERSTART && smapstats.ents[i].attr2==attr2) return i;
@@ -436,13 +443,13 @@ void sendspawn(client *c){
 	if(m_duke(gamemode, mutators) && c->spawnindex >= 0)
 	{
 		int x = -1;
-		loopi(c->spawnindex + 1) x = findspawn(PLAYERSTART, x+1, type);
-		if(x >= 0) spawn_ent = &ents[x];
+		loopi(c->spawnindex + 1) x = findspawn(x+1, type);
+		if(x >= 0) spawn_ent = &smapstats.ents[x];
 	}
 	else if(m_team(gamemode, mutators) || m_duke(gamemode, mutators))
 	{
-		loopi(r) spawncycle = findspawn(PLAYERSTART, spawncycle+1, type);
-		if(spawncycle >= 0) spawn_ent = &ents[spawncycle];
+		loopi(r) spawncycle = findspawn(spawncycle+1, type);
+		if(spawncycle >= 0) spawn_ent = &smapstats.ents[spawncycle];
 	}
 	else
 	{
@@ -450,10 +457,10 @@ void sendspawn(client *c){
 
 		loopi(r)
 		{
-			spawncycle = !m_spawn_team(gamemode, mutators) && numspawn[2] > 5 ? findentity(PLAYERSTART, spawncycle+1, 100) : findentity(PLAYERSTART, spawncycle+1);
+			spawncycle = !m_spawn_team(gamemode, mutators) && smapstats.spawns[2] > 5 ? findspawn(spawncycle+1, 100) : findspawn(spawncycle+1);
 			if(spawncycle < 0) continue;
 			float dist = nearestenemy(vec(smapstats.ents[spawncycle].x, smapstats.ents[spawncycle].y, smapstats.ents[spawncycle].z), c->team);
-			if(!spawn_ent || dist < 0 || (bestdist >= 0 && dist > bestdist)) { spawn_ent = &ents[spawncycle]; bestdist = dist; }
+			if(!spawn_ent || dist < 0 || (bestdist >= 0 && dist > bestdist)) { spawn_ent = &smapstats.ents[spawncycle]; bestdist = dist; }
 		}
 	}
 	if(spawn_ent)
