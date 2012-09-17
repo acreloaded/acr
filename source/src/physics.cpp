@@ -864,7 +864,10 @@ void fixcamerarange(physent *cam)
 }
 
 FVARP(sensitivity, 1e-3f, 3.0f, 1000.0f);
+FVARP(sensitivityscale, 1e-3f, 1, 1000);
 VARP(invmouse, 0, 0, 1);
+FVARP(mouseaccel, 0, 0, 1000);
+FVARP(mfilter, 0, 0, 6);
 
 inline void adjustangle(float &angle, const float &dangle, float &ret)
 {
@@ -875,13 +878,29 @@ inline void adjustangle(float &angle, const float &dangle, float &ret)
 	}
 }
 
-void mousemove(int dx, int dy)
+void mousemove(int odx, int ody)
 {
+	static float fdx = 0, fdy = 0;
 	if(intermission) return;
+	float dx = odx, dy = ody;
+	if(mfilter > 0.0f)
+	{
+		float k = mfilter * 0.1f;
+		dx = fdx = dx * ( 1.0f - k ) + fdx * k;
+		dy = fdy = dy * ( 1.0f - k ) + fdy * k;
+	}
 	if(player1->isspectating() && (player1->spectatemode==SM_FOLLOWSAME || player1->spectatemode==SM_FOLLOWALT)) return;
-
-	const float SENSF = 33.0f;	 // try match quake sens
-	const float dyaw = (dx/SENSF)*sensitivity, dpitch = (dy/SENSF) * sensitivity * (invmouse ? 1 : -1);
+	float cursens = sensitivity;
+	if(mouseaccel && curtime && (dx || dy)) cursens += 0.02f * mouseaccel * sqrtf(dx*dx + dy*dy)/curtime;
+	/*
+	if( zooming(player1) )
+	{
+		extern float scopesensfunc;
+		cursens *= autoscopesens ? scopesensfunc : scopesensscale;
+	}
+	*/
+	float sensfactor = 33.0f * sensitivityscale;
+	const float dyaw = dx * cursens / sensfactor, dpitch = dy * cursens / sensfactor * (invmouse ? 1 : -1);
 	adjustangle(camera1->yaw, dyaw, camera1->yawreturn);
 	adjustangle(camera1->pitch, dpitch, camera1->pitchreturn);
 	fixcamerarange();
