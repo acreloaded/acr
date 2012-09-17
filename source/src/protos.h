@@ -484,6 +484,7 @@ extern SDL_Surface *screen;
 extern int colorbits, depthbits, stencilbits;
 
 extern void keyrepeat(bool on);
+extern bool interceptkey(int sym);
 extern bool firstrun, inmainloop;
 
 enum

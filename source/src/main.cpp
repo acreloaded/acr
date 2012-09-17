@@ -10,6 +10,7 @@ void cleanup(char *msg)		 // single program exit point;
 		cleanupclient();
 		soundcleanup();
 		cleanupserver();
+		SDL_SetGamma(1, 1, 1);
 	}
 	SDL_ShowCursor(1);
 	if(msg)
@@ -79,6 +80,18 @@ VARF(stencilbits, 0, 0, 32, initwarning("stencil-buffer precision"));
 VARF(fsaa, -1, -1, 16, initwarning("anti-aliasing"));
 VARF(vsync, -1, -1, 1, initwarning("vertical sync"));
 
+static bool grabinput = false, minimized = false;
+
+void inputgrab(bool on)
+{
+#ifndef WIN32
+	if(!(screen->flags & SDL_FULLSCREEN)) SDL_WM_GrabInput(SDL_GRAB_OFF);
+	else
+#endif
+	SDL_WM_GrabInput(on ? SDL_GRAB_ON : SDL_GRAB_OFF);
+	SDL_ShowCursor(on ? SDL_DISABLE : SDL_ENABLE);
+}
+
 void setfullscreen(bool enable)
 {
 	if(!screen) return;
@@ -88,7 +101,7 @@ void setfullscreen(bool enable)
 	if(enable == !(screen->flags&SDL_FULLSCREEN))
 	{
 		SDL_WM_ToggleFullScreen(screen);
-		SDL_WM_GrabInput((screen->flags&SDL_FULLSCREEN) ? SDL_GRAB_ON : SDL_GRAB_OFF);
+		inputgrab(grabinput);
 	}
 #endif
 }
@@ -219,6 +232,7 @@ void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
 	int flags = SDL_RESIZABLE;
 	#if defined(WIN32) || defined(__APPLE__)
 	flags = 0;
+	putenv("SDL_VIDEO_CENTERED=1"); //Center window
 	#endif
 	if(fullscreen) flags |= SDL_FULLSCREEN;
 	SDL_Rect **modes = SDL_ListModes(NULL, SDL_OPENGL|flags);
@@ -353,7 +367,7 @@ void resetgl()
 
 COMMAND(resetgl, ARG_NONE);
 
-VARP(maxfps, 0, 0, 999);
+VARP(maxfps, 0, 0, 1000);
 
 void limitfps(int &millis, int curmillis)
 {
@@ -394,14 +408,89 @@ void keyrepeat(bool on)
 							 SDL_DEFAULT_REPEAT_INTERVAL);
 }
 
-static int ignoremouse = 5, grabmouse = 0;
+vector<SDL_Event> events;
+
+bool interceptkey(int sym)
+{
+	static int lastintercept = SDLK_UNKNOWN;
+	int len = lastintercept == sym ? events.length() : 0;
+	SDL_Event event;
+	while(SDL_PollEvent(&event)) switch(event.type)
+	{
+		case SDL_MOUSEMOTION: break;
+		default: events.add(event); break;
+	}
+	lastintercept = sym;
+	if(sym != SDLK_UNKNOWN) for(int i = len; i < events.length(); i++)
+	{
+		if(events[i].type == SDL_KEYDOWN && events[i].key.keysym.sym == sym) { events.remove(i); return true; }
+	}
+	return false;
+}
+
+static void resetmousemotion()
+{
+#ifndef WIN32
+	if(!(screen->flags&SDL_FULLSCREEN))
+	{
+		SDL_WarpMouse(screen->w / 2, screen->h / 2);
+	}
+#endif
+}
+
+static inline bool skipmousemotion(SDL_Event &event)
+{
+	if(event.type != SDL_MOUSEMOTION) return true;
+#ifndef WIN32
+	if(!(screen->flags&SDL_FULLSCREEN))
+	{
+		#ifdef __APPLE__
+		if(event.motion.y == 0) return true;  // let mac users drag windows via the title bar
+		#endif
+		if(event.motion.x == screen->w / 2 && event.motion.y == screen->h / 2) return true;  // ignore any motion events generated SDL_WarpMouse
+	}
+#endif
+	return false;
+}
+
+static void checkmousemotion(int &dx, int &dy)
+{
+	loopv(events)
+	{
+		SDL_Event &event = events[i];
+		if(skipmousemotion(event))
+		{
+			if(i > 0) events.remove(0, i);
+			return;
+		}
+		dx += event.motion.xrel;
+		dy += event.motion.yrel;
+	}
+	events.setsize(0);
+	SDL_Event event;
+	while(SDL_PollEvent(&event))
+	{
+		if(skipmousemotion(event))
+		{
+			events.add(event);
+			return;
+		}
+		dx += event.motion.xrel;
+		dy += event.motion.yrel;
+	}
+}
+
+static int ignoremouse = 5;
 
 void checkinput()
 {
 	SDL_Event event;
 	int lasttype = 0, lastbut = 0;
-	while(SDL_PollEvent(&event))
+	int tdx=0, tdy=0;
+	while(events.length() || SDL_PollEvent(&event))
 	{
+		if(events.length()) event = events.remove(0);
+
 		switch(event.type)
 		{
 			case SDL_QUIT:
@@ -421,9 +510,9 @@ void checkinput()
 
 			case SDL_ACTIVEEVENT:
 				if(event.active.state & SDL_APPINPUTFOCUS)
-					grabmouse = event.active.gain;
-				else
-				if(event.active.gain) grabmouse = 1;
+					inputgrab(grabinput = event.active.gain!=0);
+				if(event.active.state & SDL_APPACTIVE)
+					minimized = !event.active.gain;
 #if 0
 				if(event.active.state==SDL_APPMOUSEFOCUS) setprocesspriority(event.active.gain > 0); // switch priority on focus change
 #endif
@@ -431,18 +520,13 @@ void checkinput()
 
 			case SDL_MOUSEMOTION:
 				if(ignoremouse) { ignoremouse--; break; }
-				#ifndef WIN32
-				if(!(screen->flags&SDL_FULLSCREEN) && grabmouse)
+				if(grabinput && !skipmousemotion(event))
 				{
-					#ifdef __APPLE__
-					if(event.motion.y == 0) break;  //let mac users drag windows via the title bar
-					#endif
-					if(event.motion.x == screen->w / 2 && event.motion.y == screen->h / 2) break;
-					SDL_WarpMouse(screen->w / 2, screen->h / 2);
+					int dx = event.motion.xrel, dy = event.motion.yrel;
+					checkmousemotion(dx, dy);
+					resetmousemotion();
+					tdx+=dx;tdy+=dy;
 				}
-				if((screen->flags&SDL_FULLSCREEN) || grabmouse)
-				#endif
-				mousemove(event.motion.xrel, event.motion.yrel);
 				break;
 
 			case SDL_MOUSEBUTTONDOWN:
@@ -454,6 +538,7 @@ void checkinput()
 				break;
 		}
 	}
+	if(tdx || tdy) mousemove(tdx, tdy);
 }
 
 VARF(gamespeed, 10, 100, 1000, if(multiplayer()) gamespeed = 100);
@@ -465,7 +550,22 @@ static void clockreset() { clockrealbase = SDL_GetTicks(); clockvirtbase = total
 VARFP(clockerror, 990000, 1000000, 1010000, clockreset());
 VARFP(clockfix, 0, 0, 1, clockreset());
 
-SVAR(defaultmap, "ac_desert");
+const char *rndmapname()
+{
+	// "ac_depot_classic",
+	static const char * const mapnames[] = {
+		"ac_aqueous",  "ac_arabian",  "ac_arctic",  "ac_arid", "ac_complex",
+		"ac_depot",  "ac_desert",  "ac_desert2", "ac_desert3",  "ac_douze",
+		"ac_elevation",  "ac_gothic",  "ac_iceroad",  "ac_ingress", "ac_keller",
+		"ac_mines",  "ac_outpost",  "ac_power",  "ac_rattrap",  "ac_scaffold",
+		"ac_shine",  "ac_snow",  "ac_sunset",  "ac_toxic",  "ac_urban",
+		"ac_werk",
+	};
+	srand(time(NULL));
+	int l = sizeof(mapnames)/sizeof(mapnames[0]);
+	int n = rnd(l);
+	return mapnames[n];
+}
 
 int main(int argc, char **argv)
 {
@@ -481,6 +581,8 @@ int main(int argc, char **argv)
 
 	bool dedicated = false;
 	bool quitdirectly = false;
+
+	const char *initmap = rndmapname();
 
 	pushscontext(IEXC_CFG);
 
@@ -523,6 +625,11 @@ int main(int argc, char **argv)
 						printf("%d\n", PROTOCOL_VERSION);
 						quitdirectly = true;
 					}
+					else if(!strncmp(argv[i], "--loadmap=", 10))
+					{
+						initmap = &argv[i][10];
+					}
+					else conoutf("\f3unknown commandline switch: %s", argv[i]);
 					break;
 				case 'd': dedicated = true; break;
 				case 't': fullscreen = atoi(a); break;
@@ -671,9 +778,12 @@ int main(int argc, char **argv)
 
 		initlog("localconnect");
 		localconnect();
-		changemap(defaultmap);
+		changemap(initmap);
 
 		initlog("mainloop");
+
+		inputgrab(grabinput = true);
+
 		inmainloop = true;
 	#ifdef _DEBUG
 		int lastflush = 0;
