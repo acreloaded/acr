@@ -1300,8 +1300,14 @@ bool CBot::CheckStuck()
 		m_bStuck = false;
 		m_iStuckTime = 0;
 		
+		// stuck in geometry?
+		if(!collide(m_pMyEnt)){
+			StuckLastResort();
+			return true;
+		}
+
 		// Crap bot is stuck, lets just try some random things
-				    
+		
 		// Check if the bot can turn around
 		vec src = GetViewAngles();
 		src.x = 0;
