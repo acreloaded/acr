@@ -347,8 +347,9 @@ void usestreak(client &c, int streak, client *actor = NULL, const vec &o = vec(0
 	switch(streak){
 		case STREAK_AIRSTRIKE:
 		{
-			extern void sendhit(client &actor, int gun, const vec &o, int dmg);
-			sendhit(c, WEAP_RPG, o, 0);
+			// add RPG line/explosion for effects only
+			sendf(-1, 1, "ri3f6", N_RICOCHET, c.clientnum, WEAP_RPG, c.state.o.x, c.state.o.y, c.state.o.z, o.x, o.y, o.z);
+			sendf(-1, 1, "ri4f3", N_PROJ, c.clientnum, WEAP_RPG, 0, o.x, o.y, o.z);
 			int airmillis = gamemillis + 1000;
 			loopi(5){
 				airmillis += rnd(200) + 50;
