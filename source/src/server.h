@@ -821,6 +821,7 @@ const int obit_suicide(int weap){
 		case 11: return OBIT_BOT;
 		case 12: return OBIT_CHEAT;
 		case 13: return OBIT_DROWN;
+		case 14: return OBIT_SPAWN;
 		case 21: return OBIT_TEAM;
 		case 22: return OBIT_SPECT;
 	}
@@ -891,6 +892,9 @@ const char *suicname(int obit){
 			break;
 		case OBIT_CHEAT:
 			concatstring(k, "suic_cheat");
+			break;
+		case OBIT_SPAWN:
+			concatstring(k, "suic_spawn");
 			break;
 		default:
 			concatstring(k, "suicide");
@@ -993,7 +997,7 @@ const char *killname(int obit, bool headshot){
 			concatstring(k, "fall");
 			break;
 		case OBIT_NUKE:
-			concatstring(k, "nuke");
+			concatstring(k, "kill_nuke");
 			break;
 		default:
 			concatstring(k, headshot ? "kill_hs" : "kill");
