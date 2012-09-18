@@ -358,8 +358,8 @@ void usestreak(client &c, int streak, client *actor = NULL, const vec &o = vec(0
 				checkpos(airo);
 				c.addtimer(new airstrikeevent(airmillis, airo));
 			}
-			sendf(-1, 1, "ri3f3", N_STREAKUSE, c.clientnum, STREAK_AIRSTRIKE, info, o.x, o.y, o.z);
-			return; // special message
+			info = --c.state.airstrikes;
+			break;
 		}
 		case STREAK_RADAR:
 			c.state.radarearned = gamemillis + (info = 15000);
@@ -3665,13 +3665,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				vec o;
 				loopi(3) o[i] = getfloat(p);
 				// can't use streaks unless alive
-				//if(!cl->state.isalive(gamemillis)) break;
+				if(!cl->state.isalive(gamemillis)) break;
 				// check how many airstrikes available first
-				cl->state.airstrikes = 1;
-				if(cl->state.airstrikes > 0){
-					--cl->state.airstrikes;
+				if(cl->state.airstrikes > 0)
 					usestreak(*cl, STREAK_AIRSTRIKE, NULL, o);
-				}
 				break;
 			}
 

@@ -676,15 +676,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_STREAKUSE:
 			{
 				playerent *d = getclient(getint(p));
-				const int streak = getint(p);
-				int info = -1; vec o;
-				if(streak == STREAK_AIRSTRIKE) loopi(3) o[i] = getfloat(p);
-				else info = getint(p);
+				const int streak = getint(p), info = getint(p);
 				if(!d) break;
 				switch(streak){
 					case STREAK_AIRSTRIKE:
 						// may be delayed? in the future?
-						--d->airstrikes;
+						d->airstrikes = info;
 						break;
 					case STREAK_RADAR:
 						d->radarearned = lastmillis + info;
