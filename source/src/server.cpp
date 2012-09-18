@@ -441,6 +441,8 @@ float nearestenemy(vec place, int team)
 	else return nearestenemydist;
 }
 
+#define getmaplayoutid(x, y) (clamp<int>(x, 2, (1 << maplayout_factor) - 2) + (clamp<int>(y, 2, (1 << maplayout_factor) - 2) << maplayout_factor))
+
 void sendspawn(client *c){
 	clientstate &gs = c->state;
 	if(gs.lastdeath) gs.respawn();
@@ -486,7 +488,6 @@ void sendspawn(client *c){
 		gs.aim[0] = 0; // yaw
 	}
 	extern float getblockfloor(int id, bool check_vdelta = true);
-	extern int getmaplayoutid(int x, int y);
 	spawnpos.z = getblockfloor(getmaplayoutid(spawnpos.x, spawnpos.y));
 	extern bool checkpos(vec &p, bool alter = true);
 	checkpos(spawnpos); // fix spawn being stuck
@@ -1343,11 +1344,6 @@ ssqr &getsblock(int id){
 		return dummy;
 	}
 	return maplayout[id];
-}
-
-inline int getmaplayoutid(int x, int y){
-	const int max = (1 << maplayout_factor) - 2;
-	return clamp(x, 2, max) + (clamp(y, 2, max) << maplayout_factor);
 }
 
 inline char cornertype(int x, int y){
