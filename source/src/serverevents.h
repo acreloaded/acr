@@ -173,14 +173,9 @@ void shotevent::process(client *ci)
 				serverdamage(hit, &c, dmg, weap, flags, gs.o, dist);
 				damagedealt += dmg;
 			}
-			loopi(&c == hit ? 25 : 15){
+			loopi(&c == hit ? 25 : 15)
 				// heals over the next 1 to 2.5 seconds (no time perk, for others)
-				healevent h;
-				h.id = c.clientnum; // from this person
-				h.millis = gamemillis + (10 + i) * 100 / (gs.perk1 == PERK_POWER ? 2 : 1);
-				h.hp = (gs.perk1 == PERK_POWER ? 2 : 1);
-				if(hit->heals.length()<128) hit->heals.add(h);
-			}
+				hit->addtimer(new healevent(gamemillis + (10 + i) * 100 / (gs.perk1 == PERK_POWER ? 2 : 1), c.clientnum, gs.perk1 == PERK_POWER ? 2 : 1));
 			if(hit == &c) (end = to).sub(from).normalize().add(from); // 25 cm fx
 			// hide blood for healing weapon
 			// sendhit(c, WEAP_HEAL, end, dmg); // blood
@@ -275,7 +270,7 @@ void healevent::process(client *ci){
 	const int heal = hp * HEALTHSCALE, todo = MAXHEALTH - ci->state.health;
 	if(heal >= todo){
 		// fully healed!
-		loopv(ci->heals) ci->heals[i].valid = false;
+		ci->invalidateheals();
 		if(valid_client(id)){
 			if(id==ci->clientnum) addpt(clients[id], HEALSELFPT, PR_HEALSELF);
 			else if(isteam(ci, clients[id])) addpt(clients[id], HEALTEAMPT, PR_HEALTEAM);
@@ -290,14 +285,9 @@ void healevent::process(client *ci){
 	sendf(-1, 1, "ri3", N_REGEN, ci->clientnum, ci->state.health);
 }
 
-bool suicidebomberevent::flush(client *ci, int fmillis){
-	process(ci);
-	return true;
-}
+void suicidebomberevent::process(client *ci){ explosion(*ci, ci->state.o, WEAP_GRENADE, true, valid_client(id) ? clients[id] : NULL); }
 
-void suicidebomberevent::process(client *ci){
-	explosion(*ci, ci->state.o, WEAP_GRENADE, true, valid_client(id) ? clients[id] : NULL);
-}
+void airstrikeevent::process(client *ci){ explosion(*ci, o, WEAP_GRENADE, false); }
 
 // processing events
 bool timedevent::flush(client *ci, int fmillis)
@@ -393,21 +383,18 @@ void processevents(){
 			else break;
 		}
 		// timers
-		#define processtimer(timer) \
-			loopvj(c.timer##s) \
-			{ \
-				if(!c.timer##s[j].valid) \
-				{ \
-					c.timer##s.remove(j--); \
-					continue; \
-				} \
-				else if(c.timer##s[j].millis <= gamemillis) \
-				{ \
-					c.timer##s[j].process(&c); \
-					c.timer##s.remove(j--); \
-				} \
+		loopvj(c.timers)
+		{
+			if(!c.timers[j]->valid || (c.timers[j]->type == GE_HEAL && (cs.health >= MAXHEALTH || cs.state != CS_ALIVE)))
+			{
+				delete c.timers.remove(j--);
+				continue;
 			}
-		if(cs.health >= MAXHEALTH || cs.state != CS_ALIVE) c.heals.shrink(0);
-		else processtimer(heal);
+			else if(c.timers[j]->millis <= gamemillis)
+			{
+				c.timers[j]->process(&c);
+				delete c.timers.remove(j--);
+			}
+		}
 	}
 }

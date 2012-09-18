@@ -346,9 +346,21 @@ void usestreak(client &c, int streak, client *actor = NULL, const vec &o = vec(0
 	int info = 0;
 	switch(streak){
 		case STREAK_AIRSTRIKE:
-			explosion(c, o, WEAP_GRENADE, false); // add a delay?
+		{
+			extern void sendhit(client &actor, int gun, const vec &o, int dmg);
+			sendhit(c, WEAP_RPG, o, 0);
+			int airmillis = gamemillis + 1000;
+			loopi(5){
+				airmillis += rnd(200) + 50;
+				vec airo = o;
+				airo.add(vec(rnd(7)-3, rnd(7)-3, rnd(7)-3));
+				extern bool checkpos(vec &p, bool alter = true);
+				checkpos(airo);
+				c.addtimer(new airstrikeevent(airmillis, airo));
+			}
 			sendf(-1, 1, "ri3f3", N_STREAKUSE, c.clientnum, STREAK_AIRSTRIKE, info, o.x, o.y, o.z);
 			return; // special message
+		}
 		case STREAK_RADAR:
 			c.state.radarearned = gamemillis + (info = 15000);
 			break;
@@ -359,12 +371,8 @@ void usestreak(client &c, int streak, client *actor = NULL, const vec &o = vec(0
 			info = (c.state.health += 1000 * HEALTHSCALE);
 			break;
 		case STREAK_REVENGE:
-		{
-			suicidebomberevent *ev = new suicidebomberevent;
-			ev->id = actor ? actor->clientnum : -1;
-			c.events.insert(0, ev);
+			c.addtimer(new suicidebomberevent(actor ? actor->clientnum : -1));
 			// fallthrough
-		}
 		case STREAK_DROPNADE:
 			info = rand();
 			c.state.grenades.add(info);
@@ -1605,7 +1613,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	actor->state.deathstreak = ts.pointstreak = ts.streakused = 0;
 	ts.wounds.shrink(0);
 	ts.damagelog.removeobj(ts.lastkiller = actor->clientnum);
-	target->heals.shrink(0);
+	target->invalidateheals();
 	loopv(ts.damagelog){
 		if(valid_client(ts.damagelog[i])){
 			const int factor = isteam(clients[ts.damagelog[i]], target) ? -1 : 1;
@@ -3536,11 +3544,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case N_SHOOT: // cn id weap to.dx to.dy to.dz heads.length heads.v
 			case N_SHOOTC: // cn id weap
 			{
-				shotevent *ev = new shotevent;
-				const int cn = getint(p);
-				ev->id = getint(p);
-				ev->weap = getint(p);
-				ev->pos.setsize(0);
+				const int cn = getint(p), id = getint(p), weap = getint(p);
+				shotevent *ev = new shotevent(0, id, weap);
 				if(!(ev->compact = (type == N_SHOOTC)))
 				{
 					loopi(3) ev->to[i] = getfloat(p);
@@ -3561,7 +3566,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				client *cp = hasclient(cl, cn) ? clients[cn] : NULL;
 				if(cp)
 				{
-					ev->millis = cp->getmillis(gamemillis, ev->id);
+					ev->millis = cp->getmillis(gamemillis, id);
 					cp->addevent(ev);
 				}
 				else delete ev;
@@ -3570,20 +3575,12 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_PROJ: // cn id weap flags x y z
 			{
-				const int cn = getint(p);
-				destroyevent *ev = new destroyevent;
-				ev->id = getint(p);
-				ev->weap = getint(p);
-				ev->flags = getint(p);
-				loopi(3) ev->o[i] = getfloat(p);
-
+				const int cn = getint(p), id = getint(p), weap = getint(p), flags = getint(p);
+				vec o;
+				loopi(3) o[i] = getfloat(p);
 				client *cp = hasclient(cl, cn) ? clients[cn] : NULL;
-				if(cp)
-				{
-					ev->millis = cp->getmillis(gamemillis, ev->id);
-					cp->addevent(ev);
-				}
-				else delete ev;
+				if(!cp) break;
+				cp->addevent(new destroyevent(cp->getmillis(gamemillis, id), id, weap, flags, o));
 				break;
 			}
 
@@ -3592,9 +3589,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				const int cn = getint(p), id = getint(p);
 				if(!hasclient(cl, cn)) break;
 				client *cp = clients[cn];
-				akimboevent *ev = new akimboevent;
-				ev->millis = cp->getmillis(gamemillis, ev->id = id);
-				cp->addevent(ev);
+				cp->addevent(new akimboevent(cp->getmillis(gamemillis, id), id));
 				break;
 			}
 
@@ -3603,10 +3598,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				int cn = getint(p), id = getint(p), weap = getint(p);
 				if(!hasclient(cl, cn)) break;
 				client *cp = clients[cn];
-				reloadevent *ev = new reloadevent;
-				ev->millis = cp->getmillis(gamemillis, ev->id = id);
-				ev->weap = weap;
-				cp->addevent(ev);
+				cp->addevent(new reloadevent(cp->getmillis(gamemillis, id), id, weap));
 				break;
 			}
 
@@ -3673,8 +3665,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				vec o;
 				loopi(3) o[i] = getfloat(p);
 				// can't use streaks unless alive
-				if(!cl->state.isalive(gamemillis)) break;
+				//if(!cl->state.isalive(gamemillis)) break;
 				// check how many airstrikes available first
+				cl->state.airstrikes = 1;
 				if(cl->state.airstrikes > 0){
 					--cl->state.airstrikes;
 					usestreak(*cl, STREAK_AIRSTRIKE, NULL, o);

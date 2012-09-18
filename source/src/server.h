@@ -5,7 +5,7 @@
 
 #define valid_flag(f) (f >= 0 && f < 2)
 
-enum { GE_NONE = 0, GE_SHOT, GE_PROJ, GE_AKIMBO, GE_RELOAD };
+enum { GE_NONE = 0, /* sequenced */ GE_SHOT, GE_PROJ, GE_AKIMBO, GE_RELOAD, /* immediate */ GE_SUICIDEBOMB, /* unsequenced */ GE_HEAL, GE_AIRSTRIKE };
 enum { ST_EMPTY, ST_LOCAL, ST_TCPIP, ST_AI };
 
 extern bool canreachauthserv;
@@ -26,8 +26,8 @@ struct posinfo
 struct timedevent
 {
 	bool valid;
-	int id, millis;
-	timedevent() : valid(true) { }
+	int type, millis, id;
+	timedevent(int type, int millis, int id) : valid(true), type(type), millis(millis), id(id) { }
 	virtual ~timedevent() {}
 	virtual bool flush(client *ci, int fmillis);
 	virtual void process(client *ci) = 0;
@@ -38,20 +38,8 @@ struct shotevent : timedevent
 	int weap;
 	vec to;
 	vector<posinfo> pos;
+	shotevent(int millis, int id, int weap) : timedevent(GE_SHOT, millis, id), weap(weap) { to = vec(0, 0, 0); pos.setsize(0); }
 	bool compact;
-	void process(client *ci);
-};
-
-// switchevent?
-
-struct akimboevent : timedevent
-{
-	void process(client *ci);
-};
-
-struct reloadevent : timedevent
-{
-	int weap;
 	void process(client *ci);
 };
 
@@ -59,6 +47,22 @@ struct destroyevent : timedevent
 {
 	int weap, flags;
 	vec o;
+	destroyevent(int millis, int id, int weap, int flags, const vec &o) : timedevent(GE_PROJ, millis, id), weap(weap), flags(flags), o(o) {}
+	void process(client *ci);
+};
+
+// switchevent?
+
+struct akimboevent : timedevent
+{
+	akimboevent(int millis, int id) : timedevent(GE_AKIMBO, millis, id) {}
+	void process(client *ci);
+};
+
+struct reloadevent : timedevent
+{
+	int weap;
+	reloadevent(int millis, int id, int weap) : timedevent(GE_RELOAD, millis, id), weap(weap) {}
 	void process(client *ci);
 };
 
@@ -74,12 +78,20 @@ struct bowevent : timedevent
 struct healevent : timedevent
 {
 	int hp;
+	healevent(int millis, int actor, int hp) : timedevent(GE_HEAL, millis, actor), hp(hp) {}
 	void process(client *ci);
 };
 
 struct suicidebomberevent : timedevent
 {
-	bool flush(client *ci, int fmillis);
+	suicidebomberevent(int actor) : timedevent(GE_SUICIDEBOMB, 0, actor) {}
+	void process(client *ci);
+};
+
+struct airstrikeevent : timedevent
+{
+	vec o;
+	airstrikeevent(int millis, const vec &o) : timedevent(GE_AIRSTRIKE, millis, 0), o(o) {}
 	void process(client *ci);
 };
 
@@ -266,8 +278,7 @@ struct client				   // server side version of "dynent" type
 	int gameoffset, lastevent, lastvotecall;
 	int demoflags;
 	clientstate state;
-	vector<timedevent *> events;
-	vector<healevent> heals;
+	vector<timedevent *> events, timers;
 	vector<uchar> position, messages;
 	string lastsaytext;
 	int saychars, lastsay, spamcount;
@@ -283,6 +294,17 @@ struct client				   // server side version of "dynent" type
 	{
 		if(events.length()<256) events.add(e);
 		else delete e;
+	}
+
+	void addtimer(timedevent *e)
+	{
+		if(timers.length()<256) timers.add(e);
+		else delete e;
+	}
+	
+	void invalidateheals()
+	{
+		loopv(timers) if(timers[i]->type == GE_HEAL) timers[i]->valid = false;
 	}
 
 	int getmillis(int millis, int id)
@@ -320,7 +342,7 @@ struct client				   // server side version of "dynent" type
 	{
 		state.reset();
 		events.deletecontents();
-		heals.setsize(0);
+		timers.deletecontents();
 		overflow = 0;
 		timesync = wantsmap = false;
 		isonrightmap = m_edit(gamemode);
