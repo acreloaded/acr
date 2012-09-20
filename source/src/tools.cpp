@@ -787,7 +787,7 @@ langdef *findlang(const char *key){
 }
 
 void deflang(char *key, char *val){
-	if(!key || !val || !*key || !*val) return;
+	if(!key || !val || !*key) return;
 	langdef *langfound = findlang(key);
 
 	if(!langfound) langfound = &langdefs.add();
