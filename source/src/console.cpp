@@ -218,16 +218,14 @@ struct obitlist
 		cl.style = filterstyle(style);
 		cl.combo = combo;
 		cl.headshot = headshot;
-		if(olines.length()){
-			oline &l = olines[0];
-			if(l.obit == cl.obit && l.style == cl.style && l.headshot == cl.headshot && !strcmp(l.actor, cl.actor) && !strcmp(l.target, cl.target)){
-				olines[0].millis = millis; // refresh that line (overwrite effect)
-				delete[] cl.actor;
-				delete[] cl.target;
-				olines[0].combo += cl.combo; // add combo
-				return olines[0];
+		loopv(olines)
+			if(olines[i].obit == cl.obit && olines[i].style == cl.style && olines[i].headshot == cl.headshot && !strcmp(olines[i].actor, cl.actor) && !strcmp(olines[i].target, cl.target)){
+				delete[] olines[i].actor;
+				delete[] olines[i].target;
+				cl.combo += olines[i].combo; // add combo
+				olines.remove(i); // remove, and "merge" into our line
+				break;
 			}
-		}
 		return olines.insert(0, cl);
 	}
 
