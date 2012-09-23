@@ -369,7 +369,7 @@ void usestreak(client &c, int streak, client *actor = NULL, const vec &o = vec(0
 			c.state.nukemillis = gamemillis + (info = 30000);
 			break;
 		case STREAK_JUG:
-			info = (c.state.health += 1000 * HEALTHSCALE);
+			info = (c.state.health = c.state.health * 8 + 200 * HEALTHSCALE);
 			break;
 		case STREAK_REVENGE:
 			c.addtimer(new suicidebomberevent(actor ? actor->clientnum : -1));
