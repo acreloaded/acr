@@ -1159,13 +1159,13 @@ void arenacheck(){
 		sendf(-1, 1, "ri2", N_ZOMBIESWIN, (progressiveround << 1) | (humanswin ? 1 : 0));
 		loopv(clients) if(clients[i]->type != ST_EMPTY && clients[i]->connected && clients[i]->team != TEAM_SPECT){
 			if(clients[i]->team == TEAM_RED || progressiveround == MAXZOMBIEROUND){ // give humans time to prepare, except wave 30
-				extern void forcedeath(client *cl, bool gib = false);
+				clients[i]->removeexplosives();
 				if(clients[i]->state.state != CS_DEAD){
-					clients[i]->removeexplosives();
+					extern void forcedeath(client *cl, bool gib = false);
 					forcedeath(clients[i]);
 				}
 			}
-			else if(clients[i]->isonrightmap && clients[i]->state.state == CS_DEAD){ // early repawn for humans
+			else if(clients[i]->isonrightmap && clients[i]->state.state == CS_DEAD){ // early repawn for humans, except wave 30
 				clients[i]->state.lastdeath = 1;
 				sendspawn(clients[i]);
 			}
