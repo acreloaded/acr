@@ -2059,7 +2059,6 @@ int calcscores() // skill eval
 ivector shuffle;
 
 void shuffleteams(int ftr){
-	if(m_zombie(gamemode) && !m_convert(gamemode, mutators)) return; // in case a vote is called
 	int numplayers = countplayers();
 	int team = rnd(2);
 	shuffle.shrink(0);
