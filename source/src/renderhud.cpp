@@ -646,9 +646,9 @@ void drawteamicons(int w, int h){
 int damageblendmillis = 0; // non-regen only
 
 VARFP(damagescreen, 0, 1, 1, { if(!damagescreen) damageblendmillis = 0; });
-VARP(damagescreenalpha, 50, 60, 100);
-VARP(damagescreenfactor, 1, 7, 100); // non-regen only
-VARP(damagescreenfade, 0, 125, 1000); // non-regen only
+VARP(damagescreenalpha, 45, 50, 100);
+VARP(damagescreenfactor, 1, 4, 100); // non-regen only
+VARP(damagescreenfade, 0, 325, 1000); // non-regen only
 VARP(damageindicatorfade, 0, 2000, 10000);
 VARP(damageindicatorsize, 0, 200, 10000);
 VARP(damageindicatordist, 0, 500, 10000);
