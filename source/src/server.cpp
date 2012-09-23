@@ -4450,6 +4450,29 @@ void linequalitystats(int elapsed)
     }
 }
 
+#ifdef STANDALONE
+cvector serverconlines;
+
+#ifdef WIN32
+HANDLE conlineMutex = NULL;
+
+DWORD WINAPI conlineThread(void* arg){
+	cvector &conlinequeue = *(cvector *)arg;
+	string buf;
+	for(;;)
+		if(fgets(buf, _MAXDEFSTR, stdin))
+		{
+			filtertext(buf, buf);
+			while(WaitForSingleObject(conlineMutex, INFINITE) != WAIT_OBJECT_0);
+			conlinequeue.add(newstring(buf));
+			ReleaseMutex(conlineMutex);
+		}
+	return 0;
+}
+#endif
+// TODO: linux code
+#endif
+
 int lastmillis = 0, totalmillis = 0;
 
 void serverslice(uint timeout)   // main server update, called from cube main loop in sp, or dedicated server loop
@@ -4520,6 +4543,58 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 	resetserverifempty();
 
 	if(!isdedicated) return;	 // below is network only
+
+#ifdef STANDALONE
+#ifdef WIN32
+if(WaitForSingleObject(conlineMutex, timeout) == WAIT_OBJECT_0){
+#endif
+	loopv(serverconlines)
+	{
+		char *sc = serverconlines[i];
+		if(sc[0] == '/')
+		{
+			++sc;
+			// process command
+			static int i1;
+			if(!strcmp(sc, "y"))
+			{
+				if(curvote) curvote->end(VOTE_YES, -1);
+			}
+			else if(!strcmp(sc, "n"))
+			{
+				if(curvote) curvote->end(VOTE_NO, -1);
+			}
+			else if(sscanf(sc, "kick %d", &i1) == 1) // TODO: call votes from here
+			{
+				disconnect_client(i1, DISC_KICK);
+			}
+			else if(sscanf(sc, "s %d", &i1) == 1)
+			{
+				if(valid_client(i1)) forcedeath(clients[i1], true);
+			}
+			else if(sscanf(sc, "ss %d", &i1) == 1) // silent subdue
+			{
+				if(valid_client(i1)) forcedeath(clients[i1], false);
+			}
+			else logline(ACLOG_INFO, "[CONSOLE] unknown command %s", sc);
+		}
+		// talk to the server, if clients exist
+		else if(numclients())
+		{
+			sendf(-1, 1, "ri4s", N_TEXT, -1, 0, 0, sc);
+			logline(ACLOG_INFO, "[CONSOLE] say: %s", sc);
+		}
+		else
+		{
+			logline(ACLOG_INFO, "[CONSOLE] (not relayed) %s", sc);
+		}
+	}
+	serverconlines.deletearrays();
+#ifdef WIN32
+	ReleaseMutex(conlineMutex);
+}
+#endif
+#endif
 
 	serverms(smode, smuts, numclients(), gamelimit-gamemillis, smapname, servmillis, serverhost->address, pnum, psend, prec, PROTOCOL_VERSION);
 
@@ -4836,7 +4911,7 @@ void initserver(bool dedicated){
 		if(found_map_files.length())
 		{
 			logline(ACLOG_INFO, "detected %d official maps", found_map_files.length());
-			found_map_files.deletearrays();
+			found_map_files.deletearrays(); // no more use for them (clients need this list to load a random map)
 		}
 		else fatal("could not find official maps (%s)", SERVERMAP_PATH_BUILTIN);
 		// read config
@@ -4861,6 +4936,16 @@ void initserver(bool dedicated){
 	{
 		#ifdef WIN32
 		SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
+		#endif
+		#ifdef STANDALONE
+		#ifdef WIN32
+		if(!svcctrl)
+		{
+			conlineMutex = CreateMutex(NULL, false, NULL);
+			CreateThread(NULL, 0, conlineThread, &serverconlines, 0, NULL);
+		}
+		#endif
+		// TODO: linux code
 		#endif
 		logline(ACLOG_INFO, "dedicated server started, waiting for clients...");
 		logline(ACLOG_INFO, "Ctrl-C to exit");
