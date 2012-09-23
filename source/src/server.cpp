@@ -1627,7 +1627,12 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	checkstreak(7) streakready(*actor, STREAK_AIRSTRIKE);
 	checkstreak(9) usestreak(*actor, STREAK_RADAR);
 	checkstreak(11) usestreak(*actor, STREAK_NUKE);
-	checkstreak(17) usestreak(*actor, STREAK_JUG);
+	int jugcheck = max(0, (actor->state.streakused / 5 - 17) / 5);
+	// 17, 22, 27, 32, 37 ...
+	if(gun != WEAP_MAX + 1) while(virtualstreak >= (17 + jugcheck * 5) * 5){
+		if(actor->state.streakused < (17 + jugcheck * 5) * 5) usestreak(*actor, STREAK_JUG);
+		++jugcheck;
+	}
 #undef checkstreak
 	// restart streak
 	// actor->state.pointstreak %= 11 * 5;
