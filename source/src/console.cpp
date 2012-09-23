@@ -218,7 +218,7 @@ struct obitlist
 		cl.style = filterstyle(style);
 		cl.combo = combo;
 		cl.headshot = headshot;
-		loopv(olines)
+		loopv(olines) if(con.fullconsole || totalmillis - olines[i].millis < obitfade*1000)
 			if(olines[i].obit == cl.obit && olines[i].style == cl.style && olines[i].headshot == cl.headshot && !strcmp(olines[i].actor, cl.actor) && !strcmp(olines[i].target, cl.target)){
 				delete[] olines[i].actor;
 				delete[] olines[i].target;
@@ -302,7 +302,7 @@ struct obitlist
 		*/
         loopi(linei){
 			oline &l = olines[i];
-			if(totalmillis-l.millis < obitfade*1000 || con.fullconsole){
+			if(con.fullconsole || totalmillis-l.millis < obitfade*1000){
 				int x = 0;
 				float fade = 1;
 				if(l.millis + obitfade*1000 - totalmillis < 1000 && !con.fullconsole){ // fading out
