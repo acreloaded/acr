@@ -481,29 +481,29 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_SPAWN:
 			{
-				playerent *s = getclient(getint(p));
-				if(!s || s == player1 || isowned(s)) { static playerent dummy; s = &dummy; }
-				s->respawn();
-				s->lifesequence = getint(p);
-				setskin(s, getint(p));
-				s->health = getint(p);
-				s->armor = getint(p);
-				s->perk1 = getint(p);
-				s->perk2 = getint(p);
+				playerent *d = getclient(getint(p));
+				if(!d || d == player1 || isowned(d)) { static playerent dummy; d = &dummy; }
+				d->respawn();
+				d->lifesequence = getint(p);
+				setskin(d, getint(p));
+				d->health = getint(p);
+				d->armor = getint(p);
+				d->perk1 = getint(p);
+				d->perk2 = getint(p);
 				int gunselect = getint(p);
-				s->setprimary(gunselect);
-				s->selectweapon(gunselect);
-				s->secondary = getint(p);
-				loopi(WEAP_MAX) s->ammo[i] = getint(p);
-				loopi(WEAP_MAX) s->mag[i] = getint(p);
+				d->setprimary(gunselect);
+				d->selectweapon(gunselect);
+				d->secondary = getint(p);
+				loopi(WEAP_MAX) d->ammo[i] = getint(p);
+				loopi(WEAP_MAX) d->mag[i] = getint(p);
 				d->yaw = getint(p);
 				d->pitch = d->roll = 0;
-				loopi(3) s->o[i] = getfloat(p);
-				s->resetinterp();
-				updatepos(s);
+				loopi(3) d->o[i] = getfloat(p);
+				d->resetinterp();
+				updatepos(d);
 				//s->state = CS_SPAWNING;
-				s->state = CS_ALIVE;
-				s->spawnmillis = lastmillis;
+				d->state = CS_ALIVE;
+				d->spawnmillis = lastmillis;
 				break;
 			}
 
