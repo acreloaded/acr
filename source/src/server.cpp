@@ -4472,16 +4472,28 @@ cvector serverconlines;
 HANDLE conlineMutex = NULL;
 
 DWORD WINAPI conlineThread(void* arg){
+	/*
+	DWORD mode;
+	GetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), &mode);
+	// by default, mode = 423 = 0x1A7
+	SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), mode | ENABLE_WINDOW_INPUT);
+	*/
 	cvector &conlinequeue = *(cvector *)arg;
 	string buf;
 	for(;;)
 		if(fgets(buf, _MAXDEFSTR, stdin))
 		{
 			filtertext(buf, buf);
+			// only if there is content
+			if(!buf[0]) continue;
+			// wait for signal
 			while(WaitForSingleObject(conlineMutex, INFINITE) != WAIT_OBJECT_0);
+			// queue
 			conlinequeue.add(newstring(buf));
+			// unsignal
 			ReleaseMutex(conlineMutex);
 		}
+	// just so that it can compile...
 	return 0;
 }
 #endif
