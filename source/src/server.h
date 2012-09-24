@@ -1,5 +1,10 @@
 // server.h
 
+#define SERVER_BUILTIN_MOD 2
+// 1 = super knife + always on with moon jump
+// 2 = moon jump
+// 4 = gungame (TODO)
+
 #define gamemode smode   // allows the gamemode macros to work with the server mode
 #define mutators smuts // and mutators too
 

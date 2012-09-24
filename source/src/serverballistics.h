@@ -78,7 +78,13 @@ bool checkcrit(float dist, float m, int base = 0, int min = 4, int max = 100){
 
 // easy to send shot damage messages
 inline void sendhit(client &actor, int gun, const vec &o, int dmg){
+// no blood or explosions if using moon jump
+#if (SERVER_BUILTIN_MOD & 3) != 3
+#if (SERVER_BUILTIN_MOD & 2)
+	if(!m_gib(gamemode, mutators))
+#endif
 	sendf(-1, 1, "ri4f3", N_PROJ, actor.clientnum, gun, dmg, o.x, o.y, o.z);
+#endif
 }
 
 inline void sendheadshot(const vec &from, const vec &to, int damage){
@@ -252,18 +258,17 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
 	// damage check
 	const float dist2 = dist + end.dist(from);
 	int damage = effectiveDamage(weap, dist2 + penaltydist);
-	// out of range?
-	if(melee_weap(weap) && dist2 > guns[weap].endrange) return 0;
-	/*
-	// super knife code
+	// out of range? (super knife code)
 	if(melee_weap(weap)){
+#if (SERVER_BUILTIN_MOD & 1)
 		if(m_gib(gamemode, mutators)){
 			const int lulz[3] = {WEAP_SNIPER, WEAP_HEAL, WEAP_RPG};
 			sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, lulz[rnd(3)], from.x, from.y, from.z, to.x, to.y, to.z);
 		}
-		else if(dist2 > guns[weap].endrange) return 0;
+		else
+#endif
+		if(dist2 > guns[weap].endrange) return 0;
 	}
-	*/
 	// we hit somebody
 	if(hit && damage){
 		// damage multipliers
