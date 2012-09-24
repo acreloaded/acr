@@ -1729,8 +1729,8 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 
 void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source, float dist = 0){
 // moon jump = no damage during gib
-#if (SERVER_BUILTIN_MOD & 2)
-#if !(SERVER_BUILTIN_MOD & 1)
+#if (SERVER_BUILTIN_MOD & 2) == 2
+#if (SERVER_BUILTIN_MOD & 4) != 4
 	if(m_gib(gamemode, mutators))
 #endif
 		return;
@@ -4209,9 +4209,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						if(clients[cn]->state.mag) break;
 						// INTENTIONAL FALLTHROUGH
 					case S_JUMP:
-#if (SERVER_BUILTIN_MOD & 2)
+#if (SERVER_BUILTIN_MOD & 2) == 2
 						// native moonjump for humans
-#if !(SERVER_BUILTIN_MOD & 1)
+#if (SERVER_BUILTIN_MOD & 4) != 4
 						if(m_gib(gamemode, mutators))
 #endif
 						if(snd == S_JUMP && cn == sender)
