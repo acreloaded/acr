@@ -278,7 +278,6 @@ void healevent::process(client *ci){
 		}
 		ci->state.health = MAXHEALTH;
 		if(!m_zombie(gamemode)) return sendf(-1, 1, "ri4", N_HEAL, id, ci->clientnum, ci->state.health);
-		else ci->state.damagelog.setsize(0);
 	}
 	// partial heal
 	else ci->state.health += heal;
@@ -356,10 +355,8 @@ void processevents(){
 			else if(m_regen(gamemode, mutators) && cs.state == CS_ALIVE && cs.health < STARTHEALTH && cs.lastregen + (cs.perk1 == PERK_POWER ? REGENINT * .7f : REGENINT) < gamemillis){
 				int amt = round(float((STARTHEALTH - cs.health) / 5 + 15));
 				if(cs.perk1 == PERK_POWER) amt *= 1.4f;
-				if(amt >= STARTHEALTH - cs.health){
+				if(amt >= STARTHEALTH - cs.health)
 					amt = STARTHEALTH - cs.health;
-					cs.damagelog.setsize(0);
-				}
 				sendf(-1, 1, "ri3", N_REGEN, i, cs.health += amt);
 				cs.lastregen = gamemillis;
 			}
