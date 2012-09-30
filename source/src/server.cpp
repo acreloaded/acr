@@ -58,6 +58,7 @@ void purgesconfirms(){
 }
 
 ssqr *maplayout = NULL;
+persistent_entity *mapents = NULL;
 int maplayout_factor;
 
 bool valid_client(int cn, bool player){
@@ -414,15 +415,15 @@ int fixspawn = 2;
 
 int findspawn(int index)
 {
-	for(int i = index; i<smapstats.hdr.numents; i++) if(smapstats.ents[i].type==PLAYERSTART) return i;
-	loopj(index) if(smapstats.ents[j].type==PLAYERSTART) return j;
+	for(int i = index; i<smapstats.hdr.numents; i++) if(mapents[i].type==PLAYERSTART) return i;
+	loopj(index) if(mapents[j].type==PLAYERSTART) return j;
 	return -1;
 }
 
 int findspawn(int index, uchar attr2)
 {
-	for(int i = index; i<smapstats.hdr.numents; i++) if(smapstats.ents[i].type==PLAYERSTART && smapstats.ents[i].attr2==attr2) return i;
-	loopj(index) if(smapstats.ents[j].type==PLAYERSTART && smapstats.ents[j].attr2==attr2) return j;
+	for(int i = index; i<smapstats.hdr.numents; i++) if(mapents[i].type==PLAYERSTART && mapents[i].attr2==attr2) return i;
+	loopj(index) if(mapents[j].type==PLAYERSTART && mapents[j].attr2==attr2) return j;
 	return -1;
 }
 
@@ -455,12 +456,12 @@ void sendspawn(client *c){
 	{
 		int x = -1;
 		loopi(c->spawnindex + 1) x = findspawn(x+1, type);
-		if(x >= 0) spawn_ent = &smapstats.ents[x];
+		if(x >= 0) spawn_ent = &mapents[x];
 	}
 	else if(m_team(gamemode, mutators) || m_duke(gamemode, mutators))
 	{
 		loopi(r) spawncycle = findspawn(spawncycle+1, type);
-		if(spawncycle >= 0) spawn_ent = &smapstats.ents[spawncycle];
+		if(spawncycle >= 0) spawn_ent = &mapents[spawncycle];
 	}
 	else
 	{
@@ -470,8 +471,8 @@ void sendspawn(client *c){
 		{
 			spawncycle = !m_spawn_team(gamemode, mutators) && smapstats.spawns[2] > 5 ? findspawn(spawncycle+1, 100) : findspawn(spawncycle+1);
 			if(spawncycle < 0) continue;
-			float dist = nearestenemy(vec(smapstats.ents[spawncycle].x, smapstats.ents[spawncycle].y, smapstats.ents[spawncycle].z), c->team);
-			if(!spawn_ent || dist < 0 || (bestdist >= 0 && dist > bestdist)) { spawn_ent = &smapstats.ents[spawncycle]; bestdist = dist; }
+			float dist = nearestenemy(vec(mapents[spawncycle].x, mapents[spawncycle].y, mapents[spawncycle].z), c->team);
+			if(!spawn_ent || dist < 0 || (bestdist >= 0 && dist > bestdist)) { spawn_ent = &mapents[spawncycle]; bestdist = dist; }
 		}
 	}
 	if(spawn_ent)
@@ -2348,8 +2349,8 @@ void resetmap(const char *newname, int newmode, int newmuts, int newtime, bool n
 				f.x = *fe;
 				f.y = *++fe;
 				*/
-				f.x = smapstats.ents[smapstats.flagents[i]].x;
-				f.y = smapstats.ents[smapstats.flagents[i]].y;
+				f.x = mapents[smapstats.flagents[i]].x;
+				f.y = mapents[smapstats.flagents[i]].y;
 			}
 			else f.x = f.y = -1;
 		}
@@ -2357,7 +2358,7 @@ void resetmap(const char *newname, int newmode, int newmuts, int newtime, bool n
 		loopi(smapstats.hdr.numents)
 		{
 			entity &e = sents.add();
-			persistent_entity &pe = smapstats.ents[i];
+			persistent_entity &pe = mapents[i];
 			e.type = pe.type;
 			e.transformtype(smode, smuts);
 			e.x = pe.x;

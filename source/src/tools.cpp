@@ -412,6 +412,7 @@ bool delfile(const char *path)
 }
 
 extern ssqr *maplayout;
+extern persistent_entity *mapents;
 extern int maplayout_factor;
 
 mapstats *loadmapstats(const char *filename, bool getlayout)
@@ -502,12 +503,13 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 			}
 			if(fail) DELETEA(maplayout);
 		}
+		mapents = ents;
 	}
 	gzclose(f);
 	s.hasffaspawns = s.spawns[2] > 0;
 	s.hasteamspawns = s.spawns[0] > 0 && s.spawns[1] > 0;
 	s.hasflags = s.flags[0] > 0 && s.flags[1] > 0;
-	s.ents = ents;
+	//s.ents = ents;
 	s.cgzsize = getfilesize(filename);
 	return &s;
 }
