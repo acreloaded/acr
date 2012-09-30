@@ -3546,7 +3546,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				const int cn = getint(p);
 				if(!hasclient(cl, cn)) break;
 				client *cp = clients[cn];
-				if(cp->state.state != CS_DEAD) cp->suicide( WEAP_MAX + (cn == sender ? 10 : 11), cn == sender ? FRAG_GIB : FRAG_NONE);
+				if(cp->state.state != CS_DEAD && cp->state.state != CS_WAITING) cp->suicide( WEAP_MAX + (cn == sender ? 10 : 11), cn == sender ? FRAG_GIB : FRAG_NONE);
 				break;
 			}
 
