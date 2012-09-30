@@ -1166,6 +1166,8 @@ void refreshsopmenu(void *menu, bool init)
 extern bool watchingdemo;
 VARFP(thirdperson, -MAXTHIRDPERSON, 0, MAXTHIRDPERSON, addmsg(N_THIRDPERSON, "ri", thirdperson)); // FIXME use a different protocol message for thirdperson?
 
+VARP(spectatebots, 0, 0, 1);
+
 // rotate through all spec-able players
 playerent *updatefollowplayer(int shiftdirection)
 {
@@ -1177,7 +1179,7 @@ playerent *updatefollowplayer(int shiftdirection)
 
 	// collect spec-able players
 	vector<playerent *> available;
-	loopv(players) if(players[i] && players[i]->team != TEAM_SPECT && players[i]->ownernum < 0 && (players[i]->state != CS_DEAD || !m_duke(gamemode, mutators)))
+	loopv(players) if(players[i] && players[i]->team != TEAM_SPECT && (players[i]->ownernum < 0 || spectatebots) && (players[i]->state != CS_DEAD || !m_duke(gamemode, mutators)))
 		available.add(players[i]);
 	if(!available.length()) return NULL;
 
