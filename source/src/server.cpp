@@ -4033,7 +4033,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				pwddetail pd;
 				pd.line = -1;
 				if(cl->type == ST_LOCAL) setpriv(sender, PRIV_MAX);
-				else if(!checkadmin(cl->name, text, cl->salt, &pd) || !pd.priv){
+				else if(!checkadmin(cl->name, text, cl->salt, &pd))
+				{
 					if(cl->authpriv >= PRIV_MASTER){
 						logline(ACLOG_INFO,"[%s] %s was already authed for %s", gethostname(sender), formatname(cl), privname(cl->authpriv));
 						setpriv(sender, cl->authpriv);
@@ -4042,9 +4043,16 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						disconnect_client(sender, DISC_LOGINFAIL); // avoid brute-force
 						return;
 					}
-				} else {
+				}
+				else if(!pd.priv)
+				{
+					sendservmsg("password is not privileged! this is a deban password!", sender);
+					if(pd.line >= 0) logline(ACLOG_INFO,"[%s] %s used non-privileged password on line %d", gethostname(sender), formatname(cl), pd.line);
+				}
+				else
+				{
 					setpriv(sender, pd.priv);
-					if(pd.line >= 0) logline(ACLOG_INFO,"[%s] %s used %s password in line %d", gethostname(sender), formatname(cl), privname(pd.priv), pd.line);
+					if(pd.line >= 0) logline(ACLOG_INFO,"[%s] %s used %s password on line %d", gethostname(sender), formatname(cl), privname(pd.priv), pd.line);
 				}
 				break;
 			}
