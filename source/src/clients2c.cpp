@@ -1284,7 +1284,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                             break;
                         case FTR_AUTOTEAM:
 							if(own) hudoutf("\f1you stay in \f2%s", nts);
-                            else conoutf("\f2%s stays on %s", colorname(p), nts);
+							else if(p->ownernum < 0) conoutf("\f2%s stays on %s", colorname(p), nts);
                             break;
                     }
                 }
@@ -1296,7 +1296,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                             break;
                         case FTR_AUTOTEAM:
 							if(own) hudoutf("\f2the server \f1forced you \f2to %s", nts);
-                            else conoutf("\f2the server forced %s to %s", colorname(p), nts);
+							else /*if(p->ownernum < 0)*/ conoutf("\f2the server forced %s to %s", colorname(p), nts);
                             break;
                     }
 					p->team = fnt;
