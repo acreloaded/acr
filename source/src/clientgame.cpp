@@ -895,6 +895,7 @@ const char *votestring(int type, const votedata &vote)
 		{
 			playerent *p = getclient(vote.int1);
 			if(p) formatstring(out)("kick player %s for %s", colorname(p), vote.str1);
+			else formatstring(out)("kick someone (%d) for %s", vote.int1, vote.str1);
 			break;
 		}
 
@@ -903,18 +904,24 @@ const char *votestring(int type, const votedata &vote)
 			int cn = vote.int1, minutes = vote.int2;
 			playerent *p = getclient(cn);
 			if(p) formatstring(out)("ban %s for %d minutes for %s", colorname(p), minutes, vote.str1);
+			else formatstring(out)("ban someone (%d) for %d minutes for %s", cn, minutes, vote.str1);
+			break;
+		}
+
+		case SA_GIVEROLE: // int1, int2
+		{
+			playerent *p = getclient(vote.int1);
+			const char priv = vote.int2;
+			if(p) formatstring(out)("\f0give \f%d%s \f5to player %s", privcolor(priv), privname(priv), colorname(p));
+			else formatstring(out)("give someone (%d) \f%d%s", vote.int1, privcolor(priv), privname(priv));
 			break;
 		}
 
 		case SA_REVOKE: // int1
-		case SA_GIVEROLE: // int1, int2
 		{
 			playerent *p = getclient(vote.int1);
-			const char priv = (type == SA_GIVEROLE ? vote.int2 : p->priv);
-			if(p) formatstring(out)(
-				type == SA_GIVEROLE ? "\f0give \f%d%s \f5to player %s" :
-				type == SA_REVOKE ? "revoke \fs\f%d%s\fr from %s" :
-				"%s's \fs\f%d%s\fr", privcolor(priv), privname(priv), colorname(p));
+			if(p) formatstring(out)("revoke \fs\f%d%s\fr from %s", privcolor(p->priv), privname(p->priv), colorname(p));
+			else formatstring(out)("revoke someone (%d)'s privilege", vote.int1);
 			break;
 		}
 
@@ -923,11 +930,11 @@ const char *votestring(int type, const votedata &vote)
 		case SA_SPECT:
 		{
 			playerent *p = getclient(vote.int1);
-			if(p) formatstring(out)(
+			formatstring(out)(
 				type == SA_FORCETEAM ? "force player %s to the enemy team" :
 				type == SA_SUBDUE ? "subdue player %s" :
 				type == SA_SPECT ? "toggle spectator for %s" :
-				"unknown on %s", colorname(p));
+				"unknown on %s", p ? colorname(p) : "?");
 			break;
 		}
 
