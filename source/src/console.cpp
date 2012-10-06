@@ -219,10 +219,11 @@ struct obitlist
 		cl.combo = combo;
 		cl.headshot = headshot;
 		loopv(olines) if(con.fullconsole || totalmillis - olines[i].millis < obitfade*1000)
-			if(olines[i].obit == cl.obit && olines[i].style == cl.style && olines[i].headshot == cl.headshot && !strcmp(olines[i].actor, cl.actor) && !strcmp(olines[i].target, cl.target)){
+			if(olines[i].obit == cl.obit && /*olines[i].style == cl.style &&*/ olines[i].headshot == cl.headshot && !strcmp(olines[i].actor, cl.actor) && !strcmp(olines[i].target, cl.target)){
 				delete[] olines[i].actor;
 				delete[] olines[i].target;
 				cl.combo += olines[i].combo; // add combo
+				cl.style |= olines[i].style; // merge styles
 				olines.remove(i); // remove, and "merge" into our line
 				break;
 			}
