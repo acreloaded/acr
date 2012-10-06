@@ -932,13 +932,13 @@ const char *suicname(int obit){
 }
 
 const bool isheadshot(int weapon, int style){
-	if(!(style & FRAG_GIB)) return false; // only headshots gib
+	if(!(style & FRAG_GIB)) return false; // only gibs headshot
 	switch(weapon){
 		case WEAP_KNIFE:
 		case WEAP_SWORD:
 		case WEAP_GRENADE:
-			if(style & FRAG_FLAG) break; // these weapons headshot if FRAG_FLAG is set
 		case WEAP_RPG:
+			if(style & FRAG_FLAG) break; // these weapons headshot if FRAG_FLAG is set
 		case WEAP_MAX + 1:
 		case WEAP_MAX + 10:
 			return false; // these weapons cannot headshot

@@ -137,7 +137,7 @@ void shotevent::process(client *ci)
 					dmg *= m_progressive(gamemode, mutators) ? (hitzone * 75) : (55);
 				damagedealt += dmg;
 				sendhit(c, WEAP_RPG, to, dmg); // blood, not explosion
-				serverdamage(hit, &c, dmg, WEAP_RPG, FRAG_GIB, expc, expc.dist(from));
+				serverdamage(hit, &c, dmg, WEAP_RPG, FRAG_GIB | (hitzone == HIT_HEAD ? FRAG_FLAG : FRAG_NONE), expc, expc.dist(from));
 			}
 			// fix explosion on walls
 			else (expc = to).sub(from).normalize().mul(to.dist(from) - .1f).add(from);
