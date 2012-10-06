@@ -1310,7 +1310,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				int cn = getint(p), type = getint(p), voteremain = getint(p);
 				playerent *d = getclient(cn);
-				if(type < 0 || type >= SA_NUM || !d) break;
+				if(type < 0 || type >= SA_NUM) break;
 				votedisplayinfo *v = NULL;
 				// vote data storage
 				static votedata vote = votedata(text);
@@ -1330,7 +1330,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						vote.int2 = getint(p);
 						vote.int1 = getint(p);
 						break;
-
 					case SA_MAP:
 						vote.int2 = getint(p);
 						// fallthrough
