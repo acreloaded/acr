@@ -532,17 +532,17 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 		case 5: concatformatstring(predicate, ", \fs\f4\fb%s\fr", _("obit_combo_5")); break;
 		default: if(combo > 1) concatformatstring(predicate, ", \fs\f5\fb%s\fr", _("obit_combo_6")); break;
 	}
-	if(style & FRAG_FIRST) concatformatstring(predicate, " %s\fs\f3\fb%s\fr%s", _("obit_first_pre"), _("obit_first_mid"), _("obit_first_post"));
-	if(style & FRAG_CRIT) concatformatstring(predicate, " %s\fs\f1\fb%s\fr%s", _("obit_crit_pre"), _("obit_crit_mid"), _("obit_crit_post"));
+	if(style & FRAG_FIRST) concatformatstring(predicate, "%s\fs\f3\fb%s\fr%s", _("obit_first_pre"), _("obit_first_mid"), _("obit_first_post"));
+	if(style & FRAG_CRIT) concatformatstring(predicate, "%s\fs\f1\fb%s\fr%s", _("obit_crit_pre"), _("obit_crit_mid"), _("obit_crit_post"));
 	if(pl != act && weapon < WEAP_MAX && ads_gun(weapon)){
 		char scopestyle = 0;
 		if(style & FRAG_SCOPE_NONE) scopestyle = (style & FRAG_SCOPE_FULL) ? 3 : 1;
 		else scopestyle = (style & FRAG_SCOPE_FULL) ? 4 : 2;
 		switch(scopestyle){
 			//case 1: concatstring(predicate, " \fs\f2without\fr scoping"); break;
-			case 2: concatformatstring(predicate, " %s\fs\f0\fb%s\fr%s", _("obit_scope_quick_pre"), _("obit_scope_quick_mid"), _("obit_scope_quick_post")); break;
-			case 3: concatformatstring(predicate, " %s\fs\f1\fb%s\fr%s", _("obit_scope_recent_pre"), _("obit_scope_recent_mid"), _("obit_scope_recent_post")); break;
-			case 4: concatformatstring(predicate, " %s\fs\f3\fb%s\fr%s", _("obit_scope_hard_pre"), _("obit_scope_hard_mid"), _("obit_scope_hard_post")); break;
+			case 2: concatformatstring(predicate, "%s\fs\f0\fb%s\fr%s", _("obit_scope_quick_pre"), _("obit_scope_quick_mid"), _("obit_scope_quick_post")); break;
+			case 3: concatformatstring(predicate, "%s\fs\f1\fb%s\fr%s", _("obit_scope_recent_pre"), _("obit_scope_recent_mid"), _("obit_scope_recent_post")); break;
+			case 4: concatformatstring(predicate, "%s\fs\f3\fb%s\fr%s", _("obit_scope_hard_pre"), _("obit_scope_hard_mid"), _("obit_scope_hard_post")); break;
 		}
 	}
 	obitoutf(act->clientnum, "%s %s", subject, predicate);
