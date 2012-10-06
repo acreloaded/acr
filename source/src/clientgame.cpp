@@ -540,9 +540,9 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 		else scopestyle = (style & FRAG_SCOPE_FULL) ? 4 : 2;
 		switch(scopestyle){
 			//case 1: concatstring(predicate, " \fs\f2without\fr scoping"); break;
-			case 2: concatstring(predicate, " \fs\f0\fbquickly\fr scoping"); break;
-			case 3: concatstring(predicate, " \fs\f1recently\fr scoping"); break;
-			case 4: concatstring(predicate, " \fs\f3hard\frscoping"); break;
+			case 2: concatformatstring(predicate, " %s\fs\f0\fb%s\fr%s", _("obit_scope_quick_pre"), _("obit_scope_quick_mid"), _("obit_scope_quick_post")); break;
+			case 3: concatformatstring(predicate, " %s\fs\f1\fb%s\fr%s", _("obit_scope_recent_pre"), _("obit_scope_recent_mid"), _("obit_scope_recent_post")); break;
+			case 4: concatformatstring(predicate, " %s\fs\f3\fb%s\fr%s", _("obit_scope_hard_pre"), _("obit_scope_hard_mid"), _("obit_scope_hard_post")); break;
 		}
 	}
 	obitoutf(act->clientnum, "%s %s", subject, predicate);
