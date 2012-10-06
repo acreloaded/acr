@@ -1004,7 +1004,7 @@ const char *killname(int obit, bool headshot){
 			break;
 		// special obits
 		case OBIT_IMPACT:
-			concatstring(k, "kill_impact");
+			concatstring(k, headshot ? "kill_impact_hs" : "kill_impact");
 			break;
 		case OBIT_RPG_STUCK:
 			concatstring(k, "kill_rpg_stuck");
