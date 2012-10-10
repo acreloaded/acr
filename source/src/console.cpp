@@ -20,13 +20,6 @@ struct console : consolebuffer<cline>
 
 	static const int WORDWRAP = 80;
 
-	int fullconsole;
-	void toggleconsole()
-	{
-		if(!fullconsole) fullconsole = altconsize ? 1 : 2;
-		else fullconsole = ++fullconsole % 3;
-	}
-
 	void addobit(const char *sf, int cn) {
 		extern int totalmillis;
 		if(conlines.length() > 2 && conlines[0].obit == cn){ // last one was our kill
@@ -105,7 +98,7 @@ struct console : consolebuffer<cline>
 		}
 	}
 
-	console() : consolebuffer<cline>(200), fullconsole(false) { maxlines = 8; }
+	console() : consolebuffer<cline>(200) { maxlines = 8; }
 } con;
 
 VARP(chatfade, 0, 15, 30);
@@ -123,10 +116,10 @@ struct chatlist : consolebuffer<cline>{
 		}
         loopi(linei){
 			cline &l = conlines[i];
-			if(totalmillis <= l.millis + chatfade*1000 || con.fullconsole){
+			if(totalmillis <= l.millis + chatfade*1000 || fullconsole){
 				int fade = 255;
 
-				if(l.millis + chatfade*1000 <= totalmillis + 1000 && !con.fullconsole){ // fading out
+				if(l.millis + chatfade*1000 <= totalmillis + 1000 && !fullconsole){ // fading out
 					fade = (l.millis + chatfade*1000 - totalmillis) * 255/1000;
 					y -= FONTH * (totalmillis + 1000 - l.millis - chatfade*1000) / 1000;
 				}
@@ -141,7 +134,7 @@ struct chatlist : consolebuffer<cline>{
 			}
         }
     }
-    chatlist() : consolebuffer<cline>(100) { maxlines = 6; }
+    chatlist() : consolebuffer<cline>(6) { }
 } chat;
 
 Texture **obittex(){
@@ -168,13 +161,20 @@ const char *obit_prefix(playerent *pl, bool dark){
 VARP(obitfade, 0, 10, 60);
 VARP(obitalpha, 0, 80, 100);
 VARP(obitamt, 0, 1, 3); // 0: very compact, 1: show humans, 2: show humans and suicides, 3: show all
-struct oline { char *actor; char *target; int obit, millis, style, combo; bool headshot; };
-struct obitlist
+struct oline {
+	char *actor; char *target; int obit, millis, style, combo; bool headshot;
+	void cleanup(){ delete[] actor; delete[] target; }
+	bool mergable(const oline &o){ return o.obit == obit && /*o.style == style && o.headshot == headshot &&*/ !strcmp(o.actor, actor) && !strcmp(o.target, target);	}
+	void merge(oline &o){
+		headshot |= o.headshot;
+		combo += o.combo; // add combo
+		style |= o.style; // merge styles
+		o.cleanup();
+	}
+};
+struct obitlist : consolebuffer<oline>
 {
-	int maxlines;
-	vector<oline> olines;
-
-	obitlist() : maxlines(12) {}
+	obitlist() : consolebuffer<oline>(12) {}
 
 	int filterstyle(int style){
 		return style & (
@@ -186,13 +186,9 @@ struct obitlist
 	{
 		oline cl;
 		// constrain the buffer size
-		cl.actor = olines.length() ? olines.last().actor : NULL;
-		cl.target = olines.length() ? olines.last().target : NULL;
-		if(olines.length() && olines.length()>maxlines) olines.pop();
-		else{
-			cl.actor = newstringbuf("");
-			cl.target = newstringbuf("");
-		}
+		if(conlines.length() && conlines.length()>maxlines) conlines.pop();
+		cl.actor = newstringbuf("");
+		cl.target = newstringbuf("");
 		cl.millis = millis; // for how long to keep line on screen
 		cl.obit = obit;
 		// actor
@@ -218,29 +214,25 @@ struct obitlist
 		cl.style = filterstyle(style);
 		cl.combo = combo;
 		cl.headshot = headshot;
-		loopv(olines) if(con.fullconsole || totalmillis - olines[i].millis < obitfade*1000)
-			if(olines[i].obit == cl.obit && /*olines[i].style == cl.style &&*/ olines[i].headshot == cl.headshot && !strcmp(olines[i].actor, cl.actor) && !strcmp(olines[i].target, cl.target)){
-				delete[] olines[i].actor;
-				delete[] olines[i].target;
-				cl.combo += olines[i].combo; // add combo
-				cl.style |= olines[i].style; // merge styles
-				olines.remove(i); // remove, and "merge" into our line
+		loopv(conlines) if(fullconsole || totalmillis - conlines[i].millis < obitfade*1000)
+			if(cl.mergable(conlines[i]))
+			{
+				cl.merge(conlines.remove(i)); // remove, and "merge" into our line
 				break;
 			}
-		return olines.insert(0, cl);
+		return conlines.insert(0, cl);
 	}
 
-	void setmaxlines(int numlines)
+	void toggleconsole()
 	{
-		maxlines = numlines;
-		while(olines.length() > maxlines){
-			oline &o = olines.pop();
-			delete[] o.actor;
-			delete[] o.target;
+		// merge all obits possible
+		consolebuffer<oline>::toggleconsole();
+		loopv(conlines) loopvjrev(conlines)
+		{
+			if(j <= i) break;
+			else if(conlines[i].mergable(conlines[j])) conlines[i].merge(conlines.remove(j));
 		}
 	}
-		
-	virtual ~obitlist() { setmaxlines(0); }
 
 	int obitaspect(int style) const{
 		int aspect = 1;
@@ -287,7 +279,7 @@ struct obitlist
 		glOrtho(0, VIRTW*ts, VIRTH*ts, 0, -1, 1);
 		int linei = 0, /*consumed = 0,*/ y = ts * VIRTH * .5f;
 		// every line is 1 line
-		linei = min(maxlines, olines.length());
+		linei = min(maxlines, conlines.length());
 		/*
 		loopv(olines){
 			defformatstring(l)("%s    %s", olines[i].actor, olines[i].target); // four spaces to subsitute for unknown obit icon
@@ -302,11 +294,11 @@ struct obitlist
 		}
 		*/
         loopi(linei){
-			oline &l = olines[i];
-			if(con.fullconsole || totalmillis-l.millis < obitfade*1000){
+			oline &l = conlines[i];
+			if(fullconsole || totalmillis-l.millis < obitfade*1000){
 				int x = 0;
 				float fade = 1;
-				if(l.millis + obitfade*1000 - totalmillis < 1000 && !con.fullconsole){ // fading out
+				if(l.millis + obitfade*1000 - totalmillis < 1000 && !fullconsole){ // fading out
 					fade = float(l.millis + obitfade*1000 - totalmillis)/1000;
 					y -= FONTH * (totalmillis + 1000 - l.millis - obitfade*1000) / 1000;
 				}
@@ -376,7 +368,7 @@ VARFP(maxcon, 10, 200, 1000, con.setmaxlines(maxcon));
 void setconskip(int n) { con.setconskip(n); }
 COMMANDN(conskip, setconskip, ARG_1INT);
 
-void toggleconsole() { con.toggleconsole(); }
+void toggleconsole() { con.toggleconsole(); chat.toggleconsole(); obits.toggleconsole(); }
 COMMANDN(toggleconsole, toggleconsole, ARG_NONE);
 
 void renderconsole() { con.render(); chat.render(); }
