@@ -169,12 +169,15 @@ struct oline {
 		headshot |= o.headshot;
 		combo += o.combo; // add combo
 		style |= o.style; // merge styles
+		millis = max(millis, o.millis); // merge time
 		o.cleanup();
 	}
 };
 struct obitlist : consolebuffer<oline>
 {
 	obitlist() : consolebuffer<oline>() {}
+
+	static const int FADEMAX = 12;
 
 	int filterstyle(int style){
 		return style & (
@@ -214,7 +217,7 @@ struct obitlist : consolebuffer<oline>
 		cl.style = filterstyle(style);
 		cl.combo = combo;
 		cl.headshot = headshot;
-		loopv(conlines) if(fullconsole || totalmillis - conlines[i].millis < obitfade*1000)
+		loopv(conlines) if(fullconsole || (i < FADEMAX && totalmillis - conlines[i].millis < obitfade*1000))
 			if(cl.mergable(conlines[i]))
 			{
 				cl.merge(conlines.remove(i)); // remove, and "merge" into our line
@@ -295,12 +298,15 @@ struct obitlist : consolebuffer<oline>
 		*/
         loopi(linei){
 			oline &l = conlines[i];
-			if(fullconsole || totalmillis-l.millis < obitfade*1000){
+			if(fullconsole || totalmillis-l.millis < obitfade*1000 + 1000){
 				int x = 0;
 				float fade = 1;
-				if(l.millis + obitfade*1000 - totalmillis < 1000 && !fullconsole){ // fading out
-					fade = float(l.millis + obitfade*1000 - totalmillis)/1000;
-					y -= FONTH * (totalmillis + 1000 - l.millis - obitfade*1000) / 1000;
+				if(!fullconsole){ // fading out
+					if(totalmillis - l.millis > obitfade*1000){
+						fade = float(l.millis + 1000 + obitfade*1000 - totalmillis)/1000;
+						y -= FONTH * (totalmillis + 1000 - l.millis - obitfade*1000) / 1000;
+					}
+					else if(i >= FADEMAX) l.millis = totalmillis - obitfade*1000; // for next frame
 				}
 				else if(/*!i*/ totalmillis-l.millis < 500){ // fading in
 					fade = float(totalmillis - l.millis)/500;
