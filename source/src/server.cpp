@@ -4349,9 +4349,13 @@ void checkintermission(){
 				nextmapmode = smode;
 				nextmapmuts = smuts;
 			}
-			if(nextmaptime < 1) nextmaptime = m_time(nextmapmode, nextmapmuts);
-			concatformatstring(msg, " \fs\f3%s\fr in mode \fs\f3%s\fr for %d minutes", nextmapnm, modestr(nextmapmode, nextmapmuts), nextmaptime);
-			sendservmsg(msg);
+			else *msg = '\0';
+			if(msg)
+			{
+				if(nextmaptime < 1) nextmaptime = m_time(nextmapmode, nextmapmuts);
+				concatformatstring(msg, " \fs\f3%s\fr in mode \fs\f3%s\fr for %d minutes", nextmapnm, modestr(nextmapmode, nextmapmuts), nextmaptime);
+				sendservmsg(msg);
+			}
 		}
 		if(!minremain) sendf(-1, 1, "ri4", N_TIMEUP, gamelimit, gamelimit - 60000 + 1, gamemusicseed); // force intermission
 		else sendf(-1, 1, "ri4", N_TIMEUP, gamemillis, gamelimit, gamemusicseed);
