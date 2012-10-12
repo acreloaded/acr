@@ -59,7 +59,7 @@ struct console : consolebuffer<cline>
 			if(!conskip)
 			{
 				numl = 0;
-				loopvrev(conlines) if(totalmillis-conlines[i].millis < confade*1000) { numl = i+1; break; }
+				loopvrev(conlines) if(totalmillis-conlines[i].millis < confade*1000 + 1000) { numl = i+1; break; }
 			}
 			else offset--;
 		}
@@ -83,9 +83,9 @@ struct console : consolebuffer<cline>
 			char *line = l.line;
 
 			int fade = 255;
-            if(l.millis+confade*1000-totalmillis<1000 && !fullconsole){ // fading out
-				fade = (l.millis+confade*1000-totalmillis)*255/1000;
-				y -= FONTH * (totalmillis + 1000 - l.millis - confade*1000) / 1000;
+            if(totalmillis >= l.millis+confade*1000 && !fullconsole){ // fading out
+				fade = (l.millis + 1000 + confade*1000-totalmillis)*255/1000;
+				y -= FONTH * (totalmillis - l.millis - confade*1000) / 1000;
 			} else if(/*i+1 == numl &&*/ totalmillis - l.millis < 500){ // fading in
 				fade = (totalmillis - l.millis)*255/500;
 				y += FONTH * (l.millis + 500 - totalmillis) / 500;
@@ -116,12 +116,12 @@ struct chatlist : consolebuffer<cline>{
 		}
         loopi(linei){
 			cline &l = conlines[i];
-			if(totalmillis <= l.millis + chatfade*1000 || fullconsole){
+			if(totalmillis <= l.millis + chatfade*1000 + 1000 || fullconsole){
 				int fade = 255;
 
-				if(l.millis + chatfade*1000 <= totalmillis + 1000 && !fullconsole){ // fading out
-					fade = (l.millis + chatfade*1000 - totalmillis) * 255/1000;
-					y -= FONTH * (totalmillis + 1000 - l.millis - chatfade*1000) / 1000;
+				if(totalmillis >= l.millis + chatfade*1000 && !fullconsole){ // fading out
+					fade = (l.millis + 1000 + chatfade*1000 - totalmillis) * 255/1000;
+					y -= FONTH * (totalmillis - l.millis - chatfade*1000) / 1000;
 				}
 				else if(/*!i &&*/ totalmillis - l.millis < 500){ // fading in
 					fade = (totalmillis - l.millis)*255/500;
@@ -298,13 +298,13 @@ struct obitlist : consolebuffer<oline>
 		*/
         loopi(linei){
 			oline &l = conlines[i];
-			if(fullconsole || totalmillis-l.millis < obitfade*1000 + 1000){
+			if(fullconsole || totalmillis <= l.millis + obitfade*1000 + 1000){
 				int x = 0;
 				float fade = 1;
 				if(!fullconsole){ // fading out
-					if(totalmillis - l.millis > obitfade*1000){
+					if(totalmillis >= l.millis + obitfade*1000){
 						fade = float(l.millis + 1000 + obitfade*1000 - totalmillis)/1000;
-						y -= FONTH * (totalmillis + 1000 - l.millis - obitfade*1000) / 1000;
+						y -= FONTH * (totalmillis - l.millis - obitfade*1000) / 1000;
 					}
 					else if(i >= FADEMAX) l.millis = totalmillis - obitfade*1000; // for next frame
 				}
