@@ -4350,7 +4350,7 @@ void checkintermission(){
 				nextmapmuts = smuts;
 			}
 			else *msg = '\0';
-			if(msg)
+			if(*msg)
 			{
 				if(nextmaptime < 1) nextmaptime = m_time(nextmapmode, nextmapmuts);
 				concatformatstring(msg, " \fs\f3%s\fr in mode \fs\f3%s\fr for %d minutes", nextmapnm, modestr(nextmapmode, nextmapmuts), nextmaptime);
