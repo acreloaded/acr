@@ -78,6 +78,7 @@ void CBotManager::Think()
 
 void CBotManager::BeginMap(const char *szMapName)
 { 
+	loopv(players) if(players[i] && players[i]->pBot) DELETEP(players[i]->pBot);
 	WaypointClass.Init();
 	WaypointClass.SetMapName(szMapName);
 	if (*szMapName && !WaypointClass.LoadWaypoints())
