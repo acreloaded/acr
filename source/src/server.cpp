@@ -3879,8 +3879,23 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			{
 				getstring(text, p);
 				filtertext(text, text);
-				const int mode = getint(p), muts = getint(p);
-				if(mapreload || numclients() == 1) resetmap(text, max<const int>(G_DM, mode), muts);
+				int mode = getint(p), muts = getint(p);
+				if(!mapreload && numclients() > 1) break;
+				mapstats *ms = getservermapstats(text, false);
+				if(mode < G_DM) mode = G_DM;
+				modecheck(mode, muts);
+				if(ms && !ms->hasteamspawns)
+				{
+					muts &= ~G_M_TEAM;
+					modecheck(mode, muts);
+					if(muts & G_M_TEAM)
+					{
+						mode = G_DM;
+						muts &= ~G_M_TEAM;
+						modecheck(mode, muts);
+					}
+				}
+				resetmap(text, mode, muts);
 				break;
 			}
 
