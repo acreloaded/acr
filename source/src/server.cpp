@@ -4343,7 +4343,7 @@ void checkintermission(){
 				nextmapmuts = nextmaprot.muts;
 				nextmaptime = nextmaprot.time;
 			}
-			else{ // no map rotation entries
+			else if(isdedicated){ // no map rotation entries
 				copystring(msg, "\f2No map rotation entries--reloading");
 				copystring(nextmapnm, smapname);
 				nextmapmode = smode;
