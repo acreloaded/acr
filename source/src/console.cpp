@@ -98,7 +98,7 @@ struct console : consolebuffer<cline>
 		}
 	}
 
-	console() : consolebuffer<cline>(200) { maxlines = 8; }
+	console() : consolebuffer<cline>(8) { }
 } con;
 
 VARP(chatfade, 0, 15, 30);
@@ -134,7 +134,7 @@ struct chatlist : consolebuffer<cline>{
 			}
         }
     }
-    chatlist() : consolebuffer<cline>(6) { }
+    chatlist() : consolebuffer<cline>() { }
 } chat;
 
 Texture **obittex(){
@@ -174,7 +174,7 @@ struct oline {
 };
 struct obitlist : consolebuffer<oline>
 {
-	obitlist() : consolebuffer<oline>(12) {}
+	obitlist() : consolebuffer<oline>() {}
 
 	int filterstyle(int style){
 		return style & (
