@@ -1883,7 +1883,7 @@ bool CBot::CheckFlags()
 			return false;
 		else
 		{
-			m_pTargetFlag = SearchForFlags(false); // FIXME: using waypoints = crash
+			m_pTargetFlag = SearchForFlags(true);
 			m_iCheckFlagsDelay = lastmillis + RandomLong(3000, 5500);
 		}
 	}
