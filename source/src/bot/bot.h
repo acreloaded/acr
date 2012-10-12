@@ -342,6 +342,7 @@ public:
 
 	void Init(void);
 	void Think(void);
+	void EndMap(void);
 	void BeginMap(const char *szMapName);
 	void LetBotsUpdateStats(void);
 	void LetBotsHear(int n, const vec *loc);

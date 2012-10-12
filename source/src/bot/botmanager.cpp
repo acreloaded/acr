@@ -19,7 +19,10 @@ CBotManager BotManager;
 
 // Bot manager class begin
 
-CBotManager::~CBotManager(void){  }
+CBotManager::~CBotManager(void){
+	EndMap();
+	//ClearStoredBots();
+}
 
 void CBotManager::Init()
 {
@@ -76,9 +79,17 @@ void CBotManager::Think()
     }
 }
 
+void CBotManager::EndMap()
+{
+	loopv(players)
+		if(players[i] && players[i]->pBot)
+			DELETEP(players[i]->pBot);
+}
+
 void CBotManager::BeginMap(const char *szMapName)
 { 
-	loopv(players) if(players[i] && players[i]->pBot) DELETEP(players[i]->pBot);
+	EndMap(); // End previous map
+	
 	WaypointClass.Init();
 	WaypointClass.SetMapName(szMapName);
 	if (*szMapName && !WaypointClass.LoadWaypoints())
