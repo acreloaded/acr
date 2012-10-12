@@ -401,13 +401,12 @@ bool insideradar(const vec &centerpos, float radius, const vec &o)
 }
 
 vec fixradarpos(const vec &o, const vec &centerpos, float res, bool skip = false){
-	vec ret(o);
-	if(!skip && !insideradar(centerpos, res/2.15f, o)){
-		ret.z = 0;
+	if(!skip && !showmap && !insideradar(centerpos, res/2.15f, o)){
+		vec ret(o.x, o.y, 0);
 		ret.sub(centerpos).normalize().mul(res/2.15f).add(centerpos);
+		return ret;
 	}
-	if(insideradar(centerpos, res/2, ret)) return ret;
-	return vec(-1, -1, -1);
+	return insideradar(centerpos, res/2, o) ? o : vec(-1, -1, -1);
 }
 
 bool isattacking(playerent *p) { return lastmillis-p->lastaction < 500; }
