@@ -887,7 +887,8 @@ const char *votestring(int type, const votedata &vote)
 	switch(type){
 		// maps
 		case SA_MAP:
-			formatstring(out)("load map %s in mode %s", vote.str1, modestr(vote.int1, vote.int2, modeacronyms > 0));
+			if(*vote.str1 == '+') formatstring(out)("set next map to %s in mode %s", vote.str1 + 1, modestr(vote.int1, vote.int2, modeacronyms > 0));
+			else formatstring(out)("load map %s in mode %s", vote.str1, modestr(vote.int1, vote.int2, modeacronyms > 0));
 			break;
 
 		// playeractions

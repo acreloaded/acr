@@ -31,7 +31,13 @@ struct mapaction : serveraction
 	bool mapok;
 	void perform()
 	{
-		if(isdedicated && numclients() > 2 && smode >= 0 && !m_edit(gamemode) && gamemillis > gamelimit/5)
+		if(*map == '+')
+		{
+			nextgamemode = mode;
+			nextgamemuts = muts;
+			copystring(nextmapname, map + 1);
+		}
+		else if(isdedicated && numclients() > 2 && smode >= 0 && !m_edit(gamemode) && gamemillis > gamelimit/5)
 		{
 			forceintermission = true;
 			nextgamemode = mode;
@@ -47,6 +53,8 @@ struct mapaction : serveraction
 	bool isdisabled() { return configsets.inrange(curcfgset) && !configsets[curcfgset].vote; }
 	mapaction(char *map, int mode, int muts, int caller) : map(map), mode(mode), muts(muts)
 	{
+		bool is_next = *map == '+';
+		if(is_next) ++map; // skip over the +
 		int maploc = MAP_NOTFOUND;
 		mapstats *ms = (map && *map) ? getservermapstats(map, false, &maploc) : NULL;
 		mapok = true;
@@ -69,7 +77,7 @@ struct mapaction : serveraction
 			{
 				reqpriv = privconf('P');
 				if(reqpriv && !strchr(scl.voteperm, 'P')) mapok = false;
-				defformatstring(msg)("\f3map \"%s\" does not support \"%s\": ", behindpath(map), modestr(mode, muts, false));
+				defformatstring(msg)("\f3map \"%s\" does not support \"%s\": ", behindpath(map), modestr(mode % G_MAX, muts, false));
 				if(!spawns) concatstring(msg, "player spawns");
 				if(!spawns && !flags) concatstring(msg, " and ");
 				if(!flags) concatstring(msg, "flag bases");
@@ -81,7 +89,7 @@ struct mapaction : serveraction
 			if(!strcmp(behindpath(map), scl.adminonlymaps[i]))
 				reqpriv = PRIV_ADMIN;
 		passratio = 0.59f; // you need 60% to vote a map
-		formatstring(desc)("load map '%s' in mode '%s'", map, modestr(mode, muts));
+		formatstring(desc)("%s map '%s' in mode '%s'", is_next ? "set next" : "load", map, modestr(mode % G_MAX, muts));
 	}
 	~mapaction() { DELETEA(map); }
 };
