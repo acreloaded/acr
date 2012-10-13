@@ -4592,7 +4592,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 		else if(isdedicated && *smapname) resetmap(smapname, smode, smuts);
 		else{
 			loopv(clients) if(clients[i]->type!=ST_EMPTY){
-				sendf(i, 1, "ri2", N_NEXTMAP, 0);	// ask a client for the next map
+				sendf(i, 1, "ri", N_NEXTMAP);	// ask a client for the next map
 				mapreload = true;
 				break;
 			}

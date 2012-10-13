@@ -342,7 +342,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_NEXTMAP: // server requests next map
 			{
-				getint(p);
 				defformatstring(nextmapalias)("nextmap_%s", getclientmap());
 				const char *map = getalias(nextmapalias);	 // look up map in the cycle
 				changemap(map ? map : getclientmap());
