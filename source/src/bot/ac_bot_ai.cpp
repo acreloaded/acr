@@ -411,7 +411,7 @@ bool CACBot::HeadToTargetFlag()
 	if(m_pTargetFlag)
 	{
 		const vec o = m_vGoal;
-		if(!UnderWater(m_pMyEnt->o) || !UnderWater(o))
+		if(true && (!UnderWater(m_pMyEnt->o) || !UnderWater(o)))
 		{
 			bool bIsVisible = false;
 			if (m_pCurrentGoalWaypoint)
