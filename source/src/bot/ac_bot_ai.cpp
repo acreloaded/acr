@@ -262,26 +262,13 @@ flaginfo *CACBot::SearchForFlags(bool bUseWPs, float flRange, float flMaxHeight)
 		flaginfo &f = flaginfos[i];
 		flaginfo &of = flaginfos[team_opposite(i)];
 		if(f.state == CTFF_IDLE) continue;
+		if(!CanTakeFlag(f, of)) continue;
 		//vec o = g_vecZero;
 		vec o = vec(f.flagent->x, f.flagent->y, S(f.flagent->x, f.flagent->y)->floor + PLAYERHEIGHT + PLAYERABOVEEYE);
-		switch(f.state){
-			case CTFF_INBASE: // go to this base
-				// if CTF capturing our flag
-				if(m_capture(gamemode) && (i != m_pMyEnt->team || of.state != CTFF_STOLEN || of.actor != m_pMyEnt)) continue;
-				// in HTF to take out own flag
-				else if(m_hunt(gamemode) && i != m_pMyEnt->team) continue;
-				// in BTF to take own flag, and to score it on the enemy base
-				else if(m_bomber(gamemode) && i != m_pMyEnt->team && (of.state != CTFF_STOLEN || of.actor != m_pMyEnt)) continue;
-				// if KTF
-				break;
-			case CTFF_STOLEN: // go to our stolen flag's base
-				// if rCTF and we have our flag
-				if(!m_return(gamemode, mutators) || f.actor != m_pMyEnt || f.team != m_pMyEnt->team) continue;
-				break;
-			case CTFF_DROPPED: // take every dropped flag, regardless of anything!
-				o = f.pos;
-				o.z += PLAYERHEIGHT + PLAYERABOVEEYE;
-				break;
+		if(f.state == CTFF_DROPPED)
+		{
+			o = f.pos;
+			o.z += PLAYERHEIGHT + PLAYERABOVEEYE;
 		}
 		if(OUTBORD((int)o.x, (int)o.y)) continue;
 		flDist = GetDistance(o);
@@ -336,6 +323,30 @@ flaginfo *CACBot::SearchForFlags(bool bUseWPs, float flRange, float flMaxHeight)
 	}
 
 	return pNewTargetFlag;
+}
+
+bool CACBot::CanTakeFlag(const flaginfo &f, const flaginfo &of){
+	const int i = f.team;
+	switch(f.state){
+		case CTFF_INBASE: // go to this base
+			// if CTF capturing our flag
+			if(m_capture(gamemode) && (i != m_pMyEnt->team || of.state != CTFF_STOLEN || of.actor != m_pMyEnt)) return false;
+			// in HTF to take out own flag
+			else if(m_hunt(gamemode) && i != m_pMyEnt->team) return false;
+			// in BTF to take own flag, and to score it on the enemy base
+			else if(m_bomber(gamemode) && i != m_pMyEnt->team && (of.state != CTFF_STOLEN || of.actor != m_pMyEnt)) return false;
+			// if KTF
+			break;
+		case CTFF_STOLEN: // go to our stolen flag's base
+			// if rCTF and we have our flag
+			if(!m_return(gamemode, mutators) || f.actor != m_pMyEnt || f.team != m_pMyEnt->team) return false;
+			break;
+		case CTFF_IDLE: // not active
+			return false;
+		case CTFF_DROPPED: // take every dropped flag, regardless of anything!
+			break;
+	}
+	return true;
 }
 
 bool CACBot::HeadToTargetEnt()
@@ -411,7 +422,7 @@ bool CACBot::HeadToTargetFlag()
 	if(m_pTargetFlag)
 	{
 		const vec o = m_vGoal;
-		if(true && (!UnderWater(m_pMyEnt->o) || !UnderWater(o)))
+		if(CanTakeFlag(*m_pTargetFlag, flaginfos[(m_pTargetFlag->team + 1) % 2]) && (!UnderWater(m_pMyEnt->o) || !UnderWater(o)))
 		{
 			bool bIsVisible = false;
 			if (m_pCurrentGoalWaypoint)

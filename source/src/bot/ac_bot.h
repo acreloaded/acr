@@ -33,6 +33,7 @@ public:
 	virtual flaginfo *SearchForFlags(bool bUseWPs, float flRange=9999.0f,
 							float flMaxHeight=JUMP_HEIGHT);
 	virtual bool HeadToTargetEnt(void);
+	virtual bool CanTakeFlag(const flaginfo &f, const flaginfo &of);
 	virtual bool HeadToTargetFlag(void);
 	virtual bool DoSPStuff(void);
 
