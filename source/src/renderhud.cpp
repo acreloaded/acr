@@ -955,11 +955,10 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 				if(!vpl || vpl->ownernum >= 0) continue;
 				votepl[vpl->vote].add(vpl);
 			}
-			#define VSU votepl[VOTE_NEUTRAL].length()
 			loopl(VOTE_NUM){
-				if(l == VOTE_NEUTRAL && VSU > 5) continue;
-				votepl[l].sort(votersort);
 				copystring(votestr[l], "");
+				if(l == VOTE_NEUTRAL && votepl[VOTE_NEUTRAL].length() > 5) continue;
+				votepl[l].sort(votersort);
 				loopv(votepl[l]){
 					playerent *vpl = votepl[l][i];
 					if(!vpl) continue;
@@ -977,7 +976,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 				votepl[VOTE_YES].length(),
 				curvote->expiryresult == VOTE_NO ? '3' : '5',
 				votepl[VOTE_NO].length(),
-				VSU);
+				votepl[VOTE_NEUTRAL].length());
 
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 			glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis/100.0f)+1.0f) / 2.0f);
@@ -997,15 +996,14 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 			glLoadIdentity();
 			glOrtho(0, VIRTW*2.2, VIRTH*2.2, 0, -1, 1);
 			left *= 1.1; top += 560; top *= 1.1;
-			draw_text("\f1Vote \f0Yes", left, top += 88);
+			draw_textf("\f1Vote \f0Yes \f5(\f4%d/%d/%d\f5)", left, top += 88, votepl[VOTE_YES].length(), curvote->yes_remain, votepl[VOTE_YES].length() + curvote->yes_remain);
 			draw_text(votestr[VOTE_YES], left, top += 88);
-			draw_text("\f1Vote \f3No", left, top += 88);
+			draw_textf("\f1Vote \f3No \f5(\f4%d/%d/%d\f5)", left, top += 88, votepl[VOTE_NO].length(), curvote->no_remain, votepl[VOTE_NO].length() + curvote->no_remain);
 			draw_text(votestr[VOTE_NO], left, top += 88);
-			if(VSU<=5){
+			if(*votestr[VOTE_NEUTRAL]){
 				draw_text("\f1Vote \f2Neutral", left, top += 88);
 				draw_text(votestr[VOTE_NEUTRAL], left, top += 88);
 			}
-			#undef VSU
 		}
 	}
 

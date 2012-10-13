@@ -1377,6 +1377,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				const int projection = getint(p), yes_remain = getint(p), no_remain = getint(p);
 				if(!curvote) break;
 				curvote->expiryresult = projection;
+				curvote->yes_remain = yes_remain;
+				curvote->no_remain = no_remain;
 				break;
 			}
 

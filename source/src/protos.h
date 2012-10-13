@@ -428,9 +428,9 @@ extern void spectate(int mode);
 struct votedisplayinfo
 {
 	playerent *owner;
-	int type, result, expiryresult, millis, nextvote, expiremillis;
+	int type, result, expiryresult, yes_remain, no_remain, millis, nextvote, expiremillis;
 	string desc;
-	votedisplayinfo() : owner(NULL), result(VOTE_NEUTRAL), expiryresult(VOTE_NEUTRAL), millis(0), nextvote(0), expiremillis(0) { }
+	votedisplayinfo() : owner(NULL), result(VOTE_NEUTRAL), expiryresult(VOTE_NEUTRAL), yes_remain(1), no_remain(1), millis(0), nextvote(0), expiremillis(0) { }
 };
 extern bool veto;
 

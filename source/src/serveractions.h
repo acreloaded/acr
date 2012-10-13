@@ -394,6 +394,10 @@ struct voteinfo
 			++stats[VOTE_NUM];
 		}
 		const int expireresult = stats[VOTE_YES]/(float)(stats[VOTE_NO]+stats[VOTE_YES]) > action->passratio ? VOTE_YES : VOTE_NO;
+		sendf(-1, 1, "ri4", N_VOTEREMAIN, expireresult,
+			(int)floor(stats[VOTE_NUM] * action->passratio) + 1 - stats[VOTE_YES],
+			(int)floor(stats[VOTE_NUM] * action->passratio) + 1 - stats[VOTE_NO]); 
+		// can it end?
 		if(forceend){
 			if(veto == VOTE_NEUTRAL) end(expireresult, -3);
 			else end(veto, vetoowner);
@@ -402,6 +406,5 @@ struct voteinfo
 			end(VOTE_YES, -2);
 		else if(stats[VOTE_NO]/(float)stats[VOTE_NUM] > action->passratio)
 			end(VOTE_NO, -2);
-		else sendf(-1, 1, "ri4", N_VOTEREMAIN, expireresult, 0, 0);
 	}
 };
