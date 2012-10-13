@@ -2577,7 +2577,7 @@ bool scallvote(voteinfo *v) // true if a regular vote was called
 		scallvotesuc(v);
 		sendcallvote();
 		// owner auto votes yes
-		sendf(-1, 1, "ri3", N_VOTE, v->owner, (clients[v->owner]->vote = VOTE_YES) | (curvote->expireresult() << 2));
+		sendf(-1, 1, "ri3", N_VOTE, v->owner, (clients[v->owner]->vote = VOTE_YES));
 		curvote->evaluate();
 		return true;
 	}
@@ -4209,7 +4209,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				}
 				else logline(ACLOG_INFO,"[%s] %s voted %s", gethostname(sender), formatname(clients[sender]), vote == VOTE_NO ? "no" : "yes");
 				cl->vote = vote;
-				sendf(-1, 1, "ri3", N_VOTE, sender, vote | (curvote->expireresult() << 2));
+				sendf(-1, 1, "ri3", N_VOTE, sender, vote);
 				curvote->evaluate();
 				break;
 			}

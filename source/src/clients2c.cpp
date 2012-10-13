@@ -1360,9 +1360,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_VOTE:
 			{
-				int cn = getint(p), vote = getint(p), expireresult = (vote >> 2) & 3; vote &= 3;
+				const int cn = getint(p), vote = getint(p);
 				if(!curvote) break;
-				curvote->expiryresult = expireresult;
 				playerent *d = getclient(cn);
 				if(!d || vote < VOTE_NEUTRAL || vote > VOTE_NO) break;
 				d->vote = vote;
@@ -1370,6 +1369,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				d->voternum = curvote->nextvote++;
 				if((voteid || d == player1) && (d != curvote->owner || curvote->millis + 100 < lastmillis))
 					conoutf("%s \f6(%d) \f2voted \f%s", (d == player1) ? "\f1you" : d->name, cn, vote == VOTE_NO ? "3no" : "0yes");
+				break;
+			}
+
+			case N_VOTEREMAIN:
+			{
+				const int projection = getint(p), yes_remain = getint(p), no_remain = getint(p);
+				if(!curvote) break;
+				curvote->expiryresult = projection;
 				break;
 			}
 
