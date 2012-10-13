@@ -957,6 +957,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 			}
 			loopl(VOTE_NUM){
 				copystring(votestr[l], "");
+				if(!votepl[l].length()) continue;
+				// special case: hide if too many are neutral
 				if(l == VOTE_NEUTRAL && votepl[VOTE_NEUTRAL].length() > 5) continue;
 				votepl[l].sort(votersort);
 				loopv(votepl[l]){
@@ -966,10 +968,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 					if(vpl->priv >= PRIV_ADMIN) concatstring(votestr[l], " \f8(!)");
 					concatstring(votestr[l], "\f5, ");
 				}
-				if(!votepl[l].length())
-					copystring(votestr[l], "\f4None");
-				else
-					copystring(votestr[l], votestr[l], strlen(votestr[l])-1);
+				// trim off last space, comma, 5, and line feed
+				votestr[l][strlen(votestr[l]) - 4] = '\0';
+				//copystring(votestr[l], votestr[l], strlen(votestr[l])-1);
 			}
 			draw_textf("\fs\f%c%d yes\fr vs. \fs\f%c%d no\fr", left, top+480,
 				curvote->expiryresult == VOTE_YES ? '0' : '5',
@@ -995,10 +996,14 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 			glLoadIdentity();
 			glOrtho(0, VIRTW*2.2, VIRTH*2.2, 0, -1, 1);
 			left *= 1.1; top += 560; top *= 1.1;
-			draw_textf("\f1Vote \f0Yes \f5(\f4%d+%d\f5)", left, top += 88, votepl[VOTE_YES].length(), curvote->yes_remain);
-			draw_text(votestr[VOTE_YES], left, top += 88);
-			draw_textf("\f1Vote \f3No \f5(\f4%d+%d\f5)", left, top += 88, votepl[VOTE_NO].length(), curvote->no_remain);
-			draw_text(votestr[VOTE_NO], left, top += 88);
+			if(*votestr[VOTE_YES]){
+				draw_textf("\f1Vote \f0Yes \f5(\f4%d/%d\f5)", left, top += 88, votepl[VOTE_YES].length(), curvote->yes_remain);
+				draw_text(votestr[VOTE_YES], left, top += 88);
+			}
+			if(*votestr[VOTE_NO]){
+				draw_textf("\f1Vote \f3No \f5(\f4%d/%d\f5)", left, top += 88, votepl[VOTE_NO].length(), curvote->no_remain);
+				draw_text(votestr[VOTE_NO], left, top += 88);
+			}
 			if(*votestr[VOTE_NEUTRAL]){
 				draw_textf("\f1Vote \f2Neutral \f5(\f4%d\f5)", left, top += 88, votepl[VOTE_NEUTRAL].length());
 				draw_text(votestr[VOTE_NEUTRAL], left, top += 88);
