@@ -971,12 +971,11 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 				else
 					copystring(votestr[l], votestr[l], strlen(votestr[l])-1);
 			}
-			draw_textf("\fs\f%c%d yes\fr vs. \fs\f%c%d no\fr; %d neutral", left, top+480,
+			draw_textf("\fs\f%c%d yes\fr vs. \fs\f%c%d no\fr", left, top+480,
 				curvote->expiryresult == VOTE_YES ? '0' : '5',
 				votepl[VOTE_YES].length(),
 				curvote->expiryresult == VOTE_NO ? '3' : '5',
-				votepl[VOTE_NO].length(),
-				votepl[VOTE_NEUTRAL].length());
+				votepl[VOTE_NO].length());
 
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 			glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis/100.0f)+1.0f) / 2.0f);
@@ -996,12 +995,12 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 			glLoadIdentity();
 			glOrtho(0, VIRTW*2.2, VIRTH*2.2, 0, -1, 1);
 			left *= 1.1; top += 560; top *= 1.1;
-			draw_textf("\f1Vote \f0Yes \f5(\f4%d+%d/%d\f5)", left, top += 88, votepl[VOTE_YES].length(), curvote->yes_remain);
+			draw_textf("\f1Vote \f0Yes \f5(\f4%d+%d\f5)", left, top += 88, votepl[VOTE_YES].length(), curvote->yes_remain);
 			draw_text(votestr[VOTE_YES], left, top += 88);
-			draw_textf("\f1Vote \f3No \f5(\f4%d+%d/%d\f5)", left, top += 88, votepl[VOTE_NO].length(), curvote->no_remain);
+			draw_textf("\f1Vote \f3No \f5(\f4%d+%d\f5)", left, top += 88, votepl[VOTE_NO].length(), curvote->no_remain);
 			draw_text(votestr[VOTE_NO], left, top += 88);
 			if(*votestr[VOTE_NEUTRAL]){
-				draw_text("\f1Vote \f2Neutral", left, top += 88);
+				draw_textf("\f1Vote \f2Neutral \f5(\f4%d\f5)", left, top += 88, votepl[VOTE_NEUTRAL].length());
 				draw_text(votestr[VOTE_NEUTRAL], left, top += 88);
 			}
 		}
