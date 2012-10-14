@@ -586,9 +586,10 @@ void drawradar(playerent *p, int w, int h)
 					vec pos1(e.x, e.y, S(ents[i].x, ents[i].y)->floor); // location (for base)
 					vec pos(0.5f-0.1f, 0.5f-0.9f, 0); // location of flag
 					pos.mul(iconsize/coordtrans).rotate_around_z(flag_yaw*RAD).add(pos1);
+					const int newteam = (ents[i].attr2 == TEAM_SPECT + 2 || m_gsp1(gamemode, mutators)) ? ents[i].attr3 : TEAM_SPECT;
 					drawradarent(fixradarpos(pos, centerpos, res), coordtrans, flag_yaw, 3, clamp<int>(ents[i].attr2 - 2, TEAM_RED, TEAM_SPECT), iconsize, 0, owned / 100);
-					drawradarent(fixradarpos(pos, centerpos, res), coordtrans, flag_yaw, 3, (ents[i].attr2 == TEAM_SPECT + 2 || m_gsp1(gamemode, mutators)) ? ents[i].attr3 : TEAM_SPECT, iconsize, 0, overthrown / 100);
-					drawradarent(fixradarpos(pos1, centerpos, res), coordtrans, flag_yaw, 2, 3, iconsize, 0, .4f, overthrown ? "\f%d%d%%\f4/\f%d%d%%" : "", team_color(ents[i].attr2 - 2), (int)owned, team_color(ents[i].attr3), (int)overthrown); // draw secure bases
+					drawradarent(fixradarpos(pos, centerpos, res), coordtrans, flag_yaw, 3, newteam, iconsize, 0, overthrown / 100);
+					drawradarent(fixradarpos(pos1, centerpos, res), coordtrans, flag_yaw, 2, 3, iconsize, 0, .4f, overthrown ? "\f%d%d%%\f4/\f%d%d%%" : "", team_color(ents[i].attr2 - 2), (int)owned, team_color(newteam), (int)overthrown); // draw secure bases
 				}
 			}
 		}
