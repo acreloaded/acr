@@ -6,11 +6,11 @@
 void *scoremenu = NULL, *teammenu = NULL, *ctfmenu = NULL;
 
 void showscores(int on){
-	if(on) showmenu(m_affinity(gamemode) ? "ctf score" : (m_team(gamemode, mutators) ? "team score" : "score"), false);
+	if(on) showmenu(m_affinity(gamemode) ? "flag score" : (m_team(gamemode, mutators) ? "team score" : "score"), false);
 	else if (!intermission){
 		closemenu("score");
 		closemenu("team score");
-		closemenu("ctf score");
+		closemenu("flag score");
 	}
 }
 

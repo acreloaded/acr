@@ -574,36 +574,43 @@ void drawradar(playerent *p, int w, int h)
 	{
 		glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		loopi(2) // flag items
+		if(m_secure(gamemode))
 		{
-			flaginfo &f = flaginfos[i];
-			entity *e = f.flagent;
-			if(!e || (e->x == -1 && e-> y == -1)) continue;
-			float yaw = showmap ? 0 : camera1->yaw;
-			drawradarent(fixradarpos(vec(e->x, e->y, e->z), centerpos, res), coordtrans, yaw, m_keep(gamemode) && !m_ktf2(gamemode, mutators) && f.state!=CTFF_IDLE ? 2 : f.team, 3, iconsize); // draw bases
-			vec pos(0.5f-0.1f, 0.5f-0.9f, 0);
-			pos.mul(iconsize/coordtrans).rotate_around_z(yaw*RAD);
-			if(f.state==CTFF_STOLEN){
-				if(f.actor)
-				{
-					pos.add(f.actor->o);
-					// see flag position no matter what!
-					drawradarent(fixradarpos(pos, centerpos, res), coordtrans, yaw, 3, m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? 2 : f.team, iconsize, f.team+1); // draw near flag thief
-				}
-			}
-			else{
-				if(f.state == CTFF_DROPPED){
-					pos.x += f.pos.x;
-					pos.y += f.pos.y;
-					pos.z += f.pos.z;
+			// TODO-SECURE
+		}
+		else
+		{
+			loopi(2) // flag items
+			{
+				flaginfo &f = flaginfos[i];
+				entity *e = f.flagent;
+				if(!e || (e->x == -1 && e-> y == -1)) continue;
+				float yaw = showmap ? 0 : camera1->yaw;
+				drawradarent(fixradarpos(vec(e->x, e->y, e->z), centerpos, res), coordtrans, yaw, m_keep(gamemode) && !m_ktf2(gamemode, mutators) && f.state!=CTFF_IDLE ? 2 : f.team, 3, iconsize); // draw bases
+				vec pos(0.5f-0.1f, 0.5f-0.9f, 0);
+				pos.mul(iconsize/coordtrans).rotate_around_z(yaw*RAD);
+				if(f.state==CTFF_STOLEN){
+					if(f.actor)
+					{
+						pos.add(f.actor->o);
+						// see flag position no matter what!
+						drawradarent(fixradarpos(pos, centerpos, res), coordtrans, yaw, 3, m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? 2 : f.team, iconsize, f.team+1); // draw near flag thief
+					}
 				}
 				else{
-					pos.x += e->x;
-					pos.y += e->y;
-					pos.z += centerpos.z;
-				}
+					if(f.state == CTFF_DROPPED){
+						pos.x += f.pos.x;
+						pos.y += f.pos.y;
+						pos.z += f.pos.z;
+					}
+					else{
+						pos.x += e->x;
+						pos.y += e->y;
+						pos.z += centerpos.z;
+					}
 				
-				drawradarent(fixradarpos(pos, centerpos, res), coordtrans, yaw, 3, m_keep(gamemode) && !m_ktf2(gamemode, mutators) && f.state != CTFF_IDLE ? 2 : f.team, iconsize, 0, f.state == CTFF_IDLE ? .3f : 1);
+					drawradarent(fixradarpos(pos, centerpos, res), coordtrans, yaw, 3, m_keep(gamemode) && !m_ktf2(gamemode, mutators) && f.state != CTFF_IDLE ? 2 : f.team, iconsize, 0, f.state == CTFF_IDLE ? .3f : 1);
+				}
 			}
 		}
 	}
@@ -1076,7 +1083,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 			popfont();
 		}
 
-		if(m_affinity(gamemode) && !hidectfhud)
+		if(m_affinity(gamemode) && !m_secure(gamemode) && !hidectfhud)
 		{
 			glLoadIdentity();
 			glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
@@ -1282,64 +1289,72 @@ void renderhudwaypoints(playerent *p){
 	}
 	// flags
 	const int teamfix = p->team == TEAM_SPECT ? TEAM_RED : p->team;
-	if(m_affinity(gamemode)) loopi(2){
-		const float a = 1;
-		int wp = -1;
-		vec o;
-
-		flaginfo &f = flaginfos[i];
-		entity &e = *f.flagent;
-
-		// flag
-		switch(f.state)
+	if(m_affinity(gamemode))
+	{
+		if(m_secure(gamemode))
 		{
-			case CTFF_STOLEN:
-				if(f.actor == p && !isthirdperson) break;
-				if(OUTBORD(f.actor->o.x, f.actor->o.y)) break;
-				o = f.actor->o;
-				wp = (p == f.actor || (m_team(gamemode, mutators) && f.actor->team == teamfix)) ?
-					// friendly
-					(m_capture(gamemode) || m_bomber(gamemode)) ? WP_ESCORT : WP_DEFEND
-					: // hostile below
-					WP_KILL;
-				break;
-			case CTFF_DROPPED:
-				if(OUTBORD(f.pos.x, f.pos.y)) break;
-				o = f.pos;
-				o.z += PLAYERHEIGHT;
-				if(m_capture(gamemode)) wp = i == teamfix ? WP_RETURN : WP_ENEMY;
-				else if(m_keep(gamemode)) wp = WP_ENEMY;
-				else if(m_bomber(gamemode)) wp = i == teamfix ? WP_BOMB : WP_DEFUSE;
-				else wp = i == teamfix ? WP_FRIENDLY : WP_GRAB;
-				break;
+			// TODO-SECURE
 		}
-		o.z += PLAYERABOVEEYE;
-		if(wp >= 0 && wp < WP_NUM) renderwaypoint(wp, o, a);
+		else loopi(2)
+		{
+			const float a = 1;
+			int wp = -1;
+			vec o;
 
-		if(OUTBORD(e.x, e.y)) continue;
+			flaginfo &f = flaginfos[i];
+			entity &e = *f.flagent;
 
-		// flag base
-		wp = WP_STOLEN; // stolen or dropped
-		switch(f.state){
-			default:
-				if(m_bomber(gamemode)) wp = flaginfos[team_opposite(i)].state != CTFF_INBASE ? i == teamfix ? WP_DEFEND : WP_TARGET : -1;
-				else if(i != teamfix) wp = -1; break;
-			case CTFF_INBASE:
-				if(m_capture(gamemode)){
-					wp = i == teamfix ? WP_FRIENDLY : WP_GRAB;
-				} else if(m_bomber(gamemode))
-					wp = i == teamfix ? WP_BOMB : WP_TARGET;
-				else if(m_hunt(gamemode))
-					wp = i == teamfix ? WP_FRIENDLY : WP_ENEMY;
-				else{ // if(m_keep(gamemode)){
-					wp = WP_GRAB;
-				}
-				break;
-			case CTFF_IDLE:
-				wp = WP_ENEMY;
-				break;
+			// flag
+			switch(f.state)
+			{
+				case CTFF_STOLEN:
+					if(f.actor == p && !isthirdperson) break;
+					if(OUTBORD(f.actor->o.x, f.actor->o.y)) break;
+					o = f.actor->o;
+					wp = (p == f.actor || (m_team(gamemode, mutators) && f.actor->team == teamfix)) ?
+						// friendly
+						(m_capture(gamemode) || m_bomber(gamemode)) ? WP_ESCORT : WP_DEFEND
+						: // hostile below
+						WP_KILL;
+					break;
+				case CTFF_DROPPED:
+					if(OUTBORD(f.pos.x, f.pos.y)) break;
+					o = f.pos;
+					o.z += PLAYERHEIGHT;
+					if(m_capture(gamemode)) wp = i == teamfix ? WP_RETURN : WP_ENEMY;
+					else if(m_keep(gamemode)) wp = WP_ENEMY;
+					else if(m_bomber(gamemode)) wp = i == teamfix ? WP_BOMB : WP_DEFUSE;
+					else wp = i == teamfix ? WP_FRIENDLY : WP_GRAB;
+					break;
+			}
+			o.z += PLAYERABOVEEYE;
+			if(wp >= 0 && wp < WP_NUM) renderwaypoint(wp, o, a);
+
+			if(OUTBORD(e.x, e.y)) continue;
+
+			// flag base
+			wp = WP_STOLEN; // stolen or dropped
+			switch(f.state){
+				default:
+					if(m_bomber(gamemode)) wp = flaginfos[team_opposite(i)].state != CTFF_INBASE ? i == teamfix ? WP_DEFEND : WP_TARGET : -1;
+					else if(i != teamfix) wp = -1; break;
+				case CTFF_INBASE:
+					if(m_capture(gamemode)){
+						wp = i == teamfix ? WP_FRIENDLY : WP_GRAB;
+					} else if(m_bomber(gamemode))
+						wp = i == teamfix ? WP_BOMB : WP_TARGET;
+					else if(m_hunt(gamemode))
+						wp = i == teamfix ? WP_FRIENDLY : WP_ENEMY;
+					else{ // if(m_keep(gamemode)){
+						wp = WP_GRAB;
+					}
+					break;
+				case CTFF_IDLE:
+					wp = WP_ENEMY;
+					break;
+			}
+			if(wp >= 0 && wp < WP_NUM) renderwaypoint(wp, vec(e.x, e.y, (float)S(int(e.x), int(e.y))->floor + PLAYERHEIGHT), a);
 		}
-		if(wp >= 0 && wp < WP_NUM) renderwaypoint(wp, vec(e.x, e.y, (float)S(int(e.x), int(e.y))->floor + PLAYERHEIGHT), a);
 	}
 	loopv(players){
 		playerent *pl = i == getclientnum() ? player1 : players[i];

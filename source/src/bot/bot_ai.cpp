@@ -1865,7 +1865,7 @@ bool CBot::CheckItems()
 
 bool CBot::CheckFlags()
 {
-	if (!m_affinity(gamemode)) return false;
+	if (!m_affinity(gamemode) || m_secure(gamemode)) return false; // TODO-SECURE
 
 	if (!m_pCurrentGoalWaypoint && !CheckJump() && CheckStuck())
 	{

@@ -31,7 +31,7 @@ enum
 // new game modes
 enum // game modes
 {
-	G_DEMO = 0, G_EDIT, G_DM, G_CTF, G_HTF, G_KTF, G_BOMBER, G_ZOMBIE, G_MAX,
+	G_DEMO = 0, G_EDIT, G_DM, G_CTF, G_STF, G_HTF, G_KTF, G_BOMBER, G_ZOMBIE, G_MAX,
 };
 
 enum // game mutators
@@ -72,12 +72,13 @@ extern mutstypes mutstype[G_M_NUM];
 #define m_edit(g)           (g == G_EDIT)
 #define m_dm(g)             (g == G_DM)
 #define m_capture(g)        (g == G_CTF)
+#define m_secure(g)         (g == G_STF)
 #define m_hunt(g)           (g == G_HTF)
 #define m_keep(g)           (g == G_KTF)
 #define m_bomber(g)         (g == G_BOMBER)
 #define m_zombie(g)         (g == G_ZOMBIE)
 
-#define m_affinity(g)       (m_capture(g) || m_hunt(g) || m_keep(g) || m_bomber(g))
+#define m_affinity(g)       (m_capture(g) || m_secure(g) || m_hunt(g) || m_keep(g) || m_bomber(g))
 #define m_ai(g)             (m_valid(g) && !m_demo(g) && !m_edit(g)) // extra bots not available in demo/edit
 
 // can add gsp implieds below

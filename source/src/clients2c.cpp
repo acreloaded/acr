@@ -388,7 +388,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 				updateclientname(d);
 
-				if(m_affinity(gamemode)) loopi(2){
+				if(m_affinity(gamemode) && !m_secure(gamemode)) loopi(2){
 					flaginfo &f = flaginfos[i];
 					if(!f.actor) f.actor = getclient(f.actor_cn);
 				}

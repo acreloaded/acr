@@ -415,7 +415,7 @@ bool tryrespawn(){
 	if(player1->state==CS_DEAD){
 		respawnself();
 
-		int respawnmillis = player1->respawnoffset+(m_duke(gamemode, mutators) ? 0 : (m_affinity(gamemode) ? 5000 : 1000));
+		int respawnmillis = player1->respawnoffset+(m_duke(gamemode, mutators) ? 0 : SPAWNDELAY);
 		if(lastmillis>respawnmillis){
 			player1->attacking = false;
 			if(m_duke(gamemode, mutators) || m_convert(gamemode, mutators)){
@@ -739,7 +739,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
 	if(m_ai(gamemode)) BotManager.BeginMap(name); // Added by Rick
 	clearbounceents();
 	resetspawns();
-	preparectf(!m_affinity(gamemode));
+	preparectf(!m_affinity(gamemode) || m_secure(gamemode));
 
 	if(!reset) return;
 

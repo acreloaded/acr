@@ -963,7 +963,7 @@ void flagaction(int flag, int action, int actor){
 }
 
 int clienthasflag(int cn){
-	if(m_affinity(gamemode) && valid_client(cn))
+	if(m_affinity(gamemode) && !m_secure(gamemode) && valid_client(cn))
 	{
 		loopi(2) { if(sflaginfos[i].state==CTFF_STOLEN && sflaginfos[i].actor_cn==cn) return i; }
 	}
@@ -1684,7 +1684,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	if(!suic) logline(logtype, "[%s] %s [%s] %s (%.2f m)", h, formatname(actor), killname(toobit(gun, style), isheadshot(gun, style)), formatname(target), killdist / 4.f);
 	else logline(logtype, "[%s] %s [%s] (%.2f m)", h, formatname(actor), suicname(obit_suicide(gun)), killdist / 4.f);
 
-	if(m_affinity(gamemode)){
+	if(m_affinity(gamemode) && !m_secure(gamemode)){
 		if(m_ktf2(gamemode, mutators) && // KTF2 only
 			targethasflag >= 0 && //he has any flag
 			sflaginfos[team_opposite(targethasflag)].state != CTFF_INBASE){ // other flag is not in base
@@ -2905,8 +2905,15 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet){
 			putint(p, gamemusicseed);
 		}
 		if(m_affinity(gamemode)){
-			CHECKSPACE(256);
-			loopi(2) putflaginfo(p, i);
+			if(m_secure(gamemode))
+			{
+				// TODO-SECURE
+			}
+			else
+			{
+				CHECKSPACE(256);
+				loopi(2) putflaginfo(p, i);
+			}
 		}
 	}
 
@@ -3119,7 +3126,7 @@ bool checkmove(client &cp, int f){
 		}
 	}
 	// flags
-	if(m_affinity(gamemode)) loopi(2){ // check flag pickup
+	if(m_affinity(gamemode) && !m_secure(gamemode)) loopi(2){ // check flag pickup
 		sflaginfo &f = sflaginfos[i];
 		sflaginfo &of = sflaginfos[team_opposite(i)];
 		bool forcez = false;
@@ -4554,7 +4561,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 		processevents();
 		checkitemspawns(diff);
 		bool ktfflagingame = false;
-		if(m_affinity(gamemode)) loopi(2)
+		if(m_affinity(gamemode) && !m_secure(gamemode)) loopi(2)
 		{
 			sflaginfo &f = sflaginfos[i];
 			if(f.state == CTFF_DROPPED && gamemillis-f.lastupdate > (m_capture(gamemode) ? 30000 : (m_ktf2(gamemode, mutators) || m_bomber(gamemode)) ? 20000 : 10000)) flagaction(i, FA_RESET, -1);
@@ -4916,7 +4923,7 @@ void extinfo_teamscorebuf(ucharbuf &p){
 			flagscore += clients[j]->state.flagscore;
 		}
 		putint(p,fragscore); //add fragscore per team
-		if(m_affinity(gamemode)) //when capture mode
+		if(m_affinity(gamemode)) //when flag mode
 		{
 			putint(p,flagscore); //add flagscore per team
 		}

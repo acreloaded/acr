@@ -61,7 +61,7 @@ enum { PR_CLEAR = 0, PR_ASSIST, PR_SPLAT, PR_HS, PR_KC, PR_KD, PR_HEALSELF, PR_H
 #define ZOMBIEHEALTHFACTOR 5
 #define MAXTHIRDPERSON 25
 
-#define SPAWNDELAY (m_affinity(gamemode) ? 5000 : 1500)
+#define SPAWNDELAY (m_secure(gamemode) ? 2000 : m_affinity(gamemode) ? 5000 : 1500)
 
 #define REGENDELAY 4250
 #define REGENINT 2500

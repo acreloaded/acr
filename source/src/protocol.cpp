@@ -419,6 +419,14 @@ gametypes gametype[G_MAX] = {
 		"capture the flag", { "return" },
 	},
 	{
+		G_STF, G_M_TEAM,
+		{
+			G_M_ALL,
+			G_M_ALL,
+		},
+		"secure the flag", { "direct" },
+	},
+	{
 		G_HTF, G_M_TEAM,
 		{
 			G_M_MOST,

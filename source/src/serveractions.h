@@ -71,17 +71,19 @@ struct mapaction : serveraction
 		else
 		{
 			const bool spawns = ms->hasteamspawns || ((!m_team(mode, muts) || m_keep(mode)|| m_zombie(mode)) ? ms->hasffaspawns : false);
-			const bool flags = ms->hasflags || m_hunt(mode) || !m_affinity(mode);
+			const bool flags = ms->hasflags || m_secure(mode) || m_hunt(mode) || !m_affinity(mode);
+			const bool secures = true || !m_secure(mode);
 				
 			if(!spawns || !flags)
 			{
 				reqpriv = privconf('P');
 				if(reqpriv && !strchr(scl.voteperm, 'P')) mapok = false;
-				defformatstring(msg)("\f3map \"%s\" does not support \"%s\": ", behindpath(map), modestr(mode % G_MAX, muts, false));
-				if(!spawns) concatstring(msg, "player spawns");
-				if(!spawns && !flags) concatstring(msg, " and ");
-				if(!flags) concatstring(msg, "flag bases");
-				concatstring(msg, " missing");
+				defformatstring(msg)("\f3map \"%s\" does not support \"%s\": missing ", behindpath(map), modestr(mode, muts, false));
+				if(!spawns) concatstring(msg, "player spawns, ");
+				if(!flags) concatstring(msg, "flag bases, ");
+				if(!secures) concatstring(msg, "secure flags, ");
+				// trim off the last 2
+				msg[strlen(msg)-2] = '\0';
 				sendservmsg(msg, caller);
 			}
 		}
@@ -89,7 +91,7 @@ struct mapaction : serveraction
 			if(!strcmp(behindpath(map), scl.adminonlymaps[i]))
 				reqpriv = PRIV_ADMIN;
 		passratio = 0.59f; // you need 60% to vote a map
-		formatstring(desc)("%s map '%s' in mode '%s'", is_next ? "set next" : "load", map, modestr(mode % G_MAX, muts));
+		formatstring(desc)("%s map '%s' in mode '%s'", is_next ? "set next" : "load", map, modestr(mode, muts));
 	}
 	~mapaction() { DELETEA(map); }
 };
