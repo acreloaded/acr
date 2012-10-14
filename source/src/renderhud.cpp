@@ -585,7 +585,7 @@ void drawradar(playerent *p, int w, int h)
 				flaginfo &f = flaginfos[i];
 				entity *e = f.flagent;
 				if(!e || (e->x == -1 && e-> y == -1)) continue;
-				float yaw = showmap ? 0 : camera1->yaw;
+				const float yaw = showmap ? 0 : camera1->yaw;
 				drawradarent(fixradarpos(vec(e->x, e->y, e->z), centerpos, res), coordtrans, yaw, m_keep(gamemode) && !m_ktf2(gamemode, mutators) && f.state!=CTFF_IDLE ? 2 : f.team, 3, iconsize); // draw bases
 				vec pos(0.5f-0.1f, 0.5f-0.9f, 0);
 				pos.mul(iconsize/coordtrans).rotate_around_z(yaw*RAD);
@@ -613,6 +613,10 @@ void drawradar(playerent *p, int w, int h)
 				}
 			}
 		}
+	}
+	else if(m_edit(gamemode))
+	{
+		loopv(ents) if(ents[i].type == CTF_FLAG) drawradarent(fixradarpos(vec(ents[i].x, ents[i].y, ents[i].z), centerpos, res), coordtrans, showmap ? 0 : camera1->yaw, clamp<int>(ents[i].attr2, 0, 2), 3, iconsize);
 	}
 
 	glEnable(GL_BLEND);
