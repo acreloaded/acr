@@ -31,10 +31,14 @@ mapstats smapstats;
 vector<client *> clients;
 static vector<savedscore> scores;
 static vector<savedlimit> savedlimits;
-teamscore steamscores[TEAM_NUM-1] = { teamscore(TEAM_RED), teamscore(TEAM_BLUE) };
-inline teamscore &getsteamscore(client *c){
-	return steamscores[(m_team(gamemode, mutators) && c->team == TEAM_BLUE) ? TEAM_BLUE : TEAM_RED];
-}
+struct steamscore : teamscore
+{
+	bool valid;
+	steamscore(int team) : teamscore(team), valid(true) { }
+};
+steamscore steamscores[TEAM_NUM-1] = { steamscore(TEAM_RED), steamscore(TEAM_BLUE) };
+inline steamscore &getsteamscore(int team){ return steamscores[(m_team(gamemode, mutators) && team == TEAM_BLUE) ? TEAM_BLUE : TEAM_RED]; }
+inline steamscore &usesteamscore(int team){ getsteamscore(team).valid = false; return getsteamscore(team); }
 uint nextauthreq = 1;
 
 vector<ban> bans;
@@ -944,17 +948,14 @@ void flagaction(int flag, int action, int actor){
 	}
 	if(message < 0) message = action;
 	if(valid_client(actor)){
-		if(score){
-			clients[actor]->state.flagscore += score;
-			sendf(-1, 1, "ri3", N_FLAGCNT, actor, clients[actor]->state.flagscore);
-			getsteamscore(clients[actor]).flagscore += score;
-			sendteamscore(clients[actor]->team);
-		}
-
-		getsteamscore(clients[actor]).points += max(0, flagpoints(clients[actor], message));
-		sendteamscore(clients[actor]->team);
-
 		client &c = *clients[actor];
+		if(score){
+			c.state.flagscore += score;
+			sendf(-1, 1, "ri3", N_FLAGCNT, actor, c.state.flagscore);
+			usesteamscore(c.team).flagscore += score;
+		}
+		usesteamscore(c.team).points += max(0, flagpoints(clients[actor], message));
+
 		switch(message)
 		{
 			case FA_PICKUP:
@@ -1588,12 +1589,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	bool suic = false;
 	
 	// only things on target team that changes
-	if(!m_confirm(gamemode, mutators)){
-		++getsteamscore(target).deaths;
-		// commit, if needed
-		if(actor->team != target->team)
-			sendteamscore(target->team);
-	}
+	if(!m_confirm(gamemode, mutators)) ++usesteamscore(target->team).deaths;
 	// apply to individual
 	++target->state.deaths;
 	addpt(target, DEATHPT);
@@ -1643,7 +1639,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 			const int factor = isteam(clients[ts.damagelog[i]], target) ? -1 : 1;
 			clients[ts.damagelog[i]]->state.assists += factor;
 			if(factor > 0)
-				getsteamscore(actor).assists += factor; // add to assists
+				usesteamscore(actor->team).assists += factor; // add to assists
 			clients[ts.damagelog[i]]->state.pointstreak += factor * 2;
 		}
 		else ts.damagelog.remove(i--);
@@ -1694,11 +1690,9 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 		}
 	}
 	else{
-		if(earnedpts > 0) getsteamscore(actor).points += earnedpts;
-		if(kills > 0) getsteamscore(actor).frags += kills;
+		if(earnedpts > 0) usesteamscore(actor->team).points += earnedpts;
+		if(kills > 0) usesteamscore(actor->team).frags += kills;
 	}
-	// assists/tk-deaths
-	sendteamscore(actor->team); // last team score change
 
 	if(suic && (m_hunt(gamemode) || m_keep(gamemode)) && targethasflag >= 0)
 		sendf(-1, 1, "ri3", N_FLAGCNT, actor->clientnum, --actor->state.flagscore);
@@ -2452,7 +2446,7 @@ void resetmap(const char *newname, int newmode, int newmuts, int newtime, bool n
 	checkai(); // re-init ai (init)
 	// convertcheck();
 	// reset team scores
-	loopi(TEAM_NUM - 1) steamscores[i] = teamscore(i);
+	loopi(TEAM_NUM - 1) steamscores[i] = steamscore(i);
 	purgesknives();
 	purgesconfirms(); // but leave the confirms for team modes in arena
 	if(m_demo(gamemode)) setupdemoplayback();
@@ -2895,9 +2889,9 @@ void sendinitclient(client &c){
 	if(!packet->referenceCount) enet_packet_destroy(packet);
 }
 
-void putteamscore(int team, ucharbuf &p){
+void putteamscore(int team, ucharbuf &p, bool set_valid){
 	if(!team_valid(team) || team == TEAM_SPECT) return;
-	teamscore &t = steamscores[team];
+	steamscore &t = steamscores[team];
 	putint(p, N_TEAMSCORE);
 	putint(p, team);
 	putint(p, t.points);
@@ -2905,13 +2899,14 @@ void putteamscore(int team, ucharbuf &p){
 	putint(p, t.frags);
 	putint(p, t.assists);
 	putint(p, t.deaths);
+	if(set_valid) t.valid = true;
 }
 
 void sendteamscore(int team, int reciever){
 	if(!team_valid(team) || team == TEAM_SPECT) return;
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
-	putteamscore((m_team(gamemode, mutators) && team == TEAM_BLUE) ? TEAM_BLUE : TEAM_RED, p);
+	putteamscore((m_team(gamemode, mutators) && team == TEAM_BLUE) ? TEAM_BLUE : TEAM_RED, p, true);
 	enet_packet_resize(packet, p.length());
 	sendpacket(reciever, 1, packet);
 	if(!packet->referenceCount) enet_packet_destroy(packet);
@@ -2993,7 +2988,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet){
 
 		loopi(TEAM_NUM-1)
 		{
-			putteamscore(i, p);
+			putteamscore(i, p, false);
 			if(!m_team(gamemode, mutators)) break;
 		}
 		putint(p, N_RESUME);
@@ -3236,13 +3231,10 @@ bool checkmove(client &cp, int f){
 	loopv(sconfirms) if(sconfirms[i].o.dist(cs.o) < 5){
 		if(cp.team == sconfirms[i].team){
 			addpt(&cp, KCKILLPTS, PR_KC);
-			steamscores[sconfirms[i].team].points += sconfirms[i].points;
-			steamscores[sconfirms[i].team].frags += sconfirms[i].frag;
-			++steamscores[sconfirms[i].death].deaths;
-
-			sendteamscore(sconfirms[i].team);
-			if(sconfirms[i].team != sconfirms[i].death)
-				sendteamscore(sconfirms[i].death);
+			usesteamscore(sconfirms[i].team).points += sconfirms[i].points;
+			// the following line doesn't have to set the valid flag twice
+			getsteamscore(sconfirms[i].team).frags += sconfirms[i].frag;
+			++usesteamscore(sconfirms[i].death).deaths;
 		}
 		else addpt(&cp, KCDENYPTS, PR_KD);
 
@@ -4603,6 +4595,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 	{
 		processevents();
 		checkitemspawns(diff);
+		loopi(2) if((i == TEAM_RED || m_team(gamemode, mutators)) && !steamscores[i].valid) sendteamscore(i);
 		if(m_affinity(gamemode))
 		{
 			if(m_secure(gamemode))
@@ -4673,6 +4666,9 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 				{
 					// reward points for having some bases secured
 					lastsecurereward = servmillis;
+					loopv(ssecures)
+						if(ssecures[i].team >= 0 && ssecures[i].team < 2)
+							++usesteamscore(ssecures[i].team).flagscore;
 				}
 			}
 			else loopi(2)
