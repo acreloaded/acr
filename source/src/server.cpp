@@ -4659,8 +4659,12 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 										clients[j]->state.invalidate().flagscore += m_gsp1(gamemode, mutators) ? ssecures[i].team == TEAM_SPECT ? 2 : 3 : 1;
 									}
 								ssecures[i].team = is_secure ? ssecures[i].enemy : TEAM_SPECT;
-								ssecures[i].enemy = TEAM_SPECT;
-								ssecures[i].overthrown = 0;
+								if(is_secure)
+								{
+									ssecures[i].enemy = TEAM_SPECT;
+									ssecures[i].overthrown = 0;
+								}
+								else ssecures[i].overthrown = max(1, ssecures[i].overthrown - 255);
 							}
 							sendsecureflaginfo(&ssecures[i]);
 						}
