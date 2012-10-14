@@ -885,6 +885,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						pointstreak = getint(p), deathstreak = getint(p),
 						deaths = getint(p), health = getint(p), armor = getint(p),
 						radar = getint(p), airstrikes = getint(p), nuke = getint(p), spawnmillis = getint(p);
+					vec o;
+					loopi(3) o[i] = getfloat(p);
 					int ammo[WEAP_MAX], mag[WEAP_MAX];
 					loopi(WEAP_MAX) ammo[i] = getint(p);
 					loopi(WEAP_MAX) mag[i] = getint(p);
@@ -902,6 +904,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					d->radarearned = lastmillis + radar;
 					d->airstrikes = airstrikes;
 					d->nukemillis = lastmillis + nuke;
+					d->o = o;
 					if(d!=player1 && !isowned(d))
 					{
 						d->state = state == CS_WAITING ? CS_DEAD : state;

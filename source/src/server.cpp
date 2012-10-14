@@ -3017,6 +3017,9 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet){
 			putint(p, cs.airstrikes);
 			putint(p, cs.nukemillis - gamemillis);
 			putint(p, cs.spawnmillis - gamemillis);
+			putfloat(p, cs.o.x);
+			putfloat(p, cs.o.y);
+			putfloat(p, cs.o.z);
 			loopi(WEAP_MAX) putint(p, cs.ammo[i]);
 			loopi(WEAP_MAX) putint(p, cs.mag[i]);
 		}
@@ -3325,7 +3328,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				sc->restore(cl->state);
 				// sendresume
 				clientstate &cs = cl->state;
-				sendf(-1, 1, "ri2i9i9vvi", N_RESUME, sender, // i2
+				sendf(-1, 1, "ri2i9i9f3vvi", N_RESUME, sender, // i2
 					cs.state == CS_WAITING ? CS_DEAD : cs.state, // 1
 					cs.lifesequence,
 					cs.gunselect,
@@ -3344,6 +3347,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					cs.airstrikes,
 					cs.nukemillis - gamemillis,
 					cs.spawnmillis - gamemillis, // 9
+					cs.o.x, cs.o.y, cs.o.z,
 					WEAP_MAX, cs.ammo,
 					WEAP_MAX, cs.mag,
 					-1
