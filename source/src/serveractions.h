@@ -70,9 +70,9 @@ struct mapaction : serveraction
 		}
 		else
 		{
-			const bool spawns = ms->hasteamspawns || ((!m_team(mode, muts) || m_keep(mode)|| m_zombie(mode)) ? ms->hasffaspawns : false);
-			const bool flags = ms->hasflags || m_secure(mode) || m_hunt(mode) || !m_affinity(mode);
-			const bool secures = true || !m_secure(mode);
+			const bool spawns = ((!m_team(mode, muts) || m_keep(mode)|| m_zombie(mode)) ? ms->spawns[2] : false) || (ms->spawns[0] && ms->spawns[1]);
+			const bool flags = m_secure(mode) || m_hunt(mode) || !m_affinity(mode) || (ms->flags[0] && ms->flags[1]);
+			const bool secures = !m_secure(mode) || ms->flags[2];
 				
 			if(!spawns || !flags)
 			{

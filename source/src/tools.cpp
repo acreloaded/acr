@@ -443,7 +443,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 		endianswap(&e, sizeof(short), 4);
 		TRANSFORMOLDENTITIES(s.hdr)
 		if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100)) ++s.spawns[e.attr2 == 100 ? 2 : e.attr2];
-		if(e.type == CTF_FLAG && (e.attr2 == 0 || e.attr2 == 1)) { ++s.flags[e.attr2]; s.flagents[e.attr2] = i; }
+		if(e.type == CTF_FLAG && e.attr2 >= 0 && e.attr2 <= 2) { ++s.flags[e.attr2]; if(e.attr2 < 2) s.flagents[e.attr2] = i; }
 		s.entcnt[e.type]++;
 		if(getlayout) mapents[i] = e;
 	}
@@ -506,9 +506,6 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 		}
 	}
 	gzclose(f);
-	s.hasffaspawns = s.spawns[2] > 0;
-	s.hasteamspawns = s.spawns[0] > 0 && s.spawns[1] > 0;
-	s.hasflags = s.flags[0] > 0 && s.flags[1] > 0;
 	s.cgzsize = getfilesize(filename);
 	return &s;
 }
