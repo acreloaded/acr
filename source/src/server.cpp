@@ -4560,7 +4560,6 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 	{
 		processevents();
 		checkitemspawns(diff);
-		bool ktfflagingame = false;
 		if(m_affinity(gamemode) && !m_secure(gamemode)) loopi(2)
 		{
 			sflaginfo &f = sflaginfos[i];
@@ -4569,9 +4568,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 				htf_forceflag(i);
 			if(m_keep(gamemode) && f.state == CTFF_STOLEN && gamemillis-f.lastupdate > 15000)
 				flagaction(i, FA_SCORE, -1);
-			if(f.state == CTFF_INBASE || f.state == CTFF_STOLEN) ktfflagingame = true;
 		}
-		if(m_keep(gamemode) && !m_ktf2(gamemode, mutators) && !ktfflagingame) flagaction(rnd(2), FA_RESET, -1); // ktf flag watchdog
 		arenacheck();
 		convertcheck();
 		if(scl.afktimelimit && mastermode == MM_OPEN && next_afk_check < servmillis && gamemillis > 20000 ) check_afk();
