@@ -4660,7 +4660,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 							ssecures[i].overthrown += sec_diff * (opposing - defending);
 							if(ssecures[i].overthrown >= 1000)
 							{
-								ssecures[i].team = (ssecures[i].team == TEAM_SPECT || true) ? ssecures[i].enemy : TEAM_SPECT;
+								ssecures[i].team = (ssecures[i].team == TEAM_SPECT || m_gsp1(gamemode, mutators)) ? ssecures[i].enemy : TEAM_SPECT;
 								ssecures[i].enemy = TEAM_SPECT;
 								ssecures[i].overthrown = 0;
 							}
