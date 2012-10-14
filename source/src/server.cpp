@@ -4609,9 +4609,12 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 			{
 				loopv(ssecures)
 				{
-					const int sec_diff = (gamemillis - ssecures[i].last_service) / (m_gsp1(gamemode, mutators) ? 8 : 3);
+					// service around every 40 milliseconds, for the best (25 fps)
+					// 10000ms / 255 units = ~39.2 ms / unit
+					int sec_diff = (gamemillis - ssecures[i].last_service) / 39;
 					if(!sec_diff) continue;
-					ssecures[i].last_service += sec_diff * (m_gsp1(gamemode, mutators) ? 8 : 3);
+					ssecures[i].last_service += sec_diff * 39;
+					if(!m_gsp1(gamemode, mutators)) sec_diff *= 2; // secure faster if non-direct
 					int teams_inside[2] = {0};
 					loopvj(clients)
 						if(valid_client(j) && (clients[j]->team >= 0 && clients[j]->team < 2) && clients[j]->state.state == CS_ALIVE && clients[j]->state.o.distxy(ssecures[i].o) <= PLAYERRADIUS * 7)
@@ -4646,7 +4649,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 						{
 							// securing/overthrowing
 							ssecures[i].overthrown += sec_diff * (opposing - defending);
-							if(ssecures[i].overthrown >= 1000)
+							if(ssecures[i].overthrown >= 255)
 							{
 								const bool is_secure = ssecures[i].team == TEAM_SPECT || m_gsp1(gamemode, mutators);
 								loopvj(clients)
