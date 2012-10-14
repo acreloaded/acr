@@ -763,10 +763,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_SCORE:
 			{
-				const int cn = getint(p), score = getint(p), flags, frags, assists, deaths;
+				const int cn = getint(p), score = getint(p), flags = getint(p), frags = getint(p), assists = getint(p), deaths = getint(p);
 				playerent *d = getclient(cn);
 				if(!d) break;
-				d->points = points;
+				d->points = score;
+				d->flagscore = flags;
+				d->frags = frags;
+				d->assists = assists;
+				d->deaths = deaths;
 				break;
 			}
 
@@ -842,7 +846,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				const int vcn = getint(p),
 					acn = getint(p),
-					frags = getint(p),
 					weap = getint(p),
 					style = getint(p) & FRAG_VALID,
 					damage = getint(p),
@@ -856,10 +859,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				// assists consumed later
 
 				playerent *victim = getclient(vcn), *actor = getclient(acn);
-				if(actor){
-					actor->frags = frags;
-					actor->pointstreak = streak;
-				}
+				if(actor) actor->pointstreak = streak;
 				if(victim){
 					victim->damagelog.setsize(0);
 					loopi(assists) victim->damagelog.add(getint(p));

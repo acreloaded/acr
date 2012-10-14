@@ -1662,10 +1662,9 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 
 	if(gamemillis >= actor->state.lastkill + COMBOTIME) actor->state.combo = 0;
 	actor->state.lastkill = gamemillis;
-	sendf(-1, 1, "ri9f4iv", N_KILL, // i9
+	sendf(-1, 1, "ri8f4iv", N_KILL, // i8
 		target->clientnum, // victim
 		actor->clientnum, // actor
-		actor->state.frags, // frags
 		gun, // weap
 		style & FRAG_VALID, // style
 		damage, // finishing damage
@@ -4599,6 +4598,11 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 		processevents();
 		checkitemspawns(diff);
 		loopi(2) if((i == TEAM_RED || m_team(gamemode, mutators)) && !steamscores[i].valid) sendteamscore(i);
+		loopv(clients) if(valid_client(i) && !clients[i]->state.valid)
+		{
+			sendf(-1, 1, "ri7", N_SCORE, i, clients[i]->state.points, clients[i]->state.flagscore, clients[i]->state.frags, clients[i]->state.assists, clients[i]->state.deaths);
+			clients[i]->state.valid = true;
+		}
 		if(m_affinity(gamemode))
 		{
 			if(m_secure(gamemode))

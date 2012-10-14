@@ -519,7 +519,6 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 		while(pl->damagelog.length()){
 			playerent *p = getclient(pl->damagelog.pop());
 			const bool tk = isteam(p, pl);
-			p->assists += tk ? -1 : 1;
 			p->pointstreak += tk ? -2 : 2;
 			concatformatstring(predicate, "%s \fs\f%d%s\fr", first ? "" : !pl->damagelog.length() ? " and" : ",", tk ? 3 : 2, colorname(p));
 			first = false;
@@ -577,7 +576,6 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 	addobit(act, obit, style, headshot, pl);
 	
 	deathstate(pl);
-	++pl->deaths;
 	playsound(S_DIE1+rnd(2), pl);
 }
 
