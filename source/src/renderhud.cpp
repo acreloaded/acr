@@ -600,7 +600,7 @@ void drawradar(playerent *p, int w, int h)
 				flaginfo &f = flaginfos[i];
 				entity *e = f.flagent;
 				if(!e || OUTBORD(e->x, e->y)) continue;
-				vec pos1(ents[i].x, ents[i].y, S(ents[i].x, ents[i].y)->floor);
+				vec pos1(e->x, e->y, S(e->x, e->y)->floor);
 				drawradarent(fixradarpos(pos1, centerpos, res), coordtrans, flag_yaw, m_keep(gamemode) && !m_ktf2(gamemode, mutators) && f.state!=CTFF_IDLE ? 2 : f.team, 3, iconsize); // draw bases
 				vec pos(0.5f-0.1f, 0.5f-0.9f, 0);
 				pos.mul(iconsize/coordtrans).rotate_around_z(flag_yaw*RAD);
