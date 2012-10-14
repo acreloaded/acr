@@ -4608,9 +4608,9 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 			{
 				loopv(ssecures)
 				{
-					const int sec_diff = (gamemillis - ssecures[i].last_service) / 5;
+					const int sec_diff = (gamemillis - ssecures[i].last_service) / (m_gsp1(gamemode, mutators) ? 8 : 3);
 					if(!sec_diff) continue;
-					ssecures[i].last_service += sec_diff * 5;
+					ssecures[i].last_service += sec_diff * (m_gsp1(gamemode, mutators) ? 8 : 3);
 					int teams_inside[2] = {0};
 					loopvj(clients)
 						if(valid_client(j) && (clients[j]->team >= 0 && clients[j]->team < 2) && clients[j]->state.state == CS_ALIVE && clients[j]->state.o.distxy(ssecures[i].o) <= PLAYERRADIUS * 3)
