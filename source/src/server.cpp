@@ -4652,7 +4652,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 								loopvj(clients)
 									if(valid_client(j) && clients[j]->team == ssecures[i].enemy && clients[j]->state.state == CS_ALIVE && clients[j]->state.o.distxy(ssecures[i].o) <= PLAYERRADIUS * 7)
 									{
-										addpt(clients[i], SECUREPT, is_secure ? PR_SECURE_SECURE : PR_SECURE_OVERTHROW);
+										addpt(clients[j], SECUREPT, is_secure ? PR_SECURE_SECURE : PR_SECURE_OVERTHROW);
 										clients[j]->state.invalidate().flagscore += m_gsp1(gamemode, mutators) ? ssecures[i].team == TEAM_SPECT ? 2 : 3 : 1;
 									}
 								ssecures[i].team = is_secure ? ssecures[i].enemy : TEAM_SPECT;
