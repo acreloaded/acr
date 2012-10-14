@@ -1300,8 +1300,7 @@ void renderhudwaypoints(playerent *p){
 			entity &e = ents[i];
 			if(e.type == CTF_FLAG && e.attr2 >= 2)
 			{
-				renderwaypoint(e.attr2 == 4 ? WP_SECURE : (e.attr2 - 2) == teamfix ? WP_DEFEND : WP_OVERTHROW, vec(e.x, e.y, (float)S(int(e.x), int(e.y))->floor + PLAYERHEIGHT), (2000 - e.attr4) / 2000.f);
-				renderwaypoint(e.attr3 == teamfix ? WP_DEFEND : WP_OVERTHROW, vec(e.x, e.y, (float)S(int(e.x), int(e.y))->floor + PLAYERHEIGHT), (e.attr4) / 2000.f);
+				renderwaypoint(e.attr2 == 4 ? WP_SECURE : (e.attr2 - 2) == teamfix ? WP_DEFEND : WP_OVERTHROW, vec(e.x, e.y, (float)S(int(e.x), int(e.y))->floor + PLAYERHEIGHT), e.attr4 ? sinf(lastmillis/200.f) : 1.f);
 			}
 		}
 		else loopi(2)
