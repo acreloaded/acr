@@ -332,7 +332,7 @@ bool CACBot::CanTakeFlag(const entity &e){
 	if(m_secure(gamemode))
 	{
 		if(e.type != CTF_FLAG || e.attr2 < 2 || e.attr2 > 2 + TEAM_SPECT) return false;
-		return (e.attr2 - 2) != m_pMyEnt->team;
+		return (e.attr2 - 2) != m_pMyEnt->team || e.attr4;
 	}
 	else
 	{
