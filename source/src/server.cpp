@@ -4619,8 +4619,8 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 					int defending = 0, opposing = 0;
 					loopj(2)
 					{
-						if(j == ssecures[i].team) defending += teams_inside[j];
-						else opposing += teams_inside[j];
+						if(j == ssecures[i].enemy || ssecures[i].enemy == TEAM_SPECT) opposing += teams_inside[j];
+						else defending += teams_inside[j];
 					}
 					if(opposing > defending)
 					{
