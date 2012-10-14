@@ -269,6 +269,8 @@ extern void rendercursor(int x, int y, int w);
 extern void renderaboveheadicon(playerent *p);
 enum { WP_KNIFE = 0, WP_EXP, WP_KILL, WP_ESCORT, WP_DEFEND, WP_SECURE, WP_OVERTHROW, WP_GRAB, WP_ENEMY, WP_FRIENDLY, WP_STOLEN, WP_RETURN, WP_DEFUSE, WP_TARGET, WP_BOMB, WP_AIRSTRIKE, WP_NUKE, WP_NUM };
 extern void renderwaypoint(int wp, const vec &o, float alpha = 1, bool thruwalls = true);
+extern void renderprogress_back(const vec &o, const color &c = color(0, 0, 0));
+extern void renderprogress(const vec &o, float progress, const color &c, float offset = 0);
 
 extern void drawscope();
 extern float dynfov();

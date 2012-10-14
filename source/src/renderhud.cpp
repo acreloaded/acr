@@ -1308,8 +1308,21 @@ void renderhudwaypoints(playerent *p){
 			entity &e = ents[i];
 			if(e.type == CTF_FLAG && e.attr2 >= 2)
 			{
-				// TODO-SECURE: better waypoints?
-				renderwaypoint(e.attr2 == 4 ? WP_SECURE : (e.attr2 - 2) == teamfix ? WP_DEFEND : WP_OVERTHROW, vec(e.x, e.y, (float)S(int(e.x), int(e.y))->floor + PLAYERHEIGHT), e.attr4 ? fabs(sinf(lastmillis/200.f)) : 1.f);
+				vec o(e.x, e.y, (float)S(int(e.x), int(e.y))->floor + PLAYERHEIGHT);
+				renderwaypoint(e.attr2 - 2 == TEAM_SPECT ? WP_SECURE : (e.attr2 - 2) == teamfix ? WP_DEFEND : WP_OVERTHROW, o, e.attr4 ? fabs(sinf(lastmillis/200.f)) : 1.f, true);
+				if(e.attr4)
+				{
+					float progress = e.attr4 / 255.f;
+					renderprogress_back(o, color(0, 0, 0, .35f));
+					if(m_gsp1(gamemode, mutators))
+						renderprogress(o, progress, e.attr3 ? color(0, 0, 1, .28f) : color(1, 0, 0, .28f));
+					else
+					{
+						renderprogress(o, e.attr2 - 2 == TEAM_SPECT ? .5f : progress / 2.f, color(1, 1, 1, .28f));
+						if(e.attr2 - 2 == TEAM_SPECT)
+							renderprogress(o, progress / 2.f, e.attr3 ? color(0, 0, 1, .28f) : color(1, 0, 0, .28f), .5f);
+					}
+				}
 			}
 		}
 		else loopi(2)

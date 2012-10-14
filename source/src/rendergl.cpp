@@ -389,11 +389,8 @@ void load_waypointtex(){
 	}
 }
 
-void renderwaypoint(int wp, const vec &o, float alpha, bool thruwalls){
-	if(!waypointtex[wp]){
-		load_waypointtex();
-		if(!waypointtex[wp]) return;
-	}
+inline float render_2d_as_3d_start(const vec &o, bool thruwalls = true)
+{
 	glPushMatrix();
 	if(thruwalls) glDisable(GL_DEPTH_TEST);
 	glDisable(GL_FOG);
@@ -403,8 +400,24 @@ void renderwaypoint(int wp, const vec &o, float alpha, bool thruwalls){
 	glRotatef(camera1->yaw-180, 0, 0, 1);
 	glRotatef(camera1->pitch, 1, 0, 0);
 	glRotatef(camera1->roll, 0, -1, 0);
+	return sqrt(o.dist(camera1->o)*zoomfactor(focus));
+}
+
+inline void render_2d_as_3d_end(bool thruwalls = true)
+{
+	glDisable(GL_BLEND);
+	glEnable(GL_FOG);
+	if(thruwalls) glEnable(GL_DEPTH_TEST);
+	glPopMatrix();
+}
+
+void renderwaypoint(int wp, const vec &o, float alpha, bool thruwalls){
+	if(!waypointtex[wp]){
+		load_waypointtex();
+		if(!waypointtex[wp]) return;
+	}
+	const float scale = render_2d_as_3d_start(o, thruwalls), s = (wp==WP_KNIFE||wp==WP_EXP?waypointweapsize:waypointsize)/100.0f*scale;
 	glColor4f(1, 1, 1, alpha);
-	const float scale = sqrt(o.dist(camera1->o)*zoomfactor(focus)), s = (wp==WP_KNIFE||wp==WP_EXP?waypointweapsize:waypointsize)/100.0f*scale;
     quad(waypointtex[wp]->id, vec(s/2.0f, 0.0f, s), vec(s/-2.0f, 0.0f, 0.0f), 0.0f, 0.0f, 1.0f, 1.0f);
 	/*
 		float s = aboveheadiconsize/75.0f*scalef, offset =  (lastmillis - icon.millis) * 2.f / aboveheadiconfadetime, anim = lastmillis / 100 % (h * 2);
@@ -412,10 +425,21 @@ void renderwaypoint(int wp, const vec &o, float alpha, bool thruwalls){
 		anim /= h;
 		quad(tex->id, vec(s, 0, s*2/aspect + offset), vec(-s, 0, 0.0f + offset), 0.0f, anim, 1.0f, 1.f/h);
 	*/
-	glDisable(GL_BLEND);
-	glEnable(GL_FOG);
-	if(thruwalls) glEnable(GL_DEPTH_TEST);
-	glPopMatrix();
+	render_2d_as_3d_end(thruwalls);
+}
+
+void renderprogress_back(const vec &o, const color &c){
+	const float scale = render_2d_as_3d_start(o), s = max(waypointweapsize, waypointsize) / 100.f * scale;
+	glColor4f(c.r, c.g, c.b, c.alpha);
+	quad(0, vec(.52f * scale, 0.0f, s + .27f * scale), vec(-.52f * scale, 0.0f, s + .08f * scale), 0.0f, 0.0f, 1.0f, 1.0f);
+	render_2d_as_3d_end();
+}
+
+void renderprogress(const vec &o, float progress, const color &c, float offset){
+	const float scale = render_2d_as_3d_start(o), s = max(waypointweapsize, waypointsize) / 100.f * scale;
+	glColor4f(c.r, c.g, c.b, c.alpha);
+	quad(0, vec((.5f - 1.f * offset) * scale, 0.0f, s + .25f * scale), vec( (.5f - 1.f * (offset + progress)) * scale, 0.0f, s + .1f * scale), 0.0f, 0.0f, 1.0f, 1.0f);
+	render_2d_as_3d_end();
 }
 
 void rendercursor(int x, int y, int w){
