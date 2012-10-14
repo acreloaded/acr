@@ -1127,7 +1127,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(!ents.inrange(ent) || ents[ent].type != CTF_FLAG || (team != 0 && team != 1 && team != 2) || ents[ent].attr2 < 2) break;
 				ents[ent].attr2 = 2 + team;
 				ents[ent].attr3 = enemy;
-				ents[ent].attr4 = overthrown;
+				ents[ent].attr4 = overthrown * 255 / 1000;
 				break;
 			}
 

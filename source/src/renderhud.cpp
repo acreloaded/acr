@@ -570,13 +570,27 @@ void drawradar(playerent *p, int w, int h)
 	}
 	glEnable(GL_TEXTURE_2D);
 
+	const float flag_yaw = showmap ? 0 : camera1->yaw;
 	if(m_affinity(gamemode))
 	{
 		glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		if(m_secure(gamemode))
 		{
-			// TODO-SECURE
+			loopv(ents)
+			{
+				entity &e = ents[i];
+				if(e.type == CTF_FLAG && e.attr2 >= 2 && !OUTBORD(ents[i].x, ents[i].y))
+				{
+					float overthrown = ents[i].attr4 / 2.55f, owned = 100.f - overthrown;
+					vec pos1(e.x, e.y, S(ents[i].x, ents[i].y)->floor); // location (for base)
+					vec pos(0.5f-0.1f, 0.5f-0.9f, 0); // location of flag
+					pos.mul(iconsize/coordtrans).rotate_around_z(flag_yaw*RAD).add(pos1);
+					drawradarent(fixradarpos(pos, centerpos, res), coordtrans, flag_yaw, 3, clamp<int>(ents[i].attr2 - 2, TEAM_RED, TEAM_SPECT), iconsize, 0, owned / 100);
+					drawradarent(fixradarpos(pos, centerpos, res), coordtrans, flag_yaw, 3, (ents[i].attr2 == TEAM_SPECT + 2 || m_gsp1(gamemode, mutators)) ? ents[i].attr3 : TEAM_SPECT, iconsize, 0, overthrown / 100);
+					drawradarent(fixradarpos(pos1, centerpos, res), coordtrans, flag_yaw, 2, 3, iconsize, .4f, 1, overthrown ? "\f%d%d%%\f4/\f%d%d%%" : "", team_color(ents[i].attr2 - 2), (int)owned, team_color(ents[i].attr3), (int)overthrown); // draw secure bases
+				}
+			}
 		}
 		else
 		{
@@ -584,18 +598,15 @@ void drawradar(playerent *p, int w, int h)
 			{
 				flaginfo &f = flaginfos[i];
 				entity *e = f.flagent;
-				if(!e || (e->x == -1 && e-> y == -1)) continue;
-				const float yaw = showmap ? 0 : camera1->yaw;
-				drawradarent(fixradarpos(vec(e->x, e->y, e->z), centerpos, res), coordtrans, yaw, m_keep(gamemode) && !m_ktf2(gamemode, mutators) && f.state!=CTFF_IDLE ? 2 : f.team, 3, iconsize); // draw bases
+				if(!e || OUTBORD(e->x, e->y)) continue;
+				vec pos1(ents[i].x, ents[i].y, S(ents[i].x, ents[i].y)->floor);
+				drawradarent(fixradarpos(pos1, centerpos, res), coordtrans, flag_yaw, m_keep(gamemode) && !m_ktf2(gamemode, mutators) && f.state!=CTFF_IDLE ? 2 : f.team, 3, iconsize); // draw bases
 				vec pos(0.5f-0.1f, 0.5f-0.9f, 0);
-				pos.mul(iconsize/coordtrans).rotate_around_z(yaw*RAD);
-				if(f.state==CTFF_STOLEN){
-					if(f.actor)
-					{
-						pos.add(f.actor->o);
-						// see flag position no matter what!
-						drawradarent(fixradarpos(pos, centerpos, res), coordtrans, yaw, 3, m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? 2 : f.team, iconsize, f.team+1); // draw near flag thief
-					}
+				pos.mul(iconsize/coordtrans).rotate_around_z(flag_yaw*RAD);
+				if(f.state==CTFF_STOLEN && f.actor){
+					pos.add(f.actor->o);
+					// see flag position no matter what!
+					drawradarent(fixradarpos(pos, centerpos, res), coordtrans, flag_yaw, 3, m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? 2 : f.team, iconsize, f.team+1); // draw near flag thief
 				}
 				else{
 					if(f.state == CTFF_DROPPED){
@@ -603,20 +614,16 @@ void drawradar(playerent *p, int w, int h)
 						pos.y += f.pos.y;
 						pos.z += f.pos.z;
 					}
-					else{
-						pos.x += e->x;
-						pos.y += e->y;
-						pos.z += centerpos.z;
-					}
+					else pos.add(pos1);
 				
-					drawradarent(fixradarpos(pos, centerpos, res), coordtrans, yaw, 3, m_keep(gamemode) && !m_ktf2(gamemode, mutators) && f.state != CTFF_IDLE ? 2 : f.team, iconsize, 0, f.state == CTFF_IDLE ? .3f : 1);
+					drawradarent(fixradarpos(pos, centerpos, res), coordtrans, flag_yaw, 3, m_keep(gamemode) && !m_ktf2(gamemode, mutators) && f.state != CTFF_IDLE ? 2 : f.team, iconsize, 0, f.state == CTFF_IDLE ? .3f : 1);
 				}
 			}
 		}
 	}
 	else if(m_edit(gamemode))
 	{
-		loopv(ents) if(ents[i].type == CTF_FLAG) drawradarent(fixradarpos(vec(ents[i].x, ents[i].y, ents[i].z), centerpos, res), coordtrans, showmap ? 0 : camera1->yaw, clamp<int>(ents[i].attr2, 0, 2), 3, iconsize);
+		loopv(ents) if(ents[i].type == CTF_FLAG && !OUTBORD(ents[i].x, ents[i].y)) drawradarent(fixradarpos(vec(ents[i].x, ents[i].y, S(ents[i].x, ents[i].y)->floor), centerpos, res), coordtrans, flag_yaw, clamp<int>(ents[i].attr2, 0, 2), 3, iconsize);
 	}
 
 	glEnable(GL_BLEND);
@@ -1300,7 +1307,8 @@ void renderhudwaypoints(playerent *p){
 			entity &e = ents[i];
 			if(e.type == CTF_FLAG && e.attr2 >= 2)
 			{
-				renderwaypoint(e.attr2 == 4 ? WP_SECURE : (e.attr2 - 2) == teamfix ? WP_DEFEND : WP_OVERTHROW, vec(e.x, e.y, (float)S(int(e.x), int(e.y))->floor + PLAYERHEIGHT), e.attr4 ? sinf(lastmillis/200.f) : 1.f);
+				// TODO-SECURE: better waypoints?
+				renderwaypoint(e.attr2 == 4 ? WP_SECURE : (e.attr2 - 2) == teamfix ? WP_DEFEND : WP_OVERTHROW, vec(e.x, e.y, (float)S(int(e.x), int(e.y))->floor + PLAYERHEIGHT), e.attr4 ? fabs(sinf(lastmillis/200.f)) : 1.f);
 			}
 		}
 		else loopi(2)

@@ -2406,6 +2406,7 @@ void resetmap(const char *newname, int newmode, int newmuts, int newtime, bool n
 				s.enemy = TEAM_SPECT;
 				s.overthrown = 0;
 				s.o = vec(e.x, e.y, 0.f);
+				s.last_service = 0;
 			}
 		}
 		// copyrevision = copymapsize == smapstats.cgzsize ? smapstats.hdr.maprevision : 0;
@@ -4613,7 +4614,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 					ssecures[i].last_service += sec_diff * (m_gsp1(gamemode, mutators) ? 8 : 3);
 					int teams_inside[2] = {0};
 					loopvj(clients)
-						if(valid_client(j) && (clients[j]->team >= 0 && clients[j]->team < 2) && clients[j]->state.state == CS_ALIVE && clients[j]->state.o.distxy(ssecures[i].o) <= PLAYERRADIUS * 3)
+						if(valid_client(j) && (clients[j]->team >= 0 && clients[j]->team < 2) && clients[j]->state.state == CS_ALIVE && clients[j]->state.o.distxy(ssecures[i].o) <= PLAYERRADIUS * 7)
 							++teams_inside[clients[j]->team];
 					int defending = 0, opposing = 0;
 					loopj(2)
@@ -4621,21 +4622,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 						if(i == ssecures[j].enemy) opposing += teams_inside[j];
 						else defending += teams_inside[j];
 					}
-					if(opposing < defending || (!opposing && ssecures[i].enemy != TEAM_SPECT))
-					{
-						// going back to the original owner
-						if(ssecures[i].overthrown)
-						{
-							ssecures[i].overthrown -= sec_diff * (1 + defending - opposing);
-							if(ssecures[i].overthrown <= 0)
-							{
-								ssecures[i].enemy = TEAM_SPECT;
-								ssecures[i].overthrown = 0;
-							}
-							sendsecureflaginfo(&ssecures[i]);
-						}
-					}
-					else if(opposing > defending)
+					if(opposing > defending)
 					{
 						// starting to secure/overthrow?
 						if(ssecures[i].enemy == TEAM_SPECT)
@@ -4652,11 +4639,12 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 								}
 								else if(teams_inside[j] == team_max) teams_matched = true;
 							}
-							// first frame: start to capture
+							// first frame: start to capture, but we don't know how many units to give
 							if(!teams_matched && max_team != ssecures[i].team) ssecures[i].enemy = max_team;
 						}
 						else
 						{
+							// securing/overthrowing
 							ssecures[i].overthrown += sec_diff * (opposing - defending);
 							if(ssecures[i].overthrown >= 1000)
 							{
@@ -4666,6 +4654,17 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 							}
 							sendsecureflaginfo(&ssecures[i]);
 						}
+					}
+					else if((defending > opposing || !opposing) && ssecures[i].overthrown)
+					{
+						// going back to the original owner
+						ssecures[i].overthrown -= sec_diff * (1 + defending - opposing);
+						if(ssecures[i].overthrown <= 0)
+						{
+							ssecures[i].enemy = TEAM_SPECT;
+							ssecures[i].overthrown = 0;
+						}
+						sendsecureflaginfo(&ssecures[i]);
 					}
 					// else: we are at an impasse
 				}
