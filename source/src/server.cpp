@@ -950,8 +950,7 @@ void flagaction(int flag, int action, int actor){
 	if(valid_client(actor)){
 		client &c = *clients[actor];
 		if(score){
-			c.state.flagscore += score;
-			sendf(-1, 1, "ri3", N_FLAGCNT, actor, c.state.flagscore);
+			c.state.invalidate().flagscore += score;
 			usesteamscore(c.team).flagscore += score;
 		}
 		usesteamscore(c.team).points += max(0, flagpoints(clients[actor], message));
@@ -1591,11 +1590,11 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	// only things on target team that changes
 	if(!m_confirm(gamemode, mutators)) ++usesteamscore(target->team).deaths;
 	// apply to individual
-	++target->state.deaths;
+	++target->state.invalidate().deaths;
 	addpt(target, DEATHPT);
 
 	const int kills = (actor == target || isteam(target, actor)) ? -1 : gib ? 2 : 1;
-	actor->state.frags += kills;
+	actor->state.invalidate().frags += kills;
 	if(target!=actor){
 		if(actor->state.revengelog.find(target->clientnum) >= 0){
 			style |= FRAG_REVENGE;
@@ -1637,7 +1636,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	loopv(ts.damagelog){
 		if(valid_client(ts.damagelog[i])){
 			const int factor = isteam(clients[ts.damagelog[i]], target) ? -1 : 1;
-			clients[ts.damagelog[i]]->state.assists += factor;
+			clients[ts.damagelog[i]]->state.invalidate().assists += factor;
 			if(factor > 0)
 				usesteamscore(actor->team).assists += factor; // add to assists
 			clients[ts.damagelog[i]]->state.pointstreak += factor * 2;
@@ -1695,7 +1694,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	}
 
 	if(suic && (m_hunt(gamemode) || m_keep(gamemode)) && targethasflag >= 0)
-		sendf(-1, 1, "ri3", N_FLAGCNT, actor->clientnum, --actor->state.flagscore);
+		--actor->state.invalidate().flagscore;
 	target->position.setsize(0);
 	ts.state = CS_DEAD;
 	ts.lastdeath = gamemillis;

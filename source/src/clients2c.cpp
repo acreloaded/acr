@@ -761,18 +761,19 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
-			case N_POINTS:
+			case N_SCORE:
 			{
-				int cn = getint(p), points = getint(p);
+				const int cn = getint(p), score = getint(p), flags, frags, assists, deaths;
 				playerent *d = getclient(cn);
-				if(d == player1) addexp(points - player1->points);
-				if(d) d->points = points;
+				if(!d) break;
+				d->points = points;
 				break;
 			}
 
-			case N_POINTR:
+			case N_POINTS:
 			{
-				int reason = getint(p);
+				const int reason = getint(p), points = getint(p);
+				addexp(points);
 				const char* pointreasons_templates[PR_MAX] = {
 					"", // N/A
 					"%s", // Assist
@@ -1131,15 +1132,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				ents[ent].attr2 = 2 + team;
 				ents[ent].attr3 = enemy;
 				ents[ent].attr4 = overthrown * 255 / 1000;
-				break;
-			}
-
-			case N_FLAGCNT:
-			{
-				int fcn = getint(p);
-				int flags = getint(p);
-				playerent *p = getclient(fcn);
-				if(p) p->flagscore = flags;
 				break;
 			}
 

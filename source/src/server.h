@@ -162,8 +162,9 @@ struct clientstate : playerstate
 	int points, flagscore, frags, deaths, shotdamage, damage;
 	ivector revengelog;
 	vector<wound> wounds;
+	bool valid;
 
-	clientstate() : state(CS_DEAD), playerstate() {}
+	clientstate() : state(CS_DEAD), valid(true), playerstate() {}
 
 	bool isalive(int gamemillis)
 	{
@@ -187,6 +188,11 @@ struct clientstate : playerstate
 		lastshot = gamemillis;
 	}
 
+	clientstate &invalidate(){
+		valid = false;
+		return *this;
+	}
+
 	void reset()
 	{
 		state = CS_DEAD;
@@ -199,6 +205,7 @@ struct clientstate : playerstate
 		revengelog.setsize(0);
 		pointstreak = streakused = 0;
 		radarearned = airstrikes = nukemillis = 0;
+		valid = true;
 		respawn();
 	}
 
@@ -764,7 +771,7 @@ const char *messagenames(int n){
 		"N_KNIFEADD", "N_KNIFEREMOVE", // knives
 		"N_CONFIRMADD", "N_CONFIRMREMOVE", // kill confirmed
 		// gameplay
-		"N_POINTS", "N_POINTR", "N_TEAMSCORE", "N_KILL", "N_DAMAGE", // scoring
+		"N_POINTS", "N_SCORE", "N_TEAMSCORE", "N_KILL", "N_DAMAGE", // scoring
 		"N_TRYSPAWN", "N_SPAWNSTATE", "N_SPAWN", "N_FORCEDEATH", "N_FORCEGIB", // spawning
 		"N_ITEMSPAWN", "N_ITEMACC", // items
 		"N_DROPFLAG", "N_FLAGINFO", "N_FLAGMSG", "N_FLAGSECURE", // flags
