@@ -96,6 +96,12 @@ void renderentities()
 				renderent(e);
 			}
 		}
+		else if(e.type == CTF_FLAG && m_secure(gamemode))
+		{
+			const int team = e.attr2 - 2;
+			defformatstring(path)("pickups/flags/%s", team != TEAM_SPECT ? team_string(team) : "ktf");
+			rendermodel(path, ANIM_FLAG|ANIM_LOOP|ANIM_IDLE, 0, 0, vec(e.x, e.y, (float)S(int(e.x), int(e.y))->floor), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
+		}
 		else if(editmode || m_edit(gamemode))
 		{
 			if(e.type==CTF_FLAG)
@@ -131,42 +137,35 @@ void renderentities()
 		o.z += (float)(1+sinf(lastmillis/100.0f+confirms[i].o.x+confirms[i].o.y)/20) - PLAYERHEIGHT;
 		rendermodel(fixteam == confirms[i].team ? "pickups/confirm" : "pickups/deny", ANIM_FLAG|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, o, yaw, 0);
 	}
-	if(m_affinity(gamemode))
+	if(m_affinity(gamemode) && !m_secure(gamemode)) loopi(2)
 	{
-		if(m_secure(gamemode))
+		flaginfo &f = flaginfos[i];
+		entity &e = *f.flagent;
+		defformatstring(fpath)("pickups/flags/%s%s", m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? "" : team_string(i),  (m_hunt(gamemode) || m_bomber(gamemode)) ? "_htf" : m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? "ktf" : "");
+		defformatstring(sfpath)("pickups/flags/small_%s%s", m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? "" : team_string(i), (m_hunt(gamemode) || m_bomber(gamemode)) ? "_htf" : m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? "ktf" : "");
+		switch(f.state)
 		{
-			// TODO-SECURE
-		}
-		else loopi(2)
-		{
-			flaginfo &f = flaginfos[i];
-			entity &e = *f.flagent;
-			defformatstring(fpath)("pickups/flags/%s%s", m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? "" : team_string(i),  (m_hunt(gamemode) || m_bomber(gamemode)) ? "_htf" : m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? "ktf" : "");
-			defformatstring(sfpath)("pickups/flags/small_%s%s", m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? "" : team_string(i), (m_hunt(gamemode) || m_bomber(gamemode)) ? "_htf" : m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? "ktf" : "");
-			switch(f.state)
+			case CTFF_STOLEN:
 			{
-				case CTFF_STOLEN:
-				{
-					if((f.actor == focus && !isthirdperson) || OUTBORD(f.actor->o.x, f.actor->o.y)) break;
-					vec flagpos(f.actor->o);
-					flagpos.add(vec(0, 0, 0.3f+(sinf(lastmillis/100.0f)+1)/10));
-					rendermodel(sfpath, ANIM_FLAG|ANIM_START|ANIM_DYNALLOC, 0, 0, flagpos, lastmillis/2.5f + (i ? 180 : 0), 0, 120.0f);
-					break;
-				}
-				case CTFF_DROPPED:
-					if(OUTBORD(f.pos.x, f.pos.y)) break;
-					rendermodel(fpath, ANIM_FLAG|ANIM_LOOP, 0, 0, f.pos, (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
-					break;
-				/*
-				case CTFF_INBASE:
-				case CTFF_IDLE:
-				default:
-					break;
-				*/
+				if((f.actor == focus && !isthirdperson) || OUTBORD(f.actor->o.x, f.actor->o.y)) break;
+				vec flagpos(f.actor->o);
+				flagpos.add(vec(0, 0, 0.3f+(sinf(lastmillis/100.0f)+1)/10));
+				rendermodel(sfpath, ANIM_FLAG|ANIM_START|ANIM_DYNALLOC, 0, 0, flagpos, lastmillis/2.5f + (i ? 180 : 0), 0, 120.0f);
+				break;
 			}
-			if(!OUTBORD(e.x, e.y) && numflagspawn[i])
-			rendermodel(fpath, ANIM_FLAG|ANIM_LOOP|(f.state == CTFF_INBASE ? ANIM_IDLE : ANIM_TRANSLUCENT), 0, 0, vec(e.x, e.y, (float)S(int(e.x), int(e.y))->floor), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
+			case CTFF_DROPPED:
+				if(OUTBORD(f.pos.x, f.pos.y)) break;
+				rendermodel(fpath, ANIM_FLAG|ANIM_LOOP, 0, 0, f.pos, (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
+				break;
+			/*
+			case CTFF_INBASE:
+			case CTFF_IDLE:
+			default:
+				break;
+			*/
 		}
+		if(!OUTBORD(e.x, e.y) && numflagspawn[i])
+		rendermodel(fpath, ANIM_FLAG|ANIM_LOOP|(f.state == CTFF_INBASE ? ANIM_IDLE : ANIM_TRANSLUCENT), 0, 0, vec(e.x, e.y, (float)S(int(e.x), int(e.y))->floor), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
 	}
 }
 

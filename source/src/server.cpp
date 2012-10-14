@@ -795,6 +795,22 @@ void putflaginfo(ucharbuf &p, int flag){
 	}
 }
 
+struct ssecure
+{
+	int id, team, enemy, overthrown;
+	vec o;
+	int last_service;
+};
+vector<ssecure> ssecures;
+
+void putsecureflaginfo(ucharbuf &p, ssecure &s){
+	putint(p, N_FLAGSECURE);
+	putint(p, s.id);
+	putint(p, s.team);
+	putint(p, s.enemy);
+	putint(p, s.overthrown);
+}
+
 int next_afk_check = 200;
 void check_afk(){
 	/* remove one preceeding slash to disable AFK checks
@@ -826,6 +842,16 @@ void sendflaginfo(int flag = -1, int cn = -1){
 	ucharbuf p(packet->data, packet->dataLength);
 	if(flag >= 0) putflaginfo(p, flag);
 	else loopi(2) putflaginfo(p, i);
+	enet_packet_resize(packet, p.length());
+	sendpacket(cn, 1, packet);
+	if(packet->referenceCount==0) enet_packet_destroy(packet);
+}
+
+void sendsecureflaginfo(ssecure *s = NULL, int cn = -1){
+	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+	ucharbuf p(packet->data, packet->dataLength);
+	if(s) putsecureflaginfo(p, *s);
+	else loopv(ssecures) putsecureflaginfo(p, ssecures[i]);
 	enet_packet_resize(packet, p.length());
 	sendpacket(cn, 1, packet);
 	if(packet->referenceCount==0) enet_packet_destroy(packet);
@@ -2355,6 +2381,8 @@ void resetmap(const char *newname, int newmode, int newmuts, int newtime, bool n
 			else f.x = f.y = -1;
 		}
 
+		ssecures.shrink(0);
+
 		loopi(smapstats.hdr.numents)
 		{
 			entity &e = sents.add();
@@ -2370,6 +2398,15 @@ void resetmap(const char *newname, int newmode, int newmuts, int newtime, bool n
 			e.attr4 = pe.attr4;
 			e.spawned = e.fitsmode(smode, smuts);
 			e.spawntime = 0;
+			if(m_secure(newmode) && e.type == CTF_FLAG && e.attr2 >= 2)
+			{
+				ssecure &s = ssecures.add();
+				s.id = i;
+				s.team = TEAM_SPECT;
+				s.enemy = TEAM_SPECT;
+				s.overthrown = 0;
+				s.o = vec(e.x, e.y, 0.f);
+			}
 		}
 		// copyrevision = copymapsize == smapstats.cgzsize ? smapstats.hdr.maprevision : 0;
 	}
@@ -2422,7 +2459,11 @@ void resetmap(const char *newname, int newmode, int newmuts, int newtime, bool n
 		demonextmatch = false;
 		setupdemorecord();
 	}
-	if(notify && m_keep(gamemode)) sendflaginfo();
+	if(notify)
+	{
+		if(m_keep(gamemode)) sendflaginfo();
+		else if(m_secure(gamemode)) sendsecureflaginfo();
+	}
 
 	*nextmapname = 0;
 	forceintermission = false;
@@ -2905,9 +2946,10 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet){
 			putint(p, gamemusicseed);
 		}
 		if(m_affinity(gamemode)){
-			if(m_secure(gamemode))
+			if(m_secure(gamemode)) loopv(ssecures)
 			{
-				// TODO-SECURE
+				CHECKSPACE(256);
+				putsecureflaginfo(p, ssecures[i]);
 			}
 			else
 			{
@@ -4560,14 +4602,89 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 	{
 		processevents();
 		checkitemspawns(diff);
-		if(m_affinity(gamemode) && !m_secure(gamemode)) loopi(2)
+		if(m_affinity(gamemode))
 		{
-			sflaginfo &f = sflaginfos[i];
-			if(f.state == CTFF_DROPPED && gamemillis-f.lastupdate > (m_capture(gamemode) ? 30000 : (m_ktf2(gamemode, mutators) || m_bomber(gamemode)) ? 20000 : 10000)) flagaction(i, FA_RESET, -1);
-			if(m_hunt(gamemode) && f.state == CTFF_INBASE && gamemillis-f.lastupdate > (smapstats.hasflags ? 10000 : 1000))
-				htf_forceflag(i);
-			if(m_keep(gamemode) && f.state == CTFF_STOLEN && gamemillis-f.lastupdate > 15000)
-				flagaction(i, FA_SCORE, -1);
+			if(m_secure(gamemode))
+			{
+				loopv(ssecures)
+				{
+					const int sec_diff = (gamemillis - ssecures[i].last_service) / 5;
+					if(!sec_diff) continue;
+					ssecures[i].last_service += sec_diff * 5;
+					int teams_inside[2] = {0};
+					loopvj(clients)
+						if(valid_client(j) && (clients[j]->team >= 0 && clients[j]->team < 2) && clients[j]->state.state == CS_ALIVE && clients[j]->state.o.distxy(ssecures[i].o) <= PLAYERRADIUS * 3)
+							++teams_inside[clients[j]->team];
+					int defending = 0, opposing = 0;
+					loopj(2)
+					{
+						if(i == ssecures[j].enemy) opposing += teams_inside[j];
+						else defending += teams_inside[j];
+					}
+					if(opposing < defending || (!opposing && ssecures[i].enemy != TEAM_SPECT))
+					{
+						// going back to the original owner
+						if(ssecures[i].overthrown)
+						{
+							ssecures[i].overthrown -= sec_diff * (1 + defending - opposing);
+							if(ssecures[i].overthrown <= 0)
+							{
+								ssecures[i].enemy = TEAM_SPECT;
+								ssecures[i].overthrown = 0;
+							}
+							sendsecureflaginfo(&ssecures[i]);
+						}
+					}
+					else if(opposing > defending)
+					{
+						// starting to secure/overthrow?
+						if(ssecures[i].enemy == TEAM_SPECT)
+						{
+							int team_max = 0, max_team = TEAM_SPECT;
+							bool teams_matched = true;
+							loopj(2) // prepared if more teams
+							{
+								if(teams_inside[j] > team_max)
+								{
+									team_max = teams_inside[j];
+									max_team = j;
+									teams_matched = false;
+								}
+								else if(teams_inside[j] == team_max) teams_matched = true;
+							}
+							// first frame: start to capture
+							if(!teams_matched) ssecures[i].enemy = max_team;
+						}
+						else
+						{
+							ssecures[i].overthrown += sec_diff * (opposing - defending);
+							if(ssecures[i].overthrown >= 1000)
+							{
+								ssecures[i].team = (ssecures[i].team == TEAM_SPECT || true) ? ssecures[i].enemy : TEAM_SPECT;
+								ssecures[i].enemy = TEAM_SPECT;
+								ssecures[i].overthrown = 0;
+							}
+							sendsecureflaginfo(&ssecures[i]);
+						}
+					}
+					// else: we are at an impasse
+				}
+				static int lastsecurereward = 0;
+				if(servmillis > lastsecurereward + 5000)
+				{
+					// reward points for having some bases secured
+					lastsecurereward = servmillis;
+				}
+			}
+			else loopi(2)
+			{
+				sflaginfo &f = sflaginfos[i];
+				if(f.state == CTFF_DROPPED && gamemillis-f.lastupdate > (m_capture(gamemode) ? 30000 : (m_ktf2(gamemode, mutators) || m_bomber(gamemode)) ? 20000 : 10000)) flagaction(i, FA_RESET, -1);
+				if(m_hunt(gamemode) && f.state == CTFF_INBASE && gamemillis-f.lastupdate > (smapstats.hasflags ? 10000 : 1000))
+					htf_forceflag(i);
+				if(m_keep(gamemode) && f.state == CTFF_STOLEN && gamemillis-f.lastupdate > 15000)
+					flagaction(i, FA_SCORE, -1);
+			}
 		}
 		arenacheck();
 		convertcheck();

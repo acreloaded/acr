@@ -767,7 +767,7 @@ const char *messagenames(int n){
 		"N_POINTS", "N_POINTR", "N_TEAMSCORE", "N_KILL", "N_DAMAGE", // scoring
 		"N_TRYSPAWN", "N_SPAWNSTATE", "N_SPAWN", "N_FORCEDEATH", "N_FORCEGIB", // spawning
 		"N_ITEMSPAWN", "N_ITEMACC", // items
-		"N_DROPFLAG", "N_FLAGINFO", "N_FLAGMSG", "N_FLAGCNT", // flags
+		"N_DROPFLAG", "N_FLAGINFO", "N_FLAGMSG", "N_FLAGSECURE", // flags
 		"N_MAPCHANGE", "N_NEXTMAP", // map changes
 		"N_TIMEUP", "N_ACCURACY", "N_ARENAWIN", "N_ZOMBIESWIN", "N_CONVERTWIN" // round end/remaining
 		// extensions

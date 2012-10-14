@@ -1295,9 +1295,14 @@ void renderhudwaypoints(playerent *p){
 	const int teamfix = p->team == TEAM_SPECT ? TEAM_RED : p->team;
 	if(m_affinity(gamemode))
 	{
-		if(m_secure(gamemode))
+		if(m_secure(gamemode)) loopv(ents)
 		{
-			// TODO-SECURE
+			entity &e = ents[i];
+			if(e.type == CTF_FLAG && e.attr2 >= 2)
+			{
+				renderwaypoint(e.attr2 == 4 ? WP_SECURE : (e.attr2 - 2) == teamfix ? WP_DEFEND : WP_OVERTHROW, vec(e.x, e.y, (float)S(int(e.x), int(e.y))->floor + PLAYERHEIGHT), (2000 - e.attr4) / 2000.f);
+				renderwaypoint(e.attr3 == teamfix ? WP_DEFEND : WP_OVERTHROW, vec(e.x, e.y, (float)S(int(e.x), int(e.y))->floor + PLAYERHEIGHT), (e.attr4) / 2000.f);
+			}
 		}
 		else loopi(2)
 		{

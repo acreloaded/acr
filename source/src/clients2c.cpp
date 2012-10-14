@@ -1121,6 +1121,16 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				break;
 			}
 
+			case N_FLAGSECURE:
+			{
+				const int ent = getint(p), team = getint(p), enemy = getint(p), overthrown = getint(p);
+				if(!ents.inrange(ent) || ents[ent].type != CTF_FLAG || (team != 0 && team != 1 && team != 2) || ents[ent].attr2 < 2) break;
+				ents[ent].attr2 = 2 + team;
+				ents[ent].attr3 = enemy;
+				ents[ent].attr4 = overthrown;
+				break;
+			}
+
 			case N_FLAGCNT:
 			{
 				int fcn = getint(p);
