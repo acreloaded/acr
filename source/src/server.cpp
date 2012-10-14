@@ -4653,7 +4653,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 								else if(teams_inside[j] == team_max) teams_matched = true;
 							}
 							// first frame: start to capture
-							if(!teams_matched) ssecures[i].enemy = max_team;
+							if(!teams_matched && max_team != ssecures[i].team) ssecures[i].enemy = max_team;
 						}
 						else
 						{
