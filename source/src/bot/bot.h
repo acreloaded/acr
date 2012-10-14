@@ -199,8 +199,7 @@ public:
 
 	// Misc stuff
 	ECurrentBotState m_eCurrentBotState;
-	entity *m_pTargetEnt;
-	flaginfo *m_pTargetFlag;
+	entity *m_pTargetEnt, *m_pTargetFlag;
 	TLinkedList<unreachable_ent_s *> m_UnreachableEnts;
 	int m_iCheckTeleporterDelay;
 	int m_iCheckJumppadsDelay;
@@ -255,10 +254,10 @@ public:
 	virtual bool ChoosePreferredWeapon(void);
 	virtual entity *SearchForEnts(bool bUseWPs, float flRange=9999.0f,
 							float flMaxHeight=JUMP_HEIGHT) = 0;
-	virtual flaginfo *SearchForFlags(bool bUseWPs, float flRange=9999.0f,
+	virtual entity *SearchForFlags(bool bUseWPs, float flRange=9999.0f,
 							float flMaxHeight=JUMP_HEIGHT) = 0;
 	virtual bool HeadToTargetEnt(void) = 0;
-	virtual bool CanTakeFlag(const flaginfo &f, const flaginfo &of) = 0;
+	virtual bool CanTakeFlag(const entity &e) = 0;
 	virtual bool HeadToTargetFlag(void) = 0;
 	bool CheckItems(void);
 	bool CheckFlags(void);
