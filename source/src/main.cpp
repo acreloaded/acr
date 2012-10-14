@@ -695,7 +695,7 @@ int main(int argc, char **argv)
 		extern void *scoremenu, *teammenu, *ctfmenu, *servmenu, *searchmenu, *serverinfomenu, *kickmenu, *banmenu, *forceteammenu, *giveadminmenu, *revokemenu, *whoismenu, *spectmenu, *docmenu, *applymenu;
 		scoremenu = addmenu("score", "score\tfrag\tassist\tdeath\tratio\tpj/ping\trank\tlvl\tname", false, renderscores, NULL, false, true);
 		teammenu = addmenu("team score", "score\tfrag\tassist\tdeath\tratio\tpj/ping\trank\tlvl\tname", false, renderscores, NULL, false, true);
-		ctfmenu = addmenu("ctf score", "score\tflag\tfrag\tassist\tdeath\tratio\tpj/ping\trank\tlvl\tname", false, renderscores, NULL, false, true);
+		ctfmenu = addmenu("flag score", "score\tflag\tfrag\tassist\tdeath\tratio\tpj/ping\trank\tlvl\tname", false, renderscores, NULL, false, true);
 		servmenu = addmenu("server", NULL, true, refreshservers, serverskey);
 		searchmenu = addmenu("search", NULL, true, refreshservers, serverskey);
 		serverinfomenu = addmenu("serverinfo", NULL, true, refreshservers, serverinfokey);
