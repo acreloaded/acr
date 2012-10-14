@@ -9,6 +9,8 @@
 #define CTFSCOREPT   (cnumber*distance/25+10)      // CTF score
 #define HTFSCOREPT   (cnumber*4+10)                // HTF score
 #define KTFSCOREPT   (cnumber*2+10)                // KTF score
+#define SECUREPT     (10)                          // Secure/Overthrow score
+#define SECUREDPT    (1)                           // Secured/Overthrow score
 /*
 #define CTFLDEFPT     cnumber                      // player defended the flag in the base (ctf)
 #define CTFLCOVPT     cnumber*2                    // player covered the flag stealer (ctf)

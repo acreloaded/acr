@@ -793,6 +793,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					"\f0%s", // You won
 					"\f1%s", // Your team wins
 					"\f3%s", // You lost
+					"\f1%s", // Domination bonus
+					"\f0%s", // Flag secured!
+					"\f3%s", // Flag overthrown!
 				};
 				defformatstring(pr_lookup_str)("point_reason_%d", reason);
 				defformatstring(pr_str)(pointreasons_templates[reason%PR_MAX], _(pr_lookup_str));

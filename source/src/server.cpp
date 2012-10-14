@@ -4648,7 +4648,14 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 							ssecures[i].overthrown += sec_diff * (opposing - defending);
 							if(ssecures[i].overthrown >= 1000)
 							{
-								ssecures[i].team = (ssecures[i].team == TEAM_SPECT || m_gsp1(gamemode, mutators)) ? ssecures[i].enemy : TEAM_SPECT;
+								const bool is_secure = ssecures[i].team == TEAM_SPECT || m_gsp1(gamemode, mutators);
+								loopvj(clients)
+									if(valid_client(j) && (clients[j]->team >= 0 && clients[j]->team < 2) && clients[j]->state.state == CS_ALIVE && clients[j]->state.o.distxy(ssecures[i].o) <= PLAYERRADIUS * 7)
+									{
+										addpt(clients[i], SECUREPT, is_secure ? PR_SECURE_SECURE : PR_SECURE_OVERTHROW);
+										clients[j]->state.invalidate().flagscore += m_gsp1(gamemode, mutators) ? ssecures[i].team == TEAM_SPECT ? 2 : 3 : 1;
+									}
+								ssecures[i].team = is_secure ? ssecures[i].enemy : TEAM_SPECT;
 								ssecures[i].enemy = TEAM_SPECT;
 								ssecures[i].overthrown = 0;
 							}
@@ -4673,9 +4680,16 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 				{
 					// reward points for having some bases secured
 					lastsecurereward = servmillis;
+					int bonuses[2] = {0};
 					loopv(ssecures)
 						if(ssecures[i].team >= 0 && ssecures[i].team < 2)
+						{
+							++bonuses[ssecures[i].team];
 							++usesteamscore(ssecures[i].team).flagscore;
+						}
+					loopv(clients)
+						if(valid_client(i) && (clients[i]->team >= 0 && clients[i]->team < 2) && bonuses[clients[i]->team])
+							addpt(clients[i], SECUREDPT * bonuses[clients[i]->team],  PR_SECURE_SECURED);
 				}
 			}
 			else loopi(2)
