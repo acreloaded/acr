@@ -422,7 +422,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 	// following block should be put into an initializer?
 	loopi(MAXENTTYPES) s.entcnt[i] = 0;
 	loopi(3) s.spawns[i] = 0;
-	loopi(2) s.flags[i] = 0;
+	loopi(3) s.flags[i] = 0;
 
 	gzFile f = opengzfile(filename, "rb9");
 	if(!f) return NULL;

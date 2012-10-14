@@ -74,7 +74,7 @@ struct mapaction : serveraction
 			const bool flags = m_secure(mode) || m_hunt(mode) || !m_affinity(mode) || (ms->flags[0] && ms->flags[1]);
 			const bool secures = !m_secure(mode) || ms->flags[2];
 				
-			if(!spawns || !flags)
+			if(!spawns || !flags || !secures)
 			{
 				reqpriv = privconf('P');
 				if(reqpriv && !strchr(scl.voteperm, 'P')) mapok = false;
