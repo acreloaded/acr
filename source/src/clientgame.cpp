@@ -434,7 +434,7 @@ bool tryrespawn(){
 
 void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style, vec src)
 {
-	if(pl->state == CS_DEAD || intermission) return;
+	if(!pl || !actor || pl->state == CS_DEAD || intermission) return;
 
 	pl->respawnoffset = pl->lastpain = lastmillis;
 	// damage direction/hit push
@@ -469,7 +469,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 }
 
 void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, int combo, float killdist){
-	if(!pl || !act || pl->state==CS_DEAD || intermission) return;
+	if(!pl || !act || intermission) return;
 	pl->lastkiller = act->clientnum;
 
 	bool headshot = isheadshot(weapon, style);

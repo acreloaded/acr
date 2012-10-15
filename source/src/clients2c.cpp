@@ -696,7 +696,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						}
 						else if(!info){ // nuke deployed
 							// gg...
-							loopv(players) if(players[i]) { players[i]->state = CS_ALIVE; }
 							chatoutf("\f3%s deployed a nuke!", colorname(d));
 							playsound(S_VOTEPASS, SP_HIGHEST);
 						}
