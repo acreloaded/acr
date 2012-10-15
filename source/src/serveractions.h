@@ -63,9 +63,9 @@ struct mapaction : serveraction
 			reqpriv = privconf('E');
 			if(reqpriv) sendservmsg("\f3INFO: coopedit is restricted", caller);
 		}
-		else if(!ms)
+		else if(!ms || maploc == MAP_NOTFOUND)
 		{
-			sendservmsg("\f3the server does not have this map (sendmap first)", caller);
+			sendservmsg(maploc == MAP_NOTFOUND ? "\f3the server does not have this map (sendmap first)" : "\f3the server could not read the map", caller);
 			mapok = false;
 		}
 		else
