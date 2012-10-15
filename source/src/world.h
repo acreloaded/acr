@@ -38,7 +38,7 @@ enum							// hardcoded texture numbers
 	DEFAULT_CEIL
 };
 
-#define MAPVERSION 7			// bump if map format changes, see worldio.cpp
+#define MAPVERSION 8			// bump if map format changes, see worldio.cpp
 
 struct header				   // map file format header
 {
@@ -51,7 +51,10 @@ struct header				   // map file format header
 	uchar texlists[3][256];
 	int waterlevel;
 	uchar watercolor[4];
-    int reserved[14];
+	int maprevision;
+	int ambient;
+    int reserved[12];
+	char mediareq[128]; // AC7, but nor ACR7 // actually a maximum of 124 will ever be used (24*5+4)
 };
 
 struct mapstats

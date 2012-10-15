@@ -427,10 +427,24 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 	gzFile f = opengzfile(filename, "rb9");
 	if(!f) return NULL;
 	memset(&s.hdr, 0, sizeof(header));
-	if(gzread(f, &s.hdr, sizeof(header)-sizeof(int)*16)!=sizeof(header)-sizeof(int)*16 || (strncmp(s.hdr.head, "CUBE", 4) && strncmp(s.hdr.head, "ACMP",4) && strncmp(s.hdr.head, "ACRM",4))) { gzclose(f); return NULL; }
+#define INVALID_MAP { gzclose(f); return NULL; }
+	if(gzread(f, &s.hdr, sizeof(header)-sizeof(int)*16-sizeof(char)*128)!=sizeof(header)-sizeof(int)*16-sizeof(char)*128 || (strncmp(s.hdr.head, "CUBE", 4) && strncmp(s.hdr.head, "ACMP",4) && strncmp(s.hdr.head, "ACRM",4))) INVALID_MAP
 	endianswap(&s.hdr.version, sizeof(int), 4);
-	if(s.hdr.version>MAPVERSION || s.hdr.numents > MAXENTITIES || (s.hdr.version>=4 && gzread(f, &s.hdr.waterlevel, sizeof(int)*16)!=sizeof(int)*16)) { gzclose(f); return NULL; }
-	if(s.hdr.version>=4) endianswap(&s.hdr.waterlevel, sizeof(int), 1); else s.hdr.waterlevel = -100000;
+	if(s.hdr.version>MAPVERSION || s.hdr.numents > MAXENTITIES) INVALID_MAP
+	if(s.hdr.version >=4 && gzread(f, &s.hdr.waterlevel, sizeof(int)*16)!=sizeof(int)*16) INVALID_MAP
+	if(s.hdr.version >= 8 && gzread(f, &s.hdr.mediareq, sizeof(char)*128)!=sizeof(char)*128) INVALID_MAP
+	if(s.hdr.version < 8)
+		copystring(s.hdr.mediareq, "", 128);
+	if(s.hdr.version>=4)
+	{
+		lilswap(&s.hdr.waterlevel, 1); 
+		lilswap(&s.hdr.maprevision, 2);
+	}
+	else
+	{
+		s.hdr.waterlevel = -100000;
+		s.hdr.ambient = 0;
+	}
 	persistent_entity e;
 	if(getlayout)
 	{
