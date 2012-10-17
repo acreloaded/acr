@@ -610,6 +610,7 @@ struct playerent : dynent, playerstate
 		extern void removedynlights(physent *owner);
 		extern void zapplayerflags(playerent *owner);
 		extern void cleanplayervotes(playerent *owner);
+		extern void updateplayerfootsteps(playerent *p, bool forceremove = false);
 		extern physent *camera1;
 		extern void togglespect();
 		removebounceents(this);
@@ -617,6 +618,7 @@ struct playerent : dynent, playerstate
 		removedynlights(this);
 		zapplayerflags(this);
 		cleanplayervotes(this);
+		updateplayerfootsteps(this, true);
 		if(this==camera1) togglespect();
 	}
 

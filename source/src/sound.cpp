@@ -1591,7 +1591,7 @@ COMMAND(mapsoundreset, ARG_NONE);
 VARP(footsteps, 0, 1, 1);
 VARP(localfootsteps, 0, 1, 1);
 
-void updateplayerfootsteps(playerent *p)
+void updateplayerfootsteps(playerent *p, bool forceremove = false)
 {
 	if(!p) return;
 
@@ -1610,14 +1610,14 @@ void updateplayerfootsteps(playerent *p)
 	bool local = (p == camera1);
 	bool inrange = footsteps && (local || (camera1->o.dist(p->o) < footstepradius));
 
-	if(!footsteps || (local && !localfootsteps) || !inrange || p->state != CS_ALIVE || lastmillis-p->lastpain < 300 || (!p->onfloor && p->timeinair>50) || (!p->move && !p->strafe) || p->inwater)
+	if(forceremove || !footsteps || (local && !localfootsteps) || !inrange || p->state != CS_ALIVE || lastmillis-p->lastpain < 300 || (!p->onfloor && p->timeinair>50) || (!p->move && !p->strafe) || p->inwater)
 	{
 		const int minplaytime = 200;
 		loopi(sizeof(locs)/sizeof(locs[0]))
 		{
 			location *l = locs[i];
 			if(!l) continue;
-			if(l->playmillis+minplaytime>totalmillis) continue; // tolerate short interruptions by enforcing a minimal playtime
+			if((l->playmillis+minplaytime>totalmillis) && !forceremove) continue; // tolerate short interruptions by enforcing a minimal playtime
 			l->drop();
 		}
 	}
