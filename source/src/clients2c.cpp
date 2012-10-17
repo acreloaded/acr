@@ -408,7 +408,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(!*text) copystring(text, "unarmed");
 				copystring(d->name, text);
 				// state bugs
-				if(d->state == CS_WAITING) d->state = CS_ALIVE;
+				//if(d->state == CS_WAITING) d->state = CS_ALIVE;
+				// the server will now force death before reassigning
 				d->plag = 0;
 				break;
 			}
