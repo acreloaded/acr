@@ -599,8 +599,12 @@ struct playerent : dynent, playerstate
 		icons.add(icon);
 	}
 
+	void removeai();
+
 	virtual ~playerent()
 	{
+		removeai();
+		icons.shrink(0);
 		extern void removebounceents(playerent *owner);
 		extern void detachsounds(playerent *owner);
 		extern void removedynlights(physent *owner);
@@ -614,7 +618,6 @@ struct playerent : dynent, playerstate
 		zapplayerflags(this);
 		cleanplayervotes(this);
 		if(this==camera1) togglespect();
-		icons.setsize(0);
 	}
 
 	void damageroll(float damage)

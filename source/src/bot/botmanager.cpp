@@ -79,11 +79,19 @@ void CBotManager::Think()
     }
 }
 
+void playerent::removeai()
+{
+	if(pBot){
+		DELETEP(pBot->m_pBotSkill);
+		DELETEP(pBot);
+	}
+}
+
 void CBotManager::EndMap()
 {
 	loopv(players)
-		if(players[i] && players[i]->pBot)
-			DELETEP(players[i]->pBot);
+		if(players[i])
+			players[i]->removeai();
 }
 
 void CBotManager::BeginMap(const char *szMapName)

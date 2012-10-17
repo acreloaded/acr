@@ -342,6 +342,7 @@ public:
 
 	void Init(void);
 	void Think(void);
+	void CleanupBot(playerent *bot);
 	void EndMap(void);
 	void BeginMap(const char *szMapName);
 	void LetBotsUpdateStats(void);

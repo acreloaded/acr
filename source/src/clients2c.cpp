@@ -401,6 +401,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				const int newowner = getint(p);
 				getstring(text, p);
 				if(!d || d == player1) break;
+				if(isowned(d) && newowner != getclientnum())
+					d->removeai();
 				d->ownernum = newowner;
 				filtername(text, text);
 				if(!*text) copystring(text, "unarmed");
