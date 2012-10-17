@@ -3044,7 +3044,7 @@ bool checkmove(client &cp, int f){
 	const int sender = cp.clientnum;
 	// help detect AFK
 	if(!cs.movemillis){
-		if(!m_edit(gamemode) && cs.lasto.distxy(cs.o) >= 4*PLAYERRADIUS) serverdied(&cp, &cp, 0, WEAP_MAX + 14, FRAG_NONE, cs.o);
+		if(!m_edit(gamemode) && (cs.lasto.distxy(cs.o) >= 5*PLAYERRADIUS || fabs(cs.lasto.z - cs.o.z) >= 2 * PLAYERHEIGHT)) serverdied(&cp, &cp, 0, WEAP_MAX + 14, FRAG_NONE, cs.o);
 		cs.movemillis = servmillis;
 	}
 	else if(cs.lasto.dist(cs.o) >= 0.1f) cs.movemillis = servmillis;
