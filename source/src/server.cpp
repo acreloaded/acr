@@ -4619,6 +4619,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 					loopvj(clients)
 						if(valid_client(j) && (clients[j]->team >= 0 && clients[j]->team < 2) && clients[j]->state.state == CS_ALIVE && clients[j]->state.o.distxy(ssecures[i].o) <= PLAYERRADIUS * 7)
 							++teams_inside[clients[j]->team];
+					const int returnbonus = ssecures[i].team == TEAM_SPECT ? 1 : m_gsp1(gamemode, mutators) ? 2 : 0; // how fast flags can return to its original owner, but 0 counts as 1 if there is a defender
 					int defending = 0, opposing = 0;
 					loopj(2)
 					{
@@ -4669,10 +4670,10 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 							sendsecureflaginfo(&ssecures[i]);
 						}
 					}
-					else if((defending > opposing || !opposing) && ssecures[i].overthrown)
+					else if((defending > opposing || (!opposing && returnbonus)) && ssecures[i].overthrown)
 					{
 						// going back to the original owner
-						ssecures[i].overthrown -= sec_diff * (1 + defending - opposing);
+						ssecures[i].overthrown -= sec_diff * (max(1, returnbonus) + defending - opposing);
 						if(ssecures[i].overthrown <= 0)
 						{
 							ssecures[i].enemy = TEAM_SPECT;
