@@ -96,7 +96,9 @@ struct scoreratio{
 
 void renderscore(void *menu, playerent *d){
 	static color localplayerc(0.2f, 0.2f, 0.2f, 0.2f), damagedplayerc(0.4f, 0.1f, 0.1f, 0.3f);
-	defformatstring(lagping)("%s/%s", d->state==CS_WAITING ? "LAG" : colorpj(d->plag), colorping(d->ping));
+	string lagping;
+	if(d->team == TEAM_SPECT) formatstring(lagping)("%s", colorping(d->ping));
+	else formatstring(lagping)("%s/%s", d->state==CS_WAITING ? "LAG" : colorpj(d->plag), colorping(d->ping));
 	int rmod10 = d->rank % 10;
 	defformatstring(rankstr)("%d%s", d->rank, (d->rank / 10 == 1) ? "th" : rmod10 == 1 ? "st" : rmod10 == 2 ? "nd" : rmod10 == 3 ? "rd" : "th");
 	sline &line = scorelines.add();
@@ -128,8 +130,10 @@ void renderteamscore(void *menu, teamsum &t){
 															t.teammembers.length() == 1 ? _("sb_player") : _("sb_players"));
 	const teamscore &ts = teamscores[t.team];
 	static scoreratio sr;
+	string lagping;
 	sr.calc(ts.frags, ts.deaths);
-	defformatstring(lagping)("%s/%s", colorpj(t.pj/max(t.teammembers.length(),1)), colorping(t.ping/max(t.teammembers.length(), 1)));
+	if(t.team == TEAM_SPECT) formatstring(lagping)("%s", colorping(t.ping/max(t.teammembers.length(), 1)));
+	else formatstring(lagping)("%s/%s", colorpj(t.pj/max(t.teammembers.length(),1)), colorping(t.ping/max(t.teammembers.length(), 1)));
 	const char *teamname = m_team(gamemode, mutators) || t.team == TEAM_SPECT ? team_string(t.team) : "FFA Total";
 	formatstring(line.s)("%d\t", ts.points);
 	if(m_affinity(gamemode)) concatformatstring(line.s, "%d\t", ts.flagscore);
