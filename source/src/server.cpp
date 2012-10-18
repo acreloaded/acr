@@ -3084,7 +3084,7 @@ bool checkmove(client &cp, int f){
 			const float dz = cs.fallz - cs.o.z;
 			if(newonfloor){ // air to solid
 				// mario jump
-				vector<client *> hit;
+				bool hit = false;
 				if(dz > 10){ // 2.5 meters to fall onto others
 					loopv(clients){
 						client &t = *clients[i];
@@ -3095,20 +3095,21 @@ bool checkmove(client &cp, int f){
 						if(ts.o.distxy(cs.o) > 2.5f*PLAYERRADIUS) continue;
 						const float dz2 = cs.o.z - ts.o.z;
 						if(dz2 > PLAYERABOVEEYE + 2 || -dz2 > PLAYERHEIGHT + 2) continue;
-						hit.add(&t);
+						serverdied(&t, &cp, 0, WEAP_MAX + 2, FRAG_NONE, cs.o);
+						hit = true;
 					}
 				}
-				loopv(hit) serverdied(hit[i], &cp, 0, WEAP_MAX + 2, FRAG_NONE, cs.o);
-
-				// 4 meters without damage + 2/0.5 HP/meter
-				//int damage = ((cs.fallz - newo.z) - 16) * HEALTHSCALE / (cs.perk1 == PERK1_LIGHT ? 8 : 2);
-				// 2 meters without damage, then square up to 10^2 = 100 for up to 20m (50m with lightweight)
-				int damage = 0;
-				if(dz > 8)
-					damage = powf(min<float>((dz - 8) / 4 / (cs.perk1 == PERK1_LIGHT ? 5 : 2), 10), 2.f) * HEALTHSCALE; // 10 * 10 = 100
-				if(damage >= 1*HEALTHSCALE){ // don't heal the player
-					// maximum damage is 99 for balance purposes
-					serverdamage(&cp, &cp, min(damage, 99 * HEALTHSCALE), WEAP_MAX + 2, FRAG_NONE, cs.o);
+				if(!hit){
+					// 4 meters without damage + 2/0.5 HP/meter
+					//int damage = ((cs.fallz - newo.z) - 16) * HEALTHSCALE / (cs.perk1 == PERK1_LIGHT ? 8 : 2);
+					// 2 meters without damage, then square up to 10^2 = 100 for up to 20m (50m with lightweight)
+					int damage = 0;
+					if(dz > 8)
+						damage = powf(min<float>((dz - 8) / 4 / (cs.perk1 == PERK1_LIGHT ? 5 : 2), 10), 2.f) * HEALTHSCALE; // 10 * 10 = 100
+					if(damage >= 1*HEALTHSCALE){ // don't heal the player
+						// maximum damage is 99 for balance purposes
+						serverdamage(&cp, &cp, min(damage, 99 * HEALTHSCALE), WEAP_MAX + 2, FRAG_NONE, cs.o);
+					}
 				}
 			}
 			else if(newunderwater && dz > 32){ // air to liquid, more than 8 meters
