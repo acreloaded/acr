@@ -1626,7 +1626,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 		// buzzkill check
 		bool buzzkilled = false;
 		int kstreak_next = ts.pointstreak / 5 + 1;
-		const int kstreaks_checked[] = { 2, 3, 7, 9, 11, 17 }; // it goes forever, but we only count for first juggernaut
+		const int kstreaks_checked[] = { 7, 9, 11, 17 }; // it goes forever, but we only count for first juggernaut
 		loopi(sizeof(kstreaks_checked)/sizeof(*kstreaks_checked))
 			if(ts.streakused < kstreaks_checked[i] * 5 && kstreaks_checked[i] == kstreak_next){
 				buzzkilled = true;
