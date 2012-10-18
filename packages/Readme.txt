@@ -69,8 +69,10 @@ misc
 		fall_water.png
 		grenade.png
 		heal.png
+		jug.png
 		revenge.png
 		revive.png
+		spawn.png
 		team.png
 			Crystal Icons LGPL
 		first.png - Deleket (http://deleket.deviantart.com/) CC-BY 3.0

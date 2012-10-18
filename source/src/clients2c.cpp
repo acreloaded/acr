@@ -712,8 +712,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						break;
 					case STREAK_JUG:
 						d->health = info;
-						chatoutf("\f1%s has juggernaut!", colorname(d));
 						d->addicon(eventicon::JUGGERNAUT);
+						addobit(d, OBIT_JUG, FRAG_NONE, false, NULL);
 						break;
 					case STREAK_DROPNADE:
 					case STREAK_REVENGE:
