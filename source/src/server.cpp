@@ -1622,6 +1622,21 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 			// no/quick
 			if(scopeelapsed >= zoomtime) style |= FRAG_SCOPE_NONE;
 		}
+		// buzzkill check
+		bool buzzkilled = false;
+		int kstreak_next = ts.pointstreak / 5 + 1;
+		const int kstreaks_checked[] = { 2, 3, 7, 9, 11, 17 }; // it goes forever, but we only count for first juggernaut
+		loopi(sizeof(kstreaks_checked)/sizeof(*kstreaks_checked))
+			if(ts.streakused < kstreaks_checked[i] * 5 && kstreaks_checked[i] == kstreak_next){
+				buzzkilled = true;
+				break;
+			}
+		if(buzzkilled)
+		{
+			addptreason(actor->clientnum, PR_BUZZKILL);
+			addptreason(target->clientnum, PR_BUZZKILLED);
+		}
+		actor->state.deathstreak = ts.pointstreak = ts.streakused = 0;
 	}
 	else // suicide
 		suic = true;
@@ -1629,7 +1644,6 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	// streak/assist
 	actor->state.pointstreak += 5;
 	++ts.deathstreak;
-	actor->state.deathstreak = ts.pointstreak = ts.streakused = 0;
 	ts.wounds.shrink(0);
 	ts.damagelog.removeobj(ts.lastkiller = actor->clientnum);
 	target->invalidateheals();

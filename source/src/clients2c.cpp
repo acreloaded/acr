@@ -798,6 +798,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					"\f1%s", // Domination bonus
 					"\f0%s", // Flag secured!
 					"\f3%s", // Flag overthrown!
+					"\f0%s", // Buzzkill!
+					"\f3%s", // Buzzkilled!
 				};
 				defformatstring(pr_lookup_str)("point_reason_%d", reason);
 				defformatstring(pr_str)(pointreasons_templates[reason%PR_MAX], _(pr_lookup_str));
