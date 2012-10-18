@@ -699,6 +699,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						}
 						else if(!info){ // nuke deployed
 							// gg...
+							d->nukemillis = 0;
 							chatoutf("\f3%s deployed a nuke!", colorname(d));
 							playsound(S_VOTEPASS, SP_HIGHEST);
 						}
