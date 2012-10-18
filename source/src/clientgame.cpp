@@ -491,6 +491,9 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 		if(style&FRAG_REVENGE) formatstring(predicate)("\fs\f0%s \fr", _("obit_revenge"));
 		concatformatstring(predicate, "%s %s%s", _(killname(obit = toobit(weapon, style), headshot)),
 			isteam(pl, act) ? act==player1 ? "\f3your teammate " : "\f3his teammate " : "", pl == player1 ? "\f1you\f2" : colorname(pl));
+		// only affect deathstreak/killstreak if kill/ed
+		++pl->deathstreak;
+		pl->pointstreak = act->deathstreak = 0;
 	}
 	if(killdist) concatformatstring(predicate, " (@%.2f m)", killdist / 4.f);
 	// streaks
@@ -536,9 +539,6 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 		}
 	}
 	obitoutf(act->clientnum, "%s %s", subject, predicate);
-
-	++pl->deathstreak;
-	pl->pointstreak = act->deathstreak = 0;
 	
 	if(style & FRAG_GIB) addgib(pl);
 

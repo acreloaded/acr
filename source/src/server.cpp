@@ -1622,6 +1622,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 			// no/quick
 			if(scopeelapsed >= zoomtime) style |= FRAG_SCOPE_NONE;
 		}
+
 		// buzzkill check
 		bool buzzkilled = false;
 		int kstreak_next = ts.pointstreak / 5 + 1;
@@ -1636,14 +1637,14 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 			addptreason(actor->clientnum, PR_BUZZKILL);
 			addptreason(target->clientnum, PR_BUZZKILLED);
 		}
+		// streak/assist
+		actor->state.pointstreak += 5;
+		++ts.deathstreak;
 		actor->state.deathstreak = ts.pointstreak = ts.streakused = 0;
 	}
 	else // suicide
 		suic = true;
 
-	// streak/assist
-	actor->state.pointstreak += 5;
-	++ts.deathstreak;
 	ts.wounds.shrink(0);
 	ts.damagelog.removeobj(ts.lastkiller = actor->clientnum);
 	target->invalidateheals();
