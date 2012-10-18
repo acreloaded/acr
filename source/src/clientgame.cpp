@@ -158,7 +158,7 @@ COMMAND(curteam, ARG_IVAL);
 COMMAND(currole, ARG_IVAL);
 COMMAND(curmode, ARG_IVAL);
 COMMAND(curmap, ARG_1INT);
-VARP(showscoresondeath, 0, 1, 1);
+VARP(showscoresondeath, 0, 0, 1);
 
 VARP(noob, 0, 0, 1); // pretty useless, just doubles level-up rate
 VARFP(level, 1, 1, MAXLEVEL, addmsg(N_LEVEL, "ri", level));
