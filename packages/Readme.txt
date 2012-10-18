@@ -156,6 +156,7 @@ textures*
 			sb-iceflowjpg.zip
 			Sock (sock@planetquake.com, http://www.planetquake.com/simland)
 			Unlicenced, assumed Attribution required
+		kothic - see its .html
 		ladynighthawk - this skymap (inhcanyons1) is CC-BY-NC-SA by Lady NightHawk of http://alusion-fr.com/an1ffa3.htm
 		makke*
 		socksky - SimonOC (http://simonoc.com/pages/materials/skybox) CC-BY-NC-SA 3.0
