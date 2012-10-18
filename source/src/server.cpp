@@ -3076,11 +3076,11 @@ bool checkmove(client &cp, int f){
 				//cs.movespeed = (cs.movespeed * 4 + (movedistxy * 1000 / (gamemillis - cs.lastomillis))) / 5.f;
 				//cs.movespeed = (cs.movespeed * 3 + (movedistxy * 1000 / (gamemillis - cs.lastomillis))) / 4.f;
 				const float movespeed = (cs.speedo.distxy(cs.o) * 1000 / (gamemillis - cs.speedmillis));
-				if(scl.warnspeedlimit && movespeed > scl.warnspeedlimit){
+				if(movespeed > 26){
 					defformatstring(fastmsg)("\f3%s moved at %.3f m/sec with %d ping", formatname(cp), movespeed / 4, cp.ping);
 					sendservmsg(fastmsg);
 					/*
-					if(scl.gibspeed && movespeed > scl.gibspeed){
+					if(movespeed > 40){
 						cheat(&cp, "speedhack");
 						return false;
 					}

@@ -775,7 +775,7 @@ extern bool logline(int level, const char *msg, ...);
 
 struct servercommandline
 {
-	int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, verbose, demodownloadpriv, afktimelimit, lagtrust, warnspeedlimit;
+	int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, verbose, demodownloadpriv, afktimelimit, lagtrust;
 	const char *ip, *master, *logident, *serverpassword, *demopath, *maprot, *pwdfile, *blfile, *nbfile, *infopath, *botfile;
 	bool demoeverymatch, logtimestamp;
 	string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm, mapperm;
@@ -783,7 +783,7 @@ struct servercommandline
 	vector<const char *> adminonlymaps;
 
 	servercommandline() :   uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), syslogfacility(6), filethres(-1), syslogthres(-1), maxdemos(5), demodownloadpriv(PRIV_ADMIN),
-							maxclients(DEFAULTCLIENTS), verbose(0), afktimelimit(45000), lagtrust(1), warnspeedlimit(26),
+							maxclients(DEFAULTCLIENTS), verbose(0), afktimelimit(45000), lagtrust(1),
 							ip(""), master(NULL), logident(""), serverpassword(""), demopath(""),
 							maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), nbfile("config/nicknameblacklist.cfg"),
 							infopath("config/serverinfo"), botfile("config/botnames.cfg"),
@@ -824,18 +824,6 @@ struct servercommandline
                     if ((ai = atoi(&arg[3])) >= 30) afktimelimit = ai * 1000;
                     else afktimelimit = 0;
                 }
-				else if(arg[2]=='s' && arg[3]!='\0')
-				{
-					if ((ai = atoi(&arg[3])) >= 1) warnspeedlimit = ai;
-					else warnspeedlimit = 0;
-				}
-				/*
-				else if(arg[2]=='S' && arg[3]!='\0')
-				{
-					if ((ai = atoi(&arg[3])) >= 16) gibspeed = ai;
-					else gibspeed = 0;
-				}
-				*/
                 //else if(ai < 0) kickthreshold = ai;
                 break;
 			}
