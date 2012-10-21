@@ -3065,27 +3065,38 @@ bool checkmove(client &cp, int f){
 	else if(cs.lasto.dist(cs.o) >= 0.1f) cs.movemillis = servmillis;
 	// detect speedhack
 	if(!m_edit(gamemode) && cs.lastpain + 2000 < gamemillis){
+		/*
 		// immediate velocity
-		if(cs.vel.magnitudexy() > 1.9f /* 1.07f * 1.42f = 1.5194 */){ // real cheat detect
+		if(cs.vel.magnitudexy() > 1.9f){ // real cheat detect: 1.07f * 1.42f = 1.5194
 			cheat(&cp, "real speedhack");
 			return false;
 		}
+		*/
 		// interval analysis
 		if(gamemillis >= cs.speedmillis + 500){
-			if(cs.speedmillis){
+			if(cs.speedmillis && gamemillis > cs.speedmillis){
 				//cs.movespeed = (cs.movespeed * 4 + (movedistxy * 1000 / (gamemillis - cs.lastomillis))) / 5.f;
 				//cs.movespeed = (cs.movespeed * 3 + (movedistxy * 1000 / (gamemillis - cs.lastomillis))) / 4.f;
 				const float movespeed = (cs.speedo.distxy(cs.o) * 1000 / (gamemillis - cs.speedmillis));
 				if(movespeed > 26){
 					defformatstring(fastmsg)("\f3%s moved at %.3f m/sec with %d ping", formatname(cp), movespeed / 4, cp.ping);
 					sendservmsg(fastmsg);
-					/*
-					if(movespeed > 40){
-						cheat(&cp, "speedhack");
-						return false;
+					++cs.speedingnum;
+					if(cs.speedingsince){
+						// detected enough samples (3 times) or for long enough (750 ms)
+						if(gamemillis > 750 + cs.speedingsince || cs.speedingnum >= 3)
+						{
+							cheat(&cp, "speedhack");
+							return false;
+						}
 					}
-					*/
+					else
+					{
+						cs.speedingsince = gamemillis;
+						cs.speedingnum = 1;
+					}
 				}
+				else cs.speedingsince = 0;
 			}
 			cs.speedo = cs.o;
 			cs.speedmillis = gamemillis;
