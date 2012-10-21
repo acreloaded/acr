@@ -493,10 +493,10 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 			isteam(pl, act) ? act==player1 ? "\f3your teammate " : "\f3his teammate " : "", pl == player1 ? "\f1you\f2" : colorname(pl));
 		// only affect deathstreak/killstreak if kill/ed
 		++pl->deathstreak;
-		pl->pointstreak = act->deathstreak = 0;
+		act->deathstreak = 0;
 	}
+	pl->pointstreak = 0;
 	if(killdist) concatformatstring(predicate, " (@%.2f m)", killdist / 4.f);
-	// streaks
 	// assist count
 	pl->damagelog.removeobj(pl->clientnum);
 	pl->damagelog.removeobj(act->clientnum);

@@ -1640,11 +1640,12 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 		// streak/assist
 		actor->state.pointstreak += 5;
 		++ts.deathstreak;
-		actor->state.deathstreak = ts.pointstreak = ts.streakused = 0;
+		actor->state.deathstreak = ts.streakused = 0;
 	}
 	else // suicide
 		suic = true;
 
+	ts.pointstreak = 0;
 	ts.wounds.shrink(0);
 	ts.damagelog.removeobj(ts.lastkiller = actor->clientnum);
 	target->invalidateheals();
