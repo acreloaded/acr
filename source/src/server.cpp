@@ -4191,7 +4191,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						getstring(text, p);
 						filtertext(text, text, 1, 16);
 						int cn = getint(p);
-						vi->action = new kickaction(cn, text);
+						vi->action = new kickaction(cn, text, cn == sender);
 						break;
 					}
 					case SA_REVOKE:
@@ -4207,7 +4207,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						int m = getint(p), c = getint(p);
 						m = clamp(m, 1, 60);
 						if(cl->priv < PRIV_ADMIN && m >= 10) m = 10;
-						vi->action = new banaction(c, m, text);
+						vi->action = new banaction(c, m, text, c == sender);
 						break;
 					}
 					case SA_REMBANS:
@@ -4257,7 +4257,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						break;
 					default:
 						vi->type = SA_KICK;
-						vi->action = new kickaction(-1, "<invalid type placeholder>");
+						vi->action = new kickaction(-1, "<invalid type placeholder>", false);
 						break;
 				}
 				vi->owner = sender;

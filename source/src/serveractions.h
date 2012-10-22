@@ -188,25 +188,39 @@ struct subdueaction : playeraction
 	}
 };
 
-struct kickaction : playeraction
+struct removeplayeraction : playeraction
+{
+	removeplayeraction(int cn) : playeraction(cn) { }
+	bool weak() {
+		if(!valid_client(cn)) return false;
+		// 3+ KDr, 6+ kills
+		if(clients[cn]->state.frags >= min(2, clients[cn]->state.deaths) * 3) return false;
+		// no teamkills
+		// check spam?
+		return true; // why kick?
+	}
+};
+
+struct kickaction : removeplayeraction
 {
 	string reason;
 	void perform() { disconnect_client(cn, DISC_KICK); }
 	virtual bool isvalid() { return playeraction::isvalid() && valid_client(cn, true) && strlen(reason) >= 4; }
-	kickaction(int cn, const char *r) : playeraction(cn)
+	kickaction(int cn, const char *r, bool self_vote) : removeplayeraction(cn)
 	{
 		area = EE_DED_SERV; // dedicated only
+		const bool is_weak = self_vote || weak();
 		copystring(reason, r);
-		passratio = 0.7f;
+		passratio = is_weak ? .75f : .7f; // 70%-75%
 		reqpriv = protectAdminPriv('k', cn);
 		reqveto = PRIV_MASTER; // kick
-		length = 35000; // 35s
-		if(valid_client(cn)) formatstring(desc)("kick player %s for %s", clients[cn]->name, reason);
+		length = is_weak ? 10000 : 35000; // 35s (10s if weak)
+		if(valid_client(cn)) formatstring(desc)("kick player %s for %s%s", clients[cn]->name, reason, is_weak ? " (weak)" : "");
 		else formatstring(desc)("invalid kick for %s", reason);
 	}
 };
 
-struct banaction : playeraction
+struct banaction : removeplayeraction
 {
 	string reason;
 	int bantime;
@@ -215,15 +229,16 @@ struct banaction : playeraction
 		disconnect_client(cn, DISC_BAN);
 	}
 	virtual bool isvalid() { return playeraction::isvalid() && valid_client(cn, true); }
-	banaction(int cn, int minutes, const char *r) : playeraction(cn)
+	banaction(int cn, int minutes, const char *r, bool self_vote) : removeplayeraction(cn)
 	{
 		area = EE_DED_SERV; // dedicated only
+		const bool is_weak = self_vote || weak();
 		copystring(reason, r);
-		passratio = 0.75f;
+		passratio = is_weak ? .78f : .75f; // 75% - 78%
 		reqpriv = protectAdminPriv('b', cn);
 		reqveto = PRIV_MASTER; // ban
-		length = 30000; // 30s
-		if(isvalid()) formatstring(desc)("ban player %s for %d minutes for %s", clients[cn]->name, (bantime = minutes), reason);
+		length = is_weak ? 8000 : 30000; // 30s (8s if weak)
+		if(isvalid()) formatstring(desc)("ban player %s for %d minutes for %s%s", clients[cn]->name, (bantime = minutes), reason, is_weak ? " (weak)" : "");
 		else copystring(desc, "invalid ban");
 	}
 };
