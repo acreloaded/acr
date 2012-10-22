@@ -103,6 +103,8 @@ struct console : consolebuffer<cline>
 
 VARP(chatfade, 0, 15, 30);
 struct chatlist : consolebuffer<cline>{
+	static const int FADEMAX = 6;
+
     void render(){
         const int conwidth = 2 * VIRTW * 3 / 10;
 		int linei = 0, consumed = 0, y = 2 * VIRTH * 52 / 100;
@@ -111,7 +113,7 @@ struct chatlist : consolebuffer<cline>{
 			int width, height;
 			text_bounds(l, width, height, conwidth);
 			consumed += ceil(float(height/FONTH));
-			if(consumed > maxlines) break;
+			if(consumed > (fullconsole ? FADEMAX : maxlines)) break;
 			++linei;
 		}
         loopi(linei){
@@ -119,11 +121,15 @@ struct chatlist : consolebuffer<cline>{
 			if(totalmillis <= l.millis + chatfade*1000 + 1000 || fullconsole){
 				int fade = 255;
 
-				if(totalmillis >= l.millis + chatfade*1000 && !fullconsole){ // fading out
-					fade = (l.millis + 1000 + chatfade*1000 - totalmillis) * 255/1000;
-					y -= FONTH * (totalmillis - l.millis - chatfade*1000) / 1000;
+				if(!fullconsole)
+				{
+					if(totalmillis >= l.millis + chatfade*1000){ // fading out
+						fade = (l.millis + 1000 + chatfade*1000 - totalmillis) * 255/1000;
+						y -= FONTH * (totalmillis - l.millis - chatfade*1000) / 1000;
+					}
+					else if(i >= FADEMAX) l.millis = totalmillis - chatfade*1000; // for next frame
 				}
-				else if(/*!i &&*/ totalmillis - l.millis < 500){ // fading in
+				if(/*!i &&*/ totalmillis - l.millis < 500){ // fading in
 					fade = (totalmillis - l.millis)*255/500;
 					y += FONTH * (500 - totalmillis + l.millis) / 500;
 				}
@@ -134,7 +140,7 @@ struct chatlist : consolebuffer<cline>{
 			}
         }
     }
-    chatlist() : consolebuffer<cline>() { }
+    chatlist() : consolebuffer<cline>(FADEMAX * 2) { }
 } chat;
 
 Texture **obittex(){
@@ -282,7 +288,7 @@ struct obitlist : consolebuffer<oline>
 		glOrtho(0, VIRTW*ts, VIRTH*ts, 0, -1, 1);
 		int linei = 0, /*consumed = 0,*/ y = ts * VIRTH * .5f;
 		// every line is 1 line
-		linei = min(maxlines, conlines.length());
+		linei = min(fullconsole ? FADEMAX : maxlines, conlines.length());
 		/*
 		loopv(olines){
 			defformatstring(l)("%s    %s", olines[i].actor, olines[i].target); // four spaces to subsitute for unknown obit icon
