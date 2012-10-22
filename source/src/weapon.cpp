@@ -1150,7 +1150,7 @@ knife::knife(playerent *owner) : weapon(owner, WEAP_KNIFE), inhandknife(NULL), s
 
 int knife::flashtime() const { return 0; }
 
-//bool knife::busy(){}
+bool knife::busy() { return state!=GST_NONE; }
 
 bool knife::attack(vec &targ){
 	int attackmillis = lastmillis-owner->lastaction;

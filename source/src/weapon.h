@@ -255,6 +255,7 @@ struct knife : weapon
 
 	bool attack(vec &targ);
 	void reset();
+	bool busy();
 	bool selectable();
 	int modelanim();
 
