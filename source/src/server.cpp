@@ -1698,6 +1698,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 			sconfirm &c = sconfirms.add();
 			c.o = ts.o;
 			sendf(-1, 1, "ri3f3", N_CONFIRMADD, c.id = ++confirmseq, c.team = actor->team, c.o.x, c.o.y, c.o.z);
+			c.cn = target->clientnum;
 			c.points = max(0, earnedpts);
 			c.frag = max(0, kills);
 			c.death = target->team;
@@ -2671,7 +2672,11 @@ void disconnect_client(int n, int reason){
 		cs.revengelog.removeobj(n);
 	}
 	client &c = *clients[n];
+	// delete AI
 	loopv(clients) if(clients[i]->state.ownernum == n) if(!shiftai(*clients[i], -1, n)) deleteai(*clients[i]);
+	// delete kill confirmed references
+	loopv(sconfirms) if(sconfirms[i].cn == n) sconfirms[i].cn = -1;
+	// remove privilege
 	if(c.priv) setpriv(n, PRIV_NONE);
 	const char *scoresaved = "";
 	if(c.haswelcome)
@@ -3264,7 +3269,11 @@ bool checkmove(client &cp, int f){
 			getsteamscore(sconfirms[i].team).frags += sconfirms[i].frag;
 			++usesteamscore(sconfirms[i].death).deaths;
 		}
-		else addpt(&cp, KCDENYPTS, PR_KD);
+		else
+		{
+			addpt(&cp, KCDENYPTS, cp.clientnum == sconfirms[i].cn ? PR_KD_SELF : PR_KD);
+			if(valid_client(sconfirms[i].cn, true)) addptreason(sconfirms[i].cn, PR_KD_ENEMY);
+		}
 
 		sendf(-1, 1, "ri2", N_CONFIRMREMOVE, sconfirms[i].id);
 		sconfirms.remove(i--);

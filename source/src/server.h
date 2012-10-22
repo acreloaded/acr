@@ -430,8 +430,8 @@ struct ban
 };
 
 struct sconfirm{
-	int id;
-	int team, points, frag, death;
+	int id, team, cn;
+	int points, frag, death;
 	vec o;
 };
 
