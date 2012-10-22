@@ -2365,7 +2365,6 @@ inline void putmap(ucharbuf &p){
 }
 
 void resetmap(const char *newname, int newmode, int newmuts, int newtime, bool notify){
-	bool lastteammode = m_team(gamemode, mutators) && !m_zombie(gamemode);
 	resetserver(newname, newmode, newmuts, newtime);
 
 	if(isdedicated) getservermap();
@@ -2445,10 +2444,10 @@ void resetmap(const char *newname, int newmode, int newmuts, int newtime, bool n
 	if(m_progressive(gamemode, mutators)) progressiveround = 1;
 	if(notify){
 		if(m_team(gamemode, mutators)){
-			if(!lastteammode && !m_zombie(gamemode)) // shuffle if previous mode wasn't a team-mode, or was a zombie mode
-				shuffleteams(FTR_SILENT);
-			else if(m_zombie(gamemode) || autobalance) // force teams for zombies
+			if(m_zombie(gamemode)) // force teams for zombies
 				refillteams(true, FTR_SILENT);
+			else // shuffle if previous mode wasn't a team-mode, or was a zombie mode
+				shuffleteams(FTR_SILENT);
 		}
 		// prepare spawns; players will spawn, once they've loaded the correct map
 		loopv(clients) if(clients[i]->type!=ST_EMPTY){
