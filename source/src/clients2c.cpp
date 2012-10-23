@@ -1013,7 +1013,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_PINGPONG:
 			{
 				const int sentmillis = getint(p);
-				if(multiplayer(false)) addmsg(N_PINGTIME, "i", totalmillis);
+				if(multiplayer(false)) addmsg(N_PINGTIME, "i", totalmillis - sentmillis);
 				else addmsg(N_PINGTIME, "i", curtime);
 				break;
 			}
