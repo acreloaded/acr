@@ -146,9 +146,9 @@ struct wound
 
 struct clientstate : playerstate
 {
-	vec o, aim, vel, lasto, speedo, sg[SGRAYS], flagpickupo;
-	float pitchvel;
-	int state, omillis, lastomillis, lmillis, movemillis, ldt, spj, speedmillis, speedingnum, speedingsince;
+	vec o, aim, vel, lasto, sg[SGRAYS], flagpickupo;
+	float pitchvel, aspeed;
+	int state, omillis, lastomillis, lmillis, movemillis, ldt, spj, speedtime;
 	int lastdeath, lastpain, lastffkill, lastspawn, lifesequence, skin, streakused;
 	int lastkill, combo;
 	bool crouching, onfloor; float fallz;
@@ -212,9 +212,9 @@ struct clientstate : playerstate
 	void respawn()
 	{
 		playerstate::respawn();
-		o = speedo = lasto = vec(-1e10f, -1e10f, -1e10f);
+		o = lasto = vec(-1e10f, -1e10f, -1e10f);
 		aim = vel = vec(0, 0, 0);
-		pitchvel = speedmillis = speedingnum = speedingsince = 0;
+		pitchvel = aspeed = speedtime = 0;
 		omillis = lastomillis = lmillis = movemillis = ldt = spj = 0;
 		drownmillis = drownval = 0;
 		lastspawn = -1;

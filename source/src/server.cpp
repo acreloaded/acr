@@ -3091,34 +3091,24 @@ bool checkmove(client &cp, int f){
 			return false;
 		}
 		*/
-		// interval analysis
-		if(gamemillis >= cs.speedmillis + 500){
-			if(cs.speedmillis && gamemillis > cs.speedmillis){
-				//cs.movespeed = (cs.movespeed * 4 + (movedistxy * 1000 / (gamemillis - cs.lastomillis))) / 5.f;
-				//cs.movespeed = (cs.movespeed * 3 + (movedistxy * 1000 / (gamemillis - cs.lastomillis))) / 4.f;
-				const float movespeed = (cs.speedo.distxy(cs.o) * 1000 / (gamemillis - cs.speedmillis));
-				if(movespeed > 26){
-					defformatstring(fastmsg)("\f3%s moved at %.3f m/sec with %d ping", formatname(cp), movespeed / 4, cp.ping);
-					sendservmsg(fastmsg);
-					++cs.speedingnum;
-					if(cs.speedingsince){
-						// detected enough samples (3 times) or for long enough (750 ms)
-						if(gamemillis > 750 + cs.speedingsince || cs.speedingnum >= 3)
-						{
-							cheat(&cp, "speedhack");
-							return false;
-						}
-					}
-					else
+		// only check if milliseconds have passed
+		if(cs.ldt){
+			const float current_speed = (cs.lasto.distxy(cs.o) * 1000 / cs.ldt);
+			cs.aspeed = (cs.aspeed * 3 + current_speed) / 4.f; // eased average speed
+			if(cs.aspeed > 26){
+				if(cs.speedtime){
+					// exceeded too long
+					if(gamemillis > cs.speedtime + 750)
 					{
-						cs.speedingsince = gamemillis;
-						cs.speedingnum = 1;
+						defformatstring(fastmsg)("\f3%s moved at %.3f (%.3f instant) m/sec with %d ping", formatname(cp), cs.aspeed / 4, current_speed / 4, cp.ping);
+						sendservmsg(fastmsg);
+						cheat(&cp, "speedhack");
+						return false;
 					}
 				}
-				else cs.speedingsince = 0;
+				else cs.speedtime = gamemillis;
 			}
-			cs.speedo = cs.o;
-			cs.speedmillis = gamemillis;
+			else cs.speedtime = 0;
 		}
 	}
 	// deal damage of movement
