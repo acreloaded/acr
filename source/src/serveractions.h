@@ -191,8 +191,10 @@ struct subdueaction : playeraction
 struct removeplayeraction : playeraction
 {
 	removeplayeraction(int cn) : playeraction(cn) { }
-	bool weak() {
+	bool weak(bool kicking) {
 		if(!valid_client(cn)) return false;
+		// lagging?
+		if(kicking && (clients[cn]->ping > 500 || clients[cn]->state.spj > 50 || clients[cn]->state.ldt > 80)) return false;
 		// 3+ KDr, 6+ kills
 		if(clients[cn]->state.frags >= min(2, clients[cn]->state.deaths) * 3) return false;
 		// no teamkills
@@ -209,7 +211,7 @@ struct kickaction : removeplayeraction
 	kickaction(int cn, const char *r, bool self_vote) : removeplayeraction(cn)
 	{
 		area = EE_DED_SERV; // dedicated only
-		const bool is_weak = self_vote || weak();
+		const bool is_weak = self_vote || weak(true);
 		copystring(reason, r);
 		passratio = is_weak ? .75f : .7f; // 70%-75%
 		reqpriv = protectAdminPriv('k', cn);
@@ -232,7 +234,7 @@ struct banaction : removeplayeraction
 	banaction(int cn, int minutes, const char *r, bool self_vote) : removeplayeraction(cn)
 	{
 		area = EE_DED_SERV; // dedicated only
-		const bool is_weak = self_vote || weak();
+		const bool is_weak = self_vote || weak(minutes <= 1);
 		copystring(reason, r);
 		passratio = is_weak ? .78f : .75f; // 75% - 78%
 		reqpriv = protectAdminPriv('b', cn);

@@ -148,7 +148,7 @@ struct clientstate : playerstate
 {
 	vec o, aim, vel, lasto, speedo, sg[SGRAYS], flagpickupo;
 	float pitchvel;
-	int state, omillis, lastomillis, movemillis, speedmillis, speedingnum, speedingsince;
+	int state, omillis, lastomillis, lmillis, movemillis, ldt, spj, speedmillis, speedingnum, speedingsince;
 	int lastdeath, lastpain, lastffkill, lastspawn, lifesequence, skin, streakused;
 	int lastkill, combo;
 	bool crouching, onfloor; float fallz;
@@ -215,7 +215,7 @@ struct clientstate : playerstate
 		o = speedo = lasto = vec(-1e10f, -1e10f, -1e10f);
 		aim = vel = vec(0, 0, 0);
 		pitchvel = speedmillis = speedingnum = speedingsince = 0;
-		omillis = lastomillis = movemillis = 0;
+		omillis = lastomillis = lmillis = movemillis = ldt = spj = 0;
 		drownmillis = drownval = 0;
 		lastspawn = -1;
 		lastdeath = lastpain = lastshot = lastregen = 0;
