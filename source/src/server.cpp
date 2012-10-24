@@ -3085,14 +3085,14 @@ bool checkmove(client &cp, int f){
 	// detect speedhack
 	if(!m_edit(gamemode) && cs.lastpain + 2000 < gamemillis){
 		// immediate velocity
-		if(cs.vel.magnitudexy() > 1.9f){ // real cheat detect: 1.07f * 1.42f = 1.5194
+		if(cs.vel.magnitudexy() > 1.9f * 1000){ // real cheat detect: 1.07f * 1.42f = 1.5194
 			cheat(&cp, "real speedhack");
 			return false;
 		}
 		// only check if milliseconds have passed
 		if(cs.ldt){
 			const float current_speed = (cs.lasto.distxy(cs.o) * 1000 / cs.ldt);
-			cs.aspeed = (cs.aspeed * 3 + current_speed) / 4.f; // eased average speed
+			cs.aspeed = (cs.aspeed * 2 + current_speed) / 3.f; // eased average speed
 			if(cs.aspeed > 25){ // 1.5194 * 24 = 36.4656 theoritical maximum, but we are checking only when no damage was recently taken
 				if(cs.speedtime){
 					// exceeded too long
@@ -3619,7 +3619,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					putint(buf, cs.perk2);
 					putint(buf, gunselect);
 					putint(buf, cs.secondary);
-					putint(buf, (int)cs.aim[0]);
 					loopi(WEAP_MAX) putint(buf, cs.ammo[i]);
 					loopi(WEAP_MAX) putint(buf, cs.mag[i]);
 					loopi(3) putfloat(buf, cs.o[i]);
