@@ -802,66 +802,76 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 	string teamstr_absolute;
 	formatstring(teamstr_absolute)("the %s", team_string(flag));
 	const char *teamstr = m_ktf2(gamemode, mutators) ? teamstr_absolute : m_keep(gamemode) ? "the" : own ? "your" : "the enemy";
-	string subject, predicate, hashave;
+	string subject, predicate, hashave, verb_past, verb_perfect;
 
 	copystring(subject, firstperson ? "you" : colorname(act));
 	copystring(hashave, firstperson ? "have" : "has");
-	copystring(predicate, " altered a flag");
+	copystring(verb_past, "altered");
+	*verb_perfect = '\0';
+	copystring(predicate, "a flag");
 
 	switch(message){
 		case FA_PICKUP:
 			playsound(S_FLAGPICKUP, SP_HIGHEST);
+			copystring(verb_past, "got");
+			copystring(verb_perfect, "gotten");
 			if(firstperson){
 				// don't know it it's pickup or steal...
-				formatstring(predicate)("got %s flag", teamstr);
+				formatstring(predicate)("%s flag", teamstr);
 				if(!own || !m_capture(gamemode)){
 					musicsuggest(M_FLAGGRAB, m_capture(gamemode) ? 90*1000 : 900*1000, true);
 					flagmusic |= 1 << flag;
 				}
 			}
-			else formatstring(predicate)("got %s flag", teamstr);
+			else formatstring(predicate)("%s flag", teamstr);
 			break;
 		case FA_LOST:
 		case FA_DROP:
 		{
 			playsound(S_FLAGDROP, SP_HIGHEST);
-			formatstring(predicate)("%s %s flag", message == FA_LOST ? "lost" : "dropped", teamstr);
+			copystring(verb_past, message == FA_LOST ? "lost" : "dropped");
+			formatstring(predicate)("%s flag" , teamstr);
 			firstpersondrop = true;
 			break;
 		}
 		case FA_RETURN:
 			playsound(S_FLAGRETURN, SP_HIGHEST);
-			formatstring(predicate)("returned %s flag", teamstr);
+			copystring(verb_past, "returned");
+			formatstring(predicate)("%s flag", teamstr);
 			firstpersondrop = true;
 			break;
 		case FA_SCORE:
 			playsound(S_FLAGSCORE, SP_HIGHEST);
-			formatstring(predicate)("scored for \fs\f%d%s\fr team!", team_rel_color(player1, act), firstperson || isteam(act, player1) ? "your" : "the enemy");
+			copystring(verb_past, "scored");
+			formatstring(predicate)("for \fs\f%d%s\fr team!", team_rel_color(player1, act), firstperson || isteam(act, player1) ? "your" : "the enemy");
 			firstpersondrop = true;
 			break;
 		case FA_KTFSCORE:
 		{
 			playsound(S_VOTEPASS, SP_HIGHEST); // need better ktf sound here
 			const int m = flagtime / 60, s = flagtime % 60;
-			formatstring(predicate)("kept %s flag for ", teamstr_absolute);
+			copystring(verb_past, "kept");
+			formatstring(predicate)("%s flag for ", teamstr_absolute);
 			if(m) concatformatstring(predicate, "%d minute%s", m, m==1 ? " " : "s ");
 			if(s) concatformatstring(predicate, "%d second%s", s, s==1 ? " " : "s ");
 			concatstring(predicate, "now");
 			break;
 		}
 		case FA_SCOREFAIL: // sound?
-			copystring(predicate, "failed to score");
+			copystring(verb_past, "failed");
+			copystring(predicate, "to score");
 			break;
 		case FA_RESET:
 			playsound(S_FLAGRETURN, SP_HIGHEST);
 			copystring(subject, "\f1the server");
 			copystring(hashave, "had just");
-			formatstring(predicate)("reset %s flag", teamstr_absolute);
+			copystring(verb_past, "reset");
+			formatstring(predicate)("%s flag", teamstr_absolute);
 			firstpersondrop = true;
 			break;
 	}
-	conoutf("\f2%s %s", subject, predicate);
-	hudonlyf("\f2%s %s %s", subject, hashave, !strncmp(predicate, "got", 3) ? "gotten" : predicate);
+	conoutf("\f2%s %s %s", subject, verb_past, predicate);
+	hudonlyf("\f2%s %s %s %s", subject, hashave, *verb_perfect ? verb_perfect : verb_past, predicate);
 	if(firstpersondrop && flagmusic){
 		if(!(flagmusic &= ~(1 << flag))) musicfadeout(M_FLAGGRAB);
 	}
