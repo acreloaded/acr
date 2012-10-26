@@ -3247,7 +3247,7 @@ bool checkmove(client &cp, int f){
 				if(m_gsp1(gamemode, mutators))
 				{
 					loopv(clients) if(valid_client(i) && clients[i]->state.state == CS_ALIVE && !isteam(clients[i], &cp))
-						serverdied(clients[i], &cp, 0, WEAP_GRENADE, FRAG_NONE, cp.state.o);
+						forcedeath(clients[i], true);
 				}
 				else explosion(cp, v, WEAP_GRENADE); // identical to self-nades, replace with something else?
 			}
