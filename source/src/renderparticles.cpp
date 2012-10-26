@@ -635,7 +635,7 @@ bool addscorchmark(const vec &o, float radius)
 	return true;
 }
 
-VARP(shotline, 0, 1, 1);
+VARP(shotline, 0, 2, 2); // 0: no, 1: others, 2: all
 VARP(shotlinettl, 0, 75, 10000);
 VARP(bulletairsound, 0, 1, 1);
 VARP(bulletairsoundrad, 0, 15, 1000);
@@ -651,7 +651,7 @@ void addshotline(playerent *pl, const vec &from2, const vec &to, int flags)
 
 	sl s = {pl, {from.x, from.y}, {to.x, to.y}, lastmillis + shotlinettl * 2};
 	sls.add(s);
-	if(!shotlinettl || !shotline) return;
+	if(!shotlinettl || !shotline || (shotline < 1 && pl == focus)) return;
 	vec unitv;
 	
 	if(pl == focus && flags & 1){ // just for fx
