@@ -445,10 +445,10 @@ gametypes gametype[G_MAX] = {
 	{
 		G_BOMBER, G_M_TEAM,
 		{
-			G_M_MOST,
-			G_M_NONE,
+			G_M_ALL,
+			G_M_ALL,
 		},
-		"bomber", { "" },
+		"bomber", { "quick" },
 	},
 	{
 		G_ZOMBIE, G_M_TEAM,

@@ -110,7 +110,7 @@ extern mutstypes mutstype[G_M_NUM];
 #define m_noprimary(a,b)    (m_pistol(a,b) || m_gib(a,b))
 #define m_nosecondary(a,b)  (m_gib(a,b))
 
-#define m_survivor(a,b)     (m_dm(a) && m_gsp1(a,b))
+#define m_survivor(a,b)     ((m_dm(a) || m_bomber(a)) && m_gsp1(a,b))
 #define m_onslaught(a,b)    (m_zombie(a) && !m_gsp1(a,b))
 
 #define m_duke(a,b)         (m_survivor(a,b) || m_progressive(a,b))
