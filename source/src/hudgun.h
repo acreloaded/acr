@@ -74,21 +74,10 @@ struct weaponmove
 						gunwaitelasped = lastmillis - p->weaponsel->gunwait;
 			float progress = clamp(reloadelasped/reloadtime, 0.0f,
 							clamp(1.0f - (p->lastaction - gunwaitelasped)/reloadtime, 0.5f, 1.0f));
-			switch(p->weaponsel->type){
-				case WEAP_AKIMBO: // nothing we can do by the nature of this weapon
-				{
-					if((progress -= .4f) > 0){
-						progress /= .6f;
-						k_rot = -90 * sinf(progress*M_PI);
-					}
-					break;
-				}
-				case WEAP_SUBGUN: // add reload animations and remove this!
-				case WEAP_ASSAULT:
-				case WEAP_BOLT:
-				case WEAP_RPG:
-					k_rot = -90*sinf(progress*M_PI);
-					break;
+			// nothing we can do by the nature of this weapon
+			if((p->weaponsel->type == WEAP_AKIMBO) && (progress -= .4f) > 0){
+				progress /= .6f;
+				k_rot = -90 * sinf(progress*M_PI);
 			}
 		}
 		else{
