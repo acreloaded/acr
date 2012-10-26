@@ -1053,7 +1053,7 @@ void htf_forceflag(int flag){
 				sendflaginfo(flag);
 				f.drop_cn = -1; // force pickup
 				flagmessage(flag, FA_PICKUP, i);
-				logline(ACLOG_INFO,"[%s] %s got forced to pickup the flag", gethostname(i), clients[i]->name);
+				logline(ACLOG_INFO,"[%s] %s was forced to pickup the flag", gethostname(i), clients[i]->name);
 				break;
 			}
 		}

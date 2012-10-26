@@ -812,7 +812,8 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 		case FA_PICKUP:
 			playsound(S_FLAGPICKUP, SP_HIGHEST);
 			if(firstperson){
-				formatstring(predicate)("picked up %s flag", teamstr);
+				// don't know it it's pickup or steal...
+				formatstring(predicate)("got %s flag", teamstr);
 				if(!own || !m_capture(gamemode)){
 					musicsuggest(M_FLAGGRAB, m_capture(gamemode) ? 90*1000 : 900*1000, true);
 					flagmusic |= 1 << flag;
@@ -860,7 +861,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 			break;
 	}
 	conoutf("\f2%s %s", subject, predicate);
-	hudonlyf("\f2%s %s %s", subject, hashave, predicate);
+	hudonlyf("\f2%s %s %s", subject, hashave, !strncmp(predicate, "got", 3) ? "gotten" : predicate);
 	if(firstpersondrop && flagmusic){
 		if(!(flagmusic &= ~(1 << flag))) musicfadeout(M_FLAGGRAB);
 	}
