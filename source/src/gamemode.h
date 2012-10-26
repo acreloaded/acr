@@ -103,7 +103,7 @@ extern mutstypes mutstype[G_M_NUM];
 //#define m_gsp(a,b)          (m_gsp1(a,b))
 
 #define m_spawn_team(a,b)   (m_team(a,b) && !m_keep(a) && !m_zombie(a))
-#define m_spawn_reversals(a,b) (!m_capture(a,b) && !m_hunt(a,b) && !m_bomber(a,b))
+#define m_spawn_reversals(a,b) (!m_capture(a) && !m_hunt(a) && !m_bomber(a))
 #define m_noitems(a,b)      (false)
 #define m_noitemsammo(a,b)  (m_sniper(a,b) || m_demolition(a,b))
 #define m_noitemsnade(a,b)  (m_gib(a,b))
