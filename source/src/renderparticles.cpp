@@ -651,7 +651,7 @@ void addshotline(playerent *pl, const vec &from2, const vec &to, int flags)
 
 	sl s = {pl, {from.x, from.y}, {to.x, to.y}, lastmillis + shotlinettl * 2};
 	sls.add(s);
-	if(!shotlinettl || !shotline || (shotline < 1 && pl == focus)) return;
+	if(!shotlinettl || !shotline || (shotline <= 1 && pl == focus)) return;
 	vec unitv;
 	
 	if(pl == focus && flags & 1){ // just for fx
