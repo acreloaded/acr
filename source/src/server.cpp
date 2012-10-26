@@ -455,7 +455,7 @@ void sendspawn(client *c){
 	vec spawnpos;
 	persistent_entity *spawn_ent = NULL;
 	int r = fixspawn-->0 ? 4 : rnd(10)+1;
-	const int type = m_spawn_team(gamemode, mutators) ? c->team : 100;
+	const int type = m_spawn_team(gamemode, mutators) ? (c->team ^ ((m_spawn_reversals(gamemode, mutators) && gamelimit >= 6000 && gamemillis > gamelimit / 2) ? 1 : 0)) : 100;
 	if(m_duke(gamemode, mutators) && c->spawnindex >= 0)
 	{
 		int x = -1;
