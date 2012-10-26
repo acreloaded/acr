@@ -1132,6 +1132,7 @@ void arenanext(bool forcespawn = true){
 		clients[i]->removeexplosives();
 		if((forcespawn || clients[i]->state.state == CS_DEAD) && clients[valid_client(clients[i]->state.ownernum) ? clients[i]->state.ownernum : i]->isonrightmap){
 			clients[i]->state.lastdeath = 1;
+			sdropflag(i);
 			sendspawn(clients[i]);
 		}
 	}
