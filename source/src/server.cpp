@@ -1010,16 +1010,14 @@ void sdropflag(int cn){
 	int fl = clienthasflag(cn);
 	while(fl >= 0){
 		flagaction(fl, FA_LOST, cn);
-		sdropflag(cn);
 		fl = clienthasflag(cn);
 	}
 }
 
 void resetflag(int cn){
 	int fl = clienthasflag(cn);
-	if(fl >= 0){
+	while(fl >= 0){
 		flagaction(fl, FA_RESET, -1);
-		resetflag(cn);
 		fl = clienthasflag(cn);
 	}
 }
