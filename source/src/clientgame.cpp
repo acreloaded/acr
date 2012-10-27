@@ -514,8 +514,8 @@ void dokill(playerent *pl, playerent *act, int weap, int damage, int style, int 
 	if(!showobits) return;
 	else if(/*showobits >= 1 && */pl == focus || act == focus || m_duke(gamemode, mutators));
 	//else if(showobits >= 2 && icon >= 0);
-	else if(showobits >= 3 && pl->ownernum >= 0);
-	else if(showobits >= 4 && act->ownernum >= 0);
+	else if(showobits >= 3 && pl->ownernum < 0);
+	else if(showobits >= 4 && act->ownernum < 0);
 	else if(showobits >= 5);
 	else return;
 	string subject, predicate, hashave;
