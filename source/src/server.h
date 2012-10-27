@@ -645,6 +645,65 @@ struct nickblacklist {
 	}
 } nbl;
 
+#define FORBIDDENSIZE 15
+struct serverforbiddenlist
+{
+	int num;
+    char entries[100][2][FORBIDDENSIZE+1]; // 100 entries and 2 words (15 chars) per entry is more than enough
+
+    void initlist()
+    {
+        num = 0;
+        memset(entries,'\0',2*100*(FORBIDDENSIZE+1));
+    }
+
+    void addentry(char *s)
+    {
+        int len = strlen(s);
+        if ( len > 128 || len < 3 ) return;
+        int n = 0;
+        string s1, s2;
+        char *c1 = s1, *c2 = s2;
+        if (num < 100 && (n = sscanf(s,"%s %s",s1,s2)) > 0 ) // no warnings
+        {
+            strncpy(entries[num][0],c1,FORBIDDENSIZE);
+            if ( n > 1 ) strncpy(entries[num][1],c2,FORBIDDENSIZE);
+            else entries[num][1][0]='\0';
+            num++;
+        }
+    }
+
+    void read(const char *name)
+    {
+		static string forbiddenfilename;
+		static int forbiddenfilesize;
+        if(!name && getfilesize(forbiddenfilename) == forbiddenfilesize) return;
+        initlist();
+		int len;
+        char *buf = loadcfgfile(forbiddenfilename, name, &len);
+		forbiddenfilesize = len;
+		if(!buf) return;
+
+        char *l, *p = buf;
+        logline(ACLOG_VERBOSE, "reading forbidden list '%s'", forbiddenfilename);
+        while(p < buf + forbiddenfilesize)
+        {
+            l = p; p += strlen(p) + 1;
+            addentry(l);
+        }
+        DELETEA(buf);
+    }
+
+    bool forbidden(char *s)
+    {
+        for (int i=0; i<num; i++){
+            if ( !findpattern(s,entries[i][0]) ) continue;
+            else if ( entries[i][1][0] == '\0' || findpattern(s,entries[i][1]) ) return true;
+        }
+        return false;
+    }
+} forbiddens;
+
 #define CONFIG_MAXPAR 7
 
 struct configset

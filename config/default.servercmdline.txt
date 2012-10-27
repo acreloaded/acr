@@ -20,6 +20,7 @@
 -b config/default.botnames.cfg
 -K config/default.nicknameblacklist.cfg
 -I config/default.serverinfo
+-g config/default.forbidden.cfg
 
 // commonly used commandline switches:
 

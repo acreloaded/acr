@@ -4481,6 +4481,7 @@ void rereadcfgs(void){
 	readipblacklist(NULL);
 	nbl.readnickblacklist(NULL);
 	readbotnames(NULL);
+	forbiddens.read(NULL);
 }
 
 void loggamestatus(const char *reason){
@@ -5164,6 +5165,7 @@ void initserver(bool dedicated){
 		readpwdfile(scl.pwdfile);
 		readipblacklist(scl.blfile);
 		nbl.readnickblacklist(scl.nbfile);
+		forbiddens.read(scl.forbiddenfile);
 		getserverinfo("en"); // cache 'en' serverinfo
 		if(scl.demoeverymatch) logline(ACLOG_VERBOSE, "recording demo of every game (holding up to %d in memory)", scl.maxdemos);
 		if(scl.demopath[0]) logline(ACLOG_VERBOSE,"all recorded demos will be written to: \"%s\"", scl.demopath);
