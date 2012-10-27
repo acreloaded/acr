@@ -498,9 +498,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				d->secondary = getint(p);
 				loopi(WEAP_MAX) d->ammo[i] = getint(p);
 				loopi(WEAP_MAX) d->mag[i] = getint(p);
-				d->yaw = getint(p);
-				d->pitch = d->roll = 0;
 				loopi(3) d->o[i] = getfloat(p);
+				d->yaw = getfloat(p);
+				d->pitch = d->roll = 0;
 				d->resetinterp();
 				updatepos(d);
 				//s->state = CS_SPAWNING;
@@ -523,9 +523,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				d->setprimary(getint(p));
 				d->secondary = getint(p);
 				d->selectweapon(getint(p));
-				d->yaw = getint(p);
-				d->pitch = d->roll = 0;
 				loopi(3) d->o[i] = getfloat(p);
+				d->yaw = getfloat(p);
+				d->pitch = d->roll = 0;
 				entinmap(d);
 				loopi(WEAP_MAX) d->ammo[i] = getint(p);
 				loopi(WEAP_MAX) d->mag[i] = getint(p);
@@ -542,7 +542,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						hudeditf(HUDMSG_TIMER, _("spawn_fight"));
 					}
 				}
-				addmsg(N_SPAWN, "ri3", d->clientnum, d->lifesequence, d->weaponsel->type);
+				addmsg(N_SPAWN, "ri3f3", d->clientnum, d->lifesequence, d->weaponsel->type, d->o.x, d->o.y, d->o.z);
 				d->weaponswitch(d->weapons[d->primary]);
 				d->weaponchanging -= SWITCHTIME(d->perk1 == PERK_TIME)/2;
 				break;

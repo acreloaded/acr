@@ -500,10 +500,10 @@ void sendspawn(client *c){
 	checkpos(spawnpos); // fix spawn being too high
 	gs.aim[1] = gs.aim[2] = 0; // pitch, roll
 	gs.o = gs.lasto = spawnpos;
-	sendf(c->clientnum, 1, "ri9i3f3vv", N_SPAWNSTATE, c->clientnum, gs.lifesequence, // 1-3
+	sendf(c->clientnum, 1, "ri9i2f4vv", N_SPAWNSTATE, c->clientnum, gs.lifesequence, // 1-3
 		gs.skin, gs.health, gs.armor, gs.perk1, gs.perk2, // 4-8
 		gs.primary, gs.secondary, gs.gunselect, // 9, 1-2
-		(int)gs.aim[0], spawnpos.x, spawnpos.y, spawnpos.z, // 3, f3
+		spawnpos.x, spawnpos.y, spawnpos.z, gs.aim[0], // f4
 		WEAP_MAX, gs.ammo, WEAP_MAX, gs.mag);
 	gs.lastspawn = gamemillis;
 
@@ -3072,20 +3072,12 @@ bool checkmove(client &cp, int f){
 	if(cs.state != CS_ALIVE) return true;
 	const int sender = cp.clientnum;
 	// help detect AFK
-	if(!cs.lmillis || !cs.movemillis){
-		if(!m_edit(gamemode) && (cs.lasto.distxy(cs.o) >= 5*PLAYERRADIUS || fabs(cs.lasto.z - cs.o.z) >= 2 * PLAYERHEIGHT)) serverdied(&cp, &cp, 0, WEAP_MAX + 14, FRAG_NONE, cs.o);
+	if(cs.lasto.dist(cs.o) >= 0.1f)
 		cs.movemillis = servmillis;
-		cs.lmillis = gamemillis;
-		cs.spj = cs.ldt = 40;
-	}
-	else
-	{
-		if(cs.lasto.dist(cs.o) >= 0.1f)
-			cs.movemillis = servmillis;
-		cs.ldt = gamemillis - cs.lmillis;
-		cs.lmillis = gamemillis;
-		cs.spj = (cs.spj * 7 + cs.ldt) >> 3;
-	}
+	// packet jump (immediate, interpolated)
+	cs.ldt = gamemillis - cs.lmillis;
+	cs.lmillis = gamemillis;
+	cs.spj = (cs.spj * 7 + cs.ldt) >> 3;
 	// detect speedhack
 	if(!m_edit(gamemode) && cs.lastpain + 2000 < gamemillis){
 		// immediate velocity
@@ -3609,6 +3601,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case N_SPAWN:
 			{
 				int cn = getint(p), ls = getint(p), gunselect = getint(p);
+				vec o;
+				loopi(3) o[i] = getfloat(p);
 				if(!hasclient(cl, cn)) break;
 				clientstate &cs = clients[cn]->state;
 				if((cs.state!=CS_ALIVE && cs.state!=CS_DEAD) || ls!=cs.lifesequence || cs.lastspawn<0 || gunselect<0 || gunselect>=WEAP_MAX) break;
@@ -3616,7 +3610,15 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				cs.spawnmillis = gamemillis;
 				cs.state = CS_ALIVE;
 				cs.gunselect = gunselect;
-				QUEUE_BUF(5*(11 + 2*WEAP_MAX) + 4*(3),
+				cs.lasto = cs.o; // check spawn movement
+				cs.o = o;
+				cs.movemillis = servmillis;
+				cs.lmillis = gamemillis;
+				cs.spj = cs.ldt = 40;
+				// bad spawn adjustment?
+				if(!m_edit(gamemode) && (cs.lasto.distxy(cs.o) >= 5*PLAYERRADIUS || fabs(cs.lasto.z - cs.o.z) >= 2 * PLAYERHEIGHT))
+					serverdied(clients[cn], clients[cn], 0, WEAP_MAX + 14, FRAG_NONE, cs.o);
+				else QUEUE_BUF(5*(11 + 2*WEAP_MAX) + 4*(3),
 				{
 					putint(buf, N_SPAWN);
 					putint(buf, cn);
@@ -3630,8 +3632,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					putint(buf, cs.secondary);
 					loopi(WEAP_MAX) putint(buf, cs.ammo[i]);
 					loopi(WEAP_MAX) putint(buf, cs.mag[i]);
-					putint(buf, cs.aim[0]);
 					loopi(3) putfloat(buf, cs.o[i]);
+					putfloat(buf, cs.aim[0]);
 				});
 				break;
 			}
