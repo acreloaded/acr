@@ -691,6 +691,7 @@ struct serverforbiddenlist
             l = p; p += strlen(p) + 1;
             addentry(l);
         }
+		logline(ACLOG_INFO,"read %d forbidden entries from '%s'", num, forbiddenfilename);
         DELETEA(buf);
     }
 
