@@ -3616,7 +3616,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				cs.spawnmillis = gamemillis;
 				cs.state = CS_ALIVE;
 				cs.gunselect = gunselect;
-				QUEUE_BUF(5*(10 + 2*WEAP_MAX) + 4*(3),
+				QUEUE_BUF(5*(11 + 2*WEAP_MAX) + 4*(3),
 				{
 					putint(buf, N_SPAWN);
 					putint(buf, cn);
@@ -3630,6 +3630,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					putint(buf, cs.secondary);
 					loopi(WEAP_MAX) putint(buf, cs.ammo[i]);
 					loopi(WEAP_MAX) putint(buf, cs.mag[i]);
+					putint(buf, cs.aim[0]);
 					loopi(3) putfloat(buf, cs.o[i]);
 				});
 				break;
