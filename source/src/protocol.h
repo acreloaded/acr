@@ -8,7 +8,7 @@
 #define CUBE_SERVINFO_OFFSET 1
 #define PROTOCOL_VERSION 129			   // bump when protocol changes
 #define DEMO_VERSION 2				  // bump when demo format changes
-#define DEMO_MAGIC "ACS_DEMO"
+#define DEMO_MAGIC "ACR_REPLAY_FILE!"
 #define MAXMAPSENDSIZE 65536
 #define MAXCFGFILESIZE 65536
 
