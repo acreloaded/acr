@@ -507,8 +507,8 @@ void drawradar(playerent *p, int w, int h)
 			(flaginfos[1].state == CTFF_STOLEN && pl == flaginfos[1].actor) ||
 			isteam(p, pl); // same team
 		if(force)
-			drawradarent(fixradarpos(pl->o, centerpos, res, pl->state==CS_DEAD), coordtrans, pl->yaw, pl->state!=CS_DEAD ? (isattacking(pl) ? 2 : 0) : 1,
-				isteam(p, pl) ? 1 : 0, iconsize, isattacking(pl) ? 1 : 0, pl->state==CS_DEAD ? .5f : 1, "\f%d%s", isteam(p, pl) ? 0 : 3, colorname(pl));
+			drawradarent(fixradarpos(pl->o, centerpos, res, pl->state==CS_DEAD), coordtrans, pl->yaw, pl->state == CS_DEAD ? 1 : isattacking(pl) ? 2 : 0,
+				isteam(p, pl) ? 1 : (p->team == TEAM_SPECT) ? (pl->team * 2) : 0, iconsize, isattacking(pl) ? 1 : 0, pl->state==CS_DEAD ? .5f : 1, "\f%d%s", isteam(p, pl) ? 0 : (p->team == TEAM_SPECT) ? team_color(pl) : 3, colorname(pl));
 		else
 		{
 			int taggedmillis = 0;
@@ -528,7 +528,7 @@ void drawradar(playerent *p, int w, int h)
 				pl->lastloudpos[2] = pl->yaw;
 			}
 			if(pl->radarmillis + radarenemyfade >= lastmillis)
-				drawradarent(fixradarpos(pl->lastloudpos, centerpos, res, pl->state==CS_DEAD), coordtrans, pl->lastloudpos[2], pl->state!=CS_DEAD ? (isattacking(pl) ? 2 : 0) : 1,
+				drawradarent(fixradarpos(pl->lastloudpos, centerpos, res, pl->state==CS_DEAD), coordtrans, pl->lastloudpos[2], pl->state == CS_DEAD ? 1 : isattacking(pl) ? 2 : 0,
 					isteam(p, pl) ? 1 : 0, iconsize, 0, (radarenemyfade - lastmillis + pl->radarmillis) / (float)radarenemyfade, "\f3%s", colorname(pl));
 		}
 	}
