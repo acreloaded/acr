@@ -459,7 +459,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 	else playsound(S_PAIN1+rnd(5), pl);
 }
 
-VARP(showobits, 0, 4, 5); // 0: off, 1: self, duke, 2: +announce, 3: +human died (all except bot death), 4: +human killer (all except bot vs bot), 5: all
+VARP(showobits, 0, 4, 5); // 0: off, 1: self, duke, 2: same as 1 (no announce modifier), 3: +human died (all except bot death), 4: +human killer (all except bot vs bot), 5: all
 VARP(obitdetails, 0, 15, 15); // 0: minimal (killer, type, killed) | flags: 1: distance, 2: revenge, 4: assists, 8: scoping
 
 void dokill(playerent *pl, playerent *act, int weap, int damage, int style, int combo, float killdist){
@@ -512,11 +512,11 @@ void dokill(playerent *pl, playerent *act, int weap, int damage, int style, int 
 
 	// kill message
 	if(!showobits) return;
-	if(showobits >= 5);
-	else if(showobits >= 4 && act->ownernum >= 0);
-	else if(showobits >= 3 && pl->ownernum >= 0);
-	else if(showobits >= 2 && icon >= 0);
 	else if(/*showobits >= 1 && */pl == focus || act == focus || m_duke(gamemode, mutators));
+	//else if(showobits >= 2 && icon >= 0);
+	else if(showobits >= 3 && pl->ownernum >= 0);
+	else if(showobits >= 4 && act->ownernum >= 0);
+	else if(showobits >= 5);
 	else return;
 	string subject, predicate, hashave;
 	*subject = *predicate = *hashave = 0;
