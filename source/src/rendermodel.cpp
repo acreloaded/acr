@@ -731,9 +731,9 @@ void updateclientname(playerent *d)
 void renderclient(playerent *d)
 {
 	if(!d) return;
-	const char *cs = NULL, *skinbase = SKINBASE;
+	const char *cs = NULL;
 	int team = d->team;
-	if(team == TEAM_SPECT) team = 0;
+	if(team == TEAM_SPECT) team = 0; // SPECT -> RED (should really never be needed)
 	int skinid = 1 + max(0, min(d->skin, (team==TEAM_RED ? 3 : 5)));
 	string skin;
 	if(hidecustomskins == 0 || (hidecustomskins == 1 && !m_team(gamemode, mutators)))
@@ -742,14 +742,14 @@ void renderclient(playerent *d)
 		if(!m_team(gamemode, mutators) && d->skin_noteam) cs = d->skin_noteam;
 	}
 	if(cs)
-		formatstring(skin)("%s/custom/%s.jpg", skinbase, cs);
+		formatstring(skin)("%s/custom/%s.jpg", SKINBASE, cs);
 	else
 	{
-		if(!m_team(gamemode, mutators) || !teamdisplaymode) formatstring(skin)("%s/%s/%02i.jpg", skinbase, team_string(team), skinid);
+		if(!m_team(gamemode, mutators) || !teamdisplaymode) formatstring(skin)("%s/%s/%02i.jpg", SKINBASE, team_string(team), skinid);
 		else switch(teamdisplaymode)
 		{
-			case 1: formatstring(skin)("%s/%s/%02i_%svest.jpg", skinbase, team_string(team), skinid, team ? "blue" : "red"); break;
-			case 2: default: formatstring(skin)("%s/%s/%s.jpg", skinbase, team_string(team), team ? "blue" : "red"); break;
+			case 1: formatstring(skin)("%s/%s/%02i_%svest.jpg", SKINBASE, team_string(team), skinid, team ? "blue" : "red"); break;
+			case 2: default: formatstring(skin)("%s/%s/%s.jpg", SKINBASE, team_string(team), team ? "blue" : "red"); break;
 		}
 	}
 	string vwep;
