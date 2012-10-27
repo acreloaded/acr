@@ -3615,26 +3615,13 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				cs.movemillis = servmillis;
 				cs.lmillis = gamemillis;
 				cs.spj = cs.ldt = 40;
+				// send spawn packet, but not with QUEUE_BUF -- we need it sequenced
+				sendf(-1, 1, "rxi3i7vvf4", sender, N_SPAWN, cn, ls,
+					cs.skin, cs.health, cs.armor, cs.perk1, cs.perk2, gunselect, cs.secondary,
+					WEAP_MAX, cs.ammo, WEAP_MAX, cs.mag, o.x, o.y, o.z, cs.aim[0]);
 				// bad spawn adjustment?
 				if(!m_edit(gamemode) && (cs.lasto.distxy(cs.o) >= 5*PLAYERRADIUS || fabs(cs.lasto.z - cs.o.z) >= 2 * PLAYERHEIGHT))
 					serverdied(clients[cn], clients[cn], 0, WEAP_MAX + 14, FRAG_NONE, cs.o);
-				else QUEUE_BUF(5*(11 + 2*WEAP_MAX) + 4*(3),
-				{
-					putint(buf, N_SPAWN);
-					putint(buf, cn);
-					putint(buf, ls);
-					putint(buf, cs.skin);
-					putint(buf, cs.health);
-					putint(buf, cs.armor);
-					putint(buf, cs.perk1);
-					putint(buf, cs.perk2);
-					putint(buf, gunselect);
-					putint(buf, cs.secondary);
-					loopi(WEAP_MAX) putint(buf, cs.ammo[i]);
-					loopi(WEAP_MAX) putint(buf, cs.mag[i]);
-					loopi(3) putfloat(buf, cs.o[i]);
-					putfloat(buf, cs.aim[0]);
-				});
 				break;
 			}
 
