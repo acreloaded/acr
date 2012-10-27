@@ -156,7 +156,7 @@ void renderscores(void *menu, bool init){
 	scorelines.shrink(0);
 
 	vector<playerent *> scores;
-	if(!watchingdemo) scores.add(player1);
+	scores.add(player1);
 	loopv(players) if(players[i]) scores.add(players[i]);
 
 	// rank players
