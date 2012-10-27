@@ -610,7 +610,6 @@ struct playerent : dynent, playerstate
 		extern void removedynlights(physent *owner);
 		extern void zapplayerflags(playerent *owner);
 		extern void cleanplayervotes(playerent *owner);
-		extern void removesoundbyphysent(physent *p);
 		extern physent *camera1;
 		extern void togglespect();
 		removebounceents(this);
@@ -618,7 +617,6 @@ struct playerent : dynent, playerstate
 		removedynlights(this);
 		zapplayerflags(this);
 		cleanplayervotes(this);
-		removesoundbyphysent(this);
 		if(this==camera1) togglespect();
 	}
 

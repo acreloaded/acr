@@ -1235,16 +1235,6 @@ struct locvector : vector<location *>
 		delete loc;
 	}
 
-	void replaceworldobjreference(const worldobjreference &oldr, const worldobjreference &newr)
-	{
-		loopv(*this)
-		{
-			location *l = buf[i];
-			if(!l || !l->ref) continue;
-			if(*l->ref==oldr) l->attachworldobjreference(newr);
-		}
-	}
-
 	// update stuff, remove stale data
 	void updatelocations()
 	{
@@ -1300,15 +1290,6 @@ struct locvector : vector<location *>
 };
 
 locvector locations;
-
-void removesoundbyphysent(physent *p)
-{
-	loopv(locations)
-	{
-		location *l = locations[i];
-		if(l && l->ref && l->ref->type==worldobjreference::WR_PHYSENT && ((physentreference *)l->ref)->phys == p) l->drop();
-	}
-}
 
 struct bufferhashtable : hashtable<char *, sbuffer>
 {
@@ -1877,7 +1858,21 @@ void detachsounds(playerent *owner)
 {
 	if(nosound) return;
 	// make all dependent locations static
-	locations.replaceworldobjreference(physentreference(owner), staticreference(owner->o));
+	loopv(locations)
+	{
+		location *l = locations[i];
+		if(l && l->ref && l->ref->type==worldobjreference::WR_PHYSENT && ((physentreference *)l->ref)->phys == owner)
+		{
+			// remove footsteps
+			if(l->cfg == &gamesounds[S_FOOTSTEPS] ||
+				l->cfg == &gamesounds[S_FOOTSTEPSCROUCH] ||
+				l->cfg == &gamesounds[S_WATERFOOTSTEPS] ||
+				l->cfg == &gamesounds[S_WATERFOOTSTEPSCROUCH])
+				l->drop();
+			else
+				l->attachworldobjreference(staticreference(owner->o));
+		}
+	}
 }
 
 void soundtest()
