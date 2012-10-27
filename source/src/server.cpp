@@ -1305,9 +1305,14 @@ void sendtext(const char *text, client &cl, int flags, int voice){
 		concatstring(logmsg, logappend);
 	}
 	if(cl.type != ST_TCPIP || cl.priv >= PRIV_ADMIN);
+	else if(forbiddens.forbidden(text)){
+		logline(ACLOG_VERBOSE, "%s, forbidden speech", logmsg);
+		sendf(cl.clientnum, 1, "ri4s", N_TEXT, cl.clientnum, 0, SAY_FORBIDDEN, text);
+		return;
+	}
 	else if(spamdetect(&cl, text)){
 		logline(ACLOG_VERBOSE, "%s, SPAM detected", logmsg);
-		sendf(cl.clientnum, 1, "ri4s", N_TEXT, cl.clientnum, 0, SAY_DENY, text);
+		sendf(cl.clientnum, 1, "ri4s", N_TEXT, cl.clientnum, 0, SAY_SPAM, text);
 		return;
 	}
 	else if(cl.muted){
@@ -3462,7 +3467,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_TEXT:
 			{
-				int flags = getint(p), voice = flags & 0x1F; flags = (flags >> 5) & 3; // SAY_DENY is server only
+				int flags = getint(p), voice = flags & 0x1F; flags = (flags >> 5) & (SAY_TEAM | SAY_ACTION);
 				getstring(text, p);
 				if(!cl) break;
 				filtertext(text, text, 1, 127);

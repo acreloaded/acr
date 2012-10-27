@@ -694,7 +694,7 @@ struct serverforbiddenlist
         DELETEA(buf);
     }
 
-    bool forbidden(char *s)
+    bool forbidden(const char *s)
     {
         for (int i=0; i<num; i++){
             if ( !findpattern(s,entries[i][0]) ) continue;

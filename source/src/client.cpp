@@ -193,7 +193,11 @@ void saytext(playerent *d, char *text, int flags, int sound){
 	} else sound = 0;
 	int textcolor = 0; // normal text
 	if(flags&SAY_TEAM) textcolor = d->team == TEAM_SPECT ? 4 : (d == player1 || isteam(player1, d)) ? 1 : 3;
-	if(flags&SAY_DENY){
+	if(flags&SAY_FORBIDDEN){
+		textcolor = 2; // denied yellow
+		concatformatstring(text, " \f3%s", "(forbidden speech)");
+	}
+	else if(flags&SAY_SPAM){
 		textcolor = 2; // denied yellow
 		concatformatstring(text, " \f3%s", _("spam_detected"));
 	}
@@ -209,7 +213,7 @@ void saytext(playerent *d, char *text, int flags, int sound){
 	if(flags & SAY_ACTION) formatstring(textout)("\f5* %s", nametag);
 	else formatstring(textout)("\f5<%s\f5>", nametag);
 	// output with text
-	void (*outf)(const char *s, ...) = flags&SAY_DENY ? conoutf : chatoutf;
+	void (*outf)(const char *s, ...) = textcolor == 2? conoutf : chatoutf;
 	if(sound) outf("%s \f4[\f6%d\f4] \f%d%s", textout, sound, textcolor, text);
 	else outf("%s \f%d%s", textout, textcolor, text);
 }

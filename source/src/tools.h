@@ -171,11 +171,11 @@ inline bool issimilar (char s, char d)
 	return false;
 }
 
-inline bool findpattern (char *s, char *d) // returns true if there is more than 80% of similarity
+inline bool findpattern (const char *s, char *d) // returns true if there is more than 80% of similarity
 {
 	int len, hit = 0;
 	if (!d || (len = strlen(d)) < 1) return false;
-	char *dp = d, *s_end = s + strlen(s);
+	const char *dp = d, *s_end = s + strlen(s);
 	while (s != s_end)
 	{
 		if ( *s == ' ' )                                                         // spaces separate words
