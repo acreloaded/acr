@@ -459,96 +459,28 @@ void dodamage(int damage, playerent *pl, playerent *actor, int weapon, int style
 	else playsound(S_PAIN1+rnd(5), pl);
 }
 
-void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, int combo, float killdist){
+VARP(showobits, 0, 4, 5); // 0: off, 1: self, duke, 2: +announce, 3: +human died (all except bot death), 4: +human killer (all except bot vs bot), 5: all
+VARP(obitdetails, 0, 15, 15); // 0: minimal (killer, type, killed) | flags: 1: distance, 2: revenge, 4: assists, 8: scoping
+
+void dokill(playerent *pl, playerent *act, int weap, int damage, int style, int combo, float killdist){
 	if(!pl || !act || intermission) return;
 	pl->lastkiller = act->clientnum;
 
-	bool headshot = isheadshot(weapon, style);
-	int obit = OBIT_DEATH;
+	const bool headshot = isheadshot(weap, style);
+	const int obit = (pl == act) ? obit_suicide(weap) : toobit(weap, style);
 
-	// kill message
-	string subject, predicate, hashave;
-	*subject = *predicate = *hashave = 0;
-	formatstring(subject)("\f2\fs%s\f2", act == player1 ? "\f1you" : colorname(act));
-	copystring(hashave, act == player1 ? "have" : "has");
-	if(pl == act){
-		copystring(predicate, _(suicname(obit = obit_suicide(weapon))));
-		if(pl == player1){
-			// radar scan
-			loopv(players){
-				playerent *p = players[i];
-				if(!p || isteam(p, pl)) continue;
-				p->radarmillis = lastmillis + 1000;
-				p->lastloudpos[0] = p->o.x;
-				p->lastloudpos[1] = p->o.y;
-				p->lastloudpos[2] = p->yaw;
-			}
-			concatstring(predicate, "\f3");
-		}
-		if(pl == focus) concatstring(predicate, "!\f2");
-	}
-	else{
-		if(style&FRAG_REVENGE) formatstring(predicate)("\fs\f0%s \fr", _("obit_revenge"));
-		concatformatstring(predicate, "%s %s%s", _(killname(obit = toobit(weapon, style), headshot)),
-			isteam(pl, act) ? act==player1 ? "\f3your teammate " : "\f3his teammate " : "", pl == player1 ? "\f1you\f2" : colorname(pl));
-		// only affect deathstreak/killstreak if kill/ed
-		++pl->deathstreak;
-		act->deathstreak = 0;
-	}
-	pl->pointstreak = 0;
-	if(killdist) concatformatstring(predicate, " (@%.2f m)", killdist / 4.f);
-	// assist count
-	pl->damagelog.removeobj(pl->clientnum);
-	pl->damagelog.removeobj(act->clientnum);
-	loopv(pl->damagelog) if(!getclient(pl->damagelog[i])) pl->damagelog.remove(i--);
-	// HUD for first person
-	if(pl == focus || act == focus || pl->damagelog.find(focus->clientnum) >= 0){
-		if(pl->damagelog.length()) hudonlyf("%s %s %s, %d assister%s", subject, hashave, predicate, pl->damagelog.length(), pl->damagelog.length()==1?"":"s");
-		else hudonlyf("%s %s %s", subject, hashave, predicate);
-	}
-	// assists
-	if(pl->damagelog.length()){
-		concatstring(predicate, _("obit_assist"));
-		bool first = true;
-		while(pl->damagelog.length()){
-			playerent *p = getclient(pl->damagelog.pop());
-			const bool tk = isteam(p, pl);
-			p->pointstreak += tk ? -2 : 2;
-			concatformatstring(predicate, "%s \fs\f%d%s\fr", first ? "" : !pl->damagelog.length() ? " and" : ",", tk ? 3 : 2, colorname(p));
-			first = false;
-		}
-	}
-	switch(combo){
-		case 2: concatformatstring(predicate, ", \fs\f0\fb%s\fr", _("obit_combo_2")); break;
-		case 3: concatformatstring(predicate, ", \fs\f1\fb%s\fr", _("obit_combo_3")); break;
-		case 4: concatformatstring(predicate, ", \fs\f3\fb%s\fr", _("obit_combo_4")); break;
-		case 5: concatformatstring(predicate, ", \fs\f4\fb%s\fr", _("obit_combo_5")); break;
-		default: if(combo > 1) concatformatstring(predicate, ", \fs\f5\fb%s\fr", _("obit_combo_6")); break;
-	}
-	if(style & FRAG_FIRST) concatformatstring(predicate, "%s\fs\f3\fb%s\fr%s", _("obit_first_pre"), _("obit_first_mid"), _("obit_first_post"));
-	if(style & FRAG_CRIT) concatformatstring(predicate, "%s\fs\f1\fb%s\fr%s", _("obit_crit_pre"), _("obit_crit_mid"), _("obit_crit_post"));
-	if(pl != act && weapon < WEAP_MAX && ads_gun(weapon)){
-		char scopestyle = 0;
-		if(style & FRAG_SCOPE_NONE) scopestyle = (style & FRAG_SCOPE_FULL) ? 3 : 1;
-		else scopestyle = (style & FRAG_SCOPE_FULL) ? 4 : 2;
-		switch(scopestyle){
-			//case 1: concatstring(predicate, " \fs\f2without\fr scoping"); break;
-			case 2: concatformatstring(predicate, "%s\fs\f0\fb%s\fr%s", _("obit_scope_quick_pre"), _("obit_scope_quick_mid"), _("obit_scope_quick_post")); break;
-			case 3: concatformatstring(predicate, "%s\fs\f1\fb%s\fr%s", _("obit_scope_recent_pre"), _("obit_scope_recent_mid"), _("obit_scope_recent_post")); break;
-			case 4: concatformatstring(predicate, "%s\fs\f3\fb%s\fr%s", _("obit_scope_hard_pre"), _("obit_scope_hard_mid"), _("obit_scope_hard_post")); break;
-		}
-	}
-	obitoutf(act->clientnum, "%s %s", subject, predicate);
-	
+	// add gib
 	if(style & FRAG_GIB) addgib(pl);
 
 	int icon = -1, sound = S_NULL;
 	// sounds/icons, by priority
-	if(style & FRAG_FIRST){
+	if(style & FRAG_FIRST)
+	{
 		sound = S_V_FIRST;
 		icon = eventicon::FIRSTBLOOD;
 	}
-	else if(headshot && weapon != WEAP_SHOTGUN){
+	else if(headshot && weap != WEAP_SHOTGUN) // shotgun doesn't count as a 'real' headshot
+	{
 		sound = S_V_HEADSHOT;
 		icon = eventicon::HEADSHOT;
 		pl->addicon(eventicon::DECAPITATED); // both get headshot info icon
@@ -564,10 +496,104 @@ void dokill(playerent *pl, playerent *act, int weapon, int damage, int style, in
 			playsound(sound, pl, pl == focus ? SP_HIGHEST : SP_HIGH); // both get sounds if 1 meter apart...
 	}
 
+	// killfeed
 	addobit(act, obit, style, headshot, pl);
-	
+	// death state
 	deathstate(pl);
+	// sound
 	playsound(S_DIE1+rnd(2), pl);
+
+	if(pl != act)
+	{
+		++pl->deathstreak;
+		act->deathstreak = 0;
+	}
+	pl->pointstreak = 0;
+
+	// kill message
+	if(!showobits) return;
+	if(showobits >= 5);
+	else if(showobits >= 4 && act->ownernum >= 0);
+	else if(showobits >= 3 && pl->ownernum >= 0);
+	else if(showobits >= 2 && icon >= 0);
+	else if(/*showobits >= 1 && */pl == focus || act == focus || m_duke(gamemode, mutators));
+	else return;
+	string subject, predicate, hashave;
+	*subject = *predicate = *hashave = 0;
+	formatstring(subject)("\f2\fs%s\f2", act == focus ? "\f1you" : colorname(act));
+	copystring(hashave, act == focus ? "have" : "has");
+	if(pl == act)
+	{
+		copystring(predicate, _(suicname(obit)));
+		if(pl == focus)
+		{
+			// radar scan if the player suicided
+			loopv(players)
+			{
+				playerent *p = players[i];
+				if(!p || isteam(p, pl)) continue;
+				p->radarmillis = lastmillis + 1000;
+				p->lastloudpos[0] = p->o.x;
+				p->lastloudpos[1] = p->o.y;
+				p->lastloudpos[2] = p->yaw;
+			}
+			concatstring(predicate, "\f3!\f2");
+		}
+	}
+	else
+	{
+		// revenge (2)
+		if((obitdetails & 2) && style&FRAG_REVENGE) formatstring(predicate)("\fs\f0%s \fr", _("obit_revenge"));
+		concatformatstring(predicate, "%s %s%s", _(killname(obit, headshot)),
+			isteam(pl, act) ? act==player1 ? "\f3your teammate " : "\f3his teammate " : "", pl == player1 ? "\f1you\f2" : colorname(pl));
+	}
+	// assist count
+	pl->damagelog.removeobj(pl->clientnum);
+	pl->damagelog.removeobj(act->clientnum);
+	loopv(pl->damagelog) if(!getclient(pl->damagelog[i])) pl->damagelog.remove(i--);
+	// HUD for first person
+	if(pl == focus || act == focus || pl->damagelog.find(focus->clientnum) >= 0){
+		if((obitdetails & 4) && pl->damagelog.length()) hudonlyf("%s %s %s, %d assister%s", subject, hashave, predicate, pl->damagelog.length(), pl->damagelog.length()==1?"":"s");
+		else hudonlyf("%s %s %s", subject, hashave, predicate);
+	}
+	// kill distance (1)
+	if((obitdetails & 1) && killdist) concatformatstring(predicate, " (@%.2f m)", killdist / 4.f);
+	// assists (4)
+	if((obitdetails & 4) && pl->damagelog.length()){
+		concatstring(predicate, _("obit_assist"));
+		bool first = true;
+		while(pl->damagelog.length()){
+			playerent *p = getclient(pl->damagelog.pop());
+			const bool tk = isteam(p, pl);
+			p->pointstreak += tk ? -2 : 2;
+			concatformatstring(predicate, "%s \fs\f%d%s\fr", first ? "" : !pl->damagelog.length() ? " and" : ",", tk ? 3 : 2, colorname(p));
+			first = false;
+		}
+	}
+	// combo
+	switch(combo){
+		case 2: concatformatstring(predicate, ", \fs\f0\fb%s\fr", _("obit_combo_2")); break;
+		case 3: concatformatstring(predicate, ", \fs\f1\fb%s\fr", _("obit_combo_3")); break;
+		case 4: concatformatstring(predicate, ", \fs\f3\fb%s\fr", _("obit_combo_4")); break;
+		case 5: concatformatstring(predicate, ", \fs\f4\fb%s\fr", _("obit_combo_5")); break;
+		default: if(combo > 1) concatformatstring(predicate, ", \fs\f5\fb%s\fr", _("obit_combo_6")); break;
+	}
+	// style
+	if(style & FRAG_FIRST) concatformatstring(predicate, "%s\fs\f3\fb%s\fr%s", _("obit_first_pre"), _("obit_first_mid"), _("obit_first_post"));
+	if(style & FRAG_CRIT) concatformatstring(predicate, "%s\fs\f1\fb%s\fr%s", _("obit_crit_pre"), _("obit_crit_mid"), _("obit_crit_post"));
+	// scoping (8)
+	if((obitdetails & 8) && pl != act && weap < WEAP_MAX && ads_gun(weap)){
+		char scopestyle = 0;
+		if(style & FRAG_SCOPE_NONE) scopestyle = (style & FRAG_SCOPE_FULL) ? 3 : 1;
+		else scopestyle = (style & FRAG_SCOPE_FULL) ? 4 : 2;
+		switch(scopestyle){
+			//case 1: concatstring(predicate, " \fs\f2without\fr scoping"); break;
+			case 2: concatformatstring(predicate, "%s\fs\f0\fb%s\fr%s", _("obit_scope_quick_pre"), _("obit_scope_quick_mid"), _("obit_scope_quick_post")); break;
+			case 3: concatformatstring(predicate, "%s\fs\f1\fb%s\fr%s", _("obit_scope_recent_pre"), _("obit_scope_recent_mid"), _("obit_scope_recent_post")); break;
+			case 4: concatformatstring(predicate, "%s\fs\f3\fb%s\fr%s", _("obit_scope_hard_pre"), _("obit_scope_hard_mid"), _("obit_scope_hard_post")); break;
+		}
+	}
+	conoutf("%s %s", subject, predicate);
 }
 
 VAR(minutesremaining, 1, 0, 0);

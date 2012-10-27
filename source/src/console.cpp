@@ -20,30 +20,6 @@ struct console : consolebuffer<cline>
 
 	static const int WORDWRAP = 80;
 
-	void addobit(const char *sf, int cn) {
-		extern int totalmillis;
-		if(conlines.length() > 2 && conlines[0].obit == cn){ // last one was our kill
-			if(conlines[1].obit == -1){ // not 2+ kills yet
-				conlines[0].obit = 1; // prepare to be overwritten
-				addline(sf, totalmillis, cn);
-			}
-			else{
-				playerent *d = getclient(cn);
-				formatstring(conlines[1].line)("\f2%+d kills that were caused by %s", ++conlines[1].obit, d ? colorname(d) : "someone");
-				conlines[1].millis = totalmillis;
-				// overwrite
-				copystring(conlines[0].line, sf);
-				conlines[0].millis = totalmillis;
-			}
-		}
-		else{
-			if(conlines.length())
-				conlines[0].obit = -1; // force no overwrite
-			addline(sf, totalmillis, cn);
-		}
-		conlines[0].obit = cn;
-	}
-
 	void render()
 	{
 		int conwidth = (fullconsole ? VIRTW : int(floor(getradarpos().x)))*2 - 2*CONSPAD - 2*FONTH/3;
@@ -399,12 +375,6 @@ void conoutf(const char *s, ...)
 {
 	s_sprintfdv(sf, s);
 	conout(con, sf);
-}
-
-void obitoutf(int cn, const char *s, ...)
-{
-	s_sprintfdv(sf, s);
-	con.addobit(sf, cn);
 }
 
 int rendercommand(int x, int y, int w)

@@ -1,4 +1,4 @@
-struct cline { char *line; int millis; int obit; void cleanup(){ delete[] line; } };
+struct cline { char *line; int millis; void cleanup(){ delete[] line; } };
 
 template<class LINE> struct consolebuffer
 {
@@ -13,14 +13,13 @@ template<class LINE> struct consolebuffer
 
 	consolebuffer(int maxlines = 100) : maxlines(maxlines), fullconsole(0) {}
 
-	LINE &addline(const char *sf, int millis, int obit=-1)		// add a line to the console buffer
+	LINE &addline(const char *sf, int millis)		// add a line to the console buffer
 	{
 		LINE cl;
 		// constrain the buffer size
 		if(conlines.length()>maxlines) conlines.pop();
 		cl.line = newstringbuf("");
 		cl.millis = millis;						// for how long to keep line on screen
-		cl.obit = obit;
 		copystring(cl.line, sf);
 		return conlines.insert(0, cl);
 	}
