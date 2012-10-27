@@ -499,8 +499,18 @@ void drawradar(playerent *p, int w, int h)
 	{
 		playerent *pl = players[i];
 		if(!pl || pl == p) continue;
-		bool force = hasradar || (flaginfos[0].state == CTFF_STOLEN && pl == flaginfos[0].actor) || (flaginfos[1].state == CTFF_STOLEN && pl == flaginfos[1].actor);
-		if(!force && pl->state != CS_DEAD && !isteam(p, pl)){
+		bool force =
+			hasradar || // radar earned
+			p->team == TEAM_SPECT || // spectating?
+			pl->state == CS_DEAD || // dead player
+			(flaginfos[0].state == CTFF_STOLEN && pl == flaginfos[0].actor) || // CTF flag holders
+			(flaginfos[1].state == CTFF_STOLEN && pl == flaginfos[1].actor) ||
+			isteam(p, pl); // same team
+		if(force)
+			drawradarent(fixradarpos(pl->o, centerpos, res, pl->state==CS_DEAD), coordtrans, pl->yaw, pl->state!=CS_DEAD ? (isattacking(pl) ? 2 : 0) : 1,
+				isteam(p, pl) ? 1 : 0, iconsize, isattacking(pl) ? 1 : 0, pl->state==CS_DEAD ? .5f : 1, "\f%d%s", isteam(p, pl) ? 0 : 3, colorname(pl));
+		else
+		{
 			int taggedmillis = 0;
 			extern bool IsVisible(vec v1, vec v2, dynent *tracer = NULL, bool SkipTags=false);
 			if(pl->perk1 != PERK_NINJA){
@@ -517,14 +527,10 @@ void drawradar(playerent *p, int w, int h)
 				pl->lastloudpos[1] = pl->o.y;
 				pl->lastloudpos[2] = pl->yaw;
 			}
-			else if(pl->radarmillis + radarenemyfade < lastmillis) continue;
+			if(pl->radarmillis + radarenemyfade >= lastmillis)
+				drawradarent(fixradarpos(pl->lastloudpos, centerpos, res, pl->state==CS_DEAD), coordtrans, pl->lastloudpos[2], pl->state!=CS_DEAD ? (isattacking(pl) ? 2 : 0) : 1,
+					isteam(p, pl) ? 1 : 0, iconsize, 0, (radarenemyfade - lastmillis + pl->radarmillis) / (float)radarenemyfade, "\f3%s", colorname(pl));
 		}
-		if(isteam(p, pl) || p->team == TEAM_SPECT || force || pl->state == CS_DEAD) // friendly, flag tracker or dead
-			drawradarent(fixradarpos(pl->o, centerpos, res, pl->state==CS_DEAD), coordtrans, pl->yaw, pl->state!=CS_DEAD ? (isattacking(pl) ? 2 : 0) : 1,
-				isteam(p, pl) ? 1 : 0, iconsize, isattacking(pl) ? 1 : 0, pl->state==CS_DEAD ? .5f : 1, "\f%d%s", isteam(p, pl) ? 0 : 3, colorname(pl));
-		else
-			drawradarent(fixradarpos(pl->lastloudpos, centerpos, res, pl->state==CS_DEAD), coordtrans, pl->lastloudpos[2], pl->state!=CS_DEAD ? (isattacking(pl) ? 2 : 0) : 1,
-				isteam(p, pl) ? 1 : 0, iconsize, 0, (radarenemyfade - lastmillis + pl->radarmillis) / (float)radarenemyfade, "\f3%s", colorname(pl));
 	}
 	loopv(bounceents){ // draw grenades
 		bounceent *b = bounceents[i];
