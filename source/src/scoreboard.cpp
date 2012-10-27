@@ -201,7 +201,7 @@ void renderscores(void *menu, bool init){
 	//if(m_team(gamemode, mutators)){
 		teamsum teamsums[TEAM_NUM] = { teamsum(TEAM_RED), teamsum(TEAM_BLUE), teamsum(TEAM_SPECT) };
 
-		#define fixteam(pl) (pl->team == TEAM_SPECT ? TEAM_SPECT : pl->team == TEAM_BLUE && !m_team(gamemode, mutators) ? TEAM_RED : TEAM_BLUE)
+		#define fixteam(pl) (pl->team == TEAM_SPECT ? TEAM_SPECT : m_team(gamemode, mutators) ? pl->team : TEAM_RED)
 		loopv(scores) teamsums[fixteam(scores[i])].addscore(scores[i]);
 
 		loopi(TEAM_NUM) teamsums[i].teammembers.sort(scorecmp);
