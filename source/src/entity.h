@@ -412,8 +412,8 @@ struct playerstate
 		}
 
 		if(m_zombie(gamemode) && team == TEAM_RED) secondary = WEAP_KNIFE;
-		else if(m_pistol(gamemode, mutators) || m_gib(gamemode, mutators)) secondary = primary; // no secondary
-		else if(m_sniper(gamemode, mutators) || m_demolition(gamemode, mutators)) secondary = WEAP_SWORD; // inversion
+		else if(m_pistol(gamemode, mutators)) secondary = primary; // no secondary
+		else if(m_sniper(gamemode, mutators) || m_demolition(gamemode, mutators) || m_gib(gamemode, mutators)) secondary = WEAP_SWORD; // inversion
 		else switch(nextsecondary){
 			default: secondary = WEAP_PISTOL; break;
 			case WEAP_PISTOL:
