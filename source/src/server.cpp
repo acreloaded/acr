@@ -908,7 +908,12 @@ void flagaction(int flag, int action, int actor){
 					}
 				}
 				else if(m_hunt(gamemode)){ // htf
-					score = (of.state == CTFF_STOLEN) ? of.actor_cn == actor ? 2 : 1 : 0;
+					// strict: must have flag to score
+					if(!m_gsp1(gamemode, mutators) || of.state == CTFF_STOLEN)
+					{
+						if(of.state == CTFF_STOLEN) ++score;
+						if(of.actor_cn == actor) ++score;
+					}
 					message = score ? FA_SCORE : FA_SCOREFAIL;
 				}
 				f.state = CTFF_INBASE;

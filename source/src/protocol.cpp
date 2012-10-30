@@ -397,7 +397,7 @@ gametypes gametype[G_MAX] = {
 	{
 		G_EDIT, G_M_NONE,
 		{
-			G_M_DAMAGE|G_M_WEAPON, // probably superfluous for editmode anyways
+			G_M_MOST & ~G_M_GAMEPLAY, // probably superfluous for editmode anyways
 			G_M_NONE,
 		},
 		"coopedit", { "" },
@@ -429,10 +429,10 @@ gametypes gametype[G_MAX] = {
 	{
 		G_HTF, G_M_TEAM,
 		{
-			G_M_MOST,
-			G_M_NONE,
+			G_M_ALL,
+			G_M_ALL,
 		},
-		"hunt the flag", { "" },
+		"hunt the flag", { "strict" },
 	},
 	{
 		G_KTF, G_M_NONE,
