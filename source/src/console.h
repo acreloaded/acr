@@ -7,6 +7,7 @@ template<class LINE> struct consolebuffer
 
 	void toggleconsole()
 	{
+		extern int altconsize;
 		if(!fullconsole) fullconsole = altconsize ? 1 : 2;
 		else fullconsole = ++fullconsole % 3;
 	}

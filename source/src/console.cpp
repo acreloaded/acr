@@ -147,7 +147,7 @@ struct oline {
 	char *actor; char *target; int obit, millis, style, combo; bool headshot;
 	void cleanup(){ delete[] actor; delete[] target; }
 	bool mergable(const oline &o){ return o.obit == obit && /*o.style == style && o.headshot == headshot &&*/ !strcmp(o.actor, actor) && !strcmp(o.target, target);	}
-	void merge(oline &o){
+	void merge(oline o){
 		headshot |= o.headshot;
 		combo += o.combo; // add combo
 		style |= o.style; // merge styles
