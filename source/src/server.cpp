@@ -911,8 +911,11 @@ void flagaction(int flag, int action, int actor){
 					// strict: must have flag to score
 					if(!m_gsp1(gamemode, mutators) || of.state == CTFF_STOLEN)
 					{
-						if(of.state == CTFF_STOLEN) ++score;
-						if(of.actor_cn == actor) ++score;
+						if(of.state == CTFF_STOLEN)
+						{
+							++score;
+							if(of.actor_cn == actor) ++score;
+						}
 					}
 					message = score ? FA_SCORE : FA_SCOREFAIL;
 				}
