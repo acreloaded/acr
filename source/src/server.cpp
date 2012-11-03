@@ -1136,11 +1136,11 @@ void arenanext(bool forcespawn = true){
 	distributespawns();
 	purgesknives();
 	checkitemspawns(60*1000); // spawn items now!
+	loopi(2) if(sflaginfos[i].state == CTFF_DROPPED || sflaginfos[i].state == CTFF_STOLEN) flagaction(i, FA_RESET, -1);
 	loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connected && clients[i]->team != TEAM_SPECT){
 		clients[i]->removeexplosives();
 		if((forcespawn || clients[i]->state.state == CS_DEAD) && clients[valid_client(clients[i]->state.ownernum) ? clients[i]->state.ownernum : i]->isonrightmap){
 			clients[i]->state.lastdeath = 1;
-			resetflag(i);
 			sendspawn(clients[i]);
 		}
 	}
