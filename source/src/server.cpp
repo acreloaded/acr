@@ -3092,7 +3092,7 @@ bool checkmove(client &cp, int f){
 	// detect speedhack
 	if(!m_edit(gamemode) && cs.lastpain + 2000 < gamemillis){
 		// immediate velocity
-		if(cs.vel.magnitudexy() > 1.9f * 1000){ // real cheat detect: 1.07f * 1.42f = 1.5194
+		if(cs.vel.magnitudexy() > 1.9f){ // real cheat detect: 1.07f * 1.42f = 1.5194
 			cheat(&cp, "real speedhack");
 			return false;
 		}
