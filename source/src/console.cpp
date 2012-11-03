@@ -290,7 +290,7 @@ struct obitlist : consolebuffer<oline>
 					}
 					else if(i >= FADEMAX) l.millis = totalmillis - obitfade*1000; // for next frame
 				}
-				else if(/*!i*/ totalmillis-l.millis < 500){ // fading in
+				if(/*!i*/ totalmillis-l.millis < 500){ // fading in
 					fade = float(totalmillis - l.millis)/500;
 					y += FONTH * (l.millis + 500 - totalmillis) / 500;
 				}
