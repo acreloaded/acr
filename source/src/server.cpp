@@ -3251,7 +3251,7 @@ bool checkmove(client &cp, int f){
 			if(f.state == CTFF_STOLEN){
 				flagaction(i, FA_SCORE, sender);
 				// nuke message + points
-				nuke(cp, false);
+				nuke(cp, !m_gsp1(gamemode, mutators), false); // no suicide for demolition, but suicide for bomber
 				/*
 				if(m_gsp1(gamemode, mutators))
 				{

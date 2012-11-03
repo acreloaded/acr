@@ -219,14 +219,14 @@ void nuke(client &owner, bool suicide, bool forced_all){
 	{
 		serverdied(hits[i].target, &owner, 0, WEAP_MAX + 1, !rnd(3) ? FRAG_GIB : FRAG_NONE, owner.state.o, hits[i].distance);
 		// fx
-		sendhit(owner, WEAP_NADE, hits[i].target->state.o, 0);
+		sendhit(owner, WEAP_GRENADE, hits[i].target->state.o, 0);
 	}
 	// save the best for last!
 	if(suicide)
 	{
 		owner.suicide(WEAP_MAX + 1, FRAG_NONE);
 		// fx
-		sendhit(owner, WEAP_NADE, owner.state.o, 0);
+		sendhit(owner, WEAP_GRENADE, owner.state.o, 0);
 	}
 }
 
