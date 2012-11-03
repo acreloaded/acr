@@ -846,7 +846,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	}
 
 	static Texture **texs = geteventicons();
-	loopv(focus->icons){
+	if(!isthirdperson) loopv(focus->icons){
 		eventicon &icon = focus->icons[i];
 		if(icon.type < 0 || icon.type >= eventicon::TOTAL){
 			focus->icons.remove(i--);
