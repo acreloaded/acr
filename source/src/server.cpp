@@ -3250,17 +3250,17 @@ bool checkmove(client &cp, int f){
 			// BTF only: score their flag by bombing their base!
 			if(f.state == CTFF_STOLEN){
 				flagaction(i, FA_SCORE, sender);
+				// nuke message + points
+				nuke(cp, false);
+				/*
 				if(m_gsp1(gamemode, mutators))
 				{
-					// nuke message + points
-					nuke(cp, false);
-					// no nuke message: below
-					/*
+					// force round win
 					loopv(clients) if(valid_client(i) && clients[i]->state.state == CS_ALIVE && !isteam(clients[i], &cp))
 						forcedeath(clients[i], true);
-					*/
 				}
 				else explosion(cp, v, WEAP_GRENADE); // identical to self-nades, replace with something else?
+				*/
 			}
 			else if(i == cp.team){
 				if(m_hunt(gamemode)) f.drop_cn = -1; // force pickup
