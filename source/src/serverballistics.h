@@ -200,12 +200,11 @@ int cmpnukesort(nukehit *a, nukehit *b){
 	return 0; // same?
 }
 
-void nuke(client &owner, bool affects_self){
+void nuke(client &owner, bool forced_all){
 	vector<nukehit> hits;
 	loopvj(clients){
 		client *cl = clients[j];
-		if(cl->type != ST_EMPTY && cl->team != TEAM_SPECT && cl != &owner && !isteam(cl, &owner)){
-			cl->state.state = CS_ALIVE;
+		if(cl->type != ST_EMPTY && cl->team != TEAM_SPECT && cl != &owner && !isteam(cl, &owner) && (cl->state.state == CS_ALIVE || forced_all)){
 			// sort hits
 			nukehit &hit = hits.add();
 			hit.distance = cl->state.o.dist(owner.state.o);
@@ -216,7 +215,7 @@ void nuke(client &owner, bool affects_self){
 	hits.sort(cmpnukesort);
 	loopv(hits) serverdied(hits[i].target, &owner, 0, WEAP_MAX + 1, !rnd(3) ? FRAG_GIB : FRAG_NONE, owner.state.o, hits[i].distance);
 	// save the best for last!
-	if(affects_self) owner.suicide(WEAP_MAX + 1, FRAG_NONE);
+	if(forced_all) owner.suicide(WEAP_MAX + 1, FRAG_NONE);
 }
 
 // hitscans
