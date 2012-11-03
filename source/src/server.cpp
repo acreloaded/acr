@@ -2616,6 +2616,12 @@ void sendcallvote(int cl = -1){
 				putint(p, ((mastermodeaction *)curvote->action)->mode);
 				break;
 		}
+		// send vote states
+		loopv(clients) if(clients[i]->vote != VOTE_NEUTRAL){
+			putint(p, N_VOTE);
+			putint(p, i);
+			putint(p, clients[i]->vote);
+		}
 		enet_packet_resize(packet, p.length());
 		sendpacket(cl, 1, packet);
 		if(!packet->referenceCount) enet_packet_destroy(packet);
@@ -2910,11 +2916,6 @@ void putinitclient(client &c, ucharbuf &p){
     sendstring(c.name, p);
 	putint(p, c.acbuildtype);
 	putint(p, c.acthirdperson);
-	if(curvote && c.vote != VOTE_NEUTRAL){
-		putint(p, N_VOTE);
-		putint(p, c.clientnum);
-		putint(p, c.vote);
-	}
 }
 
 void sendinitclient(client &c){
