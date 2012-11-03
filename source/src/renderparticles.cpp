@@ -649,8 +649,15 @@ void addshotline(playerent *pl, const vec &from2, const vec &to, int flags)
 	// flags: 1: first shot 2: silence 4: flipped
 	vec from(from2);
 
-	sl s = {pl, {from.x, from.y}, {to.x, to.y}, lastmillis + shotlinettl * 2};
-	sls.add(s);
+	// radar shotlines
+	sl &s = sls.add();
+	s.owner = pl;
+	s.from[0] = from2.x;
+	s.from[1] = from2.y;
+	s.to[0] = to.x;
+	s.to[1] = to.y;
+	s.expire = lastmillis + shotlinettl * 2;
+
 	if(!shotlinettl || !shotline || (shotline <= 1 && pl == focus)) return;
 	vec unitv;
 	
