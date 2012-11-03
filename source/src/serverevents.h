@@ -313,7 +313,7 @@ void processevents(){
 			cs.nukemillis = 0;
 			sendf(-1, 1, "ri4", N_STREAKUSE, i, STREAK_NUKE, 0);
 			// apply the nuke effect
-			nuke(c);
+			nuke(c, true);
 		}
 		// drown,(bleed+regen)
 		if(cs.state == CS_ALIVE){ // can't regen or drown or bleed if dead

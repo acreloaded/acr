@@ -3252,8 +3252,13 @@ bool checkmove(client &cp, int f){
 				flagaction(i, FA_SCORE, sender);
 				if(m_gsp1(gamemode, mutators))
 				{
+					// nuke message + points
+					nuke(cp, false);
+					// no nuke message: below
+					/*
 					loopv(clients) if(valid_client(i) && clients[i]->state.state == CS_ALIVE && !isteam(clients[i], &cp))
 						forcedeath(clients[i], true);
+					*/
 				}
 				else explosion(cp, v, WEAP_GRENADE); // identical to self-nades, replace with something else?
 			}
