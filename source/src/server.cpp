@@ -250,6 +250,7 @@ savedscore *findscore(client &c, bool insert){
 	savedscore &sc = scores.add();
 	copystring(sc.name, c.name);
 	sc.ip = c.peer->address.host;
+	sc.save(c.state);
 	return &sc;
 }
 
@@ -2681,20 +2682,16 @@ void setpriv(int cl, int priv){
 	//if(curvote) curvote->evaluate();
 }
 
-#include "aiman.h"
-
-void disconnect_client(int n, int reason){
-	if(!clients.inrange(n) || clients[n]->type!=ST_TCPIP) return;
+void clientdisconnect(int n)
+{
+	if(!valid_client(n)) return;
 	sdropflag(n);
 	// remove assists
-	loopv(clients) if(i != n){
+	loopv(clients) if(valid_client(i) && i != n){
 		clientstate &cs = clients[i]->state;
 		cs.damagelog.removeobj(n);
 		cs.revengelog.removeobj(n);
 	}
-	client &c = *clients[n];
-	// delete AI
-	loopv(clients) if(clients[i]->state.ownernum == n) if(!shiftai(*clients[i], -1, n)) deleteai(*clients[i]);
 	// delete kill confirmed references
 	loopv(sconfirms)
 	{
@@ -2702,31 +2699,47 @@ void disconnect_client(int n, int reason){
 		if(sconfirms[i].target == n) sconfirms[i].target = -1;
 	}
 	// remove privilege
-	if(c.priv) setpriv(n, PRIV_NONE);
+	if(clients[n]->priv) setpriv(n, PRIV_NONE);
+	clients[n]->zap();
+}
+
+#include "aiman.h"
+
+void disconnect_client(int n, int reason)
+{
+	if(!clients.inrange(n) || clients[n]->type!=ST_TCPIP) return;
+	client &c = *clients[n];
+	// delete AI
+	loopv(clients) if(clients[i]->state.ownernum == n) if(!shiftai(*clients[i], -1, n)) deleteai(*clients[i]);
 	const char *scoresaved = "";
 	if(c.haswelcome)
 	{
+		// save score
 		savedscore *sc = findscore(c, true);
 		if(sc)
 		{
 			sc->save(c.state);
 			scoresaved = ", score saved";
 		}
+		// save limit
 		findlimit(c, true);
 	}
+	// disconnect
 	int sp = (servmillis - c.connectmillis) / 1000;
 	if(reason>=0) logline(ACLOG_INFO, "[%s] disconnecting client %s (%s) cn %d, %d seconds played%s", gethostname(n), formatname(c), disc_reason(reason), n, sp, scoresaved);
 	else logline(ACLOG_INFO, "[%s] disconnected client %s cn %d, %d seconds played%s", gethostname(n), formatname(c), n, sp, scoresaved);
 	c.peer->data = (void *)-1;
 	if(reason>=0) enet_peer_disconnect(c.peer, reason);
-	clients[n]->zap();
 	sendf(-1, 1, "ri3", N_DISC, n, reason);
+	// check vote
 	if(curvote)
 	{
 		if(curvote->owner == n) curvote->owner = -1;
 		curvote->evaluate();
 	}
-	freeconnectcheck(n);
+	// do cleanup
+	clientdisconnect(n);
+	freeconnectcheck(n); // disconnect - ms check void
 	checkai(); // disconnect
 	convertcheck();
 }

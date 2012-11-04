@@ -48,15 +48,9 @@ bool addai(){
 
 void deleteai(client &c){
     if(c.type != ST_AI || c.state.ownernum < 0) return;
-    const int cn = c.clientnum;
-	loopv(clients) if(i != cn){
-		clients[i]->state.damagelog.removeobj(cn);
-		clients[i]->state.revengelog.removeobj(cn);
-	}
-	sdropflag(cn);
-	if(c.priv) setpriv(cn, PRIV_NONE);
+	const int cn = c.clientnum;
 	c.state.ownernum = -1;
-	c.zap();
+	clientdisconnect(cn);
 	sendf(-1, 1, "ri2", N_DELAI, cn);
 }
 
