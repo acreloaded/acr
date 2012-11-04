@@ -85,6 +85,9 @@ void playerent::removeai()
 		DELETEP(pBot->m_pBotSkill);
 		DELETEP(pBot);
 	}
+	loopv(players)
+		if(players[i] && this == players[i]->enemy)
+			players[i]->enemy = NULL;
 }
 
 void CBotManager::EndMap()
