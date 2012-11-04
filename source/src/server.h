@@ -203,7 +203,7 @@ struct clientstate : playerstate
 		akimbomillis = 0;
 		points = flagscore = frags = deaths = shotdamage = damage = lastffkill = 0;
 		revengelog.setsize(0);
-		pointstreak = streakused = 0;
+		pointstreak = deathstreak = streakused = 0;
 		radarearned = airstrikes = nukemillis = 0;
 		valid = true;
 		respawn();
