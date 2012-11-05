@@ -38,8 +38,8 @@ struct entity : public persistent_entity
 	bool fitsmode(int gamemode, int mutators) { return !m_noitems(gamemode, mutators) && isitem(type) && !(m_noitemsammo(gamemode, mutators) && type!=I_AMMO) && !(m_noitemsnade(gamemode, mutators) && type!=I_GRENADE); }
 	void transformtype(int gamemode, int mutators)
 	{
-		if(m_noitemsammo(gamemode, mutators) && type == I_CLIPS) type = I_AMMO;
-		else if(m_pistol(gamemode, mutators) && type == I_AMMO) type = I_CLIPS;
+		if(m_noitemsammo(gamemode, mutators) && (type == I_CLIPS || type == I_GRENADE)) type = I_AMMO;
+		else if(m_pistol(gamemode, mutators) && (type == I_AMMO || type == I_GRENADE)) type = I_CLIPS;
 		else if(m_noitemsnade(gamemode, mutators)) switch(type){
 			case I_CLIPS:
 			case I_AMMO:
