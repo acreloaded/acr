@@ -286,7 +286,7 @@ struct client				   // server side version of "dynent" type
 	bool isonrightmap;
 	bool timesync;
 	int overflow;
-	int gameoffset, lastevent, lastvotecall;
+	int gameoffset, lastevent, lastvotecall, lastkickcall;
 	int demoflags;
 	clientstate state;
 	vector<timedevent *> events, timers;
@@ -370,7 +370,7 @@ struct client				   // server side version of "dynent" type
 		position.setsize(0);
 		messages.setsize(0);
 		connected = connectauth = wantsmap = haswelcome = false;
-		lastvotecall = 0;
+		lastvotecall = lastkickcall = 0;
 		vote = VOTE_NEUTRAL;
 		lastsaytext[0] = '\0';
 		saychars = authreq = 0;
@@ -399,13 +399,14 @@ struct client				   // server side version of "dynent" type
 struct savedlimit
 {
 	enet_uint32 ip;
-	int lastvotecall;
+	int lastvotecall, lastkickcall;
 	int saychars, lastsay, spamcount;
 
 	void save(client &cl)
 	{
 		ip = cl.peer->address.host;
 		lastvotecall = cl.lastvotecall;
+		lastkickcall = cl.lastkickcall;
 		saychars = cl.saychars;
 		lastsay = cl.lastsay;
 		spamcount = cl.spamcount;
@@ -415,6 +416,7 @@ struct savedlimit
 	{
 		// obviously don't set his IP
 		cl.lastvotecall = lastvotecall;
+		cl.lastkickcall = lastkickcall;
 		cl.saychars = saychars;
 		cl.lastsay = lastsay;
 		cl.spamcount = spamcount;

@@ -2548,7 +2548,8 @@ void scallvotesuc(voteinfo *v){
 	if(!v->isvalid()) return;
 	DELETEP(curvote);
 	curvote = v;
-	clients[v->owner]->lastvotecall = servmillis;
+	if(v->action->isremovingaplayer()) clients[v->owner]->lastkickcall = servmillis;
+	else clients[v->owner]->lastvotecall = servmillis;
 	logline(ACLOG_INFO, "[%s] client %s called a vote: %s", gethostname(v->owner), formatname(clients[v->owner]), v->action->desc ? v->action->desc : "[unknown]");
 }
 
@@ -2639,7 +2640,7 @@ bool scallvote(voteinfo *v) // true if a regular vote was called
 	else if(!(area & v->action->area)) error = VOTEE_AREA;
 	else if(curvote && curvote->result==VOTE_NEUTRAL) error = VOTEE_CUR;
 	else if(clients[v->owner]->priv < PRIV_ADMIN && v->action->isdisabled()) error = VOTEE_DISABLED;
-	else if(clients[v->owner]->lastvotecall && servmillis - clients[v->owner]->lastvotecall < 60*1000 && clients[v->owner]->priv < PRIV_ADMIN && numclients()>1)
+	else if(((clients[v->owner]->lastvotecall && servmillis - clients[v->owner]->lastvotecall < 60*1000) || (clients[v->owner]->lastkickcall && servmillis - clients[v->owner]->lastkickcall < 2*60*1000)) && clients[v->owner]->priv < PRIV_ADMIN && numclients()>1)
 		error = VOTEE_MAX;
 
 	if(error >= 0){

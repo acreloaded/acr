@@ -20,6 +20,7 @@ struct serveraction
 	virtual void perform() = 0;
 	virtual bool isvalid() { return true; }
 	virtual bool isdisabled() { return false; }
+	virtual bool isremovingaplayer() const { return false; }
 	serveraction() : reqpriv(PRIV_NONE), length(40000), area(EE_ALL), passratio(0.5f), reqveto(PRIV_ADMIN) { *desc = 0; }
 	virtual ~serveraction() { }
 };
@@ -191,6 +192,7 @@ struct subdueaction : playeraction
 struct removeplayeraction : playeraction
 {
 	removeplayeraction(int cn) : playeraction(cn) { }
+	bool isremovingaplayer() const { return true; }
 	bool weak(bool kicking) {
 		if(!valid_client(cn)) return false;
 		// lagging?
@@ -394,7 +396,10 @@ struct voteinfo
 		this->result = result;
 		if(result == VOTE_YES)
 		{
-			if(valid_client(owner)) clients[owner]->lastvotecall = 0;
+			if(valid_client(owner)){
+				if(action->isremovingaplayer()) clients[owner]->lastkickcall = 0;
+				else clients[owner]->lastvotecall = 0;
+			}
 			if(action) action->perform();
 		}
 		loopv(clients) clients[i]->vote = VOTE_NEUTRAL;
