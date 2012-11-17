@@ -3217,8 +3217,6 @@ bool checkmove(client &cp, int f){
 			e.spawned = false;
 			sendf(-1, 1, "ri4", N_ITEMACC, i, sender, e.spawntime = spawntime(e.type));
 			cs.pickup(sents[i].type);
-			if(sents[i].type == I_HEALTH && cs.health >= STARTHEALTH)
-				cs.damagelog.setsize(0);
 		}
 	}
 	// flags
