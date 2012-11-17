@@ -3650,7 +3650,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					cs.skin, cs.health, cs.armor, cs.perk1, cs.perk2, gunselect, cs.secondary,
 					WEAP_MAX, cs.ammo, WEAP_MAX, cs.mag, o.x, o.y, o.z, cs.aim[0]);
 				// bad spawn adjustment?
-				if(!m_edit(gamemode) && (cs.lasto.distxy(cs.o) >= 5*PLAYERRADIUS || fabs(cs.lasto.z - cs.o.z) >= 2 * PLAYERHEIGHT))
+				if(!m_edit(gamemode) && (cs.lasto.distxy(cs.o) >= 6*PLAYERRADIUS)) // || fabs(cs.lasto.z - cs.o.z) >= 2 * PLAYERHEIGHT))
 					serverdied(clients[cn], clients[cn], 0, WEAP_MAX + 14, FRAG_NONE, cs.o);
 				break;
 			}
