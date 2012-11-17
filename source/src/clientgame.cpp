@@ -87,8 +87,8 @@ const char *colorname(playerent *d, bool stats)
 	static string cname;
 	if(d->ownernum < 0) formatstring(cname)("%s \fs\f6(%d)", d->name, d->clientnum);
 	else formatstring(cname)("%s \fs\f7[%d-%d]", d->name, d->clientnum, d->ownernum);
-	if(stats){
-		defformatstring(stat)("%d%.*f", d->health > 50 * HEALTHSCALE ? 0 : d->health > 25 * HEALTHSCALE ? 2 : d->health > 0 ? 3 : 4, HEALTHPRECISION, d->health / (float)HEALTHSCALE);
+	if(stats && d->team != TEAM_SPECT){
+		defformatstring(stat)("%d%.*f", (d->state == CS_DEAD || d->health <= 0) ? 4 : d->health > 50 * HEALTHSCALE ? 0 : d->health > 25 * HEALTHSCALE ? 2 : 3, HEALTHPRECISION, d->health / (float)HEALTHSCALE);
 		if(d->armor) formatstring(stat)("%s\f5-\f4%d", stat, d->armor);
 		concatformatstring(cname, " \f5[\f%s\f5]", stat);
 	}
