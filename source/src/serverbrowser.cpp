@@ -572,9 +572,9 @@ void checkpings()
                         /*if(si->maxclients > 3)
                         {*/
                             int maxs = 0, maxc = 0, ts, tc;
-                            loopi(si->maxclients /*- 3*/)
+                            loopi(min(si->maxclients, MAXCLIENTS))
                             {
-                                ts = tc = si->uplinkstats[i + /*4*/1] = p.get();
+                                ts = tc = si->uplinkstats[i] = p.get();
                                 if(si->maxclients < 8 || i > 2)
                                 {
                                     ts &= 0xF0; tc &= 0x0F;
@@ -602,9 +602,9 @@ void checkpings()
                                 ADDINFOLINE("\f1server uplink quality and usage statistics:");
                                 ADDINFOLINE("");
                                 ADDINFOLINE("players:\terrors/time");
-                                for(int i = /*4*/ 1; i <= si->maxclients; i++)
+                                loopi(min(si->maxclients, MAXCLIENTS))
                                 {
-                                    defformatstring(msg)("   %d\t", i);
+                                    defformatstring(msg)("   %d\t", i + 1);
                                     loopj(15) concatformatstring(msg, "\a%c ", '0' + ((si->uplinkstats[i] & 0x0F) > j) + 2 * ((si->uplinkstats[i] & 0xF0) > (j << 4)));
                                     concatformatstring(msg, "\t\t [%02X]", si->uplinkstats[i]);
                                     ADDINFOLINE(msg);
