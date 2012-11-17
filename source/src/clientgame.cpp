@@ -498,8 +498,6 @@ void dokill(playerent *pl, playerent *act, int weap, int damage, int style, int 
 
 	// killfeed
 	addobit(act, obit, style, headshot, pl);
-	// death state
-	deathstate(pl);
 	// sound
 	playsound(S_DIE1+rnd(2), pl);
 
@@ -594,6 +592,8 @@ void dokill(playerent *pl, playerent *act, int weap, int damage, int style, int 
 		}
 	}
 	conoutf("%s %s", subject, predicate);
+	// death state
+	deathstate(pl);
 }
 
 VAR(minutesremaining, 1, 0, 0);
