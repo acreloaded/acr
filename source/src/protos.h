@@ -212,7 +212,7 @@ struct serverinfo
 	int favcat, msweight, weight;
 
 	int uplinkqual, uplinkqual_age;
-    unsigned char uplinkstats[MAXCLIENTS + 1];
+    unsigned char uplinkstats[MAXCLIENTS];
 
 	serverinfo()
 	: mode(G_DM), muts(G_M_NONE), numplayers(0), maxclients(0), ping(9999), protocol(0), minremain(0),
@@ -221,7 +221,7 @@ struct serverinfo
 	{
 		name[0] = full[0] = map[0] = sdesc[0] = description[0] = '\0';
 		loopi(3) lang[i] = '\0';
-		loopi(MAXCLIENTS + 1) uplinkstats[i] = 0;
+		loopi(MAXCLIENTS) uplinkstats[i] = 0;
 	}
 };
 
