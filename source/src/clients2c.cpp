@@ -876,8 +876,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				} else loopi(assists) getint(p);
 				// assists consumed
 
-				if(!actor || !victim) break;
-				if((victim->health -= damage) > 0) victim->health = 0;
+				if(!victim) break;
+				victim->health -= damage;
+				if(!actor) break;
 				dodamage(damage, victim, actor, weap, style, src);
 				dokill(victim, actor, weap, damage, style, combo, killdist);
 				break;
