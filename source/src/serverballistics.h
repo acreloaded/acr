@@ -79,12 +79,14 @@ bool checkcrit(float dist, float m, int base = 0, int min = 4, int max = 100){
 // easy to send shot damage messages
 inline void sendhit(client &actor, int gun, const vec &o, int dmg){
 // no blood or explosions if using moon jump
-#if (SERVER_BUILTIN_MOD & 6) != 6 // 2 + 4
-#if (SERVER_BUILTIN_MOD & 2) == 2
-	if(!m_gib(gamemode, mutators))
+#if (SERVER_BUILTIN_MOD & 34) == 34 // 2 + 32
+#if (SERVER_BUILTIN_MOD & 4) != 4
+	if(m_gib(gamemode, mutators))
+#endif
+		return;
 #endif
 	sendf(-1, 1, "ri4f3", N_PROJ, actor.clientnum, gun, dmg, o.x, o.y, o.z);
-#endif
+
 }
 
 inline void sendheadshot(const vec &from, const vec &to, int damage){

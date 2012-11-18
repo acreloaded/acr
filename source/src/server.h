@@ -6,6 +6,7 @@
 // 4 = moon jump (always on), no effect unless moon jump is set
 // 8 = gungame (TODO)
 // 16 = explosive ammo
+// 32 = moonjump with no damage (mario)
 
 #define gamemode smode   // allows the gamemode macros to work with the server mode
 #define mutators smuts // and mutators too
