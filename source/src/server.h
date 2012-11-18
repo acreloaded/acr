@@ -5,6 +5,7 @@
 // 2 = moon jump (gib only, unless always on is set)
 // 4 = moon jump (always on), no effect unless moon jump is set
 // 8 = gungame (TODO)
+// 16 = explosive ammo
 
 #define gamemode smode   // allows the gamemode macros to work with the server mode
 #define mutators smuts // and mutators too
