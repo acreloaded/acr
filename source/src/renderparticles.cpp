@@ -593,8 +593,11 @@ vector<nadexplode> nxp;
 
 void particle_fireball(int type, const vec &o, playerent *pl)
 {
-	nadexplode nx = {pl ? pl : player1, {o.x, o.y}, lastmillis};
-	nxp.add(nx);
+	if(nxp.length() < 32)
+	{
+		nadexplode nx = {pl ? pl : player1, {o.x, o.y}, lastmillis};
+		nxp.add(nx);
+	}
 	newparticle(o, vec(0, 0, 0), 600, type);
 	//newparticle(o, vec(0, 0, 0), 450, 13); // complementary flashbang fireball!
 }
@@ -650,13 +653,16 @@ void addshotline(playerent *pl, const vec &from2, const vec &to, int flags)
 	vec from(from2);
 
 	// radar shotlines
-	sl &s = sls.add();
-	s.owner = pl;
-	s.from[0] = from2.x;
-	s.from[1] = from2.y;
-	s.to[0] = to.x;
-	s.to[1] = to.y;
-	s.expire = lastmillis + shotlinettl * 2;
+	if(sls.length() < 32)
+	{
+		sl &s = sls.add();
+		s.owner = pl;
+		s.from[0] = from2.x;
+		s.from[1] = from2.y;
+		s.to[0] = to.x;
+		s.to[1] = to.y;
+		s.expire = lastmillis + shotlinettl * 2;
+	}
 
 	if(!shotlinettl || !shotline || (shotline <= 1 && pl == focus)) return;
 	vec unitv;
