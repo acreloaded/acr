@@ -284,8 +284,8 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
 	}
 #if (SERVER_BUILTIN_MOD & 16) == 16
 	if(!dist){
-		//sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, WEAP_RPG, owner.state.o.x, owner.state.o.y, owner.state.o.z, to.x, to.y, to.z);
-		explosion(owner, to, WEAP_GRENADE, false);
+		//sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, WEAP_RPG, owner.state.o.x, owner.state.o.y, owner.state.o.z, end.x, end.y, end.z);
+		explosion(owner, end, WEAP_GRENADE, false);
 	}
 #endif
 	// we hit somebody
