@@ -688,7 +688,7 @@ void damageblend(int n)
 	else
 	{
 		if(lastmillis > damageblendmillis) damageblendmillis = lastmillis;
-		damageblendmillis += n*damagescreenfactor;
+		damageblendmillis += min(n*damagescreenfactor, 5000);
 	}
 }
 
