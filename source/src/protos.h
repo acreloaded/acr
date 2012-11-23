@@ -416,7 +416,7 @@ extern void flaginbase(int flag);
 extern void flagidle(int flag);
 extern void flagmsg(int flag, int message, int actor, int flagtime);
 extern void arenarespawn();
-extern bool tryrespawn();
+extern void tryrespawn();
 extern void serveropcommand(int cmd, int arg1);
 extern void refreshsopmenu(void *menu, bool init);
 extern const char *colorname(playerent *d, bool stats = false);

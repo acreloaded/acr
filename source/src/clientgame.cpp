@@ -402,23 +402,23 @@ void respawnself(){
 	spawnenqueued = !spawnenqueued;
 }
 
-bool tryrespawn(){
+void tryrespawn(){
 	if(player1->state==CS_DEAD){
 		respawnself();
 
 		int respawnmillis = player1->respawnoffset+(m_duke(gamemode, mutators) ? 0 : SPAWNDELAY);
 		if(lastmillis>respawnmillis){
 			player1->attacking = false;
-			if(m_duke(gamemode, mutators) || m_convert(gamemode, mutators)){
-				if(!arenaintermission && !m_convert(gamemode, mutators)) hudeditf(HUDMSG_TIMER, _("spawn_nextround"));
+			if(m_duke(gamemode, mutators)){
+				if(!arenaintermission) hudeditf(HUDMSG_TIMER, _("spawn_nextround"));
 				else lastspawnattempt = lastmillis;
-				return false;
+				//return false;
 			}
-			return true;
+			//return true;
 		}
 		else lastspawnattempt = lastmillis;
 	}
-	return false;
+	//return false;
 }
 
 // damage arriving from the network, monsters, yourself, all ends up here.
