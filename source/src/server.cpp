@@ -3114,9 +3114,9 @@ bool checkmove(client &cp, int f){
 		if(cs.ldt){
 			const float current_speed = (cs.lasto.distxy(cs.o) * 1000 / cs.ldt);
 			// eased average speed
-			if(current_speed > cs.aspeed) cs.aspeed = (cs.aspeed * 3 + current_speed) / 4.f;
+			if(current_speed > cs.aspeed) cs.aspeed = (cs.aspeed * 4 + current_speed) / 5.f;
 			else cs.aspeed = (cs.aspeed * 2 + current_speed) / 3.f;
-			if(cs.aspeed > 25){ // 1.5194 * 24 = 36.4656 theoritical maximum, but we are checking only when no damage was recently taken
+			if(cs.aspeed > 26){ // 1.5194 * 24 = 36.4656 theoritical maximum, but we are checking only when no damage was recently taken
 				if(cs.speedtime){
 					// exceeded too long, and is not decelerating
 					if(gamemillis > cs.speedtime + 750 && current_speed >= cs.aspeed)
