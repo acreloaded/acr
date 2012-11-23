@@ -4493,7 +4493,7 @@ void sendworldstate(){
 	static enet_uint32 lastsend = 0;
 	if(clients.empty()) return;
 	enet_uint32 curtime = enet_time_get()-lastsend;
-	if(curtime<25) return; // 40fps
+	if(curtime<40) return; // 25fps
 	bool flush = buildworldstate();
 	lastsend += curtime - (curtime%40);
 	if(flush) enet_host_flush(serverhost);
