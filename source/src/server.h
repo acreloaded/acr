@@ -356,6 +356,7 @@ struct client				   // server side version of "dynent" type
 		state.reset();
 		events.deletecontents();
 		timers.deletecontents();
+		removeexplosives();
 		overflow = 0;
 		timesync = wantsmap = false;
 		isonrightmap = m_edit(gamemode);
