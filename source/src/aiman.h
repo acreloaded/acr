@@ -96,7 +96,7 @@ bool reassignai(int exclude = -1){
 
 void checkai(){
 	// check if bots are disallowed
-	if(!m_ai(gamemode) || !botbalance) return clearai();
+	if(!m_ai(gamemode)) return clearai();
 	// check balance
 	if(m_progressive(gamemode, mutators)){
 		if(progressiveround > MAXZOMBIEROUND) return clearai();
@@ -116,13 +116,19 @@ void checkai(){
 		int balance = 0;
 		const int humans = countplayers(false);
 		if(humans) switch(botbalance){
+			case  0:// force no bots, except for zombies
+				if(!m_zombie(gamemode))
+				{
+					balance = 0;
+					break;
+				}
+				// fallthrough for zombies
 			case -1: // auto
 				if(m_zombie(gamemode)) balance = min(15 + 2 * humans, 30); // effectively 15 + n
 				else if(m_duke(gamemode, mutators)) balance = max(humans, maplayout_factor - 3); // 3 - 5 - 8 (6 - 8 - 11 layout factor)
 				else if(m_team(gamemode, mutators)) balance = clamp((smapstats.spawns[0] + smapstats.spawns[1]) / 3, max(6, humans), 14);
 				else balance = clamp(smapstats.spawns[2] / 3, max(4, humans), 10);
 				break; // auto
-			// case  0: balance = 0; break; // force no bots
 			default: balance = max(humans, botbalance); break; // force bot count
 		}
 		if(balance > 0){
