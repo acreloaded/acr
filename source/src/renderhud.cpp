@@ -210,10 +210,10 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 		glTexCoord2f(1, 1); glVertex2f(VIRTW/2 + ct, VIRTH/2 - chsize);
 		glTexCoord2f(0, 1); glVertex2f(VIRTW/2 - ct, VIRTH/2 - chsize);
 		// bottom
-		glTexCoord2f(0, 0); glVertex2f(VIRTW/2 - ct, VIRTH/2 + chsize);
-		glTexCoord2f(1, 0); glVertex2f(VIRTW/2 + ct, VIRTH/2 + chsize);
-		glTexCoord2f(1, 1); glVertex2f(VIRTW/2 + ct, VIRTH/2 + chsize + usz);
-		glTexCoord2f(0, 1); glVertex2f(VIRTW/2 - ct, VIRTH/2 + chsize + usz);
+		glTexCoord2f(1, 1); glVertex2f(VIRTW/2 - ct, VIRTH/2 + chsize);
+		glTexCoord2f(0, 1); glVertex2f(VIRTW/2 + ct, VIRTH/2 + chsize);
+		glTexCoord2f(0, 0); glVertex2f(VIRTW/2 + ct, VIRTH/2 + chsize + usz);
+		glTexCoord2f(1, 0); glVertex2f(VIRTW/2 - ct, VIRTH/2 + chsize + usz);
 
 		// change texture
 		glEnd();
@@ -228,10 +228,10 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 		glTexCoord2f(1, 1); glVertex2f(VIRTW/2 - chsize, VIRTH/2 + ct);
 		glTexCoord2f(0, 1); glVertex2f(VIRTW/2 - chsize - usz, VIRTH/2 + ct);
 		// right
-		glTexCoord2f(0, 0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 - ct);
-		glTexCoord2f(1, 0); glVertex2f(VIRTW/2 + chsize + usz, VIRTH/2 - ct);
-		glTexCoord2f(1, 1); glVertex2f(VIRTW/2 + chsize + usz, VIRTH/2 + ct);
-		glTexCoord2f(0, 1); glVertex2f(VIRTW/2 + chsize, VIRTH/2 + ct);
+		glTexCoord2f(1, 1); glVertex2f(VIRTW/2 + chsize, VIRTH/2 - ct);
+		glTexCoord2f(0, 1); glVertex2f(VIRTW/2 + chsize + usz, VIRTH/2 - ct);
+		glTexCoord2f(0, 0); glVertex2f(VIRTW/2 + chsize + usz, VIRTH/2 + ct);
+		glTexCoord2f(1, 0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 + ct);
 	}
 	else{
 		if(n == CROSSHAIR_SHOTGUN){
