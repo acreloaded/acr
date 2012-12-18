@@ -537,7 +537,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					setscope(false);
 					if(m_duke(gamemode, mutators)){
 						if(!m_zombie(gamemode) && !m_convert(gamemode, mutators)) arenaintermission = 0;
-						closemenu(NULL);
+						//closemenu(NULL);
 						conoutf("%s", _("spawn_newround"));
 						hudeditf(HUDMSG_TIMER, _("spawn_fight"));
 					}
