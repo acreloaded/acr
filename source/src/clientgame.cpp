@@ -151,12 +151,14 @@ COMMANDN(skin, nextskin, ARG_1INT);
 int curteam() { return player1->team; }
 int currole() { return player1->priv; }
 int curmode() { return gamemode; }
+int curmuts() { return mutators; }
 void curmap(int cleaned) { result(cleaned ? behindpath(getclientmap()) : getclientmap()); }
 COMMANDN(team, newteam, ARG_1STR);
 COMMANDN(name, newname, ARG_CONC);
 COMMAND(curteam, ARG_IVAL);
 COMMAND(currole, ARG_IVAL);
 COMMAND(curmode, ARG_IVAL);
+COMMAND(curmuts, ARG_IVAL);
 COMMAND(curmap, ARG_1INT);
 VARP(showscoresondeath, 0, 0, 1);
 
