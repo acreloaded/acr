@@ -1078,8 +1078,8 @@ void callvote_parser(char *type, char *arg1, char *arg2, char *arg3)
 			switch(t)
 			{
 				case SA_MAP:
-					vote.int1 = atoi(arg2);
-					vote.int2 = atoi(arg3);
+					//vote.int1 = atoi(arg2); // Not needed?
+					//vote.int2 = atoi(arg3); // Not needed?
 					// fallthrough
 				case SA_SERVERDESC:
 					copystring(str1, arg1);
