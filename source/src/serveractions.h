@@ -87,6 +87,11 @@ struct mapaction : serveraction
 				msg[strlen(msg)-2] = '\0';
 				sendservmsg(msg, caller);
 			}
+
+			if(is_next && nextgamemode == mode && nextgamemuts == muts && !strcmp(nextmapname, map)){
+				mapok = false;
+				sendservmsg("This is already the next map/mode/mutators!", caller);
+			}
 		}
 		loopv(scl.adminonlymaps) // admin needed for these maps
 			if(!strcmp(behindpath(map), scl.adminonlymaps[i]))
