@@ -6,7 +6,7 @@
 #define CUBE_DEFAULT_SERVER_PORT 28770
 #define CUBE_SERVINFO_PORT_LAN 28778
 #define CUBE_SERVINFO_OFFSET 1
-#define PROTOCOL_VERSION 130			   // bump when protocol changes
+#define PROTOCOL_VERSION 131			   // bump when protocol changes
 #define DEMO_VERSION 2				  // bump when demo format changes
 #define DEMO_MAGIC "ACR_REPLAY_FILE!"
 #define MAXMAPSENDSIZE 65536
