@@ -866,12 +866,13 @@ const itemstat ammostats[WEAP_MAX] =
 	{ 3,  4,  6,  S_ITEMAMMO },    // subgun
 	{ 3,  4,  8,  S_ITEMAMMO },    // sniper
 	{ 2,  3,  4,  S_ITEMAMMO },    // bolt sniper
-	{ 3,  4,  6,  S_ITEMAMMO },    // assault
+	{ 3,  4,  6,  S_ITEMAMMO },    // m16
 	{ 1,  1,  3,  S_ITEMAMMO },    // grenade
 	{ 4,  0,  6,  S_ITEMAKIMBO },  // akimbo
 	{ 4,  6,  8,  S_ITEMAMMO },    // heal
 	{ 1,  1,  1,  S_ITEMAMMO },    // sword dummy
 	{ 3,  3,  6,  S_ITEMAMMO },    // RPG
+	{ 3,  4,  6,  S_ITEMAMMO },    // ak47
 };
 
 const itemstat powerupstats[] =
