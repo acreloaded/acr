@@ -28,6 +28,7 @@ weaponinfo_s WeaponInfoTable[MAX_WEAPONS] =
 	{ TYPE_AUTO, 40.0f, 80.0f, 0.0f, 150.0f, 6 }, // HEAL
 	{ TYPE_MELEE, 0.0f, 7.0f, 0.0f, 9.0f, 1 }, // SWORD
 	{ TYPE_ROCKET, 0.0f, 20.0f, 0.0f, 50.0f, 2 }, // RPG
+	{ TYPE_AUTO, 0.0f, 25.0f, 0.0f, 60.0f, 10 }, // ASSAULT2
 };
 
 // Code of CACBot - Start   

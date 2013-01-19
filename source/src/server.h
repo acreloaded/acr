@@ -905,6 +905,7 @@ const guninfo guns[WEAP_MAX] =
 	{ "heal",       S_SUBGUN,   S_NULL,     1200,   100,    20,    4,    8,   10,   0,   0, 50,      1,    1,   10,   11,   0,  0,    10,    20,      8, 4,   true },
 	{ "sword",      S_NULL,     S_RASSAULT,    0,   480,    90,    7,    9,   81,   0,   0,  1,      0,    1,    0,    1,   0,  2,     0,     0,      0, 0,   true },
 	{ "rpg",        S_RPG,      S_NULL,     2000,   120,   170,    0,   18,  160,   0,   0,200,     50,    3,    1,    1,   3,  1,    48,    50,      0, 2,   false},
+	{ "assault2",   S_ASSAULT,  S_RASSAULT, 2000,   100,    49,   48,  120,   24,   0,   0, 68,     94,    3,   30,   31,   0,  3,    30,    47,     62, 1,   true },
 };
 
 const int obit_suicide(int weap){
@@ -936,6 +937,7 @@ const char *suicname(int obit){
 			break;
 		case WEAP_SUBGUN:
 		case WEAP_ASSAULT:
+		case WEAP_ASSAULT2:
 			concatstring(k, "suic_rifle");
 			break;
 		case WEAP_SNIPER:
@@ -1056,6 +1058,9 @@ const char *killname(int obit, bool headshot){
 			break;
 		case WEAP_ASSAULT:
 			concatstring(k, headshot ? "kill_ar_hs" : "kill_ar");
+			break;
+		case WEAP_ASSAULT2:
+			concatstring(k, headshot ? "kill_ak_hs" : "kill_ak");
 			break;
 		case WEAP_PISTOL:
 			concatstring(k, headshot ? "kill_pistol_hs" : "kill_pistol");

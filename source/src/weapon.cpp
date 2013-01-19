@@ -70,6 +70,7 @@ void shiftweapon(int s){
 			WEAP_BOLT,
 			WEAP_ASSAULT,
 			WEAP_SWORD,
+			WEAP_ASSAULT2,
 		};
 		loopi(WEAP_MAX)
 		{
@@ -492,7 +493,8 @@ bool weapon::deselectable() { return !reloading; }
 
 void weapon::equipplayer(playerent *pl){
 	if(!pl) return;
-	pl->weapons[WEAP_ASSAULT] = new assaultrifle(pl);
+	pl->weapons[WEAP_ASSAULT] = new m16(pl);
+	pl->weapons[WEAP_ASSAULT2] = new ak47(pl);
 	pl->weapons[WEAP_GRENADE] = new grenades(pl);
 	pl->weapons[WEAP_KNIFE] = new knife(pl);
 	pl->weapons[WEAP_PISTOL] = new pistol(pl);
@@ -995,19 +997,13 @@ sniperrifle::sniperrifle(playerent *owner) : scopedprimary(owner, WEAP_SNIPER) {
 boltrifle::boltrifle(playerent* owner) : scopedprimary(owner, WEAP_BOLT) {}
 
 // assaultrifle
-
-assaultrifle::assaultrifle(playerent *owner) : gun(owner, WEAP_ASSAULT) {}
-
 float assaultrifle::dynrecoil() { return weapon::dynrecoil() + (rnd(8)*-0.01f); }
 
-
 // pistol
-
 pistol::pistol(playerent *owner) : gun(owner, WEAP_PISTOL) {}
 
 
 // akimbo
-
 akimbo::akimbo(playerent *owner) : gun(owner, WEAP_AKIMBO){
 	akimbolastaction[0] = akimbolastaction[1] = 0;
 }

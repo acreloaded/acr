@@ -11,6 +11,7 @@ enum {
 	WEAP_HEAL,
 	WEAP_SWORD,
 	WEAP_RPG,
+	WEAP_ASSAULT2,
 	WEAP_MAX,
 	// extra obits
 	OBIT_START = WEAP_MAX,
@@ -218,10 +219,19 @@ struct shotgun : gun
 
 struct assaultrifle : gun
 {
-	assaultrifle(playerent *owner);
+	assaultrifle(playerent *owner, int weap) : gun(owner, weap) {}
 	float dynrecoil();
 };
 
+struct m16 : assaultrifle
+{
+	m16(playerent *owner) : assaultrifle(owner, WEAP_ASSAULT) {}
+};
+
+struct ak47 : assaultrifle
+{
+	ak47(playerent *owner) : assaultrifle(owner, WEAP_ASSAULT2) {}
+};
 
 struct pistol : gun
 {

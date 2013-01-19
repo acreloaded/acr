@@ -15,7 +15,7 @@
 
 #ifdef AC_CUBE
 
-#define MAX_WEAPONS	 12
+#define MAX_WEAPONS	WEAP_MAX
 
 class CACBot: public CBot
 {

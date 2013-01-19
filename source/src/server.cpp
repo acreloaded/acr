@@ -399,6 +399,7 @@ void spawnstate(client *c){
 			WEAP_BOLT,
 			WEAP_ASSAULT,
 			WEAP_SWORD,
+			WEAP_ASSAULT2,
 		}, weap2[] = {
 			WEAP_PISTOL,
 			WEAP_HEAL,

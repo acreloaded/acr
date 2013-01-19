@@ -292,7 +292,7 @@ void drawequipicons(playerent *p)
 		case WEAP_SUBGUN: c = 4; break;
 		case WEAP_SNIPER: case WEAP_BOLT: c = 5; break;
 		case WEAP_SWORD: c = 2; break;
-		case WEAP_ASSAULT: c = 6; break;
+		case WEAP_ASSAULT: case WEAP_ASSAULT2: c = 6; break;
 	}
 	if(c > 3) { c -= 4; r = 1; }
 
