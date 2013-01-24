@@ -124,8 +124,8 @@ models - makkE (Markus Bekel, makk_e@web.de) CC-BY-NC-SA 2.5
 		*.md2 - HitmanDaz[MT] (Darren Pattenden) The owner was notified, but no response was received
 		*.jpg - Protox AssaultCube HQ Reskin PD
 	weapons
-		Most are CC BY-NC-SA by makkE
-		Some models are © unknown
+		Most are CC BY-NC-SA by makkE, some models are © unknown
+		assault2 - Padge1 CC-BY 3.0
 textures*
 	arcitool - Any non-commercial use is allowed, but commercial use can be obtained from him (http://arcitool.de/)
 	boeck - Royalty Free textures assorted by Boeck (http://boeckmania.de), partially reprocessed by makkE to fit the engine
