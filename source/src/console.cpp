@@ -224,6 +224,7 @@ struct obitlist : consolebuffer<oline>
 		switch(style){
 			case WEAP_SHOTGUN:
 			case WEAP_SNIPER:
+			case WEAP_ASSAULT2:
 			case OBIT_AIRSTRIKE:
 			case OBIT_MULTI:
 				aspect = 4; break;

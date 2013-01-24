@@ -44,6 +44,7 @@ misc
 		airstrike.png
 		akimbo.png
 		assault.png
+		assault2.png
 		assist.png
 		bolt.png
 		bow.png
