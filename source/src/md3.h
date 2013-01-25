@@ -162,7 +162,7 @@ struct md3 : vertmodel
 			vertmodel *m = (vertmodel *)a[i].m;
 			if(!m)
 			{
-				if(a[i].pos) link(NULL, a[i].tag);
+				if(a[i].pos) link(NULL, a[i].tag, a[i].pos);
 				continue;
 			}
 			part *p = m->parts[0];
