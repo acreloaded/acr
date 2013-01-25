@@ -3,11 +3,13 @@ Source:
 2. Delete working files (/vcpp) except for files from SVN
 
 Server Pack:
-1. Prepare a Linux Package, but modify step 4 as:
-  4' Delete /bin_* except for
+1. Prepare a Linux Package, but modify some steps:
+  3' Delete /bin_* except for
     - /bin_win32/ac_server.exe
+    - /bin_win32/zlib1.dll
     - /bin_linux/linux_server
     - /bin_linux/linux_64_server
+  7' Only delete the non-server launch scripts
 2. Delete all client-only files:
     - /bot
     - /config (except for /config/default.*.cfg)
@@ -38,4 +40,4 @@ Linux:
 
 Mac:
 1. (compile it somehow!)
-7. (probably more steps are required)
+8. (probably more steps are required)
