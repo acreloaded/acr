@@ -220,7 +220,7 @@ struct kickaction : removeplayeraction
 		area = EE_DED_SERV; // dedicated only
 		const bool is_weak = self_vote || weak(true);
 		copystring(reason, r);
-		passratio = is_weak ? .80f : .65f; // 65%-80%
+		passratio = is_weak ? .85f : .68f; // 68%-85%
 		reqpriv = protectAdminPriv('k', cn);
 		reqveto = PRIV_MASTER; // kick
 		length = is_weak ? 10000 : 35000; // 35s (10s if weak)
@@ -243,7 +243,7 @@ struct banaction : removeplayeraction
 		area = EE_DED_SERV; // dedicated only
 		const bool is_weak = self_vote || weak(minutes <= 1);
 		copystring(reason, r);
-		passratio = is_weak ? .85f : .70f; // 70% - 85%
+		passratio = is_weak ? .89f : .75f; // 75% - 89%
 		reqpriv = protectAdminPriv('b', cn);
 		reqveto = PRIV_MASTER; // ban
 		length = is_weak ? 8000 : 30000; // 30s (8s if weak)
