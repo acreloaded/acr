@@ -468,11 +468,13 @@ void weapon::renderhudmodel(int lastaction, bool akimboflip){
 	if(flip) wm.anim |= ANIM_MIRROR;
 	if(emit) wm.anim |= ANIM_PARTICLE;
 	if(focus->protect(lastmillis, gamemode, mutators)) wm.anim |= ANIM_TRANSLUCENT;
-	modelattach a[3];
+	modelattach a[3]; // a null one is needed
 	if((type == WEAP_AKIMBO && !((akimbo *)this)->akimboside) == akimboflip){
 		owner->eject = vec(-1, -1, -1);
 		a[0].tag = "tag_eject";
 		a[0].pos = &owner->eject;
+		a[1].tag = "tag_muzzle";
+		a[1].pos = &owner->muzzle;
 	}
 	rendermodel(path, wm.anim|ANIM_DYNALLOC, 0, -1, wm.pos, owner->yaw+90, owner->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, a, 1.28f);
 }
@@ -861,7 +863,7 @@ void gun::attackshell(const vec &to){
 
 void gun::attackfx(const vec &from, const vec &to, int millis){
 	addbullethole(owner, from, to);
-	addshotline(owner, from, to, (millis & 1) | (((type == WEAP_AKIMBO && !((akimbo *)this)->akimboside) ^ (lefthand > 0)) ? 4 : 0));
+	addshotline(owner, from, to, (millis & 1));
 	particle_splash(0, 5, 250, to);
 	adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
 	if(millis & 1){

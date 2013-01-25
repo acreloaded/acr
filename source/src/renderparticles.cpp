@@ -646,7 +646,7 @@ vector<sl> sls;
 
 void addshotline(playerent *pl, const vec &from2, const vec &to, int flags)
 {
-	// flags: 1: first shot 2: silence 4: flipped
+	// flags: 1: first shot 2: silence
 	vec from(from2);
 
 	// radar shotlines
@@ -661,15 +661,8 @@ void addshotline(playerent *pl, const vec &from2, const vec &to, int flags)
 	if(!shotlinettl || !shotline || (shotline <= 1 && pl == focus)) return;
 	vec unitv;
 	
-	if(pl == focus && flags & 1){ // just for fx
-		extern vec *hudgunTag(playerent *p, const char *tag);
-		vec *v = hudgunTag(pl, "tag_muzzle");
-		if(v){
-			if(flags & 4) v->y = -v->y;
-			v->div(1.28f).rotate_around_x(pl->roll * RAD).rotate_around_y(pl->pitch * RAD).rotate_around_z((pl->yaw - 90) * RAD);
-			from.add(*v);
-		}
-	}
+	if(pl == focus && (flags & 1)) // just for fx
+		from = pl->muzzle;
 	float dist = to.dist(from, unitv);
 	unitv.div(dist);
 

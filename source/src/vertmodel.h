@@ -28,20 +28,3 @@ VARF(mdldyncache, 1, 2, 32, vertmodel::dynalloc.resize(mdldyncache<<20));
 VARF(mdlstatcache, 1, 1, 32, vertmodel::statalloc.resize(mdlstatcache<<20));
 
 modelcache vertmodel::dynalloc(mdldyncache<<20), vertmodel::statalloc(mdlstatcache<<20);
-
-const vec *getTagPos(const char *mdl, const char *tag){
-	vertmodel *m = (vertmodel *)loadmodel(mdl);
-	if(m && m->parts.length()) loopi(m->parts.last()->numtags) if(!strcmp(m->parts.last()->tags[i].name, tag)){
-		return &m->parts.last()->tags[i].pos;
-	}
-	return NULL;
-}
-
-vec *hudgunTag(playerent *p, const char *tag){
-	defformatstring(hudmdl)("weapons/%s", p->weaponsel->info.modelname);
-	const vec *v = getTagPos(hudmdl, tag);
-	if(!v) return NULL;
-	static vec v2;
-	v2 = *v;
-	return &v2;
-}
