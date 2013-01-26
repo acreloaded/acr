@@ -3111,9 +3111,11 @@ bool checkmove(client &cp, int f){
 			cheat(&cp, "real speedhack");
 			return false;
 		}
-		// only check if milliseconds have passed
-		if(cs.ldt){
-			const float current_speed = (cs.lasto.distxy(cs.o) * 1000 / cs.ldt);
+		// only check if at least 100 milliseconds have passed
+		if(gamemillis > 100 + cs.smillis){
+			const float current_speed = (cs.lastspeedo.distxy(cs.o) * 1000 / (gamemillis - cs.smillis));
+			cs.lastspeedo = cs.o;
+			cs.smillis = gamemillis;
 			// eased average speed
 			if(current_speed > cs.aspeed) cs.aspeed = (cs.aspeed * 4 + current_speed) / 5.f;
 			else cs.aspeed = (cs.aspeed * 2 + current_speed) / 3.f;
@@ -3644,7 +3646,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				cs.lasto = cs.o; // check spawn movement
 				cs.o = o;
 				cs.movemillis = servmillis;
-				cs.lmillis = gamemillis;
+				cs.lmillis = cs.smillis = gamemillis;
 				cs.spj = cs.ldt = 40;
 				// send spawn packet, but not with QUEUE_BUF -- we need it sequenced
 				sendf(-1, 1, "rxi3i7vvf4", sender, N_SPAWN, cn, ls,
