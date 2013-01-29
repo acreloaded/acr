@@ -225,37 +225,35 @@ void renderscores(void *menu, bool init){
 }
 
 void consolescores(){
-	static string team, flags;
-	playerent *d;
-	scoreratio sr;
-	vector<playerent *> scores;
-
+	static vector<playerent *> scores;
+	scores.setsize(0);
 	if(!watchingdemo) scores.add(player1);
 	loopv(players) if(players[i]) scores.add(players[i]);
 	scores.sort(scorecmp);
 
-	if(getclientmap()[0]) printf("\n\"%s\" on map %s", modestr(gamemode, 0), getclientmap());
+	if(getclientmap()[0]) printf("\n\"%s\" on map %s", modestr(gamemode, mutators), getclientmap());
 	if(multiplayer(false)){
 		serverinfo *s = getconnectedserverinfo();
-		string text;
 		if(s){
+			string text;
 			filtertext(text, s->sdesc, 1);
 			printf(", %s:%d %s", s->name, s->port, text);
 		}
 	}
 	printf("\npoints %sfrags assists deaths ratio cn%s name\n", m_affinity(gamemode) ? "flags " : "", m_team(gamemode, mutators) ? " team" : "");
 	loopv(scores){
-		d = scores[i];
+		const playerent * const d = scores[i];
+		scoreratio sr;
 		sr.calc(d->frags, d->deaths);
+		static string team, flags;
 		formatstring(team)(" %-4s", team_string(d->team));
 		formatstring(flags)(" %4d ", d->flagscore);
 		printf("%6d %s %4d %7d   %4d %5.2f %2d%s %s%s\n", d->points, m_affinity(gamemode) ? flags : "", d->frags, d->assists, d->deaths, sr.ratio, d->clientnum,
 					m_team(gamemode, mutators) ? team : "", d->name,
+						d == player1 ? " (you)" :
 						d->priv == PRIV_MAX ? " (highest)" :
 						d->priv == PRIV_ADMIN ? " (admin)" :
-						d->priv == PRIV_MASTER ? " (master)" :
-						d == player1 ? " (you)" :
-					"");
+						d->priv == PRIV_MASTER ? " (master)" : "");
 	}
 	printf("\n");
 }
