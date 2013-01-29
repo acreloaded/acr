@@ -680,7 +680,7 @@ void senddemo(int cn, int num){
 	if(!valid_client(cn)) return;
 	if(clients[cn]->priv < scl.demodownloadpriv){
 		defformatstring(msg)("you need %s to download demos", privname(scl.demodownloadpriv));
-		sendservmsg(msg);
+		sendservmsg(msg, cn);
 		return;
 	}
 	if(!num) num = demos.length();
