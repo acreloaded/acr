@@ -1370,15 +1370,16 @@ void renderhudwaypoints(playerent *p){
 			if(OUTBORD(e.x, e.y)) continue;
 
 			// flag base
-			wp = WP_STOLEN; // stolen or dropped
+			wp = WP_STOLEN; // "wait"
 			switch(f.state){
-				default:
+				default: // stolen or dropped
 					if(m_bomber(gamemode)) wp = flaginfos[team_opposite(i)].state != CTFF_INBASE ? i == teamfix ? WP_DEFEND : WP_TARGET : -1;
-					else if(i != teamfix) wp = -1; break;
+					else if(m_keep(gamemode) ? (f.actor != p && !isteam(f.actor, p)) : m_team(gamemode, mutators) ? (i != teamfix) : (f.actor != p)) wp = -1; break;
 				case CTFF_INBASE:
 					if(m_capture(gamemode)){
 						wp = i == teamfix ? WP_FRIENDLY : WP_GRAB;
-					} else if(m_bomber(gamemode))
+					}
+					else if(m_bomber(gamemode))
 						wp = i == teamfix ? WP_BOMB : WP_TARGET;
 					else if(m_hunt(gamemode))
 						wp = i == teamfix ? WP_FRIENDLY : WP_ENEMY;
@@ -1386,7 +1387,10 @@ void renderhudwaypoints(playerent *p){
 						wp = WP_GRAB;
 					}
 					break;
-				case CTFF_IDLE:
+				case CTFF_IDLE: // KTF only
+					// WAIT here if the opponent has the flag
+					if(flaginfos[team_opposite(i)].state == CTFF_STOLEN && flaginfos[team_opposite(i)].actor && p != flaginfos[team_opposite(i)].actor && !isteam(flaginfos[team_opposite(i)].actor, p))
+						break;
 					wp = WP_ENEMY;
 					break;
 			}
