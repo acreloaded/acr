@@ -808,7 +808,7 @@ void attack(bool on)
 	}
 	else{
 		extern int burst, burstfull;
-		player1->attacking = on || (player1->attacking && !on && burst && burstfull && player1->weaponsel && (player1->weaponsel->type == WEAP_ASSAULT || player1->weaponsel->type == WEAP_SUBGUN) && player1->weaponsel->shots < burst);
+		player1->attacking = on || (player1->attacking && !on && burst && burstfull && player1->weaponsel && burst_weap(player1->weaponsel->type) && player1->weaponsel->shots < burst);
 		died = false;
 	}
 }

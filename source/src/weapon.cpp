@@ -810,7 +810,7 @@ bool gun::attack(vec &targ){
 
 	++shots;
 	owner->lastattackweapon = this;
-	if(!info.isauto || ((type == WEAP_ASSAULT || type == WEAP_SUBGUN) && burst && shots >= burst)) owner->attacking = false;
+	if(!info.isauto || (burst_weap(type) && burst && shots >= burst)) owner->attacking = false;
 
 	vec from = owner->o;
 	vec to = targ;

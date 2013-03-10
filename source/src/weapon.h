@@ -47,6 +47,7 @@ enum {
 #define melee_weap(g) (g == WEAP_KNIFE || g == WEAP_SWORD)
 #define explosive_weap(g) (g == WEAP_GRENADE || g == WEAP_RPG)
 #define suppressed_weap(g) (melee_weap(g) || g == WEAP_GRENADE || g == WEAP_HEAL)
+#define burst_weap(g) (g == WEAP_ASSAULT || g == WEAP_ASSAULT2 || g == WEAP_SUBGUN)
 #define ads_gun(g) (!melee_weap(g) && g != WEAP_GRENADE && g != WEAP_AKIMBO)
 #define ads_classic_allowed(g) (!m_classic(gamemode, mutators) || g == WEAP_SNIPER || g == WEAP_BOLT || g == WEAP_HEAL)
 
