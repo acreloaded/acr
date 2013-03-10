@@ -64,7 +64,7 @@ inline void addpt(client *c, int points, int reason = -1){
 int killpoints(const client *target, client *actor, int gun, int style, bool assist = false){
 	int cnumber = numauthedclients(), tpts = target->state.points, gain = 0;
 	bool suic = target == actor;
-	int reason = -1;
+	int reason = PR_NONE;
 	// addpt(target, DEATHPT);
 	if(!suic){
 		if(isteam(actor, target)){
