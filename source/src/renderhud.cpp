@@ -265,39 +265,49 @@ void drawequipicons(playerent *p)
 		else drawequipicon(560, 1650, 3, 3, 0);
 	drawequipicon(20, 1650, 2, 3, (lastmillis - p->lastregen < 1000 ? 2 : 0) | ((p->state!=CS_DEAD && p->health<=35*HEALTHSCALE && !m_sniper(gamemode, mutators)) ? 1 : 0), p);
 	*/
-	int hc = 2, hr = 3;
+	int hc = 0, hr = 3;
 	if(p->armor)
 	{
-		if(p->armor > 25) { hc = (p->armor - 25) / 25; hr = 2; }
-		else { hc = hr = 3; }
+		hr = 2;
+		if(p->armor >= 100) hc = 4;
+		else if(p->armor >= 75) hc = 3;
+		else if(p->armor >= 50) hc = 2;
+		else if(p->armor >= 25) hc = 1;
+		else hc = 0;
 	}
 	drawequipicon(20, 1650, hc, hr, (lastmillis - p->lastregen < 1000 ? 2 : 0) | ((p->state!=CS_DEAD && p->health<=35*HEALTHSCALE && !m_sniper(gamemode, mutators)) ? 1 : 0), p);
 
 	// grenades
 	int equipx = 0;
-	loopi(min(3, p->mag[WEAP_GRENADE])) drawequipicon(1020 + equipx++ * 25, 1650, 3, 1, 0);
+	loopi(min(3, p->mag[WEAP_GRENADE])) drawequipicon(1020 + equipx++ * 25, 1650, 1, 1, 0);
 	loopi(min(3, p->ammo[WEAP_KNIFE])) drawequipicon(1060 + equipx++ * 30, 1650, 0, 0, 0);
 
 	// weapons
-	int c = p->weaponsel->type, r = 0;
-	if(c == WEAP_GRENADE){// draw nades separately
-		if(p->prevweaponsel && p->prevweaponsel->type != WEAP_GRENADE) c = p->prevweaponsel->type;
-		else if(p->nextweaponsel && p->nextweaponsel->type != WEAP_GRENADE) c = p->nextweaponsel->type;
-		else c = 14; // unknown = HP symbol
-	}
-	if(c == WEAP_AKIMBO) c = WEAP_PISTOL; // same icon for akimbo & pistol
-	switch(c){
-		case WEAP_KNIFE: case WEAP_PISTOL: default: break; // aligned properly
-		case WEAP_SHOTGUN: c = 3; break;
-		case WEAP_SUBGUN: c = 4; break;
-		case WEAP_SNIPER: case WEAP_BOLT: c = 5; break;
-		case WEAP_SWORD: c = 2; break;
-		case WEAP_ASSAULT: case WEAP_ASSAULT2: c = 6; break;
-	}
-	if(c > 3) { c -= 4; r = 1; }
-
-	if(p->weaponsel && p->weaponsel->type>=WEAP_KNIFE && p->weaponsel->type<WEAP_MAX)
+	if(p->weaponsel && p->weaponsel->type>=WEAP_KNIFE && p->weaponsel->type<WEAP_MAX){
+		int c = p->weaponsel->type, r = 0;
+		if(c == WEAP_GRENADE){// draw nades separately
+			if(p->prevweaponsel && p->prevweaponsel->type != WEAP_GRENADE) c = p->prevweaponsel->type;
+			else if(p->nextweaponsel && p->nextweaponsel->type != WEAP_GRENADE) c = p->nextweaponsel->type;
+			else c = 14; // unknown = HP symbol
+		}
+		if(c == WEAP_AKIMBO) c = WEAP_PISTOL; // same icon for akimbo & pistol
+		switch(c){
+			case WEAP_KNIFE: case WEAP_PISTOL: case WEAP_SHOTGUN: case WEAP_SUBGUN: break; // aligned properly
+			default: c = 0; break;
+			case WEAP_SNIPER: case WEAP_BOLT: c = 5; r = 0; break; // snipers are shared
+			case WEAP_ASSAULT: c = 0; r = 1; break;
+			case WEAP_GRENADE: c = 1; r = 1; break;
+			case WEAP_HEAL: c = 2; r = 1; break;
+			case WEAP_RPG: c = 3; r = 1; break;
+			case WEAP_ASSAULT2: c = 4; r = 2; break;
+			case WEAP_SWORD: c = 0; r = 1; break; // special: sword uses knife
+			case WEAP_AKIMBO: c = 1; r = 1; break; // special: pistol and akimbo share
+		}
 		drawequipicon(560, 1650, c, r, ((!p->weaponsel->ammo || p->weaponsel->mag < magsize(p->weaponsel->type) / 3) && p->weaponsel->type != WEAP_KNIFE && p->weaponsel->type != WEAP_GRENADE && p->weaponsel->type != WEAP_SWORD) ? 1 : 0);
+		extern int burst;
+		if(burst_weap(p->weaponsel->type))
+			drawequipicon(560, 1650, burst ? burst == 1 ? 1 : 2 : 3, 3, 0);
+	}
 	glEnable(GL_BLEND);
 }
 
