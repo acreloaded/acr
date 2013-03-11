@@ -3124,7 +3124,7 @@ bool checkmove(client &cp, int f){
 					// exceeded too long, and is not decelerating
 					if(gamemillis > cs.speedtime + 750 && current_speed >= cs.aspeed)
 					{
-						defformatstring(fastmsg)("\f3%s moved at %.3f (%.3f instant) m/sec with %d ping", formatname(cp), cs.aspeed / 4, current_speed / 4, cp.ping);
+						defformatstring(fastmsg)("\f3%s moved at %.3f (%.3f instant) cube/s with %d ping", formatname(cp), cs.aspeed, current_speed, cp.ping);
 						sendservmsg(fastmsg);
 						cheat(&cp, "speedhack");
 						return false;
