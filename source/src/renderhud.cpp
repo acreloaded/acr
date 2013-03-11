@@ -3,20 +3,20 @@
 #include "pch.h"
 #include "cube.h"
 
-void drawicon(Texture *tex, float x, float y, float s, int col, int row, float ts)
+inline void drawicon(Texture *tex, float x, float y, float s, int col, int row, float ts)
 {
 	if(tex && tex->xs == tex->ys) quad(tex->id, x, y, s, ts*col, ts*row, ts);
 }
 
 void drawequipicon(float x, float y, int col, int row, int pulse, playerent *p = NULL) // pulse: 3 = (1 - pulse) | (2 - blue regen)
 {
-	static Texture *tex = textureload("packages/misc/items.png", 4);
+	static Texture *tex = textureload("packages/misc/items.png", 3);
 	if(tex)
 	{
 		glEnable(GL_BLEND);
 		float cfade = (pulse&2) && p ? (lastmillis-p->lastregen)/1000.f : 1.f;
 		glColor4f(cfade, cfade, cfade * 2, (pulse&1) ? (0.2f+(sinf(lastmillis/100.0f)+1.0f)/2.0f) : 1.f);
-		drawicon(tex, x, y, 120, col, row, 1/4.0f);
+		drawicon(tex, x, y, 160, col, row, 1/5.0f);
 		glDisable(GL_BLEND);
 	}
 }
