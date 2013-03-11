@@ -16,7 +16,7 @@ void drawequipicon(float x, float y, int col, int row, int pulse, playerent *p =
 		glEnable(GL_BLEND);
 		float cfade = (pulse&2) && p ? (lastmillis-p->lastregen)/1000.f : 1.f;
 		glColor4f(cfade, cfade, cfade * 2, (pulse&1) ? (0.2f+(sinf(lastmillis/100.0f)+1.0f)/2.0f) : 1.f);
-		drawicon(tex, x, y, 160, col, row, 1/5.0f);
+		drawicon(tex, x, y, 120, col, row, 1/5.0f);
 		glDisable(GL_BLEND);
 	}
 }
@@ -294,13 +294,13 @@ void drawequipicons(playerent *p)
 		switch(c){
 			case WEAP_KNIFE: case WEAP_PISTOL: case WEAP_SHOTGUN: case WEAP_SUBGUN: break; // aligned properly
 			default: c = 0; break;
-			case WEAP_SNIPER: case WEAP_BOLT: c = 5; r = 0; break; // snipers are shared
+			case WEAP_SWORD: c = 0; r = 0; break; // special: sword uses knife
+			case WEAP_SNIPER: case WEAP_BOLT: c = 4; r = 0; break; // special: snipers are shared
 			case WEAP_ASSAULT: c = 0; r = 1; break;
 			case WEAP_GRENADE: c = 1; r = 1; break;
 			case WEAP_HEAL: c = 2; r = 1; break;
 			case WEAP_RPG: c = 3; r = 1; break;
-			case WEAP_ASSAULT2: c = 4; r = 2; break;
-			case WEAP_SWORD: c = 0; r = 1; break; // special: sword uses knife
+			case WEAP_ASSAULT2: c = 4; r = 1; break;
 			case WEAP_AKIMBO: c = 1; r = 1; break; // special: pistol and akimbo share
 		}
 		drawequipicon(560, 1650, c, r, ((!p->weaponsel->ammo || p->weaponsel->mag < magsize(p->weaponsel->type) / 3) && p->weaponsel->type != WEAP_KNIFE && p->weaponsel->type != WEAP_GRENADE && p->weaponsel->type != WEAP_SWORD) ? 1 : 0);
