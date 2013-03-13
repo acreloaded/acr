@@ -510,6 +510,9 @@ void dokill(playerent *pl, playerent *act, int weap, int damage, int style, int 
 	}
 	pl->pointstreak = 0;
 
+	// death state
+	deathstate(pl);
+
 	// kill message
 	if(!showobits) return;
 	else if(/*showobits >= 1 && */pl == focus || act == focus || m_duke(gamemode, mutators));
@@ -594,8 +597,6 @@ void dokill(playerent *pl, playerent *act, int weap, int damage, int style, int 
 		}
 	}
 	conoutf("%s %s", subject, predicate);
-	// death state
-	deathstate(pl);
 }
 
 VAR(minutesremaining, 1, 0, 0);
