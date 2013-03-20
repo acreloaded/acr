@@ -305,7 +305,7 @@ void drawequipicons(playerent *p)
 		}
 		drawequipicon(560, 1650, c, r, ((!p->weaponsel->ammo || p->weaponsel->mag < magsize(p->weaponsel->type) / 3) && p->weaponsel->type != WEAP_KNIFE && p->weaponsel->type != WEAP_GRENADE && p->weaponsel->type != WEAP_SWORD) ? 1 : 0);
 		extern int burst;
-		if(p != player1 && burst_weap(p->weaponsel->type))
+		if(p == player1 && burst_weap(p->weaponsel->type))
 			drawequipicon(560, 1650, burst ? burst == 1 ? 1 : 2 : 3, 3, 0);
 	}
 	glEnable(GL_BLEND);
