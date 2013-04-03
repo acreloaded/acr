@@ -58,9 +58,9 @@ CLIENT_OBJS2= \
 SERVER_LIBS=-L../enet/.libs -lenet -lz
 SERVER_FILES= \
 	log.cpp \
-	serverms.cpp \
-	server.cpp \
 	protocol.cpp \
+	server.cpp \
+	serverms.cpp \
 	tools.cpp \
 	wizard.cpp
 

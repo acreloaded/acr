@@ -23,6 +23,8 @@
 					<CompileFile command="cd ../src;$make -f $makefile $file" />
 					<Clean command="cd ../src;$make -f $makefile clean" />
 					<DistClean command="cd ../src;$make -f $makefile distclean" />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -s -f $makefile $target" />
 				</MakeCommands>
 			</Target>
 		</Build>
@@ -114,6 +116,9 @@
 		<Unit filename="../include/wincompat.h" />
 		<Unit filename="../include/zconf.h" />
 		<Unit filename="../include/zlib.h" />
+		<Unit filename="../src/aiman.h" />
+		<Unit filename="../src/auth.h" />
+		<Unit filename="../src/ballistics.h" />
 		<Unit filename="../src/bot/ac_bot.cpp" />
 		<Unit filename="../src/bot/ac_bot.h" />
 		<Unit filename="../src/bot/ac_bot_ai.cpp" />
@@ -132,11 +137,13 @@
 		<Unit filename="../src/command.h" />
 		<Unit filename="../src/console.cpp" />
 		<Unit filename="../src/console.h" />
+		<Unit filename="../src/crypto.h" />
 		<Unit filename="../src/cube.h" />
 		<Unit filename="../src/docs.cpp" />
 		<Unit filename="../src/editing.cpp" />
 		<Unit filename="../src/entities.cpp" />
 		<Unit filename="../src/entity.h" />
+		<Unit filename="../src/gamemode.h" />
 		<Unit filename="../src/geom.h" />
 		<Unit filename="../src/hudgun.h" />
 		<Unit filename="../src/log.cpp" />
@@ -145,10 +152,11 @@
 		<Unit filename="../src/md3.h" />
 		<Unit filename="../src/menus.cpp" />
 		<Unit filename="../src/model.h" />
-        <Unit filename="../src/packetqueue.cpp" />
-		<Unit filename="../src/pch.cpp" />
+		<Unit filename="../src/modelcache.h" />
+		<Unit filename="../src/packetqueue.cpp" />
 		<Unit filename="../src/pch.h" />
 		<Unit filename="../src/physics.cpp" />
+		<Unit filename="../src/points.h" />
 		<Unit filename="../src/protocol.cpp" />
 		<Unit filename="../src/protocol.h" />
 		<Unit filename="../src/protos.h" />
@@ -161,7 +169,9 @@
 		<Unit filename="../src/rndmap.cpp" />
 		<Unit filename="../src/scoreboard.cpp" />
 		<Unit filename="../src/server.cpp" />
+		<Unit filename="../src/server.h" />
 		<Unit filename="../src/serveractions.h" />
+		<Unit filename="../src/serverballistics.h" />
 		<Unit filename="../src/serverbrowser.cpp" />
 		<Unit filename="../src/servercontroller.h" />
 		<Unit filename="../src/serverevents.h" />
@@ -173,7 +183,9 @@
 		<Unit filename="../src/tools.cpp" />
 		<Unit filename="../src/tools.h" />
 		<Unit filename="../src/tristrip.h" />
+		<Unit filename="../src/tristrip_t.h" />
 		<Unit filename="../src/vertmodel.h" />
+		<Unit filename="../src/vertmodel_t.h" />
 		<Unit filename="../src/vote.h" />
 		<Unit filename="../src/water.cpp" />
 		<Unit filename="../src/weapon.cpp" />
