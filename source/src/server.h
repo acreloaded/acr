@@ -1136,6 +1136,7 @@ float gunspeed(int gun, int ads, bool lightweight){
 			ret *= .93f;
 			break;
 		case WEAP_ASSAULT:
+		case WEAP_ASSAULT2:
 		case WEAP_RPG:
 			ret *= .92f;
 			break;
