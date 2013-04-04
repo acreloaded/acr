@@ -1447,7 +1447,7 @@ bool checkpos(vec &p, bool alter = true){
 		if(fix[i] <= 2){
 			fix[i] = 2 + epsilon;
 			ret = true;
-			
+
 		}
 		else if((1 << maplayout_factor) - 2 <= fix[i]){
 			fix[i] = (1 << maplayout_factor) - 2 - epsilon;
@@ -1583,7 +1583,7 @@ void forcedeath(client *cl, bool gib = false){
 	sendf(-1, 1, "ri2", gib ? N_FORCEGIB : N_FORCEDEATH, cl->clientnum);
 }
 
-// needs major cleanup...
+//! \todo needs major cleanup...
 void serverdied(client *target, client *actor, int damage, int gun, int style, const vec &source, float killdist = 0){
 	clientstate &ts = target->state;
 	const bool gib = (style & FRAG_GIB) != 0;
@@ -1602,14 +1602,14 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 
 	int targethasflag = clienthasflag(target->clientnum);
 	bool suic = false;
-	
+
 	// only things on target team that changes
 	if(!m_confirm(gamemode, mutators)) ++usesteamscore(target->team).deaths;
 	// apply to individual
 	++target->state.invalidate().deaths;
 	addpt(target, DEATHPT);
 
-	const int kills = (actor == target || isteam(target, actor)) ? -1 : gib ? 2 : 1;
+	const int kills = (actor == target || isteam(target, actor)) ? -1 : (gib ? 2 : 1);
 	actor->state.invalidate().frags += kills;
 	if(target!=actor){
 		if(actor->state.revengelog.find(target->clientnum) >= 0){
@@ -2534,7 +2534,7 @@ bool isbanned(int cn){
 }
 
 void banclient(client *c, int minutes){
-	ban b; 
+	ban b;
 	b.host = c->peer->address.host;
 	b.millis = servmillis + minutes * 60000;
 	bans.add(b);
@@ -3532,7 +3532,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			{
 				int t = getint(p);
 				if(cl->team == t) break;
-				
+
 				if(cl->priv < PRIV_ADMIN && t < 2){
 					if(mastermode >= MM_LOCKED && cl->team >= 2){
 						sendf(sender, 1, "ri2", N_SWITCHTEAM, 1 << 4);

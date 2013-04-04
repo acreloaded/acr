@@ -1,18 +1,22 @@
-#define MAXCLIENTS 64				  // in a multiplayer game, can be arbitrarily changed
+//! \note In a multiplayer game this can be arbitrarily changed.
+#define MAXCLIENTS 64
 #define MAXBOTS 16
 #define MAXBOTBALANCE 20
 #define DEFAULTCLIENTS 12
-#define MAXTRANS 8192				   // max amount of data to swallow in 1 go
+//! Maximum amount of data to swallow in one go
+#define MAXTRANS 8192
 #define CUBE_DEFAULT_SERVER_PORT 28770
 #define CUBE_SERVINFO_PORT_LAN 28778
 #define CUBE_SERVINFO_OFFSET 1
-#define PROTOCOL_VERSION 132			   // bump when protocol changes
-#define DEMO_VERSION 2				  // bump when demo format changes
+//! \note Needs to be bumped when the protocol changes
+#define PROTOCOL_VERSION 132
+//! \note Bump when the demo format changes
+#define DEMO_VERSION 2
 #define DEMO_MAGIC "ACR_REPLAY_FILE!"
 #define MAXMAPSENDSIZE 65536
 #define MAXCFGFILESIZE 65536
 
-// network messages codes
+//! network messages codes
 enum{
 	N_SERVINFO = 0, N_WELCOME, // before connection is complete
 	N_INITCLIENT, N_INITAI, N_SETTEAM, N_RESUME, N_MAPIDENT, N_DISC, N_DELAI, N_REASSIGNAI, // sent after (dis)connection
@@ -46,7 +50,7 @@ enum{
 #ifdef _DEBUG
 extern void protocoldebug(bool enable);
 
-// converts message code to char
+//! converts message code to char
 extern const char *messagenames(int n);
 #endif
 
@@ -60,7 +64,8 @@ enum { FA_PICKUP = 0, FA_DROP, FA_LOST, FA_RETURN, FA_SCORE, FA_KTFSCORE, FA_SCO
 enum { FTR_SILENT = 0, FTR_PLAYERWISH, FTR_AUTOTEAM, FTR_NUM }; // forceteam reasons
 
 // network quantization scale
-#define DMF 32.0f           // for world locations
+//! Network quantization scale for world locations
+#define DMF 32.0f
 //#define DNF 1000.0f         // for normalized vectors
 //#define DVELF 8.0f          // for playerspeed based velocity vectors
 
