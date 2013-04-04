@@ -2,7 +2,7 @@
 # CUBE_DIR should refer to the directory in which Cube is placed.
 #CUBE_DIR=~/cube
 #CUBE_DIR=/usr/local/cube
-CUBE_DIR=./
+CUBE_DIR=$(dirname "$(readlink -f $0)")
 
 # CUBE_OPTIONS contains any command line options you would like to start Cube with.
 CUBE_OPTIONS=
@@ -43,16 +43,16 @@ x86_64)
   ;;
 esac
 
-if [ -x ${CUBE_DIR}/bin_linux/native_server ]
+if [ -x "${CUBE_DIR}/bin_linux/native_server" ]
 then
   SYSTEM_NAME=native_
   MACHINE_NAME=
 fi
 
-if [ -x ${CUBE_DIR}/bin_linux/${SYSTEM_NAME}${MACHINE_NAME}server ]
+if [ -x "${CUBE_DIR}/bin_linux/${SYSTEM_NAME}${MACHINE_NAME}server" ]
 then
   cd ${CUBE_DIR}
-  exec ${CUBE_DIR}/bin_linux/${SYSTEM_NAME}${MACHINE_NAME}server ${CUBE_OPTIONS} ${CUBE_OPTIONFILE} "$@"
+  exec "${CUBE_DIR}/bin_linux/${SYSTEM_NAME}${MACHINE_NAME}server" ${CUBE_OPTIONS} ${CUBE_OPTIONFILE} "$@"
 else
   echo "Your platform does not have a pre-compiled Cube server."
   echo "Please follow the following steps to build a native server:"
