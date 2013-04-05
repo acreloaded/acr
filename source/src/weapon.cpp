@@ -431,12 +431,13 @@ void weapon::renderstats(){
 
 void weapon::attackphysics(const vec &from, const vec &to) // physical fx to the owner
 {
+	// kickback
 	vec unitv;
 	const float dist = to.dist(from, unitv);
-	const float kick = dynrecoil() * -0.01f / dist;
-
-	// kickback
-	owner->vel.add(vec(unitv).mul(kick * owner->eyeheight / owner->maxeyeheight));
+	if(dist){
+		const float kick = dynrecoil() * -0.01f / dist;
+		owner->vel.add(vec(unitv).mul(kick * owner->eyeheight / owner->maxeyeheight));
+	}
 	// recoil
 	const float recoilshift = (rnd(info.recoilangle * 20 + 1) / 10.f - info.recoilangle) * RAD, recoilval = info.recoil * sqrtf(rnd(50) + 51) / (owner->perk1 == PERK1_HAND ? 120.f : 100.f);
 	owner->pitchvel += cosf(recoilshift) * recoilval;
