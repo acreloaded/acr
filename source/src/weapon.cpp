@@ -849,6 +849,10 @@ void gun::attackshell(const vec &to){
 	}
 	s->vel.mul(.02f * (rnd(3) + 5));
 	if(akimboflip) s->vel.rotate_around_z(180*RAD);
+	vec ownervel = owner->vel;
+	ownervel.mul(0.55f); // tweaked until it "feels right"
+	ownervel.z *= 0.3f; // tweaked until it "feels right"
+	s->vel.add(ownervel);
 	s->inwater = hdr.waterlevel > owner->o.z;
 	s->cancollide = false;
 
