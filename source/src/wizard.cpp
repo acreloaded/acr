@@ -48,7 +48,8 @@ int wizardmain(int argc, char **argv)
 	getline(cin, args["p"]);
 
 	cout << "!WARNING: NO LONGER WORKS! admin password:\t\t";
-	getline(cin, args["x"]);
+	cout << endl; // do not bother
+	//getline(cin, args["x"]);
 
 	cout << "message of the day:\t";
 	getline(cin, args["o"]);
