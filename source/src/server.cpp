@@ -1780,10 +1780,18 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	}
 
 	// automatic zombie count
-	if(botbalance <= 0 && m_zombie(gamemode) && !m_progressive(gamemode, mutators)){
-		if(--zombiesremain <= 0){
-			zombiesremain = ceil(++zombiebalance/2.f);
+	if(botbalance <= 0 && m_zombie(gamemode) && !m_progressive(gamemode, mutators) && target->team != actor->team){
+		// zombie killed
+		if(target->team == TEAM_RED){
+			--zombiesremain;
+			if(zombiesremain <= 0){
+				zombiesremain = ceil(++zombiebalance/2.f);
+				checkai();
+			}
 		}
+		// human died
+		else if(++zombiesremain > zombiebalance)
+			zombiesremain = zombiebalance;
 	}
 }
 
