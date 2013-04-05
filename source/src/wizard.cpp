@@ -23,6 +23,7 @@ using namespace std;
 
 int wizardmain(int argc, char **argv)
 {
+	cout << "!!! WARNING !!!" << endl << "This wizard is unsupported! Use it at your own risk!" << endl << "!!!!!!!!!!" << endl << endl;
 	if(argc < 3)
 	{
 		cout << "invalid arguments specified!" << endl << "usage: ac_server <outfile> <relbinarypath>" << endl;
@@ -46,7 +47,7 @@ int wizardmain(int argc, char **argv)
 	cout << "password:\t\t";
 	getline(cin, args["p"]);
 
-	cout << "admin password:\t\t";
+	cout << "!WARNING: NO LONGER WORKS! admin password:\t\t";
 	getline(cin, args["x"]);
 
 	cout << "message of the day:\t";
