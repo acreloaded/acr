@@ -1778,6 +1778,13 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 		// checkai(); // DO NOT balance bots here
 		convertcheck(true);
 	}
+
+	// automatic zombie count
+	if(botbalance <= 0 && m_zombie(gamemode) && !m_progressive(gamemode, mutators)){
+		if(--zombiesremain <= 0){
+			zombiesremain = ceil(++zombiebalance/2.f);
+		}
+	}
 }
 
 void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source, float dist = 0){
@@ -2460,6 +2467,7 @@ void resetmap(const char *newname, int newmode, int newmuts, int newtime, bool n
 	nokills = true;
 	if(m_duke(gamemode, mutators)) distributespawns();
 	if(m_progressive(gamemode, mutators)) progressiveround = 1;
+	else if(m_zombie(gamemode)) zombiebalance = zombiesremain = 1;
 	if(notify){
 		if(m_team(gamemode, mutators)){
 			if(m_zombie(gamemode)) // force teams for zombies

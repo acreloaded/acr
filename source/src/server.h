@@ -21,7 +21,7 @@ extern bool canreachauthserv;
 static int interm = 0, minremain = 0, gamemillis = 0, gamelimit = 0, gamemusicseed = 0;
 static const int DEATHMILLIS = 300;
 int smode = G_DM, smuts = G_M_TEAM, mastermode = MM_OPEN, botbalance = -1;
-int progressiveround = 1;
+int progressiveround = 1, zombiebalance = 1, zombiesremain = 1;
 
 struct client;
 
