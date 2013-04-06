@@ -951,13 +951,15 @@ bool sword::attack(vec &targ){
 	owner->lastattackweapon = this;
 	owner->attacking = info.isauto;
 
+	attacksound();
+
 	sendshoot(targ);
 	gunwait = info.attackdelay;
 	return true;
 }
 int sword::modelanim() { return modelattacking() ? ANIM_WEAP_SHOOT : ANIM_WEAP_IDLE; }
 
-void sword::attackfx(const vec &from, const vec &to, int millis) { attacksound(); }
+void sword::attackfx(const vec &from, const vec &to, int millis) { if(owner != player1 && !isowned(owner)) attacksound(); }
 
 int sword::flashtime() const { return 0; }
 
