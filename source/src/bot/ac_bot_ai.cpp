@@ -17,18 +17,19 @@
 weaponinfo_s WeaponInfoTable[MAX_WEAPONS] =
 {
 	{ TYPE_MELEE, 0.0f, 4.0f, 0.0f, 5.0f, 1 }, // KNIFE
-	{ TYPE_NORMAL, 0.0f, 20.0f, 0.0f, 50.0f, 6 }, // PISTOL
-	{ TYPE_SHOTGUN, 0.0f, 15.0f, 0.0f, 40.0f, 3 }, // SHOTGUN
-	{ TYPE_AUTO, 0.0f, 25.0f, 0.0f, 60.0f, 10 }, // SUBGUN
+	{ TYPE_NORMAL, 0.0f, 20.0f, 0.0f, 50.0f, 3 }, // PISTOL
+	{ TYPE_SHOTGUN, 0.0f, 15.0f, 0.0f, 40.0f, 2 }, // SHOTGUN
+	{ TYPE_AUTO, 0.0f, 25.0f, 0.0f, 60.0f, 5 }, // SUBGUN
 	{ TYPE_SNIPER, 30.0f, 50.0f, 0.0f, 200.0f, 3 }, // SNIPER
 	{ TYPE_SNIPER, 30.0f, 50.0f, 0.0f, 200.0f, 2 }, // BOLT
-	{ TYPE_AUTO, 0.0f, 25.0f, 0.0f, 60.0f, 10 }, // ASSAULT
+	{ TYPE_AUTO, 0.0f, 25.0f, 0.0f, 60.0f, 5 }, // ASSAULT
 	{ TYPE_GRENADE, 30.0f, 25.0f, 0.0f, 50.0f, 1 }, // GRENADE
-	{ TYPE_NORMAL, 0.0f, 20.0f, 0.0f, 50.0f, 6 }, // AKIMBO?
-	{ TYPE_AUTO, 40.0f, 80.0f, 0.0f, 150.0f, 6 }, // HEAL
+	{ TYPE_NORMAL, 0.0f, 20.0f, 0.0f, 50.0f, 3 }, // AKIMBO?
+	{ TYPE_AUTO, 40.0f, 80.0f, 0.0f, 150.0f, 3 }, // HEAL
 	{ TYPE_MELEE, 0.0f, 7.0f, 0.0f, 9.0f, 1 }, // SWORD
-	{ TYPE_ROCKET, 0.0f, 20.0f, 0.0f, 50.0f, 2 }, // RPG
-	{ TYPE_AUTO, 0.0f, 25.0f, 0.0f, 60.0f, 10 }, // ASSAULT2
+	{ TYPE_ROCKET, 0.0f, 20.0f, 0.0f, 50.0f, 1 }, // RPG
+	{ TYPE_AUTO, 0.0f, 25.0f, 0.0f, 60.0f, 5 }, // ASSAULT2
+	{ TYPE_SNIPER, 30.0f, 50.0f, 0.0f, 200.0f, 2 }, // SNIPER2
 };
 
 // Code of CACBot - Start   
