@@ -240,10 +240,25 @@ struct shothit{
 };
 
 // hit checks
-client *nearesthit(client &actor, const vec &from, const vec &to, int &hitzone, const vector<posinfo> &pos, ivector &exclude, vec *end = NULL){
+client *nearesthit(client &actor, const vec &from, const vec &to, int &hitzone, const vector<posinfo> &pos, ivector &exclude, vec &end, bool melee = false){
 	client *result = NULL;
 	float dist = 4e6f; // 1 million meters...
 	clientstate &gs = actor.state;
+#define MELEE_PRECISION 11
+	vec melees[MELEE_PRECISION];
+	if(melee){
+		loopi(MELEE_PRECISION){
+			melees[i] = to;
+			melees[i].sub(from);
+			/*
+			const float angle = ((i + 1.f) / MELEE_PRECISION - 0.5f) * 85.f * RAD; // from -85 to 85
+			melees[i].rotate_around_x(angle * sinf(owner->aim[0]));
+			melees[i].rotate_around_x(angle * cosf(owner->aim[0]));
+			*/
+			melees[i].rotate_around_z(((i + 1.f) / MELEE_PRECISION - 0.5f) * 25.f * RAD); // from 25 to 25 (50 degrees)
+			melees[i].add(from);
+		}
+	}
 	loopv(clients){
 		client &t = *clients[i];
 		clientstate &ts = t.state;
@@ -253,8 +268,18 @@ client *nearesthit(client &actor, const vec &from, const vec &to, int &hitzone, 
 		if(d > dist) continue;
 		vec o, head;
 		parsepos(t, pos, o, head);
-		const int hz = hitplayer(from, gs.aim[0], gs.aim[1], to, o, head, end);
-		if(!hz) continue;
+		int hz = HIT_NONE;
+		if(melee){
+			loopi(MELEE_PRECISION){
+				hz = hitplayer(from, gs.aim[0], gs.aim[1], melees[i], o, head, &end);
+				if(hz) continue;
+			}
+			if(!hz) continue;
+		}
+		else{
+			hz = hitplayer(from, gs.aim[0], gs.aim[1], to, o, head, &end);
+			if(!hz) continue;
+		}
 		result = &t;
 		dist = d;
 		hitzone = hz;
@@ -267,7 +292,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
 	const int mulset = (weap == WEAP_SNIPER || weap == WEAP_BOLT) ? MUL_SNIPER : MUL_NORMAL;
 	int hitzone = HIT_NONE; vec end = to;
 	// calculate the hit
-	client *hit = nearesthit(owner, from, to, hitzone, pos, exclude, &end);
+	client *hit = nearesthit(owner, from, to, hitzone, pos, exclude, end, melee_weap(weap));
 	// damage check
 	const float dist2 = dist + end.dist(from);
 	int damage = effectiveDamage(weap, dist2 + penaltydist);

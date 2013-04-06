@@ -126,7 +126,7 @@ void shotevent::process(client *ci)
 			static ivector exclude;
 			exclude.setsize(0);
 			exclude.add(c.clientnum);
-			client *hit = nearesthit(c, from, to, hitzone, pos, exclude, &expc);
+			client *hit = nearesthit(c, from, to, hitzone, pos, exclude, expc);
 			if(hit){
 				int dmg = HEALTHSCALE;
 				if(hitzone == HIT_HEAD){
@@ -154,7 +154,7 @@ void shotevent::process(client *ci)
 			static ivector exclude;
 			exclude.setsize(0);
 			exclude.add(c.clientnum);
-			client *hit = gs.scoping ? &c : nearesthit(c, from, to, hitzone, pos, exclude, &end);
+			client *hit = gs.scoping ? &c : nearesthit(c, from, to, hitzone, pos, exclude, end);
 			if(!hit) break;
 			if(hit->state.wounds.length()){
 				// healing by a player
