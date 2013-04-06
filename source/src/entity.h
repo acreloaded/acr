@@ -394,7 +394,6 @@ struct playerstate
 		if(m_zombie(gamemode) && team == TEAM_RED) primary = WEAP_SWORD;
 		else if(m_pistol(gamemode, mutators)) primary = WEAP_PISTOL;
 		else if(m_gib(gamemode, mutators)) primary = WEAP_KNIFE;
-		else if(m_sniper(gamemode, mutators)) primary = WEAP_BOLT;
 		else if(m_demolition(gamemode, mutators)) primary = WEAP_RPG; // inversion
 		else switch(nextprimary){
 			default: primary = WEAP_ASSAULT; break;
@@ -402,11 +401,16 @@ struct playerstate
 			case WEAP_SHOTGUN:
 			case WEAP_SUBGUN:
 			case WEAP_SNIPER:
-			case WEAP_BOLT:
 			case WEAP_ASSAULT:
 			case WEAP_GRENADE:
 			case WEAP_AKIMBO:
 			case WEAP_ASSAULT2:
+				// Only bolt/M82 for sniping mutator
+				if(m_sniper(gamemode, mutators)){
+					primary = WEAP_BOLT;
+					break;
+				}
+			case WEAP_BOLT:
 			case WEAP_SNIPER2:
 				primary = nextprimary;
 				break;

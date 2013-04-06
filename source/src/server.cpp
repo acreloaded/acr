@@ -393,20 +393,21 @@ void spawnstate(client *c){
 	if(c->type == ST_AI){
 		// random loadout settings
 		const int weap1[] = {
+			WEAP_BOLT,
+			WEAP_SNIPER2,
+			// non-sniping below
 			WEAP_SHOTGUN,
 			WEAP_SUBGUN,
 			WEAP_SNIPER,
-			WEAP_BOLT,
 			WEAP_ASSAULT,
 			WEAP_SWORD,
 			WEAP_ASSAULT2,
-			WEAP_SNIPER2,
 		}, weap2[] = {
 			WEAP_PISTOL,
 			WEAP_HEAL,
 			WEAP_RPG,
 		};
-		gs.nextprimary = weap1[rnd(sizeof(weap1)/sizeof(int))];
+		gs.nextprimary = weap1[rnd(m_sniper(gamemode, mutators) ? 2 : sizeof(weap1)/sizeof(int))];
 		gs.nextsecondary = weap2[rnd(sizeof(weap2)/sizeof(int))];
 		gs.nextperk1 = PERK_NONE;
 		gs.nextperk2 = (gs.nextprimary == WEAP_BOLT || m_sniper(gamemode, mutators)) ? PERK2_STEADY : PERK2_NONE;
