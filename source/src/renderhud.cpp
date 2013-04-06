@@ -780,7 +780,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 			const int maxhealth = 100 * HEALTHSCALE;
 			float newfade = 0;
 			if(focus->state == CS_ALIVE && focus->health >= 0 && focus->health < maxhealth)
-				newfade = (1 - powf(focus->health / (float)maxhealth, 2));
+				newfade = sqrtf(1.f - focus->health / (float)maxhealth);
 			fade = clamp((fade * 40 + newfade) / 41.f, 0.f, 1.f);
 		}
 		else if(lastmillis < damageblendmillis)
