@@ -780,12 +780,12 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 			const int maxhealth = 100 * HEALTHSCALE;
 			float newfade = 0;
 			if(focus->state == CS_ALIVE && focus->health >= 0 && focus->health < maxhealth)
-				newfade = (1 - powf(focus->health / (float)maxhealth, 2)) * damagescreenalpha / 100.f;
+				newfade = (1 - powf(focus->health / (float)maxhealth, 2));
 			fade = clamp((fade * 40 + newfade) / 41.f, 0.f, 1.f);
 		}
 		else if(lastmillis < damageblendmillis)
 		{
-			fade = damagescreenalpha/100.0f;
+			fade = 1.f;
 			if(damageblendmillis - lastmillis < damagescreenfade)
 				fade *= float(damageblendmillis - lastmillis)/damagescreenfade;
 		}
@@ -794,7 +794,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glBindTexture(GL_TEXTURE_2D, damagetex->id);
 			const float c = clamp(fade, .05f, .95f);
-			glColor4f(1, 1, 1, c);
+			glColor4f(1, 1, 1, c * damagescreenalpha / 100.f);
 
 			glBegin(GL_QUADS);
 			glTexCoord2f(0, 0); glVertex2f(0, 0);
