@@ -522,7 +522,7 @@ void camera3(playerent *p, int dist){
 	camera3.o = p->o;
 	if(!m_zombie(gamemode)) dist = abs(dist);
 	if(dist > 0){
-		const float thirdpersondist = dist*(1.f-p->ads/((p->weaponsel->type == WEAP_SNIPER || p->weaponsel->type == WEAP_BOLT) ? 500.f : 2000.f));
+		const float thirdpersondist = dist*(1.f-p->ads/(sniper_weap(p->weaponsel->type) ? 500.f : 2000.f));
 		camera3.vel.x = -sinf(RAD*p->yaw)*cosf(RAD*-p->pitch);
 		camera3.vel.y = cosf(RAD*p->yaw)*cosf(RAD*-p->pitch);
 		camera3.vel.z = sinf(RAD*-p->pitch);
@@ -902,7 +902,7 @@ VARP(hudgun, 0, 1, 1);
 float zoomfactor(playerent *who){
 	if(!who) return 1;
 	float adsmax = 864, zoomf = (float)adszoom;
-	if((who->weaponsel->type == WEAP_SNIPER || who->weaponsel->type == WEAP_BOLT) && who->ads){
+	if(sniper_weap(who->weaponsel->type) && who->ads){
 		adsmax = sniperrifle::adsscope;
 		zoomf = (float)scopezoom;
 	} else if(who->weaponsel->type == WEAP_HEAL) zoomf = 0;

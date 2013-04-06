@@ -12,6 +12,7 @@ enum {
 	WEAP_SWORD,
 	WEAP_RPG,
 	WEAP_ASSAULT2,
+	WEAP_SNIPER2,
 	WEAP_MAX,
 	// extra obits
 	OBIT_START = WEAP_MAX,
@@ -47,9 +48,10 @@ enum {
 #define melee_weap(g) (g == WEAP_KNIFE || g == WEAP_SWORD)
 #define explosive_weap(g) (g == WEAP_GRENADE || g == WEAP_RPG)
 #define suppressed_weap(g) (melee_weap(g) || g == WEAP_GRENADE || g == WEAP_HEAL)
+#define sniper_weap(g) (g == WEAP_SNIPER || g == WEAP_BOLT || g == WEAP_SNIPER2)
 #define burst_weap(g) (g == WEAP_ASSAULT || g == WEAP_ASSAULT2 || g == WEAP_SUBGUN)
 #define ads_gun(g) (!melee_weap(g) && g != WEAP_GRENADE && g != WEAP_AKIMBO)
-#define ads_classic_allowed(g) (!m_classic(gamemode, mutators) || g == WEAP_SNIPER || g == WEAP_BOLT || g == WEAP_HEAL)
+#define ads_classic_allowed(g) (!m_classic(gamemode, mutators) || sniper_weap(g) || g == WEAP_HEAL)
 
 enum { FRAG_NONE = 0, FRAG_SCOPE_NONE = 1 << 0, FRAG_SCOPE_FULL = 1 << 1, FRAG_GIB = 1 << 2, FRAG_REVENGE = 1 << 3, FRAG_CRIT = 1 << 4, FRAG_FLAG = 1 << 5, FRAG_FIRST = 1 << 6,
 		FRAG_VALID = (1 << ((6) + 1)) - 1 }; // up to 1 << 6 is optimal
@@ -202,6 +204,11 @@ struct scopedprimary : gun
 struct sniperrifle : scopedprimary
 {
 	sniperrifle(playerent *owner);
+};
+
+struct sniperrifle2 : scopedprimary
+{
+	sniperrifle2(playerent *owner);
 };
 
 struct boltrifle : scopedprimary

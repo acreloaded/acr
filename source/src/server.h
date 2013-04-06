@@ -873,6 +873,7 @@ const itemstat ammostats[WEAP_MAX] =
 	{ 1,  1,  1,  S_ITEMAMMO },    // sword dummy
 	{ 3,  3,  6,  S_ITEMAMMO },    // RPG
 	{ 3,  4,  6,  S_ITEMAMMO },    // ak47
+	{ 2,  3,  4,  S_ITEMAMMO },    // sniper2
 };
 
 const itemstat powerupstats[] =
@@ -907,6 +908,7 @@ const guninfo guns[WEAP_MAX] =
 	{ "sword",      S_NULL,     S_RASSAULT,    0,   480,    90,    7,    9,   81,   0,   0,  1,      0,    1,    0,    1,   0,  2,     0,     0,      0, 0,   true },
 	{ "rpg",        S_RPG,      S_NULL,     2000,   120,   170,    0,   18,  160,   0,   0,200,     50,    3,    1,    1,   3,  1,    48,    50,      0, 2,   false},
 	{ "assault2",   S_SUBGUN,   S_RASSAULT, 2000,   100,    46,   48,  120,   16,   0,   0,150,     94,    3,   30,   31,   0,  3,    30,    47,     62, 1,   true },
+	{ "sniper2",    S_SNIPER ,  S_RSNIPER , 2000,   120,   110,   75,  120,   45,   0,   0,235,     98,  150,   10,   11,   4,  4,    90,    95,     85, 2,   false},
 };
 
 const int obit_suicide(int weap){
@@ -943,6 +945,7 @@ const char *suicname(int obit){
 			break;
 		case WEAP_SNIPER:
 		case WEAP_BOLT:
+		case WEAP_SNIPER2:
 			concatstring(k, "suic_snipe");
 			break;
 		case WEAP_PISTOL:
@@ -1051,6 +1054,9 @@ const char *killname(int obit, bool headshot){
 		case WEAP_SNIPER:
 			concatstring(k, headshot ? "kill_sniper_hs" : "kill_sniper");
 			break;
+		case WEAP_SNIPER2:
+			concatstring(k, headshot ? "kill_sniper2_hs" : "kill_sniper2");
+			break;
 		case WEAP_SUBGUN:
 			concatstring(k, headshot ? "kill_smg_hs" : "kill_smg");
 			break;
@@ -1129,6 +1135,7 @@ float gunspeed(int gun, int ads, bool lightweight){
 			break;
 		case WEAP_SNIPER:
 		case WEAP_BOLT:
+		case WEAP_SNIPER2:
 			ret *= .93f;
 			break;
 		case WEAP_SHOTGUN:

@@ -295,7 +295,7 @@ void drawequipicons(playerent *p)
 			case WEAP_KNIFE: case WEAP_PISTOL: case WEAP_SHOTGUN: case WEAP_SUBGUN: break; // aligned properly
 			default: c = 0; break;
 			case WEAP_SWORD: c = 0; r = 0; break; // special: sword uses knife
-			case WEAP_SNIPER: case WEAP_BOLT: c = 4; r = 0; break; // special: snipers are shared
+			case WEAP_SNIPER: case WEAP_BOLT: case WEAP_SNIPER2: c = 4; r = 0; break; // special: snipers are shared
 			case WEAP_ASSAULT: c = 0; r = 1; break;
 			case WEAP_GRENADE: c = 1; r = 1; break;
 			case WEAP_HEAL: c = 2; r = 1; break;

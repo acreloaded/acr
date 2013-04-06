@@ -59,6 +59,7 @@ misc
 		pistol.png
 		shotgun.png
 		sniper.png
+		sniper2.png
 		subgun.png
 			© Activision
 		bot.png

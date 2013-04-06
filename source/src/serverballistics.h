@@ -289,7 +289,7 @@ client *nearesthit(client &actor, const vec &from, const vec &to, int &hitzone, 
 
 // do a single line
 int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, int weap, int style, const vec &surface, ivector &exclude, float dist = 0, float penaltydist = 0, vector<shothit> *save = NULL){
-	const int mulset = (weap == WEAP_SNIPER || weap == WEAP_BOLT) ? MUL_SNIPER : MUL_NORMAL;
+	const int mulset = sniper_weap(weap) ? MUL_SNIPER : MUL_NORMAL;
 	int hitzone = HIT_NONE; vec end = to;
 	// calculate the hit
 	client *hit = nearesthit(owner, from, to, hitzone, pos, exclude, end, melee_weap(weap));

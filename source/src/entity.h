@@ -407,6 +407,7 @@ struct playerstate
 			case WEAP_GRENADE:
 			case WEAP_AKIMBO:
 			case WEAP_ASSAULT2:
+			case WEAP_SNIPER2:
 				primary = nextprimary;
 				break;
 		}
