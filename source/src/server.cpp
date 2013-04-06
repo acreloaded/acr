@@ -3124,10 +3124,14 @@ bool checkmove(client &cp, int f){
 	// detect speedhack
 	if(!m_edit(gamemode) && cs.lastpain + 2000 < gamemillis){
 		// immediate velocity
-		if(cs.vel.magnitudexy() > 1.9f){ // real cheat detect: 1.07f * 1.42f = 1.5194
+		/*
+		if(cs.vel.magnitudexy() > 1.9f){ // real cheat detect: 1.07f * 1.42f = 1.5194 (higher due to kickback)
+			defformatstring(fastmsg)("\f3%s has 2D velocity %d cube/s", formatname(cp), cs.vel.magnitudexy());
+			sendservmsg(fastmsg);
 			cheat(&cp, "real speedhack");
 			return false;
 		}
+		*/
 		// only check if at least 100 milliseconds have passed
 		if(gamemillis > 100 + cs.smillis){
 			const float current_speed = (cs.lastspeedo.distxy(cs.o) * 1000 / (gamemillis - cs.smillis));
