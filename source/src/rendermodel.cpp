@@ -619,6 +619,8 @@ void renderhbox(playerent *d)
 
 void renderclient(playerent *d, const char *mdlname, const char *vwepname, int tex)
 {
+	if(!stenciling && !reflecting && !refracting)
+		renderaboveheadicon(d);
 	int varseed = (int)(size_t)d;
 	int anim = ANIM_IDLE|ANIM_LOOP;
 	float speed = 0.0;
@@ -683,7 +685,7 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
 	rendermodel(mdlname, anim|ANIM_DYNALLOC, tex, 1.5f, o, d->yaw+90, d->pitch/4, speed, basetime, d, a);
 	if(!stenciling && !reflecting && !refracting)
 	{
-		renderaboveheadicon(d);
+		//renderaboveheadicon(d);
 		if(dbghbox) renderhbox(d);
 	}
 }
