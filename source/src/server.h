@@ -908,7 +908,7 @@ const guninfo guns[WEAP_MAX] =
 	{ "sword",      S_SWORD,    S_NULL,        0,   480,    90,    7,    9,   81,   0,   0,  1,      0,    1,    0,    1,   0,  2,     0,     0,      0, 0,   true },
 	{ "rpg",        S_RPG,      S_NULL,     2000,   120,   170,    0,   18,  160,   0,   0,200,     50,    3,    1,    1,   3,  1,    48,    50,      0, 2,   false},
 	{ "assault2",   S_ASSAULT2, S_RASSAULT2,2000,   100,    46,   48,  120,   16,   0,   0,150,     94,    3,   30,   31,   0,  3,    30,    47,     62, 1,   true },
-	{ "sniper2",    S_SNIPER2,  S_RSNIPER2, 2000,   120,   110,   75,  120,   45,   0,   0,235,     98,  120,   10,   11,   4,  4,    90,    95,     85, 2,   false},
+	{ "sniper2",    S_SNIPER2,  S_RSNIPER2, 2000,   120,   110,   75,  120,   45,   0,   0,275,     98,  120,   10,   11,   4,  4,    95,    96,     85, 2,   false},
 };
 
 const int obit_suicide(int weap){
