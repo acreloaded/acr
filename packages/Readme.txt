@@ -17,6 +17,7 @@ audio
 			gib.ogg - CC-BY-SA 2.5
 		voicecom*
 		weapon*
+			katana.ogg - comes with the sword model by PROGONNA, with the reciprocal non-copyright
 maps*
 	ac_complex
 	ac_mines
