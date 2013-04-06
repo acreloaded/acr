@@ -18,6 +18,7 @@ audio
 		voicecom*
 		weapon*
 			katana.ogg - comes with the sword model by PROGONNA, with the reciprocal non-copyright
+			sniper2.ogg - (A section of) Bobster CC-BY-NC-ND 3.0
 maps*
 	ac_complex
 	ac_mines
