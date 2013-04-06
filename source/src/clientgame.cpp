@@ -25,7 +25,7 @@ void classicmode(int n)
 		{ G_DM, G_M_GSP1|G_M_TEAM|G_M_SNIPER },
 		{ G_DM, G_M_GSP1|G_M_SNIPER },
 
-		{ G_CTF, G_M_GSP1|G_M_TEAM },
+		{ G_CTF, G_M_TEAM },
 		{ G_BOMBER, G_M_TEAM },
 		{ G_HTF, G_M_TEAM },
 		{ G_KTF, G_M_GSP1 },
@@ -36,8 +36,8 @@ void classicmode(int n)
 
 		{ G_DM, G_M_GSP1|G_M_TEAM },
 		{ G_DM, G_M_GSP1 },
-		{ G_ZOMBIE, G_M_TEAM },
 		{ G_ZOMBIE, G_M_GSP1|G_M_TEAM },
+		{ G_ZOMBIE, G_M_TEAM },
 	};
 	if(n >= 0 && n < sizeof(cmodes)/sizeof(*cmodes))
 		modecheck(nextmode = cmodes[n][0], nextmuts = cmodes[n][1]);
