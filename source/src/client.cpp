@@ -254,7 +254,7 @@ void current_version(int v, int p)
 {
 	if(AC_VERSION >= v && PROTOCOL_VERSION >= p) return;
 	static string notifications[2];
-    if (AC_VERSION < v) formatstring(notifications[0])("\f3UPDATEABLE \f1to %d", v);
+    if (AC_VERSION < v) formatstring(notifications[0])("\f3UPDATABLE \f1to %d", v);
 	else copystring(notifications[0], "\f0OK");
 	if(PROTOCOL_VERSION < p) formatstring(notifications[1])("\f3NEW \f1%d", p);
 	else copystring(notifications[1], "\f0OK");
