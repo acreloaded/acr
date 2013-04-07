@@ -698,13 +698,28 @@ struct serverforbiddenlist
         DELETEA(buf);
     }
 
-    bool forbidden(const char *s)
+    const char *forbidden(const char *s)
     {
-        for (int i=0; i<num; i++){
-            if ( !findpattern(s,entries[i][0]) ) continue;
-            else if ( entries[i][1][0] == '\0' || findpattern(s,entries[i][1]) ) return true;
+        loopi(num){
+			bool found = true;
+			loopj(2){
+				if(*entries[i][j] == '\0' || !findpattern(s,entries[i][j])){
+					found = false;
+					break;
+				}
+				if(found) break;
+			}
+			if(found){
+				static char match[2*(FORBIDDENSIZE+1)];
+				copystring(match, entries[i][0]);
+				for(int j = 1; j<2; ++j){
+					if(!*entries[i][j]) break;
+					concatformatstring(match, " %s", entries[i][j]);
+				}
+				return match;
+			}
         }
-        return false;
+        return NULL;
     }
 } forbiddens;
 

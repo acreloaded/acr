@@ -1318,21 +1318,24 @@ void sendtext(const char *text, client &cl, int flags, int voice){
 		formatstring(logappend)("[%d] ", voice + S_MAINEND);
 		concatstring(logmsg, logappend);
 	}
-	if(cl.type != ST_TCPIP || cl.priv >= PRIV_ADMIN);
-	else if(forbiddens.forbidden(text)){
-		logline(ACLOG_VERBOSE, "%s, forbidden speech", logmsg);
-		sendf(cl.clientnum, 1, "ri4s", N_TEXT, cl.clientnum, 0, SAY_FORBIDDEN, text);
-		return;
-	}
-	else if(spamdetect(&cl, text)){
-		logline(ACLOG_VERBOSE, "%s, SPAM detected", logmsg);
-		sendf(cl.clientnum, 1, "ri4s", N_TEXT, cl.clientnum, 0, SAY_SPAM, text);
-		return;
-	}
-	else if(cl.muted){
-		logline(ACLOG_VERBOSE, "%s, MUTED", logmsg);
-		sendf(cl.clientnum, 1, "ri4s", N_TEXT, cl.clientnum, 0, SAY_MUTE, text);
-		return;
+	if(cl.type == ST_TCPIP && cl.priv < PRIV_ADMIN){
+		if(const char *forbidden = forbiddens.forbidden(text)){
+			logline(ACLOG_VERBOSE, "%s, forbidden speech (%s)", logmsg, forbidden);
+			defformatstring(forbiddenmessage)("\f2forbidden speech: \f3%s \f2was detected", forbidden);
+			sendservmsg(forbiddenmessage);
+			sendf(cl.clientnum, 1, "ri4s", N_TEXT, cl.clientnum, 0, SAY_FORBIDDEN, text);
+			return;
+		}
+		else if(spamdetect(&cl, text)){
+			logline(ACLOG_VERBOSE, "%s, SPAM detected", logmsg);
+			sendf(cl.clientnum, 1, "ri4s", N_TEXT, cl.clientnum, 0, SAY_SPAM, text);
+			return;
+		}
+		else if(cl.muted){
+			logline(ACLOG_VERBOSE, "%s, MUTED", logmsg);
+			sendf(cl.clientnum, 1, "ri4s", N_TEXT, cl.clientnum, 0, SAY_MUTE, text);
+			return;
+		}
 	}
 	logline(ACLOG_INFO, "[%s] %s%s", gethostname(cl.clientnum), logmsg, text);
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
