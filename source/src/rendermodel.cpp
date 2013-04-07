@@ -653,12 +653,20 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
 	else if(d->weaponsel==d->lastattackweapon && d->weaponsel->modelattacking()) { anim = d->crouching ? ANIM_CROUCH_ATTACK : ANIM_ATTACK; speed = 300.0f/8; basetime = d->lastaction; }
 	else if(!d->move && !d->strafe)				 { anim = (d->crouching ? ANIM_CROUCH_IDLE : ANIM_IDLE)|ANIM_LOOP; }
 	else											{ anim = (d->crouching ? ANIM_CROUCH_WALK : ANIM_RUN)|ANIM_LOOP; speed = 1860/d->maxspeed; }
-	modelattach a[3];
+	modelattach a[5];
 	int numattach = 0;
 	if(vwepname)
 	{
 		a[numattach].name = vwepname;
 		a[numattach].tag = "tag_weapon";
+		numattach++;
+		d->muzzle = vec(-1, -1, -1);
+		a[numattach].tag = "tag_muzzle";
+		a[numattach].pos = &d->muzzle;
+		numattach++;
+		d->eject = vec(-1, -1, -1);
+		a[numattach].tag = "tag_eject";
+		a[numattach].pos = &d->eject;
 		numattach++;
 	}
 

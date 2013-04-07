@@ -661,23 +661,26 @@ void addshotline(playerent *pl, const vec &from2, const vec &to, int flags)
 	if(!shotlinettl || !shotline || (shotline <= 1 && pl == focus)) return;
 	vec unitv;
 	
-	if(pl == focus && (flags & 1)) // just for fx
+	if((flags & 1) && pl->muzzle.x >= 0) // just for fx
 		from = pl->muzzle;
+	else from.z -= WEAPONBELOWEYE;
 	float dist = to.dist(from, unitv);
 	unitv.div(dist);
 
 	// shotline visuals
-	//vec o = unitv, d = unitv;
+	/*
+	// AC original
+	vec o = unitv;
+    o.mul(dist/10+start).add(from);
+    vec d = unitv;
+    d.mul(dist/10*-(10-start-2)).add(to);
+	// v2
 	vec o = from, d = to;
-	if(flags & 1){
-		/*
-		const int start = (camera1->o.dist(to) <= 10.0f) ? 8 : 5;
-		o.mul(dist/10+start).add(from);
-		d.mul(dist/10*-(10-start-2)).add(to);
-		*/
-		o.z -= WEAPONBELOWEYE;
-	}
-	newparticle(o, d, shotlinettl, 6);
+	const int start = (camera1->o.dist(to) <= 10.0f) ? 8 : 5;
+	o.mul(dist/10+start).add(from);
+	d.mul(dist/10*-(10-start-2)).add(to);
+	*/
+	newparticle(from, to, shotlinettl, 6);
 
 	// shotline sound fx
 	if(!bulletairsoundrad || (flags & 2)) return;
