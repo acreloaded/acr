@@ -475,6 +475,7 @@ void weapon::renderhudmodel(int lastaction, bool akimboflip){
 		owner->eject = vec(-1, -1, -1);
 		a[0].tag = "tag_eject";
 		a[0].pos = &owner->eject;
+		owner->muzzle = vec(-1, -1, -1);
 		a[1].tag = "tag_muzzle";
 		a[1].pos = &owner->muzzle;
 	}
