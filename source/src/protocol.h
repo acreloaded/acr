@@ -9,7 +9,7 @@
 #define CUBE_SERVINFO_PORT_LAN 28778
 #define CUBE_SERVINFO_OFFSET 1
 //! \note Needs to be bumped when the protocol changes
-#define PROTOCOL_VERSION 133
+#define PROTOCOL_VERSION 134
 //! \note Bump when the demo format changes
 #define DEMO_VERSION 2
 #define DEMO_MAGIC "ACR_REPLAY_FILE!"
