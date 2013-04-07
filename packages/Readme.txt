@@ -130,6 +130,7 @@ models - makkE (Markus Bekel, makk_e@web.de) CC-BY-NC-SA 2.5
 	weapons
 		Most are CC BY-NC-SA by makkE, some models are © unknown
 		assault2 - Padge1 CC-BY 3.0
+		sniper2 - Padge1 CC-BY 3.0
 		sword - Modified by Victor Public Domain - Copyright-free Reciprocal Licence by PROGONNA
 textures*
 	arcitool - Any non-commercial use is allowed, but commercial use can be obtained from him (http://arcitool.de/)
