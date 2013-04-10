@@ -135,7 +135,7 @@ const char *obit_prefix(playerent *pl, bool dark){
 	static string ret = {0};
 	if(!pl) return ret;
 	const int colorset[2][3] = {{0, 1, 3}, {8, 9, 7}};
-	int color2 = pl == focus ? 1 : isteam(pl, focus) ? 0 : 2;
+	int color2 = pl == player1 ? 1 : isteam(pl, player1) ? 0 : 2;
 	formatstring(ret)("\f%d%c", colorset[dark ? 1 : 0][color2], !color2 ? '+' : color2 == 1 ? '*' : '-');
 	return ret;
 }
