@@ -1088,7 +1088,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps){
 	renderentities();
 	endmodelbatches();
 
-	renderhudwaypoints(focus);
+	renderhudwaypoints();
 
 	readdepth(w, h, worldpos);
 	playerincrosshair(worldhit, worldhitzone, (worldhitpos = worldpos));

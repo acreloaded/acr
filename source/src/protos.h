@@ -568,7 +568,7 @@ extern void hudonlyf(const char *s, ...);
 extern void hudeditf(int type, const char *s, ...);
 extern void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2 = 0, const char *text2 = NULL);
 extern vec getradarpos();
-extern void renderhudwaypoints(playerent *asSeenBy);
+extern void renderhudwaypoints();
 
 // renderparticles
 enum

@@ -1296,20 +1296,20 @@ void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, 
 	SDL_GL_SwapBuffers();
 }
 
-void renderhudwaypoints(playerent *p){
+void renderhudwaypoints(){
 	// throwing knife pickups
 	loopv(knives){
 		vec s;
-		bool ddt = p->perk2 == PERK2_VISION;
+		bool ddt = focus->perk2 == PERK2_VISION;
 		if(!ddt){
 			vec dir, s;
-			(dir = p->o).sub(knives[i].o).normalize();
-			ddt = rayclip(knives[i].o, dir, s) + 1.f >= p->o.dist(knives[i].o);
+			(dir = focus->o).sub(knives[i].o).normalize();
+			ddt = rayclip(knives[i].o, dir, s) + 1.f >= focus->o.dist(knives[i].o);
 		}
 		renderwaypoint(WP_KNIFE, knives[i].o, (float)(knives[i].millis - totalmillis) / KNIFETTL, ddt);
 	}
 	// vision perk
-	if(p->perk2 == PERK2_VISION) loopv(bounceents){
+	if(focus->perk2 == PERK2_VISION) loopv(bounceents){
 		bounceent *b = bounceents[i];
 		if(!b || (b->bouncetype != BT_NADE && b->bouncetype != BT_KNIFE)) continue;
 		if(b->bouncetype == BT_NADE && ((grenadeent *)b)->nadestate != 1) continue;
@@ -1317,7 +1317,7 @@ void renderhudwaypoints(playerent *p){
 		renderwaypoint(b->bouncetype == BT_NADE ? WP_EXP : WP_KNIFE, b->o);
 	}
 	// flags
-	const int teamfix = p->team == TEAM_SPECT ? TEAM_RED : p->team;
+	const int teamfix = focus->team == TEAM_SPECT ? TEAM_RED : focus->team;
 	if(m_affinity(gamemode))
 	{
 		if(m_secure(gamemode)) loopv(ents)
@@ -1355,10 +1355,10 @@ void renderhudwaypoints(playerent *p){
 			switch(f.state)
 			{
 				case CTFF_STOLEN:
-					if(f.actor == p && !isthirdperson) break;
+					if(f.actor == focus && !isthirdperson) break;
 					if(OUTBORD(f.actor->o.x, f.actor->o.y)) break;
 					o = f.actor->o;
-					wp = (p == f.actor || (m_team(gamemode, mutators) && f.actor->team == teamfix)) ?
+					wp = (focus == f.actor || (m_team(gamemode, mutators) && f.actor->team == teamfix)) ?
 						// friendly
 						(m_capture(gamemode) || m_bomber(gamemode)) ? WP_ESCORT : WP_DEFEND
 						: // hostile below
@@ -1384,7 +1384,7 @@ void renderhudwaypoints(playerent *p){
 			switch(f.state){
 				default: // stolen or dropped
 					if(m_bomber(gamemode)) wp = flaginfos[team_opposite(i)].state != CTFF_INBASE ? i == teamfix ? WP_DEFEND : WP_TARGET : -1;
-					else if(m_keep(gamemode) ? (f.actor != p && !isteam(f.actor, p)) : m_team(gamemode, mutators) ? (i != teamfix) : (f.actor != p)) wp = -1; break;
+					else if(m_keep(gamemode) ? (f.actor != focus && !isteam(f.actor, focus)) : m_team(gamemode, mutators) ? (i != teamfix) : (f.actor != focus)) wp = -1; break;
 				case CTFF_INBASE:
 					if(m_capture(gamemode)){
 						wp = i == teamfix ? WP_FRIENDLY : WP_GRAB;
@@ -1399,7 +1399,7 @@ void renderhudwaypoints(playerent *p){
 					break;
 				case CTFF_IDLE: // KTF only
 					// WAIT here if the opponent has the flag
-					if(flaginfos[team_opposite(i)].state == CTFF_STOLEN && flaginfos[team_opposite(i)].actor && p != flaginfos[team_opposite(i)].actor && !isteam(flaginfos[team_opposite(i)].actor, p))
+					if(flaginfos[team_opposite(i)].state == CTFF_STOLEN && flaginfos[team_opposite(i)].actor && focus != flaginfos[team_opposite(i)].actor && !isteam(flaginfos[team_opposite(i)].actor, focus))
 						break;
 					wp = WP_ENEMY;
 					break;
@@ -1409,9 +1409,11 @@ void renderhudwaypoints(playerent *p){
 	}
 	loopv(players){
 		playerent *pl = i == getclientnum() ? player1 : players[i];
-		if(pl && (isthirdperson || pl != p) && pl->nukemillis >= totalmillis){
-			renderwaypoint((p == pl || isteam(p, pl)) ? WP_DEFEND : WP_KILL, pl->o);
-			renderwaypoint(WP_NUKE, vec(pl->o.x, pl->o.y, pl->o.z + PLAYERHEIGHT));
+		const bool has_flag = m_affinity(gamemode) && (flaginfos[0].state == CTFF_STOLEN && flaginfos[0].actor_cn == i) || (flaginfos[1].state == CTFF_STOLEN && flaginfos[1].actor_cn == i);
+		const bool has_nuke = pl->nukemillis >= totalmillis;
+		if(pl && (isthirdperson || pl != focus) && !has_flag && (has_nuke || m_psychic(gamemode, mutators))){
+			renderwaypoint((focus == pl || isteam(focus, pl)) ? WP_DEFEND : WP_KILL, pl->o);
+			if(has_nuke) renderwaypoint(WP_NUKE, vec(pl->o.x, pl->o.y, pl->o.z + PLAYERHEIGHT));
 		}
 	}
 }
