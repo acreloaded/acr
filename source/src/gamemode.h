@@ -95,6 +95,7 @@ extern mutstypes mutstype[G_M_NUM];
 #define m_convert(a,b)      ((b & G_M_CONVERT) || (m_implied(a,b) & G_M_CONVERT))
 #define m_vampire(a,b)      ((b & G_M_VAMPIRE) || (m_implied(a,b) & G_M_VAMPIRE))
 #define m_psychic(a,b)      (false)//((b & G_M_PSYCHIC) || (m_implied(a,b) & G_M_PSYCHIC))
+#define m_steady(a,b)       (false)//((b & G_M_STEADY) || (m_implied(a,b) & G_M_STEADY))
 #define m_real(a,b)         ((b & G_M_REAL) || (m_implied(a,b) & G_M_REAL))
 #define m_expert(a,b)       ((b & G_M_EXPERT) || (m_implied(a,b) & G_M_EXPERT))
 #define m_pistol(a,b)       ((b & G_M_PISTOL) || (m_implied(a,b) & G_M_PISTOL))
