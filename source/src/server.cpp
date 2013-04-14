@@ -1143,9 +1143,19 @@ void arenanext(bool forcespawn = true){
 	loopi(2) if(sflaginfos[i].state == CTFF_DROPPED || sflaginfos[i].state == CTFF_STOLEN) flagaction(i, FA_RESET, -1);
 	loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connected && clients[i]->team != TEAM_SPECT){
 		clients[i]->removeexplosives();
-		if((forcespawn || clients[i]->state.state == CS_DEAD) && clients[valid_client(clients[i]->state.ownernum) ? clients[i]->state.ownernum : i]->isonrightmap){
-			clients[i]->state.lastdeath = 1;
-			sendspawn(clients[i]);
+		clientstate &cs = clients[i]->state;
+		if(clients[valid_client(cs.ownernum) ? cs.ownernum : i]->isonrightmap){
+			if(forcespawn || cs.state == CS_DEAD){
+				cs.lastdeath = 1;
+				sendspawn(clients[i]);
+			}
+			// Refill humans' health/ammo for the next zombie round
+			else if(m_progressive(gamemode, mutators) && clients[i]->team == TEAM_BLUE){
+				cs.pickup(I_HEALTH);
+				sendf(-1, 1, "ri3", N_REGEN, i, cs.health);
+				cs.pickup(I_AMMO);
+				sendf(-1, 1, "ri5", N_RELOAD, i, cs.primary, cs.mag[cs.primary], cs.ammo[cs.primary]);
+			}
 		}
 	}
 	nokills = true;
