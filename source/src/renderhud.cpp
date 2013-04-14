@@ -1409,9 +1409,11 @@ void renderhudwaypoints(){
 	}
 	loopv(players){
 		playerent *pl = i == getclientnum() ? player1 : players[i];
+		if(!pl || (pl == focus && !isthirdperson)) continue;
 		const bool has_flag = m_affinity(gamemode) && (flaginfos[0].state == CTFF_STOLEN && flaginfos[0].actor_cn == i) || (flaginfos[1].state == CTFF_STOLEN && flaginfos[1].actor_cn == i);
+		if(has_flag) continue;
 		const bool has_nuke = pl->nukemillis >= totalmillis;
-		if(pl && (isthirdperson || pl != focus) && !has_flag && (has_nuke || m_psychic(gamemode, mutators))){
+		if(has_nuke || m_psychic(gamemode, mutators)){
 			renderwaypoint((focus == pl || isteam(focus, pl)) ? WP_DEFEND : WP_KILL, pl->o);
 			if(has_nuke) renderwaypoint(WP_NUKE, vec(pl->o.x, pl->o.y, pl->o.z + PLAYERHEIGHT));
 		}
