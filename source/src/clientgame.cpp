@@ -22,8 +22,8 @@ void classicmode(int n)
 		{ G_DM, G_M_TEAM },
 		{ G_DM, G_M_NONE },
 
-		{ G_DM, G_M_GSP1|G_M_TEAM|G_M_SNIPER },
-		{ G_DM, G_M_GSP1|G_M_SNIPER },
+		{ G_DM, G_M_GSP1|G_M_TEAM|G_M_INSTA },
+		{ G_DM, G_M_GSP1|G_M_INSTA },
 
 		{ G_CTF, G_M_TEAM },
 		{ G_BOMBER, G_M_TEAM },

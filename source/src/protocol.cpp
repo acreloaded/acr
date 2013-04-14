@@ -506,23 +506,23 @@ mutstypes mutstype[G_M_NUM] = {
 	},
 	// weapons are mutually exclusive
 	{
-		G_M_SNIPER, G_M_SNIPER,
+		G_M_INSTA, G_M_INSTA,
 		G_M_ALL & ~(G_M_PISTOL|G_M_GIB|G_M_EXPLOSIVE),
-		"sniping",
+		"insta",
 	},
 	{
 		G_M_PISTOL, G_M_PISTOL,
-		G_M_ALL & ~(G_M_SNIPER|G_M_GIB|G_M_EXPLOSIVE),
+		G_M_ALL & ~(G_M_INSTA|G_M_GIB|G_M_EXPLOSIVE),
 		"pistol",
 	},
 	{
 		G_M_GIB, G_M_GIB,
-		G_M_ALL & ~(G_M_SNIPER|G_M_PISTOL|G_M_EXPLOSIVE),
+		G_M_ALL & ~(G_M_INSTA|G_M_PISTOL|G_M_EXPLOSIVE),
 		"gibbing",
 	},
 	{
 		G_M_EXPLOSIVE, G_M_EXPLOSIVE,
-		G_M_ALL & ~(G_M_SNIPER|G_M_PISTOL|G_M_GIB),
+		G_M_ALL & ~(G_M_INSTA|G_M_PISTOL|G_M_GIB),
 		"explosive",
 	},
 	// game specific ones

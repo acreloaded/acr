@@ -400,16 +400,21 @@ struct playerstate
 			case WEAP_KNIFE:
 			case WEAP_SHOTGUN:
 			case WEAP_SUBGUN:
-			case WEAP_SNIPER:
 			case WEAP_ASSAULT:
 			case WEAP_GRENADE:
 			case WEAP_AKIMBO:
 			case WEAP_ASSAULT2:
-				// Only bolt/M82 for sniping mutator
 				if(m_sniper(gamemode, mutators)){
 					primary = WEAP_BOLT;
 					break;
 				}
+			// Only bolt/M82/M21 for insta mutator
+			case WEAP_SNIPER:
+				if(m_insta(gamemode, mutators)){
+					primary = WEAP_BOLT;
+					break;
+				}
+			// Only bolt/M82 for sniping mutator
 			case WEAP_BOLT:
 			case WEAP_SNIPER2:
 				primary = nextprimary;
