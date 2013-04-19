@@ -202,12 +202,12 @@ int cmpnukesort(nukehit *a, nukehit *b){
 	return 0; // same?
 }
 
-void nuke(client &owner, bool suicide, bool forced_all){
+void nuke(client &owner, bool suicide = true, bool forced_all = true, bool friendly_fire = false){
 	vector<nukehit> hits;
 	loopvj(clients)
 	{
 		client *cl = clients[j];
-		if(cl->type != ST_EMPTY && cl->team != TEAM_SPECT && cl != &owner && !isteam(cl, &owner) && (cl->state.state == CS_ALIVE || forced_all))
+		if(cl->type != ST_EMPTY && cl->team != TEAM_SPECT && cl != &owner && (friendly_fire || !isteam(cl, &owner)) && (cl->state.state == CS_ALIVE || forced_all))
 		{
 			// sort hits
 			nukehit &hit = hits.add();

@@ -1,12 +1,13 @@
 // server.h
 
-#define SERVER_BUILTIN_MOD 0
+#define SERVER_BUILTIN_MOD 64
 // 1 = super knife (gib only)
 // 2 = moon jump (gib only, unless always on is set)
 // 4 = moon jump (always on), no effect unless moon jump is set
 // 8 = gungame (TODO)
 // 16 = explosive ammo
 // 32 = moonjump with no damage (mario)
+// 64 = /suicide for nuke
 
 #define gamemode smode   // allows the gamemode macros to work with the server mode
 #define mutators smuts // and mutators too
@@ -165,6 +166,9 @@ struct clientstate : playerstate
 	ivector revengelog;
 	vector<wound> wounds;
 	bool valid;
+#if (SERVER_BUILTIN_MOD & 64)
+	bool nuked;
+#endif
 
 	clientstate() : state(CS_DEAD), valid(true), playerstate() {}
 
@@ -208,6 +212,9 @@ struct clientstate : playerstate
 		pointstreak = deathstreak = streakused = 0;
 		radarearned = airstrikes = nukemillis = 0;
 		valid = true;
+#if (SERVER_BUILTIN_MOD & 64)
+		nuked = false;
+#endif
 		respawn();
 	}
 
