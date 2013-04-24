@@ -444,10 +444,11 @@ void weapon::attackphysics(const vec &from, const vec &to) // physical fx to the
 	const float recoilshift = (rnd(info.recoilangle * 20 + 1) / 10.f - info.recoilangle) * RAD, recoilval = info.recoil * recoilfactor * sqrtf(rnd(50) + 51);
 	owner->pitchvel += cosf(recoilshift) * recoilval;
 	owner->yawvel += sinf(recoilshift) * recoilval;
-	const float maxmagnitude = sqrtf(owner->pitchvel * owner->pitchvel + owner->yawvel * owner->yawvel) / (info.maxrecoil / recoilfactor / 10);
-	if(maxmagnitude > 1){
-		owner->pitchvel /= maxmagnitude;
-		owner->yawvel /= maxmagnitude;
+	const float recoilmagnitude = sqrtf(owner->pitchvel * owner->pitchvel + owner->yawvel * owner->yawvel);
+	const float maxmagnitude =  info.maxrecoil * recoilfactor * 10;
+	if(recoilmagnitude > maxmagnitude){
+		owner->pitchvel *= maxmagnitude / recoilmagnitude;
+		owner->yawvel *= maxmagnitude / recoilmagnitude;
 	}
 }
 
