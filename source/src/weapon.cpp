@@ -350,7 +350,7 @@ int weapon::flashtime() const { return min(max((int)info.attackdelay, 180)/3, 15
 
 void weapon::sendshoot(const vec &to){
 	if(owner!=player1 && !isowned(owner)) return;
-	
+
 	static uchar buf[MAXTRANS];
 	ucharbuf p(buf, MAXTRANS);
 	// standard shoot packet
@@ -440,7 +440,7 @@ void weapon::attackphysics(const vec &from, const vec &to) // physical fx to the
 		owner->vel.add(vec(unitv).mul(kick * owner->eyeheight / owner->maxeyeheight));
 	}
 	// recoil
-	const float recoilshift = (rnd(info.recoilangle * 20 + 1) / 10.f - info.recoilangle) * RAD, recoilval = info.recoil * sqrtf(rnd(50) + 51) / (owner->perk1 == PERK1_HAND ? 120.f : 100.f) * (m_steady(gamemode, mutators) ? .35f : 1.f);
+	const float recoilshift = (rnd(info.recoilangle * 20 + 1) / 10.f - info.recoilangle) * RAD, recoilval = info.recoil * sqrtf(rnd(50) + 51) / (owner->perk1 == PERK1_HAND ? 120.f : 100.f) * (m_real(gamemode, mutators) ? 2.f : 1.f);
 	owner->pitchvel += cosf(recoilshift) * recoilval;
 	owner->yawvel += sinf(recoilshift) * recoilval;
 	const float maxmagnitude = sqrtf(owner->pitchvel * owner->pitchvel + owner->yawvel + owner->yawvel) / info.maxrecoil * 10;
@@ -840,7 +840,7 @@ void gun::attackshell(const vec &to){
 	s->millis = lastmillis;
 	s->timetolive = gibttl;
 	s->bouncetype = BT_SHELL;
-	
+
 	const bool akimboflip = (type == WEAP_AKIMBO && !((akimbo *)this)->akimboside) ^ (lefthand > 0);
 	s->vel = vec(1, rnd(101) / 800.f - .1f, (rnd(51) + 50) / 100.f);
 	s->vel.rotate_around_z(owner->yaw*RAD);
@@ -1218,7 +1218,7 @@ bool knife::attack(vec &targ){
 
 void knife::reset() { state = GST_NONE; }
 bool knife::selectable() { return weapon::selectable() && mag; }
-int knife::modelanim() { 
+int knife::modelanim() {
 	if(state == GST_THROWING) return ANIM_WEAP_THROW;
 	else{
 		//int animtime = min(gunwait, (int)info.attackdelay);
