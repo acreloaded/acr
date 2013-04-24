@@ -78,20 +78,22 @@ void drawvoteicon(float x, float y, int col, int row, bool noblend)
 }
 
 VARP(crosshairsize, 0, 15, 50);
-VARP(hidestats, 0, 1, 2);
+VARP(hidestats, 0, 1, 2); // hardcore does not override
 VARP(hideobits, 0, 0, 1);
 VARP(hideradar, 0, 0, 1);
 VARP(hidecompass, 0, 0, 1);
 VARP(hideteam, 0, 0, 1);
 //VARP(radarres, 1, 64, 1024); // auto
 VARP(radarentsize, 1, 6, 64);
-VARP(hidectfhud, 0, 0, 1);
-VARP(hidevote, 0, 0, 2);
+VARP(hidectfhud, 0, 0, 1); // hardcore does not override
+VARP(hidevote, 0, 0, 2); // hardcore MUST not override
 VARP(showstreak, 0, 1, 1);
 VARP(hidehudmsgs, 0, 0, 1);
 VARP(hidehudequipment, 0, 0, 1);
-VARP(hideconsole, 0, 0, 1);
-VARP(hidespecthud, 0, 0, 1);
+VARP(hideconsole, 0, 0, 1); // hardcore MUST not override ("important" information...)
+VARP(hidespecthud, 0, 0, 1); // hardcore does not override
+VARP(hidehardcore, 0, 2, 5); // (VARP later) 0: no change, 1: -non-essential (streak meter, team - see scoreboard!, perk, distance, health), 2: -crosshair, hitmarker, 3: -ammo count, 4: -killfeed, 5: -radar
+#define show_hud_element(setting, hardcorelevel) (setting && (!m_real(gamemode, mutators) || hidehardcore < hardcorelevel))
 VAR(showmap, 0, 0, 1);
 
 void drawscope()
@@ -164,7 +166,7 @@ COMMAND(loadcrosshair, ARG_2STR);
 
 void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 {
-	if(!crosshairsize || intermission) return;
+	if(!show_hud_element(crosshairsize, 2) || intermission) return;
 	Texture *crosshair = crosshairs[n];
 	if(!crosshair)
 	{
@@ -255,10 +257,13 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 
 void drawequipicons(playerent *p)
 {
+	if(p->state == CS_DEAD || p->state == CS_EDITING || !show_hud_element(!hidehudequipment, 3))
+		return;
 	glDisable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// health & armor
+	if(show_hud_element(!hidehudequipment, 1)){
 	/*
 	if(p->armor)
 		if(p->armor > 25) drawequipicon(560, 1650, (p->armor - 25) / 25, 2, 0);
@@ -276,6 +281,7 @@ void drawequipicons(playerent *p)
 		else hc = 0;
 	}
 	drawequipicon(20, 1650, hc, hr, (lastmillis - p->lastregen < 1000 ? 2 : 0) | ((p->state!=CS_DEAD && p->health<=35*HEALTHSCALE && m_regen(gamemode, mutators)) ? 1 : 0), p);
+	}
 
 	// grenades
 	int equipx = 0;
@@ -652,7 +658,7 @@ void drawradar(playerent *p, int w, int h)
 		glColor3f(1, 1, 1);
 		static Texture *bordertex = textureload("packages/misc/compass-base.png", 3);
 		quad(bordertex->id, VIRTW-10-VIRTH/28-overlaysize, 10+VIRTH/52, overlaysize, 0, 0, 1, 1);
-		if(!hidecompass){
+		if(show_hud_element(!hidecompass, 5)){
 			static Texture *compasstex = textureload("packages/misc/compass-rose.png", 3);
 			glPushMatrix();
 			glTranslatef(VIRTW-10-VIRTH/28-overlaysize/2, 10+VIRTH/52+overlaysize/2, 0);
@@ -833,7 +839,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	bool menu = menuvisible();
 	bool command = getcurcommand() ? true : false;
 
-	if(focus->lasthitmarker && focus->lasthitmarker + hitmarkerfade > lastmillis){
+	if(show_hud_element(true, 2) && focus->lasthitmarker && focus->lasthitmarker + hitmarkerfade > lastmillis){
 		glColor4f(1, 1, 1, (focus->lasthitmarker + hitmarkerfade - lastmillis) / 1000.f);
 		Texture *ch = crosshairs[CROSSHAIR_HIT];
 		if(!ch) ch = textureload("packages/misc/crosshairs/hit.png", 3);
@@ -892,18 +898,18 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		glEnd();
 	}
 
-	if(focus->state != CS_DEAD && focus->state != CS_EDITING && !hidehudequipment) drawequipicons(focus);
+	drawequipicons(focus);
 
 	glMatrixMode(GL_MODELVIEW);
-	if(/*!menu &&*/ (!hideradar || showmap)) drawradar(focus, w, h);
-	if(!hideteam && m_team(gamemode, mutators)) drawteamicons(w, h);
+	if(/*!menu &&*/ (show_hud_element(!hideradar, 5) || showmap)) drawradar(focus, w, h);
+	if(show_hud_element(!hideteam, 1) && m_team(gamemode, mutators)) drawteamicons(w, h);
 	glMatrixMode(GL_PROJECTION);
 
 	char *infostr = editinfo();
 	int commandh = 1570 + FONTH;
 	if(command) commandh -= rendercommand(20, 1570, VIRTW);
 	else if(infostr) draw_text(infostr, 20, 1570);
-	else{
+	else if(show_hud_element(true, 1)){
 		defformatstring(hudtext)("\f0[\f1%04.1f\f3m\f0]", focus->o.dist(worldhitpos) / 4.f);
 		static string hudtarget;
 		static int lasttarget = INT_MIN;
@@ -938,7 +944,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
 
 	if(!hideconsole) renderconsole();
-	if(!hideobits) renderobits();
+	if(show_hud_element(!hideobits, 4)) renderobits();
 	if(!hidestats)
 	{
 		const int left = (VIRTW-225-10)*2, top = (VIRTH*7/8)*2;
@@ -1089,20 +1095,22 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		glLoadIdentity();
 		glOrtho(0, VIRTW/2, VIRTH/2, 0, -1, 1);
 
-		if(!hidehudequipment && focus->state != CS_DEAD && focus->state != CS_EDITING)
+		if(show_hud_element(!hidehudequipment, 3) && focus->state != CS_DEAD && focus->state != CS_EDITING)
 		{
 			pushfont("huddigits");
-			defformatstring(healthstr)("%d", focus->health / HEALTHSCALE);
-			draw_text(healthstr, 90, 823);
-			if(focus->armor){
-				int offset = text_width(healthstr);
-				glPushMatrix();
-				glScalef(0.5f, 0.5f, 1.0f);
-				draw_textf("%d", (90 + offset)*2, 826*2, (focus->health / HEALTHSCALE) + focus->armor * 3 / 10);
-				glPopMatrix();
+			if(show_hud_element(!hidehudequipment, 1)){
+				defformatstring(healthstr)("%d", focus->health / HEALTHSCALE);
+				draw_text(healthstr, 90, 823);
+				if(focus->armor){
+					int offset = text_width(healthstr);
+					glPushMatrix();
+					glScalef(0.5f, 0.5f, 1.0f);
+					draw_textf("%d", (90 + offset)*2, 826*2, (focus->health / HEALTHSCALE) + focus->armor * 3 / 10);
+					glPopMatrix();
+				}
+				//if(focus->armor) draw_textf("%d", 360, 823, focus->armor);
+				//if(focus->weapons[WEAP_GRENADE] && focus->weapons[WEAP_GRENADE]->mag) focus->weapons[WEAP_GRENADE]->renderstats();
 			}
-			//if(focus->armor) draw_textf("%d", 360, 823, focus->armor);
-			//if(focus->weapons[WEAP_GRENADE] && focus->weapons[WEAP_GRENADE]->mag) focus->weapons[WEAP_GRENADE]->renderstats();
 			// The next set will alter the matrix - load the identity matrix and apply ortho after
 			if(focus->weaponsel && focus->weaponsel->type>=WEAP_KNIFE && focus->weaponsel->type<WEAP_MAX){
 				if(focus->weaponsel->type != WEAP_GRENADE) focus->weaponsel->renderstats();
@@ -1127,19 +1135,21 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	Texture *perk1 = getperktex1()[focus->perk1%PERK1_MAX], *perk2 = getperktex2()[focus->perk2%PERK2_MAX];
-	if(perk1 != perk2){
-		glColor4f(1.0f, 1.0f, 1.0f, focus->perk1 /* != PERK_NONE */ && focus->state != CS_DEAD ? .78f : .3f);
-		quad(perk1->id, VIRTW-225-10 - 100 - 15 - 100 - 20, VIRTH - 100 - 10, 100, 0, 0, 1);
-	}
+	if(show_hud_element(true, 1)){
+		Texture *perk1 = getperktex1()[focus->perk1%PERK1_MAX], *perk2 = getperktex2()[focus->perk2%PERK2_MAX];
+		if(perk1 != perk2){
+			glColor4f(1.0f, 1.0f, 1.0f, focus->perk1 /* != PERK_NONE */ && focus->state != CS_DEAD ? .78f : .3f);
+			quad(perk1->id, VIRTW-225-10 - 100 - 15 - 100 - 20, VIRTH - 100 - 10, 100, 0, 0, 1);
+		}
 
-	if(perk2){
-		glColor4f(1.0f, 1.0f, 1.0f, focus->perk2 /* != PERK_NONE */ && focus->state != CS_DEAD ? .78f : .3f);
-		quad(perk2->id, VIRTW-225-10 - 100 - 20, VIRTH - 100 - 10, 100, 0, 0, 1);
+		if(perk2){
+			glColor4f(1.0f, 1.0f, 1.0f, focus->perk2 /* != PERK_NONE */ && focus->state != CS_DEAD ? .78f : .3f);
+			quad(perk2->id, VIRTW-225-10 - 100 - 20, VIRTH - 100 - 10, 100, 0, 0, 1);
+		}
 	}
 
 	// streak meter
-	if(showstreak){
+	if(show_hud_element(showstreak, 1)){
 		const float streakscale = 1.5f;
 		static Texture *streakt[2][4] = { NULL };
 		loopi(2) loopj(4){
