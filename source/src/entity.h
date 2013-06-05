@@ -108,11 +108,16 @@ static inline ushort magsize(int gun) { return guns[gun].magsize; }
 static inline ushort reloadsize(int gun) { return guns[gun].addsize; }
 static inline ushort effectiveDamage(int gun, float dist, bool explosive) {
 	float finaldamage = 0;
-	if(dist <= guns[gun].range || (!guns[gun].range && !guns[gun].endrange)) finaldamage = guns[gun].damage;
+	if(explosive)
+	{
+	    float scaledrange = (float)dist / ((float)guns[gun].endrange);
+	    finaldamage = guns[gun].damage/(1+(guns[gun].damage-1)*pow(scaledrange,4));
+	}
+	else if(dist <= guns[gun].range || (!guns[gun].range && !guns[gun].endrange)) finaldamage = guns[gun].damage;
 	else if(dist >= guns[gun].endrange) finaldamage = guns[gun].damage - guns[gun].rangeminus;
 	else{
 		float subtractfactor = (dist - (float)guns[gun].range) / ((float)guns[gun].endrange - (float)guns[gun].range);
-		if(explosive) subtractfactor = sqrtf(subtractfactor);
+		//if(explosive) subtractfactor = subtractfactor*subtractfactor;
 		finaldamage = guns[gun].damage - subtractfactor * guns[gun].rangeminus;
 	}
 	return finaldamage * HEALTHSCALE;
@@ -166,7 +171,7 @@ static inline const uchar privcolor(int priv, bool dead = false){
 	return 5;
 }
 
-static inline const char *privname(int priv){ 
+static inline const char *privname(int priv){
 	switch(priv){
 		case PRIV_NONE: return "user";
 		case PRIV_MASTER: return "master";
