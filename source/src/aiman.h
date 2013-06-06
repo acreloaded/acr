@@ -133,20 +133,24 @@ void checkai(){
 		}
 		if(balance > 0){
 			if(m_team(gamemode, mutators) && !m_zombie(gamemode)){
-				int plrs[2] = {0}, highest = -1;
-				loopv(clients) if(valid_client(i, true) && clients[i]->team < 2){
-					++plrs[clients[i]->team];
-					if(highest < 0 || plrs[clients[i]->team] > plrs[highest]) highest = clients[i]->team;
-				}
-				if(highest >= 0){
-					int bots = balance-humans;
-					loopi(2) if(i != highest && plrs[i] < plrs[highest]) loopj(plrs[highest]-plrs[i]){
-						if(bots > 0) --bots;
-						else ++balance;
-					}
-				}
-				// fix if odd
-				if(botbalance < 0 && (balance & 1)) ++balance;
+			    if(botbalance < -1) balance = (((botbalance)/-32)&0x0F)+(((botbalance)/-2)&0x0F);
+			    else
+			    {
+                    int plrs[2] = {0}, highest = -1;
+                    loopv(clients) if(valid_client(i, true) && clients[i]->team < 2){
+                        ++plrs[clients[i]->team];
+                        if(highest < 0 || plrs[clients[i]->team] > plrs[highest]) highest = clients[i]->team;
+                    }
+                    if(highest >= 0){
+                        int bots = balance-humans;
+                        loopi(2) if(i != highest && plrs[i] < plrs[highest]) loopj(plrs[highest]-plrs[i]){
+                            if(bots > 0) --bots;
+                            else ++balance;
+                        }
+                    }
+                    // fix if odd
+                    if(botbalance == -1 && (balance & 1)) ++balance;
+			    }
 			}
 			while(countplayers() < balance) if(!addai()) break;
 			while(countplayers() > balance) if(!delai()) break;
@@ -154,9 +158,10 @@ void checkai(){
 				client &ci = *clients[i];
 				if(ci.type != ST_AI) continue;
 				int teamb = chooseteam(ci, ci.team);
+				if (teamb == TEAM_SPECT) continue;
 				if(ci.team != teamb) updateclientteam(i, teamb, FTR_SILENT);
 			}
-		}
+        }
 		else clearai();
 	}
 }

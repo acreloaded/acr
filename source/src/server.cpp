@@ -202,17 +202,38 @@ int chooseteam(client &ci, int suggest = -1){
 	// zombies override
 	if(m_zombie(gamemode) && !m_convert(gamemode, mutators)) return ci.type == ST_AI ? TEAM_RED : TEAM_BLUE;
 	// by team size, then by rank
-	int teamsize[2] = {0};
-	int teamscore[2] = {0};
-	int sum = calcscores();
-	loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connected && clients[i] != &ci && (ci.type == ST_AI || clients[i]->type!=ST_AI) && clients[i]->team < 2)
+	if(botbalance < -1)
 	{
-		++teamsize[clients[i]->team];
-		teamscore[clients[i]->team] += clients[i]->at3_score;
+	    int teamsize[2] = {0};
+	    int teamfull[2] = {((botbalance)/-32)&0x1F,((botbalance)/-2)&0x1F};
+        int teamscore[2] = {0};
+        int sum = calcscores();
+        loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connected && clients[i] != &ci && (ci.type == ST_AI || clients[i]->type!=ST_AI) && clients[i]->team < 2)
+        {
+            ++teamsize[clients[i]->team];
+            teamscore[clients[i]->team] += clients[i]->at3_score;
+        }
+        if(teamfull[1] != 0 && teamfull[0] == 0) return teamsize[1] < teamfull[1] ? 1 : TEAM_SPECT;
+        else if(teamfull[1] == 0 && teamfull[0] != 0) return teamsize[0] < teamfull[0] ? 0 : TEAM_SPECT;
+        else if(teamfull[1] == 0 && teamfull[0] == 0) return TEAM_SPECT;
+        float fracs[2] = {teamsize[0]/teamfull[0], teamsize[1]/teamfull[1]};
+        if (fracs[0] < 1 || fracs[1] < 1) return fracs[0] > fracs[1] ? 1 : 0;
+        else return TEAM_SPECT;
 	}
-	if(teamsize[0] != teamsize[1]) return teamsize[1] < teamsize[0] ? 1 : 0;
-	if(team_valid(suggest)) return suggest;
-	return sum > 200 ? (teamscore[0] < teamscore[1] ? 0 : 1) : rnd(2);
+    else
+    {
+        int teamsize[2] = {0};
+        int teamscore[2] = {0};
+        int sum = calcscores();
+        loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connected && clients[i] != &ci && (ci.type == ST_AI || clients[i]->type!=ST_AI) && clients[i]->team < 2)
+        {
+            ++teamsize[clients[i]->team];
+            teamscore[clients[i]->team] += clients[i]->at3_score;
+        }
+        if(teamsize[0] != teamsize[1]) return teamsize[1] < teamsize[0] ? 1 : 0;
+        if(team_valid(suggest)) return suggest;
+        return sum > 200 ? (teamscore[0] < teamscore[1] ? 0 : 1) : rnd(2);
+	}
 }
 
 client *findbestmapclient(){
@@ -1797,7 +1818,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 	}
 
 	// automatic zombie count
-	if(botbalance <= 0 && m_zombie(gamemode) && !m_progressive(gamemode, mutators) && target->team != actor->team){
+	if((botbalance == 0 || botbalance ==-1) && m_zombie(gamemode) && !m_progressive(gamemode, mutators) && target->team != actor->team){
 		// zombie killed
 		if(target->team == TEAM_RED){
 			--zombiesremain;
@@ -4334,7 +4355,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					case SA_BOTBALANCE:
 					{
 						int b = getint(p);
-						b = clamp(b, -1, MAXBOTBALANCE);
 						vi->action = new botbalanceaction(b);
 						break;
 					}

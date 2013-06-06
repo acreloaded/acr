@@ -973,8 +973,9 @@ const char *votestring(int type, const votedata &vote)
 			formatstring(out)(
 				vote.int1 == 1 ? "bots balance teams only" :
 				!vote.int1 ? "disable all bots" :
-				vote.int1 < 0 ? "automatically balance bots" :
-				"balance to %d players", vote.int1);
+				vote.int1 == -1 ? "automatically balance bots" :
+				vote.int1 < -1 ? "custom teams %d red, %d blue" :
+				"balance to %d players", vote.int1 < -1 ? ((vote.int1/-32)&0x0F) : vote.int1, ((vote.int1/-2)&0x0F));
 			break;
 
 		case SA_MASTERMODE: // int1
@@ -1115,7 +1116,7 @@ void callvote_parser(char *type, char *arg1, char *arg2, char *arg3)
 			}
 			callvote(t, vote);
 		}
-		
+
 	}
 }
 
@@ -1149,7 +1150,7 @@ void clearvote() { DELETEP(curvote); }
 COMMANDN(callvote, callvote_parser, ARG_4STR);
 COMMAND(vote, ARG_1EXP);
 
-void cleanplayervotes(playerent *p){	
+void cleanplayervotes(playerent *p){
 	if(curvote && curvote->owner==p) curvote->owner = NULL;
 }
 

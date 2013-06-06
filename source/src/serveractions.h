@@ -74,7 +74,7 @@ struct mapaction : serveraction
 			const bool spawns = ((!m_team(mode, muts) || m_keep(mode)|| m_zombie(mode)) ? ms->spawns[2] : false) || (ms->spawns[0] && ms->spawns[1]);
 			const bool flags = m_secure(mode) || m_hunt(mode) || !m_affinity(mode) || (ms->flags[0] && ms->flags[1]);
 			const bool secures = !m_secure(mode) || ms->flags[2];
-				
+
 			if(!spawns || !flags || !secures)
 			{
 				reqpriv = privconf('P');
@@ -363,7 +363,7 @@ struct botbalanceaction : serveraction
 		reqpriv = privconf('a');
 		reqveto = PRIV_MASTER; // botbalance
 		if(isvalid()){
-			formatstring(desc)(b<0?"automatically balance bots":b==0?"disable all bots":b==1?"bots balance teams only":"balance to %d players", b);
+			formatstring(desc)(b<-1?"Set custom teams %d red, %d blue":b==-1?"automatically balance bots %d":b==0?"disable all bots":b==1?"bots balance teams only":"balance to %d players", b < -1 ? ((b/-32)&0x0F) : b, ((b/-2)&0x0F));
 		}
 	}
 };
@@ -425,7 +425,7 @@ struct voteinfo
 		const int expireresult = stats[VOTE_YES]/(float)(stats[VOTE_NO]+stats[VOTE_YES]) > action->passratio ? VOTE_YES : VOTE_NO;
 		sendf(-1, 1, "ri4", N_VOTEREMAIN, expireresult,
 			(int)floor(stats[VOTE_NUM] * action->passratio) + 1 - stats[VOTE_YES],
-			(int)floor(stats[VOTE_NUM] * action->passratio) + 1 - stats[VOTE_NO]); 
+			(int)floor(stats[VOTE_NUM] * action->passratio) + 1 - stats[VOTE_NO]);
 		// can it end?
 		if(forceend){
 			if(veto == VOTE_NEUTRAL) end(expireresult, -3);
