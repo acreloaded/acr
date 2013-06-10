@@ -423,7 +423,9 @@ struct savedlimit
 		saychars = cl.saychars;
 		lastsay = cl.lastsay;
 		spamcount = cl.spamcount;
+#if (SERVER_BUILTIN_MOD & 64)
 		nuked = cl.nuked;
+#endif
 	}
 
 	void restore(client &cl)
@@ -434,7 +436,9 @@ struct savedlimit
 		cl.saychars = saychars;
 		cl.lastsay = lastsay;
 		cl.spamcount = spamcount;
+#if (SERVER_BUILTIN_MOD & 64)
 		cl.nuked = nuked;
+#endif
 	}
 };
 
