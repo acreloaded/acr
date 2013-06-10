@@ -1,6 +1,6 @@
 // server.h
 
-#define SERVER_BUILTIN_MOD 0
+#define SERVER_BUILTIN_MOD 64
 // 1 = super knife (gib only)
 // 2 = moon jump (gib only, unless always on is set)
 // 4 = moon jump (always on), no effect unless moon jump is set
@@ -166,9 +166,6 @@ struct clientstate : playerstate
 	ivector revengelog;
 	vector<wound> wounds;
 	bool valid;
-#if (SERVER_BUILTIN_MOD & 64)
-	bool nuked;
-#endif
 
 	clientstate() : state(CS_DEAD), valid(true), playerstate() {}
 
@@ -212,9 +209,6 @@ struct clientstate : playerstate
 		pointstreak = deathstreak = streakused = 0;
 		radarearned = airstrikes = nukemillis = 0;
 		valid = true;
-#if (SERVER_BUILTIN_MOD & 64)
-		nuked = false;
-#endif
 		respawn();
 	}
 
@@ -309,6 +303,9 @@ struct client				   // server side version of "dynent" type
 	string pwd;
 	int mapcollisions;
 	enet_uint32 bottomRTT;
+#if (SERVER_BUILTIN_MOD & 64)
+	bool nuked;
+#endif
 
 	void addevent(timedevent *e)
 	{
@@ -370,6 +367,9 @@ struct client				   // server side version of "dynent" type
 		lastevent = 0;
 		at3_lastforce = 0;
 		mapcollisions = 0;
+#if (SERVER_BUILTIN_MOD & 64)
+		nuked = false;
+#endif
 	}
 
 	void reset()
@@ -411,6 +411,9 @@ struct savedlimit
 	enet_uint32 ip;
 	int lastvotecall, lastkickcall;
 	int saychars, lastsay, spamcount;
+#if (SERVER_BUILTIN_MOD & 64)
+	bool nuked;
+#endif
 
 	void save(client &cl)
 	{
@@ -420,6 +423,7 @@ struct savedlimit
 		saychars = cl.saychars;
 		lastsay = cl.lastsay;
 		spamcount = cl.spamcount;
+		nuked = cl.nuked;
 	}
 
 	void restore(client &cl)
@@ -430,6 +434,7 @@ struct savedlimit
 		cl.saychars = saychars;
 		cl.lastsay = lastsay;
 		cl.spamcount = spamcount;
+		cl.nuked = nuked;
 	}
 };
 
