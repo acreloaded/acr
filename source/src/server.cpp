@@ -207,7 +207,7 @@ int chooseteam(client &ci, int suggest = -1){
 	    int teamsize[2] = {0};
 	    int teamfull[2] = {((botbalance)/-32)&0x1F,((botbalance)/-2)&0x1F};
         int teamscore[2] = {0};
-        int sum = calcscores();
+        // int sum = calcscores(); // this is not used!
         loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connected && clients[i] != &ci && (ci.type == ST_AI || clients[i]->type!=ST_AI) && clients[i]->team < 2)
         {
             ++teamsize[clients[i]->team];
