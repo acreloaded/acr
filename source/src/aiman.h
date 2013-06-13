@@ -105,12 +105,14 @@ void checkai(){
 		int zombies_suicide_given = 0;
 		while(countbots() < zombies) if(!addai()) break;
 		while(countbots() > zombies) if(!delai()) break;
+#if !(SERVER_BUILTIN_MOD & 128)
 		// force suicide bombers
 		loopv(clients) if(clients[i]->type == ST_AI){
 			bool has_bomber = (++zombies_suicide_given <= zombies_suicide);
 			clients[i]->state.deathstreak = has_bomber ? 10 : 0;
 			clients[i]->state.streakondeath = has_bomber ? STREAK_REVENGE : -1;
 		}
+#endif
 	}
 	else{
 		int balance = 0;

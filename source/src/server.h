@@ -8,6 +8,7 @@
 // 16 = explosive ammo
 // 32 = moonjump with no damage (mario)
 // 64 = /suicide for nuke
+// 128 = no explosive zombies
 
 #define gamemode smode   // allows the gamemode macros to work with the server mode
 #define mutators smuts // and mutators too
