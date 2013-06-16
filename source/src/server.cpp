@@ -3583,7 +3583,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					}
 					// no error:
 					default:
-						cl->addtimer(new nickevent(gamemillis, text));
+						cl->addtimer(new nickevent(gamemillis + 1500, text));
 						break;
 				}
 				break;

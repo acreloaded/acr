@@ -108,7 +108,7 @@ struct airstrikeevent : timedevent
 struct nickevent : timedevent
 {
 	char newname[MAXNAMELEN+1];
-	nickevent(int millis, const char *nick) : timedevent(GE_NICK, millis, 0) { copystring(newname, nick); }
+	nickevent(int millis, const char *nick) : timedevent(GE_NICK, millis, 0) { copystring(newname, nick, MAXNAMELEN+1); }
 	void process(client *ci);
 };
 
