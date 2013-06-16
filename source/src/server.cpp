@@ -3563,7 +3563,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				filtername(text, text);
 				if(!*text) copystring(text, "unarmed");
 				if(!strcmp(cl->name, text)) break; // same name!
-				loopv(cl->timers) if(cl->timers[i]->type == GE_NICK) cl->timers[i]->valid = false;
 				switch(const int nwl = nbl.checknickwhitelist(*cl)){
 					case NWL_PWDFAIL:
 					case NWL_IPFAIL:
@@ -3583,7 +3582,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 					}
 					// no error:
 					default:
-						cl->addtimer(new nickevent(gamemillis + 1500, text));
+						copystring(cl->newname, text, MAXNAMELEN+1);
+						cl->name_relay = servmillis + 1000;
 						break;
 				}
 				break;

@@ -288,12 +288,6 @@ void suicidebomberevent::process(client *ci){ explosion(*ci, ci->state.o, WEAP_G
 
 void airstrikeevent::process(client *ci){ explosion(*ci, o, WEAP_GRENADE, false); }
 
-void nickevent::process(client *ci){
-	logline(ACLOG_INFO,"[%s] %s is now called %s", gethostname(ci->clientnum), formatname(ci), newname);
-	copystring(ci->name, newname, MAXNAMELEN+1);
-	sendf(-1, 1, "ri2s", N_NEWNAME, ci->clientnum, ci->name);
-}
-
 // processing events
 bool timedevent::flush(client *ci, int fmillis)
 {
@@ -398,6 +392,13 @@ void processevents(){
 				c.timers[j]->process(&c);
 				delete c.timers.remove(j--);
 			}
+		}
+		// new nickname
+		if(c.name_relay && servmillis >= c.name_relay){
+			logline(ACLOG_INFO,"[%s] %s is now called %s", gethostname(i), formatname(&c), c.newname);
+			copystring(c.name, c.newname, MAXNAMELEN+1);
+			sendf(-1, 1, "ri2s", N_NEWNAME, i, c.name);
+			c.name_relay = 0;
 		}
 	}
 }
