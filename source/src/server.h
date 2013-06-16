@@ -15,7 +15,7 @@
 
 #define valid_flag(f) (f >= 0 && f < 2)
 
-enum { GE_NONE = 0, /* sequenced */ GE_SHOT, GE_PROJ, GE_AKIMBO, GE_RELOAD, /* immediate */ GE_SUICIDEBOMB, /* unsequenced */ GE_HEAL, GE_AIRSTRIKE };
+enum { GE_NONE = 0, /* sequenced */ GE_SHOT, GE_PROJ, GE_AKIMBO, GE_RELOAD, /* immediate */ GE_SUICIDEBOMB, /* unsequenced */ GE_NICK, GE_HEAL, GE_AIRSTRIKE };
 enum { ST_EMPTY, ST_LOCAL, ST_TCPIP, ST_AI };
 
 extern bool canreachauthserv;
@@ -102,6 +102,13 @@ struct airstrikeevent : timedevent
 {
 	vec o;
 	airstrikeevent(int millis, const vec &o) : timedevent(GE_AIRSTRIKE, millis, 0), o(o) {}
+	void process(client *ci);
+};
+
+struct nickevent : timedevent
+{
+	char newname[MAXNAMELEN+1];
+	nickevent(int millis, const char *nick) : timedevent(GE_NICK, millis, 0) { copystring(newname, nick); }
 	void process(client *ci);
 };
 

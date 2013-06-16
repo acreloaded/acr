@@ -288,6 +288,12 @@ void suicidebomberevent::process(client *ci){ explosion(*ci, ci->state.o, WEAP_G
 
 void airstrikeevent::process(client *ci){ explosion(*ci, o, WEAP_GRENADE, false); }
 
+void nickevent::process(client *ci){
+	logline(ACLOG_INFO,"[%s] %s is now called %s", gethostname(ci->clientnum), formatname(ci), newname);
+	copystring(ci->name, newname, MAXNAMELEN+1);
+	sendf(-1, 1, "ri2s", N_NEWNAME, ci->clientnum, ci->name);
+}
+
 // processing events
 bool timedevent::flush(client *ci, int fmillis)
 {

@@ -3563,6 +3563,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				filtername(text, text);
 				if(!*text) copystring(text, "unarmed");
 				if(!strcmp(cl->name, text)) break; // same name!
+				loopv(cl->timers) if(cl->timers[i]->type == GE_NICK) cl->timers[i]->valid = false;
 				switch(const int nwl = nbl.checknickwhitelist(*cl)){
 					case NWL_PWDFAIL:
 					case NWL_IPFAIL:
@@ -3580,10 +3581,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 						}
 						break;
 					}
+					// no error:
+					default:
+						cl->addtimer(new nickevent(gamemillis, text));
+						break;
 				}
-				logline(ACLOG_INFO,"[%s] %s is now called %s", gethostname(sender), formatname(cl), text);
-				copystring(cl->name, text, MAXNAMELEN+1);
-				sendf(-1, 1, "ri2s", N_NEWNAME, sender, cl->name);
 				break;
 
 			case N_SWITCHTEAM:
