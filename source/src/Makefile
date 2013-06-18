@@ -2,8 +2,8 @@ CXXOPTFLAGS=-O3 -fomit-frame-pointer
 INCLUDES1=-I/usr/X11R6/include -I../enet/include -I../src
 INCLUDES2=`sdl-config --cflags`
 CXXCUSTOMFLAGS=-fsigned-char -Wall -Wextra -Wno-missing-field-initializers -Wno-unused -Wpointer-arith -Wwrite-strings -Wconversion -rdynamic
-CXXFLAGS=$(CXXOPTFLAGS) $(INCLUDES1) $(INCLUDES2) $(CUSTOMFLAGS)
-CXXFLAGSSERVER=$(CXXOPTFLAGS) $(INCLUDES1) $(CUSTOMFLAGS)
+CXXFLAGS=$(CXXOPTFLAGS) $(INCLUDES1) $(INCLUDES2) $(CXXCUSTOMFLAGS)
+CXXFLAGSSERVER=$(CXXOPTFLAGS) $(INCLUDES1) $(CXXCUSTOMFLAGS)
 
 PLATFORM_PREFIX=native
 CLIENT_LIBS=-L/usr/X11R6/lib -L../enet/.libs -lenet `sdl-config --libs` -lSDL_image -lz -lGL -lopenal -lvorbisfile

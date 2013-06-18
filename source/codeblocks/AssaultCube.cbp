@@ -3,12 +3,12 @@
 	<FileVersion major="1" minor="6" />
 	<Project>
 		<Option title="AssaultCube" />
-		<Option makefile_is_custom="1" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="install">
-				<Option output="AssaultCube" prefix_auto="0" extension_auto="0" />
+				<Option platforms="Unix;Mac;" />
+				<Option output="AssaultCube.exe" prefix_auto="0" extension_auto="0" />
 				<Option working_dir="./" />
 				<Option object_output="../" />
 				<Option type="1" />
@@ -18,186 +18,538 @@
 				<Option projectIncludeDirsRelation="0" />
 				<Option projectResourceIncludeDirsRelation="0" />
 				<Option projectLibDirsRelation="0" />
+				<ExtraCommands>
+					<Add before="cm" />
+				</ExtraCommands>
 				<MakeCommands>
 					<Build command="cd ../src; $make -f $makefile $target" />
 					<CompileFile command="cd ../src; $make -f $makefile $file" />
 					<Clean command="cd ../src; $make -f $makefile clean" />
 					<DistClean command="cd ../src;$make -f $makefile distclean" />
 					<AskRebuildNeeded command="cd ../src; $make -q -f $makefile $target" />
-					<SilentBuild command="cd ../src; $make -s -f $makefile $target" />
+					<SilentBuild command="cd ../src; $make -f $makefile $target &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
+			<Target title="winclient">
+				<Option platforms="Windows;" />
+				<Option output="../../bin_win32/ac_client" prefix_auto="1" extension_auto="1" />
+				<Option object_output=".objs/winclient" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option projectLinkerOptionsRelation="1" />
+				<Compiler>
+					<Add option="-O3 -fomit-frame-pointer -I../enet/include -I../src -I../include" />
+					<Add option="-fsigned-char -Wall -Wextra -Wno-missing-field-initializers -Wno-unused -Wpointer-arith -Wwrite-strings -Wconversion" />
+				</Compiler>
+				<Linker>
+					<Add option="-L../../bin_win32 -L../enet/.libs -lmingw32 -lopengl32 -lSDLmain -lSDL -lSDL_image -lzlib1 -lopenal32 -lvorbisfile -lenet -lwinmm -lws2_32" />
+				</Linker>
+				<ExtraCommands>
+					<Add before="cmd /c cd ../enet &amp; sh configure --enable-shared=no --enable-static=yes" />
+					<Add before="make -C ../enet all" />
+				</ExtraCommands>
+			</Target>
+			<Target title="winserver">
+				<Option platforms="Windows;" />
+				<Option output="../../bin_win32/ac_server" prefix_auto="1" extension_auto="1" />
+				<Option object_output=".objs/winserver" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option projectCompilerOptionsRelation="1" />
+				<Option projectLinkerOptionsRelation="1" />
+				<Compiler>
+					<Add option="-O3 -fomit-frame-pointer -I../enet/include -I../src -I../include" />
+					<Add option="-fsigned-char -Wall -Wextra -Wno-missing-field-initializers -Wno-unused -Wpointer-arith -Wwrite-strings -Wconversion" />
+					<Add option="-DSTANDALONE" />
+				</Compiler>
+				<Linker>
+					<Add option="-L../../bin_win32 -L../enet/.libs -lmingw32 -lenet -lwinmm -lws2_32 -lzlib1" />
+				</Linker>
+				<ExtraCommands>
+					<Add before="cmd /c cd ../enet &amp; sh configure --enable-shared=no --enable-static=yes" />
+					<Add before="make -C ../enet all" />
+				</ExtraCommands>
+			</Target>
 		</Build>
+		<ExtraCommands>
+			<Add before="cd ../src &amp; make install" />
+		</ExtraCommands>
 		<Unit filename="../enet/callbacks.c">
 			<Option compilerVar="CC" />
+			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../enet/host.c">
 			<Option compilerVar="CC" />
+			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
-		<Unit filename="../enet/include/enet/callbacks.h" />
-		<Unit filename="../enet/include/enet/enet.h" />
-		<Unit filename="../enet/include/enet/list.h" />
-		<Unit filename="../enet/include/enet/protocol.h" />
-		<Unit filename="../enet/include/enet/time.h" />
-		<Unit filename="../enet/include/enet/types.h" />
-		<Unit filename="../enet/include/enet/unix.h" />
-		<Unit filename="../enet/include/enet/utility.h" />
-		<Unit filename="../enet/include/enet/win32.h" />
+		<Unit filename="../enet/include/enet/callbacks.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../enet/include/enet/enet.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../enet/include/enet/list.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../enet/include/enet/protocol.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../enet/include/enet/time.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../enet/include/enet/types.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../enet/include/enet/unix.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../enet/include/enet/utility.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../enet/include/enet/win32.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
 		<Unit filename="../enet/list.c">
 			<Option compilerVar="CC" />
+			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../enet/packet.c">
 			<Option compilerVar="CC" />
+			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../enet/peer.c">
 			<Option compilerVar="CC" />
+			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../enet/protocol.c">
 			<Option compilerVar="CC" />
+			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../enet/unix.c">
 			<Option compilerVar="CC" />
+			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../enet/win32.c">
 			<Option compilerVar="CC" />
+			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
-		<Unit filename="../include/AL/EFX-Util.h" />
-		<Unit filename="../include/AL/al.h" />
-		<Unit filename="../include/AL/alc.h" />
-		<Unit filename="../include/AL/efx-creative.h" />
-		<Unit filename="../include/AL/efx.h" />
-		<Unit filename="../include/AL/xram.h" />
-		<Unit filename="../include/GL/glext.h" />
-		<Unit filename="../include/SDL.h" />
-		<Unit filename="../include/SDL_active.h" />
-		<Unit filename="../include/SDL_audio.h" />
-		<Unit filename="../include/SDL_byteorder.h" />
-		<Unit filename="../include/SDL_cdrom.h" />
-		<Unit filename="../include/SDL_config.h" />
-		<Unit filename="../include/SDL_config_macosx.h" />
-		<Unit filename="../include/SDL_config_win32.h" />
-		<Unit filename="../include/SDL_copying.h" />
-		<Unit filename="../include/SDL_cpuinfo.h" />
-		<Unit filename="../include/SDL_endian.h" />
-		<Unit filename="../include/SDL_error.h" />
-		<Unit filename="../include/SDL_events.h" />
-		<Unit filename="../include/SDL_getenv.h" />
-		<Unit filename="../include/SDL_image.h" />
-		<Unit filename="../include/SDL_joystick.h" />
-		<Unit filename="../include/SDL_keyboard.h" />
-		<Unit filename="../include/SDL_keysym.h" />
-		<Unit filename="../include/SDL_loadso.h" />
-		<Unit filename="../include/SDL_main.h" />
-		<Unit filename="../include/SDL_mixer.h" />
-		<Unit filename="../include/SDL_mouse.h" />
-		<Unit filename="../include/SDL_mutex.h" />
-		<Unit filename="../include/SDL_name.h" />
-		<Unit filename="../include/SDL_opengl.h" />
-		<Unit filename="../include/SDL_platform.h" />
-		<Unit filename="../include/SDL_quit.h" />
-		<Unit filename="../include/SDL_rwops.h" />
-		<Unit filename="../include/SDL_stdinc.h" />
-		<Unit filename="../include/SDL_syswm.h" />
-		<Unit filename="../include/SDL_thread.h" />
-		<Unit filename="../include/SDL_timer.h" />
-		<Unit filename="../include/SDL_types.h" />
-		<Unit filename="../include/SDL_version.h" />
-		<Unit filename="../include/SDL_video.h" />
-		<Unit filename="../include/begin_code.h" />
-		<Unit filename="../include/close_code.h" />
-		<Unit filename="../include/ogg/ogg.h" />
-		<Unit filename="../include/ogg/os_types.h" />
-		<Unit filename="../include/vorbis/codec.h" />
-		<Unit filename="../include/vorbis/vorbisenc.h" />
-		<Unit filename="../include/vorbis/vorbisfile.h" />
-		<Unit filename="../include/wincompat.h" />
-		<Unit filename="../include/zconf.h" />
-		<Unit filename="../include/zlib.h" />
-		<Unit filename="../src/aiman.h" />
-		<Unit filename="../src/auth.h" />
-		<Unit filename="../src/ballistics.h" />
-		<Unit filename="../src/bot/ac_bot.cpp" />
-		<Unit filename="../src/bot/ac_bot.h" />
-		<Unit filename="../src/bot/ac_bot_ai.cpp" />
-		<Unit filename="../src/bot/bot.cpp" />
-		<Unit filename="../src/bot/bot.h" />
-		<Unit filename="../src/bot/bot_ai.cpp" />
-		<Unit filename="../src/bot/bot_util.cpp" />
-		<Unit filename="../src/bot/bot_util.h" />
-		<Unit filename="../src/bot/bot_waypoint.cpp" />
-		<Unit filename="../src/bot/bot_waypoint.h" />
-		<Unit filename="../src/bot/botmanager.cpp" />
-		<Unit filename="../src/client.cpp" />
-		<Unit filename="../src/clientgame.cpp" />
-		<Unit filename="../src/clients2c.cpp" />
-		<Unit filename="../src/command.cpp" />
-		<Unit filename="../src/command.h" />
-		<Unit filename="../src/console.cpp" />
-		<Unit filename="../src/console.h" />
-		<Unit filename="../src/crypto.h" />
-		<Unit filename="../src/cube.h" />
-		<Unit filename="../src/docs.cpp" />
-		<Unit filename="../src/editing.cpp" />
-		<Unit filename="../src/entities.cpp" />
-		<Unit filename="../src/entity.h" />
-		<Unit filename="../src/gamemode.h" />
-		<Unit filename="../src/geom.h" />
-		<Unit filename="../src/hudgun.h" />
-		<Unit filename="../src/log.cpp" />
-		<Unit filename="../src/main.cpp" />
-		<Unit filename="../src/md2.h" />
-		<Unit filename="../src/md3.h" />
-		<Unit filename="../src/menus.cpp" />
-		<Unit filename="../src/model.h" />
-		<Unit filename="../src/modelcache.h" />
-		<Unit filename="../src/packetqueue.cpp" />
-		<Unit filename="../src/pch.h" />
-		<Unit filename="../src/physics.cpp" />
-		<Unit filename="../src/points.h" />
-		<Unit filename="../src/protocol.cpp" />
-		<Unit filename="../src/protocol.h" />
-		<Unit filename="../src/protos.h" />
-		<Unit filename="../src/rendercubes.cpp" />
-		<Unit filename="../src/rendergl.cpp" />
-		<Unit filename="../src/renderhud.cpp" />
-		<Unit filename="../src/rendermodel.cpp" />
-		<Unit filename="../src/renderparticles.cpp" />
-		<Unit filename="../src/rendertext.cpp" />
-		<Unit filename="../src/rndmap.cpp" />
-		<Unit filename="../src/scoreboard.cpp" />
-		<Unit filename="../src/server.cpp" />
-		<Unit filename="../src/server.h" />
-		<Unit filename="../src/serveractions.h" />
-		<Unit filename="../src/serverballistics.h" />
-		<Unit filename="../src/serverbrowser.cpp" />
-		<Unit filename="../src/servercontroller.h" />
-		<Unit filename="../src/serverevents.h" />
-		<Unit filename="../src/serverms.cpp" />
-		<Unit filename="../src/shadow.cpp" />
-		<Unit filename="../src/sound.cpp" />
-		<Unit filename="../src/sound.h" />
-		<Unit filename="../src/texture.cpp" />
-		<Unit filename="../src/tools.cpp" />
-		<Unit filename="../src/tools.h" />
-		<Unit filename="../src/tristrip.h" />
-		<Unit filename="../src/tristrip_t.h" />
-		<Unit filename="../src/vertmodel.h" />
-		<Unit filename="../src/vertmodel_t.h" />
-		<Unit filename="../src/water.cpp" />
-		<Unit filename="../src/weapon.cpp" />
-		<Unit filename="../src/weapon.h" />
-		<Unit filename="../src/winserviceinstaller.h" />
-		<Unit filename="../src/wizard.cpp" />
-		<Unit filename="../src/world.cpp" />
-		<Unit filename="../src/world.h" />
-		<Unit filename="../src/worldio.cpp" />
-		<Unit filename="../src/worldlight.cpp" />
-		<Unit filename="../src/worldocull.cpp" />
-		<Unit filename="../src/worldrender.cpp" />
-		<Unit filename="../xcode/ConsoleView.h" />
-		<Unit filename="../xcode/Launcher.h" />
-		<Unit filename="../xcode/SDLMain.h" />
-		<Unit filename="../xcode/alut/alut.h" />
+		<Unit filename="../include/AL/EFX-Util.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/AL/al.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/AL/alc.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/AL/efx-creative.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/AL/efx.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/AL/xram.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/GL/glext.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_active.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_audio.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_byteorder.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_cdrom.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_config.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_config_macosx.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_config_win32.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_copying.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_cpuinfo.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_endian.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_error.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_events.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_getenv.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_image.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_joystick.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_keyboard.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_keysym.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_loadso.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_main.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_mixer.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_mouse.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_mutex.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_name.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_opengl.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_platform.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_quit.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_rwops.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_stdinc.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_syswm.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_thread.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_timer.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_types.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_version.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/SDL_video.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/begin_code.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/close_code.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/ogg/ogg.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/ogg/os_types.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/vorbis/codec.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/vorbis/vorbisenc.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/vorbis/vorbisfile.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/wincompat.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/zconf.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../include/zlib.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/aiman.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/auth.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/ballistics.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/bot/ac_bot.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/bot/ac_bot.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/bot/ac_bot_ai.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/bot/bot.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/bot/bot.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/bot/bot_ai.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/bot/bot_util.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/bot/bot_util.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/bot/bot_waypoint.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/bot/bot_waypoint.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/bot/botmanager.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/client.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/clientgame.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/clients2c.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/command.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/command.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/console.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/console.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/crypto.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/cube.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/docs.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/editing.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/entities.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/entity.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/gamemode.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/geom.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/hudgun.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/log.cpp">
+			<Option target="winclient" />
+			<Option target="winserver" />
+		</Unit>
+		<Unit filename="../src/main.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/md2.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/md3.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/menus.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/model.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/modelcache.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/packetqueue.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/pch.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/physics.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/points.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/protocol.cpp">
+			<Option target="winclient" />
+			<Option target="winserver" />
+		</Unit>
+		<Unit filename="../src/protocol.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/protos.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/rendercubes.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/rendergl.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/renderhud.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/rendermodel.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/renderparticles.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/rendertext.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/rndmap.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/scoreboard.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/server.cpp">
+			<Option target="winclient" />
+			<Option target="winserver" />
+		</Unit>
+		<Unit filename="../src/server.h">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/serveractions.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/serverballistics.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/serverbrowser.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/servercontroller.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/serverevents.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/serverms.cpp">
+			<Option target="winclient" />
+			<Option target="winserver" />
+		</Unit>
+		<Unit filename="../src/shadow.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/sound.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/sound.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/texture.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/tools.cpp">
+			<Option target="winclient" />
+			<Option target="winserver" />
+		</Unit>
+		<Unit filename="../src/tools.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/tristrip.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/tristrip_t.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/vertmodel.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/vertmodel_t.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/water.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/weapon.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/weapon.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/winserviceinstaller.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/wizard.cpp">
+			<Option target="winclient" />
+			<Option target="winserver" />
+		</Unit>
+		<Unit filename="../src/world.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/world.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../src/worldio.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/worldlight.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/worldocull.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../src/worldrender.cpp">
+			<Option target="winclient" />
+		</Unit>
+		<Unit filename="../xcode/ConsoleView.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../xcode/Launcher.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../xcode/SDLMain.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../xcode/alut/alut.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
 		<Extensions>
 			<code_completion />
 			<envvars />

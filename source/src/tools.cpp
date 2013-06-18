@@ -12,6 +12,10 @@
 #include <dirent.h>
 #endif
 
+#if defined(WIN32) && defined(__GNUC__)
+#define KEY_WOW64_64KEY	0x0100
+#endif // WIN32 && __GNUC__
+
 string homedir = "";
 vector<char *> packagedirs;
 
@@ -71,7 +75,7 @@ unsigned int &genguid(int b, uint a, int c, const char* z)
 
 void *basicgen() {
 	// WARNING: the following code is designed to give you a headache, but it probably won't
-#if defined(WIN32) && !defined(__GNUC__)
+#if defined(WIN32)// && !defined(__GNUC__)
 	const char * const *temp = (char **) (char ***) (char *********) 20;
 	--temp = (char **) (char ****) 2000;
 	temp = (char **) (char ****) 21241;
@@ -437,7 +441,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 		copystring(s.hdr.mediareq, "", 128);
 	if(s.hdr.version>=4)
 	{
-		lilswap(&s.hdr.waterlevel, 1); 
+		lilswap(&s.hdr.waterlevel, 1);
 		lilswap(&s.hdr.maprevision, 2);
 	}
 	else
