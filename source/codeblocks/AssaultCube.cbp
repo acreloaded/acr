@@ -9,7 +9,7 @@
 		<Build>
 			<Target title="install">
 				<Option output="AssaultCube" prefix_auto="0" extension_auto="0" />
-				<Option working_dir="../../" />
+				<Option working_dir="./" />
 				<Option object_output="../" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -19,12 +19,12 @@
 				<Option projectResourceIncludeDirsRelation="0" />
 				<Option projectLibDirsRelation="0" />
 				<MakeCommands>
-					<Build command="cd ../src;$make -f $makefile $target" />
-					<CompileFile command="cd ../src;$make -f $makefile $file" />
-					<Clean command="cd ../src;$make -f $makefile clean" />
+					<Build command="cd ../src; $make -f $makefile $target" />
+					<CompileFile command="cd ../src; $make -f $makefile $file" />
+					<Clean command="cd ../src; $make -f $makefile clean" />
 					<DistClean command="cd ../src;$make -f $makefile distclean" />
-					<AskRebuildNeeded command="$make -q -f $makefile $target" />
-					<SilentBuild command="$make -s -f $makefile $target" />
+					<AskRebuildNeeded command="cd ../src; $make -q -f $makefile $target" />
+					<SilentBuild command="cd ../src; $make -s -f $makefile $target" />
 				</MakeCommands>
 			</Target>
 		</Build>

@@ -75,8 +75,9 @@ libenet: ../enet/Makefile
 	-$(MAKE) -C ../enet all
 
 clean:
-	-$(RM) -f $(SERVER_OBJS) $(CLIENT_OBJS1) ac_server ac_client
-#	-$(MAKE) -C ../enet/ clean
+	-$(RM) -f $(SERVER_OBJS) $(CLIENT_OBJS1) native_server native_client 
+	-$(MAKE) -C ../enet/ clean
+
 
 mrproper: clean
 	-$(RM) -f $(CLIENT_OBJS2)
