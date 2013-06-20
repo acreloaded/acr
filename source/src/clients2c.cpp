@@ -129,6 +129,7 @@ void parsepositions(ucharbuf &p)
 			d->onfloor = (f & 4) == 4;
 			d->onladder = (f & 8) == 8;
 			d->sprinting = (f & 16) == 16;
+			d->typing = (f & 32) == 32;
 
 			updatepos(d);
 			updatelagtime(d);

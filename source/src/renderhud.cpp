@@ -873,13 +873,25 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		int h = 1;
 		float aspect = 1, scalef = 1, offset = (lastmillis - icon.millis) / 3000.f * 160.f;
 		switch(icon.type){
-			case eventicon::VOICECOM: case eventicon::PICKUP: scalef = .4f; break;
-				case eventicon::HEADSHOT:
-				case eventicon::CRITICAL:
-				case eventicon::REVENGE:
-				case eventicon::FIRSTBLOOD: aspect = 2; h = 4; break;
-			case eventicon::DECAPITATED: case eventicon::BLEED: scalef = .4f; break;
-			default: scalef = .3f; break;
+			case eventicon::CHAT:
+			case eventicon::VOICECOM:
+			case eventicon::PICKUP:
+				scalef = .4f;
+				break;
+			case eventicon::HEADSHOT:
+			case eventicon::CRITICAL:
+			case eventicon::REVENGE:
+			case eventicon::FIRSTBLOOD:
+				aspect = 2;
+				h = 4;
+				break;
+			case eventicon::DECAPITATED:
+			case eventicon::BLEED:
+				scalef = .4f;
+				break;
+			default:
+				scalef = .3f;
+				break;
 		}
 		glBindTexture(GL_TEXTURE_2D, tex->id);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

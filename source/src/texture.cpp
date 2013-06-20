@@ -580,7 +580,7 @@ void cleanuptmus()
 Texture **geteventicons(){
 	static Texture *tex[eventicon::TOTAL] = { NULL };
 	if(!*tex){
-		const char *texname[eventicon::TOTAL] = { "com", "headshot", "decapitated", "firstblood", "critical", "revenge", "bleed", "up", "radar", "airstrike", "nuke", "juggernaut", "dropnade", "suicidebomb" };
+		const char *texname[eventicon::TOTAL] = { "chat", "com", "headshot", "decapitated", "firstblood", "critical", "revenge", "bleed", "up", "radar", "airstrike", "nuke", "juggernaut", "dropnade", "suicidebomb" };
 		loopi(eventicon::TOTAL){
 			defformatstring(tname)("packages/misc/eventicons/%s.png", texname[i]);
 			tex[i] = textureload(tname);

@@ -561,7 +561,7 @@ COMMAND(onrelease, ARG_1STR);
 
 void saycommand(char *init)						 // turns input to the command line on or off
 {
-	SDL_EnableUNICODE(saycommandon = (init!=NULL));
+	SDL_EnableUNICODE(player1->typing = saycommandon = (init!=NULL));
 	setscope(false);
 	if(!editmode) keyrepeat(saycommandon);
 	copystring(cmdline.buf, init ? init : "");

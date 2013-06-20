@@ -37,6 +37,7 @@ misc
 		suicidebomb.png
 			© Activision and Infinity Ward
 		com.png - Protox Mod CC-BY 3.0
+		chat.png
 		critical.png
 		firstblood.png
 		headshot.png

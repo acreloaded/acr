@@ -314,7 +314,7 @@ struct playerstate
 	int pointstreak, deathstreak, assists, radarearned, airstrikes, nukemillis;
 	int primary, secondary, perk1, perk2, nextprimary, nextsecondary, nextperk1, nextperk2;
 	int gunselect, level;
-	bool akimbo, scoping, sprinting;
+	bool akimbo, scoping, sprinting, typing;
 	int ammo[WEAP_MAX], mag[WEAP_MAX], gunwait[WEAP_MAX];
 	ivector damagelog;
 
@@ -388,7 +388,7 @@ struct playerstate
 		spawnmillis = 0;
 		assists = armor = 0;
 		gunselect = WEAP_PISTOL;
-		akimbo = scoping = sprinting = false;
+		akimbo = scoping = sprinting = typing = false;
 		loopi(WEAP_MAX) ammo[i] = mag[i] = gunwait[i] = 0;
 		mag[WEAP_KNIFE] = 1;
 		lastkiller = -1;
@@ -527,7 +527,7 @@ struct playerstate
 #define WEAPONBELOWEYE .2f
 
 struct eventicon{
-    enum { VOICECOM = 0, HEADSHOT, DECAPITATED, FIRSTBLOOD, CRITICAL, REVENGE, BLEED, PICKUP, RADAR, AIRSTRIKE, NUKE, JUGGERNAUT, DROPNADE, SUICIDEBOMB, TOTAL };
+    enum { CHAT = 0, VOICECOM, HEADSHOT, DECAPITATED, FIRSTBLOOD, CRITICAL, REVENGE, BLEED, PICKUP, RADAR, AIRSTRIKE, NUKE, JUGGERNAUT, DROPNADE, SUICIDEBOMB, TOTAL };
     int type, millis;
 	eventicon(int type, int millis) : type(type), millis(millis){}
 };

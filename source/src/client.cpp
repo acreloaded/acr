@@ -348,9 +348,9 @@ void sendposition(playerent *d){
 	putfloat(q, d->vel.y);
 	putfloat(q, d->vel.z);
 	putfloat(q, d->pitchvel);
-	// pack rest in 1 int: strafe:2, move:2, lifesequence:1, crouching:1, scoping:1, onfloor:1, onladder:1
-	// onfloor+ causes overflow of 7-bits (1 byte wasted...)
-	putuint(q, (d->strafe&3) | ((d->move&3)<<2) | ((d->lifesequence&1)<<4) | (((int)d->crouching)<<5) | (((int)d->scoping)<<6) | (((int)d->onfloor)<<7) | (((int)d->onladder)<<8) | (((int)d->sprinting)<<9));
+	// pack rest in 1 int: strafe:2, move:2, lifesequence:1, crouching:1, scoping:1, onfloor:1, onladder:1, sprinting:1, typing:1
+	// onfloor/onladder/sprinting/typing causes overflow of 7-bits (1 byte wasted...)
+	putuint(q, (d->strafe&3) | ((d->move&3)<<2) | ((d->lifesequence&1)<<4) | (((int)d->crouching)<<5) | (((int)d->scoping)<<6) | (((int)d->onfloor)<<7) | (((int)d->onladder)<<8) | (((int)d->sprinting)<<9) | (((int)d->typing)<<10));
 
 	enet_packet_resize(packet, q.length());
 	sendpackettoserv(0, packet);

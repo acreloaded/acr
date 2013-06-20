@@ -342,17 +342,24 @@ VARP(waypointweapsize, 0, 25, 100);
 
 void renderaboveheadicon(playerent *p){
 	static Texture **texs = geteventicons();
-	loopv(p->icons){
-		eventicon &icon = p->icons[i];
-		const int t = lastmillis - icon.millis;
-		if(icon.type < 0 || icon.type >= eventicon::TOTAL || t > aboveheadiconfadetime){
+	loopi(p->icons.length()+1){
+		eventicon *icon;
+		if(p->icons.inrange(i)) icon = &p->icons[i];
+		else if(i == p->icons.length() && p->state != CS_DEAD && p->typing){
+			static eventicon icon_chat(eventicon::CHAT, 0);
+			icon_chat.millis = lastmillis;
+			icon = &icon_chat;
+		}
+		else continue;
+		const int t = lastmillis - icon->millis;
+		if(icon->type < 0 || icon->type >= eventicon::TOTAL || t > aboveheadiconfadetime){
 			p->icons.remove(i--);
 			continue;
 		}
 		if(!aboveheadiconsize || t > aboveheadiconfadetime) continue;
-		Texture *tex = texs[icon.type];
+		Texture *tex = texs[icon->type];
 		uint h = 1; float aspect = 2, scalef = 3;
-		switch(icon.type){
+		switch(icon->type){
 			case eventicon::HEADSHOT: case eventicon::CRITICAL: case eventicon::REVENGE: case eventicon::FIRSTBLOOD: h = 4; break;
 			case eventicon::DECAPITATED: case eventicon::BLEED: scalef = 2; aspect = 1; break;
 			default: scalef = aspect = 1; break;
