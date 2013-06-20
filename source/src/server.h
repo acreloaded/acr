@@ -1,6 +1,6 @@
 // server.h
 
-#define SERVER_BUILTIN_MOD 8
+#define SERVER_BUILTIN_MOD 0
 // 1 = super knife (gib only)
 // 2 = moon jump (gib only, unless always on is set)
 // 4 = moon jump (always on), no effect unless moon jump is set
