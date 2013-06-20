@@ -37,19 +37,19 @@ enum // game modes
 enum // game mutators
 {
 	G_M_NONE = 0,
-	G_M_TEAM = 1 << 0, G_M_CLASSIC = 1 << 1, G_M_CONFIRM = 1 << 2, G_M_VAMPIRE = 1 << 3, G_M_CONVERT = 1 << 4, // alters gameplay mostly
-	G_M_REAL = 1 << 5, G_M_EXPERT = 1 << 6, // alters damage mostly
-	G_M_INSTA = 1 << 7, G_M_PISTOL = 1 << 8, G_M_GIB = 1 << 9, G_M_EXPLOSIVE = 1 << 10, // alters weapons mostly
-	G_M_GSP1 = 1 << 11, // game-specific
+	G_M_TEAM = 1 << 0, G_M_CLASSIC = 1 << 1, G_M_CONFIRM = 1 << 2, G_M_VAMPIRE = 1 << 3, G_M_CONVERT = 1 << 4, G_M_PSYCHIC = 1 << 5, // alters gameplay mostly
+	G_M_REAL = 1 << 6, G_M_EXPERT = 1 << 7, // alters damage mostly
+	G_M_INSTA = 1 << 8, G_M_SNIPING = 1 << 9, G_M_PISTOL = 1 << 10, G_M_GIB = 1 << 11, G_M_EXPLOSIVE = 1 << 12, // alters weapons mostly
+	G_M_GSP1 = 1 << 13, // game-specific
 
-	G_M_GAMEPLAY = G_M_TEAM|G_M_CLASSIC|G_M_CONFIRM|G_M_VAMPIRE|G_M_CONVERT,
+	G_M_GAMEPLAY = G_M_TEAM|G_M_CLASSIC|G_M_CONFIRM|G_M_VAMPIRE|G_M_CONVERT|G_M_PSYCHIC,
 	G_M_DAMAGE = G_M_REAL|G_M_EXPERT,
-	G_M_WEAPON = G_M_INSTA|G_M_PISTOL|G_M_GIB|G_M_EXPLOSIVE,
+	G_M_WEAPON = G_M_INSTA|G_M_SNIPING|G_M_PISTOL|G_M_GIB|G_M_EXPLOSIVE,
 
 	G_M_MOST = G_M_GAMEPLAY|G_M_DAMAGE|G_M_WEAPON,
 	G_M_ALL = G_M_MOST|G_M_GSP1,
 
-	G_M_GSN = 1, G_M_GSP = 11, G_M_NUM = 12,
+	G_M_GSN = 1, G_M_GSP = 13, G_M_NUM = 14,
 };
 
 struct gametypes
@@ -89,12 +89,12 @@ extern mutstypes mutstype[G_M_NUM];
 #define m_time(a,b)         (m_edit(a) ? 1440 : m_progressive(a,b) ? 45 : m_team(a,b) ? 15 : 10)
 #define m_team(a,b)         ((b & G_M_TEAM) || (m_implied(a,b) & G_M_TEAM))
 #define m_insta(a,b)        ((b & G_M_INSTA) || (m_implied(a,b) & G_M_INSTA))
-#define m_sniping(a,b)      (false)//((b & G_M_SNIPER) || (m_implied(a,b) & G_M_SNIPER))
+#define m_sniping(a,b)      ((b & G_M_SNIPING) || (m_implied(a,b) & G_M_SNIPING))
 #define m_classic(a,b)      ((b & G_M_CLASSIC) || (m_implied(a,b) & G_M_CLASSIC))
 #define m_confirm(a,b)      ((b & G_M_CONFIRM) || (m_implied(a,b) & G_M_CONFIRM))
 #define m_convert(a,b)      ((b & G_M_CONVERT) || (m_implied(a,b) & G_M_CONVERT))
 #define m_vampire(a,b)      ((b & G_M_VAMPIRE) || (m_implied(a,b) & G_M_VAMPIRE))
-#define m_psychic(a,b)      (false)//((b & G_M_PSYCHIC) || (m_implied(a,b) & G_M_PSYCHIC))
+#define m_psychic(a,b)      ((b & G_M_PSYCHIC) || (m_implied(a,b) & G_M_PSYCHIC))
 #define m_real(a,b)         ((b & G_M_REAL) || (m_implied(a,b) & G_M_REAL))
 #define m_expert(a,b)       ((b & G_M_EXPERT) || (m_implied(a,b) & G_M_EXPERT))
 #define m_pistol(a,b)       ((b & G_M_PISTOL) || (m_implied(a,b) & G_M_PISTOL))

@@ -493,6 +493,11 @@ mutstypes mutstype[G_M_NUM] = {
 		G_M_ALL,
 		"convert",
 	},
+	{
+		G_M_PSYCHIC, G_M_PSYCHIC,
+		G_M_ALL,
+		"psychic",
+	},
 	// damage
 	{
 		G_M_REAL, G_M_REAL,
@@ -507,22 +512,27 @@ mutstypes mutstype[G_M_NUM] = {
 	// weapons are mutually exclusive
 	{
 		G_M_INSTA, G_M_INSTA,
-		G_M_ALL & ~(G_M_PISTOL|G_M_GIB|G_M_EXPLOSIVE),
+		(G_M_ALL & ~G_M_WEAPON) | G_M_INSTA,
 		"insta",
 	},
 	{
+		G_M_SNIPING, G_M_SNIPING,
+		(G_M_ALL & ~G_M_WEAPON) | G_M_SNIPING,
+		"sniping",
+	},
+	{
 		G_M_PISTOL, G_M_PISTOL,
-		G_M_ALL & ~(G_M_INSTA|G_M_GIB|G_M_EXPLOSIVE),
+		(G_M_ALL & ~G_M_WEAPON) | G_M_PISTOL,
 		"pistol",
 	},
 	{
 		G_M_GIB, G_M_GIB,
-		G_M_ALL & ~(G_M_INSTA|G_M_PISTOL|G_M_EXPLOSIVE),
+		(G_M_ALL & ~G_M_WEAPON) | G_M_GIB,
 		"gibbing",
 	},
 	{
 		G_M_EXPLOSIVE, G_M_EXPLOSIVE,
-		G_M_ALL & ~(G_M_INSTA|G_M_PISTOL|G_M_GIB),
+		(G_M_ALL & ~G_M_WEAPON) | G_M_EXPLOSIVE,
 		"explosive",
 	},
 	// game specific ones
