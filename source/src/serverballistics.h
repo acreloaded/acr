@@ -133,7 +133,7 @@ int radialeffect(client &owner, client &target, vector<explosivehit> &hits, cons
 	hit_location.z += (PLAYERABOVEEYE-PLAYERHEIGHT)/2.f;
 	// distance calculations
 	float dist = max_damage ? 0 : min(hit_location.dist(o), target.state.o.dist(o));
-	// if(dist >= guns[weap].endrange) return 0; // too far away
+	if(dist >= guns[weap].endrange) return 0; // too far away
 	vec ray1(hit_location), ray2(target.state.o);
 	ray1.sub(o).normalize();
 	ray2.sub(o).normalize();
@@ -154,7 +154,6 @@ int radialeffect(client &owner, client &target, vector<explosivehit> &hits, cons
 	}
 	else if(weap == WEAP_RPG && max_damage)
 		expflags |= FRAG_FLAG;
-	if(dmg < guns[weap].rangeminus * HEALTHSCALE) return 0; // cut-off point
 	explosivehit &hit = hits.add();
 	hit.damage = (int)dmg;
 	hit.flags = expflags;

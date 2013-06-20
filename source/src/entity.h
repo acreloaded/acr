@@ -111,7 +111,7 @@ static inline ushort effectiveDamage(int gun, float dist, bool explosive, bool u
 	float finaldamage = 0;
 	if(explosive)
 	{
-	    float scaledrange = (float)dist / ((float)guns[gun].endrange);
+	    float scaledrange = (float)dist / ((float)guns[gun].range);
 	    finaldamage = guns[gun].damage/(1+(guns[gun].damage-1)*pow(scaledrange,4));
 	}
 	else if(dist <= guns[gun].range || (!guns[gun].range && !guns[gun].endrange)) finaldamage = guns[gun].damage;
