@@ -133,12 +133,12 @@ int radialeffect(client &owner, client &target, vector<explosivehit> &hits, cons
 	hit_location.z += (PLAYERABOVEEYE-PLAYERHEIGHT)/2.f;
 	// distance calculations
 	float dist = max_damage ? 0 : min(hit_location.dist(o), target.state.o.dist(o));
-	if(dist >= guns[weap].endrange) return 0; // too far away
+	// if(dist >= guns[weap].endrange) return 0; // too far away
 	vec ray1(hit_location), ray2(target.state.o);
 	ray1.sub(o).normalize();
 	ray2.sub(o).normalize();
 	if(srayclip(o, ray1) < dist && srayclip(o, ray2) < dist) return 0; // not visible
-	ushort dmg = effectiveDamage(weap, dist, !m_classic(gamemode, mutators));
+	float dmg = effectiveDamage(weap, dist, true, !m_classic(gamemode, mutators));
 	int expflags = gib ? FRAG_GIB : FRAG_NONE;
 	// check for critical
 	if(checkcrit(dist, 1.5f)){
@@ -154,14 +154,15 @@ int radialeffect(client &owner, client &target, vector<explosivehit> &hits, cons
 	}
 	else if(weap == WEAP_RPG && max_damage)
 		expflags |= FRAG_FLAG;
+	if(dmg < guns[weap].rangeminus * HEALTHSCALE) return 0; // cut-off point
 	explosivehit &hit = hits.add();
-	hit.damage = dmg;
+	hit.damage = (int)dmg;
 	hit.flags = expflags;
 	hit.target = &target;
 	hit.owner = &owner;
 	hit.dist = dist;
 	hit.o = hit_location;
-	return dmg;
+	return hit.damage;
 }
 
 // explosion call

@@ -106,7 +106,8 @@ static inline ushort reloadtime(int gun) { return guns[gun].reloadtime; }
 static inline ushort attackdelay(int gun) { return guns[gun].attackdelay; }
 static inline ushort magsize(int gun) { return guns[gun].magsize; }
 static inline ushort reloadsize(int gun) { return guns[gun].addsize; }
-static inline ushort effectiveDamage(int gun, float dist, bool explosive) {
+static inline ushort effectiveDamage(int gun, float dist, bool explosive, bool useReciprocal) {
+	// useReciprocal is probably going to be unused, but when it is false, the damage should be AC-like (not possible because the values are gone?)
 	float finaldamage = 0;
 	if(explosive)
 	{
@@ -127,7 +128,7 @@ extern ushort reloadtime(int gun);
 extern ushort attackdelay(int gun);
 extern ushort magsize(int gun);
 extern ushort reloadsize(int gun);
-extern ushort effectiveDamage(int gun, float dist, bool explosive = false);
+extern ushort effectiveDamage(int gun, float dist, bool explosive = false, bool useReciprocal = true);
 
 extern const int obit_suicide(int weap);
 extern const char *suicname(int obit);
