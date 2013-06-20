@@ -1279,7 +1279,8 @@ void updatefrommaster(int force)
 
 	uchar buf[32000];
 	uchar *reply = retrieveservers(buf, sizeof(buf));
-	if(!*reply || strstr((char *)reply, "<html>") || strstr((char *)reply, "<HTML>")) conoutf("master server not replying");
+	if(!*reply) conoutf("master server not replying with anything");
+	else if(strstr((char *)reply, "<html>") || strstr((char *)reply, "<HTML>")) conoutf("master server not replying properly");
 	else
 	{
 		// preserve currently connected server from deletion
