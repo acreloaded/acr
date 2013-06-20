@@ -1,6 +1,6 @@
 // server.h
 
-#define SERVER_BUILTIN_MOD 0
+#define SERVER_BUILTIN_MOD 8
 // 1 = super knife (gib only)
 // 2 = moon jump (gib only, unless always on is set)
 // 4 = moon jump (always on), no effect unless moon jump is set
@@ -17,6 +17,22 @@
 
 enum { GE_NONE = 0, /* sequenced */ GE_SHOT, GE_PROJ, GE_AKIMBO, GE_RELOAD, /* immediate */ GE_SUICIDEBOMB, /* unsequenced */ GE_HEAL, GE_AIRSTRIKE };
 enum { ST_EMPTY, ST_LOCAL, ST_TCPIP, ST_AI };
+
+#if (SERVER_BUILTIN_MOD & 8)
+const int gungame[] = {
+	WEAP_ASSAULT2,
+	WEAP_SNIPER,
+	WEAP_SNIPER2,
+	WEAP_ASSAULT,
+	WEAP_SUBGUN,
+	WEAP_BOLT,
+	WEAP_SHOTGUN,
+	WEAP_PISTOL,
+	WEAP_RPG,
+	WEAP_HEAL, // nuke after killing with this
+};
+const int GUNGAME_MAX = sizeof(gungame)/sizeof(*gungame);
+#endif
 
 extern bool canreachauthserv;
 
@@ -167,6 +183,9 @@ struct clientstate : playerstate
 	ivector revengelog;
 	vector<wound> wounds;
 	bool valid;
+#if (SERVER_BUILTIN_MOD & 8)
+	int gungame;
+#endif
 
 	clientstate() : state(CS_DEAD), valid(true), playerstate() {}
 
@@ -210,6 +229,9 @@ struct clientstate : playerstate
 		pointstreak = deathstreak = streakused = 0;
 		radarearned = airstrikes = nukemillis = 0;
 		valid = true;
+#if (SERVER_BUILTIN_MOD & 8)
+		gungame = 0;
+#endif
 		respawn();
 	}
 

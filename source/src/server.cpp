@@ -434,6 +434,9 @@ void spawnstate(client *c){
 		gs.nextperk1 = PERK_NONE;
 		gs.nextperk2 = (gs.nextprimary == WEAP_BOLT || m_sniper(gamemode, mutators)) ? PERK2_STEADY : PERK2_NONE;
 	}
+#if (SERVER_BUILTIN_MOD & 8)
+	gs.nextprimary = gs.nextsecondary = gungame[gs.gungame];
+#endif
 	gs.spawnstate(c->team, smode, smuts);
 	++gs.lifesequence;
 	gs.state = CS_DEAD;
@@ -1692,7 +1695,8 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 			addptreason(target->clientnum, PR_BUZZKILLED);
 		}
 		// streak/assist
-		actor->state.pointstreak += 5;
+		if(gun != WEAP_MAX + 1)
+			actor->state.pointstreak += 5;
 		++ts.deathstreak;
 		actor->state.deathstreak = ts.streakused = 0;
 	}
@@ -1810,11 +1814,26 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 		deathstreak = STREAK_DROPNADE;
 	usestreak(*target, deathstreak, m_zombie(gamemode) ? actor : NULL);
 
-	// conversions
-	if(!suic && m_convert(gamemode, mutators) && target->team != actor->team){
-		updateclientteam(target->clientnum, actor->team, FTR_SILENT);
-		// checkai(); // DO NOT balance bots here
-		convertcheck(true);
+	if(!suic){
+#if (SERVER_BUILTIN_MOD & 8)
+		// gungame advance
+		if(gun != WEAP_MAX + 1){
+			// gungame maxed out
+			if(++actor->state.gungame >= GUNGAME_MAX){
+				actor->state.nukemillis = gamemillis; // deploy a nuke
+				actor->state.gungame = 0; // restart gungame
+			}
+			const int newprimary = actor->state.primary = actor->state.secondary = actor->state.gunselect = gungame[actor->state.gungame];
+			sendf(-1, 1, "ri5", N_RELOAD, actor->clientnum, newprimary, actor->state.mag[newprimary] = magsize(newprimary), actor->state.ammo[newprimary] = (ammostats[newprimary].start-1));
+			sendf(-1, 1, "ri3", N_SWITCHWEAP, actor->clientnum, newprimary);
+		}
+#endif
+		// conversions
+		if(m_convert(gamemode, mutators) && target->team != actor->team){
+			updateclientteam(target->clientnum, actor->team, FTR_SILENT);
+			// checkai(); // DO NOT balance bots here
+			convertcheck(true);
+		}
 	}
 
 	// automatic zombie count
@@ -3815,10 +3834,17 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(!hasclient(cl, cn)) break;
 				client &cp = *clients[cn];
 				if(weaponsel < 0 || weaponsel >= WEAP_MAX) break;
+#if (SERVER_BUILTIN_MOD & 8)
+				if(weaponsel != cp.state.primary){
+					sendf(-1, 1, "ri5", N_RELOAD, cn, weaponsel, cp.state.mag[weaponsel] = 0, cp.state.ammo[weaponsel] = 0); // stop bots from switching back
+					sendf(sender, 1, "ri3", N_SWITCHWEAP, cn, cp.state.primary); // disallow switching
+				}
+#else
 				cp.state.gunwait[cp.state.gunselect = weaponsel] += SWITCHTIME(cp.state.perk1 == PERK_TIME);
 				sendf(-1, 1, "ri3x", N_SWITCHWEAP, cn, weaponsel, sender);
 				cp.state.scoping = false;
 				cp.state.scopemillis = gamemillis - ADSTIME(cp.state.perk2 == PERK_TIME);
+#endif
 				break;
 			}
 
