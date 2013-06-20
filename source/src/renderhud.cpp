@@ -1431,7 +1431,7 @@ void renderhudwaypoints(){
 	}
 	loopv(players){
 		playerent *pl = i == getclientnum() ? player1 : players[i];
-		if(!pl || (pl == focus && !isthirdperson)) continue;
+		if(!pl || (pl == focus && !isthirdperson) || pl->state == CS_DEAD) continue;
 		const bool has_flag = m_affinity(gamemode) && (flaginfos[0].state == CTFF_STOLEN && flaginfos[0].actor_cn == i) || (flaginfos[1].state == CTFF_STOLEN && flaginfos[1].actor_cn == i);
 		if(has_flag) continue;
 		const bool has_nuke = pl->nukemillis >= totalmillis;
