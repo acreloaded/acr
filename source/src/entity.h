@@ -109,13 +109,13 @@ static inline ushort reloadsize(int gun) { return guns[gun].addsize; }
 static inline ushort effectiveDamage(int gun, float dist, bool explosive, bool useReciprocal) {
 	// useReciprocal is probably going to be unused, but when it is false, the damage should be AC-like (not possible because the values are gone?)
 	float finaldamage = 0;
-	if(explosive)
+	if(dist <= guns[gun].range || (!guns[gun].range && !guns[gun].endrange)) finaldamage = guns[gun].damage;
+	else if(dist >= guns[gun].endrange) finaldamage = guns[gun].damage - guns[gun].rangeminus;
+	else if(explosive)
 	{
 	    float scaledrange = (dist - guns[gun].range) / guns[gun].rangeminus;
 	    finaldamage = guns[gun].damage/(1+(guns[gun].damage-1)*pow(scaledrange,4)); // why is (damage-1) a factor in the denominator?
-	}
-	else if(dist <= guns[gun].range || (!guns[gun].range && !guns[gun].endrange)) finaldamage = guns[gun].damage;
-	else if(dist >= guns[gun].endrange) finaldamage = guns[gun].damage - guns[gun].rangeminus;
+	}	
 	else{
 		float subtractfactor = (dist - guns[gun].range) / (guns[gun].endrange - guns[gun].range);
 		//if(explosive) subtractfactor = subtractfactor*subtractfactor;
