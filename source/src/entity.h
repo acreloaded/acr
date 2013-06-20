@@ -54,9 +54,9 @@ struct entity : public persistent_entity
 enum { PR_CLEAR = 0, PR_ASSIST, PR_SPLAT, PR_HS, PR_KC, PR_KD, PR_HEALSELF, PR_HEALTEAM, PR_HEALENEMY, PR_HEALWOUND, PR_HEALEDBYTEAMMATE, PR_ARENA_WIN, PR_ARENA_WIND, PR_ARENA_LOSE, PR_SECURE_SECURED, PR_SECURE_SECURE, PR_SECURE_OVERTHROW, PR_BUZZKILL, PR_BUZZKILLED, PR_KD_SELF, PR_KD_ENEMY, PR_MAX };
 
 #define HEALTHPRECISION 1
-#define HEALTHSCALE 10 // 10 ^ 1
-#define STARTHEALTH (100 * HEALTHSCALE)
-#define MAXHEALTH (120 * HEALTHSCALE)
+#define HEALTHSCALE 10 // 10 ^ HEALTHPRECISION
+#define STARTHEALTH ((m_juggernaut(gamemode, mutators) ? 1000 : 100) * HEALTHSCALE)
+#define MAXHEALTH ((m_juggernaut(gamemode, mutators) ? 1100 : 120) * HEALTHSCALE)
 #define MAXZOMBIEROUND 30
 #define ZOMBIEHEALTHFACTOR 5
 #define MAXTHIRDPERSON 25
@@ -381,7 +381,7 @@ struct playerstate
 		}
 	}
 
-	void respawn()
+	void respawn(int gamemode, int mutators)
 	{
 		health = STARTHEALTH;
 		armor = STARTARMOR;
@@ -597,7 +597,7 @@ struct playerent : dynent, playerstate
 		radius = PLAYERRADIUS;
 		maxspeed = 16.0f;
 		skin_noteam = skin_red = skin_blue = NULL;
-		respawn();
+		respawn(G_DM, G_M_NONE);
 		damagestack.setsize(0);
 		wantsreload = delayedscope = false;
 	}
@@ -662,10 +662,10 @@ struct playerent : dynent, playerstate
 		followplayercn = -1;
 	}
 
-	void respawn()
+	void respawn(int gamemode, int mutators)
 	{
 		dynent::reset();
-		playerstate::respawn();
+		playerstate::respawn(gamemode, mutators);
 		history.reset();
 		if(weaponsel) weaponsel->reset();
 		lastregen = lasthitmarker = lastaction = weaponchanging = eardamagemillis = radarmillis = flashmillis = 0;

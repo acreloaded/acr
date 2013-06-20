@@ -486,7 +486,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				playerent *d = getclient(getint(p));
 				if(!d || d == player1 || isowned(d)) { static playerent dummy; d = &dummy; }
-				d->respawn();
+				d->respawn(gamemode, mutators);
 				d->lifesequence = getint(p);
 				setskin(d, getint(p));
 				d->health = getint(p);
@@ -514,7 +514,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				playerent *d = getclient(getint(p));
 				if(!d || (d != player1 && !isowned(d))) { static playerent dummy; d = &dummy; }
-				d->respawn();
+				d->respawn(gamemode, mutators);
 				d->lifesequence = getint(p);
 				setskin(d, getint(p));
 				d->health = getint(p);

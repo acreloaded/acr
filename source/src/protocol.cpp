@@ -500,6 +500,11 @@ mutstypes mutstype[G_M_NUM] = {
 	},
 	// damage
 	{
+		G_M_JUGGERNAUT, G_M_JUGGERNAUT,
+		G_M_ALL, // does not interfere
+		"juggernaut",
+	},
+	{
 		G_M_REAL, G_M_REAL,
 		G_M_ALL & ~(G_M_EXPERT), // hardcore conflicts with expert
 		"hardcore",

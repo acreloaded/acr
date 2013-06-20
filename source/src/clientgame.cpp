@@ -226,7 +226,7 @@ void deathstate(playerent *pl)
 
 void spawnstate(playerent *d)			  // reset player state not persistent across spawns
 {
-	d->respawn();
+	d->respawn(gamemode, mutators);
 	d->spawnstate(d->team, gamemode, mutators);
 	if(d==player1) setscope(false);
 }

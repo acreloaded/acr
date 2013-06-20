@@ -215,7 +215,7 @@ struct clientstate : playerstate
 
 	void respawn()
 	{
-		playerstate::respawn();
+		playerstate::respawn(gamemode, mutators);
 		o = lasto = lastspeedo = vec(-1e10f, -1e10f, -1e10f);
 		aim = vel = vec(0, 0, 0);
 		pitchvel = aspeed = speedtime = 0;
