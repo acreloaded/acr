@@ -2,9 +2,9 @@
 
 #define SERVER_BUILTIN_MOD 0
 // 1 = super knife (gib only)
-// 2 = moon jump (gib only, unless always on is set)
-// 4 = moon jump (always on), no effect unless moon jump is set
-// 8 = gungame (TODO)
+// 2 = moon jump (gib only)
+// 4 = moon jump always on (no effect unless 2 is set)
+// 8 = gungame
 // 16 = explosive ammo
 // 32 = moonjump with no damage (mario)
 // 64 = /suicide for nuke
