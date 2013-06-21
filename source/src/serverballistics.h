@@ -134,7 +134,7 @@ int radialeffect(client &owner, client &target, vector<explosivehit> &hits, cons
 	// distance calculations
 	float dist = max_damage ? 0 : min(hit_location.dist(o), target.state.o.dist(o));
 	const bool useReciprocal = !m_classic(gamemode, mutators);
-	if(dist >= useReciprocal ? guns[weap].rangeminus : guns[weap].endrange) return 0; // too far away
+	if(dist >= (useReciprocal ? guns[weap].endrange : guns[weap].rangeminus)) return 0; // too far away
 	vec ray1(hit_location), ray2(target.state.o);
 	ray1.sub(o).normalize();
 	ray2.sub(o).normalize();
