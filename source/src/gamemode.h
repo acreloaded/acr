@@ -118,7 +118,7 @@ extern mutstypes mutstype[G_M_NUM];
 
 #define m_duke(a,b)         (m_survivor(a,b) || m_progressive(a,b))
 #define m_sniper(a,b)       (m_insta(a,b) || m_sniping(a,b))
-#define m_regen(a,b)        (!m_duke(a,b) && !m_classic(a,b) && !m_vampire(a,b) && !m_sniper(a,b))
+#define m_regen(a,b)        (!m_duke(a,b) && !m_classic(a,b) && !m_vampire(a,b) && !m_sniper(a,b) && !m_juggernaut(a,b))
 /*
 #define m_scores(a)         (a >= G_EDITMODE && a <= G_DEATHMATCH)
 #define m_sweaps(a,b)       (m_medieval(a, b) || m_ballistic(a, b) || m_arena(a, b) || m_league(a ,b))
