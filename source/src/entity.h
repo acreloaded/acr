@@ -57,6 +57,7 @@ enum { PR_CLEAR = 0, PR_ASSIST, PR_SPLAT, PR_HS, PR_KC, PR_KD, PR_HEALSELF, PR_H
 #define HEALTHSCALE 10 // 10 ^ HEALTHPRECISION
 #define STARTHEALTH ((m_juggernaut(gamemode, mutators) ? 1000 : 100) * HEALTHSCALE)
 #define MAXHEALTH ((m_juggernaut(gamemode, mutators) ? 1100 : 120) * HEALTHSCALE)
+#define VAMPIREMAX (3 * STARTHEALTH)
 #define MAXZOMBIEROUND 30
 #define ZOMBIEHEALTHFACTOR 5
 #define MAXTHIRDPERSON 25
@@ -78,7 +79,7 @@ extern const itemstat powerupstats[];
 #define CROUCHTIME 500
 
 #define SGRAYS 24
-#define SGGIB 180 * HEALTHSCALE // 18-26 rays (only have 24)
+#define SGGIB 180 // 18-26 rays (only have 24)
 #define NADEPOWER 2
 #define NADETTL 4350
 #define MARTYRDOMTTL 2500

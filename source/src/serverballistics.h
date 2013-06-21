@@ -424,7 +424,7 @@ int shotgun(client &owner, vector<posinfo> &pos){
 		}
 		if(!damage) continue;
 		damagedealt += damage;
-		shotgunflags |= damage >= SGGIB ? FRAG_GIB : FRAG_NONE;
+		shotgunflags |= damage >= SGGIB * HEALTHSCALE ? FRAG_GIB : FRAG_NONE;
 		if(m_progressive(gamemode, mutators) && shotgunflags & FRAG_GIB)
 			damage = max(damage, 350 * HEALTHSCALE);
 		serverdamage(&t, &owner, damage, WEAP_SHOTGUN, shotgunflags, from, bestdist);

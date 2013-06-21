@@ -1894,8 +1894,8 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 		else if(m_vampire(gamemode, mutators) && actor->state.health < 300 * HEALTHSCALE){
 			int hpadd = damage / (rnd(3) + 3);
 			// cap at 300 HP
-			if(actor->state.health + hpadd > 300 * HEALTHSCALE)
-				hpadd = 300 * HEALTHSCALE - actor->state.health;
+			if(actor->state.health + hpadd > VAMPIREMAX)
+				hpadd = VAMPIREMAX - actor->state.health;
 			sendf(-1, 1, "ri3", N_REGEN, actor->clientnum, actor->state.health += hpadd);
 		}
 	}
