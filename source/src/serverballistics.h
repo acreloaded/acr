@@ -133,12 +133,13 @@ int radialeffect(client &owner, client &target, vector<explosivehit> &hits, cons
 	hit_location.z += (PLAYERABOVEEYE-PLAYERHEIGHT)/2.f;
 	// distance calculations
 	float dist = max_damage ? 0 : min(hit_location.dist(o), target.state.o.dist(o));
-	if(dist >= guns[weap].endrange) return 0; // too far away
+	const bool useReciprocal = !m_classic(gamemode, mutators);
+	if(dist >= useReciprocal ? guns[weap].rangeminus : guns[weap].endrange) return 0; // too far away
 	vec ray1(hit_location), ray2(target.state.o);
 	ray1.sub(o).normalize();
 	ray2.sub(o).normalize();
 	if(srayclip(o, ray1) < dist && srayclip(o, ray2) < dist) return 0; // not visible
-	float dmg = effectiveDamage(weap, dist, true, !m_classic(gamemode, mutators));
+	float dmg = effectiveDamage(weap, dist, true, useReciprocal);
 	int expflags = gib ? FRAG_GIB : FRAG_NONE;
 	// check for critical
 	if(checkcrit(dist, 1.5f)){

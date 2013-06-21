@@ -111,15 +111,19 @@ static inline ushort effectiveDamage(int gun, float dist, bool explosive, bool u
 	float finaldamage = 0;
 	if(dist <= guns[gun].range || (!guns[gun].range && !guns[gun].endrange)) finaldamage = guns[gun].damage;
 	else if(dist >= guns[gun].endrange) finaldamage = guns[gun].damage - guns[gun].rangeminus;
-	else if(explosive)
-	{
-	    float scaledrange = (dist - guns[gun].range) / guns[gun].rangeminus;
-	    finaldamage = guns[gun].damage/(1+(guns[gun].damage-1)*pow(scaledrange,4)); // why is (damage-1) a factor in the denominator?
-	}	
 	else{
 		float subtractfactor = (dist - guns[gun].range) / (guns[gun].endrange - guns[gun].range);
-		//if(explosive) subtractfactor = subtractfactor*subtractfactor;
-		finaldamage = guns[gun].damage - subtractfactor * guns[gun].rangeminus;
+		if(explosive){
+			if(useReciprocal)
+				finaldamage = guns[gun].damage/(1+(guns[gun].damage-1)*pow(subtractfactor,4));
+			else{
+				//if(dist >= rangeminus) return 0;
+				subtractfactor = (dist - guns[gun].range) / (guns[gun].rangeminus - guns[gun].range);
+				finaldamage = guns[gun].damage * (1 - subtractfactor * subtractfactor);
+			}
+		}
+		else
+			finaldamage = guns[gun].damage - subtractfactor * guns[gun].rangeminus;
 	}
 	return finaldamage * HEALTHSCALE;
 }
