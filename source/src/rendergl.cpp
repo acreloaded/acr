@@ -582,7 +582,7 @@ void recomputecamera(){
 						playerent *a = getclient(player1->lastkiller); // player1's killer?
 						if(a)
 						{
-							vec v = vec(a->o).sub(camera1->o)/*.normalize()*/;
+							vec v = vec(a->head.x >= 0 ? a->head : a->o).sub(camera1->o)/*.normalize()*/;
 							if(v.magnitude() >= 0.1f)
 							{
 								//v.normalize();
