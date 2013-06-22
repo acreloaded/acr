@@ -881,7 +881,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				victim->health -= damage;
 				if(!actor) break;
 				dodamage(damage, victim, actor, weap, style, src);
-				actor->deathcamsrc = src;
+				victim->deathcamsrc = src;
 				dokill(victim, actor, weap, damage, style, combo, killdist);
 				break;
 			}
