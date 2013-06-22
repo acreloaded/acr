@@ -561,6 +561,7 @@ void camera3(playerent *p, int dist){
 }
 
 VARNP(deathcam, deathcamstyle, 0, 1, 1);
+FVARP(deathcamspeed, 0, 2.f, 1000);
 
 void recomputecamera(){
 	if((player1->team == TEAM_SPECT || player1->state==CS_DEAD) && !editmode){
@@ -584,8 +585,12 @@ void recomputecamera(){
 							vec v = vec(a->o).sub(camera1->o)/*.normalize()*/;
 							if(v.magnitude() >= 0.1f)
 							{
-								camera1->yaw = 180-atan2(v.x, v.y)/RAD;
-								camera1->pitch = asin(v.z/v.magnitude())/RAD;
+								//v.normalize();
+								float aimyaw, aimpitch;
+								vectoyawpitch(v, aimyaw, aimpitch);
+								const float speed = (float(curtime)/1000.f)*deathcamspeed;
+								if(deathcamspeed > 0) scaleyawpitch(camera1->yaw, camera1->pitch, aimyaw, aimpitch, speed, speed*4.f);
+								else { camera1->yaw = aimyaw; camera1->pitch = aimpitch; }
 							}
 						}
 					}
@@ -600,6 +605,13 @@ void recomputecamera(){
 				focus = player1;
 				lastdeathcamswitch = totalmillis;
 				loopi(10) moveplayer(camera1, 10, true, 50);
+				if(deathcamstyle){
+					vec v = vec(focus->deathcamsrc).sub(camera1->o)/*.normalize()*/;
+					if(v.magnitude() > .1f){
+						//v.normalize();
+						vectoyawpitch(v, camera1->yaw, camera1->pitch);
+					}
+				}
 				break;
 			}
 			case SM_FLY:

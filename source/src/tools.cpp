@@ -791,6 +791,98 @@ bool glmatrixf::invert(const glmatrixf &m, float mindet)
 	return true;
 }
 
+void vecfromyawpitch(float yaw, float pitch, int move, int strafe, vec &m)
+{
+    if(move)
+    {
+        m.x = move*-sinf(RAD*yaw);
+        m.y = move*cosf(RAD*yaw);
+    }
+    else m.x = m.y = 0;
+
+    if(pitch)
+    {
+        m.x *= cosf(RAD*pitch);
+        m.y *= cosf(RAD*pitch);
+        m.z = move*sinf(RAD*pitch);
+    }
+    else m.z = 0;
+
+    if(strafe)
+    {
+        m.x += strafe*cosf(RAD*yaw);
+        m.y += strafe*sinf(RAD*yaw);
+    }
+}
+
+void vectoyawpitch(const vec &v, float &yaw, float &pitch)
+{
+    yaw = 180-atan2(v.x, v.y)/RAD; // +180
+    pitch = asin(v.z/v.magnitude())/RAD;
+}
+
+void fixfullrange(float &yaw, float &pitch, float &roll, bool full)
+{
+    if(full)
+    {
+        while(pitch < -180.0f) pitch += 360.0f;
+        while(pitch >= 180.0f) pitch -= 360.0f;
+        while(roll < -180.0f) roll += 360.0f;
+        while(roll >= 180.0f) roll -= 360.0f;
+    }
+    else
+    {
+        if(pitch > 89.9f) pitch = 89.9f;
+        if(pitch < -89.9f) pitch = -89.9f;
+        if(roll > 89.9f) roll = 89.9f;
+        if(roll < -89.9f) roll = -89.9f;
+    }
+    while(yaw < 0.0f) yaw += 360.0f;
+    while(yaw >= 360.0f) yaw -= 360.0f;
+}
+
+void fixrange(float &yaw, float &pitch)
+{
+    float r = 0.f;
+    fixfullrange(yaw, pitch, r, false);
+}
+
+void getyawpitch(const vec &from, const vec &pos, float &yaw, float &pitch)
+{
+    float dist = from.dist(pos);
+    yaw = 180-atan2(pos.x-from.x, pos.y-from.y)/RAD; // +180
+    pitch = asin((pos.z-from.z)/dist)/RAD;
+}
+
+void scaleyawpitch(float &yaw, float &pitch, float targyaw, float targpitch, float yawspeed, float pitchspeed, float rotate)
+{
+    if(yaw < targyaw-180.0f) yaw += 360.0f;
+    if(yaw > targyaw+180.0f) yaw -= 360.0f;
+    float offyaw = (rotate < 0 ? fabs(rotate) : (rotate > 0 ? min(float(fabs(targyaw-yaw)), rotate) : fabs(targyaw-yaw)))*yawspeed,
+        offpitch = (rotate < 0 ? fabs(rotate) : (rotate > 0 ? min(float(fabs(targpitch-pitch)), rotate) : fabs(targpitch-pitch)))*pitchspeed;
+    if(targyaw > yaw)
+    {
+        yaw += offyaw;
+        if(targyaw < yaw) yaw = targyaw;
+    }
+    else if(targyaw < yaw)
+    {
+        yaw -= offyaw;
+        if(targyaw > yaw) yaw = targyaw;
+    }
+    if(targpitch > pitch)
+    {
+        pitch += offpitch;
+        if(targpitch < pitch) pitch = targpitch;
+    }
+    else if(targpitch < pitch)
+    {
+        pitch -= offpitch;
+        if(targpitch > pitch) pitch = targpitch;
+    }
+    fixrange(yaw, pitch);
+}
+
 #ifndef STANDALONE
 SVARP(locale, "en");
 

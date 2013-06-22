@@ -577,6 +577,7 @@ struct playerent : dynent, playerstate
 
 	vector<damageinfo> damagestack;
 	vec head, eject, muzzle;
+	vec deathcamsrc;
 
 	// AI
 	CBot *pBot;
@@ -584,7 +585,7 @@ struct playerent : dynent, playerstate
 	playerent *enemy;  // monster wants to kill this entity
 	float targetpitch, targetyaw; // monster wants to look in this direction
 
-	playerent() : spectatemode(SM_NONE), vote(VOTE_NEUTRAL), voternum(MAXCLIENTS), priv(PRIV_NONE), head(-1, -1, -1), eject(-1, -1, -1), muzzle(-1, -1, -1)
+	playerent() : spectatemode(SM_NONE), vote(VOTE_NEUTRAL), voternum(MAXCLIENTS), priv(PRIV_NONE), head(-1, -1, -1), eject(-1, -1, -1), muzzle(-1, -1, -1), deathcamsrc(0, 0, 0)
 	{
 		// ai
 		enemy = NULL;

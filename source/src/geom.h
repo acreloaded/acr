@@ -314,3 +314,9 @@ struct glmatrixf
 	bool invert(const glmatrixf &m, float mindet = 1.0e-10f);
 };
 
+extern void vecfromyawpitch(float yaw, float pitch, int move, int strafe, vec &m);
+extern void vectoyawpitch(const vec &v, float &yaw, float &pitch);
+extern void fixrange(float &yaw, float &pitch);
+extern void fixfullrange(float &yaw, float &pitch, float &roll, bool full);
+extern void getyawpitch(const vec &from, const vec &pos, float &yaw, float &pitch);
+extern void scaleyawpitch(float &yaw, float &pitch, float targyaw, float targpitch, float yawspeed = 1, float pitchspeed = 1, float rotate = 0);
