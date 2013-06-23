@@ -2773,8 +2773,6 @@ void clientdisconnect(int n)
 		if(sconfirms[i].actor == n) sconfirms[i].actor = -1;
 		if(sconfirms[i].target == n) sconfirms[i].target = -1;
 	}
-	// remove privilege
-	if(clients[n]->priv) setpriv(n, PRIV_NONE);
 	clients[n]->zap();
 }
 
@@ -2786,6 +2784,9 @@ void disconnect_client(int n, int reason)
 	client &c = *clients[n];
 	// delete AI
 	loopv(clients) if(clients[i]->state.ownernum == n) if(!shiftai(*clients[i], -1, n)) deleteai(*clients[i]);
+	// remove privilege
+	if(clients[n]->priv) setpriv(n, PRIV_NONE);
+	// save score
 	const char *scoresaved = "";
 	if(c.haswelcome)
 	{
