@@ -191,7 +191,7 @@ void shotevent::process(client *ci)
 				break;
 			}
 		case WEAP_SNIPER2:
-			gs.allowspeeding(gamemillis, 2000);
+			gs.allowspeeding(gamemillis, 1500);
 			// fallthrough
 		default:
 		{
