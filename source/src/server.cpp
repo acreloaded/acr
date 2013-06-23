@@ -1902,6 +1902,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 
 	ts.dodamage(damage, actor->state.perk1 == PERK_POWER);
 	ts.lastregen = (ts.lastpain = gamemillis) + REGENDELAY - REGENINT;
+	ts.allowspeeding(gamemillis, 2000);
 
 	if(ts.health<=0) serverdied(target, actor, damage, gun, style, source, dist);
 	else
@@ -3171,6 +3172,7 @@ bool checkmove(client &cp, int f){
 	// editmode already?
 	if(cs.state != CS_ALIVE) return true;
 	const int sender = cp.clientnum;
+	const float speedfactor = gunspeed(cs.gunselect, 0, cs.perk1 == PERK1_LIGHT);
 	// help detect AFK
 	if(cs.lasto.dist(cs.o) >= 0.1f)
 		cs.movemillis = servmillis;
@@ -3179,7 +3181,7 @@ bool checkmove(client &cp, int f){
 	cs.lmillis = gamemillis;
 	cs.spj = (cs.spj * 7 + cs.ldt) >> 3;
 	// detect speedhack
-	if(!m_edit(gamemode) && cs.lastpain + 2000 < gamemillis){
+	if(!m_edit(gamemode) && cs.speedallow < gamemillis){
 		// immediate velocity
 		/*
 		if(cs.vel.magnitudexy() > 1.9f){ // real cheat detect: 1.07f * 1.42f = 1.5194 (higher due to kickback)
@@ -3197,7 +3199,7 @@ bool checkmove(client &cp, int f){
 			// eased average speed
 			if(current_speed > cs.aspeed) cs.aspeed = (cs.aspeed * 4 + current_speed) / 5.f;
 			else cs.aspeed = (cs.aspeed * 2 + current_speed) / 3.f;
-			if(cs.aspeed > 26){ // 1.5194 * 24 = 36.4656 theoritical maximum, but we are checking only when no damage was recently taken
+			if(cs.aspeed > 26 * speedfactor){ // 1.5194 * 24 = 36.4656 theoritical maximum, but we are checking only when no damage was recently taken
 				if(cs.speedtime){
 					// exceeded too long, and is not decelerating
 					if(gamemillis > cs.speedtime + 750 && current_speed >= cs.aspeed)
@@ -3918,7 +3920,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				if(cl->state.state != (editing ? CS_ALIVE : CS_EDITING)) break;
 				cl->state.state = editing ? CS_EDITING : CS_ALIVE;
 				cl->state.onfloor = true; // prevent falling damage
-				cl->state.lastpain = gamemillis; // prevent speeding detection
+				cl->state.allowspeeding(gamemillis, 1000); // prevent speeding detection
 				sendf(-1, 1, "ri3x", N_EDITMODE, sender, editing ? 1 : 0, sender);
 				break;
 			}

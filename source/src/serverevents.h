@@ -190,6 +190,9 @@ void shotevent::process(client *ci)
 				}
 				break;
 			}
+		case WEAP_SNIPER2:
+			gs.allowspeeding(gamemillis, 2000);
+			// fallthrough
 		default:
 		{
 			if(weap == WEAP_SHOTGUN) // many rays, many players
