@@ -14,18 +14,29 @@ audio
 		misc*
 			vote - CC Sampling+ 1.0
 		player*
-			gib.ogg - CC-BY-SA 2.5
+			gib.ogg - "wildweasel" CC-BY-SA 2.5
 		voicecom*
 		weapon*
-			katana.ogg - comes with the sword model by PROGONNA, with the reciprocal non-copyright
+			ric*.wav - OpenArena GPL 2.0
+			katana.ogg - comes with the sword model by PROGONNA, with reciprocal non-copyright
 			sniper2.ogg - (A section of) Bobster CC-BY-NC-ND 3.0
 maps*
+	ac_arctic* - KC
 	ac_complex
 	ac_mines
-		Copyright © 2004-2006 by makkE (makk_e@web.de).
-	ac_depot - Copyright © 2004-2006 by MitaMAN.
-	ac_desert - Copyright © 2004-2006 by makkE (makk_e@web.de) and Arghvark.
+		Copyright © 2004-2006 by makkE (makk_e@web.de)
+	ac_depot - Copyright © 2004-2006 by MitaMAN
+	ac_desert - Copyright © 2004-2006 by makkE (makk_e@web.de) and Arghvark
+	ac_elevation* - A&D_Shadow
+	ac_keller* - Mr.Floppy
+	ac_power* - wotwot
+	ac_scaffold*
+	ac_shine*
+		DogDancing
+	ac_snow* - daMfr0
+	ac_sunset* - R4zor
 	ac_toxic - © Copyright 2007-2008 by RandumIdiot (http://www.ri-ac.co.nr)
+	ac_urban* - By Archangel, with help from RandumIdiot.
 misc
 	crosshairs - Some created by Victor, but all are not eligible for any copyright
 	eventicons
@@ -143,6 +154,7 @@ textures*
 	dog - see its respective folder (/packages/textures/dog/readme.txt)
 	drunkenM - Modified by drunkenM from a flickr user "You are free to use this texture in your own works, as a texture for 3D artwork, for derivative works, for all purposes including commercial."
 	ice - see its respective folder
+	jcdpc - © JCDPC
 	johnsolo - Consider them free to use for all non-commercial purposes. (http://johnsolo.net/tex/tex.php)
 	kurt - Do what you want with these textures, I don't care.
 	makke*
@@ -167,9 +179,9 @@ textures*
 			Unlicenced, assumed Attribution required
 		kothic - see its .html
 		ladynighthawk - this skymap (inhcanyons1) is CC-BY-NC-SA by Lady NightHawk of http://alusion-fr.com/an1ffa3.htm
-		makke*
+		makke - © 2004 makkE
 		socksky - SimonOC (http://simonoc.com/pages/materials/skybox) CC-BY-NC-SA 3.0
-		steini*
+		steini- © 2004 steini
 	toca*
 	wotwot*
 
