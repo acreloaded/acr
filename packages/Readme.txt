@@ -130,7 +130,9 @@ models - makkE (Markus Bekel, makk_e@web.de) CC-BY-NC-SA 2.5
 		*.jpg - Protox AssaultCube HQ Reskin PD
 	weapons
 		Most are CC BY-NC-SA by makkE, some models are © unknown
-		assault2 - Padge1 CC-BY 3.0
+		assault2
+		pistol
+			xdEpicZombie CC0, hands by Padge1 CC-BY 3.0
 		sniper2 - Padge1 CC-BY 3.0
 		sword - Modified by Victor Public Domain - Copyright-free Reciprocal Licence by PROGONNA
 textures*
