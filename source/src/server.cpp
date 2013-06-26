@@ -538,7 +538,7 @@ void sendspawn(client *c){
 
 	int dstreak = gs.deathstreak + (gs.perk2 == PERK2_STREAK ? 1 : 0);
 	if(dstreak >= 8) gs.streakondeath = STREAK_REVENGE;
-	else if(dstreak >= 5 && c->type != ST_AI) gs.streakondeath = STREAK_DROPNADE;
+	else if(dstreak >= 5 && (c->type != ST_AI || m_progressive(gamemode, mutators))) gs.streakondeath = STREAK_DROPNADE;
 	else gs.streakondeath = -1;
 	streakready(*c, gs.streakondeath);
 }

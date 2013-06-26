@@ -109,7 +109,7 @@ void checkai(){
 		// force suicide bombers
 		loopv(clients) if(clients[i]->type == ST_AI){
 			bool has_bomber = (++zombies_suicide_given <= zombies_suicide);
-			clients[i]->state.deathstreak = has_bomber ? 10 : 0;
+			clients[i]->state.deathstreak = has_bomber ? progressiveround == MAXZOMBIEROUND ? 8 : 5 : 0;
 			clients[i]->state.streakondeath = has_bomber ? progressiveround == MAXZOMBIEROUND ? STREAK_REVENGE : STREAK_DROPNADE : -1;
 		}
 #endif
