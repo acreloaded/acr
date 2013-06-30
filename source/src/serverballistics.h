@@ -374,6 +374,9 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
 	}
 	// ricochet
 	else if(!dist && from.dist(to) < 100 && surface.magnitude()){ // ricochet once before 25 meters or going through a player
+		// reset exclusion to the owner, so a penetrated player can be hit twice
+		if(exclude.length() > 1)
+			exclude.setsize(1);
 		vec dir(to), newsurface;
 		// calculate reflected ray from incident ray and surface normal
 		dir.sub(from).normalize();
