@@ -1880,18 +1880,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 
 	if(target != actor)
 	{
-		if(isteam(actor, target))
-		{ // friendly fire handler
-			// no friendly return for classic and healing gun
-			if(gun != WEAP_HEAL && !m_classic(gamemode, mutators)){
-				actor->state.shotdamage += damage; // reduce his accuracy (more)
-				// NEW way: no friendly fire, but tiny reflection
-				serverdamage(actor, actor, damage * .1f, gun, style, source, dist);
-			}
-			// return; // we don't want this
-			damage = 0; // we want to show a hitmarker...
-		}
-		else if(m_vampire(gamemode, mutators) && actor->state.health < VAMPIREMAX){
+		if(!isteam(actor, target) && m_vampire(gamemode, mutators) && actor->state.health < VAMPIREMAX){
 			int hpadd = damage / (rnd(3) + 3);
 			// cap at 300 HP
 			if(actor->state.health + hpadd > VAMPIREMAX)

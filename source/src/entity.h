@@ -653,7 +653,7 @@ struct playerent : dynent, playerstate
 
 	void hitpush(int damage, const vec &dir, int gun, bool slows)
 	{
-		if(gun<0 || gun>WEAP_MAX || dir.iszero()) return;
+		if(gun<0 || gun>WEAP_MAX || dir.iszero() || !damage) return;
 		const float pushf = damage*guns[gun].pushfactor/100.f/HEALTHSCALE;
 		vec push = dir;
 		push.normalize().mul(pushf);
