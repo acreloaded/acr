@@ -92,10 +92,9 @@ misc
 		team.png
 			Crystal Icons LGPL
 		first.png - Deleket (http://deleket.deviantart.com/) CC-BY 3.0
-		knife.png
-		nuke.png
-		sword.png
-			© Possibly Copyrighted - Unknown Source/Origin/Author/s
+		knife.png* - Unknown origin, but non-commercial use is probably allowed
+		nuke.png - Aqua Candy Revolution - McDo Design (Susumu Yoshida) Non-commercial, Link not required
+		sword.png - Storm Riders - Swords Icon Pack by Talos Tsui*
 	perks - Colored Perk Icons for ACR Victor CC-BY 3.0 - from Perks Icons for ACR by Protox CC-BY 3.0
 	streak - Crystal Icons LGPL - Colorized/Modified by Victor LGPL
 	waypoints - © Activision
@@ -181,7 +180,7 @@ textures*
 		ladynighthawk - this skymap (inhcanyons1) is CC-BY-NC-SA by Lady NightHawk of http://alusion-fr.com/an1ffa3.htm
 		makke - © 2004 makkE
 		socksky - SimonOC (http://simonoc.com/pages/materials/skybox) CC-BY-NC-SA 3.0
-		steini- © 2004 steini
+		steini - © 2004 steini
 	toca*
 	wotwot*
 
