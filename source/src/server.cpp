@@ -3204,14 +3204,14 @@ bool checkmove(client &cp, int f){
 			else cs.speedtime = 0;
 		}
 	}
-	// deal damage of movement
+	// deal damage from movement
 	if(!cs.protect(gamemillis, gamemode, mutators)){
 		// medium transfer (falling damage)
 		const bool newonfloor = (f>>7)&1, newonladder = (f>>8)&1, newunderwater = cs.o.z < smapstats.hdr.waterlevel;
 		if((newonfloor || newonladder || newunderwater) && !cs.onfloor){
 			const float dz = cs.fallz - cs.o.z;
 			if(newonfloor){ // air to solid
-				// mario jump
+				// "mario jump" soft landing
 				bool hit = false;
 				if(dz > 10){ // 2.5 meters to fall onto others
 					loopv(clients){
@@ -3221,6 +3221,7 @@ bool checkmove(client &cp, int f){
 						if(t.type == ST_EMPTY || ts.state != CS_ALIVE || i == sender || isteam(&t, &cp) || ts.protect(gamemillis, gamemode, mutators)) continue;
 						// check from above
 						if(ts.o.distxy(cs.o) > 2.5f*PLAYERRADIUS) continue;
+						// check from side
 						const float dz2 = cs.o.z - ts.o.z;
 						if(dz2 > PLAYERABOVEEYE + 2 || -dz2 > PLAYERHEIGHT + 2) continue;
 						serverdied(&t, &cp, 0, WEAP_MAX + 2, FRAG_NONE, cs.o);
@@ -3236,12 +3237,12 @@ bool checkmove(client &cp, int f){
 						damage = powf(min<float>((dz - 8) / 4 / (cs.perk1 == PERK1_LIGHT ? 5 : 2), 10), 2.f) * HEALTHSCALE; // 10 * 10 = 100
 					if(damage >= 1*HEALTHSCALE){ // don't heal the player
 						// maximum damage is 99 for balance purposes
-						serverdamage(&cp, &cp, min(damage, 99 * HEALTHSCALE), WEAP_MAX + 2, FRAG_NONE, cs.o);
+						serverdamage(&cp, &cp, min(damage, (m_classic(gamemode, mutators) ? 30 : 99) * HEALTHSCALE), WEAP_MAX + 2, FRAG_NONE, cs.o); // max 99, "30" (15) for classic
 					}
 				}
 			}
 			else if(newunderwater && dz > 32){ // air to liquid, more than 8 meters
-				serverdamage(&cp, &cp, 35 * HEALTHSCALE, WEAP_MAX + 3, FRAG_NONE, cs.o); // fixed damage @ 35
+				serverdamage(&cp, &cp, (m_classic(gamemode, mutators) ? 20 : 35) * HEALTHSCALE, WEAP_MAX + 3, FRAG_NONE, cs.o); // fixed damage @ 35, "20" (10) for classic
 			}
 			cs.onfloor = true;
 		}
