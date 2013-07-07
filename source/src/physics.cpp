@@ -94,12 +94,12 @@ float raycube(const vec &o, const vec &ray, vec &surface)
 				if(s->type!=(ray.z>0?CHF:FHF)) // flat
 					surface.z = ray.z>0 ? -1 : 1;
 				else{ // top left surface
-					const char f = (ray.z > 0) ? 1 : -1;
-					vec b(1, 0, S(x+1, y)->vdelta + s->vdelta * f), c(0, 1, S(x, y+1)->vdelta + s->vdelta * f);
-					surface = vec(0, 0, s->vdelta); // as a
+					const float f = (ray.z > 0) ? .25f : -.25f;
+					vec b(1, 0, S(x+1, y)->vdelta * f), c(0, 1, S(x, y+1)->vdelta * f);
+					surface = vec(0, 0, s->vdelta * f); // as a
 					b.sub(surface);
 					c.sub(surface);
-					dz *= surface.cross(c, b).normalize().z;
+					dz *= surface.cross(b, c).normalize().z;
 				}
 			}
 			dist += dz;

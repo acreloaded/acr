@@ -1584,12 +1584,20 @@ float sraycube(const vec &o, const vec &ray, vec *surface = NULL){ // server cou
 					surface->z = ray.z>0 ? -1 : 1;
 				else{ // use top left surface
 					// of a plane, n = (b - a) x (c - a)
-					const char f = (ray.z > 0) ? 1 : -1;
-					vec b(1, 0, getsblock(getmaplayoutid(x+1, y)).vdelta + s.vdelta * f), c(0, 1, getsblock(getmaplayoutid(x, y+1)).vdelta + s.vdelta * f);
-					*surface = vec(0, 0, s.vdelta); // as a
+					const float f = (ray.z > 0) ? .25f : -.25f;
+					*surface = vec(0, 0, s.vdelta * f); // as a
+					vec b(1, 0, getsblock(getmaplayoutid(x+1, y)).vdelta * f), c(0, 1, getsblock(getmaplayoutid(x, y+1)).vdelta * f);
+					/*
+					conoutf("a %.2f %.2f %.2f", surface->x, surface->y, surface->z);
+					conoutf("b %.2f %.2f %.2f", b.x, b.y, b.z);
+					conoutf("c %.2f %.2f %.2f", c.x, c.y, c.z);
+					/*/
 					b.sub(*surface);
 					c.sub(*surface);
-					dz *= surface->cross(c, b).normalize().z;
+					dz *= surface->cross(b, c).normalize().z;
+					/*
+					conoutf("n %.2f %.2f %.2f", surface->x, surface->y, surface->z);
+					//*/
 				}
 			/*
 			(getsblock(getmaplayoutid(x, y)).vdelta ==
