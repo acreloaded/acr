@@ -385,10 +385,15 @@ void resizephysent(physent *pl, int moveres, int curtime, float min, float max)
 // moveres indicated the physics precision (which is lower for monsters and multiplayer prediction)
 // local is false for multiplayer prediction
 
-void clamproll(physent *pl)
+void clamproll(physent *pl, int maxroll)
 {
 	if(pl->roll > maxroll) pl->roll = maxroll;
 	else if(pl->roll < -maxroll) pl->roll = -maxroll;
+}
+
+void clamproll(physent *pl)
+{
+	clamproll(pl, maxroll);
 }
 
 inline void applyrecoil(float addfactor, float fric, float &dir, float &vel, float &back){

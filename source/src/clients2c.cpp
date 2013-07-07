@@ -86,7 +86,7 @@ void updatelagtime(playerent *d)
 
 extern void trydisconnect();
 
-VARP(maxrollremote, 0, 1, 1); // bound remote "roll" values by our maxroll?!
+VARP(maxrollremote, 0, 0, 1); // bound remote "roll" values by our maxroll?!
 VARP(voteid, 0, 0, 1); // display votes
 
 void parsepositions(ucharbuf &p)
@@ -160,8 +160,14 @@ void parsepositions(ucharbuf &p)
 			if(d->state==CS_WAITING) d->state = CS_ALIVE;
 			// when playing a demo spectate first player we know about
 			if(player1->isspectating() && player1->spectatemode==SM_NONE) togglespect();
-			extern void clamproll(physent *pl);
-			if(maxrollremote) clamproll((physent *) d);
+			if(maxrollremote){
+				extern void clamproll(physent *pl);
+				clamproll(d);
+			}
+			else{
+				extern void clamproll(physent *pl, int maxroll);
+				clamproll(d, 10);
+			}
 			break;
 		}
 
