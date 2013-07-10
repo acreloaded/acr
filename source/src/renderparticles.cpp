@@ -661,9 +661,11 @@ void addshotline(playerent *pl, const vec &from2, const vec &to, int flags)
 	if(!shotlinettl || !shotline || (shotline <= 1 && pl == focus)) return;
 	vec unitv;
 	
-	if((flags & 1) && pl->muzzle.x >= 0) // just for fx
-		from = pl->muzzle;
-	else from.z -= WEAPONBELOWEYE;
+	if(flags & 1){
+		if(pl->muzzle.x >= 0) // just for fx
+			from = pl->muzzle;
+		else from.z -= WEAPONBELOWEYE;
+	}
 	float dist = to.dist(from, unitv);
 	unitv.div(dist);
 

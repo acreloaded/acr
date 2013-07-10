@@ -977,7 +977,9 @@ int crossbow::modelanim(){
 void crossbow::attackfx(const vec &from2, const vec &to, int millis){
 	vec from(from2);
 	if(millis & 1){
-		from.z -= WEAPONBELOWEYE;
+		if(owner->muzzle.x >= 0)
+			from = owner->muzzle;
+		else from.z -= WEAPONBELOWEYE;
 		if(owner != player1 && !isowned(owner)) attacksound();
 	}
 	addshotline(owner, from, to, 0);
@@ -996,7 +998,9 @@ scopedprimary::scopedprimary(playerent *owner, int type) : gun(owner, type) {}
 void scopedprimary::attackfx(const vec &from2, const vec &to, int millis){
 	vec from(from2);
 	if(millis & 1){
-		from.z -= WEAPONBELOWEYE;
+		if(owner->muzzle.x >= 0)
+			from = owner->muzzle;
+		else from.z -= WEAPONBELOWEYE;
 		//attackshell(to);
 		if(owner != player1 && !isowned(owner)) attacksound();
 	}
@@ -1076,7 +1080,9 @@ int heal::flashtime() const { return 0; }
 void heal::attackfx(const vec &from2, const vec &to, int millis){
 	vec from(from2);
 	if(millis & 1){
-		from.z -= WEAPONBELOWEYE;
+		if(owner->muzzle.x >= 0)
+			from = owner->muzzle;
+		else from.z -= WEAPONBELOWEYE;
 		if(owner != player1 && !isowned(owner)) attacksound();
 	}
 
