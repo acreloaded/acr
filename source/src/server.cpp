@@ -3169,7 +3169,6 @@ bool checkmove(client &cp, int f){
 	// editmode already?
 	if(cs.state != CS_ALIVE) return true;
 	const int sender = cp.clientnum;
-	const float speedfactor = gunspeed(cs.gunselect, 0, cs.perk1 == PERK1_LIGHT);
 	// help detect AFK
 	if(cs.lasto.dist(cs.o) >= 0.1f)
 		cs.movemillis = servmillis;
@@ -3178,7 +3177,7 @@ bool checkmove(client &cp, int f){
 	cs.lmillis = gamemillis;
 	cs.spj = (cs.spj * 7 + cs.ldt) >> 3;
 	// detect speedhack
-	if(!m_edit(gamemode) && cs.speedallow < gamemillis){
+	if(!m_edit(gamemode) && gamemillis > cs.speedallow){
 		// immediate velocity
 		/*
 		if(cs.vel.magnitudexy() > 1.9f){ // real cheat detect: 1.07f * 1.42f = 1.5194 (higher due to kickback)
@@ -3188,20 +3187,22 @@ bool checkmove(client &cp, int f){
 			return false;
 		}
 		*/
-		// only check if at least 100 milliseconds have passed
-		if(gamemillis > 100 + cs.smillis){
+		// only check if at least 350 milliseconds have passed
+		if(gamemillis >= 350 + cs.smillis){
+			const float speedfactor = gunspeed(cs.gunselect, 0, cs.perk1 == PERK1_LIGHT);
 			const float current_speed = (cs.lastspeedo.distxy(cs.o) * 1000 / (gamemillis - cs.smillis));
-			cs.lastspeedo = cs.o;
+			const float max_speed = 26 * speedfactor; // sqrt(2) * 24 instead of 26 is the theoretical maximum, but we are checking only when no damage was recently taken
 			cs.smillis = gamemillis;
+			cs.lastspeedo = cs.o;
 			// eased average speed
-			if(current_speed > cs.aspeed) cs.aspeed = (cs.aspeed * 4 + current_speed) / 5.f;
-			else cs.aspeed = (cs.aspeed * 2 + current_speed) / 3.f;
-			if(cs.aspeed > 26 * speedfactor){ // 1.5194 * 24 = 36.4656 theoritical maximum, but we are checking only when no damage was recently taken
+			if(current_speed > cs.aspeed) cs.aspeed = (cs.aspeed + current_speed * 2) / 3.f;
+			else cs.aspeed = (cs.aspeed + current_speed) / 2.f;
+			if(cs.aspeed > max_speed){
 				if(cs.speedtime){
 					// exceeded too long, and is not decelerating
-					if(gamemillis > cs.speedtime + 750 && current_speed >= cs.aspeed)
+					if(gamemillis > cs.speedtime + 500 && current_speed >= cs.aspeed)
 					{
-						defformatstring(fastmsg)("\f3%s moved at %.3f (%.3f instant) cube/s with %d ping", formatname(cp), cs.aspeed, current_speed, cp.ping);
+						defformatstring(fastmsg)("\f3%s moved at %.3f cube/s (%.3f instant, %.3f allowed) with %d ping", formatname(cp), cs.aspeed, current_speed, max_speed, cp.ping);
 						sendservmsg(fastmsg);
 						cheat(&cp, "speedhack");
 						return false;
@@ -3723,7 +3724,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				cs.spawnmillis = gamemillis;
 				cs.state = CS_ALIVE;
 				cs.gunselect = gunselect;
-				cs.lasto = cs.o; // check spawn movement
+				cs.lasto = cs.lastspeedo = cs.o; // check spawn movement
 				cs.o = o;
 				cs.movemillis = servmillis;
 				cs.lmillis = cs.smillis = gamemillis;
