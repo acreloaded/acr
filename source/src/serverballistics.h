@@ -177,7 +177,7 @@ int explosion(client &owner, const vec &o2, int weap, bool gib, client *cflag){
 	// find the hits
 	loopv(clients){
 		client &target = *clients[i];
-		if(target.type == ST_EMPTY || target.state.state != CS_ALIVE || target.state.protect(gamemillis, gamemode, mutators) || isteam(&owner, &target)) continue;
+		if(target.type == ST_EMPTY || target.state.state != CS_ALIVE || target.state.protect(gamemillis, gamemode, mutators) || (&owner == &target ? false : isteam(&owner, &target))) continue;
 		damagedealt += radialeffect((weap == WEAP_GRENADE && cflag && cflag != &target) ? *cflag : owner, target, hits, o, weap, gib, (weap == WEAP_RPG && clients[i] == cflag));
 	}
 	// sort the hits
@@ -264,7 +264,7 @@ client *nearesthit(client &actor, const vec &from, const vec &to, int &hitzone, 
 		client &t = *clients[i];
 		clientstate &ts = t.state;
 		// basic checks
-		if(t.type == ST_EMPTY || ts.state != CS_ALIVE || exclude.find(i) >= 0 || isteam(&actor, &t) || ts.protect(gamemillis, gamemode, mutators)) continue;
+		if(t.type == ST_EMPTY || ts.state != CS_ALIVE || exclude.find(i) >= 0 || (&actor == &t ? false : isteam(&actor, &t)) || ts.protect(gamemillis, gamemode, mutators)) continue;
 		const float d = ts.o.dist(from);
 		if(d > dist) continue;
 		vec o, head;
