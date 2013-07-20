@@ -399,6 +399,14 @@ void load_waypointtex(){
 inline float render_2d_as_3d_start(const vec &o, bool thruwalls = true)
 {
 	glPushMatrix();
+/*
+	glDisable(GL_TEXTURE_2D);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDepthMask(GL_FALSE);
+    glStencilMask(0x000000);
+    glDisable(GL_CULL_FACE);
+*/
 	if(thruwalls) glDisable(GL_DEPTH_TEST);
 	glDisable(GL_FOG);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -412,6 +420,13 @@ inline float render_2d_as_3d_start(const vec &o, bool thruwalls = true)
 
 inline void render_2d_as_3d_end(bool thruwalls = true)
 {
+/*
+	glEnable(GL_CULL_FACE);
+	glStencilMask(0xFFFFFF);
+    glDepthMask(GL_TRUE);
+    glDisable(GL_BLEND);
+    glEnable(GL_TEXTURE_2D);
+*/
 	glDisable(GL_BLEND);
 	glEnable(GL_FOG);
 	if(thruwalls) glEnable(GL_DEPTH_TEST);
