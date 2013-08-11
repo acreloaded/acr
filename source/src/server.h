@@ -749,7 +749,9 @@ struct serverforbiddenlist
         loopi(num){
 			bool found = true;
 			loopj(2){
-				if(*entries[i][j] == '\0' || !findpattern(s,entries[i][j])){
+				if(*entries[i][j] == '\0')
+					break;
+				else if(!findpattern(s,entries[i][j])){
 					found = false;
 					break;
 				}
