@@ -1,24 +1,19 @@
 Licence
 ============
-AssaultCube Reloaded, formerly AssaultCube Special Edition, has most of itself released under the GPL v3. Please see Readme-GPL3.txt.
+AssaultCube Reloaded, formerly AssaultCube Special Edition, has most of itself released under the Cube Licence.
 
 /source/enet is licenced under the MIT Licence by Lee Salzman.
-/packages is special, read that directory's 'Readme's.
-Everything else is GPL 3.
+/packages is special, so read that directory's 'Readme.txt's.
+The rest is under the Cube licence.
 
 Cheat Protection
 ================
 AssaultCube Reloaded, formerly AssaultCube Special Edition, highly supports fair play. In fact, that is one of our platforms. We will prevent cheating to the maximum extent possible using code/protocol. Bans are only a last resort, when code cannot be effective enough to prevent cheats, e.g. Wallhacks.
 
-AssaultCube License (Parent licence)
-=====================
-The AssaultCube source code is mainly based on the cube game/engine and uses the zLib licence (since the 4th clause no longer applies, it is identical to the zLib licence).
-This modification is allowed due to the licence described.
-
-Please note that clause 4 only applies to Cube, and does not apply to AssaultCube. Thus, AssaultCube Reloaded may relicence.
-
-Cube Licence (Grandparent licence)
+Cube Licence
 ==============
+Please note that a clarification with Wouter van Oortmerssen indicates that Clause 4 applies to all derivative works of Cube.
+
 Cube game engine source code, 20 dec 2003 release.
 
 Copyright (C) 2001-2003 Wouter van Oortmerssen.
