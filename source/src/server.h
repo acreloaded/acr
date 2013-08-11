@@ -698,7 +698,7 @@ struct nickblacklist {
 struct serverforbiddenlist
 {
 	int num;
-    char entries[100][2][FORBIDDENSIZE+1]; // 100 entries and 2 words (15 chars) per entry is more than enough
+    char entries[100][2][FORBIDDENSIZE+1]; // 100 entries and 2 words (15 chars each) per entry is more than enough
 
     void initlist()
     {
@@ -753,7 +753,6 @@ struct serverforbiddenlist
 					found = false;
 					break;
 				}
-				if(found) break;
 			}
 			if(found){
 				static char match[2*(FORBIDDENSIZE+1)];

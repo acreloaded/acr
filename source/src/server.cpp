@@ -1357,7 +1357,7 @@ void sendtext(const char *text, client &cl, int flags, int voice){
 		if(const char *forbidden = forbiddens.forbidden(text)){
 			logline(ACLOG_VERBOSE, "%s, forbidden speech (%s)", logmsg, forbidden);
 			defformatstring(forbiddenmessage)("\f2forbidden speech: \f3%s \f2was detected", forbidden);
-			sendservmsg(forbiddenmessage);
+			sendservmsg(forbiddenmessage, cl.clientnum);
 			sendf(cl.clientnum, 1, "ri4s", N_TEXT, cl.clientnum, 0, SAY_FORBIDDEN, text);
 			return;
 		}
