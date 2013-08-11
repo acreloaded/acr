@@ -78,6 +78,8 @@ void drawvoteicon(float x, float y, int col, int row, bool noblend)
 }
 
 VARP(crosshairsize, 0, 15, 50);
+VARP(crosshairreddotsize, 0, 15, 50);
+VARP(crosshairreddottreshold, 0, 1001, 1001);
 VARP(hidestats, 0, 1, 2); // hardcore does not override
 VARP(hideobits, 0, 0, 1);
 VARP(hideradar, 0, 0, 1);
@@ -137,7 +139,7 @@ void drawscope()
 	glEnd();
 }
 
-const char *crosshairnames[CROSSHAIR_NUM] = { "default", "scope", "shotgun", "vertical", "horizontal", "hit" };
+const char *crosshairnames[CROSSHAIR_NUM] = { "default", "scope", "shotgun", "vertical", "horizontal", "hit", "reddot" };
 Texture *crosshairs[CROSSHAIR_NUM] = { NULL }; // weapon specific crosshairs
 
 Texture *loadcrosshairtexture(const char *c, int type = -1)
@@ -839,6 +841,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	bool menu = menuvisible();
 	bool command = getcurcommand() ? true : false;
 
+	// hitmarker
 	if(show_hud_element(true, 2) && focus->lasthitmarker && focus->lasthitmarker + hitmarkerfade > lastmillis){
 		glColor4f(1, 1, 1, (focus->lasthitmarker + hitmarkerfade - lastmillis) / 1000.f);
 		Texture *ch = crosshairs[CROSSHAIR_HIT];
@@ -856,9 +859,28 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		glEnd();
 	}
 
+	// crosshair
 	if(!focus->weaponsel->reloading && !focus->weaponchanging){
 		if(focus->state==CS_EDITING) drawcrosshair(focus, CROSSHAIR_SCOPE, worldhit && worldhit->state==CS_ALIVE ? isteam(worldhit, focus) ? 1 : 2 : 0, NULL, 48.f);
 		else if(focus->state!=CS_DEAD && (!m_zombie(gamemode) || focus->thirdperson >= 0)) focus->weaponsel->renderaimhelp(worldhit && worldhit->state==CS_ALIVE ? isteam(worldhit, focus) ? 1 : 2 : 0);
+	}
+
+	// fake red-dot
+	if(focus->ads >= crosshairreddottreshold){ // show red-dot when 750 zoomed
+		glColor4f(1, 1, 1, powf(focus->ads / 1000.f, 2.f));
+		Texture *ch = crosshairs[CROSSHAIR_REDDOT];
+		if(!ch) ch = textureload("packages/misc/crosshairs/reddot.png", 3);
+		if(ch->bpp==32) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		else glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+		glBindTexture(GL_TEXTURE_2D, ch->id);
+		glBegin(GL_QUADS);
+		const float hitsize = crosshairreddotsize * 2; // fixme
+		glTexCoord2f(0, 0); glVertex2f(VIRTW/2 - hitsize, VIRTH/2 - hitsize);
+		glTexCoord2f(1, 0); glVertex2f(VIRTW/2 + hitsize, VIRTH/2 - hitsize);
+		glTexCoord2f(1, 1); glVertex2f(VIRTW/2 + hitsize, VIRTH/2 + hitsize);
+		glTexCoord2f(0, 1); glVertex2f(VIRTW/2 - hitsize, VIRTH/2 + hitsize);
+		glEnd();
 	}
 
 	static Texture **texs = geteventicons();
