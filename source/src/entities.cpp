@@ -264,8 +264,8 @@ void selectnextsecondary(int weap) { player1->nextsecondary = weap; sendloadout 
 void selectnextperk1(int perk) { player1->nextperk1 = perk; sendloadout = true; }
 void selectnextperk2(int perk) { player1->nextperk2 = perk; sendloadout = true; }
 
-VARFP(nextprimary, 0, WEAP_ASSAULT, WEAP_MAX, selectnextprimary(nextprimary));
-VARFP(nextsecondary, 0, WEAP_PISTOL, WEAP_MAX, selectnextsecondary(nextsecondary));
+VARFP(nextprimary, 0, WEAP_ASSAULT, WEAP_MAX-1, selectnextprimary(nextprimary));
+VARFP(nextsecondary, 0, WEAP_PISTOL, WEAP_MAX-1, selectnextsecondary(nextsecondary));
 VARFP(nextperk1, PERK1_NONE, PERK1_NONE, PERK1_MAX-1, selectnextperk1(nextperk1));
 VARFP(nextperk2, PERK2_NONE, PERK2_NONE, PERK2_MAX-1, selectnextperk2(nextperk2));
 

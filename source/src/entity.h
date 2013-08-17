@@ -407,7 +407,7 @@ struct playerstate
 		else if(m_gib(gamemode, mutators)) primary = WEAP_KNIFE;
 		else if(m_demolition(gamemode, mutators)) primary = WEAP_RPG; // inversion
 		else switch(nextprimary){
-			default: primary = WEAP_ASSAULT; break;
+			default: primary = m_sniper(gamemode, mutators) ? WEAP_BOLT : WEAP_ASSAULT; break;
 			case WEAP_KNIFE:
 			case WEAP_SHOTGUN:
 			case WEAP_SUBGUN:
