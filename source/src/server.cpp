@@ -1869,8 +1869,6 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 		return;
 #endif
 	if(!target || !actor || !damage) return;
-	clientstate &ts = target->state;
-	if(ts.state != CS_ALIVE) return;
 
 	if(target != actor)
 	{
@@ -1887,6 +1885,9 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 			sendf(-1, 1, "ri3", N_REGEN, actor->clientnum, actor->state.health += hpadd);
 		}
 	}
+
+	clientstate &ts = target->state;
+	if(ts.state != CS_ALIVE) return;
 
 	// damage changes
 	if(m_expert(gamemode, mutators))
