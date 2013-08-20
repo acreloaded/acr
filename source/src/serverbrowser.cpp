@@ -1039,13 +1039,14 @@ void refreshservers(void *menu, bool init)
 			serverinfo &si = *servers[i];
 			si.menuline_to = si.menuline_from = ((gmenu *)menu)->items.length();
 			if(!showallservers && si.lastpingmillis < servermenumillis) continue; // no pong yet
-			int banned = ((si.pongflags >> PONGFLAG_BANNED) & 1) | ((si.pongflags >> PONGFLAG_BLACKLIST) & 1);
+			bool banned = (((si.pongflags >> PONGFLAG_BANNED) & 1) | ((si.pongflags >> PONGFLAG_BLACKLIST) & 1)) != 0;
+			bool muted = ((si.pongflags >> PONGFLAG_MUTE) & 1);
 			bool showthisone = !(banned && showonlygoodservers) && !(showonlyfavourites > 0 && si.favcat != showonlyfavourites - 1);
 			bool serverfull = si.numplayers >= si.maxclients;
 			bool needspasswd = (si.pongflags & (1 << PONGFLAG_PASSWORD)) > 0;
 			int mmode = (si.pongflags >> PONGFLAG_MASTERMODE) & MM_MASK;
 			char basecolor = banned ? '4' : (curserver == servers[i] ? '1' : '5');
-			char plnumcolor = serverfull ? '2' : (needspasswd ? '3' : (mmode >= MM_PRIVATE ? '9' : mmode >= MM_LOCKED ? '1' : basecolor));
+			char plnumcolor = serverfull ? '2' : (needspasswd ? '3' : (mmode >= MM_PRIVATE ? '8' : mmode >= MM_LOCKED ? '0' : muted ? '9' : basecolor));
 			defformatstring(serverportpart)((serverbrowseripport == 3 || (serverbrowseripport == 2 && si.port != CUBE_DEFAULT_SERVER_PORT)) ? ":%d" : "", si.port);
 			if(si.address.host != ENET_HOST_ANY && si.ping != 9999)
 			{
