@@ -2043,7 +2043,7 @@ void readipblacklist(const char *name){
 	blfilesize = len;
 	if(!buf) return;
 	p = buf;
-	logline(ACLOG_VERBOSE,"reading ip blacklist '%s'", blfilename);
+	logline(ACLOG_VERBOSE, "reading ip blacklist '%s'", blfilename);
 	while(p < buf + len)
 	{
 		l = p; p += strlen(p) + 1; line++;
@@ -2055,13 +2055,47 @@ void readipblacklist(const char *name){
 		if(l[strspn(l, " ")])
 		{
 			for(int i = strlen(l) - 1; i > 0 && l[i] == ' '; i--) l[i] = '\0';
-			logline(ACLOG_INFO," error in line %d, file %s: ignored '%s'", line, blfilename, l);
+			logline(ACLOG_INFO, " error in line %d, file %s: ignored '%s'", line, blfilename, l);
 			errors++;
 		}
 	}
 	delete[] buf;
 	const int orglength = fixblacklist(ipblacklist, "blacklist");
 	logline(ACLOG_INFO,"read %d (%d) blacklist entries from '%s', %d errors", ipblacklist.length(), orglength, blfilename, errors);
+}
+
+void readipmutelist(const char *name){
+	static string blfilename;
+	static int blfilesize;
+	char *p, *l, *r;
+	iprange ir;
+	int len, line = 0, errors = 0;
+
+	if(!name && getfilesize(blfilename) == blfilesize) return;
+	ipmutelist.shrink(0);
+	char *buf = loadcfgfile(blfilename, name, &len);
+	blfilesize = len;
+	if(!buf) return;
+	p = buf;
+	logline(ACLOG_VERBOSE, "reading ip mutelist '%s'", blfilename);
+	while(p < buf + len)
+	{
+		l = p; p += strlen(p) + 1; line++;
+		if((r = (char *) atoipr(l, &ir)))
+		{
+			ipmutelist.add(ir);
+			l = r;
+		}
+		if(l[strspn(l, " ")])
+		{
+			for(int i = strlen(l) - 1; i > 0 && l[i] == ' '; i--) l[i] = '\0';
+			logline(ACLOG_INFO, " error in line %d, file %s: ignored '%s'", line, blfilename, l);
+			errors++;
+		}
+	}
+	delete[] buf;
+	const int orglength = fixblacklist(ipmutelist, "blacklist");
+	logline(ACLOG_INFO,"read %d (%d) mutelist entries from '%s', %d errors", ipmutelist.length(), orglength, blfilename, errors);
 }
 
 inline bool checkblacklist(enet_uint32 ip, vector<iprange> &ranges){ // ip: network byte order
@@ -3459,6 +3493,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			if(disc) disconnect_client(sender, disc);
 			else cl->connected = true;
+
+			cl->muted = cl->type == ST_TCPIP && checkmutelist(cl->peer->address.host);
 		}
 		if(!cl->connected) return;
 
@@ -4607,6 +4643,7 @@ void rereadcfgs(void){
 	readscfg(NULL);
 	readpwdfile(NULL);
 	readipblacklist(NULL);
+	readipmutelist(NULL);
 	nbl.readnickblacklist(NULL);
 	readbotnames(NULL);
 	forbiddens.read(NULL);
@@ -5292,6 +5329,7 @@ void initserver(bool dedicated){
 		readscfg(scl.maprot);
 		readpwdfile(scl.pwdfile);
 		readipblacklist(scl.blfile);
+		readipmutelist(scl.mlfile);
 		nbl.readnickblacklist(scl.nbfile);
 		forbiddens.read(scl.forbiddenfile);
 		getserverinfo("en"); // cache 'en' serverinfo
