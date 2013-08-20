@@ -24,9 +24,8 @@ void destroyevent::process(client *ci)
 			client *hit = valid_client(flags) && flags != c.clientnum ? clients[flags] : NULL;
 			bool done = false;
 			if(hit){ // maybe change this to server-sided collision?
-				client &target = *hit;
-				clientstate &ts = target.state;
-				if(ts.state == CS_ALIVE && !ts.protect(gamemillis, gamemode, mutators) && !isteam(&c, &target)){
+				clientstate &ts = hit->state;
+				if(ts.state == CS_ALIVE && !ts.protect(gamemillis, gamemode, mutators) && !isteam(&c, hit)){
 					int tknifeflags = FRAG_FLAG;
 					if(checkcrit(0, 0, 20)){ // 5% critical hit chance
 						tknifeflags |= FRAG_CRIT;
@@ -39,12 +38,12 @@ void destroyevent::process(client *ci)
 					o.z = ts.o.z > cubefloor ? (cubefloor + ts.o.z) / 2 : cubefloor;
 
 					// bleeding damage
-					if(!m_zombie(gamemode) && !isteam(&c, hit)){
-						target.state.addwound(c.clientnum, o);
-						sendf(-1, 1, "ri2", N_BLEED, target.clientnum);
+					if(!m_zombie(gamemode)){ // && !isteam(&c, hit)){
+						hit->state.addwound(c.clientnum, o);
+						sendf(-1, 1, "ri2", N_BLEED, flags);
 					}
 					done = true;
-					serverdamage(&target, &c, dmg, WEAP_KNIFE, FRAG_FLAG, vec(0, 0, 0));
+					serverdamage(hit, &c, dmg, WEAP_KNIFE, FRAG_FLAG, vec(0, 0, 0));
 				}
 			}
 

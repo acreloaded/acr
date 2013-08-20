@@ -1869,7 +1869,26 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 		return;
 #endif
 	if(!target || !actor || !damage) return;
+	clientstate &ts = target->state;
+	if(ts.state != CS_ALIVE) return;
 
+	if(target != actor)
+	{
+		if(isteam(actor, target)){
+			// for hardcore modes only
+			damage /= 2;
+			target = actor;
+		}
+		else if(m_vampire(gamemode, mutators) && actor->state.health < VAMPIREMAX){
+			int hpadd = damage / (rnd(3) + 3);
+			// cap at 300 HP
+			if(actor->state.health + hpadd > VAMPIREMAX)
+				hpadd = VAMPIREMAX - actor->state.health;
+			sendf(-1, 1, "ri3", N_REGEN, actor->clientnum, actor->state.health += hpadd);
+		}
+	}
+
+	// damage changes
 	if(m_expert(gamemode, mutators))
 	{
 		if(gun == WEAP_RPG) damage /= ((style & (FRAG_GIB | FRAG_FLAG)) == (FRAG_GIB | FRAG_FLAG)) ? 1 : 3;
@@ -1882,20 +1901,6 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 		else damage *= 2;
 	}
 	else if(m_classic(gamemode, mutators)) damage /= 2;
-
-	clientstate &ts = target->state;
-	if(ts.state != CS_ALIVE) return;
-
-	if(target != actor)
-	{
-		if(!isteam(actor, target) && m_vampire(gamemode, mutators) && actor->state.health < VAMPIREMAX){
-			int hpadd = damage / (rnd(3) + 3);
-			// cap at 300 HP
-			if(actor->state.health + hpadd > VAMPIREMAX)
-				hpadd = VAMPIREMAX - actor->state.health;
-			sendf(-1, 1, "ri3", N_REGEN, actor->clientnum, actor->state.health += hpadd);
-		}
-	}
 
 	ts.dodamage(damage, actor->state.perk1 == PERK_POWER);
 	ts.lastregen = (ts.lastpain = gamemillis) + REGENDELAY - REGENINT;
