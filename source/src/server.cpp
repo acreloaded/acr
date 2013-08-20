@@ -1366,7 +1366,7 @@ void sendtext(const char *text, client &cl, int flags, int voice){
 			sendf(cl.clientnum, 1, "ri4s", N_TEXT, cl.clientnum, 0, SAY_SPAM, text);
 			return;
 		}
-		else if(cl.muted){
+		else if(cl.muted && !cl.priv){
 			logline(ACLOG_VERBOSE, "%s, MUTED", logmsg);
 			sendf(cl.clientnum, 1, "ri4s", N_TEXT, cl.clientnum, 0, SAY_MUTE, text);
 			return;
