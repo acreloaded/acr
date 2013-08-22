@@ -926,14 +926,14 @@ const itemstat ammostats[WEAP_MAX] =
 	{ 2,  5,  6,  S_ITEMAMMO },    // pistol
 	{21, 28, 42,  S_ITEMAMMO },    // shotgun
 	{ 3,  4,  6,  S_ITEMAMMO },    // subgun
-	{ 3,  4,  8,  S_ITEMAMMO },    // sniper
+	{ 1,  2,  2,  S_ITEMAMMO },    // sniper
 	{ 2,  3,  4,  S_ITEMAMMO },    // bolt sniper
 	{ 3,  4,  6,  S_ITEMAMMO },    // m16
 	{ 1,  1,  3,  S_ITEMAMMO },    // grenade
 	{ 4,  0,  6,  S_ITEMAKIMBO },  // akimbo
 	{ 4,  6,  8,  S_ITEMAMMO },    // heal
 	{ 1,  1,  1,  S_ITEMAMMO },    // sword dummy
-	{ 3,  3,  6,  S_ITEMAMMO },    // RPG
+	{ 2,  2,  3,  S_ITEMAMMO },    // RPG
 	{ 3,  4,  6,  S_ITEMAMMO },    // ak47
 	{ 2,  3,  4,  S_ITEMAMMO },    // sniper2
 };
@@ -949,27 +949,27 @@ const itemstat powerupstats[] =
 const mul muls[MUL_NUM] =
 {
 	//{ head, torso, leg; }
-	{ 3.5f, 1.1f,	1 }, // normal
-	{ 5,	1.4f, 	1 }, // snipers
-	{ 4,	1.2f,	1 } // shotgun
+	{ 5.5f, 1.2f, 1.f }, // normal
+	{ 4.0f, 1.4f, 1.f }, // snipers
+	{ 5.0f, 1.3f, 1.f } // shotgun
 };
 
 const guninfo guns[WEAP_MAX] =
 {
 //  { modelname;    sound,      reload,    reloadtime, attackdelay, damage, range, endrange, rangeminus, projspeed, part, spread, spreadrem, kick, addsize, magsize, mdl_kick_rot, mdl_kick_back, recoil, maxrecoil, recoilangle, pushfactor; auto;}
     { "knife",      S_KNIFE,    S_ITEMAMMO,         0,         500,     80,     4,        5,         72,         0,    0,      1,         0,    1,       0,       1,            0,             0,      0,         0,           0,          3, true },
-    { "pistol",     S_PISTOL,   S_RPISTOL,       1400,          90,     36,    24,       90,         17,         0,    0,     90,        90,    9,      12,      13,            6,             2,     32,        48,          70,          1, false},
-    { "shotgun",    S_SHOTGUN,  S_RSHOTGUN,       750,         200,     10,     6,       16,          7,         0,    0,    295,         5,   12,       1,       8,            9,             5,     60,        70,           5,          2, false},
-    { "subgun",     S_SUBGUN,   S_RSUBGUN,       2400,          67,     36,    32,       80,         21,         0,    0,     70,        93,    4,      32,      33,            1,             3,     27,        45,          65,          1, true },
-    { "sniper",     S_SNIPER,   S_RSNIPER,       2000,         120,     45,    70,      110,         10,         0,    0,    235,        96,   14,      10,      11,            4,             4,     59,        68,          75,          2, false},
-    { "bolt",       S_BOLT,     S_RBOLT,         2000,        1500,    120,    80,      130,         50,         0,    0,    250,        97,   36,       8,       9,            4,             4,     86,        90,          80,          3, false},
-    { "assault",    S_ASSAULT,  S_RASSAULT,      2100,          73,     32,    45,       92,         10,         0,    0,     65,        95,    3,      30,      31,            0,             3,     25,        42,          60,          1, true },
-    { "grenade",    S_NULL,     S_NULL,          1000,         650,    230,     0,       60,         27,        20,    6,      1,         0,    1,       0,       1,            3,             1,      0,         0,           0,          3, false},
-    { "pistol",     S_PISTOL,   S_RAKIMBO,       1400,          80,     36,    30,       90,         17,         0,    0,     60,         0,    8,      24,      26,            6,             2,     28,        49,          72,          2, true },
+    { "pistol",     S_PISTOL,   S_RPISTOL,       1400,          90,     32,    24,       90,          8,         0,    0,     90,        90,    9,      12,      13,            6,             2,     32,        48,          70,          1, false},
+    { "shotgun",    S_SHOTGUN,  S_RSHOTGUN,       750,         200,     10,     6,       16,          7,         0,    0,    199,         9,   12,       1,       8,            9,             5,     60,        70,           5,          2, false},
+    { "subgun",     S_SUBGUN,   S_RSUBGUN,       2400,          67,     35,    20,       64,         20,         0,    0,     70,        93,    4,      32,      33,            1,             3,     27,        45,          65,          1, true },
+    { "sniper",     S_SNIPER,   S_RSNIPER,       2000,         120,     45,    70,      110,          9,         0,    0,    235,        96,   14,      20,      21,            4,             4,     59,        68,          75,          2, false},
+    { "bolt",       S_BOLT,     S_RBOLT,         2000,        1500,    120,    80,      130,         48,         0,    0,    250,        97,   36,       8,       9,            4,             4,     86,        90,          80,          3, false},
+    { "assault",    S_ASSAULT,  S_RASSAULT,      2100,          73,     28,    45,       92,          9,         0,    0,     65,        95,    3,      30,      31,            0,             3,     25,        42,          60,          1, true },
+    { "grenade",    S_NULL,     S_NULL,          1000,         650,    220,     0,       55,         27,        20,    6,      1,         0,    1,       0,       1,            3,             1,      0,         0,           0,          3, false},
+    { "pistol",     S_PISTOL,   S_RAKIMBO,       1400,          80,     32,    30,       90,          8,         0,    0,     60,         0,    8,      24,      26,            6,             2,     28,        49,          72,          2, true },
     { "heal",       S_SUBGUN,   S_NULL,          1200,         100,     20,     4,        8,         10,         0,    0,     50,         1,    1,      10,      11,            0,             0,     10,        20,           8,          4, true },
     { "sword",      S_SWORD,    S_NULL,             0,         480,     90,     7,        9,         81,         0,    0,      1,         0,    1,       0,       1,            0,             2,      0,         0,           0,          0, true },
-    { "rpg",        S_RPG,      S_NULL,          2000,         120,    170,     0,       40,         18,         0,    0,    200,        50,    3,       1,       1,            3,             1,     48,        50,           0,          2, false},
-    { "assault2",   S_ASSAULT2, S_RASSAULT2,     2000,         100,     46,    48,      120,         16,         0,    0,    150,        94,    3,      30,      31,            0,             3,     30,        47,          62,          1, true },
+    { "rpg",        S_RPG,      S_NULL,          2000,         120,    190,     0,       35,         18,         0,    0,    200,        50,    3,       1,       1,            3,             1,     48,        50,           0,          2, false},
+    { "assault2",   S_ASSAULT2, S_RASSAULT2,     2000,         100,     42,    48,      120,         12,         0,    0,    150,        94,    3,      30,      31,            0,             3,     30,        47,          62,          1, true },
     { "sniper2",    S_SNIPER2,  S_RSNIPER2,      2000,         120,    110,    75,      120,         45,         0,    0,    300,        98,  120,      10,      11,            4,             4,     95,        96,          85,          5, false},
 };
 

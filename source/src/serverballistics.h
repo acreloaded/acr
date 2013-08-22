@@ -73,7 +73,7 @@ void applyspread(const vec &from, vec &to, int spread, float factor){
 }
 
 bool checkcrit(float dist, float m, int base = 0, int min = 4, int max = 100){
-	return !m_real(gamemode, mutators) && !rnd((base + clamp<int>(ceil(dist) * m, min, max)) * (m_classic(gamemode, mutators) ? 3 : 1));
+	return !m_real(gamemode, mutators) && !rnd((base + clamp<int>(ceil(dist) * m, min, max)) * (m_classic(gamemode, mutators) ? 2 : 1));
 }
 
 // easy to send shot damage messages
@@ -142,7 +142,7 @@ int radialeffect(client &owner, client &target, vector<explosivehit> &hits, cons
 	float dmg = effectiveDamage(weap, dist, true, useReciprocal);
 	int expflags = gib ? FRAG_GIB : FRAG_NONE;
 	// check for critical
-	if(checkcrit(dist, 1.5f)){
+	if(checkcrit(dist, 2.5f)){ // 1 in clamp(10 * meter, 4, 100)
 		expflags |= FRAG_CRIT;
 		dmg *= 1.4f;
 	}
@@ -325,7 +325,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
 		// gib check
 		if((melee_weap(weap) || hitzone == HIT_HEAD) && !save) style |= FRAG_GIB;
 		// critical shots
-		if(checkcrit(dist, 2.5)){
+		if(checkcrit(dist2, 3.5f)){ // 1 in clamp(14 * meter, 4, 100)
 			style |= FRAG_CRIT;
 			damage *= 1.5f;
 		}
