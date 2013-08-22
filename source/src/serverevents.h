@@ -320,19 +320,20 @@ void processevents(){
 		// drown,(bleed+regen)
 		if(cs.state == CS_ALIVE){ // can't regen or drown or bleed if dead
 			// drown underwater
-			if(!m_classic(gamemode, mutators) && cs.o.z < smapstats.hdr.waterlevel){
+			if(cs.o.z < smapstats.hdr.waterlevel){
 				if(cs.drownmillis <= 0){
 					if(cs.drownmillis) // resume partial drowning
 						cs.drownval = max(cs.drownval - ((servmillis + cs.drownmillis) / 1000), 0);
 					cs.drownmillis = gamemillis;
 				}
-				char drownstate = (gamemillis - cs.drownmillis) / 1000;
+				char drownstate = max(0, (gamemillis - cs.drownmillis) / 1000 - 10);
 				while(cs.drownval < drownstate){
-					serverdamage(&c, &c, powf(++cs.drownval, 7.f)/1000000, WEAP_MAX + 13, FRAG_NONE, cs.o);
+					++cs.drownval;
+					serverdamage(&c, &c, (m_classic(gamemode, mutators) ? 5 : (cs.drownval + 10)) * HEALTHSCALE, WEAP_MAX + 13, FRAG_NONE, cs.o);
 					if(cs.state != CS_ALIVE) break; // dead!
 				}
 			}
-			else if(cs.drownmillis > 0) cs.drownmillis = -cs.drownmillis;
+			else if(cs.drownmillis > 0) cs.drownmillis = -cs.drownmillis; // save partial drowning
 			// bleed = no drown
 			if(cs.wounds.length()){ // bleeding; oh no!
 				loopv(cs.wounds){
