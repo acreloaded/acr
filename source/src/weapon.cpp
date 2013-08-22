@@ -111,6 +111,8 @@ int currentprimary() { return player1->primary; }
 int currentsecondary() { return player1->secondary; }
 int prevweapon() { return player1->prevweaponsel->type; }
 int curweapon() { return player1->gunselect; }
+int zoomprogress() { return player1->ads; }
+int isscoped() { return player1->ads >= scopedprimary::adsscope ? 1 : 0; }
 
 int magcontent(int w) { if(w >= 0 && w < WEAP_MAX) return player1->weapons[w]->mag; else return -1;}
 int magreserve(int w) { if(w >= 0 && w < WEAP_MAX) return player1->weapons[w]->ammo; else return -1;}
@@ -123,6 +125,8 @@ COMMAND(prevweapon, ARG_IVAL);
 COMMAND(curweapon, ARG_IVAL);
 COMMAND(magcontent, ARG_1EXP);
 COMMAND(magreserve, ARG_1EXP);
+COMMAND(zoomprogress, ARG_IVAL);
+COMMAND(isscoped, ARG_IVAL);
 
 void tryreload(playerent *p){
 	if(!p || p->state!=CS_ALIVE || p->weaponsel->reloading || p->wantsreload || p->weaponchanging) return;
