@@ -2749,6 +2749,7 @@ bool scallvote(voteinfo *v) // true if a regular vote was called
 
 	if(!v || !v->isvalid()) error = VOTEE_INVALID;
 	else if(v->action->reqpriv > clients[v->owner]->priv) error = VOTEE_PERMISSION;
+	else if(v->action->isremovingaplayer() && clients[v->owner]->muted) error = VOTEE_PERMISSION;
 	else if(!(area & v->action->area)) error = VOTEE_AREA;
 	else if(curvote && curvote->result==VOTE_NEUTRAL) error = VOTEE_CUR;
 	else if(clients[v->owner]->priv < PRIV_ADMIN && v->action->isdisabled()) error = VOTEE_DISABLED;
