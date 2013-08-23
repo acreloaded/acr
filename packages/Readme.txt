@@ -9,15 +9,53 @@ audio
 		ac.ogg
 			© 2005 Dietmar "DCP" Pier
 	sounds
-		ambience - CC Sampling+ 1.0
+		ambience
+			cavedrip - Original recordings by "acclivity"
+			distant_cars- Original recordings by "fresco" and "WIM"
+			hum01 - Original recording  by "dommygee"
+			hum02 - Original recording  by "dommygee"
+			night_crickets  - Original recordings by "acclivity"
+			water - Original recording  by "ignotus"
+			wind - Original recording  by "Bahutan"
+				CC Sampling+ 1.0
+			t_hum01 - Original recording  by "mwl500"
+			t_hum02 - Original recording  by "fonogeno"
+			t_hum03 - Original recording  by "livindead"
+			t_hum04 - Original recording  by "NoiseCollector"
+			t_vent01 - Original recording  by "droboide"
+			t_vent02 - Original recording  by "nicStage"
+			t_water01 - Original recording  by "acclivity"
+			t_aircond - Original recording  by "Syna Max"
+			t_dogs01 - Original recording  by "ermine"
+			t_compressor - Original recording  by "ReWired"
+			t_helicopter - Original recording  by "nofeedbak"
+			t_wind - Original recording  by "vuzz"
+			t_waterdrip - Original recording  by "mich3d"
+			t_sludge - Original recording  by "Rhedcerulean"
+				Toca's seamless loops - CC Sampling+ 1.0 - downloaded from freesound.iua.upf.edu
+			t_crow
+			t_radio_comms
+			t_radio_static
+			t_static02
+			t_static01
+			t_night02
+			t_water_owl
+			t_night01
+			t_night_dog
+			t_keyboard.ogg
+			t_factory01.ogg
+			t_vents.ogg
+			t_waterfront.ogg
+			warningalarm01
+				Edited into seamless loops by Toca - http://www.soundsnap.com/licence
 		ctf*
 		misc*
-			vote - CC Sampling+ 1.0
+			vote - "wildweasel" CC Sampling+ 1.0
 		player*
 			gib.ogg - "wildweasel" CC-BY-SA 2.5
 		voicecom*
 		weapon*
-			ric*.wav - OpenArena GPL 2.0
+			ric*.ogg - OpenArena GPL 2.0
 			katana.ogg - comes with the sword model by PROGONNA, with reciprocal non-copyright
 			sniper2.ogg - (A section of) Bobster CC-BY-NC-ND 3.0
 maps*
@@ -38,7 +76,7 @@ maps*
 	ac_toxic - © Copyright 2007-2008 by RandumIdiot (http://www.ri-ac.co.nr)
 	ac_urban* - By Archangel, with help from RandumIdiot.
 misc
-	crosshairs - Some created by Victor, but all are not eligible for any copyright
+	crosshairs - Some created by Victor, but all are not eligible for any copyright (simple geometry)
 	eventicons
 		airstrike.png
 		dropnade.png
@@ -94,20 +132,21 @@ misc
 		first.png - Deleket (http://deleket.deviantart.com/) CC-BY 3.0
 		knife.png* - Unknown origin, but non-commercial use is probably allowed
 		nuke.png - Aqua Candy Revolution - McDo Design (Susumu Yoshida) Non-commercial, Link not required
-		sword.png - Storm Riders - Swords Icon Pack by Talos Tsui*
-	perks - Colored Perk Icons for ACR Victor CC-BY 3.0 - from Perks Icons for ACR by Protox CC-BY 3.0
-	streak - Crystal Icons LGPL - Colorized/Modified by Victor LGPL
+		sword.png - Storm Riders - Swords Icon Pack by Talos Tsui - Unlicenced
+	perks - Colored Perk Icons for ACR Victor CC-BY 3.0 - adapted from Perks Icons for ACR by Protox CC-BY 3.0
+	streak - Colorized/Modified by Victor LGPL - Crystal Icons LGPL
 	waypoints - © Activision
 	bargraphs.png
 	chars.png
 	chars_new.png
+	damagedir.png
 	radaricons.png
-	scope.png - Created by Victor from Copyright-Ineligible sources
+	scope.png - Created by Victor from Copyright-Ineligible sources (simple geometry)
 	servqual.png
-		Ineligible for copyright
+		Ineligible for copyright (simple geometry)
 	blood.png
-	compass.png
-	compass_base.png
+	compass-base.png
+	compass-rose.png
 	ctficons.png
 	explosion.png
 	flagicons.png
@@ -125,24 +164,34 @@ misc
 	scorch.png
 		© 2005-2006 makkE
 	damage.png
-		©? Taken from openwarfare2
-	damagedir.png
-		© Activision/Infinity Ward
-models - makkE (Markus Bekel, makk_e@web.de) CC-BY-NC-SA 2.5
+		©? from openwarfare2
+models - makkE (Markus Bekel, makk_e@web.de), Nieb (Shane Nieb, nieb_123@hotmail.com) - CC-BY-NC-SA 2.5
 	mapmodels
 		barrel_ice
 		tree_snow
 			Originally by makkE, but adapted by Deathstar
 		laptop1 - © 2004 JCDPC
+		toca - Toca (Alejandro V. García, buzonyx@hotmail.com) - CC-BY-NC-SA 2.5 Generic or Mexico
 		ventflap - used for ac_iced, DCP*
 	playermodels
 		*.md2 - HitmanDaz[MT] (Darren Pattenden) The owner was notified, but no response was received
 		*.jpg - Protox AssaultCube HQ Reskin PD
-	weapons
-		Most are CC BY-NC-SA by makkE, some models are © unknown
+	weapons -
+		assault
+		bolt
+		rpg
+		shotgun
+		subgun
+			©? unknown, hands by makkE CC-BY-NC-SA 2.5
 		assault2
 		pistol
 			xdEpicZombie CC0, hands by Padge1 CC-BY 3.0
+		grenade
+		heal
+		knife - reanimated by Victor CC-BY-NC-SA 2.5
+			makkE CC-BY-NC-SA 2.5
+		shell - ©? unknown
+		sniper - Converted only by Victor, no other changes - CC-BY-NC-ND 3.0 http://css.gamebanana.com/skins/42302
 		sniper2 - Padge1 CC-BY 3.0
 		sword - Modified by Victor Public Domain - Copyright-free Reciprocal Licence by PROGONNA
 textures*
@@ -153,7 +202,7 @@ textures*
 	dog - see its respective folder (/packages/textures/dog/readme.txt)
 	drunkenM - Modified by drunkenM from a flickr user "You are free to use this texture in your own works, as a texture for 3D artwork, for derivative works, for all purposes including commercial."
 	ice - see its respective folder
-	jcdpc - © JCDPC
+	jcdpc - (doesn't exist?) © JCDPC
 	johnsolo - Consider them free to use for all non-commercial purposes. (http://johnsolo.net/tex/tex.php)
 	kurt - Do what you want with these textures, I don't care.
 	makke*
@@ -184,4 +233,4 @@ textures*
 	toca*
 	wotwot*
 
-* There is no licence for those marked with an asterisk, but AC is allowed to use it. Thus, we assume that it is either Public Domain or no attribution required.
+* There is no licence for those marked with an asterisk, but AC 1.0.4 is allowed to use it. Thus, we assume that it is either Public Domain or no attribution required.
