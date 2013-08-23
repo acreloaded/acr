@@ -526,7 +526,7 @@ void drawradar(playerent *p, int w, int h)
 			isteam(p, pl); // same team
 		if(force)
 			drawradarent(fixradarpos(pl->o, centerpos, res, pl->state==CS_DEAD), coordtrans, pl->yaw, pl->state == CS_DEAD ? 1 : isattacking(pl) ? 2 : 0,
-				pl->team == TEAM_SPECT ? 0 : isteam(p, pl) ? 1 : (p->team == TEAM_SPECT) ? (pl->team * 2) : 0, iconsize, isattacking(pl) ? 1 : 0, pl->team == TEAM_SPECT ? .2f : pl->state==CS_DEAD ? .5f : 1, "\f%d%s", pl->team == TEAM_SPECT ? 4 : (p, pl) ? 0 : (p->team == TEAM_SPECT) ? team_color(pl->team) : 3, colorname(pl));
+				pl->team == TEAM_SPECT ? 0 : isteam(p, pl) ? 1 : (p->team == TEAM_SPECT) ? (pl->team * 2) : 0, iconsize, isattacking(pl) ? 1 : 0, pl->team == TEAM_SPECT ? .2f : pl->state==CS_DEAD ? .5f : 1, "\f%d%s", pl->team == TEAM_SPECT ? 4 : isteam(p, pl) ? 0 : (p->team == TEAM_SPECT) ? team_color(pl->team) : 3, colorname(pl));
 		else
 		{
 			int taggedmillis = 0;
