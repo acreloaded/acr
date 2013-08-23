@@ -227,7 +227,7 @@ textures*
 			Unlicenced, assumed Attribution required
 		kothic - see its .html
 		ladynighthawk - this skymap (inhcanyons1) is CC-BY-NC-SA by Lady NightHawk of http://alusion-fr.com/an1ffa3.htm
-		makke - © 2004 makkE
+		makke - makkE 2004 - "(Feel free to use the sykboxes in "makke" for whatever you want, read PD)"
 		socksky - SimonOC (http://simonoc.com/pages/materials/skybox) CC-BY-NC-SA 3.0
 		steini - © 2004 steini
 	toca*
