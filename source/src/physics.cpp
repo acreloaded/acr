@@ -909,7 +909,11 @@ void mousemove(int odx, int ody)
 	adjustangle(camera1->yaw, dyaw, camera1->yawreturn);
 	adjustangle(camera1->pitch, dpitch, camera1->pitchreturn);
 	fixcamerarange();
-	if(camera1!=player1 && player1->spectatemode!=SM_DEATHCAM)
+	if(player1->spectatemode == SM_DEATHCAM && (dyaw >= .1f || dpitch >= .1f)){
+		extern int lastdeathcamswitch;
+		lastdeathcamswitch = 0;
+	}
+	if(camera1 != player1 && player1->spectatemode!=SM_DEATHCAM)
 	{
 		player1->yaw = camera1->yaw;
 		if(!m_zombie(gamemode) || thirdperson >= 0) player1->pitch = camera1->pitch;

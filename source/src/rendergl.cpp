@@ -578,6 +578,7 @@ void camera3(playerent *p, int dist){
 VARNP(deathcam, deathcamstyle, 0, 1, 1);
 FVARP(deathcamspeed, 0, 2.f, 1000);
 
+int lastdeathcamswitch = 0;
 void recomputecamera(){
 	if((player1->team == TEAM_SPECT || player1->state==CS_DEAD) && !editmode){
 		switch(player1->spectatemode){
@@ -589,7 +590,6 @@ void recomputecamera(){
 					break;
 				}
 				static physent deathcam;
-				static int lastdeathcamswitch = 0;
 				if(camera1==&deathcam)
 				{
 					if(deathcamstyle && totalmillis - lastdeathcamswitch <= 3000)
