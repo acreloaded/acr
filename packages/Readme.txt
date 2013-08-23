@@ -135,7 +135,16 @@ misc
 		sword.png - Storm Riders - Swords Icon Pack by Talos Tsui - Unlicenced
 	perks - Colored Perk Icons for ACR Victor CC-BY 3.0 - adapted from Perks Icons for ACR by Protox CC-BY 3.0
 	streak - Colorized/Modified by Victor LGPL - Crystal Icons LGPL
-	waypoints - © Activision
+	waypoints - Victor CC-BY-NC-SA 3.0
+		airstrike.png
+		enemy.png
+		friendly.png
+		grab.png
+		knife.png
+		nuke.png
+		stolen.png
+		return.png
+			© Activision
 	bargraphs.png
 	chars.png
 	chars_new.png
