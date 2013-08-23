@@ -4672,7 +4672,10 @@ void loggamestatus(const char *reason){
 		concatformatstring(text, c.team != TEAM_SPECT && !m_team(gamemode, mutators) ? "*%-4s " : "%-5s ", team_string(c.team)); // team
 		if(m_affinity(gamemode)) concatformatstring(text, "%4d ", c.state.flagscore);	 // flag
 		concatformatstring(text, "%4d %5d", c.state.frags, c.state.deaths);  // frag death
-		logline(ACLOG_INFO, "%s%5d %s %s", text, c.ping,
+		// ping
+		if(c.ping == 9999) concatstring(text, " ????");
+		else concatformatstring(text, "%5d", c.ping);
+		logline(ACLOG_INFO, "%s %s %s", text,
 			c.priv == PRIV_NONE ? "normal " :
 			c.priv == PRIV_MASTER ? "master " :
 			c.priv == PRIV_ADMIN ? "admin  " :
