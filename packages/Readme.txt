@@ -58,23 +58,34 @@ audio
 			ric*.ogg - OpenArena GPL 2.0
 			katana.ogg - comes with the sword model by PROGONNA, with reciprocal non-copyright
 			sniper2.ogg - (A section of) Bobster CC-BY-NC-ND 3.0
-maps*
-	ac_arctic* - KC
-	ac_complex
-	ac_mines
+maps/official
+	ac_aqueous
+	ac_depot
+	ac_depot_classic
+	ac_desert2
+	ac_desert3
+	ac_douze
+	ac_gothic
+	ac_iced - Modified by Victor - Deathstar (unknown licence)
+	ac_twintowers
+		Unknown*
+	ac_arctic - KC PD
+	ac_complex*
+	ac_mines*
 		Copyright © 2004-2006 by makkE (makk_e@web.de)
-	ac_depot - Copyright © 2004-2006 by MitaMAN
-	ac_desert - Copyright © 2004-2006 by makkE (makk_e@web.de) and Arghvark
+	ac_depot* - Copyright © 2004-2006 by MitaMAN
+	ac_desert* - Copyright © 2004-2006 by makkE (makk_e@web.de) and Arghvark
 	ac_elevation* - A&D_Shadow
 	ac_keller* - Mr.Floppy
 	ac_power* - wotwot
-	ac_scaffold*
-	ac_shine*
+	ac_scaffold - PD
+	ac_shine - CC-BY
 		DogDancing
 	ac_snow* - daMfr0
-	ac_sunset* - R4zor
-	ac_toxic - © Copyright 2007-2008 by RandumIdiot (http://www.ri-ac.co.nr)
+	ac_sunset - R4zor (CC-BY-NC-SA 3.0)
+	ac_toxic* - © Copyright 2007-2008 by RandumIdiot (http://www.ri-ac.co.nr)
 	ac_urban* - By Archangel, with help from RandumIdiot.
+	acr_recreation* - bluwarguy
 misc
 	crosshairs - Some created by Victor, but all are not eligible for any copyright (simple geometry)
 	eventicons
