@@ -59,24 +59,23 @@ audio
 			katana.ogg - comes with the sword model by PROGONNA, with reciprocal non-copyright
 			sniper2.ogg - (A section of) Bobster CC-BY-NC-ND 3.0
 maps/official
-	ac_aqueous
-	ac_depot
-	ac_depot_classic
-	ac_desert2
-	ac_desert3
-	ac_douze
-	ac_gothic
-	ac_iced - Modified by Victor - Deathstar (unknown licence)
-	ac_twintowers
-		Unknown*
 	ac_arctic - KC PD
+	ac_aqueous* - RandumKiwi
 	ac_complex*
+	ac_desert* - and Arghvark
 	ac_mines*
 		Copyright © 2004-2006 by makkE (makk_e@web.de)
-	ac_depot* - Copyright © 2004-2006 by MitaMAN
-	ac_desert* - Copyright © 2004-2006 by makkE (makk_e@web.de) and Arghvark
-	ac_elevation* - A&D_Shadow
-	ac_keller* - Mr.Floppy
+	ac_desert2*
+	ac_desert3*
+		Nieb
+	ac_depot*
+	ac_depot_classic*
+		Copyright © 2004-2006 by MitaMAN
+	ac_douze* - makkE, layout by stanze
+	ac_elevation* - A&D_Shadow (© he probably doesn't want it, so it probably should be replaced)
+	ac_gothic* - R4zor
+	ac_iced* - Modified by Victor - Deathstar (unknown licence)
+	ac_keller* - Mr.Floppy (possible ©, http://forum.cubers.net/user-183.html)
 	ac_power* - wotwot
 	ac_scaffold - PD
 	ac_shine - CC-BY
@@ -84,6 +83,7 @@ maps/official
 	ac_snow* - daMfr0
 	ac_sunset - R4zor (CC-BY-NC-SA 3.0)
 	ac_toxic* - © Copyright 2007-2008 by RandumIdiot (http://www.ri-ac.co.nr)
+	ac_twintowers* - Unknown authors
 	ac_urban* - By Archangel, with help from RandumIdiot.
 	acr_recreation* - bluwarguy
 misc
