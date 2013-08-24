@@ -2935,7 +2935,7 @@ mapstats *getservermapstats(const char *mapname, bool getlayout, int *maploc){
 bool sendmapserv(int n, string mapname, int mapsize, int cfgsize, int cfgsizegz, uchar *data){
 	FILE *fp;
 
-	if(!mapname[0] || mapsize <= 0 || mapsize + cfgsizegz > MAXMAPSENDSIZE || cfgsize > MAXCFGFILESIZE) return false; // malformed: probably modded client
+	if(!mapname[0] || mapsize <= 0 || mapsize + cfgsizegz > MAXMAPSENDSIZE || cfgsize > MAXCFGFILESIZE || cfgsize < 0 || cfgsizegz < 0) return false; // malformed: probably modded client
 	if(m_edit(gamemode) && !strcmp(mapname, behindpath(smapname)))
 	{ // update mapbuffer only in coopedit mode (and on same map)
 		copystring(copyname, mapname);
@@ -3656,10 +3656,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			case N_SWITCHTEAM:
 			{
 				int t = getint(p);
-				if(cl->team == t) break;
+				if(cl->team == t || !team_valid(t)) break;
 
-				if(cl->priv < PRIV_ADMIN && t < 2){
-					if(mastermode >= MM_LOCKED && cl->team >= 2){
+				if(cl->priv < PRIV_ADMIN && t < TEAM_SPECT){
+					if(mastermode >= MM_LOCKED && cl->team >= TEAM_SPECT){
 						sendf(sender, 1, "ri2", N_SWITCHTEAM, 1 << 4);
 						break;
 					}
@@ -4160,7 +4160,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				int mapsize = getint(p);
 				int cfgsize = getint(p);
 				int cfgsizegz = getint(p);
-				if(p.remaining() < mapsize + cfgsizegz || MAXMAPSENDSIZE < mapsize + cfgsizegz)
+				if(mapsize + cfgsizegz > p.remaining() || mapsize + cfgsizegz > MAXMAPSENDSIZE)
 				{
 					p.forceoverread();
 					break;
@@ -4206,7 +4206,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				}
 				mapsending = false;
 				if (reject) logline(ACLOG_INFO,"[%s] %s sent map '%s', %d + %d(%d) bytes rejected: %s", cl->hostname, cl->name, sentmap, mapsize, cfgsize, cfgsizegz, reject);
-				p.len += mapsize + cfgsizegz;
+				p.len += max(0, mapsize + cfgsizegz);
 				break;
 			}
 

@@ -1560,14 +1560,14 @@ void receivefile(uchar *data, int len)
 			}
 			if(securemapcheck(text))
 			{
-				p.len += size;
+				p.len += max(0, size);
 				break;
 			}
 			gettingmap = true;
 			writemap(path(text), mapsize, &p.buf[p.len]);
-			p.len += mapsize;
+			p.len += max(0, mapsize);
 			writecfggz(path(text), cfgsize, cfgsizegz, &p.buf[p.len]);
-			p.len += cfgsizegz;
+			p.len += max(0, cfgsizegz);
 			break;
 		}
 
