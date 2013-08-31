@@ -13,7 +13,7 @@ void destroyevent::process(client *ci)
 		case WEAP_GRENADE:
 		{
 			if(!gs.grenades.remove(flags)) return;
-			damagedealt += explosion(c, o, WEAP_GRENADE);
+			damagedealt += explosion(c, o, WEAP_GRENADE, !m_real(gamemode, mutators));
 			break;
 		}
 
@@ -25,7 +25,7 @@ void destroyevent::process(client *ci)
 			bool done = false;
 			if(hit){ // maybe change this to server-sided collision?
 				clientstate &ts = hit->state;
-				if(ts.state == CS_ALIVE && !ts.protect(gamemillis, gamemode, mutators) && !isteam(&c, hit)){
+				if(ts.state == CS_ALIVE && !ts.protect(gamemillis, gamemode, mutators) && !isteam(&c, hit)){ // cannot make teammates bleed
 					int tknifeflags = FRAG_FLAG;
 					if(checkcrit(0, 0, 20)){ // 5% critical hit chance
 						tknifeflags |= FRAG_CRIT;
@@ -125,7 +125,7 @@ void shotevent::process(client *ci)
 			static ivector exclude;
 			exclude.setsize(0);
 			exclude.add(c.clientnum);
-			client *hit = nearesthit(c, from, to, hitzone, pos, exclude, expc);
+			client *hit = nearesthit(c, from, to, !m_real(gamemode, mutators), hitzone, pos, exclude, expc);
 			if(hit){
 				int dmg = HEALTHSCALE;
 				if(hitzone == HIT_HEAD){
@@ -141,7 +141,7 @@ void shotevent::process(client *ci)
 			// fix explosion on walls
 			else (expc = to).sub(from).normalize().mul(to.dist(from) - .1f).add(from);
 			// instant explosion
-			int rpgexplodedmgdealt = explosion(*ci, expc, WEAP_RPG, false, hit);
+			int rpgexplodedmgdealt = explosion(*ci, expc, WEAP_RPG, !m_real(gamemode, mutators), false, hit);
 			gs.damage += rpgexplodedmgdealt;
 			gs.shotdamage += max<int>(effectiveDamage(WEAP_RPG, 0), rpgexplodedmgdealt);
 			break;
@@ -153,7 +153,7 @@ void shotevent::process(client *ci)
 			static ivector exclude;
 			exclude.setsize(0);
 			exclude.add(c.clientnum);
-			client *hit = gs.scoping ? &c : nearesthit(c, from, to, hitzone, pos, exclude, end);
+			client *hit = gs.scoping ? &c : nearesthit(c, from, to, false, hitzone, pos, exclude, end);
 			if(!hit) break;
 			if(hit->state.wounds.length()){
 				// healing by a player
@@ -286,9 +286,9 @@ void healevent::process(client *ci){
 	sendf(-1, 1, "ri3", N_REGEN, ci->clientnum, ci->state.health);
 }
 
-void suicidebomberevent::process(client *ci){ explosion(*ci, ci->state.o, WEAP_GRENADE, true, valid_client(id) ? clients[id] : NULL); }
+void suicidebomberevent::process(client *ci){ explosion(*ci, ci->state.o, WEAP_GRENADE, !m_real(gamemode, mutators), true, valid_client(id) ? clients[id] : NULL); }
 
-void airstrikeevent::process(client *ci){ explosion(*ci, o, WEAP_GRENADE, false); }
+void airstrikeevent::process(client *ci){ explosion(*ci, o, WEAP_GRENADE, !m_real(gamemode, mutators), false); }
 
 // processing events
 bool timedevent::flush(client *ci, int fmillis)

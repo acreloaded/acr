@@ -166,7 +166,7 @@ int radialeffect(client &owner, client &target, vector<explosivehit> &hits, cons
 }
 
 // explosion call
-int explosion(client &owner, const vec &o2, int weap, bool gib, client *cflag){
+int explosion(client &owner, const vec &o2, int weap, bool teamcheck, bool gib, client *cflag){
 	int damagedealt = 0;
 	vec o(o2);
 	checkpos(o);
@@ -177,7 +177,7 @@ int explosion(client &owner, const vec &o2, int weap, bool gib, client *cflag){
 	// find the hits
 	loopv(clients){
 		client &target = *clients[i];
-		if(target.type == ST_EMPTY || target.state.state != CS_ALIVE || target.state.protect(gamemillis, gamemode, mutators) || (&owner != &target && !m_real(gamemode, mutators) && isteam(&owner, &target))) continue;
+		if(target.type == ST_EMPTY || target.state.state != CS_ALIVE || target.state.protect(gamemillis, gamemode, mutators) || (&owner != &target && teamcheck && isteam(&owner, &target))) continue;
 		damagedealt += radialeffect((weap == WEAP_GRENADE && cflag && cflag != &target) ? *cflag : owner, target, hits, o, weap, gib, (weap == WEAP_RPG && clients[i] == cflag));
 	}
 	// sort the hits
@@ -241,7 +241,7 @@ struct shothit{
 };
 
 // hit checks
-client *nearesthit(client &actor, const vec &from, const vec &to, int &hitzone, const vector<posinfo> &pos, ivector &exclude, vec &end, bool melee = false){
+client *nearesthit(client &actor, const vec &from, const vec &to, bool teamcheck, int &hitzone, const vector<posinfo> &pos, ivector &exclude, vec &end, bool melee = false){
 	client *result = NULL;
 	float dist = 4e6f; // 1 million meters...
 	clientstate &gs = actor.state;
@@ -264,7 +264,7 @@ client *nearesthit(client &actor, const vec &from, const vec &to, int &hitzone, 
 		client &t = *clients[i];
 		clientstate &ts = t.state;
 		// basic checks
-		if(t.type == ST_EMPTY || ts.state != CS_ALIVE || exclude.find(i) >= 0 || (&actor != &t && !m_real(gamemode, mutators) && isteam(&actor, &t)) || ts.protect(gamemillis, gamemode, mutators)) continue;
+		if(t.type == ST_EMPTY || ts.state != CS_ALIVE || exclude.find(i) >= 0 || (teamcheck && &actor != &t && isteam(&actor, &t)) || ts.protect(gamemillis, gamemode, mutators)) continue;
 		const float d = ts.o.dist(from);
 		if(d > dist) continue;
 		vec o, head;
@@ -293,7 +293,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
 	const int mulset = sniper_weap(weap) ? MUL_SNIPER : MUL_NORMAL;
 	int hitzone = HIT_NONE; vec end = to;
 	// calculate the hit
-	client *hit = nearesthit(owner, from, to, hitzone, pos, exclude, end, melee_weap(weap));
+	client *hit = nearesthit(owner, from, to, !m_real(gamemode, mutators), hitzone, pos, exclude, end, melee_weap(weap));
 	// damage check
 	const float dist2 = dist + end.dist(from);
 	int damage = effectiveDamage(weap, dist2 + penaltydist);
@@ -311,7 +311,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
 #if (SERVER_BUILTIN_MOD & 16) == 16
 	if(!dist){
 		//sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, WEAP_RPG, owner.state.o.x, owner.state.o.y, owner.state.o.z, end.x, end.y, end.z);
-		explosion(owner, end, WEAP_RPG, false);
+		explosion(owner, end, WEAP_RPG, !m_real(gamemode, mutators), false);
 	}
 #endif
 	// we hit somebody
@@ -334,7 +334,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
 		if(melee_weap(weap)){
 			if(hitzone == HIT_HEAD) style |= FRAG_FLAG;
 			if(&owner == hit) return 0; // not possible
-			else if(!isteam(&owner, hit)){
+			else if(!isteam(&owner, hit)){ // do not cause teammates to bleed
 				hit->state.addwound(owner.clientnum, end);
 				sendf(-1, 1, "ri2", N_BLEED, hit->clientnum);
 			}

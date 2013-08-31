@@ -850,7 +850,7 @@ int findmappath(const char *mapname, char *filename = NULL);
 void sendf(int cn, int chan, const char *format, ...);
 void sendteamscore(int team, int reciever = -1);
 
-int explosion(client &owner, const vec &o2, int weap, bool gib = true, client *cflag = NULL);
+int explosion(client &owner, const vec &o2, int weap, bool teamcheck, bool gib = true, client *cflag = NULL);
 /*
 int calcscores();
 void recordpacket(int chan, void *data, int len);
