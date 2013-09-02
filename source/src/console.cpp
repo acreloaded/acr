@@ -192,7 +192,7 @@ struct obitlist : consolebuffer<oline>
 		{
 			obit_name(cl.actor, actor, false, actor ? (obitamt >= 3 || (actor->ownernum < 0 && obitamt >= 1)) ? 2 : (actor->ownernum < 0) ? 1 : 0 : 0);
 			if(assist > 1)
-				concatformatstring(cl.actor, " \f2& %d", assist);
+				concatformatstring(cl.actor, " \f2(+%d)", assist);
 		}
 		// target
 		if(!target) *cl.target = 0;
