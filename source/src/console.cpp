@@ -131,22 +131,31 @@ Texture **obittex(){
 	return tex;
 }
 
-const char *obit_prefix(playerent *pl, bool dark){
-	static string ret = {0};
-	if(!pl) return ret;
-	const int colorset[2][3] = {{0, 1, 3}, {8, 9, 7}};
-	int color2 = pl == player1 ? 1 : isteam(pl, player1) ? 0 : 2;
-	formatstring(ret)("\f%d%c", colorset[dark ? 1 : 0][color2], !color2 ? '+' : color2 == 1 ? '*' : '-');
-	return ret;
-}
-
 VARP(obitfade, 0, 10, 60);
 VARP(obitalpha, 0, 80, 100);
-VARP(obitamt, 0, 1, 3); // 0: very compact, 1: show humans, 2: show humans and suicides, 3: show all
+VARP(obitamt, 0, 1, 4); // 0: very compact, 1: show humans, 2: show humans and suicides, 3: show all, 4: show all plus the prefix
+
+void obit_name(char *out, playerent *pl, bool dark, int type){
+	if(!pl){
+		*out = '\0';
+		return;
+	}
+	const int colorset[2][3] = {{0, 1, 3}, {8, 9, 7}};
+	int color2 = pl == player1 ? 1 : isteam(pl, player1) ? 0 : 2;
+	if(type == 0)
+		formatstring(out)("\f%d%c", colorset[dark ? 1 : 0][color2], !color2 ? '+' : color2 == 1 ? '*' : '-');
+	else if(type == 1)
+		formatstring(out)("\f%d%s", colorset[dark ? 1 : 0][color2], !color2 ? "++" : color2 == 1 ? "**" : "--");
+	else if(obitamt >= 4)
+		formatstring(out)("\f%d%c%s", colorset[dark ? 1 : 0][color2], !color2 ? '+' : color2 == 1 ? '*' : '-', colorname(pl));
+	else
+		formatstring(out)("\f%d%s", colorset[dark ? 1 : 0][color2], colorname(pl));
+}
+
 struct oline {
 	char *actor; char *target; int obit, millis, style, combo; bool headshot;
 	void cleanup(){ delete[] actor; delete[] target; }
-	bool mergable(const oline &o){ return o.obit == obit && /*o.style == style && o.headshot == headshot &&*/ !strcmp(o.actor, actor) && !strcmp(o.target, target);	}
+	bool mergable(const oline &o){ return o.obit == obit && /*o.assist == assist && o.style == style && o.headshot == headshot &&*/ !strcmp(o.actor, actor) && !strcmp(o.target, target);	}
 	void merge(oline o){
 		headshot |= o.headshot;
 		combo += o.combo; // add combo
@@ -167,7 +176,7 @@ struct obitlist : consolebuffer<oline>
 		);
 	}
 
-	oline &addline(playerent *actor, int obit, int style, bool headshot, playerent *target, int combo, int millis)	// add a line to the obit buffer
+	oline &addline(playerent *actor, int obit, int style, bool headshot, playerent *target, int combo, int assist, int millis)	// add a line to the obit buffer
 	{
 		oline cl;
 		// constrain the buffer size
@@ -176,26 +185,19 @@ struct obitlist : consolebuffer<oline>
 		cl.target = newstringbuf("");
 		cl.millis = millis; // for how long to keep line on screen
 		cl.obit = obit;
+		//cl.assist = assist;
 		// actor
 		if(!actor || actor == target) *cl.actor = 0;
 		else
 		{
-			const char *opf = obit_prefix(actor, false);
-			formatstring(cl.actor)("%s%s", opf, actor ?
-				(obitamt >= 3 || (actor->ownernum < 0 && obitamt >= 1)) ? colorname(actor) :
-				(actor->ownernum < 0) ? opf + 2 : ""
-			: "");
+			obit_name(cl.actor, actor, false, actor ? (obitamt >= 3 || (actor->ownernum < 0 && obitamt >= 1)) ? 2 : (actor->ownernum < 0) ? 1 : 0 : 0);
+			if(assist > 1)
+				concatformatstring(cl.actor, " \f2& %d", assist);
 		}
 		// target
 		if(!target) *cl.target = 0;
 		else
-		{
-			const char *opf = obit_prefix(target, obit < OBIT_SPECIAL);
-			formatstring(cl.target)("%s%s", opf, target ?
-				(obitamt >= 3 || (actor == target && obitamt >= 2) || ((target->ownernum < 0) && obitamt >= 1)) ? colorname(target) :
-				(target->ownernum < 0) ? opf + 2 : ""
-			: "");
-		}
+			obit_name(cl.target, target, obit < OBIT_SPECIAL, target ? (obitamt >= 3 || (actor == target && obitamt >= 2) || ((target->ownernum < 0) && obitamt >= 1)) ? 2 : (target->ownernum < 0) ? 1 : 0 : 0);
 		cl.style = filterstyle(style);
 		cl.combo = combo;
 		cl.headshot = headshot;
@@ -346,7 +348,7 @@ struct obitlist : consolebuffer<oline>
     }
 } obits;
 
-void addobit(playerent *actor, int obit, int style, bool headshot, playerent *target, int combo) { extern int totalmillis; obits.addline(actor, obit, style, headshot, target, combo, totalmillis); }
+void addobit(playerent *actor, int obit, int style, bool headshot, playerent *target, int combo, int assist) { extern int totalmillis; obits.addline(actor, obit, style, headshot, target, combo, assist, totalmillis); }
 void renderobits() { obits.render(); }
 
 textinputbuffer cmdline;

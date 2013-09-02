@@ -79,7 +79,7 @@ extern char *getcurcommand();
 extern char *addreleaseaction(const char *s);
 extern void writebinds(FILE *f);
 extern void pasteconsole(char *dst);
-extern void addobit(playerent *actor, int weap, int style, bool headshot, playerent *target, int combo = 1);
+extern void addobit(playerent *actor, int weap, int style, bool headshot, playerent *target, int combo = 1, int assist = 0);
 extern void conoutf(const char *s, ...);
 extern void chatoutf(const char *s, ...);
 

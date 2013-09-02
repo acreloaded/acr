@@ -498,11 +498,18 @@ void dokill(playerent *pl, playerent *act, int weap, int damage, int style, int 
 			playsound(sound, pl, pl == focus ? SP_HIGHEST : SP_HIGH); // both get sounds if 1 meter apart...
 	}
 
+	// assist checks
+	pl->damagelog.removeobj(pl->clientnum);
+	pl->damagelog.removeobj(act->clientnum);
+	loopv(pl->damagelog) if(!getclient(pl->damagelog[i])) pl->damagelog.remove(i--);
+
 	// killfeed
-	addobit(act, obit, style, headshot, pl);
+	addobit(act, obit, style, headshot, pl, 1, pl->damagelog.length());
+
 	// sound
 	playsound(S_DIE1+rnd(2), pl);
 
+	// death streak
 	if(pl != act)
 	{
 		++pl->deathstreak;
@@ -550,10 +557,6 @@ void dokill(playerent *pl, playerent *act, int weap, int damage, int style, int 
 		concatformatstring(predicate, "%s %s%s", _(killname(obit, headshot)),
 			isteam(pl, act) ? act==player1 ? "\f3your teammate " : "\f3his teammate " : "", pl == player1 ? "\f1you\f2" : colorname(pl));
 	}
-	// assist count
-	pl->damagelog.removeobj(pl->clientnum);
-	pl->damagelog.removeobj(act->clientnum);
-	loopv(pl->damagelog) if(!getclient(pl->damagelog[i])) pl->damagelog.remove(i--);
 	// HUD for first person
 	if(pl == focus || act == focus || pl->damagelog.find(focus->clientnum) >= 0){
 		if((obitdetails & 4) && pl->damagelog.length()) hudonlyf("%s %s %s, %d assister%s", subject, hashave, predicate, pl->damagelog.length(), pl->damagelog.length()==1?"":"s");
