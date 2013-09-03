@@ -166,7 +166,7 @@ void parsepositions(ucharbuf &p)
 			}
 			else{
 				extern void clamproll(physent *pl, int maxroll);
-				clamproll(d, 10);
+				clamproll(d, 30);
 			}
 			break;
 		}

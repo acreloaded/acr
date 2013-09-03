@@ -344,7 +344,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
 	return true;
 }
 
-VARP(maxroll, 0, 0, 10);
+VARP(maxroll, 0, 0, 30);
 
 void resizephysent(physent *pl, int moveres, int curtime, float min, float max)
 {
