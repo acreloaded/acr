@@ -134,6 +134,7 @@ Texture **obittex(){
 VARP(obitfade, 0, 10, 60);
 VARP(obitalpha, 0, 80, 100);
 VARP(obitamt, 0, 1, 4); // 0: very compact, 1: show humans, 2: show humans and suicides, 3: show all, 4: show all plus the prefix
+VARP(obitassist, 1, 1, MAXCLIENTS); // minimum number of assists before
 
 void obit_name(char *out, playerent *pl, bool dark, int type){
 	if(!pl){
@@ -191,7 +192,7 @@ struct obitlist : consolebuffer<oline>
 		else
 		{
 			obit_name(cl.actor, actor, false, actor ? (obitamt >= 3 || (actor->ownernum < 0 && obitamt >= 1)) ? 2 : (actor->ownernum < 0) ? 1 : 0 : 0);
-			if(assist >= 1)
+			if(assist >= obitassist)
 				concatformatstring(cl.actor, " \f2(+%d)", assist);
 		}
 		// target
