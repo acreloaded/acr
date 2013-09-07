@@ -199,11 +199,17 @@ COMMAND(expreason, ARG_1STR);
 
 bool spawnenqueued = false;
 
+VARP(autospectate, 0, 0, 2); // 0:off, 1: same, 2: alt
 void deathstate(playerent *pl)
 {
 	if(pl == player1 && editmode) toggleedit(true);
 	pl->state = CS_DEAD;
-	pl->spectatemode = SM_DEATHCAM;
+	if(pl == player1 && autospectate && getclient(pl->lastkiller)){
+		pl->spectatemode = autospectate == 1 ? SM_FOLLOWSAME : SM_FOLLOWALT;
+		pl->followplayercn = pl->lastkiller;
+	}
+	else
+		pl->spectatemode = SM_DEATHCAM;
 	pl->respawnoffset = pl->lastpain = lastmillis;
 	pl->move = pl->strafe = pl->pitchvel = pl->pitchreturn = pl->ads = 0;
 	// position camera (used to be roll/pitch)
