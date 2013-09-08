@@ -706,13 +706,14 @@ static void cleardemos(int n){
 void senddemo(int cn, int num){
 	if(!valid_client(cn)) return;
 	// download throttling
-	if(clients[cn]->priv < PRIV_ADMIN && scl.demodownloadthrottle){
-		if(!clients[cn]->democount || clients[cn]->lastdemothrottle + scl.demodownloadthrottle < servmillis){
-			clients[cn]->democount = 0;
-			clients[cn]->lastdemothrottle = servmillis;
+	client &cl = *clients[cn];
+	if(cl.priv < PRIV_ADMIN && scl.demodownloadthrottle){
+		if(!cl.democount || cl.lastdemothrottle + scl.demodownloadthrottle < servmillis){
+			cl.democount = 0;
+			cl.lastdemothrottle = servmillis;
 		}
-		if(++clients[cn]->democount > max(2, demos.length())){
-			defformatstring(msg)("you need to wait %d seconds before downloading more demos", (clients[cn]->lastdemothrottle - servmillis + scl.demodownloadthrottle) / 1000);
+		if(++cl.democount > max(2, demos.length())){
+			defformatstring(msg)("you need to wait %d seconds before downloading more demos", (cl.lastdemothrottle - servmillis + scl.demodownloadthrottle) / 1000);
 			sendservmsg(msg, cn);
 			return;
 		}
@@ -2868,23 +2869,21 @@ void disconnect_client(int n, int reason)
 }
 
 void sendwhois(int sender, int cn){
-	if(!valid_client(sender) || !valid_client(cn)) return;
+	if(!valid_client(sender) || !valid_client(cn) || clients[cn]->type != ST_TCPIP) return;
 
-	if(clients[cn]->type == ST_TCPIP){
-		sendf(-1, 1, "ri3", N_WHOIS, cn, sender);
-		uint ip = clients[cn]->peer->address.host;
-		uchar mask = 0;
-		if(cn == sender) mask = 32;
-		else switch(clients[sender]->priv){
-			// admins and server owner: f.f.f.f/32 full ip
-			case PRIV_MAX: case PRIV_ADMIN: mask = 32; break;
-			// masters and users: f.f.h/12 full, full, half, empty
-			case PRIV_MASTER: case PRIV_NONE: default: mask = 20; break;
-		}
-		if(mask < 32) ip &= (1 << mask) - 1;
-
-		sendf(sender, 1, "ri5", N_WHOISINFO, cn, ip, mask, clients[cn]->peer->address.port);
+	sendf(-1, 1, "ri3", N_WHOIS, cn, sender);
+	uint ip = clients[cn]->peer->address.host;
+	uchar mask = 0;
+	if(cn == sender) mask = 32;
+	else switch(clients[sender]->priv){
+		// admins and server owner: f.f.f.f/32 full ip
+		case PRIV_MAX: case PRIV_ADMIN: mask = 32; break;
+		// masters and users: f.f.h/12 full, full, half, empty
+		case PRIV_MASTER: case PRIV_NONE: default: mask = 20; break;
 	}
+	if(mask < 32) ip &= (1 << mask) - 1;
+
+	sendf(sender, 1, "ri5", N_WHOISINFO, cn, ip, mask, clients[cn]->peer->address.port);
 }
 
 // sending of maps between clients
