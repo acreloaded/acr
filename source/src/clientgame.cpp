@@ -930,7 +930,7 @@ const char *votestring(int type, const votedata &vote)
 			if(*vote.str1 == '+')
 				next = 1;
 			if(gamemode == vote.int1 && mutators == vote.int2 && !strcmp(clientmap, vote.str1 + next)){
-				formatstring(out)("(%s this map)", next ? "repeat" : "restart");
+				formatstring(out)("%s this match", next ? "repeat" : "restart");
 			}
 			else{
 				if(next)
