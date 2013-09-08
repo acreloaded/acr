@@ -925,21 +925,21 @@ const char *votestring(int type, const votedata &vote)
 	switch(type){
 		// maps
 		case SA_MAP:
-			bool next = false;
-			if(*vote.str1 == '+'){
-				++vote.str1;
-				next = true;
-			}
-			if(gamemode == vote.int1 && mutators == vote.int2 && !strcmp(clientmap, vote.str1)){
+		{
+			char next = 0;
+			if(*vote.str1 == '+')
+				next = 1;
+			if(gamemode == vote.int1 && mutators == vote.int2 && !strcmp(clientmap, vote.str1 + next)){
 				formatstring(out)("(%s this map)", next ? "repeat" : "restart");
 			}
 			else{
 				if(next)
-					formatstring(out)("set next map to %s in mode %s", vote.str1, modestr(vote.int1, vote.int2, modeacronyms > 0));
+					formatstring(out)("set next map to %s in mode %s", vote.str1 + next, modestr(vote.int1, vote.int2, modeacronyms > 0));
 				else
-					formatstring(out)("load map %s in mode %s", vote.str1, modestr(vote.int1, vote.int2, modeacronyms > 0));
+					formatstring(out)("load map %s in mode %s", vote.str1 + next, modestr(vote.int1, vote.int2, modeacronyms > 0));
 			}
 			break;
+		}
 
 		// playeractions
 		case SA_KICK: // int1, str1
