@@ -324,6 +324,7 @@ struct client				   // server side version of "dynent" type
 	vector<uchar> position, messages;
 	string lastsaytext;
 	int saychars, lastsay, spamcount;
+	int lastdemothrottle, democount;
 	int at3_score, at3_lastforce, eff_score;
 	bool at3_dontmove;
 	int spawnindex;
@@ -414,6 +415,7 @@ struct client				   // server side version of "dynent" type
 		newname[0] = '\0';
 		name_relay = 0;
 		saychars = authreq = 0;
+		lastdemothrottle = democount = 0;
 		spawnindex = -1;
 		mapchange();
 		priv = PRIV_NONE;
@@ -439,8 +441,8 @@ struct client				   // server side version of "dynent" type
 struct savedlimit
 {
 	enet_uint32 ip;
-	int lastvotecall, lastkickcall;
-	int saychars, lastsay, spamcount;
+	int lastvotecall, lastkickcall, lastdemothrottle;
+	int saychars, lastsay, spamcount, democount;
 #if (SERVER_BUILTIN_MOD & 64)
 	bool nuked;
 #endif
@@ -450,9 +452,11 @@ struct savedlimit
 		ip = cl.peer->address.host;
 		lastvotecall = cl.lastvotecall;
 		lastkickcall = cl.lastkickcall;
+		lastdemothrottle = cl.lastdemothrottle;
 		saychars = cl.saychars;
 		lastsay = cl.lastsay;
 		spamcount = cl.spamcount;
+		democount = cl.democount;
 #if (SERVER_BUILTIN_MOD & 64)
 		nuked = cl.nuked;
 #endif
@@ -463,9 +467,11 @@ struct savedlimit
 		// obviously don't set his IP
 		cl.lastvotecall = lastvotecall;
 		cl.lastkickcall = lastkickcall;
+		cl.lastdemothrottle = lastdemothrottle;
 		cl.saychars = saychars;
 		cl.lastsay = lastsay;
 		cl.spamcount = spamcount;
+		cl.democount = democount;
 #if (SERVER_BUILTIN_MOD & 64)
 		cl.nuked = nuked;
 #endif

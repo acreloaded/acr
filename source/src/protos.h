@@ -775,14 +775,14 @@ extern bool logline(int level, const char *msg, ...);
 
 struct servercommandline
 {
-	int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, verbose, demodownloadpriv, afktimelimit, lagtrust;
+	int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, verbose, demodownloadthrottle, afktimelimit, lagtrust;
 	const char *ip, *master, *logident, *serverpassword, *demopath, *maprot, *pwdfile, *blfile, *mlfile, *nbfile, *infopath, *botfile, *forbiddenfile;
 	bool demoeverymatch, logtimestamp;
 	string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm, mapperm;
 	int clfilenesting;
 	vector<const char *> adminonlymaps;
 
-	servercommandline() :   uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), syslogfacility(6), filethres(-1), syslogthres(-1), maxdemos(5), demodownloadpriv(PRIV_ADMIN),
+	servercommandline() :   uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), syslogfacility(6), filethres(-1), syslogthres(-1), maxdemos(5), demodownloadthrottle(120000),
 							maxclients(DEFAULTCLIENTS), verbose(0), afktimelimit(45000), lagtrust(1),
 							ip(""), master(NULL), logident(""), serverpassword(""), demopath(""),
 							maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), mlfile("config/servermutelist.cfg"),
@@ -828,7 +828,7 @@ struct servercommandline
                 break;
 			}
 			case 'p': serverpassword = a; break;
-			case 'd': demodownloadpriv = ai; break;
+			case 'd': demodownloadthrottle = clamp(ai, 0, 86400) * 1000; break;
 			case 'D':
 				demoeverymatch = true;
 				if(isdigit(*a)) maxdemos = ai;

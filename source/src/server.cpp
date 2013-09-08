@@ -705,10 +705,17 @@ static void cleardemos(int n){
 
 void senddemo(int cn, int num){
 	if(!valid_client(cn)) return;
-	if(clients[cn]->priv < scl.demodownloadpriv){
-		defformatstring(msg)("you need %s to download demos", privname(scl.demodownloadpriv));
-		sendservmsg(msg, cn);
-		return;
+	// download throttling
+	if(clients[cn]->priv < PRIV_ADMIN && scl.demodownloadthrottle){
+		if(!clients[cn]->democount || clients[cn]->lastdemothrottle + scl.demodownloadthrottle < servmillis){
+			clients[cn]->democount = 0;
+			clients[cn]->lastdemothrottle = servmillis;
+		}
+		if(++clients[cn]->democount > max(2, demos.length())){
+			defformatstring(msg)("you need to wait %d seconds before downloading more demos", (clients[cn]->lastdemothrottle - servmillis + scl.demodownloadthrottle) / 1000);
+			sendservmsg(msg, cn);
+			return;
+		}
 	}
 	if(!num) num = demos.length();
 	if(!demos.inrange(num-1)){
@@ -721,6 +728,7 @@ void senddemo(int cn, int num){
 	}
 	demofile &d = demos[num-1];
 	sendf(cn, 2, "rim", N_DEMO, d.len, d.data);
+	logline(ACLOG_INFO, "[%s] wants demo #%d (%d bytes)", gethostname(cn), num, d.len);
 }
 
 void enddemoplayback(){
