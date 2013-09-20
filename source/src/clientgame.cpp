@@ -831,7 +831,6 @@ COMMAND(suicide, ARG_NONE);
 
 void flagmsg(int flag, int message, int actor, int flagtime)
 {
-	static uint flagmusic = 0;
 	playerent *act = getclient(actor);
 	if(actor != getclientnum() && !act && message != FA_RESET) return;
 	bool own = flag == player1->team;
@@ -856,10 +855,8 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 			if(firstperson){
 				// don't know it it's pickup or steal...
 				formatstring(predicate)("%s flag", teamstr);
-				if(!own || !m_capture(gamemode)){
+				if(!own || !m_capture(gamemode))
 					musicsuggest(M_FLAGGRAB, m_capture(gamemode) ? 90*1000 : 900*1000, true);
-					flagmusic |= 1 << flag;
-				}
 			}
 			else formatstring(predicate)("%s flag", teamstr);
 			break;
@@ -910,8 +907,10 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 	}
 	conoutf("\f2%s %s %s", subject, verb_past, predicate);
 	hudonlyf("\f2%s %s %s %s", subject, hashave, *verb_perfect ? verb_perfect : verb_past, predicate);
-	if(firstpersondrop && flagmusic){
-		if(!(flagmusic &= ~(1 << flag))) musicfadeout(M_FLAGGRAB);
+	if(firstpersondrop){
+		if((flaginfos[0].state != CTFF_STOLEN || player1 != flaginfos[0].actor) &&
+			(flaginfos[1].state != CTFF_STOLEN || player1 != flaginfos[1].actor))
+			musicfadeout(M_FLAGGRAB);
 	}
 }
 
