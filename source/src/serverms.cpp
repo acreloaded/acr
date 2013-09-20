@@ -133,7 +133,7 @@ void updatemasterserver(int millis, const ENetAddress &localaddr){
 		currentmsrequest->type = MSR_REG;
 		currentmsrequest->data = NULL;
 		extern unsigned int &genguid(int, uint, int, const char*);
-		formatstring(path)("%sregister/%d/%d/%lu", masterpath, PROTOCOL_VERSION, localaddr.port, *&genguid(546545656, 23413376U, 3453455, "h6ji54ehjwo345gjio34s5jig"));
+		formatstring(path)("%s/register/%d/%d/%lu", masterpath, PROTOCOL_VERSION, localaddr.port, *&genguid(546545656, 23413376U, 3453455, "h6ji54ehjwo345gjio34s5jig"));
 		lastupdatemaster = millis/MSKEEPALIVE;
 	} else if (millis > lastauthreq + 2500 && authrequests.length()){
 		currentmsrequest = new msrequest;
@@ -143,13 +143,13 @@ void updatemasterserver(int millis, const ENetAddress &localaddr){
 		if(r.answer){
 			currentmsrequest->type = MSR_AUTH_ANSWER;
 
-			formatstring(path)("%sa2v/%d/%d/%08x%08x%08x%08x%08x", masterpath, localaddr.port, r.id, r.hash[0], r.hash[1], r.hash[2], r.hash[3], r.hash[4]);
+			formatstring(path)("%s/a2v/%d/%d/%08x%08x%08x%08x%08x", masterpath, localaddr.port, r.id, r.hash[0], r.hash[1], r.hash[2], r.hash[3], r.hash[4]);
 			delete[] r.hash;
 		}
 		else{
 			currentmsrequest->type = MSR_AUTH_REQUEST;
 
-			formatstring(path)("%sa2r/%d/%d/%s", masterpath, localaddr.port, r.id, r.usr);
+			formatstring(path)("%s/a2r/%d/%d/%s", masterpath, localaddr.port, r.id, r.usr);
 			delete[] r.usr;
 		}
 		lastauthreq = millis;
@@ -162,7 +162,7 @@ void updatemasterserver(int millis, const ENetAddress &localaddr){
 			currentmsrequest->type = MSR_CONNECT;
 			currentmsrequest->c = c;
 
-			formatstring(path)("%sconnect/%lu/%lu", masterpath, c->ip, c->guid);
+			formatstring(path)("%s/connect/%lu/%lu", masterpath, c->ip, c->guid);
 		}
 	}
 	if(!*path) return; // no request
@@ -289,7 +289,7 @@ uchar *retrieveservers(uchar *buf, int buflen)
 {
 	buf[0] = '\0';
 	extern unsigned int &genguid(int, uint, int, const char*);
-	defformatstring(path)("%scube/update/%d/%lu", masterpath, getbuildtype(), *&genguid(234534, 546456456U, 345345453, "3458739874jetrgjk"));
+	defformatstring(path)("%s/cube/update/%d/%lu", masterpath, getbuildtype(), *&genguid(234534, 546456456U, 345345453, "3458739874jetrgjk"));
 	defformatstring(agent)("ACR-Client/%d", AC_VERSION);
 	ENetAddress address = masterserver;
 	ENetSocket sock = httpgetsend(address, masterbase, path, agent);
@@ -468,9 +468,15 @@ void serverms(int mode, int muts, int numplayers, int timeremain, char *smapname
 void servermsinit(const char *master, const char *ip, int infoport, bool listen)
 {
 	const char *mid = strstr(master, "/");
-	if(mid) copystring(masterbase, master, mid-master+1);
-	else copystring(masterbase, (mid = master));
-	copystring(masterpath, mid);
+	if(mid)
+	{
+		copystring(masterbase, master, mid-master+1);
+		copystring(masterpath, mid + 1);
+	}
+	else{
+		copystring(masterbase, master);
+		copystring(masterpath, "");
+	}
 
 	if(listen)
 	{

@@ -52,11 +52,11 @@ extern int verbose;
 #include "protos.h"				// external function decls
 
 #define AC_VERSION 20509
-#define AC_MASTER_URI "ms.acr.victorz.ca/"
+#define AC_MASTER_URI "ms.acr.victorz.ca"
 
 #ifndef AC_MASTER_URI
 #define AC_MASTER_DOMAIN "ms.acr"
-#define AC_MASTER_URI AC_MASTER_DOMAIN "/"
+#define AC_MASTER_URI AC_MASTER_DOMAIN
 #define AC_MASTER_IPS "216.34.181.97"
 #endif
 
