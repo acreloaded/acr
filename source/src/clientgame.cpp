@@ -199,7 +199,7 @@ COMMAND(expreason, ARG_1STR);
 
 bool spawnenqueued = false;
 
-VARP(autospectate, 0, 0, 2); // 0:off, 1: same, 2: alt
+VARP(autospectate, 0, 1, 2); // 0:off, 1: same, 2: alt
 void deathstate(playerent *pl)
 {
 	if(pl == player1 && editmode) toggleedit(true);
