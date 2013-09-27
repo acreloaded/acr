@@ -204,7 +204,7 @@ void deathstate(playerent *pl)
 {
 	if(pl == player1 && editmode) toggleedit(true);
 	pl->state = CS_DEAD;
-	if(pl == player1 && autospectate && getclient(pl->lastkiller)){
+	if(pl == player1 && autospectate && getclient(pl->lastkiller)->ownernum < 0){
 		pl->spectatemode = autospectate == 1 ? SM_FOLLOWSAME : SM_FOLLOWALT;
 		pl->followplayercn = pl->lastkiller;
 	}
