@@ -209,7 +209,7 @@ void deathstate(playerent *pl)
 		pl->followplayercn = pl->lastkiller;
 	}
 	else
-		pl->spectatemode = SM_DEATHCAM;
+		pl->spectatemode = (pl->lastkiller == player1->clientnum) ? SM_FLY : SM_DEATHCAM;
 	pl->respawnoffset = pl->lastpain = lastmillis;
 	pl->move = pl->strafe = pl->pitchvel = pl->pitchreturn = pl->ads = 0;
 	// position camera (used to be roll/pitch)
