@@ -477,7 +477,11 @@ VARP(obitdetails, 0, 15, 15); // 0: minimal (killer, type, killed) | flags: 1: d
 
 void dokill(playerent *pl, playerent *act, int weap, int damage, int style, int combo, float killdist){
 	if(!pl || !act || intermission) return;
-	pl->lastkiller = act->clientnum;
+	// set last killer for the client's killcams
+	if(weap == WEAP_MAX + 0) // assisted suicide
+		pl->lastkiller = pl->clientnum;
+	else
+		pl->lastkiller = act->clientnum;
 
 	const bool headshot = isheadshot(weap, style);
 	const int obit = (pl == act) ? obit_suicide(weap) : toobit(weap, style);
