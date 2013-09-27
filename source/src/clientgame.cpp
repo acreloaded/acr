@@ -204,12 +204,17 @@ void deathstate(playerent *pl)
 {
 	if(pl == player1 && editmode) toggleedit(true);
 	pl->state = CS_DEAD;
-	if(pl == player1 && autospectate && getclient(pl->lastkiller)->ownernum < 0){
+	if(pl == player1 && autospectate){
+		playerent *killer = getclient(pl->lastkiller);
+		if(!killer || killer == pl || killer->ownernum < 0)
+			goto NOAUTOSPECTATE;
 		pl->spectatemode = autospectate == 1 ? SM_FOLLOWSAME : SM_FOLLOWALT;
 		pl->followplayercn = pl->lastkiller;
 	}
-	else
-		pl->spectatemode = (pl->lastkiller == player1->clientnum) ? SM_FLY : SM_DEATHCAM;
+	else{
+		NOAUTOSPECTATE:
+		pl->spectatemode = (pl->lastkiller == pl->clientnum) ? SM_FLY : SM_DEATHCAM;
+	}
 	pl->respawnoffset = pl->lastpain = lastmillis;
 	pl->move = pl->strafe = pl->pitchvel = pl->pitchreturn = pl->ads = 0;
 	// position camera (used to be roll/pitch)
