@@ -206,7 +206,7 @@ void deathstate(playerent *pl)
 	pl->state = CS_DEAD;
 	if(pl == player1 && autospectate){
 		playerent *killer = getclient(pl->lastkiller);
-		if(!killer || killer == pl || killer->ownernum < 0)
+		if(!killer || killer == pl || killer->ownernum >= 0)
 			goto NOAUTOSPECTATE;
 		pl->spectatemode = autospectate == 1 ? SM_FOLLOWSAME : SM_FOLLOWALT;
 		pl->followplayercn = pl->lastkiller;
