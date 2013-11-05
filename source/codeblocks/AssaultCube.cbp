@@ -7,7 +7,6 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="install">
-				<Option platforms="Unix;Mac;" />
 				<Option output="AssaultCube.exe" prefix_auto="0" extension_auto="0" />
 				<Option working_dir="./" />
 				<Option object_output="../" />
@@ -19,7 +18,7 @@
 				<Option projectResourceIncludeDirsRelation="0" />
 				<Option projectLibDirsRelation="0" />
 				<ExtraCommands>
-					<Add before="cm" />
+					<Add before="cd ../src &amp; make install" />
 				</ExtraCommands>
 				<MakeCommands>
 					<Build command="cd ../src; $make -f $makefile $target" />
@@ -71,9 +70,6 @@
 				</ExtraCommands>
 			</Target>
 		</Build>
-		<ExtraCommands>
-			<Add before="cd ../src &amp; make install" />
-		</ExtraCommands>
 		<Unit filename="../enet/callbacks.c">
 			<Option compilerVar="CC" />
 			<Option target="&lt;{~None~}&gt;" />
