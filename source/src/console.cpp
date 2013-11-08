@@ -67,7 +67,7 @@ struct console : consolebuffer<cline>
 				y += FONTH * (l.millis + 500 - totalmillis) / 500;
 			}
 
-			draw_text(line, CONSPAD+FONTH/3, y, 0xFF, 0xFF, 0xFF, fade, -1, conwidth);
+			draw_text(line, CONSPAD+FONTH/3+2*UWSADJUST, y, 0xFF, 0xFF, 0xFF, fade, -1, conwidth);
 			int width, height;
 			text_bounds(line, width, height, conwidth);
 			y += height;
@@ -112,7 +112,7 @@ struct chatlist : consolebuffer<cline>{
 				int width, height;
 				text_bounds(l.line, width, height, conwidth);
 				y -= height;
-				draw_text(l.line, CONSPAD+FONTH/3 + VIRTW / 100, y, 0xFF, 0xFF, 0xFF, fade, -1, conwidth);
+				draw_text(l.line, CONSPAD+FONTH/3 + VIRTW / 100 + 2*UWSADJUST, y, 0xFF, 0xFF, 0xFF, fade, -1, conwidth);
 			}
         }
     }
@@ -305,7 +305,7 @@ struct obitlist : consolebuffer<oline>
 				// correct alignment
 				defformatstring(obitalign)("%s %s%s", l.actor, l.target, combotext); // two half spaces = one space; 1 for combo if needed
 				// and the obit...
-				int left = (VIRTW - 16) * ts - text_width(obitalign) - obitaspect(l.obit) * FONTH;
+				int left = (VIRTW - 16) * ts - text_width(obitalign) - obitaspect(l.obit) * FONTH + UWSADJUST;
 				// first
 				if(l.style & FRAG_FIRST) left -= obitaspect(OBIT_FIRST) * FONTH;
 				// headshot
@@ -388,7 +388,7 @@ int rendercommand(int x, int y, int w)
 	int width, height;
 	text_bounds(s, width, height, w);
 	y -= height - FONTH;
-	draw_text(s, x, y, 0xFF, 0xFF, 0xFF, 0xFF, cmdline.pos>=0 ? cmdline.pos+2 : (int)strlen(s), w);
+	draw_text(s, x+UWSADJUST, y, 0xFF, 0xFF, 0xFF, 0xFF, cmdline.pos>=0 ? cmdline.pos+2 : (int)strlen(s), w);
 	return height;
 }
 
@@ -406,13 +406,13 @@ bool textinputbuffer::key(int code, bool isdown, int unicode)
 		case SDLK_KP_ENTER:
 			break;
 
-		case SDLK_HOME: 
-			if(strlen(buf)) pos = 0; 
-			break; 
+		case SDLK_HOME:
+			if(strlen(buf)) pos = 0;
+			break;
 
-		case SDLK_END: 
-			pos = -1; 
-			break; 
+		case SDLK_END:
+			pos = -1;
+			break;
 
 		case SDLK_DELETE:
 		{
@@ -445,7 +445,7 @@ bool textinputbuffer::key(int code, bool isdown, int unicode)
 		case SDLK_v:
 			extern void pasteconsole(char *dst);
 			#ifdef __APPLE__
-				#define MOD_KEYS (KMOD_LMETA|KMOD_RMETA) 
+				#define MOD_KEYS (KMOD_LMETA|KMOD_RMETA)
 			#else
 				#define MOD_KEYS (KMOD_LCTRL|KMOD_RCTRL)
 			#endif
@@ -455,7 +455,7 @@ bool textinputbuffer::key(int code, bool isdown, int unicode)
 				return true;
 			}
 			// fall through
-				
+
 		default:
 		{
 			if(unicode)
@@ -465,7 +465,7 @@ bool textinputbuffer::key(int code, bool isdown, int unicode)
 				if(len+1 < sizeof(buf))
 				{
 					if(pos < 0) buf[len] = unicode;
-					else 
+					else
 					{
 						memmove(&buf[pos+1], &buf[pos], len - pos);
 						buf[pos++] = unicode;

@@ -426,11 +426,11 @@ VARP(oldfashionedgunstats, 0, 0, 1);
 void weapon::renderstats(){
 	string gunstats;
 	formatstring(gunstats)(oldfashionedgunstats ? "%i/%i" : "%i", mag, ammo);
-	draw_text(gunstats, 360, 823);
+	draw_text(gunstats, 360+UWSADJUST/2, 823);
 	if(!oldfashionedgunstats){
 		int offset = text_width(gunstats);
 		glScalef(0.5f, 0.5f, 1.0f);
-		draw_textf("%i", (360 + offset)*2, 826*2, ammo);
+		draw_textf("%i", (360 + offset)*2+UWSADJUST, 826*2, ammo);
 	}
 }
 

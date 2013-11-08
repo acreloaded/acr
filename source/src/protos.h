@@ -519,10 +519,12 @@ struct font
 };
 
 #define VIRTH 1800
+#define UWSADJUST ((monitors > 1) ? (((monitors-1)/2)*VIRTW/monitors) : 0)
 #define FONTH (curfont->defaulth)
 #define PIXELTAB (8*curfont->defaultw)
 
 extern int VIRTW; // virtual screen size for text & HUD
+extern int monitors; // Handler for extra monitors
 extern font *curfont;
 
 extern void initfont();
