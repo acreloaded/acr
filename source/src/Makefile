@@ -75,7 +75,7 @@ libenet: ../enet/Makefile
 	-$(MAKE) -C ../enet all
 
 clean:
-	-$(RM) -f $(SERVER_OBJS) $(CLIENT_OBJS1) native_server native_client 
+	-$(RM) -f $(SERVER_OBJS) $(CLIENT_OBJS1) $(CLIENT_OBJS2) native_server native_client 
 	-$(MAKE) -C ../enet/ clean
 
 
