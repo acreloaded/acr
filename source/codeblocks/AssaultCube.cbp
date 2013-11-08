@@ -7,7 +7,6 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="install">
-				<Option platforms="Unix;Mac;" />
 				<Option output="AssaultCube.exe" prefix_auto="0" extension_auto="0" />
 				<Option working_dir="./" />
 				<Option object_output="../" />
@@ -19,7 +18,7 @@
 				<Option projectResourceIncludeDirsRelation="0" />
 				<Option projectLibDirsRelation="0" />
 				<ExtraCommands>
-					<Add before="cm" />
+					<Add before="cd ../ &amp;&amp; make install -j16" />
 				</ExtraCommands>
 				<MakeCommands>
 					<Build command="cd ../src; $make -f $makefile $target" />
@@ -33,6 +32,7 @@
 			<Target title="winclient">
 				<Option platforms="Windows;" />
 				<Option output="../../bin_win32/ac_client" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../../" />
 				<Option object_output=".objs/winclient" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -45,13 +45,16 @@
 					<Add option="-L../../bin_win32 -L../enet/.libs -lmingw32 -lopengl32 -lSDLmain -lSDL -lSDL_image -lzlib1 -lopenal32 -lvorbisfile -lenet -lwinmm -lws2_32" />
 				</Linker>
 				<ExtraCommands>
+					<Add before='echo &quot;You better have enabled software openal by renaming openal32.dll&quot;' />
+					<Add before="sleep 2" />
 					<Add before="cmd /c cd ../enet &amp; sh configure --enable-shared=no --enable-static=yes" />
-					<Add before="make -C ../enet all" />
+					<Add before="make -C ../enet all -j16" />
 				</ExtraCommands>
 			</Target>
 			<Target title="winserver">
 				<Option platforms="Windows;" />
 				<Option output="../../bin_win32/ac_server" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../../" />
 				<Option object_output=".objs/winserver" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -67,13 +70,10 @@
 				</Linker>
 				<ExtraCommands>
 					<Add before="cmd /c cd ../enet &amp; sh configure --enable-shared=no --enable-static=yes" />
-					<Add before="make -C ../enet all" />
+					<Add before="make -C ../enet all -j16" />
 				</ExtraCommands>
 			</Target>
 		</Build>
-		<ExtraCommands>
-			<Add before="cd ../src &amp; make install" />
-		</ExtraCommands>
 		<Unit filename="../enet/callbacks.c">
 			<Option compilerVar="CC" />
 			<Option target="&lt;{~None~}&gt;" />
