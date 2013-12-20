@@ -45,10 +45,33 @@ struct entity : persistent_entity
     }
 };
 
-enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_RIFLE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_CPISTOL, GUN_GRENADE, GUN_AKIMBO, NUMGUNS };
+enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_CARBINE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_CPISTOL, GUN_GRENADE, GUN_AKIMBO, NUMGUNS };
 #define reloadable_gun(g) (g != GUN_KNIFE && g != GUN_GRENADE)
 
 #define SGRAYS 21
+#define SGDMGTOTAL 90
+
+#define SGDMGBONUS 65
+#define SGDMGDISTB 50
+
+#define SGCCdmg 500
+#define SGCCbase 0
+#define SGCCrange 40
+
+#define SGCMdmg 375
+#define SGCMbase 25
+#define SGCMrange 60
+
+#define SGCOdmg 125
+#define SGCObase 45
+#define SGCOrange 75
+
+#define SGMAXDMGABS 105
+#define SGMAXDMGLOC 84
+#define SGBONUSDIST 80
+#define SGSEGDMG_O 3
+#define SGSEGDMG_M 6
+#define SGSEGDMG_C 4
 #define SGSPREAD 2.25
 #define EXPDAMRAD 10
 
@@ -56,7 +79,7 @@ struct itemstat { int add, start, max, sound; };
 extern itemstat ammostats[NUMGUNS];
 extern itemstat powerupstats[I_ARMOUR-I_HEALTH+1];
 
-struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back, recoilincrease, recoilbase, maxrecoil, recoilbackfade, pushfactor; bool isauto; };
+struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, piercing, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back, recoilincrease, recoilbase, maxrecoil, recoilbackfade, pushfactor; bool isauto; };
 extern guninfo guns[NUMGUNS];
 
 static inline int reloadtime(int gun) { return guns[gun].reloadtime; }
@@ -85,8 +108,8 @@ static inline const char *team_string(int t, bool abbr = false) { const char **n
 enum { ENT_PLAYER = 0, ENT_BOT, ENT_CAMERA, ENT_BOUNCE };
 enum { CS_ALIVE = 0, CS_DEAD, CS_SPAWNING, CS_LAGGED, CS_EDITING, CS_SPECTATE };
 enum { CR_DEFAULT = 0, CR_ADMIN };
-enum { SM_NONE = 0, SM_DEATHCAM, SM_FOLLOW1ST, SM_FOLLOW3RD, SM_FOLLOW3RD_TRANSPARENT, SM_FLY, SM_NUM };
-enum { FPCN_VOID = -3, FPCN_DEATHCAM = -2, FPCN_FLY = -1 };
+enum { SM_NONE = 0, SM_DEATHCAM, SM_FOLLOW1ST, SM_FOLLOW3RD, SM_FOLLOW3RD_TRANSPARENT, SM_FLY, SM_OVERVIEW, SM_NUM };
+enum { FPCN_VOID = -4, FPCN_DEATHCAM = -2, FPCN_FLY = -2, FPCN_OVERVIEW = -1 };
 
 class worldobject
 {
@@ -107,6 +130,7 @@ public:
     bool inwater;
     bool onfloor, onladder, jumpnext, crouching, crouchedinair, trycrouch, cancollide, stuck, scoping, shoot;
     int lastjump;
+    float lastjumpheight;
     int lastsplash;
     char move, strafe;
     uchar state, type;
@@ -114,7 +138,7 @@ public:
     int last_pos;
 
     physent() : o(0, 0, 0), deltapos(0, 0, 0), newpos(0, 0, 0), yaw(270), pitch(0), roll(0), pitchvel(0),
-            crouching(false), crouchedinair(false), trycrouch(false), cancollide(true), stuck(false), scoping(false), shoot(false), lastjump(0), lastsplash(0), state(CS_ALIVE), last_pos(0)
+            crouching(false), crouchedinair(false), trycrouch(false), cancollide(true), stuck(false), scoping(false), shoot(false), lastjump(0), lastjumpheight(0), lastsplash(0), state(CS_ALIVE), last_pos(0)
     {
         reset();
     }
@@ -316,7 +340,7 @@ public:
 
         if(!m_nopistol)
         {
-            ammo[GUN_PISTOL] = ammostats[GUN_PISTOL].max-magsize(GUN_PISTOL);
+            ammo[GUN_PISTOL] = ammostats[GUN_PISTOL].start-magsize(GUN_PISTOL);//ammostats[GUN_PISTOL].max-magsize(GUN_PISTOL);
             mag[GUN_PISTOL] = magsize(GUN_PISTOL);
         }
 
@@ -329,11 +353,18 @@ public:
         gunselect = primary;
 
         if(m_osok) health = 1;
+        if(m_lms) // Survivor && Team-Survivor : 2010nov19
+        {
+            health = 100;
+            armour = 100;
+            ammo[GUN_GRENADE] = 2;
+        }
     }
 
     // just subtract damage here, can set death, etc. later in code calling this
-    int dodamage(int damage)
+    int dodamage(int damage, int gun)
     {
+        guninfo gi = guns[gun];
         if(damage == INT_MAX)
         {
             damage = health;
@@ -341,23 +372,30 @@ public:
             return damage;
         }
 
-        /* 4-level armor - sectioned approach: 16%, 33%, 37%, 41% */
-		int armoursection = 0;
-		int ad = damage;
-		if(armour > 25) armoursection = 1;
-		if(armour > 50) armoursection = 2;
-		if(armour > 75) armoursection = 3;
-		switch(armoursection)
-		{
-			case 0: ad = (int) (16.0f/25.0f * armour); break;			// 16
-			case 1: ad = (int) (17.0f/25.0f * armour) - 1; break;		// 33
-			case 2: ad = (int) (4.0f/25.0f * armour) + 25; break; 		// 37
-			case 3: ad = (int) (4.0f/25.0f * armour) + 25; break; 		// 41
-			default: break;
-		}
-		int rd = ad * damage/100.0f;
-        armour -= rd;
+        // 4-level armour - tiered approach: 16%, 33%, 37%, 41%
+        // Please update ./ac_website/htdocs/docs/introduction.html if this changes.
+        int armoursection = 0;
+        int ad = damage;
+        if(armour > 25) armoursection = 1;
+        if(armour > 50) armoursection = 2;
+        if(armour > 75) armoursection = 3;
+        switch(armoursection)
+        {
+            case 0: ad = (int) (16.0f/25.0f * armour); break;             // 16
+            case 1: ad = (int) (17.0f/25.0f * armour) - 1; break;         // 33
+            case 2: ad = (int) (4.0f/25.0f * armour) + 25; break;         // 37
+            case 3: ad = (int) (4.0f/25.0f * armour) + 25; break;         // 41
+            default: break;
+        }
+        
+        //ra - reduced armor
+        //rd - reduced damage
+        int ra = (int) (ad * damage/100.0f);
+        int rd = ra-(ra*(gi.piercing/100.0f)); //Who cares about rounding errors anyways?
+        
+        armour -= ra;
         damage -= rd;
+            
         health -= damage;
         return damage;
     }
@@ -372,8 +410,9 @@ private:
     int curskin, nextskin[2];
 public:
     int clientnum, lastupdate, plag, ping;
+    enet_uint32 address;
     int lifesequence;                   // sequence id for each respawn, used in damage test
-    int frags, flagscore, deaths, points;
+    int frags, flagscore, deaths, points, tks;
     int lastaction, lastmove, lastpain, lastvoicecom;
     int clientrole;
     bool attacking;
@@ -400,7 +439,7 @@ public:
 
     bool ignored, muted;
 
-    playerent() : curskin(0), clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), deaths(0), points(0), lastpain(0), lastvoicecom(0), clientrole(CR_DEFAULT),
+    playerent() : curskin(0), clientnum(-1), lastupdate(0), plag(0), ping(0), address(0), lifesequence(0), frags(0), flagscore(0), deaths(0), points(0), tks(0), lastpain(0), lastvoicecom(0), clientrole(CR_DEFAULT),
                   team(TEAM_SPECT), spectatemode(SM_NONE), followplayercn(FPCN_VOID), eardamagemillis(0), respawnoffset(0),
                   prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
                   smoothmillis(-1),
@@ -466,7 +505,8 @@ public:
         lastaction = 0;
         lastattackweapon = NULL;
         attacking = false;
-        weaponchanging = 0;
+        extern int lastmillis;
+        weaponchanging = lastmillis - weapons[gunselect]->weaponchangetime/2; // 2011jan16:ft: for a little no-shoot after spawn
         resetspec();
         eardamagemillis = 0;
         eyeheight = maxeyeheight;
@@ -554,9 +594,10 @@ class bounceent : public physent
 public:
     int millis, timetolive, bouncetype; // see enum above
     float rotspeed;
+    bool plclipped;
     playerent *owner;
 
-    bounceent() : bouncetype(BT_NONE), rotspeed(1.0f), owner(NULL)
+    bounceent() : bouncetype(BT_NONE), rotspeed(1.0f), plclipped(false), owner(NULL)
     {
         type = ENT_BOUNCE;
         maxspeed = 40;
@@ -600,14 +641,35 @@ public:
 enum {MD_FRAGS = 0, MD_DEATHS, END_MDS};
 struct medalsst {bool assigned; int cn; int item;};
 
-inline const char * gib_message(int gun)
+#define MAXKILLMSGLEN 16
+extern char killmessages[2][NUMGUNS][MAXKILLMSGLEN];
+inline const char *killmessage(int gun, bool gib = false)
 {
-    switch (gun)
-    {
-        case GUN_KNIFE: return "slashed";
-        case GUN_SNIPER: return "headshot";
-        case GUN_SHOTGUN: return "splattered";
-        case GUN_GRENADE:
-        default: return "gibbed";
-    }
+    if(gun<0 || gun>=NUMGUNS) return "";
+
+    return killmessages[gib?1:0][gun];
 }
+
+#ifndef STANDALONE
+struct pckserver
+{
+    char *addr;
+    bool pending, responsive;
+    int ping;
+
+    pckserver() : addr(NULL), pending(false), responsive(true), ping(-1) {}
+};
+
+enum { PCK_TEXTURE, PCK_SKYBOX, PCK_MAPMODEL, PCK_AUDIO, PCK_MAP, PCK_NUM };
+
+struct package
+{
+    char *name;
+    int type, number;
+    bool pending;
+    pckserver *source;
+    CURL *curl;
+
+    package() : name(NULL), type(-1), number(0), pending(false), source(NULL), curl(NULL) {}
+};
+#endif

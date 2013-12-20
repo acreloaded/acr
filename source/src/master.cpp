@@ -1,5 +1,4 @@
 #include "cube.h"
-#include "crypto_tools.h"
 #include <signal.h>
 #include <enet/time.h>
 
@@ -33,14 +32,14 @@ void adduser(char *name, char *pubkey)
     u.name = name;
     u.pubkey = parsepubkey(pubkey);
 }
-COMMAND(adduser, ARG_2STR);
+COMMAND(adduser, "ss");
 
 void clearusers()
 {
     enumerate(users, userinfo, u, { delete[] u.name; freepubkey(u.pubkey); });
     users.clear();
 }
-COMMAND(clearusers, ARG_NONE);
+COMMAND(clearusers, "");
 // :for AUTH
 
 struct baninfo
@@ -55,7 +54,7 @@ void clearbans()
     servbans.shrink(0);
     gbans.shrink(0);
 }
-COMMAND(clearbans, ARG_NONE);
+COMMAND(clearbans, "");
 
 void addban(vector<baninfo> &bans, const char *name)
 {
@@ -75,9 +74,9 @@ void addban(vector<baninfo> &bans, const char *name)
     ban.ip = ip.i;
     ban.mask = mask.i;
 }
-COMMANDF(ban, ARG_1STR, (char *name) { addban(bans, name); });
-COMMANDF(servban, ARG_1STR, (char *name) { addban(servbans, name); });
-COMMANDF(gban, ARG_1STR, (char *name) { addban(gbans, name); });
+COMMANDF(ban, "s", (char *name) { addban(bans, name); });
+COMMANDF(servban, "s", (char *name) { addban(servbans, name); });
+COMMANDF(gban, "s", (char *name) { addban(gbans, name); });
 
 char *printban(const baninfo &ban, char *buf)
 {
@@ -163,8 +162,9 @@ struct client
     enet_uint32 lastauth; // for AUTH
     vector<authreq> authreqs; // for AUTH
     bool shouldpurge;
+    bool registeredserver;
 
-    client() : message(NULL), inputpos(0), outputpos(0), servport(-1), lastauth(0), shouldpurge(false) {}
+    client() : message(NULL), inputpos(0), outputpos(0), servport(-1), lastauth(0), shouldpurge(false), registeredserver(false) {}
 };
 vector<client *> clients;
 
@@ -385,6 +385,7 @@ void checkserverpongs()
                     client *c = findclient(s);
                     if(c)
                     {
+                        c->registeredserver = true;
                         outputf(*c, "succreg\n");
                         if(!c->message && gbanlists.length())
                         {
@@ -586,7 +587,7 @@ bool checkclientinput(client &c)
         {
             confauth(c, id, val);
         }
-		// :for AUTH
+        // :for AUTH
         c.inputpos = &c.input[c.inputpos] - end;
         memmove(c.input, end, c.inputpos);
 
@@ -686,7 +687,7 @@ void checkclients()
             else { purgeclient(i--); continue; }
         }
         if(c.output.length() > OUTPUT_LIMIT) { purgeclient(i--); continue; }
-        if(ENET_TIME_DIFFERENCE(servtime, c.lastinput) >= CLIENT_TIME) { purgeclient(i--); continue; }
+        if(ENET_TIME_DIFFERENCE(servtime, c.lastinput) >= (c.registeredserver ? KEEPALIVE_TIME : CLIENT_TIME)) { purgeclient(i--); continue; }
     }
 }
 

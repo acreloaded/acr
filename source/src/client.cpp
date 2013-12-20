@@ -8,7 +8,7 @@ VAR(connected, 1, 0, 0);
 ENetHost *clienthost = NULL;
 ENetPeer *curpeer = NULL, *connpeer = NULL;
 int connmillis = 0, connattempts = 0, discmillis = 0;
-bool watchingdemo = false;
+SVAR(curdemofile, "n/a");
 extern bool clfail, cllock;
 extern int searchlan;
 
@@ -61,11 +61,9 @@ void abortconnect()
 #endif
 }
 
-void connectserv_(const char *servername, const char *serverport = NULL, const char *password = NULL, int role = CR_DEFAULT)
+void connectserv_(const char *servername, int serverport = 0, const char *password = NULL, int role = CR_DEFAULT)
 {
-    const char *defaultport = "28763";
-    if (!serverport) serverport = defaultport;
-    extern void enddemoplayback();
+    if(serverport <= 0) serverport = CUBE_DEFAULT_SERVER_PORT;
     if(watchingdemo) enddemoplayback();
     if(!clfail && cllock && searchlan<2) return;
 
@@ -77,15 +75,12 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
     connectrole = role;
     copystring(clientpassword, password ? password : "");
     ENetAddress address;
-
-    int p = 0;
-    if(serverport && serverport[0]) p = atoi(serverport);
-    address.port = p > 0 ? p : CUBE_DEFAULT_SERVER_PORT;
+    address.port = serverport;
 
     if(servername)
     {
-        addserver(servername, serverport, "0");
-        conoutf(_("%c2attempting to %sconnect to %c5%s%c4%s%s%c2"), CC, role==CR_DEFAULT?"":"\f8admin\f2", CC, servername, CC, address.port != CUBE_DEFAULT_SERVER_PORT?":":"", serverport, CC);
+        addserver(servername, serverport, 0);
+        conoutf(_("%c2attempting to %sconnect to %c5%s%c4:%d%c2"), CC, role==CR_DEFAULT?"":"\f8admin\f2", CC, servername, CC, serverport, CC);
         if(!resolverwait(servername, &address))
         {
             conoutf(_("%c2could %c3not resolve%c2 server %c5%s%c2"), CC, CC, CC, CC, servername, CC);
@@ -119,17 +114,17 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
     }
 }
 
-void connectserv(char *servername, char *serverport, char *password)
+void connectserv(char *servername, int *serverport, char *password)
 {
     modprotocol = false;
-    connectserv_(servername, serverport, password);
+    connectserv_(servername, *serverport, password);
 }
 
-void connectadmin(char *servername, char *serverport, char *password)
+void connectadmin(char *servername, int *serverport, char *password)
 {
     modprotocol = false;
     if(!password[0]) return;
-    connectserv_(servername, serverport, password, CR_ADMIN);
+    connectserv_(servername, *serverport, password, CR_ADMIN);
 }
 
 void lanconnect()
@@ -138,17 +133,17 @@ void lanconnect()
     connectserv_(NULL);
 }
 
-void modconnectserv(char *servername, char *serverport, char *password)
+void modconnectserv(char *servername, int *serverport, char *password)
 {
     modprotocol = true;
-    connectserv_(servername, serverport, password);
+    connectserv_(servername, *serverport, password);
 }
 
-void modconnectadmin(char *servername, char *serverport, char *password)
+void modconnectadmin(char *servername, int *serverport, char *password)
 {
     modprotocol = true;
     if(!password[0]) return;
-    connectserv_(servername, serverport, password, CR_ADMIN);
+    connectserv_(servername, *serverport, password, CR_ADMIN);
 }
 
 void modlanconnect()
@@ -162,14 +157,13 @@ void whereami()
     conoutf("you are at (%.2f,%.2f)", player1->o.x, player1->o.y);
 }
 
-void go_to(char *x, char *y)
+void go_to(float *x, float *y, char *showmsg)
 {
     if(player1->state != CS_EDITING) return;
-    float fx = 1.0f * atoi(x);
-    float fy = 1.0f * atoi(y);
-    player1->newpos.x = fx;
-    player1->newpos.y = fy;
-    conoutf("you are going to (%.2f; %.2f)", fx, fy);
+    player1->newpos.x = *x;
+    player1->newpos.y = *y;
+    if(!showmsg || !*showmsg || strcmp(showmsg, "0")!=0)
+        conoutf("you are going to (%.2f; %.2f)", *x, *y);
 }
 
 void disconnect(int onlyclean, int async)
@@ -214,7 +208,11 @@ void disconnect(int onlyclean, int async)
     }
 #endif
     if(!onlyclean) localconnect();
-}
+    if(identexists("onDisconnect"))
+    {
+        defformatstring(ondisconnect)("onDisconnect %d", -1);
+        execute(ondisconnect);
+    }}
 
 void trydisconnect()
 {
@@ -270,25 +268,86 @@ void echo(char *text)
     while(s);
 }
 
-COMMAND(echo, ARG_CONC);
-COMMANDN(say, toserver, ARG_CONC);
-COMMANDN(me, toserverme, ARG_CONC);
-COMMANDN(connect, connectserv, ARG_3STR);
-COMMAND(connectadmin, ARG_3STR);
-COMMAND(lanconnect, ARG_NONE);
-COMMANDN(modconnect, modconnectserv, ARG_3STR);
-COMMAND(modconnectadmin, ARG_3STR);
-COMMAND(modlanconnect, ARG_NONE);
-COMMANDN(disconnect, trydisconnect, ARG_NONE);
-COMMAND(whereami, ARG_NONE);
-COMMAND(go_to, ARG_2STR);
+VARP(allowhudechos, 0, 1, 1);
+void hudecho(char *text)
+{
+    const char *s = strtok(text, "\n");
+    void (*outf)(const char *s, ...) = allowhudechos ? hudoutf : conoutf;
+    do
+    {
+        outf("%s", s ? s : "");
+        s = strtok(NULL, "\n");
+    }
+    while(s);
+}
+
+void pm(char *text)
+{
+    if(!text || !text[0]) return;
+    int cn = -1;
+    char digit;
+    while ((digit = *text++) != '\0')
+    {
+        if (digit < '0' || digit > '9') break;
+        if(cn < 0) cn = 0;
+        else cn *= 10;
+        cn += digit - '0';
+    }
+    playerent *to = getclient(cn);
+    if(!to)
+    {
+        conoutf("invalid client number specified");
+        return;
+    }
+
+    if(!isspace(digit)) { --text; }
+
+    // FIXME:
+    /*if(!text || !text[0] || !isdigit(text[0])) return;
+    int cn = -1;
+    char *numend = strpbrk(text, " \t");
+    if(!numend) return;
+    string cnbuf;
+    copystring(cnbuf, text, min(numend-text+1, MAXSTRLEN));
+    cn = atoi(cnbuf);
+    playerent *to = getclient(cn);
+    if(!to)
+    {
+        conoutf("invalid client number specified");
+        return;
+    }
+
+    if(*numend) numend++;*/
+    // :FIXME
+
+    filtertext(text, text);
+    trimtrailingwhitespace(text);
+
+    addmsg(SV_TEXTPRIVATE, "ris", cn, text);
+    conoutf("to %s:\f9 %s", colorname(to), highlight(text));
+}
+COMMAND(pm, "c");
+
+COMMAND(echo, "c");
+COMMAND(hudecho, "c");
+COMMANDN(say, toserver, "c");
+COMMANDN(me, toserverme, "c");
+COMMANDN(connect, connectserv, "sis");
+COMMAND(connectadmin, "sis");
+COMMAND(lanconnect, "");
+COMMANDN(modconnect, modconnectserv, "sis");
+COMMAND(modconnectadmin, "sis");
+COMMAND(modlanconnect, "");
+COMMANDN(disconnect, trydisconnect, "");
+COMMAND(whereami, "");
+COMMAND(go_to, "ffs");
 
 void current_version(char *text)
 {
     int version = atoi(text);
-    if (version < AC_VERSION) conoutf("UPDATE YOUR CLIENT\ngo to %s for more information",AC_MASTER_URI);
+    if (version && AC_VERSION<version) conoutf("YOUR VERSION OF ASSAULTCUBE IS OUTDATED!\nYOU MUST UPDATE ASSAULTCUBE\nplease visit %s for more information",AC_MASTER_URI);
 }
-COMMAND(current_version, ARG_1STR);
+COMMAND(current_version, "s");
 
 void cleanupclient()
 {
@@ -335,7 +394,11 @@ void addmsg(int type, const char *fmt, ...)
                 numi += n;
                 break;
             }
-            case 's': sendstring(va_arg(args, const char *), p); nums++; break;
+            case 's':
+            {
+                const char *t = va_arg(args, const char *);
+                if(t) sendstring(t, p); nums++; break;
+            }
         }
         va_end(args);
     }
@@ -488,12 +551,9 @@ void c2sinfo(playerent *d)                  // send update to the server
     lastupdate = totalmillis;
 }
 
-void sendintro()
+int getbuildtype()
 {
-    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    putint(p, SV_CONNECT);
-    putint(p, AC_VERSION);
-    putint(p, (isbigendian() ? 0x80 : 0 )|(adler((unsigned char *)guns, sizeof(guns)) % 31 << 8)|
+    return (isbigendian() ? 0x80 : 0 )|(adler((unsigned char *)guns, sizeof(guns)) % 31 << 8)|
         #ifdef WIN32
             0x40 |
         #endif
@@ -506,10 +566,17 @@ void sendintro()
         #ifdef __GNUC__
             0x04 |
         #endif
-            0);
+            0;
+}
+
+void sendintro()
+{
+    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    putint(p, SV_CONNECT);
+    putint(p, AC_VERSION);
+    putint(p, getbuildtype());
     sendstring(player1->name, p);
     sendstring(genpwdhash(player1->name, clientpassword, sessionid), p);
-    const char *lang = getalias("LANG");
     sendstring(!lang || strlen(lang) != 2 ? "" : lang, p);
     putint(p, connectrole);
     clientpassword[0] = '\0';
@@ -544,12 +611,17 @@ void gets2c()           // get updates from the server
             connpeer = NULL;
             connected = 1;
             conoutf(_("connected to server"));
+            if(identexists("onConnect"))
+            {
+                defformatstring(onconnect)("onConnect %d", -1);
+                execute(onconnect);
+            }
             throttle();
             if(editmode) toggleedit(true);
             break;
 
         case ENET_EVENT_TYPE_RECEIVE:
-		{
+        {
             extern packetqueue pktlogger;
             pktlogger.queue(event.packet);
 
@@ -558,10 +630,10 @@ void gets2c()           // get updates from the server
             // destroyed in logger
             //enet_packet_destroy(event.packet);
             break;
-		}
+        }
 
         case ENET_EVENT_TYPE_DISCONNECT:
-		{
+        {
             extern const char *disc_reason(int reason);
             if(event.data>=DISC_NUM) event.data = DISC_NONE;
             if(event.peer==connpeer)
@@ -575,7 +647,7 @@ void gets2c()           // get updates from the server
                 disconnect();
             }
             return;
-		}
+        }
 
         default:
             break;
@@ -619,15 +691,19 @@ void genauthkey(const char *secret)
 
 void saveauthkeys()
 {
-    stream *f = openfile("config/auth.cfg", "w");
-    if(!f) { conoutf("failed to open config/auth.cfg for writing"); return; }
-    loopv(authkeys)
+    if(authkeys.length())
     {
-        authkey *a = authkeys[i];
-        f->printf("authkey \"%s\" \"%s\" \"%s\"\n", a->name, a->key, a->desc);
+        stream *f = openfile("config/auth.cfg", "w");
+        if(!f) { conoutf("failed to open config/auth.cfg for writing"); return; }
+        loopv(authkeys)
+        {
+            authkey *a = authkeys[i];
+            f->printf("authkey \"%s\" \"%s\" \"%s\"\n", a->name, a->key, a->desc);
+        }
+        conoutf("saved authkeys to config/auth.cfg");
+        delete f;
     }
-    conoutf("saved authkeys to config/auth.cfg");
-    delete f;
+    else conoutf("you need to use 'addauthkey USER KEY DESC' first; one DESC 'public', one DESC empty(=private)");
 }
 
 bool tryauth(const char *desc)
@@ -639,11 +715,11 @@ bool tryauth(const char *desc)
     return true;
 }
 
-COMMANDN(authkey, addauthkey, ARG_3STR);
-ICOMMANDF(hasauthkey, ARG_2EST, (char *name, char *desc) { return (_hasauthkey(name, desc) ? 1 : 0); });
-COMMAND(genauthkey, ARG_1STR);
-COMMAND(saveauthkeys, ARG_NONE);
-ICOMMANDF(auth, ARG_1EST, (char *desc) { return tryauth(desc); });
+COMMANDN(authkey, addauthkey, "sss");
+COMMANDF(hasauthkey, "ss", (char *name, char *desc) { intret(_hasauthkey(name, desc) ? 1 : 0); });
+COMMAND(genauthkey, "s");
+COMMAND(saveauthkeys, "");
+COMMANDF(auth, "s", (char *desc) { intret(tryauth(desc)); });
 
 // :for AUTH
 
@@ -658,8 +734,16 @@ bool securemapcheck(const char *map, bool msg)
     if(strstr(map, "maps/")==map || strstr(map, "maps\\")==map) map += strlen("maps/");
     loopv(securemaps) if(!strcmp(securemaps[i], map))
     {
-        if(msg) conoutf(_("%c3map %s is secured, you can not send, receive or overwrite it"), CC, map);
-        return true;
+        if(msg)
+        {
+            conoutf(_("%c3map %c4%s%c3 is secured, this means you CAN'T send, receive or overwrite it"), CC, CC, map, CC);
+            if(connected)
+            {
+                conoutf(_("%c3if you get this error alot you or the server may be running an outdated game"), CC);
+                conoutf(_("%c3you may check for updates at %c1http://assault.cubers.net/download.html"), CC, CC);
+            }
+            return true;
+        }
     }
     return false;
 }
@@ -703,12 +787,27 @@ void sendmap(char *mapname)
     conoutf(_("sending map %s to server..."), mapname);
 }
 
-void getmap()
+void getmap(char *name, char *callback)
 {
-    conoutf(_("requesting map from server..."));
-    packetbuf p(10, ENET_PACKET_FLAG_RELIABLE);
-    putint(p, SV_RECVMAP);
-    sendpackettoserv(2, p.finalize());
+    if((!name || !*name)
+        || (connected && !strcmp(name, getclientmap())) )
+    {
+        conoutf(_("requesting map from server..."));
+        packetbuf p(10, ENET_PACKET_FLAG_RELIABLE);
+        putint(p, SV_RECVMAP);
+        sendpackettoserv(2, p.finalize());
+    }
+    else
+    {
+        defformatstring(package)("packages/maps/%s.cgz", name);
+        requirepackage(PCK_MAP, package);
+        if(downloadpackages())
+        {
+            if(callback && *callback) execute(callback);
+            conoutf("map %s installed successfully", name);
+        }
+        else conoutf("\f3map download failed.");
+    }
 }
 
 void deleteservermap(char *mapname)
@@ -719,14 +818,13 @@ void deleteservermap(char *mapname)
 }
 
 string demosubpath;
-void getdemo(char *idx, char *dsp)
+void getdemo(int *idx, char *dsp)
 {
-    int i = atoi(idx);
     if(dsp && dsp[0]) formatstring(demosubpath)("%s/", dsp);
     else copystring(demosubpath, "");
-    if(i<=0) conoutf(_("getting demo..."));
-    else conoutf(_("getting demo %d..."), i);
-    addmsg(SV_GETDEMO, "ri", i);
+    if(*idx<=0) conoutf(_("getting demo..."));
+    else conoutf(_("getting demo %d..."), *idx);
+    addmsg(SV_GETDEMO, "ri", *idx);
 }
 
 void listdemos()
@@ -735,10 +833,332 @@ void listdemos()
     addmsg(SV_LISTDEMOS, "r");
 }
 
-COMMAND(sendmap, ARG_1STR);
-COMMAND(getmap, ARG_NONE);
-COMMAND(deleteservermap, ARG_1STR);
-COMMAND(resetsecuremaps, ARG_NONE);
-COMMAND(securemap, ARG_1STR);
-COMMAND(getdemo, ARG_2STR);
-COMMAND(listdemos, ARG_NONE);
+void shiftgametime(int newmillis)
+{
+    newmillis = max(0, newmillis);
+    int gamemillis = gametimecurrent + (lastmillis - lastgametimeupdate);
+
+    if(!watchingdemo) { conoutf("You have to be watching a demo to change game time"); return; }
+    if(newmillis > gametimemaximum) { conoutf("Invalid time specified"); return; }
+
+    if(newmillis < gamemillis)
+    {
+        // if rewinding
+        if(!curdemofile || !curdemofile[0]) return;
+        watchingdemo = false;
+        callvote(SA_MAP, curdemofile, "-1");
+        nextmillis = newmillis;
+    }
+    else
+    {
+        nextmillis = newmillis - gamemillis;
+    }
+}
+
+void setminutesremaining(int *minutes)
+{
+    shiftgametime(gametimemaximum - (*minutes)*60000);
+}
+
+void rewinddemo(int *seconds)
+{
+    int gamemillis = gametimecurrent+(lastmillis-lastgametimeupdate);
+    shiftgametime(gamemillis - (*seconds)*1000);
+}
+
+COMMAND(sendmap, "s");
+COMMAND(getmap, "ss");
+COMMAND(deleteservermap, "s");
+COMMAND(resetsecuremaps, "");
+COMMAND(securemap, "s");
+COMMAND(getdemo, "is");
+COMMAND(listdemos, "");
+COMMANDN(setmr, setminutesremaining, "i");
+COMMANDN(rewind, rewinddemo, "i");
+
+// packages auto - downloader
+
+// arrays
+vector<pckserver *> pckservers;
+hashtable<const char *, package *> pendingpackages;
+
+// cubescript
+VARP(autodownload, 0, 1, 1);
+
+void resetpckservers()
+{
+    pckservers.deletecontents();
+}
+
+void addpckserver(char *addr)
+{
+    pckserver *srcserver = new pckserver();
+    srcserver->addr = newstring(addr);
+    srcserver->pending = true;
+    pckservers.add(srcserver);
+}
+
+COMMAND(resetpckservers, "");
+COMMAND(addpckserver, "s");
+
+// cURL / Network
+
+bool havecurl = false, canceldownloads = false;
+
+void setupcurl()
+{
+    if(curl_global_init(CURL_GLOBAL_NOTHING)) conoutf(_("\f3could not init cURL, content downloads not available"));
+    else
+    {
+        havecurl = true;
+        execfile("config/pcksources.cfg");
+    }
+}
+
+// detect the "nearest" server
+int pckserversort(pckserver **a, pckserver **b)
+{
+    if((*a)->ping < 0) return ((*b)->ping < 0) ? 0 : 1;
+    if((*b)->ping < 0) return -1;
+    
+    return (*a)->ping == (*b)->ping ? 0 : ((*a)->ping < (*b)->ping ? -1 : 1);
+}
+
+SDL_Thread* pingpcksrvthread = NULL;
+SDL_mutex *pingpcksrvlock = NULL;
+int pingpckservers(void *data)
+{
+    SDL_mutexP(pingpcksrvlock);
+    vector<pckserver> serverstoping;
+    loopv(pckservers) serverstoping.add(*pckservers[i]);
+    SDL_mutexV(pingpcksrvlock);
+    // measure the time it took to receive each's server response
+    // not very accurate but it should do the trick
+    loopv(serverstoping)
+    {
+        double ping = 0, namelookup = 0;
+        pckserver *serv = &serverstoping[i];
+        CURL *cu = curl_easy_init();
+        curl_easy_setopt(cu, CURLOPT_URL, serv->addr);
+        curl_easy_setopt(cu, CURLOPT_NOSIGNAL, 1);	    // Fixes crashbug for some buggy libcurl versions (Linux)
+        curl_easy_setopt(cu, CURLOPT_NOPROGRESS, 1);
+        curl_easy_setopt(cu, CURLOPT_NOBODY, 1);            // don't download response body (as its size may vary a lot from one server to another)
+        curl_easy_setopt(cu, CURLOPT_CONNECTTIMEOUT, 10);   // the timeout should be large here
+        int result = curl_easy_perform(cu);
+        curl_easy_getinfo(cu, CURLINFO_TOTAL_TIME, &ping);
+        curl_easy_getinfo(cu, CURLINFO_NAMELOOKUP_TIME, &namelookup);
+        ping -= namelookup; // ignore DNS lookup time as it should be performed only once
+        curl_easy_cleanup(cu);
+        cu = NULL;
+        if(result == CURLE_OPERATION_TIMEDOUT || result == CURLE_COULDNT_RESOLVE_HOST)
+            serv->responsive = false;
+        else
+            serv->ping = (int)(ping*1000);
+    }
+
+    SDL_mutexP(pingpcksrvlock);
+    loopv(serverstoping) loopvj(pckservers) if(!strcmp(serverstoping[i].addr, pckservers[j]->addr)) *pckservers[j] = serverstoping[i];
+    pckservers.sort(pckserversort);
+    // print the results. we should make it silent once tested enough
+    loopv(pckservers)
+    {
+        pckserver *serv = pckservers[i];
+        if(serv->ping > 0) conoutf("%d. %s (%d ms)", i+1, serv->addr, serv->ping);
+        else conoutf("%d. %s (did not reply)", i+1, serv->addr);
+    }
+    SDL_mutexV(pingpcksrvlock);
+
+    SDL_DestroyMutex(pingpcksrvlock);
+    pingpcksrvthread = NULL;
+    pingpcksrvlock = NULL;
+    return 0;
+}
+
+void sortpckservers()
+{
+    if(pingpcksrvthread || !havecurl) return;
+    pingpcksrvlock = SDL_CreateMutex();
+    pingpcksrvthread = SDL_CreateThread(pingpckservers, NULL);
+}
+COMMAND(sortpckservers, "");
+
+static size_t write_callback(void *ptr, size_t size, size_t nmemb, FILE *stream)
+{
+    return fwrite(ptr, size, nmemb, stream);
+}
+
+static int progress_callback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow)
+{
+    package *pck = (package *)clientp;
+    loadingscreen(_("downloading package %d out of %d...\n%s %.0f/%.0f KB (%.1f%%)\n(ESC to cancel)"), pck->number + 1, pck->number + pendingpackages.numelems,
+        pck->name, dlnow/double(1000.0), dltotal/double(1000.0), dltotal == 0 ? 0 : (dlnow/dltotal * double(100.0)));
+    if(interceptkey(SDLK_ESCAPE))
+    {
+        canceldownloads = true;
+        loadingscreen();
+        return 1;
+    }
+    return 0;
+}
+
+int processdownload(package *pck)
+{
+    string tmpname = "";
+    copystring(tmpname, findfile(path("tmp", true), "rb"));
+    if(!pck->pending)
+    {
+        switch(pck->type)
+        {
+            case PCK_TEXTURE: case PCK_AUDIO:
+            {
+                const char *pckname = findfile(path(pck->name, true), "w+");
+                preparedir(pckname);
+                // with textures/sounds, the image/audio file itself is sent. Just need to copy it from the temporary file
+                if(!copyfile(tmpname, pckname)) conoutf(_("\f3failed to install"), pckname);
+                break;
+            }
+
+            case PCK_MAP: case PCK_MAPMODEL:
+            {
+                addzip(tmpname, pck->name, NULL, true, pck->type);
+                break;
+            }
+
+            case PCK_SKYBOX:
+            {
+                char *fname = newstring(pck->name), *ls = strrchr(fname, '/');
+                if(ls) *ls = '\0';
+                addzip(tmpname, fname, NULL, true, pck->type);
+                break;
+            }
+
+            default:
+                conoutf(_("could not install package %s"), pck->name);
+                break;
+        }
+        delfile(tmpname);
+    }
+    return 0;
+}
+
+// download a package
+double dlpackage(package *pck)
+{
+    if(!pck || !pck->source) return false;
+    const char *tmpname = findfile(path("tmp", true), "wb");
+    FILE *outfile = fopen(tmpname, "wb");
+    string req, pckname = "";
+    sprintf(req, "%s/%s%s", pck->source->addr, strreplace(pckname, pck->name, " ", "%20"), (pck->type==PCK_MAP || pck->type==PCK_MAPMODEL || pck->type==PCK_SKYBOX) ? ".zip" : "");
+    conoutf(_("downloading %s from %s ..."), pck->name, pck->source->addr);
+    if(!outfile)
+    {
+        pck->pending = false;
+        conoutf("\f3failed to write temporary file \"%s\"", tmpname);
+        return 0;
+    }
+
+    int result, httpresult = 0;
+    double dlsize;
+    pck->curl = curl_easy_init();
+    curl_easy_setopt(pck->curl, CURLOPT_URL, req);
+    curl_easy_setopt(pck->curl, CURLOPT_NOSIGNAL, 1);		 // Fixes crashbug for some buggy libcurl versions (Linux)
+    curl_easy_setopt(pck->curl, CURLOPT_WRITEFUNCTION, write_callback);
+    curl_easy_setopt(pck->curl, CURLOPT_WRITEDATA, outfile);
+    curl_easy_setopt(pck->curl, CURLOPT_NOPROGRESS, 0);
+    curl_easy_setopt(pck->curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
+    curl_easy_setopt(pck->curl, CURLOPT_PROGRESSDATA, pck);
+    curl_easy_setopt(pck->curl, CURLOPT_CONNECTTIMEOUT, 10);     // generous timeout for Bukz ;)
+    result = curl_easy_perform(pck->curl);
+    curl_easy_getinfo(pck->curl, CURLINFO_RESPONSE_CODE, &httpresult);
+    curl_easy_getinfo(pck->curl, CURLINFO_SIZE_DOWNLOAD, &dlsize);
+    curl_easy_cleanup(pck->curl);
+    pck->curl = NULL;
+    fclose(outfile);
+
+    pck->pending = false;
+    if(result == CURLE_OPERATION_TIMEDOUT || result == CURLE_COULDNT_RESOLVE_HOST)
+    {
+        // mark source unresponsive
+        pck->source->responsive = false;
+        conoutf(_("\f3could not connect to %s"), pck->source->addr);
+
+        // try to find another source
+        pckserver *source = NULL;
+        loopv(pckservers) if(pckservers[i]->responsive) { source = pckservers[i]; break; }
+        if(!source)
+        {
+            conoutf(_("\f3no more servers to connect to"));
+            canceldownloads = true;
+            return 0;
+        }
+
+        // update all packages
+        enumerate(pendingpackages, package *, pack,
+        {
+            pack->source = source;
+        });
+
+        pck->pending = true;
+
+        return dlpackage(pck); // retry current
+    }
+    if(!result && httpresult == 200) processdownload(pck);
+    else if(result == CURLE_ABORTED_BY_CALLBACK) conoutf(_("\f3download cancelled"));
+    else conoutf(_("\f2request for %s failed (cURL %d, HTTP %d)"), req, result, httpresult);
+    return (!result && httpresult == 200) ? dlsize : 0;
+}
+
+int lastpackagesdownload = 0;
+int downloadpackages()
+{
+    if(!pendingpackages.numelems) return 0;
+    else if(totalmillis - lastpackagesdownload < 2000)
+    {
+        conoutf("\f3quick download attempt aborted");
+        return 0;
+    }
+
+    double total = 0;
+    int downloaded = 0;
+    enumerate(pendingpackages, package *, pck,
+    {
+        if(!canceldownloads)
+        {
+            if(connected) c2skeepalive(); // try to avoid time out
+            pck->number = downloaded++;
+            total += dlpackage(pck);
+        }
+        pendingpackages.remove(pck->name);
+        delete pck;
+    });
+    canceldownloads = false;
+    lastpackagesdownload = lastmillis;
+    return (int)total;
+}
+
+bool requirepackage(int type, const char *path)
+{
+    if(!havecurl || canceldownloads || type < 0 || type >= PCK_NUM || pendingpackages.access(path)) return false;
+
+    package *pck = new package;
+    pck->name = unixpath(newstring(path));
+    pck->type = type;
+    loopv(pckservers) if(pckservers[i]->responsive) { pck->source = pckservers[i]; break; }
+    if(!pck->source) { conoutf(_("\f3no responsive source server found, can't download")); return false; }
+    pck->pending = true;
+
+    pendingpackages.access(pck->name, pck);
+
+    return true;
+}
+
+
+void writepcksourcecfg()
+{
+    stream *f = openfile(path("config/pcksources.cfg", true), "w");
+    if(!f) return;
+    f->printf("// list of package source servers (only add servers you trust!)\n");
+    loopv(pckservers) f->printf("\naddpckserver %s", pckservers[i]->addr);
+    f->printf("\n");
+    delete f;
+}

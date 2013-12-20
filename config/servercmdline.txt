@@ -1,4 +1,4 @@
-// example servercmdline.txt file (1.1)
+// example servercmdline.txt file (1.2)
 // to use this file, add -Cconfig/servercmdline.txt to your servers commandline
 //
 // * you can't use cubescript here!
@@ -20,7 +20,7 @@
 // -n1    // custom server description prefix
 // -n2    // custom server description suffix
 // -f     // port, 1..65534, default 28763
-// -c     // max client number, 1..20, default 6
+// -c     // max client number, 1..16, default 6
 // -D     // number of demos to keep in RAM, default 5
 
 // the switches o, n, n1 and n2 support coloring and character escaping; 'o' also supports escaped newlines
@@ -32,11 +32,15 @@
 // change these, if you don't like the defaults:
 
 // -k     // kickthreshold, -1..-100, default -5
+// -kA    // kickthreshold (in seconds) for being AFK, > 30, default 45
+// -kB    // time in minutes a banned player will stay banned, default 20
 // -y     // banthreshold, -1..-100, default -6
 // -r     // server maprot file, default config/maprot.cfg
 // -X     // server passwords file, default config/serverpwd.cfg
 // -B     // server IP blacklist file, default config/serverblacklist.cfg
 // -K     // server nickname blacklist file, default config/nicknameblacklist.cfg
+// -g     // server forbidden words file, default config/forbidden.cfg
+// -E     // server kill messages file, default config/serverkillmessages.cfg
 // -P     // voting permission string (read docs/commandline.html)
           //    k kick players
           //    b ban players (and remove bans)
@@ -70,6 +74,7 @@
 // -W     // demopath, path & file prefix to store recorded demos at
 // -V     // verbose logging (enable this via commandline, until you're sure, there are no errors in your config left)
 // -C     // import commandline options from file (can be used recursively)
+// -l     // If set to 0, disable game status logging from server logs
 // -T     // Add timestamps to every line of the console and file logs.
 // -LF    // Sets the logging level for file logs (0..5), default 2 (Win & Mac) or 5 (Linux)
 // -LS    // Sets the logging level for syslog logging (0..5), default 2 (Linux) or 5 (Win & Mac)
@@ -81,6 +86,11 @@
           //    4  ERROR: log only messages of level ERROR
           //    5  do not write to the log
 // -A     // Restricts voting for a map/mode to admins. This switch can be used several times. 
+
+// these switches control the naming of demos (see -W) 
+// --demofilenameformat="%Mmin_%G_%w_%H_%n" // default: "%w_%h_%n_%Mmin_%G"
+// --demotimestampformat="%H%M_%Y%m%d"      // default: "%Y%m%d_%H%M"
+// --demotimelocal=1                        // default: 0
 
 // don't use these switches, unless you really know what you're doing:
 

@@ -58,8 +58,8 @@ static inline T min(T a, T b)
 static inline float round(float x) { return floor(x + 0.5f); }
 
 #define clamp(a,b,c) (max(b, min(a, c)))
-#define rnd(max) (rand()%(max))
-#define rnd_2x(max) (rand()%(max)+rand()%(max))
+#define rnd(x) ((int)(randomMT()&0xFFFFFF)%(x))
+#define rndscale(x) (float((randomMT()&0xFFFFFF)*double(x)/double(0xFFFFFF)))
 #define detrnd(s, x) ((int)(((((uint)(s))*1103515245+12345)>>16)%(x)))
 
 #define loop(v,m) for(int v = 0; v<int(m); v++)
@@ -134,16 +134,11 @@ struct stringformatter
 
 inline char *strcaps(const char *s, bool on)
 {
-    int (*caps)(int t) = (on ? toupper : tolower);
-    static char r[128];
-    char *c = (char *)s, *o = r;
-    int n = 0;
-    while( *c!='\0' && n < 127)
-    {
-        *o = caps(*c);
-        n++; o++; c++;
-    }
-    *o='\0';
+    static string r;
+    char *o = r;
+    if(on) while(*s && o < &r[sizeof(r)-1]) *o++ = toupper(*s++);
+    else while(*s && o < &r[sizeof(r)-1]) *o++ = tolower(*s++);
+    *o = '\0';
     return r;
 }
 
@@ -163,6 +158,18 @@ inline bool issimilar (char s, char d)
         case 'u': if ( s == '#' ) return true; break;
     }
     return false;
+}
+
+#define MAXMAPNAMELEN 64
+inline bool validmapname(char *s)
+{
+    if(strlen(s) > MAXMAPNAMELEN) return false;
+    while(*s != '\0') 
+    {
+        if(!isalnum(*s) && *s != '_' && *s != '-' && *s != '.') return false;
+        ++s;
+    }
+    return true;
 }
 
 inline bool findpattern (char *s, char *d) // returns true if there is more than 80% of similarity
@@ -216,7 +223,7 @@ struct databuf
 
     const T &get()
     {
-        static T overreadval;
+        static T overreadval = 0;
         if(len<maxlen) return buf[len++];
         flags |= OVERREAD;
         return overreadval;
@@ -476,6 +483,13 @@ template <class T> struct vector
     void addbuf(const databuf<T> &p)
     {
         advance(p.length());
+    }
+
+    T *pad(int n)
+    {
+        T *buf = reserve(n).buf;
+        advance(n);
+        return buf;
     }
 
     void put(const T &v) { add(v); }
@@ -774,23 +788,23 @@ template <class T, int SIZE> struct ringbuf
 // ease time measurement
 struct stopwatch
 {
-	int millis;
+    int millis;
 
-	stopwatch() : millis(-1) {}
+    stopwatch() : millis(-1) {}
 
-	void start()
-	{
-		millis = SDL_GetTicks();
-	}
+    void start()
+    {
+        millis = SDL_GetTicks();
+    }
 
-	// returns elapsed time
-	int stop()
-	{
-		ASSERT(millis >= 0);
-		int time = SDL_GetTicks() - millis;
-		millis = -1;
-		return time;
-	}
+    // returns elapsed time
+    int stop()
+    {
+        ASSERT(millis >= 0);
+        int time = SDL_GetTicks() - millis;
+        millis = -1;
+        return time;
+    }
 };
 #endif
 
@@ -803,10 +817,10 @@ inline char *newstringbuf(const char *s)        { return newstring(s, MAXSTRLEN-
 #ifndef STANDALONE
 inline const char *_gettext(const char *msgid)
 {
-	if(msgid && msgid[0] != '\0')
-		return gettext(msgid);
-	else
-		return "";
+    if(msgid && msgid[0] != '\0')
+        return gettext(msgid);
+    else
+        return "";
 }
 #endif
 
@@ -842,6 +856,14 @@ template<class T> inline void lilswap(T *buf, int len) { if(!*(const uchar *)&is
 template<class T> inline T bigswap(T n) { return *(const uchar *)&islittleendian ? endianswap(n) : n; }
 template<class T> inline void bigswap(T *buf, int len) { if(*(const uchar *)&islittleendian) endianswap(buf, len); }
 #endif
+
+#define uint2ip(address, ip) uchar ip[4]; \
+if(isbigendian())\
+{ \
+    enet_uint32 big = endianswap(address);\
+    memcpy(&ip, &big, 4);\
+}\
+else memcpy(&ip, &address, 4);\
 
 /* workaround for some C platforms that have these two functions as macros - not used anywhere */
 #ifdef getchar
@@ -887,6 +909,7 @@ extern const char *asctime();
 extern const char *numtime();
 extern char *path(char *s);
 extern char *path(const char *s, bool copy);
+extern char *unixpath(char *s);
 extern const char *behindpath(const char *s);
 extern const char *parentdir(const char *directory);
 extern bool fileexists(const char *path, const char *mode);
@@ -906,6 +929,10 @@ extern bool listdir(const char *dir, const char *ext, vector<char *> &files);
 extern int listfiles(const char *dir, const char *ext, vector<char *> &files);
 extern int listzipfiles(const char *dir, const char *ext, vector<char *> &files);
 extern bool delfile(const char *path);
+extern bool copyfile(const char *source, const char *destination);
+extern bool preparedir(const char *destination);
+extern bool addzip(const char *name, const char *mount = NULL, const char *strip = NULL, bool extract = false, int type = -1);
+extern bool removezip(const char *name);
 extern struct mapstats *loadmapstats(const char *filename, bool getlayout);
 extern bool cmpb(void *b, int n, enet_uint32 c);
 extern bool cmpf(char *fn, enet_uint32 c);
@@ -913,6 +940,8 @@ extern enet_uint32 adler(unsigned char *data, size_t len);
 extern void endianswap(void *, int, int);
 extern bool isbigendian();
 extern void strtoupper(char *t, const char *s = NULL);
+extern void seedMT(uint seed);
+extern uint randomMT(void);
 
 struct iprange { enet_uint32 lr, ur; };
 extern const char *atoip(const char *s, enet_uint32 *ip);

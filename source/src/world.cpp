@@ -125,8 +125,8 @@ void closestenttype(char *what)
     clenttype = what[0] ? findtype(what) : NOTUSED;
 }
 
-COMMAND(nextclosestent, ARG_NONE);
-COMMAND(closestenttype, ARG_1STR);
+COMMAND(nextclosestent, "");
+COMMAND(closestenttype, "s");
 
 int closestent()        // used for delent and edit mode ent display
 {
@@ -184,8 +184,14 @@ void entproperty(int prop, int amount)
     switch(e.type)
     {
         case LIGHT: calclight(); break;
-        case SOUND: audiomgr.preloadmapsound(e);
+        case SOUND:
+            audiomgr.preloadmapsound(e);
+            entityreference entref(&e);
+            location *loc = audiomgr.locations.find(e.attr1-amount, &entref, mapsounds);
+            if(loc)
+                loc->drop();
     }
+    if(changedents.find(n) == -1) changedents.add(n);   // apply ent changes later (reduces network traffic)
 }
 
 hashtable<char *, enet_uint32> mapinfo, &resdata = mapinfo;
@@ -199,30 +205,44 @@ void getenttype()
     result(entnames[type]);
 }
 
-int getentattr(int attr)
+void getentattr(int *attr)
 {
     int e = closestent();
-    if(e>=0) switch(attr)
+    if(e>=0) switch(*attr)
     {
-        case 0: return ents[e].attr1;
-        case 1: return ents[e].attr2;
-        case 2: return ents[e].attr3;
-        case 3: return ents[e].attr4;
+        case 0: intret(ents[e].attr1); return;
+        case 1: intret(ents[e].attr2); return;
+        case 2: intret(ents[e].attr3); return;
+        case 3: intret(ents[e].attr4); return;
     }
-    return 0;
+    intret(0);
 }
 
-COMMAND(getenttype, ARG_NONE);
-COMMAND(getentattr, ARG_1EXP);
+COMMAND(getenttype, "");
+COMMAND(getentattr, "i");
 
 void delent()
 {
-    int e = closestent();
-    if(e<0) { conoutf("no more entities"); return; }
-    int t = ents[e].type;
+    int n = closestent();
+    if(n<0) { conoutf("no more entities"); return; }
+    syncentchanges(true);
+    int t = ents[n].type;
     conoutf("%s entity deleted", entnames[t]);
-    ents[e].type = NOTUSED;
-    addmsg(SV_EDITENT, "ri9", e, NOTUSED, 0, 0, 0, 0, 0, 0, 0);
+
+    entity &e = ents[n];
+
+    if (t == SOUND) //stop playing sound
+    {
+        entityreference entref(&e);
+        location *loc = audiomgr.locations.find(e.attr1, &entref, mapsounds);
+
+        if(loc)
+            loc->drop();
+    }
+
+    ents[n].type = NOTUSED;
+    addmsg(SV_EDITENT, "ri9", n, NOTUSED, 0, 0, 0, 0, 0, 0, 0);
+
     switch(t)
     {
         case LIGHT: calclight(); break;
@@ -240,6 +260,17 @@ entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, in
 {
     int type = findtype(what);
     if(type==NOTUSED) return NULL;
+
+    if (type == SOUND && index >= 0)
+    {
+        entity &o = ents[index];
+
+        entityreference entref(&o);
+        location *loc = audiomgr.locations.find(o.attr1, &entref, mapsounds);
+
+        if(loc)
+            loc->drop();
+    }
 
     entity e(x, y, z, type, v1, v2, v3, v4);
 
@@ -261,6 +292,7 @@ entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, in
             e.attr1 = (int)camera1->yaw;
             break;
     }
+    syncentchanges(true);
     addmsg(SV_EDITENT, "ri9", index<0 ? ents.length() : index, type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4);
     e.spawned = true;
     int oldtype = type;
@@ -282,17 +314,17 @@ entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, in
     return index<0 ? &ents.last() : &ents[index];
 }
 
-void entset(char *what, char *a1, char *a2, char *a3, char *a4)
+void entset(char *what, int *a1, int *a2, int *a3, int *a4)
 {
     int n = closestent();
     if(n>=0)
     {
         entity &e = ents[n];
-        newentity(n, e.x, e.y, e.z, what, ATOI(a1), ATOI(a2), ATOI(a3), ATOI(a4));
+        newentity(n, e.x, e.y, e.z, what, *a1, *a2, *a3, *a4);
     }
 }
 
-COMMAND(entset, ARG_5STR);
+COMMAND(entset, "siiii");
 
 void clearents(char *name)
 {
@@ -309,7 +341,7 @@ void clearents(char *name)
     }
 }
 
-COMMAND(clearents, ARG_1STR);
+COMMAND(clearents, "s");
 
 void scalecomp(uchar &c, int intens)
 {
@@ -320,6 +352,7 @@ void scalecomp(uchar &c, int intens)
 
 void scalelights(int f, int intens)
 {
+    if(multiplayer()) return;
     loopv(ents)
     {
         entity &e = ents[i];
@@ -337,7 +370,7 @@ void scalelights(int f, int intens)
     calclight();
 }
 
-COMMAND(scalelights, ARG_2INT);
+COMMANDF(scalelights, "ii", (int *f, int *i) { scalelights(*f, *i); });
 
 int findentity(int type, int index)
 {
@@ -353,12 +386,12 @@ int findentity(int type, int index, uchar attr2)
     return -1;
 }
 
-void nextplayerstart(char *type)
+void nextplayerstart(int *type)
 {
     static int cycle = -1;
 
     if(noteditmode("nextplayerstart")) return;
-    cycle = type[0] ? findentity(PLAYERSTART, cycle + 1, atoi(type)) : findentity(PLAYERSTART, cycle + 1);
+    cycle = findentity(PLAYERSTART, cycle + 1, *type);
     if(cycle >= 0)
     {
         entity &e = ents[cycle];
@@ -372,7 +405,7 @@ void nextplayerstart(char *type)
     }
 }
 
-COMMAND(nextplayerstart, ARG_1STR);
+COMMAND(nextplayerstart, "i");
 
 sqr *wmip[LARGEST_FACTOR*2];
 
@@ -432,12 +465,17 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
     bool clearmap = !copy && world;
     if(copy) ow = blockcopy(shrink ? bs : be);
 
+    extern char *mlayout;
     DELETEA(world);
+    DELETEA(mlayout);
+
     setupworld(factor);
     loop(x,ssize) loop(y,ssize)
     {
         sqrdefault(S(x,y));
     }
+
+    checkselections(); // assert no selection became invalid
 
     strncpy(hdr.head, "ACMP", 4);
     hdr.version = MAPVERSION;
@@ -461,14 +499,13 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
     else
     {
         copystring(hdr.maptitle, "Untitled Map by Unknown", 128);
-        copystring(hdr.mediareq, "", 128); // MediaPack
         hdr.waterlevel = -100000;
         hdr.ambient = 0;
         setwatercolor();
         loopi(sizeof(hdr.reserved)/sizeof(hdr.reserved[0])) hdr.reserved[i] = 0;
         loopk(3) loopi(256) hdr.texlists[k][i] = i;
         ents.shrink(0);
-        block b = { 8, 8, ssize-16, ssize-16 };
+        block b = { 8, 8, ssize-16, ssize - 16};
         edittypexy(SPACE, b);
     }
 
@@ -477,12 +514,20 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
     if(clearmap)
     {
         pushscontext(IEXC_MAPCFG);
-        persistidents = false;
+        per_idents = false;
+        neverpersist = true;
         execfile("config/default_map_settings.cfg");
-        persistidents = true;
+        neverpersist = false;
+        per_idents = true;
         popscontext();
         setvar("fullbright", 1);
         fullbrightlight();
+        
+        mapdims[0] = mapdims[1] = 0;
+        mapdims[2] = mapdims[3] = ssize;
+        mapdims[4] = mapdims[5] = ssize;
+        mapdims[6] = 0;
+        mapdims[7] = 16;
     }
     if(!copy)
     {
@@ -496,12 +541,21 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
 
 void mapenlarge()  { if(empty_world(-1, false)) addmsg(SV_NEWMAP, "ri", -1); }
 void mapshrink()   { if(empty_world(-2, false)) addmsg(SV_NEWMAP, "ri", -2); }
-void newmap(int i) { if(empty_world(i, false)) addmsg(SV_NEWMAP, "ri", max(i, 0)); }
+void newmap(int *i)
+{
+    if(empty_world(*i, false))
+    {
+        addmsg(SV_NEWMAP, "ri", max(*i, 0));
+        if(identexists("onNewMap")) execute("onNewMap");
+    }
+    defformatstring(startmillis)("%d", millis_());
+    alias("gametimestart", startmillis);
+}
 
-COMMAND(mapenlarge, ARG_NONE);
-COMMAND(mapshrink, ARG_NONE);
-COMMAND(newmap, ARG_1INT);
-COMMANDN(recalc, calclight, ARG_NONE);
-COMMAND(delent, ARG_NONE);
-COMMAND(entproperty, ARG_2INT);
+COMMAND(mapenlarge, "");
+COMMAND(mapshrink, "");
+COMMAND(newmap, "i");
+COMMANDN(recalc, calclight, "");
+COMMAND(delent, "");
+COMMANDF(entproperty, "ii", (int *p, int *a) { entproperty(*p, *a); });
 

@@ -8,7 +8,8 @@
 #include "server.h"
 #include "servercontroller.h"
 #include "serverfiles.h"
-
+// 2011feb05:ft: quitproc
+#include "signal.h"
 // config
 servercontroller *svcctrl = NULL;
 servercommandline scl;
@@ -18,10 +19,12 @@ servernickblacklist nickblacklist;
 serverforbiddenlist forbiddenlist;
 serverpasswords passwords;
 serverinfofile infofiles;
+killmessagesfile killmsgs;
 
 // server state
 bool isdedicated = false;
 ENetHost *serverhost = NULL;
+
 int nextstatus = 0, servmillis = 0, lastfillup = 0;
 
 vector<client *> clients;
@@ -80,12 +83,12 @@ void cleanworldstate(ENetPacket *packet)
    }
 }
 
-void sendpacket(int n, int chan, ENetPacket *packet, int exclude)
+void sendpacket(int n, int chan, ENetPacket *packet, int exclude, bool demopacket)
 {
     if(n<0)
     {
         recordpacket(chan, packet->data, (int)packet->dataLength);
-        loopv(clients) if(i!=exclude && (clients[i]->type!=ST_TCPIP || clients[i]->isauthed)) sendpacket(i, chan, packet);
+        loopv(clients) if(i!=exclude && (clients[i]->type!=ST_TCPIP || clients[i]->isauthed)) sendpacket(i, chan, packet, -1, demopacket);
         return;
     }
     switch(clients[n]->type)
@@ -97,7 +100,7 @@ void sendpacket(int n, int chan, ENetPacket *packet, int exclude)
         }
 
         case ST_LOCAL:
-            localservertoclient(chan, packet->data, (int)packet->dataLength);
+            localservertoclient(chan, packet->data, (int)packet->dataLength, demopacket);
             break;
     }
 }
@@ -391,9 +394,9 @@ void sendextras()
     sendpacket(-1, 1, p.finalize());
 }
 
-void sendservmsg(const char *msg, int client=-1)
+void sendservmsg(const char *msg, int cn = -1)
 {
-    sendf(client, 1, "ris", SV_SERVMSG, msg);
+    sendf(cn, 1, "ris", SV_SERVMSG, msg);
 }
 
 void sendspawn(client *c)
@@ -434,6 +437,119 @@ void recordpacket(int chan, ENetPacket *packet)
     if(recordpackets) writedemo(chan, packet->data, (int)packet->dataLength);
 }
 
+#ifdef STANDALONE
+const char *currentserver(int i)
+{
+    static string curSRVinfo;
+    string r;
+    r[0] = '\0';
+    switch(i)
+    {
+        case 1: { copystring(r, scl.ip[0] ? scl.ip : "local"); break; } // IP
+        case 2: { copystring(r, scl.logident[0] ? scl.logident : "local"); break; } // HOST
+        case 3: { formatstring(r)("%d", scl.serverport); break; } // PORT
+        // the following are used by a client, a server will simply return empty strings for them
+        case 4:
+        case 5:
+        case 6:
+        case 7:
+        case 8:
+        {
+            break;
+        }
+        default:
+        {
+            formatstring(r)("%s %d", scl.ip[0] ? scl.ip : "local", scl.serverport);
+            break;
+        }
+    }
+    copystring(curSRVinfo, r);
+    return curSRVinfo;
+}
+#endif
+
+// these are actually the values used by the client, the server ones are in "scl".
+string demofilenameformat = DEFDEMOFILEFMT;
+string demotimestampformat = DEFDEMOTIMEFMT;
+int demotimelocal = 0;
+
+#ifdef STANDALONE
+#define DEMOFORMAT scl.demofilenameformat
+#define DEMOTSFORMAT scl.demotimestampformat
+#else
+#define DEMOFORMAT demofilenameformat
+#define DEMOTSFORMAT demotimestampformat
+#endif
+
+const char *getDemoFilename(int gmode, int mplay, int mdrop, int tstamp, char *srvmap)
+{
+    // we use the following internal mapping of formatchars:
+    // %g : gamemode (int)      %G : gamemode (chr)             %F : gamemode (full)
+    // %m : minutes remaining   %M : minutes played
+    // %s : seconds remaining   %S : seconds played
+    // %h : IP of server        %H : hostname of server
+    // %n : mapName
+    // %w : timestamp "when"
+    static string dmofn;
+    copystring(dmofn, "");
+    
+    int cc = 0;
+    int mc = strlen(DEMOFORMAT);
+    
+    while(cc<mc)
+    {
+        switch(DEMOFORMAT[cc])
+        {
+            case '%':
+            {
+                if(cc<(mc-1))
+                {
+                    string cfspp;
+                    switch(DEMOFORMAT[cc+1])
+                    {
+                        case 'F': formatstring(cfspp)("%s", fullmodestr(gmode)); break;
+                        case 'g': formatstring(cfspp)("%d", gmode); break;
+                        case 'G': formatstring(cfspp)("%s", acronymmodestr(gmode)); break;
+                        case 'h': formatstring(cfspp)("%s", currentserver(1)); break; // client/server have different implementations
+                        case 'H': formatstring(cfspp)("%s", currentserver(2)); break; // client/server have different implementations
+                        case 'm': formatstring(cfspp)("%d", mdrop/60); break;
+                        case 'M': formatstring(cfspp)("%d", mplay/60); break;
+                        case 'n': formatstring(cfspp)("%s", srvmap); break;
+                        case 's': formatstring(cfspp)("%d", mdrop); break;
+                        case 'S': formatstring(cfspp)("%d", mplay); break;
+                        case 'w':
+                        {
+                            time_t t = tstamp;
+                            struct tm * timeinfo;
+                            timeinfo = demotimelocal ? localtime(&t) : gmtime (&t);
+                            strftime(cfspp, sizeof(string) - 1, DEMOTSFORMAT, timeinfo);
+                            break;
+                        }
+                        default: logline(ACLOG_INFO, "bad formatstring: demonameformat @ %d", cc); cc-=1; break; // don't drop the bad char
+                    }
+                    concatstring(dmofn, cfspp);
+                }
+                else
+                {
+                    logline(ACLOG_INFO, "trailing %%-sign in demonameformat");
+                }
+                cc+=1;
+                break;
+            }
+            default:
+            {
+                defformatstring(fsbuf)("%s%c", dmofn, DEMOFORMAT[cc]);
+                copystring(dmofn, fsbuf);
+                break;
+            }
+        }
+        cc+=1;
+    }
+    return dmofn;
+}
+#undef DEMOFORMAT
+#undef DEMOTSFORMAT
+
 void enddemorecord()
 {
     if(!demorecord) return;
@@ -461,14 +577,27 @@ void enddemorecord()
     }
     int mr = gamemillis >= gamelimit ? 0 : (gamelimit - gamemillis + 60000 - 1)/60000;
     demofile &d = demofiles.add();
-    //flowtron 2010oct10 suggests : formatstring(d.info)("%s, %s, %.2f%s", modestr(gamemode), smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB"); // the datetime bit is pretty useless in the servmesg, no?!
+
+    //2010oct10:ft: suggests : formatstring(d.info)("%s, %s, %.2f%s", modestr(gamemode), smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB"); // the datetime bit is pretty useless in the servmesg, no?!
     formatstring(d.info)("%s: %s, %s, %.2f%s", asctime(), modestr(gamemode), smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB");
-    //formatstring(d.file)("%s_%s_%s", timestring(), behindpath(smapname), modestr(gamemode, true)); // 20100522_10.08.48_ac_mines_DM.dmo
-    formatstring(d.file)(  "%s_%s_%s", modestr(gamemode, true), behindpath(smapname), timestring( true, "%Y.%m.%d_%H%M")); // DM_ac_mines.2010.05.22_1008.dmo
     if(mr) { concatformatstring(d.info, ", %d mr", mr); concatformatstring(d.file, "_%dmr", mr); }
     defformatstring(msg)("Demo \"%s\" recorded\nPress F10 to download it from the server..", d.info);
     sendservmsg(msg);
     logline(ACLOG_INFO, "Demo \"%s\" recorded.", d.info);
+
+    // 2011feb05:ft: previously these two static formatstrings were used ..
+    //formatstring(d.file)("%s_%s_%s", timestring(), behindpath(smapname), modestr(gamemode, true)); // 20100522_10.08.48_ac_mines_DM.dmo
+    //formatstring(d.file)("%s_%s_%s", modestr(gamemode, true), behindpath(smapname), timestring( true, "%Y.%m.%d_%H%M")); // DM_ac_mines.2010.05.22_1008.dmo
+    // .. now we use client-side parseable fileattribs
+    int mPLAY = gamemillis >= gamelimit ? gamelimit/1000 : gamemillis/1000;
+    int mDROP = gamemillis >= gamelimit ? 0 : (gamelimit - gamemillis)/1000;
+    int iTIME = time(NULL);
+    const char *mTIME = numtime();
+    const char *sMAPN = behindpath(smapname);
+    string iMAPN;
+    copystring(iMAPN, sMAPN);
+    formatstring(d.file)( "%d:%d:%d:%s:%s", gamemode, mPLAY, mDROP, mTIME, iMAPN);
+
     d.data = new uchar[len];
     d.len = len;
     demotmp->read(d.data, len);
@@ -476,7 +605,7 @@ void enddemorecord()
     demotmp = NULL;
     if(scl.demopath[0])
     {
-        formatstring(msg)("%s%s.dmo", scl.demopath, d.file);
+        formatstring(msg)("%s%s.dmo", scl.demopath, getDemoFilename(gamemode, mPLAY, mDROP, iTIME, iMAPN)); //d.file);
         path(msg);
         stream *demo = openfile(msg, "wb");
         if(demo)
@@ -496,7 +625,8 @@ void setupdemorecord()
 {
     if(numlocalclients() || !m_mp(gamemode) || gamemode == GMODE_COOPEDIT) return;
 
-    demotmp = opentempfile("demos/demorecord", "w+b");
+    defformatstring(demotmppath)("demos/demorecord_%s_%d", scl.ip[0] ? scl.ip : "local", scl.serverport);
+    demotmp = opentempfile(demotmppath, "w+b");
     if(!demotmp) return;
 
     stream *f = opengzfile(NULL, "wb", demotmp);
@@ -575,7 +705,7 @@ void senddemo(int cn, int num)
     bool is_admin = (cl && cl->role == CR_ADMIN);
     if(scl.demo_interm && (!interm || totalclients > 2) && !is_admin)
     {
-        sendservmsg("\f3sorry, but this server only sends demos at intermission.\n wait the end of this game, please", cn);
+        sendservmsg("\f3sorry, but this server only sends demos at intermission.\n wait for the end of this game, please", cn);
         return;
     }
     if(!num) num = demofiles.length();
@@ -589,8 +719,17 @@ void senddemo(int cn, int num)
         }
         return;
     }
-    if (interm) sending_demo = true;
     demofile &d = demofiles[num-1];
+    loopv(d.clientssent) if(d.clientssent[i].ip == cl->peer->address.host && d.clientssent[i].clientnum == cl->clientnum)
+    {
+        sendservmsg("\f3Sorry, you have already downloaded this demo.", cl->clientnum);
+        return;
+    }
+    clientidentity &ci = d.clientssent.add();
+    ci.ip = cl->peer->address.host;
+    ci.clientnum = cl->clientnum;
+
+    if (interm) sending_demo = true;
     packetbuf p(MAXTRANS + d.len, ENET_PACKET_FLAG_RELIABLE);
     putint(p, SV_SENDDEMO);
     sendstring(d.file, p);
@@ -599,13 +738,17 @@ void senddemo(int cn, int num)
     sendpacket(cn, 2, p.finalize());
 }
 
+int demoprotocol;
+bool watchingdemo = false;
+
 void enddemoplayback()
 {
     if(!demoplayback) return;
     delete demoplayback;
     demoplayback = NULL;
+    watchingdemo = false;
 
-    loopv(clients) sendf(i, 1, "ri3", SV_DEMOPLAYBACK, 0, i);
+    loopv(clients) sendf(i, 1, "risi", SV_DEMOPLAYBACK, "", i);
 
     sendservmsg("demo playback finished");
 
@@ -628,7 +771,9 @@ void setupdemoplayback()
         lilswap(&hdr.version, 1);
         lilswap(&hdr.protocol, 1);
         if(hdr.version!=DEMO_VERSION) formatstring(msg)("demo \"%s\" requires an %s version of AssaultCube", file, hdr.version<DEMO_VERSION ? "older" : "newer");
-        else if(hdr.protocol != PROTOCOL_VERSION && !(hdr.protocol < 0 && hdr.protocol == -PROTOCOL_VERSION)) formatstring(msg)("demo \"%s\" requires an %s version of AssaultCube", file, hdr.protocol<PROTOCOL_VERSION ? "older" : "newer");
+        else if(hdr.protocol != PROTOCOL_VERSION && !(hdr.protocol < 0 && hdr.protocol == -PROTOCOL_VERSION) && hdr.protocol != 1132) formatstring(msg)("demo \"%s\" requires an %s version of AssaultCube", file, hdr.protocol<PROTOCOL_VERSION ? "older" : "newer");
+        else if(hdr.protocol == 1132) sendservmsg("WARNING: using experimental compatibility mode for older demo protocol, expect breakage");
+        demoprotocol = hdr.protocol;
     }
     if(msg[0])
     {
@@ -639,8 +784,8 @@ void setupdemoplayback()
 
     formatstring(msg)("playing demo \"%s\"", file);
     sendservmsg(msg);
-
-    sendf(-1, 1, "ri3", SV_DEMOPLAYBACK, 1, -1);
+    sendf(-1, 1, "risi", SV_DEMOPLAYBACK, smapname, -1);
+    watchingdemo = true;
 
     if(demoplayback->read(&nextplayback, sizeof(nextplayback))!=sizeof(nextplayback))
     {
@@ -671,7 +816,7 @@ void readdemo()
             enddemoplayback();
             return;
         }
-        sendpacket(-1, chan, packet);
+        sendpacket(-1, chan, packet, -1, true);
         if(!packet->referenceCount) enet_packet_destroy(packet);
         if(demoplayback->read(&nextplayback, sizeof(nextplayback))!=sizeof(nextplayback))
         {
@@ -892,7 +1037,10 @@ void flagaction(int flag, int action, int actor)
                 logline(ACLOG_INFO,"[%s] %s returned the flag", c.hostname, c.name);
                 break;
             case FM_SCORE:
-                logline(ACLOG_INFO, "[%s] %s scored with the flag for %s, new score %d", c.hostname, c.name, team_string(c.team), c.state.flagscore);
+                if(m_htf)
+                    logline(ACLOG_INFO, "[%s] %s hunted the flag for %s, new score %d", c.hostname, c.name, team_string(c.team), c.state.flagscore);
+                else
+                   logline(ACLOG_INFO, "[%s] %s scored with the flag for %s, new score %d", c.hostname, c.name, team_string(c.team), c.state.flagscore);
                 break;
             case FM_KTFSCORE:
                 logline(ACLOG_INFO, "[%s] %s scored, carrying for %d seconds, new score %d", c.hostname, c.name, (gamemillis - f.stolentime) / 1000, c.state.flagscore);
@@ -960,38 +1108,35 @@ void resetflag(int cn)
 void htf_forceflag(int flag)
 {
     sflaginfo &f = sflaginfos[flag];
-    int besthealth = 0, numbesthealth = 0;
+    int besthealth = 0;
+    vector<int> clientnumbers;
     loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
         if(clients[i]->state.state == CS_ALIVE && team_base(clients[i]->team) == flag)
         {
             if(clients[i]->state.health == besthealth)
-                numbesthealth++;
+                clientnumbers.add(i);
             else
             {
                 if(clients[i]->state.health > besthealth)
                 {
                     besthealth = clients[i]->state.health;
-                    numbesthealth = 1;
+                    clientnumbers.shrink(0);
+                    clientnumbers.add(i);
                 }
             }
         }
     }
-    if(numbesthealth)
+
+    if(clientnumbers.length())
     {
-        int pick = rnd(numbesthealth);
-        loopv(clients) if(clients[i]->type!=ST_EMPTY)
-        {
-            if(clients[i]->state.state == CS_ALIVE && team_base(clients[i]->team) == flag && --pick < 0)
-            {
-                f.state = CTFF_STOLEN;
-                f.actor_cn = i;
-                sendflaginfo(flag);
-                flagmessage(flag, FM_PICKUP, i);
-                logline(ACLOG_INFO,"[%s] %s got forced to pickup the flag", clients[i]->hostname, clients[i]->name);
-                break;
-            }
-        }
+        int pick = rnd(clientnumbers.length());
+        client *cl = clients[clientnumbers[pick]];
+        f.state = CTFF_STOLEN;
+        f.actor_cn = cl->clientnum;
+        sendflaginfo(flag);
+        flagmessage(flag, FM_PICKUP, cl->clientnum);
+        logline(ACLOG_INFO,"[%s] %s got forced to pickup the flag", cl->hostname, cl->name);
     }
     f.lastupdate = gamemillis;
 }
@@ -1015,7 +1160,7 @@ void distributeteam(int team)
         if(team == 100 || team == clients[i]->team)
         {
             tdistrib.add(i);
-            clients[i]->at3_score = rand();
+            clients[i]->at3_score = rnd(0x1000000);
         }
     }
     tdistrib.sort(cmpscore); // random player order
@@ -1023,7 +1168,7 @@ void distributeteam(int team)
     loopi(numsp)
     {
         ti.index = i;
-        ti.value = rand();
+        ti.value = rnd(0x1000000);
         sdistrib.add(ti);
     }
     sdistrib.sort(cmptwoint); // random spawn order
@@ -1084,18 +1229,21 @@ void arenacheck()
 #ifndef STANDALONE
     if(m_botmode && clients[0]->type==ST_LOCAL)
     {
-        bool alive = false, dead = false;
-        loopv(players) if(players[i])
+        int enemies = 0, alive_enemies = 0;
+        playerent *alive = NULL;
+        loopv(players) if(players[i] && (!m_teammode || players[i]->team == team_opposite(player1->team)))
         {
-            if(!team_isspect(players[i]->team))
+            enemies++;
+            if(players[i]->state == CS_ALIVE)
             {
-                if(players[i]->state==CS_DEAD) dead = true;
-                else alive = true;
+                alive = players[i];
+                alive_enemies++;
             }
         }
-        if((dead && !alive) || player1->state==CS_DEAD)
+        if(player1->state != CS_DEAD) alive = player1;
+        if(enemies && (!alive_enemies || player1->state == CS_DEAD))
         {
-            sendf(-1, 1, "ri2", SV_ARENAWIN, player1->state==CS_ALIVE ? getclientnum() : (alive ? -2 : -1));
+            sendf(-1, 1, "ri2", SV_ARENAWIN, m_teammode ? (alive ? alive->clientnum : -1) : (alive && alive->type == ENT_BOT ? -2 : player1->state == CS_ALIVE ? player1->clientnum : -1));
             arenaround = gamemillis+5000;
         }
         return;
@@ -1216,13 +1364,33 @@ void sendvoicecomteam(int sound, int sender)
     }
 }
 
+int numplayers()
+{
+    int count = 1;
+#ifdef STANDALONE
+    count = numclients();
+#else
+    if(m_botmode)
+    {
+        extern vector<botent *> bots;
+        loopv(bots) if(bots[i]) count++;
+    }
+    if(m_demo)
+    {
+        count = numclients();
+    }
+#endif
+    return count;
+}
+
 int spawntime(int type)
 {
-    int np = numclients();
-    np = np<3 ? 4 : (np>4 ? 2 : 3);         // spawn times are dependent on number of players
+    int np = numplayers();
+    np = np<3 ? 4 : (np>4 ? 2 : 3);    // Some spawn times are dependent on the number of players.
     int sec = 0;
     switch(type)
     {
+    // Please update ./ac_website/htdocs/docs/introduction.html if these times change.
         case I_CLIPS:
         case I_AMMO: sec = np*2; break;
         case I_GRENADE: sec = np + 5; break;
@@ -1239,7 +1407,7 @@ bool serverpickup(int i, int sender)         // server side item pickup, acknowl
     const char *hn = sender >= 0 && clients[sender]->type == ST_TCPIP ? clients[sender]->hostname : NULL;
     if(!sents.inrange(i))
     {
-        if(hn) logline(ACLOG_INFO, "[%s] tried to pick up entity #%d - doesn't exist on this map", hn, i);
+        if(hn && !m_coop) logline(ACLOG_INFO, "[%s] tried to pick up entity #%d - doesn't exist on this map", hn, i);
         return false;
     }
     server_entity &e = sents[i];
@@ -1294,7 +1462,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
     if (!m_demo && !m_coop && !validdamage(target, actor, damage, gun, gib)) return;
     if ( m_arena && gun == GUN_GRENADE && arenaroundstartmillis + 2000 > gamemillis && target != actor ) return;
     clientstate &ts = target->state;
-    ts.dodamage(damage);
+    ts.dodamage(damage, gun);
     if(damage < INT_MAX)
     {
         actor->state.damage += damage;
@@ -1342,7 +1510,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         target->position.setsize(0);
         ts.state = CS_DEAD;
         ts.lastdeath = gamemillis;
-        if(!suic) logline(ACLOG_INFO, "[%s] %s %s%s %s", actor->hostname, actor->name, gib ? gib_message(gun) : "fragged", tk ? " his teammate" : "", target->name);
+        if(!suic) logline(ACLOG_INFO, "[%s] %s %s%s %s", actor->hostname, actor->name, killmessage(gun, gib), tk ? " their teammate" : "", target->name);
         if(m_flags && targethasflag >= 0)
         {
             if(m_ctf)
@@ -1363,9 +1531,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
                   actor->state.teamkills * 30 * 1000 > gamemillis &&
                   actor->state.frags < 4 * actor->state.teamkills ) )
             {
-                ban b = { actor->peer->address, servmillis+scl.ban_time };
-                bans.add(b);
-                disconnect_client(actor->clientnum, DISC_AUTOBAN);
+                addban(actor, DISC_AUTOBAN);
             }
             else if( actor->state.frags < scl.kickthreshold ||
                      /** teamkilling more than 5 (defaults), more than 1 tk per minute and less than 4 frags per tk */
@@ -1398,8 +1564,9 @@ void updatesdesc(const char *newdesc, ENetAddress *caller = NULL)
 int canspawn(client *c)   // beware: canspawn() doesn't check m_arena!
 {
     if(!c || c->type == ST_EMPTY || !c->isauthed || !team_isvalid(c->team) ||
+        (c->type == ST_TCPIP && (c->state.lastdeath > 0 ? gamemillis - c->state.lastdeath : servmillis - c->connectmillis) < (m_arena ? 0 : (m_flags ? 5000 : 2000))) ||
         (servmillis - c->connectmillis < 1000 + c->state.reconnections * 2000 &&
-            gamemillis > 10000 && totalclients > 3 && !team_isspect(c->team)) ) return SP_OK_NUM; // equivalent to SP_DENY
+          gamemillis > 10000 && totalclients > 3 && !team_isspect(c->team))) return SP_OK_NUM; // equivalent to SP_DENY
     if(!c->isonrightmap) return SP_WRONGMAP;
     if(mastermode == MM_MATCH && matchteamsize)
     {
@@ -1461,11 +1628,7 @@ bool updateclientteam(int cln, int newteam, int ftr)
                 if(m_teammode && autoteam && teamsizes[newteam] > teamsizes[team_opposite(newteam)]) return false; // don't switch to an already bigger team
             }
         }
-        else
-        {
-            if(team_isactive(cl.team) && cl.state.state != CS_DEAD) return false; // you need to be dead to change to spectator
-            if(mastermode != MM_MATCH || !m_teammode) newteam = TEAM_SPECT; // only match mode (team) has more than one spect team
-        }
+        else if(mastermode != MM_MATCH || !m_teammode) newteam = TEAM_SPECT; // only match mode (team) has more than one spect team
     }
     if(cl.team == newteam && ftr != FTR_AUTOTEAM) return true; // no change
     if(cl.team != newteam) sdropflag(cl.clientnum);
@@ -1722,7 +1885,7 @@ void resetserver(const char *newname, int newmode, int newtime)
     smode = newmode;
     copystring(smapname, newname);
 
-    minremain = newtime >= 0 ? newtime : (m_teammode ? 15 : 10);
+    minremain = newtime > 0 ? newtime : defaultgamelimit(newmode);
     gamemillis = 0;
     gamelimit = minremain*60000;
     arenaround = arenaroundstartmillis = 0;
@@ -1888,23 +2051,33 @@ void addgban(const char *name)
     loopvrev(clients)
     {
         client &c = *clients[i];
-        if(c.type!=ST_TCPIP || c.role >= CR_ADMIN) continue;
+        if(c.type!=ST_TCPIP) continue;
         if(checkgban(c.peer->address.host)) disconnect_client(c.clientnum, DISC_BANREFUSE);
     }
 }
 
-bool isbanned(int cn)
+inline void addban(client *cl, int reason, int type)
 {
-    if(!valid_client(cn)) return false;
+    if(!cl) return;
+    ban b = { cl->peer->address, servmillis+scl.ban_time, type };
+    bans.add(b);
+    disconnect_client(cl->clientnum, reason);
+}
+
+int getbantype(int cn)
+{
+    if(!valid_client(cn)) return BAN_NONE;
     client &c = *clients[cn];
-    if(c.type==ST_LOCAL) return false;
+    if(c.type==ST_LOCAL) return BAN_NONE;
+    if(checkgban(c.peer->address.host)) return BAN_MASTER;
+    if(ipblacklist.check(c.peer->address.host)) return BAN_BLACKLIST;
     loopv(bans)
     {
         ban &b = bans[i];
         if(b.millis < servmillis) { bans.remove(i--); }
-        if(b.address.host == c.peer->address.host) { return true; }
+        if(b.address.host == c.peer->address.host) return b.type;
     }
-    return checkgban(c.peer->address.host) || ipblacklist.check(c.peer->address.host);
+    return BAN_NONE;
 }
 
 int serveroperator()
@@ -1924,7 +2097,7 @@ void sendserveropinfo(int receiver)
 struct voteinfo
 {
     int boot;
-    int owner, callmillis, result, num, type;
+    int owner, callmillis, result, num1, num2, type;
     char text[MAXTRANS];
     serveraction *action;
     bool gonext;
@@ -1968,7 +2141,7 @@ struct voteinfo
         bool min_time = servmillis - callmillis > 10*1000;
 #define yes_condition ((min_time && stats[VOTE_YES] - stats[VOTE_NO] > 0.34f*total && totalclients > 4) || stats[VOTE_YES] > requiredcount*total)
 #define no_condition (forceend || !valid_client(owner) || stats[VOTE_NO] >= stats[VOTE_YES]+stats[VOTE_NEUTRAL] || adminvote == VOTE_NO)
-#define boot_condition (!boot || (boot && valid_client(num) && clients[num]->peer->address.host == host))
+#define boot_condition (!boot || (boot && valid_client(num1) && clients[num1]->peer->address.host == host))
         if( (yes_condition || admin || adminvote == VOTE_YES) && boot_condition ) end(VOTE_YES);
         else if( no_condition || (min_time && !boot_condition)) end(VOTE_NO);
         else return;
@@ -2007,14 +2180,14 @@ void scallvotesuc(voteinfo *v)
     clients[v->owner]->lastvotecall = servmillis;
     clients[v->owner]->nvotes--; // successful votes do not count as abuse
     sendf(v->owner, 1, "ri", SV_CALLVOTESUC);
-    logline(ACLOG_INFO, "[%s] client %s called a vote: %s", clients[v->owner]->hostname, clients[v->owner]->name, v->action->desc ? v->action->desc : "[unknown]");
+    logline(ACLOG_INFO, "[%s] client %s called a vote: %s", clients[v->owner]->hostname, clients[v->owner]->name, v->action && v->action->desc ? v->action->desc : "[unknown]");
 }
 
 void scallvoteerr(voteinfo *v, int error)
 {
     if(!valid_client(v->owner)) return;
     sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, error);
-    logline(ACLOG_INFO, "[%s] client %s failed to call a vote: %s (%s)", clients[v->owner]->hostname, clients[v->owner]->name, v->action->desc ? v->action->desc : "[unknown]", voteerrorstr(error));
+    logline(ACLOG_INFO, "[%s] client %s failed to call a vote: %s (%s)", clients[v->owner]->hostname, clients[v->owner]->name, v->action && v->action->desc ? v->action->desc : "[unknown]", voteerrorstr(error));
 }
 
 bool map_queued = false;
@@ -2037,7 +2210,7 @@ bool scallvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was calle
     else if( v->action->role > c->role ) error = VOTEE_PERMISSION;
     else if( !(area & v->action->area) ) error = VOTEE_AREA;
     else if( curvote && curvote->result==VOTE_NEUTRAL ) error = VOTEE_CUR;
-    else if( v->type == SA_MAP && v->num >= GMODE_NUM && map_queued ) error = VOTEE_NEXT;
+    else if( v->type == SA_MAP && v->num1 >= GMODE_NUM && map_queued ) error = VOTEE_NEXT;
     else if( c->role == CR_DEFAULT && v->action->isdisabled() ) error = VOTEE_DISABLED;
     else if( (c->lastvotecall && servmillis - c->lastvotecall < 60*1000 && c->role != CR_ADMIN && numclients()>1) || c->nvotes > 3 ) error = VOTEE_MAX;
     else if( ( ( v->boot == 1 && c->role < roleconf('w') ) || ( v->boot == 2 && c->role < roleconf('X') ) )
@@ -2056,12 +2229,7 @@ bool scallvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was calle
     }
     else
     {
-        if ( v->type == SA_MAP && v->num >= GMODE_NUM )
-        {
-            map_queued = true;
-            nextgamemode = v->num-GMODE_NUM;
-            copystring(nextmapname, v->text);
-        }
+        if ( v->type == SA_MAP && v->num1 >= GMODE_NUM ) map_queued = true;
         if (!v->gonext) sendpacket(-1, 1, msg, v->owner); // FIXME in fact, all votes should go to the server, registered, and then go back to the clients
         else callvotepacket (-1, v);                      // also, no vote should exclude the caller... these would provide many code advantages/facilities
         scallvotesuc(v);                                  // but we cannot change the vote system now for compatibility issues... so, TODO
@@ -2089,22 +2257,29 @@ void callvotepacket (int cn, voteinfo *v = curvote)
     {
         case SA_KICK:
         case SA_BAN:
-            putint(q, v->num);
+            putint(q, v->num1);
             sendstring(v->text, q);
             break;
         case SA_MAP:
             sendstring(v->text, q);
-            putint(q, v->num);
+            putint(q, v->num1);
+            putint(q, v->num2);
             break;
         case SA_SERVERDESC:
             sendstring(v->text, q);
             break;
         case SA_STOPDEMO:
+            // compatibility
+            break;
         case SA_REMBANS:
         case SA_SHUFFLETEAMS:
             break;
+        case SA_FORCETEAM:
+            putint(q, v->num1);
+            putint(q, v->num2);
+            break;
         default:
-            putint(q, v->num);
+            putint(q, v->num1);
             break;
     }
     sendpacket(cn, 1, q.finalize());
@@ -2128,6 +2303,7 @@ void changeclientrole(int client, int role, char *pwd, bool force)
         if(pd.line > -1)
             logline(ACLOG_INFO,"[%s] player %s used admin password in line %d", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", pd.line);
         logline(ACLOG_INFO,"[%s] set role of player %s to %s", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", role == CR_ADMIN ? "admin" : "normal player"); // flowtron : connecting players haven't got a name yet (connectadmin)
+        if(role > CR_DEFAULT) sendiplist(client);
     }
     else if(pwd && pwd[0]) disconnect_client(client, DISC_SOPLOGINFAIL); // avoid brute-force
     if(curvote) curvote->evaluate();
@@ -2159,7 +2335,7 @@ void senddisconnectedscores(int cn)
 
 const char *disc_reason(int reason)
 {
-    static const char *disc_reasons[] = { "normal", "error - end of packet", "error - client num", "vote-kicked from the server", "vote-banned from the server", "error - tag type", "connection refused - you have been banned from this server", "incorrect password", "unsuccessful administrator login", "the server is FULL - try again later", "servers mastermode is \"private\" - wait until the servers mastermode is \"open\"", "auto-kick - your score dropped below the servers threshold", "auto-ban - your score dropped below the servers threshold", "duplicate connection", "inappropriate nickname", "error - overflow", "auto-kick - excess spam detected", "auto-kick - inactivity detected", "auto-kick - team killing detected", "auto-kick - abnormal client behavior detected" };
+    static const char *disc_reasons[] = { "normal", "error - end of packet", "error - client num", "vote-kicked from the server", "vote-banned from the server", "error - tag type", "connection refused - you have been banned from this server", "incorrect password", "unsuccessful administrator login", "the server is FULL - try again later", "servers mastermode is \"private\" - wait until the servers mastermode is \"open\"", "auto-kick - your score dropped below the servers threshold", "auto-ban - your score dropped below the servers threshold", "duplicate connection", "inappropriate nickname", "error - packet flood", "auto-kick - excess spam detected", "auto-kick - inactivity detected", "auto-kick - team killing detected", "auto-kick - abnormal client behavior detected" };
     return reason >= 0 && (size_t)reason < sizeof(disc_reasons)/sizeof(disc_reasons[0]) ? disc_reasons[reason] : "unknown";
 }
 
@@ -2211,6 +2387,9 @@ void authsucceeded(uint id)
     client *cl = findauth(id);
     if(!cl) return;
     cl->authreq = 0;
+    logline(ACLOG_INFO, "player authenticated: %s", cl->name);
+    defformatstring(auth4u)("player authenticated: %s", cl->name);
+    sendf(-1, 1, "ris", SV_SERVMSG, auth4u);
     //setmaster(cl, true, "", ci->authname);//TODO? compare to sauerbraten
 }
 
@@ -2253,26 +2432,24 @@ void answerchallenge(client *cl, uint id, char *val)
 
 // :for AUTH
 
-void sendwhois(int sender, int cn)
+void sendiplist(int receiver, int cn)
 {
-    if( !valid_client(sender) ) return;
-    if ( cn == -1 && clients[sender]->role == CR_ADMIN )
+    if(!valid_client(receiver)) return;
+    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    putint(p, SV_IPLIST);
+    loopv(clients) if(valid_client(i) && clients[i]->type == ST_TCPIP && i != receiver
+        && (clients[i]->clientnum == cn || cn == -1))
     {
-        loopv(clients) if ( valid_client(i) && clients[i]->type == ST_TCPIP && i != sender ) sendwhois(sender, i);
-        return;
+        putint(p, i);
+        putint(p, isbigendian() ? endianswap(clients[i]->peer->address.host) : clients[i]->peer->address.host);
     }
-    if( !valid_client(cn) ) return;
-    if( clients[cn]->type == ST_TCPIP )
-    {
-        uint ip = clients[cn]->peer->address.host;
-        if(clients[sender]->role != CR_ADMIN) ip &= 0xFFFFFF; // only admin gets full IP
-        sendf(sender, 1, "ri3", SV_WHOISINFO, cn, ip);
-    }
+    putint(p, -1);
+    sendpacket(receiver, 1, p.finalize());
 }
 
 void sendresume(client &c, bool broadcast)
 {
-    sendf(broadcast ? -1 : c.clientnum, 1, "ri3i9vvi", SV_RESUME,
+    sendf(broadcast ? -1 : c.clientnum, 1, "ri3i9ivvi", SV_RESUME,
             c.clientnum,
             c.state.state,
             c.state.lifesequence,
@@ -2284,6 +2461,7 @@ void sendresume(client &c, bool broadcast)
             c.state.health,
             c.state.armour,
             c.state.points,
+            c.state.teamkills,
             NUMGUNS, c.state.ammo,
             NUMGUNS, c.state.mag,
             -1);
@@ -2317,6 +2495,9 @@ void putinitclient(client &c, packetbuf &p)
     putint(p, c.skin[TEAM_CLA]);
     putint(p, c.skin[TEAM_RVSF]);
     putint(p, c.team);
+    enet_uint32 ip = 0;
+    if(c.type == ST_TCPIP) ip = c.peer->address.host & 0xFFFFFF;
+    putint(p, isbigendian() ? endianswap(ip) : ip);
 }
 
 void sendinitclient(client &c)
@@ -2392,6 +2573,7 @@ void welcomepacket(packetbuf &p, int n)
             putint(p, c.state.health);
             putint(p, c.state.armour);
             putint(p, c.state.points);
+            putint(p, c.state.teamkills);
             loopi(NUMGUNS) putint(p, c.state.ammo[i]);
             loopi(NUMGUNS) putint(p, c.state.mag[i]);
         }
@@ -2436,7 +2618,7 @@ int checktype(int type, client *cl)
                         SV_SERVMSG, SV_ITEMLIST, SV_FLAGINFO, SV_FLAGMSG, SV_FLAGCNT,
                         SV_ARENAWIN, SV_SERVOPINFO,
                         SV_CALLVOTESUC, SV_CALLVOTEERR, SV_VOTERESULT,
-                        SV_SETTEAM, SV_TEAMDENY, SV_SERVERMODE, SV_WHOISINFO,
+                        SV_SETTEAM, SV_TEAMDENY, SV_SERVERMODE, SV_IPLIST,
                         SV_SENDDEMOLIST, SV_SENDDEMO, SV_DEMOPLAYBACK,
                         SV_CLIENT, SV_HUDEXTRAS, SV_POINTS };
     // only allow edit messages in coop-edit mode
@@ -2483,7 +2665,8 @@ void process(ENetPacket *packet, int sender, int chan)
             int wantrole = getint(p);
             cl->state.nextprimary = getint(p);
             loopi(2) cl->skin[i] = getint(p);
-            bool banned = isbanned(sender);
+            int bantype = getbantype(sender);
+            bool banned = bantype > BAN_NONE;
             bool srvfull = numnonlocalclients() > scl.maxclients;
             bool srvprivate = mastermode == MM_PRIVATE || mastermode == MM_MATCH;
             bool matchreconnect = mastermode == MM_MATCH && findscore(*cl, false);
@@ -2505,11 +2688,11 @@ void process(ENetPacket *packet, int sender, int chan)
                 logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d%s", cl->hostname, cl->name, bl, tags);
                 disconnect_client(sender, DISC_BADNICK);
             }
-            else if(passwords.check(cl->name, cl->pwd, cl->salt, &pd, (cl->type==ST_TCPIP ? cl->peer->address.host : 0)) && (!pd.denyadmin || (banned && !srvfull && !srvprivate))) // pass admins always through
+            else if(passwords.check(cl->name, cl->pwd, cl->salt, &pd, (cl->type==ST_TCPIP ? cl->peer->address.host : 0)) && (!pd.denyadmin || (banned && !srvfull && !srvprivate)) && bantype != BAN_MASTER) // pass admins always through
             { // admin (or deban) password match
                 cl->isauthed = true;
                 if(!pd.denyadmin && wantrole == CR_ADMIN) clientrole = CR_ADMIN;
-                if(banned)
+                if(bantype == BAN_VOTE)
                 {
                     loopv(bans) if(bans[i].address.host == cl->peer->address.host) { bans.remove(i); concatstring(tags, ", ban removed"); break; } // remove admin bans
                 }
@@ -2559,6 +2742,13 @@ void process(ENetPacket *packet, int sender, int chan)
         sendinitclient(*cl);
         if(clientrole != CR_DEFAULT) changeclientrole(sender, clientrole, NULL, true);
         if( curvote && curvote->result == VOTE_NEUTRAL ) callvotepacket (cl->clientnum);
+
+        // send full IPs to admins
+        loopv(clients)
+        {
+            if(clients[i] && clients[i]->clientnum != cl->clientnum && (clients[i]->role == CR_ADMIN || clients[i]->type == ST_LOCAL))
+                sendiplist(clients[i]->clientnum, cl->clientnum);
+        }
     }
 
     if(!cl) { logline(ACLOG_ERROR, "<NULL> client in process()"); return; }  // should never happen anyway
@@ -2601,7 +2791,7 @@ void process(ENetPacket *packet, int sender, int chan)
         else protocoldebug(false);
         #endif
 
-        checkmessage(cl,type);
+        type = checkmessage(cl,type);
         switch(type)
         {
             case SV_TEAMTEXTME:
@@ -2623,12 +2813,12 @@ void process(ENetPacket *packet, int sender, int chan)
                                 cl->name, team_string(cl->team), text, canspeech ? "SPAM detected" : "Forbidden speech");
                         if (canspeech)
                         {
-                            sendservmsg("\f3please do not spam", sender);
+                            sendservmsg("\f3Please do not spam; your message was not delivered.", sender);
                             if ( cl->spamcount > SPAMMAXREPEAT + 2 ) disconnect_client(cl->clientnum, DISC_ABUSE);
                         }
                         else
                         {
-                            sendservmsg("\f3watch your language!", sender);
+                            sendservmsg("\f3Watch your language! Your message was not delivered.", sender);
                             kick_abuser(cl->clientnum, cl->badmillis, cl->badspeech, 3);
                         }
                     }
@@ -2665,18 +2855,55 @@ void process(ENetPacket *packet, int sender, int chan)
                                 cl->name, text, canspeech ? "SPAM detected" : "Forbidden speech");
                         if (canspeech)
                         {
-                            sendservmsg("\f3please do not spam", sender);
+                            sendservmsg("\f3Please do not spam; your message was not delivered.", sender);
                             if ( cl->spamcount > SPAMMAXREPEAT + 2 ) disconnect_client(cl->clientnum, DISC_ABUSE);
                         }
                         else
                         {
-                            sendservmsg("\f3watch your language!", sender);
+                            sendservmsg("\f3Watch your language! Your message was not delivered.", sender);
                             kick_abuser(cl->clientnum, cl->badmillis, cl->badspeech, 3);
                         }
                     }
                 }
                 break;
             }
+
+            case SV_TEXTPRIVATE:
+            {
+                int targ = getint(p);
+                getstring(text, p);
+                filtertext(text, text);
+                trimtrailingwhitespace(text);
+
+                if(!valid_client(targ)) break;
+                client *target = clients[targ];
+
+                if(*text)
+                {
+                    bool canspeech = forbiddenlist.canspeech(text);
+                    if(!spamdetect(cl, text) && canspeech)
+                    {
+                        bool allowed = !(mastermode == MM_MATCH && cl->team != target->team) && cl->role >= roleconf('t');
+                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s' (%s)", cl->hostname, cl->name, target->name, text, allowed ? "allowed":"disallowed");
+                        if(allowed) sendf(target->clientnum, 1, "riis", SV_TEXTPRIVATE, cl->clientnum, text);
+                    }
+                    else
+                    {
+                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s', %s", cl->hostname, cl->name, target->name, text, canspeech ? "SPAM detected" : "Forbidden speech");
+                        if (canspeech)
+                        {
+                            sendservmsg("\f3Please do not spam; your message was not delivered.", sender);
+                            if ( cl->spamcount > SPAMMAXREPEAT + 2 ) disconnect_client(cl->clientnum, DISC_ABUSE);
+                        }
+                        else
+                        {
+                            sendservmsg("\f3Watch your language! Your message was not delivered.", sender);
+                            kick_abuser(cl->clientnum, cl->badmillis, cl->badspeech, 3);
+                        }
+                    }
+                }
+            }
+            break;
 
             case SV_VOICECOM:
             case SV_VOICECOMTEAM:
@@ -2696,7 +2923,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     else sendvoicecomteam(s, sender);
                 }
             }
-                break;
+            break;
 
             case SV_MAPIDENT:
             {
@@ -2778,6 +3005,16 @@ void process(ENetPacket *packet, int sender, int chan)
                 copystring(cl->name, text, MAXNAMELEN+1);
                 if(namechanged)
                 {
+                    // very simple spam detection (possible FIXME: centralize spam detection)
+                    if(servmillis - cl->lastprofileupdate < 1000)
+                    {
+                        ++cl->fastprofileupdates;
+                        if(cl->fastprofileupdates == 3) sendservmsg("\f3Please do not spam");
+                        if(cl->fastprofileupdates >= 5) { disconnect_client(sender, DISC_ABUSE); break; }
+                    }
+                    else if(servmillis - cl->lastprofileupdate > 10000) cl->fastprofileupdates = 0;
+                    cl->lastprofileupdate = servmillis;
+
                     switch(nickblacklist.checkwhitelist(*cl))
                     {
                         case NWL_PWDFAIL:
@@ -2812,6 +3049,15 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 loopi(2) cl->skin[i] = getint(p);
                 QUEUE_MSG;
+
+                if(servmillis - cl->lastprofileupdate < 1000)
+                {
+                    ++cl->fastprofileupdates;
+                    if(cl->fastprofileupdates == 3) sendservmsg("\f3Please do not spam");
+                    if(cl->fastprofileupdates >= 5) disconnect_client(sender, DISC_ABUSE);
+                }
+                else if(servmillis - cl->lastprofileupdate > 10000) cl->fastprofileupdates = 0;
+                cl->lastprofileupdate = servmillis;
                 break;
             }
 
@@ -2826,6 +3072,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 if( !m_arena && sp < SP_OK_NUM && gamemillis > cl->state.lastspawn + 1000 ) sendspawn(cl);
                 break;
             }
+
             case SV_SPAWN:
             {
                 int ls = getint(p), gunselect = getint(p);
@@ -2848,11 +3095,6 @@ void process(ENetPacket *packet, int sender, int chan)
                 });
                 break;
             }
-            case SV_SPECTCN:
-                cl->spectcn = getint(p);
-//                 logline(ACLOG_DEBUG, "[%s] %s is now spectating cn %d", cl->hostname, cl->name, cl->spectcn); // FIXME: comment out later
-                QUEUE_MSG;
-                break;
 
             case SV_SUICIDE:
             {
@@ -3070,8 +3312,8 @@ void process(ENetPacket *packet, int sender, int chan)
                 }
                 else if( scl.incoming_limit && ( scl.incoming_limit << 20 ) < incoming_size + mapsize + cfgsizegz )
                 {
-                    reject = "server incoming achieved its limits";
-                    sendservmsg("\f3server does not support more incomings: limit achieved", sender);
+                    reject = "server incoming reached its limits";
+                    sendservmsg("\f3server does not support more incomings: limit reached", sender);
                 }
                 else if(mp == MAP_NOTFOUND && strchr(scl.mapperm, 'C') && cl->role < CR_ADMIN)
                 {
@@ -3171,8 +3413,11 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_SETADMIN:
             {
                 bool claim = getint(p) != 0;
-                getstring(text, p);
-                changeclientrole(sender, claim ? CR_ADMIN : CR_DEFAULT, text);
+                if(claim)
+                {
+                    getstring(text, p);
+                    changeclientrole(sender, CR_ADMIN, text);
+                } else changeclientrole(sender, CR_DEFAULT);
                 break;
             }
 
@@ -3187,7 +3432,9 @@ void process(ENetPacket *packet, int sender, int chan)
                     {
                         getstring(text, p);
                         filtertext(text, text);
-                        int mode = getint(p);
+                        int mode = getint(p), time = getint(p);
+                        if(time <= 0) time = -1;
+                        time = min(time, 60);
                         vi->gonext = text[0]=='+' && text[1]=='1';
                         if (vi->gonext)
                         {
@@ -3196,37 +3443,44 @@ void process(ENetPacket *packet, int sender, int chan)
                             if(c)
                             {
                                 strcpy(vi->text,c->mapname);
-                                mode = vi->num = c->mode;
+                                mode = vi->num1 = c->mode;
                             }
                             else fatal("unable to get next map in maprot");
                         }
                         else
                         {
                             strncpy(vi->text,text,MAXTRANS-1);
-                            vi->num = mode;
+                            vi->num1 = mode;
+                            vi->num2 = time;
                         }
                         int qmode = (mode >= GMODE_NUM ? mode - GMODE_NUM : mode);
                         if(mode==GMODE_DEMO) vi->action = new demoplayaction(newstring(text));
-                        else vi->action = new mapaction(newstring(vi->text), qmode, sender, qmode!=mode);
+                        else
+                        {
+                            char *vmap = newstring(vi->text ? behindpath(vi->text) : "");
+                            vi->action = new mapaction(vmap, qmode, time, sender, qmode!=mode);
+                        }
                         break;
                     }
                     case SA_KICK:
                     {
-                        vi->num = cn2boot = getint(p);
+                        vi->num1 = cn2boot = getint(p);
                         getstring(text, p);
-                        strncpy(vi->text,text,MAXTRANS-1);
+                        strncpy(vi->text,text,128);
                         filtertext(text, text);
-                        vi->action = new kickaction(cn2boot, newstring(text));
+                        trimtrailingwhitespace(text);
+                        vi->action = new kickaction(cn2boot, newstring(text, 128));
                         vi->boot = 1;
                         break;
                     }
                     case SA_BAN:
                     {
-                        vi->num = cn2boot = getint(p);
+                        vi->num1 = cn2boot = getint(p);
                         getstring(text, p);
-                        strncpy(vi->text,text,MAXTRANS-1);
+                        strncpy(vi->text,text,128);
                         filtertext(text, text);
-                        vi->action = new banaction(cn2boot, newstring(text));
+                        trimtrailingwhitespace(text);
+                        vi->action = new banaction(cn2boot, newstring(text, 128));
                         vi->boot = 2;
                         break;
                     }
@@ -3234,28 +3488,30 @@ void process(ENetPacket *packet, int sender, int chan)
                         vi->action = new removebansaction();
                         break;
                     case SA_MASTERMODE:
-                        vi->action = new mastermodeaction(vi->num = getint(p));
+                        vi->action = new mastermodeaction(vi->num1 = getint(p));
                         break;
                     case SA_AUTOTEAM:
-                        vi->action = new autoteamaction((vi->num = getint(p)) > 0);
+                        vi->action = new autoteamaction((vi->num1 = getint(p)) > 0);
                         break;
                     case SA_SHUFFLETEAMS:
                         vi->action = new shuffleteamaction();
                         break;
                     case SA_FORCETEAM:
-                        vi->action = new forceteamaction((vi->num = getint(p)), sender);
+                        vi->num1 = getint(p);
+                        vi->num2 = getint(p);
+                        vi->action = new forceteamaction(vi->num1, sender, vi->num2);
                         break;
                     case SA_GIVEADMIN:
-                        vi->action = new giveadminaction(vi->num = getint(p));
+                        vi->action = new giveadminaction(vi->num1 = getint(p));
                         break;
                     case SA_RECORDDEMO:
-                        vi->action = new recorddemoaction((vi->num = getint(p))!=0);
+                        vi->action = new recorddemoaction((vi->num1 = getint(p))!=0);
                         break;
                     case SA_STOPDEMO:
-                        vi->action = new stopdemoaction();
+                        // compatibility
                         break;
                     case SA_CLEARDEMOS:
-                        vi->action = new cleardemosaction(vi->num = getint(p));
+                        vi->action = new cleardemosaction(vi->num1 = getint(p));
                         break;
                     case SA_SERVERDESC:
                         getstring(text, p);
@@ -3278,12 +3534,6 @@ void process(ENetPacket *packet, int sender, int chan)
                 ++msg->referenceCount; // need to increase reference count in case a vote disconnects a player after packet is queued to prevent double-freeing by packetbuf
                 svote(sender, n, msg);
                 --msg->referenceCount;
-                break;
-            }
-
-            case SV_WHOIS:
-            {
-                sendwhois(sender, getint(p));
                 break;
             }
 
@@ -3311,7 +3561,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 getstring(text, p, 64);
                 char *ext = text;   // extension specifier in the form of OWNER::EXTENSION, see sample below
                 int n = getint(p);  // length of data after the specifier
-                if(n > 50) return;
+                if(n < 0 || n > 50) return;
 
                 // sample
                 if(!strcmp(ext, "driAn::writelog"))
@@ -3321,7 +3571,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     // description: writes a custom string to the server log
                     // access:      requires admin privileges
                     // usage:       /serverextension driAn::writelog "your log message here.."
-                    // note:	    There is a 49 character limit. The server will ignore messages with 50+ characters.
+                    // note:        There is a 49 character limit. The server will ignore messages with 50+ characters.
 
                     getstring(text, p, n);
                     if(valid_client(sender) && clients[sender]->role==CR_ADMIN)
@@ -3436,6 +3686,7 @@ void rereadcfgs(void)
     nickblacklist.read();
     forbiddenlist.read();
     passwords.read();
+    killmsgs.read();
 }
 
 void loggamestatus(const char *reason)
@@ -3446,6 +3697,7 @@ void loggamestatus(const char *reason)
     logline(ACLOG_INFO, "");
     logline(ACLOG_INFO, "Game status: %s on %s, %s, %s, %d clients%c %s",
                       modestr(gamemode), smapname, reason ? reason : text, mmfullname(mastermode), totalclients, custom_servdesc ? ',' : '\0', servdesc_current);
+    if(!scl.loggamestatus) return;
     logline(ACLOG_INFO, "cn name             %s%s score frag death %sping role    host", m_teammode ? "team " : "", m_flags ? "flag " : "", m_teammode ? "tk " : "");
     loopv(clients)
     {
@@ -3570,7 +3822,14 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     servertime = ((diff + 3 * servertime)>>2);
     if (servertime > 40) serverlagged = servmillis;
 
-    if(m_demo) readdemo();
+#ifndef STANDALONE
+    if(m_demo)
+    {
+        readdemo();
+        extern void silenttimeupdate(int milliscur, int millismax);
+        silenttimeupdate(gamemillis, gametimemaximum);
+    }
+#endif
 
     if(minremain>0)
     {
@@ -3674,7 +3933,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                 c.peer->data = (void *)(size_t)c.clientnum;
                 c.connectmillis = servmillis;
                 c.state.state = CS_SPECTATE;
-                c.salt = rand()*((servmillis%1000)+1);
+                c.salt = rnd(0x1000000)*((servmillis%1000)+1);
                 char hn[1024];
                 copystring(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
                 logline(ACLOG_INFO,"[%s] client connected", c.hostname);
@@ -3799,6 +4058,7 @@ void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENet
         putint(p,clients[i]->ping);             //Ping
         sendstring(clients[i]->name,p);         //Name
         sendstring(team_string(clients[i]->team),p); //Team
+        // "team_string(clients[i]->team)" sometimes return NULL according to RK, causing the server to crash. WTF ?
         putint(p,clients[i]->state.frags);      //Frags
         putint(p,clients[i]->state.flagscore);  //Flagscore
         putint(p,clients[i]->state.deaths);     //Death
@@ -3878,6 +4138,12 @@ void processmasterinput(const char *cmd, int cmdlen, const char *args)
 
 string server_name = "unarmed server";
 
+void quitproc(int param)
+{
+    // this triggers any "atexit"-calls:
+    exit(param == 2 ? EXIT_SUCCESS : EXIT_FAILURE); // 3 is the only reply on Win32 apparently, SIGINT == 2 == Ctrl-C
+}
+
 void initserver(bool dedicated, int argc, char **argv)
 {
     const char *service = NULL;
@@ -3891,7 +4157,7 @@ void initserver(bool dedicated, int argc, char **argv)
             {
                 case '-': break;
                 case 'S': service = a; break;
-                default: break; /*printf("WARNING: unknown commandline option\n");*/ // less warnings
+                default: break; /*printf("WARNING: unknown commandline option\n");*/ // less warnings - 2011feb05:ft: who disabled this - I think this should be on - more warnings == more clarity
             }
             else if (strncmp(argv[i], "assaultcube://", 13)) printf("WARNING: unknown commandline argument\n");
         }
@@ -3912,7 +4178,6 @@ void initserver(bool dedicated, int argc, char **argv)
     if ( strlen(scl.servdesc_full) ) global_name = scl.servdesc_full;
     else global_name = server_name;
 
-    srand(time(NULL));
     smapname[0] = '\0';
 
     string identity;
@@ -3928,7 +4193,7 @@ void initserver(bool dedicated, int argc, char **argv)
 
     if((isdedicated = dedicated))
     {
-        ENetAddress address = { ENET_HOST_ANY, scl.serverport };
+        ENetAddress address = { ENET_HOST_ANY, (enet_uint16)scl.serverport };
         if(scl.ip[0] && enet_address_set_host(&address, scl.ip)<0) logline(ACLOG_WARNING, "server ip not resolved!");
         serverhost = enet_host_create(&address, scl.maxclients+1, 3, 0, scl.uprate);
         if(!serverhost) fatal("could not create server host");
@@ -3940,6 +4205,7 @@ void initserver(bool dedicated, int argc, char **argv)
         ipblacklist.init(scl.blfile);
         nickblacklist.init(scl.nbfile);
         forbiddenlist.init(scl.forbidden);
+        killmsgs.init(scl.killmessages);
         infofiles.init(scl.infopath, scl.motdpath);
         infofiles.getinfo("en"); // cache 'en' serverinfo
         logline(ACLOG_VERBOSE, "holding up to %d recorded demos in memory", scl.maxdemos);
@@ -3951,6 +4217,11 @@ void initserver(bool dedicated, int argc, char **argv)
         logline(ACLOG_VERBOSE,"maxclients: %d, kick threshold: %d, ban threshold: %d", scl.maxclients, scl.kickthreshold, scl.banthreshold);
         if(scl.master) logline(ACLOG_VERBOSE,"master server URL: \"%s\"", scl.master);
         if(scl.serverpassword[0]) logline(ACLOG_VERBOSE,"server password: \"%s\"", hiddenpwd(scl.serverpassword));
+#ifdef ACAC
+        logline(ACLOG_INFO, "anticheat: enabled");
+#else
+        logline(ACLOG_INFO, "anticheat: disabled");
+#endif
     }
 
     resetserverifempty();
@@ -3960,8 +4231,18 @@ void initserver(bool dedicated, int argc, char **argv)
         #ifdef WIN32
         SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
         #endif
+        // kill -2 / Ctrl-C - see http://msdn.microsoft.com/en-us/library/xdkz3x12%28v=VS.100%29.aspx (or VS-2008?) for caveat (seems not to pertain to AC - 2011feb05:ft)
+        if (signal(SIGINT, quitproc) == SIG_ERR) logline(ACLOG_INFO, "Cannot handle SIGINT!");
+        // kill -15 / probably process-manager on Win32 *shrug*
+        if (signal(SIGTERM, quitproc) == SIG_ERR) logline(ACLOG_INFO, "Cannot handle SIGTERM!");
+        #ifndef WIN32
+        // kill -1
+        if (signal(SIGHUP, quitproc) == SIG_ERR) logline(ACLOG_INFO, "Cannot handle SIGHUP!");
+        // kill -9 is uncatchable - http://en.wikipedia.org/wiki/SIGKILL
+        //if (signal(SIGKILL, quitproc) == SIG_ERR) logline(ACLOG_INFO, "Cannot handle SIGKILL!");
+        #endif
         logline(ACLOG_INFO, "dedicated server started, waiting for clients...");
-        logline(ACLOG_INFO, "Ctrl-C to exit");
+        logline(ACLOG_INFO, "Ctrl-C to exit"); // this will now actually call the atexit-hooks below - thanks to SIGINT hooked above - noticed and signal-code-docs found by SKB:2011feb05:ft:
         atexit(enet_deinitialize);
         atexit(cleanupserver);
         enet_time_set(0);
@@ -3971,7 +4252,7 @@ void initserver(bool dedicated, int argc, char **argv)
 
 #ifdef STANDALONE
 
-void localservertoclient(int chan, uchar *buf, int len) {}
+void localservertoclient(int chan, uchar *buf, int len, bool demo) {}
 void fatal(const char *s, ...)
 {
     defvformatstring(msg,s,s);

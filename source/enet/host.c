@@ -38,6 +38,7 @@ enet_host_create (const ENetAddress * address, size_t peerCount, size_t channelL
     host = (ENetHost *) enet_malloc (sizeof (ENetHost));
     if (host == NULL)
       return NULL;
+    memset (host, 0, sizeof (ENetHost));
 
     host -> peers = (ENetPeer *) enet_malloc (peerCount * sizeof (ENetPeer));
     if (host -> peers == NULL)
@@ -74,7 +75,12 @@ enet_host_create (const ENetAddress * address, size_t peerCount, size_t channelL
     if (channelLimit < ENET_PROTOCOL_MINIMUM_CHANNEL_COUNT)
       channelLimit = ENET_PROTOCOL_MINIMUM_CHANNEL_COUNT;
 
-    host -> randomSeed = (enet_uint32) time(NULL) + (enet_uint32) (size_t) host;
+    host -> randomSeed = (enet_uint32) (size_t) host;
+#ifdef WIN32
+    host -> randomSeed += (enet_uint32) timeGetTime();
+#else
+    host -> randomSeed += (enet_uint32) time(NULL);
+#endif
     host -> randomSeed = (host -> randomSeed << 16) | (host -> randomSeed >> 16);
     host -> channelLimit = channelLimit;
     host -> incomingBandwidth = incomingBandwidth;
@@ -100,6 +106,8 @@ enet_host_create (const ENetAddress * address, size_t peerCount, size_t channelL
     host -> compressor.compress = NULL;
     host -> compressor.decompress = NULL;
     host -> compressor.destroy = NULL;
+
+    host -> intercept = NULL;
 
     enet_list_clear (& host -> dispatchQueue);
 
@@ -132,6 +140,9 @@ void
 enet_host_destroy (ENetHost * host)
 {
     ENetPeer * currentPeer;
+
+    if (host == NULL)
+      return;
 
     enet_socket_destroy (host -> socket);
 
@@ -210,6 +221,7 @@ enet_host_connect (ENetHost * host, const ENetAddress * address, size_t channelC
         channel -> outgoingReliableSequenceNumber = 0;
         channel -> outgoingUnreliableSequenceNumber = 0;
         channel -> incomingReliableSequenceNumber = 0;
+        channel -> incomingUnreliableSequenceNumber = 0;
 
         enet_list_clear (& channel -> incomingReliableCommands);
         enet_list_clear (& channel -> incomingUnreliableCommands);

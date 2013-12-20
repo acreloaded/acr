@@ -3,13 +3,16 @@
 #include "cube.h"
 
 int VIRTW;
-
+bool ignoreblinkingbit = false; // for remote-n-temp override of '\fb'
 static hashtable<const char *, font> fonts;
 static font *fontdef = NULL;
 
 font *curfont = NULL;
 
-void newfont(char *name, char *tex, char *defaultw, char *defaulth, char *offsetx, char *offsety, char *offsetw, char *offseth)
+VARP(allowblinkingtext, 0, 0, 1); // if you're so inclined
+VARP(__fontsetting, 0, 0, 2);
+
+void newfont(char *name, char *tex, int *defaultw, int *defaulth, int *offsetx, int *offsety, int *offsetw, int *offseth)
 {
     font *f = fonts.access(name);
     if(!f)
@@ -21,12 +24,12 @@ void newfont(char *name, char *tex, char *defaultw, char *defaulth, char *offset
 
     f->tex = textureload(tex);
     f->chars.shrink(0);
-    f->defaultw = ATOI(defaultw);
-    f->defaulth = ATOI(defaulth);
-    f->offsetx = ATOI(offsetx);
-    f->offsety = ATOI(offsety);
-    f->offsetw = ATOI(offsetw);
-    f->offseth = ATOI(offseth);
+    f->defaultw = *defaultw;
+    f->defaulth = *defaulth;
+    f->offsetx = *offsetx;
+    f->offsety = *offsety;
+    f->offsetw = *offsetw;
+    f->offseth = *offseth;
     f->skip = 33;
 
     fontdef = f;
@@ -34,27 +37,27 @@ void newfont(char *name, char *tex, char *defaultw, char *defaulth, char *offset
 
 extern GLenum texformat(int bpp);
 
-void fontchar(int x, int y, int w, int h)
+void fontchar(int *x, int *y, int *w, int *h)
 {
     if(!fontdef) return;
 
     font::charinfo &c = fontdef->chars.add();
-    c.x = x;
-    c.y = y;
-    c.w = w ? w : fontdef->defaultw;
-    c.h = h ? h : fontdef->defaulth;
+    c.x = *x;
+    c.y = *y;
+    c.w = *w ? *w : fontdef->defaultw;
+    c.h = *h ? *h : fontdef->defaulth;
 }
 
-void fontskip(int n)
+void fontskip(int *n)
 {
     if(!fontdef) return;
 
-    fontdef->skip = n;
+    fontdef->skip = *n;
 }
 
-COMMANDN(font, newfont, ARG_8STR);
-COMMAND(fontchar, ARG_4INT);
-COMMAND(fontskip, ARG_1INT);
+COMMANDN(font, newfont, "ssiiiiii");
+COMMAND(fontchar, "iiii");
+COMMAND(fontskip, "i");
 
 string myfont = "default";
 void newsetfont(const char *name)
@@ -66,10 +69,18 @@ bool setfont(const char *name)
 {
     font *f = fonts.access(name);
     if(!f) return false;
+    int v = -1;
+    if(strcmp(name, "default")==0)
+        v = 0;
+    else if(strcmp(name, "serif")==0)
+        v = 1;
+    else if(strcmp(name, "mono")==0)
+        v = 2;
+    if(v!=-1) __fontsetting = v;
     curfont = f;
     return true;
 }
-COMMANDN(setfont, newsetfont, ARG_1STR);
+COMMANDN(setfont, newsetfont, "s");
 
 font *getfont(const char *name)
 {
@@ -122,7 +133,7 @@ extern int shdsize, outline, win32msg;
 // ringbuf for utf8 character storage
 struct charringbuf : ringbuf<font::utf8charinfo, 32>
 {
-	// find by character code
+    // find by character code
     int findbycharcode(int code)
     {
         loopi(len)
@@ -188,7 +199,7 @@ void createutf8charset()
 
             SDL_Surface *fontsurface = TTF_RenderUTF8_Blended(ttffont, u, color);
 
-			// update row/column info
+            // update row/column info
             if(posx + fontsurface->w > charsetsurface->w)
             {
                 posx = 0;
@@ -197,11 +208,11 @@ void createutf8charset()
             if(posy + fontsurface->h > charsetsurface->h)
                 break;
 
-			// blit onto charset
+            // blit onto charset
             SDL_SetAlpha(fontsurface, 0, 0);
             blitsurface(charsetsurface, fontsurface, posx, posy);
 
-			// update charinfo properties
+            // update charinfo properties
             charinfo.x = posx;
             charinfo.y = posy;
             charinfo.w = fontsurface->w;
@@ -213,8 +224,8 @@ void createutf8charset()
 
         utf8font.tex = createtexturefromsurface("utf8charset", charsetsurface);
 
-		//extern void savepng(SDL_Surface *s, const char *name);
-		//savepng(t, "font.png");
+        //extern void savepng(SDL_Surface *s, const char *name);
+        //savepng(t, "font.png");
 
         SDL_FreeSurface(charsetsurface);
     }
@@ -222,33 +233,33 @@ void createutf8charset()
 
 void addutf8char(int code)
 {
-	// add to buf
-	font::utf8charinfo charinfo;
-	charinfo.code = code;
+    // add to buf
+    font::utf8charinfo charinfo;
+    charinfo.code = code;
     charinfo.x = charinfo.y = charinfo.w = charinfo.h = 0;
-	utf8chars.add(charinfo);
+    utf8chars.add(charinfo);
 
-	// update charset
-	createutf8charset();
+    // update charset
+    createutf8charset();
 }
 
 font::charinfo *loadchar(int code)
 {
-	int idx = utf8chars.findbycharcode(code);
-	if(idx >= 0)
-		return &utf8chars[idx];
+    int idx = utf8chars.findbycharcode(code);
+    if(idx >= 0)
+        return &utf8chars[idx];
 
-	// add
-	addutf8char(code);
+    // add
+    addutf8char(code);
 
-	idx = utf8chars.findbycharcode(code);
-	return &utf8chars[idx];
+    idx = utf8chars.findbycharcode(code);
+    return &utf8chars[idx];
 }
 */
 int draw_char(font &f, font::charinfo &info, int charcode, int x, int y)
 {
 /*
-	// fixme
+    // fixme
     glEnd();
     glBindTexture(GL_TEXTURE_2D, f.tex->id);
     glBegin(GL_QUADS);
@@ -271,38 +282,38 @@ int draw_char(font &f, font::charinfo &info, int charcode, int x, int y)
 // fixme
 font::charinfo &getcharinfo(int c)
 {
-	if(curfont->chars.inrange(c-curfont->skip))
-	{
-		font::charinfo &info = curfont->chars[c-curfont->skip];
-		return info;
-	}
-	//else { font::charinfo &info = *loadchar(c); return info; }
-	//return NULL;
-	font::charinfo &info = curfont->chars[0]; // 0 || (FONTCHARS-1)
+    if(curfont->chars.inrange(c-curfont->skip))
+    {
+        font::charinfo &info = curfont->chars[c-curfont->skip];
+        return info;
+    }
+    //else { font::charinfo &info = *loadchar(c); return info; }
+    //return NULL;
+    font::charinfo &info = curfont->chars[0]; // 0 || (FONTCHARS-1)
     return info;
 }
 */
 
 static int draw_char(int c, int x, int y)
 {
-	if(curfont->chars.inrange(c-curfont->skip))
-	{
-		font::charinfo &info = curfont->chars[c-curfont->skip];
+    if(curfont->chars.inrange(c-curfont->skip))
+    {
+        font::charinfo &info = curfont->chars[c-curfont->skip];
 
-		return draw_char(*curfont, info, c, x, y);
-	}
-	/*
-	else
-	{
-		// fixme
-		glEnd();
-		font::charinfo &info = *loadchar(c);
-		glBegin(GL_QUADS);
+        return draw_char(*curfont, info, c, x, y);
+    }
+    /*
+    else
+    {
+        // fixme
+        glEnd();
+        font::charinfo &info = *loadchar(c);
+        glBegin(GL_QUADS);
 
-		return draw_char(utf8font, info, c, x, y);
-	}
-	*/
-	return 0;
+        return draw_char(utf8font, info, c, x, y);
+    }
+    */
+    return 0;
 }
 
 
@@ -317,13 +328,13 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color, int a
     else
     {
         if(c=='r') c = stack[(sp > 0) ? --sp : sp]; // restore color
-        else if(c == 'b') stack[sp] *= -1;
+        else if(c == 'b') { if(allowblinkingtext && !ignoreblinkingbit) stack[sp] *= -1; } // blinking text - only if allowed
         else stack[sp] = c;
         switch(abs(stack[sp]))
         {
             case '0': color = bvec( 2,  255,  128 ); break;   // green: player talk
             case '1': color = bvec( 96,  160, 255 ); break;   // blue: team chat
-            case '2': color = bvec( 230, 230,  20 ); break;   // yellow: gameplay action messages, only actions done by players
+            case '2': color = bvec( 255, 192,  64 ); break;   // yellow: gameplay action messages, only actions done by players - 230 230 20 too bright
             case '3': color = bvec( 255,  64,  64 ); break;   // red: important errors and notes
             case '4': color = bvec( 128, 128, 128 ); break;   // gray
             case '5': color = bvec( 255, 255, 255 ); break;   // white
@@ -721,7 +732,7 @@ void draw_text_wip(const char *str, int left, int top, int r, int g, int b, int 
 */
 void reloadfonts()
 {
-	//createutf8charset();
+    //createutf8charset();
 
     enumerate(fonts, font, f,
         if(!reloadtexture(*f.tex)) fatal("failed to reload font texture");

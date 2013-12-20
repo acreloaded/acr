@@ -106,9 +106,11 @@ struct bot_skill_s
                                   // enemy again
      float flMaxEnemySearchDelay; // Maximal delay for when a bot can search for an
                                   // enemy again
+     float flAlwaysDetectDistance;
      short sShootAtFeetWithRLPercent; // Percent that a bot shoot with a rocket
                                       // launcher at the enemy feet.
      int iMaxHearVolume; // Max volume that bot can hear
+     int iFov; // bots field of view
      bool bCanPredict; // Can this bot predict his enemy position?
      bool bCircleStrafe; // Can this bot circle strafe?
      bool bCanSearchItemsInCombat;
@@ -240,8 +242,12 @@ public:
      void ResetCurrentTask();
 
      // AI Functions
+     bool BotsAgainstHumans();
+     bool DetectEnemy(playerent *p);
      bool FindEnemy(void);
-	 void CheckReload(void);
+     void CheckReload(void);
+     void CheckWeaponSwitch(void); // 2011jan17:ft: fix non-shooting bots
+     void CheckScope(void);
      void ShootEnemy(void);
      bool CheckHunt(void);
      bool HuntEnemy(void);
@@ -249,6 +255,7 @@ public:
      void MainAI(void);
      bool CheckStuck(void);
      bool CheckJump(void);
+     bool CheckCrouch(void);
      bool CheckStrafe(void);
      void CheckFOV(void);
      bool IsVisible(const vec &o, bool CheckPlayers = false) { return ::IsVisible(m_pMyEnt->o, o,

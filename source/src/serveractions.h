@@ -3,7 +3,7 @@
 enum { EE_LOCAL_SERV = 1, EE_DED_SERV = 1<<1 }; // execution environment
 
 int roleconf(int key)
-{ // current defaults: "fGkBMasRCDEwX"
+{ // current defaults: "fkbMASRCDEPtw"
     if(strchr(scl.voteperm, tolower(key))) return CR_DEFAULT;
     if(strchr(scl.voteperm, toupper(key))) return CR_ADMIN;
     return (key) == tolower(key) ? CR_DEFAULT : CR_ADMIN;
@@ -36,12 +36,16 @@ void kick_abuser(int cn, int &cmillis, int &count, int limit)
 struct mapaction : serveraction
 {
     char *map;
-    int mode;
+    int mode, time;
     bool mapok, queue;
     void perform()
     {
-        if (queue) return;
-        if(isdedicated && numclients() > 2 && smode >= 0 && smode != 1 && ( gamemillis > gamelimit/4 || scl.demo_interm ))
+        if(queue)
+        {
+            nextgamemode = mode;
+            copystring(nextmapname, map);
+        }
+        else if(isdedicated && numclients() > 2 && smode >= 0 && smode != 1 && ( gamemillis > gamelimit/4 || scl.demo_interm ))
         {
             forceintermission = true;
             nextgamemode = mode;
@@ -49,23 +53,34 @@ struct mapaction : serveraction
         }
         else
         {
-            startgame(map, mode);
+            startgame(map, mode, time);
         }
     }
     bool isvalid() { return serveraction::isvalid() && mode != GMODE_DEMO && map[0] && mapok && !(isdedicated && !m_mp(mode)); }
     bool isdisabled() { return maprot.current() && !maprot.current()->vote; }
-    mapaction(char *map, int mode, int caller, bool q) : map(map), mode(mode), queue(q)
+    mapaction(char *map, int mode, int time, int caller, bool q) : map(map), mode(mode), time(time), queue(q)
     {
         if(isdedicated)
         {
             bool notify = valid_client(caller);
             int maploc = MAP_NOTFOUND;
             mapstats *ms = map[0] ? getservermapstats(map, false, &maploc) : NULL;
-            mapok = (ms != NULL) && ( (mode != GMODE_COOPEDIT && mapisok(ms)) || (mode == GMODE_COOPEDIT && !readonlymap(maploc)) );
+            bool validname = validmapname(map);
+            mapok = (ms != NULL) && validname && ( (mode != GMODE_COOPEDIT && mapisok(ms)) || (mode == GMODE_COOPEDIT && !readonlymap(maploc)) );
             if(!mapok)
             {
-                defformatstring(msg)("%s", ms ? ( mode == GMODE_COOPEDIT ? "this map cannot be coopedited in this server" : "sorry, but this map does not satisfy some quality requisites to be played in MultiPlayer Mode" ) : "the server does not have this map" );
-                if(notify) sendservmsg(msg, caller);
+                if(notify)
+                {
+                    if(!validname)
+                        sendservmsg("invalid map name", caller);
+                    else
+                    {
+                        sendservmsg(ms ?
+                            ( mode == GMODE_COOPEDIT ? "this map cannot be coopedited in this server" : "sorry, but this map does not satisfy some quality requisites to be played in MultiPlayer Mode" ) :
+                            "the server does not have this map",
+                            caller);
+                    }
+                }
             }
             else
             { // check, if map supports mode
@@ -95,10 +110,21 @@ struct mapaction : serveraction
             {
                 const char *s = scl.adminonlymaps[i], *h = strchr(s, '#'), *m = behindpath(map);
                 size_t sl = strlen(s);
-                if(h && h != s)
+                if(h)
                 {
-                    sl = h - s;
-                    if(mode != atoi(h + 1)) continue;
+                    if(h != s)
+                    {
+                        sl = h - s;
+                        if(mode != atoi(h + 1)) continue;
+                    }
+                    else
+                    {
+                        if(mode == atoi(h+1))
+                        {
+                            role = CR_ADMIN;
+                            break;
+                        }
+                    }
                 }
                 if(sl == strlen(m) && !strncmp(m, scl.adminonlymaps[i], sl)) role = CR_ADMIN;
             }
@@ -106,6 +132,7 @@ struct mapaction : serveraction
         else mapok = true;
         area |= EE_LOCAL_SERV; // local too
         formatstring(desc)("load map '%s' in mode '%s'", map, modestr(mode));
+        if(q) concatstring(desc, " (in the next game)");
     }
     ~mapaction() { DELETEA(map); }
 };
@@ -140,12 +167,13 @@ struct playeraction : serveraction
 
 struct forceteamaction : playeraction
 {
-    void perform() { updateclientteam(cn, team_opposite(clients[cn]->team), FTR_SILENTFORCE); }
-    virtual bool isvalid() { return m_teammode && valid_client(cn); }
-    forceteamaction(int cn, int caller) : playeraction(cn)
+    int team;
+    void perform() { updateclientteam(cn, team, FTR_SILENTFORCE); }
+    virtual bool isvalid() { return valid_client(cn) && team_isvalid(team) && team != clients[cn]->team; }
+    forceteamaction(int cn, int caller, int team) : playeraction(cn), team(team)
     {
         if(cn != caller) role = roleconf('f');
-        if(isvalid() && !(clients[cn]->state.forced && clients[caller]->role != CR_ADMIN)) formatstring(desc)("force player %s to the enemy team", clients[cn]->name);
+        if(isvalid() && !(clients[cn]->state.forced && clients[caller]->role != CR_ADMIN)) formatstring(desc)("force player %s to team %s", clients[cn]->name, teamnames[team]);
     }
 };
 
@@ -181,9 +209,8 @@ struct banaction : playeraction
     bool wasvalid;
     void perform()
     {
-        ban b = { address, servmillis+scl.ban_time };
-        bans.add(b);
-        disconnect(DISC_MBAN);
+        int i = findcnbyaddress(&address);
+        if(i >= 0) addban(clients[i], DISC_MBAN, BAN_VOTE);
     }
     virtual bool isvalid() { return wasvalid || playeraction::isvalid(); }
     banaction(int cn, char *reason) : playeraction(cn)
@@ -203,7 +230,7 @@ struct removebansaction : serveraction
     void perform() { bans.shrink(0); }
     removebansaction()
     {
-        role = roleconf('B');
+        role = roleconf('b');
         copystring(desc, "remove all bans");
     }
 };
@@ -264,21 +291,6 @@ struct recorddemoaction : enableaction            // TODO: remove completely
     {
         role = roleconf('R');
         if(isvalid()) formatstring(desc)("%s demorecord", enable ? "enable" : "disable");
-    }
-};
-
-struct stopdemoaction : serveraction
-{
-    bool isvalid() { return serveraction::isvalid() && m_demo; }
-    void perform()
-    {
-        if(m_demo) enddemoplayback();
-    }
-    stopdemoaction()
-    {
-        role = CR_ADMIN;
-        area |= EE_LOCAL_SERV;
-        copystring(desc, "stop demo playback");
     }
 };
 

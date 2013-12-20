@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="cube"
 	ProjectGUID="{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}"
 	RootNamespace="cube"
@@ -50,7 +50,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				AdditionalIncludeDirectories="..\include\vorbis;..\include\ogg;..\enet\include;..\include;..\src;..\include\al;..\include"
-				PreprocessorDefinitions="WIN32,NDEBUG,_CONSOLE"
+				PreprocessorDefinitions="WIN32,NDEBUG,_WINDOWS"
 				StringPooling="true"
 				MinimalRebuild="false"
 				ExceptionHandling="0"
@@ -68,7 +68,6 @@
 				ProgramDataBaseFileName=".\Release/"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
-				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="1"
 				CompileAs="0"
 			/>
@@ -85,7 +84,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="enet.lib ogg.lib libvorbisfile.lib openal32.lib efx-util.lib odbc32.lib odbccp32.lib zdll.lib opengl32.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib Dbghelp.lib jpeg.lib libintl.lib SDL_ttf.lib"
+				AdditionalDependencies="enet.lib ogg.lib libvorbisfile.lib openal32.lib efx-util.lib odbc32.lib odbccp32.lib zdll.lib opengl32.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib Dbghelp.lib jpeg.lib libintl.lib SDL_ttf.lib libcurl.lib wldap32.lib"
 				OutputFile="../../bin_win32/ac_client.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -97,10 +96,9 @@
 				GenerateMapFile="true"
 				MapFileName=".\Release/cube.map"
 				MapExports="true"
-				SubSystem="1"
+				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				OptimizeForWindows98="1"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 			/>
@@ -159,7 +157,7 @@
 				AdditionalOptions="/GS"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\include\vorbis;..\include\ogg;..\enet\include;..\include;..\src;..\include\al;..\include"
-				PreprocessorDefinitions="WIN32,_DEBUG,_CONSOLE,ENET_DEBUG"
+				PreprocessorDefinitions="WIN32,_DEBUG,_WINDOWS,ENET_DEBUG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				FloatingPointModel="2"
@@ -171,7 +169,6 @@
 				ProgramDataBaseFileName=".\Debug/"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
-				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="4"
 				CompileAs="0"
 				EnablePREfast="false"
@@ -189,7 +186,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="enet.lib ogg.lib libvorbisfile.lib openal32.lib zdll.lib opengl32.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib Dbghelp.lib jpeg.lib libintl.lib SDL_ttf.lib"
+				AdditionalDependencies="enet.lib ogg.lib libvorbisfile.lib openal32.lib zdll.lib opengl32.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib Dbghelp.lib jpeg.lib libintl.lib SDL_ttf.lib libcurl.lib wldap32.lib"
 				OutputFile="../../bin_win32/ac_client.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -198,7 +195,7 @@
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/ac_client.pdb"
-				SubSystem="1"
+				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 			/>
@@ -262,7 +259,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				AdditionalIncludeDirectories="..\include\vorbis;..\include\ogg;..\enet\include;..\include;..\src;..\include\al;..\include"
-				PreprocessorDefinitions="WIN32,NDEBUG,_CONSOLE,USE_ENET"
+				PreprocessorDefinitions="WIN32,NDEBUG,_WINDOWS,USE_ENET"
 				StringPooling="true"
 				MinimalRebuild="true"
 				ExceptionHandling="0"
@@ -280,7 +277,6 @@
 				BrowseInformation="1"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
-				Detect64BitPortabilityProblems="true"
 				CompileAs="0"
 			/>
 			<Tool
@@ -297,7 +293,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/PROFILE"
-				AdditionalDependencies="enet.lib ogg.lib libvorbisfile.lib openal32.lib zdll.lib opengl32.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib Dbghelp.lib libintl.lib jpeg.lib"
+				AdditionalDependencies="enet.lib ogg.lib libvorbisfile.lib openal32.lib zdll.lib opengl32.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib Dbghelp.lib libintl.lib jpeg.lib libcurl.lib wldap32.lib"
 				OutputFile="..\..\bin_win32\ac_client.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -308,8 +304,7 @@
 				GenerateMapFile="true"
 				MapFileName=".\Release/cube.map"
 				MapExports="true"
-				SubSystem="1"
-				OptimizeForWindows98="1"
+				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 			/>
@@ -384,7 +379,6 @@
 				PrecompiledHeaderFile=".\Standalone/cube.pch"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
-				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="1"
 				CompileAs="0"
 			/>
@@ -415,7 +409,6 @@
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				OptimizeForWindows98="1"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 			/>
@@ -480,7 +473,6 @@
 				PrecompiledHeaderFile=".\Standalone-Debug/cube.pch"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
-				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="4"
 				CompileAs="0"
 			/>
@@ -634,7 +626,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\server.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\serveractions.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\serverchecks.h"
 				>
 			</File>
 			<File
@@ -659,6 +659,26 @@
 			</File>
 			<File
 				RelativePath="..\src\tristrip.h"
+				>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\src\varray.h"
 				>
 				<FileConfiguration
 					Name="Standalone|Win32"
@@ -1362,10 +1382,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\crypto_tools.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\cube.rc"
 				>
 			</File>
@@ -1499,52 +1515,6 @@
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="0"
 						PrecompiledHeaderThrough="cube.h"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\SDL_win32_main.c"
-				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Profile|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Standalone|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Standalone Debug|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
 					/>
 				</FileConfiguration>
 			</File>

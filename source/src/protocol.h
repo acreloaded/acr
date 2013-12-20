@@ -5,7 +5,7 @@
 #define CUBE_SERVINFO_PORT_LAN 28762
 #define CUBE_SERVINFO_PORT(serverport) (serverport+1)
 #define CUBE_SERVINFO_TO_SERV_PORT(servinfoport) (servinfoport-1)
-#define PROTOCOL_VERSION 1132           // bump when protocol changes (use negative numbers for mods!)
+#define PROTOCOL_VERSION 1201           // bump when protocol changes (use negative numbers for mods!)
 #define DEMO_VERSION 2                  // bump when demo format changes
 #define DEMO_MAGIC "ASSAULTCUBE_DEMO"
 #define DEMO_MINTIME 10000              // don't keep demo recordings with less than 10 seconds
@@ -18,7 +18,7 @@ extern bool modprotocol;
 // network messages codes, c2s, c2c, s2c
 enum
 {
-    SV_SERVINFO = 0, SV_WELCOME, SV_INITCLIENT, SV_POS, SV_POSC, SV_POSN, SV_TEXT, SV_TEAMTEXT, SV_TEXTME, SV_TEAMTEXTME,
+    SV_SERVINFO = 0, SV_WELCOME, SV_INITCLIENT, SV_POS, SV_POSC, SV_POSN, SV_TEXT, SV_TEAMTEXT, SV_TEXTME, SV_TEAMTEXTME, SV_TEXTPRIVATE,
     SV_SOUND, SV_VOICECOM, SV_VOICECOMTEAM, SV_CDIS,
     SV_SHOOT, SV_EXPLODE, SV_SUICIDE, SV_AKIMBO, SV_RELOAD, SV_AUTHT, SV_AUTHREQ, SV_AUTHTRY, SV_AUTHANS, SV_AUTHCHAL,
     SV_GIBDIED, SV_DIED, SV_GIBDAMAGE, SV_DAMAGE, SV_HITPUSH, SV_SHOTFX, SV_THROWNADE,
@@ -34,13 +34,14 @@ enum
     SV_SETADMIN, SV_SERVOPINFO,
     SV_CALLVOTE, SV_CALLVOTESUC, SV_CALLVOTEERR, SV_VOTE, SV_VOTERESULT,
     SV_SETTEAM, SV_TEAMDENY, SV_SERVERMODE,
-    SV_WHOIS, SV_WHOISINFO,
+    SV_IPLIST,
     SV_LISTDEMOS, SV_SENDDEMOLIST, SV_GETDEMO, SV_SENDDEMO, SV_DEMOPLAYBACK,
-    SV_CONNECT, SV_SPECTCN,
+    SV_CONNECT,
     SV_SWITCHNAME, SV_SWITCHSKIN, SV_SWITCHTEAM,
     SV_CLIENT,
     SV_EXTENSION,
-    SV_MAPIDENT, SV_HUDEXTRAS, SV_POINTS, SV_NUM
+    SV_MAPIDENT, SV_HUDEXTRAS, SV_POINTS,
+    SV_NUM
 };
 
 #ifdef _DEBUG
@@ -68,6 +69,7 @@ enum { HE_COMBO, HE_COMBO2, HE_COMBO3, HE_COMBO4, HE_COMBO5, HE_TEAMWORK, HE_FLA
 #define DVELF 4.0f
 
 enum { DISC_NONE = 0, DISC_EOP, DISC_CN, DISC_MKICK, DISC_MBAN, DISC_TAGT, DISC_BANREFUSE, DISC_WRONGPW, DISC_SOPLOGINFAIL, DISC_MAXCLIENTS, DISC_MASTERMODE, DISC_AUTOKICK, DISC_AUTOBAN, DISC_DUP, DISC_BADNICK, DISC_OVERFLOW, DISC_ABUSE, DISC_AFK, DISC_FFIRE, DISC_CHEAT, DISC_NUM };
+enum { BAN_NONE = 0, BAN_VOTE, BAN_AUTO, BAN_BLACKLIST, BAN_MASTER };
 
 #define EXT_ACK                         -1
 #define EXT_VERSION                     104
@@ -85,30 +87,36 @@ enum { EXTPING_NOP = 0, EXTPING_NAMELIST, EXTPING_SERVERINFO, EXTPING_MAPROT, EX
 enum
 {
     GMODE_DEMO = -1,
-    GMODE_TEAMDEATHMATCH = 0,
+    GMODE_TEAMDEATHMATCH = 0,           // 0
     GMODE_COOPEDIT,
     GMODE_DEATHMATCH,
     GMODE_SURVIVOR,
     GMODE_TEAMSURVIVOR,
-    GMODE_CTF,
+    GMODE_CTF,                          // 5
     GMODE_PISTOLFRENZY,
     GMODE_BOTTEAMDEATHMATCH,
     GMODE_BOTDEATHMATCH,
     GMODE_LASTSWISSSTANDING,
-    GMODE_ONESHOTONEKILL,
+    GMODE_ONESHOTONEKILL,               // 10
     GMODE_TEAMONESHOTONEKILL,
     GMODE_BOTONESHOTONEKILL,
-    GMODE_HUNTTHEFLAG,         // 13
+    GMODE_HUNTTHEFLAG,
     GMODE_TEAMKEEPTHEFLAG,
-    GMODE_KEEPTHEFLAG,
+    GMODE_KEEPTHEFLAG,                  // 15
+    GMODE_TEAMPF,
+    GMODE_TEAMLSS,
+    GMODE_BOTPISTOLFRENZY,
+    GMODE_BOTLSS,
+    GMODE_BOTTEAMSURVIVOR,              // 20
+    GMODE_BOTTEAMONESHOTONKILL,
     GMODE_NUM
 };
 
-#define m_lms         (gamemode==3 || gamemode==4)
+#define m_lms         (gamemode==3 || gamemode==4 || gamemode==20)
 #define m_ctf         (gamemode==5)
-#define m_pistol      (gamemode==6)
-#define m_lss         (gamemode==9)
-#define m_osok        (gamemode>=10 && gamemode<=12)
+#define m_pistol      (gamemode==6 || gamemode==16 || gamemode==18)
+#define m_lss         (gamemode==9 || gamemode==17 || gamemode==19)
+#define m_osok        ((gamemode>=10 && gamemode<=12) || gamemode==21)
 #define m_htf         (gamemode==13)
 #define m_ktf         (gamemode==14 || gamemode==15)
 
@@ -118,11 +126,11 @@ enum
 #define m_noprimary   (m_pistol || m_lss)
 #define m_noguns      (m_nopistol && m_noprimary)
 #define m_arena       (m_lms || m_lss || m_osok)
-#define m_teammode    (gamemode==0 || gamemode==4 || gamemode==5 || gamemode==7 || gamemode==11 || gamemode==13 || gamemode==14)
+#define m_teammode    (gamemode==0 || gamemode==4 || gamemode==5 || gamemode==7 || gamemode==11 || gamemode==13 || gamemode==14 || gamemode==16 || gamemode==17 || gamemode==20 || gamemode==21)
 #define m_tarena      (m_arena && m_teammode)
-#define m_botmode     (gamemode==7 || gamemode == 8 || gamemode==12)
+#define m_botmode     (gamemode==7 || gamemode == 8 || gamemode==12 || (gamemode>=18 && gamemode<=21))
 #define m_valid(mode) (((mode)>=0 && (mode)<GMODE_NUM) || (mode) == -1)
-#define m_mp(mode)    (m_valid(mode) && (mode)>=0 && (mode)!=7 && (mode)!=8 && (mode)!=12)
+#define m_mp(mode)    (m_valid(mode) && (mode)>=0 && (mode)!=7 && (mode)!=8 && (mode)!=12 && ((mode)<18 || (mode)>21))
 #define m_demo        (gamemode==-1)
 #define m_coop        (gamemode==1)
 #define m_flags       (m_ctf || m_htf || m_ktf)

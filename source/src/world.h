@@ -32,7 +32,7 @@ enum                            // hardcoded texture numbers
     DEFAULT_CEIL
 };
 
-#define MAPVERSION 8            // bump if map format changes, see worldio.cpp
+#define MAPVERSION 9            // bump if map format changes, see worldio.cpp
 
 struct header                   // map file format header
 {
@@ -48,7 +48,7 @@ struct header                   // map file format header
     int maprevision;
     int ambient;
     int reserved[12];
-    char mediareq[128];         // new since version 7 (flowtron) // actually a maximum of 124 will ever be used (24*5+4)
+    //char mediareq[128];         // version 7 and 8 only.
 };
 
 struct mapstats
@@ -127,9 +127,10 @@ struct mapstats
 #define OUTBORDRAD(x,y,rad) (int(x-rad)<MINBORD || int(y-rad)<MINBORD || int(x+rad)>=ssize-MINBORD || (y+rad)>=ssize-MINBORD)
 #define MAXMHEIGHT 30
 #define MAXMAREA 10000
+#define MAXHHITS 50000                  // was 6000, which denied my fav. maps - jamz, 2012-06-12; 15000 denies sane map too - lucas
 #define MINFF 2500
 
-struct block { int x, y, xs, ys; };
+struct block { int x, y, xs, ys, h; };
 
 // vertex array format
 

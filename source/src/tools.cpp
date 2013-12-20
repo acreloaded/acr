@@ -24,10 +24,10 @@ const char *numtime()
     return numt;
 }
 
-int mapdims[6];     // min/max X/Y and delta X/Y
+int mapdims[8];     // min/max X/Y and delta X/Y and min/max Z
 
 extern char *maplayout, *testlayout;
-extern int maplayout_factor, testlayout_factor, Mvolume, Marea, Mopen;
+extern int maplayout_factor, testlayout_factor, Mvolume, Marea, Mopen, SHhits;
 extern float Mheight;
 extern int checkarea(int, char *);
 
@@ -45,20 +45,16 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
     stream *f = opengzfile(filename, "rb");
     if(!f) return NULL;
     memset(&s.hdr, 0, sizeof(header));
-    if(f->read(&s.hdr, sizeof(header)-sizeof(int)*16-sizeof(char)*128)!=sizeof(header)-sizeof(int)*16-sizeof(char)*128 || (strncmp(s.hdr.head, "CUBE", 4) && strncmp(s.hdr.head, "ACMP",4))) { delete f; return NULL; }
+    if(f->read(&s.hdr, sizeof(header)-sizeof(int)*16)!=sizeof(header)-sizeof(int)*16 || (strncmp(s.hdr.head, "CUBE", 4) && strncmp(s.hdr.head, "ACMP",4))) { delete f; return NULL; }
     lilswap(&s.hdr.version, 4);
     if(s.hdr.version>MAPVERSION || s.hdr.numents > MAXENTITIES || (s.hdr.version>=4 && f->read(&s.hdr.waterlevel, sizeof(int)*16)!=sizeof(int)*16)) { delete f; return NULL; }
-    if(s.hdr.version>=7 && f->read(&s.hdr.mediareq, sizeof(char)*128)!=sizeof(char)*128) { delete f; return NULL; }
+    if((s.hdr.version==7 || s.hdr.version==8) && !f->seek(sizeof(char)*128, SEEK_CUR)) { delete f; return NULL; }
     if(s.hdr.version>=4)
     {
         lilswap(&s.hdr.waterlevel, 1);
         lilswap(&s.hdr.maprevision, 2);
     }
     else s.hdr.waterlevel = -100000;
-    if(s.hdr.version<7)
-    {
-        copystring(s.hdr.mediareq, "", 128);//s.hdr.mediareq[0] = '\0';
-    }
     entity e;
     enttypes = new uchar[s.hdr.numents];
     entposs = new short[s.hdr.numents * 3];
@@ -74,6 +70,8 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
         entposs[i * 3] = e.x; entposs[i * 3 + 1] = e.y; entposs[i * 3 + 2] = e.z + e.attr1;
     }
     DELETEA(testlayout);
+    int minfloor = 0;
+    int maxceil = 0;
     if(s.hdr.sfactor <= LARGEST_FACTOR && s.hdr.sfactor >= SMALLEST_FACTOR)
     {
         testlayout_factor = s.hdr.sfactor;
@@ -82,8 +80,9 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
         testlayout = new char[layoutsize + 256];
         memset(testlayout, 0, layoutsize * sizeof(char));
         char *t = NULL;
-        char floor = 0, ceil, diff = 0;
-        Mvolume = Marea = 0;
+        char floor = 0, ceil;
+        int diff = 0;
+        Mvolume = Marea = SHhits = 0;
         loopk(layoutsize)
         {
             char *c = testlayout + k;
@@ -110,6 +109,8 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
                     if(floor >= ceil && ceil > -128) floor = ceil - 1;  // for pre 12_13
                     diff = ceil - floor;
                     if(type == FHF) floor = -128;
+                    if(floor!=-128 && floor<minfloor) minfloor = floor;
+                    if(ceil>maxceil) maxceil = ceil;
                     f->getchar(); f->getchar();
                     if(s.hdr.version>=2) f->getchar();
                     if(s.hdr.version>=5) f->getchar();
@@ -122,6 +123,8 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
             }
             if ( type != SOLID && diff > 6 )
             {
+                // Lucas (10mar2013): Removed "pow2" because it was too strict
+                if (diff > MAXMHEIGHT) SHhits += /*pow2*/(diff-MAXMHEIGHT)*n;
                 Marea += n;
                 Mvolume += diff * n;
             }
@@ -147,7 +150,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
             maplayout = new char[layoutsize + 256];
             memcpy(maplayout, testlayout, layoutsize * sizeof(char));
 
-            loopk(4) mapdims[k] = k < 2 ? maplayoutssize : 0;
+            loopk(8) mapdims[k] = k < 2 ? maplayoutssize : 0;
             loopk(layoutsize) if (testlayout[k] != 127)
             {
                 int cwx = k%maplayoutssize,
@@ -158,10 +161,8 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
                 if(cwy > mapdims[3]) mapdims[3] = cwy;
             }
             loopk(2) mapdims[k+4] = mapdims[k+2] - mapdims[k];
-/*            printf("  min X|Y: %3d : %3d\n", mapdims[0], mapdims[1]);
-            printf("  max X|Y: %3d : %3d\n", mapdims[2], mapdims[3]);
-            printf("delta X|Y: %3d : %3d\n", mapdims[4], mapdims[5]);
-            fflush(stdout);*/
+            mapdims[6] = minfloor;
+            mapdims[7] = maxceil;
         }
     }
     delete f;

@@ -107,7 +107,7 @@ void addstrip(int type, int tex, int start, int n)
 
 #define vert(v1, v2, v3, ls, t1, t2) \
 { \
-	vertex &v = verts.add(); \
+    vertex &v = verts.add(); \
     v.u = t1; v.v = t2; \
     v.x = (float)(v1); v.y = (float)(v2); v.z = (float)(v3); \
     v.r = ls->r; v.g = ls->g; v.b = ls->b; v.a = 255; \
@@ -123,9 +123,10 @@ enum
 int nquads;
 
 // for testing purpose. UNDOME on release.
-//const float TEXTURESCALE = 32.0f;
-VARP(texturescale, 16, 32, 64);
-#define TEXTURESCALE float(texturescale)
+const float texturescale = 32.0f;
+//VARP(texturescale, 16, 32, 64);
+
+#define TEXTURESCALE (float(texturescale) * ((uniformtexres && t->scale>1.0f) ? 1.0f : t->scale))
 
 int striptype = 0, striptex, oh, oy, ox, odir;                         // the o* vars are used by the stripification
 int ol1r, ol1g, ol1b, ol2r, ol2g, ol2b;
@@ -137,7 +138,7 @@ bool showm = false;
 void showmip() { showm = !showm; }
 void mipstats(int a, int b, int c) { if(showm) conoutf("1x1/2x2/4x4: %d / %d / %d", a, b, c); }
 
-COMMAND(showmip, ARG_NONE);
+COMMAND(showmip, "");
 
 VAR(mergestrips, 0, 1, 1);
 

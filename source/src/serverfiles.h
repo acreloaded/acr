@@ -135,16 +135,16 @@ struct servermapbuffer  // sending of maps between clients
 // provide maps by the server
 
 enum { MAP_NOTFOUND = 0, MAP_TEMP, MAP_CUSTOM, MAP_LOCAL, MAP_OFFICIAL, MAP_VOID };
-const char *maplocstr[] = { "not found", "temporary", "custom", "local", "official", "void" };
+static const char * const maplocstr[] = { "not found", "temporary", "custom", "local", "official", "void" };
 #define readonlymap(x) ((x) >= MAP_CUSTOM)
 #define distributablemap(x) ((x) == MAP_TEMP || (x) == MAP_CUSTOM)
 
 int findmappath(const char *mapname, char *filename)
 {
+    if(!mapname[0]) return MAP_NOTFOUND;
     string tempname;
     if(!filename) filename = tempname;
     const char *name = behindpath(mapname);
-    if(!mapname[0]) return MAP_NOTFOUND;
     formatstring(filename)(SERVERMAP_PATH_BUILTIN "%s.cgz", name);
     path(filename);
     int loc = MAP_NOTFOUND;
@@ -232,13 +232,14 @@ struct configset
 };
 
 int FlagFlag = MINFF * 1000;
-int Mvolume, Marea, Mopen = 0;
+int Mvolume, Marea, SHhits, Mopen = 0;
 float Mheight = 0;
 
 bool mapisok(mapstats *ms)
 {
-    if ( Mheight > MAXMHEIGHT ) { logline(ACLOG_INFO, "MAP CHECK FAIL: The overall ceil height is too high (%d cubes)", Mheight); return false; }
+    if ( Mheight > MAXMHEIGHT ) { logline(ACLOG_INFO, "MAP CHECK FAIL: The overall ceil height is too high (%.1f cubes)", Mheight); return false; }
     if ( Mopen > MAXMAREA ) { logline(ACLOG_INFO, "MAP CHECK FAIL: There is a big open area in this (hint: use more solid walls)", Mheight); return false; }
+    if ( SHhits > MAXHHITS ) { logline(ACLOG_INFO, "MAP CHECK FAIL: Too high height in some parts of the map (%d hits)", SHhits); return false; }
 
     if ( ms->hasflags ) // Check if flags are ok
     {
@@ -885,5 +886,79 @@ struct serverinfofile
         const char *motd;
         if(*lang && (motd = getinfocache(motdbase, lang))) return motd;
         return getinfocache(motdbase, "en");
+    }
+};
+
+struct killmessagesfile : serverconfigfile
+{
+    void init(const char *name) { serverconfigfile::init(name); }
+    void read()
+    {
+        if(getfilesize(filename) == filelen) return;
+        if(!load()) return;
+
+        char *l, *s, *p = buf;
+        const char *sep = " \"";
+        int line = 0;
+        logline(ACLOG_VERBOSE,"reading kill messages file '%s'", filename);
+        while(p < buf + filelen)
+        {
+            l = p; p += strlen(p) + 1;
+            l = strtok(l, sep);
+            
+            char *message;
+            if(l)
+            {
+                s = strtok(NULL, sep);
+                bool fragmsg = !strcmp(l, "fragmessage");
+                bool gibmsg = !strcmp(l, "gibmessage");
+                if(s && (fragmsg || gibmsg))
+                {
+                    int errors = 0;
+                    int gun = atoi(s);
+                    
+                    s += strlen(s) + 1;
+                    while(s[0] == ' ') s++;
+                    int hasquotes = strspn(s, "\"");
+                    s += hasquotes;
+                    message = s;
+                    const char *seps = "\" \n", *end = NULL;
+                    char cursep;
+                    while( (cursep = *seps++) != '\0')
+                    {
+                        if(cursep == '"' && !hasquotes) continue;
+                        end = strchr(message, cursep);
+                        if(end) break;
+                    }
+                    if(end) message[end-message] = '\0';
+                    
+                    if(gun < 0 || gun >= NUMGUNS)
+                    {
+                        logline(ACLOG_INFO, " error in line %i, invalid gun : %i", line, gun);
+                        errors++;
+                    }
+                    if(strlen(message)>MAXKILLMSGLEN)
+                    {
+                        logline(ACLOG_INFO, " error in line %i, too long message : string length is %i, max. allowed is %i", line, strlen(message), MAXKILLMSGLEN);
+                        errors++;
+                    }
+                    if(!errors)
+                    {
+                        if(fragmsg)
+                        {
+                            copystring(killmessages[0][gun], message);
+                            logline(ACLOG_VERBOSE, " added msg '%s' for frags with weapon %i ", message, gun);
+                        }
+                        else
+                        {
+                            copystring(killmessages[1][gun], message);
+                            logline(ACLOG_VERBOSE, " added msg '%s' for gibs with weapon %i ", message, gun);
+                        }
+                    }
+                    s = NULL;
+                    line++;
+                }
+            }
+        }
     }
 };

@@ -1,13 +1,15 @@
 // hardcoded sounds, defined in sounds.cfg
 
+
 enum
-{
+{    // To avoid a lot of work, possible bugs and allow backward compatibility for players own custom
+    // cfg files, it's best not to change the listed sound order, instead, just add to it.
     S_JUMP = 0,
     S_SOFTLAND, S_HARDLAND,
     S_BULLETAIR1, S_BULLETAIR2, S_BULLETHIT, S_BULLETWATERHIT,
     S_KNIFE,
     S_PISTOL, S_RPISTOL,
-    S_RIFLE, S_RRIFLE,
+    S_CARBINE, S_RCARBINE,
     S_SHOTGUN, S_RSHOTGUN,
     S_SUBGUN, S_RSUBGUN,
     S_SNIPER, S_RSNIPER,
@@ -22,7 +24,7 @@ enum
     S_FLAGDROP, S_FLAGPICKUP, S_FLAGRETURN, S_FLAGSCORE,
     S_GRENADEPULL, S_GRENADETHROW, S_GRENADEBOUNCE1, S_GRENADEBOUNCE2, S_RAKIMBO,
     S_GUNCHANGE,
-	S_HITSOUND,
+    S_HITSOUND,
     S_GIB, S_HEADSHOT,
     S_CALLVOTE, S_VOTEPASS, S_VOTEFAIL,
     S_FOOTSTEPS, S_FOOTSTEPSCROUCH, S_WATERFOOTSTEPS, S_WATERFOOTSTEPSCROUCH,
@@ -67,6 +69,9 @@ enum
     S_THANKS2,
     S_AWESOME1,
     S_AWESOME2,
+    S_ITEMHELMET, // begin: Sounds for AssaultCube v1.1.0.4 onwards
+    S_HEARTBEAT,
+    S_KTFSCORE,
     S_NULL
 };
 
@@ -156,7 +161,7 @@ public:
     sbuffer();
     ~sbuffer();
 
-    bool load();
+    bool load(bool trydl = false);
     void unload();
 };
 
@@ -277,12 +282,12 @@ public:
 class camerareference : public worldobjreference
 {
 public:
-	camerareference();
+    camerareference();
 
-	worldobjreference *clone() const;
-	const vec &currentposition() const;
-	bool nodistance();
-	bool operator==(const worldobjreference &other);
+    worldobjreference *clone() const;
+    const vec &currentposition() const;
+    bool nodistance();
+    bool operator==(const worldobjreference &other);
 };
 
 
@@ -370,47 +375,48 @@ class audiomanager
 {
     bool nosound;
     float currentpitch;
-	vector<char *> musics;
+    vector<char *> musics;
     ALCdevice *device;
     ALCcontext *context;
 
     bufferhashtable bufferpool;
-    locvector locations;
     oggstream *gamemusic;
 
 public:
 
+    locvector locations;
+
     audiomanager();
 
-	// init & setup
+    // init & setup
     void initsound();
-    void preloadmapsound(entity &e);
-    void preloadmapsounds();
+    void preloadmapsound(entity &e, bool trydl = false);
+    void preloadmapsounds(bool trydl = false);
     void applymapsoundchanges();
 
     // configuration
     void setchannels(int num);
     void setlistenervol(int vol);
     int addsound(char *name, int vol, int maxuses, bool loop, vector<soundconfig> &sounds, bool load, int audibleradius);
-	void registermusic(char *name);
+    void registermusic(char *name);
     void mutesound(int n, int off);
-	void unmuteallsounds();
-	int soundmuted(int n);
+    void unmuteallsounds();
+    int soundmuted(int n);
 
-	// cleanup
+    // cleanup
     void soundcleanup();
     void clearworldsounds(bool fullclean = true);
-	void mapsoundreset();
+    void mapsoundreset();
     void stopsound();
 
-	// music handling
-	void music(char *name, char *millis, char *cmd);
-	void musicpreload(int id);
+    // music handling
+    void music(char *name, int millis, char *cmd);
+    void musicpreload(int id);
     void musicsuggest(int id, int millis, bool rndofs);
     void musicfadeout(int id);
     void setmusicvol(int musicvol);
 
-	// sound handling
+    // sound handling
     location *_playsound(int n, const worldobjreference &r, int priority, float offset = 0.0f, bool loop = false);
     void playsound(int n, int priority = SP_NORMAL);
     void playsound(int n, class physent *p, int priority = SP_NORMAL);
@@ -418,16 +424,16 @@ public:
     void playsound(int n, const vec *v, int priority = SP_NORMAL);
     void playsoundname(char *s, const vec *loc, int vol);
     void playsoundc(int n, physent *p = NULL, int priority = SP_NORMAL);
-	void sound(int n);
-	int findsound(char *name, int vol, vector<soundconfig> &sounds);
+    void sound(int n);
+    int findsound(char *name, int vol, vector<soundconfig> &sounds);
     void detachsounds(class playerent *owner);
 
-	// update
+    // update
     void updateplayerfootsteps(class playerent *p);
     location *updateloopsound(int sound, bool active, float vol = 1.0f);
     void updateaudio();
 
-	// misc
+    // misc
     void writesoundconfig(stream *f);
 };
 

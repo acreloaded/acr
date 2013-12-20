@@ -26,10 +26,10 @@ VARP(autogetmap, 0, 1, 1); // only if the client doesn't have that map
 VARP(autogetnewmaprevisions, 0, 1, 1);
 
 bool localwrongmap = false;
-int MA = 0; // flowtron: moved here
+int MA = 0, Hhits = 0; // flowtron: moved here
 bool changemapserv(char *name, int mode, int download, int revision)        // forced map change from the server
 {
-    MA = 0; // reset for checkarea()
+    MA = Hhits = 0; // reset for checkarea()
     gamemode = mode;
     if(m_demo) return true;
     if(m_coop)
@@ -105,7 +105,7 @@ void updatelagtime(playerent *d)
 
 extern void trydisconnect();
 
-VARP(maxrollremote, 0, 1, 1); // bound remote "roll" values by our maxroll?!
+VARP(maxrollremote, 0, 0, 20); // bound remote "roll" values by our maxroll?!
 
 void parsepositions(ucharbuf &p)
 {
@@ -118,7 +118,7 @@ void parsepositions(ucharbuf &p)
             int cn, f, g;
             vec o, vel;
             float yaw, pitch, roll = 0;
-            bool scoping, shoot;
+            bool scoping;//, shoot;
             if(type == SV_POSC)
             {
                 bitbuf<ucharbuf> q(p);
@@ -146,7 +146,7 @@ void parsepositions(ucharbuf &p)
                 if(negz) z = -z;
                 o.z = z / DMF;
                 scoping = ( q.getbits(1) ? true : false );
-                shoot = ( q.getbits(1) ? true : false );
+                q.getbits(1);//shoot = ( q.getbits(1) ? true : false );
             }
             else
             {
@@ -162,7 +162,7 @@ void parsepositions(ucharbuf &p)
                 if ((g>>1) & 1) vel.y = getint(p)/DVELF; else vel.y = 0;
                 if ((g>>2) & 1) vel.z = getint(p)/DVELF; else vel.z = 0;
                 scoping = ( (g>>4) & 1 ? true : false );
-                shoot = ( (g>>5) & 1 ? true : false ); // we are not using this yet
+                //shoot = ( (g>>5) & 1 ? true : false ); // we are not using this yet
                 f = getuint(p);
             }
             int seqcolor = (f>>6)&1;
@@ -243,6 +243,7 @@ char *mlayout = NULL;
 int Mv = 0, Ma = 0, F2F = 1000 * MINFF; // moved up:, MA = 0;
 float Mh = 0;
 extern int connected;
+extern int lastpm;
 extern bool noflags;
 bool item_fail = false;
 int map_quality = MAP_IS_EDITABLE;
@@ -303,9 +304,9 @@ bool good_map() // call this function only at startmap
         }
     }
 
-    map_quality = (!item_fail && F2F > MINFF && MA < MAXMAREA && Mh < MAXMHEIGHT) ? MAP_IS_GOOD : MAP_IS_BAD;
+    map_quality = (!item_fail && F2F > MINFF && MA < MAXMAREA && Mh < MAXMHEIGHT && Hhits < MAXHHITS) ? MAP_IS_GOOD : MAP_IS_BAD;
     if ( (!connected || gamemode == GMODE_COOPEDIT) && map_quality == MAP_IS_BAD ) map_quality = MAP_IS_EDITABLE;
-    return map_quality;
+    return map_quality > 0;
 }
 
 VARP(hudextras, 0, 0, 3);
@@ -360,10 +361,28 @@ void showhudextras(char hudextras, char value){
 
 int lastspawn = 0;
 
-VAR(voicecomsounds, 0, 1, 2);
+void onCallVote(int type, int vcn, char *text, char *a)
+{
+    if(identexists("onCallVote"))
+    {
+        defformatstring(runas)("%s %d %d [%s] [%s]", "onCallVote", type, vcn, text, a);
+        execute(runas);
+    }
+}
+
+void onChangeVote(int mod, int id)
+{
+    if(identexists("onChangeVote"))
+    {
+        defformatstring(runas)("%s %d %d", "onChangeVote", mod, id);
+        execute(runas);
+    }
+}
+
+VARP(voicecomsounds, 0, 1, 2);
 bool medals_arrived=0;
 medalsst a_medals[END_MDS];
-void parsemessages(int cn, playerent *d, ucharbuf &p)
+void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 {
     static char text[MAXTRANS];
     int type, joining = 0;
@@ -372,6 +391,18 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
     while(p.remaining())
     {
         type = getint(p);
+
+        if(demo && watchingdemo && demoprotocol == 1132)
+        {
+            if(type > SV_IPLIST) --type;            // SV_WHOIS removed
+            if(type >= SV_TEXTPRIVATE) ++type;      // SV_TEXTPRIVATE added
+            if(type == SV_SWITCHNAME)               // SV_SPECTCN removed
+            {
+                getint(p);
+                continue;
+            }
+            else if(type > SV_SWITCHNAME) --type;
+        }
 
         #ifdef _DEBUG
         if(type!=SV_POS && type!=SV_CLIENTPING && type!=SV_PING && type!=SV_PONG && type!=SV_CLIENT)
@@ -386,13 +417,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
         switch(type)
         {
-            case SV_SERVINFO:  // welcome messsage from the server
+            case SV_SERVINFO:  // welcome message from the server
             {
                 int mycn = getint(p), prot = getint(p);
                 if(prot!=CUR_PROTOCOL_VERSION && !(watchingdemo && prot == -PROTOCOL_VERSION))
                 {
                     conoutf(_("%c3incompatible game protocol (local protocol: %d :: server protocol: %d)"), CC, CUR_PROTOCOL_VERSION, prot);
-		    conoutf("\f3if this occurs a lot, obtain an upgrade from \f1http://assault.cubers.net");
+                    conoutf("\f3if this occurs a lot, obtain an upgrade from \f1http://assault.cubers.net");
                     if(watchingdemo) conoutf("breaking loop : \f3this demo is using a different protocol\f5 : end it now!"); // SVN-WiP-bug: causes endless retry loop else!
                     else disconnect();
                     return;
@@ -414,7 +445,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             {
                 int cn = getint(p), len = getuint(p);
                 ucharbuf q = p.subbuf(len);
-                parsemessages(cn, getclient(cn), q);
+                parsemessages(cn, getclient(cn), q, demo);
                 break;
             }
 
@@ -479,6 +510,27 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 else return;
                 break;
 
+            case SV_TEXTPRIVATE:
+            {
+                int cn = getint(p);
+                getstring(text, p);
+                filtertext(text, text);
+                playerent *d = getclient(cn);
+                if(!d) break;
+                if(d->ignored) clientlogf("ignored: pm %s %s", colorname(d), text);
+                else
+                {
+                    conoutf("%s (PM):\f9 %s", colorname(d), highlight(text));
+                    lastpm = d->clientnum;
+                    if(identexists("onPM"))
+                    {
+                        defformatstring(onpm)("onPM %d [%s]", d->clientnum, text);
+                        execute(onpm);
+                    }
+                }
+                break;
+            }
+
             case SV_MAPCHANGE:
             {
                 extern int spawnpermission;
@@ -514,6 +566,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 {
                     if(strcmp(d->name, text))
                         conoutf(_("%s is now known as %s"), colorname(d), colorname(d, text));
+                    if(identexists("onNameChange"))
+                    {
+                        defformatstring(onnamechange)("onNameChange %d \"%s\"", d->clientnum, text);
+                        execute(onnamechange);
+                    }
                     copystring(d->name, text, MAXNAMELEN+1);
                     updateclientname(d);
                 }
@@ -540,6 +597,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     getstring(text, p);
                     loopi(2) getint(p);
                     getint(p);
+                    if(!demo || !watchingdemo || demoprotocol > 1132) getint(p);
                     break;
                 }
                 getstring(text, p);
@@ -555,8 +613,16 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     conoutf(_("connected: %s"), colorname(d, text));
                 }
                 copystring(d->name, text, MAXNAMELEN+1);
+                if(identexists("onConnect"))
+                {
+                    defformatstring(onconnect)("onConnect %d", d->clientnum);
+                    execute(onconnect);
+                }
                 loopi(2) d->setskin(i, getint(p));
                 d->team = getint(p);
+
+                if(!demo || !watchingdemo || demoprotocol > 1132) d->address = getint(p); // partial IP address
+
                 if(m_flags) loopi(2)
                 {
                     flaginfo &f = flaginfos[i];
@@ -573,6 +639,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 if(!d) break;
                 if(d->name[0]) conoutf(_("player %s disconnected"), colorname(d));
                 zapplayer(players[cn]);
+                if(identexists("onDisconnect"))
+                {
+                    defformatstring(ondisconnect)("onDisconnect %d", d->clientnum);
+                    execute(ondisconnect);
+                }
                 break;
             }
 
@@ -581,7 +652,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 int val = getint(p);
                 if(!d) break;
                 if(val) d->state = CS_EDITING;
-                else d->state = CS_ALIVE;
+                else
+                {
+                    //2011oct16:flowtron:keep spectator state
+                    //specators shouldn't be allowed to toggle editmode for themselves. they're ghosts!
+                    d->state = d->state==CS_SPECTATE?CS_SPECTATE:CS_ALIVE;
+                }
                 break;
             }
 
@@ -605,7 +681,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
             case SV_SPAWNSTATE:
             {
-
                 if ( map_quality == MAP_IS_BAD )
                 {
                     loopi(6+2*NUMGUNS) getint(p);
@@ -644,10 +719,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 break;
             }
 
-            case SV_SPECTCN:
-                getint(p);
-                break;
-
             case SV_SHOTFX:
             {
                 int scn = getint(p), gun = getint(p);
@@ -658,11 +729,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 loopk(3) from[k] = s->o.v[k];
                 if(gun==GUN_SHOTGUN) createrays(from, to);
                 s->lastaction = lastmillis;
+                s->weaponchanging = 0;
                 s->mag[gun]--;
                 if(s->weapons[gun])
                 {
                     s->lastattackweapon = s->weapons[gun];
+                    s->weapons[gun]->gunwait = s->weapons[gun]->info.attackdelay;
                     s->weapons[gun]->attackfx(from, to, -1);
+                    s->weapons[gun]->reloading = 0;
                 }
                 s->pstatshots[gun]++; //NEW
                 break;
@@ -676,20 +750,22 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 int nademillis = getint(p);
                 if(!d) break;
                 d->lastaction = lastmillis;
+                d->weaponchanging = 0;
                 d->lastattackweapon = d->weapons[GUN_GRENADE];
-                if(d->weapons[GUN_GRENADE]) d->weapons[GUN_GRENADE]->attackfx(from, to, nademillis);
-				if(d!=player1) d->pstatshots[GUN_GRENADE]++; //NEW
+                if(d->weapons[GUN_GRENADE])
+                {
+                    d->weapons[GUN_GRENADE]->attackfx(from, to, nademillis);
+                    d->weapons[GUN_GRENADE]->reloading = 0;
+                }
+                if(d!=player1) d->pstatshots[GUN_GRENADE]++; //NEW
                 break;
             }
 
             case SV_RELOAD:
             {
                 int cn = getint(p), gun = getint(p);
-                playerent *p = cn==getclientnum() ? player1 : getclient(cn);
-                if(!p || p==player1) break;
-                int bullets = magsize(gun)-p->mag[gun];
-                p->ammo[gun] -= bullets;
-                p->mag[gun] += bullets;
+                playerent *p = getclient(cn);
+                if(p && p!=player1) p->weapons[gun]->reload(false);
                 break;
             }
 
@@ -730,8 +806,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     damage = getint(p),
                     armour = getint(p),
                     health = getint(p);
-                playerent *target = tcn==getclientnum() ? player1 : getclient(tcn),
-                          *actor = acn==getclientnum() ? player1 : getclient(acn);
+                playerent *target = getclient(tcn), *actor = getclient(acn);
                 if(!target || !actor) break;
                 target->armour = armour;
                 target->health = health;
@@ -746,7 +821,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 if ( count > 0 ) {
                     loopi(count){
                         int pcn = getint(p); int score = getint(p);
-                        playerent *ppl = pcn == getclientnum() ? player1 : getclient(pcn);
+                        playerent *ppl = getclient(pcn);
                         if (!ppl) break;
                         ppl->points += score;
                     }
@@ -785,8 +860,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             case SV_DIED:
             {
                 int vcn = getint(p), acn = getint(p), frags = getint(p), gun = getint(p);
-                playerent *victim = vcn==getclientnum() ? player1 : getclient(vcn),
-                          *actor = acn==getclientnum() ? player1 : getclient(acn);
+                playerent *victim = getclient(vcn), *actor = getclient(acn);
                 if(!actor) break;
                 if ( m_mp(gamemode) ) actor->frags = frags;
                 if(!victim) break;
@@ -801,6 +875,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     int cn = getint(p);
                     if(p.overread() || cn<0) break;
                     int state = getint(p), lifesequence = getint(p), primary = getint(p), gunselect = getint(p), flagscore = getint(p), frags = getint(p), deaths = getint(p), health = getint(p), armour = getint(p), points = getint(p);
+                    int teamkills = 0;
+                    if(!demo || !watchingdemo || demoprotocol > 1132) teamkills = getint(p);
                     int ammo[NUMGUNS], mag[NUMGUNS];
                     loopi(NUMGUNS) ammo[i] = getint(p);
                     loopi(NUMGUNS) mag[i] = getint(p);
@@ -812,6 +888,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     d->frags = frags;
                     d->deaths = deaths;
                     d->points = points;
+                    d->tks = teamkills;
                     if(d!=player1)
                     {
                         d->setprimary(primary);
@@ -853,7 +930,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             case SV_ITEMACC:
             {
                 int i = getint(p), cn = getint(p);
-                playerent *d = cn==getclientnum() ? player1 : getclient(cn);
+                playerent *d = getclient(cn);
                 pickupeffects(i, d);
                 break;
             }
@@ -896,6 +973,17 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 uint i = getint(p);
                 while((uint)ents.length()<=i) ents.add().type = NOTUSED;
                 int to = ents[i].type;
+                if(ents[i].type==SOUND)
+                {
+                    entity &e = ents[i];
+
+                    entityreference entref(&e);
+                    location *loc = audiomgr.locations.find(e.attr1, &entref, mapsounds);
+
+                    if(loc)
+                        loc->drop();
+                }
+
                 ents[i].type = getint(p);
                 ents[i].x = getint(p);
                 ents[i].y = getint(p);
@@ -966,11 +1054,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                         flagdropped(flag, x, y, z);
                         break;
                     }
-				    case CTFF_INBASE:
-					    flaginbase(flag);
-					    break;
-				    case CTFF_IDLE:
-					    flagidle(flag);
+                    case CTFF_INBASE:
+                        flaginbase(flag);
+                        break;
+                    case CTFF_IDLE:
+                        flagidle(flag);
                         break;
                 }
                 break;
@@ -990,7 +1078,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             {
                 int fcn = getint(p);
                 int flags = getint(p);
-                playerent *p = (fcn == getclientnum() ? player1 : getclient(fcn));
+                playerent *p = getclient(fcn);
                 if(p) p->flagscore = flags;
                 break;
             }
@@ -998,7 +1086,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             case SV_ARENAWIN:
             {
                 int acn = getint(p);
-                playerent *alive = acn<0 ? NULL : (acn==getclientnum() ? player1 : getclient(acn));
+                playerent *alive = getclient(acn);
                 conoutf(_("the round is over! next round in 5 seconds..."));
                 if(m_botmode && acn==-2) hudoutf(_("the bots have won the round!"));
                 else if(!alive) hudoutf(_("everyone died!"));
@@ -1106,11 +1194,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                                         break;
                                 }
                             }
-                            if(you && !team_isspect(d->team) && team_isspect(fnt) && d->state == CS_DEAD) spectate(SM_FLY);
+                            if(you && !team_isspect(d->team) && team_isspect(fnt) && d->state == CS_DEAD) spectatemode(SM_FLY);
                         }
                     }
                     else if(d->team != fnt && ftr == FTR_PLAYERWISH) conoutf(_("%s changed to active play"), you ? _("you") : colorname(d));
                     d->team = fnt;
+                    if(team_isspect(d->team)) d->state = CS_SPECTATE;
                 }
                 break;
             }
@@ -1139,22 +1228,23 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 if (type == SA_MAP && d == NULL) d = player1;      // gonext uses this
                 if( type < 0 || type >= SA_NUM || !d ) return;
                 votedisplayinfo *v = NULL;
-                string a;
+                string a1, a2;
                 switch(type)
                 {
                     case SA_MAP:
                         getstring(text, p);
                         filtertext(text, text);
-                        itoa(a, getint(p));
-                        v = newvotedisplayinfo(d, type, text, a);
+                        itoa(a1, getint(p));
+                        defformatstring(t)("%d", getint(p));
+                        v = newvotedisplayinfo(d, type, text, a1, t);
                         break;
                     case SA_KICK:
                     case SA_BAN:
                     {
-                        itoa(a, getint(p));
+                        itoa(a1, getint(p));
                         getstring(text, p);
                         filtertext(text, text);
-                        v = newvotedisplayinfo(d, type, a, text);
+                        v = newvotedisplayinfo(d, type, a1, text);
                         break;
                     }
                     case SA_SERVERDESC:
@@ -1163,16 +1253,24 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                         v = newvotedisplayinfo(d, type, text, NULL);
                         break;
                     case SA_STOPDEMO:
+                        // compatibility
+                        break;
                     case SA_REMBANS:
                     case SA_SHUFFLETEAMS:
                         v = newvotedisplayinfo(d, type, NULL, NULL);
                         break;
+                    case SA_FORCETEAM:
+                        itoa(a1, getint(p));
+                        itoa(a2, getint(p));
+                        v = newvotedisplayinfo(d, type, a1, a2);
+                        break;
                     default:
-                        itoa(a, getint(p));
-                        v = newvotedisplayinfo(d, type, a, NULL);
+                        itoa(a1, getint(p));
+                        v = newvotedisplayinfo(d, type, a1, NULL);
                         break;
                 }
                 displayvote(v);
+                onCallVote(type, v->owner->clientnum, text, a1);
                 if (vcn >= 0)
                 {
                     loopi(n_yes) votecount(VOTE_YES);
@@ -1184,28 +1282,46 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             }
 
             case SV_CALLVOTESUC:
+            {
                 callvotesuc();
+                onChangeVote( 0, -1);
                 break;
+            }
 
             case SV_CALLVOTEERR:
-                callvoteerr(getint(p));
+            {
+                int errn = getint(p);
+                callvoteerr(errn);
+                onChangeVote( 1, errn);
                 break;
+            }
 
             case SV_VOTE:
-                votecount(getint(p));
+            {
+                int vote = getint(p);
+                votecount(vote);
+                onChangeVote( 2, vote);
                 break;
+            }
 
             case SV_VOTERESULT:
-                voteresult(getint(p));
-                break;
-
-            case SV_WHOISINFO:
             {
-                int cn = getint(p);
-                playerent *pl = cn == getclientnum() ? player1 : getclient(cn);
-                int ip = getint(p);
-                if((ip>>24&0xFF) > 0 || player1->clientrole==CR_ADMIN) conoutf("WHOIS %2d: %-16s\t%d.%d.%d.%d", cn, pl ? colorname(pl) : "", ip&0xFF, ip>>8&0xFF, ip>>16&0xFF, ip>>24&0xFF); // full IP
-                else conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.x", cn, pl ? colorname(pl) : "", ip&0xFF, ip>>8&0xFF, ip>>16&0xFF); // censored IP
+                int vres = getint(p);
+                voteresult(vres);
+                onChangeVote( 3, vres);
+                break;
+            }
+
+            case SV_IPLIST:
+            {
+                int cn;
+                while((cn = getint(p)) >= 0 && !p.overread())
+                {
+                    playerent *pl = getclient(cn);
+                    int ip = getint(p);
+                    if(!pl) continue;
+                    else pl->address = ip;
+                }
                 break;
             }
 
@@ -1216,22 +1332,37 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 else loopi(demos)
                 {
                     getstring(text, p);
-                    conoutf("%d. %s", i+1, text); // i18n for this?? there's tons of other strings that NEED it, not this. (said flowtron: 2010jul13)
+                    conoutf("%d. %s", i+1, text);
                 }
                 break;
             }
 
             case SV_DEMOPLAYBACK:
             {
-                watchingdemo = demoplayback = getint(p)!=0;
+                string demofile;
+                extern char *curdemofile;
+                if(demo && watchingdemo && demoprotocol == 1132)
+                {
+                    watchingdemo = demoplayback = getint(p)!=0;
+                    copystring(demofile, "n/a");
+                }
+                else
+                {
+                    getstring(demofile, p, MAXSTRLEN);
+                    watchingdemo = demoplayback = demofile[0] != '\0';
+                }
+                DELETEA(curdemofile);
                 if(demoplayback)
                 {
+                    curdemofile = newstring(demofile);
                     player1->resetspec();
                     player1->state = CS_SPECTATE;
+                    player1->team = TEAM_SPECT;
                 }
                 else
                 {
                     // cleanups
+                    curdemofile = newstring("n/a");
                     loopv(players) zapplayer(players[i]);
                     clearvote();
                     player1->state = CS_ALIVE;
@@ -1252,9 +1383,70 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
     #endif
 }
 
+void setDemoFilenameFormat(char *fmt)
+{
+    extern string demofilenameformat;
+    if(fmt && fmt[0]!='\0')
+    {
+        copystring(demofilenameformat, fmt);
+    } else copystring(demofilenameformat, DEFDEMOFILEFMT); // reset to default if passed empty string - or should we output the current value in this case?
+}
+COMMANDN(demonameformat, setDemoFilenameFormat, "s");
+void setDemoTimestampFormat(char *fmt)
+{
+    extern string demotimestampformat;
+    if(fmt && fmt[0]!='\0')
+    {
+        copystring(demotimestampformat, fmt);
+    } else copystring(demotimestampformat, DEFDEMOTIMEFMT); // reset to default if passed empty string - or should we output the current value in this case?
+}
+COMMANDN(demotimeformat, setDemoTimestampFormat, "s");
+void setDemoTimeLocal(int *truth)
+{
+    extern int demotimelocal;
+    demotimelocal = *truth == 0 ? 0 : 1;
+}
+COMMANDN(demotimelocal, setDemoTimeLocal, "i");
+void getdemonameformat() { extern string demofilenameformat; result(demofilenameformat); } COMMAND(getdemonameformat, "");
+void getdemotimeformat() { extern string demotimestampformat; result(demotimestampformat); } COMMAND(getdemotimeformat, "");
+void getdemotimelocal() { extern int demotimelocal; intret(demotimelocal); } COMMAND(getdemotimelocal, "");
+
+
+const char *parseDemoFilename(char *srvfinfo)
+{
+    int gmode = 0; //-314;
+    int mplay = 0;
+    int mdrop = 0;
+    int stamp = 0;
+    string srvmap;
+    if(srvfinfo && srvfinfo[0])
+    {
+        int fip = 0;
+        char sep[] = ":";
+        char *pch;
+        pch = strtok (srvfinfo,sep);
+        while (pch != NULL && fip < 4)
+        {
+            fip++;
+            switch(fip)
+            {
+                case 1: gmode = atoi(pch); break;
+                case 2: mplay = atoi(pch); break;
+                case 3: mdrop = atoi(pch); break;
+                case 4: stamp = atoi(pch); break;
+                default: break;
+            }
+            pch = strtok (NULL, sep);
+        }
+        copystring(srvmap, pch);
+    }
+    extern const char *getDemoFilename(int gmode, int mplay, int mdrop, int tstamp, char *srvmap);
+    return getDemoFilename(gmode, mplay, mdrop, stamp, srvmap);
+}
+
 void receivefile(uchar *data, int len)
 {
-	static char text[MAXTRANS];
+    static char text[MAXTRANS];
     ucharbuf p(data, len);
     int type = getint(p);
     data += p.length();
@@ -1265,15 +1457,16 @@ void receivefile(uchar *data, int len)
         {
             getstring(text, p);
             extern string demosubpath;
-            defformatstring(fname)("demos/%s%s.dmo", demosubpath, text);
+            defformatstring(demofn)("%s", parseDemoFilename(text));
+            defformatstring(fname)("demos/%s%s.dmo", demosubpath, demofn);
             copystring(demosubpath, "");
             data += strlen(text);
             int demosize = getint(p);
             if(p.remaining() < demosize)
-			{
-				p.forceoverread();
-				break;
-			}
+            {
+                p.forceoverread();
+                break;
+            }
             path(fname);
             stream *demo = openrawfile(fname, "wb");
             if(!demo)
@@ -1324,19 +1517,19 @@ void receivefile(uchar *data, int len)
     }
 }
 
-void servertoclient(int chan, uchar *buf, int len)   // processes any updates from the server
+void servertoclient(int chan, uchar *buf, int len, bool demo)   // processes any updates from the server
 {
     ucharbuf p(buf, len);
     switch(chan)
     {
         case 0: parsepositions(p); break;
-        case 1: parsemessages(-1, NULL, p); break;
+        case 1: parsemessages(-1, NULL, p, demo); break;
         case 2: receivefile(p.buf, p.maxlen); break;
     }
 }
 
-void localservertoclient(int chan, uchar *buf, int len)   // processes any updates from the server
+void localservertoclient(int chan, uchar *buf, int len, bool demo)   // processes any updates from the server
 {
 //    pktlogger.queue(enet_packet_create (buf, len, 0));  // log local & demo packets
-    servertoclient(chan, buf, len);
+    servertoclient(chan, buf, len, demo);
 }

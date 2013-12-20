@@ -166,6 +166,14 @@ enet_socket_set_option (ENetSocket socket, ENetSocketOption option, int value)
             result = setsockopt (socket, SOL_SOCKET, SO_SNDBUF, (char *) & value, sizeof (int));
             break;
 
+        case ENET_SOCKOPT_RCVTIMEO:
+            result = setsockopt (socket, SOL_SOCKET, SO_RCVTIMEO, (char *) & value, sizeof (int));
+            break;
+
+        case ENET_SOCKOPT_SNDTIMEO:
+            result = setsockopt (socket, SOL_SOCKET, SO_SNDTIMEO, (char *) & value, sizeof (int));
+            break;
+
         default:
             break;
     }
@@ -176,6 +184,7 @@ int
 enet_socket_connect (ENetSocket socket, const ENetAddress * address)
 {
     struct sockaddr_in sin;
+    int result;
 
     memset (& sin, 0, sizeof (struct sockaddr_in));
 
@@ -183,7 +192,11 @@ enet_socket_connect (ENetSocket socket, const ENetAddress * address)
     sin.sin_port = ENET_HOST_TO_NET_16 (address -> port);
     sin.sin_addr.s_addr = address -> host;
 
-    return connect (socket, (struct sockaddr *) & sin, sizeof (struct sockaddr_in)) == SOCKET_ERROR ? -1 : 0;
+    result = connect (socket, (struct sockaddr *) & sin, sizeof (struct sockaddr_in));
+    if (result == SOCKET_ERROR && WSAGetLastError () != WSAEWOULDBLOCK)
+      return -1;
+
+    return 0;
 }
 
 ENetSocket
@@ -209,10 +222,17 @@ enet_socket_accept (ENetSocket socket, ENetAddress * address)
     return result;
 }
 
+int
+enet_socket_shutdown (ENetSocket socket, ENetSocketShutdown how)
+{
+    return shutdown (socket, (int) how) == SOCKET_ERROR ? -1 : 0;
+}
+
 void
 enet_socket_destroy (ENetSocket socket)
 {
-    closesocket (socket);
+    if (socket != INVALID_SOCKET)
+      closesocket (socket);
 }
 
 int
@@ -238,7 +258,7 @@ enet_socket_send (ENetSocket socket,
                    (DWORD) bufferCount,
                    & sentLength,
                    0,
-                   address != NULL ? (struct sockaddr *) & sin : 0,
+                   address != NULL ? (struct sockaddr *) & sin : NULL,
                    address != NULL ? sizeof (struct sockaddr_in) : 0,
                    NULL,
                    NULL) == SOCKET_ERROR)

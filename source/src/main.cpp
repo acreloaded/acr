@@ -10,8 +10,8 @@ void cleanup(char *msg)         // single program exit point;
         audiomgr.soundcleanup();
         cleanupserver();
 
-        extern void setdefaultgamma();
-        setdefaultgamma();
+        extern void cleargamma();
+        cleargamma();
     }
     SDL_ShowCursor(1);
     if(msg)
@@ -34,6 +34,7 @@ void quit()                     // normal exit
     extern void writeinitcfg();
     writeinitcfg();
     writeservercfg();
+    writepcksourcecfg();
     if(resetcfg) deletecfg();
     else writecfg();
     cleanup(NULL);
@@ -133,6 +134,7 @@ void writeinitcfg()
     extern int audio, soundchannels;
     f->printf("audio %d\n", audio > 0 ? 1 : 0);
     f->printf("soundchannels %d\n", soundchannels);
+    f->printf("lang %s\n", lang);
     delete f;
 }
 
@@ -162,12 +164,16 @@ const char *screenshotpath(const char *imagepath, const char *suffix)
     return buf;
 }
 
+FVARP(screenshotscale, 0.1f, 1.0f, 1.0f);
+
 void bmp_screenshot(const char *imagepath, bool mapshot = false)
 {
     extern int minimaplastsize;
     int iw = mapshot?minimaplastsize:screen->w;
     int ih = mapshot?minimaplastsize:screen->h;
-    SDL_Surface *image = creatergbsurface(iw, ih);
+    int tw = mapshot ? iw : iw*screenshotscale;
+    int th = mapshot ? ih : ih*screenshotscale;
+    SDL_Surface *image = creatergbsurface(tw, th);
     if(!image) return;
     uchar *tmp = new uchar[iw*ih*3];
     uchar *dst = (uchar *)image->pixels;
@@ -176,7 +182,7 @@ void bmp_screenshot(const char *imagepath, bool mapshot = false)
         extern GLuint minimaptex;
         if(minimaptex)
         {
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+            glPixelStorei(GL_PACK_ALIGNMENT, 1);
             glBindTexture(GL_TEXTURE_2D, minimaptex);
             glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, tmp);
         }
@@ -189,11 +195,18 @@ void bmp_screenshot(const char *imagepath, bool mapshot = false)
     else
     {
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
-        glReadPixels(0, 0, iw, ih, GL_RGB, GL_UNSIGNED_BYTE, tmp); //screen->w//screen->h
+        if(screenshotscale != 1.0f)
+        {
+            uchar *buf = new uchar[iw*ih*3];
+            glReadPixels(0, 0, iw, ih, GL_RGB, GL_UNSIGNED_BYTE, buf); //screen->w//screen->h
+            scaletexture(buf, iw, ih, 3, tmp, tw, th);
+            delete[] buf;
+        }
+        else glReadPixels(0, 0, tw, th, GL_RGB, GL_UNSIGNED_BYTE, tmp);
     }
-    loopi(ih)
+    loopi(th)
     {
-        memcpy(dst, &tmp[3*iw*(ih-i-1)], 3*iw);
+        memcpy(dst, &tmp[3*tw*(th-i-1)], 3*tw);
         dst += image->pitch;
     }
     delete[] tmp;
@@ -208,157 +221,8 @@ void bmp_screenshot(const char *imagepath, bool mapshot = false)
     SDL_FreeSurface(image);
 }
 
-VARP(jpegquality, 10, 70, 100);
-/*
-struct jpegscreenshotdest : jpeg_destination_mgr
-{
-    JOCTET buf[4096];
-    stream *file;
-
-    void reset()
-    {
-        next_output_byte = buf;
-        free_in_buffer = sizeof(buf);
-    }
-
-    void flush(bool full)
-    {
-        file->write(buf, int(sizeof(buf) - (full ? 0 : free_in_buffer)));
-        reset();
-    }
-
-    static void inithandler(j_compress_ptr cinfo)
-    {
-        ((jpegscreenshotdest *)cinfo->dest)->reset();
-    }
-
-    static void termhandler(j_compress_ptr cinfo)
-    {
-        ((jpegscreenshotdest *)cinfo->dest)->flush(false);
-    }
-
-    static boolean flushhandler(j_compress_ptr cinfo)
-    {
-        ((jpegscreenshotdest *)cinfo->dest)->flush(true);
-        return TRUE;
-    }
-
-    jpegscreenshotdest(stream *file) : file(file)
-    {
-        init_destination = inithandler;
-        empty_output_buffer = flushhandler;
-        term_destination = termhandler;
-    }
-};
-
-struct jpegscreenshoterror : jpeg_error_mgr
-{
-    jmp_buf restore;
-
-    static void exithandler(j_common_ptr cinfo)
-    {
-        longjmp(((jpegscreenshoterror *)cinfo->err)->restore, 1);
-    }
-
-    static void messagehandler(j_common_ptr cinfo)
-    {
-        char buf[JMSG_LENGTH_MAX];
-        (*cinfo->err->format_message)(cinfo, buf);
-        conoutf("jpeg library error: %s", buf);
-    }
-
-    jpegscreenshoterror()
-    {
-        jpeg_std_error(this);
-        error_exit = exithandler;
-        output_message = messagehandler;
-    }
-
-    bool failed()
-    {
-        return setjmp(restore) != 0;
-    }
-};
-
-void jpeg_screenshot_____(const char *imagepath, bool mapshot = false)
-{
-    extern int minimaplastsize;
-    int iw = mapshot?minimaplastsize:screen->w;
-    int ih = mapshot?minimaplastsize:screen->h;
-    const char *filename = screenshotpath(imagepath, "jpg");
-    stream *file = openfile(screenshotpath(imagepath, "jpg"), "wb");
-    if(!file) { conoutf("failed to create: %s", filename); return; }
-
-    int row_stride = 3*iw;
-    uchar *pixels = new uchar[row_stride*ih];
-
-    jpeg_compress_struct cinfo;
-    jpegscreenshoterror jerr;
-
-    cinfo.err = &jerr;
-    if(jerr.failed())
-    {
-        jpeg_destroy_compress(&cinfo);
-        delete[] pixels;
-        delete file;
-        return;
-    }
-
-    jpeg_create_compress(&cinfo);
-    jpegscreenshotdest dest(file);
-    cinfo.dest = &dest;
-    //jpeg_stdio_dest(&cinfo, jpegfile);
-
-    if(mapshot)
-    {
-        //conoutf("not implemented yet");
-        extern GLuint minimaptex;
-        if(minimaptex)
-        {
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-            glBindTexture(GL_TEXTURE_2D, minimaptex);
-            glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-        }
-        else
-        {
-            conoutf("no mapshot prepared!");
-            jpeg_destroy_compress(&cinfo);
-            delete[] pixels;
-            delete file;
-            return;
-        }
-
-    }
-    else
-    {
-        glPixelStorei(GL_PACK_ALIGNMENT, 1);
-        glReadPixels(0, 0, iw, ih, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-    }
-
-    cinfo.image_width = iw;
-    cinfo.image_height = ih;
-    cinfo.input_components = 3;
-    cinfo.in_color_space = JCS_RGB;
-
-    jpeg_set_defaults(&cinfo);
-    jpeg_set_quality(&cinfo, jpegquality, TRUE);
-    jpeg_start_compress(&cinfo, TRUE);
-    const char *comment = asciiscores(true);
-    jpeg_write_marker(&cinfo, JPEG_COM, (JOCTET *) comment, (uint)strlen(comment));
-
-    while(cinfo.next_scanline < cinfo.image_height)
-    {
-        JSAMPROW row_pointer = &pixels[(cinfo.image_height-cinfo.next_scanline-1) * row_stride];
-        (void) jpeg_write_scanlines(&cinfo, &row_pointer, 1);
-    }
-
-    jpeg_finish_compress(&cinfo);
-    jpeg_destroy_compress(&cinfo);
-
-    delete[] pixels;
-    delete file;
-}
-*/
+// best: 100 - good: 85 [default] - bad: 70 - terrible: 50
+VARP(jpegquality, 10, 85, 100);
 
 #include "jpegenc.h"
 
@@ -367,15 +231,17 @@ void jpeg_screenshot(const char *imagepath, bool mapshot = false)
     extern int minimaplastsize;
     int iw = mapshot?minimaplastsize:screen->w;
     int ih = mapshot?minimaplastsize:screen->h;
+    int tw = mapshot ? iw : iw*screenshotscale;
+    int th = mapshot ? ih : ih*screenshotscale;
 
-    uchar *pixels = new uchar[3*iw*ih];
+    uchar *pixels = new uchar[3*tw*th];
 
     if(mapshot)
     {
         extern GLuint minimaptex;
         if(minimaptex)
         {
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+            glPixelStorei(GL_PACK_ALIGNMENT, 1);
             glBindTexture(GL_TEXTURE_2D, minimaptex);
             glGetTexImage(GL_TEXTURE_2D, 0, GL_BGR, GL_UNSIGNED_BYTE, pixels);
         }
@@ -389,23 +255,32 @@ void jpeg_screenshot(const char *imagepath, bool mapshot = false)
     else
     {
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
-        glReadPixels(0, 0, iw, ih, GL_BGR, GL_UNSIGNED_BYTE, pixels);
-        int stride = 3*iw;
+        if(screenshotscale != 1.0f)
+        {
+            uchar *buf = new uchar[iw*ih*3];
+            glReadPixels(0, 0, iw, ih, GL_BGR, GL_UNSIGNED_BYTE, buf);
+            scaletexture(buf, iw, ih, 3, pixels, tw, th);
+            delete[] buf;
+        }
+        else glReadPixels(0, 0, tw, th, GL_BGR, GL_UNSIGNED_BYTE, pixels);
+
+        int stride = 3*tw;
 
         GLubyte *swapline = (GLubyte *) malloc(stride);
-        for(int row = 0; row < ih/2; row++)
+        for(int row = 0; row < th/2; row++)
         {
             memcpy(swapline, pixels + row * stride, stride);
-            memcpy(pixels + row * stride, pixels + (ih - row - 1) * stride, stride);
-            memcpy(pixels + (ih - row -1) * stride, swapline, stride);
+            memcpy(pixels + row * stride, pixels + (th - row - 1) * stride, stride);
+            memcpy(pixels + (th - row -1) * stride, swapline, stride);
         }
+        free(swapline);
     }
 
     const char *filename = findfile(screenshotpath(imagepath, "jpg"), "wb");
     conoutf("writing to file: %s", filename);
 
     jpegenc *jpegencoder = new jpegenc;
-    jpegencoder->encode(filename, (colorRGB *)pixels, iw, ih, jpegquality);
+    jpegencoder->encode(filename, (colorRGB *)pixels, tw, th, jpegquality);
     delete jpegencoder;
 
     delete[] pixels;
@@ -518,11 +393,13 @@ void png_screenshot(const char *imagepath, bool mapshot = false)
     extern int minimaplastsize;
     int iw = mapshot?minimaplastsize:screen->w;
     int ih = mapshot?minimaplastsize:screen->h;
+    int tw = mapshot ? iw : iw*screenshotscale;
+    int th = mapshot ? ih : ih*screenshotscale;
 
-    SDL_Surface *image = creatergbsurface(iw, ih);
+    SDL_Surface *image = creatergbsurface(tw, th);
     if(!image) return;
 
-    uchar *tmp = new uchar[iw*ih*3];
+    uchar *tmp = new uchar[tw*th*3];
     uchar *dst = (uchar *)image->pixels;
 
     if(mapshot)
@@ -530,7 +407,7 @@ void png_screenshot(const char *imagepath, bool mapshot = false)
         extern GLuint minimaptex;
         if(minimaptex)
         {
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+            glPixelStorei(GL_PACK_ALIGNMENT, 1);
             glBindTexture(GL_TEXTURE_2D, minimaptex);
             glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, tmp);
         }
@@ -543,11 +420,18 @@ void png_screenshot(const char *imagepath, bool mapshot = false)
     else
     {
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
-        glReadPixels(0, 0, iw, ih, GL_RGB, GL_UNSIGNED_BYTE, tmp);
+        if(screenshotscale != 1.0f)
+        {
+            uchar *buf = new uchar[iw*ih*3];
+            glReadPixels(0, 0, iw, ih, GL_RGB, GL_UNSIGNED_BYTE, buf);
+            scaletexture(buf, iw, ih, 3, tmp, tw, th);
+            delete[] buf;
+        }
+        else glReadPixels(0, 0, tw, th, GL_RGB, GL_UNSIGNED_BYTE, tmp);
     }
-    loopi(ih)
+    loopi(th)
     {
-        memcpy(dst, &tmp[3*iw*(ih-i-1)], 3*iw);
+        memcpy(dst, &tmp[3*tw*(th-i-1)], 3*tw);
         dst += image->pitch;
     }
     delete[] tmp;
@@ -592,15 +476,9 @@ void mapshot()
 
 bool needsautoscreenshot = false;
 
-void makeautoscreenshot()
-{
-    needsautoscreenshot = false;
-    screenshot(NULL);
-}
-
-COMMAND(screenshot, ARG_1STR);
-COMMAND(mapshot, ARG_NONE);
-COMMAND(quit, ARG_NONE);
+COMMAND(screenshot, "s");
+COMMAND(mapshot, "");
+COMMAND(quit, "");
 
 void screenres(int w, int h)
 {
@@ -632,28 +510,27 @@ void setresdata(char *s, enet_uint32 c)
 }
 #endif
 
-COMMAND(screenres, ARG_2INT);
+COMMANDF(screenres, "ii", (int *w, int *h) { screenres(*w, *h); });
 
+static int curgamma = 100;
 VARFP(gamma, 30, 100, 300,
 {
+    if(gamma == curgamma) return;
+    curgamma = gamma;
     float f = gamma/100.0f;
-    if(SDL_SetGamma(f,f,f)==-1)
-    {
-        conoutf("Could not set gamma (card/driver doesn't support it?)");
-        conoutf("sdl: %s", SDL_GetError());
-    }
+    if(SDL_SetGamma(f,f,f)==-1) conoutf("Could not set gamma: %s", SDL_GetError());
 });
 
-void setdefaultgamma()
+void cleargamma()
 {
-    SDL_SetGamma(1, 1, 1);
+    if(curgamma != 100) SDL_SetGamma(1, 1, 1);
 }
 
-void resetgamma()
+void restoregamma()
 {
-    float f = gamma/100.0f;
-    if(f==1) return;
-    setdefaultgamma();
+    if(curgamma == 100) return;
+    float f = curgamma/100.0f;
+    SDL_SetGamma(1, 1, 1);
     SDL_SetGamma(f, f, f);
 }
 
@@ -743,6 +620,8 @@ void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
     usedfsaa = config&2 ? fsaa : 0;
 }
 
+extern int hirestextures;
+
 void resetgl()
 {
     clearchanges(CHANGE_GFX);
@@ -759,6 +638,7 @@ void resetgl()
     cleanuptextures();
     cleanuptmus();
     cleanupgl();
+    uniformtexres = !hirestextures;
     c2skeepalive();
 
     SDL_SetVideoMode(0, 0, 0, 0);
@@ -775,11 +655,12 @@ void resetgl()
         fatal("failed to reload core texture");
     loadingscreen();
     c2skeepalive();
-    resetgamma();
+    restoregamma();
     c2skeepalive();
     reloadfonts();
     reloadtextures();
     c2skeepalive();
+    drawscope(true); // 2011feb05:ft: preload scope.png
     preload_playermodels();
     c2skeepalive();
     preload_hudguns();
@@ -790,9 +671,9 @@ void resetgl()
     c2skeepalive();
 }
 
-COMMAND(resetgl, ARG_NONE);
+COMMAND(resetgl, "");
 
-VARP(maxfps, 0, 200, 1000);
+VARFP(maxfps, 0, 200, 1000, if(maxfps && maxfps < 25) maxfps = 25);
 
 void limitfps(int &millis, int curmillis)
 {
@@ -818,14 +699,14 @@ void limitfps(int &millis, int curmillis)
 
 int lowfps = 30, highfps = 40;
 
-void fpsrange(int low, int high)
+void fpsrange(int *low, int *high)
 {
-    if(low>high || low<1) return;
-    lowfps = low;
-    highfps = high;
+    if(*low>*high || *low<1) return;
+    lowfps = *low;
+    highfps = *high;
 }
 
-COMMAND(fpsrange, ARG_2INT);
+COMMAND(fpsrange, "ii");
 
 void keyrepeat(bool on)
 {
@@ -857,6 +738,22 @@ bool interceptkey(int sym)
     }
     return false;
 }
+
+void togglegrab()
+{
+    if (SDL_WM_GrabInput(SDL_GRAB_QUERY) == SDL_GrabMode(0))
+    {
+        SDL_WM_GrabInput(SDL_GRAB_ON);
+        conoutf("mouse input locked");
+    }
+    else
+    {
+        SDL_WM_GrabInput(SDL_GrabMode(0));
+        conoutf("mouse input released");
+    }
+}
+
+COMMAND(togglegrab, "");
 
 static void resetmousemotion()
 {
@@ -991,25 +888,101 @@ static int clockrealbase = 0, clockvirtbase = 0;
 static void clockreset() { clockrealbase = SDL_GetTicks(); clockvirtbase = totalmillis; }
 VARFP(clockerror, 990000, 1000000, 1010000, clockreset());
 VARFP(clockfix, 0, 0, 1, clockreset());
+VARP(gamestarts, 0, 0, INT_MAX);
 
 const char *rndmapname()
 {
-    // "ac_depot_classic",
-    static const char * const mapnames[] = {
-        "ac_aqueous",  "ac_arabian",  "ac_arctic",  "ac_arid", "ac_complex",
-        "ac_depot",  "ac_desert",  "ac_desert2", "ac_desert3",  "ac_douze",
-        "ac_elevation",  "ac_gothic",  "ac_iceroad",  "ac_ingress", "ac_keller",
-        "ac_mines",  "ac_outpost",  "ac_power",  "ac_rattrap",  "ac_scaffold",
-        "ac_shine",  "ac_snow",  "ac_sunset",  "ac_toxic",  "ac_urban",
-        "ac_werk",
-    };
-    srand(time(NULL));
-    int l = sizeof(mapnames)/sizeof(mapnames[0]);
-    int n = rnd(l);
-    return mapnames[n];
+    vector<char *> maps;
+    listfiles("packages/maps/official", "cgz", maps);
+    char *map = newstring(maps[rnd(maps.length())]);
+    maps.deletearrays();
+    return map;
 }
 
-extern void connectserv(char *, char *, char *);
+extern void connectserv(char *, int *, char *);
+
+void connectprotocol(char *protocolstring, string &servername, int &serverport, string &password, bool &direct_connect)
+{
+    const char *c = &protocolstring[14], *p = c;
+    int len = 0;
+    direct_connect = false;
+    string sp;
+    servername[0] = password[0] = '\0';
+    serverport = 0;
+    while(*c && *c!='/' && *c!='?' && *c!=':') { len++; c++; }
+    if(!len) { conoutf("\f3bad commandline syntax", protocolstring); return; }
+    copystring(servername, p, min(len+1, MAXSTRLEN));
+    direct_connect = true;
+    if(*c && *c==':')
+    {
+        c++; p = c; len = 0;
+        while(*c && *c!='/' && *c!='?') { len++; c++; }
+        if(len)
+        {
+            copystring(sp, p, min(len+1, MAXSTRLEN));
+            serverport = atoi(sp);
+        }
+    }
+    if(*c && *c=='/') c++;
+    if(!*c || *c!='?') return;
+    do
+    {
+        if(*c) c++;
+        if(!strncmp(c, "port=", 5))
+        {
+            c += 5; p = c; len = 0;
+            while(*c && *c!='&' && *c!='/') { len++; c++; }
+            if(len)
+            {
+                copystring(sp, p, min(len+1, MAXSTRLEN));
+                serverport = atoi(sp);
+            }
+        }
+        else if(!strncmp(c, "password=", 9))
+        {
+            c += 9; p = c; len = 0;
+            while(*c && *c!='&' && *c!='/') { len++, c++; }
+            if(len) copystring(password, p, min(len+1, MAXSTRLEN));
+        }
+        else break;
+    } while(*c && *c=='&' && *c!='/');
+}
+
+#ifdef WIN32
+static char *parsecommandline(const char *src, vector<char *> &args)
+{
+    char *buf = new char[strlen(src) + 1], *dst = buf;
+    for(;;)
+    {
+        while(isspace(*src)) src++;
+        if(!*src) break;
+        args.add(dst);
+        for(bool quoted = false; *src && (quoted || !isspace(*src)); src++)
+        {
+            if(*src != '"') *dst++ = *src;
+            else if(dst > buf && src[-1] == '\\') dst[-1] = '"';
+            else quoted = !quoted;
+        }
+        *dst++ = '\0';
+    }
+    args.add(NULL);
+    return buf;
+}
+
+
+int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
+{
+    vector<char *> args;
+    char *buf = parsecommandline(GetCommandLine(), args);
+    SDL_SetModuleHandle(hInst);
+    int status = SDL_main(args.length()-1, args.getbuf());
+    delete[] buf;
+    exit(status);
+    return 0;
+}
+#endif
+
+VARP(compatibilitymode, 0, 1, 1); // FIXME : find a better place to put this ?
 
 int main(int argc, char **argv)
 {
@@ -1028,9 +1001,8 @@ int main(int argc, char **argv)
     char *initscript = NULL;
     char *initdemo = NULL;
     bool direct_connect = false;               // to connect via assaultcube:// browser switch
-    char *servername = NULL,
-        *serverport = NULL,
-        *password = NULL;
+    string servername, password;
+    int serverport;
 
     const char *initmap = rndmapname();
 
@@ -1100,39 +1072,7 @@ int main(int argc, char **argv)
             }
             else if(!strncmp(argv[i], "assaultcube://", 14)) // browser direct connection
             {
-                const char *c = &argv[i][14], *p = c;
-                int len = 0;
-                while (*c && *c!='/' && *c!='?') { len++; c++; }
-                if (!len) { conoutf("\f3bad commandline syntax", argv[i]); continue; }
-                if (!servername) servername = new char[len+1];
-                strncpy(servername,p,len);
-                servername[len] = '\0';
-                direct_connect = true;
-                if (*c && *c=='/') c++;
-                if (!*c || *c!='?') continue;
-                do
-                {
-                    if (*c) c++;
-                    if (!strncmp(c, "port=", 5))
-                    {
-                        c += 5; p = c; len = 0;
-                        while (*c && *c!='&' && *c!='/') { len++; c++; }
-                        if (serverport) delete [] serverport;
-                        serverport = new char[len+1];
-                        strncpy(serverport, p, len);
-                        serverport[len] = '\0';
-                    }
-                    else if (!strncmp(c, "password=", 9))
-                    {
-                        c += 9; p = c; len = 0;
-                        while (*c && *c!='&' && *c!='/') { len++, c++; }
-                        if (password) delete [] password;
-                        password = new char[len+1];
-                        strncpy(password, p, len);
-                        password[len] = '\0';
-                    }
-                    else break;
-                } while (*c && *c=='&' && *c!='/');
+                connectprotocol(argv[i], servername, serverport, password, direct_connect);
             }
             else conoutf("\f3unknown commandline argument: %c", argv[i][0]);
         }
@@ -1187,10 +1127,14 @@ int main(int argc, char **argv)
     notexture = noworldtexture = textureload("packages/misc/notexture.jpg");
     if(!notexture) fatal("could not find core textures (hint: run AssaultCube from the parent of the bin directory)");
 
+    nomodel = loadmodel("misc/gib01", -1);      //FIXME: need actual placeholder model
+    if(!notexture) fatal("could not find core models");
+
     initlog("console");
-    persistidents = false;
+    per_idents = false;
+    // Main font file, all other font files execute from here.
     if(!execfile("config/font.cfg")) fatal("cannot find default font definitions");
-    if(!execfile("config/mono.cfg")) fatal("cannot find default font definitions");
+    // Check these 2 standard fonts have been executed.
     if(!setfont("mono")) fatal("no mono font specified");
     if(!setfont("default")) fatal("no default font specified");
 
@@ -1202,11 +1146,8 @@ int main(int argc, char **argv)
     audiomgr.initsound();
 
     initlog("cfg");
-    extern void *scoremenu, *teammenu, *ctfmenu, *servmenu, *searchmenu, *serverinfomenu, *kickmenu, *banmenu, *forceteammenu, *giveadminmenu, *docmenu, *applymenu;
+    extern void *scoremenu, *servmenu, *searchmenu, *serverinfomenu, *kickmenu, *banmenu, *forceteammenu, *giveadminmenu, *docmenu, *applymenu;
     scoremenu = addmenu("score", "columns", false, renderscores, NULL, false, true);
-    teammenu = addmenu("team score", "columns", false, renderscores, NULL, false, true);
-    ctfmenu = addmenu("ctf score", "columns", false, renderscores, NULL, false, true);
-    reorderscorecolumns();
     servmenu = addmenu("server", NULL, true, refreshservers, serverskey);
     searchmenu = addmenu("search", NULL, true, refreshservers, serverskey);
     serverinfomenu = addmenu("serverinfo", NULL, true, refreshservers, serverinfokey);
@@ -1227,7 +1168,7 @@ int main(int argc, char **argv)
     exec("config/securemaps.cfg");
     exec("config/admin.cfg");
     execfile("config/servers.cfg");
-    persistidents = true;
+    per_idents = true;
 
     static char resdata[] = { 112, 97, 99, 107, 97, 103, 101, 115, 47, 116, 101, 120, 116, 117, 114, 101, 115, 47, 107, 117, 114, 116, 47, 107, 108, 105, 116, 101, 50, 46, 106, 112, 103, 0 };
     stream *f = opengzfile(resdata, "rb");
@@ -1250,20 +1191,31 @@ int main(int argc, char **argv)
         exec("config/defaults.cfg");
         firstrun = true;
     }
+    if(identexists("afterinit")) execute("afterinit");
+    if(compatibilitymode)
+    {
+        per_idents = false;
+        exec("config/compatibility.cfg"); // exec after saved.cfg to get "compatibilitymode", but before user scripts..
+        per_idents = true;
+    }
     execfile("config/autoexec.cfg");
     execfile("config/auth.cfg");
     execute("addallfavcatmenus");  // exec here, to add all categories (including those defined in autoexec.cfg)
     initing = NOT_INITING;
+    uniformtexres = !hirestextures;
 
     initlog("models");
     preload_playermodels();
     preload_hudguns();
+    initlog("curl");
+    setupcurl();
+
     preload_entmodels();
 
     initlog("docs");
-    persistidents = false;
+    per_idents = false;
     execfile("config/docs.cfg");
-    persistidents = true;
+    per_idents = true;
 
     initlog("localconnect");
     extern string clientmap;
@@ -1280,6 +1232,9 @@ int main(int argc, char **argv)
     localconnect();
 
     if(initscript) execute(initscript);
+
+    gamestarts = max(1, gamestarts+1);
+    if(autodownload && (gamestarts % 100 == 1)) sortpckservers();
 
     initlog("mainloop");
 
@@ -1306,6 +1261,11 @@ int main(int argc, char **argv)
             int scaledtime = elapsed*gamespeed + timeerr;
             curtime = scaledtime/100;
             timeerr = scaledtime%100;
+            if(nextmillis && watchingdemo)
+            {
+                curtime += nextmillis;
+                nextmillis = 0;
+            }
             if(paused) curtime = 0;
         }
         lastmillis += curtime;
@@ -1331,15 +1291,25 @@ int main(int argc, char **argv)
             if(frames>4) SDL_GL_SwapBuffers();
         }
 
-        if(needsautoscreenshot) makeautoscreenshot();
-
+        if(needsautoscreenshot)
+        {
+            showscores(true);
+            // draw again after swapping buffers, to make sure menu is captured
+            // in the screenshot regardless of which frame buffer is current
+            if (!minimized)
+            {
+                gl_drawframe(screen->w, screen->h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);           
+            }
+            addsleep(0, "screenshot");
+            needsautoscreenshot = false;
+        }
 #ifdef _DEBUG
         if(millis>lastflush+60000) { fflush(stdout); lastflush = millis; }
 #endif
         if (direct_connect)
         {
             direct_connect = false;
-            connectserv(servername, serverport, password);
+            connectserv(servername, &serverport, password);
         }
     }
 
@@ -1352,3 +1322,4 @@ int main(int argc, char **argv)
 }
 
 VAR(version, 1, AC_VERSION, 0);
+VAR(protocol, 1, PROTOCOL_VERSION, 0);

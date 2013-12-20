@@ -3,7 +3,7 @@
 #include "cube.h"
 #include "bot/bot.h"
 
-bool hasTE = false, hasMT = false, hasMDA = false, hasDRE = false, hasstencil = false, hasST2 = false, hasSTW = false, hasSTS = false;
+bool hasTE = false, hasMT = false, hasMDA = false, hasDRE = false, hasstencil = false, hasST2 = false, hasSTW = false, hasSTS = false, hasAF;
 
 // GL_ARB_multitexture
 PFNGLACTIVETEXTUREARBPROC       glActiveTexture_   = NULL;
@@ -30,12 +30,22 @@ void *getprocaddress(const char *name)
     return SDL_GL_GetProcAddress(name);
 }
 
-int glext(char *ext)
+bool hasext(const char *exts, const char *ext)
+{
+    int len = strlen(ext);
+    for(const char *cur = exts; (cur = strstr(cur, ext)); cur += len)
+    {
+        if((cur == exts || cur[-1] == ' ') && (cur[len] == ' ' || !cur[len])) return true;
+    }
+    return false;
+}
+
+void glext(char *ext)
 {
     const char *exts = (const char *)glGetString(GL_EXTENSIONS);
-    return strstr(exts, ext) != NULL;
+    intret(hasext(exts, ext) ? 1 : 0);
 }
-COMMAND(glext, ARG_1EST);
+COMMAND(glext, "s");
 
 VAR(ati_mda_bug, 0, 0, 1);
 
@@ -48,10 +58,10 @@ void gl_checkextensions()
     conoutf("Renderer: %s (%s)", renderer, vendor);
     conoutf("Driver: %s", version);
 
-    if(strstr(exts, "GL_EXT_texture_env_combine") || strstr(exts, "GL_ARB_texture_env_combine")) hasTE = true;
+    if(hasext(exts, "GL_EXT_texture_env_combine") || hasext(exts, "GL_ARB_texture_env_combine")) hasTE = true;
     else conoutf("WARNING: cannot use overbright lighting, using old lighting model!");
 
-    if(strstr(exts, "GL_ARB_multitexture"))
+    if(hasext(exts, "GL_ARB_multitexture"))
     {
         glActiveTexture_       = (PFNGLACTIVETEXTUREARBPROC)      getprocaddress("glActiveTextureARB");
         glClientActiveTexture_ = (PFNGLCLIENTACTIVETEXTUREARBPROC)getprocaddress("glClientActiveTextureARB");
@@ -60,7 +70,7 @@ void gl_checkextensions()
         hasMT = true;
     }
 
-    if(strstr(exts, "GL_EXT_multi_draw_arrays"))
+    if(hasext(exts, "GL_EXT_multi_draw_arrays"))
     {
         glMultiDrawArrays_   = (PFNGLMULTIDRAWARRAYSEXTPROC)  getprocaddress("glMultiDrawArraysEXT");
         glMultiDrawElements_ = (PFNGLMULTIDRAWELEMENTSEXTPROC)getprocaddress("glMultiDrawElementsEXT");
@@ -69,28 +79,36 @@ void gl_checkextensions()
         if(strstr(vendor, "ATI")) ati_mda_bug = 1;
     }
 
-    if(strstr(exts, "GL_EXT_draw_range_elements"))
+    if(hasext(exts, "GL_EXT_draw_range_elements"))
     {
         glDrawRangeElements_ = (PFNGLDRAWRANGEELEMENTSEXTPROC)getprocaddress("glDrawRangeElementsEXT");
         hasDRE = true;
     }
 
-    if(strstr(exts, "GL_EXT_stencil_two_side"))
+    if(hasext(exts, "GL_EXT_stencil_two_side"))
     {
         glActiveStencilFace_ = (PFNGLACTIVESTENCILFACEEXTPROC)getprocaddress("glActiveStencilFaceEXT");
         hasST2 = true;
     }
 
-    if(strstr(exts, "GL_ATI_separate_stencil"))
+    if(hasext(exts, "GL_ATI_separate_stencil"))
     {
         glStencilOpSeparate_   = (PFNGLSTENCILOPSEPARATEATIPROC)  getprocaddress("glStencilOpSeparateATI");
         glStencilFuncSeparate_ = (PFNGLSTENCILFUNCSEPARATEATIPROC)getprocaddress("glStencilFuncSeparateATI");
         hasSTS = true;
     }
 
-    if(strstr(exts, "GL_EXT_stencil_wrap")) hasSTW = true;
+    if(hasext(exts, "GL_EXT_stencil_wrap")) hasSTW = true;
 
-    if(!strstr(exts, "GL_ARB_fragment_program"))
+    if(hasext(exts, "GL_EXT_texture_filter_anisotropic"))
+    {
+       GLint val;
+       glGetIntegerv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &val);
+       hwmaxaniso = val;
+       hasAF = true;
+    }
+
+    if(!hasext(exts, "GL_ARB_fragment_program"))
     {
         // not a required extension, but ensures the card has enough power to do reflections
         extern int waterreflect, waterrefract;
@@ -172,6 +190,9 @@ void disablepolygonoffset(GLenum type, bool restore)
     }
 }
 
+#define VARRAY_INTERNAL
+#include "varray.h"
+
 void line(int x1, int y1, float z1, int x2, int y2, float z2)
 {
     glBegin(GL_TRIANGLE_STRIP);
@@ -201,13 +222,15 @@ void linestyle(float width, int r, int g, int b)
     glColor3ub(r,g,b);
 }
 
+VARP(oldselstyle, 0, 1, 1); // Make the old (1004) grid/selection style default (render as quads rather than tris)
+
 void box(block &b, float z1, float z2, float z3, float z4)
 {
-    glBegin(GL_TRIANGLE_STRIP);
+    glBegin((oldselstyle ? GL_QUADS : GL_TRIANGLE_STRIP));
     glVertex3f((float)b.x,      (float)b.y,      z1);
     glVertex3f((float)b.x+b.xs, (float)b.y,      z2);
-    glVertex3f((float)b.x,      (float)b.y+b.ys, z4);
-    glVertex3f((float)b.x+b.xs, (float)b.y+b.ys, z3);
+    glVertex3f((float)(oldselstyle ? b.x+b.xs : b.x), (float)b.y+b.ys, (oldselstyle ? z3 : z4));
+    glVertex3f((float)(oldselstyle ? b.x : b.x+b.xs), (float)b.y+b.ys, (oldselstyle ? z4 : z3));
     glEnd();
     xtraverts += 4;
 }
@@ -430,13 +453,13 @@ void scopefunc()
 }
 
 // map old fov values to new ones
-void fovcompat(int oldfov)
+void fovcompat(int *oldfov)
 {
     extern float aspect;
-    setfvar("fov", atan(tan(RAD/2.0f*oldfov/aspect)*aspect)*2.0f/RAD, true);
+    setfvar("fov", atan(tan(RAD/2.0f*(*oldfov)/aspect)*aspect)*2.0f/RAD, true);
 }
 
-COMMAND(fovcompat, ARG_1INT);
+COMMAND(fovcompat, "i");
 
 float dynfov()
 {
@@ -480,6 +503,18 @@ void recomputecamera()
                 resetcamera();
                 camera1->eyeheight = 1.0f;
                 break;
+            case SM_OVERVIEW:
+            {
+                // TODO : fix water rendering
+                camera1->o.x = mapdims[0] + mapdims[4]/2;
+                camera1->o.y = mapdims[1] + mapdims[5]/2;
+                camera1->o.z = mapdims[7] + 1;
+                camera1->pitch = -90;
+                camera1->yaw = 0;
+
+                disableraytable();
+                break;
+            }
             case SM_FOLLOW1ST:
             {
                 playerent *f = updatefollowplayer();
@@ -713,14 +748,34 @@ bool minimap = false, minimapdirty = true;
 int minimaplastsize = 0;
 GLuint minimaptex = 0;
 
+vector<zone> zones;
+
+void renderzones(float z)
+{
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_TEXTURE_2D);
+    loopv(zones)
+    {
+        glColor4f(((zones[i].color>>16)&0xFF)/255.0f, ((zones[i].color>>8)&0xFF)/255.0f, (zones[i].color&0xFF)/255.0f, 0.3f);
+        glBegin(GL_QUADS);
+        glVertex3f(zones[i].x1, zones[i].y1, z);
+        glVertex3f(zones[i].x2, zones[i].y1, z);
+        glVertex3f(zones[i].x2, zones[i].y2, z);
+        glVertex3f(zones[i].x1, zones[i].y2, z);
+        glEnd();
+    }
+    glDisable(GL_BLEND);
+    glEnable(GL_TEXTURE_2D);
+}
+
 void clearminimap()
 {
     minimapdirty = true;
 }
 
-COMMAND(clearminimap, ARG_NONE);
+COMMAND(clearminimap, "");
 VARFP(minimapres, 7, 9, 10, clearminimap());
-
 void drawminimap(int w, int h)
 {
     if(!minimapdirty) return;
@@ -743,24 +798,29 @@ void drawminimap(int w, int h)
     physent minicam;
     camera1 = &minicam;
     camera1->type = ENT_CAMERA;
-    camera1->o.x = mapdims[0] + mapdims[4]/2;
-    camera1->o.y = mapdims[1] + mapdims[5]/2;
-    int gdim = max(mapdims[4], mapdims[5]);
-    if(!gdim) gdim = ssize/2;
-    float md = (float)gdim;
-    float dd = 1.0f / ( ssize / md );
-    camera1->o.z = 96 * dd;
+    camera1->o.x = mapdims[0] + mapdims[4]/2.0f;
+    camera1->o.y = mapdims[1] + mapdims[5]/2.0f;
+
+    //float gdim = max(mapdims[4], mapdims[5])+2.0f; //make 1 cube smaller to give it a black edge
+    float gdim = max(mapdims[4], mapdims[5]); //no border
+
+    if(!gdim) gdim = ssize/2.0f;
+    camera1->o.z = mapdims[7] + 1;
     camera1->pitch = -90;
     camera1->yaw = 0;
-    int orthd = 2 /*+ 2*dd*/ + gdim/2; // +2-4 for clean border if map goes even to the edge. - ac_iceroad still has a bug though @ "2 + 2*dd +" - "4 +" seems better.
-    // this does not avoid possible data corruption on windowed runs :-/ - the issue seems to lie with the window lying outside the desktop edges - at least that was the case for me (flowtron)
-    glViewport(0, 0, size-(size/orthd), size-(size/orthd)); // !not wsize here
+
+    //float orthd = 2 + gdim/2;
+    //glViewport(2, 2, size-4, size-4); // !not wsize here
+
+    float orthd = gdim/2.0f;
+    glViewport(0, 0, size, size); // !not wsize here
+
     glClearDepth(0.0);
-    glClearColor(0, 0, 0, 0);//1);
+    glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // stencil added 2010jul22
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(-orthd, orthd, -orthd, orthd, 0, 128);
+    glOrtho(-orthd, orthd, -orthd, orthd, 0, (mapdims[7]-mapdims[6])+2); // depth of map +2 covered
     glScalef(1, -1, 1);
     glMatrixMode(GL_MODELVIEW);
     glCullFace(GL_BACK);
@@ -776,10 +836,27 @@ void drawminimap(int w, int h)
     renderstrips();
     glDepthFunc(GL_LESS);
     rendermapmodels();
+    renderzones(mapdims[7]);
     //renderentities();// IMHO better done by radar itself, if at all
     resettmu(0);
     float hf = hdr.waterlevel-0.3f;
     renderwater(hf, 0, 0);
+
+    //draw a black border to prevent the minimap texture edges from bleeding in radarview
+    GLfloat prevLineWidth;
+    glGetFloatv(GL_LINE_WIDTH, &prevLineWidth);
+    glDisable(GL_BLEND);
+    glColor3f(0, 0, 0);
+    glLineWidth(2.0f);
+    glBegin(GL_LINE_LOOP);
+        glVertex3f(mapdims[0]+0.02f,            mapdims[1]+0.02f, mapdims[7]);
+        glVertex3f(mapdims[0]+mapdims[4]-0.02f, mapdims[1]+0.02f, mapdims[7]);
+        glVertex3f(mapdims[0]+mapdims[4]-0.02f, mapdims[1]+mapdims[5]-0.02f, mapdims[7]);
+        glVertex3f(mapdims[0]+0.02f,            mapdims[1]+mapdims[5]-0.02f, mapdims[7]);
+    glEnd();
+    glLineWidth(prevLineWidth);
+    glEnable(GL_BLEND);
+
     camera1 = oldcam;
     minimap = false;
     glBindTexture(GL_TEXTURE_2D, minimaptex);
@@ -801,14 +878,41 @@ void cleanupgl()
     minimapdirty = true;
 }
 
+void drawzone(int *x1, int *x2, int *y1, int *y2, int *color)
+{
+    zone &newzone = zones.add();
+    newzone.x1 = *x1; newzone.x2 = *x2;
+    newzone.y1 = *y1; newzone.y2 = *y2;
+    newzone.color = *color ? *color : 0x00FF00;
+    clearminimap();
+}
+COMMAND(drawzone, "iiiii");
+
+void resetzones()
+{
+    zones.shrink(0);
+}
+COMMAND(resetzones, "");
+
 int xtraverts;
 
 VARP(hudgun, 0, 1, 1);
+VARP(specthudgun, 0, 1, 1);
 
 void setperspective(float fovy, float aspect, float nearplane, float farplane)
 {
     GLdouble ydist = nearplane * tan(fovy/2*RAD), xdist = ydist * aspect;
-    glFrustum(-xdist, xdist, -ydist, ydist, nearplane, farplane);
+    if(player1->isspectating() && player1->spectatemode == SM_OVERVIEW)
+    {
+        int gdim = max(mapdims[4], mapdims[5]);
+        if(!gdim) gdim = ssize/2;
+        int orthd = 2 + gdim/2;
+        glOrtho(-orthd, orthd, -orthd, orthd, 0, (mapdims[7]-mapdims[6])+2); // depth of map +2 covered
+    }
+    else
+    {
+        glFrustum(-xdist, xdist, -ydist, ydist, nearplane, farplane);
+    }
 }
 
 void sethudgunperspective(bool on)
@@ -818,7 +922,7 @@ void sethudgunperspective(bool on)
     if(on)
     {
         glScalef(1, 1, 0.5f); // fix hudugns colliding with map geometry
-        setperspective(75.0f, aspect, 0.3f, farplane); // y fov fixed at 75Â°
+        setperspective(75.0f, aspect, 0.3f, farplane); // y fov fixed at 75 degrees
     }
     else setperspective(fovy, aspect, 0.15f, farplane);
     glMatrixMode(GL_MODELVIEW);
@@ -828,7 +932,7 @@ void drawhudgun(int w, int h, float aspect, int farplane)
 {
     sethudgunperspective(true);
 
-    if(hudgun && !player1->isspectating() && camera1->type==ENT_PLAYER)
+    if(hudgun && (specthudgun || !player1->isspectating()) && camera1->type==ENT_PLAYER)
     {
         playerent *p = (playerent *)camera1;
         if(p->state==CS_ALIVE) p->weaponsel->renderhudmodel();
@@ -967,6 +1071,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     setuptmu(0, "T * P x 2");
 
     renderstrips();
+
 
     xtraverts = 0;
 

@@ -74,6 +74,12 @@ char *path(char *s)
     return s;
 }
 
+char *unixpath(char *s)
+{
+    for(char *t = s; (t = strchr(t, '\\')); *t++ = '/');
+    return s;
+}
+
 char *path(const char *s, bool copy)
 {
     static string tmp;
@@ -251,6 +257,7 @@ bool listdir(const char *dir, const char *ext, vector<char *> &files)
         do {
             files.add(newstring(FindFileData.cFileName, (int)strlen(FindFileData.cFileName) - extsize));
         } while(FindNextFile(Find, &FindFileData));
+        FindClose(Find);
         return true;
     }
     #else
@@ -301,6 +308,38 @@ int listfiles(const char *dir, const char *ext, vector<char *> &files)
 bool delfile(const char *path)
 {
     return !remove(path);
+}
+
+bool copyfile(const char *source, const char *destination)
+{
+    FILE *from = fopen(source, "rb");
+    FILE *dest = fopen(destination, "wb");
+
+    if(!from || !dest) return false;
+    size_t len;
+    uchar buf[1024];
+    while((len = fread(&buf, sizeof(uchar), 1024, from)))
+    {
+        fwrite(&buf, sizeof(uchar), len, dest);
+    }
+    fclose(from);
+    fclose(dest);
+    return true;
+}
+
+bool preparedir(const char *destination)
+{
+    string dir;
+    copystring(dir, parentdir(destination));
+    vector<char *> dirs;
+    while(!fileexists(dir, "r"))
+    {
+        dirs.add(newstring(dir));
+        copystring(dir, parentdir(dir));
+    }
+    
+    loopvrev(dirs) if(!createdir(dirs[i])) return false;
+    return true;
 }
 
 #ifndef STANDALONE
@@ -360,9 +399,9 @@ bool stream::getline(char *str, int len)
     return true;
 }
 
-#ifdef __linux__
+#ifndef WIN32
 #include <sys/statvfs.h>
-#define MINFSSIZE 50000000              // 50MB
+const int64_t MINFSSIZE = 50000000;         // 50MB
 #endif
 
 struct filestream : stream
@@ -376,12 +415,12 @@ struct filestream : stream
     {
         if(file) return false;
         file = fopen(name, mode);
-#ifdef __linux__
+#ifndef WIN32
         struct statvfs buf;
         if(file && strchr(mode,'w'))
         {
             int fail = fstatvfs(fileno(file), &buf);
-            if (fail || buf.f_frsize * buf.f_bavail < MINFSSIZE)
+            if (fail || (int64_t)buf.f_frsize * (int64_t)buf.f_bavail < MINFSSIZE)
             {
                 close();
                 return false;
@@ -428,7 +467,8 @@ struct filestream : stream
 };
 
 #ifndef STANDALONE
-VAR(dbggz, 0, 0, 1);
+//VAR(dbggz, 0, 0, 1);
+const int dbggz = 0;
 #endif
 
 struct gzstream : stream
@@ -593,8 +633,8 @@ struct gzstream : stream
         }
         uchar trailer[8] =
         {
-            crc&0xFF, (crc>>8)&0xFF, (crc>>16)&0xFF, (crc>>24)&0xFF,
-            zfile.total_in&0xFF, (zfile.total_in>>8)&0xFF, (zfile.total_in>>16)&0xFF, (zfile.total_in>>24)&0xFF
+            uchar(crc&0xFF), uchar((crc>>8)&0xFF), uchar((crc>>16)&0xFF), uchar((crc>>24)&0xFF),
+            uchar(zfile.total_in&0xFF), uchar((zfile.total_in>>8)&0xFF), uchar((zfile.total_in>>16)&0xFF), uchar((zfile.total_in>>24)&0xFF)
         };
         file->write(trailer, sizeof(trailer));
     }
@@ -621,9 +661,15 @@ struct gzstream : stream
 
     bool seek(long offset, int whence)
     {
-        if(writing || !reading || whence == SEEK_END) return false;
+        if(writing || !reading) return false;
 
-        if(whence == SEEK_CUR) offset += zfile.total_out;
+        if(whence == SEEK_END)
+        {
+            uchar skip[512];
+            while(read(skip, sizeof(skip)) == sizeof(skip));
+            return !offset;
+        }
+        else if(whence == SEEK_CUR) offset += zfile.total_out;
 
         if(offset >= (int)zfile.total_out) offset -= zfile.total_out;
         else if(offset < 0 || !file->seek(headersize, SEEK_SET)) return false;

@@ -193,7 +193,7 @@ struct mitemmanual : mitem
 {
     const char *text, *action, *hoveraction, *desc;
 
-    mitemmanual(gmenu *parent, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc) : mitem(parent, bgcolor), text(text), action(action), hoveraction(hoveraction), desc(desc) {}
+    mitemmanual(gmenu *parent, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc) : mitem(parent, bgcolor, mitem::TYPE_MANUAL), text(text), action(action), hoveraction(hoveraction), desc(desc) {}
 
     virtual int width() { return text_width(text); }
 
@@ -214,7 +214,9 @@ struct mitemmanual : mitem
         {
             gmenu *oldmenu = curmenu;
             push("arg1", text);
+            setcontext("menu", curmenu->name);
             int result = execute(action);
+            resetcontext();
             pop("arg1");
             if(result >= 0 && oldmenu == curmenu)
             {
@@ -381,17 +383,17 @@ struct mitemmaploadmanual : mitemmanual
                 copystring(mapname, filename);
             }
             formatstring(cgzpath)("packages/%s", pakname);
-            char *d = getfiledesc(cgzpath, filename, "cgz");
+            char *d = getfiledesc(cgzpath, mapname, "cgz");
             if( d ) { formatstring(maptitle)("%s", d[0] ? d : "-n/a-"); }
             else
             {
                 copystring(pakname, "maps/official");
                 formatstring(cgzpath)("packages/%s", pakname);
-                char *d = getfiledesc("packages/maps/official", filename, "cgz");
+                char *d = getfiledesc("packages/maps/official", mapname, "cgz");
                 if( d ) { formatstring(maptitle)("%s", d[0] ? d : "-n/a-"); }
-                else formatstring(maptitle)("-n/a-:%s", filename);
+                else formatstring(maptitle)("-n/a-:%s", mapname);
             }
-            defformatstring(p2p)("%s/preview/%s.jpg", cgzpath, filename);
+            defformatstring(p2p)("%s/preview/%s.jpg", cgzpath, mapname);
             silent_texture_load = true;
             image = textureload(p2p, 3);
             if(image==notexture) image = textureload("packages/misc/nopreview.jpg", 3);
@@ -431,26 +433,26 @@ struct mitemmaploadmanual : mitemmanual
                 glEnd();
                 xtraverts += 4;
                 glEnable(GL_BLEND);
-                if(maptitle[0])
+                if(maptitle[0]) // 2011feb09:ft: TODO - this would be better as bottom line in the menu, just need to ensure it doesn't make the menu change width all the time!
                 {
-					int mlil = maploaditemlength;
-					string showt;
-					string restt;
-					restt[0] = '\0';
-					filtertext(showt, maptitle, 1);
-					if(mlil && mlil != 255) // 0 && 255 are 'off'
-					{
-						int tl = strlen(showt);
-						if(tl>mlil)
-						{
-							int cr = 0;
-							int mr = min(max(0, tl-mlil), mlil);
-							for(cr=0;cr<mr;cr++) { restt[cr] = showt[cr+mlil]; }
-							if(cr>0) { restt[cr+1] = '\0'; showt[mlil] = '\0'; }
-						}
-					}
+                    int mlil = maploaditemlength;
+                    string showt;
+                    string restt;
+                    restt[0] = '\0';
+                    filtertext(showt, maptitle, 1);
+                    if(mlil && mlil != 255) // 0 && 255 are 'off'
+                    {
+                        int tl = strlen(showt);
+                        if(tl>mlil)
+                        {
+                            int cr = 0;
+                            int mr = min(max(0, tl-mlil), mlil);
+                            for(cr=0;cr<mr;cr++) { restt[cr] = showt[cr+mlil]; }
+                            if(cr>0) { restt[cr+1] = '\0'; showt[mlil] = '\0'; }
+                        }
+                    }
                     draw_text(showt, 1*FONTH/2, VIRTH - FONTH/2);
-					draw_text(restt, 3*FONTH/2, VIRTH + FONTH/2);
+                    draw_text(restt, 3*FONTH/2, VIRTH + FONTH/2);
                 }
                 //if(mapstats[0]) draw_text(mapstats, x, y+ys+5*FONTH/2);
             }
@@ -482,12 +484,16 @@ struct mitemtextinput : mitemtext
 {
     textinputbuffer input;
     char *defaultvalueexp;
-    bool modified;
+    bool modified, hideinput;
 
-    mitemtextinput(gmenu *parent, char *text, char *value, char *action, char *hoveraction, color *bgcolor, int maxchars) : mitemtext(parent, text, action, hoveraction, bgcolor), defaultvalueexp(value), modified(false)
+    mitemtextinput(gmenu *parent, char *text, char *value, char *action, char *hoveraction, color *bgcolor, int maxchars, int maskinput) : mitemtext(parent, text, action, hoveraction, bgcolor), defaultvalueexp(value), modified(false), hideinput(false)
     {
         copystring(input.buf, value);
         input.max = maxchars>0 ? maxchars : 15;
+        if(maskinput != NULL)
+        {
+            hideinput = (maskinput != 0);
+        }
     }
 
     virtual int width()
@@ -519,11 +525,24 @@ struct mitemtextinput : mitemtext
             sc++;
         }
         copystring(showinput, input.buf + iboff, sc + 1);
-        draw_text(showinput, x+w-tw, y, 255, 255, 255, 255, selection ? (input.pos>=0 ? (input.pos > sc ? sc : input.pos) : cibl) : -1);
+        
+        char *masked;
+        if(hideinput) // "mask" user input with asterisks, use for menuitemtextinputs that take passwords // TODO: better masking code?
+        {
+            masked = newstring(showinput);
+            for(unsigned int i = 0; i < strlen(masked); i++)
+            {
+                masked[i] = '*';
+            }
+        }
+        
+        draw_text(hideinput ? masked : showinput, x+w-tw, y, 255, 255, 255, 255, selection ? (input.pos>=0 ? (input.pos > sc ? sc : input.pos) : cibl) : -1);
     }
 
     virtual void focus(bool on)
     {
+        if(on && hoveraction) execute(hoveraction);
+        
         SDL_EnableUNICODE(on);
         if(!strlen(input.buf)) setdefaultvalue();
         if(action && !on && modified)
@@ -558,6 +577,7 @@ struct mitemtextinput : mitemtext
 };
 
 // slider item
+VARP(wrapslider, 0, 0, 1);
 
 struct mitemslider : mitem
 {
@@ -566,7 +586,7 @@ struct mitemslider : mitem
     string curval;
     static int sliderwidth;
 
-    mitemslider(gmenu *parent, char *text, int min_, int max_, int step, char *value, char *display, char *action, color *bgcolor) : mitem(parent, bgcolor), min_(min_), max_(max_), step(step), value(min_), maxvaluewidth(0), text(text), valueexp(value), display(display), action(action)
+    mitemslider(gmenu *parent, char *text, int min_, int max_, int step, char *value, char *display, char *action, color *bgcolor) : mitem(parent, bgcolor, mitem::TYPE_SLIDER), min_(min_), max_(max_), step(step), value(min_), maxvaluewidth(0), text(text), valueexp(value), display(display), action(action)
     {
         if(sliderwidth==0) sliderwidth = max(VIRTW/4, 15*text_width("w"));  // match slider width with width of text input fields
     }
@@ -619,7 +639,12 @@ struct mitemslider : mitem
     void slide(bool right)
     {
         value += right ? step : -step;
-        value = min(max_, max(min_, value));
+        if (wrapslider)
+        {
+            if (value > max_) value = min_;
+            if (value < min_) value = max_;
+        }
+        else value = min(max_, max(min_, value));
         displaycurvalue();
         if(action)
         {
@@ -668,7 +693,7 @@ struct mitemkeyinput : mitem
     static const char *unknown, *empty;
     bool capture;
 
-    mitemkeyinput(gmenu *parent, char *text, char *bindcmd, color *bgcolor) : mitem(parent, bgcolor), text(text), bindcmd(bindcmd), keyname(NULL), capture(false){};
+    mitemkeyinput(gmenu *parent, char *text, char *bindcmd, color *bgcolor) : mitem(parent, bgcolor, mitem::TYPE_KEYINPUT), text(text), bindcmd(bindcmd), keyname(NULL), capture(false) {};
 
     ~mitemkeyinput()
     {
@@ -725,7 +750,7 @@ struct mitemcheckbox : mitem
     char *text, *valueexp, *action;
     bool checked;
 
-    mitemcheckbox(gmenu *parent, char *text, char *value, char *action, color *bgcolor) : mitem(parent, bgcolor), text(text), valueexp(value), action(action), checked(false) {};
+    mitemcheckbox(gmenu *parent, char *text, char *value, char *action, color *bgcolor) : mitem(parent, bgcolor, mitem::TYPE_CHECKBOX), text(text), valueexp(value), action(action), checked(false) {};
 
     ~mitemcheckbox()
     {
@@ -741,10 +766,10 @@ struct mitemcheckbox : mitem
         checked = !checked;
         if(action && action[0])
         {
-        push("arg1", checked ? "1" : "0");
-        execute(action);
-        pop("arg1");
-    }
+            push("arg1", checked ? "1" : "0");
+            execute(action);
+            pop("arg1");
+        }
     }
 
     virtual void init()
@@ -790,15 +815,16 @@ void *addmenu(const char *name, const char *title, bool allowinput, void (__cdec
     menu.keyfunc = keyfunc;
     menu.initaction = NULL;
     menu.usefont = NULL;
+    menu.allowblink = false;
     menu.dirlist = NULL;
     menu.forwardkeys = forwardkeys;
     lastmenu = &menu;
     return &menu;
 }
 
-void newmenu(char *name, char *hotkeys, char *forwardkeys)
+void newmenu(char *name, int *hotkeys, int *forwardkeys)
 {
-    addmenu(name, NULL, true, NULL, NULL, atoi(hotkeys) > 0, atoi(forwardkeys) > 0);
+    addmenu(name, NULL, true, NULL, NULL, *hotkeys > 0, *forwardkeys > 0);
 }
 
 void menureset(void *menu)
@@ -806,6 +832,16 @@ void menureset(void *menu)
     gmenu &m = *(gmenu *)menu;
     m.items.deletecontents();
 }
+
+void delmenu(const char *name)
+{
+    if (!name) return;
+    gmenu *m = menus.access(name);
+    if (!m) return;
+    else menureset(m);
+}
+
+COMMAND(delmenu, "s");
 
 void menumanual(void *menu, char *text, char *action, color *bgcolor, const char *desc)
 {
@@ -839,7 +875,7 @@ void lastmenu_header(char *header, char *footer)
     }
     else conoutf("no last menu to apply to");
 }
-COMMANDN(menuheader, lastmenu_header, ARG_2STR);
+COMMANDN(menuheader, lastmenu_header, "ss");
 
 void menufont(void *menu, const char *usefont)
 {
@@ -857,23 +893,30 @@ void setmenufont(char *usefont)
     menufont(lastmenu, usefont);
 }
 
+void setmenublink(int *truth)
+{
+    if(!lastmenu) return;
+    gmenu &m = *(gmenu *)lastmenu;
+    m.allowblink = *truth != 0;
+}
+
 void menuinit(char *initaction)
 {
     if(!lastmenu) return;
     lastmenu->initaction = newstring(initaction);
 }
 
-void menuinitselection(int line)
+void menuinitselection(int *line)
 {
     if(!lastmenu) return;
-    if(lastmenu->items.inrange(line)) lastmenu->menusel = line;
+    if(lastmenu->items.inrange(*line)) lastmenu->menusel = *line;
 }
 
-void menuselection(char *menu, char *line)
+void menuselection(char *menu, int *line)
 {
-    if(!menu || !line || !menus.access(menu)) return;
+    if(!menu || !menus.access(menu)) return;
     gmenu &m = menus[menu];
-    menuselect(&m, atoi(line));
+    menuselect(&m, *line);
 }
 
 void menuitem(char *text, char *action, char *hoveraction)
@@ -903,21 +946,21 @@ void menuitemmapload(char *name, char *text)
 {
     if(!lastmenu) return;
     string caction;
-	if(!text || text[0]=='\0') formatstring(caction)("map %s", name);
-	else formatstring(caction)("%s", text);
+    if(!text || text[0]=='\0') formatstring(caction)("map %s", name);
+    else formatstring(caction)("%s", text);
     lastmenu->items.add(new mitemmapload(lastmenu, newstring(name), newstring(name), newstring(caction), NULL, NULL, NULL));
 }
 
-void menuitemtextinput(char *text, char *value, char *action, char *hoveraction, char *maxchars)
+void menuitemtextinput(char *text, char *value, char *action, char *hoveraction, int *maxchars, int *maskinput)
 {
     if(!lastmenu || !text || !value) return;
-    lastmenu->items.add(new mitemtextinput(lastmenu, newstring(text), newstring(value), action[0] ? newstring(action) : NULL, hoveraction[0] ? newstring(hoveraction) : NULL, NULL, atoi(maxchars)));
+    lastmenu->items.add(new mitemtextinput(lastmenu, newstring(text), newstring(value), action[0] ? newstring(action) : NULL, hoveraction[0] ? newstring(hoveraction) : NULL, NULL, *maxchars, *maskinput));
 }
 
-void menuitemslider(char *text, char *min_, char *max_, char *value, char *step, char *display, char *action)
+void menuitemslider(char *text, int *min_, int *max_, char *value, int *step, char *display, char *action)
 {
     if(!lastmenu) return;
-    lastmenu->items.add(new mitemslider(lastmenu, newstring(text), atoi(min_), atoi(max_), atoi(step), newstring(value), display[0] ? newstring(display) : NULL, action[0] ? newstring(action) : NULL, NULL));
+    lastmenu->items.add(new mitemslider(lastmenu, newstring(text), *min_, *max_, *step, newstring(value), display[0] ? newstring(display) : NULL, action[0] ? newstring(action) : NULL, NULL));
 }
 
 void menuitemkeyinput(char *text, char *bindcmd)
@@ -932,29 +975,30 @@ void menuitemcheckbox(char *text, char *value, char *action)
     lastmenu->items.add(new mitemcheckbox(lastmenu, newstring(text), newstring(value), action[0] ? newstring(action) : NULL, NULL));
 }
 
-void menumdl(char *mdl, char *anim, char *rotspeed, char *scale)
+void menumdl(char *mdl, char *anim, int *rotspeed, int *scale)
 {
     if(!lastmenu || !mdl || !anim) return;
     gmenu &menu = *lastmenu;
     menu.mdl = newstring(mdl);
     menu.anim = findanim(anim)|ANIM_LOOP;
-    menu.rotspeed = max(0, min(atoi(rotspeed), 100));
-    menu.scale = max(0, min(atoi(scale), 100));
+    menu.rotspeed = clamp(*rotspeed, 0, 100);
+    menu.scale = clamp(*scale, 0, 100);
 }
 
-void menudirlist(char *dir, char *ext, char *action, char *image)
+void menudirlist(char *dir, char *ext, char *action, int *image)
 {
     if(!lastmenu) return;
+    if(!action || !action[0]) return;
     gmenu *menu = lastmenu;
     if(menu->dirlist) delete menu->dirlist;
     mdirlist *d = menu->dirlist = new mdirlist;
     d->dir = newstring(dir);
     d->ext = ext[0] ? newstring(ext): NULL;
     d->action = action[0] ? newstring(action) : NULL;
-    d->image = atoi(image)!=0;
+    d->image = *image!=0;
 }
 
-void chmenumdl(char *menu, char *mdl, char *anim, char *rotspeed, char *scale)
+void chmenumdl(char *menu, char *mdl, char *anim, int *rotspeed, int *scale)
 {
     if(!menu || !menus.access(menu)) return;
     gmenu &m = menus[menu];
@@ -962,8 +1006,8 @@ void chmenumdl(char *menu, char *mdl, char *anim, char *rotspeed, char *scale)
     if(!mdl ||!*mdl) return;
     m.mdl = newstring(mdl);
     m.anim = findanim(anim)|ANIM_LOOP;
-    m.rotspeed = max(0, min(atoi(rotspeed), 100));
-    m.scale = max(0, min(atoi(scale), 100));
+    m.rotspeed = clamp(*rotspeed, 0, 100);
+    m.scale = clamp(*scale, 0, 100);
 }
 
 bool parsecolor(color *col, const char *r, const char *g, const char *b, const char *a)
@@ -985,25 +1029,33 @@ void menuselectionbgcolor(char *r, char *g, char *b, char *a)
     parsecolor(menuselbgcolor, r, g, b, a);
 }
 
-COMMAND(newmenu, ARG_3STR);
-COMMAND(menumdl, ARG_5STR);
-COMMAND(menudirlist, ARG_4STR);
-COMMAND(chmenumdl, ARG_6STR);
-COMMANDN(showmenu, showmenu_, ARG_1STR);
-COMMAND(closemenu, ARG_1STR);
-COMMANDN(menufont, setmenufont, ARG_1STR);
-COMMAND(menuinit, ARG_1STR);
-COMMAND(menuinitselection, ARG_1INT);
-COMMAND(menuselection, ARG_2STR);
-COMMAND(menuitem, ARG_3STR);
-COMMAND(menuitemvar, ARG_3STR);
-COMMAND(menuitemimage, ARG_4STR);
-COMMAND(menuitemmapload, ARG_2STR);
-COMMAND(menuitemtextinput, ARG_5STR);
-COMMAND(menuitemslider, ARG_7STR);
-COMMAND(menuitemkeyinput, ARG_2STR);
-COMMAND(menuitemcheckbox, ARG_3STR);
-COMMAND(menuselectionbgcolor, ARG_4STR);
+COMMAND(newmenu, "sii");
+COMMAND(menumdl, "ssii");
+COMMAND(menudirlist, "sssi");
+COMMAND(chmenumdl, "sssii");
+COMMANDN(showmenu, showmenu_, "s");
+COMMAND(closemenu, "s");
+COMMANDN(menufont, setmenufont, "s");
+COMMANDN(menucanblink, setmenublink, "i");
+COMMAND(menuinit, "s");
+COMMAND(menuinitselection, "i");
+COMMAND(menuselection, "si");
+COMMAND(menuitem, "sss");
+COMMAND(menuitemvar, "sss");
+COMMAND(menuitemimage, "ssss");
+COMMAND(menuitemmapload, "ss");
+COMMAND(menuitemtextinput, "ssssii");
+COMMAND(menuitemslider, "siisiss");
+COMMAND(menuitemkeyinput, "ss");
+COMMAND(menuitemcheckbox, "sss");
+COMMAND(menuselectionbgcolor, "ssss");
+
+static bool iskeypressed(int key)
+{
+    int numkeys = 0;
+    Uint8* state = SDL_GetKeyState(&numkeys);
+    return key < numkeys && state[key] != 0;
+}
 
 bool menukey(int code, bool isdown, int unicode, SDLMod mod)
 {
@@ -1015,6 +1067,17 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
         loopv(curmenu->items) if(curmenu->items[i]->getdesc()) { hasdesc = true; break;}
         //int pagesize = MAXMENU - (curmenu->header ? 2 : 0) - (curmenu->footer || hasdesc ? 2 : 0); // FIXME: footer-length
         int pagesize = MAXMENU - (curmenu->header ? 2 : 0) - (curmenu->footer ? (curmenu->footlen?(curmenu->footlen+1):2) : (hasdesc ? 2 : 0)); // FIXME: footer-length
+
+        if(curmenu->items.inrange(menusel))
+        {
+            mitem *m = curmenu->items[menusel];
+            if(m->type == mitem::TYPE_KEYINPUT && ((mitemkeyinput *)m)->capture && code != SDLK_ESCAPE)
+            {
+                m->key(code, isdown, unicode);
+                return true;
+            }
+        }
+
         switch(code)
         {
             case SDLK_PAGEUP: menusel -= pagesize; break;
@@ -1023,22 +1086,23 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
                 else menusel += pagesize;
                 break;
             case SDLK_ESCAPE:
-            case -3:
+            case SDL_AC_BUTTON_RIGHT:
                 if(!curmenu->allowinput) return false;
                 menuset(menustack.empty() ? NULL : menustack.pop(), false);
                 return true;
                 break;
             case SDLK_UP:
-            case -4:
+            case SDL_AC_BUTTON_WHEELUP:
+                if(iskeypressed(SDLK_LCTRL)) return menukey(SDLK_LEFT, isdown, 0);
                 if(!curmenu->allowinput) return false;
                 menusel--;
                 break;
             case SDLK_DOWN:
-            case -5:
+            case SDL_AC_BUTTON_WHEELDOWN:
+                if(iskeypressed(SDLK_LCTRL)) return menukey(SDLK_RIGHT, isdown, 0);
                 if(!curmenu->allowinput) return false;
                 menusel++;
                 break;
-
             case SDLK_TAB:
                 if(!curmenu->allowinput) return false;
                 if(mod & KMOD_LSHIFT) menusel--;
@@ -1095,9 +1159,10 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
     {
         if(!curmenu->allowinput || !curmenu->items.inrange(menusel)) return false;
         mitem &m = *curmenu->items[menusel];
-        if(code==SDLK_RETURN || code==SDLK_SPACE || code==-1 || code==-2)
+        if(code==SDLK_RETURN || code==SDLK_SPACE || code==SDL_AC_BUTTON_LEFT || code==SDL_AC_BUTTON_MIDDLE)
         {
             m.select();
+            if(m.getaction()!=NULL && !strcmp(m.getaction(), "-1")) return true; // don't playsound S_MENUENTER if menuitem action == -1 (null/blank/text only item) - Bukz 2013feb13
             audiomgr.playsound(S_MENUENTER, SP_HIGHEST);
             return true;
         }
@@ -1117,7 +1182,7 @@ void rendermenumdl()
     glRotatef(90, -1, 0, 0);
     glScalef(1, -1, 1);
 
-	bool isplayermodel = !strncmp(m.mdl, "playermodels", strlen("playermodels"));
+    bool isplayermodel = !strncmp(m.mdl, "playermodels", strlen("playermodels"));
 
     vec pos;
     if(isplayermodel) pos = vec(2.0f, 1.2f, -0.4f);
@@ -1138,7 +1203,7 @@ void rendermenumdl()
         a[0].name = "weapons/subgun/world";
         a[0].tag = "tag_weapon";
     }
-	rendermodel(isplayermodel ? "playermodels" : m.mdl, m.anim|ANIM_DYNALLOC, tex, -1, pos, yaw, 0, 0, 0, NULL, a, m.scale ? m.scale/25.0f : 1.0f);
+    rendermodel(isplayermodel ? "playermodels" : m.mdl, m.anim|ANIM_DYNALLOC, tex, -1, pos, yaw, 0, 0, 0, NULL, a, m.scale ? m.scale/25.0f : 1.0f);
 
     glPopMatrix();
 }
@@ -1157,8 +1222,10 @@ void gmenu::open()
     if(!allowinput) menusel = 0;
     if(!forwardkeys) player1->stopmoving();
     if(items.inrange(menusel)) items[menusel]->focus(true);
+    setcontext("menu", name);
     init();
     if(initaction) execute(initaction);
+    resetcontext();
 }
 
 void gmenu::close()
@@ -1174,7 +1241,7 @@ void gmenu::conprintmenu()
 
 void gmenu::init()
 {
-    if(dirlist)
+    if(dirlist && ((dirlist->dir != NULL) && (dirlist->ext != NULL)))
     {
         items.deletecontents();
         vector<char *> files;
@@ -1214,7 +1281,7 @@ void gmenu::init()
                 }
                 defformatstring(fullname)("%s%s%s", dirlist->dir[0]?dirlist->dir+diroffset:"", dirlist->dir[0]?"/":"", f);
                 defformatstring(caction)("map %s", fullname);
-                defformatstring(title)("%s", d[0]!='\0'?d:f);
+                defformatstring(title)("%s", f);
                 items.add(new mitemmapload(this, newstring(fullname), newstring(title), newstring(caction), NULL, NULL, NULL));
             }
             else items.add(new mitemtext(this, f, newstring(dirlist->action), NULL, NULL, d));
@@ -1225,7 +1292,9 @@ void gmenu::init()
 
 void gmenu::render()
 {
+    extern bool ignoreblinkingbit;
     if(usefont) pushfont(usefont);
+    if(!allowblink) ignoreblinkingbit = true;
     const char *t = title;
     if(!t)
     {
@@ -1327,6 +1396,7 @@ void gmenu::render()
 
     }
     if(usefont) popfont(); // setfont("default");
+    ignoreblinkingbit = false;
 }
 
 void gmenu::renderbg(int x1, int y1, int x2, int y2, bool border)
@@ -1376,52 +1446,16 @@ void refreshapplymenu(void *menu, bool init)
     if(init) m->menusel = m->items.length()-2; // select OK
 }
 
-void reorderscorecolumns();
-VARFP(orderscorecolumns, 0, 0, 1, reorderscorecolumns());
-void reorderscorecolumns()
-{
-    extern void *scoremenu, *teammenu, *ctfmenu;
-    switch(orderscorecolumns)
-    {
-        case 1:
-        {
-            menutitle(scoremenu, "cn\tname\tfrags\tdeaths\tscore\tpj/ping");
-            menutitle( teammenu, "cn\tname\tfrags\tdeaths\tscore\tpj/ping");
-            menutitle(  ctfmenu, "cn\tname\tflags\tfrags\tdeaths\tscore\tpj/ping");
-            break;
-        }
-        case 0:
-        default:
-        {
-            menutitle(scoremenu, "frags\tdeaths\tscore\tpj/ping\tcn\tname");
-            menutitle( teammenu, "frags\tdeaths\tscore\tpj/ping\tcn\tname");
-            menutitle(  ctfmenu, "flags\tfrags\tdeaths\tscore\tpj/ping\tcn\tname");
-            break;
-        }
-    }
-}
-
 void setscorefont();
 VARFP(scorefont, 0, 0, 1, setscorefont());
 void setscorefont()
 {
-    extern void *scoremenu, *teammenu, *ctfmenu;
+    extern void *scoremenu;
     switch(scorefont)
     {
-        case 1:
-        {
-            menufont(scoremenu, "mono");
-            menufont(teammenu, "mono");
-            menufont(ctfmenu, "mono");
-            break;
-        }
+        case 1: menufont(scoremenu, "mono"); break;
+
         case 0:
-        default:
-        {
-            menufont(scoremenu, NULL); // "default"
-            menufont(teammenu, NULL); // "default"
-            menufont(ctfmenu, NULL); // "default"
-            break;
-        }
+        default: menufont(scoremenu, NULL); break;
     }
 }

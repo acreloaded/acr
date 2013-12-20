@@ -17,8 +17,17 @@
 #include "command.h"
 
 #ifndef STANDALONE
+ #include "varray.h"
  #include "vote.h"
  #include "console.h"
+ enum
+ {
+   SDL_AC_BUTTON_WHEELDOWN = -5,
+   SDL_AC_BUTTON_WHEELUP = -4,
+   SDL_AC_BUTTON_RIGHT = -3,
+   SDL_AC_BUTTON_MIDDLE = -2,
+   SDL_AC_BUTTON_LEFT = -1
+ };
 #endif
 
 extern sqr *world, *wmip[];             // map data, the mips are sequential 2D arrays in memory
@@ -33,7 +42,7 @@ extern bool editmode;
 extern vector<entity> ents;             // map entities
 extern vector<int> eh_ents;             // edithide entities
 extern vec worldpos, camup, camright, camdir; // current target of the crosshair in the world
-extern int lastmillis, totalmillis;     // last time
+extern int lastmillis, totalmillis, nextmillis; // last time
 extern int curtime;                     // current frame time
 extern int interm;
 extern int gamemode, nextmode;
@@ -46,16 +55,18 @@ extern int stenciling, stencilshadow;
 extern bool intermission;
 extern int arenaintermission;
 extern hashtable<char *, enet_uint32> mapinfo;
-extern int hwtexsize;
+extern int hwtexsize, hwmaxaniso;
 extern int numspawn[3], maploaded, numflagspawn[2];
 extern int verbose;
 
-#include "protos.h"				// external function decls
-
-#define AC_VERSION 1104
-#define AC_MASTER_URI "assault.cubers.net"
+#define AC_VERSION 1202
+#define AC_MASTER_URI "ms.cubers.net"
 #define AC_MASTER_PORT 28760
-#define MAXCL 20
+#define AC_MASTER_HTTP 1 // default
+#define AC_MASTER_RAW 0
+#define MAXCL 16
+
+#include "protos.h"                     // external function decls
 
 #endif
 

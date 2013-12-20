@@ -17,18 +17,18 @@ struct weapon
     int &ammo, &mag, &gunwait, shots;
     virtual int dynspread();
     virtual float dynrecoil();
-    int reloading, lastaction, timebalance;
+    int reloading, lastaction;
 
     virtual bool attack(vec &targ) = 0;
     virtual void attackfx(const vec &from, const vec &to, int millis) = 0;
     virtual void attackphysics(vec &from, vec &to);
     virtual void attacksound();
-    virtual bool reload();
-    virtual void reset() { timebalance = 0; }
+    virtual bool reload(bool autoreloaded);
+    virtual void reset() {}
     virtual bool busy() { return false; }
 
     virtual int modelanim() = 0;
-    virtual void updatetimers();
+    virtual void updatetimers(int millis);
     virtual bool selectable();
     virtual bool deselectable();
     virtual void renderstats();
@@ -41,7 +41,7 @@ struct weapon
     virtual void onownerdies() {}
     virtual void removebounceent(bounceent *b) {}
 
-    void sendshoot(vec &from, vec &to);
+    void sendshoot(vec &from, vec &to, int millis);
     bool modelattacking();
     void renderhudmodel(int lastaction, int index = 0);
 
@@ -105,7 +105,7 @@ struct sniperrifle : gun
 
     sniperrifle(playerent *owner);
     void attackfx(const vec &from, const vec &to, int millis);
-    bool reload();
+    bool reload(bool autoreloaded);
 
     int dynspread();
     float dynrecoil();
@@ -119,15 +119,16 @@ struct sniperrifle : gun
 };
 
 
-struct rifle : gun
+struct carbine : gun
 {
-    rifle(playerent *owner);
+    carbine(playerent *owner);
     bool selectable();
 };
 
 struct shotgun : gun
 {
     shotgun(playerent *owner);
+    void attackphysics(vec &from, vec &to);
     bool attack(vec &targ);
     void attackfx(const vec &from, const vec &to, int millis);
     bool selectable();
@@ -146,7 +147,7 @@ struct cpistol : gun
 {
     bool bursting;
     cpistol(playerent *owner);
-    bool reload();
+    bool reload(bool autoreloaded);
     bool selectable();
     void onselecting();
     void ondeselecting();
@@ -169,11 +170,11 @@ struct akimbo : gun
     int akimbomillis;
     int akimbolastaction[2];
 
-    bool attack(vec &targ);
+    void attackfx(const vec &from, const vec &to, int millis);
     void onammopicked();
     void onselecting();
     bool selectable();
-    void updatetimers();
+    void updatetimers(int millis);
     void reset();
     void renderhudmodel();
     bool timerout();

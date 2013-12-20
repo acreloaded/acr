@@ -116,7 +116,8 @@ bool mmcollide(physent *d, float &hi, float &lo)           // collide with a map
     loopv(ents)
     {
         entity &e = ents[i];
-        if(e.type==CLIP || (e.type == PLCLIP && d->type == ENT_PLAYER))
+        // if(e.type==CLIP || (e.type == PLCLIP && d->type == ENT_PLAYER))
+        if (e.type==CLIP || (e.type == PLCLIP && (d->type == ENT_BOT || d->type == ENT_PLAYER || (d->type == ENT_BOUNCE && ((bounceent *)d)->plclipped)))) // don't allow bots to hack themselves into plclips - Bukz 2011/04/14
         {
             if(fabs(e.x-d->o.x) < e.attr2 + d->radius && fabs(e.y-d->o.y) < e.attr3 + d->radius)
             {
@@ -279,7 +280,7 @@ void resizephysent(physent *pl, int moveres, int curtime, float min, float max)
     const float speed = curtime*pl->maxspeed/(water ? 2000.0f : 1000.0f);
     float h = pl->eyeheightvel * speed / moveres;
 
-	loopi(moveres)
+    loopi(moveres)
     {
         pl->eyeheight += h;
         pl->o.z += h;
@@ -312,19 +313,24 @@ void resizephysent(physent *pl, int moveres, int curtime, float min, float max)
 
 void clamproll(physent *pl)
 {
-    if(pl->roll > maxroll) pl->roll = maxroll;
-    else if(pl->roll < -maxroll) pl->roll = -maxroll;
+    extern int maxrollremote;
+    int mroll = pl == player1 ? maxroll : maxrollremote;
+    if(pl->roll > mroll) pl->roll = mroll;
+    else if(pl->roll < -mroll) pl->roll = -mroll;
 }
 
 float var_f = 0;
 int var_i = 0;
 bool var_b = true;
 
+FVARP(flyspeed, 1.0, 2.0, 5.0);
+
 void moveplayer(physent *pl, int moveres, bool local, int curtime)
 {
     bool water = false;
     const bool editfly = pl->state==CS_EDITING;
     const bool specfly = pl->type==ENT_PLAYER && ((playerent *)pl)->spectatemode==SM_FLY;
+    const bool isfly = editfly || specfly;
 
     vec d;      // vector of direction we ideally want to move in
 
@@ -336,13 +342,13 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         water = hdr.waterlevel>pl->o.z;
 
         const float speed = curtime*pl->maxspeed/(water ? 2000.0f : 1000.0f);
-        const float friction = water ? 20.0f : (pl->onfloor || editfly || specfly ? 6.0f : 30.0f);
+        const float friction = water ? 20.0f : (pl->onfloor || isfly ? 6.0f : 30.0f);
         const float fpsfric = max(friction*20.0f/curtime, 1.0f);
 
         if(pl->onfloor) // apply friction
         {
             pl->vel.mul(fpsfric-1);
-	    pl->vel.div(fpsfric);
+        pl->vel.div(fpsfric);
         }
         else // apply gravity
         {
@@ -371,15 +377,15 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         if(!(pl->onfloor || pl->onladder)) chspeed = 1.0f;
 
         const bool crouching = pl->crouching || pl->eyeheight < pl->maxeyeheight;
-        const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed*(crouching ? chspeed : 1.0f)*(specfly ? 2.0f : 1.0f);
-        const float friction = water ? 20.0f : (pl->onfloor || editfly || specfly ? 6.0f : (pl->onladder ? 1.5f : 30.0f));
+        const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed*(crouching && pl->state != CS_EDITING ? chspeed : 1.0f)*(pl==player1 && isfly ? flyspeed : 1.0f);
+        const float friction = water ? 20.0f : (pl->onfloor || isfly ? 6.0f : (pl->onladder ? 1.5f : 30.0f));
         const float fpsfric = max(friction/curtime*20.0f, 1.0f);
 
         d.x = (float)(move*cosf(RAD*(pl->yaw-90)));
         d.y = (float)(move*sinf(RAD*(pl->yaw-90)));
         d.z = 0.0f;
 
-        if(editfly || specfly || water)
+        if(isfly || water)
         {
             d.x *= (float)cosf(RAD*(pl->pitch));
             d.y *= (float)cosf(RAD*(pl->pitch));
@@ -398,10 +404,14 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         if(editfly)                // just apply velocity
         {
             pl->o.add(d);
-            if(pl->jumpnext)
+            if(pl->jumpnext && !pl->trycrouch)
             {
-                pl->jumpnext = false;
-                pl->vel.z = 2;
+                pl->jumpnext = true; // fly directly upwards while holding jump keybinds
+                pl->vel.z = 0.5f;
+            }
+            else if (pl->trycrouch && !pl->jumpnext)
+            {
+                pl->vel.z = -0.5f; // fly directly down while holding crouch keybinds
             }
         }
         else if(specfly)
@@ -421,7 +431,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                 {
                     const float climbspeed = 1.0f;
 
-                    if(pl->type==ENT_BOT) pl->vel.z = climbspeed; // bots climb upwards only
+                    if(pl->type==ENT_BOT && pl->state == CS_ALIVE) pl->vel.z = climbspeed; // bots climb upwards only
                     else if(pl->type==ENT_PLAYER)
                     {
                         if(((playerent *)pl)->k_up) pl->vel.z = climbspeed;
@@ -436,8 +446,9 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                         if(pl->jumpnext)
                         {
                             pl->jumpnext = false;
+                            bool doublejump = pl->lastjump && lastmillis-pl->lastjump < 250 && pl->strafe != 0 && pl->lastjumpheight != 0 && pl->lastjumpheight != pl->o.z;
+                            pl->lastjumpheight = pl->o.z;
                             pl->vel.z = 2.0f; // physics impulse upwards
-                            bool doublejump = pl->lastjump && lastmillis-pl->lastjump < 250 && pl->strafe != 0;
                             if(doublejump) // more velocity on double jump
                             {
                                 pl->vel.mul(1.25f);
@@ -456,7 +467,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                     else
                     {
                         pl->timeinair += curtime;
-                        if (pl->trycrouch && !pl->crouching && !pl->crouchedinair) {
+                        if (pl->trycrouch && !pl->crouching && !pl->crouchedinair && pl->state!=CS_EDITING) {
                             pl->vel.z += 0.3f;
                             pl->crouchedinair = true;
                         }
@@ -474,12 +485,12 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
             }
 
             const float gravity = 20.0f;
-            float dropf = (gravity-1)+pl->timeinair/15.0f;		   // incorrect, but works fine
+            float dropf = (gravity-1)+pl->timeinair/15.0f;         // incorrect, but works fine
             if(water) { dropf = 5; pl->timeinair = 0; }            // float slowly down in water
             if(pl->onladder) { dropf = 0; pl->timeinair = 0; }
 
-            drop = dropf*curtime/gravity/100/moveres;			    // at high fps, gravity kicks in too fast
-            rise = speed/moveres/1.2f;					            // extra smoothness when lifting up stairs
+            drop = dropf*curtime/gravity/100/moveres;              // at high fps, gravity kicks in too fast
+            rise = speed/moveres/1.2f;                             // extra smoothness when lifting up stairs
             if(pl->maxspeed-16.0f>0.5f) pl += 0xF0F0;
         }
     }
@@ -515,7 +526,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                 pl->vel.mul(0.7f);
                 continue;
             }
-            pl->o == oo;
+            pl->o = oo;
         }
         if(pl->type==ENT_CAMERA || (pl->type==ENT_PLAYER && pl->state==CS_DEAD && ((playerent *)pl)->spectatemode != SM_FLY))
         {
@@ -540,7 +551,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         if (cornersurface)
         {
             float ct2f = (cornersurface == 2 ? -1.0 : 1.0);
-            float diag = f*d.ufmagxy()*2;
+            float diag = f*d.magnitudexy()*2;
             vec vd = vec((d.y*ct2f+d.x >= 0.0f ? diag : -diag), (d.x*ct2f+d.y >= 0.0f ? diag : -diag), 0);
             pl->o.x -= f*d.x;
             pl->o.y -= f*d.y;
@@ -640,10 +651,10 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     }
 
     // apply volume-resize when crouching
-    if(pl->type==ENT_PLAYER)
+    if(pl->type==ENT_PLAYER || pl->type==ENT_BOT)
     {
 //         if(pl==player1 && !(intermission || player1->onladder || (pl->trycrouch && !player1->onfloor && player1->timeinair > 50))) updatecrouch(player1, player1->trycrouch);
-        if(pl==player1 && !intermission) updatecrouch(player1, player1->trycrouch);
+        if(!intermission && (pl == player1 || pl->type == ENT_BOT)) updatecrouch((playerent *)pl, pl->trycrouch);
         const float croucheyeheight = pl->maxeyeheight*3.0f/4.0f;
         resizephysent(pl, moveres, curtime, croucheyeheight, pl->maxeyeheight);
     }
@@ -724,7 +735,7 @@ void attack(bool on)
 {
     if(intermission) return;
     if(editmode) editdrag(on);
-    else if(player1->state==CS_DEAD)
+    else if(player1->state==CS_DEAD || player1->state==CS_SPECTATE)
     {
         if(!on) tryrespawn();
     }
@@ -745,6 +756,7 @@ void jumpn(bool on)
 void updatecrouch(playerent *p, bool on)
 {
     if(p->crouching == on) return;
+    if(p->state == CS_EDITING) return; // don't apply regular crouch physics in editfly
     const float crouchspeed = 0.6f;
     p->crouching = on;
     p->eyeheightvel = on ? -crouchspeed : crouchspeed;
@@ -757,15 +769,20 @@ void crouch(bool on)
     player1->trycrouch = on;
 }
 
+int inWater(int *type)
+{
+    if(hdr.waterlevel > (*type ? player1->o.z : (player1->o.z - player1->eyeheight))) return 1;
+    else return 0;
+}
 
-
-COMMAND(backward, ARG_DOWN);
-COMMAND(forward, ARG_DOWN);
-COMMAND(left, ARG_DOWN);
-COMMAND(right, ARG_DOWN);
-COMMANDN(jump, jumpn, ARG_DOWN);
-COMMAND(attack, ARG_DOWN);
-COMMAND(crouch, ARG_DOWN);
+COMMAND(backward, "d");
+COMMAND(forward, "d");
+COMMAND(left, "d");
+COMMAND(right, "d");
+COMMANDN(jump, jumpn, "d");
+COMMAND(attack, "d");
+COMMAND(crouch, "d");
+COMMAND(inWater, "i");
 
 void fixcamerarange(physent *cam)
 {
@@ -779,6 +796,8 @@ void fixcamerarange(physent *cam)
 FVARP(sensitivity, 1e-3f, 3.0f, 1000.0f);
 FVARP(scopesensscale, 1e-3f, 0.5f, 1000.0f);
 FVARP(sensitivityscale, 1e-3f, 1, 1000);
+FVARP(scopesens, 0, 0, 1000);
+VARP(scopesensfeel, 0, 0, 1);
 VARP(invmouse, 0, 0, 1);
 FVARP(mouseaccel, 0, 0, 1000);
 FVARP(mfilter, 0.0f, 0.0f, 6.0f);
@@ -798,13 +817,13 @@ int tsens(int x)
         "\fJSensitivity Training (hotkeys):\n\fE1. try High Sens. %s\n2. try Low Sens. %s\n\fJ%s :"
         "\fE\n3. choose: High Sens.\n4. choose: Low Sens.\n\fIrepeat the steps above until the training stops.\n\f35. Stop Training.",
         VIRTW/4  , VIRTH/3,
-        hightry?"(TRYED)":"" , lowtry?"(TRYED)":"",
+        hightry?"(TRIED)":"" , lowtry?"(TRIED)":"",
         hightry&&lowtry?"after trying both choose the one you liked most":"now you can choose the sensitivity you preferred");
         glPushMatrix(); glScalef(2,2,2);
         draw_textf("step: \f0%d",VIRTW/2  , VIRTH/3*2,nstep);
         glPopMatrix();
         }
-    return 0;
+        return 0;
     }
     if (x == SDLK_3 || x == SDLK_4)
     {
@@ -846,7 +865,7 @@ int tsens(int x)
                 }
             }
             if(sensh/sensn > 1.04f) {
-            conoutf("--- \f0you choose: the %ser sensitivity.",x==SDLK_3?"higher":"lower");
+            conoutf("--- \f0you chose the %ser sensitivity.",x==SDLK_3?"higher":"lower");
             conoutf("--- \f0repeat previous steps by trying both higher and lower sens and then by choosing the one you like most.");
             hudoutf("next step!");
             nstep++;
@@ -888,7 +907,7 @@ int tsens(int x)
         testsens=0;
         nstep=1;
     }
-return 0;
+    return 0;
 }
 
 void findsens()
@@ -901,7 +920,7 @@ void findsens()
         return;
     }
 }
-COMMAND(findsens,ARG_NONE);
+COMMAND(findsens, "");
 
 inline bool zooming(playerent *plx) { return (plx->weaponsel->type == GUN_SNIPER && ((sniperrifle *)plx->weaponsel)->scoped); }
 
@@ -916,18 +935,37 @@ void mousemove(int odx, int ody)
         dx = fdx = dx * ( 1.0f - k ) + fdx * k;
         dy = fdy = dy * ( 1.0f - k ) + fdy * k;
     }
+    extern float scopesensfunc;
     float cursens = sensitivity;
     if(senst) {cursens=testsens;}
     if(mouseaccel && curtime && (dx || dy)) cursens += 0.02f * mouseaccel * sqrtf(dx*dx + dy*dy)/curtime;
-    if( zooming(player1) )
+    if(scopesens==0 || !zooming(player1))
     {
-        extern float scopesensfunc;
-        cursens *= autoscopesens ? scopesensfunc : scopesensscale;
+        if(scopesensfeel)
+        {
+            // AC 1.1
+            cursens /= 33.0f*sensitivityscale;
+            if( zooming(player1) ) { cursens *= autoscopesens ? scopesensfunc : scopesensscale; }
+            camera1->yaw += dx*cursens;
+            camera1->pitch -= dy*cursens*(invmouse ? -1 : 1);
+        }
+        else
+        {
+            // AC 1.0
+            if( zooming(player1) ) { cursens *= autoscopesens ? scopesensfunc : scopesensscale; }
+            float sensfactor = 33.0f*sensitivityscale;
+            camera1->yaw += dx*cursens/sensfactor;
+            camera1->pitch -= dy*cursens*(invmouse ? -1 : 1)/sensfactor;
+        }
     }
-    float sensfactor = 33.0f*sensitivityscale; // the line below causes a changed value during scoping. example for 30-mickeys: AC-1.0 => 1.4272 and AC-1.1 => 1.410
-    //cursens /= 33.0f*sensitivityscale; // now it will be back to the original values
-    camera1->yaw += dx*cursens/sensfactor;
-    camera1->pitch -= dy*cursens*(invmouse ? -1 : 1)/sensfactor;
+    else
+    {
+        // user provided value
+        float sensfactor = 33.0f*sensitivityscale;
+        camera1->yaw += dx*scopesens/sensfactor;
+        camera1->pitch -= dy*scopesens*(invmouse ? -1 : 1)/sensfactor;
+    }
+
     fixcamerarange();
     if(camera1!=player1 && player1->spectatemode!=SM_DEATHCAM)
     {

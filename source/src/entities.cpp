@@ -2,21 +2,28 @@
 
 #include "cube.h"
 
+VAR(showclips, 0, 1, 1);
+VAR(showmodelclipping, 0, 0, 1);
+
 vector<entity> ents;
 vector<int> eh_ents; // edithide entities
 const char *entmdlnames[] =
-{
-    "pickups/pistolclips", "pickups/ammobox", "pickups/nade", "pickups/health", "pickups/helmet", "pickups/kevlar", "pickups/akimbo", "pickups/nades", //FIXME
-};
+ {
+     "pistolclips", "ammobox", "nade", "health", "helmet", "kevlar", "akimbo", "nades", //FIXME
+ };
 
-void renderent(entity &e)
-{
-    /* FIXME: if the item list change, this hack will be messed */
-    const char *mdlname = entmdlnames[e.type-I_CLIPS+(m_lss && e.type==I_GRENADE ? 5:0)];
-    float z = (float)(1+sinf(lastmillis/100.0f+e.x+e.y)/20),
-          yaw = lastmillis/10.0f;
-    rendermodel(mdlname, ANIM_MAPMODEL|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor+e.attr1), yaw, 0);
-}
+ void renderent(entity &e)
+ {
+     /* FIXME: if the item list change, this hack will be messed */
+
+     defformatstring(widn)("modmdlpickup%d", e.type-3);
+     defformatstring(mdlname)("pickups/%s", identexists(widn)?getalias(widn):
+
+     entmdlnames[e.type-I_CLIPS+(m_lss && e.type==I_GRENADE ? 5:0)]);
+
+     float z = (float)(1+sinf(lastmillis/100.0f+e.x+e.y)/20), yaw = lastmillis/10.0f;
+     rendermodel(mdlname, ANIM_MAPMODEL|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor+e.attr1), yaw, 0);
+ }
 
 void renderclip(entity &e)
 {
@@ -65,8 +72,6 @@ void rendermapmodels()
     }
 }
 
-VAR(showmodelclipping, 0, 0, 1);
-
 void showedithide()
 {
     loopv(eh_ents)
@@ -75,29 +80,29 @@ void showedithide()
         else { conoutf("#%02d: %d : -n/a-", i, eh_ents[i]);  }
     }
 }
-COMMAND(showedithide, ARG_NONE);
+COMMAND(showedithide, "");
 
 void setedithide(char *text) // FIXME: human indexing inside
 {
     eh_ents.setsize(0);
-	if(text && text[0] != '\0')
-	{
-		const char *s = strtok(text, " ");
-		do
-		{
-			bool k = false;
-			int sn = -1;
-			int tn = atoi(s);
-			loopi(MAXENTTYPES) if(!strcmp(entnames[i], s)) sn = i;
-			if(sn!=-1) { loopv(eh_ents) { if(eh_ents[i]==sn) { k = true; } } }
-			else sn = tn;
-			if(!k) { if(sn>0 && sn<MAXENTTYPES) eh_ents.add(sn); }
-			s = strtok(NULL, " ");
-		}
-		while(s);
-	}
+    if(text && text[0] != '\0')
+    {
+        const char *s = strtok(text, " ");
+        do
+        {
+            bool k = false;
+            int sn = -1;
+            int tn = atoi(s);
+            loopi(MAXENTTYPES) if(!strcmp(entnames[i], s)) sn = i;
+            if(sn!=-1) { loopv(eh_ents) { if(eh_ents[i]==sn) { k = true; } } }
+            else sn = tn;
+            if(!k) { if(sn>0 && sn<MAXENTTYPES) eh_ents.add(sn); }
+            s = strtok(NULL, " ");
+        }
+        while(s);
+    }
 }
-COMMAND(setedithide, ARG_CONC);
+COMMAND(setedithide, "c");
 
 void seteditshow(char *just)
 {
@@ -116,7 +121,7 @@ void seteditshow(char *just)
         }
     }
 }
-COMMAND(seteditshow, ARG_1STR);
+COMMAND(seteditshow, "s");
 
 void renderentarrow(const entity &e, const vec &dir, float radius)
 {
@@ -168,29 +173,29 @@ void renderentities()
                 if(ice) continue;
                 vec v(e.x, e.y, e.z);
                 if(vec(v).sub(camera1->o).dot(camdir) < 0) continue;
-                //particle_splash(i == closest ? 12 : 2, 2, 40, v);
-                int sc = 17; // "carrot" (orange) - entity slot currently unused, possibly "reserved"
+                //particle_splash(i == closest ? PART_ELIGHT : PART_ECLOSEST, 2, 40, v);
+                int sc = PART_ECARROT; // "carrot" (orange) - entity slot currently unused, possibly "reserved"
                 if(i==closest)
                 {
-                    sc = 2;
+                    sc = PART_ECLOSEST; // blue
                 }
                 else switch(e.type)
                 {
-                    case LIGHT : sc = 12; break; // white
-                    case PLAYERSTART: sc = 13; break; // green
+                    case LIGHT : sc = PART_ELIGHT; break; // white
+                    case PLAYERSTART: sc = PART_ESPAWN; break; // green
                     case I_CLIPS:
                     case I_AMMO:
-                    case I_GRENADE: sc = 14; break; // red
+                    case I_GRENADE: sc = PART_EAMMO; break; // red
                     case I_HEALTH:
                     case I_HELMET:
                     case I_ARMOUR:
-                    case I_AKIMBO: sc = 15; break; // yellow
+                    case I_AKIMBO: sc = PART_EPICKUP; break; // yellow
                     case MAPMODEL:
-                    case SOUND: sc = 16; break; // magenta
+                    case SOUND: sc = PART_EMODEL; break; // magenta
                     case LADDER:
                     case CLIP:
-                    case PLCLIP: sc = 18; break; // grey
-                    case CTF_FLAG: sc = 19; break; // turquoise
+                    case PLCLIP: sc = PART_ELADDER; break; // grey
+                    case CTF_FLAG: sc = PART_EFLAG; break; // turquoise
                     default: break;
                 }
                 //particle_splash(sc, i==closest?6:2, i==closest?120:40, v);
@@ -215,8 +220,8 @@ void renderentities()
                 defformatstring(path)("pickups/flags/%s", team_basestring(e.attr2));
                 rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
             }
-            else if((e.type == CLIP || e.type == PLCLIP) && !stenciling) renderclip(e);
-            else if(showmodelclipping && e.type == MAPMODEL && !stenciling)
+            else if((e.type == CLIP || e.type == PLCLIP) && showclips && !stenciling) renderclip(e);
+            else if(e.type == MAPMODEL && showclips && showmodelclipping && !stenciling)
             {
                 mapmodelinfo &mmi = getmminfo(e.attr2);
                 if(&mmi && mmi.h)
@@ -246,7 +251,7 @@ void renderentities()
             }
         }
     }
-    if(m_flags) loopi(2)
+    if(m_flags && !editmode) loopi(2)
     {
         flaginfo &f = flaginfos[i];
         switch(f.state)
@@ -290,7 +295,42 @@ void pickupeffects(int n, playerent *d)
     if(d!=player1 && d->type!=ENT_BOT) return;
     if(&is)
     {
-        if(d==player1) audiomgr.playsoundc(is.sound);
+        if(d==player1)
+        {
+            audiomgr.playsoundc(is.sound);
+
+            /*
+                onPickup arg1 legend:
+                  0 = pistol clips
+                  1 = ammo box
+                  2 = grenade
+                  3 = health pack
+                  4 = helmet
+                  5 = armour
+                  6 = akimbo
+            */
+            if(identexists("onPickup"))
+            {
+                string o;
+                itemstat *tmp = NULL;
+                switch(e.type)
+                {
+                    case I_CLIPS:   tmp = &ammostats[GUN_PISTOL]; break;
+                    case I_AMMO:    tmp = &ammostats[player1->primary]; break;
+                    case I_GRENADE: tmp = &ammostats[GUN_GRENADE]; break;
+                    case I_AKIMBO:  tmp = &ammostats[GUN_AKIMBO]; break;
+                    case I_HEALTH:
+                    case I_HELMET:
+                    case I_ARMOUR:  tmp = &powerupstats[e.type-I_HEALTH]; break;
+                    default: break;
+                }
+                if(tmp)
+                {
+                    formatstring(o)("onPickup %d %d", e.type - 3, m_lss && e.type == I_GRENADE ? 2 : tmp->add);
+                    execute(o);
+                }
+            }
+        }
         else audiomgr.playsound(is.sound, d);
     }
 
@@ -402,7 +442,7 @@ void checkitems(playerent *d)
         if(OUTBORD(f.pos.x, f.pos.y)) continue;
         if(f.state==CTFF_DROPPED) // 3d collision for dropped ctf flags
         {
-            if(objcollide(d, f.pos, 2.5f, 4.0f)) trypickupflag(i, d);
+            if(objcollide(d, f.pos, 2.5f, 8.0f)) trypickupflag(i, d);
         }
         else // simple 2d collision
         {
@@ -445,7 +485,7 @@ bool selectnextprimary(int num)
     switch(num)
     {
 //         case GUN_CPISTOL:
-        case GUN_RIFLE:
+        case GUN_CARBINE:
         case GUN_SHOTGUN:
         case GUN_SUBGUN:
         case GUN_SNIPER:
@@ -500,36 +540,37 @@ void tryflagdrop(bool manual)
 
 void flagreturn(int fln)
 {
-	flaginfo &f = flaginfos[fln];
-	f.flagent->spawned = false;
-	f.ack = false;
-	addmsg(SV_FLAGACTION, "rii", FA_RETURN, f.team);
+    flaginfo &f = flaginfos[fln];
+    f.flagent->spawned = false;
+    f.ack = false;
+    addmsg(SV_FLAGACTION, "rii", FA_RETURN, f.team);
 }
 
 void flagscore(int fln)
 {
-	flaginfo &f = flaginfos[fln];
-	f.ack = false;
-	addmsg(SV_FLAGACTION, "rii", FA_SCORE, f.team);
+    flaginfo &f = flaginfos[fln];
+    f.ack = false;
+    addmsg(SV_FLAGACTION, "rii", FA_SCORE, f.team);
 }
 
 // flag ent actions from the net
 
 void flagstolen(int flag, int act)
 {
-	playerent *actor = act == getclientnum() ? player1 : getclient(act);
-	flaginfo &f = flaginfos[flag];
-	f.actor = actor; // could be NULL if we just connected
-	f.actor_cn = act;
-	f.flagent->spawned = false;
-	f.ack = true;
+    playerent *actor = getclient(act);
+    flaginfo &f = flaginfos[flag];
+    f.actor = actor; // could be NULL if we just connected
+    f.actor_cn = act;
+    f.flagent->spawned = false;
+    f.ack = true;
 }
 
 void flagdropped(int flag, float x, float y, float z)
 {
-	flaginfo &f = flaginfos[flag];
+    flaginfo &f = flaginfos[flag];
     if(OUTBORD(x, y)) return; // valid pos
     bounceent p;
+    p.plclipped = true;
     p.rotspeed = 0.0f;
     p.o.x = x;
     p.o.y = y;
@@ -555,23 +596,23 @@ void flagdropped(int flag, float x, float y, float z)
     f.pos.y = round(p.o.y);
     f.pos.z = round(p.o.z);
     if(f.pos.z < hdr.waterlevel) f.pos.z = (short) hdr.waterlevel;
-	f.flagent->spawned = true;
-	f.ack = true;
+    f.flagent->spawned = true;
+    f.ack = true;
 }
 
 void flaginbase(int flag)
 {
-	flaginfo &f = flaginfos[flag];
-	f.actor = NULL; f.actor_cn = -1;
+    flaginfo &f = flaginfos[flag];
+    f.actor = NULL; f.actor_cn = -1;
     f.pos = vec(f.flagent->x, f.flagent->y, f.flagent->z);
-	f.flagent->spawned = true;
-	f.ack = true;
+    f.flagent->spawned = true;
+    f.ack = true;
 }
 
 void flagidle(int flag)
 {
     flaginbase(flag);
-	flaginfos[flag].flagent->spawned = false;
+    flaginfos[flag].flagent->spawned = false;
 }
 
 void entstats(void)
@@ -612,5 +653,19 @@ void entstats(void)
     conoutf("total entities: %d", ents.length());
 }
 
-COMMAND(entstats, ARG_NONE);
+COMMAND(entstats, "");
 
+vector<int> changedents;
+int lastentsync = 0;
+
+void syncentchanges(bool force)
+{
+    if(lastmillis - lastentsync < 1000 && !force) return;
+    loopv(changedents) if(ents.inrange(changedents[i]))
+    {
+        entity &e = ents[changedents[i]];
+        addmsg(SV_EDITENT, "ri9", changedents[i], e.type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4);
+    }
+    changedents.setsize(0);
+    lastentsync = lastmillis;
+}

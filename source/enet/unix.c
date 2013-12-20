@@ -18,12 +18,29 @@
 #define ENET_BUILDING_LIB 1
 #include "enet/enet.h"
 
-#ifdef HAS_FCNTL
-#include <fcntl.h>
+#ifdef __APPLE__
+#ifdef HAS_POLL
+#undef HAS_POLL
+#endif
+#ifndef HAS_FCNTL
+#define HAS_FCNTL 1
+#endif
+#ifndef HAS_INET_PTON
+#define HAS_INET_PTON 1
+#endif
+#ifndef HAS_INET_NTOP
+#define HAS_INET_NTOP 1
+#endif
+#ifndef HAS_MSGHDR_FLAGS
+#define HAS_MSGHDR_FLAGS 1
+#endif
+#ifndef HAS_SOCKLEN_T
+#define HAS_SOCKLEN_T 1
+#endif
 #endif
 
-#ifdef __APPLE__
-#undef HAS_POLL
+#ifdef HAS_FCNTL
+#include <fcntl.h>
 #endif
 
 #ifdef HAS_POLL
@@ -219,6 +236,14 @@ enet_socket_set_option (ENetSocket socket, ENetSocketOption option, int value)
             result = setsockopt (socket, SOL_SOCKET, SO_SNDBUF, (char *) & value, sizeof (int));
             break;
 
+        case ENET_SOCKOPT_RCVTIMEO:
+            result = setsockopt (socket, SOL_SOCKET, SO_RCVTIMEO, (char *) & value, sizeof (int));
+            break;
+
+        case ENET_SOCKOPT_SNDTIMEO:
+            result = setsockopt (socket, SOL_SOCKET, SO_SNDTIMEO, (char *) & value, sizeof (int));
+            break;
+
         default:
             break;
     }
@@ -229,6 +254,7 @@ int
 enet_socket_connect (ENetSocket socket, const ENetAddress * address)
 {
     struct sockaddr_in sin;
+    int result;
 
     memset (& sin, 0, sizeof (struct sockaddr_in));
 
@@ -236,7 +262,11 @@ enet_socket_connect (ENetSocket socket, const ENetAddress * address)
     sin.sin_port = ENET_HOST_TO_NET_16 (address -> port);
     sin.sin_addr.s_addr = address -> host;
 
-    return connect (socket, (struct sockaddr *) & sin, sizeof (struct sockaddr_in));
+    result = connect (socket, (struct sockaddr *) & sin, sizeof (struct sockaddr_in));
+    if (result == -1 && errno == EINPROGRESS)
+      return 0;
+
+    return result;
 }
 
 ENetSocket
@@ -262,10 +292,17 @@ enet_socket_accept (ENetSocket socket, ENetAddress * address)
     return result;
 } 
     
+int
+enet_socket_shutdown (ENetSocket socket, ENetSocketShutdown how)
+{
+    return shutdown (socket, (int) how);
+}
+
 void
 enet_socket_destroy (ENetSocket socket)
 {
-    close (socket);
+    if (socket != -1)
+      close (socket);
 }
 
 int

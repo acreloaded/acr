@@ -8,13 +8,16 @@ VARP(altconsize, 0, 0, 100);
 VARP(fullconsize, 0, 40, 100);
 VARP(consize, 0, 6, 100);
 VARP(confade, 0, 20, 60);
+VAR(conopen, 0, 0, 1);
+VAR(numconlines, 0, 0, 1);
 
 struct console : consolebuffer<cline>
 {
     int conskip;
     void setconskip(int n)
     {
-        conskip = clamp(conskip + n, 0, conlines.length());
+        int visible_lines = (int)(min(fullconsole ? ((VIRTH*2 - 2*CONSPAD - 2*FONTH/3)*(fullconsole==1 ? altconsize : fullconsize))/100 : FONTH*consize, (VIRTH*2 - 2*CONSPAD - 2*FONTH/3))/ (CONSPAD + 2*FONTH/3)) - 1;
+        conskip = clamp(conskip + n, 0, clamp(conlines.length()-visible_lines, 0, conlines.length()));
     }
 
     static const int WORDWRAP = 80;
@@ -23,10 +26,11 @@ struct console : consolebuffer<cline>
     void toggleconsole()
     {
         if(!fullconsole) fullconsole = altconsize ? 1 : 2;
-        else fullconsole = ++fullconsole % 3;
+        else fullconsole = (fullconsole + 1) % 3;
+        conopen = fullconsole;
     }
 
-    void addline(const char *sf) { consolebuffer<cline>::addline(sf, totalmillis); }
+    void addline(const char *sf) { consolebuffer<cline>::addline(sf, totalmillis); numconlines++; }
 
     void render()
     {
@@ -81,11 +85,11 @@ bool saycommandon = false;
 
 VARFP(maxcon, 10, 200, 1000, con.setmaxlines(maxcon));
 
-void setconskip(int n) { con.setconskip(n); }
-COMMANDN(conskip, setconskip, ARG_1INT);
+void setconskip(int *n) { con.setconskip(*n); }
+COMMANDN(conskip, setconskip, "i");
 
 void toggleconsole() { con.toggleconsole(); }
-COMMANDN(toggleconsole, toggleconsole, ARG_NONE);
+COMMANDN(toggleconsole, toggleconsole, "");
 
 void renderconsole() { con.render(); }
 
@@ -112,11 +116,9 @@ void conoutf(const char *s, ...)
     con.addline(sf);
     delete[] conline; conline=newstring(sf);
 }
-void strstra(const char *a,const char *b) {
-    intret(strstr(a,b)?1:0);
-    return;
-}
-COMMANDN(strstr,strstra,ARG_2STR);
+
+COMMANDF(strstr, "ss", (char *a, char *b) { intret(strstr(a, b) ? 1 : 0); });
+
 /** This is the 1.0.4 function
     It will substituted by rendercommand_wip
     I am putting this temporarily here because it is very difficult to chat in game with the current cursor behavior,
@@ -151,7 +153,7 @@ int getCONlength(int n)
 /** WIP ALERT */
 int rendercommand_wip(int x, int y, int w)
 {
-    int width, height;
+    int width, height = 0;
     if( strlen(cmdline.buf) > 0 )
     {
         int ctx = -1;
@@ -174,15 +176,17 @@ int rendercommand_wip(int x, int y, int w)
 
 vector<keym> keyms;
 
-void keymap(char *code, char *key, char *action)
+const char *keycmds[keym::NUMACTIONS] = { "bind", "specbind", "editbind" };
+inline const char *keycmd(int type) { return type >= 0 && type < keym::NUMACTIONS ? keycmds[type] : ""; }
+
+void keymap(int *code, char *key)
 {
     keym &km = keyms.add();
-    km.code = atoi(code);
+    km.code = *code;
     km.name = newstring(key);
-    km.action = newstring(action);
 }
 
-COMMAND(keymap, ARG_3STR);
+COMMAND(keymap, "is");
 
 keym *findbind(const char *key)
 {
@@ -190,9 +194,9 @@ keym *findbind(const char *key)
     return NULL;
 }
 
-keym *findbinda(const char *action)
+keym *findbinda(const char *action, int type)
 {
-    loopv(keyms) if(!strcasecmp(keyms[i].action, action)) return &keyms[i];
+    loopv(keyms) if(!strcasecmp(keyms[i].actions[type], action)) return &keyms[i];
     return NULL;
 }
 
@@ -202,37 +206,102 @@ keym *findbindc(int code)
     return NULL;
 }
 
+void findkey(int *code)
+{
+    for (int i = 0; i < keyms.length(); i++)
+    {
+        if(keyms[i].code==*code)
+        {
+            defformatstring(out)("%s", keyms[i].name);
+            result(out);
+            return;
+        }
+    }
+    result("-255");
+    return;
+}
+ 
+void findkeycode(const char* s)
+{
+     for (int i = 0; i < keyms.length(); i++)
+     {
+         if(strcmp(s, keyms[i].name) == 0)
+         {
+             defformatstring(out)("%i", keyms[i].code);
+             result(out);
+             return;
+         }
+     }
+     result("-255");
+     return;
+}
+
+COMMAND(findkey, "i");
+COMMAND(findkeycode, "s");
+
 keym *keypressed = NULL;
 char *keyaction = NULL;
 
-bool bindkey(keym *km, const char *action)
+bool bindkey(keym *km, const char *action, int type)
 {
     if(!km) return false;
-    if(!keypressed || keyaction!=km->action) delete[] km->action;
-    km->action = newstring(action);
+    if(type < keym::ACTION_DEFAULT || type >= keym::NUMACTIONS) { conoutf("invalid bind type \"%i\"", type); return false; }
+    if(!keypressed || keyaction!=km->actions[type]) delete[] km->actions[type];
+    km->actions[type] = newstring(action);
     return true;
 }
 
-void bindk(const char *key, const char *action)
+void bindk(const char *key, const char *action, int type)
 {
     keym *km = findbind(key);
     if(!km) { conoutf("unknown key \"%s\"", key); return; }
-    bindkey(km, action);
+    bindkey(km, action, type);
 }
-void keybind(const char *key)
+
+void keybind(const char *key, int type)
 {
     keym *km = findbind(key);
-    result(km->action);
+    if(!km) { conoutf("unknown key \"%s\"", key); return; }
+    if(type < keym::ACTION_DEFAULT || type >= keym::NUMACTIONS) { conoutf("invalid bind type \"%i\"", type); return; }
+    result(km->actions[type]);
 }
-bool bindc(int code, const char *action)
+
+bool bindc(int code, const char *action, int type)
 {
     keym *km = findbindc(code);
-    if(km) return bindkey(km, action);
+    if(km) return bindkey(km, action, type);
     else return false;
 }
 
-COMMANDN(bind, bindk, ARG_2STR);
-COMMAND(keybind, ARG_1STR);
+void searchbinds(const char *action, int type)
+{
+    if(!action || !action[0]) return;
+    if(type < keym::ACTION_DEFAULT || type >= keym::NUMACTIONS) { conoutf("invalid bind type \"%i\"", type); return; }
+    vector<char> names;
+    loopv(keyms)
+    {
+        if(!strcmp(keyms[i].actions[type], action))
+        {
+            if(names.length()) names.add(' ');
+            names.put(keyms[i].name, strlen(keyms[i].name));
+        }
+    }
+    names.add('\0');
+    result(names.getbuf());
+}
+
+COMMANDF(keybind, "s", (const char *key) { keybind(key, keym::ACTION_DEFAULT); } );
+COMMANDF(keyspecbind, "s", (const char *key) { keybind(key, keym::ACTION_SPECTATOR); } );
+COMMANDF(keyeditbind, "s", (const char *key) { keybind(key, keym::ACTION_EDITING); } );
+
+COMMANDF(bind, "ss", (const char *key, const char *action) { bindk(key, action, keym::ACTION_DEFAULT); } );
+COMMANDF(specbind, "ss", (const char *key, const char *action) { bindk(key, action, keym::ACTION_SPECTATOR); } );
+COMMANDF(editbind, "ss", (const char *key, const char *action) { bindk(key, action, keym::ACTION_EDITING); } );
+
+COMMANDF(searchbinds, "s", (const char *action) { searchbinds(action, keym::ACTION_DEFAULT); });
+COMMANDF(searchspecbinds, "s", (const char *action) { searchbinds(action, keym::ACTION_SPECTATOR); });
+COMMANDF(searcheditbinds, "s", (const char *action) { searchbinds(action, keym::ACTION_EDITING); });
+
 struct releaseaction
 {
     keym *key;
@@ -254,7 +323,7 @@ void onrelease(char *s)
     addreleaseaction(s);
 }
 
-COMMAND(onrelease, ARG_1STR);
+COMMAND(onrelease, "s");
 
 void saycommand(char *init)                         // turns input to the command line on or off
 {
@@ -290,10 +359,10 @@ void getmapmsg(void)
     result(text);
 }
 
-COMMAND(saycommand, ARG_CONC);
-COMMAND(inputcommand, ARG_3STR);
-COMMAND(mapmsg, ARG_1STR);
-COMMAND(getmapmsg, ARG_NONE);
+COMMAND(saycommand, "c");
+COMMAND(inputcommand, "sss");
+COMMAND(mapmsg, "s");
+COMMAND(getmapmsg, "");
 
 #if !defined(WIN32) && !defined(__APPLE__)
 #include <X11/Xlib.h>
@@ -309,11 +378,11 @@ void pasteconsole(char *dst)
     concatstring(dst, cb);
     GlobalUnlock(cb);
     CloseClipboard();
-	#elif defined(__APPLE__)
-	extern void mac_pasteconsole(char *commandbuf);
+    #elif defined(__APPLE__)
+    extern void mac_pasteconsole(char *commandbuf);
 
-	mac_pasteconsole(dst);
-	#else
+    mac_pasteconsole(dst);
+    #else
     SDL_SysWMinfo wminfo;
     SDL_VERSION(&wminfo.version);
     wminfo.subsystem = SDL_SYSWM_X11;
@@ -393,18 +462,18 @@ int histpos = 0;
 
 VARP(maxhistory, 0, 1000, 10000);
 
-void history_(int n)
+void history_(int *n)
 {
     static bool inhistory = false;
-    if(!inhistory && history.inrange(n))
+    if(!inhistory && history.inrange(*n))
     {
         inhistory = true;
-        history[history.length()-n-1]->run();
+        history[history.length() - *n - 1]->run();
         inhistory = false;
     }
 }
 
-COMMANDN(history, history_, ARG_1INT);
+COMMANDN(history, history_, "i");
 
 void execbind(keym &k, bool isdown)
 {
@@ -420,11 +489,15 @@ void execbind(keym &k, bool isdown)
     }
     if(isdown)
     {
-        keyaction = k.action;
+        int state = keym::ACTION_DEFAULT;
+        if(editmode) state = keym::ACTION_EDITING;
+        else if(player1->isspectating()) state = keym::ACTION_SPECTATOR;
+        char *&action = k.actions[state][0] ? k.actions[state] : k.actions[keym::ACTION_DEFAULT];
+        keyaction = action;
         keypressed = &k;
         execute(keyaction);
         keypressed = NULL;
-        if(keyaction!=k.action) delete[] keyaction;
+        if(keyaction!=action) delete[] keyaction;
     }
     k.pressed = isdown;
 }
@@ -447,11 +520,13 @@ void consolekey(int code, bool isdown, int cooked)
                 scrolldoc(4);
                 break;
 
+            case SDL_AC_BUTTON_WHEELUP:
             case SDLK_UP:
                 if(histpos > history.length()) histpos = history.length();
                 if(histpos > 0) history[--histpos]->restore();
                 break;
 
+            case SDL_AC_BUTTON_WHEELDOWN:
             case SDLK_DOWN:
                 if(histpos + 1 < history.length()) history[++histpos]->restore();
                 break;
@@ -472,8 +547,11 @@ void consolekey(int code, bool isdown, int cooked)
     }
     else
     {
-        if(code==SDLK_RETURN)
+        if(code==SDLK_RETURN || code==SDLK_KP_ENTER || code==SDL_AC_BUTTON_LEFT || code==SDL_AC_BUTTON_MIDDLE)
         {
+            // make laptop users happy; LMB shall only work with history
+            if(code == SDL_AC_BUTTON_LEFT && histpos == history.length()) return;
+        
             hline *h = NULL;
             if(cmdline.buf[0])
             {
@@ -492,7 +570,7 @@ void consolekey(int code, bool isdown, int cooked)
             saycommand(NULL);
             if(h) h->run();
         }
-        else if(code==SDLK_ESCAPE)
+        else if(code==SDLK_ESCAPE || code== SDL_AC_BUTTON_RIGHT)
         {
             histpos = history.length();
             saycommand(NULL);
@@ -510,6 +588,16 @@ void keypress(int code, bool isdown, int cooked, SDLMod mod)
     {
         if(haskey) execbind(*haskey, isdown);
     }
+    if(isdown && identexists("KEYPRESS")) // TODO: Remove this if its misued. e.x: /KEYPRESS = [ echo You pressed key code: $arg1 ] // Output: You pressed key code: 32 (if you press the spacebar)
+    {
+        defformatstring(kpi)("KEYPRESS %d", code);
+        execute(kpi);
+    }
+    if (!isdown && identexists("KEYRELEASE"))
+    {
+        defformatstring(kpo)("KEYRELEASE %d", code);
+        execute(kpo);
+    }
 }
 
 char *getcurcommand()
@@ -521,7 +609,8 @@ void writebinds(stream *f)
 {
     loopv(keyms)
     {
-        if(*keyms[i].action) f->printf("bind \"%s\" [%s]\n",     keyms[i].name, keyms[i].action);
+        keym *km = &keyms[i];
+        loopj(3) if(*km->actions[j]) f->printf("%s \"%s\" [%s]\n", keycmd(j), km->name, km->actions[j]);
     }
 }
 

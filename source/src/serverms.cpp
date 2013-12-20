@@ -19,6 +19,7 @@ int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &remot
 ENetSocket mastersock = ENET_SOCKET_NULL;
 ENetAddress masteraddress = { ENET_HOST_ANY, ENET_PORT_ANY }, serveraddress = { ENET_HOST_ANY, ENET_PORT_ANY };
 string mastername = AC_MASTER_URI;
+int masterport = AC_MASTER_PORT, mastertype = AC_MASTER_HTTP;
 int lastupdatemaster = 0;
 vector<char> masterout, masterin;
 int masteroutpos = 0, masterinpos = 0;
@@ -48,8 +49,8 @@ ENetSocket connectmaster()
 
     if(masteraddress.host == ENET_HOST_ANY)
     {
-        logline(ACLOG_INFO, "looking up %s...", mastername);
-        masteraddress.port = AC_MASTER_PORT;
+        logline(ACLOG_INFO, "looking up %s:%d...", mastername, masterport);
+        masteraddress.port = masterport;
         if(!resolverwait(mastername, &masteraddress)) return ENET_SOCKET_NULL;
     }
     ENetSocket sock = enet_socket_create(ENET_SOCKET_TYPE_STREAM);
@@ -163,14 +164,15 @@ extern char *global_name;
 extern int interm;
 extern int totalclients;
 
-// send alive signal to masterserver after 40 minutes of uptime and during an intermission (so theoretically <= 1 hour) - after 1 hour at the latest.
+// send alive signal to masterserver after 40 minutes of uptime and if currently in intermission (so theoretically <= 1 hour)
+// TODO?: implement a thread to drop this "only in intermission" business, we'll need it once AUTH gets active!
 static inline void updatemasterserver(int millis, int port)
 {
     if(!lastupdatemaster || ((millis-lastupdatemaster)>40*60*1000 && (interm || !totalclients)))
     {
         char servername[30]; memset(servername,'\0',30); filtertext(servername,global_name,-1,20);
         if(mastername[0]) requestmasterf("regserv %d %s %d\n", port, servername[0] ? servername : "noname", AC_VERSION);
-        lastupdatemaster = millis ? millis : 1;
+        lastupdatemaster = millis + 1;
     }
 }
 
@@ -216,7 +218,6 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
 
         // ping & pong buf
         ucharbuf pi(data, len), po(&data[len], sizeof(data)-len);
-
         bool std = false;
         if(getint(pi) != 0) // std pong
         {
@@ -332,9 +333,9 @@ void servermsinit(const char *master, const char *ip, int infoport, bool listen)
     copystring(mastername, master);
     disconnectmaster();
 
-	if(listen)
-	{
-        ENetAddress address = { ENET_HOST_ANY, infoport };
+    if(listen)
+    {
+        ENetAddress address = { ENET_HOST_ANY, (enet_uint16)infoport };
         if(*ip)
         {
             if(enet_address_set_host(&address, ip)<0) logline(ACLOG_WARNING, "server ip not resolved");
@@ -357,5 +358,5 @@ void servermsinit(const char *master, const char *ip, int infoport, bool listen)
         }
         if(lansock == ENET_SOCKET_NULL) logline(ACLOG_WARNING, "could not create LAN server info socket");
         else enet_socket_set_option(lansock, ENET_SOCKOPT_NONBLOCK, 1);
-	}
+    }
 }

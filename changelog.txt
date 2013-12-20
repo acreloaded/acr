@@ -1,0 +1,11 @@
+AssaultCube ChangeLog
+
+1.2.0.1 -> 1.2.0.2
+---------------------
+
+Bug fixes
+---------------------
+
+[*] browsing masterserver fix
+[*] libcurl error on Linux fix
+[*] Tab completion cycle returns to first item

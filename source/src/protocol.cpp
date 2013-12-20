@@ -98,7 +98,7 @@ template<class T>
 static inline void sendstring_(const char *text, T &p)
 {
     const char *t = text;
-    while(*t) putint(p, *t++);
+    if(t) { while(*t) putint(p, *t++); }
     putint(p, 0);
     DEBUGVAR(text);
 }
@@ -200,9 +200,10 @@ void filtertext(char *dst, const char *src, int whitespace, int len)
     for(int c = *src; c; c = *++src)
     {
         c &= 0x7F; // 7-bit ascii
-        switch(c)
+        if(c == '\f')
         {
-            case '\f': ++src; continue;
+            if(!*++src) break;
+            continue;
         }
         if(isspace(c) ? whitespace && (whitespace>1 || c == ' '): isprint(c))
         {
@@ -296,28 +297,31 @@ const char *modefullnames[] =
     "demo playback",
     "team deathmatch", "coopedit", "deathmatch", "survivor",
     "team survivor", "ctf", "pistol frenzy", "bot team deathmatch", "bot deathmatch", "last swiss standing",
-    "one shot, one kill", "team one shot, one kill", "bot one shot, one kill", "hunt the flag", "team keep the flag", "keep the flag"
+    "one shot, one kill", "team one shot, one kill", "bot one shot, one kill", "hunt the flag", "team keep the flag",
+    "keep the flag", "team pistol frenzy", "team last swiss standing", "bot pistol frenzy", "bot last swiss standing", "bot team survivor", "bot team one shot, one kill"
 };
 
 const char *modeacronymnames[] =
 {
     "DEMO",
     "TDM", "coop", "DM", "SURV", "TSURV", "CTF", "PF", "BTDM", "BDM", "LSS",
-    "OSOK", "TOSOK", "BOSOK", "HTF", "TKTF", "KTF"
+    "OSOK", "TOSOK", "BOSOK", "HTF", "TKTF", "KTF", "TPF", "TLSS", "BPF", "BLSS", "BTSURV", "BTOSOK"
 };
 
 const char *voteerrors[] = { "voting is currently disabled", "there is already a vote pending", "already voted", "can't vote that often", "this vote is not allowed in the current environment (singleplayer/multiplayer)", "no permission", "invalid vote", "server denied your call", "the next map/mode is already set" };
 const char *mmfullnames[] = { "open", "private", "match" };
 
 const char *fullmodestr(int n) { return (n>=-1 && size_t(n+1) < sizeof(modefullnames)/sizeof(modefullnames[0])) ? modefullnames[n+1] : "unknown"; }
-const char *acronymmodestr(int n) { return (n>=-1 && size_t(n+1) < sizeof(modeacronymnames)/sizeof(modeacronymnames[0])) ? modeacronymnames[n+1] : "n/a"; }
+const char *acronymmodestr(int n) { return (n>=-1 && size_t(n+1) < sizeof(modeacronymnames)/sizeof(modeacronymnames[0])) ? modeacronymnames[n+1] : "UNK"; } // 'n/a' bad on *nix filesystem (demonameformat)
 const char *modestr(int n, bool acronyms) { return acronyms ? acronymmodestr (n) : fullmodestr(n); }
 const char *voteerrorstr(int n) { return (n>=0 && (size_t)n < sizeof(voteerrors)/sizeof(voteerrors[0])) ? voteerrors[n] : "unknown"; }
 const char *mmfullname(int n) { return (n>=0 && n < MM_NUM) ? mmfullnames[n] : "unknown"; }
 
+int defaultgamelimit(int gamemode) { return m_teammode ? 15 : 10; }
+
 static const int msgsizes[] =               // size inclusive message token, 0 for variable or not-checked sizes
 {
-    SV_SERVINFO, 5, SV_WELCOME, 2, SV_INITCLIENT, 0, SV_POS, 0, SV_POSC, 0, SV_POSN, 0, SV_TEXT, 0, SV_TEAMTEXT, 0, SV_TEXTME, 0, SV_TEAMTEXTME, 0,
+    SV_SERVINFO, 5, SV_WELCOME, 2, SV_INITCLIENT, 0, SV_POS, 0, SV_POSC, 0, SV_POSN, 0, SV_TEXT, 0, SV_TEAMTEXT, 0, SV_TEXTME, 0, SV_TEAMTEXTME, 0, SV_TEXTPRIVATE, 0,
     SV_SOUND, 2, SV_VOICECOM, 2, SV_VOICECOMTEAM, 2, SV_CDIS, 2,
     SV_SHOOT, 0, SV_EXPLODE, 0, SV_SUICIDE, 1, SV_AKIMBO, 2, SV_RELOAD, 3, SV_AUTHT, 0, SV_AUTHREQ, 0, SV_AUTHTRY, 0, SV_AUTHANS, 0, SV_AUTHCHAL, 0,
     SV_GIBDIED, 5, SV_DIED, 5, SV_GIBDAMAGE, 7, SV_DAMAGE, 7, SV_HITPUSH, 6, SV_SHOTFX, 6, SV_THROWNADE, 8,
@@ -333,9 +337,9 @@ static const int msgsizes[] =               // size inclusive message token, 0 f
     SV_SETADMIN, 0, SV_SERVOPINFO, 3,
     SV_CALLVOTE, 0, SV_CALLVOTESUC, 1, SV_CALLVOTEERR, 2, SV_VOTE, 2, SV_VOTERESULT, 2,
     SV_SETTEAM, 3, SV_TEAMDENY, 2, SV_SERVERMODE, 2,
-    SV_WHOIS, 2, SV_WHOISINFO, 3,
+    SV_IPLIST, 0,
     SV_LISTDEMOS, 1, SV_SENDDEMOLIST, 0, SV_GETDEMO, 2, SV_SENDDEMO, 0, SV_DEMOPLAYBACK, 3,
-    SV_CONNECT, 0, SV_SPECTCN, 2,
+    SV_CONNECT, 0,
     SV_SWITCHNAME, 0, SV_SWITCHSKIN, 0, SV_SWITCHTEAM, 0,
     SV_CLIENT, 0,
     SV_EXTENSION, 0,

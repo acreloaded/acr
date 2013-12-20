@@ -89,7 +89,7 @@ void audiomanager::initsound()
     }
 }
 
-void audiomanager::music(char *name, char *millis, char *cmd)
+void audiomanager::music(char *name, int millis, char *cmd)
 {
     if(nosound) return;
     stopsound();
@@ -100,11 +100,11 @@ void audiomanager::music(char *name, char *millis, char *cmd)
         if(gamemusic->open(name))
         {
             // fade
-            if(atoi(millis) > 0)
+            if(millis > 0)
             {
                 const int fadetime = 1000;
                 gamemusic->fadein(lastmillis, fadetime);
-                gamemusic->fadeout(lastmillis+atoi(millis), fadetime);
+                gamemusic->fadeout(lastmillis+millis, fadetime);
             }
 
             // play
@@ -193,10 +193,24 @@ void audiomanager::registermusic(char *name)
     musics.add(newstring(name));
 }
 
+int audiomanager::findsound(char *name, int vol, vector<soundconfig> &sounds)
+{
+    loopv(sounds)
+    {
+        if(!strcmp(sounds[i].buf->name, name) && (!vol || sounds[i].vol==vol)) return i;
+    }
+    return -1;
+}
+
 int audiomanager::addsound(char *name, int vol, int maxuses, bool loop, vector<soundconfig> &sounds, bool load, int audibleradius)
 {
     if(nosound) return -1;
     if(!soundvol) return -1;
+
+    // check if the sound was already registered
+    int index = findsound(name, vol, sounds);
+    if(index > -1) return index;
+
     sbuffer *b = bufferpool.find(name);
     if(!b)
     {
@@ -211,28 +225,19 @@ int audiomanager::addsound(char *name, int vol, int maxuses, bool loop, vector<s
     return sounds.length()-1;
 }
 
-int audiomanager::findsound(char *name, int vol, vector<soundconfig> &sounds)
-{
-    loopv(sounds)
-    {
-        if(!strcmp(sounds[i].buf->name, name) && (!vol || sounds[i].vol==vol)) return i;
-    }
-    return -1;
-}
-
-void audiomanager::preloadmapsound(entity &e)
+void audiomanager::preloadmapsound(entity &e, bool trydl)
 {
     if(e.type!=SOUND || !mapsounds.inrange(e.attr1)) return;
     sbuffer *buf = mapsounds[e.attr1].buf;
-    if(!buf->load()) conoutf("\f3failed to load sample %s", buf->name);
+    if(!buf->load(trydl) && !trydl) conoutf("\f3failed to load sample %s", buf->name);
 }
 
-void audiomanager::preloadmapsounds()
+void audiomanager::preloadmapsounds(bool trydl)
 {
     loopv(ents)
     {
         entity &e = ents[i];
-        if(e.type==SOUND) preloadmapsound(e);
+        if(e.type==SOUND) preloadmapsound(e, trydl);
     }
 }
 
@@ -296,7 +301,6 @@ void audiomanager::updateplayerfootsteps(playerent *p)
     if(!p) return;
 
     const int footstepradius = 20;
-    static float lastoffset = 0;
 
     // find existing footstep sounds
     physentreference ref(p);
@@ -319,8 +323,6 @@ void audiomanager::updateplayerfootsteps(playerent *p)
             location *l = locs[i];
             if(!l) continue;
             if(l->playmillis+minplaytime>totalmillis) continue; // tolerate short interruptions by enforcing a minimal playtime
-            lastoffset = l->offset(); // save last offset
-            DEBUGVAR(lastoffset);
             l->drop();
         }
     }
@@ -375,7 +377,7 @@ VARP(mapsoundrefresh, 0, 10, 1000);
 
 void audiomanager::mutesound(int n, int off)
 {
-	bool mute = (off == 0);
+    bool mute = (off == 0);
     if(!gamesounds.inrange(n))
     {
         conoutf("\f3could not %s sound #%d", mute ? "silence" : "unmute", n);
@@ -396,12 +398,25 @@ int audiomanager::soundmuted(int n)
 
 void audiomanager::writesoundconfig(stream *f)
 {
-    loopv(gamesounds) if(gamesounds[i].muted) f->printf("mutesound %d\n", i);
+    bool wrotesound = false;
+    loopv(gamesounds)
+    {
+        if(gamesounds[i].muted)
+        {
+            if(!wrotesound)
+            {
+                f->printf("// sound settings\n\n");
+                wrotesound = true;
+            }
+            f->printf("mutesound %d\n", i);
+        }
+    }
 }
 
 void voicecom(char *sound, char *text)
 {
     if(!sound || !sound[0]) return;
+    if(!text || !text[0]) return;
     static int last = 0;
     if(!last || lastmillis-last > 2000)
     {
@@ -425,14 +440,14 @@ void voicecom(char *sound, char *text)
     }
 }
 
-COMMAND(voicecom, ARG_2STR);
+COMMAND(voicecom, "ss");
 
 void soundtest()
 {
     loopi(S_NULL) audiomgr.playsound(i, rnd(SP_HIGH+1));
 }
 
-COMMAND(soundtest, ARG_NONE);
+COMMAND(soundtest, "");
 
 // sound configuration
 
@@ -468,7 +483,7 @@ void audiomanager::detachsounds(playerent *owner)
 }
 
 
-VARP(maxsoundsatonce, 0, 10, 100);
+VARP(maxsoundsatonce, 0, 32, 100);
 
 location *audiomanager::_playsound(int n, const worldobjreference &r, int priority, float offset, bool loop)
 {
@@ -534,6 +549,8 @@ void audiomanager::stopsound()
     if(gamemusic) gamemusic->reset();
 }
 
+VARP(heartbeat, 0, 0, 99);
+
 // main audio update routine
 
 void audiomanager::updateaudio()
@@ -542,7 +559,7 @@ void audiomanager::updateaudio()
 
     alcSuspendContext(context); // don't process sounds while we mess around
 
-    //bool alive = player1->state!=CS_DEAD;
+    bool alive = player1->state!=CS_DEAD;
     bool firstperson = camera1==player1 || (player1->isspectating() && player1->spectatemode==SM_DEATHCAM);
 
     // footsteps
@@ -559,8 +576,12 @@ void audiomanager::updateaudio()
     updateloopsound(S_UNDERWATER, underwater);
 
     // tinnitus
-    bool tinnitus = /*alive &&*/ firstperson && player1->eardamagemillis>0 && lastmillis<=player1->eardamagemillis;
+    bool tinnitus = alive && firstperson && player1->eardamagemillis>0 && lastmillis<=player1->eardamagemillis;
     location *tinnitusloc = updateloopsound(S_TINNITUS, tinnitus);
+
+    // heartbeat
+    bool heartbeatsound = heartbeat && alive && firstperson && !m_osok && player1->health <= heartbeat;
+    updateloopsound(S_HEARTBEAT, heartbeatsound);
 
     // pitch fx
     const float lowpitch = 0.65f;
@@ -745,60 +766,60 @@ bool staticreference::operator==(const worldobjreference &other)
 
 audiomanager audiomgr;
 
-COMMANDF(sound, ARG_1INT, (int n)
+COMMANDF(sound, "i", (int *n)
 {
-	audiomgr.playsound(n);
+    audiomgr.playsound(*n);
 });
 
-COMMANDF(applymapsoundchanges, ARG_NONE, (){
-	audiomgr.applymapsoundchanges();
+COMMANDF(applymapsoundchanges, "", (){
+    audiomgr.applymapsoundchanges();
 });
 
-COMMANDF(unmuteallsounds, ARG_NONE, () {
-	audiomgr.unmuteallsounds();
+COMMANDF(unmuteallsounds, "", () {
+    audiomgr.unmuteallsounds();
 });
 
-COMMANDF(mutesound, ARG_2INT, (int n, int off)
+COMMANDF(mutesound, "ii", (int *n, int *off)
 {
-	audiomgr.mutesound(n, off);
+    audiomgr.mutesound(*n, *off);
 });
 
-ICOMMANDF(soundmuted, ARG_1EXP, (int n)
+COMMANDF(soundmuted, "i", (int *n)
 {
-	return audiomgr.soundmuted(n);
+    intret(audiomgr.soundmuted(*n));
 });
 
-COMMANDF(mapsoundreset, ARG_NONE, ()
+COMMANDF(mapsoundreset, "", ()
 {
-	audiomgr.mapsoundreset();
+    audiomgr.mapsoundreset();
 });
 
 VARF(soundchannels, 4, 32, 1024, audiomgr.setchannels(soundchannels); );
 
 VARFP(soundvol, 0, 128, 255, audiomgr.setlistenervol(soundvol); );
 
-COMMANDF(registersound, ARG_4STR, (char *name, char *vol, char *loop, char *audibleradius)
+COMMANDF(registersound, "siii", (char *name, int *vol, int *loop, int *audibleradius)
 {
-	audiomgr.addsound(name, atoi(vol), -1, atoi(loop) != 0, gamesounds, true, atoi(audibleradius));
+    intret(audiomgr.addsound(name, *vol, -1, *loop != 0, gamesounds, true, *audibleradius));
 });
 
-COMMANDF(mapsound, ARG_2STR, (char *name, char *maxuses)
+COMMANDF(mapsound, "si", (char *name, int *maxuses)
 {
-	audiomgr.addsound(name, 255, atoi(maxuses), true, mapsounds, false, 0);
+    audiomgr.addsound(name, 255, *maxuses, true, mapsounds, false, 0);
 });
 
-COMMANDF(registermusic, ARG_1STR, (char *name)
+COMMANDF(registermusic, "s", (char *name)
 {
-	audiomgr.registermusic(name);
+    audiomgr.registermusic(name);
 });
 
-COMMANDF(musicpreload, ARG_1INT, (int id)
+COMMANDF(musicpreload, "i", (int *id)
 {
-	audiomgr.musicpreload(id);
+    audiomgr.musicpreload(*id);
 });
 
-COMMANDF(music, ARG_3STR, (char *name, char *millis, char *cmd)
+COMMANDF(music, "sis", (char *name, int *millis, char *cmd)
 {
-	audiomgr.music(name, millis, cmd);
+    audiomgr.music(name, *millis, cmd);
 });
 

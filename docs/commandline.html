@@ -1,757 +1,800 @@
-﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" >
-<html lang="en" xml:lang="en" xmlns:h="http://www.w3.org/1999/xhtml" xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <title>Command-line arguments </title>
-    <meta http-equiv="content-type" content="application/xhtml+xml;charset=utf-8" />
-    <link rel="shortcut icon" href="pics/favicon.ico" />
-    <link rel="stylesheet" href="styles/cubedoc.css" />
-</head>
-<body>
-    <div id="main">
-        <div id="logo">
-            <img src="pics/head.gif" alt="AssaultCube logo" />
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+    <!--
+      Things to note when editing this file:
+      a) Don't mess up the colour pattern, change the class="c1" and so-on accordingly to get it right.
+      b) Ensure you add your new argument into the correct category, then, expand the
+         "rowspan" on that category by one. Otherwise, set up a new category using existing ones as templates.
+      c) Please keep to the style provided and make your instructions 'n00b' friendly, thanks.
+      d) Add an "id" to each new argument, with the arguments switch, so it can be easily linked to, if need be.
+    -->
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta name="robots" content="NOODP">
+    <meta name="author" content="Rabid Viper Productions">
+    <meta name="copyright" content="You may be able to redistribute this content under specific conditions.
+    Please read the licensing information, available @ http://assault.cubers.net/docs/license.html for the
+    conditions that would apply to what you may be redistributing.">
+    <title>AssaultCube Documentation :: Command line arguments</title>
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" type="text/css" href="css/docs.css">
+    <link rel="stylesheet" type="text/css" href="css/fancytable.css">
+    <!--#include virtual="/SSI-HTML/docs/invisibility.html" -->
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <style type="text/css">
+      table, tr, td {
+        text-align : left;
+      }
+      .verttxt {
+        text-align : center;
+        font-weight : bold;
+        font-size : 14px;
+        vertical-align: middle;
+        padding : 10px;
+      }
+      .c1 {
+        text-align : center;
+        background-color : #0C0C0C;
+        vertical-align: top;
+        font-size : 15px;
+      }
+      .c2 {
+        background-color : #0C0C0C;
+      }
+      .c3 {
+        text-align : center;
+        vertical-align: top;
+        font-size : 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <div id="docsheader">
+        AssaultCube Documentation
+      </div>
+      <div id="logo">
+        <a href="index.html"><img src="images/aclogo.png"
+        alt="AssaultCube" width="193px" height="81px"></a>
+      </div>
+      <div id="menubar">
+	<!--#include virtual="/SSI-HTML/docs/navigation_box_docs.html" -->
+	&nbsp;
+      </div>
+      <!--#include virtual="/SSI-HTML/docs/docswarn.html" -->
+      <div class="docsmain">
+        <div id="gohome">
+          <a href="index.html">Go to documentation index &#8629;</a>
         </div>
-        <div id="title">
-            <h1>
-                AssaultCube: Command-line arguments
-            </h1>
-        </div>
-        <div id="content">
-            <h1>
-                Command-line arguments
-            </h1>
-            <p>
-                When launching AssaultCube you can pass &quot;switches&quot; to
-                allow different settings to occur on startup. 
-                Depending on your operating system there would be a different 
-                commandline-script or launcher to use (see below).
-                <br clear="none" /><b>Note:</b> Some of these options can be changed in-game
-                through the menus without the need to manually edit the script file.
-            </p>
-            <h3>Contents:</h3>
-            <ul>
-                <li>
-                    HowTo: <a href="#launcher">Editing the AssaultCube launcher</a>
-                </li>
-                <li>
-                    <a href="#clientswitch">Client switches</a>
-                </li>
-                <li>
-                    <a href="#serverswitch">Server switches</a>
-                </li>
-            </ul>
-            <h2 id="launcher">
-                HowTo: Editing the AssaultCube launcher
-            </h2>
-
-            <table>
+	<h2>Command line arguments</h2>
+	<p>
+	  When you launch AssaultCube, you're able to pass what are known as "arguments" or "switches"
+	  to the launcher, which will force particular settings to occur when AssaultCube runs.
+	</p>
+	<p>
+	  Depending on your operating system, the way to pass these arguments will differ, see the following:
+	</p>
+	<table>
+	  <tr>
+	    <td style="text-align : center; width : 290px;" class="c2">
+              <img src="images/windows.png" alt="Microsoft Windows">
+              <br><b>Microsoft Windows</b>
+            </td>
+            <td style="text-align : center; width : 290px;">
+              <img src="images/linux.png" alt="Linux">
+              <br><b>Linux</b>
+            </td>
+            <td style="text-align : center; width : 290px;" class="c2">
+              <img src="images/apple.png" alt="Apple Mac OS X">
+              <br><b>Apple Mac OS X</b>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              In the AssaultCube folder is a file named "<i>assaultcube.bat</i>". Right
+              click this and open it with "notepad" to edit the launcher for the
+              <span class="titletext" title="the client is what you use to play the game, i.e. NOT the server.">client</span>.
+              <br>After running the server wizard, in this folder will be a "<i>server_autoconfigured.bat</i>".
+              Right click this and open it with "notepad" to edit the launcher for the server.
+              <br><br>
+              All arguments need to be placed after the phrase:
+              <span class="code"><span class="titletext" title="...or if it's a server: bin_win32\ac_server.exe">bin_win32\ac_client.exe</span></span>
+              <br>... and before the phrase: <span class="code">%1 %2 %3 %4 %5</span>
+              <br><br>
+              Remember to save the file when you've finished!
+            </td>
+            <td class="c2">
+              In the AssaultCube folder is a file named "<i>assaultcube.sh</i>". Open it with your
+              favourite text editor (such as: gedit, GNU nano, Vim, GNU Emacs, Kate, etc.) to edit
+              the launcher for the
+              <span class="titletext" title="the client is what you use to play the game, i.e. NOT the server.">client</span>.
+              <br>
+              After running the server wizard, in this folder will be "<i>server_autogenerated.sh</i>".
+              Open it with your favourite text editor to edit the launcher for the server.
+              <br><br>
+              For the client, all arguments must be placed within the quotes on this line:
+              <span class="code">CUBE_OPTIONS="--home=${HOME} /.assaultcube --init"</span><br>
+              For the server, just add your arguments after the phrase: <span class="code">./server.sh</span>.
+              <br><br>
+              Remember to save the file when you've finished!
+            </td>
+            <td>
+              After starting the AssaultCube launcher, under the "Main" tab of the AssaultCube
+              launcher is an "Advanced options" bar. You can type all the arguments you need for the client into there.
+              <br><br>
+              For the server, under the "Server" tab of the AssaultCube launcher is an "Advanced options" bar.
+              You can type all the arguments you need for the server into there.
+            </td>
+        </table>
+        <h2 id="clientswitch" style="padding-top : 20px;">Arguments for the AssaultCube <span class="titletext"
+        title="the client is what you use to play the game, i.e. NOT the server.">client</span></h2>
+        <p>
+          These arguments are specifically for the clients launcher, not the server. All of the arguments are case-sensitive!
+          <br><b>Note:</b> Some of these options can be changed in-game through the menus, without the need to manually force these arguments.
+        </p>
+        <table>
+          <tr>
+            <td>&nbsp;</td>
+            <td class="head01">Argument</td>
+            <td class="head01">Description</td>
+          </tr>
+          <tr>
+            <td rowspan="8" class="verttxt">
+             G<br>R<br>A<br>P<br>H<br>I<br>C<br>A<br>L
+            </td>
+            <td class="c1" id="client-w">
+              -w<b>X</b>
+            </td>
+            <td class="c2">
+              Sets the desired screen width to <span class="code">X</span>.
+              The default is <span class="code">-w1024</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="c3" id="client-h">
+              -h<b>Y</b>
+            </td>
+            <td>
+              Sets the desired screen height to <span class="code">Y</span>.
+              The default is <span class="code">-h768</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="c1" id="client-t">-t</td>
+            <td class="c2">
+              Forces AssaultCube to run in "window" mode (turns fullscreen off).
+              <br>You can explicitly force fullscreen mode by using <span class="code">-t1</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="c3" id="client-z">-z<b>N</b></td>
+            <td>
+              Sets the precision of the <a href="http://en.wikipedia.org/wiki/Z-buffering">z-buffer</a>
+              to <span class="code">N</span> bits.
+              <br>This should be at least 24 or you may experience depth problems.
+            </td>
+          </tr>
+          <tr>
+            <td class="c1" id="client-b">-b<b>N</b></td>
+            <td class="c2">Sets the <a href="http://en.wikipedia.org/wiki/Color_depth">colour depth</a>
+            to <span class="code">N</span> bits per pixel
+            (example: <span class="code">-b16</span> would set the colour depth to 16-bits).</td>
+          </tr>
+          <tr>
+            <td class="c3" id="client-s">-s<b>N</b></td>
+            <td>
+              Sets the stencil buffer precision to <span class="code">N</span> bits.
+              <br>This needs to be either 8 to enable shadowing effects, or 0 to turn it off (the default).
+            </td>
+          </tr>
+          <tr>
+            <td class="c1" id="client-a">-a<b>N</b></td>
+            <td class="c2">
+              Sets <a href="http://en.wikipedia.org/wiki/Spatial_anti-aliasing#Super_Sampling_.2F_Full-scene_anti-aliasing">full-scene
+              anti-aliasing</a> to <span class="code">N</span> samples (example: <span class="code">-a4</span> is 4x).
+            </td>
+          </tr>
+          <tr>
+            <td class="c3" id="client-v">-v<b>N</b></td>
+            <td>
+              Enables <a href="http://en.wikipedia.org/wiki/Screen_tearing#V-sync">v-sync</a> if <span class="code">N</span> is greater than 0.
+              If <span class="code">N</span> equals -1 then system defaults will be used.
+            </td>
+          </tr>
+          <tr>
+            <td rowspan="3" class="verttxt">
+              O<br>N<br><br>L<br>A<br>U<br>N<br>C<br>H
+            </td>
+            <td class="c1" id="client--loadmap">--loadmap=<b>FILE</b></td>
+            <td class="c2">
+              Forces AssaultCube to load the map named <span class="code">FILE</span> when launched.
+            </td>
+          </tr>
+          <tr>
+            <td class="c3" id="client--loaddemo">--loaddemo=<b>FILE</b></td>
+            <td>Forces AssaultCube to playback the demo named <span class="code">FILE</span> when launched.
+          </tr>
+          <tr>
+            <td class="c1" id="client-e">-e<b>"C"</b></td>
+            <td class="c2">
+              Executes the command <span class="code">C</span> on launch (i.e. -e"echo hello"). Refer to the
+              <a href="reference.xml">CubeScript command reference</a> for a list of all possible commands.
+            </td>
+          </tr>
+          <tr>
+            <td rowspan="6" class="verttxt">
+              M<br>O<br>D<br>D<br>I<br>N<br>G
+            </td>
+            <td class="c3" id="client--init">--init</td>
+            <td>
+              Executes the init script before starting the graphics and sound subsystems (recommended).
+              By default, the file <i>./config/init.cfg</i> is used. This can be overriden by setting
+              <span class="code">--init=yourfile.cfg</span>
+            </td>
+          </tr>
+          <tr>
+            <td id="client--mod" class="c1">--mod=<b>PATH</b></td>
+            <td class="c2">
+              Adds the specified path to the list of directories to be searched when loading resources.
+              Use this to "MOD" the game in a clean way without having to place/replace files in the main directory.
+              <br>See the <a href="mods.html">custom mods</a> page for more information.
+              <br>Note: Mods need to be added into the <a href="commandline.html#client--home">--home</a> 
+              directory if one is specified.
+            </td>
+          </tr>
+          <tr>
+            <td class="c3" id="client--home">--home=<b>PATH</b></td>
+            <td>
+              Specifies the <a href="faqs.html#n10">AssaultCube home folder</a>.
+              <br>AssaultCube will write custom settings and files to this directory (recommended).
+            </td>
+          </tr>
+          <tr>
+            <td class="c1" id="client-m">-m<b>HOSTNAME/IP</b></td>
+            <td class="c2">
+              Sets the client to update its serverlist from the hostname or IP address of a different masterserver.
+              <br>The default is <span class="code">-massault.cubers.net</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="c3" id="client--masterport">--masterport=<b>PORT</b></td>
+            <td>
+              Sets the port of the masterserver the client will use, the default is 28760.
+            </td>
+          </tr>
+          <tr>
+            <td class="c1" id="client--mastertype">--mastertype=<b>TYPE</b></td>
+            <td class="c2">
+              Sets the method the client will use to contact the masterserver. 0 is UDP, 1 is HTTP (default).
+            </td>
+          </tr>
+          <tr>
+            <td rowspan="4" class="verttxt">
+              M<br>I<br>S<br>C
+            </td>
+            <td class="c3" id="client-T">-T</td>
+            <td>Tags a timestamp to each line of text output to the console.</td>
+          </tr>
+          <tr>
+            <td class="c1" id="client-d">-d</td>
+            <td class="c2">
+              This starts the executable file for the AssaultCube CLIENT, as an AssaultCube SERVER instead.
+              You don't need this argument if you're using the server executable. There is no need to use
+              this argument unless you know what you're doing.
+            </td>
+          </tr>
+          <tr>
+            <td class="c3" id="client--version">--version</td>
+            <td>Prints out the version number (example: 1.104) instead of running AssaultCube.</td>
+          </tr>
+          <tr>
+            <td class="c1" id="client--protocol">--protocol</td>
+            <td class="c2">Prints out the protocol number (example: 1140) instead of running AssaultCube.</td>
+          </tr>
+        </table>
+        <h2 id="serverswitch" style="padding-top : 20px;">Arguments for the AssaultCube server</h2>
+        <p>
+          These arguments are specifically for the servers launcher, not the client. All of the arguments are case-sensitive!
+        </p>
+        <table>
+          <tr>
+            <td>&nbsp;</td>
+            <td class="head01">Argument</td>
+            <td class="head01">Description</td>
+          </tr>
+          <tr>
+            <td class="verttxt">
+              S<br>I<br>Z<br>E
+            </td>
+            <td class="c1" id="server-c">-c<b>N</b></td>
+            <td class="c2">
+              Sets the maximum number of players that can play on the server to N (default 6).
+              The masterserver will only register servers with N set to a value less or equal 16.
+              If extra players try to connect they will receive a "server full" error message.
+            </td>
+          </tr>
+          <tr>
+            <td class="verttxt" rowspan="4">
+              N<br>A<br>M<br>I<br>N<br>G
+            </td>
+            <td class="c3" id="server-n">-n<b>S</b></td>
+            <td>
+              Sets the server description that shows in the server list.
+              Make sure you keep it short, otherwise it'll become truncated, example: -n"Fruity: Bananas & Cherry"
+            </td>
+          </tr>
+          <tr>
+            <td class="c1" id="server-n1">-n1<b>S</b></td>
+            <td class="c2">
+              Sets a prefix for the server description that remains when the server description is changed using the
+              <a href="http://assault.cubers.net/docs/reference.xml#identifier_serverdesc" class="code">/serverdesc</a>
+              command. A prefix AND/OR suffix MUST be specified for the <span class="code">/serverdesc</span> command to work.
+            </td>
+          </tr>
+          <tr>
+            <td class="c3" id="server-n2">-n2<b>S</b></td>
+            <td>
+              Sets a suffix for the server description that remains when the server description is changed using the
+              <a href="http://assault.cubers.net/docs/reference.xml#identifier_serverdesc" class="code">/serverdesc</a>
+              command. A suffix AND/OR prefix MUST be specified for the <span class="code">/serverdesc</span> command to work.
+            </td>
+          </tr>
+          <tr>
+            <td class="c1" id="server-o">-o<b>N</b></td>
+            <td class="c2">
+              Sets the servers MOTD (message of the day), which appears on the client's console after they connect to the server.
+            </td>
+          </tr>
+          <tr>
+            <td class="verttxt" rowspan="2">
+              I<br>P<br><br>&amp;<br><br>P<br>O<br>R<br>T
+            </td>
+            <td class="c3" id="server-i">-i<b>IP</b></td>
+            <td>
+              Binds the AssaultCube server to a single IP address. This option is only of use for servers that have multiple
+              IP addresses. Don't use this unless you know what you're doing.
+            </td>
+          </tr>
+          <tr>
+            <td class="c1" id="server-f">-f<b>PORT</b></td>
+            <td class="c2">
+              The AssaultCube server uses 2 ports (UDP), the default ports are 28763 and 28764.
+              You need to use different ports if you want to run several servers on the same IP address.
+              This argument allows you to bind the AssaultCube server to other ports.
+              For example: <span class="code">-f9000</span> would run a server on ports 9000 and 9001.
+            </td>
+          </tr>
+          <tr>
+            <td class="verttxt" rowspan="3">
+              P<br>R<br>I<br>V<br>A<br>T<br>I<br>S<br>I<br>N<br>G
+            </td>
+            <td class="c3" id="server-p">-p<b>PASSWD</b></td>
+            <td>
+              Sets the password of the server PASSWD. Only clients that know the password will be able to connect.
+              Clients will be required to append the password to the end of the
+              <a href="reference.xml#identifier_connect">connect</a> command.
+            </td>
+          </tr>
+          <tr>
+            <td class="c1" id="server-m">-m<b>HOSTNAME/IP</b></td>
+            <td class="c2">
+              Forces the server to register with the hostname or IP address of a different masterserver.
+              <br>The default is <span class="code">-massault.cubers.net</span>
+              <br>If you want your server to be hidden and not report to the masterserver, use <span class="code">-mlocalhost</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="c3" id="server--masterport">--masterport=<b>PORT</b></td>
+            <td>
+              Sets the port on the masterserver to which the server will register, the default is 28760.
+            </td>
+          </tr>
+          <tr>
+            <td class="verttxt" rowspan="2">
+              A<br>D<br>M<br>I<br>N<br>I<br>S<br>T<br>R<br>A<br>T<br>O<br>R
+            </td>
+            <td class="c1" id="server-x">-x<b>PASSWD</b></td>
+            <td class="c2">
+              Sets the <a href="server.html#serveradmin">administrator</a> password to <span class="code">PASSWD</span>.
+              If you don't want your commandline to contain the password, or if you need
+              more than one admin password, use the file "config/serverpwd.cfg".
+              <br><br>Once logged in with the administrator password (by using
+              <span class="code">/setadmin 1 YOURPASS</span>), further administrator options
+              are presented to you when opening the menu (however, not all, check the
+              <a href="reference.xml">CubeScript command reference</a> for other options).
+            </td>
+          </tr>
+          <tr>
+            <td class="c3" id="server-P">-P<b>fkbMASRCDEPw</b></td>
+            <td>
+              Sets whether the role required to call a specific vote belongs to a "player" or an "administrator".
+              The characters <span class="code">fkbMASRCDEPw</span> are used to set these requirements. <br>A lower-case character
+              enables normal players to call that vote, whereas an upper-case character will only allow an administrator to call
+              the vote. <br>If a character doesn't appear, then the defaults for that setting will be used.<br><br>
+              <table>
                 <tr>
-                    <td width="50" rowspan="1" colspan="1">
-                        <img src="pics/vista.png" alt="Windows" />
-                    </td>
-                    <td rowspan="1" colspan="1">
-                        <b>Microsoft Windows</b>
-                        <br clear="none" />
-                        <p>
-                            In the AssaultCube folder, there is a file named "<i>assaultcube.bat</i>". Right
-                            click this and open it with "notepad" to edit the clients launcher.
-                            Also, after using the server wizard, in this folder will be "<i>server_autoconfigured.bat</i>".
-                            Right click this and open it with "notepad" to edit the servers launcher.
-                        </p>
-                        <p>
-                            All switches are placed after the phrase: <span class="code">bin_win32\ac_client.exe</span>
-                            <br clear="none" />
-                            If you're editing the client, you'll need to add it before the phrase: <span class="code">
-                            %1 %2 %3 %4 %5</span>
-                        </p>
-                        <p>
-                            Remember to save once you're finished!
-                        </p>
-                    </td>
+                  <td>&nbsp;</td>
+                  <td><span title="Is upper or lower case the default?" class="titletext">DEFAULT?</span></td>
+                  <td>Vote description</td>
                 </tr>
-
+                <tr><td>f</td><td>Lower</td><td><a href="reference.xml#identifier_forceteam">Force</a> a player to the enemy team.</td></tr>
+                <tr><td>k</td><td>Lower</td><td><a href="reference.xml#identifier_kick">Kick</a> a player.</td></tr>
+                <tr><td>b</td><td>Lower</td><td><a href="reference.xml#identifier_ban">Ban</a> a player (and remove bans).</td></tr>
+                <tr><td>m</td><td>Upper</td><td><a href="reference.xml#identifier_mastermode">Change mastermode</a> (open/private/match).</td></tr>
+                <tr><td>a</td><td>Upper</td><td>Enable/disable <a href="reference.xml#identifier_autoteam">autoteam</a>.</td></tr>
+                <tr><td>s</td><td>Upper</td><td><a href="reference.xml#identifier_shuffleteams">Shuffle</a> the teams.</td></tr>
+                <tr><td>r</td><td>Upper</td><td>Record a demo of the next game (if autorecording is disabled).</td></tr>
+                <tr><td>c</td><td>Upper</td><td><a href="reference.xml#identifier_cleardemos">Clear all demos</a> on the server.</td></tr>
+                <tr><td>d</td><td>Upper</td><td><a href="reference.xml#identifier_serverdesc">Change server description</a>.</td></tr>
+                <tr><td>e</td><td>Upper</td><td>Can vote for <a href="reference.xml#identifier_coop">co-op edit mode</a>.</td></tr>
+                <tr><td>p</td><td>Upper</td><td>Can vote for a gamemode that isn't supported by the map.</td></tr>
+                <tr><td>t</td><td>Lower</td><td>Can send private messages to any player.</td></tr>
                 <tr>
-                    <td width="50" rowspan="1" colspan="1">
-                        <img src="pics/linux.png" alt="Linux" />
-                    </td>
-                    <td rowspan="1" colspan="1">
-                        <b>Linux</b>
-                        <br clear="none" />
-                        <p>
-                            In the AssaultCube folder, there is a file named "<i>assaultcube.sh</i>". Open it
-                            with your favourite text editor, such as Gedit, Nano, etc. to edit the clients launcher.
-                            <br clear="none" />
-                            Also, after using the server wizard, in this folder will be "<i>server_autogenerated.sh</i>".
-                            Open it with your favourite text editor to edit the servers launcher.
-                        </p>
-                        <p>
-                            All switches for the client must be put inside the quote marks on this line: <span
-                            class="code">CUBE_OPTIONS="--home=${HOME}/.assaultcube --init"</span>
-                        </p>
-                        <p>
-                            All switches for the server must be placed after the phrase: <span class="code">./server.sh</span>.
-                        </p>
-                        <p>
-                            Remember to save once you're finished!
-                        </p>
-                    </td>
+                  <td>w</td><td>Lower</td>
+                  <td>
+                    Can vote to kick/ban for "weak" reasons. A "weak" reason is one where the server can't detect
+                    if the player being voted against is lagging, teamkilling, spamming or cheating.
+                  </td>
                 </tr>
-
+              </table>
+              <br>
+              For example: -PbmA enables ban &amp; mastermode to be voted by normal players, but only an administrator can change autoteam.
+              <br>The '-P' argument can be used several times, for example: '-Pb -Pm -PA' is the same as '-PbmA'.
+            </td>
+          </tr>
+          <tr>
+            <td class="verttxt" rowspan="7">
+              L<br>O<br>G<br>G<br>I<br>N<br>G
+            </td>
+            <td class="c1" id="server-V">-V</td>
+            <td class="c2">
+              Verbose mode. This enables additional log messages to be printed, including the server configuration files after parsing.
+              Using this argument twice will also enable logging of DEBUG messages. Be careful as your logs will show a part-obscured version
+              of the serverpwd.cfg file.
+            </td>
+          </tr>
+          <tr>
+            <td class="c3" id="server-T">-T</td>
+            <td>Tags a timestamp to each line of text output to the console/log files.</td>
+          </tr>
+          <tr>
+            <td class="c1" id="server-N">-N<b>ID</b>
+            <td class="c2">
+              Sets the log identity to <span class="code">ID</span> . By default, the log identity is 'IP[port]'.
+              <br>On Linux systems, the log identity is used for the syslog to identify server log entries.
+              <br>On Windows and Apple systems, the log identity is used to create the server log filename.
+            </td>
+          </tr>
+          <tr>
+            <td class="c3" id="server-F">-F<b>n</b></td>
+            <td>
+              Sets the syslog facility to <span class="code">n</span>.
+              Values from 0 to 7 are allowed, to make use of the facilities "local0" through to "local7".
+              By default, local6 is used. For further information, read the documentation of your installed syslog daemon.
+            </td>
+          </tr>
+          <tr>
+            <td class="c1" id="server-LF">-LF<b>n</b></td>
+            <td class="c2">
+              Sets the level of logging to <span class="code">n</span> for logging to file.
+              On Linux systems, this argument enables ADDITIONAL logging, as Linux systems already log to syslog.
+              <br>The following levels can be selected:<br><br>
+              <table>
                 <tr>
-                    <td width="50" rowspan="1" colspan="1">
-                        <img src="pics/apple.png" alt="Apple Mac OS X" />
-                    </td>
-                    <td rowspan="1" colspan="1">
-                        <b>Apple Mac OS X</b>
-                        <br clear="none" />
-                        <p>
-                            After starting the AssaultCube launcher, under the "main" tab of the AssaultCube
-                            launcher is an "Advanced options" bar. <br clear="none" />
-                            You can type all the switches you need for the client into there.<br clear="none" />
-                            Also, under the "server" tab of the AssaultCube launcher is an "Advanced options"
-                            bar. You can type all the switches you need for the server into there.<br clear="none" />
-                        </p>
-                    </td>
-                </tr>
-            </table>
-  
-            <h2 id="clientswitch">Client switches</h2>
-            <p>
-                These variables are specifically for the clients launcher, not the server.
-                Switches are case-sensitive!
-            </p>
-            <table>
-                <tr>
-                    <td width="120" style="text-align: center;">
-                        <span class="codecommandline">-w</span>X
-                    </td>
-                    <td>
-                        Sets desired screen width to X, default is <span class="code">-w1024</span>.
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-h</span>Y
-                    </td>
-                    <td>
-                        Sets desired screen height to Y, default is <span class="code">-h768</span>.
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-t</span>
-                    </td>
-                    <td>
-                        Runs AssaultCube in windowed mode (fullscreen off). Using -t1 you can explicitly force fullscreen mode.
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-z</span>N
-                    </td>
-                    <td>
-                        Sets the z-buffer precision to N bits. This should be at least 24
-                        or you may experience depth problems.
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-b</span>N
-                    </td>
-                    <td>
-                        Sets the screen to N bits per pixel.
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-s</span>N
-                    </td>
-                    <td>
-                        Sets the stencil buffer precision to N bits. This should be 8 to enable 
-                        shadowing effects, or 0 to turn it off (the default).
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-a</span>N
-                    </td>
-                    <td>
-                        Sets FSAA (Full Scene AntiAliasing) to N samples (i.e. -a4 is 4xFSAA).
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-v</span>N
-                    </td>
-                    <td>
-                        Enables vsync if N is greater 0.
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-m</span>M
-                    </td>
-                    <td>
-                        Sets the client to update itself against masterserver M. 
-                        M is the base url of the master server, 
-                        the default is -massault.cubers.net
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-e</span>C
-                    </td>
-                    <td>
-                        Executes the command C at startup (i.e. -e"say hello"). Look into the 
-                        <a href="reference.xml" shape="rect">reference</a> for all possible commands.
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">--init</span>
-                    </td>
-                    <td>
-                        Executes the init script before starting the graphics
-                        and sound subsystems (recommended). By default the script <i>config/init.cfg</i>
-                        is used, but you can override this setting by using <i>--init=yourfile.cfg</i>
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">--version</span>
-                    </td>
-                    <td>
-                        Prints out the version of AssaultCube (i.e. 1.103). After submitting this switch the game will not start.
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">--protocol</span>
-                    </td>
-                    <td>
-                        Prints out the protocol of AssaultCube (i.e.  1132). After submitting this switch the game will not start.
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span id="mods" class="codecommandline">--mod=</span>PATH
-                    </td>
-                    <td>
-                        Adds the specified path to the list of directories
-                        that are searched when loading resources. Use this to add your own mods in a clean
-                        way without placing files into the main directory.
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">--home=</span>PATH
-                    </td>
-                    <td>
-                        Specifies the home directory for the user profile, AssaultCube will write 
-                        custom settings and files to this directory (recommended).
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">--loadmap=</span>FILE
-                    </td>
-                    <td>
-                        Initializes the game with the given map (i.e. <i>--loadmap="ac_desert"</i>).
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">--loaddemo=</span>FILE
-                    </td>
-                    <td>
-                        Playbacks the given demo file at startup (i.e. <i>--loaddemo="LSS_ac_desert_2010.10.17_1750_4mr"</i>).
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-T</span>
-                    </td>
-                    <td>
-                        Add timestamp to every console log line.
-                    </td>
-                </tr>
-
-            </table>
-
-            <h2 id="serverswitch">Server switches</h2>
-            <p>
-                These variables are specifically for the servers launcher, not the client.
-                Switches are case-sensitive.
-            </p>
-            <table>
-                <tr>
-                    <td style="text-align: center;vertical-align: top;" width="120">
-                        <span class="codecommandline">-d</span>
-                    </td>
-                    <td>
-                        This starts an AssaultCube client binary as a dedicated server. The
-                        default is a non-dedicated server with only a single client in graphical mode. 
-                        See the <a href="server.html" shape="rect">Server Section</a>. 
-                        You don't need this parameter, if you're using the server binary.
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-u</span>N
-                    </td>
-                    <td>
-                        Sets the server upstream bandwidth (per player) to N bytes per
-                        second. only set this parameter if you know what you are doing, specifying a wrong
-                        value is worse than not specifying it at all.
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span id="serverdesc" class="codecommandline">-n</span>S
-                    </td>
-                    <td>
-                        Sets the server description, for people pinging the server. This usually does not need to 
-                        be set if you have a descriptive domain name already, but if you set it, keep it short 
-                        as it may otherwise be truncated, i.e. -nBobsInstagibServer
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-n1</span>S
-                    </td>
-                    <td>
-                        Sets a server description prefix.
-                    </td>
-                </tr>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-n2</span>S
-                    </td>
-                    <td>
-                        Sets a server description suffix.
-                    </td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td>
-                        To enable the admin to temporarily change the server description, a server description prefix 
-                        and/or suffix needs to be set. If the admin executes the command <span class="code">/serverdesc DESC</span>, 
-                        the server description will be changed to "prefixDESCsuffix". 
-                        At the end of the game, the default server description (set by 
-                        <span class="code"><a href="#serverdesc">-n</a></span>) is restored automatically.
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-i</span>IP
-                    </td>
-                    <td>
-                        Sets the server ip to IP. This option is only useful
-                        for people running servers on machines with multiple network interfaces.
-                        Only use this switch if you really know, what you are doing.
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-f</span>PORT
-                    </td>
-                    <td>
-                        Sets the server base port to PORT. An AC server always uses 2 UDP ports: PORT &amp; PORT+1.
-                        The default ports are 28763 and 28764. You need to use different ports, if you want to
-                        run several servers on the same machine (with one IP address). For example, use
-                        <span class="code">-f28765</span> for a second server.
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-N</span>ID
-                    </td>
-                    <td>
-                        Sets the log identity to ID. By default, the log identity is 'IP[port]'. On linux systems,
-                        the log identity is used for the syslog to identify server log entries. On windows and
-                        apple systems, the log identity is used to create the server logfile filename.
-         </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-F</span>n
-                    </td>
-                    <td>
-                        Sets the syslog facility to n. Values from 0 to 7 are allowed to use the facilities
-                        local0..local7. By default, local6 is used. For further information, check the
-                        documentation of your installed syslog daemon.
-         </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-T</span>
-                    </td>
-                    <td>
-                        Add timestamps to every line of the console and file logs. 
-         </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-LF</span>n
-                    </td>
-                    <td>
-                        Sets the logging level for file logs to level <i>n</i>. On linux systems, this switch can be used to enable (additional) file logging.<br clear="none" />
-                        The following levels can be selected:
-                        <table>
-                        <tr><td>0</td>
-                        <td>DEBUG: logs all messages</td></tr>
-                        <tr><td>1</td>
-                        <td>VERBOSE: logs all messages of level VERBOSE and above (same as console log, when using the -V switch)</td></tr>
-                        <tr><td>2</td>
-                        <td>INFO: logs all messages of level INFO and above (same as console without -V switch), default on windows or mac systems</td></tr>
-                        <tr><td>3</td>
-                        <td>WARNING: log only messages of level WARNING and above</td></tr>
-                        <tr><td>4</td>
-                        <td>ERROR: log only messages of level ERROR</td></tr>
-                        <tr><td>5 (or above)</td>
-                        <td>do not log to file (default on linux systems)</td></tr>
-                        </table>
-         </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-LS</span>n
-                    </td>
-                    <td>
-                        Sets the logging level for syslog logging to level <i>n</i>. This switch is ignored on non-linux systems.<br clear="none" />
-                        The following levels can be selected:
-                        <table>
-                        <tr><td>0</td>
-                        <td>DEBUG: logs all messages</td></tr>
-                        <tr><td>1</td>
-                        <td>VERBOSE: logs all messages of level VERBOSE and above (same as console log, when using the -V switch)</td></tr>
-                        <tr><td>2</td>
-                        <td>INFO: logs all messages of level INFO and above (same as console without -V switch), default</td></tr>
-                        <tr><td>3</td>
-                        <td>WARNING: log only messages of level WARNING and above</td></tr>
-                        <tr><td>4</td>
-                        <td>ERROR: log only messages of level ERROR</td></tr>
-                        <tr><td>5 (or above)</td>
-                        <td>do not log to syslog</td></tr>
-                        </table>
-         </td>
+                  <td>0</td><td>DEBUG</td><td>Logs all messages.</td>
                 </tr>
                 <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-m</span>M
-                    </td>
-                    <td>
-                        Sets the server to register itself against masterserver M.
-                        M is the base url of the master server and has to end in a / and without a http:// prefix, 
-                        the default is masterserver.cubers.net/cgi-bin/AssaultCube.pl/.
-                        If you want your server to be private and not report to the masterserver, use -mlocalhost.
-                    </td>
+                  <td>1</td><td>VERBOSE</td>
+                  <td>
+                    Logs all messages of level VERBOSE and above
+                    <br>This is the same as using the <span class="code">-V</span> argument.
+                  </td>
                 </tr>
                 <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-p</span>PASS
-                    </td>
-                    <td>
-                        Sets the server password to PASS. Only clients
-                        that use the command "/connect <i>IP PORT PASS</i>" will be able to connect.
-                    </td>
+                  <td>2</td><td>INFO</td>
+                  <td>Logs all messages of level INFO and above.<br>This is the default on Windows/Mac.</td>
                 </tr>
                 <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-c</span>N
-                    </td>
-                    <td>
-                        Sets the maximum number of players that can play on
-                        this server to N (default 6). If more players try to connect they will get a "server
-                        full" message.
-                    </td>
+                  <td>3</td><td>WARNING</td><td>Log only messages of level WARNING and above.</td>
                 </tr>
                 <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-x</span>M
-                    </td>
-                    <td>
-                        Sets the <a href="server.html#serveradmin" shape="rect">
-                        admin</a> password. If you don't want your commandline to contain the password, or if you need
-                        more than one admin password, use the file "config/serverpwd.cfg".
-                    </td>
+                  <td>4</td><td>ERROR</td><td>Log only messages of level ERROR.</td>
                 </tr>
                 <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-X</span>f
-                    </td>
-                    <td>
-                        Sets the admin password file. The default is <span class="code">-Xconfig/serverpwd.cfg</span>
-                    </td>
-                </tr> 
+                  <td>5</td><td>NONE</td><td>Don't log to file. This is the default on Linux systems.</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td class="c3" id="server-LS">-LS<b>n</b></td>
+            <td>
+              Sets the level of logging to <span class="code">n</span> for logging to syslog.
+              This argument is ignored on non-Linux systems.
+              The following levels can be selected:<br><br>
+              <table>
                 <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-r</span>C
-                    </td>
-                    <td>
-                        Sets the <a href="server.html#maprotation" shape="rect">
-                        maprotation</a> file. Example: <span class="code">-rconfig/maprot.cfg</span>
-                    </td>
+                  <td>0</td><td>DEBUG</td><td>Logs all messages.</td>
                 </tr>
                 <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-B</span>f
-                    </td>
-                    <td>
-                        Sets the blacklist file. The default is
-                        <span class="code">-Bconfig/serverblacklist.cfg</span>
-                    </td>
+                  <td>1</td><td>VERBOSE</td>
+                  <td>
+                    Logs all messages of level VERBOSE and above
+                    <br>This is the same as using the <span class="code">-V</span> argument.
+                  </td>
                 </tr>
                 <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-K</span>f
-                    </td>
-                    <td>
-                        Sets the nickname blacklist file. The default is
-                        <span class="code">-Kconfig/nicknameblacklist.cfg</span>
-                    </td>
+                  <td>2</td><td>INFO</td>
+                  <td>Logs all messages of level INFO and above.<br>This is the default for Linux.</td>
                 </tr>
                 <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-g</span>f
-                    </td>
-                    <td>
-                        Sets the forbidden words file. The default is
-                        <span class="code">-gconfig/forbidden.cfg</span>
-                    </td>
+                  <td>3</td><td>WARNING</td><td>Log only messages of level WARNING and above.</td>
                 </tr>
                 <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-I</span>f
-                    </td>
-                    <td>
-                        Sets the serverinfo text filename prefix. The default is
-                        <span class="code">-Iconfig/serverinfo</span>.
-                        The server adds <tt>"_en.txt"</tt> to the prefix to
-                        complete the filename.
-                    </td>
+                  <td>4</td><td>ERROR</td><td>Log only messages of level ERROR.</td>
                 </tr>
                 <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-O</span>f
-                    </td>
-                    <td>
-                        Sets the "Message of the day" (MOTD) text filename prefix.
-                        The default is <span class="code">-Oconfig/motd</span>.
-                        The server adds <tt>"_en.txt"</tt> to the prefix to
-                        complete the filename.
-                        The MOTD will only be read from file, if no static MOTD
-                        is given on the commandline ('-o').
-                    </td>
+                  <td>5</td><td>NONE</td><td>Don't log to syslog. This is the default on Windows/Mac systems.</td>
                 </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td class="c1" id="server-l">-l</td>
+            <td class="c2">Disables periodic logging of the game's current status/score (enabled by default).</td>
+          </tr>
+          <tr>
+            <td class="verttxt" rowspan="4">
+              T<br>H<br>R<br>E<br>S<br>H<br>O<br>L<br>D<br>S
+            </td>
+            <td class="c3" id="server-k">-k<b>N</b></td>
+            <td>
+              Sets the kick threshold to <span class="code">N</span>. If a players score drops below it,
+              he will be kicked automatically. The default is -5, all negative values DO require a minus sign.
+            </td>
+          </tr>
+          <tr>
+            <td class="c1" id="server-y">-y<b>N</b></td>
+            <td class="c2">
+              Sets the ban threshold to <span class="code">N</span>. If a players score drops below it,
+              he will be banned automatically. The default is -6, all negative values DO require a minus sign.
+            </td>
+          </tr>
+          <tr>
+            <td class="c3" id="server-kA">-kA<b>N</b></td>
+            <td>
+              Sets the threshold (in seconds) for the "<span class="titletext" title="Away from keyboard">AFK</span>"
+              auto-kick to <span class="code">N</span>. The server won't auto-kick if:
+              <ul style="margin : 5px; list-style-type : square;">
+                <li>The servers mastermode is PRIVATE or MATCH.</li>
+                <li>If there are 4 or less players.</li>
+                <li>If the mode isn't team-based AND the server isn't full.</li>
+              </ul>
+              The server will assume inactive players, even if chatting or in spectate mode, as AFK.
+              If the value is set lower than 30 seconds, then AFK auto-kick is disabled.
+              The default setting is 45 seconds.
+            </td>
+          </tr>
+          <tr>
+            <td class="c1" id="server-kB">-kB<b>N</b></td>
+            <td class="c2">
+              Sets the amount of minutes a banned player will remain banned from the server to
+              <span class="code">N</span><br>The default is 20 minutes.
+            </td>
+          </tr>
+          <tr>
+            <td rowspan="3" class="verttxt">
+              M<br>A<br>P<br>S<br><br>&amp;<br><br>M<br>O<br>D<br>E<br>S
+            </td>
+            <td class="c3" id="server-A">-A<b>N</b></td>
+            <td>
+              Restricts voting to administrators for a specific map OR a specific mode OR a specific mode on a specified map.
+              To restrict a specific mode only, use a <span class="titletext" title="#">hash</span> and append the
+              <a href="reference.xml#identifier_mode">mode number</a> to the end of this argument.
+              To restrict a specific map only, append the map name to this argument.
+              To restrict a specific mode on a map, append the map name to this argument, followed by a
+              <span class="titletext" title="#">hash</span> and the <a href="reference.xml#identifier_mode">mode number</a>.
+              <br>This argument can be used several times.
+              <br><br>Example: -Aac_desert#13 would restrict mode 13 on ac_desert.
+              <br>-Aac_shine restricts map ac_shine
+              <br>-A#11 restricts mode 11 (tosok) with any map.
+            </td>
+          </tr>
+          <tr>
+            <td class="c1" id="server-M">-M<b>curd</b></td>
+            <td class="c2">
+              Sets whether the role required to sendmap belongs to a "player" or an "administrator".
+              The characters <span class="code">curd</span> are used to set these requirements.
+              <br>A lower-case character enables normal players to do the listed sendmap action, whereas
+              an upper-case character will only allow an administrator to do the listed sendmap action.
+              If a character doesn't appear, then the defaults for that setting will be used.
+              <table>
                 <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-o</span>N
-                    </td>
-                    <td>
-                        Sets the server's "message of the day" (MOTD).
-                    </td>
+                  <td>&nbsp;</td>
+                  <td><span title="Is upper or lower case the default?" class="titletext">DEFAULT?</span></td>
+                  <td>Sendmap action description</td>
                 </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-k</span>N
-                    </td>
-                    <td>
-                        Sets the kick threshold. If a players score drops
-                        below it, he will be kicked automatically (default: -5).
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-kA</span>N
-                    </td>
-                    <td>
-                        Sets the kick threshold (in seconds) for the "Away From Keyboard" autokick.
-                        This autokick happens only if the server is OPEN (not PRIVATE and not MATCH),
-                        there are more than 4 players in the game, and affects mainly the teammode games.
-                        The server assumes chatting people and spectators as AFK.
-                        If the value is set less than 30, the AFK autokick is disabled. (default: 45).
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-kB</span>N
-                    </td>
-                    <td>
-                        Sets the minutes a banned player will stay banned on the server (default: 20).
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-y</span>N
-                    </td>
-                    <td>
-                        Sets the ban threshold. If a players score drops
-                        below it, he will be banned automatically (default: -6).
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-P</span>S
-                    </td>
-                    <td>
-                        Sets the required role to call specific votes. The two possible player roles are 'player' and 'admin'.
-                        'S' is a string of characters to set vote role requirements per vote type. A lower case character
-                        enables the vote call for normal players, an upper case character sets the vote call to require an
-                        admin. If a character does not appear in the string, the default setting is used.<br clear="none" />
-                        The following votes can be adjusted:
-                        <table>
-                        <tr><td>k</td>
-                        <td>kick players</td></tr>
-                        <tr><td>b</td>
-                        <td>ban players (and remove bans)</td></tr>
-                        <tr><td>m</td>
-                        <td>change mastermode (open/private)</td></tr>
-                        <tr><td>f</td>
-                        <td>force a player to the other team</td></tr>
-                        <tr><td>a</td>
-                        <td>enable/disable autoteam</td></tr>
-                        <tr><td>s</td>
-                        <td>shuffle the teams</td></tr>
-                        <tr><td>r</td>
-                        <td>record a demo of the next game (if autorecording is disabled)</td></tr>
-                        <tr><td>c</td>
-                        <td>clear all demos on server</td></tr>
-                        <tr><td>d</td>
-                        <td>change server description</td></tr>
-                        <tr><td>e</td>
-                        <td>vote for coopedit mode</td></tr>
-                        <tr><td>p</td>
-                        <td>vote for a gamemode that is not supported by the map (default: no one can)</td></tr>
-                        <tr><td>w</td>
-                        <td>vote to kick/ban for "weak" reasons, i.e, the other player is not obviously lagging, nor teamkilling, nor spamming, nor cheating (as far as the server can detect it)</td></tr>
-                        </table>
-                        For example: -PbmA enables ban &amp; mastermode to be voted by normal players but
-                        only admins can change autoteam. The '-P' parameter can be used several times on the commandline.
-                        For example, '-Pb -Pm -PA' is equivalent to '-PbmA'.
-                        The default settings are: "fkBMasRCDEw".
-                    </td>
-                </tr> 
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-A</span>map
-                    </td>
-                    <td>
-                        Restricts voting for a map/mode to admins. Mapname and modenumber (if
-                        specified) are separated by '#'. This switch can be used several times.
-                        Example: -Aac_desert#13
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-M</span>S
-                    </td>
-                    <td>
-                        Sets the required role for sendmap actions. The two possible player roles are 'player' and 'admin'.
-                        'S' is a string of characters to set role requirements per action type. A lower case character
-                        enables the sendmap action for normal players, an upper case character sets the sendmap action to require an
-                        admin. If a character does not appear in the string, the default setting is used.<br clear="none" />
-                        The following sendmap actions can be adjusted:
-                        <table>
-                        <tr><td>c</td>
-                        <td>create new map (initial map upload)</td></tr>
-                        <tr><td>u</td>
-                        <td>update existing map (with same or newer revision)</td></tr>
-                        <tr><td>r</td>
-                        <td>revert existing map to older revision</td></tr>
-                        <tr><td>d</td>
-                        <td>delete map (default: no one can)</td></tr>
-                        </table>
-                        For example: -MCuD enables updating maps for normal players but
-                        only admins can create or delete maps. The '-M' parameter can be used several times on the commandline.
-                        For example, '-MC -Mu -MD' is equivalent to '-MCuD'.
-                        The default settings are: "CRU".<br clear="none" />
-                        Note: Only maps in the 'incoming' folder are affected. Maps in 'official' and 'servermaps' are treated <i>read only</i>.
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-Z</span>i
-                    </td>
-                    <td>
-                        Sets the incoming limit of maps in MegaBytes being sent to the server. If the the size of all maps in the 'incoming' 
-                        folder exceeds this limit new maps will be rejected (default: -Z10).
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-D</span>n
-                    </td>
-                    <td>
-                        Sets the maximum number of recorded demos to be held in server RAM.
-                        Every game will be recorded. The recorded demos will be held in RAM. By default, up to 5 demos will be kept.
-                        To disable automatic demo recording, set the number to 0.
-                        The oldest demo will be deleted automatically if necessary, to allow recording of further demos.
-                        To change the default of 5 demos in RAM, you can add the number of demos to the parameter,
-                        e.g. <span class="code">-D5</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-D</span>I
-                    </td>
-                    <td>
-                        Limit the demo downloading to intermission (it doubles the intermission time if someone is downloading a demo).
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-W</span>f
-                    </td>
-                    <td>
-                        Sets a path (and optional filename prefix) to write all recorded demos to. The example
-                        <span class="code">-Wserverdemos/mydemo</span> would save all demos to the directory
-                        'serverdemos' and prefix the filenames with 'mydemo'. The filename will contain the (optional)
-                        prefix, the (encoded) time, game mode and map. To set a path without filename prefix, use
-                        <span class="code">-Wpath/</span>. A prefix without path can be set by <span class="code">
-                        -Wprefix</span>. The server owner has to take precautions that the demo files don't fill up the
-                        filesystem - especially, if permanent demo recording is also enabled (switch '-D').
-                    </td>
-                </tr> 
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-SW</span>
-                    </td>
-                    <td>
-                        Starts the server as windows service and sets the
-                        name of the windows service that should be used. Works only for the server binary
-                        is started directly from the windows service manager.
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-C</span>f
-                    </td>
-                    <td>
-                        Reads commandline arguments from a file. For example, 
-                        <span class="code">-Cconfig/servercmdline.txt</span> will read arguments from that file.
-                        Only one parameter per line is allowed. Empty lines, and any text after '//' will be ignored.
-                        The file is only read once at server startup; changing the file's content will not affect a running server.
-                        See config/servercmdline.txt for additional info. No file is read by default.
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;vertical-align: top">
-                        <span class="codecommandline">-V</span>
-                    </td>
-                    <td>
-                        Sets the server to verbose mode. This enables additional
-                        log messages to be printed, including the server configuration files (after parsing). Using this
-                        switch twice will also enable logging of DEBUG messages. Be careful:
-                        the logfile will contain all content from serverpwd.cfg.
-                    </td>
-                </tr>
-            </table>
-       </div>
-        <div id="footer">
-            Rabid Viper Productions 2008/10/19
-        </div>
+                <tr><td>c</td><td>Upper</td><td>Upload new maps to the server.</td></tr>
+                <tr><td>u</td><td>Upper</td><td>Update existing maps (with the same, or a newer revision).</td></tr>
+                <tr><td>r</td><td>Upper</td><td>Revert existing maps (to an older revision).</td></tr>
+                <tr><td>d</td><td>Upper</td><td>Delete a map from the server.</td></tr>
+              </table>
+              For example: -MCuD enables updating maps for normal players, but only admins can create or delete maps.
+              The '-M' argument can be used several times on the commandline. For example: '-MC -Mu -MD' is equivalent to '-MCuD'.
+              <br>Note: Only maps in the "incoming" folder are affected. Maps in the "official" and "servermaps" folders are
+              treated as <i>read only</i>. Also note that deleting maps is disabled for BOTH players AND admins by default; to enable
+              deletion of maps, you MUST use this argument.
+            </td>
+          </tr>
+          <tr>
+            <td class="c3" id="server-Z">-Z<b>i</b></td>
+            <td>
+              Sets the size limit (in megabytes) for maps being uploaded to the "incoming" folder to <span class="code">i</span>.
+              Any map being uploaded exceeding this limit, will be rejected. The default is 10 megabytes.
+            </td>
+          </tr>
+          <tr>
+            <td rowspan="6" class="verttxt">
+              D<br>E<br>M<br>O<br>S
+            </td>
+            <td class="c1" id="server-D">-D<b>n</b></td>
+            <td class="c2">
+              All games DO record demos (which can't be disabled). This argument however, sets the maximum number of recorded demos
+              to be held in the servers RAM at a time to <span class="code">n</span>.
+              As demos can become quite large (sometimes up to 2 megabytes),
+              it may be wise not to keep this setting too high if you're low on RAM and/or are running many servers.
+              Up to 5 demos are kept in RAM by default.
+              The oldest demo will be deleted automatically as necessary, to allow for recording of further demos.
+              If an invalid number is specified (example: 0), then this argument will revert to the default of 5 demos.
+            </td>
+          </tr>
+          <tr>
+            <td class="c3" id="server-DI">-DI</td>
+            <td>
+              Limit downloading of demos until the intermission (this will increase the intermission time if someone is downloading a demo).
+            </td>
+          </tr>
+          <tr>
+            <td class="c1" id="server-W">-W<b>f</b></td>
+            <td class="c2">
+              Sets the path (and optionally, the filename prefix) to write recorded demos to from RAM.
+              As an example: <span class="code">-Wserverdemos/mydemo</span> would save all demos to the
+              directory "serverdemos", with a prefix in the filenames of "mydemo".
+              <br>Demo filenames will contain the (optional) prefix, the (encoded) time, game mode and map.
+              To set a path without filename prefix, ensure you add a '/' to the end of this argument.
+              <br>The server owner has to take precautions that demo files don't fill up the file system,
+              as demos can become quite large (sometimes over 2 megabytes).
+            </td>
+          </tr>
+          <tr>
+            <td class="c3" id="server--demofilenameformat">--demofilenameformat=<b>s</b></td>
+            <td>
+              Changes the format used for saving demos (if the <span class="code">-W</span> argument
+              is used) to <span class="code">s</span>.
+              See <a href="reference.xml#identifier_demonameformat">demonameformat</a> for options.
+            </td>
+          </tr>
+          <tr>
+            <td class="c1" id="server--demotimestampformat">--demotimestampformat=<b>s</b></td>
+            <td class="c2">
+              Changes the timestamp format used for saving demos (if the <span class="code">-W</span> argument
+              is used) to <span class="code">s</span>.
+              See <a href="reference.xml#identifier_demotimeformat">demotimeformat</a> for options.
+            </td>
+          </tr>
+          <tr>
+            <td class="c3" id="server--demotimelocal">--demotimelocal=<b>s</b></td>
+            <td>
+              Changes whether timestamps are converted to localtime (if <span class="code">s</span> is set to 1)
+              or to use UTC (if <span class="code">s</span> is set to 0 - this is the default) when saving demos
+              (if the <span class="code">-W</span> argument is used).
+              See <a href="reference.xml#identifier_demotimelocal">demotimelocal</a>.
+            </td>
+          </tr>
+          <tr>
+            <td rowspan="9" class="verttxt">
+              C<br>H<br>A<br>N<br>G<br>E<br><br>C<br>F<br>G<br><br>F<br>I<br>L<br>E<br>P<br>A<br>T<br>H<br>S
+            </td>
+            <td class="c1" id="server-C">-C<b>f</b></td>
+            <td class="c2">
+              Reads commandline arguments from a file (no files are read by default).
+              For example, <span class="code">-Cconfig/servercmdline.txt</span>
+              will read arguments from that file. Only one argument per line is allowed in the file.
+              Empty lines, and any text after '//' in the file gets ignored.
+              The file is only read once at server startup, so changing the file's content will not affect a
+              running server; you would need to restart it.
+              <br>See ./config/servercmdline.txt for additional info.
+            </td>
+          </tr>
+            <td class="c3" id="server-X">-X<b>f</b></td>
+            <td>
+              Changes the location of the administrator password file.
+              <br>The default is: <span class="code">-Xconfig/serverpwd.cfg</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="c1" id="server-r">-r<b>f</b></td>
+            <td class="c2">
+              Changes the location of the <a href="server.html#maprotation">map rotation</a> file.
+              <br>The default is: <span class="code">-rconfig/maprot.cfg</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="c3" id="server-B">-B<b>f</b></td>
+            <td>
+              Changes the location of the IP blacklist file.
+              <br>The default is: <span class="code">-Bconfig/serverblacklist.cfg</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="c1" id="server-K">-K<b>f</b></td>
+            <td class="c2">
+              Changes the location of the nickname blacklist file.
+              <br>The default is: <span class="code">-Kconfig/nicknameblacklist.cfg</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="c3" id="server-g">-g<b>f</b></td>
+            <td>
+              Changes the location of the forbidden words file.
+              <br>The default is: <span class="code">-gconfig/forbidden.cfg</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="c1" id="server-E">-E<b>f</b></td>
+            <td class="c2">
+              Changes the location of the kill messages file.
+              <br>The default is: <span class="code">-gconfig/serverkillmessages.cfg</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="c3" id="server-I">-I<b>f</b></td>
+            <td>
+              Changes the location of the "serverinfo text" filename prefix.
+              The server automatically adds "_en.txt" as a suffix to complete the filename.
+              <br>The default is: <span class="code">-Iconfig/serverinfo</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="c1" id="server-O">-O<b>f</b></td>
+            <td class="c2">
+              Changes the location of the MOTD (message of the day) filename prefix.
+              The server automatically adds "_en.txt" as a suffix to complete the filename.
+              <br>The default is: <span class="code">-Oconfig/motd</span>
+              <br>The MOTD will only be read from a file if the <a href="#server-o" class="code">-o</a>
+              argument hasn't been specified.
+            </td>
+          </tr>
+          <tr>
+            <td class="verttxt" rowspan="2">
+              M<br>I<br>S<br>C
+            </td>
+            <td class="c3" id="server-SW">-SW<b>r</b></td>
+            <td>
+              Starts the server as Microsoft Windows service and sets the name of the windows service
+              that should be used to <span class="code">r</span>.
+              This will only work if the server is started directly from the windows service manager.
+            </td>
+          </tr>
+          <tr>
+            <td class="c1" id="server-u">-u<b>N</b></td>
+            <td class="c2">
+              Sets the up-stream bandwidth (per player) to <span class="code">N</span> bytes per second.
+              Only set this argument if you know what you're doing, as specifying a incorrect value is
+              worse than not specifying it.
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div id="author">
+        <a href="license.html">&copy; Copyright, Rabid Viper Productions</a>
+      </div>
+      <div id="donatedocs">
+        <a href="http://sourceforge.net/p/actiongame/donate/">
+          We would be grateful for any donations considered towards AssaultCube
+        </a>
+      </div>
+      <!--#include virtual="/SSI-HTML/adsense_footer.html" -->
     </div>
-</body>
+  </body>
 </html>

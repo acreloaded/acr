@@ -114,21 +114,22 @@ FunctionEnd
 
 SetCompressor /SOLID lzma
 
-!define CURPATH "C:\Users\sebastian\Desktop\AssaultCube1.1_NSIS\ac\source\vcpp\buildEnv" ; CHANGE ME
-!define AC_FULLVERSION "v1.1.0.4"
-!define AC_FULLVERSIONINT "1.1.0.4"
+!define CURPATH ".\" ; must include the installer graphics and the \ac\ directory
+!define AC_FULLVERSION "v1.2.0.2"
+!define AC_FULLVERSIONINT "1.2.0.2"
 !define AC_SHORTNAME "AssaultCube"
-!define AC_FULLNAME "AssaultCube v1.1.0.4"
-!define AC_FULLNAMESAVE "AssaultCube_v1.1.0.4"
+!define AC_FULLNAME "AssaultCube v1.2.0.2"
+!define AC_FULLNAMESAVE "AssaultCube_v1.2.0.2"
+!define AC_URLPROTOCOL "assaultcube"
 !define AC_MAJORVERSIONINT 1
-!define AC_MINORVERSIONINT 1
+!define AC_MINORVERSIONINT 2
 
 Name "AssaultCube"
 VAR StartMenuFolder
 OutFile "AssaultCube_${AC_FULLVERSION}.exe"
-InstallDir "$PROGRAMFILES\${AC_FULLNAMESAVE}"
+InstallDir "$PROGRAMFILES\${AC_SHORTNAME}"
 InstallDirRegKey HKLM "Software\${AC_SHORTNAME}" ""
-RequestExecutionLevel admin  ; require admin in vista/7
+RequestExecutionLevel admin ; require admin in Vista/7
 
 ; Interface Configuration
 
@@ -146,12 +147,12 @@ UninstallIcon "${CURPATH}\icon.ico"
 ; Pages
 
 Page custom WelcomePage
-!insertmacro MUI_PAGE_LICENSE "${CURPATH}\License.txt"
+!insertmacro MUI_PAGE_LICENSE "${CURPATH}\mui_page_license.txt"
 Page custom InstallationTypePage
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_DIRECTORY
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKLM"
-!define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\${AC_SHORTNAME}\${AC_FULLVERSION}"
+!define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\${AC_SHORTNAME}"
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "start_menu"
 !insertmacro MUI_PAGE_STARTMENU Application $StartMenuFolder
 !insertmacro MUI_PAGE_INSTFILES
@@ -161,7 +162,6 @@ Page custom FinishPage
 !insertmacro MUI_UNPAGE_INSTFILES
 
 !insertmacro MUI_LANGUAGE "English"
-
 
 ; Custom Welcome Page
 
@@ -278,7 +278,34 @@ Var HWND
 Var IMAGECTL
 Var IMAGE
 
+; Version Info
+
+VIProductVersion "${AC_FULLVERSIONINT}"
+VIAddVersionKey "ProductName" "${AC_SHORTNAME}"
+VIAddVersionKey "CompanyName" "Rabid Viper Productions"
+VIAddVersionKey "LegalCopyright" "Copyright © Rabid Viper Productions"
+VIAddVersionKey "FileDescription" "AssaultCube is a FREE, multiplayer, first-person shooter game, based on the CUBE engine."
+VIAddVersionKey "FileVersion" "${AC_FULLVERSIONINT}"
+VIAddVersionKey "ProductVersion" "${AC_FULLVERSIONINT}"
+
 Function .onInit
+
+    ;Uninstall previous installation
+    ReadRegStr $R0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "UninstallString"
+    StrCmp $R0 "" done
+
+    IfSilent uninst
+    MessageBox MB_YESNO|MB_ICONQUESTION \
+    "${AC_SHORTNAME} is already installed. $\n$\nDo you want to uninstall the previous installation?" \
+    IDYES uninst \
+    IDNO done
+ 
+    ;Run the uninstaller silently
+    uninst:
+    ClearErrors
+    ExecWait '$R0 /S'
+
+    done:
 
     InitPluginsDir
     File /oname=$TEMP\welcome.bmp "${CURPATH}\welcome.bmp"
@@ -289,15 +316,19 @@ FunctionEnd
 
 Function .onInstSuccess
 
-    StrCpy $0 "http://assault.cubers.net/releasenotes/v1.1/"
+    IfSilent skipopenlink
+    StrCpy $0 "http://assault.cubers.net/releasenotes/v1.2/"
     Call openLinkNewWindow
+    skipopenlink:
 
 FunctionEnd
 
 Function un.onUninstSuccess
 
-    StrCpy $0 "http://assault.cubers.net/uninstallnotes/v1.1/"
+    IfSilent skipopenlink
+    StrCpy $0 "http://assault.cubers.net/uninstallnotes/v1.2/"
     Call un.openLinkNewWindow  
+    skipopenlink:
 
 FunctionEnd
 
@@ -431,11 +462,11 @@ FunctionEnd
 
 Function DisableMultiuserOption
 
-    !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 2" "Flags" "DISABLED"	
+    !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 2" "Flags" "DISABLED"
     !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 4" "Flags" "DISABLED"
 
     ; fix currently selected option
-    !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 2" "State" "0"	
+    !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 2" "State" "0"
     !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 1" "State" "1"
 
 FunctionEnd
@@ -467,9 +498,9 @@ Function InstallationTypePage
     Pop $R1 ; minor version
  
     StrCmp $R0 "6" 0 winvercheckdone ; vista
-   
+    
         ; suggest multiuser option on vista and later
-        !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 2" "State" "1"	
+        !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 2" "State" "1"
         !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 1" "State" "0"
     
     winvercheckdone:
@@ -477,32 +508,26 @@ Function InstallationTypePage
     
     ; set up GUI
     
-	!insertmacro MUI_HEADER_TEXT "Installation Type" "Select the installation type" 
-	!insertmacro MUI_INSTALLOPTIONS_DISPLAY "InstallTypes.ini"
+    !insertmacro MUI_HEADER_TEXT "Installation Type" "Select the installation type" 
+    !insertmacro MUI_INSTALLOPTIONS_DISPLAY "InstallTypes.ini"
     
-	Pop $HWND
+    Pop $HWND
 
-	GetDlgItem $1 $HWNDPARENT 1
-	EnableWindow $1 0
+    GetDlgItem $1 $HWNDPARENT 1
+    EnableWindow $1 0
 
-	!insertmacro MUI_INSTALLOPTIONS_SHOW
-	Pop $0
+    !insertmacro MUI_INSTALLOPTIONS_SHOW
+    Pop $0
 
 FunctionEnd
 
 
 Function ConfigureWithoutAppdata
-
-    ; remove shortcuts to user data directory
-
-    ; Delete "$SMPROGRAMS\AssaultCube\AssaultCube User Data.lnk"
-    ; Delete "$INSTDIR\User Data.lnk"
     
     ; configure ac without home dir
     
     FileOpen $9 "$INSTDIR\AssaultCube.bat" w
-    FileWrite $9 "bin_win32\ac_client.exe --init %1 %2 %3 %4 %5$\r$\n"
-    FileWrite $9 "pause$\r$\n"
+    FileWrite $9 "start bin_win32\ac_client.exe --init %1 %2 %3 %4 %5$\r$\n"
     FileClose $9
 
 FunctionEnd
@@ -518,39 +543,33 @@ Section "AssaultCube ${AC_FULLVERSION}" AC
     File /r ac\*.*
 
     WriteRegStr HKLM "Software\${AC_SHORTNAME}" "" $INSTDIR
-	WriteRegStr HKLM "Software\${AC_SHORTNAME}\${AC_FULLVERSION}" "" $INSTDIR
-    WriteRegStr HKLM "Software\${AC_SHORTNAME}\${AC_FULLVERSION}" "version" ${AC_FULLVERSIONINT}
+    WriteRegStr HKLM "Software\${AC_SHORTNAME}" "version" ${AC_FULLVERSIONINT}
 
     ; Create uninstaller
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "DisplayName" "${AC_FULLNAME}"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "UninstallString" '"$INSTDIR\uninstall.exe"'
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "DisplayIcon" '"$INSTDIR\icon.ico"'
-
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "HelpLink" "$INSTDIR\README.html"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "URLInfoAbout" "http://assault.cubers.net"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "URLUpdateInfo" "http://assault.cubers.net/download.html"
-
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "DisplayVersion" "${AC_FULLVERSION}"
-    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "VersionMajor" ${AC_MAJORVERSIONINT}
-    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "VersionMinor" ${AC_MINORVERSIONINT}
-
-    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "NoModify" 1
-    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "NoRepair" 1
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "DisplayName" "${AC_FULLNAME}"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "UninstallString" '"$INSTDIR\Uninstall.exe"'
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "DisplayIcon" '"$INSTDIR\docs\images\favicon.ico"'
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "HelpLink" "$INSTDIR\README.html"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "URLInfoAbout" "http://assault.cubers.net"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "URLUpdateInfo" "http://assault.cubers.net/download.html"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "DisplayVersion" "${AC_FULLVERSIONINT}"
+    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "VersionMajor" ${AC_MAJORVERSIONINT}
+    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "VersionMinor" ${AC_MINORVERSIONINT}
+    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "NoModify" 1
+    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}" "NoRepair" 1
 
     WriteUninstaller "$INSTDIR\Uninstall.exe"
     
 
     ; create shortcuts
     
-    ; CreateShortCut "$INSTDIR\User Data.lnk" "%appdata%\${AC_FULLNAMESAVE}" "" "" 0
-      
     !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
        
         SetShellVarContext all
 
         CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
-        CreateShortCut "$SMPROGRAMS\$StartMenuFolder\${AC_SHORTNAME}.lnk" "$INSTDIR\AssaultCube.bat" "" "$INSTDIR\icon.ico" 0 SW_SHOWMINIMIZED
-        CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\icon.ico" 0
+        CreateShortCut "$SMPROGRAMS\$StartMenuFolder\${AC_SHORTNAME}.lnk" "$INSTDIR\AssaultCube.bat" "" "$INSTDIR\docs\images\favicon.ico" 0 SW_SHOWMINIMIZED
+        CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\docs\images\favicon.ico" 0
         CreateShortCut "$SMPROGRAMS\$StartMenuFolder\README.lnk" "$INSTDIR\README.html" "" "" 0
 
     !insertmacro MUI_STARTMENU_WRITE_END
@@ -558,13 +577,12 @@ Section "AssaultCube ${AC_FULLVERSION}" AC
 
     ; set up ac dir config
     
-	!insertmacro MUI_INSTALLOPTIONS_READ $R0 "InstallTypes.ini" "Field 1" "State"
-	!insertmacro MUI_INSTALLOPTIONS_READ $R1 "InstallTypes.ini" "Field 2" "State"
-	
-	StrCmp $R0 "1" 0 appdatadone
-	    Call ConfigureWithoutAppdata
-	appdatadone:
-	
+    !insertmacro MUI_INSTALLOPTIONS_READ $R0 "InstallTypes.ini" "Field 1" "State"
+    !insertmacro MUI_INSTALLOPTIONS_READ $R1 "InstallTypes.ini" "Field 2" "State"
+    
+    StrCmp $R0 "1" 0 appdatadone
+        Call ConfigureWithoutAppdata
+    appdatadone:
 
 SectionEnd
 
@@ -579,35 +597,16 @@ Section "Desktop Shortcuts" DESKSHORTCUTS
 
     SetShellVarContext all
 
-    CreateShortCut "$DESKTOP\${AC_SHORTNAME}.lnk" "$INSTDIR\AssaultCube.bat" "" "$INSTDIR\icon.ico" 0 SW_SHOWMINIMIZED
+    CreateShortCut "$DESKTOP\${AC_SHORTNAME}.lnk" "$INSTDIR\AssaultCube.bat" "" "$INSTDIR\docs\images\favicon.ico" 0 SW_SHOWMINIMIZED
 
 SectionEnd
 
 Section "Register URL protocol" REGISTERURL
 
-    WriteRegStr HKCR "assaultcube" "" "${AC_SHORTNAME}"
-    WriteRegStr HKCR "assaultcube" "URL Protocol" ""
-    WriteRegStr HKCR "assaultcube\DefaultIcon" "" '"$INSTDIR\bin_win32\ac_client.exe"'
-    WriteRegStr HKCR "assaultcube\shell\open\command" "" '"cmd.exe" /C cd "$INSTDIR" & "assaultcube.bat" "%1"'
-
-SectionEnd
-
-Section "-Debug Helper Library"
-
-    GetVersion::WindowsVersion
-    Pop $R0
-    Push "." ; divider char
-    Push $R0 ; input string
-    Call SplitFirstStrPart
-    Pop $R0 ; major version
-    Pop $R1 ; minor version
- 
-    StrCmp $R0 "4" 0 winvercheckdone ; win98
-   
-        ; make app-specific debug helper library available on win98
-        Rename "$INSTDIR\bin_win32\DbgHelp_RemoveThisPartIfOnWin98.DLL" "$INSTDIR\bin_win32\DbgHelp.DLL"
-    
-    winvercheckdone:
+    WriteRegStr HKCR "${AC_URLPROTOCOL}" "" "${AC_SHORTNAME}"
+    WriteRegStr HKCR "${AC_URLPROTOCOL}" "URL Protocol" ""
+    WriteRegStr HKCR "${AC_URLPROTOCOL}\DefaultIcon" "" '"$INSTDIR\bin_win32\ac_client.exe"'
+    WriteRegStr HKCR "${AC_URLPROTOCOL}\shell\open\command" "" '"cmd.exe" /C cd "$INSTDIR" & "assaultcube.bat" "%1"'
 
 SectionEnd
 
@@ -632,10 +631,9 @@ Section "Uninstall"
     
     ; delete reg keys
     
-    DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}"
-    DeleteRegKey HKLM "SOFTWARE\${AC_SHORTNAME}\${AC_FULLVERSION}"
-    DeleteRegKey /ifempty HKLM "SOFTWARE\${AC_SHORTNAME}"
-    DeleteRegKey HKCR "assaultcube"
+    DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_SHORTNAME}"
+    DeleteRegKey HKLM "SOFTWARE\${AC_SHORTNAME}"
+    DeleteRegKey HKCR "${AC_URLPROTOCOL}"
     
 SectionEnd
 
@@ -647,6 +645,6 @@ SectionEnd
     !insertmacro MUI_DESCRIPTION_TEXT ${AC} "Installs the required AssaultCube core files"
     !insertmacro MUI_DESCRIPTION_TEXT ${OAL} "Installs a sound library for 3D audio"
     !insertmacro MUI_DESCRIPTION_TEXT ${DESKSHORTCUTS} "Creates shortcuts on your Desktop"
-    !insertmacro MUI_DESCRIPTION_TEXT ${REGISTERURL} "Registers the assaultcube:// protocol"
+    !insertmacro MUI_DESCRIPTION_TEXT ${REGISTERURL} "Registers the ${AC_URLPROTOCOL}:// protocol"
 
 !insertmacro MUI_FUNCTION_DESCRIPTION_END

@@ -51,13 +51,14 @@ void processevent(client *c, shotevent &e)
 //         int(e.from[0]*DMF), int(e.from[1]*DMF), int(e.from[2]*DMF),
         int(e.to[0]*DMF), int(e.to[1]*DMF), int(e.to[2]*DMF),
         c->clientnum);
-    gs.shotdamage += guns[e.gun].damage*(e.gun==GUN_SHOTGUN ? SGRAYS : 1);
+    gs.shotdamage += guns[e.gun].damage*(e.gun==GUN_SHOTGUN ? SGMAXDMGLOC : 1); // 2011jan17:ft: so accuracy stays correct, since SNIPER:headshot also "exceeds expectations" we use SGMAXDMGLOC instead of SGMAXDMGABS!
     switch(e.gun)
     {
         case GUN_GRENADE: gs.grenades.add(e.id); break;
         default:
         {
-            int totalrays = 0, maxrays = e.gun==GUN_SHOTGUN ? SGRAYS : 1;
+            int totalrays = 0, maxrays = e.gun==GUN_SHOTGUN ? 3*SGRAYS: 1;
+            int tothits_c = 0, tothits_m = 0, tothits_o = 0; // sgrays
             for(int i = 1; i<c->events.length() && c->events[i].type==GE_HIT; i++)
             {
                 hitevent &h = c->events[i].hit;
@@ -65,16 +66,39 @@ void processevent(client *c, shotevent &e)
                 client *target = clients[h.target];
                 if(target->type==ST_EMPTY || target->state.state!=CS_ALIVE || h.lifesequence!=target->state.lifesequence) continue;
 
-                int rays = e.gun==GUN_SHOTGUN ? h.info : 1;
-                if(rays<1) continue;
-                totalrays += rays;
-                if(totalrays>maxrays) continue;
-
-                int damage = rays*guns[e.gun].damage;
+                int rays = 1, damage = 0;
                 bool gib = false;
-                if(e.gun==GUN_KNIFE || (e.gun==GUN_SHOTGUN && rays==maxrays)) gib = true;
-                else if(e.gun==GUN_SNIPER) gib = h.info!=0;
-                if(e.gun==GUN_SNIPER && gib) damage *= 3;
+                if(e.gun == GUN_SHOTGUN)
+                {
+                    h.info = isbigendian() ? endianswap(h.info) : h.info;
+                    int bonusdist = h.info&0xFF;
+                    int numhits_c = (h.info & 0x0000FF00) >> 8, numhits_m = (h.info & 0x00FF0000) >> 16, numhits_o = (h.info & 0xFF000000) >> 24;
+                    tothits_c += numhits_c; tothits_m += numhits_m; tothits_o += numhits_o;
+                    rays = numhits_c + numhits_m + numhits_o;
+                    
+                    if(rays < 1 || tothits_c > SGRAYS || tothits_m > SGRAYS || tothits_o > SGRAYS || bonusdist > SGDMGBONUS) continue;
+
+                    gib = rays == maxrays;
+                    float fdamage = (SGDMGTOTAL/(21*100.0f)) * (numhits_o * SGCOdmg/10.0f + numhits_m * SGCMdmg/10.0f + numhits_c * SGCCdmg/10.0f);
+                    fdamage += (float)bonusdist;
+                    damage = (int)ceil(fdamage);
+#ifdef ACAC
+                    if (!sg_engine(target, c, numhits_c, numhits_m, numhits_o, bonusdist)) continue;
+#endif
+                }
+                else
+                {
+                    damage = rays*guns[e.gun].damage;
+                    gib = e.gun == GUN_KNIFE;
+                    if(e.gun == GUN_SNIPER && h.info != 0)
+                    {
+                        gib = true;
+                        damage *= 3;
+                    }
+                }
+                totalrays += rays;
+
+                if(totalrays>maxrays) continue;
                 serverdamage(target, c, damage, e.gun, gib, h.dir);
             }
             break;
@@ -92,13 +116,6 @@ void processevent(client *c, pickupevent &e)
     clientstate &gs = c->state;
     if(m_mp(gamemode) && !gs.isalive(gamemillis)) return;
     serverpickup(e.ent, c->clientnum);
-}
-
-void processevent(client *c, scopeevent &e) // FIXME remove in the next protocol change
-{
-    clientstate &gs = c->state;
-    if(!gs.isalive(gamemillis)/* || e.gun!=GUN_SNIPER*/) return; // currently we check the gun on the client-side only
-    gs.scoped = e.scoped;
 }
 
 void processevent(client *c, reloadevent &e)
@@ -164,7 +181,6 @@ void processevents()
                 case GE_EXPLODE: processevent(c, e.explode); break;
                 case GE_AKIMBO: processevent(c, e.akimbo); break;
                 case GE_RELOAD: processevent(c, e.reload); break;
-                case GE_SCOPING: processevent(c, e.scoping); break;
                 // untimed events
                 case GE_SUICIDE: processevent(c, e.suicide); break;
                 case GE_PICKUP: processevent(c, e.pickup); break;

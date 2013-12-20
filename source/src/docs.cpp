@@ -157,15 +157,13 @@ void adddockey(char *alias, char *name, char *desc)
     k.desc = desc && strlen(desc) ? newstring(desc) : NULL;
 }
 
-COMMANDN(docsection, adddocsection, ARG_1STR);
-COMMANDN(docident, adddocident, ARG_2STR);
-COMMANDN(docargument, adddocargument, ARG_4STR);
-COMMANDN(docremark, adddocremark, ARG_1STR);
-COMMANDN(docref, adddocref, ARG_4STR);
-COMMANDN(docexample, adddocexample, ARG_2STR);
-COMMANDN(dockey, adddockey, ARG_3STR);
-
-int stringsort(const char **a, const char **b) { return strcmp(*a, *b); }
+COMMANDN(docsection, adddocsection, "s");
+COMMANDN(docident, adddocident, "ss");
+COMMANDN(docargument, adddocargument, "ssss");
+COMMANDN(docremark, adddocremark, "s");
+COMMANDN(docref, adddocref, "ssss");
+COMMANDN(docexample, adddocexample, "ss");
+COMMANDN(dockey, adddockey, "sss");
 
 char *cvecstr(vector<char *> &cvec, const char *substr, int *rline = NULL)
 {
@@ -211,10 +209,10 @@ void listundoneidents(vector<const char *> &inames, int allidents)
     inames.sort(stringsort);
 }
 
-void docundone(int allidents)
+void docundone(int *allidents)
 {
     vector<const char *> inames;
-    listundoneidents(inames, allidents);
+    listundoneidents(inames, *allidents);
     inames.sort(stringsort);
     loopv(inames) conoutf("%s", inames[i]);
 }
@@ -304,7 +302,6 @@ void docwriteref(int allidents, const char *ref, const char *schemalocation, con
         f->printf("\t\t\t<identifiers>\n");
     }
 
-    static const int bases[] = { ARG_1INT, ARG_1STR, ARG_1EXP, ARG_1EXPF, ARG_1EST };
     string name;
     loopv(inames)
     {
@@ -312,18 +309,12 @@ void docwriteref(int allidents, const char *ref, const char *schemalocation, con
         if(!id || id->type != ID_COMMAND) continue;
         f->printf("\t\t\t\t<command name=\"%s\">\n", xmlstringenc(name, id->name, MAXSTRLEN));
         f->printf("\t\t\t\t\t%s\n", desc);
-        if(id->narg != ARG_NONE && id->narg != ARG_DOWN && id->narg != ARG_IVAL && id->narg != ARG_FVAL && id->narg != ARG_SVAL)
+        if(id->sig && id->sig[0])
         {
             f->printf("\t\t\t\t\t<arguments>\n");
-            if(id->narg == ARG_CONC || id->narg == ARG_CONCW || id->narg == ARG_VARI) f->printf("\t\t\t\t\t\t<variableArgument token=\"...\" description=\"TODO\"/>\n");
-            else
+            loopi(strlen(id->sig))
             {
-                int base = -1;
-                loopj(sizeof(bases)/sizeof(bases[0]))
-                {
-                    if(id->narg < bases[j]) { if(j) base = bases[j-1]; break; }
-                }
-                if(base >= 0) loopj(id->narg-base+1) f->printf("\t\t\t\t\t\t<argument token=\"%c\" description=\"TODO\"/>\n", (char)(*"A")+j);
+                f->printf("\t\t\t\t\t\t<argument token=\"%c\" description=\"TODO\"/>\n", id->sig[i]);
             }
             f->printf("\t\t\t\t\t</arguments>\n");
         }
@@ -366,16 +357,16 @@ void docwritebaseref(char *ref, char *schemalocation, char *transformation)
     docwriteref(-1, ref, schemalocation, transformation);
 }
 
-void docwritetodoref(int allidents)
+void docwritetodoref(int *allidents)
 {
-    docwriteref(allidents ? 1 : 0, "", "", "");
+    docwriteref(*allidents ? 1 : 0, "", "", "");
 }
 
-COMMAND(docundone, ARG_1INT);
-COMMAND(docinvalid, ARG_NONE);
-COMMAND(docfind, ARG_1STR);
-COMMAND(docwritebaseref, ARG_3STR);
-COMMAND(docwritetodoref, ARG_1INT);
+COMMAND(docundone, "i");
+COMMAND(docinvalid, "");
+COMMAND(docfind, "s");
+COMMAND(docwritebaseref, "sss");
+COMMAND(docwritetodoref, "i");
 VAR(docvisible, 0, 1, 1);
 VAR(docskip, 0, 0, 1000);
 
@@ -397,6 +388,7 @@ int numargs(char *args)
             switch(*argstart)
             {
                 case '[': if(*(t-1) != ']') continue; break;
+                case '(': if(*(t-1) != ')') continue; break;
                 case '"': if(*(t-1) != '"') continue; break;
                 default: break;
             }
@@ -411,18 +403,73 @@ void renderdoc(int x, int y, int doch)
     if(!docvisible) return;
 
     char *exp = getcurcommand();
-    if(!exp || *exp != '/' || strlen(exp) < 2) return;
 
-    char *c = exp+1;
+    int o = 0; //offset
+    int f = 0; //last found
+
+    while (*exp)
+    {exp++; o++; if (*exp == ';' || (*exp == ' ' && f == o-1)) f = o;} exp--;
+
+    if (f > 0)
+    {
+        for (int i = o - f - 1; i > 0; i--) exp--;
+        if (o > f + 1) exp++;
+    }
+
+    else {for (int i = o; i > 1; i--) exp--;}
+
+    char *openblock = strrchr(exp+1, '('); //find last open parenthesis
+    char *closeblock = strrchr(exp+1, ')'); //find last closed parenthesis
+    char *temp = NULL;
+
+    if (openblock)
+    {
+        if (!closeblock || closeblock < openblock) //open block
+        temp = openblock + 1;
+    }
+
+    if(!exp || (*exp != '/' && f == 0) || strlen(exp) < 2) return;
+
+    char *c = exp+1; if (f > 0) c = exp;
+    char *d = NULL; if (temp) d = temp;
+
     size_t clen = strlen(c);
+    size_t dlen = 0; if (d) dlen = strlen(d);
+
+    bool nc = false; //tests if text after open parenthesis is not a command
+
+    docident *ident = NULL;
+
     for(size_t i = 0; i < clen; i++) // search first matching cmd doc by stripping arguments of exp from right to left
     {
         char *end = c+clen-i;
         if(!*end || *end == ' ')
         {
             string cmd;
+            string dmd;
+
             copystring(cmd, c, clen-i+1);
-            docident *ident = docidents.access(cmd);
+
+            if (d && !nc && dlen > 1)
+            {
+                for(size_t j = 0; j < dlen; j++) //test text after parenthesis
+                {
+                    char *dnd = d+dlen-j;
+                    if(!*dnd || *dnd == ' ')
+                    {
+                        copystring(dmd, d, dlen-j+1);
+                        ident = docidents.access(dmd);
+                    }
+                    if (j == dlen-1 && !ident)
+                    nc = true;
+                }
+            }
+            else
+            {
+                nc = true;
+                ident = docidents.access(cmd);
+            }
+
             if(ident)
             {
                 vector<const char *> doclines;
@@ -443,7 +490,10 @@ void renderdoc(int x, int y, int doch)
                 if(ident->arguments.length() > 0) // args
                 {
                     extern textinputbuffer cmdline;
+
+                    if (d && dlen > 1) c = d;
                     char *args = strchr(c, ' ');
+
                     int arg = -1;
 
                     if(args)
@@ -464,6 +514,7 @@ void renderdoc(int x, int y, int doch)
                         if(arg >= 0) // multipart idents need a fixed argument offset
                         {
                             char *c = cmd;
+                            if (!nc) c = dmd;
                             while((c = strchr(c, ' ')) && c++) arg--;
                         }
 

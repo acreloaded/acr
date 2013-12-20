@@ -1,38 +1,72 @@
-﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN">
-<html lang="en" xml:lang="en" xmlns:h="http://www.w3.org/1999/xhtml" xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <title>Map editing: Entities</title>
-    <meta http-equiv="content-type" content="application/xhtml+xml;charset=utf-8" />
-    <link rel="shortcut icon" href="pics/favicon.ico" />
-    <link rel="stylesheet" href="styles/cubedoc.css" />
-</head>
-<body>
-    <div id="main">
-        <div id="logo">
-            <img src="pics/head.gif" alt="AssaultCube logo" />
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta name="robots" content="NOODP">
+    <meta name="author" content="Rabid Viper Productions">
+    <meta name="copyright" content="You may be able to redistribute this content under specific conditions.
+    Please read the licensing information, available @ http://assault.cubers.net/docs/license.html for the
+    conditions that would apply to what you may be redistributing.">
+    <title>AssaultCube Documentation :: Map editing - Entities</title>
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" type="text/css" href="css/docs.css">
+    <!--#include virtual="/SSI-HTML/docs/invisibility.html" -->
+    <link rel="shortcut icon" href="images/favicon.ico">
+  </head>
+  <body>
+    <div id="container">
+      <div id="docsheader">
+        AssaultCube Documentation
+      </div>
+      <div id="logo">
+        <a href="index.html"><img src="images/aclogo.png"
+        alt="AssaultCube" width="193px" height="81px"></a>
+      </div>
+      <div id="menubar">
+	<!--#include virtual="/SSI-HTML/docs/navigation_box_docs.html" -->
+	&nbsp;
+      </div>
+      <!--#include virtual="/SSI-HTML/docs/docswarn.html" -->
+      <div class="docswarn">
+        <b style="color : #750000;">NOTE:</b> This page of the documentation has been quickly converted from 
+        <a href="http://actiongame.svn.sourceforge.net/viewvc/actiongame/tags/v01_10_04/docs/README.html?revision=5882">AssaultCubes old 
+        README</a> and has not yet been checked properly for mistakes/weird stylying/invalid markup/inconsistancies/etc.
+        We're on it though, check back soon!
+      </div>
+      <div class="docsmain">
+        <div id="gohome">
+          <a href="index.html">Go to documentation index &#8629;</a>
         </div>
-        <div id="title">
-            <h1>
-                AssaultCube: Map editing: Entities</h1>
-        </div>
-        <div id="content">
-            <h1>
-                Entities</h1>
+	<h2>Map editing - Entities</h2>
+	
+	<!-- Remember to remove docwarning when fixed up! -->
+
+
+
             <p>
-                <a href="mapediting1.html#sparkles" shape="rect">Entities</a> are shown as blue
-                sparkly dots when in edit mode (the nearest one will show as orange). They are used for adding non-geometry/texture items,
+                <a href="mapediting1.html#sparkles" shape="rect">Entities</a> are shown as colour-coded
+                sparkly dots when in edit mode. They are used for adding non-geometry/non-texture items,
                 such as:
             </p>
-            <ul>
-                <li><a href="#light" shape="rect">Lights</a> </li>
-                <li><a href="#pickup" shape="rect">Item pickups</a> </li>
-                <li><a href="#spawn" shape="rect">Spawn points</a> </li>
-                <li><a href="#models" shape="rect">Mapmodels</a> </li>
-                <li><a href="#ctf" shape="rect">CTF flags</a> </li>
-                <li><a href="#clips" shape="rect">Clips</a> </li>
-                <li><a href="#ladders" shape="rect">Ladders</a> </li>
-                <li><a href="#sounds" shape="rect">Map sounds</a> </li>
-            </ul>
+              <ul>
+                <li>The nearest entity will be blue.</li>
+                <li><a href="mapediting3.html#light">Light entities</a> will be white.</li>
+                <li>
+                  <a href="mapediting3.html#pickup">Item pickups</a> will be red
+                  (for weapons) or yellow (for armour/health).
+                </li>
+                <li><a href="mapediting3.html#spawn">Spawn points</a> will be green.</li>
+                <li>
+                  <a href="mapediting3.html#models">Mapmodels</a> and 
+                  <a href="mapediting3.html#sounds">map sounds</a> will be magenta.
+                </li>
+                <li><a href="mapediting3.html#ctf">CTF flags</a> will be turquoise.</li>
+                <li>
+                  <a href="mapediting3.html#clips">Clip boxes</a> and 
+                  <a href="mapediting3.html#ladders">ladders</a> will be grey.
+                </li>
+                <li><a href="mapediting3.html#sounds">Map sounds</a> in magenta (like models)</li>
+              </ul>
             <p>
                 Each of these entities will be explained soon. All entities are added by the <b>/newent</b>
                 command (or through the editing menu). When adding entities, they are always added
@@ -279,10 +313,28 @@
                 For more information, see: <a href="reference.xml#identifier_newent_sound" shape="rect">
                     newent sound</a>.
             </p>
-        </div>
-        <div id="footer">
-            Rabid Viper Productions
-        </div>
+
+
+
+
+
+
+
+
+
+
+
+
+      </div>
+      <div id="author">
+        <a href="license.html">&copy; Copyright, Rabid Viper Productions</a>
+      </div>
+      <div id="donatedocs">
+        <a href="http://sourceforge.net/p/actiongame/donate/">
+          We would be grateful for any donations considered towards AssaultCube
+        </a>
+      </div>
+      <!--#include virtual="/SSI-HTML/adsense_footer.html" -->
     </div>
-</body>
+  </body>
 </html>

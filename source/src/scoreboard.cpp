@@ -3,26 +3,82 @@
 #include "cube.h"
 #define SCORERATIO(F,D) (float)(F >= 0 ? F : 0) / (float)(D > 0 ? D : 1)
 
-void *scoremenu = NULL, *teammenu = NULL, *ctfmenu = NULL;
+void *scoremenu = NULL;
+bool needscoresreorder = true;
 
-void showscores(int on)
+void showscores(bool on)
 {
-    if(on) showmenu(m_flags ? "ctf score" : (m_teammode ? "team score" : "score"), false);
-    else if (!intermission)
-    {
-        closemenu("score");
-        closemenu("team score");
-        closemenu("ctf score");
-    }
+    if(on) showmenu("score", false);
+    else closemenu("score");
 }
 
-COMMAND(showscores, ARG_1INT);
+COMMANDF(showscores, "i", (int *on) { showscores(*on != 0); });
+
+VARFP(sc_flags,      0,  0, 100, needscoresreorder = true);
+VARFP(sc_frags,      0,  1, 100, needscoresreorder = true);
+VARFP(sc_deaths,    -1,  2, 100, needscoresreorder = true);
+VARFP(sc_ratio,     -1, -1, 100, needscoresreorder = true);
+VARFP(sc_score,     -1,  4, 100, needscoresreorder = true);
+VARFP(sc_lag,       -1,  5, 100, needscoresreorder = true);
+VARFP(sc_clientnum,  0,  6, 100, needscoresreorder = true);
+VARFP(sc_name,       0,  7, 100, needscoresreorder = true);
+
+struct coldata
+{
+    int priority;
+    char *val;
+
+    coldata() : priority(-1), val(NULL) {}
+    ~coldata()
+    {
+        DELETEA(val);
+    }
+};
+
+// FIXME ? if two columns share teh same priority
+// they will be sorted by the order they were added with addcol
+int sortcolumns(coldata *col_a, coldata *col_b)
+{
+    if(col_a->priority > col_b->priority) return 1;
+    else if(col_a->priority < col_b->priority) return -1;
+    return 0;
+}
 
 struct sline
 {
     string s;
     color *bgcolor;
-    sline() : bgcolor(NULL) {}
+    char textcolor;
+    vector<coldata> cols;
+
+    sline() : bgcolor(NULL), textcolor(0) { copystring(s, ""); }
+
+    void addcol(int priority, const char *format = NULL, ...)
+    {
+        if(priority < 0) return;
+        coldata &col = cols.add();
+        col.priority = priority;
+        if(format && *format)
+        {
+            defvformatstring(sf, format, format);
+            col.val = newstring(sf);
+        }
+    }
+
+    char *getcols()
+    {
+        if(s[0] == '\0')
+        {
+            if(textcolor) formatstring(s)("\f%c", textcolor);
+            cols.sort(sortcolumns);
+            loopv(cols)
+            {
+               if(i > 0) concatstring(s, "\t");
+               if(cols[i].val) concatstring(s, cols[i].val);
+            }
+        }
+        return s;
+    }
 };
 
 static vector<sline> scorelines;
@@ -53,6 +109,22 @@ struct teamscore
     }
 };
 
+void teamflagscores(int &team1, int &team2)
+{
+    teamscore teamscores[2] = { teamscore(TEAM_CLA), teamscore(TEAM_RVSF) };
+    loopv(players) if(players[i] && players[i]->team != TEAM_SPECT)
+    {
+        teamscores[team_base(players[i]->team)].addplayer(players[i]);
+    }
+    loopv(discscores) if(discscores[i].team != TEAM_SPECT)
+    {
+        teamscores[team_base(discscores[i].team)].addscore(discscores[i]);
+    }
+    if(!watchingdemo) teamscores[team_base(player1->team)].addplayer(player1);
+    team1 = teamscores[0].flagscore;
+    team2 = teamscores[1].flagscore;
+}
+
 static int teamscorecmp(const teamscore *x, const teamscore *y)
 {
     if(x->flagscore > y->flagscore) return -1;
@@ -62,10 +134,10 @@ static int teamscorecmp(const teamscore *x, const teamscore *y)
     if(x->points > y->points) return -1;
     if(x->points < y->points) return 1;
     if(x->deaths < y->deaths) return -1;
-    return 1;
+    return 0;
 }
 
-static int scorecmp(const playerent **x, const playerent **y)
+static int scorecmp(playerent **x, playerent **y)
 {
     if((*x)->flagscore > (*y)->flagscore) return -1;
     if((*x)->flagscore < (*y)->flagscore) return 1;
@@ -77,7 +149,7 @@ static int scorecmp(const playerent **x, const playerent **y)
     if((*x)->deaths < (*y)->deaths) return -1;
     if((*x)->lifesequence > (*y)->lifesequence) return 1;
     if((*x)->lifesequence < (*y)->lifesequence) return -1;
-    return strcmp((*x)->name, (*y)->name);
+    return 0;
 }
 
 static int discscorecmp(const discscore *x, const discscore *y)
@@ -113,75 +185,52 @@ void renderdiscscores(int team)
     {
         discscore &d = discscores[i];
         sline &line = scorelines.add();
-        const char *spect = team_isspect(d.team) ? "\f4" : "";
-//         float ratio = SCORERATIO(d.frags, d.deaths);
+        if(team_isspect(d.team)) line.textcolor = '4';
         const char *clag = team_isspect(d.team) ? "SPECT" : "";
-        switch(orderscorecolumns)
-        {
-            case 1:
-            {
-                if(m_flags) formatstring(line.s)("%s%s\t%d\t%d\t%d\t%d\t%s\tDISC", spect, d.name, d.flags, d.frags, d.deaths, d.points > 0 ? d.points : 0, clag);
-                else formatstring(line.s)("%s%s\t%d\t%d\t%d\t%s\tDISC", spect, d.name, d.frags, d.deaths, d.points > 0 ? d.points : 0, clag);
-                break;
-            }
-            case 0:
-            default:
-            {
-                if(m_flags) formatstring(line.s)("%s%d\t%d\t%d\t%d\t%s\tDISC\t%s", spect, d.flags, d.frags, d.deaths, d.points > 0 ? d.points : 0, clag, d.name);
-                else formatstring(line.s)("%s%d\t%d\t%d\t%s\tDISC\t%s", spect, d.frags, d.deaths, d.points > 0 ? d.points : 0, clag, d.name);
-                break;
-            }
-        }
+
+        if(m_flags) line.addcol(sc_flags, "%d", d.flags);
+        line.addcol(sc_frags, "%d", d.frags);
+        line.addcol(sc_deaths, "%d", d.deaths);
+        line.addcol(sc_ratio, "%.2f", SCORERATIO(d.frags, d.deaths));
+        if(multiplayer(false) || watchingdemo) line.addcol(sc_score, "%d", max(d.points, 0));
+        line.addcol(sc_lag, clag);
+        line.addcol(sc_clientnum, "DISC");
+        line.addcol(sc_name, d.name);
     }
 }
 
 VARP(cncolumncolor, 0, 5, 9);
-char lagping[20];
 
 void renderscore(playerent *d)
 {
     const char *status = "";
+    string lagping;
     static color localplayerc(0.2f, 0.2f, 0.2f, 0.2f);
     if(d->clientrole==CR_ADMIN) status = d->state==CS_DEAD ? "\f7" : "\f3";
     else if(d->state==CS_DEAD) status = "\f4";
-    const char *spect = team_isspect(d->team) ? "\f4" : "";
-//     float ratio = SCORERATIO(d->frags, d->deaths);
-    if ( team_isspect(d->team) )
-    {
-        strncpy(lagping,"SPECT",5);
-        lagping[5]='\0';
-    }
-    else if ( d->state==CS_LAGGED || (d->ping > 999 && d->plag > 99) )
-    {
-        strncpy(lagping,"LAG",3);
-        lagping[3]='\0';
-    }
+    if (team_isspect(d->team)) copystring(lagping, "SPECT");
+    else if (d->state==CS_LAGGED || (d->ping > 999 && d->plag > 99)) copystring(lagping, "LAG");
     else
     {
-        sprintf(lagping,"%s/%s",colorpj(d->plag),colorping(d->ping));
+        if(multiplayer(false)) formatstring(lagping)("%s/%s", colorpj(d->plag), colorping(d->ping));
+        else formatstring(lagping)("%d/%d", d->plag, d->ping);
     }
-/*    const char *clag = team_isspect(d->team) ? "SPECT" : (d->state==CS_LAGGED ? "LAG" : colorpj(d->plag));
-    const char *cping = colorping(d->ping);*/
     const char *ign = d->ignored ? " (ignored)" : (d->muted ? " (muted)" : "");
     sline &line = scorelines.add();
+    if(team_isspect(d->team)) line.textcolor = '4';
     line.bgcolor = d==player1 ? &localplayerc : NULL;
-    string &s = line.s;
-    switch(orderscorecolumns)
+
+    if(m_flags) line.addcol(sc_flags, "%d", d->flagscore);
+    line.addcol(sc_frags, "%d", d->frags);
+    line.addcol(sc_deaths, "%d", d->deaths);
+    line.addcol(sc_ratio, "%.2f", SCORERATIO(d->frags, d->deaths));
+    if(multiplayer(false) || watchingdemo)
     {
-        case 1:
-        {
-            if(m_flags) formatstring(s)("%s\fs\f%d%d\fr\t%s%s\t%d\t%d\t%d\t%d\t%s\t%s", spect, cncolumncolor, d->clientnum, status, colorname(d), d->flagscore, d->frags, d->deaths, d->points > 0 ? d->points : 0, lagping, ign);
-            else formatstring(s)("%s\fs\f%d%d\fr\t%s%s\t%d\t%d\t%d\t%s\t%s", spect, cncolumncolor, d->clientnum, status, colorname(d), d->frags, d->deaths, d->points > 0 ? d->points : 0, lagping, ign);
-            break;
-        }
-        case 0:
-        default:
-        {
-            if(m_flags) formatstring(s)("%s%d\t%d\t%d\t%d\t%s\t\fs\f%d%d\fr\t%s%s%s", spect, d->flagscore, d->frags, d->deaths, d->points > 0 ? d->points : 0, lagping, cncolumncolor, d->clientnum, status, colorname(d), ign);
-            else formatstring(s)("%s%d\t%d\t%d\t%s\t\fs\f%d%d\fr\t%s%s%s", spect, d->frags, d->deaths, d->points > 0 ? d->points : 0, lagping, cncolumncolor, d->clientnum, status, colorname(d), ign);
-            break;
-        }
+        line.addcol(sc_score, "%d", max(d->points, 0));
+        line.addcol(sc_lag, lagping);
     }
+    line.addcol(sc_clientnum, "\fs\f%d%d\fr", cncolumncolor, d->clientnum);
+    line.addcol(sc_name, "\fs%s%s\fr%s", status, colorname(d), ign);
 }
 
 int totalplayers = 0;
@@ -196,23 +245,19 @@ int renderteamscore(teamscore *t)
     sline &line = scorelines.add();
     int n = t->teammembers.length();
     defformatstring(plrs)("(%d %s)", n, n == 1 ? "player" : "players");
-//     float ratio = SCORERATIO(t->frags, t->deaths);
-    switch(orderscorecolumns)
+
+    if(m_flags) line.addcol(sc_flags, "%d", t->flagscore);
+    line.addcol(sc_frags, "%d", t->frags);
+    line.addcol(sc_deaths, "%d", t->deaths);
+    line.addcol(sc_ratio, "%.2f", SCORERATIO(t->frags, t->deaths));
+    if(multiplayer(false) || watchingdemo)
     {
-        case 1:
-        {
-            if(m_flags) formatstring(line.s)("%s\t%s\t%d\t%d\t%d\t%d", team_string(t->team), plrs, t->flagscore, t->frags, t->deaths, t->points > 0 ? t->points : 0);
-            else formatstring(line.s)("%s\t%s\t%d\t%d\t%d", team_string(t->team), plrs, t->frags, t->deaths, t->points > 0 ? t->points : 0);
-            break;
-        }
-        case 0:
-        default:
-        {
-            if(m_flags) formatstring(line.s)("%d\t%d\t%d\t%d\t\t\t%s\t\t%s", t->flagscore, t->frags, t->deaths, t->points > 0 ? t->points : 0, team_string(t->team), plrs);
-            else formatstring(line.s)("%d\t%d\t%d\t\t\t%s\t\t%s", t->frags, t->deaths, t->points > 0 ? t->points : 0, team_string(t->team), plrs);
-            break;
-        }
+        line.addcol(sc_score, "%d", max(t->points, 0));
+        line.addcol(sc_lag);
     }
+    line.addcol(sc_clientnum, team_string(t->team));
+    line.addcol(sc_name, plrs);
+
     static color teamcolors[2] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f) };
     line.bgcolor = &teamcolors[team_base(t->team)];
     loopv(t->teammembers) renderscore(t->teammembers[i]);
@@ -221,8 +266,29 @@ int renderteamscore(teamscore *t)
 
 extern bool watchingdemo;
 
+void reorderscorecolumns()
+{
+    needscoresreorder = false;
+    extern void *scoremenu;
+    sline sscore;
+
+    if(m_flags) sscore.addcol(sc_flags, "flags");
+    sscore.addcol(sc_frags, "frags");
+    sscore.addcol(sc_deaths, "deaths");
+    sscore.addcol(sc_ratio, "ratio");
+    if(multiplayer(false) || watchingdemo)
+    {
+        sscore.addcol(sc_score, "score");
+        sscore.addcol(sc_lag, "pj/ping");
+    }
+    sscore.addcol(sc_clientnum, "cn");
+    sscore.addcol(sc_name, "name");
+    menutitle(scoremenu, newstring(sscore.getcols()));
+}
+
 void renderscores(void *menu, bool init)
 {
+    if(needscoresreorder) reorderscorecolumns();
     static string modeline, serverline;
 
     modeline[0] = '\0';
@@ -240,6 +306,49 @@ void renderscores(void *menu, bool init)
     loopv(scores) if(scores[i]->team == TEAM_SPECT) spectators++;
     loopv(discscores) if(discscores[i].team == TEAM_SPECT) spectators++;
 
+    int winner = -1;
+    if(m_teammode)
+    {
+        teamscore teamscores[2] = { teamscore(TEAM_CLA), teamscore(TEAM_RVSF) };
+
+        loopv(scores) if(scores[i]->team != TEAM_SPECT) teamscores[team_base(scores[i]->team)].addplayer(scores[i]);
+        loopv(discscores) if(discscores[i].team != TEAM_SPECT) teamscores[team_base(discscores[i].team)].addscore(discscores[i]);
+
+        int sort = teamscorecmp(&teamscores[TEAM_CLA], &teamscores[TEAM_RVSF]) < 0 ? 0 : 1;
+        loopi(2)
+        {
+            renderteamscore(&teamscores[sort ^ i]);
+            renderdiscscores(sort ^ i);
+        }
+        winner = m_flags ?
+            (teamscores[sort].flagscore > teamscores[team_opposite(sort)].flagscore ? sort : -1) :
+            (teamscores[sort].frags > teamscores[team_opposite(sort)].frags ? sort : -1);
+                   
+    }
+    else
+    { // ffa mode
+        loopv(scores) if(scores[i]->team != TEAM_SPECT) renderscore(scores[i]);
+        loopi(2) renderdiscscores(i);
+        if(scores.length() > 0)
+        {
+            winner = scores[0]->clientnum;
+            if(scores.length() > 1
+                && ((m_flags && scores[0]->flagscore == scores[1]->flagscore)
+                     || (!m_flags && scores[0]->frags == scores[1]->frags)))
+                winner = -1;
+        }
+    }
+    if(spectators)
+    {
+        if(!scorelines.empty()) // space between teams and spectators
+        {
+            sline &space = scorelines.add();
+            space.s[0] = 0;
+        }
+        renderdiscscores(TEAM_SPECT);
+        loopv(scores) if(scores[i]->team == TEAM_SPECT) renderscore(scores[i]);
+    }
+
     if(getclientmap()[0])
     {
         bool fldrprefix = !strncmp(getclientmap(), "maps/", strlen("maps/"));
@@ -249,12 +358,29 @@ void renderscores(void *menu, bool init)
     extern int minutesremaining;
     if((gamemode>1 || (gamemode==0 && (multiplayer(false) || watchingdemo))) && minutesremaining >= 0)
     {
-        if(!minutesremaining) concatstring(modeline, ", intermission");
-        else
+        if(!minutesremaining)
         {
-            defformatstring(timestr)(", %d %s remaining", minutesremaining, minutesremaining==1 ? "minute" : "minutes");
-            concatstring(modeline, timestr);
+            concatstring(modeline, ", intermission");
+            
+            if (m_teammode) // Add in the winning team
+            {
+                switch(winner)
+                {
+                    case TEAM_CLA: concatstring(modeline, ", \f3CLA wins!"); break;
+                    case TEAM_RVSF: concatstring(modeline, ", \f1RVSF wins!"); break;
+                    case -1:
+                    default:
+                        concatstring(modeline, ", \f2it's a tie!");
+                    break;
+                }
+            }
+            else // Add the winning player
+            {
+                if (winner < 0) concatstring(modeline, ", \f2it's a tie!");
+                else concatformatstring(modeline, ", \f1%s wins!", scores[0]->name);
+            }
         }
+        else concatformatstring(modeline, ", %d %s remaining", minutesremaining, minutesremaining==1 ? "minute" : "minutes");
     }
 
     if(multiplayer(false))
@@ -276,45 +402,8 @@ void renderscores(void *menu, bool init)
         }
     }
 
-    if(m_teammode)
-    {
-        teamscore teamscores[2] = { teamscore(TEAM_CLA), teamscore(TEAM_RVSF) };
-
-        loopv(scores) if(scores[i]->team != TEAM_SPECT)
-        {
-            teamscores[team_base(scores[i]->team)].addplayer(scores[i]);
-        }
-
-        loopv(discscores) if(discscores[i].team != TEAM_SPECT)
-        {
-            teamscores[team_base(discscores[i].team)].addscore(discscores[i]);
-        }
-
-        int sort = teamscorecmp(&teamscores[TEAM_CLA], &teamscores[TEAM_RVSF]) < 0 ? 0 : 1;
-        loopi(2)
-        {
-            renderteamscore(&teamscores[sort ^ i]);
-            renderdiscscores(sort ^ i);
-        }
-    }
-    else
-    { // ffa mode
-
-        loopv(scores) if(scores[i]->team != TEAM_SPECT) renderscore(scores[i]);
-        loopi(2) renderdiscscores(i);
-    }
-    if(spectators)
-    {
-        if(!scorelines.empty()) // space between teams and spectators
-        {
-            sline &space = scorelines.add();
-            space.s[0] = 0;
-        }
-        renderdiscscores(TEAM_SPECT);
-        loopv(scores) if(scores[i]->team == TEAM_SPECT) renderscore(scores[i]);
-    }
     menureset(menu);
-    loopv(scorelines) menumanual(menu, scorelines[i].s, NULL, scorelines[i].bgcolor);
+    loopv(scorelines) menumanual(menu, scorelines[i].getcols(), NULL, scorelines[i].bgcolor);
     menuheader(menu, modeline, serverline);
 
     // update server stats
@@ -412,3 +501,38 @@ void consolescores()
 {
     printf("%s\n", asciiscores());
 }
+
+void winners()
+{
+    string winners = "";
+    vector<playerent *> scores;
+    if(!watchingdemo) scores.add(player1);
+    loopv(players) if(players[i]) { scores.add(players[i]); }
+    scores.sort(scorecmp);
+    discscores.sort(discscorecmp);
+
+    if(m_teammode)
+    {
+        teamscore teamscores[2] = { teamscore(TEAM_CLA), teamscore(TEAM_RVSF) };
+
+        loopv(scores) if(scores[i]->team != TEAM_SPECT) teamscores[team_base(scores[i]->team)].addplayer(scores[i]);
+        loopv(discscores) if(discscores[i].team != TEAM_SPECT)
+        teamscores[team_base(discscores[i].team)].addscore(discscores[i]);
+
+        int sort = teamscorecmp(&teamscores[TEAM_CLA], &teamscores[TEAM_RVSF]);
+        if(!sort) copystring(winners, "0 1");
+        else itoa(winners, sort < 0 ? 0 : 1);
+    }
+    else
+    {
+        loopv(scores)
+        {
+            if(!i || !scorecmp(&scores[i], &scores[i-1])) concatformatstring(winners, "%s%d", i ? " " : "", scores[i]->clientnum);
+            else break;
+        }
+    }
+
+    result(winners);
+}
+
+COMMAND(winners, "");

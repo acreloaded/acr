@@ -12,81 +12,89 @@ model *loadingmodel = NULL;
 
 #define checkmdl if(!loadingmodel) { conoutf("not loading a model"); return; }
 
-void mdlcullface(int cullface)
+void mdlcullface(int *cullface)
 {
     checkmdl;
-    loadingmodel->cullface = cullface!=0;
+    loadingmodel->cullface = *cullface!=0;
 }
 
-COMMAND(mdlcullface, ARG_1INT);
+COMMAND(mdlcullface, "i");
 
-void mdlvertexlight(int vertexlight)
+void mdlvertexlight(int *vertexlight)
 {
     checkmdl;
-    loadingmodel->vertexlight = vertexlight!=0;
+    loadingmodel->vertexlight = *vertexlight!=0;
 }
 
-COMMAND(mdlvertexlight, ARG_1INT);
+COMMAND(mdlvertexlight, "i");
 
-void mdltranslucent(int translucency)
+void mdltranslucent(int *translucency)
 {
     checkmdl;
-    loadingmodel->translucency = translucency/100.0f;
+    loadingmodel->translucency = *translucency/100.0f;
 }
 
-COMMAND(mdltranslucent, ARG_1INT);
+COMMAND(mdltranslucent, "i");
 
-void mdlalphatest(int alphatest)
+void mdlalphatest(int *alphatest)
 {
     checkmdl;
-    loadingmodel->alphatest = alphatest/100.0f;
+    loadingmodel->alphatest = *alphatest/100.0f;
 }
 
-COMMAND(mdlalphatest, ARG_1INT);
+COMMAND(mdlalphatest, "i");
 
-void mdlscale(int percent)
+void mdlalphablend(int *alphablend) //ALX Alpha channel models
+{ 	 
+    checkmdl;
+    loadingmodel->alphablend = *alphablend!=0;
+}
+COMMAND(mdlalphablend, "i");
+	 
+void mdlscale(int *percent)
 {
     checkmdl;
     float scale = 0.3f;
-    if(percent>0) scale = percent/100.0f;
-    else if(percent<0) scale = 0.0f;
+    if(*percent>0) scale = *percent/100.0f;
+    else if(*percent<0) scale = 0.0f;
     loadingmodel->scale = scale;
 }
 
-COMMAND(mdlscale, ARG_1INT);
+COMMAND(mdlscale, "i");
 
-void mdltrans(char *x, char *y, char *z)
+void mdltrans(float *x, float *y, float *z)
 {
     checkmdl;
-    loadingmodel->translate = vec(atof(x), atof(y), atof(z));
+    loadingmodel->translate = vec(*x, *y, *z);
 }
 
-COMMAND(mdltrans, ARG_3STR);
+COMMAND(mdltrans, "fff");
 
-void mdlshadowdist(int dist)
+void mdlshadowdist(int *dist)
 {
     checkmdl;
-    loadingmodel->shadowdist = dist;
+    loadingmodel->shadowdist = *dist;
 }
 
-COMMAND(mdlshadowdist, ARG_1INT);
+COMMAND(mdlshadowdist, "i");
 
-void mdlcachelimit(int limit)
+void mdlcachelimit(int *limit)
 {
     checkmdl;
-    loadingmodel->cachelimit = limit;
+    loadingmodel->cachelimit = *limit;
 }
 
-COMMAND(mdlcachelimit, ARG_1INT);
+COMMAND(mdlcachelimit, "i");
 
 vector<mapmodelinfo> mapmodels;
 
-void mapmodel(char *rad, char *h, char *zoff, char *snap, char *name)
+void mapmodel(int *rad, int *h, int *zoff, char *snap, char *name)
 {
     mapmodelinfo &mmi = mapmodels.add();
-    mmi.rad = atoi(rad);
-    mmi.h = atoi(h);
-    mmi.zoff = atoi(zoff);
+    mmi.rad = *rad;
+    mmi.h = *h;
+    mmi.zoff = *zoff;
+    mmi.m = NULL;
     formatstring(mmi.name)("mapmodels/%s", name);
 }
 
@@ -97,12 +105,13 @@ void mapmodelreset()
 
 mapmodelinfo &getmminfo(int i) { return mapmodels.inrange(i) ? mapmodels[i] : *(mapmodelinfo *)0; }
 
-COMMAND(mapmodel, ARG_5STR);
-COMMAND(mapmodelreset, ARG_NONE);
+COMMAND(mapmodel, "iiiss");
+COMMAND(mapmodelreset, "");
 
 hashtable<const char *, model *> mdllookup;
+model *nomodel = NULL;
 
-model *loadmodel(const char *name, int i)
+model *loadmodel(const char *name, int i, bool trydl)
 {
     if(!name)
     {
@@ -116,6 +125,7 @@ model *loadmodel(const char *name, int i)
     if(mm) m = *mm;
     else
     {
+        pushscontext(IEXC_MDLCFG);
         m = new md2(name);
         loadingmodel = m;
         if(!m->load())
@@ -127,12 +137,33 @@ model *loadmodel(const char *name, int i)
             {
                 delete m;
                 loadingmodel = NULL;
-                return NULL;
+                if(trydl)
+                {
+                    defformatstring(dl)("packages/models/%s", name);
+                    requirepackage(PCK_MAPMODEL, dl);
+                }
+                else
+                {
+                    mdllookup.access(newstring(name), nomodel);
+                    conoutf("\f3failed to load model %s", name);
+                }
             }
         }
+        popscontext();
+        if(!loadingmodel)
+        {
+            if(!trydl)
+            {
+                conoutf(_("failed to load model %s"), name);
+                if(!nomodel) nomodel = new md2("nomodel");
+                m = nomodel;
+                mdllookup.access(newstring(name), m);
+            }
+        }
+        else mdllookup.access(m->name(), m);
         loadingmodel = NULL;
-        mdllookup.access(m->name(), m);
     }
+    if(m == nomodel) return NULL;
     if(mapmodels.inrange(i) && !mapmodels[i].m) mapmodels[i].m = m;
     return m;
 }
@@ -334,10 +365,17 @@ void endmodelbatches(bool flush)
     if(flush) clearmodelbatches();
 }
 
-VAR(dbgmbatch, 0, 0, 1);
+const int dbgmbatch = 0;
+//VAR(dbgmbatch, 0, 0, 1);
 
+VARP(popdeadplayers, 0, 0, 1);
 void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed, int basetime, playerent *d, modelattach *a, float scale)
 {
+    if(popdeadplayers && d && a)
+    {
+        int acv = anim&ANIM_INDEX;
+        if( acv == ANIM_DECAY || acv == ANIM_LYING_DEAD || acv == ANIM_CROUCH_DEATH || acv == ANIM_DEATH ) return;
+    }
     model *m = loadmodel(mdl);
     if(!m || (stenciling && (m->shadowdist <= 0 || anim&ANIM_TRANSLUCENT))) return;
 
@@ -483,7 +521,9 @@ void preload_playermodels()
     if(dynshadow && playermdl) playermdl->genshadows(8.0f, 4.0f);
     loopi(NUMGUNS)
     {
-        defformatstring(vwep)("weapons/%s/world", guns[i].modelname);
+        if (i==GUN_CPISTOL) continue; //RR 18/12/12 - Remove when cpistol is added.
+        defformatstring(widn)("modmdlvwep%d", i);
+        defformatstring(vwep)("weapons/%s/world", identexists(widn)?getalias(widn):guns[i].modelname);
         model *vwepmdl = loadmodel(vwep);
         if(dynshadow && vwepmdl) vwepmdl->genshadows(8.0f, 4.0f);
     }
@@ -491,28 +531,47 @@ void preload_playermodels()
 
 void preload_entmodels()
 {
-    extern const char *entmdlnames[];
-    loopi(I_AKIMBO-I_CLIPS+1)
-    {
-        model *mdl = loadmodel(entmdlnames[i]);
-        if(dynshadow && mdl) mdl->genshadows(8.0f, 2.0f);
-    }
-    static const char *bouncemdlnames[] = { "misc/gib01", "misc/gib02", "misc/gib03", "weapons/grenade/static" };
-    loopi(sizeof(bouncemdlnames)/sizeof(bouncemdlnames[0]))
-    {
-        model *mdl = loadmodel(bouncemdlnames[i]);
-        if(dynshadow && mdl) mdl->genshadows(8.0f, 2.0f);
-    }
+     string buf;
+
+     extern const char *entmdlnames[];
+     loopi(I_AKIMBO-I_CLIPS+1)
+     {
+         strcpy(buf, "pickups/");
+
+         defformatstring(widn)("modmdlpickup%d", i-3);
+
+         if (identexists(widn))
+         strcat(buf, getalias(widn));
+         else
+         strcat(buf, entmdlnames[i]);
+
+         model *mdl = loadmodel(buf);
+
+         if(dynshadow && mdl) mdl->genshadows(8.0f, 2.0f);
+     }
+     static const char *bouncemdlnames[] = { "misc/gib01", "misc/gib02", "misc/gib03", "weapons/grenade/static" };
+     loopi(sizeof(bouncemdlnames)/sizeof(bouncemdlnames[0]))
+     {
+         model *mdl = NULL;
+         defformatstring(widn)("modmdlbounce%d", i);
+
+         if (identexists(widn))
+         mdl = loadmodel(getalias(widn));
+         else
+         mdl = loadmodel(bouncemdlnames[i]);
+
+         if(dynshadow && mdl) mdl->genshadows(8.0f, 2.0f);
+     }
 }
 
-void preload_mapmodels()
+void preload_mapmodels(bool trydl)
 {
     loopv(ents)
     {
         entity &e = ents[i];
         if(e.type!=MAPMODEL || !mapmodels.inrange(e.attr2)) continue;
-        if(!loadmodel(NULL, e.attr2)) continue;
-        if(e.attr4) lookuptexture(e.attr4);
+        loadmodel(NULL, e.attr2, trydl);
+        if(e.attr4) lookuptexture(e.attr4, notexture, trydl);
     }
 }
 
@@ -601,6 +660,7 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
     else if(d->weaponsel==d->lastattackweapon && lastmillis-d->lastaction<300 && d->lastpain < d->lastaction) { anim = d->crouching ? ANIM_CROUCH_ATTACK : ANIM_ATTACK; speed = 300.0f/8; basetime = d->lastaction; }
     else if(!d->move && !d->strafe)                 { anim = (d->crouching ? ANIM_CROUCH_IDLE : ANIM_IDLE)|ANIM_LOOP; }
     else                                            { anim = (d->crouching ? ANIM_CROUCH_WALK : ANIM_RUN)|ANIM_LOOP; speed = 1860/d->maxspeed; }
+    if(d->move < 0) anim |= ANIM_REVERSE;
     modelattach a[3];
     int numattach = 0;
     if(vwepname)
@@ -622,8 +682,6 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
             numattach++;
         }
     }
-    // FIXME: while networked my state as spectator seems to stay CS_DEAD, not CS_SPECTATE
-    // flowtron: I fixed this for following at least (see followplayer())
     if(player1->isspectating() && d->clientnum == player1->followplayercn && player1->spectatemode == SM_FOLLOW3RD_TRANSPARENT)
     {
         anim |= ANIM_TRANSLUCENT; // see through followed player
@@ -700,7 +758,8 @@ void renderclient(playerent *d)
         }
     }
     string vwep;
-    if(d->weaponsel) formatstring(vwep)("weapons/%s/world", d->weaponsel->info.modelname);
+    defformatstring(widn)("modmdlvwep%d", d->weaponsel->type);
+    if(d->weaponsel) formatstring(vwep)("weapons/%s/world", identexists(widn)?getalias(widn):d->weaponsel->info.modelname);
     else vwep[0] = 0;
     renderclient(d, "playermodels", vwep[0] ? vwep : NULL, -(int)textureload(skin)->id);
 }
@@ -708,7 +767,6 @@ void renderclient(playerent *d)
 void renderclients()
 {
     playerent *d;
-    loopv(players) if((d = players[i]) && d->state!=CS_SPAWNING && (!player1->isspectating() || player1->spectatemode != SM_FOLLOW1ST || player1->followplayercn != i)) renderclient(d);
+    loopv(players) if((d = players[i]) && d->state!=CS_SPAWNING && d->state!=CS_SPECTATE && (!player1->isspectating() || player1->spectatemode != SM_FOLLOW1ST || player1->followplayercn != i)) renderclient(d);
     if(player1->state==CS_DEAD || (reflecting && !refracting)) renderclient(player1);
 }
-

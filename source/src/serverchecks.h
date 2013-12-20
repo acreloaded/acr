@@ -23,6 +23,8 @@ inline void checkclientpos(client *cl)
 
 #define POW2XY(A,B) (pow2(A.x-B.x)+pow2(A.y-B.y))
 
+extern inline void addban(client *cl, int reason, int type = BAN_AUTO);
+
 #ifdef ACAC
 #include "anticheat.h"
 #endif
@@ -30,11 +32,11 @@ inline void checkclientpos(client *cl)
 #define MINELINE 50
 
 //FIXME
-/* There are smarter ways to implement this function, but must probably they will be very complex */
+/* There are smarter ways to implement this function, but most probably they will be very complex */
 int getmaxarea(int inversed_x, int inversed_y, int transposed, int ml_factor, char *ml)
 {
     int ls = (1 << ml_factor);
-    int xi = 0, oxi = 0, xf = 0, oxf = 0, yi = 0, yf = 0, fx = 0, fy = 0;
+    int xi = 0, oxi = 0, xf = 0, oxf = 0, fx = 0, fy = 0;
     int area = 0, maxarea = 0;
     bool sav_x = false, sav_y = false;
 
@@ -65,7 +67,6 @@ int getmaxarea(int inversed_x, int inversed_y, int transposed, int ml_factor, ch
             if ( sav_y ) {                                              // if the last line was saved
                 if ( 2*oxi + MINELINE < 2*xf &&
                      2*xi + MINELINE < 2*oxf ) {                        // if the last line intersect this one
-                    yf = y;                                             // new end of area
                     area += xf - xi;
                 } else {
                     oxi = xi;                                           // new area vertices
@@ -75,7 +76,6 @@ int getmaxarea(int inversed_x, int inversed_y, int transposed, int ml_factor, ch
             else {
                 oxi = xi;
                 oxf = xf;
-                yi = y;                                                 // new begin of area
                 sav_y = true;                                           // accumulating lines from now
             }
         } else {
@@ -150,7 +150,7 @@ inline void addpt(client *c, int points, int n = -1) {
 #define TKPT         -20                           // player tks
 #define FLAGTKPT     -2*(10+cnumber)               // player tks the flag keeper/stealer
 
-void flagpoints (client *c, int message)
+void flagpoints(client *c, int message)
 {
     float distance = 0;
     int cnumber = totalclients < 13 ? totalclients : 12;
@@ -210,7 +210,7 @@ inline int minhits2combo(int gun)
     }
 }
 
-void checkcombo (client *target, client *actor, int damage, int gun)
+void checkcombo(client *target, client *actor, int damage, int gun)
 {
     int diffhittime = servmillis - actor->md.lasthit;
     actor->md.lasthit = servmillis;
@@ -385,13 +385,13 @@ inline bool testcover(int msg, int factor, client *actor)
     c2t = POW2XY(C,target->state.o);\
     a2t = POW2XY(actor->state.o,target->state.o)
 
-bool validlink (client *actor, int cn)
+bool validlink(client *actor, int cn)
 {
     return actor->md.linked >= 0 && actor->md.linked == cn && gamemillis < actor->md.linkmillis && valid_client(actor->md.linked);
 }
 
 /** WIP */
-void checkcover (client *target, client *actor)
+void checkcover(client *target, client *actor)
 {
     int team = actor->team;
     int oteam = team_opposite(team);
@@ -451,7 +451,7 @@ void checkcover (client *target, client *actor)
 #undef CALCCOVER
 
 /** WiP */
-void checkfrag (client *target, client *actor, int gun, bool gib)
+void checkfrag(client *target, client *actor, int gun, bool gib)
 {
     int targethasflag = clienthasflag(target->clientnum);
     int actorhasflag = clienthasflag(actor->clientnum);
@@ -512,8 +512,11 @@ void check_afk()
         if ( c.type != ST_TCPIP || c.connectmillis + 60 * 1000 > servmillis ||
              c.inputmillis + scl.afk_limit > servmillis || clienthasflag(c.clientnum) != -1 ) continue;
         if ( ( c.state.state == CS_DEAD && !m_arena && c.state.lastdeath + 45 * 1000 < gamemillis) ||
-             ( c.state.state == CS_ALIVE && c.upspawnp ) ||
-             ( c.state.state == CS_SPECTATE && totalclients >= scl.maxclients ) ) {
+             ( c.state.state == CS_ALIVE && c.upspawnp ) /*||
+             ( c.state.state == CS_SPECTATE && totalclients >= scl.maxclients )  // only kick spectator if server is full - 2011oct16:flowtron: mmh, that seems reasonable enough .. still, kicking spectators for inactivity seems harsh! disabled ATM, kick them manually if you must.
+             */
+            )
+        {
             logline(ACLOG_INFO, "[%s] %s %s", c.hostname, c.name, "is afk");
             defformatstring(msg)("%s is afk", c.name);
             sendservmsg(msg);
@@ -522,10 +525,10 @@ void check_afk()
     }
 }
 
-/** This function counts how much non-killing-damage the player does in the teammates
+/** This function counts how much non-killing-damage the player does to any teammates
     The damage limit is 100 hp per minute, which is about 2 tks per minute in a normal game
     In normal games, the players go over 6 tks only in the worst cases */
-void check_ffire (client *target, client *actor, int damage)
+void check_ffire(client *target, client *actor, int damage)
 {
     if ( mastermode != MM_OPEN ) return;
     actor->ffire += damage;
@@ -568,7 +571,7 @@ This part is here for compatibility purposes.
 If you know nothing about these detections, please, just ignore it.
 */
 
-inline void checkmove (client *cl)
+inline void checkmove(client *cl)
 {
     cl->ldt = gamemillis - cl->lmillis;
     cl->lmillis = gamemillis;
@@ -598,25 +601,23 @@ inline void checkmove (client *cl)
     return;
 }
 
-inline void checkshoot (int & cn, gameevent & shot, int & hits, int & tcn)
+inline void checkshoot(int & cn, gameevent & shot, int & hits, int & tcn)
 {
-
 #ifdef ACAC
     s_engine(cn, shot, hits, tcn);
 #endif
     return;
 }
 
-inline void checkweapon (int & type, int & var)
+inline void checkweapon(int & type, int & var)
 {
-
 #ifdef ACAC
     w_engine(type,var);
 #endif
     return;
 }
 
-bool validdamage (client *&target, client *&actor, int &damage, int &gun, bool &gib)
+bool validdamage(client *&target, client *&actor, int &damage, int &gun, bool &gib)
 {
 #ifdef ACAC
     if (!d_engine(target, actor, damage, gun, gib)) return false;
@@ -624,12 +625,11 @@ bool validdamage (client *&target, client *&actor, int &damage, int &gun, bool &
     return true;
 }
 
-inline void checkmessage (client *c, int type)
+inline int checkmessage(client *c, int type)
 {
-
 #ifdef ACAC
-    p_engine(c,type);
+    type = p_engine(c,type);
 #endif
-    return;
+    return type;
 }
 

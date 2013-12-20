@@ -65,10 +65,12 @@ Texture *notexture = NULL, *noworldtexture = NULL;
 hashtable<char *, Texture> textures;
 
 VAR(hwtexsize, 1, 0, 0);
+VAR(hwmaxaniso, 1, 0, 0);
 VARFP(maxtexsize, 0, 0, 1<<12, initwarning("texture quality", INIT_LOAD));
 VARFP(texreduce, -1, 0, 3, initwarning("texture quality", INIT_LOAD));
 VARFP(trilinear, 0, 1, 1, initwarning("texture filtering", INIT_LOAD));
 VARFP(bilinear, 0, 1, 1, initwarning("texture filtering", INIT_LOAD));
+VARFP(aniso, 0, 0, 16, initwarning("texture filtering", INIT_LOAD));
 
 int formatsize(GLenum format)
 {
@@ -126,6 +128,7 @@ void uploadtexture(GLenum target, GLenum internal, int tw, int th, GLenum format
         buf = new uchar[tw*th*bpp];
         scaletexture((uchar *)pixels, pw, ph, bpp, buf, tw, th);
     }
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     for(int level = 0;; level++)
     {
         uchar *src = buf ? buf : (uchar *)pixels;
@@ -143,9 +146,9 @@ void uploadtexture(GLenum target, GLenum internal, int tw, int th, GLenum format
 void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap, bool canreduce, GLenum format)
 {
     glBindTexture(GL_TEXTURE_2D, tnum);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clamp&1 ? GL_CLAMP_TO_EDGE : GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clamp&2 ? GL_CLAMP_TO_EDGE : GL_REPEAT);
+    if(hasAF && min(aniso, hwmaxaniso) > 0 && mipmap) glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, min(aniso, hwmaxaniso));
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, bilinear ? GL_LINEAR : GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
         mipmap ?
@@ -335,9 +338,23 @@ SDL_Surface *texdecal(SDL_Surface *s)
     return m;
 }
 
+void scalesurface(SDL_Surface *s, float scale)
+{
+    uint dw = s->w*scale, dh = s->h*scale;
+    uchar *buf = new uchar[dw*dh*s->format->BytesPerPixel];
+    scaletexture((uchar *)s->pixels, s->w, s->h, s->format->BytesPerPixel, buf, dw, dh);
+    delete[] (uchar *)s->pixels;
+    s->w = dw;
+    s->h = dh;
+    s->pixels = buf;
+}
+
 bool silent_texture_load = false;
 
-GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 0, bool mipmap = true, bool canreduce = false)
+VARFP(hirestextures, 0, 1, 1, initwarning("texture resolution", INIT_LOAD));
+bool uniformtexres = !hirestextures;
+
+GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 0, bool mipmap = true, bool canreduce = false, float scale = 1.0f, bool trydl = false)
 {
     const char *file = texname;
     if(texname[0]=='<')
@@ -360,7 +377,13 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 
         delete z;
     }
     if(!s) s = IMG_Load(findfile(file, "rb"));
-    if(!s) { if(!silent_texture_load) conoutf("couldn't load texture %s", texname); return 0; }
+    if(!s)
+    {
+        if(trydl)
+            requirepackage(PCK_TEXTURE, file);
+        else if(!silent_texture_load) conoutf("couldn't load texture %s", texname);
+        return 0;
+    }
     s = fixsurfaceformat(s);
     Uint8 x = 0;
     if(strstr(texname,"playermodel") && (x = fixcl(s)) > 35) { fixcl(s,false,x,35); }
@@ -387,6 +410,8 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 
         if(!strncmp(cmd, "decal", arg1-cmd)) { s = texdecal(s); format = texformat(s->format->BitsPerPixel); }
     }
 
+    if(uniformtexres && scale > 1.0f) scalesurface(s, 1.0f/scale);
+
     GLuint tnum;
     glGenTextures(1, &tnum);
     createtexture(tnum, s->w, s->h, s->pixels, clamp, mipmap, canreduce, format);
@@ -398,10 +423,10 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 
 }
 
 // management of texture slots
-// each texture slot can have multople texture frames, of which currently only the first is used
+// each texture slot can have multiple texture frames, of which currently only the first is used
 // additional frames can be used for various shaders
 
-Texture *textureload(const char *name, int clamp, bool mipmap, bool canreduce)
+Texture *textureload(const char *name, int clamp, bool mipmap, bool canreduce, float scale, bool trydl)
 {
     string pname;
     copystring(pname, name);
@@ -409,7 +434,7 @@ Texture *textureload(const char *name, int clamp, bool mipmap, bool canreduce)
     Texture *t = textures.access(pname);
     if(t) return t;
     int xs, ys, bpp;
-    GLuint id = loadsurface(pname, xs, ys, bpp, clamp, mipmap, canreduce);
+    GLuint id = loadsurface(pname, xs, ys, bpp, clamp, mipmap, canreduce, scale, trydl);
     if(!id) return notexture;
     char *key = newstring(pname);
     t = &textures[key];
@@ -421,61 +446,64 @@ Texture *textureload(const char *name, int clamp, bool mipmap, bool canreduce)
     t->mipmap = mipmap;
     t->canreduce = canreduce;
     t->id = id;
+    t->scale = scale;
     return t;
 }
 
 Texture *createtexturefromsurface(const char *name, SDL_Surface *s)
 {
-	string pname;
-	copystring(pname, name);
-	path(pname);
-	Texture *t = textures.access(pname);
-	if(!t)
-	{
-		char *key = newstring(pname);
-		t = &textures[key];
-		t->name = key;
-	}
+    string pname;
+    copystring(pname, name);
+    path(pname);
+    Texture *t = textures.access(pname);
+    if(!t)
+    {
+        char *key = newstring(pname);
+        t = &textures[key];
+        t->name = key;
+    }
 
-	GLuint tnum;
-	glGenTextures(1, &tnum);
-	GLenum format = texformat(s->format->BitsPerPixel);
-	createtexture(tnum, s->w, s->h, s->pixels, 0, true, false, format);
+    GLuint tnum;
+    glGenTextures(1, &tnum);
+    GLenum format = texformat(s->format->BitsPerPixel);
+    createtexture(tnum, s->w, s->h, s->pixels, 0, true, false, format);
 
-	t->xs = s->w;
-	t->ys = s->h;
-	t->bpp = s->format->BitsPerPixel;
-	t->clamp = 0;
-	t->mipmap = true;
-	t->canreduce = false;
-	t->id = tnum;
-	return t;
+    t->xs = s->w;
+    t->ys = s->h;
+    t->bpp = s->format->BitsPerPixel;
+    t->clamp = 0;
+    t->mipmap = true;
+    t->canreduce = false;
+    t->id = tnum;
+    return t;
 }
 
 struct Slot
 {
     string name;
+    float scale;
     Texture *tex;
     bool loaded;
 };
 
 vector<Slot> slots;
 
-void texturereset() { slots.setsize(0); }
+void texturereset() { if(execcontext==IEXC_MAPCFG) slots.setsize(0); }
 
-void texture(char *aframe, char *name)
+void texture(float *scale, char *name)
 {
     Slot &s = slots.add();
     copystring(s.name, name);
     path(s.name);
     s.tex = NULL;
     s.loaded = false;
+    s.scale = (*scale > 0 && *scale <= 2.0f) ? *scale : 1.0f;
 }
 
-COMMAND(texturereset, ARG_NONE);
-COMMAND(texture, ARG_2STR);
+COMMAND(texturereset, "");
+COMMAND(texture, "fs");
 
-Texture *lookuptexture(int tex, Texture *failtex)
+Texture *lookuptexture(int tex, Texture *failtex, bool trydl)
 {
     Texture *t = failtex;
     if(slots.inrange(tex))
@@ -484,9 +512,12 @@ Texture *lookuptexture(int tex, Texture *failtex)
         if(!s.loaded)
         {
             defformatstring(pname)("packages/textures/%s", s.name);
-            s.tex = textureload(pname, 0, true, true);
+            s.tex = textureload(pname, 0, true, true, s.scale, trydl);
+            if(!trydl)
+            {
             if(s.tex==notexture) s.tex = failtex;
             s.loaded = true;
+        }
         }
         if(s.tex) t = s.tex;
     }
@@ -504,7 +535,7 @@ bool reloadtexture(Texture &t)
 {
     if(t.id) return true;
     int xs = 1, ys = 1, bpp = 0;
-    t.id = loadsurface(t.name, xs, ys, bpp, t.clamp, t.mipmap, t.canreduce);
+    t.id = loadsurface(t.name, xs, ys, bpp, t.clamp, t.mipmap, t.canreduce, t.scale);
     t.xs = xs;
     t.ys = ys;
     t.bpp = bpp;
@@ -524,20 +555,27 @@ void reloadtextures()
 }
 
 Texture *sky[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
+static string skybox;
 
-void loadsky(char *basename)
+void loadsky(char *basename, bool reload)
 {
     const char *side[] = { "lf", "rt", "ft", "bk", "dn", "up" };
+    if(reload) basename = skybox;
+    else copystring(skybox, basename);
     loopi(6)
     {
         defformatstring(name)("packages/%s_%s.jpg", basename, side[i]);
         sky[i] = textureload(name, 3);
-        if(!sky[i]) conoutf("could not load sky texture: %s", name);
+        if(sky[i] == notexture && !reload && autodownload)
+        {
+            defformatstring(dl)("packages/%s", basename);
+            requirepackage(PCK_SKYBOX, dl);
+            break;
+        }
     }
 }
 
-COMMAND(loadsky, ARG_1STR);
-
+COMMANDF(loadsky, "s", (char *name) { loadsky(name, false); intret(0); });
 void loadnotexture(char *c)
 {
     noworldtexture = notexture; // reset to default
@@ -548,7 +586,7 @@ void loadnotexture(char *c)
         if(noworldtexture==notexture) conoutf("could not load alternative texture '%s'.", p);
     }
 }
-COMMAND(loadnotexture, ARG_1STR);
+COMMAND(loadnotexture, "s");
 
 void draw_envbox_face(float s0, float t0, float x0, float y0, float z0,
                       float s1, float t1, float x1, float y1, float z1,
@@ -794,3 +832,44 @@ void blitsurface(SDL_Surface *dst, SDL_Surface *src, int x, int y)
     }
 }
 
+Texture *e_wall = NULL, *e_floor = NULL, *e_ceil = NULL;
+
+void guidetoggle()
+{
+    if(player1->state == CS_EDITING)
+    {
+        Slot *sw = &slots[DEFAULT_WALL];
+        Slot *sf = &slots[DEFAULT_FLOOR];
+        Slot *sc = &slots[DEFAULT_CEIL];
+
+        //if textures match original texture
+        if(e_wall == NULL || e_floor == NULL || e_ceil == NULL)
+        {
+            //replace defaults with grid texures
+            e_wall = sw->tex;
+            e_floor = sf->tex;
+            e_ceil = sc->tex;
+            sw->tex = textureload("packages/textures/map_editor/wall.png");
+            sf->tex = textureload("packages/textures/map_editor/floor.png");
+            sc->tex = textureload("packages/textures/map_editor/ceil.png");
+            conoutf("Guide: \f0on");
+        }
+        else
+        {
+            // restore textures
+            if(e_wall) sw->tex = e_wall;
+            if(e_floor) sf->tex = e_floor;
+            if(e_ceil) sc->tex = e_ceil;
+            e_wall = NULL;
+            e_floor = NULL;
+            e_ceil = NULL;
+            conoutf("Guide: \fBoff");
+        }
+    }
+    else
+    {
+        conoutf("\fBGuide view is only avaiable when editing.");
+    }
+}
+
+COMMAND(guidetoggle, "");

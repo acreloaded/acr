@@ -245,7 +245,7 @@ int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &addre
         return result;
     }
 
-    defformatstring(text)("connecting to %s... (esc to abort)", hostname);
+    defformatstring(text)("connecting to %s:%d... (esc to abort)", hostname, address.port);
     show_out_of_renderloop_progress(0, text);
 
     if(!connmutex) connmutex = SDL_CreateMutex();
@@ -321,14 +321,13 @@ static serverinfo *newserver(const char *name, uint ip = ENET_HOST_ANY, int port
     return si;
 }
 
-void addserver(const char *servername, const char *serverport, const char *weight)
+void addserver(const char *servername, int serverport, int weight)
 {
-    int port = atoi(serverport);
-    if(port == 0) port = CUBE_DEFAULT_SERVER_PORT;
+    if(serverport <= 0) serverport = CUBE_DEFAULT_SERVER_PORT;
 
-    loopv(servers) if(strcmp(servers[i]->name, servername)==0 && servers[i]->port == port) return;
+    loopv(servers) if(strcmp(servers[i]->name, servername)==0 && servers[i]->port == serverport) return;
 
-    newserver(servername, ENET_HOST_ANY, port, weight ? atoi(weight) : 0);
+    newserver(servername, ENET_HOST_ANY, serverport, weight);
 }
 
 VARP(servpingrate, 1000, 5000, 60000);
@@ -373,9 +372,10 @@ void pingservers(bool issearch, serverinfo *onlyconnected)
         if(si->getinfo == EXTPING_SERVERINFO)
         {
             putint(p, EXTPING_SERVERINFO);
-            const char *lang = getalias("LANG");
-            if(!lang || strlen(lang) != 2) lang = "en";
-            loopi(2) putint(p, lang[i]);
+            const char *silang;
+            if(strlen(lang) != 2) silang = "en";
+            else silang = lang;
+            loopi(2) putint(p, silang[i]);
         }
         else putint(p, issearch ? EXTPING_NAMELIST : chooseextping(si));
         buf.data = ping;
@@ -679,11 +679,11 @@ int sicompare(serverinfo **ap, serverinfo **bp)
             if(a->numplayers > b->numplayers) return -dir;
             break;
         case SBS_MAXPL: // maxplayers
-        	if(a->maxclients < b->maxclients) return dir;
+            if(a->maxclients < b->maxclients) return dir;
             if(a->maxclients > b->maxclients) return -dir;
             break;
         case SBS_MINREM: // minutes remaining
-        	if(a->minremain < b->minremain) return dir;
+            if(a->minremain < b->minremain) return dir;
             if(a->minremain > b->minremain) return -dir;
             break;
         case SBS_DESC: // description
@@ -693,7 +693,7 @@ int sicompare(serverinfo **ap, serverinfo **bp)
             filtertext(bd, b->sdesc);
             if(!ad[0] && bd[0]) return dir;
             if(ad[0] && !bd[0]) return -dir;
-			int mdir = dir * strcasecmp(ad, bd);
+            int mdir = dir * strcasecmp(ad, bd);
             if(mdir) return mdir;
             break;
         }
@@ -737,7 +737,7 @@ void searchnickname(const char *name)
     strtoupper(cursearchuc);
     showmenu("search");
 }
-COMMAND(searchnickname, ARG_1STR);
+COMMAND(searchnickname, "s");
 
 VAR(showallservers, 0, 1, 1);
 
@@ -786,8 +786,8 @@ void addfavcategory(const char *refdes)
     if(!text[0]) { intret(0); return; }
     loopv(favcats) if(!strcmp(favcats[i], text)) { intret(i + 1); return; }
     favcats.add(newstring(text));
-    bool oldpersist = persistidents;
-    persistidents = false; // only keep changed values
+    bool oldpersist = per_idents;
+    per_idents = false; // only keep changed values
     loopi(FC_NUM) alx[i] = getalias(favcatargname(text, i)) ? 1 : 0;
     loopi(3)
     {
@@ -798,7 +798,7 @@ void addfavcategory(const char *refdes)
     const int defk[] = { FC_WEIGHT, FC_DESC, FC_TAG, FC_KEYS, FC_IGNORE, FC_ALPHA };
     const char *defv[] = { "0",     val,     refdes, "",      "",        "20" };
     loopi(sizeof(defk)/sizeof(defk[0])) { if(!alx[defk[i]]) alias(favcatargname(text, defk[i]), defv[i]); }
-    persistidents = oldpersist;
+    per_idents = oldpersist;
     intret(favcats.length());
 }
 
@@ -923,8 +923,8 @@ bool assignserverfavourites()
     return res;
 }
 
-COMMAND(addfavcategory, ARG_1STR);
-COMMAND(listfavcats, ARG_NONE);
+COMMAND(addfavcategory, "s");
+COMMAND(listfavcats, "");
 
 static serverinfo *lastselectedserver = NULL;
 static bool pinglastselected = false;
@@ -1042,8 +1042,8 @@ void refreshservers(void *menu, bool init)
             {
                 if(si.protocol!=PROTOCOL_VERSION)
                 {
-                	if(!showonlygoodservers) formatstring(si.full)("%s:%d [%s]", si.name, si.port, si.protocol<0 ? "modded version" : (si.protocol<PROTOCOL_VERSION ? "older protocol" : "newer protocol"));
-                	else showthisone = false;
+                    if(!showonlygoodservers) formatstring(si.full)("%s:%d [%s]", si.name, si.port, si.protocol<0 ? "modded version" : (si.protocol<PROTOCOL_VERSION ? "older protocol" : "newer protocol"));
+                    else showthisone = false;
                 }
                 else
                 {
@@ -1051,7 +1051,7 @@ void refreshservers(void *menu, bool init)
                     filterrichtext(text, si.favcat > -1 && !favimage ? favcattags[si.favcat] : "");
                     if(showweights) concatformatstring(text, "(%d)", si.weight);
                     formatstring(si.full)(showfavtag ? (favimage ? "\t" : "\fs%s\fr\t") : "", text);
-                    concatformatstring(si.full, "\fs\f%c%d\t\fs\f%c%d/%d\fr\t\a%c  ", basecolor, si.ping, plnumcolor, si.numplayers, si.maxclients, '0' + si.uplinkqual);
+                    concatformatstring(si.full, "\fs\f%c%s\t\fs\f%c%d/%d\fr\t\a%c  ", basecolor, colorping(si.ping), plnumcolor, si.numplayers, si.maxclients, '0' + si.uplinkqual);
                     if(si.map[0])
                     {
                         concatformatstring(si.full, "%s, %s", si.map, modestr(si.mode, modeacronyms > 0));
@@ -1064,8 +1064,8 @@ void refreshservers(void *menu, bool init)
             }
             else
             {
-            	if(!showonlygoodservers) formatstring(si.full)(si.address.host != ENET_HOST_ANY ? "%s:%d [waiting for server response]" : "%s:%d [unknown host]", si.name, si.port);
-            	else showthisone = false;
+                if(!showonlygoodservers) formatstring(si.full)(si.address.host != ENET_HOST_ANY ? "%s:%d [waiting for server response]" : "%s:%d [unknown host]", si.name, si.port);
+                else showthisone = false;
             }
             if(issearch && showthisone)
             {
@@ -1191,9 +1191,9 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
             updatefrommaster(1);
             return true;
 
-		case SDLK_F6:
-			serversortdir = serversortdir ? 0 : 1;
-			return true;
+        case SDLK_F6:
+            serversortdir = serversortdir ? 0 : 1;
+            return true;
 
         case SDLK_F9:
             showmenu("serverinfo");
@@ -1206,9 +1206,9 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
             showmenu("serverbrowser help");
             return true;
 
-		case SDLK_F2:
+        case SDLK_F2:
             shownamesinbrowser = shownamesinbrowser ? 0 : 1;
-			return true;
+            return true;
 
         case SDLK_F3:
             showmenu("search player");
@@ -1218,13 +1218,13 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
             showmenu("edit favourites");
             return true;
 
-		case SDLK_F7:
-			showonlygoodservers = showonlygoodservers ? 0 : 1;
-			return true;
+        case SDLK_F7:
+            showonlygoodservers = showonlygoodservers ? 0 : 1;
+            return true;
 
-		case SDLK_F8:
-			showminremain = showminremain ? 0 : 1;
-			return true;
+        case SDLK_F8:
+            showminremain = showminremain ? 0 : 1;
+            return true;
     }
     return false;
 }
@@ -1266,70 +1266,145 @@ void clearservers()
     servers.deletecontents();
 }
 
-#define RETRIEVELIMIT 20000
+#define RETRIEVELIMIT 5000
 extern char *global_name;
 bool cllock = false, clfail = false;
 
+struct resolver_data
+{
+    int timeout, starttime;
+    string text;
+};
+
+static int progress_callback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow)
+{
+    resolver_data *rd = (resolver_data *)clientp;
+    rd->timeout = SDL_GetTicks() - rd->starttime;
+    show_out_of_renderloop_progress(min(float(rd->timeout)/RETRIEVELIMIT, 1.0f), rd->text);
+    if(interceptkey(SDLK_ESCAPE))
+    {
+        loadingscreen();
+        return 1;
+    }
+    return 0;
+}
+
+static size_t write_callback(void *ptr, size_t size, size_t nmemb, FILE *stream)
+{
+    return fwrite(ptr, size, nmemb, stream);
+}
+
 void retrieveservers(vector<char> &data)
 {
-    ENetSocket sock = connectmaster();
-    if(sock == ENET_SOCKET_NULL)
+    if(mastertype == AC_MASTER_HTTP)
     {
-        conoutf("Master server is not replying.");
-        clfail = true;
-        return;
-    }
-    clfail = false;
+        string request;
+        sprintf(request, "http://%s/retrieve.do?action=list&name=%s&version=%d&build=%d", mastername, global_name, AC_VERSION, getbuildtype()|(1<<16));
 
-    extern string mastername;
-    defformatstring(text)("retrieving servers from %s... (esc to abort)", mastername);
-    show_out_of_renderloop_progress(0, text);
-
-    int starttime = SDL_GetTicks(), timeout = 0;
-    string request;
-    sprintf(request, "list %s %d\n",global_name,AC_VERSION);
-    const char *req = request;
-    int reqlen = strlen(req);
-    ENetBuffer buf;
-    while(reqlen > 0)
-    {
-        enet_uint32 events = ENET_SOCKET_WAIT_SEND;
-        if(enet_socket_wait(sock, &events, 250) >= 0 && events)
+        const char *tmpname = findfile(path("config/servers.cfg", true), "wb");
+        FILE *outfile = fopen(tmpname, "w+");
+        if(!outfile)
         {
-            buf.data = (void *)req;
-            buf.dataLength = reqlen;
-            int sent = enet_socket_send(sock, NULL, &buf, 1);
-            if(sent < 0) break;
-            req += sent;
-            reqlen -= sent;
-            if(reqlen <= 0) break;
+            conoutf("\f3cannot write server list");
+            return;
         }
-        timeout = SDL_GetTicks() - starttime;
-        show_out_of_renderloop_progress(min(float(timeout)/RETRIEVELIMIT, 1.0f), text);
-        if(interceptkey(SDLK_ESCAPE)) timeout = RETRIEVELIMIT + 1;
-        if(timeout > RETRIEVELIMIT) break;
-    }
 
-    if(reqlen <= 0) for(;;)
-    {
-        enet_uint32 events = ENET_SOCKET_WAIT_RECEIVE;
-        if(enet_socket_wait(sock, &events, 250) >= 0 && events)
+        resolver_data *rd = new resolver_data();
+        formatstring(rd->text)("retrieving servers from %s:%d... (esc to abort)", mastername, masterport);
+        show_out_of_renderloop_progress(0, rd->text);
+
+        rd->starttime = SDL_GetTicks();
+        rd->timeout = 0;
+
+        CURL *curl = curl_easy_init();
+        int result = 0, httpresult = 0;
+
+        curl_easy_setopt(curl, CURLOPT_URL, request);
+        curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);	// Fixes crashbug for some buggy libcurl versions (Linux)
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, outfile);
+        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
+        curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
+        curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, rd);
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, RETRIEVELIMIT/1000);
+        result = curl_easy_perform(curl);
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpresult);
+        curl_easy_cleanup(curl);
+        curl = NULL;
+        if(outfile) fclose(outfile);
+
+        if(result == CURLE_OPERATION_TIMEDOUT || result == CURLE_COULDNT_RESOLVE_HOST)
         {
-            if(data.length() >= data.capacity()) data.reserve(4096);
-            buf.data = data.getbuf() + data.length();
-            buf.dataLength = data.capacity() - data.length();
-            int recv = enet_socket_receive(sock, NULL, &buf, 1);
-            if(recv <= 0) break;
-            data.advance(recv);
+            clfail = true;
         }
-        timeout = SDL_GetTicks() - starttime;
-        show_out_of_renderloop_progress(min(float(timeout)/RETRIEVELIMIT, 1.0f), text);
-        if(interceptkey(SDLK_ESCAPE)) timeout = RETRIEVELIMIT + 1;
-        if(timeout > RETRIEVELIMIT) break;
-    }
+        else clfail = false;
 
-    if(data.length()) data.add('\0');
-    enet_socket_destroy(sock);
+        if(!result && httpresult == 200)
+        {
+            int size = 0;
+            char *content = loadfile(path("config/servers.cfg", true), &size);
+            data.shrink(0);
+            data.insert(0, content, size);
+            if(data.length()) data.add('\0');
+        }
+        DELETEP(rd);
+    }
+    else
+    {
+        ENetSocket sock = connectmaster();
+        if(sock == ENET_SOCKET_NULL)
+        {
+            conoutf("Master server is not replying.");
+            clfail = true;
+            return;
+        }
+        clfail = false;
+        defformatstring(text)("retrieving servers from %s:%d... (esc to abort)", mastername, masterport);
+        show_out_of_renderloop_progress(0, text);
+        int starttime = SDL_GetTicks(), timeout = 0;
+        string request;
+        sprintf(request, "list %s %d %d\n",global_name,AC_VERSION,getbuildtype());
+        const char *req = request;
+        int reqlen = strlen(req);
+        ENetBuffer buf;
+        while(reqlen > 0)
+        {
+            enet_uint32 events = ENET_SOCKET_WAIT_SEND;
+            if(enet_socket_wait(sock, &events, 250) >= 0 && events)
+            {
+                buf.data = (void *)req;
+                buf.dataLength = reqlen;
+                int sent = enet_socket_send(sock, NULL, &buf, 1);
+                if(sent < 0) break;
+                req += sent;
+                reqlen -= sent;
+                if(reqlen <= 0) break;
+            }
+            timeout = SDL_GetTicks() - starttime;
+            show_out_of_renderloop_progress(min(float(timeout)/RETRIEVELIMIT, 1.0f), text);
+            if(interceptkey(SDLK_ESCAPE)) timeout = RETRIEVELIMIT + 1;
+            if(timeout > RETRIEVELIMIT) break;
+        }
+        if(reqlen <= 0) for(;;)
+        {
+            enet_uint32 events = ENET_SOCKET_WAIT_RECEIVE;
+            if(enet_socket_wait(sock, &events, 250) >= 0 && events)
+            {
+                if(data.length() >= data.capacity()) data.reserve(4096);
+                buf.data = data.getbuf() + data.length();
+                buf.dataLength = data.capacity() - data.length();
+                int recv = enet_socket_receive(sock, NULL, &buf, 1);
+                if(recv <= 0) break;
+                data.advance(recv);
+            }
+            timeout = SDL_GetTicks() - starttime;
+            show_out_of_renderloop_progress(min(float(timeout)/RETRIEVELIMIT, 1.0f), text);
+            if(interceptkey(SDLK_ESCAPE)) timeout = RETRIEVELIMIT + 1;
+            if(timeout > RETRIEVELIMIT) break;
+        }
+        if(data.length()) data.add('\0');
+        enet_socket_destroy(sock); 
+    }
 }
 
 VARP(masterupdatefrequency, 1, 60*60, 24*60*60);
@@ -1352,28 +1427,23 @@ void updatefrommaster(int force)
     {
         // preserve currently connected server from deletion
         serverinfo *curserver = getconnectedserverinfo();
-        string curname, curport, curweight;
-        if(curserver)
-        {
-            copystring(curname, curserver->name);
-            formatstring(curport)("%d", curserver->port);
-            formatstring(curweight)("%d", curserver->msweight);
-        }
+        string curname;
+        if(curserver) copystring(curname, curserver->name);
 
         clearservers();
-        if ( !strncmp(data.getbuf(), "addserver", 9) ) cllock = false; // the ms could reply other thing... but currently, this is useless
-        if ( !cllock )
+        if(!strncmp(data.getbuf(), "addserver", 9)) cllock = false; // the ms could reply other thing... but currently, this is useless
+        if(!cllock )
         {
             execute(data.getbuf());
-            if(curserver) addserver(curname, curport, curweight);
+            if(curserver) addserver(curname, curserver->port, curserver->msweight);
         }
         lastupdate = totalmillis;
     }
 }
 
-COMMAND(addserver, ARG_3STR);
-COMMAND(clearservers, ARG_NONE);
-COMMAND(updatefrommaster, ARG_1INT);
+COMMANDF(addserver, "sii", (char *n, int *p, int *w) { addserver(n, *p, *w); });
+COMMAND(clearservers, "");
+COMMANDF(updatefrommaster, "i", (int *f) { updatefrommaster(*f); });
 
 void writeservercfg()
 {
