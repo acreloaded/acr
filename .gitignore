@@ -1,0 +1,17 @@
+# Local game data
+data/*
+packages/maps/servermaps/incoming/*
+
+# Non-third-party binaries
+bin_win32/ac_*.exe
+bin_unix/*
+
+# Source code
+source/localization
+source/codeblocks_dev
+source/vcpp_dev
+source/xcode_dev
+
+# Server debugging
+server_dev.bat
+serverlog_*.txt
