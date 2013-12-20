@@ -1,4 +1,4 @@
-// example servercmdline.txt file (1.0.3)
+// example servercmdline.txt file (1.1)
 // to use this file, add -Cconfig/servercmdline.txt to your servers commandline
 //
 // * you can't use cubescript here!
@@ -12,8 +12,6 @@
 // example MOTD:
  -o \f3server using example cmdline file (config/servercmdline.txt)\n\f2feel free to change this :)
 
- -D 5     // please don't disable this...
-
 
 // commonly used commandline switches:
 
@@ -23,7 +21,7 @@
 // -n2    // custom server description suffix
 // -f     // port, 1..65534, default 28763
 // -c     // max client number, 1..20, default 6
-// -D     // permanent demo recording, optionally +number of demos to keep in RAM, default 5
+// -D     // number of demos to keep in RAM, default 5
 
 // the switches o, n, n1 and n2 support coloring and character escaping; 'o' also supports escaped newlines
 // the available colors are: 0: green, 1: blue, 2: yellow, 3: red, 4: gray, 5: white, 6: dark brown, 7: dark red
@@ -46,12 +44,22 @@
           //    f force a player to the other team
           //    a enable/disable autoteam
           //    s shuffle the teams
-          //    r record a demo of the next game
+          //    r record a demo of the next game (if autorecording is disabled)
           //    c clear all demos on server
           //    d change server description
-          //    x vote for maps, that are not present on the server
-          //    p vote for a gamemode that is not supported by the map
-          //    default: fkBMasRCDxP (lowercase: a user can vote for it; uppercase: admin role is required to vote)
+          //    e vote for coopedit mode
+          //    p vote for a gamemode that is not supported by the map (default: no one can)
+          //    w vote to kick/ban without clear reasons
+          //    default: fkBMASRCDEW (lowercase: a user can vote for it; uppercase: admin role is required to vote)
+// -M     // sendmap permission string (read docs/commandline.html)
+          //    c create new map (initial map upload)
+          //    u update existing map (same or newer revision)
+          //    r revert existing map to older revision
+          //    d delete map (default: no one can)
+          //    default: CRU (lowercase: any user is allowed to do it; uppercase: admin role is required)
+// -Z     // sendmap/incoming limit in MB (default = 10MB)
+// -I     // serverinfo text filename prefix, default config/serverinfo
+// -O     // MOTD text filename prefix, default config/motd
 
 // rarely used switches:
 
@@ -72,9 +80,9 @@
           //    3  WARNING: log only messages of level WARNING and above
           //    4  ERROR: log only messages of level ERROR
           //    5  do not write to the log
-// -A     // Restricts voting for a map to admins. This switch can be used several times. 
+// -A     // Restricts voting for a map/mode to admins. This switch can be used several times. 
 
-// don't use this switches, unless you really know what you're doing:
+// don't use these switches, unless you really know what you're doing:
 
 // -u     // uprate
 // -i     // ip, only for machines with multiple network interfaces

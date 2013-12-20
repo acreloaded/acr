@@ -1,6 +1,6 @@
 
-struct playerent;
-struct bounceent;
+class playerent;
+class bounceent;
 
 struct weapon
 {
@@ -8,7 +8,7 @@ struct weapon
     const static float weaponbeloweye;
     static void equipplayer(playerent *pl);
 
-    weapon(struct playerent *owner, int type);
+    weapon(class playerent *owner, int type);
     virtual ~weapon() {}
 
     int type;
@@ -50,9 +50,9 @@ struct weapon
     virtual int flashtime() const;
 };
 
-struct grenadeent;
+class grenadeent;
 
-enum { GST_NONE, GST_INHAND, GST_THROWING };
+enum { GST_NONE = 0, GST_INHAND, GST_THROWING };
 
 struct grenades : weapon
 {
@@ -93,6 +93,7 @@ struct gun : weapon
 struct subgun : gun
 {
     subgun(playerent *owner);
+    int dynspread();
     bool selectable();
 };
 
@@ -118,6 +119,12 @@ struct sniperrifle : gun
 };
 
 
+struct rifle : gun
+{
+    rifle(playerent *owner);
+    bool selectable();
+};
+
 struct shotgun : gun
 {
     shotgun(playerent *owner);
@@ -135,6 +142,17 @@ struct assaultrifle : gun
     bool selectable();
 };
 
+struct cpistol : gun
+{
+    bool bursting;
+    cpistol(playerent *owner);
+    bool reload();
+    bool selectable();
+    void onselecting();
+    void ondeselecting();
+    bool attack(vec &targ);
+    void setburst(bool enable);
+};
 
 struct pistol : gun
 {
@@ -147,7 +165,7 @@ struct akimbo : gun
 {
     akimbo(playerent *owner);
 
-    bool akimboside;
+    int akimboside;
     int akimbomillis;
     int akimbolastaction[2];
 

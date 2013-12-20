@@ -1,6 +1,5 @@
 // client.cpp, mostly network related client game code
 
-#include "pch.h"
 #include "cube.h"
 #include "bot/bot.h"
 
@@ -9,22 +8,23 @@ VAR(connected, 1, 0, 0);
 ENetHost *clienthost = NULL;
 ENetPeer *curpeer = NULL, *connpeer = NULL;
 int connmillis = 0, connattempts = 0, discmillis = 0;
-bool c2sinit = false;       // whether we need to tell the other clients our stats
-bool watchingdemo = false;          // flowtron : enables SV_ITEMLIST in demos - req. because mapchanged == false by then
+bool watchingdemo = false;
+extern bool clfail, cllock;
+extern int searchlan;
 
 int getclientnum() { return player1 ? player1->clientnum : -1; }
 
 bool multiplayer(bool msg)
 {
     // check not correct on listen server?
-    if(curpeer && msg) conoutf("operation not available in multiplayer");
+    if(curpeer && msg) conoutf(_("operation not available in multiplayer"));
     return curpeer!=NULL;
 }
 
 bool allowedittoggle()
 {
     bool allow = !curpeer || gamemode==1;
-    if(!allow) conoutf("editing in multiplayer requires coopedit mode (1)");
+    if(!allow) conoutf(_("editing in multiplayer requires coopedit mode (1)"));
     return allow;
 }
 
@@ -63,18 +63,21 @@ void abortconnect()
 
 void connectserv_(const char *servername, const char *serverport = NULL, const char *password = NULL, int role = CR_DEFAULT)
 {
+    const char *defaultport = "28763";
+    if (!serverport) serverport = defaultport;
     extern void enddemoplayback();
     if(watchingdemo) enddemoplayback();
+    if(!clfail && cllock && searchlan<2) return;
+
     if(connpeer)
     {
-        conoutf("aborting connection attempt");
+        conoutf(_("aborting connection attempt"));
         abortconnect();
     }
-
     connectrole = role;
-    s_strcpy(clientpassword, password ? password : "");
-
+    copystring(clientpassword, password ? password : "");
     ENetAddress address;
+
     int p = 0;
     if(serverport && serverport[0]) p = atoi(serverport);
     address.port = p > 0 ? p : CUBE_DEFAULT_SERVER_PORT;
@@ -82,10 +85,10 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
     if(servername)
     {
         addserver(servername, serverport, "0");
-        conoutf("attempting to connect to %s%c%s", servername, address.port != CUBE_DEFAULT_SERVER_PORT ? ':' : 0, serverport);
+        conoutf(_("%c2attempting to %sconnect to %c5%s%c4%s%s%c2"), CC, role==CR_DEFAULT?"":"\f8admin\f2", CC, servername, CC, address.port != CUBE_DEFAULT_SERVER_PORT?":":"", serverport, CC);
         if(!resolverwait(servername, &address))
         {
-            conoutf("\f3could not resolve server %s", servername);
+            conoutf(_("%c2could %c3not resolve%c2 server %c5%s%c2"), CC, CC, CC, CC, servername, CC);
             clientpassword[0] = '\0';
             connectrole = CR_DEFAULT;
             return;
@@ -93,15 +96,16 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
     }
     else
     {
-        conoutf("attempting to connect over LAN");
+        conoutf(_("%c2attempting to connect over %c1LAN%c2"), CC, CC, CC);
         address.host = ENET_HOST_BROADCAST;
     }
 
-    if(!clienthost) clienthost = enet_host_create(NULL, 2, 0, 0);
+    if(!clienthost)
+        clienthost = enet_host_create(NULL, 2, 3, 0, 0);
 
     if(clienthost)
     {
-        connpeer = enet_host_connect(clienthost, &address, 3);
+        connpeer = enet_host_connect(clienthost, &address, 3, 0);
         enet_host_flush(clienthost);
         connmillis = totalmillis;
         connattempts = 0;
@@ -109,7 +113,7 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
     }
     else
     {
-        conoutf("\f3could not connect to server");
+        conoutf(_("%c2could %c3not connect%c2 to server"),CC,CC,CC);
         clientpassword[0] = '\0';
         connectrole = CR_DEFAULT;
     }
@@ -153,6 +157,21 @@ void modlanconnect()
     connectserv_(NULL);
 }
 
+void whereami()
+{
+    conoutf("you are at (%.2f,%.2f)", player1->o.x, player1->o.y);
+}
+
+void go_to(char *x, char *y)
+{
+    if(player1->state != CS_EDITING) return;
+    float fx = 1.0f * atoi(x);
+    float fy = 1.0f * atoi(y);
+    player1->newpos.x = fx;
+    player1->newpos.y = fy;
+    conoutf("you are going to (%.2f; %.2f)", fx, fy);
+}
+
 void disconnect(int onlyclean, int async)
 {
     bool cleanup = onlyclean!=0;
@@ -172,20 +191,19 @@ void disconnect(int onlyclean, int async)
         curpeer = NULL;
         discmillis = 0;
         connected = 0;
-        conoutf("disconnected");
+        conoutf(_("disconnected"));
         cleanup = true;
     }
 
     if(cleanup)
     {
-        c2sinit = false;
         player1->clientnum = -1;
         player1->lifesequence = 0;
         player1->clientrole = CR_DEFAULT;
         kickallbots();
         loopv(players) zapplayer(players[i]);
         clearvote();
-        clearworldsounds(false);
+        audiomgr.clearworldsounds(false);
         localdisconnect();
     }
 #if 0
@@ -202,32 +220,59 @@ void trydisconnect()
 {
     if(connpeer)
     {
-        conoutf("aborting connection attempt");
+        conoutf(_("aborting connection attempt"));
         abortconnect();
         return;
     }
     if(!curpeer)
     {
-        conoutf("not connected");
+        conoutf(_("not connected"));
         return;
     }
-    conoutf("attempting to disconnect...");
+    conoutf(_("attempting to disconnect..."));
     disconnect(0, !discmillis);
+}
+
+void _toserver(char *text, int msg, int msgt)
+{
+    bool toteam = text && text[0] == '%' && (m_teammode || team_isspect(player1->team));
+    if(!toteam && text[0] == '%' && strlen(text) > 1) text++; // convert team-text to normal-text if no team-mode is active
+    if(toteam) text++;
+    filtertext(text, text);
+    trimtrailingwhitespace(text);
+    if(servstate.mastermode == MM_MATCH && servstate.matchteamsize && !team_isactive(player1->team) && !(player1->team == TEAM_SPECT && player1->clientrole == CR_ADMIN)) toteam = true; // spect chat
+    if(*text)
+    {
+        if(msg == SV_TEXTME) conoutf("\f%d%s %s", toteam ? 1 : 0, colorname(player1), highlight(text));
+        else conoutf("%s:\f%d %s", colorname(player1), toteam ? 1 : 0, highlight(text));
+        addmsg(toteam ? msgt : msg, "rs", text);
+    }
 }
 
 void toserver(char *text)
 {
-    bool toteam = text && text[0] == '%' && m_teammode;
-    if(!toteam && text[0] == '%' && strlen(text) > 1) text++; // convert team-text to normal-text if no team-mode is active
-    if(toteam) text++;
-    conoutf("%s:\f%d %s", colorname(player1), toteam ? 1 : 0, text);
-    addmsg(toteam ? SV_TEAMTEXT : SV_TEXT, "rs", text);
+    _toserver(text, SV_TEXT, SV_TEAMTEXT);
 }
 
-void echo(char *text) { conoutf("%s", text); }
+void toserverme(char *text)
+{
+    _toserver(text, SV_TEXTME, SV_TEAMTEXTME);
+}
+
+void echo(char *text)
+{
+    const char *s = strtok(text, "\n");
+    do
+    {
+        conoutf("%s", s ? s : "");
+        s = strtok(NULL, "\n");
+    }
+    while(s);
+}
 
 COMMAND(echo, ARG_CONC);
 COMMANDN(say, toserver, ARG_CONC);
+COMMANDN(me, toserverme, ARG_CONC);
 COMMANDN(connect, connectserv, ARG_3STR);
 COMMAND(connectadmin, ARG_3STR);
 COMMAND(lanconnect, ARG_NONE);
@@ -235,6 +280,15 @@ COMMANDN(modconnect, modconnectserv, ARG_3STR);
 COMMAND(modconnectadmin, ARG_3STR);
 COMMAND(modlanconnect, ARG_NONE);
 COMMANDN(disconnect, trydisconnect, ARG_NONE);
+COMMAND(whereami, ARG_NONE);
+COMMAND(go_to, ARG_2STR);
+
+void current_version(char *text)
+{
+    int version = atoi(text);
+    if (version < AC_VERSION) conoutf("UPDATE YOUR CLIENT\ngo to %s for more information",AC_MASTER_URI);
+}
+COMMAND(current_version, ARG_1STR);
 
 void cleanupclient()
 {
@@ -294,13 +348,12 @@ void addmsg(int type, const char *fmt, ...)
 }
 
 static int lastupdate = -1000, lastping = 0;
-bool senditemstoserver = false;     // after a map change, since server doesn't have map data
+bool sendmapidenttoserver = false;
 
 void sendpackettoserv(int chan, ENetPacket *packet)
 {
     if(curpeer) enet_peer_send(curpeer, chan, packet);
     else localclienttoserver(chan, packet);
-    if(!packet->referenceCount) enet_packet_destroy(packet);
 }
 
 void c2skeepalive()
@@ -309,6 +362,7 @@ void c2skeepalive()
 }
 
 extern string masterpwd;
+bool sv_pos = true;
 
 void c2sinfo(playerent *d)                  // send update to the server
 {
@@ -317,65 +371,106 @@ void c2sinfo(playerent *d)                  // send update to the server
 
     if(d->state==CS_ALIVE || d->state==CS_EDITING)
     {
-        ENetPacket *packet = enet_packet_create(NULL, 100, 0);
-        ucharbuf q(packet->data, packet->dataLength);
-
-        putint(q, SV_POS);
-        putint(q, d->clientnum);
-        putuint(q, (int)(d->o.x*DMF));       // quantize coordinates to 1/16th of a cube, between 1 and 3 bytes
-        putuint(q, (int)(d->o.y*DMF));
-        putuint(q, (int)((d->o.z - d->eyeheight)*DMF));
-        putuint(q, (int)d->yaw);
-        putint(q, (int)d->pitch);
-        putint(q, (int)(125*d->roll/20));
-        putint(q, (int)(d->vel.x*DVELF));
-        putint(q, (int)(d->vel.y*DVELF));
-        putint(q, (int)(d->vel.z*DVELF));
-        // pack rest in 1 int: strafe:2, move:2, onfloor:1, onladder: 1
-        putuint(q, (d->strafe&3) | ((d->move&3)<<2) | (((int)d->onfloor)<<4) | (((int)d->onladder)<<5) | ((d->lifesequence&1)<<6) | (((int)d->crouching)<<7));
-
-        enet_packet_resize(packet, q.length());
-        sendpackettoserv(0, packet);
+        packetbuf q(100);
+        int cn = d->clientnum,
+            x = (int)(d->o.x*DMF),          // quantize coordinates to 1/16th of a cube, between 1 and 3 bytes
+            y = (int)(d->o.y*DMF),
+            z = (int)((d->o.z - d->eyeheight)*DMF),
+            ya = (int)((512 * d->yaw) / 360.0f),
+            pi = (int)((127 * d->pitch) / 90.0f),
+            r = (int)(31*d->roll/20),
+            dxt = (int)(d->vel.x*DVELF),
+            dyt = (int)(d->vel.y*DVELF),
+            dzt = (int)(d->vel.z*DVELF),
+            dx = dxt - d->vel_t.i[0],
+            dy = dyt - d->vel_t.i[1],
+            dz = dzt - d->vel_t.i[2],
+            // pack rest in 1 int: strafe:2, move:2, onfloor:1, onladder: 1
+            f = (d->strafe&3) | ((d->move&3)<<2) | (((int)d->onfloor)<<4) | (((int)d->onladder)<<5) | ((d->lifesequence&1)<<6) | (((int)d->crouching)<<7),
+            g = (dx?1:0) | ((dy?1:0)<<1) | ((dz?1:0)<<2) | ((r?1:0)<<3) | (((int)d->scoping)<<4) | (((int)d->shoot)<<5);
+            d->vel_t.i[0] = dxt;
+            d->vel_t.i[1] = dyt;
+            d->vel_t.i[2] = dzt;
+        int usefactor = sfactor < 7 ? 7 : sfactor, sizexy = 1 << (usefactor + 4);
+        if(cn >= 0 && cn < 32 &&
+            usefactor <= 7 + 3 &&       // map size 7..10
+            x >= 0 && x < sizexy &&
+            y >= 0 && y < sizexy &&
+            z >= -2047 && z <= 2047 &&
+            ya >= 0 && ya < 512 &&
+            pi >= -128 && pi <= 127 &&
+            r >= -32 && r <= 31 &&
+            dx >= -8 && dx <= 7 && // FIXME
+            dy >= -8 && dy <= 7 &&
+            dz >= -8 && dz <= 7)
+        { // compact POS packet
+            bool noroll = !r, novel = !dx && !dy && !dz;
+            bitbuf<packetbuf> b(q);
+            putint(q, SV_POSC);
+            b.putbits(5, cn);
+            b.putbits(2, usefactor - 7);
+            b.putbits(usefactor + 4, x);
+            b.putbits(usefactor + 4, y);
+            b.putbits(9, ya);
+            b.putbits(8, pi + 128);
+            b.putbits(1, noroll ? 1 : 0);
+            if(!noroll) b.putbits(6, r + 32);
+            b.putbits(1, novel ? 1 : 0);
+            if(!novel)
+            {
+                b.putbits(4, dx + 8);
+                b.putbits(4, dy + 8);
+                b.putbits(4, dz + 8);
+            }
+            b.putbits(8, f);
+            b.putbits(1, z < 0 ? 1 : 0);
+            if(z < 0) z = -z;                 // z is encoded with 3..10 bits minimum (fitted to byte boundaries), or full 11 bits if necessary
+            int s = (b.rembits() - 1 + 8) % 8;
+            if(s < 3) s += 8;
+            if(z >= (1 << s)) s = 11;
+            b.putbits(1, s == 11 ? 1 : 0);
+            b.putbits(s, z);
+            b.putbits(1, d->scoping ? 1 : 0);
+            b.putbits(1, d->shoot ? 1 : 0);
+        }
+        else
+        { // classic POS packet
+            putint(q, SV_POS);
+            putint(q, d->clientnum);
+            putuint(q, x);
+            putuint(q, y);
+            putuint(q, z);
+            putuint(q, (int)d->yaw);
+            putint(q, (int)d->pitch);
+            putuint(q, g);
+            if (r) putint(q, (int)(125*d->roll/20));
+            if (dx) putint(q, dx);
+            if (dy) putint(q, dy);
+            if (dz) putint(q, dz);
+            putuint(q, f);
+        }
+        sendpackettoserv(0, q.finalize());
+        d->shoot = false;
     }
 
-    if(senditemstoserver || !c2sinit || messages.length() || totalmillis-lastping>250)
+    if(sendmapidenttoserver || messages.length() || totalmillis-lastping>250)
     {
-        ENetPacket *packet = enet_packet_create (NULL, MAXTRANS, 0);
-        ucharbuf p(packet->data, packet->dataLength);
+        packetbuf p(MAXTRANS);
 
-        if(!c2sinit)    // tell other clients who I am
+        if(sendmapidenttoserver) // new map
         {
-            packet->flags = ENET_PACKET_FLAG_RELIABLE;
-            c2sinit = true;
-            putint(p, SV_INITC2S);
-            sendstring(player1->name, p);
-            sendstring(player1->team, p);
-            putint(p, player1->skin);
-        }
-        if(senditemstoserver)
-        {
-            packet->flags = ENET_PACKET_FLAG_RELIABLE;
-            if(maploaded > 0)
-            {
-                putint(p, SV_ITEMLIST);
-                if(!m_noitems) putitems(p);
-                putint(p, -1);
-            }
-            putint(p, SV_SPAWNLIST);
+            p.reliable();
+            putint(p, SV_MAPIDENT);
             putint(p, maploaded);
-            if(maploaded > 0)
-            {
-                loopi(3) putint(p, numspawn[i]);
-                loopi(2) putint(p, numflagspawn[i]);
-            }
-            senditemstoserver = false;
+            putint(p, hdr.maprevision);
+            sendmapidenttoserver = false;
         }
         int i = 0;
         while(i < messages.length()) // send messages collected during the previous frames
         {
             int len = messages[i] | ((messages[i+1]&0x7F)<<8);
             if(p.remaining() < len) break;
-            if(messages[i+1]&0x80) packet->flags = ENET_PACKET_FLAG_RELIABLE;
+            if(messages[i+1]&0x80) p.reliable();
             p.put(&messages[i+2], len);
             i += 2 + len;
         }
@@ -386,12 +481,7 @@ void c2sinfo(playerent *d)                  // send update to the server
             putint(p, totalmillis);
             lastping = totalmillis;
         }
-        if(!p.length()) enet_packet_destroy(packet);
-        else
-        {
-            enet_packet_resize(packet, p.length());
-            sendpackettoserv(1, packet);
-        }
+        if(p.length()) sendpackettoserv(1, p.finalize());
     }
 
     if(clienthost) enet_host_flush(clienthost);
@@ -400,17 +490,33 @@ void c2sinfo(playerent *d)                  // send update to the server
 
 void sendintro()
 {
-    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    ucharbuf p(packet->data, packet->dataLength);
+    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     putint(p, SV_CONNECT);
+    putint(p, AC_VERSION);
+    putint(p, (isbigendian() ? 0x80 : 0 )|(adler((unsigned char *)guns, sizeof(guns)) % 31 << 8)|
+        #ifdef WIN32
+            0x40 |
+        #endif
+        #ifdef __APPLE__
+            0x20 |
+        #endif
+        #ifdef _DEBUG
+            0x08 |
+        #endif
+        #ifdef __GNUC__
+            0x04 |
+        #endif
+            0);
     sendstring(player1->name, p);
     sendstring(genpwdhash(player1->name, clientpassword, sessionid), p);
+    const char *lang = getalias("LANG");
+    sendstring(!lang || strlen(lang) != 2 ? "" : lang, p);
     putint(p, connectrole);
     clientpassword[0] = '\0';
     connectrole = CR_DEFAULT;
     putint(p, player1->nextprimweap->type);
-    enet_packet_resize(packet, p.length());
-    sendpackettoserv(1, packet);
+    loopi(2) putint(p, player1->skin(i));
+    sendpackettoserv(1, p.finalize());
 }
 
 void gets2c()           // get updates from the server
@@ -419,12 +525,12 @@ void gets2c()           // get updates from the server
     if(!clienthost || (!curpeer && !connpeer)) return;
     if(connpeer && totalmillis/3000 > connmillis/3000)
     {
-        conoutf("attempting to connect...");
+        conoutf(_("attempting to connect..."));
         connmillis = totalmillis;
         ++connattempts;
         if(connattempts > 3)
         {
-            conoutf("\f3could not connect to server");
+            conoutf(_("%c3could not connect to server"), CC);
             abortconnect();
             return;
         }
@@ -437,7 +543,7 @@ void gets2c()           // get updates from the server
             curpeer = connpeer;
             connpeer = NULL;
             connected = 1;
-            conoutf("connected to server");
+            conoutf(_("connected to server"));
             throttle();
             if(editmode) toggleedit(true);
             break;
@@ -447,7 +553,7 @@ void gets2c()           // get updates from the server
             extern packetqueue pktlogger;
             pktlogger.queue(event.packet);
 
-            if(discmillis) conoutf("attempting to disconnect...");
+            if(discmillis) conoutf(_("attempting to disconnect..."));
             else servertoclient(event.channelID, event.packet->data, (int)event.packet->dataLength);
             // destroyed in logger
             //enet_packet_destroy(event.packet);
@@ -460,12 +566,12 @@ void gets2c()           // get updates from the server
             if(event.data>=DISC_NUM) event.data = DISC_NONE;
             if(event.peer==connpeer)
             {
-                conoutf("\f3could not connect to server");
+                conoutf(_("%c3could not connect to server"), CC);
                 abortconnect();
             }
             else
             {
-                if(!discmillis || event.data) conoutf("\f3server network error, disconnecting (%s) ...", disc_reason(event.data));
+                if(!discmillis || event.data) conoutf(_("%c3server network error, disconnecting (%s) ..."), CC, disc_reason(event.data));
                 disconnect();
             }
             return;
@@ -476,54 +582,113 @@ void gets2c()           // get updates from the server
     }
 }
 
+// for AUTH:
+
+vector<authkey *> authkeys;
+
+VARP(autoauth, 0, 1, 1);
+
+authkey *findauthkey(const char *desc)
+{
+    loopv(authkeys) if(!strcmp(authkeys[i]->desc, desc) && !strcmp(authkeys[i]->name, player1->name)) return authkeys[i];
+    loopv(authkeys) if(!strcmp(authkeys[i]->desc, desc)) return authkeys[i];
+    return NULL;
+}
+
+void addauthkey(const char *name, const char *key, const char *desc)
+{
+    loopvrev(authkeys) if(!strcmp(authkeys[i]->desc, desc) && !strcmp(authkeys[i]->name, name)) delete authkeys.remove(i);
+    if(name[0] && key[0]) authkeys.add(new authkey(name, key, desc));
+}
+
+bool _hasauthkey(const char *name, const char *desc)
+{
+    if(!name[0] && !desc[0]) return authkeys.length() > 0;
+    loopvrev(authkeys) if(!strcmp(authkeys[i]->desc, desc) && !strcmp(authkeys[i]->name, name)) return true;
+    return false;
+}
+
+void genauthkey(const char *secret)
+{
+    if(!secret[0]) { conoutf("you must specify a secret password"); return; }
+    vector<char> privkey, pubkey;
+    genprivkey(secret, privkey, pubkey);
+    conoutf("private key: %s", privkey.getbuf());
+    conoutf("public key: %s", pubkey.getbuf());
+}
+
+void saveauthkeys()
+{
+    stream *f = openfile("config/auth.cfg", "w");
+    if(!f) { conoutf("failed to open config/auth.cfg for writing"); return; }
+    loopv(authkeys)
+    {
+        authkey *a = authkeys[i];
+        f->printf("authkey \"%s\" \"%s\" \"%s\"\n", a->name, a->key, a->desc);
+    }
+    conoutf("saved authkeys to config/auth.cfg");
+    delete f;
+}
+
+bool tryauth(const char *desc)
+{
+    authkey *a = findauthkey(desc);
+    if(!a) return false;
+    a->lastauth = lastmillis;
+    addmsg(SV_AUTHTRY, "rss", a->desc, a->name);
+    return true;
+}
+
+COMMANDN(authkey, addauthkey, ARG_3STR);
+ICOMMANDF(hasauthkey, ARG_2EST, (char *name, char *desc) { return (_hasauthkey(name, desc) ? 1 : 0); });
+COMMAND(genauthkey, ARG_1STR);
+COMMAND(saveauthkeys, ARG_NONE);
+ICOMMANDF(auth, ARG_1EST, (char *desc) { return tryauth(desc); });
+
+// :for AUTH
+
 // sendmap/getmap commands, should be replaced by more intuitive map downloading
 
-cvector securemaps;
+vector<char *> securemaps;
 
-void resetsecuremaps() { securemaps.deletecontentsa(); }
+void resetsecuremaps() { securemaps.deletearrays(); }
 void securemap(char *map) { if(map) securemaps.add(newstring(map)); }
-bool securemapcheck(char *map, bool msg)
+bool securemapcheck(const char *map, bool msg)
 {
     if(strstr(map, "maps/")==map || strstr(map, "maps\\")==map) map += strlen("maps/");
     loopv(securemaps) if(!strcmp(securemaps[i], map))
     {
-        if(msg) conoutf("\f3map %s is secured, you can not send, receive or overwrite it", map);
+        if(msg) conoutf(_("%c3map %s is secured, you can not send, receive or overwrite it"), CC, map);
         return true;
     }
     return false;
 }
 
-
 void sendmap(char *mapname)
 {
-    if(*mapname && gamemode==1)
-    {
-        save_world(mapname);
-        changemap(mapname); // FIXME!!
-    }
-    else mapname = getclientmap();
+    if(!*mapname) mapname = getclientmap();
     if(securemapcheck(mapname)) return;
+    if(gamemode == GMODE_COOPEDIT && !strcmp(getclientmap(), mapname)) save_world(mapname);
 
-    int mapsize, cfgsize, cfgsizegz;
-    uchar *mapdata = readmap(path(mapname), &mapsize);
-    uchar *cfgdata = readmcfggz(path(mapname), &cfgsize, &cfgsizegz);
+    int mapsize, cfgsize, cfgsizegz, revision;
+    uchar *mapdata = readmap(path(mapname), &mapsize, &revision);
     if(!mapdata) return;
+    uchar *cfgdata = readmcfggz(path(mapname), &cfgsize, &cfgsizegz);
     if(!cfgdata) { cfgsize = 0; cfgsizegz = 0; }
 
-    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS + mapsize + cfgsizegz, ENET_PACKET_FLAG_RELIABLE);
-    ucharbuf p(packet->data, packet->dataLength);
+    packetbuf p(MAXTRANS + mapsize + cfgsizegz, ENET_PACKET_FLAG_RELIABLE);
 
     putint(p, SV_SENDMAP);
     sendstring(mapname, p);
     putint(p, mapsize);
     putint(p, cfgsize);
     putint(p, cfgsizegz);
+    putint(p, revision);
     if(MAXMAPSENDSIZE - p.length() < mapsize + cfgsizegz || cfgsize > MAXCFGFILESIZE)
     {
-        conoutf("map %s is too large to send", mapname);
+        conoutf(_("map %s is too large to send"), mapname);
         delete[] mapdata;
         if(cfgsize) delete[] cfgdata;
-        enet_packet_destroy(packet);
         return;
     }
     p.put(mapdata, mapsize);
@@ -534,39 +699,46 @@ void sendmap(char *mapname)
         delete[] cfgdata;
     }
 
-    enet_packet_resize(packet, p.length());
-    sendpackettoserv(2, packet);
-    conoutf("sending map %s to server...", mapname);
-    s_sprintfd(msg)("[map %s uploaded to server, \"/getmap\" to receive it]", mapname);
-    toserver(msg);
+    sendpackettoserv(2, p.finalize());
+    conoutf(_("sending map %s to server..."), mapname);
 }
 
 void getmap()
 {
-    conoutf("requesting map from server...");
-    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    ucharbuf p(packet->data, packet->dataLength);
+    conoutf(_("requesting map from server..."));
+    packetbuf p(10, ENET_PACKET_FLAG_RELIABLE);
     putint(p, SV_RECVMAP);
-    enet_packet_resize(packet, p.length());
-    sendpackettoserv(2, packet);
+    sendpackettoserv(2, p.finalize());
 }
 
-void getdemo(int i)
+void deleteservermap(char *mapname)
 {
-    if(i<=0) conoutf("getting demo...");
-    else conoutf("getting demo %d...", i);
+    const char *name = behindpath(mapname);
+    if(!*name || securemapcheck(name)) return;
+    addmsg(SV_REMOVEMAP, "rs", name);
+}
+
+string demosubpath;
+void getdemo(char *idx, char *dsp)
+{
+    int i = atoi(idx);
+    if(dsp && dsp[0]) formatstring(demosubpath)("%s/", dsp);
+    else copystring(demosubpath, "");
+    if(i<=0) conoutf(_("getting demo..."));
+    else conoutf(_("getting demo %d..."), i);
     addmsg(SV_GETDEMO, "ri", i);
 }
 
 void listdemos()
 {
-    conoutf("listing demos...");
+    conoutf(_("listing demos..."));
     addmsg(SV_LISTDEMOS, "r");
 }
 
 COMMAND(sendmap, ARG_1STR);
 COMMAND(getmap, ARG_NONE);
+COMMAND(deleteservermap, ARG_1STR);
 COMMAND(resetsecuremaps, ARG_NONE);
 COMMAND(securemap, ARG_1STR);
-COMMAND(getdemo, ARG_1INT);
+COMMAND(getdemo, ARG_2STR);
 COMMAND(listdemos, ARG_NONE);

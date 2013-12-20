@@ -1,6 +1,5 @@
 // rendergl.cpp: core opengl rendering stuff
 
-#include "pch.h"
 #include "cube.h"
 #include "bot/bot.h"
 
@@ -131,8 +130,6 @@ void gl_init(int w, int h, int bpp, int depth, int fsaa)
     glCullFace(GL_FRONT);
     glEnable(GL_CULL_FACE);
 
-    if(fsaa) glEnable(GL_MULTISAMPLE);
-
     inittmus();
 
     resetcamera();
@@ -177,11 +174,11 @@ void disablepolygonoffset(GLenum type, bool restore)
 
 void line(int x1, int y1, float z1, int x2, int y2, float z2)
 {
-    glBegin(GL_QUADS);
+    glBegin(GL_TRIANGLE_STRIP);
     glVertex3f((float)x1, (float)y1, z1);
     glVertex3f((float)x1, y1+0.01f, z1);
-    glVertex3f((float)x2, y2+0.01f, z2);
     glVertex3f((float)x2, (float)y2, z2);
+    glVertex3f((float)x2, y2+0.01f, z2);
     glEnd();
     xtraverts += 4;
 }
@@ -206,11 +203,11 @@ void linestyle(float width, int r, int g, int b)
 
 void box(block &b, float z1, float z2, float z3, float z4)
 {
-    glBegin(GL_QUADS);
+    glBegin(GL_TRIANGLE_STRIP);
     glVertex3f((float)b.x,      (float)b.y,      z1);
     glVertex3f((float)b.x+b.xs, (float)b.y,      z2);
-    glVertex3f((float)b.x+b.xs, (float)b.y+b.ys, z3);
     glVertex3f((float)b.x,      (float)b.y+b.ys, z4);
+    glVertex3f((float)b.x+b.xs, (float)b.y+b.ys, z3);
     glEnd();
     xtraverts += 4;
 }
@@ -219,11 +216,11 @@ void quad(GLuint tex, float x, float y, float s, float tx, float ty, float tsx, 
 {
     if(!tsy) tsy = tsx;
     glBindTexture(GL_TEXTURE_2D, tex);
-    glBegin(GL_QUADS);
+    glBegin(GL_TRIANGLE_STRIP);
     glTexCoord2f(tx,     ty);     glVertex2f(x,   y);
     glTexCoord2f(tx+tsx, ty);     glVertex2f(x+s, y);
-    glTexCoord2f(tx+tsx, ty+tsy); glVertex2f(x+s, y+s);
     glTexCoord2f(tx,     ty+tsy); glVertex2f(x,   y+s);
+    glTexCoord2f(tx+tsx, ty+tsy); glVertex2f(x+s, y+s);
     glEnd();
     xtraverts += 4;
 }
@@ -232,11 +229,11 @@ void quad(GLuint tex, const vec &c1, const vec &c2, float tx, float ty, float ts
 {
     if(!tsy) tsy = tsx;
     glBindTexture(GL_TEXTURE_2D, tex);
-    glBegin(GL_QUADS);
-    glTexCoord2f(tx,     ty);     glVertex3f(c1.x,   c1.y,  c1.z);
-    glTexCoord2f(tx+tsx, ty);     glVertex3f(c2.x, c1.y,    c1.z);
-    glTexCoord2f(tx+tsx, ty+tsy); glVertex3f(c2.x, c2.y,    c2.z);
-    glTexCoord2f(tx,     ty+tsy); glVertex3f(c1.x, c2.y,    c2.z);
+    glBegin(GL_TRIANGLE_STRIP);
+    glTexCoord2f(tx,     ty);     glVertex3f(c1.x, c1.y, c1.z);
+    glTexCoord2f(tx+tsx, ty);     glVertex3f(c2.x, c1.y, c1.z);
+    glTexCoord2f(tx,     ty+tsy); glVertex3f(c1.x, c2.y, c2.z);
+    glTexCoord2f(tx+tsx, ty+tsy); glVertex3f(c2.x, c2.y, c2.z);
     glEnd();
     xtraverts += 4;
 }
@@ -260,11 +257,11 @@ void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr,
 void dot(int x, int y, float z)
 {
     const float DOF = 0.1f;
-    glBegin(GL_QUADS);
+    glBegin(GL_TRIANGLE_STRIP);
     glVertex3f(x-DOF, y-DOF, z);
     glVertex3f(x+DOF, y-DOF, z);
-    glVertex3f(x+DOF, y+DOF, z);
     glVertex3f(x-DOF, y+DOF, z);
+    glVertex3f(x+DOF, y+DOF, z);
     glEnd();
     xtraverts += 4;
 }
@@ -275,7 +272,7 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
     if(tex>=0)
     {
         glBindTexture(GL_TEXTURE_2D, tex);
-        if(c) 
+        if(c)
         {
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glColor4f(c->r, c->g, c->b, c->alpha);
@@ -312,11 +309,11 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
                     xtexcut = (float)(((i+1)*texw)-(x2-x1))/texw;
                 }
 
-                glBegin(GL_QUADS);
+                glBegin(GL_TRIANGLE_STRIP);
                 glTexCoord2f(0, 0);                 glVertex2f((float)x1+texw*i, (float)y1+texh*j);
                 glTexCoord2f(1-xtexcut, 0);         glVertex2f(x1+texw*(i+1)-xboxcut, (float)y1+texh*j);
-                glTexCoord2f(1-xtexcut, 1-ytexcut); glVertex2f(x1+texw*(i+1)-xboxcut, (float)y1+texh*(j+1)-yboxcut);
                 glTexCoord2f(0, 1-ytexcut);         glVertex2f((float)x1+texw*i, y1+texh*(j+1)-yboxcut);
+                glTexCoord2f(1-xtexcut, 1-ytexcut); glVertex2f(x1+texw*(i+1)-xboxcut, (float)y1+texh*(j+1)-yboxcut);
                 glEnd();
             }
         }
@@ -338,11 +335,11 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
             glColor3f(0.5f, 0.5f, 0.5f);
         }
 
-        glBegin(GL_QUADS);
+        glBegin(GL_TRIANGLE_STRIP);
         glTexCoord2f(0, 0); glVertex2f(x1, y1);
         glTexCoord2f(1, 0); glVertex2f(x2, y1);
-        glTexCoord2f(1, 1); glVertex2f(x2, y2);
         glTexCoord2f(0, 1); glVertex2f(x1, y2);
+        glTexCoord2f(1, 1); glVertex2f(x2, y2);
         glEnd();
         xtraverts += 4;
     }
@@ -351,15 +348,13 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
     {
         glDisable(GL_BLEND);
         if(tex>=0) glDisable(GL_TEXTURE_2D);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        glBegin(GL_QUADS);
         glColor3f(0.6f, 0.6f, 0.6f);
+        glBegin(GL_LINE_LOOP);
         glVertex2f(x1, y1);
         glVertex2f(x2, y1);
         glVertex2f(x2, y2);
         glVertex2f(x1, y2);
         glEnd();
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glEnable(GL_BLEND);
     }
 
@@ -424,10 +419,15 @@ void fixresizedscreen()
 #endif
 }
 
-FVARP(fov, 75, 90, 120);
-VARP(scopefov, 5, 50, 60);
+float scopesensfunc = 0.4663077f;
+void scopefunc();
+FVARFP(fov, 75, 90, 120, scopefunc());
+VARFP(scopefov, 5, 50, 60, scopefunc());
 VARP(spectfov, 5, 110, 120);
-
+void scopefunc()
+{
+    scopesensfunc = tan(((float)scopefov)*0.5f*RAD)/tan(fov*0.5f*RAD);
+}
 
 // map old fov values to new ones
 void fovcompat(int oldfov)
@@ -593,12 +593,12 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
         if(!reflecttex)
         {
             glGenTextures(1, &reflecttex);
-            createtexture(reflecttex, size, size, NULL, 3, false, GL_RGB);
+            createtexture(reflecttex, size, size, NULL, 3, false, false, GL_RGB);
         }
         if(!refracttex)
         {
             glGenTextures(1, &refracttex);
-            createtexture(refracttex, size, size, NULL, 3, false, GL_RGB);
+            createtexture(refracttex, size, size, NULL, 3, false, false, GL_RGB);
         }
         reflectlastsize = size;
     }
@@ -682,11 +682,11 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glColor4ubv(hdr.watercolor);
-        glBegin(GL_QUADS);
+        glBegin(GL_TRIANGLE_STRIP);
         glVertex2f(0, 1);
         glVertex2f(1, 1);
-        glVertex2f(1, 0);
         glVertex2f(0, 0);
+        glVertex2f(1, 0);
         glEnd();
         glDisable(GL_BLEND);
         glEnable(GL_TEXTURE_2D);
@@ -724,7 +724,6 @@ VARFP(minimapres, 7, 9, 10, clearminimap());
 void drawminimap(int w, int h)
 {
     if(!minimapdirty) return;
-
     int size = 1<<minimapres, sizelimit = min(hwtexsize, min(w, h));
     while(size > sizelimit) size /= 2;
     if(size!=minimaplastsize && minimaptex)
@@ -735,69 +734,60 @@ void drawminimap(int w, int h)
     if(!minimaptex)
     {
         glGenTextures(1, &minimaptex);
-        createtexture(minimaptex, size, size, NULL, 3, false, GL_RGB);
+        createtexture(minimaptex, size, size, NULL, 3, false, false, GL_RGB);
         minimaplastsize = size;
     }
-
     minimap = true;
-
     disableraytable();
-
     physent *oldcam = camera1;
     physent minicam;
     camera1 = &minicam;
     camera1->type = ENT_CAMERA;
-    camera1->o.x = camera1->o.y = ssize/2;
-    camera1->o.z = 128;
+    camera1->o.x = mapdims[0] + mapdims[4]/2;
+    camera1->o.y = mapdims[1] + mapdims[5]/2;
+    int gdim = max(mapdims[4], mapdims[5]);
+    if(!gdim) gdim = ssize/2;
+    float md = (float)gdim;
+    float dd = 1.0f / ( ssize / md );
+    camera1->o.z = 96 * dd;
     camera1->pitch = -90;
     camera1->yaw = 0;
-
-    glViewport(0, 0, size, size);
+    int orthd = 2 /*+ 2*dd*/ + gdim/2; // +2-4 for clean border if map goes even to the edge. - ac_iceroad still has a bug though @ "2 + 2*dd +" - "4 +" seems better.
+    // this does not avoid possible data corruption on windowed runs :-/ - the issue seems to lie with the window lying outside the desktop edges - at least that was the case for me (flowtron)
+    glViewport(0, 0, size-(size/orthd), size-(size/orthd)); // !not wsize here
     glClearDepth(0.0);
-    glClearColor(0, 0, 0, 1);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+    glClearColor(0, 0, 0, 0);//1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // stencil added 2010jul22
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(-ssize/2, ssize/2, -ssize/2, ssize/2, 0, 256);
+    glOrtho(-orthd, orthd, -orthd, orthd, 0, 128);
     glScalef(1, -1, 1);
     glMatrixMode(GL_MODELVIEW);
-
     glCullFace(GL_BACK);
     glDisable(GL_FOG);
     glEnable(GL_TEXTURE_2D);
-
     transplayer();
-
     resetcubes();
-
     render_world(camera1->o.x, camera1->o.y, camera1->o.z, 1.0f,
             (int)camera1->yaw, (int)camera1->pitch, 90.0f, 90.0f, size, size);
-
     setupstrips();
-
     setuptmu(0, "T * P x 2");
     glDepthFunc(GL_ALWAYS);
     renderstrips();
     glDepthFunc(GL_LESS);
     rendermapmodels();
-    renderentities();
+    //renderentities();// IMHO better done by radar itself, if at all
     resettmu(0);
-
     float hf = hdr.waterlevel-0.3f;
     renderwater(hf, 0, 0);
-
     camera1 = oldcam;
     minimap = false;
-
     glBindTexture(GL_TEXTURE_2D, minimaptex);
     glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, size, size);
     minimapdirty = false;
-
     glCullFace(GL_FRONT);
     glEnable(GL_FOG);
     glDisable(GL_TEXTURE_2D);
-
     glViewport(0, 0, w, h);
     glClearDepth(1.0);
 }
@@ -809,8 +799,6 @@ void cleanupgl()
     if(minimaptex) glDeleteTextures(1, &minimaptex);
     reflecttex = refracttex = minimaptex = 0;
     minimapdirty = true;
-
-    if(glIsEnabled(GL_MULTISAMPLE)) glDisable(GL_MULTISAMPLE);
 }
 
 int xtraverts;

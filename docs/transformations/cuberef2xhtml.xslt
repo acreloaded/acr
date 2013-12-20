@@ -273,9 +273,11 @@
                                 <xsl:value-of select="t:code"/>
                               </div>
                               <xsl:if test="t:explanation">
+                                <xsl:for-each select="t:explanation">
                                 <div class="exampleExplanation">
-                                  <xsl:value-of select="t:explanation"/>
+                                  <xsl:value-of select="."/>
                                 </div>
+								</xsl:for-each>
                               </xsl:if>
                             </p>
                           </xsl:for-each>
@@ -339,6 +341,7 @@
                           </xsl:for-each>
                           <!-- refer to web resources -->
                           <xsl:for-each select="t:references/t:webReference">
+						    <xsl:text>, </xsl:text><!-- we assume it's never the only entry! -->
                             <a>
                               <xsl:attribute name="href">
                                 <xsl:value-of select="@url"/>
@@ -346,7 +349,17 @@
                               <xsl:attribute name="class">external</xsl:attribute>
                               <xsl:attribute name="target">_blank</xsl:attribute>
                               <xsl:value-of select="@name"/>
-                            </a>                            
+                            </a>
+                          </xsl:for-each>
+						  <!-- refer to wiki resources -->
+                          <xsl:for-each select="t:references/t:wikiReference">
+						    <xsl:text>, </xsl:text><!-- we assume it's never the only entry! -->
+                            <a>
+                              <xsl:attribute name="href">http://wiki.cubers.net/action/view/<xsl:value-of select="@article"/></xsl:attribute>
+                              <xsl:attribute name="class">external</xsl:attribute>
+                              <xsl:attribute name="target">_blank</xsl:attribute>
+                              <xsl:value-of select="@article"/>
+                            </a>
                           </xsl:for-each>
                         </div>
                       </xsl:if>

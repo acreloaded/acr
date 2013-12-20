@@ -32,43 +32,24 @@ struct color
     color(float r, float g, float b, float a) : r(r), g(g), b(b), alpha(a) {}
 };
 
-// command
-extern bool persistidents;
-extern int variable(const char *name, int min, int cur, int max, int *storage, void (*fun)(), bool persist);
-extern float fvariable(const char *name, float min, float cur, float max, float *storage, void (*fun)(), bool persist);
-extern char *svariable(const char *name, const char *cur, char **storage, void (*fun)(), bool persist);
-extern void setvar(const char *name, int i, bool dofunc = false);
-extern void setfvar(const char *name, float f, bool dofunc = false);
-extern void setsvar(const char *name, const char *str, bool dofunc = false);
-extern int getvar(const char *name);
-extern bool identexists(const char *name);
-extern bool addcommand(const char *name, void (*fun)(), int narg);
-extern int execute(const char *p);
-extern char *executeret(const char *p);
-extern char *conc(char **w, int n, bool space);
-extern void intret(int v);
-extern const char *floatstr(float v);
-extern void floatret(float v);
-extern void result(const char *s);
-extern void exec(const char *cfgfile);
-extern bool execfile(const char *cfgfile);
-extern void resetcomplete();
-extern void complete(char *s);
-extern void push(const char *name, const char *action);
-extern void pop(const char *name);
-extern void alias(const char *name, const char *action);
-extern const char *getalias(const char *name);
-extern void writecfg();
-extern void deletecfg();
-extern void identnames(vector<const char *> &names, bool builtinonly);
-extern void changescriptcontext(int newcontext);
-extern void explodelist(const char *s, vector<char *> &elems);
-extern char *indexlist(const char *s, int pos);
-extern char *parseword(const char *&p);
-extern void pushscontext(int newcontext);
-extern int popscontext();
-extern int curscontext();
-extern int execcontext;
+struct authkey // for AUTH
+{
+    char *name, *key, *desc;
+    int lastauth;
+
+    authkey(const char *name, const char *key, const char *desc)
+        : name(newstring(name)), key(newstring(key)), desc(newstring(desc)),
+          lastauth(0)
+    {
+    }
+
+    ~authkey()
+    {
+        DELETEA(name);
+        DELETEA(key);
+        DELETEA(desc);
+    }
+};
 
 // console
 extern void keypress(int code, bool isdown, int cooked, SDLMod mod = KMOD_NONE);
@@ -76,9 +57,9 @@ extern int rendercommand(int x, int y, int w);
 extern void renderconsole();
 extern char *getcurcommand();
 extern char *addreleaseaction(const char *s);
-extern void writebinds(FILE *f);
+extern void writebinds(stream *f);
 extern void pasteconsole(char *dst);
-extern void conoutf(const char *s, ...);
+extern void clientlogf(const char *s, ...);
 
 struct keym
 {
@@ -90,6 +71,8 @@ struct keym
     ~keym() { DELETEA(name); DELETEA(action); }
 };
 
+extern keym *keypressed;
+
 extern bool bindkey(keym *km, const char *action);
 extern keym *findbinda(const char *action);
 extern bool bindc(int code, const char *action);
@@ -99,7 +82,10 @@ extern void rendermenu();
 extern bool menuvisible();
 extern void menureset(void *menu);
 extern void menumanual(void *menu, char *text, char *action = NULL, color *bgcolor = NULL, const char *desc = NULL);
+extern void menuimagemanual(void *menu, const char *filename1, const char *filename2, char *text, char *action = NULL, color *bgcolor = NULL, const char *desc = NULL);
 extern void menutitle(void *menu, const char *title = NULL);
+extern void reorderscorecolumns();
+extern int orderscorecolumns;
 extern void menuheader(void *menu, char *header = NULL, char *footer = NULL);
 extern bool menukey(int code, bool isdown, int unicode, SDLMod mod = KMOD_NONE);
 extern void *addmenu(const char *name, const char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(void *, bool) = NULL, bool (__cdecl *keyfunc)(void *, int, bool, int) = NULL, bool hotkeys = false, bool forwardkeys = false);
@@ -127,6 +113,8 @@ struct mitem
     virtual void key(int code, bool isdown, int unicode) { }
     virtual void init() {}
     virtual const char *getdesc() { return NULL; }
+    virtual const char *gettext() { return NULL; }
+    virtual const char *getaction() { return NULL; }
     bool isselection();
     void renderbg(int x, int y, int w, color *c);
     static color gray, white, whitepulse;
@@ -154,23 +142,27 @@ struct gmenu
     void (__cdecl *refreshfunc)(void *, bool);
     bool (__cdecl *keyfunc)(void *, int, bool, int);
     char *initaction;
+    char *usefont;
 
     const char *mdl;
     int anim, rotspeed, scale;
+    int footlen;
     mdirlist *dirlist;
 
-    gmenu() : name(0), title(0), header(0), footer(0), initaction(0), mdl(0), dirlist(0) {}
+    gmenu() : name(0), title(0), header(0), footer(0), initaction(0), usefont(0), mdl(0), footlen(0), dirlist(0) {}
     virtual ~gmenu()
     {
         DELETEA(name);
         DELETEA(mdl);
         DELETEP(dirlist);
         DELETEA(initaction);
-        items.deletecontentsp();
+        DELETEA(usefont);
+        items.deletecontents();
     }
 
     void render();
     void renderbg(int x1, int y1, int x2, int y2, bool border);
+    void conprintmenu();
     void refresh();
     void open();
     void close();
@@ -185,6 +177,7 @@ extern int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress
 extern void writeservercfg();
 extern void refreshservers(void *menu, bool init);
 extern bool serverskey(void *menu, int code, bool isdown, int unicode);
+extern bool serverinfokey(void *menu, int code, bool isdown, int unicode);
 
 struct serverinfo
 {
@@ -196,7 +189,7 @@ struct serverinfo
     string sdesc;
     string description;
     string cmd;
-    int mode, numplayers, maxclients, ping, protocol, minremain, resolved, port, lastpingmillis, pongflags, getnames, getinfo, menuline_from, menuline_to;
+    int mode, numplayers, maxclients, ping, protocol, minremain, resolved, port, lastpingmillis, pongflags, getinfo, menuline_from, menuline_to;
     ENetAddress address;
     vector<const char *> playernames;
     uchar namedata[MAXTRANS];
@@ -206,11 +199,17 @@ struct serverinfo
     color *bgcolor;
     int favcat, msweight, weight;
 
+    int uplinkqual, uplinkqual_age;
+    unsigned char uplinkstats[MAXCLIENTS + 1];
+
     serverinfo()
-     : mode(0), numplayers(0), maxclients(0), ping(9999), protocol(0), minremain(0), resolved(UNRESOLVED), port(-1), lastpingmillis(0), pongflags(0), getnames(0), getinfo(0), bgcolor(NULL), favcat(-1), msweight(0), weight(0)
+     : mode(0), numplayers(0), maxclients(0), ping(9999), protocol(0), minremain(0),
+       resolved(UNRESOLVED), port(-1), lastpingmillis(0), pongflags(0), getinfo(EXTPING_NOP),
+       bgcolor(NULL), favcat(-1), msweight(0), weight(0), uplinkqual(0), uplinkqual_age(0)
     {
         name[0] = full[0] = map[0] = sdesc[0] = description[0] = '\0';
         loopi(3) lang[i] = '\0';
+        loopi(MAXCLIENTS + 1) uplinkstats[i] = 0;
     }
 };
 
@@ -280,17 +279,25 @@ struct Texture
     GLuint id;
 };
 extern Texture *notexture, *noworldtexture;
+extern bool silent_texture_load;
 
 extern void scaletexture(uchar *src, uint sw, uint sh, uint bpp, uchar *dst, uint dw, uint dh);
-extern void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap, GLenum format, int reduce = 0);
+extern void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap, bool canreduce, GLenum format);
+extern SDL_Surface *wrapsurface(void *data, int width, int height, int bpp);
+extern SDL_Surface *creatergbsurface(int width, int height);
+extern SDL_Surface *creatergbasurface(int width, int height);
+extern SDL_Surface *forcergbsurface(SDL_Surface *os);
+extern SDL_Surface *forcergbasurface(SDL_Surface *os);
 extern Texture *textureload(const char *name, int clamp = 0, bool mipmap = true, bool canreduce = false);
-extern Texture *lookuptexture(int tex, Texture *failtex = notexture, bool canreduce = false);
+extern Texture *lookuptexture(int tex, Texture *failtex = notexture);
 extern bool reloadtexture(Texture &t);
 extern bool reloadtexture(const char *name);
 extern void reloadtextures();
+Texture *createtexturefromsurface(const char *name, SDL_Surface *s);
+extern void blitsurface(SDL_Surface *dst, SDL_Surface *src, int x, int y);
 
 static inline Texture *lookupworldtexture(int tex)
-{ return lookuptexture(tex, noworldtexture, true); }
+{ return lookuptexture(tex, noworldtexture); }
 
 extern float skyfloor;
 extern void draw_envbox(int fogdist);
@@ -335,39 +342,51 @@ extern void c2sinfo(playerent *d);
 extern void c2skeepalive();
 extern void neterr(const char *s);
 extern int getclientnum();
-extern void changemapserv(char *name, int mode, bool download = false);
-extern void changeteam(int team, bool respawn = true);
+extern void changeteam(int team, bool respawn = true); // deprecated?
 extern void getmap();
 extern void newteam(char *name);
-extern bool securemapcheck(char *map, bool msg = true);
+extern bool securemapcheck(const char *map, bool msg = true);
 extern void sendintro();
-extern void getdemo(int i);
+extern void getdemo(char *idx, char *dsp);
 extern void listdemos();
+// for AUTH:
+extern bool tryauth(const char *desc);
+extern authkey *findauthkey(const char *desc);
+
+// serverms
+bool requestmasterf(const char *fmt, ...); // for AUTH et al
+//moving to server.cpp seems a bad idea.
+// :for AUTH
 
 // clientgame
 extern flaginfo flaginfos[2];
 extern int sessionid;
+extern int gametimecurrent;
+extern int gametimemaximum;
+extern int lastgametimeupdate;
 extern bool watchingdemo;
-extern bool autoteambalance;
+struct serverstate { int autoteam; int mastermode; int matchteamsize; void reset() { autoteam = mastermode = matchteamsize = 0; }};
+extern struct serverstate servstate;
 extern void updateworld(int curtime, int lastmillis);
-extern void resetmap();
+extern void resetmap(bool mrproper = true);
 extern void startmap(const char *name, bool reset = true);
 extern void changemap(const char *name);
 extern void initclient();
 extern void deathstate(playerent *pl);
 extern void spawnplayer(playerent *d);
-extern void dodamage(int damage, playerent *pl, playerent *actor, bool gib = false, bool local = true);
-extern void dokill(playerent *pl, playerent *act, bool gib = false);
+extern void dodamage(int damage, playerent *pl, playerent *actor, int gun = -1, bool gib = false, bool local = true);
+extern void dokill(playerent *pl, playerent *act, bool gib = false, int gun = 0);
 extern playerent *newplayerent();
 extern botent *newbotent();
 extern void freebotent(botent *d);
 extern char *getclientmap();
+extern int getclientmode();
 extern void zapplayer(playerent *&d);
 extern playerent *getclient(int cn);
 extern playerent *newclient(int cn);
-extern void timeupdate(int timeremain);
+extern void timeupdate(int milliscur, int millismax); // was (int timeremain);
 extern void respawnself();
-extern void setskin(playerent *pl, uint skin);
+extern void setskin(playerent *pl, int skin, int team = -1);
 extern void callvote(int type, char *arg1 = NULL, char *arg2 = NULL);
 extern void addsleep(int msec, const char *cmd);
 extern void resetsleep();
@@ -389,6 +408,7 @@ extern void refreshsopmenu(void *menu, bool init);
 extern char *colorname(playerent *d, char *name = NULL, const char *prefix = "");
 extern char *colorping(int ping);
 extern char *colorpj(int pj);
+extern const char *highlight(const char *text);
 extern void togglespect();
 extern playerent *updatefollowplayer(int shiftdirection = 0);
 extern void spectate(int mode);
@@ -411,12 +431,16 @@ extern void votecount(int v);
 extern void clearvote();
 
 // scoreboard
+struct discscore { int team, flags, frags, deaths, points; char name[MAXNAMELEN + 1]; };
+extern vector<discscore> discscores;
 extern void showscores(int on);
 extern void renderscores(void *menu, bool init);
+extern const char *asciiscores(bool destjpg = false);
 extern void consolescores();
 
 // world
 extern void setupworld(int factor);
+extern bool worldbordercheck(int x1, int x2, int y1, int y2, int z1, int z2);
 extern bool empty_world(int factor, bool force);
 extern void remip(const block &b, int level = 0);
 extern void remipmore(const block &b, int level = 0);
@@ -454,6 +478,7 @@ extern SDL_Surface *screen;
 extern int colorbits, depthbits, stencilbits;
 
 extern void keyrepeat(bool on);
+extern bool interceptkey(int sym);
 extern bool firstrun, inmainloop;
 
 enum
@@ -477,21 +502,31 @@ struct font
         short x, y, w, h;
     };
 
+	struct utf8charinfo : charinfo
+	{
+		int code;
+	};
+
     char *name;
     Texture *tex;
     vector<charinfo> chars;
-    short defaultw, defaulth;
-    short offsetx, offsety, offsetw, offseth;
+    int defaultw, defaulth;
+    int offsetx, offsety, offsetw, offseth;
+    int skip;
 };
 
 #define VIRTH 1800
 #define FONTH (curfont->defaulth)
-#define PIXELTAB (8*curfont->defaultw)
+#define PIXELTAB (10*curfont->defaultw)
 
 extern int VIRTW; // virtual screen size for text & HUD
 extern font *curfont;
 
+extern void initfont();
 extern bool setfont(const char *name);
+extern font *getfont(const char *name);
+extern void pushfont(const char *name);
+extern void popfont();
 extern void draw_text(const char *str, int left, int top, int r = 255, int g = 255, int b = 255, int a = 255, int cursor = -1, int maxwidth = -1);
 extern void draw_textf(const char *fstr, int left, int top, ...);
 extern int text_width(const char *str);
@@ -512,7 +547,8 @@ extern void editequalisexy(bool isfloor, block &sel);
 extern void edittypexy(int type, block &sel);
 extern void edittexxy(int type, int t, block &sel);
 extern void editheightxy(bool isfloor, int amount, block &sel);
-extern bool noteditmode();
+//extern bool noteditmode();
+extern bool noteditmode(const char* func = NULL);
 extern void pruneundos(int maxremain = 0);
 
 // renderhud
@@ -563,11 +599,13 @@ extern bool addscorchmark(vec &o, float radius = 7);
 extern void render_particles(int time, int typemask = ~0);
 
 // worldio
+extern int mapdims[6];
+extern const char *setnames(const char *name);
 extern void save_world(char *fname);
 extern bool load_world(char *mname);
 extern void writemap(char *name, int size, uchar *data);
 extern void writecfggz(char *name, int size, int sizegz, uchar *data);
-extern uchar *readmap(char *name, int *size);
+extern uchar *readmap(char *name, int *size, int *revision);
 extern uchar *readmcfggz(char *name, int *size, int *sizegz);
 
 // physics
@@ -582,14 +620,18 @@ extern void mousemove(int dx, int dy);
 extern void fixcamerarange(physent *cam = camera1);
 extern void updatecrouch(playerent *p, bool on);
 extern bool objcollide(physent *d, const vec &objpos, float objrad, float objheight);
-extern bool collide(physent *d, bool spawn = false, float drop = 0, float rise = 0);
+extern bool collide(physent *d, bool spawn = false, float drop = 0, float rise = 0, int level = 7);
+extern void attack(bool on);
+extern void vecfromyawpitch(float yaw, float pitch, int move, int strafe, vec &m);
+extern void vectoyawpitch(const vec &v, float &yaw, float &pitch);
 
 // sound
-extern void playsound(int n, int priority = SP_NORMAL);
-extern void playsound(int n, physent *p, int priority = SP_NORMAL);
-extern void playsound(int n, entity *e, int priority = SP_NORMAL);
-extern void playsound(int n, const vec *v, int priority = SP_NORMAL);
-extern void playsoundc(int n, physent *p = NULL);
+/*
+extern void audiomgr.playsound(int n, int priority = SP_NORMAL);
+extern void audiomgr.playsound(int n, physent *p, int priority = SP_NORMAL);
+extern void audiomgr.playsound(int n, entity *e, int priority = SP_NORMAL);
+extern void audiomgr.playsound(int n, const vec *v, int priority = SP_NORMAL);
+extern void audiomgr.playsoundc(int n, physent *p = NULL, int priority = SP_NORMAL);
 extern void initsound();
 extern void soundcleanup();
 extern void musicsuggest(int id, int millis = 0, bool rndofs = false);
@@ -599,7 +641,8 @@ extern void detachsounds(playerent *owner);
 extern void updateaudio();
 extern void preloadmapsound(entity &e);
 extern void preloadmapsounds();
-extern void writesoundconfig(FILE *f);
+extern void writesoundconfig(stream *f);
+*/
 
 // rendermodel
 extern void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed = 0, int basetime = 0, playerent *d = NULL, modelattach *a = NULL, float scale = 1.0f);
@@ -631,6 +674,7 @@ extern playerent *playerincrosshair();
 extern int magsize(int gun);
 extern void checkweaponswitch();
 extern void setscope(bool activate);
+extern void setburst(bool activate);
 extern int intersect(playerent *d, const vec &from, const vec &to, vec *end = NULL);
 extern bool intersect(entity *e, const vec &from, const vec &to, vec *end = NULL);
 extern void damageeffect(int damage, playerent *d);
@@ -639,13 +683,11 @@ extern void checkakimbo();
 extern struct projectile *newprojectile(vec &from, vec &to, float speed, bool local, playerent *owner, int gun, int id = lastmillis);
 
 // entities
-extern const char *entnames[];
-
-extern void putitems(ucharbuf &p);
+extern void spawnallitems();
 extern void pickupeffects(int n, playerent *d);
 extern void renderentities();
 extern void rendermapmodels();
-extern void resetspawns();
+extern void resetspawns(int type = -1);
 extern void setspawn(int i, bool on);
 extern void checkitems(playerent *d);
 
@@ -660,6 +702,58 @@ extern void scrolldoc(int i);
 extern int stringsort(const char **a, const char **b);
 #endif
 
+// crypto // for AUTH
+extern void genprivkey(const char *seed, vector<char> &privstr, vector<char> &pubstr);
+extern bool hashstring(const char *str, char *result, int maxlen);
+const char *genpwdhash(const char *name, const char *pwd, int salt);
+extern void answerchallenge(const char *privstr, const char *challenge, vector<char> &answerstr);
+extern void *parsepubkey(const char *pubstr);
+extern void freepubkey(void *pubkey);
+extern void *genchallenge(void *pubkey, const void *seed, int seedlen, vector<char> &challengestr);
+extern void freechallenge(void *answer);
+extern bool checkchallenge(const char *answerstr, void *correct);
+
+// console
+extern void conoutf(const char *s, ...);
+
+// command
+extern bool persistidents;
+extern int variable(const char *name, int min, int cur, int max, int *storage, void (*fun)(), bool persist);
+extern float fvariable(const char *name, float min, float cur, float max, float *storage, void (*fun)(), bool persist);
+extern char *svariable(const char *name, const char *cur, char **storage, void (*fun)(), bool persist);
+extern void setvar(const char *name, int i, bool dofunc = false);
+extern void setfvar(const char *name, float f, bool dofunc = false);
+extern void setsvar(const char *name, const char *str, bool dofunc = false);
+extern int getvar(const char *name);
+extern bool identexists(const char *name);
+extern bool addcommand(const char *name, void (*fun)(), int narg);
+extern int execute(const char *p);
+extern char *executeret(const char *p);
+extern char *conc(char **w, int n, bool space);
+extern void intret(int v);
+extern const char *floatstr(float v);
+extern void floatret(float v);
+extern void result(const char *s);
+extern void exec(const char *cfgfile);
+extern bool execfile(const char *cfgfile);
+extern void resetcomplete();
+extern void complete(char *s);
+extern void push(const char *name, const char *action);
+extern void pop(const char *name);
+extern void alias(const char *name, const char *action);
+extern const char *getalias(const char *name);
+extern void writecfg();
+extern void deletecfg();
+extern void identnames(vector<const char *> &names, bool builtinonly);
+extern void changescriptcontext(int newcontext);
+extern void explodelist(const char *s, vector<char *> &elems);
+extern char *indexlist(const char *s, int pos);
+extern char *parseword(const char *&p);
+extern void pushscontext(int newcontext);
+extern int popscontext();
+extern int curscontext();
+extern int execcontext;
+
 // server
 extern int modeacronyms;
 extern void servertoclient(int chan, uchar *buf, int len);
@@ -668,44 +762,59 @@ extern const char *modestr(int n, bool acronyms = false);
 extern const char *voteerrorstr(int n);
 extern const char *mmfullname(int n);
 extern void fatal(const char *s, ...);
-extern void initserver(bool dedicated);
+extern void initserver(bool dedicated, int argc = 0, char **argv = NULL);
 extern void cleanupserver();
 extern void localconnect();
 extern void localdisconnect();
 extern void localclienttoserver(int chan, ENetPacket *);
 extern void serverslice(uint timeout);
 extern void putint(ucharbuf &p, int n);
+extern void putint(packetbuf &p, int n);
+extern void putint(vector<uchar> &p, int n);
 extern int getint(ucharbuf &p);
 extern void putuint(ucharbuf &p, int n);
+extern void putuint(packetbuf &p, int n);
+extern void putuint(vector<uchar> &p, int n);
 extern int getuint(ucharbuf &p);
+extern void putfloat(ucharbuf &p, float f);
+extern void putfloat(packetbuf &p, float f);
+extern void putfloat(vector<uchar> &p, float f);
+extern float getfloat(ucharbuf &p);
 extern void sendstring(const char *t, ucharbuf &p);
+extern void sendstring(const char *t, packetbuf &p);
+extern void sendstring(const char *t, vector<uchar> &p);
 extern void getstring(char *t, ucharbuf &p, int len = MAXTRANS);
 extern void filtertext(char *dst, const char *src, int whitespace = 1, int len = sizeof(string)-1);
 extern void filterrichtext(char *dst, const char *src, int len = sizeof(string)-1);
 extern void filterservdesc(char *dst, const char *src, int len = sizeof(string)-1);
+extern void filterlang(char *d, const char *s);
+extern void trimtrailingwhitespace(char *s);
 extern void cutcolorstring(char *text, int len);
 extern void startintermission();
 extern void restoreserverstate(vector<entity> &ents);
+extern ENetSocket connectmaster();
 extern uchar *retrieveservers(uchar *buf, int buflen);
-extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int protocol_version);
-extern char msgsizelookup(int msg);
+extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int *mnum, int *msend, int *mrec, int *cnum, int *csend, int *crec, int protocol_version);
+extern int msgsizelookup(int msg);
 extern const char *genpwdhash(const char *name, const char *pwd, int salt);
 extern void servermsinit(const char *master, const char *ip, int serverport, bool listen);
 extern bool serverpickup(int i, int sender);
 extern bool valid_client(int cn);
 extern void extinfo_cnbuf(ucharbuf &p, int cn);
-extern void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENetAddress &addr, ENetBuffer &buf, int len);
+extern void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENetAddress &addr, ENetBuffer &buf, int len, int *csend);
 extern void extinfo_teamscorebuf(ucharbuf &p);
 extern char *votestring(int type, char *arg1, char *arg2);
 extern int wizardmain(int argc, char **argv);
 
 // demo
 #define DHDR_DESCCHARS 80
+#define DHDR_PLISTCHARS 322
 struct demoheader
 {
     char magic[16];
     int version, protocol;
     char desc[DHDR_DESCCHARS];
+    char plist[DHDR_PLISTCHARS];
 };
 
 // logging
@@ -716,35 +825,52 @@ extern bool initlogging(const char *identity, int facility_, int consolethres, i
 extern void exitlogging();
 extern bool logline(int level, const char *msg, ...);
 
+// server config
+
+struct serverconfigfile
+{
+    string filename;
+    int filelen;
+    char *buf;
+    serverconfigfile() : filelen(0), buf(NULL) { filename[0] = '\0'; }
+    virtual ~serverconfigfile() { DELETEA(buf); }
+
+    virtual void read() {}
+    void init(const char *name);
+    bool load();
+};
+
 // server commandline parsing
 
 struct servercommandline
 {
-    int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, kickthreshold, banthreshold, verbose;
-    const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile, *nbfile, *infopath;
-    bool demoeverymatch, logtimestamp;
-    string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm;
+    int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, kickthreshold, banthreshold, verbose, incoming_limit, afk_limit, ban_time;
+    const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile, *nbfile, *infopath, *motdpath, *forbidden;
+    bool logtimestamp, demo_interm;
+    string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm, mapperm;
     int clfilenesting;
     vector<const char *> adminonlymaps;
 
     servercommandline() :   uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), syslogfacility(6), filethres(-1), syslogthres(-1), maxdemos(5),
-                            maxclients(DEFAULTCLIENTS), kickthreshold(-5), banthreshold(-6), verbose(0),
+                            maxclients(DEFAULTCLIENTS), kickthreshold(-5), banthreshold(-6), verbose(0), incoming_limit(10), afk_limit(45000), ban_time(20*60*1000),
                             ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(""),
                             maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), nbfile("config/nicknameblacklist.cfg"),
-                            infopath("config/serverinfo"),
-                            demoeverymatch(false), logtimestamp(false),
+                            infopath("config/serverinfo"), motdpath("config/motd"), forbidden("config/forbidden.cfg"),
+                            logtimestamp(false), demo_interm(false),
                             clfilenesting(0)
     {
-        motd[0] = servdesc_full[0] = servdesc_pre[0] = servdesc_suf[0] = voteperm[0] = '\0';
+        motd[0] = servdesc_full[0] = servdesc_pre[0] = servdesc_suf[0] = voteperm[0] = mapperm[0] = '\0';
     }
 
     bool checkarg(const char *arg)
     {
-        if(arg[0] != '-' || arg[1] == '\0') return false;
+        if(!strncmp(arg, "assaultcube://", 13)) return false;
+        else if(arg[0] != '-' || arg[1] == '\0') return false;
         const char *a = arg + 2 + strspn(arg + 2, " ");
         int ai = atoi(a);
+        // client: dtwhzbsave
         switch(arg[1])
-        { // todo: egjlqEGHJOQUYZ
+        { // todo: gjlqEGHJQUYZ
             case 'u': uprate = ai; break;
             case 'f': if(ai > 0 && ai < 65536) serverport = ai; break;
             case 'i': ip     = a; break;
@@ -761,14 +887,32 @@ struct servercommandline
                 break;
             case 'A': if(*a) adminonlymaps.add(a); break;
             case 'c': if(ai > 0) maxclients = min(ai, MAXCLIENTS); break;
-            case 'k': if(ai < 0) kickthreshold = ai; break;
+            case 'k':
+            {
+                if(arg[2]=='A' && arg[3]!='\0')
+                {
+                    if ((ai = atoi(&arg[3])) >= 30) afk_limit = ai * 1000;
+                    else afk_limit = 0;
+                }
+                else if(arg[2]=='B' && arg[3]!='\0')
+                {
+                    if ((ai = atoi(&arg[3])) >= 0) ban_time = ai * 60 * 1000;
+                    else ban_time = 0;
+                }
+                else if(ai < 0) kickthreshold = ai;
+                break;
+            }
             case 'y': if(ai < 0) banthreshold = ai; break;
             case 'x': adminpasswd = a; break;
             case 'p': serverpassword = a; break;
             case 'D':
-                demoeverymatch = true;
-                if(isdigit(*a)) maxdemos = ai;
-                break;
+            {
+                if(arg[2]=='I')
+                {
+                    demo_interm = true;
+                }
+                else if(ai > 0) maxdemos = ai; break;
+            }
             case 'W': demopath = a; break;
             case 'r': maprot = a; break;
             case 'X': pwdfile = a; break;
@@ -776,6 +920,8 @@ struct servercommandline
             case 'K': nbfile = a; break;
             case 'I': infopath = a; break;
             case 'o': filterrichtext(motd, a); break;
+            case 'O': motdpath = a; break;
+            case 'g': forbidden = a; break;
             case 'n':
             {
                 char *t = servdesc_full;
@@ -788,34 +934,33 @@ struct servercommandline
                 filterservdesc(t, t);
                 break;
             }
-            case 'P': s_strcat(voteperm, a); break;
+            case 'P': concatstring(voteperm, a); break;
+            case 'M': concatstring(mapperm, a); break;
+            case 'Z': if(ai >= 0) incoming_limit = ai; break;
             case 'V': verbose++; break;
-#ifdef STANDALONE
             case 'C': if(*a && clfilenesting < 3)
             {
-                extern char *loadcfgfile(char *cfg, const char *name, int *len);
-                string clfilename;
-                int len, line = 1;
+                serverconfigfile cfg;
+                cfg.init(a);
+                cfg.load();
+                int line = 1;
                 clfilenesting++;
-                char *buf = loadcfgfile(clfilename, a, &len);
-                if(buf)
+                if(cfg.buf)
                 {
-                    printf("reading commandline parameters from file '%s'\n", clfilename);
-                    for(char *p = buf, *l; p < buf + len; line++)
+                    printf("reading commandline parameters from file '%s'\n", a);
+                    for(char *p = cfg.buf, *l; p < cfg.buf + cfg.filelen; line++)
                     {
                         l = p; p += strlen(p) + 1;
                         for(char *c = p - 2; c > l; c--) { if(*c == ' ') *c = '\0'; else break; }
                         l += strspn(l, " \t");
-                        if(*l && !this->checkarg(l))
-                            printf("unknown parameter in file '%s', line %d: '%s'\n", clfilename, line, l);
+                        if(*l && !this->checkarg(newstring(l)))
+                            printf("unknown parameter in file '%s', line %d: '%s'\n", cfg.filename, line, l);
                     }
-                    // don't free *buf - we may still have pointers using it
                 }
-                else printf("failed to read file '%s'\n", clfilename);
+                else printf("failed to read file '%s'\n", a);
                 clfilenesting--;
                 break;
             }
-#endif
             default: return false;
         }
         return true;

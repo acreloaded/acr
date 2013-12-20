@@ -43,7 +43,7 @@ struct md2 : vertmodel
                 int numvertex = *command++;
                 bool isfan = numvertex<0;
                 if(isfan) numvertex = -numvertex;
-                idxs.setsizenodelete(0);
+                idxs.setsize(0);
                 loopi(numvertex)
                 {
                     union { int i; float f; } u, v;
@@ -81,16 +81,16 @@ struct md2 : vertmodel
         {
             if(filename) return true;
 
-            FILE *file = openfile(path, "rb");
+            stream *file = openfile(path, "rb");
             if(!file) return false;
 
             md2_header header;
-            fread(&header, sizeof(md2_header), 1, file);
-            endianswap(&header, sizeof(int), sizeof(md2_header)/sizeof(int));
+            file->read(&header, sizeof(md2_header));
+            lilswap((int *)&header, sizeof(md2_header)/sizeof(int));
 
             if(header.magic!=844121161 || header.version!=8) 
             {
-                fclose(file);
+                delete file;
                 return false;
             }
            
@@ -101,9 +101,9 @@ struct md2 : vertmodel
             m.owner = this;
 
             int *glcommands = new int[header.numglcommands];
-            fseek(file, header.offsetglcommands, SEEK_SET);
-            int numglcommands = (int)fread(glcommands, sizeof(int), header.numglcommands, file);
-            endianswap(glcommands, sizeof(int), numglcommands);
+            file->seek(header.offsetglcommands, SEEK_SET);
+            int numglcommands = (int)file->read(glcommands, sizeof(int)*header.numglcommands)/sizeof(int);
+            lilswap(glcommands, numglcommands);
             if(numglcommands < header.numglcommands) memset(&glcommands[numglcommands], 0, (header.numglcommands-numglcommands)*sizeof(int));
 
             vector<tcvert> tcgen;
@@ -127,11 +127,11 @@ struct md2 : vertmodel
             loopi(header.numframes)
             {
                 md2_frame frame;
-                fseek(file, frame_offset, SEEK_SET);
-                fread(&frame, sizeof(md2_frame), 1, file);
-                endianswap(&frame, sizeof(float), 6);
+                file->seek(frame_offset, SEEK_SET);
+                file->read(&frame, sizeof(md2_frame));
+                lilswap((float *)&frame, 6);
 
-                fread(tmpverts, sizeof(md2_vertex), header.numvertices, file);
+                file->read(tmpverts, sizeof(md2_vertex)*header.numvertices);
                 loopj(m.numverts)
                 {
                     const md2_vertex &v = tmpverts[vgen[j]];
@@ -143,7 +143,7 @@ struct md2 : vertmodel
             }
             delete[] tmpverts;
 
-            fclose(file);
+            delete file;
           
             filename = newstring(path);
             return true;
@@ -246,22 +246,22 @@ struct md2 : vertmodel
         mdl.model = this;
         mdl.index = 0;
         const char *pname = parentdir(loadname);
-        s_sprintfd(name1)("packages/models/%s/tris.md2", loadname);
+        defformatstring(name1)("packages/models/%s/tris.md2", loadname);
         if(!mdl.load(path(name1)))
         {
-            s_sprintf(name1)("packages/models/%s/tris.md2", pname);    // try md2 in parent folder (vert sharing)
+            formatstring(name1)("packages/models/%s/tris.md2", pname);    // try md2 in parent folder (vert sharing)
             if(!mdl.load(path(name1))) return false;
         }
         Texture *skin;
         loadskin(loadname, pname, skin);
         loopv(mdl.meshes) mdl.meshes[i]->skin  = skin;
-        if(skin==notexture) conoutf("could not load model skin for %s", name1);
+        if(skin==notexture) conoutf(_("could not load model skin for %s"), name1);
         loadingmd2 = this;
-        s_sprintfd(name2)("packages/models/%s/md2.cfg", loadname);
+        defformatstring(name2)("packages/models/%s/md2.cfg", loadname);
         persistidents = false;
         if(!execfile(name2))
         {
-            s_sprintf(name2)("packages/models/%s/md2.cfg", pname);
+            formatstring(name2)("packages/models/%s/md2.cfg", pname);
             execfile(name2);
         }
         persistidents = true;

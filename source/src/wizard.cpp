@@ -1,14 +1,6 @@
 // wizard to start an AssaultCube server and storing the configuration
 
-
-#include "pch.h"
-
-#include <map>
-#include <string>
-#include <iostream>
-#include <fstream>
-
-using namespace std;
+#include "cube.h"
 
 #ifdef WIN32
     #ifndef __GNUC__
@@ -21,156 +13,175 @@ using namespace std;
     #include <sys/stat.h>
 #endif
 
+static void addarg(vector<char> &argstr, const char *name)
+{
+    argstr.add(' ');
+    argstr.put(name, strlen(name));
+}
+
+static void addarg(vector<char> &argstr, const char *name, const char *val)
+{
+    addarg(argstr, name);
+    bool space = strchr(val, ' ')!=NULL;
+    if(space) argstr.add('"');
+    argstr.put(val, strlen(val));
+    if(space) argstr.add('"');
+}
+
+static void readarg(const char *desc, char *val, int len)
+{
+    printf("%s: ", desc);
+    fflush(stdout);
+    fgets(val, len, stdin);
+    char *end = strchr(val, '\n');
+    if(end) *end = '\0';
+}
+
+static void readarg(vector<char> &argstr, const char *desc, const char *name)
+{
+    string val = "";
+    readarg(desc, val, sizeof(val));
+    if(val[0]) addarg(argstr, name, val);
+}
+
 int wizardmain(int argc, char **argv)
 {
-    if(argc < 3)
+    const char *outfile = NULL, *relpath = NULL;
+    for(int i = 1; i < argc; i++)
     {
-        cout << "invalid arguments specified!" << endl << "usage: ac_server <outfile> <relbinarypath>" << endl;
+        if(argv[i][0] == '-') continue;
+        if(!outfile) outfile = argv[i];
+        else if(!relpath) relpath = argv[i];
+    }
+    if(!outfile || !relpath)
+    {
+        printf("invalid arguments specified!\n");
+        printf("usage: ac_server <outfile> <relbinarypath>\n");
         return EXIT_FAILURE;
     }
 
-    string outfile(argv[1]);
-    string relpath(argv[2]);
+    printf("The AssaultCube Server Wizard\n\n");
+    printf("Before setting up a new server, please ensure you've read the rules at:\n"
+           "\thttp://masterserver.cubers.net/rules.html\n\n");
+    printf("You will also need to ensure that the UDP port you choose is open.\n"
+           "Whatever port you choose, you will need to forward that port, plus one port after that.\n"
+           "If you're having issues, use and forward the default ports 28763 and 28764\n"
+           "Use http://www.portforward.com for guidance.\n\n");
+    printf("Now to specify some optional settings for your server.\n"
+           "The default settings will be used if you leave the fields blank.\n"
+           "If you're unsure about what to specify for the settings, leave the field blank.\n\n"
+           "Read http://assault.cubers.net/docs/commandline.html for a description of these settings.\n\n");
 
-	map<string, string> args;
+    vector<char> argstr;
+    readarg(argstr, "Server description", "-n");
+    readarg(argstr, "Message of the day", "-o");
+    readarg(argstr, "Maximum clients (No more than 20 allowed!)", "-c");
+    readarg(argstr, "Administrator password", "-x");
+    readarg(argstr, "Server port", "-f");
 
-	cout << "AssaultCube Server Wizard" << endl << endl;
-    cout << "You can now specify some optional server settings. The default settings will be used if you decide to leave the fields empty. See README.html for a description of the settings." << endl << endl;
+    printf("\nPrivate server settings:\n"
+           "------------------------\n");
+    string ispub = "";
+    readarg("Public server (Yes/No)?", ispub, sizeof(ispub));
+    if(toupper(ispub[0]) == 'N') addarg(argstr, "-mlocalhost");
+    string cmds = "";
+    readarg(argstr, "Player password", "-p");
 
-	cout << "server description:\t";
-	getline(cin, args["n"]);
-
-	cout << "max clients:\t\t";
-	getline(cin, args["c"]);
-
-	cout << "password:\t\t";
-	getline(cin, args["p"]);
-
-	cout << "admin password:\t\t";
-	getline(cin, args["x"]);
-
-	cout << "message of the day:\t";
-	getline(cin, args["o"]);
-
-	cout << "server port:\t\t";
-	getline(cin, args["f"]);
-
-	cout << "masterserver:\t\t";
-	getline(cin, args["m"]);
-
-	cout << "maprotation file:\t";
-	getline(cin, args["r"]);
-
-	cout << "score threshold:\t";
-	getline(cin, args["k"]);
-
-    string permdemo;
-	cout << "demorecord buffer size:\t";
-	getline(cin, permdemo);
-
-    string cmds;
-	cout << "additional commandline parameters:\t";
-	getline(cin, cmds);
+    readarg("\nAdditional server switches", cmds, sizeof(cmds));
+    if(cmds[0]) addarg(argstr, cmds);
 
 #ifdef WIN32
 
-    string wsname, wsdisplayname;
-	cout << "win service name:\t";
-	getline(cin, wsname);
+    string wsname = "", wsdisplayname = "";
+    readarg("win service name", wsname, sizeof(wsname));
+    if(wsname[0])
+        readarg("win service display", wsdisplayname, sizeof(wsdisplayname));
 
-    if(!wsname.empty())
+#endif
+
+	printf("\nWriting your configuration to %s ... ", outfile); fflush(stdout);
+
+    argstr.add('\0');
+
+    FILE *script = fopen(outfile, "w");
+    if(!script)
     {
-        cout << "win service display:\t";
-        getline(cin, wsdisplayname);
+        printf("Failed!\n");
+        return EXIT_FAILURE;
     }
 
-#endif
-
-    string argstr;
-
-	for(map<string, string>::iterator i = args.begin(); i != args.end(); i++)
-	{
-		if((*i).second.empty()) continue; // arg value not set
-		else
-		{
-			argstr += " -" + (*i).first;
-			if((*i).second.find(" ") == string::npos) argstr += (*i).second;
-			else argstr += '"' + (*i).second + '"'; // escape spaces
-		}
-	}
-    if(permdemo.empty() || atoi(permdemo.c_str())) argstr += " -D" + permdemo;
-    if(!cmds.empty()) argstr += " " + cmds;
-
-	cout << endl << "Writing your configuration to " << outfile << " ... ";
-
-	try
-	{
-        fstream startupScript(outfile.c_str(), ios::out);
 #ifdef WIN32
-        startupScript << relpath << argstr << endl << "pause" << endl;
+        fprintf(script, "%s%s\npause\n", relpath, argstr.getbuf());
 #elif __GNUC__
-	    startupScript << "#! /bin/sh" << endl << relpath << argstr << endl;
+        fprintf(script, "#!/bin/sh\n%s%s\n", relpath, argstr.getbuf());
 #endif
-		startupScript.close();
-	}
-	catch(...)
-	{
-		cout << "Failed!" << endl;
-		return EXIT_FAILURE;
-	}
+    fclose(script);
 
-    cout << "Done" << endl << endl;
-    cout << "Note: You can start " << outfile << " directly the next time you want to use this configuration again." << endl << endl;
+    printf("Done\n\n");
+    printf("Note: You can start %s directly the next time you want to use the same configuration to start the server.\n\n", outfile);
 
 #ifdef WIN32
 
-    if(!wsname.empty())
+    if(wsname[0])
     {
-        if(wsdisplayname.empty()) wsdisplayname = wsname;
+        if(!wsdisplayname[0]) copystring(wsdisplayname, wsname);
 
-        cout << "Installing the AC Server as windows service ... ";
+        printf("Installing the AC Server as windows service ... "); fflush(stdout);
 
-        char path[MAX_PATH];
-	    _getcwd(path, MAX_PATH);
-        strncat(path, ("\\" + relpath + " -S" + wsname + " " + argstr).c_str(), MAX_PATH);
+        vector<char> path;
+        databuf<char> cwd = path.reserve(MAX_PATH);    
+	    if(!_getcwd(cwd.buf, MAX_PATH))
+        {
+            printf("Failed!\n");
+            printf("Could not get current working directory: %u\n", (uint)GetLastError());
+            return EXIT_FAILURE;
+        }
+        path.advance(strlen(cwd.buf));
+        path.add('\\');
+        path.put(relpath, strlen(relpath));
+        path.put(" -S", 3);
+        path.put(wsname, strlen(wsname));
+        path.add(' ');
+        path.put(argstr.getbuf(), argstr.length());
 
-        winserviceinstaller installer(wsname.c_str(), wsdisplayname.c_str(), path);
+        winserviceinstaller installer(wsname, wsdisplayname, path.getbuf());
 
         int r;
         if(!installer.OpenManger())
         {
-            cout << "Failed!" << endl;
-            cout << "Could not open the Service Control Manager: " << GetLastError() << endl;
+            printf("Failed!\n");
+            printf("Could not open the Service Control Manager: %u\n", (uint)GetLastError());
             installer.CloseManager();
             return EXIT_FAILURE;
         }
 
         if((r = installer.IsInstalled()) != 0)
         {
-            cout << "Failed!" << endl;
-            if(r == -1) cout << "Error accessing the Service Control Manager" << endl;
-            else if(r == 1) cout << "A windows service with this name (" << wsname << ")is already installed: " << GetLastError() << endl;
+            printf("Failed!\n");
+            if(r == -1) printf("Error accessing the Service Control Manager\n");
+            else if(r == 1) printf("A windows service with this name (%s) is already installed: %u\n", wsname, (uint)GetLastError());
             return EXIT_FAILURE;
         }
 
         if((r = installer.Install()) != 1)
         {
-            cout << "Failed!" << endl;
-            if(r == -1) cout << "Error accessing the Service Control Manager" << endl;
-            else if(r == 0) cout << "Could not create the new windows service: " << GetLastError() << endl;
+            printf("Failed!\n");
+            if(r == -1) printf("Error accessing the Service Control Manager\n");
+            else if(r == 0) printf("Could not create the new windows service: %u\n", (uint)GetLastError());
             return EXIT_FAILURE;
         }
 
-        cout << "Done" << endl << endl;
-        cout << "Note: You can now manage your AC server using services.msc and sc.exe" << endl << endl;
+        printf("Done\n\n");
+        printf("Note: You can now manage your AC server using services.msc and sc.exe\n\n");
     }
 
 #endif
 
-	cout << "Press Enter to start the server now" << endl;
-	cin.get();
-	cout << "Starting the AC server ..." << endl;
-	system((relpath + argstr).c_str());
+	printf("Please press ENTER now to start your server...\n");
+    fgetc(stdin);
+	printf("Starting the AC server ...\n");
+    argstr.insert(0, relpath, strlen(relpath));
+    system(argstr.getbuf());
 
 	return EXIT_SUCCESS;
 }

@@ -4,16 +4,21 @@ enum                            // static entity types
     LIGHT,                      // lightsource, attr1 = radius, attr2 = intensity
     PLAYERSTART,                // attr1 = angle, attr2 = team
     I_CLIPS, I_AMMO, I_GRENADE,
-    I_HEALTH, I_ARMOUR, I_AKIMBO,
+    I_HEALTH, I_HELMET, I_ARMOUR, I_AKIMBO,
+                                // helmet : 2010may16 -> mapversion:8
     MAPMODEL,                   // attr1 = angle, attr2 = idx
     CARROT,                     // attr1 = tag, attr2 = type
     LADDER,
     CTF_FLAG,                   // attr1 = angle, attr2 = red/blue
     SOUND,
     CLIP,
+    PLCLIP,
     MAXENTTYPES
 };
 
+enum {MAP_IS_BAD, MAP_IS_EDITABLE, MAP_IS_GOOD};
+
+extern const char *entnames[MAXENTTYPES];
 #define isitem(i) ((i) >= I_CLIPS && (i) <= I_AKIMBO)
 
 struct persistent_entity        // map entity
@@ -26,79 +31,73 @@ struct persistent_entity        // map entity
     persistent_entity() {}
 };
 
-struct entity : public persistent_entity
+struct entity : persistent_entity
 {
-    bool spawned;               //the only dynamic state of a map entity
+    bool spawned;               //the dynamic states of a map entity
+    int lastmillis;
     entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4) : persistent_entity(x, y, z, type, attr1, attr2, attr3, attr4), spawned(false) {}
     entity() {}
     bool fitsmode(int gamemode) { return !m_noitems && isitem(type) && !(m_noitemsnade && type!=I_GRENADE) && !(m_pistol && type==I_AMMO); }
     void transformtype(int gamemode)
     {
         if(m_noitemsnade && type==I_CLIPS) type = I_GRENADE;
-        else if(m_pistol && type==I_AMMO) type = I_CLIPS;
+        else if(m_pistol && ( type==I_AMMO || type==I_GRENADE )) type = I_CLIPS;
     }
 };
 
-struct itemstat { int add, start, max, sound; };
-static itemstat ammostats[] =
-{
-    {1,  1,   1,   S_ITEMAMMO},   //knife dummy
-    {16, 32,  72,  S_ITEMAMMO},   //pistol
-    {14, 28,  21,  S_ITEMAMMO},   //shotgun
-    {60, 90,  90,  S_ITEMAMMO},   //subgun
-    {10, 20,  15,  S_ITEMAMMO},   //sniper
-    {30, 60,  60,  S_ITEMAMMO},   //assault
-    {2,  0,   2,   S_ITEMAMMO},   //grenade
-    {72, 0,   72,  S_ITEMAKIMBO}  //akimbo
-};
-
-static itemstat powerupstats[] =
-{
-    {33, 100, 100, S_ITEMHEALTH}, //health
-    {50, 100, 100, S_ITEMARMOUR}, //armour
-};
-
-enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_GRENADE, GUN_AKIMBO, NUMGUNS };
+enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_RIFLE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_CPISTOL, GUN_GRENADE, GUN_AKIMBO, NUMGUNS };
 #define reloadable_gun(g) (g != GUN_KNIFE && g != GUN_GRENADE)
 
 #define SGRAYS 21
-#define SGSPREAD 2
+#define SGSPREAD 2.25
 #define EXPDAMRAD 10
 
+struct itemstat { int add, start, max, sound; };
+extern itemstat ammostats[NUMGUNS];
+extern itemstat powerupstats[I_ARMOUR-I_HEALTH+1];
+
 struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back, recoilincrease, recoilbase, maxrecoil, recoilbackfade, pushfactor; bool isauto; };
-static guninfo guns[NUMGUNS] =
-{
-    { "knife",      S_KNIFE,      S_NULL,     0,      500,    50,     0,   0,  1,    1,   1,    0,  0,    0,  0,      0,      0,    1,      false },
-    { "pistol",     S_PISTOL,     S_RPISTOL,  1400,   170,    19,     0,   0, 80,   10,   8,    6,  5,    1,  40,     75,     150,  1,      false },
-    { "shotgun",    S_SHOTGUN,    S_RSHOTGUN, 2400,   1000,   5,      0,   0,  1,   35,   7,    9,  9,    10,  60,    60,    100,  1,      false },
-    { "subgun",     S_SUBGUN,     S_RSUBGUN,  1650,   80,     16,     0,   0, 70,   15,   30,   1,  2,    5,  15,     55,     250,  1,      true },
-    { "sniper",     S_SNIPER,     S_RSNIPER,  1950,   1500,   85,     0,   0, 60,   50,   5,    4,  4,    10,  70,    70,    100,  1,      false },
-    { "assault",    S_ASSAULT,    S_RASSAULT, 2000,   130,    24,     0,   0, 20,   40,   15,   0,  2,    2,  25,     60,     150,  1,      true },
-    { "grenade",    S_NULL,       S_NULL,     1000,   650,    200,    20,  6,  1,    1,   1,    3,  1,    0,  0,      0,      0,    3,      false },
-    { "pistol",     S_PISTOL,     S_RAKIMBO,  1400,   80,     19,     0,   0, 80,   10,   16,   6,  5,    6,  15,     30,     100,   1,      true },
-};
+extern guninfo guns[NUMGUNS];
 
 static inline int reloadtime(int gun) { return guns[gun].reloadtime; }
 static inline int attackdelay(int gun) { return guns[gun].attackdelay; }
 static inline int magsize(int gun) { return guns[gun].magsize; }
 
-#define isteam(a,b)   (m_teammode && strcmp(a, b)==0)
+/** roseta stone:
+       0000,         0001,      0010,           0011,            0100,       0101,     0110 */
+enum { TEAM_CLA = 0, TEAM_RVSF, TEAM_CLA_SPECT, TEAM_RVSF_SPECT, TEAM_SPECT, TEAM_NUM, TEAM_ANYACTIVE };
+extern const char *teamnames[TEAM_NUM+1];
+extern const char *teamnames_s[TEAM_NUM+1];
 
-#define TEAM_CLA 0
-#define TEAM_RVSF 1
-#define team_valid(t) (!strcmp(t, "RVSF") || !strcmp(t, "CLA"))
-#define team_string(t) ((t) ? "RVSF" : "CLA")
-#define team_int(t) (strcmp((t), "CLA") == 0 ? TEAM_CLA : TEAM_RVSF)
-#define team_opposite(o) ((o) == TEAM_CLA ? TEAM_RVSF : TEAM_CLA)
+#define TEAM_VOID TEAM_NUM
+#define isteam(a,b)   (m_teammode && (a) == (b))
+#define team_opposite(o) (team_isvalid(o) && (o) < TEAM_SPECT ? (o) ^ 1 : TEAM_SPECT)
+#define team_base(t) ((t) & 1)
+#define team_basestring(t) ((t) == 1 ? teamnames[1] : ((t) == 0 ? teamnames[0] : "SPECT"))
+#define team_isvalid(t) ((int(t)) >= 0 && (t) < TEAM_NUM)
+#define team_isactive(t) ((t) == TEAM_CLA || (t) == TEAM_RVSF)
+#define team_isspect(t) ((t) > TEAM_RVSF && (t) < TEAM_VOID)
+#define team_group(t) ((t) == TEAM_SPECT ? TEAM_SPECT : team_base(t))
+#define team_tospec(t) ((t) == TEAM_SPECT ? TEAM_SPECT : team_base(t) + TEAM_CLA_SPECT - TEAM_CLA)
+// note: team_isactive and team_base can/should be used to check the limits for arrays of size '2'
+static inline const char *team_string(int t, bool abbr = false) { const char **n = abbr ? teamnames_s : teamnames; return team_isvalid(t) ? n[t] : n[TEAM_NUM]; }
 
 enum { ENT_PLAYER = 0, ENT_BOT, ENT_CAMERA, ENT_BOUNCE };
 enum { CS_ALIVE = 0, CS_DEAD, CS_SPAWNING, CS_LAGGED, CS_EDITING, CS_SPECTATE };
 enum { CR_DEFAULT = 0, CR_ADMIN };
 enum { SM_NONE = 0, SM_DEATHCAM, SM_FOLLOW1ST, SM_FOLLOW3RD, SM_FOLLOW3RD_TRANSPARENT, SM_FLY, SM_NUM };
+enum { FPCN_VOID = -3, FPCN_DEATHCAM = -2, FPCN_FLY = -1 };
 
-struct physent
+class worldobject
 {
-    vec o, vel;                         // origin, velocity
+public:
+    virtual ~worldobject() {};
+};
+
+class physent : public worldobject
+{
+public:
+    vec o, vel, vel_t;                         // origin, velocity
     vec deltapos, newpos;                       // movement interpolation
     float yaw, pitch, roll;             // used as vec in one place
     float pitchvel;
@@ -106,14 +105,16 @@ struct physent
     int timeinair;                      // used for fake gravity
     float radius, eyeheight, maxeyeheight, aboveeye;  // bounding box size
     bool inwater;
-    bool onfloor, onladder, jumpnext, crouching, trycrouch, cancollide, stuck;
+    bool onfloor, onladder, jumpnext, crouching, crouchedinair, trycrouch, cancollide, stuck, scoping, shoot;
+    int lastjump;
     int lastsplash;
     char move, strafe;
     uchar state, type;
     float eyeheightvel;
+    int last_pos;
 
     physent() : o(0, 0, 0), deltapos(0, 0, 0), newpos(0, 0, 0), yaw(270), pitch(0), roll(0), pitchvel(0),
-                crouching(false), trycrouch(false), cancollide(true), stuck(false), lastsplash(0), state(CS_ALIVE)
+            crouching(false), crouchedinair(false), trycrouch(false), cancollide(true), stuck(false), scoping(false), shoot(false), lastjump(0), lastsplash(0), state(CS_ALIVE), last_pos(0)
     {
         reset();
     }
@@ -128,18 +129,20 @@ struct physent
 
     void reset()
     {
-        vel.x = vel.y = vel.z = eyeheightvel = 0.0f;
+        vel.x = vel.y = vel.z = eyeheightvel = vel_t.x = vel_t.y = vel_t.z = 0.0f;
         move = strafe = 0;
-        timeinair = lastsplash = 0;
-        onfloor = onladder = inwater = jumpnext = crouching = trycrouch = stuck = false;
+        timeinair = lastjump = lastsplash = 0;
+        onfloor = onladder = inwater = jumpnext = crouching = crouchedinair = trycrouch = stuck = false;
+        last_pos = 0;
     }
 
     virtual void oncollision() {}
     virtual void onmoved(const vec &dist) {}
 };
 
-struct dynent : physent                 // animated ent
+class dynent : public physent                 // animated ent
 {
+public:
     bool k_left, k_right, k_up, k_down;         // see input code
 
     animstate prev[2], current[2];              // md2's need only [0], md3's need both for the lower&upper model
@@ -176,9 +179,8 @@ struct dynent : physent                 // animated ent
 };
 
 #define MAXNAMELEN 15
-#define MAXTEAMLEN 4
 
-struct bounceent;
+class bounceent;
 
 #define POSHIST_SIZE 7
 
@@ -220,16 +222,20 @@ struct poshist
     }
 };
 
-struct playerstate
+class playerstate
 {
+public:
     int health, armour;
     int primary, nextprimary;
     int gunselect;
     bool akimbo;
     int ammo[NUMGUNS], mag[NUMGUNS], gunwait[NUMGUNS];
+    int pstatshots[NUMGUNS], pstatdamage[NUMGUNS];
 
-    playerstate() : primary(GUN_ASSAULT), nextprimary(GUN_ASSAULT) {}
+    playerstate() : armour(0), primary(GUN_ASSAULT), nextprimary(GUN_ASSAULT), akimbo(false) {}
     virtual ~playerstate() {}
+
+    void resetstats() { loopi(NUMGUNS) pstatshots[i] = pstatdamage[i] = 0; }
 
     itemstat &itemstats(int type)
     {
@@ -239,8 +245,10 @@ struct playerstate
             case I_AMMO: return ammostats[primary];
             case I_GRENADE: return ammostats[GUN_GRENADE];
             case I_AKIMBO: return ammostats[GUN_AKIMBO];
-            case I_HEALTH: return powerupstats[0]; // FIXME: unify
-            case I_ARMOUR: return powerupstats[1];
+            case I_HEALTH:
+            case I_HELMET:
+            case I_ARMOUR:
+                return powerupstats[type-I_HEALTH];
             default:
                 return *(itemstat *)0;
         }
@@ -254,6 +262,7 @@ struct playerstate
             case I_AMMO: return ammo[primary]<ammostats[primary].max;
             case I_GRENADE: return mag[GUN_GRENADE]<ammostats[GUN_GRENADE].max;
             case I_HEALTH: return health<powerupstats[type-I_HEALTH].max;
+            case I_HELMET:
             case I_ARMOUR: return armour<powerupstats[type-I_HEALTH].max;
             case I_AKIMBO: return !akimbo;
             default: return false;
@@ -277,7 +286,9 @@ struct playerstate
             case I_AMMO: additem(ammostats[primary], ammo[primary]); break;
             case I_GRENADE: additem(ammostats[GUN_GRENADE], mag[GUN_GRENADE]); break;
             case I_HEALTH: additem(powerupstats[type-I_HEALTH], health); break;
-            case I_ARMOUR: additem(powerupstats[type-I_HEALTH], armour); break;
+            case I_HELMET:
+            case I_ARMOUR:
+                additem(powerupstats[type-I_HEALTH], armour); break;
             case I_AKIMBO:
                 akimbo = true;
                 mag[GUN_AKIMBO] = guns[GUN_AKIMBO].magsize;
@@ -323,29 +334,53 @@ struct playerstate
     // just subtract damage here, can set death, etc. later in code calling this
     int dodamage(int damage)
     {
-        int ad = damage*30/100; // let armour absorb when possible
-        if(ad>armour) ad = armour;
-        armour -= ad;
-        damage -= ad;
+        if(damage == INT_MAX)
+        {
+            damage = health;
+            armour = health = 0;
+            return damage;
+        }
+
+        /* 4-level armor - sectioned approach: 16%, 33%, 37%, 41% */
+		int armoursection = 0;
+		int ad = damage;
+		if(armour > 25) armoursection = 1;
+		if(armour > 50) armoursection = 2;
+		if(armour > 75) armoursection = 3;
+		switch(armoursection)
+		{
+			case 0: ad = (int) (16.0f/25.0f * armour); break;			// 16
+			case 1: ad = (int) (17.0f/25.0f * armour) - 1; break;		// 33
+			case 2: ad = (int) (4.0f/25.0f * armour) + 25; break; 		// 37
+			case 3: ad = (int) (4.0f/25.0f * armour) + 25; break; 		// 41
+			default: break;
+		}
+		int rd = ad * damage/100.0f;
+        armour -= rd;
+        damage -= rd;
         health -= damage;
         return damage;
     }
 };
 
+#ifndef STANDALONE
 #define HEADSIZE 0.4f
 
-struct playerent : dynent, playerstate
+class playerent : public dynent, public playerstate
 {
+private:
+    int curskin, nextskin[2];
+public:
     int clientnum, lastupdate, plag, ping;
     int lifesequence;                   // sequence id for each respawn, used in damage test
-    int frags, flagscore, deaths;
+    int frags, flagscore, deaths, points;
     int lastaction, lastmove, lastpain, lastvoicecom;
     int clientrole;
     bool attacking;
-    string name, team;
+    string name;
+    int team;
     int weaponchanging;
     int nextweapon; // weapon we switch to
-    int skin;
     int spectatemode, followplayercn;
     int eardamagemillis;
     int respawnoffset;
@@ -363,33 +398,35 @@ struct playerent : dynent, playerstate
 
     vec head;
 
-    playerent() : clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), deaths(0), lastpain(0), lastvoicecom(0), clientrole(CR_DEFAULT),
-                  skin(0), spectatemode(SM_NONE), followplayercn(-1), eardamagemillis(0), respawnoffset(0),
+    bool ignored, muted;
+
+    playerent() : curskin(0), clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), deaths(0), points(0), lastpain(0), lastvoicecom(0), clientrole(CR_DEFAULT),
+                  team(TEAM_SPECT), spectatemode(SM_NONE), followplayercn(FPCN_VOID), eardamagemillis(0), respawnoffset(0),
                   prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
                   smoothmillis(-1),
-                  head(-1, -1, -1)
+                  head(-1, -1, -1), ignored(false), muted(false)
     {
         type = ENT_PLAYER;
-        name[0] = team[0] = 0;
+        name[0] = 0;
         maxeyeheight = 4.5f;
         aboveeye = 0.7f;
         radius = 1.1f;
         maxspeed = 16.0f;
         skin_noteam = skin_cla = skin_rvsf = NULL;
+        loopi(2) nextskin[i] = 0;
         respawn();
     }
 
     virtual ~playerent()
     {
         extern void removebounceents(playerent *owner);
-        extern void detachsounds(playerent *owner);
         extern void removedynlights(physent *owner);
         extern void zapplayerflags(playerent *owner);
         extern void cleanplayervotes(playerent *owner);
         extern physent *camera1;
         extern void togglespect();
         removebounceents(this);
-        detachsounds(this);
+        audiomgr.detachsounds(this);
         removedynlights(this);
         zapplayerflags(this);
         cleanplayervotes(this);
@@ -417,7 +454,7 @@ struct playerent : dynent, playerstate
     void resetspec()
     {
         spectatemode = SM_NONE;
-        followplayercn = -1;
+        followplayercn = FPCN_VOID;
     }
 
     void respawn()
@@ -433,6 +470,7 @@ struct playerent : dynent, playerstate
         resetspec();
         eardamagemillis = 0;
         eyeheight = maxeyeheight;
+        curskin = nextskin[team_base(team)];
     }
 
     void spawnstate(int gamemode)
@@ -441,9 +479,10 @@ struct playerent : dynent, playerstate
         prevweaponsel = weaponsel = weapons[gunselect];
         primweap = weapons[primary];
         nextprimweap = weapons[nextprimary];
+        curskin = nextskin[team_base(team)];
     }
 
-    void selectweapon(int w) { prevweaponsel = weaponsel = weapons[(gunselect = w)]; }
+    void selectweapon(int w) { if (weaponsel) prevweaponsel = weaponsel; weaponsel = weapons[(gunselect = w)]; if (!prevweaponsel) prevweaponsel = weaponsel; }
     void setprimary(int w) { primweap = weapons[(primary = w)]; }
     void setnextprimary(int w) { nextprimweap = weapons[(nextprimary = w)]; }
     bool isspectating() { return state==CS_SPECTATE || (state==CS_DEAD && spectatemode > SM_NONE); }
@@ -453,9 +492,15 @@ struct playerent : dynent, playerstate
         extern int lastmillis;
         weaponsel->ondeselecting();
         weaponchanging = lastmillis;
-        prevweaponsel = weaponsel;
         nextweaponsel = w;
         w->onselecting();
+    }
+    int skin(int t = -1) { return nextskin[team_base(t < 0 ? team : t)]; }
+    void setskin(int t, int s)
+    {
+        const int maxskin[2] = { 4, 6 };
+        t = team_base(t < 0 ? team : t);
+        nextskin[t] = abs(s) % maxskin[t];
     }
 };
 
@@ -463,8 +508,9 @@ struct playerent : dynent, playerstate
 
 class CBot;
 
-struct botent : playerent
+class botent : public playerent
 {
+public:
     // Added by Rick
     CBot *pBot; // Only used if this is a bot, points to the bot class if we are the host,
                 // for other clients its NULL
@@ -481,25 +527,31 @@ struct botent : playerent
 
     int deaths() { return lifesequence; }
 };
+#endif //#ifndef STANDALONE
+
+// flag-mode entities
 
 enum { CTFF_INBASE = 0, CTFF_STOLEN, CTFF_DROPPED, CTFF_IDLE };
 
 struct flaginfo
 {
-	int team;
+    int team;
     entity *flagent;
-	int actor_cn;
-	playerent *actor;
+    int actor_cn;
+    playerent *actor;
     vec pos;
     int state; // one of CTFF_*
     bool ack;
     flaginfo() : flagent(0), actor(0), state(CTFF_INBASE), ack(false) {}
 };
 
+// nades, gibs
+
 enum { BT_NONE, BT_NADE, BT_GIB };
 
-struct bounceent : physent // nades, gibs
+class bounceent : public physent
 {
+public:
     int millis, timetolive, bouncetype; // see enum above
     float rotspeed;
     playerent *owner;
@@ -526,8 +578,9 @@ struct hitmsg
     ivec dir;
 };
 
-struct grenadeent : bounceent
+class grenadeent : public bounceent
 {
+public:
     bool local;
     int nadestate;
     float distsincebounce;
@@ -544,3 +597,17 @@ struct grenadeent : bounceent
     void onmoved(const vec &dist);
 };
 
+enum {MD_FRAGS = 0, MD_DEATHS, END_MDS};
+struct medalsst {bool assigned; int cn; int item;};
+
+inline const char * gib_message(int gun)
+{
+    switch (gun)
+    {
+        case GUN_KNIFE: return "slashed";
+        case GUN_SNIPER: return "headshot";
+        case GUN_SHOTGUN: return "splattered";
+        case GUN_GRENADE:
+        default: return "gibbed";
+    }
+}

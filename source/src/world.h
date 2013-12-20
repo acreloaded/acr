@@ -32,7 +32,7 @@ enum                            // hardcoded texture numbers
     DEFAULT_CEIL
 };
 
-#define MAPVERSION 6            // bump if map format changes, see worldio.cpp
+#define MAPVERSION 8            // bump if map format changes, see worldio.cpp
 
 struct header                   // map file format header
 {
@@ -45,13 +45,17 @@ struct header                   // map file format header
     uchar texlists[3][256];
     int waterlevel;
     uchar watercolor[4];
-    int reserved[14];
+    int maprevision;
+    int ambient;
+    int reserved[12];
+    char mediareq[128];         // new since version 7 (flowtron) // actually a maximum of 124 will ever be used (24*5+4)
 };
 
 struct mapstats
 {
     struct header hdr;
     int entcnt[MAXENTTYPES];
+    int cgzsize;
     uchar *enttypes;
     short *entposs;
     int spawns[3];
@@ -68,41 +72,46 @@ struct mapstats
             if(!e.attr2) e.attr2 = 255; /* needed for MAPVERSION<=2 */ \
             if(e.attr1>32) e.attr1 = 32; /* 12_03 and below */ \
         } \
-        if(headr.version<MAPVERSION  && strncmp(headr.head,"CUBE",4)==0)  /* only render lights, pl starts and map models on old maps */ \
+        if(headr.version<6  && strncmp(headr.head,"CUBE",4)==0)  /* only render lights, pl starts and map models on old maps // <6 was <MAPVERSION but we're now at #7 (flowtron) */ \
         { \
-        		switch(e.type) \
-        		{ \
-        			case 1: /* old light */ \
-        				e.type=LIGHT; \
-        				break; \
-        			case 2: /* old player start */ \
-        				e.type=PLAYERSTART; \
-        				break; \
-        			case 3: \
-        		        case 4: \
-        			case 5: \
-        			case 6: \
-        				e.type=I_AMMO; \
-        				break; \
-        			case 7: /* old health */ \
-        				e.type=I_HEALTH; \
-        				break; \
-        			case 8: /* old boost */ \
-        				e.type=I_HEALTH; \
-        				break; \
-        			case 9: /* armor */ \
-        			case 10: /* armor */ \
-        				e.type=I_ARMOUR; \
-        				break; \
-        			case 11: /* quad */ \
-        				e.type=I_AKIMBO; \
-        				break; \
-        			case 14: /* old map model */ \
-        				e.type=MAPMODEL; \
-        				break; \
-        			default: \
-        				e.type=NOTUSED; \
-        		} \
+            switch(e.type) \
+            { \
+                case 1: /* old light */ \
+                    e.type=LIGHT; \
+                    break; \
+                case 2: /* old player start */ \
+                    e.type=PLAYERSTART; \
+                    break; \
+                case 3: \
+                case 4: \
+                case 5: \
+                case 6: \
+                    e.type=I_AMMO; \
+                    break; \
+                case 7: /* old health */ \
+                    e.type=I_HEALTH; \
+                    break; \
+                case 8: /* old boost */ \
+                    e.type=I_HEALTH; \
+                    break; \
+                case 9: /* armour */ \
+                    e.type=I_HELMET; \
+                    break; \
+                case 10: /* armor */ \
+                    e.type=I_ARMOUR; \
+                    break; \
+                case 11: /* quad */ \
+                    e.type=I_AKIMBO; \
+                    break; \
+                case 14: /* old map model */ \
+                    e.type=MAPMODEL; \
+                    break; \
+                default: \
+                    e.type=NOTUSED; \
+            } \
+        } \
+        if(headr.version>=6 && headr.version<8) { \
+            if( e.type >= I_HELMET && e.type < (MAXENTTYPES - 1) ) { e.type += 1; } \
         }
 
 #define SWS(w,x,y,s) (&(w)[((y)<<(s))+(x)])
@@ -116,6 +125,9 @@ struct mapstats
 #define MINBORD 2                       // 2 cubes from the edge of the world are always solid
 #define OUTBORD(x,y) ((x)<MINBORD || (y)<MINBORD || (x)>=ssize-MINBORD || (y)>=ssize-MINBORD)
 #define OUTBORDRAD(x,y,rad) (int(x-rad)<MINBORD || int(y-rad)<MINBORD || int(x+rad)>=ssize-MINBORD || (y+rad)>=ssize-MINBORD)
+#define MAXMHEIGHT 30
+#define MAXMAREA 10000
+#define MINFF 2500
 
 struct block { int x, y, xs, ys; };
 

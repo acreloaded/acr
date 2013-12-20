@@ -1,6 +1,5 @@
 // worldlight.cpp
 
-#include "pch.h"
 #include "cube.h"
 
 VAR(lightscale,1,4,100);
@@ -10,15 +9,15 @@ void lightray(float bx, float by, const persistent_entity &light, float fade = 1
     float lx = light.x+(flicker ? (rnd(21)-10)*0.1f : 0);
     float ly = light.y+(flicker ? (rnd(21)-10)*0.1f : 0);
     float dx = bx-lx;
-    float dy = by-ly; 
+    float dy = by-ly;
     float dist = (float)sqrt(dx*dx+dy*dy);
     if(dist<1.0f) return;
     int reach = light.attr1;
     int steps = (int)(reach*reach*1.6f/dist); // can change this for speedup/quality?
     const int PRECBITS = 12;
     const float PRECF = 4096.0f;
-    int x = (int)(lx*PRECF); 
-    int y = (int)(ly*PRECF); 
+    int x = (int)(lx*PRECF);
+    int y = (int)(ly*PRECF);
     int fadescale = (int)(fade*PRECF);
     int l = light.attr2*fadescale;
     int stepx = (int)(dx/(float)steps*PRECF);
@@ -34,7 +33,7 @@ void lightray(float bx, float by, const persistent_entity &light, float fade = 1
         {
             if(flicker)
             {
-                int dimness = rnd((((255<<PRECBITS)-(int(light.attr2)+int(light.attr3)+int(light.attr4))*fadescale/3)>>(PRECBITS+4))+1);  
+                int dimness = rnd((((255<<PRECBITS)-(int(light.attr2)+int(light.attr3)+int(light.attr4))*fadescale/3)>>(PRECBITS+4))+1);
                 x += stepx*dimness;
                 y += stepy*dimness;
             }
@@ -51,13 +50,10 @@ void lightray(float bx, float by, const persistent_entity &light, float fade = 1
             stepb /= lightscale;
             loopi(steps)
             {
-                sqr *s = S(x>>PRECBITS, y>>PRECBITS); 
-                int tl = (l>>PRECBITS)+s->r;
-                s->r = tl>255 ? 255 : tl;
-                tl = (g>>PRECBITS)+s->g;
-                s->g = tl>255 ? 255 : tl;
-                tl = (b>>PRECBITS)+s->b;
-                s->b = tl>255 ? 255 : tl;
+                sqr *s = S(x>>PRECBITS, y>>PRECBITS);
+                s->r = min((l>>PRECBITS)+s->r, 255);
+                s->g = min((g>>PRECBITS)+s->g, 255);
+				s->b = min((b>>PRECBITS)+s->b, 255);
                 if(SOLID(s)) return;
                 x += stepx;
                 y += stepy;
@@ -73,18 +69,29 @@ void lightray(float bx, float by, const persistent_entity &light, float fade = 1
         {
             if(flicker)
             {
-                int dimness = rnd((((255<<PRECBITS)-(light.attr2*fadescale))>>(PRECBITS+4))+1);  
+                int dimness = rnd((((255<<PRECBITS)-(light.attr2*fadescale))>>(PRECBITS+4))+1);
                 x += stepx*dimness;
                 y += stepy*dimness;
             }
 
             if(OUTBORD(x>>PRECBITS, y>>PRECBITS)) return;
 
-            loopi(steps)
+			if(hdr.ambient > 0xFF) loopi(steps)
             {
-                sqr *s = S(x>>PRECBITS, y>>PRECBITS); 
-                int tl = (l>>PRECBITS)+s->r;
-                s->r = s->g = s->b = tl>255 ? 255 : tl;       
+                sqr *s = S(x>>PRECBITS, y>>PRECBITS);
+                s->r = min((l>>PRECBITS)+s->r, 255);
+				s->g = min((l>>PRECBITS)+s->g, 255);
+				s->b = min((l>>PRECBITS)+s->b, 255);
+                if(SOLID(s)) return;
+                x += stepx;
+                y += stepy;
+                l -= stepl;
+                stepl -= 25;
+            }
+            else loopi(steps)
+            {
+                sqr *s = S(x>>PRECBITS, y>>PRECBITS);
+                s->r = s->g = s->b = min((l>>PRECBITS)+s->r, 255);
                 if(SOLID(s)) return;
                 x += stepx;
                 y += stepy;
@@ -97,7 +104,7 @@ void lightray(float bx, float by, const persistent_entity &light, float fade = 1
     {
         loopi(steps)
         {
-            sqr *s = S(x>>PRECBITS, y>>PRECBITS); 
+            sqr *s = S(x>>PRECBITS, y>>PRECBITS);
             int light = l>>PRECBITS;
             if(light>s->r) s->r = s->g = s->b = (uchar)light;
             if(SOLID(s)) return;
@@ -106,7 +113,6 @@ void lightray(float bx, float by, const persistent_entity &light, float fade = 1
             l -= stepl;
         }
     }
-    
 }
 
 void calclightsource(const persistent_entity &l, float fade = 1, bool flicker = true)
@@ -116,7 +122,7 @@ void calclightsource(const persistent_entity &l, float fade = 1, bool flicker = 
     int ex = l.x+reach;
     int sy = l.y-reach;
     int ey = l.y+reach;
-    
+
     const float s = 0.8f;
 
     for(float sx2 = (float)sx; sx2<=ex; sx2+=s*2) { lightray(sx2, (float)sy, l, fade, flicker); lightray(sx2, (float)ey, l, fade, flicker); }
@@ -152,12 +158,23 @@ void fullbrightlight(int level)
     lastcalclight = totalmillis;
 }
 
+VARF(ambient, 0, 0, 0xFFFFFF, if(!noteditmode("ambient")) { hdr.ambient = ambient; calclight(); });
+
 void calclight()
 {
+	bvec acol((hdr.ambient>>16)&0xFF, (hdr.ambient>>8)&0xFF, hdr.ambient&0xFF);
+	if(!acol.x && !acol.y)
+    {
+        if(!acol.z) acol.z = 10;
+        acol.x = acol.y = acol.z;
+    }
+	else if(!maxtmus) acol.x = acol.y = acol.z = max(max(acol.x, acol.y), acol.z); // the old (white) light code, here for the few people with old video cards that don't support overbright
     loop(x,ssize) loop(y,ssize)
     {
         sqr *s = S(x,y);
-        s->r = s->g = s->b = 10;
+		s->r = acol.x;
+		s->g = acol.y;
+		s->b = acol.z;
     }
 
     loopv(ents)
@@ -165,7 +182,7 @@ void calclight()
         entity &e = ents[i];
         if(e.type==LIGHT) calclightsource(e);
     }
-    
+
     block b = { 1, 1, ssize-2, ssize-2 };
     postlightarea(b);
     setvar("fullbright", 0);
@@ -207,7 +224,7 @@ void preparedynlight(dlight &d)
     if(area.x+area.xs>ssize-2) area.xs = ssize-2-area.x;
     if(area.y+area.ys>ssize-2) area.ys = ssize-2-area.y;
 
-    if(d.area) 
+    if(d.area)
     {
         if(insidearea(*d.area, area)) return;
 
@@ -243,7 +260,7 @@ void adddynlight(physent *owner, const vec &o, int reach, int expire, int fade, 
 void cleardynlights()
 {
     loopv(dlights) freeblock(dlights[i].area);
-    dlights.setsize(0);
+    dlights.shrink(0);
 }
 
 void removedynlights(physent *owner)
@@ -288,7 +305,7 @@ void dodynlights()
         }
         area = d.area;
     }
-    if(area) postlightarea(*area); 
+    if(area) postlightarea(*area);
     lastcalclight = totalmillis;
 }
 
@@ -296,7 +313,7 @@ void undodynlights()
 {
     if(dlights.empty()) return;
     const block *area = NULL;
-    loopvrev(dlights) 
+    loopvrev(dlights)
     {
         const dlight &d = dlights[i];
         if(area)

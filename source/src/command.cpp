@@ -1,7 +1,6 @@
 // command.cpp: implements the parsing and execution of a tiny script language which
 // is largely backwards compatible with the quake console language.
 
-#include "pch.h"
 #include "cube.h"
 
 bool allowidentaccess(ident *id);
@@ -93,6 +92,18 @@ void pop(const char *name)
 
 COMMAND(push, ARG_2STR);
 COMMAND(pop, ARG_1STR);
+void delalias(const char *name)
+{
+    ident *id = idents->access(name);
+    if(!id || id->type != ID_ALIAS) return;
+    if(contextisolated[execcontext] && execcontext > id->context)
+    {
+        conoutf("cannot remove alias %s in this execution context", id->name);
+        return;
+    }
+    idents->remove(name);
+}
+COMMAND(delalias, ARG_1STR);
 
 void alias(const char *name, const char *action)
 {
@@ -117,6 +128,12 @@ void alias(const char *name, const char *action)
 }
 
 COMMAND(alias, ARG_2STR);
+
+void checkalias(const char *name)
+{
+    intret(getalias(name) ? 1 : 0);
+}
+COMMAND(checkalias, ARG_1STR);
 
 // variable's and commands are registered through globals, see cube.h
 
@@ -166,6 +183,93 @@ void setsvar(const char *name, const char *str, bool dofunc)
     *id->storage.s = exchangestr(*id->storage.s, str);
     if(dofunc && id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
 }
+
+void modifyvar(const char *name, const char *arg, char op)
+{
+    ident *id = idents->access(name);
+    if(!id) return;
+    if(!allowidentaccess(id))
+    {
+        conoutf("not allowed in this execution context: %s", id->name);
+        return;
+    }
+    int val = 0;
+    switch(id->type)
+    {
+        case ID_VAR: val = *id->storage.i; break;
+        case ID_FVAR: val = int(*id->storage.f); break;
+        case ID_SVAR: val = ATOI(*id->storage.s); break;
+        case ID_ALIAS: val = ATOI(id->action); break;
+    }
+    int argval = ATOI(arg);
+    switch(op)
+    {
+        case '+': val += argval; break;
+        case '-': val -= argval; break;
+        case '*': val *= argval; break;
+        case '/': val /= argval; break;
+    }
+    switch(id->type)
+    {
+        case ID_VAR: *id->storage.i = clamp(val, id->minval, id->maxval); break;
+        case ID_FVAR: *id->storage.f = clamp((float)val, id->minvalf, id->maxvalf); break;
+        case ID_SVAR: { string str; itoa(str, val); *id->storage.s = exchangestr(*id->storage.s, str); break; }
+        case ID_ALIAS: { string str; itoa(str, val); alias(name, str); return; }
+        default: return;
+    }
+    if(id->fun) ((void (__cdecl *)())id->fun)();
+}
+
+void modifyfvar(const char *name, const char *arg, char op)
+{
+    ident *id = idents->access(name);
+    if(!id) return;
+    if(!allowidentaccess(id))
+    {
+        conoutf("not allowed in this execution context: %s", id->name);
+        return;
+    }
+    float val = 0;
+    switch(id->type)
+    {
+        case ID_VAR: val = *id->storage.i; break;
+        case ID_FVAR: val = *id->storage.f; break;
+        case ID_SVAR: val = atof(*id->storage.s); break;
+        case ID_ALIAS: val = atof(id->action); break;
+    }
+    float argval = atof(arg);
+    switch(op)
+    {
+        case '+': val += argval; break;
+        case '-': val -= argval; break;
+        case '*': val *= argval; break;
+        case '/': val /= argval; break;
+    }
+    switch(id->type)
+    {
+        case ID_VAR: *id->storage.i = clamp((int)val, id->minval, id->maxval); break;
+        case ID_FVAR: *id->storage.f = clamp(val, id->minvalf, id->maxvalf); break;
+        case ID_SVAR: *id->storage.s = exchangestr(*id->storage.s, floatstr(val)); break;
+        case ID_ALIAS: alias(name, floatstr(val)); return;
+        default: return;
+    }
+    if(id->fun) ((void (__cdecl *)())id->fun)();
+}
+
+void addeq(char *name, char *arg) { modifyvar(name, arg, '+'); }
+void subeq(char *name, char *arg) { modifyvar(name, arg, '-'); }
+void muleq(char *name, char *arg) { modifyvar(name, arg, '*'); }
+void addeqf(char *name, char *arg) { modifyfvar(name, arg, '+'); }
+void subeqf(char *name, char *arg) { modifyfvar(name, arg, '-'); }
+void muleqf(char *name, char *arg) { modifyfvar(name, arg, '*'); }
+
+COMMANDN(+=, addeq, ARG_2STR);
+COMMANDN(-=, subeq, ARG_2STR);
+COMMANDN(*=, muleq, ARG_2STR);
+COMMANDN(+=f, addeqf, ARG_2STR);
+COMMANDN(-=f, subeqf, ARG_2STR);
+COMMANDN(*=f, muleqf, ARG_2STR);
+
 int getvar(const char *name)
 {
     GETVAR(id, name, 0);
@@ -179,6 +283,12 @@ const char *getalias(const char *name)
     ident *i = idents->access(name);
     return i && i->type==ID_ALIAS ? i->action : NULL;
 }
+void _getalias(char *name)
+{
+    const char *action = getalias(name);
+    result(action ? action : "");
+}
+COMMANDN(getalias, _getalias, ARG_1STR);
 
 bool addcommand(const char *name, void (*fun)(), int narg)
 {
@@ -259,12 +369,13 @@ char *conc(char **w, int n, bool space)
     {
         strcat(r, w[i]);  // make string-list out of all arguments
         if(i==n-1) break;
-        if(space) strcat(r, " ");
+        bool col = w[i][0] == '\f' && w[i][2] == '\0';
+        if(space && !col) strcat(r, " ");
     }
     return r;
 }
 
-VARN(numargs, _numargs, 0, 0, 25);
+VARN(numargs, _numargs, 25, 0, 0);
 
 char *commandret = NULL;
 
@@ -277,12 +388,15 @@ void intret(int v)
 
 const char *floatstr(float v)
 {
+    static string l;
+    ftoa(l, 0.5);
     static int n = 0;
     static string t[3];
     n = (n + 1)%3;
     ftoa(t[n], v);
     return t[n];
 }
+
 
 void floatret(float v)
 {
@@ -291,166 +405,215 @@ void floatret(float v)
 
 void result(const char *s) { commandret = newstring(s); }
 
+#if 0
+// seer : script evaluation excessive recursion
+static int seer_count = 0; // count calls to executeret, check time every n1 (100) calls
+static int seer_index = -1; // position in timestamp vector
+vector<long long> seer_t1; // timestamp of last n2 (10) level-1 calls
+vector<long long> seer_t2; // timestamp of last n3 (10) level-2 calls
+#endif
 char *executeret(const char *p)                            // all evaluation happens here, recursively
 {
+	bool noproblem = true;
+#if 0
+	if(execcontext>IEXC_CFG) // only PROMPT and MAP-CFG are checked for this, fooling with core/cfg at your own risk!
+	{
+		seer_count++;
+		if(seer_count>=100)
+		{
+			seer_index = (seer_index+1)%10;
+			long long cts = (long long) time(NULL);
+			if(seer_t1.length()>=10) seer_t1[seer_index] = cts;
+			seer_t1.add(cts);
+			int lc = (seer_index+11)%10;
+			if(lc<=seer_t1.length())
+			{
+				int dt = seer_t1[seer_index] - seer_t1[lc];
+				if(abs(dt)<2)
+				{
+					conoutf("SCRIPT EXECUTION warning [%d:%s]", &p, p);
+					seer_t2.add(seer_t1[seer_index]);
+					if(seer_t2.length() >= 10)
+					{
+						if(seer_t2[0] == seer_t2.last())
+						{
+							conoutf("SCRIPT EXECUTION in danger of crashing the client - dropping script [%s].", p);
+							noproblem = false;
+							seer_t2.shrink(0);
+							seer_t1.shrink(0);
+							seer_index = 0;
+						}
+					}
+				}
+			}
+			seer_count = 0;
+		}
+	}
+#endif
     const int MAXWORDS = 25;                    // limit, remove
     char *w[MAXWORDS];
     char *retval = NULL;
     #define setretval(v) { char *rv = v; if(rv) retval = rv; }
-    for(bool cont = true; cont;)                // for each ; seperated statement
-    {
-        int numargs = MAXWORDS, infix = 0;
-        loopi(MAXWORDS)                         // collect all argument values
-        {
-            w[i] = (char *)"";
-            if(i>numargs) continue;
-            char *s = parseword(p, i, infix);   // parse and evaluate exps
-            if(s) w[i] = s;
-            else numargs = i;
-        }
+	if(noproblem) // if the "seer"-algorithm doesn't object
+	{
+		for(bool cont = true; cont;)                // for each ; seperated statement
+		{
+			int numargs = MAXWORDS, infix = 0;
+			loopi(MAXWORDS)                         // collect all argument values
+			{
+				w[i] = (char *)"";
+				if(i>numargs) continue;
+				char *s = parseword(p, i, infix);   // parse and evaluate exps
+				if(s) w[i] = s;
+				else numargs = i;
+			}
 
-        p += strcspn(p, ";\n\0");
-        cont = *p++!=0;                         // more statements if this isn't the end of the string
-        const char *c = w[0];
-        if(!*c) continue;                       // empty statement
+			p += strcspn(p, ";\n\0");
+			cont = *p++!=0;                         // more statements if this isn't the end of the string
+			const char *c = w[0];
+			if(!*c) continue;                       // empty statement
 
-        DELETEA(retval);
+			DELETEA(retval);
 
-        if(infix)
-        {
-            switch(infix)
-            {
-                case '=':
-                    DELETEA(w[1]);
-                    swap(w[0], w[1]);
-                    c = "alias";
-                    break;
-            }
-        }
+			if(infix)
+			{
+				switch(infix)
+				{
+					case '=':
+						DELETEA(w[1]);
+						swap(w[0], w[1]);
+						c = "alias";
+						break;
+				}
+			}
 
-        ident *id = idents->access(c);
-        if(!id)
-        {
-            if(!isdigit(*c) && ((*c!='+' && *c!='-' && *c!='.') || !isdigit(c[1])))
-            {
-                conoutf("unknown command: %s", c);
-            }
-            setretval(newstring(c));
-        }
-        else
-        {
-            if(!allowidentaccess(id))
-            {
-                conoutf("not allowed in this execution context: %s", id->name);
-                continue;
-            }
+			ident *id = idents->access(c);
+			if(!id)
+			{
+				if(!isdigit(*c) && ((*c!='+' && *c!='-' && *c!='.') || !isdigit(c[1])))
+				{
+					conoutf("unknown command: %s", c);
+				}
+				setretval(newstring(c));
+			}
+			else
+			{
+				if(!allowidentaccess(id))
+				{
+					conoutf("not allowed in this execution context: %s", id->name);
+					continue;
+				}
 
-            switch(id->type)
-            {
-                case ID_COMMAND:                    // game defined commands
-                    switch(id->narg)                // use very ad-hoc function signature, and just call it
-                    {
-                        case ARG_1INT: ((void (__cdecl *)(int))id->fun)(ATOI(w[1])); break;
-                        case ARG_2INT: ((void (__cdecl *)(int, int))id->fun)(ATOI(w[1]), ATOI(w[2])); break;
-                        case ARG_3INT: ((void (__cdecl *)(int, int, int))id->fun)(ATOI(w[1]), ATOI(w[2]), ATOI(w[3])); break;
-                        case ARG_4INT: ((void (__cdecl *)(int, int, int, int))id->fun)(ATOI(w[1]), ATOI(w[2]), ATOI(w[3]), ATOI(w[4])); break;
-                        case ARG_NONE: ((void (__cdecl *)())id->fun)(); break;
-                        case ARG_1STR: ((void (__cdecl *)(char *))id->fun)(w[1]); break;
-                        case ARG_2STR: ((void (__cdecl *)(char *, char *))id->fun)(w[1], w[2]); break;
-                        case ARG_3STR: ((void (__cdecl *)(char *, char *, char*))id->fun)(w[1], w[2], w[3]); break;
-                        case ARG_4STR: ((void (__cdecl *)(char *, char *, char*, char*))id->fun)(w[1], w[2], w[3], w[4]); break;
-                        case ARG_5STR: ((void (__cdecl *)(char *, char *, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5]); break;
-                        case ARG_6STR: ((void (__cdecl *)(char *, char *, char*, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5], w[6]); break;
-                        case ARG_7STR: ((void (__cdecl *)(char *, char *, char*, char*, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5], w[6], w[7]); break;
-                        case ARG_8STR: ((void (__cdecl *)(char *, char *, char*, char*, char*, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5], w[6], w[7], w[8]); break;
-                        case ARG_DOWN: ((void (__cdecl *)(bool))id->fun)(addreleaseaction(id->name)!=NULL); break;
-                        case ARG_1EXP: intret(((int (__cdecl *)(int))id->fun)(ATOI(w[1]))); break;
-                        case ARG_2EXP: intret(((int (__cdecl *)(int, int))id->fun)(ATOI(w[1]), ATOI(w[2]))); break;
-                        case ARG_1EXPF: floatret(((float (__cdecl *)(float))id->fun)(atof(w[1]))); break;
-                        case ARG_2EXPF: floatret(((float (__cdecl *)(float, float))id->fun)(atof(w[1]), atof(w[2]))); break;
-                        case ARG_1EST: intret(((int (__cdecl *)(char *))id->fun)(w[1])); break;
-                        case ARG_2EST: intret(((int (__cdecl *)(char *, char *))id->fun)(w[1], w[2])); break;
-                        case ARG_IVAL: intret(((int (__cdecl *)())id->fun)()); break;
-                        case ARG_FVAL: floatret(((float (__cdecl *)())id->fun)()); break;
-                        case ARG_SVAL: result(((const char * (__cdecl *)())id->fun)()); break;
-                        case ARG_VARI: ((void (__cdecl *)(char **, int))id->fun)(&w[1], numargs-1); break;
-                        case ARG_CONC:
-                        case ARG_CONCW:
-                        {
-                            char *r = conc(w+1, numargs-1, id->narg==ARG_CONC);
-                            ((void (__cdecl *)(char *))id->fun)(r);
-                            delete[] r;
-                            break;
-                        }
-                    }
-                    setretval(commandret);
-                    commandret = NULL;
-                    break;
+				switch(id->type)
+				{
+					case ID_COMMAND:                    // game defined commands
+						switch(id->narg)                // use very ad-hoc function signature, and just call it
+						{
+							case ARG_1INT: ((void (__cdecl *)(int))id->fun)(ATOI(w[1])); break;
+							case ARG_2INT: ((void (__cdecl *)(int, int))id->fun)(ATOI(w[1]), ATOI(w[2])); break;
+							case ARG_3INT: ((void (__cdecl *)(int, int, int))id->fun)(ATOI(w[1]), ATOI(w[2]), ATOI(w[3])); break;
+							case ARG_4INT: ((void (__cdecl *)(int, int, int, int))id->fun)(ATOI(w[1]), ATOI(w[2]), ATOI(w[3]), ATOI(w[4])); break;
+							case ARG_NONE: ((void (__cdecl *)())id->fun)(); break;
+							case ARG_1STR: ((void (__cdecl *)(char *))id->fun)(w[1]); break;
+							case ARG_2STR: ((void (__cdecl *)(char *, char *))id->fun)(w[1], w[2]); break;
+							case ARG_3STR: ((void (__cdecl *)(char *, char *, char*))id->fun)(w[1], w[2], w[3]); break;
+							case ARG_4STR: ((void (__cdecl *)(char *, char *, char*, char*))id->fun)(w[1], w[2], w[3], w[4]); break;
+							case ARG_5STR: ((void (__cdecl *)(char *, char *, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5]); break;
+							case ARG_6STR: ((void (__cdecl *)(char *, char *, char*, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5], w[6]); break;
+							case ARG_7STR: ((void (__cdecl *)(char *, char *, char*, char*, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5], w[6], w[7]); break;
+							case ARG_8STR: ((void (__cdecl *)(char *, char *, char*, char*, char*, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5], w[6], w[7], w[8]); break;
+#ifndef STANDALONE
+							case ARG_DOWN: ((void (__cdecl *)(bool))id->fun)(addreleaseaction(id->name)!=NULL); break;
+#endif
+							case ARG_1EXP: intret(((int (__cdecl *)(int))id->fun)(ATOI(w[1]))); break;
+							case ARG_2EXP: intret(((int (__cdecl *)(int, int))id->fun)(ATOI(w[1]), ATOI(w[2]))); break;
+							case ARG_1EXPF: floatret(((float (__cdecl *)(float))id->fun)(atof(w[1]))); break;
+							case ARG_2EXPF: floatret(((float (__cdecl *)(float, float))id->fun)(atof(w[1]), atof(w[2]))); break;
+							case ARG_1EST: intret(((int (__cdecl *)(char *))id->fun)(w[1])); break;
+							case ARG_2EST: intret(((int (__cdecl *)(char *, char *))id->fun)(w[1], w[2])); break;
+							case ARG_IVAL: intret(((int (__cdecl *)())id->fun)()); break;
+							case ARG_FVAL: floatret(((float (__cdecl *)())id->fun)()); break;
+							case ARG_SVAL: result(((const char * (__cdecl *)())id->fun)()); break;
+							case ARG_VARI: ((void (__cdecl *)(char **, int))id->fun)(&w[1], numargs-1); break;
+							case ARG_CONC:
+							case ARG_CONCW:
+							{
+								char *r = conc(w+1, numargs-1, id->narg==ARG_CONC);
+								((void (__cdecl *)(char *))id->fun)(r);
+								delete[] r;
+								break;
+							}
+						}
+						setretval(commandret);
+						commandret = NULL;
+						break;
 
-                case ID_VAR:                        // game defined variables
-                    if(!w[1][0]) conoutf("%s = %d", c, *id->storage.i);      // var with no value just prints its current value
-                    else if(id->minval>id->maxval) conoutf("variable %s is read-only", id->name);
-                    else
-                    {
-                        int i1 = ATOI(w[1]);
-                        if(i1<id->minval || i1>id->maxval)
-                        {
-                            i1 = i1<id->minval ? id->minval : id->maxval;       // clamp to valid range
-                            conoutf("valid range for %s is %d..%d", id->name, id->minval, id->maxval);
-                        }
-                        *id->storage.i = i1;
-                        if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
-                    }
-                    break;
+					case ID_VAR:                        // game defined variables
+						if(!w[1][0]) conoutf("%s = %d", c, *id->storage.i);      // var with no value just prints its current value
+						else if(id->minval>id->maxval) conoutf("variable %s is read-only", id->name);
+						else
+						{
+							int i1 = ATOI(w[1]);
+							if(i1<id->minval || i1>id->maxval)
+							{
+								i1 = i1<id->minval ? id->minval : id->maxval;       // clamp to valid range
+								conoutf("valid range for %s is %d..%d", id->name, id->minval, id->maxval);
+							}
+							*id->storage.i = i1;
+							if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
+						}
+						break;
 
-                case ID_FVAR:                        // game defined variables
-                    if(!w[1][0]) conoutf("%s = %s", c, floatstr(*id->storage.f));      // var with no value just prints its current value
-                    else if(id->minvalf>id->maxvalf) conoutf("variable %s is read-only", id->name);
-                    else
-                    {
-                        float f1 = atof(w[1]);
-                        if(f1<id->minvalf || f1>id->maxvalf)
-                        {
-                            f1 = f1<id->minvalf ? id->minvalf : id->maxvalf;       // clamp to valid range
-                            conoutf("valid range for %s is %s..%s", id->name, floatstr(id->minvalf), floatstr(id->maxvalf));
-                        }
-                        *id->storage.f = f1;
-                        if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
-                    }
-                    break;
+					case ID_FVAR:                        // game defined variables
+						if(!w[1][0]) conoutf("%s = %s", c, floatstr(*id->storage.f));      // var with no value just prints its current value
+						else if(id->minvalf>id->maxvalf) conoutf("variable %s is read-only", id->name);
+						else
+						{
+							float f1 = atof(w[1]);
+							if(f1<id->minvalf || f1>id->maxvalf)
+							{
+								f1 = f1<id->minvalf ? id->minvalf : id->maxvalf;       // clamp to valid range
+								conoutf("valid range for %s is %s..%s", id->name, floatstr(id->minvalf), floatstr(id->maxvalf));
+							}
+							*id->storage.f = f1;
+							if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
+						}
+						break;
 
-                case ID_SVAR:                        // game defined variables
-                    if(!w[1][0]) conoutf(strchr(*id->storage.s, '"') ? "%s = [%s]" : "%s = \"%s\"", c, *id->storage.s); // var with no value just prints its current value
-                    else
-                    {
-                        *id->storage.s = exchangestr(*id->storage.s, newstring(w[1]));
-                        if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
-                    }
-                    break;
+					case ID_SVAR:                        // game defined variables
+						if(!w[1][0]) conoutf(strchr(*id->storage.s, '"') ? "%s = [%s]" : "%s = \"%s\"", c, *id->storage.s); // var with no value just prints its current value
+						else
+						{
+							*id->storage.s = exchangestr(*id->storage.s, newstring(w[1]));
+							if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
+						}
+						break;
 
-                case ID_ALIAS:                              // alias, also used as functions and (global) variables
-                    static vector<ident *> argids;
-                    for(int i = 1; i<numargs; i++)
-                    {
-                        if(i > argids.length())
-                        {
-                            s_sprintfd(argname)("arg%d", i);
-                            argids.add(newident(argname, IEXC_CORE));
-                        }
-                        pushident(*argids[i-1], w[i]); // set any arguments as (global) arg values so functions can access them
-                    }
-                    _numargs = numargs-1;
-                    char *wasexecuting = id->executing;
-                    id->executing = id->action;
-                    setretval(executeret(id->action));
-                    if(id->executing!=id->action && id->executing!=wasexecuting) delete[] id->executing;
-                    id->executing = wasexecuting;
-                    for(int i = 1; i<numargs; i++) popident(*argids[i-1]);
-                    continue;
-            }
-        }
-        loopj(numargs) if(w[j]) delete[] w[j];
-    }
+					case ID_ALIAS:                              // alias, also used as functions and (global) variables
+						delete[] w[0];
+						static vector<ident *> argids;
+						for(int i = 1; i<numargs; i++)
+						{
+							if(i > argids.length())
+							{
+								defformatstring(argname)("arg%d", i);
+								argids.add(newident(argname, IEXC_CORE));
+							}
+							pushident(*argids[i-1], w[i]); // set any arguments as (global) arg values so functions can access them
+						}
+						_numargs = numargs-1;
+						char *wasexecuting = id->executing;
+						id->executing = id->action;
+						setretval(executeret(id->action));
+						if(id->executing!=id->action && id->executing!=wasexecuting) delete[] id->executing;
+						id->executing = wasexecuting;
+						for(int i = 1; i<numargs; i++) popident(*argids[i-1]);
+						continue;
+				}
+			}
+			loopj(numargs) if(w[j]) delete[] w[j];
+		}
+	}
     return retval;
 }
 
@@ -462,6 +625,7 @@ int execute(const char *p)
     return i;
 }
 
+#ifndef STANDALONE
 // tab-completion of all idents
 
 static int completesize = -1, completeidx = 0;
@@ -495,7 +659,7 @@ bool nickcomplete(char *s)
         if(p && !strncasecmp(p->name, cp, completesize))
         {
             *cp = '\0';
-            s_strcat(s, p->name);
+            concatstring(s, p->name);
             completeplayer = p;
             return true;
         }
@@ -522,7 +686,7 @@ struct completeval
     vector<char *> list;
 
     completeval(int type, const char *dir, const char *ext) : type(type), dir(dir && dir[0] ? newstring(dir) : NULL), ext(ext && ext[0] ? newstring(ext) : NULL) {}
-    ~completeval() { DELETEA(dir); DELETEA(ext); dirlist.deletecontentsa(); list.deletecontentsa(); }
+    ~completeval() { DELETEA(dir); DELETEA(ext); dirlist.deletearrays(); list.deletearrays(); }
 };
 
 static inline bool htcmp(const completekey &x, const completekey &y)
@@ -600,9 +764,9 @@ void commandcomplete(char *s)
     if(*s!='/')
     {
         string t;
-        s_strcpy(t, s);
-        s_strcpy(s, "/");
-        s_strcat(s, t);
+        copystring(t, s);
+        copystring(s, "/");
+        concatstring(s, t);
     }
     if(!s[1]) return;
     char *cp = s;
@@ -621,13 +785,13 @@ void commandcomplete(char *s)
     if(end && end <= cp)
     {
         string command;
-        s_strncpy(command, s+1, min(size_t(end-s), sizeof(command)));
+        copystring(command, s+1, min(size_t(end-s), sizeof(command)));
         completeval **hascomplete = completions.access(command);
          if(hascomplete) cdata = *hascomplete;
     }
     if(init && cdata && cdata->type==COMPLETE_FILE)
     {
-       cdata->list.deletecontentsa();
+       cdata->list.deletearrays();
        loopv(cdata->dirlist) listfiles(cdata->dirlist[i], cdata->ext, cdata->list);
     }
 
@@ -638,7 +802,7 @@ void commandcomplete(char *s)
             if(!strncasecmp(id.name, cp+1, completesize) && idx++==completeidx)
             {
                 cp[1] = '\0';
-                s_strcat(s, id.name);
+                concatstring(s, id.name);
             }
         );
         completeidx++;
@@ -654,7 +818,7 @@ void commandcomplete(char *s)
             if(!strncasecmp(cdata->list[j], cp + 1, completesize))
             {
                 cp[1] = '\0';
-                s_strcat(s, cdata->list[j]);
+                concatstring(s, cdata->list[j]);
                 completeidx = j;
                 break;
             }
@@ -672,11 +836,12 @@ void complete(char *s)
     }
     commandcomplete(s);
 }
+#endif
 
 bool execfile(const char *cfgfile)
 {
     string s;
-    s_strcpy(s, cfgfile);
+    copystring(s, cfgfile);
     char *buf = loadfile(path(s), NULL);
     if(!buf) return false;
     execute(buf);
@@ -689,6 +854,18 @@ void exec(const char *cfgfile)
     if(!execfile(cfgfile)) conoutf("could not read \"%s\"", cfgfile);
 }
 
+void execdir(const char *dir)
+{
+        if(dir[0]) {
+            vector<char *> files;
+            listfiles(dir, "cfg", files);
+            loopv(files) {
+            defformatstring(d)("%s/%s.cfg",dir,files[i]);
+            exec(d);
+            }
+        }
+}
+COMMAND(execdir,ARG_1STR);
 // below the commands that implement a small imperative language. thanks to the semantics of
 // () and [] expressions, any control construct can be defined trivially.
 
@@ -749,7 +926,7 @@ void format(char **args, int numargs)
     result(s.getbuf());
 }
 
-#define whitespaceskip s += strspn(s, "\n\t ")
+#define whitespaceskip s += strspn(s, "\n\t \r")
 #define elementskip *s=='"' ? (++s, s += strcspn(s, "\"\n\0"), s += *s=='"') : s += strcspn(s, "\n\t \0")
 
 void explodelist(const char *s, vector<char *> &elems)
@@ -767,7 +944,12 @@ void explodelist(const char *s, vector<char *> &elems)
 char *indexlist(const char *s, int pos)
 {
     whitespaceskip;
-    loopi(pos) elementskip, whitespaceskip;
+    loopi(pos)
+    {
+        elementskip;
+        whitespaceskip;
+        if(!*s) break;
+    }
     const char *e = s;
     elementskip;
     if(*e=='"')
@@ -794,19 +976,20 @@ void at(char *s, char *pos)
 int find(const char *s, const char *key)
 {
     whitespaceskip;
-    for(int i = 0; *s; i++)
-    {
-        const char *a = s, *e = s;
-        elementskip;
-        if(*e=='"')
-        {
-            e++;
-            if(s[-1]=='"') --s;
-        }
-        if(!strncmp(e, key, s-e)) return i;
-        else s = a;
-        elementskip, whitespaceskip;
-    }
+	int len = strlen(key);
+	for(int i = 0; *s; i++)
+	{
+		const char *a = s, *e = s;
+		elementskip;
+		if(*e=='"')
+		{
+			e++;
+			if(s[-1]=='"') --s;
+		}
+		if(s-e==len && !strncmp(e, key, s-e)) return i;
+		else s = a;
+		elementskip, whitespaceskip;
+	}
     return -1;
 }
 
@@ -814,7 +997,14 @@ void findlist(char *s, char *key)
 {
     intret(find(s, key));
 }
-
+void colora(char *s)
+{
+    if(s[0] && s[1]=='\0') {
+    defformatstring(x)("\f%c",s[0]);
+    commandret = newstring(x);
+    }
+}
+COMMANDN(c, colora, ARG_1STR);
 COMMANDN(loop, loopa, ARG_3STR);
 COMMANDN(while, whilea, ARG_2STR);
 COMMANDN(if, ifthen, ARG_3STR);
@@ -864,45 +1054,48 @@ int strcmpa(char *a, char *b) { return strcmp(a,b)==0; }  COMMANDN(strcmp, strcm
 
 int rndn(int a)    { return a>0 ? rnd(a) : 0; }  COMMANDN(rnd, rndn, ARG_1EXP);
 
+#ifndef STANDALONE
 void writecfg()
 {
-    FILE *f = openfile(path("config/saved.cfg", true), "w");
+    stream *f = openfile(path("config/saved.cfg", true), "w");
     if(!f) return;
-    fprintf(f, "// automatically written on exit, DO NOT MODIFY\n// delete this file to have defaults.cfg overwrite these settings\n// modify settings in game, or put settings in autoexec.cfg to override anything\n\n");
-    fprintf(f, "name %s\n", player1->name);
+    f->printf("// automatically written on exit, DO NOT MODIFY\n// delete this file to have defaults.cfg overwrite these settings\n// modify settings in game, or put settings in autoexec.cfg to override anything\n\n");
+    f->printf("name \"%s\"\n", player1->name);
     extern const char *crosshairnames[CROSSHAIR_NUM];
     extern Texture *crosshairs[CROSSHAIR_NUM];
     loopi(CROSSHAIR_NUM) if(crosshairs[i] && crosshairs[i]!=notexture)
     {
         const char *fname = crosshairs[i]->name+strlen("packages/misc/crosshairs/");
-        if(i==CROSSHAIR_DEFAULT) fprintf(f, "loadcrosshair %s\n", fname);
-        else fprintf(f, "loadcrosshair %s %s\n", fname, crosshairnames[i]);
+        if(i==CROSSHAIR_DEFAULT) f->printf("loadcrosshair %s\n", fname);
+        else f->printf("loadcrosshair %s %s\n", fname, crosshairnames[i]);
     }
     extern int lowfps, highfps;
-    fprintf(f, "fpsrange %d %d\n", lowfps, highfps);
-    fprintf(f, "\n");
-    writesoundconfig(f);
-    fprintf(f, "\n");
+    f->printf("fpsrange %d %d\n", lowfps, highfps);
+    extern string myfont;
+    f->printf("setfont %s\n", myfont);
+    f->printf("\n");
+    audiomgr.writesoundconfig(f);
+    f->printf("\n");
     enumerate(*idents, ident, id,
         if(!id.persist) continue;
         switch(id.type)
         {
-            case ID_VAR: fprintf(f, "%s %d\n", id.name, *id.storage.i); break;
-            case ID_FVAR: fprintf(f, "%s %s\n", id.name, floatstr(*id.storage.f)); break;
-            case ID_SVAR: fprintf(f, "%s [%s]\n", id.name, *id.storage.s); break;
+            case ID_VAR: f->printf("%s %d\n", id.name, *id.storage.i); break;
+            case ID_FVAR: f->printf("%s %s\n", id.name, floatstr(*id.storage.f)); break;
+            case ID_SVAR: f->printf("%s [%s]\n", id.name, *id.storage.s); break;
         }
     );
-    fprintf(f, "\n");
+    f->printf("\n");
     writebinds(f);
-    fprintf(f, "\n");
+    f->printf("\n");
     enumerate(*idents, ident, id,
         if(id.type==ID_ALIAS && id.persist && id.action[0])
         {
-            fprintf(f, "alias \"%s\" [%s]\n", id.name, id.action);
+            f->printf("alias \"%s\" [%s]\n", id.name, id.action);
         }
     );
-    fprintf(f, "\n");
-    fclose(f);
+    f->printf("\n");
+    delete f;
 }
 
 COMMAND(writecfg, ARG_NONE);
@@ -920,6 +1113,7 @@ void deletecfg()
         }
     }
 }
+#endif
 
 void identnames(vector<const char *> &names, bool builtinonly)
 {
@@ -989,6 +1183,7 @@ COMMAND(scriptcontext, ARG_2STR);
 COMMAND(isolatecontext, ARG_1INT);
 COMMAND(sealcontexts, ARG_NONE);
 
+#ifndef STANDALONE
 void _watchingdemo()
 {
     extern bool watchingdemo;
@@ -1001,7 +1196,7 @@ void systime()
     result(numtime());
 }
 
-void timestamp()
+void timestamp_()
 {
     result(timestring(true, "%Y %m %d %H %M %S"));
 }
@@ -1021,7 +1216,7 @@ int millis_() { extern int totalmillis; return totalmillis; }
 
 COMMANDN(millis, millis_, ARG_IVAL);
 COMMAND(systime, ARG_NONE);
-COMMAND(timestamp, ARG_NONE);
+COMMANDN(timestamp, timestamp_, ARG_NONE);
 COMMAND(datestring, ARG_NONE);
 COMMANDN(timestring, timestring_, ARG_NONE);
 
@@ -1038,18 +1233,18 @@ void currentserver(int i)
 			case 1: // IP
 			{
                 uchar *ip = (uchar *)&curpeer->address.host;
-				s_sprintf(r)("%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
+				formatstring(r)("%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
 				break;
 			}
 			case 2: // HOST
 			{
 				char hn[1024];
-				s_sprintf(r)("%s", (enet_address_get_host(&curpeer->address, hn, sizeof(hn))==0) ? hn : "unknown");
+				formatstring(r)("%s", (enet_address_get_host(&curpeer->address, hn, sizeof(hn))==0) ? hn : "unknown");
 				break;
 			}
 			case 3: // PORT
 			{
-				s_sprintf(r)("%d", curpeer->address.port);
+				formatstring(r)("%d", curpeer->address.port);
 				break;
 			}
 			case 4: // STATE
@@ -1068,13 +1263,13 @@ void currentserver(int i)
                     "zombie"
                 };
                 if(curpeer->state>=0 && curpeer->state<int(sizeof(statenames)/sizeof(statenames[0])))
-                    s_strcpy(r, statenames[curpeer->state]);
+                    copystring(r, statenames[curpeer->state]);
 				break; // 5 == Connected (compare ../enet/include/enet/enet.h +165)
 			}
 	     	default: // was HOST:PORT & IP - but as speed-up just IP & PORT
 			{
                 uchar *ip = (uchar *)&curpeer->address.host;
-				s_sprintf(r)("%d.%d.%d.%d %d", ip[0], ip[1], ip[2], ip[3], curpeer->address.port);
+				formatstring(r)("%d.%d.%d.%d %d", ip[0], ip[1], ip[2], ip[3], curpeer->address.port);
 				break;
 			}
 		}
@@ -1083,6 +1278,7 @@ void currentserver(int i)
 }
 
 COMMANDN(curserver, currentserver, ARG_1INT);
+#endif
 
 void debugargs(char **args, int numargs)
 {

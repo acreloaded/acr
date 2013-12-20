@@ -1,6 +1,5 @@
 // editing.cpp: most map editing commands go here, entity editing commands are in world.cpp
 
-#include "pch.h"
 #include "cube.h"
 
 bool editmode = false;
@@ -43,7 +42,6 @@ void toggleedit(bool force)
     }
     else
     {
-        //player1->health = 100; // illusion only (client-side) and unwanted anyway (bug found by grenadier)
         //put call to clear/restart gamemode
 		player1->attacking = false;
     }
@@ -51,6 +49,8 @@ void toggleedit(bool force)
     selset = false;
     editing = editmode ? 1 : 0;
     player1->state = editing ? CS_EDITING : CS_ALIVE;
+    if(editing && player1->onladder) player1->onladder = false;
+    if(editing && (player1->weaponsel->type == GUN_SNIPER && ((sniperrifle *)player1->weaponsel)->scoped)) ((sniperrifle *)player1->weaponsel)->onownerdies(); // or ondeselecting()
     if(!force) addmsg(SV_EDITMODE, "ri", editing);
 }
 
@@ -65,7 +65,7 @@ char *editinfo()
     int e = closestent();
     if(e<0) return NULL;
     entity &c = ents[e];
-    s_sprintf(info)("closest entity = %s (%d, %d, %d, %d), selection = (%d, %d)", entnames[c.type], c.attr1, c.attr2, c.attr3, c.attr4, sel.xs, sel.ys);
+    formatstring(info)("closest entity = %s (%d, %d, %d, %d), selection = (%d, %d)", entnames[c.type], c.attr1, c.attr2, c.attr3, c.attr4, sel.xs, sel.ys);
     return info;
 }
 
@@ -78,10 +78,14 @@ void correctsel()                                       // ensures above invaria
     if(sel.xs<=0 || sel.ys<=0) selset = false;
 }
 
-bool noteditmode()
+bool noteditmode(const char* func)
 {
     correctsel();
-    if(!editmode) conoutf("this function is only allowed in edit mode");
+    if(!editmode)
+    {
+        if(func && func[0]!='\0') conoutf("\f4[\f3%s\f4]\f5 is only allowed in edit mode", func);
+        else conoutf("this function is only allowed in edit mode");
+    }
     return !editmode;
 }
 
@@ -91,9 +95,9 @@ bool noselection()
     return !selset;
 }
 
-#define EDITSEL   if(noteditmode() || noselection()) return;
-#define EDITSELMP if(noteditmode() || noselection() || multiplayer()) return;
-#define EDITMP    if(noteditmode() || multiplayer()) return;
+#define EDITSEL   if(noteditmode("EDITSEL") || noselection()) return;
+#define EDITSELMP if(noteditmode("EDITSELMP") || noselection() || multiplayer()) return;
+#define EDITMP    if(noteditmode("EDITMP") || multiplayer()) return;
 
 void selectpos(int x, int y, int xs, int ys)
 {
@@ -469,7 +473,7 @@ void perlin(int scale, int seed, int psize)
 VARF(fullbright, 0, 0, 1,
     if(fullbright)
     {
-        if(noteditmode()) return;
+        if(noteditmode("fullbright")) return;
         fullbrightlight();
     }
     else calclight();
@@ -487,6 +491,94 @@ void newent(char *what, char *a1, char *a2, char *a3, char *a4)
     newentity(-1, sel.x, sel.y, (int)camera1->o.z, what, ATOI(a1), ATOI(a2), ATOI(a3), ATOI(a4));
 }
 
+void movemap(int xo, int yo, int zo) // move whole map
+{
+    EDITMP;
+    if(!worldbordercheck(MINBORD + max(-xo, 0), MINBORD + max(xo, 0), MINBORD + max(-yo, 0), MINBORD + max(yo, 0), max(zo, 0), max(-zo, 0)))
+    {
+        conoutf("not enough space to move the map");
+        return;
+    }
+    if(xo || yo)
+    {
+        block b = { max(-xo, 0), max(-yo, 0), ssize - abs(xo), ssize - abs(yo) }, *cp = blockcopy(b);
+        cp->x = max(xo, 0);
+        cp->y = max(yo, 0);
+        blockpaste(*cp);
+        freeblock(cp);
+    }
+    if(zo)
+    {
+        loop(x, ssize) loop(y, ssize)
+        {
+            S(x,y)->floor = max(-128, S(x,y)->floor + zo);
+            S(x,y)->ceil = min(127, S(x,y)->ceil + zo);
+        }
+        hdr.waterlevel += zo;
+    }
+    loopv(ents)
+    {
+        ents[i].x += xo;
+        ents[i].y += yo;
+        ents[i].z += zo;
+        if(OUTBORD(ents[i].x, ents[i].y)) ents[i].type = NOTUSED;
+    }
+    player1->o.x += xo;
+    player1->o.y += yo;
+    entinmap(player1);
+    calclight();
+    resetmap(false);
+}
+
+void selfliprotate(int dir)
+{
+    makeundo();
+    block *org = blockcopy(sel);
+    const sqr *q = (const sqr *)(org + 1);
+    int x1 = sel.x, x2 = sel.x + sel.xs - 1, y1 = sel.y, y2 = sel.y + sel.ys - 1, x, y;
+    switch(dir)
+    {
+        case 1: // 90 degree clockwise
+            for(x = x2; x >= x1; x--) for(y = y1; y <= y2; y++) *S(x,y) = *q++;
+            break;
+        case 2: // 180 degree
+            for(y = y2; y >= y1; y--) for(x = x2; x >= x1; x--) *S(x,y) = *q++;
+            break;
+        case 3: // 90 degree counterclockwise
+            for(x = x1; x <= x2; x++) for(y = y2; y >= y1; y--) *S(x,y) = *q++;
+            break;
+        case 11: // flip x-axis
+            for(y = y1; y <= y2; y++) for(x = x2; x >= x1; x--) *S(x,y) = *q++;
+            break;
+        case 12: // flip y-axis
+            for(y = y2; y >= y1; y--) for(x = x1; x <= x2; x++) *S(x,y) = *q++;
+            break;
+    }
+    remipmore(sel);
+    freeblock(org);
+}
+
+void selectionrotate(int dir)
+{
+    EDITSELMP;
+    dir %= 4;
+    if(dir < 0) dir += 4;
+    if(!dir) return;
+    if(sel.xs != sel.ys) dir = 2;
+    selfliprotate(dir);
+}
+
+void selectionflip(char *axis)
+{
+    EDITSELMP;
+    if(!axis || !*axis) return;
+    switch(toupper(*axis))
+    {
+        case 'X': selfliprotate(11); break;
+        case 'Y': selfliprotate(12); break;
+    }
+}
+
 COMMANDN(select, selectpos, ARG_4INT);
 COMMAND(edittag, ARG_1INT);
 COMMAND(replace, ARG_NONE);
@@ -500,5 +592,6 @@ COMMAND(paste, ARG_NONE);
 COMMAND(edittex, ARG_2INT);
 COMMAND(newent, ARG_5STR);
 COMMAND(perlin, ARG_3INT);
-
-
+COMMAND(movemap, ARG_3INT);
+COMMAND(selectionrotate, ARG_1INT);
+COMMAND(selectionflip, ARG_1STR);

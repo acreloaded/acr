@@ -316,7 +316,7 @@ struct vertmodel : model
             else d->prev.fr1 = -1;
 
             static vector<uchar> side;
-            side.setsizenodelete(0);
+            side.setsize(0);
 
             loopi(numtris)
             {
@@ -448,96 +448,93 @@ struct vertmodel : model
             {
                 glCallList(statlist);
                 xtraverts += statlen;
-            }
-            else
-            {
-                if(stenciling==1)
-                {
-                    bb curbb;
-                    getcurbb(curbb, as, cur, prev, ai_t);
-                    glmatrixf mat;
-                    mat.mul(mvpmatrix, matrixstack[matrixpos]);
-                    if(!addshadowbox(curbb.low, curbb.high, shadowpos, mat)) return;
-                }
-
-                vec *buf = verts;
-                dyncacheentry *d = NULL;
-                if(!isstat) 
-                {
-                    d = gendynverts(as, cur, prev, ai_t);
-                    if(!d) return;
-                    buf = d->verts();
-                }
-                if(lastvertexarray != buf) 
-                { 
-                    if(!lastvertexarray) glEnableClientState(GL_VERTEX_ARRAY);
-                    glVertexPointer(3, GL_FLOAT, sizeof(vec), buf);
-                    lastvertexarray = buf;
-                }
-                lightvert *vlight = NULL;
-                if(as.anim&ANIM_NOSKIN && (!isstat || stenciling))
-                {
-                    if(lasttexcoordarray)
-                    {
-                        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-                        lasttexcoordarray = NULL;
-                    }
-                }
-                else 
-                {
-                    if(lasttexcoordarray != tcverts)
-                    {
-                        if(!lasttexcoordarray) glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-                        glTexCoordPointer(2, GL_FLOAT, sizeof(tcvert), tcverts);
-                        lasttexcoordarray = tcverts;
-                    }
-                    if(owner->model->vertexlight)
-                    {
-                        if(d) d->locked = true;
-                        lightcacheentry *l = lightvertexes(as, cur, isstat ? NULL : prev, ai_t, buf);  
-                        if(d) d->locked = false;
-                        if(l) vlight = l->verts();
-                    }
-                }
-                if(lastcolorarray != vlight)
-                {
-                    if(vlight)
-                    {
-                        if(!lastcolorarray) glEnableClientState(GL_COLOR_ARRAY);
-                        glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(lightvert), vlight);
-                    }
-                    else glDisableClientState(GL_COLOR_ARRAY);
-                    lastcolorarray = vlight;
-                }
-                if(stenciling)
-                {
-                    if(d) d->locked = true;
-                    shadowcacheentry *s = genshadowvolume(as, cur, isstat ? NULL : prev, ai_t, buf);
-                    if(d) d->locked = false;
-                    if(!s) return;
-                    buf[numverts] = s->dir;
-                    glDrawElements(GL_TRIANGLES, s->numidxs(), GL_UNSIGNED_SHORT, s->idxs());
-                    xtraverts += s->numidxs();
-                    return;
-                }
-
-                bool builddlist = isstat && !owner->model->vertexlight && mdldlist;
-                if(builddlist) glNewList(statlist = glGenLists(1), GL_COMPILE);
-                loopi(numdyndraws)
-                {
-                    const drawcall &d = dyndraws[i];
-                    if(hasDRE && !builddlist) glDrawRangeElements_(d.type, d.minvert, d.maxvert, d.count, GL_UNSIGNED_SHORT, &dynidx[d.start]);
-                    else glDrawElements(d.type, d.count, GL_UNSIGNED_SHORT, &dynidx[d.start]);
-                }
-                if(builddlist)
-                {
-                    glEndList();
-                    glCallList(statlist);
-                    statlen = dynlen;
-                }
-                xtraverts += dynlen;
                 return;
             }
+            else if(stenciling==1)
+            {
+                bb curbb;
+                getcurbb(curbb, as, cur, prev, ai_t);
+                glmatrixf mat;
+                mat.mul(mvpmatrix, matrixstack[matrixpos]);
+                if(!addshadowbox(curbb.low, curbb.high, shadowpos, mat)) return;
+            }
+
+            vec *buf = verts;
+            dyncacheentry *d = NULL;
+            if(!isstat) 
+            {
+                d = gendynverts(as, cur, prev, ai_t);
+                if(!d) return;
+                buf = d->verts();
+            }
+            if(lastvertexarray != buf) 
+            { 
+                if(!lastvertexarray) glEnableClientState(GL_VERTEX_ARRAY);
+                glVertexPointer(3, GL_FLOAT, sizeof(vec), buf);
+                lastvertexarray = buf;
+            }
+            lightvert *vlight = NULL;
+            if(as.anim&ANIM_NOSKIN && (!isstat || stenciling))
+            {
+                if(lasttexcoordarray)
+                {
+                    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+                    lasttexcoordarray = NULL;
+                }
+            }
+            else 
+            {
+                if(lasttexcoordarray != tcverts)
+                {
+                    if(!lasttexcoordarray) glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+                    glTexCoordPointer(2, GL_FLOAT, sizeof(tcvert), tcverts);
+                    lasttexcoordarray = tcverts;
+                }
+                if(owner->model->vertexlight)
+                {
+                    if(d) d->locked = true;
+                    lightcacheentry *l = lightvertexes(as, cur, isstat ? NULL : prev, ai_t, buf);  
+                    if(d) d->locked = false;
+                    if(l) vlight = l->verts();
+                }
+            }
+            if(lastcolorarray != vlight)
+            {
+                if(vlight)
+                {
+                    if(!lastcolorarray) glEnableClientState(GL_COLOR_ARRAY);
+                    glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(lightvert), vlight);
+                }
+                else glDisableClientState(GL_COLOR_ARRAY);
+                lastcolorarray = vlight;
+            }
+            if(stenciling)
+            {
+                if(d) d->locked = true;
+                shadowcacheentry *s = genshadowvolume(as, cur, isstat ? NULL : prev, ai_t, buf);
+                if(d) d->locked = false;
+                if(!s) return;
+                buf[numverts] = s->dir;
+                glDrawElements(GL_TRIANGLES, s->numidxs(), GL_UNSIGNED_SHORT, s->idxs());
+                xtraverts += s->numidxs();
+                return;
+            }
+
+            bool builddlist = isstat && !owner->model->vertexlight && mdldlist;
+            if(builddlist) glNewList(statlist = glGenLists(1), GL_COMPILE);
+            loopi(numdyndraws)
+            {
+                const drawcall &d = dyndraws[i];
+                if(hasDRE && !builddlist) glDrawRangeElements_(d.type, d.minvert, d.maxvert, d.count, GL_UNSIGNED_SHORT, &dynidx[d.start]);
+                else glDrawElements(d.type, d.count, GL_UNSIGNED_SHORT, &dynidx[d.start]);
+            }
+            if(builddlist)
+            {
+                glEndList();
+                glCallList(statlist);
+                statlen = dynlen;
+            }
+            xtraverts += dynlen;
         }                     
 
         int findvert(int axis, int dir)
@@ -656,7 +653,7 @@ struct vertmodel : model
         virtual ~part()
         {
             DELETEA(filename);
-            meshes.deletecontentsp();
+            meshes.deletecontents();
             DELETEA(anims);
             DELETEA(links);
             DELETEA(tags);
@@ -989,7 +986,7 @@ struct vertmodel : model
             #undef FILTER
         }
 
-        void genshadow(int aasize, int frame, gzFile f)
+        void genshadow(int aasize, int frame, stream *f)
         {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -1003,7 +1000,7 @@ struct vertmodel : model
 #if 0
             SDL_Surface *img = SDL_CreateRGBSurface(SDL_SWSURFACE, aasize, aasize, 24, 0x0000FF, 0x00FF00, 0xFF0000, 0);
             loopi(aasize*aasize) memset((uchar *)img->pixels + 3*i, pixels[i], 3);
-            s_sprintfd(imgname)("%s_%d.bmp", model->loadname, frame);
+            defformatstring(imgname)("%s_%d.bmp", model->loadname, frame);
             for(char *s; (s = strchr(imgname, '/'));) *s = '_';
             SDL_SaveBMP(img, imgname);
             SDL_FreeSurface(img);
@@ -1013,8 +1010,8 @@ struct vertmodel : model
 
             int texsize = min(aasize, 1<<dynshadowsize);
             blurshadow(pixels, &pixels[texsize*texsize], texsize);
-            if(f) gzwrite(f, &pixels[texsize*texsize], texsize*texsize);
-            createtexture(shadows[frame], texsize, texsize, &pixels[texsize*texsize], 3, true, GL_ALPHA);
+            if(f) f->write(&pixels[texsize*texsize], texsize*texsize);
+            createtexture(shadows[frame], texsize, texsize, &pixels[texsize*texsize], 3, true, false, GL_ALPHA);
 
             delete[] pixels;
         }
@@ -1040,7 +1037,7 @@ struct vertmodel : model
             int aasize = 1<<(dynshadowsize + aadynshadow);
             while(aasize > screen->w || aasize > screen->h) aasize /= 2;
 
-            gzFile f = filename ? opengzfile(filename, "wb9") : NULL;
+            stream *f = filename ? opengzfile(filename, "wb") : NULL;
             if(f)
             {
                 shadowheader hdr;
@@ -1048,11 +1045,10 @@ struct vertmodel : model
                 hdr.frames = numframes;
                 hdr.height = height;
                 hdr.rad = rad;
-                endianswap(&hdr.size, sizeof(ushort), 1);
-                endianswap(&hdr.frames, sizeof(ushort), 1);
-                endianswap(&hdr.height, sizeof(float), 1);
-                endianswap(&hdr.rad, sizeof(float), 1);
-                gzwrite(f, &hdr, sizeof(shadowheader));
+                f->putlil(hdr.size);
+                f->putlil(hdr.frames);
+                f->putlil(hdr.height);
+                f->putlil(hdr.rad);
             }
 
             glViewport(0, 0, aasize, aasize);
@@ -1076,33 +1072,32 @@ struct vertmodel : model
             glEnable(GL_FOG);
             glViewport(0, 0, screen->w, screen->h);
 
-            if(f) gzclose(f);
+            if(f) delete f;
         }
 
         bool loadshadows(const char *filename)
         {
-            gzFile f = opengzfile(filename, "rb9");
+            stream *f = opengzfile(filename, "rb");
             if(!f) return false;
             shadowheader hdr;
-            if(gzread(f, &hdr, sizeof(shadowheader))!=sizeof(shadowheader)) { gzclose(f); return false; }
-            endianswap(&hdr.size, sizeof(ushort), 1);
-            endianswap(&hdr.frames, sizeof(ushort), 1);
-            if(hdr.size!=(1<<dynshadowsize) || hdr.frames!=numframes) { gzclose(f); return false; }
-            endianswap(&hdr.height, sizeof(float), 1);
-            endianswap(&hdr.rad, sizeof(float), 1);
+            if(f->read(&hdr, sizeof(shadowheader))!=sizeof(shadowheader)) { delete f; return false; }
+            lilswap(&hdr.size, 1);
+            lilswap(&hdr.frames, 1);
+            if(hdr.size!=(1<<dynshadowsize) || hdr.frames!=numframes) { delete f; return false; }
+            lilswap(&hdr.height, 1);
+            lilswap(&hdr.rad, 1);
 
             uchar *buf = new uchar[hdr.size*hdr.size*hdr.frames];
-            if(gzread(f, buf, hdr.size*hdr.size*hdr.frames)!=hdr.size*hdr.size*hdr.frames) { gzclose(f); return false; }
+            if(f->read(buf, hdr.size*hdr.size*hdr.frames)!=hdr.size*hdr.size*hdr.frames) { delete f; return false; }
 
             shadowrad = hdr.rad;
             shadows = new GLuint[hdr.frames];
             glGenTextures(hdr.frames, shadows);
 
-            loopi(hdr.frames) createtexture(shadows[i], hdr.size, hdr.size, &buf[i*hdr.size*hdr.size], 3, true, GL_ALPHA);
+            loopi(hdr.frames) createtexture(shadows[i], hdr.size, hdr.size, &buf[i*hdr.size*hdr.size], 3, true, false, GL_ALPHA);
             
             delete[] buf;
-
-            gzclose(f);
+            delete f;
 
             return true;
         }
@@ -1183,8 +1178,8 @@ struct vertmodel : model
             static string s;
             char *dir = strrchr(filename, PATHDIV);
             if(!dir) s[0] = '\0';
-            else s_strncpy(s, filename, dir-filename+2); 
-            s_strcat(s, "shadows.dat");
+            else copystring(s, filename, dir-filename+2); 
+            concatstring(s, "shadows.dat");
             return s;
         }
 
@@ -1218,7 +1213,7 @@ struct vertmodel : model
     ~vertmodel()
     {
         delete[] loadname;
-        parts.deletecontentsp();
+        parts.deletecontents();
     }
 
     char *name() { return loadname; }

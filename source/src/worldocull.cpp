@@ -1,6 +1,5 @@
 // worldocull.cpp: occlusion map and occlusion test
 
-#include "pch.h"
 #include "cube.h"
 
 #define NUMRAYS 512
@@ -77,7 +76,7 @@ void computeraytable(float vx, float vy, float fov)
 #define ca(xv, yv) ({ float x = (xv), y = (yv); x>y ? y/x : 2-x/y; })
 #define ma(xv, yv) ({ float x = (xv), y = (yv); x==0 ? (y>0 ? 2 : -2) : y/x; })
 #else
-static inline float ca(float x, float y) { return x>y ? y/x : 2-x/y; } 
+static inline float ca(float x, float y) { return x>y ? y/x : 2-x/y; }
 static inline float ma(float x, float y) { return x==0 ? (y>0 ? 2 : -2) : y/x; }
 #endif
 

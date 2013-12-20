@@ -59,6 +59,7 @@ static inline float round(float x) { return floor(x + 0.5f); }
 
 #define clamp(a,b,c) (max(b, min(a, c)))
 #define rnd(max) (rand()%(max))
+#define rnd_2x(max) (rand()%(max)+rand()%(max))
 #define detrnd(s, x) ((int)(((((uint)(s))*1103515245+12345)>>16)%(x)))
 
 #define loop(v,m) for(int v = 0; v<int(m); v++)
@@ -101,38 +102,99 @@ static inline float round(float x) { return floor(x + 0.5f); }
 
 // easy safe strings
 
-#define _MAXDEFSTR 260
-typedef char string[_MAXDEFSTR];
+#define MAXSTRLEN 260
+typedef char string[MAXSTRLEN];
 
-inline void formatstring(char *d, const char *fmt, va_list v) { _vsnprintf(d, _MAXDEFSTR, fmt, v); d[_MAXDEFSTR-1] = 0; }
-inline char *s_strncpy(char *d, const char *s, size_t m) { strncpy(d,s,m); d[m-1] = 0; return d; }
-inline char *s_strcpy(char *d, const char *s) { return s_strncpy(d,s,_MAXDEFSTR); }
-inline char *s_strcat(char *d, const char *s) { size_t n = strlen(d); return s_strncpy(d+n,s,_MAXDEFSTR-n); }
-extern char *s_strcatf(char *d, const char *s, ...);
+inline void vformatstring(char *d, const char *fmt, va_list v, int len = MAXSTRLEN) { _vsnprintf(d, len, fmt, v); d[len-1] = 0; }
+inline char *copystring(char *d, const char *s, size_t len = MAXSTRLEN) { strncpy(d, s, len); d[len-1] = 0; return d; }
+inline char *concatstring(char *d, const char *s, size_t len = MAXSTRLEN) { size_t used = strlen(d); return used < len ? copystring(d+used, s, len-used) : d; }
+extern char *concatformatstring(char *d, const char *s, ...);
 
-struct s_sprintf_f
+struct stringformatter
 {
-    char *d;
-    s_sprintf_f(char *str) : d(str) {}
-    void operator()(const char* fmt, ...)
+    char *buf;
+    stringformatter(char *buf): buf((char *)buf) {}
+    void operator()(const char *fmt, ...)
     {
         va_list v;
         va_start(v, fmt);
-        formatstring(d, fmt, v);
+        vformatstring(buf, fmt, v);
         va_end(v);
-    };
+    }
 };
 
-#define s_sprintf(d) s_sprintf_f((char *)d)
-#define s_sprintfd(d) string d; s_sprintf(d)
-#define s_sprintfdlv(d,last,fmt) string d; { va_list ap; va_start(ap, last); formatstring(d, fmt, ap); va_end(ap); }
-#define s_sprintfdv(d,fmt) s_sprintfdlv(d,fmt,fmt)
+#define formatstring(d) stringformatter((char *)d)
+#define defformatstring(d) string d; formatstring(d)
+#define defvformatstring(d,last,fmt) string d; { va_list ap; va_start(ap, last); vformatstring(d, fmt, ap); va_end(ap); }
 
-#define loopv(v)    if(false) {} else for(int i = 0; i<(v).length(); i++)
-#define loopvj(v)   if(false) {} else for(int j = 0; j<(v).length(); j++)
-#define loopvk(v)   if(false) {} else for(int k = 0; k<(v).length(); k++)
-#define loopvrev(v) if(false) {} else for(int i = (v).length()-1; i>=0; i--)
-#define loopvjrev(v) if(false) {} else for(int j = (v).length()-1; i>=0; i--)
+//#define s_sprintf(d) s_sprintf_f((char *)d)
+//#define s_sprintfd(d) string d; s_sprintf(d)
+//#define s_sprintfdlv(d,last,fmt) string d; { va_list ap; va_start(ap, last); formatstring(d, fmt, ap); va_end(ap); }
+//#define s_sprintfdv(d,fmt) s_sprintfdlv(d,fmt,fmt)
+
+inline char *strcaps(const char *s, bool on)
+{
+    int (*caps)(int t) = (on ? toupper : tolower);
+    static char r[128];
+    char *c = (char *)s, *o = r;
+    int n = 0;
+    while( *c!='\0' && n < 127)
+    {
+        *o = caps(*c);
+        n++; o++; c++;
+    }
+    *o='\0';
+    return r;
+}
+
+inline bool issimilar (char s, char d)
+{
+    s = tolower(s); d = tolower(d);
+    if ( s == d ) return true;
+    switch (d)
+    {
+        case 'a': if ( s == '@' || s == '4' ) return true; break;
+        case 'c': if ( s == 'k' ) return true; break;
+        case 'e': if ( s == '3' ) return true; break;
+        case 'i': if ( s == '!' || s == '1' ) return true; break;
+        case 'o': if ( s == '0' ) return true; break;
+        case 's': if ( s == '$' || s == '5' ) return true; break;
+        case 't': if ( s == '7' ) return true; break;
+        case 'u': if ( s == '#' ) return true; break;
+    }
+    return false;
+}
+
+inline bool findpattern (char *s, char *d) // returns true if there is more than 80% of similarity
+{
+    int len, hit = 0;
+    if (!d || (len = strlen(d)) < 1) return false;
+    char *dp = d, *s_end = s + strlen(s);
+    while (s != s_end)
+    {
+        if ( *s == ' ' )                                                         // spaces separate words
+        {
+            if ( !issimilar(*(s+1),*dp) ) { dp = d; hit = 0; }                   // d e t e c t  i t
+        }
+        else if ( issimilar(*s,*dp) ) { dp++; hit++; }                           // hit!
+        else if ( hit > 0 )                                                      // this is not a pair, but there is a previous pattern
+        {
+            if (*s == '.' || *s == *(s-1) || issimilar(*(s+1),*dp) );            // separator or typo (do nothing)
+            else if ( issimilar(*(s+1),*(dp+1)) || *s == '*' ) dp++;             // wild card or typo
+            else hit--;                                                          // maybe this is nothing
+        }
+        else dp = d;                                                             // nothing here
+        s++;                                  // walk on the string
+        if ( hit && 5 * hit > 4 * len ) return true;                             // found it!
+    }
+    return false;
+}
+
+#define loopv(v)    for(int i = 0; i<(v).length(); i++)
+#define loopvj(v)   for(int j = 0; j<(v).length(); j++)
+#define loopvk(v)   for(int k = 0; k<(v).length(); k++)
+#define loopvrev(v) for(int i = (v).length()-1; i>=0; i--)
+#define loopvjrev(v) for(int j = (v).length()-1; i>=0; i--)
 
 template <class T>
 struct databuf
@@ -146,6 +208,8 @@ struct databuf
     T *buf;
     int len, maxlen;
     uchar flags;
+
+    databuf() : buf(NULL), len(0), maxlen(0), flags(0) {}
 
     template <class U>
     databuf(T *buf, U maxlen) : buf(buf), len(0), maxlen((int)maxlen), flags(0) {}
@@ -178,10 +242,19 @@ struct databuf
         len += min(maxlen-len, numvals);
     }
 
+    int get(T *vals, int numvals)
+    {
+        int read = min(maxlen-len, numvals);
+        if(read<numvals) flags |= OVERREAD;
+        memcpy(vals, &buf[len], read*sizeof(T));
+        len += read;
+        return read;
+    }
+
     int length() const { return len; }
     int remaining() const { return maxlen-len; }
-    bool overread() const { return flags&OVERREAD; }
-    bool overwrote() const { return flags&OVERWROTE; }
+    bool overread() const { return (flags&OVERREAD)!=0; }
+    bool overwrote() const { return (flags&OVERWROTE)!=0; }
 
     void forceoverread()
     {
@@ -192,6 +265,105 @@ struct databuf
 
 typedef databuf<char> charbuf;
 typedef databuf<uchar> ucharbuf;
+
+struct packetbuf : ucharbuf
+{
+    ENetPacket *packet;
+    int growth;
+
+    packetbuf(ENetPacket *packet) : ucharbuf(packet->data, packet->dataLength), packet(packet), growth(0) {}
+    packetbuf(int growth, int pflags = 0) : growth(growth)
+    {
+        packet = enet_packet_create(NULL, growth, pflags);
+        buf = (uchar *)packet->data;
+        maxlen = packet->dataLength;
+    }
+    ~packetbuf() { cleanup(); }
+
+    void reliable() { packet->flags |= ENET_PACKET_FLAG_RELIABLE; }
+
+    void resize(int n)
+    {
+        enet_packet_resize(packet, n);
+        buf = (uchar *)packet->data;
+        maxlen = packet->dataLength;
+    }
+
+    void checkspace(int n)
+    {
+        if(len + n > maxlen && packet && growth > 0) resize(max(len + n, maxlen + growth));
+    }
+
+    ucharbuf subbuf(int sz)
+    {
+        checkspace(sz);
+        return ucharbuf::subbuf(sz);
+    }
+
+    void put(const uchar &val)
+    {
+        checkspace(1);
+        ucharbuf::put(val);
+    }
+
+    void put(const uchar *vals, int numvals)
+    {
+        checkspace(numvals);
+        ucharbuf::put(vals, numvals);
+    }
+
+    bool overwrote() const { return false; }
+
+    ENetPacket *finalize()
+    {
+        resize(len);
+        return packet;
+    }
+
+    void cleanup()
+    {
+        if(growth > 0 && packet && !packet->referenceCount) { enet_packet_destroy(packet); packet = NULL; buf = NULL; len = maxlen = 0; }
+    }
+};
+
+template<class T>
+struct bitbuf
+{
+    T &q;
+    int blen;
+
+    bitbuf(T &oq) : q(oq), blen(0) {}
+
+    int getbits(int n)
+    {
+        int res = 0, p = 0;
+        while(n > 0)
+        {
+            if(!blen) q.get();
+            int r = 8 - blen;
+            if(r > n) r = n;
+            res |= ((q.buf[q.len - 1] >> blen) & ((1 << r) - 1)) << p;
+            n -= r; p += r;
+            blen = (blen + r) % 8;
+        }
+        return res;
+    }
+
+    void putbits(int n, int v)
+    {
+        while(n > 0)
+        {
+            if(!blen) { q.put(0); if(q.overwrote()) return; }
+            int r = 8 - blen;
+            if(r > n) r = n;
+            q.buf[q.len - 1] |= (v & ((1 << r) - 1)) << blen;
+            n -= r; v >>= r;
+            blen = (blen + r) % 8;
+        }
+    }
+
+    int rembits() { return (8 - blen) % 8; }   // 0..7 bits remaining in current byte
+};
 
 template <class T> struct vector
 {
@@ -209,33 +381,33 @@ template <class T> struct vector
         *this = v;
     }
 
-    ~vector() { setsize(0); if(buf) delete[] (uchar *)buf; }
+    ~vector() { shrink(0); if(buf) delete[] (uchar *)buf; }
 
     vector<T> &operator=(const vector<T> &v)
     {
-        setsize(0);
-        if(v.length() > alen) vrealloc(v.length());
+        shrink(0);
+        if(v.length() > alen) growbuf(v.length());
         loopv(v) add(v[i]);
         return *this;
     }
 
     T &add(const T &x)
     {
-        if(ulen==alen) vrealloc(ulen+1);
+        if(ulen==alen) growbuf(ulen+1);
         new (&buf[ulen]) T(x);
         return buf[ulen++];
     }
 
     T &add()
     {
-        if(ulen==alen) vrealloc(ulen+1);
+        if(ulen==alen) growbuf(ulen+1);
         new (&buf[ulen]) T;
         return buf[ulen++];
     }
 
     T &dup()
     {
-        if(ulen==alen) vrealloc(ulen+1);
+        if(ulen==alen) growbuf(ulen+1);
         new (&buf[ulen]) T(buf[ulen-1]);
         return buf[ulen++];
     }
@@ -248,15 +420,16 @@ template <class T> struct vector
     void drop() { buf[--ulen].~T(); }
     bool empty() const { return ulen==0; }
 
+    int capacity() const { return alen; }
     int length() const { return ulen; }
     T &operator[](int i) { ASSERT(i>=0 && i<ulen); return buf[i]; }
     const T &operator[](int i) const { ASSERT(i >= 0 && i<ulen); return buf[i]; }
 
-    void setsize(int i)         { ASSERT(i<=ulen); while(ulen>i) drop(); }
-    void setsizenodelete(int i) { ASSERT(i<=ulen); ulen = i; }
+    void shrink(int i)         { ASSERT(i<=ulen); while(ulen>i) drop(); }
+    void setsize(int i) { ASSERT(i<=ulen); ulen = i; }
 
-    void deletecontentsp() { while(!empty()) delete   pop(); }
-    void deletecontentsa() { while(!empty()) delete[] pop(); }
+    void deletecontents() { while(!empty()) delete   pop(); }
+    void deletearrays() { while(!empty()) delete[] pop(); }
 
     T *getbuf() { return buf; }
     const T *getbuf() const { return buf; }
@@ -274,7 +447,7 @@ template <class T> struct vector
         return (T *) bsearch(key, &buf[i], n<0 ? ulen : n, sizeof(T), (int (__cdecl *)(const void *,const void *))cf);
     }
 
-    void vrealloc(int sz)
+    void growbuf(int sz)
     {
         int olen = alen;
         if(!alen) alen = max(MINSIZE, sz);
@@ -291,13 +464,27 @@ template <class T> struct vector
 
     databuf<T> reserve(int sz)
     {
-        if(ulen+sz > alen) vrealloc(ulen+sz);
+        if(ulen+sz > alen) growbuf(ulen+sz);
         return databuf<T>(&buf[ulen], sz);
+    }
+
+    void advance(int sz)
+    {
+        ulen += sz;
     }
 
     void addbuf(const databuf<T> &p)
     {
-        ulen += p.length();
+        advance(p.length());
+    }
+
+    void put(const T &v) { add(v); }
+
+    void put(const T *v, int n)
+    {
+        databuf<T> buf = reserve(n);
+        buf.put(v, n);
+        addbuf(buf);
     }
 
     void remove(int i, int n)
@@ -342,11 +529,16 @@ template <class T> struct vector
         buf[i] = e;
         return buf[i];
     }
-};
 
-typedef vector<char *> cvector;
-typedef vector<int> ivector;
-typedef vector<ushort> usvector;
+    T *insert(int i, const T *e, int n)
+    {
+        if(ulen+n>alen) growbuf(ulen+n);
+        loopj(n) add(T());
+        for(int p = ulen-1; p>=i+n; p--) buf[p] = buf[p-n];
+        loopj(n) buf[i+j] = e[j];
+        return &buf[i];
+    }
+};
 
 static inline uint hthash(const char *key)
 {
@@ -563,6 +755,12 @@ template <class T, int SIZE> struct ringbuf
         if(i >= SIZE) i -= SIZE;
         return data[i];
     }
+
+    int find(const T &o)
+    {
+        loopi(len) if(data[i]==o) return i;
+        return -1;
+    }
 };
 
 #define itoa(s, i) sprintf(s, "%d", i)
@@ -572,11 +770,117 @@ template <class T, int SIZE> struct ringbuf
 #define enumeratek(ht,k,e,b)      loopi((ht).size) for((ht).enumc = (ht).table[i]; (ht).enumc;) { k &e = (ht).enumc->key; (ht).enumc = (ht).enumc->next; b; }
 #define enumerate(ht,t,e,b)       loopi((ht).size) for((ht).enumc = (ht).table[i]; (ht).enumc;) { t &e = (ht).enumc->data; (ht).enumc = (ht).enumc->next; b; }
 
+#ifndef STANDALONE
+// ease time measurement
+struct stopwatch
+{
+	int millis;
+
+	stopwatch() : millis(-1) {}
+
+	void start()
+	{
+		millis = SDL_GetTicks();
+	}
+
+	// returns elapsed time
+	int stop()
+	{
+		ASSERT(millis >= 0);
+		int time = SDL_GetTicks() - millis;
+		millis = -1;
+		return time;
+	}
+};
+#endif
+
 inline char *newstring(size_t l)                { return new char[l+1]; }
-inline char *newstring(const char *s, size_t l) { return s_strncpy(newstring(l), s, l+1); }
+inline char *newstring(const char *s, size_t l) { return copystring(newstring(l), s, l+1); }
 inline char *newstring(const char *s)           { return newstring(s, strlen(s)); }
-inline char *newstringbuf()                     { return newstring(_MAXDEFSTR-1); }
-inline char *newstringbuf(const char *s)        { return newstring(s, _MAXDEFSTR-1); }
+inline char *newstringbuf()                     { return newstring(MAXSTRLEN-1); }
+inline char *newstringbuf(const char *s)        { return newstring(s, MAXSTRLEN-1); }
+
+#ifndef STANDALONE
+inline const char *_gettext(const char *msgid)
+{
+	if(msgid && msgid[0] != '\0')
+		return gettext(msgid);
+	else
+		return "";
+}
+#endif
+
+#define _(s) _gettext(s)
+
+const int islittleendian = 1;
+#ifdef SDL_BYTEORDER
+#define endianswap16 SDL_Swap16
+#define endianswap32 SDL_Swap32
+#else
+inline ushort endianswap16(ushort n) { return (n<<8) | (n>>8); }
+inline uint endianswap32(uint n) { return (n<<24) | (n>>24) | ((n>>8)&0xFF00) | ((n<<8)&0xFF0000); }
+#endif
+template<class T> inline T endianswap(T n) { union { T t; uint i; } conv; conv.t = n; conv.i = endianswap32(conv.i); return conv.t; }
+template<> inline ushort endianswap<ushort>(ushort n) { return endianswap16(n); }
+template<> inline short endianswap<short>(short n) { return endianswap16(n); }
+template<> inline uint endianswap<uint>(uint n) { return endianswap32(n); }
+template<> inline int endianswap<int>(int n) { return endianswap32(n); }
+template<class T> inline void endianswap(T *buf, int len) { for(T *end = &buf[len]; buf < end; buf++) *buf = endianswap(*buf); }
+template<class T> inline T endiansame(T n) { return n; }
+template<class T> inline void endiansame(T *buf, int len) {}
+#ifdef SDL_BYTEORDER
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN
+#define lilswap endiansame
+#define bigswap endianswap
+#else
+#define lilswap endianswap
+#define bigswap endiansame
+#endif
+#else
+template<class T> inline T lilswap(T n) { return *(const uchar *)&islittleendian ? n : endianswap(n); }
+template<class T> inline void lilswap(T *buf, int len) { if(!*(const uchar *)&islittleendian) endianswap(buf, len); }
+template<class T> inline T bigswap(T n) { return *(const uchar *)&islittleendian ? endianswap(n) : n; }
+template<class T> inline void bigswap(T *buf, int len) { if(*(const uchar *)&islittleendian) endianswap(buf, len); }
+#endif
+
+/* workaround for some C platforms that have these two functions as macros - not used anywhere */
+#ifdef getchar
+#undef getchar
+#endif
+#ifdef putchar
+#undef putchar
+#endif
+
+struct stream
+{
+    virtual ~stream() {}
+    virtual void close() = 0;
+    virtual bool end() = 0;
+    virtual long tell() { return -1; }
+    virtual bool seek(long offset, int whence = SEEK_SET) { return false; }
+    virtual long size();
+    virtual int read(void *buf, int len) { return 0; }
+    virtual int write(const void *buf, int len) { return 0; }
+    virtual int getchar() { uchar c; return read(&c, 1) == 1 ? c : -1; }
+    virtual bool putchar(int n) { uchar c = n; return write(&c, 1) == 1; }
+    virtual bool getline(char *str, int len);
+    virtual bool putstring(const char *str) { int len = (int)strlen(str); return write(str, len) == len; }
+    virtual bool putline(const char *str) { return putstring(str) && putchar('\n'); }
+    virtual int printf(const char *fmt, ...) { return -1; }
+    virtual uint getcrc() { return 0; }
+
+    template<class T> bool put(T n) { return write(&n, sizeof(n)) == sizeof(n); }
+    template<class T> bool putlil(T n) { return put<T>(lilswap(n)); }
+    template<class T> bool putbig(T n) { return put<T>(bigswap(n)); }
+
+    template<class T> T get() { T n; return read(&n, sizeof(n)) == sizeof(n) ? n : 0; }
+    template<class T> T getlil() { return lilswap(get<T>()); }
+    template<class T> T getbig() { return bigswap(get<T>()); }
+
+#ifndef STANDALONE
+    SDL_RWops *rwops();
+#endif
+};
 
 extern const char *timestring(bool local = false, const char *fmt = NULL);
 extern const char *asctime();
@@ -587,19 +891,25 @@ extern const char *behindpath(const char *s);
 extern const char *parentdir(const char *directory);
 extern bool fileexists(const char *path, const char *mode);
 extern bool createdir(const char *path);
+extern size_t fixpackagedir(char *dir);
 extern void sethomedir(const char *dir);
 extern void addpackagedir(const char *dir);
 extern const char *findfile(const char *filename, const char *mode);
 extern int getfilesize(const char *filename);
-extern FILE *openfile(const char *filename, const char *mode);
-extern gzFile opengzfile(const char *filename, const char *mode);
+extern stream *openrawfile(const char *filename, const char *mode);
+extern stream *openzipfile(const char *filename, const char *mode);
+extern stream *openfile(const char *filename, const char *mode);
+extern stream *opentempfile(const char *filename, const char *mode);
+extern stream *opengzfile(const char *filename, const char *mode, stream *file = NULL, int level = Z_BEST_COMPRESSION);
 extern char *loadfile(const char *fn, int *size, const char *mode = NULL);
 extern bool listdir(const char *dir, const char *ext, vector<char *> &files);
 extern int listfiles(const char *dir, const char *ext, vector<char *> &files);
+extern int listzipfiles(const char *dir, const char *ext, vector<char *> &files);
 extern bool delfile(const char *path);
 extern struct mapstats *loadmapstats(const char *filename, bool getlayout);
 extern bool cmpb(void *b, int n, enet_uint32 c);
 extern bool cmpf(char *fn, enet_uint32 c);
+extern enet_uint32 adler(unsigned char *data, size_t len);
 extern void endianswap(void *, int, int);
 extern bool isbigendian();
 extern void strtoupper(char *t, const char *s = NULL);
@@ -609,6 +919,8 @@ extern const char *atoip(const char *s, enet_uint32 *ip);
 extern const char *atoipr(const char *s, iprange *ir);
 extern const char *iptoa(const enet_uint32 ip);
 extern const char *iprtoa(const struct iprange &ipr);
+extern int cmpiprange(const struct iprange *a, const struct iprange *b);
+extern int cmpipmatch(const struct iprange *a, const struct iprange *b);
 extern const char *hiddenpwd(const char *pwd, int showchars = 0);
 
 #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)

@@ -80,10 +80,10 @@ FunctionEnd
 
 SetCompressor /SOLID lzma
 
-!define CURPATH "R:\projects\actioncube\_svn\branches\v01_00_xx\ac\source\vcpp\buildEnv" ; CHANGE ME
+!define CURPATH "R:\projects\actioncube\_svn\trunk\ac\source\vcpp\buildEnv" ; CHANGE ME
 !define AC_VERSION "v1.0"
-!define AC_FULLVERSION "v1.0.4"
-!define AC_FULLVERSIONINT "1.0.4"
+!define AC_FULLVERSION "v1.0.2"
+!define AC_FULLVERSIONINT "1.0.2"
 !define AC_SHORTNAME "AssaultCube"
 !define AC_FULLNAME "AssaultCube v1.0"
 !define AC_FULLNAMESAVE "AssaultCube_v1.0"

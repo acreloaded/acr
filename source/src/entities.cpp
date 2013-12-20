@@ -1,42 +1,36 @@
 // entities.cpp: map entity related functions (pickup etc.)
 
-#include "pch.h"
 #include "cube.h"
 
 vector<entity> ents;
-
-const char *entnames[] =
-{
-    "none?", "light", "playerstart",
-    "pistol", "ammobox","grenades",
-    "health", "armour", "akimbo",
-    "mapmodel", "trigger",
-    "ladder", "ctf-flag",
-    "sound", "clip", "", ""
-};
-
+vector<int> eh_ents; // edithide entities
 const char *entmdlnames[] =
 {
-	"pickups/pistolclips", "pickups/ammobox", "pickups/nades", "pickups/health", "pickups/kevlar", "pickups/akimbo",
+    "pickups/pistolclips", "pickups/ammobox", "pickups/nade", "pickups/health", "pickups/helmet", "pickups/kevlar", "pickups/akimbo", "pickups/nades", //FIXME
 };
 
 void renderent(entity &e)
 {
-    const char *mdlname = entmdlnames[e.type-I_CLIPS];
+    /* FIXME: if the item list change, this hack will be messed */
+    const char *mdlname = entmdlnames[e.type-I_CLIPS+(m_lss && e.type==I_GRENADE ? 5:0)];
     float z = (float)(1+sinf(lastmillis/100.0f+e.x+e.y)/20),
           yaw = lastmillis/10.0f;
-	rendermodel(mdlname, ANIM_MAPMODEL|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor+e.attr1), yaw, 0);
+    rendermodel(mdlname, ANIM_MAPMODEL|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor+e.attr1), yaw, 0);
 }
 
-void renderclip(entity &e, bool ismm = false)
+void renderclip(entity &e)
 {
     float xradius = max(float(e.attr2), 0.1f), yradius = max(float(e.attr3), 0.1f);
     vec bbmin(e.x - xradius, e.y - yradius, float(S(e.x, e.y)->floor+e.attr1)),
         bbmax(e.x + xradius, e.y + yradius, bbmin.z + max(float(e.attr4), 0.1f));
 
     glDisable(GL_TEXTURE_2D);
-    if(ismm) linestyle(1, 0, 0xFF, 0);
-    else linestyle(1, 0xFF, 0xFF, 0);
+    switch(e.type)
+    {
+        case CLIP:     linestyle(1, 0xFF, 0xFF, 0); break;  // yellow
+        case MAPMODEL: linestyle(1, 0, 0xFF, 0);    break;  // green
+        case PLCLIP:   linestyle(1, 0xFF, 0, 0xFF); break;  // magenta
+    }
     glBegin(GL_LINES);
 
     glVertex3f(bbmin.x, bbmin.y, bbmin.z);
@@ -73,22 +67,134 @@ void rendermapmodels()
 
 VAR(showmodelclipping, 0, 0, 1);
 
+void showedithide()
+{
+    loopv(eh_ents)
+    {
+        if(eh_ents[i]>0 && eh_ents[i]<MAXENTTYPES) { conoutf("#%02d: %d : %s", i, eh_ents[i], entnames[eh_ents[i]]); }
+        else { conoutf("#%02d: %d : -n/a-", i, eh_ents[i]);  }
+    }
+}
+COMMAND(showedithide, ARG_NONE);
+
+void setedithide(char *text) // FIXME: human indexing inside
+{
+    eh_ents.setsize(0);
+	if(text && text[0] != '\0')
+	{
+		const char *s = strtok(text, " ");
+		do
+		{
+			bool k = false;
+			int sn = -1;
+			int tn = atoi(s);
+			loopi(MAXENTTYPES) if(!strcmp(entnames[i], s)) sn = i;
+			if(sn!=-1) { loopv(eh_ents) { if(eh_ents[i]==sn) { k = true; } } }
+			else sn = tn;
+			if(!k) { if(sn>0 && sn<MAXENTTYPES) eh_ents.add(sn); }
+			s = strtok(NULL, " ");
+		}
+		while(s);
+	}
+}
+COMMAND(setedithide, ARG_CONC);
+
+void seteditshow(char *just)
+{
+    eh_ents.setsize(0);
+    if(just && just[0] != '\0')
+    {
+        const char *s = strtok(just, " ");
+        int sn = -1;
+        int tn = atoi(s);
+        loopi(MAXENTTYPES) if(!strcmp(entnames[i], s)) sn = i;
+        if(sn==-1) sn = tn;
+        loopi(MAXENTTYPES-1)
+        {
+            int j = i+1;
+            if(j!=sn) eh_ents.add(j);
+        }
+    }
+}
+COMMAND(seteditshow, ARG_1STR);
+
+void renderentarrow(const entity &e, const vec &dir, float radius)
+{
+    if(radius <= 0) return;
+    float arrowsize = min(radius/8, 0.5f);
+    vec epos(e.x, e.y, e.z);
+    vec target = vec(dir).mul(radius).add(epos), arrowbase = vec(dir).mul(radius - arrowsize).add(epos), spoke;
+    spoke.orthogonal(dir);
+    spoke.normalize();
+    spoke.mul(arrowsize);
+    glDisable(GL_TEXTURE_2D); // this disables reaction to light, but also emphasizes shadows .. a nice effect, but should be independent
+    glDisable(GL_CULL_FACE);
+    glLineWidth(3);
+    glBegin(GL_LINES);
+    glVertex3fv(epos.v);
+    glVertex3fv(target.v);
+    glEnd();
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex3fv(target.v);
+    loopi(5)
+    {
+        vec p(spoke);
+        p.rotate(2*M_PI*i/4.0f, dir);
+        p.add(arrowbase);
+        glVertex3fv(p.v);
+    }
+    glEnd();
+    glLineWidth(1);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_TEXTURE_2D);
+}
+
 void renderentities()
 {
+    int closest = editmode ? closestent() : -1;
     if(editmode && !reflecting && !refracting && !stenciling)
     {
         static int lastsparkle = 0;
         if(lastmillis - lastsparkle >= 20)
         {
             lastsparkle = lastmillis - (lastmillis%20);
-            int closest = closestent();
+            // closest see above
             loopv(ents)
             {
                 entity &e = ents[i];
                 if(e.type==NOTUSED) continue;
+                bool ice = false;
+                loopk(eh_ents.length()) if(eh_ents[k]==e.type) ice = true;
+                if(ice) continue;
                 vec v(e.x, e.y, e.z);
                 if(vec(v).sub(camera1->o).dot(camdir) < 0) continue;
-                particle_splash(i == closest ? 12 : 2, 2, 40, v);
+                //particle_splash(i == closest ? 12 : 2, 2, 40, v);
+                int sc = 17; // "carrot" (orange) - entity slot currently unused, possibly "reserved"
+                if(i==closest)
+                {
+                    sc = 2;
+                }
+                else switch(e.type)
+                {
+                    case LIGHT : sc = 12; break; // white
+                    case PLAYERSTART: sc = 13; break; // green
+                    case I_CLIPS:
+                    case I_AMMO:
+                    case I_GRENADE: sc = 14; break; // red
+                    case I_HEALTH:
+                    case I_HELMET:
+                    case I_ARMOUR:
+                    case I_AKIMBO: sc = 15; break; // yellow
+                    case MAPMODEL:
+                    case SOUND: sc = 16; break; // magenta
+                    case LADDER:
+                    case CLIP:
+                    case PLCLIP: sc = 18; break; // grey
+                    case CTF_FLAG: sc = 19; break; // turquoise
+                    default: break;
+                }
+                //particle_splash(sc, i==closest?6:2, i==closest?120:40, v);
+                particle_splash(sc, 2, 40, v);
             }
         }
     }
@@ -106,22 +212,37 @@ void renderentities()
         {
             if(e.type==CTF_FLAG)
             {
-                s_sprintfd(path)("pickups/flags/%s", team_string(e.attr2));
+                defformatstring(path)("pickups/flags/%s", team_basestring(e.attr2));
                 rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
             }
-            else if(e.type==CLIP && !stenciling) renderclip(e);
+            else if((e.type == CLIP || e.type == PLCLIP) && !stenciling) renderclip(e);
             else if(showmodelclipping && e.type == MAPMODEL && !stenciling)
             {
                 mapmodelinfo &mmi = getmminfo(e.attr2);
                 if(&mmi && mmi.h)
                 {
                     entity ce = e;
-                    ce.type = CLIP;
+                    ce.type = MAPMODEL;
                     ce.attr1 = mmi.zoff+e.attr3;
                     ce.attr2 = ce.attr3 = mmi.rad;
                     ce.attr4 = mmi.h;
-                    renderclip(ce, true);
+                    renderclip(ce);
                 }
+            }
+        }
+        if(editmode && i==closest && !stenciling)//closest see above
+        {
+            switch(e.type)
+            {
+                case PLAYERSTART:
+                {
+                    glColor3f(0, 1, 1);
+                    vec dir;
+                    vecfromyawpitch(e.attr1, 0, -1, 0, dir);
+                    renderentarrow(e, dir, 4);
+                    glColor3f(1, 1, 1);
+                }
+                default: break;
             }
         }
     }
@@ -134,7 +255,7 @@ void renderentities()
                 if(f.actor && f.actor != player1)
                 {
                     if(OUTBORD(f.actor->o.x, f.actor->o.y)) break;
-                    s_sprintfd(path)("pickups/flags/small_%s%s", m_ktf ? "" : team_string(i), m_htf ? "_htf" : m_ktf ? "ktf" : "");
+                    defformatstring(path)("pickups/flags/small_%s%s", m_ktf ? "" : team_basestring(i), m_htf ? "_htf" : m_ktf ? "ktf" : "");
                     rendermodel(path, ANIM_FLAG|ANIM_START|ANIM_DYNALLOC, 0, 0, vec(f.actor->o).add(vec(0, 0, 0.3f+(sinf(lastmillis/100.0f)+1)/10)), lastmillis/2.5f, 0, 120.0f);
                 }
                 break;
@@ -144,8 +265,8 @@ void renderentities()
             {
                 if(OUTBORD(f.pos.x, f.pos.y)) break;
                 entity &e = *f.flagent;
-                s_sprintfd(path)("pickups/flags/%s%s", m_ktf ? "" : team_string(i),  m_htf ? "_htf" : m_ktf ? "ktf" : "");
-                rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(f.pos.x, f.pos.y, f.state==CTFF_INBASE ? (float)S(int(f.pos.x), int(f.pos.y))->floor : f.pos.z), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
+                defformatstring(path)("pickups/flags/%s%s", m_ktf ? "" : team_basestring(i),  m_htf ? "_htf" : m_ktf ? "ktf" : "");
+                if(f.flagent->spawned) rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(f.pos.x, f.pos.y, f.state==CTFF_INBASE ? (float)S(int(f.pos.x), int(f.pos.y))->floor : f.pos.z), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
                 break;
             }
             case CTFF_IDLE:
@@ -164,12 +285,13 @@ void pickupeffects(int n, playerent *d)
     e.spawned = false;
     if(!d) return;
     d->pickup(e.type);
+    if (m_lss && e.type == I_GRENADE) d->pickup(e.type); // get 2
     itemstat &is = d->itemstats(e.type);
     if(d!=player1 && d->type!=ENT_BOT) return;
     if(&is)
     {
-        if(d==player1) playsoundc(is.sound);
-        else playsound(is.sound, d);
+        if(d==player1) audiomgr.playsoundc(is.sound);
+        else audiomgr.playsound(is.sound, d);
     }
 
     weapon *w = NULL;
@@ -185,17 +307,19 @@ void pickupeffects(int n, playerent *d)
 
 // these functions are called when the client touches the item
 
+extern int lastspawn;
+
 void trypickup(int n, playerent *d)
 {
     entity &e = ents[n];
     switch(e.type)
     {
         default:
-            if(d->canpickup(e.type))
+            if( d->canpickup(e.type) && lastmillis > e.lastmillis + 250 && lastmillis > lastspawn + 500 )
             {
                 if(d->type==ENT_PLAYER) addmsg(SV_ITEMPICKUP, "ri", n);
                 else if(d->type==ENT_BOT && serverpickup(n, -1)) pickupeffects(n, d);
-                e.spawned = false;
+                e.lastmillis = lastmillis;
             }
             break;
 
@@ -212,7 +336,7 @@ void trypickupflag(int flag, playerent *d)
         flaginfo &f = flaginfos[flag];
         flaginfo &of = flaginfos[team_opposite(flag)];
         if(f.state == CTFF_STOLEN) return;
-        bool own = flag == team_int(d->team);
+        bool own = flag == team_base(d->team);
 
         if(m_ctf)
         {
@@ -289,30 +413,39 @@ void checkitems(playerent *d)
     }
 }
 
-void putitems(ucharbuf &p)            // puts items in network stream and also spawns them locally
+void spawnallitems()            // spawns items locally
 {
     loopv(ents) if(ents[i].fitsmode(gamemode) || (multiplayer(false) && gamespeed!=100 && (i=-1)))
     {
-        putint(p, i);
-        putint(p, ents[i].type);
         ents[i].spawned = true;
+        ents[i].lastmillis = lastmillis;
     }
 }
 
-void resetspawns()
+void resetspawns(int type)
 {
-	loopv(ents) ents[i].spawned = false;
-	if(m_noitemsnade || m_pistol)
+    loopv(ents) if(type < 0 || type == ents[i].type) ents[i].spawned = false;
+    if(m_noitemsnade || m_pistol)
     {
-		loopv(ents) ents[i].transformtype(gamemode);
+        loopv(ents) ents[i].transformtype(gamemode);
     }
 }
-void setspawn(int i, bool on) { if(ents.inrange(i)) ents[i].spawned = on; }
+
+void setspawn(int i, bool on)
+{
+    if(ents.inrange(i))
+    {
+        ents[i].spawned = on;
+        if (on) ents[i].lastmillis = lastmillis; // to control trypickup spam
+    }
+}
 
 bool selectnextprimary(int num)
 {
     switch(num)
     {
+//         case GUN_CPISTOL:
+        case GUN_RIFLE:
         case GUN_SHOTGUN:
         case GUN_SUBGUN:
         case GUN_SNIPER:
@@ -339,13 +472,14 @@ int flagdropmillis = 0;
 void flagpickup(int fln)
 {
     if(flagdropmillis && flagdropmillis>lastmillis) return;
-	flaginfo &f = flaginfos[fln];
-	f.flagent->spawned = false;
-	f.state = CTFF_STOLEN;
-	f.actor = player1; // do this although we don't know if we picked the flag to avoid getting it after a possible respawn
-	f.actor_cn = getclientnum();
-	f.ack = false;
-	addmsg(SV_FLAGACTION, "rii", FA_PICKUP, f.team);
+    flaginfo &f = flaginfos[fln];
+    int action = f.state == CTFF_INBASE ? FA_STEAL : FA_PICKUP;
+    f.flagent->spawned = false;
+    f.state = CTFF_STOLEN;
+    f.actor = player1; // do this although we don't know if we picked the flag to avoid getting it after a possible respawn
+    f.actor_cn = getclientnum();
+    f.ack = false;
+    addmsg(SV_FLAGACTION, "rii", action, f.team);
 }
 
 void tryflagdrop(bool manual)

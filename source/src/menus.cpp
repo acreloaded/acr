@@ -1,6 +1,5 @@
 // menus.cpp: ingame menu system (also used for scores and serverlist)
 
-#include "pch.h"
 #include "cube.h"
 
 hashtable<const char *, gmenu> menus;
@@ -8,6 +7,49 @@ gmenu *curmenu = NULL, *lastmenu = NULL;
 color *menuselbgcolor = NULL;
 
 vector<gmenu *> menustack;
+
+VARP(browsefiledesc, 0, 1, 1);
+
+char *getfiledesc(const char *dir, const char *name, const char *ext)
+{
+    if(!browsefiledesc || !dir || !name || !ext) return NULL;
+    defformatstring(fn)("%s/%s.%s", dir, name, ext);
+    path(fn);
+    string text;
+    if(!strcmp(ext, "dmo"))
+    {
+        stream *f = opengzfile(fn, "rb");
+        if(!f) return NULL;
+        demoheader hdr;
+        if(f->read(&hdr, sizeof(demoheader))!=sizeof(demoheader) || memcmp(hdr.magic, DEMO_MAGIC, sizeof(hdr.magic))) { delete f; return NULL; }
+        delete f;
+        lilswap(&hdr.version, 1);
+        lilswap(&hdr.protocol, 1);
+        const char *tag = "(incompatible file) ";
+        if(hdr.version == DEMO_VERSION)
+        {
+            if(hdr.protocol == PROTOCOL_VERSION) tag = "";
+            else if(hdr.protocol == -PROTOCOL_VERSION) tag = "(recorded on modded server) ";
+        }
+        formatstring(text)("%s%s", tag, hdr.desc);
+        text[DHDR_DESCCHARS - 1] = '\0';
+        return newstring(text);
+    }
+    else if(!strcmp(ext, "cgz"))
+    {
+        stream *f = opengzfile(fn, "rb");
+        if(!f) return NULL;
+        header hdr;
+        if(f->read(&hdr, sizeof(header))!=sizeof(header) || (strncmp(hdr.head, "CUBE", 4) && strncmp(hdr.head, "ACMP",4))) { delete f; return NULL; }
+        delete f;
+        lilswap(&hdr.version, 1);
+        // hdr.maprevision, hdr.maptitle ... hdr.version, hdr.headersize,
+        formatstring(text)("%s%s", (hdr.version>MAPVERSION) ? "(incompatible file) " : "", hdr.maptitle);
+        text[DHDR_DESCCHARS - 1] = '\0';
+        return newstring(text);
+    }
+    return NULL;
+}
 
 void menuset(void *m, bool save)
 {
@@ -88,7 +130,7 @@ void menuselect(void *menu, int sel)
             {
                 m.items[oldsel]->focus(false);
                 m.items[sel]->focus(true);
-                playsound(S_MENUSELECT, SP_HIGHEST);
+                audiomgr.playsound(S_MENUSELECT, SP_HIGHEST);
             }
         }
     }
@@ -177,11 +219,13 @@ struct mitemmanual : mitem
             if(result >= 0 && oldmenu == curmenu)
             {
                 menuset(NULL, false);
-                menustack.setsize(0);
+                menustack.shrink(0);
             }
         }
     }
     virtual const char *getdesc() { return desc; }
+    virtual const char *gettext() { return text; }
+    virtual const char *getaction() { return action; }
 };
 
 struct mitemtext : mitemmanual
@@ -214,39 +258,92 @@ struct mitemtextvar : mitemmanual
     virtual void init()
     {
         char *r = executeret(textexp);
-        s_strcpy(dtext, r ? r : "");
+        copystring(dtext, r ? r : "");
         if(r) delete[] r;
     }
 };
 
-struct mitemimage : mitemmanual
+VARP(hidebigmenuimages, 0, 0, 1);
+
+struct mitemimagemanual : mitemmanual
 {
     const char *filename;
     Texture *image;
+    font *altfont;
 
-    mitemimage(gmenu *parent, char *filename, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemmanual(parent, text, action, hoveraction, bgcolor, desc), filename(filename), image(NULL) {}
+    mitemimagemanual(gmenu *parent, const char *filename, const char *altfontname, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemmanual(parent, text, action, hoveraction, bgcolor, desc), filename(filename)
+    {
+        image = filename ? textureload(filename, 3) : NULL;
+        altfont = altfontname ? getfont(altfontname) : NULL;
+    }
+    virtual ~mitemimagemanual() {}
     virtual int width()
     {
-        if(!image) image = filename ? textureload(filename, 3) : notexture;
-        return (FONTH*image->xs)/image->ys + FONTH/2 + mitemmanual::width();
+        if(image && *text != '\t') return (FONTH*image->xs)/image->ys + FONTH/2 + mitemmanual::width();
+        return mitemmanual::width();
     }
     virtual void render(int x, int y, int w)
     {
         mitem::render(x, y, w);
-        if(!image) image = filename ? textureload(filename, 3) : notexture;
-        glBindTexture(GL_TEXTURE_2D, image->id);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glColor3f(1, 1, 1);
-        int xs = (FONTH*image->xs)/image->ys;
-        glBegin(GL_QUADS);
-        glTexCoord2f(0, 0); glVertex2f(x,    y);
-        glTexCoord2f(1, 0); glVertex2f(x+xs, y);
-        glTexCoord2f(1, 1); glVertex2f(x+xs, y+FONTH);
-        glTexCoord2f(0, 1); glVertex2f(x,    y+FONTH);
-        glEnd();
-        draw_text(text, x+xs + FONTH/2, y);
-        xtraverts += 4;
+        if(image || altfont)
+        {
+            int xs = 0;
+            if(image)
+            {
+                glBindTexture(GL_TEXTURE_2D, image->id);
+                glDisable(GL_BLEND);
+                glColor3f(1, 1, 1);
+                xs = (FONTH*image->xs)/image->ys;
+                glBegin(GL_TRIANGLE_STRIP);
+                glTexCoord2f(0, 0); glVertex2f(x,    y);
+                glTexCoord2f(1, 0); glVertex2f(x+xs, y);
+                glTexCoord2f(0, 1); glVertex2f(x,    y+FONTH);
+                glTexCoord2f(1, 1); glVertex2f(x+xs, y+FONTH);
+                glEnd();
+                xtraverts += 4;
+                glEnable(GL_BLEND);
+            }
+            draw_text(text, !image || *text == '\t' ? x : x+xs + FONTH/2, y);
+            if(altfont && strchr(text, '\a'))
+            {
+                char *r = newstring(text), *re, *l = r;
+                while((re = strchr(l, '\a')) && re[1])
+                {
+                    *re = '\0';
+                    x += text_width(l);
+                    l = re + 2;
+                    pushfont(altfont->name);
+                    draw_textf("%c", x, y, re[1]);
+                    popfont();
+                }
+                delete[] r;
+            }
+            if(image && isselection() && !hidebigmenuimages && image->ys > FONTH)
+            {
+                w += FONTH;
+                int xs = (2 * VIRTW - w) / 5, ys = (xs * image->ys) / image->xs;
+                x = (6 * VIRTW + w - 2 * xs) / 4; y = VIRTH - ys / 2;
+                blendbox(x - FONTH, y - FONTH, x + xs + FONTH, y + ys + FONTH, false);
+                glBindTexture(GL_TEXTURE_2D, image->id);               // I just copy&pasted this...
+                glDisable(GL_BLEND);
+                glColor3f(1, 1, 1);
+                glBegin(GL_TRIANGLE_STRIP);
+                glTexCoord2f(0, 0); glVertex2f(x,    y);
+                glTexCoord2f(1, 0); glVertex2f(x+xs, y);
+                glTexCoord2f(0, 1); glVertex2f(x,    y+ys);
+                glTexCoord2f(1, 1); glVertex2f(x+xs, y+ys);
+                glEnd();
+                xtraverts += 4;
+                glEnable(GL_BLEND);
+            }
+        }
+        else mitemmanual::render(x, y, w);
     }
+};
+
+struct mitemimage : mitemimagemanual
+{
+    mitemimage(gmenu *parent, const char *filename, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemimagemanual(parent, filename, NULL, text, action, hoveraction, bgcolor, desc) {}
     virtual ~mitemimage()
     {
         DELETEA(filename);
@@ -254,6 +351,128 @@ struct mitemimage : mitemmanual
         DELETEA(action);
         DELETEA(hoveraction);
         DELETEA(desc);
+    }
+};
+VARP(maploaditemlength, 0, 46, 255);
+struct mitemmaploadmanual : mitemmanual
+{
+    const char *filename;
+    string maptitle;
+    string mapstats;
+    Texture *image;
+
+    mitemmaploadmanual(gmenu *parent, const char *filename, const char *altfontname, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemmanual(parent, text, action, NULL,        NULL,    NULL), filename(filename)
+    {
+        image = NULL;
+        copystring(maptitle, filename ? filename : "-n/a-");
+        if(filename)
+        {
+            // see worldio.cpp:setnames()
+            string pakname, mapname, cgzpath;
+            const char *slash = strpbrk(filename, "/\\");
+            if(slash)
+            {
+                copystring(pakname, filename, slash-filename+1);
+                copystring(mapname, slash+1);
+            }
+            else
+            {
+                copystring(pakname, "maps");
+                copystring(mapname, filename);
+            }
+            formatstring(cgzpath)("packages/%s", pakname);
+            char *d = getfiledesc(cgzpath, filename, "cgz");
+            if( d ) { formatstring(maptitle)("%s", d[0] ? d : "-n/a-"); }
+            else
+            {
+                copystring(pakname, "maps/official");
+                formatstring(cgzpath)("packages/%s", pakname);
+                char *d = getfiledesc("packages/maps/official", filename, "cgz");
+                if( d ) { formatstring(maptitle)("%s", d[0] ? d : "-n/a-"); }
+                else formatstring(maptitle)("-n/a-:%s", filename);
+            }
+            defformatstring(p2p)("%s/preview/%s.jpg", cgzpath, filename);
+            silent_texture_load = true;
+            image = textureload(p2p, 3);
+            if(image==notexture) image = textureload("packages/misc/nopreview.jpg", 3);
+            silent_texture_load = false;
+        }
+        else { formatstring(maptitle)("-n/a-:%s", filename); image = textureload("packages/misc/nopreview.png", 3); }
+        copystring(mapstats, "");
+    }
+    virtual ~mitemmaploadmanual() {}
+    virtual int width()
+    {
+        if(image && *text != '\t') return (FONTH*image->xs)/image->ys + FONTH/2 + mitemmanual::width();
+        return mitemmanual::width();
+    }
+    virtual void render(int x, int y, int w)
+    {
+        mitem::render(x, y, w);
+        if(image)
+        {
+            //int xs = 0;
+            draw_text(text, x, y); // !image || *text == '\t' ? x : x+xs + FONTH/2
+            if(image && isselection() && !hidebigmenuimages && image->ys > FONTH)
+            {
+                w += FONTH;
+                int xs = (2 * VIRTW - w) / 5, ys = (xs * image->ys) / image->xs;
+                x = (6 * VIRTW + w - 2 * xs) / 4; y = VIRTH - ys / 2;
+
+                blendbox(x - FONTH, y - FONTH, x + xs + FONTH, y + ys + FONTH, false);
+                glBindTexture(GL_TEXTURE_2D, image->id);               // I just copy&pasted this...
+                glDisable(GL_BLEND);
+                glColor3f(1, 1, 1);
+                glBegin(GL_TRIANGLE_STRIP);
+                glTexCoord2f(0, 0); glVertex2f(x,    y);
+                glTexCoord2f(1, 0); glVertex2f(x+xs, y);
+                glTexCoord2f(0, 1); glVertex2f(x,    y+ys);
+                glTexCoord2f(1, 1); glVertex2f(x+xs, y+ys);
+                glEnd();
+                xtraverts += 4;
+                glEnable(GL_BLEND);
+                if(maptitle[0])
+                {
+					int mlil = maploaditemlength;
+					string showt;
+					string restt;
+					restt[0] = '\0';
+					filtertext(showt, maptitle, 1);
+					if(mlil && mlil != 255) // 0 && 255 are 'off'
+					{
+						int tl = strlen(showt);
+						if(tl>mlil)
+						{
+							int cr = 0;
+							int mr = min(max(0, tl-mlil), mlil);
+							for(cr=0;cr<mr;cr++) { restt[cr] = showt[cr+mlil]; }
+							if(cr>0) { restt[cr+1] = '\0'; showt[mlil] = '\0'; }
+						}
+					}
+                    draw_text(showt, 1*FONTH/2, VIRTH - FONTH/2);
+					draw_text(restt, 3*FONTH/2, VIRTH + FONTH/2);
+                }
+                //if(mapstats[0]) draw_text(mapstats, x, y+ys+5*FONTH/2);
+            }
+        }
+        else mitemmanual::render(x, y, w);
+    }
+};
+
+struct mitemmapload : mitemmaploadmanual
+{
+    mitemmapload(gmenu *parent, const char *filename, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemmaploadmanual(parent, filename, NULL, text, action, hoveraction, bgcolor, desc) {}
+//  mitemimage  (gmenu *parent, const char *filename, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemimagemanual  (parent, filename, NULL, text, action, hoveraction, bgcolor, desc) {}
+//  mitemmapload(gmenu *parent, const char *filename, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemmaploadmanual(parent, filename, NULL, text, action, hoveraction, bgcolor, desc) {}
+//  mitemmanual (gmenu *parent, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc) : mitem(parent, bgcolor), text(text), action(action), hoveraction(hoveraction), desc(desc) {}
+
+    virtual ~mitemmapload()
+    {
+        DELETEA(filename);
+        //DELETEA(maptitle);
+        //DELETEA(mapstats);
+        DELETEA(text);
+        DELETEA(action);
     }
 };
 
@@ -267,7 +486,7 @@ struct mitemtextinput : mitemtext
 
     mitemtextinput(gmenu *parent, char *text, char *value, char *action, char *hoveraction, color *bgcolor, int maxchars) : mitemtext(parent, text, action, hoveraction, bgcolor), defaultvalueexp(value), modified(false)
     {
-        s_strcpy(input.buf, value);
+        copystring(input.buf, value);
         input.max = maxchars>0 ? maxchars : 15;
     }
 
@@ -289,17 +508,17 @@ struct mitemtextinput : mitemtext
         string showinput; int sc = 14;
         while(iboff > 0)
         {
-            s_strncpy(showinput, input.buf + iboff - 1, sc + 2);
+            copystring(showinput, input.buf + iboff - 1, sc + 2);
             if(text_width(showinput) > 15 * text_width("w")) break;
             iboff--; sc++;
         }
         while(iboff + sc < cibl)
         {
-            s_strncpy(showinput, input.buf + iboff, sc + 2);
+            copystring(showinput, input.buf + iboff, sc + 2);
             if(text_width(showinput) > 15 * text_width("w")) break;
             sc++;
         }
-        s_strncpy(showinput, input.buf + iboff, sc + 1);
+        copystring(showinput, input.buf + iboff, sc + 1);
         draw_text(showinput, x+w-tw, y, 255, 255, 255, 255, selection ? (input.pos>=0 ? (input.pos > sc ? sc : input.pos) : cibl) : -1);
     }
 
@@ -333,7 +552,7 @@ struct mitemtextinput : mitemtext
     {
         const char *p = defaultvalueexp;
         char *r = executeret(p);
-        s_strcpy(input.buf, r ? r : "");
+        copystring(input.buf, r ? r : "");
         if(r) delete[] r;
     }
 };
@@ -417,7 +636,7 @@ struct mitemslider : mitem
         if(display) // extract display name from list
         {
             char *val = indexlist(display, value-min_);
-            s_strcpy(curval, val);
+            copystring(curval, val);
             delete[] val;
         }
         else itoa(curval, value); // display number only
@@ -522,10 +741,10 @@ struct mitemcheckbox : mitem
         checked = !checked;
         if(action && action[0])
         {
-            push("arg1", checked ? "1" : "0");
-            execute(action);
-            pop("arg1");
-        }
+        push("arg1", checked ? "1" : "0");
+        execute(action);
+        pop("arg1");
+    }
     }
 
     virtual void init()
@@ -570,6 +789,7 @@ void *addmenu(const char *name, const char *title, bool allowinput, void (__cdec
     menu.refreshfunc = refreshfunc;
     menu.keyfunc = keyfunc;
     menu.initaction = NULL;
+    menu.usefont = NULL;
     menu.dirlist = NULL;
     menu.forwardkeys = forwardkeys;
     lastmenu = &menu;
@@ -584,13 +804,19 @@ void newmenu(char *name, char *hotkeys, char *forwardkeys)
 void menureset(void *menu)
 {
     gmenu &m = *(gmenu *)menu;
-    m.items.deletecontentsp();
+    m.items.deletecontents();
 }
 
 void menumanual(void *menu, char *text, char *action, color *bgcolor, const char *desc)
 {
     gmenu &m = *(gmenu *)menu;
     m.items.add(new mitemmanual(&m, text, action, NULL, bgcolor, desc));
+}
+
+void menuimagemanual(void *menu, const char *filename, const char *altfontname, char *text, char *action, color *bgcolor, const char *desc)
+{
+    gmenu &m = *(gmenu *)menu;
+    m.items.add(new mitemimagemanual(&m, filename, altfontname, text, action, NULL, bgcolor, desc));
 }
 
 void menutitle(void *menu, const char *title)
@@ -605,6 +831,31 @@ void menuheader(void *menu, char *header, char *footer)
     m.header = header && header[0] ? header : NULL;
     m.footer = footer && footer[0] ? footer : NULL;
 }
+void lastmenu_header(char *header, char *footer)
+{
+    if(lastmenu)
+    {
+        menuheader(lastmenu, newstring(header), newstring(footer));
+    }
+    else conoutf("no last menu to apply to");
+}
+COMMANDN(menuheader, lastmenu_header, ARG_2STR);
+
+void menufont(void *menu, const char *usefont)
+{
+    gmenu &m = *(gmenu *)menu;
+    if(usefont==NULL)
+    {
+        DELETEA(m.usefont);
+        m.usefont = NULL;
+    } else m.usefont = newstring(usefont);
+}
+
+void setmenufont(char *usefont)
+{
+    if(!lastmenu) return;
+    menufont(lastmenu, usefont);
+}
 
 void menuinit(char *initaction)
 {
@@ -616,6 +867,13 @@ void menuinitselection(int line)
 {
     if(!lastmenu) return;
     if(lastmenu->items.inrange(line)) lastmenu->menusel = line;
+}
+
+void menuselection(char *menu, char *line)
+{
+    if(!menu || !line || !menus.access(menu)) return;
+    gmenu &m = menus[menu];
+    menuselect(&m, atoi(line));
 }
 
 void menuitem(char *text, char *action, char *hoveraction)
@@ -635,7 +893,19 @@ void menuitemvar(char *eval, char *action, char *hoveraction)
 void menuitemimage(char *name, char *text, char *action, char *hoveraction)
 {
     if(!lastmenu) return;
-    lastmenu->items.add(new mitemimage(lastmenu, newstring(name), newstring(text), action[0] ? newstring(action) : NULL, hoveraction[0] ? newstring(hoveraction) : NULL, NULL));
+    if(fileexists(name, "r") || findfile(name, "r") != name)
+        lastmenu->items.add(new mitemimage(lastmenu, newstring(name), newstring(text), action[0] ? newstring(action) : NULL, hoveraction[0] ? newstring(hoveraction) : NULL, NULL));
+    else
+        lastmenu->items.add(new mitemtext(lastmenu, newstring(text), newstring(action[0] ? action : text), hoveraction[0] ? newstring(hoveraction) : NULL, NULL));
+}
+
+void menuitemmapload(char *name, char *text)
+{
+    if(!lastmenu) return;
+    string caction;
+	if(!text || text[0]=='\0') formatstring(caction)("map %s", name);
+	else formatstring(caction)("%s", text);
+    lastmenu->items.add(new mitemmapload(lastmenu, newstring(name), newstring(name), newstring(caction), NULL, NULL, NULL));
 }
 
 void menuitemtextinput(char *text, char *value, char *action, char *hoveraction, char *maxchars)
@@ -686,9 +956,10 @@ void menudirlist(char *dir, char *ext, char *action, char *image)
 
 void chmenumdl(char *menu, char *mdl, char *anim, char *rotspeed, char *scale)
 {
-    if(!menu || !mdl || !menus.access(menu)) return;
+    if(!menu || !menus.access(menu)) return;
     gmenu &m = menus[menu];
     DELETEA(m.mdl);
+    if(!mdl ||!*mdl) return;
     m.mdl = newstring(mdl);
     m.anim = findanim(anim)|ANIM_LOOP;
     m.rotspeed = max(0, min(atoi(rotspeed), 100));
@@ -720,11 +991,14 @@ COMMAND(menudirlist, ARG_4STR);
 COMMAND(chmenumdl, ARG_6STR);
 COMMANDN(showmenu, showmenu_, ARG_1STR);
 COMMAND(closemenu, ARG_1STR);
+COMMANDN(menufont, setmenufont, ARG_1STR);
 COMMAND(menuinit, ARG_1STR);
 COMMAND(menuinitselection, ARG_1INT);
+COMMAND(menuselection, ARG_2STR);
 COMMAND(menuitem, ARG_3STR);
 COMMAND(menuitemvar, ARG_3STR);
 COMMAND(menuitemimage, ARG_4STR);
+COMMAND(menuitemmapload, ARG_2STR);
 COMMAND(menuitemtextinput, ARG_5STR);
 COMMAND(menuitemslider, ARG_7STR);
 COMMAND(menuitemkeyinput, ARG_2STR);
@@ -739,8 +1013,8 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
     {
         bool hasdesc = false;
         loopv(curmenu->items) if(curmenu->items[i]->getdesc()) { hasdesc = true; break;}
-        int pagesize = MAXMENU - (curmenu->header ? 2 : 0) - (curmenu->footer || hasdesc ? 2 : 0);
-
+        //int pagesize = MAXMENU - (curmenu->header ? 2 : 0) - (curmenu->footer || hasdesc ? 2 : 0); // FIXME: footer-length
+        int pagesize = MAXMENU - (curmenu->header ? 2 : 0) - (curmenu->footer ? (curmenu->footlen?(curmenu->footlen+1):2) : (hasdesc ? 2 : 0)); // FIXME: footer-length
         switch(code)
         {
             case SDLK_PAGEUP: menusel -= pagesize; break;
@@ -770,9 +1044,14 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
                 if(mod & KMOD_LSHIFT) menusel--;
                 else menusel++;
                 break;
+
+            case SDLK_PRINT:
+                curmenu->conprintmenu();
+                return true;
+
             case SDLK_F12:
             {
-                extern void screenshot(char *imagepath);
+                extern void screenshot(const char *imagepath);
                 if(!curmenu->allowinput) return false;
                 screenshot(NULL);
                 break;
@@ -819,7 +1098,7 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
         if(code==SDLK_RETURN || code==SDLK_SPACE || code==-1 || code==-2)
         {
             m.select();
-            playsound(S_MENUENTER, SP_HIGHEST);
+            audiomgr.playsound(S_MENUENTER, SP_HIGHEST);
             return true;
         }
         return false;
@@ -850,7 +1129,7 @@ void rendermenumdl()
     int tex = 0;
     if(isplayermodel)
     {
-        s_sprintfd(skin)("packages/models/%s.jpg", m.mdl);
+        defformatstring(skin)("packages/models/%s.jpg", m.mdl);
         tex = -(int)textureload(skin)->id;
     }
     modelattach a[2];
@@ -887,54 +1166,18 @@ void gmenu::close()
     if(items.inrange(menusel)) items[menusel]->focus(false);
 }
 
-VARP(browsefiledesc, 0, 1, 1);
-
-char *getfiledesc(const char *dir, const char *name, const char *ext)
+void gmenu::conprintmenu()
 {
-    if(!browsefiledesc || !dir || !name || !ext) return NULL;
-    s_sprintfd(fn)("%s/%s.%s", dir, name, ext);
-    path(fn);
-    string text;
-    if(!strcmp(ext, "dmo"))
-    {
-        gzFile f = opengzfile(fn, "rb9");
-        if(!f) return NULL;
-        demoheader hdr;
-        if(gzread(f, &hdr, sizeof(demoheader))!=sizeof(demoheader) || memcmp(hdr.magic, DEMO_MAGIC, sizeof(hdr.magic))) { gzclose(f); return NULL; }
-        gzclose(f);
-        endianswap(&hdr.version, sizeof(int), 1);
-        endianswap(&hdr.protocol, sizeof(int), 1);
-        const char *tag = "(incompatible file) ";
-        if(hdr.version == DEMO_VERSION)
-        {
-            if(hdr.protocol == PROTOCOL_VERSION) tag = "";
-            else if(hdr.protocol == -PROTOCOL_VERSION) tag = "(recorded on modded server) ";
-        }
-        s_sprintf(text)("%s%s", tag, hdr.desc);
-        text[DHDR_DESCCHARS - 1] = '\0';
-        return newstring(text);
-    }
-    else if(!strcmp(ext, "cgz"))
-    {
-        gzFile f = opengzfile(fn, "rb9");
-        if(!f) return NULL;
-        header hdr;
-        if(gzread(f, &hdr, sizeof(header))!=sizeof(header) || (strncmp(hdr.head, "CUBE", 4) && strncmp(hdr.head, "ACMP",4))) { gzclose(f); return NULL; }
-        gzclose(f);
-        endianswap(&hdr.version, sizeof(int), 4);
-        s_sprintf(text)("%s%s", (hdr.version>MAPVERSION) ? "(incompatible file) " : "", hdr.maptitle);
-        text[DHDR_DESCCHARS - 1] = '\0';
-        return newstring(text);
-    }
-    return NULL;
+    if(title) conoutf( "[::  %s  ::]", title);//if(items.length()) conoutf( " %03d items", items.length());
+    loopv(items) { conoutf("%03d: %s%s%s", 1+i, items[i]->gettext(), items[i]->getaction()?"|\t|":"", items[i]->getaction()?items[i]->getaction():""); }
 }
 
 void gmenu::init()
 {
     if(dirlist)
     {
-        items.deletecontentsp();
-        cvector files;
+        items.deletecontents();
+        vector<char *> files;
         listfiles(dirlist->dir, dirlist->ext, files);
         files.sort(stringsort);
         loopv(files)
@@ -942,17 +1185,37 @@ void gmenu::init()
             char *f = files[i];
             if(!f || !f[0]) continue;
             char *d = getfiledesc(dirlist->dir, f, dirlist->ext);
+            defformatstring(jpgname)("%s/preview/%s.jpg", dirlist->dir, f);
             if(dirlist->image)
             {
                 string fullname = "";
-                if(dirlist->dir[0]) s_sprintf(fullname)("%s/%s", dirlist->dir, f);
-                else s_strcpy(fullname, f);
+                if(dirlist->dir[0]) formatstring(fullname)("%s/%s", dirlist->dir, f);
+                else copystring(fullname, f);
                 if(dirlist->ext)
                 {
-                    s_strcat(fullname, ".");
-                    s_strcat(fullname, dirlist->ext);
+                    concatstring(fullname, ".");
+                    concatstring(fullname, dirlist->ext);
                 }
-                items.add(new mitemimage(this, newstring(fullname), f, newstring(dirlist->action), NULL, NULL, d));
+                items.add(new mitemimage  (this, newstring(fullname), f, newstring(dirlist->action), NULL, NULL, d));
+            }
+            else if(!strcmp(dirlist->ext, "cgz") /*&& (fileexists(jpgname, "r") || findfile(jpgname, "r") != jpgname)*/)
+            {
+                //items.add(new mitemimage(this, newstring(jpgname), f, newstring(dirlist->action), NULL, NULL, d));
+                int diroffset = 0;
+                if(dirlist->dir[0])
+                {
+                    unsigned int ddsl = strlen("packages/");
+                    if(strlen(dirlist->dir)>ddsl)
+                    {
+                        string prefix;
+                        copystring(prefix, dirlist->dir, ddsl+1);
+                        if(!strcmp(prefix,"packages/")) diroffset = ddsl;
+                    }
+                }
+                defformatstring(fullname)("%s%s%s", dirlist->dir[0]?dirlist->dir+diroffset:"", dirlist->dir[0]?"/":"", f);
+                defformatstring(caction)("map %s", fullname);
+                defformatstring(title)("%s", d[0]!='\0'?d:f);
+                items.add(new mitemmapload(this, newstring(fullname), newstring(title), newstring(caction), NULL, NULL, NULL));
             }
             else items.add(new mitemtext(this, f, newstring(dirlist->action), NULL, NULL, d));
         }
@@ -962,12 +1225,13 @@ void gmenu::init()
 
 void gmenu::render()
 {
+    if(usefont) pushfont(usefont);
     const char *t = title;
     if(!t)
     {
         static string buf;
-        if(hotkeys) s_sprintf(buf)("%s hotkeys", name);
-        else s_sprintf(buf)("[ %s menu ]", name);
+        if(hotkeys) formatstring(buf)("%s hotkeys", name);
+        else formatstring(buf)("[ %s menu ]", name);
         t = buf;
     }
     bool hasdesc = false;
@@ -984,7 +1248,8 @@ void gmenu::render()
             if(x>w) w = x;
         }
     }
-    int hitems = (header ? 2 : 0) + (footer || hasdesc ? 2 : 0),
+    //int hitems = (header ? 2 : 0) + (footer || hasdesc ? 2 : 0), // FIXME: footer-length
+    int hitems = (header ? 2 : 0) + (footer ? (footlen?(footlen+1):2) : (hasdesc ? 2 : 0)),
         pagesize = MAXMENU - hitems,
         offset = menusel - (menusel%pagesize),
         mdisp = min(items.length(), pagesize),
@@ -1022,10 +1287,46 @@ void gmenu::render()
     {
         y += ((mdisp-cdisp)+1)*step;
         if(!hasdesc)
-            draw_text(footer, x, y);
+        {
+            footlen = 0;
+            if(text_width(footer)>w)
+            {
+                int tflo = 0;
+                int cflw = 0;
+                unsigned int cflc = 0;
+                string pofl;
+                string bufl;
+                bool keepon = true;
+                while(keepon)
+                {
+                    while(cflw<w && cflc<strlen(footer))
+                    {
+                        cflc++;
+                        formatstring(bufl)("%s", footer+tflo);
+                        copystring(pofl, bufl, cflc-tflo);
+                        cflw = text_width(pofl);
+                    }
+                    if(cflc<=strlen(footer))
+                    {
+                        if(cflc==strlen(footer) || cflc>=MAXSTRLEN) keepon = false;
+                        cflc--;
+                        cflw = 0;
+                        formatstring(bufl)("%s", footer+tflo);
+                        copystring(pofl, bufl, cflc-tflo);
+                        draw_text(pofl, x, y);
+                        y+=step;
+                        tflo = cflc-1;
+                        footlen++;
+                    }
+                }
+            }
+            else draw_text(footer, x, y);
+        }
         else if(items.inrange(menusel) && items[menusel]->getdesc())
             draw_text(items[menusel]->getdesc(), x, y);
+
     }
+    if(usefont) popfont(); // setfont("default");
 }
 
 void gmenu::renderbg(int x1, int y1, int x2, int y2, bool border)
@@ -1047,7 +1348,7 @@ void addchange(const char *desc, int type)
     if(!applydialog) return;
     if(type!=CHANGE_GFX)
     {
-        conoutf("..restart AssaultCube for this setting to take effect");
+        conoutf(_("..restart AssaultCube for this setting to take effect"));
         return;
     }
     bool changed = false;
@@ -1059,7 +1360,7 @@ void addchange(const char *desc, int type)
 void clearchanges(int type)
 {
     if(type!=CHANGE_GFX) return;
-    needsapply.setsize(0);
+    needsapply.shrink(0);
     closemenu("apply");
 }
 
@@ -1067,7 +1368,7 @@ void refreshapplymenu(void *menu, bool init)
 {
     gmenu *m = (gmenu *) menu;
     if(!m || (!init && needsapply.length() != m->items.length()-3)) return;
-    m->items.deletecontentsp();
+    m->items.deletecontents();
     loopv(needsapply) m->items.add(new mitemtext(m, newstring(needsapply[i]), NULL, NULL, NULL));
     m->items.add(new mitemtext(m, newstring(""), NULL, NULL, NULL));
     m->items.add(new mitemtext(m, newstring("Yes"), newstring("resetgl"), NULL, NULL));
@@ -1075,3 +1376,52 @@ void refreshapplymenu(void *menu, bool init)
     if(init) m->menusel = m->items.length()-2; // select OK
 }
 
+void reorderscorecolumns();
+VARFP(orderscorecolumns, 0, 0, 1, reorderscorecolumns());
+void reorderscorecolumns()
+{
+    extern void *scoremenu, *teammenu, *ctfmenu;
+    switch(orderscorecolumns)
+    {
+        case 1:
+        {
+            menutitle(scoremenu, "cn\tname\tfrags\tdeaths\tscore\tpj/ping");
+            menutitle( teammenu, "cn\tname\tfrags\tdeaths\tscore\tpj/ping");
+            menutitle(  ctfmenu, "cn\tname\tflags\tfrags\tdeaths\tscore\tpj/ping");
+            break;
+        }
+        case 0:
+        default:
+        {
+            menutitle(scoremenu, "frags\tdeaths\tscore\tpj/ping\tcn\tname");
+            menutitle( teammenu, "frags\tdeaths\tscore\tpj/ping\tcn\tname");
+            menutitle(  ctfmenu, "flags\tfrags\tdeaths\tscore\tpj/ping\tcn\tname");
+            break;
+        }
+    }
+}
+
+void setscorefont();
+VARFP(scorefont, 0, 0, 1, setscorefont());
+void setscorefont()
+{
+    extern void *scoremenu, *teammenu, *ctfmenu;
+    switch(scorefont)
+    {
+        case 1:
+        {
+            menufont(scoremenu, "mono");
+            menufont(teammenu, "mono");
+            menufont(ctfmenu, "mono");
+            break;
+        }
+        case 0:
+        default:
+        {
+            menufont(scoremenu, NULL); // "default"
+            menufont(teammenu, NULL); // "default"
+            menufont(ctfmenu, NULL); // "default"
+            break;
+        }
+    }
+}

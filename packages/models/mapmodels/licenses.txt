@@ -12,6 +12,13 @@ Modelled/skinned by Toca
 All files in the folder "Toca" are created by toca. See toca/licence.txt for details.
 __________________________________________________________________________________________________
 
+Modelled/skinned by RatBoy
+==========================
+All files in the folder "rattrap" were originally for the map "ac_rattrap". Some of these models 
+are using resources from other models/textures. Please see rattrap/license.txt for details.
+__________________________________________________________________________________________________
+
+
 These mapmodels have been created for AssaultCube. 
 
 

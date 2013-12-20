@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "cube.h"
 
 VARP(animationinterpolationtime, 0, 150, 1000);
@@ -88,12 +87,12 @@ void mapmodel(char *rad, char *h, char *zoff, char *snap, char *name)
     mmi.rad = atoi(rad);
     mmi.h = atoi(h);
     mmi.zoff = atoi(zoff);
-    s_sprintf(mmi.name)("mapmodels/%s", name);
+    formatstring(mmi.name)("mapmodels/%s", name);
 }
 
 void mapmodelreset()
 {
-    if(execcontext==IEXC_MAPCFG) mapmodels.setsize(0);
+    if(execcontext==IEXC_MAPCFG) mapmodels.shrink(0);
 }
 
 mapmodelinfo &getmminfo(int i) { return mapmodels.inrange(i) ? mapmodels[i] : *(mapmodelinfo *)0; }
@@ -168,7 +167,7 @@ static int numbatches = -1;
 void startmodelbatches()
 {
     numbatches = 0;
-    modelattached.setsizenodelete(0);
+    modelattached.setsize(0);
 }
 
 batchedmodel &addbatchedmodel(model *m)
@@ -180,7 +179,7 @@ batchedmodel &addbatchedmodel(model *m)
         if(numbatches<batches.length())
         {
             b = batches[numbatches];
-            b->batched.setsizenodelete(0);
+            b->batched.setsize(0);
         }
         else b = batches.add(new modelbatch);
         b->m = m;
@@ -462,13 +461,13 @@ int findanim(const char *name)
 void loadskin(const char *dir, const char *altdir, Texture *&skin) // model skin sharing
 {
     #define ifnoload if((skin = textureload(path))==notexture)
-    s_sprintfd(path)("packages/models/%s/skin.jpg", dir);
+    defformatstring(path)("packages/models/%s/skin.jpg", dir);
     ifnoload
     {
         strcpy(path+strlen(path)-3, "png");
         ifnoload
         {
-            s_sprintf(path)("packages/models/%s/skin.jpg", altdir);
+            formatstring(path)("packages/models/%s/skin.jpg", altdir);
             ifnoload
             {
                 strcpy(path+strlen(path)-3, "png");
@@ -484,7 +483,7 @@ void preload_playermodels()
     if(dynshadow && playermdl) playermdl->genshadows(8.0f, 4.0f);
     loopi(NUMGUNS)
     {
-        s_sprintfd(vwep)("weapons/%s/world", guns[i].modelname);
+        defformatstring(vwep)("weapons/%s/world", guns[i].modelname);
         model *vwepmdl = loadmodel(vwep);
         if(dynshadow && vwepmdl) vwepmdl->genshadows(8.0f, 4.0f);
     }
@@ -517,18 +516,8 @@ void preload_mapmodels()
     }
 }
 
-VAR(dbghbox, 0, 0, 1);
-
-void renderhbox(playerent *d)
+inline void renderhboxpart(playerent *d, vec top, vec bottom, vec up)
 {
-    glDisable(GL_TEXTURE_2D);
-    glColor3f(1, 1, 1);
-
-    float y = d->yaw*RAD, p = (d->pitch/4+90)*RAD, c = cosf(p);
-    vec bottom(d->o), up(sinf(y)*c, -cosf(y)*c, sinf(p)), top(up);
-    bottom.z -= d->eyeheight;
-    top.mul(d->eyeheight + d->aboveeye).add(bottom);
-
     if(d->state==CS_ALIVE && d->head.x >= 0)
     {
         glBegin(GL_LINE_LOOP);
@@ -576,8 +565,6 @@ void renderhbox(playerent *d)
         glVertex3fv(pos.v);
     }
     glEnd();
-
-    glEnable(GL_TEXTURE_2D);
 }
 
 void renderclient(playerent *d, const char *mdlname, const char *vwepname, int tex)
@@ -609,7 +596,8 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
     else if(d->state==CS_EDITING)                   { anim = ANIM_JUMP|ANIM_END; }
     else if(d->state==CS_LAGGED)                    { anim = ANIM_SALUTE|ANIM_LOOP|ANIM_TRANSLUCENT; }
     else if(lastmillis-d->lastpain<300)             { anim = d->crouching ? ANIM_CROUCH_PAIN : ANIM_PAIN; speed = 300.0f/4; varseed += d->lastpain; basetime = d->lastpain; }
-    else if(!d->onfloor && d->timeinair>50)         { anim = ANIM_JUMP|ANIM_END; }
+//     else if(!d->onfloor && d->timeinair>50)         { anim = ANIM_JUMP|ANIM_END; }
+    else if(!d->onfloor && d->timeinair>50)         { anim = (d->crouching ? ANIM_CROUCH_WALK : ANIM_JUMP)|ANIM_END; }
     else if(d->weaponsel==d->lastattackweapon && lastmillis-d->lastaction<300 && d->lastpain < d->lastaction) { anim = d->crouching ? ANIM_CROUCH_ATTACK : ANIM_ATTACK; speed = 300.0f/8; basetime = d->lastaction; }
     else if(!d->move && !d->strafe)                 { anim = (d->crouching ? ANIM_CROUCH_IDLE : ANIM_IDLE)|ANIM_LOOP; }
     else                                            { anim = (d->crouching ? ANIM_CROUCH_WALK : ANIM_RUN)|ANIM_LOOP; speed = 1860/d->maxspeed; }
@@ -645,7 +633,6 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
     if(!stenciling && !reflecting && !refracting)
     {
         if(isteam(player1->team, d->team)) renderaboveheadicon(d);
-        if(dbghbox) renderhbox(d);
     }
 }
 
@@ -653,7 +640,7 @@ VARP(teamdisplaymode, 0, 1, 2);
 
 #define SKINBASE "packages/models/playermodels"
 VARP(hidecustomskins, 0, 0, 2);
-static cvector playerskinlist;
+static vector<char *> playerskinlist;
 
 const char *getclientskin(const char *name, const char *suf)
 {
@@ -669,7 +656,7 @@ const char *getclientskin(const char *name, const char *suf)
             if(namelen == sl && !strncmp(name, s, namelen)) return s; // exact match
             if(s[sl - 1] == '_')
             {
-                s_strcpy(tmp, s);
+                copystring(tmp, s);
                 tmp[sl - 1] = '\0';
                 if(strstr(name, tmp)) r = s; // partial match
             }
@@ -692,9 +679,9 @@ void updateclientname(playerent *d)
 void renderclient(playerent *d)
 {
     if(!d) return;
-    const char *cs = NULL, *skinbase = SKINBASE;
-    int team = team_int(d->team);
-    int skinid = 1 + max(0, min(d->skin, (team==TEAM_CLA ? 3 : 5)));
+    int team = team_base(d->team);
+    const char *cs = NULL, *skinbase = SKINBASE, *teamname = team_basestring(team);
+    int skinid = 1 + d->skin();
     string skin;
     if(hidecustomskins == 0 || (hidecustomskins == 1 && !m_teammode))
     {
@@ -702,18 +689,18 @@ void renderclient(playerent *d)
         if(!m_teammode && d->skin_noteam) cs = d->skin_noteam;
     }
     if(cs)
-        s_sprintf(skin)("%s/custom/%s.jpg", skinbase, cs);
+        formatstring(skin)("%s/custom/%s.jpg", skinbase, cs);
     else
     {
-        if(!m_teammode || !teamdisplaymode) s_sprintf(skin)("%s/%s/%02i.jpg", skinbase, team_string(team), skinid);
+        if(!m_teammode || !teamdisplaymode) formatstring(skin)("%s/%s/%02i.jpg", skinbase, teamname, skinid);
         else switch(teamdisplaymode)
         {
-            case 1: s_sprintf(skin)("%s/%s/%02i_%svest.jpg", skinbase, team_string(team), skinid, team ? "blue" : "red"); break;
-            case 2: default: s_sprintf(skin)("%s/%s/%s.jpg", skinbase, team_string(team), team ? "blue" : "red"); break;
+            case 1: formatstring(skin)("%s/%s/%02i_%svest.jpg", skinbase, teamname, skinid, team ? "blue" : "red"); break;
+            case 2: default: formatstring(skin)("%s/%s/%s.jpg", skinbase, teamname, team ? "blue" : "red"); break;
         }
     }
     string vwep;
-    if(d->weaponsel) s_sprintf(vwep)("weapons/%s/world", d->weaponsel->info.modelname);
+    if(d->weaponsel) formatstring(vwep)("weapons/%s/world", d->weaponsel->info.modelname);
     else vwep[0] = 0;
     renderclient(d, "playermodels", vwep[0] ? vwep : NULL, -(int)textureload(skin)->id);
 }

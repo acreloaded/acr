@@ -1,6 +1,5 @@
 // texture.cpp: texture management
 
-#include "pch.h"
 #include "cube.h"
 
 #define FUNCNAME(name) name##1
@@ -67,9 +66,9 @@ hashtable<char *, Texture> textures;
 
 VAR(hwtexsize, 1, 0, 0);
 VARFP(maxtexsize, 0, 0, 1<<12, initwarning("texture quality", INIT_LOAD));
+VARFP(texreduce, -1, 0, 3, initwarning("texture quality", INIT_LOAD));
 VARFP(trilinear, 0, 1, 1, initwarning("texture filtering", INIT_LOAD));
 VARFP(bilinear, 0, 1, 1, initwarning("texture filtering", INIT_LOAD));
-VARFP(texreduce, 0, 0, 3, initwarning("texture quality", INIT_LOAD));
 
 int formatsize(GLenum format)
 {
@@ -84,12 +83,25 @@ int formatsize(GLenum format)
     }
 }
 
-void resizetexture(int w, int h, bool mipmap, int reduce, GLenum target, int &tw, int &th)
+void resizetexture(int w, int h, bool mipmap, bool canreduce, GLenum target, int &tw, int &th)
 {
     int hwlimit = hwtexsize,
         sizelimit = mipmap && maxtexsize ? min(maxtexsize, hwlimit) : hwlimit;
-    w = clamp(w>>reduce, 1, sizelimit);
-    h = clamp(h>>reduce, 1, sizelimit);
+    if(canreduce && texreduce)
+    {
+        if(texreduce==-1)
+        {
+            w = 2;
+            h = 2;
+        }
+        else
+        {
+            w = max(w>>texreduce, 2); // 1);
+            h = max(h>>texreduce, 2); // 1);
+        }
+    }
+    w = min(w, sizelimit);
+    h = min(h, sizelimit);
     if(mipmap || w&(w-1) || h&(h-1))
     {
         tw = th = 1;
@@ -128,7 +140,7 @@ void uploadtexture(GLenum target, GLenum internal, int tw, int th, GLenum format
     if(buf) delete[] buf;
 }
 
-void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap, GLenum format, int reduce)
+void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap, bool canreduce, GLenum format)
 {
     glBindTexture(GL_TEXTURE_2D, tnum);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -143,8 +155,157 @@ void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap,
             (bilinear ? GL_LINEAR : GL_NEAREST));
 
     int tw = w, th = h;
-    if(pixels) resizetexture(w, h, mipmap, reduce, GL_TEXTURE_2D, tw, th);
+    if(pixels) resizetexture(w, h, mipmap, canreduce, GL_TEXTURE_2D, tw, th);
     uploadtexture(GL_TEXTURE_2D, format, tw, th, format, GL_UNSIGNED_BYTE, pixels, w, h, mipmap);
+}
+
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+#define RGBAMASKS 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff
+#define RGBMASKS  0xff0000, 0x00ff00, 0x0000ff, 0
+#else
+#define RGBAMASKS 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000
+#define RGBMASKS  0x0000ff, 0x00ff00, 0xff0000, 0
+#endif
+
+SDL_Surface *wrapsurface(void *data, int width, int height, int bpp)
+{
+    switch(bpp)
+    {
+        case 3: return SDL_CreateRGBSurfaceFrom(data, width, height, 8*bpp, bpp*width, RGBMASKS);
+        case 4: return SDL_CreateRGBSurfaceFrom(data, width, height, 8*bpp, bpp*width, RGBAMASKS);
+    }
+    return NULL;
+}
+
+SDL_Surface *creatergbsurface(int width, int height)
+{
+    return SDL_CreateRGBSurface(SDL_SWSURFACE, width, height, 24, RGBMASKS);
+}
+
+SDL_Surface *creatergbasurface(int width, int height)
+{
+    return SDL_CreateRGBSurface(SDL_SWSURFACE, width, height, 32, RGBAMASKS);
+}
+
+SDL_Surface *forcergbsurface(SDL_Surface *os)
+{
+    SDL_Surface *ns = SDL_CreateRGBSurface(SDL_SWSURFACE, os->w, os->h, 24, RGBMASKS);
+    if(ns) SDL_BlitSurface(os, NULL, ns, NULL);
+    SDL_FreeSurface(os);
+    return ns;
+}
+
+SDL_Surface *forcergbasurface(SDL_Surface *os)
+{
+    SDL_Surface *ns = SDL_CreateRGBSurface(SDL_SWSURFACE, os->w, os->h, 32, RGBAMASKS);
+    if(ns)
+    {
+        SDL_SetAlpha(os, 0, 0);
+        SDL_BlitSurface(os, NULL, ns, NULL);
+    }
+    SDL_FreeSurface(os);
+    return ns;
+}
+
+bool checkgrayscale(SDL_Surface *s)
+{
+    // gray scale images have 256 levels, no colorkey, and the palette is a ramp
+    if(s->format->palette)
+    {
+        if(s->format->palette->ncolors != 256 || s->format->colorkey) return false;
+        const SDL_Color *colors = s->format->palette->colors;
+        loopi(256) if(colors[i].r != i || colors[i].g != i || colors[i].b != i) return false;
+    }
+    return true;
+}
+
+int fixcl(SDL_Surface *s, bool check = true, Uint8 value = 0, Uint8 mlimit = 255)
+{
+    Uint32 pixel = 0;
+    int bpp = s->format->BytesPerPixel;
+    int F = 0, N = 0, t = 0;
+    while ( value > mlimit ) {t++; value >>= 1;}
+    int tmp = s->w * bpp;
+    for (int i = 0; i < tmp; i+=bpp)
+    {
+        for (int j = 0; j < s->h; j++)
+        {
+            Uint8 *p = (Uint8 *)s->pixels + j * s->w * bpp + i;
+            switch (bpp)
+            {
+                case 1:
+                {
+                    if (check) pixel = *p;
+                    else *p >>= t;
+                    break;
+                }
+                case 2:
+                {
+                    if (check) pixel = *(Uint16 *)p;
+                    else { p[0] >>= t; p[1] >>= t; }
+                    break;
+                }
+                case 3:
+                {
+                    if (check)
+                    {
+                        if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
+                            pixel = p[0] << 16 | p[1] << 8 | p[2];
+                        else
+                            pixel = p[0] | p[1] << 8 | p[2] << 16;
+                    }
+                    else { loopk(3) p[k] >>= t; }
+                    break;
+                }
+               case 4:
+               {
+                   if (check) pixel = *(Uint32 *)p;
+                   else {
+                       Uint8 r = 0, g = 0, b = 0, a = 0;
+                       SDL_GetRGBA(pixel, s->format, &r, &g, &b, &a);
+                       r >>= t; g >>= t; b >>= t;
+                       Uint32 *q = (Uint32 *)p;
+                       *q = SDL_MapRGBA(s->format, r,g,b,a);
+                   }
+                   break;
+               }
+                default: break;
+            }
+            if (check) {
+                Uint8 r = 0, g = 0, b = 0, a = 0;
+                SDL_GetRGBA(pixel, s->format, &r, &g, &b, &a);
+                F += r > g ? ( r > b ? r : b ) : ( g > b ? g : b ); N++;
+            }
+        }
+    }
+    if (!N) return 0;
+    return F/N;
+}
+
+SDL_Surface *fixsurfaceformat(SDL_Surface *s)
+{
+    if(!s) return NULL;
+    if(!s->pixels || min(s->w, s->h) <= 0 || s->format->BytesPerPixel <= 0)
+    {
+        SDL_FreeSurface(s);
+        return NULL;
+    }
+    static const uint rgbmasks[] = { RGBMASKS }, rgbamasks[] = { RGBAMASKS };
+    switch(s->format->BytesPerPixel)
+    {
+        case 1:
+            if(!checkgrayscale(s)) return s->format->colorkey ? forcergbasurface(s) : forcergbsurface(s);
+            break;
+        case 3:
+            if(s->format->Rmask != rgbmasks[0] || s->format->Gmask != rgbmasks[1] || s->format->Bmask != rgbmasks[2])
+                return forcergbsurface(s);
+            break;
+        case 4:
+            if(s->format->Rmask != rgbamasks[0] || s->format->Gmask != rgbamasks[1] || s->format->Bmask != rgbamasks[2] || s->format->Amask != rgbamasks[3])
+                return s->format->Amask ? forcergbasurface(s) : forcergbsurface(s);
+            break;
+    }
+    return s;
 }
 
 GLenum texformat(int bpp)
@@ -174,18 +335,37 @@ SDL_Surface *texdecal(SDL_Surface *s)
     return m;
 }
 
-GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp, bool mipmap, int reduce)
+bool silent_texture_load = false;
+
+GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 0, bool mipmap = true, bool canreduce = false)
 {
     const char *file = texname;
     if(texname[0]=='<')
     {
         file = strchr(texname, '>');
-        if(!file) { conoutf("could not load texture %s", texname); return 0; }
+        if(!file) { if(!silent_texture_load) conoutf("could not load texture %s", texname); return 0; }
         file++;
     }
 
-    SDL_Surface *s = IMG_Load(findfile(file, "rb"));
-    if(!s) { conoutf("couldn't load texture %s", texname); return 0; }
+    SDL_Surface *s = NULL;
+    stream *z = openzipfile(file, "rb");
+    if(z)
+    {
+        SDL_RWops *rw = z->rwops();
+        if(rw)
+        {
+            s = IMG_Load_RW(rw, 0);
+            SDL_FreeRW(rw);
+        }
+        delete z;
+    }
+    if(!s) s = IMG_Load(findfile(file, "rb"));
+    if(!s) { if(!silent_texture_load) conoutf("couldn't load texture %s", texname); return 0; }
+    s = fixsurfaceformat(s);
+    Uint8 x = 0;
+    if(strstr(texname,"playermodel") && (x = fixcl(s)) > 35) { fixcl(s,false,x,35); }
+    else if(strstr(texname,"skin") && strstr(texname,"weapon") && (x = fixcl(s)) > 40 ) { fixcl(s,false,x,40); }
+
     GLenum format = texformat(s->format->BitsPerPixel);
     if(!format)
     {
@@ -193,11 +373,11 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp, b
         conoutf("texture must be 8, 16, 24, or 32 bpp: %s", texname);
         return 0;
     }
-    if(max(s->w, s->h) > (1<<12)) 
-    { 
-        SDL_FreeSurface(s); 
-        conoutf("texture size exceeded %dx%d pixels: %s", 1<<12, 1<<12, texname); 
-        return 0; 
+    if(max(s->w, s->h) > (1<<12))
+    {
+        SDL_FreeSurface(s);
+        conoutf("texture size exceeded %dx%d pixels: %s", 1<<12, 1<<12, texname);
+        return 0;
     }
 
     if(texname[0]=='<')
@@ -209,7 +389,7 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp, b
 
     GLuint tnum;
     glGenTextures(1, &tnum);
-    createtexture(tnum, s->w, s->h, s->pixels, clamp, mipmap, format, reduce);
+    createtexture(tnum, s->w, s->h, s->pixels, clamp, mipmap, canreduce, format);
     xs = s->w;
     ys = s->h;
     bpp = s->format->BitsPerPixel;
@@ -224,12 +404,12 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp, b
 Texture *textureload(const char *name, int clamp, bool mipmap, bool canreduce)
 {
     string pname;
-    s_strcpy(pname, name);
+    copystring(pname, name);
     path(pname);
     Texture *t = textures.access(pname);
     if(t) return t;
     int xs, ys, bpp;
-    GLuint id = loadsurface(pname, xs, ys, bpp, clamp, mipmap, canreduce ? texreduce : 0);
+    GLuint id = loadsurface(pname, xs, ys, bpp, clamp, mipmap, canreduce);
     if(!id) return notexture;
     char *key = newstring(pname);
     t = &textures[key];
@@ -244,6 +424,34 @@ Texture *textureload(const char *name, int clamp, bool mipmap, bool canreduce)
     return t;
 }
 
+Texture *createtexturefromsurface(const char *name, SDL_Surface *s)
+{
+	string pname;
+	copystring(pname, name);
+	path(pname);
+	Texture *t = textures.access(pname);
+	if(!t)
+	{
+		char *key = newstring(pname);
+		t = &textures[key];
+		t->name = key;
+	}
+
+	GLuint tnum;
+	glGenTextures(1, &tnum);
+	GLenum format = texformat(s->format->BitsPerPixel);
+	createtexture(tnum, s->w, s->h, s->pixels, 0, true, false, format);
+
+	t->xs = s->w;
+	t->ys = s->h;
+	t->bpp = s->format->BitsPerPixel;
+	t->clamp = 0;
+	t->mipmap = true;
+	t->canreduce = false;
+	t->id = tnum;
+	return t;
+}
+
 struct Slot
 {
     string name;
@@ -253,12 +461,12 @@ struct Slot
 
 vector<Slot> slots;
 
-void texturereset() { slots.setsizenodelete(0); }
+void texturereset() { slots.setsize(0); }
 
 void texture(char *aframe, char *name)
 {
     Slot &s = slots.add();
-    s_strcpy(s.name, name);
+    copystring(s.name, name);
     path(s.name);
     s.tex = NULL;
     s.loaded = false;
@@ -267,7 +475,7 @@ void texture(char *aframe, char *name)
 COMMAND(texturereset, ARG_NONE);
 COMMAND(texture, ARG_2STR);
 
-Texture *lookuptexture(int tex, Texture *failtex, bool canreduce)
+Texture *lookuptexture(int tex, Texture *failtex)
 {
     Texture *t = failtex;
     if(slots.inrange(tex))
@@ -275,8 +483,8 @@ Texture *lookuptexture(int tex, Texture *failtex, bool canreduce)
         Slot &s = slots[tex];
         if(!s.loaded)
         {
-            s_sprintfd(pname)("packages/textures/%s", s.name);
-            s.tex = textureload(pname, 0, true, canreduce);
+            defformatstring(pname)("packages/textures/%s", s.name);
+            s.tex = textureload(pname, 0, true, true);
             if(s.tex==notexture) s.tex = failtex;
             s.loaded = true;
         }
@@ -296,7 +504,7 @@ bool reloadtexture(Texture &t)
 {
     if(t.id) return true;
     int xs = 1, ys = 1, bpp = 0;
-    t.id = loadsurface(t.name, xs, ys, bpp, t.clamp, t.mipmap, t.canreduce ? texreduce : 0);
+    t.id = loadsurface(t.name, xs, ys, bpp, t.clamp, t.mipmap, t.canreduce);
     t.xs = xs;
     t.ys = ys;
     t.bpp = bpp;
@@ -322,7 +530,7 @@ void loadsky(char *basename)
     const char *side[] = { "lf", "rt", "ft", "bk", "dn", "up" };
     loopi(6)
     {
-        s_sprintfd(name)("packages/%s_%s.jpg", basename, side[i]);
+        defformatstring(name)("packages/%s_%s.jpg", basename, side[i]);
         sky[i] = textureload(name, 3);
         if(!sky[i]) conoutf("could not load sky texture: %s", name);
     }
@@ -335,8 +543,8 @@ void loadnotexture(char *c)
     noworldtexture = notexture; // reset to default
     if(c[0])
     {
-        s_sprintfd(p)("packages/textures/%s", c);
-        noworldtexture = textureload(p, 0, true, true);
+        defformatstring(p)("packages/textures/%s", c);
+        noworldtexture = textureload(p);
         if(noworldtexture==notexture) conoutf("could not load alternative texture '%s'.", p);
     }
 }
@@ -349,11 +557,11 @@ void draw_envbox_face(float s0, float t0, float x0, float y0, float z0,
                       Texture *tex)
 {
     glBindTexture(GL_TEXTURE_2D, tex->id);
-    glBegin(GL_QUADS);
+    glBegin(GL_TRIANGLE_STRIP);
     glTexCoord2f(s3, t3); glVertex3f(x3, y3, z3);
     glTexCoord2f(s2, t2); glVertex3f(x2, y2, z2);
-    glTexCoord2f(s1, t1); glVertex3f(x1, y1, z1);
     glTexCoord2f(s0, t0); glVertex3f(x0, y0, z0);
+    glTexCoord2f(s1, t1); glVertex3f(x1, y1, z1);
     glEnd();
     xtraverts += 4;
 }
@@ -559,5 +767,30 @@ void cleanuptmus()
 {
     tmu invalidtmu = INVALIDTMU;
     loopi(MAXTMUS) tmus[i] = invalidtmu;
+}
+
+
+// only works on 32 bit surfaces with alpha in 4th byte!
+void blitsurface(SDL_Surface *dst, SDL_Surface *src, int x, int y)
+{
+    uchar *dstp = (uchar *)dst->pixels + y*dst->pitch + x*4,
+          *srcp = (uchar *)src->pixels;
+    int dstpitch = dst->pitch - 4*src->w,
+        srcpitch = src->pitch - 4*src->w;
+    loop(dy, src->h)
+    {
+        loop(dx, src->w)
+        {
+            uint k1 = (255U - srcp[3]) * dstp[3], k2 = srcp[3] * 255U, kmax = max(dstp[3], srcp[3]), kscale = max(kmax * 255U, 1U);
+            dstp[0] = (dstp[0]*k1 + srcp[0]*k2) / kscale;
+            dstp[1] = (dstp[1]*k1 + srcp[1]*k2) / kscale;
+            dstp[2] = (dstp[2]*k1 + srcp[2]*k2) / kscale;
+            dstp[3] = kmax;
+            dstp += 4;
+            srcp += 4;
+        }
+        dstp += dstpitch;
+        srcp += srcpitch;
+    }
 }
 

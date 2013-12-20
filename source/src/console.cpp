@@ -1,6 +1,5 @@
 // console.cpp: the console buffer, its display, and command line control
 
-#include "pch.h"
 #include "cube.h"
 
 #define CONSPAD (FONTH/3)
@@ -90,23 +89,84 @@ COMMANDN(toggleconsole, toggleconsole, ARG_NONE);
 
 void renderconsole() { con.render(); }
 
+void clientlogf(const char *s, ...)
+{
+    defvformatstring(sp, s, s);
+    filtertext(sp, sp, 2);
+    extern struct servercommandline scl;
+    const char *ts = scl.logtimestamp ? timestring(true, "%b %d %H:%M:%S ") : "";
+    char *p, *l = sp;
+    do
+    { // break into single lines first
+        if((p = strchr(l, '\n'))) *p = '\0';
+        printf("%s%s\n", ts, l);
+        l = p + 1;
+    }
+    while(p);
+}
+SVAR(conline,"n/a");
 void conoutf(const char *s, ...)
 {
-    s_sprintfdv(sf, s);
-    string sp;
-    filtertext(sp, sf, 2);
-    extern struct servercommandline scl;
-    printf("%s%s\n", scl.logtimestamp ? timestring(true, "%b %d %H:%M:%S ") : "", sp);
+    defvformatstring(sf, s, s);
+    clientlogf("%s", sf);
     con.addline(sf);
+    delete[] conline; conline=newstring(sf);
 }
-
+void strstra(const char *a,const char *b) {
+    intret(strstr(a,b)?1:0);
+    return;
+}
+COMMANDN(strstr,strstra,ARG_2STR);
+/** This is the 1.0.4 function
+    It will substituted by rendercommand_wip
+    I am putting this temporarily here because it is very difficult to chat in game with the current cursor behavior,
+    and chatting in this test period is extremelly important : Brahma */
 int rendercommand(int x, int y, int w)
 {
-    s_sprintfd(s)("> %s", cmdline.buf);
+    defformatstring(s)("# %s", cmdline.buf); /** I changed the symbol here to differentiate from the > (new talk symbol),
+                                             and make clear the console changed to the old players (like me) : Brahma */
     int width, height;
     text_bounds(s, width, height, w);
     y -= height - FONTH;
     draw_text(s, x, y, 0xFF, 0xFF, 0xFF, 0xFF, cmdline.pos>=0 ? cmdline.pos+2 : (int)strlen(s), w);
+    return height;
+}
+
+const char *getCONprefix(int n)
+{
+    const char* CONpreSTR[] = {
+        ">", // ">>>", // "TALK" // "T" // ">"
+        "/", // "CFG", // "EXEC" // "!" // "!"
+        "%", // "TEAM" // ">" // "T"
+    };
+    return (n>=0 && size_t(n) < sizeof(CONpreSTR)/sizeof(CONpreSTR[0])) ? CONpreSTR[n] : "#";
+}
+
+int getCONlength(int n)
+{
+    const char* CURpreSTR = getCONprefix(n);
+    return strlen(CURpreSTR);
+}
+
+/** WIP ALERT */
+int rendercommand_wip(int x, int y, int w)
+{
+    int width, height;
+    if( strlen(cmdline.buf) > 0 )
+    {
+        int ctx = -1;
+        switch( cmdline.buf[0] )
+        {
+            case '>': ctx = 0; break;
+            case '/': ctx = 1; break;
+            case '%': ctx = 2; break;
+            default: break;
+        }
+        defformatstring(s)("%s %s", getCONprefix(ctx), cmdline.buf+1);
+        text_bounds(s, width, height, w);
+        y -= height - FONTH;
+        draw_text(s, x, y, 0xFF, 0xFF, 0xFF, 0xFF, cmdline.pos>=0 ? cmdline.pos/*+1*/+getCONlength(ctx) : (int)strlen(s), w);
+    }
     return height;
 }
 
@@ -159,7 +219,11 @@ void bindk(const char *key, const char *action)
     if(!km) { conoutf("unknown key \"%s\"", key); return; }
     bindkey(km, action);
 }
-
+void keybind(const char *key)
+{
+    keym *km = findbind(key);
+    result(km->action);
+}
 bool bindc(int code, const char *action)
 {
     keym *km = findbindc(code);
@@ -168,7 +232,7 @@ bool bindc(int code, const char *action)
 }
 
 COMMANDN(bind, bindk, ARG_2STR);
-
+COMMAND(keybind, ARG_1STR);
 struct releaseaction
 {
     keym *key;
@@ -195,9 +259,10 @@ COMMAND(onrelease, ARG_1STR);
 void saycommand(char *init)                         // turns input to the command line on or off
 {
     SDL_EnableUNICODE(saycommandon = (init!=NULL));
-	setscope(false);
+    setscope(false);
+    setburst(false);
     if(!editmode) keyrepeat(saycommandon);
-    s_strcpy(cmdline.buf, init ? init : "");
+    copystring(cmdline.buf, init ? init : ">"); // ALL cmdline.buf[0] ARE flag-chars ! ">" is for talk - the previous "no flag-char" item
     DELETEA(cmdaction);
     DELETEA(cmdprompt);
     cmdline.pos = -1;
@@ -215,13 +280,13 @@ void mapmsg(char *s)
     string text;
     filterrichtext(text, s);
     filterservdesc(text, text);
-    s_strncpy(hdr.maptitle, text, 128);
+    copystring(hdr.maptitle, text, 128);
 }
 
 void getmapmsg(void)
 {
     string text;
-    s_strncpy(text, hdr.maptitle, 128);
+    copystring(text, hdr.maptitle, 128);
     result(text);
 }
 
@@ -241,7 +306,7 @@ void pasteconsole(char *dst)
     if(!IsClipboardFormatAvailable(CF_TEXT)) return;
     if(!OpenClipboard(NULL)) return;
     char *cb = (char *)GlobalLock(GetClipboardData(CF_TEXT));
-    s_strcat(dst, cb);
+    concatstring(dst, cb);
     GlobalUnlock(cb);
     CloseClipboard();
 	#elif defined(__APPLE__)
@@ -257,15 +322,15 @@ void pasteconsole(char *dst)
     char *cb = XFetchBytes(wminfo.info.x11.display, &cbsize);
     if(!cb || !cbsize) return;
     int commandlen = strlen(dst);
-    for(char *cbline = cb, *cbend; commandlen + 1 < _MAXDEFSTR && cbline < &cb[cbsize]; cbline = cbend + 1)
+    for(char *cbline = cb, *cbend; commandlen + 1 < MAXSTRLEN && cbline < &cb[cbsize]; cbline = cbend + 1)
     {
         cbend = (char *)memchr(cbline, '\0', &cb[cbsize] - cbline);
         if(!cbend) cbend = &cb[cbsize];
-        if(commandlen + cbend - cbline + 1 > _MAXDEFSTR) cbend = cbline + _MAXDEFSTR - commandlen - 1;
+        if(commandlen + cbend - cbline + 1 > MAXSTRLEN) cbend = cbline + MAXSTRLEN - commandlen - 1;
         memcpy(&dst[commandlen], cbline, cbend - cbline);
         commandlen += cbend - cbline;
         dst[commandlen] = '\n';
-        if(commandlen + 1 < _MAXDEFSTR && cbend < &cb[cbsize]) ++commandlen;
+        if(commandlen + 1 < MAXSTRLEN && cbend < &cb[cbsize]) ++commandlen;
         dst[commandlen] = '\0';
     }
     XFree(cb);
@@ -286,7 +351,7 @@ struct hline
 
     void restore()
     {
-        s_strcpy(cmdline.buf, buf);
+        copystring(cmdline.buf, buf);
         if(cmdline.pos >= (int)strlen(cmdline.buf)) cmdline.pos = -1;
         DELETEA(cmdaction);
         DELETEA(cmdprompt);
@@ -317,12 +382,16 @@ struct hline
             execute(action);
         }
         else if(buf[0]=='/') execute(buf+1);
-        else toserver(buf);
+        else if(buf[0]=='>') toserver(buf+1);
+        else if(buf[0]=='%') toserver(buf);
+        else toserver(buf); // execute(buf); // still default to simple "say".
         popscontext();
     }
 };
 vector<hline *> history;
 int histpos = 0;
+
+VARP(maxhistory, 0, 1000, 10000);
 
 void history_(int n)
 {
@@ -379,11 +448,12 @@ void consolekey(int code, bool isdown, int cooked)
                 break;
 
             case SDLK_UP:
-                if(histpos>0) history[--histpos]->restore();
+                if(histpos > history.length()) histpos = history.length();
+                if(histpos > 0) history[--histpos]->restore();
                 break;
 
             case SDLK_DOWN:
-                if(histpos+1<history.length()) history[++histpos]->restore();
+                if(histpos + 1 < history.length()) history[++histpos]->restore();
                 break;
 
             case SDLK_TAB:
@@ -408,7 +478,14 @@ void consolekey(int code, bool isdown, int cooked)
             if(cmdline.buf[0])
             {
                 if(history.empty() || history.last()->shouldsave())
-                    history.add(h = new hline)->save(); // cap this?
+                {
+                    if(maxhistory && history.length() >= maxhistory)
+                    {
+                        loopi(history.length()-maxhistory+1) delete history[i];
+                        history.remove(0, history.length()-maxhistory+1);
+                    }
+                    history.add(h = new hline)->save();
+                }
                 else h = history.last();
             }
             histpos = history.length();
@@ -440,11 +517,11 @@ char *getcurcommand()
     return saycommandon ? cmdline.buf : NULL;
 }
 
-void writebinds(FILE *f)
+void writebinds(stream *f)
 {
     loopv(keyms)
     {
-        if(*keyms[i].action) fprintf(f, "bind \"%s\" [%s]\n",     keyms[i].name, keyms[i].action);
+        if(*keyms[i].action) f->printf("bind \"%s\" [%s]\n",     keyms[i].name, keyms[i].action);
     }
 }
 

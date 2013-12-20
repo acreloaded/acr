@@ -1,6 +1,10 @@
 #ifndef __CUBE_H__
 #define __CUBE_H__
 
+// to "trick" i18n/gettext
+#define CC '\f'
+
+#include "platform.h"
 #include "tools.h"
 #include "geom.h"
 #include "model.h"
@@ -9,17 +13,13 @@
 #include "weapon.h"
 #include "entity.h"
 #include "world.h"
+#include "i18n.h"
+#include "command.h"
 
 #ifndef STANDALONE
- #include "command.h"
  #include "vote.h"
  #include "console.h"
 #endif
-
-typedef vector<char *> cvector;
-typedef vector<int> ivector;
-
-// globals ooh naughty
 
 extern sqr *world, *wmip[];             // map data, the mips are sequential 2D arrays in memory
 extern header hdr;                      // current map header
@@ -31,9 +31,11 @@ extern vector<playerent *> players;     // all the other clients (in multiplayer
 extern vector<bounceent *> bounceents;
 extern bool editmode;
 extern vector<entity> ents;             // map entities
+extern vector<int> eh_ents;             // edithide entities
 extern vec worldpos, camup, camright, camdir; // current target of the crosshair in the world
 extern int lastmillis, totalmillis;     // last time
 extern int curtime;                     // current frame time
+extern int interm;
 extern int gamemode, nextmode;
 extern int gamespeed;
 extern int xtraverts;
@@ -50,8 +52,10 @@ extern int verbose;
 
 #include "protos.h"				// external function decls
 
-#define AC_VERSION 1041
-#define AC_MASTER_URI "masterserver.cubers.net/cgi-bin/actioncube.pl/" // FIXME, change DNS on ac release
+#define AC_VERSION 1104
+#define AC_MASTER_URI "assault.cubers.net"
+#define AC_MASTER_PORT 28760
+#define MAXCL 20
 
 #endif
 

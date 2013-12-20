@@ -1,44 +1,6 @@
 // implementation of generic tools
 
-#include "pch.h"
 #include "cube.h"
-
-///////////////////////// file system ///////////////////////
-
-#ifndef WIN32
-#include <unistd.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <dirent.h>
-#endif
-
-string homedir = "";
-vector<char *> packagedirs;
-
-#ifdef WIN32
-char *getregszvalue(HKEY root, const char *keystr, const char *query)
-{
-    HKEY key;
-    if(RegOpenKeyEx(HKEY_CURRENT_USER, keystr, 0, KEY_READ, &key)==ERROR_SUCCESS)
-    {
-        DWORD type = 0, len = 0;
-        if(RegQueryValueEx(key, query, 0, &type, 0, &len)==ERROR_SUCCESS && type==REG_SZ)
-        {
-            char *val = new char[len];
-            long result = RegQueryValueEx(key, query, 0, &type, (uchar *)val, &len);
-            if(result==ERROR_SUCCESS)
-            {
-                RegCloseKey(key);
-                val[len-1] = '\0';
-                return val;
-            }
-            delete[] val;
-        }
-        RegCloseKey(key);
-    }
-    return NULL;
-}
-#endif
 
 const char *timestring(bool local, const char *fmt)
 {
@@ -58,279 +20,16 @@ const char *asctime()
 const char *numtime()
 {
     static string numt;
-    s_sprintf(numt)("%ld", (long long) time(NULL));
+    formatstring(numt)("%ld", (long long) time(NULL));
     return numt;
 }
 
-char *path(char *s)
-{
-    for(char *t = s; (t = strpbrk(t, "/\\")); *t++ = PATHDIV);
-    for(char *prevdir = NULL, *curdir = s;;)
-    {
-        prevdir = curdir[0]==PATHDIV ? curdir+1 : curdir;
-        curdir = strchr(prevdir, PATHDIV);
-        if(!curdir) break;
-        if(prevdir+1==curdir && prevdir[0]=='.')
-        {
-            memmove(prevdir, curdir+1, strlen(curdir+1)+1);
-            curdir = prevdir;
-        }
-        else if(curdir[1]=='.' && curdir[2]=='.' && curdir[3]==PATHDIV)
-        {
-            if(prevdir+2==curdir && prevdir[0]=='.' && prevdir[1]=='.') continue;
-            memmove(prevdir, curdir+4, strlen(curdir+4)+1);
-            curdir = prevdir;
-        }
-    }
-    return s;
-}
+int mapdims[6];     // min/max X/Y and delta X/Y
 
-char *path(const char *s, bool copy)
-{
-    static string tmp;
-    s_strcpy(tmp, s);
-    path(tmp);
-    return tmp;
-}
-
-const char *behindpath(const char *s)
-{
-    const char *t = s;
-    for( ; (s = strpbrk(s, "/\\")); t = ++s);
-    return t;
-}
-
-const char *parentdir(const char *directory)
-{
-    const char *p = strrchr(directory, '/');
-    if(!p) p = strrchr(directory, '\\');
-    if(!p) p = directory;
-    static string parent;
-    size_t len = p-directory+1;
-    s_strncpy(parent, directory, len);
-    return parent;
-}
-
-bool fileexists(const char *path, const char *mode)
-{
-    bool exists = true;
-    if(mode[0]=='w' || mode[0]=='a') path = parentdir(path);
-#ifdef WIN32
-    if(GetFileAttributes(path) == INVALID_FILE_ATTRIBUTES) exists = false;
-#else
-    if(access(path, R_OK | (mode[0]=='w' || mode[0]=='a' ? W_OK : 0)) == -1) exists = false;
-#endif
-    return exists;
-}
-
-bool createdir(const char *path)
-{
-    size_t len = strlen(path);
-    if(path[len-1]==PATHDIV)
-    {
-        static string strip;
-        path = s_strncpy(strip, path, len);
-    }
-#ifdef WIN32
-    return CreateDirectory(path, NULL)!=0;
-#else
-    return mkdir(path, 0777)==0;
-#endif
-}
-
-static void fixdir(char *dir)
-{
-    path(dir);
-    size_t len = strlen(dir);
-    if(dir[len-1]!=PATHDIV)
-    {
-        dir[len] = PATHDIV;
-        dir[len+1] = '\0';
-    }
-}
-
-void sethomedir(const char *dir)
-{
-    string tmpdir;
-    s_strcpy(tmpdir, dir);
-
-#ifdef WIN32
-    const char substitute[] = "?MYDOCUMENTS?";
-    if(!strncmp(dir, substitute, strlen(substitute)))
-    {
-        const char *regpath = "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders";
-        char *mydocuments = getregszvalue(HKEY_CURRENT_USER, regpath, "Personal");
-        if(mydocuments)
-        {
-            s_sprintf(tmpdir)("%s%s", mydocuments, dir+strlen(substitute));
-            delete[] mydocuments;
-        }
-        else
-        {
-            printf("failed to retrieve 'Personal' path from '%s'\n", regpath);
-        }
-    }
-#endif
-
-    printf("Using home directory: %s\n", tmpdir);
-    fixdir(s_strcpy(homedir, tmpdir));
-    createdir(homedir);
-}
-
-void addpackagedir(const char *dir)
-{
-    printf("Adding package directory: %s\n", dir);
-    fixdir(packagedirs.add(newstringbuf(dir)));
-}
-
-const char *findfile(const char *filename, const char *mode)
-{
-    static string s;
-    if(homedir[0])
-    {
-        s_sprintf(s)("%s%s", homedir, filename);
-        if(fileexists(s, mode)) return s;
-        if(mode[0]=='w' || mode[0]=='a')
-        {
-            string dirs;
-            s_strcpy(dirs, s);
-            char *dir = strchr(dirs[0]==PATHDIV ? dirs+1 : dirs, PATHDIV);
-            while(dir)
-            {
-                *dir = '\0';
-                if(!fileexists(dirs, "r") && !createdir(dirs)) return s;
-                *dir = PATHDIV;
-                dir = strchr(dir+1, PATHDIV);
-            }
-            return s;
-        }
-    }
-    if(mode[0]=='w' || mode[0]=='a') return filename;
-    loopv(packagedirs)
-    {
-        s_sprintf(s)("%s%s", packagedirs[i], filename);
-        if(fileexists(s, mode)) return s;
-    }
-    return filename;
-}
-
-int getfilesize(const char *filename)
-{
-    const char *found = findfile(filename, "rb");
-    if(!found) return -1;
-    FILE *fp = fopen(found, "rb");
-    if(!fp) return -1;
-    fseek(fp, 0, SEEK_END);
-    int len = ftell(fp);
-    fclose(fp);
-    return len;
-}
-
-FILE *openfile(const char *filename, const char *mode)
-{
-    const char *found = findfile(filename, mode);
-#ifndef STANDALONE
-    if(mode && (mode[0]=='w' || mode[0]=='a')) conoutf("writing to file: %s", found);
-#endif
-    if(!found) return NULL;
-    return fopen(found, mode);
-}
-
-gzFile opengzfile(const char *filename, const char *mode)
-{
-    const char *found = findfile(filename, mode);
-#ifndef STANDALONE
-    if(mode && (mode[0]=='w' || mode[0]=='a')) conoutf("writing to file: %s", found);
-#endif
-    if(!found) return NULL;
-    return gzopen(found, mode);
-}
-
-char *loadfile(const char *fn, int *size, const char *mode)
-{
-    FILE *f = openfile(fn, mode ? mode : "rb");
-    if(!f) return NULL;
-    fseek(f, 0, SEEK_END);
-    int len = ftell(f);
-    if(len<=0) { fclose(f); return NULL; }
-    fseek(f, 0, SEEK_SET);
-    char *buf = new char[len+1];
-    if(!buf) { fclose(f); return NULL; }
-    buf[len] = 0;
-    int rlen = (int)fread(buf, 1, len, f);
-    fclose(f);
-    if(len!=rlen && (!mode || strchr(mode, 'b')))
-    {
-        delete[] buf;
-        return NULL;
-    }
-    if(size!=NULL) *size = rlen;
-    return buf;
-}
-
-bool listdir(const char *dir, const char *ext, vector<char *> &files)
-{
-    int extsize = ext ? (int)strlen(ext)+1 : 0;
-    #if defined(WIN32)
-    s_sprintfd(pathname)("%s\\*.%s", dir, ext ? ext : "*");
-    WIN32_FIND_DATA FindFileData;
-    HANDLE Find = FindFirstFile(path(pathname), &FindFileData);
-    if(Find != INVALID_HANDLE_VALUE)
-    {
-        do {
-            files.add(newstring(FindFileData.cFileName, (int)strlen(FindFileData.cFileName) - extsize));
-        } while(FindNextFile(Find, &FindFileData));
-        return true;
-    }
-    #else
-    string pathname;
-    s_strcpy(pathname, dir);
-    DIR *d = opendir(path(pathname));
-    if(d)
-    {
-        struct dirent *de;
-        while((de = readdir(d)) != NULL)
-        {
-            if(!ext) files.add(newstring(de->d_name));
-            else
-            {
-                int namelength = (int)strlen(de->d_name) - extsize;
-                if(namelength > 0 && de->d_name[namelength] == '.' && strncmp(de->d_name+namelength+1, ext, extsize-1)==0)
-                    files.add(newstring(de->d_name, namelength));
-            }
-        }
-        closedir(d);
-        return true;
-    }
-    #endif
-    else return false;
-}
-
-int listfiles(const char *dir, const char *ext, vector<char *> &files)
-{
-    int dirs = 0;
-    if(listdir(dir, ext, files)) dirs++;
-    string s;
-    if(homedir[0])
-    {
-        s_sprintf(s)("%s%s", homedir, dir);
-        if(listdir(s, ext, files)) dirs++;
-    }
-    loopv(packagedirs)
-    {
-        s_sprintf(s)("%s%s", packagedirs[i], dir);
-        if(listdir(s, ext, files)) dirs++;
-    }
-    return dirs;
-}
-
-bool delfile(const char *path)
-{
-    return !remove(path);
-}
-
-extern char *maplayout;
-extern int maplayout_factor;
+extern char *maplayout, *testlayout;
+extern int maplayout_factor, testlayout_factor, Mvolume, Marea, Mopen;
+extern float Mheight;
+extern int checkarea(int, char *);
 
 mapstats *loadmapstats(const char *filename, bool getlayout)
 {
@@ -343,85 +42,135 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
     loopi(3) s.spawns[i] = 0;
     loopi(2) s.flags[i] = 0;
 
-    gzFile f = opengzfile(filename, "rb9");
+    stream *f = opengzfile(filename, "rb");
     if(!f) return NULL;
     memset(&s.hdr, 0, sizeof(header));
-    if(gzread(f, &s.hdr, sizeof(header)-sizeof(int)*16)!=sizeof(header)-sizeof(int)*16 || (strncmp(s.hdr.head, "CUBE", 4) && strncmp(s.hdr.head, "ACMP",4))) { gzclose(f); return NULL; }
-    endianswap(&s.hdr.version, sizeof(int), 4);
-    if(s.hdr.version>MAPVERSION || s.hdr.numents > MAXENTITIES || (s.hdr.version>=4 && gzread(f, &s.hdr.waterlevel, sizeof(int)*16)!=sizeof(int)*16)) { gzclose(f); return NULL; }
-    if(s.hdr.version>=4) endianswap(&s.hdr.waterlevel, sizeof(int), 1); else s.hdr.waterlevel = -100000;
+    if(f->read(&s.hdr, sizeof(header)-sizeof(int)*16-sizeof(char)*128)!=sizeof(header)-sizeof(int)*16-sizeof(char)*128 || (strncmp(s.hdr.head, "CUBE", 4) && strncmp(s.hdr.head, "ACMP",4))) { delete f; return NULL; }
+    lilswap(&s.hdr.version, 4);
+    if(s.hdr.version>MAPVERSION || s.hdr.numents > MAXENTITIES || (s.hdr.version>=4 && f->read(&s.hdr.waterlevel, sizeof(int)*16)!=sizeof(int)*16)) { delete f; return NULL; }
+    if(s.hdr.version>=7 && f->read(&s.hdr.mediareq, sizeof(char)*128)!=sizeof(char)*128) { delete f; return NULL; }
+    if(s.hdr.version>=4)
+    {
+        lilswap(&s.hdr.waterlevel, 1);
+        lilswap(&s.hdr.maprevision, 2);
+    }
+    else s.hdr.waterlevel = -100000;
+    if(s.hdr.version<7)
+    {
+        copystring(s.hdr.mediareq, "", 128);//s.hdr.mediareq[0] = '\0';
+    }
     entity e;
     enttypes = new uchar[s.hdr.numents];
     entposs = new short[s.hdr.numents * 3];
     loopi(s.hdr.numents)
     {
-        gzread(f, &e, sizeof(persistent_entity));
-        endianswap(&e, sizeof(short), 4);
+        f->read(&e, sizeof(persistent_entity));
+        lilswap((short *)&e, 4);
         TRANSFORMOLDENTITIES(s.hdr)
         if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100)) s.spawns[e.attr2 == 100 ? 2 : e.attr2]++;
         if(e.type == CTF_FLAG && (e.attr2 == 0 || e.attr2 == 1)) { s.flags[e.attr2]++; s.flagents[e.attr2] = i; }
         s.entcnt[e.type]++;
         enttypes[i] = e.type;
-        entposs[i * 3] = e.x; entposs[i * 3 + 1] = e.y; entposs[i * 3 + 2] = e.z;
+        entposs[i * 3] = e.x; entposs[i * 3 + 1] = e.y; entposs[i * 3 + 2] = e.z + e.attr1;
+    }
+    DELETEA(testlayout);
+    if(s.hdr.sfactor <= LARGEST_FACTOR && s.hdr.sfactor >= SMALLEST_FACTOR)
+    {
+        testlayout_factor = s.hdr.sfactor;
+        int layoutsize = 1 << (testlayout_factor * 2);
+        bool fail = false;
+        testlayout = new char[layoutsize + 256];
+        memset(testlayout, 0, layoutsize * sizeof(char));
+        char *t = NULL;
+        char floor = 0, ceil, diff = 0;
+        Mvolume = Marea = 0;
+        loopk(layoutsize)
+        {
+            char *c = testlayout + k;
+            int type = f->getchar();
+            int n = 1;
+            switch(type)
+            {
+                case 255:
+                {
+                    if(!t || (n = f->getchar()) < 0) { fail = true; break; }
+                    memset(c, *t, n);
+                    k += n - 1;
+                    break;
+                }
+                case 254: // only in MAPVERSION<=2
+                    if(!t) { fail = true; break; }
+                    *c = *t;
+                    f->getchar(); f->getchar();
+                    break;
+                default:
+                    if(type<0 || type>=MAXTYPE)  { fail = true; break; }
+                    floor = f->getchar();
+                    ceil = f->getchar();
+                    if(floor >= ceil && ceil > -128) floor = ceil - 1;  // for pre 12_13
+                    diff = ceil - floor;
+                    if(type == FHF) floor = -128;
+                    f->getchar(); f->getchar();
+                    if(s.hdr.version>=2) f->getchar();
+                    if(s.hdr.version>=5) f->getchar();
+
+                case SOLID:
+                    *c = type == SOLID ? 127 : floor;
+                    f->getchar(); f->getchar();
+                    if(s.hdr.version<=2) { f->getchar(); f->getchar(); }
+                    break;
+            }
+            if ( type != SOLID && diff > 6 )
+            {
+                Marea += n;
+                Mvolume += diff * n;
+            }
+            if(fail) break;
+            t = c;
+        }
+        if(fail) { DELETEA(testlayout); }
+        else
+        {
+            Mheight = Marea ? (float)Mvolume/Marea : 0;
+            Mopen = checkarea(testlayout_factor, testlayout);
+        }
     }
     if(getlayout)
     {
         DELETEA(maplayout);
-        if(s.hdr.sfactor <= LARGEST_FACTOR && s.hdr.sfactor >= SMALLEST_FACTOR)
+        if (testlayout)
         {
-            maplayout_factor = s.hdr.sfactor;
-            int layoutsize = 1 << (maplayout_factor * 2);
-            bool fail = false;
+            maplayout_factor = testlayout_factor;
+            extern int maplayoutssize;
+            maplayoutssize = 1 << testlayout_factor;
+            int layoutsize = 1 << (testlayout_factor * 2);
             maplayout = new char[layoutsize + 256];
-            memset(maplayout, 0, layoutsize * sizeof(char));
-            char *t = NULL;
-            char floor = 0, ceil;
-            loopk(layoutsize)
+            memcpy(maplayout, testlayout, layoutsize * sizeof(char));
+
+            loopk(4) mapdims[k] = k < 2 ? maplayoutssize : 0;
+            loopk(layoutsize) if (testlayout[k] != 127)
             {
-                char *c = maplayout + k;
-                int type = gzgetc(f);
-                switch(type)
-                {
-                    case 255:
-                    {
-                        int n = gzgetc(f);
-                        if(!t || n < 0) { fail = true; break; }
-                        memset(c, *t, n);
-                        k += n - 1;
-                        break;
-                    }
-                    case 254: // only in MAPVERSION<=2
-                        if(!t) { fail = true; break; }
-                        *c = *t;
-                        gzgetc(f); gzgetc(f);
-                        break;
-                    default:
-                        if(type<0 || type>=MAXTYPE)  { fail = true; break; }
-                        floor = gzgetc(f);
-                        ceil = gzgetc(f);
-                        if(floor >= ceil && ceil > -128) floor = ceil - 1;  // for pre 12_13
-                        if(type == FHF) floor = -128;
-                        gzgetc(f); gzgetc(f);
-                        if(s.hdr.version>=2) gzgetc(f);
-                        if(s.hdr.version>=5) gzgetc(f);
-                    case SOLID:
-                        *c = type == SOLID ? 127 : floor;
-                        gzgetc(f); gzgetc(f);
-                        if(s.hdr.version<=2) { gzgetc(f); gzgetc(f); }
-                        break;
-                }
-                if(fail) break;
-                t = c;
+                int cwx = k%maplayoutssize,
+                cwy = k/maplayoutssize;
+                if(cwx < mapdims[0]) mapdims[0] = cwx;
+                if(cwy < mapdims[1]) mapdims[1] = cwy;
+                if(cwx > mapdims[2]) mapdims[2] = cwx;
+                if(cwy > mapdims[3]) mapdims[3] = cwy;
             }
-            if(fail) DELETEA(maplayout);
+            loopk(2) mapdims[k+4] = mapdims[k+2] - mapdims[k];
+/*            printf("  min X|Y: %3d : %3d\n", mapdims[0], mapdims[1]);
+            printf("  max X|Y: %3d : %3d\n", mapdims[2], mapdims[3]);
+            printf("delta X|Y: %3d : %3d\n", mapdims[4], mapdims[5]);
+            fflush(stdout);*/
         }
     }
-    gzclose(f);
+    delete f;
     s.hasffaspawns = s.spawns[2] > 0;
     s.hasteamspawns = s.spawns[0] > 0 && s.spawns[1] > 0;
     s.hasflags = s.flags[0] > 0 && s.flags[1] > 0;
     s.enttypes = enttypes;
     s.entposs = entposs;
+    s.cgzsize = getfilesize(filename);
     return &s;
 }
 
@@ -434,7 +183,7 @@ void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep)
     EXCEPTION_RECORD *er = ep->ExceptionRecord;
     CONTEXT *context = ep->ContextRecord;
     string out, t;
-    s_sprintf(out)("Win32 Exception: 0x%x [0x%x]\n\n", er->ExceptionCode, er->ExceptionCode==EXCEPTION_ACCESS_VIOLATION ? er->ExceptionInformation[1] : -1);
+    formatstring(out)("Win32 Exception: 0x%x [0x%x]\n\n", er->ExceptionCode, er->ExceptionCode==EXCEPTION_ACCESS_VIOLATION ? er->ExceptionInformation[1] : -1);
     STACKFRAME sf = {{context->Eip, 0, AddrModeFlat}, {}, {context->Ebp, 0, AddrModeFlat}, {context->Esp, 0, AddrModeFlat}, 0};
     SymInitialize(GetCurrentProcess(), NULL, TRUE);
 
@@ -446,8 +195,8 @@ void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep)
         if(SymGetSymFromAddr(GetCurrentProcess(), (DWORD)sf.AddrPC.Offset, &off, &si.sym) && SymGetLineFromAddr(GetCurrentProcess(), (DWORD)sf.AddrPC.Offset, &off, &li))
         {
             char *del = strrchr(li.FileName, '\\');
-            s_sprintf(t)("%s - %s [%d]\n", si.sym.Name, del ? del + 1 : li.FileName, li.LineNumber);
-            s_strcat(out, t);
+            formatstring(t)("%s - %s [%d]\n", si.sym.Name, del ? del + 1 : li.FileName, li.LineNumber);
+            concatstring(out, t);
         }
     }
     fatal("%s", out);
@@ -515,22 +264,20 @@ bool cmpf(char *fn, enet_uint32 c)
     return r;
 }
 
-void endianswap(void *memory, int stride, int length)   // little endian as storage format
+enet_uint32 adler(unsigned char *data, size_t len)
 {
-    static const int littleendian = 1;
-    if(!*(const char *)&littleendian) loop(w, length) loop(i, stride/2)
+    enet_uint32 a = 1, b = 0;
+    while (len--)
     {
-        uchar *p = (uchar *)memory+w*stride;
-        uchar t = p[i];
-        p[i] = p[stride-i-1];
-        p[stride-i-1] = t;
+        a += *data++;
+        b += a;
     }
+    return b;
 }
 
 bool isbigendian()
 {
-    long one = 1;
-    return !(*((char *)(&one)));
+    return !*(const uchar *)&islittleendian;
 }
 
 void strtoupper(char *t, const char *s)
@@ -584,7 +331,7 @@ const char *iptoa(const enet_uint32 ip)
     static string s[2];
     static int buf = 0;
     buf = (buf + 1) % 2;
-    s_sprintf(s[buf])("%d.%d.%d.%d", (ip >> 24) & 255, (ip >> 16) & 255, (ip >> 8) & 255, ip & 255);
+    formatstring(s[buf])("%d.%d.%d.%d", (ip >> 24) & 255, (ip >> 16) & 255, (ip >> 8) & 255, ip & 255);
     return s[buf];
 }
 
@@ -593,24 +340,36 @@ const char *iprtoa(const struct iprange &ipr)
     static string s[2];
     static int buf = 0;
     buf = (buf + 1) % 2;
-    if(ipr.lr == ipr.ur) s_strcpy(s[buf], iptoa(ipr.lr));
-    else s_sprintf(s[buf])("%s-%s", iptoa(ipr.lr), iptoa(ipr.ur));
+    if(ipr.lr == ipr.ur) copystring(s[buf], iptoa(ipr.lr));
+    else formatstring(s[buf])("%s-%s", iptoa(ipr.lr), iptoa(ipr.ur));
     return s[buf];
 }
 
-char *s_strcatf(char *d, const char *s, ...)
+int cmpiprange(const struct iprange *a, const struct iprange *b)
 {
-    static s_sprintfdv(temp, s);
-    return s_strcat(d, temp);
+    if(a->lr < b->lr) return -1;
+    if(a->lr > b->lr) return 1;
+    return 0;
+}
+
+int cmpipmatch(const struct iprange *a, const struct iprange *b)
+{
+    return - (a->lr < b->lr) + (a->lr > b->ur);
+}
+
+char *concatformatstring(char *d, const char *s, ...)
+{
+    static defvformatstring(temp, s, s);
+    return concatstring(d, temp);
 }
 
 const char *hiddenpwd(const char *pwd, int showchars)
 {
     static int sc = 3;
     static string text;
-    s_strcpy(text, pwd);
+    copystring(text, pwd);
     if(showchars > 0) sc = showchars;
-    for(int i = strlen(text) - 1; i >= sc; i--) text[i] = '*';
+    for(int i = (int)strlen(text) - 1; i >= sc; i--) text[i] = '*';
     return text;
 }
 //////////////// geometry utils ////////////////
@@ -668,9 +427,10 @@ void glmatrixf::adjoint(const glmatrixf &m)
 
 bool glmatrixf::invert(const glmatrixf &m, float mindet)
 {
-    float det = m.determinant();
-    if(fabs(det) < mindet) return false;
+    float a1 = m.v[0], b1 = m.v[4], c1 = m.v[8], d1 = m.v[12];
     adjoint(m);
+    float det = a1*v[0] + b1*v[1] + c1*v[2] + d1*v[3]; // float det = m.determinant();
+    if(fabs(det) < mindet) return false;
     float invdet = 1/det;
     loopi(16) v[i] *= invdet;
     return true;

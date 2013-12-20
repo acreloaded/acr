@@ -1,6 +1,5 @@
 // rendercubes.cpp: sits in between worldrender.cpp and rendergl.cpp and fills the vertex array for different cube surfaces.
 
-#include "pch.h"
 #include "cube.h"
 
 vector<vertex> verts;
@@ -26,7 +25,7 @@ struct strips { vector<GLint> first; vector<GLsizei> count; };
 struct stripbatch
 {
     int tex;
-    strips tris, tristrips, quads;   
+    strips tris, tristrips, quads;
 };
 
 stripbatch skystrips = { DEFAULT_SKY };
@@ -41,8 +40,8 @@ extern int ati_mda_bug;
     { \
         if(hasMDA && !ati_mda_bug) glMultiDrawArrays_(type, strips.first.getbuf(), strips.count.getbuf(), strips.first.length()); \
         else loopv(strips.first) glDrawArrays(type, strips.first[i], strips.count[i]); \
-        strips.first.setsizenodelete(0); \
-        strips.count.setsizenodelete(0); \
+        strips.first.setsize(0); \
+        strips.count.setsize(0); \
     }
 
 void renderstripssky()
@@ -81,7 +80,7 @@ void addstrip(int type, int tex, int start, int n)
     {
         if(minimap) return;
         sb = &skystrips;
-        loopi(n) skyfloor = min(skyfloor, verts[start + i].z); 
+        loopi(n) skyfloor = min(skyfloor, verts[start + i].z);
     }
     else
     {
@@ -106,7 +105,8 @@ void addstrip(int type, int tex, int start, int n)
 // leaves of all these functions, and are part of the cpu bottleneck on really slow
 // machines, hence the macros.
 
-#define vert(v1, v2, v3, ls, t1, t2) { \
+#define vert(v1, v2, v3, ls, t1, t2) \
+{ \
 	vertex &v = verts.add(); \
     v.u = t1; v.v = t2; \
     v.x = (float)(v1); v.y = (float)(v2); v.z = (float)(v3); \
@@ -121,9 +121,14 @@ enum
 };
 
 int nquads;
-const float TEXTURESCALE = 32.0f;
+
+// for testing purpose. UNDOME on release.
+//const float TEXTURESCALE = 32.0f;
+VARP(texturescale, 16, 32, 64);
+#define TEXTURESCALE float(texturescale)
+
 int striptype = 0, striptex, oh, oy, ox, odir;                         // the o* vars are used by the stripification
-int ol1r, ol1g, ol1b, ol2r, ol2g, ol2b;      
+int ol1r, ol1g, ol1b, ol2r, ol2g, ol2b;
 float ofloor, oceil;
 bool ohf;
 int firstindex;
@@ -137,14 +142,16 @@ COMMAND(showmip, ARG_NONE);
 VAR(mergestrips, 0, 1, 1);
 
 #define stripend(verts) \
-    if(striptype) { \
+    if(striptype) \
+    { \
         int type = GL_TRIANGLE_STRIP, len = verts.length()-firstindex; \
-        if(mergestrips) switch(len) { \
+        if(mergestrips) switch(len) \
+        { \
             case 3: type = GL_TRIANGLES; break; \
             case 4: type = GL_QUADS; swap(verts.last(), verts[verts.length()-2]); break; \
-         } \
-         addstrip(type, striptex, firstindex, len); \
-         striptype = 0; \
+        } \
+        addstrip(type, striptex, firstindex, len); \
+        striptype = 0; \
     }
 
 void finishstrips() { stripend(verts); }
@@ -196,18 +203,18 @@ void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l4, sqr 
         int lighterr = lighterror*2;
         if((abs(ol1r-l3->r)<lighterr && abs(ol2r-l4->r)<lighterr        // skip vertices if light values are close enough
         &&  abs(ol1g-l3->g)<lighterr && abs(ol2g-l4->g)<lighterr
-        &&  abs(ol1b-l3->b)<lighterr && abs(ol2b-l4->b)<lighterr) || !wtex)   
+        &&  abs(ol1b-l3->b)<lighterr && abs(ol2b-l4->b)<lighterr) || !wtex)
         {
-            verts.setsizenodelete(verts.length()-2);
+            verts.setsize(verts.length()-2);
             nquads--;
         }
         else
         {
             uchar *p1 = (uchar *)(&verts[verts.length()-1].r);
-            ol1r = p1[0];  
-            ol1g = p1[1];  
+            ol1r = p1[0];
+            ol1g = p1[1];
             ol1b = p1[2];
-            uchar *p2 = (uchar *)(&verts[verts.length()-2].r);  
+            uchar *p2 = (uchar *)(&verts[verts.length()-2].r);
             ol2r = p2[0];
             ol2g = p2[1];
             ol2b = p2[2];
@@ -241,9 +248,9 @@ void render_flatdelta(int wtex, int x, int y, int size, float h1, float h4, floa
     float xo = xf*x;
     float yo = yf*y;
 
-    bool first = striptype!=STRIP_DELTA || x!=ox+size || striptex!=wtex || y!=oy; 
+    bool first = striptype!=STRIP_DELTA || x!=ox+size || striptex!=wtex || y!=oy;
 
-    if(first) 
+    if(first)
     {
         stripend(verts);
         firstindex = verts.length();
@@ -265,7 +272,7 @@ void render_flatdelta(int wtex, int x, int y, int size, float h1, float h4, floa
     if(isceil)
     {
         vert(x+size, y,      h4, l4, xo+xs, yo);
-        vert(x+size, y+size, h3, l3, xo+xs, yo+ys); 
+        vert(x+size, y+size, h3, l3, xo+xs, yo+ys);
     }
     else
     {
@@ -326,7 +333,7 @@ void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil
     float xo = xf*(x1==x2 ? min(y1,y2) : min(x1,x2));
 
     bool first = striptype!=STRIP_WALL || striptex!=wtex || ox!=x1 || oy!=y1 || ofloor!=floor1 || oceil!=ceil1 || odir!=dir,
-         hf = floor1!=floor2 || ceil1!=ceil2; 
+         hf = floor1!=floor2 || ceil1!=ceil2;
 
     if(first)
     {
@@ -352,10 +359,10 @@ void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil
     else        // continue strip
     {
         int lighterr = lighterror*2;
-        if((!hf && !ohf) 
+        if((!hf && !ohf)
         && ((abs(ol1r-l2->r)<lighterr && abs(ol1g-l2->g)<lighterr && abs(ol1b-l2->b)<lighterr) || !wtex))       // skip vertices if light values are close enough
         {
-            verts.setsizenodelete(verts.length()-2);
+            verts.setsize(verts.length()-2);
             nquads--;
         }
         else
@@ -389,7 +396,7 @@ void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil
 
 void resetcubes()
 {
-    verts.setsizenodelete(0);
+    verts.setsize(0);
 
     striptype = 0;
     nquads = 0;
@@ -398,14 +405,14 @@ void resetcubes()
     sdark.r = sdark.g = sdark.b = 0;
 
     resetwater();
-}   
+}
 
 struct shadowvertex { float u, v, x, y, z; };
 vector<shadowvertex> shadowverts;
 
 static void resetshadowverts()
 {
-    shadowverts.setsizenodelete(0);
+    shadowverts.setsize(0);
 
     striptype = 0;
 }
@@ -434,7 +441,8 @@ static void rendershadowstrips()
     xtraverts += shadowverts.length();
 }
 
-#define shadowvert(v1, v2, v3) { \
+#define shadowvert(v1, v2, v3) \
+{ \
     shadowvertex &v = shadowverts.add(); \
     v.x = (float)(v1); v.y = (float)(v2); v.z = (float)(v3); \
 }
@@ -480,7 +488,7 @@ static void rendershadow_flat(int x, int y, int h) // floor quads
     }
     else        // continue strip
     {
-        shadowverts.setsizenodelete(shadowverts.length()-2);
+        shadowverts.setsize(shadowverts.length()-2);
     }
 
     shadowvert(x+1, y+1, h);

@@ -1,3 +1,55 @@
+// Fast Inverse Sqrt
+// http://www.gamedev.net/community/forums/topic.asp?topic_id=139956
+// http://www.lomont.org/Math/Papers/2003/InvSqrt.pdf
+// http://www.mceniry.net/papers/Fast%20Inverse%20Square%20Root.pdf
+// http://en.wikipedia.org/wiki/Fast_inverse_square_root
+#define UFINVSQRT(x)  union { int d; float f; } u; u.f = x; u.d = 0x5f3759df - (u.d >> 1)
+inline float ufInvSqrt (float x) { UFINVSQRT(x); return u.f; } // about 3.5% of error
+inline float fInvSqrt (float x) { UFINVSQRT(x); return 0.5f * u.f * ( 3.00175f - x * u.f * u.f ); } // about 0.1% of error
+inline float fSqrt (float x) { return x * fInvSqrt(x); }
+inline float ufSqrt (float x) { return x * ufInvSqrt(x); }
+inline float fACos( float x )
+{
+    int s = 1;
+    float y, r = 0;
+    if ( x < 0 )
+    {
+        s = -1;
+        r = 2.0f;
+        y = 1.0f + x;
+    }
+    else y = 1.0f - x;
+    UFINVSQRT(y);
+    u.f = 0.5f * u.f * ( 3.0f - y * u.f * u.f );
+    u.f = y * 0.5f * u.f * ( 3.0f - y * u.f * u.f );
+    return 1.57079632f * ( r + s * u.f * ( 0.9003163f + y * ( 0.07782684f + y * ( 0.006777598f + y * 0.015079262f ) ) ) );
+}
+#undef UFINVSQRT
+
+inline float pow2(float x)
+{
+    return x*x;
+}
+
+// Fast Cosine
+// inspired after http://www.devmaster.net/forums/showthread.php?t=5784
+#define FCOS \
+    x = fabs(x); \
+    int s = 1; \
+    if ( x > 1.0f ) \
+    { \
+        int n = 0.5f * ( x + 1.0f ); \
+        x -= 2 * n; \
+        s = 1 - 2 * (n%2); \
+    } \
+    float y = ( 1.0f - x*x ); \
+    return s * y * ( 0.7853982f + y * 0.2146018f )
+inline float fCos(float x) { x *= 0.636619772f; FCOS; }
+inline float fSin(float x) { x *= 0.636619772f; x -= 1.0f; FCOS; }
+#undef FCOS
+
+inline float ufS2C(float x) { x *= x; return x < 1.0f ? ufSqrt(1.0f - x) : 0.0f; }
+
 struct vec
 {
     union
@@ -7,7 +59,7 @@ struct vec
         int i[3];
     };
 
-    vec() {}
+    vec() {x=y=z=0;}
     vec(float a, float b, float c) : x(a), y(b), z(c) {}
     vec(float *v) : x(v[0]), y(v[1]), z(v[2]) {}
 
@@ -29,10 +81,16 @@ struct vec
     vec &sub(const vec &o) { x -= o.x; y -= o.y; z -= o.z; return *this; }
 
     float squaredlen() const { return x*x + y*y + z*z; }
+    float sqrxy() const { return x*x + y*y; }
+
     float dot(const vec &o) const { return x*o.x + y*o.y + z*o.z; }
+    float dotxy(const vec &o) const { return x*o.x + y*o.y; }
 
     float magnitude() const { return sqrtf(squaredlen()); }
     vec &normalize() { div(magnitude()); return *this; }
+
+    float fmag() const { return fSqrt(squaredlen()); }
+    float ufmag() const { return ufSqrt(squaredlen()); }
 
     float dist(const vec &e) const { vec t; return dist(e, t); }
     float dist(const vec &e, vec &t) const { t = *this; t.sub(e); return t.magnitude(); }
@@ -40,9 +98,13 @@ struct vec
     float distxy(const vec &e) const { float dx = e.x - x, dy = e.y - y; return sqrtf(dx*dx + dy*dy); }
     float magnitudexy() const { return sqrtf(x*x + y*y); }
 
+    float fmagxy() const { return fSqrt(x*x + y*y); }
+    float ufmagxy() const { return ufSqrt(x*x + y*y); }
+
     bool reject(const vec &o, float max) const { return x>o.x+max || x<o.x-max || y>o.y+max || y<o.y-max; }
 
     vec &cross(const vec &a, const vec &b) { x = a.y*b.z-a.z*b.y; y = a.z*b.x-a.x*b.z; z = a.x*b.y-a.y*b.x; return *this; }
+    float cxy(const vec &a) { return x*a.y-y*a.x; }
 
     void rotate_around_z(float angle) { *this = vec(cosf(angle)*x-sinf(angle)*y, cosf(angle)*y+sinf(angle)*x, z); }
     void rotate_around_x(float angle) { *this = vec(x, cosf(angle)*y-sinf(angle)*z, cosf(angle)*z+sinf(angle)*y); }

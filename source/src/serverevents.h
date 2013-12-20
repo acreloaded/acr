@@ -24,6 +24,11 @@ void processevent(client *c, explodeevent &e)
         if(j<i) continue;
 
         int damage = int(guns[e.gun].damage*(1-h.dist/EXPDAMRAD));
+        bool chk_gun = e.gun==GUN_GRENADE;
+        bool chk_dir = h.dir[0]+h.dir[1]+h.dir[2]==0;
+        bool chk_dst = h.dist < 2.0f;
+        bool chk_cnr = c->clientnum == target->clientnum;
+        if(chk_gun && chk_dir && chk_dst && chk_cnr) damage = INT_MAX; // nade suicide
         serverdamage(target, c, damage, e.gun, true, h.dir);
     }
 }
@@ -42,8 +47,8 @@ void processevent(client *c, shotevent &e)
     gs.lastshot = e.millis;
     gs.gunwait[e.gun] = attackdelay(e.gun);
     if(e.gun==GUN_PISTOL && gs.akimbomillis>gamemillis) gs.gunwait[e.gun] /= 2;
-    sendf(-1, 1, "ri9x", SV_SHOTFX, c->clientnum, e.gun,
-        int(e.from[0]*DMF), int(e.from[1]*DMF), int(e.from[2]*DMF),
+    sendf(-1, 1, "ri6x", SV_SHOTFX, c->clientnum, e.gun,
+//         int(e.from[0]*DMF), int(e.from[1]*DMF), int(e.from[2]*DMF),
         int(e.to[0]*DMF), int(e.to[1]*DMF), int(e.to[2]*DMF),
         c->clientnum);
     gs.shotdamage += guns[e.gun].damage*(e.gun==GUN_SHOTGUN ? SGRAYS : 1);
@@ -65,10 +70,10 @@ void processevent(client *c, shotevent &e)
                 totalrays += rays;
                 if(totalrays>maxrays) continue;
 
-                bool gib = false;
-                if(e.gun==GUN_KNIFE) gib = true;
-                else if(e.gun==GUN_SNIPER) gib = h.info!=0;
                 int damage = rays*guns[e.gun].damage;
+                bool gib = false;
+                if(e.gun==GUN_KNIFE || (e.gun==GUN_SHOTGUN && rays==maxrays)) gib = true;
+                else if(e.gun==GUN_SNIPER) gib = h.info!=0;
                 if(e.gun==GUN_SNIPER && gib) damage *= 3;
                 serverdamage(target, c, damage, e.gun, gib, h.dir);
             }
@@ -79,7 +84,7 @@ void processevent(client *c, shotevent &e)
 
 void processevent(client *c, suicideevent &e)
 {
-    serverdamage(c, c, 1000, GUN_KNIFE, false);
+    serverdamage(c, c, INT_MAX, GUN_KNIFE, false);
 }
 
 void processevent(client *c, pickupevent &e)
@@ -87,6 +92,13 @@ void processevent(client *c, pickupevent &e)
     clientstate &gs = c->state;
     if(m_mp(gamemode) && !gs.isalive(gamemillis)) return;
     serverpickup(e.ent, c->clientnum);
+}
+
+void processevent(client *c, scopeevent &e) // FIXME remove in the next protocol change
+{
+    clientstate &gs = c->state;
+    if(!gs.isalive(gamemillis)/* || e.gun!=GUN_SNIPER*/) return; // currently we check the gun on the client-side only
+    gs.scoped = e.scoped;
 }
 
 void processevent(client *c, reloadevent &e)
@@ -119,8 +131,7 @@ void processevent(client *c, reloadevent &e)
 void processevent(client *c, akimboevent &e)
 {
     clientstate &gs = c->state;
-    if(!gs.isalive(gamemillis) || gs.akimbos<=0) return;
-    gs.akimbos--;
+    if(!gs.isalive(gamemillis) || gs.akimbomillis) return;
     gs.akimbomillis = e.millis+30000;
 }
 
@@ -137,6 +148,7 @@ void processevents()
     {
         client *c = clients[i];
         if(c->type==ST_EMPTY) continue;
+        if(c->state.akimbomillis && c->state.akimbomillis < gamemillis) { c->state.akimbomillis = 0; c->state.akimbo = false; }
         while(c->events.length())
         {
             gameevent &e = c->events[0];
@@ -152,6 +164,7 @@ void processevents()
                 case GE_EXPLODE: processevent(c, e.explode); break;
                 case GE_AKIMBO: processevent(c, e.akimbo); break;
                 case GE_RELOAD: processevent(c, e.reload); break;
+                case GE_SCOPING: processevent(c, e.scoping); break;
                 // untimed events
                 case GE_SUICIDE: processevent(c, e.suicide); break;
                 case GE_PICKUP: processevent(c, e.pickup); break;

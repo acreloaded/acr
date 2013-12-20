@@ -50,31 +50,31 @@ typedef struct {
 
 static int _ov_header_fseek_wrap(FILE *f,ogg_int64_t off,int whence){
   if(f==NULL)return(-1);
-  return fseek(f,off,whence);
+  return fseek(f,(long)off,whence);
 }
 
-static ov_callbacks OV_CALLBACKS_DEFAULT = {
+static const ov_callbacks OV_CALLBACKS_DEFAULT = {
   (size_t (*)(void *, size_t, size_t, void *))  fread,
   (int (*)(void *, ogg_int64_t, int))           _ov_header_fseek_wrap,
   (int (*)(void *))                             fclose,
   (long (*)(void *))                            ftell
 };
 
-static ov_callbacks OV_CALLBACKS_NOCLOSE = {
+static const ov_callbacks OV_CALLBACKS_NOCLOSE = {
   (size_t (*)(void *, size_t, size_t, void *))  fread,
   (int (*)(void *, ogg_int64_t, int))           _ov_header_fseek_wrap,
   (int (*)(void *))                             NULL,
   (long (*)(void *))                            ftell
 };
 
-static ov_callbacks OV_CALLBACKS_STREAMONLY = {
+static const ov_callbacks OV_CALLBACKS_STREAMONLY = {
   (size_t (*)(void *, size_t, size_t, void *))  fread,
   (int (*)(void *, ogg_int64_t, int))           NULL,
   (int (*)(void *))                             fclose,
   (long (*)(void *))                            NULL
 };
 
-static ov_callbacks OV_CALLBACKS_STREAMONLY_NOCLOSE = {
+static const ov_callbacks OV_CALLBACKS_STREAMONLY_NOCLOSE = {
   (size_t (*)(void *, size_t, size_t, void *))  fread,
   (int (*)(void *, ogg_int64_t, int))           NULL,
   (int (*)(void *))                             NULL,

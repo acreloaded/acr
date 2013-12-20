@@ -1,6 +1,5 @@
 // shadow.cpp: stencil shadow rendering
 
-#include "pch.h"
 #include "cube.h"
 
 VARP(stencilshadow, 0, 40, 100);
@@ -272,11 +271,11 @@ static void rendershadowtiles()
 
     if(!shadowtile)
     {
-        glBegin(GL_QUADS);
+        glBegin(GL_TRIANGLE_STRIP);
         glVertex2f(clipy1, clipx1);
         glVertex2f(clipy1, clipx2);
-        glVertex2f(clipy2, clipx2);
         glVertex2f(clipy2, clipx1);
+        glVertex2f(clipy2, clipx2);
         xtraverts += 4;
         glEnd();
         return;
