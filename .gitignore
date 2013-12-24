@@ -7,10 +7,16 @@ bin_win32/ac_*.exe
 bin_unix/*
 
 # Source code
-source/localization
 source/codeblocks_dev
-source/vcpp_dev
 source/xcode_dev
+source/vcpp
+!source/vcpp/cube.nsi
+!source/vcpp/cube.rc
+!source/vcpp/cube.sln
+!source/vcpp/cube.vcxproj
+!source/vcpp/cube.vcxproj.filters
+!source/vcpp/cube.vcxproj.user
+!source/vcpp/logo.ico
 
 # Server debugging
 server_dev.bat
