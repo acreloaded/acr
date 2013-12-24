@@ -1,0 +1,68 @@
+Add things that have changed ON THE SVN BRANCH since 1.0.2 in here, so that when release time comes around, 
+it is much easier to record what has changed since it's already recorded here. 
+
+Note:			Last branch release (1.0.2): 30th December 2008.
+
+Things not to add: 	Bugs made during SVN development that were fixed (Since these bugs were not a problem
+			in the last release).
+
+			Documentation changes --> Releases are expected to always have new documentation.
+______________________________________________________________________________________________________________
+
+
+CLIENT SIDE:
+============
+ - Map added: ac_aqueous
+ - Small layout change in ac_desert2
+ - Option to enable custom player skins in non-team modes only.
+ - Map messages now show in the loading screen.
+ - "menuselectionbgcolor" allows you to change the background of your menus.
+ - Server browser now shows modded servers (those with 'negative' protocols) as mods.
+ - More detail added to ac_douze.
+ - "scopesensscale" slider added.
+ - "menuinitselection" command added for scripters.
+ - Added Map-pack integration.
+ - 
+
+
+MAP EDITING:
+============
+ - Menu to edit skymaps added.
+ - "editmapmsg" command allows easy editing of the map message. 
+ - "entstats" will print entity statistics to the console.
+ - "showmodelclipping" shows the full clipping of all models in the map.
+ - Command "nextclosestent" for selecting the other entity, if some entities overlaps each other
+ - Command "closestenttype" allows you to select only a particular type of entity.
+ - "nextplayerstart" cycles your HUD through each of the "playerstart" entities. Useful for showing you the direction spawns face, or where they are.
+ - Using 1, 2, 3 or 4 when in editmode, while scrolling, allows you to edit the first, second, third or fourth value in the nearest entity.
+ - Holding "M" and scrolling moves an entity.
+ - 
+
+
+SERVER SIDE:
+============
+ - Nickname blacklist (or whitelist).
+ - Print server and protocol version at startup.
+ - New make option for "server_install" with reduced dependencies.
+ - An option has been added to specify a file to read the command line arguments from.
+ - A new parameter had been added to choose the syslog facility.
+ - 
+
+
+BUG FIXES:
+==========
+ - Allow changing team when dead (but not spectating).
+ - Defuse triggerhappy alias context cleanup.
+ - Block connecting to full, passworded servers.
+ - Tabs are now allowed in the maprot/serverpwd config files.
+ - Ponies mode fixed.
+ - Text input field improvements/fixes.
+ - Spawns in ac_shine fixed.
+ - "editent" command fixed.
+ - Fixed crouching on very thin clip entities.
+ - GFX quality slider is now independent of the MINLOD variable.
+ - OMGponies! mode is now independent of blood variable.
+ - Sound quality slider is now independent of maxsoundsatonce variable. 
+ - 
+
+
