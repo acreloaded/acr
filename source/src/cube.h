@@ -12,7 +12,6 @@
 
 #ifndef STANDALONE
  #include "command.h"
- #include "vote.h"
  #include "console.h"
 #endif
 
@@ -27,14 +26,16 @@ extern int sfactor, ssize;              // ssize = 2^sfactor
 extern int cubicsize, mipsize;          // cubicsize = ssize^2
 extern physent *camera1;                // camera representing perspective of player, usually player1
 extern playerent *player1;              // special client ent that receives input and acts as camera
-extern vector<playerent *> players;     // all the other clients (in multiplayer)
+extern playerent *focus;                // the camera points here, or else it's player1
+extern vector<playerent *> players;	 // all the other clients (in multiplayer)
 extern vector<bounceent *> bounceents;
 extern bool editmode;
-extern vector<entity> ents;             // map entities
+extern vector<entity> ents;			 // map entities
 extern vec worldpos, camup, camright, camdir; // current target of the crosshair in the world
-extern int lastmillis, totalmillis;     // last time
-extern int curtime;                     // current frame time
-extern int gamemode, nextmode;
+extern playerent *worldhit; extern int worldhitzone; extern vec worldhitpos;
+extern int lastmillis, totalmillis;	 // last time
+extern int curtime;					 // current frame time
+extern int gamemode, mutators, nextmode, nextmuts;
 extern int gamespeed;
 extern int xtraverts;
 extern float fovy, aspect;
@@ -50,8 +51,14 @@ extern int verbose;
 
 #include "protos.h"				// external function decls
 
-#define AC_VERSION 1041
-#define AC_MASTER_URI "masterserver.cubers.net/cgi-bin/actioncube.pl/" // FIXME, change DNS on ac release
+#define AC_VERSION 20509
+#define AC_MASTER_URI "ms.acr.victorz.ca"
+
+#ifndef AC_MASTER_URI
+#define AC_MASTER_DOMAIN "ms.acr"
+#define AC_MASTER_URI AC_MASTER_DOMAIN
+#define AC_MASTER_IPS "216.34.181.97"
+#endif
 
 #endif
 

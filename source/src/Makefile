@@ -6,7 +6,7 @@ CXXFLAGS=$(CXXOPTFLAGS) $(INCLUDES1) $(INCLUDES2) $(CUSTOMFLAGS)
 CXXFLAGSSERVER=$(CXXOPTFLAGS) $(INCLUDES1) $(CUSTOMFLAGS)
 
 PLATFORM_PREFIX=native
-CLIENT_LIBS=-L/usr/X11R6/lib -L../enet -lenet `sdl-config --libs` -lSDL_image -lz -lGL -lopenal -lvorbisfile
+CLIENT_LIBS=-L/usr/X11R6/lib -L../enet/.libs -lenet `sdl-config --libs` -lSDL_image -lz -lGL -lopenal -lvorbisfile
 CLIENT_OBJS1= \
 	client.o \
 	clientgame.o \
@@ -55,12 +55,12 @@ CLIENT_OBJS2= \
 	bot/ac_bot_ai.o 
 
 
-SERVER_LIBS=-L../enet -lenet -lz
+SERVER_LIBS=-L../enet/.libs -lenet -lz
 SERVER_FILES= \
 	log.cpp \
-	serverms.cpp \
-	server.cpp \
 	protocol.cpp \
+	server.cpp \
+	serverms.cpp \
 	tools.cpp \
 	wizard.cpp
 
@@ -69,7 +69,7 @@ default: all
 all: libenet client server
 
 ../enet/Makefile:
-	cd ../enet; ./configure
+	cd ../enet; ./configure --enable-shared=no --enable-static=yes
 
 libenet: ../enet/Makefile
 	-$(MAKE) -C ../enet all
@@ -83,17 +83,17 @@ mrproper: clean
 	-$(MAKE) -C ../enet/ clean
 
 client: $(CLIENT_OBJS1) $(CLIENT_OBJS2)
-	$(CXX) $(CXXFLAGS) -o ac_client $(CLIENT_OBJS1) $(CLIENT_OBJS2) $(CLIENT_LIBS)
+	$(CXX) $(CXXFLAGS) -o $(PLATFORM_PREFIX)_client $(CLIENT_OBJS1) $(CLIENT_OBJS2) $(CLIENT_LIBS)
 
 server: libenet $(SERVER_FILES)
-	$(CXX) $(CXXFLAGSSERVER) -o ac_server -DSTANDALONE $(SERVER_FILES) $(SERVER_LIBS)
+	$(CXX) $(CXXFLAGSSERVER) -o $(PLATFORM_PREFIX)_server -DSTANDALONE $(SERVER_FILES) $(SERVER_LIBS)
 
 install: all
-	cp ac_client ../../bin_unix/$(PLATFORM_PREFIX)_client
-	cp ac_server ../../bin_unix/$(PLATFORM_PREFIX)_server
+	cp $(PLATFORM_PREFIX)_client ../../bin_linux/$(PLATFORM_PREFIX)_client
+	cp $(PLATFORM_PREFIX)_server ../../bin_linux/$(PLATFORM_PREFIX)_server
 #	strip ../../bin_unix/$(PLATFORM_PREFIX)_client
 #	strip ../../bin_unix/$(PLATFORM_PREFIX)_server
 
 server_install: server
-	cp ac_server ../../bin_unix/$(PLATFORM_PREFIX)_server
+	cp $(PLATFORM_PREFIX)_server ../../bin_linux/$(PLATFORM_PREFIX)_server
 #	strip ../../bin_unix/$(PLATFORM_PREFIX)_server

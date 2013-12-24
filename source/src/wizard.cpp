@@ -11,31 +11,32 @@
 using namespace std;
 
 #ifdef WIN32
-    #ifndef __GNUC__
-        #pragma warning( disable : 4996 )
-    #endif
-    #include <direct.h>
-    #include "winserviceinstaller.h"
+	#ifndef __GNUC__
+		#pragma warning( disable : 4996 )
+	#endif
+	#include <direct.h>
+	#include "winserviceinstaller.h"
 #elif __GNUC__
-    #include <sys/types.h>
-    #include <sys/stat.h>
+	#include <sys/types.h>
+	#include <sys/stat.h>
 #endif
 
 int wizardmain(int argc, char **argv)
 {
-    if(argc < 3)
-    {
-        cout << "invalid arguments specified!" << endl << "usage: ac_server <outfile> <relbinarypath>" << endl;
-        return EXIT_FAILURE;
-    }
+	cout << "!!! WARNING !!!" << endl << "This wizard is unsupported! Use it at your own risk!" << endl << "!!!!!!!!!!" << endl << endl;
+	if(argc < 3)
+	{
+		cout << "invalid arguments specified!" << endl << "usage: ac_server <outfile> <relbinarypath>" << endl;
+		return EXIT_FAILURE;
+	}
 
-    string outfile(argv[1]);
-    string relpath(argv[2]);
+	string outfile(argv[1]);
+	string relpath(argv[2]);
 
 	map<string, string> args;
 
 	cout << "AssaultCube Server Wizard" << endl << endl;
-    cout << "You can now specify some optional server settings. The default settings will be used if you decide to leave the fields empty. See README.html for a description of the settings." << endl << endl;
+	cout << "You can now specify some optional server settings. The default settings will be used if you decide to leave the fields empty. See README.html for a description of the settings." << endl << endl;
 
 	cout << "server description:\t";
 	getline(cin, args["n"]);
@@ -46,8 +47,9 @@ int wizardmain(int argc, char **argv)
 	cout << "password:\t\t";
 	getline(cin, args["p"]);
 
-	cout << "admin password:\t\t";
-	getline(cin, args["x"]);
+	cout << "!WARNING: NO LONGER WORKS! admin password:\t\t";
+	cout << endl; // do not bother
+	//getline(cin, args["x"]);
 
 	cout << "message of the day:\t";
 	getline(cin, args["o"]);
@@ -64,29 +66,29 @@ int wizardmain(int argc, char **argv)
 	cout << "score threshold:\t";
 	getline(cin, args["k"]);
 
-    string permdemo;
+	string permdemo;
 	cout << "demorecord buffer size:\t";
 	getline(cin, permdemo);
 
-    string cmds;
+	string cmds;
 	cout << "additional commandline parameters:\t";
 	getline(cin, cmds);
 
 #ifdef WIN32
 
-    string wsname, wsdisplayname;
+	string wsname, wsdisplayname;
 	cout << "win service name:\t";
 	getline(cin, wsname);
 
-    if(!wsname.empty())
-    {
-        cout << "win service display:\t";
-        getline(cin, wsdisplayname);
-    }
+	if(!wsname.empty())
+	{
+		cout << "win service display:\t";
+		getline(cin, wsdisplayname);
+	}
 
 #endif
 
-    string argstr;
+	string argstr;
 
 	for(map<string, string>::iterator i = args.begin(); i != args.end(); i++)
 	{
@@ -98,18 +100,18 @@ int wizardmain(int argc, char **argv)
 			else argstr += '"' + (*i).second + '"'; // escape spaces
 		}
 	}
-    if(permdemo.empty() || atoi(permdemo.c_str())) argstr += " -D" + permdemo;
-    if(!cmds.empty()) argstr += " " + cmds;
+	if(permdemo.empty() || atoi(permdemo.c_str())) argstr += " -D" + permdemo;
+	if(!cmds.empty()) argstr += " " + cmds;
 
 	cout << endl << "Writing your configuration to " << outfile << " ... ";
 
 	try
 	{
-        fstream startupScript(outfile.c_str(), ios::out);
+		fstream startupScript(outfile.c_str(), ios::out);
 #ifdef WIN32
-        startupScript << relpath << argstr << endl << "pause" << endl;
+		startupScript << relpath << argstr << endl << "pause" << endl;
 #elif __GNUC__
-	    startupScript << "#! /bin/sh" << endl << relpath << argstr << endl;
+		startupScript << "#! /bin/sh" << endl << relpath << argstr << endl;
 #endif
 		startupScript.close();
 	}
@@ -119,51 +121,51 @@ int wizardmain(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-    cout << "Done" << endl << endl;
-    cout << "Note: You can start " << outfile << " directly the next time you want to use this configuration again." << endl << endl;
+	cout << "Done" << endl << endl;
+	cout << "Note: You can start " << outfile << " directly the next time you want to use this configuration again." << endl << endl;
 
 #ifdef WIN32
 
-    if(!wsname.empty())
-    {
-        if(wsdisplayname.empty()) wsdisplayname = wsname;
+	if(!wsname.empty())
+	{
+		if(wsdisplayname.empty()) wsdisplayname = wsname;
 
-        cout << "Installing the AC Server as windows service ... ";
+		cout << "Installing the AC Server as windows service ... ";
 
-        char path[MAX_PATH];
-	    _getcwd(path, MAX_PATH);
-        strncat(path, ("\\" + relpath + " -S" + wsname + " " + argstr).c_str(), MAX_PATH);
+		char path[MAX_PATH];
+		_getcwd(path, MAX_PATH);
+		strncat(path, ("\\" + relpath + " -S" + wsname + " " + argstr).c_str(), MAX_PATH);
 
-        winserviceinstaller installer(wsname.c_str(), wsdisplayname.c_str(), path);
+		winserviceinstaller installer(wsname.c_str(), wsdisplayname.c_str(), path);
 
-        int r;
-        if(!installer.OpenManger())
-        {
-            cout << "Failed!" << endl;
-            cout << "Could not open the Service Control Manager: " << GetLastError() << endl;
-            installer.CloseManager();
-            return EXIT_FAILURE;
-        }
+		int r;
+		if(!installer.OpenManger())
+		{
+			cout << "Failed!" << endl;
+			cout << "Could not open the Service Control Manager: " << GetLastError() << endl;
+			installer.CloseManager();
+			return EXIT_FAILURE;
+		}
 
-        if((r = installer.IsInstalled()) != 0)
-        {
-            cout << "Failed!" << endl;
-            if(r == -1) cout << "Error accessing the Service Control Manager" << endl;
-            else if(r == 1) cout << "A windows service with this name (" << wsname << ")is already installed: " << GetLastError() << endl;
-            return EXIT_FAILURE;
-        }
+		if((r = installer.IsInstalled()) != 0)
+		{
+			cout << "Failed!" << endl;
+			if(r == -1) cout << "Error accessing the Service Control Manager" << endl;
+			else if(r == 1) cout << "A windows service with this name (" << wsname << ")is already installed: " << GetLastError() << endl;
+			return EXIT_FAILURE;
+		}
 
-        if((r = installer.Install()) != 1)
-        {
-            cout << "Failed!" << endl;
-            if(r == -1) cout << "Error accessing the Service Control Manager" << endl;
-            else if(r == 0) cout << "Could not create the new windows service: " << GetLastError() << endl;
-            return EXIT_FAILURE;
-        }
+		if((r = installer.Install()) != 1)
+		{
+			cout << "Failed!" << endl;
+			if(r == -1) cout << "Error accessing the Service Control Manager" << endl;
+			else if(r == 0) cout << "Could not create the new windows service: " << GetLastError() << endl;
+			return EXIT_FAILURE;
+		}
 
-        cout << "Done" << endl << endl;
-        cout << "Note: You can now manage your AC server using services.msc and sc.exe" << endl << endl;
-    }
+		cout << "Done" << endl << endl;
+		cout << "Note: You can now manage your AC server using services.msc and sc.exe" << endl << endl;
+	}
 
 #endif
 

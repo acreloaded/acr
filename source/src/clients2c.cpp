@@ -7,45 +7,50 @@
 VARP(networkdebug, 0, 0, 1);
 #define DEBUGCOND (networkdebug==1)
 
-extern bool c2sinit, senditemstoserver, watchingdemo;
+extern bool watchingdemo;
 extern string clientpassword;
 
 packetqueue pktlogger;
 
-void neterr(const char *s)
+void neterr(const char *s, int info)
 {
-    conoutf("\f3illegal network message (%s)", s);
+	conoutf("\f3%s (%s %d)", _("neterr"), s, info);
 
-    // might indicate a client/server communication bug, create error report
-    pktlogger.flushtolog("packetlog.txt");
-    conoutf("\f3wrote a network error report to packetlog.txt, please post this file to the bugtracker now!");
+	// might indicate a client/server communication bug, create error report
+	pktlogger.flushtolog("packetlog.txt");
+	hudoutf("\f3%s", _("neterr_logged"));
 
-    disconnect();
+	disconnect();
 }
 
 VARP(autogetmap, 0, 1, 1);
 
-void changemapserv(char *name, int mode, int download)        // forced map change from the server
+void changemapserv(char *name, int mode, int muts, int download)		// forced map change from the server
 {
-    gamemode = mode;
-    if(m_demo) return;
-    bool loaded = load_world(name);
-    if(download > 0)
-    {
-        if(securemapcheck(name, false)) return;
-        bool sizematch = maploaded == download || download < 10;
-        if(loaded && sizematch) return;
-        if(autogetmap)
-        {
-            if(!loaded) getmap(); // no need to ask
-            else showmenu("getmap");
-        }
-        else
-        {
-            if(!loaded || download < 10) conoutf("\"getmap\" to download the current map from the server");
-            else conoutf("\"getmap\" to download a different version of the current map from the server");
-        }
-    }
+	modecheck(gamemode = mode, mutators = muts);
+	if(m_demo(gamemode)) return;
+	bool loaded = load_world(name);
+	if(!loaded && m_edit(gamemode) && empty_world(0, true)){
+		startmap(name);
+		loaded = true;
+	}
+	else needsmap = false;
+	if(download > 0)
+	{
+		if(securemapcheck(name, false)) return;
+		bool sizematch = maploaded == download || download < 10;
+		if(loaded && sizematch) return;
+		else if(autogetmap)
+		{
+			if(!loaded) getmap(); // no need to ask
+			else showmenu("getmap");
+		}
+		else
+		{
+			if(!loaded || download < 10) conoutf("%s", _("getmap"));
+			else conoutf("%s", _("getmap_diff"));
+		}
+	}
 }
 
 // update the position of other clients in the game in our world
@@ -54,890 +59,1537 @@ void changemapserv(char *name, int mode, int download)        // forced map chan
 
 void updatepos(playerent *d)
 {
-    const float r = player1->radius+d->radius;
-    const float dx = player1->o.x-d->o.x;
-    const float dy = player1->o.y-d->o.y;
-    const float dz = player1->o.z-d->o.z;
-    const float rz = player1->aboveeye+d->eyeheight;
-    const float fx = (float)fabs(dx), fy = (float)fabs(dy), fz = (float)fabs(dz);
-    if(fx<r && fy<r && fz<rz && d->state!=CS_DEAD)
-    {
-        if(fx<fy) d->o.y += dy<0 ? r-fy : -(r-fy);  // push aside
-        else      d->o.x += dx<0 ? r-fx : -(r-fx);
-    }
+	/* // not needed
+	const float r = player1->radius+d->radius;
+	const float dx = player1->o.x-d->o.x;
+	const float dy = player1->o.y-d->o.y;
+	const float dz = player1->o.z-d->o.z;
+	const float rz = player1->aboveeye+d->eyeheight;
+	const float fx = (float)fabs(dx), fy = (float)fabs(dy), fz = (float)fabs(dz);
+	if(fx<r && fy<r && fz<rz && d->state!=CS_DEAD)
+	{
+		if(fx<fy) d->o.y += dy<0 ? r-fy : -(r-fy);  // push aside
+		else	  d->o.x += dx<0 ? r-fx : -(r-fx);
+	}
+	*/
 }
 
 void updatelagtime(playerent *d)
 {
-    int lagtime = totalmillis-d->lastupdate;
-    if(lagtime)
-    {
-        if(d->state!=CS_SPAWNING && d->lastupdate) d->plag = (d->plag*5+lagtime)/6;
-        d->lastupdate = totalmillis;
-    }
+	int lagtime = totalmillis-d->lastrecieve;
+	if(lagtime)
+	{
+		if(d->lastrecieve) d->plag = (d->plag*5+lagtime)/6;
+		d->lastrecieve = totalmillis;
+	}
 }
 
 extern void trydisconnect();
 
-VARP(maxrollremote, 0, 1, 1); // bound remote "roll" values by our maxroll?!
+VARP(maxrollremote, 0, 0, 1); // bound remote "roll" values by our maxroll?!
+VARP(voteid, 0, 0, 1); // display votes
 
 void parsepositions(ucharbuf &p)
 {
-    int type;
-    while(p.remaining()) switch(type = getint(p))
-    {
-        case SV_POS:                        // position of another client
-        {
-            int cn = getint(p);
-            vec o, vel;
-            float yaw, pitch, roll;
-            o.x   = getuint(p)/DMF;
-            o.y   = getuint(p)/DMF;
-            o.z   = getuint(p)/DMF;
-            yaw   = (float)getuint(p);
-            pitch = (float)getint(p);
-            roll  = (float)(getint(p)*20.0f/125.0f);
-            vel.x = getint(p)/DVELF;
-            vel.y = getint(p)/DVELF;
-            vel.z = getint(p)/DVELF;
-            int f = getuint(p), seqcolor = (f>>6)&1;
-            playerent *d = getclient(cn);
-            if(!d || seqcolor!=(d->lifesequence&1)) continue;
-            vec oldpos(d->o);
-            float oldyaw = d->yaw, oldpitch = d->pitch;
-            d->o = o;
-            d->o.z += d->eyeheight;
-            d->yaw = yaw;
-            d->pitch = pitch;
-            d->roll = roll;
-            d->vel = vel;
-            d->strafe = (f&3)==3 ? -1 : f&3;
-            f >>= 2;
-            d->move = (f&3)==3 ? -1 : f&3;
-            f >>= 2;
-            d->onfloor = f&1;
-            f >>= 1;
-            d->onladder = f&1;
-            f >>= 2;
-            updatecrouch(d, f&1);
-            updatepos(d);
-            updatelagtime(d);
-            extern int smoothmove, smoothdist;
-            if(d->state==CS_DEAD)
-            {
-                d->resetinterp();
-                d->smoothmillis = 0;
-            }
-            else if(smoothmove && d->smoothmillis>=0 && oldpos.dist(d->o) < smoothdist)
-            {
-                d->newpos = d->o;
-                d->newpos.z -= d->eyeheight;
-                d->newyaw = d->yaw;
-                d->newpitch = d->pitch;
-                d->o = oldpos;
-                d->yaw = oldyaw;
-                d->pitch = oldpitch;
-                oldpos.z -= d->eyeheight;
-                (d->deltapos = oldpos).sub(d->newpos);
-                d->deltayaw = oldyaw - d->newyaw;
-                if(d->deltayaw > 180) d->deltayaw -= 360;
-                else if(d->deltayaw < -180) d->deltayaw += 360;
-                d->deltapitch = oldpitch - d->newpitch;
-                d->smoothmillis = lastmillis;
-            }
-            else d->smoothmillis = 0;
-            if(d->state==CS_LAGGED || d->state==CS_SPAWNING) d->state = CS_ALIVE;
-            // when playing a demo spectate first player we know about
-            if(player1->isspectating() && player1->spectatemode==SM_NONE) togglespect();
-            extern void clamproll(physent *pl);
-            if(maxrollremote) clamproll((physent *) d);
-            break;
-        }
+	int type;
+	while(p.remaining()) switch(type = getint(p))
+	{
+		case N_POS:						// position of another client
+		{
+			int cn = getint(p);
+			vec o, vel;
+			float yaw, pitch, roll, pitchvel;
+			o.x   = getfloat(p);
+			o.y   = getfloat(p);
+			o.z   = getfloat(p);
+			yaw   = getfloat(p);
+			pitch = getfloat(p);
+			roll  = getfloat(p);
+			vel.x = getfloat(p);
+			vel.y = getfloat(p);
+			vel.z = getfloat(p);
+			pitchvel = getfloat(p);
+			int f = getuint(p);
+			playerent *d = getclient(cn);
+			if(intermission || !d || d == player1 || isowned(d) || ((f>>4)&1)!=(d->lifesequence&1)) continue;
+			vec oldpos(d->o);
+			float oldyaw = d->yaw, oldpitch = d->pitch;
+			d->o = o;
+			d->yaw = yaw;
+			d->pitch = pitch;
+			d->roll = roll;
+			d->vel = vel;
+			d->pitchvel = pitchvel;
+			d->strafe = (f&3)==3 ? -1 : f&3;
+			f >>= 2;
+			d->move = (f&3)==3 ? -1 : f&3;
+			f >>= 3; // 2 + lifeseq
+			updatecrouch(d, (f & 1) == 1);
+			d->scoping = (f & 2) == 2 /*&& ads_gun(d->weaponsel->type)*/;
+			d->onfloor = (f & 4) == 4;
+			d->onladder = (f & 8) == 8;
+			d->sprinting = (f & 16) == 16;
+			d->typing = (f & 32) == 32;
 
-        default:
-            neterr("type");
-            return;
-    }
+			updatepos(d);
+			updatelagtime(d);
+			extern int smoothmove, smoothdist;
+			if(d->state==CS_DEAD)
+			{
+				d->resetinterp();
+				d->smoothmillis = 0;
+			}
+			else if(smoothmove && d->smoothmillis>=0 && oldpos.dist(d->o) < smoothdist)
+			{
+				d->newpos = d->o;
+				d->newpos.z -= d->eyeheight;
+				d->newyaw = d->yaw;
+				d->newpitch = d->pitch;
+				d->o = oldpos;
+				d->yaw = oldyaw;
+				d->pitch = oldpitch;
+				oldpos.z -= d->eyeheight;
+				(d->deltapos = oldpos).sub(d->newpos);
+				d->deltayaw = oldyaw - d->newyaw;
+				if(d->deltayaw > 180) d->deltayaw -= 360;
+				else if(d->deltayaw < -180) d->deltayaw += 360;
+				d->deltapitch = oldpitch - d->newpitch;
+				d->smoothmillis = lastmillis;
+			}
+			else d->smoothmillis = 0;
+			if(d->state==CS_WAITING) d->state = CS_ALIVE;
+			// when playing a demo spectate first player we know about
+			if(player1->isspectating() && player1->spectatemode==SM_NONE) togglespect();
+			if(maxrollremote){
+				extern void clamproll(physent *pl);
+				clamproll(d);
+			}
+			else{
+				extern void clamproll(physent *pl, int maxroll);
+				clamproll(d, 30);
+			}
+			break;
+		}
+
+		default:
+			neterr("type in position packet", type);
+			return;
+	}
 }
+
+SVARP(authname, "nobody");
+SVARP(authkey, "none");
+
+extern votedisplayinfo *curvote;
 
 void parsemessages(int cn, playerent *d, ucharbuf &p)
 {
-    static char text[MAXTRANS];
-    int type, joining = 0;
-    bool mapchanged = false, demoplayback = false;
+	static char text[MAXTRANS];
+	int type, joining = 0;
 
-    while(p.remaining())
-    {
-        type = getint(p);
+	while(p.remaining())
+	{
+		type = getint(p);
 
-        #ifdef _DEBUG
-        if(type!=SV_POS && type!=SV_CLIENTPING && type!=SV_PING && type!=SV_PONG && type!=SV_CLIENT)
-        {
-            DEBUGVAR(d);
-            ASSERT(type>=0 && type<SV_NUM);
-            DEBUGVAR(messagenames[type]);
-            protocoldebug(true);
-        }
-        else protocoldebug(false);
-        #endif
+		#ifdef _DEBUG
+		if(type!=N_POS && type!=N_PINGTIME && type!=N_PINGPONG && type!=N_CLIENT)
+		{
+			DEBUGVAR(d);
+			DEBUGVAR(messagenames(type));
+			protocoldebug(true);
+		}
+		else protocoldebug(false);
+		#endif
 
-        switch(type)
-        {
-            case SV_INITS2C:                    // welcome messsage from the server
-            {
-                int mycn = getint(p), prot = getint(p);
-                if(prot!=CUR_PROTOCOL_VERSION && !(watchingdemo && prot == -PROTOCOL_VERSION))
+		switch(type)
+		{
+			case N_SERVINFO:					// welcome messsage from the server
+			{
+				int mycn = getint(p), prot = getint(p), salt = getint(p);
+				if(prot != PROTOCOL_VERSION)
+				{
+					conoutf("\f3you are using a different game protocol (you: %d, server: %d)", PROTOCOL_VERSION, prot);
+					//neterr("different protocol", prot);
+					disconnect();
+					return;
+				}
+				sessionid = salt;
+				player1->clientnum = mycn;
+				sendintro();
+				break;
+			}
+
+			case N_WELCOME:
+				joining = getint(p);
+				getstring(text, p);
+				if(text[0]){
+					conoutf("MOTD:");
+					conoutf("\f4%s", text);
+				}
+				player1->resetspec();
+				resetcamera();
+				break;
+
+			case N_CLIENT:
+			{
+				int cn = getint(p);//, len = getuint(p);
+				ucharbuf q = p.subbuf(p.remaining());
+				parsemessages(cn, getclient(cn), q);
+				break;
+			}
+
+			case N_SOUND:
+			{
+				playerent *d = getclient(getint(p));
+				const int snd = getint(p);
+				switch(snd){
+					case S_NOAMMO:
+					case S_JUMP:
+					case S_SOFTLAND:
+					case S_HARDLAND:
+						if(d && d != player1 && !isowned(d))
+							playsound(snd, d);
+						break;
+				}
+				break;
+			}
+
+			case N_TEXT:
+			{
+				int cn = getint(p), voice = getint(p) + S_MAINEND, flags = getint(p);
+				getstring(text, p);
+				filtertext(text, text);
+				playerent *d = getclient(cn);
+				if(d) saytext(d, text, flags, voice);
+				else if(cn == -1) chatoutf("\f5[\f1CONSOLE\f5] \f2%s", text);
+				break;
+			}
+
+			case N_MAPCHANGE:
+			{
+				// get map info
+				int mode = getint(p), muts = getint(p), downloadable = getint(p);
+				getstring(text, p);
+				changemapserv(text, mode, muts, downloadable);
+
+				// get items
+				int n = getint(p);
+				resetspawns();
+				loopi(n) setspawn(getint(p));
+
+				// get knives
+				n = getint(p); // reuse
+				knives.setsize(0);
+				loopi(n){
+					cknife &k = knives.add();
+					k.id = getint(p);
+					k.millis = totalmillis + getint(p);
+					loopi(3) k.o[i] = getfloat(p);
+				}
+				// get confirms
+				n = getint(p); // more reuse
+				confirms.setsize(0);
+				loopi(n){
+					cconfirm &c = confirms.add();
+					c.id = getint(p);
+					c.team = getint(p);
+					loopi(3) c.o[i] = getfloat(p);
+				}
+				break;
+			}
+
+			case N_KNIFEADD:
+			{
+				cknife &k = knives.add();
+				k.id = getint(p);
+				k.millis = totalmillis + KNIFETTL;
+				loopi(3) k.o[i] = getfloat(p);
+				break;
+			}
+			
+			case N_KNIFEREMOVE:
+			{
+				int id = getint(p);
+				loopv(knives) if(knives[i].id == id) knives.remove(i--);
+				break;
+			}
+
+			case N_CONFIRMADD:
+			{
+				cconfirm &k = confirms.add();
+				k.id = getint(p);
+				k.team = getint(p);
+				loopi(3) k.o[i] = getfloat(p);
+				break;
+			}
+			
+			case N_CONFIRMREMOVE:
+			{
+				int id = getint(p);
+				loopv(confirms) if(confirms[i].id == id) confirms.remove(i--);
+				break;
+			}
+
+			case N_BLEED:
+			{
+				playerent *d = getclient(getint(p));
+				if(d) d->addicon(eventicon::BLEED);
+				break;
+			}
+
+			case N_HEADSHOT:
+			{
+				// make bloody stain
+				vec from, to;
+				loopi(3) from[i] = getfloat(p);
+				loopi(3) to[i] = getfloat(p);
+				addheadshot(from, to, getint(p));
+				break;
+			}
+
+			case N_NEXTMAP: // server requests next map
+			{
+				defformatstring(nextmapalias)("nextmap_%s", getclientmap());
+				const char *map = getalias(nextmapalias);	 // look up map in the cycle
+				changemap(map ? map : getclientmap());
+				break;
+			}
+
+			case N_SWITCHTEAM:
+			{
+				int t = getint(p);
+				if(t & 0x10) conoutf("\f3You may not unspectate, the server is locked");
+                else if(m_team(gamemode, mutators))
+					conoutf(t & 0x20 ? "\f3Denied -- you may not switch teams with this mode!" : "\f3Team %s is full", team_string(t & 0xF));
+				break;
+			}
+
+			case N_INITCLIENT: // cn team skin level name cdefs thirdperson
+			case N_INITAI: // cn team skin skill name owner
+			{
+				const int cn = getint(p),
+						team = getint(p),
+						skin = getint(p),
+						level = getint(p);
+				getstring(text, p);
+				const int extra1 = getint(p),
+					extra2 = (type == N_INITCLIENT) ? getint(p) : 0;
+
+				playerent *d = newclient(cn);
+				if(!d || d == player1) break;
+				d->team = team;
+				setskin(d, skin);
+				d->level = level; // skill for bots
+				// filter incoming name
+				filtername(text, text);
+				if(!*text) copystring(text, "unarmed");
+				copystring(d->name, text);
+				if(type == N_INITCLIENT){ // human
+					conoutf("connected: %s", colorname(d));
+					if(!joining) chatoutf("%s \f0joined \f2the \f1game", colorname(d));
+					d->build = extra1;
+					d->thirdperson = extra2;
+				}
+				else // AI
+					d->ownernum = extra1;
+
+				updateclientname(d);
+
+				if(m_affinity(gamemode) && !m_secure(gamemode)) loopi(2){
+					flaginfo &f = flaginfos[i];
+					if(!f.actor) f.actor = getclient(f.actor_cn);
+				}
+				break;
+			}
+
+			case N_REASSIGNAI:
+			{
+				playerent *d = getclient(getint(p));
+				const int newowner = getint(p);
+				getstring(text, p);
+				if(!d || d == player1) break;
+				if(isowned(d) && newowner != getclientnum())
+					d->removeai();
+				d->ownernum = newowner;
+				filtername(text, text);
+				if(!*text) copystring(text, "unarmed");
+				copystring(d->name, text);
+				// state bugs
+				//if(d->state == CS_WAITING) d->state = CS_ALIVE;
+				// the server will now force death before reassigning
+				d->plag = 0;
+				break;
+			}
+			
+			case N_DISC:
+			case N_DELAI:
+			{
+				int cn = getint(p), reason = type == N_DISC ? getint(p) : 0;
+				playerent *d = getclient(cn);
+				if(!d || d == player1) break;
+				loopv(players) if(players[i]) players[i]->damagelog.removeobj(cn);
+				if(type == N_DISC && *d->name){
+					conoutf("player %s disconnected (%s)", colorname(d), reason >= 0 ? disc_reason(reason) : "normally");
+					chatoutf("%s \f3left \f2the \f1game", colorname(d));
+				}
+				zapplayer(players[cn]);
+				break;
+			}
+
+			case N_NEWNAME:
+			{
+				playerent *d = getclient(getint(p));
+				getstring(text, p);
+				filtertext(text, text, 1, MAXNAMELEN);
+				if(!text[0]) copystring(text, "unarmed");
+				if(!d || !strcmp(d->name, text)) break;
+				if(d->name[0]) conoutf("%s \f6(%d) \f5is now known as \f1%s", d->name, d->clientnum, text);
+				filtername(d->name, text);
+				if(d == player1) alias("curname", player1->name);
+				updateclientname(d);
+				break;
+			}
+
+			case N_THIRDPERSON:
+			case N_LEVEL:
+			{
+				playerent *d = getclient(getint(p));
+				int info = getint(p);
+				if(d && d != player1){
+					switch(type)
+					{
+						case N_THIRDPERSON:
+							d->thirdperson = info;
+							break;
+						case N_LEVEL:
+							info = clamp(info, 1, MAXLEVEL);
+							d->level = info;
+							if(d->pBot) d->pBot->MakeSkill(info);
+							break;
+					}
+				}
+				break;
+			}
+
+			case N_EDITMODE:
+			{
+				const int cn = getint(p), val = getint(p);
+				playerent *d = getclient(cn);
+				if(d) d->state = val ? CS_EDITING : CS_ALIVE;
+				break;
+			}
+
+			case N_TRYSPAWN:
+			{
+				const int enqueued = getint(p);
+				extern bool spawnenqueued;
+				spawnenqueued = (enqueued > 0);
+				if(enqueued) player1->respawnoffset = lastmillis - SPAWNDELAY + enqueued;
+				break;
+			}
+
+			case N_SPAWN:
+			{
+				playerent *d = getclient(getint(p));
+				if(!d || d == player1 || isowned(d)) { static playerent dummy; d = &dummy; }
+				d->respawn(gamemode, mutators);
+				d->lifesequence = getint(p);
+				setskin(d, getint(p));
+				d->health = getint(p);
+				d->armor = getint(p);
+				d->perk1 = getint(p);
+				d->perk2 = getint(p);
+				int gunselect = getint(p);
+				d->setprimary(gunselect);
+				d->selectweapon(gunselect);
+				d->secondary = getint(p);
+				loopi(WEAP_MAX) d->ammo[i] = getint(p);
+				loopi(WEAP_MAX) d->mag[i] = getint(p);
+				loopi(3) d->o[i] = getfloat(p);
+				d->yaw = getfloat(p);
+				d->pitch = d->roll = 0;
+				d->resetinterp();
+				updatepos(d);
+				//s->state = CS_SPAWNING;
+				d->state = CS_ALIVE;
+				d->spawnmillis = lastmillis;
+				break;
+			}
+
+			case N_SPAWNSTATE:
+			{
+				playerent *d = getclient(getint(p));
+				if(!d || (d != player1 && !isowned(d))) { static playerent dummy; d = &dummy; }
+				d->respawn(gamemode, mutators);
+				d->lifesequence = getint(p);
+				setskin(d, getint(p));
+				d->health = getint(p);
+				d->armor = getint(p);
+				d->perk1 = getint(p);
+				d->perk2 = getint(p);
+				d->setprimary(getint(p));
+				d->secondary = getint(p);
+				d->selectweapon(getint(p));
+				loopi(3) d->o[i] = getfloat(p);
+				d->yaw = getfloat(p);
+				d->pitch = d->roll = 0;
+				entinmap(d);
+				loopi(WEAP_MAX) d->ammo[i] = getint(p);
+				loopi(WEAP_MAX) d->mag[i] = getint(p);
+				d->state = CS_ALIVE;
+				d->spawnmillis = lastmillis;
+				if(d == player1){
+					if(editmode) toggleedit(true);
+					showscores(false);
+					setscope(false);
+					if(m_duke(gamemode, mutators)){
+						if(!m_zombie(gamemode) && !m_convert(gamemode, mutators)) arenaintermission = 0;
+						//closemenu(NULL);
+						conoutf("%s", _("spawn_newround"));
+						hudeditf(HUDMSG_TIMER, _("spawn_fight"));
+					}
+				}
+				addmsg(N_SPAWN, "ri3f3", d->clientnum, d->lifesequence, d->weaponsel->type, d->o.x, d->o.y, d->o.z);
+				d->weaponswitch(d->weapons[d->primary]);
+				d->weaponchanging -= SWITCHTIME(d->perk1 == PERK_TIME)/2;
+				break;
+			}
+
+			case N_SG: // someone's shotgun rays
+			{	
+				extern vec sg[SGRAYS];
+				loopi(SGRAYS) loopj(3) sg[i][j] = getfloat(p);
+				break;
+			}
+
+			case N_PROJ:
+			{
+				int cn = getint(p), weap = getint(p), dmg = getint(p);
+				playerent *d = getclient(cn);
+				vec o;
+				loopi(3) o[i] = getfloat(p);
+				if(!d) break;
+				// hit effect
+				if(d->weapons[weap]){
+					if(explosive_weap(weap) && dmg);
+					else if(melee_weap(weap) && dmg < 20 * HEALTHSCALE);
+					else d->weapons[weap]->attackhit(o);
+				}
+				// blood
+				if(dmg) damageeffect(dmg, o);
+				break;
+			}
+
+			case N_SHOOT: case N_RICOCHET:
+			case N_SHOOTC:
+			{
+				int scn = getint(p), gun = getint(p);
+				vec from, to;
+				if(type == N_SHOOTC) from = to = vec(0, 0, 0);
+				else{
+					loopk(3) from[k] = getfloat(p);
+					loopk(3) to[k] = getfloat(p);
+				}
+				playerent *s = getclient(scn);
+				if(!s || !weapon::valid(gun) || !s->weapons[gun]) break;
+				if(s == player1 && (type == N_SHOOTC || gun == WEAP_GRENADE)) break;
+				// if it's somebody else's players, remove a bit of ammo
+				if(type != N_RICOCHET && s != player1 && !isowned(s)){
+					--s->mag[gun];
+					updatelastaction(s);
+					s->lastattackweapon = s->weapons[gun];
+					s->weapons[gun]->gunwait = s->weapons[gun]->info.attackdelay;
+				}
+				// all have to do attackfx
+				s->weapons[gun]->attackfx(from, to, type == N_RICOCHET ? -2 : -1);
+				break;
+			}
+
+			case N_AKIMBO:
+			{
+				int cn = getint(p);
+				playerent *d = getclient(cn);
+				if(!d) break;
+				playsound(S_AKIMBOOUT, d, SP_HIGH);
+				if(d == player1 || isowned(d)){
+					weapon &a = *d->weapons[WEAP_AKIMBO], &p = *d->weapons[WEAP_PISTOL];
+					d->akimbo = false;
+					a.reset();
+					/*
+					// transfer ammo to pistol
+					p.mag = min((int)p.info.magsize, max(a.mag, p.mag));
+					p.ammo = max(p.ammo, p.ammo);
+					// fix akimbo magcontent
+					a.mag = 0;
+					a.ammo = 0;
+					*/
+					if(d->weaponsel->type==WEAP_AKIMBO){
+						if(d->weapons[d->primary]) d->weaponswitch(d->weapons[d->primary]);
+						else d->weaponswitch(&p);
+					}
+				}
+				break;
+			}
+
+			case N_THROWKNIFE:
+			{
+				playerent *d = getclient(getint(p));
+				vec from, to;
+				loopk(3) from[k] = getfloat(p);
+				loopk(3) to[k] = getfloat(p);
+				if(!d) break;
+				updatelastaction(d);
+				d->lastattackweapon = d->weapons[WEAP_KNIFE];
+				if(d->weapons[WEAP_KNIFE]) d->weapons[WEAP_KNIFE]->attackfx(from, to, 1);
+				break;
+			}
+
+			case N_THROWNADE:
+			{
+				playerent *d = getclient(getint(p));
+				vec from, to;
+				loopk(3) from[k] = getfloat(p);
+				loopk(3) to[k] = getfloat(p);
+				int cooked = getint(p);
+				if(!d) break;
+				updatelastaction(d);
+				d->weaponchanging = 0;
+				d->lastattackweapon = d->weapons[WEAP_GRENADE];
+				if(d->weapons[WEAP_GRENADE]){
+					d->weapons[WEAP_GRENADE]->attackfx(from, to, cooked);
+					d->weapons[WEAP_GRENADE]->reloading = 0;
+				}
+				break;
+			}
+
+			case N_STREAKREADY:
+			{
+				playerent *d = getclient(getint(p));
+				const int streak = getint(p);
+				if(!d) break;
+				switch(streak){
+					case STREAK_AIRSTRIKE:
+						d->addicon(eventicon::AIRSTRIKE);
+						++d->airstrikes;
+						break;
+					case STREAK_DROPNADE:
+						d->addicon(eventicon::DROPNADE);
+						break;
+					case STREAK_REVENGE:
+						d->addicon(eventicon::SUICIDEBOMB);
+						break;
+				}
+				break;
+			}
+
+			case N_STREAKUSE:
+			{
+				playerent *d = getclient(getint(p));
+				const int streak = getint(p), info = getint(p);
+				if(!d) break;
+				switch(streak){
+					case STREAK_AIRSTRIKE:
+						// may be delayed? in the future?
+						d->airstrikes = info;
+						break;
+					case STREAK_RADAR:
+						d->radarearned = lastmillis + info;
+						d->addicon(eventicon::RADAR);
+						break;
+					case STREAK_NUKE:
+						if(info > 0){ // deploy nuke
+							d->nukemillis = lastmillis + info;
+							d->addicon(eventicon::NUKE);
+							playsound(S_CALLVOTE, SP_HIGHEST);
+							// add voice?
+							chatoutf("\f2%s is deploying a nuke! \f%s!", colorname(d), d == player1 ? "0Stay alive" : isteam(d, player1) ? "1Defend him" : "3Stop him");
+						}
+						else if(!info){ // nuke deployed
+							// gg...
+							d->nukemillis = 0;
+							chatoutf("\f3%s deployed a nuke!", colorname(d));
+							playsound(S_VOTEPASS, SP_HIGHEST);
+						}
+						else if(info == -2){
+							// nuke cancelled
+							d->nukemillis = 0;
+							chatoutf("\f2%s lost the nuke!", colorname(d));
+							// add icon?
+							playsound(S_VOTEFAIL, SP_HIGHEST);
+						}
+						break;
+					case STREAK_JUG:
+						d->health = info;
+						d->addicon(eventicon::JUGGERNAUT);
+						addobit(d, OBIT_JUG, FRAG_NONE, false, NULL);
+						break;
+					case STREAK_DROPNADE:
+					case STREAK_REVENGE:
+						{
+							grenadeent *g = new grenadeent(d, NADETTL - MARTYRDOMTTL);
+							bounceents.add(g);
+							g->id = info;
+
+							g->nadestate = 1;//NS_THROWED;
+							g->o = d->o;
+							g->moveoutsidebbox((g->vel = vec(0, 0, 0)), d);
+							g->resetinterp();
+							g->inwater = hdr.waterlevel > g->o.z;
+							break;
+						}
+				}
+				break;
+			}
+
+			case N_RELOAD:
+			{
+				int cn = getint(p), gun = getint(p), mag = getint(p), ammo = getint(p);
+				playerent *p = getclient(cn);
+				if(!p || gun < 0 || gun >= WEAP_MAX) break;
+				if(p != player1 && !isowned(p) && p->weapons[gun]) p->weapons[gun]->reload();
+				p->ammo[gun] = ammo;
+				p->mag[gun] = mag;
+				if(gun == WEAP_KNIFE) p->addicon(eventicon::PICKUP);
+				break;
+			}
+
+			case N_TEAMSCORE:
+			{
+				const int team = getint(p),
+					points = getint(p),
+					flags = getint(p),
+					frags = getint(p),
+					assist = getint(p),
+					death = getint(p);
+				if(!team_valid(team) || team == TEAM_SPECT) break;
+				teamscore &t = teamscores[team];
+				t.points = points;
+				t.flagscore = flags;
+				t.frags = frags;
+				t.assists = assist;
+				t.deaths = death;
+				break;
+			}
+
+			case N_SCORE:
+			{
+				const int cn = getint(p), score = getint(p), flags = getint(p), frags = getint(p), assists = getint(p), deaths = getint(p);
+				playerent *d = getclient(cn);
+				if(!d) break;
+				d->points = score;
+				d->flagscore = flags;
+				d->frags = frags;
+				d->assists = assists;
+				d->deaths = deaths;
+				break;
+			}
+
+			case N_POINTS:
+			{
+				const int reason = getint(p), points = getint(p);
+				addexp(points);
+				const char* pointreasons_templates[PR_MAX] = {
+					"", // N/A
+					"%s", // Assist
+					"%s", // Splat
+					"%s", // Headshot
+					"%s", // Kill Confirmed
+					"%s", // Kill Denied
+					"%s", // Healed Self
+					"%s", // Healed Teammate
+					"\f3%s", // Healed Enemy
+					"%s", // Prevented Bleedout
+					"%s", // Bleedout prevented by teammate
+					"\f0%s", // You won
+					"\f1%s", // Your team wins
+					"\f3%s", // You lost
+					"\f1%s", // Domination bonus
+					"\f0%s", // Flag secured!
+					"\f3%s", // Flag overthrown!
+					"\f0%s", // Buzzkill!
+					"\f3%s", // Buzzkilled!
+					"\f1%s", // Got own tags!
+					"\f3%s", // Kill Denied
+				};
+				defformatstring(pr_lookup_str)("point_reason_%d", reason);
+				defformatstring(pr_str)(pointreasons_templates[reason%PR_MAX], _(pr_lookup_str));
+				expreason(pr_str);
+				break;
+			}
+
+			case N_REGEN:
+			case N_HEAL:
+			{
+				playerent *healer = type == N_HEAL ? getclient(getint(p)) : NULL;
+				const int cn = getint(p), health = getint(p);
+				playerent *d = getclient(cn);
+				if(!d) break;
+				d->health = health;
+				d->lastregen = lastmillis;
+				if(!healer) break;
+				addobit(healer, OBIT_REVIVE, FRAG_NONE, false, d);
+				if(d == player1) hudoutf("\fs\f1REVIVED \f2by \fr%s", colorname(healer));
+				break;
+			}
+
+			case N_MULTI:
+			{
+				const int cn = getint(p), multi = getint(p);
+				playerent *d = getclient(cn);
+				if(!d) break;
+				addobit(d, OBIT_MULTI, FRAG_NONE, false, NULL, multi);
+				break;
+			}
+
+			case N_DAMAGE:
+			{
+				int tcn = getint(p),
+					acn = getint(p),
+					damage = getint(p),
+					armor = getint(p),
+					health = getint(p),
+					weap = getint(p),
+					style = getint(p);
+				vec src; loopi(3) src[i] = getfloat(p);
+				playerent *target = getclient(tcn), *actor = getclient(acn);
+				if(!target || !actor) break;
+				target->armor = armor;
+				target->health = health;
+				dodamage(damage, target, actor, weap, style, src);
+				break;
+			}
+
+			case N_KILL:
+			{
+				const int vcn = getint(p),
+					acn = getint(p),
+					weap = getint(p),
+					style = getint(p) & FRAG_VALID,
+					damage = getint(p),
+					combo = getint(p),
+					streak = getint(p);
+
+				float killdist = getfloat(p);
+				vec src; loopi(3) src[i] = getfloat(p);
+
+				const int assists = getint(p);
+				// assists consumed later
+
+				playerent *victim = getclient(vcn), *actor = getclient(acn);
+				if(actor) actor->pointstreak = streak;
+				if(victim){
+					victim->damagelog.setsize(0);
+					loopi(assists) victim->damagelog.add(getint(p));
+				} else loopi(assists) getint(p);
+				// assists consumed
+
+				if(!victim) break;
+				victim->health -= damage;
+				if(!actor) break;
+				dodamage(damage, victim, actor, weap, style, src);
+				victim->deathcamsrc = src;
+				dokill(victim, actor, weap, damage, style, combo, killdist);
+				break;
+			}
+
+			case N_RESUME:
+			{
+				loopi(MAXCLIENTS)
+				{
+					int cn = getint(p);
+					if(p.overread() || cn<0) break;
+					const int state = getint(p), lifesequence = getint(p), gunselect = getint(p),
+						primary = getint(p), secondary = getint(p),
+						points = getint(p), flagscore = getint(p),
+						frags = getint(p), assists = getint(p),
+						pointstreak = getint(p), deathstreak = getint(p),
+						deaths = getint(p), health = getint(p), armor = getint(p),
+						radar = getint(p), airstrikes = getint(p), nuke = getint(p), spawnmillis = getint(p);
+					vec o;
+					loopi(3) o[i] = getfloat(p);
+					int ammo[WEAP_MAX], mag[WEAP_MAX];
+					loopi(WEAP_MAX) ammo[i] = getint(p);
+					loopi(WEAP_MAX) mag[i] = getint(p);
+					playerent *d = getclient(cn);
+					if(!d) continue;
+					//if(d!=player1 && !isowned(d)) d->state = state;
+					d->lifesequence = lifesequence;
+					d->points = points;
+					d->flagscore = flagscore;
+					d->frags = frags;
+					d->assists = assists;
+					d->pointstreak = pointstreak;
+					d->deathstreak = deathstreak;
+					d->deaths = deaths;
+					d->radarearned = lastmillis + radar;
+					d->airstrikes = airstrikes;
+					d->nukemillis = lastmillis + nuke;
+					d->o = o;
+					if(d!=player1 && !isowned(d))
+					{
+						d->state = state == CS_WAITING ? CS_DEAD : state;
+						d->spawnmillis = lastmillis + spawnmillis;
+
+						d->setprimary(primary);
+						d->secondary = secondary;
+						d->selectweapon(gunselect);
+						d->health = health;
+						d->armor = armor;
+						memcpy(d->ammo, ammo, sizeof(ammo));
+						memcpy(d->mag, mag, sizeof(mag));
+					}
+				}
+				break;
+			}
+
+			case N_ITEMSPAWN:
+			{
+				int i = getint(p);
+				setspawn(i);
+				break;
+			}
+
+			case N_ITEMACC:
+			{
+				int i = getint(p), cn = getint(p), spawntime = getint(p);
+				playerent *d = getclient(cn);
+				pickupeffects(i, d, spawntime);
+				break;
+			}
+
+			case N_EDITH:  // coop editing messages
+			case N_EDITT:
+			case N_EDITS:
+			case N_EDITD:
+			case N_EDITE:
+			{
+				int x  = getint(p);
+				int y  = getint(p);
+				int xs = getint(p);
+				int ys = getint(p);
+				int v  = getint(p);
+				block b = { x, y, xs, ys };
+				switch(type)
+				{
+					case N_EDITH: editheightxy(v!=0, getint(p), b); break;
+					case N_EDITT: edittexxy(v, getint(p), b); break;
+					case N_EDITS: edittypexy(v, b); break;
+					case N_EDITD: setvdeltaxy(v, b); break;
+					case N_EDITE: editequalisexy(v!=0, b); break;
+				}
+				break;
+			}
+
+			case N_EDITW: // coop editing water
+			{
+				const int newwaterlevel = getint(p);
+				loopi(4) hdr.watercolor[i] = getint(p);
+				if(newwaterlevel == hdr.waterlevel) break;
+				hdr.waterlevel = newwaterlevel;
+				conoutf("%s changed the water-level to %d", colorname(d), hdr.waterlevel);
+				break;
+			}
+
+			case N_NEWMAP:
+			{
+				int size = getint(p);
+				if(size>=0) empty_world(size, true);
+				else empty_world(-1, true);
+				if(d && d!=player1)
+					conoutf(size>=0 ? "%s started a new map of size %d" : "%s enlarged the map to size %d", colorname(d), sfactor);
+				break;
+			}
+
+			case N_EDITENT:			// coop edit of ent
+			{
+				uint i = getint(p);
+				while((uint)ents.length()<=i) ents.add().type = NOTUSED;
+				int to = ents[i].type;
+				ents[i].type = getint(p);
+				ents[i].x = getint(p);
+				ents[i].y = getint(p);
+				ents[i].z = getint(p);
+				ents[i].attr1 = getint(p);
+				ents[i].attr2 = getint(p);
+				ents[i].attr3 = getint(p);
+				ents[i].attr4 = getint(p);
+				ents[i].spawned = false;
+				if(ents[i].type==LIGHT || to==LIGHT) calclight();
+				if(ents[i].type==SOUND) preloadmapsound(ents[i]);
+				break;
+			}
+
+			case N_PINGPONG:
+			{
+				const int sentmillis = getint(p);
+				if(multiplayer(false)) addmsg(N_PINGTIME, "i", totalmillis - sentmillis);
+				else addmsg(N_PINGTIME, "i", curtime);
+				break;
+			}
+
+			case N_PINGTIME:
+			{
+				int cn = getint(p), ping = getint(p);
+				if(cn == getclientnum()) player1->ping = ping;
+				loopv(players) if(players[i] && (i == cn || players[i]->ownernum == cn)) players[i]->ping = ping;
+				break;
+			}
+
+			case N_MAPIDENT:
+				conoutf("\f3please \f1get the map \f2by typing \f0/getmap");
+				break;
+
+			case N_MAPC2S:
+			{
+				int cn = getint(p); playerent *d = getclient(cn);
+				getstring(text, p);
+				conoutf("%s \f0sent the map %s to the server; \f1it can now be voted", d ? colorname(d) : "someone", text);
+				if(needsmap && !gettingmap)
                 {
-                    conoutf("\f3you are using a different game protocol (you: %d, server: %d)", CUR_PROTOCOL_VERSION, prot);
-#if 0
-                    if(prot<1000) // bug, possibly
-                    {
-                        // might indicate a client/server communication bug, create error report
-                        pktlogger.flushtolog("packetlog_protocol.txt");
-                        conoutf("\f3wrote a network error report to packetlog_protocol.txt, please post this file to the bugtracker now!");
+                    conoutf("\f0we want the map, so let's get it");
+                    getmap();
+                }
+				break;
+			}
+
+			case N_MAPREQ:
+			{
+				conoutf("\f1the server wants us to send it the map...");
+				if(!needsmap && !gettingmap) sendmap();
+				else
+				{
+					conoutf(gettingmap ? "...but we are trying to get it" : "...but we don't have it, so let's ask for it");
+					getmap();
+				}
+				break;
+			}
+
+			case N_MAPFAIL:
+			{
+				conoutf("\f3everyone failed to get the map");
+				needsmap = gettingmap = false;
+				break;
+			}
+
+			case N_ACCURACY:
+			{
+				int hit = getint(p), shot = getint(p);
+				conoutf("\f1%.2f%% \f5accuracy \f4(\f1%d \f0hit, \f1%d \f2shot, \f1%d \f3wasted\f4)", hit * 100.f / max(shot, 1), hit, shot, shot - hit);
+				break;
+			}
+
+			case N_TIMEUP:
+			{
+				int curgamemillis = getint(p), curgamelimit = getint(p), curgameseed = getint(p);
+				timeupdate(curgamemillis, curgamelimit, curgameseed);
+				break;
+			}
+
+			case N_QUICKSWITCH:
+			{
+				int cn = getint(p);
+				playerent *d = getclient(cn);
+				if(!d) break;
+				d->weaponchanging = lastmillis-1-(SWITCHTIME(d->perk1 == PERK_TIME)/2);
+				d->nextweaponsel = d->weaponsel = d->weapons[d->primary];
+				break;
+			}
+
+			case N_SWITCHWEAP:
+			{
+				int cn = getint(p), gun = getint(p);
+				playerent *d = getclient(cn);
+				if(!d || gun < 0 || gun >= WEAP_MAX) break;
+				d->ads = 0;
+				d->weaponswitch(d->weapons[gun]);
+				//if(!d->weaponchanging) d->selectweapon(gun);
+				break;
+			}
+
+			case N_SERVMSG:
+				getstring(text, p);
+				conoutf("%s", text);
+				break;
+
+			case N_FLAGINFO:
+			{
+				int flag = getint(p);
+				if(!(flag == 0 || flag == 1)) break;
+				flaginfo &f = flaginfos[flag];
+				f.state = getint(p);
+				switch(f.state)
+				{
+					case CTFF_STOLEN:
+						flagstolen(flag, getint(p));
+						break;
+					case CTFF_DROPPED:
+					{
+						float x = getfloat(p), y = getfloat(p), z = getfloat(p);
+						flagdropped(flag, x, y, z);
+						break;
+					}
+					case CTFF_INBASE:
+						flaginbase(flag);
+						break;
+					case CTFF_IDLE:
+						flagidle(flag);
+						break;
+				}
+				break;
+			}
+
+			case N_FLAGMSG:
+			{
+				int flag = getint(p);
+				int message = getint(p);
+				int actor = getint(p);
+				int flagtime = message == FA_KTFSCORE ? getint(p) : -1;
+				flagmsg(flag, message, actor, flagtime);
+				break;
+			}
+
+			case N_FLAGSECURE:
+			{
+				const int ent = getint(p), team = getint(p), enemy = getint(p), overthrown = getint(p);
+				if(!ents.inrange(ent) || ents[ent].type != CTF_FLAG || (team != 0 && team != 1 && team != 2) || ents[ent].attr2 < 2) break;
+				ents[ent].attr2 = 2 + team;
+				ents[ent].attr3 = enemy;
+				ents[ent].attr4 = overthrown; // 1:1 client:server now
+				break;
+			}
+
+			case N_ARENAWIN:
+			{
+				int acn = getint(p); playerent *alive = getclient(acn);
+				// check for multiple survivors
+				bool multi = false;
+				if(m_team(gamemode, mutators) && alive){
+					#define teammate(p) (p != alive && p->state == CS_ALIVE && isteam(p, alive))
+					if(teammate(player1)) multi = true;
+					else loopv(players) if(players[i] && teammate(players[i])){ multi = true; break; }
+				}
+				conoutf("%s", _("arenawin_over"));
+				// no survivors
+				if(acn == -1) hudoutf("\f3%s", _("arenawin_fail"));
+				// instead of waiting for bots to battle it out...
+				else if(acn == -2) hudoutf("%s", _("arenawin_bots"));
+				// should not happen? better safe than sorry
+				else if(!alive) hudoutf("unknown winner...?");
+				// Teams
+				else if(m_team(gamemode, mutators) && multi) hudoutf("%s", _(alive->team == player1->team ? "arenawin_teamwin" : "arenawin_teamlose"));
+				// FFA or one team member
+				else if(alive==player1) hudoutf("%s", _("arenawin_youwin"));
+				else hudoutf("%s %s", colorname(alive), _("arenawin_ffa"));
+				arenaintermission = lastmillis;
+				break;
+			}
+
+			case N_ZOMBIESWIN:
+			{
+				const int info = getint(p), round = (info >> 1) & 0x7F;
+				if(round > MAXZOMBIEROUND) hudoutf("\f0%s", _("arenawin_zombies_humans"));
+				else if(info & 1) hudoutf("\f2%s \f1%d\f4; \f0%s", _("arenawin_zombies_prefix"), round, _("arenawin_zombies_humans"));
+				else hudoutf("\f2%s \f1%d\f4; \f3%s", _("arenawin_zombies_prefix"), round, _("arenawin_zombies_zombie"));
+				arenaintermission = lastmillis;
+				break;
+			}
+
+			case N_CONVERTWIN:
+			{
+				hudoutf("\f1\fb%s", _("arenawin_convert"));
+				arenaintermission = lastmillis;
+				break;
+			}
+
+			case N_FORCEGIB:
+			case N_FORCEDEATH:
+			{
+				int cn = getint(p);
+				playerent *d = newclient(cn);
+				if(!d) break;
+				if(type == N_FORCEGIB) addgib(d);
+				deathstate(d);
+				break;
+			}
+
+			case N_SETPRIV:
+			{
+				int cl = getint(p), r = getint(p);
+				playerent *p = newclient(cl);
+				if(!p) break;
+				p->priv = r;
+				break;
+			}
+
+			case N_CLAIMPRIV:
+			{
+				int cl = getint(p), r = getint(p), t = getint(p);
+				playerent *d = getclient(cl);
+				const char *n = (d == player1) ? "\f1you" : d ? colorname(d) : "\f2(a connecting admin)";
+				switch(t){
+					case 0:
+					case 1:
+						chatoutf("%s \f2%s \f%d%s \f5access", n, t ? "relinquished" : "claimed", privcolor(r), privname(r));
+						break;
+					case 2:
+						if(d == player1) hudoutf("\f1you \f3already \f2have \f%d%s \f5access", privcolor(r), privname(r));
+						else hudoutf("\f3there is already another \f1%s \f2(\f%d%s\f2)", privname(r), privcolor(r), n);
+						break;
+				}
+				break;
+			}
+
+			case N_AUTHREQ:
+			{
+				int nonce = getint(p), sauthtoken = getint(p);
+				extern int authtoken;
+				if(nonce < 0 || sauthtoken != authtoken){
+					conoutf("server challenged incorrectly");
+					break;
+				}
+				authtoken = -1;
+				conoutf("server is challenging authentication details");
+				unsigned hash[5] = {0};
+				defformatstring(buf)("%s:%s!%d", authname, authkey, nonce);
+				if(!gensha1(buf, hash)){
+					conoutf("could not compute message digest");
+					break;
+				}
+				addmsg(N_AUTHCHAL, "ri5", hash[0], hash[1], hash[2], hash[3], hash[4]);
+				break;
+			}
+
+			case N_AUTHCHAL:
+			{
+				switch(getint(p)){
+					case 0:
+						conoutf("please wait, requesting credential match");
+						break;
+					case 1:
+						conoutf("waiting for previous attempt...");
+						break;
+					case 2:
+						conoutf("not connected to authentication server");
+						break;
+					case 3:
+						conoutf("authority request failed, please check your credentials");
+						break;
+					case 4:
+						conoutf("please wait, requesting authentication");
+						break;
+					case 5:
+					{
+						int cn = getint(p); getstring(text, p);
+						playerent *d = getclient(cn);
+						if(!d) break;
+						filtertext(text, text, 1, MAXNAMELEN);
+						chatoutf("%s \f1identified as \f2'\f9%s\f2'", colorname(d), text);
+						break;
+					}
+					case 6:
+						conoutf("please wait %.3f seconds to request another challenge", getint(p) / 1000.f);
+						break;
+					default:
+						conoutf("server sent undefined authority message");
+						break;
+				}
+				break;
+			}
+
+			case N_SETTEAM:
+			{
+				int cn = getint(p), fnt = getint(p), ftr = fnt >> 4; fnt &= 0xF;
+				playerent *p = newclient(cn);
+				if(!p) break;
+				defformatstring(nts)("team \f%d%s", team_color(fnt), team_string(fnt));
+				const bool own = (p == player1 && !watchingdemo);
+				if(p->team == fnt){ // no change
+                    switch(ftr){
+                        case FTR_PLAYERWISH:
+							if(own) hudoutf("%s", "\f1you \f2did \f3not \f2switch teams");
+                            else conoutf("\f2%s did not switch teams", colorname(p));
+                            break;
+                        case FTR_AUTOTEAM:
+							if(own) hudoutf("\f1you stay in \f2%s", nts);
+							else if(p->ownernum < 0) conoutf("\f2%s stays on %s", colorname(p), nts);
+                            break;
                     }
-#endif
-                    disconnect();
-                    return;
                 }
-                sessionid = getint(p);
-                player1->clientnum = mycn;
-                if(getint(p) > 0) conoutf("INFO: this server is password protected");
-                sendintro();
-
-                // send client info using srv extension (backward compat)
-                string versionext;
-                s_strcpy(versionext, "official::clientstring");
-                addmsg(SV_EXTENSION, "rsiii", versionext, 2, AC_VERSION,
-                #ifdef WIN32
-                    0x40 |
-                #endif
-                #ifdef __APPLE__
-                    0x20 |
-                #endif
-                #ifdef _DEBUG
-                    0x08 |
-                #endif
-                #ifdef __GNUC__
-                    0x04 |
-                #endif
-                    1);
-                break;
-            }
-
-            case SV_WELCOME:
-                joining = getint(p);
-                player1->resetspec();
-                resetcamera();
-                break;
-
-            case SV_CLIENT:
-            {
-                int cn = getint(p), len = getuint(p);
-                ucharbuf q = p.subbuf(len);
-                parsemessages(cn, getclient(cn), q);
-                break;
-            }
-
-            case SV_SOUND:
-                playsound(getint(p), d);
-                break;
-
-            case SV_VOICECOMTEAM:
-            {
-                playerent *d = getclient(getint(p));
-                if(d) d->lastvoicecom = lastmillis;
-                playsound(getint(p), SP_HIGH);
-                break;
-            }
-            case SV_VOICECOM:
-            {
-                playsound(getint(p), SP_HIGH);
-                if(d) d->lastvoicecom = lastmillis;
-                break;
-            }
-
-            case SV_TEAMTEXT:
-            {
-                int cn = getint(p);
-                getstring(text, p);
-                filtertext(text, text);
-                playerent *d = getclient(cn);
-                if(!d) break;
-                if(m_teammode) conoutf("%s:\f1 %s", colorname(d), text);
-                else conoutf("%s:\f0 %s", colorname(d), text);
-                break;
-            }
-
-            case SV_TEXT:
-                if(cn == -1)
-                {
-                    getstring(text, p);
-                    conoutf("MOTD:");
-                    conoutf("\f4%s", text);
-                }
-                else if(d)
-                {
-                    getstring(text, p);
-                    filtertext(text, text);
-                    conoutf("%s:\f0 %s", colorname(d), text);
-                }
-                else return;
-                break;
-
-            case SV_MAPCHANGE:
-            {
-                getstring(text, p);
-                int mode = getint(p);
-                int downloadable = getint(p);
-                changemapserv(text, mode, downloadable);
-                if(m_arena && joining>2) deathstate(player1);
-                mapchanged = true;
-                break;
-            }
-
-            case SV_ITEMLIST:
-            {
-                int n;
-                if(mapchanged||watchingdemo) { senditemstoserver = false; resetspawns(); }
-                while((n = getint(p))!=-1) { getint(p); if(mapchanged||watchingdemo) setspawn(n, true); }
-                break;
-            }
-
-            case SV_SPAWNLIST:
-            {
-                if(getint(p) > 0) loopi(5) getint(p);
-                break;
-            }
-
-            case SV_MAPRELOAD:          // server requests next map
-            {
-                getint(p);
-                s_sprintfd(nextmapalias)("nextmap_%s", getclientmap());
-                const char *map = getalias(nextmapalias);     // look up map in the cycle
-                changemap(map ? map : getclientmap());
-                break;
-            }
-
-            case SV_INITC2S:            // another client either connected or changed name/team
-            {
-                d = newclient(cn);
-                getstring(text, p);
-                filtertext(text, text, 0, MAXNAMELEN);
-                if(!text[0]) s_strcpy(text, "unarmed");
-                if(d->name[0])          // already connected
-                {
-                    if(strcmp(d->name, text))
-                        conoutf("%s is now known as %s", colorname(d), colorname(d, text));
-                }
-                else                    // new client
-                {
-                    c2sinit = false;    // send new players my info again
-                    conoutf("connected: %s", colorname(d, text));
-                }
-                s_strncpy(d->name, text, MAXNAMELEN+1);
-                getstring(text, p);
-                filtertext(d->team, text, 0, MAXTEAMLEN);
-			    setskin(d, getint(p));
-			    if(m_flags) loopi(2)
-			    {
-				    flaginfo &f = flaginfos[i];
-				    if(!f.actor) f.actor = getclient(f.actor_cn);
-			    }
-			    updateclientname(d);
-                break;
-            }
-
-            case SV_CDIS:
-            {
-                int cn = getint(p);
-                playerent *d = getclient(cn);
-                if(!d) break;
-			    if(d->name[0]) conoutf("player %s disconnected", colorname(d));
-                zapplayer(players[cn]);
-                break;
-            }
-
-            case SV_EDITMODE:
-            {
-                int val = getint(p);
-                if(!d) break;
-                if(val) d->state = CS_EDITING;
-                else d->state = CS_ALIVE;
-                break;
-            }
-
-            case SV_SPAWN:
-            {
-                playerent *s = d;
-                if(!s) { static playerent dummy; s = &dummy; }
-                s->respawn();
-                s->lifesequence = getint(p);
-                s->health = getint(p);
-                s->armour = getint(p);
-                int gunselect = getint(p);
-                s->setprimary(gunselect);
-                s->selectweapon(gunselect);
-                loopi(NUMGUNS) s->ammo[i] = getint(p);
-                loopi(NUMGUNS) s->mag[i] = getint(p);
-                s->state = CS_SPAWNING;
-                break;
-            }
-
-            case SV_SPAWNSTATE:
-            {
-                if(editmode) toggleedit(true);
-                showscores(false);
-                setscope(false);
-                player1->respawn();
-                player1->lifesequence = getint(p);
-                player1->health = getint(p);
-                player1->armour = getint(p);
-                player1->setprimary(getint(p));
-                player1->selectweapon(getint(p));
-                int arenaspawn = getint(p);
-                loopi(NUMGUNS) player1->ammo[i] = getint(p);
-                loopi(NUMGUNS) player1->mag[i] = getint(p);
-                player1->state = CS_ALIVE;
-                findplayerstart(player1, false, arenaspawn);
-                extern int nextskin;
-                if(player1->skin!=nextskin) setskin(player1, nextskin);
-                arenaintermission = 0;
-                if(m_arena)
-                {
-                    closemenu(NULL);
-                    conoutf("new round starting... fight!");
-                    hudeditf(HUDMSG_TIMER, "FIGHT!");
-                    if(m_botmode) BotManager.RespawnBots();
-                }
-                addmsg(SV_SPAWN, "rii", player1->lifesequence, player1->weaponsel->type);
-                player1->weaponswitch(player1->primweap);
-                player1->weaponchanging -= weapon::weaponchangetime/2;
-                break;
-            }
-
-            case SV_SHOTFX:
-            {
-                int scn = getint(p), gun = getint(p);
-                vec from, to;
-                loopk(3) from[k] = getint(p)/DMF;
-                loopk(3) to[k] = getint(p)/DMF;
-                playerent *s = getclient(scn);
-                if(!s || !weapon::valid(gun)) break;
-                if(gun==GUN_SHOTGUN) createrays(from, to);
-                s->lastaction = lastmillis;
-                s->mag[gun]--;
-                if(s->weapons[gun])
-                {
-                    s->lastattackweapon = s->weapons[gun];
-                    s->weapons[gun]->attackfx(from, to, -1);
-                }
-                break;
-            }
-
-            case SV_THROWNADE:
-            {
-                vec from, to;
-                loopk(3) from[k] = getint(p)/DMF;
-                loopk(3) to[k] = getint(p)/DMF;
-                int nademillis = getint(p);
-                if(!d) break;
-                d->lastaction = lastmillis;
-                d->lastattackweapon = d->weapons[GUN_GRENADE];
-                if(d->weapons[GUN_GRENADE]) d->weapons[GUN_GRENADE]->attackfx(from, to, nademillis);
-                break;
-            }
-
-            case SV_RELOAD:
-            {
-                int cn = getint(p), gun = getint(p);
-                playerent *p = cn==getclientnum() ? player1 : getclient(cn);
-                if(!p || p==player1) break;
-                int bullets = magsize(gun)-p->mag[gun];
-                p->ammo[gun] -= bullets;
-                p->mag[gun] += bullets;
-                break;
-            }
-
-            case SV_GIBDAMAGE:
-            case SV_DAMAGE:
-            {
-                int tcn = getint(p),
-                    acn = getint(p),
-                    damage = getint(p),
-                    armour = getint(p),
-                    health = getint(p);
-                playerent *target = tcn==getclientnum() ? player1 : getclient(tcn),
-                          *actor = acn==getclientnum() ? player1 : getclient(acn);
-                if(!target || !actor) break;
-                target->armour = armour;
-                target->health = health;
-                dodamage(damage, target, actor, type==SV_GIBDAMAGE, false);
-                break;
-            }
-
-            case SV_HITPUSH:
-            {
-                int gun = getint(p), damage = getint(p);
-                vec dir;
-                loopk(3) dir[k] = getint(p)/DNF;
-                player1->hitpush(damage, dir, NULL, gun);
-                break;
-            }
-
-            case SV_GIBDIED:
-            case SV_DIED:
-            {
-                int vcn = getint(p), acn = getint(p), frags = getint(p);
-                playerent *victim = vcn==getclientnum() ? player1 : getclient(vcn),
-                          *actor = acn==getclientnum() ? player1 : getclient(acn);
-                if(!actor) break;
-                actor->frags = frags;
-                if(!victim) break;
-                dokill(victim, actor, type==SV_GIBDIED);
-                break;
-            }
-
-            case SV_RESUME:
-            {
-                loopi(MAXCLIENTS)
-                {
-                    int cn = getint(p);
-                    if(p.overread() || cn<0) break;
-                    int state = getint(p), lifesequence = getint(p), gunselect = getint(p), flagscore = getint(p), frags = getint(p), deaths = getint(p), health = getint(p), armour = getint(p);
-                    int ammo[NUMGUNS], mag[NUMGUNS];
-                    loopi(NUMGUNS) ammo[i] = getint(p);
-                    loopi(NUMGUNS) mag[i] = getint(p);
-                    playerent *d = (cn == getclientnum() ? player1 : newclient(cn));
-                    if(!d) continue;
-                    if(d!=player1) d->state = state;
-                    d->lifesequence = lifesequence;
-                    d->flagscore = flagscore;
-                    d->frags = frags;
-                    d->deaths = deaths;
-                    if(d!=player1)
-                    {
-                        int primary = GUN_KNIFE;
-                        if(m_osok) primary = GUN_SNIPER;
-                        else if(m_pistol) primary = GUN_PISTOL;
-                        else if(!m_lss)
-                        {
-                            if(gunselect < GUN_GRENADE) primary = gunselect;
-                            loopi(GUN_GRENADE) if(ammo[i] || mag[i]) primary = max(primary, i);
-                            if(primary <= GUN_PISTOL) primary = GUN_ASSAULT;
-                        }
-                        d->setprimary(primary);
-                        d->selectweapon(gunselect);
-                        d->health = health;
-                        d->armour = armour;
-                        memcpy(d->ammo, ammo, sizeof(ammo));
-                        memcpy(d->mag, mag, sizeof(mag));
+				else{ // changed
+                    switch(ftr){
+                        case FTR_PLAYERWISH:
+							if(own) hudoutf("\f1you're \f2now in %s", nts);
+                            else conoutf("\f2%s switched to %s", colorname(p), nts);
+                            break;
+                        case FTR_AUTOTEAM:
+							if(own) hudoutf("\f2the server \f1forced you \f2to %s", nts);
+							else /*if(p->ownernum < 0)*/ conoutf("\f2the server forced %s to %s", colorname(p), nts);
+                            break;
                     }
+					p->team = fnt;
+					// client version of removeexplosives()
+					removebounceents(p);
                 }
-                break;
-            }
+				break;
+			}
 
-            case SV_ITEMSPAWN:
-            {
-                int i = getint(p);
-                setspawn(i, true);
-                break;
-            }
+			case N_CALLVOTE:
+			{
+				int cn = getint(p), type = getint(p), voteremain = getint(p);
+				playerent *d = getclient(cn);
+				if(type < 0 || type >= SA_NUM) break;
+				votedisplayinfo *v = NULL;
+				// vote data storage
+				static votedata vote = votedata(text);
+				vote = votedata(text); // reset it
+				// vote parsing
+				switch(type)
+				{
+					case SA_SERVERDESC:
+						getstring(text, p);
+						filtertext(text, text);
+						break;
+					case SA_BAN:
+						getstring(text, p);
+						filtertext(text, text);
+						// fallthrough
+					case SA_GIVEROLE:
+						vote.int2 = getint(p);
+						vote.int1 = getint(p);
+						break;
+					case SA_MAP:
+						vote.int2 = getint(p);
+						// fallthrough
+					case SA_KICK:
+						getstring(text, p);
+						filtertext(text, text);
+						// more fallthrough
+					default:
+						vote.int1 = getint(p);
+					case SA_STOPDEMO:
+					case SA_REMBANS:
+					case SA_SHUFFLETEAMS:
+					case SA_NEXTMAP:
+						break;
+				}
+				v = newvotedisplayinfo(d, type, vote);
+				if(v) v->expiremillis = totalmillis + voteremain;
+				displayvote(v);
+				break;
+			}
 
-            case SV_ITEMACC:
-            {
-                int i = getint(p), cn = getint(p);
-                playerent *d = cn==getclientnum() ? player1 : getclient(cn);
-                pickupeffects(i, d);
-                break;
-            }
+			case N_CALLVOTEERR:
+			{
+				const int e = getint(p);
+				if(e < 0 || e >= VOTEE_NUM) break;
+				conoutf("\f3could not vote: %s", voteerrorstr(e));
+				break;
+			}
 
-            case SV_EDITH:              // coop editing messages, should be extended to include all possible editing ops
-            case SV_EDITT:
-            case SV_EDITS:
-            case SV_EDITD:
-            case SV_EDITE:
-            {
-                int x  = getint(p);
-                int y  = getint(p);
-                int xs = getint(p);
-                int ys = getint(p);
-                int v  = getint(p);
-                block b = { x, y, xs, ys };
-                switch(type)
-                {
-                    case SV_EDITH: editheightxy(v!=0, getint(p), b); break;
-                    case SV_EDITT: edittexxy(v, getint(p), b); break;
-                    case SV_EDITS: edittypexy(v, b); break;
-                    case SV_EDITD: setvdeltaxy(v, b); break;
-                    case SV_EDITE: editequalisexy(v!=0, b); break;
-                }
-                break;
-            }
+			case N_VOTE:
+			{
+				const int cn = getint(p), vote = getint(p);
+				if(!curvote) break;
+				playerent *d = getclient(cn);
+				if(!d || vote < VOTE_NEUTRAL || vote > VOTE_NO) break;
+				d->vote = vote;
+				if(vote == VOTE_NEUTRAL) break;
+				d->voternum = curvote->nextvote++;
+				if((voteid || d == player1) && (d != curvote->owner || curvote->millis + 100 < lastmillis))
+					conoutf("%s \f6(%d) \f2voted \f%s", (d == player1) ? "\f1you" : d->name, cn, vote == VOTE_NO ? "3no" : "0yes");
+				break;
+			}
 
-            case SV_NEWMAP:
-            {
-                int size = getint(p);
-                if(size>=0) empty_world(size, true);
-                else empty_world(-1, true);
-                if(d && d!=player1)
-                    conoutf(size>=0 ? "%s started a new map of size %d" : "%s enlarged the map to size %d", colorname(d), sfactor);
-                break;
-            }
+			case N_VOTEREMAIN:
+			{
+				const int projection = getint(p), yes_remain = getint(p), no_remain = getint(p);
+				if(!curvote) break;
+				curvote->expiryresult = projection;
+				curvote->yes_remain = yes_remain;
+				curvote->no_remain = no_remain;
+				break;
+			}
 
-            case SV_EDITENT:            // coop edit of ent
-            {
-                uint i = getint(p);
-                while((uint)ents.length()<=i) ents.add().type = NOTUSED;
-                int to = ents[i].type;
-                ents[i].type = getint(p);
-                ents[i].x = getint(p);
-                ents[i].y = getint(p);
-                ents[i].z = getint(p);
-                ents[i].attr1 = getint(p);
-                ents[i].attr2 = getint(p);
-                ents[i].attr3 = getint(p);
-                ents[i].attr4 = getint(p);
-                ents[i].spawned = false;
-                if(ents[i].type==LIGHT || to==LIGHT) calclight();
-                if(ents[i].type==SOUND) preloadmapsound(ents[i]);
-                break;
-            }
+			case N_VOTERESULT:
+			{
+				const int vr = getint(p);
+				playerent *d = getclient(getint(p));
+				veto = d != NULL;
+				if(curvote && vr >= 0 && vr < VOTE_NUM)
+				{
+					curvote->result = vr;
+					curvote->millis = totalmillis + 5000;
+					if(d) conoutf("\f1%s vetoed the vote to %s", colorname(d), vr == VOTE_YES ? "\f0pass" : "\f3fail");
+					conoutf("vote %s", vr == VOTE_YES ? "\f0passed" : "\f3failed");
+					playsound(vr == VOTE_YES ? S_VOTEPASS : S_VOTEFAIL, SP_HIGH);
+				}
+				break;
+			}
 
-            case SV_PONG:
-            {
-                int millis = getint(p);
-                addmsg(SV_CLIENTPING, "i", player1->ping = max(0, (player1->ping*5+totalmillis-millis)/6));
-                break;
-            }
+			case N_WHOIS:
+			{
+				int cn = getint(p), wants = getint(p);
+				playerent *pl = getclient(cn), *owner = getclient(wants);
+				string targetname;
+				copystring(targetname, pl ? colorname(pl) : "unknown");
+				conoutf("\fs%s \f1requests \f2who\f0is \f3on \fr%s", owner ? colorname(owner) : "someone", targetname);
+				break;
+			}
 
-            case SV_CLIENTPING:
-                if(!d) return;
-                d->ping = getint(p);
-                break;
+			case N_WHOISINFO:
+			{
+				int cn = getint(p), ip = getint(p), mask = getint(p), port = getint(p);
+				playerent *pl = getclient(cn);
 
-            case SV_GAMEMODE:
-                nextmode = getint(p);
-                break;
+				defformatstring(cip)("%d", ip & 0xFF);
+				if(mask > 8 || (ip >> 8) & 0xFF){
+					concatformatstring(cip, ".%d", (ip >> 8) & 0xFF);
+					if(mask > 16 || (ip >> 16) & 0xFF){
+						concatformatstring(cip, ".%d", (ip >> 16) & 0xFF);
+						if(mask > 24 || (ip >> 24) & 0xFF) concatformatstring(cip, ".%d", (ip >> 24) & 0xFF);
+					}
+				}
+				if(mask < 32) concatformatstring(cip, "\f7/\f4%d", mask);
+				conoutf("\f2who\f0is \f1on \f3%s \f4returned \f5%s\f6:\f5%d", pl ? colorname(pl) : "unknown", cip, port);
+				break;
+			}
 
-            case SV_TIMEUP:
-                timeupdate(getint(p));
-                break;
+			case N_LISTDEMOS:
+			{
+				int demos = getint(p);
+				if(!demos) conoutf("%s", _("demo_none"));
+				else loopi(demos)
+				{
+					getstring(text, p);
+					conoutf("%d. %s", i+1, text);
+				}
+				break;
+			}
 
-            case SV_WEAPCHANGE:
-            {
-                int gun = getint(p);
-                if(d) d->selectweapon(gun);
-                break;
-            }
+			case N_DEMOPLAYBACK:
+			{
+				watchingdemo = getint(p)!=0;
+				if(watchingdemo)
+				{
+					getstring(text, p);
+					conoutf("playing demo \"%s\"", text);
+					player1->resetspec();
+					player1->team = TEAM_SPECT;
+				}
+				else
+				{
+					// cleanups
+					loopv(players) zapplayer(players[i]);
+					clearvote();
+					player1->state = CS_ALIVE;
+					player1->resetspec();
+				}
+				player1->clientnum = getint(p);
+				break;
+			}
 
-            case SV_SERVMSG:
-                getstring(text, p);
-                conoutf("%s", text);
-                break;
+			case N_EXT:
+			{
+				getstring(text, p, 64);
+				int len = getint(p);
+				if(len < 1) { neterr("Extension too short,", len); break; }
+				if(len > 50) { neterr("Extension too long,", len); break; }
+				//if(!strcmp(text, ""));
+				else{ // ignore unknown extensions
+					conoutf("server sent unknown extension %s, length %d", text, len);
+					while(len-- > 0) getint(p);
+				}
+				break;
+			}
 
-            case SV_FLAGINFO:
-            {
-                int flag = getint(p);
-                if(flag<0 || flag>1) return;
-                flaginfo &f = flaginfos[flag];
-                f.state = getint(p);
-                switch(f.state)
-                {
-                    case CTFF_STOLEN:
-                        flagstolen(flag, getint(p));
-                        break;
-                    case CTFF_DROPPED:
-                    {
-                        float x = getuint(p)/DMF;
-                        float y = getuint(p)/DMF;
-                        float z = getuint(p)/DMF;
-                        flagdropped(flag, x, y, z);
-                        break;
-                    }
-				    case CTFF_INBASE:
-					    flaginbase(flag);
-					    break;
-				    case CTFF_IDLE:
-					    flagidle(flag);
-                        break;
-                }
-                break;
-            }
+			default:
+				if(cn < 0) neterr("type in game packet", type);
+				else conoutf("\f3illegal network message type (%d)", type);
+				return;
+		}
+	}
 
-            case SV_FLAGMSG:
-            {
-                int flag = getint(p);
-                int message = getint(p);
-                int actor = getint(p);
-                int flagtime = message == FM_KTFSCORE ? getint(p) : -1;
-                flagmsg(flag, message, actor, flagtime);
-                break;
-            }
+	// check if joining here so as not to interrupt welcomepacket
+	if(joining<0 && *getclientmap()){ // we are the first client on this server, set map
+		nextmode = gamemode;
+		changemap(getclientmap());
+	}
 
-            case SV_FLAGCNT:
-            {
-                int fcn = getint(p);
-                int flags = getint(p);
-                playerent *p = (fcn == getclientnum() ? player1 : getclient(fcn));
-                if(p) p->flagscore = flags;
-                break;
-            }
-
-            case SV_ARENAWIN:
-            {
-                int acn = getint(p);
-                playerent *alive = acn<0 ? NULL : (acn==getclientnum() ? player1 : getclient(acn));
-                conoutf("the round is over! next round in 5 seconds...");
-                if(m_botmode && acn==-2) hudoutf("the bots have won the round!");
-                else if(!alive) hudoutf("everyone died!");
-                else if(m_teammode) hudoutf("team %s has won the round!", alive->team);
-                else if(alive==player1) hudoutf("you are the survivor!");
-                else hudoutf("%s is the survivor!", colorname(alive));
-                arenaintermission = lastmillis;
-                break;
-            }
-
-            case SV_FORCEDEATH:
-            {
-                int cn = getint(p);
-                playerent *d = cn==getclientnum() ? player1 : newclient(cn);
-                if(!d) break;
-                deathstate(d);
-                break;
-            }
-
-		    case SV_SERVOPINFO:
-		    {
-                loopv(players) { if(players[i]) players[i]->clientrole = CR_DEFAULT; }
-			    player1->clientrole = CR_DEFAULT;
-
-			    int cl = getint(p), r = getint(p);
-			    if(cl >= 0 && r >= 0)
-			    {
-				    playerent *pl = (cl == getclientnum() ? player1 : newclient(cl));
-				    if(pl)
-				    {
-					    pl->clientrole = r;
-                        if(pl->name[0]) conoutf("%s claimed %s status", pl == player1 ? "you" : colorname(pl), r == CR_ADMIN ? "admin" : "master");
-				    }
-			    }
-			    break;
-		    }
-
-            case SV_FORCETEAM:
-            {
-                int team = getint(p), oldteam = team_int(player1->team);
-                int attr = getint(p);
-                bool respawn = (attr & 1) == 1;
-                changeteam(team, respawn);
-                if(attr & 2) hudoutf("you %s team %s", team == oldteam ? "stay in" : "got forced to", team_string(team));
-                break;
-            }
-
-            case SV_FORCENOTIFY:
-            {
-                int fpl = getint(p);
-                int fnt = getint(p);
-                playerent *d = getclient(fpl);
-                bool you = fpl == player1->clientnum;  // sound?
-                bool et = team_int(player1->team) != fnt;
-                hudoutf("the server forced %s to%s team%s", you ? "you" : d ? colorname(d) : "", you ? "" : et ? " the enemy" : " your", you ? fnt ? " RVSF": " CLA" : "");
-                break;
-            }
-
-            case SV_AUTOTEAM:
-            {
-                int na = getint(p);
-                switch(na)
-                {
-                    case AT_ENABLED:
-                    case AT_DISABLED:
-                        autoteambalance = na == AT_ENABLED;
-                        break;
-                    case AT_SHUFFLE:  // sound?
-                        break;
-                }
-                break;
-            }
-            case SV_CALLVOTE:
-            {
-                int type = getint(p);
-                if(type < 0 || type >= SA_NUM || !d) return;
-                votedisplayinfo *v = NULL;
-                string a;
-                switch(type)
-                {
-                    case SA_MAP:
-                        getstring(text, p);
-                        filtertext(text, text);
-                        itoa(a, getint(p));
-                        v = newvotedisplayinfo(d, type, text, a);
-                        break;
-                    case SA_SERVERDESC:
-                        getstring(text, p);
-                        filtertext(text, text);
-                        v = newvotedisplayinfo(d, type, text, NULL);
-                        break;
-                    case SA_STOPDEMO:
-                    case SA_REMBANS:
-                    case SA_SHUFFLETEAMS:
-                        v = newvotedisplayinfo(d, type, NULL, NULL);
-                        break;
-                    default:
-                        itoa(a, getint(p));
-                        v = newvotedisplayinfo(d, type, a, NULL);
-                        break;
-                }
-                displayvote(v);
-                break;
-            }
-
-            case SV_CALLVOTESUC:
-                callvotesuc();
-                break;
-
-            case SV_CALLVOTEERR:
-                callvoteerr(getint(p));
-                break;
-
-            case SV_VOTE:
-                votecount(getint(p));
-                break;
-
-            case SV_VOTERESULT:
-                voteresult(getint(p));
-                break;
-
-            case SV_WHOISINFO:
-            {
-                int cn = getint(p);
-                playerent *pl = cn == getclientnum() ? player1 : getclient(cn);
-                int ip = getint(p);
-                if((ip>>16&0xFF) > 0 && (ip>>24&0xFF) > 0) conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.%d", cn, pl ? colorname(pl) : "", ip&0xFF, ip>>8&0xFF, ip>>16&0xFF, ip>>24&0xFF); // full IP
-                else conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.x.x", cn, pl ? colorname(pl) : "", ip&0xFF, ip>>8&0xFF); // censored IP
-                break;
-            }
-
-            case SV_SENDDEMOLIST:
-            {
-                int demos = getint(p);
-                if(!demos) conoutf("no demos available");
-                else loopi(demos)
-                {
-                    getstring(text, p);
-                    conoutf("%d. %s", i+1, text);
-                }
-                break;
-            }
-
-            case SV_DEMOPLAYBACK:
-            {
-                watchingdemo = demoplayback = getint(p)!=0;
-                if(demoplayback)
-                {
-                    player1->resetspec();
-                    player1->state = CS_SPECTATE;
-                }
-                else
-                {
-                    // cleanups
-                    loopv(players) zapplayer(players[i]);
-                    clearvote();
-                    player1->state = CS_ALIVE;
-                    player1->resetspec();
-                }
-                player1->clientnum = getint(p);
-                break;
-            }
-
-            default:
-                neterr("type");
-                return;
-        }
-    }
-
-    // check if joining here so as not to interrupt welcomepacket
-    if(joining<0 && getclientmap()[0]) // we are the first client on this server, set map
-    {
-        nextmode = gamemode;
-        changemap(getclientmap());
-    }
-
-    #ifdef _DEBUG
-    protocoldebug(false);
-    #endif
+	#ifdef _DEBUG
+	protocoldebug(false);
+	#endif
 }
 
 void receivefile(uchar *data, int len)
 {
-    ucharbuf p(data, len);
-    int type = getint(p);
-    data += p.length();
-    len -= p.length();
-    switch(type)
-    {
-        case SV_SENDDEMO:
-        {
-            s_sprintfd(fname)("demos/%s.dmo", timestring());
-            path(fname);
-            FILE *demo = openfile(fname, "wb");
-            if(!demo)
-            {
-                conoutf("failed writing to \"%s\"", fname);
-                return;
-            }
-            conoutf("received demo \"%s\"", fname);
-            fwrite(data, 1, len, demo);
-            fclose(demo);
-            break;
-        }
+	ucharbuf p(data, len);
+	int type = getint(p);
+	data += p.length();
+	len -= p.length();
+	switch(type)
+	{
+		case N_DEMO:
+		{
+			defformatstring(fname)("demos/%s.dmo", timestring());
+			path(fname);
+			FILE *demo = openfile(fname, "wb");
+			if(!demo)
+			{
+				conoutf("failed writing to \"%s\"", fname);
+				break;
+			}
+			conoutf("received demo \"%s\"", fname);
+			fwrite(data, 1, len, demo);
+			fclose(demo);
+			break;
+		}
 
-        case SV_RECVMAP:
-        {
-            static char text[MAXTRANS];
-            getstring(text, p);
-            conoutf("received map \"%s\" from server, reloading..", text);
-            int mapsize = getint(p);
-            int cfgsize = getint(p);
-            int cfgsizegz = getint(p);
-            int size = mapsize + cfgsizegz;
-            if(p.remaining() < size)
-            {
-                p.forceoverread();
-                break;
-            }
-            if(securemapcheck(text))
-            {
-                p.len += size;
-                break;
-            }
-            writemap(path(text), mapsize, &p.buf[p.len]);
-            p.len += mapsize;
-            writecfggz(path(text), cfgsize, cfgsizegz, &p.buf[p.len]);
-            p.len += cfgsizegz;
-            break;
-        }
+		case N_MAPS2C:
+		{
+			static char text[MAXTRANS];
+			getstring(text, p);
+			conoutf("received map \"%s\" from server, reloading..", text);
+			int mapsize = getint(p);
+			int cfgsize = getint(p);
+			int cfgsizegz = getint(p);
+			int size = mapsize + cfgsizegz;
+			if(p.remaining() < size)
+			{
+				p.forceoverread();
+				break;
+			}
+			if(securemapcheck(text))
+			{
+				p.len += max(0, size);
+				break;
+			}
+			gettingmap = true;
+			writemap(path(text), mapsize, &p.buf[p.len]);
+			p.len += max(0, mapsize);
+			writecfggz(path(text), cfgsize, cfgsizegz, &p.buf[p.len]);
+			p.len += max(0, cfgsizegz);
+			break;
+		}
 
-        default:
-            p.len = 0;
-            parsemessages(-1, NULL, p);
-            break;
-    }
+		default:
+			p.len = 0;
+			parsemessages(-1, NULL, p);
+			break;
+	}
 }
 
 void servertoclient(int chan, uchar *buf, int len)   // processes any updates from the server
 {
-    ucharbuf p(buf, len);
-    switch(chan)
-    {
-        case 0: parsepositions(p); break;
-        case 1: parsemessages(-1, NULL, p); break;
-        case 2: receivefile(p.buf, p.maxlen); break;
-    }
+	ucharbuf p(buf, len);
+	switch(chan)
+	{
+		case 0: parsepositions(p); break;
+		case 1: parsemessages(-1, NULL, p); break;
+		case 2: receivefile(p.buf, p.maxlen); break;
+	}
 }
 
 void localservertoclient(int chan, uchar *buf, int len)   // processes any updates from the server
 {
-    servertoclient(chan, buf, len);
+	servertoclient(chan, buf, len);
 }
