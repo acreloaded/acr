@@ -332,7 +332,7 @@ struct mitemtextinput : mitemtext
 	virtual void render(int x, int y, int w)
 	{
 		bool selection = isselection();
-		int tw = max(VIRTW/4, 15*text_width("w"));
+		int tw = max((VIRTW/monitors)/4, 15*text_width("w"));
 		if(selection) renderbg(x+w-tw, y-FONTH/6, tw, NULL);
 		draw_text(text, x, y);
 		int cibl = (int)strlen(input.buf); // current input-buffer length

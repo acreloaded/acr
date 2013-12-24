@@ -498,8 +498,8 @@ void fixresizedscreen(){
 #endif
 }
 
-FVARP(fov, 75, 90, 120);
-VARP(spectfov, 5, 110, 120);
+FVARP(fov, 75, 90, 160);
+VARP(spectfov, 5, 110, 160);
 VARP(scopezoom, 1, 150, 500);
 VARP(adszoom, 1, 5, 100);
 

@@ -527,7 +527,7 @@ void renderdoc(int x, int y, int doch)
 					if(str)
 					{
 						const char *text = *str=='~' ? str+1 : str;
-						draw_text(text, x, cury, 0xFF, 0xFF, 0xFF, 0xFF, -1, str==text ? VIRTW*4/3 : -1);
+						draw_text(text, x+UWSADJUST, cury, 0xFF, 0xFF, 0xFF, 0xFF, -1, str==text ? VIRTW*4/3 : -1);
 						int width, height;
 						text_bounds(text, width, height, str==text ? VIRTW*4/3 : -1);
 						cury += height;
@@ -536,9 +536,9 @@ void renderdoc(int x, int y, int doch)
 					else cury += FONTH;
 				}
 
-				if(maxl < doclines.length()) draw_text("\f4more (F3)", x, y+doch); // footer
-				if(offset > 0) draw_text("\f4less (F2)", x, y+doch+FONTH);
-				draw_text("\f4disable doc reference (F1)", x, y+doch+2*FONTH);
+				if(maxl < doclines.length()) draw_text("\f4more (F3)", x+UWSADJUST, y+doch); // footer
+				if(offset > 0) draw_text("\f4less (F2)", x+UWSADJUST, y+doch+FONTH);
+				draw_text("\f4disable doc reference (F1)", x+UWSADJUST, y+doch+2*FONTH);
 				return;
 			}
 		}

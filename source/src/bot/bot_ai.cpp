@@ -951,6 +951,14 @@ void CBot::DoCombatNav()
 	
 	m_iMoveDir = DIR_NONE;
 
+	if (!IsInGame(m_pMyEnt->enemy))
+	{
+	#ifdef _DEBUG
+		printf("Invalid enemy. Ya need ta fix that\n");
+	#endif
+		return;
+	}
+
 	// Check if bot is on top of his enemy
 	float r = m_pMyEnt->radius+m_pMyEnt->enemy->radius;
 	if ((fabs(m_pMyEnt->enemy->o.x-m_pMyEnt->o.x)<r &&
