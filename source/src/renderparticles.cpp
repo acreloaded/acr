@@ -196,7 +196,7 @@ void particleinit()
 {
 	loopi(MAXPARTYPES) parlist[i] = NULL;
 
-	parttex[0] = textureload("packages/misc/spark.png");
+	parttex[0] = textureload("packages/misc/base.png");
 	parttex[1] = textureload("packages/misc/smoke.png");
 	parttex[2] = textureload("packages/misc/explosion.png");
 	parttex[3] = textureload("<decal>packages/misc/bullethole.png");

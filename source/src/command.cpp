@@ -886,7 +886,7 @@ void writecfg()
 	extern Texture *crosshairs[CROSSHAIR_NUM];
 	loopi(CROSSHAIR_NUM) if(crosshairs[i] && crosshairs[i]!=notexture)
 	{
-		const char *fname = crosshairs[i]->name+strlen("packages/misc/crosshairs/");
+		const char *fname = crosshairs[i]->name+strlen("packages/crosshairs/");
 		if(i==CROSSHAIR_DEFAULT) fprintf(f, "loadcrosshair %s\n", fname);
 		else fprintf(f, "loadcrosshair %s %s\n", fname, crosshairnames[i]);
 	}

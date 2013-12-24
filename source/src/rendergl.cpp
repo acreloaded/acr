@@ -391,7 +391,7 @@ void load_waypointtex(){
 		"airstrike", "nuke", // lol
 	};
 	loopi(WP_NUM){
-		defformatstring(tname)("packages/misc/waypoints/%s.png", waypointtexname[i]);
+		defformatstring(tname)("packages/waypoints/%s.png", waypointtexname[i]);
 		waypointtex[i] = textureload(tname);
 	}
 }

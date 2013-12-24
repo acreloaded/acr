@@ -124,7 +124,7 @@ Texture **obittex(){
 	if(!*tex){
 		const char *texname[OBIT_NUM-OBIT_START] = { "death", "bot", "impact", "rpg_stuck", "knife_bleed", "knife_impact", "ff", "assist", "drown", "fall", "fall_water", "cheat", "spawn", "airstrike", "nuke", "spect", "revive", "team", "multi", "jug", "headshot", "crit", "first", "revenge", };
 		loopi(OBIT_NUM){
-			defformatstring(tname)("packages/misc/obit/%s.png", i == WEAP_AKIMBO ? "akimbo" : i < OBIT_START ? guns[i].modelname : texname[i - OBIT_START]);
+			defformatstring(tname)("packages/obit/%s.png", i == WEAP_AKIMBO ? "akimbo" : i < OBIT_START ? guns[i].modelname : texname[i - OBIT_START]);
 			tex[i] = textureload(tname);
 		}
 	}

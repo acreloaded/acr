@@ -256,7 +256,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			case N_TEXT:
 			{
-				int cn = getint(p), voice = getint(p) + S_MAINEND, flags = getint(p);
+				int cn = getint(p), voice = getint(p), flags = getint(p);
 				getstring(text, p);
 				filtertext(text, text);
 				playerent *d = getclient(cn);

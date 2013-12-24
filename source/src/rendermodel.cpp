@@ -755,11 +755,11 @@ void renderclient(playerent *d)
 		formatstring(skin)("%s/custom/%s.jpg", SKINBASE, cs);
 	else
 	{
-		if(!m_team(gamemode, mutators) || !teamdisplaymode) formatstring(skin)("%s/%s/%02i.jpg", SKINBASE, team_string(team), skinid);
+		if(!m_team(gamemode, mutators) || !teamdisplaymode) formatstring(skin)("%s/%s/%02i.jpg", SKINBASE, team ? "RVSF" : "CLA", skinid);
 		else switch(teamdisplaymode)
 		{
-			case 1: formatstring(skin)("%s/%s/%02i_%svest.jpg", SKINBASE, team_string(team), skinid, team ? "blue" : "red"); break;
-			case 2: default: formatstring(skin)("%s/%s/%s.jpg", SKINBASE, team_string(team), team ? "blue" : "red"); break;
+			case 1: formatstring(skin)("%s/%s/%02i_%svest.jpg", SKINBASE, team ? "RVSF" : "CLA", skinid, team ? "blue" : "red"); break;
+			case 2: default: formatstring(skin)("%s/%s/%s.jpg", SKINBASE, team ? "RVSF" : "CLA", team ? "blue" : "red"); break;
 		}
 	}
 	string vwep;

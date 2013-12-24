@@ -144,10 +144,10 @@ Texture *crosshairs[CROSSHAIR_NUM] = { NULL }; // weapon specific crosshairs
 
 Texture *loadcrosshairtexture(const char *c, int type = -1)
 {
-	defformatstring(p)("packages/misc/crosshairs/%s", c);
+	defformatstring(p)("packages/crosshairs/%s", c);
 	Texture *crosshair = textureload(p, 3);
 	if(crosshair==notexture){
-		formatstring(p)("packages/misc/crosshairs/%s", crosshairnames[type < 0 || type >= CROSSHAIR_NUM ? CROSSHAIR_DEFAULT : type]);
+		formatstring(p)("packages/crosshairs/%s", crosshairnames[type < 0 || type >= CROSSHAIR_NUM ? CROSSHAIR_DEFAULT : type]);
 		crosshair = textureload(p, 3);
 	}
 	return crosshair;
@@ -200,8 +200,8 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 		if(m_classic(gamemode, mutators)) chsize *= .6f;
 
 		Texture *cv = crosshairs[CROSSHAIR_V], *ch = crosshairs[CROSSHAIR_H];
-		if(!cv) cv = textureload("packages/misc/crosshairs/vertical.png", 3);
-		if(!ch) ch = textureload("packages/misc/crosshairs/horizontal.png", 3);
+		if(!cv) cv = textureload("packages/crosshairs/vertical.png", 3);
+		if(!ch) ch = textureload("packages/crosshairs/horizontal.png", 3);
 		
 		/*if(ch->bpp==32) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		else */glBlendFunc(GL_SRC_ALPHA, GL_ONE);
@@ -845,7 +845,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	if(show_hud_element(true, 2) && focus->lasthitmarker && focus->lasthitmarker + hitmarkerfade > lastmillis){
 		glColor4f(1, 1, 1, (focus->lasthitmarker + hitmarkerfade - lastmillis) / 1000.f);
 		Texture *ch = crosshairs[CROSSHAIR_HIT];
-		if(!ch) ch = textureload("packages/misc/crosshairs/hit.png", 3);
+		if(!ch) ch = textureload("packages/crosshairs/hit.png", 3);
 		if(ch->bpp==32) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		else glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
@@ -869,7 +869,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	if(focus->ads >= crosshairreddottreshold){ // show red-dot when 750 zoomed
 		glColor4f(1, 1, 1, powf(focus->ads / 1000.f, 2.f));
 		Texture *ch = crosshairs[CROSSHAIR_REDDOT];
-		if(!ch) ch = textureload("packages/misc/crosshairs/reddot.png", 3);
+		if(!ch) ch = textureload("packages/crosshairs/reddot.png", 3);
 		if(ch->bpp==32) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		else glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
@@ -1188,7 +1188,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		static Texture *streakt[2][4] = { NULL };
 		loopi(2) loopj(4){
 			// done, current, outstanding
-			defformatstring(path)("packages/misc/streak/%d%s.png", i, j ? j > 1 ? j > 2 ? "d" : "" : "c" : "o");
+			defformatstring(path)("packages/streak/%d%s.png", i, j ? j > 1 ? j > 2 ? "d" : "" : "c" : "o");
 			streakt[i][j] = textureload(path);
 		}
 		glLoadIdentity();

@@ -661,7 +661,7 @@ struct oggstream : sourceowner
 
 		loopi(sizeof(exts)/sizeof(exts[0]))
 		{
-			formatstring(filepath)("packages/audio/music/%s%s", f, exts[i]);
+			formatstring(filepath)("packages/audio/soundtracks/%s%s", f, exts[i]);
 			FILE *file = fopen(findfile(path(filepath), "rb"), "rb");
 			if(!file) continue;
 
@@ -867,7 +867,7 @@ struct sbuffer
 			string filepath;
 			loopi(sizeof(exts)/sizeof(exts[0]))
 			{
-				formatstring(filepath)("packages/audio/sounds/%s%s", name, exts[i]);
+				formatstring(filepath)("packages/audio/%s%s", name, exts[i]);
 				const char *file = findfile(path(filepath), "rb");
 				size_t len = strlen(filepath);
 

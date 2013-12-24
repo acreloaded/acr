@@ -187,7 +187,7 @@ void trydisconnect()
 }
 
 void saytext(playerent *d, char *text, int flags, int sound){
-	if(sound > S_MAINEND && sound < S_NULL){
+	if(sound > 0 && sound < S_NULL){
 		d->addicon(eventicon::VOICECOM);
 		playsound(sound, SP_HIGH);
 	} else sound = 0;
@@ -234,7 +234,7 @@ void toserver_voice(char *text){
 		voice = true;
 		++text;
 	}
-	toserver(text, s - S_MAINEND, voice);
+	toserver(text, s, voice);
 }
 void toserver_me(char *text){ toserver(text, 0, true); }
 

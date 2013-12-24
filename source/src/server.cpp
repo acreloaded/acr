@@ -1349,7 +1349,7 @@ bool spamdetect(client *cl, const char *text) // checks doubled lines and averag
 }
 
 void sendtext(const char *text, client &cl, int flags, int voice){
-	if(voice < 0 || voice > S_VOICEEND - S_MAINEND) voice = 0;
+	if(!(voice >= S_AFFIRMATIVE && voice <= S_AWESOME2)) voice = 0;
 	defformatstring(logmsg)("<%s> ", formatname(cl));
 	if(!m_team(gamemode, mutators) && cl.team != TEAM_SPECT) flags &= ~SAY_TEAM;
 	if(flags & SAY_ACTION) formatstring(logmsg)("* %s ", formatname(cl));
@@ -1359,7 +1359,7 @@ void sendtext(const char *text, client &cl, int flags, int voice){
 		concatstring(logmsg, logappend);
 	}
 	if(voice){
-		formatstring(logappend)("[%d] ", voice + S_MAINEND);
+		formatstring(logappend)("[%d] ", voice);
 		concatstring(logmsg, logappend);
 	}
 	if(cl.type == ST_TCPIP && cl.priv < PRIV_ADMIN){

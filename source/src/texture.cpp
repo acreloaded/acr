@@ -582,7 +582,7 @@ Texture **geteventicons(){
 	if(!*tex){
 		const char *texname[eventicon::TOTAL] = { "chat", "com", "headshot", "decapitated", "firstblood", "critical", "revenge", "bleed", "up", "radar", "airstrike", "nuke", "juggernaut", "dropnade", "suicidebomb" };
 		loopi(eventicon::TOTAL){
-			defformatstring(tname)("packages/misc/eventicons/%s.png", texname[i]);
+			defformatstring(tname)("packages/eventicons/%s.png", texname[i]);
 			tex[i] = textureload(tname);
 		}
 	}
@@ -594,7 +594,7 @@ Texture **getperktex1(){
 	if(!*tex){
 		const char *texname[PERK1_MAX] = { "none", "radar", "ninja", "power", "time", "speed", "hand", "light", "point", };
 		loopi(PERK1_MAX){
-			defformatstring(tname)("packages/misc/perks/%s.png", texname[i]);
+			defformatstring(tname)("packages/perks/%s.png", texname[i]);
 			tex[i] = textureload(tname);
 		}
 	}
@@ -606,7 +606,7 @@ Texture **getperktex2(){
 	if(!*tex){
 		const char *texname[PERK2_MAX] = { "none", "radar", "ninja", "power", "time", "vision", "streak", "steady", "health", };
 		loopi(PERK2_MAX){
-			defformatstring(tname)("packages/misc/perks/%s.png", texname[i]);
+			defformatstring(tname)("packages/perks/%s.png", texname[i]);
 			tex[i] = textureload(tname);
 		}
 	}
