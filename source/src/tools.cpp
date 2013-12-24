@@ -436,7 +436,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
 	endianswap(&s.hdr.version, sizeof(int), 4);
 	if(s.hdr.version>MAPVERSION || s.hdr.numents > MAXENTITIES) INVALID_MAP
 	if(s.hdr.version >=4 && gzread(f, &s.hdr.waterlevel, sizeof(int)*16)!=sizeof(int)*16) INVALID_MAP
-	if(s.hdr.version >= 8 && gzread(f, &s.hdr.mediareq, sizeof(char)*128)!=sizeof(char)*128) INVALID_MAP
+	if((s.hdr.version==7 || s.hdr.version==8) && gzread(f, &s.hdr.mediareq, sizeof(char)*128)!=sizeof(char)*128) INVALID_MAP
 	if(s.hdr.version < 8)
 		copystring(s.hdr.mediareq, "", 128);
 	if(s.hdr.version>=4)
