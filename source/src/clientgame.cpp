@@ -892,7 +892,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 			break;
 		case FA_KTFSCORE:
 		{
-			playsound(S_VOTEPASS, SP_HIGHEST); // need better ktf sound here
+			playsound(S_KTFSCORE, SP_HIGHEST);
 			const int m = flagtime / 60, s = flagtime % 60;
 			copystring(verb_past, "kept");
 			formatstring(predicate)("%s flag for ", teamstr_absolute);

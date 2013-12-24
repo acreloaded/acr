@@ -897,7 +897,7 @@ const itemstat ammostats[WEAP_MAX] =
 const itemstat powerupstats[] =
 {
 	{35 * HEALTHSCALE, STARTHEALTH, MAXHEALTH, S_ITEMHEALTH }, //health
-	{15, STARTARMOR, MAXARMOR, S_ITEMARMOUR }, // helmet
+	{15, STARTARMOR, MAXARMOR, S_ITEMHELMET }, // helmet
 	{40, STARTARMOR, MAXARMOR, S_ITEMARMOUR }, // armor
 };
 
