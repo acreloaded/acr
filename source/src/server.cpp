@@ -69,7 +69,7 @@ bool valid_client(int cn, bool player){
 	return clients.inrange(cn) && clients[cn]->type != ST_EMPTY && (!player || clients[cn]->type != ST_AI);
 }
 
-const char *gethostname(int i){ return valid_client(i) ? valid_client(clients[i]->state.ownernum) ? "" : clients[i]->hostname : "unknown"; }
+const char *gethostname(int i){ return valid_client(i) ? valid_client(clients[i]->state.ownernum) ? clients[clients[i]->state.ownernum]->hostname : clients[i]->hostname : "unknown"; }
 bool hasclient(client *ci, int cn){
 	if(!valid_client(cn)) return false;
 	client *cp = clients[cn];
@@ -4668,7 +4668,7 @@ void loggamestatus(const char *reason){
 			c.priv == PRIV_MASTER ? "master " :
 			c.priv == PRIV_ADMIN ? "admin  " :
 			c.priv == PRIV_MAX ? "highest" :
-			"unknown", gethostname(i));
+			"unknown", c.type == ST_AI ? "" : gethostname(i));
 		flagscore[c.team] += c.state.flagscore;
 		fragscore[c.team] += c.state.frags;
 		pnum[c.team] += 1;
