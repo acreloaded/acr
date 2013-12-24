@@ -616,7 +616,7 @@ void putinitai(client &c, ucharbuf &p){
 	putint(p, c.team);
 	putint(p, c.state.skin);
 	putint(p, c.state.level);
-	sendstring(c.name, p);
+	putint(p, c.state.bot_seed);
 	putint(p, c.state.ownernum);
 }
 
@@ -1933,45 +1933,6 @@ void cheat(client *cl, const char *reason = "unknown"){
 }
 
 #include "serverevents.h"
-
-void readbotnames(const char *name)
-{
-	static string botfilename;
-	static int botfilesize;
-	//const char *sep = " ";
-	char *p, *l;
-	int len, line = 0;
-
-	if(!name && getfilesize(botfilename) == botfilesize) return;
-	botnames.shrink(0);
-	char *buf = loadcfgfile(botfilename, name, &len);
-	botfilesize = len;
-	if(!buf) return;
-	p = buf;
-	logline(ACLOG_VERBOSE,"reading bot names '%s'", botfilename);
-	while(p < buf + len)
-	{
-		l = p; p += strlen(p) + 1; line++;
-		l += strspn(l, " ");
-		if(l && *l)
-		{
-			botname &bn = botnames.add();
-			copystring(bn.storage, l, MAXNAMELEN+1);
-		}
-		/*
-		char *n = strchr(l, *sep);
-		if(*l && n)
-		{
-			*n++ = 0;
-			botname &bn = botnames.add();
-			copystring(bn.rank, l, MAXNAMELEN);
-			copystring(bn.name, n, MAXNAMELEN);
-		}
-		*/
-	}
-	delete[] buf;
-	logline(ACLOG_INFO,"read %d bot names from '%s'", botnames.length(), botfilename);
-}
 
 void readscfg(const char *name){
 	static string cfgfilename;
@@ -4659,7 +4620,6 @@ void rereadcfgs(void){
 	readipblacklist(NULL);
 	readipmutelist(NULL);
 	nbl.readnickblacklist(NULL);
-	readbotnames(NULL);
 	forbiddens.read(NULL);
 }
 
@@ -5358,7 +5318,6 @@ void initserver(bool dedicated){
 		if(scl.master) logline(ACLOG_VERBOSE,"master server URL: \"%s\"", scl.master);
 		if(scl.serverpassword[0]) logline(ACLOG_VERBOSE,"server password: \"%s\"", hiddenpwd(scl.serverpassword));
 	}
-	readbotnames(scl.botfile);
 
 	resetserverifempty();
 

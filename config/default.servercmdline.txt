@@ -18,7 +18,6 @@
 -X config/default.serverpwd.cfg
 -B config/default.serverblacklist.cfg
 -s config/default.servermutelist.cfg
--b config/default.botnames.cfg
 -K config/default.nicknameblacklist.cfg
 -I config/default.serverinfo
 -g config/default.forbidden.cfg
@@ -51,7 +50,6 @@
 // -X     // server passwords file, default config/serverpwd.cfg
 // -B     // server IP blacklist file, default config/serverblacklist.cfg
 // -s     // server IP mutelist file, default config/servermutelist.cfg
-// -b     // server bot names file, default config/botnames.cfg
 // -K     // server nickname blacklist file, default config/nicknameblacklist.cfg
 // -P     // voting permission string
           //    k kick players

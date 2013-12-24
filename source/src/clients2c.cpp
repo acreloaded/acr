@@ -365,13 +365,15 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			}
 
 			case N_INITCLIENT: // cn team skin level name cdefs thirdperson
-			case N_INITAI: // cn team skin skill name owner
+			case N_INITAI: // cn team skin skill seed owner
 			{
 				const int cn = getint(p),
 						team = getint(p),
 						skin = getint(p),
 						level = getint(p);
-				getstring(text, p);
+				int nameseed = (type == N_INITCLIENT) ? 0 : getint(p);
+				if(type == N_INITCLIENT)
+					getstring(text, p);
 				const int extra1 = getint(p),
 					extra2 = (type == N_INITCLIENT) ? getint(p) : 0;
 
@@ -380,18 +382,22 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				d->team = team;
 				setskin(d, skin);
 				d->level = level; // skill for bots
-				// filter incoming name
-				filtername(text, text);
-				if(!*text) copystring(text, "unarmed");
-				copystring(d->name, text);
-				if(type == N_INITCLIENT){ // human
+				if(type == N_INITCLIENT) // human
+				{
+					filtername(text, text);
+					if(!*text) copystring(text, "unarmed");
+					copystring(d->name, text);
+
 					conoutf("connected: %s", colorname(d));
 					if(!joining) chatoutf("%s \f0joined \f2the \f1game", colorname(d));
 					d->build = extra1;
 					d->thirdperson = extra2;
 				}
 				else // AI
+				{
+					BotManager.GetBotName(nameseed, d->level, d->name);
 					d->ownernum = extra1;
+				}
 
 				updateclientname(d);
 
@@ -406,14 +412,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				playerent *d = getclient(getint(p));
 				const int newowner = getint(p);
-				getstring(text, p);
 				if(!d || d == player1) break;
 				if(isowned(d) && newowner != getclientnum())
 					d->removeai();
 				d->ownernum = newowner;
-				filtername(text, text);
-				if(!*text) copystring(text, "unarmed");
-				copystring(d->name, text);
 				// state bugs
 				//if(d->state == CS_WAITING) d->state = CS_ALIVE;
 				// the server will now force death before reassigning

@@ -39,8 +39,9 @@ bool addai(){
 	b.state.skin = rand();// random skin
 	b.state.level = 45 + rnd(51); // how smart/stupid the bot is can be set here (currently random from 45 to 95)
 	b.state.ownernum = aiowner;
-	mkbotname(b);
-	sendf(-1, 1, "ri5si", N_INITAI, cn, b.team, b.state.skin, b.state.level, b.name, b.state.ownernum);
+	copystring(b.name, "<bot>");
+	b.state.bot_seed = rand();
+	sendf(-1, 1, "ri7", N_INITAI, cn, b.team, b.state.skin, b.state.level, b.state.bot_seed, b.state.ownernum);
 	forcedeath(&b);
 	if(canspawn(&b, true)) sendspawn(&b);
 	return true;
@@ -69,7 +70,7 @@ bool shiftai(client &c, int ncn = -1, int exclude = -1){
 	}
 	c.state.ownernum = ncn;
 	forcedeath(&c); // prevent spawn state bugs
-	sendf(-1, 1, "ri3s", N_REASSIGNAI, c.clientnum, c.state.ownernum, c.name);
+	sendf(-1, 1, "ri3", N_REASSIGNAI, c.clientnum, c.state.ownernum);
 	return true;
 }
 

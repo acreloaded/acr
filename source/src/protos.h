@@ -776,7 +776,7 @@ extern bool logline(int level, const char *msg, ...);
 struct servercommandline
 {
 	int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, verbose, demodownloadthrottle, afktimelimit, lagtrust;
-	const char *ip, *master, *logident, *serverpassword, *demopath, *maprot, *pwdfile, *blfile, *mlfile, *nbfile, *infopath, *botfile, *forbiddenfile;
+	const char *ip, *master, *logident, *serverpassword, *demopath, *maprot, *pwdfile, *blfile, *mlfile, *nbfile, *infopath, *forbiddenfile;
 	bool demoeverymatch, logtimestamp;
 	string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm, mapperm;
 	int clfilenesting;
@@ -786,7 +786,7 @@ struct servercommandline
 							maxclients(DEFAULTCLIENTS), verbose(0), afktimelimit(45000), lagtrust(1),
 							ip(""), master(NULL), logident(""), serverpassword(""), demopath(""),
 							maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), mlfile("config/servermutelist.cfg"),
-							nbfile("config/nicknameblacklist.cfg"), infopath("config/serverinfo"), botfile("config/botnames.cfg"), forbiddenfile("config/forbidden.cfg"),
+							nbfile("config/nicknameblacklist.cfg"), infopath("config/serverinfo"), forbiddenfile("config/forbidden.cfg"),
 							demoeverymatch(false), logtimestamp(false),
 							clfilenesting(0)
 	{
@@ -838,7 +838,6 @@ struct servercommandline
 			case 'X': pwdfile = a; break;
 			case 'B': blfile = a; break;
 			case 's': mlfile = a; break;
-			case 'b': botfile = a; break;
 			case 'K': nbfile = a; break;
 			case 'I': infopath = a; break;
 			case 'g': forbiddenfile = a; break;

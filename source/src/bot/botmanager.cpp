@@ -31,6 +31,7 @@ void CBotManager::Init()
 	m_iFrameTime = 0;
 	m_iPrevTime = lastmillis;
 	
+	LoadBotNamesFile();
 	//WaypointClass.Init();
 	lsrand(time(NULL));
 }
@@ -77,6 +78,111 @@ void CBotManager::Think()
 		  b->pBot->Think();
 	   }
     }
+}
+
+void CBotManager::LoadBotNamesFile()
+{
+    // Init bot names array first
+    for (int i=0;i<100;i++)
+        strcpy(m_szBotNames[i], "Bot");
+
+    m_sBotNameCount = 0;
+
+    // Load bot file
+    char szNameFileName[256];
+    MakeBotFileName("bot_names.txt", NULL, szNameFileName);
+    FILE *fp = fopen(szNameFileName, "r");
+    char szNameBuffer[256];
+    int iIndex, iStrIndex;
+
+    if (!fp)
+    {
+        conoutf("Warning: Couldn't load bot names file");
+        return;
+    }
+
+    while (fgets(szNameBuffer, 80, fp) != NULL)
+    {
+        if (m_sBotNameCount >= 150)
+        {
+            conoutf("Warning: Max bot names reached(150), ignoring the rest of the"
+                   "names");
+            break;
+        }
+
+		// Skip entries starting with //
+		if(szNameBuffer[0] == '/' && szNameBuffer[0] == szNameBuffer[1])
+			continue;
+
+        short length = (short)strlen(szNameBuffer);
+
+        if (szNameBuffer[length-1] == '\n')
+        {
+            szNameBuffer[length-1] = 0;  // remove '\n'
+            length--;
+        }
+
+        iStrIndex = 0;
+        while (iStrIndex < length)
+        {
+            if ((szNameBuffer[iStrIndex] < ' ') || (szNameBuffer[iStrIndex] > '~') ||
+                (szNameBuffer[iStrIndex] == '"'))
+            {
+                for (iIndex=iStrIndex; iIndex < length; iIndex++)
+                    szNameBuffer[iIndex] = szNameBuffer[iIndex+1];
+            }
+
+            iStrIndex++;
+        }
+
+        if (szNameBuffer[0] != 0)
+        {
+            if (strlen(szNameBuffer) >= 16)
+            {    conoutf("Warning: bot name \"%s\" has too many characters(16 is max)",
+                       szNameBuffer);
+            }
+            copystring(m_szBotNames[m_sBotNameCount], szNameBuffer, 16);
+            m_sBotNameCount++;
+        }
+    }
+    fclose(fp);
+}
+
+void CBotManager::GetBotName(int seed, int sk, char *out)
+{
+    int skip = 0;
+	if(m_zombie(gamemode))
+	{
+		// First block of ranked names are not for zombies
+		loopi(m_sBotNameCount)
+		{
+			if(m_szBotNames[i][0] == '*') skip = i + 1;
+			else break;
+		}
+	}
+	if(skip >= m_sBotNameCount)
+	{
+		copystring(out, m_zombie(gamemode) ? "a zombie" : "a bot");
+		return;
+	}
+	// Use a random name
+	char *name = m_szBotNames[detrnd(seed, m_sBotNameCount - skip) + skip];
+	const char *rank = ""; // prepend rank (only if based on skill)
+
+	if(*name == '*') // rank based on skill
+	{
+		if(*++name == ' ') ++name; // skip space
+		// skill is normally from 45 to 95
+		if(sk >= 90) rank = "Lt. "; // 10%
+		else if(sk >= 80) rank = "Sgt. "; // 20%
+		else if(sk >= 65) rank = "Cpl. "; // 30%
+		// 40% Private
+		else if(sk >= 55) rank = "Pfc. "; // 20%
+		else rank = "Pvt. "; // 20%
+	}
+
+	defformatstring(fname)("%s%s", rank, name);
+	filtername(out, fname);
 }
 
 void playerent::removeai()

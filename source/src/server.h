@@ -788,56 +788,6 @@ struct configset
 	};
 };
 
-// managed character allocation...
-struct botname
-{
-	char *storage;
-
-	botname(){
-		storage = new char[MAXNAMELEN+1];
-	}
-
-	void putname(char *target, int sk){
-		char *name = storage;
-		const char *rank = ""; // prepend rank (only if based on skill)
-
-		if(*name == '*') // rank based on skill
-		{
-			if(*++name == ' ') ++name; // skip space
-			// skill is from 45 to 95
-			if(sk >= 90) rank = "Lt. "; // 10%
-			else if(sk >= 80) rank = "Sgt. "; // 20%
-			else if(sk >= 65) rank = "Cpl. "; // 30%
-			// 40% Private
-			else if(sk >= 55) rank = "Pfc. "; // 20%
-			else rank = "Pvt. "; // 20%
-		}
-
-		defformatstring(fname)("%s%s", rank, name);
-		filtername(target, fname);
-	}
-
-	~botname(){
-		delete[] storage;
-	}
-};
-vector<botname> botnames;
-
-void mkbotname(client &c){
-	int skip = 0;
-	if(m_zombie(gamemode))
-	{
-		// First block of ranked names are not for zombies
-		loopv(botnames)
-		{
-			if(botnames[i].storage[0] == '*') skip = i + 1;
-			else break;
-		}
-	}
-	if(skip >= botnames.length()) filtername(c.name, m_zombie(gamemode) ? "a zombie" : "a bot");
-	else botnames[rnd(botnames.length() - skip) + skip].putname(c.name, c.state.level);
-}
-
 void clearai(), checkai();
 //void startgame(const char *newname, int newmode, int newtime = -1, bool notify = true);
 void resetmap(const char *newname, int newmode, int newmuts, int newtime = -1, bool notify = true);

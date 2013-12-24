@@ -315,7 +315,7 @@ struct poshist
 
 struct playerstate
 {
-	int ownernum; // for bots
+	int ownernum, bot_seed; // for bots
 	int health, armor, spawnmillis, lastkiller;
 	int pointstreak, deathstreak, assists, radarearned, airstrikes, nukemillis;
 	int primary, secondary, perk1, perk2, nextprimary, nextsecondary, nextperk1, nextperk2;
