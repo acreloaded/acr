@@ -446,7 +446,7 @@ void sendintro()
 {
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	ucharbuf p(packet->data, packet->dataLength);
-	putint(p, N_WELCOME);
+	putint(p, N_NUM);
 	sendstring(player1->name, p);
 	putint(p, player1->skin);
 	extern int level;
