@@ -43,6 +43,8 @@ eventicons
 	revenge.png
 	up.png
 		Red Eclipse CC BY-SA 3.0
+maps/official
+	acr_recreation - © {ak}bluwarguy but ACR is allowed to use it as an official map
 misc
 	base.png
 	blood.png
