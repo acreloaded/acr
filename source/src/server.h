@@ -910,7 +910,7 @@ const mul muls[MUL_NUM] =
 	{ 5.0f, 1.3f, 1.f } // shotgun
 };
 
-const guninfo guns[WEAP_MAX] =
+guninfo guns[WEAP_MAX] =
 {
 //  { modelname;    sound,      reload,    reloadtime, attackdelay, damage, range, endrange, rangeminus, projspeed, part, spread, spreadrem, kick, addsize, magsize, mdl_kick_rot, mdl_kick_back, recoil, maxrecoil, recoilangle, pushfactor; auto;}
     { "knife",      S_KNIFE,    S_ITEMAMMO,         0,         500,     80,     4,        5,         72,         0,    0,      1,         0,    1,       0,       1,            0,             0,      0,         0,           0,          3, true },

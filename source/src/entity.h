@@ -101,7 +101,7 @@ extern const mul muls[MUL_NUM];
 #define BLEEDDMGPLUS 15
 
 struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, range, endrange, rangeminus, projspeed, part, spread, spreadrem, kick, addsize, magsize, mdl_kick_rot, mdl_kick_back, recoil, maxrecoil, recoilangle, pushfactor; bool isauto; };
-extern const guninfo guns[WEAP_MAX];
+extern guninfo guns[WEAP_MAX];
 
 static inline ushort reloadtime(int gun) { return guns[gun].reloadtime; }
 static inline ushort attackdelay(int gun) { return guns[gun].attackdelay; }

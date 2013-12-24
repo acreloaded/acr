@@ -220,15 +220,39 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			}
 
 			case N_WELCOME:
+			{
 				joining = getint(p);
 				getstring(text, p);
 				if(text[0]){
 					conoutf("MOTD:");
 					conoutf("\f4%s", text);
 				}
+				// Sync weapon info on connect
+				loopi(WEAP_MAX)
+				{
+#define GETWEAPSTAT(s) guns[i].s = getint(p);
+					GETWEAPSTAT(reloadtime)
+					GETWEAPSTAT(attackdelay)
+					//GETWEAPSTAT(damage)
+					//GETWEAPSTAT(projspeed)
+					//GETWEAPSTAT(part)
+					GETWEAPSTAT(spread)
+					GETWEAPSTAT(spreadrem)
+					GETWEAPSTAT(kick)
+					GETWEAPSTAT(addsize)
+					GETWEAPSTAT(magsize)
+					//GETWEAPSTAT(mdl_kick_rot)
+					//GETWEAPSTAT(mdl_kick_back)
+					GETWEAPSTAT(recoil)
+					GETWEAPSTAT(maxrecoil)
+					GETWEAPSTAT(recoilangle)
+					GETWEAPSTAT(pushfactor)
+#undef GETWEAPSTAT
+				}
 				player1->resetspec();
 				resetcamera();
 				break;
+			}
 
 			case N_CLIENT:
 			{

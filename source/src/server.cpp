@@ -3067,6 +3067,27 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet){
 	putint(p, smapname[0] && !m_demo(gamemode) ? numcl : -1);
 	CHECKSPACE(5+2*(int)strlen(scl.motd)+1);
 	sendstring(scl.motd, p);
+	// Sync weapon info on connect
+	CHECKSPACE(WEAP_MAX * 3 * 11);
+	loopi(WEAP_MAX)
+	{
+		putint(p, guns[i].reloadtime);
+		putint(p, guns[i].attackdelay);
+		//putint(p, guns[i].damage);
+		//putint(p, guns[i].projspeed);
+		//putint(p, guns[i].part);
+		putint(p, guns[i].spread);
+		putint(p, guns[i].spreadrem);
+		putint(p, guns[i].kick);
+		putint(p, guns[i].addsize);
+		putint(p, guns[i].magsize);
+		//putint(p, guns[i].mdl_kick_rot);
+		//putint(p, guns[i].mdl_kick_back);
+		putint(p, guns[i].recoil);
+		putint(p, guns[i].maxrecoil);
+		putint(p, guns[i].recoilangle);
+		putint(p, guns[i].pushfactor);
+	}
 	if(smapname[0] && !m_demo(gamemode)){
 		putmap(p);
 		if(m_valid(smode)){
