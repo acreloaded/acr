@@ -40,11 +40,11 @@ enum							// hardcoded texture numbers
 
 #define MAPVERSION 9			// bump if map format changes, see worldio.cpp
 
-struct header				   // map file format header
+struct header				   	// map file format header
 {
-	char head[4];			   // "CUBE"
+	char head[4];				// "CUBE"
 	int version;				// any >8bit quantity is little endian
-	int headersize;			 // sizeof(header)
+	int headersize;				// sizeof(header)
 	int sfactor;				// in bits
 	int numents;
 	char maptitle[128];
@@ -54,7 +54,7 @@ struct header				   // map file format header
 	int maprevision;
 	int ambient;
     int reserved[12];
-	char mediareq[128]; // AC7, but nor ACR7 // actually a maximum of 124 will ever be used (24*5+4)
+	//char mediareq[128];         // version 7 and 8 only.
 };
 
 struct mapstats
