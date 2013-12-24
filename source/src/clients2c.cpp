@@ -1009,7 +1009,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			case N_EDITW: // coop editing water
 			{
 				const int newwaterlevel = getint(p);
-				loopi(4) hdr.watercolor[i] = getint(p);
+				loopi(4) hdr.watercolour[i] = getint(p);
 				if(newwaterlevel == hdr.waterlevel) break;
 				hdr.waterlevel = newwaterlevel;
 				conoutf("%s changed the water-level to %d", colorname(d), hdr.waterlevel);

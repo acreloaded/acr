@@ -734,7 +734,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	if(underwater)
 	{
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glColor4ub(hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], 102);
+		glColor4ub(hdr.watercolour[0], hdr.watercolour[1], hdr.watercolour[2], 102);
 
 		glBegin(GL_QUADS);
 		glVertex2f(0, 0);

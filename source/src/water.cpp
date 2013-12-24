@@ -4,7 +4,7 @@
 int wx1, wy1, wx2, wy2;
 float wsx1, wsy1, wsx2, wsy2;
 
-inline void sendwater(){ addmsg(N_EDITW, "ri5", hdr.waterlevel, hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], hdr.watercolor[3]); }
+inline void sendwater(){ addmsg(N_EDITW, "ri5", hdr.waterlevel, hdr.watercolour[0], hdr.watercolour[1], hdr.watercolour[2], hdr.watercolour[3]); }
 
 void setwaterlevel(int w){
 	hdr.waterlevel = w;
@@ -15,25 +15,25 @@ void setwaterlevel(int w){
 VARP(watersubdiv, 1, 4, 64);
 VARF(waterlevel, -128, -128, 127, setwaterlevel(waterlevel));
 
-void setwatercolor(const char *r, const char *g, const char *b, const char *a)
+void setwatercolour(const char *r, const char *g, const char *b, const char *a)
 {
 	if(r && b && g && *r){
-		hdr.watercolor[0] = ATOI(r);
-		hdr.watercolor[1] = ATOI(g);
-		hdr.watercolor[2] = ATOI(b);
-		hdr.watercolor[3] = a[0] ? ATOI(a) : 178;
-		if(noteditmode("watercolor")) return;
+		hdr.watercolour[0] = ATOI(r);
+		hdr.watercolour[1] = ATOI(g);
+		hdr.watercolour[2] = ATOI(b);
+		hdr.watercolour[3] = a[0] ? ATOI(a) : 178;
+		if(noteditmode("watercolour")) return;
 		sendwater();
 	}
 	else{
-		hdr.watercolor[0] = 20;
-		hdr.watercolor[1] = 25;
-		hdr.watercolor[2] = 20;
-		hdr.watercolor[3] = 178;
+		hdr.watercolour[0] = 20;
+		hdr.watercolour[1] = 25;
+		hdr.watercolour[2] = 20;
+		hdr.watercolour[3] = 178;
 	}
 }
 
-COMMANDN(watercolor, setwatercolor, ARG_4STR);
+COMMANDN(watercolour, setwatercolour, ARG_4STR);
 
 // renders water for bounding rect area that contains water... simple but very inefficient
 
@@ -49,7 +49,7 @@ COMMANDN(watercolor, setwatercolor, ARG_4STR);
 VERTW(vertw, {})
 VERTW(vertwc, {
 	float v = cosf(angle);
-	glColor4ub(hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], (uchar)(hdr.watercolor[3] + (max(v, 0.0f) - 0.5f)*51.0f));
+	glColor4ub(hdr.watercolour[0], hdr.watercolour[1], hdr.watercolour[2], (uchar)(hdr.watercolour[3] + (max(v, 0.0f) - 0.5f)*51.0f));
 })
 VERTWT(vertwt, {
 	glTexCoord3f(v1+duv, v2+duv, v3+h);
@@ -94,7 +94,7 @@ void setupmultitexrefract(GLuint reflecttex, GLuint refracttex)
 {
 	setuptmu(0, "K , T @ Ka");
 	
-	colortmu(0, hdr.watercolor[0]/255.0f, hdr.watercolor[1]/255.0f, hdr.watercolor[2]/255.0f, hdr.watercolor[3]/255.0f);
+	colortmu(0, hdr.watercolour[0]/255.0f, hdr.watercolour[1]/255.0f, hdr.watercolour[2]/255.0f, hdr.watercolour[3]/255.0f);
 
 	glBindTexture(GL_TEXTURE_2D, refracttex);
 	setprojtexmatrix();
@@ -114,8 +114,8 @@ void setupmultitexreflect(GLuint reflecttex)
 {
 	setuptmu(0, "T , K @ Ca", "Ka * P~a");
 	
-	float a = hdr.watercolor[3]/255.0f;
-	colortmu(0, hdr.watercolor[0]/255.0f*a, hdr.watercolor[1]/255.0f*a, hdr.watercolor[2]/255.0f*a, 1.0f-a);
+	float a = hdr.watercolour[3]/255.0f;
+	colortmu(0, hdr.watercolour[0]/255.0f*a, hdr.watercolour[1]/255.0f*a, hdr.watercolour[2]/255.0f*a, 1.0f-a);
 
 	glBindTexture(GL_TEXTURE_2D, reflecttex);
 	setprojtexmatrix();
@@ -182,7 +182,7 @@ int renderwater(float hf, GLuint reflecttex, GLuint refracttex)
 	{
 		if(!refracttex)
 		{
-			glColor4ubv(hdr.watercolor);
+			glColor4ubv(hdr.watercolour);
 			renderwaterstrips(vertw, hf, t);
 		
 			glEnable(GL_TEXTURE_2D);

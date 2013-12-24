@@ -3863,24 +3863,24 @@ Output:
 			  You can do this for tweaking the visual effect of the fog, or if you are on a slow machine,
 			  setting the fog to a low value can also be a very effective way to increase fps (if you are geometry limited).
 			  Try out different values on big maps / maps which give you low fps. It is also good for aesthetic features of maps
-			  especially when combined with "fogcolor".
+			  especially when combined with "fogcolour".
 			</remark>
 		  </remarks>
 		  <references>
-			<identifierReference identifier="fogcolor"/>
+			<identifierReference identifier="fogcolour"/>
 		  </references>		
 		  <arguments>
 			<argument token="N" description="The fog distance" valueNotes="64...1024, default is 180"/>
 		  </arguments>
 		</command>
 
-		<command name="fogcolor">
-		  <description>Sets the fog and clearing color.</description>
+		<command name="fogcolour">
+		  <description>Sets the fog and clearing colour.</description>
 		  <references>
 			<identifierReference identifier="fog"/>
 		  </references>
 		  <arguments>
-			<argument token="C" description="The color" valueNotes="Hexadecimal color, default is 0x8099B3"/>
+			<argument token="C" description="The colour" valueNotes="Hexadecimal colour, default is 0x8099B3"/>
 		  </arguments>
 		</command>
 
@@ -4052,9 +4052,9 @@ Output:
 		  </references>
 		</command>
 
-		<command name="watercolor">
+		<command name="watercolour">
 		  <description>
-			Determines the water color in a map.
+			Determines the water colour in a map.
 		  </description>
 		  <references>
 			<identifierReference identifier="waterlevel"/>
@@ -4066,9 +4066,9 @@ Output:
 			</remark>
 		  </remarks>		
 		  <arguments>
-			<argument token="R" description="Red color intensity" valueNotes="Between 1 and 255"/>
-			<argument token="G" description="Green color intensity" valueNotes="Between 1 and 255"/>
-			<argument token="B" description="Blue color intensity" valueNotes="Between 1 and 255"/>
+			<argument token="R" description="Red colour intensity" valueNotes="Between 1 and 255"/>
+			<argument token="G" description="Green colour intensity" valueNotes="Between 1 and 255"/>
+			<argument token="B" description="Blue colour intensity" valueNotes="Between 1 and 255"/>
 		  </arguments>
 		</command>
 

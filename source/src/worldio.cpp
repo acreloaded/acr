@@ -300,7 +300,7 @@ bool load_world(char *mname)		// still supports all map formats that have existe
 	if(hdr.version>=4)
 	{
 		endianswap(&hdr.waterlevel, sizeof(int), 1);
-		if(!hdr.watercolor[3]) setwatercolor();
+		if(!hdr.watercolour[3]) setwatercolour();
 	}
 	else
 	{
