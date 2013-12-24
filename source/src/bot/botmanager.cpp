@@ -234,13 +234,56 @@ void LetBotsHear(int n, const vec *loc) { BotManager.LetBotsHear(n, loc); }
 // Notify all bots of a new waypoint
 void CBotManager::AddWaypoint(node_s *pNode)
 {
+	if (players.length())
+    {
+        short x, y;
+        waypoint_s *pWP;
 
+        loopv(players)
+        {
+            if (!players[i] || !isowned(players[i]) || !players[i]->pBot) continue;
+
+            pWP = new waypoint_s;
+            pWP->pNode = pNode;
+            WaypointClass.GetNodeIndexes(pNode->v_origin, &x, &y);
+            players[i]->pBot->m_WaypointList[x][y].AddNode(pWP);
+
+#ifndef RELEASE_BUILD
+            if (!players[i]->pBot->GetWPFromNode(pNode)) condebug("Error adding bot wp!");
+#endif
+        }
+    }
 	CalculateMaxAStarCount();
 }
 
 // Notify all bots of a deleted waypoint
 void CBotManager::DelWaypoint(node_s *pNode)
 {
+	if (players.length())
+    {
+        short x, y;
+        TLinkedList<waypoint_s *>::node_s *p;
+
+        loopv(players)
+        {
+            if (!players[i] || !isowned(players[i]) || !players[i]->pBot) continue;
+
+            WaypointClass.GetNodeIndexes(pNode->v_origin, &x, &y);
+            p = players[i]->pBot->m_WaypointList[x][y].GetFirst();
+
+            while(p)
+            {
+                if (p->Entry->pNode == pNode)
+                {
+                    delete p->Entry;
+                    players[i]->pBot->m_WaypointList[x][y].DeleteNode(p);
+                    break;
+                }
+                p = p->next;
+            }
+        }
+    }
+
 	CalculateMaxAStarCount();
 }
 

@@ -40,7 +40,7 @@
 
 #include "../cube.h"
 
-//#define RELEASE_BUILD // Set when you want to make a release build
+#define RELEASE_BUILD // Set when you want to make a release build
 
 #define AC_CUBE
 
