@@ -1,6 +1,6 @@
 //! \note In a multiplayer game this can be arbitrarily changed.
-#define MAXCLIENTS 64
-#define MAXBOTS 16
+#define MAXCLIENTS 256
+#define MAXBOTS 32
 #define MAXBOTBALANCE 20
 #define DEFAULTCLIENTS 12
 //! Maximum amount of data to swallow in one go
