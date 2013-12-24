@@ -83,7 +83,7 @@ void CBotManager::Think()
 void CBotManager::LoadBotNamesFile()
 {
     // Init bot names array first
-    for (int i=0;i<100;i++)
+    for (int i=0;i<200;i++)
         strcpy(m_szBotNames[i], "Bot");
 
     m_sBotNameCount = 0;
@@ -103,9 +103,9 @@ void CBotManager::LoadBotNamesFile()
 
     while (fgets(szNameBuffer, 80, fp) != NULL)
     {
-        if (m_sBotNameCount >= 150)
+        if (m_sBotNameCount >= 200)
         {
-            conoutf("Warning: Max bot names reached(150), ignoring the rest of the"
+            conoutf("Warning: Max bot names reached(200), ignoring the rest of the"
                    "names");
             break;
         }
