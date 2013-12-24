@@ -1,35 +1,35 @@
 // m2s2c
-client *findauth(uint id){
+client *findauth(uint id)
+{
 	loopv(clients) if(clients[i]->authreq == id) return clients[i];
 	return NULL;
 }
 
 extern vector<authrequest> authrequests;
 
-bool reqauth(int cn, char *name, int authtoken){
-	if(!valid_client(cn)) return false;
-	client &cl = *clients[cn];
+inline bool canreqauth(client &ci, int authtoken, int authuser)
+{
+	const int cn = ci.clientnum;
 	if(!isdedicated || !canreachauthserv){ sendf(cn, 1, "ri2", N_AUTHCHAL, 2); return false;} // not dedicated/connected
-	if(cl.authreq){ sendf(cn, 1, "ri2", N_AUTHCHAL, 1);	return false;	} // already pending
-	if(cl.authmillis + 2000 > servmillis){ sendf(cn, 1, "ri3", N_AUTHCHAL, 6, cl.authmillis + 2000 - servmillis); return false; } // flood check
-	cl.authmillis = servmillis;
-	cl.authtoken = authtoken;
-	authrequest &r = authrequests.add();
-	r.id = cl.authreq = nextauthreq++;
-	r.answer = false;
-	r.usr = newstring(name, MAXNAMELEN);
-	logline(ACLOG_INFO, "[%s] requests auth #%d as %s", gethostname(cn), r.id, r.usr);
-	sendf(cn, 1, "ri2", N_AUTHCHAL, 0);
+	// if(ci.authreq){ sendf(cn, 1, "ri2", N_AUTHCHAL, 1);	return false;	} // already pending
+	// if(ci.authmillis + 2000 > servmillis){ sendf(cn, 1, "ri3", N_AUTHCHAL, 6, ci.authmillis + 2000 - servmillis); return false; } // flood check
 	return true;
 }
 
-int allowconnect(client &ci, const char *pwd = NULL, int authreq = 0, char *authname = NULL){
+int allowconnect(client &ci, const char *pwd = NULL, int authreq = 0, int authuser = 0)
+{
 	if(ci.type == ST_LOCAL) return DISC_NONE;
 	//if(!m_valid(smode)) return DISC_PRIVATE;
 	if(ci.priv >= PRIV_ADMIN) return DISC_NONE;
-	if(authreq && reqauth(ci.clientnum, authname, authreq)){
-		logline(ACLOG_INFO, "[%s] %s logged in, requesting auth", gethostname(ci.clientnum), formatname(ci));
+	if(authreq && canreqauth(ci, authreq, authuser))
+	{
+		ci.authtoken = authreq;
+		ci.authuser = authuser;
+		ci.authreq = nextauthreq++;
+		if(!ci.authreq)
+			ci.authreq = 1;
 		ci.connectauth = true;
+		logline(ACLOG_INFO, "[%s] %s logged in, requesting auth #%d as %d", gethostname(ci.clientnum), formatname(ci), ci.authreq, authuser);
 		return DISC_NONE;
 	}
 	// nickname list
@@ -71,8 +71,10 @@ int allowconnect(client &ci, const char *pwd = NULL, int authreq = 0, char *auth
 	return DISC_NONE;
 }
 
-void checkauthdisc(client &ci, bool force = false){
-	if(ci.connectauth || force){
+void checkauthdisc(client &ci, bool force = false)
+{
+	if(ci.connectauth || force)
+	{
 		ci.connectauth = false;
 		const int disc = allowconnect(ci);
 		if(disc) disconnect_client(ci.clientnum, disc);
@@ -90,7 +92,7 @@ void authsuceeded(uint id, char priv, char *name){
 	sendf(priv || banremoved ? -1 : c->clientnum, 1, "ri3s", N_AUTHCHAL, 5, c->clientnum, name);
 	if(priv){
 		c->authpriv = clamp<char>(priv, PRIV_MASTER, PRIV_MAX);
-		/*if(c->connectauth)*/ setpriv(c->clientnum, c->authpriv);
+		setpriv(c->clientnum, c->authpriv);
 		// unmute if auth has privilege
 		c->muted = false;
 	}
@@ -128,8 +130,6 @@ bool answerchallenge(int cn, int *hash){
 	}
 	authrequest &r = authrequests.add();
 	r.id = cl.authreq;
-	r.answer = true;
-	r.hash = new int[5];
 	memcpy(r.hash, hash, sizeof(int) * 5);
 	logline(ACLOG_INFO, "[%s] answers auth #%d", gethostname(cn), r.id);
 	sendf(cn, 1, "ri2", N_AUTHCHAL, 4);

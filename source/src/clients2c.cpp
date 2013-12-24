@@ -177,9 +177,6 @@ void parsepositions(ucharbuf &p)
 	}
 }
 
-SVARP(authname, "nobody");
-SVARP(authkey, "none");
-
 extern votedisplayinfo *curvote;
 
 void parsemessages(int cn, playerent *d, ucharbuf &p)
@@ -1275,8 +1272,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				}
 				authtoken = -1;
 				conoutf("server is challenging authentication details");
+				extern int authuser;
+				extern char *authkey;
 				unsigned hash[5] = {0};
-				defformatstring(buf)("%s:%s!%d", authname, authkey, nonce);
+				defformatstring(buf)("%s:%s!%d", authuser, authkey, nonce);
 				if(!gensha1(buf, hash)){
 					conoutf("could not compute message digest");
 					break;

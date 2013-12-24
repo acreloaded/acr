@@ -3473,8 +3473,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			cl->state.level = clamp(getint(p), 1, MAXLEVEL);
 			getstring(text, p);
 			copystring(cl->pwd, text);
-			const int connectauth = getint(p);
-			getstring(text, p); // authname
+			const int connectauthtoken = getint(p);
+			const int connectauthuser = getint(p);
 			cl->state.nextprimary = getint(p);
 			cl->state.nextsecondary = getint(p);
 			cl->state.nextperk1 = getint(p);
@@ -3485,7 +3485,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			cl->acthirdperson = getint(p);
 
-			int disc = p.remaining() ? DISC_TAGT : allowconnect(*cl, cl->pwd, connectauth, text);
+			int disc = p.remaining() ? DISC_TAGT : allowconnect(*cl, cl->pwd, connectauthtoken, connectauthuser);
 
 			if(disc) disconnect_client(sender, disc);
 			else cl->connected = true;
@@ -3502,7 +3502,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			}
 
 			// ask masterserver for connection verdict
-			connectcheck(sender, cl->guid, cl->peer->address.host);
+			connectcheck(sender, cl->guid, cl->peer->address.host, cl->authreq, cl->authuser);
 			// restore the score
 			savedscore *sc = findscore(*cl, false);
 			if(sc)
@@ -4321,17 +4321,12 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				break;
 			}
 
-			case N_AUTHREQ:
-				getstring(text, p);
-				reqauth(sender, text, getint(p));
-				break;
-
 			case N_AUTHCHAL:
 			{
 				int hash[5];
 				loopi(5) hash[i] = getint(p);
 				bool answered = answerchallenge(sender, hash);
-				if(cl->connectauth && answered) cl->connected = true;
+				if(cl->authreq && answered) cl->connected = true;
 				else checkauthdisc(*cl);
 				break;
 			}

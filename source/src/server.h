@@ -311,7 +311,7 @@ struct client				   // server side version of "dynent" type
 	int acversion, acbuildtype, acthirdperson;
 	int connectmillis;
 	bool connected, connectauth, wantsmap;
-	int authtoken, authmillis, authpriv, masterverdict, guid; uint authreq;
+	int authtoken, authuser, authpriv, masterverdict, guid; uint authreq;
 	bool haswelcome;
 	bool isonrightmap;
 	bool timesync;
@@ -403,7 +403,7 @@ struct client				   // server side version of "dynent" type
 
 	void reset()
 	{
-		name[0] = demoflags = authmillis = 0;
+		name[0] = demoflags = 0;
 		ping = bottomRTT = 9999;
 		team = 0; // TEAM_RED
 		position.setsize(0);
@@ -430,6 +430,7 @@ struct client				   // server side version of "dynent" type
 		type = ST_EMPTY;
 		priv = PRIV_NONE;
 		muted = false;
+		authtoken = authuser = authreq = 0;
 		authpriv = -1;
 		guid = 0;
 		masterverdict = DISC_NONE;

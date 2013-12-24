@@ -413,17 +413,10 @@ void c2sinfo(bool force){				  // send update to the server
 	if(clienthost) enet_host_flush(clienthost);
 }
 
-VARP(authlock, 0, 1, 1);
 int authtoken = -1;
-void tryauth(){
-	if(authlock) return;
-	authtoken = rand();
-	extern char *authname;
-	addmsg(N_AUTHREQ, "rsi", authname, authtoken);
-}
-COMMANDN(auth, tryauth, ARG_NONE);
-
 VARP(connectauth, 0, 0, 1);
+VARP(authuser, 0, 0, INT_MAX);
+SVARP(authkey, "none");
 
 int getbuildtype(){
 	return
@@ -452,16 +445,17 @@ void sendintro()
 	extern int level;
 	putint(p, level);
 	sendstring(genpwdhash(player1->name, clientpassword, sessionid), p);
-	if(connectauth){
+	if(connectauth)
+	{
 		authtoken = rand();
 		if(!authtoken) authtoken = 1;
 		putint(p, authtoken);
-		extern char *authname;
-		sendstring(authname, p);
+		putint(p, authuser);
 	}
-	else{
+	else
+	{
 		putint(p, 0);
-		putint(p, 0); // no authname
+		putint(p, 0);
 	}
 	*clientpassword = 0;
 	putint(p, player1->nextprimary);
