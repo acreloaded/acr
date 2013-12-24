@@ -8,7 +8,7 @@ CUBE_DIR=$(dirname "$(readlink -f $0)")
 
 # CUBE_OPTIONS contains any command line options you would like to start Cube with.
 #CUBE_OPTIONS="-f"
-CUBE_OPTIONS="--home=data --init"
+CUBE_OPTIONS="--home=data --mod=acr --init"
 
 # SYSTEM_NAME should be set to the name of your operating system.
 #SYSTEM_NAME=Linux

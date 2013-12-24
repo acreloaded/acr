@@ -1,0 +1,18 @@
+This was modified by Victor, who must release it under the public domain for the previous licence:
+DO NOT COPYRIGHT!
+THIS MOD IS MADE BY PROGONNA.
+UNDERSTAND THE CONCEPT OF DIRECTORIES :)
+AND IT HELPS YOU HOW TO PUT THE FILES PROPERLY
+THIS MOD IS SPECIAL FOR B}Shadowz
+AS HE HAD SUGGESTED TO MAKE KATANA
+SPECIAL THANKS TO A_SLOW_OLD_MAN|DES AND OTHER MODDERS FOR HELPING PROGONNA
+B}Shadowz HAD MADE PROGONNA CONTINUES DISCOVERING HOW TO MOD.
+HAVE FUN !
+ANY CRITICs, COMMENTS ,ETC. ARE PROBABLY ACCEPTABLE.
+
+thank you :D
+
+NOTES: progonna used CMD, so pls excuse his CAPS LOCKS* =D
+please visit http:\akimbo.in OR
+        http:\sa-chat.tk <-- to chat with PROGONNA for real!
+
