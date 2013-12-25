@@ -161,9 +161,9 @@ void updatemasterserver(int millis, const ENetAddress &localaddr){
 			currentmsrequest->c = c;
 
 			if(c->id)
-				formatstring(path)("%s/connect/%s/%lu/%u/%u", masterpath, c->hostname, c->guid, c->id, c->user);
+				formatstring(path)("%s/con/%d/%s/%lu/%u/%u", masterpath, localaddr.port, c->hostname, c->guid, c->id, c->user);
 			else
-				formatstring(path)("%s/connect/%s/%lu", masterpath, c->hostname, c->guid);
+				formatstring(path)("%s/con/%d/%s/%lu", masterpath, localaddr.port, c->hostname, c->guid);
 
 			delete[] c->hostname;
 		}
