@@ -112,7 +112,7 @@ void freeconnectcheck(int cn)
 			connectrequests.remove(i--);
 }
 
-void connectcheck(int cn, int guid, enet_uint32 host, int authreq, int authuser)
+void connectcheck(int cn, int guid, const char *hostname, int authreq, int authuser)
 {
 	freeconnectcheck(cn);
 	extern bool isdedicated;
@@ -120,7 +120,7 @@ void connectcheck(int cn, int guid, enet_uint32 host, int authreq, int authuser)
 	connectrequest &creq = connectrequests.add();
 	creq.cn = cn;
 	creq.guid = guid;
-	creq.ip = ENET_NET_TO_HOST_32(host); // master-server blacklist uses host byte order
+	creq.hostname = newstring(hostname);
 	creq.id = authreq;
 	creq.user = authuser;
 }
@@ -161,9 +161,11 @@ void updatemasterserver(int millis, const ENetAddress &localaddr){
 			currentmsrequest->c = c;
 
 			if(c->id)
-				formatstring(path)("%s/connect/%lu/%lu/%u/%u", masterpath, c->ip, c->guid, c->id, c->user);
+				formatstring(path)("%s/connect/%s/%lu/%u/%u", masterpath, c->hostname, c->guid, c->id, c->user);
 			else
-				formatstring(path)("%s/connect/%lu/%lu", masterpath, c->ip, c->guid);
+				formatstring(path)("%s/connect/%s/%lu", masterpath, c->hostname, c->guid);
+
+			delete[] c->hostname;
 		}
 	}
 	if(!*path) return; // no request

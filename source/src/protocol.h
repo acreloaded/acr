@@ -101,4 +101,4 @@ enum { EXTPING_NOP = 0, EXTPING_NAMELIST, EXTPING_SERVERINFO, EXTPING_MAPROT, EX
 #include "gamemode.h"
 
 struct authrequest { uint id; int hash[5]; };
-struct connectrequest { int cn, guid; enet_uint32 ip; int id, user; };
+struct connectrequest { int cn, guid; const char *hostname; int id, user; };

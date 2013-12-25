@@ -3502,7 +3502,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			}
 
 			// ask masterserver for connection verdict
-			connectcheck(sender, cl->guid, cl->peer->address.host, cl->authreq, cl->authuser);
+			connectcheck(sender, cl->guid, cl->hostname, cl->authreq, cl->authuser);
 			// restore the score
 			savedscore *sc = findscore(*cl, false);
 			if(sc)
