@@ -222,7 +222,7 @@ void toserver(char *text, int voice, bool action){
 	if(!text || !*text) return;
 	bool toteam = *text == '%' && strlen(text) > 1;
 	if(toteam) ++text;
-	addmsg(N_TEXT, "ris", (voice & 0x1F) | (((action ? SAY_ACTION : 0) | (toteam ? SAY_TEAM : 0)) << 5), text);
+	addmsg(N_TEXT, "ri2s", (action ? SAY_ACTION : 0) | (toteam ? SAY_TEAM : 0), voice, text);
 }
 
 void toserver_(char *text){ toserver(text); }

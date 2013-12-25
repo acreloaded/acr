@@ -3604,7 +3604,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 			case N_TEXT:
 			{
-				int flags = getint(p), voice = flags & 0x1F; flags = (flags >> 5) & (SAY_TEAM | SAY_ACTION);
+				const int flags = getint(p) & (SAY_TEAM | SAY_ACTION);
+				const int voice = getint(p);
 				getstring(text, p);
 				if(!cl) break;
 				filtertext(text, text, 1, 127);
