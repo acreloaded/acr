@@ -85,12 +85,14 @@ void authsuceeded(uint id, char priv, char *name){
 	client *c = findauth(id);
 	if(!c) return;
 	c->authreq = 0;
-	logline(ACLOG_INFO, "[%s] auth #%d suceeded for %s as '%s'", gethostname(c->clientnum), id, privname(priv), name);
+	filtertext(c->authname, name);
+	logline(ACLOG_INFO, "[%s] auth #%d suceeded for %s as '%s'", gethostname(c->clientnum), id, privname(priv), c->authname);
 	bool banremoved = false;
 	loopv(bans) if(bans[i].host == c->peer->address.host){ bans.remove(i--); banremoved = true; } // deban
 	// broadcast "identified" if privileged or a ban was removed
-	sendf(priv || banremoved ? -1 : c->clientnum, 1, "ri3s", N_AUTHCHAL, 5, c->clientnum, name);
-	if(priv){
+	sendf(banremoved ? -1 : c->clientnum, 1, "ri3s", N_AUTHCHAL, 5, c->clientnum, c->authname);
+	if(priv)
+	{
 		c->authpriv = clamp<char>(priv, PRIV_MASTER, PRIV_MAX);
 		// setpriv(c->clientnum, c->authpriv);
 		// unmute if auth has privilege

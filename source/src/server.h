@@ -311,7 +311,7 @@ struct client				   // server side version of "dynent" type
 	int acversion, acbuildtype, acthirdperson;
 	int connectmillis;
 	bool connected, connectauth, wantsmap;
-	int authtoken, authuser, authpriv, masterverdict, guid; uint authreq;
+	int authtoken, authuser, authpriv, masterverdict, guid; uint authreq; string authname;
 	bool haswelcome;
 	bool isonrightmap;
 	bool timesync;
@@ -414,7 +414,10 @@ struct client				   // server side version of "dynent" type
 		lastsaytext[0] = '\0';
 		newname[0] = '\0';
 		name_relay = 0;
-		saychars = authreq = 0;
+		saychars = 0;
+		authtoken = authuser = authreq = 0;
+		authpriv = -1;
+		authname[0] = '\0';
 		lastdemothrottle = democount = 0;
 		spawnindex = -1;
 		mapchange();
@@ -432,6 +435,7 @@ struct client				   // server side version of "dynent" type
 		muted = false;
 		authtoken = authuser = authreq = 0;
 		authpriv = -1;
+		authname[0] = '\0';
 		guid = 0;
 		masterverdict = DISC_NONE;
 		connected = connectauth = wantsmap = haswelcome = false;

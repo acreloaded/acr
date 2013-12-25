@@ -2844,7 +2844,7 @@ void sendwhois(int sender, int cn){
 	}
 	if(mask < 32) ip &= (1 << mask) - 1;
 
-	sendf(sender, 1, "ri5", N_WHOISINFO, cn, ip, mask, clients[cn]->peer->address.port);
+	sendf(sender, 1, "ri5s", N_WHOISINFO, cn, ip, mask, clients[cn]->peer->address.port, clients[cn]->authname);
 }
 
 // sending of maps between clients
