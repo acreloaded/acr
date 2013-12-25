@@ -21,7 +21,7 @@ int allowconnect(client &ci, const char *pwd = NULL, int authreq = 0, int authus
 	if(ci.type == ST_LOCAL) return DISC_NONE;
 	//if(!m_valid(smode)) return DISC_PRIVATE;
 	if(ci.priv >= PRIV_ADMIN) return DISC_NONE;
-	if(authreq && canreqauth(ci, authreq, authuser))
+	if(authreq && authuser && canreqauth(ci, authreq, authuser))
 	{
 		ci.authtoken = authreq;
 		ci.authuser = authuser;
