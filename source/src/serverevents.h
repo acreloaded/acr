@@ -126,22 +126,25 @@ void shotevent::process(client *ci)
 			exclude.setsize(0);
 			exclude.add(c.clientnum);
 			client *hit = nearesthit(c, from, to, !m_real(gamemode, mutators), hitzone, pos, exclude, expc);
+			float dist = expc.dist(from);
 			if(hit){
 				int dmg = HEALTHSCALE;
-				if(hitzone == HIT_HEAD){
+				if(dist <= 10) // close range puncture
+					dmg *= 300;
+				else if(hitzone == HIT_HEAD){
 					sendheadshot(from, to, dmg);
 					dmg *= m_progressive(gamemode, mutators) ? (250) : (150);
 				}
 				else
 					dmg *= m_progressive(gamemode, mutators) ? (hitzone * 75) : (55);
 				damagedealt += dmg;
-				sendhit(c, WEAP_RPG, to, dmg); // blood, not explosion
+				sendhit(c, WEAP_RPG, expc, dmg); // blood, not explosion
 				serverdamage(hit, &c, dmg, WEAP_RPG, FRAG_GIB | (hitzone == HIT_HEAD ? FRAG_FLAG : FRAG_NONE), expc, expc.dist(from));
 			}
 			// fix explosion on walls
 			else (expc = to).sub(from).normalize().mul(to.dist(from) - .1f).add(from);
 			// instant explosion
-			int rpgexplodedmgdealt = explosion(*ci, expc, WEAP_RPG, !m_real(gamemode, mutators), false, hit);
+			int rpgexplodedmgdealt = dist >= 16 ? explosion(*ci, expc, WEAP_RPG, !m_real(gamemode, mutators), false, hit) : 0;
 			gs.damage += rpgexplodedmgdealt;
 			gs.shotdamage += max<int>(effectiveDamage(WEAP_RPG, 0), rpgexplodedmgdealt);
 			break;
