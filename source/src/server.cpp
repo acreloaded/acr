@@ -5097,6 +5097,8 @@ int getpongflags(enet_uint32 ip){
 		flags |= 1 << PONGFLAG_BLACKLIST;
 	if(checkmutelist(ip))
 		flags |= 1 << PONGFLAG_MUTE;
+	if(scl.bypassglobalbans)
+		flags |= 1 << PONGFLAG_BYPASSBAN;
 	return flags;
 }
 

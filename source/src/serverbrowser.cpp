@@ -639,6 +639,8 @@ void checkpings()
 			else if(si->pongflags & (1 << PONGFLAG_MUTE))
 				sp = "you are muted on this server";
 			else if(mm) sp = mmfullname(mm);
+			else if(si->pongflags & (1 << PONGFLAG_BYPASSBAN))
+				sp = "ignores global bans";
 			formatstring(si->description)("%s  \f1(%s)", si->sdesc, sp);
 		}
 	}
@@ -1060,7 +1062,7 @@ void refreshservers(void *menu, bool init)
 					filterrichtext(text, si.favcat > -1 ? favcattags[si.favcat] : "");
 					if(showweights) concatformatstring(text, "(%d)", si.weight);
 					formatstring(si.full)(showfavtag ? "\fs%s\fr\t" : "", text);
-					concatformatstring(si.full, "\fs\f%c%d\t\fs\f%c%d/%d\fr\t\a%c  ", basecolor, si.ping, plnumcolor, si.numplayers, si.maxclients, '0' + si.uplinkqual);
+					concatformatstring(si.full, "\fs\f%c%d\t\fs\f%c%d/%d\fr\t\a%c  %s", basecolor, si.ping, plnumcolor, si.numplayers, si.maxclients, '0' + si.uplinkqual, si.pongflags & (1 << PONGFLAG_BYPASSBAN) ? "! " : "");
 					if(si.map[0])
 					{
 						concatformatstring(si.full, "%s, %s", si.map, modestr(si.mode, si.muts, modeacronyms > 0));
