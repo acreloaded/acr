@@ -60,7 +60,7 @@ int allowconnect(client &ci, const char *pwd = NULL, int authreq = 0, int authus
 	if(srvfull) return DISC_FULL;
 	if(banned) return DISC_REFUSE;
 	// does the master server want a disconnection?
-	if(ci.authpriv < PRIV_NONE && ci.masterverdict) return ci.masterverdict;
+	if(!scl.bypassglobalbans && ci.authpriv < PRIV_NONE && ci.masterverdict) return ci.masterverdict;
 	if(pwd && *scl.serverpassword){ // server password required
 		if(!strcmp(genpwdhash(ci.name, scl.serverpassword, ci.salt), pwd)){
 			logline(ACLOG_INFO, "[%s] %s logged in using the server password%s", gethostname(ci.clientnum), formatname(ci), wlp);
