@@ -92,7 +92,7 @@ void authsuceeded(uint id, char priv, char *name){
 	sendf(priv || banremoved ? -1 : c->clientnum, 1, "ri3s", N_AUTHCHAL, 5, c->clientnum, name);
 	if(priv){
 		c->authpriv = clamp<char>(priv, PRIV_MASTER, PRIV_MAX);
-		setpriv(c->clientnum, c->authpriv);
+		// setpriv(c->clientnum, c->authpriv);
 		// unmute if auth has privilege
 		c->muted = false;
 	}
