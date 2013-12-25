@@ -131,7 +131,7 @@ void shotevent::process(client *ci)
 			{
 				int dmg = HEALTHSCALE;
 				dist = expc.dist(from);
-				if(dist <= 10) // close range puncture
+				if(dist <= 16) // close range puncture
 					dmg *= 300;
 				else if(hitzone == HIT_HEAD){
 					sendheadshot(from, to, dmg);
