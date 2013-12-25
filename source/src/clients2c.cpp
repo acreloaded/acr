@@ -1275,7 +1275,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				extern int authuser;
 				extern char *authkey;
 				unsigned hash[5] = {0};
-				defformatstring(buf)("%s:%s!%d", authuser, authkey, nonce);
+				defformatstring(buf)("%d:%s!%d", authuser, authkey, nonce);
 				if(!gensha1(buf, hash)){
 					conoutf("could not compute message digest");
 					break;
