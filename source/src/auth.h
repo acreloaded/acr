@@ -114,7 +114,9 @@ void authfail(uint id, bool disconnect){
 
 void authchallenged(uint id, int nonce){
 	client *c = findauth(id);
-	if(c) sendf(c->clientnum, 1, "ri3", N_AUTHREQ, nonce, c->authtoken);
+	if(!c) return;
+	sendf(c->clientnum, 1, "ri3", N_AUTHREQ, nonce, c->authtoken);
+	logline(ACLOG_INFO, "[%s] auth #%d challenged by master", gethostname(c->clientnum), id);
 }
 
 bool answerchallenge(int cn, int *hash){
