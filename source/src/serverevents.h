@@ -126,9 +126,11 @@ void shotevent::process(client *ci)
 			exclude.setsize(0);
 			exclude.add(c.clientnum);
 			client *hit = nearesthit(c, from, to, !m_real(gamemode, mutators), hitzone, pos, exclude, expc);
-			float dist = expc.dist(from);
-			if(hit){
+			float dist = 0;
+			if(hit)
+			{
 				int dmg = HEALTHSCALE;
+				dist = expc.dist(from);
 				if(dist <= 10) // close range puncture
 					dmg *= 300;
 				else if(hitzone == HIT_HEAD){
@@ -142,7 +144,11 @@ void shotevent::process(client *ci)
 				serverdamage(hit, &c, dmg, WEAP_RPG, FRAG_GIB | (hitzone == HIT_HEAD ? FRAG_FLAG : FRAG_NONE), expc, expc.dist(from));
 			}
 			// fix explosion on walls
-			else (expc = to).sub(from).normalize().mul(to.dist(from) - .1f).add(from);
+			else
+			{
+				dist = to.dist(from) - .1f;
+				(expc = to).sub(from).normalize().mul(dist).add(from);
+			}
 			// instant explosion
 			int rpgexplodedmgdealt = dist >= 16 ? explosion(*ci, expc, WEAP_RPG, !m_real(gamemode, mutators), false, hit) : 0;
 			gs.damage += rpgexplodedmgdealt;
