@@ -239,7 +239,7 @@ void checkmasterreply()
 							case 'd': // fail to claim
 							case 'f': // failure
 								error = false;
-								extern void authfail(uint id, bool disconnect);
+								extern void authfail(uint id, bool fail);
 								authfail(authid, t == 'd');
 								break;
 							case 's': // succeed
