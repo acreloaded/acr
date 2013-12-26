@@ -64,7 +64,7 @@ misc
 	build.png - Combined by Victor LGPL from Crystal Icons LGPL
 	damage.png - OpenWarfare2 1.3 Modder Ethical Public License 1.0
 	radaricons.png - Victor Copyright Ineligible
-	scope.png - Victor Copyright Ineligible
+	scope.png - DeltaStrikeOp Copyright Ineligible
 	startscreen.png - Victor Public Domain
 models
 	playermodels - Protox AssaultCube HQ Reskin Public Domain
