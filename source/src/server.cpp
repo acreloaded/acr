@@ -3633,9 +3633,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 							logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d", gethostname(sender), formatname(cl), l);
 							disconnect_client(sender, DISC_NAME);
 						}
+						else goto NICKBL_NOERROR;
 						break;
 					}
-					// no error:
+					NICKBL_NOERROR:
 					default:
 						copystring(cl->newname, text, MAXNAMELEN+1);
 						cl->name_relay = servmillis + 1000;
