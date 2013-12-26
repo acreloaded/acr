@@ -87,10 +87,10 @@ void authsuceeded(uint id, char priv, char *name){
 	c->authreq = 0;
 	filtertext(c->authname, name);
 	logline(ACLOG_INFO, "[%s] auth #%d suceeded for %s as '%s'", gethostname(c->clientnum), id, privname(priv), c->authname);
-	bool banremoved = false;
-	loopv(bans) if(bans[i].host == c->peer->address.host){ bans.remove(i--); banremoved = true; } // deban
+	//bool banremoved = false;
+	loopv(bans) if(bans[i].host == c->peer->address.host){ bans.remove(i--); /*banremoved = true;*/ } // deban
 	// broadcast "identified" if privileged or a ban was removed
-	sendf(banremoved ? -1 : c->clientnum, 1, "ri3s", N_AUTHCHAL, 5, c->clientnum, c->authname);
+	sendf(-1, 1, "ri3s", N_AUTHCHAL, 5, c->clientnum, c->authname);
 	if(priv)
 	{
 		c->authpriv = clamp<char>(priv, PRIV_MASTER, PRIV_MAX);
