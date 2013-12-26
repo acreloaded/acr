@@ -172,12 +172,10 @@ void CBotManager::GetBotName(int seed, int sk, char *out)
 	if(*name == '*') // rank based on skill
 	{
 		if(*++name == ' ') ++name; // skip space
-		// skill is normally from 45 to 95
 		if(sk >= 90) rank = "Lt. "; // 10%
-		else if(sk >= 80) rank = "Sgt. "; // 20%
-		else if(sk >= 65) rank = "Cpl. "; // 30%
-		// 40% Private
-		else if(sk >= 55) rank = "Pfc. "; // 20%
+		else if(sk >= 70) rank = "Sgt. "; // 20%
+		else if(sk >= 40) rank = "Cpl. "; // 30%
+		else if(sk >= 20) rank = "Pfc. "; // 20%
 		else rank = "Pvt. "; // 20%
 	}
 

@@ -37,7 +37,7 @@ bool addai(){
 	b.connected = true;
 	b.team = chooseteam(b); // choose its team
 	b.state.skin = rand();// random skin
-	b.state.level = 45 + rnd(51); // how smart/stupid the bot is can be set here (currently random from 45 to 95)
+	b.state.level = rnd(101); // how smart/stupid the bot is
 	b.state.ownernum = aiowner;
 	copystring(b.name, "<bot>");
 	b.state.bot_seed = rand();
