@@ -5,7 +5,7 @@ audio
 	misc
 		firstblood.ogg
 		headshot.ogg
-			©? probably OpenWarfare2
+			[©?] probably OpenWarfare2
 	weapon
 		auto.ogg
 		bolt.ogg
@@ -21,10 +21,10 @@ audio
 		sub_reload.ogg
 		sword.ogg
 		usp.ogg
-			©? Unknown
-		katana.ogg - comes with the sword model by PROGONNA, with reciprocal non-copyright
-		sniper2.ogg - (A section of) Bobster CC BY-NC-ND 3.0
-crosshairs - Copyright Ineligible
+			[©?] Unknown
+		katana.ogg - [reciprocal non-copyright] comes with the sword model by PROGONNA
+		sniper2.ogg - [CC BY-NC-ND 3.0] A section of a sound by Bobster
+crosshairs - [Copyright Ineligible]
 eventicons
 	airstrike.png
 	dropnade.png
@@ -32,7 +32,7 @@ eventicons
 	nuke.png
 	radar.png
 	suicidebomb.png
-		© Activision and Infinity Ward
+		[©] Activision and Infinity Ward
 	com.png - Protox Mod CC BY 3.0
 	bleed.png
 	chat.png
@@ -42,9 +42,9 @@ eventicons
 	headshot.png
 	revenge.png
 	up.png
-		Red Eclipse CC BY-SA 3.0
+		[CC BY-SA 3.0] Red Eclipse
 maps/official
-	acr_recreation - © {ak}bluwarguy but ACR is allowed to use it as an official map
+	acr_recreation - [©] {ak}bluwarguy but ACR is allowed to use it as an official map
 misc
 	base.png
 	blood.png
@@ -53,21 +53,21 @@ misc
 	ctficons.png
 	explosion.png
 	flagicons.png
-	hktficons.png - Modified by Victor CC BY 3.0
+	hktficons.png - [CC BY 3.0] Modified by Victor
 	huddigits.png
-	items.png - Modified by Victor CC BY 3.0
+	items.png - [CC BY 3.0] Modified by Victor
 	muzzleflash.jpg
 	smoke.png
-	teamicons.png - Modified by Victor CC BY 3.0
+	teamicons.png - [CC BY 3.0] Modified by Victor
 	voteicons.png
-		Protox Mod CC BY 3.0
-	build.png - Combined by Victor LGPL from Crystal Icons LGPL
-	damage.png - OpenWarfare2 1.3 Modder Ethical Public License 1.0
-	radaricons.png - Victor Copyright Ineligible
-	scope.png - DeltaStrikeOp Copyright Ineligible
-	startscreen.png - Victor Public Domain
+		[CC BY 3.0] Protox Mod
+	build.png - [LGPL] Combined by Victor from [LGPL] Crystal Icons
+	damage.png - [Modder Ethical Public License 1.0] OpenWarfare2 1.3
+	radaricons.png - [Copyright Ineligible] Adapted by Victor from works by Activision and Markus "makkE" Bekel
+	scope.png - [CC BY-NC-SA 3.0] DeltaStrikeOp
+	startscreen.png - [Public Domain] Victor
 models
-	playermodels - Protox AssaultCube HQ Reskin Public Domain
+	playermodels - [Public Domain] Protox AssaultCube HQ Reskin
 	weapon
 		assault
 		bolt
@@ -75,25 +75,27 @@ models
 		shell
 		shotgun
 		subgun
-			©? Unknown
+			[©?] Unknown
 		assault2
 		pistol
-			xdEpicZombie CC0, hands by Padge1 CC BY 3.0	
-		sniper - Converted only by Victor, no other changes - CC BY-NC-ND 3.0 http://css.gamebanana.com/skins/42302
-		sniper2 - Padge1 CC BY 3.0
-		sword - Modified by Victor Public Domain - Copyright-free Reciprocal Licence by PROGONNA
+			[CC0] Models by xdEpicZombie
+			[CC BY 3.0] Hands by Padge1
+			[©?] Textures are unknown
+		sniper - [CC BY-NC-ND 3.0] converted only by Victor, no other changes http://css.gamebanana.com/skins/42302
+		sniper2 - [CC BY 3.0] Padge1
+		sword - [Copyright-free Reciprocal Licence] Modified by Victor from a model of PROGONNA
 
-		assault2/world  - Modified by Victor
-		bolt/menu - Modified by Victor
-		bolt/world - Modified by Victor
+		assault2/world  - [CC BY-NC-SA 2.5] Modified by Victor
+		bolt/menu - [CC BY-NC-SA 2.5] Modified by Victor
+		bolt/world - [CC BY-NC-SA 2.5] Modified by Victor
 		bolt/skin_hands.jpg
-		heal - Modified by Victor
-		knife - Reanimated by Victor
+		heal - [CC BY-NC-SA 2.5] Modified by Victor
+		knife - [CC BY-NC-SA 2.5] Reanimated by Victor
 		rpg/skin_hands.jpg
 		sniper2/world
 		sniper2/menu
 		sword/skin_hands.jpg
-			CC BY-NC-SA 2.5
+			[CC BY-NC-SA 2.5]
 			by "makkE"
 			Markus Bekel
 			e-mail: makk_e@web.de
@@ -118,9 +120,9 @@ obit
 	sniper.png
 	sniper2.png
 	subgun.png
-		© Activision
+		[©] Activision
 	bot.png
-	build.png - Combined by Victor, LGPL
+	build.png - [LGPL] Combined by Victor
 	cheat.png
 	crit.png
 	drown.png
@@ -133,14 +135,14 @@ obit
 	revive.png
 	spawn.png
 	team.png
-		Crystal Icons LGPL
-	first.png - Deleket (http://deleket.deviantart.com/) CC BY 3.0
-	knife.png* - Unknown origin, but non-commercial use is probably allowed
-	nuke.png - Aqua Candy Revolution - McDo Design (Susumu Yoshida) Non-commercial, Link not required
-	sword.png - Storm Riders - Swords Icon Pack by Talos Tsui - Unlicensed
-perks - Colored Perk Icons for ACR Victor CC BY 3.0 - adapted from Perks Icons for ACR by Protox CC BY 3.0
-streak - Colorized/Modified by Victor LGPL - Crystal Icons LGPL
-waypoints - Victor CC BY-NC-SA 3.0
+		[LGPL] Crystal Icons
+	first.png - [CC BY 3.0] Deleket (http://deleket.deviantart.com/)
+	knife.png* - [Unknown origin] but non-commercial use is probably allowed
+	nuke.png - [Non-commercial but link is optional] from Aqua Candy Revolution by McDo Design (Susumu Yoshida)
+	sword.png - [Unlicensed] Storm Riders - Swords Icon Pack by Talos Tsui
+perks - [CC BY 3.0] Colored Perk Icons for ACR Victor - adapted from [CC BY 3.0] Perks Icons for ACR by Protox
+streak - [LGPL] Colorized/Modified by Victor - [LGPL] Crystal Icons
+waypoints - [CC BY-NC-SA 3.0] Victor
 	airstrike.png
 	enemy.png
 	friendly.png
@@ -149,4 +151,4 @@ waypoints - Victor CC BY-NC-SA 3.0
 	nuke.png
 	stolen.png
 	return.png
-		© Activision
+		[©] Activision
