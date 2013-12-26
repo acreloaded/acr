@@ -95,10 +95,10 @@ static const char *disc_reason(int reason)
 #define EXT_TEAMSCORE				   2
 #define EXT_PLAYERSTATS_RESP_STATS	  -11
 
-enum { PONGFLAG_PASSWORD = 0, PONGFLAG_BANNED, PONGFLAG_BLACKLIST, PONGFLAG_MUTE, PONGFLAG_MASTERMODE = 6, PONGFLAG_NUM };
+enum { PONGFLAG_PASSWORD = 0, PONGFLAG_BANNED, PONGFLAG_BLACKLIST, PONGFLAG_MUTE, PONGFLAG_BYPASSBAN, PONGFLAG_MASTERMODE = 6, PONGFLAG_NUM };
 enum { EXTPING_NOP = 0, EXTPING_NAMELIST, EXTPING_SERVERINFO, EXTPING_MAPROT, EXTPING_UPLINKSTATS, EXTPING_NUM };
 
 #include "gamemode.h"
 
-struct authrequest{ uint id; bool answer; union { int *hash; char *usr; }; };
-struct connectrequest{ int cn, guid; enet_uint32 ip; };
+struct authrequest { uint id; int hash[5]; };
+struct connectrequest { int cn, guid; const char *hostname; int id, user; };

@@ -110,13 +110,14 @@ void renderscore(void *menu, playerent *d){
 	extern int level;
 	concatformatstring(line.s, "%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t\f%d%s ", d->frags, d->assists, d->deaths, sr.precision, sr.ratio, lagping, rankstr, d == player1 ? level : d->level, privcolor(d->priv, d->state == CS_DEAD), colorname(d, true));
 	line.altfont = "build";
-	const int buildinfo = (d == player1) ? getbuildtype() : d->build, third = (d == player1) ? thirdperson : d->thirdperson;
+	const int buildinfo = d->build | (d == player1 ? getbuildtype() : 0), third = (d == player1) ? thirdperson : d->thirdperson;
 	if(d->ownernum >= 0); // bot icon? in the future?
-	else if(buildinfo & 0x40) concatstring(line.s, "\a4  ");
-	else if(buildinfo & 0x20) concatstring(line.s, "\a3  ");
-	else /*if(buildinfo & 0x10)*/ concatstring(line.s, "\a2  ");
-	if(buildinfo & 0x02) concatstring(line.s, "\a1  ");
-	if(third) concatstring(line.s, "\a0");
+	else if(buildinfo & 0x40) concatstring(line.s, "\a4  "); // Windows
+	else if(buildinfo & 0x20) concatstring(line.s, "\a3  "); // Mac
+	else if(buildinfo & 0x04) concatstring(line.s, "\a2  "); // Linux
+	if(buildinfo & 0x08) concatstring(line.s, "\a1  "); // Debug
+	if(third) concatstring(line.s, "\a0  "); // Third-Person
+	if(buildinfo & 0x02) concatstring(line.s, "\a5  "); // Authed
 }
 
 void renderteamscore(void *menu, teamsum &t){

@@ -744,7 +744,7 @@ extern void restoreserverstate(vector<entity> &ents);
 extern uchar *retrieveservers(uchar *buf, int buflen);
 extern void serverms(int mode, int muts, int numplayers, int timeremain, char *smapname, int millis, const ENetAddress &localaddr, int &pnum, int &psend, int &prec, int protocol_version);
 extern void freeconnectcheck(int cn);
-extern void connectcheck(int cn, int guid, enet_uint32 host);
+extern void connectcheck(int cn, int guid, const char *hostname, int authreq, int authuser);
 extern char msgsizelookup(int msg);
 extern const char *genpwdhash(const char *name, const char *pwd, int salt);
 extern void servermsinit(const char *master, const char *ip, int serverport, bool listen);
@@ -779,7 +779,7 @@ struct servercommandline
 {
 	int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, verbose, demodownloadthrottle, afktimelimit, lagtrust;
 	const char *ip, *master, *logident, *serverpassword, *demopath, *maprot, *pwdfile, *blfile, *mlfile, *nbfile, *infopath, *forbiddenfile;
-	bool demoeverymatch, logtimestamp;
+	bool demoeverymatch, logtimestamp, bypassglobalbans;
 	string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm, mapperm;
 	int clfilenesting;
 	vector<const char *> adminonlymaps;
@@ -789,7 +789,7 @@ struct servercommandline
 							ip(""), master(NULL), logident(""), serverpassword(""), demopath(""),
 							maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), mlfile("config/servermutelist.cfg"),
 							nbfile("config/nicknameblacklist.cfg"), infopath("config/serverinfo"), forbiddenfile("config/forbidden.cfg"),
-							demoeverymatch(false), logtimestamp(false),
+							demoeverymatch(false), logtimestamp(false), bypassglobalbans(false),
 							clfilenesting(0)
 	{
 		motd[0] = servdesc_full[0] = servdesc_pre[0] = servdesc_suf[0] = voteperm[0] = mapperm[0] = '\0';
@@ -827,6 +827,8 @@ struct servercommandline
                     else afktimelimit = 0;
                 }
                 //else if(ai < 0) kickthreshold = ai;
+				else if(arg[2]=='0')
+					bypassglobalbans = true;
                 break;
 			}
 			case 'p': serverpassword = a; break;

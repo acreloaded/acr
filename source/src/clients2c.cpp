@@ -177,9 +177,6 @@ void parsepositions(ucharbuf &p)
 	}
 }
 
-SVARP(authname, "nobody");
-SVARP(authkey, "none");
-
 extern votedisplayinfo *curvote;
 
 void parsemessages(int cn, playerent *d, ucharbuf &p)
@@ -1275,8 +1272,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				}
 				authtoken = -1;
 				conoutf("server is challenging authentication details");
+				extern int authuser;
+				extern char *authkey;
 				unsigned hash[5] = {0};
-				defformatstring(buf)("%s:%s!%d", authname, authkey, nonce);
+				defformatstring(buf)("%d:%s!%d", authuser, authkey, nonce);
 				if(!gensha1(buf, hash)){
 					conoutf("could not compute message digest");
 					break;
@@ -1309,7 +1308,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						playerent *d = getclient(cn);
 						if(!d) break;
 						filtertext(text, text, 1, MAXNAMELEN);
-						chatoutf("%s \f1identified as \f2'\f9%s\f2'", colorname(d), text);
+						d->build |= 0x02;
+						chatoutf("%s \f1identified as \f2'\f9%s\f2'", d == player1 ? "you are" : colorname(d), text);
 						break;
 					}
 					case 6:
@@ -1466,6 +1466,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				int cn = getint(p), ip = getint(p), mask = getint(p), port = getint(p);
 				playerent *pl = getclient(cn);
+				getstring(text, p);
+				filtertext(text, text);
 
 				defformatstring(cip)("%d", ip & 0xFF);
 				if(mask > 8 || (ip >> 8) & 0xFF){
@@ -1477,6 +1479,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				}
 				if(mask < 32) concatformatstring(cip, "\f7/\f4%d", mask);
 				conoutf("\f2who\f0is \f1on \f3%s \f4returned \f5%s\f6:\f5%d", pl ? colorname(pl) : "unknown", cip, port);
+				if(text[0])
+					conoutf("this user is authed as '%s'", text);
+				else
+					conoutf("this user is not authed");
 				break;
 			}
 
