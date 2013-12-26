@@ -150,7 +150,7 @@ void shotevent::process(client *ci)
 				(expc = to).sub(from).normalize().mul(dist).add(from);
 			}
 			// instant explosion
-			int rpgexplodedmgdealt = dist >= 28 ? explosion(*ci, expc, WEAP_RPG, !m_real(gamemode, mutators), false, hit) : 0;
+			int rpgexplodedmgdealt = dist >= 20 ? explosion(*ci, expc, WEAP_RPG, !m_real(gamemode, mutators), false, hit) : 0;
 			gs.damage += rpgexplodedmgdealt;
 			gs.shotdamage += max<int>(effectiveDamage(WEAP_RPG, 0), rpgexplodedmgdealt);
 			break;
