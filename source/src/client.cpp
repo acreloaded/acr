@@ -154,6 +154,7 @@ void disconnect(int onlyclean, int async)
 		player1->clientnum = -1;
 		player1->lifesequence = 0;
 		player1->priv = PRIV_NONE;
+		player1->build = 0;
 		loopv(players) zapplayer(players[i]);
 		clearvote();
 		clearworldsounds(false);
@@ -419,20 +420,20 @@ VARP(authuser, 0, 0, INT_MAX);
 SVARP(authkey, "none");
 
 int getbuildtype(){
-	return
+	return (isbigendian() ? 0x80 : 0 ) |
 	#ifdef WIN32
 		0x40 |
 	#endif
 	#ifdef __APPLE__
 		0x20 |
 	#endif
-	#ifdef __GNUC__
-		0x10 |
-	#endif
 	#ifdef _DEBUG
-		0x02 |
+		0x08 |
 	#endif
-		(isbigendian() ? 0x04 : 0 );
+	#ifdef __GNUC__
+		0x04 |
+	#endif
+		0; // 0x02 is reserved for auth
 }
 
 void sendintro()

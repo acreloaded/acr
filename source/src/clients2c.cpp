@@ -1308,7 +1308,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						playerent *d = getclient(cn);
 						if(!d) break;
 						filtertext(text, text, 1, MAXNAMELEN);
-						chatoutf("%s \f1identified as \f2'\f9%s\f2'", d == player1 ? "you're" : colorname(d), text);
+						d->build |= 0x02;
+						chatoutf("%s \f1identified as \f2'\f9%s\f2'", d == player1 ? "you are" : colorname(d), text);
 						break;
 					}
 					case 6:

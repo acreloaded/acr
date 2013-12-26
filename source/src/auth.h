@@ -151,11 +151,14 @@ void masterverdict(int cn, int result){
 }
 
 void logversion(client &ci, int ver, int defs, int guid){
+	// Filter the definitions
+	defs &= 0x80 | 0x40 | 0x20 | 0x08 | 0x04;
+	// Make the string
 	string cdefs;
 	*cdefs = 0;
 	if(defs & 0x40) concatstring(cdefs, "W");
 	if(defs & 0x20) concatstring(cdefs, "M");
-	if(defs & 0x10) concatstring(cdefs, "L");
-	if(defs & 0x02) concatstring(cdefs, "D");
+	if(defs & 0x04) concatstring(cdefs, "L");
+	if(defs & 0x08) concatstring(cdefs, "D");
 	logline(ACLOG_INFO, "[%s] %s runs %d [%X] [GUID-%08X]", gethostname(ci.clientnum), formatname(ci), ci.acversion = ver, ci.acbuildtype = defs, ci.guid = guid);
 }

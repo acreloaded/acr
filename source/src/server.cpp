@@ -3010,7 +3010,7 @@ void putinitclient(client &c, ucharbuf &p){
     putint(p, c.state.skin);
 	putint(p, c.state.level);
     sendstring(c.name, p);
-	putint(p, c.acbuildtype);
+	putint(p, c.acbuildtype | (c.authname[0] ? 0x02 : 0));
 	putint(p, c.acthirdperson);
 }
 
