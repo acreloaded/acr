@@ -1309,7 +1309,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 						if(!d) break;
 						filtertext(text, text, 1, MAXNAMELEN);
 						d->build |= 0x02;
-						chatoutf("%s \f1identified as \f2'\f9%s\f2'", d == player1 ? "you are" : colorname(d), text);
+						(d == player1 ? chatoutf : conoutf)("%s \f1identified as \f2'\f9%s\f2'", d == player1 ? "you are" : colorname(d), text);
 						break;
 					}
 					case 6:
