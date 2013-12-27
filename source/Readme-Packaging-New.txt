@@ -1,6 +1,6 @@
 Source:
-1. Subdirectory /source from SVN
-2. Delete working files (/vcpp) except for files from SVN
+1. Subdirectory /source from repository
+2. Delete working files (/vcpp) except for files from repository
 
 Server Pack:
 1. Prepare a Linux Package, but modify some steps:
