@@ -67,6 +67,13 @@ misc
 	scope.png - [CC BY-NC-SA 3.0] DeltaStrikeOp
 	startscreen.png - [Public Domain] Victor
 models
+	pickups
+		confirm
+		deny
+			[CC BY-NC-SA 2.5]
+			by "makkE"
+			Markus Bekel
+			e-mail: makk_e@web.de
 	playermodels - [Public Domain] Protox AssaultCube HQ Reskin
 	weapon
 		assault
