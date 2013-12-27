@@ -15,11 +15,15 @@ $numskins 0
 $tag "tag_muzzle"
 
 // meshes (surfaces)
-$mesh "lhand"
+$mesh "hands"
 $skin "models/players/model/skin.tga"
 $flags 0
 
-$mesh "rhand"
+$mesh "wand"
+$skin "models/players/model/skin.tga"
+$flags 0
+
+$mesh "tip"
 $skin "models/players/model/skin.tga"
 $flags 0
 

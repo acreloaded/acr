@@ -1,5 +1,5 @@
-AssaultCube Reloaded adds and modifies on top of AssaultCube's packages.
-This file declares the copyright status of every modified asset
+AssaultCube Reloaded adds on top of the packages of AssaultCube.
+This file declares the copyright status of every added or replaced asset.
 
 audio
 	misc
@@ -44,7 +44,7 @@ eventicons
 	up.png
 		[CC BY-SA 3.0] Red Eclipse
 maps/official
-	acr_recreation - [©] {ak}bluwarguy but ACR is allowed to use it as an official map
+	acr_recreation - [CC BY-NC-SA 3.0] {ak}bluwarguy
 misc
 	base.png
 	blood.png
@@ -81,6 +81,7 @@ models
 			[CC0] Models by xdEpicZombie
 			[CC BY 3.0] Hands by Padge1
 			[©?] Textures are unknown
+		heal - [CC BY-NC-SA 2.5] Modified by Victor from [CC BY-NC-SA 2.5] a magic wand by {ak}bluwarguy
 		sniper - [CC BY-NC-ND 3.0] converted only by Victor, no other changes http://css.gamebanana.com/skins/42302
 		sniper2 - [CC BY 3.0] Padge1
 		sword - [Copyright-free Reciprocal Licence] Modified by Victor from a model of PROGONNA
@@ -89,7 +90,7 @@ models
 		bolt/menu - [CC BY-NC-SA 2.5] Modified by Victor
 		bolt/world - [CC BY-NC-SA 2.5] Modified by Victor
 		bolt/skin_hands.jpg
-		heal - [CC BY-NC-SA 2.5] Modified by Victor
+		heal/skin_hands
 		knife - [CC BY-NC-SA 2.5] Reanimated by Victor
 		rpg/skin_hands.jpg
 		sniper2/world
