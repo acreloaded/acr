@@ -188,7 +188,7 @@ void trydisconnect()
 }
 
 void saytext(playerent *d, char *text, int flags, int sound){
-	if(sound > 0 && sound < S_NULL){
+	if(!d->ignored && sound > 0 && sound < S_NULL){
 		d->addicon(eventicon::VOICECOM);
 		playsound(sound, SP_HIGH);
 	} else sound = 0;
@@ -214,7 +214,7 @@ void saytext(playerent *d, char *text, int flags, int sound){
 	if(flags & SAY_ACTION) formatstring(textout)("\f5* %s", nametag);
 	else formatstring(textout)("\f5<%s\f5>", nametag);
 	// output with text
-	void (*outf)(const char *s, ...) = textcolor == 2? conoutf : chatoutf;
+	void (*outf)(const char *s, ...) = (textcolor == 2 || d->ignored) ? conoutf : chatoutf;
 	if(sound) outf("%s \f4[\f6%d\f4] \f%d%s", textout, sound, textcolor, text);
 	else outf("%s \f%d%s", textout, textcolor, text);
 }

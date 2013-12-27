@@ -112,6 +112,27 @@ const char *colorpj(int pj)
 	return cpj;
 }
 
+void ignore(int cn)
+{
+	playerent *d = getclient(cn);
+	if(d && d != player1) d->ignored = true;
+}
+
+void unignore(int cn)
+{
+	playerent *d = getclient(cn);
+	if(d && d != player1) d->ignored = false;
+}
+
+void clearignored(int cn)
+{
+	loopv(players) if(players[i] && (cn < 0 || cn == i)) players[i]->ignored = false;
+}
+
+COMMAND(ignore, ARG_1INT);
+COMMAND(unignore, ARG_1INT);
+COMMAND(clearignored, ARG_1INT);
+
 void newname(const char *name)
 {
 	if(name[0])

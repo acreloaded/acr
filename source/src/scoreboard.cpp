@@ -118,6 +118,7 @@ void renderscore(void *menu, playerent *d){
 	if(buildinfo & 0x08) concatstring(line.s, "\a1  "); // Debug
 	if(third) concatstring(line.s, "\a0  "); // Third-Person
 	if(buildinfo & 0x02) concatstring(line.s, "\a5  "); // Authed
+	if(d->ignored) concatstring(line.s, "\a6  "); // Muted
 }
 
 void renderteamscore(void *menu, teamsum &t){

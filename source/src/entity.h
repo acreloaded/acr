@@ -580,6 +580,8 @@ struct playerent : dynent, playerstate
 	vec head, eject, muzzle;
 	vec deathcamsrc;
 
+	bool ignored;
+
 	// AI
 	CBot *pBot;
 
@@ -607,7 +609,7 @@ struct playerent : dynent, playerstate
 		skin_noteam = skin_red = skin_blue = NULL;
 		respawn(G_DM, G_M_NONE);
 		damagestack.setsize(0);
-		wantsreload = delayedscope = false;
+		wantsreload = delayedscope = ignored = false;
 	}
 
 	void addicon(int type)
