@@ -112,7 +112,7 @@ void renderentities()
 			else if((e.type==CLIP || e.type==PLCLIP) && !stenciling) renderclip(e);
 			else if(e.type == PLAYERSTART){
 				defformatstring(skin)(e.attr2 < 2 ? "packages/models/playermodels/%s/%s.jpg" : "packages/models/playermodels/skin.jpg",
-					e.attr2 ? "RVSF" : "CLA", e.attr2 ? "blue" : "red");
+					team_string_old(e.attr2), e.attr2 ? "blue" : "red");
 				rendermodel("playermodels", ANIM_IDLE|ANIM_TRANSLUCENT|/*ANIM_LOOP*/ANIM_END|ANIM_DYNALLOC, -(int)textureload(skin)->id, 1.5f, vec(e.x, e.y, (float)S(e.x, e.y)->floor), e.attr1+90, 0/4);
 			}
 			else if(showmodelclipping && e.type == MAPMODEL && !stenciling)
@@ -141,8 +141,8 @@ void renderentities()
 	{
 		flaginfo &f = flaginfos[i];
 		entity &e = *f.flagent;
-		defformatstring(fpath)("pickups/flags/%s%s", m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? "" : team_string(i),  (m_hunt(gamemode) || m_bomber(gamemode)) ? "_htf" : m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? "ktf" : "");
-		defformatstring(sfpath)("pickups/flags/small_%s%s", m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? "" : team_string(i), (m_hunt(gamemode) || m_bomber(gamemode)) ? "_htf" : m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? "ktf" : "");
+		defformatstring(fpath)("pickups/flags/%s%s", m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? "" : team_string_old(i),  (m_hunt(gamemode) || m_bomber(gamemode)) ? "_htf" : m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? "ktf" : "");
+		defformatstring(sfpath)("pickups/flags/small_%s%s", m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? "" : team_string_old(i), (m_hunt(gamemode) || m_bomber(gamemode)) ? "_htf" : m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? "ktf" : "");
 		switch(f.state)
 		{
 			case CTFF_STOLEN:

@@ -152,6 +152,7 @@ extern float gunspeed(int gun, int ads, bool lightweight = false);
 enum { TEAM_RED = 0, TEAM_BLUE, TEAM_SPECT, TEAM_NUM };
 #define team_valid(t) ((t) >= 0 && (t) < TEAM_NUM)
 #define team_string(t) ((t) == TEAM_BLUE ? "BLUE" : (t) == TEAM_RED ? "RED" : "SPECT")
+#define team_string_old(t) ((t) == TEAM_BLUE ? "RVSF" : (t) == TEAM_RED ? "CLA" : "ktf")
 #define team_int(t) (!strcmp((t), "RED") ? TEAM_RED : !strcmp((t), "BLUE") ? TEAM_BLUE : TEAM_SPECT)
 #define team_opposite(o) ((o) < TEAM_SPECT ? (o) ^ 1 : TEAM_SPECT)
 #define team_color(t) ((t) == TEAM_SPECT ? 4 : (t) ? 1 : 3)
