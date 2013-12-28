@@ -52,7 +52,7 @@ misc
 	compass-rose.png
 	ctficons.png
 	explosion.png
-	flagicons.png
+	flagicons.png - [CC BY 3.0] Modified by Victor
 	hktficons.png - [CC BY 3.0] Modified by Victor
 	huddigits.png
 	items.png - [CC BY 3.0] Modified by Victor
