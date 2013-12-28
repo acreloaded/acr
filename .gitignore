@@ -1,4 +1,5 @@
 # Local game data
+bin_win32/openal32.dll
 data/*
 packages/maps/servermaps/incoming/*
 
