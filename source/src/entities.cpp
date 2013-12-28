@@ -99,14 +99,14 @@ void renderentities()
 		else if(e.type == CTF_FLAG && m_secure(gamemode))
 		{
 			const int team = e.attr2 - 2;
-			defformatstring(path)("pickups/flags/%s", team != TEAM_SPECT ? team_string(team) : "ktf");
+			defformatstring(path)("pickups/flags/%s", team != TEAM_SPECT ? team_string_old(team) : "ktf");
 			rendermodel(path, ANIM_FLAG|ANIM_LOOP|ANIM_IDLE, 0, 0, vec(e.x, e.y, (float)S(int(e.x), int(e.y))->floor), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
 		}
 		else if(editmode || m_edit(gamemode))
 		{
 			if(e.type==CTF_FLAG)
 			{
-				defformatstring(path)("pickups/flags/%s", (e.attr2 == TEAM_RED || e.attr2 == TEAM_BLUE) ? team_string(e.attr2) : "ktf");
+				defformatstring(path)("pickups/flags/%s", (e.attr2 == TEAM_RED || e.attr2 == TEAM_BLUE) ? team_string_old(e.attr2) : "ktf");
 				rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
 			}
 			else if((e.type==CLIP || e.type==PLCLIP) && !stenciling) renderclip(e);
