@@ -6,6 +6,7 @@ packages/maps/servermaps/incoming/*
 # Non-third-party binaries
 bin_win32/ac_*.exe
 bin_unix/*
+bin_linux/*
 
 # Source code
 source/codeblocks_dev

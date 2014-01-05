@@ -388,7 +388,7 @@ int rendercommand(int x, int y, int w)
 	int width, height;
 	text_bounds(s, width, height, w);
 	y -= height - FONTH;
-	draw_text(s, x+UWSADJUST, y, 0xFF, 0xFF, 0xFF, 0xFF, cmdline.pos>=0 ? cmdline.pos+2 : (int)strlen(s), w);
+	draw_text(s, x+(x < VIRTW/2 ? UWSADJUST : -1*UWSADJUST), y, 0xFF, 0xFF, 0xFF, 0xFF, cmdline.pos>=0 ? cmdline.pos+2 : (int)strlen(s), w);
 	return height;
 }
 
@@ -406,13 +406,13 @@ bool textinputbuffer::key(int code, bool isdown, int unicode)
 		case SDLK_KP_ENTER:
 			break;
 
-		case SDLK_HOME: 
-			if(strlen(buf)) pos = 0; 
-			break; 
+		case SDLK_HOME:
+			if(strlen(buf)) pos = 0;
+			break;
 
-		case SDLK_END: 
-			pos = -1; 
-			break; 
+		case SDLK_END:
+			pos = -1;
+			break;
 
 		case SDLK_DELETE:
 		{
@@ -445,7 +445,7 @@ bool textinputbuffer::key(int code, bool isdown, int unicode)
 		case SDLK_v:
 			extern void pasteconsole(char *dst);
 			#ifdef __APPLE__
-				#define MOD_KEYS (KMOD_LMETA|KMOD_RMETA) 
+				#define MOD_KEYS (KMOD_LMETA|KMOD_RMETA)
 			#else
 				#define MOD_KEYS (KMOD_LCTRL|KMOD_RCTRL)
 			#endif
@@ -455,7 +455,7 @@ bool textinputbuffer::key(int code, bool isdown, int unicode)
 				return true;
 			}
 			// fall through
-				
+
 		default:
 		{
 			if(unicode)
@@ -465,7 +465,7 @@ bool textinputbuffer::key(int code, bool isdown, int unicode)
 				if(len+1 < sizeof(buf))
 				{
 					if(pos < 0) buf[len] = unicode;
-					else 
+					else
 					{
 						memmove(&buf[pos+1], &buf[pos], len - pos);
 						buf[pos++] = unicode;

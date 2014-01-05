@@ -204,7 +204,7 @@ void drawcrosshair(playerent *p, int n, int teamtype, color *c, float size)
 		Texture *cv = crosshairs[CROSSHAIR_V], *ch = crosshairs[CROSSHAIR_H];
 		if(!cv) cv = textureload("packages/crosshairs/vertical.png", 3);
 		if(!ch) ch = textureload("packages/crosshairs/horizontal.png", 3);
-		
+
 		/*if(ch->bpp==32) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		else */glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 		glBindTexture(GL_TEXTURE_2D, ch->id);
@@ -388,7 +388,7 @@ struct hudmessages : consolebuffer<hudline>
 		{
 			cline &c = conlines[i];
 			int tw = text_width(c.line);
-			draw_text(c.line, int(tw > VIRTW*0.9f ? 0 : (VIRTW*0.9f-tw)/2)+UWSADJUST, int(((VIRTH*0.9f)/4*3)+FONTH*i+pow((totalmillis-c.millis)/(float)dispmillis, 4)*VIRTH*0.9f/4.0f));
+			draw_text(c.line, int(tw > VIRTW*0.9f ? 0 : (VIRTW*0.9f-tw)/2), int(((VIRTH*0.9f)/4*3)+FONTH*i+pow((totalmillis-c.millis)/(float)dispmillis, 4)*VIRTH*0.9f/4.0f));
 		}
 	}
 };
@@ -443,14 +443,14 @@ VARP(radarenemyfade, 0, 1250, 1250);
 // DrawCircle from http://slabode.exofire.net/circle_draw.shtmls (public domain, but I'll reference it anyways
 #define circleSegments 720
 void DrawCircle(float cx, float cy, float r, float coordmul, int *col, float thickness = 1.f, float opacity = 250 / 255.f){
-	float theta = 2 * 3.1415926 / float(circleSegments); 
+	float theta = 2 * 3.1415926 / float(circleSegments);
 	float c = cosf(theta); // precalculate the sine and cosine
 	float s = sinf(theta);
 	float t;
 
-	float x = r * coordmul;// we start at angle = 0 
-	float y = 0; 
-    
+	float x = r * coordmul;// we start at angle = 0
+	float y = 0;
+
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH);
 	glLineWidth(thickness);
@@ -463,7 +463,7 @@ void DrawCircle(float cx, float cy, float r, float coordmul, int *col, float thi
 		x = c * x - s * y;
 		y = s * t + c * y;
 	}
-	glEnd(); 
+	glEnd();
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH);
 }
@@ -643,7 +643,7 @@ void drawradar(playerent *p, int w, int h)
 						pos.z += f.pos.z;
 					}
 					else pos.add(pos1);
-				
+
 					drawradarent(fixradarpos(pos, centerpos, res), coordtrans, flag_yaw, 3, m_keep(gamemode) && !m_ktf2(gamemode, mutators) && f.state != CTFF_IDLE ? 2 : f.team, iconsize, 0, f.state == CTFF_IDLE ? .3f : 1);
 				}
 			}
@@ -771,7 +771,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
 		const float flashwhitefade = min((focus->flashmillis - lastmillis - 1500) / 1500.f, .6f);
 		glColor4f(1, 1, 1, flashwhitefade);
-		
+
 		glBegin(GL_QUADS);
 		glVertex2f(0, 0);
 		glVertex2f(VIRTW, 0);
@@ -1001,13 +1001,13 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		int cssec = (gametimecurrent+(lastmillis-lastgametimeupdate))/1000;
 		int cursec = cssec%60;
 		int curmin = cssec/60;
-		
+
 		int rmin = gametimemaximum/60000 - curmin, rsec = cursec;
 		if(rsec){
 			rmin--;
 			rsec = 60 - rsec;
 		}
-		
+
 		defformatstring(gtime)("%02d:%02d/%02d:%02d", curmin, cursec, rmin, rsec);
 		draw_text(gtime, (2*VIRTW - text_width(gtime))/2, 2);
 	}
@@ -1166,7 +1166,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 	//}
 
 	// draw the perk icons
-	
+
 	glLoadIdentity();
 	glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
