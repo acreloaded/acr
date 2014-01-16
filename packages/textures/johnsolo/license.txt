@@ -1,0 +1,11 @@
+Files within this folder are by: 
+		John "SoLo" Susek (john@johnsolo.net)
+
+These files were originally available from:
+		http://www.johnsolo.net/tex/tex.php
+
+They were licensed as below:
+============================
+I have also been asked about licensing on the textures. 
+Consider them free to use for all non-commercial purposes. 
+Please just credit me in your documentation or somewhere on your website. 
