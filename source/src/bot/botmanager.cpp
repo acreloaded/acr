@@ -150,23 +150,13 @@ void CBotManager::LoadBotNamesFile()
 
 void CBotManager::GetBotName(int seed, int sk, char *out)
 {
-    int skip = 0;
-	if(m_zombie(gamemode))
+	if(!m_sBotNameCount)
 	{
-		// First block of ranked names are not for zombies
-		loopi(m_sBotNameCount)
-		{
-			if(m_szBotNames[i][0] == '*') skip = i + 1;
-			else break;
-		}
-	}
-	if(skip >= m_sBotNameCount)
-	{
-		copystring(out, m_zombie(gamemode) ? "a zombie" : "a bot");
+		copystring(out, "a bot");
 		return;
 	}
 	// Use a random name
-	char *name = m_szBotNames[detrnd(seed, m_sBotNameCount - skip) + skip];
+	char *name = m_szBotNames[detrnd(seed, m_sBotNameCount)];
 	const char *rank = ""; // prepend rank (only if based on skill)
 
 	if(*name == '*') // rank based on skill

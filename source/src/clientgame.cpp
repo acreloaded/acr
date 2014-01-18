@@ -86,7 +86,7 @@ const char *colorname(playerent *d, bool stats)
 	if(!d) return "unknown";
 	static string cname;
 	if(d->ownernum < 0) formatstring(cname)("%s \fs\f6(%d)", d->name, d->clientnum);
-	else formatstring(cname)("%s \fs\f7[%d-%d]", d->name, d->clientnum, d->ownernum);
+	else formatstring(cname)("%s \fs\f7[%d-%d]", m_zombie(gamemode) ? "a zombie" : d->name, d->clientnum, d->ownernum);
 	if(stats && d->team != TEAM_SPECT){
 		defformatstring(stat)("%d%.*f", (d->state == CS_DEAD || d->health <= 0) ? 4 : d->health > 50 * HEALTHSCALE ? 0 : d->health > 25 * HEALTHSCALE ? 2 : 3, HEALTHPRECISION, d->health / (float)HEALTHSCALE);
 		if(d->armor) formatstring(stat)("%s\f5-\f4%d", stat, d->armor);
