@@ -134,7 +134,7 @@ Texture **obittex(){
 VARP(obitfade, 0, 10, 60);
 VARP(obitalpha, 0, 80, 100);
 VARP(obitamt, 0, 1, 4); // 0: very compact, 1: show humans, 2: show humans and suicides, 3: show all, 4: show all plus the prefix
-VARP(obitassist, 1, 1, MAXCLIENTS); // minimum number of assists before
+VARP(obitassist, 1, 1, MAXCLIENTS); // minimum number of assists before the killfeed will indicate them
 
 void obit_name(char *out, playerent *pl, bool dark, int type){
 	if(!pl){
@@ -154,14 +154,15 @@ void obit_name(char *out, playerent *pl, bool dark, int type){
 }
 
 struct oline {
-	char *actor; char *target; int obit, millis, style, combo; bool headshot;
+	char *actor; char *target; int obit, millis, style, assist, combo; bool headshot;
 	void cleanup(){ delete[] actor; delete[] target; }
 	bool mergable(const oline &o){ return o.obit == obit && /*o.assist == assist && o.style == style && o.headshot == headshot &&*/ !strcmp(o.actor, actor) && !strcmp(o.target, target);	}
 	void merge(oline o){
 		headshot |= o.headshot;
 		combo += o.combo; // add combo
+		assist = max(assist, o.assist); // merge assist by using the larger one
 		style |= o.style; // merge styles
-		millis = max(millis, o.millis); // merge time
+		millis = max(millis, o.millis); // merge time by using the later one
 		o.cleanup();
 	}
 };
@@ -190,17 +191,14 @@ struct obitlist : consolebuffer<oline>
 		// actor
 		if(!actor || actor == target) *cl.actor = 0;
 		else
-		{
 			obit_name(cl.actor, actor, false, actor ? (obitamt >= 3 || (actor->ownernum < 0 && obitamt >= 1)) ? 2 : (actor->ownernum < 0) ? 1 : 0 : 0);
-			if(assist >= obitassist)
-				concatformatstring(cl.actor, " \f2(+%d)", assist);
-		}
 		// target
 		if(!target) *cl.target = 0;
 		else
 			obit_name(cl.target, target, obit < OBIT_SPECIAL, target ? (obitamt >= 3 || (actor == target && obitamt >= 2) || ((target->ownernum < 0) && obitamt >= 1)) ? 2 : (target->ownernum < 0) ? 1 : 0 : 0);
 		cl.style = filterstyle(style);
 		cl.combo = combo;
+		cl.assist = assist;
 		cl.headshot = headshot;
 		loopv(conlines) if(fullconsole || (i < FADEMAX && totalmillis - conlines[i].millis < obitfade*1000))
 			if(cl.mergable(conlines[i]))
@@ -302,8 +300,12 @@ struct obitlist : consolebuffer<oline>
 				fade *= obitalpha/100.f;
 
 				defformatstring(combotext)(l.combo > 1 ? " (x%d)" : "", l.combo);
+				string actortext;
+				copystring(actortext, l.actor);
+				if(l.assist >= obitassist)
+					concatformatstring(actortext, " \f2(+%d)", l.assist);
 				// correct alignment
-				defformatstring(obitalign)("%s %s%s", l.actor, l.target, combotext); // two half spaces = one space; 1 for combo if needed
+				defformatstring(obitalign)("%s %s%s", actortext, l.target, combotext); // two half spaces = one space; 1 for combo if needed
 				// and the obit...
 				int left = (VIRTW - 16) * ts - text_width(obitalign) - obitaspect(l.obit) * FONTH + UWSADJUST;
 				// first
@@ -320,9 +322,9 @@ struct obitlist : consolebuffer<oline>
 				// continue...
 				int width, height;
 				y -= FONTH;
-				if(*l.actor){
-					text_bounds(l.actor, width, height);
-					draw_text(l.actor, left, y, 0xFF, 0xFF, 0xFF, fade * 255);
+				if(*actortext){
+					text_bounds(actortext, width, height);
+					draw_text(actortext, left, y, 0xFF, 0xFF, 0xFF, fade * 255);
 					x += width + text_width(" ") / 2;
 				}
 				// 1st before the obit
