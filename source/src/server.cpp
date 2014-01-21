@@ -2510,7 +2510,7 @@ void resetmap(const char *newname, int newmode, int newmuts, int newtime, bool n
 				s.team = TEAM_SPECT;
 				s.enemy = TEAM_SPECT;
 				s.overthrown = 0;
-				s.o = vec(e.x, e.y, 0.f);
+				s.o = vec(e.x, e.y, getblockfloor(getmaplayoutid(e.x, e.y), false));
 				s.last_service = 0;
 			}
 		}
@@ -4819,7 +4819,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 					if(!m_gsp1(gamemode, mutators)) sec_diff *= 2; // secure faster if non-direct
 					int teams_inside[2] = {0};
 					loopvj(clients)
-						if(valid_client(j) && (clients[j]->team >= 0 && clients[j]->team < 2) && clients[j]->state.state == CS_ALIVE && clients[j]->state.o.distxy(ssecures[i].o) <= PLAYERRADIUS * 7)
+						if(valid_client(j) && (clients[j]->team >= 0 && clients[j]->team < 2) && clients[j]->state.state == CS_ALIVE && clients[j]->state.o.dist(ssecures[i].o) <= 8.f + PLAYERRADIUS)
 							++teams_inside[clients[j]->team];
 					const int returnbonus = ssecures[i].team == TEAM_SPECT ? 1 : m_gsp1(gamemode, mutators) ? 2 : 0; // how fast flags can return to its original owner, but 0 counts as 1 if there is a defender
 					int defending = 0, opposing = 0;
