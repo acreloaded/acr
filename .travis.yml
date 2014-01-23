@@ -6,7 +6,8 @@ compiler:
   - clang
 
 env:
-  - build=all
+  - build=client
+  - build=server
 
 before_install:
   - sudo apt-get update -qq
