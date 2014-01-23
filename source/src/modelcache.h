@@ -31,8 +31,8 @@ template<class T> struct modelcacheentry
 
 	void unlink()
 	{
-		prev->entry::next = next;
-		next->entry::prev = prev;
+		prev->modelcacheentry<T>::next = next;
+		next->modelcacheentry<T>::prev = prev;
 		prev = next = (T *)this;
 	}
 
