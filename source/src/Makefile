@@ -6,7 +6,7 @@ CXXFLAGS=$(CXXOPTFLAGS) $(INCLUDES1) $(INCLUDES2) $(CXXCUSTOMFLAGS)
 CXXFLAGSSERVER=$(CXXOPTFLAGS) $(INCLUDES1) $(CXXCUSTOMFLAGS)
 
 PLATFORM_PREFIX=native
-CLIENT_LIBS=-L/usr/X11R6/lib -L../enet/.libs -lenet `sdl-config --libs` -lSDL_image -lz -lGL -lopenal -lvorbisfile
+CLIENT_LIBS=-L/usr/X11R6/lib -L../enet/.libs -lenet `sdl-config --libs` -lSDL_image -lz -lGL -lopenal -lvorbisfile -lX11
 CLIENT_OBJS1= \
 	client.o \
 	clientgame.o \
