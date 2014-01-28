@@ -2,7 +2,7 @@ language:
   - cpp
 
 compiler:
-  - gcc
+#  - gcc
   - clang
 
 branches:
