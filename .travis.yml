@@ -9,7 +9,6 @@ branches:
   only:
     - master
     - master-1.2-base
-    - build
 
 before_install:
   - sudo apt-get update -qq
