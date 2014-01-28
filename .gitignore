@@ -11,6 +11,7 @@ bin_linux/*
 # Source code
 source/codeblocks_dev
 source/xcode_dev
+source/vcpp_dev
 source/vcpp
 !source/vcpp/cube.nsi
 !source/vcpp/cube.rc
