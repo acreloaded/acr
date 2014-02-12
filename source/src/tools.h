@@ -57,6 +57,8 @@ static inline T min(T a, T b)
 
 static inline float round(float x) { return floor(x + 0.5f); }
 
+static inline char popcount(unsigned i){ char c; for(c = 0; i; ++c) i &= i - 1; return c; }
+
 #define clamp(a,b,c) (max(b, min(a, c)))
 #define rnd(x) ((int)(randomMT()&0xFFFFFF)%(x))
 #define rndscale(x) (float((randomMT()&0xFFFFFF)*double(x)/double(0xFFFFFF)))
