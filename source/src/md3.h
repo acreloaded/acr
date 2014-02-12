@@ -248,7 +248,7 @@ struct md3 : vertmodel
         radius = calcradius();
         if(shadowdist) calcneighbors();
         calcbbs();
-        return loaded = true;
+        return (loaded = true);
     }
 };
 

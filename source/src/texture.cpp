@@ -706,8 +706,8 @@ void parsetmufunc(tmufunc &f, const char *s)
         case 'p': f.sources[++arg] = GL_PREVIOUS_ARB; f.ops[arg] = GL_SRC_COLOR; break;
         case 'k': f.sources[++arg] = GL_CONSTANT_ARB; f.ops[arg] = GL_SRC_COLOR; break;
         case 'c': f.sources[++arg] = GL_PRIMARY_COLOR_ARB; f.ops[arg] = GL_SRC_COLOR; break;
-        case '~': f.ops[arg] = GL_ONE_MINUS_SRC_COLOR; break;
-        case 'a': f.ops[arg] = f.ops[arg]==GL_ONE_MINUS_SRC_COLOR ? GL_ONE_MINUS_SRC_ALPHA : GL_SRC_ALPHA; break;
+        case '~': ASSERT(arg>=0); f.ops[arg] = GL_ONE_MINUS_SRC_COLOR; break;
+        case 'a': ASSERT(arg>=0); f.ops[arg] = f.ops[arg]==GL_ONE_MINUS_SRC_COLOR ? GL_ONE_MINUS_SRC_ALPHA : GL_SRC_ALPHA; break;
         case '=': f.combine = GL_REPLACE; break;
         case '*': f.combine = GL_MODULATE; break;
         case '+': f.combine = GL_ADD; break;

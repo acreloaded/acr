@@ -970,7 +970,7 @@ static char *parsecommandline(const char *src, vector<char *> &args)
 }
 
 
-int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
+int WINAPI WinMain(_In_ HINSTANCE hInst, _In_opt_ HINSTANCE hPrev, _In_ LPSTR szCmdLine, _In_ int sw)
 {
     vector<char *> args;
     char *buf = parsecommandline(GetCommandLine(), args);

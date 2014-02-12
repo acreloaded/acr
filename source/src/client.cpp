@@ -233,7 +233,8 @@ void trydisconnect()
 
 void _toserver(char *text, int msg, int msgt)
 {
-    bool toteam = text && text[0] == '%' && (m_teammode || team_isspect(player1->team));
+    if(!text) return;
+    bool toteam = text[0] == '%' && (m_teammode || team_isspect(player1->team));
     if(!toteam && text[0] == '%' && strlen(text) > 1) text++; // convert team-text to normal-text if no team-mode is active
     if(toteam) text++;
     filtertext(text, text);

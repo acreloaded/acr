@@ -699,23 +699,21 @@ static void cleardemos(int n)
 
 bool sending_demo = false;
 
-void senddemo(int cn, int num)
+void senddemo(client *cl, int num)
 {
-    client *cl = cn>=0 ? clients[cn] : NULL;
-    bool is_admin = (cl && cl->role == CR_ADMIN);
-    if(scl.demo_interm && (!interm || totalclients > 2) && !is_admin)
+    if(scl.demo_interm && (!interm || totalclients > 2) && cl->role < CR_ADMIN)
     {
-        sendservmsg("\f3sorry, but this server only sends demos at intermission.\n wait for the end of this game, please", cn);
+        sendservmsg("\f3sorry, but this server only sends demos at intermission.\n wait for the end of this game, please", cl->clientnum);
         return;
     }
     if(!num) num = demofiles.length();
     if(!demofiles.inrange(num-1))
     {
-        if(demofiles.empty()) sendservmsg("no demos available", cn);
+        if(demofiles.empty()) sendservmsg("no demos available", cl->clientnum);
         else
         {
             defformatstring(msg)("no demo %d available", num);
-            sendservmsg(msg, cn);
+            sendservmsg(msg, cl->clientnum);
         }
         return;
     }
@@ -735,7 +733,7 @@ void senddemo(int cn, int num)
     sendstring(d.file, p);
     putint(p, d.len);
     p.put(d.data, d.len);
-    sendpacket(cn, 2, p.finalize());
+    sendpacket(cl->clientnum, 2, p.finalize());
 }
 
 int demoprotocol;
@@ -3542,7 +3540,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 break;
 
             case SV_GETDEMO:
-                senddemo(sender, getint(p));
+                senddemo(cl, getint(p));
                 break;
 
             case SV_EXTENSION:

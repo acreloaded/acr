@@ -374,7 +374,9 @@ void pasteconsole(char *dst)
     #ifdef WIN32
     if(!IsClipboardFormatAvailable(CF_TEXT)) return;
     if(!OpenClipboard(NULL)) return;
-    char *cb = (char *)GlobalLock(GetClipboardData(CF_TEXT));
+    char *cb;
+    do cb = (char *)GlobalLock(GetClipboardData(CF_TEXT));
+    while(!cb);
     concatstring(dst, cb);
     GlobalUnlock(cb);
     CloseClipboard();
