@@ -42,7 +42,7 @@ bool packetqueue::flushtolog(const char *logfile)
         // print whole buffer char-wise
         loopj(p->dataLength)
         {
-            f->printf("%16d\n", p->data[j]);
+            f->printf("%16d %c\n", (char)p->data[j], isspace(p->data[j]) ? ' ' : p->data[j]);
         }
     }
 
