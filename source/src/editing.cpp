@@ -632,7 +632,17 @@ void edittag(int *tag)
 void newent(char *what, int *a1, int *a2, int *a3, int *a4)
 {
     EDITSEL;
-    loopv(sels) newentity(-1, sels[i].x, sels[i].y, (int)camera1->o.z, what, *a1, *a2, *a3, *a4);
+    loopv(sels)
+    {
+        int newindex = -1;
+        loopvj(ents)
+            if(ents[j].type == NOTUSED)
+            {
+                newindex = i;
+                break;
+            }
+        newentity(newindex, sels[i].x, sels[i].y, (int)camera1->o.z, what, *a1, *a2, *a3, *a4);
+    }
 }
 
 void movemap(int xo, int yo, int zo) // move whole map
