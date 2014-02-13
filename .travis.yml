@@ -7,7 +7,6 @@ compiler:
 
 branches:
   only:
-    - master
     - master-1.0-base
 
 before_install:
