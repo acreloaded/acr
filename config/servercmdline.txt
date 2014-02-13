@@ -19,8 +19,8 @@
 // -n     // server description
 // -n1    // custom server description prefix
 // -n2    // custom server description suffix
-// -f     // port, 1..65534, default 28763
-// -c     // max client number, 1..16, default 6
+// -f     // port, 1..65534, default 28770
+// -c     // max client number, 1..256, default 12
 // -D     // number of demos to keep in RAM, default 5
 
 // the switches o, n, n1 and n2 support coloring and character escaping; 'o' also supports escaped newlines

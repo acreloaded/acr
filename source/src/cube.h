@@ -59,12 +59,17 @@ extern int hwtexsize, hwmaxaniso;
 extern int numspawn[3], maploaded, numflagspawn[2];
 extern int verbose;
 
-#define AC_VERSION 1202
-#define AC_MASTER_URI "ms.cubers.net"
-#define AC_MASTER_PORT 28760
+#define AC_VERSION 10000
+#define AC_MASTER_URI "ms.acr.victorz.ca"
+#define AC_MASTER_PORT 80
+#ifndef AC_MASTER_URI
+#define AC_MASTER_DOMAIN "ms.acr"
+#define AC_MASTER_URI AC_MASTER_DOMAIN
+#define AC_MASTER_IPS "216.34.181.97"
+#endif
 #define AC_MASTER_HTTP 1 // default
 #define AC_MASTER_RAW 0
-#define MAXCL 16
+//#define MAXCL 16
 
 #include "protos.h"                     // external function decls
 

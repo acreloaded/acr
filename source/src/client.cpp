@@ -9,7 +9,6 @@ ENetHost *clienthost = NULL;
 ENetPeer *curpeer = NULL, *connpeer = NULL;
 int connmillis = 0, connattempts = 0, discmillis = 0;
 SVAR(curdemofile, "n/a");
-extern bool clfail, cllock;
 extern int searchlan;
 
 int getclientnum() { return player1 ? player1->clientnum : -1; }
@@ -65,7 +64,6 @@ void connectserv_(const char *servername, int serverport = 0, const char *passwo
 {
     if(serverport <= 0) serverport = CUBE_DEFAULT_SERVER_PORT;
     if(watchingdemo) enddemoplayback();
-    if(!clfail && cllock && searchlan<2) return;
 
     if(connpeer)
     {
@@ -343,12 +341,17 @@ COMMANDN(disconnect, trydisconnect, "");
 COMMAND(whereami, "");
 COMMAND(go_to, "ffs");
 
-void current_version(char *text)
+void current_version(int *v, int *p)
 {
-    int version = atoi(text);
-    if (version && AC_VERSION<version) conoutf("YOUR VERSION OF ASSAULTCUBE IS OUTDATED!\nYOU MUST UPDATE ASSAULTCUBE\nplease visit %s for more information",AC_MASTER_URI);
+    if(AC_VERSION >= *v && PROTOCOL_VERSION >= *p) return;
+    static string notifications[2];
+    if (AC_VERSION < *v) formatstring(notifications[0])("\f3UPDATABLE \f1to %d", *v);
+    else copystring(notifications[0], "\f0OK");
+    if(PROTOCOL_VERSION < *p) formatstring(notifications[1])("\f3NEW \f1%d", *p);
+    else copystring(notifications[1], "\f0OK");
+    hudoutf("\f3UPDATE YOUR CLIENT\n\f5Version %s\n\f2Protocol %s", notifications[0], notifications[1]);
 }
-COMMAND(current_version, "s");
+COMMAND(current_version, "ii");
 
 void cleanupclient()
 {

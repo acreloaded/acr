@@ -1029,7 +1029,7 @@ void refreshservers(void *menu, bool init)
         {
             serverinfo &si = *servers[i];
             si.menuline_to = si.menuline_from = ((gmenu *)menu)->items.length();
-            if( (!showallservers && si.lastpingmillis < servermenumillis) || (si.maxclients>MAXCL && searchlan<2) ) continue; // no pong yet or forbidden
+            if( !showallservers && si.lastpingmillis < servermenumillis ) continue; // no pong yet
             int banned = ((si.pongflags >> PONGFLAG_BANNED) & 1) | ((si.pongflags >> (PONGFLAG_BLACKLIST - 1)) & 2);
             bool showthisone = !(banned && showonlygoodservers) && !(showonlyfavourites > 0 && si.favcat != showonlyfavourites - 1);
             bool serverfull = si.numplayers >= si.maxclients;
@@ -1268,7 +1268,6 @@ void clearservers()
 
 #define RETRIEVELIMIT 5000
 extern char *global_name;
-bool cllock = false, clfail = false;
 
 struct resolver_data
 {
@@ -1299,7 +1298,7 @@ void retrieveservers(vector<char> &data)
     if(mastertype == AC_MASTER_HTTP)
     {
         string request;
-        sprintf(request, "http://%s/retrieve.do?action=list&name=%s&version=%d&build=%d", mastername, global_name, AC_VERSION, getbuildtype()|(1<<16));
+        sprintf(request, "http://%s/cube/update/%d/%lu", mastername, getbuildtype(), 0);
 
         const char *tmpname = findfile(path("config/servers.cfg", true), "wb");
         FILE *outfile = fopen(tmpname, "w+");
@@ -1333,12 +1332,6 @@ void retrieveservers(vector<char> &data)
         curl = NULL;
         if(outfile) fclose(outfile);
 
-        if(result == CURLE_OPERATION_TIMEDOUT || result == CURLE_COULDNT_RESOLVE_HOST)
-        {
-            clfail = true;
-        }
-        else clfail = false;
-
         if(!result && httpresult == 200)
         {
             int size = 0;
@@ -1355,10 +1348,8 @@ void retrieveservers(vector<char> &data)
         if(sock == ENET_SOCKET_NULL)
         {
             conoutf("Master server is not replying.");
-            clfail = true;
             return;
         }
-        clfail = false;
         defformatstring(text)("retrieving servers from %s:%d... (esc to abort)", mastername, masterport);
         show_out_of_renderloop_progress(0, text);
         int starttime = SDL_GetTicks(), timeout = 0;
@@ -1412,7 +1403,6 @@ VARP(masterupdatefrequency, 1, 60*60, 24*60*60);
 void updatefrommaster(int force)
 {
     static int lastupdate = 0;
-    if(lastupdate==0) cllock = true;
     if(!force && lastupdate && totalmillis-lastupdate<masterupdatefrequency*1000) return;
 
     vector<char> data;
@@ -1420,8 +1410,7 @@ void updatefrommaster(int force)
 
     if(data.empty())
     {
-        if (!clfail) conoutf("Master server is not replying. \f1Get more information at http://ms.acr.victorz.ca/bans");
-        cllock = !clfail;
+        conoutf("Master server is not replying. \f1Get more information at http://ms.acr.victorz.ca/bans");
     }
     else
     {
@@ -1431,12 +1420,8 @@ void updatefrommaster(int force)
         if(curserver) copystring(curname, curserver->name);
 
         clearservers();
-        if(!strncmp(data.getbuf(), "addserver", 9)) cllock = false; // the ms could reply other thing... but currently, this is useless
-        if(!cllock )
-        {
-            execute(data.getbuf());
-            if(curserver) addserver(curname, curserver->port, curserver->msweight);
-        }
+        execute(data.getbuf());
+        if(curserver) addserver(curname, curserver->port, curserver->msweight);
         lastupdate = totalmillis;
     }
 }

@@ -65,7 +65,7 @@ int wizardmain(int argc, char **argv)
            "\thttp://ms.acr.victorz.ca\n\n");
     printf("You will also need to ensure that the UDP port you choose is open.\n"
            "Whatever port you choose, you will need to forward that port, plus one port after that.\n"
-           "If you're having issues, use and forward the default ports 28763 and 28764\n"
+           "If you're having issues, use and forward the default ports 28770 and 28771\n"
            "Use http://www.portforward.com for guidance.\n\n");
     printf("Now to specify some optional settings for your server.\n"
            "The default settings will be used if you leave the fields blank.\n"
