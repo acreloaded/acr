@@ -126,7 +126,7 @@ int wizardmain(int argc, char **argv)
     {
         if(!wsdisplayname[0]) copystring(wsdisplayname, wsname);
 
-        printf("Installing the AC Server as windows service ... "); fflush(stdout);
+        printf("Installing the ACR Server as windows service ... "); fflush(stdout);
 
         vector<char> path;
         databuf<char> cwd = path.reserve(MAX_PATH);
@@ -172,14 +172,14 @@ int wizardmain(int argc, char **argv)
         }
 
         printf("Done\n\n");
-        printf("Note: You can now manage your AC server using services.msc and sc.exe\n\n");
+        printf("Note: You can now manage your ACR server using services.msc and sc.exe\n\n");
     }
 
 #endif
 
     printf("Please press ENTER now to start your server...\n");
     fgetc(stdin);
-    printf("Starting the AC server ...\n");
+    printf("Starting the ACR server ...\n");
     argstr.insert(0, relpath, strlen(relpath));
     system(argstr.getbuf());
 

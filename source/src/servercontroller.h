@@ -35,7 +35,7 @@ struct winservice : servercontroller
     {
         SERVICE_TABLE_ENTRY dispatchtable[] = { { (LPSTR)name, (LPSERVICE_MAIN_FUNCTION)callbacks::main }, { NULL, NULL } };
         if(StartServiceCtrlDispatcher(dispatchtable)) exit(EXIT_SUCCESS);
-        else fatal("an error occurred running the AC server as windows service. make sure you start the server from the service control manager and not from the command line.");
+        else fatal("an error occurred running the ACR server as a Windows service. make sure you start the server from the service control manager and not from the command line.");
     }
 
     void keepalive()
@@ -119,7 +119,7 @@ struct winservice : servercontroller
 
     /*void log(const char *msg, bool error)
     {
-        HANDLE eventsrc = RegisterEventSource(NULL, "AC Server");
+        HANDLE eventsrc = RegisterEventSource(NULL, "ACR Server");
         if(eventsrc)
         {          
             int eventid = ((error ? 0x11 : 0x1) << 10) & (0x1 << 9) & (FACILITY_NULL << 6) & 0x1; // TODO: create event definitions

@@ -224,7 +224,7 @@ struct signalbinder
         }
         free(symbols);
 
-        fatal("AssaultCube error (%d)", sig);
+        fatal("ACR error (%d)", sig);
 
     }
 
