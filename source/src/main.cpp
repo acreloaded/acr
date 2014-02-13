@@ -673,7 +673,7 @@ void resetgl()
 
 COMMAND(resetgl, "");
 
-VARFP(maxfps, 0, 200, 1000, if(maxfps && maxfps < 25) maxfps = 25);
+VARFP(maxfps, 0, 0, 1000, if(maxfps && maxfps < 25) maxfps = 25);
 
 void limitfps(int &millis, int curmillis)
 {
