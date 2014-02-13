@@ -145,10 +145,10 @@ size_t fixpackagedir(char *dir)
 }
 
 #ifdef WIN32
-char *getregszvalue(HKEY root, const char *keystr, const char *query)
+char *getregszvalue(HKEY root, const char *keystr, const char *query, REGSAM extraaccess = 0)
 {
     HKEY key;
-    if(RegOpenKeyEx(HKEY_CURRENT_USER, keystr, 0, KEY_READ, &key)==ERROR_SUCCESS)
+    if(RegOpenKeyEx(root, keystr, 0, KEY_READ | extraaccess, &key)==ERROR_SUCCESS)
     {
         DWORD type = 0, len = 0;
         if(RegQueryValueEx(key, query, 0, &type, 0, &len)==ERROR_SUCCESS && type==REG_SZ)
