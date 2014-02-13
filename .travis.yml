@@ -8,7 +8,6 @@ compiler:
 branches:
   only:
     - master
-    - master-1.2-base
 
 before_install:
   - sudo apt-get update -qq
