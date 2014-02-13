@@ -226,6 +226,7 @@ struct obitlist : consolebuffer<oline>
 			case WEAP_SHOTGUN:
 			case WEAP_SNIPER:
 			case WEAP_SNIPER2:
+			case WEAP_SNIPER3:
 			case WEAP_ASSAULT2:
 			case OBIT_AIRSTRIKE:
 			case OBIT_MULTI:

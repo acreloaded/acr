@@ -13,6 +13,7 @@ enum {
 	WEAP_RPG,
 	WEAP_ASSAULT2,
 	WEAP_SNIPER2,
+	WEAP_SNIPER3,
 	WEAP_MAX,
 	// extra obits
 	OBIT_START = WEAP_MAX,
@@ -48,7 +49,7 @@ enum {
 #define melee_weap(g) (g == WEAP_KNIFE || g == WEAP_SWORD)
 #define explosive_weap(g) (g == WEAP_GRENADE || g == WEAP_RPG)
 #define suppressed_weap(g) (melee_weap(g) || g == WEAP_GRENADE || g == WEAP_HEAL)
-#define sniper_weap(g) (g == WEAP_SNIPER || g == WEAP_BOLT || g == WEAP_SNIPER2)
+#define sniper_weap(g) (g == WEAP_SNIPER || g == WEAP_BOLT || g == WEAP_SNIPER2 || g == WEAP_SNIPER3)
 #define burst_weap(g) (g == WEAP_ASSAULT || g == WEAP_ASSAULT2 || g == WEAP_SUBGUN)
 #define ads_gun(g) (!melee_weap(g) && g != WEAP_GRENADE && g != WEAP_AKIMBO)
 #define ads_classic_allowed(g) (!m_classic(gamemode, mutators) || sniper_weap(g) || g == WEAP_HEAL)
@@ -209,6 +210,11 @@ struct sniperrifle : scopedprimary
 struct sniperrifle2 : scopedprimary
 {
 	sniperrifle2(playerent *owner);
+};
+
+struct sniperrifle3 : scopedprimary
+{
+	sniperrifle3(playerent *owner);
 };
 
 struct boltrifle : scopedprimary

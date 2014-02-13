@@ -68,6 +68,7 @@ void shiftweapon(int s){
 			WEAP_SUBGUN,
 			WEAP_SNIPER,
 			WEAP_SNIPER2,
+			WEAP_SNIPER3,
 			WEAP_BOLT,
 			WEAP_ASSAULT,
 			WEAP_SWORD,
@@ -519,6 +520,7 @@ void weapon::equipplayer(playerent *pl){
 	pl->weapons[WEAP_BOLT] = new boltrifle(pl);
 	pl->weapons[WEAP_SNIPER] = new sniperrifle(pl);
 	pl->weapons[WEAP_SNIPER2] = new sniperrifle2(pl);
+	pl->weapons[WEAP_SNIPER3] = new sniperrifle3(pl);
 	pl->weapons[WEAP_SUBGUN] = new subgun(pl);
 	pl->weapons[WEAP_AKIMBO] = new akimbo(pl);
 	pl->weapons[WEAP_HEAL] = new heal(pl);
@@ -1026,6 +1028,7 @@ void scopedprimary::renderaimhelp(int teamtype){
 // sniperrifle
 sniperrifle::sniperrifle(playerent *owner) : scopedprimary(owner, WEAP_SNIPER) {}
 sniperrifle2::sniperrifle2(playerent *owner) : scopedprimary(owner, WEAP_SNIPER2) {}
+sniperrifle3::sniperrifle3(playerent *owner) : scopedprimary(owner, WEAP_SNIPER3) {}
 
 // boltrifle
 boltrifle::boltrifle(playerent* owner) : scopedprimary(owner, WEAP_BOLT) {}

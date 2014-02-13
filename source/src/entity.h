@@ -420,8 +420,9 @@ struct playerstate
 					primary = WEAP_BOLT;
 					break;
 				}
-			// Only bolt/M82/M21 for insta mutator
+			// Only bolt/M82/M21/Mk12 for insta mutator
 			case WEAP_SNIPER:
+			case WEAP_SNIPER3:
 				if(m_insta(gamemode, mutators)){
 					primary = WEAP_BOLT;
 					break;
