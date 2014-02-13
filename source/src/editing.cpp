@@ -10,7 +10,7 @@ bool editmode = false;
 
 vector<block> sels;
 
-#define loopselxy(sel, b) { makeundo(sel); loop(x,(sel).xs) loop(y,(sel).ys) { sqr *s = S((sel).x+x, (sel).y+y); b; } remip(sel); }
+#define loopselxy(sel, b) { makeundo(sel); loop(x,(sel).xs) loop(y,(sel).ys) if(!OUTBORD(sel.x+x, sel.y+y)) { sqr *s = S((sel).x+x, (sel).y+y); b; } remip(sel); }
 #define loopselsxy(b) { loopv(sels) loopselxy(sels[i], b); }
 
 int cx, cy, ch;
