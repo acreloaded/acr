@@ -84,7 +84,7 @@ struct vec
     float dotxy(const vec &o) const { return x*o.x + y*o.y; }
 
     float magnitude() const { return sqrtf(squaredlen()); }
-    vec &normalize() { div(magnitude()); return *this; }
+    vec &normalize() { if(magnitude()) div(magnitude()); return *this; }
 
     // should NOT be used 
     float fmag() const { return fSqrt(squaredlen()); }
@@ -103,9 +103,9 @@ struct vec
     vec &cross(const vec &a, const vec &b) { x = a.y*b.z-a.z*b.y; y = a.z*b.x-a.x*b.z; z = a.x*b.y-a.y*b.x; return *this; }
     float cxy(const vec &a) { return x*a.y-y*a.x; }
 
-    void rotate_around_z(float angle) { *this = vec(cosf(angle)*x-sinf(angle)*y, cosf(angle)*y+sinf(angle)*x, z); }
-    void rotate_around_x(float angle) { *this = vec(x, cosf(angle)*y-sinf(angle)*z, cosf(angle)*z+sinf(angle)*y); }
-    void rotate_around_y(float angle) { *this = vec(cosf(angle)*x-sinf(angle)*z, y, cosf(angle)*z+sinf(angle)*x); }
+    vec &rotate_around_z(float angle) { *this = vec(cosf(angle)*x-sinf(angle)*y, cosf(angle)*y+sinf(angle)*x, z); return *this; }
+    vec &rotate_around_x(float angle) { *this = vec(x, cosf(angle)*y-sinf(angle)*z, cosf(angle)*z+sinf(angle)*y); return *this; }
+    vec &rotate_around_y(float angle) { *this = vec(cosf(angle)*x-sinf(angle)*z, y, cosf(angle)*z+sinf(angle)*x); return *this; }
 
     vec &rotate(float angle, const vec &d)
     {
