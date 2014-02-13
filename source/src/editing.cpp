@@ -617,7 +617,7 @@ void perlin(int scale, int seed, int psize)
 VARF(fullbright, 0, 0, 1,
     if(fullbright)
     {
-        if(noteditmode("fullbright")) return;
+        //if(noteditmode("fullbright")) return;
         fullbrightlight();
     }
     else calclight();
