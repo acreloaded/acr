@@ -741,7 +741,7 @@ bool securemapcheck(const char *map, bool msg)
             if(connected)
             {
                 conoutf(_("%c3if you get this error alot you or the server may be running an outdated game"), CC);
-                conoutf(_("%c3you may check for updates at %c1http://assault.cubers.net/download.html"), CC, CC);
+                conoutf(_("%c3you may check for updates at %c1http://acr.victorz.ca"), CC, CC);
             }
             return true;
         }

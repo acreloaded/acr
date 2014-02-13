@@ -1420,7 +1420,7 @@ void updatefrommaster(int force)
 
     if(data.empty())
     {
-        if (!clfail) conoutf("Master server is not replying. \f1Get more information at http://masterserver.cubers.net/");
+        if (!clfail) conoutf("Master server is not replying. \f1Get more information at http://ms.acr.victorz.ca/bans");
         cllock = !clfail;
     }
     else
