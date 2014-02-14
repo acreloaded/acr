@@ -1,21 +1,24 @@
-language:
-  - cpp
-
-compiler:
-#  - gcc
-  - clang
+language: cpp
+compiler: clang
 
 branches:
   only:
     - master
 
-before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq build-essential libsdl1.2debian libsdl-image1.2 libopenal1 libsdl1.2-dev libsdl-image1.2-dev libopenal-dev libvorbis-dev
-
-install:
-  - chmod +x ./source/enet/configure
-
+before_install: sudo apt-get update -qq
+install: sudo apt-get install -qq build-essential libsdl1.2debian libsdl-image1.2 libopenal1 libsdl1.2-dev libsdl-image1.2-dev libopenal-dev libvorbis-dev
 script:
   - cd ./source/src
+  - chmod +x ../enet/configure
   - make all
+notifications:
+  irc:
+    channels:
+      - "chat.freenode.net#acreloaded-dev"
+    template:
+      - "%{repository}/%{branch} <%{author}> %{commit} %{duration}"
+      - "Build #%{build_number} is at %{build_url}. %{message}"
+    on_success: always # [always|never|change] default: always
+    on_failure: always # [always|never|change] default: always
+    use_notice: false # doesn't show up in OmnomIRC
+    skip_join: true
