@@ -16,8 +16,8 @@ notifications:
     channels:
       - "chat.freenode.net#acreloaded-dev"
     template:
-      - "%{repository}/%{branch} <%{author}> %{commit} %{duration}"
-      - "Build #%{build_number} is at %{build_url}. %{message}"
+      - "%{repository}/%{branch} <%{author}> %{commit} (build #%{build_number}) %{duration}"
+      - "%{message} %{build_url}"
     on_success: always # [always|never|change] default: always
     on_failure: always # [always|never|change] default: always
     use_notice: false # doesn't show up in OmnomIRC
