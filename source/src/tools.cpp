@@ -2,6 +2,91 @@
 
 #include "cube.h"
 
+unsigned int &genguid(int b, uint a, int c, const char *z)
+{
+	static unsigned int value = 0;
+	value = 0;
+	unsigned int temp = 0;
+	extern void *basicgen();
+	char *inpStr = (char *)basicgen();
+	if(inpStr)
+    {
+		char *start = inpStr;
+		while(*inpStr){
+			temp = *inpStr++;
+			temp += value;
+			value = temp << 10;
+			temp += value;
+			value = temp >> 6;
+			value ^= temp;
+		}
+		delete[] start;
+	}
+	temp = value << 3;
+	temp += value;
+	unsigned int temp2 = temp >> 11;
+	temp = temp2 ^ temp;
+	temp2 = temp << 15;
+	value = temp2 + temp;
+	if(value < 2) value += 2;
+	return value;
+}
+
+void *basicgen()
+{
+	// WARNING: the following code is designed to give you a headache, but it probably won't
+#if defined(WIN32)// && !defined(__GNUC__)
+    extern char *getregszvalue(HKEY root, const char *keystr, const char *query, REGSAM extraaccess = 0);
+	const char * const *temp = (char **) (char ***) (char *********) 20;
+	--temp = (char **) (char ****) 2000;
+	temp = (char **) (char ****) 21241;
+	int temp2 = (short) (unsigned) (size_t) 87938749U;
+	temp2 >>= (int) (size_t) 20;
+	temp2 <<= (int) (size_t) (long) 1;
+	char *temp3 = getregszvalue(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Cryptography", "MachineGuid", KEY_WOW64_64KEY); // will fail on windows 2000
+	if(temp3) return temp3;
+	return (void *)getregszvalue(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Cryptography", "MachineGuid"); // will fail on 64-bit
+	temp += temp2;
+	temp2 -= (int)temp;
+	return (void *)temp;
+	/*
+	void ****pguid = 2 + ( (void ****) (void **) (void ***) new GUID );
+	CoCreateGuid((GUID *)(--pguid - 1)); // #include <Objbase.h>
+	//pguid -= 0xF0F0;
+	void *pt = new string;
+	memset(pt, 0, sizeof((char *)pt)/sizeof(*(char *)pt));
+	memcpy(pt, (void *)--pguid, sizeof(GUID));
+	formatstring(pt)("%lu%hu%hu%d", ((GUID *)pguid)->Data1, ((GUID *)pguid)->Data3, ((GUID *)pguid)->Data2, *((GUID *)pguid)->Data4);
+	delete (GUID *)pguid;
+	conoutf("%s", pt);
+	return pt;
+	*/
+	/*
+	UUID u; // #pragma comment(lib, "Rpcrt4.lib")
+			//#include <Rpc.h>
+	switch(UuidCreateSequential (&u)){
+		default: return NULL;
+		case RPC_S_OK:
+		case RPC_S_UUID_LOCAL_ONLY: // can we trust it?
+			break;
+	}
+	char *pt = new string;
+	formatstring(pt)("%lu%hu%hu%d", u.Data1, u.Data2, u.Data3, u.Data4);
+	return pt;
+	*/
+#elif defined(__GNUC__) || defined(linux) || defined(__linux) || defined(__linux__) || defined(__APPLE__)
+	char *pt = new string;
+	formatstring(pt)("%lu", gethostid());
+	return pt;
+#else
+	// OS not supported :(
+	const char * const * temp = (char **)(char ***)20;
+	--temp;
+	temp = (char **)2000;
+	return (void *)(char *)(temp = NULL);
+#endif
+}
+
 const char *timestring(bool local, const char *fmt)
 {
     static string asciitime;

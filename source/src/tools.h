@@ -906,6 +906,7 @@ struct stream
 #endif
 };
 
+extern unsigned int &genguid(int, uint, int, const char *);
 extern const char *timestring(bool local = false, const char *fmt = NULL);
 extern const char *asctime();
 extern const char *numtime();

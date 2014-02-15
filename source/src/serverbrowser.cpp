@@ -1298,7 +1298,7 @@ void retrieveservers(vector<char> &data)
     if(mastertype == AC_MASTER_HTTP)
     {
         string request;
-        sprintf(request, "http://%s/cube/update/%d/%lu", mastername, getbuildtype(), 0);
+        sprintf(request, "http://%s/cube/update/%d/%lu", mastername, getbuildtype(), genguid(234534, 546456456U, 345345453, "3458739874jetrgjk"));
 
         const char *tmpname = findfile(path("config/servers.cfg", true), "wb");
         FILE *outfile = fopen(tmpname, "w+");
