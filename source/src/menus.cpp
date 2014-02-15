@@ -1418,7 +1418,7 @@ void addchange(const char *desc, int type)
     if(!applydialog) return;
     if(type!=CHANGE_GFX)
     {
-        conoutf(_("..restart AssaultCube for this setting to take effect"));
+        conoutf(_("..restart AssaultCube Reloaded for this setting to take effect"));
         return;
     }
     bool changed = false;
@@ -1442,7 +1442,7 @@ void refreshapplymenu(void *menu, bool init)
     loopv(needsapply) m->items.add(new mitemtext(m, newstring(needsapply[i]), NULL, NULL, NULL));
     m->items.add(new mitemtext(m, newstring(""), NULL, NULL, NULL));
     m->items.add(new mitemtext(m, newstring("Yes"), newstring("resetgl"), NULL, NULL));
-    m->items.add(new mitemtext(m, newstring("No"), newstring("echo [..restart AssaultCube to apply the new settings]"), NULL, NULL));
+    m->items.add(new mitemtext(m, newstring("No"), newstring("echo [..restart ACR to apply the new settings]"), NULL, NULL));
     if(init) m->menusel = m->items.length()-2; // select OK
 }
 
