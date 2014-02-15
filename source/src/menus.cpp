@@ -40,7 +40,7 @@ char *getfiledesc(const char *dir, const char *name, const char *ext)
         stream *f = opengzfile(fn, "rb");
         if(!f) return NULL;
         header hdr;
-        if(f->read(&hdr, sizeof(header))!=sizeof(header) || (strncmp(hdr.head, "CUBE", 4) && strncmp(hdr.head, "ACMP",4))) { delete f; return NULL; }
+        if(f->read(&hdr, sizeof(header))!=sizeof(header) || (strncmp(hdr.head, "CUBE", 4) && strncmp(hdr.head, "ACMP",4) && strncmp(hdr.head, "ACRM",4))) { delete f; return NULL; }
         delete f;
         lilswap(&hdr.version, 1);
         // hdr.maprevision, hdr.maptitle ... hdr.version, hdr.headersize,
