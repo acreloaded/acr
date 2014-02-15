@@ -252,9 +252,6 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
         }
     }
     delete f;
-    s.hasffaspawns = s.spawns[2] > 0;
-    s.hasteamspawns = s.spawns[0] > 0 && s.spawns[1] > 0;
-    s.hasflags = s.flags[0] > 0 && s.flags[1] > 0;
     s.enttypes = enttypes;
     s.entposs = entposs;
     s.cgzsize = getfilesize(filename);

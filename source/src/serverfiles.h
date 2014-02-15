@@ -241,7 +241,7 @@ bool mapisok(mapstats *ms)
     if ( Mopen > MAXMAREA ) { logline(ACLOG_INFO, "MAP CHECK FAIL: There is a big open area in this (hint: use more solid walls)", Mheight); return false; }
     if ( SHhits > MAXHHITS ) { logline(ACLOG_INFO, "MAP CHECK FAIL: Too high height in some parts of the map (%d hits)", SHhits); return false; }
 
-    if ( ms->hasflags ) // Check if flags are ok
+    if ( ms->flags[0] && ms->flags[1] ) // Check if flags are ok
     {
         struct { short x, y; } fl[2];
         loopi(2)

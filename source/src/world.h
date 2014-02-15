@@ -59,11 +59,8 @@ struct mapstats
     uchar *enttypes;
     short *entposs;
     int spawns[3];
-    int flags[2];
+    int flags[3];
     int flagents[2];
-    bool hasffaspawns;
-    bool hasteamspawns;
-    bool hasflags;
 };
 
 #define TRANSFORMOLDENTITIES(headr) \
