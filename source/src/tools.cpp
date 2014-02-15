@@ -112,10 +112,11 @@ const char *numtime()
 
 int mapdims[8];     // min/max X/Y and delta X/Y and min/max Z
 
-extern char *maplayout, *testlayout;
+extern ssqr *maplayout, *testlayout;
+extern persistent_entity *mapents;
 extern int maplayout_factor, testlayout_factor, Mvolume, Marea, Mopen, SHhits;
 extern float Mheight;
-extern int checkarea(int, char *);
+extern int checkarea(int, ssqr *);
 
 mapstats *loadmapstats(const char *filename, bool getlayout)
 {
@@ -141,7 +142,12 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
         lilswap(&s.hdr.maprevision, 2);
     }
     else s.hdr.waterlevel = -100000;
-    entity e;
+	if(getlayout)
+	{
+		DELETEA(mapents);
+		mapents = new persistent_entity[s.hdr.numents];
+	}
+    persistent_entity e;
     enttypes = new uchar[s.hdr.numents];
     entposs = new short[s.hdr.numents * 3];
     loopi(s.hdr.numents)
@@ -150,10 +156,11 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
         lilswap((short *)&e, 4);
         TRANSFORMOLDENTITIES(s.hdr)
         if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100)) s.spawns[e.attr2 == 100 ? 2 : e.attr2]++;
-        if(e.type == CTF_FLAG && (e.attr2 == 0 || e.attr2 == 1)) { s.flags[e.attr2]++; s.flagents[e.attr2] = i; }
+        if(e.type == CTF_FLAG) { s.flags[min(e.attr2, (uchar)2)]++; if(e.attr2 == 0 || e.attr2 == 1) s.flagents[e.attr2] = i; }
         s.entcnt[e.type]++;
         enttypes[i] = e.type;
         entposs[i * 3] = e.x; entposs[i * 3 + 1] = e.y; entposs[i * 3 + 2] = e.z + e.attr1;
+		if(getlayout) mapents[i] = e;
     }
     DELETEA(testlayout);
     int minfloor = 0;
@@ -163,15 +170,14 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
         testlayout_factor = s.hdr.sfactor;
         int layoutsize = 1 << (testlayout_factor * 2);
         bool fail = false;
-        testlayout = new char[layoutsize + 256];
-        memset(testlayout, 0, layoutsize * sizeof(char));
-        char *t = NULL;
-        char floor = 0, ceil;
+        testlayout = new ssqr[layoutsize + 256];
+        memset(testlayout, 0, layoutsize * sizeof(ssqr));
+        ssqr *t = NULL;
         int diff = 0;
         Mvolume = Marea = SHhits = 0;
         loopk(layoutsize)
         {
-            char *c = testlayout + k;
+            ssqr &sq = testlayout[k];
             int type = f->getchar();
             int n = 1;
             switch(type)
@@ -179,31 +185,37 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
                 case 255:
                 {
                     if(!t || (n = f->getchar()) < 0) { fail = true; break; }
-                    memset(c, *t, n);
+                    loopi(n) memcpy(&sq + i, t, sizeof(ssqr));
                     k += n - 1;
                     break;
                 }
                 case 254: // only in MAPVERSION<=2
                     if(!t) { fail = true; break; }
-                    *c = *t;
+                    memcpy(&sq, t, sizeof(ssqr));
                     f->getchar(); f->getchar();
                     break;
                 default:
-                    if(type<0 || type>=MAXTYPE)  { fail = true; break; }
-                    floor = f->getchar();
-                    ceil = f->getchar();
-                    if(floor >= ceil && ceil > -128) floor = ceil - 1;  // for pre 12_13
-                    diff = ceil - floor;
-                    if(type == FHF) floor = -128;
-                    if(floor!=-128 && floor<minfloor) minfloor = floor;
-                    if(ceil>maxceil) maxceil = ceil;
-                    f->getchar(); f->getchar();
-                    if(s.hdr.version>=2) f->getchar();
-                    if(s.hdr.version>=5) f->getchar();
-
+                    if(sq.type<0 || sq.type>=MAXTYPE)  { fail = true; break; }
+                    sq.floor = f->getchar();
+                    sq.ceil = f->getchar();
+                    if(sq.floor >= sq.ceil && sq.ceil > -128) sq.floor = sq.ceil - 1;  // for pre 12_13
+                    diff = sq.ceil - sq.floor;
+                    if(sq.type == FHF) sq.floor = -128;
+                    if(sq.floor!=-128 && sq.floor<minfloor) minfloor = sq.floor;
+                    if(sq.ceil>maxceil) maxceil = sq.ceil;
+                    sq.wtex = f->getchar();
+					f->getchar(); // ftex
+					sq.ctex = f->getchar();
+					if(s.hdr.version<=2) { f->getchar(); f->getchar(); }
+					sq.vdelta = f->getchar();
+                    if(s.hdr.version>=2) f->getchar(); // utex
+                    if(s.hdr.version>=5) f->getchar(); // tag
+					break;
                 case SOLID:
-                    *c = type == SOLID ? 127 : floor;
-                    f->getchar(); f->getchar();
+					sq.floor = 127;
+					sq.ceil = 16;
+                    sq.wtex = f->getchar();
+					sq.vdelta = f->getchar();
                     if(s.hdr.version<=2) { f->getchar(); f->getchar(); }
                     break;
             }
@@ -215,7 +227,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
                 Mvolume += diff * n;
             }
             if(fail) break;
-            t = c;
+            t = &sq;
         }
         if(fail) { DELETEA(testlayout); }
         else
@@ -233,11 +245,11 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
             extern int maplayoutssize;
             maplayoutssize = 1 << testlayout_factor;
             int layoutsize = 1 << (testlayout_factor * 2);
-            maplayout = new char[layoutsize + 256];
-            memcpy(maplayout, testlayout, layoutsize * sizeof(char));
+            maplayout = new ssqr[layoutsize + 256];
+            memcpy(maplayout, testlayout, layoutsize * sizeof(ssqr));
 
             loopk(8) mapdims[k] = k < 2 ? maplayoutssize : 0;
-            loopk(layoutsize) if (testlayout[k] != 127)
+            loopk(layoutsize) if (testlayout[k].floor != 127)
             {
                 int cwx = k%maplayoutssize,
                 cwy = k/maplayoutssize;

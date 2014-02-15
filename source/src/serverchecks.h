@@ -8,19 +8,6 @@ inline bool outside_border(vec &po)
     return (po.x < 0 || po.y < 0 || po.x >= maplayoutssize || po.y >= maplayoutssize);
 }
 
-inline void checkclientpos(client *cl)
-{
-    vec &po = cl->state.o;
-    if( outside_border(po) || maplayout[((int) po.x) + (((int) po.y) << maplayout_factor)] > po.z + 3)
-    {
-        if(gamemillis > 10000 && (servmillis - cl->connectmillis) > 10000) cl->mapcollisions++;
-        if(cl->mapcollisions && !(cl->mapcollisions % 25))
-        {
-            logline(ACLOG_INFO, "[%s] %s is colliding with the map", cl->hostname, cl->name);
-        }
-    }
-}
-
 #define POW2XY(A,B) (pow2(A.x-B.x)+pow2(A.y-B.y))
 
 extern inline void addban(client *cl, int reason, int type = BAN_AUTO);
@@ -90,7 +77,74 @@ int getmaxarea(int inversed_x, int inversed_y, int transposed, int ml_factor, ch
     return maxarea;
 }
 
+int getmaxarea(int inversed_x, int inversed_y, int transposed, int ml_factor, ssqr *ml)
+{
+    int ls = (1 << ml_factor);
+    int xi = 0, oxi = 0, xf = 0, oxf = 0, fx = 0, fy = 0;
+    int area = 0, maxarea = 0;
+    bool sav_x = false, sav_y = false;
+
+    if (transposed) fx = ml_factor;
+    else fy = ml_factor;
+
+    // walk on x for each y
+    for ( int y = (inversed_y ? ls-1 : 0); (inversed_y ? y >= 0 : y < ls); (inversed_y ? y-- : y++) ) {
+
+    /* Analyzing each cube of the line */
+        for ( int x = (inversed_x ? ls-1 : 0); (inversed_x ? x >= 0 : x < ls); (inversed_x ? x-- : x++) ) {
+            if ( ml[ ( x << fx ) + ( y << fy ) ].floor != 127 ) {      // if it is not solid
+                if ( sav_x ) {                                          // if the last cube was saved
+                    xf = x;                                             // new end for this line
+                }
+                else {
+                    xi = x;                                             // new begin of the line
+                    sav_x = true;                                       // accumulating cubes from now
+                }
+            } else {                                    // solid
+                if ( xf - xi > MINELINE ) break;                        // if the empty line is greater than a minimum, get out
+                sav_x = false;                                          // stop the accumulation of cubes
+            }
+        }
+
+    /* Analyzing this line with the previous one */
+        if ( xf - xi > MINELINE ) {                                     // if the line has the minimun threshold of emptiness
+            if ( sav_y ) {                                              // if the last line was saved
+                if ( 2*oxi + MINELINE < 2*xf &&
+                     2*xi + MINELINE < 2*oxf ) {                        // if the last line intersect this one
+                    area += xf - xi;
+                } else {
+                    oxi = xi;                                           // new area vertices
+                    oxf = xf;
+                }
+            }
+            else {
+                oxi = xi;
+                oxf = xf;
+                sav_y = true;                                           // accumulating lines from now
+            }
+        } else {
+            sav_y = false;                                              // stop the accumulation of lines
+            if (area > maxarea) maxarea = area;                         // new max area
+            area=0;
+        }
+
+        sav_x = false;                                                  // reset x
+        xi = xf = 0;
+    }
+    return maxarea;
+}
+
 int checkarea(int maplayout_factor, char *maplayout)
+{
+    int area = 0, maxarea = 0;
+    for (int i=0; i < 8; i++) {
+        area = getmaxarea((i & 1),(i & 2),(i & 4), maplayout_factor, maplayout);
+        if ( area > maxarea ) maxarea = area;
+    }
+    return maxarea;
+}
+
+int checkarea(int maplayout_factor, ssqr *maplayout)
 {
     int area = 0, maxarea = 0;
     for (int i=0; i < 8; i++) {
@@ -585,8 +639,6 @@ inline void checkmove(client *cl)
         cl->inputmillis = servmillis;
     }
 
-    if(maplayout) checkclientpos(cl);
-
 #ifdef ACAC
     m_engine(cl);
 #endif
@@ -598,7 +650,7 @@ inline void checkmove(client *cl)
         cl->spj = cl->ldt = 40;
     }
 
-    return;
+	// TODO: detect speedhack
 }
 
 inline void checkshoot(int & cn, gameevent & shot, int & hits, int & tcn)

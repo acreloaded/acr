@@ -412,7 +412,7 @@ void sendf(int cn, int chan, const char *format, ...);
 extern bool isdedicated;
 extern string smapname;
 extern mapstats smapstats;
-extern char *maplayout;
+extern ssqr *maplayout;
 
 const char *messagenames[SV_NUM] =
 {
