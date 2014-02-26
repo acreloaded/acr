@@ -168,7 +168,7 @@ void newname(const char *name)
             execute(onnamechange);
         }
         copystring(player1->name, tmpname);//12345678901234//
-        if(!player1->name[0]) copystring(player1->name, "unarmed");
+        if(!player1->name[0]) copystring(player1->name, "unnamed");
         updateclientname(player1);
         addmsg(SV_SWITCHNAME, "rs", player1->name);
     }
