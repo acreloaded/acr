@@ -13,6 +13,16 @@
  -o \f3server using example cmdline file (config/servercmdline.txt)\n\f2feel free to change this :)
 
 
+// Remove these if you do not wish to use the defaults
+-r config/default.maprot.cfg
+-X config/default.serverpwd.cfg
+-B config/default.serverblacklist.cfg
+-K config/default.nicknameblacklist.cfg
+-g config/default.forbidden.cfg
+-E config/default.serverkillmessages.cfg
+-I config/default.serverinfo
+-O config/default.motd
+
 // commonly used commandline switches:
 
 // -o     // MOTD
