@@ -215,6 +215,12 @@ void filtertext(char *dst, const char *src, int whitespace, int len)
     *dst = '\0';
 }
 
+inline void filtername(char *dst, const char *src)
+{
+    filtertext(dst, src, 1, MAXNAMELEN);
+    trimtrailingwhitespace(dst);
+}
+
 void filterrichtext(char *dst, const char *src, int len)
 {
     int b, c;

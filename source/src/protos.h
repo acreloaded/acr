@@ -873,6 +873,7 @@ extern void sendstring(const char *t, packetbuf &p);
 extern void sendstring(const char *t, vector<uchar> &p);
 extern void getstring(char *t, ucharbuf &p, int len = MAXTRANS);
 extern void filtertext(char *dst, const char *src, int whitespace = 1, int len = sizeof(string)-1);
+extern void filtername(char *dst, const char *src);
 extern void filterrichtext(char *dst, const char *src, int len = sizeof(string)-1);
 extern void filterservdesc(char *dst, const char *src, int len = sizeof(string)-1);
 extern void filterlang(char *d, const char *s);

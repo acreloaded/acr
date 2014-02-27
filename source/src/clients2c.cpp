@@ -560,7 +560,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_SWITCHNAME:
                 getstring(text, p);
-                filtertext(text, text, 0, MAXNAMELEN);
+                filtername(text, text);
                 if(!text[0]) copystring(text, "unarmed");
                 if(d)
                 {
@@ -601,7 +601,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     break;
                 }
                 getstring(text, p);
-                filtertext(text, text, 0, MAXNAMELEN);
+                filtername(text, text);
                 if(!text[0]) copystring(text, "unarmed");
                 if(d->name[0])          // already connected
                 {
@@ -912,7 +912,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     discscore &ds = discscores.add();
                     ds.team = team;
                     getstring(text, p);
-                    filtertext(ds.name, text, 0, MAXNAMELEN);
+                    filtername(ds.name, text);
                     ds.flags = getint(p);
                     ds.frags = getint(p);
                     ds.deaths = getint(p);

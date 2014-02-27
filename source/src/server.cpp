@@ -2654,7 +2654,7 @@ void process(ENetPacket *packet, int sender, int chan)
             cl->acbuildtype = getint(p);
             defformatstring(tags)(", AC: %d|%x", cl->acversion, cl->acbuildtype);
             getstring(text, p);
-            filtertext(text, text, 0, MAXNAMELEN);
+            filtername(text, text);
             if(!text[0]) copystring(text, "unarmed");
             copystring(cl->name, text, MAXNAMELEN+1);
             getstring(text, p);
@@ -2996,7 +2996,7 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 QUEUE_MSG;
                 getstring(text, p);
-                filtertext(text, text, 0, MAXNAMELEN);
+                filtername(text, text);
                 if(!text[0]) copystring(text, "unarmed");
                 QUEUE_STR(text);
                 bool namechanged = strcmp(cl->name, text) != 0;
