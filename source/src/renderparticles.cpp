@@ -184,8 +184,6 @@ void cleanupexplosion()
     }
 }
 
-#define MAXPARTYPES 22
-
 struct particle { vec o, d; int fade, type; int millis; particle *next; };
 particle *parlist[MAXPARTYPES], *parempty = NULL;
 
@@ -248,7 +246,7 @@ void newparticle(const vec &o, const vec &d, int fade, int type)
     parlist[type] = p;
 }
 
-static struct parttype { int type; float r, g, b; int gr, tex; float sz; } parttypes[] =
+static struct parttype { int type; float r, g, b; int gr, tex; float sz; } parttypes[MAXPARTYPES] =
 {
     { PT_PART,       0.4f, 0.4f, 0.4f, 2,  0, 0.06f }, // yellow: sparks
     { PT_PART,       1.0f, 1.0f, 1.0f, 20, 1, 0.15f }, // grey:   small smoke
@@ -274,6 +272,10 @@ static struct parttype { int type; float r, g, b; int gr, tex; float sz; } partt
     // 2011jun18 : shotty decals
     { PT_BULLETHOLE, 0.2f, 0.2f, 1.0f, 0,  3, 0.1f  }, // hole decal M
     { PT_BULLETHOLE, 0.2f, 1.0f, 0.2f, 0,  3, 0.1f  }, // hole decal C
+    // ACR extra particles
+    { PT_FIREBALL,   1.0f, 1.0f, 0.5f, 0,  2, 2.0f  }, // [22] RPG explosion fireball
+    { PT_PART,   0.2f, 1.0f, 0.3f, 18, 1, 0.13f  }, // [23] green: heal-line
+    { PT_PART,	 1.0f, 0.2f, 0.2f, 15, 1, 0.11f }, // [24] red: RPG smokeline
 };
 
 VAR(particlesize, 20, 100, 500);
@@ -504,7 +506,7 @@ void render_particles(int time, int typemask)
                         *pp = p->next;
                         p->next = parempty;
                         parempty = p;
-                        newparticle(vec(p->o.x, p->o.y, s->floor+0.005f), vec(0, 0, 1), bloodttl, 8);
+                        newparticle(vec(p->o.x, p->o.y, s->floor+0.005f), vec(0, 0, 1), bloodttl, PART_BLOODSTAIN);
                         continue;
                     }
                 }
@@ -623,9 +625,9 @@ bool addbullethole(dynent *d, const vec &from, const vec &to, float radius, bool
     o.add(ray.mul(dist));
     o.add(vec(surface).normalize().mul(0.01f));
     // 2011jun18: shotty decals
-    int tf = type > 0 ? ( type > 1 ? 21 : 20 ) : 7;
+    int tf = type > 0 ? ( type > 1 ? PART_BULLETHOLE_SHOTGUNC : PART_BULLETHOLE_SHOTGUNM ) : PART_BULLETHOLE;
     newparticle(o, surface, bulletholettl, tf);
-    //newparticle(o, surface, bulletholettl, 7);
+    //newparticle(o, surface, bulletholettl, PART_BULLETHOLE);
     if(noisy && bulletbouncesound && bulletbouncesoundrad && d!=player1 && o.dist(camera1->o) <= bulletbouncesoundrad)
     {
         audiomgr.playsound(o.z<hdr.waterlevel ? S_BULLETWATERHIT : S_BULLETHIT, &o, SP_LOW);
@@ -637,12 +639,12 @@ bool addbullethole(dynent *d, const vec &from, const vec &to, float radius, bool
 VARP(scorch, 0, 1, 1);
 VARP(scorchttl, 0, 10000, 30000);
 
-bool addscorchmark(vec &o, float radius)
+bool addscorchmark(const vec &o, float radius)
 {
-    if(!scorchttl || !scorch) return false;
+    if(!scorchttl || !scorch || OUTBORD(o.x, o.y)) return false;
     sqr *s = S((int)o.x, (int)o.y);
-    if(s->type!=SPACE || o.z-s->floor>radius) return false;
-    newparticle(vec(o.x, o.y, s->floor+0.02f), vec(0, 0, 1), scorchttl, 9);
+    if(!s || s->type!=SPACE || o.z-s->floor>radius) return false;
+    newparticle(vec(o.x, o.y, s->floor+0.02f), vec(0, 0, 1), scorchttl, PART_SCORCH);
     return true;
 }
 

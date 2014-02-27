@@ -643,7 +643,13 @@ enum
     PART_EMODEL,
     PART_ECARROT,
     PART_ELADDER,
-    PART_EFLAG
+    PART_EFLAG,
+    PART_BULLETHOLE_SHOTGUNM,
+    PART_BULLETHOLE_SHOTGUNC,
+    PART_FIREBALL_RPG,
+    PART_SHOTLINE_HEAL,
+    PART_SHOTLINE_RPG,
+    MAXPARTYPES
 };
 
 extern void particleinit();
@@ -655,7 +661,7 @@ extern void particle_emit(int type, int *args, int basetime, int seed, const vec
 extern void particle_fireball(int type, const vec &o);
 extern void addshotline(dynent *d, const vec &from, const vec &to);
 extern bool addbullethole(dynent *d, const vec &from, const vec &to, float radius = 1, bool noisy = true, int type = 0); // shotty
-extern bool addscorchmark(vec &o, float radius = 7);
+extern bool addscorchmark(const vec &o, float radius = 7);
 
 extern void render_particles(int time, int typemask = ~0);
 
