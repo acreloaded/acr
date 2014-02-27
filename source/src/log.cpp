@@ -2,12 +2,13 @@
 
 #include "cube.h"
 
-#if !defined(WIN32) && !defined(__APPLE__)
+//#if !defined(WIN32) && !defined(__APPLE__)
+#if 0
 
     #include <syslog.h>
     #include <signal.h>
 
-//    #define AC_USE_SYSLOG
+    #define AC_USE_SYSLOG
 
     static const int facilities[] = { LOG_LOCAL0, LOG_LOCAL1, LOG_LOCAL2, LOG_LOCAL3, LOG_LOCAL4, LOG_LOCAL5, LOG_LOCAL6, LOG_LOCAL7 };
     static const int levels[] = { LOG_DEBUG, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERR };
