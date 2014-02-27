@@ -107,7 +107,7 @@ void CBotManager::LoadBotNamesFile()
 
     // Load bot file
     char szNameFileName[256];
-    MakeBotFileName("bot_names.txt", NULL, NULL, szNameFileName);
+    MakeBotFileName("bot_names.txt", NULL, szNameFileName);
     FILE *fp = fopen(szNameFileName, "r");
     char szNameBuffer[256];
     int iIndex, iStrIndex;
@@ -210,7 +210,7 @@ void CBotManager::LoadBotTeamsFile()
 
     // Load bot file
     char szNameFileName[256];
-    MakeBotFileName("bot_teams.txt", NULL, NULL, szNameFileName);
+    MakeBotFileName("bot_teams.txt", NULL, szNameFileName);
     FILE *fp = fopen(szNameFileName, "r");
     char szNameBuffer[256];
     int iIndex, iStrIndex;
@@ -449,7 +449,7 @@ void CBotManager::DelWaypoint(node_s *pNode)
     CalculateMaxAStarCount();
 }
 
-void CBotManager::MakeBotFileName(const char *szFileName, const char *szDir1, const char *szDir2, char *szOutput)
+void CBotManager::MakeBotFileName(const char *szFileName, const char *szDir1, char *szOutput)
 {
     const char *DirSeperator;
 
@@ -467,12 +467,6 @@ void CBotManager::MakeBotFileName(const char *szFileName, const char *szDir1, co
         strcat(szOutput, DirSeperator);
     }
 
-    if (szDir2)
-    {
-        strcat(szOutput, szDir2);
-        strcat(szOutput, DirSeperator);
-    }
-
     strcat(szOutput, szFileName);
 }
 
@@ -487,7 +481,7 @@ void CBotManager::CreateSkillData()
     int SkillNr = -1;
     float value = 0;
 
-    MakeBotFileName("bot_skill.cfg", NULL, NULL, SkillFileName);
+    MakeBotFileName("bot_skill.cfg", NULL, SkillFileName);
 
     pSkillFile = fopen(SkillFileName, "r");
 

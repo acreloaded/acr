@@ -100,7 +100,7 @@ bool CWaypointClass::LoadWaypoints()
      strcpy(szWPFileName, m_szMapName);
      strcat(szWPFileName, ".wpt");
 
-     BotManager.MakeBotFileName(szWPFileName, "waypoints", NULL, filename);
+     BotManager.MakeBotFileName(szWPFileName, "waypoints", filename);
 
      bfp = openfile(filename, "rb");
 
@@ -308,7 +308,7 @@ void CWaypointClass::SaveWaypoints()
      strcpy(mapname, m_szMapName);
      strcat(mapname, ".wpt");
 
-     BotManager.MakeBotFileName(mapname, "waypoints", NULL, filename);
+     BotManager.MakeBotFileName(mapname, "waypoints", filename);
 
      stream *bfp = openfile(filename, "wb");
 
@@ -386,7 +386,7 @@ bool CWaypointClass::LoadWPExpFile()
      strcpy(szWPFileName, m_szMapName);
      strcat(szWPFileName, ".exp");
 
-     BotManager.MakeBotFileName(szWPFileName, "waypoints", NULL, filename);
+     BotManager.MakeBotFileName(szWPFileName, "waypoints", filename);
 
      bfp = fopen(filename, "rb");
 
@@ -501,7 +501,7 @@ void CWaypointClass::SaveWPExpFile()
      strcpy(mapname, m_szMapName);
      strcat(mapname, ".exp");
 
-     BotManager.MakeBotFileName(mapname, "waypoints", NULL, filename);
+     BotManager.MakeBotFileName(mapname, "waypoints", filename);
 
      FILE *bfp = fopen(filename, "wb");
 
