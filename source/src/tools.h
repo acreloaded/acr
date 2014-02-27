@@ -174,11 +174,11 @@ inline bool validmapname(char *s)
     return true;
 }
 
-inline bool findpattern (char *s, char *d) // returns true if there is more than 80% of similarity
+inline bool findpattern (const char *s, char *d) // returns true if there is more than 80% of similarity
 {
     int len, hit = 0;
     if (!d || (len = strlen(d)) < 1) return false;
-    char *dp = d, *s_end = s + strlen(s);
+    const char *dp = d, *s_end = s + strlen(s);
     while (s != s_end)
     {
         if ( *s == ' ' )                                                         // spaces separate words
@@ -203,7 +203,7 @@ inline bool findpattern (char *s, char *d) // returns true if there is more than
 #define loopvj(v)   for(int j = 0; j<(v).length(); j++)
 #define loopvk(v)   for(int k = 0; k<(v).length(); k++)
 #define loopvrev(v) for(int i = (v).length()-1; i>=0; i--)
-#define loopvjrev(v) for(int j = (v).length()-1; i>=0; i--)
+#define loopvjrev(v) for(int j = (v).length()-1; j>=0; i--)
 
 template <class T>
 struct databuf
@@ -477,7 +477,7 @@ template <class T> struct vector
         return databuf<T>(&buf[ulen], sz);
     }
 
-    void advance(int sz)
+    inline void advance(int sz)
     {
         ulen += sz;
     }
