@@ -3,7 +3,7 @@
 #include "cube.h"
 
 VAR(showclips, 0, 1, 1);
-VAR(showmodelclipping, 0, 0, 1);
+VAR(showmodelclipping, 0, 1, 1);
 
 vector<entity> ents;
 vector<int> eh_ents; // edithide entities
@@ -22,7 +22,7 @@ const char *entmdlnames[] =
      entmdlnames[e.type-I_CLIPS+(m_lss && e.type==I_GRENADE ? 5:0)]);
 
      float z = (float)(1+sinf(lastmillis/100.0f+e.x+e.y)/20), yaw = lastmillis/10.0f;
-     rendermodel(mdlname, ANIM_MAPMODEL|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor+e.attr1), yaw, 0);
+     rendermodel(mdlname, ANIM_MAPMODEL|(e.spawned ? 0 : ANIM_TRANSLUCENT)|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor+e.attr1), yaw, 0);
  }
 
 void renderclip(entity &e)
@@ -208,7 +208,7 @@ void renderentities()
         entity &e = ents[i];
         if(isitem(e.type))
         {
-            if((!OUTBORD(e.x, e.y) && e.spawned) || editmode)
+            if(!OUTBORD(e.x, e.y) || editmode)
             {
                 renderent(e);
             }
@@ -221,6 +221,12 @@ void renderentities()
                 rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
             }
             else if((e.type == CLIP || e.type == PLCLIP) && showclips && !stenciling) renderclip(e);
+            else if(e.type == PLAYERSTART)
+            {
+                defformatstring(skin)(e.attr2 < 2 ? "packages/models/playermodels/%s/%s.jpg" : "packages/models/playermodels/skin.jpg",
+                    team_string(e.attr2), e.attr2 ? "blue" : "red");
+                rendermodel("playermodels", ANIM_IDLE|ANIM_TRANSLUCENT|/*ANIM_LOOP*/ANIM_END|ANIM_DYNALLOC, -(int)textureload(skin)->id, 1.5f, vec(e.x, e.y, (float)S(e.x, e.y)->floor), e.attr1+90, 0/4);
+            }
             else if(e.type == MAPMODEL && showclips && showmodelclipping && !stenciling)
             {
                 mapmodelinfo &mmi = getmminfo(e.attr2);

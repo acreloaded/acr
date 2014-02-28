@@ -4909,7 +4909,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
 
         <variable name="showmodelclipping">
           <description>Show mapmodel clipping during edit mode.</description>
-          <value token="N" description="-" minValue="0" maxValue="1" defaultValue="0"/>
+          <value token="N" description="-" minValue="0" maxValue="1" defaultValue="1"/>
         </variable>
 
         <variable name="showgrid">
