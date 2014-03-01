@@ -314,7 +314,7 @@ void CWaypointClass::SaveWaypoints()
 
      if (!bfp)
      {
-          conoutf("Error writing waypoint file, check if the directory \"bot/waypoint\" exists and "
+          conoutf("Error writing waypoint file, check if the directory \"bot/waypoints\" exists and "
                        "the right permissions are set");
           return;
      }
@@ -507,7 +507,7 @@ void CWaypointClass::SaveWPExpFile()
 
      if (!bfp)
      {
-          conoutf("Error writing waypoint experience file, check if the directory \"bot/waypoint\" exists and "
+          conoutf("Error writing waypoint experience file, check if the directory \"bot/waypoints\" exists and "
                        "the right permissions are set");
           return;
      }
@@ -1422,9 +1422,7 @@ void CWaypointClass::FloodThink()
 
      BotManager.CalculateMaxAStarCount();
 
-     char szSize[64];
-     sprintf(szSize, "Total size: %.2f Kb", float(m_iFloodSize)/1024.0f);
-     conoutf(szSize);
+     conoutf("Total size: %.2f Kb", float(m_iFloodSize)/1024.0f);
 }
 
 bool CWaypointClass::CanPlaceNodeHere(const vec &from)
@@ -2153,6 +2151,7 @@ bool CBot::FindWaypoint()
      while (pNode)
      {
           if ((pNode->Entry->iFlags & W_FL_INTAG) &&
+            !OUTBORD((int)pNode->Entry->v_origin.x, (int)pNode->Entry->v_origin.y) &&
               SOLID(S((int)pNode->Entry->v_origin.x, (int)pNode->Entry->v_origin.y)))
           {
                pNode = pNode->next;
