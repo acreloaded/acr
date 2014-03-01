@@ -37,6 +37,7 @@ void renderclip(entity &e)
         case CLIP:     linestyle(1, 0xFF, 0xFF, 0); break;  // yellow
         case MAPMODEL: linestyle(1, 0, 0xFF, 0);    break;  // green
         case PLCLIP:   linestyle(1, 0xFF, 0, 0xFF); break;  // magenta
+        default:       linestyle(1, 0xFF, 0, 0);    break;  // red
     }
     glBegin(GL_LINES);
 
