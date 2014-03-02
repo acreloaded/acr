@@ -441,9 +441,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             case SV_CLIENT:
             {
                 int cn = getint(p);//, len = getuint(p);
-                ucharbuf q = p.subbuf(p.remaining());
                 d = getclient(cn);
-                //parsemessages(cn, getclient(cn), q, demo);
+                /*
+                ucharbuf q = p.subbuf(p.remaining());
+                parsemessages(cn, getclient(cn), q, demo);
+                */
                 break;
             }
 
