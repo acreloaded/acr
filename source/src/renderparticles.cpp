@@ -648,7 +648,7 @@ bool addscorchmark(const vec &o, float radius)
     return true;
 }
 
-VARP(shotline, 0, 1, 1);
+VARP(shotline, 0, 2, 2);
 VARP(shotlinettl, 0, 75, 10000);
 VARP(bulletairsound, 0, 1, 1);
 VARP(bulletairsoundrad, 0, 15, 1000);
@@ -657,21 +657,14 @@ VARP(bulletairsounddestrad, 0, 8, 1000);
 
 void addshotline(dynent *pl, const vec &from, const vec &to)
 {
-    if(pl == player1 || !shotlinettl || !shotline) return;
-    bool fx = shotlinettl > 0 && (player1->isspectating() || !multiplayer(false)); // allow fx only in spect mode and locally
-    if(rnd(3) && !fx) return; // show all shotlines when fx enabled
+    if(!shotlinettl || !shotline || (pl == player1 && shotline == 1)) return;
 
-    int start = (camera1->o.dist(to) <= 10.0f) ? 8 : 5;
     vec unitv;
     float dist = to.dist(from, unitv);
     unitv.div(dist);
 
     // shotline visuals
-    vec o = unitv;
-    o.mul(dist/10+start).add(from);
-    vec d = unitv;
-    d.mul(dist/10*-(10-start-2)).add(to);
-    newparticle(o, d, fx ? shotlinettl : min(75, shotlinettl), 6);
+    newparticle(from, to, shotlinettl, PART_SHOTLINE);
 
     // shotline sound fx
     if(!bulletairsoundrad) return;
@@ -684,5 +677,27 @@ void addshotline(dynent *pl, const vec &from, const vec &to)
     soundpos.add(from);
     if(!bulletairsound || soundpos.dist(camera1->o) > bulletairsoundrad) return; // outside player radius
     audiomgr.playsound(S_BULLETAIR1 + rnd(2), &soundpos, SP_LOW);
+}
+
+void addheadshot(const vec &from, const vec &to, int damage)
+{
+    if(!blood || !bloodttl || to.dist(from) < 1) return;
+    // make bloody stains! multiple times...
+    int num = clamp(damage/15, 1, 7);
+    loopi(num)
+    {
+        vec o(to), surface;
+        // raycube because blood shouldn't go to clips
+        float dist = raycube(to, o.sub(from).normalize().add(vec(
+            // spread x
+            (rnd(61)-30)/1000.f,
+            // spread y
+            (rnd(61)-30)/1000.f,
+            // spread z
+            (rnd(61)-30)/1000.f
+        )).normalize(), surface);
+        if(surface.iszero()) continue; // no bloody skies!
+        newparticle(o.mul(dist).add(vec(surface).mul(0.005f)).add(to), surface, bloodttl*2, PART_BLOODSTAIN);
+    }
 }
 

@@ -745,16 +745,16 @@ void renderclient(playerent *d)
     const char *cs = NULL, *skinbase = SKINBASE, *teamname = team_basestring(team);
     int skinid = 1 + d->skin();
     string skin;
-    if(hidecustomskins == 0 || (hidecustomskins == 1 && !m_teammode))
+    if(hidecustomskins == 0 || (hidecustomskins == 1 && !m_team(gamemode, mutators)))
     {
         cs = team ? d->skin_rvsf : d->skin_cla;
-        if(!m_teammode && d->skin_noteam) cs = d->skin_noteam;
+        if(!m_team(gamemode, mutators) && d->skin_noteam) cs = d->skin_noteam;
     }
     if(cs)
         formatstring(skin)("%s/custom/%s.jpg", skinbase, cs);
     else
     {
-        if(!m_teammode || !teamdisplaymode) formatstring(skin)("%s/%s/%02i.jpg", skinbase, teamname, skinid);
+        if(!m_team(gamemode, mutators) || !teamdisplaymode) formatstring(skin)("%s/%s/%02i.jpg", skinbase, teamname, skinid);
         else switch(teamdisplaymode)
         {
             case 1: formatstring(skin)("%s/%s/%02i_%svest.jpg", skinbase, teamname, skinid, team ? "blue" : "red"); break;

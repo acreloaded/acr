@@ -19,7 +19,7 @@ const char *entmdlnames[] =
      defformatstring(widn)("modmdlpickup%d", e.type-3);
      defformatstring(mdlname)("pickups/%s", identexists(widn)?getalias(widn):
 
-     entmdlnames[e.type-I_CLIPS+(m_lss && e.type==I_GRENADE ? 5:0)]);
+     entmdlnames[e.type-I_CLIPS+(m_lss(gamemode, mutators) && e.type==I_GRENADE ? 5:0)]);
 
      float z = (float)(1+sinf(lastmillis/100.0f+e.x+e.y)/20), yaw = lastmillis/10.0f;
      rendermodel(mdlname, ANIM_MAPMODEL|(e.spawned ? 0 : ANIM_TRANSLUCENT)|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor+e.attr1), yaw, 0);
@@ -258,7 +258,7 @@ void renderentities()
             }
         }
     }
-    if(m_flags && !editmode) loopi(2)
+    if(m_flags(gamemode) && !editmode) loopi(2)
     {
         flaginfo &f = flaginfos[i];
         switch(f.state)
@@ -267,7 +267,7 @@ void renderentities()
                 if(f.actor && f.actor != player1)
                 {
                     if(OUTBORD(f.actor->o.x, f.actor->o.y)) break;
-                    defformatstring(path)("pickups/flags/small_%s%s", m_ktf ? "" : team_basestring(i), m_htf ? "_htf" : m_ktf ? "ktf" : "");
+                    defformatstring(path)("pickups/flags/small_%s%s", m_keep(gamemode) ? "" : team_basestring(i), m_hunt(gamemode) ? "_htf" : m_keep(gamemode) ? "ktf" : "");
                     rendermodel(path, ANIM_FLAG|ANIM_START|ANIM_DYNALLOC, 0, 0, vec(f.actor->o).add(vec(0, 0, 0.3f+(sinf(lastmillis/100.0f)+1)/10)), lastmillis/2.5f, 0, 120.0f);
                 }
                 break;
@@ -277,7 +277,7 @@ void renderentities()
             {
                 if(OUTBORD(f.pos.x, f.pos.y)) break;
                 entity &e = *f.flagent;
-                defformatstring(path)("pickups/flags/%s%s", m_ktf ? "" : team_basestring(i),  m_htf ? "_htf" : m_ktf ? "ktf" : "");
+                defformatstring(path)("pickups/flags/%s%s", m_keep(gamemode) ? "" : team_basestring(i),  m_hunt(gamemode) ? "_htf" : m_keep(gamemode) ? "ktf" : "");
                 if(f.flagent->spawned) rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(f.pos.x, f.pos.y, f.state==CTFF_INBASE ? (float)S(int(f.pos.x), int(f.pos.y))->floor : f.pos.z), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
                 break;
             }
@@ -290,22 +290,20 @@ void renderentities()
 // these two functions are called when the server acknowledges that you really
 // picked up the item (in multiplayer someone may grab it before you).
 
-void pickupeffects(int n, playerent *d)
+void pickupeffects(int n, playerent *d, int spawntime)
 {
     if(!ents.inrange(n)) return;
     entity &e = ents[n];
     e.spawned = false;
+    e.spawntime = lastmillis + spawntime;
     if(!d) return;
     d->pickup(e.type);
-    if (m_lss && e.type == I_GRENADE) d->pickup(e.type); // get 2
-    itemstat &is = d->itemstats(e.type);
-    if(d!=player1 && d->type!=ENT_BOT) return;
+    const itemstat &is = d->itemstats(e.type);
     if(&is)
     {
+        audiomgr.playsound(is.sound, d);
         if(d==player1)
         {
-            audiomgr.playsoundc(is.sound);
-
             /*
                 onPickup arg1 legend:
                   0 = pistol clips
@@ -333,12 +331,11 @@ void pickupeffects(int n, playerent *d)
                 }
                 if(tmp)
                 {
-                    formatstring(o)("onPickup %d %d", e.type - 3, m_lss && e.type == I_GRENADE ? 2 : tmp->add);
+                    formatstring(o)("onPickup %d %d", e.type - 3, m_lss(gamemode, mutators) && e.type == I_GRENADE ? 2 : tmp->add);
                     execute(o);
                 }
             }
         }
-        else audiomgr.playsound(is.sound, d);
     }
 
     weapon *w = NULL;
@@ -354,22 +351,11 @@ void pickupeffects(int n, playerent *d)
 
 // these functions are called when the client touches the item
 
-extern int lastspawn;
-
 void trypickup(int n, playerent *d)
 {
     entity &e = ents[n];
     switch(e.type)
     {
-        default:
-            if( d->canpickup(e.type) && lastmillis > e.lastmillis + 250 && lastmillis > lastspawn + 500 )
-            {
-                if(d->type==ENT_PLAYER) addmsg(SV_ITEMPICKUP, "ri", n);
-                else if(d->type==ENT_BOT && serverpickup(n, -1)) pickupeffects(n, d);
-                e.lastmillis = lastmillis;
-            }
-            break;
-
         case LADDER:
             if(!d->crouching) d->onladder = true;
             break;
@@ -385,7 +371,7 @@ void trypickupflag(int flag, playerent *d)
         if(f.state == CTFF_STOLEN) return;
         bool own = flag == team_base(d->team);
 
-        if(m_ctf)
+        if(m_capture(gamemode))
         {
             if(own) // it's the own flag
             {
@@ -394,7 +380,7 @@ void trypickupflag(int flag, playerent *d)
             }
             else flagpickup(flag);
         }
-        else if(m_htf)
+        else if(m_hunt(gamemode))
         {
             if(own)
             {
@@ -405,7 +391,7 @@ void trypickupflag(int flag, playerent *d)
                 if(f.state == CTFF_DROPPED) flagscore(f.team); // may not count!
             }
         }
-        else if(m_ktf)
+        else if(m_keep(gamemode))
         {
             if(f.state != CTFF_INBASE) return;
             flagpickup(flag);
@@ -441,7 +427,7 @@ void checkitems(playerent *d)
         if(isitem(e.type)) v.z += e.attr1;
         if(d->o.dist(v)<2.5f) trypickup(i, d);
     }
-    if(m_flags) loopi(2)
+    if(m_flags(gamemode)) loopi(2)
     {
         flaginfo &f = flaginfos[i];
         entity &e = *f.flagent;
@@ -462,7 +448,7 @@ void checkitems(playerent *d)
 
 void spawnallitems()            // spawns items locally
 {
-    loopv(ents) if(ents[i].fitsmode(gamemode) || (multiplayer(false) && gamespeed!=100 && (i==-1)))
+    loopv(ents) if(ents[i].fitsmode(gamemode, mutators) || (multiplayer(false) && gamespeed!=100 && (i==-1)))
     {
         ents[i].spawned = true;
         ents[i].lastmillis = lastmillis;
@@ -472,9 +458,9 @@ void spawnallitems()            // spawns items locally
 void resetspawns(int type)
 {
     loopv(ents) if(type < 0 || type == ents[i].type) ents[i].spawned = false;
-    if(m_noitemsnade || m_pistol)
+    if(m_noitemsnade(gamemode, mutators) || m_pistol(gamemode, mutators))
     {
-        loopv(ents) ents[i].transformtype(gamemode);
+        loopv(ents) ents[i].transformtype(gamemode, mutators);
     }
 }
 
@@ -498,7 +484,7 @@ bool selectnextprimary(int num)
         case GUN_SNIPER:
         case GUN_ASSAULT:
             player1->setnextprimary(num);
-            addmsg(SV_PRIMARYWEAP, "ri", player1->nextprimweap->type);
+            addmsg(SV_LOADOUT, "ri", player1->nextprimweap->type);
             return true;
 
         default:

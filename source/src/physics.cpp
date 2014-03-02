@@ -458,7 +458,8 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                                 pl->vel.x /= 8.0f;
                                 pl->vel.y /= 8.0f;
                             }
-                            else if(pl==player1 || pl->type!=ENT_PLAYER) audiomgr.playsoundc(S_JUMP, pl);
+                            else if(pl->type==ENT_PLAYER && (pl == player1 || isowned((playerent *)pl)))
+                                audiomgr.playsoundc(S_JUMP, (playerent *)pl);
                             pl->lastjump = lastmillis;
                         }
                         pl->timeinair = 0;
@@ -479,7 +480,8 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                     int sound = timeinair > 800 ? S_HARDLAND : S_SOFTLAND;
                     if(pl->state!=CS_DEAD)
                     {
-                        if(pl==player1 || pl->type!=ENT_PLAYER) audiomgr.playsoundc(sound, pl);
+                        if(pl->type==ENT_PLAYER && (pl == player1 || isowned((playerent *)pl)))
+                            audiomgr.playsoundc(sound, (playerent *)pl);
                     }
                 }
             }
@@ -760,7 +762,7 @@ void updatecrouch(playerent *p, bool on)
     const float crouchspeed = 0.6f;
     p->crouching = on;
     p->eyeheightvel = on ? -crouchspeed : crouchspeed;
-    if(p==player1) audiomgr.playsoundc(on ? S_CROUCH : S_UNCROUCH);
+    audiomgr.playsound(on ? S_CROUCH : S_UNCROUCH, p);
 }
 
 void crouch(bool on)
@@ -1023,4 +1025,66 @@ void vectoyawpitch(const vec &v, float &yaw, float &pitch)
 {
     yaw = -atan2(v.x, v.y)/RAD;
     pitch = asin(v.z/v.magnitude())/RAD;
+}
+
+void fixfullrange(float &yaw, float &pitch, float &roll, bool full)
+{
+    if(full)
+    {
+        while(pitch < -180.0f) pitch += 360.0f;
+        while(pitch >= 180.0f) pitch -= 360.0f;
+        while(roll < -180.0f) roll += 360.0f;
+        while(roll >= 180.0f) roll -= 360.0f;
+    }
+    else
+    {
+        if(pitch > 89.9f) pitch = 89.9f;
+        if(pitch < -89.9f) pitch = -89.9f;
+        if(roll > 89.9f) roll = 89.9f;
+        if(roll < -89.9f) roll = -89.9f;
+    }
+    while(yaw < 0.0f) yaw += 360.0f;
+    while(yaw >= 360.0f) yaw -= 360.0f;
+}
+
+void fixrange(float &yaw, float &pitch)
+{
+    float r = 0.f;
+    fixfullrange(yaw, pitch, r, false);
+}
+
+void getyawpitch(const vec &from, const vec &pos, float &yaw, float &pitch)
+{
+    float dist = from.dist(pos);
+    yaw = 180-atan2(pos.x-from.x, pos.y-from.y)/RAD; // +180
+    pitch = asin((pos.z-from.z)/dist)/RAD;
+}
+
+void scaleyawpitch(float &yaw, float &pitch, float targyaw, float targpitch, float yawspeed, float pitchspeed, float rotate)
+{
+    if(yaw < targyaw-180.0f) yaw += 360.0f;
+    if(yaw > targyaw+180.0f) yaw -= 360.0f;
+    float offyaw = (rotate < 0 ? fabs(rotate) : (rotate > 0 ? min(float(fabs(targyaw-yaw)), rotate) : fabs(targyaw-yaw)))*yawspeed,
+        offpitch = (rotate < 0 ? fabs(rotate) : (rotate > 0 ? min(float(fabs(targpitch-pitch)), rotate) : fabs(targpitch-pitch)))*pitchspeed;
+    if(targyaw > yaw)
+    {
+        yaw += offyaw;
+        if(targyaw < yaw) yaw = targyaw;
+    }
+    else if(targyaw < yaw)
+    {
+        yaw -= offyaw;
+        if(targyaw > yaw) yaw = targyaw;
+    }
+    if(targpitch > pitch)
+    {
+        pitch += offpitch;
+        if(targpitch < pitch) pitch = targpitch;
+    }
+    else if(targpitch < pitch)
+    {
+        pitch -= offpitch;
+        if(targpitch > pitch) pitch = targpitch;
+    }
+    fixrange(yaw, pitch);
 }

@@ -24,11 +24,8 @@ extern void spawnstate(playerent *d);
 void CACBot::Spawn()
 {
     // Init all bot variabeles
-    m_pMyEnt->nextprimary = 2 + rnd(5); // 2011jan18:ft: 2 == GUN_CARBINE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT - if CPISTOL is activated this needs a FIXME to rnd(6)
     m_pMyEnt->targetyaw = m_pMyEnt->targetpitch = 0.0f;
     m_pMyEnt->pBot = this;
-
-    spawnplayer(m_pMyEnt);
 
     m_eCurrentBotState = STATE_NORMAL;
      m_iShootDelay = m_iChangeWeaponDelay = 0;
@@ -55,8 +52,10 @@ void CACBot::Spawn()
 
      m_iLastJumpPad = 0;
      m_pTargetEnt = NULL;
+     m_pTargetFlag = NULL;
      m_iCheckTeleporterDelay = m_iCheckJumppadsDelay = 0;
      m_iCheckEntsDelay = 0;
+     m_iCheckFlagsDelay = 0;
      m_iCheckTriggersDelay = 0;
      m_iLookForWaypointTime = 0;
 

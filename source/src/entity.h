@@ -33,20 +33,55 @@ struct persistent_entity        // map entity
 
 struct entity : persistent_entity
 {
-    bool spawned;               //the dynamic states of a map entity
+    // dynamic states of a map entity
+    bool spawned; int spawntime;
     int lastmillis;
-    entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4) : persistent_entity(x, y, z, type, attr1, attr2, attr3, attr4), spawned(false) {}
+    entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4) : persistent_entity(x, y, z, type, attr1, attr2, attr3, attr4), spawned(false), spawntime(0) {}
     entity() {}
-    bool fitsmode(int gamemode) { return !m_noitems && isitem(type) && !(m_noitemsnade && type!=I_GRENADE) && !(m_pistol && type==I_AMMO); }
-    void transformtype(int gamemode)
+    bool fitsmode(int gamemode, int mutators) { return !m_noitems(gamemode, mutators) && isitem(type) && !(m_noitemsnade(gamemode, mutators) && type!=I_GRENADE) && !(m_pistol(gamemode, mutators) && type==I_AMMO); }
+    void transformtype(int gamemode, int mutators)
     {
-        if(m_noitemsnade && type==I_CLIPS) type = I_GRENADE;
-        else if(m_pistol && ( type==I_AMMO || type==I_GRENADE )) type = I_CLIPS;
+        if(m_noitemsnade(gamemode, mutators) && type==I_CLIPS) type = I_GRENADE;
+        else if(m_pistol(gamemode, mutators) && ( type==I_AMMO || type==I_GRENADE )) type = I_CLIPS;
     }
 };
 
 enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_CARBINE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_CPISTOL, GUN_GRENADE, GUN_AKIMBO, NUMGUNS };
 #define reloadable_gun(g) (g != GUN_KNIFE && g != GUN_GRENADE)
+
+#define HEADSIZE 0.4f
+#define TORSOPART 0.35f
+#define LEGPART (1.f - TORSOPART)
+
+#define PLAYERRADIUS 1.1f
+#define PLAYERHEIGHT 4.5f
+#define PLAYERABOVEEYE .7f
+#define WEAPONBELOWEYE .2f
+
+enum { PR_CLEAR = 0, PR_ASSIST, PR_SPLAT, PR_HS, PR_KC, PR_KD, PR_HEALSELF, PR_HEALTEAM, PR_HEALENEMY, PR_HEALWOUND, PR_HEALEDBYTEAMMATE, PR_ARENA_WIN, PR_ARENA_WIND, PR_ARENA_LOSE, PR_SECURE_SECURED, PR_SECURE_SECURE, PR_SECURE_OVERTHROW, PR_BUZZKILL, PR_BUZZKILLED, PR_KD_SELF, PR_KD_ENEMY, PR_MAX };
+
+#define HEALTHPRECISION 1
+#define HEALTHSCALE 10 // pow(10, HEALTHPRECISION)
+#define STARTHEALTH ((m_juggernaut(gamemode, mutators) ? 1000 : 100) * HEALTHSCALE)
+#define MAXHEALTH ((m_juggernaut(gamemode, mutators) ? 1100 : 120) * HEALTHSCALE)
+#define VAMPIREMAX (STARTHEALTH + 200 * HEALTHSCALE)
+
+#define MAXZOMBIEROUND 30
+#define ZOMBIEHEALTHFACTOR 5
+#define MAXTHIRDPERSON 25
+
+#define SPAWNPROTECT (m_flags(gamemode) ? 1000 : m_team(gamemode, mutators) ? 1500 : 1250)
+
+#define REGENDELAY 4250
+#define REGENINT 2500
+
+#define SWITCHTIME(perk) ((perk) ? 200 : 400)
+#define ADSTIME(perk) ((perk) ? 200 : 300)
+#define CROUCHTIME 500
+
+#define BLEEDDMG 10
+#define BLEEDDMGZ 5
+#define BLEEDDMGPLUS 15
 
 #define SGRAYS 21
 #define SGDMGTOTAL 90
@@ -93,7 +128,7 @@ extern const char *teamnames[TEAM_NUM+1];
 extern const char *teamnames_s[TEAM_NUM+1];
 
 #define TEAM_VOID TEAM_NUM
-#define isteam(a,b)   (m_teammode && (a) == (b))
+#define isteam(a,b)   (m_team(gamemode, mutators) && (a) == (b))
 #define team_opposite(o) (team_isvalid(o) && (o) < TEAM_SPECT ? (o) ^ 1 : TEAM_SPECT)
 #define team_base(t) ((t) & 1)
 #define team_basestring(t) ((t) == 1 ? teamnames[1] : ((t) == 0 ? teamnames[0] : "SPECT"))
@@ -250,6 +285,7 @@ class playerstate
 {
 public:
     int health, armour;
+    int lastspawn;
     int primary, nextprimary;
     int gunselect;
     bool akimbo;
@@ -329,22 +365,23 @@ public:
         akimbo = false;
         loopi(NUMGUNS) ammo[i] = mag[i] = gunwait[i] = 0;
         ammo[GUN_KNIFE] = mag[GUN_KNIFE] = 1;
+        lastspawn = -1;
     }
 
-    virtual void spawnstate(int gamemode)
+    virtual void spawnstate(int gamemode, int mutators)
     {
-        if(m_pistol) primary = GUN_PISTOL;
-        else if(m_osok) primary = GUN_SNIPER;
-        else if(m_lss) primary = GUN_KNIFE;
+        if(m_pistol(gamemode, mutators)) primary = GUN_PISTOL;
+        else if(m_sniper(gamemode, mutators)) primary = GUN_SNIPER;
+        else if(m_lss(gamemode, mutators)) primary = GUN_KNIFE;
         else primary = nextprimary;
 
-        if(!m_nopistol)
+        if(!m_nosecondary(gamemode, mutators))
         {
             ammo[GUN_PISTOL] = ammostats[GUN_PISTOL].start-magsize(GUN_PISTOL);//ammostats[GUN_PISTOL].max-magsize(GUN_PISTOL);
             mag[GUN_PISTOL] = magsize(GUN_PISTOL);
         }
 
-        if(!m_noprimary)
+        if(!m_noprimary(gamemode, mutators))
         {
             ammo[primary] = ammostats[primary].start-magsize(primary);
             mag[primary] = magsize(primary);
@@ -352,8 +389,8 @@ public:
 
         gunselect = primary;
 
-        if(m_osok) health = 1;
-        if(m_lms) // Survivor && Team-Survivor : 2010nov19
+        if(m_sniper(gamemode, mutators)) health = 1;
+        if(m_survivor(gamemode, mutators)) // Survivor && Team-Survivor : 2010nov19
         {
             health = 100;
             armour = 100;
@@ -399,6 +436,15 @@ public:
         health -= damage;
         return damage;
     }
+
+    int protect(int millis, int gamemode, int mutators)
+    {
+        const int delay = SPAWNPROTECT, spawndelay = millis - lastspawn;
+        int amt = 0;
+        if(lastspawn && delay && spawndelay < delay)
+            amt = delay - spawndelay;
+        return amt;
+    }
 };
 
 #ifndef STANDALONE
@@ -439,25 +485,35 @@ public:
 
     bool ignored, muted;
 
+    // AI
+    int ownernum, level;
+    class CBot *pBot;
+    playerent *enemy;                      // monster wants to kill this entity
+    float targetpitch, targetyaw;          // monster wants to look in this direction                   
+
     playerent() : curskin(0), clientnum(-1), lastupdate(0), plag(0), ping(0), address(0), lifesequence(0), frags(0), flagscore(0), deaths(0), points(0), tks(0), lastpain(0), lastvoicecom(0), clientrole(CR_DEFAULT),
                   team(TEAM_SPECT), spectatemode(SM_NONE), followplayercn(FPCN_VOID), eardamagemillis(0), respawnoffset(0),
                   prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
                   smoothmillis(-1),
-                  head(-1, -1, -1), ignored(false), muted(false)
+                  head(-1, -1, -1), ignored(false), muted(false),
+				  ownernum(-1), level(0), pBot(NULL), enemy(NULL)
     {
         type = ENT_PLAYER;
         name[0] = 0;
-        maxeyeheight = 4.5f;
-        aboveeye = 0.7f;
-        radius = 1.1f;
+        maxeyeheight = PLAYERHEIGHT;
+		aboveeye = PLAYERABOVEEYE;
+        radius = PLAYERRADIUS;
         maxspeed = 16.0f;
         skin_noteam = skin_cla = skin_rvsf = NULL;
         loopi(2) nextskin[i] = 0;
         respawn();
     }
 
+    void removeai();
+
     virtual ~playerent()
     {
+        removeai();
         extern void removebounceents(playerent *owner);
         extern void removedynlights(physent *owner);
         extern void zapplayerflags(playerent *owner);
@@ -513,9 +569,9 @@ public:
         curskin = nextskin[team_base(team)];
     }
 
-    void spawnstate(int gamemode)
+    void spawnstate(int gamemode, int mutators)
     {
-        playerstate::spawnstate(gamemode);
+        playerstate::spawnstate(gamemode, mutators);
         prevweaponsel = weaponsel = weapons[gunselect];
         primweap = weapons[primary];
         nextprimweap = weapons[nextprimary];
@@ -542,30 +598,6 @@ public:
         t = team_base(t < 0 ? team : t);
         nextskin[t] = abs(s) % maxskin[t];
     }
-};
-
-
-
-class CBot;
-
-class botent : public playerent
-{
-public:
-    // Added by Rick
-    CBot *pBot; // Only used if this is a bot, points to the bot class if we are the host,
-                // for other clients its NULL
-    // End add by Rick
-
-    playerent *enemy;                      // monster wants to kill this entity
-    // Added by Rick: targetpitch
-    float targetpitch;                    // monster wants to look in this direction
-    // End add
-    float targetyaw;                    // monster wants to look in this direction
-
-    botent() : pBot(NULL), enemy(NULL) { type = ENT_BOT; }
-    ~botent() { }
-
-    int deaths() { return lifesequence; }
 };
 #endif //#ifndef STANDALONE
 

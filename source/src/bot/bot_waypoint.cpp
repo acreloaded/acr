@@ -548,8 +548,6 @@ void CWaypointClass::SaveWPExpFile()
 
 void CWaypointClass::Think()
 {
-     if (dedserv) return;
-
 #ifdef WP_FLOOD
      FloodThink();
 #endif

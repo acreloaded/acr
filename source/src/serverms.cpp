@@ -178,7 +178,7 @@ static inline void updatemasterserver(int millis, int port)
 ENetSocket pongsock = ENET_SOCKET_NULL, lansock = ENET_SOCKET_NULL;
 extern int getpongflags(enet_uint32 ip);
 
-void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int *mnum, int *msend, int *mrec, int *cnum, int *csend, int *crec, int protocol_version)
+void serverms(int mode, int muts, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int *mnum, int *msend, int *mrec, int *cnum, int *csend, int *crec, int protocol_version)
 {
     flushmasteroutput();
     updatemasterserver(millis, localaddr.port);
@@ -225,6 +225,7 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
             (*mnum)++; *mrec += len; std = true;
             putint(po, protocol_version);
             putint(po, mode);
+            putint(po, muts);
             putint(po, numplayers);
             putint(po, minremain);
             sendstring(smapname, po);

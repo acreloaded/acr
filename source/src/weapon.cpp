@@ -404,7 +404,7 @@ vector<hitmsg> hits;
 
 void hit(int damage, playerent *d, playerent *at, const vec &vel, int gun, bool gib, int info)
 {
-    if(d==player1 || d->type==ENT_BOT || !m_mp(gamemode)) d->hitpush(damage, vel, at, gun);
+    if(d==player1 || d->type==ENT_BOT) d->hitpush(damage, vel, at, gun);
 
     if(at == player1 && d != player1)
     {
@@ -418,8 +418,6 @@ void hit(int damage, playerent *d, playerent *at, const vec &vel, int gun, bool 
         lasthit = lastmillis;
     }
 
-    if(!m_mp(gamemode)) dodamage(damage, d, at, gun, gib);
-    else
     {
         hitmsg &h = hits.add();
         h.target = d->clientnum;
@@ -1000,7 +998,7 @@ void grenadeent::splash()
     {
         accuracym[GUN_GRENADE].shots++;
     }
-    else if(!m_botmode)
+    else if(!m_ai(gamemode))
     {
         return;
     }
@@ -1085,7 +1083,7 @@ bool grenades::attack(vec &targ)
     int attackmillis = lastmillis-owner->lastaction;
     vec &to = targ;
 
-    bool quickwait = attackmillis*3>=gunwait && !(m_arena && m_teammode && arenaintermission);
+    bool quickwait = attackmillis*3>=gunwait && !(m_duke(gamemode, mutators) && m_team(gamemode, mutators) && arenaintermission);
     bool waitdone = attackmillis>=gunwait && quickwait;
     if(waitdone) gunwait = reloading = 0;
 
@@ -1309,13 +1307,13 @@ void shotgun::attackfx(const vec &from, const vec &to, int millis)
     attacksound();
 }
 
-bool shotgun::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
+bool shotgun::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && this == owner->primweap; }
 
 
 // subgun
 
 subgun::subgun(playerent *owner) : gun(owner, GUN_SUBGUN) {}
-bool subgun::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
+bool subgun::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && this == owner->primweap; }
 int subgun::dynspread() { return shots > 2 ? 70 : ( info.spread + ( shots > 0 ? ( shots == 1 ? 5 : 10 ) : 0 ) ); } // CHANGED: 2010nov19 was: min(info.spread + 10 * shots, 80)
 
 
@@ -1356,7 +1354,7 @@ int sniperrifle::dynspread()
     return info.spread;
 }
 float sniperrifle::dynrecoil() { return scoped && lastmillis - scoped_since > SCOPESETTLETIME ? info.recoil / 3 : info.recoil; }
-bool sniperrifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
+bool sniperrifle::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && this == owner->primweap; }
 void sniperrifle::onselecting() { weapon::onselecting(); scoped = false; player1->scoping = false; }
 void sniperrifle::ondeselecting() { scoped = false; player1->scoping = false; }
 void sniperrifle::onownerdies() { scoped = false; player1->scoping = false; }
@@ -1382,7 +1380,7 @@ void sniperrifle::setscope(bool enable)
 
 carbine::carbine(playerent *owner) : gun(owner, GUN_CARBINE) {}
 
-bool carbine::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
+bool carbine::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && this == owner->primweap; }
 
 
 // assaultrifle
@@ -1391,12 +1389,12 @@ assaultrifle::assaultrifle(playerent *owner) : gun(owner, GUN_ASSAULT) {}
 
 int assaultrifle::dynspread() { return shots > 2 ? 55 : ( info.spread + ( shots > 0 ? ( shots == 1 ? 5 : 15 ) : 0 ) ); }
 float assaultrifle::dynrecoil() { return info.recoil + (rnd(8)*-0.01f); }
-bool assaultrifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
+bool assaultrifle::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && this == owner->primweap; }
 
 // combat pistol
 
 cpistol::cpistol(playerent *owner) : gun(owner, GUN_CPISTOL), bursting(false) {}
-bool cpistol::selectable() { return false; /*return weapon::selectable() && !m_noprimary && this == owner->primweap;*/ }
+bool cpistol::selectable() { return false; /*return weapon::selectable() && !m_noprimary(gamemode, mutators) && this == owner->primweap;*/ }
 void cpistol::onselecting() { weapon::onselecting(); bursting = false; }
 void cpistol::ondeselecting() { bursting = false; }
 bool cpistol::reload(bool autoreloaded)
@@ -1501,7 +1499,7 @@ COMMAND(setburst, "d");
 // pistol
 
 pistol::pistol(playerent *owner) : gun(owner, GUN_PISTOL) {}
-bool pistol::selectable() { return weapon::selectable() && !m_nopistol; }
+bool pistol::selectable() { return weapon::selectable() && !m_nosecondary(gamemode, mutators); }
 
 
 // akimbo
@@ -1535,7 +1533,7 @@ void akimbo::onselecting()
     akimbolastaction[0] = akimbolastaction[1] = lastmillis;
 }
 
-bool akimbo::selectable() { return weapon::selectable() && !m_nopistol && owner->akimbo; }
+bool akimbo::selectable() { return weapon::selectable() && !m_nosecondary(gamemode, mutators) && owner->akimbo; }
 void akimbo::updatetimers(int millis) { weapon::updatetimers(millis); /*loopi(2) akimbolastaction[i] = millis;*/ }
 void akimbo::reset() { akimbolastaction[0] = akimbolastaction[1] = akimbomillis = akimboside = 0; }
 

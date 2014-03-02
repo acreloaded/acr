@@ -484,6 +484,7 @@ void checkpings()
         si->protocol = getint(p);
         if(si->protocol!=PROTOCOL_VERSION) si->ping = 9998;
         si->mode = getint(p);
+        si->muts = getint(p);
         si->numplayers = getint(p);
         si->minremain = getint(p);
         getstring(text, p);
@@ -708,7 +709,7 @@ int sicompare(serverinfo **ap, serverinfo **bp)
         }
         case SBS_MODE: // mode
         {
-            const char *am = modestr(a->mode, modeacronyms > 0), *bm = modestr(b->mode, modeacronyms > 0);
+            const char *am = modestr(a->mode, a->muts, modeacronyms > 0), *bm = modestr(b->mode, b->muts, modeacronyms > 0);
             int mdir = dir * strcasecmp(am, bm);
             if(mdir) return mdir;
             break;
@@ -1054,7 +1055,7 @@ void refreshservers(void *menu, bool init)
                     concatformatstring(si.full, "\fs\f%c%s\t\fs\f%c%d/%d\fr\t\a%c  ", basecolor, colorping(si.ping), plnumcolor, si.numplayers, si.maxclients, '0' + si.uplinkqual);
                     if(si.map[0])
                     {
-                        concatformatstring(si.full, "%s, %s", si.map, modestr(si.mode, modeacronyms > 0));
+                        concatformatstring(si.full, "%s, %s", si.map, modestr(si.mode, si.muts, modeacronyms > 0));
                         if(showmr) concatformatstring(si.full, ", (%d)", si.minremain);
                     }
                     else concatformatstring(si.full, "empty");

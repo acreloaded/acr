@@ -13,13 +13,37 @@
 #include "cube.h"
 #include "bot.h"
 
-vector<botent *> bots;
-
 extern int triggertime;
 extern itemstat itemstats[];
 extern ENetHost *clienthost;
 
 const vec g_vecZero(0, 0, 0);
+
+bot_skill_s::bot_skill_s(float sk)
+{ // sk is 1 to 100
+    const float isk100 = (101 - sk) / 100; // inverse sk 1 to 100 divided by 100
+    const float sk100 = sk / 100; // skill divided by 100
+    flMinReactionDelay = .015f + isk100 * .285f; // 0.300 to 0.015
+    flMaxReactionDelay = .035f + isk100 * .465f; // 0.500 to 0.035
+    flMinAimXOffset = 15.f + isk100 * 20; // 35 to 15
+    flMaxAimXOffset = 20.f + isk100 * 20; // 40 to 20
+    flMinAimYOffset = 10.f + isk100 * 20; // 30 to 10
+    flMaxAimYOffset = 15.f + isk100 * 20; // 35 to 15
+    flMinAimXSpeed = 45.f + sk100 * 285; // 330 to 45
+    flMaxAimXSpeed = 60.f + sk100 * 265; // 355 to 60
+    flMinAimYSpeed = 125.f + sk100 * 275; // 400 to 125
+    flMaxAimYSpeed = 180.f + sk100 * 270; // 450 to 180
+    flMinAttackDelay = .1f + isk100 * 1.4f; // 0.1 to 1.5
+    flMaxAttackDelay = .4f + isk100 * 1.6f; // 0.4 to 2.0
+    flMinEnemySearchDelay = .09f + isk100 * .21f; // 0.09 to 0.30
+    flMaxEnemySearchDelay = .12f + isk100 * .24f; // 0.12 to 0.36
+    sShootAtFeetWithRLPercent = sk100 * 85; // 85 to 0
+    bCanPredict = sk >= 80;
+    iMaxHearVolume = 15 + sk100 * 60; // 15 to 75
+    //bCircleStrafe = sk >= 64;
+    bCircleStrafe = false;
+    bCanSearchItemsInCombat = sk >= 70;
+}
 
 //Bot class begin
 
@@ -36,10 +60,16 @@ CBot::~CBot()
      }
 }
 
+void CBot::MakeSkill(int sk)
+{
+    m_sSkillNr = clamp(sk / 20, 0, 4);
+    m_pBotSkill = new bot_skill_s(sk);
+}
+
 void CBot::Spawn()
 {
     // Init all bot variabeles
-    spawnplayer(m_pMyEnt);
+    //spawnplayer(m_pMyEnt);
 
      m_pMyEnt->targetyaw = m_pMyEnt->targetpitch = 0.0f;
      m_pMyEnt->enemy = NULL;
@@ -75,9 +105,11 @@ void CBot::Spawn()
 
      m_iLastJumpPad = 0;
      m_pTargetEnt = NULL;
+     m_pTargetFlag = NULL;
      while(!m_UnreachableEnts.Empty()) delete m_UnreachableEnts.Pop();
      m_iCheckTeleporterDelay = m_iCheckJumppadsDelay = 0;
      m_iCheckEntsDelay = 0;
+     m_iCheckFlagsDelay = 0;
      m_iCheckTriggersDelay = 0;
      m_iLookForWaypointTime = 0;
 
@@ -94,16 +126,7 @@ void CBot::Think()
     if (intermission) return;
     // Bot is dead?
     if (m_pMyEnt->state == CS_DEAD)
-    {
-        if(lastmillis-m_pMyEnt->respawnoffset<1200)
-        {
-            m_pMyEnt->move = 0;
-            moveplayer(m_pMyEnt, 1, true);
-        }
-        else if (!m_arena && lastmillis-m_pMyEnt->respawnoffset>5000) Spawn();
-        SendBotInfo();
         return;
-    }
     CheckItemPickup();
     TLinkedList<unreachable_ent_s*>::node_s *p = m_UnreachableEnts.GetFirst(), *tmp;
     while(p)
@@ -128,8 +151,6 @@ void CBot::Think()
     if (!m_pMyEnt->move && !m_pMyEnt->strafe) m_iStuckCheckDelay = max(m_iStuckCheckDelay, lastmillis+100.0f);
     // Move the bot
     moveplayer(m_pMyEnt, 1, true);
-    // Update bot info on all clients
-    SendBotInfo();
 }
 
 void CBot::AimToVec(const vec &o)
@@ -260,12 +281,6 @@ float CBot::ChangeAngle(float speed, float ideal, float current)
      return current;
 }
 
-void CBot::SendBotInfo()
-{
-     if(lastmillis-m_iLastBotUpdate<40) return;    // don't update faster than 25fps
-     m_iLastBotUpdate = lastmillis;
-}
-
 float CBot::GetDistance(const vec &o)
 {
      return o.dist(m_pMyEnt->o);
@@ -284,15 +299,9 @@ float CBot::GetDistance(entity *e)
 
 bool CBot::SelectGun(int Gun)
 {
-    if(!m_pMyEnt->weapons[Gun]->selectable()) return false;
-    if(m_pMyEnt->weaponsel->reloading || m_pMyEnt->weaponchanging) return false;
-    m_pMyEnt->gunselect = Gun;
-    if(m_pMyEnt->weaponsel->type != Gun)
-    {
-        audiomgr.playsound(S_GUNCHANGE, m_pMyEnt);
+    if(!m_pMyEnt->weaponsel->deselectable() || !m_pMyEnt->weapons[Gun]->selectable() || m_pMyEnt->weaponsel->reloading || m_pMyEnt->weaponchanging) return false;
+    if(m_pMyEnt->weaponsel->type != Gun && m_pMyEnt->weapons[Gun]->selectable())
         m_pMyEnt->weaponswitch(m_pMyEnt->weapons[Gun]);
-        m_iChangeWeaponDelay = lastmillis + 1000;
-    }
     return true;
 }
 
@@ -388,6 +397,10 @@ void CBot::ResetCurrentTask()
           m_pTargetEnt = NULL;
           m_iCombatNavTime = m_iMoveDir = 0;
           m_bCombatJump = false;
+          m_vGoal = g_vecZero;
+          break;
+     case STATE_FLAG:
+          m_pTargetFlag = NULL;
           m_vGoal = g_vecZero;
           break;
      case STATE_ENT:

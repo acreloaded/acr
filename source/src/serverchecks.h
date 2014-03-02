@@ -214,14 +214,14 @@ void flagpoints(client *c, int message)
             c->md.flagpos.x = c->state.o.x;
             c->md.flagpos.y = c->state.o.y;
             c->md.flagmillis = servmillis;
-            if (m_ctf) addpt(c, CTFPICKPT);
+            if (m_capture(gamemode)) addpt(c, CTFPICKPT);
             break;
         case FM_DROP:
-            if (m_ctf) addpt(c, CTFDROPPT);
+            if (m_capture(gamemode)) addpt(c, CTFDROPPT);
             break;
         case FM_LOST:
-            if (m_htf) addpt(c, HTFLOSTPT);
-            else if (m_ctf) {
+            if (m_hunt(gamemode)) addpt(c, HTFLOSTPT);
+            else if (m_capture(gamemode)) {
                 distance = sqrt(POW2XY(c->state.o,c->md.flagpos));
                 if (distance > 200) distance = 200;                   // ~200 is the distance between the flags in ac_depot
                 addpt(c, CTFLOSTPT);
@@ -231,7 +231,7 @@ void flagpoints(client *c, int message)
             addpt(c, CTFRETURNPT);
             break;
         case FM_SCORE:
-            if (m_ctf) {
+            if (m_capture(gamemode)) {
                 distance = sqrt(POW2XY(c->state.o,c->md.flagpos));
                 if (distance > 200) distance = 200;
 #ifdef ACAC
@@ -455,11 +455,11 @@ void checkcover(client *target, client *actor)
 
     int cnumber = totalclients < 13 ? totalclients : 12;
 
-    if ( m_flags ) {
+    if ( m_flags(gamemode) ) {
         sflaginfo &f = sflaginfos[team];
         sflaginfo &of = sflaginfos[oteam];
 
-        if ( m_ctf )
+        if ( m_capture(gamemode) )
         {
             if ( f.state == CTFF_INBASE )
             {
@@ -473,7 +473,7 @@ void checkcover(client *target, client *actor)
                 if ( testcover(HE_FLAGCOVERED, CTFLCOVPT, actor) ) print_medal_messages(actor,CTFLCOV);
             }
         }
-        else if ( m_htf )
+        else if ( m_hunt(gamemode) )
         {
             if ( actor->clientnum != f.actor_cn )
             {
@@ -514,14 +514,14 @@ void checkfrag(client *target, client *actor, int gun, bool gib)
     if(target!=actor) {
         if(!isteam(target->team, actor->team)) {
 
-            if (m_teammode) {
-                if(!m_flags) addpt(actor, TMBONUSPT);
+            if (m_team(gamemode, mutators)) {
+                if(!m_flags(gamemode)) addpt(actor, TMBONUSPT);
                 else addpt(actor, FLBONUSPT);
 
                 checkcover (target, actor);
-                if ( m_htf && actorhasflag >= 0 ) addpt(actor, HTFFRAGPT);
+                if ( m_hunt(gamemode) && actorhasflag >= 0 ) addpt(actor, HTFFRAGPT);
 
-                if ( m_ctf && targethasflag >= 0 ) {
+                if ( m_capture(gamemode) && targethasflag >= 0 ) {
                     addpt(actor, CTFFRAGPT);
                 }
             }
@@ -559,22 +559,23 @@ void check_afk()
 {
     next_afk_check = servmillis + 7 * 1000;
     /* if we have few people (like 2x2), or it is not a teammode with the server not full: do nothing! */
-    if ( totalclients < 5 || ( totalclients < scl.maxclients && !m_teammode)  ) return;
+    if ( totalclients < 5 || ( totalclients < scl.maxclients && !m_team(gamemode, mutators))  ) return;
     loopv(clients)
     {
         client &c = *clients[i];
         if ( c.type != ST_TCPIP || c.connectmillis + 60 * 1000 > servmillis ||
              c.inputmillis + scl.afk_limit > servmillis || clienthasflag(c.clientnum) != -1 ) continue;
-        if ( ( c.state.state == CS_DEAD && !m_arena && c.state.lastdeath + 45 * 1000 < gamemillis) ||
+        if ( ( c.state.state == CS_DEAD && !m_duke(gamemode, mutators) && c.state.lastdeath + 45 * 1000 < gamemillis) ||
              ( c.state.state == CS_ALIVE && c.upspawnp ) /*||
              ( c.state.state == CS_SPECTATE && totalclients >= scl.maxclients )  // only kick spectator if server is full - 2011oct16:flowtron: mmh, that seems reasonable enough .. still, kicking spectators for inactivity seems harsh! disabled ATM, kick them manually if you must.
              */
             )
         {
-            logline(ACLOG_INFO, "[%s] %s %s", c.hostname, c.name, "is afk");
-            defformatstring(msg)("%s is afk", c.name);
+            defformatstring(msg)("%s is afk, switching to spectator", c.name);
             sendservmsg(msg);
-            disconnect_client(c.clientnum, DISC_AFK);
+            logline(ACLOG_INFO, "[%s] %s", c.hostname, msg);
+            updateclientteam(i, TEAM_SPECT, FTR_SILENTFORCE);
+            checkai(); // AFK check
         }
     }
 }

@@ -225,7 +225,7 @@ void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult
 
           // Check if the 'line' collides with the local player(player1)
           playerent *d = player1; // Shortcut
-          if (d && (d!=pTracer) && !BotManager.m_pBotToView && (d->state == CS_ALIVE))
+          if (d && (d!=pTracer) && (d->state == CS_ALIVE))
           {
                flDist = GetDistance(from, d->o); 
                
@@ -240,7 +240,7 @@ void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult
     
      float dx = to.x-from.x;
      float dy = to.y-from.y; 
-     int steps = (int)(sqrt(dx*dx+dy*dy)/0.9);
+     int steps = (int)(sqrt(dx*dx+dy*dy));///0.9);
      if(!steps) // If from and to are on the same cube...
      {
           if (GetDistance(from, to) < flNearestDist)         
@@ -263,6 +263,8 @@ void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult
      int i = 0;
      vec endcube = from;
      
+     const float xincrement = dx/(float)steps, yincrement = dy/(float)steps;
+
      // Now check if the 'line' is hit by a cube
      while(i<steps)
      {
@@ -281,8 +283,8 @@ void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult
           endcube.x = x;
           endcube.y = y;
           endcube.z = rz;
-          x += dx/(float)steps;
-          y += dy/(float)steps;
+          x += xincrement;
+          y += yincrement;
           i++;
      }
     
@@ -290,7 +292,7 @@ void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult
      {
           tr->end = to;
      }
-     else
+     else if(i > 1)
      {
           tr->collided = true;
           if (GetDistance(from, endcube) < flNearestDist)
@@ -464,31 +466,6 @@ bool IsInGame(dynent *d)
 {
      if (!d) return false;
      
-     if (d->type==ENT_BOT)
-     {
-          loopv(bots)
-          {
-               if (bots[i] == d)
-                    return true;
-          }
-     }
-     else
-     {
-          if (d == player1)
-               return true;
-          else
-          {
-               loopv(players)
-               {
-#ifdef VANILLA_CUBE               
-                    if (!players[i] || (players[i]->state == CS_DEDHOST)) continue;
-#elif defined(AC_CUBE)
-                    if (!players[i]) continue;
-#endif                    
-                    if (players[i] == d)
-                         return true;
-               }
-          }
-     }
-     return false;
+     if (d == player1) return true;
+     else return players.find((playerent *) d) >= 0;
 }

@@ -22,43 +22,34 @@ struct serveraction
     virtual ~serveraction() { }
 };
 
-void kick_abuser(int cn, int &cmillis, int &count, int limit)
-{
-    if ( cmillis + 30000 > servmillis ) count++;
-    else {
-        count -= count > 0 ? (servmillis - cmillis)/30000 : 0;
-        if ( count <= 0 ) count = 1;
-    }
-    cmillis = servmillis;
-    if( count >= limit ) disconnect_client(cn, DISC_ABUSE);
-}
-
 struct mapaction : serveraction
 {
     char *map;
-    int mode, time;
+    int mode, muts;
     bool mapok, queue;
     void perform()
     {
         if(queue)
         {
             nextgamemode = mode;
+            nextmutators = muts;
             copystring(nextmapname, map);
         }
-        else if(isdedicated && numclients() > 2 && smode >= 0 && smode != 1 && ( gamemillis > gamelimit/4 || scl.demo_interm ))
+        else if(isdedicated && numclients() > 2 && !m_demo(smode) && !m_edit(smode) && ( gamemillis > gamelimit/4 || scl.demo_interm ))
         {
             forceintermission = true;
             nextgamemode = mode;
+            nextmutators = muts;
             copystring(nextmapname, map);
         }
         else
         {
-            startgame(map, mode, time);
+            startgame(map, mode, muts);
         }
     }
-    bool isvalid() { return serveraction::isvalid() && mode != GMODE_DEMO && map[0] && mapok && !(isdedicated && !m_mp(mode)); }
+    bool isvalid() { return serveraction::isvalid() && !m_demo(mode) && map[0] && mapok; }
     bool isdisabled() { return maprot.current() && !maprot.current()->vote; }
-    mapaction(char *map, int mode, int time, int caller, bool q) : map(map), mode(mode), time(time), queue(q)
+    mapaction(char *map, int mode, int muts, int caller, bool q) : map(map), mode(mode), muts(muts), queue(q)
     {
         if(isdedicated)
         {
@@ -66,7 +57,7 @@ struct mapaction : serveraction
             int maploc = MAP_NOTFOUND;
             mapstats *ms = map[0] ? getservermapstats(map, false, &maploc) : NULL;
             bool validname = validmapname(map);
-            mapok = (ms != NULL) && validname && ( (mode != GMODE_COOPEDIT && mapisok(ms)) || (mode == GMODE_COOPEDIT && !readonlymap(maploc)) );
+            mapok = (ms != NULL) && validname && ( m_edit(mode) ? !readonlymap(maploc) : mapisok(ms) );
             if(!mapok)
             {
                 if(notify)
@@ -76,7 +67,7 @@ struct mapaction : serveraction
                     else
                     {
                         sendservmsg(ms ?
-                            ( mode == GMODE_COOPEDIT ? "this map cannot be coopedited in this server" : "sorry, but this map does not satisfy some quality requisites to be played in MultiPlayer Mode" ) :
+                            ( m_edit(mode) ? "this map cannot be coopedited in this server" : "sorry, but this map does not satisfy some quality requisites to be played in MultiPlayer Mode" ) :
                             "the server does not have this map",
                             caller);
                     }
@@ -84,16 +75,15 @@ struct mapaction : serveraction
             }
             else
             { // check, if map supports mode
-                if(mode == GMODE_COOPEDIT && !strchr(scl.voteperm, 'e')) role = CR_ADMIN;
-                bool romap = mode == GMODE_COOPEDIT && readonlymap(maploc);
-                int smode = mode;  // 'borrow' the mode macros by replacing a global by a local var
-                bool spawns = mode == GMODE_COOPEDIT || (m_teammode && !m_ktf ? ms->spawns[0] && ms->spawns[1] : ms->spawns[2]);
-                bool flags = mode != GMODE_COOPEDIT && m_flags && !m_htf ? ms->flags[0] && ms->flags[1] : true;
+                if(m_edit(mode) && !strchr(scl.voteperm, 'e')) role = CR_ADMIN;
+                bool romap = m_edit(mode) && readonlymap(maploc);
+                bool spawns = m_edit(mode) || (m_team(mode, muts) && !m_keep(mode) ? ms->spawns[0] && ms->spawns[1] : ms->spawns[2]);
+				bool flags = !m_edit(mode) && m_flags(mode) && !m_hunt(mode) ? ms->flags[0] && ms->flags[1] : true;
                 if(!spawns || !flags || romap)
                 { // unsupported mode
                     if(strchr(scl.voteperm, 'P')) role = CR_ADMIN;
                     else if(!strchr(scl.voteperm, 'p')) mapok = false; // default: no one can vote for unsupported mode/map combinations
-                    defformatstring(msg)("\f3map \"%s\" does not support \"%s\": ", behindpath(map), modestr(mode, false));
+                    defformatstring(msg)("\f3map \"%s\" does not support \"%s\": ", behindpath(map), modestr(mode, muts, false));
                     if(romap) concatstring(msg, "map is readonly");
                     else
                     {
@@ -131,7 +121,7 @@ struct mapaction : serveraction
         }
         else mapok = true;
         area |= EE_LOCAL_SERV; // local too
-        formatstring(desc)("load map '%s' in mode '%s'", map, modestr(mode));
+        formatstring(desc)("load map '%s' in mode '%s'", map, modestr(mode, muts));
         if(q) concatstring(desc, " (in the next game)");
     }
     ~mapaction() { DELETEA(map); }
@@ -168,7 +158,7 @@ struct playeraction : serveraction
 struct forceteamaction : playeraction
 {
     int team;
-    void perform() { updateclientteam(cn, team, FTR_SILENTFORCE); }
+    void perform() { updateclientteam(cn, team, FTR_SILENTFORCE); checkai(); /* forceteam */ }
     virtual bool isvalid() { return valid_client(cn) && team_isvalid(team) && team != clients[cn]->team; }
     forceteamaction(int cn, int caller, int team) : playeraction(cn), team(team)
     {
@@ -184,6 +174,15 @@ struct giveadminaction : playeraction
     {
         role = CR_ADMIN;
 //        role = roleconf('G');
+    }
+};
+
+struct revokeaction : playeraction
+{
+    void perform() { changeclientrole(cn, CR_DEFAULT, NULL, true); }
+    revokeaction(int cn) : playeraction(cn)
+    {
+        role = CR_ADMIN;
     }
 };
 
@@ -235,6 +234,17 @@ struct removebansaction : serveraction
     }
 };
 
+struct botbalanceaction : serveraction
+{
+    int balance;
+    void perform() { botbalance = balance; checkai(); /* botbalance changed */ }
+    bool isvalid() { return balance >= -1 && balance <= MAXCLIENTS; }
+    botbalanceaction(int balance) : balance(balance)
+    {
+        if(isvalid()) formatstring(desc)("change botbalance to %d", balance);
+    }
+};
+
 struct mastermodeaction : serveraction
 {
     int mode;
@@ -259,7 +269,7 @@ struct autoteamaction : enableaction
     {
         autoteam = enable;
         sendservermode();
-        if(m_teammode && enable) refillteams(true);
+        if(m_team(gamemode, mutators) && enable) refillteams(true);
     }
     autoteamaction(bool enable) : enableaction(enable)
     {
@@ -275,7 +285,7 @@ struct shuffleteamaction : serveraction
         sendf(-1, 1, "ri2", SV_SERVERMODE, sendservermode(false) | AT_SHUFFLE);
         shuffleteams();
     }
-    bool isvalid() { return serveraction::isvalid() && m_teammode; }
+    bool isvalid() { return serveraction::isvalid() && m_team(gamemode, mutators); }
     shuffleteamaction()
     {
         role = roleconf('S');

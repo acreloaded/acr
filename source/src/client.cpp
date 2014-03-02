@@ -12,6 +12,7 @@ SVAR(curdemofile, "n/a");
 extern int searchlan;
 
 int getclientnum() { return player1 ? player1->clientnum : -1; }
+bool isowned(playerent *p) { return player1 && p && p->ownernum >= 0 && p->ownernum == player1->clientnum; }
 
 bool multiplayer(bool msg)
 {
@@ -22,7 +23,7 @@ bool multiplayer(bool msg)
 
 bool allowedittoggle()
 {
-    bool allow = !curpeer || gamemode==1;
+    bool allow = !curpeer || m_edit(gamemode);
     if(!allow) conoutf(_("editing in multiplayer requires coopedit mode (1)"));
     return allow;
 }
@@ -64,6 +65,7 @@ void connectserv_(const char *servername, int serverport = 0, const char *passwo
 {
     if(serverport <= 0) serverport = CUBE_DEFAULT_SERVER_PORT;
     if(watchingdemo) enddemoplayback();
+    //if(!clfail && cllock && searchlan<2) return;
 
     if(connpeer)
     {
@@ -102,7 +104,6 @@ void connectserv_(const char *servername, int serverport = 0, const char *passwo
         enet_host_flush(clienthost);
         connmillis = totalmillis;
         connattempts = 0;
-        if(!m_mp(gamemode)) gamemode = GMODE_TEAMDEATHMATCH;
     }
     else
     {
@@ -192,7 +193,6 @@ void disconnect(int onlyclean, int async)
         player1->clientnum = -1;
         player1->lifesequence = 0;
         player1->clientrole = CR_DEFAULT;
-        kickallbots();
         loopv(players) zapplayer(players[i]);
         clearvote();
         audiomgr.clearworldsounds(false);
@@ -229,32 +229,75 @@ void trydisconnect()
     disconnect(0, !discmillis);
 }
 
-void _toserver(char *text, int msg, int msgt)
+VARP(voicecomsounds, 0, 1, 2);
+void saytext(playerent *d, char *text, int flags, int sound)
 {
-    if(!text) return;
-    bool toteam = text[0] == '%' && (m_teammode || team_isspect(player1->team));
-    if(!toteam && text[0] == '%' && strlen(text) > 1) text++; // convert team-text to normal-text if no team-mode is active
-    if(toteam) text++;
-    filtertext(text, text);
-    trimtrailingwhitespace(text);
-    if(servstate.mastermode == MM_MATCH && servstate.matchteamsize && !team_isactive(player1->team) && !(player1->team == TEAM_SPECT && player1->clientrole == CR_ADMIN)) toteam = true; // spect chat
-    if(*text)
+    if(sound >= 0 && sound < S_NULL && !(d->muted || d->ignored))
     {
-        if(msg == SV_TEXTME) conoutf("\f%d%s %s", toteam ? 1 : 0, colorname(player1), highlight(text));
-        else conoutf("%s:\f%d %s", colorname(player1), toteam ? 1 : 0, highlight(text));
-        addmsg(toteam ? msgt : msg, "rs", text);
+        //d->addicon(eventicon::VOICECOM);
+        if( voicecomsounds == 1 || (voicecomsounds == 2 && (flags & SAY_TEAM)) )
+            audiomgr.playsound(sound, SP_HIGH);
     }
+    else sound = 0;
+    int textcolor = 0; // normal text
+    if(flags&SAY_TEAM)
+        textcolor = d->team == TEAM_SPECT ? 4 : (d == player1 || isteam(player1->team, d->team)) ? 1 : 3;
+    if(flags&SAY_FORBIDDEN)
+    {
+        textcolor = 2; // denied yellow
+        concatformatstring(text, " \f3%s", "(forbidden speech)");
+    }
+    else if(flags&SAY_SPAM)
+    {
+        textcolor = 2; // denied yellow
+        concatformatstring(text, " \f3%s", _("spam_detected"));
+    }
+    else if(flags&SAY_MUTE)
+    {
+        textcolor = 2; // denied yellow
+        concatformatstring(text, " \f3%s", "MUTED BY THE SERVER");
+    }
+    string textout;
+    // nametag
+    defformatstring(nametag)("\f%d%s", /*team_rel_color(player1->team, d->team)*/ 1, colorname(d));
+    if(flags & SAY_TEAM) concatformatstring(nametag, " \f5(\f%d%s\f5)", /* team_color(d->team) */ 1, team_string(d->team));
+    // more nametag
+    if(flags & SAY_ACTION) formatstring(textout)("\f5* %s", nametag);
+    else formatstring(textout)("\f5<%s\f5>", nametag);
+    // format text output
+    if(sound) concatformatstring(textout, " \f4[\f6%d\f4] \f%d%s", sound, textcolor, text);
+    else concatformatstring(textout, " \f%d%s", textcolor, text);
+    // output text
+    if(d->ignored && !d->clientrole)
+        clientlogf("ignored: %s", textout);
+    else if(textcolor == 2)
+        conoutf("%s", textout);
+    else
+        chatoutf("%s", textout);
 }
 
-void toserver(char *text)
+void toserver(char *text, int voice, bool action)
 {
-    _toserver(text, SV_TEXT, SV_TEAMTEXT);
+    if(!text || !*text) return;
+    bool toteam = *text == '%' && strlen(text) > 1;
+    if(toteam) ++text;
+    addmsg(SV_TEXT, "ri2s", (action ? SAY_ACTION : 0) | (toteam ? SAY_TEAM : 0), voice, text);
 }
 
-void toserverme(char *text)
+void toserver_(char *text) { toserver(text); }
+void toservervoice(char *text)
 {
-    _toserver(text, SV_TEXTME, SV_TEAMTEXTME);
+    extern int findvoice();
+    int s = findvoice();
+    bool action = false;
+    if(*text == '!')
+    {
+        action = true;
+        ++text;
+    }
+    toserver(text, s, action);
 }
+void toserverme(char *text){ toserver(text, 0, true); }
 
 void echo(char *text)
 {
@@ -330,6 +373,7 @@ COMMAND(pm, "c");
 COMMAND(echo, "c");
 COMMAND(hudecho, "c");
 COMMANDN(say, toserver, "c");
+COMMANDN(sayvoice, toservervoice, "c");
 COMMANDN(me, toserverme, "c");
 COMMANDN(connect, connectserv, "sis");
 COMMAND(connectadmin, "sis");
@@ -367,27 +411,25 @@ void cleanupclient()
 // collect c2s messages conveniently
 
 vector<uchar> messages;
+bool messagereliable = false;
 
 void addmsg(int type, const char *fmt, ...)
 {
     static uchar buf[MAXTRANS];
     ucharbuf p(buf, MAXTRANS);
     putint(p, type);
-    int numi = 1, nums = 0;
-    bool reliable = false;
     if(fmt)
     {
         va_list args;
         va_start(args, fmt);
         while(*fmt) switch(*fmt++)
         {
-            case 'r': reliable = true; break;
+            case 'r': messagereliable = true; break;
             case 'v':
             {
                 int n = va_arg(args, int);
                 int *v = va_arg(args, int *);
                 loopi(n) putint(p, v[i]);
-                numi += n;
                 break;
             }
 
@@ -395,23 +437,17 @@ void addmsg(int type, const char *fmt, ...)
             {
                 int n = isdigit(*fmt) ? *fmt++-'0' : 1;
                 loopi(n) putint(p, va_arg(args, int));
-                numi += n;
                 break;
             }
             case 's':
             {
                 const char *t = va_arg(args, const char *);
-                if(t) sendstring(t, p); nums++; break;
+                if(t) sendstring(t, p); break;
             }
         }
         va_end(args);
     }
-    int num = nums?0:numi, msgsize = msgsizelookup(type);
-    if(msgsize && num!=msgsize) { fatal("inconsistent msg size for %d (%d != %d)", type, num, msgsize); }
-    int len = p.length();
-    messages.add(len&0xFF);
-    messages.add((len>>8)|(reliable ? 0x80 : 0));
-    loopi(len) messages.add(buf[i]);
+    loopi(p.length()) messages.add(buf[i]);
 }
 
 static int lastupdate = -1000, lastping = 0;
@@ -431,11 +467,8 @@ void c2skeepalive()
 extern string masterpwd;
 bool sv_pos = true;
 
-void c2sinfo(playerent *d)                  // send update to the server
+void sendposition(playerent *d)
 {
-    if(d->clientnum<0) return;              // we haven't had a welcome message from the server yet
-    if(totalmillis-lastupdate<40) return;    // don't update faster than 25fps
-
     if(d->state==CS_ALIVE || d->state==CS_EDITING)
     {
         packetbuf q(100);
@@ -519,7 +552,25 @@ void c2sinfo(playerent *d)                  // send update to the server
         sendpackettoserv(0, q.finalize());
         d->shoot = false;
     }
+}
 
+void sendpositions()
+{
+    sendposition(player1);
+    loopv(players)
+    {
+        playerent *p = players[i];
+        if(p && isowned(p)) sendposition(p);
+    }
+}
+
+void c2sinfo(bool force)                    // send update to the server
+{
+    if(player1->clientnum<0) return;        // we haven't had a welcome message from the server yet
+    if(!force && totalmillis-lastupdate<40) return; // don't update faster than 25fps
+    // Send positions
+    if(!intermission) sendpositions();
+    // Send messages
     if(sendmapidenttoserver || messages.length() || totalmillis-lastping>250)
     {
         packetbuf p(MAXTRANS);
@@ -532,19 +583,20 @@ void c2sinfo(playerent *d)                  // send update to the server
             putint(p, hdr.maprevision);
             sendmapidenttoserver = false;
         }
-        int i = 0;
-        while(i < messages.length()) // send messages collected during the previous frames
+        // send messages collected during the previous frames
+        if(messages.length())
         {
-            int len = messages[i] | ((messages[i+1]&0x7F)<<8);
-            if(p.remaining() < len) break;
-            if(messages[i+1]&0x80) p.reliable();
-            p.put(&messages[i+2], len);
-            i += 2 + len;
+            p.put(messages.getbuf(), messages.length());
+            messages.setsize(0);
+            if(messagereliable)
+            {
+                p.reliable();
+                messagereliable = false;
+            }
         }
-        messages.remove(0, i);
         if(totalmillis-lastping>250)
         {
-            putint(p, SV_PING);
+            putint(p, SV_PINGPONG);
             putint(p, totalmillis);
             lastping = totalmillis;
         }
@@ -756,7 +808,7 @@ void sendmap(char *mapname)
 {
     if(!*mapname) mapname = getclientmap();
     if(securemapcheck(mapname)) return;
-    if(gamemode == GMODE_COOPEDIT && !strcmp(getclientmap(), mapname)) save_world(mapname);
+    if(m_edit(gamemode) && !strcmp(getclientmap(), mapname)) save_world(mapname);
 
     int mapsize, cfgsize, cfgsizegz, revision;
     uchar *mapdata = readmap(path(mapname), &mapsize, &revision);
@@ -850,7 +902,7 @@ void shiftgametime(int newmillis)
         // if rewinding
         if(!curdemofile || !curdemofile[0]) return;
         watchingdemo = false;
-        callvote(SA_MAP, curdemofile, "-1");
+        callvote(SA_MAP, curdemofile, "0");
         nextmillis = newmillis;
     }
     else

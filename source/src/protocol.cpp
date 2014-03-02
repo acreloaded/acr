@@ -292,69 +292,330 @@ void cutcolorstring(char *text, int len)
     }
 }
 
-const char *modefullnames[] =
+inline const char *gamename(int mode, int muts, int compact = 0)
 {
-    "demo playback",
-    "team deathmatch", "coopedit", "deathmatch", "survivor",
-    "team survivor", "ctf", "pistol frenzy", "bot team deathmatch", "bot deathmatch", "last swiss standing",
-    "one shot, one kill", "team one shot, one kill", "bot one shot, one kill", "hunt the flag", "team keep the flag",
-    "keep the flag", "team pistol frenzy", "team last swiss standing", "bot pistol frenzy", "bot last swiss standing", "bot team survivor", "bot team one shot, one kill"
-};
-
-const char *modeacronymnames[] =
-{
-    "DEMO",
-    "TDM", "coop", "DM", "SURV", "TSURV", "CTF", "PF", "BTDM", "BDM", "LSS",
-    "OSOK", "TOSOK", "BOSOK", "HTF", "TKTF", "KTF", "TPF", "TLSS", "BPF", "BLSS", "BTSURV", "BTOSOK"
-};
+    if(!m_valid(mode))
+        return compact ? "n/a" : "unknown";
+    modecheck(mode, muts);
+    gametypes &gt = gametype[mode];
+    static string gname;
+    gname[0] = 0;
+    if(gt.mutators[0] && muts) loopi(G_M_NUM)
+    {
+        int implied = m_implied(mode, muts);
+        if(/*(gt.mutators[0]&mutstype[i].type) && */(muts&mutstype[i].type) && (!implied || !(implied&mutstype[i].type)))
+        {
+            const char *mut = i < G_M_GSP ? mutstype[i].name : gt.gsp[i-G_M_GSP];
+            if(mut && *mut)
+            {
+                string name;
+                switch(compact)
+                {
+                    case 2: formatstring(name)("%s%c", *gname ? gname : "", mut[0]); break;
+                    case 1: formatstring(name)("%s%s%c", *gname ? gname : "", *gname ? "-" : "", mut[0]); break;
+                    case 0: default: formatstring(name)("%s%s%s", *gname ? gname : "", *gname ? "-" : "", mut); break;
+                }
+                copystring(gname, name);
+            }
+        }
+    }
+    if(!m_mimplied(mode, muts))
+    {
+        defformatstring(mname)("%s%s%s", *gname ? gname : "", *gname ? " " : "", gt.name);
+        copystring(gname, mname);
+    }
+    return gname;
+}
 
 const char *voteerrors[] = { "voting is currently disabled", "there is already a vote pending", "already voted", "can't vote that often", "this vote is not allowed in the current environment (singleplayer/multiplayer)", "no permission", "invalid vote", "server denied your call", "the next map/mode is already set" };
 const char *mmfullnames[] = { "open", "private", "match" };
 
-const char *fullmodestr(int n) { return (n>=-1 && size_t(n+1) < sizeof(modefullnames)/sizeof(modefullnames[0])) ? modefullnames[n+1] : "unknown"; }
-const char *acronymmodestr(int n) { return (n>=-1 && size_t(n+1) < sizeof(modeacronymnames)/sizeof(modeacronymnames[0])) ? modeacronymnames[n+1] : "UNK"; } // 'n/a' bad on *nix filesystem (demonameformat)
-const char *modestr(int n, bool acronyms) { return acronyms ? acronymmodestr (n) : fullmodestr(n); }
+const char *modestr(int gamemode, int mutators, bool acronyms) { return gamename(gamemode, mutators, acronyms ? 1 : 0); }
 const char *voteerrorstr(int n) { return (n>=0 && (size_t)n < sizeof(voteerrors)/sizeof(voteerrors[0])) ? voteerrors[n] : "unknown"; }
 const char *mmfullname(int n) { return (n>=0 && n < MM_NUM) ? mmfullnames[n] : "unknown"; }
 
-int defaultgamelimit(int gamemode) { return m_teammode ? 15 : 10; }
+int defaultgamelimit(int gamemode, int mutators) { return m_edit(gamemode) ? 1440 : m_progressive(gamemode, mutators) ? 45 : m_team(gamemode, mutators) ? 15 : 10; }
 
-static const int msgsizes[] =               // size inclusive message token, 0 for variable or not-checked sizes
+void modecheck(int &mode, int &muts, int trying)
 {
-    SV_SERVINFO, 5, SV_WELCOME, 2, SV_INITCLIENT, 0, SV_POS, 0, SV_POSC, 0, SV_POSN, 0, SV_TEXT, 0, SV_TEAMTEXT, 0, SV_TEXTME, 0, SV_TEAMTEXTME, 0, SV_TEXTPRIVATE, 0,
-    SV_SOUND, 2, SV_VOICECOM, 2, SV_VOICECOMTEAM, 2, SV_CDIS, 2,
-    SV_SHOOT, 0, SV_EXPLODE, 0, SV_SUICIDE, 1, SV_AKIMBO, 2, SV_RELOAD, 3, SV_AUTHT, 0, SV_AUTHREQ, 0, SV_AUTHTRY, 0, SV_AUTHANS, 0, SV_AUTHCHAL, 0,
-    SV_GIBDIED, 5, SV_DIED, 5, SV_GIBDAMAGE, 7, SV_DAMAGE, 7, SV_HITPUSH, 6, SV_SHOTFX, 6, SV_THROWNADE, 8,
-    SV_TRYSPAWN, 1, SV_SPAWNSTATE, 23, SV_SPAWN, 3, SV_SPAWNDENY, 2, SV_FORCEDEATH, 2, SV_RESUME, 0,
-    SV_DISCSCORES, 0, SV_TIMEUP, 3, SV_EDITENT, 10, SV_ITEMACC, 2,
-    SV_MAPCHANGE, 0, SV_ITEMSPAWN, 2, SV_ITEMPICKUP, 2,
-    SV_PING, 2, SV_PONG, 2, SV_CLIENTPING, 2, SV_GAMEMODE, 2,
-    SV_EDITMODE, 2, SV_EDITH, 7, SV_EDITT, 7, SV_EDITS, 6, SV_EDITD, 6, SV_EDITE, 6, SV_NEWMAP, 2,
-    SV_SENDMAP, 0, SV_RECVMAP, 1, SV_REMOVEMAP, 0,
-    SV_SERVMSG, 0, SV_ITEMLIST, 0, SV_WEAPCHANGE, 2, SV_PRIMARYWEAP, 2,
-    SV_FLAGACTION, 3, SV_FLAGINFO, 0, SV_FLAGMSG, 0, SV_FLAGCNT, 3,
-    SV_ARENAWIN, 2,
-    SV_SETADMIN, 0, SV_SERVOPINFO, 3,
-    SV_CALLVOTE, 0, SV_CALLVOTESUC, 1, SV_CALLVOTEERR, 2, SV_VOTE, 2, SV_VOTERESULT, 2,
-    SV_SETTEAM, 3, SV_TEAMDENY, 2, SV_SERVERMODE, 2,
-    SV_IPLIST, 0,
-    SV_LISTDEMOS, 1, SV_SENDDEMOLIST, 0, SV_GETDEMO, 2, SV_SENDDEMO, 0, SV_DEMOPLAYBACK, 3,
-    SV_CONNECT, 0,
-    SV_SWITCHNAME, 0, SV_SWITCHSKIN, 0, SV_SWITCHTEAM, 0,
-    SV_CLIENT, 0,
-    SV_EXTENSION, 0,
-    SV_MAPIDENT, 3, SV_HUDEXTRAS, 2, SV_POINTS, 0,
-    -1
-};
-
-int msgsizelookup(int msg)
-{
-    static int sizetable[SV_NUM] = { -1 };
-    if(sizetable[0] < 0)
+    if(!m_valid(mode))
     {
-        memset(sizetable, -1, sizeof(sizetable));
-        for(const int *p = msgsizes; *p >= 0; p += 2) sizetable[p[0]] = p[1];
+        mode = G_DM;
+        muts = m_implied(mode, G_M_NONE);
     }
-    return msg >= 0 && msg < SV_NUM ? sizetable[msg] : -1;
+    //#define modecheckreset(a) { if(muts && ++count < G_M_NUM*(G_M_GSN+5)) { i = -1; a; } else { muts = 0; i = G_M_NUM; break; } }
+    if(!gametype[mode].mutators[0])
+        muts = G_M_NONE;
+    else
+    {
+        int gsps = 0;
+        int implied = m_implied(mode, muts);
+        int allowed = G_M_ALL;
+
+        loopi(G_M_NUM)
+        {
+            if(!(muts & (1 << i))) continue;
+            if(i >= G_M_GSP)
+            {
+                gsps |= 1 << (i - G_M_GSP);
+                allowed &= gametype[mode].mutators[i-G_M_GSP+1];
+            }
+
+            allowed &= mutstype[i].mutators;
+        }
+
+        if(!gsps)
+            allowed &= gametype[mode].mutators[0];
+
+        loopi(G_M_NUM)
+        {
+            if(!((muts & allowed) & (1 << i))) continue;
+            implied |= mutstype[i].implied;
+        }
+
+        muts = (muts & allowed) | implied;
+
+        /*
+        int count = 0, implied = m_implied(mode, muts);
+        if(implied) muts |= implied;
+        loopi(G_M_GSN)
+        {
+            int m = 1<<(i+G_M_GSP);
+            if(!(gametype[mode].mutators[0]&m))
+            {
+                muts &= ~m;
+                trying &= ~m;
+            }
+        }
+        if(muts) loopi(G_M_NUM)
+        {
+            if(trying && !(gametype[mode].mutators[0]&mutstype[i].type) && (trying&mutstype[i].type))
+                trying &= ~mutstype[i].type;
+            if(!(gametype[mode].mutators[0]&mutstype[i].type) && (muts&mutstype[i].type))
+            {
+                muts &= ~mutstype[i].type;
+                trying &= ~mutstype[i].type;
+                modecheckreset(continue);
+            }
+            loopj(G_M_GSN)
+            {
+                if(!gametype[mode].mutators[j+1]) continue;
+                int m = 1<<(j+G_M_GSP);
+                if(!(muts&m)) continue;
+                loopk(G_M_GSN)
+                {
+                    if(!gametype[mode].mutators[k+1]) continue;
+                    int n = 1<<(k+G_M_GSP);
+                    if(!(muts&n)) continue;
+                    if(trying && (trying&m) && !(gametype[mode].mutators[k+1]&m))
+                    {
+                        muts &= ~n;
+                        trying &= ~n;
+                        modecheckreset(break);
+                    }
+                }
+                if(i < 0) break;
+            }
+            if(i < 0) continue;
+            if(muts&mutstype[i].type) loopj(G_M_NUM)
+            {
+                if(mutstype[i].mutators && !(mutstype[i].mutators&mutstype[j].type) && (muts&mutstype[j].type))
+                {
+                    implied = m_implied(mode, muts);
+                    if(trying && (trying&mutstype[j].type) && !(implied&mutstype[i].type))
+                    {
+                        muts &= ~mutstype[i].type;
+                        trying &= ~mutstype[i].type;
+                    }
+                    else
+                    {
+                        muts &= ~mutstype[j].type;
+                        trying &= ~mutstype[j].type;
+                    }
+                    modecheckreset(break);
+                }
+                int implying = m_doimply(mode, muts, i);
+                if(implying && (implying&mutstype[j].type) && !(muts&mutstype[j].type))
+                {
+                    muts |= mutstype[j].type;
+                    modecheckreset(break);
+                }
+            }
+        }
+        */
+    }
 }
+
+// gamemode definitions
+gametypes gametype[G_MAX] = {
+    /*
+    {
+        type, implied,
+        {
+            mutators
+        },
+        name, { gsp },
+    },
+    */
+    {
+        G_DEMO, G_M_NONE,
+        {
+            G_M_NONE,
+            G_M_NONE,
+        },
+        "demo", { "" },
+    },
+    {
+        G_EDIT, G_M_NONE,
+        {
+            G_M_MOST & ~G_M_GAMEPLAY, // probably superfluous for editmode anyways
+            G_M_NONE,
+        },
+        "coopedit", { "" },
+    },
+    {
+        G_DM, G_M_NONE,
+        {
+            G_M_ALL,
+            G_M_ALL & ~(G_M_CONVERT),
+        },
+        "deathmatch", { "survivor" },
+    },
+    {
+        G_CTF, G_M_TEAM,
+        {
+            G_M_ALL,
+            G_M_ALL,
+        },
+        "capture the flag", { "direct" },
+    },
+    {
+        G_STF, G_M_TEAM,
+        {
+            G_M_ALL,
+            G_M_ALL,
+        },
+        "secure the flag", { "direct" },
+    },
+    {
+        G_HTF, G_M_TEAM,
+        {
+            G_M_ALL,
+            G_M_ALL,
+        },
+        "hunt the flag", { "strict" },
+    },
+    {
+        G_KTF, G_M_NONE,
+        {
+            G_M_ALL,
+            G_M_ALL,
+        },
+        "keep the flag", { "double" },
+    },
+    {
+        G_BOMBER, G_M_TEAM,
+        {
+            G_M_ALL,
+            G_M_ALL,
+        },
+        "bomber", { "demolition" },
+    },
+    {
+        G_ZOMBIE, G_M_TEAM,
+        {
+            G_M_ALL,
+            G_M_ALL & ~(G_M_CONVERT),
+        },
+        "zombies", { "progressive" },
+    }
+};
+// mutator definitions
+mutstypes mutstype[G_M_NUM] = {
+    /*
+    {
+        type, implied,
+        mutators,
+        name,
+    },
+    */
+    {
+        G_M_TEAM, G_M_TEAM,
+        G_M_ALL,
+        "team",
+    },
+    {
+        G_M_CLASSIC, G_M_CLASSIC,
+        G_M_ALL,
+        "classic",
+    },
+    {
+        G_M_CONFIRM, G_M_CONFIRM|G_M_TEAM, // confirm forces team
+        G_M_ALL,
+        "confirm",
+    },
+    {
+        G_M_VAMPIRE, G_M_VAMPIRE,
+        G_M_ALL,
+        "vampire",
+    },
+    {
+        G_M_CONVERT, G_M_CONVERT|G_M_TEAM, // convert forces team
+        G_M_ALL,
+        "convert",
+    },
+    {
+        G_M_PSYCHIC, G_M_PSYCHIC,
+        G_M_ALL,
+        "psychic",
+    },
+    // damage
+    {
+        G_M_JUGGERNAUT, G_M_JUGGERNAUT,
+        G_M_ALL, // does not interfere
+        "juggernaut",
+    },
+    {
+        G_M_REAL, G_M_REAL,
+        G_M_ALL & ~(G_M_EXPERT), // hardcore conflicts with expert
+        "hardcore",
+    },
+    {
+        G_M_EXPERT, G_M_EXPERT,
+        G_M_ALL & ~(G_M_REAL), // expert conflicts with hardcore
+        "expert",
+    },
+    // weapons are mutually exclusive
+    {
+        G_M_INSTA, G_M_INSTA,
+        (G_M_ALL & ~G_M_WEAPON) | G_M_INSTA,
+        "insta",
+    },
+    {
+        G_M_SNIPING, G_M_SNIPING,
+        (G_M_ALL & ~G_M_WEAPON) | G_M_SNIPING,
+        "sniping",
+    },
+    {
+        G_M_PISTOL, G_M_PISTOL,
+        (G_M_ALL & ~G_M_WEAPON) | G_M_PISTOL,
+        "pistol",
+    },
+    {
+        G_M_GIB, G_M_GIB,
+        (G_M_ALL & ~G_M_WEAPON) | G_M_GIB,
+        "gibbing",
+    },
+    {
+        G_M_EXPLOSIVE, G_M_EXPLOSIVE,
+        (G_M_ALL & ~G_M_WEAPON) | G_M_EXPLOSIVE,
+        "explosive",
+    },
+    // game specific ones
+    {
+        G_M_GSP1, G_M_GSP1,
+        G_M_ALL,
+        "gsp1",
+    },
+};
 

@@ -125,7 +125,7 @@ struct mitem
     virtual const char *getaction() { return NULL; }
     bool isselection();
     void renderbg(int x, int y, int w, color *c);
-    static color gray, white, whitepulse;
+    static color gray, white, whitepulse, red;
     int type;
 
     enum { TYPE_TEXTINPUT, TYPE_KEYINPUT, TYPE_CHECKBOX, TYPE_MANUAL, TYPE_SLIDER };
@@ -200,7 +200,7 @@ struct serverinfo
     string sdesc;
     string description;
     string cmd;
-    int mode, numplayers, maxclients, ping, protocol, minremain, resolved, port, lastpingmillis, pongflags, getinfo, menuline_from, menuline_to;
+    int mode, muts, numplayers, maxclients, ping, protocol, minremain, resolved, port, lastpingmillis, pongflags, getinfo, menuline_from, menuline_to;
     ENetAddress address;
     vector<const char *> playernames;
     uchar namedata[MAXTRANS];
@@ -214,7 +214,7 @@ struct serverinfo
     unsigned char uplinkstats[MAXCLIENTS + 1];
 
     serverinfo()
-     : mode(0), numplayers(0), maxclients(0), ping(9999), protocol(0), minremain(0),
+     : mode(G_DM), muts(G_M_NONE), numplayers(0), maxclients(0), ping(9999), protocol(0), minremain(0),
        resolved(UNRESOLVED), port(-1), lastpingmillis(0), pongflags(0), getinfo(EXTPING_NOP),
        bgcolor(NULL), favcat(-1), msweight(0), weight(0), uplinkqual(0), uplinkqual_age(0)
     {
@@ -366,16 +366,18 @@ extern void resetwater();
 extern void abortconnect();
 extern void disconnect(int onlyclean = 0, int async = 0);
 extern void cleanupclient();
-extern void toserver(char *text);
+extern void toserver(char *text, int voice = 0, bool action = false);
+extern void saytext(playerent *d, char *text, int flags, int sound);
 extern void addmsg(int type, const char *fmt = NULL, ...);
 extern bool multiplayer(bool msg = true);
 extern bool allowedittoggle();
 extern void sendpackettoserv(int chan, ENetPacket *packet);
 extern void gets2c();
-extern void c2sinfo(playerent *d);
+extern void c2sinfo(bool force = false);
 extern void c2skeepalive();
 extern void neterr(const char *s);
 extern int getclientnum();
+extern bool isowned(playerent *p);
 extern void changeteam(int team, bool respawn = true); // deprecated?
 extern void getmap(char *name = NULL, char *callback = NULL);
 extern void newteam(char *name);
@@ -410,8 +412,6 @@ extern void spawnplayer(playerent *d);
 extern void dodamage(int damage, playerent *pl, playerent *actor, int gun = -1, bool gib = false, bool local = true);
 extern void dokill(playerent *pl, playerent *act, bool gib = false, int gun = 0);
 extern playerent *newplayerent();
-extern botent *newbotent();
-extern void freebotent(botent *d);
 extern char *getclientmap();
 extern int getclientmode();
 extern void zapplayer(playerent *&d);
@@ -660,6 +660,7 @@ extern void particle_trail(int type, int fade, const vec &from, const vec &to);
 extern void particle_emit(int type, int *args, int basetime, int seed, const vec &p);
 extern void particle_fireball(int type, const vec &o);
 extern void addshotline(dynent *d, const vec &from, const vec &to);
+extern void addheadshot(const vec &from, const vec &to, int damage);
 extern bool addbullethole(dynent *d, const vec &from, const vec &to, float radius = 1, bool noisy = true, int type = 0); // shotty
 extern bool addscorchmark(const vec &o, float radius = 7);
 
@@ -691,6 +692,10 @@ extern bool collide(physent *d, bool spawn = false, float drop = 0, float rise =
 extern void attack(bool on);
 extern void vecfromyawpitch(float yaw, float pitch, int move, int strafe, vec &m);
 extern void vectoyawpitch(const vec &v, float &yaw, float &pitch);
+extern void fixrange(float &yaw, float &pitch);
+extern void fixfullrange(float &yaw, float &pitch, float &roll, bool full);
+extern void getyawpitch(const vec &from, const vec &pos, float &yaw, float &pitch);
+extern void scaleyawpitch(float &yaw, float &pitch, float targyaw, float targpitch, float yawspeed = 1, float pitchspeed = 1, float rotate = 0);
 
 // sound
 /*
@@ -759,7 +764,7 @@ extern int burstshotssettings[NUMGUNS];
 
 // entities
 extern void spawnallitems();
-extern void pickupeffects(int n, playerent *d);
+extern void pickupeffects(int n, playerent *d, int spawntime);
 extern void renderentities();
 extern void rendermapmodels();
 extern void resetspawns(int type = -1);
@@ -780,9 +785,8 @@ extern int stringsort(const char **a, const char **b);
 #endif
 
 // protocol [client and server]
-extern const char *acronymmodestr(int n);
-extern const char *fullmodestr(int n);
-extern int defaultgamelimit(int gamemode);
+enum { SAY_TEXT = 0, SAY_TEAM = 1 << 0, SAY_ACTION = 1 << 1, SAY_SPAM = 1 << 2, SAY_MUTE = 1 << 3, SAY_FORBIDDEN = 1 << 4 };
+extern int defaultgamelimit(int gamemode, int mutators);
 
 // crypto // for AUTH
 extern void genprivkey(const char *seed, vector<char> &privstr, vector<char> &pubstr);
@@ -797,6 +801,7 @@ extern bool checkchallenge(const char *answerstr, void *correct);
 
 // console
 extern void conoutf(const char *s, ...);
+#define chatoutf conoutf // FIXME backport the chat console
 
 // command
 extern bool per_idents, neverpersist;
@@ -846,9 +851,10 @@ extern int screenshottype;
 extern int modeacronyms;
 extern void servertoclient(int chan, uchar *buf, int len, bool demo = false);
 extern void localservertoclient(int chan, uchar *buf, int len, bool demo = false);
-extern const char *modestr(int n, bool acronyms = false);
+extern const char *modestr(int gamemode, int mutators, bool acronyms = false);
 extern const char *voteerrorstr(int n);
 extern const char *mmfullname(int n);
+extern void modecheck(int &mode, int &muts, int trying = 0);
 extern void fatal(const char *s, ...);
 extern void initserver(bool dedicated, int argc = 0, char **argv = NULL);
 extern void cleanupserver();
@@ -884,16 +890,13 @@ static inline void filtername(char *dst, const char *src)
     trimtrailingwhitespace(dst);
 }
 extern void startintermission();
-extern void restoreserverstate(vector<entity> &ents);
 extern string mastername;
 extern int masterport, mastertype;
 extern ENetSocket connectmaster();
 extern uchar *retrieveservers(uchar *buf, int buflen);
-extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int *mnum, int *msend, int *mrec, int *cnum, int *csend, int *crec, int protocol_version);
-extern int msgsizelookup(int msg);
+extern void serverms(int mode, int muts, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int *mnum, int *msend, int *mrec, int *cnum, int *csend, int *crec, int protocol_version);
 extern const char *genpwdhash(const char *name, const char *pwd, int salt);
 extern void servermsinit(const char *master, const char *ip, int serverport, bool listen);
-extern bool serverpickup(int i, int sender);
 extern bool valid_client(int cn);
 extern void extinfo_cnbuf(ucharbuf &p, int cn);
 extern void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENetAddress &addr, ENetBuffer &buf, int len, int *csend);

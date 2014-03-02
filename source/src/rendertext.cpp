@@ -342,6 +342,10 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color, int a
             case '7': color = bvec( 153,  51,  51 ); break;   // dark red: dead admin
             case '8': color = bvec( 192,  64, 192 ); break;   // magenta
             case '9': color = bvec( 255, 102,   0 ); break;   // orange
+
+            case 'm': color = bvec(   0, 116,  57 ); break;   // dark green: dead master
+            case 'o': color = bvec(  31,  86, 166 ); break;   // dark blue: dead 'owner'
+
             //extendeded color palette
             //case 'a': case 'A':color = bvec( 0xFF, 0xCC, 0xCC); break;   // some lowercase seem to have special meaning like 'b' (flashing text) so not yet using them
             case 'A':color = bvec( 0xff, 0xb7, 0xb7); break;   // red set

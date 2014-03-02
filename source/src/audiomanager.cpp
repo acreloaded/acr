@@ -413,34 +413,16 @@ void audiomanager::writesoundconfig(stream *f)
     }
 }
 
-void voicecom(char *sound, char *text)
+SVAR(nextvoicecom, "");
+int findvoice()
 {
-    if(!sound || !sound[0]) return;
-    if(!text || !text[0]) return;
-    static int last = 0;
-    if(!last || lastmillis-last > 2000)
-    {
-        extern int voicecomsounds;
-        defformatstring(soundpath)("voicecom/%s", sound);
-        int s = audiomgr.findsound(soundpath, 0, gamesounds);
-        if(s < 0 || s < S_AFFIRMATIVE || s >= S_NULL) return;
-        if(voicecomsounds>0) audiomgr.playsound(s, SP_HIGH);
-        if(s >= S_NICESHOT) // public
-        {
-            addmsg(SV_VOICECOM, "ri", s);
-            toserver(text);
-        }
-        else // team
-        {
-            addmsg(SV_VOICECOMTEAM, "ri", s);
-            defformatstring(teamtext)("%c%s", '%', text);
-            toserver(teamtext);
-        }
-        last = lastmillis;
-    }
+    defformatstring(soundpath)("voicecom/%s", nextvoicecom);
+    if(!nextvoicecom[0])
+        return S_NULL;
+    int s = audiomgr.findsound(soundpath, 0, gamesounds);
+    nextvoicecom[0] = '\0'; // reset for next text message
+    return s;
 }
-
-COMMAND(voicecom, "ss");
 
 void soundtest()
 {
@@ -532,14 +514,12 @@ void audiomanager::playsoundname(char *s, const vec *loc, int vol)
     playsound(id, loc, SP_NORMAL);
 }
 
-void audiomanager::playsoundc(int n, physent *p, int priority)
+void audiomanager::playsoundc(int n, playerent *p, int priority)
 {
     if(p && p!=player1) playsound(n, p, priority);
     else
-    {
-        addmsg(SV_SOUND, "i", n);
         playsound(n, priority);
-    }
+    addmsg(SV_SOUND, "i2", p ? p->clientnum : getclientnum(), n);
 }
 
 void audiomanager::stopsound()
@@ -580,7 +560,7 @@ void audiomanager::updateaudio()
     location *tinnitusloc = updateloopsound(S_TINNITUS, tinnitus);
 
     // heartbeat
-    bool heartbeatsound = heartbeat && alive && firstperson && !m_osok && player1->health <= heartbeat;
+    bool heartbeatsound = heartbeat && alive && firstperson && !m_sniper(gamemode, mutators) && player1->health <= heartbeat;
     updateloopsound(S_HEARTBEAT, heartbeatsound);
 
     // pitch fx

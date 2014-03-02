@@ -1,11 +1,12 @@
 #define MAXCLIENTS 256                  // in a multiplayer game, can be arbitrarily changed
+#define MAXBOTS 64
 #define DEFAULTCLIENTS 12
 #define MAXTRANS 5000                   // max amount of data to swallow in 1 go
 #define CUBE_DEFAULT_SERVER_PORT 28770
 #define CUBE_SERVINFO_PORT_LAN 28778
 #define CUBE_SERVINFO_PORT(serverport) (serverport+1)
 #define CUBE_SERVINFO_TO_SERV_PORT(servinfoport) (servinfoport-1)
-#define PROTOCOL_VERSION 1201           // bump when protocol changes (use negative numbers for mods!)
+#define PROTOCOL_VERSION 137            // bump when protocol changes (use negative numbers for mods!)
 #define DEMO_VERSION 2                  // bump when demo format changes
 #define DEMO_MAGIC "ACR_REPLAY_FILE!"
 #define DEMO_MINTIME 10000              // don't keep demo recordings with less than 10 seconds
@@ -18,30 +19,41 @@ extern bool modprotocol;
 // network messages codes, c2s, c2c, s2c
 enum
 {
-    SV_SERVINFO = 0, SV_WELCOME, SV_INITCLIENT, SV_POS, SV_POSC, SV_POSN, SV_TEXT, SV_TEAMTEXT, SV_TEXTME, SV_TEAMTEXTME, SV_TEXTPRIVATE,
-    SV_SOUND, SV_VOICECOM, SV_VOICECOMTEAM, SV_CDIS,
-    SV_SHOOT, SV_EXPLODE, SV_SUICIDE, SV_AKIMBO, SV_RELOAD, SV_AUTHT, SV_AUTHREQ, SV_AUTHTRY, SV_AUTHANS, SV_AUTHCHAL,
-    SV_GIBDIED, SV_DIED, SV_GIBDAMAGE, SV_DAMAGE, SV_HITPUSH, SV_SHOTFX, SV_THROWNADE,
-    SV_TRYSPAWN, SV_SPAWNSTATE, SV_SPAWN, SV_SPAWNDENY, SV_FORCEDEATH, SV_RESUME,
-    SV_DISCSCORES, SV_TIMEUP, SV_EDITENT, SV_ITEMACC,
-    SV_MAPCHANGE, SV_ITEMSPAWN, SV_ITEMPICKUP,
-    SV_PING, SV_PONG, SV_CLIENTPING, SV_GAMEMODE,
-    SV_EDITMODE, SV_EDITH, SV_EDITT, SV_EDITS, SV_EDITD, SV_EDITE, SV_NEWMAP,
-    SV_SENDMAP, SV_RECVMAP, SV_REMOVEMAP,
-    SV_SERVMSG, SV_ITEMLIST, SV_WEAPCHANGE, SV_PRIMARYWEAP,
-    SV_FLAGACTION, SV_FLAGINFO, SV_FLAGMSG, SV_FLAGCNT,
-    SV_ARENAWIN,
-    SV_SETADMIN, SV_SERVOPINFO,
-    SV_CALLVOTE, SV_CALLVOTESUC, SV_CALLVOTEERR, SV_VOTE, SV_VOTERESULT,
-    SV_SETTEAM, SV_TEAMDENY, SV_SERVERMODE,
+    // general
+    SV_SERVINFO = 0, SV_WELCOME, // before connection is complete
+    SV_INITCLIENT, SV_INITAI, SV_CDIS, SV_DELAI, SV_REASSIGNAI, SV_RESUME, SV_MAPIDENT, // connection and disconnection
+    SV_CLIENT, SV_POS, SV_POSC, SV_SOUND, SV_PINGPONG, SV_CLIENTPING, // automatic from client
+    SV_TEXT, SV_TEXTPRIVATE, SV_SWITCHNAME, SV_SWITCHSKIN, SV_SETTEAM, // user-initiated
+    SV_CALLVOTE, SV_CALLVOTESUC, SV_CALLVOTEERR, SV_VOTE, SV_VOTEREMAIN, SV_VOTERESULT, // votes TODO: remove SV_CALLVOTESUC
+    SV_LISTDEMOS, SV_SENDDEMOLIST, SV_GETDEMO, SV_SENDDEMO, SV_DEMOPLAYBACK, // demos
+    SV_AUTH_ACR_REQ, SV_AUTH_ACR_CHAL, // auth
+    SV_CLAIMPRIV, SV_SETPRIV, // privileges
+    SV_SENDMAP, SV_RECVMAP, SV_REMOVEMAP, // map transit
+    // for editmode ONLY
+    SV_EDITMODE, SV_EDITH, SV_EDITT, SV_EDITS, SV_EDITD, SV_EDITE, SV_EDITENT, SV_NEWMAP,
+    // game events
+    SV_SHOOT, SV_SHOOTC, SV_EXPLODE, SV_AKIMBO, SV_RELOAD, // client to server
+    SV_SUICIDE, SV_LOADOUT, SV_QUICKSWITCH, SV_WEAPCHANGE, SV_THROWNADE, SV_THROWKNIFE, // directly handled
+    SV_RICOCHET, SV_HEADSHOT, SV_REGEN, SV_HEAL, SV_BLEED, SV_STREAKREADY, SV_STREAKUSE, // server to client
+    SV_KNIFEADD, SV_KNIFEREMOVE, // knives
+    SV_CONFIRMADD, SV_CONFIRMREMOVE, // kill confirmed
+    // gameplay
+    SV_HUDEXTRAS, SV_POINTS, SV_DISCSCORES, SV_KILL, SV_DAMAGE, // scoring
+    SV_TRYSPAWN, SV_SPAWNSTATE, SV_SPAWN, SV_SPAWNDENY, SV_FORCEDEATH, SV_FORCEGIB, // spawning
+    SV_ITEMLIST, SV_ITEMSPAWN, SV_ITEMACC, // items
+    SV_FLAGACTION, SV_FLAGINFO, SV_FLAGMSG, SV_FLAGCNT, // flags // SV_DROPFLAG, SV_FLAGINFO, SV_FLAGMSG, SV_FLAGSECURE,
+    SV_MAPCHANGE, SV_NEXTMAP, // maps
+    SV_ARENAWIN, SV_ZOMBIESWIN, SV_CONVERTWIN, // round end/remaining
+    SV_TIMEUP,
+    // ???
+    SV_GAMEMODE,
+    SV_TEAMDENY, SV_SERVERMODE,
     SV_IPLIST,
-    SV_LISTDEMOS, SV_SENDDEMOLIST, SV_GETDEMO, SV_SENDDEMO, SV_DEMOPLAYBACK,
-    SV_CONNECT,
-    SV_SWITCHNAME, SV_SWITCHSKIN, SV_SWITCHTEAM,
-    SV_CLIENT,
-    SV_EXTENSION,
-    SV_MAPIDENT, SV_HUDEXTRAS, SV_POINTS,
-    SV_NUM
+    SV_SERVMSG, SV_EXTENSION,
+    // to be removed...
+    SV_SHOTFX, SV_ITEMPICKUP,
+    SV_AUTHT, SV_AUTHREQ, SV_AUTHTRY, SV_AUTHANS, SV_AUTHCHAL, // AC's auth
+    SV_NUM, SV_CONNECT = SV_NUM
 };
 
 #ifdef _DEBUG
@@ -52,7 +64,7 @@ extern void protocoldebug(bool enable);
 extern const char *messagenames[SV_NUM];
 #endif
 
-enum { SA_KICK = 0, SA_BAN, SA_REMBANS, SA_MASTERMODE, SA_AUTOTEAM, SA_FORCETEAM, SA_GIVEADMIN, SA_MAP, SA_RECORDDEMO, SA_STOPDEMO, SA_CLEARDEMOS, SA_SERVERDESC, SA_SHUFFLETEAMS, SA_NUM};
+enum { SA_KICK = 0, SA_BAN, SA_REMBANS, SA_MASTERMODE, SA_AUTOTEAM, SA_FORCETEAM, SA_GIVEADMIN, SA_MAP, SA_RECORDDEMO, SA_STOPDEMO, SA_CLEARDEMOS, SA_SERVERDESC, SA_SHUFFLETEAMS, SA_BOTBALANCE, SA_REVOKE, SA_NUM};
 enum { VOTE_NEUTRAL = 0, VOTE_YES, VOTE_NO, VOTE_NUM };
 enum { VOTEE_DISABLED = 0, VOTEE_CUR, VOTEE_MUL, VOTEE_MAX, VOTEE_AREA, VOTEE_PERMISSION, VOTEE_INVALID, VOTEE_WEAK, VOTEE_NEXT, VOTEE_NUM };
 enum { MM_OPEN = 0, MM_PRIVATE, MM_MATCH, MM_NUM }; enum { MM_MASK = 0x03 };
@@ -68,7 +80,7 @@ enum { HE_COMBO, HE_COMBO2, HE_COMBO3, HE_COMBO4, HE_COMBO5, HE_TEAMWORK, HE_FLA
 #define DNF 100.0f
 #define DVELF 4.0f
 
-enum { DISC_NONE = 0, DISC_EOP, DISC_CN, DISC_MKICK, DISC_MBAN, DISC_TAGT, DISC_BANREFUSE, DISC_WRONGPW, DISC_SOPLOGINFAIL, DISC_MAXCLIENTS, DISC_MASTERMODE, DISC_AUTOKICK, DISC_AUTOBAN, DISC_DUP, DISC_BADNICK, DISC_OVERFLOW, DISC_ABUSE, DISC_AFK, DISC_FFIRE, DISC_CHEAT, DISC_NUM };
+enum { DISC_NONE = 0, DISC_EOP, DISC_CN, DISC_MKICK, DISC_MBAN, DISC_TAGT, DISC_BANREFUSE, DISC_WRONGPW, DISC_SOPLOGINFAIL, DISC_MAXCLIENTS, DISC_MASTERMODE, DISC_AUTOKICK, DISC_AUTOBAN, DISC_DUP, DISC_BADNICK, DISC_OVERFLOW, DISC_FFIRE, DISC_CHEAT, DISC_NUM };
 enum { BAN_NONE = 0, BAN_VOTE, BAN_AUTO, BAN_BLACKLIST, BAN_MASTER };
 
 #define EXT_ACK                         -1
@@ -84,54 +96,108 @@ enum { BAN_NONE = 0, BAN_VOTE, BAN_AUTO, BAN_BLACKLIST, BAN_MASTER };
 enum { PONGFLAG_PASSWORD = 0, PONGFLAG_BANNED, PONGFLAG_BLACKLIST, PONGFLAG_MASTERMODE = 6, PONGFLAG_NUM };
 enum { EXTPING_NOP = 0, EXTPING_NAMELIST, EXTPING_SERVERINFO, EXTPING_MAPROT, EXTPING_UPLINKSTATS, EXTPING_NUM };
 
-enum
+// new game mode/mutator system
+enum // game modes
 {
-    GMODE_DEMO = -1,
-    GMODE_TEAMDEATHMATCH = 0,           // 0
-    GMODE_COOPEDIT,
-    GMODE_DEATHMATCH,
-    GMODE_SURVIVOR,
-    GMODE_TEAMSURVIVOR,
-    GMODE_CTF,                          // 5
-    GMODE_PISTOLFRENZY,
-    GMODE_BOTTEAMDEATHMATCH,
-    GMODE_BOTDEATHMATCH,
-    GMODE_LASTSWISSSTANDING,
-    GMODE_ONESHOTONEKILL,               // 10
-    GMODE_TEAMONESHOTONEKILL,
-    GMODE_BOTONESHOTONEKILL,
-    GMODE_HUNTTHEFLAG,
-    GMODE_TEAMKEEPTHEFLAG,
-    GMODE_KEEPTHEFLAG,                  // 15
-    GMODE_TEAMPF,
-    GMODE_TEAMLSS,
-    GMODE_BOTPISTOLFRENZY,
-    GMODE_BOTLSS,
-    GMODE_BOTTEAMSURVIVOR,              // 20
-    GMODE_BOTTEAMONESHOTONKILL,
-    GMODE_NUM
+    G_DEMO = 0,
+	G_EDIT,
+	G_DM,
+	G_CTF,
+	G_STF,
+	G_HTF,
+	G_KTF,
+	G_BOMBER,
+	G_ZOMBIE,
+	G_MAX,
 };
 
-#define m_lms         (gamemode==3 || gamemode==4 || gamemode==20)
-#define m_ctf         (gamemode==5)
-#define m_pistol      (gamemode==6 || gamemode==16 || gamemode==18)
-#define m_lss         (gamemode==9 || gamemode==17 || gamemode==19)
-#define m_osok        ((gamemode>=10 && gamemode<=12) || gamemode==21)
-#define m_htf         (gamemode==13)
-#define m_ktf         (gamemode==14 || gamemode==15)
+enum // game mutators
+{
+    G_M_NONE = 0,
+    G_M_TEAM = 1 << 0, G_M_CLASSIC = 1 << 1, G_M_CONFIRM = 1 << 2, G_M_VAMPIRE = 1 << 3, G_M_CONVERT = 1 << 4, G_M_PSYCHIC = 1 << 5, // alters gameplay mostly
+    G_M_JUGGERNAUT = 1 << 6, G_M_REAL = 1 << 7, G_M_EXPERT = 1 << 8, // alters damage mostly
+    G_M_INSTA = 1 << 9, G_M_SNIPING = 1 << 10, G_M_PISTOL = 1 << 11, G_M_GIB = 1 << 12, G_M_EXPLOSIVE = 1 << 13, // alters weapons mostly
+    G_M_GSP1 = 1 << 14, // game-specific
 
-#define m_noitems     (m_lms || m_osok)
-#define m_noitemsnade (m_lss)
-#define m_nopistol    (m_osok || m_lss)
-#define m_noprimary   (m_pistol || m_lss)
-#define m_noguns      (m_nopistol && m_noprimary)
-#define m_arena       (m_lms || m_lss || m_osok)
-#define m_teammode    (gamemode==0 || gamemode==4 || gamemode==5 || gamemode==7 || gamemode==11 || gamemode==13 || gamemode==14 || gamemode==16 || gamemode==17 || gamemode==20 || gamemode==21)
-#define m_tarena      (m_arena && m_teammode)
-#define m_botmode     (gamemode==7 || gamemode == 8 || gamemode==12 || (gamemode>=18 && gamemode<=21))
-#define m_valid(mode) (((mode)>=0 && (mode)<GMODE_NUM) || (mode) == -1)
-#define m_mp(mode)    (m_valid(mode) && (mode)>=0 && (mode)!=7 && (mode)!=8 && (mode)!=12 && ((mode)<18 || (mode)>21))
-#define m_demo        (gamemode==-1)
-#define m_coop        (gamemode==1)
-#define m_flags       (m_ctf || m_htf || m_ktf)
+    G_M_GAMEPLAY = G_M_TEAM|G_M_CLASSIC|G_M_CONFIRM|G_M_VAMPIRE|G_M_CONVERT|G_M_PSYCHIC|G_M_JUGGERNAUT,
+    G_M_DAMAGE = G_M_REAL|G_M_EXPERT, // G_M_JUGGERNAUT does not actually interfere with damage!
+    G_M_WEAPON = G_M_INSTA|G_M_SNIPING|G_M_PISTOL|G_M_GIB|G_M_EXPLOSIVE,
+
+    G_M_MOST = G_M_GAMEPLAY|G_M_DAMAGE|G_M_WEAPON,
+    G_M_ALL = G_M_MOST|G_M_GSP1,
+
+    G_M_GSN = 1, G_M_GSP = 14, G_M_NUM = 15,
+};
+
+struct gametypes
+{
+    int type, implied, mutators[G_M_GSN+1];
+    const char *name, *gsp[G_M_GSN];
+};
+struct mutstypes
+{
+    int type, implied, mutators;
+    const char *name;
+};
+
+extern gametypes gametype[G_MAX];
+extern mutstypes mutstype[G_M_NUM];
+
+#define m_valid(g) ((g)>=0 && (g)<G_MAX)
+
+#define m_demo(g)           (g == G_DEMO)
+#define m_edit(g)           (g == G_EDIT)
+#define m_dm(g)             (g == G_DM)
+#define m_capture(g)        (g == G_CTF)
+#define m_secure(g)         (g == G_STF)
+#define m_hunt(g)           (g == G_HTF)
+#define m_keep(g)           (g == G_KTF)
+#define m_bomber(g)         (g == G_BOMBER)
+#define m_zombie(g)         (g == G_ZOMBIE)
+
+#define m_flags(g)          (m_capture(g) || m_secure(g) || m_hunt(g) || m_keep(g) || m_bomber(g))
+#define m_ai(g)             (m_valid(g) && !m_demo(g) && !m_edit(g)) // extra bots not available in demo/edit
+
+#define m_implied(a,b)      (gametype[a].implied)
+#define m_doimply(a,b,c)    (gametype[a].implied|mutstype[c].implied)
+// can add gsp implieds below
+#define m_mimplied(a,b)     ((muts & (G_M_GSP1)) && (mode == G_DM || mode == G_BOMBER))
+
+#define m_team(a,b)         ((b & G_M_TEAM) || (m_implied(a,b) & G_M_TEAM))
+#define m_insta(a,b)        ((b & G_M_INSTA) || (m_implied(a,b) & G_M_INSTA))
+#define m_sniping(a,b)      ((b & G_M_SNIPING) || (m_implied(a,b) & G_M_SNIPING))
+#define m_classic(a,b)      ((b & G_M_CLASSIC) || (m_implied(a,b) & G_M_CLASSIC))
+#define m_confirm(a,b)      ((b & G_M_CONFIRM) || (m_implied(a,b) & G_M_CONFIRM))
+#define m_convert(a,b)      ((b & G_M_CONVERT) || (m_implied(a,b) & G_M_CONVERT))
+#define m_vampire(a,b)      ((b & G_M_VAMPIRE) || (m_implied(a,b) & G_M_VAMPIRE))
+#define m_psychic(a,b)      ((b & G_M_PSYCHIC) || (m_implied(a,b) & G_M_PSYCHIC))
+#define m_juggernaut(a,b)   ((b & G_M_JUGGERNAUT) || (m_implied(a,b) & G_M_JUGGERNAUT))
+#define m_real(a,b)         ((b & G_M_REAL) || (m_implied(a,b) & G_M_REAL))
+#define m_expert(a,b)       ((b & G_M_EXPERT) || (m_implied(a,b) & G_M_EXPERT))
+#define m_pistol(a,b)       ((b & G_M_PISTOL) || (m_implied(a,b) & G_M_PISTOL))
+#define m_gib(a,b)          ((b & G_M_GIB) || (m_implied(a,b) & G_M_GIB))
+#define m_demolition(a,b)   ((b & G_M_EXPLOSIVE) || (m_implied(a,b) & G_M_EXPLOSIVE))
+
+#define m_gsp1(a,b)         ((b & G_M_GSP1) || (m_implied(a,b) & G_M_GSP1))
+//#define m_gsp(a,b)          (m_gsp1(a,b))
+
+#define m_spawn_team(a,b)   (m_team(a,b) && !m_keep(a) && !m_zombie(a))
+#define m_spawn_reversals(a,b) (!m_capture(a) && !m_hunt(a) && !m_bomber(a))
+#define m_noitems(a,b)      (false)
+#define m_noitemsammo(a,b)  (m_sniper(a,b) || m_demolition(a,b))
+#define m_noitemsnade(a,b)  (m_gib(a,b))
+#define m_noprimary(a,b)    (m_nosecondary(a,b) || m_gib(a,b))
+#define m_nosecondary(a,b)  (m_gib(a,b))
+
+#define m_survivor(a,b)     ((m_dm(a) || m_bomber(a)) && m_gsp1(a,b))
+#define m_onslaught(a,b)    (m_zombie(a) && !m_gsp1(a,b))
+
+#define m_duke(a,b)         (m_survivor(a,b) || m_progressive(a,b))
+#define m_sniper(a,b)       (m_insta(a,b) || m_sniping(a,b))
+#define m_regen(a,b)        (!m_duke(a,b) && !m_classic(a,b) && !m_vampire(a,b) && !m_sniper(a,b) && !m_juggernaut(a,b))
+
+#define m_lss(a,b)          (m_duke(a,b) && m_gib(a,b))
+#define m_return(a,b)       (m_capture(a) && !m_gsp1(a,b))
+#define m_ktf2(a,b)         (m_keep(a) && m_gsp1(a,b))
+#define m_progressive(a,b)  (m_zombie(a) && m_gsp1(a,b))
 

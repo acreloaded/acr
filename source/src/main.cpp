@@ -156,7 +156,7 @@ const char *screenshotpath(const char *imagepath, const char *suffix)
     else
     {
         if(getclientmap()[0])
-            formatstring(buf)("screenshots/%s_%s_%s.%s", timestring(), behindpath(getclientmap()), modestr(gamemode, true), suffix);
+            formatstring(buf)("screenshots/%s_%s_%s.%s", timestring(), behindpath(getclientmap()), modestr(gamemode, mutators, true), suffix);
         else
             formatstring(buf)("screenshots/%s.%s", timestring(), suffix);
     }
@@ -1223,11 +1223,15 @@ int main(int argc, char **argv)
     if(initdemo)
     {
         extern int gamemode;
-        gamemode = -1;
+        gamemode = G_DEMO;
         copystring(clientmap, initdemo);
     }
     else
-    copystring(clientmap, initmap); // ac_complex for 1.0, ac_shine for 1.1, ..
+    {
+        gamemode = G_DM;
+        mutators = G_M_TEAM;
+        copystring(clientmap, initmap); // ac_complex for 1.0, ac_shine for 1.1, ..
+    }
 
     localconnect();
 

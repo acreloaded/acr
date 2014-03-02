@@ -186,6 +186,7 @@ bool mitem::isselection() { return parent->allowinput && !parent->hotkeys && par
 color mitem::gray(0.2f, 0.2f, 0.2f);
 color mitem::white(1.0f, 1.0f, 1.0f);
 color mitem::whitepulse(1.0f, 1.0f, 1.0f);
+color mitem::red(1.0f, 0.2f, 0.1f);
 
 // text item
 
@@ -796,6 +797,74 @@ struct mitemcheckbox : mitem
     }
 };
 
+struct mitemmuts : mitem
+{
+    int num;
+
+    mitemmuts(gmenu *parent, int num) : mitem(parent, bgcolor, mitem::TYPE_CHECKBOX), num(num) {};
+
+    /*
+    ~mitemmuts()
+    {
+    }
+    */
+
+    const char *gettext()
+    {
+        if(m_valid(nextmode) && num >= 0 && num < G_M_NUM)
+        {
+            if(num >= G_M_GSP && *gametype[nextmode].gsp[num-G_M_GSP])
+                return gametype[nextmode].gsp[num-G_M_GSP];
+            return mutstype[num].name;
+        }
+        return "unknown mutator";
+    }
+
+    // 1: Selected | 2: Disallowed
+    inline int status()
+    {
+        // is it set?
+        int stats = nextmuts & (1 << num) ? 1 : 0;
+
+        // can we apply it?
+        int trying = 1 << num,
+        target = stats ? (nextmuts & ~trying) : (nextmuts | trying),
+        muts = target;
+        modecheck(nextmode, muts/*, trying*/);
+        if(muts != target) return stats | 2;
+
+        // yes, we can! return unmodified
+        return stats;
+    }
+
+    virtual int width() { return text_width(gettext()) + FONTH + FONTH/3; }
+
+    virtual void select()
+    {
+        // should toggle a mutator, and sanitize
+        if(nextmuts & (1 << num))
+            nextmuts &= ~(1 << num);
+        else nextmuts |= 1 << num;
+        modecheck(nextmode, nextmuts);
+    }
+
+    virtual void render(int x, int y, int w)
+    {
+        const bool sel = isselection();
+        const static int boxsize = FONTH;
+        const int stats = status();
+        draw_text(gettext(), x, y);
+        if(sel) renderbg(x+w-boxsize, y, boxsize, NULL);
+        blendbox(x+w-boxsize, y, x+w, y+boxsize, false, -1, (stats & 2) ? &red : &gray);
+        if(stats & 1)
+        {
+            int x1 = x+w-boxsize-FONTH/6, x2 = x+w+FONTH/6, y1 = y-FONTH/6, y2 = y+boxsize+FONTH/6;
+            line(x1, y1, x2, y2, sel ? &whitepulse : &white);
+            line(x2, y1, x1, y2, sel ? &whitepulse : &white);
+        }
+    }
+};
+
 
 // console iface
 
@@ -975,6 +1044,12 @@ void menuitemcheckbox(char *text, char *value, char *action)
     lastmenu->items.add(new mitemcheckbox(lastmenu, newstring(text), newstring(value), action[0] ? newstring(action) : NULL, NULL));
 }
 
+void menuitemmuts(int *mut)
+{
+    if(!lastmenu) return;
+    lastmenu->items.add(new mitemmuts(lastmenu, *mut));
+}
+
 void menumdl(char *mdl, char *anim, int *rotspeed, int *scale)
 {
     if(!lastmenu || !mdl || !anim) return;
@@ -1048,6 +1123,7 @@ COMMAND(menuitemtextinput, "ssssii");
 COMMAND(menuitemslider, "siisiss");
 COMMAND(menuitemkeyinput, "ss");
 COMMAND(menuitemcheckbox, "sss");
+COMMAND(menuitemmuts, "i");
 COMMAND(menuselectionbgcolor, "ssss");
 
 static bool iskeypressed(int key)

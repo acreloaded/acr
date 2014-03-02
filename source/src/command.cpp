@@ -1653,7 +1653,7 @@ COMMAND(systime, "");
 COMMANDN(timestamp, timestamp_, "");
 COMMAND(datestring, "");
 COMMANDN(timestring, timestring_, "");
-COMMANDF(getmode, "i", (int *acr) { result(modestr(gamemode, *acr != 0)); });
+COMMANDF(getmode, "i", (int *acr) { result(modestr(gamemode, mutators, *acr != 0)); });
 COMMAND(getscrext, "");
 
 const char *currentserver(int i) // [client version]

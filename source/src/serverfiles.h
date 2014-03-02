@@ -84,7 +84,7 @@ struct servermapbuffer  // sending of maps between clients
 
         if(!nmapname[0] || nmapsize <= 0 || ncfgsizegz < 0 || nmapsize + ncfgsizegz > MAXMAPSENDSIZE || ncfgsize > MAXCFGFILESIZE) return false;  // malformed: probably modded client
         int cfgsize = ncfgsize;
-        if(smode == GMODE_COOPEDIT && !strcmp(nmapname, behindpath(smapname)))
+        if(m_edit(smode) && !strcmp(nmapname, behindpath(smapname)))
         { // update mapbuffer only in coopedit mode (and on same map)
             copystring(mapname, nmapname);
             datasize = nmapsize + ncfgsizegz;
@@ -219,14 +219,14 @@ bool serverconfigfile::load()
 
 // maprot.cfg
 
-#define CONFIG_MAXPAR 6
+#define CONFIG_MAXPAR 7
 
 struct configset
 {
     string mapname;
     union
     {
-        struct { int mode, time, vote, minplayer, maxplayer, skiplines; };
+        struct { int mode, muts, time, vote, minplayer, maxplayer, skiplines; };
         int par[CONFIG_MAXPAR];
     };
 };
@@ -327,16 +327,16 @@ struct servermaprot : serverconfigfile
             if(l)
             {
                 copystring(c.mapname, behindpath(l));
-                for(i = 3; i < CONFIG_MAXPAR; i++) c.par[i] = 0;  // default values
+                for(i = 4; i < CONFIG_MAXPAR; i++) c.par[i] = 0;  // default values
                 for(i = 0; i < CONFIG_MAXPAR; i++)
                 {
                     if((l = strtok(NULL, sep)) != NULL) c.par[i] = atoi(l);
                     else break;
                 }
-                if(i > 2)
+                if(i > 3)
                 {
                     configsets.add(c);
-                    logline(ACLOG_VERBOSE," %s, %s, %d minutes, vote:%d, minplayer:%d, maxplayer:%d, skiplines:%d", c.mapname, modestr(c.mode, false), c.time, c.vote, c.minplayer, c.maxplayer, c.skiplines);
+                    logline(ACLOG_VERBOSE," %s, %s, %d minutes, vote:%d, minplayer:%d, maxplayer:%d, skiplines:%d", c.mapname, modestr(c.mode, c.muts, false), c.time, c.vote, c.minplayer, c.maxplayer, c.skiplines);
                 }
                 else logline(ACLOG_INFO," error in line %d, file %s", line, filename);
             }
@@ -379,7 +379,7 @@ struct servermaprot : serverconfigfile
         if(!nochange)
         {
             curcfgset = ccs;
-            startgame(c->mapname, c->mode, c->time, notify);
+            startgame(c->mapname, c->mode, c->muts, c->time, notify);
         }
         return ccs;
     }
@@ -692,13 +692,19 @@ struct serverforbiddenlist : serverconfigfile
         DELETEA(buf);
     }
 
-    bool canspeech(char *s)
+    const char *forbidden(char *s)
     {
         for (int i=0; i<num; i++){
             if ( !findpattern(s,entries[i][0]) ) continue;
-            else if ( entries[i][1][0] == '\0' || findpattern(s,entries[i][1]) ) return false;
+            else if ( entries[i][1][0] == '\0' ) return entries[i][0];
+            else if ( findpattern(s,entries[i][1]) )
+            {
+                static char match[2*(FORBIDDENSIZE+1)];
+                formatstring(match)("%s %s", entries[i][0], entries[i][1]);
+                return match;
+            }
         }
-        return true;
+        return NULL;
     }
 };
 

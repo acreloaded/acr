@@ -45,7 +45,7 @@ extern vec worldpos, camup, camright, camdir; // current target of the crosshair
 extern int lastmillis, totalmillis, nextmillis; // last time
 extern int curtime;                     // current frame time
 extern int interm;
-extern int gamemode, nextmode;
+extern int gamemode, nextmode, mutators, nextmuts;
 extern int gamespeed;
 extern int xtraverts;
 extern float fovy, aspect;

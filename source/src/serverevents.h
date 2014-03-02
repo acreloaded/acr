@@ -111,13 +111,6 @@ void processevent(client *c, suicideevent &e)
     serverdamage(c, c, INT_MAX, GUN_KNIFE, false);
 }
 
-void processevent(client *c, pickupevent &e)
-{
-    clientstate &gs = c->state;
-    if(m_mp(gamemode) && !gs.isalive(gamemillis)) return;
-    serverpickup(e.ent, c->clientnum);
-}
-
 void processevent(client *c, reloadevent &e)
 {
     clientstate &gs = c->state;
@@ -183,7 +176,6 @@ void processevents()
                 case GE_RELOAD: processevent(c, e.reload); break;
                 // untimed events
                 case GE_SUICIDE: processevent(c, e.suicide); break;
-                case GE_PICKUP: processevent(c, e.pickup); break;
             }
             clearevent(c);
         }

@@ -815,6 +815,13 @@ void CBot::MainAI()
         if (!CheckJump())
             DoCombatNav();
     }
+    // Taking care of the flags
+    else if (CheckFlags())
+    {
+        CheckReload();
+        AddDebugText("has flag");
+        m_eCurrentBotState = STATE_FLAG;
+    }
     else if (CheckHunt() && HuntEnemy())
     {
         CheckReload();
@@ -829,12 +836,14 @@ void CBot::MainAI()
         AddDebugText("has ent");
         m_eCurrentBotState = STATE_ENT;
     }
-    else if (m_classicsp && DoSPStuff()) // Home to goal, find/follow friends etc.
+#if m_classicsp
+    else if (DoSPStuff()) // Home to goal, find/follow friends etc.
     {
 
         AddDebugText("SP stuff");
         m_eCurrentBotState = STATE_SP;
     }
+#endif
     else // Normal navigation
     {
         CheckReload();
@@ -1254,6 +1263,12 @@ bool CBot::CheckStuck()
     if ((m_vGoal!=g_vecZero) && (GetDistance(m_vGoal) < 2.0f))
         return false;
 
+    if(OUTBORD(m_pMyEnt->o.x, m_pMyEnt->o.y))
+    {
+        StuckLastResort();
+        return true;
+    }
+
     bool IsStuck = false;
 
     vec CurPos = m_pMyEnt->o, PrevPos = m_vPrevOrigin;
@@ -1288,6 +1303,13 @@ bool CBot::CheckStuck()
 
         m_bStuck = false;
         m_iStuckTime = 0;
+
+        // stuck in geometry?
+        if(!collide(m_pMyEnt))
+        {
+            StuckLastResort();
+            return true;
+        }
 
         // Crap bot is stuck, lets just try some random things
 
@@ -1357,10 +1379,17 @@ bool CBot::CheckStuck()
             m_pMyEnt->jumpnext = true;
         else
             m_pMyEnt->targetyaw = WrapYZAngle(m_pMyEnt->yaw + RandomLong(60, 160));
+        StuckLastResort();
         return true;
     }
 
     return false;
+}
+
+void CBot::StuckLastResort()
+{
+    // respawn the bot to fix its being stuck
+    addmsg(SV_SUICIDE, "ri", m_pMyEnt->clientnum);
 }
 
 // Check if a near wall is blocking and we can jump over it
@@ -1815,6 +1844,10 @@ bool CBot::WaterNav()
 
 bool CBot::CheckItems()
 {
+    // zombies + pickups = no
+    if (m_zombie(gamemode) && m_pMyEnt->team == TEAM_CLA)
+        return false;
+
     if (!m_pCurrentGoalWaypoint && !CheckJump() && CheckStuck())
     {
         // Don't check for ents a while when stuck
@@ -1847,6 +1880,47 @@ bool CBot::CheckItems()
         ResetWaypointVars();
         m_vGoal = g_vecZero;
         m_pTargetEnt = NULL;
+    }
+
+    return false;
+}
+
+bool CBot::CheckFlags()
+{
+    if (!m_flags(gamemode)) return false;
+
+    if (!m_pCurrentGoalWaypoint && !CheckJump() && CheckStuck())
+    {
+        // Don't check for flags for a while when stuck
+        m_iCheckFlagsDelay = lastmillis + RandomLong(500, 1500);
+        return false;
+    }
+
+    if (m_vGoal==g_vecZero)
+        m_pTargetFlag = NULL;
+
+    if (!m_pTargetFlag || m_iCheckFlagsDelay <= lastmillis)
+    {
+        if (m_iCheckFlagsDelay > lastmillis)
+            return false;
+        else
+        {
+            m_pTargetFlag = SearchForFlags(true);
+            m_iCheckFlagsDelay = lastmillis + RandomLong(3000, 5500);
+        }
+    }
+
+    if (m_pTargetFlag)
+    {
+        if (HeadToTargetFlag())
+            return true;
+    }
+
+    if (m_eCurrentBotState == STATE_FLAG)
+    {
+        ResetWaypointVars();
+        m_vGoal = g_vecZero;
+        m_pTargetFlag = NULL;
     }
 
     return false;
@@ -1967,7 +2041,7 @@ bool CBot::IsReachable(vec to, float flMaxHeight)
     return false;
 }
 
-void CBot::HearSound(int n, vec *o)
+void CBot::HearSound(int n, const vec *o)
 {
     // Has the bot already an enemy?
     if (m_pMyEnt->enemy) return;

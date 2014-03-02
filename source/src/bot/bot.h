@@ -42,7 +42,7 @@
 #ifndef BOT_H
 #define BOT_H
 
-//#define RELEASE_BUILD // Set when you want to make a release build
+#define RELEASE_BUILD _DEBUG // Set when you want to make a release build
 
 
 // Set for which mod the code is
@@ -78,15 +78,7 @@ inline void debugbeam(vec &s, vec &e) { /*if (!dedserv) particle_trail(1, 500, s
 #define DIR_NONE      0
 
 //fixmebot
-#define m_sp 1000
-#define m_classicsp 1000
-
-enum EBotCommands // For voting of bot commands
-{
-     COMMAND_ADDBOT=0,
-     COMMAND_KICKBOT,
-     COMMAND_BOTSKILL
-};
+#define m_classicsp 0
 
 struct bot_skill_s
 {
@@ -114,6 +106,7 @@ struct bot_skill_s
      bool bCanPredict; // Can this bot predict his enemy position?
      bool bCircleStrafe; // Can this bot circle strafe?
      bool bCanSearchItemsInCombat;
+     bot_skill_s(float sk);
 };
 
 enum EBotWeaponTypes
@@ -143,6 +136,7 @@ enum ECurrentBotState
      STATE_HUNT, // Bot is hunting an enemy
      STATE_ENT, // Bot is heading to an entity
      STATE_SP, // Bot is doing sp specific stuff
+     STATE_FLAG, // Bot is taking care of the flags
      STATE_NORMAL // Bot is doing normal navigation
 };
 
@@ -157,8 +151,7 @@ struct unreachable_ent_s
 class CBot
 {
 public:
-     botent *m_pMyEnt;
-     int m_iLastBotUpdate;
+     playerent *m_pMyEnt;
 
      // Combat variabels
      playerent *m_pPrevEnemy;
@@ -216,22 +209,23 @@ public:
      // Misc stuff
      ECurrentBotState m_eCurrentBotState;
      entity *m_pTargetEnt;
+     entity *m_pTargetFlag;
      TLinkedList<unreachable_ent_s *> m_UnreachableEnts;
      int m_iCheckTeleporterDelay;
      int m_iCheckJumppadsDelay;
      int m_iCheckEntsDelay;
+     int m_iCheckFlagsDelay;
      int m_iCheckTriggersDelay;
      int m_iAimDelay;
      float m_fYawToTurn, m_fPitchToTurn;
      bot_skill_s *m_pBotSkill; // Pointer to current bot skill
-     short m_sSkillNr; // Skill number, 0 == best 4 == worst
+     short m_sSkillNr; // Skill number, 0 == best 4 == worst (legacy support...)
 
      void AimToVec(const vec &o);
      void AimToIdeal(void);
      float ChangeAngle(float speed, float ideal, float current);
      bool SelectGun(int Gun);
      virtual void CheckItemPickup(void) = 0;
-     void SendBotInfo(void);
      float GetDistance(const vec &o);
      float GetDistance(const vec &v1, const vec &v2);
      float GetDistance(entity *e);
@@ -254,6 +248,7 @@ public:
      void DoCombatNav(void);
      void MainAI(void);
      bool CheckStuck(void);
+     void StuckLastResort(void);
      bool CheckJump(void);
      bool CheckCrouch(void);
      bool CheckStrafe(void);
@@ -274,8 +269,13 @@ public:
      virtual bool ChoosePreferredWeapon(void);
      virtual entity *SearchForEnts(bool bUseWPs, float flRange=9999.0f,
                                    float flMaxHeight=JUMP_HEIGHT) = 0;
+     virtual entity *SearchForFlags(bool bUseWPs, float flRange=9999.0f,
+                                   float flMaxHeight=JUMP_HEIGHT) = 0;
      virtual bool HeadToTargetEnt(void) = 0;
+     virtual bool CanTakeFlag(const entity &e) = 0;
+     virtual bool HeadToTargetFlag(void) = 0;
      bool CheckItems(void);
+     bool CheckFlags(void);
      bool InUnreachableList(entity *e);
      virtual bool DoSPStuff(void) = 0;
      vec GetEnemyPos(playerent *d);
@@ -284,7 +284,7 @@ public:
      void CleanAStarLists(bool bPathFailed);
      bool IsReachable(vec to, float flMaxHeight=JUMP_HEIGHT);
      bool WaterNav(void);
-     void HearSound(int n, vec *o);
+     void HearSound(int n, const vec *o);
 
      // Waypoint functions
      bool HeadToWaypoint(void);
@@ -311,54 +311,25 @@ public:
      friend class CBotManager;
      friend class CWaypointClass;
 
-     bool m_bSendC2SInit;
-
      virtual ~CBot(void);
 
+     virtual void MakeSkill(int sk);
      virtual void Spawn(void);
      virtual void Think(void);
      void GoToDebugGoal(vec o);
 };
 
-class CStoredBot // Used to store bots after mapchange, so that they can be readded
-{
-public:
-     char m_szName[32];
-     char m_szTeam[32];
-     short m_sSkillNr;
-
-     CStoredBot(char *name, char *team, short skill) : m_sSkillNr(skill)
-          { strcpy(m_szName, name); strcpy(m_szTeam, team); };
-};
-
-extern vector<botent *> bots;
-
 class CBotManager
 {
-     char m_szBotNames[150][16]; // Max 150 bot names with a length of 16 characters
-     short m_sBotNameCount;
-     char m_szBotTeams[20][5]; // Max 100 bot teams co a length of 5 characters
-     short m_sBotTeamCount;
      bool m_bInit;
      bool m_bBotsShoot;
      bool m_bIdleBots;
-     bot_skill_s m_BotSkills[5]; // 5 different bot skills, 0 = best 4 = worst
+private:
      int m_iFrameTime;
      int m_iPrevTime;
-     short m_sBotSkill; // Bad - Worse - Medium - Good - Best
      short m_sMaxAStarBots; // Max bots that can use a* at the same time
      short m_sUsingAStarBotsCount; // Number of bots that are using a*
      short m_sCurrentTriggerNr; // Current waypoint trigger bots should use
-     TLinkedList<CStoredBot *> m_StoredBots; // List of bots that should be re-added after map change
-     float m_fReAddBotDelay;
-
-     void LoadBotNamesFile(void);
-     const char *GetBotName(void);
-     void LoadBotTeamsFile(void);
-     const char *GetBotTeam(void);
-     void CreateSkillData(void);
-     void InitSkillData(void);
-     void InitBotItems(void);
 
      friend class CBot;
      friend class CCubeBot;
@@ -366,36 +337,26 @@ class CBotManager
      friend class CWaypointClass;
 
 public:
-     botent *m_pBotToView;
 
      // Construction
-     CBotManager(void) { m_bInit = true; m_fReAddBotDelay = -1.0f; };
+     CBotManager(void) { m_bInit = true; };
 
      // Destruction
      ~CBotManager(void);
 
      void Init(void);
      void Think(void);
-     void RenderBots(void);
-     void RespawnBots(void) { loopv(bots) if (bots[i] && bots[i]->pBot) bots[i]->pBot->Spawn(); };
-     void ClearStoredBots(void) { while(!m_StoredBots.Empty()) delete m_StoredBots.Pop(); }
-     void ReAddBot(CStoredBot *bot) { CreateBot(bot->m_szTeam, SkillNrToSkillName(bot->m_sSkillNr), bot->m_szName); };
+     void CleanupBot(playerent *bot);
      void EndMap(void);
      void BeginMap(const char *szMapName);
-     int GetBotIndex(botent *m);
      void LetBotsUpdateStats(void);
-     void LetBotsHear(int n, vec *loc);
+     void LetBotsHear(int n, const vec *loc);
      void AddWaypoint(node_s *pNode);
      void DelWaypoint(node_s *pNode);
      bool BotsShoot(void) { return m_bBotsShoot; };
      bool IdleBots(void) { return m_bIdleBots; };
      void SetBotsShoot(bool bShoot) { m_bBotsShoot = bShoot; };
      void SetIdleBots(bool bIdle) { m_bIdleBots = bIdle; };
-     void EnableBotView(botent *bot) { m_pBotToView = bot; };
-     void DisableBotView(void);
-     void ChangeBotSkill(short Skill, botent *bot = NULL);
-     botent *CreateBot(const char *team, const char *skill, const char *name);
-     void ViewBot(void);
      void CalculateMaxAStarCount(void);
      void PickNextTrigger(void);
 
@@ -416,7 +377,5 @@ extern CACWaypointClass WaypointClass;
 #elif defined VANILLA_CUBE
 extern CCubeWaypointClass WaypointClass;
 #endif
-
-extern void kickallbots();
 
 #endif
