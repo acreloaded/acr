@@ -2833,7 +2833,7 @@ void process(ENetPacket *packet, int sender, int chan)
         type = checktype(getint(p), cl);
 
         #ifdef _DEBUG
-        if(type!=SV_POS && type!=SV_POSC && type!=SV_CLIENTPING && type!=SV_PING && type!=SV_CLIENT)
+        if(type!=SV_POS && type!=SV_POSC && type!=SV_CLIENTPING && type!=SV_PINGPONG && type!=SV_CLIENT)
         {
             DEBUGVAR(cl->name);
             ASSERT(type>=0 && type<SV_NUM);
