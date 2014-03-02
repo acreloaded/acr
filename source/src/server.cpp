@@ -133,29 +133,33 @@ bool buildworldstate()
 {
     static struct { int posoff, poslen, msgoff, msglen; } pkt[MAXCLIENTS];
     worldstate &ws = *new worldstate;
-    loopv(clients)
+    loopvj(clients)
     {
-        client &c = *clients[i];
-        if(c.type!=ST_TCPIP || !c.isauthed) continue;
-        c.overflow = 0;
-        if(c.position.empty()) pkt[i].posoff = -1;
-        else
+        if(clients[j]->type!=ST_TCPIP || !clients[j]->isauthed) continue;
+        pkt[j].posoff = ws.positions.length();
+        pkt[j].poslen = 0;
+        pkt[j].msgoff = ws.messages.length();
+        pkt[j].msglen = 0;
+        loopv(clients)
         {
-            pkt[i].posoff = ws.positions.length();
-            ws.positions.put(c.position.getbuf(), c.position.length());
-            pkt[i].poslen = ws.positions.length() - pkt[i].posoff;
-            c.position.setsize(0);
-        }
-        if(c.messages.empty()) pkt[i].msgoff = -1;
-        else
-        {
-            pkt[i].msgoff = ws.messages.length();
-            putint(ws.messages, SV_CLIENT);
-            putint(ws.messages, c.clientnum);
-            putuint(ws.messages, c.messages.length());
-            ws.messages.put(c.messages.getbuf(), c.messages.length());
-            pkt[i].msglen = ws.messages.length() - pkt[i].msgoff;
-            c.messages.setsize(0);
+            client &c = *clients[i];
+            if(i != j && (c.type!=ST_AI || c.ownernum != j)) continue;
+            c.overflow = 0;
+            if(!c.position.empty())
+            {
+                ws.positions.put(c.position.getbuf(), c.position.length());
+                pkt[j].poslen += c.position.length();
+                c.position.setsize(0);
+            }
+            if(!c.messages.empty())
+            {
+                const int msgstart = ws.messages.length();
+                putint(ws.messages, SV_CLIENT);
+                putint(ws.messages, i);
+                ws.messages.put(c.messages.getbuf(), c.messages.length());
+                pkt[j].msglen += ws.messages.length() - msgstart;
+                c.messages.setsize(0);
+            }
         }
     }
     int psize = ws.positions.length(), msize = ws.messages.length();
