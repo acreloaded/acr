@@ -634,6 +634,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\serverai.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\serverballistics.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\serverchecks.h"
 				>
 			</File>
@@ -647,6 +655,10 @@
 			</File>
 			<File
 				RelativePath="..\src\serverfiles.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\serverworld.h"
 				>
 			</File>
 			<File

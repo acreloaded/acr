@@ -394,6 +394,18 @@
 			<Option target="default" />
 			<Option target="debug" />
 		</Unit>
+		<Unit filename="../src/serverai.h">
+			<Option target="default" />
+			<Option target="debug" />
+			<Option target="server" />
+			<Option target="server-debug" />
+		</Unit>
+		<Unit filename="../src/serverballistics.h">
+			<Option target="default" />
+			<Option target="debug" />
+			<Option target="server" />
+			<Option target="server-debug" />
+		</Unit>
 		<Unit filename="../src/serverchecks.h">
 			<Option target="default" />
 			<Option target="debug" />
@@ -419,6 +431,12 @@
 			<Option target="server-debug" />
 		</Unit>
 		<Unit filename="../src/serverms.cpp">
+			<Option target="default" />
+			<Option target="debug" />
+			<Option target="server" />
+			<Option target="server-debug" />
+		</Unit>
+		<Unit filename="../src/serverworld.h">
 			<Option target="default" />
 			<Option target="debug" />
 			<Option target="server" />
