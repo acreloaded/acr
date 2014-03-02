@@ -163,6 +163,8 @@ bool buildworldstate()
         }
     }
     int psize = ws.positions.length(), msize = ws.messages.length();
+    if(!psize && !msize)
+        goto BUILDWORLDSTATE_EARLY_EXIT;
     if(psize)
     {
         recordpacket(0, ws.positions.getbuf(), psize);
@@ -183,20 +185,20 @@ bool buildworldstate()
         client &c = *clients[i];
         if(c.type!=ST_TCPIP || !c.isauthed) continue;
         ENetPacket *packet;
-        if(psize && (pkt[i].posoff<0 || psize-pkt[i].poslen>0))
+        if(psize && psize>pkt[i].poslen)
         {
-            packet = enet_packet_create(&ws.positions[pkt[i].posoff<0 ? 0 : pkt[i].posoff+pkt[i].poslen],
-                                        pkt[i].posoff<0 ? psize : psize-pkt[i].poslen,
+            packet = enet_packet_create(&ws.positions[!pkt[i].poslen ? 0 : pkt[i].posoff+pkt[i].poslen],
+                                        psize-pkt[i].poslen,
                                         ENET_PACKET_FLAG_NO_ALLOCATE);
             sendpacket(c.clientnum, 0, packet);
             if(!packet->referenceCount) enet_packet_destroy(packet);
             else { ++ws.uses; packet->freeCallback = cleanworldstate; }
         }
 
-        if(msize && (pkt[i].msgoff<0 || msize-pkt[i].msglen>0))
+        if(msize && msize>pkt[i].msglen)
         {
-            packet = enet_packet_create(&ws.messages[pkt[i].msgoff<0 ? 0 : pkt[i].msgoff+pkt[i].msglen],
-                                        pkt[i].msgoff<0 ? msize : msize-pkt[i].msglen,
+            packet = enet_packet_create(&ws.messages[!pkt[i].msglen ? 0 : pkt[i].msgoff+pkt[i].msglen],
+                                        msize-pkt[i].msglen,
                                         (reliablemessages ? ENET_PACKET_FLAG_RELIABLE : 0) | ENET_PACKET_FLAG_NO_ALLOCATE);
             sendpacket(c.clientnum, 1, packet);
             if(!packet->referenceCount) enet_packet_destroy(packet);
@@ -206,6 +208,7 @@ bool buildworldstate()
     reliablemessages = false;
     if(!ws.uses)
     {
+        BUILDWORLDSTATE_EARLY_EXIT:
         delete &ws;
         return false;
     }
