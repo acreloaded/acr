@@ -490,7 +490,7 @@ struct mitemtextinput : mitemtext
     mitemtextinput(gmenu *parent, char *text, char *value, char *action, char *hoveraction, color *bgcolor, int maxchars, int maskinput) : mitemtext(parent, text, action, hoveraction, bgcolor), defaultvalueexp(value), modified(false), hideinput(false)
     {
         copystring(input.buf, value);
-        input.max = maxchars>0 ? maxchars : 15;
+        input.max = maxchars>0 ? maxchars : 16;
         if(maskinput != NULL)
         {
             hideinput = (maskinput != 0);
@@ -500,14 +500,14 @@ struct mitemtextinput : mitemtext
     virtual int width()
     {
         int labelw = text_width(text);
-        int maxw = min(input.max, 15)*text_width("w"); // w is broadest, not a - but limit to 15*w
+        int maxw = min(input.max, 16)*text_width("w"); // w is broadest, not a - but limit to 16*w
         return labelw + maxw;
     }
 
     virtual void render(int x, int y, int w)
     {
         bool selection = isselection();
-        int tw = max(VIRTW/4, 15*text_width("w"));
+        int tw = max(VIRTW/4, 16*text_width("w"));
         if(selection) renderbg(x+w-tw, y-FONTH/6, tw, NULL);
         draw_text(text, x, y);
         int cibl = (int)strlen(input.buf); // current input-buffer length
