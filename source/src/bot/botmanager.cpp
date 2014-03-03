@@ -71,7 +71,7 @@ void CBotManager::Think()
 
              // create skills
              b->pBot->m_pBotSkill = NULL;
-             b->pBot->MakeSkill(100);//b->level);
+             b->pBot->MakeSkill(b->level);
 
              // Sync waypoints
              b->pBot->SyncWaypoints();
@@ -124,7 +124,7 @@ void CBotManager::LetBotsHear(int n, const vec *loc)
 
     loopv(players)
     {
-        if (!players[i] || !players[i]->pBot || (players[i]->state == CS_DEAD)) continue;
+        if (!players[i] || players[i]->ownernum != player1->clientnum || !players[i]->pBot || players[i]->state == CS_DEAD) continue;
         players[i]->pBot->HearSound(n, loc);
     }
 }
