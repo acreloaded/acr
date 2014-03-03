@@ -72,6 +72,14 @@ enum
     S_ITEMHELMET, // begin: Sounds for AssaultCube v1.1.0.4 onwards
     S_HEARTBEAT,
     S_KTFSCORE,
+    S_FIRSTBLOOD,
+    S_SWORD,
+    S_RPG,
+    S_RRPG, // unused--reserved
+    S_SNIPER2,
+    S_RSNIPER2,
+    S_ASSAULT2,
+    S_RASSAULT2,
     S_NULL
 };
 
