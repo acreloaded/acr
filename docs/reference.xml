@@ -5116,6 +5116,10 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
       <description>This section describes identifiers related to the menu gui.</description>
       <identifiers sort="true">
 
+        <command name="menuclear">
+          <description>Clears the menu history.</description>
+        </command>
+
         <command name="menuinit">
           <description>Specifies commands to be executed when a menu opens.</description>
           <references>
