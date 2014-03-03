@@ -163,8 +163,6 @@ bool buildworldstate()
         }
     }
     int psize = ws.positions.length(), msize = ws.messages.length();
-    if(!psize && !msize)
-        goto BUILDWORLDSTATE_EARLY_EXIT;
     if(psize)
     {
         recordpacket(0, ws.positions.getbuf(), psize);
@@ -180,7 +178,8 @@ bool buildworldstate()
         ws.messages.addbuf(p);
     }
     ws.uses = 0;
-    loopv(clients)
+    if(psize || msize)
+        loopv(clients)
     {
         client &c = *clients[i];
         if(c.type!=ST_TCPIP || !c.isauthed) continue;
@@ -208,7 +207,6 @@ bool buildworldstate()
     reliablemessages = false;
     if(!ws.uses)
     {
-        BUILDWORLDSTATE_EARLY_EXIT:
         delete &ws;
         return false;
     }
