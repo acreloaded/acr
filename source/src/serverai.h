@@ -5,7 +5,7 @@ int findaiclient(int exclude = -1) // person with least bots, if possible
     loopv(clients)
     {
         client *c = clients[i];
-        if(i == exclude || c->type == ST_EMPTY || c->type == ST_AI || c->clientnum < 0 /*|| !*c->name || !c->connected*/) continue;
+        if(i == exclude || c->type == ST_EMPTY || c->type == ST_AI /*|| !*c->name || !c->connected*/) continue;
         int n = 0;
         loopvj(clients)
             if(clients[j]->type == ST_AI && clients[j]->ownernum == i)
