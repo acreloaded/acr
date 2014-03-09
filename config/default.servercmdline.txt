@@ -42,7 +42,7 @@
 // change these, if you don't like the defaults:
 
 // -k     // kickthreshold, -1..-100, default -5
-// -kA    // kickthreshold (in seconds) for being AFK, > 30, default 45
+// -kA    // AFK limit (in seconds), > 30, default 45
 // -kB    // time in minutes a banned player will stay banned, default 20
 // -y     // banthreshold, -1..-100, default -6
 // -r     // server maprot file, default config/maprot.cfg
