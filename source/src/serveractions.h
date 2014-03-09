@@ -1,6 +1,6 @@
 // available server actions
 
-enum { EE_LOCAL_SERV = 1, EE_DED_SERV = 1<<1 }; // execution environment
+enum { EE_LOCAL_SERV = 1<<0, EE_DED_SERV = 1<<1, EE_ALL = (1<<2) - 1 }; // execution environment
 
 int roleconf(int key)
 { // current defaults: "fkbMASRCDEPtw"
@@ -18,7 +18,7 @@ struct serveraction
     virtual void perform() = 0;
     virtual bool isvalid() { return true; }
     virtual bool isdisabled() { return false; }
-    serveraction() : role(CR_DEFAULT), area(EE_DED_SERV) { desc[0] = '\0'; }
+    serveraction() : role(CR_DEFAULT), area(EE_ALL) { desc[0] = '\0'; }
     virtual ~serveraction() { }
 };
 
@@ -182,6 +182,7 @@ struct revokeaction : playeraction
     void perform() { changeclientrole(cn, CR_DEFAULT, NULL, true); }
     revokeaction(int cn) : playeraction(cn)
     {
+        area = EE_DED_SERV; // dedicated only
         role = CR_ADMIN;
     }
 };
@@ -193,6 +194,7 @@ struct kickaction : playeraction
     virtual bool isvalid() { return wasvalid || playeraction::isvalid(); }
     kickaction(int cn, char *reason) : playeraction(cn)
     {
+        area = EE_DED_SERV; // dedicated only
         wasvalid = false;
         role = roleconf('k');
         if(isvalid() && strlen(reason) > 3 && valid_client(cn))
@@ -214,6 +216,7 @@ struct banaction : playeraction
     virtual bool isvalid() { return wasvalid || playeraction::isvalid(); }
     banaction(int cn, char *reason) : playeraction(cn)
     {
+        area = EE_DED_SERV; // dedicated only
         wasvalid = false;
         role = roleconf('b');
         if(isvalid() && strlen(reason) > 3)
@@ -229,6 +232,7 @@ struct removebansaction : serveraction
     void perform() { bans.shrink(0); }
     removebansaction()
     {
+        area = EE_DED_SERV; // dedicated only
         role = roleconf('b');
         copystring(desc, "remove all bans");
     }
@@ -252,6 +256,7 @@ struct mastermodeaction : serveraction
     bool isvalid() { return mode >= 0 && mode < MM_NUM; }
     mastermodeaction(int mode) : mode(mode)
     {
+        area = EE_DED_SERV; // dedicated only
         role = roleconf('M');
         if(isvalid()) formatstring(desc)("change mastermode to '%s'", mmfullname(mode));
     }
@@ -299,6 +304,7 @@ struct recorddemoaction : enableaction            // TODO: remove completely
     bool isvalid() { return serveraction::isvalid(); }
     recorddemoaction(bool enable) : enableaction(enable)
     {
+        area = EE_DED_SERV; // dedicated only
         role = roleconf('R');
         if(isvalid()) formatstring(desc)("%s demorecord", enable ? "enable" : "disable");
     }
@@ -310,6 +316,7 @@ struct cleardemosaction : serveraction
     void perform() { cleardemos(demo); }
     cleardemosaction(int demo) : demo(demo)
     {
+        area = EE_DED_SERV; // dedicated only
         role = roleconf('C');
         if(isvalid()) formatstring(desc)("clear demo %d", demo);
     }
@@ -324,6 +331,7 @@ struct serverdescaction : serveraction
     bool isvalid() { return serveraction::isvalid() && updatedescallowed() && valid_client(cn); }
     serverdescaction(char *sdesc, int cn) : sdesc(sdesc), cn(cn)
     {
+        area = EE_DED_SERV; // dedicated only
         role = roleconf('D');
         formatstring(desc)("set server description to '%s'", sdesc);
         if(isvalid()) address = clients[cn]->peer->address;
