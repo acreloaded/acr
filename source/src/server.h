@@ -9,7 +9,7 @@
 
 #define valid_flag(f) (f >= 0 && f < 2)
 
-enum { GE_NONE = 0, GE_SHOT, GE_EXPLODE, GE_HIT, GE_AKIMBO, GE_RELOAD, GE_SUICIDE };
+enum { GE_NONE = 0, /* sequenced */ GE_SHOT, GE_PROJ, GE_HIT, GE_AKIMBO, GE_RELOAD, /* immediate */ GE_SUICIDEBOMB, /* unsequenced */ GE_HEAL, GE_AIRSTRIKE };
 enum { ST_EMPTY, ST_LOCAL, ST_TCPIP, ST_AI };
 
 extern int smode, servmillis;
@@ -42,11 +42,6 @@ struct hitevent
     float dir[3];
 };
 
-struct suicideevent
-{
-    int type;
-};
-
 struct pickupevent
 {
     int type;
@@ -72,7 +67,6 @@ union gameevent
     shotevent shot;
     explodeevent explode;
     hitevent hit;
-    suicideevent suicide;
     pickupevent pickup;
     akimboevent akimbo;
     reloadevent reload;

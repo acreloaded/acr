@@ -106,11 +106,6 @@ void processevent(client *c, shotevent &e)
     }
 }
 
-void processevent(client *c, suicideevent &e)
-{
-    serverdamage(c, c, INT_MAX, GUN_KNIFE, false);
-}
-
 void processevent(client *c, reloadevent &e)
 {
     clientstate &gs = c->state;
@@ -242,7 +237,6 @@ void processevents()
         while(c.events.length())
         {
             gameevent &e = c.events[0];
-            if(e.type<GE_SUICIDE)
             {
                 if(e.shot.millis>gamemillis) break;
                 if(e.shot.millis<c.lastevent) { clearevent(c); continue; }
@@ -251,11 +245,9 @@ void processevents()
             switch(e.type)
             {
                 case GE_SHOT: processevent(&c, e.shot); break;
-                case GE_EXPLODE: processevent(&c, e.explode); break;
+                case GE_PROJ: processevent(&c, e.explode); break;
                 case GE_AKIMBO: processevent(&c, e.akimbo); break;
                 case GE_RELOAD: processevent(&c, e.reload); break;
-                // untimed events
-                case GE_SUICIDE: processevent(&c, e.suicide); break;
             }
             clearevent(c);
         }
