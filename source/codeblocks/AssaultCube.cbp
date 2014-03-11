@@ -172,6 +172,10 @@
 			<Option target="default" />
 			<Option target="debug" />
 		</Unit>
+		<Unit filename="../src/ballistics.h">
+			<Option target="default" />
+			<Option target="debug" />
+		</Unit>
 		<Unit filename="../src/bot/bot.cpp">
 			<Option target="default" />
 			<Option target="debug" />

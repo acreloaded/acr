@@ -534,6 +534,10 @@
 			Filter="h;hpp;hxx;hm;inl"
 			>
 			<File
+				RelativePath="..\src\ballistics.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\command.h"
 				>
 			</File>
