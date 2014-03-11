@@ -145,37 +145,117 @@ void processevent(client *c, akimboevent &e)
     gs.akimbomillis = e.millis+30000;
 }
 
-void clearevent(client *c)
+void clearevent(client &c)
 {
     int n = 1;
-    while(n<c->events.length() && c->events[n].type==GE_HIT) n++;
-    c->events.remove(0, n);
+    while(n<c.events.length() && c.events[n].type==GE_HIT) n++;
+    c.events.remove(0, n);
 }
 
 void processevents()
 {
     loopv(clients)
     {
-        client *c = clients[i];
-        if(c->type==ST_EMPTY) continue;
-        if(c->state.akimbomillis && c->state.akimbomillis < gamemillis) { c->state.akimbomillis = 0; c->state.akimbo = false; }
-        while(c->events.length())
+        client &c = *clients[i];
+        if(c.type==ST_EMPTY || !c.isauthed || team_isspect(c.team)) continue;
+        clientstate &cs = c.state;
+        /*
+        // game ending nuke...
+		if(cs.nukemillis && cs.nukemillis <= gamemillis && minremain)
         {
-            gameevent &e = c->events[0];
+			// boom... gg
+			//forceintermission = true;
+			cs.nukemillis = 0;
+			sendf(-1, 1, "ri4", N_STREAKUSE, i, STREAK_NUKE, 0);
+			// apply the nuke effect
+			nuke(c);
+		}
+        */
+        // drown, bleed, regen
+        if(cs.state == CS_ALIVE)
+        {
+            /*
+            // drown underwater
+			if(cs.o.z < smapstats.hdr.waterlevel)
+            {
+				if(cs.drownmillis <= 0)
+                {
+					if(cs.drownmillis) // resume partial drowning
+						cs.drownval = max(cs.drownval - ((servmillis + cs.drownmillis) / 1000), 0);
+					cs.drownmillis = gamemillis;
+				}
+				char drownstate = max(0, (gamemillis - cs.drownmillis) / 1000 - 10);
+				while(cs.drownval < drownstate)
+                {
+					++cs.drownval;
+					serverdamage(&c, &c, (m_classic(gamemode, mutators) ? 5 : (cs.drownval + 10)) * HEALTHSCALE, WEAP_MAX + 13, FRAG_NONE, cs.o);
+					if(cs.state != CS_ALIVE) break; // dead!
+				}
+			}
+			else if(cs.drownmillis > 0)
+                cs.drownmillis = -cs.drownmillis; // save partial drowning
+			// bleeding--oh no!
+            if(cs.wounds.length())
+            {
+				loopv(cs.wounds)
+                {
+					wound &w = cs.wounds[i];
+					if(!valid_client(w.inflictor)) cs.wounds.remove(i--);
+					else if(w.lastdealt + 500 < gamemillis)
+                    {
+						client &owner = *clients[w.inflictor];
+						const int bleeddmg = (m_zombie(gamemode) ? BLEEDDMGZ : owner.state.perk2 == PERK_POWER ? BLEEDDMGPLUS : BLEEDDMG) * HEALTHSCALE;
+						owner.state.damage += bleeddmg;
+						owner.state.shotdamage += bleeddmg;
+						// where were we wounded?
+						vec woundloc = cs.o;
+						woundloc.add(w.offset);
+						// blood fx and stuff
+						sendhit(owner, WEAP_KNIFE, woundloc, bleeddmg);
+						// use wounded location as damage source
+						serverdamage(&c, &owner, bleeddmg, WEAP_KNIFE, FRAG_NONE, woundloc, c.state.o.dist(owner.state.o));
+						w.lastdealt = gamemillis;
+					}
+				}
+			}
+            // health regeneration
+			else if(m_regen(gamemode, mutators) && cs.state == CS_ALIVE && cs.health < STARTHEALTH && cs.lastregen + (cs.perk1 == PERK_POWER ? REGENINT * .7f : REGENINT) < gamemillis){
+				int amt = round(float((STARTHEALTH - cs.health) / 5 + 15));
+				if(cs.perk1 == PERK_POWER) amt *= 1.4f;
+				if(amt >= STARTHEALTH - cs.health)
+					amt = STARTHEALTH - cs.health;
+				sendf(-1, 1, "ri3", N_REGEN, i, cs.health += amt);
+				cs.lastregen = gamemillis;
+			}
+            */
+        }
+        // not alive: spawn queue
+        else if(/*cs.state == CS_WAITING ||*/ (c.type == ST_AI && valid_client(c.ownernum) && clients[c.ownernum]->isonrightmap && cs.state == CS_DEAD && cs.lastspawn<0))
+        {
+			const int waitremain = SPAWNDELAY - gamemillis + cs.lastdeath;
+            extern int canspawn(client *c);
+			if(canspawn(&c) == SP_OK && waitremain <= 0)
+                sendspawn(&c);
+		}
+        // akimbo out!
+        if(cs.akimbomillis && cs.akimbomillis < gamemillis) { cs.akimbomillis = 0; cs.akimbo = false; }
+        while(c.events.length())
+        {
+            gameevent &e = c.events[0];
             if(e.type<GE_SUICIDE)
             {
                 if(e.shot.millis>gamemillis) break;
-                if(e.shot.millis<c->lastevent) { clearevent(c); continue; }
-                c->lastevent = e.shot.millis;
+                if(e.shot.millis<c.lastevent) { clearevent(c); continue; }
+                c.lastevent = e.shot.millis;
             }
             switch(e.type)
             {
-                case GE_SHOT: processevent(c, e.shot); break;
-                case GE_EXPLODE: processevent(c, e.explode); break;
-                case GE_AKIMBO: processevent(c, e.akimbo); break;
-                case GE_RELOAD: processevent(c, e.reload); break;
+                case GE_SHOT: processevent(&c, e.shot); break;
+                case GE_EXPLODE: processevent(&c, e.explode); break;
+                case GE_AKIMBO: processevent(&c, e.akimbo); break;
+                case GE_RELOAD: processevent(&c, e.reload); break;
                 // untimed events
-                case GE_SUICIDE: processevent(c, e.suicide); break;
+                case GE_SUICIDE: processevent(&c, e.suicide); break;
             }
             clearevent(c);
         }

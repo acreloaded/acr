@@ -70,6 +70,7 @@ enum { PR_CLEAR = 0, PR_ASSIST, PR_SPLAT, PR_HS, PR_KC, PR_KD, PR_HEALSELF, PR_H
 #define ZOMBIEHEALTHFACTOR 5
 #define MAXTHIRDPERSON 25
 
+#define SPAWNDELAY (m_secure(gamemode) ? 2000 : m_flags(gamemode) ? 5000 : 1500)
 #define SPAWNPROTECT (m_flags(gamemode) ? 1000 : m_team(gamemode, mutators) ? 1500 : 1250)
 
 #define REGENDELAY 4250
