@@ -647,7 +647,7 @@ VARP(serversort, 0, 0, NUMSERVSORT-1);
 VARP(serversortdir, 0, 0, 1);
 VARP(showonlygoodservers, 0, 0, 1);
 VAR(shownamesinbrowser, 0, 0, 1);
-VARP(showminremain, 0, 0, 1);
+VARP(showminremain, 0, 1, 1);
 VARP(serversortpreferofficial, 0, 1, 1);
 
 void serversortprepare()
@@ -752,7 +752,7 @@ bool matchplayername(const char *name)
     return strstr(nameuc, cursearchuc) != NULL;
 }
 
-VARP(serverbrowserhideip, 0, 0, 2);
+VARP(serverbrowserhideip, 0, 2, 3);
 VARP(serverbrowserhidefavtag, 0, 1, 2);
 VAR(showweights, 0, 0, 1);
 VARP(hidefavicons, 0, 0, 1);
@@ -1041,11 +1041,12 @@ void refreshservers(void *menu, bool init)
             char basecolor = banned ? '4' : (curserver == servers[i] ? '1' : '5');
             char plnumcolor = serverfull ? '2' : (needspasswd ? '3' : (mmode != MM_OPEN ? '1' : basecolor));
             const char *favimage = NULL;
+            defformatstring(serverportpart)((serverbrowserhideip >= 3 || (serverbrowserhideip == 2 && si.port != CUBE_DEFAULT_SERVER_PORT)) ? ":%d" : "", si.port);
             if(si.address.host != ENET_HOST_ANY && si.ping != 9999)
             {
                 if(si.protocol!=PROTOCOL_VERSION)
                 {
-                    if(!showonlygoodservers) formatstring(si.full)("%s:%d [%s]", si.name, si.port, si.protocol<0 ? "modded version" : (si.protocol<PROTOCOL_VERSION ? "older protocol" : "newer protocol"));
+                    if(!showonlygoodservers) formatstring(si.full)("%s%s [%s]", si.name, serverportpart, si.protocol<0 ? "modded version" : (si.protocol<PROTOCOL_VERSION ? "older protocol" : "newer protocol"));
                     else showthisone = false;
                 }
                 else
@@ -1061,13 +1062,13 @@ void refreshservers(void *menu, bool init)
                         if(showmr) concatformatstring(si.full, ", (%d)", si.minremain);
                     }
                     else concatformatstring(si.full, "empty");
-                    concatformatstring(si.full, serverbrowserhideip < 2 ? ": \fs%s%s:%d\fr" : ": ", serverbrowserhideip == 1 ? "\f4" : "", si.name, si.port);
+                    concatformatstring(si.full, !serverbrowserhideip ? ": " : ": %s%s", si.name, serverportpart);
                     concatformatstring(si.full, "\fr %s", si.sdesc);
                 }
             }
             else
             {
-                if(!showonlygoodservers) formatstring(si.full)(si.address.host != ENET_HOST_ANY ? "%s:%d [waiting for server response]" : "%s:%d [unknown host]", si.name, si.port);
+                if(!showonlygoodservers) formatstring(si.full)("%s%s [%s]", si.name, serverportpart, si.address.host != ENET_HOST_ANY ? "waiting for server response" : "unknown host");
                 else showthisone = false;
             }
             if(issearch && showthisone)

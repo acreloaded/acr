@@ -6767,7 +6767,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
 
         <variable name="serverbrowserhideip">
           <description>Hide server IP and port in serverbrowser.</description>
-          <value token="N" description="-" minValue="0" maxValue="2" defaultValue="2"/>
+          <value token="N" description="0: hide, 1: ip, 2: +non-default ports, 3: +all ports" minValue="0" maxValue="3" defaultValue="2"/>
         </variable>
 
         <variable name="serversortdir">
@@ -6781,7 +6781,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
 
         <variable name="showminremain">
           <description>Show 'minutes remaining' in serverbrowser.</description>
-          <value token="N" description="" minValue="0" maxValue="1" defaultValue="0"/>
+          <value token="N" description="" minValue="0" maxValue="1" defaultValue="1"/>
         </variable>
 
         <variable name="shownamesinbrowser">
