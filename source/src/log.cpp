@@ -2,8 +2,7 @@
 
 #include "cube.h"
 
-//#if !defined(WIN32) && !defined(__APPLE__)
-#if 0
+#if !defined(WIN32) && !defined(__APPLE__)
 
     #include <syslog.h>
     #include <signal.h>
@@ -25,7 +24,7 @@ static const char *levelname[] = { "DEBUG", "VERBOSE", "INFO", "WARNING", "ERROR
 static FILE *fp = NULL;
 static string filepath, ident, ident_full;
 static int facility = -1,
-#ifdef AC_USE_SYSLOG
+#ifdef AC_USE_SYSLOG_DISABLE
         filethreshold = ACLOG_NUM,
         syslogthreshold = ACLOG_INFO,
 #else
