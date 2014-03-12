@@ -46,7 +46,7 @@ bool addai()
     client &b = *clients[cn];
     b.reset();
     b.type = ST_AI;
-    b.isauthed = true;
+    b.isauthed = b.isonrightmap = true;
     b.team = rnd(2); // FIXME choose smaller/worse team
     b.skin[0] = randomMT(); // random skins
     b.skin[1] = randomMT(); // random skins

@@ -286,7 +286,7 @@ struct client                   // server side version of "dynent" type
         events.setsize(0);
         overflow = 0;
         timesync = false;
-        isonrightmap = m_edit(gamemode);
+        isonrightmap = type == ST_AI || m_edit(gamemode);
         spawnperm = SP_WRONGMAP;
         spawnpermsent = servmillis;
         if(!getmap)
