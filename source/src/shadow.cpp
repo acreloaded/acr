@@ -439,7 +439,7 @@ void drawstencilshadows()
 
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        setperspective(fovy, aspect, 0.15f, farplane);
+        setperspective(fovy, 0.15f);
 
         glMatrixMode(GL_MODELVIEW);
         glPopMatrix();

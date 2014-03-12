@@ -899,7 +899,22 @@ int xtraverts;
 VARP(hudgun, 0, 1, 1);
 VARP(specthudgun, 0, 1, 1);
 
-void setperspective(float fovy, float aspect, float nearplane, float farplane)
+inline float zoomfactor(playerent *who)
+{
+    return 1.f;
+    /*
+	if(!who) return 1;
+	float adsmax = 864, zoomf = (float)adszoom;
+	if(sniper_weap(who->weaponsel->type) && who->ads)
+    {
+		adsmax = sniperrifle::adsscope;
+		zoomf = (float)scopezoom;
+	} else if(who->weaponsel->type == WEAP_HEAL) zoomf = 0;
+	return 100 / (min(who->ads/adsmax,1.f) * zoomf + 100);
+    */
+}
+
+void setperspective(float fovy, float nearplane)
 {
     GLdouble ydist = nearplane * tan(fovy/2*RAD), xdist = ydist * aspect;
     if(player1->isspectating() && player1->spectatemode == SM_OVERVIEW)
@@ -911,6 +926,9 @@ void setperspective(float fovy, float aspect, float nearplane, float farplane)
     }
     else
     {
+        const float zoomf = zoomfactor(focus);
+        xdist *= zoomf;
+        ydist *= zoomf;
         glFrustum(-xdist, xdist, -ydist, ydist, nearplane, farplane);
     }
 }
@@ -922,9 +940,9 @@ void sethudgunperspective(bool on)
     if(on)
     {
         glScalef(1, 1, 0.5f); // fix hudugns colliding with map geometry
-        setperspective(75.0f, aspect, 0.3f, farplane); // y fov fixed at 75 degrees
+        setperspective(75.0f, 0.3f); // y fov fixed at 75 degrees
     }
-    else setperspective(fovy, aspect, 0.15f, farplane);
+    else setperspective(fovy, 0.15f);
     glMatrixMode(GL_MODELVIEW);
 }
 
@@ -1034,7 +1052,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     }
 
     farplane = fog*5/2;
-    setperspective(fovy, aspect, 0.15f, farplane);
+    setperspective(fovy, 0.15f);
     glMatrixMode(GL_MODELVIEW);
 
     transplayer();
