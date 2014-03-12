@@ -213,7 +213,7 @@ int intersect(playerent *d, const vec &from, const vec &to, vec *end)
         if(intersectsphere(from, to, d->head, HEADSIZE, dist))
         {
             if(end) (*end = to).sub(from).mul(dist).add(from);
-            return 2;
+            return HIT_HEAD;
         }
     }
     float y = d->yaw*RAD, p = (d->pitch/4+90)*RAD, c = cosf(p);
@@ -225,9 +225,9 @@ int intersect(playerent *d, const vec &from, const vec &to, vec *end)
     if( intersectcylinder(from, to, bottom, top, d->radius, dist) ) // FIXME if using 2 hitboxes
     {
         if(end) (*end = to).sub(from).mul(dist).add(from);
-        return 1;
+        return HIT_TORSO;
     }
-    return 0;
+    return HIT_NONE;
 
 #if 0
     const float eyeheight = d->eyeheight;
@@ -272,15 +272,28 @@ playerent *intersectclosest(const vec &from, const vec &to, playerent *at, float
     return best;
 }
 
-playerent *playerincrosshair()
+void playerincrosshair(playerent * &pl, int &hitzone, vec &pos)
 {
-    if(camera1->type == ENT_PLAYER || (camera1->type == ENT_CAMERA && player1->spectatemode == SM_DEATHCAM))
+    const vec &from = camera1->o, &to = worldpos;
+
+	pl = NULL;
+	hitzone = HIT_NONE;
+	float bestdist = 1e16f;
+	loopv(players)
     {
-        float dist;
-        int hitzone;
-        return intersectclosest(camera1->o, worldpos, (playerent *)camera1, dist, hitzone, false);
-    }
-    else return NULL;
+		playerent *o = players[i];
+		if(!o || o==focus || o->state==CS_DEAD) continue;
+		float dist = camera1->o.dist(o->o);
+		int zone = HIT_NONE;
+		vec end;
+		if(dist < bestdist && (zone = intersect(o, from, to, &end)))
+        {
+			pl = o;
+			hitzone = zone;
+			pos = end;
+			bestdist = dist;
+		}
+	}
 }
 
 void damageeffect(int damage, playerent *d)

@@ -36,12 +36,15 @@ extern int sfactor, ssize;              // ssize = 2^sfactor
 extern int cubicsize, mipsize;          // cubicsize = ssize^2
 extern physent *camera1;                // camera representing perspective of player, usually player1
 extern playerent *player1;              // special client ent that receives input and acts as camera
+//extern playerent *focus;                // the camera points here, or else it's player1
+#define focus player1 // FIXME
 extern vector<playerent *> players;     // all the other clients (in multiplayer)
 extern vector<bounceent *> bounceents;
 extern bool editmode;
 extern vector<entity> ents;             // map entities
 extern vector<int> eh_ents;             // edithide entities
 extern vec worldpos, camup, camright, camdir; // current target of the crosshair in the world
+extern playerent *worldhit; extern int worldhitzone; extern vec worldhitpos;
 extern int lastmillis, totalmillis, nextmillis; // last time
 extern int curtime;                     // current frame time
 extern int interm;

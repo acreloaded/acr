@@ -140,8 +140,11 @@ extern const char *teamnames_s[TEAM_NUM+1];
 #define team_tospec(t) ((t) == TEAM_SPECT ? TEAM_SPECT : team_base(t) + TEAM_CLA_SPECT - TEAM_CLA)
 // note: team_isactive and team_base can/should be used to check the limits for arrays of size '2'
 static inline const char *team_string(int t, bool abbr = false) { const char **n = abbr ? teamnames_s : teamnames; return team_isvalid(t) ? n[t] : n[TEAM_NUM]; }
+#define team_color(t) (team_isspect(t) ? 4 : team_base(t) ? 1 : 3)
+#define team_rel_color(a, b) (a == b ? 1 : a && b && !team_isspect(b->team) ? isteam(a->team, b->team) ? 0 : 3 : 4)
 
 enum { ENT_PLAYER = 0, ENT_BOT, ENT_CAMERA, ENT_BOUNCE };
+enum { HIT_NONE = 0, HIT_TORSO, HIT_LEG, HIT_HEAD };
 enum { CS_ALIVE = 0, CS_DEAD, CS_SPAWNING, CS_LAGGED, CS_EDITING, CS_SPECTATE };
 enum { CR_DEFAULT = 0, CR_ADMIN };
 enum { SM_NONE = 0, SM_DEATHCAM, SM_FOLLOW1ST, SM_FOLLOW3RD, SM_FOLLOW3RD_TRANSPARENT, SM_FLY, SM_OVERVIEW, SM_NUM };

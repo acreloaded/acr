@@ -860,14 +860,13 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     glEnable(GL_TEXTURE_2D);
 
-    playerent *targetplayer = playerincrosshair();
-    if (targetplayer) strcpy(lastseen, targetplayer->name);
+    if (worldhit) strcpy(lastseen, worldhit->name);
     bool menu = menuvisible();
     bool command = getcurcommand() ? true : false;
     bool reloading = lastmillis < p->weaponsel->reloading + p->weaponsel->info.reloadtime;
     if((p->state==CS_ALIVE || p->state==CS_EDITING) && !reloading)
     {
-        bool drawteamwarning = crosshairteamsign && targetplayer && isteam(targetplayer->team, p->team) && targetplayer->state==CS_ALIVE;
+        bool drawteamwarning = crosshairteamsign && worldhit && isteam(worldhit->team, p->team) && worldhit->state==CS_ALIVE;
         p->weaponsel->renderaimhelp(drawteamwarning);
     }
 
@@ -891,7 +890,25 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     int commandh = 1570 + FONTH;
     if(command) commandh -= rendercommand(20, 1570, VIRTW);
     else if(infostr) draw_text(infostr, 20, 1570);
-    else if(targetplayer && showtargetname) draw_text(colorname(targetplayer), 20, 1570);
+    else if(true)
+    {
+        defformatstring(hudtext)("\f0[\f1%04.1f\f3m\f0]", focus->o.dist(worldhitpos) / 4.f);
+        static string hudtarget;
+        static int lasttarget = INT_MIN;
+        if(worldhit)
+        {
+			formatstring(hudtarget)(" \f2[\f%d%s\f2] \f4[\f%s\f4]", team_rel_color(focus, worldhit), colorname(worldhit),
+				worldhitzone==HIT_HEAD?"3HEAD":worldhitzone==HIT_TORSO?"2TORSO":"0LEGS");
+			concatstring(hudtext, hudtarget);
+			lasttarget = lastmillis;
+		}
+		else if(lastmillis - lasttarget < 800)
+        {
+			const short a = (800 - lastmillis + lasttarget) * 255 / 800;
+			draw_text(hudtarget, 20 + text_width(hudtext), 1570, a, a, a, a);
+		}
+		draw_text(hudtext, 20, 1570);
+    }
     glLoadIdentity();
     glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
     extern int tsens(int x);

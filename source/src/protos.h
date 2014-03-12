@@ -743,7 +743,7 @@ extern void movebounceents();
 extern void clearbounceents();
 extern void renderbounceents();
 extern void addgib(playerent *d);
-extern playerent *playerincrosshair();
+extern void playerincrosshair(playerent* &pl, int &hitzone, vec &pos);
 extern int magsize(int gun);
 extern void setscope(bool activate);
 extern void setburst(bool activate);
