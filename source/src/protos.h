@@ -259,6 +259,7 @@ extern void quad(GLuint tex, vec &c1, vec &c2, float tx, float ty, float tsx, fl
 extern void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr, int subdiv = 32);
 extern void setperspective(float fovy, float aspect, float nearplane, float farplane);
 extern void sethudgunperspective(bool on);
+extern void traceShot(const vec &from, vec &to, float len = ssize << 1);
 extern void gl_drawframe(int w, int h, float changelod, float curfps);
 extern void clearminimap();
 extern void resetzones();
@@ -678,6 +679,7 @@ extern uchar *readmcfggz(char *name, int *size, int *sizegz);
 
 // physics
 extern float raycube(const vec &o, const vec &ray, vec &surface);
+extern float rayclip(const vec &o, const vec &ray, vec &surface);
 extern bool raycubelos(const vec &from, const vec &to, float margin = 0);
 extern void moveplayer(physent *pl, int moveres, bool local);
 extern void moveplayer(physent *pl, int moveres, bool local, int curtime);

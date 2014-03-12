@@ -969,9 +969,18 @@ void readmatrices()
     invmvpmatrix.invert(mvpmatrix);
 }
 
+void traceShot(const vec &from, vec &to, float len)
+{
+	vec tracer(to);
+	tracer.sub(from).normalize();
+	vec s;
+	const float dist = rayclip(from, tracer, s);
+	to = tracer.mul(dist - .1f).add(from);
+}
+
 // stupid function to cater for stupid ATI linux drivers that return incorrect depth values
 
-float depthcorrect(float d)
+inline float depthcorrect(float d)
 {
     return (d<=1/256.0f) ? d*256 : d;
 }
@@ -989,6 +998,7 @@ void readdepth(int w, int h, vec &pos)
     vec4 world;
     invmvpmatrix.transform(screen, world);
     pos = vec(world.x, world.y, world.z).div(world.w);
+    if(!editmode) traceShot(camera1->o, pos);
 }
 
 void gl_drawframe(int w, int h, float changelod, float curfps)
@@ -1002,7 +1012,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     fovy = 2*atan2(tan(float(dynfov())/2*RAD), aspect)/RAD;
 
     float hf = hdr.waterlevel-0.3f;
-    bool underwater = camera1->o.z<hf;
+    const bool underwater = camera1->o.z<hf;
 
     glFogi(GL_FOG_START, (fog+64)/8);
     glFogi(GL_FOG_END, fog);
