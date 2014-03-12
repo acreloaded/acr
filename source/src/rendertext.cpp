@@ -383,9 +383,7 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color, int a
             // white (provided color): everything else
             //default: color = bvec( 255, 255, 255 ); break;
         }
-        int b = (int) (sinf(lastmillis / 200.0f) * 115.0f);
-        b = stack[sp] > 0 ? 100 : min(abs(b), 100);
-        glColor4ub(color.x, color.y, color.z, (a * b) / 100);
+        glColor4ub(color.x, color.y, color.z, stack[sp] > 0 ? a : a * min<float>(fabs(sinf(lastmillis / 200.f) * 1.15f), 1.f));
     }
 }
 
@@ -562,7 +560,7 @@ void draw_text(const char *str, int left, int top, int r, int g, int b, int a, i
     {
         if(cx == INT_MIN) { cx = x; cy = y; }
         if(maxwidth != -1 && cx >= maxwidth) { cx = 0; cy += FONTH; }
-        int cw = curfont->chars.inrange(cc-33) ? curfont->chars[cc-33].w + 1 : curfont->defaultw;
+        int cw = curfont->chars.inrange(cc-33) ? curfont->chars[cc-curfont->skip].w + 1 : curfont->defaultw;
         rendercursor(left+cx, top+cy, cw);
     }
 #undef TEXTINDEX
