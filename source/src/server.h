@@ -1,5 +1,15 @@
 // server.h
 
+#define SERVER_BUILTIN_MOD 0
+// 1 = super knife (gib only)
+// 2 = moon jump (gib only)
+// 4 = moon jump always on (requires 2)
+// 8 = gungame
+// 16 = explosive ammo
+// 32 = moonjump with no damage (mario)
+// 64 = /suicide for nuke
+// 128 = no explosive zombies
+
 #define gamemode smode   // allows the gamemode macros to work with the server mode
 #define mutators smuts   // allows the mutators macros to work with the server mode
 
