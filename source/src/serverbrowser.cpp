@@ -932,6 +932,8 @@ COMMAND(listfavcats, "");
 static serverinfo *lastselectedserver = NULL;
 static bool pinglastselected = false;
 
+VAR(masterserver_flags, 0, 0, 7);
+
 void refreshservers(void *menu, bool init)
 {
     static int servermenumillis;
@@ -1023,6 +1025,16 @@ void refreshservers(void *menu, bool init)
         };
         bool showmr = showminremain || serversort == SBS_MINREM;
         formatstring(title)(titles[serversort], showfavtag ? "fav\t" : "", issearch ? "      search results for \f3" : "     (F1: Help/Settings)", issearch ? cursearch : "");
+        // master-server flags
+        if(masterserver_flags)
+        {
+            if(masterserver_flags & 1)
+                concatstring(title, "\n\f0your IP is whitelisted");
+            else if(masterserver_flags & 2)
+                concatstring(title, "\n\f3your IP is globally banned! prepare AUTH!");
+            else if(masterserver_flags & 4)
+                concatstring(title, "\n\f2you are globally muted!");
+        }
         menutitle(menu, title);
         menureset(menu);
         string text;
