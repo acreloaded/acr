@@ -1004,7 +1004,7 @@ int main(int argc, char **argv)
     string servername, password;
     int serverport;
 
-    const char *initmap = rndmapname();
+    const char *initmap = NULL;
 
     pushscontext(IEXC_CFG);
 
@@ -1230,6 +1230,8 @@ int main(int argc, char **argv)
     {
         gamemode = G_DM;
         mutators = G_M_TEAM;
+        if(!initmap)
+            initmap = rndmapname();
         copystring(clientmap, initmap); // ac_complex for 1.0, ac_shine for 1.1, ..
     }
 
