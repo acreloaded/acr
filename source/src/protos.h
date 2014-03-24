@@ -415,6 +415,7 @@ extern void dokill(playerent *pl, playerent *act, bool gib = false, int gun = 0)
 extern playerent *newplayerent();
 extern char *getclientmap();
 extern int getclientmode();
+extern int getclientmutators();
 extern void zapplayer(playerent *&d);
 extern playerent *getclient(int cn);
 extern playerent *newclient(int cn);

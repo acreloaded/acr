@@ -47,7 +47,7 @@ bool custom_servdesc = false;
 
 // current game
 string smapname, nextmapname;
-int smode = G_DM, nextgamemode, smuts = G_M_NONE, nextmutators;
+int smode = G_DM, nextgamemode, smuts = G_M_TEAM, nextmutators;
 int interm = 0;
 static int minremain = 0, gamemillis = 0, gamelimit = 0, /*lmsitemtype = 0,*/ nextsendscore = 0;
 mapstats smapstats;

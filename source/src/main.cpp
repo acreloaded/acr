@@ -1228,8 +1228,9 @@ int main(int argc, char **argv)
     }
     else
     {
-        gamemode = G_DM;
-        mutators = G_M_TEAM;
+        // set default mode there...
+        gamemode = nextmode;
+        mutators = nextmuts;
         if(!initmap)
             initmap = rndmapname();
         copystring(clientmap, initmap); // ac_complex for 1.0, ac_shine for 1.1, ..

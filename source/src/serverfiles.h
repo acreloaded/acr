@@ -353,7 +353,7 @@ struct servermaprot : serverconfigfile
         {
             defformatstring(nextmapalias)("nextmap_%s", getclientmap());
             const char *map = getalias(nextmapalias);     // look up map in the cycle
-            startgame(map && notify ? map : getclientmap(), getclientmode(), -1, notify);
+            startgame(map && notify ? map : getclientmap(), getclientmode(), getclientmutators(), -1, notify);
             return -1;
         }
 #endif
@@ -389,11 +389,11 @@ struct servermaprot : serverconfigfile
 #ifndef STANDALONE
         if(!isdedicated)
         {
-            startgame(getclientmap(), getclientmode(), -1, notify);
+            startgame(getclientmap(), getclientmode(), getclientmutators(), -1, notify);
             return;
         }
 #endif
-    startgame(smapname, smode, -1, notify);
+    startgame(smapname, smode, smuts, -1, notify);
     }
 
     configset *current() { return configsets.inrange(curcfgset) ? &configsets[curcfgset] : NULL; }

@@ -3,7 +3,7 @@
 #include "cube.h"
 #include "bot/bot.h"
 
-int nextmode = 0, nextmuts = 0;   // nextmode becomes gamemode after next map load
+int nextmode = G_DM, nextmuts = G_M_TEAM;   // nextmode becomes gamemode after next map load
 VAR(gamemode, 1, 0, 0);
 VAR(mutators, 1, 0, 0);
 VAR(nextGameMode, 1, 0, 0);
@@ -36,6 +36,8 @@ int spawnpermission = SP_WRONGMAP;
 char *getclientmap() { return clientmap; }
 
 int getclientmode() { return gamemode; }
+
+int getclientmutators() { return mutators; }
 
 extern bool sendmapidenttoserver;
 

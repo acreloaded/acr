@@ -22,7 +22,7 @@
 enum { GE_NONE = 0, /* sequenced */ GE_SHOT, GE_PROJ, GE_HIT, GE_AKIMBO, GE_RELOAD, /* immediate */ GE_SUICIDEBOMB, /* unsequenced */ GE_HEAL, GE_AIRSTRIKE };
 enum { ST_EMPTY, ST_LOCAL, ST_TCPIP, ST_AI };
 
-extern int smode, servmillis;
+extern int smode, smuts, servmillis;
 
 struct shotevent
 {
