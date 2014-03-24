@@ -867,6 +867,23 @@ struct vertmodel : model
                 ai_t = (lastmillis-d->lastanimswitchtime[index])/(float)animationinterpolationtime;
             }
 
+            if(d && d->zoomed)
+                loopi(numtags)
+                {
+                    tag &t = tags[i];
+                    if(strcmp(t.name, "tag_muzzle")) continue;
+
+                    glmatrixf linkmat;
+                    gentagmatrix(cur, doai ? &prev : NULL, ai_t, i, linkmat.v);
+                    vec trans = matrixstack[matrixpos].gettranslation();
+                    vec4 trans_new;
+                    matrixstack[matrixpos].transform(linkmat.gettranslation(), trans_new);
+
+                    trans.sub(trans_new.v).mul(d->zoomed/(float)ZOOMLIMIT);
+                    matrixstack[matrixpos].translate(trans);
+                    break;
+                }
+
             glPushMatrix();
             glMultMatrixf(matrixstack[matrixpos].v);
             loopv(meshes) meshes[i]->render(as, cur, doai ? &prev : NULL, ai_t);
