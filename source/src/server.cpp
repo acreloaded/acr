@@ -2543,8 +2543,22 @@ void sendservinfo(client &c)
     sendf(c.clientnum, 1, "ri5", SV_SERVINFO, c.clientnum, isdedicated ? SERVER_PROTOCOL_VERSION : PROTOCOL_VERSION, c.salt, scl.serverpassword[0] ? 1 : 0);
 }
 
+void putinitai(client &c, ucharbuf &p)
+{
+    // cn, b.ownernum, b.bot_seed = randomMT(), b.skin[0], b.skin[1], b.team, b.level
+    putint(p, SV_INITAI);
+    putint(p, c.clientnum);
+    putint(p, c.ownernum);
+    putint(p, c.bot_seed);
+    putint(p, c.skin[0]);
+    putint(p, c.skin[1]);
+    putint(p, c.team);
+    putint(p, c.level);
+}
+
 void putinitclient(client &c, packetbuf &p)
 {
+    if(c.type == ST_AI) return putinitai(c, p);
     putint(p, SV_INITCLIENT);
     putint(p, c.clientnum);
     sendstring(c.name, p);
@@ -2564,12 +2578,12 @@ void sendinitclient(client &c)
     sendpacket(-1, 1, p.finalize(), c.clientnum);
 }
 
-void welcomeinitclient(packetbuf &p, int exclude = -1)
+inline void welcomeinitclient(packetbuf &p, int exclude = -1)
 {
     loopv(clients)
     {
         client &c = *clients[i];
-        if(c.type!=ST_TCPIP || !c.isauthed || c.clientnum == exclude) continue;
+        if(c.type==ST_EMPTY || !c.isauthed || c.clientnum == exclude) continue;
         putinitclient(c, p);
     }
 }
