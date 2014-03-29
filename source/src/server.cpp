@@ -417,12 +417,14 @@ void sendservmsg(const char *msg, int cn = -1)
     sendf(cn, 1, "ris", SV_SERVMSG, msg);
 }
 
-#define getmaplayoutid(x, y) (clamp((int)(x), 2, (1 << maplayout_factor) - 2) + (clamp((int)(y), 2, (1 << maplayout_factor) - 2) << maplayout_factor))
-
 void sendspawn(client *c)
 {
     if(team_isspect(c->team)) return;
     clientstate &gs = c->state;
+    if(c->type == ST_AI)
+    {
+        gs.gunselect = GUN_ASSAULT;
+    }
     gs.respawn();
     gs.spawnstate(smode, smuts);
     gs.lifesequence++;
@@ -3179,8 +3181,13 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_CLIENTPING:
             {
                 int ping = getint(p);
-                if(cl) cl->ping = cl->ping == 9999 ? ping : (cl->ping * 4 + ping) / 5;
-                QUEUE_MSG;
+                if(!cl) break;
+                ping = clamp(ping, 0, 9999);
+                ping = cl->ping == 9999 ? ping : (cl->ping * 4 + ping) / 5;
+                loopv(clients)
+                    if(clients[i]->type != ST_EMPTY && (i == sender || clients[i]->ownernum == sender))
+                        clients[i]->ping = ping;
+                sendf(-1, 1, "i3", SV_CLIENTPING, sender, ping);
                 break;
             }
 

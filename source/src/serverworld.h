@@ -1,3 +1,5 @@
+#define getmaplayoutid(x, y) (clamp((int)(x), 2, (1 << maplayout_factor) - 2) + (clamp((int)(y), 2, (1 << maplayout_factor) - 2) << maplayout_factor))
+
 // server map geometry tools
 ssqr &getsblock(int id)
 {
