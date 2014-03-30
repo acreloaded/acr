@@ -137,9 +137,7 @@ bool buildworldstate()
     {
         if(clients[j]->type!=ST_TCPIP || !clients[j]->isauthed) continue;
         pkt[j].posoff = ws.positions.length();
-        pkt[j].poslen = 0;
         pkt[j].msgoff = ws.messages.length();
-        pkt[j].msglen = 0;
         loopv(clients)
         {
             client &c = *clients[i];
@@ -148,19 +146,18 @@ bool buildworldstate()
             if(!c.position.empty())
             {
                 ws.positions.put(c.position.getbuf(), c.position.length());
-                pkt[j].poslen += c.position.length();
                 c.position.setsize(0);
             }
             if(!c.messages.empty())
             {
-                const int msgstart = ws.messages.length();
                 putint(ws.messages, SV_CLIENT);
                 putint(ws.messages, i);
                 ws.messages.put(c.messages.getbuf(), c.messages.length());
-                pkt[j].msglen += ws.messages.length() - msgstart;
                 c.messages.setsize(0);
             }
         }
+        pkt[j].poslen = ws.positions.length() - pkt[j].posoff;
+        pkt[j].msglen = ws.messages.length() - pkt[j].msgoff;
     }
     int psize = ws.positions.length(), msize = ws.messages.length();
     if(psize)
@@ -189,7 +186,7 @@ bool buildworldstate()
             packet = enet_packet_create(&ws.positions[!pkt[i].poslen ? 0 : pkt[i].posoff+pkt[i].poslen],
                                         psize-pkt[i].poslen,
                                         ENET_PACKET_FLAG_NO_ALLOCATE);
-            sendpacket(c.clientnum, 0, packet);
+            sendpacket(i, 0, packet);
             if(!packet->referenceCount) enet_packet_destroy(packet);
             else { ++ws.uses; packet->freeCallback = cleanworldstate; }
         }
@@ -199,7 +196,7 @@ bool buildworldstate()
             packet = enet_packet_create(&ws.messages[!pkt[i].msglen ? 0 : pkt[i].msgoff+pkt[i].msglen],
                                         msize-pkt[i].msglen,
                                         (reliablemessages ? ENET_PACKET_FLAG_RELIABLE : 0) | ENET_PACKET_FLAG_NO_ALLOCATE);
-            sendpacket(c.clientnum, 1, packet);
+            sendpacket(i, 1, packet);
             if(!packet->referenceCount) enet_packet_destroy(packet);
             else { ++ws.uses; packet->freeCallback = cleanworldstate; }
         }
