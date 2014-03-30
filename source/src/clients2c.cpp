@@ -460,7 +460,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     case S_JUMP:
                     case S_SOFTLAND:
                     case S_HARDLAND:
-                        audiomgr.playsound(getint(p), d);
+                        audiomgr.playsound(snd, d);
                         break;
                 }
                 break;
