@@ -606,7 +606,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 playerent *d = newclient(cn);
                 if(!d || d == player1) break; // should NOT happen!
                 d->ownernum = getint(p);
-                formatstring(d->name)("bot%d", getint(p) & 0xFFFF); // TODO: use client bot name list
+                BotManager.GetBotName(getint(p), d);
                 loopi(2) d->setskin(i, getint(p));
                 d->team = getint(p);
                 d->level = getint(p); // skill for bots

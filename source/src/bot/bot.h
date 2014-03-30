@@ -320,6 +320,8 @@ public:
 
 class CBotManager
 {
+     char m_szBotNames[200][16]; // Max 200 bot names with a length of 16 characters
+     short m_sBotNameCount;
      bool m_bInit;
      bool m_bBotsShoot;
      bool m_bIdleBots;
@@ -329,6 +331,8 @@ private:
      short m_sMaxAStarBots; // Max bots that can use a* at the same time
      short m_sUsingAStarBotsCount; // Number of bots that are using a*
      short m_sCurrentTriggerNr; // Current waypoint trigger bots should use
+
+     void LoadBotNamesFile(void);
 
      friend class CBot;
      friend class CCubeBot;
@@ -359,6 +363,7 @@ public:
      void CalculateMaxAStarCount(void);
      void PickNextTrigger(void);
 
+     void GetBotName(int seed, playerent *pl);
      void MakeBotFileName(const char *szFileName, const char *szDir1, char *szOutput);
 };
 
