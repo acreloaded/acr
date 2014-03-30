@@ -679,7 +679,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_SPAWN:
             {
-                playerent *s = d;
+                playerent *s = getclient(getint(p));
                 if(!s) { static playerent dummy; s = &dummy; }
                 s->respawn();
                 s->lifesequence = getint(p);

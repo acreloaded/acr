@@ -3062,6 +3062,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 QUEUE_BUF(
                 {
                     putint(cp.messages, SV_SPAWN);
+                    putint(cp.messages, cn);
                     putint(cp.messages, cs.lifesequence);
                     putint(cp.messages, cs.health);
                     putint(cp.messages, cs.armour);
