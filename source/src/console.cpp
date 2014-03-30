@@ -220,7 +220,7 @@ void findkey(int *code)
     result("-255");
     return;
 }
- 
+
 void findkeycode(const char* s)
 {
      for (int i = 0; i < keyms.length(); i++)
@@ -553,7 +553,7 @@ void consolekey(int code, bool isdown, int cooked)
         {
             // make laptop users happy; LMB shall only work with history
             if(code == SDL_AC_BUTTON_LEFT && histpos == history.length()) return;
-        
+
             hline *h = NULL;
             if(cmdline.buf[0])
             {

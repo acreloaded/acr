@@ -256,7 +256,7 @@ static struct parttype { int type; float r, g, b; int gr, tex; float sz; } partt
     { PT_FIREBALL,   1.0f, 0.5f, 0.5f, 0,  2, 7.0f  }, // explosion fireball
     { PT_SHOTLINE,   1.0f, 1.0f, 0.7f, 0, -1, 0.0f  }, // yellow: shotline
     { PT_BULLETHOLE, 1.0f, 1.0f, 1.0f, 0,  3, 0.3f  }, // hole decal
-    
+
     { PT_STAIN,      0.5f, 0.0f, 0.0f, 0,  4, 0.6f  }, // red:    blood stain
     { PT_DECAL,      1.0f, 1.0f, 1.0f, 0,  5, 1.5f  }, // scorch decal
     { PT_HUDFLASH,   1.0f, 1.0f, 1.0f, 0,  6, 0.7f  }, // hudgun muzzle flash

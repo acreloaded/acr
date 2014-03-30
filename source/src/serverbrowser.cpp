@@ -1410,7 +1410,7 @@ void retrieveservers(vector<char> &data)
             if(timeout > RETRIEVELIMIT) break;
         }
         if(data.length()) data.add('\0');
-        enet_socket_destroy(sock); 
+        enet_socket_destroy(sock);
     }
 }
 

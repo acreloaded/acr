@@ -320,7 +320,7 @@ public:
 
 class CBotManager
 {
-     static const int MAXBOTNAMES = 200; 
+     static const int MAXBOTNAMES = 200;
      char m_szBotNames[MAXBOTNAMES][MAXNAMELEN+1];
      short m_sBotNameCount;
      bool m_bInit;

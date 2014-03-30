@@ -166,7 +166,7 @@ inline bool issimilar (char s, char d)
 inline bool validmapname(char *s)
 {
     if(strlen(s) > MAXMAPNAMELEN) return false;
-    while(*s != '\0') 
+    while(*s != '\0')
     {
         if(!isalnum(*s) && *s != '_' && *s != '-' && *s != '.') return false;
         ++s;

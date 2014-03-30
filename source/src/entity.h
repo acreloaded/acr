@@ -432,15 +432,15 @@ public:
             case 3: ad = (int) (4.0f/25.0f * armour) + 25; break;         // 41
             default: break;
         }
-        
+
         //ra - reduced armor
         //rd - reduced damage
         int ra = (int) (ad * damage/100.0f);
         int rd = ra-(ra*(gi.piercing/100.0f)); //Who cares about rounding errors anyways?
-        
+
         armour -= ra;
         damage -= rd;
-            
+
         health -= damage;
         return damage;
     }
@@ -497,7 +497,7 @@ public:
     int ownernum, level;
     class CBot *pBot;
     playerent *enemy;                      // monster wants to kill this entity
-    float targetpitch, targetyaw;          // monster wants to look in this direction                   
+    float targetpitch, targetyaw;          // monster wants to look in this direction
 
     playerent() : curskin(0), clientnum(-1), lastupdate(0), plag(0), ping(0), address(0), lifesequence(0), frags(0), flagscore(0), deaths(0), points(0), tks(0), lastpain(0), lastvoicecom(0), clientrole(CR_DEFAULT),
                   team(TEAM_SPECT), spectatemode(SM_NONE), followplayercn(FPCN_VOID), eardamagemillis(0), respawnoffset(0),

@@ -911,7 +911,7 @@ struct killmessagesfile : serverconfigfile
         {
             l = p; p += strlen(p) + 1;
             l = strtok(l, sep);
-            
+
             char *message;
             if(l)
             {
@@ -922,7 +922,7 @@ struct killmessagesfile : serverconfigfile
                 {
                     int errors = 0;
                     int gun = atoi(s);
-                    
+
                     s += strlen(s) + 1;
                     while(s[0] == ' ') s++;
                     int hasquotes = strspn(s, "\"");
@@ -937,7 +937,7 @@ struct killmessagesfile : serverconfigfile
                         if(end) break;
                     }
                     if(end) message[end-message] = '\0';
-                    
+
                     if(gun < 0 || gun >= NUMGUNS)
                     {
                         logline(ACLOG_INFO, " error in line %i, invalid gun : %i", line, gun);

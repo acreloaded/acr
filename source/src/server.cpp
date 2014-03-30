@@ -511,10 +511,10 @@ const char *getDemoFilename(int gmode, int gmuts, int mplay, int mdrop, int tsta
     // %w : timestamp "when"
     static string dmofn;
     copystring(dmofn, "");
-    
+
     int cc = 0;
     int mc = strlen(DEMOFORMAT);
-    
+
     while(cc<mc)
     {
         switch(DEMOFORMAT[cc])
@@ -3631,7 +3631,7 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_EDITD:
             case SV_EDITE:
                 getint(p);
-                getint(p);	
+                getint(p);
                 getint(p);
                 getint(p);
             case SV_EDITMODE:

@@ -323,7 +323,7 @@ void renderscores(void *menu, bool init)
         winner = m_flags(gamemode) ?
             (teamscores[sort].flagscore > teamscores[team_opposite(sort)].flagscore ? sort : -1) :
             (teamscores[sort].frags > teamscores[team_opposite(sort)].frags ? sort : -1);
-                   
+
     }
     else
     { // ffa mode
@@ -361,7 +361,7 @@ void renderscores(void *menu, bool init)
         if(!minutesremaining)
         {
             concatstring(modeline, ", intermission");
-            
+
             if (m_team(gamemode, mutators)) // Add in the winning team
             {
                 switch(winner)

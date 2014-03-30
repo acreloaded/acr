@@ -339,7 +339,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <argument token="B" description="value to be added"/>
           </arguments>
         </command>
-        
+
         <command name="++">
           <description>Increments an alias by 1.</description>
           <arguments>
@@ -357,7 +357,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="--f"/>
           </references>
         </command>
-        
+
         <command name="++f">
           <description>Increments an alias by 1.</description>
           <arguments>
@@ -388,7 +388,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <argument token="B" description="value to be subtracted"/>
           </arguments>
         </command>
-        
+
         <command name="--">
           <description>Decrements an alias by 1.</description>
           <arguments>
@@ -406,7 +406,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="++f"/>
           </references>
         </command>
-        
+
         <command name="--f">
           <description>Decrements an alias by 1.</description>
           <arguments>
@@ -767,7 +767,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <argument token="false" description="the body to execute if the condition is false"/>
           </arguments>
         </command>
-        
+
         <command name="switch">
           <description>Takes an integer argument to determine what block of code to execute.</description>
           <examples>
@@ -879,7 +879,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="while"/>
           </references>
         </command>
-        
+
         <command name="parsestring">
           <description>Loops through every character in the given string and executes the given block of cubescript on each iteration.</description>
           <examples>
@@ -916,7 +916,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="trimAllUnnecessaryWhitespace"/>
           </references>
         </command>
-        
+
         <command name="breakparse">
           <description>Breaks out of a parsestring loop.</description>
           <remarks>
@@ -926,7 +926,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="parsestring"/>
           </references>
         </command>
-        
+
         <command name="trimAllWhitespace">
           <description>Removes all whitespace characters from the given string.</description>
           <examples>
@@ -943,7 +943,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="parsestring"/>
           </references>
         </command>
-        
+
         <command name="trimAllUnnecessaryWhitespace">
           <description>Removes all unnecessary leading and trailing whitespace characters from the given string.</description>
           <examples>
@@ -1235,7 +1235,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="check2initlist"/>
           </references>
         </command>
-        
+
         <command name="check2init">
           <description>Defines an alias only if it does not already exist.</description>
           <arguments>
@@ -1249,7 +1249,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="aliasinit"/>
           </references>
         </command>
-        
+
         <command name="forceinit">
           <description>Forcibly sets a list of aliases to a specified value.</description>
           <examples>
@@ -1280,7 +1280,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="check2initlist"/>
           </references>
         </command>
-        
+
         <command name="check2initlist">
           <description>Uses check2init on a list of aliases.</description>
           <arguments>
@@ -1356,7 +1356,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <remark>The return value includes the local player "(you)", and works in both singleplayer and multiplayer scenarios.</remark>
           </remarks>
         </command>
-        
+
         <command name="highestcn">
           <description>Returns the highest valid client number available.</description>
         </command>
@@ -1549,7 +1549,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="add2list"/>
           </references>
         </scriptalias>
-        
+
         <command name="keybind">
           <description>Returns the contents of a keybind.</description>
           <arguments>
@@ -1560,7 +1560,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="findkeycode"/>
           </references>
         </command>
-        
+
         <command name="findkey">
           <description>Returns the name of a key via a specified code.</description>
           <examples>
@@ -1585,7 +1585,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="findkeycode"/>
           </references>
         </command>
-        
+
         <command name="findkeycode">
           <description>Returns the integer code of a key.</description>
           <examples>
@@ -2008,7 +2008,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <argument token="C" description="the config file"/>
           </arguments>
         </command>
-        
+
         <command name="run">
           <description>Executes a config file within /config/</description>
           <arguments>
@@ -2306,7 +2306,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
     <section name="Gameplay" sortindex="02">
       <description>This section describes gameplay related identifiers.</description>
       <identifiers sort="true">
-      
+
         <command name="lasttarget">
           <description>Returns the name of the last player you aimed at.</description>
           <remarks>
@@ -2486,7 +2486,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </arguments>
           <description>If defined, this will be executed each time you switch to a different weapon.</description>
         </scriptalias>
-        
+
         <scriptalias name="onReload">
           <arguments>
             <argument token="B" description="was autoreload?" valueNotes="0 (false), 1 (true)"/>
@@ -2525,11 +2525,11 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <remark>The alias is executed before the name is effectively changed, so you can still get the previous name of the client from this alias.</remark>
           </remarks>
         </scriptalias>
-        
+
         <scriptalias name="afterinit">
           <description>If defined, this will be executed after saved.cfg is loaded.</description>
         </scriptalias>
-        
+
         <scriptalias name="KEYPRESS">
           <description>If defined, this will be executed every time you press a key.</description>
           <arguments>
@@ -2545,7 +2545,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="findkey"/>
           </references>
         </scriptalias>
-        
+
         <scriptalias name="KEYRELEASE">
           <description>If defined, this will be executed every time you release a key.</description>
           <arguments>
@@ -2618,7 +2618,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="delalias"/>
           </references>
         </scriptalias>
-        
+
         <scriptalias name="modmdlpickupN">
           <description>change name of directory used for pickup model number N</description>
           <examples>
@@ -2643,7 +2643,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="onPickup"/>
           </references>
         </scriptalias>
-        
+
         <scriptalias name="modmdlbounceN">
           <description>change name of directory used for bounce model number N</description>
           <examples>
@@ -2900,7 +2900,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="mode"/>
           </references>
         </command>
-        
+
         <command name="modenum">
           <description>Returns the mode number for a specified mode acronym.</description>
           <examples>
@@ -2963,7 +2963,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="hasprimary"/>
           </references>
         </command>
-        
+
         <command name="hasprimary">
           <description>Determines if the local player (you) are currently carrying a primary weapon.</description>
           <examples>
@@ -3098,7 +3098,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <argument token="M" description="Name of the map to load" valueNotes="string"/>
           </arguments>
         </command>
-        
+
         <command name="votemap">
           <description>Sets the next gamemode then calls a vote for a map.</description>
           <arguments>
@@ -3191,7 +3191,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="quickanswer"/>
           </references>
         </command>
-        
+
         <command name="quickanswer">
           <description>Easily respond the the last client who sent you a private message.</description>
           <references>
@@ -3222,7 +3222,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <remark>Omit the client number to clear the whole list.</remark>
           </remarks>
         </command>
-        
+
         <command name="ignoreall">
           <description>Ignores all clients currently on the server. (only works in multiplayer)</description>
           <references>
@@ -3231,7 +3231,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="ignoreenemy"/>
           </references>
         </command>
-        
+
         <command name="unignoreall">
           <description>Unignores all clients currently on the server. (only works in multiplayer)</description>
           <references>
@@ -3240,7 +3240,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="ignoreenemy"/>
           </references>
         </command>
-        
+
         <command name="ignoreteam">
           <description>Ignores all clients on the specified team.</description>
           <references>
@@ -3252,7 +3252,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <argument token="T" description="the team to ignore" valueNotes="0 or 1 || cla or rvsf"/>
           </arguments>
         </command>
-        
+
         <command name="ignoreenemy">
           <description>Ignores all clients on the enemy team.</description>
           <references>
@@ -3457,7 +3457,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="connectadmin"/>
           </references>
         </command>
-        
+
         <command name="reconnect">
           <description>Disconnects then reconnects you to the current server.</description>
           <arguments>
@@ -3539,7 +3539,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <argument token="N" description="the weapon number" valueNotes="0 (knife), 1 (pistol), 2 (shotgun), 3 (sub), 4 (sniper), 5 (assault), 6 (grenades)"/>
           </arguments>
         </command>
-        
+
         <command name="primary">
           <description>Switches to your current primary weapon. (must be binded to a key)</description>
           <references>
@@ -3548,7 +3548,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="grenades"/>
           </references>
         </command>
-        
+
         <command name="secondary">
           <description>Switches to your secondary weapon. (must be binded to a key)</description>
           <references>
@@ -3557,7 +3557,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="grenades"/>
           </references>
         </command>
-        
+
         <command name="melee">
           <description>Switches to your knife. (must be binded to a key)</description>
           <references>
@@ -3566,7 +3566,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="grenades"/>
           </references>
         </command>
-        
+
         <command name="grenades">
           <description>Switches to grenades. (if available) (must be binded to a key)</description>
           <references>
@@ -3575,7 +3575,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="melee"/>
           </references>
         </command>
-        
+
         <command name="sndtoggle">
           <description>Toggles between your primary weapon and your secondary weapon. (must be binded to a key)</description>
           <references>
@@ -3583,7 +3583,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="gndtoggle"/>
           </references>
         </command>
-        
+
         <command name="knftoggle">
           <description>Toggles between your primary weapon and your knife. (must be binded to a key)</description>
           <references>
@@ -3591,7 +3591,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="gndtoggle"/>
           </references>
         </command>
-        
+
         <command name="gndtoggle">
           <description>Toggles between your primary weapon and grenades. (must be binded to a key)</description>
           <references>
@@ -3633,7 +3633,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <argument token="N" description="the weapon number"/>
           </arguments>
         </command>
-        
+
         <command name="checkmag">
           <description>Determines if you have any ammunition available for the specified weapon. (uses magcontent and magreserve)</description>
           <references>
@@ -3650,18 +3650,18 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <remarks>
             <remark>If the command is passed an argument, different than the map being played, the game tries to download the specified map from an available packages source server.</remark>
           </remarks>
-          
+
           <references>
             <identifierReference identifier="sendmap"/>
             <identifierReference identifier="dlmap"/>
           </references>
-          
+
           <arguments>
             <argument token="S" description="the name of the map"/>
             <argument token="C" description="cubescript to execute once map is installed" optional="true"/>
           </arguments>
         </command>
-        
+
         <command name="dlmap">
           <description>Downloads and loads the specified map from an available packages source server.</description>
           <arguments>
@@ -3672,54 +3672,54 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="sendmap"/>
           </references>
         </command>
-        
+
         <command name="addpckserver">
           <description>Adds a packages source server where to download custom content from.</description>
           <remarks>
             <remark>Only add servers you trust.</remark>
             <remark>The list of servers is saved into config/pcksources.cfg on game quit.</remark>
           </remarks>
-          
+
           <examples>
             <example>
               <code>addpckserver http://packages.ac-akimbo.net</code>
             </example>
           </examples>
-          
+
           <references>
             <identifierReference identifier="resetpckservers"/>
             <identifierReference identifier="sortpckservers"/>
             <identifierReference identifier="autodownload"/>
           </references>
-          
+
           <arguments>
             <argument token="S" description="The server address. Trailing slash not needed."/>
           </arguments>
         </command>
-        
+
         <command name="resetpckservers">
           <description>Resets the list of packages source servers where to download custom content from.</description>
           <remarks>
             <remark>The list of servers is saved into config/pcksources.cfg on game quit.</remark>
           </remarks>
-          
+
           <references>
             <identifierReference identifier="addpckserver"/>
             <identifierReference identifier="sortpckservers"/>
             <identifierReference identifier="autodownload"/>
           </references>
         </command>
-        
+
         <command name="sortpckservers">
           <description>Sorts the available packages source servers by ascendant ping. The fastest to reach is then used by default.</description>
-       
+
           <references>
             <identifierReference identifier="addpckserver"/>
             <identifierReference identifier="sortpckservers"/>
             <identifierReference identifier="autodownload"/>
           </references>
         </command>
-        
+
         <variable name="autodownload">
           <description>Determines if the game should try to download missing packages such as textures or mapmodels on the fly.</description>
           <value token="V" description="Note: This is turned on by default." minValue="0" maxValue="1" defaultValue="1"/>
@@ -3952,7 +3952,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="changespeed"/>
           </references>
         </variable>
-        
+
         <command name="changespeed">
           <description>Smoothly changes your gamespeed to the specified value.</description>
           <arguments>
@@ -4025,11 +4025,11 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference name="survival" identifier="survival"/>
           </references>
         </command>
-        
+
         <command name="resetzones">
           <description>Reset all drawn zones.</description>
           <references>
-            <identifierReference name="drawzone" identifier="drawzone"/>          
+            <identifierReference name="drawzone" identifier="drawzone"/>
             <identifierReference name="survival" identifier="survival"/>
           </references>
         </command>
@@ -4078,7 +4078,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
     <!-- Editing Section Starts -->
     <section name="Editing" sortindex="09">
       <identifiers sort="true">
-      
+
         <scriptalias name="newselkeys">
           <description>Binds a list of keys to be used to create new (multiple) selections in editmode.</description>
           <examples>
@@ -4736,7 +4736,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <argument token="TYPE" description="0|1|100"/>
           </arguments>
         </command>
-        
+
         <command name="convertclips">
           <description>Converts the nearest entity (if its a clip or plclip) to its opposite type.</description>
           <examples>
@@ -4798,12 +4798,12 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <description>Show editing cursor grid.</description>
           <value token="N" description="-" minValue="0" maxValue="1" defaultValue="1"/>
         </variable>
-        
+
         <variable name="showclips">
           <description>Show clips/plclips/mapmodel clips in edit mode.</description>
           <value token="N" description="-" minValue="0" maxValue="1" defaultValue="1"/>
         </variable>
-        
+
         <command name="guidetoggle">
           <description>Enables or disables a special set of default textures while editing.</description>
           <remarks>
@@ -4984,7 +4984,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
         <command name="resetselections">
           <description>Resets all current selections.</description>
         </command>
-        
+
         <command name="expandselection">
           <description>Increases the size of the current selection by N cubes on all sides.</description>
           <arguments>
@@ -4997,7 +4997,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="shrinkselection"/>
           </references>
         </command>
-        
+
         <command name="shrinkselection">
           <description>Decreases the size of the current selection by N cubes on all sides.</description>
           <arguments>
@@ -6113,7 +6113,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="changegamma"/>
           </references>
         </variable>
-        
+
         <command name="changegamma">
           <description>Smoothly changes your gamma to the specified value.</description>
           <arguments>

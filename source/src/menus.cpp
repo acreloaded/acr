@@ -526,7 +526,7 @@ struct mitemtextinput : mitemtext
             sc++;
         }
         copystring(showinput, input.buf + iboff, sc + 1);
-        
+
         char *masked;
         if(hideinput) // "mask" user input with asterisks, use for menuitemtextinputs that take passwords // TODO: better masking code?
         {
@@ -536,14 +536,14 @@ struct mitemtextinput : mitemtext
                 masked[i] = '*';
             }
         }
-        
+
         draw_text(hideinput ? masked : showinput, x+w-tw, y, 255, 255, 255, 255, selection ? (input.pos>=0 ? (input.pos > sc ? sc : input.pos) : cibl) : -1);
     }
 
     virtual void focus(bool on)
     {
         if(on && hoveraction) execute(hoveraction);
-        
+
         SDL_EnableUNICODE(on);
         if(!strlen(input.buf)) setdefaultvalue();
         if(action && !on && modified)
