@@ -3049,8 +3049,8 @@ void process(ENetPacket *packet, int sender, int chan)
                 if(!hasclient(cl, cn)) break;
                 client &cp = *clients[cn];
                 clientstate &cs = cp.state;
-                if((cl->state.state!=CS_ALIVE && cl->state.state!=CS_DEAD && cl->state.state!=CS_SPECTATE) ||
-                    ls!=cl->state.lifesequence || cl->state.lastspawn<0 || gunselect<0 || gunselect>=NUMGUNS || gunselect == GUN_CPISTOL) break;
+                if((cs.state!=CS_ALIVE && cs.state!=CS_DEAD && cs.state!=CS_SPECTATE) ||
+                    ls!=cs.lifesequence || cs.lastspawn<0 || gunselect<0 || gunselect>=NUMGUNS || gunselect == GUN_CPISTOL) break;
                 cs.lastspawn = -1;
                 cs.spawn = gamemillis;
                 cp.upspawnp = false;
