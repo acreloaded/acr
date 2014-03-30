@@ -320,7 +320,8 @@ public:
 
 class CBotManager
 {
-     char m_szBotNames[200][16]; // Max 200 bot names with a length of 16 characters
+     static const int MAXBOTNAMES = 200; 
+     char m_szBotNames[MAXBOTNAMES][MAXNAMELEN+1];
      short m_sBotNameCount;
      bool m_bInit;
      bool m_bBotsShoot;

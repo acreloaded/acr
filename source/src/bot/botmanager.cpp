@@ -87,7 +87,7 @@ void CBotManager::Think()
 void CBotManager::LoadBotNamesFile()
 {
     // Init bot names array first
-    for (int i=0;i<200;i++)
+    for (int i=0;i<MAXBOTNAMES;i++)
         strcpy(m_szBotNames[i], "Bot");
 
     m_sBotNameCount = 0;
@@ -107,10 +107,9 @@ void CBotManager::LoadBotNamesFile()
 
     while (fgets(szNameBuffer, 80, fp) != NULL)
     {
-        if (m_sBotNameCount >= 200)
+        if (m_sBotNameCount >= MAXBOTNAMES)
         {
-            conoutf("Warning: Max bot names reached(200), ignoring the rest of the"
-                   "names");
+            conoutf("Warning: Max bot names reached (%d), ignoring the rest of the names", MAXBOTNAMES);
             break;
         }
 
@@ -141,11 +140,9 @@ void CBotManager::LoadBotNamesFile()
 
         if (szNameBuffer[0] != 0)
         {
-            if (strlen(szNameBuffer) >= 16)
-            {    conoutf("Warning: bot name \"%s\" has too many characters(16 is max)",
-                       szNameBuffer);
-            }
-            copystring(m_szBotNames[m_sBotNameCount], szNameBuffer, 16);
+            if (strlen(szNameBuffer) > MAXNAMELEN)
+                conoutf("Warning: bot name \"%s\" has too many characters (%d is max)", szNameBuffer, MAXNAMELEN);
+            copystring(m_szBotNames[m_sBotNameCount], szNameBuffer, MAXNAMELEN);
             m_sBotNameCount++;
         }
     }
