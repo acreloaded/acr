@@ -86,7 +86,62 @@ struct console : consolebuffer<cline>
     console() : consolebuffer<cline>(200) {}
 };
 
+VARP(chatfade, 0, 15, 30);
+struct chatlist : consolebuffer<cline>
+{
+    static const int FADEMAX = 6;
+
+    void render()
+    {
+        const int conwidth = 2 * VIRTW * 3 / 10;
+        int linei = 0, consumed = 0, y = 2 * VIRTH * 52 / 100;
+        loopi(conlines.length())
+        {
+            char *l = conlines[i].line;
+            int width, height;
+            text_bounds(l, width, height, conwidth);
+            consumed += ceil(float(height/FONTH));
+            if(consumed > (fullconsole ? FADEMAX : maxlines))
+                break;
+            ++linei;
+        }
+        loopi(linei)
+        {
+            cline &l = conlines[i];
+            if(totalmillis <= l.millis + chatfade*1000 + 1000 || fullconsole)
+            {
+                int fade = 255;
+
+                if(!fullconsole)
+                {
+                    if(totalmillis >= l.millis + chatfade*1000)
+                    {
+                        // fading out
+                        fade = (l.millis + 1000 + chatfade*1000 - totalmillis) * 255/1000;
+                        y -= FONTH * (totalmillis - l.millis - chatfade*1000) / 1000;
+                    }
+                    else if(i >= FADEMAX)
+                        l.millis = totalmillis - chatfade*1000; // for next frame
+                }
+                if(/*!i &&*/ totalmillis - l.millis < 500)
+                {
+                    // fading in
+                    fade = (totalmillis - l.millis)*255/500;
+                    y += FONTH * (500 - totalmillis + l.millis) / 500;
+                }
+                int width, height;
+                text_bounds(l.line, width, height, conwidth);
+                y -= height;
+                draw_text(l.line, CONSPAD+FONTH/3 + VIRTW / 100, y, 0xFF, 0xFF, 0xFF, fade, -1, conwidth);
+            }
+        }
+    }
+
+    chatlist() : consolebuffer<cline>(FADEMAX * 2) { }
+};
+
 console con;
+chatlist chat;
 textinputbuffer cmdline;
 char *cmdaction = NULL, *cmdprompt = NULL;
 bool saycommandon = false;
@@ -96,10 +151,10 @@ VARFP(maxcon, 10, 200, 1000, con.setmaxlines(maxcon));
 void setconskip(int *n) { con.setconskip(*n); }
 COMMANDN(conskip, setconskip, "i");
 
-void toggleconsole() { con.toggleconsole(); }
+void toggleconsole() { con.toggleconsole(); chat.toggleconsole(); }
 COMMANDN(toggleconsole, toggleconsole, "");
 
-void renderconsole() { con.render(); }
+void renderconsole() { con.render(); chat.render(); }
 
 void clientlogf(const char *s, ...)
 {
@@ -123,6 +178,14 @@ void conoutf(const char *s, ...)
     clientlogf("%s", sf);
     con.addline(sf);
     delete[] conline; conline=newstring(sf);
+}
+
+void chatoutf(const char *s, ...)
+{
+    defvformatstring(sf, s, s);
+    clientlogf("%s", sf);
+    con.addline(sf);
+    chat.addline(sf);
 }
 
 COMMANDF(strstr, "ss", (char *a, char *b) { intret(strstr(a, b) ? 1 : 0); });

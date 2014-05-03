@@ -804,7 +804,7 @@ extern bool checkchallenge(const char *answerstr, void *correct);
 
 // console
 extern void conoutf(const char *s, ...);
-#define chatoutf conoutf // FIXME backport the chat console
+extern void chatoutf(const char *s, ...);
 
 // command
 extern bool per_idents, neverpersist;

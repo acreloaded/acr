@@ -5425,6 +5425,11 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <value token="V" description="time before the text rolls up" minValue="0" maxValue="60" defaultValue="20"/>
         </variable>
 
+        <variable name="chatfade">
+          <description>Sets how many seconds before the chat text rolls (disappears) up the screen.</description>
+          <value token="V" description="time before the chat rolls up" minValue="0" maxValue="30" defaultValue="15"/>
+        </variable>
+
         <variable name="maxcon">
           <description>Sets the total number of text lines from the console to store as history.</description>
           <value token="V" description="" minValue="10" maxValue="1000" defaultValue="200"/>
