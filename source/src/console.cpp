@@ -22,15 +22,7 @@ struct console : consolebuffer<cline>
 
     static const int WORDWRAP = 80;
 
-    int fullconsole;
-    void toggleconsole()
-    {
-        if(!fullconsole) fullconsole = altconsize ? 1 : 2;
-        else fullconsole = (fullconsole + 1) % 3;
-        conopen = fullconsole;
-    }
-
-    void addline(const char *sf) { consolebuffer<cline>::addline(sf, totalmillis); numconlines++; }
+    void addline(const char *sf) { consolebuffer<cline>::addline(sf); numconlines++; }
 
     void render()
     {
@@ -47,7 +39,7 @@ struct console : consolebuffer<cline>
             if(!conskip)
             {
                 numl = 0;
-                loopvrev(conlines) if(totalmillis-conlines[i].millis < confade*1000) { numl = i+1; break; }
+                loopvrev(conlines) if(totalmillis-conlines[i].millis < confade*1000 + 1000) { numl = i+1; break; }
             }
             else offset--;
         }
@@ -67,15 +59,31 @@ struct console : consolebuffer<cline>
         loopi(numl)
         {
             int idx = offset + numl-i-1;
-            char *line = conlines[idx].line;
-            draw_text(line, CONSPAD+FONTH/3, y, 0xFF, 0xFF, 0xFF, 0xFF, -1, conwidth);
+            cline &l = conlines[idx];
+            char *line = l.line;
+
+            int fade = 255;
+            if(totalmillis >= l.millis+confade*1000 && !fullconsole)
+            {
+                // fading out
+                fade = (l.millis + 1000 + confade*1000-totalmillis)*255/1000;
+                y -= FONTH * (totalmillis - l.millis - confade*1000) / 1000;
+            }
+            else if(/*i+1 == numl &&*/ totalmillis - l.millis < 500)
+            {
+                // fading in
+                fade = (totalmillis - l.millis)*255/500;
+                y += FONTH * (l.millis + 500 - totalmillis) / 500;
+            }
+
+            draw_text(line, CONSPAD+FONTH/3, y, 0xFF, 0xFF, 0xFF, fade, -1, conwidth);
             int width, height;
             text_bounds(line, width, height, conwidth);
             y += height;
         }
     }
 
-    console() : consolebuffer<cline>(200), fullconsole(false) {}
+    console() : consolebuffer<cline>(200) {}
 };
 
 console con;
