@@ -609,7 +609,7 @@ void raydamage(vec &from, vec &to, playerent *d)
         switch(d->weaponsel->type)
         {
             case GUN_KNIFE: gib = true; break;
-            case GUN_SNIPER: if(d==player1 && hitzone==2) { dam *= 3; gib = true; }; break;
+            case GUN_SNIPER: if(d==player1 && hitzone==HIT_HEAD) { dam *= 3; gib = true; }; break;
             default: break;
         }
         bool info = gib;
