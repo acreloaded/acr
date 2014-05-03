@@ -151,7 +151,7 @@ VARFP(maxcon, 10, 200, 1000, con.setmaxlines(maxcon));
 void setconskip(int *n) { con.setconskip(*n); }
 COMMANDN(conskip, setconskip, "i");
 
-void toggleconsole() { con.toggleconsole(); chat.toggleconsole(); }
+void toggleconsole() { con.toggleconsole(); chat.toggleconsole(); conopen = con.fullconsole; }
 COMMANDN(toggleconsole, toggleconsole, "");
 
 void renderconsole() { con.render(); chat.render(); }

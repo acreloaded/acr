@@ -9,9 +9,9 @@ template<class LINE> struct consolebuffer
 
     void toggleconsole()
     {
+        extern int altconsize;
         if(!fullconsole) fullconsole = altconsize ? 1 : 2;
         else fullconsole = (fullconsole + 1) % 3;
-        conopen = fullconsole;
     }
 
     LINE &addline(const char *sf, int millis)        // add a line to the console buffer
@@ -26,7 +26,7 @@ template<class LINE> struct consolebuffer
         return conlines.insert(0, cl);
     }
 
-    void addline(const char *sf) { addline(sf, totalmillis); }
+    void addline(const char *sf) { extern int totalmillis; addline(sf, totalmillis); }
 
     void setmaxlines(int numlines)
     {
