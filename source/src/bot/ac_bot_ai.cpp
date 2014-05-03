@@ -313,8 +313,7 @@ entity *CACBot::SearchForFlags(bool bUseWPs, float flRange, float flMaxHeight)
         entity &e = ents[i];
         if(!CanTakeFlag(e)) continue;
         //vec o = g_vecZero;
-        vec o = vec(e.x, e.y, S(e.x, e.y)->floor /* + PLAYERHEIGHT + PLAYERABOVEEYE */);
-        /*
+        vec o = vec(e.x, e.y, S(e.x, e.y)->floor + PLAYERHEIGHT + PLAYERABOVEEYE);
         if(!m_secure(gamemode) && e.attr2 >= 0 && e.attr2 < 2)
         {
             flaginfo &f = flaginfos[e.attr2];
@@ -325,7 +324,6 @@ entity *CACBot::SearchForFlags(bool bUseWPs, float flRange, float flMaxHeight)
                 o.z += PLAYERHEIGHT + PLAYERABOVEEYE;
             }
         }
-        */
         if(OUTBORD((int)o.x, (int)o.y)) continue;
         flDist = GetDistance(o);
         if (flDist > flRange) continue;
@@ -404,12 +402,12 @@ bool CACBot::CanTakeFlag(const entity &e)
                 // in HTF to take out own flag
                 else if(m_hunt(gamemode) && i != m_pMyEnt->team) return false;
                 // in BTF to take own flag, and to score it on the enemy base
-                //else if(m_bomber(gamemode) && i != m_pMyEnt->team && (of.state != CTFF_STOLEN || of.actor != m_pMyEnt)) return false;
+                else if(m_bomber(gamemode) && i != m_pMyEnt->team && (of.state != CTFF_STOLEN || of.actor != m_pMyEnt)) return false;
                 // if KTF
                 break;
             case CTFF_STOLEN: // go to our stolen flag's base
                 // if rCTF and we have our flag
-                //if(!m_return(gamemode, mutators) || f.actor != m_pMyEnt || f.team != m_pMyEnt->team) return false;
+                if(!m_return(gamemode, mutators) || f.actor != m_pMyEnt || f.team != m_pMyEnt->team) return false;
                 break;
             case CTFF_IDLE: // not active
                 return false;
