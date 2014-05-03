@@ -372,7 +372,7 @@ COMMAND(pm, "c");
 
 COMMAND(echo, "c");
 COMMAND(hudecho, "c");
-COMMANDN(say, toserver, "c");
+COMMANDN(say, toserver_, "c");
 COMMANDN(sayvoice, toservervoice, "c");
 COMMANDN(me, toserverme, "c");
 COMMANDN(connect, connectserv, "sis");
