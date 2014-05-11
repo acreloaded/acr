@@ -4168,7 +4168,6 @@ void localdisconnect()
 
 void localconnect()
 {
-    modprotocol = false;
     servstate.reset();
     client &c = addclient();
     c.type = ST_LOCAL;

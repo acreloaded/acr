@@ -13,9 +13,6 @@
 #define MAXMAPSENDSIZE 65536
 #define MAXCFGFILESIZE 65536
 
-extern bool modprotocol;
-#define CUR_PROTOCOL_VERSION (modprotocol ? -PROTOCOL_VERSION : PROTOCOL_VERSION)
-
 // network messages codes, c2s, c2c, s2c
 enum
 {

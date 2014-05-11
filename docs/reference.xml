@@ -3486,46 +3486,6 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <description>Move from active team to spectator during match.</description>
         </command>
 
-        <command name="modconnect">
-          <description>Connect to a modded server.</description>
-          <arguments>
-            <argument token="A" description="IP"/>
-            <argument token="B" description="port"/>
-            <argument token="C" description="password"/>
-          </arguments>
-          <remarks>
-            <remark>
-              The modified server needs to use the original client-server protocol. The protocol version number
-              will be the negated value of an unmodded server.
-            </remark>
-          </remarks>
-        </command>
-
-        <command name="modconnectadmin">
-          <description>Connect to a modded server and claim admin.</description>
-          <arguments>
-            <argument token="A" description="IP"/>
-            <argument token="B" description="port"/>
-            <argument token="C" description="admin password"/>
-          </arguments>
-          <remarks>
-            <remark>
-              The modified server needs to use the original client-server protocol. The protocol version number
-              will be the negated value of an unmodded server.
-            </remark>
-          </remarks>
-        </command>
-
-        <command name="modlanconnect">
-          <description>Connect to a modified LAN server.</description>
-          <remarks>
-            <remark>
-              The modified server needs to use the original client-server protocol. The protocol version number
-              will be the negated value of an unmodded server.
-            </remark>
-          </remarks>
-        </command>
-
         <command name="showscores">
           <description>Shows or hides the scores.</description>
           <defaultKeys>
