@@ -4166,6 +4166,11 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </references>
         </command>
 
+        <variable name="edithack">
+          <description>Bypass the client-side editmode check.</description>
+          <value token="E" description="whether editmode hacks are allowed" minValue="0" maxValue="1" defaultValue="0"/>
+        </variable>
+
         <command name="edittex">
           <description><![CDATA[Changes the texture on current selection by browsing through a list of textures directly shown on the cubes.]]></description>
           <remarks>

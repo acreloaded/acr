@@ -21,10 +21,11 @@ bool multiplayer(bool msg)
     return curpeer!=NULL;
 }
 
+VAR(edithack, 0, 0, 1); // USE AT YOUR OWN RISK
 bool allowedittoggle()
 {
-    bool allow = !curpeer || m_edit(gamemode);
-    if(!allow) conoutf(_("editing in multiplayer requires coopedit mode (1)"));
+    bool allow = !curpeer || m_edit(gamemode) || edithack;
+    if(!allow) conoutf(_("editing in multiplayer requires coopedit mode (/coop or /mode 1) or /edithack 1"));
     return allow;
 }
 
