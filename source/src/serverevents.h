@@ -215,7 +215,7 @@ void processevents()
 			}
             // health regeneration
 			else if(m_regen(gamemode, mutators) && cs.state == CS_ALIVE && cs.health < STARTHEALTH && cs.lastregen + (cs.perk1 == PERK_POWER ? REGENINT * .7f : REGENINT) < gamemillis){
-				int amt = round(float((STARTHEALTH - cs.health) / 5 + 15));
+				int amt = round_(float((STARTHEALTH - cs.health) / 5 + 15));
 				if(cs.perk1 == PERK_POWER) amt *= 1.4f;
 				if(amt >= STARTHEALTH - cs.health)
 					amt = STARTHEALTH - cs.health;

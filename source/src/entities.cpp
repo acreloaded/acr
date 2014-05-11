@@ -585,9 +585,9 @@ void flagdropped(int flag, float x, float y, float z)
     }
     if(f.actor) f.actor->cancollide = oldcancollide; // restore settings
 
-    f.pos.x = round(p.o.x);
-    f.pos.y = round(p.o.y);
-    f.pos.z = round(p.o.z);
+    f.pos.x = round_(p.o.x);
+    f.pos.y = round_(p.o.y);
+    f.pos.z = round_(p.o.z);
     if(f.pos.z < hdr.waterlevel) f.pos.z = (short) hdr.waterlevel;
     f.flagent->spawned = true;
     f.ack = true;
