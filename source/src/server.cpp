@@ -68,10 +68,17 @@ bool valid_client(int cn)
     return clients.inrange(cn) && clients[cn]->type != ST_EMPTY;
 }
 
-bool hasclient(client *ci, int cn)
+const char *client::gethostname()
+{
+    if (ownernum < 0)
+        return hostname;
+    return clients[ownernum]->hostname;
+}
+
+bool client::hasclient(int cn)
 {
 	if(!valid_client(cn)) return false;
-	return ci->clientnum == cn || clients[cn]->ownernum == ci->clientnum;
+	return clientnum == cn || clients[cn]->ownernum == clientnum;
 }
 
 void cleanworldstate(ENetPacket *packet)
@@ -3046,7 +3053,7 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_SPAWN:
             {
                 int cn = getint(p), ls = getint(p), gunselect = getint(p);
-                if(!hasclient(cl, cn)) break;
+                if(!cl->hasclient(cn)) break;
                 client &cp = *clients[cn];
                 clientstate &cs = cp.state;
                 if((cs.state!=CS_ALIVE && cs.state!=CS_DEAD && cs.state!=CS_SPECTATE) ||
@@ -3073,7 +3080,7 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_SUICIDE:
             {
                 const int cn = getint(p);
-                if(!hasclient(cl, cn)) break;
+                if(!cl->hasclient(cn)) break;
                 client *cp = clients[cn];
                 if(cp->state.state != CS_DEAD)
                 {
@@ -3206,7 +3213,7 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_POS:
             {
                 int cn = getint(p);
-                const bool broadcast = hasclient(cl, cn);
+                const bool broadcast = cl->hasclient(cn);
                 vec newo;
                 loopi(3) newo[i] = getuint(p)/DMF;
                 int newy = getuint(p);
@@ -3236,7 +3243,7 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 bitbuf<ucharbuf> q(p);
                 int cn = q.getbits(5);
-                const bool broadcast = hasclient(cl, cn);
+                const bool broadcast = cl->hasclient(cn);
                 int usefactor = q.getbits(2) + 7;
                 int xt = q.getbits(usefactor + 4);
                 int yt = q.getbits(usefactor + 4);
@@ -3547,7 +3554,7 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_SOUND:
             {
                 int cn = getint(p), snd = getint(p);
-                if(!hasclient(cl, cn)) break;
+                if (!cl->hasclient(cn)) break;
                 switch(snd)
                 {
                     case S_NOAMMO:

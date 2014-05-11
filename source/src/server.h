@@ -290,6 +290,9 @@ struct client                   // server side version of "dynent" type
         return events.add();
     }
 
+    const char *gethostname();
+    bool hasclient(int cn);
+
     void mapchange(bool getmap = false)
     {
         state.reset();
