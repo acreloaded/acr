@@ -2686,7 +2686,7 @@ int checktype(int type, client *cl)
     if(cl)
     {
         // only allow edit messages in coop-edit mode
-        if(type >= SV_EDITMODE && type <= SV_NEWMAP) return m_edit(smode) ? type : -1;
+        if(type > SV_EDITMODE && type <= SV_NEWMAP) return m_edit(smode) ? type : -1;
         if(++cl->overflow >= 200) return -2;
     }
     return type;
@@ -3619,6 +3619,23 @@ void process(ENetPacket *packet, int sender, int chan)
                 break;
             }
 
+            case SV_EDITMODE:
+            {
+                const bool editing = getint(p) != 0;
+                if (!m_edit(gamemode) && editing && cl->type == ST_TCPIP)
+                {
+                    // unacceptable!
+                    serverdamage(cl, cl, 1000, GUN_KNIFE, true);
+                    break;
+                }
+                if (cl->state.state != (editing ? CS_ALIVE : CS_EDITING)) break;
+                cl->state.state = editing ? CS_EDITING : CS_ALIVE;
+                cl->state.onfloor = true; // prevent falling damage
+                //cl->state.allowspeeding(gamemillis, 1000); // prevent speeding detection
+                QUEUE_MSG;
+                break;
+            }
+
             // Edit messages
             case SV_EDITENT:
                 getint(p);
@@ -3634,7 +3651,6 @@ void process(ENetPacket *packet, int sender, int chan)
                 getint(p);
                 getint(p);
                 getint(p);
-            case SV_EDITMODE:
             case SV_NEWMAP:
                 getint(p);
                 QUEUE_MSG;
