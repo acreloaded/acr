@@ -1,18 +1,12 @@
 struct cline { char *line; int millis; void cleanup(){ delete[] line; } };
 
+extern int fullconsole;
 template<class LINE> struct consolebuffer
 {
     int maxlines;
     vector<LINE> conlines;
 
     consolebuffer(int maxlines = 100) : maxlines(maxlines) {}
-
-    void toggleconsole()
-    {
-        extern int altconsize;
-        if (!conopen) conopen = altconsize ? 1 : 2;
-        else conopen = (conopen + 1) % 3;
-    }
 
     LINE &addline(const char *sf, int millis)        // add a line to the console buffer
     {

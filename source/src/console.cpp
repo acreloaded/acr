@@ -11,12 +11,14 @@ VARP(confade, 0, 20, 60);
 VAR(conopen, 0, 0, 1);
 VAR(numconlines, 0, 0, 1);
 
+int fullconsole;
+
 struct console : consolebuffer<cline>
 {
     int conskip;
     void setconskip(int n)
     {
-        int visible_lines = (int)(min(conopen ? ((VIRTH * 2 - 2 * CONSPAD - 2 * FONTH / 3)*(conopen == 1 ? altconsize : fullconsize)) / 100 : FONTH*consize, (VIRTH * 2 - 2 * CONSPAD - 2 * FONTH / 3)) / (CONSPAD + 2 * FONTH / 3)) - 1;
+        int visible_lines = (int)(min(fullconsole ? ((VIRTH * 2 - 2 * CONSPAD - 2 * FONTH / 3)*(fullconsole == 1 ? altconsize : fullconsize)) / 100 : FONTH*consize, (VIRTH * 2 - 2 * CONSPAD - 2 * FONTH / 3)) / (CONSPAD + 2 * FONTH / 3)) - 1;
         conskip = clamp(conskip + n, 0, clamp(conlines.length()-visible_lines, 0, conlines.length()));
     }
 
@@ -26,15 +28,15 @@ struct console : consolebuffer<cline>
 
     void render()
     {
-        int conwidth = (conopen ? VIRTW : int(floor(getradarpos().x))) * 2 - 2 * CONSPAD - 2 * FONTH / 3;
+        int conwidth = (fullconsole ? VIRTW : int(floor(getradarpos().x))) * 2 - 2 * CONSPAD - 2 * FONTH / 3;
         int h = VIRTH*2 - 2*CONSPAD - 2*FONTH/3;
-        int conheight = min(conopen ? (h*(conopen == 1 ? altconsize : fullconsize)) / 100 : FONTH*consize, h);
+        int conheight = min(fullconsole ? (h*(fullconsole == 1 ? altconsize : fullconsize)) / 100 : FONTH*consize, h);
 
-        if (conopen) blendbox(CONSPAD, CONSPAD, conwidth + CONSPAD + 2 * FONTH / 3, conheight + CONSPAD + 2 * FONTH / 3, true);
+        if (fullconsole) blendbox(CONSPAD, CONSPAD, conwidth + CONSPAD + 2 * FONTH / 3, conheight + CONSPAD + 2 * FONTH / 3, true);
 
         int numl = conlines.length(), offset = min(conskip, numl);
 
-        if (!conopen && confade)
+        if (!fullconsole && confade)
         {
             if(!conskip)
             {
@@ -63,7 +65,7 @@ struct console : consolebuffer<cline>
             char *line = l.line;
 
             int fade = 255;
-            if (totalmillis >= l.millis + confade * 1000 && !conopen)
+            if (totalmillis >= l.millis + confade * 1000 && !fullconsole)
             {
                 // fading out
                 fade = (l.millis + 1000 + confade*1000-totalmillis)*255/1000;
@@ -101,18 +103,18 @@ struct chatlist : consolebuffer<cline>
             int width, height;
             text_bounds(l, width, height, conwidth);
             consumed += ceil(float(height/FONTH));
-            if (consumed > (conopen ? FADEMAX : maxlines))
+            if (consumed > (fullconsole ? FADEMAX : maxlines))
                 break;
             ++linei;
         }
         loopi(linei)
         {
             cline &l = conlines[i];
-            if (totalmillis <= l.millis + chatfade * 1000 + 1000 || conopen)
+            if (totalmillis <= l.millis + chatfade * 1000 + 1000 || fullconsole)
             {
                 int fade = 255;
 
-                if (!conopen)
+                if (!fullconsole)
                 {
                     if(totalmillis >= l.millis + chatfade*1000)
                     {
@@ -151,7 +153,12 @@ VARFP(maxcon, 10, 200, 1000, con.setmaxlines(maxcon));
 void setconskip(int *n) { con.setconskip(*n); }
 COMMANDN(conskip, setconskip, "i");
 
-void toggleconsole() { con.toggleconsole(); chat.toggleconsole(); }
+void toggleconsole()
+{
+    if (!fullconsole) fullconsole = altconsize ? 1 : 2;
+    else fullconsole = (fullconsole + 1) % 3;
+    conopen = fullconsole;
+}
 COMMANDN(toggleconsole, toggleconsole, "");
 
 void renderconsole() { con.render(); chat.render(); }
