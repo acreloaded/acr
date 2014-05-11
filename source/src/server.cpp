@@ -3626,6 +3626,49 @@ void process(ENetPacket *packet, int sender, int chan)
                 break;
             }
 
+            // Edit messages
+            case SV_EDITH:
+            case SV_EDITT:
+            case SV_EDITS:
+            case SV_EDITD:
+            case SV_EDITE:
+            {
+                int x = getint(p);
+                int y = getint(p);
+                int xs = getint(p);
+                int ys = getint(p);
+                int v = getint(p);
+                switch (type)
+                {
+                    case SV_EDITH:
+                    {
+                        int offset = getint(p);
+                        // TODO
+                        break;
+                    }
+                    case SV_EDITS:
+                    {
+                        // TODO
+                        break;
+                    }
+                    case SV_EDITD:
+                    {
+                        // TODO
+                        break;
+                    }
+                    case SV_EDITE:
+                    {
+                        // TODO
+                        const int low = 127, hi = -128;
+                        break;
+                    }
+                    // ignore texture
+                    case SV_EDITT: getint(p); break;
+                }
+                QUEUE_MSG;
+                break;
+            }
+
             case SV_EDITMODE:
             {
                 const bool editing = getint(p) != 0;
@@ -3643,25 +3686,52 @@ void process(ENetPacket *packet, int sender, int chan)
                 break;
             }
 
-            // Edit messages
-            case SV_EDITENT:
-                getint(p);
-                getint(p);
-                getint(p);
-            case SV_EDITH:
-            case SV_EDITT:
-                getint(p);
-            case SV_EDITS:
-            case SV_EDITD:
-            case SV_EDITE:
-                getint(p);
-                getint(p);
-                getint(p);
-                getint(p);
-            case SV_NEWMAP:
-                getint(p);
+            /*
+            case SV_EDITW:
+                // set water level
+                smapstats.hdr.waterlevel = getint(p);
+                // water color alpha
+                loopi(4) getint(p);
                 QUEUE_MSG;
                 break;
+            */
+
+            case SV_EDITENT:
+            {
+                const int id = getint(p), type = getint(p);
+                vec o;
+                loopi(3) o[i] = getint(p);
+                int attr1 = getint(p), attr2 = getint(p), attr3 = getint(p), attr4 = getint(p);
+                while(sents.length() <= id) sents.add().type = NOTUSED;
+                entity &e = sents[max(id, 0)];
+                // server entity
+                e.type = type;
+                e.transformtype(smode, smuts);
+                e.x = o.x;
+                e.y = o.y;
+                e.z = o.z;
+                e.attr1 = attr1;
+                e.attr2 = attr2;
+                e.attr3 = attr3;
+                e.attr4 = attr4;
+                // is it spawned?
+                if(e.spawned = e.fitsmode(smode, smuts))
+                sendf(-1, 1, "ri2", SV_ITEMSPAWN, id);
+                e.spawntime = 0;
+                QUEUE_MSG;
+                break;
+            }
+
+            case SV_NEWMAP: // the server needs to create a new layout
+            {
+                const int size = getint(p);
+                if(size < 0) maplayout_factor++;
+                else maplayout_factor = size;
+                DELETEA(maplayout)
+                if(maplayout_factor >= 0) snewmap(maplayout_factor);
+                QUEUE_MSG;
+                break;
+            }
 
             case SV_THROWNADE:
                 getint(p);
