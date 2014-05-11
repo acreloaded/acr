@@ -64,7 +64,7 @@ misc
 	build.png - [LGPL] Combined by Victor from [LGPL] Crystal Icons
 	damage.png - [Modder Ethical Public License 1.0] OpenWarfare2 1.3
 	radaricons.png - [Copyright Ineligible] Adapted by Victor from works by Activision and Markus "makkE" Bekel
-	scope.png - [CC BY-NC-SA 3.0] DeltaStrikeOp
+	scope.png - [CC BY-NC-SA 3.0] Adjusted by Victor [CC BY-NC-SA 3.0] DeltaStrikeOp
 	startscreen.png - [Public Domain] Victor
 models
 	pickups
