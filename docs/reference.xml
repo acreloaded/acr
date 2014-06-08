@@ -5868,8 +5868,8 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
         </variable>
 
         <variable name="aboveheadiconsize">
-          <description>Sets the size for the icon shown above a player using comunications voices.</description>
-          <value token="V" description="Icon size" minValue="0" maxValue="1000" defaultValue="50"/>
+          <description>Sets the size for the icon shown above players.</description>
+          <value token="V" description="Icon size" minValue="0" maxValue="1000" defaultValue="140"/>
         </variable>
 
         <variable name="bloodttl">

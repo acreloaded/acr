@@ -385,7 +385,7 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
     glDepthMask(GL_TRUE);
 }
 
-VARP(aboveheadiconsize, 0, 50, 1000);
+VARP(aboveheadiconsize, 0, 140, 1000);
 VARP(aboveheadiconfadetime, 1, 2000, 10000);
 
 void renderaboveheadicon(playerent *p)
