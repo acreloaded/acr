@@ -5566,6 +5566,11 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <value token="V" description="damage indicator display time" minValue="1" maxValue="10000" defaultValue="1000"/>
         </variable>
 
+        <variable name="hitmarkerfade">
+          <description>Sets how long the hit marker stays on screen.</description>
+          <value token="V" description="hit marker display time" minValue="0" maxValue="5000" defaultValue="750"/>
+        </variable>
+
         <variable name="crosshairsize">
           <description>Sets the size of your crosshair.</description>
           <remarks>

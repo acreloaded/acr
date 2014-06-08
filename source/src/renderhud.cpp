@@ -240,7 +240,7 @@ void drawscope(bool preload)
     glEnable(GL_BLEND);
 }
 
-const char *crosshairnames[CROSSHAIR_NUM] = { "default", "teammate", "scope", "knife", "pistol", "carbine", "shotgun", "smg", "sniper", "ar", "cpistol", "grenades", "akimbo" };
+const char *crosshairnames[CROSSHAIR_NUM] = { "default", "teammate", "scope", "shotgun", "v", "h", "hit", "reddot" };
 Texture *crosshairs[CROSSHAIR_NUM] = { NULL }; // weapon specific crosshairs
 
 Texture *loadcrosshairtexture(const char *c)
@@ -287,7 +287,7 @@ void drawcrosshair(playerent *p, int n, color *c, float size)
     }
 
     if(crosshair->bpp==32) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    else glBlendFunc(GL_ONE, GL_ONE);
+    else glBlendFunc(GL_SRC_ALPHA, GL_ONE);
     glBindTexture(GL_TEXTURE_2D, crosshair->id);
     glColor3ub(255,255,255);
     if(c) glColor3f(c->r, c->g, c->b);
@@ -307,6 +307,29 @@ void drawcrosshair(playerent *p, int n, color *c, float size)
     glTexCoord2f(1, 0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 - chsize);
     glTexCoord2f(0, 1); glVertex2f(VIRTW/2 - chsize, VIRTH/2 + chsize);
     glTexCoord2f(1, 1); glVertex2f(VIRTW/2 + chsize, VIRTH/2 + chsize);
+    glEnd();
+}
+
+VARP(hitmarkerfade, 0, 750, 5000);
+
+void drawhitmarker()
+{
+    if (!hitmarkerfade || !focus->lasthit || focus->lasthit + hitmarkerfade <= lastmillis)
+        return;
+
+    glColor4f(1, 1, 1, (focus->lasthit + hitmarkerfade - lastmillis) / 1000.f);
+    Texture *ch = crosshairs[CROSSHAIR_HIT];
+    if (!ch) ch = textureload("packages/crosshairs/hit.png", 3);
+    if (ch->bpp == 32) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    else glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+    glBindTexture(GL_TEXTURE_2D, ch->id);
+    glBegin(GL_TRIANGLE_STRIP);
+    const float hitsize = 56.f;
+    glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 - hitsize, VIRTH / 2 - hitsize);
+    glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 + hitsize, VIRTH / 2 - hitsize);
+    glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 - hitsize, VIRTH / 2 + hitsize);
+    glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 + hitsize, VIRTH / 2 + hitsize);
     glEnd();
 }
 
@@ -869,6 +892,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         bool drawteamwarning = crosshairteamsign && worldhit && isteam(worldhit->team, p->team) && worldhit->state==CS_ALIVE;
         p->weaponsel->renderaimhelp(drawteamwarning);
     }
+
+    drawhitmarker();
 
     drawdmgindicator();
 

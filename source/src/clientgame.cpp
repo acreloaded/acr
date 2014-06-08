@@ -800,6 +800,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bo
 {
     if(pl->state != CS_ALIVE || intermission) return;
     pl->respawnoffset = pl->lastpain = lastmillis;
+    actor->lasthit = lastmillis;
     // could the author of the FIXME below please elaborate what's to fix?! (ft:2011mar28)
     // I suppose someone wanted to play the hitsound for player1 or spectated player (lucas:2011may22)
     playerent *h = player1->isspectating() && player1->followplayercn >= 0 && (player1->spectatemode == SM_FOLLOW1ST || player1->spectatemode == SM_FOLLOW3RD || player1->spectatemode == SM_FOLLOW3RD_TRANSPARENT) ? getclient(player1->followplayercn) : NULL;
