@@ -118,7 +118,7 @@ void parsepositions(ucharbuf &p)
             int cn, f, g;
             vec o, vel;
             float yaw, pitch, roll = 0;
-            bool scoping;//, shoot;
+            bool scoping, sprinting;//, shoot;
             if(type == SV_POSC)
             {
                 bitbuf<ucharbuf> q(p);
@@ -147,6 +147,7 @@ void parsepositions(ucharbuf &p)
                 o.z = z / DMF;
                 scoping = ( q.getbits(1) ? true : false );
                 q.getbits(1);//shoot = ( q.getbits(1) ? true : false );
+                sprinting = q.getbits(1) ? true : false;
             }
             else
             {
@@ -163,6 +164,7 @@ void parsepositions(ucharbuf &p)
                 if ((g>>2) & 1) vel.z = getint(p)/DVELF; else vel.z = 0;
                 scoping = ( (g>>4) & 1 ? true : false );
                 //shoot = ( (g>>5) & 1 ? true : false ); // we are not using this yet
+                sprinting = ((g >> 6) & 1 ? true : false);
                 f = getuint(p);
             }
             int seqcolor = (f>>6)&1;
@@ -198,6 +200,7 @@ void parsepositions(ucharbuf &p)
             f >>= 2;
             d->last_pos = totalmillis;
             updatecrouch(d, f&1);
+            d->sprinting = sprinting;
             updatepos(d);
             updatelagtime(d);
             extern int smoothmove, smoothdist;

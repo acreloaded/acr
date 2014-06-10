@@ -2849,6 +2849,8 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
 
         <command name="crouch"/>
 
+        <command name="sprint"/>
+
         <command name="changefollowplayer">
           <arguments>
             <argument token="D" description="delta" valueNotes="how many players to shift +/-"/>
