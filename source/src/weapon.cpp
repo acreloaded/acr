@@ -899,7 +899,7 @@ grenadeent::grenadeent (playerent *owner, int millis)
 {
     ASSERT(owner);
     nadestate = NS_NONE;
-    local = owner==player1;
+    local = owner==player1 || isowned(owner);
     bounceent::owner = owner;
     bounceent::millis = lastmillis;
     timetolive = 2000-millis;
@@ -922,7 +922,7 @@ void grenadeent::explode()
     hits.setsize(0);
     splash();
     if(local)
-        addmsg(SV_EXPLODE, "ri3iv", lastmillis, GUN_GRENADE, millis, hits.length(), hits.length()*sizeof(hitmsg)/sizeof(int), hits.getbuf());
+        addmsg(SV_EXPLODE, "ri7", owner->ownernum, lastmillis, GUN_GRENADE, millis, (int)(o.x*DMF), (int)(o.y*DMF), (int)(o.z*DMF));
     audiomgr.playsound(S_FEXPLODE, &o);
 }
 
