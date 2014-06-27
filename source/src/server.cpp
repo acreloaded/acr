@@ -2947,13 +2947,30 @@ void process(ENetPacket *packet, int sender, int chan)
                 break;
             }
 
-            case SV_WEAPCHANGE: // TODO: cn weap
+            case SV_WEAPCHANGE: // cn weap
             {
-                int gunselect = getint(p);
-                if(gunselect<0 || gunselect>=NUMGUNS || gunselect == GUN_CPISTOL) break;
+                int cn = getint(p), gunselect = getint(p);
+                if (!cl->hasclient(cn)) break;
+                client &cp = *clients[cn];
+                if (gunselect < 0 || gunselect >= NUMGUNS) break;
                 if(!m_demo(gamemode) && !m_edit(gamemode)) checkweapon(type,gunselect);
-                cl->state.gunselect = gunselect;
-                QUEUE_MSG;
+#if (SERVER_BUILTIN_MOD & 8)
+                if (weaponsel != cp.state.primary)
+                {
+                    // stop bots from switching back
+                    sendf(-1, 1, "ri5", SV_RELOAD, cn, weaponsel, cp.state.mag[weaponsel] = 0, cp.state.ammo[weaponsel] = 0);
+                    // disallow switching
+                    sendf(sender, 1, "ri3", SV_WEAPCHANGE, cn, cp.state.primary);
+                }
+#else
+                // TODO
+                /*
+                cp.state.gunwait[cp.state.gunselect = gunselect] += SWITCHTIME(cp.state.perk1 == PERK_TIME);
+                sendf(-1, 1, "ri3x", SV_WEAPCHANGE, cn, gunselect, sender);
+                cp.state.scoping = false;
+                cp.state.scopemillis = gamemillis - ADSTIME(cp.state.perk2 == PERK_TIME);
+                */
+#endif
                 break;
             }
 

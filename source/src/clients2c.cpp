@@ -1058,8 +1058,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_WEAPCHANGE:
             {
-                int gun = getint(p);
-                if(d) d->selectweapon(gun);
+                int cn = getint(p), gun = getint(p);
+                playerent *d = getclient(cn);
+                if (!d || gun < 0 || gun >= NUMGUNS) break;
+                d->zoomed = 0;
+                d->weaponswitch(d->weapons[gun]);
+                //if(!d->weaponchanging) d->selectweapon(gun);
                 break;
             }
 
