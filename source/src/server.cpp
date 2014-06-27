@@ -2947,13 +2947,23 @@ void process(ENetPacket *packet, int sender, int chan)
                 break;
             }
 
-            case SV_WEAPCHANGE:
+            case SV_WEAPCHANGE: // TODO: cn weap
             {
                 int gunselect = getint(p);
                 if(gunselect<0 || gunselect>=NUMGUNS || gunselect == GUN_CPISTOL) break;
                 if(!m_demo(gamemode) && !m_edit(gamemode)) checkweapon(type,gunselect);
                 cl->state.gunselect = gunselect;
                 QUEUE_MSG;
+                break;
+            }
+
+            case SV_QUICKSWITCH:
+            {
+                const int cn = getint(p);
+                if (!cl->hasclient(cn)) break;
+                client &cp = *clients[cn];
+                // TODO
+                //sendf(-1, 1, "ri2x", SV_QUICKSWITCH, cn, sender);
                 break;
             }
 
@@ -3091,7 +3101,8 @@ void process(ENetPacket *packet, int sender, int chan)
                 break;
             }
 
-            case SV_SHOOT:
+            case SV_SHOOT: // TODO: cn id weap to.dx to.dy to.dz heads.length heads.v
+            case SV_SHOOTC: // TODO: cn id weap
             {
                 gameevent &shot = cl->addevent();
                 shot.type = GE_SHOT;
@@ -3125,7 +3136,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 break;
             }
 
-            case SV_EXPLODE: // Brahma says: FIXME handle explosion by location and deal damage from server
+            case SV_EXPLODE: // TODO: cn id weap flags x y z
             {
                 gameevent &exp = cl->addevent();
                 exp.type = GE_PROJ;
@@ -3147,13 +3158,15 @@ void process(ENetPacket *packet, int sender, int chan)
 
             case SV_AKIMBO:
             {
+                const int cn = getint(p);
+                if (!cl->hasclient(cn)) break;
                 gameevent &akimbo = cl->addevent();
                 akimbo.type = GE_AKIMBO;
                 seteventmillis(akimbo.akimbo);
                 break;
             }
 
-            case SV_RELOAD:
+            case SV_RELOAD: // TODO: cn id weap
             {
                 gameevent &reload = cl->addevent();
                 reload.type = GE_RELOAD;
@@ -3733,7 +3746,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 break;
             }
 
-            case SV_THROWNADE:
+            case SV_THROWNADE: // & SV_THROWKNIFE TODO
                 getint(p);
             case SV_SHOTFX:
                 getint(p);

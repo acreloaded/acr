@@ -1441,7 +1441,7 @@ void akimbo::onammopicked()
     {
         // if(owner->weaponsel->type!=GUN_SNIPER && owner->weaponsel->type!=GUN_GRENADE) owner->weaponswitch(this);
         if(akimboautoswitch || owner->weaponsel->type==GUN_PISTOL) owner->weaponswitch(this); // Give the client full control over akimbo auto-switching // Bukz 2011apr23
-        addmsg(SV_AKIMBO, "ri", lastmillis);
+        addmsg(SV_AKIMBO, "ri2", owner->clientnum, lastmillis);
     }
 }
 
