@@ -3101,77 +3101,70 @@ void process(ENetPacket *packet, int sender, int chan)
                 break;
             }
 
-            case SV_SHOOT: // TODO: cn id weap to.dx to.dy to.dz heads.length heads.v
+            case SV_SHOOT: // TODO: cn id weap to.x to.y to.z heads.length heads.v
             case SV_SHOOTC: // TODO: cn id weap
             {
-                gameevent &shot = cl->addevent();
-                shot.type = GE_SHOT;
-                #define seteventmillis(event) \
-                { \
-                    event.id = getint(p); \
-                    if(!cl->timesync || (cl->events.length()==1 && cl->state.waitexpired(gamemillis))) \
-                    { \
-                        cl->timesync = true; \
-                        cl->gameoffset = gamemillis - event.id; \
-                        event.millis = gamemillis; \
-                    } \
-                    else event.millis = cl->gameoffset + event.id; \
-                }
-                seteventmillis(shot.shot);
-                shot.shot.gun = getint(p);
-                loopk(3) { shot.shot.from[k] = cl->state.o.v[k] + ( k == 2 ? (((cl->f>>7)&1)?2.2f:4.2f) : 0); }
-                loopk(3) { float v = getint(p)/DMF; shot.shot.to[k] = ((k<2 && v<0.0f)?0.0f:v); }
-                int hits = getint(p);
-                int tcn = -1;
-                loopk(hits)
+                const int cn = getint(p), id = getint(p), weap = getint(p);
+                shotevent *ev = new shotevent(0, id, weap);
+                if (!(ev->compact = (type == SV_SHOOTC)))
                 {
-                    gameevent &hit = cl->addevent();
-                    hit.type = GE_HIT;
-                    tcn = hit.hit.target = getint(p);
-                    hit.hit.lifesequence = getint(p);
-                    hit.hit.info = getint(p);
-                    loopk(3) hit.hit.dir[k] = getint(p)/DNF;
+                    loopi(3) ev->to[i] = getint(p) / DMF;
+                    loopi(MAXCLIENTS)
+                    {
+                        posinfo info;
+                        info.cn = getint(p);
+                        if (info.cn < 0) break; // cannot hit self, so MAXCLIENTS should be the end
+                        loopj(3) info.o[j] = getint(p) / DMF;
+                        loopj(3) info.head[j] = getint(p) / DMF;
+                        // reject duplicate positions
+                        int k = 0;
+                        for (k = 0; k < ev->pos.length(); k++)
+                            if (ev->pos[k].cn == info.cn)
+                                break;
+                        // add if not found
+                        if (k >= ev->pos.length())
+                            ev->pos.add(info);
+                    }
                 }
-                if(!m_demo(gamemode) && !m_edit(gamemode)) checkshoot(sender, shot, hits, tcn);
+
+                if (!m_demo(gamemode) && !m_edit(gamemode)) checkshoot(sender, *ev);
+
+                client *cp = cl->hasclient(cn) ? clients[cn] : NULL;
+                if (cp)
+                {
+                    ev->millis = cp->getmillis(gamemillis, id);
+                    cp->addevent(ev);
+                }
+                else delete ev;
                 break;
             }
 
-            case SV_EXPLODE: // TODO: cn id weap flags x y z
+            case SV_EXPLODE: // cn id weap flags x y z
             {
-                gameevent &exp = cl->addevent();
-                exp.type = GE_PROJ;
-                seteventmillis(exp.explode);
-                exp.explode.gun = getint(p);
-                exp.explode.id = getint(p);
-                int hits = getint(p);
-                loopk(hits)
-                {
-                    gameevent &hit = cl->addevent();
-                    hit.type = GE_HIT;
-                    hit.hit.target = getint(p);
-                    hit.hit.lifesequence = getint(p);
-                    hit.hit.dist = getint(p)/DMF;
-                    loopk(3) hit.hit.dir[k] = getint(p)/DNF;
-                }
+                const int cn = getint(p), id = getint(p), weap = getint(p), flags = getint(p);
+                vec o;
+                loopi(3) o[i] = getint(p) / DMF;
+                client *cp = cl->hasclient(cn) ? clients[cn] : NULL;
+                if (!cp) break;
+                cp->addevent(new destroyevent(cp->getmillis(gamemillis, id), id, weap, flags, o));
                 break;
             }
 
             case SV_AKIMBO:
             {
-                const int cn = getint(p);
+                const int cn = getint(p), id = getint(p);
                 if (!cl->hasclient(cn)) break;
-                gameevent &akimbo = cl->addevent();
-                akimbo.type = GE_AKIMBO;
-                seteventmillis(akimbo.akimbo);
+                client *cp = clients[cn];
+                cp->addevent(new akimboevent(cp->getmillis(gamemillis, id), id));
                 break;
             }
 
-            case SV_RELOAD: // TODO: cn id weap
+            case SV_RELOAD: // cn id weap
             {
-                gameevent &reload = cl->addevent();
-                reload.type = GE_RELOAD;
-                seteventmillis(reload.reload);
-                reload.reload.gun = getint(p);
+                int cn = getint(p), id = getint(p), weap = getint(p);
+                if (!cl->hasclient(cn)) break;
+                client *cp = clients[cn];
+                cp->addevent(new reloadevent(cp->getmillis(gamemillis, id), id, weap));
                 break;
             }
 

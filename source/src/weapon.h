@@ -1,3 +1,25 @@
+enum
+{
+    GUN_KNIFE = 0,
+    GUN_PISTOL,
+    GUN_CARBINE,
+    GUN_SHOTGUN,
+    GUN_SUBGUN,
+    GUN_SNIPER,
+    GUN_ASSAULT,
+    GUN_CPISTOL,
+    GUN_GRENADE,
+    GUN_AKIMBO,
+    NUMGUNS
+};
+
+#define melee_weap(g) (g == GUN_KNIFE) // || g == GUN_SWORD)
+#define explosive_weap(g) (g == GUN_GRENADE || g == GUN_RPG)
+#define suppressed_weap(g) (melee_weap(g) || g == GUN_GRENADE || g == GUN_HEAL)
+#define sniper_weap(g) (g == GUN_SNIPER || g == GUN_BOLT || g == GUN_SNIPER2)
+#define burst_weap(g) (g == GUN_ASSAULT || g == GUN_ASSAULT2 || g == GUN_SUBGUN)
+#define ads_gun(g) (!melee_weap(g) && g != GUN_GRENADE && g != GUN_AKIMBO)
+#define ads_classic_allowed(g) (!m_classic(gamemode, mutators) || sniper_weap(g) || g == GUN_HEAL)
 
 class playerent;
 class bounceent;

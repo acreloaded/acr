@@ -786,9 +786,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_RELOAD:
             {
-                int cn = getint(p), gun = getint(p);
+                int cn = getint(p), gun = getint(p), mag = getint(p), ammo = getint(p);
                 playerent *p = getclient(cn);
-                if(p && p!=player1) p->weapons[gun]->reload(false);
+                if (!p || gun < 0 || gun >= NUMGUNS) break;
+                if (p != player1 && !isowned(p) && p->weapons[gun])
+                    p->weapons[gun]->reload(false);
+                p->ammo[gun] = ammo;
+                p->mag[gun] = mag;
+                //if (gun == GUN_KNIFE) p->addicon(eventicon::PICKUP);
                 break;
             }
 

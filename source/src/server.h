@@ -24,62 +24,53 @@ enum { ST_EMPTY, ST_LOCAL, ST_TCPIP, ST_AI };
 
 extern int smode, smuts, servmillis;
 
-struct shotevent
+struct posinfo
 {
-    int type;
-    int millis, id;
-    int gun;
-    float from[3], to[3];
+    int cn;
+    vec o, head;
 };
 
-struct explodeevent
+struct timedevent
 {
-    int type;
-    int millis, id;
-    int gun;
+    bool valid;
+    int type, millis, id;
+    timedevent(int type, int millis, int id) : valid(true), type(type), millis(millis), id(id) { }
+    virtual ~timedevent() {}
+    virtual bool flush(struct client *ci, int fmillis);
+    virtual void process(struct client *ci) = 0;
 };
 
-struct hitevent
+struct shotevent : timedevent
 {
-    int type;
-    int target;
-    int lifesequence;
-    union
-    {
-        int info;
-        float dist;
-    };
-    float dir[3];
+    int weap;
+    vec to;
+    vector<posinfo> pos;
+    shotevent(int millis, int id, int weap) : timedevent(GE_SHOT, millis, id), weap(weap) { to = vec(0, 0, 0); pos.setsize(0); }
+    bool compact;
+    void process(struct client *ci);
 };
 
-struct pickupevent
+struct destroyevent : timedevent
 {
-    int type;
-    int ent;
+    int weap, flags;
+    vec o;
+    destroyevent(int millis, int id, int weap, int flags, const vec &o) : timedevent(GE_PROJ, millis, id), weap(weap), flags(flags), o(o) {}
+    void process(struct client *ci);
 };
 
-struct akimboevent
+// switchevent?
+
+struct akimboevent : timedevent
 {
-    int type;
-    int millis, id;
+    akimboevent(int millis, int id) : timedevent(GE_AKIMBO, millis, id) {}
+    void process(struct client *ci);
 };
 
-struct reloadevent
+struct reloadevent : timedevent
 {
-    int type;
-    int millis, id;
-    int gun;
-};
-
-union gameevent
-{
-    int type;
-    shotevent shot;
-    explodeevent explode;
-    hitevent hit;
-    pickupevent pickup;
-    akimboevent akimbo;
-    reloadevent reload;
+    int weap;
+    reloadevent(int millis, int id, int weap) : timedevent(GE_RELOAD, millis, id), weap(weap) {}
+    void process(struct client *ci);
 };
 
 template <int N>
@@ -135,6 +126,15 @@ struct clientstate : playerstate
         int wait = gamemillis - lastshot;
         loopi(NUMGUNS) if(wait < gunwait[i]) return false;
         return true;
+    }
+
+    void updateshot(int gamemillis)
+    {
+        const int wait = gamemillis - lastshot;
+        loopi(NUMGUNS)
+            if (gunwait[i])
+                gunwait[i] = max(gunwait[i] - wait, 0);
+        lastshot = gamemillis;
     }
 
     void reset()
@@ -253,7 +253,7 @@ struct client                   // server side version of "dynent" type
     int lastprofileupdate, fastprofileupdates;
     int demoflags;
     clientstate state;
-    vector<gameevent> events;
+    vector<timedevent *> events, timers;
     vector<uchar> position, messages;
     string lastsaytext;
     int saychars, lastsay, spamcount, badspeech, badmillis;
@@ -283,11 +283,34 @@ struct client                   // server side version of "dynent" type
     int yls, pls, tls;
     int bs, bt, blg, bp;
 
-    gameevent &addevent()
+    void addevent(timedevent *e)
     {
-        static gameevent dummy;
-        if(events.length()>100) return dummy;
-        return events.add();
+        if (events.length() < 256) events.add(e);
+        else delete e;
+    }
+
+    void addtimer(timedevent *e)
+    {
+        if (timers.length() < 256) timers.add(e);
+        else delete e;
+    }
+
+    void invalidateheals()
+    {
+        loopv(timers)
+            if (timers[i]->type == GE_HEAL)
+                timers[i]->valid = false;
+    }
+
+    int getmillis(int millis, int id)
+    {
+        if (!timesync || (!events.length() && state.waitexpired(millis)))
+        {
+            timesync = true;
+            gameoffset = millis - id;
+            return millis;
+        }
+        return gameoffset + id;
     }
 
     const char *gethostname();
@@ -296,7 +319,8 @@ struct client                   // server side version of "dynent" type
     void mapchange(bool getmap = false)
     {
         state.reset();
-        events.setsize(0);
+        events.deletecontents();
+        timers.deletecontents();
         overflow = 0;
         timesync = false;
         isonrightmap = type == ST_AI || m_edit(gamemode);

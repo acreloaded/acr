@@ -654,10 +654,11 @@ inline void checkmove(client *cl)
 	// TODO: detect speedhack
 }
 
-inline void checkshoot(int & cn, gameevent & shot, int & hits, int & tcn)
+inline void checkshoot(int & cn, timedevent & shot)
 {
+    // hit, tcn -> 0, -1
 #ifdef ACAC
-    s_engine(cn, shot, hits, tcn);
+    s_engine(cn, shot, 0, -1);
 #endif
     return;
 }

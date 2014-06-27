@@ -425,6 +425,14 @@ void addmsg(int type, const char *fmt, ...)
     loopi(p.length()) messages.add(buf[i]);
 }
 
+extern void addmsgraw(ucharbuf &p, bool reliable)
+{
+    if (reliable)
+        messagereliable = true;
+    loopi(p.length())
+        messages.add(p.buf[i]);
+}
+
 static int lastupdate = -1000, lastping = 0;
 bool sendmapidenttoserver = false;
 
