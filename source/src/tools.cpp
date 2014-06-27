@@ -36,7 +36,10 @@ unsigned int &genguid(int b, uint a, int c, const char *z)
 void *basicgen()
 {
     // WARNING: the following code is designed to give you a headache, but it probably won't
-#if defined(WIN32)// && !defined(__GNUC__)
+#if defined(WIN32)
+#if defined(__GNUC__)
+#define KEY_WOW64_64KEY 0x0100
+#endif
     extern char *getregszvalue(HKEY root, const char *keystr, const char *query, REGSAM extraaccess = 0);
     const char * const *temp = (char **) (char ***) (char *********) 20;
     --temp = (char **) (char ****) 2000;

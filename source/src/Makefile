@@ -1,6 +1,6 @@
 CXXFLAGS= -O3 -fomit-frame-pointer
-CXX=clang++	# Use clang++, as g++ optimizations cause crashes...
-override CXXFLAGS+= -Wall -fsigned-char
+CXX=g++	# Use clang++, as g++ optimizations cause crashes...
+override CXXFLAGS+= -Wall -Wextra -fsigned-char
 
 PLATFORM= $(shell uname -s)
 PLATFORM_PREFIX=native
@@ -18,7 +18,7 @@ MV=mv
 ifneq (,$(findstring MINGW,$(PLATFORM)))
 WINDRES= windres
 CLIENT_INCLUDES= $(INCLUDES) -I../include
-CLIENT_LIBS= -mwindows -L../lib -lSDL -lSDL_image -lzdll -lopengl32 -lenet -lOpenAL32 -llibvorbisfile -llibintl -lws2_32 -lwinmm -lcurl
+CLIENT_LIBS= -mwindows -L../lib -lmingw32 -lSDLmain -lSDL -lSDL_image -lzdll -lopengl32 -lenet -lOpenAL32 -llibvorbisfile -llibintl -lcurldll -lws2_32 -lwinmm 
 else
 USRLIB=$(shell if [ -e /usr/lib64 ]; then echo "/usr/lib64"; else echo "/usr/lib"; fi)
 # override CXXFLAGS+= -rdynamic		# clang++ doesn't use this...

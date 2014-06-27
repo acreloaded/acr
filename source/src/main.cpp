@@ -948,7 +948,7 @@ void connectprotocol(char *protocolstring, string &servername, int &serverport, 
     } while(*c && *c=='&' && *c!='/');
 }
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(__GNUC__)
 static char *parsecommandline(const char *src, vector<char *> &args)
 {
     char *buf = new char[strlen(src) + 1], *dst = buf;

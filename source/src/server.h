@@ -133,7 +133,7 @@ struct clientstate : playerstate
     bool waitexpired(int gamemillis)
     {
         int wait = gamemillis - lastshot;
-        loopi(NUMGUNS) if(wait < gunwait[i]) return false;
+        loopi(WEAP_MAX) if(wait < gunwait[i]) return false;
         return true;
     }
 
@@ -458,7 +458,7 @@ const char *entnames[MAXENTTYPES] =
 
 // see entity.h:61: struct itemstat { int add, start, max, sound; };
 // Please update ./ac_website/htdocs/docs/introduction.html if these figures change.
-itemstat ammostats[NUMGUNS] =
+itemstat ammostats[WEAP_MAX] =
 {
     {  1,  1,   1,  S_ITEMAMMO  },   // knife dummy
     { 20, 60, 100,  S_ITEMAMMO  },   // pistol
@@ -479,7 +479,7 @@ itemstat powerupstats[I_ARMOUR-I_HEALTH+1] =
     {50, 0, 100, S_ITEMARMOUR}, // 2 armour
 };
 
-guninfo guns[NUMGUNS] =
+guninfo guns[WEAP_MAX] =
 {
     // Please update ./ac_website/htdocs/docs/introduction.html if these figures change.
     //mKR: mdl_kick_rot && mKB: mdl_kick_back
@@ -495,7 +495,7 @@ guninfo guns[NUMGUNS] =
     { "sniper",     S_SNIPER,     S_RSNIPER,  1950,   1500,   82,  25,     0,   0, 50,   50,    5,   4,  4,  10,  85,     85,     100,  1,      false },
     { "assault",    S_ASSAULT,    S_RASSAULT, 2000,   120,    22,   0,     0,   0, 18,   30,   20,   0,  2,   3,  25,     50,     115,  1,      true  },
     { "cpistol",    S_PISTOL,     S_RPISTOL,  1400,   120,    19,   0,     0,   0, 35,   10,   15,   6,  5,   6,  35,     50,     125,  1,      false },   // temporary
-    { "grenade",    S_NULL,       S_NULL,     1000,   650,    200,  0,    20,  6,  1,    1,   1,    3,   1,    0,   0,      0,      0,   3,      false },
+    { "grenade",    S_NULL,       S_NULL,     1000,   650,    200,  0,    20,   6,  1,    1,   1,    3,   1,  0,   0,      0,      0,   3,      false },
     { "pistol",     S_PISTOL,     S_RAKIMBO,  1400,   80,     19,   0,     0,   0, 50,   10,   20,   6,  5,   4,  15,     25,     115,  1,      true  },
 };
 
@@ -504,4 +504,4 @@ const char *teamnames_s[TEAM_NUM+1] = {"CLA", "RVSF", "CSPC", "RSPC", "SPEC", "v
 
 // for both client and server
 // default messages are hardcoded !
-char killmessages[2][NUMGUNS][MAXKILLMSGLEN] = {{ "", "busted", "picked off", "peppered", "sprayed", "punctured", "shredded", "busted", "", "busted" }, { "slashed", "", "", "splattered", "", "headshot", "", "", "gibbed", "" }};
+char killmessages[2][WEAP_MAX][MAXKILLMSGLEN] = {{ "", "busted", "picked off", "peppered", "sprayed", "punctured", "shredded", "busted", "", "busted" }, { "slashed", "", "", "splattered", "", "headshot", "", "", "gibbed", "" }};

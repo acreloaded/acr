@@ -279,7 +279,7 @@ bool movechecks(client &cp, const vec &newo, const int newf)
                     if(damage >= 1*HEALTHSCALE)
                     { // don't heal the player
                         // maximum damage is 99 for balance purposes
-                        //serverdamage(&cp, &cp, min(damage, (m_classic(gamemode, mutators) ? 30 : 99) * HEALTHSCALE), NUMGUNS + 2, FRAG_NONE, cs.o); // max 99, "30" (15) for classic
+                        //serverdamage(&cp, &cp, min(damage, (m_classic(gamemode, mutators) ? 30 : 99) * HEALTHSCALE), WEAP_MAX + 2, FRAG_NONE, cs.o); // max 99, "30" (15) for classic
                     }
                 }
             }

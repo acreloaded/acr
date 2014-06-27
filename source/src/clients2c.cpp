@@ -688,8 +688,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 int gunselect = getint(p);
                 s->setprimary(gunselect);
                 s->selectweapon(gunselect);
-                loopi(NUMGUNS) s->ammo[i] = getint(p);
-                loopi(NUMGUNS) s->mag[i] = getint(p);
+                loopi(WEAP_MAX) s->ammo[i] = getint(p);
+                loopi(WEAP_MAX) s->mag[i] = getint(p);
                 s->state = CS_SPAWNING;
                 if(s->lifesequence==0) s->resetstats(); //NEW
                 break;
@@ -701,7 +701,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 if(!s) { static playerent dummy; s = &dummy; }
                 if ( map_quality == MAP_IS_BAD )
                 {
-                    loopi(6+2*NUMGUNS) getint(p);
+                    loopi(6+2*WEAP_MAX) getint(p);
                     conoutf(_("map deemed unplayable - fix it before you can spawn"));
                     break;
                 }
@@ -720,8 +720,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 s->setprimary(getint(p));
                 s->selectweapon(getint(p));
                 int arenaspawn = getint(p);
-                loopi(NUMGUNS) s->ammo[i] = getint(p);
-                loopi(NUMGUNS) s->mag[i] = getint(p);
+                loopi(WEAP_MAX) s->ammo[i] = getint(p);
+                loopi(WEAP_MAX) s->mag[i] = getint(p);
                 s->state = CS_ALIVE;
                 s->lastspawn = lastmillis;
                 findplayerstart(s, false, arenaspawn);
@@ -896,9 +896,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     int state = getint(p), lifesequence = getint(p), primary = getint(p), gunselect = getint(p), flagscore = getint(p), frags = getint(p), deaths = getint(p), health = getint(p), armour = getint(p), points = getint(p);
                     int teamkills = 0;
                     if(!demo || !watchingdemo || demoprotocol > 1132) teamkills = getint(p);
-                    int ammo[NUMGUNS], mag[NUMGUNS];
-                    loopi(NUMGUNS) ammo[i] = getint(p);
-                    loopi(NUMGUNS) mag[i] = getint(p);
+                    int ammo[WEAP_MAX], mag[WEAP_MAX];
+                    loopi(WEAP_MAX) ammo[i] = getint(p);
+                    loopi(WEAP_MAX) mag[i] = getint(p);
                     playerent *d = newclient(cn);
                     if(!d) continue;
                     if(d!=player1) d->state = state;

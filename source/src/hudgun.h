@@ -113,7 +113,7 @@ int weaponmove::lastsway = 0, weaponmove::swaymillis = 0;
 
 void preload_hudguns()
 {
-    loopi(NUMGUNS)
+    loopi(WEAP_MAX)
     {
         if (i==GUN_CPISTOL) continue; //RR 18/12/12 - Remove when cpistol is added.
         defformatstring(widn)("modmdlweap%d", i);

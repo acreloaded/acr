@@ -493,7 +493,7 @@ bool selectnextprimary(int num)
     }
 }
 
-VARFP(nextprimary, 0, GUN_ASSAULT, NUMGUNS,
+VARFP(nextprimary, 0, GUN_ASSAULT, WEAP_MAX,
 {
     if(!selectnextprimary(nextprimary)) selectnextprimary((nextprimary = GUN_ASSAULT));
 });

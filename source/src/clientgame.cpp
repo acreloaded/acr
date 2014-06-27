@@ -770,7 +770,7 @@ void setkillmessage(int gun, bool gib, const char *message)
         result(killmessage(gun, gib));
         return;
     }
-    if(gun < 0 || gun >= NUMGUNS)
+    if(gun < 0 || gun >= WEAP_MAX)
     {
         conoutf("invalid gun specified");
         return;
@@ -784,7 +784,7 @@ COMMANDF(gibmessage, "is", (int *gun, const char *message) { setkillmessage(*gun
 void burstshots(int gun, int shots)
 {
     // args are passed as strings to differentiate 2 cases : shots_str == "0" or shots_str is empty (not specified from cubescript).
-    if(gun >= 0 && gun < NUMGUNS && guns[gun].isauto)
+    if(gun >= 0 && gun < WEAP_MAX && guns[gun].isauto)
     {
         if(shots >= 0) burstshotssettings[gun] = min(shots, (guns[gun].magsize-1));
         else intret(burstshotssettings[gun]);
@@ -888,7 +888,7 @@ void pstat_weap(int *cn)
 {
     string weapstring = "";
     playerent *pl = getclient(*cn);
-    if(pl) loopi(NUMGUNS) concatformatstring(weapstring, "%s%d %d", strlen(weapstring) ? " " : "", pl->pstatshots[i], pl->pstatdamage[i]);
+    if(pl) loopi(WEAP_MAX) concatformatstring(weapstring, "%s%d %d", strlen(weapstring) ? " " : "", pl->pstatshots[i], pl->pstatdamage[i]);
     result(weapstring);
 }
 

@@ -435,7 +435,7 @@ void sendspawn(client *c)
     sendf(c->clientnum, 1, "ri8vv", SV_SPAWNSTATE, c->clientnum, gs.lifesequence,
         gs.health, gs.armour,
         gs.primary, gs.gunselect, m_duke(gamemode, mutators) ? c->spawnindex : -1,
-        NUMGUNS, gs.ammo, NUMGUNS, gs.mag);
+        WEAP_MAX, gs.ammo, WEAP_MAX, gs.mag);
     gs.lastspawn = gamemillis;
 }
 
@@ -2522,8 +2522,8 @@ void sendresume(client &c, bool broadcast)
             c.state.armour,
             c.state.points,
             c.state.teamkills,
-            NUMGUNS, c.state.ammo,
-            NUMGUNS, c.state.mag,
+            WEAP_MAX, c.state.ammo,
+            WEAP_MAX, c.state.mag,
             -1);
 }
 
@@ -2649,8 +2649,8 @@ void welcomepacket(packetbuf &p, int n)
             putint(p, c.state.armour);
             putint(p, c.state.points);
             putint(p, c.state.teamkills);
-            loopi(NUMGUNS) putint(p, c.state.ammo[i]);
-            loopi(NUMGUNS) putint(p, c.state.mag[i]);
+            loopi(WEAP_MAX) putint(p, c.state.ammo[i]);
+            loopi(WEAP_MAX) putint(p, c.state.mag[i]);
         }
         putint(p, -1);
         welcomeinitclient(p, n);
@@ -2950,7 +2950,7 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_WEAPCHANGE:
             {
                 int gunselect = getint(p);
-                if(gunselect<0 || gunselect>=NUMGUNS || gunselect == GUN_CPISTOL) break;
+                if(gunselect<0 || gunselect>=WEAP_MAX || gunselect == GUN_CPISTOL) break;
                 if(!m_demo(gamemode) && !m_edit(gamemode)) checkweapon(type,gunselect);
                 cl->state.gunselect = gunselect;
                 QUEUE_MSG;
@@ -2960,7 +2960,7 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_LOADOUT:
             {
                 int nextprimary = getint(p);
-                if(nextprimary<0 && nextprimary>=NUMGUNS) break;
+                if(nextprimary<0 && nextprimary>=WEAP_MAX) break;
                 cl->state.nextprimary = nextprimary;
                 break;
             }
@@ -3057,7 +3057,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 client &cp = *clients[cn];
                 clientstate &cs = cp.state;
                 if((cs.state!=CS_ALIVE && cs.state!=CS_DEAD && cs.state!=CS_SPECTATE) ||
-                    ls!=cs.lifesequence || cs.lastspawn<0 || gunselect<0 || gunselect>=NUMGUNS || gunselect == GUN_CPISTOL) break;
+                    ls!=cs.lifesequence || cs.lastspawn<0 || gunselect<0 || gunselect>=WEAP_MAX || gunselect == GUN_CPISTOL) break;
                 cs.lastspawn = -1;
                 cs.spawn = gamemillis;
                 cp.upspawnp = false;
@@ -3071,8 +3071,8 @@ void process(ENetPacket *packet, int sender, int chan)
                     putint(cp.messages, cs.health);
                     putint(cp.messages, cs.armour);
                     putint(cp.messages, cs.gunselect);
-                    loopi(NUMGUNS) putint(cp.messages, cs.ammo[i]);
-                    loopi(NUMGUNS) putint(cp.messages, cs.mag[i]);
+                    loopi(WEAP_MAX) putint(cp.messages, cs.ammo[i]);
+                    loopi(WEAP_MAX) putint(cp.messages, cs.mag[i]);
                 });
                 break;
             }
@@ -3085,7 +3085,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 if(cp->state.state != CS_DEAD)
                 {
                     // TODO: backport ACR's nuke on suicide mod
-                    //cp->suicide( NUMGUNS + (cn == sender ? 10 : 11), cn == sender ? FRAG_GIB : FRAG_NONE);
+                    //cp->suicide( WEAP_MAX + (cn == sender ? 10 : 11), cn == sender ? FRAG_GIB : FRAG_NONE);
                     serverdamage(cp, cp, cp->state.health << 1, GUN_KNIFE, true);
                 }
                 break;
