@@ -1,3 +1,5 @@
+// server map info
+
 #define getmaplayoutid(x, y) (clamp((int)(x), 2, (1 << maplayout_factor) - 2) + (clamp((int)(y), 2, (1 << maplayout_factor) - 2) << maplayout_factor))
 
 // server map geometry tools
@@ -322,6 +324,7 @@ bool movechecks(client &cp, const vec &newo, const int newf)
         {
             // server side item pickup, acknowledge first client that moves to the entity
             e.spawned = false;
+            int spawntime(int type);
             sendf(-1, 1, "ri4", SV_ITEMACC, i, sender, e.spawntime = spawntime(e.type));
             cs.pickup(sents[i].type);
         }

@@ -63,6 +63,8 @@ int totalclients = 0;
 int cn2boot;
 int servertime = 0, serverlagged = 0;
 
+#include "serverworld.h"
+
 bool valid_client(int cn)
 {
     return clients.inrange(cn) && clients[cn]->type != ST_EMPTY;
@@ -2683,8 +2685,6 @@ void forcedeath(client *cl)
     cl->state.respawn();
     sendf(-1, 1, "rii", SV_FORCEDEATH, cl->clientnum);
 }
-
-#include "serverworld.h"
 
 int checktype(int type, client *cl)
 {

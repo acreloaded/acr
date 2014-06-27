@@ -1,5 +1,8 @@
 // processing of server events
 
+// server ballistics
+#include "serverballistics.h"
+
 // ordered
 void destroyevent::process(client *ci)
 {
