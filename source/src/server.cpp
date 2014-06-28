@@ -1471,9 +1471,73 @@ void checkitemspawns(int diff)
     }
 }
 
-void serverdamage(client *target, client *actor, int damage, int gun, bool gib, const vec &hitpush = vec(0, 0, 0))
+void serverdied(client *target, client *actor, int damage, int gun, int style, const vec &source, float killdist = 0)
 {
-    if (!m_demo(gamemode) && !m_edit(gamemode) && !validdamage(target, actor, damage, gun, gib)) return;
+    clientstate &ts = target->state;
+
+    int targethasflag = clienthasflag(target->clientnum);
+    bool tk = false, suic = false;
+    target->state.deaths++;
+    checkfrag(target, actor, gun, style);
+    if (target != actor)
+    {
+        if (!isteam(target->team, actor->team)) actor->state.frags += (style & FRAG_GIB) && gun != GUN_GRENADE && gun != GUN_SHOTGUN ? 2 : 1;
+        else
+        {
+            actor->state.frags--;
+            actor->state.teamkills++;
+            tk = true;
+        }
+    }
+    else
+    { // suicide
+        actor->state.frags--;
+        suic = true;
+        logline(ACLOG_INFO, "[%s] %s suicided", actor->hostname, actor->name);
+    }
+    sendf(-1, 1, "ri6", SV_KILL, target->clientnum, actor->clientnum, actor->state.frags, gun, style);
+    if ((suic || tk) && (m_hunt(gamemode) || m_keep(gamemode)) && targethasflag >= 0)
+    {
+        actor->state.flagscore--;
+        sendf(-1, 1, "riii", SV_FLAGCNT, actor->clientnum, actor->state.flagscore);
+    }
+    target->position.setsize(0);
+    ts.state = CS_DEAD;
+    ts.lastdeath = gamemillis;
+    if (!suic) logline(ACLOG_INFO, "[%s] %s %s%s %s", actor->hostname, actor->name, killmessage(gun, style & FRAG_GIB), tk ? " teammate" : "", target->name);
+    if (m_flags(gamemode) && targethasflag >= 0)
+    {
+        if (m_capture(gamemode))
+            flagaction(targethasflag, tk ? FA_RESET : FA_LOST, -1);
+        else if (m_hunt(gamemode))
+            flagaction(targethasflag, FA_LOST, -1);
+        else // ktf || tktf
+            flagaction(targethasflag, FA_RESET, -1);
+    }
+    // don't issue respawn yet until DEATHMILLIS has elapsed
+    // ts.respawn();
+
+    if (isdedicated && actor->type == ST_TCPIP && tk)
+    {
+        if (actor->state.frags < scl.banthreshold ||
+            /** teamkilling more than 6 (defaults), more than 2 per minute and less than 4 frags per tk */
+            (actor->state.teamkills >= -scl.banthreshold &&
+            actor->state.teamkills * 30 * 1000 > gamemillis &&
+            actor->state.frags < 4 * actor->state.teamkills))
+        {
+            addban(actor, DISC_AUTOBAN);
+        }
+        else if (actor->state.frags < scl.kickthreshold ||
+            /** teamkilling more than 5 (defaults), more than 1 tk per minute and less than 4 frags per tk */
+            (actor->state.teamkills >= -scl.kickthreshold &&
+            actor->state.teamkills * 60 * 1000 > gamemillis &&
+            actor->state.frags < 4 * actor->state.teamkills)) disconnect_client(actor->clientnum, DISC_AUTOKICK);
+    }
+}
+
+// void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source, float dist = 0)
+void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &hitpush = vec(0, 0, 0))
+{
     if ( m_duke(gamemode, mutators) && gun == GUN_GRENADE && arenaroundstartmillis + 2000 > gamemillis && target != actor ) return;
     clientstate &ts = target->state;
     ts.dodamage(damage, gun);
@@ -1495,67 +1559,9 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
             }
         }
     }
-    if(ts.health<=0)
-    {
-        int targethasflag = clienthasflag(target->clientnum);
-        bool tk = false, suic = false;
-        target->state.deaths++;
-        checkfrag(target, actor, gun, gib);
-        if(target!=actor)
-        {
-            if(!isteam(target->team, actor->team)) actor->state.frags += gib && gun != GUN_GRENADE && gun != GUN_SHOTGUN ? 2 : 1;
-            else
-            {
-                actor->state.frags--;
-                actor->state.teamkills++;
-                tk = true;
-            }
-        }
-        else
-        { // suicide
-            actor->state.frags--;
-            suic = true;
-            logline(ACLOG_INFO, "[%s] %s suicided", actor->hostname, actor->name);
-        }
-        sendf(-1, 1, "ri6", SV_KILL, target->clientnum, actor->clientnum, actor->state.frags, gun, gib);
-        if((suic || tk) && (m_hunt(gamemode) || m_keep(gamemode)) && targethasflag >= 0)
-        {
-            actor->state.flagscore--;
-            sendf(-1, 1, "riii", SV_FLAGCNT, actor->clientnum, actor->state.flagscore);
-        }
-        target->position.setsize(0);
-        ts.state = CS_DEAD;
-        ts.lastdeath = gamemillis;
-        if(!suic) logline(ACLOG_INFO, "[%s] %s %s%s %s", actor->hostname, actor->name, killmessage(gun, gib), tk ? " their teammate" : "", target->name);
-        if(m_flags(gamemode) && targethasflag >= 0)
-        {
-            if(m_capture(gamemode))
-                flagaction(targethasflag, tk ? FA_RESET : FA_LOST, -1);
-            else if(m_hunt(gamemode))
-                flagaction(targethasflag, FA_LOST, -1);
-            else // ktf || tktf
-                flagaction(targethasflag, FA_RESET, -1);
-        }
-        // don't issue respawn yet until DEATHMILLIS has elapsed
-        // ts.respawn();
-
-        if(isdedicated && actor->type == ST_TCPIP && tk)
-        {
-            if( actor->state.frags < scl.banthreshold ||
-                /** teamkilling more than 6 (defaults), more than 2 per minute and less than 4 frags per tk */
-                ( actor->state.teamkills >= -scl.banthreshold &&
-                  actor->state.teamkills * 30 * 1000 > gamemillis &&
-                  actor->state.frags < 4 * actor->state.teamkills ) )
-            {
-                addban(actor, DISC_AUTOBAN);
-            }
-            else if( actor->state.frags < scl.kickthreshold ||
-                     /** teamkilling more than 5 (defaults), more than 1 tk per minute and less than 4 frags per tk */
-                     ( actor->state.teamkills >= -scl.kickthreshold &&
-                       actor->state.teamkills * 60 * 1000 > gamemillis &&
-                       actor->state.frags < 4 * actor->state.teamkills ) ) disconnect_client(actor->clientnum, DISC_AUTOKICK);
-        }
-    } else if ( target!=actor && isteam(target->team, actor->team) ) check_ffire (target, actor, damage); // friendly fire counter
+    if (ts.health <= 0)
+        serverdied(target, actor, damage, gun, style, hitpush);
+    else if ( target!=actor && isteam(target->team, actor->team) ) check_ffire (target, actor, damage); // friendly fire counter
 }
 
 #include "serverevents.h"
@@ -3116,7 +3122,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 {
                     // TODO: backport ACR's nuke on suicide mod
                     //cp->suicide( NUMGUNS + (cn == sender ? 10 : 11), cn == sender ? FRAG_GIB : FRAG_NONE);
-                    serverdamage(cp, cp, cp->state.health << 1, GUN_KNIFE, true);
+                    serverdamage(cp, cp, cp->state.health << 1, GUN_KNIFE, cn == sender ? FRAG_GIB : FRAG_NONE);
                 }
                 break;
             }
@@ -3701,7 +3707,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 if (!m_edit(gamemode) && editing && cl->type == ST_TCPIP)
                 {
                     // unacceptable!
-                    serverdamage(cl, cl, 1000, GUN_KNIFE, true);
+                    serverdamage(cl, cl, 1000, GUN_KNIFE, FRAG_GIB);
                     break;
                 }
                 if (cl->state.state != (editing ? CS_ALIVE : CS_EDITING)) break;
