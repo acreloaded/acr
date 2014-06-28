@@ -1,5 +1,5 @@
-#define melee_weap(g) (g == GUN_KNIFE)
-#define explosive_weap(g) (g == GUN_GRENADE || g == GUN_RPG)
+#define melee_weap(g) ((g == GUN_KNIFE) || (g == WEAP_SWORD))
+#define explosive_weap(g) (g == GUN_GRENADE || g == WEAP_RPG)
 #define suppressed_weap(g) (melee_weap(g) || g == GUN_GRENADE)
 #define sniper_weap(g) (g == GUN_SNIPER || g == GUN_CARBINE)
 #define burst_weap(g) (g == GUN_ASSAULT || g == GUN_SUBGUN)

@@ -462,6 +462,7 @@ itemstat ammostats[WEAP_MAX] =
 {
     {  1,  1,   1,  S_ITEMAMMO  },   // knife dummy
     { 20, 60, 100,  S_ITEMAMMO  },   // pistol
+    {  1,  1,   1,  S_ITEMAMMO  },   // sword dummy
     { 15, 30,  30,  S_ITEMAMMO  },   // carbine
     { 14, 28,  21,  S_ITEMAMMO  },   // shotgun
     { 60, 90,  90,  S_ITEMAMMO  },   // subgun
@@ -489,6 +490,7 @@ guninfo guns[WEAP_MAX] =
     //              sound                reloadtime        damage    projspeed      spread       kick      magsize     mKB       reB             reF           isauto
     { "knife",      S_KNIFE,      S_NULL,     0,      500,    50, 100,     0,   0,    1,   0,     1,     1,   1,    0,  0,   0,   0,      0,      0,   1,      false },
     { "pistol",     S_PISTOL,     S_RPISTOL,  1400,   160,    18,   0,     0,   0,   90,  80,     9,    10,   10,   6,  5,   6,  35,     58,     125,  1,      false },
+    { "sword",      S_KNIFE,      S_NULL,     0,      600,    90, 100,     0,   0,    1,   0,     1,     1,   1,    0,  0,   0,   0,      0,      0,   1,      false },
     { "carbine",    S_CARBINE,    S_RCARBINE, 1800,   720,    60,  40,     0,   0,  235,  95,    14,    60,   10,   4,  4,  10,  60,     60,     150,  1,      false },
     { "shotgun",    S_SHOTGUN,    S_RSHOTGUN, 2400,   880,    1,    0,     0,   0,  199,  35,    12,    35,    7,   9,  9,  10, 140,    140,    125,   1,      false },   // CAUTION dmg only sane for server!
     { "subgun",     S_SUBGUN,     S_RSUBGUN,  1650,   80,     16,   0,     0,   0,   70,  75,     4,    15,   30,   1,  2,   5,  25,     50,     188,  1,      true  },

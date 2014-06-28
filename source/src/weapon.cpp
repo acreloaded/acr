@@ -89,7 +89,7 @@ void shiftweapon(int *s)
         if(player1->akimbo)
         {
             availweapons.removeobj(akimbo); // and remove initial akimbo
-            int pistolidx = availweapons.find(player1->weapons[GUN_PISTOL]);
+            int pistolidx = availweapons.find(player1->weapons[player1->secondary]);
             if(pistolidx>=0) availweapons[pistolidx] = akimbo; // insert at pistols position
             if(curweapon->type==GUN_PISTOL) curweapon = akimbo; // fix selection
         }
@@ -660,6 +660,8 @@ const char *weapstr(unsigned int i)
         return "TMP-M&A CB";
     case GUN_GRENADE:
         return "Grenades";
+    case WEAP_SWORD:
+        return "Sword";
     }
     return "x";
 }
@@ -870,6 +872,7 @@ void weapon::equipplayer(playerent *pl)
     pl->weapons[GUN_ASSAULT] = new assaultrifle(pl);
     pl->weapons[GUN_GRENADE] = new grenades(pl);
     pl->weapons[GUN_KNIFE] = new knife(pl);
+    pl->weapons[WEAP_SWORD] = new knife(pl);
     pl->weapons[GUN_PISTOL] = new pistol(pl);
     pl->weapons[GUN_CPISTOL] = new cpistol(pl);
     pl->weapons[GUN_CARBINE] = new carbine(pl);

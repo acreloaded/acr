@@ -47,11 +47,11 @@ struct entity : persistent_entity
     }
 };
 
-enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_CARBINE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_CPISTOL, GUN_GRENADE, GUN_AKIMBO, WEAP_MAX, WEAP_RPG, WEAP_SWORD, GUN_BOLT, GUN_ASSAULT2 };//implement everything after MAX
-#define isprimary(n) ((n > GUN_PISTOL) && (n < WEAP_MAX))
+enum { GUN_KNIFE = 0, GUN_PISTOL, WEAP_SWORD, GUN_CARBINE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_CPISTOL, GUN_GRENADE, GUN_AKIMBO, WEAP_MAX, WEAP_RPG,  GUN_BOLT, GUN_ASSAULT2 };//implement everything after MAX
+#define isprimary(n) ((n >= GUN_CARBINE) && (n < GUN_CPISTOL))
 #define issecondary(n) (!(isprimary(n) || n == 0))
 
-#define reloadable_gun(g) (g != GUN_KNIFE && g != GUN_GRENADE)
+#define reloadable_gun(g) (!(g == GUN_KNIFE || g == GUN_GRENADE || g == WEAP_SWORD))
 
 #define HEADSIZE 0.4f
 #define TORSOPART 0.35f
@@ -376,7 +376,7 @@ public:
     {
         health = 100;
         armour = 0;
-        gunselect = GUN_PISTOL;
+        gunselect = primary;
         akimbo = false;
         loopi(WEAP_MAX) ammo[i] = mag[i] = gunwait[i] = 0;
         ammo[GUN_KNIFE] = mag[GUN_KNIFE] = 1;
@@ -418,8 +418,8 @@ public:
 
         if(!m_nosecondary(gamemode, mutators))
         {
-            ammo[secondary] = ammostats[GUN_PISTOL].start-magsize(GUN_PISTOL);//ammostats[GUN_PISTOL].max-magsize(GUN_PISTOL);
-            mag[secondary] = magsize(GUN_PISTOL);
+            ammo[secondary] = ammostats[secondary].start-magsize(secondary);//ammostats[GUN_PISTOL].max-magsize(GUN_PISTOL);
+            mag[secondary] = magsize(secondary);
         }
     }
 

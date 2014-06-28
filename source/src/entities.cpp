@@ -515,7 +515,7 @@ VARFP(nextprimary, 0, GUN_ASSAULT, WEAP_MAX,
 {
     if(!selectnextprimary(nextprimary)) selectnextprimary((nextprimary = GUN_ASSAULT));
 });
-VARFP(nextsecondary, 0, GUN_PISTOL, WEAP_MAX,
+VARFP(nextsecondary, 0, GUN_PISTOL, GUN_ASSAULT,
 {
     if(!selectnextsecondary(nextsecondary)) selectnextsecondary((nextsecondary = GUN_ASSAULT));
 });
