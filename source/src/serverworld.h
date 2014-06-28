@@ -52,9 +52,11 @@ inline uchar maxvdelta(int id)
 
 float getblockfloor(int id, bool check_vdelta = true)
 {
-    if(!maplayout || getsblock(id).type == SOLID) return 127;
+    if (!maplayout) return 127;
     ssqr &s = getsblock(id);
-    if(check_vdelta && s.type == FHF)
+    if (s.type == SOLID)
+        return 127;
+    else if (check_vdelta && s.type == FHF)
         return s.floor - maxvdelta(id) / 4.f;
     else
         return s.floor;
@@ -62,9 +64,14 @@ float getblockfloor(int id, bool check_vdelta = true)
 
 float getblockceil(int id)
 {
-    if(!maplayout || getsblock(id).type == SOLID) return -128;
+    if (!maplayout) return -128;
     ssqr &s = getsblock(id);
-    return s.ceil + (s.type == CHF ? maxvdelta(id) / 4.f : 0);
+    if (s.type == SOLID)
+        return -128;
+    else if (s.type == CHF)
+        return s.ceil + maxvdelta(id) / 4.f;
+    else
+        return s.ceil;
 }
 
 bool outofborder(const vec &p)
@@ -238,7 +245,6 @@ bool movechecks(client &cp, const vec &newo, const int newf)
     clientstate &cs = cp.state;
     // Only check alive players (skip editmode users)
     if(cs.state != CS_ALIVE) return true;
-    const int sender = cp.clientnum;
     // deal damage from movements
     if(!cs.protect(gamemillis, gamemode, mutators))
     {
@@ -257,7 +263,7 @@ bool movechecks(client &cp, const vec &newo, const int newf)
                         client &t = *clients[i];
                         clientstate &ts = t.state;
                         // basic checks
-                        if(t.type == ST_EMPTY || ts.state != CS_ALIVE || i == sender) continue;
+                        if (t.type == ST_EMPTY || ts.state != CS_ALIVE || i == cp.clientnum) continue;
                         // check from above
                         if(ts.o.distxy(cs.o) > 2.5f*PLAYERRADIUS) continue;
                         // check from side
@@ -311,7 +317,7 @@ bool movechecks(client &cp, const vec &newo, const int newf)
         const int ls = (1 << maplayout_factor) - 2, maplayoutid = getmaplayoutid(e.x, e.y);
         const bool getmapz = maplayout && e.x > 2 && e.y > 2 && e.x < ls && e.y < ls;
         const char &mapz = getmapz ? getblockfloor(maplayoutid, false) : 0;
-        vec v(e.x, e.y, getmapz ? (mapz + e.attr1 + PLAYERHEIGHT) : cs.o.z);
+        vec v(e.x, e.y, getmapz ? (mapz + e.attr1) : cs.o.z);
         float dist = cs.o.dist(v);
         if(dist > 3) continue;
         if(canheal)
@@ -325,7 +331,7 @@ bool movechecks(client &cp, const vec &newo, const int newf)
             // server side item pickup, acknowledge first client that moves to the entity
             e.spawned = false;
             int spawntime(int type);
-            sendf(-1, 1, "ri4", SV_ITEMACC, i, sender, e.spawntime = spawntime(e.type));
+            sendf(-1, 1, "ri4", SV_ITEMACC, i, cp.clientnum, e.spawntime = spawntime(e.type));
             cs.pickup(sents[i].type);
         }
     }
