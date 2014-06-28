@@ -133,6 +133,8 @@ void quicknadethrow(bool on)
 void currentprimary() { intret(player1->primweap->type); }
 void prevweapon() { intret(player1->prevweaponsel->type); }
 void curweapon() { intret(player1->weaponsel->type); }
+void zoomprogress() { intret(player1->ads); }
+void isscoped() { intret(player1->ads >= weapon::adsscope ? 1 : 0); }
 
 void magcontent(int *w) { if(*w >= 0 && *w < WEAP_MAX) intret(player1->weapons[*w]->mag); else intret(-1); }
 void magreserve(int *w) { if(*w >= 0 && *w < WEAP_MAX) intret(player1->weapons[*w]->ammo); else intret(-1); }
@@ -145,10 +147,17 @@ COMMAND(prevweapon, "");
 COMMAND(curweapon, "");
 COMMAND(magcontent, "i");
 COMMAND(magreserve, "i");
+COMMAND(zoomprogress, "");
+COMMAND(isscoped, "");
 
 void tryreload(playerent *p)
 {
     if(!p || p->state!=CS_ALIVE || p->weaponsel->reloading || p->weaponchanging) return;
+    if(p->ads){
+		p->wantsreload = true;
+		p->delayedscope = p->scoping;
+		p->scoping = false;
+	}
     p->weaponsel->reload(false);
 }
 
@@ -844,9 +853,12 @@ void weapon::onselecting()
 }
 
 void weapon::renderhudmodel() { renderhudmodel(owner->lastaction); }
-void weapon::renderaimhelp(bool teamwarning) { drawcrosshair(owner, teamwarning ? CROSSHAIR_TEAMMATE : owner->weaponsel->type + 3); }
-int weapon::dynspread() { return info.spread; }
-float weapon::dynrecoil() { return info.recoil; }
+void weapon::renderaimhelp(bool teamwarning) { if(owner->ads != 1000) drawcrosshair(owner, teamwarning ? CROSSHAIR_TEAMMATE : owner->weaponsel->type + 3); }
+int weapon::dynspread() {
+    if (info.spread <= 1) return 1;
+    return (int)(info.spread * (owner->vel.magnitude() / 3.f + owner->pitchvel / 5.f + 0.4f) * 2.4f * owner->eyeheight / owner->maxeyeheight * (1 - sqrtf(owner->ads * info.spreadrem / 100 / 1000.f)));
+}
+float weapon::dynrecoil() { return m_real(gamemode, mutators) ? info.kick : info.kick * (1 - owner->ads / 2000.f); }
 bool weapon::selectable() { return this != owner->weaponsel && owner->state == CS_ALIVE && !owner->weaponchanging; }
 bool weapon::deselectable() { return !reloading; }
 
@@ -1276,12 +1288,12 @@ bool sniperrifle::selectable() { return weapon::selectable() && !m_noprimary(gam
 void sniperrifle::onselecting() { weapon::onselecting(); scoped = false; player1->scoping = false; }
 void sniperrifle::ondeselecting() { scoped = false; player1->scoping = false; }
 void sniperrifle::onownerdies() { scoped = false; player1->scoping = false; }
-void sniperrifle::renderhudmodel() { if(!scoped) weapon::renderhudmodel(); }
+void sniperrifle::renderhudmodel() { if(owner->ads < adsscope) weapon::renderhudmodel(); }
 
 void sniperrifle::renderaimhelp(bool teamwarning)
 {
-    if(scoped) drawscope();
-    if(scoped || teamwarning) drawcrosshair(owner, teamwarning ? CROSSHAIR_TEAMMATE : CROSSHAIR_SCOPE, NULL, 24.0f);
+    if(owner->ads >= adsscope) drawscope();
+    if(owner->ads >= adsscope || teamwarning) drawcrosshair(owner, teamwarning ? CROSSHAIR_TEAMMATE : CROSSHAIR_SCOPE, NULL, 24.0f);
 }
 
 void sniperrifle::setscope(bool enable)
@@ -1516,10 +1528,13 @@ void knife::renderstats() { }
 
 void setscope(bool enable)
 {
-    if(player1->weaponsel->type != GUN_SNIPER) return;
-    if(intermission) return;
-    sniperrifle *sr = (sniperrifle *)player1->weaponsel;
-    sr->setscope(enable);
+    if(player1->wantsreload || player1->wantsswitch >= 0){
+		player1->delayedscope = enable;
+		return;
+	}
+	if(player1->state != CS_ALIVE || player1->scoping == enable) return;
+	if(player1->weaponsel->type == GUN_KNIFE || (ads_gun(player1->weaponsel->type) && ads_classic_allowed(player1->weaponsel->type)))
+		player1->delayedscope = player1->scoping = enable;
 }
 
 COMMANDF(setscope, "i", (int *on) { setscope(*on != 0); });

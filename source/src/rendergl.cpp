@@ -447,6 +447,9 @@ void scopefunc();
 FVARFP(fov, 75, 90, 120, scopefunc());
 VARFP(scopefov, 5, 50, 60, scopefunc());
 VARP(spectfov, 5, 110, 120);
+VARP(scopezoom, 1, 150, 500);
+VARP(adszoom, 1, 5, 100);
+
 void scopefunc()
 {
     scopesensfunc = tan(((float)scopefov)*0.5f*RAD)/tan(fov*0.5f*RAD);
@@ -901,17 +904,13 @@ VARP(specthudgun, 0, 1, 1);
 
 inline float zoomfactor(playerent *who)
 {
-    return 1.f;
-    /*
 	if(!who) return 1;
 	float adsmax = 864, zoomf = (float)adszoom;
-	if(sniper_weap(who->weaponsel->type) && who->ads)
-    {
+	if(sniper_weap(who->weaponsel->type) && who->ads) {
 		adsmax = sniperrifle::adsscope;
 		zoomf = (float)scopezoom;
-	} else if(who->weaponsel->type == WEAP_HEAL) zoomf = 0;
+	}
 	return 100 / (min(who->ads/adsmax,1.f) * zoomf + 100);
-    */
 }
 
 void setperspective(float fovy, float nearplane)

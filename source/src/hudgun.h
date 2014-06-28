@@ -20,7 +20,7 @@ struct weaponmove
         kick = k_rot = 0.0f;
         pos = p->o;
 
-        if(!nosway)
+        if(!nosway && !(p->ads))
         {
             float k = pow(0.7f, (lastmillis-lastsway)/10.0f);
             swaydir.mul(k);

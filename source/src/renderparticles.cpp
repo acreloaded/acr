@@ -553,7 +553,7 @@ void particle_emit(int type, int *args, int basetime, int seed, const vec &p)
     if(pt.type==PT_FIREBALL) particle_fireball(type, p);
     else if(pt.type==PT_FLASH || pt.type==PT_HUDFLASH)
     {
-        if(lastmillis - basetime < args[0])
+        if(lastmillis - basetime < args[0] + focus->ads)
             particle_flash(type, args[1]>0 ? args[1]/100.0f : 1.0f, seed%360, p);
     }
     else particle_splash(type, args[0], args[1], p);

@@ -1051,7 +1051,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             case SV_WEAPCHANGE:
             {
                 int gun = getint(p);
-                if(d) d->selectweapon(gun);
+                if(!d || gun < 0 || gun >= WEAP_MAX) break;
+				d->ads = 0;
+				d->selectweapon(gun);
                 break;
             }
 

@@ -1,13 +1,20 @@
+#define melee_weap(g) (g == GUN_KNIFE)
+#define explosive_weap(g) (g == GUN_GRENADE || g == GUN_RPG)
+#define suppressed_weap(g) (melee_weap(g) || g == GUN_GRENADE)
+#define sniper_weap(g) (g == GUN_SNIPER || g == GUN_CARBINE)
+#define burst_weap(g) (g == GUN_ASSAULT || g == GUN_SUBGUN)
+#define ads_gun(g) (!melee_weap(g) && g != GUN_GRENADE && g != GUN_AKIMBO)
+#define ads_classic_allowed(g) (!m_classic(gamemode, mutators) || sniper_weap(g))
 
 class playerent;
 class bounceent;
 
 struct weapon
 {
+    const static int adsscope = 550;
     const static int weaponchangetime;
     const static float weaponbeloweye;
     static void equipplayer(playerent *pl);
-
     weapon(class playerent *owner, int type);
     virtual ~weapon() {}
 

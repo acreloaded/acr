@@ -46,7 +46,7 @@ struct entity : persistent_entity
     }
 };
 
-enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_CARBINE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_CPISTOL, GUN_GRENADE, GUN_AKIMBO, WEAP_MAX };
+enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_CARBINE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_CPISTOL, GUN_GRENADE, GUN_AKIMBO, WEAP_MAX, WEAP_RPG, WEAP_SWORD, GUN_BOLT, GUN_ASSAULT2 };//implement everything after MAX
 #define reloadable_gun(g) (g != GUN_KNIFE && g != GUN_GRENADE)
 
 #define HEADSIZE 0.4f
@@ -117,7 +117,7 @@ struct itemstat { int add, start, max, sound; };
 extern itemstat ammostats[WEAP_MAX];
 extern itemstat powerupstats[I_ARMOUR-I_HEALTH+1];
 
-struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, piercing, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back, recoilincrease, recoilbase, maxrecoil, recoilbackfade, pushfactor; bool isauto; };
+struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, piercing, projspeed, part, spread, spreadrem, kick, recoil, magsize, mdl_kick_rot, mdl_kick_back, recoilincrease, recoilbase, maxrecoil, recoilbackfade, pushfactor; bool isauto; };
 extern guninfo guns[WEAP_MAX];
 
 static inline int reloadtime(int gun) { return guns[gun].reloadtime; }
@@ -129,6 +129,8 @@ static inline int magsize(int gun) { return guns[gun].magsize; }
 enum { TEAM_CLA = 0, TEAM_RVSF, TEAM_CLA_SPECT, TEAM_RVSF_SPECT, TEAM_SPECT, TEAM_NUM, TEAM_ANYACTIVE };
 extern const char *teamnames[TEAM_NUM+1];
 extern const char *teamnames_s[TEAM_NUM+1];
+
+extern float gunspeed(int gun, int ads);
 
 #define TEAM_VOID TEAM_NUM
 #define isteam(a,b)   (m_team(gamemode, mutators) && (a) == (b))
@@ -469,9 +471,10 @@ public:
     int frags, flagscore, deaths, points, tks;
     int lastaction, lastmove, lastpain, lastvoicecom, lasthit;
     int clientrole;
-    bool attacking;
+    bool attacking, delayedscope, wantsreload;
     string name;
     int team;
+    int ads, wantsswitch;
     int weaponchanging;
     int nextweapon; // weapon we switch to
     int spectatemode, followplayercn;
@@ -480,7 +483,7 @@ public:
     bool allowmove() { return state!=CS_DEAD || spectatemode==SM_FLY; }
 
     weapon *weapons[WEAP_MAX];
-    weapon *prevweaponsel, *weaponsel, *nextweaponsel, *primweap, *nextprimweap, *lastattackweapon;
+    weapon *prevweaponsel, *weaponsel, *nextweaponsel, *primweap, *secondweap, *nextprimweap, *lastattackweapon;
 
     poshist history; // Previous stored locations of this player
 
@@ -498,10 +501,10 @@ public:
     class CBot *pBot;
     playerent *enemy;                      // monster wants to kill this entity
     float targetpitch, targetyaw;          // monster wants to look in this direction
-
+//IMPLEMENT delayedscope, wantsreload, wantsswitch, secondweap
     playerent() : curskin(0), clientnum(-1), lastupdate(0), plag(0), ping(0), address(0), lifesequence(0), frags(0), flagscore(0), deaths(0), points(0), tks(0), lastpain(0), lastvoicecom(0), lasthit(0), clientrole(CR_DEFAULT),
-                  team(TEAM_SPECT), spectatemode(SM_NONE), followplayercn(FPCN_VOID), eardamagemillis(0), respawnoffset(0),
-                  prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
+                  attacking(false), delayedscope(false), wantsreload(false), team(TEAM_SPECT), wantsswitch(-1), ads(0), spectatemode(SM_NONE), followplayercn(FPCN_VOID), eardamagemillis(0), respawnoffset(0),
+                  prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), secondweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
                   smoothmillis(-1),
                   head(-1, -1, -1), ignored(false), muted(false),
 				  ownernum(-1), level(0), pBot(NULL), enemy(NULL)
@@ -586,7 +589,10 @@ public:
         curskin = nextskin[team_base(team)];
     }
 
-    void selectweapon(int w) { if (weaponsel) prevweaponsel = weaponsel; weaponsel = weapons[(gunselect = w)]; if (!prevweaponsel) prevweaponsel = weaponsel; }
+    void selectweapon(int w) {
+        if (weaponsel) prevweaponsel = weaponsel; weaponsel = weapons[(gunselect = w)];
+        if (!prevweaponsel) prevweaponsel = weaponsel;
+    }
     void setprimary(int w) { primweap = weapons[(primary = w)]; }
     void setnextprimary(int w) { nextprimweap = weapons[(nextprimary = w)]; }
     bool isspectating() { return state==CS_SPECTATE || (state==CS_DEAD && spectatemode > SM_NONE); }

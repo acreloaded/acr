@@ -423,6 +423,14 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         d.x += (float)(pl->strafe*cosf(RAD*(pl->yaw-180)));
         d.y += (float)(pl->strafe*sinf(RAD*(pl->yaw-180)));
 
+        if(pl->type == ENT_PLAYER){
+			playerent *p = (playerent *)pl;
+			float spd = 1;
+			if(p->weaponsel) spd = gunspeed(p->weaponsel->type, p->ads);
+			//if(p->sprinting) spd *= .6f; // sprint = walk lol
+			d.mul(vec(spd, spd, 1));
+		}
+
         pl->vel.mul(fpsfric-1.0f);   // slowly apply friction and direction to velocity, gives a smooth movement
         pl->vel.add(d);
         pl->vel.div(fpsfric);
@@ -681,12 +689,29 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     }
 
     // apply volume-resize when crouching
-    if(pl->type==ENT_PLAYER || pl->type==ENT_BOT)
-    {
+    if(pl->type==ENT_PLAYER || pl->type==ENT_BOT) {
+        playerent *ppl = (playerent *)pl;
 //         if(pl==player1 && !(intermission || player1->onladder || (pl->trycrouch && !player1->onfloor && player1->timeinair > 50))) updatecrouch(player1, player1->trycrouch);
         if(!intermission && (pl == player1 || pl->type == ENT_BOT)) updatecrouch((playerent *)pl, pl->trycrouch);
         const float croucheyeheight = pl->maxeyeheight*3.0f/4.0f;
         resizephysent(pl, moveres, curtime, croucheyeheight, pl->maxeyeheight);
+        if(!intermission && pl->state == CS_ALIVE && (ppl->scoping ? ppl->ads < 1000 : ppl->ads > 0) && ads_gun(ppl->weaponsel->type) &&
+				!ppl->weaponsel->reloading && !ppl->weaponchanging ){
+			ppl->ads += curtime * (ppl->scoping ? 1000 : -1000) / 300;
+			ppl->ads = clamp(ppl->ads, 0, 1000);
+			if(!ppl->ads && ppl == player1){
+				bool shouldscope = ppl->delayedscope;
+				if(ppl->wantsreload){
+					ppl->wantsreload = false;
+					tryreload(ppl);
+				}
+				else if(ppl->wantsswitch >= 0){
+					shouldscope = shouldscope && ads_gun(ppl->wantsswitch);
+					ppl->weaponswitch(ppl->weapons[ppl->wantsswitch]);
+				}
+				if(shouldscope) setscope(true);
+			}
+		}
     }
 }
 
