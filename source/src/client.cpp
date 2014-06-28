@@ -613,6 +613,7 @@ void sendintro()
     clientpassword[0] = '\0';
     connectrole = CR_DEFAULT;
     putint(p, player1->nextprimweap->type);
+    putint(p, player1->nextsecondary);
     loopi(2) putint(p, player1->skin(i));
     sendpackettoserv(1, p.finalize());
 }

@@ -432,9 +432,9 @@ void sendspawn(client *c)
     gs.respawn();
     gs.spawnstate(smode, smuts);
     gs.lifesequence++;
-    sendf(c->clientnum, 1, "ri8vv", SV_SPAWNSTATE, c->clientnum, gs.lifesequence,
+    sendf(c->clientnum, 1, "ri9vv", SV_SPAWNSTATE, c->clientnum, gs.lifesequence,
         gs.health, gs.armour,
-        gs.primary, gs.gunselect, m_duke(gamemode, mutators) ? c->spawnindex : -1,
+        gs.primary, gs.secondary, gs.gunselect, m_duke(gamemode, mutators) ? c->spawnindex : -1,
         WEAP_MAX, gs.ammo, WEAP_MAX, gs.mag);
     gs.lastspawn = gamemillis;
 }
@@ -2641,6 +2641,7 @@ void welcomepacket(packetbuf &p, int n)
             putint(p, c.state.state);
             putint(p, c.state.lifesequence);
             putint(p, c.state.primary);
+            putint(p, c.state.secondary);
             putint(p, c.state.gunselect);
             putint(p, c.state.flagscore);
             putint(p, c.state.frags);
@@ -2731,6 +2732,7 @@ void process(ENetPacket *packet, int sender, int chan)
             filterlang(cl->lang, text);
             int wantrole = getint(p);
             cl->state.nextprimary = getint(p);
+            cl->state.nextsecondary = getint(p);
             loopi(2) cl->skin[i] = getint(p);
             int bantype = getbantype(sender);
             bool banned = bantype > BAN_NONE;
@@ -2959,9 +2961,10 @@ void process(ENetPacket *packet, int sender, int chan)
 
             case SV_LOADOUT:
             {
-                int nextprimary = getint(p);
+                int nextprimary = getint(p), nextsecondary = getint(p);
                 if(nextprimary<0 && nextprimary>=WEAP_MAX) break;
-                cl->state.nextprimary = nextprimary;
+                cl->state.nextprimary = isprimary(nextprimary) ? nextprimary : GUN_ASSAULT;
+                cl->state.nextsecondary = issecondary(nextsecondary) ? nextsecondary : GUN_PISTOL;
                 break;
             }
 

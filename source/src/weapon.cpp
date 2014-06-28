@@ -131,6 +131,7 @@ void quicknadethrow(bool on)
 }
 
 void currentprimary() { intret(player1->primweap->type); }
+void currentsecondary() { intret(player1->secondweap->type); }
 void prevweapon() { intret(player1->prevweaponsel->type); }
 void curweapon() { intret(player1->weaponsel->type); }
 void zoomprogress() { intret(player1->ads); }
@@ -143,6 +144,7 @@ COMMANDN(weapon, requestweapon, "i");
 COMMAND(shiftweapon, "i");
 COMMAND(quicknadethrow, "d");
 COMMAND(currentprimary, "");
+COMMAND(currentsecondary, "");
 COMMAND(prevweapon, "");
 COMMAND(curweapon, "");
 COMMAND(magcontent, "i");
@@ -877,7 +879,9 @@ void weapon::equipplayer(playerent *pl)
     pl->weapons[GUN_AKIMBO] = new akimbo(pl);
     pl->selectweapon(GUN_ASSAULT);
     pl->setprimary(GUN_ASSAULT);
+    pl->setsecondary(GUN_PISTOL);
     pl->setnextprimary(GUN_ASSAULT);
+    pl->setnextsecondary(GUN_PISTOL);
 }
 
 bool weapon::valid(int id) { return id>=0 && id<WEAP_MAX; }
@@ -1296,7 +1300,7 @@ void sniperrifle::renderaimhelp(bool teamwarning)
     if(owner->ads >= adsscope || teamwarning) drawcrosshair(owner, teamwarning ? CROSSHAIR_TEAMMATE : CROSSHAIR_SCOPE, NULL, 24.0f);
 }
 
-void sniperrifle::setscope(bool enable)
+/*void sniperrifle::setscope(bool enable)
 {
     if(this == owner->weaponsel && !reloading && owner->state == CS_ALIVE)
     {
@@ -1304,7 +1308,7 @@ void sniperrifle::setscope(bool enable)
         if(enable != scoped) owner->scoping = enable;
         scoped = enable;
     }
-}
+}*/
 
 // carbine
 

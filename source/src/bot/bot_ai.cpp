@@ -761,11 +761,11 @@ void CBot::CheckScope()
     sniperrifle *sniper = (sniperrifle *)m_pMyEnt->weaponsel;
     if(m_pMyEnt->enemy && m_pMyEnt->o.dist(m_pMyEnt->enemy->o) > MINSCOPEDIST)
     {
-        sniper->setscope(true);
+        setscope(true);
     }
     else if(m_pMyEnt->scoping && lastmillis - sniper->scoped_since < MINSCOPETIME)
     {
-        sniper->setscope(false);
+        setscope(false);
     }
 }
 

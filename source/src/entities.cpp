@@ -320,7 +320,7 @@ void pickupeffects(int n, playerent *d, int spawntime)
                 itemstat *tmp = NULL;
                 switch(e.type)
                 {
-                    case I_CLIPS:   tmp = &ammostats[GUN_PISTOL]; break;
+                    case I_CLIPS:   tmp = &ammostats[player1->secondary]; break;
                     case I_AMMO:    tmp = &ammostats[player1->primary]; break;
                     case I_GRENADE: tmp = &ammostats[GUN_GRENADE]; break;
                     case I_AKIMBO:  tmp = &ammostats[GUN_AKIMBO]; break;
@@ -475,7 +475,14 @@ void setspawn(int i, bool on)
 
 bool selectnextprimary(int num)
 {
-    switch(num)
+    if isprimary(num) {
+        player1->setnextprimary(num);
+        addmsg(SV_LOADOUT, "ri", player1->nextprimweap->type);
+        return true;
+    }
+    conoutf("this is not a valid primary weapon");
+    return false;
+    /*switch(num)
     {
 //         case GUN_CPISTOL:
         case GUN_CARBINE:
@@ -490,12 +497,27 @@ bool selectnextprimary(int num)
         default:
             conoutf("this is not a valid primary weapon");
             return false;
+    }*/
+}
+
+bool selectnextsecondary(int num)
+{
+    if issecondary(num) {
+        player1->setnextsecondary(num);
+        addmsg(SV_LOADOUT, "ri", player1->nextsecondweap->type);
+        return true;
     }
+    conoutf("this is not a valid secondary weapon");
+    return false;
 }
 
 VARFP(nextprimary, 0, GUN_ASSAULT, WEAP_MAX,
 {
     if(!selectnextprimary(nextprimary)) selectnextprimary((nextprimary = GUN_ASSAULT));
+});
+VARFP(nextsecondary, 0, GUN_PISTOL, WEAP_MAX,
+{
+    if(!selectnextsecondary(nextsecondary)) selectnextsecondary((nextsecondary = GUN_ASSAULT));
 });
 
 // flag ent actions done by the local player

@@ -19,6 +19,7 @@ enum                            // static entity types
 enum {MAP_IS_BAD, MAP_IS_EDITABLE, MAP_IS_GOOD};
 
 extern const char *entnames[MAXENTTYPES];
+extern playerent *player1;
 #define isitem(i) ((i) >= I_CLIPS && (i) <= I_AKIMBO)
 
 struct persistent_entity        // map entity
@@ -47,6 +48,9 @@ struct entity : persistent_entity
 };
 
 enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_CARBINE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_CPISTOL, GUN_GRENADE, GUN_AKIMBO, WEAP_MAX, WEAP_RPG, WEAP_SWORD, GUN_BOLT, GUN_ASSAULT2 };//implement everything after MAX
+#define isprimary(n) ((n > GUN_PISTOL) && (n < WEAP_MAX))
+#define issecondary(n) (!(isprimary(n) || n == 0))
+
 #define reloadable_gun(g) (g != GUN_KNIFE && g != GUN_GRENADE)
 
 #define HEADSIZE 0.4f
@@ -296,13 +300,14 @@ class playerstate
 public:
     int health, armour;
     int lastspawn;
-    int primary, nextprimary;
+    int primary, secondary, nextprimary, nextsecondary;
     int gunselect;
     bool akimbo;
     int ammo[WEAP_MAX], mag[WEAP_MAX], gunwait[WEAP_MAX];
     int pstatshots[WEAP_MAX], pstatdamage[WEAP_MAX];
-
-    playerstate() : armour(0), primary(GUN_ASSAULT), nextprimary(GUN_ASSAULT), akimbo(false) {}
+//IMPLEMENT secondary, nextsecondary
+    playerstate() : armour(0), primary(GUN_ASSAULT), secondary(GUN_PISTOL),
+        nextprimary(GUN_ASSAULT), nextsecondary(GUN_PISTOL), akimbo(false) {}
     virtual ~playerstate() {}
 
     void resetstats() { loopi(WEAP_MAX) pstatshots[i] = pstatdamage[i] = 0; }
@@ -311,7 +316,7 @@ public:
     {
         switch(type)
         {
-            case I_CLIPS: return ammostats[GUN_PISTOL];
+            case I_CLIPS: return ammostats[secondary];
             case I_AMMO: return ammostats[primary];
             case I_GRENADE: return ammostats[GUN_GRENADE];
             case I_AKIMBO: return ammostats[GUN_AKIMBO];
@@ -328,7 +333,7 @@ public:
     {
         switch(type)
         {
-            case I_CLIPS: return ammo[akimbo ? GUN_AKIMBO : GUN_PISTOL]<ammostats[akimbo ? GUN_AKIMBO : GUN_PISTOL].max;
+            case I_CLIPS: return ammo[akimbo ? GUN_AKIMBO : secondary]<ammostats[akimbo ? GUN_AKIMBO : secondary].max;
             case I_AMMO: return ammo[primary]<ammostats[primary].max;
             case I_GRENADE: return mag[GUN_GRENADE]<ammostats[GUN_GRENADE].max;
             case I_HEALTH: return health<powerupstats[type-I_HEALTH].max;
@@ -350,7 +355,7 @@ public:
         switch(type)
         {
             case I_CLIPS:
-                additem(ammostats[GUN_PISTOL], ammo[GUN_PISTOL]);
+                additem(ammostats[secondary], ammo[secondary]);
                 additem(ammostats[GUN_AKIMBO], ammo[GUN_AKIMBO]);
                 break;
             case I_AMMO: additem(ammostats[primary], ammo[primary]); break;
@@ -385,12 +390,6 @@ public:
         else if(m_lss(gamemode, mutators)) primary = GUN_KNIFE;
         else primary = nextprimary;
 
-        if(!m_nosecondary(gamemode, mutators))
-        {
-            ammo[GUN_PISTOL] = ammostats[GUN_PISTOL].start-magsize(GUN_PISTOL);//ammostats[GUN_PISTOL].max-magsize(GUN_PISTOL);
-            mag[GUN_PISTOL] = magsize(GUN_PISTOL);
-        }
-
         if(!m_noprimary(gamemode, mutators))
         {
             ammo[primary] = ammostats[primary].start-magsize(primary);
@@ -399,12 +398,28 @@ public:
 
         gunselect = primary;
 
+        //if(m_zombie(gamemode) && team == TEAM_CLA) secondary = WEAP_KNIFE;
+        if(m_pistol(gamemode, mutators)) secondary = primary; // no secondary
+		else if(m_sniper(gamemode, mutators) || m_demolition(gamemode, mutators) || m_gib(gamemode, mutators)) secondary = WEAP_SWORD;
+		else secondary = issecondary(nextsecondary) ? nextsecondary : GUN_PISTOL;
+
+		if(primary != secondary){
+			ammo[secondary] = (ammostats[secondary].start-1);
+			mag[secondary] = magsize(secondary);
+		}
+
         if(m_sniper(gamemode, mutators)) health = 1;
         if(m_survivor(gamemode, mutators)) // Survivor && Team-Survivor : 2010nov19
         {
             health = 100;
             armour = 100;
             ammo[GUN_GRENADE] = 2;
+        }
+
+        if(!m_nosecondary(gamemode, mutators))
+        {
+            ammo[secondary] = ammostats[GUN_PISTOL].start-magsize(GUN_PISTOL);//ammostats[GUN_PISTOL].max-magsize(GUN_PISTOL);
+            mag[secondary] = magsize(GUN_PISTOL);
         }
     }
 
@@ -483,7 +498,7 @@ public:
     bool allowmove() { return state!=CS_DEAD || spectatemode==SM_FLY; }
 
     weapon *weapons[WEAP_MAX];
-    weapon *prevweaponsel, *weaponsel, *nextweaponsel, *primweap, *secondweap, *nextprimweap, *lastattackweapon;
+    weapon *prevweaponsel, *weaponsel, *nextweaponsel, *primweap, *secondweap, *nextprimweap, *nextsecondweap, *lastattackweapon;
 
     poshist history; // Previous stored locations of this player
 
@@ -501,10 +516,10 @@ public:
     class CBot *pBot;
     playerent *enemy;                      // monster wants to kill this entity
     float targetpitch, targetyaw;          // monster wants to look in this direction
-//IMPLEMENT delayedscope, wantsreload, wantsswitch, secondweap
+
     playerent() : curskin(0), clientnum(-1), lastupdate(0), plag(0), ping(0), address(0), lifesequence(0), frags(0), flagscore(0), deaths(0), points(0), tks(0), lastpain(0), lastvoicecom(0), lasthit(0), clientrole(CR_DEFAULT),
                   attacking(false), delayedscope(false), wantsreload(false), team(TEAM_SPECT), wantsswitch(-1), ads(0), spectatemode(SM_NONE), followplayercn(FPCN_VOID), eardamagemillis(0), respawnoffset(0),
-                  prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), secondweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
+                  prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), secondweap(NULL), nextprimweap(NULL), nextsecondweap(NULL), lastattackweapon(NULL),
                   smoothmillis(-1),
                   head(-1, -1, -1), ignored(false), muted(false),
 				  ownernum(-1), level(0), pBot(NULL), enemy(NULL)
@@ -571,7 +586,9 @@ public:
         if(weaponsel) weaponsel->reset();
         lastaction = 0;
         lastattackweapon = NULL;
-        attacking = false;
+        ads = 0;
+        wantsswitch = -1;
+        scoping = attacking = false;
         extern int lastmillis;
         weaponchanging = lastmillis - weapons[gunselect]->weaponchangetime/2; // 2011jan16:ft: for a little no-shoot after spawn
         resetspec();
@@ -585,6 +602,7 @@ public:
         playerstate::spawnstate(gamemode, mutators);
         prevweaponsel = weaponsel = weapons[gunselect];
         primweap = weapons[primary];
+        secondweap = weapons[secondary];
         nextprimweap = weapons[nextprimary];
         curskin = nextskin[team_base(team)];
     }
@@ -594,11 +612,22 @@ public:
         if (!prevweaponsel) prevweaponsel = weaponsel;
     }
     void setprimary(int w) { primweap = weapons[(primary = w)]; }
+    void setsecondary(int w) { secondweap = weapons[(secondary = w)]; }
     void setnextprimary(int w) { nextprimweap = weapons[(nextprimary = w)]; }
+    void setnextsecondary(int w) { nextsecondweap = weapons[(nextsecondary = w)]; }
     bool isspectating() { return state==CS_SPECTATE || (state==CS_DEAD && spectatemode > SM_NONE); }
     void weaponswitch(weapon *w)
     {
         if(!w) return;
+        if(ads){
+			if(this == player1){
+				wantsswitch = w->type;
+				delayedscope = scoping;
+				scoping = false;
+			}
+			return;
+		}
+		wantsswitch = -1;
         extern int lastmillis;
         weaponsel->ondeselecting();
         weaponchanging = lastmillis;

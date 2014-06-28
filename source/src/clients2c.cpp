@@ -688,6 +688,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 int gunselect = getint(p);
                 s->setprimary(gunselect);
                 s->selectweapon(gunselect);
+                s->secondary = getint(p);
                 loopi(WEAP_MAX) s->ammo[i] = getint(p);
                 loopi(WEAP_MAX) s->mag[i] = getint(p);
                 s->state = CS_SPAWNING;
@@ -719,6 +720,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 s->armour = getint(p);
                 s->setprimary(getint(p));
                 s->selectweapon(getint(p));
+                s->secondary = getint(p);
                 int arenaspawn = getint(p);
                 loopi(WEAP_MAX) s->ammo[i] = getint(p);
                 loopi(WEAP_MAX) s->mag[i] = getint(p);
@@ -893,7 +895,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 {
                     int cn = getint(p);
                     if(p.overread() || cn<0) break;
-                    int state = getint(p), lifesequence = getint(p), primary = getint(p), gunselect = getint(p), flagscore = getint(p), frags = getint(p), deaths = getint(p), health = getint(p), armour = getint(p), points = getint(p);
+                    int state = getint(p), lifesequence = getint(p), primary = getint(p), secondary = getint(p), gunselect = getint(p), flagscore = getint(p), frags = getint(p), deaths = getint(p), health = getint(p), armour = getint(p), points = getint(p);
                     int teamkills = 0;
                     if(!demo || !watchingdemo || demoprotocol > 1132) teamkills = getint(p);
                     int ammo[WEAP_MAX], mag[WEAP_MAX];
@@ -912,6 +914,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     {
                         d->setprimary(primary);
                         d->selectweapon(gunselect);
+                        d->secondary = secondary;
                         d->health = health;
                         d->armour = armour;
                         memcpy(d->ammo, ammo, sizeof(ammo));

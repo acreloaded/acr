@@ -122,7 +122,6 @@ struct sniperrifle : gun
     void onownerdies();
     void renderhudmodel();
     void renderaimhelp(bool teamwarning);
-    void setscope(bool enable);
 };
 
 
