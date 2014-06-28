@@ -310,8 +310,8 @@ bool movechecks(client &cp, const vec &newo, const int newf)
     checko.z += PLAYERHEIGHT / 10.f; // because the positions are now at the feet
     if (/*cp.type != ST_LOCAL &&*/ !m_edit(gamemode) && checkpos(checko, false))
     {
-        //if (cp.type == ST_AI) cp.suicide(NUMGUNS + 11);
-        //else
+        if (cp.type == ST_AI) cp.suicide(NUMGUNS + 11);
+        else
         {
             logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cp.gethostname(), cp.name, ++cp.mapcollisions);
             defformatstring(msg)("%s (%d) \f2collides with the map \f5- \f3forcing death", cp.name, cp.clientnum);

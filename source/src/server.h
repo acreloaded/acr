@@ -109,7 +109,8 @@ struct clientstate : playerstate
     int lastdeath, spawn, lifesequence;
     bool forced;
     int lastshot;
-    projectilestate<8> grenades;
+    projectilestate<6> grenades; // 5000ms TLL / (we can throw one every 650ms+200ms) = 6 nades possible
+    projectilestate<3> knives;
     int akimbomillis;
     bool scoped, crouching, onfloor; float fallz;
     int flagscore, frags, teamkills, deaths, shotdamage, damage, points, events, lastdisc, reconnections;
@@ -142,6 +143,7 @@ struct clientstate : playerstate
         state = CS_DEAD;
         lifesequence = -1;
         grenades.reset();
+        knives.reset();
         akimbomillis = 0;
         scoped = forced = false;
         flagscore = frags = teamkills = deaths = shotdamage = damage = points = events = lastdisc = reconnections = 0;
@@ -315,6 +317,9 @@ struct client                   // server side version of "dynent" type
 
     const char *gethostname();
     bool hasclient(int cn);
+
+    void removeexplosives();
+    void suicide(int weap, int flags = FRAG_NONE);
 
     void mapchange(bool getmap = false)
     {

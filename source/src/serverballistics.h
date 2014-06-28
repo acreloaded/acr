@@ -234,8 +234,6 @@ struct nukehit
 
 void nuke(client &owner, bool suicide = true, bool forced_all = true, bool friendly_fire = false)
 {
-    // TODO
-    /*
     vector<nukehit> hits;
     loopvj(clients)
     {
@@ -263,7 +261,6 @@ void nuke(client &owner, bool suicide = true, bool forced_all = true, bool frien
         // fx
         sendhit(owner, GUN_GRENADE, owner.state.o, 0);
     }
-    */
 }
 
 // Hitscans

@@ -83,6 +83,12 @@ bool client::hasclient(int cn)
 	return clientnum == cn || clients[cn]->ownernum == clientnum;
 }
 
+void client::removeexplosives()
+{
+    state.grenades.reset(); // remove active/flying nades
+    state.knives.reset(); // remove active/flying knives (usually useless, since knives are fast)
+}
+
 void cleanworldstate(ENetPacket *packet)
 {
    loopv(worldstates)
@@ -1533,6 +1539,12 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
             actor->state.teamkills * 60 * 1000 > gamemillis &&
             actor->state.frags < 4 * actor->state.teamkills)) disconnect_client(actor->clientnum, DISC_AUTOKICK);
     }
+}
+
+void client::suicide(int gun, int style)
+{
+    if (state.state != CS_DEAD)
+        serverdied(this, this, 0, gun, style, state.o);
 }
 
 // void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source, float dist = 0)
@@ -3120,9 +3132,15 @@ void process(ENetPacket *packet, int sender, int chan)
                 client *cp = clients[cn];
                 if(cp->state.state != CS_DEAD)
                 {
-                    // TODO: backport ACR's nuke on suicide mod
-                    //cp->suicide( NUMGUNS + (cn == sender ? 10 : 11), cn == sender ? FRAG_GIB : FRAG_NONE);
-                    serverdamage(cp, cp, cp->state.health << 1, GUN_KNIFE, cn == sender ? FRAG_GIB : FRAG_NONE);
+#if (SERVER_BUILTIN_MOD & 64)
+                    if (cp->type != ST_AI && !cp->nuked)
+                    {
+                        cp->nuked = true;
+                        nuke(*cp, true, true, true);
+                    }
+                    else
+#endif
+                    cp->suicide( NUMGUNS + (cn == sender ? 10 : 11), cn == sender ? FRAG_GIB : FRAG_NONE);
                 }
                 break;
             }
