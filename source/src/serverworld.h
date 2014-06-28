@@ -305,9 +305,25 @@ bool movechecks(client &cp, const vec &newo, const int newf)
         // did we die?
         if(cs.state != CS_ALIVE) return false;
     }
-    // TODO: out of map check
+    // out of map check
+    vec checko(newo);
+    checko.z += PLAYERHEIGHT / 10.f; // because the positions are now at the feet
+    if (/*cp.type != ST_LOCAL &&*/ !m_edit(gamemode) && checkpos(checko, false))
+    {
+        //if (cp.type == ST_AI) cp.suicide(NUMGUNS + 11);
+        //else
+        {
+            logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cp.gethostname(), cp.name, ++cp.mapcollisions);
+            defformatstring(msg)("%s (%d) \f2collides with the map \f5- \f3forcing death", cp.name, cp.clientnum);
+            sendservmsg(msg);
+            sendf(cp.clientnum, 1, "ri", SV_MAPIDENT);
+            forcedeath(&cp);
+            cp.isonrightmap = false; // cannot spawn until you get the right map
+        }
+        return false; // no pickups for you!
+    }
     // the rest can proceed without killing
-    // TODO item pickups
+    // item pickups
     if(!m_zombie(gamemode) || cp.team != TEAM_CLA)
         loopv(sents)
     {
@@ -322,7 +338,7 @@ bool movechecks(client &cp, const vec &newo, const int newf)
         if(dist > 3) continue;
         if(canheal)
         {
-            // healing station
+            // TODO healing station
             //addpt(&cp, HEALWOUNDPT * cs.wounds.length(), PR_HEALWOUND);
             //cs.wounds.shrink(0);
         }

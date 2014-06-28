@@ -418,7 +418,7 @@ void sendextras()
     sendpacket(-1, 1, p.finalize());
 }
 
-void sendservmsg(const char *msg, int cn = -1)
+void sendservmsg(const char *msg, int cn)
 {
     sendf(cn, 1, "ris", SV_SERVMSG, msg);
 }
@@ -2947,7 +2947,6 @@ void process(ENetPacket *packet, int sender, int chan)
                     cl->loggedwrongmap = true;
                     sendf(sender, 1, "rii", SV_SPAWNDENY, SP_WRONGMAP);
                 }
-                QUEUE_MSG;
                 break;
             }
 

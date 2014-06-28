@@ -529,7 +529,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_MAPIDENT:
             {
-                loopi(2) getint(p);
+                conoutf(_("%c3please %c1get the map %c2by typing %c0/getmap"), CC, CC, CC, CC);
                 break;
             }
 

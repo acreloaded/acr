@@ -417,6 +417,7 @@ void clearai(), checkai();
 
 void startgame(const char *newname, int newmode, int newmuts, int newtime = -1, bool notify = true);
 void disconnect_client(int n, int reason = -1);
+void sendservmsg(const char *msg, int cn = -1);
 void sendiplist(int receiver, int cn = -1);
 int clienthasflag(int cn);
 bool refillteams(bool now = false, int ftr = FTR_AUTOTEAM);
