@@ -62,7 +62,7 @@ struct weaponmove
             float progress = 0.0f;
             float k_back = 0.0f;
 
-            if(p->weaponsel==p->lastattackweapon)
+            if(p->weaponsel==p->lastattackweapon || p->weaponsel->type == WEAP_RPG)
             {
                 progress = max(0.0f, min(1.0f, timediff/(float)animtime));
                 // f(x) = -sin(x-1.5)^3
@@ -104,6 +104,22 @@ struct weaponmove
             pos.x -= aimdir.x*k_back+sway.x;
             pos.y -= aimdir.y*k_back+sway.y;
             pos.z -= aimdir.z*k_back+sway.z;
+
+            int swayremove = 0;
+			if(ads_gun(p->weaponsel->type)){
+				swayremove = p->ads;
+				if((anim&ANIM_INDEX) == ANIM_GUN_IDLE || (anim&ANIM_INDEX) == ANIM_GUN_SHOOT)
+					basetime = lastmillis - swayremove;
+			}
+			else if(p->weaponsel->type == GUN_AKIMBO) basetime = lastmillis;
+			//else if(p->weaponsel->type == GUN_KNIFE && ((knife *)p->weaponsel)->state) swayremove = 680;
+
+			if(swayremove){
+				k_rot *= 1 - sqrtf(swayremove / 1000.f) / 2.f;
+				k_back *= 1 - sqrtf(swayremove / 1000.f) / 1.1f;
+				sway.mul(1 - sqrtf(swayremove / 1000.f) / 1.2f);
+				swaydir.mul(1 - sqrtf(swayremove / 1000.f) / 1.3f);
+			}
         }
     }
 };

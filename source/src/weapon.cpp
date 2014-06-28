@@ -841,6 +841,7 @@ void weapon::renderhudmodel(int lastaction, int index)
     defformatstring(widn)("modmdlweap%d", type);
     defformatstring(path)("weapons/%s", identexists(widn)?getalias(widn):info.modelname);
     bool emit = (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT && (lastmillis - lastaction) < flashtime();
+    if(ads_gun(type) && type != WEAP_RPG && (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT) wm.anim = ANIM_GUN_IDLE;
 //    bool emit = (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT && (lastmillis - p->lastaction) < flashtime();
     rendermodel(path, wm.anim|ANIM_DYNALLOC|(righthanded==index ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, -1, wm.pos, p->yaw+90, p->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, NULL, 1.28f);
 }
