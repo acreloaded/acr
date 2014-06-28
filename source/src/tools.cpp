@@ -200,8 +200,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
                     sq.ceil = f->getchar();
                     if(sq.floor >= sq.ceil && sq.ceil > -128) sq.floor = sq.ceil - 1;  // for pre 12_13
                     diff = sq.ceil - sq.floor;
-                    if(sq.type == FHF) sq.floor = -128;
-                    if(sq.floor!=-128 && sq.floor<minfloor) minfloor = sq.floor;
+                    if(sq.type != FHF && sq.floor<minfloor) minfloor = sq.floor;
                     if(sq.ceil>maxceil) maxceil = sq.ceil;
                     sq.wtex = f->getchar();
 					f->getchar(); // ftex
