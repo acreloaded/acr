@@ -2688,12 +2688,16 @@ void forcedeath(client *cl)
 
 int checktype(int type, client *cl)
 {
-    if(cl && cl->type==ST_LOCAL) return type;
-    if(type < 0 || type >= SV_NUM) return -1;
-    if(cl)
+    if (cl && cl->type==ST_LOCAL) return type; // local
+    if (type < 0 || type >= SV_NUM) return -1; // out of range
+    if (cl && cl->type == ST_TCPIP)
     {
         // only allow edit messages in coop-edit mode
-        if(type > SV_EDITMODE && type <= SV_NEWMAP) return m_edit(smode) ? type : -1;
+        if (!m_edit(smode) && type >= SV_EDITH && type <= SV_NEWMAP) return -1; // SV_EDITMODE is handled
+        // overflow
+        static const int exempt[] = { SV_POS, SV_POSC, SV_SPAWN, SV_SHOOT, SV_SHOOTC, SV_EXPLODE };
+        // these types don't not contribute to overflow, just because the bots will have to send them too
+        loopi(sizeof(exempt) / sizeof(int)) if (type == exempt[i]) return type;
         if(++cl->overflow >= 200) return -2;
     }
     return type;
