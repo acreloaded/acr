@@ -47,7 +47,7 @@ struct entity : persistent_entity
     }
 };
 
-enum { GUN_KNIFE = 0, GUN_PISTOL, WEAP_SWORD, GUN_CARBINE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_CPISTOL, GUN_GRENADE, GUN_AKIMBO, WEAP_MAX, WEAP_RPG,  GUN_BOLT, GUN_ASSAULT2 };//implement everything after MAX
+enum { GUN_KNIFE = 0, GUN_PISTOL, WEAP_SWORD, GUN_CARBINE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_ASSAULT2, GUN_CPISTOL, GUN_GRENADE, GUN_AKIMBO, WEAP_MAX, WEAP_RPG,  GUN_BOLT };//implement everything after MAX
 #define isprimary(n) ((n >= GUN_CARBINE) && (n < GUN_CPISTOL))
 #define issecondary(n) (!(isprimary(n) || n == 0))
 

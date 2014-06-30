@@ -468,6 +468,7 @@ itemstat ammostats[WEAP_MAX] =
     { 60, 90,  90,  S_ITEMAMMO  },   // subgun
     { 10, 20,  15,  S_ITEMAMMO  },   // sniper
     { 40, 60,  60,  S_ITEMAMMO  },   // assault
+    { 40, 60,  60,  S_ITEMAMMO  },   // assault
     { 30, 45,  75,  S_ITEMAMMO  },   // cpistol
     {  1,  0,   3,  S_ITEMAMMO  },   // grenade
     {100,  0, 100,  S_ITEMAKIMBO}    // akimbo
@@ -496,8 +497,9 @@ guninfo guns[WEAP_MAX] =
     { "subgun",     S_SUBGUN,     S_RSUBGUN,  1650,   80,     16,   0,     0,   0,   70,  75,     4,    15,   30,   1,  2,   5,  25,     50,     188,  1,      true  },
     { "sniper",     S_SNIPER,     S_RSNIPER,  1950,   1500,   82,  25,     0,   0,  250,  95,    36,    50,    5,   4,  4,  10,  85,     85,     100,  1,      false },
     { "assault",    S_ASSAULT,    S_RASSAULT, 2000,   120,    22,   0,     0,   0,   65,  70,     3,    30,   20,   0,  2,   3,  25,     50,     115,  1,      true  },
+    { "assault2",   S_ASSAULT,    S_RASSAULT, 2000,   120,    22,   0,     0,   0,   65,  70,     3,    30,   20,   0,  2,   3,  25,     50,     115,  1,      true  },
     { "cpistol",    S_PISTOL,     S_RPISTOL,  1400,   120,    19,   0,     0,   0,   90,  80,     9,    10,   15,   6,  5,   6,  35,     50,     125,  1,      false },   // temporary
-    { "grenade",    S_NULL,       S_NULL,     1000,   650,    200,  0,    20,   6,    1,   0,     1,    1,   1,    3,   1,  0,   0,      0,      0,    3,      false },
+    { "grenade",    S_NULL,       S_NULL,     1000,   650,    200,  0,    20,   6,    1,   0,     1,     1,    1,   3,  1,   0,   0,      0,      0,   3,      false },
     { "pistol",     S_PISTOL,     S_RAKIMBO,  1400,   80,     19,   0,     0,   0,  120,   0,    14,    10,   20,   6,  5,   4,  15,     25,     115,  1,      true  },
 };
 

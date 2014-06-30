@@ -515,9 +515,9 @@ VARFP(nextprimary, 0, GUN_ASSAULT, WEAP_MAX,
 {
     if(!selectnextprimary(nextprimary)) selectnextprimary((nextprimary = GUN_ASSAULT));
 });
-VARFP(nextsecondary, 0, GUN_PISTOL, GUN_ASSAULT,
+VARFP(nextsecondary, 0, GUN_PISTOL, WEAP_MAX,
 {
-    if(!selectnextsecondary(nextsecondary)) selectnextsecondary((nextsecondary = GUN_ASSAULT));
+    if(!selectnextsecondary(nextsecondary)) selectnextsecondary((nextsecondary = GUN_PISTOL));
 });
 
 // flag ent actions done by the local player

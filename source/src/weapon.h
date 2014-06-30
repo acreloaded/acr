@@ -143,7 +143,7 @@ struct shotgun : gun
 
 struct assaultrifle : gun
 {
-    assaultrifle(playerent *owner);
+    assaultrifle(playerent *owner, int type);
     int dynspread();
     float dynrecoil();
     bool selectable();
@@ -210,6 +210,7 @@ struct sword : weapon
 
     void attackfx(const vec &from, const vec &to, int millis);
 	void renderstats(){}
+	bool selectable();
 	void renderaimhelp(int teamtype){}
 
     int flashtime() const;

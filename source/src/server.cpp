@@ -434,7 +434,7 @@ void sendspawn(client *c)
     gs.lifesequence++;
     sendf(c->clientnum, 1, "ri9vv", SV_SPAWNSTATE, c->clientnum, gs.lifesequence,
         gs.health, gs.armour,
-        gs.primary, gs.secondary, gs.gunselect, m_duke(gamemode, mutators) ? c->spawnindex : -1,
+        gs.primary, gs.gunselect, gs.secondary, m_duke(gamemode, mutators) ? c->spawnindex : -1,
         WEAP_MAX, gs.ammo, WEAP_MAX, gs.mag);
     gs.lastspawn = gamemillis;
 }

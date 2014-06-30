@@ -989,7 +989,7 @@ int main(int argc, char **argv)
     extern struct servercommandline scl;
     #ifdef WIN32
     //atexit((void (__cdecl *)(void))_CrtDumpMemoryLeaks);
-    #ifndef _DEBUG
+    #ifndef _DEBUG(
     #ifndef __GNUC__
     __try {
     #endif

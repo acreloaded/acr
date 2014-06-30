@@ -862,7 +862,7 @@ void weapon::onselecting()
 }
 
 void weapon::renderhudmodel() { renderhudmodel(owner->lastaction); }
-void weapon::renderaimhelp(bool teamwarning) { if(owner->ads != 1000) drawcrosshair(owner, teamwarning ? CROSSHAIR_TEAMMATE : owner->weaponsel->type + 3); }
+void weapon::renderaimhelp(bool teamwarning) { if(owner->ads != 1000) drawcrosshair(owner, teamwarning ? CROSSHAIR_TEAMMATE : min(owner->weaponsel->type + 3, CROSSHAIR_NUM-1)); }
 int weapon::dynspread() {
     if (info.spread <= 1) return 1;
     return (int)(info.spread * (owner->vel.magnitude() / 3.f + owner->pitchvel / 5.f + 0.4f) * 2.4f * owner->eyeheight / owner->maxeyeheight * (1 - sqrtf(owner->ads * info.spreadrem / 100 / 1000.f)));
@@ -881,7 +881,8 @@ void weapon::equipplayer(playerent *pl)
     pl->weapons[GUN_SHOTGUN] = new shotgun(pl);
     pl->weapons[GUN_SUBGUN] = new subgun(pl);
     pl->weapons[GUN_SNIPER] = new sniperrifle(pl);
-    pl->weapons[GUN_ASSAULT] = new assaultrifle(pl);
+    pl->weapons[GUN_ASSAULT] = new assaultrifle(pl, GUN_ASSAULT);
+    pl->weapons[GUN_ASSAULT2] = new assaultrifle(pl, GUN_ASSAULT2);
     pl->weapons[GUN_CPISTOL] = new cpistol(pl);
     pl->weapons[GUN_GRENADE] = new grenades(pl);
     pl->weapons[GUN_AKIMBO] = new akimbo(pl);
@@ -1327,7 +1328,7 @@ bool carbine::selectable() { return weapon::selectable() && !m_noprimary(gamemod
 
 // assaultrifle
 
-assaultrifle::assaultrifle(playerent *owner) : gun(owner, GUN_ASSAULT) {}
+assaultrifle::assaultrifle(playerent *owner, int type) : gun(owner, type) {}
 
 int assaultrifle::dynspread() { return shots > 2 ? 55 : ( info.spread + ( shots > 0 ? ( shots == 1 ? 5 : 15 ) : 0 ) ); }
 float assaultrifle::dynrecoil() { return info.recoil + (rnd(8)*-0.01f); }
@@ -1441,7 +1442,7 @@ COMMAND(setburst, "d");
 // pistol
 
 pistol::pistol(playerent *owner) : gun(owner, GUN_PISTOL) {}
-bool pistol::selectable() { return weapon::selectable() && !m_nosecondary(gamemode, mutators); }
+bool pistol::selectable() { return weapon::selectable() && !m_nosecondary(gamemode, mutators) && owner->secondweap==this; }
 
 
 // akimbo
@@ -1575,30 +1576,15 @@ bool sword::attack(vec &targ){
     gunwait = info.attackdelay;
 
     return true;
-/*
-	int attackmillis = lastmillis-owner->lastaction;
-	if(attackmillis<gunwait) return false;
-	gunwait = reloading = 0;
-
-	if(!owner->attacking) return false;
-	updatelastaction(owner);
-
-	owner->lastattackweapon = this;
-	owner->attacking = info.isauto;
-
-	attacksound();
-
-	sendshoot(targ);
-	gunwait = info.attackdelay;
-	return true;
-*/
 }
 
 int sword::modelanim() { return modelattacking() ? ANIM_GUN_SHOOT : ANIM_GUN_IDLE; }
 
-void sword::attackfx(const vec &from, const vec &to, int millis) { if(owner != player1 && !isowned(owner)) attacksound(); }
+void sword::attackfx(const vec &from, const vec &to, int millis) { attacksound(); }
 
 int sword::flashtime() const { return 0; }
+
+bool sword::selectable() { return weapon::selectable() && owner->secondweap==this; }
 
 void setscope(bool enable)
 {
