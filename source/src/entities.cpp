@@ -342,7 +342,7 @@ void pickupeffects(int n, playerent *d, int spawntime)
     switch(e.type)
     {
         case I_AKIMBO: w = d->weapons[GUN_AKIMBO]; break;
-        case I_CLIPS: w = d->weapons[GUN_PISTOL]; break;
+        case I_CLIPS: w = d->secondweap; break;
         case I_AMMO: w = d->primweap; break;
         case I_GRENADE: w = d->weapons[GUN_GRENADE]; break;
     }
@@ -475,7 +475,7 @@ void setspawn(int i, bool on)
 
 bool selectnextprimary(int num)
 {
-    if isprimary(num) {
+    if isprimary(++num) {
         player1->setnextprimary(num);
         addmsg(SV_LOADOUT, "ri", player1->nextprimweap->type);
         return true;

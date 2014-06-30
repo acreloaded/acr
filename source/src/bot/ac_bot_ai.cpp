@@ -32,7 +32,7 @@ weaponinfo_s WeaponInfoTable[MAX_WEAPONS] =
 };
 
 // Code of CACBot - Start
-
+//IMPLEMENT Work on AI code for secondaries.
 bool CACBot::ChoosePreferredWeapon()
 {
     short bestWeapon = m_pMyEnt->gunselect;

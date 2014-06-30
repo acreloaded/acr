@@ -527,7 +527,7 @@ struct mitemtextinput : mitemtext
         }
         copystring(showinput, input.buf + iboff, sc + 1);
 
-        char *masked;
+        char *masked = NULL;
         if(hideinput) // "mask" user input with asterisks, use for menuitemtextinputs that take passwords // TODO: better masking code?
         {
             masked = newstring(showinput);

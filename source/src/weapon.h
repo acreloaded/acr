@@ -201,3 +201,17 @@ struct knife : weapon
     int flashtime() const;
 };
 
+struct sword : weapon
+{
+    sword(playerent *owner);
+
+    bool attack(vec &targ);
+    int modelanim();
+
+    void attackfx(const vec &from, const vec &to, int millis);
+	void renderstats(){}
+	void renderaimhelp(int teamtype){}
+
+    int flashtime() const;
+};
+

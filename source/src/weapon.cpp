@@ -89,7 +89,7 @@ void shiftweapon(int *s)
         if(player1->akimbo)
         {
             availweapons.removeobj(akimbo); // and remove initial akimbo
-            int pistolidx = availweapons.find(player1->weapons[player1->secondary]);
+            int pistolidx = availweapons.find(player1->weapons[GUN_AKIMBO]);
             if(pistolidx>=0) availweapons[pistolidx] = akimbo; // insert at pistols position
             if(curweapon->type==GUN_PISTOL) curweapon = akimbo; // fix selection
         }
@@ -647,7 +647,7 @@ const char *weapstr(unsigned int i)
     case GUN_PISTOL:
         return "Pistol";
     case GUN_ASSAULT:
-        return "MTP-57";
+        return "M-16";
     case GUN_SUBGUN:
         return "A-ARD/10";
     case GUN_SNIPER:
@@ -662,6 +662,10 @@ const char *weapstr(unsigned int i)
         return "Grenades";
     case WEAP_SWORD:
         return "Sword";
+    case WEAP_RPG:
+        return "RPG-7";
+    case GUN_ASSAULT2:
+        return "AK-47";
     }
     return "x";
 }
@@ -870,16 +874,16 @@ bool weapon::deselectable() { return !reloading; }
 void weapon::equipplayer(playerent *pl)
 {
     if(!pl) return;
-    pl->weapons[GUN_ASSAULT] = new assaultrifle(pl);
-    pl->weapons[GUN_GRENADE] = new grenades(pl);
     pl->weapons[GUN_KNIFE] = new knife(pl);
-    pl->weapons[WEAP_SWORD] = new knife(pl);
     pl->weapons[GUN_PISTOL] = new pistol(pl);
-    pl->weapons[GUN_CPISTOL] = new cpistol(pl);
+    pl->weapons[WEAP_SWORD] = new sword(pl);
     pl->weapons[GUN_CARBINE] = new carbine(pl);
     pl->weapons[GUN_SHOTGUN] = new shotgun(pl);
-    pl->weapons[GUN_SNIPER] = new sniperrifle(pl);
     pl->weapons[GUN_SUBGUN] = new subgun(pl);
+    pl->weapons[GUN_SNIPER] = new sniperrifle(pl);
+    pl->weapons[GUN_ASSAULT] = new assaultrifle(pl);
+    pl->weapons[GUN_CPISTOL] = new cpistol(pl);
+    pl->weapons[GUN_GRENADE] = new grenades(pl);
     pl->weapons[GUN_AKIMBO] = new akimbo(pl);
     pl->selectweapon(GUN_ASSAULT);
     pl->setprimary(GUN_ASSAULT);
@@ -1533,6 +1537,68 @@ void knife::drawstats() {}
 void knife::attackfx(const vec &from, const vec &to, int millis) { attacksound(); }
 void knife::renderstats() { }
 
+// sword
+
+sword::sword(playerent *owner) : weapon(owner, WEAP_SWORD) {}
+
+bool sword::attack(vec &targ){
+    int attackmillis = lastmillis-owner->lastaction - gunwait;
+    if(attackmillis<0) return false;
+    gunwait = reloading = 0;
+
+    if(!owner->attacking) return false;
+
+    attackmillis = lastmillis - min(attackmillis, curtime);
+    updatelastaction(owner, attackmillis);
+
+    owner->lastattackweapon = this;
+    owner->attacking = false;
+
+    vec from = owner->o;
+    vec to = targ;
+    from.z -= weaponbeloweye;
+
+    vec unitv;
+    float dist = to.dist(from, unitv);
+    unitv.div(dist);
+    unitv.mul(3); // punch range
+    to = from;
+    to.add(unitv);
+    if ( owner->pitch < 0 ) to.z += 2.5 * sin( owner->pitch * 0.01745329 );
+
+    attackevent(owner, type);
+
+    hits.setsize(0);
+    raydamage(from, to, owner);
+    attackfx(from, to, 0);
+    sendshoot(from, to, attackmillis);
+    gunwait = info.attackdelay;
+
+    return true;
+/*
+	int attackmillis = lastmillis-owner->lastaction;
+	if(attackmillis<gunwait) return false;
+	gunwait = reloading = 0;
+
+	if(!owner->attacking) return false;
+	updatelastaction(owner);
+
+	owner->lastattackweapon = this;
+	owner->attacking = info.isauto;
+
+	attacksound();
+
+	sendshoot(targ);
+	gunwait = info.attackdelay;
+	return true;
+*/
+}
+
+int sword::modelanim() { return modelattacking() ? ANIM_GUN_SHOOT : ANIM_GUN_IDLE; }
+
+void sword::attackfx(const vec &from, const vec &to, int millis) { if(owner != player1 && !isowned(owner)) attacksound(); }
+
+int sword::flashtime() const { return 0; }
 
 void setscope(bool enable)
 {

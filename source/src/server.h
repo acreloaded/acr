@@ -462,7 +462,7 @@ itemstat ammostats[WEAP_MAX] =
 {
     {  1,  1,   1,  S_ITEMAMMO  },   // knife dummy
     { 20, 60, 100,  S_ITEMAMMO  },   // pistol
-    {  1,  1,   1,  S_ITEMAMMO  },   // sword dummy
+    {  1,  2,   1,  S_ITEMAMMO  },   // sword dummy
     { 15, 30,  30,  S_ITEMAMMO  },   // carbine
     { 14, 28,  21,  S_ITEMAMMO  },   // shotgun
     { 60, 90,  90,  S_ITEMAMMO  },   // subgun
@@ -514,28 +514,26 @@ float gunspeed(int gun, int ads){
 	if(ads) ret *= 1 - ads / 3000.f;
 	switch(gun){
 		case GUN_KNIFE:
-		case GUN_PISTOL:
 		case GUN_GRENADE:
 			break;
-		case WEAP_SWORD:
-			ret *= .9f;
-			break;
-		case GUN_AKIMBO:
+        case GUN_PISTOL:
 			ret *= .95f;
 			break;
+        case GUN_AKIMBO:
+		case WEAP_SWORD:
+        case GUN_SHOTGUN:
+		case GUN_SUBGUN:
+			ret *= .9f;
+			break;
+        case GUN_ASSAULT:
+		case GUN_ASSAULT2:
+		    ret *= .85f;
+		    break;
 		case GUN_SNIPER:
 		case GUN_BOLT:
 		case GUN_CARBINE:
 			ret *= .8f;
 			break;
-		case GUN_SHOTGUN:
-		case GUN_SUBGUN:
-			ret *= .9f;
-			break;
-		case GUN_ASSAULT:
-		case GUN_ASSAULT2:
-		    ret *= .85f;
-		    break;
 		case WEAP_RPG:
 			ret *= .65f;
 			break;

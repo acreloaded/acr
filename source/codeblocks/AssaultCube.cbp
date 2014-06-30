@@ -6,7 +6,7 @@
 		<Option makefile_is_custom="1" />
 		<Option execution_dir="E:/C++/ACR/acr/source/src/" />
 		<Option pch_mode="2" />
-		<Option compiler="gcc" />
+		<Option compiler="mingw32" />
 		<MakeCommands>
 			<Build command="cd ../src;$make -j16 -f $makefile $target" />
 			<CompileFile command="$make -f $makefile $file" />
@@ -21,7 +21,7 @@
 				<Option working_dir="../../" />
 				<Option object_output=".objs/default" />
 				<Option type="1" />
-				<Option compiler="gcc" />
+				<Option compiler="mingw32" />
 				<Option projectResourceIncludeDirsRelation="1" />
 				<Compiler>
 					<Add option="-O3" />
@@ -54,7 +54,7 @@
 				<Option working_dir="../../" />
 				<Option object_output=".objs/debug" />
 				<Option type="1" />
-				<Option compiler="gcc" />
+				<Option compiler="mingw32" />
 				<Option projectResourceIncludeDirsRelation="1" />
 				<Compiler>
 					<Add option="-Wall" />
@@ -87,7 +87,7 @@
 				<Option working_dir="../../" />
 				<Option object_output=".objs/server" />
 				<Option type="1" />
-				<Option compiler="gcc" />
+				<Option compiler="mingw32" />
 				<Option projectResourceIncludeDirsRelation="1" />
 				<Compiler>
 					<Add option="-DSTANDALONE" />
@@ -109,7 +109,7 @@
 				<Option working_dir="../../" />
 				<Option object_output=".objs/server-debug" />
 				<Option type="1" />
-				<Option compiler="gcc" />
+				<Option compiler="mingw32" />
 				<Option parameters="-mlocalhost" />
 				<Option projectResourceIncludeDirsRelation="1" />
 				<Compiler>
@@ -132,7 +132,7 @@
 				<Option working_dir="../../" />
 				<Option object_output=".objs/master" />
 				<Option type="1" />
-				<Option compiler="gcc" />
+				<Option compiler="mingw32" />
 				<Option projectResourceIncludeDirsRelation="1" />
 				<Compiler>
 					<Add option="-DSTANDALONE" />

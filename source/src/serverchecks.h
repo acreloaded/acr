@@ -295,6 +295,7 @@ void checkcombo(client *target, client *actor, int damage, int gun)
             switch (gun)
             {
                 case GUN_KNIFE:
+                case WEAP_SWORD:
                 case GUN_PISTOL:
                     if ( guns[actor->md.lastgun].isauto ) break;
                 case GUN_SNIPER:

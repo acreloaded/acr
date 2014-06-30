@@ -584,6 +584,7 @@ public:
         playerstate::respawn();
         history.reset();
         if(weaponsel) weaponsel->reset();
+        else weaponsel = weapons[primary];
         lastaction = 0;
         lastattackweapon = NULL;
         ads = 0;
