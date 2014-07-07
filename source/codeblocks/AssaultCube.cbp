@@ -3,7 +3,6 @@
 	<FileVersion major="1" minor="6" />
 	<Project>
 		<Option title="AssaultCube" />
-		<Option makefile="../src/Makefile" />
 		<Option makefile_is_custom="1" />
 		<Option execution_dir="E:/C++/ACR/acr/source/src/" />
 		<Option pch_mode="2" />
@@ -199,12 +198,12 @@
 				<Option compiler="mingw32" />
 				<Option parameters="--home=data --mod=acr --init" />
 				<MakeCommands>
-					<Build command="$make -f$makefile -C../src $target" />
-					<CompileFile command="$make -f$makefile -C../src $file" />
-					<Clean command="$make -f$makefile -C../src clean" />
+					<Build command="$make -f$makefile -C../src  DEBUG=0 $target" />
+					<CompileFile command="$make -f$makefile -C../src DEBUG=0 $file" />
+					<Clean command="$make -f$makefile -C../src DEBUG=0 clean" />
 					<DistClean command="$make -f $makefile distclean$target" />
-					<AskRebuildNeeded command="$make -f$makefile -C../src -q $target" />
-					<SilentBuild command="$make -f$makefile -C../src $target &gt; $(CMD_NULL)" />
+					<AskRebuildNeeded command="$make -f$makefile -C../src DEBUG=0 -q $target" />
+					<SilentBuild command="$make -f$makefile -C../src  DEBUG=0 $target &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
 		</Build>

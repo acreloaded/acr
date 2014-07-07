@@ -82,11 +82,13 @@ bool outofborder(const vec &p)
     return false;
 }
 
+#include <limits>
+
 bool checkpos(vec &p, bool alter = true)
 {
     bool ret = false;
     vec fix = p;
-    const float epsilon = .1f; // the real value is much smaller than that
+    const float epsilon = std::numeric_limits<float>::epsilon();//.1f; // the real value is much smaller than that
     // xy
     loopi(2)
     {

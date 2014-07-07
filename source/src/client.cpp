@@ -390,6 +390,11 @@ bool messagereliable = false;
 
 void addmsg(int type, const char *fmt, ...)
 {
+    #ifdef _DEBUG
+    if(type!=SV_POS && type!=SV_POSC && type!=SV_CLIENTPING && type!=SV_PINGPONG && type!=SV_CLIENT) {
+        ASSERT(type>=0 && type<SV_NUM);
+    }
+    #endif
     static uchar buf[MAXTRANS];
     ucharbuf p(buf, MAXTRANS);
     putint(p, type);
