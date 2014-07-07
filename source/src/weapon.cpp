@@ -730,12 +730,33 @@ int weapon::flashtime() const { return max((int)info.attackdelay, 120)/4; }
 
 void weapon::sendshoot(vec &from, vec &to, int millis)
 {
-    if(owner!=player1) return;
+    if (owner != player1 && !isowned(owner)) return;
     owner->shoot = true;
-    addmsg(SV_SHOOT, "ri2i3iv", millis, owner->weaponsel->type,
-           (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF),
-           hits.length(), hits.length()*sizeof(hitmsg)/sizeof(int), hits.getbuf());
-    player1->pstatshots[player1->weaponsel->type]++; //NEW
+    static uchar buf[MAXTRANS];
+    ucharbuf p(buf, MAXTRANS);
+    // standard shoot packet
+    putint(p, SV_SHOOT);
+    putint(p, owner->clientnum);
+    putint(p, lastmillis);
+    putint(p, owner->weaponsel->type);
+    putint(p, (int)(to.x*DMF));
+    putint(p, (int)(to.y*DMF));
+    putint(p, (int)(to.z*DMF));
+    // write positions
+    loopv(players)
+        if (players[i] && i != owner->clientnum && players[i]->state != CS_DEAD)
+        {
+            putint(p, i);
+            putint(p, (int)(players[i]->o.x*DMF));
+            putint(p, (int)(players[i]->o.y*DMF));
+            putint(p, (int)(players[i]->o.z*DMF));
+            putint(p, (int)(players[i]->head.x*DMF));
+            putint(p, (int)(players[i]->head.y*DMF));
+            putint(p, (int)(players[i]->head.z*DMF));
+        }
+    putint(p, -1);
+    addmsgraw(p, true);
+    owner->pstatshots[owner->weaponsel->type]++; //NEW
 }
 
 bool weapon::modelattacking()
@@ -767,7 +788,7 @@ bool weapon::reload(bool autoreloaded)
     audiomgr.playsound(info.reload, owner, local ? SP_HIGH : SP_NORMAL);
     if(local)
     {
-        addmsg(SV_RELOAD, "ri2", lastmillis, owner->weaponsel->type);
+        addmsg(SV_RELOAD, "ri3", owner->clientnum, lastmillis, owner->weaponsel->type);
         if(identexists("onReload"))
         {
             defformatstring(str)("onReload %d", (int)autoreloaded);
@@ -903,7 +924,7 @@ grenadeent::grenadeent (playerent *owner, int millis)
 {
     ASSERT(owner);
     nadestate = NS_NONE;
-    local = owner==player1;
+    local = owner==player1 || isowned(owner);
     bounceent::owner = owner;
     bounceent::millis = lastmillis;
     timetolive = 2000-millis;
@@ -926,7 +947,7 @@ void grenadeent::explode()
     hits.setsize(0);
     splash();
     if(local)
-        addmsg(SV_EXPLODE, "ri3iv", lastmillis, GUN_GRENADE, millis, hits.length(), hits.length()*sizeof(hitmsg)/sizeof(int), hits.getbuf());
+        addmsg(SV_EXPLODE, "ri7", owner->ownernum, lastmillis, GUN_GRENADE, millis, (int)(o.x*DMF), (int)(o.y*DMF), (int)(o.z*DMF));
     audiomgr.playsound(S_FEXPLODE, &o);
 }
 
@@ -1466,7 +1487,7 @@ void akimbo::onammopicked()
     {
         // if(owner->weaponsel->type!=GUN_SNIPER && owner->weaponsel->type!=GUN_GRENADE) owner->weaponswitch(this);
         if(akimboautoswitch || owner->weaponsel->type==GUN_PISTOL) owner->weaponswitch(this); // Give the client full control over akimbo auto-switching // Bukz 2011apr23
-        addmsg(SV_AKIMBO, "ri", lastmillis);
+        addmsg(SV_AKIMBO, "ri2", owner->clientnum, lastmillis);
     }
 }
 

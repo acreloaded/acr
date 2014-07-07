@@ -118,7 +118,7 @@ void parsepositions(ucharbuf &p)
             int cn, f, g;
             vec o, vel;
             float yaw, pitch, roll = 0;
-            bool scoping;//, shoot;
+            bool scoping, sprinting;//, shoot;
             if(type == SV_POSC)
             {
                 bitbuf<ucharbuf> q(p);
@@ -147,6 +147,7 @@ void parsepositions(ucharbuf &p)
                 o.z = z / DMF;
                 scoping = ( q.getbits(1) ? true : false );
                 q.getbits(1);//shoot = ( q.getbits(1) ? true : false );
+                sprinting = q.getbits(1) ? true : false;
             }
             else
             {
@@ -163,6 +164,7 @@ void parsepositions(ucharbuf &p)
                 if ((g>>2) & 1) vel.z = getint(p)/DVELF; else vel.z = 0;
                 scoping = ( (g>>4) & 1 ? true : false );
                 //shoot = ( (g>>5) & 1 ? true : false ); // we are not using this yet
+                sprinting = ((g >> 6) & 1 ? true : false);
                 f = getuint(p);
             }
             int seqcolor = (f>>6)&1;
@@ -198,6 +200,7 @@ void parsepositions(ucharbuf &p)
             f >>= 2;
             d->last_pos = totalmillis;
             updatecrouch(d, f&1);
+            d->sprinting = sprinting;
             updatepos(d);
             updatelagtime(d);
             extern int smoothmove, smoothdist;
@@ -526,7 +529,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_MAPIDENT:
             {
-                loopi(2) getint(p);
+                conoutf(_("%c3please %c1get the map %c2by typing %c0/getmap"), CC, CC, CC, CC);
                 break;
             }
 
@@ -785,9 +788,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_RELOAD:
             {
-                int cn = getint(p), gun = getint(p);
+                int cn = getint(p), gun = getint(p), mag = getint(p), ammo = getint(p);
                 playerent *p = getclient(cn);
-                if(p && p!=player1) p->weapons[gun]->reload(false);
+                if (!p || gun < 0 || gun >= NUMGUNS) break;
+                if (p != player1 && !isowned(p) && p->weapons[gun])
+                    p->weapons[gun]->reload(false);
+                p->ammo[gun] = ammo;
+                p->mag[gun] = mag;
+                //if (gun == GUN_KNIFE) p->addicon(eventicon::PICKUP);
                 break;
             }
 
@@ -1053,10 +1061,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_WEAPCHANGE:
             {
-                int gun = getint(p);
-                if(!d || gun < 0 || gun >= WEAP_MAX) break;
-				d->ads = 0;
-				d->selectweapon(gun);
+                int cn = getint(p), gun = getint(p);
+                playerent *d = getclient(cn);
+                if (!d || gun < 0 || gun >= NUMGUNS) break;
+                d->zoomed = 0;
+                d->weaponswitch(d->weapons[gun]);
+                //if(!d->weaponchanging) d->selectweapon(gun);
                 break;
             }
 

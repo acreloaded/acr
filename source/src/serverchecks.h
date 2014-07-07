@@ -506,7 +506,7 @@ void checkcover(client *target, client *actor)
 #undef CALCCOVER
 
 /** WiP */
-void checkfrag(client *target, client *actor, int gun, bool gib)
+void checkfrag(client *target, client *actor, int gun, int style)
 {
     int targethasflag = clienthasflag(target->clientnum);
     int actorhasflag = clienthasflag(actor->clientnum);
@@ -528,7 +528,7 @@ void checkfrag(client *target, client *actor, int gun, bool gib)
             }
             else addpt(actor, BONUSPT);
 
-            if (gib && gun != GUN_GRENADE) {
+            if ((style & FRAG_GIB) && gun != GUN_GRENADE) {
                 if ( gun == GUN_SNIPER ) {
                     addpt(actor, HEADSHOTPT);
                     actor->md.nhs++;
@@ -655,10 +655,11 @@ inline void checkmove(client *cl)
 	// TODO: detect speedhack
 }
 
-inline void checkshoot(int & cn, gameevent & shot, int & hits, int & tcn)
+inline void checkshoot(int & cn, timedevent & shot)
 {
+    // hit, tcn -> 0, -1
 #ifdef ACAC
-    s_engine(cn, shot, hits, tcn);
+    s_engine(cn, shot, 0, -1);
 #endif
     return;
 }
@@ -669,14 +670,6 @@ inline void checkweapon(int & type, int & var)
     w_engine(type,var);
 #endif
     return;
-}
-
-bool validdamage(client *&target, client *&actor, int &damage, int &gun, bool &gib)
-{
-#ifdef ACAC
-    if (!d_engine(target, actor, damage, gun, gib)) return false;
-#endif
-    return true;
 }
 
 inline int checkmessage(client *c, int type)

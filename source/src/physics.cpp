@@ -431,6 +431,14 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 			d.mul(vec(spd, spd, 1));
 		}
 
+        if (pl->type == ENT_PLAYER)
+        {
+            playerent *p = (playerent *)pl;
+            float spd = 1;
+            if (p->sprinting) spd *= 0.6f; // sprint = walk for now
+            d.mul(spd);
+        }
+
         pl->vel.mul(fpsfric-1.0f);   // slowly apply friction and direction to velocity, gives a smooth movement
         pl->vel.add(d);
         pl->vel.div(fpsfric);
@@ -824,6 +832,12 @@ void crouch(bool on)
     player1->trycrouch = on;
 }
 
+void sprint(bool on)
+{
+    if (intermission) return;
+    player1->sprinting = on;
+}
+
 int inWater(int *type)
 {
     if(hdr.waterlevel > (*type ? player1->o.z : (player1->o.z - player1->eyeheight))) return 1;
@@ -837,6 +851,7 @@ COMMAND(right, "d");
 COMMANDN(jump, jumpn, "d");
 COMMAND(attack, "d");
 COMMAND(crouch, "d");
+COMMAND(sprint, "d");
 COMMAND(inWater, "i");
 
 void fixcamerarange(physent *cam)

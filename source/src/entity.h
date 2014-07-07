@@ -47,7 +47,10 @@ struct entity : persistent_entity
     }
 };
 
-enum { GUN_KNIFE = 0, GUN_PISTOL, WEAP_SWORD, GUN_CARBINE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_ASSAULT2, GUN_CPISTOL, GUN_GRENADE, GUN_AKIMBO, WEAP_MAX, WEAP_RPG,  GUN_BOLT };//implement everything after MAX
+//enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_CARBINE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_CPISTOL, GUN_GRENADE, GUN_AKIMBO, NUMGUNS };
+//#define reloadable_gun(g) (g != GUN_KNIFE && g != GUN_GRENADE)
+#define NUMGUNS WEAP_MAX
+enum { GUN_KNIFE = 0, GUN_PISTOL, WEAP_SWORD, GUN_CARBINE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_ASSAULT2, GUN_CPISTOL, GUN_GRENADE, GUN_AKIMBO, WEAP_MAX, WEAP_RPG,  GUN_BOLT, GUN_SNIPER2, GUN_HEAL };//implement everything after MAX
 #define isprimary(n) ((n >= GUN_CARBINE) && (n < GUN_CPISTOL))
 #define issecondary(n) (!(isprimary(n) || n == 0))
 
@@ -127,6 +130,7 @@ extern guninfo guns[WEAP_MAX];
 static inline int reloadtime(int gun) { return guns[gun].reloadtime; }
 static inline int attackdelay(int gun) { return guns[gun].attackdelay; }
 static inline int magsize(int gun) { return guns[gun].magsize; }
+static inline int reloadsize(int gun) { return gun == GUN_GRENADE || gun == GUN_KNIFE ? 0 : guns[gun].magsize - 1; }
 
 /** roseta stone:
        0000,         0001,      0010,           0011,            0100,       0101,     0110 */
@@ -175,7 +179,7 @@ public:
     int timeinair;                      // used for fake gravity
     float radius, eyeheight, maxeyeheight, aboveeye;  // bounding box size
     bool inwater;
-    bool onfloor, onladder, jumpnext, crouching, crouchedinair, trycrouch, cancollide, stuck, scoping, shoot;
+    bool onfloor, onladder, jumpnext, crouching, crouchedinair, trycrouch, sprinting, cancollide, stuck, scoping, shoot;
     int lastjump;
     float lastjumpheight;
     int lastsplash;
@@ -186,7 +190,7 @@ public:
     int zoomed;
 
     physent() : o(0, 0, 0), deltapos(0, 0, 0), newpos(0, 0, 0), yaw(270), pitch(0), roll(0), pitchvel(0),
-            crouching(false), crouchedinair(false), trycrouch(false), cancollide(true), stuck(false), scoping(false), shoot(false), lastjump(0), lastjumpheight(0), lastsplash(0), state(CS_ALIVE), last_pos(0)
+            crouching(false), crouchedinair(false), trycrouch(false), sprinting(false), cancollide(true), stuck(false), scoping(false), shoot(false), lastjump(0), lastjumpheight(0), lastsplash(0), state(CS_ALIVE), last_pos(0)
     {
         reset();
     }
@@ -204,7 +208,7 @@ public:
         vel.x = vel.y = vel.z = eyeheightvel = vel_t.x = vel_t.y = vel_t.z = 0.0f;
         move = strafe = 0;
         timeinair = lastjump = lastsplash = 0;
-        onfloor = onladder = inwater = jumpnext = crouching = crouchedinair = trycrouch = stuck = false;
+        onfloor = onladder = inwater = jumpnext = crouching = crouchedinair = trycrouch = sprinting = stuck = false;
         last_pos = 0;
         zoomed = 0;
     }

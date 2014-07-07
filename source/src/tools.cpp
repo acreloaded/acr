@@ -181,9 +181,9 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
         loopk(layoutsize)
         {
             ssqr &sq = testlayout[k];
-            int type = f->getchar();
+            sq.type = f->getchar();
             int n = 1;
-            switch(type)
+            switch (sq.type)
             {
                 case 255:
                 {
@@ -203,8 +203,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
                     sq.ceil = f->getchar();
                     if(sq.floor >= sq.ceil && sq.ceil > -128) sq.floor = sq.ceil - 1;  // for pre 12_13
                     diff = sq.ceil - sq.floor;
-                    if(sq.type == FHF) sq.floor = -128;
-                    if(sq.floor!=-128 && sq.floor<minfloor) minfloor = sq.floor;
+                    if(sq.type != FHF && sq.floor<minfloor) minfloor = sq.floor;
                     if(sq.ceil>maxceil) maxceil = sq.ceil;
                     sq.wtex = f->getchar();
 					f->getchar(); // ftex
@@ -222,7 +221,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
                     if(s.hdr.version<=2) { f->getchar(); f->getchar(); }
                     break;
             }
-            if ( type != SOLID && diff > 6 )
+            if (sq.type != SOLID && diff > 6)
             {
                 // Lucas (10mar2013): Removed "pow2" because it was too strict
                 if (diff > MAXMHEIGHT) SHhits += /*pow2*/(diff-MAXMHEIGHT)*n;

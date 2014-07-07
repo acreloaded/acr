@@ -63,6 +63,8 @@ int totalclients = 0;
 int cn2boot;
 int servertime = 0, serverlagged = 0;
 
+#include "serverworld.h"
+
 bool valid_client(int cn)
 {
     return clients.inrange(cn) && clients[cn]->type != ST_EMPTY;
@@ -79,6 +81,12 @@ bool client::hasclient(int cn)
 {
 	if(!valid_client(cn)) return false;
 	return clientnum == cn || clients[cn]->ownernum == clientnum;
+}
+
+void client::removeexplosives()
+{
+    state.grenades.reset(); // remove active/flying nades
+    state.knives.reset(); // remove active/flying knives (usually useless, since knives are fast)
 }
 
 void cleanworldstate(ENetPacket *packet)
@@ -416,7 +424,7 @@ void sendextras()
     sendpacket(-1, 1, p.finalize());
 }
 
-void sendservmsg(const char *msg, int cn = -1)
+void sendservmsg(const char *msg, int cn)
 {
     sendf(cn, 1, "ris", SV_SERVMSG, msg);
 }
@@ -1469,9 +1477,79 @@ void checkitemspawns(int diff)
     }
 }
 
-void serverdamage(client *target, client *actor, int damage, int gun, bool gib, const vec &hitpush = vec(0, 0, 0))
+void serverdied(client *target, client *actor, int damage, int gun, int style, const vec &source, float killdist = 0)
 {
-    if (!m_demo(gamemode) && !m_edit(gamemode) && !validdamage(target, actor, damage, gun, gib)) return;
+    clientstate &ts = target->state;
+
+    int targethasflag = clienthasflag(target->clientnum);
+    bool tk = false, suic = false;
+    target->state.deaths++;
+    checkfrag(target, actor, gun, style);
+    if (target != actor)
+    {
+        if (!isteam(target->team, actor->team)) actor->state.frags += (style & FRAG_GIB) && gun != GUN_GRENADE && gun != GUN_SHOTGUN ? 2 : 1;
+        else
+        {
+            actor->state.frags--;
+            actor->state.teamkills++;
+            tk = true;
+        }
+    }
+    else
+    { // suicide
+        actor->state.frags--;
+        suic = true;
+        logline(ACLOG_INFO, "[%s] %s suicided", actor->hostname, actor->name);
+    }
+    sendf(-1, 1, "ri6", SV_KILL, target->clientnum, actor->clientnum, actor->state.frags, gun, style);
+    if ((suic || tk) && (m_hunt(gamemode) || m_keep(gamemode)) && targethasflag >= 0)
+    {
+        actor->state.flagscore--;
+        sendf(-1, 1, "riii", SV_FLAGCNT, actor->clientnum, actor->state.flagscore);
+    }
+    target->position.setsize(0);
+    ts.state = CS_DEAD;
+    ts.lastdeath = gamemillis;
+    if (!suic) logline(ACLOG_INFO, "[%s] %s %s%s %s", actor->hostname, actor->name, killmessage(gun, style & FRAG_GIB), tk ? " teammate" : "", target->name);
+    if (m_flags(gamemode) && targethasflag >= 0)
+    {
+        if (m_capture(gamemode))
+            flagaction(targethasflag, tk ? FA_RESET : FA_LOST, -1);
+        else if (m_hunt(gamemode))
+            flagaction(targethasflag, FA_LOST, -1);
+        else // ktf || tktf
+            flagaction(targethasflag, FA_RESET, -1);
+    }
+    // don't issue respawn yet until DEATHMILLIS has elapsed
+    // ts.respawn();
+
+    if (isdedicated && actor->type == ST_TCPIP && tk)
+    {
+        if (actor->state.frags < scl.banthreshold ||
+            /** teamkilling more than 6 (defaults), more than 2 per minute and less than 4 frags per tk */
+            (actor->state.teamkills >= -scl.banthreshold &&
+            actor->state.teamkills * 30 * 1000 > gamemillis &&
+            actor->state.frags < 4 * actor->state.teamkills))
+        {
+            addban(actor, DISC_AUTOBAN);
+        }
+        else if (actor->state.frags < scl.kickthreshold ||
+            /** teamkilling more than 5 (defaults), more than 1 tk per minute and less than 4 frags per tk */
+            (actor->state.teamkills >= -scl.kickthreshold &&
+            actor->state.teamkills * 60 * 1000 > gamemillis &&
+            actor->state.frags < 4 * actor->state.teamkills)) disconnect_client(actor->clientnum, DISC_AUTOKICK);
+    }
+}
+
+void client::suicide(int gun, int style)
+{
+    if (state.state != CS_DEAD)
+        serverdied(this, this, 0, gun, style, state.o);
+}
+
+// void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source, float dist = 0)
+void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &hitpush = vec(0, 0, 0))
+{
     if ( m_duke(gamemode, mutators) && gun == GUN_GRENADE && arenaroundstartmillis + 2000 > gamemillis && target != actor ) return;
     clientstate &ts = target->state;
     ts.dodamage(damage, gun);
@@ -1493,67 +1571,9 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
             }
         }
     }
-    if(ts.health<=0)
-    {
-        int targethasflag = clienthasflag(target->clientnum);
-        bool tk = false, suic = false;
-        target->state.deaths++;
-        checkfrag(target, actor, gun, gib);
-        if(target!=actor)
-        {
-            if(!isteam(target->team, actor->team)) actor->state.frags += gib && gun != GUN_GRENADE && gun != GUN_SHOTGUN ? 2 : 1;
-            else
-            {
-                actor->state.frags--;
-                actor->state.teamkills++;
-                tk = true;
-            }
-        }
-        else
-        { // suicide
-            actor->state.frags--;
-            suic = true;
-            logline(ACLOG_INFO, "[%s] %s suicided", actor->hostname, actor->name);
-        }
-        sendf(-1, 1, "ri6", SV_KILL, target->clientnum, actor->clientnum, actor->state.frags, gun, gib);
-        if((suic || tk) && (m_hunt(gamemode) || m_keep(gamemode)) && targethasflag >= 0)
-        {
-            actor->state.flagscore--;
-            sendf(-1, 1, "riii", SV_FLAGCNT, actor->clientnum, actor->state.flagscore);
-        }
-        target->position.setsize(0);
-        ts.state = CS_DEAD;
-        ts.lastdeath = gamemillis;
-        if(!suic) logline(ACLOG_INFO, "[%s] %s %s%s %s", actor->hostname, actor->name, killmessage(gun, gib), tk ? " their teammate" : "", target->name);
-        if(m_flags(gamemode) && targethasflag >= 0)
-        {
-            if(m_capture(gamemode))
-                flagaction(targethasflag, tk ? FA_RESET : FA_LOST, -1);
-            else if(m_hunt(gamemode))
-                flagaction(targethasflag, FA_LOST, -1);
-            else // ktf || tktf
-                flagaction(targethasflag, FA_RESET, -1);
-        }
-        // don't issue respawn yet until DEATHMILLIS has elapsed
-        // ts.respawn();
-
-        if(isdedicated && actor->type == ST_TCPIP && tk)
-        {
-            if( actor->state.frags < scl.banthreshold ||
-                /** teamkilling more than 6 (defaults), more than 2 per minute and less than 4 frags per tk */
-                ( actor->state.teamkills >= -scl.banthreshold &&
-                  actor->state.teamkills * 30 * 1000 > gamemillis &&
-                  actor->state.frags < 4 * actor->state.teamkills ) )
-            {
-                addban(actor, DISC_AUTOBAN);
-            }
-            else if( actor->state.frags < scl.kickthreshold ||
-                     /** teamkilling more than 5 (defaults), more than 1 tk per minute and less than 4 frags per tk */
-                     ( actor->state.teamkills >= -scl.kickthreshold &&
-                       actor->state.teamkills * 60 * 1000 > gamemillis &&
-                       actor->state.frags < 4 * actor->state.teamkills ) ) disconnect_client(actor->clientnum, DISC_AUTOKICK);
-        }
-    } else if ( target!=actor && isteam(target->team, actor->team) ) check_ffire (target, actor, damage); // friendly fire counter
+    if (ts.health <= 0)
+        serverdied(target, actor, damage, gun, style, hitpush);
+    else if ( target!=actor && isteam(target->team, actor->team) ) check_ffire (target, actor, damage); // friendly fire counter
 }
 
 #include "serverevents.h"
@@ -2685,16 +2705,18 @@ void forcedeath(client *cl)
     sendf(-1, 1, "rii", SV_FORCEDEATH, cl->clientnum);
 }
 
-#include "serverworld.h"
-
 int checktype(int type, client *cl)
 {
-    if(cl && cl->type==ST_LOCAL) return type;
-    if(type < 0 || type >= SV_NUM) return -1;
-    if(cl)
+    if (cl && cl->type==ST_LOCAL) return type; // local
+    if (type < 0 || type >= SV_NUM) return -1; // out of range
+    if (cl && cl->type == ST_TCPIP)
     {
         // only allow edit messages in coop-edit mode
-        if(type > SV_EDITMODE && type <= SV_NEWMAP) return m_edit(smode) ? type : -1;
+        if (!m_edit(smode) && type >= SV_EDITH && type <= SV_NEWMAP) return -1; // SV_EDITMODE is handled
+        // overflow
+        static const int exempt[] = { SV_POS, SV_POSC, SV_SPAWN, SV_SHOOT, SV_SHOOTC, SV_EXPLODE };
+        // these types don't not contribute to overflow, just because the bots will have to send them too
+        loopi(sizeof(exempt) / sizeof(int)) if (type == exempt[i]) return type;
         if(++cl->overflow >= 200) return -2;
     }
     return type;
@@ -2945,17 +2967,43 @@ void process(ENetPacket *packet, int sender, int chan)
                     cl->loggedwrongmap = true;
                     sendf(sender, 1, "rii", SV_SPAWNDENY, SP_WRONGMAP);
                 }
-                QUEUE_MSG;
                 break;
             }
 
-            case SV_WEAPCHANGE:
+            case SV_WEAPCHANGE: // cn weap
             {
-                int gunselect = getint(p);
-                if(gunselect<0 || gunselect>=WEAP_MAX || gunselect == GUN_CPISTOL) break;
+                int cn = getint(p), gunselect = getint(p);
+                if (!cl->hasclient(cn)) break;
+                client &cp = *clients[cn];
+                if (gunselect < 0 || gunselect >= NUMGUNS) break;
                 if(!m_demo(gamemode) && !m_edit(gamemode)) checkweapon(type,gunselect);
-                cl->state.gunselect = gunselect;
-                QUEUE_MSG;
+#if (SERVER_BUILTIN_MOD & 8)
+                if (weaponsel != cp.state.primary)
+                {
+                    // stop bots from switching back
+                    sendf(-1, 1, "ri5", SV_RELOAD, cn, weaponsel, cp.state.mag[weaponsel] = 0, cp.state.ammo[weaponsel] = 0);
+                    // disallow switching
+                    sendf(sender, 1, "ri3", SV_WEAPCHANGE, cn, cp.state.primary);
+                }
+#else
+                // TODO
+                /*
+                cp.state.gunwait[cp.state.gunselect = gunselect] += SWITCHTIME(cp.state.perk1 == PERK_TIME);
+                sendf(-1, 1, "ri3x", SV_WEAPCHANGE, cn, gunselect, sender);
+                cp.state.scoping = false;
+                cp.state.scopemillis = gamemillis - ADSTIME(cp.state.perk2 == PERK_TIME);
+                */
+#endif
+                break;
+            }
+
+            case SV_QUICKSWITCH:
+            {
+                const int cn = getint(p);
+                if (!cl->hasclient(cn)) break;
+                client &cp = *clients[cn];
+                // TODO
+                //sendf(-1, 1, "ri2x", SV_QUICKSWITCH, cn, sender);
                 break;
             }
 
@@ -3087,81 +3135,83 @@ void process(ENetPacket *packet, int sender, int chan)
                 client *cp = clients[cn];
                 if(cp->state.state != CS_DEAD)
                 {
-                    // TODO: backport ACR's nuke on suicide mod
-                    //cp->suicide( WEAP_MAX + (cn == sender ? 10 : 11), cn == sender ? FRAG_GIB : FRAG_NONE);
-                    serverdamage(cp, cp, cp->state.health << 1, GUN_KNIFE, true);
+#if (SERVER_BUILTIN_MOD & 64)
+                    if (cp->type != ST_AI && !cp->nuked)
+                    {
+                        cp->nuked = true;
+                        nuke(*cp, true, true, true);
+                    }
+                    else
+#endif
+                    cp->suicide( NUMGUNS + (cn == sender ? 10 : 11), cn == sender ? FRAG_GIB : FRAG_NONE);
                 }
                 break;
             }
 
-            case SV_SHOOT:
+            case SV_SHOOT: // TODO: cn id weap to.x to.y to.z heads.length heads.v
+            case SV_SHOOTC: // TODO: cn id weap
             {
-                gameevent &shot = cl->addevent();
-                shot.type = GE_SHOT;
-                #define seteventmillis(event) \
-                { \
-                    event.id = getint(p); \
-                    if(!cl->timesync || (cl->events.length()==1 && cl->state.waitexpired(gamemillis))) \
-                    { \
-                        cl->timesync = true; \
-                        cl->gameoffset = gamemillis - event.id; \
-                        event.millis = gamemillis; \
-                    } \
-                    else event.millis = cl->gameoffset + event.id; \
-                }
-                seteventmillis(shot.shot);
-                shot.shot.gun = getint(p);
-                loopk(3) { shot.shot.from[k] = cl->state.o.v[k] + ( k == 2 ? (((cl->f>>7)&1)?2.2f:4.2f) : 0); }
-                loopk(3) { float v = getint(p)/DMF; shot.shot.to[k] = ((k<2 && v<0.0f)?0.0f:v); }
-                int hits = getint(p);
-                int tcn = -1;
-                loopk(hits)
+                const int cn = getint(p), id = getint(p), weap = getint(p);
+                shotevent *ev = new shotevent(0, id, weap);
+                if (!(ev->compact = (type == SV_SHOOTC)))
                 {
-                    gameevent &hit = cl->addevent();
-                    hit.type = GE_HIT;
-                    tcn = hit.hit.target = getint(p);
-                    hit.hit.lifesequence = getint(p);
-                    hit.hit.info = getint(p);
-                    loopk(3) hit.hit.dir[k] = getint(p)/DNF;
+                    loopi(3) ev->to[i] = getint(p) / DMF;
+                    loopi(MAXCLIENTS)
+                    {
+                        posinfo info;
+                        info.cn = getint(p);
+                        if (info.cn < 0) break; // cannot hit self, so MAXCLIENTS should be the end
+                        loopj(3) info.o[j] = getint(p) / DMF;
+                        loopj(3) info.head[j] = getint(p) / DMF;
+                        // reject duplicate positions
+                        int k = 0;
+                        for (k = 0; k < ev->pos.length(); k++)
+                            if (ev->pos[k].cn == info.cn)
+                                break;
+                        // add if not found
+                        if (k >= ev->pos.length())
+                            ev->pos.add(info);
+                    }
                 }
-                if(!m_demo(gamemode) && !m_edit(gamemode)) checkshoot(sender, shot, hits, tcn);
+
+                if (!m_demo(gamemode) && !m_edit(gamemode)) checkshoot(sender, *ev);
+
+                client *cp = cl->hasclient(cn) ? clients[cn] : NULL;
+                if (cp)
+                {
+                    ev->millis = cp->getmillis(gamemillis, id);
+                    cp->addevent(ev);
+                }
+                else delete ev;
                 break;
             }
 
-            case SV_EXPLODE: // Brahma says: FIXME handle explosion by location and deal damage from server
+            case SV_EXPLODE: // cn id weap flags x y z
             {
-                gameevent &exp = cl->addevent();
-                exp.type = GE_PROJ;
-                seteventmillis(exp.explode);
-                exp.explode.gun = getint(p);
-                exp.explode.id = getint(p);
-                int hits = getint(p);
-                loopk(hits)
-                {
-                    gameevent &hit = cl->addevent();
-                    hit.type = GE_HIT;
-                    hit.hit.target = getint(p);
-                    hit.hit.lifesequence = getint(p);
-                    hit.hit.dist = getint(p)/DMF;
-                    loopk(3) hit.hit.dir[k] = getint(p)/DNF;
-                }
+                const int cn = getint(p), id = getint(p), weap = getint(p), flags = getint(p);
+                vec o;
+                loopi(3) o[i] = getint(p) / DMF;
+                client *cp = cl->hasclient(cn) ? clients[cn] : NULL;
+                if (!cp) break;
+                cp->addevent(new destroyevent(cp->getmillis(gamemillis, id), id, weap, flags, o));
                 break;
             }
 
             case SV_AKIMBO:
             {
-                gameevent &akimbo = cl->addevent();
-                akimbo.type = GE_AKIMBO;
-                seteventmillis(akimbo.akimbo);
+                const int cn = getint(p), id = getint(p);
+                if (!cl->hasclient(cn)) break;
+                client *cp = clients[cn];
+                cp->addevent(new akimboevent(cp->getmillis(gamemillis, id), id));
                 break;
             }
 
-            case SV_RELOAD:
+            case SV_RELOAD: // cn id weap
             {
-                gameevent &reload = cl->addevent();
-                reload.type = GE_RELOAD;
-                seteventmillis(reload.reload);
-                reload.reload.gun = getint(p);
+                int cn = getint(p), id = getint(p), weap = getint(p);
+                if (!cl->hasclient(cn)) break;
+                client *cp = clients[cn];
+                cp->addevent(new reloadevent(cp->getmillis(gamemillis, id), id, weap));
                 break;
             }
 
@@ -3678,7 +3728,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 if (!m_edit(gamemode) && editing && cl->type == ST_TCPIP)
                 {
                     // unacceptable!
-                    serverdamage(cl, cl, 1000, GUN_KNIFE, true);
+                    serverdamage(cl, cl, 1000, GUN_KNIFE, FRAG_GIB);
                     break;
                 }
                 if (cl->state.state != (editing ? CS_ALIVE : CS_EDITING)) break;
@@ -3736,7 +3786,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 break;
             }
 
-            case SV_THROWNADE:
+            case SV_THROWNADE: // & SV_THROWKNIFE TODO
                 getint(p);
             case SV_SHOTFX:
                 getint(p);
