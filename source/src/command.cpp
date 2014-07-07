@@ -1448,7 +1448,7 @@ void writecfg()
     audiomgr.writesoundconfig(f);
     f->printf("\n");
     f->printf("// kill messages for each weapon\n");
-    loopi(WEAP_MAX)
+    loopi(NUMGUNS)
     {
         const char *fragmsg = killmessage(i, false);
         const char *gibmsg = killmessage(i, true);
@@ -1466,7 +1466,7 @@ void writecfg()
         }
     );
     f->printf("\n// weapon settings\n\n");
-    loopi(WEAP_MAX) if(guns[i].isauto)
+    loopi(NUMGUNS) if(guns[i].isauto)
     {
         f->printf("burstshots %d %d\n", i, burstshotssettings[i]);
     }

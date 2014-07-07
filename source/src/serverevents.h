@@ -151,7 +151,7 @@ void processevents()
 				while(cs.drownval < drownstate)
                 {
 					++cs.drownval;
-					serverdamage(&c, &c, (m_classic(gamemode, mutators) ? 5 : (cs.drownval + 10)) * HEALTHSCALE, WEAP_MAX + 13, FRAG_NONE, cs.o);
+					serverdamage(&c, &c, (m_classic(gamemode, mutators) ? 5 : (cs.drownval + 10)) * HEALTHSCALE, NUMGUNS + 13, FRAG_NONE, cs.o);
 					if(cs.state != CS_ALIVE) break; // dead!
 				}
 			}

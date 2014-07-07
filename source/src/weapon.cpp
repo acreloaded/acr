@@ -11,11 +11,11 @@ VARP(akimboendaction, 0, 3, 3); // 0: switch to knife, 1: stay with pistol (if h
 sgray sgr[SGRAYS*3];
 sgray pat[SGRAYS*3]; // DEBUG 2011may27
 
-int burstshotssettings[WEAP_MAX] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, };
+int burstshotssettings[NUMGUNS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, };
 
 void updatelastaction(playerent *d, int millis = lastmillis)
 {
-    loopi(WEAP_MAX) d->weapons[i]->updatetimers(millis);
+    loopi(NUMGUNS) d->weapons[i]->updatetimers(millis);
     d->lastaction = millis;
 }
 
@@ -57,7 +57,7 @@ void selectweapon(weapon *w)
 
 void requestweapon(int *w)
 {
-    if(keypressed && player1->state == CS_ALIVE && *w >= 0 && *w < WEAP_MAX )
+    if(keypressed && player1->state == CS_ALIVE && *w >= 0 && *w < NUMGUNS )
     {
         if (player1->akimbo && *w==GUN_PISTOL) *w = GUN_AKIMBO;
         selectweapon(player1->weapons[*w]);
@@ -75,7 +75,7 @@ void shiftweapon(int *s)
 
         // collect available weapons
         vector<weapon *> availweapons;
-        loopi(WEAP_MAX)
+        loopi(NUMGUNS)
         {
             weapon *w = player1->weapons[i];
             if(!w) continue;
@@ -137,8 +137,8 @@ void curweapon() { intret(player1->weaponsel->type); }
 void zoomprogress() { intret(player1->ads); }
 void isscoped() { intret(player1->ads >= weapon::adsscope ? 1 : 0); }
 
-void magcontent(int *w) { if(*w >= 0 && *w < WEAP_MAX) intret(player1->weapons[*w]->mag); else intret(-1); }
-void magreserve(int *w) { if(*w >= 0 && *w < WEAP_MAX) intret(player1->weapons[*w]->ammo); else intret(-1); }
+void magcontent(int *w) { if(*w >= 0 && *w < NUMGUNS) intret(player1->weapons[*w]->mag); else intret(-1); }
+void magreserve(int *w) { if(*w >= 0 && *w < NUMGUNS) intret(player1->weapons[*w]->ammo); else intret(-1); }
 
 COMMANDN(weapon, requestweapon, "i");
 COMMAND(shiftweapon, "i");
@@ -318,7 +318,7 @@ struct hitweap
     int shots;
     hitweap() {hits=shots=0;}
 };
-hitweap accuracym[WEAP_MAX];
+hitweap accuracym[NUMGUNS];
 
 inline void attackevent(playerent *owner, int weapon)
 {
@@ -679,7 +679,7 @@ void r_accuracy(int h)
     int rows = 0, cols = 0;
     float spacing = curfont->defaultw*2, x_offset = curfont->defaultw, y_offset = float(2*h) - 2*spacing;
 
-    loopi(WEAP_MAX) if(i != GUN_CPISTOL && accuracym[i].shots)
+    loopi(NUMGUNS) if(i != GUN_CPISTOL && accuracym[i].shots)
     {
         float acc = 100.0f*accuracym[i].hits/(float)accuracym[i].shots;
         string line;
@@ -709,7 +709,7 @@ void r_accuracy(int h)
 
 void accuracyreset()
 {
-    loopi(WEAP_MAX)
+    loopi(NUMGUNS)
     {
         accuracym[i].hits=accuracym[i].shots=0;
     }
@@ -914,7 +914,7 @@ void weapon::equipplayer(playerent *pl)
     pl->setnextsecondary(GUN_PISTOL);
 }
 
-bool weapon::valid(int id) { return id>=0 && id<WEAP_MAX; }
+bool weapon::valid(int id) { return id>=0 && id<NUMGUNS; }
 
 // grenadeent
 
@@ -1628,7 +1628,7 @@ void shoot(playerent *p, vec &targ)
     if(weap)
     {
         weap->attack(targ);
-        loopi(WEAP_MAX)
+        loopi(NUMGUNS)
         {
             weapon *bweap = p->weapons[i];
             if(bweap != weap && bweap->busy()) bweap->attack(targ);

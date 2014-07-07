@@ -271,7 +271,7 @@ bool movechecks(client &cp, const vec &newo, const int newf)
                         if(dz2 > PLAYERABOVEEYE + 2 || -dz2 > PLAYERHEIGHT + 2) continue;
                         /*
                         if(!isteam(t.team, cp.team) && !ts.protect(gamemillis, gamemode, mutators))
-                            serverdied(&t, &cp, 0, WEAP_MAX + 2, FRAG_NONE, cs.o);
+                            serverdied(&t, &cp, 0, NUMGUNS + 2, FRAG_NONE, cs.o);
                             */
                         hit = true;
                     }
@@ -287,13 +287,13 @@ bool movechecks(client &cp, const vec &newo, const int newf)
                     if(damage >= 1*HEALTHSCALE)
                     { // don't heal the player
                         // maximum damage is 99 for balance purposes
-                        //serverdamage(&cp, &cp, min(damage, (m_classic(gamemode, mutators) ? 30 : 99) * HEALTHSCALE), WEAP_MAX + 2, FRAG_NONE, cs.o); // max 99, "30" (15) for classic
+                        //serverdamage(&cp, &cp, min(damage, (m_classic(gamemode, mutators) ? 30 : 99) * HEALTHSCALE), NUMGUNS + 2, FRAG_NONE, cs.o); // max 99, "30" (15) for classic
                     }
                 }
             }
             else if(newunderwater && dz > 32)
             { // air to liquid, more than 8 meters
-                //serverdamage(&cp, &cp, (m_classic(gamemode, mutators) ? 20 : 35) * HEALTHSCALE, WEAP_MAX + 3, FRAG_NONE, cs.o); // fixed damage @ 35, "20" (10) for classic
+                //serverdamage(&cp, &cp, (m_classic(gamemode, mutators) ? 20 : 35) * HEALTHSCALE, NUMGUNS + 3, FRAG_NONE, cs.o); // fixed damage @ 35, "20" (10) for classic
             }
             cs.onfloor = true;
         }

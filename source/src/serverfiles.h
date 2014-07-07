@@ -938,7 +938,7 @@ struct killmessagesfile : serverconfigfile
                     }
                     if(end) message[end-message] = '\0';
 
-                    if(gun < 0 || gun >= WEAP_MAX)
+                    if(gun < 0 || gun >= NUMGUNS)
                     {
                         logline(ACLOG_INFO, " error in line %i, invalid gun : %i", line, gun);
                         errors++;

@@ -511,11 +511,11 @@ bool selectnextsecondary(int num)
     return false;
 }
 
-VARFP(nextprimary, 0, GUN_ASSAULT, WEAP_MAX,
+VARFP(nextprimary, 0, GUN_ASSAULT, NUMGUNS,
 {
     if(!selectnextprimary(nextprimary)) selectnextprimary((nextprimary = GUN_ASSAULT));
 });
-VARFP(nextsecondary, 0, GUN_PISTOL, WEAP_MAX,
+VARFP(nextsecondary, 0, GUN_PISTOL, NUMGUNS,
 {
     if(!selectnextsecondary(nextsecondary)) selectnextsecondary((nextsecondary = GUN_PISTOL));
 });

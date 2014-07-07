@@ -443,7 +443,7 @@ void sendspawn(client *c)
     sendf(c->clientnum, 1, "ri9vv", SV_SPAWNSTATE, c->clientnum, gs.lifesequence,
         gs.health, gs.armour,
         gs.primary, gs.gunselect, gs.secondary, m_duke(gamemode, mutators) ? c->spawnindex : -1,
-        WEAP_MAX, gs.ammo, WEAP_MAX, gs.mag);
+        NUMGUNS, gs.ammo, NUMGUNS, gs.mag);
     gs.lastspawn = gamemillis;
 }
 
@@ -2542,8 +2542,8 @@ void sendresume(client &c, bool broadcast)
             c.state.armour,
             c.state.points,
             c.state.teamkills,
-            WEAP_MAX, c.state.ammo,
-            WEAP_MAX, c.state.mag,
+            NUMGUNS, c.state.ammo,
+            NUMGUNS, c.state.mag,
             -1);
 }
 
@@ -2670,8 +2670,8 @@ void welcomepacket(packetbuf &p, int n)
             putint(p, c.state.armour);
             putint(p, c.state.points);
             putint(p, c.state.teamkills);
-            loopi(WEAP_MAX) putint(p, c.state.ammo[i]);
-            loopi(WEAP_MAX) putint(p, c.state.mag[i]);
+            loopi(NUMGUNS) putint(p, c.state.ammo[i]);
+            loopi(NUMGUNS) putint(p, c.state.mag[i]);
         }
         putint(p, -1);
         welcomeinitclient(p, n);
@@ -3010,7 +3010,7 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_LOADOUT:
             {
                 int nextprimary = getint(p), nextsecondary = getint(p);
-                if(nextprimary<0 && nextprimary>=WEAP_MAX) break;
+                if(nextprimary<0 && nextprimary>=NUMGUNS) break;
                 cl->state.nextprimary = isprimary(nextprimary) ? nextprimary : GUN_ASSAULT;
                 cl->state.nextsecondary = issecondary(nextsecondary) ? nextsecondary : GUN_PISTOL;
                 break;
@@ -3108,7 +3108,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 client &cp = *clients[cn];
                 clientstate &cs = cp.state;
                 if((cs.state!=CS_ALIVE && cs.state!=CS_DEAD && cs.state!=CS_SPECTATE) ||
-                    ls!=cs.lifesequence || cs.lastspawn<0 || gunselect<0 || gunselect>=WEAP_MAX || gunselect == GUN_CPISTOL) break;
+                    ls!=cs.lifesequence || cs.lastspawn<0 || gunselect<0 || gunselect>=NUMGUNS || gunselect == GUN_CPISTOL) break;
                 cs.lastspawn = -1;
                 cs.spawn = gamemillis;
                 cp.upspawnp = false;
@@ -3122,8 +3122,8 @@ void process(ENetPacket *packet, int sender, int chan)
                     putint(cp.messages, cs.health);
                     putint(cp.messages, cs.armour);
                     putint(cp.messages, cs.gunselect);
-                    loopi(WEAP_MAX) putint(cp.messages, cs.ammo[i]);
-                    loopi(WEAP_MAX) putint(cp.messages, cs.mag[i]);
+                    loopi(NUMGUNS) putint(cp.messages, cs.ammo[i]);
+                    loopi(NUMGUNS) putint(cp.messages, cs.mag[i]);
                 });
                 break;
             }

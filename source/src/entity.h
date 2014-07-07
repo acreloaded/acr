@@ -49,8 +49,7 @@ struct entity : persistent_entity
 
 //enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_CARBINE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_CPISTOL, GUN_GRENADE, GUN_AKIMBO, NUMGUNS };
 //#define reloadable_gun(g) (g != GUN_KNIFE && g != GUN_GRENADE)
-#define NUMGUNS WEAP_MAX
-enum { GUN_KNIFE = 0, GUN_PISTOL, WEAP_SWORD, GUN_CARBINE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_ASSAULT2, GUN_CPISTOL, GUN_GRENADE, GUN_AKIMBO, WEAP_MAX, WEAP_RPG,  GUN_BOLT, GUN_SNIPER2, GUN_HEAL };//implement everything after MAX
+enum { GUN_KNIFE = 0, GUN_PISTOL, WEAP_SWORD, GUN_CARBINE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_ASSAULT2, GUN_CPISTOL, GUN_GRENADE, GUN_AKIMBO, NUMGUNS, WEAP_RPG,  GUN_BOLT, GUN_SNIPER2, GUN_HEAL };//implement everything after MAX
 #define isprimary(n) ((n >= GUN_CARBINE) && (n < GUN_CPISTOL))
 #define issecondary(n) (!(isprimary(n) || n == 0))
 
@@ -121,11 +120,11 @@ enum { PR_CLEAR = 0, PR_ASSIST, PR_SPLAT, PR_HS, PR_KC, PR_KD, PR_HEALSELF, PR_H
 #define EXPDAMRAD 10
 
 struct itemstat { int add, start, max, sound; };
-extern itemstat ammostats[WEAP_MAX];
+extern itemstat ammostats[NUMGUNS];
 extern itemstat powerupstats[I_ARMOUR-I_HEALTH+1];
 
 struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, piercing, projspeed, part, spread, spreadrem, kick, recoil, magsize, mdl_kick_rot, mdl_kick_back, recoilincrease, recoilbase, maxrecoil, recoilbackfade, pushfactor; bool isauto; };
-extern guninfo guns[WEAP_MAX];
+extern guninfo guns[NUMGUNS];
 
 static inline int reloadtime(int gun) { return guns[gun].reloadtime; }
 static inline int attackdelay(int gun) { return guns[gun].attackdelay; }
@@ -307,14 +306,14 @@ public:
     int primary, secondary, nextprimary, nextsecondary;
     int gunselect;
     bool akimbo;
-    int ammo[WEAP_MAX], mag[WEAP_MAX], gunwait[WEAP_MAX];
-    int pstatshots[WEAP_MAX], pstatdamage[WEAP_MAX];
+    int ammo[NUMGUNS], mag[NUMGUNS], gunwait[NUMGUNS];
+    int pstatshots[NUMGUNS], pstatdamage[NUMGUNS];
 //IMPLEMENT secondary, nextsecondary
     playerstate() : armour(0), primary(GUN_ASSAULT), secondary(GUN_PISTOL),
         nextprimary(GUN_ASSAULT), nextsecondary(GUN_PISTOL), akimbo(false) {}
     virtual ~playerstate() {}
 
-    void resetstats() { loopi(WEAP_MAX) pstatshots[i] = pstatdamage[i] = 0; }
+    void resetstats() { loopi(NUMGUNS) pstatshots[i] = pstatdamage[i] = 0; }
 
     itemstat &itemstats(int type)
     {
@@ -382,7 +381,7 @@ public:
         armour = 0;
         gunselect = primary;
         akimbo = false;
-        loopi(WEAP_MAX) ammo[i] = mag[i] = gunwait[i] = 0;
+        loopi(NUMGUNS) ammo[i] = mag[i] = gunwait[i] = 0;
         ammo[GUN_KNIFE] = mag[GUN_KNIFE] = 1;
         lastspawn = -1;
     }
@@ -501,7 +500,7 @@ public:
     int respawnoffset;
     bool allowmove() { return state!=CS_DEAD || spectatemode==SM_FLY; }
 
-    weapon *weapons[WEAP_MAX];
+    weapon *weapons[NUMGUNS];
     weapon *prevweaponsel, *weaponsel, *nextweaponsel, *primweap, *secondweap, *nextprimweap, *nextsecondweap, *lastattackweapon;
 
     poshist history; // Previous stored locations of this player
@@ -568,7 +567,7 @@ public:
 
     void hitpush(int damage, const vec &dir, playerent *actor, int gun)
     {
-        if(gun<0 || gun>WEAP_MAX) return;
+        if(gun<0 || gun>NUMGUNS) return;
         vec push(dir);
         push.mul(damage/100.0f*guns[gun].pushfactor);
         vel.add(push);
@@ -722,10 +721,10 @@ enum {MD_FRAGS = 0, MD_DEATHS, END_MDS};
 struct medalsst {bool assigned; int cn; int item;};
 
 #define MAXKILLMSGLEN 16
-extern char killmessages[2][WEAP_MAX][MAXKILLMSGLEN];
+extern char killmessages[2][NUMGUNS][MAXKILLMSGLEN];
 inline const char *killmessage(int gun, bool gib = false)
 {
-    if(gun<0 || gun>=WEAP_MAX) return "";
+    if(gun<0 || gun>=NUMGUNS) return "";
 
     return killmessages[gib?1:0][gun];
 }

@@ -758,7 +758,7 @@ extern void damageeffect(int damage, playerent *d);
 extern void tryreload(playerent *p);
 extern void checkweaponstate();
 extern struct projectile *newprojectile(vec &from, vec &to, float speed, bool local, playerent *owner, int gun, int id = lastmillis);
-extern int burstshotssettings[WEAP_MAX];
+extern int burstshotssettings[NUMGUNS];
 
 // entities
 extern void spawnallitems();

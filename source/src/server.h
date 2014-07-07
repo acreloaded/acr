@@ -125,7 +125,7 @@ struct clientstate : playerstate
     bool waitexpired(int gamemillis)
     {
         int wait = gamemillis - lastshot;
-        loopi(WEAP_MAX) if(wait < gunwait[i]) return false;
+        loopi(NUMGUNS) if(wait < gunwait[i]) return false;
         return true;
     }
 
@@ -488,7 +488,7 @@ const char *entnames[MAXENTTYPES] =
 
 // see entity.h:61: struct itemstat { int add, start, max, sound; };
 // Please update ./ac_website/htdocs/docs/introduction.html if these figures change.
-itemstat ammostats[WEAP_MAX] =
+itemstat ammostats[NUMGUNS] =
 {
     {  1,  1,   1,  S_ITEMAMMO  },   // knife dummy
     { 20, 60, 100,  S_ITEMAMMO  },   // pistol
@@ -511,7 +511,7 @@ itemstat powerupstats[I_ARMOUR-I_HEALTH+1] =
     {50, 0, 100, S_ITEMARMOUR}, // 2 armour
 };
 
-guninfo guns[WEAP_MAX] =
+guninfo guns[NUMGUNS] =
 {
     // Please update ./ac_website/htdocs/docs/introduction.html if these figures change.
     //mKR: mdl_kick_rot && mKB: mdl_kick_back
@@ -538,7 +538,7 @@ const char *teamnames_s[TEAM_NUM+1] = {"CLA", "RVSF", "CSPC", "RSPC", "SPEC", "v
 
 // for both client and server
 // default messages are hardcoded !
-char killmessages[2][WEAP_MAX][MAXKILLMSGLEN] = {{ "", "busted", "picked off", "peppered", "sprayed", "punctured", "shredded", "busted", "", "busted" }, { "slashed", "", "", "splattered", "", "headshot", "", "", "gibbed", "" }};
+char killmessages[2][NUMGUNS][MAXKILLMSGLEN] = {{ "", "busted", "picked off", "peppered", "sprayed", "punctured", "shredded", "busted", "", "busted" }, { "slashed", "", "", "splattered", "", "headshot", "", "", "gibbed", "" }};
 
 // perk-related
 float gunspeed(int gun, int ads){
