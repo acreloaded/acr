@@ -70,7 +70,7 @@ void reloadevent::process(client *ci)
     cs.ammo[weap] -= /*reload*/ 1;
 
     int wait = millis - cs.lastshot;
-    sendf(-1, 1, "ri5", SV_RELOAD, ci->clientnum, weap, cs.mag[weap], cs.ammo[weap]);
+    sendf(-1, 1, "ri5", SV_RELOAD, ci->clientnum, lastmillis, weap, cs.mag[weap], cs.ammo[weap]);
     if (!cs.gunwait[weap] || wait >= cs.gunwait[weap])
         cs.updateshot(millis);
     cs.gunwait[weap] += reloadtime(weap);

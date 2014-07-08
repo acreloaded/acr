@@ -2983,7 +2983,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 if (weaponsel != cp.state.primary)
                 {
                     // stop bots from switching back
-                    sendf(-1, 1, "ri5", SV_RELOAD, cn, weaponsel, cp.state.mag[weaponsel] = 0, cp.state.ammo[weaponsel] = 0);
+                    sendf(-1, 1, "ri5", SV_RELOAD, cn, lastmillis, weaponsel, cp.state.mag[weaponsel] = 0, cp.state.ammo[weaponsel] = 0);
                     // disallow switching
                     sendf(sender, 1, "ri3", SV_WEAPCHANGE, cn, cp.state.primary);
                 }
@@ -3159,7 +3159,7 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_SHOOT: // TODO: cn id weap to.x to.y to.z heads.length heads.v
             case SV_SHOOTC: // TODO: cn id weap
             {
-                const int cn = getint(p), id = getint(p), millis = getint(p), weap = getint(p);
+                const int cn = getint(p), id = getint(p),  weap = getint(p);
                 shotevent *ev = new shotevent(0, id, weap);
                 if (!(ev->compact = (type == SV_SHOOTC)))
                 {
@@ -3187,7 +3187,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 client *cp = cl->hasclient(cn) ? clients[cn] : NULL;
                 if (cp)
                 {
-                    ev->millis = cp->getmillis(millis, id);
+                    ev->millis = cp->getmillis(gamemillis, id);
                     cp->addevent(ev);
                 }
                 else delete ev;
@@ -3216,7 +3216,7 @@ void process(ENetPacket *packet, int sender, int chan)
 
             case SV_RELOAD: // cn id weap
             {
-                int cn = getint(p), id = getint(p), weap = getint(p);
+                int cn = getint(p), id = getint(p), weap = getint(p), mag = getint(p), ammo = getint(p);
                 if (!cl->hasclient(cn)) break;
                 client *cp = clients[cn];
                 cp->addevent(new reloadevent(cp->getmillis(gamemillis, id), id, weap));
@@ -3260,7 +3260,7 @@ void process(ENetPacket *packet, int sender, int chan)
 
             case SV_CLIENTPING:
             {
-                int ping = getint(p);
+                int cn = getint(p), ping = getint(p);
                 if(!cl) break;
                 ping = clamp(ping, 0, 9999);
                 ping = cl->ping == 9999 ? ping : (cl->ping * 4 + ping) / 5;
@@ -3280,7 +3280,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 int newy = getuint(p);
                 int newp = getint(p);
                 int newg = getuint(p);
-                loopi(4) if ( (newg >> i) & 1 ) getint(p);
+                loopi(4) getint(p);
                 int newf = getuint(p);
                 if(!valid_client(cn)) break;
                 client &cp = *clients[cn];

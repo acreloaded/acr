@@ -157,11 +157,10 @@ void parsepositions(ucharbuf &p)
                 o.z   = getuint(p)/DMF;
                 yaw   = (float)getuint(p);
                 pitch = (float)getint(p);
-                g = getuint(p);
-                if ((g>>3) & 1) roll  = (float)(getint(p)*20.0f/125.0f);
-                if (g & 1) vel.x = getint(p)/DVELF; else vel.x = 0;
-                if ((g>>1) & 1) vel.y = getint(p)/DVELF; else vel.y = 0;
-                if ((g>>2) & 1) vel.z = getint(p)/DVELF; else vel.z = 0;
+                roll  = (float)(getint(p)*20.0f/125.0f);
+                vel.x = getint(p)/DVELF;
+                vel.y = getint(p)/DVELF;
+                vel.z = getint(p)/DVELF;
                 scoping = ( (g>>4) & 1 ? true : false );
                 //shoot = ( (g>>5) & 1 ? true : false ); // we are not using this yet
                 sprinting = ((g >> 6) & 1 ? true : false);
@@ -788,7 +787,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_RELOAD:
             {
-                int cn = getint(p), gun = getint(p), mag = getint(p), ammo = getint(p);
+                int cn = getint(p), id = getint(p), gun = getint(p), mag = getint(p), ammo = getint(p);
                 playerent *p = getclient(cn);
                 if (!p || gun < 0 || gun >= NUMGUNS) break;
                 if (p != player1 && !isowned(p) && p->weapons[gun])
@@ -1031,7 +1030,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             case SV_PINGPONG:
             {
                 int millis = getint(p);
-                addmsg(SV_CLIENTPING, "i", totalmillis - millis);
+                addmsg(SV_CLIENTPING, "i2", 0, totalmillis - millis);
                 break;
             }
 

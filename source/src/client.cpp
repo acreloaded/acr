@@ -531,11 +531,11 @@ void sendposition(playerent *d)
             putuint(q, z);
             putuint(q, (int)d->yaw);
             putint(q, (int)d->pitch);
-            putuint(q, g);
-            if (r) putint(q, (int)(125*d->roll/20));
-            if (dx) putint(q, dx);
-            if (dy) putint(q, dy);
-            if (dz) putint(q, dz);
+            putint(q, g);
+            putint(q, (int)(125*d->roll/20));
+            putint(q, dx);
+            putint(q, dy);
+            putint(q, dz);
             putuint(q, f);
         }
         sendpackettoserv(0, q.finalize());

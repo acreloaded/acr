@@ -788,7 +788,7 @@ bool weapon::reload(bool autoreloaded)
     audiomgr.playsound(info.reload, owner, local ? SP_HIGH : SP_NORMAL);
     if(local)
     {
-        addmsg(SV_RELOAD, "ri3", owner->clientnum, lastmillis, owner->weaponsel->type);
+        addmsg(SV_RELOAD, "ri5", owner->clientnum, lastmillis, owner->weaponsel->type, 0, 0);
         if(identexists("onReload"))
         {
             defformatstring(str)("onReload %d", (int)autoreloaded);
@@ -984,7 +984,7 @@ void grenadeent::activate(const vec &from, const vec &to)
 
     if(local)
     {
-        addmsg(SV_SHOOT, "ri4i3i", 0, 0, millis, owner->weaponsel->type,
+        addmsg(SV_SHOOT, "ri4i3i", 0, millis, owner->weaponsel->type,
 //                (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF),
                (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF),
                -1);

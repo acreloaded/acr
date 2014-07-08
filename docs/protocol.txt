@@ -52,11 +52,10 @@ SV_SUICIDE
 SV_SHOOT
 	i, cn
 	i, id
-	i, lastmillis
 	i, weap
     i3, to[0-2]
 	MAXCLIENTS,
-		i, cn
+		i, cn(breaks if this is <0)
 		i3, o[0-2]
 		i3, head[0-2]
 
@@ -65,7 +64,6 @@ SV_SHOOTC
 	i, cn
 	i, id
 	i, weap
-	i, lastmillis
 
 SV_EXPLODE
 	i, cn
@@ -82,6 +80,8 @@ SV_RELOAD
 	i, cn
 	i, id
 	i, weap
+	i, mag
+	i, ammo
 	
 SV_AUTHTRY
 	s, desc
@@ -95,8 +95,10 @@ SV_AUTHANS
 SV_AUTHT
 
 SV_PINGPONG
+	i, totalmillis
 
 SV_CLIENTPING
+	i, cn
 	i, ping
 	
 SV_POS
@@ -105,7 +107,10 @@ SV_POS
 	i, newy
 	i, newp
 	i, newg
-	i(number of 1's in newg&15)
+	i, roll
+	i, dx
+	i, dy
+	i, dz
 	i, newf
 	
 SV_POSC
@@ -120,7 +125,7 @@ SV_POSC
 	b, negz
 	b, zfull
 	br, s(3310)
-//!Finish documenting
+//!Finish documenting and checking
 
 SV_SENDMAP
 	s, text
