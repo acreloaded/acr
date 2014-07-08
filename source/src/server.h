@@ -104,7 +104,7 @@ static const int DEATHMILLIS = 300;
 
 struct clientstate : playerstate
 {
-    vec o;
+    vec o, vel;
     int state;
     int lastdeath, spawn, lifesequence;
     bool forced;
@@ -154,6 +154,7 @@ struct clientstate : playerstate
     {
         playerstate::respawn(gamemode, mutators);
         o = vec(-1e10f, -1e10f, -1e10f);
+        vel = vec(0, 0, 0);
         lastdeath = 0;
         spawn = 0;
         lastshot = 0;

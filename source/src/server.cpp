@@ -3262,12 +3262,15 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 int cn = getint(p);
                 const bool broadcast = cl->hasclient(cn);
-                vec newo;
+                vec newo, dvel;
                 loopi(3) newo[i] = getuint(p)/DMF;
                 int newy = getuint(p);
                 int newp = getint(p);
                 int newg = getuint(p);
-                loopi(4) if ( (newg >> i) & 1 ) getint(p);
+                if ((newg >> 0) & 1) getint(p); // roll
+                if ((newg >> 1) & 1) dvel.x = getint(p) / DVELF;
+                if ((newg >> 2) & 1) dvel.y = getint(p) / DVELF;
+                if ((newg >> 3) & 1) dvel.z = getint(p) / DVELF;
                 int newf = getuint(p);
                 if(!valid_client(cn)) break;
                 client &cp = *clients[cn];
@@ -3276,6 +3279,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 // relay if still alive
                 if(!cp.isonrightmap || m_demo(gamemode) || !movechecks(cp, newo, newf, newg)) break;
                 cs.o = newo;
+                cs.vel.add(dvel);
                 cp.y = newy;
                 cp.p = newp;
                 cp.g = newg;
@@ -3298,7 +3302,13 @@ void process(ENetPacket *packet, int sender, int chan)
                 const int newy = (q.getbits(9)*360)/512;
                 const int newp = ((q.getbits(8)-128)*90)/127;
                 if(!q.getbits(1)) q.getbits(6);
-                if(!q.getbits(1)) q.getbits(4 + 4 + 4);
+                vec dvel;
+                if (!q.getbits(1))
+                {
+                    dvel.x = (q.getbits(4) - 8) / DVELF;
+                    dvel.y = (q.getbits(4) - 8) / DVELF;
+                    dvel.z = (q.getbits(4) - 8) / DVELF;
+                }
                 const int newf = q.getbits(8);
                 int negz = q.getbits(1);
                 int zfull = q.getbits(1);
@@ -3319,6 +3329,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 vec newo(xt / DMF, yt / DMF, zt / DMF);
                 if(m_demo(gamemode) || !movechecks(cp, newo, newf, newg)) break;
                 cs.o = newo;
+                cs.vel.add(dvel);
                 cp.y = newy;
                 cp.p = newp;
                 cp.f = newf;

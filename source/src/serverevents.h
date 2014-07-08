@@ -47,8 +47,105 @@ void shotevent::process(client *ci)
         --cs.mag[weap];
     cs.updateshot(millis);
     cs.gunwait[weap] = attackdelay(weap);
-    // shot stuff...
-    // send packet...
+
+    vec from(cs.o), surface;
+    // if using their aim position
+        // #define RADD (PI/180.)
+        // to = vec(sin(gs.aim[0]*RADD)*cos(gs.aim[1]*RADD), -cos(gs.aim[0]*RADD)*cos(gs.aim[1]*RADD), sin(gs.aim[1]*RADD));
+    // if using delta position (or the above)
+        // to.normalize().add(from);
+    // apply spread
+    const float spreadf = to.dist(from) / 1000.f,
+        crouchfactor = 1 - (cs.crouching ? min(gamemillis - cs.crouchmillis, CROUCHTIME) : CROUCHTIME - min(gamemillis - cs.crouchmillis, CROUCHTIME)) * .25f / CROUCHTIME;
+    const int zoomtime = ADSTIME(cs.perk2 == PERK_TIME);
+    float adsfactor = 1 - float(cs.scoping ? min(gamemillis - cs.scopemillis, zoomtime) : zoomtime - min(gamemillis - cs.scopemillis, zoomtime)) * /*guns[weap].spreadrem*/ 100 / 100 / zoomtime;
+    if (weap == GUN_SHOTGUN)
+    {
+        // apply shotgun spread
+        // TODO
+    }
+    else
+    {
+        // apply normal ray spread
+        const int spread = guns[weap].spread * (cs.vel.magnitude() / 3.f /*+ cs.pitchvel / 5.f*/ + 0.4f) * 1.2f * crouchfactor;
+        if (m_classic(gamemode, mutators)) adsfactor *= .6f;
+        applyspread(cs.o, to, spread, (cs.perk2 == PERK2_STEADY ? .75f : 1)*spreadf*adsfactor);
+    }
+    // trace shot
+    straceShot(from, to, &surface);
+    // calculate shot properties
+    int damagepotential = 0, damagedealt = 0;
+    /*
+    if (weap == GUN_SHOTGUN)
+        loopi(SGRAYS)
+            damagepotential += effectiveDamage(weap, vec(cs.sg[i]).dist(from));
+    else if (melee_weap(weap)) damagepotential = guns[weap].damage; // melee damage
+    else if (weap == GUN_RPG) damagepotential = 50; // potential stick damage
+    else if (weap == GUN_GRENADE) damagepotential = 0;
+    else damagepotential = effectiveDamage(weap, to.dist(from));
+    */
+
+    switch (weap)
+    {
+        case GUN_GRENADE: cs.grenades.add(id); break;
+        case GUN_RPG: // explosive tip is stuck to a player
+        {
+            // TODO
+            break;
+        }
+        case GUN_HEAL:
+        {
+            // TODO
+            break;
+        }
+        case GUN_KNIFE: // falls through if not "compact" (throw)
+            if (compact)
+            {
+                if (cs.ammo[GUN_KNIFE])
+                {
+                    cs.knives.add(id);
+                    cs.ammo[GUN_KNIFE]--;
+                }
+                break;
+            }
+        case GUN_SNIPER2:
+            // gs.allowspeeding(gamemillis, 1500);
+            // fallthrough
+        default:
+        {
+            if (weap == GUN_SHOTGUN) // many rays, many players
+                damagedealt += shotgun(c, pos); // WARNING: modifies gs.sg
+            else
+            {
+                static vector<int> exclude;
+                exclude.setsize(0);
+                exclude.add(c.clientnum);
+                damagedealt += shot(c, from, to, pos, weap, FRAG_NONE, surface, exclude); // WARNING: modifies to
+            }
+            break;
+        }
+    }
+    cs.damage += damagedealt;
+    cs.shotdamage += max(damagepotential, damagedealt);
+
+    // create packet
+    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    // packet shotgun rays
+    // if(weap==WEAP_SHOTGUN){ putint(p, N_SG); loopi(SGRAYS) loopj(3) putfloat(p, gs.sg[i][j]); }
+    // packet shot message
+    putint(p, compact ? SV_SHOOTC : SV_SHOOT);
+    putint(p, c.clientnum);
+    putint(p, weap);
+    if (!compact)
+    {
+        putint(p, (int)(from.x*DMF));
+        putint(p, (int)(from.y*DMF));
+        putint(p, (int)(from.z*DMF));
+        putint(p, (int)(to.x*DMF));
+        putint(p, (int)(to.y*DMF));
+        putint(p, (int)(to.z*DMF));
+    }
+    sendpacket(-1, 1, p.finalize(), !compact && weap != GUN_GRENADE ? -1 : c.clientnum);
 }
 
 void reloadevent::process(client *ci)
