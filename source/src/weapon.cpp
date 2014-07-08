@@ -664,7 +664,7 @@ void weapon::onselecting()
 void weapon::renderhudmodel() { renderhudmodel(owner->lastaction); }
 void weapon::renderaimhelp(int teamtype) { drawcrosshair(owner, teamtype ? CROSSHAIR_TEAMMATE : CROSSHAIR_DEFAULT); }
 int weapon::dynspread() { return info.spread; }
-float weapon::dynrecoil() { return info.recoil; }
+float weapon::dynrecoil() { return info.kick; }
 bool weapon::selectable() { return this != owner->weaponsel && owner->state == CS_ALIVE && !owner->weaponchanging &&
     (type == GUN_KNIFE || type == GUN_GRENADE || type == GUN_AKIMBO || type == owner->primary || type == owner->secondary); }
 bool weapon::deselectable() { return !reloading; }

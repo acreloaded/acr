@@ -487,47 +487,53 @@ const char *entnames[MAXENTTYPES] =
     "mapmodel", "trigger", "ladder", "ctf-flag", "sound", "clip", "plclip"
 };
 
-// see entity.h:61: struct itemstat { int add, start, max, sound; };
-// Please update ./ac_website/htdocs/docs/introduction.html if these figures change.
+// pickup stats
 itemstat ammostats[NUMGUNS] =
 {
-    {  1,  1,   1,  S_ITEMAMMO  },   // knife dummy
-    { 20, 60, 100,  S_ITEMAMMO  },   // pistol
-    { 15, 30,  30,  S_ITEMAMMO  },   // carbine
-    { 14, 28,  21,  S_ITEMAMMO  },   // shotgun
-    { 60, 90,  90,  S_ITEMAMMO  },   // subgun
-    { 10, 20,  15,  S_ITEMAMMO  },   // sniper
-    { 40, 60,  60,  S_ITEMAMMO  },   // assault
-    { 30, 45,  75,  S_ITEMAMMO  },   // cpistol
-    {  1,  0,   3,  S_ITEMAMMO  },   // grenade
-    {100,  0, 100,  S_ITEMAKIMBO}    // akimbo
+    { 1, 1, 2, S_ITEMAMMO },    // knife "dummy"
+    { 2, 5, 6, S_ITEMAMMO },    // pistol
+    { 21, 28, 42, S_ITEMAMMO }, // shotgun
+    { 3, 4, 6, S_ITEMAMMO },    // subgun
+    { 1, 2, 3, S_ITEMAMMO },    // m21
+    { 3, 4, 6, S_ITEMAMMO },    // m16
+    { 1, 1, 3, S_ITEMAMMO },    // grenade
+    { 4, 0, 6, S_ITEMAKIMBO },  // akimbo
+    { 2, 3, 4, S_ITEMAMMO },    // bolt sniper
+    { 4, 6, 8, S_ITEMAMMO },    // heal
+    { 1, 1, 1, S_ITEMAMMO },    // sword dummy
+    { 1, 3, 4, S_ITEMAMMO },    // RPG
+    { 3, 4, 6, S_ITEMAMMO },    // ak47
+    { 2, 3, 4, S_ITEMAMMO },    // m82
 };
 
 itemstat powerupstats[I_ARMOUR-I_HEALTH+1] =
 {
-    {33, 0, 100, S_ITEMHEALTH}, // 0 health
-    {25, 0, 100, S_ITEMHELMET}, // 1 helmet
-    {50, 0, 100, S_ITEMARMOUR}, // 2 armour
+    { 33 * HEALTHSCALE, STARTHEALTH, MAXHEALTH, S_ITEMHEALTH }, // 0 health
+    { 25,               STARTARMOUR, MAXARMOUR, S_ITEMHELMET }, // 1 helmet
+    { 50,               STARTARMOUR, MAXARMOUR, S_ITEMARMOUR }, // 2 armour
 };
 
 guninfo guns[NUMGUNS] =
 {
-    // Please update ./ac_website/htdocs/docs/introduction.html if these figures change.
     //mKR: mdl_kick_rot && mKB: mdl_kick_back
-    //reI: recoilincrease && reB: recoilbase && reM: maxrecoil && reF: recoilbackfade
+    //reI: recoilincrease && reB: recoilbase && reM: maxrecoil && reF: recoilbackfade && reA: recoilangle
     //pFX: pushfactor
-    //modelname                   reload       attackdelay      piercing     part     recoil       mKR       reI          reM           pFX
-    //              sound                reloadtime        damage    projspeed  spread     magsize     mKB        reB             reF           isauto
-    { "knife",      S_KNIFE,      S_NULL,     0,      500,    50, 100,     0,   0,  1,    1,   1,    0,  0,   0,   0,      0,      0,   1,      false },
-    { "pistol",     S_PISTOL,     S_RPISTOL,  1400,   160,    18,   0,     0,   0, 53,   10,   10,   6,  5,   6,  35,     58,     125,  1,      false },
-    { "carbine",    S_CARBINE,    S_RCARBINE, 1800,   720,    60,  40,     0,   0, 10,   60,   10,   4,  4,  10,  60,     60,     150,  1,      false },
-    { "shotgun",    S_SHOTGUN,    S_RSHOTGUN, 2400,   880,    1,    0,     0,   0,  1,   35,    7,   9,  9,  10, 140,    140,    125,   1,      false },   // CAUTION dmg only sane for server!
-    { "subgun",     S_SUBGUN,     S_RSUBGUN,  1650,   80,     16,   0,     0,   0, 45,   15,   30,   1,  2,   5,  25,     50,     188,  1,      true  },
-    { "sniper",     S_SNIPER,     S_RSNIPER,  1950,   1500,   82,  25,     0,   0, 50,   50,    5,   4,  4,  10,  85,     85,     100,  1,      false },
-    { "assault",    S_ASSAULT,    S_RASSAULT, 2000,   120,    22,   0,     0,   0, 18,   30,   20,   0,  2,   3,  25,     50,     115,  1,      true  },
-    { "cpistol",    S_PISTOL,     S_RPISTOL,  1400,   120,    19,   0,     0,   0, 35,   10,   15,   6,  5,   6,  35,     50,     125,  1,      false },   // temporary
-    { "grenade",    S_NULL,       S_NULL,     1000,   650,    200,  0,    20,  6,  1,    1,   1,    3,   1,    0,   0,      0,      0,   3,      false },
-    { "pistol",     S_PISTOL,     S_RAKIMBO,  1400,   80,     19,   0,     0,   0, 50,   10,   20,   6,  5,   4,  15,     25,     115,  1,      true  },
+    // modelname                reload     attackdelay    range rangesub    spread      kick magsize   mKB    reB      reF    pFX
+    //             sound             reloadtime     damage  endrange piercing spreadrem  addsize    mKR    reI    reM      reA    isauto
+    { "knife",    S_KNIFE,    S_ITEMAMMO,     0,  500, 80,   4,   5, 72, 100,   1,   0,   1,  0,  1, 0, 0,  0, 0,  0, 100,  0, 3, true },
+    { "pistol",   S_PISTOL,   S_RPISTOL,   1400,   90, 32,  24,  90,  8,   0,  90,  90,   9, 12, 13, 6, 2, 32, 0, 48, 100, 70, 1, false },
+    { "shotgun",  S_SHOTGUN,  S_RSHOTGUN,   750,  200, 10,   6,  16,  7,   0, 190,   9,  12,  1,  6, 9, 5, 60, 0, 70, 100,  5, 2, false },
+    { "subgun",   S_SUBGUN,   S_RSUBGUN,   2400,   67, 35,  20,  64, 20,   0,  70,  93,   4, 32, 33, 1, 3, 27, 0, 45, 100, 65, 1, true },
+    { "sniper",   S_SNIPER,   S_RSNIPER,   2000,  120, 45,  70, 110,  9,   0, 235,  96,  14, 20, 21, 4, 4, 59, 0, 68, 100, 75, 2, false },
+    { "assault",  S_ASSAULT,  S_RASSAULT,  2100,   73, 28,  45,  92,  9,   0,  65,  95,   3, 30, 31, 0, 3, 25, 0, 42, 100, 60, 1, true },
+    { "grenade",  S_NULL,     S_NULL,      1000,  650, 220,  0,  55, 27,   0,   1,   0,   1,  0,  1, 3, 1,  0, 0,  0, 100,  0, 3, false },
+    { "pistol",   S_PISTOL,   S_RAKIMBO,   1400,   80, 32,  30,  90,  8,   0,  60,   0,   8, 24, 26, 6, 2, 28, 0, 49, 100, 72, 2, true },
+    { "bolt",     S_CARBINE,  S_RCARBINE,  2000, 1500, 120, 80, 130, 48,  40, 250,  97,  36,  8,  9, 4, 4, 86, 0, 90, 100, 80, 3, false },
+    { "heal",     S_SUBGUN,   S_NULL,      1200,  100, 20,   4,   8, 10,   0,  50,   1,   1, 10, 11, 0, 0, 10, 0, 20, 100,  8, 4, true },
+    { "sword",    S_SWORD,    S_NULL,         0,  480, 90,   7,   9, 81, 100,   1,   0,   1,  0,  1, 0, 2,  0, 0,  0, 100,  0, 0, true },
+    { "rpg",      S_RPG,      S_NULL,      2000,  120, 190,  0,  32, 18,  50, 200,  75,   3,  1,  1, 3, 1, 48, 0, 50, 100,  0, 2, false },
+    { "assault2", S_ASSAULT2, S_RASSAULT2, 2000,  100, 42,  48, 120, 12,   0, 150,  94,   3, 30, 31, 0, 3, 30, 0, 47, 100, 62, 1, true },
+    { "sniper2",  S_SNIPER2,  S_RSNIPER2,  2000,  120, 110, 75, 120, 45,  35, 300,  98, 120, 10, 11, 4, 4, 95, 0, 96, 100, 85, 5, false },
 };
 
 const char *teamnames[TEAM_NUM+1] = {"CLA", "RVSF", "CLA-SPECT", "RVSF-SPECT", "SPECTATOR", "void"};
