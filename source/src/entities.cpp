@@ -477,34 +477,18 @@ bool selectnextprimary(int num)
 {
     if isprimary(++num) {
         player1->setnextprimary(num);
-        addmsg(SV_LOADOUT, "ri", player1->nextprimweap->type);
+        addmsg(SV_LOADOUT, "ri2", player1->nextprimweap->type, player1->nextsecondweap);
         return true;
     }
     conoutf("this is not a valid primary weapon");
     return false;
-    /*switch(num)
-    {
-//         case GUN_CPISTOL:
-        case GUN_CARBINE:
-        case GUN_SHOTGUN:
-        case GUN_SUBGUN:
-        case GUN_SNIPER:
-        case GUN_ASSAULT:
-            player1->setnextprimary(num);
-            addmsg(SV_LOADOUT, "ri", player1->nextprimweap->type);
-            return true;
-
-        default:
-            conoutf("this is not a valid primary weapon");
-            return false;
-    }*/
 }
 
 bool selectnextsecondary(int num)
 {
     if issecondary(num) {
         player1->setnextsecondary(num);
-        addmsg(SV_LOADOUT, "ri", player1->nextsecondweap->type);
+        addmsg(SV_LOADOUT, "ri2", player1->nextprimweap->type, player1->nextsecondweap->type);
         return true;
     }
     conoutf("this is not a valid secondary weapon");

@@ -648,7 +648,7 @@ void CBot::CheckWeaponSwitch()
     {
        m_pMyEnt->prevweaponsel = m_pMyEnt->weaponsel;
        m_pMyEnt->weaponsel = m_pMyEnt->nextweaponsel;
-       if(m_pMyEnt->weaponsel!=NULL) addmsg(SV_WEAPCHANGE, "ri2", m_pMyEnt->clientnum, ->weaponsel->type); // 2011jan17:ft: message possibly not needed in a local game!?!
+       if(m_pMyEnt->weaponsel!=NULL) addmsg(SV_WEAPCHANGE, "ri2", m_pMyEnt->clientnum, m_pMyEnt->weaponsel->type); // 2011jan17:ft: message possibly not needed in a local game!?!
        m_pMyEnt->weaponchanging = 0;
        m_iChangeWeaponDelay = 0;
        if(!m_pMyEnt->weaponsel->mag)

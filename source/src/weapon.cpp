@@ -25,7 +25,7 @@ void checkweaponswitch()
     int timeprogress = lastmillis-player1->weaponchanging;
     if(timeprogress>weapon::weaponchangetime)
     {
-        addmsg(SV_WEAPCHANGE, "ri", player1->weaponsel->type);
+        addmsg(SV_WEAPCHANGE, "ri2", 0, player1->weaponsel->type);
         player1->weaponchanging = 0;
     }
     else if(timeprogress>(weapon::weaponchangetime>>1) && player1->weaponsel != player1->nextweaponsel)
@@ -754,7 +754,7 @@ void weapon::sendshoot(vec &from, vec &to, int millis)
             putint(p, (int)(players[i]->head.y*DMF));
             putint(p, (int)(players[i]->head.z*DMF));
         }
-    putint(p, -1);
+    //putint(p, -1);
     addmsgraw(p, true);
     owner->pstatshots[owner->weaponsel->type]++; //NEW
 }
@@ -984,10 +984,10 @@ void grenadeent::activate(const vec &from, const vec &to)
 
     if(local)
     {
-        addmsg(SV_SHOOT, "ri2i3i", millis, owner->weaponsel->type,
+        addmsg(SV_SHOOT, "ri4i3i", 0, 0, millis, owner->weaponsel->type,
 //                (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF),
                (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF),
-               0);
+               -1);
         audiomgr.playsound(S_GRENADEPULL, SP_HIGH);
         player1->pstatshots[GUN_GRENADE]++; //NEW
     }

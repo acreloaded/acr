@@ -28,6 +28,7 @@ SV_SWITCHNAME
 	s, text
 	
 SV_SETTEAM
+	i, fpl
 	i, t
 
 SV_SWITCHSKIN
@@ -38,7 +39,12 @@ SV_TRYSPAWN
 SV_SPAWN
 	i, cn
 	i, ls
+	i, health
+	i, armour
 	i, gunselect
+	i, secondary
+	iNUMGUNS, ammo[i]
+	iNUMGUNS, mag[i]
 
 SV_SUICIDE
 	i, cn
@@ -46,17 +52,20 @@ SV_SUICIDE
 SV_SHOOT
 	i, cn
 	i, id
+	i, lastmillis
 	i, weap
-    i3, ev->to[0-2]
+    i3, to[0-2]
 	MAXCLIENTS,
-		i, info.cn
-		i3, info.o[0-2]
-		i3, info.head[0-2]
+		i, cn
+		i3, o[0-2]
+		i3, head[0-2]
 
+//Unimplemented sending just receiving
 SV_SHOOTC
 	i, cn
 	i, id
 	i, weap
+	i, lastmillis
 
 SV_EXPLODE
 	i, cn

@@ -87,7 +87,7 @@ bool checkcrit(float dist, float m, int base = 0, int low = 4, int high = 100)
 inline void sendhit(client &actor, int gun, const vec &o, int dmg)
 {
     return; // TODO
-    sendf(-1, 1, "ri4f3", SV_EXPLODE, actor.clientnum, gun, dmg, o.x, o.y, o.z);
+    sendf(-1, 1, "ri5i3", SV_EXPLODE, actor.clientnum, gun, dmg, 0, o[0], o[1], o[2]);
 }
 
 inline void sendheadshot(const vec &from, const vec &to, int damage)

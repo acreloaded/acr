@@ -488,7 +488,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             case SV_TEXTPRIVATE:
             {
                 int cn = getint(p);
-                getint();
+                getint(p);
                 getstring(text, p);
                 filtertext(text, text);
                 playerent *d = getclient(cn);
@@ -555,11 +555,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
 
             case SV_SWITCHSKIN:
-                loopi(2)
-                {
-                    int skin = getint(p);
-                    if(d) d->setskin(i, skin);
-                }
+                if (d) loopi(2) d->setskin(i, getint(p));
                 break;
 
             case SV_INITCLIENT:            // another client either connected or changed name/team
@@ -695,6 +691,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 s->setprimary(gunselect);
                 s->selectweapon(gunselect);
                 s->secondary = getint(p);
+                getint(p);
                 loopi(NUMGUNS) s->ammo[i] = getint(p);
                 loopi(NUMGUNS) s->mag[i] = getint(p);
                 s->state = CS_SPAWNING;
@@ -740,7 +737,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     conoutf(_("new round starting... fight!"));
                     hudeditf(HUDMSG_TIMER, "FIGHT!");
                 }
-                addmsg(SV_SPAWN, "ri3", s->clientnum, s->lifesequence, s->weaponsel->type);
+                addmsg(SV_SPAWN, "ri6vv", s->clientnum, s->lifesequence, s->health, s->armour, s->weaponsel->type, s->secondary, NUMGUNS, s->ammo, NUMGUNS, s->mag);
                 s->weaponswitch(s->primweap);
                 s->weaponchanging -= weapon::weaponchangetime/2;
                 if(s->lifesequence==0) s->resetstats(); //NEW

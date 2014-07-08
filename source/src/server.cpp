@@ -2903,7 +2903,7 @@ void process(ENetPacket *packet, int sender, int chan)
 
             case SV_TEXTPRIVATE:
             {
-                getint();
+                getint(p);
                 int targ = getint(p);
                 getstring(text, p);
                 filtertext(text, text);
@@ -3065,6 +3065,7 @@ void process(ENetPacket *packet, int sender, int chan)
 
             case SV_SETTEAM:
             {
+                getint(p);
                 int t = getint(p);
                 if(!updateclientteam(sender, team_isvalid(t) ? t : TEAM_SPECT, FTR_PLAYERWISH)) sendf(sender, 1, "rii", SV_TEAMDENY, t);
                 else
@@ -3105,17 +3106,21 @@ void process(ENetPacket *packet, int sender, int chan)
 
             case SV_SPAWN:
             {
-                int cn = getint(p), ls = getint(p), gunselect = getint(p);
+                int cn = getint(p), ls = getint(p);
+                getint(p);
+                getint(p);
+                int gunselect = getint(p), secondary = getint(p);
                 if(!cl->hasclient(cn)) break;
                 client &cp = *clients[cn];
                 clientstate &cs = cp.state;
                 if((cs.state!=CS_ALIVE && cs.state!=CS_DEAD && cs.state!=CS_SPECTATE) ||
-                    ls!=cs.lifesequence || cs.lastspawn<0 || gunselect<0 || gunselect>=NUMGUNS || gunselect == GUN_CPISTOL) break;
+                    ls!=cs.lifesequence || cs.lastspawn<0 || !isprimary(gunselect) || !issecondary(secondary) || gunselect == GUN_CPISTOL) break;
                 cs.lastspawn = -1;
                 cs.spawn = gamemillis;
                 cp.upspawnp = false;
                 cs.state = CS_ALIVE;
                 cs.gunselect = gunselect;
+                cs.secondary = secondary;
                 QUEUE_BUF(
                 {
                     putint(cp.messages, SV_SPAWN);
@@ -3124,6 +3129,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     putint(cp.messages, cs.health);
                     putint(cp.messages, cs.armour);
                     putint(cp.messages, cs.gunselect);
+                    putint(cp.messages, cs.secondary);
                     loopi(NUMGUNS) putint(cp.messages, cs.ammo[i]);
                     loopi(NUMGUNS) putint(cp.messages, cs.mag[i]);
                 });
@@ -3153,7 +3159,7 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_SHOOT: // TODO: cn id weap to.x to.y to.z heads.length heads.v
             case SV_SHOOTC: // TODO: cn id weap
             {
-                const int cn = getint(p), id = getint(p), weap = getint(p);
+                const int cn = getint(p), id = getint(p), millis = getint(p), weap = getint(p);
                 shotevent *ev = new shotevent(0, id, weap);
                 if (!(ev->compact = (type == SV_SHOOTC)))
                 {
@@ -3181,7 +3187,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 client *cp = cl->hasclient(cn) ? clients[cn] : NULL;
                 if (cp)
                 {
-                    ev->millis = cp->getmillis(gamemillis, id);
+                    ev->millis = cp->getmillis(millis, id);
                     cp->addevent(ev);
                 }
                 else delete ev;

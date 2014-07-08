@@ -195,7 +195,7 @@ void newteam(char *name)
             if(!multiplayer()) { conoutf(_("you cannot spectate in singleplayer")); return; }
         }
         if(player1->state == CS_EDITING) conoutf(_("you can't change team while editing"));
-        else addmsg(SV_SETTEAM, "ri", nt);
+        else addmsg(SV_SETTEAM, "ri2", 0, nt);
     }
     else conoutf(_("your team is: %s"), team_string(player1->team));
 }
@@ -203,7 +203,7 @@ void newteam(char *name)
 void benchme()
 {
     if(team_isactive(player1->team) && servstate.mastermode == MM_MATCH)
-        addmsg(SV_SETTEAM, "ri", team_tospec(player1->team));
+        addmsg(SV_SETTEAM, "ri2", 0, team_tospec(player1->team));
 }
 
 int _setskin(int s, int t)
@@ -1613,7 +1613,7 @@ playerent *updatefollowplayer(int shiftdirection)
 void spectate()
 {
     if(m_demo(gamemode)) return;
-    if(!team_isspect(player1->team)) addmsg(SV_SETTEAM, "ri", TEAM_SPECT);
+    if(!team_isspect(player1->team)) addmsg(SV_SETTEAM, "ri2", 0, TEAM_SPECT);
     else tryrespawn();
 }
 
