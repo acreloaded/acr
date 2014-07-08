@@ -738,24 +738,35 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
             }
 
-            case SV_SHOTFX:
+            case SV_SHOOT:
+            case SV_SHOOTC:
+            case SV_RICOCHET:
             {
                 int scn = getint(p), gun = getint(p);
                 vec from, to;
-                loopk(3) to[k] = getint(p)/DMF;
-                playerent *s = getclient(scn);
-                if(!s || !weapon::valid(gun)) break;
-                loopk(3) from[k] = s->o.v[k];
-                s->lastaction = lastmillis;
-                s->weaponchanging = 0;
-                s->mag[gun]--;
-                if(s->weapons[gun])
+                if (type == SV_SHOOTC)
+                    from = to = vec(0, 0, 0);
+                else
                 {
+                    loopk(3) from[k] = getint(p) / DMF;
+                    loopk(3) to[k] = getint(p) / DMF;
+                }
+                playerent *s = getclient(scn);
+                if (!s || !weapon::valid(gun) || !s->weapons[gun]) break;
+                if (s == player1 && (type == SV_SHOOTC || gun == GUN_GRENADE)) break;
+                // if it's somebody else's players, remove a bit of ammo
+                if (type != SV_RICOCHET && s != player1 && !isowned(s))
+                {
+                    s->lastaction = lastmillis;
+                    s->weaponchanging = 0;
+                    s->mag[gun]--;
+
                     s->lastattackweapon = s->weapons[gun];
                     s->weapons[gun]->gunwait = s->weapons[gun]->info.attackdelay;
-                    s->weapons[gun]->attackfx(from, to, -1);
                     s->weapons[gun]->reloading = 0;
                 }
+                // all have to do is attackfx
+                s->weapons[gun]->attackfx(from, to, type == SV_RICOCHET ? -2 : -1);
                 s->pstatshots[gun]++; //NEW
                 break;
             }

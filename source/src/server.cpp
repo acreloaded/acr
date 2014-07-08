@@ -3788,7 +3788,6 @@ void process(ENetPacket *packet, int sender, int chan)
 
             case SV_THROWNADE: // & SV_THROWKNIFE TODO
                 getint(p);
-            case SV_SHOTFX:
                 getint(p);
                 getint(p);
                 getint(p);
