@@ -733,7 +733,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 }
                 addmsg(SV_SPAWN, "ri3", s->clientnum, s->lifesequence, s->weaponsel->type);
                 s->weaponswitch(s->weapons[s->primary]);
-                s->weaponchanging -= SWITCHTIME(d->perk1 == PERK_TIME) / 2;
+                s->weaponchanging -= SWITCHTIME(s->perk1 == PERK_TIME) / 2;
                 if(s->lifesequence==0) s->resetstats(); //NEW
                 break;
             }
