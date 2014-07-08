@@ -712,7 +712,7 @@ public:
         weaponchanging = lastmillis;
         nextweaponsel = w;
         extern playerent *player1;
-        extern void addmsg(int type, const char *fmt = NULL, ...);
+        extern void addmsg(int type, const char *fmt, ...);
         if (this == player1 || ownernum == player1->clientnum)
             addmsg(SV_WEAPCHANGE, "ri2", clientnum, w->type);
         w->onselecting();
