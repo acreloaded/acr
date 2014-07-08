@@ -2983,9 +2983,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 }
 #else
                 cp.state.gunwait[cp.state.gunselect = gunselect] += SWITCHTIME(cp.state.perk1 == PERK_TIME);
-                sendf(-1, 1, "ri3x", SV_WEAPCHANGE, cn, gunselect, sender);
-                cp.state.scoping = false;
-                cp.state.scopemillis = gamemillis - ADSTIME(cp.state.perk2 == PERK_TIME);
+                QUEUE_MSG;
 #endif
                 break;
             }
@@ -2994,9 +2992,9 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 const int cn = getint(p);
                 if (!cl->hasclient(cn)) break;
-                client &cp = *clients[cn];
-                // TODO
-                //sendf(-1, 1, "ri2x", SV_QUICKSWITCH, cn, sender);
+                clientstate &cs = clients[cn]->state;
+                cs.gunwait[cs.gunselect = cs.primary] += SWITCHTIME(cs.perk1 == PERK_TIME) / 2;
+                QUEUE_MSG;
                 break;
             }
 

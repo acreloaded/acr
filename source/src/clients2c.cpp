@@ -1062,6 +1062,16 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
             }
 
+            case SV_QUICKSWITCH:
+            {
+                int cn = getint(p);
+                playerent *d = getclient(cn);
+                if (!d) break;
+                d->weaponchanging = lastmillis - 1 - (SWITCHTIME(d->perk1 == PERK_TIME) / 2);
+                d->nextweaponsel = d->weaponsel = d->weapons[d->primary];
+                break;
+            }
+
             case SV_SERVMSG:
                 getstring(text, p);
                 conoutf("%s", text);
