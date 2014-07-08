@@ -63,6 +63,7 @@ misc
 		[CC BY 3.0] Protox Mod
 	build.png - [LGPL] Combined by Victor from [LGPL] Crystal Icons
 	damage.png - [Modder Ethical Public License 1.0] OpenWarfare2 1.3
+	obit.png - [LGPL] Combined by Victor from [LGPL] Crystal Icons except last 3 icons: [©] Activision
 	radaricons.png - [Copyright Ineligible] Adapted by Victor from works by Activision and Markus "makkE" Bekel
 	scope.png - [CC BY-NC-SA 3.0] Adjusted by Victor [CC BY-NC-SA 3.0] DeltaStrikeOp
 	startscreen.png - [Public Domain] Victor
@@ -107,47 +108,6 @@ models
 			by "makkE"
 			Markus Bekel
 			e-mail: makk_e@web.de
-obit
-	airstrike.png
-	akimbo.png
-	assault.png
-	assault2.png
-	assist.png
-	bolt.png
-	bow.png
-	bow_impact.png
-	bow_stuck.png
-	death.png
-	ff.png
-	headshot.png
-	knife_bleed.png
-	knife_impact.png
-	multi.png
-	pistol.png
-	shotgun.png
-	sniper.png
-	sniper2.png
-	subgun.png
-		[©] Activision
-	bot.png
-	build.png - [LGPL] Combined by Victor
-	cheat.png
-	crit.png
-	drown.png
-	fall.png
-	fall_water.png
-	grenade.png
-	heal.png
-	jug.png
-	revenge.png
-	revive.png
-	spawn.png
-	team.png
-		[LGPL] Crystal Icons
-	first.png - [CC BY 3.0] Deleket (http://deleket.deviantart.com/)
-	knife.png* - [Unknown origin] but non-commercial use is probably allowed
-	nuke.png - [Non-commercial but link is optional] from Aqua Candy Revolution by McDo Design (Susumu Yoshida)
-	sword.png - [Unlicensed] Storm Riders - Swords Icon Pack by Talos Tsui
 perks - [CC BY 3.0] Colored Perk Icons for ACR Victor - adapted from [CC BY 3.0] Perks Icons for ACR by Protox
 streak - [LGPL] Colorized/Modified by Victor - [LGPL] Crystal Icons
 waypoints - [CC BY-NC-SA 3.0] Victor
