@@ -51,7 +51,7 @@ struct entity : persistent_entity
 //#define reloadable_gun(g) (g != GUN_KNIFE && g != GUN_GRENADE)
 enum { GUN_KNIFE = 0, GUN_PISTOL, WEAP_SWORD, GUN_CARBINE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_ASSAULT2, GUN_CPISTOL, GUN_GRENADE, GUN_AKIMBO, NUMGUNS, WEAP_RPG,  GUN_BOLT, GUN_SNIPER2, GUN_HEAL };//implement everything after MAX
 #define isprimary(n) ((n >= GUN_CARBINE) && (n < GUN_CPISTOL))
-#define issecondary(n) (!(isprimary(n) || n == 0))
+#define issecondary(n) (!(isprimary(n) || n == 0 || n > GUN_CPISTOL))
 
 #define reloadable_gun(g) (!(g == GUN_KNIFE || g == GUN_GRENADE || g == WEAP_SWORD))
 

@@ -38,7 +38,7 @@ SV_TRYSPAWN
 
 SV_SPAWN
 	i, cn
-	i, ls
+	i, lifesequence
 	i, health
 	i, armour
 	i, gunselect
@@ -46,6 +46,18 @@ SV_SPAWN
 	iNUMGUNS, ammo[i]
 	iNUMGUNS, mag[i]
 
+SV_SPAWNSTATE
+	i, cn
+	i, lifesequence
+	i, health
+	i, armour
+	i, primary
+	i, weaponsel
+	i, secondary
+	i, arenaspawn
+	iNUMGUNS, ammo[i]
+	iNUMGUNS, mag[i]
+	
 SV_SUICIDE
 	i, cn
 
@@ -133,8 +145,17 @@ SV_SENDMAP
 	i, cfgsize
 	i, cfgsizegz
 	i, revision
+	b, map
+	b, cfg
 
 SV_RECVMAP
+	s, text
+	i, mapsize
+	i, cfgsize
+	i, cfgsizegz
+	i, revision
+	b, map
+	b, cfg
 	
 SV_REMOVEMAP
 	s, text
@@ -145,7 +166,7 @@ SV_FLAGACTION
 	
 SV_CLAIMPRIV
 	i, claim
-	(if i)s, text
+	s, text
 
 SV_CALLVOTE
 	i, vi->type
@@ -157,6 +178,7 @@ SV_VOTE
 SV_LISTDEMOS
 
 SV_GETDEMO
+	i, num
 
 SV_SOUND
 	i, cn
@@ -188,7 +210,7 @@ SV_EDITT
 	i, xs
 	i, ys
 	i, v
-	i
+	i, tex
 
 SV_EDITMODE
 	i, editing
@@ -206,14 +228,14 @@ SV_NEWMAP
 	i, size
 	
 SV_THROWNADE
-	i
+	i3, from[0-2]
+	i3, to[0-2]
+	i, nademillis
 
 SV_SHOTFX
-	i
-	i
-	i
-	i
-	i
+	i, scn
+	i, gun
+	i3, to[0-2]
 
 SV_GAMEMODE
-	i
+	i, nextmode

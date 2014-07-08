@@ -841,6 +841,11 @@ void getmap(char *name, char *callback)
         conoutf(_("requesting map from server..."));
         packetbuf p(10, ENET_PACKET_FLAG_RELIABLE);
         putint(p, SV_RECVMAP);
+        putint(p, 0);
+        putint(p, 0);
+        putint(p, 0);
+        putint(p, 0);
+        putint(p, 0);
         sendpackettoserv(2, p.finalize());
     }
     else

@@ -1548,7 +1548,7 @@ void setadmin(int *claim, char *password)
     if(!*claim && (player1->clientrole))
     {
         conoutf(_("you released admin status"));
-        addmsg(SV_CLAIMPRIV, "ri", 0);
+        addmsg(SV_CLAIMPRIV, "ris", 0, '\0');
     }
     else if(*claim != 0 && password)
         addmsg(SV_CLAIMPRIV, "ris", *claim, genpwdhash(player1->name, password, sessionid));

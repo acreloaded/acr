@@ -690,7 +690,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 s->setprimary(gunselect);
                 s->selectweapon(gunselect);
                 s->secondary = getint(p);
-                getint(p);
                 loopi(NUMGUNS) s->ammo[i] = getint(p);
                 loopi(NUMGUNS) s->mag[i] = getint(p);
                 s->state = CS_SPAWNING;
@@ -1156,6 +1155,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_CLAIMPRIV:
             {
+                getint(p);
+                getstring(text, p);
                 /*
                 // two messages required to allow for proper german translation - is there a better way to do it?
                 if(pl==player1) conoutf(_("you claimed %s status"), r == CR_ADMIN ? "admin" : "master");

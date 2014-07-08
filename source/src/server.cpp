@@ -3110,6 +3110,8 @@ void process(ENetPacket *packet, int sender, int chan)
                 getint(p);
                 getint(p);
                 int gunselect = getint(p), secondary = getint(p);
+                loopi(NUMGUNS) getint(p);
+                loopi(NUMGUNS) getint(p);
                 if(!cl->hasclient(cn)) break;
                 client &cp = *clients[cn];
                 clientstate &cs = cp.state;
@@ -3412,6 +3414,11 @@ void process(ENetPacket *packet, int sender, int chan)
 
             case SV_RECVMAP:
             {
+                getint(p);
+                getint(p);
+                getint(p);
+                getint(p);
+                getint(p);
                 if(mapbuffer.available())
                 {
                     resetflag(cl->clientnum); // drop ctf flag
@@ -3467,11 +3474,9 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_CLAIMPRIV:
             {
                 bool claim = getint(p) != 0;
-                if(claim)
-                {
-                    getstring(text, p);
-                    changeclientrole(sender, CR_ADMIN, text);
-                } else changeclientrole(sender, CR_DEFAULT);
+                getstring(text, p);
+                if(claim) changeclientrole(sender, CR_ADMIN, text);
+                else changeclientrole(sender, CR_DEFAULT);
                 break;
             }
 
@@ -3795,13 +3800,15 @@ void process(ENetPacket *packet, int sender, int chan)
             }
 
             case SV_THROWNADE: // & SV_THROWKNIFE TODO
+                loopi(3) getint(p);
+                loopi(3) getint(p);
                 getint(p);
+                break;
             case SV_SHOTFX:
                 getint(p);
                 getint(p);
-                getint(p);
-                getint(p);
-                getint(p);
+                loopi(3) getint(p);
+                break;
             case SV_GAMEMODE:
                 getint(p);
                 QUEUE_MSG;
