@@ -342,8 +342,8 @@ void pickupeffects(int n, playerent *d, int spawntime)
     switch(e.type)
     {
         case I_AKIMBO: w = d->weapons[GUN_AKIMBO]; break;
-        case I_CLIPS: w = d->weapons[GUN_PISTOL]; break;
-        case I_AMMO: w = d->primweap; break;
+        case I_CLIPS: w = d->weapons[d->secondary]; break;
+        case I_AMMO: w = d->weapons[d->primary]; break;
         case I_GRENADE: w = d->weapons[GUN_GRENADE]; break;
     }
     if(w) w->onammopicked();
@@ -359,43 +359,6 @@ void trypickup(int n, playerent *d)
         case LADDER:
             if(!d->crouching) d->onladder = true;
             break;
-    }
-}
-
-void trypickupflag(int flag, playerent *d)
-{
-    if(d==player1)
-    {
-        flaginfo &f = flaginfos[flag];
-        flaginfo &of = flaginfos[team_opposite(flag)];
-        if(f.state == CTFF_STOLEN) return;
-        bool own = flag == team_base(d->team);
-
-        if(m_capture(gamemode))
-        {
-            if(own) // it's the own flag
-            {
-                if(f.state == CTFF_DROPPED) flagreturn(flag);
-                else if(f.state == CTFF_INBASE && of.state == CTFF_STOLEN && of.actor == d && of.ack) flagscore(of.team);
-            }
-            else flagpickup(flag);
-        }
-        else if(m_hunt(gamemode))
-        {
-            if(own)
-            {
-                flagpickup(flag);
-            }
-            else
-            {
-                if(f.state == CTFF_DROPPED) flagscore(f.team); // may not count!
-            }
-        }
-        else if(m_keep(gamemode))
-        {
-            if(f.state != CTFF_INBASE) return;
-            flagpickup(flag);
-        }
     }
 }
 
@@ -427,23 +390,6 @@ void checkitems(playerent *d)
         if(isitem(e.type)) v.z += e.attr1;
         if(d->o.dist(v)<2.5f) trypickup(i, d);
     }
-    if(m_flags(gamemode)) loopi(2)
-    {
-        flaginfo &f = flaginfos[i];
-        entity &e = *f.flagent;
-        if(!e.spawned || !f.ack || (f.state == CTFF_INBASE && !numflagspawn[i])) continue;
-        if(OUTBORD(f.pos.x, f.pos.y)) continue;
-        if(f.state==CTFF_DROPPED) // 3d collision for dropped ctf flags
-        {
-            if(objcollide(d, f.pos, 2.5f, 8.0f)) trypickupflag(i, d);
-        }
-        else // simple 2d collision
-        {
-            vec v = f.pos;
-            v.z = S(int(v.x), int(v.y))->floor + eyeheight;
-            if(d->o.dist(v)<2.5f) trypickupflag(i, d);
-        }
-    }
 }
 
 void spawnallitems()            // spawns items locally
@@ -473,78 +419,16 @@ void setspawn(int i, bool on)
     }
 }
 
-bool selectnextprimary(int num)
+extern bool sendloadout;
+VARFP(nextprimary, 0, GUN_ASSAULT, NUMGUNS-1,
 {
-    switch(num)
-    {
-//         case GUN_CPISTOL:
-        case GUN_CARBINE:
-        case GUN_SHOTGUN:
-        case GUN_SUBGUN:
-        case GUN_SNIPER:
-        case GUN_ASSAULT:
-            player1->setnextprimary(num);
-            addmsg(SV_LOADOUT, "ri", player1->nextprimweap->type);
-            return true;
-
-        default:
-            conoutf("this is not a valid primary weapon");
-            return false;
-    }
-}
-
-VARFP(nextprimary, 0, GUN_ASSAULT, NUMGUNS,
-{
-    if(!selectnextprimary(nextprimary)) selectnextprimary((nextprimary = GUN_ASSAULT));
+    player1->nextprimary = nextprimary;
+    sendloadout = true;
 });
 
 // flag ent actions done by the local player
 
-int flagdropmillis = 0;
-
-void flagpickup(int fln)
-{
-    if(flagdropmillis && flagdropmillis>lastmillis) return;
-    flaginfo &f = flaginfos[fln];
-    int action = f.state == CTFF_INBASE ? FA_STEAL : FA_PICKUP;
-    f.flagent->spawned = false;
-    f.state = CTFF_STOLEN;
-    f.actor = player1; // do this although we don't know if we picked the flag to avoid getting it after a possible respawn
-    f.actor_cn = getclientnum();
-    f.ack = false;
-    addmsg(SV_FLAGACTION, "rii", action, f.team);
-}
-
-void tryflagdrop(bool manual)
-{
-    loopi(2)
-    {
-        flaginfo &f = flaginfos[i];
-        if(f.state==CTFF_STOLEN && f.actor==player1)
-        {
-            f.flagent->spawned = false;
-            f.state = CTFF_DROPPED;
-            f.ack = false;
-            flagdropmillis = lastmillis+3000;
-            addmsg(SV_FLAGACTION, "rii", manual ? FA_DROP : FA_LOST, f.team);
-        }
-    }
-}
-
-void flagreturn(int fln)
-{
-    flaginfo &f = flaginfos[fln];
-    f.flagent->spawned = false;
-    f.ack = false;
-    addmsg(SV_FLAGACTION, "rii", FA_RETURN, f.team);
-}
-
-void flagscore(int fln)
-{
-    flaginfo &f = flaginfos[fln];
-    f.ack = false;
-    addmsg(SV_FLAGACTION, "rii", FA_SCORE, f.team);
-}
+void tryflagdrop() { addmsg(SV_DROPFLAG, "r"); }
 
 // flag ent actions from the net
 
@@ -555,13 +439,13 @@ void flagstolen(int flag, int act)
     f.actor = actor; // could be NULL if we just connected
     f.actor_cn = act;
     f.flagent->spawned = false;
-    f.ack = true;
 }
 
 void flagdropped(int flag, float x, float y, float z)
 {
     flaginfo &f = flaginfos[flag];
     if(OUTBORD(x, y)) return; // valid pos
+    /*
     bounceent p;
     p.plclipped = true;
     p.rotspeed = 0.0f;
@@ -590,7 +474,11 @@ void flagdropped(int flag, float x, float y, float z)
     f.pos.z = round_(p.o.z);
     if(f.pos.z < hdr.waterlevel) f.pos.z = (short) hdr.waterlevel;
     f.flagent->spawned = true;
-    f.ack = true;
+    */
+    f.pos.x = x;
+    f.pos.y = y;
+    f.pos.z = z - (f.actor ? f.actor->eyeheight : PLAYERHEIGHT);
+    f.flagent->spawned = true;
 }
 
 void flaginbase(int flag)
@@ -599,7 +487,6 @@ void flaginbase(int flag)
     f.actor = NULL; f.actor_cn = -1;
     f.pos = vec(f.flagent->x, f.flagent->y, f.flagent->z);
     f.flagent->spawned = true;
-    f.ack = true;
 }
 
 void flagidle(int flag)

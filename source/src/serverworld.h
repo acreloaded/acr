@@ -328,7 +328,7 @@ bool movechecks(client &cp, const vec &newo, const int newf)
         loopv(sents)
     {
         entity &e = sents[i];
-        const bool cantake = (e.spawned && cs.canpickup(e.type)), canheal = false; //(e.type == I_HEALTH && cs.wounds.length());
+        const bool cantake = (e.spawned && cs.canpickup(e.type, cp.type == ST_AI)), canheal = false; //(e.type == I_HEALTH && cs.wounds.length());
         if(!cantake && !canheal) continue;
         const int ls = (1 << maplayout_factor) - 2, maplayoutid = getmaplayoutid(e.x, e.y);
         const bool getmapz = maplayout && e.x > 2 && e.y > 2 && e.x < ls && e.y < ls;

@@ -2,14 +2,18 @@ enum
 {
     GUN_KNIFE = 0,
     GUN_PISTOL,
-    GUN_CARBINE,
     GUN_SHOTGUN,
     GUN_SUBGUN,
     GUN_SNIPER,
     GUN_ASSAULT,
-    GUN_CPISTOL,
     GUN_GRENADE,
     GUN_AKIMBO,
+    GUN_BOLT,
+    GUN_HEAL,
+    GUN_SWORD,
+    GUN_RPG,
+    GUN_ASSAULT2,
+    GUN_SNIPER2,
     NUMGUNS
 };
 
@@ -51,8 +55,6 @@ class bounceent;
 
 struct weapon
 {
-    const static int weaponchangetime;
-    const static float weaponbeloweye;
     static void equipplayer(playerent *pl);
 
     weapon(class playerent *owner, int type);
@@ -68,7 +70,8 @@ struct weapon
 
     virtual bool attack(vec &targ) = 0;
     virtual void attackfx(const vec &from, const vec &to, int millis) = 0;
-    virtual void attackphysics(vec &from, vec &to);
+    virtual void attackphysics(const vec &from, const vec &to);
+    virtual void attackhit(const vec &o);
     virtual void attacksound();
     virtual bool reload(bool autoreloaded);
     virtual void reset() {}
@@ -80,7 +83,7 @@ struct weapon
     virtual bool deselectable();
     virtual void renderstats();
     virtual void renderhudmodel();
-    virtual void renderaimhelp(bool teamwarning);
+    virtual void renderaimhelp(int teamtype);
 
     virtual void onselecting();
     virtual void ondeselecting() {}
@@ -88,7 +91,7 @@ struct weapon
     virtual void onownerdies() {}
     virtual void removebounceent(bounceent *b) {}
 
-    void sendshoot(vec &from, vec &to, int millis);
+    void sendshoot(const vec &to);
     bool modelattacking();
     void renderhudmodel(int lastaction, int index = 0);
 
@@ -111,8 +114,9 @@ struct grenades : weapon
     grenades(playerent *owner);
     bool attack(vec &targ);
     void attackfx(const vec &from, const vec &to, int millis);
+    void attackhit(const vec &o);
     int modelanim();
-    void activatenade(const vec &to);
+    void activatenade();
     void thrownade();
     void thrownade(const vec &vel);
     void dropnade();
@@ -124,6 +128,8 @@ struct grenades : weapon
     void onownerdies();
     void removebounceent(bounceent *b);
     int flashtime() const;
+
+    void renderaimhelp(int teamtype) { }
 };
 
 
@@ -139,74 +145,80 @@ struct gun : weapon
 
 struct subgun : gun
 {
-    subgun(playerent *owner);
-    int dynspread();
-    bool selectable();
+    subgun(playerent *owner) : gun(owner, GUN_SUBGUN) {}
+};
+struct pistol : gun
+{
+    pistol(playerent *owner) : gun(owner, GUN_PISTOL) {}
 };
 
 
-struct sniperrifle : gun
+struct healgun : gun
 {
-    bool scoped;
-    int scoped_since;
+    healgun(playerent *owner);
 
-    sniperrifle(playerent *owner);
     void attackfx(const vec &from, const vec &to, int millis);
-    bool reload(bool autoreloaded);
 
-    int dynspread();
-    float dynrecoil();
-    bool selectable();
-    void onselecting();
-    void ondeselecting();
-    void onownerdies();
-    void renderhudmodel();
-    void renderaimhelp(bool teamwarning);
-    void setscope(bool enable);
+    int flashtime() const { return 0; }
 };
 
 
-struct carbine : gun
+struct sword : weapon
 {
-    carbine(playerent *owner);
-    bool selectable();
+    sword(playerent *owner);
+
+    bool attack(vec &targ);
+    int modelanim();
+
+    void attackfx(const vec &from, const vec &to, int millis);
+    void renderstats(){}
+    void renderaimhelp(int teamtype){}
+
+    int flashtime() const;
 };
+
+
+struct crossbow : gun
+{
+    crossbow(playerent *owner);
+    int modelanim();
+
+    virtual void attackfx(const vec &from, const vec &to, int millis);
+    void attackhit(const vec &o);
+    void attackshell(const vec &to){};
+};
+
+
+struct scopedprimary : gun
+{
+#define ADSZOOM ZOOMLIMIT * 55 / 100
+    scopedprimary(playerent *owner, int type) : gun(owner, type) {}
+    void attackfx(const vec &from, const vec &to, int millis);
+
+    float dynrecoil();
+    void renderhudmodel();
+    void renderaimhelp(int teamtype);
+};
+struct m21 : scopedprimary { m21(playerent *owner) : scopedprimary(owner, GUN_SNIPER) {} };
+struct m82 : scopedprimary { m82(playerent *owner) : scopedprimary(owner, GUN_SNIPER2) {} };
+struct boltrifle : scopedprimary { boltrifle(playerent *owner) : scopedprimary(owner, GUN_BOLT) {} };
 
 struct shotgun : gun
 {
     shotgun(playerent *owner);
-    void attackphysics(vec &from, vec &to);
-    bool attack(vec &targ);
+    int dynspread();
     void attackfx(const vec &from, const vec &to, int millis);
-    bool selectable();
+    void renderaimhelp(int teamtype);
 };
 
 
 struct assaultrifle : gun
 {
-    assaultrifle(playerent *owner);
-    int dynspread();
+    assaultrifle(playerent *owner, int type) : gun(owner, type) { }
     float dynrecoil();
-    bool selectable();
 };
-
-struct cpistol : gun
-{
-    bool bursting;
-    cpistol(playerent *owner);
-    bool reload(bool autoreloaded);
-    bool selectable();
-    void onselecting();
-    void ondeselecting();
-    bool attack(vec &targ);
-    void setburst(bool enable);
-};
-
-struct pistol : gun
-{
-    pistol(playerent *owner);
-    bool selectable();
-};
+struct m16 : assaultrifle { m16(playerent *owner) : assaultrifle(owner, GUN_ASSAULT) {} };
+struct ak47 : assaultrifle { ak47(playerent *owner) : assaultrifle(owner, GUN_ASSAULT2) {} };
 
 
 struct akimbo : gun
@@ -217,7 +229,7 @@ struct akimbo : gun
     int akimbomillis;
     int akimbolastaction[2];
 
-    void attackfx(const vec &from, const vec &to, int millis);
+    bool attack(vec &targ);
     void onammopicked();
     void onselecting();
     bool selectable();

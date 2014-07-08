@@ -438,7 +438,7 @@ void sendspawn(client *c)
         gs.gunselect = GUN_ASSAULT;
     }
     gs.respawn();
-    gs.spawnstate(smode, smuts);
+    gs.spawnstate(c->team, smode, smuts);
     gs.lifesequence++;
     sendf(c->clientnum, 1, "ri8vv", SV_SPAWNSTATE, c->clientnum, gs.lifesequence,
         gs.health, gs.armour,
@@ -1052,7 +1052,7 @@ void flagaction(int flag, int action, int actor)
     {
         client *c = clients[actor];
         c->state.flagscore += score;
-        sendf(-1, 1, "riii", SV_FLAGCNT, actor, c->state.flagscore);
+        //sendf(-1, 1, "riii", SV_FLAGCNT, actor, c->state.flagscore);
         if (m_team(gamemode, mutators)) computeteamwork(c->team, c->clientnum); /** WIP */
     }
     if(valid_client(actor))
@@ -1502,11 +1502,6 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
         logline(ACLOG_INFO, "[%s] %s suicided", actor->hostname, actor->name);
     }
     sendf(-1, 1, "ri6", SV_KILL, target->clientnum, actor->clientnum, actor->state.frags, gun, style);
-    if ((suic || tk) && (m_hunt(gamemode) || m_keep(gamemode)) && targethasflag >= 0)
-    {
-        actor->state.flagscore--;
-        sendf(-1, 1, "riii", SV_FLAGCNT, actor->clientnum, actor->state.flagscore);
-    }
     target->position.setsize(0);
     ts.state = CS_DEAD;
     ts.lastdeath = gamemillis;
@@ -2753,6 +2748,9 @@ void process(ENetPacket *packet, int sender, int chan)
             filterlang(cl->lang, text);
             int wantrole = getint(p);
             cl->state.nextprimary = getint(p);
+            cl->state.nextsecondary = getint(p);
+            cl->state.nextperk1 = getint(p);
+            cl->state.nextperk2 = getint(p);
             loopi(2) cl->skin[i] = getint(p);
             int bantype = getbantype(sender);
             bool banned = bantype > BAN_NONE;
@@ -2984,10 +2982,10 @@ void process(ENetPacket *packet, int sender, int chan)
                     sendf(sender, 1, "ri3", SV_WEAPCHANGE, cn, cp.state.primary);
                 }
 #else
-                // TODO
-                /*
                 cp.state.gunwait[cp.state.gunselect = gunselect] += SWITCHTIME(cp.state.perk1 == PERK_TIME);
                 sendf(-1, 1, "ri3x", SV_WEAPCHANGE, cn, gunselect, sender);
+                // TODO
+                /*
                 cp.state.scoping = false;
                 cp.state.scopemillis = gamemillis - ADSTIME(cp.state.perk2 == PERK_TIME);
                 */
@@ -3007,9 +3005,14 @@ void process(ENetPacket *packet, int sender, int chan)
 
             case SV_LOADOUT:
             {
-                int nextprimary = getint(p);
-                if(nextprimary<0 && nextprimary>=NUMGUNS) break;
-                cl->state.nextprimary = nextprimary;
+                int nextprimary = getint(p), nextsecondary = getint(p), perk1 = getint(p), perk2 = getint(p);
+                clientstate &cs = cl->state;
+                cs.nextperk1 = perk1;
+                cs.nextperk2 = perk2;
+                if (nextprimary >= 0 && nextprimary < NUMGUNS)
+                    cs.nextprimary = nextprimary;
+                if (nextsecondary >= 0 && nextsecondary < NUMGUNS)
+                    cs.nextsecondary = nextsecondary;
                 break;
             }
 
@@ -3105,7 +3108,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 client &cp = *clients[cn];
                 clientstate &cs = cp.state;
                 if((cs.state!=CS_ALIVE && cs.state!=CS_DEAD && cs.state!=CS_SPECTATE) ||
-                    ls!=cs.lifesequence || cs.lastspawn<0 || gunselect<0 || gunselect>=NUMGUNS || gunselect == GUN_CPISTOL) break;
+                    ls!=cs.lifesequence || cs.lastspawn<0 || gunselect<0 || gunselect>=NUMGUNS) break;
                 cs.lastspawn = -1;
                 cs.spawn = gamemillis;
                 cp.upspawnp = false;
@@ -3444,12 +3447,17 @@ void process(ENetPacket *packet, int sender, int chan)
                 break;
             }
 
-            case SV_FLAGACTION:
+            case SV_DROPFLAG:
             {
-                int action = getint(p);
-                int flag = getint(p);
-                if(!m_flags(gamemode) || flag < 0 || flag > 1 || action < 0 || action > FA_NUM) break;
-                flagaction(flag, action, sender);
+                int fl = clienthasflag(sender);
+                flagaction(fl, FA_DROP, sender);
+                /*
+                while(fl >= 0)
+                {
+                    flagaction(fl, FA_DROP, sender);
+                    fl = clienthasflag(sender);
+                }
+                */
                 break;
             }
 

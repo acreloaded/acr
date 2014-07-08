@@ -152,7 +152,7 @@ struct clientstate : playerstate
 
     void respawn()
     {
-        playerstate::respawn();
+        playerstate::respawn(gamemode, mutators);
         o = vec(-1e10f, -1e10f, -1e10f);
         lastdeath = 0;
         spawn = 0;

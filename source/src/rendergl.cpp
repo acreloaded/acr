@@ -445,7 +445,7 @@ void fixresizedscreen()
 float scopesensfunc = 0.4663077f;
 void scopefunc();
 FVARFP(fov, 75, 90, 120, scopefunc());
-VARFP(scopefov, 5, 50, 60, scopefunc());
+FVARFP(scopefov, 5, 50, 60, scopefunc());
 VARP(spectfov, 5, 110, 120);
 void scopefunc()
 {
@@ -463,9 +463,9 @@ COMMAND(fovcompat, "i");
 
 float dynfov()
 {
-    if(player1->weaponsel->type == GUN_SNIPER && ((sniperrifle *)player1->weaponsel)->scoped) return (float)scopefov;
-    else if(player1->isspectating()) return (float)spectfov;
-    else return (float)fov;
+    if (sniper_weap(player1->weaponsel->type)) return (scopefov-fov)*player1->zoomed/ZOOMLIMIT+fov;
+    else if(player1->isspectating()) return spectfov;
+    else return fov;
 }
 
 VAR(fog, 64, 180, 1024);

@@ -2956,6 +2956,22 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <remark>This is not the same as curweapon - which could be a grenade or the knife.</remark>
           </remarks>
           <references>
+            <identifierReference identifier="currentsecondary"/>
+            <identifierReference identifier="nextprimary"/>
+            <identifierReference identifier="curweapon"/>
+            <identifierReference identifier="prevweapon"/>
+            <identifierReference identifier="weapon"/>
+            <identifierReference identifier="magcontent"/>
+            <identifierReference identifier="magreserve"/>
+            <identifierReference identifier="hasprimary"/>
+          </references>
+        </command>
+
+
+        <command name="currentsecondary">
+          <description>Returns the weapon-index the local player currently has selected as secondary.</description>
+          <references>
+            <identifierReference identifier="currentprimary"/>
             <identifierReference identifier="nextprimary"/>
             <identifierReference identifier="curweapon"/>
             <identifierReference identifier="prevweapon"/>
@@ -2976,6 +2992,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </examples>
           <references>
             <identifierReference identifier="currentprimary"/>
+            <identifierReference identifier="currentsecondary"/>
             <identifierReference identifier="curweapon"/>
             <identifierReference identifier="checkmag"/>
           </references>
@@ -3044,6 +3061,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <description>Returns the weapon-index the local player is currently holding.</description>
           <references>
             <identifierReference identifier="currentprimary"/>
+            <identifierReference identifier="currentsecondary"/>
             <identifierReference identifier="nextprimary"/>
             <identifierReference identifier="prevweapon"/>
             <identifierReference identifier="weapon"/>
@@ -3057,6 +3075,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <description>Returns the weapon-index the local player was previously holding.</description>
           <references>
             <identifierReference identifier="currentprimary"/>
+            <identifierReference identifier="currentsecondary"/>
             <identifierReference identifier="nextprimary"/>
             <identifierReference identifier="curweapon"/>
             <identifierReference identifier="weapon"/>
@@ -3571,6 +3590,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <references>
             <identifierReference identifier="curweapon"/>
             <identifierReference identifier="currentprimary"/>
+            <identifierReference identifier="currentsecondary"/>
             <identifierReference identifier="nextprimary"/>
             <identifierReference identifier="prevweapon"/>
             <identifierReference identifier="weapon"/>
@@ -3586,6 +3606,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <references>
             <identifierReference identifier="curweapon"/>
             <identifierReference identifier="currentprimary"/>
+            <identifierReference identifier="currentsecondary"/>
             <identifierReference identifier="nextprimary"/>
             <identifierReference identifier="prevweapon"/>
             <identifierReference identifier="weapon"/>

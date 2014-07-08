@@ -967,7 +967,7 @@ void findsens()
 }
 COMMAND(findsens, "");
 
-inline bool zooming(playerent *plx) { return (plx->weaponsel->type == GUN_SNIPER && ((sniperrifle *)plx->weaponsel)->scoped); }
+inline bool zooming(playerent *plx) { return sniper_weap(plx->weaponsel->type) && plx->zoomed; }
 
 void mousemove(int odx, int ody)
 {

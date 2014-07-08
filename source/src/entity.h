@@ -62,7 +62,9 @@ enum { PR_CLEAR = 0, PR_ASSIST, PR_SPLAT, PR_HS, PR_KC, PR_KD, PR_HEALSELF, PR_H
 #define HEALTHPRECISION 1
 #define HEALTHSCALE 10 // pow(10, HEALTHPRECISION)
 #define STARTHEALTH ((m_juggernaut(gamemode, mutators) ? 1000 : 100) * HEALTHSCALE)
+#define STARTARMOUR 0
 #define MAXHEALTH ((m_juggernaut(gamemode, mutators) ? 1100 : 120) * HEALTHSCALE)
+#define MAXARMOUR 100
 #define VAMPIREMAX (STARTHEALTH + 200 * HEALTHSCALE)
 
 #define MAXZOMBIEROUND 30
@@ -78,37 +80,21 @@ enum { PR_CLEAR = 0, PR_ASSIST, PR_SPLAT, PR_HS, PR_KC, PR_KD, PR_HEALSELF, PR_H
 #define SWITCHTIME(perk) ((perk) ? 200 : 400)
 #define ADSTIME(perk) ((perk) ? 200 : 300)
 #define CROUCHTIME 500
+#define COMBOTIME 1000
+
+#define NADEPOWER 2
+#define NADETTL 4350
+#define MARTYRDOMTTL 2500
+#define KNIFEPOWER 4.5f
+#define KNIFETTL 30000
+#define GIBBLOODMUL 1.5f
 
 #define BLEEDDMG 10
 #define BLEEDDMGZ 5
 #define BLEEDDMGPLUS 15
 
-#define SGRAYS 21
-#define SGDMGTOTAL 90
-
-#define SGDMGBONUS 65
-#define SGDMGDISTB 50
-
-#define SGCCdmg 500
-#define SGCCbase 0
-#define SGCCrange 40
-
-#define SGCMdmg 375
-#define SGCMbase 25
-#define SGCMrange 60
-
-#define SGCOdmg 125
-#define SGCObase 45
-#define SGCOrange 75
-
-#define SGMAXDMGABS 105
-#define SGMAXDMGLOC 84
-#define SGBONUSDIST 80
-#define SGSEGDMG_O 3
-#define SGSEGDMG_M 6
-#define SGSEGDMG_C 4
-#define SGSPREAD 2.25
-#define EXPDAMRAD 10
+#define SGRAYS 24
+#define SGGIB 180 // 18-26 rays (only have 24)
 
 struct itemstat { int add, start, max, sound; };
 extern itemstat ammostats[NUMGUNS];
@@ -150,6 +136,10 @@ enum { CR_DEFAULT = 0, CR_ADMIN };
 enum { SM_NONE = 0, SM_DEATHCAM, SM_FOLLOW1ST, SM_FOLLOW3RD, SM_FOLLOW3RD_TRANSPARENT, SM_FLY, SM_OVERVIEW, SM_NUM };
 enum { FPCN_VOID = -4, FPCN_DEATHCAM = -2, FPCN_FLY = -2, FPCN_OVERVIEW = -1 };
 
+enum { PERK_NONE = 0, PERK_RADAR, PERK_NINJA, PERK_POWER, PERK_TIME, PERK_MAX };
+enum { PERK1_NONE = 0, PERK1_AGILE = PERK_MAX, PERK1_HAND, PERK1_LIGHT, PERK1_SCORE, PERK1_MAX, };
+enum { PERK2_NONE = 0, PERK2_VISION = PERK_MAX, PERK2_STREAK, PERK2_STEADY, PERK2_HEALTH, PERK2_MAX };
+
 class worldobject
 {
 public:
@@ -167,7 +157,7 @@ public:
     int timeinair;                      // used for fake gravity
     float radius, eyeheight, maxeyeheight, aboveeye;  // bounding box size
     bool inwater;
-    bool onfloor, onladder, jumpnext, crouching, crouchedinair, trycrouch, sprinting, cancollide, stuck, scoping, shoot;
+    bool onfloor, onladder, jumpnext, crouching, crouchedinair, trycrouch, sprinting, cancollide, stuck, shoot;
     int lastjump;
     float lastjumpheight;
     int lastsplash;
@@ -178,7 +168,7 @@ public:
     int zoomed;
 
     physent() : o(0, 0, 0), deltapos(0, 0, 0), newpos(0, 0, 0), yaw(270), pitch(0), roll(0), pitchvel(0),
-            crouching(false), crouchedinair(false), trycrouch(false), sprinting(false), cancollide(true), stuck(false), scoping(false), shoot(false), lastjump(0), lastjumpheight(0), lastsplash(0), state(CS_ALIVE), last_pos(0)
+            crouching(false), crouchedinair(false), trycrouch(false), sprinting(false), cancollide(true), stuck(false), shoot(false), lastjump(0), lastjumpheight(0), lastsplash(0), state(CS_ALIVE), last_pos(0)
     {
         reset();
     }
@@ -292,22 +282,24 @@ class playerstate
 public:
     int health, armour;
     int lastspawn;
-    int primary, nextprimary;
+    int primary, secondary, perk1, perk2, nextprimary, nextsecondary, nextperk1, nextperk2;
     int gunselect;
-    bool akimbo;
+    bool akimbo, scoping;
     int ammo[NUMGUNS], mag[NUMGUNS], gunwait[NUMGUNS];
     int pstatshots[NUMGUNS], pstatdamage[NUMGUNS];
 
-    playerstate() : armour(0), primary(GUN_ASSAULT), nextprimary(GUN_ASSAULT), akimbo(false) {}
+    playerstate() : armour(0), primary(GUN_ASSAULT), secondary(GUN_PISTOL), perk1(PERK1_NONE), perk2(PERK2_NONE),
+        nextprimary(GUN_ASSAULT), nextsecondary(GUN_PISTOL), nextperk1(PERK1_NONE), nextperk2(PERK2_NONE),
+        akimbo(false), scoping(false) {}
     virtual ~playerstate() {}
 
     void resetstats() { loopi(NUMGUNS) pstatshots[i] = pstatdamage[i] = 0; }
 
-    itemstat &itemstats(int type)
+    const itemstat &itemstats(int type)
     {
         switch(type)
         {
-            case I_CLIPS: return ammostats[GUN_PISTOL];
+            case I_CLIPS: return ammostats[secondary];
             case I_AMMO: return ammostats[primary];
             case I_GRENADE: return ammostats[GUN_GRENADE];
             case I_AKIMBO: return ammostats[GUN_AKIMBO];
@@ -320,22 +312,22 @@ public:
         }
     }
 
-    bool canpickup(int type)
+    bool canpickup(int type, bool bot)
     {
         switch(type)
         {
-            case I_CLIPS: return ammo[akimbo ? GUN_AKIMBO : GUN_PISTOL]<ammostats[akimbo ? GUN_AKIMBO : GUN_PISTOL].max;
-            case I_AMMO: return ammo[primary]<ammostats[primary].max;
+            case I_CLIPS: return ammo[akimbo ? GUN_AKIMBO : secondary]<ammostats[akimbo ? GUN_AKIMBO : secondary].max;
+            case I_AMMO: return primary == GUN_SWORD || ammo[primary]<ammostats[primary].max;
             case I_GRENADE: return mag[GUN_GRENADE]<ammostats[GUN_GRENADE].max;
             case I_HEALTH: return health<powerupstats[type-I_HEALTH].max;
             case I_HELMET:
             case I_ARMOUR: return armour<powerupstats[type-I_HEALTH].max;
-            case I_AKIMBO: return !akimbo;
+            case I_AKIMBO: return !akimbo && !bot;
             default: return false;
         }
     }
 
-    void additem(itemstat &is, int &v)
+    void additem(const itemstat &is, int &v)
     {
         v += is.add;
         if(v > is.max) v = is.max;
@@ -346,7 +338,7 @@ public:
         switch(type)
         {
             case I_CLIPS:
-                additem(ammostats[GUN_PISTOL], ammo[GUN_PISTOL]);
+                additem(ammostats[secondary], ammo[secondary]);
                 additem(ammostats[GUN_AKIMBO], ammo[GUN_AKIMBO]);
                 break;
             case I_AMMO: additem(ammostats[primary], ammo[primary]); break;
@@ -363,45 +355,122 @@ public:
         }
     }
 
-    void respawn()
+    void respawn(int gamemode, int mutators)
     {
-        health = 100;
-        armour = 0;
+        health = STARTHEALTH;
+        armour = STARTARMOUR;
         gunselect = GUN_PISTOL;
-        akimbo = false;
+        akimbo = scoping = false;
         loopi(NUMGUNS) ammo[i] = mag[i] = gunwait[i] = 0;
         ammo[GUN_KNIFE] = mag[GUN_KNIFE] = 1;
         lastspawn = -1;
     }
 
-    virtual void spawnstate(int gamemode, int mutators)
+    virtual void spawnstate(int team, int gamemode, int mutators)
     {
-        if(m_pistol(gamemode, mutators)) primary = GUN_PISTOL;
-        else if(m_sniper(gamemode, mutators)) primary = GUN_SNIPER;
-        else if(m_lss(gamemode, mutators)) primary = GUN_KNIFE;
-        else primary = nextprimary;
-
-        if(!m_nosecondary(gamemode, mutators))
+        if (m_zombie(gamemode) && team == TEAM_CLA) primary = GUN_SWORD;
+        else if(m_pistol(gamemode, mutators)) primary = GUN_PISTOL;
+        else if (m_gib(gamemode, mutators)) primary = GUN_KNIFE;
+        else if (m_demolition(gamemode, mutators)) primary = GUN_RPG; // inversion
+        else switch (nextprimary)
         {
-            ammo[GUN_PISTOL] = ammostats[GUN_PISTOL].start-magsize(GUN_PISTOL);//ammostats[GUN_PISTOL].max-magsize(GUN_PISTOL);
-            mag[GUN_PISTOL] = magsize(GUN_PISTOL);
+            default: primary = m_sniper(gamemode, mutators) ? GUN_BOLT : GUN_ASSAULT; break;
+            case GUN_KNIFE:
+            case GUN_SHOTGUN:
+            case GUN_SUBGUN:
+            case GUN_ASSAULT:
+            case GUN_GRENADE:
+            case GUN_AKIMBO:
+            case GUN_ASSAULT2:
+                if (m_sniper(gamemode, mutators))
+                {
+                    primary = GUN_BOLT;
+                    break;
+                }
+                // fallthrough
+            // Only bolt/M82/M21 for insta mutator
+            case GUN_SNIPER:
+                if (m_insta(gamemode, mutators))
+                {
+                    primary = GUN_BOLT;
+                    break;
+                }
+                // fallthrough
+            // Only bolt/M82 for sniping mutator
+            case GUN_BOLT:
+            case GUN_SNIPER2:
+                primary = nextprimary;
+                break;
         }
 
-        if(!m_noprimary(gamemode, mutators))
+        if (m_zombie(gamemode) && team == TEAM_CLA) secondary = GUN_KNIFE;
+        else if (m_pistol(gamemode, mutators)) secondary = primary; // no secondary
+        else if (m_sniper(gamemode, mutators) || m_demolition(gamemode, mutators) || m_gib(gamemode, mutators))
+            secondary = GUN_SWORD;
+        else switch (nextsecondary)
         {
-            ammo[primary] = ammostats[primary].start-magsize(primary);
-            mag[primary] = magsize(primary);
+            default: secondary = GUN_PISTOL; break;
+            case GUN_PISTOL:
+            case GUN_HEAL:
+            case GUN_SWORD:
+            case GUN_RPG:
+                secondary = nextsecondary;
+                break;
+        }
+
+        // always have a primary
+        ammo[primary] = ammostats[primary].start - 1;
+        mag[primary] = magsize(primary);
+        // secondary ammo
+        if(secondary != primary)
+        {
+            ammo[secondary] = ammostats[secondary].start - 1;
+            mag[secondary] = magsize(secondary);
         }
 
         gunselect = primary;
 
-        if(m_sniper(gamemode, mutators)) health = 1;
-        if(m_survivor(gamemode, mutators)) // Survivor && Team-Survivor : 2010nov19
+        if (m_zombie(gamemode) && team == TEAM_CLA)
         {
-            health = 100;
-            armour = 100;
-            ammo[GUN_GRENADE] = 2;
+            perk1 = PERK1_AGILE;
+            perk2 = PERK2_STREAK;
         }
+        else
+        {
+            perk1 = nextperk1;
+            perk2 = nextperk2;
+        }
+
+        if (perk1 <= PERK1_NONE || perk1 >= PERK1_MAX) perk1 = rnd(PERK1_MAX - 1) + 1;
+        if (perk2 <= PERK2_NONE || perk2 >= PERK2_MAX) perk2 = rnd(PERK2_MAX - PERK_MAX - 1) + PERK_MAX + 1;
+        // special perks need both slots
+        if (perk1 < PERK_MAX) perk2 = perk1;
+
+        const int healthsets[3] = { STARTHEALTH - 15 * HEALTHSCALE, STARTHEALTH, STARTHEALTH + 20 * HEALTHSCALE };
+        health = healthsets[(!m_regen(gamemode, mutators) && m_sniper(gamemode, mutators) ? 0 : 1) + (perk2 == PERK2_HEALTH ? 1 : 0)];
+        if (m_zombie(gamemode))
+        {
+            switch (team)
+            {
+                case TEAM_CLA:
+                    if (m_onslaught(gamemode, mutators))
+                    {
+                        health = STARTHEALTH * ZOMBIEHEALTHFACTOR;
+                        armour += 50;
+                    }
+                    else health = STARTHEALTH + rnd(STARTHEALTH * ZOMBIEHEALTHFACTOR);
+                    break;
+                case TEAM_RVSF:
+                    if (!m_onslaught(gamemode, mutators)) break;
+                    // humans for onslaught only
+                    if (perk2 == PERK2_HEALTH) health = STARTHEALTH * ZOMBIEHEALTHFACTOR; // all 500
+                    else health = STARTHEALTH * (rnd(ZOMBIEHEALTHFACTOR - 2) + 2) + (STARTHEALTH / 2); // 250 - 450
+                    armour += 2000;
+                    break;
+            }
+        }
+        // half health for vampire
+        if (m_vampire(gamemode, mutators)) health >>= 1;
     }
 
     // just subtract damage here, can set death, etc. later in code calling this
@@ -454,7 +523,37 @@ public:
 };
 
 #ifndef STANDALONE
-#define HEADSIZE 0.4f
+struct eventicon
+{
+    enum
+    {
+        CHAT = 0,
+        VOICECOM,
+        HEADSHOT,
+        DECAPITATED,
+        FIRSTBLOOD,
+        CRITICAL,
+        REVENGE,
+        BLEED,
+        PICKUP,
+        RADAR,
+        AIRSTRIKE,
+        NUKE,
+        JUGGERNAUT,
+        DROPNADE,
+        SUICIDEBOMB,
+        TOTAL
+    };
+    int type, millis;
+    eventicon(int type, int millis) : type(type), millis(millis){}
+};
+
+struct damageinfo
+{
+    vec o;
+    int millis, damage;
+    damageinfo(vec o, int t, int d) : o(o), millis(t), damage(d) {}
+};
 
 class playerent : public dynent, public playerstate
 {
@@ -464,6 +563,7 @@ public:
     int clientnum, lastupdate, plag, ping;
     enet_uint32 address;
     int lifesequence;                   // sequence id for each respawn, used in damage test
+    int radarmillis; vec lastloudpos;
     int frags, flagscore, deaths, points, tks;
     int lastaction, lastmove, lastpain, lastvoicecom, lasthit;
     int clientrole;
@@ -475,10 +575,11 @@ public:
     int spectatemode, followplayercn;
     int eardamagemillis;
     int respawnoffset;
+    vector<eventicon> icons;
     bool allowmove() { return state!=CS_DEAD || spectatemode==SM_FLY; }
 
     weapon *weapons[NUMGUNS];
-    weapon *prevweaponsel, *weaponsel, *nextweaponsel, *primweap, *nextprimweap, *lastattackweapon;
+    weapon *prevweaponsel, *weaponsel, *nextweaponsel, *lastattackweapon;
 
     poshist history; // Previous stored locations of this player
 
@@ -487,7 +588,7 @@ public:
     float deltayaw, deltapitch, newyaw, newpitch;
     int smoothmillis;
 
-    vec head;
+    vec head, eject, muzzle;
 
     bool ignored, muted;
 
@@ -499,9 +600,10 @@ public:
 
     playerent() : curskin(0), clientnum(-1), lastupdate(0), plag(0), ping(0), address(0), lifesequence(0), frags(0), flagscore(0), deaths(0), points(0), tks(0), lastpain(0), lastvoicecom(0), lasthit(0), clientrole(CR_DEFAULT),
                   team(TEAM_SPECT), spectatemode(SM_NONE), followplayercn(FPCN_VOID), eardamagemillis(0), respawnoffset(0),
-                  prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
+                  prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), lastattackweapon(NULL),
                   smoothmillis(-1),
-                  head(-1, -1, -1), ignored(false), muted(false),
+                  radarmillis(0), lastloudpos(0, 0, 0),
+                  head(-1, -1, -1), eject(-1, -1, -1), muzzle(-1, -1, -1), ignored(false), muted(false),
 				  ownernum(-1), level(0), pBot(NULL), enemy(NULL)
     {
         type = ENT_PLAYER;
@@ -512,7 +614,22 @@ public:
         maxspeed = 16.0f;
         skin_noteam = skin_cla = skin_rvsf = NULL;
         loopi(2) nextskin[i] = 0;
-        respawn();
+        respawn(G_DM, G_M_NONE);
+    }
+
+    void addicon(int type)
+    {
+        switch (type){
+            case eventicon::CRITICAL:
+            case eventicon::PICKUP:
+                loopv(icons)
+                    if (icons[i].type == type)
+                        icons.remove(i--);
+                break;
+        }
+        extern int lastmillis;
+        eventicon icon(type, lastmillis);
+        icons.add(icon);
     }
 
     void removeai();
@@ -520,6 +637,7 @@ public:
     virtual ~playerent()
     {
         removeai();
+        icons.shrink(0);
         extern void removebounceents(playerent *owner);
         extern void removedynlights(physent *owner);
         extern void zapplayerflags(playerent *owner);
@@ -549,7 +667,7 @@ public:
         push.mul(damage/100.0f*guns[gun].pushfactor);
         vel.add(push);
         extern int lastmillis;
-        if(gun==GUN_GRENADE && damage > 50) eardamagemillis = lastmillis+damage*100;
+        if(gun==GUN_GRENADE && damage > 50 * HEALTHSCALE) eardamagemillis = lastmillis+damage*100;
     }
 
     void resetspec()
@@ -558,35 +676,32 @@ public:
         followplayercn = FPCN_VOID;
     }
 
-    void respawn()
+    void respawn(int gamemode, int mutators)
     {
         dynent::reset();
-        playerstate::respawn();
+        playerstate::respawn(gamemode, mutators);
         history.reset();
         if(weaponsel) weaponsel->reset();
         lastaction = 0;
         lastattackweapon = NULL;
         attacking = false;
         extern int lastmillis;
-        weaponchanging = lastmillis - weapons[gunselect]->weaponchangetime/2; // 2011jan16:ft: for a little no-shoot after spawn
+        weaponchanging = 0; // spawnkill is bad though // lastmillis - weapons[gunselect]->weaponchangetime / 2; // 2011jan16:ft: for a little no-shoot after spawn
         resetspec();
         eardamagemillis = 0;
         eyeheight = maxeyeheight;
         curskin = nextskin[team_base(team)];
     }
 
-    void spawnstate(int gamemode, int mutators)
+    void spawnstate(int team, int gamemode, int mutators)
     {
-        playerstate::spawnstate(gamemode, mutators);
+        playerstate::spawnstate(team, gamemode, mutators);
         prevweaponsel = weaponsel = weapons[gunselect];
-        primweap = weapons[primary];
-        nextprimweap = weapons[nextprimary];
         curskin = nextskin[team_base(team)];
     }
 
-    void selectweapon(int w) { if (weaponsel) prevweaponsel = weaponsel; weaponsel = weapons[(gunselect = w)]; if (!prevweaponsel) prevweaponsel = weaponsel; }
-    void setprimary(int w) { primweap = weapons[(primary = w)]; }
-    void setnextprimary(int w) { nextprimweap = weapons[(nextprimary = w)]; }
+    void selectweapon(int w) { prevweaponsel = weaponsel; weaponsel = weapons[(gunselect = w)]; if (!prevweaponsel) prevweaponsel = weaponsel; }
+    void setprimary(int w) { primary = w; }
     bool isspectating() { return state==CS_SPECTATE || (state==CS_DEAD && spectatemode > SM_NONE); }
     void weaponswitch(weapon *w)
     {
@@ -619,13 +734,12 @@ struct flaginfo
     playerent *actor;
     vec pos;
     int state; // one of CTFF_*
-    bool ack;
-    flaginfo() : flagent(0), actor(0), state(CTFF_INBASE), ack(false) {}
+    flaginfo() : flagent(0), actor(0), state(CTFF_INBASE) {}
 };
 
 // nades, gibs
 
-enum { BT_NONE, BT_NADE, BT_GIB };
+enum { BT_NONE, BT_NADE, BT_GIB, BT_SHELL, BT_KNIFE };
 
 class bounceent : public physent
 {
@@ -651,24 +765,17 @@ public:
     virtual bool applyphysics() { return true; }
 };
 
-struct hitmsg
-{
-    int target, lifesequence, info;
-    ivec dir;
-};
-
 class grenadeent : public bounceent
 {
 public:
     bool local;
-    int nadestate;
+    int nadestate, id;
     float distsincebounce;
     grenadeent(playerent *owner, int millis = 0);
     ~grenadeent();
-    void activate(const vec &from, const vec &to);
+    void activate();
     void _throw(const vec &from, const vec &vel);
     void explode();
-    void splash();
     virtual void destroy();
     virtual bool applyphysics();
     void moveoutsidebbox(const vec &direction, playerent *boundingbox);

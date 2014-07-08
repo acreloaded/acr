@@ -434,7 +434,7 @@ extern void addmsgraw(ucharbuf &p, bool reliable)
 }
 
 static int lastupdate = -1000, lastping = 0;
-bool sendmapidenttoserver = false;
+bool sendmapidenttoserver = false, sendloadout = false;
 
 void sendpackettoserv(int chan, ENetPacket *packet)
 {
@@ -555,7 +555,7 @@ void c2sinfo(bool force)                    // send update to the server
     // Send positions
     if(!intermission) sendpositions();
     // Send messages
-    if(sendmapidenttoserver || messages.length() || totalmillis-lastping>250)
+    if(sendmapidenttoserver || sendloadout || messages.length() || totalmillis-lastping>250)
     {
         packetbuf p(MAXTRANS);
 
@@ -566,6 +566,16 @@ void c2sinfo(bool force)                    // send update to the server
             putint(p, maploaded);
             putint(p, hdr.maprevision);
             sendmapidenttoserver = false;
+        }
+        if (sendloadout)
+        {
+            p.reliable();
+            putint(p, SV_LOADOUT);
+            putint(p, player1->nextprimary);
+            putint(p, player1->nextsecondary);
+            putint(p, player1->nextperk1);
+            putint(p, player1->nextperk2);
+            sendloadout = false;
         }
         // send messages collected during the previous frames
         if(messages.length())
@@ -621,7 +631,10 @@ void sendintro()
     putint(p, connectrole);
     clientpassword[0] = '\0';
     connectrole = CR_DEFAULT;
-    putint(p, player1->nextprimweap->type);
+    putint(p, player1->nextprimary);
+    putint(p, player1->nextsecondary);
+    putint(p, player1->nextperk1);
+    putint(p, player1->nextperk2);
     loopi(2) putint(p, player1->skin(i));
     sendpackettoserv(1, p.finalize());
 }

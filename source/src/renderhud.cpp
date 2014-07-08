@@ -402,7 +402,7 @@ void drawequipicons(playerent *p)
 
     // weapons
     int c = p->weaponsel->type != GUN_GRENADE ? p->weaponsel->type : p->prevweaponsel->type, r = 0;
-    if(c==GUN_AKIMBO || c==GUN_CPISTOL) c = GUN_PISTOL; // same icon for akimb & pistol
+    if(c==GUN_AKIMBO) c = GUN_PISTOL; // same icon for akimb & pistol
     if(c>3) { c -= 4; r = 1; }
 
     if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS)
@@ -1158,8 +1158,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
             // big flag-stolen icon
             int ft = 0;
-            if((flaginfos[0].state==CTFF_STOLEN && flaginfos[0].actor == p && flaginfos[0].ack) ||
-               (flaginfos[1].state==CTFF_STOLEN && flaginfos[1].actor == p && flaginfos[1].ack && ++ft))
+            if((flaginfos[0].state==CTFF_STOLEN && flaginfos[0].actor == p) ||
+               (flaginfos[1].state==CTFF_STOLEN && flaginfos[1].actor == p && ++ft))
             {
                 drawctficon(VIRTW-225-10, VIRTH*5/8, 225, ft, 1, 1/2.0f, (sinf(lastmillis/100.0f)+1.0f) *128);
             }

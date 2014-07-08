@@ -403,8 +403,8 @@ void deathstate(playerent *pl)
 
 void spawnstate(playerent *d)              // reset player state not persistent accross spawns
 {
-    d->respawn();
-    d->spawnstate(gamemode, mutators);
+    d->respawn(gamemode, mutators);
+    d->spawnstate(d->team, gamemode, mutators);
     if(d==player1)
     {
         setscope(false);
@@ -678,8 +678,8 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
 
 void spawnplayer(playerent *d)
 {
-    d->respawn();
-    d->spawnstate(gamemode, mutators);
+    d->respawn(gamemode, mutators);
+    d->spawnstate(d->team, gamemode, mutators);
     d->state = (d==player1 && editmode) ? CS_EDITING : CS_ALIVE;
     findplayerstart(d);
 }
@@ -818,7 +818,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bo
 
     if (pl != player1)
     {
-        damageeffect(damage, pl);
+        damageeffect(damage, pl->o);
         audiomgr.playsound(S_PAIN1+rnd(5), pl);
     }
 
@@ -979,7 +979,6 @@ void initflag(int i)
     flaginfo &f = flaginfos[i];
     f.flagent = &flagdummies[i];
     f.pos = vec(f.flagent->x, f.flagent->y, f.flagent->z);
-    f.ack = true;
     f.actor = NULL;
     f.actor_cn = -1;
     f.team = i;
@@ -1255,8 +1254,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
     }
 }
 
-void dropflag() { tryflagdrop(true); }
-COMMAND(dropflag, "");
+COMMANDN(dropflag, tryflagdrop, "");
 
 char *votestring(int type, const char *arg1, const char *arg2, const char *arg3)
 {

@@ -8,8 +8,7 @@ VARP(autoreload, 0, 1, 1);
 VARP(akimboautoswitch, 0, 1, 1);
 VARP(akimboendaction, 0, 3, 3); // 0: switch to knife, 1: stay with pistol (if has ammo), 2: switch to grenade (if possible), 3: switch to primary (if has ammo) - all fallback to previous one w/o ammo for target
 
-sgray sgr[SGRAYS*3];
-sgray pat[SGRAYS*3]; // DEBUG 2011may27
+vec sg[SGRAYS];
 
 int burstshotssettings[NUMGUNS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, };
 
@@ -19,20 +18,25 @@ void updatelastaction(playerent *d, int millis = lastmillis)
     d->lastaction = millis;
 }
 
+inline void checkweaponswitch_(playerent *p)
+{
+    if(!p->weaponchanging) return;
+    int timeprogress = lastmillis-p->weaponchanging;
+    if (timeprogress>SWITCHTIME(p->perk1 == PERK_TIME))
+    {
+        p->weaponchanging = 0;
+    }
+    else if (timeprogress>(SWITCHTIME(p->perk1 == PERK_TIME) >> 1) && p->weaponsel != p->nextweaponsel)
+    {
+        p->prevweaponsel = p->weaponsel;
+        p->weaponsel = p->nextweaponsel;
+    }
+}
+
 void checkweaponswitch()
 {
-    if(!player1->weaponchanging) return;
-    int timeprogress = lastmillis-player1->weaponchanging;
-    if(timeprogress>weapon::weaponchangetime)
-    {
-        addmsg(SV_WEAPCHANGE, "ri", player1->weaponsel->type);
-        player1->weaponchanging = 0;
-    }
-    else if(timeprogress>(weapon::weaponchangetime>>1) && player1->weaponsel != player1->nextweaponsel)
-    {
-        player1->prevweaponsel = player1->weaponsel;
-        player1->weaponsel = player1->nextweaponsel;
-    }
+    checkweaponswitch_(player1);
+    loopv(players) if (players[i]) checkweaponswitch_(players[i]);
 }
 
 void selectweapon(weapon *w)
@@ -75,9 +79,28 @@ void shiftweapon(int *s)
 
         // collect available weapons
         vector<weapon *> availweapons;
+        const int weap_check_order[NUMGUNS] =
+        {
+            GUN_AKIMBO,
+            GUN_KNIFE,
+            GUN_GRENADE,
+            // secondary
+            GUN_PISTOL,
+            GUN_HEAL,
+            GUN_RPG,
+            // primary
+            GUN_SHOTGUN,
+            GUN_SUBGUN,
+            GUN_SNIPER,
+            GUN_SNIPER2,
+            GUN_BOLT,
+            GUN_ASSAULT,
+            GUN_SWORD,
+            GUN_ASSAULT2,
+        };
         loopi(NUMGUNS)
         {
-            weapon *w = player1->weapons[i];
+            weapon *w = player1->weapons[weap_check_order[i]];
             if(!w) continue;
             if(w->selectable() || w==curweapon || (w->type==GUN_PISTOL && player1->akimbo))
             {
@@ -130,7 +153,14 @@ void quicknadethrow(bool on)
     }
 }
 
-void currentprimary() { intret(player1->primweap->type); }
+void setburst(bool enable)
+{
+    // TODO: AC implemented burst only for cpistol, which is removed
+}
+COMMAND(setburst, "d");
+
+void currentprimary() { intret(player1->primary); }
+void currentsecondary() { intret(player1->secondary); }
 void prevweapon() { intret(player1->prevweaponsel->type); }
 void curweapon() { intret(player1->weaponsel->type); }
 
@@ -155,53 +185,12 @@ void tryreload(playerent *p)
 void selfreload() { tryreload(player1); }
 COMMANDN(reload, selfreload, "");
 
-int lastsgs_hits = 0;
-int lastsgs_dmgt = 0;
-
-void createrays(vec &from, vec &to) // create random spread of rays for the shotgun
+void selfuse()
 {
-    // 2011jan17:ft: once this basic approach has been agreed upon this function should be optimized
-    // 2011may27:ft: indeed
-    vec dir = vec(from).sub(to);
-    float f = dir.magnitude() / 10.0f;
-    dir.normalize();
-    vec spoke;
-    spoke.orthogonal(dir);
-    spoke.normalize();
-    spoke.mul(f);
-    loopk(3)
-    {
-        float rnddir = rndscale(2*M_PI);
-        loopi(SGRAYS)
-        {
-            int j = k * SGRAYS;
-            sgr[j+i].ds = k; //2011jun18 - damage-independent-section-indicator .. not: k==0 ? SGSEGDMG_O : (k==1? SGSEGDMG_M: SGSEGDMG_C);
-            vec p(spoke);
-            float base = 0.0f;
-            int wrange = 50;
-            switch(sgr[j+i].ds)
-            {
-                case 0:/* SGSEGDMG_O:*/  base = SGCObase/100.0f; wrange = SGCOrange; break;
-                case 1:/* SGSEGDMG_M:*/  base = SGCMbase/100.0f; wrange = SGCMrange; break;
-                case 2:/* SGSEGDMG_C:*/
-                default:          base = SGCCbase/100.0f; wrange = SGCCrange; break;
-            }
-            int rndmul = rnd(wrange);
-            float veclen = base + rndmul/100.0f;
-            p.mul( veclen );
-
-            p.rotate( 2*M_PI/SGRAYS * i + rnddir , dir );
-            vec rray = vec(to);
-            float nvl = veclen / ( ( SGCObase / 100.0f ) + ( SGCOrange / 100.0f ) );
-            vec pbv = vec( nvl, 0, 0);
-            pbv.rotate( 2*M_PI/SGRAYS * i + rnddir, vec( 0, 0, 1) );
-            pat[j+i].ds = int(veclen*100);
-            pat[j+i].rv = pbv;
-            rray.add(p);
-            sgr[j+i].rv = rray;
-        }
-    }
+    // for now we're only using it for airstrikes
+    addmsg(SV_STREAKUSE, "rf3", worldhitpos.x, worldhitpos.y, worldhitpos.z);
 }
+COMMANDN(use, selfuse, "");
 
 #include "ballistics.h"
 
@@ -296,9 +285,9 @@ void playerincrosshair(playerent * &pl, int &hitzone, vec &pos)
 	}
 }
 
-void damageeffect(int damage, playerent *d)
+void damageeffect(int damage, const vec &o)
 {
-    particle_splash(PART_BLOOD, damage/10, 1000, d->o);
+    particle_splash(PART_BLOOD, clamp(damage/10/HEALTHSCALE, 0, 100), 1000, o);
 }
 
 struct hitweap
@@ -318,78 +307,6 @@ inline void attackevent(playerent *owner, int weapon)
     }
 }
 
-vector<hitmsg> hits;
-
-void hit(int damage, playerent *d, playerent *at, const vec &vel, int gun, bool gib, int info)
-{
-    if(d==player1 || d->type==ENT_BOT) d->hitpush(damage, vel, at, gun);
-
-    if(at == player1 && d != player1)
-    {
-        extern int hitsound;
-        extern int lasthit;
-        if(hitsound == 2 && lasthit != lastmillis)
-        {
-            defformatstring(hitsnd)("sound %d %d;", S_HITSOUND, SP_HIGHEST);
-            addsleep(60, hitsnd);
-        }
-        lasthit = lastmillis;
-    }
-
-    {
-        hitmsg &h = hits.add();
-        h.target = d->clientnum;
-        h.lifesequence = d->lifesequence;
-        h.info = info;
-        if(d==player1)
-        {
-            h.dir = ivec(0, 0, 0);
-            d->damageroll(damage);
-            updatedmgindicator(at->o);
-            damageblend(damage);
-            damageeffect(damage, d);
-            audiomgr.playsound(S_PAIN6, SP_HIGH);
-        }
-        else
-        {
-            h.dir = ivec(int(vel.x*DNF), int(vel.y*DNF), int(vel.z*DNF));
-//             damageeffect(damage, d);
-//             audiomgr.playsound(S_PAIN1+rnd(5), d);
-        }
-    }
-}
-
-void hitpush(int damage, playerent *d, playerent *at, vec &from, vec &to, int gun, bool gib, int info)
-{
-    vec v(to);
-    v.sub(from);
-    v.normalize();
-    hit(damage, d, at, v, gun, gib, info);
-}
-
-float expdist(playerent *o, vec &dir, const vec &v)
-{
-    vec middle = o->o;
-    middle.z += (o->aboveeye-o->eyeheight)/2;
-    float dist = middle.dist(v, dir);
-    dir.div(dist);
-    if(dist<0) dist = 0;
-    return dist;
-}
-
-void radialeffect(playerent *o, vec &v, int qdam, playerent *at, int gun)
-{
-    if(o->state!=CS_ALIVE) return;
-    vec dir;
-    float dist = expdist(o, dir, v);
-    if(dist<EXPDAMRAD)
-    {
-        if(at == player1) accuracym[gun].hits += 1.0f-(float)dist/EXPDAMRAD;
-        int damage = (int)(qdam*(1-dist/EXPDAMRAD));
-        hit(damage, o, at, dir, gun, true, int(dist*DMF));
-    }
-}
-
 vector<bounceent *> bounceents;
 
 void removebounceents(playerent *owner)
@@ -402,7 +319,7 @@ void movebounceents()
     loopv(bounceents) if(bounceents[i])
     {
         bounceent *p = bounceents[i];
-        if((p->bouncetype==BT_NADE || p->bouncetype==BT_GIB) && p->applyphysics()) movebounceent(p, 1, false);
+        if ((p->bouncetype == BT_NADE || p->bouncetype == BT_GIB || p->bouncetype == BT_SHELL || p->bouncetype == BT_KNIFE) && p->applyphysics()) movebounceent(p, 1, false);
         if(!p->isalive(lastmillis))
         {
             p->destroy();
@@ -428,9 +345,13 @@ void renderbounceents()
         string model;
         vec o(p->o);
 
+        float scale = 1.f;
         int anim = ANIM_MAPMODEL, basetime = 0;
         switch(p->bouncetype)
         {
+            case BT_KNIFE:
+                copystring(model, "weapons/knife/static");
+                break;
             case BT_NADE:
             if (identexists("modmdlbounce3"))
                 copystring(model, getalias("modmdlbounce3"));
@@ -461,7 +382,7 @@ void renderbounceents()
             }
         }
         path(model);
-        rendermodel(model, anim|ANIM_LOOP|ANIM_DYNALLOC, 0, 1.1f, o, p->yaw+90, p->pitch, 0, basetime);
+        rendermodel(model, anim|ANIM_LOOP|ANIM_DYNALLOC, 0, PLAYERRADIUS, o, p->yaw+90, p->pitch, 0, basetime, NULL, NULL, scale);
     }
 }
 
@@ -505,128 +426,6 @@ void addgib(playerent *d)
     }
 }
 
-void shorten(vec &from, vec &target, float dist)
-{
-    target.sub(from).mul(min(1.0f, dist)).add(from);
-}
-
-void raydamage(vec &from, vec &to, playerent *d)
-{
-    int dam = d->weaponsel->info.damage;
-    int hitzone = -1;
-    playerent *o = NULL;
-    float dist;
-    bool hitted=false;
-    int rayscount = 0, hitscount = 0;
-    if(d->weaponsel->type==GUN_SHOTGUN)
-    {
-        playerent *hits[3*SGRAYS];
-        loopk(3)
-        loopi(SGRAYS)
-        {
-            rayscount++;
-            int h = k*SGRAYS + i;
-            if((hits[h] = intersectclosest(from, sgr[h].rv, d, dist, hitzone)))
-                shorten(from, sgr[h].rv, dist);
-        }
-        loopk(3)
-        loopi(SGRAYS)
-        {
-            int h = k*SGRAYS + i;
-            if(hits[h])
-            {
-                o = hits[h];
-                hits[h] = NULL;
-                int numhits_o, numhits_m, numhits_c;
-                numhits_o = numhits_m = numhits_c = 0;
-                switch(sgr[h].ds)
-                {
-                    case 0:/* SGSEGDMG_O:*/ numhits_o++; break;
-                    case 1:/* SGSEGDMG_M:*/ numhits_m++; break;
-                    case 2:/* SGSEGDMG_C:*/ numhits_c++; break;
-                    default: break;
-                }
-                for(int j = i+1; j < 3*SGRAYS; j++) if(hits[j] == o)
-                {
-                    hits[j] = NULL;
-                    switch(sgr[j].ds)
-                    {
-                        case 0:/* SGSEGDMG_O:*/ numhits_o++; break;
-                        case 1:/* SGSEGDMG_M:*/ numhits_m++; break;
-                        case 2:/* SGSEGDMG_C:*/ numhits_c++; break;
-                        default: break;
-                    }
-                }
-                int numhits = numhits_o + numhits_m + numhits_c;
-                int dmgreal = 0;
-                float dmg4r = 0.0f;
-                bool withBONUS = false;//'';
-                if(SGDMGBONUS)
-                {
-                    float d2o = SGDMGDISTB;
-                    if(o) d2o = vec(from).sub(o->o).magnitude();
-                    if(d2o <= (SGDMGDISTB/10.0f) && numhits)
-                    {
-                        /*
-                         float soc = ( SGCCdmg/10.0f * SGDMGTOTAL/100.0f ) + ( SGCMdmg/10.0f * SGDMGTOTAL/100.0f ) + ( SGCOdmg/10.0f * SGDMGTOTAL/100.0f );
-                         float d2t = SGDMGTOTAL - soc;
-                         */
-                        dmg4r += SGDMGBONUS;//d2t; //was: "d2t" == if percentage-points are dangling and we have hits, we have a base-damage value
-                        withBONUS = true;
-                        //printf("established SOC: %.2f | d2t: %.2f\n", soc, d2t);
-                        //if(numhits) dmgreal += int(d2t);
-                    }
-                }
-                dmg4r += /*(int)*/( ( SGCOdmg/10.0f * SGDMGTOTAL/100.0f ) * numhits_o/21.0f );
-                dmg4r += /*(int)*/( ( SGCMdmg/10.0f * SGDMGTOTAL/100.0f ) * numhits_m/21.0f );
-                dmg4r += /*(int)*/( ( SGCCdmg/10.0f * SGDMGTOTAL/100.0f ) * numhits_c/21.0f );
-                //              int dmgreal = (SGSEGDMG_O * numhits_o + SGSEGDMG_M * numhits_m + SGSEGDMG_C * numhits_c)/3;
-                /*
-                 float d2o = SGBONUSDIST;
-                 if(o) d2o = vec(from).sub(o->o).magnitude();
-                 if(d2o <= (SGBONUSDIST/10.0f) && numhits)
-                 {
-                 dmgreal += (SGMAXDMGABS-SGMAXDMGLOC);
-                 dmgreal = min(dmgreal, SGMAXDMGABS);
-                 }
-                 */
-                dmgreal = (int) ceil(dmg4r);
-                lastsgs_hits = numhits;
-                lastsgs_dmgt = dmgreal;
-//                conoutf("%d [%.3f%s] DMG with %d hits", lastsgs_dmgt, dmg4r, withBONUS ? "\fs\f3+\fr" : "", lastsgs_hits);
-                int info = (withBONUS ? SGDMGBONUS : 0) | (numhits_c << 8) | (numhits_m << 16) | (numhits_o << 24);
-                if(numhits) hitpush( dmgreal, o, d, from, to, d->weaponsel->type, lastsgs_hits == SGRAYS*3, isbigendian() ? endianswap(info) : info);
-//              if(numhits) hitpush( dmgreal, o, d, from, to, d->weaponsel->type, dmgreal == SGMAXDMGABS, dmgreal);
-
-                if(d==player1) hitted = true;
-                hitscount+=numhits;
-            }
-        }
-    }
-    else if((o = intersectclosest(from, to, d, dist, hitzone)))
-    {
-        bool gib = false;
-        switch(d->weaponsel->type)
-        {
-            case GUN_KNIFE: gib = true; break;
-            case GUN_SNIPER: if(d==player1 && hitzone==HIT_HEAD) { dam *= 3; gib = true; }; break;
-            default: break;
-        }
-        bool info = gib;
-        hitpush(dam, o, d, from, to, d->weaponsel->type, gib, info ? 1 : 0);
-        if(d==player1) hitted=true;
-        shorten(from, to, dist);
-        hitscount++;
-    }
-
-    if(d==player1)
-    {
-        if(!rayscount) rayscount = 1;
-        if(hitted) accuracym[d->weaponsel->type].hits+=(float)hitscount/rayscount;
-        accuracym[d->weaponsel->type].shots++;
-    }
-}
-
 const char *weapstr(unsigned int i)
 {
     switch (i)
@@ -636,17 +435,15 @@ const char *weapstr(unsigned int i)
     case GUN_PISTOL:
         return "Pistol";
     case GUN_ASSAULT:
-        return "MTP-57";
+        return "M16A3";
     case GUN_SUBGUN:
-        return "A-ARD/10";
+        return "MP5K";
     case GUN_SNIPER:
-        return "AD-81 SR";
+        return "M21";
     case GUN_SHOTGUN:
-        return "V-19 SG";
+        return "M1014";
     case GUN_KNIFE:
         return "Knife";
-    case GUN_CARBINE:
-        return "TMP-M&A CB";
     case GUN_GRENADE:
         return "Grenades";
     }
@@ -662,7 +459,7 @@ void r_accuracy(int h)
     int rows = 0, cols = 0;
     float spacing = curfont->defaultw*2, x_offset = curfont->defaultw, y_offset = float(2*h) - 2*spacing;
 
-    loopi(NUMGUNS) if(i != GUN_CPISTOL && accuracym[i].shots)
+    loopi(NUMGUNS) if(accuracym[i].shots)
     {
         float acc = 100.0f*accuracym[i].hits/(float)accuracym[i].shots;
         string line;
@@ -706,12 +503,9 @@ weapon::weapon(class playerent *owner, int type) : type(type), owner(owner), inf
 {
 }
 
-const int weapon::weaponchangetime = 400;
-const float weapon::weaponbeloweye = 0.2f;
+int weapon::flashtime() const { return clamp((int)info.attackdelay/4, 60, 150); }
 
-int weapon::flashtime() const { return max((int)info.attackdelay, 120)/4; }
-
-void weapon::sendshoot(vec &from, vec &to, int millis)
+void weapon::sendshoot(const vec &to)
 {
     if (owner != player1 && !isowned(owner)) return;
     owner->shoot = true;
@@ -727,7 +521,7 @@ void weapon::sendshoot(vec &from, vec &to, int millis)
     putint(p, (int)(to.z*DMF));
     // write positions
     loopv(players)
-        if (players[i] && i != owner->clientnum && players[i]->state != CS_DEAD)
+        if (players[i] && players[i]->state != CS_DEAD)
         {
             putint(p, i);
             putint(p, (int)(players[i]->o.x*DMF));
@@ -752,8 +546,14 @@ bool weapon::modelattacking()
 void weapon::attacksound()
 {
     if(info.sound == S_NULL) return;
-    bool local = (owner == player1);
-    audiomgr.playsound(info.sound, owner, local ? SP_HIGH : SP_NORMAL);
+    if (!suppressed_weap(type))
+    {
+        owner->radarmillis = lastmillis;
+        owner->lastloudpos.x = owner->o.x;
+        owner->lastloudpos.y = owner->o.y;
+        owner->lastloudpos.z = owner->yaw;
+    }
+    audiomgr.playsound(info.sound, owner, player1 == owner ? SP_HIGH : SP_NORMAL);
 }
 
 bool weapon::reload(bool autoreloaded)
@@ -767,9 +567,9 @@ bool weapon::reload(bool autoreloaded)
     mag += numbullets;
     ammo -= numbullets;
 
-    bool local = (player1 == owner);
-    audiomgr.playsound(info.reload, owner, local ? SP_HIGH : SP_NORMAL);
-    if(local)
+    if (info.reload != S_NULL)
+        audiomgr.playsound(info.reload, owner, player1 == owner ? SP_HIGH : SP_NORMAL);
+    if (player1 == owner || isowned(owner))
     {
         addmsg(SV_RELOAD, "ri3", owner->clientnum, lastmillis, owner->weaponsel->type);
         if(identexists("onReload"))
@@ -804,7 +604,7 @@ static int recoilincrease = 2; //VAR(recoilincrease, 1, 2, 10);
 static int recoilbase = 40;//VAR(recoilbase, 0, 40, 1000);
 static int maxrecoil = 1000;//VAR(maxrecoil, 0, 1000, 1000);
 
-void weapon::attackphysics(vec &from, vec &to) // physical fx to the owner
+void weapon::attackphysics(const vec &from, const vec &to) // physical fx to the owner
 {
     const guninfo &g = info;
     vec unitv;
@@ -813,14 +613,6 @@ void weapon::attackphysics(vec &from, vec &to) // physical fx to the owner
     int spread = dynspread();
     float recoil = dynrecoil()*-0.01f;
 
-    // spread
-    if(spread>1)
-    {
-        #define RNDD (rnd(spread)-spread/2)*f
-        vec r(RNDD, RNDD, RNDD);
-        to.add(r);
-        #undef RNDD
-    }
     // kickback & recoil
     if(recoiltest)
     {
@@ -832,6 +624,11 @@ void weapon::attackphysics(vec &from, vec &to) // physical fx to the owner
         owner->vel.add(vec(unitv).mul(recoil/dist).mul(owner->crouching ? 0.75 : 1.0f));
         owner->pitchvel = min(powf(shots/(float)(g.recoilincrease), 2.0f)+(float)(g.recoilbase)/10.0f, (float)(g.maxrecoil)/10.0f);
     }
+}
+
+void weapon::attackhit(const vec &o)
+{
+    particle_splash(PART_SPARK, 5, 250, o);
 }
 
 VARP(righthanded, 0, 1, 1); // flowtron 20090727
@@ -861,32 +658,36 @@ void weapon::updatetimers(int millis)
 void weapon::onselecting()
 {
     updatelastaction(owner);
-    audiomgr.playsound(S_GUNCHANGE, owner == player1? SP_HIGH : SP_NORMAL);
+    audiomgr.playsound(S_GUNCHANGE, owner, owner == player1? SP_HIGH : SP_NORMAL);
 }
 
 void weapon::renderhudmodel() { renderhudmodel(owner->lastaction); }
-void weapon::renderaimhelp(bool teamwarning) { drawcrosshair(owner, teamwarning ? CROSSHAIR_TEAMMATE : owner->weaponsel->type + 3); }
+void weapon::renderaimhelp(int teamtype) { drawcrosshair(owner, teamtype ? CROSSHAIR_TEAMMATE : CROSSHAIR_DEFAULT); }
 int weapon::dynspread() { return info.spread; }
 float weapon::dynrecoil() { return info.recoil; }
-bool weapon::selectable() { return this != owner->weaponsel && owner->state == CS_ALIVE && !owner->weaponchanging; }
+bool weapon::selectable() { return this != owner->weaponsel && owner->state == CS_ALIVE && !owner->weaponchanging &&
+    (type == GUN_KNIFE || type == GUN_GRENADE || type == GUN_AKIMBO || type == owner->primary || type == owner->secondary); }
 bool weapon::deselectable() { return !reloading; }
 
 void weapon::equipplayer(playerent *pl)
 {
     if(!pl) return;
-    pl->weapons[GUN_ASSAULT] = new assaultrifle(pl);
+    pl->weapons[GUN_ASSAULT] = new m16(pl);
     pl->weapons[GUN_GRENADE] = new grenades(pl);
     pl->weapons[GUN_KNIFE] = new knife(pl);
     pl->weapons[GUN_PISTOL] = new pistol(pl);
-    pl->weapons[GUN_CPISTOL] = new cpistol(pl);
-    pl->weapons[GUN_CARBINE] = new carbine(pl);
     pl->weapons[GUN_SHOTGUN] = new shotgun(pl);
-    pl->weapons[GUN_SNIPER] = new sniperrifle(pl);
+    pl->weapons[GUN_SNIPER] = new m21(pl);
     pl->weapons[GUN_SUBGUN] = new subgun(pl);
     pl->weapons[GUN_AKIMBO] = new akimbo(pl);
+    pl->weapons[GUN_BOLT] = new boltrifle(pl);
+    pl->weapons[GUN_HEAL] = new healgun(pl);
+    pl->weapons[GUN_SWORD] = new sword(pl);
+    pl->weapons[GUN_RPG] = new crossbow(pl);
+    pl->weapons[GUN_ASSAULT2] = new ak47(pl);
+    pl->weapons[GUN_SNIPER2] = new m82(pl);
     pl->selectweapon(GUN_ASSAULT);
     pl->setprimary(GUN_ASSAULT);
-    pl->setnextprimary(GUN_ASSAULT);
 }
 
 bool weapon::valid(int id) { return id>=0 && id<NUMGUNS; }
@@ -901,8 +702,8 @@ grenadeent::grenadeent (playerent *owner, int millis)
     nadestate = NS_NONE;
     local = owner==player1 || isowned(owner);
     bounceent::owner = owner;
-    bounceent::millis = lastmillis;
-    timetolive = 2000-millis;
+    bounceent::millis = id = lastmillis;
+    timetolive = NADETTL-millis;
     bouncetype = BT_NADE;
     maxspeed = 30.0f;
     rotspeed = 6.0f;
@@ -918,52 +719,19 @@ void grenadeent::explode()
 {
     if(nadestate!=NS_ACTIVATED && nadestate!=NS_THROWN ) return;
     nadestate = NS_EXPLODED;
-    static vec n(0,0,0);
-    hits.setsize(0);
-    splash();
     if(local)
-        addmsg(SV_EXPLODE, "ri7", owner->ownernum, lastmillis, GUN_GRENADE, millis, (int)(o.x*DMF), (int)(o.y*DMF), (int)(o.z*DMF));
-    audiomgr.playsound(S_FEXPLODE, &o);
+        addmsg(SV_EXPLODE, "ri7", owner->ownernum, lastmillis, GUN_GRENADE, id, (int)(o.x*DMF), (int)(o.y*DMF), (int)(o.z*DMF));
 }
 
-void grenadeent::splash()
-{
-    particle_splash(PART_SPARK, 50, 300, o);
-    particle_fireball(PART_FIREBALL, o);
-    addscorchmark(o);
-    adddynlight(NULL, o, 16, 200, 100, 255, 255, 224);
-    adddynlight(NULL, o, 16, 600, 600, 192, 160, 128);
-    if(owner == player1)
-    {
-        accuracym[GUN_GRENADE].shots++;
-    }
-    else if(!m_ai(gamemode))
-    {
-        return;
-    }
-    int damage = guns[GUN_GRENADE].damage;
-
-    radialeffect(owner->type == ENT_BOT ? player1 : owner, o, damage, owner, GUN_GRENADE);
-    loopv(players)
-    {
-        playerent *p = players[i];
-        if(!p) continue;
-        radialeffect(p, o, damage, owner, GUN_GRENADE);
-    }
-}
-
-void grenadeent::activate(const vec &from, const vec &to)
+void grenadeent::activate()
 {
     if(nadestate!=NS_NONE) return;
     nadestate = NS_ACTIVATED;
 
     if(local)
     {
-        addmsg(SV_SHOOT, "ri2i3i", millis, owner->weaponsel->type,
-//                (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF),
-               (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF),
-               0);
-        audiomgr.playsound(S_GRENADEPULL, SP_HIGH);
+        addmsg(SV_SHOOTC, "ri3", owner->clientnum, millis, owner->weaponsel->type);
+        audiomgr.playsound(S_GRENADEPULL, owner, SP_HIGH);
         player1->pstatshots[GUN_GRENADE]++; //NEW
     }
 }
@@ -978,7 +746,7 @@ void grenadeent::_throw(const vec &from, const vec &vel)
     inwater = hdr.waterlevel>o.z;
     if(local)
     {
-        addmsg(SV_THROWNADE, "ri7", int(o.x*DMF), int(o.y*DMF), int(o.z*DMF), int(vel.x*DMF), int(vel.y*DMF), int(vel.z*DMF), lastmillis-millis);
+        addmsg(SV_THROWNADE, "ri8", owner->clientnum, int(o.x*DMF), int(o.y*DMF), int(o.z*DMF), int(vel.x*DMF), int(vel.y*DMF), int(vel.z*DMF), lastmillis-millis);
         audiomgr.playsound(S_GRENADETHROW, SP_HIGH);
     }
     else audiomgr.playsound(S_GRENADETHROW, owner);
@@ -1011,7 +779,7 @@ void grenadeent::onmoved(const vec &dist)
 
 // grenades
 
-grenades::grenades(playerent *owner) : weapon(owner, GUN_GRENADE), inhandnade(NULL), throwwait((13*1000)/40), throwmillis(0), state(GST_NONE) {}
+grenades::grenades(playerent *owner) : weapon(owner, GUN_GRENADE), inhandnade(NULL), throwwait(325), throwmillis(0), state(GST_NONE) {}
 
 int grenades::flashtime() const { return 0; }
 
@@ -1032,7 +800,7 @@ bool grenades::attack(vec &targ)
             if(waitdone && owner->attacking && this==owner->weaponsel)
             {
                 attackevent(owner, type);
-                activatenade(to); // activate
+                activatenade(); // activate
             }
         break;
 
@@ -1050,8 +818,9 @@ bool grenades::attack(vec &targ)
                 reset();
                 if(!mag && this==owner->weaponsel) // switch to primary immediately
                 {
-                    owner->weaponchanging = lastmillis-1-(weaponchangetime/2);
-                    owner->nextweaponsel = owner->weaponsel = owner->primweap;
+                    addmsg(SV_QUICKSWITCH, "ri", owner->clientnum);
+                    owner->weaponchanging = lastmillis - 1 - (SWITCHTIME(owner->perk2 == PERK_TIME) / 2);
+                    owner->nextweaponsel = owner->weaponsel = owner->weapons[owner->primary];
                 }
                 return false;
             }
@@ -1063,13 +832,36 @@ bool grenades::attack(vec &targ)
 void grenades::attackfx(const vec &from, const vec &to, int millis) // other player's grenades
 {
     throwmillis = lastmillis-millis;
-    if(millis == 0) audiomgr.playsound(S_GRENADEPULL, owner); // activate
-    else if(millis > 0) // throw
+    if (millis < 0)
+    {
+        state = GST_INHAND;
+        audiomgr.playsound(S_GRENADEPULL, owner); // activate
+    }
+    else // if(millis > 0) // throw
     {
         grenadeent *g = new grenadeent(owner, millis);
+        state = GST_THROWING;
         bounceents.add(g);
         g->_throw(from, to);
     }
+}
+
+inline void explosioneffect(const vec &o)
+{
+    particle_splash(PART_SPARK, 50, 300, o);
+    adddynlight(NULL, o, 16, 200, 100, 255, 255, 224);
+    adddynlight(NULL, o, 16, 600, 600, 192, 160, 128);
+    audiomgr.playsound(S_FEXPLODE, &o);
+}
+
+//VARP(nadedetail, 0, 9, 50);
+
+void grenades::attackhit(const vec &o)
+{
+    particle_fireball(PART_FIREBALL, o);
+    addscorchmark(o);
+    explosioneffect(o);
+    // TODO: shot line fx
 }
 
 int grenades::modelanim()
@@ -1083,7 +875,7 @@ int grenades::modelanim()
     return ANIM_GUN_IDLE;
 }
 
-void grenades::activatenade(const vec &to)
+void grenades::activatenade()
 {
     if(!mag) return;
     throwmillis = 0;
@@ -1096,7 +888,7 @@ void grenades::activatenade(const vec &to)
     gunwait = info.attackdelay;
     owner->lastattackweapon = this;
     state = GST_INHAND;
-    inhandnade->activate(owner->o, to);
+    inhandnade->activate();
 }
 
 void grenades::thrownade()
@@ -1106,7 +898,7 @@ void grenades::thrownade()
     if(!inhandnade) return;
     const float speed = cosf(RAD*owner->pitch);
     vec vel(sinf(RAD*owner->yaw)*speed, -cosf(RAD*owner->yaw)*speed, sinf(RAD*owner->pitch));
-    vel.mul(1.5f);
+    vel.mul(NADEPOWER);
     thrownade(vel);
 }
 
@@ -1138,7 +930,7 @@ void grenades::renderstats()
 bool grenades::selectable() { return weapon::selectable() && state != GST_INHAND && mag; }
 void grenades::reset() { throwmillis = 0; state = GST_NONE; }
 
-void grenades::onselecting() { reset(); audiomgr.playsound(S_GUNCHANGE); }
+void grenades::onselecting() { reset(); weapon::onselecting(); }
 void grenades::onownerdies()
 {
     reset();
@@ -1188,33 +980,33 @@ bool gun::attack(vec &targ)
 
     vec from = owner->o;
     vec to = targ;
-    from.z -= weaponbeloweye;
 
     attackphysics(from, to);
 
     attackevent(owner, type);
 
-    hits.setsize(0);
-    raydamage(from, to, owner);
-    attackfx(from, to, 0);
+    attacksound();
+    //attackshell(to); // TODO
 
     gunwait = info.attackdelay;
     mag--;
 
-    sendshoot(from, to, attackmillis);
+    sendshoot(to);
 
     return true;
 }
 
 void gun::attackfx(const vec &from, const vec &to, int millis)
 {
-    traceresult_s tr;
-    TraceLine(from, to, owner, true, &tr);
-    addbullethole(owner, from, tr.end);
-    addshotline(owner, from, tr.end);
-    particle_splash(PART_SPARK, 5, 250, tr.end);
+    addbullethole(owner, from, to);
+    addshotline(owner, from, to);
+    particle_splash(PART_SPARK, 5, 250, to);
     adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
-    attacksound();
+    if ((millis & 1) && owner != player1 && !isowned(owner))
+    {
+        attacksound();
+        //attackshell(to);
+    }
 }
 
 int gun::modelanim() { return modelattacking() ? ANIM_GUN_SHOOT|ANIM_LOOP : ANIM_GUN_IDLE; }
@@ -1225,220 +1017,137 @@ void gun::checkautoreload() { if(autoreload && owner==player1 && !mag) reload(tr
 
 shotgun::shotgun(playerent *owner) : gun(owner, GUN_SHOTGUN) {}
 
-void shotgun::attackphysics(vec &from, vec &to)
-{
-    createrays(from, to);
-    gun::attackphysics(from, to);
-}
-
-bool shotgun::attack(vec &targ)
-{
-    return gun::attack(targ);
-}
+int shotgun::dynspread() { return info.spread; }
 
 void shotgun::attackfx(const vec &from, const vec &to, int millis)
 {
-    loopi(SGRAYS) particle_splash(PART_SPARK, 5, 200, sgr[i].rv);
-
-    if(addbullethole(owner, from, to))
-        loopk(3) loopi(3) addbullethole(owner, from, sgr[k*SGRAYS+i*SGRAYS/3].rv, 0, false);
-    adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
-    attacksound();
-}
-
-bool shotgun::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && this == owner->primweap; }
-
-
-// subgun
-
-subgun::subgun(playerent *owner) : gun(owner, GUN_SUBGUN) {}
-bool subgun::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && this == owner->primweap; }
-int subgun::dynspread() { return shots > 2 ? 70 : ( info.spread + ( shots > 0 ? ( shots == 1 ? 5 : 10 ) : 0 ) ); } // CHANGED: 2010nov19 was: min(info.spread + 10 * shots, 80)
-
-
-// sniperrifle
-
-sniperrifle::sniperrifle(playerent *owner) : gun(owner, GUN_SNIPER), scoped(false) {}
-
-void sniperrifle::attackfx(const vec &from, const vec &to, int millis)
-{
-    traceresult_s tr;
-    TraceLine(from, to, owner, true, &tr);
-    addbullethole(owner, from, tr.end);
-    addshotline(owner, from, tr.end);
-    particle_splash(PART_SPARK, 50, 200, tr.end);
-    particle_trail(PART_SMOKE, 500, from, tr.end);
-    adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
-    attacksound();
-}
-
-bool sniperrifle::reload(bool autoreloaded)
-{
-    bool r = weapon::reload(autoreloaded);
-    if(owner==player1 && r) { scoped = false; player1->scoping = false; }
-    return r;
-}
-
-#define SCOPESETTLETIME 180
-int sniperrifle::dynspread()
-{
-    if(scoped)
+    static uchar filter1 = 0, filter2 = 0;
+    if (millis & 1)
     {
-        int scopetime = lastmillis - scoped_since;
-        if(scopetime > SCOPESETTLETIME)
-            return 1;
-        else
-            return max((info.spread * (SCOPESETTLETIME - scopetime)) / SCOPESETTLETIME, 1);
+        loopi(SGRAYS)
+            particle_splash(PART_SPARK, 5, 200, sg[i]);
+        if (addbullethole(owner, from, to))
+            loopi(SGRAYS)
+            {
+                if (++filter1 >= 3) filter1 = 0;
+                else addshotline(owner, from, sg[i]); // 3
+                addbullethole(owner, from, sg[i], 0, false);
+            }
+        adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
+        //attackshell(to);
+        if (owner != player1 && !isowned(owner))
+            attacksound();
     }
-    return info.spread;
-}
-float sniperrifle::dynrecoil() { return scoped && lastmillis - scoped_since > SCOPESETTLETIME ? info.recoil / 3 : info.recoil; }
-bool sniperrifle::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && this == owner->primweap; }
-void sniperrifle::onselecting() { weapon::onselecting(); scoped = false; player1->scoping = false; }
-void sniperrifle::ondeselecting() { scoped = false; player1->scoping = false; }
-void sniperrifle::onownerdies() { scoped = false; player1->scoping = false; }
-void sniperrifle::renderhudmodel() { if(!scoped) weapon::renderhudmodel(); }
-
-void sniperrifle::renderaimhelp(bool teamwarning)
-{
-    if(scoped) drawscope();
-    if(scoped || teamwarning) drawcrosshair(owner, teamwarning ? CROSSHAIR_TEAMMATE : CROSSHAIR_SCOPE, NULL, 24.0f);
-}
-
-void sniperrifle::setscope(bool enable)
-{
-    if(this == owner->weaponsel && !reloading && owner->state == CS_ALIVE)
+    else
     {
-        if(scoped == false && enable == true) scoped_since = lastmillis;
-        if(enable != scoped) owner->scoping = enable;
-        scoped = enable;
+        if (++filter2 >= 2) filter2 = 0;
+        else addshotline(owner, from, to); // 2
+        addbullethole(owner, from, to, 0, false);
     }
+    adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
 }
 
-// carbine
+void shotgun::renderaimhelp(int teamtype){ drawcrosshair(owner, CROSSHAIR_SHOTGUN /*, teamtype*/); }
 
-carbine::carbine(playerent *owner) : gun(owner, GUN_CARBINE) {}
 
-bool carbine::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && this == owner->primweap; }
+// sword
+
+sword::sword(playerent *owner) : weapon(owner, GUN_SWORD) {}
+
+bool sword::attack(vec &targ)
+{
+    int attackmillis = lastmillis - owner->lastaction;
+    if (attackmillis<gunwait) return false;
+    gunwait = reloading = 0;
+
+    if (!owner->attacking) return false;
+    updatelastaction(owner);
+
+    owner->lastattackweapon = this;
+    owner->attacking = info.isauto;
+
+    attacksound();
+
+    sendshoot(targ);
+    gunwait = info.attackdelay;
+    return true;
+}
+int sword::modelanim() { return modelattacking() ? ANIM_GUN_SHOOT : ANIM_GUN_IDLE; }
+
+void sword::attackfx(const vec &from, const vec &to, int millis) { if (owner != player1 && !isowned(owner)) attacksound(); }
+
+int sword::flashtime() const { return 0; }
+
+// crossbow (RPG)
+
+crossbow::crossbow(playerent *owner) : gun(owner, GUN_RPG) {}
+int crossbow::modelanim()
+{
+    // very simple and stupid animation system
+    return mag ? ANIM_GUN_SHOOT : ANIM_GUN_IDLE;
+}
+
+void crossbow::attackfx(const vec &from2, const vec &to, int millis)
+{
+    vec from(from2);
+    if (millis & 1)
+    {
+        if (owner->muzzle.x >= 0)
+            from = owner->muzzle;
+        else from.z -= WEAPONBELOWEYE;
+        if (owner != player1 && !isowned(owner)) attacksound();
+    }
+    addshotline(owner, from, to); // 0
+    particle_trail(PART_SHOTLINE_RPG, 400, from, to);
+    particle_splash(PART_SPARK, 5, 250, to);
+}
+
+void crossbow::attackhit(const vec &o)
+{
+    particle_fireball(PART_FIREBALL_RPG, o);
+    explosioneffect(o);
+}
+
+
+// scopedprimary
+
+void scopedprimary::attackfx(const vec &from2, const vec &to, int millis)
+{
+    vec from(from2);
+    if (millis & 1)
+    {
+        if (owner->muzzle.x >= 0)
+            from = owner->muzzle;
+        else from.z -= WEAPONBELOWEYE;
+        //attackshell(to);
+        if (owner != player1 && !isowned(owner)) attacksound();
+    }
+
+    addbullethole(owner, from, to);
+    addshotline(owner, from, to);
+    particle_splash(PART_SPARK, 50, 200, to);
+    particle_trail(PART_SMOKE, 500, from, to);
+    adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
+}
+
+float scopedprimary::dynrecoil() { return weapon::dynrecoil() * 1 - owner->zoomed / ZOOMLIMIT / 3; } // 1/2 * 2/3 = 1/3 recoil when ADS
+void scopedprimary::renderhudmodel() { if (owner->zoomed < ADSZOOM) weapon::renderhudmodel(); }
+
+void scopedprimary::renderaimhelp(int teamtype)
+{
+    if (owner->zoomed < ADSZOOM)
+        weapon::renderaimhelp(teamtype);
+    else
+    {
+        drawscope();
+        drawcrosshair(owner, CROSSHAIR_SCOPE, /*teamtype,*/ NULL, 24.0f);
+    }
+}
 
 
 // assaultrifle
 
-assaultrifle::assaultrifle(playerent *owner) : gun(owner, GUN_ASSAULT) {}
-
-int assaultrifle::dynspread() { return shots > 2 ? 55 : ( info.spread + ( shots > 0 ? ( shots == 1 ? 5 : 15 ) : 0 ) ); }
-float assaultrifle::dynrecoil() { return info.recoil + (rnd(8)*-0.01f); }
-bool assaultrifle::selectable() { return weapon::selectable() && !m_noprimary(gamemode, mutators) && this == owner->primweap; }
-
-// combat pistol
-
-cpistol::cpistol(playerent *owner) : gun(owner, GUN_CPISTOL), bursting(false) {}
-bool cpistol::selectable() { return false; /*return weapon::selectable() && !m_noprimary(gamemode, mutators) && this == owner->primweap;*/ }
-void cpistol::onselecting() { weapon::onselecting(); bursting = false; }
-void cpistol::ondeselecting() { bursting = false; }
-bool cpistol::reload(bool autoreloaded)
-{
-    bool r = weapon::reload(autoreloaded);
-    if(owner==player1 && r) { bursting = false; }
-    return r;
-}
-
-bool burst = false;
-int burstshots = 0;
-
-bool cpistol::attack(vec &targ) // modded from gun::attack // FIXME
-{
-    int attackmillis = lastmillis-owner->lastaction - gunwait;
-    if(attackmillis<0) return false;
-    gunwait = reloading = 0;
-
-    if (bursting) burst = true;
-
-    if(!owner->attacking)
-    {
-        shots = 0;
-        checkautoreload();
-        return false;
-    }
-
-    attackmillis = lastmillis - min(attackmillis, curtime);
-    updatelastaction(owner, attackmillis);
-    if(!mag)
-    {
-        audiomgr.playsoundc(S_NOAMMO);
-        gunwait += 250;
-        owner->lastattackweapon = NULL;
-        shots = 0;
-        checkautoreload();
-        return false;
-    }
-
-    owner->lastattackweapon = this;
-    shots++;
-    if (burst) burstshots++;
-
-    if(!burst) owner->attacking = false;
-
-    vec from = owner->o;
-    vec to = targ;
-    from.z -= weaponbeloweye;
-
-    attackphysics(from, to);
-
-    hits.setsize(0);
-    raydamage(from, to, owner);
-    attackfx(from, to, 0);
-
-    if ( burst && burstshots > 2 )
-    {
-        gunwait = 500;
-        burstshots = 0;
-        burst = owner->attacking = false;
-    }
-    else if ( burst )
-    {
-        gunwait = 80;
-    }
-    else
-    {
-        gunwait = info.attackdelay;
-    }
-    mag--;
-
-    sendshoot(from, to, attackmillis);
-    return true;
-}
-
-void cpistol::setburst(bool enable)
-{
-    if(this == owner->weaponsel && !reloading && owner->state == CS_ALIVE)
-    {
-        bursting = enable;
-    }
-}
-
-void setburst(bool enable)
-{
-    if(player1->weaponsel->type != GUN_CPISTOL) return;
-    if(intermission) return;
-    cpistol *cp = (cpistol *)player1->weaponsel;
-    cp->setburst(enable);
-    if (!burst)
-    {
-        if ( enable && burstshots == 0 ) attack(true);
-    }
-    else
-    {
-        if ( burstshots == 0 ) burst = player1->attacking = enable;
-    }
-}
-
-COMMAND(setburst, "d");
-
-// pistol
-
-pistol::pistol(playerent *owner) : gun(owner, GUN_PISTOL) {}
-bool pistol::selectable() { return weapon::selectable() && !m_nosecondary(gamemode, mutators); }
+float assaultrifle::dynrecoil() { return weapon::dynrecoil() + (rnd(8)*-0.01f); }
 
 
 // akimbo
@@ -1448,17 +1157,20 @@ akimbo::akimbo(playerent *owner) : gun(owner, GUN_AKIMBO), akimboside(0), akimbo
     akimbolastaction[0] = akimbolastaction[1] = 0;
 }
 
-void akimbo::attackfx(const vec &from, const vec &to, int millis)
-{
-    akimbolastaction[akimboside] = owner->lastaction;
-    akimboside = (akimboside+1)%2;
-    gun::attackfx(from, to, millis);
+bool akimbo::attack(vec &targ){
+    if (gun::attack(targ))
+    {
+        akimbolastaction[akimboside & 1] = lastmillis;
+        akimboside ^= true;
+        return true;
+    }
+    return false;
 }
 
 void akimbo::onammopicked()
 {
     akimbomillis = lastmillis + 30000;
-    if(owner==player1)
+    if (owner == player1 || isowned(owner))
     {
         // if(owner->weaponsel->type!=GUN_SNIPER && owner->weaponsel->type!=GUN_GRENADE) owner->weaponswitch(this);
         if(akimboautoswitch || owner->weaponsel->type==GUN_PISTOL) owner->weaponswitch(this); // Give the client full control over akimbo auto-switching // Bukz 2011apr23
@@ -1485,6 +1197,27 @@ void akimbo::renderhudmodel()
 bool akimbo::timerout() { return akimbomillis && akimbomillis <= lastmillis; }
 
 
+// healgun
+
+healgun::healgun(playerent *owner) : gun(owner, GUN_HEAL) {}
+
+void healgun::attackfx(const vec &from2, const vec &to, int millis)
+{
+    vec from(from2);
+    if (millis & 1)
+    {
+        if (owner->muzzle.x >= 0)
+            from = owner->muzzle;
+        else from.z -= WEAPONBELOWEYE;
+        if (owner != player1 && !isowned(owner)) attacksound();
+    }
+
+    addshotline(owner, from, to); // 0
+    particle_trail(PART_SHOTLINE_HEAL, 400, from, to);
+    particle_splash(PART_SPARK, 3, 200, to);
+}
+
+
 // knife
 
 knife::knife(playerent *owner) : weapon(owner, GUN_KNIFE) {}
@@ -1503,26 +1236,10 @@ bool knife::attack(vec &targ)
     updatelastaction(owner, attackmillis);
 
     owner->lastattackweapon = this;
-    owner->attacking = false;
+    owner->attacking = info.isauto;
 
-    vec from = owner->o;
-    vec to = targ;
-    from.z -= weaponbeloweye;
-
-    vec unitv;
-    float dist = to.dist(from, unitv);
-    unitv.div(dist);
-    unitv.mul(3); // punch range
-    to = from;
-    to.add(unitv);
-    if ( owner->pitch < 0 ) to.z += 2.5 * sin( owner->pitch * 0.01745329 );
-
-    attackevent(owner, type);
-
-    hits.setsize(0);
-    raydamage(from, to, owner);
-    attackfx(from, to, 0);
-    sendshoot(from, to, attackmillis);
+    attacksound();
+    sendshoot(targ);
     gunwait = info.attackdelay;
 
     return true;
@@ -1537,10 +1254,9 @@ void knife::renderstats() { }
 
 void setscope(bool enable)
 {
-    if(player1->weaponsel->type != GUN_SNIPER) return;
-    if(intermission) return;
-    sniperrifle *sr = (sniperrifle *)player1->weaponsel;
-    sr->setscope(enable);
+    if (intermission || player1->state != CS_ALIVE || player1->scoping == enable) return;
+    if (player1->weaponsel->type == GUN_KNIFE || (ads_gun(player1->weaponsel->type) && ads_classic_allowed(player1->weaponsel->type)))
+        player1->scoping = enable;
 }
 
 COMMANDF(setscope, "i", (int *on) { setscope(*on != 0); });

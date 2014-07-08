@@ -422,7 +422,7 @@ extern void addsleep(int msec, const char *cmd, bool persist = false);
 extern void resetsleep(bool force = false);
 //game mode extras
 extern void flagpickup(int fln);
-extern void tryflagdrop(bool manual = false);
+extern void tryflagdrop();
 extern void flagreturn(int fln);
 extern void flagscore(int fln);
 extern void flagstolen(int flag, int act);
@@ -735,7 +735,6 @@ extern void updateclientname(playerent *d);
 
 // weapon
 extern void shoot(playerent *d, vec &to);
-extern void createrays(vec &from, vec &to);
 extern void removebounceents(playerent *owner);
 extern void movebounceents();
 extern void clearbounceents();
@@ -754,7 +753,7 @@ struct traceresult_s
      bool collided;
 };
 void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult_s *tr, bool SkipTags=false);
-extern void damageeffect(int damage, playerent *d);
+extern void damageeffect(int damage, const vec &o);
 extern void tryreload(playerent *p);
 extern void checkweaponstate();
 extern struct projectile *newprojectile(vec &from, vec &to, float speed, bool local, playerent *owner, int gun, int id = lastmillis);
@@ -1101,10 +1100,4 @@ struct servercommandline
         }
         return true;
     }
-};
-
-// shotty: shotgun rays def
-struct sgray {
-    int ds; // damage flag: outer, medium, center: SGSEGDMG_*
-    vec rv; // ray vector
 };

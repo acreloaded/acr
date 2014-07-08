@@ -40,7 +40,7 @@ struct weaponmove
         {
             anim = ANIM_GUN_RELOAD;
             basetime = p->weaponchanging;
-            float progress = clamp((lastmillis - p->weaponchanging)/(float)weapon::weaponchangetime, 0.0f, 1.0f);
+            float progress = clamp((lastmillis - p->weaponchanging) / (float)SWITCHTIME(p->perk1 == PERK_TIME), 0.0f, 1.0f);
             k_rot = -90*sinf(progress*M_PI);
         }
         else if(p->weaponsel->reloading)
@@ -115,7 +115,6 @@ void preload_hudguns()
 {
     loopi(NUMGUNS)
     {
-        if (i==GUN_CPISTOL) continue; //RR 18/12/12 - Remove when cpistol is added.
         defformatstring(widn)("modmdlweap%d", i);
         defformatstring(path)("weapons/%s", identexists(widn)?getalias(widn):guns[i].modelname);
         loadmodel(path);

@@ -644,7 +644,7 @@ void CBot::CheckWeaponSwitch()
     if(!m_pMyEnt->weaponchanging) return;
 
     int timeprogress = lastmillis-m_pMyEnt->weaponchanging;
-    if(timeprogress>weapon::weaponchangetime)
+    if (timeprogress>SWITCHTIME(m_pMyEnt->perk1 == PERK_TIME))
     {
        m_pMyEnt->prevweaponsel = m_pMyEnt->weaponsel;
        m_pMyEnt->weaponsel = m_pMyEnt->nextweaponsel;
@@ -757,15 +757,15 @@ void CBot::CheckScope()
 {
 #define MINSCOPEDIST 15
 #define MINSCOPETIME 1000
-    if(m_pMyEnt->weaponsel->type != GUN_SNIPER) return;
-    sniperrifle *sniper = (sniperrifle *)m_pMyEnt->weaponsel;
+    // no throwing knife
+    if (!ads_gun(m_pMyEnt->weaponsel->type) || !ads_classic_allowed(m_pMyEnt->weaponsel->type)) return;
     if(m_pMyEnt->enemy && m_pMyEnt->o.dist(m_pMyEnt->enemy->o) > MINSCOPEDIST)
     {
-        sniper->setscope(true);
+        m_pMyEnt->scoping = true;
     }
-    else if(m_pMyEnt->scoping && lastmillis - sniper->scoped_since < MINSCOPETIME)
+    else if (m_pMyEnt->scoping && m_pMyEnt->zoomed == ZOOMLIMIT) // lastmillis - sniper->scoped_since < MINSCOPETIME)
     {
-        sniper->setscope(false);
+        m_pMyEnt->scoping = false;
     }
 }
 

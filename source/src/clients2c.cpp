@@ -184,11 +184,7 @@ void parsepositions(ucharbuf &p)
             d->o.z += d->eyeheight;
             d->yaw = yaw;
             d->pitch = pitch;
-            if(d->weaponsel->type == GUN_SNIPER)
-            {
-                sniperrifle *sr = (sniperrifle *)d->weaponsel;
-                sr->scoped = d->scoping = scoping;
-            }
+            d->scoping = scoping;
             d->roll = roll;
             d->strafe = (f&3)==3 ? -1 : f&3;
             f >>= 2;
@@ -684,7 +680,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             {
                 playerent *s = getclient(getint(p));
                 if(!s) { static playerent dummy; s = &dummy; }
-                s->respawn();
+                s->respawn(gamemode, mutators);
                 s->lifesequence = getint(p);
                 s->health = getint(p);
                 s->armour = getint(p);
@@ -716,7 +712,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     setscope(false);
                     setburst(false);
                 }
-                s->respawn();
+                s->respawn(gamemode, mutators);
                 s->lifesequence = getint(p);
                 s->health = getint(p);
                 s->armour = getint(p);
@@ -736,8 +732,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     hudeditf(HUDMSG_TIMER, "FIGHT!");
                 }
                 addmsg(SV_SPAWN, "ri3", s->clientnum, s->lifesequence, s->weaponsel->type);
-                s->weaponswitch(s->primweap);
-                s->weaponchanging -= weapon::weaponchangetime/2;
+                s->weaponswitch(s->weapons[s->primary]);
+                s->weaponchanging -= SWITCHTIME(d->perk1 == PERK_TIME) / 2;
                 if(s->lifesequence==0) s->resetstats(); //NEW
                 break;
             }
@@ -750,7 +746,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 playerent *s = getclient(scn);
                 if(!s || !weapon::valid(gun)) break;
                 loopk(3) from[k] = s->o.v[k];
-                if(gun==GUN_SHOTGUN) createrays(from, to);
                 s->lastaction = lastmillis;
                 s->weaponchanging = 0;
                 s->mag[gun]--;
@@ -1108,15 +1103,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 int actor = getint(p);
                 int flagtime = message == FM_KTFSCORE ? getint(p) : -1;
                 flagmsg(flag, message, actor, flagtime);
-                break;
-            }
-
-            case SV_FLAGCNT:
-            {
-                int fcn = getint(p);
-                int flags = getint(p);
-                playerent *p = getclient(fcn);
-                if(p) p->flagscore = flags;
                 break;
             }
 
