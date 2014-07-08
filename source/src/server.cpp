@@ -2984,11 +2984,8 @@ void process(ENetPacket *packet, int sender, int chan)
 #else
                 cp.state.gunwait[cp.state.gunselect = gunselect] += SWITCHTIME(cp.state.perk1 == PERK_TIME);
                 sendf(-1, 1, "ri3x", SV_WEAPCHANGE, cn, gunselect, sender);
-                // TODO
-                /*
                 cp.state.scoping = false;
                 cp.state.scopemillis = gamemillis - ADSTIME(cp.state.perk2 == PERK_TIME);
-                */
 #endif
                 break;
             }
