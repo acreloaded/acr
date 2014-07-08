@@ -3773,8 +3773,8 @@ void process(ENetPacket *packet, int sender, int chan)
                 e.attr3 = attr3;
                 e.attr4 = attr4;
                 // is it spawned?
-                if(e.spawned = e.fitsmode(smode, smuts))
-                sendf(-1, 1, "ri2", SV_ITEMSPAWN, id);
+                if((e.spawned = e.fitsmode(smode, smuts)))
+                    sendf(-1, 1, "ri2", SV_ITEMSPAWN, id);
                 e.spawntime = 0;
                 QUEUE_MSG;
                 break;
