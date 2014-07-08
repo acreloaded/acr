@@ -1,0 +1,205 @@
+SV_TEXT
+	i, cn
+	i, flags
+	i, voice
+	s, text
+
+SV_TEXTPRIVATE
+	i, cn
+	i, targ
+	s, text
+
+SV_MAPIDENT
+	i, gzs
+	i, rev
+
+SV_WEAPCHANGE
+	i, cn
+	i, gunselect
+
+SV_QUICKSWITCH
+	i, cn
+	
+SV_LOADOUT
+	i, nextprimary
+	i, nextsecondary
+
+SV_SWITCHNAME
+	s, text
+	
+SV_SETTEAM
+	i, t
+
+SV_SWITCHSKIN
+	i2, skin[0-1]
+
+SV_TRYSPAWN
+
+SV_SPAWN
+	i, cn
+	i, ls
+	i, gunselect
+
+SV_SUICIDE
+	i, cn
+
+SV_SHOOT
+	i, cn
+	i, id
+	i, weap
+    i3, ev->to[0-2]
+	MAXCLIENTS,
+		i, info.cn
+		i3, info.o[0-2]
+		i3, info.head[0-2]
+
+SV_SHOOTC
+	i, cn
+	i, id
+	i, weap
+
+SV_EXPLODE
+	i, cn
+	i, id
+	i, weap
+	i, flags
+	i3, o[0-2]
+
+SV_AKIMBO
+	i, cn
+	i, id
+	
+SV_RELOAD
+	i, cn
+	i, id
+	i, weap
+	
+SV_AUTHTRY
+	s, desc
+	s, name
+	
+SV_AUTHANS
+	s, desc
+	i, id
+	s, ans
+
+SV_AUTHT
+
+SV_PINGPONG
+
+SV_CLIENTPING
+	i, ping
+	
+SV_POS
+	i, cn
+	i3, newo[0-2]
+	i, newy
+	i, newp
+	i, newg
+	i(number of 1's in newg&15)
+	i, newf
+	
+SV_POSC
+	b5, cn
+	b2, usefactor
+	b(usefactor+4), xt
+	b(usefactor+4), yt
+	b9, newy
+	b8, newp
+	!b, b6 or b12
+	b8, newf
+	b, negz
+	b, zfull
+	br, s(3310)
+//!Finish documenting
+
+SV_SENDMAP
+	s, text
+	i, mapsize
+	i, cfgsize
+	i, cfgsizegz
+	i, revision
+
+SV_RECVMAP
+	
+SV_REMOVEMAP
+	s, text
+
+SV_FLAGACTION
+	i, action
+	i, flag
+	
+SV_CLAIMPRIV
+	i, claim
+	(if i)s, text
+
+SV_CALLVOTE
+	i, vi->type
+//!Finish documenting
+
+SV_VOTE
+	i, n
+
+SV_LISTDEMOS
+
+SV_GETDEMO
+
+SV_SOUND
+	i, cn
+	i, snd
+	
+SV_EXTENSION
+	s, text
+	i, n
+//!Finish Documenting
+
+SV_EDITH
+	i, x
+	i, y
+	i, xs
+	i, ys
+	i, v
+	i, offset
+	
+SV_EDITS, SV_EDITD, SV_EDITE
+	i, x
+	i, y
+	i, xs
+	i, ys
+	i, v
+
+SV_EDITT
+	i, x
+	i, y
+	i, xs
+	i, ys
+	i, v
+	i
+
+SV_EDITMODE
+	i, editing
+	
+SV_EDITENT
+	i, id
+	i, type
+	i3, o[0-2]
+	i, attr1
+	i, attr2
+	i, attr3
+	i, attr4
+	
+SV_NEWMAP
+	i, size
+	
+SV_THROWNADE
+	i
+
+SV_SHOTFX
+	i
+	i
+	i
+	i
+	i
+
+SV_GAMEMODE
+	i

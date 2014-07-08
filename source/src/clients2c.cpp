@@ -471,7 +471,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_TEXT:
             {
-                int cn = getint(p), voice = getint(p), flags = getint(p);
+                int cn = getint(p), flags = getint(p), voice = getint(p);
                 getstring(text, p);
                 filtertext(text, text);
                 playerent *d = getclient(cn);
@@ -488,6 +488,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             case SV_TEXTPRIVATE:
             {
                 int cn = getint(p);
+                getint();
                 getstring(text, p);
                 filtertext(text, text);
                 playerent *d = getclient(cn);
@@ -529,6 +530,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_MAPIDENT:
             {
+                getint(p);
+                getint(p);
                 conoutf(_("%c3please %c1get the map %c2by typing %c0/getmap"), CC, CC, CC, CC);
                 break;
             }

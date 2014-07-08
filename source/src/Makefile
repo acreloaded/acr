@@ -1,7 +1,7 @@
 CXX=g++	# Use clang++, as g++ optimizations cause crashes...
 DEBUG ?= 1
 ifeq ($(DEBUG), 1)
-    override CXXFLAGS+= -g -D_DEBUG
+    override CXXFLAGS+= -ggdb3 -D_DEBUG
 else
     override CXXFLAGS += -Ofast -fomit-frame-pointer 
 endif

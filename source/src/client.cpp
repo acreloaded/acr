@@ -259,7 +259,7 @@ void toserver(char *text, int voice, bool action)
     if(!text || !*text) return;
     bool toteam = *text == '%' && strlen(text) > 1;
     if(toteam) ++text;
-    addmsg(SV_TEXT, "ri2s", (action ? SAY_ACTION : 0) | (toteam ? SAY_TEAM : 0), voice, text);
+    addmsg(SV_TEXT, "ri3s", 0, (action ? SAY_ACTION : 0) | (toteam ? SAY_TEAM : 0), voice, text);
 }
 
 void toserver_(char *text) { toserver(text); }
@@ -343,7 +343,7 @@ void pm(char *text)
     filtertext(text, text);
     trimtrailingwhitespace(text);
 
-    addmsg(SV_TEXTPRIVATE, "ris", cn, text);
+    addmsg(SV_TEXTPRIVATE, "ri2s", cn, 0, text);
     conoutf("to %s:\f9 %s", colorname(to), highlight(text));
 }
 COMMAND(pm, "c");

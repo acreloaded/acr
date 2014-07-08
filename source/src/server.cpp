@@ -1397,13 +1397,13 @@ void sendtext(char *text, client *cl, int flags, int voice)
             logline(ACLOG_VERBOSE, "%s, forbidden speech (%s)", logmsg, forbidden);
             defformatstring(forbiddenmessage)("\f2forbidden speech: \f3%s \f2was detected", forbidden);
             sendservmsg(forbiddenmessage, cl->clientnum);
-            sendf(cl->clientnum, 1, "ri4s", SV_TEXT, cl->clientnum, 0, flags | SAY_FORBIDDEN, text);
+            sendf(cl->clientnum, 1, "ri4s", SV_TEXT, cl->clientnum, flags | SAY_FORBIDDEN, 0, text);
             return;
         }
         else if(spamdetect(cl, text))
         {
             logline(ACLOG_VERBOSE, "%s, SPAM detected", logmsg);
-            sendf(cl->clientnum, 1, "ri4s", SV_TEXT, cl->clientnum, 0, flags | SAY_SPAM, text);
+            sendf(cl->clientnum, 1, "ri4s", SV_TEXT, cl->clientnum, flags | SAY_SPAM, 0, text);
             return;
         }
     }
@@ -1411,8 +1411,8 @@ void sendtext(char *text, client *cl, int flags, int voice)
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     putint(p, SV_TEXT);
     putint(p, cl->clientnum);
-    putint(p, voice);
     putint(p, flags);
+    putint(p, voice);
     sendstring(text, p);
     ENetPacket *packet = p.finalize();
     recordpacket(1, packet);
@@ -2707,8 +2707,8 @@ void forcedeath(client *cl)
 
 int checktype(int type, client *cl)
 {
-    if (cl && cl->type==ST_LOCAL) return type; // local
     if (type < 0 || type >= SV_NUM) return -1; // out of range
+    if (cl && cl->type==ST_LOCAL) return type; // local
     if (cl && cl->type == ST_TCPIP)
     {
         // only allow edit messages in coop-edit mode
@@ -2878,7 +2878,7 @@ void process(ENetPacket *packet, int sender, int chan)
         if(type!=SV_POS && type!=SV_POSC && type!=SV_CLIENTPING && type!=SV_PINGPONG && type!=SV_CLIENT)
         {
             DEBUGVAR(cl->name);
-            ASSERT(type>=0 && type<SV_NUM);//TODO figure out how type got set to 85307, 873229
+            ASSERT(type>=0 && type<SV_NUM);//TODO figure out how type got set to 85307, 873229, 1283033, 1376737, 1480076
             DEBUGVAR(messagenames[type]);
             protocoldebug(true);
         }
@@ -2890,6 +2890,7 @@ void process(ENetPacket *packet, int sender, int chan)
         {
             case SV_TEXT:
             {
+                getint(p);
                 int flags = getint(p) & 3;
                 int voice = getint(p);
                 getstring(text, p);
@@ -2902,6 +2903,7 @@ void process(ENetPacket *packet, int sender, int chan)
 
             case SV_TEXTPRIVATE:
             {
+                getint();
                 int targ = getint(p);
                 getstring(text, p);
                 filtertext(text, text);
@@ -2927,7 +2929,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     {
                         bool allowed = !(mastermode == MM_MATCH && cl->team != target->team) && cl->role >= roleconf('t');
                         logline(ACLOG_INFO, "[%s] %s says to %s: '%s'%s", cl->hostname, cl->name, target->name, text, allowed ? "":", disallowed");
-                        if(allowed) sendf(target->clientnum, 1, "riis", SV_TEXTPRIVATE, cl->clientnum, text);
+                        if(allowed) sendf(target->clientnum, 1, "ri3s", SV_TEXTPRIVATE, cl->clientnum, 0, text);
                     }
                 }
             }

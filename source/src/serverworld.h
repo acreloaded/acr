@@ -318,7 +318,7 @@ bool movechecks(client &cp, const vec &newo, const int newf)
             logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cp.gethostname(), cp.name, ++cp.mapcollisions);
             defformatstring(msg)("%s (%d) \f2collides with the map \f5- \f3forcing death", cp.name, cp.clientnum);
             sendservmsg(msg);
-            sendf(cp.clientnum, 1, "ri", SV_MAPIDENT);
+            sendf(cp.clientnum, 1, "ri3", SV_MAPIDENT, 0, 0);
             forcedeath(&cp);
             cp.isonrightmap = false; // cannot spawn until you get the right map
         }
