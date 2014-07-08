@@ -754,7 +754,7 @@ void weapon::sendshoot(vec &from, vec &to, int millis)
             putint(p, (int)(players[i]->head.y*DMF));
             putint(p, (int)(players[i]->head.z*DMF));
         }
-    //putint(p, -1);
+    putint(p, -1);
     addmsgraw(p, true);
     owner->pstatshots[owner->weaponsel->type]++; //NEW
 }
