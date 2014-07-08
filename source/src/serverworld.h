@@ -240,11 +240,28 @@ float sraycube(const vec &o, const vec &ray, vec *surface = NULL)
     return dist;
 }
 
-bool movechecks(client &cp, const vec &newo, const int newf)
+bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
 {
     clientstate &cs = cp.state;
     // Only check alive players (skip editmode users)
     if(cs.state != CS_ALIVE) return true;
+    // new crouch and scope
+    const bool newcrouching = (newf >> 7) & 1;
+    if (cs.crouching != newcrouching)
+    {
+        cs.crouching = newcrouching;
+        cs.crouchmillis = gamemillis - CROUCHTIME + min(gamemillis - cs.crouchmillis, CROUCHTIME);
+    }
+    const bool newscoping = (newg >> 4) & 1;
+    if (newscoping != cs.scoping)
+    {
+        if (!newscoping || (ads_gun(cs.gunselect) && ads_classic_allowed(cs.gunselect)))
+        {
+            cs.scoping = newscoping;
+            cs.scopemillis = gamemillis - ADSTIME(cs.perk2 == PERK_TIME) + min(gamemillis - cs.scopemillis, ADSTIME(cs.perk2 == PERK_TIME));
+        }
+        // else: clear the scope from the packet? other clients can ignore it?
+    }
     // deal damage from movements
     if(!cs.protect(gamemillis, gamemode, mutators))
     {

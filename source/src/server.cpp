@@ -3274,7 +3274,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 clientstate &cs = cp.state;
                 if(interm || !broadcast || (cs.state!=CS_ALIVE && cs.state!=CS_EDITING)) break;
                 // relay if still alive
-                if(!cp.isonrightmap || m_demo(gamemode) || !movechecks(cp, newo, newf)) break;
+                if(!cp.isonrightmap || m_demo(gamemode) || !movechecks(cp, newo, newf, newg)) break;
                 cs.o = newo;
                 cp.y = newy;
                 cp.p = newp;
@@ -3317,7 +3317,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 if(((newf >> 6) & 1) != (cs.lifesequence & 1) || usefactor != (smapstats.hdr.sfactor < 7 ? 7 : smapstats.hdr.sfactor)) break;
                 // relay if still alive
                 vec newo(xt / DMF, yt / DMF, zt / DMF);
-                if(m_demo(gamemode) || !movechecks(cp, newo, newf)) break;
+                if(m_demo(gamemode) || !movechecks(cp, newo, newf, newg)) break;
                 cs.o = newo;
                 cp.y = newy;
                 cp.p = newp;
