@@ -172,12 +172,14 @@ struct clientstate : playerstate
 		fallz = -1e10f;
     }
 
-    float crouchfactor(int gamemillis, float ifcrouched)
+    float crouchfactor(int gamemillis)
     {
+        int crouched;
         if (crouching)
-            return 1.f - min(gamemillis - crouchmillis, CROUCHTIME) * (1.f - ifcrouched) / CROUCHTIME;
+            crouched = min(gamemillis - crouchmillis, CROUCHTIME);
         else
-            return ifcrouched + min(gamemillis - crouchmillis, CROUCHTIME) * (1.f - ifcrouched) / CROUCHTIME;
+            crouched = max(CROUCHTIME - gamemillis + crouchmillis, 0);
+        return 1.f - crouched * (1.f - CROUCHHEIGHTMUL) / CROUCHTIME;
     }
 };
 
