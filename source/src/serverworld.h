@@ -324,7 +324,7 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
     }
     // out of map check
     vec checko(newo);
-    checko.z += PLAYERHEIGHT / 10.f; // because the positions are now at the feet
+    checko.z += PLAYERHEIGHT / 2; // because the positions are now at the feet
     if (/*cp.type != ST_LOCAL &&*/ !m_edit(gamemode) && checkpos(checko, false))
     {
         if (cp.type == ST_AI) cp.suicide(NUMGUNS + 11);
