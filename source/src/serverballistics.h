@@ -323,8 +323,6 @@ client *nearesthit(client &actor, const vec &from, const vec &to, bool teamcheck
 // do a single line
 int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, int weap, int style, const vec &surface, vector<int> &exclude, float dist = 0, float penaltydist = 0, vector<shothit> *save = NULL)
 {
-    return 0; // TODO
-    /*
     const int mulset = sniper_weap(weap) ? MUL_SNIPER : MUL_NORMAL;
     int hitzone = HIT_NONE; vec end = to;
     // calculate the hit
@@ -355,93 +353,94 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
     // we hit somebody
     if (hit && damage)
     {
-    // damage multipliers
-    if (!m_classic(gamemode, mutators) || hitzone >= HIT_HEAD)
-        switch (hitzone)
+        // damage multipliers
+        if (!m_classic(gamemode, mutators) || hitzone >= HIT_HEAD)
         {
-            case HIT_HEAD: if (m_progressive(gamemode, mutators)) damage *= 7; else damage *= muls[mulset].head; break;
-            case HIT_TORSO: damage *= muls[mulset].torso; break;
-            case HIT_LEG: default: damage *= muls[mulset].leg; break;
+            if (hitzone == HIT_HEAD && m_progressive(gamemode, mutators))
+                damage *= 7;
+            else if (hitzone != HIT_LEG)
+                damage *= muls[mulset].multiplier[hitzone-HIT_TORSO];
         }
-    // gib check
-    if ((melee_weap(weap) || hitzone == HIT_HEAD) && !save) style |= FRAG_GIB;
-    // critical shots
-    if (checkcrit(dist2, 3.5f)) // 1 in clamp(14 * meter, 4, 100)
-    {
-        style |= FRAG_CRIT;
-        damage *= 1.5f;
-    }
-
-    // melee weapons (bleed/check for self)
-    if (melee_weap(weap))
-    {
-        if (hitzone == HIT_HEAD) style |= FRAG_FLAG;
-        if (&owner == hit) return 0; // not possible
-        else if (!isteam(&owner, hit)) // do not cause teammates to bleed
+        // gib check
+        if ((melee_weap(weap) || hitzone == HIT_HEAD) && !save) style |= FRAG_GIB;
+        // critical shots
+        if (checkcrit(dist2, 3.5f)) // 1 in clamp(14 * meter, 4, 100)
         {
-            hit->state.addwound(owner.clientnum, end);
-            sendf(-1, 1, "ri2", SV_BLEED, hit->clientnum);
+            style |= FRAG_CRIT;
+            damage *= 1.5f;
         }
-    }
 
-    // send bloody headshot hits...
-    if (hitzone == HIT_HEAD) sendheadshot(from, end, damage);
-    // send the real hit (blood fx)
-    sendhit(owner, weap, end, damage);
-    // apply damage
-    if (save)
-    {
-        // save damage for shotgun rays
-        shothit &h = save->add();
-        h.target = hit;
-        h.damage = damage;
-        h.flags = style;
-        h.dist = dist2;
-    }
-    else serverdamage(hit, &owner, damage, weap, style, from, dist2);
+        // melee weapons (bleed/check for self)
+        if (melee_weap(weap))
+        {
+            if (hitzone == HIT_HEAD) style |= FRAG_FLAG;
+            if (&owner == hit) return 0; // not possible
+            else if (!isteam(&owner, hit)) // do not cause teammates to bleed
+            {
+                // TODO
+                //hit->state.addwound(owner.clientnum, end);
+                //sendf(-1, 1, "ri2", SV_BLEED, hit->clientnum);
+            }
+        }
 
-    // add hit to the exclude list
-    exclude.add(hit->clientnum);
+        // send bloody headshot hits...
+        if (hitzone == HIT_HEAD) sendheadshot(from, end, damage);
+        // send the real hit (blood fx)
+        sendhit(owner, weap, end, damage);
+        // apply damage
+        if (save)
+        {
+            // save damage for shotgun rays
+            shothit &h = save->add();
+            h.target = hit;
+            h.damage = damage;
+            h.flags = style;
+            h.dist = dist2;
+        }
+        else serverdamage(hit, &owner, damage, weap, style, from, dist2);
 
-    // penetration
-    //if(!m_classic(gamemode, mutators) && dist2 < 100) // only penetrate players before 25 meters
-    // {
-        // distort ray and continue through...
-        vec dir(to = end), newsurface;
-        // 35 degrees (both ways = 70 degrees) distortion
-        //dir.sub(from).normalize().rotate_around_z((rnd(71)-35)*RAD).add(end);
-        // 5 degrees (both ways = 10 degrees) distortion on all axis
-        dir.sub(from).normalize().rotate_around_x((rnd(45) - 22)*RAD).rotate_around_y((rnd(11) - 5)*RAD).rotate_around_z((rnd(11) - 5)*RAD).add(end);
-        // retrace
-        straceShot(end, dir, &newsurface);
-        const int penetratedamage = shot(owner, end, dir, pos, weap, style, newsurface, exclude, dist2, penaltydist + 40, save); // 10 meters penalty for penetrating the player
-        sendf(-1, 1, "ri3f6", SV_RICOCHET, owner.clientnum, weap, end.x, end.y, end.z, dir.x, dir.y, dir.z);
-        return damage + penetratedamage;
-    //}
+        // add hit to the exclude list
+        exclude.add(hit->clientnum);
+
+        // penetration
+        //if(!m_classic(gamemode, mutators) && dist2 < 100) // only penetrate players before 25 meters
+        // {
+            // distort ray and continue through...
+            vec dir(to = end), newsurface;
+            // 35 degrees (both ways = 70 degrees) distortion
+            //dir.sub(from).normalize().rotate_around_z((rnd(71)-35)*RAD).add(end);
+            // 5 degrees (both ways = 10 degrees) distortion on all axis
+            dir.sub(from).normalize().rotate_around_x((rnd(45) - 22)*RAD).rotate_around_y((rnd(11) - 5)*RAD).rotate_around_z((rnd(11) - 5)*RAD).add(end);
+            // retrace
+            straceShot(end, dir, &newsurface);
+            const int penetratedamage = shot(owner, end, dir, pos, weap, style, newsurface, exclude, dist2, penaltydist + 40, save); // 10 meters penalty for penetrating the player
+            sendf(-1, 1, "ri9", SV_RICOCHET, owner.clientnum, weap, (int)(end.x), (int)(end.y), (int)(end.z), (int)(dir.x), (int)(dir.y), (int)(dir.z));
+            return damage + penetratedamage;
+        //}
     }
     // ricochet
-    else if (!dist && from.dist(to) < 100 && surface.magnitude()){ // ricochet once before 25 meters or going through a player
-    // reset exclusion to the owner, so a penetrated player can be hit twice
-    if (exclude.length() > 1)
-    exclude.setsize(1);
-    vec dir(to), newsurface;
-    // calculate reflected ray from incident ray and surface normal
-    dir.sub(from).normalize();
-    // r = i - 2 n (i . n)
-    dir
-    .sub(
-    vec(surface)
-    .mul(2 * dir.dot(surface))
-    )
-    .add(to);
-    // retrace
-    straceShot(to, dir, &newsurface);
-    const int ricochetdamage = shot(owner, to, dir, pos, weap, style, newsurface, exclude, dist2, penaltydist + 60, save); // 15 meters penalty for ricochet
-    sendf(-1, 1, "ri3f6", SV_RICOCHET, owner.clientnum, weap, to.x, to.y, to.z, dir.x, dir.y, dir.z);
-    return damage + ricochetdamage;
+    else if (!dist && from.dist(to) < 100 && surface.magnitude()) // ricochet once before 25 meters or going through a player
+    {
+        // reset exclusion to the owner, so a penetrated player can be hit twice
+        if (exclude.length() > 1)
+            exclude.setsize(1);
+        vec dir(to), newsurface;
+        // calculate reflected ray from incident ray and surface normal
+        dir.sub(from).normalize();
+        // r = i - 2 n (i . n)
+        dir
+            .sub(
+                vec(surface)
+                    .mul(2 * dir.dot(surface))
+            )
+            .add(to);
+        // retrace
+        straceShot(to, dir, &newsurface);
+        const int ricochetdamage = shot(owner, to, dir, pos, weap, style, newsurface, exclude, dist2, penaltydist + 60, save); // 15 meters penalty for ricochet
+        sendf(-1, 1, "ri9", SV_RICOCHET, owner.clientnum, weap, (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), (int)(dir.x*DMF), (int)(dir.y*DMF), (int)(dir.z*DMF));
+        return damage + ricochetdamage;
     }
     return 0;
-    */
 }
 
 int shotgun(client &owner, vector<posinfo> &pos)

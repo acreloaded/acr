@@ -103,6 +103,10 @@ extern itemstat powerupstats[I_ARMOUR-I_HEALTH+1];
 struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, range, endrange, rangesub, piercing, spread, spreadrem, kick, addsize, magsize, mdl_kick_rot, mdl_kick_back, recoilincrease, recoilbase, maxrecoil, recoilbackfade, recoilangle, pushfactor; bool isauto; };
 extern guninfo guns[NUMGUNS];
 
+union mul { struct { float torso, head; }; float multiplier[2]; };
+enum { MUL_NORMAL = 0, MUL_SNIPER, MUL_SHOTGUN, MUL_NUM };
+extern const mul muls[MUL_NUM];
+
 static inline int reloadtime(int gun) { return guns[gun].reloadtime; }
 static inline int attackdelay(int gun) { return guns[gun].attackdelay; }
 static inline int magsize(int gun) { return guns[gun].magsize; }
@@ -135,7 +139,7 @@ static inline const char *team_string(int t, bool abbr = false) { const char **n
 #define team_rel_color(a, b) (a == b ? 1 : a && b && !team_isspect(b->team) ? isteam(a->team, b->team) ? 0 : 3 : 4)
 
 enum { ENT_PLAYER = 0, ENT_BOT, ENT_CAMERA, ENT_BOUNCE };
-enum { HIT_NONE = 0, HIT_TORSO, HIT_LEG, HIT_HEAD };
+enum { HIT_NONE = 0, HIT_LEG, HIT_TORSO, HIT_HEAD };
 enum { CS_ALIVE = 0, CS_DEAD, CS_SPAWNING, CS_LAGGED, CS_EDITING, CS_SPECTATE };
 enum { CR_DEFAULT = 0, CR_ADMIN };
 enum { SM_NONE = 0, SM_DEATHCAM, SM_FOLLOW1ST, SM_FOLLOW3RD, SM_FOLLOW3RD_TRANSPARENT, SM_FLY, SM_OVERVIEW, SM_NUM };

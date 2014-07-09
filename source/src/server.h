@@ -546,6 +546,14 @@ guninfo guns[NUMGUNS] =
     { "sniper2",  S_SNIPER2,  S_RSNIPER2,  2000,  120, 110, 75, 120, 45,  35, 300,  98, 120, 10, 11, 4, 4, 95, 0, 96, 100, 85, 5, false },
 };
 
+const mul muls[MUL_NUM] =
+{
+    // torso, head
+    { 1.2f, 5.5f }, // normal
+    { 1.4f, 4.0f }, // snipers
+    { 1.3f, 5.0f }, // shotgun
+};
+
 int effectiveDamage(int gun, float dist, bool explosive, bool useReciprocal)
 {
     float finaldamage;
