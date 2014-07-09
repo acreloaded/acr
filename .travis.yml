@@ -10,7 +10,7 @@ before_install:
   - sudo apt-get install -qq build-essential libsdl1.2debian libsdl-image1.2 libopenal1 libsdl1.2-dev libsdl-image1.2-dev libopenal-dev libvorbis-dev
 install:
   - cd ./source/src
-  - chmod +x ../enet/configure
+#  - chmod +x ../enet/configure
 script: make all
 notifications:
   irc:
