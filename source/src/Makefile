@@ -1,11 +1,10 @@
 DEBUG ?= 0
-CXXFLAGS = -O3 -fomit-frame-pointer
+CXXFLAGS = -Wall -fsigned-char
 ifeq ($(DEBUG), 1)
     override CXXFLAGS += -ggdb3 -D_DEBUG -Wextra
 else
     override CXXFLAGS += -Ofast -fomit-frame-pointer 
 endif
-override CXXFLAGS += -Wall -fsigned-char
 
 PLATFORM= $(shell uname -s)
 PLATFORM_PREFIX=native
