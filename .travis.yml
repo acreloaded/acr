@@ -4,7 +4,7 @@ compiler:
   - gcc
 matrix:
   allow_failures:
-    - clang
+    - compiler: clang
 
 branches:
   only:
