@@ -426,30 +426,6 @@ void addgib(playerent *d)
     }
 }
 
-const char *weapstr(unsigned int i)
-{
-    switch (i)
-    {
-    case GUN_AKIMBO:
-        return "Akimbo";
-    case GUN_PISTOL:
-        return "Pistol";
-    case GUN_ASSAULT:
-        return "M16A3";
-    case GUN_SUBGUN:
-        return "MP5K";
-    case GUN_SNIPER:
-        return "M21";
-    case GUN_SHOTGUN:
-        return "M1014";
-    case GUN_KNIFE:
-        return "Knife";
-    case GUN_GRENADE:
-        return "Grenades";
-    }
-    return "x";
-}
-
 VARP(accuracy,0,0,1);
 
 void r_accuracy(int h)
@@ -466,11 +442,11 @@ void r_accuracy(int h)
         rows++;
         if(i == GUN_GRENADE || i == GUN_SHOTGUN)
         {
-            formatstring(line)("\f5%5.1f%s (%.1f/%d) :\f0%s", acc, "%", accuracym[i].hits, (int)accuracym[i].shots, weapstr(i));
+            formatstring(line)("\f5%5.1f%s (%.1f/%d) :\f0%s", acc, "%", accuracym[i].hits, (int)accuracym[i].shots, killname(i, FRAG_NONE));
         }
         else
         {
-            formatstring(line)("\f5%5.1f%s (%d/%d) :\f0%s", acc, "%", (int)accuracym[i].hits, (int)accuracym[i].shots, weapstr(i));
+            formatstring(line)("\f5%5.1f%s (%d/%d) :\f0%s", acc, "%", (int)accuracym[i].hits, (int)accuracym[i].shots, killname(i, FRAG_NONE));
         }
         cols=max(cols,(int)strlen(line));
         lines.add(newstring(line));

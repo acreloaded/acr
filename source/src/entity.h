@@ -108,6 +108,10 @@ static inline int attackdelay(int gun) { return guns[gun].attackdelay; }
 static inline int magsize(int gun) { return guns[gun].magsize; }
 static inline int reloadsize(int gun) { return gun == GUN_GRENADE || gun == GUN_KNIFE ? 0 : guns[gun].magsize - 1; }
 
+extern const char *suicname(int obit);
+extern const char *killname(int obit, int style);
+extern const bool isheadshot(int weapon, int style);
+
 /** roseta stone:
        0000,         0001,      0010,           0011,            0100,       0101,     0110 */
 enum { TEAM_CLA = 0, TEAM_RVSF, TEAM_CLA_SPECT, TEAM_RVSF_SPECT, TEAM_SPECT, TEAM_NUM, TEAM_ANYACTIVE };

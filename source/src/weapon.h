@@ -14,7 +14,25 @@ enum
     GUN_RPG,
     GUN_ASSAULT2,
     GUN_SNIPER2,
-    NUMGUNS
+    NUMGUNS,
+    // extra obits
+    OBIT_START = NUMGUNS,
+    OBIT_DEATH = OBIT_START,
+    OBIT_BOT,
+    OBIT_FF,
+    OBIT_ASSIST,
+    OBIT_DROWN,
+    OBIT_FALL,
+    OBIT_FALL_WATER,
+    OBIT_CHEAT,
+    OBIT_SPAWN,
+    OBIT_NUKE,
+    OBIT_SPECT,
+    OBIT_SPECIAL,
+    OBIT_REVIVE = OBIT_SPECIAL,
+    OBIT_TEAM,
+    OBIT_JUG,
+    OBIT_NUM
 };
 
 #define melee_weap(g) (g == GUN_KNIFE) // || g == GUN_SWORD)

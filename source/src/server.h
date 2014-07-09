@@ -536,6 +536,83 @@ guninfo guns[NUMGUNS] =
     { "sniper2",  S_SNIPER2,  S_RSNIPER2,  2000,  120, 110, 75, 120, 45,  35, 300,  98, 120, 10, 11, 4, 4, 95, 0, 96, 100, 85, 5, false },
 };
 
+inline const char *weapname(int weap)
+{
+    const char *weapnames[NUMGUNS] =
+    {
+        "Knife",
+        "USP",
+        "M1014",
+        "MP5",
+        "M21",
+        "M16A3",
+        "M67",
+        "Akimbo",
+        "Intervention",
+        "Heal",
+        "Sword",
+        "RPG-7",
+        "AK-47",
+        "M82",
+    };
+    return weapnames[weap];
+}
+const char *suicname(int obit)
+{
+    if (obit >= 0 && obit < NUMGUNS)
+        return weapname(obit);
+    switch (obit)
+    {
+        case OBIT_DEATH:
+            return "K";
+        case OBIT_BOT:
+            return "Bot";
+    }
+    return "x";
+}
+const char *killname(int obit, int style)
+{
+    const bool gib = (style & FRAG_GIB) > 0,
+        flag = (style & FRAG_FLAG) > 0;
+    switch (obit)
+    {
+        case GUN_KNIFE:
+            if (style & FRAG_GIB) break;
+            else if (style & FRAG_FLAG)
+                return "Throwing Knife";
+            else
+                return "Bleed";
+        case GUN_RPG:
+            if (style & FRAG_GIB)
+                return "Impact";
+            else if (style & FRAG_FLAG)
+                return "RPG Direct";
+        case GUN_GRENADE:
+            if (!(style & FRAG_GIB))
+                return "Airstrike";
+    }
+    if (obit >= 0 && obit < NUMGUNS)
+        return weapname(obit);
+    return "x";
+}
+const bool isheadshot(int weapon, int style)
+{
+    if (!(style & FRAG_GIB)) return false; // only gibs headshot
+    switch (weapon)
+    {
+        case GUN_KNIFE:
+        case GUN_SWORD:
+        case GUN_GRENADE:
+        case GUN_RPG:
+            if (style & FRAG_FLAG) break; // these weapons headshot if FRAG_FLAG is set
+        case OBIT_DEATH:
+        case OBIT_NUKE:
+            return false; // these weapons cannot headshot
+    }
+    // headshot = gib if otherwise
+    return true;
+}
+
 const char *teamnames[TEAM_NUM+1] = {"CLA", "RVSF", "CLA-SPECT", "RVSF-SPECT", "SPECTATOR", "void"};
 const char *teamnames_s[TEAM_NUM+1] = {"CLA", "RVSF", "CSPC", "RSPC", "SPEC", "void"};
 
