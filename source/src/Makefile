@@ -1,9 +1,9 @@
 DEBUG ?= 0
-CXXFLAGS = -Wall -fsigned-char
+override CXXFLAGS += -fsigned-char -fpermissive
 ifeq ($(DEBUG), 1)
-    override CXXFLAGS += -ggdb3 -D_DEBUG -Wextra
+    override CXXFLAGS += -ggdb3 -D_DEBUG -Wall -Wextra
 else
-    override CXXFLAGS += -Ofast -fomit-frame-pointer 
+    override CXXFLAGS += -w -Ofast -fomit-frame-pointer 
 endif
 
 PLATFORM= $(shell uname -s)
@@ -116,10 +116,6 @@ SERVER_LIBS+= -lsocket -lnsl
 endif
 
 default: all
-
-debug:
-	CXXFLAGS = -O3 -fomit-frame-pointer -Wall -Wextra -fsigned-char
-	$(MAKE) -j8 all
 
 all: client server
 
