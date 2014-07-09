@@ -1,4 +1,4 @@
-DEBUG ?= 1
+DEBUG ?= 0
 ifeq ($(DEBUG), 1)
     override CXXFLAGS += -ggdb3 -D_DEBUG
 else
