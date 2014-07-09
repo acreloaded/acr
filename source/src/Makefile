@@ -1,10 +1,18 @@
 DEBUG ?= 0
+WARNINGS ?= 1
 override CXXFLAGS += -fsigned-char -fpermissive
 ifeq ($(DEBUG), 1)
-    override CXXFLAGS += -ggdb3 -D_DEBUG -Wall -Wextra
+    override CXXFLAGS += -ggdb3 -D_DEBUG -Wextra
 else
-    override CXXFLAGS += -w -Ofast -fomit-frame-pointer 
+    override CXXFLAGS += -Ofast -fomit-frame-pointer 
 endif
+
+ifeq ($(WARNINGS), 1)
+    override CXXFLAGS += -Wall
+else
+    override CXXFLAGS += -w
+endif
+
 
 PLATFORM= $(shell uname -s)
 PLATFORM_PREFIX=native
