@@ -171,6 +171,14 @@ struct clientstate : playerstate
         scoped = crouching = onfloor = false;
 		fallz = -1e10f;
     }
+
+    float crouchfactor(int gamemillis, float ifcrouched)
+    {
+        if (crouching)
+            return 1.f - min(gamemillis - crouchmillis, CROUCHTIME) * (1.f - ifcrouched) / CROUCHTIME;
+        else
+            return ifcrouched + min(gamemillis - crouchmillis, CROUCHTIME) * (1.f - ifcrouched) / CROUCHTIME;
+    }
 };
 
 struct savedscore

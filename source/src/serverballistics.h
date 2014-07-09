@@ -110,8 +110,7 @@ void parsepos(client &c, const vector<posinfo> &pos, vec &out_o, vec &out_head)
     if (scl.lagtrust >= 2 && info) out_o = info->o;
     else out_o = c.state.o; // don't trust the client's position, or not provided
     // fix z
-    const float crouchfactor = 1 - (c.state.crouching ? min(gamemillis - c.state.crouchmillis, CROUCHTIME) : CROUCHTIME - min(gamemillis - c.state.crouchmillis, CROUCHTIME)) * (1-CROUCHHEIGHT) / CROUCHTIME;
-    out_o.z += PLAYERHEIGHT * crouchfactor;
+    out_o.z += PLAYERHEIGHT * c.state.crouchfactor(gamemillis, CROUCHHEIGHTMUL);
     // head delta
     if (scl.lagtrust >= 1 && info && info->head.x > 0 && info->head.y > 0 && info->head.z > 0)
     {
@@ -153,7 +152,7 @@ int radialeffect(client &owner, client &target, vector<explosivehit> &hits, cons
     if (dist >= (useReciprocal ? guns[weap].endrange : guns[weap].rangesub)) return 0; // too far away
     vec ray1(hit_location), ray2(target.state.o);
     ray1.sub(o).normalize();
-    ray2.z += PLAYERHEIGHT; // TODO: consider crouch
+    ray2.z += PLAYERHEIGHT * target.state.crouchfactor(gamemillis, CROUCHHEIGHTMUL);
     ray2.sub(o).normalize();
     if (srayclip(o, ray1) < dist && srayclip(o, ray2) < dist) return 0; // not visible
     float dmg = effectiveDamage(weap, dist, true, useReciprocal);

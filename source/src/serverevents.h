@@ -55,8 +55,7 @@ void shotevent::process(client *ci)
     // if using delta position (or the above)
         // to.normalize().add(from);
     // apply spread
-    const float spreadf = to.dist(from) / 1000.f,
-        crouchfactor = 1 - (cs.crouching ? min(gamemillis - cs.crouchmillis, CROUCHTIME) : CROUCHTIME - min(gamemillis - cs.crouchmillis, CROUCHTIME)) * .25f / CROUCHTIME;
+    const float spreadf = to.dist(from) / 1000.f, crouchfactor = cs.crouchfactor(gamemillis, .75f);
     from.z += PLAYERHEIGHT * crouchfactor; // both use 75% to 100%
     const int zoomtime = ADSTIME(cs.perk2 == PERK_TIME);
     float adsfactor = 1 - float(cs.scoping ? min(gamemillis - cs.scopemillis, zoomtime) : zoomtime - min(gamemillis - cs.scopemillis, zoomtime)) * /*guns[weap].spreadrem*/ 100 / 100 / zoomtime;
