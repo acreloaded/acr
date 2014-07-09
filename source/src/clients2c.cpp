@@ -773,9 +773,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_THROWNADE:
             {
+                playerent *d = getclient(getint(p));
                 vec from, to;
                 loopk(3) from[k] = getint(p)/DMF;
-                loopk(3) to[k] = getint(p)/DMF;
+                loopk(3) to[k] = getint(p)/DNF;
                 int nademillis = getint(p);
                 if(!d) break;
                 d->lastaction = lastmillis;

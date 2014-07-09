@@ -2998,6 +2998,23 @@ void process(ENetPacket *packet, int sender, int chan)
                 break;
             }
 
+            case SV_THROWNADE:
+            {
+                const int cn = getint(p);
+                vec from, vel;
+                loopi(3) from[i] = getint(p)/DMF;
+                loopi(3) vel[i] = getint(p)/DNF;
+                int cooked = clamp(getint(p), 1, NADETTL);
+                if (!cl->hasclient(cn)) break;
+                clientstate &cps = clients[cn]->state;
+                if (cps.grenades.throwable <= 0) break;
+                --cps.grenades.throwable;
+                checkpos(from);
+                if (vel.magnitude() > NADEPOWER) vel.normalize().mul(NADEPOWER);
+                QUEUE_MSG;
+                break;
+            }
+
             case SV_LOADOUT:
             {
                 int nextprimary = getint(p), nextsecondary = getint(p), perk1 = getint(p), perk2 = getint(p);
@@ -3797,14 +3814,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 break;
             }
 
-            case SV_THROWNADE: // & SV_THROWKNIFE TODO
-                getint(p);
-                getint(p);
-                getint(p);
-                getint(p);
-                getint(p);
-                getint(p);
-            case SV_GAMEMODE:
+            case SV_GAMEMODE: // TODO remove this
                 getint(p);
                 QUEUE_MSG;
                 break;

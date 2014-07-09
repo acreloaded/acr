@@ -78,8 +78,9 @@ struct projectilestate
 {
     int projs[N];
     int numprojs;
+    int throwable;
 
-    projectilestate() : numprojs(0) {}
+    projectilestate() : numprojs(0), throwable(0) {}
 
     void reset() { numprojs = 0; }
 
@@ -87,6 +88,14 @@ struct projectilestate
     {
         if(numprojs>=N) numprojs = 0;
         projs[numprojs++] = val;
+        ++throwable;
+    }
+
+    bool removeany()
+    {
+        if (!numprojs) return false;
+        --numprojs;
+        return true;
     }
 
     bool remove(int val)
