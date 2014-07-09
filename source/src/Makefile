@@ -3,6 +3,7 @@ WARNINGS ?= 1
 override CXXFLAGS += -fsigned-char -fpermissive
 ifeq ($(DEBUG), 1)
     override CXXFLAGS += -ggdb3 -D_DEBUG -Wextra
+    override WARNINGS = 1
 else
     override CXXFLAGS += -Ofast -fomit-frame-pointer 
 endif
