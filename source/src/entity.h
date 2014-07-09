@@ -108,7 +108,7 @@ static inline int attackdelay(int gun) { return guns[gun].attackdelay; }
 static inline int magsize(int gun) { return guns[gun].magsize; }
 static inline int reloadsize(int gun) { return guns[gun].addsize; }
 
-extern int effectiveDamage(int gun, float dist, bool explosive, bool useReciprocal);
+extern int effectiveDamage(int gun, float dist, bool explosive = false, bool useReciprocal = true);
 extern const char *suicname(int obit);
 extern const char *killname(int obit, int style);
 extern bool isheadshot(int weapon, int style);

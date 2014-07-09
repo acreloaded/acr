@@ -8,7 +8,7 @@ void destroyevent::process(client *ci)
 {
     client &c = *ci;
     clientstate &cs = c.state;
-    int damagepotential = 0 /*effectiveDamage(weap, 0)*/, damagedealt = 0;
+    int damagepotential = effectiveDamage(weap, 0), damagedealt = 0;
     switch (weap)
     {
         case GUN_GRENADE:
