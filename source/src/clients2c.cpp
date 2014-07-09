@@ -738,6 +738,25 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
             }
 
+            case SV_EXPLODE:
+            {
+                int cn = getint(p), weap = getint(p), dmg = getint(p);
+                playerent *d = getclient(cn);
+                vec o;
+                loopi(3) o[i] = getint(p) / DMF;
+                if (!d) break;
+                // hit effect
+                if (d->weapons[weap])
+                {
+                    if (explosive_weap(weap) && dmg);
+                    else if (melee_weap(weap) && dmg < 20 * HEALTHSCALE);
+                    else d->weapons[weap]->attackhit(o);
+                }
+                // blood
+                if (dmg) damageeffect(dmg, o);
+                break;
+            }
+
             case SV_SHOOT:
             case SV_SHOOTC:
             case SV_RICOCHET:

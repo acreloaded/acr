@@ -1542,8 +1542,7 @@ void client::suicide(int gun, int style)
         serverdied(this, this, 0, gun, style, state.o);
 }
 
-// void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source, float dist = 0)
-void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &hitpush = vec(0, 0, 0))
+void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source, float dist = 0)
 {
     if ( m_duke(gamemode, mutators) && gun == GUN_GRENADE && arenaroundstartmillis + 2000 > gamemillis && target != actor ) return;
     clientstate &ts = target->state;
@@ -1555,19 +1554,10 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
         if(target!=actor)
         {
             checkcombo (target, actor, damage, gun);
-            if(!hitpush.iszero())
-            {
-                vec v(hitpush);
-                if(!v.iszero()) v.normalize();
-                /*
-                sendf(target->clientnum, 1, "ri6", SV_HITPUSH, gun, damage,
-                      int(v.x*DNF), int(v.y*DNF), int(v.z*DNF));
-                */
-            }
         }
     }
     if (ts.health <= 0)
-        serverdied(target, actor, damage, gun, style, hitpush);
+        serverdied(target, actor, damage, gun, style, source, dist);
     else if ( target!=actor && isteam(target->team, actor->team) ) check_ffire (target, actor, damage); // friendly fire counter
 }
 
@@ -3756,7 +3746,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 if (!m_edit(gamemode) && editing && cl->type == ST_TCPIP)
                 {
                     // unacceptable!
-                    serverdamage(cl, cl, 1000, GUN_KNIFE, FRAG_GIB);
+                    serverdamage(cl, cl, 1000, GUN_KNIFE, FRAG_GIB, cl->state.o);
                     break;
                 }
                 if (cl->state.state != (editing ? CS_ALIVE : CS_EDITING)) break;

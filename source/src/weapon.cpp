@@ -696,7 +696,7 @@ void grenadeent::explode()
     if(nadestate!=NS_ACTIVATED && nadestate!=NS_THROWN ) return;
     nadestate = NS_EXPLODED;
     if(local)
-        addmsg(SV_EXPLODE, "ri7", owner->ownernum, lastmillis, GUN_GRENADE, id, (int)(o.x*DMF), (int)(o.y*DMF), (int)(o.z*DMF));
+        addmsg(SV_EXPLODE, "ri7", owner->clientnum, lastmillis, GUN_GRENADE, id, (int)(o.x*DMF), (int)(o.y*DMF), (int)(o.z*DMF));
 }
 
 void grenadeent::activate()

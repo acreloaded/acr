@@ -8,13 +8,13 @@ void destroyevent::process(client *ci)
 {
     client &c = *ci;
     clientstate &cs = c.state;
-    // int damagepotential = effectiveDamage(weap, 0), damagedealt = 0;
+    int damagepotential = 0 /*effectiveDamage(weap, 0)*/, damagedealt = 0;
     switch (weap)
     {
         case GUN_GRENADE:
         {
             if (!cs.grenades.remove(flags)) return;
-            // damagedealt += explosion(c, o, WEAP_GRENADE, !m_real(gamemode, mutators));
+            damagedealt += explosion(c, o, weap, !m_real(gamemode, mutators));
             break;
         }
 
@@ -27,8 +27,8 @@ void destroyevent::process(client *ci)
         default:
             return;
     }
-    // gs.damage += damagedealt;
-    // gs.shotdamage += max(damagedealt, damagepotential);
+    cs.damage += damagedealt;
+    cs.shotdamage += max(damagedealt, damagepotential);
 }
 
 void shotevent::process(client *ci)
@@ -115,7 +115,7 @@ void shotevent::process(client *ci)
         default:
         {
             if (weap == GUN_SHOTGUN) // many rays, many players
-                damagedealt += shotgun(c, pos); // WARNING: modifies gs.sg
+                damagedealt += shotgun(c, pos); // WARNING: modifies cs.sg
             else
             {
                 static vector<int> exclude;

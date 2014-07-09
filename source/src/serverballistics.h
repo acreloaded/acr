@@ -86,8 +86,7 @@ bool checkcrit(float dist, float m, int base = 0, int low = 4, int high = 100)
 // easy to send shot damage messages
 inline void sendhit(client &actor, int gun, const vec &o, int dmg)
 {
-    return; // TODO
-    sendf(-1, 1, "ri4f3", SV_EXPLODE, actor.clientnum, gun, dmg, o.x, o.y, o.z);
+    sendf(-1, 1, "ri7", SV_EXPLODE, actor.clientnum, gun, dmg, (int)(o.x*DMF), (int)(o.y*DMF), (int)(o.z*DMF));
 }
 
 inline void sendheadshot(const vec &from, const vec &to, int damage)
@@ -188,8 +187,6 @@ int radialeffect(client &owner, client &target, vector<explosivehit> &hits, cons
 // explosion call
 int explosion(client &owner, const vec &o2, int weap, bool teamcheck, bool gib, client *cflag)
 {
-    return 0; // TODO
-    /*
     int damagedealt = 0;
     vec o(o2);
     checkpos(o);
@@ -215,7 +212,6 @@ int explosion(client &owner, const vec &o2, int weap, bool teamcheck, bool gib, 
         serverdamage(hits[i].target, hits[i].owner, hits[i].damage, weap, hits[i].flags, o, hits[i].dist);
     }
     return damagedealt;
-    */
 }
 
 // order the nuke hits by distance

@@ -450,6 +450,7 @@ int numclients();
 bool updateclientteam(int cln, int newteam, int ftr);
 void forcedeath(client *cl);
 void sendf(int cn, int chan, const char *format, ...);
+int explosion(client &owner, const vec &o2, int weap, bool teamcheck, bool gib = true, client *cflag = NULL);
 
 extern bool isdedicated;
 extern string smapname;
