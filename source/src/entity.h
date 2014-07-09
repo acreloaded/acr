@@ -80,6 +80,7 @@ enum { PR_CLEAR = 0, PR_ASSIST, PR_SPLAT, PR_HS, PR_KC, PR_KD, PR_HEALSELF, PR_H
 #define SWITCHTIME(perk) ((perk) ? 200 : 400)
 #define ADSTIME(perk) ((perk) ? 200 : 300)
 #define CROUCHTIME 500
+#define CROUCHHEIGHT .75f
 #define COMBOTIME 1000
 
 #define NADEPOWER 2

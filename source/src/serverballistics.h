@@ -109,6 +109,9 @@ void parsepos(client &c, const vector<posinfo> &pos, vec &out_o, vec &out_head)
     // position
     if (scl.lagtrust >= 2 && info) out_o = info->o;
     else out_o = c.state.o; // don't trust the client's position, or not provided
+    // fix z
+    const float crouchfactor = 1 - (c.state.crouching ? min(gamemillis - c.state.crouchmillis, CROUCHTIME) : CROUCHTIME - min(gamemillis - c.state.crouchmillis, CROUCHTIME)) * (1-CROUCHHEIGHT) / CROUCHTIME;
+    out_o.z += PLAYERHEIGHT * crouchfactor;
     // head delta
     if (scl.lagtrust >= 1 && info && info->head.x > 0 && info->head.y > 0 && info->head.z > 0)
     {

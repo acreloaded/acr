@@ -502,7 +502,7 @@ void weapon::sendshoot(const vec &to)
             putint(p, i);
             putint(p, (int)(players[i]->o.x*DMF));
             putint(p, (int)(players[i]->o.y*DMF));
-            putint(p, (int)(players[i]->o.z*DMF));
+            putint(p, (int)((players[i]->o.z-players[i]->eyeheight)*DMF));
             putint(p, (int)(players[i]->head.x*DMF));
             putint(p, (int)(players[i]->head.y*DMF));
             putint(p, (int)(players[i]->head.z*DMF));
