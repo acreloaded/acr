@@ -546,24 +546,52 @@ guninfo guns[NUMGUNS] =
     { "sniper2",  S_SNIPER2,  S_RSNIPER2,  2000,  120, 110, 75, 120, 45,  35, 300,  98, 120, 10, 11, 4, 4, 95, 0, 96, 100, 85, 5, false },
 };
 
+int effectiveDamage(int gun, float dist, bool explosive, bool useReciprocal)
+{
+    float finaldamage;
+    if (dist <= guns[gun].range || (!guns[gun].range && !guns[gun].endrange))
+        finaldamage = guns[gun].damage;
+    else if (dist >= guns[gun].endrange)
+        finaldamage = guns[gun].damage - guns[gun].rangesub;
+    else
+    {
+        float subtractfactor = (dist - guns[gun].range) / (guns[gun].endrange - guns[gun].range);
+        if (explosive)
+        {
+            if (useReciprocal)
+                finaldamage = guns[gun].damage / (1 + (guns[gun].damage - 1)*powf(subtractfactor, 4));
+            else
+            {
+                // rangesub becomes the new rangeend
+                if (dist >= guns[gun].rangesub) return 0;
+                subtractfactor = (dist - guns[gun].range) / (guns[gun].rangesub - guns[gun].range);
+                finaldamage = guns[gun].damage * (1 - subtractfactor * subtractfactor);
+            }
+        }
+        else
+            finaldamage = guns[gun].damage - subtractfactor * guns[gun].rangesub;
+    }
+    return finaldamage * HEALTHSCALE;
+}
+
 inline const char *weapname(int weap)
 {
     const char *weapnames[NUMGUNS] =
     {
-        "Knife",
-        "USP",
-        "M1014",
-        "MP5",
-        "M21",
-        "M16A3",
-        "M67",
-        "Akimbo",
-        "Intervention",
-        "Heal",
-        "Sword",
-        "RPG-7",
-        "AK-47",
-        "M82",
+        _("Knife"),
+        _("USP"),
+        _("M1014"),
+        _("MP5"),
+        _("M21"),
+        _("M16A3"),
+        _("M67"),
+        _("Akimbo"),
+        _("Intervention"),
+        _("Heal"),
+        _("Sword"),
+        _("RPG-7"),
+        _("AK-47"),
+        _("M82"),
     };
     return weapnames[weap];
 }
@@ -577,6 +605,7 @@ const char *suicname(int obit)
             return "K";
         case OBIT_BOT:
             return "Bot";
+        // TODO: remaining obits
     }
     return "x";
 }
@@ -589,23 +618,23 @@ const char *killname(int obit, int style)
         case GUN_KNIFE:
             if (style & FRAG_GIB) break;
             else if (style & FRAG_FLAG)
-                return "Throwing Knife";
+                return _("Throwing Knife");
             else
-                return "Bleed";
+                return _("Bleed");
         case GUN_RPG:
             if (style & FRAG_GIB)
-                return "Impact";
+                return _("Impact");
             else if (style & FRAG_FLAG)
-                return "RPG Direct";
+                return _("RPG Direct");
         case GUN_GRENADE:
             if (!(style & FRAG_GIB))
-                return "Airstrike";
+                return _("Airstrike");
     }
     if (obit >= 0 && obit < NUMGUNS)
         return weapname(obit);
     return "x";
 }
-const bool isheadshot(int weapon, int style)
+bool isheadshot(int weapon, int style)
 {
     if (!(style & FRAG_GIB)) return false; // only gibs headshot
     switch (weapon)

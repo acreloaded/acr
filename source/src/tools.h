@@ -824,6 +824,8 @@ inline const char *_gettext(const char *msgid)
     else
         return "";
 }
+#else
+#define _gettext(s) s
 #endif
 
 #define _(s) _gettext(s)

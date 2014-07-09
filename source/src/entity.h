@@ -106,11 +106,12 @@ extern guninfo guns[NUMGUNS];
 static inline int reloadtime(int gun) { return guns[gun].reloadtime; }
 static inline int attackdelay(int gun) { return guns[gun].attackdelay; }
 static inline int magsize(int gun) { return guns[gun].magsize; }
-static inline int reloadsize(int gun) { return gun == GUN_GRENADE || gun == GUN_KNIFE ? 0 : guns[gun].magsize - 1; }
+static inline int reloadsize(int gun) { return guns[gun].addsize; }
 
+extern int effectiveDamage(int gun, float dist, bool explosive, bool useReciprocal);
 extern const char *suicname(int obit);
 extern const char *killname(int obit, int style);
-extern const bool isheadshot(int weapon, int style);
+extern bool isheadshot(int weapon, int style);
 
 /** roseta stone:
        0000,         0001,      0010,           0011,            0100,       0101,     0110 */
