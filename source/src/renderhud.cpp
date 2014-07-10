@@ -828,15 +828,15 @@ VARP(clockdisplay,0,0,2);
 VARP(dbgpos,0,0,1);
 VARP(showtargetname,0,1,1);
 VARP(showspeed, 0, 0, 1);
-unsigned VARP(monitors, 1, 1, 12);
+VARP(monitors, 1, 1, 12);
 
 static char lastseen [20];
 void lasttarget() { result(lastseen); }
 COMMAND(lasttarget, "");
 
-inline int mm_adjust(int x) {
-    if(monitors & 1) return (2*x + monitors - 1)*VIRTW/(2*monitors);
-    else return (4*x + monitors - 2)*VIRTW/(2*monitors);
+inline int mm_adjust(int x)
+{
+    return (monitors + (x << 1 - 1) << ((monitors & 1) ? 0 : 1)) * VIRTW / (2 * monitors);
 }
 
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
