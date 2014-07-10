@@ -5418,6 +5418,28 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <value token="V" description="time before the chat rolls up" minValue="0" maxValue="30" defaultValue="15"/>
         </variable>
 
+        <variable name="obitfade">
+          <description>Sets how many seconds before a killfeed entry rolls (disappears) up the screen.</description>
+          <value token="V" description="time before the text rolls up" minValue="0" maxValue="60" defaultValue="10"/>
+        </variable>
+
+        <variable name="obitalpha">
+          <description>Sets the killfeed transparency.</description>
+          <value token="V" description="obit alpha value" minValue="0" maxValue="100" defaultValue="75"/>
+        </variable>
+
+        <variable name="obitamt">
+          <description>Sets the killfeed verbosity.</description>
+          <value token="V" description="obit amount" minValue="0" maxValue="4" defaultValue="1"/>
+          <arguments>
+            <argument valueNotes="0: compact all"/>
+            <argument valueNotes="1: expand humans"/>
+            <argument valueNotes="2: +suicides"/>
+            <argument valueNotes="3: +all"/>
+			<argument valueNotes="4: +prefix"/>
+          </arguments>
+        </variable>
+
         <variable name="maxcon">
           <description>Sets the total number of text lines from the console to store as history.</description>
           <value token="V" description="" minValue="10" maxValue="1000" defaultValue="200"/>
@@ -5460,9 +5482,14 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <value token="V" description="enable/disable console text" minValue="0" maxValue="1" defaultValue="0"/>
         </variable>
 
+        <variable name="hideobits">
+          <description>Turns on or off the display of killfeed.</description>
+          <value token="V" description="enable/disable killfeed" minValue="0" maxValue="1" defaultValue="0"/>
+        </variable>
+
         <variable name="hidehudequipment">
-          <description>Turns on or off the display of equipement icons.</description>
-          <value token="V" description="enable/disable equipement icons" minValue="0" maxValue="1" defaultValue="0"/>
+          <description>Turns on or off the display of equipment icons.</description>
+          <value token="V" description="enable/disable equipment icons" minValue="0" maxValue="1" defaultValue="0"/>
         </variable>
 
         <variable name="hidehudmsgs">

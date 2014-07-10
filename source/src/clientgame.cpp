@@ -847,26 +847,9 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
         execute(killevent);
     }
 
-    string pname, aname, death;
-    copystring(pname, pl==player1 ? "you" : colorname(pl));
-    copystring(aname, act==player1 ? "you" : colorname(act));
-    copystring(death, killmessage(gun, gib));
-    void (*outf)(const char *s, ...) = (pl == player1 || act == player1) ? hudoutf : conoutf;
-
-    if(pl==act)
-    {
-        outf("\f2%s suicided%s", pname, pl==player1 ? "!" : "");
-    }
-    else if(isteam(pl->team, act->team))
-    {
-        if(pl==player1) outf("\f2you were %s by teammate %s", death, aname);
-        else outf("%s%s %s teammate %s", act==player1 ? "\f3" : "\f2", aname, death, pname);
-    }
-    else
-    {
-        if(pl==player1) outf("\f2you were %s by %s", death, aname);
-        else outf("\f2%s %s %s", aname, death, pname);
-    }
+    // killfeed
+    // FIXME I'll fix this later along with the kill protocol
+    addobit(act, gun, FRAG_NONE, gib, pl, 1, /*pl->damagelog.length()*/ 0);
 
     if(pl != act && isteam(pl->team, act->team))
     {

@@ -86,6 +86,7 @@ VARP(hidevote, 0, 0, 2);
 VARP(hidehudmsgs, 0, 0, 1);
 VARP(hidehudequipment, 0, 0, 1);
 VARP(hideconsole, 0, 0, 1);
+VARP(hideobits, 0, 0, 1);
 VARP(hidespecthud, 0, 0, 1);
 VAR(showmap, 0, 0, 1);
 
@@ -946,7 +947,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     tsens(-2000);
     extern void r_accuracy(int h);
     if (!is_spect) r_accuracy(commandh);
-    if(!hideconsole) renderconsole();
+    if (!hideconsole) renderconsole();
+    if (!hideobits) renderobits();
     formatstring(enginestateinfo)("%d %d %d %d %d", curfps, lod_factor(), nquads, curvert, xtraverts);
     if(showstats)
     {

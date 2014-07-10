@@ -142,6 +142,160 @@ struct chatlist : consolebuffer<cline>
     chatlist() : consolebuffer<cline>(FADEMAX * 2) { }
 };
 
+VARP(obitfade, 0, 10, 60);
+VARP(obitalpha, 0, 75, 100);
+VARP(obitamt, 0, 1, 4); // 0: very compact, 1: show humans, 2: show humans and suicides, 3: show all, 4: show all plus the prefix
+
+void obit_name(char *out, playerent *pl, bool dark, int type)
+{
+    if (!pl)
+    {
+        *out = '\0';
+        return;
+    }
+    const char colorset[2][3] = { { '0', '1', '3' }, { 'm', 'o', '7' } };
+    int color2 = pl == player1 ? 1 : isteam(pl->team, player1->team) ? 0 : 2;
+    if (type == 0)
+        formatstring(out)("\f%c%c", colorset[dark ? 1 : 0][color2], !color2 ? '+' : color2 == 1 ? '*' : '-');
+    else if (type == 1)
+        formatstring(out)("\f%c%s", colorset[dark ? 1 : 0][color2], !color2 ? "++" : color2 == 1 ? "**" : "--");
+    else if (obitamt >= 4)
+        formatstring(out)("\f%c%c%s", colorset[dark ? 1 : 0][color2], !color2 ? '+' : color2 == 1 ? '*' : '-', colorname(pl));
+    else
+        formatstring(out)("\f%c%s", colorset[dark ? 1 : 0][color2], colorname(pl));
+}
+
+struct oline
+{
+    char *actor, *target, *str;
+    int millis, obit, style, assist, combo, merges;
+    bool headshot;
+    void cleanup() const { delete[] actor; delete[] target; delete[] str; }
+    bool mergable(const oline &o){ return o.obit == obit && !strcmp(o.actor, actor) && !strcmp(o.target, target); }
+    void merge(const oline &o)
+    {
+        // obit matches
+        style |= o.style; // merge styles
+        headshot |= o.headshot;
+        millis = max(millis, o.millis); // merge time by using the later one
+        assist = max(assist, o.assist); // merge assist by using the larger one
+        combo = max(combo, o.combo); // merge combo by using the larger one
+        merges += o.merges; // merge merge count
+        o.cleanup();
+        recompute();
+    }
+    int width;
+    void recompute()
+    {
+        copystring(str, actor);
+        if (assist)
+            concatformatstring(str, " \f2(+%d)", assist);
+        concatformatstring(str, " \f4[\f5%s\f4] ", actor[0] ? killname(obit, style) : suicname(obit));
+        // TODO headshot, etc.
+        // concatstring(str, "\a0  ");
+        concatstring(str, target);
+        if (combo > 1)
+            concatformatstring(str, " \f3[#%d]", combo);
+        if (merges > 1)
+            concatformatstring(str, " \f5(x%d)", merges);
+        width = text_width(str);
+    }
+};
+struct obitlist : consolebuffer<oline>
+{
+    obitlist() : consolebuffer<oline>() {}
+
+    static const int FADEMAX = 12;
+
+    oline &addline(playerent *actor, int obit, int style, bool headshot, playerent *target, int combo, int assist, int millis)
+    {
+        // add a line to the obit buffer
+        oline cl;
+        // constrain the buffer size
+        if (conlines.length() && conlines.length()>maxlines)
+            conlines.pop().cleanup();
+        cl.actor = newstringbuf("");
+        cl.target = newstringbuf("");
+        cl.str = newstringbuf("");
+        cl.millis = millis; // for how long to keep line on screen
+        cl.obit = obit;
+        cl.style = style;
+        cl.assist = assist;
+        cl.combo = combo;
+        cl.merges = 1;
+        cl.headshot = headshot;
+        if (actor && actor != target)
+            obit_name(cl.actor, actor, false, actor ? (obitamt >= 3 || (actor->ownernum < 0 && obitamt >= 1)) ? 2 : (actor->ownernum < 0) ? 1 : 0 : 0);
+        if (target)
+            obit_name(cl.target, target, obit < OBIT_SPECIAL, target ? (obitamt >= 3 || (actor == target && obitamt >= 2) || ((target->ownernum < 0) && obitamt >= 1)) ? 2 : (target->ownernum < 0) ? 1 : 0 : 0);
+        cl.recompute();
+        // try merge
+        loopv(conlines)
+            if (fullconsole || (i < FADEMAX && totalmillis - conlines[i].millis < obitfade * 1000))
+                if (cl.mergable(conlines[i]))
+                {
+                    cl.merge(conlines.remove(i)); // remove, and "merge" into our line
+                    break;
+                }
+        return conlines.insert(0, cl);
+    }
+
+    void mergeobits()
+    {
+        // merge all possible obits
+        loopv(conlines) loopvjrev(conlines)
+        {
+            if (j <= i) break;
+            else if (conlines[i].mergable(conlines[j]))
+                conlines[i].merge(conlines.remove(j));
+        }
+    }
+
+    void render()
+    {
+        const float ts = 1.8f; // factor that will alter the text size
+        glPushMatrix();
+        glLoadIdentity();
+        glOrtho(0, VIRTW*ts, VIRTH*ts, 0, -1, 1);
+        int linei = 0, /*consumed = 0,*/ y = ts * VIRTH * .5f;
+        // every line is 1 line
+        linei = min(fullconsole ? FADEMAX : maxlines, conlines.length());
+        loopi(linei)
+        {
+            oline &l = conlines[i];
+            if (fullconsole || totalmillis <= l.millis + obitfade * 1000 + 1000)
+            {
+                float fade = 1;
+                if (!fullconsole) // fading out
+                {
+                    if (totalmillis >= l.millis + obitfade * 1000)
+                    {
+                        fade = float(l.millis + 1000 + obitfade * 1000 - totalmillis) / 1000;
+                        y -= FONTH * (totalmillis - l.millis - obitfade * 1000) / 1000;
+                    }
+                    else if (i >= FADEMAX) l.millis = totalmillis - obitfade * 1000; // for next frame
+                }
+                if (/*!i*/ totalmillis - l.millis < 500) // fading in
+                {
+                    fade = float(totalmillis - l.millis) / 500;
+                    y += FONTH * (l.millis + 500 - totalmillis) / 500;
+                }
+                fade *= obitalpha / 100.f;
+                int x = (VIRTW - 16) * ts - l.width;
+                y -= FONTH;
+                draw_text(l.str, x, y, 0xFF, 0xFF, 0xFF, fade * 0xFF);
+                // TODO draw icons
+                /*
+                pushfont("obit");
+                // draw stuff set by \a
+                popfont();
+                */
+            }
+        }
+        glPopMatrix();
+    }
+} obits;
+
 console con;
 chatlist chat;
 textinputbuffer cmdline;
@@ -158,10 +312,19 @@ void toggleconsole()
     if (!fullconsole) fullconsole = altconsize ? 1 : 2;
     else fullconsole = (fullconsole + 1) % 3;
     conopen = fullconsole;
+    if (fullconsole)
+        obits.mergeobits();
 }
 COMMANDN(toggleconsole, toggleconsole, "");
 
 void renderconsole() { con.render(); chat.render(); }
+void renderobits() { obits.render(); }
+
+void addobit(playerent *actor, int obit, int style, bool headshot, playerent *target, int combo, int assist)
+{
+    extern int totalmillis;
+    obits.addline(actor, obit, style, headshot, target, combo, assist, totalmillis);
+}
 
 void clientlogf(const char *s, ...)
 {
