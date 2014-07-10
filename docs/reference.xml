@@ -3915,12 +3915,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
 
         <variable name="hitsound">
           <description>Plays a sound upon every successful hit if enabled.</description>
-           <remarks>
-            <remark>
-            If hitsound is set to 2, the sound will be played instantly rather than after server acknowledgment.
-            </remark>
-          </remarks>
-          <value token="B" description="off OR on" minValue="0" maxValue="2" defaultValue="0" valueNotes="0 (disabled), 1 (server), 2 (local)"/>
+          <value token="B" description="off OR on" minValue="0" maxValue="1" defaultValue="0"/>
           <identifierReference identifier="audio"/>
           <identifierReference identifier="soundvol"/>
         </variable>

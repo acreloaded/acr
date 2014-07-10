@@ -760,7 +760,7 @@ bool tryrespawn()
     return false;
 }
 
-VARP(hitsound, 0, 0, 2);
+VARP(hitsound, 0, 0, 1);
 
 void burstshots(int gun, int shots)
 {
