@@ -1419,7 +1419,7 @@ void sendtext(char *text, client *cl, int flags, int voice)
     int &st = cl->team;
     loopv(clients)
     {
-        if(clients[i]->type == ST_EMPTY)
+        if (clients[i]->type == ST_EMPTY || clients[i]->type == ST_AI)
             continue;
         int &rt = clients[i]->team;
         if( !(flags & SAY_TEAM) || (i == cl->clientnum) ||        // common chat or same player
