@@ -762,25 +762,6 @@ bool tryrespawn()
 
 VARP(hitsound, 0, 0, 2);
 
-// client kill messages
-void setkillmessage(int gun, bool gib, const char *message)
-{
-    if(!message || !*message)
-    {
-        result(killmessage(gun, gib));
-        return;
-    }
-    if(gun < 0 || gun >= NUMGUNS)
-    {
-        conoutf("invalid gun specified");
-        return;
-    }
-    copystring(killmessages[gib?1:0][gun], message, sizeof(killmessages[gib?1:0][gun]));
-}
-
-COMMANDF(fragmessage, "is", (int *gun, const char *message) { setkillmessage(*gun, false, message); });
-COMMANDF(gibmessage, "is", (int *gun, const char *message) { setkillmessage(*gun, true, message); });
-
 void burstshots(int gun, int shots)
 {
     // args are passed as strings to differentiate 2 cases : shots_str == "0" or shots_str is empty (not specified from cubescript).

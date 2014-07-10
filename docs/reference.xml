@@ -6309,36 +6309,6 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <value token="B" description="BOOL" minValue="0" maxValue="1" defaultValue="0"/>
         </variable>
 
-        <command name="fragmessage">
-          <description>set the frag message corresponding to a weapon (appearing on the hud or in server logs)</description>
-          <arguments>
-            <argument token="G" description="the integer of the gun" valueNotes=" 0 = knife, etc."/>
-            <argument token="M" description="the message you want to appear" valueNotes="ex : sniped"/>
-          </arguments>
-          <examples>
-            <example>
-              <code>fragmessage 5 sniped // set "sniped" message for frags with sniper. </code>
-              <explanation>
-             It will display "you sniped unarmed" on the hud when you frag unarmed with sniper.
-             In server logs you will get "[127.0.0.1] killer sniped unarmed".</explanation>
-            </example>
-          </examples>
-          <remarks>
-            <remark>
-             This command can be read by both client and server, but the server can't read the cfg if it contains anything else than fragmessage or gibmessage calls.
-            </remark>
-          </remarks>
-        </command>
-
-        <command name="gibmessage">
-          <description>set the gib message corresponding to a weapon (appearing on the hud or in server logs)</description>
-          <remarks>
-            <remark>
-              This command is identical to fragmessage (above)
-            </remark>
-          </remarks>
-        </command>
-
         <variable name="maploaditemlength">
           <description>change at what position to truncate the map title string</description>
           <value token="N" description="chars" minValue="0" maxValue="255" defaultValue="46"/>
