@@ -921,7 +921,7 @@ bool flagdistance(sflaginfo &f, int cn)
     {
         c.farpickups++;
         logline(ACLOG_INFO, "[%s] %s %s the %s flag at distance %.2f (%d)",
-                c.hostname, c.name, (pdist==2?"tried to touch":"touched"), team_string(&f == sflaginfos + 1), dist, c.farpickups);
+            c.gethostname(), c.name, (pdist == 2 ? "tried to touch" : "touched"), team_string(&f == sflaginfos + 1), dist, c.farpickups);
         if (pdist==2) return false;
     }
     return lagging ? false : true; // today I found a lag hacker :: Brahma, 19-oct-2010... lets test it a bit
@@ -1060,26 +1060,26 @@ void flagaction(int flag, int action, int actor)
         switch(message)
         {
             case FM_PICKUP:
-                logline(ACLOG_INFO,"[%s] %s %s the flag", c.hostname, c.name, action == FA_STEAL ? "stole" : "picked up");
+                logline(ACLOG_INFO, "[%s] %s %s the flag", c.gethostname(), c.name, action == FA_STEAL ? "stole" : "picked up");
                 break;
             case FM_DROP:
             case FM_LOST:
-                logline(ACLOG_INFO,"[%s] %s %s the flag", c.hostname, c.name, message == FM_LOST ? "lost" : "dropped");
+                logline(ACLOG_INFO, "[%s] %s %s the flag", c.gethostname(), c.name, message == FM_LOST ? "lost" : "dropped");
                 break;
             case FM_RETURN:
-                logline(ACLOG_INFO,"[%s] %s returned the flag", c.hostname, c.name);
+                logline(ACLOG_INFO, "[%s] %s returned the flag", c.gethostname(), c.name);
                 break;
             case FM_SCORE:
                 if(m_hunt(gamemode))
-                    logline(ACLOG_INFO, "[%s] %s hunted the flag for %s, new score %d", c.hostname, c.name, team_string(c.team), c.state.flagscore);
+                    logline(ACLOG_INFO, "[%s] %s hunted the flag for %s, new score %d", c.gethostname(), c.name, team_string(c.team), c.state.flagscore);
                 else
-                   logline(ACLOG_INFO, "[%s] %s scored with the flag for %s, new score %d", c.hostname, c.name, team_string(c.team), c.state.flagscore);
+                    logline(ACLOG_INFO, "[%s] %s scored with the flag for %s, new score %d", c.gethostname(), c.name, team_string(c.team), c.state.flagscore);
                 break;
             case FM_KTFSCORE:
-                logline(ACLOG_INFO, "[%s] %s scored, carrying for %d seconds, new score %d", c.hostname, c.name, (gamemillis - f.stolentime) / 1000, c.state.flagscore);
+                logline(ACLOG_INFO, "[%s] %s scored, carrying for %d seconds, new score %d", c.gethostname(), c.name, (gamemillis - f.stolentime) / 1000, c.state.flagscore);
                 break;
             case FM_SCOREFAIL:
-                logline(ACLOG_INFO, "[%s] %s failed to score", c.hostname, c.name);
+                logline(ACLOG_INFO, "[%s] %s failed to score", c.gethostname(), c.name);
                 break;
             default:
                 logline(ACLOG_INFO, "flagaction %d, actor %d, flag %d, message %d", action, actor, flag, message);
@@ -1169,7 +1169,7 @@ void htf_forceflag(int flag)
         f.actor_cn = cl->clientnum;
         sendflaginfo(flag);
         flagmessage(flag, FM_PICKUP, cl->clientnum);
-        logline(ACLOG_INFO,"[%s] %s got forced to pickup the flag", cl->hostname, cl->name);
+        logline(ACLOG_INFO, "[%s] %s got forced to pickup the flag", cl->gethostname(), cl->name);
     }
     f.lastupdate = gamemillis;
 }
@@ -1377,8 +1377,8 @@ void sendtext(char *text, client *cl, int flags, int voice)
     }
     else voice = 0;
     string logmsg;
-    if(flags & SAY_ACTION) formatstring(logmsg)("[%s] * %s '%s' ", cl->hostname, cl->name, text);
-    else formatstring(logmsg)("[%s] <%s> '%s' ", cl->hostname, cl->name, text);
+    if (flags & SAY_ACTION) formatstring(logmsg)("[%s] * %s '%s' ", cl->gethostname(), cl->name, text);
+    else formatstring(logmsg)("[%s] <%s> '%s' ", cl->gethostname(), cl->name, text);
     // Check team flag
     if(cl->team == TEAM_VOID || (!m_team(gamemode, mutators) && cl->team != TEAM_SPECT))
         flags &= ~SAY_TEAM; // forced common chat
@@ -1498,13 +1498,13 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
     { // suicide
         actor->state.frags--;
         suic = true;
-        logline(ACLOG_INFO, "[%s] %s suicided", actor->hostname, actor->name);
+        logline(ACLOG_INFO, "[%s] %s suicided", actor->gethostname(), actor->name);
     }
     sendf(-1, 1, "ri6", SV_KILL, target->clientnum, actor->clientnum, actor->state.frags, gun, style);
     target->position.setsize(0);
     ts.state = CS_DEAD;
     ts.lastdeath = gamemillis;
-    if (!suic) logline(ACLOG_INFO, "[%s] %s [%s]%s %s", actor->hostname, actor->name, killname(gun, style), tk ? " teammate" : "", target->name);
+    if (!suic) logline(ACLOG_INFO, "[%s] %s [%s]%s %s", actor->gethostname(), actor->name, killname(gun, style), tk ? " teammate" : "", target->name);
     if (m_flags(gamemode) && targethasflag >= 0)
     {
         if (m_capture(gamemode))
@@ -2195,7 +2195,7 @@ bool svote(int sender, int vote, ENetPacket *msg) // true if the vote was placed
         sendpacket(-1, 1, msg, sender);
 
         clients[sender]->vote = vote;
-        logline(ACLOG_DEBUG,"[%s] client %s voted %s", clients[sender]->hostname, clients[sender]->name, vote == VOTE_NO ? "no" : "yes");
+        logline(ACLOG_DEBUG, "[%s] client %s voted %s", clients[sender]->gethostname(), clients[sender]->name, vote == VOTE_NO ? "no" : "yes");
         curvote->evaluate();
         return true;
     }
@@ -2209,14 +2209,14 @@ void scallvotesuc(voteinfo *v)
     clients[v->owner]->lastvotecall = servmillis;
     clients[v->owner]->nvotes--; // successful votes do not count as abuse
     sendf(v->owner, 1, "ri", SV_CALLVOTESUC);
-    logline(ACLOG_INFO, "[%s] client %s called a vote: %s", clients[v->owner]->hostname, clients[v->owner]->name, v->action && v->action->desc ? v->action->desc : "[unknown]");
+    logline(ACLOG_INFO, "[%s] client %s called a vote: %s", clients[v->owner]->gethostname(), clients[v->owner]->name, v->action && v->action->desc ? v->action->desc : "[unknown]");
 }
 
 void scallvoteerr(voteinfo *v, int error)
 {
     if(!valid_client(v->owner)) return;
     sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, error);
-    logline(ACLOG_INFO, "[%s] client %s failed to call a vote: %s (%s)", clients[v->owner]->hostname, clients[v->owner]->name, v->action && v->action->desc ? v->action->desc : "[unknown]", voteerrorstr(error));
+    logline(ACLOG_INFO, "[%s] client %s failed to call a vote: %s (%s)", clients[v->owner]->gethostname(), clients[v->owner]->name, v->action && v->action->desc ? v->action->desc : "[unknown]", voteerrorstr(error));
 }
 
 bool map_queued = false;
@@ -2330,8 +2330,8 @@ void changeclientrole(int client, int role, char *pwd, bool force)
         clients[client]->role = role;
         sendserveropinfo(-1);
         if(pd.line > -1)
-            logline(ACLOG_INFO,"[%s] player %s used admin password in line %d", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", pd.line);
-        logline(ACLOG_INFO,"[%s] set role of player %s to %s", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", role == CR_ADMIN ? "admin" : "normal player"); // flowtron : connecting players haven't got a name yet (connectadmin)
+            logline(ACLOG_INFO, "[%s] player %s used admin password in line %d", clients[client]->gethostname(), clients[client]->name[0] ? clients[client]->name : "[unnamed]", pd.line);
+        logline(ACLOG_INFO, "[%s] set role of player %s to %s", clients[client]->gethostname(), clients[client]->name[0] ? clients[client]->name : "[unnamed]", role == CR_ADMIN ? "admin" : "normal player"); // flowtron : connecting players haven't got a name yet (connectadmin)
         if(role > CR_DEFAULT) sendiplist(client);
     }
     else if(pwd && pwd[0]) disconnect_client(client, DISC_SOPLOGINFAIL); // avoid brute-force
@@ -2418,8 +2418,8 @@ void disconnect_client(int n, int reason)
         }
     }
     int sp = (servmillis - c.connectmillis) / 1000;
-    if(reason>=0) logline(ACLOG_INFO, "[%s] disconnecting client %s (%s) cn %d, %d seconds played%s", c.hostname, c.name, disc_reason(reason), n, sp, scoresaved);
-    else logline(ACLOG_INFO, "[%s] disconnected client %s cn %d, %d seconds played%s", c.hostname, c.name, n, sp, scoresaved);
+    if (reason >= 0) logline(ACLOG_INFO, "[%s] disconnecting client %s (%s) cn %d, %d seconds played%s", c.gethostname(), c.name, disc_reason(reason), n, sp, scoresaved);
+    else logline(ACLOG_INFO, "[%s] disconnected client %s cn %d, %d seconds played%s", c.gethostname(), c.name, n, sp, scoresaved);
     totalclients--;
     c.peer->data = (void *)-1;
     if(reason>=0) enet_peer_disconnect(c.peer, reason);
@@ -2752,16 +2752,16 @@ void process(ENetPacket *packet, int sender, int chan)
             if(matchreconnect && !banned)
             { // former player reconnecting to a server in match mode
                 cl->isauthed = true;
-                logline(ACLOG_INFO, "[%s] %s logged in (reconnect to match)%s", cl->hostname, cl->name, tags);
+                logline(ACLOG_INFO, "[%s] %s logged in (reconnect to match)%s", cl->gethostname(), cl->name, tags);
             }
             else if(wl == NWL_IPFAIL || wl == NWL_PWDFAIL)
             { // nickname matches whitelist, but IP is not in the required range or PWD doesn't match
-                logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong %s%s", cl->hostname, cl->name, wl == NWL_IPFAIL ? "IP" : "PWD", tags);
+                logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong %s%s", cl->gethostname(), cl->name, wl == NWL_IPFAIL ? "IP" : "PWD", tags);
                 disconnect_client(sender, DISC_BADNICK);
             }
             else if(bl > 0)
             { // nickname matches blacklist
-                logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d%s", cl->hostname, cl->name, bl, tags);
+                logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d%s", cl->gethostname(), cl->name, bl, tags);
                 disconnect_client(sender, DISC_BADNICK);
             }
             else if(passwords.check(cl->name, cl->pwd, cl->salt, &pd, (cl->type==ST_TCPIP ? cl->peer->address.host : 0)) && (!pd.denyadmin || (banned && !srvfull && !srvprivate)) && bantype != BAN_MASTER) // pass admins always through
@@ -2780,14 +2780,14 @@ void process(ENetPacket *packet, int sender, int chan)
                         break;
                     }
                 }
-                logline(ACLOG_INFO, "[%s] %s logged in using the admin password in line %d%s", cl->hostname, cl->name, pd.line, tags);
+                logline(ACLOG_INFO, "[%s] %s logged in using the admin password in line %d%s", cl->gethostname(), cl->name, pd.line, tags);
             }
             else if(scl.serverpassword[0] && !(srvprivate || srvfull || banned))
             { // server password required
                 if(!strcmp(genpwdhash(cl->name, scl.serverpassword, cl->salt), cl->pwd))
                 {
                     cl->isauthed = true;
-                    logline(ACLOG_INFO, "[%s] %s client logged in (using serverpassword)%s", cl->hostname, cl->name, tags);
+                    logline(ACLOG_INFO, "[%s] %s client logged in (using serverpassword)%s", cl->gethostname(), cl->name, tags);
                 }
                 else disconnect_client(sender, DISC_WRONGPW);
             }
@@ -2797,7 +2797,7 @@ void process(ENetPacket *packet, int sender, int chan)
             else
             {
                 cl->isauthed = true;
-                logline(ACLOG_INFO, "[%s] %s logged in (default)%s", cl->hostname, cl->name, tags);
+                logline(ACLOG_INFO, "[%s] %s logged in (default)%s", cl->gethostname(), cl->name, tags);
             }
         }
         if(!cl->isauthed) return;
@@ -2901,17 +2901,17 @@ void process(ENetPacket *packet, int sender, int chan)
                     if(forbidden)
                     {
                         sendservmsg("\f3Please do not spam; your message was not delivered.", sender);
-                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s', SPAM detected", cl->hostname, cl->name, target->name, text);
+                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s', SPAM detected", cl->gethostname(), cl->name, target->name, text);
                     }
                     else if(spamdetect(cl, text))
                     {
                         sendservmsg("\f3Watch your language! Your message was not delivered.", sender);
-                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s', forbidden (%s)", cl->hostname, cl->name, target->name, text, forbidden);
+                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s', forbidden (%s)", cl->gethostname(), cl->name, target->name, text, forbidden);
                     }
                     else
                     {
                         bool allowed = !(mastermode == MM_MATCH && cl->team != target->team) && cl->role >= roleconf('t');
-                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s'%s", cl->hostname, cl->name, target->name, text, allowed ? "":", disallowed");
+                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s'%s", cl->gethostname(), cl->name, target->name, text, allowed ? "" : ", disallowed");
                         if(allowed) sendf(target->clientnum, 1, "riis", SV_TEXTPRIVATE, cl->clientnum, text);
                     }
                 }
@@ -2928,7 +2928,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     int sp = canspawn(cl);
                     sendf(sender, 1, "rii", SV_SPAWNDENY, sp);
                     cl->spawnperm = sp;
-                    if(cl->loggedwrongmap) logline(ACLOG_INFO, "[%s] %s is now on the right map: revision %d/%d", cl->hostname, cl->name, rev, gzs);
+                    if (cl->loggedwrongmap) logline(ACLOG_INFO, "[%s] %s is now on the right map: revision %d/%d", cl->gethostname(), cl->name, rev, gzs);
                     bool spawn = false;
                     if(team_isspect(cl->team))
                     {
@@ -2948,7 +2948,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 else
                 {
                     forcedeath(cl);
-                    logline(ACLOG_INFO, "[%s] %s is on the wrong map: revision %d/%d", cl->hostname, cl->name, rev, gzs);
+                    logline(ACLOG_INFO, "[%s] %s is on the wrong map: revision %d/%d", cl->gethostname(), cl->name, rev, gzs);
                     cl->loggedwrongmap = true;
                     sendf(sender, 1, "rii", SV_SPAWNDENY, SP_WRONGMAP);
                 }
@@ -3025,7 +3025,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 if(!text[0]) copystring(text, "unarmed");
                 QUEUE_STR(text);
                 bool namechanged = strcmp(cl->name, text) != 0;
-                if(namechanged) logline(ACLOG_INFO,"[%s] %s changed name to %s", cl->hostname, cl->name, text);
+                if (namechanged) logline(ACLOG_INFO, "[%s] %s changed name to %s", cl->gethostname(), cl->name, text);
                 copystring(cl->name, text, MAXNAMELEN+1);
                 if(namechanged)
                 {
@@ -3043,7 +3043,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     {
                         case NWL_PWDFAIL:
                         case NWL_IPFAIL:
-                            logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong IP/PWD", cl->hostname, cl->name);
+                            logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong IP/PWD", cl->gethostname(), cl->name);
                             disconnect_client(sender, DISC_BADNICK);
                             break;
 
@@ -3052,7 +3052,7 @@ void process(ENetPacket *packet, int sender, int chan)
                             int l = nickblacklist.checkblacklist(cl->name);
                             if(l >= 0)
                             {
-                                logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d", cl->hostname, cl->name, l);
+                                logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d", cl->gethostname(), cl->name, l);
                                 disconnect_client(sender, DISC_BADNICK);
                             }
                             break;
@@ -3394,7 +3394,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     {
                         incoming_size += mapsize + cfgsizegz;
                         logline(ACLOG_INFO,"[%s] %s sent map %s, rev %d, %d + %d(%d) bytes written",
-                                    clients[sender]->hostname, clients[sender]->name, sentmap, revision, mapsize, cfgsize, cfgsizegz);
+                            clients[sender]->gethostname(), clients[sender]->name, sentmap, revision, mapsize, cfgsize, cfgsizegz);
                         defformatstring(msg)("%s (%d) up%sed map %s, rev %d%s", clients[sender]->name, sender, mp == MAP_NOTFOUND ? "load": "dat", sentmap, revision,
                             /*strcmp(sentmap, behindpath(smapname)) || smode == GMODE_COOPEDIT ? "" :*/ "\f3 (restart game to use new map version)");
                         sendservmsg(msg);
@@ -3408,7 +3408,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 if (reject)
                 {
                     logline(ACLOG_INFO,"[%s] %s sent map %s rev %d, rejected: %s",
-                                clients[sender]->hostname, clients[sender]->name, sentmap, revision, reject);
+                        clients[sender]->gethostname(), clients[sender]->name, sentmap, revision, reject);
                 }
                 p.len += mapsize + cfgsizegz;
                 break;
@@ -3448,11 +3448,11 @@ void process(ENetPacket *packet, int sender, int chan)
                     remove(filename);
                     defformatstring(msg)("map '%s' deleted", rmmap);
                     sendservmsg(msg, sender);
-                    logline(ACLOG_INFO,"[%s] deleted map %s", clients[sender]->hostname, rmmap);
+                    logline(ACLOG_INFO, "[%s] deleted map %s", clients[sender]->gethostname(), rmmap);
                 }
                 if (reject)
                 {
-                    logline(ACLOG_INFO,"[%s] deleting map %s failed: %s", clients[sender]->hostname, rmmap, reject);
+                    logline(ACLOG_INFO, "[%s] deleting map %s failed: %s", clients[sender]->gethostname(), rmmap, reject);
                     defformatstring(msg)("\f3can't delete map '%s', %s", rmmap, reject);
                     sendservmsg(msg, sender);
                 }
@@ -3671,7 +3671,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     getstring(text, p, n);
                     if(valid_client(sender) && clients[sender]->role==CR_ADMIN)
                     {
-                        logline(ACLOG_INFO, "[%s] %s writes to log: %s", cl->hostname, cl->name, text);
+                        logline(ACLOG_INFO, "[%s] %s writes to log: %s", cl->gethostname(), cl->name, text);
                         sendservmsg("your message has been logged", sender);
                     }
                 }
@@ -3917,7 +3917,7 @@ void loggamestatus(const char *reason)
         concatformatstring(text, "%6d ", c.state.points);                            // score
         concatformatstring(text, "%4d %5d", c.state.frags, c.state.deaths);          // frag death
         if(m_team(gamemode, mutators)) concatformatstring(text, " %2d", c.state.teamkills);          // tk
-        logline(ACLOG_INFO, "%s%5d %s  %s", text, c.ping, c.role == CR_ADMIN ? "admin " : "normal", c.hostname);
+        logline(ACLOG_INFO, "%s%5d %s  %s", text, c.ping, c.role == CR_ADMIN ? "admin " : "normal", c.gethostname());
         if(c.team != TEAM_SPECT)
         {
             int t = team_base(c.team);
@@ -4144,7 +4144,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                 c.salt = rnd(0x1000000)*((servmillis%1000)+1);
                 char hn[1024];
                 copystring(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
-                logline(ACLOG_INFO,"[%s] client connected", c.hostname);
+                logline(ACLOG_INFO, "[%s] client connected", c.gethostname());
                 sendservinfo(c);
                 totalclients++;
                 break;
