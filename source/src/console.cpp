@@ -165,6 +165,18 @@ void obit_name(char *out, playerent *pl, bool dark, int type)
         formatstring(out)("\f%c%s", colorset[dark ? 1 : 0][color2], colorname(pl));
 }
 
+enum
+{
+    OBIT_ICON_HEADSHOT = 0,
+    OBIT_ICON_CRIT,
+    OBIT_ICON_REVENGE,
+    OBIT_ICON_FIRST,
+    OBIT_ICON_SCOPE_NONE,
+    OBIT_ICON_SCOPE_QUICK,
+    OBIT_ICON_SCOPE_RECENT,
+    OBIT_ICON_SCOPE_HARD,
+    OBIT_ICON_NUM,
+};
 struct oline
 {
     char *actor, *target, *str;
@@ -184,15 +196,20 @@ struct oline
         o.cleanup();
         recompute();
     }
-    int width;
+    int width, icons[OBIT_ICON_NUM];
     void recompute()
     {
+        memset(icons, 0, sizeof(icons));
         copystring(str, actor);
         if (assist)
             concatformatstring(str, " \f2(+%d)", assist);
         concatformatstring(str, " \f4[\f5%s\f4] ", actor[0] ? killname(obit, style) : suicname(obit));
-        // TODO headshot, etc.
-        // concatstring(str, "\a0  ");
+        if (headshot)
+        {
+            icons[OBIT_ICON_HEADSHOT] = text_width(str);
+            concatstring(str, "   "); // the icon's width is 2 spaces
+        }
+        // TODO other icons
         concatstring(str, target);
         if (combo > 1)
             concatformatstring(str, " \f3[#%d]", combo);
@@ -284,12 +301,21 @@ struct obitlist : consolebuffer<oline>
                 int x = (VIRTW - 16) * ts - l.width;
                 y -= FONTH;
                 draw_text(l.str, x, y, 0xFF, 0xFF, 0xFF, fade * 0xFF);
-                // TODO draw icons
-                /*
-                pushfont("obit");
-                // draw stuff set by \a
-                popfont();
-                */
+                bool obit_loaded = false;
+                loopi(OBIT_ICON_NUM)
+                {
+                    if (!l.icons[i]) continue;
+                    static char iconvalue[2] = { '.', '\0' };
+                    iconvalue[0] = i + '0';
+                    if (!obit_loaded)
+                    {
+                        pushfont("obit");
+                        obit_loaded = true;
+                    }
+                    draw_text(iconvalue, x + l.icons[i], y, 0xFF, 0xFF, 0xFF, fade * 0xFF);
+                }
+                if (obit_loaded)
+                    popfont();
             }
         }
         glPopMatrix();
