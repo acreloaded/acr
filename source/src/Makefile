@@ -1,11 +1,20 @@
 DEBUG ?= 0
 WARNINGS ?= 1
-override CXXFLAGS += -fsigned-char -fpermissive
+override CXXFLAGS += -fsigned-char
 ifeq ($(DEBUG), 1)
     override CXXFLAGS += -ggdb3 -D_DEBUG -Wextra
     override WARNINGS = 1
 else
-    override CXXFLAGS += -Ofast -fomit-frame-pointer 
+    ifeq (,$(findstring g++,$(CXX)))
+        override CXXFLAGS += -Ofast
+	else
+        override CXXFLAGS += -O3
+    endif
+    override CXXFLAGS += -fomit-frame-pointer 
+endif
+
+ifeq (,$(findstring g++,$(CXX)))
+    override CXXFLAGS += -fpermissive 
 endif
 
 ifeq ($(WARNINGS), 1)
@@ -34,7 +43,7 @@ CLIENT_INCLUDES= $(INCLUDES) -I../include
 CLIENT_LIBS= -mwindows -L../lib -lmingw32 -lSDLmain -lSDL -lSDL_image -lzdll -lopengl32 -lenet -lOpenAL32 -llibvorbisfile -llibintl -lcurldll -lws2_32 -lwinmm 
 else
 USRLIB=$(shell if [ -e /usr/lib64 ]; then echo "/usr/lib64"; else echo "/usr/lib"; fi)
-override CXXFLAGS+= -rdynamic		# clang++ doesn't use this...
+#override CXXFLAGS+= -rdynamic		# clang++ doesn't use this...
 CLIENT_INCLUDES= $(INCLUDES) -I/usr/include `sdl-config --cflags` -idirafter ../include
 CLIENT_LIBS= -L../enet/.libs -lenet -L$(USRLIB) -lX11 `sdl-config --libs` -lSDL_image -lz -lGL -lopenal -lvorbisfile -lcurl
 endif
