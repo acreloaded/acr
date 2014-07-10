@@ -245,14 +245,14 @@ void nuke(client &owner, bool suicide = true, bool forced_all = true, bool frien
     hits.sort(nukehit::compare);
     loopv(hits)
     {
-        serverdied(hits[i].target, &owner, 0, NUMGUNS + 1, !rnd(3) ? FRAG_GIB : FRAG_NONE, owner.state.o, hits[i].distance);
+        serverdied(hits[i].target, &owner, 0, OBIT_NUKE, !rnd(3) ? FRAG_GIB : FRAG_NONE, owner.state.o, hits[i].distance);
         // fx
         sendhit(owner, GUN_GRENADE, hits[i].target->state.o, 0);
     }
     // save the best for last!
     if (suicide)
     {
-        owner.suicide(NUMGUNS + 1, FRAG_NONE);
+        owner.suicide(OBIT_NUKE, FRAG_NONE);
         // fx
         sendhit(owner, GUN_GRENADE, owner.state.o, 0);
     }

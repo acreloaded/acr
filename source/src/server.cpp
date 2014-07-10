@@ -3144,7 +3144,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     }
                     else
 #endif
-                    cp->suicide( NUMGUNS + (cn == sender ? 10 : 11), cn == sender ? FRAG_GIB : FRAG_NONE);
+                    cp->suicide( cn == sender ? OBIT_DEATH : OBIT_BOT, cn == sender ? FRAG_GIB : FRAG_NONE);
                 }
                 break;
             }

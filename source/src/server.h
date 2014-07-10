@@ -620,10 +620,30 @@ const char *suicname(int obit)
     switch (obit)
     {
         case OBIT_DEATH:
-            return "K";
+            return _("K");
         case OBIT_BOT:
-            return "Bot";
-        // TODO: remaining obits
+            return _("Bot");
+        case OBIT_SPAWN:
+            return _("Spawn");
+        case OBIT_FF:
+            return _("FF");
+        case OBIT_DROWN:
+            return _("Drown");
+        case OBIT_CHEAT:
+            return _("hax");
+        case OBIT_FALL_WATER:
+            return _("Splash");
+        case OBIT_FALL:
+            return _("Fall");
+        case OBIT_NUKE:
+            return _("Nuke");
+
+        case OBIT_REVIVE:
+            return _("Revive");
+        case OBIT_TEAM:
+            return _("Team");
+        case OBIT_JUG:
+            return _("Juggernaut");
     }
     return "x";
 }
@@ -647,6 +667,14 @@ const char *killname(int obit, int style)
         case GUN_GRENADE:
             if (!(style & FRAG_GIB))
                 return _("Airstrike");
+        case OBIT_FALL:
+            return _("Jump");
+        case OBIT_NUKE:
+            return _("Nuke");
+        case OBIT_ASSIST:
+            return _("Assist");
+        case OBIT_SPECT:
+            return _("Spect");
     }
     if (obit >= 0 && obit < NUMGUNS)
         return weapname(obit);
