@@ -5,7 +5,7 @@ ifeq ($(DEBUG), 1)
     override CXXFLAGS += -ggdb3 -D_DEBUG -Wextra
     override WARNINGS = 1
 else
-    ifeq (,$(findstring g++,$(CXX)))
+    ifeq ($(CXX),g++)
         override CXXFLAGS += -Ofast
 	else
         override CXXFLAGS += -O3
@@ -13,7 +13,7 @@ else
     override CXXFLAGS += -fomit-frame-pointer 
 endif
 
-ifeq (,$(findstring g++,$(CXX)))
+ifeq ($(CXX),g++)
     override CXXFLAGS += -fpermissive 
 endif
 
