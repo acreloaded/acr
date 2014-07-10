@@ -199,16 +199,32 @@ struct oline
     int width, icons[OBIT_ICON_NUM];
     void recompute()
     {
+#define SETICON(icon, cond, s) cond { icons[icon] = text_width(str); concatstring(str, s); }
+#define SETICON1(icon, cond) SETICON(icon, cond, "   ") // the width of a 1:1 icon is 2 spaces + 1 space
         memset(icons, 0, sizeof(icons));
         copystring(str, actor);
         if (assist)
             concatformatstring(str, " \f2(+%d)", assist);
-        concatformatstring(str, " \f4[\f5%s\f4] ", actor[0] ? killname(obit, style) : suicname(obit));
-        if (headshot)
+        switch (style & FRAG_SCOPE)
         {
-            icons[OBIT_ICON_HEADSHOT] = text_width(str);
-            concatstring(str, "   "); // the icon's width is 2 spaces
+            case FRAG_SCOPE_NONE:
+                SETICON1(OBIT_ICON_SCOPE_NONE, if (sniper_weap(obit)));
+                break;
+            case 0:
+                SETICON1(OBIT_ICON_SCOPE_QUICK, );
+                break;
+            case FRAG_SCOPE_NONE | FRAG_SCOPE_FULL:
+                SETICON1(OBIT_ICON_SCOPE_RECENT, );
+                break;
+            case FRAG_SCOPE_FULL:
+                SETICON1(OBIT_ICON_SCOPE_HARD, );
+                break;
         }
+        SETICON1(OBIT_ICON_FIRST, if (style & FRAG_FIRST));
+        concatformatstring(str, " \f4[\f5%s\f4] ", actor[0] ? killname(obit, style) : suicname(obit));
+        SETICON1(OBIT_ICON_HEADSHOT, if (headshot));
+        SETICON1(OBIT_ICON_REVENGE, if (style & FRAG_REVENGE));
+        SETICON1(OBIT_ICON_CRIT, if (style & FRAG_CRIT));
         // TODO other icons
         concatstring(str, target);
         if (combo > 1)
