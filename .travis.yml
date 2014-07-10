@@ -2,9 +2,6 @@ language: cpp
 compiler:
   - clang
   - gcc
-matrix:
-  allow_failures:
-    - compiler: clang
 
 branches:
   only:
