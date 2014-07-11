@@ -6,7 +6,7 @@
 int nextmode = G_DM, nextmuts = G_M_TEAM;   // nextmode becomes gamemode after next map load
 VAR(gamemode, 1, 0, 0);
 VAR(mutators, 1, 0, 0);
-VAR(nextGameMode, 1, 0, 0);
+//VAR(nextGameMode, 1, 0, 0);
 VARP(modeacronyms, 0, 1, 1);
 
 flaginfo flaginfos[2];
@@ -15,7 +15,7 @@ void mode(int *n)
 {
     nextmode = *n;
     modecheck(nextmode, nextmuts);
-    nextGameMode = nextmode;
+    //nextGameMode = nextmode;
 }
 COMMAND(mode, "i");
 
