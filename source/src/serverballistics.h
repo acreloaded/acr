@@ -86,11 +86,6 @@ bool checkcrit(float dist, float m, int base = 0, int low = 4, int high = 100)
 // easy to send shot damage messages
 inline void sendhit(client &actor, int gun, const vec &o, int dmg)
 {
-    sendf(-1, 1, "ri7", SV_EXPLODE, actor.clientnum, gun, dmg, (int)(o.x*DMF), (int)(o.y*DMF), (int)(o.z*DMF));
-}
-
-inline void sendheadshot(const vec &from, const vec &to, int damage)
-{
     // no blood or explosions if using moon jump
 #if (SERVER_BUILTIN_MOD & 34) == 34 // 2 | 32
 #if (SERVER_BUILTIN_MOD & 4) != 4
@@ -98,8 +93,12 @@ inline void sendheadshot(const vec &from, const vec &to, int damage)
 #endif
         return;
 #endif
-    return; // TODO
-    sendf(-1, 1, "rif6i", SV_HEADSHOT, from.x, from.y, from.z, to.x, to.y, to.z, damage);
+    sendf(-1, 1, "ri7", SV_EXPLODE, actor.clientnum, gun, dmg, (int)(o.x*DMF), (int)(o.y*DMF), (int)(o.z*DMF));
+}
+
+inline void sendheadshot(const vec &from, const vec &to, int damage)
+{
+    sendf(-1, 1, "ri8", SV_HEADSHOT, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), damage);
 }
 
 void parsepos(client &c, const vector<posinfo> &pos, vec &out_o, vec &out_head)

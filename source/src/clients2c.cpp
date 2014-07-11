@@ -738,6 +738,16 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
             }
 
+            case SV_HEADSHOT:
+            {
+                // make bloody stain
+                vec from, to;
+                loopi(3) from[i] = getint(p) / DMF;
+                loopi(3) to[i] = getint(p) / DMF;
+                addheadshot(from, to, getint(p));
+                break;
+            }
+
             case SV_EXPLODE:
             {
                 int cn = getint(p), weap = getint(p), dmg = getint(p);
