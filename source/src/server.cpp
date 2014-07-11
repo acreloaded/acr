@@ -3710,26 +3710,59 @@ void process(ENetPacket *packet, int sender, int chan)
                 int v = getint(p);
                 switch (type)
                 {
+                    #define seditloop(body) \
+                    { \
+                        const int ssize = 1 << maplayout_factor; /* borrow the OUTBORD macro */ \
+                        loop(xx, xs) loop(yy, ys) if (!OUTBORD(x + xx, y + yy)) \
+                        { \
+                            const int id = getmaplayoutid(x + xx, y + yy); \
+                            body \
+                        } \
+                    }
                     case SV_EDITH:
                     {
                         int offset = getint(p);
-                        // TODO
+                        seditloop({
+                            if (!v) // ceil
+                            {
+                                getsblock(id).ceil += offset;
+                                if (getsblock(id).ceil <= getsblock(id).floor)
+                                    getsblock(id).ceil = getsblock(id).floor + 1;
+                            }
+                            else // floor
+                            {
+                                getsblock(id).floor += offset;
+                                if (getsblock(id).floor >= getsblock(id).ceil)
+                                    getsblock(id).floor = getsblock(id).ceil - 1;
+                            }
+                        });
                         break;
                     }
                     case SV_EDITS:
                     {
-                        // TODO
+                        seditloop({ getsblock(id).type = v; });
                         break;
                     }
                     case SV_EDITD:
                     {
-                        // TODO
+                        seditloop({
+                            getsblock(id).vdelta += v;
+                            if (getsblock(id).vdelta < 0)
+                                getsblock(id).vdelta = 0;
+                        });
                         break;
                     }
                     case SV_EDITE:
                     {
-                        // TODO
-                        const int low = 127, hi = -128;
+                        int low = 127, hi = -128;
+                        seditloop({
+                            if (getsblock(id).floor<low) low = getsblock(id).floor;
+                            if (getsblock(id).ceil>hi) hi = getsblock(id).ceil;
+                        });
+                        seditloop({
+                            if (!v) getsblock(id).ceil = hi; else getsblock(id).floor = low;
+                            if (getsblock(id).floor >= getsblock(id).ceil) getsblock(id).floor = getsblock(id).ceil - 1;
+                        });
                         break;
                     }
                     // ignore texture
