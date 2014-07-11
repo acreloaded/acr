@@ -444,11 +444,10 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
     return 0;
 }
 
-int shotgun(client &owner, vector<posinfo> &pos)
+int shotgun(client &owner, const vec &from, vector<posinfo> &pos)
 {
     int damagedealt = 0;
     clientstate &gs = owner.state;
-    const vec &from = gs.o;
     // many rays many hits, but we want each client to get all the damage at once...
     static vector<shothit> hits;
     hits.setsize(0);

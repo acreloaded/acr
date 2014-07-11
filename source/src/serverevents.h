@@ -118,7 +118,7 @@ void shotevent::process(client *ci)
         default:
         {
             if (weap == GUN_SHOTGUN) // many rays, many players
-                damagedealt += shotgun(c, pos); // WARNING: modifies cs.sg
+                damagedealt += shotgun(c, from, pos); // WARNING: modifies cs.sg
             else
             {
                 static vector<int> exclude;
