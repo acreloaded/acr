@@ -836,7 +836,7 @@ COMMAND(lasttarget, "");
 
 inline int mm_adjust(int x)
 {
-    return (monitors + (x << 1 - 1) << ((monitors & 1) ? 0 : 1)) * VIRTW / (2 * monitors);
+    return (monitors + (((x << 1) - 1) << ((monitors & 1) ? 0 : 1))) * VIRTW / (2 * monitors);
 }
 
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
