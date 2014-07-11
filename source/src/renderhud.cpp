@@ -635,7 +635,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
     float offy = gdim==mapdims[4]?offd:0;
     vec rtr = vec(mapdims[0]-offx, mapdims[1]-offy, 0);
     vec rsd = vec(mapdims[0]+mapdims[4]/2, mapdims[1]+mapdims[5]/2, 0);
-    float d2s = radarheight/2.0f;
+    float d2s = radarheight/2.0f*.8f;
     glColor3f(1.0f, 1.0f, 1.0f);
     glPushMatrix();
     vec centerpos(VIRTW-halfviewsize-72, halfviewsize+64, 0);
@@ -663,12 +663,10 @@ void drawradar_vicinity(playerent *p, int w, int h)
         playerent *pl = players[i];
         if(!pl || pl==p || !isteam(p->team, pl->team) || !team_isactive(pl->team)) continue;
         vec rtmp = vec(pl->o).sub(p->o);
-        bool isok = rtmp.magnitude() < d2s;
-        if(isok)
-        {
-            rtmp.mul(scaled);
-            drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, team_base(pl->team), iconsize, isattacking(pl), "%s", colorname(pl));
-        }
+        if (rtmp.magnitude() > d2s)
+            rtmp.normalize().mul(d2s);
+        rtmp.mul(scaled);
+        drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, team_base(pl->team), iconsize, isattacking(pl), "%s", colorname(pl));
     }
     if(m_flags(gamemode))
     {
@@ -684,22 +682,20 @@ void drawradar_vicinity(playerent *p, int w, int h)
             vec pos = vec(e->x, e->y, 0).sub(p->o);
             vec cpos = vec(f.pos.x, f.pos.y, f.pos.z).sub(p->o);
             //if(showradarvalues) { conoutf("dist2F[%d]: %.2f|%.2f || %.2f|%.2f", i, pos.x, pos.y, cpos.x, cpos.y); }
-            if(pos.magnitude() < d2s)
-            {
-                pos.mul(scaled);
-                drawradarent(pos.x, pos.y, 0, m_keep(gamemode) ? 2 : f.team, 3, iconsize, false); // draw bases [circle doesn't need rotating]
-            }
+            if (pos.magnitude() > d2s)
+                pos.normalize().mul(d2s);
+            pos.mul(scaled);
+            drawradarent(pos.x, pos.y, 0, m_keep(gamemode) ? 2 : f.team, 3, iconsize, false); // draw bases [circle doesn't need rotating]
             if(f.state!=CTFF_STOLEN && !(m_keep(gamemode) && f.state == CTFF_IDLE))
             {
-                if(cpos.magnitude() < d2s)
-                {
-                    cpos.mul(scaled);
-                    float flgoff=radarentsize/0.68f;
-                    float ryaw=(camera1->yaw-45)*(2*PI/360);
-                    float offx=flgoff*cosf(-ryaw);
-                    float offy=flgoff*sinf(-ryaw);
-                    drawradarent(cpos.x+offx, cpos.y-offy, camera1->yaw, 3, m_keep(gamemode) ? 2 : f.team, iconsize, false); // draw flag on entity pos
-                }
+                if (cpos.magnitude() > d2s)
+                    cpos.normalize().mul(d2s);
+                cpos.mul(scaled);
+                float flgoff=radarentsize/0.68f;
+                float ryaw=(camera1->yaw-45)*(2*PI/360);
+                float offx=flgoff*cosf(-ryaw);
+                float offy=flgoff*sinf(-ryaw);
+                drawradarent(cpos.x+offx, cpos.y-offy, camera1->yaw, 3, m_keep(gamemode) ? 2 : f.team, iconsize, false); // draw flag on entity pos
             }
             if(m_keep(gamemode) && f.state == CTFF_IDLE) continue;
             if(f.state==CTFF_STOLEN)
@@ -714,11 +710,10 @@ void drawradar_vicinity(playerent *p, int w, int h)
                     if(tm)
                     {
                         apos.sub(p->o);
-                        if(apos.magnitude() < d2s)
-                        {
-                            apos.mul(scaled);
-                            drawradarent(apos.x, apos.y, camera1->yaw, 3, m_keep(gamemode) ? 2 : f.team, iconsize, true); // draw near flag thief
-                        }
+                        if (apos.magnitude() > d2s)
+                            apos.normalize().mul(d2s);
+                        apos.mul(scaled);
+                        drawradarent(apos.x, apos.y, camera1->yaw, 3, m_keep(gamemode) ? 2 : f.team, iconsize, true); // draw near flag thief
                     }
                 }
             }
