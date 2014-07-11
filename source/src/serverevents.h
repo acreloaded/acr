@@ -62,7 +62,13 @@ void shotevent::process(client *ci)
     if (weap == GUN_SHOTGUN)
     {
         // apply shotgun spread
-        // TODO
+        if (m_classic(gamemode, mutators)) adsfactor *= .75f;
+        if (spreadf*adsfactor) loopi(SGRAYS)
+        {
+            cs.sg[i] = to;
+            applyspread(from, cs.sg[i], guns[weap].spread, (cs.perk2 == PERK2_STEADY ? .65f : 1)*spreadf*adsfactor);
+            straceShot(from, cs.sg[i]);
+        }
     }
     else
     {
@@ -75,7 +81,6 @@ void shotevent::process(client *ci)
     straceShot(from, to, &surface);
     // calculate shot properties
     int damagepotential = 0, damagedealt = 0;
-    /*
     if (weap == GUN_SHOTGUN)
         loopi(SGRAYS)
             damagepotential += effectiveDamage(weap, vec(cs.sg[i]).dist(from));
@@ -83,7 +88,6 @@ void shotevent::process(client *ci)
     else if (weap == GUN_RPG) damagepotential = 50; // potential stick damage
     else if (weap == GUN_GRENADE) damagepotential = 0;
     else damagepotential = effectiveDamage(weap, to.dist(from));
-    */
 
     switch (weap)
     {
@@ -131,7 +135,16 @@ void shotevent::process(client *ci)
     // create packet
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     // packet shotgun rays
-    // if(weap==WEAP_SHOTGUN){ putint(p, N_SG); loopi(SGRAYS) loopj(3) putfloat(p, gs.sg[i][j]); }
+    if(weap==GUN_SHOTGUN)
+    {
+        putint(p, SV_SG);
+        loopi(SGRAYS)
+        {
+            putint(p, (int)(cs.sg[i].x*DMF));
+            putint(p, (int)(cs.sg[i].y*DMF));
+            putint(p, (int)(cs.sg[i].z*DMF));
+        }
+    }
     // packet shot message
     putint(p, compact ? SV_SHOOTC : SV_SHOOT);
     putint(p, c.clientnum);

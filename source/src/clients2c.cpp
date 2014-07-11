@@ -767,6 +767,18 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
             }
 
+            case SV_SG:
+            {
+                extern vec sg[SGRAYS];
+                loopi(SGRAYS)
+                {
+                    sg[i].x = getint(p) / DMF;
+                    sg[i].y = getint(p) / DMF;
+                    sg[i].z = getint(p) / DMF;
+                }
+                break;
+            }
+
             case SV_SHOOT:
             case SV_SHOOTC:
             case SV_RICOCHET:

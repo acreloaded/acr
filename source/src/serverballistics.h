@@ -446,8 +446,6 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
 
 int shotgun(client &owner, vector<posinfo> &pos)
 {
-    return 0; // TODO
-    /*
     int damagedealt = 0;
     clientstate &gs = owner.state;
     const vec &from = gs.o;
@@ -479,7 +477,7 @@ int shotgun(client &owner, vector<posinfo> &pos)
                 damage += hits[i].damage;
                 shotgunflags |= hits[i].flags; // merge crit, etc.
                 if (hits[i].dist > bestdist) bestdist = hits[i].dist;
-                hits.remove(i/*--* /);
+                hits.remove(i/*--*/);
             }
         if (!damage) continue;
         damagedealt += damage;
@@ -487,8 +485,6 @@ int shotgun(client &owner, vector<posinfo> &pos)
         if (m_progressive(gamemode, mutators) && shotgunflags & FRAG_GIB)
         damage = max(damage, 350 * HEALTHSCALE);
         serverdamage(&t, &owner, damage, GUN_SHOTGUN, shotgunflags, from, bestdist);
-        //sendhit(owner, WEAP_SHOTGUN, ts.o);
     }
     return damagedealt;
-    */
 }

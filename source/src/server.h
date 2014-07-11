@@ -113,7 +113,7 @@ static const int DEATHMILLIS = 300;
 
 struct clientstate : playerstate
 {
-    vec o, vel;
+    vec o, vel, sg[SGRAYS];
     int state;
     int lastdeath, spawn, lifesequence;
     bool forced;
@@ -481,7 +481,7 @@ const char *messagenames[SV_NUM] =
     "SV_EDITMODE", "SV_EDITH", "SV_EDITT", "SV_EDITS", "SV_EDITD", "SV_EDITE", "SV_EDITW", "SV_EDITENT", "SV_NEWMAP",
     "SV_SHOOT", "SV_SHOOTC", "SV_EXPLODE", "SV_AKIMBO", "SV_RELOAD",
     "SV_SUICIDE", "SV_LOADOUT", "SV_QUICKSWITCH", "SV_WEAPCHANGE", "SV_THROWNADE", "SV_THROWKNIFE",
-    "SV_RICOCHET", "SV_HEADSHOT", "SV_REGEN", "SV_HEAL", "SV_BLEED", "SV_STREAKREADY", "SV_STREAKUSE",
+    "SV_SG", "SV_RICOCHET", "SV_HEADSHOT", "SV_REGEN", "SV_HEAL", "SV_BLEED", "SV_STREAKREADY", "SV_STREAKUSE",
     "SV_KNIFEADD", "SV_KNIFEREMOVE",
     "SV_CONFIRMADD", "SV_CONFIRMREMOVE",
     "SV_HUDEXTRAS", "SV_POINTS", "SV_DISCSCORES", "SV_KILL", "SV_DAMAGE",
