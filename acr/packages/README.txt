@@ -63,8 +63,7 @@ misc
 		[CC BY 3.0] Protox Mod
 	build.png - [LGPL] Combined by Victor from [LGPL] Crystal Icons
 	damage.png - [Modder Ethical Public License 1.0] OpenWarfare2 1.3
-	obit.png - [LGPL] Combined by Victor from [LGPL] Crystal Icons except last 3 icons: [©] Activision
-	radaricons.png - [Copyright Ineligible] Adapted by Victor from works by Activision and Markus "makkE" Bekel
+	obit.png - [LGPL] Combined by Victor from [LGPL] Crystal Icons
 	scope.png - [CC BY-NC-SA 3.0] Adjusted by Victor [CC BY-NC-SA 3.0] DeltaStrikeOp
 	startscreen.png - [Public Domain] Victor
 models
