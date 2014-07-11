@@ -16,7 +16,6 @@ void mode(int *n)
     nextmode = *n;
     modecheck(nextmode, nextmuts);
     nextGameMode = nextmode;
-    if(m_valid(*n) || !multiplayer()) addmsg(SV_GAMEMODE, "ri", *n);
 }
 COMMAND(mode, "i");
 

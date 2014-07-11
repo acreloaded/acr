@@ -491,7 +491,6 @@ const char *messagenames[SV_NUM] =
     "SV_MAPCHANGE", "SV_NEXTMAP",
     "SV_ARENAWIN", "SV_ZOMBIESWIN", "SV_CONVERTWIN",
     "SV_TIMEUP",
-    "SV_GAMEMODE",
     "SV_TEAMDENY", "SV_SERVERMODE",
     "SV_IPLIST",
     "SV_SERVMSG", "SV_EXTENSION",

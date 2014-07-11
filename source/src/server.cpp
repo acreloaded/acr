@@ -3834,11 +3834,6 @@ void process(ENetPacket *packet, int sender, int chan)
                 break;
             }
 
-            case SV_GAMEMODE: // TODO remove this
-                getint(p);
-                QUEUE_MSG;
-                break;
-
             default:
             case -1:
                 disconnect_client(sender, DISC_TAGT);

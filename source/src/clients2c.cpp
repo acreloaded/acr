@@ -1101,11 +1101,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
             }
 
-            case SV_GAMEMODE:
-                nextmode = getint(p);
-                if (nextmode >= G_MAX) nextmode -= G_MAX;
-                break;
-
             case SV_TIMEUP:
             {
                 int curgamemillis = getint(p);
