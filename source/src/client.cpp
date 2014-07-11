@@ -43,13 +43,11 @@ void throttle()
 }
 
 string clientpassword = "";
-int connectrole = CR_DEFAULT;
 
 void abortconnect()
 {
     if(!connpeer) return;
     clientpassword[0] = '\0';
-    connectrole = CR_DEFAULT;
     if(connpeer->state!=ENET_PEER_STATE_DISCONNECTED) enet_peer_reset(connpeer);
     connpeer = NULL;
 #if 0
@@ -61,7 +59,7 @@ void abortconnect()
 #endif
 }
 
-void connectserv_(const char *servername, int serverport = 0, const char *password = NULL, int role = CR_DEFAULT)
+void connectserv_(const char *servername, int serverport = 0, const char *password = NULL)
 {
     if(serverport <= 0) serverport = CUBE_DEFAULT_SERVER_PORT;
     if(watchingdemo) enddemoplayback();
@@ -72,7 +70,6 @@ void connectserv_(const char *servername, int serverport = 0, const char *passwo
         conoutf(_("aborting connection attempt"));
         abortconnect();
     }
-    connectrole = role;
     copystring(clientpassword, password ? password : "");
     ENetAddress address;
     address.port = serverport;
@@ -80,12 +77,11 @@ void connectserv_(const char *servername, int serverport = 0, const char *passwo
     if(servername)
     {
         addserver(servername, serverport, 0);
-        conoutf(_("%c2attempting to %sconnect to %c5%s%c4:%d%c2"), CC, role==CR_DEFAULT?"":"\f8admin\f2", CC, servername, CC, serverport, CC);
+        conoutf(_("%c2attempting to connect to %c5%s%c4:%d%c2"), CC, CC, servername, CC, serverport, CC);
         if(!resolverwait(servername, &address))
         {
             conoutf(_("%c2could %c3not resolve%c2 server %c5%s%c2"), CC, CC, CC, CC, servername, CC);
             clientpassword[0] = '\0';
-            connectrole = CR_DEFAULT;
             return;
         }
     }
@@ -109,19 +105,12 @@ void connectserv_(const char *servername, int serverport = 0, const char *passwo
     {
         conoutf(_("%c2could %c3not connect%c2 to server"),CC,CC,CC);
         clientpassword[0] = '\0';
-        connectrole = CR_DEFAULT;
     }
 }
 
 void connectserv(char *servername, int *serverport, char *password)
 {
     connectserv_(servername, *serverport, password);
-}
-
-void connectadmin(char *servername, int *serverport, char *password)
-{
-    if(!password[0]) return;
-    connectserv_(servername, *serverport, password, CR_ADMIN);
 }
 
 void lanconnect()
@@ -354,7 +343,6 @@ COMMANDN(say, toserver_, "c");
 COMMANDN(sayvoice, toservervoice, "c");
 COMMANDN(me, toserverme, "c");
 COMMANDN(connect, connectserv, "sis");
-COMMAND(connectadmin, "sis");
 COMMAND(lanconnect, "");
 COMMANDN(disconnect, trydisconnect, "");
 COMMAND(whereami, "");
@@ -627,10 +615,7 @@ void sendintro()
     putint(p, getbuildtype());
     sendstring(player1->name, p);
     sendstring(genpwdhash(player1->name, clientpassword, sessionid), p);
-    sendstring(!lang || strlen(lang) != 2 ? "" : lang, p);
-    putint(p, connectrole);
-    clientpassword[0] = '\0';
-    connectrole = CR_DEFAULT;
+    sendstring(!lang || strlen(lang) != 2 ? "" : lang, p);    clientpassword[0] = '\0';
     putint(p, player1->nextprimary);
     putint(p, player1->nextsecondary);
     putint(p, player1->nextperk1);

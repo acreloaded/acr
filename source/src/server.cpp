@@ -2735,7 +2735,6 @@ void process(ENetPacket *packet, int sender, int chan)
             copystring(cl->pwd, text);
             getstring(text, p);
             filterlang(cl->lang, text);
-            int wantrole = getint(p);
             cl->state.nextprimary = getint(p);
             cl->state.nextsecondary = getint(p);
             cl->state.nextperk1 = getint(p);
@@ -2767,7 +2766,7 @@ void process(ENetPacket *packet, int sender, int chan)
             else if(passwords.check(cl->name, cl->pwd, cl->salt, &pd, (cl->type==ST_TCPIP ? cl->peer->address.host : 0)) && (!pd.denyadmin || (banned && !srvfull && !srvprivate)) && bantype != BAN_MASTER) // pass admins always through
             { // admin (or deban) password match
                 cl->isauthed = true;
-                if(!pd.denyadmin && wantrole == CR_ADMIN) clientrole = CR_ADMIN;
+                if(!pd.denyadmin) clientrole = CR_ADMIN;
                 if(bantype == BAN_VOTE)
                 {
                     loopv(bans) if(bans[i].address.host == cl->peer->address.host) { bans.remove(i); concatstring(tags, ", ban removed"); break; } // remove admin bans
