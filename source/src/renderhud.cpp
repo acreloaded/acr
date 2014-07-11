@@ -920,7 +920,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     int commandh = 1570 + FONTH;
     if(command) commandh -= rendercommand(20, 1570, VIRTW);
     else if(infostr) draw_text(infostr, 20, 1570);
-    else
+    else // if(show_hud_element(true, 1))
     {
         defformatstring(hudtext)("\f0[\f1%04.1f\f3m\f0]", focus->o.dist(worldhitpos) / 4.f);
         static string hudtarget;
