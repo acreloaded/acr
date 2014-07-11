@@ -1011,6 +1011,16 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
             }
 
+            case SV_EDITW:
+            {
+                const int newwaterlevel = getint(p);
+                loopi(4) hdr.watercolor[i] = getint(p);
+                if (newwaterlevel == hdr.waterlevel) break;
+                hdr.waterlevel = newwaterlevel;
+                conoutf(_("%s changed the water-level to %d"), colorname(d), hdr.waterlevel);
+                break;
+            }
+
             case SV_NEWMAP:
             {
                 int size = getint(p);

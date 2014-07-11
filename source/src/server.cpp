@@ -3739,6 +3739,14 @@ void process(ENetPacket *packet, int sender, int chan)
                 break;
             }
 
+            case SV_EDITW:
+                // set water level
+                smapstats.hdr.waterlevel = getint(p);
+                // water color alpha
+                loopi(4) getint(p);
+                QUEUE_MSG;
+                break;
+
             case SV_EDITMODE:
             {
                 const bool editing = getint(p) != 0;
@@ -3755,16 +3763,6 @@ void process(ENetPacket *packet, int sender, int chan)
                 QUEUE_MSG;
                 break;
             }
-
-            /*
-            case SV_EDITW:
-                // set water level
-                smapstats.hdr.waterlevel = getint(p);
-                // water color alpha
-                loopi(4) getint(p);
-                QUEUE_MSG;
-                break;
-            */
 
             case SV_EDITENT:
             {
