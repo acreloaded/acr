@@ -97,15 +97,15 @@ enum { EXTPING_NOP = 0, EXTPING_NAMELIST, EXTPING_SERVERINFO, EXTPING_MAPROT, EX
 enum // game modes
 {
     G_DEMO = 0,
-	G_EDIT,
-	G_DM,
-	G_CTF,
-	G_STF,
-	G_HTF,
-	G_KTF,
-	G_BOMBER,
-	G_ZOMBIE,
-	G_MAX,
+    G_EDIT,
+    G_DM,
+    G_CTF,
+    G_STF,
+    G_HTF,
+    G_KTF,
+    G_BOMBER,
+    G_ZOMBIE,
+    G_MAX,
 };
 
 enum // game mutators

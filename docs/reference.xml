@@ -3799,7 +3799,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <examples>
             <example>
               <code><![CDATA[showtime = [
-	if (> $lastgametimeupdate 0) [
+    if (> $lastgametimeupdate 0) [
     gmr = (- $gametimemaximum (+ $gametimecurrent (- (millis) $lastgametimeupdate)))
     gsr = (div $gmr 1000)
     gts = (mod $gsr 60)
@@ -3807,10 +3807,10 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
     gtm = (div $gsr 60)
     if (< $gtm 10) [ gtm = (concatword 0 $gtm) ] [ ]
     echo (concatword $gtm : $gts) remaining
-	] [
+    ] [
     echo gametime not updated yet
-	]
-	      ]]]></code>
+    ]
+          ]]]></code>
             </example>
           </examples>
           <references>
@@ -5431,7 +5431,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <argument valueNotes="1: expand humans"/>
             <argument valueNotes="2: +suicides"/>
             <argument valueNotes="3: +all"/>
-			<argument valueNotes="4: +prefix"/>
+            <argument valueNotes="4: +prefix"/>
           </arguments>
         </variable>
 
@@ -5911,8 +5911,8 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <description>Sets the field of view (fov).</description>
           <value token="N" description="the FOV value" minValue="75" maxValue="160" defaultValue="90"/>
         </variable>
-		
-		<variable name="monitors">
+
+        <variable name="monitors">
           <description>Sets the number of monitors the game is running on</description>
           <value token="m" description="number of monitors" minValue="1" maxValue="12" defaultValue="1"/>
         </variable>
@@ -6681,7 +6681,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
       <description>
         This section lists commands used by the client that communicate to the server. Most are used for server administration.
         Also see the "mode" section and the "map" command which also communicate to the server.
-    	</description>
+      </description>
       <identifiers sort="true">
 
         <command name="serverdesc">
@@ -6689,7 +6689,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             If the server was run with -n1 and -n2 arguments (prefix and suffix of descriptive title)
             a serveradmin can set a user-defined server description with this command, if it wasn't this command results
             in "invalid vote". This title will only stay until the next map is loaded.
-        	</description>
+          </description>
           <arguments>
             <argument token="D" description="description"/>
           </arguments>
@@ -6882,7 +6882,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <description>
             Shuffles the teams. The server will attempt to restore balance, but the result may
             be less that optimal, and there are certainly better ways to keep teams balanced.
-        	</description>
+          </description>
           <references>
             <identifierReference identifier="forceteam"/>
             <identifierReference identifier="forceme"/>
@@ -7295,7 +7295,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
       <description>
         All the below commands are used specifically in map configuration files.
         Some of these commands can also be used without the need of a map configuration file.
-    	</description>
+      </description>
       <identifiers sort="true">
 
         <command name="md2anim">

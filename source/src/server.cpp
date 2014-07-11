@@ -78,8 +78,8 @@ const char *client::gethostname()
 
 bool client::hasclient(int cn)
 {
-	if(!valid_client(cn)) return false;
-	return clientnum == cn || clients[cn]->ownernum == clientnum;
+    if(!valid_client(cn)) return false;
+    return clientnum == cn || clients[cn]->ownernum == clientnum;
 }
 
 void client::removeexplosives()
@@ -1437,8 +1437,8 @@ int numplayers(bool include_bots = true)
     // Count every client that is not a bot
     int count = 0;
     loopv(clients)
-		if(clients[i]->type != ST_EMPTY && clients[i]->type != ST_AI)
-			++count;
+        if(clients[i]->type != ST_EMPTY && clients[i]->type != ST_AI)
+            ++count;
     return count;
 }
 
@@ -2401,9 +2401,9 @@ void disconnect_client(int n, int reason)
     client &c = *clients[n];
     // reassign/delete AI
     loopv(clients)
-		if(clients[i]->ownernum == n)
-			if(!shiftai(*clients[i], -1, n))
-				deleteai(*clients[i]);
+        if(clients[i]->ownernum == n)
+            if(!shiftai(*clients[i], -1, n))
+                deleteai(*clients[i]);
     // remove privilege
     if(c.role) changeclientrole(n, CR_DEFAULT);
     c.state.lastdisc = servmillis;

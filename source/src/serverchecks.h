@@ -651,7 +651,7 @@ inline void checkmove(client *cl)
         cl->spj = cl->ldt = 40;
     }
 
-	// TODO: detect speedhack
+    // TODO: detect speedhack
 }
 
 inline void checkshoot(int & cn, timedevent & shot)

@@ -113,9 +113,9 @@ void CBotManager::LoadBotNamesFile()
             break;
         }
 
-		// Skip entries starting with //
-		if(szNameBuffer[0] == '/' && szNameBuffer[0] == szNameBuffer[1])
-			continue;
+        // Skip entries starting with //
+        if(szNameBuffer[0] == '/' && szNameBuffer[0] == szNameBuffer[1])
+            continue;
 
         short length = (short)strlen(szNameBuffer);
 

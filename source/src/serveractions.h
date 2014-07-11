@@ -78,7 +78,7 @@ struct mapaction : serveraction
                 if(m_edit(mode) && !strchr(scl.voteperm, 'e')) role = CR_ADMIN;
                 bool romap = m_edit(mode) && readonlymap(maploc);
                 bool spawns = m_edit(mode) || (m_team(mode, muts) && !m_keep(mode) ? ms->spawns[0] && ms->spawns[1] : ms->spawns[2]);
-				bool flags = !m_edit(mode) && m_flags(mode) && !m_hunt(mode) ? ms->flags[0] && ms->flags[1] : true;
+                bool flags = !m_edit(mode) && m_flags(mode) && !m_hunt(mode) ? ms->flags[0] && ms->flags[1] : true;
                 if(!spawns || !flags || romap)
                 { // unsupported mode
                     if(strchr(scl.voteperm, 'P')) role = CR_ADMIN;

@@ -145,11 +145,11 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
         lilswap(&s.hdr.maprevision, 2);
     }
     else s.hdr.waterlevel = -100000;
-	if(getlayout)
-	{
-		DELETEA(mapents);
-		mapents = new persistent_entity[s.hdr.numents];
-	}
+    if(getlayout)
+    {
+        DELETEA(mapents);
+        mapents = new persistent_entity[s.hdr.numents];
+    }
     persistent_entity e;
     enttypes = new uchar[s.hdr.numents];
     entposs = new short[s.hdr.numents * 3];
@@ -163,7 +163,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
         s.entcnt[e.type]++;
         enttypes[i] = e.type;
         entposs[i * 3] = e.x; entposs[i * 3 + 1] = e.y; entposs[i * 3 + 2] = e.z + e.attr1;
-		if(getlayout) mapents[i] = e;
+        if(getlayout) mapents[i] = e;
     }
     DELETEA(testlayout);
     int minfloor = 0;
@@ -206,18 +206,18 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
                     if(sq.type != FHF && sq.floor<minfloor) minfloor = sq.floor;
                     if(sq.ceil>maxceil) maxceil = sq.ceil;
                     sq.wtex = f->getchar();
-					f->getchar(); // ftex
-					sq.ctex = f->getchar();
-					if(s.hdr.version<=2) { f->getchar(); f->getchar(); }
-					sq.vdelta = f->getchar();
+                    f->getchar(); // ftex
+                    sq.ctex = f->getchar();
+                    if(s.hdr.version<=2) { f->getchar(); f->getchar(); }
+                    sq.vdelta = f->getchar();
                     if(s.hdr.version>=2) f->getchar(); // utex
                     if(s.hdr.version>=5) f->getchar(); // tag
-					break;
+                    break;
                 case SOLID:
-					sq.floor = 127;
-					sq.ceil = 16;
+                    sq.floor = 127;
+                    sq.ceil = 16;
                     sq.wtex = f->getchar();
-					sq.vdelta = f->getchar();
+                    sq.vdelta = f->getchar();
                     if(s.hdr.version<=2) { f->getchar(); f->getchar(); }
                     break;
             }

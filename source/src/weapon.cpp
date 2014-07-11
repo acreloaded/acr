@@ -265,24 +265,24 @@ void playerincrosshair(playerent * &pl, int &hitzone, vec &pos)
 {
     const vec &from = camera1->o, &to = worldpos;
 
-	pl = NULL;
-	hitzone = HIT_NONE;
-	float bestdist = 1e16f;
-	loopv(players)
+    pl = NULL;
+    hitzone = HIT_NONE;
+    float bestdist = 1e16f;
+    loopv(players)
     {
-		playerent *o = players[i];
-		if(!o || o==focus || o->state==CS_DEAD) continue;
-		float dist = camera1->o.dist(o->o);
-		int zone = HIT_NONE;
-		vec end;
-		if(dist < bestdist && (zone = intersect(o, from, to, &end)))
+        playerent *o = players[i];
+        if(!o || o==focus || o->state==CS_DEAD) continue;
+        float dist = camera1->o.dist(o->o);
+        int zone = HIT_NONE;
+        vec end;
+        if(dist < bestdist && (zone = intersect(o, from, to, &end)))
         {
-			pl = o;
-			hitzone = zone;
-			pos = end;
-			bestdist = dist;
-		}
-	}
+            pl = o;
+            hitzone = zone;
+            pos = end;
+            bestdist = dist;
+        }
+    }
 }
 
 void damageeffect(int damage, const vec &o)

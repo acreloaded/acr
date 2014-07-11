@@ -615,12 +615,12 @@ public:
                   prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), lastattackweapon(NULL),
                   smoothmillis(-1),
                   head(-1, -1, -1), eject(-1, -1, -1), muzzle(-1, -1, -1), ignored(false), muted(false),
-				  ownernum(-1), level(0), pBot(NULL), enemy(NULL)
+                  ownernum(-1), level(0), pBot(NULL), enemy(NULL)
     {
         type = ENT_PLAYER;
         name[0] = 0;
         maxeyeheight = PLAYERHEIGHT;
-		aboveeye = PLAYERABOVEEYE;
+        aboveeye = PLAYERABOVEEYE;
         radius = PLAYERRADIUS;
         maxspeed = 16.0f;
         skin_noteam = skin_cla = skin_rvsf = NULL;

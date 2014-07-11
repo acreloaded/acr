@@ -927,17 +927,17 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         static int lasttarget = INT_MIN;
         if(worldhit)
         {
-			formatstring(hudtarget)(" \f2[\f%d%s\f2] \f4[\f%s\f4]", team_rel_color(focus, worldhit), colorname(worldhit),
-				worldhitzone==HIT_HEAD?"3HEAD":worldhitzone==HIT_TORSO?"2TORSO":"0LEGS");
-			concatstring(hudtext, hudtarget);
-			lasttarget = lastmillis;
-		}
-		else if(lastmillis - lasttarget < 800)
+            formatstring(hudtarget)(" \f2[\f%d%s\f2] \f4[\f%s\f4]", team_rel_color(focus, worldhit), colorname(worldhit),
+                worldhitzone==HIT_HEAD?"3HEAD":worldhitzone==HIT_TORSO?"2TORSO":"0LEGS");
+            concatstring(hudtext, hudtarget);
+            lasttarget = lastmillis;
+        }
+        else if(lastmillis - lasttarget < 800)
         {
-			const short a = (800 - lastmillis + lasttarget) * 255 / 800;
-			draw_text(hudtarget, 20 + text_width(hudtext), 1570, a, a, a, a);
-		}
-		draw_text(hudtext, 20, 1570);
+            const short a = (800 - lastmillis + lasttarget) * 255 / 800;
+            draw_text(hudtarget, 20 + text_width(hudtext), 1570, a, a, a, a);
+        }
+        draw_text(hudtext, 20, 1570);
     }
     glLoadIdentity();
     glOrtho(0, origVIRTW*2, VIRTH*2, 0, -1, 1);

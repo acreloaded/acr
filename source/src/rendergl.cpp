@@ -903,14 +903,14 @@ inline float zoomfactor(playerent *who)
 {
     return 1.f;
     /*
-	if(!who) return 1;
-	float adsmax = 864, zoomf = (float)adszoom;
-	if(sniper_weap(who->weaponsel->type) && who->ads)
+    if(!who) return 1;
+    float adsmax = 864, zoomf = (float)adszoom;
+    if(sniper_weap(who->weaponsel->type) && who->ads)
     {
-		adsmax = sniperrifle::adsscope;
-		zoomf = (float)scopezoom;
-	} else if(who->weaponsel->type == WEAP_HEAL) zoomf = 0;
-	return 100 / (min(who->ads/adsmax,1.f) * zoomf + 100);
+        adsmax = sniperrifle::adsscope;
+        zoomf = (float)scopezoom;
+    } else if(who->weaponsel->type == WEAP_HEAL) zoomf = 0;
+    return 100 / (min(who->ads/adsmax,1.f) * zoomf + 100);
     */
 }
 
@@ -989,11 +989,11 @@ void readmatrices()
 
 void traceShot(const vec &from, vec &to, float len)
 {
-	vec tracer(to);
-	tracer.sub(from).normalize();
-	vec s;
-	const float dist = rayclip(from, tracer, s);
-	to = tracer.mul(dist - .1f).add(from);
+    vec tracer(to);
+    tracer.sub(from).normalize();
+    vec s;
+    const float dist = rayclip(from, tracer, s);
+    to = tracer.mul(dist - .1f).add(from);
 }
 
 // stupid function to cater for stupid ATI linux drivers that return incorrect depth values

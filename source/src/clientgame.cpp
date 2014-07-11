@@ -1085,12 +1085,12 @@ void startmap(const char *name, bool reset)   // called just after a map load
     {
         loopv(gmdescs) if(gmdescs[i].mode == gamemode)
             conoutf("\f1%s", gmdescs[i].desc);
-		loopv(mutdescs)
-			if(mutdescs[i].muts & mutators)
-				conoutf("\f2%s", mutdescs[i].desc);
-		loopv(gspdescs)
-			if(gspdescs[i].mode == gamemode && gspdescs[i].muts & mutators)
-				conoutf("\f3%s", gspdescs[i].desc);
+        loopv(mutdescs)
+            if(mutdescs[i].muts & mutators)
+                conoutf("\f2%s", mutdescs[i].desc);
+        loopv(gspdescs)
+            if(gspdescs[i].mode == gamemode && gspdescs[i].muts & mutators)
+                conoutf("\f3%s", gspdescs[i].desc);
     }
 
     // run once
@@ -1339,7 +1339,7 @@ void callvote(int type, const char *arg1, const char *arg2, const char *arg3)
 
 
 
-				putint(p, atoi(arg1));
+                putint(p, atoi(arg1));
                 break;
         }
         sendpackettoserv(1, p.finalize());

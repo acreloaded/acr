@@ -169,7 +169,7 @@ struct clientstate : playerstate
         lastshot = 0;
         akimbomillis = crouchmillis = scopemillis = drownmillis = 0;
         scoped = crouching = onfloor = false;
-		fallz = -1e10f;
+        fallz = -1e10f;
     }
 
     float crouchfactor(int gamemillis)
