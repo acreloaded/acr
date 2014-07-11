@@ -569,13 +569,13 @@ void drawradar_showmap(playerent *p, int w, int h)
     vec cod(offx, offy, 0);
     vec ppv = vec(p->o).sub(mdd).mul(coordtrans);
 
-    if(team_isactive(p->team)) drawradarent(ppv.x, ppv.y, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player
+    if(team_isactive(p->team)) drawradarent(ppv.x, ppv.y, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 1, iconsize, isattacking(p), "%s", colorname(p)); // local player
     loopv(players) // other players
     {
         playerent *pl = players[i];
         if(!pl || pl==p || !isteam(p->team, pl->team) || !team_isactive(pl->team)) continue;
         vec rtmp = vec(pl->o).sub(mdd).mul(coordtrans);
-        drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, team_base(pl->team), iconsize, isattacking(pl), "%s", colorname(pl));
+        drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state == CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, isteam(p->team, pl->team) ? 2 : 0, iconsize, isattacking(pl), "%s", colorname(pl));
     }
     if(m_flags(gamemode))
     {
@@ -657,7 +657,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
     glDisable(GL_BLEND);
     circle(minimaptex, halfviewsize, halfviewsize, halfviewsize, usecenter.x/(float)gdim, usecenter.y/(float)gdim, scaleh, 31); //Draw mimimaptext as radar background
     glTranslatef(halfviewsize, halfviewsize, 0);
-    if(team_isactive(p->team)) drawradarent(0, 0, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player
+    if(team_isactive(p->team)) drawradarent(0, 0, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 1, iconsize, isattacking(p), "%s", colorname(p)); // local player
     loopv(players) // other players
     {
         playerent *pl = players[i];
@@ -666,7 +666,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
         if (rtmp.magnitude() > d2s)
             rtmp.normalize().mul(d2s);
         rtmp.mul(scaled);
-        drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, team_base(pl->team), iconsize, isattacking(pl), "%s", colorname(pl));
+        drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, isteam(p->team, pl->team) ? 2 : 0, iconsize, isattacking(pl), "%s", colorname(pl));
     }
     if(m_flags(gamemode))
     {
