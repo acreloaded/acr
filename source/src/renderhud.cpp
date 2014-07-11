@@ -843,6 +843,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 {
     playerent *p = camera1->type<ENT_CAMERA ? (playerent *)camera1 : player1;
     bool spectating = player1->isspectating();
+    int origVIRTW = VIRTW;
 
     glDisable(GL_DEPTH_TEST);
 
@@ -852,6 +853,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
+    glTranslatef((float)VIRTW*(monitors - 2 + (monitors&1))/(2.*monitors), 0., 0.);
+    VIRTW /= (float)monitors/(float)(2 - (monitors & 1));
     glEnable(GL_BLEND);
 
     if(underwater)
@@ -922,7 +925,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     int commandh = 1570 + FONTH;
     if(command) commandh -= rendercommand(20, 1570, VIRTW);
     else if(infostr) draw_text(infostr, 20, 1570);
-    else if(true)
+    else
     {
         defformatstring(hudtext)("\f0[\f1%04.1f\f3m\f0]", focus->o.dist(worldhitpos) / 4.f);
         static string hudtarget;
@@ -941,8 +944,11 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		}
 		draw_text(hudtext, 20, 1570);
     }
+    VIRTW = origVIRTW;
     glLoadIdentity();
     glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
+    glTranslatef((float)VIRTW*(float)((float)monitors - 2. + (float)(monitors&1))/((float)monitors), 0., 0.);
+    VIRTW /= (float)monitors/(float)(2 - (monitors & 1));
     extern int tsens(int x);
     tsens(-2000);
     extern void r_accuracy(int h);
@@ -1077,14 +1083,18 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     if(!hidehudmsgs) hudmsgs.render();
 
+    VIRTW = origVIRTW;
 
     if(!hidespecthud && !menu && p->state==CS_DEAD && p->spectatemode<=SM_DEATHCAM)
     {
         glLoadIdentity();
         glOrtho(0, VIRTW*3/2, VIRTH*3/2, 0, -1, 1);
+        glTranslatef((float)VIRTW*3*(monitors - 2 + (monitors&1))/(4.*monitors), 0., 0.);
+        VIRTW /= (float)monitors/(float)(2 - (monitors & 1));
         const int left = (VIRTW*3/2)*6/8, top = (VIRTH*3/2)*3/4;
         draw_textf("SPACE to change view", left, top);
         draw_textf("SCROLL to change player", left, top+80);
+        VIRTW = origVIRTW;
     }
 
     /* * /
@@ -1100,9 +1110,12 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glLoadIdentity();
         glPushMatrix();
         glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
+        glTranslatef((float)VIRTW*(monitors - 2 + (monitors&1))/(2.*monitors), 0., 0.);
+        VIRTW /= (float)monitors/(float)(2 - (monitors & 1));
         glScalef(0.8, 0.8, 1);
         draw_textf("Speed: %.2f", VIRTW/2, VIRTH, p->vel.magnitudexy());
         glPopMatrix();
+        VIRTW = origVIRTW;
     }
 
     drawscores();
@@ -1110,6 +1123,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     {
         glLoadIdentity();
         glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
+        glTranslatef((float)VIRTW*(monitors - 2 + (monitors&1))/(2.*monitors), 0., 0.);
+        VIRTW /= (float)monitors/(float)(2 - (monitors & 1));
         const char *specttext = "GHOST";
         if(player1->team == TEAM_SPECT) specttext = "GHOST";
         else if(player1->team == TEAM_CLA_SPECT) specttext = "[CLA]";
@@ -1120,12 +1135,15 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             defformatstring(name)("Player %s", players[player1->followplayercn]->name);
             draw_text(name, VIRTW/40, VIRTH/10*8);
         }
+        VIRTW = origVIRTW;
     }
 
     if(p->state==CS_ALIVE)
     {
         glLoadIdentity();
         glOrtho(0, VIRTW/2, VIRTH/2, 0, -1, 1);
+        glTranslatef((float)VIRTW*(monitors - 2 + (monitors&1))/(4.*monitors), 0., 0.);
+        VIRTW /= (float)monitors/(float)(2 - (monitors & 1));
 
         if(!hidehudequipment)
         {
@@ -1143,10 +1161,14 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             popfont();
         }
 
+        VIRTW = origVIRTW;
+
         if(m_flags(gamemode) && !hidectfhud)
         {
             glLoadIdentity();
             glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
+            glTranslatef((float)VIRTW*(monitors - 2 + (monitors&1))/(2.*monitors), 0., 0.);
+            VIRTW /= (float)monitors/(float)(2 - (monitors & 1));
             glColor4f(1.0f, 1.0f, 1.0f, 0.2f);
             turn_on_transparency(255);
             int flagscores[2];
@@ -1173,6 +1195,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             }
         }
     }
+
+    VIRTW = origVIRTW;
 
     glDisable(GL_BLEND);
     glDisable(GL_TEXTURE_2D);
