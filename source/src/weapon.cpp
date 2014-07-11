@@ -838,6 +838,8 @@ void grenades::attackhit(const vec &o)
     addscorchmark(o);
     explosioneffect(o);
     // TODO: shot line fx
+    if (owner == player1)
+        accuracym[GUN_GRENADE].shots++;
 }
 
 int grenades::modelanim()

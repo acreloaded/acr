@@ -2999,7 +2999,8 @@ void process(ENetPacket *packet, int sender, int chan)
                 --cps.grenades.throwable;
                 checkpos(from);
                 if (vel.magnitude() > NADEPOWER) vel.normalize().mul(NADEPOWER);
-                QUEUE_MSG;
+                sendf(-1, 1, "ri9x", SV_THROWNADE, cn, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF),
+                    (int)(vel.x*DNF), (int)(vel.y*DNF), (int)(vel.z*DNF), cooked, sender);
                 break;
             }
 

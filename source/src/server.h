@@ -648,8 +648,6 @@ const char *suicname(int obit)
 }
 const char *killname(int obit, int style)
 {
-    const bool gib = (style & FRAG_GIB) > 0,
-        flag = (style & FRAG_FLAG) > 0;
     switch (obit)
     {
         case GUN_KNIFE:

@@ -796,11 +796,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bo
         lasthit = lastmillis;
     }
 
-    if (pl != player1)
-    {
-        damageeffect(damage, pl->o);
-        audiomgr.playsound(S_PAIN1+rnd(5), pl);
-    }
+    damageeffect(damage, pl->o);
 
     if(local) damage = pl->dodamage(damage, gun);
     else if(actor==player1) return;
@@ -810,7 +806,9 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bo
         updatedmgindicator(actor->o);
         damageblend(damage);
         pl->damageroll(damage);
+        audiomgr.playsound(S_PAIN6, SP_HIGH);
     }
+    else audiomgr.playsound(S_PAIN1 + rnd(5), pl);
 
     if(pl->health<=0) { if(local) dokill(pl, actor, gib, gun >= 0 ? gun : actor->weaponsel->type); }
     else if(pl==player1) audiomgr.playsound(S_PAIN6, SP_HIGH);

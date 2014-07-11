@@ -357,10 +357,10 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
         // damage multipliers
         if (!m_classic(gamemode, mutators) || hitzone >= HIT_HEAD)
         {
-            if (hitzone == HIT_HEAD && m_progressive(gamemode, mutators))
-                damage *= 7;
-            else if (hitzone != HIT_LEG)
-                damage *= muls[mulset].multiplier[hitzone-HIT_TORSO];
+            if (hitzone == HIT_HEAD)
+                damage *= m_progressive(gamemode, mutators) ? 7 : muls[mulset].head;
+            else if (hitzone == HIT_TORSO)
+                damage *= muls[mulset].torso;
         }
         // gib check
         if ((melee_weap(weap) || hitzone == HIT_HEAD) && !save) style |= FRAG_GIB;

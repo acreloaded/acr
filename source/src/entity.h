@@ -104,7 +104,7 @@ extern itemstat powerupstats[I_ARMOUR-I_HEALTH+1];
 struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, range, endrange, rangesub, piercing, spread, spreadrem, kick, addsize, magsize, mdl_kick_rot, mdl_kick_back, recoilincrease, recoilbase, maxrecoil, recoilbackfade, recoilangle, pushfactor; bool isauto; };
 extern guninfo guns[NUMGUNS];
 
-union mul { struct { float torso, head; }; float multiplier[2]; };
+struct mul { float torso, head; };
 enum { MUL_NORMAL = 0, MUL_SNIPER, MUL_SHOTGUN, MUL_NUM };
 extern const mul muls[MUL_NUM];
 
