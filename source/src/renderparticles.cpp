@@ -601,9 +601,19 @@ void particle_trail(int type, int fade, const vec &s, const vec &e)
     }
 }
 
-void particle_fireball(int type, const vec &o)
+vector<radar_explosion> radar_explosions;
+
+void particle_fireball(int type, const vec &o, playerent *owner)
 {
     newparticle(o, vec(0, 0, 0), (int)((parttypes[type].sz-1.0f)*100.0f), type);
+    if (owner)
+    {
+        radar_explosion &nx = radar_explosions.add();
+        nx.owner = owner;
+        nx.o[0] = o.x;
+        nx.o[1] = o.y;
+        nx.millis = lastmillis;
+    }
 }
 
 VARP(bulletbouncesound, 0, 1, 1);
@@ -619,11 +629,11 @@ bool addbullethole(dynent *d, const vec &from, const vec &to, float radius, bool
     vec surface, ray(to);
     ray.sub(from);
     ray.normalize();
-    float dist = raycube(from, ray, surface), mag = to.dist(from);
+    float dist = rayclip(from, ray, surface), mag = to.dist(from);
     if(surface.iszero() || (radius>0 && (dist < mag-radius || dist > mag+radius))) return false;
     vec o(from);
     o.add(ray.mul(dist));
-    o.add(vec(surface).normalize().mul(0.01f));
+    o.add(vec(surface).mul(0.01f));
     // 2011jun18: shotty decals
     int tf = type > 0 ? ( type > 1 ? PART_BULLETHOLE_SHOTGUNC : PART_BULLETHOLE_SHOTGUNM ) : PART_BULLETHOLE;
     newparticle(o, surface, bulletholettl, tf);
@@ -655,11 +665,28 @@ VARP(bulletairsoundrad, 0, 15, 1000);
 VARP(bulletairsoundsourcerad, 0, 8, 1000);
 VARP(bulletairsounddestrad, 0, 8, 1000);
 
-void addshotline(dynent *pl, const vec &from, const vec &to)
+vector<radar_shotline> radar_shotlines;
+
+void addshotline(playerent *pl, vec from, const vec &to, int flags)
 {
+    // radar shotlines
+    radar_shotline &s = radar_shotlines.add();
+    s.owner = pl;
+    s.from[0] = from.x;
+    s.from[1] = from.y;
+    s.to[0] = to.x;
+    s.to[1] = to.y;
+    s.expire = lastmillis + max(75, shotlinettl) * 2;
+
     if(!shotlinettl || !shotline || (pl == player1 && shotline == 1)) return;
 
     vec unitv;
+    if (flags & 1) // first shot
+    {
+        if (pl->muzzle.x >= 0) // just for fx
+            from = pl->muzzle;
+        else from.z -= WEAPONBELOWEYE;
+    }
     float dist = to.dist(from, unitv);
     unitv.div(dist);
 
@@ -667,7 +694,7 @@ void addshotline(dynent *pl, const vec &from, const vec &to)
     newparticle(from, to, shotlinettl, PART_SHOTLINE);
 
     // shotline sound fx
-    if(!bulletairsoundrad) return;
+    if (!bulletairsoundrad || (flags & 2)) return; // silenced
     vec fromuv, touv;
     float fd = camera1->o.dist(from, fromuv);
     float td = camera1->o.dist(to, touv);

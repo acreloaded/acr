@@ -834,7 +834,7 @@ inline void explosioneffect(const vec &o)
 
 void grenades::attackhit(const vec &o)
 {
-    particle_fireball(PART_FIREBALL, o);
+    particle_fireball(PART_FIREBALL, o, owner);
     addscorchmark(o);
     explosioneffect(o);
     // TODO: shot line fx
@@ -975,7 +975,7 @@ bool gun::attack(vec &targ)
 void gun::attackfx(const vec &from, const vec &to, int millis)
 {
     addbullethole(owner, from, to);
-    addshotline(owner, from, to);
+    addshotline(owner, from, to, millis & 1);
     particle_splash(PART_SPARK, 5, 250, to);
     adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
     if ((millis & 1) && owner != player1 && !isowned(owner))
@@ -1006,7 +1006,7 @@ void shotgun::attackfx(const vec &from, const vec &to, int millis)
             loopi(SGRAYS)
             {
                 if (++filter1 >= 3) filter1 = 0;
-                else addshotline(owner, from, sg[i]); // 3
+                else addshotline(owner, from, sg[i], 3);
                 addbullethole(owner, from, sg[i], 0, false);
             }
         adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
@@ -1017,7 +1017,7 @@ void shotgun::attackfx(const vec &from, const vec &to, int millis)
     else
     {
         if (++filter2 >= 2) filter2 = 0;
-        else addshotline(owner, from, to); // 2
+        else addshotline(owner, from, to, 2);
         addbullethole(owner, from, to, 0, false);
     }
     adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
@@ -1073,14 +1073,14 @@ void crossbow::attackfx(const vec &from2, const vec &to, int millis)
         else from.z -= WEAPONBELOWEYE;
         if (owner != player1 && !isowned(owner)) attacksound();
     }
-    addshotline(owner, from, to); // 0
+    addshotline(owner, from, to, 0);
     particle_trail(PART_SHOTLINE_RPG, 400, from, to);
     particle_splash(PART_SPARK, 5, 250, to);
 }
 
 void crossbow::attackhit(const vec &o)
 {
-    particle_fireball(PART_FIREBALL_RPG, o);
+    particle_fireball(PART_FIREBALL_RPG, o, owner);
     explosioneffect(o);
 }
 
@@ -1100,7 +1100,7 @@ void scopedprimary::attackfx(const vec &from2, const vec &to, int millis)
     }
 
     addbullethole(owner, from, to);
-    addshotline(owner, from, to);
+    addshotline(owner, from, to, 0);
     particle_splash(PART_SPARK, 50, 200, to);
     particle_trail(PART_SMOKE, 500, from, to);
     adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
@@ -1188,7 +1188,7 @@ void healgun::attackfx(const vec &from2, const vec &to, int millis)
         if (owner != player1 && !isowned(owner)) attacksound();
     }
 
-    addshotline(owner, from, to); // 0
+    addshotline(owner, from, to, 0);
     particle_trail(PART_SHOTLINE_HEAL, 400, from, to);
     particle_splash(PART_SPARK, 3, 200, to);
 }

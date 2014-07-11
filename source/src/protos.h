@@ -658,13 +658,18 @@ extern void particle_flash(int type, float scale, float angle, const vec &p);
 extern void particle_splash(int type, int num, int fade, const vec &p);
 extern void particle_trail(int type, int fade, const vec &from, const vec &to);
 extern void particle_emit(int type, int *args, int basetime, int seed, const vec &p);
-extern void particle_fireball(int type, const vec &o);
-extern void addshotline(dynent *d, const vec &from, const vec &to);
+extern void particle_fireball(int type, const vec &o, playerent *owner = NULL);
+extern void addshotline(playerent *d, vec from, const vec &to, int flags);
 extern void addheadshot(const vec &from, const vec &to, int damage);
 extern bool addbullethole(dynent *d, const vec &from, const vec &to, float radius = 1, bool noisy = true, int type = 0); // shotty
 extern bool addscorchmark(const vec &o, float radius = 7);
 
 extern void render_particles(int time, int typemask = ~0);
+
+struct radar_explosion { playerent *owner; int o[2]; int millis; };
+struct radar_shotline { playerent *owner; float from[2], to[2]; int expire; };
+extern vector<radar_explosion> radar_explosions;
+extern vector<radar_shotline> radar_shotlines;
 
 // worldio
 extern int mapdims[8];
