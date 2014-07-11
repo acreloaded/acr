@@ -5911,6 +5911,11 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <description>Sets the field of view (fov).</description>
           <value token="N" description="the FOV value" minValue="75" maxValue="160" defaultValue="90"/>
         </variable>
+		
+		<variable name="monitors">
+          <description>Sets the number of monitors the game is running on</description>
+          <value token="m" description="number of monitors" minValue="1" maxValue="12" defaultValue="1"/>
+        </variable>
 
         <variable name="aboveheadiconsize">
           <description>Sets the size for the icon shown above players.</description>
