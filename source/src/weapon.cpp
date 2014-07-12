@@ -623,7 +623,17 @@ void weapon::renderhudmodel(int lastaction, int index)
     defformatstring(path)("weapons/%s", identexists(widn)?getalias(widn):info.modelname);
     bool emit = (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT && (lastmillis - lastaction) < flashtime();
 //    bool emit = (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT && (lastmillis - p->lastaction) < flashtime();
-    rendermodel(path, wm.anim|ANIM_DYNALLOC|(righthanded==index ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, -1, wm.pos, p->yaw+90, p->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, NULL, 1.28f);
+    modelattach a[3]; // a null one is needed
+    //if ((type == WEAP_AKIMBO && !((akimbo *)this)->akimboside) == akimboflip)
+    {
+        owner->eject = vec(-1, -1, -1);
+        a[0].tag = "tag_eject";
+        a[0].pos = &owner->eject;
+        owner->muzzle = vec(-1, -1, -1);
+        a[1].tag = "tag_muzzle";
+        a[1].pos = &owner->muzzle;
+    }
+    rendermodel(path, wm.anim|ANIM_DYNALLOC|(righthanded==index ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, -1, wm.pos, p->yaw+90, p->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, a, 1.28f);
 }
 
 void weapon::updatetimers(int millis)
