@@ -113,9 +113,8 @@ bool CBot::BotsAgainstHumans()
 
 bool CBot::DetectEnemy(playerent *p)
 {
-    return IsVisible(p);
-   /* return (IsInFOV(p) || (m_pBotSkill->flAlwaysDetectDistance > m_pMyEnt->o.dist(p->o)))
-       && IsVisible(p);*/
+    return (IsInFOV(p) || (m_pBotSkill->flAlwaysDetectDistance > m_pMyEnt->o.dist(p->o)))
+       && IsVisible(p);
 }
 
 bool CBot::FindEnemy(void)
