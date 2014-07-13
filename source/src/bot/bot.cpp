@@ -24,14 +24,14 @@ bot_skill_s::bot_skill_s(float sk)
     const float sk100 = sk / 100; // skill divided by 100
     flMinReactionDelay = .015f + isk100 * .285f; // 0.300 to 0.015
     flMaxReactionDelay = .035f + isk100 * .465f; // 0.500 to 0.035
-    flMinAimXOffset = 15.f + isk100 * 20; // 35 to 15
-    flMaxAimXOffset = 20.f + isk100 * 20; // 40 to 20
-    flMinAimYOffset = 10.f + isk100 * 20; // 30 to 10
-    flMaxAimYOffset = 15.f + isk100 * 20; // 35 to 15
     flMinAimXSpeed = 45.f + sk100 * 285; // 330 to 45
     flMaxAimXSpeed = 60.f + sk100 * 265; // 355 to 60
     flMinAimYSpeed = 125.f + sk100 * 275; // 400 to 125
     flMaxAimYSpeed = 180.f + sk100 * 270; // 450 to 180
+    flMinAimXOffset = 15.f + isk100 * 20; // 35 to 15
+    flMaxAimXOffset = 20.f + isk100 * 20; // 40 to 20
+    flMinAimYOffset = 10.f + isk100 * 20; // 30 to 10
+    flMaxAimYOffset = 15.f + isk100 * 20; // 35 to 15
     flMinAttackDelay = .1f + isk100 * 1.4f; // 0.1 to 1.5
     flMaxAttackDelay = .4f + isk100 * 1.6f; // 0.4 to 2.0
     flMinEnemySearchDelay = .09f + isk100 * .21f; // 0.09 to 0.30
@@ -40,8 +40,7 @@ bot_skill_s::bot_skill_s(float sk)
     bCanPredict = sk >= 80;
     iMaxHearVolume = 15 + sk100 * 60; // 15 to 75
     iFov = 120 + .6*sk;
-    //bCircleStrafe = sk >= 64;
-    bCircleStrafe = false;
+    bCircleStrafe = sk > 66;
     bCanSearchItemsInCombat = sk >= 70;
 }
 

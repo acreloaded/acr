@@ -19,16 +19,20 @@ weaponinfo_s WeaponInfoTable[MAX_WEAPONS] =
     // FD: fire distance
     // mA: min desired Ammo
     // ---- Type : -- minDD -- maxDD -- minFD -- maxFD -- mA
-    { TYPE_MELEE,      0.0f,    5.0f,   0.0f,    3.5f,   0 }, // KNIFE
-    { TYPE_NORMAL,     3.5f,   15.0f,   3.0f,   60.0f,   6 }, // PISTOL
-    { TYPE_SNIPER,    15.0f,   80.0f,   3.0f,  180.0f,   2 }, // CARBINE    // min and max FD just guesstimates for now
-    { TYPE_SHOTGUN,    0.0f,   15.0f,   0.0f,   50.0f,   3 }, // SHOTGUN
-    { TYPE_AUTO,       0.0f,   25.0f,   3.0f,   60.0f,  10 }, // SUBGUN
-    { TYPE_SNIPER,    10.0f,  125.0f,   3.0f,  200.0f,   3 }, // SNIPER
-    { TYPE_AUTO,      20.0f,   80.0f,   3.0f,  150.0f,   6 }, // ASSAULT
-    { TYPE_AUTO,       0.0f,    0.0f,   3.0f,    0.0f,   6 }, // CPISTOL
-    { TYPE_GRENADE,    5.0f,   30.0f,   3.0f,   50.0f,   1 }, // GRENADE
-    { TYPE_AUTO,       0.0f,   50.0f,   3.0f,   50.0f,   0 }  // AKIMBO
+    { TYPE_MELEE,      0.0f,    5.0f,   0.0f,    4.0f,   0 }, // KNIFE
+    { TYPE_NORMAL,    16.0f,   57.0f,   3.0f,   90.0f,   6 }, // PISTOL
+    { TYPE_SHOTGUN,    4.0f,   11.0f,   0.0f,   16.0f,   3 }, // SHOTGUN
+    { TYPE_AUTO,       7.0f,   42.0f,   3.0f,   64.0f,  10 }, // SUBGUN
+    { TYPE_SNIPER,    10.0f,  125.0f,  20.0f,  200.0f,   3 }, // SNIPER
+    { TYPE_AUTO,      30.0f,   69.0f,   3.0f,   92.0f,   6 }, // ASSAULT
+    { TYPE_GRENADE,   40.0f,   80.0f,  11.0f,   80.0f,   1 }, // GRENADE
+    { TYPE_AUTO,      20.0f,   60.0f,   3.0f,   90.0f,   0 }, // AKIMBO
+    { TYPE_SNIPER,    27.0f,   80.0f,  20.0f,  130.0f,   2 }, // BOLT
+    { TYPE_NORMAL,     0.0f,    0.0f,   0.0f,    0.0f,   0 }, // HEAL
+    { TYPE_MELEE,      0.0f,    9.0f,   0.0f,    7.0f,   0 }, // SWORD
+    { TYPE_SNIPER,    32.0f,   64.0f,  24.0f,  100.0f,   1 }, // RPG
+    { TYPE_AUTO,      32.0f,   84.0f,   3.0f,  120.0f,   6 }, // ASSAULT2
+    { TYPE_SNIPER,    50.0f,   98.0f,  20.0f,  120.0f,   4 }, // SNIPER2
 };
 
 // Code of CACBot - Start
@@ -44,17 +48,9 @@ bool CACBot::ChoosePreferredWeapon()
     // Choose a weapon
     for(int i=0;i<MAX_WEAPONS;i++)
     {
-        sWeaponScore = 0; // Minimal score for a weapon
-        sWeaponScore = i > 1 ? 5 : 0; // Primary are usually better
+        sWeaponScore = primary_weap(i) ? 5 : 0; // Primary are usually better
 
-        if (!m_pMyEnt->mag[i] && WeaponInfoTable[i].eWeaponType != TYPE_MELEE)
-        {
-             continue;
-        }
-        else
-        {
-             sWeaponScore += 5;
-        }
+        if (!m_pMyEnt->mag[i] && WeaponInfoTable[i].eWeaponType != TYPE_MELEE) continue;
 
         if((flDist >= WeaponInfoTable[i].flMinDesiredDistance) &&
             (flDist <= WeaponInfoTable[i].flMaxDesiredDistance))
@@ -76,14 +72,9 @@ bool CACBot::ChoosePreferredWeapon()
         }
         else if ((flDist < WeaponInfoTable[i].flMinFireDistance) ||
                 (flDist > WeaponInfoTable[i].flMaxFireDistance))
-        {
             continue; // Wrong distance for this weapon
-        }
 
-        if(i == GUN_GRENADE)
-        {
-            sWeaponScore += 30; // Nades have high priority
-        }
+        if(i == GUN_GRENADE) sWeaponScore += 30; // Nades have high priority
 
         // The ideal distance would be between the Min and Max desired distance.
         // Score on the difference of the avarage of the Min and Max desired distance.
@@ -111,11 +102,7 @@ bool CACBot::ChoosePreferredWeapon()
             else if (flDesiredPercent >= 100.0f)
                 sWeaponScore += 1;
         }
-        else
-        {
-            // Not needing ammo is an advantage...
-            sWeaponScore += 10;
-        }
+        else sWeaponScore += 10; // Not needing ammo is an advantage...
 
         if(sWeaponScore > bestWeaponScore)
         {

@@ -661,9 +661,6 @@ const char *killname(int obit, int style)
                 return _("Impact");
             else if (style & FRAG_FLAG)
                 return _("RPG Direct");
-        case GUN_GRENADE:
-            if (!(style & FRAG_GIB))
-                return _("Airstrike");
         case OBIT_FALL:
             return _("Jump");
         case OBIT_NUKE:
