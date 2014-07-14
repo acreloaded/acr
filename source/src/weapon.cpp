@@ -596,7 +596,7 @@ void weapon::renderhudmodel(int lastaction, int index)
         a[1].tag = "tag_muzzle";
         a[1].pos = &owner->muzzle;
     }
-    rendermodel(path, wm.anim|ANIM_DYNALLOC|(righthanded==index ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, -1, wm.pos, p->yaw+90, p->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, a, 1.28f);
+    rendermodel(path, wm.anim|ANIM_DYNALLOC|(righthanded==index ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, -1, wm.pos, p->yaw+90, p->pitch+wm.k_rot, 40.0f, wm.basetime, owner, a, 1.28f);
 }
 
 void weapon::updatetimers(int millis)

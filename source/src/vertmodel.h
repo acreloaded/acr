@@ -870,8 +870,7 @@ struct vertmodel : model
             if(d && d->zoomed)
                 loopi(numtags)
                 {
-                    tag &t = tags[i];
-                    if(strcmp(t.name, "tag_zoom")) continue;
+                    if (strcmp(tags[i].name, "tag_zoom")) continue;
 
                     glmatrixf linkmat;
                     gentagmatrix(cur, doai ? &prev : NULL, ai_t, i, linkmat.v);
