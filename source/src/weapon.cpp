@@ -240,32 +240,6 @@ bool intersect(entity *e, const vec &from, const vec &to, vec *end)
     return intersectbox(vec(e->x, e->y, lo+mmi.h/2.0f), vec(mmi.rad, mmi.rad, mmi.h/2.0f), from, to, end);
 }
 
-playerent *intersectclosest(const vec &from, const vec &to, playerent *at, float &bestdist, int &hitzone, bool aiming = true)
-{
-    playerent *best = NULL;
-    bestdist = 1e16f;
-    int zone;
-    if(at!=player1 && player1->state==CS_ALIVE && (zone = intersect(player1, from, to)))
-    {
-        best = player1;
-        bestdist = at->o.dist(player1->o);
-        hitzone = zone;
-    }
-    loopv(players)
-    {
-        playerent *o = players[i];
-        if(!o || o==at || (o->state!=CS_ALIVE && (aiming || (o->state!=CS_EDITING && o->state!=CS_LAGGED)))) continue;
-        float dist = at->o.dist(o->o);
-        if(dist < bestdist && (zone = intersect(o, from, to)))
-        {
-            best = o;
-            bestdist = dist;
-            hitzone = zone;
-        }
-    }
-    return best;
-}
-
 void playerincrosshair(playerent * &pl, int &hitzone, vec &pos)
 {
     const vec &from = camera1->o, &to = worldpos;
