@@ -1132,7 +1132,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         if(!hidehudequipment)
         {
             pushfont("huddigits");
-            draw_textf("%d",  90, 823, p->health);
+            draw_textf("%d",  90, 823, p->health/HEALTHSCALE);
             if(p->armour) draw_textf("%d", 360, 823, p->armour);
             if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS)
             {
