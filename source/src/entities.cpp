@@ -420,9 +420,24 @@ void setspawn(int i, bool on)
 }
 
 extern bool sendloadout;
-VARFP(nextprimary, 0, GUN_ASSAULT, NUMGUNS-1,
+VARFP(nextprimary, 0, GUN_ASSAULT, NUMGUNS - 1,
 {
     player1->nextprimary = nextprimary;
+    sendloadout = true;
+});
+VARFP(nextsecondary, 0, GUN_PISTOL, NUMGUNS - 1,
+{
+    player1->nextsecondary = nextsecondary;
+    sendloadout = true;
+});
+VARFP(nextperk1, PERK1_NONE, PERK1_NONE, PERK1_MAX - 1,
+{
+    player1->nextperk1 = nextperk1;
+    sendloadout = true;
+});
+VARFP(nextperk2, PERK2_NONE, PERK2_NONE, PERK2_MAX - 1,
+{
+    player1->nextperk2 = nextperk2;
     sendloadout = true;
 });
 
