@@ -30,7 +30,6 @@ struct weaponmove
             dv.y *= 1.5f;
             dv.z *= 0.4f;
             swaydir.add(dv);
-            pos.add(swaydir);
         }
 
         if(p->onfloor || p->onladder || p->inwater) swaymillis += lastmillis-lastsway;
@@ -67,7 +66,7 @@ struct weaponmove
                 progress = max(0.0f, min(1.0f, timediff/(float)animtime));
                 // f(x) = -sin(x-1.5)^3
                 kick = -sinf(pow((1.5f*progress)-1.5f,3));
-                if(p->crouching) kick *= 0.75f;
+                kick *= p->eyeheight / p->maxeyeheight;
                 if(p->lastaction) anim = p->weaponsel->modelanim();
             }
 
@@ -98,9 +97,18 @@ struct weaponmove
                 sway.y *= swayspeed;
                 sway.z *= swayupspeed;
 
-                if(p->crouching) sway.mul(0.75f);
+                sway.mul(p->eyeheight / p->maxeyeheight);
+
+                if (ads_gun(p->weaponsel->type))
+                {
+                    k_rot *= 1 - sqrtf(p->zoomed / (float)ZOOMLIMIT) / 2.f;
+                    k_back *= 1 - sqrtf(p->zoomed / (float)ZOOMLIMIT) / 1.1f;
+                    sway.mul(1 - sqrtf(p->zoomed / (float)ZOOMLIMIT) / 1.2f);
+                    swaydir.mul(1 - sqrtf(p->zoomed / (float)ZOOMLIMIT) / 1.3f);
+                }
             }
 
+            pos.add(swaydir);
             pos.x -= aimdir.x*k_back+sway.x;
             pos.y -= aimdir.y*k_back+sway.y;
             pos.z -= aimdir.z*k_back+sway.z;
