@@ -1631,15 +1631,10 @@ void spectatemode(int mode)
 
 void togglespect() // cycle through all spectating modes
 {
-    if(m_ai(gamemode))
-        spectatemode(SM_FLY);
-    else
-    {
-        int mode;
-        if(player1->spectatemode==SM_NONE) mode = SM_FOLLOW1ST; // start with 1st person spect
-        else mode = SM_FOLLOW1ST + ((player1->spectatemode - SM_FOLLOW1ST + 1) % (SM_OVERVIEW-SM_FOLLOW1ST)); // replace SM_OVERVIEW by SM_NUM to enable overview mode
-        spectatemode(mode);
-    }
+    int mode;
+    if(player1->spectatemode==SM_NONE) mode = SM_FOLLOW1ST; // start with 1st person spect
+    else mode = SM_FOLLOW1ST + ((player1->spectatemode - SM_FOLLOW1ST + 1) % (SM_OVERVIEW-SM_FOLLOW1ST)); // replace SM_OVERVIEW by SM_NUM to enable overview mode
+    spectatemode(mode);
 }
 
 void changefollowplayer(int shift)
