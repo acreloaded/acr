@@ -13,7 +13,7 @@
 #include "cube.h"
 #include "bot.h"
 
-extern weaponinfo_s WeaponInfoTable[MAX_WEAPONS];
+extern weaponinfo_s WeaponInfoTable[NUMGUNS];
 
 vec CBot::GetEnemyPos(playerent *d)
 {

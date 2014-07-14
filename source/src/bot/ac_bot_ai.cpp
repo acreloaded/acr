@@ -13,22 +13,26 @@
 
 #ifdef AC_CUBE
 
-weaponinfo_s WeaponInfoTable[MAX_WEAPONS] =
+weaponinfo_s WeaponInfoTable[NUMGUNS] =
 {
     // DD: desired distance
     // FD: fire distance
     // mA: min desired Ammo
     // ---- Type : -- minDD -- maxDD -- minFD -- maxFD -- mA
-    { TYPE_MELEE,      0.0f,    5.0f,   0.0f,    3.5f,   0 }, // KNIFE
-    { TYPE_NORMAL,     3.5f,   15.0f,   3.0f,   60.0f,   6 }, // PISTOL
-    { TYPE_SNIPER,    15.0f,   80.0f,   3.0f,  180.0f,   2 }, // CARBINE    // min and max FD just guesstimates for now
-    { TYPE_SHOTGUN,    0.0f,   15.0f,   0.0f,   50.0f,   3 }, // SHOTGUN
-    { TYPE_AUTO,       0.0f,   25.0f,   3.0f,   60.0f,  10 }, // SUBGUN
-    { TYPE_SNIPER,    10.0f,  125.0f,   3.0f,  200.0f,   3 }, // SNIPER
-    { TYPE_AUTO,      20.0f,   80.0f,   3.0f,  150.0f,   6 }, // ASSAULT
-    { TYPE_AUTO,       0.0f,    0.0f,   3.0f,    0.0f,   6 }, // CPISTOL
-    { TYPE_GRENADE,    5.0f,   30.0f,   3.0f,   50.0f,   1 }, // GRENADE
-    { TYPE_AUTO,       0.0f,   50.0f,   3.0f,   50.0f,   0 }  // AKIMBO
+    { TYPE_MELEE,      0.0f,    4.0f,   0.0f,    5.0f,   1 }, // KNIFE
+    { TYPE_NORMAL,     0.0f,   20.0f,   0.0f,   50.0f,   3 }, // PISTOL
+    { TYPE_SHOTGUN,    0.0f,   15.0f,   0.0f,   40.0f,   2 }, // SHOTGUN
+    { TYPE_AUTO,       0.0f,   25.0f,   0.0f,   60.0f,   5 }, // SUBGUN
+    { TYPE_SNIPER,    30.0f,   50.0f,   0.0f,  200.0f,   3 }, // SNIPER
+    { TYPE_AUTO,       0.0f,   25.0f,   0.0f,   60.0f,   5 }, // ASSAULT
+    { TYPE_GRENADE,   30.0f,   25.0f,   0.0f,   50.0f,   1 }, // GRENADE
+    { TYPE_NORMAL,     0.0f,   20.0f,   0.0f,   50.0f,   3 }, // AKIMBO
+    { TYPE_SNIPER,    30.0f,   50.0f,   0.0f,  200.0f,   2 }, // BOLT
+    { TYPE_AUTO,      40.0f,   80.0f,   0.0f,  150.0f,   3 }, // HEAL
+    { TYPE_MELEE,      0.0f,    7.0f,   0.0f,    9.0f,   1 }, // SWORD
+    { TYPE_ROCKET,     0.0f,   20.0f,   0.0f,   50.0f,   1 }, // RPG
+    { TYPE_AUTO,       0.0f,   25.0f,   0.0f,   60.0f,   5 }, // ASSAULT2
+    { TYPE_SNIPER,    30.0f,   50.0f,   0.0f,  200.0f,   2 }, // SNIPER2
 };
 
 // Code of CACBot - Start
@@ -42,7 +46,7 @@ bool CACBot::ChoosePreferredWeapon()
     float flDist = GetDistance(m_pMyEnt->enemy->o);
 
     // Choose a weapon
-    for(int i=0;i<MAX_WEAPONS;i++)
+    for(int i=0;i<NUMGUNS;i++)
     {
         sWeaponScore = 0; // Minimal score for a weapon
         sWeaponScore = i > 1 ? 5 : 0; // Primary are usually better
@@ -177,9 +181,9 @@ entity *CACBot::SearchForEnts(bool bUseWPs, float flRange, float flMaxHeight)
         switch(e.type)
         {
             case I_CLIPS:
-                sMaxAmmo = ammostats[GUN_PISTOL].max;
-                bInteresting = (m_pMyEnt->ammo[GUN_PISTOL]<sMaxAmmo);
-                sAmmo = m_pMyEnt->ammo[GUN_PISTOL];
+                sMaxAmmo = ammostats[m_pMyEnt->secondary].max;
+                bInteresting = (m_pMyEnt->ammo[m_pMyEnt->secondary]<sMaxAmmo);
+                sAmmo = m_pMyEnt->ammo[m_pMyEnt->secondary];
                 break;
             case I_AMMO:
                 sMaxAmmo = ammostats[m_pMyEnt->primary].max;
@@ -192,13 +196,13 @@ entity *CACBot::SearchForEnts(bool bUseWPs, float flRange, float flMaxHeight)
                 sAmmo = -1;
                 break;
             case I_HEALTH:
-                sMaxAmmo = powerupstats[0].max;
+                sMaxAmmo = MAXHEALTH;
                 bInteresting = (m_pMyEnt->health < sMaxAmmo);
                 sAmmo = m_pMyEnt->health;
                 break;
             case I_HELMET:
             case I_ARMOUR:
-               sMaxAmmo = powerupstats[I_ARMOUR-I_HEALTH].max;
+               sMaxAmmo = MAXARMOUR;
                bInteresting = (m_pMyEnt->armour < sMaxAmmo);
                sAmmo = m_pMyEnt->armour;
                break;
