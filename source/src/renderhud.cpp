@@ -21,7 +21,7 @@ void drawequipicon(float x, float y, int col, int row, float blend)
     if(tex)
     {
         turn_on_transparency();
-        drawicon(tex, x, y, 120, col, row, 1/4.0f);
+        drawicon(tex, x, y, 120, col, row, 1/5.0f);
         glDisable(GL_BLEND);
     }
 }
