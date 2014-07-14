@@ -2958,6 +2958,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <references>
             <identifierReference identifier="currentsecondary"/>
             <identifierReference identifier="nextprimary"/>
+            <identifierReference identifier="nextsecondary"/>
             <identifierReference identifier="curweapon"/>
             <identifierReference identifier="prevweapon"/>
             <identifierReference identifier="weapon"/>
@@ -2973,6 +2974,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <references>
             <identifierReference identifier="currentprimary"/>
             <identifierReference identifier="nextprimary"/>
+            <identifierReference identifier="nextsecondary"/>
             <identifierReference identifier="curweapon"/>
             <identifierReference identifier="prevweapon"/>
             <identifierReference identifier="weapon"/>
@@ -3062,6 +3064,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="currentprimary"/>
             <identifierReference identifier="currentsecondary"/>
             <identifierReference identifier="nextprimary"/>
+            <identifierReference identifier="nextsecondary"/>
             <identifierReference identifier="prevweapon"/>
             <identifierReference identifier="weapon"/>
             <identifierReference identifier="magcontent"/>
@@ -3076,6 +3079,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="currentprimary"/>
             <identifierReference identifier="currentsecondary"/>
             <identifierReference identifier="nextprimary"/>
+            <identifierReference identifier="nextsecondary"/>
             <identifierReference identifier="curweapon"/>
             <identifierReference identifier="weapon"/>
             <identifierReference identifier="magcontent"/>
@@ -3131,6 +3135,27 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <description>Returns the primary weapon on next respawn.</description>
           <arguments>
             <argument token="A" description="weapon id" valueNotes="value"/>
+          </arguments>
+        </command>
+
+        <command name="nextsecondary">
+          <description>Returns the secondary weapon on next respawn.</description>
+          <arguments>
+            <argument token="A" description="weapon id" valueNotes="value"/>
+          </arguments>
+        </command>
+
+        <command name="nextperk1">
+          <description>Returns the first perk on next respawn.</description>
+          <arguments>
+            <argument token="A" description="perk 1 id" valueNotes="value"/>
+          </arguments>
+        </command>
+
+        <command name="nextperk2">
+          <description>Returns the second perk on next respawn.</description>
+          <arguments>
+            <argument token="A" description="perk 2 id" valueNotes="value"/>
           </arguments>
         </command>
 
@@ -3551,6 +3576,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="currentprimary"/>
             <identifierReference identifier="currentsecondary"/>
             <identifierReference identifier="nextprimary"/>
+            <identifierReference identifier="nextsecondary"/>
             <identifierReference identifier="prevweapon"/>
             <identifierReference identifier="weapon"/>
             <identifierReference identifier="magreserve"/>
@@ -3567,6 +3593,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="currentprimary"/>
             <identifierReference identifier="currentsecondary"/>
             <identifierReference identifier="nextprimary"/>
+            <identifierReference identifier="nextsecondary"/>
             <identifierReference identifier="prevweapon"/>
             <identifierReference identifier="weapon"/>
             <identifierReference identifier="magcontent"/>

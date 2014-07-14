@@ -3,18 +3,20 @@
 $model "models/players/model/model.md3"
 // reference frame
 //$frames -1 -1
-// frame 1-11
-$frames 1 11
+// frame 1-10
+$frames 1 10
 $flags 0
 $numskins 0
 
 // you can have one or no parent tag
 //$parenttag "tag_muzzle"
 //$parenttag "tag_eject"
+//$parenttag "tag_zoom"
 
 // tags
 $tag "tag_muzzle"
 $tag "tag_eject"
+$tag "tag_zoom"
 
 // meshes (surfaces)
 $mesh "scopemount"

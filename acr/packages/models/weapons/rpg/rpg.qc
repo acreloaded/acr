@@ -3,16 +3,18 @@
 $model "models/players/model/model.md3"
 // reference frame
 //$frames -1 -1
-// frame 1-7
-$frames 1 7
+// frame 1-3
+$frames 1 3
 $flags 0
 $numskins 0
 
 // you can have one or no parent tag
 //$parenttag "tag_muzzle"
+//$parenttag "tag_zoom"
 
 // tags
 $tag "tag_muzzle"
+$tag "tag_zoom"
 
 // meshes (surfaces)
 $mesh "hands"
