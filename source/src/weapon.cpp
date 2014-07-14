@@ -574,32 +574,16 @@ void weapon::renderstats()
     }
 }
 
-
-static int recoiltest = 0;//VAR(recoiltest, 0, 0, 1); // DISABLE ON RELEASE
-static int recoilincrease = 2; //VAR(recoilincrease, 1, 2, 10);
-static int recoilbase = 40;//VAR(recoilbase, 0, 40, 1000);
-static int maxrecoil = 1000;//VAR(maxrecoil, 0, 1000, 1000);
-
 void weapon::attackphysics(const vec &from, const vec &to) // physical fx to the owner
 {
-    const guninfo &g = info;
     vec unitv;
     float dist = to.dist(from, unitv);
-    float f = dist/1000;
-    int spread = dynspread();
-    float recoil = dynrecoil()*-0.01f;
-
-    // kickback & recoil
-    if(recoiltest)
-    {
-        owner->vel.add(vec(unitv).mul(recoil/dist).mul(owner->crouching ? 0.75 : 1.0f));
-        owner->pitchvel = min(powf(shots/(float)(recoilincrease), 2.0f)+(float)(recoilbase)/10.0f, (float)(maxrecoil)/10.0f);
-    }
-    else
-    {
-        owner->vel.add(vec(unitv).mul(recoil/dist).mul(owner->crouching ? 0.75 : 1.0f));
-        owner->pitchvel = min(powf(shots/(float)(g.recoilincrease), 2.0f)+(float)(g.recoilbase)/10.0f, (float)(g.maxrecoil)/10.0f);
-    }
+    // kickback
+    owner->vel.add(vec(unitv).mul(dynrecoil()*-0.01f / dist * owner->eyeheight / owner->maxeyeheight));
+    // recoil
+    const guninfo &g = info;
+    owner->pitchvel = min(powf(shots/(float)(g.recoilincrease), 2.0f)+(float)(g.recoilbase)/10.0f, (float)(g.maxrecoil)/10.0f);
+    // FIXME backport from ACR
 }
 
 void weapon::attackhit(const vec &o)
@@ -649,8 +633,12 @@ void weapon::onselecting()
 
 void weapon::renderhudmodel() { renderhudmodel(owner->lastaction); }
 void weapon::renderaimhelp(int teamtype) { drawcrosshair(owner, teamtype ? CROSSHAIR_TEAMMATE : CROSSHAIR_DEFAULT); }
-int weapon::dynspread() { return info.spread; }
-float weapon::dynrecoil() { return info.kick; }
+int weapon::dynspread()
+{
+    if (info.spread <= 1) return 1;
+    return (int)(info.spread * (owner->vel.magnitude() / 3.f + owner->pitchvel / 5.f + 0.4f) * 2.4f * owner->eyeheight / owner->maxeyeheight * (1 - sqrtf(owner->zoomed * info.spreadrem / (100.f * ZOOMLIMIT))));
+}
+float weapon::dynrecoil() { return info.kick * (1 - owner->zoomed / (2.f * ZOOMLIMIT)); } // 1/2 recoil when ADS
 bool weapon::selectable() { return this != owner->weaponsel && owner->state == CS_ALIVE && !owner->weaponchanging &&
     (type == GUN_KNIFE || type == GUN_GRENADE || type == GUN_AKIMBO || type == owner->primary || type == owner->secondary); }
 bool weapon::deselectable() { return !reloading; }
@@ -1005,7 +993,7 @@ void gun::checkautoreload() { if(autoreload && owner==player1 && !mag) reload(tr
 
 shotgun::shotgun(playerent *owner) : gun(owner, GUN_SHOTGUN) {}
 
-int shotgun::dynspread() { return info.spread; }
+int shotgun::dynspread() { return info.spread * (1 - owner->zoomed * info.spreadrem / (100.f * ZOOMLIMIT)); }
 
 void shotgun::attackfx(const vec &from, const vec &to, int millis)
 {
@@ -1118,7 +1106,7 @@ void scopedprimary::attackfx(const vec &from2, const vec &to, int millis)
     adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
 }
 
-float scopedprimary::dynrecoil() { return weapon::dynrecoil() * 1 - owner->zoomed / ZOOMLIMIT / 3; } // 1/2 * 2/3 = 1/3 recoil when ADS
+float scopedprimary::dynrecoil() { return weapon::dynrecoil() * (1 - owner->zoomed / (3.f * ZOOMLIMIT)); } // 1/2 * 2/3 = 1/3 recoil when ADS
 void scopedprimary::renderhudmodel() { if (owner->zoomed < ADSZOOM) weapon::renderhudmodel(); }
 
 void scopedprimary::renderaimhelp(int teamtype)
