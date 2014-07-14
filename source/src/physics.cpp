@@ -695,6 +695,24 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         if(!intermission && (pl == player1 || pl->type == ENT_BOT)) updatecrouch((playerent *)pl, pl->trycrouch);
         const float croucheyeheight = pl->maxeyeheight*CROUCHHEIGHTMUL;
         resizephysent(pl, moveres, curtime, croucheyeheight, pl->maxeyeheight);
+        playerent *ppl = (playerent *)pl;
+        if(!intermission && pl->state == CS_ALIVE && (ppl->scoping ? ppl->zoomed < 1000 : ppl->zoomed > 0) && ads_gun(ppl->weaponsel->type) &&
+				!ppl->weaponsel->reloading && !ppl->weaponchanging ){
+			ppl->zoomed += curtime * (ppl->scoping ? 1000 : -1000) / ADSTIME(ppl->perk2 == PERK_TIME);
+			ppl->zoomed = clamp(ppl->zoomed, 0, 1000);
+			/*if(!ppl->zoomed && ppl == player1){
+				bool shouldscope = ppl->delayedscope;
+				if(ppl->wantsreload){
+					ppl->wantsreload = false;
+					tryreload(ppl);
+				}
+				else if(ppl->wantsswitch >= 0){
+					shouldscope = shouldscope && ads_gun(ppl->wantsswitch);
+					ppl->weaponswitch(ppl->weapons[ppl->wantsswitch]);
+				}
+				if(shouldscope) setscope(true);
+			}*/
+		}
     }
 }
 
