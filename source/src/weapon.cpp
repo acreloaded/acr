@@ -586,6 +586,7 @@ void weapon::renderhudmodel(int lastaction, int index)
     defformatstring(path)("weapons/%s", identexists(widn)?getalias(widn):info.modelname);
     bool emit = (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT && (lastmillis - lastaction) < flashtime();
 //    bool emit = (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT && (lastmillis - p->lastaction) < flashtime();
+    if(ads_gun(type) && type != GUN_RPG && (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT) wm.anim = ANIM_GUN_IDLE;
     modelattach a[3]; // a null one is needed
     //if ((type == WEAP_AKIMBO && !((akimbo *)this)->akimboside) == akimboflip)
     {
