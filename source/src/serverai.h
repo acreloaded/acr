@@ -50,7 +50,7 @@ bool addai()
     b.team = rnd(2); // FIXME choose smaller/worse team
     b.skin[0] = randomMT(); // random skins
     b.skin[1] = randomMT(); // random skins
-    b.level = 45 + rnd(51); // how smart/stupid the bot is can be set here (currently random from 45 to 95)
+    b.level = 40 + rnd(61); // how smart/stupid the bot is can be set here (currently random from 40 to 100)
     b.ownernum = aiowner;
     copystring(b.name, "a bot");
     copystring(b.hostname, "<bot>");

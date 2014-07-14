@@ -48,17 +48,9 @@ bool CACBot::ChoosePreferredWeapon()
     // Choose a weapon
     for(int i=0;i<NUMGUNS;i++)
     {
-        sWeaponScore = 0; // Minimal score for a weapon
-        sWeaponScore = i > 1 ? 5 : 0; // Primary are usually better
+        sWeaponScore = primary_weap(i) ? 5 : 0; // Primary are usually better
 
-        if (!m_pMyEnt->mag[i] && WeaponInfoTable[i].eWeaponType != TYPE_MELEE)
-        {
-             continue;
-        }
-        else
-        {
-             sWeaponScore += 5;
-        }
+        if (!m_pMyEnt->mag[i] && WeaponInfoTable[i].eWeaponType != TYPE_MELEE) continue;
 
         if((flDist >= WeaponInfoTable[i].flMinDesiredDistance) &&
             (flDist <= WeaponInfoTable[i].flMaxDesiredDistance))
@@ -80,14 +72,9 @@ bool CACBot::ChoosePreferredWeapon()
         }
         else if ((flDist < WeaponInfoTable[i].flMinFireDistance) ||
                 (flDist > WeaponInfoTable[i].flMaxFireDistance))
-        {
             continue; // Wrong distance for this weapon
-        }
 
-        if(i == GUN_GRENADE)
-        {
-            sWeaponScore += 30; // Nades have high priority
-        }
+        if(i == GUN_GRENADE) sWeaponScore += 30; // Nades have high priority
 
         // The ideal distance would be between the Min and Max desired distance.
         // Score on the difference of the avarage of the Min and Max desired distance.
@@ -115,11 +102,7 @@ bool CACBot::ChoosePreferredWeapon()
             else if (flDesiredPercent >= 100.0f)
                 sWeaponScore += 1;
         }
-        else
-        {
-            // Not needing ammo is an advantage...
-            sWeaponScore += 10;
-        }
+        else sWeaponScore += 10; // Not needing ammo is an advantage...
 
         if(sWeaponScore > bestWeaponScore)
         {

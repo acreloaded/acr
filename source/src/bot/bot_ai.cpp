@@ -197,7 +197,7 @@ bool CBot::FindEnemy(void)
             if(DetectEnemy(player1))
             {
                 flDist = GetDistance(player1->o);
-                EnemyVal = 1;
+                EnemyVal = 2;
 
                 if (flDist < flNearestDist)
                 {
