@@ -205,7 +205,7 @@ void renderscore(playerent *d)
 {
     const char *status = "";
     string lagping;
-    static color localplayerc(0.2f, 0.2f, 0.2f, 0.2f);
+    static color localplayerc(0.2f, 0.2f, 0.2f, 0.2f), damagedplayerc(0.4f, 0.1f, 0.1f, 0.3f), damagingplayerc(0.1f, 0.1f, 0.4f, 0.3f);
     if(d->clientrole==CR_ADMIN) status = d->state==CS_DEAD ? "\f7" : "\f3";
     else if(d->state==CS_DEAD) status = "\f4";
     if (team_isspect(d->team)) copystring(lagping, "SPECT");
@@ -218,7 +218,7 @@ void renderscore(playerent *d)
     const char *ign = d->ignored ? " (ignored)" : (d->muted ? " (muted)" : "");
     sline &line = scorelines.add();
     if(team_isspect(d->team)) line.textcolor = '4';
-    line.bgcolor = d==player1 ? &localplayerc : NULL;
+    line.bgcolor = d->lastpain + 500 > lastmillis ? &damagedplayerc : d->lasthit + 500 > lastmillis ? &damagingplayerc : d == player1 ? &localplayerc : NULL;
 
     if(m_flags(gamemode)) line.addcol(sc_flags, "%d", d->flagscore);
     line.addcol(sc_frags, "%d", d->frags);
