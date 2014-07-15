@@ -878,7 +878,7 @@ struct vertmodel : model
                     vec4 trans_new;
                     matrixstack[matrixpos].transform(linkmat.gettranslation(), trans_new);
 
-                    trans.sub(trans_new.v).mul(d->zoomed/(float)ZOOMLIMIT);
+                    trans.sub(trans_new.v).mul(d->zoomed);
                     matrixstack[matrixpos].translate(trans);
                     break;
                 }

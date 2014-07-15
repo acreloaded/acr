@@ -697,11 +697,11 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         resizephysent(pl, moveres, curtime, croucheyeheight, pl->maxeyeheight);
         // change zoom state
         playerent *ppl = (playerent *)pl;
-        if (!intermission && pl->state == CS_ALIVE && (ppl->scoping ? ppl->zoomed < ZOOMLIMIT : ppl->zoomed > 0)
+        if (!intermission && pl->state == CS_ALIVE && (ppl->scoping ? ppl->zoomed < 1 : ppl->zoomed > 0)
             && ads_gun(ppl->weaponsel->type) && !ppl->weaponsel->reloading && !ppl->weaponchanging)
         {
-            ppl->zoomed += curtime * (ppl->scoping ? ZOOMLIMIT : -ZOOMLIMIT) / ADSTIME(ppl->perk2 == PERK_TIME);
-            ppl->zoomed = clamp(ppl->zoomed, 0, ZOOMLIMIT);
+            ppl->zoomed += curtime * (ppl->scoping ? 1.f : -1.f) / ADSTIME(ppl->perk2 == PERK_TIME);
+            ppl->zoomed = clamp(ppl->zoomed, 0.f, 1.f);
         }
     }
 }

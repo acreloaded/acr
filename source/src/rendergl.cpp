@@ -463,7 +463,7 @@ COMMAND(fovcompat, "i");
 
 float dynfov()
 {
-    if (sniper_weap(player1->weaponsel->type)) return (scopefov-fov)*player1->zoomed/ZOOMLIMIT+fov;
+    if (sniper_weap(player1->weaponsel->type)) return (scopefov-fov)*player1->zoomed+fov;
     else if(player1->isspectating()) return spectfov;
     else return fov;
 }

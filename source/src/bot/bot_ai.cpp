@@ -762,7 +762,7 @@ void CBot::CheckScope()
     {
         m_pMyEnt->scoping = true;
     }
-    else if (m_pMyEnt->scoping && m_pMyEnt->zoomed == ZOOMLIMIT) // lastmillis - sniper->scoped_since < MINSCOPETIME)
+    else if (m_pMyEnt->scoping && m_pMyEnt->zoomed == 1) // lastmillis - sniper->scoped_since < MINSCOPETIME)
     {
         m_pMyEnt->scoping = false;
     }

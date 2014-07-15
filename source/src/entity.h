@@ -55,8 +55,6 @@ struct entity : persistent_entity
 #define PLAYERABOVEEYE .7f
 #define WEAPONBELOWEYE .2f
 
-#define ZOOMLIMIT 1000000 // client only
-
 enum { PR_CLEAR = 0, PR_ASSIST, PR_SPLAT, PR_HS, PR_KC, PR_KD, PR_HEALSELF, PR_HEALTEAM, PR_HEALENEMY, PR_HEALWOUND, PR_HEALEDBYTEAMMATE, PR_ARENA_WIN, PR_ARENA_WIND, PR_ARENA_LOSE, PR_SECURE_SECURED, PR_SECURE_SECURE, PR_SECURE_OVERTHROW, PR_BUZZKILL, PR_BUZZKILLED, PR_KD_SELF, PR_KD_ENEMY, PR_MAX };
 
 #define HEALTHPRECISION 1
@@ -175,7 +173,7 @@ public:
     uchar state, type;
     float eyeheightvel;
     int last_pos;
-    int zoomed;
+    float zoomed;
 
     physent() : o(0, 0, 0), deltapos(0, 0, 0), newpos(0, 0, 0), yaw(270), pitch(0), roll(0), pitchvel(0),
             crouching(false), crouchedinair(false), trycrouch(false), sprinting(false), cancollide(true), stuck(false), shoot(false), lastjump(0), lastjumpheight(0), lastsplash(0), state(CS_ALIVE), last_pos(0)

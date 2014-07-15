@@ -615,9 +615,9 @@ void weapon::renderaimhelp(int teamtype) { drawcrosshair(owner, teamtype ? CROSS
 int weapon::dynspread()
 {
     if (info.spread <= 1) return 1;
-    return (int)(info.spread * (owner->vel.magnitude() / 3.f + owner->pitchvel / 5.f + 0.4f) * 2.4f * owner->eyeheight / owner->maxeyeheight * (1 - sqrtf(owner->zoomed * info.spreadrem / (100.f * ZOOMLIMIT))));
+    return (int)(info.spread * (owner->vel.magnitude() / 3.f + owner->pitchvel / 5.f + 0.4f) * 2.4f * owner->eyeheight / owner->maxeyeheight * (1 - sqrtf(owner->zoomed * info.spreadrem / 100.f)));
 }
-float weapon::dynrecoil() { return info.kick * (1 - owner->zoomed / (2.f * ZOOMLIMIT)); } // 1/2 recoil when ADS
+float weapon::dynrecoil() { return info.kick * (1 - owner->zoomed / 2.f); } // 1/2 recoil when ADS
 bool weapon::selectable() { return this != owner->weaponsel && owner->state == CS_ALIVE && !owner->weaponchanging &&
     (type == GUN_KNIFE || type == GUN_GRENADE || type == GUN_AKIMBO || type == owner->primary || type == owner->secondary); }
 bool weapon::deselectable() { return !reloading; }
@@ -972,7 +972,7 @@ void gun::checkautoreload() { if(autoreload && owner==player1 && !mag) reload(tr
 
 shotgun::shotgun(playerent *owner) : gun(owner, GUN_SHOTGUN) {}
 
-int shotgun::dynspread() { return info.spread * (1 - owner->zoomed * info.spreadrem / (100.f * ZOOMLIMIT)); }
+int shotgun::dynspread() { return info.spread * (1 - owner->zoomed * info.spreadrem / 100.f); }
 
 void shotgun::attackfx(const vec &from, const vec &to, int millis)
 {
@@ -1085,7 +1085,7 @@ void scopedprimary::attackfx(const vec &from2, const vec &to, int millis)
     adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
 }
 
-float scopedprimary::dynrecoil() { return weapon::dynrecoil() * (1 - owner->zoomed / (3.f * ZOOMLIMIT)); } // 1/2 * 2/3 = 1/3 recoil when ADS
+float scopedprimary::dynrecoil() { return weapon::dynrecoil() * (1 - owner->zoomed / 3.f); } // 1/2 * 2/3 = 1/3 recoil when ADS
 void scopedprimary::renderhudmodel() { if (owner->zoomed < ADSZOOM) weapon::renderhudmodel(); }
 
 void scopedprimary::renderaimhelp(int teamtype)

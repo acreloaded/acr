@@ -212,7 +212,7 @@ struct crossbow : gun
 
 struct scopedprimary : gun
 {
-#define ADSZOOM (ZOOMLIMIT * 85 / 100)
+#define ADSZOOM .85f
     scopedprimary(playerent *owner, int type) : gun(owner, type) {}
     void attackfx(const vec &from, const vec &to, int millis);
 

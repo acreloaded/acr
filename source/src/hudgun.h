@@ -101,10 +101,11 @@ struct weaponmove
 
                 if (ads_gun(p->weaponsel->type))
                 {
-                    k_rot *= 1 - sqrtf(p->zoomed / (float)ZOOMLIMIT) / 2.f;
-                    k_back *= 1 - sqrtf(p->zoomed / (float)ZOOMLIMIT) / 1.1f;
-                    sway.mul(1 - sqrtf(p->zoomed / (float)ZOOMLIMIT) / 1.2f);
-                    swaydir.mul(1 - sqrtf(p->zoomed / (float)ZOOMLIMIT) / 1.3f);
+                    const float zoom_eased = sqrtf(p->zoomed);
+                    k_rot *= 1 - zoom_eased / 2.f;
+                    k_back *= 1 - zoom_eased / 1.1f;
+                    sway.mul(1 - zoom_eased / 1.2f);
+                    swaydir.mul(1 - zoom_eased / 1.3f);
                 }
             }
 
