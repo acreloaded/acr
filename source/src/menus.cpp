@@ -967,12 +967,6 @@ void setmenublink(int *truth)
     m.allowblink = *truth != 0;
 }
 
-void menuclear()
-{
-    if(!lastmenu) return;
-    lastmenu->items.shrink(0);
-}
-
 void menuinit(char *initaction)
 {
     if(!lastmenu) return;
@@ -1116,7 +1110,6 @@ COMMANDN(showmenu, showmenu_, "s");
 COMMAND(closemenu, "s");
 COMMANDN(menufont, setmenufont, "s");
 COMMANDN(menucanblink, setmenublink, "i");
-COMMAND(menuclear, "");
 COMMAND(menuinit, "s");
 COMMAND(menuinitselection, "i");
 COMMAND(menuselection, "si");
