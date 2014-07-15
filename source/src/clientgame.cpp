@@ -48,17 +48,22 @@ void setskin(playerent *pl, int skin, int team)
 
 extern char *global_name;
 
-char *colorname(playerent *d, char *name, const char *prefix)
+char *colorname(playerent *d, bool stats)
 {
     global_name = player1->name; // this certainly is not the best place to put this
-    if(!name) name = d->name;
     static string cname[4];
     static int num = 0;
     num = (num + 1) % 4;
     if(d->ownernum < 0)
-        formatstring(cname[num])("%s%s \fs\f6(%d)\fr", prefix, name, d->clientnum);
+        formatstring(cname[num])("%s \fs\f6(%d)\fr", d->name, d->clientnum);
     else
-        formatstring(cname[num])("%s%s \fs\f7[%d-%d]\fr", prefix, name, d->clientnum, d->ownernum);
+        formatstring(cname[num])("%s \fs\f7[%d-%d]\fr", d->name, d->clientnum, d->ownernum);
+    if (stats && !team_isspect(d->team))
+    {
+        defformatstring(stat)("%d%.*f", (d->state == CS_DEAD || d->health <= 0) ? 4 : d->health > 50 * HEALTHSCALE ? 0 : d->health > 25 * HEALTHSCALE ? 2 : 3, HEALTHPRECISION, d->health / (float)HEALTHSCALE);
+        if (d->armour) formatstring(stat)("%s\f5-\f4%d", stat, d->armour);
+        concatformatstring(cname[num], " \f5[\f%s\f5]", stat);
+    }
     return cname[num];
 }
 

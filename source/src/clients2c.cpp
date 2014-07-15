@@ -536,7 +536,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 if(d)
                 {
                     if(strcmp(d->name, text))
-                        conoutf(_("%s is now known as %s"), colorname(d), colorname(d, text));
+                        conoutf(_("%s is now known as %s"), colorname(d), text);
                     if(identexists("onNameChange"))
                     {
                         defformatstring(onnamechange)("onNameChange %d \"%s\"", d->clientnum, text);
@@ -569,16 +569,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 getstring(text, p);
                 filtername(text, text);
                 if(!text[0]) copystring(text, "unarmed");
-                if(d->name[0])          // already connected
-                {
-                    if(strcmp(d->name, text))
-                        conoutf(_("%s is now known as %s"), colorname(d), colorname(d, text));
-                }
-                else                    // new client
-                {
-                    conoutf(_("connected: %s"), colorname(d, text));
-                }
                 copystring(d->name, text, MAXNAMELEN+1);
+                conoutf(_("connected: %s"), colorname(d));
                 if(identexists("onConnect"))
                 {
                     defformatstring(onconnect)("onConnect %d", d->clientnum);

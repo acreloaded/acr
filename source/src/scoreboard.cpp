@@ -230,7 +230,7 @@ void renderscore(playerent *d)
         line.addcol(sc_lag, lagping);
     }
     line.addcol(sc_clientnum, "\fs\f%d%d\fr", cncolumncolor, d->clientnum);
-    line.addcol(sc_name, "\fs%s%s\fr%s", status, colorname(d), ign);
+    line.addcol(sc_name, "\fs%s%s\fr%s", status, colorname(d, true), ign);
 }
 
 int totalplayers = 0;
