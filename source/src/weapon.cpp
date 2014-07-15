@@ -587,7 +587,7 @@ void weapon::renderhudmodel(int lastaction, int index)
     bool emit = (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT && (lastmillis - lastaction) < flashtime();
 //    bool emit = (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT && (lastmillis - p->lastaction) < flashtime();
     modelattach a[3]; // a null one is needed
-    //if ((type == WEAP_AKIMBO && !((akimbo *)this)->akimboside) == akimboflip)
+    if (type != GUN_AKIMBO || ((akimbo *)this)->akimboside != index)
     {
         owner->eject = vec(-1, -1, -1);
         a[0].tag = "tag_eject";
