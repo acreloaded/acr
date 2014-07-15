@@ -781,43 +781,58 @@ COMMANDF(burstshots, "ii", (int *g, int *s) { burstshots(*g, *s); });
 
 // damage arriving from the network, monsters, yourself, all ends up here.
 
-void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bool local)
+void dodamage(int damage, playerent *pl, playerent *actor, int gun, int style, const vec &src)
 {
     if(pl->state != CS_ALIVE || intermission) return;
     pl->respawnoffset = pl->lastpain = lastmillis;
-    actor->lasthit = lastmillis;
+    if (pl != actor)
+        actor->lasthit = lastmillis;
     // could the author of the FIXME below please elaborate what's to fix?! (ft:2011mar28)
     // I suppose someone wanted to play the hitsound for player1 or spectated player (lucas:2011may22)
     playerent *h = player1->isspectating() && player1->followplayercn >= 0 && (player1->spectatemode == SM_FOLLOW1ST || player1->spectatemode == SM_FOLLOW3RD || player1->spectatemode == SM_FOLLOW3RD_TRANSPARENT) ? getclient(player1->followplayercn) : NULL;
     if(!h) h = player1;
     if(identexists("onHit"))
     {
-        defformatstring(o)("onHit %d %d %d %d %d", actor->clientnum, pl->clientnum, damage, gun, gib ? 1 : 0);
+        defformatstring(o)("onHit %d %d %d %d %d", actor->clientnum, pl->clientnum, damage, gun, style);
         execute(o);
     }
     if(actor==h && pl!=actor)
     {
-        if( (hitsound == 1 || (hitsound && h != player1) ) && lasthit != lastmillis) audiomgr.playsound(S_HITSOUND, SP_HIGH);
+        if( hitsound && lasthit != lastmillis) audiomgr.playsound(S_HITSOUND, SP_HIGH);
         lasthit = lastmillis;
     }
 
-    damageeffect(damage, pl->o);
-
-    if(local) damage = pl->dodamage(damage, gun);
-    else if(actor==player1) return;
-
-    if(pl==player1)
+    // damage direction/hit push
+    if (pl != actor || gun == GUN_GRENADE || gun == GUN_RPG || pl->o.dist(src) > 4)
     {
-        updatedmgindicator(actor->o);
-        damageblend(damage);
-        pl->damageroll(damage);
-        audiomgr.playsound(S_PAIN6, SP_HIGH);
+        // TODO damage indicator
+        //pl->damagestack.add(damageinfo(src, lastmillis, damage));
+        // push
+        vec dir = pl->o;
+        dir.sub(src).normalize();
+        pl->hitpush(damage, dir, actor, gun);
+        // TODO assists
+        //if(pl->damagelog.find(actor->clientnum) < 0) pl->damagelog.add(actor->clientnum);
     }
-    else audiomgr.playsound(S_PAIN1 + rnd(5), pl);
 
-    if(pl->health<=0) { if(local) dokill(pl, actor, gib, gun >= 0 ? gun : actor->weaponsel->type); }
-    else if(pl==player1) audiomgr.playsound(S_PAIN6, SP_HIGH);
-    else audiomgr.playsound(S_PAIN1+rnd(5), pl);
+    // critical damage
+    if(style & FRAG_CRIT)
+    {
+        // TODO with icons
+        //actor->addicon(eventicon::CRITICAL);
+        //pl->addicon(eventicon::CRITICAL);
+    }
+
+    // roll if you are hit
+    if(pl==player1 || isowned(pl))
+    {
+        pl->damageroll(damage);
+        if(pl==player1) damageblend(damage);
+    }
+
+    // sound
+    if (pl == focus) audiomgr.playsound(S_PAIN6, SP_HIGH);
+    else audiomgr.playsound(S_PAIN1 + rnd(5), pl);
 }
 
 void dokill(playerent *pl, playerent *act, bool gib, int gun)

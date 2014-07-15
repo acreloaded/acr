@@ -406,7 +406,7 @@ extern void changemap(const char *name);
 extern void initclient();
 extern void deathstate(playerent *pl);
 extern void spawnplayer(playerent *d);
-extern void dodamage(int damage, playerent *pl, playerent *actor, int gun = -1, bool gib = false, bool local = true);
+extern void dodamage(int damage, playerent *pl, playerent *actor, int gun, int style, const vec &src);
 extern void dokill(playerent *pl, playerent *act, bool gib = false, int gun = 0);
 extern playerent *newplayerent();
 extern char *getclientmap();

@@ -1549,7 +1549,8 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
     if(damage < INT_MAX)
     {
         actor->state.damage += damage;
-        sendf(-1, 1, "ri7", SV_DAMAGE, target->clientnum, actor->clientnum, gun, damage, ts.armour, ts.health);
+        sendf(-1, 1, "ri8i3", SV_DAMAGE, target->clientnum, actor->clientnum, damage, ts.armour, ts.health, gun, style,
+            (int)(source.x*DMF), (int)(source.y*DMF), (int)(source.z*DMF));
         if(target!=actor)
         {
             checkcombo (target, actor, damage, gun);

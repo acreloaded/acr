@@ -865,33 +865,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             // :for AUTH
 
-            case SV_DAMAGE:
-            {
-                /*
-                case SV_HITPUSH:
-                {
-                    int gun = getint(p), damage = getint(p);
-                    vec dir;
-                    loopk(3) dir[k] = getint(p)/DNF;
-                    player1->hitpush(damage, dir, NULL, gun);
-                    break;
-                }
-                */
-                int tcn = getint(p),
-                    acn = getint(p),
-                    gun = getint(p),
-                    damage = getint(p),
-                    armour = getint(p),
-                    health = getint(p);
-                playerent *target = getclient(tcn), *actor = getclient(acn);
-                if(!target || !actor) break;
-                target->armour = armour;
-                target->health = health;
-                dodamage(damage, target, actor, -1, false, false);
-                actor->pstatdamage[gun]+=damage; //NEW
-                break;
-            }
-
             case SV_POINTS:
             {
                 int count = getint(p);
@@ -932,6 +905,25 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 actor->frags = frags;
                 if(!victim) break;
                 dokill(victim, actor, style & 1, gun);
+                break;
+            }
+
+            case SV_DAMAGE:
+            {
+                int tcn = getint(p),
+                    acn = getint(p),
+                    damage = getint(p),
+                    armour = getint(p),
+                    health = getint(p),
+                    gun = getint(p),
+                    style = getint(p);
+                vec src; loopi(3) src[i] = getint(p)/DMF;
+                playerent *target = getclient(tcn), *actor = getclient(acn);
+                if (!target || !actor) break;
+                target->armour = armour;
+                target->health = health;
+                dodamage(damage, target, actor, gun, style, src);
+                actor->pstatdamage[gun] += damage; //NEW
                 break;
             }
 
