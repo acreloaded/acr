@@ -835,34 +835,91 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, int style, c
     else audiomgr.playsound(S_PAIN1 + rnd(5), pl);
 }
 
-void dokill(playerent *pl, playerent *act, bool gib, int gun)
+void dokill(playerent *pl, playerent *act, int gun, int style, int damage, int combo, float dist)
 {
-    if(pl->state!=CS_ALIVE || intermission) return;
+    if(intermission) return;
 
     if(identexists("onKill"))
     {
-        defformatstring(killevent)("onKill %d %d %d %d", act->clientnum, pl->clientnum, gun, gib ? 1 : 0);
+        defformatstring(killevent)("onKill %d %d %d %d", act->clientnum, pl->clientnum, gun, style);
         execute(killevent);
     }
 
+    const bool headshot = isheadshot(gun, style);
+
+    // add gib
+    if (style & FRAG_GIB) addgib(pl);
+
+    int icon = -1, sound = S_NULL;
+    // sounds/icons, by priority
+    if (style & FRAG_FIRST)
+    {
+        sound = S_FIRSTBLOOD;
+        icon = eventicon::FIRSTBLOOD;
+    }
+    else if (headshot && gun != GUN_SHOTGUN) // shotgun doesn't count as a 'real' headshot
+    {
+        sound = S_HEADSHOT;
+        icon = eventicon::HEADSHOT;
+        pl->addicon(eventicon::DECAPITATED); // both get headshot info icon
+    }
+    else if (style & FRAG_CRIT) icon = eventicon::CRITICAL;
+
+    // dis/play it!
+    if (icon >= 0) act->addicon(icon);
+    if (sound != S_NULL)
+    {
+        audiomgr.playsound(sound, act, act == focus ? SP_HIGHEST : SP_HIGH);
+        if (pl->o.dist(act->o) >= 4)
+            audiomgr.playsound(sound, pl, pl == focus ? SP_HIGHEST : SP_HIGH); // both get sounds if 1 meter apart...
+    }
+
+    // assist checks
+    //pl->damagelog.removeobj(pl->clientnum);
+    //pl->damagelog.removeobj(act->clientnum);
+    //loopv(pl->damagelog) if (!getclient(pl->damagelog[i])) pl->damagelog.remove(i--);
+
     // killfeed
-    // FIXME I'll fix this later along with the kill protocol
-    addobit(act, gun, FRAG_NONE, gib, pl, 1, /*pl->damagelog.length()*/ 0);
+    addobit(act, gun, style, headshot, pl, combo, /*pl->damagelog.length()*/ 0);
 
-    if(pl != act && isteam(pl->team, act->team))
+    // sound
+    audiomgr.playsound(S_DIE1 + rnd(2), pl);
+
+    if (pl == act)
     {
-        act->tks++;
+        // suicide
+        if (pl == focus)
+        {
+            // radar scan if the player suicided
+            loopv(players)
+            {
+                playerent *p = players[i];
+                if (!p || isteam(p, pl)) continue;
+                p->radarmillis = lastmillis + 1000;
+                p->lastloudpos[0] = p->o.x;
+                p->lastloudpos[1] = p->o.y;
+                p->lastloudpos[2] = p->yaw;
+            }
+        }
     }
-
-    if(gib)
+    // deathstreak
+    /*
+    if (pl != act)
     {
-        if(pl!=act && gun == GUN_SNIPER) audiomgr.playsound(S_HEADSHOT, SP_LOW);
-        addgib(pl);
+        ++pl->deathstreak;
+        act->deathstreak = 0;
     }
+    pl->pointstreak = 0;
+    while (pl->damagelog.length())
+    {
+        playerent *p = getclient(pl->damagelog.pop());
+        if (!p) continue;
+        p->pointstreak += isteam(p->team, pl->team) ? -2 : 2;
+    }
+    */
 
+    // death state
     deathstate(pl);
-    pl->deaths++;
-    audiomgr.playsound(S_DIE1+rnd(2), pl);
 }
 
 void pstat_weap(int *cn)

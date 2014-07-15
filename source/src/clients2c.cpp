@@ -899,12 +899,33 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_KILL:
             {
-                int vcn = getint(p), acn = getint(p), frags = getint(p), gun = getint(p), style = getint(p);
+                int vcn = getint(p),
+                    acn = getint(p),
+                    gun = getint(p),
+                    style = getint(p),
+                    damage = getint(p),
+                    combo = getint(p);
+                float killdist = getint(p)/DMF;
+                vec src; loopi(3) src[i] = getint(p)/DMF;
+                const int assists = getint(p);
+                // assists are consumed soon
                 playerent *victim = getclient(vcn), *actor = getclient(acn);
-                if(!actor) break;
-                actor->frags = frags;
-                if(!victim) break;
-                dokill(victim, actor, style & 1, gun);
+                //if (actor) actor->pointstreak = pointstreak;
+                if (victim)
+                {
+                    //victim->damagelog.setsize(0);
+                    //loopi(assists) victim->damagelog.add(getint(p));
+                    loopi(assists) getint(p);
+                }
+                else loopi(assists) getint(p);
+                // assists are consumed
+
+                if (!victim) break;
+                victim->health -= damage;
+                if (!actor) break;
+                dodamage(damage, victim, actor, gun, style, src);
+                //victim->deathcamsrc = src;
+                dokill(victim, actor, gun, style, damage, combo, killdist);
                 break;
             }
 

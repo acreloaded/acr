@@ -1500,7 +1500,8 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
         suic = true;
         logline(ACLOG_INFO, "[%s] %s suicided", actor->gethostname(), actor->name);
     }
-    sendf(-1, 1, "ri6", SV_KILL, target->clientnum, actor->clientnum, actor->state.frags, gun, style);
+    sendf(-1, 1, "ri8i3iv", SV_KILL, target->clientnum, actor->clientnum, gun, style, damage, 1,
+        (int)(source.x*DMF), (int)(source.y*DMF), (int)(source.z*DMF), (int)(killdist*DMF), 0, 0, NULL);
     target->position.setsize(0);
     ts.state = CS_DEAD;
     ts.lastdeath = gamemillis;
