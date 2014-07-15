@@ -73,6 +73,9 @@ enum
     S_HEARTBEAT,
     S_KTFSCORE,
     S_FIRSTBLOOD,
+    S_BOLT,
+    S_RBOLT,
+    S_HEAL,
     S_SWORD,
     S_RPG,
     S_RRPG, // unused--reserved

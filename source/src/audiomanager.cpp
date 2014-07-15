@@ -207,9 +207,11 @@ int audiomanager::addsound(char *name, int vol, int maxuses, bool loop, vector<s
     if(nosound) return -1;
     if(!soundvol) return -1;
 
+    /*
     // check if the sound was already registered
     int index = findsound(name, vol, sounds);
     if(index > -1) return index;
+    */
 
     sbuffer *b = bufferpool.find(name);
     if(!b)
