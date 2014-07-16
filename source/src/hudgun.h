@@ -138,5 +138,6 @@ void preload_hudguns()
         defformatstring(path)("weapons/%s", identexists(widn)?getalias(widn):guns[i].modelname);
         loadmodel(path);
     }
+    loadmodel(identexists("modmdlweapshell") ? getalias("modmdlweapshell") : "weapons/shell");
 }
 

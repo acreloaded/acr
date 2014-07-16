@@ -316,6 +316,8 @@ void clearbounceents()
     loopv(bounceents) if(bounceents[i]) { delete bounceents[i]; bounceents.remove(i--); }
 }
 
+FVARP(shellsize, 0, 0.3f, 1);
+
 void renderbounceents()
 {
     loopv(bounceents)
@@ -338,6 +340,20 @@ void renderbounceents()
                 else
                 copystring(model, "weapons/grenade/static");
                 break;
+            case BT_SHELL:
+            {
+                copystring(model, "weapons/shell");
+                scale = shellsize;
+                int t = lastmillis - p->millis;
+                if (t>p->timetolive - 2000)
+                {
+                    anim = ANIM_DECAY;
+                    basetime = p->millis + p->timetolive - 2000;
+                    t -= p->timetolive - 2000;
+                    o.z -= t*t / 4000000000.0f*t;
+                }
+                break;
+            }
             case BT_GIB:
             default:
             {
@@ -362,7 +378,9 @@ void renderbounceents()
             }
         }
         path(model);
+        if (p->bouncetype == BT_SHELL) sethudgunperspective(true);
         rendermodel(model, anim|ANIM_LOOP|ANIM_DYNALLOC, 0, PLAYERRADIUS, o, p->yaw+90, p->pitch, 0, basetime, NULL, NULL, scale);
+        if (p->bouncetype == BT_SHELL) sethudgunperspective(false);
     }
 }
 
@@ -942,7 +960,7 @@ bool gun::attack(vec &targ)
     attackevent(owner, type);
 
     attacksound();
-    //attackshell(to); // TODO
+    attackshell(to);
 
     gunwait = info.attackdelay;
     mag--;
@@ -950,6 +968,47 @@ bool gun::attack(vec &targ)
     sendshoot(to);
 
     return true;
+}
+
+VARP(shellttl, 0, 4000, 20000);
+
+void gun::attackshell(const vec &to)
+{
+    extern int hudgun;
+    if (!shellttl || (owner == focus && !hudgun)) return;
+    bounceent *s = bounceents.add(new bounceent);
+    s->owner = owner;
+    s->millis = lastmillis;
+    s->timetolive = gibttl;
+    s->bouncetype = BT_SHELL;
+
+    const bool akimboflip = (type != GUN_AKIMBO || !((akimbo *)this)->akimboside) ^ righthanded;
+    s->vel = vec(1, rnd(101) / 800.f - .1f, (rnd(51) + 50) / 100.f);
+    s->vel.rotate_around_z(owner->yaw*RAD);
+    if (owner->eject.x >= 0)
+        s->o = owner->eject;
+    else
+    {
+        // "fake" shell position
+        s->o = owner->o;
+        s->o.add(vec(s->vel.x * owner->radius, s->vel.y * owner->radius, -WEAPONBELOWEYE));
+    }
+    s->vel.mul(.02f * (rnd(3) + 5));
+    if (akimboflip) s->vel.rotate_around_z(180 * RAD);
+    vec ownervel = owner->vel;
+    ownervel.mul(0.6f); // tweaked until it "felt right"
+    ownervel.z *= 0.3f; // tweaked until it "felt right"
+    s->vel.add(ownervel);
+    s->inwater = hdr.waterlevel > owner->o.z;
+    s->cancollide = false;
+
+    s->yaw = owner->yaw + 180;
+    s->pitch = -owner->pitch;
+
+    s->maxspeed = 30.f;
+    s->rotspeed = 3.f;
+
+    s->resetinterp();
 }
 
 void gun::attackfx(const vec &from, const vec &to, int millis)
@@ -961,7 +1020,7 @@ void gun::attackfx(const vec &from, const vec &to, int millis)
     if ((millis & 1) && owner != player1 && !isowned(owner))
     {
         attacksound();
-        //attackshell(to);
+        attackshell(to);
     }
 }
 
@@ -990,7 +1049,7 @@ void shotgun::attackfx(const vec &from, const vec &to, int millis)
                 addbullethole(owner, from, sg[i], 0, false);
             }
         adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
-        //attackshell(to);
+        attackshell(to);
         if (owner != player1 && !isowned(owner))
             attacksound();
     }
@@ -1075,7 +1134,7 @@ void scopedprimary::attackfx(const vec &from2, const vec &to, int millis)
         if (owner->muzzle.x >= 0)
             from = owner->muzzle;
         else from.z -= WEAPONBELOWEYE;
-        //attackshell(to);
+        attackshell(to);
         if (owner != player1 && !isowned(owner)) attacksound();
     }
 

@@ -5914,6 +5914,14 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <value token="V" description="Enable/Disable blood" minValue="0" maxValue="1" defaultValue="1"/>
         </variable>
 
+        <variable name="shellttl">
+          <value token="V" description="" minValue="0" maxValue="20000" defaultValue="4000"/>
+        </variable>
+
+        <variable name="shellsize">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0.3"/>
+        </variable>
+
         <variable name="gib">
           <description>Enables or disables the gib animation entirely.</description>
           <value token="B" description="off OR on" minValue="0" maxValue="1" defaultValue="1" valueNotes="0 (false), 1 (true)"/>
