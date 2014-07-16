@@ -48,7 +48,16 @@ struct weaponmove
             basetime = p->weaponsel->reloading;
             float reloadtime = (float)p->weaponsel->info.reloadtime,
                   progress = clamp((lastmillis - p->weaponsel->reloading)/reloadtime, 0.0f, clamp(1.0f - (p->lastaction + p->weaponsel->gunwait - lastmillis)/reloadtime, 0.5f, 1.0f));
-            k_rot = -90*sinf(progress*M_PI);
+            // only use the cheap "aim down" hack for akimbo
+            if (p->weaponsel->type == GUN_AKIMBO)
+            {
+                progress -= .4f;
+                if (progress > 0)
+                {
+                    progress /= .6f;
+                    k_rot = -90 * sinf(progress*M_PI);
+                }
+            }
         }
         else
         {
