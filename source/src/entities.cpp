@@ -422,22 +422,38 @@ void setspawn(int i, bool on)
 extern bool sendloadout;
 VARFP(nextprimary, 0, GUN_ASSAULT, NUMGUNS - 1,
 {
-    player1->nextprimary = nextprimary;
+    if (player1->nextprimary != nextprimary)
+    {
+        player1->nextprimary = nextprimary;
+        conoutf("Selected next primary: %s", killname(nextprimary, FRAG_NONE));
+    }
     sendloadout = true;
 });
 VARFP(nextsecondary, 0, GUN_PISTOL, NUMGUNS - 1,
 {
-    player1->nextsecondary = nextsecondary;
+    if (player1->nextsecondary != nextsecondary)
+    {
+        player1->nextsecondary = nextsecondary;
+        conoutf("Selected next secondary: %s", killname(nextsecondary, FRAG_NONE));
+    }
     sendloadout = true;
 });
 VARFP(nextperk1, PERK1_NONE, PERK1_NONE, PERK1_MAX - 1,
 {
-    player1->nextperk1 = nextperk1;
+    if (player1->nextperk1 != nextperk1)
+    {
+        player1->nextperk1 = nextperk1;
+        conoutf("Selected next perk 1: %d", nextperk1);
+    }
     sendloadout = true;
 });
 VARFP(nextperk2, PERK2_NONE, PERK2_NONE, PERK2_MAX - 1,
 {
-    player1->nextperk2 = nextperk2;
+    if (player1->nextperk2 != nextperk2)
+    {
+        player1->nextperk2 = nextperk2;
+        conoutf("Selected next perk 2: %d", nextperk2);
+    }
     sendloadout = true;
 });
 
