@@ -171,6 +171,7 @@ COMMANDN(weapon, requestweapon, "i");
 COMMAND(shiftweapon, "i");
 COMMAND(quicknadethrow, "d");
 COMMAND(currentprimary, "");
+COMMAND(currentsecondary, "");
 COMMAND(prevweapon, "");
 COMMAND(curweapon, "");
 COMMAND(magcontent, "i");
