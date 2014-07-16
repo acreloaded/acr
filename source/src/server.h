@@ -537,22 +537,22 @@ guninfo guns[NUMGUNS] =
     //mKR: mdl_kick_rot && mKB: mdl_kick_back
     //reI: recoilincrease && reB: recoilbase && reM: maxrecoil && reF: recoilbackfade && reA: recoilangle
     //pFX: pushfactor
-    // modelname                reload     attackdelay    range rangesub    spread      kick magsize   mKB      reB     reF     pFX
-    //             sound             reloadtime     damage  endrange piercing spreadrem  addsize    mKR    reI      reM      reA    isauto
-    { "knife",    S_KNIFE,    S_ITEMAMMO,     0,  500, 80,   4,   5, 72, 100,   1,   0,   1,  0,  1, 0, 0,  0,   0,  0, 100,  0, 3, true },
-    { "pistol",   S_PISTOL,   S_RPISTOL,   1400,   90, 32,  24,  90,  8,   0,  90,  90,   9, 12, 13, 6, 2, 32,   5, 48, 100, 70, 1, false },
-    { "shotgun",  S_SHOTGUN,  S_RSHOTGUN,   750,  200, 10,   6,  16,  7,   0, 190,   9,  12,  1,  6, 9, 5, 60,  25, 75, 100,  5, 2, false },
-    { "subgun",   S_SUBGUN,   S_RSUBGUN,   2400,   67, 35,  20,  64, 20,   0,  70,  93,   4, 32, 33, 1, 3, 27,  15, 55, 100, 65, 1, true },
-    { "sniper",   S_SNIPER,   S_RSNIPER,   2000,  120, 45,  70, 110,  9,   0, 235,  96,  14, 20, 21, 4, 4, 59,  23, 68, 100, 75, 2, false },
-    { "assault",  S_ASSAULT,  S_RASSAULT,  2100,   73, 28,  45,  92,  9,   0,  65,  95,   3, 30, 31, 0, 3, 25,   5, 42, 100, 60, 1, true },
-    { "grenade",  S_NULL,     S_NULL,      1000,  650, 220,  0,  55, 27,   0,   1,   0,   1,  0,  1, 3, 1,  0,   0,  0, 100,  0, 3, false },
-    { "pistol",   S_PISTOL,   S_RAKIMBO,   1400,   80, 32,  30,  90,  8,   0,  60,   0,   8, 24, 26, 6, 2, 28,   8, 49, 100, 72, 2, true },
-    { "bolt",     S_BOLT,     S_RBOLT,     2000, 1500, 120, 80, 130, 48,  40, 250,  97,  36,  8,  9, 4, 4, 86,  45, 90, 100, 80, 3, false },
-    { "heal",     S_HEAL,     S_NULL,      1200,  100, 20,   4,   8, 10,   0,  50,   1,   1, 10, 11, 0, 0, 10,   0, 20, 100,  8, 4, true },
-    { "sword",    S_SWORD,    S_NULL,         0,  480, 90,   7,   9, 81, 100,   1,   0,   1,  0,  1, 0, 2,  0,   0,  0, 100,  0, 0, true },
-    { "rpg",      S_RPG,      S_NULL,      2000,  120, 190,  0,  32, 18,  50, 200,  75,   3,  1,  1, 3, 1, 48,  40, 90, 100,  0, 2, false },
-    { "assault2", S_ASSAULT2, S_RASSAULT2, 2000,  100, 42,  48, 120, 12,   0, 150,  94,   3, 30, 31, 0, 3, 30,  10, 50, 100, 62, 1, true },
-    { "sniper2",  S_SNIPER2,  S_RSNIPER2,  2000,  120, 110, 75, 120, 45,  35, 300,  98, 120, 10, 11, 4, 4, 95,  35, 96, 100, 85, 5, false },
+    // modelname                reload     attackdelay    range rangesub    spread      kick magsize   mKB      reB      reF     pFX
+    //             sound             reloadtime     damage  endrange piercing spreadrem  addsize    mKR    reI       reM      reA    isauto
+    { "knife",    S_KNIFE,    S_ITEMAMMO,     0,  500, 80,   4,   5, 72, 100,   1,   0,   1,  0,  1, 0, 0,  0,   0,   0, 100,  0, 3, true },
+    { "pistol",   S_PISTOL,   S_RPISTOL,   1400,   90, 32,  24,  90,  8,   0,  90,  90,   9, 12, 13, 6, 2, 32,  10,  60, 100, 70, 1, false },
+    { "shotgun",  S_SHOTGUN,  S_RSHOTGUN,   750,  200, 10,   6,  16,  7,   0, 190,   9,  12,  1,  6, 9, 5, 60,  25, 150, 100,  5, 2, false },
+    { "subgun",   S_SUBGUN,   S_RSUBGUN,   2400,   67, 35,  20,  64, 20,   0,  70,  93,   4, 32, 33, 1, 3, 27,  15,  95, 100, 65, 1, true },
+    { "sniper",   S_SNIPER,   S_RSNIPER,   2000,  120, 45,  70, 110,  9,   0, 235,  96,  14, 20, 21, 4, 4, 59,  23, 120, 100, 75, 2, false },
+    { "assault",  S_ASSAULT,  S_RASSAULT,  2100,   73, 28,  45,  92,  9,   0,  65,  95,   3, 30, 31, 0, 3, 25,  15,  80, 100, 60, 1, true },
+    { "grenade",  S_NULL,     S_NULL,      1000,  650, 220,  0,  55, 27,   0,   1,   0,   1,  0,  1, 3, 1,  0,   0,   0, 100,  0, 3, false },
+    { "pistol",   S_PISTOL,   S_RAKIMBO,   1400,   80, 32,  30,  90,  8,   0,  60,   0,   8, 24, 26, 6, 2, 28,  15,  80, 100, 72, 2, true },
+    { "bolt",     S_BOLT,     S_RBOLT,     2000, 1500, 120, 80, 130, 48,  40, 250,  97,  36,  8,  9, 4, 4, 86,  45, 175, 100, 80, 3, false },
+    { "heal",     S_HEAL,     S_NULL,      1200,  100, 20,   4,   8, 10,   0,  50,   1,   1, 10, 11, 0, 0, 10,   0,  20, 100,  8, 4, true },
+    { "sword",    S_SWORD,    S_NULL,         0,  480, 90,   7,   9, 81, 100,   1,   0,   1,  0,  1, 0, 2,  0,   0,   0, 100,  0, 0, true },
+    { "rpg",      S_RPG,      S_NULL,      2000,  120, 190,  0,  32, 18,  50, 200,  75,   3,  1,  1, 3, 1, 48,  40, 200, 100,  0, 2, false },
+    { "assault2", S_ASSAULT2, S_RASSAULT2, 2000,  100, 42,  48, 120, 12,   0, 150,  94,   3, 30, 31, 0, 3, 30,  20, 125, 100, 62, 1, true },
+    { "sniper2",  S_SNIPER2,  S_RSNIPER2,  2000,  120, 110, 75, 120, 45,  35, 300,  98, 120, 10, 11, 4, 4, 95,  35, 160, 100, 85, 5, false },
 };
 
 const mul muls[MUL_NUM] =

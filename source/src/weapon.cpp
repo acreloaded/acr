@@ -561,7 +561,8 @@ void weapon::attackphysics(const vec &from, const vec &to) // physical fx to the
     owner->vel.add(vec(unitv).mul(dynrecoil()*-0.01f / dist * owner->eyeheight / owner->maxeyeheight));
     // recoil
     const guninfo &g = info;
-    owner->pitchvel += min(powf(shots/(float)(g.recoilincrease), 2.0f)+(float)(g.recoilbase)/10.0f, (float)(g.maxrecoil)/10.0f);
+    if (g.isauto) owner->pitchvel = min(powf(shots/(float)(g.recoilincrease), 2.0f)+(float)(g.recoilbase)/10.0f, (float)(g.maxrecoil)/10.0f);
+    else owner->pitchvel += min((powf(shots*(float)(g.recoilincrease), 2.0f)+(float)(g.recoilbase))/10.0f, (float)(g.maxrecoil)/10.0f);
     // TODO add recoil angle?
 }
 
