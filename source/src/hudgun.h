@@ -37,7 +37,8 @@ struct weaponmove
 
         if(p->weaponchanging)
         {
-            anim = ANIM_GUN_RELOAD;
+            //anim = ANIM_GUN_RELOAD;
+            anim = ANIM_GUN_IDLE;
             basetime = p->weaponchanging;
             float progress = clamp((lastmillis - p->weaponchanging) / (float)SWITCHTIME(p->perk1 == PERK_TIME), 0.0f, 1.0f);
             k_rot = -90*sinf(progress*M_PI);
@@ -76,7 +77,7 @@ struct weaponmove
                 // f(x) = -sin(x-1.5)^3
                 kick = -sinf(pow((1.5f*progress)-1.5f,3));
                 kick *= p->eyeheight / p->maxeyeheight;
-                if(p->lastaction) anim = p->weaponsel->modelanim();
+                if (p->lastaction || p->weaponsel->type == GUN_RPG) anim = p->weaponsel->modelanim();
             }
 
             if(p->weaponsel->info.mdl_kick_rot || p->weaponsel->info.mdl_kick_back)
