@@ -561,8 +561,8 @@ void weapon::attackphysics(const vec &from, const vec &to) // physical fx to the
     owner->vel.add(vec(unitv).mul(dynrecoil()*-0.01f / dist * owner->eyeheight / owner->maxeyeheight));
     // recoil
     const guninfo &g = info;
-    owner->pitchvel = min(powf(shots/(float)(g.recoilincrease), 2.0f)+(float)(g.recoilbase)/10.0f, (float)(g.maxrecoil)/10.0f);
-    // FIXME backport from ACR
+    owner->pitchvel += min(powf(shots/(float)(g.recoilincrease), 2.0f)+(float)(g.recoilbase)/10.0f, (float)(g.maxrecoil)/10.0f);
+    // TODO add recoil angle?
 }
 
 void weapon::attackhit(const vec &o)
@@ -1083,18 +1083,6 @@ void scopedprimary::attackfx(const vec &from2, const vec &to, int millis)
     particle_splash(PART_SPARK, 50, 200, to);
     particle_trail(PART_SMOKE, 500, from, to);
     adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
-}
-
-void scopedprimary::attackphysics(const vec &from, const vec &to) // physical fx to the owner
-{
-    vec unitv;
-    float dist = to.dist(from, unitv);
-    // kickback
-    owner->vel.add(vec(unitv).mul(dynrecoil()*-0.01f / dist * owner->eyeheight / owner->maxeyeheight));
-    // recoil
-    const guninfo &g = info;
-    owner->pitchvel += max(powf(shots/(float)(g.recoilincrease), 2.0f)+(float)(g.recoilbase)/10.0f, (float)(g.maxrecoil)/10.0f);
-    // FIXME backport from ACR
 }
 
 float scopedprimary::dynrecoil() { return weapon::dynrecoil() * (1 - owner->zoomed / 3.f); } // 1/2 * 2/3 = 1/3 recoil when ADS

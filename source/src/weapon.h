@@ -215,7 +215,6 @@ struct scopedprimary : gun
 #define ADSZOOM .85f
     scopedprimary(playerent *owner, int type) : gun(owner, type) {}
     void attackfx(const vec &from, const vec &to, int millis);
-    void attackphysics(const vec &from, const vec &to);
 
     float dynrecoil();
     void renderhudmodel();
