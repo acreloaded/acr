@@ -773,7 +773,6 @@ bool grenades::busy() { return state!=GST_NONE; }
 bool grenades::attack(vec &targ)
 {
     int attackmillis = lastmillis-owner->lastaction;
-    vec &to = targ;
 
     bool quickwait = attackmillis*3>=gunwait && !(m_duke(gamemode, mutators) && m_team(gamemode, mutators) && arenaintermission);
     bool waitdone = attackmillis>=gunwait && quickwait;
@@ -1007,7 +1006,7 @@ void gun::attackshell(const vec &to)
     s->timetolive = gibttl;
     s->bouncetype = BT_SHELL;
 
-    const bool akimboflip = (type != GUN_AKIMBO || !((akimbo *)this)->akimboside) ^ righthanded;
+    const bool akimboflip = (type != GUN_AKIMBO || ((akimbo *)this)->akimboside == 0) != righthanded;
     s->vel = vec(1, rnd(101) / 800.f - .1f, (rnd(51) + 50) / 100.f);
     s->vel.rotate_around_z(owner->yaw*RAD);
     if (owner->eject.x >= 0)

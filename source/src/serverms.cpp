@@ -44,7 +44,7 @@ void disconnectmaster()
 ENetSocket connectmaster()
 {
     if(!mastername[0]) return ENET_SOCKET_NULL;
-    extern servercommandline scl;
+    //extern servercommandline scl;
 
     if(masteraddress.host == ENET_HOST_ANY)
     {

@@ -695,7 +695,7 @@ public:
         lastaction = 0;
         lastattackweapon = NULL;
         attacking = false;
-        extern int lastmillis;
+        //extern int lastmillis;
         weaponchanging = 0; // spawnkill is bad though // lastmillis - weapons[gunselect]->weaponchangetime / 2; // 2011jan16:ft: for a little no-shoot after spawn
         resetspec();
         eardamagemillis = 0;
