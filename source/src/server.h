@@ -120,7 +120,7 @@ struct clientstate : playerstate
     int lastshot;
     projectilestate<6> grenades; // 5000ms TLL / (we can throw one every 650ms+200ms) = 6 nades possible
     projectilestate<3> knives;
-    int akimbomillis, crouchmillis, scopemillis, drownmillis;
+    int akimbomillis, crouchmillis, scopemillis, drownmillis, drownval;
     bool scoped, crouching, onfloor; float fallz;
     int flagscore, frags, teamkills, deaths, shotdamage, damage, points, events, lastdisc, reconnections;
 
@@ -167,7 +167,7 @@ struct clientstate : playerstate
         lastdeath = 0;
         spawn = 0;
         lastshot = 0;
-        akimbomillis = crouchmillis = scopemillis = drownmillis = 0;
+        akimbomillis = crouchmillis = scopemillis = drownmillis = drownval = 0;
         scoped = crouching = onfloor = false;
         fallz = -1e10f;
     }

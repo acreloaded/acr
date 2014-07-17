@@ -247,7 +247,6 @@ void processevents()
         // drown, bleed, regen
         if(cs.state == CS_ALIVE)
         {
-            /*
             // drown underwater
             if(cs.o.z < smapstats.hdr.waterlevel)
             {
@@ -261,12 +260,13 @@ void processevents()
                 while(cs.drownval < drownstate)
                 {
                     ++cs.drownval;
-                    serverdamage(&c, &c, (m_classic(gamemode, mutators) ? 5 : (cs.drownval + 10)) * HEALTHSCALE, WEAP_MAX + 13, FRAG_NONE, cs.o);
+                    serverdamage(&c, &c, (m_classic(gamemode, mutators) ? 5 : (cs.drownval + 10)) * HEALTHSCALE, OBIT_DROWN, FRAG_NONE, cs.o);
                     if(cs.state != CS_ALIVE) break; // dead!
                 }
             }
             else if(cs.drownmillis > 0)
                 cs.drownmillis = -cs.drownmillis; // save partial drowning
+            /*
             // bleeding--oh no!
             if(cs.wounds.length())
             {
