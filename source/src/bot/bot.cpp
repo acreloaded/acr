@@ -117,6 +117,8 @@ void CBot::Spawn()
 
      m_vGoal = m_vWaterGoal = g_vecZero;
 
+     loopi(NUMGUNS) m_pMyEnt->mag[i] = magsize(i);
+
      ResetWaypointVars();
 }
 

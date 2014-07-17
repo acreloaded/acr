@@ -672,7 +672,8 @@ bool CBot::CheckFire(vec &o){
 
     // angle between these two directions
     flDot = target.dot(dir);
-    if(flDot/float(target.magnitude() * dir.magnitude()) > .99f) return;
+    if(flDot/float(target.magnitude() * dir.magnitude()) > .999f) return true;
+    return false;
 }
 
 void CBot::ShootEnemy()

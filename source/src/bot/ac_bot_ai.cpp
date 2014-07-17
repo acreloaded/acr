@@ -83,9 +83,9 @@ bool CACBot::ChoosePreferredWeapon()
         float flIdealDiff = fabs(flDist - flAvarage);
 
         if (flIdealDiff < 0.5f) // Close to ideal distance
-            sWeaponScore += 4;
+            sWeaponScore += 6;
         else if (flIdealDiff <= 1.0f)
-            sWeaponScore += 2;
+            sWeaponScore += 3;
 
         // Now rate the weapon on available ammo...
         if (WeaponInfoTable[i].sMinDesiredAmmo > 0)
@@ -111,16 +111,10 @@ bool CACBot::ChoosePreferredWeapon()
         }
     }
 
-    if(lastmillis > m_iChangeWeaponDelay)
-    {
-        SelectGun(bestWeapon);
-    }
+    if(lastmillis > m_iChangeWeaponDelay) SelectGun(bestWeapon);
 
-    if (WeaponInfoTable[m_pMyEnt->gunselect].eWeaponType == TYPE_ROCKET)
-    {
-        m_bShootAtFeet = true;
+    if (WeaponInfoTable[m_pMyEnt->gunselect].eWeaponType == TYPE_ROCKET) m_bShootAtFeet = true;
 
-    }
     return true;
 };
 
