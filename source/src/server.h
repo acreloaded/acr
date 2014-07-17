@@ -460,6 +460,8 @@ int numclients();
 bool updateclientteam(int cln, int newteam, int ftr);
 void forcedeath(client *cl);
 void sendf(int cn, int chan, const char *format, ...);
+void serverdied(client *target, client *actor, int damage, int gun, int style, const vec &source, float killdist = 0);
+void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source, float dist = 0);
 int explosion(client &owner, const vec &o2, int weap, bool teamcheck, bool gib = true, client *cflag = NULL);
 
 extern bool isdedicated;

@@ -1476,7 +1476,7 @@ void checkitemspawns(int diff)
     }
 }
 
-void serverdied(client *target, client *actor, int damage, int gun, int style, const vec &source, float killdist = 0)
+void serverdied(client *target, client *actor, int damage, int gun, int style, const vec &source, float killdist)
 {
     clientstate &ts = target->state;
 
@@ -1542,7 +1542,7 @@ void client::suicide(int gun, int style)
         serverdied(this, this, 0, gun, style, state.o);
 }
 
-void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source, float dist = 0)
+void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source, float dist)
 {
     if ( m_duke(gamemode, mutators) && gun == GUN_GRENADE && arenaroundstartmillis + 2000 > gamemillis && target != actor ) return;
     clientstate &ts = target->state;
