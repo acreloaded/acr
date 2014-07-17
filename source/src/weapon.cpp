@@ -844,7 +844,7 @@ void grenades::attackhit(const vec &o)
             t.add(o);
             traceShot(o, t);
             addshotline(owner, o, t, 2);
-            particle_splash(0, 8, 250, t);
+            particle_splash(PART_SPARK, 8, 250, t);
         }
     }
     if (owner == player1)
