@@ -42,9 +42,9 @@
 #ifndef BOT_H
 #define BOT_H
 
-#ifndef _DEBUG
-    #define RELEASE_BUILD _DEBUG // Set when you want to make a release build
-#endif
+
+#define RELEASE_BUILD _DEBUG // Set when you want to make a release build
+
 
 
 // Set for which mod the code is
@@ -244,6 +244,7 @@ public:
      void CheckWeaponSwitch(void); // 2011jan17:ft: fix non-shooting bots
      void CheckScope(void);
      void ShootEnemy(void);
+     bool CheckFire(vec &o);
      bool CheckHunt(void);
      bool HuntEnemy(void);
      void DoCombatNav(void);

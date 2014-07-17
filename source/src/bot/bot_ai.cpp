@@ -657,6 +657,24 @@ void CBot::CheckWeaponSwitch()
     }
 }
 
+bool CBot::CheckFire(vec &o){
+    vec target, dir, forward, right, up;
+    float flDot, flAngle;
+
+    AnglesToVectors(GetViewAngles(), forward, right, up);
+
+    // direction the bot is aiming at
+    dir = forward;
+
+    // ideal direction
+    target = o;
+    target.sub(m_pMyEnt->o);
+
+    // angle between these two directions
+    flDot = target.dot(dir);
+    if(flDot/float(target.magnitude() * dir.magnitude()) > .99f) return;
+}
+
 void CBot::ShootEnemy()
 {
     if(!m_pMyEnt->enemy) return;
@@ -667,6 +685,17 @@ void CBot::ShootEnemy()
     // Aim to enemy
     vec enemypos = GetEnemyPos(m_pMyEnt->enemy);
     AimToVec(enemypos);
+
+    playerent *d = NULL;
+    loopv(players) {
+        d = players[i];
+        if(d && isteam(d->team, m_pMyEnt->team) && (d->state == CS_ALIVE)
+             && IsVisible(d) && CheckFire(d->o)) return;
+    }
+    d = player1;
+    if(d && isteam(d->team, m_pMyEnt->team) && (d->state == CS_ALIVE)
+         && IsVisible(d) && CheckFire(d->o)) return;
+
 
     // Time to shoot?
     if (m_iShootDelay < lastmillis)
