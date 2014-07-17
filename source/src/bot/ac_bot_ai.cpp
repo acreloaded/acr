@@ -25,7 +25,7 @@ weaponinfo_s WeaponInfoTable[NUMGUNS] =
     { TYPE_AUTO,       0.0f,   25.0f,   0.0f,   60.0f,   5 }, // SUBGUN
     { TYPE_SNIPER,    30.0f,   50.0f,   0.0f,  200.0f,   3 }, // SNIPER
     { TYPE_AUTO,       0.0f,   25.0f,   0.0f,   60.0f,   5 }, // ASSAULT
-    { TYPE_GRENADE,   30.0f,   25.0f,   0.0f,   50.0f,   1 }, // GRENADE
+    { TYPE_GRENADE,   30.0f,   85.0f,   0.0f,  100.0f,   1 }, // GRENADE
     { TYPE_NORMAL,     0.0f,   20.0f,   0.0f,   50.0f,   3 }, // AKIMBO
     { TYPE_SNIPER,    30.0f,   50.0f,   0.0f,  200.0f,   2 }, // BOLT
     { TYPE_AUTO,      40.0f,   80.0f,   0.0f,  150.0f,   3 }, // HEAL
@@ -64,14 +64,14 @@ bool CACBot::ChoosePreferredWeapon()
                 {
                     sWeaponScore += 10; // At a close range, knife & pistol are strong with a sniper like primary weapon
                 }
-                if(WeaponInfoTable[i].eWeaponType == TYPE_MELEE && WeaponInfoTable[m_pMyEnt->primary].eWeaponType == TYPE_SHOTGUN)
+                if(WeaponInfoTable[m_pMyEnt->primary].eWeaponType == TYPE_SHOTGUN)
                 {
                     sWeaponScore -= 2; // Penalize a bit knife on close range with shotgun
                 }
             }
         }
-        else if ((flDist < WeaponInfoTable[i].flMinFireDistance) ||
-                (flDist > WeaponInfoTable[i].flMaxFireDistance))
+        else if (((flDist < WeaponInfoTable[i].flMinFireDistance) ||
+                (flDist > WeaponInfoTable[i].flMaxFireDistance)) && i != GUN_GRENADE && i != GUN_RPG)
             continue; // Wrong distance for this weapon
 
         if(i == GUN_GRENADE) sWeaponScore += 30; // Nades have high priority
@@ -102,7 +102,7 @@ bool CACBot::ChoosePreferredWeapon()
             else if (flDesiredPercent >= 100.0f)
                 sWeaponScore += 1;
         }
-        else sWeaponScore += 10; // Not needing ammo is an advantage...
+        else sWeaponScore += 5; // Not needing ammo is an advantage...
 
         if(sWeaponScore > bestWeaponScore)
         {
@@ -111,14 +111,15 @@ bool CACBot::ChoosePreferredWeapon()
         }
     }
 
+    if(lastmillis > m_iChangeWeaponDelay)
+    {
+        SelectGun(bestWeapon);
+    }
+
     if (WeaponInfoTable[m_pMyEnt->gunselect].eWeaponType == TYPE_ROCKET)
     {
         m_bShootAtFeet = true;
 
-    }
-    if(lastmillis > m_iChangeWeaponDelay)
-    {
-        SelectGun(bestWeapon);
     }
     return true;
 };

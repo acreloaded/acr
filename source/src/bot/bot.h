@@ -42,7 +42,9 @@
 #ifndef BOT_H
 #define BOT_H
 
-#define RELEASE_BUILD _DEBUG // Set when you want to make a release build
+#ifndef _DEBUG
+    #define RELEASE_BUILD _DEBUG // Set when you want to make a release build
+#endif
 
 
 // Set for which mod the code is
