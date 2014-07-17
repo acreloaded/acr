@@ -58,12 +58,12 @@ void shotevent::process(client *ci)
     const float spreadf = to.dist(from) / 1000.f, crouchfactor = cs.crouchfactor(gamemillis);
     from.z += PLAYERHEIGHT * crouchfactor; // both use 75% to 100%
     const int zoomtime = ADSTIME(cs.perk2 == PERK_TIME);
-    float adsfactor = 1 - float(cs.scoping ? min(gamemillis - cs.scopemillis, zoomtime) : zoomtime - min(gamemillis - cs.scopemillis, zoomtime)) * /*guns[weap].spreadrem*/ 100 / 100 / zoomtime;
+    float adsfactor = 1 - float(cs.scoping ? min(gamemillis - cs.scopemillis, zoomtime) : zoomtime - min(gamemillis - cs.scopemillis, zoomtime)) * guns[weap].spreadrem / 100 / zoomtime;
     if (weap == GUN_SHOTGUN)
     {
         // apply shotgun spread
         if (m_classic(gamemode, mutators)) adsfactor *= .75f;
-        if (spreadf*adsfactor) loopi(SGRAYS)
+        loopi(SGRAYS)
         {
             cs.sg[i] = to;
             applyspread(from, cs.sg[i], guns[weap].spread, (cs.perk2 == PERK2_STEADY ? .65f : 1)*spreadf*adsfactor);
