@@ -273,7 +273,6 @@ extern void damageblend(int n);
 enum
 {
     CROSSHAIR_DEFAULT = 0,
-    CROSSHAIR_TEAMMATE,
     CROSSHAIR_SCOPE,
     CROSSHAIR_SHOTGUN,
     CROSSHAIR_V, CROSSHAIR_H,
@@ -282,7 +281,7 @@ enum
     CROSSHAIR_NUM,
 };
 
-extern void drawcrosshair(playerent *p, int n, struct color *c = NULL, float size = -1.0f);
+extern void drawcrosshair(playerent *p, int n, int teamtype);
 
 // shadow
 extern bool addshadowbox(const vec &bbmin, const vec &bbmax, const vec &extrude, const glmatrixf &mat);

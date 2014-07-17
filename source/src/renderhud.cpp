@@ -81,14 +81,17 @@ VARP(crosshairteamsign, 0, 1, 1);
 VARP(hideradar, 0, 0, 1);
 VARP(hidecompass, 0, 0, 1);
 VARP(hideteam, 0, 0, 1);
-VARP(hidectfhud, 0, 0, 1);
+VARP(hidectfhud, 0, 0, 1); // hardcore doesn't override
 VARP(hidevote, 0, 0, 2);
 VARP(hidehudmsgs, 0, 0, 1);
-VARP(hidehudequipment, 0, 0, 1);
+VARP(hidehudequipment, 0, 0, 1); // TODO hardcore
 VARP(hideconsole, 0, 0, 1);
 VARP(hideobits, 0, 0, 1);
-VARP(hidespecthud, 0, 0, 1);
+VARP(hidespecthud, 0, 0, 1); // hardcore doesn't override
+VARP(hidehardcore, 0, 2, 6);
 VAR(showmap, 0, 0, 1);
+#define show_hud_element(setting, hardcorelevel) (setting && (!m_real(gamemode, mutators) || hidehardcore < hardcorelevel))
+#define hud_must_not_override(setting) setting // this is purely a decorator
 
 
 //shotty::
@@ -241,7 +244,7 @@ void drawscope(bool preload)
     glEnable(GL_BLEND);
 }
 
-const char *crosshairnames[CROSSHAIR_NUM] = { "default", "teammate", "scope", "shotgun", "v", "h", "hit", "reddot" };
+const char *crosshairnames[CROSSHAIR_NUM] = { "default", "scope", "shotgun", "v", "h", "hit", "reddot" };
 Texture *crosshairs[CROSSHAIR_NUM] = { NULL }; // weapon specific crosshairs
 
 Texture *loadcrosshairtexture(const char *c)
@@ -258,7 +261,7 @@ void loadcrosshair(char *c, char *name)
     {
         for (int i = 0; i < CROSSHAIR_NUM; i++)
         {
-            if (i == CROSSHAIR_TEAMMATE || i == CROSSHAIR_SCOPE) continue;
+            if (i == CROSSHAIR_SCOPE) continue;
             crosshairs[i] = loadcrosshairtexture(c);
         }
         return;
@@ -278,8 +281,11 @@ void loadcrosshair(char *c, char *name)
 
 COMMAND(loadcrosshair, "ss");
 
-void drawcrosshair(playerent *p, int n, color *c, float size)
+void drawcrosshair(playerent *p, int n, int teamtype)
 {
+    if (!show_hud_element(crosshairsize, 2) || intermission)
+        return;
+
     Texture *crosshair = crosshairs[n];
     if(!crosshair)
     {
@@ -287,35 +293,89 @@ void drawcrosshair(playerent *p, int n, color *c, float size)
         if(!crosshair) crosshair = crosshairs[CROSSHAIR_DEFAULT] = loadcrosshairtexture("default.png");
     }
 
-    if(crosshair->bpp==32) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    else glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-    glBindTexture(GL_TEXTURE_2D, crosshair->id);
-    glColor3ub(255,255,255);
-    if(c) glColor3f(c->r, c->g, c->b);
-    else if(crosshairfx || n==CROSSHAIR_TEAMMATE)
+    color col = color(1, 1, 1); // default: white
+    if (teamtype)
     {
-        if(n==CROSSHAIR_TEAMMATE) glColor3ub(255, 0, 0);
-        else if(!m_sniper(gamemode, mutators))
-        {
-            if(p->health<=25) glColor3ub(255,0,0);
-            else if(p->health<=50) glColor3ub(255,128,0);
-        }
+        if (teamtype == 1) col = color(0, 1, 0); // green
+        else if (teamtype == 2) col = color(1, 0, 0); // red
     }
-    float s = size>0 ? size : (float)crosshairsize;
-    float chsize = s * (p->weaponsel->type==GUN_ASSAULT && p->weaponsel->shots > 3 ? 1.4f : 1.0f) * (n==CROSSHAIR_TEAMMATE ? 2.0f : 1.0f);
-    glBegin(GL_TRIANGLE_STRIP);
-    glTexCoord2f(0, 0); glVertex2f(VIRTW/2 - chsize, VIRTH/2 - chsize);
-    glTexCoord2f(1, 0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 - chsize);
-    glTexCoord2f(0, 1); glVertex2f(VIRTW/2 - chsize, VIRTH/2 + chsize);
-    glTexCoord2f(1, 1); glVertex2f(VIRTW/2 + chsize, VIRTH/2 + chsize);
-    glEnd();
+    else if (crosshairfx && !m_insta(gamemode, mutators))
+    {
+        if (p->health <= 50 * HEALTHSCALE) col = color(.5f, .25f, 0); // orange-red
+        if (p->health <= 25 * HEALTHSCALE) col = color(.5f, .125f, 0); // red-orange
+    }
+    //if (n == CROSSHAIR_DEFAULT) col.alpha = 1.f - p->weaponsel->dynspread() / 1200.f;
+    if (n != CROSSHAIR_SCOPE && p->zoomed) col.alpha = 1 - sqrtf(p->zoomed * (n == CROSSHAIR_SHOTGUN ? 0.5f : 1) * 1.6f);
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+    glColor4f(col.r, col.g, col.b, col.alpha * 0.8f);
+    float chsize = (n == CROSSHAIR_SCOPE) ? 24.f : crosshairsize;
+    if (n == CROSSHAIR_DEFAULT)
+    {
+        float clen = chsize * 3.6f;
+        float cthickness = chsize * 2.f;
+        chsize = p->weaponsel->dynspread() * 100 * (p->perk2 == PERK2_STEADY ? .65f : 1) / dynfov();
+        //if (isthirdperson) chsize *= worldpos.dist(focus->o) / worldpos.dist(camera1->o);
+        if (m_classic(gamemode, mutators)) chsize *= .6f;
+
+        Texture *cv = crosshairs[CROSSHAIR_V], *ch = crosshairs[CROSSHAIR_H];
+        if (!cv) cv = textureload("packages/crosshairs/vertical.png", 3);
+        if (!ch) ch = textureload("packages/crosshairs/horizontal.png", 3);
+
+        // horizontal
+        glBindTexture(GL_TEXTURE_2D, ch->id);
+        glBegin(GL_QUADS);
+        // top
+        glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 - cthickness, VIRTH / 2 - chsize - clen);
+        glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 + cthickness, VIRTH / 2 - chsize - clen);
+        glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 + cthickness, VIRTH / 2 - chsize);
+        glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 - cthickness, VIRTH / 2 - chsize);
+        // bottom
+        glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 - cthickness, VIRTH / 2 + chsize);
+        glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 + cthickness, VIRTH / 2 + chsize);
+        glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 + cthickness, VIRTH / 2 + chsize + clen);
+        glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 - cthickness, VIRTH / 2 + chsize + clen);
+        glEnd();
+
+        // vertical
+        glBindTexture(GL_TEXTURE_2D, cv->id);
+        glBegin(GL_QUADS);
+        // left
+        glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 - chsize - clen, VIRTH / 2 - cthickness);
+        glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 - chsize, VIRTH / 2 - cthickness);
+        glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 - chsize, VIRTH / 2 + cthickness);
+        glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 - chsize - clen, VIRTH / 2 + cthickness);
+        // right
+        glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 + chsize, VIRTH / 2 - cthickness);
+        glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 + chsize + clen, VIRTH / 2 - cthickness);
+        glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 + chsize + clen, VIRTH / 2 + cthickness);
+        glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 + chsize, VIRTH / 2 + cthickness);
+        glEnd();
+    }
+    else
+    {
+        if (n == CROSSHAIR_SHOTGUN)
+        {
+            chsize = p->weaponsel->dynspread() * 100 * (p->perk2 == PERK2_STEADY ? .75f : 1) / dynfov();
+            //if (isthirdperson) chsize *= worldpos.dist(focus->o) / worldpos.dist(camera1->o);
+            if (m_classic(gamemode, mutators)) chsize *= .75f;
+        }
+
+        glBindTexture(GL_TEXTURE_2D, crosshair->id);
+        glBegin(GL_TRIANGLE_STRIP);
+        glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 - chsize, VIRTH / 2 - chsize);
+        glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 + chsize, VIRTH / 2 - chsize);
+        glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 - chsize, VIRTH / 2 + chsize);
+        glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 + chsize, VIRTH / 2 + chsize);
+        glEnd();
+    }
 }
 
 VARP(hitmarkerfade, 0, 750, 5000);
 
 void drawhitmarker()
 {
-    if (!hitmarkerfade || !focus->lasthit || focus->lasthit + hitmarkerfade <= lastmillis)
+    if (!show_hud_element(hitmarkerfade, 3) || !focus->lasthit || focus->lasthit + hitmarkerfade <= lastmillis)
         return;
 
     glColor4f(1, 1, 1, (focus->lasthit + hitmarkerfade - lastmillis) / 1000.f);
@@ -728,7 +788,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
     static Texture *bordertex = NULL;
     if(!bordertex) bordertex = textureload("packages/misc/compass-base.png", 3);
     quad(bordertex->id, centerpos.x-halfviewsize-16, centerpos.y-halfviewsize-16, radarviewsize+32, 0, 0, 1, 1);
-    if(!hidecompass)
+    if (show_hud_element(!hidecompass, 5))
     {
         static Texture *compasstex = NULL;
         if(!compasstex) compasstex = textureload("packages/misc/compass-rose.png", 3);
@@ -907,12 +967,12 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     bool is_spect = (( player1->spectatemode==SM_FOLLOW1ST || player1->spectatemode==SM_FOLLOW3RD || player1->spectatemode==SM_FOLLOW3RD_TRANSPARENT ) &&
             players.inrange(player1->followplayercn) && players[player1->followplayercn]);
 
-    if(/*!menu &&*/ (!hideradar || showmap)) drawradar(p, w, h);
+    if (/*!menu &&*/ (show_hud_element(!hideradar, 5) || showmap)) drawradar(p, w, h);
     //if(showsgpat) drawsgpat(w,h); // shotty
     if(!editmode)
     {
         glMatrixMode(GL_MODELVIEW);
-        if(!hideteam && m_team(gamemode, mutators)) drawteamicons(w, h, is_spect);
+        if (show_hud_element(!hideteam, 1) && m_team(gamemode, mutators)) drawteamicons(w, h, is_spect);
         glMatrixMode(GL_PROJECTION);
     }
 
@@ -946,8 +1006,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     tsens(-2000);
     extern void r_accuracy(int h);
     if (!is_spect) r_accuracy(commandh);
-    if (!hideconsole) renderconsole();
-    if (!hideobits) renderobits();
+    if (hud_must_not_override(!hideconsole)) renderconsole();
+    if (show_hud_element(!hideobits, 6)) renderobits();
     formatstring(enginestateinfo)("%d %d %d %d %d", curfps, lod_factor(), nquads, curvert, xtraverts);
     if(showstats)
     {
@@ -1041,11 +1101,11 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         draw_text(gtime, (2*VIRTW - text_width(gtime))/2, 2);
     }
 
-    if(hidevote < 2 && multiplayer(false))
+    if (hud_must_not_override(hidevote < 2) && multiplayer(false))
     {
         extern votedisplayinfo *curvote;
 
-        if(curvote && curvote->millis >= totalmillis && !(hidevote == 1 && curvote->localplayervoted && curvote->result == VOTE_NEUTRAL))
+        if (curvote && curvote->millis >= totalmillis && !(hud_must_not_override(hidevote == 1) && curvote->localplayervoted && curvote->result == VOTE_NEUTRAL))
         {
             const int left = 20*2, top = VIRTH;
             draw_textf("%s called a vote:", left, top+240, curvote->owner ? colorname(curvote->owner) : "");
@@ -1074,7 +1134,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if(menu) rendermenu();
     else if(command) renderdoc(40, VIRTH, max(commandh*2 - VIRTH, 0));
 
-    if(!hidehudmsgs) hudmsgs.render();
+    if (hud_must_not_override(!hidehudmsgs)) hudmsgs.render();
 
     if(!hidespecthud && !menu && p->state==CS_DEAD && p->spectatemode<=SM_DEATHCAM)
     {

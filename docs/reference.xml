@@ -5507,6 +5507,20 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <value token="V" description="enable/disable vote info" minValue="0" maxValue="2" defaultValue="0"/>
         </variable>
 
+        <variable name="hidehardcore">
+          <description>Sets HUD removals in hardcore mode.</description>
+          <remarks>
+            <remark>0: no change</remark>
+            <remark>1: -non-essential (streak meter, team - use scoreboard!, perk, distance, health)</remark>
+            <remark>2: -crosshair</remark>
+            <remark>3: -hit markers</remark>
+            <remark>4: -ammo count</remark>
+            <remark>5: -radar</remark>
+            <remark>6: -killfeed</remark>
+          </remarks>
+          <value token="V" description="hardcore level" minValue="0" maxValue="6" defaultValue="2"/>
+        </variable>
+
         <variable name="hudgun">
           <description>Turns on or off the display of the current selected gun.</description>
           <value token="V" description="show/hide guns 3D models" minValue="0" maxValue="1" defaultValue="1"/>

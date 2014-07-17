@@ -643,7 +643,7 @@ void weapon::onselecting()
 }
 
 void weapon::renderhudmodel() { renderhudmodel(owner->lastaction); }
-void weapon::renderaimhelp(int teamtype) { drawcrosshair(owner, teamtype ? CROSSHAIR_TEAMMATE : CROSSHAIR_DEFAULT); }
+void weapon::renderaimhelp(int teamtype) { drawcrosshair(owner, CROSSHAIR_DEFAULT, teamtype); }
 int weapon::dynspread()
 {
     if (info.spread <= 1) return 1;
@@ -1087,7 +1087,7 @@ void shotgun::attackfx(const vec &from, const vec &to, int millis)
     adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
 }
 
-void shotgun::renderaimhelp(int teamtype){ drawcrosshair(owner, CROSSHAIR_SHOTGUN /*, teamtype*/); }
+void shotgun::renderaimhelp(int teamtype){ drawcrosshair(owner, CROSSHAIR_SHOTGUN, teamtype); }
 
 
 // sword
@@ -1180,7 +1180,7 @@ void scopedprimary::renderaimhelp(int teamtype)
     else
     {
         drawscope();
-        drawcrosshair(owner, CROSSHAIR_SCOPE, /*teamtype,*/ NULL, 24.0f);
+        drawcrosshair(owner, CROSSHAIR_SCOPE, teamtype);
     }
 }
 
