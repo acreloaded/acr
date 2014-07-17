@@ -88,6 +88,15 @@ void client::removeexplosives()
     state.knives.reset(); // remove active/flying knives (usually useless, since knives are fast)
 }
 
+void clientstate::addwound(int owner, const vec &woundloc)
+{
+    wound &w = wounds.length() >= 8 ? wounds[0] : wounds.add();
+    w.inflictor = owner;
+    w.lastdealt = gamemillis;
+    w.offset = woundloc;
+    w.offset.sub(o);
+}
+
 void cleanworldstate(ENetPacket *packet)
 {
    loopv(worldstates)

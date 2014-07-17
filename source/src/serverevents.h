@@ -266,7 +266,6 @@ void processevents()
             }
             else if(cs.drownmillis > 0)
                 cs.drownmillis = -cs.drownmillis; // save partial drowning
-            /*
             // bleeding--oh no!
             if(cs.wounds.length())
             {
@@ -284,23 +283,23 @@ void processevents()
                         vec woundloc = cs.o;
                         woundloc.add(w.offset);
                         // blood fx and stuff
-                        sendhit(owner, WEAP_KNIFE, woundloc, bleeddmg);
+                        sendhit(owner, GUN_KNIFE, woundloc, bleeddmg);
                         // use wounded location as damage source
-                        serverdamage(&c, &owner, bleeddmg, WEAP_KNIFE, FRAG_NONE, woundloc, c.state.o.dist(owner.state.o));
+                        serverdamage(&c, &owner, bleeddmg, GUN_KNIFE, FRAG_NONE, woundloc, c.state.o.dist(owner.state.o));
                         w.lastdealt = gamemillis;
                     }
                 }
             }
             // health regeneration
-            else if(m_regen(gamemode, mutators) && cs.state == CS_ALIVE && cs.health < STARTHEALTH && cs.lastregen + (cs.perk1 == PERK_POWER ? REGENINT * .7f : REGENINT) < gamemillis){
+            else if(m_regen(gamemode, mutators) && cs.state == CS_ALIVE && cs.health < STARTHEALTH && cs.lastregen + (cs.perk1 == PERK_POWER ? REGENINT * .7f : REGENINT) < gamemillis)
+            {
                 int amt = round_(float((STARTHEALTH - cs.health) / 5 + 15));
                 if(cs.perk1 == PERK_POWER) amt *= 1.4f;
                 if(amt >= STARTHEALTH - cs.health)
                     amt = STARTHEALTH - cs.health;
-                sendf(-1, 1, "ri3", N_REGEN, i, cs.health += amt);
+                sendf(-1, 1, "ri3", SV_REGEN, i, cs.health += amt);
                 cs.lastregen = gamemillis;
             }
-            */
         }
         // not alive: spawn queue
         else if(/*cs.state == CS_WAITING ||*/ (c.type == ST_AI && valid_client(c.ownernum) && clients[c.ownernum]->isonrightmap && cs.state == CS_DEAD && cs.lastspawn<0))

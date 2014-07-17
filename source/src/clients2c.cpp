@@ -730,6 +730,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
             }
 
+            case SV_BLEED:
+            {
+                playerent *d = getclient(getint(p));
+                if (d) d->addicon(eventicon::BLEED);
+                break;
+            }
+
             case SV_HEADSHOT:
             {
                 // make bloody stain
@@ -894,6 +901,21 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             {
                 char value = getint(p);
                 if (hudextras) showhudextras(hudextras, value);
+                break;
+            }
+
+            case SV_REGEN:
+            case SV_HEAL:
+            {
+                playerent *healer = type == SV_HEAL ? getclient(getint(p)) : NULL;
+                const int cn = getint(p), health = getint(p);
+                playerent *d = getclient(cn);
+                if (!d) break;
+                d->health = health;
+                d->lastregen = lastmillis;
+                if (!healer) break;
+                addobit(healer, OBIT_REVIVE, FRAG_NONE, false, d);
+                if (d == player1) hudoutf("\fs\f1REVIVED \f2by \fr%s", colorname(healer));
                 break;
             }
 

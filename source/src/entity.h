@@ -289,7 +289,7 @@ class playerstate
 {
 public:
     int health, armour;
-    int lastspawn;
+    int lastspawn, lastregen;
     int primary, secondary, perk1, perk2, nextprimary, nextsecondary, nextperk1, nextperk2;
     int gunselect;
     bool akimbo, scoping;
@@ -372,6 +372,7 @@ public:
         loopi(NUMGUNS) ammo[i] = mag[i] = gunwait[i] = 0;
         ammo[GUN_KNIFE] = mag[GUN_KNIFE] = 1;
         lastspawn = -1;
+        lastregen = 0;
     }
 
     virtual void spawnstate(int team, int gamemode, int mutators)
@@ -629,7 +630,8 @@ public:
 
     void addicon(int type)
     {
-        switch (type){
+        switch (type)
+        {
             case eventicon::CRITICAL:
             case eventicon::PICKUP:
                 loopv(icons)

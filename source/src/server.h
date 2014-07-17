@@ -111,6 +111,12 @@ struct projectilestate
 
 static const int DEATHMILLIS = 300;
 
+struct wound
+{
+    int inflictor, lastdealt;
+    vec offset;
+};
+
 struct clientstate : playerstate
 {
     vec o, vel, sg[SGRAYS];
@@ -123,6 +129,8 @@ struct clientstate : playerstate
     int akimbomillis, crouchmillis, scopemillis, drownmillis, drownval;
     bool scoped, crouching, onfloor; float fallz;
     int flagscore, frags, teamkills, deaths, shotdamage, damage, points, events, lastdisc, reconnections;
+    vector<int> revengelog;
+    vector<wound> wounds;
 
     clientstate() : state(CS_DEAD) {}
 
@@ -156,6 +164,7 @@ struct clientstate : playerstate
         akimbomillis = 0;
         scoped = forced = false;
         flagscore = frags = teamkills = deaths = shotdamage = damage = points = events = lastdisc = reconnections = 0;
+        revengelog.setsize(0);
         respawn();
     }
 
@@ -170,6 +179,7 @@ struct clientstate : playerstate
         akimbomillis = crouchmillis = scopemillis = drownmillis = drownval = 0;
         scoped = crouching = onfloor = false;
         fallz = -1e10f;
+        wounds.shrink(0); // no more wounds!
     }
 
     float crouchfactor(int gamemillis)
@@ -181,6 +191,8 @@ struct clientstate : playerstate
             crouched = max(CROUCHTIME - gamemillis + crouchmillis, 0);
         return 1.f - crouched * (1.f - CROUCHHEIGHTMUL) / CROUCHTIME;
     }
+
+    void addwound(int owner, const vec &woundloc);
 };
 
 struct savedscore
@@ -666,6 +678,7 @@ const char *killname(int obit, int style)
         case GUN_GRENADE:
             if (!(style & FRAG_GIB))
                 return _("Airstrike");
+            break;
         case OBIT_FALL:
             return _("Jump");
         case OBIT_NUKE:

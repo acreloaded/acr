@@ -378,9 +378,8 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
             if (&owner == hit) return 0; // not possible
             else if (!isteam(&owner, hit)) // do not cause teammates to bleed
             {
-                // TODO
-                //hit->state.addwound(owner.clientnum, end);
-                //sendf(-1, 1, "ri2", SV_BLEED, hit->clientnum);
+                hit->state.addwound(owner.clientnum, end);
+                sendf(-1, 1, "ri2", SV_BLEED, hit->clientnum);
             }
         }
 
