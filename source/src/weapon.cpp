@@ -826,14 +826,26 @@ inline void explosioneffect(const vec &o)
     audiomgr.playsound(S_FEXPLODE, &o);
 }
 
-//VARP(nadedetail, 0, 9, 50);
+VARP(nadedetail, 0, 9, 20);
 
 void grenades::attackhit(const vec &o)
 {
     particle_fireball(PART_FIREBALL, o, owner);
     addscorchmark(o);
     explosioneffect(o);
-    // TODO: shot line fx
+    extern int shotline, shotlinettl;
+    if (shotline && shotlinettl && nadedetail)
+    {
+        const float halfnadedetail = nadedetail / 2.f;
+        loopi(nadedetail) loopj(nadedetail) loopk(nadedetail)
+        {
+            vec t(i / halfnadedetail - 1, j / halfnadedetail - 1, k / halfnadedetail - 1);
+            t.add(o);
+            traceShot(o, t);
+            addshotline(owner, o, t, 2);
+            particle_splash(0, 8, 250, t);
+        }
+    }
     if (owner == player1)
         accuracym[GUN_GRENADE].shots++;
 }
