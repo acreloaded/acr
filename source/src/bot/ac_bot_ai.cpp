@@ -24,13 +24,13 @@ weaponinfo_s WeaponInfoTable[NUMGUNS] =
     { TYPE_SHOTGUN,    0.0f,   15.0f,   0.0f,   40.0f,   2 }, // SHOTGUN
     { TYPE_AUTO,       0.0f,   25.0f,   0.0f,   60.0f,   5 }, // SUBGUN
     { TYPE_SNIPER,    30.0f,   50.0f,   0.0f,  200.0f,   3 }, // SNIPER
-    { TYPE_AUTO,       0.0f,   25.0f,   0.0f,   60.0f,   5 }, // ASSAULT
-    { TYPE_GRENADE,   30.0f,   85.0f,   0.0f,  100.0f,   1 }, // GRENADE
+    { TYPE_AUTO,       5.0f,   35.0f,   0.0f,   60.0f,   5 }, // ASSAULT
+    { TYPE_GRENADE,   50.0f,   85.0f,   0.0f,  100.0f,   1 }, // GRENADE
     { TYPE_NORMAL,     0.0f,   20.0f,   0.0f,   50.0f,   3 }, // AKIMBO
     { TYPE_SNIPER,    30.0f,   50.0f,   0.0f,  200.0f,   2 }, // BOLT
     { TYPE_AUTO,      40.0f,   80.0f,   0.0f,  150.0f,   3 }, // HEAL
     { TYPE_MELEE,      0.0f,    7.0f,   0.0f,    9.0f,   1 }, // SWORD
-    { TYPE_ROCKET,     0.0f,   20.0f,   0.0f,   50.0f,   1 }, // RPG
+    { TYPE_ROCKET,    40.0f,   80.0f,   5.0f,  150.0f,   1 }, // RPG
     { TYPE_AUTO,       0.0f,   25.0f,   0.0f,   60.0f,   5 }, // ASSAULT2
     { TYPE_SNIPER,    30.0f,   50.0f,   0.0f,  200.0f,   2 }, // SNIPER2
 };
@@ -40,7 +40,7 @@ weaponinfo_s WeaponInfoTable[NUMGUNS] =
 bool CACBot::ChoosePreferredWeapon()
 {
     short bestWeapon = m_pMyEnt->gunselect;
-    short bestWeaponScore = 0;
+    short bestWeaponScore = -50;
 
     short sWeaponScore;
     float flDist = GetDistance(m_pMyEnt->enemy->o);
@@ -51,6 +51,9 @@ bool CACBot::ChoosePreferredWeapon()
         sWeaponScore = primary_weap(i) ? 5 : 0; // Primary are usually better
 
         if (!m_pMyEnt->mag[i] && WeaponInfoTable[i].eWeaponType != TYPE_MELEE) continue;
+
+        sWeaponScore += m_pMyEnt->weapstats[i].kills;
+        sWeaponScore -= m_pMyEnt->weapstats[i].deaths;
 
         if((flDist >= WeaponInfoTable[i].flMinDesiredDistance) &&
             (flDist <= WeaponInfoTable[i].flMaxDesiredDistance))

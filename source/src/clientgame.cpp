@@ -901,6 +901,11 @@ void dokill(playerent *pl, playerent *act, int gun, int style, int damage, int c
                 p->lastloudpos[2] = p->yaw;
             }
         }
+        pl->weapstats[act->gunselect].deaths += 2;
+    }
+    else {
+        act->weapstats[gun].kills++;
+        pl->weapstats[act->gunselect].deaths++;
     }
     // deathstreak
     /*
