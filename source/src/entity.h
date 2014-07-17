@@ -515,6 +515,7 @@ public:
 
         armour -= ra;
         damage -= rd;
+        if (armour < 0) armour = 0;
 
         health -= damage;
         return damage;
