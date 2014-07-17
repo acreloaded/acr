@@ -443,14 +443,10 @@ void fixresizedscreen()
 }
 
 float scopesensfunc = 0.4663077f;
-void scopefunc();
-FVARFP(fov, 75, 90, 160, scopefunc());
-FVARFP(scopefov, 5, 50, 60, scopefunc());
-VARP(spectfov, 5, 110, 120);
-void scopefunc()
-{
-    scopesensfunc = tan(((float)scopefov)*0.5f*RAD)/tan(fov*0.5f*RAD);
-}
+FVARP(fov, 75, 90, 160);
+FVARP(spectfov, 5, 110, 120);
+FVARP(scopezoom, 1, 150, 1000);
+FVARP(adszoom, 1, 5, 100);
 
 // map old fov values to new ones
 void fovcompat(int *oldfov)
@@ -463,8 +459,7 @@ COMMAND(fovcompat, "i");
 
 float dynfov()
 {
-    if (sniper_weap(player1->weaponsel->type)) return (scopefov-fov)*player1->zoomed+fov;
-    else if(player1->isspectating()) return spectfov;
+    if(player1->isspectating()) return spectfov;
     else return fov;
 }
 
@@ -899,19 +894,17 @@ int xtraverts;
 VARP(hudgun, 0, 1, 1);
 VARP(specthudgun, 0, 1, 1);
 
-inline float zoomfactor(playerent *who)
+inline float zoomfactor()
 {
-    return 1.f;
-    /*
-    if(!who) return 1;
-    float adsmax = 864, zoomf = (float)adszoom;
-    if(sniper_weap(who->weaponsel->type) && who->ads)
+    playerent * const p = focus;
+    float adsmax = .864f, zoomf = adszoom/100.f;
+    if(sniper_weap(p->weaponsel->type) && p->zoomed)
     {
-        adsmax = sniperrifle::adsscope;
-        zoomf = (float)scopezoom;
-    } else if(who->weaponsel->type == WEAP_HEAL) zoomf = 0;
-    return 100 / (min(who->ads/adsmax,1.f) * zoomf + 100);
-    */
+        adsmax = ADSZOOM;
+        zoomf = scopezoom/100.f;
+    }
+    else if (p->weaponsel->type == GUN_HEAL) zoomf = 0;
+    return min(p->zoomed / adsmax, 1.f) * zoomf + 1;
 }
 
 void setperspective(float fovy, float nearplane)
@@ -926,9 +919,9 @@ void setperspective(float fovy, float nearplane)
     }
     else
     {
-        const float zoomf = zoomfactor(focus);
-        xdist *= zoomf;
-        ydist *= zoomf;
+        const float zoomf = zoomfactor();
+        xdist /= zoomf;
+        ydist /= zoomf;
         glFrustum(-xdist, xdist, -ydist, ydist, nearplane, farplane);
     }
 }

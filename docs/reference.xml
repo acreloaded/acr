@@ -3847,14 +3847,6 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <value token="B" description="the autoreload state" minValue="0" maxValue="1" defaultValue="1" valueNotes="on (1), off (0)"/>
         </variable>
 
-        <variable name="scopefov">
-          <description>Determines the FOV when scoping.</description>
-          <references>
-            <identifierReference identifier="fov"/>
-          </references>
-          <value token="V" description="" minValue="5" maxValue="60" defaultValue="50"/>
-        </variable>
-
         <variable name="showmap">
           <description>Determines if the mini-map should be shown on screen.</description>
           <value token="B" description="show mini-map" minValue="0" maxValue="1" defaultValue="0"/>
@@ -5892,6 +5884,16 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
         <variable name="fov">
           <description>Sets the field of view (fov).</description>
           <value token="N" description="the FOV value" minValue="75" maxValue="160" defaultValue="90"/>
+        </variable>
+
+        <variable name="scopezoom">
+          <description>Sets the amount of zoom for snipers.</description>
+          <value token="N" description="the zoom percentage" minValue="1" maxValue="1000" defaultValue="150"/>
+        </variable>
+
+        <variable name="adszoom">
+          <description>Sets the amount of zoom for non-snipers.</description>
+          <value token="N" description="the zoom percentage" minValue="1" maxValue="120" defaultValue="5"/>
         </variable>
 
         <variable name="monitors">
