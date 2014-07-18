@@ -83,7 +83,7 @@ bool CACBot::ChoosePreferredWeapon()
         else if(flIdealDiff <= 7.5f) sWeaponScore += 2;
         else if(flIdealDiff <= 10.0f) ++sWeaponScore;
 
-        /*// Now rate the weapon on available ammo...
+        // Now rate the weapon on available ammo...
         if (WeaponInfoTable[i].sMinDesiredAmmo > 0)
         {
             // Calculate how much percent of the min desired ammo the bot has
@@ -95,13 +95,12 @@ bool CACBot::ChoosePreferredWeapon()
                 sWeaponScore += 8;
             else if (flDesiredPercent >= 100.0f)
                 sWeaponScore += 3;
-            else if (flDesiredPerce
-                        nt >= 50.0f)
+            else if (flDesiredPercent >= 50.0f)
                 sWeaponScore -= 2;
             else
                 sWeaponScore -= 5;
         }
-        else sWeaponScore += 15; // Not needing ammo is an advantage...*/
+        else sWeaponScore += 15; // Not needing ammo is an advantage...
 
         if(sWeaponScore > bestWeaponScore)
         {
