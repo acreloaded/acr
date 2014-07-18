@@ -697,12 +697,14 @@ public:
 
     void hitpush(int damage, const vec &dir, playerent *actor, int gun)
     {
-        if(gun<0 || gun>NUMGUNS) return;
+        if (gun<0 || gun>NUMGUNS || dir.iszero() || !damage) return;
+        const float pushf = damage * guns[gun].pushfactor / 100.0f / HEALTHSCALE;
         vec push(dir);
-        push.mul(damage/100.0f*guns[gun].pushfactor);
+        push.normalize().mul(pushf);
+        if (actor->perk1 == PERK_POWER) vel.div(clamp(pushf * 5.f, 1.f, 5.f));
         vel.add(push);
         extern int lastmillis;
-        if(gun==GUN_GRENADE && damage > 50 * HEALTHSCALE) eardamagemillis = lastmillis+damage*100;
+        if(gun==GUN_GRENADE && damage > 50 * HEALTHSCALE) eardamagemillis = lastmillis+damage*100/HEALTHSCALE;
     }
 
     void resetspec()
