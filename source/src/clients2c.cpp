@@ -388,18 +388,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
     {
         type = getint(p);
 
-        if(demo && watchingdemo && demoprotocol == 1132)
-        {
-            if(type > SV_IPLIST) --type;            // SV_WHOIS removed
-            if(type >= SV_TEXTPRIVATE) ++type;      // SV_TEXTPRIVATE added
-            if(type == SV_SWITCHNAME)               // SV_SPECTCN removed
-            {
-                getint(p);
-                continue;
-            }
-            else if(type > SV_SWITCHNAME) --type;
-        }
-
         #ifdef _DEBUG
         if(type!=SV_POS && type!=SV_CLIENTPING && type!=SV_PINGPONG && type!=SV_CLIENT)
         {
@@ -563,7 +551,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 {
                     getstring(text, p);
                     loopi(4) getint(p);
-                    if(!demo || !watchingdemo || demoprotocol > 1132) getint(p);
                     break;
                 }
                 getstring(text, p);
@@ -579,8 +566,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 loopi(2) d->setskin(i, getint(p));
                 d->level = getint(p);
                 d->team = getint(p);
-
-                if(!demo || !watchingdemo || demoprotocol > 1132) d->address = getint(p); // partial IP address
 
                 if(m_flags(gamemode)) loopi(2)
                 {
@@ -977,8 +962,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     int cn = getint(p);
                     if(p.overread() || cn<0) break;
                     int state = getint(p), lifesequence = getint(p), primary = getint(p), gunselect = getint(p), flagscore = getint(p), frags = getint(p), deaths = getint(p), health = getint(p), armour = getint(p), points = getint(p);
-                    int teamkills = 0;
-                    if(!demo || !watchingdemo || demoprotocol > 1132) teamkills = getint(p);
                     int ammo[NUMGUNS], mag[NUMGUNS];
                     loopi(NUMGUNS) ammo[i] = getint(p);
                     loopi(NUMGUNS) mag[i] = getint(p);
@@ -990,7 +973,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     d->frags = frags;
                     d->deaths = deaths;
                     d->points = points;
-                    d->tks = teamkills;
                     if(d!=player1)
                     {
                         d->setprimary(primary);
@@ -1439,15 +1421,39 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
             }
 
-            case SV_IPLIST:
+            case SV_WHOIS:
             {
-                int cn;
-                while((cn = getint(p)) >= 0 && !p.overread())
+                const int cn = getint(p);
+                playerent *pl = getclient(cn);
+                if (cn == -1)
                 {
-                    playerent *pl = getclient(cn);
-                    int ip = getint(p);
-                    if(!pl) continue;
-                    else pl->address = ip;
+                    const int owner = getint(p), wants = getint(p);
+                    pl = getclient(owner);
+                    playerent *wanted = getclient(wants);
+                    conoutf(_("%s requests whois on %s"), pl ? colorname(pl) : "someone", wanted ? colorname(wanted) : "someone");
+                }
+                else
+                {
+                    const int ip = getint(p), mask = getint(p), port = getint(p);
+                    getstring(text, p);
+                    filtertext(text, text);
+                    defformatstring(cip)("%d", ip & 0xFF);
+                    if (mask > 8 || (ip >> 8) & 0xFF)
+                    {
+                        concatformatstring(cip, ".%d", (ip >> 8) & 0xFF);
+                        if (mask > 16 || (ip >> 16) & 0xFF)
+                        {
+                            concatformatstring(cip, ".%d", (ip >> 16) & 0xFF);
+                            if (mask > 24 || (ip >> 24) & 0xFF)
+                                concatformatstring(cip, ".%d", (ip >> 24) & 0xFF);
+                        }
+                    }
+                    if (mask < 32) concatformatstring(cip, "/%d", mask);
+                    conoutf(_("whois on %s returned %s:%d"), pl ? colorname(pl) : "unknown", cip, port);
+                    if (text[0])
+                        conoutf(_("this user is authed as '%s'"), text);
+                    else
+                        conoutf(_("this user is not authed"));
                 }
                 break;
             }
@@ -1468,16 +1474,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             {
                 string demofile;
                 extern char *curdemofile;
-                if(demo && watchingdemo && demoprotocol == 1132)
-                {
-                    watchingdemo = demoplayback = getint(p)!=0;
-                    copystring(demofile, "n/a");
-                }
-                else
-                {
-                    getstring(demofile, p, MAXSTRLEN);
-                    watchingdemo = demoplayback = demofile[0] != '\0';
-                }
+                getstring(demofile, p, MAXSTRLEN);
+                watchingdemo = demoplayback = demofile[0] != '\0';
                 DELETEA(curdemofile);
                 if(demoplayback)
                 {

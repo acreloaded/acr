@@ -813,8 +813,7 @@ void setupdemoplayback()
         lilswap(&hdr.version, 1);
         lilswap(&hdr.protocol, 1);
         if(hdr.version!=DEMO_VERSION) formatstring(msg)("demo \"%s\" requires an %s version of AssaultCube", file, hdr.version<DEMO_VERSION ? "older" : "newer");
-        else if(hdr.protocol != PROTOCOL_VERSION && !(hdr.protocol < 0 && hdr.protocol == -PROTOCOL_VERSION) && hdr.protocol != 1132) formatstring(msg)("demo \"%s\" requires an %s version of AssaultCube", file, hdr.protocol<PROTOCOL_VERSION ? "older" : "newer");
-        else if(hdr.protocol == 1132) sendservmsg("WARNING: using experimental compatibility mode for older demo protocol, expect breakage");
+        else if(hdr.protocol != PROTOCOL_VERSION && !(hdr.protocol < 0 && hdr.protocol == -PROTOCOL_VERSION)) formatstring(msg)("demo \"%s\" requires an %s version of AssaultCube", file, hdr.protocol<PROTOCOL_VERSION ? "older" : "newer");
         demoprotocol = hdr.protocol;
     }
     if(msg[0])
@@ -2516,21 +2515,6 @@ void answerchallenge(client *cl, uint id, char *val)
 
 // :for AUTH
 
-void sendiplist(int receiver, int cn)
-{
-    if(!valid_client(receiver)) return;
-    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    putint(p, SV_IPLIST);
-    loopv(clients) if(valid_client(i) && clients[i]->type == ST_TCPIP && i != receiver
-        && (clients[i]->clientnum == cn || cn == -1))
-    {
-        putint(p, i);
-        putint(p, isbigendian() ? endianswap(clients[i]->peer->address.host) : clients[i]->peer->address.host);
-    }
-    putint(p, -1);
-    sendpacket(receiver, 1, p.finalize());
-}
-
 void sendresume(client &c, bool broadcast)
 {
     sendf(broadcast ? -1 : c.clientnum, 1, "ri3i9ivvi", SV_RESUME,
@@ -2545,7 +2529,6 @@ void sendresume(client &c, bool broadcast)
             c.state.health,
             c.state.armour,
             c.state.points,
-            c.state.teamkills,
             NUMGUNS, c.state.ammo,
             NUMGUNS, c.state.mag,
             -1);
@@ -2594,9 +2577,6 @@ void putinitclient(client &c, packetbuf &p)
     putint(p, c.skin[TEAM_RVSF]);
     putint(p, c.level);
     putint(p, c.team);
-    enet_uint32 ip = 0;
-    if(c.type == ST_TCPIP) ip = c.peer->address.host & 0xFFFFFF;
-    putint(p, isbigendian() ? endianswap(ip) : ip);
 }
 
 void sendinitclient(client &c)
@@ -2672,7 +2652,6 @@ void welcomepacket(packetbuf &p, int n)
             putint(p, c.state.health);
             putint(p, c.state.armour);
             putint(p, c.state.points);
-            putint(p, c.state.teamkills);
             loopi(NUMGUNS) putint(p, c.state.ammo[i]);
             loopi(NUMGUNS) putint(p, c.state.mag[i]);
         }
@@ -2834,13 +2813,6 @@ void process(ENetPacket *packet, int sender, int chan)
         else if(cl->type==ST_TCPIP) senddisconnectedscores(sender);
         sendinitclient(*cl);
         if( curvote && curvote->result == VOTE_NEUTRAL ) callvotepacket (cl->clientnum);
-
-        // send full IPs to admins
-        loopv(clients)
-        {
-            if(clients[i] && clients[i]->clientnum != cl->clientnum && (clients[i]->role >= CR_ADMIN || clients[i]->type == ST_LOCAL))
-                sendiplist(clients[i]->clientnum, cl->clientnum);
-        }
 
         checkai(); // connected
         while(reassignai());
@@ -3652,6 +3624,26 @@ void process(ENetPacket *packet, int sender, int chan)
                 ++msg->referenceCount; // need to increase reference count in case a vote disconnects a player after packet is queued to prevent double-freeing by packetbuf
                 svote(sender, n, msg);
                 --msg->referenceCount;
+                break;
+            }
+
+            case SV_WHOIS:
+            {
+                const int cn = getint(p);
+                if (!valid_client(cn) || clients[cn]->type != ST_TCPIP) break;
+                sendf(-1, 1, "ri4", SV_WHOIS, -1, sender, cn);
+                uint ip = clients[cn]->peer->address.host;
+                uchar mask = 0;
+                if (cn == sender) mask = 32;
+                else switch (clients[sender]->role)
+                {
+                    // admins and server owner: f.f.f.f/32 full ip
+                    case CR_MAX: case CR_ADMIN: mask = 32; break;
+                    // masters and users: f.f.h/12 full, full, half, empty
+                    case CR_MASTER: case CR_DEFAULT: default: mask = 20; break;
+                }
+                if (mask < 32) ip &= (1 << mask) - 1;
+                sendf(sender, 1, "ri5s", SV_WHOIS, cn, ip, mask, clients[cn]->peer->address.port, clients[cn]->authname);
                 break;
             }
 

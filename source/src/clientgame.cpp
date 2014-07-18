@@ -299,20 +299,12 @@ void playerinfo(int *cn, const char *attr)
     ATTR_INT(flags, p->flagscore);
     ATTR_INT(points, p->points);
     ATTR_INT(deaths, p->deaths);
-    ATTR_INT(tks, p->tks);
     ATTR_INT(alive, p->state == CS_ALIVE ? 1 : 0);
     ATTR_INT(spect, p->team == TEAM_SPECT || p->spectatemode == SM_FLY ? 1 : 0);
     ATTR_INT(cn, p->clientnum); // only useful to get player1's client number.
     ATTR_INT(skin_cla, p->skin(TEAM_CLA));
     ATTR_INT(skin_rvsf, p->skin(TEAM_RVSF));
     ATTR_INT(skin, p->skin(player1->team));
-
-    string addrstr = "";
-    uint2ip(p->address, addr);
-    if(addr[3] != 0 || player1->clientrole>=CR_ADMIN)
-        formatstring(addrstr)("%d.%d.%d.%d", addr[0], addr[1], addr[2], addr[3]); // full IP
-    else formatstring(addrstr)("%d.%d.%d.x", addr[0], addr[1], addr[2]); // censored IP
-    ATTR_STR(ip, addrstr);
 
     conoutf("invalid attribute: %s", attr);
 }
@@ -1143,8 +1135,8 @@ void startmap(const char *name, bool reset)   // called just after a map load
 
     if(!reset) return;
 
-    player1->frags = player1->flagscore = player1->deaths = player1->lifesequence = player1->points = player1->tks = 0;
-    loopv(players) if(players[i]) players[i]->frags = players[i]->flagscore = players[i]->deaths = players[i]->lifesequence = players[i]->points = players[i]->tks = 0;
+    player1->frags = player1->flagscore = player1->deaths = player1->lifesequence = player1->points = 0;
+    loopv(players) if(players[i]) players[i]->frags = players[i]->flagscore = players[i]->deaths = players[i]->lifesequence = players[i]->points = 0;
     if(editmode) toggleedit(true);
     intermission = false;
     showscores(false);
@@ -1314,8 +1306,7 @@ char *votestring(int type, const char *arg1, const char *arg2, const char *arg3)
             if (type == SA_KICK || type == SA_BAN)
             {
                 string reason = "";
-                if(m_team(gamemode, mutators)) formatstring(reason)("%s (%d tks, ping %d)", arg2, p->tks, p->ping);
-                else formatstring(reason)("%s (ping %d)", arg2, p->ping);
+                formatstring(reason)("%s (ping %d)", arg2, p->ping);
                 formatstring(out)(msg, colorname(p), reason);
             }
             else if(type == SA_FORCETEAM)
@@ -1553,15 +1544,7 @@ void cleanplayervotes(playerent *p)
 
 void whois(int *cn)
 {
-    loopv(players) if(players[i] && players[i]->type == ENT_PLAYER && (*cn == -1 || players[i]->clientnum == *cn))
-    {
-        playerent *p = players[i];
-        uint2ip(p->address, ip);
-        if(m_team(gamemode, mutators)) conoutf(_("%c0INFO: %c5%s has %d teamkills."), CC, CC, p->name, p->tks);
-        if(ip[3] != 0 || player1->clientrole>=CR_ADMIN)
-            conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.%d", *cn, colorname(p), ip[0], ip[1], ip[2], ip[3]); // full IP
-        else conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.x", *cn, colorname(p), ip[0], ip[1], ip[2]); // censored IP
-    }
+    addmsg(SV_WHOIS, "ri", cn);
 }
 COMMAND(whois, "i");
 

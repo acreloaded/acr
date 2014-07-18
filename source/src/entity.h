@@ -595,10 +595,9 @@ private:
     int curskin, nextskin[2];
 public:
     int clientnum, lastupdate, plag, ping;
-    enet_uint32 address;
     int lifesequence;                   // sequence id for each respawn, used in damage test
     int radarmillis; vec lastloudpos;
-    int frags, flagscore, deaths, points, tks;
+    int frags, flagscore, deaths, points;
     int lastaction, lastmove, lastpain, lastvoicecom, lasthit;
     int clientrole;
     bool attacking;
@@ -632,9 +631,9 @@ public:
     playerent *enemy;                      // monster wants to kill this entity
     float targetpitch, targetyaw;          // monster wants to look in this direction
 
-    playerent() : curskin(0), clientnum(-1), lastupdate(0), plag(0), ping(0), address(0), lifesequence(0),
+    playerent() : curskin(0), clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0),
                   radarmillis(0), lastloudpos(0, 0, 0),
-                  frags(0), flagscore(0), deaths(0), points(0), tks(0), lastpain(0), lastvoicecom(0), lasthit(0), clientrole(CR_DEFAULT),
+                  frags(0), flagscore(0), deaths(0), points(0), lastpain(0), lastvoicecom(0), lasthit(0), clientrole(CR_DEFAULT),
                   team(TEAM_SPECT), spectatemode(SM_NONE), followplayercn(FPCN_VOID), eardamagemillis(0), respawnoffset(0),
                   prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), lastattackweapon(NULL),
                   smoothmillis(-1),

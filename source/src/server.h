@@ -456,7 +456,6 @@ void clearai(), checkai();
 void startgame(const char *newname, int newmode, int newmuts, int newtime = -1, bool notify = true);
 void disconnect_client(int n, int reason = -1);
 void sendservmsg(const char *msg, int cn = -1);
-void sendiplist(int receiver, int cn = -1);
 int clienthasflag(int cn);
 bool refillteams(bool now = false, int ftr = FTR_AUTOTEAM);
 void setpriv(int cn, int priv);
@@ -487,7 +486,7 @@ const char *messagenames[SV_NUM] =
     "SV_SERVINFO", "SV_WELCOME",
     "SV_INITCLIENT", "SV_INITAI", "SV_CDIS", "SV_DELAI", "SV_REASSIGNAI", "SV_RESUME", "SV_MAPIDENT",
     "SV_CLIENT", "SV_POS", "SV_POSC", "SV_SOUND", "SV_PINGPONG", "SV_CLIENTPING",
-    "SV_TEXT", "SV_TEXTPRIVATE", "SV_SWITCHNAME", "SV_SWITCHSKIN", "SV_SETTEAM",
+    "SV_TEXT", "SV_TEXTPRIVATE", "SV_WHOIS", "SV_SWITCHNAME", "SV_SWITCHSKIN", "SV_SETTEAM",
     "SV_CALLVOTE", "SV_CALLVOTESUC", "SV_CALLVOTEERR", "SV_VOTE", "SV_VOTEREMAIN", "SV_VOTERESULT",
     "SV_LISTDEMOS", "SV_SENDDEMOLIST", "SV_GETDEMO", "SV_SENDDEMO", "SV_DEMOPLAYBACK",
     "SV_AUTH_ACR_REQ", "SV_AUTH_ACR_CHAL",
@@ -505,7 +504,6 @@ const char *messagenames[SV_NUM] =
     "SV_FLAGACTION", "SV_FLAGINFO", "SV_FLAGMSG", "SV_FLAGCNT",
     "SV_MAPCHANGE", "SV_NEXTMAP",
     "SV_ARENAWIN", "SV_ZOMBIESWIN", "SV_CONVERTWIN",
-    "SV_TIMEUP",
     "SV_TEAMDENY", "SV_SERVERMODE",
     "SV_IPLIST",
     "SV_SERVMSG", "SV_EXTENSION",
