@@ -435,8 +435,10 @@ public:
             ammo[secondary] = ammostats[secondary].start - 1;
             mag[secondary] = magsize(secondary);
         }
-        ammo[GUN_GRENADE] = ammostats[GUN_GRENADE].start - 1;
-        mag[GUN_GRENADE] = magsize(GUN_GRENADE);
+        // extras
+        //ammo[GUN_KNIFE] = ammostats[GUN_KNIFE].start;
+        if (!m_noitems(gamemode, mutators) && !m_noitemsammo(gamemode, mutators) && (team != TEAM_CLA || !m_zombie(gamemode)))
+            mag[GUN_GRENADE] = ammostats[GUN_GRENADE].start;
 
         gunselect = primary;
 
@@ -565,9 +567,10 @@ struct damageinfo
     damageinfo(vec o, int t, int d) : o(o), millis(t), damage(d) {}
 };
 
-struct kd{
-     int kills;
-     int deaths;
+struct kd
+{
+    int kills;
+    int deaths;
 };
 
 class playerent : public dynent, public playerstate

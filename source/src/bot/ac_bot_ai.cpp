@@ -42,7 +42,7 @@ bool CACBot::ChoosePreferredWeapon()
 {
     if(lastmillis < m_iChangeWeaponDelay) return false;
     short bestWeapon = m_pMyEnt->gunselect;
-    short bestWeaponScore = -9999;
+    short bestWeaponScore = SHRT_MIN;
 
     short sWeaponScore;
     float flDist = GetDistance(m_pMyEnt->enemy->o);
@@ -114,7 +114,8 @@ bool CACBot::ChoosePreferredWeapon()
     int tie=0;
     loopi(NUMGUNS) tie+=bestWeap[i];
     int select = rand() % tie, i=0;
-    while(select>=0) {
+    while (select>=0)
+    {
         bestWeapon = i;
         select -= bestWeap[i++];
     }

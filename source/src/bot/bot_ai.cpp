@@ -657,7 +657,8 @@ void CBot::CheckWeaponSwitch()
     }
 }
 
-bool CBot::CheckFire(vec &o){
+bool CBot::CheckFire(const vec &o)
+{
     vec target, dir, forward, right, up;
     float flDot, flAngle;
 
@@ -687,15 +688,15 @@ void CBot::ShootEnemy()
     vec enemypos = GetEnemyPos(m_pMyEnt->enemy);
     AimToVec(enemypos);
 
-    playerent *d = NULL;
-    loopv(players) {
+    playerent *d = player1;
+    if (d && isteam(d->team, m_pMyEnt->team) && (d->state == CS_ALIVE)
+        && IsVisible(d) && CheckFire(d->o)) return;
+    loopv(players)
+    {
         d = players[i];
         if(d && isteam(d->team, m_pMyEnt->team) && (d->state == CS_ALIVE)
              && IsVisible(d) && CheckFire(d->o)) return;
     }
-    d = player1;
-    if(d && isteam(d->team, m_pMyEnt->team) && (d->state == CS_ALIVE)
-         && IsVisible(d) && CheckFire(d->o)) return;
 
 
     // Time to shoot?

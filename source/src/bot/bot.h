@@ -245,7 +245,7 @@ public:
      void CheckWeaponSwitch(void); // 2011jan17:ft: fix non-shooting bots
      void CheckScope(void);
      void ShootEnemy(void);
-     bool CheckFire(vec &o);
+     bool CheckFire(const vec &o);
      bool CheckHunt(void);
      bool HuntEnemy(void);
      void DoCombatNav(void);
