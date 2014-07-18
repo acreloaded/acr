@@ -1235,11 +1235,22 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_CLAIMPRIV:
             {
-                /*
-                // two messages required to allow for proper german translation - is there a better way to do it?
-                if(pl==player1) conoutf(_("you claimed %s status"), r == CR_ADMIN ? "admin" : "master");
-                else conoutf(_("%s claimed %s status"), colorname(pl), r == CR_ADMIN ? "admin" : "master");
-                */
+                int cl = getint(p), r = getint(p), t = getint(p);
+                playerent *d = getclient(cl);
+                const char *n = (d == player1) ? "\f1you" : d ? colorname(d) : "\f2[a connecting admin]";
+                switch (t){
+                    case 0:
+                    case 1:
+                        chatoutf(_("%s %s %s access"), n, t ? _("relinquished") : _("claimed"), privname(r));
+                        break;
+                    case 2:
+                        if (d == player1) hudoutf(_("you already have %s access"), privname(r));
+                        else hudoutf(_("there is already another %s (%s)"), privname(r), n);
+                        break;
+                    case 3:
+                        hudoutf(_("%c2this password is not privileged; it is a deban password!"), CC);
+                        break;
+                }
                 break;
             }
 
@@ -1247,8 +1258,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             {
                 int c = getint(p), priv = getint(p);
                 playerent *pl = newclient(c);
-                if(!pl)
-                    break;
+                if(!pl) break;
                 pl->clientrole = priv;
                 break;
             }

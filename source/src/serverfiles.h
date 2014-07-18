@@ -714,8 +714,7 @@ struct serverforbiddenlist : serverconfigfile
 struct pwddetail
 {
     string pwd;
-    int line;
-    bool denyadmin;    // true: connect only
+    int line, priv;
 };
 
 int passtime = 0, passtries = 0;
@@ -735,7 +734,7 @@ struct serverpasswords : serverconfigfile
             pwddetail c;
             copystring(c.pwd, cmdlinepass);
             c.line = 0;   // commandline is 'line 0'
-            c.denyadmin = false;
+            c.priv = CR_MAX;
             adminpwds.add(c);
         }
         staticpasses = adminpwds.length();
@@ -760,7 +759,7 @@ struct serverpasswords : serverconfigfile
             if(l)
             {
                 copystring(c.pwd, l);
-                par[0] = 0;  // default values
+                par[0] = CR_ADMIN;  // default values
                 for(i = 0; i < ADMINPWD_MAXPAR; i++)
                 {
                     if((l = strtok(NULL, sep)) != NULL) par[i] = atoi(l);
@@ -769,9 +768,9 @@ struct serverpasswords : serverconfigfile
                 //if(i > 0)
                 {
                     c.line = line;
-                    c.denyadmin = par[0] > 0;
+                    c.priv = par[0];
                     adminpwds.add(c);
-                    logline(ACLOG_VERBOSE,"line%4d: %s %d", c.line, hiddenpwd(c.pwd), c.denyadmin ? 1 : 0);
+                    logline(ACLOG_VERBOSE,"line%4d: %s %s", c.line, hiddenpwd(c.pwd), privname(c.priv));
                 }
             }
             line++;

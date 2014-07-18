@@ -140,13 +140,37 @@ static inline const char *team_string(int t, bool abbr = false) { const char **n
 enum { ENT_PLAYER = 0, ENT_BOT, ENT_CAMERA, ENT_BOUNCE };
 enum { HIT_NONE = 0, HIT_LEG, HIT_TORSO, HIT_HEAD };
 enum { CS_ALIVE = 0, CS_DEAD, CS_SPAWNING, CS_LAGGED, CS_EDITING, CS_SPECTATE };
-enum { CR_DEFAULT = 0, CR_ADMIN };
+enum { CR_DEFAULT = 0, CR_MASTER, CR_ADMIN, CR_MAX };
 enum { SM_NONE = 0, SM_DEATHCAM, SM_FOLLOW1ST, SM_FOLLOW3RD, SM_FOLLOW3RD_TRANSPARENT, SM_FLY, SM_OVERVIEW, SM_NUM };
 enum { FPCN_VOID = -4, FPCN_DEATHCAM = -2, FPCN_FLY = -2, FPCN_OVERVIEW = -1 };
 
 enum { PERK_NONE = 0, PERK_RADAR, PERK_NINJA, PERK_POWER, PERK_TIME, PERK_MAX };
 enum { PERK1_NONE = 0, PERK1_AGILE = PERK_MAX, PERK1_HAND, PERK1_LIGHT, PERK1_SCORE, PERK1_MAX, };
 enum { PERK2_NONE = 0, PERK2_VISION = PERK_MAX, PERK2_STREAK, PERK2_STEADY, PERK2_HEALTH, PERK2_MAX };
+
+static inline const char privcolor(int priv, bool dead = false)
+{
+    switch (priv)
+    {
+        case CR_DEFAULT: return dead ? '4' : '5';
+        case CR_MASTER: return dead ? 'm' : '0';
+        case CR_ADMIN: return dead ? '7' : '3';
+        case CR_MAX: return dead ? 'o' : '1';
+    }
+    return '5';
+}
+
+static inline const char *privname(int priv)
+{
+    switch (priv)
+    {
+        case CR_DEFAULT: return "user";
+        case CR_MASTER: return "master";
+        case CR_ADMIN: return "admin";
+        case CR_MAX: return "highest";
+    }
+    return "unknown";
+}
 
 class worldobject
 {

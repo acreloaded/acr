@@ -169,7 +169,7 @@ struct forceteamaction : playeraction
 
 struct giveadminaction : playeraction
 {
-    void perform() { changeclientrole(cn, CR_ADMIN, NULL, true); }
+    void perform() { setpriv(cn, CR_ADMIN); }
     giveadminaction(int cn) : playeraction(cn)
     {
         role = CR_ADMIN;
@@ -179,7 +179,7 @@ struct giveadminaction : playeraction
 
 struct revokeaction : playeraction
 {
-    void perform() { changeclientrole(cn, CR_DEFAULT, NULL, true); }
+    void perform() { setpriv(cn, CR_DEFAULT); }
     revokeaction(int cn) : playeraction(cn)
     {
         area = EE_DED_SERV; // dedicated only

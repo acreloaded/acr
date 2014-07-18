@@ -274,7 +274,7 @@ struct client                   // server side version of "dynent" type
     int ping;
     int skin[2], level;
     int vote;
-    int role;
+    int role, authpriv;
     int connectmillis, lmillis, ldt, spj;
     int mute, spam, lastvc; // server side voice comm spam control
     int acversion, acbuildtype;
@@ -400,6 +400,7 @@ struct client                   // server side version of "dynent" type
         messages.setsize(0);
         isauthed = haswelcome = false;
         role = CR_DEFAULT;
+        authpriv = -1;
         lastvotecall = 0;
         lastprofileupdate = fastprofileupdates = 0;
         vote = VOTE_NEUTRAL;
@@ -458,7 +459,7 @@ void sendservmsg(const char *msg, int cn = -1);
 void sendiplist(int receiver, int cn = -1);
 int clienthasflag(int cn);
 bool refillteams(bool now = false, int ftr = FTR_AUTOTEAM);
-void changeclientrole(int client, int role, char *pwd = NULL, bool force=false);
+void setpriv(int cn, int priv);
 mapstats *getservermapstats(const char *mapname, bool getlayout = false, int *maploc = NULL);
 int findmappath(const char *mapname, char *filename = NULL);
 int calcscores();

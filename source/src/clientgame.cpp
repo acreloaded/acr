@@ -309,7 +309,7 @@ void playerinfo(int *cn, const char *attr)
 
     string addrstr = "";
     uint2ip(p->address, addr);
-    if(addr[3] != 0 || player1->clientrole==CR_ADMIN)
+    if(addr[3] != 0 || player1->clientrole>=CR_ADMIN)
         formatstring(addrstr)("%d.%d.%d.%d", addr[0], addr[1], addr[2], addr[3]); // full IP
     else formatstring(addrstr)("%d.%d.%d.x", addr[0], addr[1], addr[2]); // censored IP
     ATTR_STR(ip, addrstr);
@@ -1558,7 +1558,7 @@ void whois(int *cn)
         playerent *p = players[i];
         uint2ip(p->address, ip);
         if(m_team(gamemode, mutators)) conoutf(_("%c0INFO: %c5%s has %d teamkills."), CC, CC, p->name, p->tks);
-        if(ip[3] != 0 || player1->clientrole==CR_ADMIN)
+        if(ip[3] != 0 || player1->clientrole>=CR_ADMIN)
             conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.%d", *cn, colorname(p), ip[0], ip[1], ip[2], ip[3]); // full IP
         else conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.x", *cn, colorname(p), ip[0], ip[1], ip[2]); // censored IP
     }
@@ -1581,13 +1581,8 @@ int sessionid = 0;
 
 void setadmin(int *claim, char *password)
 {
-    if(!*claim && (player1->clientrole))
-    {
-        conoutf(_("you released admin status"));
-        addmsg(SV_CLAIMPRIV, "ri", 0);
-    }
-    else if(*claim != 0 && password)
-        addmsg(SV_CLAIMPRIV, "ris", *claim, genpwdhash(player1->name, password, sessionid));
+    if (!*claim) addmsg(SV_SETPRIV, "r");
+    else addmsg(SV_CLAIMPRIV, "rs", genpwdhash(player1->name, password, sessionid));
 }
 
 COMMAND(setadmin, "is");

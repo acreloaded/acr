@@ -744,7 +744,7 @@ bool sending_demo = false;
 void senddemo(int cn, int num)
 {
     client *cl = cn>=0 ? clients[cn] : NULL;
-    bool is_admin = (cl && cl->role == CR_ADMIN);
+    bool is_admin = (cl && cl->role >= CR_ADMIN);
     if(scl.demo_interm && (!interm || totalclients > 2) && !is_admin)
     {
         sendservmsg("\f3sorry, but this server only sends demos at intermission.\n wait for the end of this game, please", cn);
@@ -1324,7 +1324,7 @@ void arenacheck()
 
 bool spamdetect(client *cl, char *text) // checks doubled lines and average typing speed
 {
-    if(cl->type != ST_TCPIP || cl->role == CR_ADMIN) return false;
+    if(cl->type != ST_TCPIP || cl->role >= CR_ADMIN) return false;
     bool spam = false;
     int pause = servmillis - cl->lastsay;
     if(pause < 0 || pause > 90*1000) pause = 90*1000;
@@ -1391,7 +1391,7 @@ void sendtext(char *text, client *cl, int flags, int voice)
     // Check team flag
     if(cl->team == TEAM_VOID || (!m_team(gamemode, mutators) && cl->team != TEAM_SPECT))
         flags &= ~SAY_TEAM; // forced common chat
-    else if(mastermode != MM_MATCH || !matchteamsize || team_isactive(cl->team) || (cl->team == TEAM_SPECT && cl->role == CR_ADMIN));
+    else if(mastermode != MM_MATCH || !matchteamsize || team_isactive(cl->team) || (cl->team == TEAM_SPECT && cl->role >= CR_ADMIN));
     else // forced team chat
         flags |= SAY_TEAM;
     if(flags & SAY_TEAM)
@@ -2125,7 +2125,7 @@ int getbantype(int cn)
     return BAN_NONE;
 }
 
-void sendserveropinfo(int receiver)
+void sendserveropinfo(int receiver = -1)
 {
     loopv(clients)
         if(clients[i]->type!=ST_EMPTY)
@@ -2172,10 +2172,10 @@ struct voteinfo
             if(clients[i]->type!=ST_EMPTY /*&& clients[i]->connectmillis < callmillis*/) // new connected people will vote now
             {
                 stats[clients[i]->vote]++;
-                if(clients[i]->role==CR_ADMIN) adminvote = clients[i]->vote;
+                if(clients[i]->role>=CR_ADMIN) adminvote = clients[i]->vote;
             };
 
-        bool admin = clients[owner]->role==CR_ADMIN || (!isdedicated && clients[owner]->type==ST_LOCAL);
+        bool admin = clients[owner]->role>=CR_ADMIN || (!isdedicated && clients[owner]->type==ST_LOCAL);
         int total = stats[VOTE_NO]+stats[VOTE_YES]+stats[VOTE_NEUTRAL];
         const float requiredcount = 0.51f;
         bool min_time = servmillis - callmillis > 10*1000;
@@ -2243,7 +2243,7 @@ bool scallvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was calle
 
     int time = servmillis - c->lastvotecall;
     if ( c->nvotes > 0 && time > 4*60*1000 ) c->nvotes -= time/(4*60*1000);
-    if ( c->nvotes < 0 || c->role == CR_ADMIN ) c->nvotes = 0;
+    if ( c->nvotes < 0 || c->role >= CR_ADMIN ) c->nvotes = 0;
     c->nvotes++;
 
     if( !v || !v->isvalid() || (v->boot && (!b || cn2boot == v->owner) ) ) error = VOTEE_INVALID;
@@ -2252,7 +2252,7 @@ bool scallvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was calle
     else if( curvote && curvote->result==VOTE_NEUTRAL ) error = VOTEE_CUR;
     else if( v->type == SA_MAP && v->num1 >= G_MAX && map_queued ) error = VOTEE_NEXT;
     else if( c->role == CR_DEFAULT && v->action->isdisabled() ) error = VOTEE_DISABLED;
-    else if( (c->lastvotecall && servmillis - c->lastvotecall < 60*1000 && c->role != CR_ADMIN && numclients()>1) || c->nvotes > 3 ) error = VOTEE_MAX;
+    else if( (c->lastvotecall && servmillis - c->lastvotecall < 60*1000 && c->role < CR_ADMIN && numclients()>1) || c->nvotes > 3 ) error = VOTEE_MAX;
     else if( ( ( v->boot == 1 && c->role < roleconf('w') ) || ( v->boot == 2 && c->role < roleconf('X') ) )
                   && !is_lagging(b) && !b->mute && b->spamcount < 2 )
     {
@@ -2325,28 +2325,37 @@ void callvotepacket (int cn, voteinfo *v = curvote)
     sendpacket(cn, 1, q.finalize());
 }
 
-// TODO: use AUTH code
-void changeclientrole(int client, int role, char *pwd, bool force)
+void setpriv(int cn, int priv)
 {
-    pwddetail pd;
-    if(!isdedicated || !valid_client(client)) return;
-    pd.line = -1;
-    if(force || role == CR_DEFAULT || (role == CR_ADMIN && pwd && pwd[0] && passwords.check(clients[client]->name, pwd, clients[client]->salt, &pd) && !pd.denyadmin))
+    if(!valid_client(cn)) return;
+    client &c = *clients[cn];
+    if(!priv) // relinquish
     {
-        if(role == clients[client]->role) return;
-        if(role > CR_DEFAULT)
-        {
-            loopv(clients) clients[i]->role = CR_DEFAULT;
-        }
-        clients[client]->role = role;
-        sendserveropinfo(-1);
-        if(pd.line > -1)
-            logline(ACLOG_INFO, "[%s] player %s used admin password in line %d", clients[client]->gethostname(), clients[client]->name[0] ? clients[client]->name : "[unnamed]", pd.line);
-        logline(ACLOG_INFO, "[%s] set role of player %s to %s", clients[client]->gethostname(), clients[client]->name[0] ? clients[client]->name : "[unnamed]", role == CR_ADMIN ? "admin" : "normal player"); // flowtron : connecting players haven't got a name yet (connectadmin)
-        if(role > CR_DEFAULT) sendiplist(client);
+        if(!c.role) return; // no privilege to relinquish
+        sendf(-1, 1, "ri4", SV_CLAIMPRIV, cn, c.role, 1);
+        logline(ACLOG_INFO, "[%s] %s relinquished %s access", c.gethostname(), c.name, privname(c.role));
+        c.role = CR_DEFAULT;
+        sendserveropinfo();
+        return;
     }
-    else if(pwd && pwd[0]) disconnect_client(client, DISC_SOPLOGINFAIL); // avoid brute-force
-    if(curvote) curvote->evaluate();
+    else if(c.role >= priv)
+    {
+        sendf(cn, 1, "ri4", SV_CLAIMPRIV, cn, priv, 2);
+        return;
+    }
+    /*
+    else if(priv >= PRIV_ADMIN)
+    {
+        loopv(clients)
+            if(clients[i]->type != ST_EMPTY && clients[i]->authpriv < PRIV_MASTER && clients[i]->priv == PRIV_MASTER)
+                setpriv(i, PRIV_NONE);
+    }
+    */
+    c.role = priv;
+    sendf(-1, 1, "ri4", SV_CLAIMPRIV, cn, c.role, 0);
+    logline(ACLOG_INFO, "[%s] %s claimed %s access", c.gethostname(), c.name, privname(c.role));
+    sendserveropinfo();
+    //if(curvote) curvote->evaluate();
 }
 
 void senddisconnectedscores(int cn)
@@ -2416,7 +2425,7 @@ void disconnect_client(int n, int reason)
             if(!shiftai(*clients[i], -1, n))
                 deleteai(*clients[i]);
     // remove privilege
-    if(c.role) changeclientrole(n, CR_DEFAULT);
+    if(c.role) setpriv(n, CR_DEFAULT);
     c.state.lastdisc = servmillis;
     const char *scoresaved = "";
     if(c.haswelcome)
@@ -2729,8 +2738,6 @@ void process(ENetPacket *packet, int sender, int chan)
 
     if(cl && !cl->isauthed)
     {
-        int clientrole = CR_DEFAULT;
-
         if(chan==0) return;
         else if(chan!=1 || getint(p)!=SV_CONNECT) disconnect_client(sender, DISC_TAGT);
         else
@@ -2774,10 +2781,10 @@ void process(ENetPacket *packet, int sender, int chan)
                 logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d%s", cl->gethostname(), cl->name, bl, tags);
                 disconnect_client(sender, DISC_BADNICK);
             }
-            else if(passwords.check(cl->name, cl->pwd, cl->salt, &pd, (cl->type==ST_TCPIP ? cl->peer->address.host : 0)) && (!pd.denyadmin || (banned && !srvfull && !srvprivate)) && bantype != BAN_MASTER) // pass admins always through
+            else if(passwords.check(cl->name, cl->pwd, cl->salt, &pd, (cl->type==ST_TCPIP ? cl->peer->address.host : 0)) && (pd.priv >= CR_ADMIN || (banned && !srvfull && !srvprivate)) && bantype != BAN_MASTER) // pass admins always through
             { // admin (or deban) password match
                 cl->isauthed = true;
-                if(!pd.denyadmin) clientrole = CR_ADMIN;
+                if (pd.priv) setpriv(sender, pd.priv);
                 if(bantype == BAN_VOTE)
                 {
                     loopv(bans) if(bans[i].address.host == cl->peer->address.host) { bans.remove(i); concatstring(tags, ", ban removed"); break; } // remove admin bans
@@ -2826,13 +2833,12 @@ void process(ENetPacket *packet, int sender, int chan)
         if(restorescore(*cl)) { sendresume(*cl, true); senddisconnectedscores(-1); }
         else if(cl->type==ST_TCPIP) senddisconnectedscores(sender);
         sendinitclient(*cl);
-        if(clientrole != CR_DEFAULT) changeclientrole(sender, clientrole, NULL, true);
         if( curvote && curvote->result == VOTE_NEUTRAL ) callvotepacket (cl->clientnum);
 
         // send full IPs to admins
         loopv(clients)
         {
-            if(clients[i] && clients[i]->clientnum != cl->clientnum && (clients[i]->role == CR_ADMIN || clients[i]->type == ST_LOCAL))
+            if(clients[i] && clients[i]->clientnum != cl->clientnum && (clients[i]->role >= CR_ADMIN || clients[i]->type == ST_LOCAL))
                 sendiplist(clients[i]->clientnum, cl->clientnum);
         }
 
@@ -3484,16 +3490,41 @@ void process(ENetPacket *packet, int sender, int chan)
                 break;
             }
 
-            case SV_CLAIMPRIV:
+            case SV_CLAIMPRIV: // claim
             {
-                bool claim = getint(p) != 0;
-                if(claim)
+                getstring(text, p);
+                pwddetail pd;
+                pd.line = -1;
+                if (cl->type == ST_LOCAL) setpriv(sender, CR_MAX);
+                else if (!passwords.check(cl->name, text, cl->salt, &pd))
                 {
-                    getstring(text, p);
-                    changeclientrole(sender, CR_ADMIN, text);
-                } else changeclientrole(sender, CR_DEFAULT);
+                    if (cl->authpriv >= CR_MASTER)
+                    {
+                        logline(ACLOG_INFO, "[%s] %s was already authed for %s", cl->gethostname(), cl->name, privname(cl->authpriv));
+                        setpriv(sender, cl->authpriv);
+                    }
+                    else if (cl->role < CR_ADMIN && text)
+                    {
+                        disconnect_client(sender, DISC_SOPLOGINFAIL); // avoid brute-force
+                        return;
+                    }
+                }
+                else if (!pd.priv)
+                {
+                    sendf(sender, 1, "ri4", SV_CLAIMPRIV, sender, 0, 3);
+                    if (pd.line >= 0) logline(ACLOG_INFO, "[%s] %s used non-privileged password on line %d", cl->gethostname(), cl->name, pd.line);
+                }
+                else
+                {
+                    setpriv(sender, pd.priv);
+                    if (pd.line >= 0) logline(ACLOG_INFO, "[%s] %s used %s password on line %d", cl->gethostname(), cl->name, privname(pd.priv), pd.line);
+                }
                 break;
             }
+
+            case SV_SETPRIV: // relinquish
+                setpriv(sender, CR_DEFAULT);
+                break;
 
             case SV_CALLVOTE:
             {
@@ -3680,7 +3711,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     // note:        There is a 49 character limit. The server will ignore messages with 50+ characters.
 
                     getstring(text, p, n);
-                    if(valid_client(sender) && clients[sender]->role==CR_ADMIN)
+                    if(valid_client(sender) && clients[sender]->role>=CR_ADMIN)
                     {
                         logline(ACLOG_INFO, "[%s] %s writes to log: %s", cl->gethostname(), cl->name, text);
                         sendservmsg("your message has been logged", sender);
@@ -3691,7 +3722,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     // intermediate solution to set the teamsize (will be voteable)
 
                     getstring(text, p, n);
-                    if(valid_client(sender) && clients[sender]->role==CR_ADMIN && mastermode == MM_MATCH)
+                    if(valid_client(sender) && clients[sender]->role>=CR_ADMIN && mastermode == MM_MATCH)
                     {
                         changematchteamsize(atoi(text));
                         defformatstring(msg)("match team size set to %d", matchteamsize);
@@ -3954,7 +3985,7 @@ void loggamestatus(const char *reason)
         concatformatstring(text, "%6d ", c.state.points);                            // score
         concatformatstring(text, "%4d %5d", c.state.frags, c.state.deaths);          // frag death
         if(m_team(gamemode, mutators)) concatformatstring(text, " %2d", c.state.teamkills);          // tk
-        logline(ACLOG_INFO, "%s%5d %s  %s", text, c.ping, c.role == CR_ADMIN ? "admin " : "normal", c.gethostname());
+        logline(ACLOG_INFO, "%s%5d %-7s %s", text, c.ping, privname(c.role), c.gethostname());
         if(c.team != TEAM_SPECT)
         {
             int t = team_base(c.team);

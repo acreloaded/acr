@@ -203,11 +203,8 @@ VARP(cncolumncolor, 0, 5, 9);
 
 void renderscore(playerent *d)
 {
-    const char *status = "";
     string lagping;
     static color localplayerc(0.2f, 0.2f, 0.2f, 0.2f), damagedplayerc(0.4f, 0.1f, 0.1f, 0.3f), damagingplayerc(0.1f, 0.1f, 0.4f, 0.3f);
-    if(d->clientrole==CR_ADMIN) status = d->state==CS_DEAD ? "\f7" : "\f3";
-    else if(d->state==CS_DEAD) status = "\f4";
     if (team_isspect(d->team)) copystring(lagping, "SPECT");
     else if (d->state==CS_LAGGED || (d->ping > 999 && d->plag > 99)) copystring(lagping, "LAG");
     else
@@ -230,7 +227,7 @@ void renderscore(playerent *d)
         line.addcol(sc_lag, lagping);
     }
     line.addcol(sc_clientnum, "\fs\f%d%d\fr", cncolumncolor, d->clientnum);
-    line.addcol(sc_name, "\fs%s%s\fr%s", status, colorname(d, true), ign);
+    line.addcol(sc_name, "\fs\f%c%s\fr%s", privcolor(d->clientrole, d->state == CS_DEAD), colorname(d, true), ign);
 }
 
 int totalplayers = 0;
@@ -472,7 +469,7 @@ const char *asciiscores(bool destjpg)
             formatstring(text)("%s%s (%s%d/%d)\n", d->name, m_team(gamemode, mutators) ? team : "", m_flags(gamemode) ? flags : "", d->frags, d->deaths);
         else
             formatstring(text)("%s %4d   %4d %2d%s %s%s\n", m_flags(gamemode) ? flags : "", d->frags, d->deaths, d->clientnum,
-                            m_team(gamemode, mutators) ? team : "", d->name, d->clientrole==CR_ADMIN ? " (admin)" : d==player1 ? " (you)" : "");
+                            m_team(gamemode, mutators) ? team : "", d->name, d->clientrole ? " (op)" : d==player1 ? " (you)" : "");
         addstr(buf, text);
     }
     discscores.sort(discscorecmp);
