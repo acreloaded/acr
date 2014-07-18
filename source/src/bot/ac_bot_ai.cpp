@@ -83,11 +83,11 @@ bool CACBot::ChoosePreferredWeapon()
         else if(flIdealDiff <= 7.5f) sWeaponScore += 2;
         else if(flIdealDiff <= 10.0f) ++sWeaponScore;
 
-        // Now rate the weapon on available ammo...
+        // Now rate the weapon on available ammo in magazine...
         if (WeaponInfoTable[i].sMinDesiredAmmo > 0)
         {
-            // Calculate how much percent of the min desired ammo the bot has
-            float flDesiredPercent = (float(m_pMyEnt->ammo[i])/float(WeaponInfoTable[i].sMinDesiredAmmo))*100.0f;
+            // Calculate how much percent of the min desired ammo in mag the bot has
+            float flDesiredPercent = (float(m_pMyEnt->mag[i])/float(WeaponInfoTable[i].sMinDesiredAmmo))*100.0f;
 
             if (flDesiredPercent >= 400.0f)
                 sWeaponScore += 10;

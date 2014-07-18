@@ -435,6 +435,8 @@ public:
             ammo[secondary] = ammostats[secondary].start - 1;
             mag[secondary] = magsize(secondary);
         }
+        ammo[GUN_GRENADE] = ammostats[GUN_GRENADE].start - 1;
+        mag[GUN_GRENADE] = magsize(GUN_GRENADE);
 
         gunselect = primary;
 
