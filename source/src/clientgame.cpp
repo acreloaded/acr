@@ -1544,7 +1544,7 @@ void cleanplayervotes(playerent *p)
 
 void whois(int *cn)
 {
-    addmsg(SV_WHOIS, "ri", cn);
+    addmsg(SV_WHOIS, "ri", *cn);
 }
 COMMAND(whois, "i");
 
