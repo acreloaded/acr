@@ -443,7 +443,27 @@ void sendspawn(client *c)
     clientstate &gs = c->state;
     if(c->type == ST_AI)
     {
-        gs.gunselect = GUN_ASSAULT;
+        // random loadout settings
+        const int weap1[] = {
+            // insta/sniping
+            GUN_BOLT,
+            GUN_SNIPER2,
+            GUN_SNIPER, // only for sniping
+            // non-sniping below
+            GUN_SHOTGUN,
+            GUN_SUBGUN,
+            GUN_ASSAULT,
+            GUN_SWORD,
+            GUN_ASSAULT2,
+        }, weap2[] = {
+            GUN_PISTOL,
+            GUN_HEAL,
+            GUN_RPG,
+        };
+        gs.nextprimary = weap1[rnd(m_insta(gamemode, mutators) ? 2 : m_sniper(gamemode, mutators) ? 3 : sizeof(weap1) / sizeof(int))];
+        gs.nextsecondary = weap2[rnd(sizeof(weap2) / sizeof(int))];
+        gs.nextperk1 = PERK_NONE;
+        gs.nextperk2 = (gs.nextprimary == GUN_BOLT || m_sniper(gamemode, mutators)) ? PERK2_STEADY : PERK2_NONE;
     }
     gs.respawn();
     gs.spawnstate(c->team, smode, smuts);

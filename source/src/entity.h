@@ -460,6 +460,10 @@ public:
             ammo[secondary] = ammostats[secondary].start - 1;
             mag[secondary] = magsize(secondary);
         }
+        // extras
+        //ammo[GUN_KNIFE] = ammostats[GUN_KNIFE].start;
+        if (!m_noitems(gamemode, mutators) && !m_noitemsammo(gamemode, mutators) && (team != TEAM_CLA || !m_zombie(gamemode)))
+            mag[GUN_GRENADE] = ammostats[GUN_GRENADE].start;
 
         gunselect = primary;
 
@@ -589,6 +593,12 @@ struct damageinfo
     damageinfo(vec o, int t, int d) : o(o), millis(t), damage(d) {}
 };
 
+struct kd
+{
+    int kills;
+    int deaths;
+};
+
 class playerent : public dynent, public playerstate
 {
 private:
@@ -609,6 +619,7 @@ public:
     int eardamagemillis;
     int respawnoffset;
     vector<eventicon> icons;
+    kd weapstats[NUMGUNS];
     bool allowmove() { return state!=CS_DEAD || spectatemode==SM_FLY; }
 
     weapon *weapons[NUMGUNS];
@@ -648,6 +659,7 @@ public:
         maxspeed = 16.0f;
         skin_noteam = skin_cla = skin_rvsf = NULL;
         loopi(2) nextskin[i] = 0;
+        loopi(NUMGUNS) weapstats[i].deaths = weapstats[i].kills = 0;
         respawn(G_DM, G_M_NONE);
     }
 

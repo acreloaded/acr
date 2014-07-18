@@ -657,6 +657,26 @@ void CBot::CheckWeaponSwitch()
     }
 }
 
+bool CBot::CheckFire(const vec &o)
+{
+    vec target, dir, forward, right, up;
+    float flDot, flAngle;
+
+    AnglesToVectors(GetViewAngles(), forward, right, up);
+
+    // direction the bot is aiming at
+    dir = forward;
+
+    // ideal direction
+    target = o;
+    target.sub(m_pMyEnt->o);
+
+    // angle between these two directions
+    flDot = target.dot(dir);
+    if(flDot/float(target.magnitude() * dir.magnitude()) > .999f) return true;
+    return false;
+}
+
 void CBot::ShootEnemy()
 {
     if(!m_pMyEnt->enemy) return;
@@ -667,6 +687,17 @@ void CBot::ShootEnemy()
     // Aim to enemy
     vec enemypos = GetEnemyPos(m_pMyEnt->enemy);
     AimToVec(enemypos);
+
+    playerent *d = player1;
+    if (d && isteam(d->team, m_pMyEnt->team) && (d->state == CS_ALIVE)
+        && IsVisible(d) && CheckFire(d->o)) return;
+    loopv(players)
+    {
+        d = players[i];
+        if(d && isteam(d->team, m_pMyEnt->team) && (d->state == CS_ALIVE)
+             && IsVisible(d) && CheckFire(d->o)) return;
+    }
+
 
     // Time to shoot?
     if (m_iShootDelay < lastmillis)
@@ -754,7 +785,7 @@ void CBot::CheckReload() // reload gun if no enemies are around
 
 void CBot::CheckScope()
 {
-#define MINSCOPEDIST 15
+#define MINSCOPEDIST 10
 #define MINSCOPETIME 1000
     // no throwing knife
     if (!ads_gun(m_pMyEnt->weaponsel->type) || !ads_classic_allowed(m_pMyEnt->weaponsel->type)) return;
@@ -800,7 +831,7 @@ void CBot::MainAI()
         CheckScope();
         AddDebugText("has enemy");
         // Use best weapon
-        ChoosePreferredWeapon();
+        bool hasBestWeapon = ChoosePreferredWeapon();
         // Shoot at enemy
         ShootEnemy();
 

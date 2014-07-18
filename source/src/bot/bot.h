@@ -42,7 +42,9 @@
 #ifndef BOT_H
 #define BOT_H
 
+
 #define RELEASE_BUILD _DEBUG // Set when you want to make a release build
+
 
 
 // Set for which mod the code is
@@ -124,6 +126,7 @@ struct weaponinfo_s
      EBotWeaponTypes eWeaponType;
      float flMinDesiredDistance;
      float flMaxDesiredDistance;
+     float flIdealDistance;
      float flMinFireDistance;
      float flMaxFireDistance;
      short sMinDesiredAmmo;
@@ -242,6 +245,7 @@ public:
      void CheckWeaponSwitch(void); // 2011jan17:ft: fix non-shooting bots
      void CheckScope(void);
      void ShootEnemy(void);
+     bool CheckFire(const vec &o);
      bool CheckHunt(void);
      bool HuntEnemy(void);
      void DoCombatNav(void);
