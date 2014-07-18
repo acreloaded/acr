@@ -639,7 +639,7 @@ int weapon::dynspread()
 }
 float weapon::dynrecoil() { return info.kick * (1 - owner->zoomed / 2.f); } // 1/2 recoil when ADS
 bool weapon::selectable() { return this != owner->weaponsel && owner->state == CS_ALIVE && !owner->weaponchanging &&
-    (type == GUN_KNIFE || type == GUN_GRENADE || type == GUN_AKIMBO || type == owner->primary || type == owner->secondary || owner->pBot); }
+    (type == GUN_KNIFE || type == GUN_GRENADE || type == GUN_AKIMBO || type == owner->primary || type == owner->secondary); }
 bool weapon::deselectable() { return !reloading; }
 
 void weapon::equipplayer(playerent *pl)

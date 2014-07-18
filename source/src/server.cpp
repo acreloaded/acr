@@ -432,16 +432,32 @@ void sendspawn(client *c)
 {
     if(team_isspect(c->team)) return;
     clientstate &gs = c->state;
-    gs.respawn();
-    gs.spawnstate(c->team, smode, smuts);
     if(c->type == ST_AI)
     {
-        gs.gunselect = GUN_ASSAULT;
-        loopi(NUMGUNS) {
-            gs.ammo[i] = ammostats[i].start - 1;
-            gs.mag[i] =  magsize(i);
-        }
+        // random loadout settings
+        const int weap1[] = {
+            // insta/sniping
+            GUN_BOLT,
+            GUN_SNIPER2,
+            GUN_SNIPER, // only for sniping
+            // non-sniping below
+            GUN_SHOTGUN,
+            GUN_SUBGUN,
+            GUN_ASSAULT,
+            GUN_SWORD,
+            GUN_ASSAULT2,
+        }, weap2[] = {
+            GUN_PISTOL,
+            GUN_HEAL,
+            GUN_RPG,
+        };
+        gs.nextprimary = weap1[rnd(m_insta(gamemode, mutators) ? 2 : m_sniper(gamemode, mutators) ? 3 : sizeof(weap1) / sizeof(int))];
+        gs.nextsecondary = weap2[rnd(sizeof(weap2) / sizeof(int))];
+        gs.nextperk1 = PERK_NONE;
+        gs.nextperk2 = (gs.nextprimary == GUN_BOLT || m_sniper(gamemode, mutators)) ? PERK2_STEADY : PERK2_NONE;
     }
+    gs.respawn();
+    gs.spawnstate(c->team, smode, smuts);
     gs.lifesequence++;
     sendf(c->clientnum, 1, "ri8vv", SV_SPAWNSTATE, c->clientnum, gs.lifesequence,
         gs.health, gs.armour,
