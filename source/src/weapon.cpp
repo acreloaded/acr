@@ -918,11 +918,7 @@ bool grenades::selectable() { return weapon::selectable() && state != GST_INHAND
 void grenades::reset() { throwmillis = 0; state = GST_NONE; }
 
 void grenades::onselecting() { reset(); weapon::onselecting(); }
-void grenades::onownerdies()
-{
-//    reset();
-    if(owner==player1 && inhandnade) dropnade();
-}
+void grenades::onownerdies() { if(owner==player1 && inhandnade) dropnade(); }
 
 void grenades::removebounceent(bounceent *b)
 {

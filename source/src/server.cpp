@@ -3116,13 +3116,6 @@ void process(ENetPacket *packet, int sender, int chan)
                 clientstate &cs = cp.state;
                 if((cs.state!=CS_ALIVE && cs.state!=CS_DEAD && cs.state!=CS_SPECTATE) ||
                     ls!=cs.lifesequence || cs.lastspawn<0 || gunselect<0 || gunselect>=NUMGUNS) break;
-                if(cp.type == ST_AI)
-                {
-                    loopi(NUMGUNS) {
-                        cs.ammo[i] = ammostats[i].start - 1;
-                        cs.mag[i] =  magsize(i);
-                    }
-                }
                 cs.lastspawn = -1;
                 cs.spawn = gamemillis;
                 cp.upspawnp = false;
