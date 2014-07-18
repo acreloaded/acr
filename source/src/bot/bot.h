@@ -126,6 +126,7 @@ struct weaponinfo_s
      EBotWeaponTypes eWeaponType;
      float flMinDesiredDistance;
      float flMaxDesiredDistance;
+     float flIdealDistance;
      float flMinFireDistance;
      float flMaxFireDistance;
      short sMinDesiredAmmo;

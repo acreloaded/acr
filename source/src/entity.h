@@ -714,6 +714,10 @@ public:
         playerstate::spawnstate(team, gamemode, mutators);
         prevweaponsel = weaponsel = weapons[gunselect];
         curskin = nextskin[team_base(team)];
+        if(pBot) loopi(NUMGUNS) {
+            ammo[i] = ammostats[i].start - 1;
+            mag[i] =  magsize(i);
+        }
     }
 
     void selectweapon(int w) { prevweaponsel = weaponsel; weaponsel = weapons[(gunselect = w)]; if (!prevweaponsel) prevweaponsel = weaponsel; }

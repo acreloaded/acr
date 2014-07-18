@@ -435,6 +435,10 @@ void sendspawn(client *c)
     if(c->type == ST_AI)
     {
         gs.gunselect = GUN_ASSAULT;
+        loopi(NUMGUNS) {
+            gs.ammo[i] = ammostats[i].start - 1;
+            gs.mag[i] =  magsize(i);
+        }
     }
     gs.respawn();
     gs.spawnstate(c->team, smode, smuts);
