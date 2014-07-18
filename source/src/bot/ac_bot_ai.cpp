@@ -55,8 +55,8 @@ bool CACBot::ChoosePreferredWeapon()
 
         if (!m_pMyEnt->mag[i] && WeaponInfoTable[i].eWeaponType != TYPE_MELEE) continue;
 
-        sWeaponScore += m_pMyEnt->weapstats[i].kills/(m_pMyEnt->weapstats[i].deaths ? m_pMyEnt->weapstats[i].deaths : 0.5f);
-        sWeaponScore -= m_pMyEnt->weapstats[i].deaths/(m_pMyEnt->weapstats[i].kills ? m_pMyEnt->weapstats[i].kills : 0.5f);
+        sWeaponScore += 3*m_pMyEnt->weapstats[i].kills/(m_pMyEnt->weapstats[i].deaths ? m_pMyEnt->weapstats[i].deaths : 0.5f);
+        sWeaponScore -= 2*m_pMyEnt->weapstats[i].deaths/(m_pMyEnt->weapstats[i].kills ? m_pMyEnt->weapstats[i].kills : 0.5f);
 
         if((flDist >= WeaponInfoTable[i].flMinDesiredDistance) &&
             (flDist <= WeaponInfoTable[i].flMaxDesiredDistance))

@@ -784,7 +784,7 @@ void CBot::CheckReload() // reload gun if no enemies are around
 
 void CBot::CheckScope()
 {
-#define MINSCOPEDIST 15
+#define MINSCOPEDIST 10
 #define MINSCOPETIME 1000
     // no throwing knife
     if (!ads_gun(m_pMyEnt->weaponsel->type) || !ads_classic_allowed(m_pMyEnt->weaponsel->type)) return;
