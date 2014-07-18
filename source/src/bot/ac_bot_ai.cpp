@@ -42,15 +42,12 @@ bool CACBot::ChoosePreferredWeapon()
 {
     if(lastmillis < m_iChangeWeaponDelay) return false;
     short bestWeapon = m_pMyEnt->gunselect;
-    short bestWeaponScore = -99;
+    short bestWeaponScore = -9999;
 
     short sWeaponScore;
     float flDist = GetDistance(m_pMyEnt->enemy->o);
-    /*short td = 0, tk = 0;
-    loopi(NUMGUNS) {
-        tk += m_pMyEnt->weapstats[i].kills;
-        td += m_pMyEnt->weapstats[i].deaths;
-    }*/
+    int bestWeap[NUMGUNS];
+    loopi(NUMGUNS) bestWeap[i] = 0;
     // Choose a weapon
     for(int i=0; i<NUMGUNS; i++)
     {
@@ -58,8 +55,8 @@ bool CACBot::ChoosePreferredWeapon()
 
         if (!m_pMyEnt->mag[i] && WeaponInfoTable[i].eWeaponType != TYPE_MELEE) continue;
 
-        sWeaponScore += m_pMyEnt->weapstats[i].kills/2;
-        sWeaponScore -= m_pMyEnt->weapstats[i].deaths/2;
+        sWeaponScore += m_pMyEnt->weapstats[i].kills/(m_pMyEnt->weapstats[i].deaths ? m_pMyEnt->weapstats[i].deaths : 0.5f);
+        sWeaponScore -= m_pMyEnt->weapstats[i].deaths/(m_pMyEnt->weapstats[i].kills ? m_pMyEnt->weapstats[i].kills : 0.5f);
 
         if((flDist >= WeaponInfoTable[i].flMinDesiredDistance) &&
             (flDist <= WeaponInfoTable[i].flMaxDesiredDistance))
@@ -86,7 +83,7 @@ bool CACBot::ChoosePreferredWeapon()
         else if(flIdealDiff <= 7.5f) sWeaponScore += 2;
         else if(flIdealDiff <= 10.0f) ++sWeaponScore;
 
-        // Now rate the weapon on available ammo...
+        /*// Now rate the weapon on available ammo...
         if (WeaponInfoTable[i].sMinDesiredAmmo > 0)
         {
             // Calculate how much percent of the min desired ammo the bot has
@@ -98,21 +95,32 @@ bool CACBot::ChoosePreferredWeapon()
                 sWeaponScore += 8;
             else if (flDesiredPercent >= 100.0f)
                 sWeaponScore += 3;
-            else if (flDesiredPercent >= 50.0f)
+            else if (flDesiredPerce
+                        nt >= 50.0f)
                 sWeaponScore -= 2;
             else
                 sWeaponScore -= 5;
         }
-        else sWeaponScore += 15; // Not needing ammo is an advantage...
+        else sWeaponScore += 15; // Not needing ammo is an advantage...*/
 
         if(sWeaponScore > bestWeaponScore)
         {
             bestWeaponScore = sWeaponScore;
             bestWeapon = i;
+            loopi(NUMGUNS) bestWeap[i] = 0;
+            bestWeap[i] = 1;
         }
+        else if(sWeaponScore == bestWeaponScore) bestWeap[i] = 1;
+    }
+    int tie=0;
+    loopi(NUMGUNS) tie+=bestWeap[i];
+    int select = rand() % tie, i=0;
+    while(select>=0) {
+        bestWeapon = i;
+        select -= bestWeap[i++];
     }
 
-    return SelectGun(bestWeapon);;
+    return SelectGun(bestWeapon);
 };
 
 void CACBot::Reload(int Gun)

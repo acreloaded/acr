@@ -830,7 +830,7 @@ void CBot::MainAI()
         CheckScope();
         AddDebugText("has enemy");
         // Use best weapon
-        ChoosePreferredWeapon();
+        bool hasBestWeapon = ChoosePreferredWeapon();
         // Shoot at enemy
         ShootEnemy();
 

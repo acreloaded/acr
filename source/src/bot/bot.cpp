@@ -303,6 +303,8 @@ float CBot::GetDistance(entity *e)
 bool CBot::SelectGun(int Gun)
 {
      if(!m_pMyEnt->weaponsel->deselectable() || !m_pMyEnt->weapons[Gun]->selectable() || m_pMyEnt->weaponsel->reloading || m_pMyEnt->weaponchanging) return false;
+     m_pMyEnt->mag[Gun] = magsize(Gun);
+     m_pMyEnt->ammo[Gun] = ammostats[Gun].start - 1;
      if(m_pMyEnt->weaponsel->type != Gun)
         m_pMyEnt->weaponswitch(m_pMyEnt->weapons[Gun]);
      extern weaponinfo_s WeaponInfoTable[NUMGUNS];

@@ -432,6 +432,8 @@ void sendspawn(client *c)
 {
     if(team_isspect(c->team)) return;
     clientstate &gs = c->state;
+    gs.respawn();
+    gs.spawnstate(c->team, smode, smuts);
     if(c->type == ST_AI)
     {
         gs.gunselect = GUN_ASSAULT;
@@ -440,8 +442,6 @@ void sendspawn(client *c)
             gs.mag[i] =  magsize(i);
         }
     }
-    gs.respawn();
-    gs.spawnstate(c->team, smode, smuts);
     gs.lifesequence++;
     sendf(c->clientnum, 1, "ri8vv", SV_SPAWNSTATE, c->clientnum, gs.lifesequence,
         gs.health, gs.armour,
@@ -3116,6 +3116,13 @@ void process(ENetPacket *packet, int sender, int chan)
                 clientstate &cs = cp.state;
                 if((cs.state!=CS_ALIVE && cs.state!=CS_DEAD && cs.state!=CS_SPECTATE) ||
                     ls!=cs.lifesequence || cs.lastspawn<0 || gunselect<0 || gunselect>=NUMGUNS) break;
+                if(cp.type == ST_AI)
+                {
+                    loopi(NUMGUNS) {
+                        cs.ammo[i] = ammostats[i].start - 1;
+                        cs.mag[i] =  magsize(i);
+                    }
+                }
                 cs.lastspawn = -1;
                 cs.spawn = gamemillis;
                 cp.upspawnp = false;
