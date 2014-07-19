@@ -163,12 +163,12 @@ void currentprimary() { intret(player1->primary); }
 void currentsecondary() { intret(player1->secondary); }
 void prevweapon() { intret(player1->prevweaponsel->type); }
 void curweapon() { intret(player1->weaponsel->type); }
+void zoomprogress() { intret((int)(player1->zoomed * 1000)); }
 void isscoped() { intret(player1->zoomed >= ADSZOOM ? 1 : 0); }
 
 void magcontent(int *w) { if(*w >= 0 && *w < NUMGUNS) intret(player1->weapons[*w]->mag); else intret(-1); }
 void magreserve(int *w) { if(*w >= 0 && *w < NUMGUNS) intret(player1->weapons[*w]->ammo); else intret(-1); }
 
-COMMAND(isscoped, "");
 COMMANDN(weapon, requestweapon, "i");
 COMMAND(shiftweapon, "i");
 COMMAND(quicknadethrow, "d");
@@ -176,6 +176,8 @@ COMMAND(currentprimary, "");
 COMMAND(currentsecondary, "");
 COMMAND(prevweapon, "");
 COMMAND(curweapon, "");
+COMMAND(zoomprogress, "");
+COMMAND(isscoped, "");
 COMMAND(magcontent, "i");
 COMMAND(magreserve, "i");
 

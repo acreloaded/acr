@@ -2968,7 +2968,6 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </references>
         </command>
 
-
         <command name="currentsecondary">
           <description>Returns the weapon-index the local player currently has selected as secondary.</description>
           <references>
@@ -2982,6 +2981,14 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
             <identifierReference identifier="magreserve"/>
             <identifierReference identifier="hasprimary"/>
           </references>
+        </command>
+
+        <command name="zoomprogress">
+          <description>Returns the zoom progress (0 = unzoomed, 1000 = zoomed).</description>
+        </command>
+
+        <command name="isscoped">
+          <description>Returns 1 if the current weapon has its scope shown, 0 otherwise.</description>
         </command>
 
         <command name="hasprimary">
