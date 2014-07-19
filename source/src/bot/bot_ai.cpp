@@ -660,7 +660,7 @@ void CBot::CheckWeaponSwitch()
 bool CBot::CheckFire(const vec &o)
 {
     vec target, dir, forward, right, up;
-    float flDot, flAngle;
+    float flDot;
 
     AnglesToVectors(GetViewAngles(), forward, right, up);
 
@@ -831,7 +831,7 @@ void CBot::MainAI()
         CheckScope();
         AddDebugText("has enemy");
         // Use best weapon
-        bool hasBestWeapon = ChoosePreferredWeapon();
+        ChoosePreferredWeapon();
         // Shoot at enemy
         ShootEnemy();
 

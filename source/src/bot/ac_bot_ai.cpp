@@ -107,7 +107,7 @@ bool CACBot::ChoosePreferredWeapon()
             bestWeaponScore = sWeaponScore;
             bestWeapon = i;
             loopi(NUMGUNS) bestWeap[i] = 0;
-            bestWeap[i] = 1;
+            bestWeap[bestWeapon] = 1;
         }
         else if(sWeaponScore == bestWeaponScore) bestWeap[i] = 1;
     }
