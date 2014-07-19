@@ -99,7 +99,7 @@ struct itemstat { int add, start, max, sound; };
 extern itemstat ammostats[NUMGUNS];
 extern itemstat powerupstats[I_ARMOUR-I_HEALTH+1];
 
-struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, range, endrange, rangesub, piercing, spread, spreadrem, kick, addsize, magsize, mdl_kick_rot, mdl_kick_back, recoilincrease, recoilbase, maxrecoil, recoilbackfade, recoilangle, pushfactor; bool isauto; };
+struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, range, endrange, rangesub, piercing, spread, spreadrem, kick, addsize, magsize, mdl_kick_rot, mdl_kick_back, recoil, maxrecoil, recoilbackfade, recoilangle, pushfactor; bool isauto; };
 extern guninfo guns[NUMGUNS];
 
 struct mul { float torso, head; };
