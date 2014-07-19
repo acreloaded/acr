@@ -164,7 +164,7 @@ void currentsecondary() { intret(player1->secondary); }
 void prevweapon() { intret(player1->prevweaponsel->type); }
 void curweapon() { intret(player1->weaponsel->type); }
 void zoomprogress() { intret((int)(player1->zoomed * 1000)); }
-void isscoped() { intret(player1->zoomed >= ADSZOOM ? 1 : 0); }
+void isscoped() { intret((sniper_weap(player1->weaponsel->type) && player1->zoomed >= ADSZOOM) ? 2 : player1->zoomed ? 1 : 0); }
 
 void magcontent(int *w) { if(*w >= 0 && *w < NUMGUNS) intret(player1->weapons[*w]->mag); else intret(-1); }
 void magreserve(int *w) { if(*w >= 0 && *w < NUMGUNS) intret(player1->weapons[*w]->ammo); else intret(-1); }

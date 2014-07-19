@@ -2988,7 +2988,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
         </command>
 
         <command name="isscoped">
-          <description>Returns 1 if the current weapon has its scope shown, 0 otherwise.</description>
+          <description>Returns 2 if the current weapon has its scope shown, 1 if it is zoomed, 0 otherwise.</description>
         </command>
 
         <command name="hasprimary">
