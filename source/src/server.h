@@ -471,7 +471,7 @@ void sendwelcome(client *cl, int chan = 1);
 void sendpacket(int n, int chan, ENetPacket *packet, int exclude = -1, bool demopacket = false);
 int numclients();
 bool updateclientteam(int cln, int newteam, int ftr);
-void forcedeath(client *cl);
+void forcedeath(client *cl, bool gib = false);
 void sendf(int cn, int chan, const char *format, ...);
 void serverdied(client *target, client *actor, int damage, int gun, int style, const vec &source, float killdist = 0);
 void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source, float dist = 0);
@@ -488,7 +488,7 @@ const char *messagenames[SV_NUM] =
     "SV_INITCLIENT", "SV_INITAI", "SV_CDIS", "SV_DELAI", "SV_REASSIGNAI", "SV_RESUME", "SV_MAPIDENT",
     "SV_CLIENT", "SV_POS", "SV_POSC", "SV_SOUND", "SV_PINGPONG", "SV_CLIENTPING",
     "SV_TEXT", "SV_TEXTPRIVATE", "SV_WHOIS", "SV_SWITCHNAME", "SV_SWITCHSKIN", "SV_SETTEAM",
-    "SV_CALLVOTE", "SV_CALLVOTESUC", "SV_CALLVOTEERR", "SV_VOTE", "SV_VOTEREMAIN", "SV_VOTERESULT",
+    "SV_CALLVOTE", "SV_CALLVOTEERR", "SV_VOTE", "SV_VOTEREMAIN", "SV_VOTERESULT",
     "SV_LISTDEMOS", "SV_SENDDEMOLIST", "SV_GETDEMO", "SV_SENDDEMO", "SV_DEMOPLAYBACK",
     "SV_AUTH_ACR_REQ", "SV_AUTH_ACR_CHAL",
     "SV_CLAIMPRIV", "SV_SETPRIV",

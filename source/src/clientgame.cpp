@@ -1296,191 +1296,227 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 
 COMMANDN(dropflag, tryflagdrop, "");
 
-char *votestring(int type, const char *arg1, const char *arg2, const char *arg3)
+const char *votestring(int type, const votedata &vote)
 {
-    const char *msgs[] = { "kick player %s, reason: %s", "ban player %s, reason: %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to team %s", "give admin to player %s", "load map %s in mode %s%s%s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'", "shuffle teams", "set botbalance to %s", "revoke from %s"};
-    const char *msg = msgs[type];
-    char *out = newstring(MAXSTRLEN);
-    out[MAXSTRLEN] = '\0';
+    if (type < 0 || type >= SA_NUM) return "<invalid vote type>";
+    static string out = { 0 };
+    copystring(out, "unknown vote");
+
     switch(type)
     {
         case SA_KICK:
-        case SA_BAN:
-        case SA_FORCETEAM:
-        case SA_GIVEADMIN:
-        case SA_REVOKE:
         {
-            int cn = atoi(arg1);
+            playerent *p = getclient(vote.int1);
+            if (p) formatstring(out)("kick %s: %s", colorname(p), vote.str1);
+            else formatstring(out)("kick someone (%d) for %s", vote.int1, vote.str1);
+            break;
+        }
+        case SA_BAN:
+        {
+            int cn = vote.int1, minutes = vote.int2;
             playerent *p = getclient(cn);
-            if(!p) break;
-            if (type == SA_KICK || type == SA_BAN)
-            {
-                string reason = "";
-                formatstring(reason)("%s (ping %d)", arg2, p->ping);
-                formatstring(out)(msg, colorname(p), reason);
-            }
-            else if(type == SA_FORCETEAM)
-            {
-                int team = atoi(arg2);
-                formatstring(out)(msg, colorname(p), team_isvalid(team) ? teamnames[team] : "");
-            }
-            else formatstring(out)(msg, colorname(p));
+            if (p) formatstring(out)("ban %s for %d min: %s", colorname(p), minutes, vote.str1);
+            else formatstring(out)("ban someone (%d) for %d min: %s", cn, minutes, vote.str1);
             break;
         }
         case SA_MASTERMODE:
-            formatstring(out)(msg, mmfullname(atoi(arg1)));
+            formatstring(out)("set mastermode to %s", mmfullname(vote.int1));
             break;
         case SA_AUTOTEAM:
-        case SA_RECORDDEMO:
-            formatstring(out)(msg, atoi(arg1) == 0 ? "disable" : "enable");
+            formatstring(out)("%s autoteam", vote.int1 ? "enable" : "disable");
             break;
+        case SA_FORCETEAM:
+        {
+            playerent *p = getclient(vote.int1);
+            formatstring(out)("force player %s to %s", p ? colorname(p) : "?", team_string(vote.int2));
+            break;
+        }
+        case SA_GIVEADMIN:
+        {
+            playerent *p = getclient(vote.int1);
+            const int priv = vote.int2;
+            if (p) formatstring(out)("\fs\f0give \f%d%s \frto %s", privcolor(priv), privname(priv), colorname(p));
+            else formatstring(out)("give someone (%d) \f%d%s", vote.int1, privcolor(priv), privname(priv));
+            break;
+        }
         case SA_MAP:
         {
-            int n = atoi(arg2), muts = atoi(arg3);
-            string timestr = "";
-
-            if ( n >= G_MAX )
+            int n = vote.int1, muts = vote.int2;
+            if (n >= G_MAX)
             {
-                formatstring(out)(msg, arg1, modestr(n-G_MAX, muts, modeacronyms > 0)," (in the next game)", timestr);
+                if (gamemode == n - G_MAX && mutators == muts && !strcmp(clientmap, vote.str1))
+                    copystring(out, "repeat this map next"); 
+                else
+                    formatstring(out)("set next map to %s in mode %s", vote.str1, modestr(n - G_MAX, muts, modeacronyms > 0));
             }
             else
             {
-                formatstring(out)(msg, arg1, modestr(n, muts, modeacronyms > 0), "", timestr);
+                if (gamemode == n && mutators == muts && !strcmp(clientmap, vote.str1))
+                    copystring(out, "reload this map");
+                else
+                    formatstring(out)("load map %s in mode %s", vote.str1, modestr(n, muts, modeacronyms > 0));
             }
             break;
         }
+        case SA_RECORDDEMO:
+            formatstring(out)("%s demo recording for the next match", vote.int1 ? "enable" : "disable");
+            break;
+        case SA_CLEARDEMOS:
+            if (vote.int1 > 0)
+                formatstring(out)("clear demo %d", vote.int1);
+            else
+                copystring(out, "clear all demos");
+            break;
         case SA_SERVERDESC:
-            formatstring(out)(msg, arg1);
+            formatstring(out)("set server description to '%s'", vote.str1);
             break;
-        default:
-            formatstring(out)(msg, arg1, arg2);
+        case SA_BOTBALANCE: // int1
+            if (vote.int1 == 1)
+                copystring(out, "bots balance teams only");
+            else if (!vote.int1)
+                copystring(out, "disable all bots");
+            else if (vote.int1 == -1)
+                copystring(out, "automatically balance bots");
+            else if (vote.int1 < -1)
+                formatstring(out)("balance to %d RED, %d BLUE", ((vote.int1 / -32) & 0x0F), ((vote.int1 / -2) & 0x0F));
+            else
+                formatstring(out)("balance to %d players", vote.int1);
             break;
+        case SA_SUBDUE:
+        {
+            playerent *p = getclient(vote.int1);
+            formatstring(out)("subdue %s", p ? colorname(p) : "?");
+            break;
+        }
+        case SA_REVOKE:
+        {
+            playerent *p = getclient(vote.int1);
+            if (p) formatstring(out)("revoke \fs\f%d%s\fr from %s", privcolor(p->clientrole), privname(p->clientrole), colorname(p));
+            else formatstring(out)("revoke privilege from someone (%d)", vote.int1);
+            break;
+        }
+        // static
+        case SA_REMBANS: copystring(out, "remove all temporary bans"); break;
+        case SA_STOPDEMO: copystring(out, "stop demo recording"); break;
+        case SA_SHUFFLETEAMS: copystring(out, "shuffle teams"); break;
     }
     return out;
 }
 
-votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, const char *arg1, const char *arg2, const char *arg3)
+votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, const votedata &vote)
 {
     if(type < 0 || type >= SA_NUM) return NULL;
     votedisplayinfo *v = new votedisplayinfo();
     v->owner = owner;
     v->type = type;
     v->millis = totalmillis + (30+10)*1000;
-    char *votedesc = votestring(type, arg1, arg2, arg3);
-    copystring(v->desc, votedesc);
-    DELETEA(votedesc);
+    copystring(v->desc, votestring(type, vote));
     return v;
 }
 
-votedisplayinfo *curvote = NULL, *calledvote = NULL;
+votedisplayinfo *curvote = NULL;
 
-void callvote(int type, const char *arg1, const char *arg2, const char *arg3)
+void callvote(int type, const votedata &vote)
 {
-    if(calledvote) return;
-    votedisplayinfo *v = newvotedisplayinfo(player1, type, arg1, arg2, arg3);
-    if(v)
+    if (type >= 0 && type < SA_NUM)
     {
-        calledvote = v;
         packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
         putint(p, SV_CALLVOTE);
-        putint(p, v->type);
-        switch(v->type)
+        putint(p, type);
+        switch(type)
         {
-            case SA_KICK:
             case SA_BAN:
-                putint(p, atoi(arg1));
-                sendstring(arg2, p);
-                break;
             case SA_MAP:
-                sendstring(arg1, p);
-                putint(p, atoi(arg2));
-                putint(p, atoi(arg3));
-                break;
+                putint(p, vote.int2);
+                // fallthrough
+            case SA_KICK:
+                putint(p, vote.int1);
+                // fallthrough
             case SA_SERVERDESC:
-                sendstring(arg1, p);
+                sendstring(vote.str1, p);
                 break;
+            case SA_FORCETEAM:
+            case SA_GIVEADMIN:
+                putint(p, vote.int2);
+                // fallthrough
+            case SA_MASTERMODE:
+            case SA_AUTOTEAM:
+            case SA_RECORDDEMO:
+            case SA_CLEARDEMOS:
+            case SA_BOTBALANCE:
+            case SA_SUBDUE:
+            case SA_REVOKE:
+                putint(p, vote.int1);
+                // fallthrough
             case SA_STOPDEMO:
                 // compatibility
-                break;
+            default:
             case SA_REMBANS:
             case SA_SHUFFLETEAMS:
                 break;
-            case SA_FORCETEAM:
-                putint(p, atoi(arg1));
-                putint(p, atoi(arg2));
-                break;
-            default:
-
-
-
-
-                putint(p, atoi(arg1));
-                break;
         }
         sendpackettoserv(1, p.finalize());
-        if(identexists("onCallVote"))
-        {
-            defformatstring(runas)("%s %d %d [%s] [%s]", "onCallVote", type, player1->clientnum, arg1, arg2);
-            execute(runas);
-        }
     }
     else conoutf(_("%c3invalid vote"), CC);
 }
 
-void scallvote(int *type, const char *arg1, const char *arg2)
+void callvote_parser(int *type, const char *arg1, const char *arg2, const char *arg3)
 {
     if(type && inmainloop)
     {
         int t = *type;
-        switch (t)
+        if (t < 0 || t >= SA_NUM)
+            conoutf("\f3invalid vote: \f2%s %s %s %s", type, arg1, arg2, arg3);
+        else
         {
-            case SA_MAP:
+            // storage of vote data
+            static string str1;
+            votedata vote(str1);
+            switch (t)
             {
-                //FIXME: this stupid conversion of ints to strings and back should
-                //  really be replaced with a saner method
-                char m[4];
-                sprintf(&m[0], "%d", nextmode);
-                char m2[11];
-                sprintf(m2, "%d", nextmuts);
-                callvote(t, arg1, &m[0], m2);
-                break;
-            }
-            case SA_KICK:
-            case SA_BAN:
-            {
-                if (!arg1 || !isdigit(arg1[0]) || !arg2 || strlen(arg2) <= 3 || !multiplayer(false))
-                {
-                    if(!multiplayer(false))
-                        conoutf(_("%c3%s is not available in singleplayer."), CC, t == SA_BAN ? "Ban" : "Kick");
-                    else if(arg1 && !isdigit(arg1[0])) conoutf(_("%c3invalid vote"), CC);
-                    else conoutf(_("%c3invalid reason"), CC);
+                case SA_MAP:
+                    vote.int1 = nextmode;
+                    vote.int2 = nextmuts;
+                    // fallthrough
+                case SA_SERVERDESC:
+                    copystring(str1, arg1);
                     break;
-                }
+                case SA_KICK:
+                    vote.int1 = atoi(arg1);
+                    copystring(str1, arg2);
+                    break;
+                case SA_BAN:
+                    copystring(str1, arg3);
+                case SA_FORCETEAM:
+                case SA_GIVEADMIN:
+                    vote.int2 = atoi(arg2);
+                    // fallthrough
+                case SA_MASTERMODE:
+                case SA_AUTOTEAM:
+                case SA_RECORDDEMO:
+                case SA_CLEARDEMOS:
+                case SA_BOTBALANCE:
+                case SA_SUBDUE:
+                case SA_REVOKE:
+                    vote.int1 = atoi(arg1);
+                    // fallthrough
+                case SA_STOPDEMO:
+                    // compatibility
+                default:
+                case SA_REMBANS:
+                case SA_SHUFFLETEAMS:
+                    break;
             }
-            case SA_FORCETEAM:
-            {
-                int team = atoi(arg2);
-                if(team < 0) arg2 = (team == 0) ? "RVSF" : "CLA";
-                // fall through
-            }
-            default:
-                callvote(t, arg1, arg2);
+            callvote(t, vote);
         }
     }
 }
 
-int vote(int v)
+void vote(int v)
 {
-    if(!curvote || v < 0 || v >= VOTE_NUM) return 0;
-    if(curvote->localplayervoted) { conoutf(_("%c3you voted already"), CC); return 0; }
-    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    putint(p, SV_VOTE);
-    putint(p, v);
-    sendpackettoserv(1, p.finalize());
-    if(!curvote) return 0;
-    curvote->stats[v]++;
-    curvote->localplayervoted = true;
-    return 1;
+    if (!curvote || curvote->result != VOTE_NEUTRAL || v < 0 || v >= VOTE_NUM) return;
+    addmsg(SV_VOTE, "ri", v);
+    player1->vote = v; // did you think that our bots could vote? ;)
 }
 
 VAR(votepending, 1, 0, 0);
@@ -1492,63 +1528,40 @@ void displayvote(votedisplayinfo *v)
     curvote = v;
     conoutf(_("%s called a vote: %s"), v->owner ? colorname(v->owner) : "", curvote->desc);
     audiomgr.playsound(S_CALLVOTE, SP_HIGHEST);
-    curvote->localplayervoted = false;
+    player1->vote = VOTE_NEUTRAL;
+    loopv(players) if (players[i]) players[i]->vote = VOTE_NEUTRAL;
     votepending = 1;
-}
-
-void callvotesuc()
-{
-    if(!calledvote) return;
-    displayvote(calledvote);
-    calledvote = NULL;
-    vote(VOTE_YES); // not automatically done by callvote to keep a clear sequence
 }
 
 void callvoteerr(int e)
 {
     if(e < 0 || e >= VOTEE_NUM) return;
     conoutf(_("%c3could not vote: %s"), CC, voteerrorstr(e));
-    DELETEP(calledvote);
 }
 
-void votecount(int v) { if(curvote && v >= 0 && v < VOTE_NUM) curvote->stats[v]++; }
-void voteresult(int v)
-{
-    if(curvote && v >= 0 && v < VOTE_NUM)
-    {
-        curvote->result = v;
-        curvote->millis = totalmillis + 5000;
-        conoutf(_("vote %s"), v == VOTE_YES ? _("passed") : _("failed"));
-        if(multiplayer(false)) audiomgr.playsound(v == VOTE_YES ? S_VOTEPASS : S_VOTEFAIL, SP_HIGH);
-        if(identexists("onVoteEnd")) execute("onVoteEnd");
-        votepending = 0;
-    }
-}
-
-void clearvote() { DELETEP(curvote); DELETEP(calledvote); }
+void clearvote() { DELETEP(curvote); }
 
 void setnext(char *map)
 {
     if(!map) return;
-    string nm = ""; itoa(nm, nextmode+G_MAX);
-    string nm2 = ""; itoa(nm2, nextmuts);
-    callvote(SA_MAP, map, nm, nm2);
+    votedata vote(map);
+    vote.int1 = nextmode + G_MAX;
+    vote.int2 = nextmuts;
+    callvote(SA_MAP, vote);
 }
 COMMAND(setnext, "s");
 
 void gonext(int *arg1)
 {
-    addmsg(SV_CALLVOTE, "risi2", SA_MAP, "+1", *arg1, -1);
-    addmsg(SV_VOTE, "ri", VOTE_YES);
+    addmsg(SV_CALLVOTE, "ri3s", SA_MAP, -1, *arg1, "+1");
 }
 COMMAND(gonext, "i");
 
-COMMANDN(callvote, scallvote, "iss"); //fixme,ah
+COMMANDN(callvote, callvote_parser, "isss");
 COMMANDF(vote, "i", (int *v) { vote(*v); });
 
 void cleanplayervotes(playerent *p)
 {
-    if(calledvote && calledvote->owner==p) calledvote->owner = NULL;
     if(curvote && curvote->owner==p) curvote->owner = NULL;
 }
 

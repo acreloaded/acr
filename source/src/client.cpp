@@ -884,7 +884,10 @@ void shiftgametime(int newmillis)
         // if rewinding
         if(!curdemofile || !curdemofile[0]) return;
         watchingdemo = false;
-        callvote(SA_MAP, curdemofile, "0");
+        votedata vote(curdemofile);
+        vote.int1 = G_DEMO;
+        vote.int2 = G_M_NONE;
+        callvote(SA_MAP, vote);
         nextmillis = newmillis;
     }
     else

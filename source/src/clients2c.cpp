@@ -358,23 +358,25 @@ void showhudextras(char hudextras, char value){
 #undef SSPAM
 }
 
-void onCallVote(int type, int vcn, char *text, char *a)
+void onCallVote(int type, int vcn, const votedata &vote)
 {
     if(identexists("onCallVote"))
     {
-        defformatstring(runas)("%s %d %d [%s] [%s]", "onCallVote", type, vcn, text, a);
+        defformatstring(runas)("onCallVote %d %d %d %d [%s]", type, vcn, vote.int1, vote.int2, vote.str1);
         execute(runas);
     }
 }
 
-void onChangeVote(int mod, int id)
+void onChangeVote(int mod, int id, int cn)
 {
     if(identexists("onChangeVote"))
     {
-        defformatstring(runas)("%s %d %d", "onChangeVote", mod, id);
+        defformatstring(runas)("onChangeVote %d %d %d", mod, id, cn);
         execute(runas);
     }
 }
+
+extern votedisplayinfo *curvote;
 
 bool medals_arrived=0;
 medalsst a_medals[END_MDS];
@@ -1211,6 +1213,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 int cn = getint(p);
                 playerent *d = newclient(cn);
                 if(!d) break;
+                if (type == SV_FORCEGIB) addgib(d);
                 deathstate(d);
                 break;
             }
@@ -1325,75 +1328,50 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_CALLVOTE:
             {
-                int type = getint(p);
-                int vcn = -1, n_yes = 0, n_no = 0;
-                if ( type == -1 )
-                {
-                    d = getclient(vcn = getint(p));
-                    n_yes = getint(p);
-                    n_no = getint(p);
-                    type = getint(p);
-                }
-                if (type == SA_MAP && d == NULL) d = player1;      // gonext uses this
-                if( type < 0 || type >= SA_NUM || !d ) return;
+                int cn = getint(p), type = getint(p), voteremain = getint(p);
+                playerent *d = getclient(cn);
+                if( type < 0 || type >= SA_NUM ) break;
                 votedisplayinfo *v = NULL;
-                string a1, a2;
+                // vote data storage
+                static votedata vote = votedata(text);
+                vote = votedata(text); // reset it
+                // vote parsing
                 switch(type)
                 {
-                    case SA_MAP:
-                        getstring(text, p);
-                        filtertext(text, text);
-                        itoa(a1, getint(p));
-                        defformatstring(t)("%d", getint(p));
-                        v = newvotedisplayinfo(d, type, text, a1, t);
-                        break;
-                    case SA_KICK:
                     case SA_BAN:
-                    {
-                        itoa(a1, getint(p));
-                        getstring(text, p);
-                        filtertext(text, text);
-                        v = newvotedisplayinfo(d, type, a1, text);
-                        break;
-                    }
+                    case SA_MAP:
+                        vote.int2 = getint(p);
+                        // fallthrough
+                    case SA_KICK:
+                        vote.int1 = getint(p);
+                        // fallthrough
                     case SA_SERVERDESC:
                         getstring(text, p);
-                        filtertext(text, text);
-                        v = newvotedisplayinfo(d, type, text, NULL);
-                        break;
-                    case SA_STOPDEMO:
-                        // compatibility
-                        break;
-                    case SA_REMBANS:
-                    case SA_SHUFFLETEAMS:
-                        v = newvotedisplayinfo(d, type, NULL, NULL);
                         break;
                     case SA_FORCETEAM:
-                        itoa(a1, getint(p));
-                        itoa(a2, getint(p));
-                        v = newvotedisplayinfo(d, type, a1, a2);
-                        break;
+                    case SA_GIVEADMIN:
+                        vote.int2 = getint(p);
+                        // fallthrough
+                    case SA_MASTERMODE:
+                    case SA_AUTOTEAM:
+                    case SA_RECORDDEMO:
+                    case SA_CLEARDEMOS:
+                    case SA_BOTBALANCE:
+                    case SA_SUBDUE:
+                    case SA_REVOKE:
+                        vote.int1 = getint(p);
+                        // fallthrough
+                    case SA_STOPDEMO:
+                        // compatibility
                     default:
-                        itoa(a1, getint(p));
-                        v = newvotedisplayinfo(d, type, a1, NULL);
+                    case SA_REMBANS:
+                    case SA_SHUFFLETEAMS:
                         break;
                 }
+                v = newvotedisplayinfo(d, type, vote);
+                if (v) v->expiremillis = totalmillis + voteremain;
                 displayvote(v);
-                onCallVote(type, v->owner->clientnum, text, a1);
-                if (vcn >= 0)
-                {
-                    loopi(n_yes) votecount(VOTE_YES);
-                    loopi(n_no) votecount(VOTE_NO);
-                }
-                extern int vote(int);
-                if (d == player1) vote(VOTE_YES);
-                break;
-            }
-
-            case SV_CALLVOTESUC:
-            {
-                callvotesuc();
-                onChangeVote( 0, -1);
+                onCallVote(type, v->owner->clientnum, vote);
                 break;
             }
 
@@ -1401,23 +1379,52 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             {
                 int errn = getint(p);
                 callvoteerr(errn);
-                onChangeVote( 1, errn);
+                onChangeVote( 1, errn, -1 );
                 break;
             }
 
             case SV_VOTE:
             {
-                int vote = getint(p);
-                votecount(vote);
-                onChangeVote( 2, vote);
+                const int cn = getint(p), vote = getint(p);
+                if (!curvote) break;
+                playerent *d = getclient(cn);
+                if (!d || vote < VOTE_NEUTRAL || vote > VOTE_NO) break;
+                d->vote = vote;
+                if (vote == VOTE_NEUTRAL) break;
+                d->voternum = curvote->nextvote++;
+                if ((/*voteid*/ true || d == player1) && (d != curvote->owner || curvote->millis + 100 < lastmillis))
+                    conoutf("%s \f6(%d) \f2voted \f%s", (d == player1) ? "\f1you" : d->name, cn, vote == VOTE_NO ? "3no" : "0yes");
+                onChangeVote( 2, vote, cn );
+                break;
+            }
+
+            case SV_VOTEREMAIN:
+            {
+                const int projection = getint(p), yes_remain = getint(p), no_remain = getint(p);
+                if (!curvote) break;
+                curvote->expiryresult = projection;
+                curvote->yes_remain = yes_remain;
+                curvote->no_remain = no_remain;
                 break;
             }
 
             case SV_VOTERESULT:
             {
-                int vres = getint(p);
-                voteresult(vres);
-                onChangeVote( 3, vres);
+                int vres = getint(p), vetocn = getint(p);
+                playerent *d = getclient(vetocn);
+                curvote->veto = (d != NULL);
+                if (curvote && vres >= 0 && vres < VOTE_NUM)
+                {
+                    curvote->result = vres;
+                    curvote->millis = totalmillis + 5000;
+                    if (d) conoutf("\f1%s vetoed the vote to %s", colorname(d), vres == VOTE_YES ? "\f0pass" : "\f3fail");
+                    conoutf(vres == VOTE_YES ? _("vote %c0passed") : _("vote %c3failed"), CC);
+                    audiomgr.playsound(vres == VOTE_YES ? S_VOTEPASS : S_VOTEFAIL, SP_HIGH);
+                    if (identexists("onVoteEnd")) execute("onVoteEnd");
+                    extern int votepending;
+                    votepending = 0;
+                }
+                onChangeVote( 3, vres, vetocn );
                 break;
             }
 

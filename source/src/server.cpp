@@ -59,7 +59,6 @@ servermapbuffer mapbuffer;
 // cmod
 char *global_name;
 int totalclients = 0;
-int cn2boot;
 int servertime = 0, serverlagged = 0;
 
 #include "serverworld.h"
@@ -324,16 +323,6 @@ void changemastermode(int newmode)
         else if(matchteamsize) changematchteamsize(matchteamsize);
     sendservermode();
     }
-}
-
-int findcnbyaddress(ENetAddress *address)
-{
-    loopv(clients)
-    {
-        if(clients[i]->type == ST_TCPIP && clients[i]->peer->address.host == address->host && clients[i]->peer->address.port == address->port)
-            return i;
-    }
-    return -1;
 }
 
 savedscore *findscore(client &c, bool insert)
@@ -1991,16 +1980,6 @@ void startgame(const char *newname, int newmode, int newmuts, int newtime, bool 
         bool lastteammode = m_team(gamemode, mutators);
         resetserver(newname, newmode, newmuts, newtime);   // beware: may clear *newname
 
-        if(custom_servdesc && findcnbyaddress(&servdesc_caller) < 0)
-        {
-            updatesdesc(NULL);
-            if(notify)
-            {
-                sendservmsg("server description reset to default");
-                logline(ACLOG_INFO, "server description reset to '%s'", servdesc_current);
-            }
-        }
-
         int maploc = MAP_VOID;
         mapstats *ms = getservermapstats(smapname, true, &maploc);
         mapbuffer.clear();
@@ -2165,20 +2144,18 @@ void sendserveropinfo(int receiver = -1)
 
 struct voteinfo
 {
-    int boot;
-    int owner, callmillis, result, num1, num2, type;
-    char text[MAXTRANS];
+    int owner, callmillis, result, type;
     serveraction *action;
-    bool gonext;
-    enet_uint32 host;
 
-    voteinfo() : boot(0), owner(0), callmillis(0), result(VOTE_NEUTRAL), action(NULL), gonext(false), host(0) {}
+    voteinfo() : owner(0), callmillis(0), result(VOTE_NEUTRAL), type(SA_NUM), action(NULL) {}
     ~voteinfo() { delete action; }
 
-    void end(int result)
+    void end(int result, int veto)
     {
         if(action && !action->isvalid()) result = VOTE_NO; // don't perform() invalid votes
-        sendf(-1, 1, "ri2", SV_VOTERESULT, result);
+        if (valid_client(veto)) logline(ACLOG_INFO, "[%s] vote %s, forced by %s (%d)", clients[owner]->gethostname(), result == VOTE_YES ? "passed" : "failed", clients[veto]->name, veto);
+        else logline(ACLOG_INFO, "[%s] vote %s (%s)", clients[owner]->gethostname(), result == VOTE_YES ? "passed" : "failed", veto == -2 ? "enough votes" : veto == -3 ? "expiry" : "unknown");
+        sendf(-1, 1, "ri3", SV_VOTERESULT, result, veto);
         this->result = result;
         if(result == VOTE_YES)
         {
@@ -2189,57 +2166,37 @@ struct voteinfo
     }
 
     bool isvalid() { return valid_client(owner) && action != NULL && action->isvalid(); }
-    bool isalive() { return servmillis - callmillis < 30*1000; }
+    bool isalive() { return servmillis - callmillis < action->length; }
 
-    void evaluate(bool forceend = false)
+    void evaluate(bool forceend = false, int veto = VOTE_NEUTRAL, int vetoowner = -1)
     {
         if(result!=VOTE_NEUTRAL) return; // block double action
-        if(action && !action->isvalid()) end(VOTE_NO);
-        int stats[VOTE_NUM] = {0};
-        int adminvote = VOTE_NEUTRAL;
+        if(action && !action->isvalid()) end(VOTE_NO, -1);
+        int stats[VOTE_NUM+1] = {0};
         loopv(clients)
-            if(clients[i]->type!=ST_EMPTY /*&& clients[i]->connectmillis < callmillis*/) // new connected people will vote now
-            {
-                stats[clients[i]->vote]++;
-                if(clients[i]->role>=CR_ADMIN) adminvote = clients[i]->vote;
-            };
-
-        bool admin = clients[owner]->role>=CR_ADMIN || (!isdedicated && clients[owner]->type==ST_LOCAL);
-        int total = stats[VOTE_NO]+stats[VOTE_YES]+stats[VOTE_NEUTRAL];
-        const float requiredcount = 0.51f;
-        bool min_time = servmillis - callmillis > 10*1000;
-#define yes_condition ((min_time && stats[VOTE_YES] - stats[VOTE_NO] > 0.34f*total && totalclients > 4) || stats[VOTE_YES] > requiredcount*total)
-#define no_condition (forceend || !valid_client(owner) || stats[VOTE_NO] >= stats[VOTE_YES]+stats[VOTE_NEUTRAL] || adminvote == VOTE_NO)
-#define boot_condition (!boot || (boot && valid_client(num1) && clients[num1]->peer->address.host == host))
-        if( (yes_condition || admin || adminvote == VOTE_YES) && boot_condition ) end(VOTE_YES);
-        else if( no_condition || (min_time && !boot_condition)) end(VOTE_NO);
-        else return;
-#undef boot_condition
-#undef no_condition
-#undef yes_condition
+        {
+            if (clients[i]->type == ST_EMPTY || clients[i]->type == ST_AI) continue;
+            ++stats[clients[i]->vote%VOTE_NUM];
+            ++stats[VOTE_NUM];
+        }
+        const int expireresult = stats[VOTE_YES] / (float)(stats[VOTE_NO] + stats[VOTE_YES]) > action->passratio ? VOTE_YES : VOTE_NO;
+        sendf(-1, 1, "ri4", SV_VOTEREMAIN, expireresult,
+            (int)(stats[VOTE_NUM] * action->passratio) + 1 - stats[VOTE_YES],
+            (int)(stats[VOTE_NUM] * action->passratio) + 1 - stats[VOTE_NO]);
+        // can it end?
+        if (forceend)
+        {
+            if (veto == VOTE_NEUTRAL) end(expireresult, -3);
+            else end(veto, vetoowner);
+        }
+        else if (stats[VOTE_YES] / (float)stats[VOTE_NUM] > action->passratio || (!isdedicated && clients[owner]->type == ST_LOCAL))
+            end(VOTE_YES, -2);
+        else if (stats[VOTE_NO] / (float)stats[VOTE_NUM] > action->passratio)
+            end(VOTE_NO, -2);
     }
 };
 
 static voteinfo *curvote = NULL;
-
-bool svote(int sender, int vote, ENetPacket *msg) // true if the vote was placed successfully
-{
-    if(!curvote || !valid_client(sender) || vote < VOTE_YES || vote > VOTE_NO) return false;
-    if(clients[sender]->vote != VOTE_NEUTRAL)
-    {
-        sendf(sender, 1, "ri2", SV_CALLVOTEERR, VOTEE_MUL);
-        return false;
-    }
-    else
-    {
-        sendpacket(-1, 1, msg, sender);
-
-        clients[sender]->vote = vote;
-        logline(ACLOG_DEBUG, "[%s] %s voted %s", clients[sender]->gethostname(), clients[sender]->formatname(), vote == VOTE_NO ? "no" : "yes");
-        curvote->evaluate();
-        return true;
-    }
-}
 
 void scallvotesuc(voteinfo *v)
 {
@@ -2248,7 +2205,6 @@ void scallvotesuc(voteinfo *v)
     curvote = v;
     clients[v->owner]->lastvotecall = servmillis;
     clients[v->owner]->nvotes--; // successful votes do not count as abuse
-    sendf(v->owner, 1, "ri", SV_CALLVOTESUC);
     logline(ACLOG_INFO, "[%s] %s called a vote: %s", clients[v->owner]->gethostname(), clients[v->owner]->formatname(), v->action && v->action->desc ? v->action->desc : "[unknown]");
 }
 
@@ -2259,37 +2215,25 @@ void scallvoteerr(voteinfo *v, int error)
     logline(ACLOG_INFO, "[%s] %s failed to call a vote: %s (%s)", clients[v->owner]->gethostname(), clients[v->owner]->formatname(), v->action && v->action->desc ? v->action->desc : "[unknown]", voteerrorstr(error));
 }
 
-bool map_queued = false;
-void callvotepacket (int, voteinfo *);
+void sendcallvote(int cn = -1);
 
-bool scallvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was called
+bool scallvote(voteinfo *v) // true if a regular vote was called
 {
-    if (!v) return false;
     int area = isdedicated ? EE_DED_SERV : EE_LOCAL_SERV;
     int error = -1;
-    client *c = clients[v->owner], *b = ( v->boot && valid_client(cn2boot) ? clients[cn2boot] : NULL );
-    v->host = v->boot && b ? b->peer->address.host : 0;
+    client *c = clients[v->owner];
 
     int time = servmillis - c->lastvotecall;
     if ( c->nvotes > 0 && time > 4*60*1000 ) c->nvotes -= time/(4*60*1000);
     if ( c->nvotes < 0 || c->role >= CR_ADMIN ) c->nvotes = 0;
     c->nvotes++;
 
-    if( !v || !v->isvalid() || (v->boot && (!b || cn2boot == v->owner) ) ) error = VOTEE_INVALID;
-    else if( v->action->role > c->role ) error = VOTEE_PERMISSION;
+    if( !v || !v->isvalid() ) error = VOTEE_INVALID;
+    else if( v->action->reqcall > c->role ) error = VOTEE_PERMISSION;
     else if( !(area & v->action->area) ) error = VOTEE_AREA;
     else if( curvote && curvote->result==VOTE_NEUTRAL ) error = VOTEE_CUR;
-    else if( v->type == SA_MAP && v->num1 >= G_MAX && map_queued ) error = VOTEE_NEXT;
     else if( c->role == CR_DEFAULT && v->action->isdisabled() ) error = VOTEE_DISABLED;
     else if( (c->lastvotecall && servmillis - c->lastvotecall < 60*1000 && c->role < CR_ADMIN && numclients()>1) || c->nvotes > 3 ) error = VOTEE_MAX;
-    else if( ( ( v->boot == 1 && c->role < roleconf('w') ) || ( v->boot == 2 && c->role < roleconf('X') ) )
-                  && !is_lagging(b) && !b->mute && b->spamcount < 2 )
-    {
-        /** not same team, with low ratio, not lagging, and not spamming... so, why to kick? */
-        if ( !isteam(c->team, b->team) && b->state.frags < ( b->state.deaths > 0 ? b->state.deaths : 1 ) * 3 ) error = VOTEE_WEAK;
-        /** same team, with low tk, not lagging, and not spamming... so, why to kick? */
-        else if ( isteam(c->team, b->team) && b->state.teamkills < c->state.teamkills ) error = VOTEE_WEAK;
-    }
 
     if(error>=0)
     {
@@ -2298,58 +2242,85 @@ bool scallvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was calle
     }
     else
     {
-        if ( v->type == SA_MAP && v->num1 >= G_MAX ) map_queued = true;
-        if (!v->gonext) sendpacket(-1, 1, msg, v->owner); // FIXME in fact, all votes should go to the server, registered, and then go back to the clients
-        else callvotepacket (-1, v);                      // also, no vote should exclude the caller... these would provide many code advantages/facilities
-        scallvotesuc(v);                                  // but we cannot change the vote system now for compatibility issues... so, TODO
+        scallvotesuc(v);
+        sendcallvote();
+        // owner auto votes yes
+        sendf(-1, 1, "ri3", SV_VOTE, v->owner, (c->vote = VOTE_YES));
+        curvote->evaluate();
         return true;
     }
 }
 
-void callvotepacket (int cn, voteinfo *v = curvote)
-{ // FIXME, it would be far smart if the msg buffer from SV_CALLVOTE was simply saved
-    int n_yes = 0, n_no = 0;
-    loopv(clients) if(clients[i]->type!=ST_EMPTY)
-    {
-        if ( clients[i]->vote == VOTE_YES ) n_yes++;
-        else if ( clients[i]->vote == VOTE_NO ) n_no++;
-    }
-
+void sendcallvote(int cn)
+{
+    if (!curvote || curvote->result != VOTE_NEUTRAL)
+        return;
     packetbuf q(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     putint(q, SV_CALLVOTE);
-    putint(q, -1);
-    putint(q, v->owner);
-    putint(q, n_yes);
-    putint(q, n_no);
-    putint(q, v->type);
-    switch(v->type)
+    putint(q, curvote->owner);
+    putint(q, curvote->type);
+    putint(q, curvote->action->length - servmillis + curvote->callmillis);
+    switch (curvote->type)
     {
         case SA_KICK:
+            putint(q, ((kickaction *)curvote->action)->cn);
+            sendstring(((kickaction *)curvote->action)->reason, q);
+            break;
         case SA_BAN:
-            putint(q, v->num1);
-            sendstring(v->text, q);
+            putint(q, ((banaction *)curvote->action)->minutes);
+            putint(q, ((banaction *)curvote->action)->cn);
+            sendstring(((banaction *)curvote->action)->reason, q);
+            break;
+        case SA_MASTERMODE:
+            putint(q, ((mastermodeaction *)curvote->action)->mode);
+            break;
+        case SA_AUTOTEAM:
+            putint(q, ((autoteamaction *)curvote->action)->enable ? 1 : 0);
+            break;
+        case SA_FORCETEAM:
+            putint(q, ((forceteamaction *)curvote->action)->team);
+            putint(q, ((forceteamaction *)curvote->action)->cn);
+            break;
+        case SA_GIVEADMIN:
+            putint(q, ((giveadminaction *)curvote->action)->give);
+            putint(q, ((giveadminaction *)curvote->action)->cn);
             break;
         case SA_MAP:
-            sendstring(v->text, q);
-            putint(q, v->num1);
-            putint(q, v->num2);
+            putint(q, ((mapaction *)curvote->action)->muts);
+            putint(q, ((mapaction *)curvote->action)->mode + (((mapaction *)curvote->action)->queue ? G_MAX : 0));
+            sendstring(((mapaction *)curvote->action)->map, q);
+            break;
+        case SA_RECORDDEMO:
+            putint(q, ((recorddemoaction *)curvote->action)->enable ? 1 : 0);
+            break;
+        case SA_CLEARDEMOS:
+            putint(q, ((cleardemosaction *)curvote->action)->demo);
             break;
         case SA_SERVERDESC:
-            sendstring(v->text, q);
+            sendstring(((serverdescaction *)curvote->action)->desc, q);
+            break;
+        case SA_BOTBALANCE:
+            putint(q, ((botbalanceaction *)curvote->action)->balance);
+            break;
+        case SA_SUBDUE:
+            putint(q, ((subdueaction *)curvote->action)->cn);
+            break;
+        case SA_REVOKE:
+            putint(q, ((revokeaction *)curvote->action)->cn);
             break;
         case SA_STOPDEMO:
             // compatibility
-            break;
+        default:
         case SA_REMBANS:
         case SA_SHUFFLETEAMS:
             break;
-        case SA_FORCETEAM:
-            putint(q, v->num1);
-            putint(q, v->num2);
-            break;
-        default:
-            putint(q, v->num1);
-            break;
+    }
+    // send vote states
+    loopv(clients) if (clients[i]->vote != VOTE_NEUTRAL)
+    {
+        putint(q, SV_VOTE);
+        putint(q, i);
+        putint(q, clients[i]->vote);
     }
     sendpacket(cn, 1, q.finalize());
 }
@@ -2709,12 +2680,12 @@ void sendwelcome(client *cl, int chan)
     cl->haswelcome = true;
 }
 
-void forcedeath(client *cl)
+void forcedeath(client *cl, bool gib)
 {
     sdropflag(cl->clientnum);
     cl->state.state = CS_DEAD;
     cl->state.respawn();
-    sendf(-1, 1, "rii", SV_FORCEDEATH, cl->clientnum);
+    sendf(-1, 1, "ri2", gib ? SV_FORCEGIB : SV_FORCEDEATH, cl->clientnum);
 }
 
 int checktype(int type, client *cl)
@@ -2842,7 +2813,11 @@ void process(ENetPacket *packet, int sender, int chan)
         if(restorescore(*cl)) { sendresume(*cl, true); senddisconnectedscores(-1); }
         else if(cl->type==ST_TCPIP) senddisconnectedscores(sender);
         sendinitclient(*cl);
-        if( curvote && curvote->result == VOTE_NEUTRAL ) callvotepacket (cl->clientnum);
+        if (curvote)
+        {
+            sendcallvote(cl->clientnum);
+            curvote->evaluate();
+        }
 
         checkai(); // connected
         while(reassignai());
@@ -3531,129 +3506,141 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_CALLVOTE:
             {
                 voteinfo *vi = new voteinfo;
-                vi->boot = 0;
                 vi->type = getint(p);
                 switch(vi->type)
                 {
                     case SA_MAP:
                     {
+                        int muts = getint(p), mode = getint(p);
                         getstring(text, p);
                         filtertext(text, text);
-                        int mode = getint(p), muts = getint(p);
-                        vi->gonext = text[0]=='+' && text[1]=='1';
-                        if (vi->gonext)
+                        if (text[0] == '+' && text[1] == '1')
                         {
 #ifdef STANDALONE
                             int ccs = mode ? maprot.next(false,false) : maprot.get_next();
                             configset *c = maprot.get(ccs);
                             if(c)
                             {
-                                strcpy(vi->text,c->mapname);
-                                mode = vi->num1 = c->mode;
-                                muts = vi->num2 = c->muts;
+                                strcpy(text,c->mapname);
+                                mode = c->mode;
+                                muts = c->muts;
                             }
                             else fatal("unable to get next map in maprot");
 #else
                             defformatstring(nextmapalias)("nextmap_%s", getclientmap());
-                            strcpy(vi->text, getalias(nextmapalias));
-                            vi->num1 = mode = getclientmode();
-                            vi->num2 = muts = mutators;
+                            strcpy(text, getalias(nextmapalias));
+                            mode = getclientmode();
+                            muts = mutators;
 #endif
-                        }
-                        else
-                        {
-                            strncpy(vi->text,text,MAXTRANS-1);
-                            vi->num1 = mode;
-                            vi->num2 = muts;
                         }
                         int qmode = (mode >= G_MAX ? mode - G_MAX : mode);
                         modecheck(qmode, muts);
                         if(m_demo(mode)) vi->action = new demoplayaction(newstring(text));
                         else
                         {
-                            char *vmap = newstring(vi->text ? behindpath(vi->text) : "");
+                            char *vmap = newstring(text ? behindpath(text) : "");
                             vi->action = new mapaction(vmap, qmode, muts, sender, qmode!=mode);
                         }
                         break;
                     }
                     case SA_KICK:
                     {
-                        vi->num1 = cn2boot = getint(p);
+                        int cn = getint(p);
                         getstring(text, p);
-                        strncpy(vi->text,text,128);
                         filtertext(text, text);
                         trimtrailingwhitespace(text);
-                        vi->action = new kickaction(cn2boot, newstring(text, 128));
-                        vi->boot = 1;
+                        vi->action = new kickaction(cn, text, cn == sender);
                         break;
                     }
                     case SA_BAN:
                     {
-                        vi->num1 = cn2boot = getint(p);
+                        int m = getint(p), cn = getint(p);
                         getstring(text, p);
-                        strncpy(vi->text,text,128);
+                        m = clamp(m, 1, 60);
+                        if (cl->role < CR_ADMIN && m >= 10) m = 10;
                         filtertext(text, text);
                         trimtrailingwhitespace(text);
-                        vi->action = new banaction(cn2boot, newstring(text, 128));
-                        vi->boot = 2;
+                        vi->action = new banaction(cn, m, text, cn == sender);
                         break;
                     }
                     case SA_REMBANS:
                         vi->action = new removebansaction();
                         break;
                     case SA_MASTERMODE:
-                        vi->action = new mastermodeaction(vi->num1 = getint(p));
-                        break;
-                    case SA_BOTBALANCE:
-                        vi->action = new botbalanceaction(vi->num1 = getint(p));
+                        vi->action = new mastermodeaction(getint(p));
                         break;
                     case SA_AUTOTEAM:
-                        vi->action = new autoteamaction((vi->num1 = getint(p)) > 0);
-                        break;
-                    case SA_SHUFFLETEAMS:
-                        vi->action = new shuffleteamaction();
+                        vi->action = new autoteamaction(getint(p) > 0);
                         break;
                     case SA_FORCETEAM:
-                        vi->num1 = getint(p);
-                        vi->num2 = getint(p);
-                        vi->action = new forceteamaction(vi->num1, sender, vi->num2);
+                    {
+                        int team = getint(p), cn = getint(p);
+                        vi->action = new forceteamaction(cn, sender, team);
                         break;
+                    }
                     case SA_GIVEADMIN:
-                        vi->action = new giveadminaction(vi->num1 = getint(p));
+                    {
+                        int role = getint(p), cn = getint(p);
+                        vi->action = new giveadminaction(cn, role, sender);
                         break;
-                    case SA_REVOKE:
-                        vi->action = new revokeaction(vi->num1 = getint(p));
-                        break;
+                    }
+                    // case SA_MAP:
                     case SA_RECORDDEMO:
-                        vi->action = new recorddemoaction((vi->num1 = getint(p))!=0);
+                        vi->action = new recorddemoaction(getint(p) != 0);
                         break;
                     case SA_STOPDEMO:
                         // compatibility
                         break;
                     case SA_CLEARDEMOS:
-                        vi->action = new cleardemosaction(vi->num1 = getint(p));
+                        vi->action = new cleardemosaction(getint(p));
                         break;
                     case SA_SERVERDESC:
                         getstring(text, p);
-                        strncpy(vi->text,text,MAXTRANS-1);
                         filtertext(text, text);
                         vi->action = new serverdescaction(newstring(text), sender);
+                        break;
+                    case SA_SHUFFLETEAMS:
+                        vi->action = new shuffleteamaction();
+                        break;
+                    case SA_BOTBALANCE:
+                        vi->action = new botbalanceaction(getint(p));
+                        break;
+                    case SA_SUBDUE:
+                        vi->action = new subdueaction(getint(p));
+                        break;
+                    case SA_REVOKE:
+                        vi->action = new revokeaction(getint(p));
+                        break;
+                    default:
+                        vi->type = SA_KICK;
+                        vi->action = new kickaction(-1, "<invalid type placeholder>", false);
                         break;
                 }
                 vi->owner = sender;
                 vi->callmillis = servmillis;
-                MSG_PACKET(msg);
-                if(!scallvote(vi, msg)) delete vi;
+                if(!scallvote(vi)) delete vi;
                 break;
             }
 
             case SV_VOTE:
             {
-                int n = getint(p);
-                MSG_PACKET(msg);
-                ++msg->referenceCount; // need to increase reference count in case a vote disconnects a player after packet is queued to prevent double-freeing by packetbuf
-                svote(sender, n, msg);
-                --msg->referenceCount;
+                int vote = getint(p);
+                if (!curvote || !curvote->action || vote < VOTE_YES || vote > VOTE_NO) break;
+                if (cl->vote != VOTE_NEUTRAL)
+                {
+                    if (cl->vote == vote)
+                    {
+                        if (cl->role >= curvote->action->reqcall && cl->role >= curvote->action->reqveto)
+                            curvote->evaluate(true, vote, sender);
+                        else sendf(sender, 1, "ri2", SV_CALLVOTEERR, VOTEE_VETOPERM);
+                        break;
+                    }
+                    else logline(ACLOG_INFO, "[%s] %s now votes %s", cl->gethostname(), cl->name, vote == VOTE_NO ? "no" : "yes");
+                }
+                else logline(ACLOG_INFO, "[%s] %s voted %s", cl->gethostname(), cl->name, vote == VOTE_NO ? "no" : "yes");
+                cl->vote = vote;
+                sendf(-1, 1, "ri3", SV_VOTE, sender, vote);
+                curvote->evaluate();
                 break;
             }
 
@@ -4177,7 +4164,6 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         if(nextmapname[0]) startgame(nextmapname, nextgamemode, nextmutators);
         else maprot.next();
         nextmapname[0] = '\0';
-        map_queued = false;
     }
 
     resetserverifempty();
