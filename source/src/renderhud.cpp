@@ -11,10 +11,10 @@ inline void turn_on_transparency(int alpha = 255)
 {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    //glColor4ub(255, 255, 255, alpha);
+    glColor4ub(255, 255, 255, alpha);
 }
 
-void drawequipicon(float x, float y, int col, int row, float blend)
+void drawequipicon(float x, float y, int col, int row, bool blend)
 {
     static Texture *tex = NULL;
     if(!tex) tex = textureload("packages/misc/items.png", 4);
@@ -68,7 +68,7 @@ void drawvoteicon(float x, float y, int col, int row, bool noblend)
     if(tex)
     {
         if(noblend) glDisable(GL_BLEND);
-        else turn_on_transparency(); // if(transparency && !noblend)
+        // else turn_on_transparency(); // if(transparency && !noblend)
         drawicon(tex, x, y, 240, col, row, 1/2.0f);
         if(noblend) glEnable(GL_BLEND);
     }
