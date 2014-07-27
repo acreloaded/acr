@@ -380,6 +380,7 @@ void deathstate(playerent *pl)
     pl->respawnoffset = pl->lastpain = lastmillis;
     pl->move = pl->strafe = 0;
     pl->pitch = pl->roll = 0;
+    pl->zoomed = 0;
     pl->attacking = false;
     pl->weaponsel->onownerdies();
 
