@@ -2537,7 +2537,7 @@ void answerchallenge(client *cl, uint id, char *val)
 
 void sendresume(client &c, bool broadcast)
 {
-    sendf(broadcast ? -1 : c.clientnum, 1, "ri3i9ivvi", SV_RESUME,
+    sendf(broadcast ? -1 : c.clientnum, 1, "ri3i9vvi", SV_RESUME,
             c.clientnum,
             c.state.state,
             c.state.lifesequence,
