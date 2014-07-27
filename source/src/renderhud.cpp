@@ -11,7 +11,7 @@ inline void turn_on_transparency(int alpha = 255)
 {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glColor4ub(255, 255, 255, alpha);
+    //glColor4ub(255, 255, 255, alpha);
 }
 
 void drawequipicon(float x, float y, int col, int row, float blend)
