@@ -202,7 +202,7 @@ struct giveadminaction : playeraction
         reqveto = CR_MASTER; // giveadmin
         passratio = 0.1f;
         if (valid_client(cn))
-            formatstring(desc)("give %s to %s", privname(give), clients[cn]->name);
+            formatstring(desc)("give %s to %s", privname(give), clients[cn]->formatname());
     }
 };
 
@@ -216,7 +216,7 @@ struct revokeaction : playeraction
         reqcall = max((int)(CR_ADMIN), valid_client(cn) ? clients[cn]->role : 0);
         passratio = 0.1f;
         if (valid_client(cn))
-            formatstring(desc)("revoke %s from %s", privname(clients[cn]->role), clients[cn]->name);
+            formatstring(desc)("revoke %s from %s", privname(clients[cn]->role), clients[cn]->formatname());
     }
 };
 
@@ -235,7 +235,7 @@ struct subdueaction : playeraction
         reqcall = protectAdminPriv('q', cn);
         length = 25000; // 25s
         if (valid_client(cn))
-            formatstring(desc)("subdue player %s", clients[cn]->name);
+            formatstring(desc)("subdue player %s", clients[cn]->formatname());
     }
 };
 

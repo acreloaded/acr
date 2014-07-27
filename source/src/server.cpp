@@ -2153,7 +2153,7 @@ struct voteinfo
     void end(int result, int veto)
     {
         if(action && !action->isvalid()) result = VOTE_NO; // don't perform() invalid votes
-        if (valid_client(veto)) logline(ACLOG_INFO, "[%s] vote %s, forced by %s (%d)", clients[owner]->gethostname(), result == VOTE_YES ? "passed" : "failed", clients[veto]->name, veto);
+        if (valid_client(veto)) logline(ACLOG_INFO, "[%s] vote %s, forced by %s (%d)", clients[owner]->gethostname(), result == VOTE_YES ? "passed" : "failed", clients[veto]->formatname(), veto);
         else logline(ACLOG_INFO, "[%s] vote %s (%s)", clients[owner]->gethostname(), result == VOTE_YES ? "passed" : "failed", veto == -2 ? "enough votes" : veto == -3 ? "expiry" : "unknown");
         sendf(-1, 1, "ri3", SV_VOTERESULT, result, veto);
         this->result = result;
@@ -3635,9 +3635,9 @@ void process(ENetPacket *packet, int sender, int chan)
                         else sendf(sender, 1, "ri2", SV_CALLVOTEERR, VOTEE_VETOPERM);
                         break;
                     }
-                    else logline(ACLOG_INFO, "[%s] %s now votes %s", cl->gethostname(), cl->name, vote == VOTE_NO ? "no" : "yes");
+                    else logline(ACLOG_INFO, "[%s] %s now votes %s", cl->gethostname(), cl->formatname(), vote == VOTE_NO ? "no" : "yes");
                 }
-                else logline(ACLOG_INFO, "[%s] %s voted %s", cl->gethostname(), cl->name, vote == VOTE_NO ? "no" : "yes");
+                else logline(ACLOG_INFO, "[%s] %s voted %s", cl->gethostname(), cl->formatname(), vote == VOTE_NO ? "no" : "yes");
                 cl->vote = vote;
                 sendf(-1, 1, "ri3", SV_VOTE, sender, vote);
                 curvote->evaluate();
