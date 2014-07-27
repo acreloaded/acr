@@ -347,6 +347,7 @@ struct client                   // server side version of "dynent" type
         return gameoffset + id;
     }
 
+    const char *formatname();
     const char *gethostname();
     bool hasclient(int cn);
 

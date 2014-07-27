@@ -69,6 +69,16 @@ bool valid_client(int cn)
     return clients.inrange(cn) && clients[cn]->type != ST_EMPTY;
 }
 
+const char *client::formatname()
+{
+    static string cname[3];
+    static int idx = 0;
+    if (idx >= 3) idx %= 3;
+    if (type == ST_AI) formatstring(cname[idx])("%s [%d-%d]", name, clientnum, ownernum);
+    else formatstring(cname[idx])("%s (%d)", name, clientnum);
+    return cname[idx++];
+}
+
 const char *client::gethostname()
 {
     if (ownernum < 0)
@@ -949,7 +959,7 @@ bool flagdistance(sflaginfo &f, int cn)
     {
         c.farpickups++;
         logline(ACLOG_INFO, "[%s] %s %s the %s flag at distance %.2f (%d)",
-            c.gethostname(), c.name, (pdist == 2 ? "tried to touch" : "touched"), team_string(&f == sflaginfos + 1), dist, c.farpickups);
+            c.gethostname(), c.formatname(), (pdist == 2 ? "tried to touch" : "touched"), team_string(&f == sflaginfos + 1), dist, c.farpickups);
         if (pdist==2) return false;
     }
     return lagging ? false : true; // today I found a lag hacker :: Brahma, 19-oct-2010... lets test it a bit
@@ -1088,26 +1098,26 @@ void flagaction(int flag, int action, int actor)
         switch(message)
         {
             case FM_PICKUP:
-                logline(ACLOG_INFO, "[%s] %s %s the flag", c.gethostname(), c.name, action == FA_STEAL ? "stole" : "picked up");
+                logline(ACLOG_INFO, "[%s] %s %s the flag", c.gethostname(), c.formatname(), action == FA_STEAL ? "stole" : "picked up");
                 break;
             case FM_DROP:
             case FM_LOST:
-                logline(ACLOG_INFO, "[%s] %s %s the flag", c.gethostname(), c.name, message == FM_LOST ? "lost" : "dropped");
+                logline(ACLOG_INFO, "[%s] %s %s the flag", c.gethostname(), c.formatname(), message == FM_LOST ? "lost" : "dropped");
                 break;
             case FM_RETURN:
-                logline(ACLOG_INFO, "[%s] %s returned the flag", c.gethostname(), c.name);
+                logline(ACLOG_INFO, "[%s] %s returned the flag", c.gethostname(), c.formatname());
                 break;
             case FM_SCORE:
                 if(m_hunt(gamemode))
-                    logline(ACLOG_INFO, "[%s] %s hunted the flag for %s, new score %d", c.gethostname(), c.name, team_string(c.team), c.state.flagscore);
+                    logline(ACLOG_INFO, "[%s] %s hunted the flag for %s, new score %d", c.gethostname(), c.formatname(), team_string(c.team), c.state.flagscore);
                 else
-                    logline(ACLOG_INFO, "[%s] %s scored with the flag for %s, new score %d", c.gethostname(), c.name, team_string(c.team), c.state.flagscore);
+                    logline(ACLOG_INFO, "[%s] %s scored with the flag for %s, new score %d", c.gethostname(), c.formatname(), team_string(c.team), c.state.flagscore);
                 break;
             case FM_KTFSCORE:
-                logline(ACLOG_INFO, "[%s] %s scored, carrying for %d seconds, new score %d", c.gethostname(), c.name, (gamemillis - f.stolentime) / 1000, c.state.flagscore);
+                logline(ACLOG_INFO, "[%s] %s scored, carrying for %d seconds, new score %d", c.gethostname(), c.formatname(), (gamemillis - f.stolentime) / 1000, c.state.flagscore);
                 break;
             case FM_SCOREFAIL:
-                logline(ACLOG_INFO, "[%s] %s failed to score", c.gethostname(), c.name);
+                logline(ACLOG_INFO, "[%s] %s failed to score", c.gethostname(), c.formatname());
                 break;
             default:
                 logline(ACLOG_INFO, "flagaction %d, actor %d, flag %d, message %d", action, actor, flag, message);
@@ -1197,7 +1207,7 @@ void htf_forceflag(int flag)
         f.actor_cn = cl->clientnum;
         sendflaginfo(flag);
         flagmessage(flag, FM_PICKUP, cl->clientnum);
-        logline(ACLOG_INFO, "[%s] %s got forced to pickup the flag", cl->gethostname(), cl->name);
+        logline(ACLOG_INFO, "[%s] %s got forced to pickup the flag", cl->gethostname(), cl->formatname());
     }
     f.lastupdate = gamemillis;
 }
@@ -1405,8 +1415,8 @@ void sendtext(char *text, client *cl, int flags, int voice)
     }
     else voice = 0;
     string logmsg;
-    if (flags & SAY_ACTION) formatstring(logmsg)("[%s] * %s '%s' ", cl->gethostname(), cl->name, text);
-    else formatstring(logmsg)("[%s] <%s> '%s' ", cl->gethostname(), cl->name, text);
+    if (flags & SAY_ACTION) formatstring(logmsg)("[%s] * %s '%s' ", cl->gethostname(), cl->formatname(), text);
+    else formatstring(logmsg)("[%s] <%s> '%s' ", cl->gethostname(), cl->formatname(), text);
     // Check team flag
     if(cl->team == TEAM_VOID || (!m_team(gamemode, mutators) && cl->team != TEAM_SPECT))
         flags &= ~SAY_TEAM; // forced common chat
@@ -1526,14 +1536,14 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
     { // suicide
         actor->state.frags--;
         suic = true;
-        logline(ACLOG_INFO, "[%s] %s suicided", actor->gethostname(), actor->name);
+        logline(ACLOG_INFO, "[%s] %s suicided", actor->gethostname(), actor->formatname());
     }
     sendf(-1, 1, "ri8i3iv", SV_KILL, target->clientnum, actor->clientnum, gun, style, damage, 1,
         (int)(source.x*DMF), (int)(source.y*DMF), (int)(source.z*DMF), (int)(killdist*DMF), 0, 0, NULL);
     target->position.setsize(0);
     ts.state = CS_DEAD;
     ts.lastdeath = gamemillis;
-    if (!suic) logline(ACLOG_INFO, "[%s] %s [%s]%s %s", actor->gethostname(), actor->name, killname(gun, style), tk ? " teammate" : "", target->name);
+    if (!suic) logline(ACLOG_INFO, "[%s] %s [%s]%s %s", actor->gethostname(), actor->formatname(), killname(gun, style), tk ? " teammate" : "", target->formatname());
     if (m_flags(gamemode) && targethasflag >= 0)
     {
         if (m_capture(gamemode))
@@ -2225,7 +2235,7 @@ bool svote(int sender, int vote, ENetPacket *msg) // true if the vote was placed
         sendpacket(-1, 1, msg, sender);
 
         clients[sender]->vote = vote;
-        logline(ACLOG_DEBUG, "[%s] client %s voted %s", clients[sender]->gethostname(), clients[sender]->name, vote == VOTE_NO ? "no" : "yes");
+        logline(ACLOG_DEBUG, "[%s] %s voted %s", clients[sender]->gethostname(), clients[sender]->formatname(), vote == VOTE_NO ? "no" : "yes");
         curvote->evaluate();
         return true;
     }
@@ -2239,14 +2249,14 @@ void scallvotesuc(voteinfo *v)
     clients[v->owner]->lastvotecall = servmillis;
     clients[v->owner]->nvotes--; // successful votes do not count as abuse
     sendf(v->owner, 1, "ri", SV_CALLVOTESUC);
-    logline(ACLOG_INFO, "[%s] client %s called a vote: %s", clients[v->owner]->gethostname(), clients[v->owner]->name, v->action && v->action->desc ? v->action->desc : "[unknown]");
+    logline(ACLOG_INFO, "[%s] %s called a vote: %s", clients[v->owner]->gethostname(), clients[v->owner]->formatname(), v->action && v->action->desc ? v->action->desc : "[unknown]");
 }
 
 void scallvoteerr(voteinfo *v, int error)
 {
     if(!valid_client(v->owner)) return;
     sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, error);
-    logline(ACLOG_INFO, "[%s] client %s failed to call a vote: %s (%s)", clients[v->owner]->gethostname(), clients[v->owner]->name, v->action && v->action->desc ? v->action->desc : "[unknown]", voteerrorstr(error));
+    logline(ACLOG_INFO, "[%s] %s failed to call a vote: %s (%s)", clients[v->owner]->gethostname(), clients[v->owner]->formatname(), v->action && v->action->desc ? v->action->desc : "[unknown]", voteerrorstr(error));
 }
 
 bool map_queued = false;
@@ -2352,7 +2362,7 @@ void setpriv(int cn, int priv)
     {
         if(!c.role) return; // no privilege to relinquish
         sendf(-1, 1, "ri4", SV_CLAIMPRIV, cn, c.role, 1);
-        logline(ACLOG_INFO, "[%s] %s relinquished %s access", c.gethostname(), c.name, privname(c.role));
+        logline(ACLOG_INFO, "[%s] %s relinquished %s access", c.gethostname(), c.formatname(), privname(c.role));
         c.role = CR_DEFAULT;
         sendserveropinfo();
         return;
@@ -2372,7 +2382,7 @@ void setpriv(int cn, int priv)
     */
     c.role = priv;
     sendf(-1, 1, "ri4", SV_CLAIMPRIV, cn, c.role, 0);
-    logline(ACLOG_INFO, "[%s] %s claimed %s access", c.gethostname(), c.name, privname(c.role));
+    logline(ACLOG_INFO, "[%s] %s claimed %s access", c.gethostname(), c.formatname(), privname(c.role));
     sendserveropinfo();
     //if(curvote) curvote->evaluate();
 }
@@ -2490,8 +2500,8 @@ void authsucceeded(uint id)
     client *cl = findauth(id);
     if(!cl) return;
     cl->authreq = 0;
-    logline(ACLOG_INFO, "player authenticated: %s", cl->name);
-    defformatstring(auth4u)("player authenticated: %s", cl->name);
+    logline(ACLOG_INFO, "player authenticated: %s", cl->formatname());
+    defformatstring(auth4u)("player authenticated: %s", cl->formatname());
     sendf(-1, 1, "ris", SV_SERVMSG, auth4u);
     //setmaster(cl, true, "", ci->authname);//TODO? compare to sauerbraten
 }
@@ -2747,7 +2757,7 @@ void process(ENetPacket *packet, int sender, int chan)
             getstring(text, p);
             filtername(text, text);
             if(!text[0]) copystring(text, "unarmed");
-            copystring(cl->name, text, MAXNAMELEN+1);
+            copystring(cl->name, text, MAXNAMELEN + 1);
             getstring(text, p);
             copystring(cl->pwd, text);
             getstring(text, p);
@@ -2909,17 +2919,17 @@ void process(ENetPacket *packet, int sender, int chan)
                     if(forbidden)
                     {
                         sendservmsg("\f3Please do not spam; your message was not delivered.", sender);
-                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s', SPAM detected", cl->gethostname(), cl->name, target->name, text);
+                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s', SPAM detected", cl->gethostname(), cl->formatname(), target->formatname(), text);
                     }
                     else if(spamdetect(cl, text))
                     {
                         sendservmsg("\f3Watch your language! Your message was not delivered.", sender);
-                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s', forbidden (%s)", cl->gethostname(), cl->name, target->name, text, forbidden);
+                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s', forbidden (%s)", cl->gethostname(), cl->formatname(), target->formatname(), text, forbidden);
                     }
                     else
                     {
                         bool allowed = !(mastermode == MM_MATCH && cl->team != target->team) && cl->role >= roleconf('t');
-                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s'%s", cl->gethostname(), cl->name, target->name, text, allowed ? "" : ", disallowed");
+                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s'%s", cl->gethostname(), cl->formatname(), target->formatname(), text, allowed ? "" : ", disallowed");
                         if(allowed) sendf(target->clientnum, 1, "riis", SV_TEXTPRIVATE, cl->clientnum, text);
                     }
                 }
@@ -2936,7 +2946,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     int sp = canspawn(cl);
                     sendf(sender, 1, "rii", SV_SPAWNDENY, sp);
                     cl->spawnperm = sp;
-                    if (cl->loggedwrongmap) logline(ACLOG_INFO, "[%s] %s is now on the right map: revision %d/%d", cl->gethostname(), cl->name, rev, gzs);
+                    if (cl->loggedwrongmap) logline(ACLOG_INFO, "[%s] %s is now on the right map: revision %d/%d", cl->gethostname(), cl->formatname(), rev, gzs);
                     bool spawn = false;
                     if(team_isspect(cl->team))
                     {
@@ -2956,7 +2966,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 else
                 {
                     forcedeath(cl);
-                    logline(ACLOG_INFO, "[%s] %s is on the wrong map: revision %d/%d", cl->gethostname(), cl->name, rev, gzs);
+                    logline(ACLOG_INFO, "[%s] %s is on the wrong map: revision %d/%d", cl->gethostname(), cl->formatname(), rev, gzs);
                     cl->loggedwrongmap = true;
                     sendf(sender, 1, "rii", SV_SPAWNDENY, SP_WRONGMAP);
                 }
@@ -3034,8 +3044,8 @@ void process(ENetPacket *packet, int sender, int chan)
                 if(!text[0]) copystring(text, "unarmed");
                 QUEUE_STR(text);
                 bool namechanged = strcmp(cl->name, text) != 0;
-                if (namechanged) logline(ACLOG_INFO, "[%s] %s changed name to %s", cl->gethostname(), cl->name, text);
-                copystring(cl->name, text, MAXNAMELEN+1);
+                if (namechanged) logline(ACLOG_INFO, "[%s] %s changed name to %s", cl->gethostname(), cl->formatname(), text);
+                copystring(cl->name, text, MAXNAMELEN + 1);
                 if(namechanged)
                 {
                     // very simple spam detection (possible FIXME: centralize spam detection)
@@ -3403,8 +3413,8 @@ void process(ENetPacket *packet, int sender, int chan)
                     {
                         incoming_size += mapsize + cfgsizegz;
                         logline(ACLOG_INFO,"[%s] %s sent map %s, rev %d, %d + %d(%d) bytes written",
-                            clients[sender]->gethostname(), clients[sender]->name, sentmap, revision, mapsize, cfgsize, cfgsizegz);
-                        defformatstring(msg)("%s (%d) up%sed map %s, rev %d%s", clients[sender]->name, sender, mp == MAP_NOTFOUND ? "load": "dat", sentmap, revision,
+                            clients[sender]->gethostname(), clients[sender]->formatname(), sentmap, revision, mapsize, cfgsize, cfgsizegz);
+                        defformatstring(msg)("%s (%d) up%sed map %s, rev %d%s", clients[sender]->formatname(), sender, mp == MAP_NOTFOUND ? "load": "dat", sentmap, revision,
                             /*strcmp(sentmap, behindpath(smapname)) || smode == GMODE_COOPEDIT ? "" :*/ "\f3 (restart game to use new map version)");
                         sendservmsg(msg);
                     }
@@ -3417,7 +3427,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 if (reject)
                 {
                     logline(ACLOG_INFO,"[%s] %s sent map %s rev %d, rejected: %s",
-                        clients[sender]->gethostname(), clients[sender]->name, sentmap, revision, reject);
+                        clients[sender]->gethostname(), clients[sender]->formatname(), sentmap, revision, reject);
                 }
                 p.len += mapsize + cfgsizegz;
                 break;
@@ -3492,7 +3502,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 {
                     if (cl->authpriv >= CR_MASTER)
                     {
-                        logline(ACLOG_INFO, "[%s] %s was already authed for %s", cl->gethostname(), cl->name, privname(cl->authpriv));
+                        logline(ACLOG_INFO, "[%s] %s was already authed for %s", cl->gethostname(), cl->formatname(), privname(cl->authpriv));
                         setpriv(sender, cl->authpriv);
                     }
                     else if (cl->role < CR_ADMIN && text)
@@ -3504,12 +3514,12 @@ void process(ENetPacket *packet, int sender, int chan)
                 else if (!pd.priv)
                 {
                     sendf(sender, 1, "ri4", SV_CLAIMPRIV, sender, 0, 3);
-                    if (pd.line >= 0) logline(ACLOG_INFO, "[%s] %s used non-privileged password on line %d", cl->gethostname(), cl->name, pd.line);
+                    if (pd.line >= 0) logline(ACLOG_INFO, "[%s] %s used non-privileged password on line %d", cl->gethostname(), cl->formatname(), pd.line);
                 }
                 else
                 {
                     setpriv(sender, pd.priv);
-                    if (pd.line >= 0) logline(ACLOG_INFO, "[%s] %s used %s password on line %d", cl->gethostname(), cl->name, privname(pd.priv), pd.line);
+                    if (pd.line >= 0) logline(ACLOG_INFO, "[%s] %s used %s password on line %d", cl->gethostname(), cl->formatname(), privname(pd.priv), pd.line);
                 }
                 break;
             }
@@ -3725,7 +3735,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     getstring(text, p, n);
                     if(valid_client(sender) && clients[sender]->role>=CR_ADMIN)
                     {
-                        logline(ACLOG_INFO, "[%s] %s writes to log: %s", cl->gethostname(), cl->name, text);
+                        logline(ACLOG_INFO, "[%s] %s writes to log: %s", cl->gethostname(), cl->formatname(), text);
                         sendservmsg("your message has been logged", sender);
                     }
                 }

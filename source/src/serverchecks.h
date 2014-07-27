@@ -163,7 +163,7 @@ enum { CTFLDEF, CTFLCOV, HTFLDEF, HTFLCOV, COVER, MEDALMESSAGENUM };
 inline void print_medal_messages(client *c, int n)
 {
     if (n<0 || n>=MEDALMESSAGENUM) return;
-    logline(ACLOG_VERBOSE, "[%s] %s %s", c->gethostname(), c->name, medal_messages[n]);
+    logline(ACLOG_VERBOSE, "[%s] %s %s", c->gethostname(), c->formatname(), medal_messages[n]);
 }
 
 inline void addpt(client *c, int points, int n = -1) {
@@ -571,7 +571,7 @@ void check_afk()
              */
             )
         {
-            defformatstring(msg)("%s is afk, switching to spectator", c.name);
+            defformatstring(msg)("%s is afk, switching to spectator", c.formatname());
             sendservmsg(msg);
             logline(ACLOG_INFO, "[%s] %s", c.gethostname(), msg);
             updateclientteam(i, TEAM_SPECT, FTR_SILENTFORCE);
@@ -588,8 +588,8 @@ void check_ffire(client *target, client *actor, int damage)
     if ( mastermode != MM_OPEN ) return;
     actor->ffire += damage;
     if ( actor->ffire > 300 && actor->ffire * 600 > gamemillis) {
-        logline(ACLOG_INFO, "[%s] %s %s", actor->gethostname(), actor->name, "kicked for excessive friendly fire");
-        defformatstring(msg)("%s %s", actor->name, "kicked for excessive friendly fire");
+        logline(ACLOG_INFO, "[%s] %s kicked for excessive friendly fire", actor->gethostname(), actor->formatname());
+        defformatstring(msg)("%s kicked for excessive friendly fire", actor->formatname());
         sendservmsg(msg);
         disconnect_client(actor->clientnum, DISC_FFIRE);
     }

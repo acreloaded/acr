@@ -163,7 +163,7 @@ struct forceteamaction : playeraction
     forceteamaction(int cn, int caller, int team) : playeraction(cn), team(team)
     {
         if(cn != caller) role = roleconf('f');
-        if(isvalid() && !(clients[cn]->state.forced && clients[caller]->role != CR_ADMIN)) formatstring(desc)("force player %s to team %s", clients[cn]->name, teamnames[team]);
+        if (isvalid() && !(clients[cn]->state.forced && clients[caller]->role != CR_ADMIN)) formatstring(desc)("force player %s to team %s", clients[cn]->formatname(), teamnames[team]);
     }
 };
 
@@ -200,7 +200,7 @@ struct kickaction : playeraction
         if(isvalid() && strlen(reason) > 3 && valid_client(cn))
         {
             wasvalid = true;
-            formatstring(desc)("kick player %s, reason: %s", clients[cn]->name, reason);
+            formatstring(desc)("kick player %s, reason: %s", clients[cn]->formatname(), reason);
         }
     }
 };
@@ -222,7 +222,7 @@ struct banaction : playeraction
         if(isvalid() && strlen(reason) > 3)
         {
             wasvalid = true;
-            formatstring(desc)("ban player %s, reason: %s", clients[cn]->name, reason);
+            formatstring(desc)("ban player %s, reason: %s", clients[cn]->formatname(), reason);
         }
     }
 };

@@ -326,8 +326,8 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
         if (cp.type == ST_AI) cp.suicide(NUMGUNS + 11);
         else
         {
-            logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cp.gethostname(), cp.name, ++cp.mapcollisions);
-            defformatstring(msg)("%s (%d) \f2collides with the map \f5- \f3forcing death", cp.name, cp.clientnum);
+            logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cp.gethostname(), cp.formatname(), ++cp.mapcollisions);
+            defformatstring(msg)("%s \f2collides with the map \f5- \f3forcing death", cp.formatname());
             sendservmsg(msg);
             sendf(cp.clientnum, 1, "ri", SV_MAPIDENT);
             forcedeath(&cp);
