@@ -6841,9 +6841,6 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
 
         <command name="ban">
           <description>Temporary ban of the specified player from the server.</description>
-          <remarks>
-            <remark>Temporary ban duration is fixed at 20 minutes.  </remark>
-          </remarks>
           <references>
             <identifierReference identifier="removebans"/>
             <identifierReference identifier="setadmin"/>
