@@ -160,7 +160,7 @@ struct forceteamaction : playeraction
             passratio = 0.65f; // 65% to force others
         }
         else passratio = 0.55f; // 55% to force self
-        if (valid_client(cn))
+        if (valid_client(cn) && team_isvalid(team))
             formatstring(desc)("force player %s to team %s", clients[cn]->formatname(), teamnames[team]);
     }
 };
