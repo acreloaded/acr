@@ -1335,8 +1335,8 @@ const char *votestring(int type, const votedata &vote)
         {
             playerent *p = getclient(vote.int1);
             const int priv = vote.int2;
-            if (p) formatstring(out)("\fs\f0give \f%d%s \frto %s", privcolor(priv), privname(priv), colorname(p));
-            else formatstring(out)("give someone (%d) \f%d%s", vote.int1, privcolor(priv), privname(priv));
+            if (p) formatstring(out)("\fs\f0give \f%c%s \frto %s", privcolor(priv), privname(priv), colorname(p));
+            else formatstring(out)("give someone (%d) \f%c%s", vote.int1, privcolor(priv), privname(priv));
             break;
         }
         case SA_MAP:
@@ -1391,7 +1391,7 @@ const char *votestring(int type, const votedata &vote)
         case SA_REVOKE:
         {
             playerent *p = getclient(vote.int1);
-            if (p) formatstring(out)("revoke \fs\f%d%s\fr from %s", privcolor(p->clientrole), privname(p->clientrole), colorname(p));
+            if (p) formatstring(out)("revoke \fs\f%c%s\fr from %s", privcolor(p->clientrole), privname(p->clientrole), colorname(p));
             else formatstring(out)("revoke privilege from someone (%d)", vote.int1);
             break;
         }
