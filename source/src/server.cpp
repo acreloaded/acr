@@ -3516,22 +3516,31 @@ void process(ENetPacket *packet, int sender, int chan)
                         filtertext(text, text);
                         if (text[0] == '+' && text[1] == '1')
                         {
-#ifdef STANDALONE
-                            int ccs = mode ? maprot.next(false,false) : maprot.get_next();
-                            configset *c = maprot.get(ccs);
-                            if(c)
+                            if (nextmapname[0])
                             {
-                                strcpy(text,c->mapname);
-                                mode = c->mode;
-                                muts = c->muts;
+                                copystring(text, nextmapname);
+                                mode = nextgamemode;
+                                muts = nextmutators;
                             }
-                            else fatal("unable to get next map in maprot");
+                            else
+                            {
+#ifdef STANDALONE
+                                int ccs = mode ? maprot.next(false, false) : maprot.get_next();
+                                configset *c = maprot.get(ccs);
+                                if (c)
+                                {
+                                    strcpy(text, c->mapname);
+                                    mode = c->mode;
+                                    muts = c->muts;
+                                }
+                                else fatal("unable to get next map in maprot");
 #else
-                            defformatstring(nextmapalias)("nextmap_%s", getclientmap());
-                            strcpy(text, getalias(nextmapalias));
-                            mode = getclientmode();
-                            muts = mutators;
+                                defformatstring(nextmapalias)("nextmap_%s", getclientmap());
+                                strcpy(text, getalias(nextmapalias));
+                                mode = getclientmode();
+                                muts = mutators;
 #endif
+                            }
                         }
                         int qmode = (mode >= G_MAX ? mode - G_MAX : mode);
                         modecheck(qmode, muts);
