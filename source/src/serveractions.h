@@ -196,7 +196,7 @@ struct giveadminaction : playeraction
         setpriv(cn, give);
     }
     virtual bool isvalid() { return playeraction::isvalid() && valid_client(from); }
-    giveadminaction(int cn, int caller, int role) : from(caller), playeraction(cn)
+    giveadminaction(int cn, int role, int caller) : from(caller), playeraction(cn)
     {
         reqcall = give = clamp(role, 1, clients[from]->role);
         reqveto = CR_MASTER; // giveadmin
