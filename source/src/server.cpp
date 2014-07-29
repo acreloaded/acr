@@ -467,9 +467,9 @@ void sendspawn(client *c)
     gs.respawn();
     gs.spawnstate(c->team, smode, smuts);
     gs.lifesequence++;
-    sendf(c->clientnum, 1, "ri8vv", SV_SPAWNSTATE, c->clientnum, gs.lifesequence,
-        gs.health, gs.armour,
-        gs.primary, gs.gunselect, m_duke(gamemode, mutators) ? c->spawnindex : -1,
+    sendf(c->clientnum, 1, "ri9ivv", SV_SPAWNSTATE, c->clientnum, gs.lifesequence,
+        gs.health, gs.armour, gs.perk1, gs.perk2,
+        gs.primary, gs.secondary, m_duke(gamemode, mutators) ? c->spawnindex : -1,
         NUMGUNS, gs.ammo, NUMGUNS, gs.mag);
     gs.lastspawn = gamemillis;
 }
@@ -2523,6 +2523,9 @@ void sendresume(client &c, bool broadcast)
             c.state.state,
             c.state.lifesequence,
             c.state.primary,
+            c.state.secondary,
+            c.state.perk1,
+            c.state.perk2,
             c.state.gunselect,
             c.state.flagscore,
             c.state.frags,
@@ -3098,28 +3101,20 @@ void process(ENetPacket *packet, int sender, int chan)
 
             case SV_SPAWN:
             {
-                int cn = getint(p), ls = getint(p), gunselect = getint(p);
+                int cn = getint(p), ls = getint(p);
                 if(!cl->hasclient(cn)) break;
                 client &cp = *clients[cn];
                 clientstate &cs = cp.state;
                 if((cs.state!=CS_ALIVE && cs.state!=CS_DEAD && cs.state!=CS_SPECTATE) ||
-                    ls!=cs.lifesequence || cs.lastspawn<0 || gunselect<0 || gunselect>=NUMGUNS) break;
+                    ls!=cs.lifesequence || cs.lastspawn<0) break;
                 cs.lastspawn = -1;
                 cs.spawn = gamemillis;
                 cp.upspawnp = false;
                 cs.state = CS_ALIVE;
-                cs.gunselect = gunselect;
-                QUEUE_BUF(
-                {
-                    putint(cp.messages, SV_SPAWN);
-                    putint(cp.messages, cn);
-                    putint(cp.messages, cs.lifesequence);
-                    putint(cp.messages, cs.health);
-                    putint(cp.messages, cs.armour);
-                    putint(cp.messages, cs.gunselect);
-                    loopi(NUMGUNS) putint(cp.messages, cs.ammo[i]);
-                    loopi(NUMGUNS) putint(cp.messages, cs.mag[i]);
-                });
+                // send spawn packet, but not with QUEUE_BUF -- we need it sequenced
+                sendf(-1, 1, "rxi3i6vv", sender, SV_SPAWN, cn, ls,
+                    cs.health, cs.armour, cs.perk1, cs.perk2, cs.primary, cs.secondary,
+                    NUMGUNS, cs.ammo, NUMGUNS, cs.mag);
                 break;
             }
 

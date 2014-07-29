@@ -751,7 +751,6 @@ public:
     }
 
     void selectweapon(int w) { prevweaponsel = weaponsel; weaponsel = weapons[(gunselect = w)]; if (!prevweaponsel) prevweaponsel = weaponsel; }
-    void setprimary(int w) { primary = w; }
     bool isspectating() { return state==CS_SPECTATE || (state==CS_DEAD && spectatemode > SM_NONE); }
     void weaponswitch(weapon *w)
     {

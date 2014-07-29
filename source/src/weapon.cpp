@@ -671,8 +671,8 @@ void weapon::equipplayer(playerent *pl)
     pl->weapons[GUN_RPG] = new crossbow(pl);
     pl->weapons[GUN_ASSAULT2] = new ak47(pl);
     pl->weapons[GUN_SNIPER2] = new m82(pl);
+    pl->primary = GUN_ASSAULT;
     pl->selectweapon(GUN_ASSAULT);
-    pl->setprimary(GUN_ASSAULT);
 }
 
 bool weapon::valid(int id) { return id>=0 && id<NUMGUNS; }

@@ -658,14 +658,16 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             case SV_SPAWN:
             {
                 playerent *s = getclient(getint(p));
-                if(!s) { static playerent dummy; s = &dummy; }
+                if(!s || s == player1 || isowned(s)) { static playerent dummy; s = &dummy; }
                 s->respawn(gamemode, mutators);
                 s->lifesequence = getint(p);
                 s->health = getint(p);
                 s->armour = getint(p);
-                int gunselect = getint(p);
-                s->setprimary(gunselect);
-                s->selectweapon(gunselect);
+                s->perk1 = getint(p);
+                s->perk2 = getint(p);
+                s->primary = getint(p);
+                s->selectweapon(s->primary);
+                s->secondary = getint(p);
                 loopi(NUMGUNS) s->ammo[i] = getint(p);
                 loopi(NUMGUNS) s->mag[i] = getint(p);
                 s->state = CS_SPAWNING;
@@ -676,7 +678,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             case SV_SPAWNSTATE:
             {
                 playerent *s = getclient(getint(p));
-                if(!s) { static playerent dummy; s = &dummy; }
+                if(!s || (s != player1 && !isowned(s))) { static playerent dummy; s = &dummy; }
                 if ( map_quality == MAP_IS_BAD )
                 {
                     loopi(6+2*NUMGUNS) getint(p);
@@ -695,8 +697,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 s->lifesequence = getint(p);
                 s->health = getint(p);
                 s->armour = getint(p);
-                s->setprimary(getint(p));
-                s->selectweapon(getint(p));
+                s->perk1 = getint(p);
+                s->perk2 = getint(p);
+                s->primary = getint(p);
+                s->selectweapon(s->primary);
+                s->secondary = getint(p);
                 int arenaspawn = getint(p);
                 loopi(NUMGUNS) s->ammo[i] = getint(p);
                 loopi(NUMGUNS) s->mag[i] = getint(p);
@@ -710,7 +715,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     conoutf(_("new round starting... fight!"));
                     hudeditf(HUDMSG_TIMER, "FIGHT!");
                 }
-                addmsg(SV_SPAWN, "ri3", s->clientnum, s->lifesequence, s->weaponsel->type);
+                addmsg(SV_SPAWN, "ri2", s->clientnum, s->lifesequence);
                 s->weaponswitch(s->weapons[s->primary]);
                 s->weaponchanging -= SWITCHTIME(s->perk1 == PERK_TIME) / 2;
                 if(s->lifesequence==0) s->resetstats(); //NEW
@@ -963,7 +968,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 {
                     int cn = getint(p);
                     if(p.overread() || cn<0) break;
-                    int state = getint(p), lifesequence = getint(p), primary = getint(p), gunselect = getint(p), flagscore = getint(p), frags = getint(p), deaths = getint(p), health = getint(p), armour = getint(p), points = getint(p);
+                    int state = getint(p), lifesequence = getint(p), primary = getint(p), secondary = getint(p), perk1 = getint(p), perk2 = getint(p), gunselect = getint(p), flagscore = getint(p), frags = getint(p), deaths = getint(p), health = getint(p), armour = getint(p), points = getint(p);
                     int ammo[NUMGUNS], mag[NUMGUNS];
                     loopi(NUMGUNS) ammo[i] = getint(p);
                     loopi(NUMGUNS) mag[i] = getint(p);
@@ -977,10 +982,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     d->points = points;
                     if(d!=player1)
                     {
-                        d->setprimary(primary);
+                        d->primary = primary;
+                        d->secondary = secondary;
                         d->selectweapon(gunselect);
                         d->health = health;
                         d->armour = armour;
+                        d->perk1 = perk1;
+                        d->perk2 = perk2;
                         memcpy(d->ammo, ammo, sizeof(ammo));
                         memcpy(d->mag, mag, sizeof(mag));
                         if(d->lifesequence==0) d->resetstats(); //NEW
