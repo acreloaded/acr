@@ -327,8 +327,8 @@ inline const char *gamename(int mode, int muts, int compact = 0)
     return gname;
 }
 
-const char *voteerrors[] = { "voting is currently disabled", "there is already a vote pending", "already voted", "can't vote that often", "this vote is not allowed in the current environment (singleplayer/multiplayer)", "no permission", "invalid vote", "server denied your call", "the next map/mode is already set" };
-const char *mmfullnames[] = { "open", "private", "match" };
+const char *voteerrors[VOTEE_NUM] = { "voting is currently disabled", "there is already a vote pending", "no permission to veto", "can't vote that often", "this vote is not allowed in the current environment (singleplayer/multiplayer)", "no permission", "invalid vote" };
+const char *mmfullnames[MM_NUM] = { "open", "private", "match" };
 
 const char *modestr(int gamemode, int mutators, bool acronyms) { return gamename(gamemode, mutators, acronyms ? 1 : 0); }
 const char *voteerrorstr(int n) { return (n>=0 && (size_t)n < sizeof(voteerrors)/sizeof(voteerrors[0])) ? voteerrors[n] : "unknown"; }

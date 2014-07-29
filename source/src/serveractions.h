@@ -3,22 +3,24 @@
 enum { EE_LOCAL_SERV = 1<<0, EE_DED_SERV = 1<<1, EE_ALL = (1<<2) - 1 }; // execution environment
 
 int roleconf(int key)
-{ // current defaults: "fkbMASRCDEPtw"
+{
     if(strchr(scl.voteperm, tolower(key))) return CR_DEFAULT;
     if(strchr(scl.voteperm, toupper(key))) return CR_ADMIN;
-    return (key) == tolower(key) ? CR_DEFAULT : CR_ADMIN;
+    return islower(key) ? CR_DEFAULT : CR_ADMIN;
 }
 
 struct serveraction
 {
-    int role; // required client role
+    int reqcall, reqveto; // required client role to call and veto
+    int length;
+    float passratio;
     int area; // only on ded servers
     string desc;
 
     virtual void perform() = 0;
     virtual bool isvalid() { return true; }
     virtual bool isdisabled() { return false; }
-    serveraction() : role(CR_DEFAULT), area(EE_ALL) { desc[0] = '\0'; }
+    serveraction() : reqcall(CR_DEFAULT), reqveto(CR_ADMIN), length(40000), passratio(.5f), area(EE_ALL) { desc[0] = '\0'; }
     virtual ~serveraction() { }
 };
 
@@ -47,7 +49,7 @@ struct mapaction : serveraction
             startgame(map, mode, muts);
         }
     }
-    bool isvalid() { return serveraction::isvalid() && !m_demo(mode) && map[0] && mapok; }
+    bool isvalid() { return serveraction::isvalid() && m_valid(mode) && !m_demo(mode) && map[0] && mapok; }
     bool isdisabled() { return maprot.current() && !maprot.current()->vote; }
     mapaction(char *map, int mode, int muts, int caller, bool q) : map(map), mode(mode), muts(muts), queue(q)
     {
@@ -73,25 +75,25 @@ struct mapaction : serveraction
                     }
                 }
             }
+            else if (m_edit(mode))
+            {
+                reqcall = roleconf('E');
+                if (notify && reqcall) sendservmsg("\f3INFO: coopedit is restricted", caller);
+            }
             else
             { // check, if map supports mode
-                if(m_edit(mode) && !strchr(scl.voteperm, 'e')) role = CR_ADMIN;
-                bool romap = m_edit(mode) && readonlymap(maploc);
-                bool spawns = m_edit(mode) || (m_team(mode, muts) && !m_keep(mode) ? ms->spawns[0] && ms->spawns[1] : ms->spawns[2]);
-                bool flags = !m_edit(mode) && m_flags(mode) && !m_hunt(mode) ? ms->flags[0] && ms->flags[1] : true;
-                if(!spawns || !flags || romap)
+                const bool spawns = ((!m_team(mode, muts) || m_keep(mode) || m_zombie(mode)) && ms->spawns[2]) || (ms->spawns[0] && ms->spawns[1]);
+                const bool flags = m_secure(mode) || m_hunt(mode) || !m_flags(mode) || (ms->flags[0] && ms->flags[1]);
+                const bool secures = !m_secure(mode) || ms->flags[2];
+                if(!spawns || !flags || !secures)
                 { // unsupported mode
-                    if(strchr(scl.voteperm, 'P')) role = CR_ADMIN;
-                    else if(!strchr(scl.voteperm, 'p')) mapok = false; // default: no one can vote for unsupported mode/map combinations
-                    defformatstring(msg)("\f3map \"%s\" does not support \"%s\": ", behindpath(map), modestr(mode, muts, false));
-                    if(romap) concatstring(msg, "map is readonly");
-                    else
-                    {
-                        if(!spawns) concatstring(msg, "player spawns");
-                        if(!spawns && !flags) concatstring(msg, " and ");
-                        if(!flags) concatstring(msg, "flag bases");
-                        concatstring(msg, " missing");
-                    }
+                    reqcall = roleconf('P');
+                    defformatstring(msg)("\f3map \"%s\" does not support \"%s\": missing", behindpath(map), modestr(mode, muts, false));
+                    if (!spawns) concatstring(msg, "player spawns, ");
+                    if (!flags) concatstring(msg, "flag bases, ");
+                    if (!secures) concatstring(msg, "secure flags, ");
+                    // trim off the last 2
+                    msg[strlen(msg) - 2] = '\0';
                     if(notify) sendservmsg(msg, caller);
                     logline(ACLOG_INFO, "%s", msg);
                 }
@@ -111,18 +113,17 @@ struct mapaction : serveraction
                     {
                         if(mode == atoi(h+1))
                         {
-                            role = CR_ADMIN;
+                            reqcall = CR_ADMIN;
                             break;
                         }
                     }
                 }
-                if(sl == strlen(m) && !strncmp(m, scl.adminonlymaps[i], sl)) role = CR_ADMIN;
+                if(sl == strlen(m) && !strncmp(m, scl.adminonlymaps[i], sl)) reqcall = CR_ADMIN;
             }
         }
         else mapok = true;
-        area |= EE_LOCAL_SERV; // local too
-        formatstring(desc)("load map '%s' in mode '%s'", map, modestr(mode, muts));
-        if(q) concatstring(desc, " (in the next game)");
+        passratio = 0.59999999f; // 60% to vote a map
+        formatstring(desc)("%s map '%s' in mode '%s'", q ? "set next" : "load", map, modestr(mode, muts));
     }
     ~mapaction() { DELETEA(map); }
 };
@@ -142,88 +143,160 @@ struct demoplayaction : serveraction
 struct playeraction : serveraction
 {
     int cn;
-    ENetAddress address;
-    void disconnect(int reason)
-    {
-        int i = findcnbyaddress(&address);
-        if(i >= 0) disconnect_client(i, reason);
-    }
-    virtual bool isvalid() { return valid_client(cn) && clients[cn]->role != CR_ADMIN; } // actions can't be done on admins
-    playeraction(int cn) : cn(cn)
-    {
-        if(isvalid()) address = clients[cn]->peer->address;
-    };
+    virtual bool isvalid() { return valid_client(cn); }
+    playeraction(int cn) : cn(cn) { }
 };
 
 struct forceteamaction : playeraction
 {
     int team;
     void perform() { updateclientteam(cn, team, FTR_SILENTFORCE); checkai(); /* forceteam */ }
-    virtual bool isvalid() { return valid_client(cn) && team_isvalid(team) && team != clients[cn]->team; }
+    virtual bool isvalid() { return playeraction::isvalid() && m_team(gamemode, mutators) && team_isvalid(team) && team != clients[cn]->team; }
     forceteamaction(int cn, int caller, int team) : playeraction(cn), team(team)
     {
-        if(cn != caller) role = roleconf('f');
-        if (isvalid() && !(clients[cn]->state.forced && clients[caller]->role != CR_ADMIN)) formatstring(desc)("force player %s to team %s", clients[cn]->formatname(), teamnames[team]);
+        if (cn != caller)
+        {
+            reqcall = roleconf('f');
+            passratio = 0.65f; // 65% to force others
+        }
+        else passratio = 0.55f; // 55% to force self
+        if (valid_client(cn) && team_isvalid(team))
+            formatstring(desc)("force player %s to team %s", clients[cn]->formatname(), teamnames[team]);
+    }
+};
+
+struct spectaction : playeraction
+{
+    void perform()
+    {
+        if (clients[cn]->team == TEAM_SPECT)
+            updateclientteam(cn, chooseteam(*clients[cn]), FTR_AUTOTEAM);
+        else updateclientteam(cn, TEAM_SPECT, FTR_AUTOTEAM);
+        checkai();
+    }
+    spectaction(int cn, int caller) : playeraction(cn){
+        if (cn != caller)
+        {
+            reqcall = roleconf('f');
+            passratio = 0.65f;
+        }
+        else passratio = 0.55f;
+        if (valid_client(cn))
+            formatstring(desc)("toggle spectator for %s", clients[cn]->formatname());
     }
 };
 
 struct giveadminaction : playeraction
 {
-    void perform() { setpriv(cn, CR_ADMIN); }
-    giveadminaction(int cn) : playeraction(cn)
+    int from, give;
+    void perform()
     {
-        role = CR_ADMIN;
-//        role = roleconf('G');
+        if (valid_client(from) && clients[from]->role < CR_ADMIN)
+            setpriv(from, CR_DEFAULT); // transfer master instead of give
+        setpriv(cn, give);
+    }
+    virtual bool isvalid() { return playeraction::isvalid() && valid_client(from); }
+    giveadminaction(int cn, int role, int caller) : from(caller), playeraction(cn)
+    {
+        reqcall = give = clamp(role, 1, clients[from]->role);
+        reqveto = CR_MASTER; // giveadmin
+        passratio = 0.1f;
+        if (valid_client(cn))
+            formatstring(desc)("give %s to %s", privname(give), clients[cn]->formatname());
     }
 };
 
 struct revokeaction : playeraction
 {
     void perform() { setpriv(cn, CR_DEFAULT); }
+    virtual bool isvalid() { return playeraction::isvalid() && clients[cn]->role; }
     revokeaction(int cn) : playeraction(cn)
     {
         area = EE_DED_SERV; // dedicated only
-        role = CR_ADMIN;
+        reqcall = max((int)(CR_ADMIN), valid_client(cn) ? clients[cn]->role : 0);
+        passratio = 0.1f;
+        if (valid_client(cn))
+            formatstring(desc)("revoke %s from %s", privname(clients[cn]->role), clients[cn]->formatname());
     }
 };
 
-struct kickaction : playeraction
+inline int protectAdminPriv(const char conf, int cn)
 {
-    bool wasvalid;
-    void perform()  { disconnect(DISC_MKICK); }
-    virtual bool isvalid() { return wasvalid || playeraction::isvalid(); }
-    kickaction(int cn, char *reason) : playeraction(cn)
+    return max(roleconf(conf), valid_client(cn) && clients[cn]->role >= CR_ADMIN ? clients[cn]->role : 0);
+}
+
+struct subdueaction : playeraction
+{
+    void perform() { forcedeath(clients[cn], true); }
+    virtual bool isvalid() { return playeraction::isvalid() && !m_edit(gamemode) && clients[cn]->team != TEAM_SPECT; }
+    subdueaction(int cn) : playeraction(cn)
+    {
+        passratio = 0.8f;
+        reqcall = protectAdminPriv('q', cn);
+        length = 25000; // 25s
+        if (valid_client(cn))
+            formatstring(desc)("subdue player %s", clients[cn]->formatname());
+    }
+};
+
+struct removeplayeraction : playeraction
+{
+    removeplayeraction(int cn) : playeraction(cn) { }
+    virtual bool isvalid() { return playeraction::isvalid() && clients[cn]->type == ST_TCPIP; }
+    bool weak(bool kicking)
+    {
+        if (!valid_client(cn)) return false;
+        // lagging? (does not apply to bans)
+        if (kicking && is_lagging(clients[cn])) return false;
+        // 3+ K/D ratio & 6+ kills
+        if (clients[cn]->state.frags >= max(6, clients[cn]->state.deaths * 3)) return false;
+        // 1 teamkill for every 15 frags
+        if (clients[cn]->state.teamkills * 15 > clients[cn]->state.frags) return false;
+        // check spam?
+        return true; // why kick or ban?
+    }
+};
+
+struct kickaction : removeplayeraction
+{
+    string reason;
+    void perform()  { disconnect_client(cn, DISC_MKICK); }
+    virtual bool isvalid() { return removeplayeraction::isvalid() && strlen(reason) >= 4; }
+    kickaction(int cn, const char *r, bool self_vote) : removeplayeraction(cn)
     {
         area = EE_DED_SERV; // dedicated only
-        wasvalid = false;
-        role = roleconf('k');
-        if(isvalid() && strlen(reason) > 3 && valid_client(cn))
-        {
-            wasvalid = true;
-            formatstring(desc)("kick player %s, reason: %s", clients[cn]->formatname(), reason);
-        }
+        const bool is_weak = self_vote || weak(true);
+        copystring(reason, r);
+        passratio = is_weak ? .85f : .68f; // 68%-85%
+        reqcall = protectAdminPriv('k', cn);
+        reqveto = CR_MASTER; // kick
+        length = is_weak ? 10000 : 35000; // 35s (10s if weak)
+        if (valid_client(cn))
+            formatstring(desc)("kick player %s for %s%s", clients[cn]->formatname(), reason, is_weak ? " (weak)" : "");
     }
 };
 
-struct banaction : playeraction
+struct banaction : removeplayeraction
 {
-    bool wasvalid;
+    string reason;
+    int minutes;
     void perform()
     {
-        int i = findcnbyaddress(&address);
-        if(i >= 0) addban(clients[i], DISC_MBAN, BAN_VOTE);
+        // TODO use ban time
+        addban(clients[cn], DISC_MBAN, BAN_VOTE);
     }
-    virtual bool isvalid() { return wasvalid || playeraction::isvalid(); }
-    banaction(int cn, char *reason) : playeraction(cn)
+    virtual bool isvalid() { return removeplayeraction::isvalid() && strlen(reason) >= 4; }
+    banaction(int cn, int mins, char *r, bool self_vote) : minutes(mins), removeplayeraction(cn)
     {
         area = EE_DED_SERV; // dedicated only
-        wasvalid = false;
-        role = roleconf('b');
-        if(isvalid() && strlen(reason) > 3)
-        {
-            wasvalid = true;
-            formatstring(desc)("ban player %s, reason: %s", clients[cn]->formatname(), reason);
-        }
+        const bool is_weak = self_vote || weak(minutes <= 1);
+        copystring(reason, r);
+        passratio = is_weak ? .89f : .75f; // 75% - 89%
+        reqcall = protectAdminPriv('b', cn);
+        reqveto = CR_MASTER; // ban
+        length = is_weak ? 8000 : 30000; // 30s (8s if weak)
+        if (isvalid())
+            formatstring(desc)("ban player %s for %d minutes for %s%s", clients[cn]->formatname(), minutes, reason, is_weak ? " (weak)" : "");
     }
 };
 
@@ -233,7 +306,9 @@ struct removebansaction : serveraction
     removebansaction()
     {
         area = EE_DED_SERV; // dedicated only
-        role = roleconf('b');
+        passratio = 0.7f;
+        reqcall = roleconf('b');
+        reqveto = CR_MASTER; // removebans
         copystring(desc, "remove all bans");
     }
 };
@@ -245,6 +320,8 @@ struct botbalanceaction : serveraction
     bool isvalid() { return balance >= -1 && balance <= MAXCLIENTS; }
     botbalanceaction(int balance) : balance(balance)
     {
+        reqcall = roleconf('a');
+        reqveto = CR_MASTER; // botbalance
         if(isvalid()) formatstring(desc)("change botbalance to %d", balance);
     }
 };
@@ -257,7 +334,7 @@ struct mastermodeaction : serveraction
     mastermodeaction(int mode) : mode(mode)
     {
         area = EE_DED_SERV; // dedicated only
-        role = roleconf('M');
+        reqcall = roleconf('M');
         if(isvalid()) formatstring(desc)("change mastermode to '%s'", mmfullname(mode));
     }
 };
@@ -278,7 +355,7 @@ struct autoteamaction : enableaction
     }
     autoteamaction(bool enable) : enableaction(enable)
     {
-        role = roleconf('A');
+        reqcall = roleconf('a');
         if(isvalid()) formatstring(desc)("%s autoteam", enable ? "enable" : "disable");
     }
 };
@@ -293,7 +370,7 @@ struct shuffleteamaction : serveraction
     bool isvalid() { return serveraction::isvalid() && m_team(gamemode, mutators); }
     shuffleteamaction()
     {
-        role = roleconf('S');
+        reqcall = roleconf('s');
         if(isvalid()) copystring(desc, "shuffle teams");
     }
 };
@@ -305,7 +382,7 @@ struct recorddemoaction : enableaction            // TODO: remove completely
     recorddemoaction(bool enable) : enableaction(enable)
     {
         area = EE_DED_SERV; // dedicated only
-        role = roleconf('R');
+        reqcall = roleconf('R');
         if(isvalid()) formatstring(desc)("%s demorecord", enable ? "enable" : "disable");
     }
 };
@@ -317,7 +394,7 @@ struct cleardemosaction : serveraction
     cleardemosaction(int demo) : demo(demo)
     {
         area = EE_DED_SERV; // dedicated only
-        role = roleconf('C');
+        reqcall = roleconf('C');
         if(isvalid()) formatstring(desc)("clear demo %d", demo);
     }
 };
@@ -332,7 +409,7 @@ struct serverdescaction : serveraction
     serverdescaction(char *sdesc, int cn) : sdesc(sdesc), cn(cn)
     {
         area = EE_DED_SERV; // dedicated only
-        role = roleconf('D');
+        reqcall = roleconf('D');
         formatstring(desc)("set server description to '%s'", sdesc);
         if(isvalid()) address = clients[cn]->peer->address;
     }

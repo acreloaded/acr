@@ -99,7 +99,7 @@ struct itemstat { int add, start, max, sound; };
 extern itemstat ammostats[NUMGUNS];
 extern itemstat powerupstats[I_ARMOUR-I_HEALTH+1];
 
-struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, range, endrange, rangesub, piercing, spread, spreadrem, kick, addsize, magsize, mdl_kick_rot, mdl_kick_back, recoilincrease, recoilbase, maxrecoil, recoilbackfade, recoilangle, pushfactor; bool isauto; };
+struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, range, endrange, rangesub, piercing, spread, spreadrem, kick, addsize, magsize, mdl_kick_rot, mdl_kick_back, recoil, maxrecoil, recoilbackfade, recoilangle, pushfactor; bool isauto; };
 extern guninfo guns[NUMGUNS];
 
 struct mul { float torso, head; };
@@ -609,7 +609,7 @@ public:
     int radarmillis; vec lastloudpos;
     int frags, flagscore, deaths, points;
     int lastaction, lastmove, lastpain, lastvoicecom, lasthit;
-    int clientrole;
+    int clientrole, vote, voternum;
     bool attacking;
     string name;
     int team;
@@ -645,6 +645,7 @@ public:
     playerent() : curskin(0), clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0),
                   radarmillis(0), lastloudpos(0, 0, 0),
                   frags(0), flagscore(0), deaths(0), points(0), lastpain(0), lastvoicecom(0), lasthit(0), clientrole(CR_DEFAULT),
+                  vote(VOTE_NEUTRAL), voternum(0),
                   team(TEAM_SPECT), spectatemode(SM_NONE), followplayercn(FPCN_VOID), eardamagemillis(0), respawnoffset(0),
                   prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), lastattackweapon(NULL),
                   smoothmillis(-1),

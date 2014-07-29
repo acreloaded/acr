@@ -57,17 +57,17 @@
 // -P     // voting permission string (read docs/commandline.html)
           //    k kick players
           //    b ban players (and remove bans)
+          //    q subdue a player
           //    m change mastermode (open/private)
           //    f force a player to the other team
-          //    a enable/disable autoteam
+          //    a enable/disable autoteam, change bot balance
           //    s shuffle the teams
           //    r record a demo of the next game (if autorecording is disabled)
           //    c clear all demos on server
           //    d change server description
           //    e vote for coopedit mode
           //    p vote for a gamemode that is not supported by the map (default: no one can)
-          //    w vote to kick/ban without clear reasons
-          //    default: fkBMASRCDEW (lowercase: a user can vote for it; uppercase: admin role is required to vote)
+          //    default: kbqMfasRCDE (lowercase: a user can vote for it; uppercase: admin role is required to vote)
 // -M     // sendmap permission string (read docs/commandline.html)
           //    c create new map (initial map upload)
           //    u update existing map (same or newer revision)

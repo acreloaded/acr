@@ -417,7 +417,13 @@ extern playerent *newclient(int cn);
 extern void timeupdate(int milliscur, int millismax); // was (int timeremain);
 extern void respawnself();
 extern void setskin(playerent *pl, int skin, int team = -1);
-extern void callvote(int type, const char *arg1 = NULL, const char *arg2 = NULL, const char *arg3 = NULL);
+struct votedata
+{
+    int int1, int2;
+    const char *str1;
+    votedata(const char *str1) : str1(str1) { int1 = int2 = 0; }
+};
+extern void callvote(int type, const votedata &vote);
 extern void addsleep(int msec, const char *cmd, bool persist = false);
 extern void resetsleep(bool force = false);
 //game mode extras
@@ -446,18 +452,15 @@ extern void spectatemode(int mode);
 struct votedisplayinfo
 {
     playerent *owner;
-    int type, stats[VOTE_NUM], result, millis;
+    int type, result, expiryresult, yes_remain, no_remain, millis, nextvote, expiremillis;
     string desc;
-    bool localplayervoted;
-    votedisplayinfo() : owner(NULL), result(VOTE_NEUTRAL), millis(0), localplayervoted(false) { loopi(VOTE_NUM) stats[i] = VOTE_NEUTRAL; }
+    bool veto;
+    votedisplayinfo() : owner(NULL), result(VOTE_NEUTRAL), expiryresult(VOTE_NEUTRAL), yes_remain(1), no_remain(1), millis(0), nextvote(0), expiremillis(0), veto(false) { }
 };
-
-extern votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, const char *arg1, const char *arg2, const char *arg3 = "");
-extern void callvotesuc();
+extern const char *votestring(int type, const votedata &vote);
+extern votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, const votedata &vote);
 extern void callvoteerr(int e);
 extern void displayvote(votedisplayinfo *v);
-extern void voteresult(int v);
-extern void votecount(int v);
 extern void clearvote();
 
 // scoreboard
@@ -906,7 +909,6 @@ extern bool valid_client(int cn);
 extern void extinfo_cnbuf(ucharbuf &p, int cn);
 extern void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENetAddress &addr, ENetBuffer &buf, int len, int *csend);
 extern void extinfo_teamscorebuf(ucharbuf &p);
-extern char *votestring(int type, char *arg1, char *arg2, char *arg3);
 extern int wizardmain(int argc, char **argv);
 
 // demo

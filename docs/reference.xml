@@ -6841,15 +6841,14 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
 
         <command name="ban">
           <description>Temporary ban of the specified player from the server.</description>
-          <remarks>
-            <remark>Temporary ban duration is fixed at 20 minutes.  </remark>
-          </remarks>
           <references>
             <identifierReference identifier="removebans"/>
             <identifierReference identifier="setadmin"/>
           </references>
           <arguments>
             <argument token="CN" description="The player to ban" valueNotes="Client number"/>
+            <argument token="MIN" description="Ban time in minutes" valueNotes="Time"/>
+            <argument token="R" description="Why that player should be banned" valueNotes="Reason"/>
           </arguments>
         </command>
 
@@ -6925,6 +6924,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </references>
           <arguments>
             <argument token="CN" description="The player to become admin" valueNotes="Client number"/>
+            <argument token="PRIV" description="The role to give" valueNotes="Privilege level"/>
           </arguments>
         </command>
 
@@ -6948,6 +6948,14 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </references>
           <arguments>
             <argument token="CN" description="The player to kick" valueNotes="Client number"/>
+            <argument token="R" description="Why that player should be kicked" valueNotes="Reason"/>
+          </arguments>
+        </command>
+
+        <command name="subdue">
+          <description>Forces the player to die.</description>
+          <arguments>
+            <argument token="CN" description="The player to subdue" valueNotes="Client number"/>
           </arguments>
         </command>
 
