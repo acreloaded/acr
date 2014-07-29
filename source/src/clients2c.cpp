@@ -657,28 +657,28 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_SPAWN:
             {
-                playerent *s = getclient(getint(p));
-                if(!s || s == player1 || isowned(s)) { static playerent dummy; s = &dummy; }
-                s->respawn(gamemode, mutators);
-                s->lifesequence = getint(p);
-                s->health = getint(p);
-                s->armour = getint(p);
-                s->perk1 = getint(p);
-                s->perk2 = getint(p);
-                s->primary = getint(p);
-                s->selectweapon(s->primary);
-                s->secondary = getint(p);
-                loopi(NUMGUNS) s->ammo[i] = getint(p);
-                loopi(NUMGUNS) s->mag[i] = getint(p);
-                s->state = CS_SPAWNING;
-                if(s->lifesequence==0) s->resetstats(); //NEW
+                playerent *d = getclient(getint(p));
+                if(!d || d == player1 || isowned(d)) { static playerent dummy; d = &dummy; }
+                d->respawn(gamemode, mutators);
+                d->lifesequence = getint(p);
+                d->health = getint(p);
+                d->armour = getint(p);
+                d->perk1 = getint(p);
+                d->perk2 = getint(p);
+                d->primary = getint(p);
+                d->selectweapon(d->primary);
+                d->secondary = getint(p);
+                loopi(NUMGUNS) d->ammo[i] = getint(p);
+                loopi(NUMGUNS) d->mag[i] = getint(p);
+                d->state = CS_SPAWNING;
+                if(d->lifesequence==0) d->resetstats(); //NEW
                 break;
             }
 
             case SV_SPAWNSTATE:
             {
-                playerent *s = getclient(getint(p));
-                if(!s || (s != player1 && !isowned(s))) { static playerent dummy; s = &dummy; }
+                playerent *d = getclient(getint(p));
+                if(!d || (d != player1 && !isowned(d))) { static playerent dummy; d = &dummy; }
                 if ( map_quality == MAP_IS_BAD )
                 {
                     loopi(6+2*NUMGUNS) getint(p);
@@ -686,39 +686,39 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     break;
                 }
 
-                if(s == player1)
+                if(d == player1)
                 {
                     if(editmode) toggleedit(true);
                     showscores(false);
                     setscope(false);
                     setburst(false);
                 }
-                s->respawn(gamemode, mutators);
-                s->lifesequence = getint(p);
-                s->health = getint(p);
-                s->armour = getint(p);
-                s->perk1 = getint(p);
-                s->perk2 = getint(p);
-                s->primary = getint(p);
-                s->selectweapon(s->primary);
-                s->secondary = getint(p);
+                d->respawn(gamemode, mutators);
+                d->lifesequence = getint(p);
+                d->health = getint(p);
+                d->armour = getint(p);
+                d->perk1 = getint(p);
+                d->perk2 = getint(p);
+                d->primary = getint(p);
+                d->selectweapon(d->primary);
+                d->secondary = getint(p);
                 int arenaspawn = getint(p);
-                loopi(NUMGUNS) s->ammo[i] = getint(p);
-                loopi(NUMGUNS) s->mag[i] = getint(p);
-                s->state = CS_ALIVE;
-                s->lastspawn = lastmillis;
-                findplayerstart(s, false, arenaspawn);
+                loopi(NUMGUNS) d->ammo[i] = getint(p);
+                loopi(NUMGUNS) d->mag[i] = getint(p);
+                d->state = CS_ALIVE;
+                d->lastspawn = lastmillis;
+                findplayerstart(d, false, arenaspawn);
                 arenaintermission = 0;
-                if(s == player1 && m_duke(gamemode, mutators) && !localwrongmap)
+                if(d == player1 && m_duke(gamemode, mutators) && !localwrongmap)
                 {
                     closemenu(NULL);
                     conoutf(_("new round starting... fight!"));
                     hudeditf(HUDMSG_TIMER, "FIGHT!");
                 }
-                addmsg(SV_SPAWN, "ri2", s->clientnum, s->lifesequence);
-                s->weaponswitch(s->weapons[s->primary]);
-                s->weaponchanging -= SWITCHTIME(s->perk1 == PERK_TIME) / 2;
-                if(s->lifesequence==0) s->resetstats(); //NEW
+                addmsg(SV_SPAWN, "ri2", d->clientnum, d->lifesequence);
+                d->weaponswitch(d->weapons[d->primary]);
+                d->weaponchanging -= SWITCHTIME(d->perk1 == PERK_TIME) / 2;
+                if(d->lifesequence==0) d->resetstats(); //NEW
                 break;
             }
 
