@@ -599,88 +599,6 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
     c2sinfo();   // do this last, to reduce the effective frame lag
 }
 
-#define SECURESPAWNDIST 15
-int spawncycle = -1;
-int fixspawn = 2;
-
-// returns -1 for a free place, else dist to the nearest enemy
-float nearestenemy(vec place, int team)
-{
-    float nearestenemydist = -1;
-    loopv(players)
-    {
-        playerent *other = players[i];
-        if(!other || isteam(team, other->team)) continue;
-        float dist = place.dist(other->o);
-        if(dist < nearestenemydist || nearestenemydist == -1) nearestenemydist = dist;
-    }
-    if(nearestenemydist >= SECURESPAWNDIST || nearestenemydist < 0) return -1;
-    else return nearestenemydist;
-}
-
-void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
-{
-    int r = fixspawn-->0 ? 4 : rnd(10)+1;
-    entity *e = NULL;
-    if(!mapcenter)
-    {
-        int type = m_team(gamemode, mutators) ? team_base(d->team) : 100;
-        if(m_duke(gamemode, mutators) && arenaspawn >= 0)
-        {
-            int x = -1;
-            loopi(arenaspawn + 1) x = findentity(PLAYERSTART, x+1, type);
-            if(x >= 0) e = &ents[x];
-        }
-        else if((m_team(gamemode, mutators) || m_duke(gamemode, mutators)) && !m_keep(gamemode)) // ktf uses ffa spawns
-        {
-            loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1, type);
-            if(spawncycle >= 0) e = &ents[spawncycle];
-        }
-        else
-        {
-            float bestdist = -1;
-
-            loopi(r)
-            {
-                // 2013jun28:lucas: SKB suggested to use FFA spawns only in FFA modes, which seems reasonable.
-                spawncycle = /*m_keep(gamemode) && */numspawn[2] > 4 ? findentity(PLAYERSTART, spawncycle+1, 100) : findentity(PLAYERSTART, spawncycle+1);
-                if(spawncycle < 0) continue;
-                float dist = nearestenemy(vec(ents[spawncycle].x, ents[spawncycle].y, ents[spawncycle].z), d->team);
-                if(!e || dist < 0 || (bestdist >= 0 && dist > bestdist)) { e = &ents[spawncycle]; bestdist = dist; }
-            }
-        }
-    }
-
-    if(e)
-    {
-        d->o.x = e->x;
-        d->o.y = e->y;
-        d->o.z = e->z;
-        d->yaw = e->attr1;
-        d->pitch = 0;
-        d->roll = 0;
-    }
-    else
-    {
-        d->o.x = d->o.y = (float)ssize/2;
-        d->o.z = 4;
-    }
-    entinmap(d);
-    if(identexists("onSpawn")/* && (m_team(gamemode, mutators) && d->team == player1->team)*/)
-    {
-        defformatstring(onspawn)("onSpawn %d", d->clientnum);
-        execute(onspawn);
-    }
-}
-
-void spawnplayer(playerent *d)
-{
-    d->respawn(gamemode, mutators);
-    d->spawnstate(d->team, gamemode, mutators);
-    d->state = (d==player1 && editmode) ? CS_EDITING : CS_ALIVE;
-    findplayerstart(d);
-}
-
 void respawnself()
 {
     addmsg(SV_TRYSPAWN, "r");
@@ -1137,10 +1055,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
     clearbounceents();
     preparectf(!m_flags(gamemode));
     suicided = -1;
-    spawncycle = -1;
     lasthit = 0;
-    if(m_valid(gamemode)) respawnself();
-    else findplayerstart(player1);
     if(good_map()==MAP_IS_BAD) conoutf(_("You cannot play in this map due to quality requisites. Please, report this incident."));
     if (mapstats_hud) showmapstats();
 

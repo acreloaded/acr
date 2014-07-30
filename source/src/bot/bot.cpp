@@ -67,8 +67,7 @@ void CBot::MakeSkill(int sk)
 
 void CBot::Spawn()
 {
-    // Init all bot variabeles
-    //spawnplayer(m_pMyEnt);
+    // Init all bot variables
 
      m_pMyEnt->targetyaw = m_pMyEnt->targetpitch = 0.0f;
      m_pMyEnt->enemy = NULL;

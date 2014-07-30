@@ -436,10 +436,45 @@ void sendservmsg(const char *msg, int cn)
     sendf(cn, 1, "ris", SV_SERVMSG, msg);
 }
 
+#define SECURESPAWNDIST 15
+int spawncycle = -1;
+int fixspawn = 2;
+
+int findspawn(int index)
+{
+    for (int i = index; i<smapstats.hdr.numents; i++) if (mapents[i].type == PLAYERSTART) return i;
+    loopj(index) if (mapents[j].type == PLAYERSTART) return j;
+    return -1;
+}
+
+int findspawn(int index, uchar attr2)
+{
+    for (int i = index; i<smapstats.hdr.numents; i++) if (mapents[i].type == PLAYERSTART && mapents[i].attr2 == attr2) return i;
+    loopj(index) if (mapents[j].type == PLAYERSTART && mapents[j].attr2 == attr2) return j;
+    return -1;
+}
+
+// returns -1 for a free place, else dist to the nearest enemy
+float nearestenemy(vec place, int team)
+{
+    float nearestenemydist = -1;
+    loopv(clients)
+    {
+        client &other = *clients[i];
+        if (other.type == ST_EMPTY || other.team == TEAM_SPECT || (m_team(gamemode, mutators) && team == other.team)) continue;
+        float dist = place.dist(other.state.o);
+        if (dist < nearestenemydist || nearestenemydist == -1) nearestenemydist = dist;
+    }
+    if (nearestenemydist >= SECURESPAWNDIST || nearestenemydist == -1) return -1;
+    else return nearestenemydist;
+}
+
 void sendspawn(client *c)
 {
     if(team_isspect(c->team)) return;
     clientstate &gs = c->state;
+    if (gs.lastdeath) gs.respawn();
+    // spawnstate
     if(c->type == ST_AI)
     {
         // random loadout settings
@@ -464,13 +499,62 @@ void sendspawn(client *c)
         gs.nextperk1 = PERK_NONE;
         gs.nextperk2 = (gs.nextprimary == GUN_BOLT || m_sniper(gamemode, mutators)) ? PERK2_STEADY : PERK2_NONE;
     }
-    gs.respawn();
     gs.spawnstate(c->team, smode, smuts);
     gs.lifesequence++;
-    sendf(c->clientnum, 1, "ri9ivv", SV_SPAWNSTATE, c->clientnum, gs.lifesequence,
-        gs.health, gs.armour, gs.perk1, gs.perk2,
-        gs.primary, gs.secondary, m_duke(gamemode, mutators) ? c->spawnindex : -1,
-        NUMGUNS, gs.ammo, NUMGUNS, gs.mag);
+    gs.state = CS_DEAD;
+    // spawnpos
+    vec spawnpos;
+    persistent_entity *spawn_ent = NULL;
+    int r = fixspawn-->0 ? 4 : rnd(10) + 1;
+    const int type = m_spawn_team(gamemode, mutators) ? (c->team ^ ((m_spawn_reversals(gamemode, mutators) && gamemillis > gamelimit / 2) ? 1 : 0)) : 100;
+    if (m_duke(gamemode, mutators) && c->spawnindex >= 0)
+    {
+        int x = -1;
+        loopi(c->spawnindex + 1) x = findspawn(x + 1, type);
+        if (x >= 0) spawn_ent = &mapents[x];
+    }
+    else if (m_team(gamemode, mutators) || m_duke(gamemode, mutators))
+    {
+        loopi(r) spawncycle = findspawn(spawncycle + 1, type);
+        if (spawncycle >= 0) spawn_ent = &mapents[spawncycle];
+    }
+    else
+    {
+        float bestdist = -1;
+
+        loopi(r)
+        {
+            spawncycle = !m_spawn_team(gamemode, mutators) && smapstats.spawns[2] > 5 ? findspawn(spawncycle + 1, 100) : findspawn(spawncycle + 1);
+            if (spawncycle < 0) continue;
+            float dist = nearestenemy(vec(mapents[spawncycle].x, mapents[spawncycle].y, mapents[spawncycle].z), c->team);
+            if (!spawn_ent || dist < 0 || (bestdist >= 0 && dist > bestdist)) { spawn_ent = &mapents[spawncycle]; bestdist = dist; }
+        }
+    }
+    if (spawn_ent)
+    {
+        spawnpos.x = spawn_ent->x;
+        spawnpos.y = spawn_ent->y;
+        c->y = spawn_ent->attr1; // yaw
+    }
+    else
+    {
+        // try to spawn in a random place (might be solid)
+        spawnpos.x = rnd((1 << maplayout_factor) - MINBORD) + MINBORD;
+        spawnpos.y = rnd((1 << maplayout_factor) - MINBORD) + MINBORD;
+        c->y = 0; // yaw
+    }
+    extern float getblockfloor(int id, bool check_vdelta = true);
+    spawnpos.z = getblockfloor(getmaplayoutid(spawnpos.x, spawnpos.y));
+    extern bool checkpos(vec &p, bool alter = true);
+    checkpos(spawnpos); // fix spawn being stuck
+    spawnpos.z += PLAYERHEIGHT;
+    checkpos(spawnpos); // fix spawn being too high
+    c->p = 0; // pitch
+    // send spawn state
+    sendf(c->clientnum, 1, "ri9vvi4", SV_SPAWNSTATE, c->clientnum, gs.lifesequence,
+        gs.health, gs.armour, gs.perk1, gs.perk2, gs.primary, gs.secondary,
+        NUMGUNS, gs.ammo, NUMGUNS, gs.mag,
+        (int)(spawnpos.x*DMF), (int)(spawnpos.y*DMF), (int)(spawnpos.z*DMF), c->y);
     gs.lastspawn = gamemillis;
 }
 
@@ -3102,6 +3186,8 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_SPAWN:
             {
                 int cn = getint(p), ls = getint(p);
+                vec o;
+                loopi(3) o[i] = getint(p) / DMF;
                 if(!cl->hasclient(cn)) break;
                 client &cp = *clients[cn];
                 clientstate &cs = cp.state;
@@ -3109,12 +3195,17 @@ void process(ENetPacket *packet, int sender, int chan)
                     ls!=cs.lifesequence || cs.lastspawn<0) break;
                 cs.lastspawn = -1;
                 cs.spawn = gamemillis;
-                cp.upspawnp = false;
                 cs.state = CS_ALIVE;
+                vec lasto = cs.o;
+                cs.o = cp.spawnp = o;
+                cp.spj = cp.ldt = 40;
                 // send spawn packet, but not with QUEUE_BUF -- we need it sequenced
-                sendf(-1, 1, "rxi3i6vv", sender, SV_SPAWN, cn, ls,
+                sendf(-1, 1, "rxi3i6vvi4", sender, SV_SPAWN, cn, ls,
                     cs.health, cs.armour, cs.perk1, cs.perk2, cs.primary, cs.secondary,
-                    NUMGUNS, cs.ammo, NUMGUNS, cs.mag);
+                    NUMGUNS, cs.ammo, NUMGUNS, cs.mag, (int)(o.x*DMF), (int)(o.y*DMF), (int)(o.z*DMF), cl->y);
+                // bad spawn adjustment?
+                if (!m_edit(gamemode) && (lasto.distxy(cs.o) >= 6 * PLAYERRADIUS)) // || fabs(lasto.z - cs.o.z) >= 2 * PLAYERHEIGHT))
+                    serverdied(&cp, &cp, 0, OBIT_SPAWN, FRAG_NONE, cs.o);
                 break;
             }
 

@@ -671,6 +671,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 loopi(NUMGUNS) d->ammo[i] = getint(p);
                 loopi(NUMGUNS) d->mag[i] = getint(p);
                 d->state = CS_SPAWNING;
+                if (identexists("onSpawn"))
+                {
+                    defformatstring(onspawn)("onSpawn %d", d->clientnum);
+                    execute(onspawn);
+                }
                 if(d->lifesequence==0) d->resetstats(); //NEW
                 break;
             }
@@ -681,7 +686,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 if(!d || (d != player1 && !isowned(d))) { static playerent dummy; d = &dummy; }
                 if ( map_quality == MAP_IS_BAD )
                 {
-                    loopi(6+2*NUMGUNS) getint(p);
+                    loopi(7+2*NUMGUNS) getint(p);
                     conoutf(_("map deemed unplayable - fix it before you can spawn"));
                     break;
                 }
@@ -702,12 +707,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 d->primary = getint(p);
                 d->selectweapon(d->primary);
                 d->secondary = getint(p);
-                int arenaspawn = getint(p);
                 loopi(NUMGUNS) d->ammo[i] = getint(p);
                 loopi(NUMGUNS) d->mag[i] = getint(p);
                 d->state = CS_ALIVE;
                 d->lastspawn = lastmillis;
-                findplayerstart(d, false, arenaspawn);
+                loopi(3) d->o[i] = getint(p) / DMF;
+                d->yaw = getint(p);
+                d->pitch = d->roll = 0;
+                entinmap(d); // client may adjust spawn position a little
                 arenaintermission = 0;
                 if(d == player1 && m_duke(gamemode, mutators) && !localwrongmap)
                 {
@@ -715,9 +722,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     conoutf(_("new round starting... fight!"));
                     hudeditf(HUDMSG_TIMER, "FIGHT!");
                 }
-                addmsg(SV_SPAWN, "ri2", d->clientnum, d->lifesequence);
+                addmsg(SV_SPAWN, "ri5", d->clientnum, d->lifesequence, (int)(d->o.x*DMF), (int)(d->o.y*DMF), (int)(d->o.z*DMF));
                 d->weaponswitch(d->weapons[d->primary]);
                 d->weaponchanging -= SWITCHTIME(d->perk1 == PERK_TIME) / 2;
+                if (identexists("onSpawn"))
+                {
+                    defformatstring(onspawn)("onSpawn %d", d->clientnum);
+                    execute(onspawn);
+                }
                 if(d->lifesequence==0) d->resetstats(); //NEW
                 break;
             }

@@ -566,7 +566,7 @@ void check_afk()
         if ( c.type != ST_TCPIP || c.connectmillis + 60 * 1000 > servmillis ||
              c.inputmillis + scl.afk_limit > servmillis || clienthasflag(c.clientnum) != -1 ) continue;
         if ( ( c.state.state == CS_DEAD && !m_duke(gamemode, mutators) && c.state.lastdeath + 45 * 1000 < gamemillis) ||
-             ( c.state.state == CS_ALIVE && c.upspawnp ) /*||
+             ( c.state.state == CS_ALIVE ) /*||
              ( c.state.state == CS_SPECTATE && totalclients >= scl.maxclients )  // only kick spectator if server is full - 2011oct16:flowtron: mmh, that seems reasonable enough .. still, kicking spectators for inactivity seems harsh! disabled ATM, kick them manually if you must.
              */
             )
@@ -643,13 +643,6 @@ inline void checkmove(client *cl)
 #ifdef ACAC
     m_engine(cl);
 #endif
-
-    if ( !cl->upspawnp )
-    {
-        cl->spawnp = cl->state.o;
-        cl->upspawnp = true;
-        cl->spj = cl->ldt = 40;
-    }
 
     // TODO: detect speedhack
 }
