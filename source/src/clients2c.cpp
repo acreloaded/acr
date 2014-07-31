@@ -670,7 +670,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 d->secondary = getint(p);
                 loopi(NUMGUNS) d->ammo[i] = getint(p);
                 loopi(NUMGUNS) d->mag[i] = getint(p);
-                d->state = CS_SPAWNING;
+                loopi(3) d->o[i] = getint(p) / DMF;
+                d->yaw = getint(p);
+                d->state = CS_ALIVE;
+                d->lastspawn = lastmillis;
                 if (identexists("onSpawn"))
                 {
                     defformatstring(onspawn)("onSpawn %d", d->clientnum);
