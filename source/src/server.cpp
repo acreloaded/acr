@@ -1398,8 +1398,8 @@ void arenacheck()
     loopv(clients)
     {
         client &c = *clients[i];
-        if(c.type==ST_EMPTY || !c.isauthed || !c.isonrightmap || team_isspect(c.team)) continue; /// TODO: simplify the team/state sysmtem, it is not smart to have SPECTATE in both, for example
-        if (c.state.lastspawn < 0 && (c.state.state==CS_DEAD || c.state.state==CS_SPECTATE))
+        if(c.type==ST_EMPTY || !c.isauthed || !c.isonrightmap || team_isspect(c.team)) continue;
+        if (c.state.lastspawn < 0 && c.state.state==CS_DEAD)
         {
             dead = true;
             lastdeath = max(lastdeath, c.state.lastdeath);
@@ -1769,7 +1769,6 @@ bool updateclientteam(int cln, int newteam, int ftr)
     if(ftr != FTR_INFO && (team_isspect(newteam) || (team_isactive(newteam) && team_isactive(cl.team)))) forcedeath(&cl);
     sendf(-1, 1, "riii", SV_SETTEAM, cln, newteam | ((ftr == FTR_SILENTFORCE ? FTR_INFO : ftr) << 4));
     if(ftr != FTR_INFO && !team_isspect(newteam) && team_isspect(cl.team)) sendspawn(&cl);
-    if (team_isspect(newteam)) cl.state.state = CS_SPECTATE;
     cl.team = newteam;
     return true;
 }
@@ -3193,8 +3192,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 if(!cl->hasclient(cn)) break;
                 client &cp = *clients[cn];
                 clientstate &cs = cp.state;
-                if((cs.state!=CS_ALIVE && cs.state!=CS_DEAD && cs.state!=CS_SPECTATE) ||
-                    ls!=cs.lifesequence || cs.lastspawn<0) break;
+                if((cs.state!=CS_ALIVE && cs.state!=CS_DEAD) || ls!=cs.lifesequence || cs.lastspawn<0) break;
                 cs.lastspawn = -1;
                 cs.spawn = gamemillis;
                 cs.state = CS_ALIVE;
@@ -4313,7 +4311,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                 c.peer = event.peer;
                 c.peer->data = (void *)(size_t)c.clientnum;
                 c.connectmillis = servmillis;
-                c.state.state = CS_SPECTATE;
+                c.state.state = CS_DEAD;
                 c.salt = rnd(0x1000000)*((servmillis%1000)+1);
                 char hn[1024];
                 copystring(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");

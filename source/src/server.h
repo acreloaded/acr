@@ -393,7 +393,7 @@ struct client                   // server side version of "dynent" type
         name[0] = pwd[0] = demoflags = 0;
         bottomRTT = ping = 9999;
         team = TEAM_SPECT;
-        state.state = CS_SPECTATE;
+        state.state = CS_DEAD;
         loopi(2) skin[i] = 0;
         position.setsize(0);
         messages.setsize(0);

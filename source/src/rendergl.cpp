@@ -477,7 +477,7 @@ void resetcamera()
 
 void recomputecamera()
 {
-    if((player1->state==CS_SPECTATE || player1->state==CS_DEAD) && !editmode)
+    if((team_isspect(player1->team) || player1->state==CS_DEAD) && !editmode)
     {
         switch(player1->spectatemode)
         {

@@ -139,7 +139,7 @@ static inline const char *team_string(int t, bool abbr = false) { const char **n
 
 enum { ENT_PLAYER = 0, ENT_BOT, ENT_CAMERA, ENT_BOUNCE };
 enum { HIT_NONE = 0, HIT_LEG, HIT_TORSO, HIT_HEAD };
-enum { CS_ALIVE = 0, CS_DEAD, CS_SPAWNING, CS_LAGGED, CS_EDITING, CS_SPECTATE };
+enum { CS_ALIVE = 0, CS_DEAD, CS_WAITING, CS_EDITING };
 enum { CR_DEFAULT = 0, CR_MASTER, CR_ADMIN, CR_MAX };
 enum { SM_NONE = 0, SM_DEATHCAM, SM_FOLLOW1ST, SM_FOLLOW3RD, SM_FOLLOW3RD_TRANSPARENT, SM_FLY, SM_OVERVIEW, SM_NUM };
 enum { FPCN_VOID = -4, FPCN_DEATHCAM = -2, FPCN_FLY = -2, FPCN_OVERVIEW = -1 };
@@ -751,7 +751,7 @@ public:
     }
 
     void selectweapon(int w) { prevweaponsel = weaponsel; weaponsel = weapons[(gunselect = w)]; if (!prevweaponsel) prevweaponsel = weaponsel; }
-    bool isspectating() { return state==CS_SPECTATE || (state==CS_DEAD && spectatemode > SM_NONE); }
+    bool isspectating() { return team_isspect(team) || (state == CS_DEAD && spectatemode > SM_NONE); }
     void weaponswitch(weapon *w)
     {
         if(!w) return;

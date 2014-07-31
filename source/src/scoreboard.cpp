@@ -206,7 +206,7 @@ void renderscore(playerent *d)
     string lagping;
     static color localplayerc(0.2f, 0.2f, 0.2f, 0.2f), damagedplayerc(0.4f, 0.1f, 0.1f, 0.3f), damagingplayerc(0.1f, 0.1f, 0.4f, 0.3f);
     if (team_isspect(d->team)) copystring(lagping, "SPECT");
-    else if (d->state==CS_LAGGED || (d->ping > 999 && d->plag > 99)) copystring(lagping, "LAG");
+    else if (d->state==CS_WAITING || (d->ping > 999 && d->plag > 99)) copystring(lagping, "LAG");
     else
     {
         if(multiplayer(false)) formatstring(lagping)("%s/%s", colorpj(d->plag), colorping(d->ping));

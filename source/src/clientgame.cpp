@@ -480,7 +480,7 @@ void moveotherplayers()
         if(!lagtime || intermission) continue;
         else if(lagtime>1000 && d->state==CS_ALIVE)
         {
-            d->state = CS_LAGGED;
+            d->state = CS_WAITING;
             continue;
         }
         if(d->state==CS_ALIVE || d->state==CS_EDITING)
@@ -630,9 +630,7 @@ inline const char * spawn_message()
     // in large, friendly letters.
 }
 
-int waiting_permission = 0;
-
-bool tryrespawn()
+void tryrespawn()
 {
     if ( multiplayer(false) && bad_map() )
     {
@@ -642,37 +640,22 @@ bool tryrespawn()
     {
         hudeditf(HUDMSG_TIMER, "\f%s", spawn_message());
     }
-    else if(player1->state==CS_DEAD || player1->state==CS_SPECTATE)
+    else if(player1->state==CS_DEAD)
     {
-        if(team_isspect(player1->team))
+        respawnself();
+        int respawnmillis = player1->respawnoffset + (m_duke(gamemode, mutators) ? 0 : SPAWNDELAY);
+        if (lastmillis > respawnmillis)
         {
-            respawnself();
-            return true;
-        }
-        else
-        {
-            int respawnmillis = player1->respawnoffset+(m_duke(gamemode, mutators) ? 0 : (m_flags(gamemode) ? 5000 : 2000));
-            if(lastmillis>respawnmillis)
+            player1->attacking = false;
+            if (m_duke(gamemode, mutators))
             {
-                player1->attacking = false;
-                if(m_duke(gamemode, mutators))
-                {
-                    if(!arenaintermission) hudeditf(HUDMSG_TIMER, "waiting for new round to start...");
-                    else lastspawnattempt = lastmillis;
-                    return false;
-                }
-                if (lastmillis > waiting_permission)
-                {
-                    waiting_permission = lastmillis + 1000;
-                    respawnself();
-                }
-                else hudeditf(HUDMSG_TIMER, "\f%s", spawn_message());
-                return true;
+                if (!arenaintermission) hudeditf(HUDMSG_TIMER, "waiting for new round to start...");
+                else lastspawnattempt = lastmillis;
             }
-            else lastspawnattempt = lastmillis;
+            hudeditf(HUDMSG_TIMER, "\f%s", spawn_message());
         }
+        else lastspawnattempt = lastmillis;
     }
-    return false;
 }
 
 VARP(hitsound, 0, 0, 1);
@@ -1586,7 +1569,7 @@ void setfollowplayer(int cn)
 // set new spect mode
 void spectatemode(int mode)
 {
-    if((player1->state != CS_DEAD && player1->state != CS_SPECTATE && !team_isspect(player1->team)) || (!m_team(gamemode, mutators) && !team_isspect(player1->team) && servstate.mastermode == MM_MATCH)) return;  // during ffa matches only SPECTATORS can spectate
+    if((player1->state != CS_DEAD && !team_isspect(player1->team)) || (!m_team(gamemode, mutators) && !team_isspect(player1->team) && servstate.mastermode == MM_MATCH)) return;  // during ffa matches only SPECTATORS can spectate
     if(mode == player1->spectatemode) return;
     showscores(false);
     switch(mode)

@@ -98,7 +98,7 @@ void updatelagtime(playerent *d)
     int lagtime = totalmillis-d->lastupdate;
     if(lagtime)
     {
-        if(d->state!=CS_SPAWNING && d->lastupdate) d->plag = (d->plag*5+lagtime)/6;
+        if(d->lastupdate) d->plag = (d->plag*5+lagtime)/6;
         d->lastupdate = totalmillis;
     }
 }
@@ -223,7 +223,7 @@ void parsepositions(ucharbuf &p)
                 d->smoothmillis = lastmillis;
             }
             else d->smoothmillis = 0;
-            if(d->state==CS_LAGGED || d->state==CS_SPAWNING) d->state = CS_ALIVE;
+            if (d->state == CS_WAITING) d->state = CS_ALIVE;
             // when playing a demo spectate first player we know about
             if(player1->isspectating() && player1->spectatemode==SM_NONE) togglespect();
             extern void clamproll(physent *pl);
@@ -645,13 +645,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             {
                 int val = getint(p);
                 if(!d) break;
-                if(val) d->state = CS_EDITING;
-                else
-                {
-                    //2011oct16:flowtron:keep spectator state
-                    //specators shouldn't be allowed to toggle editmode for themselves. they're ghosts!
-                    d->state = d->state==CS_SPECTATE?CS_SPECTATE:CS_ALIVE;
-                }
+                d->state = val ? CS_EDITING : CS_ALIVE;
                 break;
             }
 
@@ -1334,7 +1328,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     }
                     else if(d->team != fnt && ftr == FTR_PLAYERWISH) conoutf(_("%s changed to active play"), you ? _("you") : colorname(d));
                     d->team = fnt;
-                    if(team_isspect(d->team)) d->state = CS_SPECTATE;
                 }
                 break;
             }
@@ -1511,7 +1504,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 {
                     curdemofile = newstring(demofile);
                     player1->resetspec();
-                    player1->state = CS_SPECTATE;
+                    player1->state = CS_DEAD;
                     player1->team = TEAM_SPECT;
                 }
                 else

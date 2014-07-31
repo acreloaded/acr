@@ -784,7 +784,7 @@ void attack(bool on)
 {
     if(intermission) return;
     if(editmode) editdrag(on);
-    else if(player1->state==CS_DEAD || player1->state==CS_SPECTATE)
+    else if(player1->state==CS_DEAD)
     {
         if(!on) tryrespawn();
     }
