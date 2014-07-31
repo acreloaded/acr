@@ -2601,7 +2601,7 @@ void answerchallenge(client *cl, uint id, char *val)
 
 void sendresume(client &c, bool broadcast)
 {
-    sendf(broadcast ? -1 : c.clientnum, 1, "ri3i9vvi", SV_RESUME,
+    sendf(broadcast ? -1 : c.clientnum, 1, "ri9i6vvi", SV_RESUME,
             c.clientnum,
             c.state.state,
             c.state.lifesequence,
@@ -2732,6 +2732,9 @@ void welcomepacket(packetbuf &p, int n)
             putint(p, c.state.state);
             putint(p, c.state.lifesequence);
             putint(p, c.state.primary);
+            putint(p, c.state.secondary);
+            putint(p, c.state.perk1);
+            putint(p, c.state.perk2);
             putint(p, c.state.gunselect);
             putint(p, c.state.flagscore);
             putint(p, c.state.frags);
