@@ -7,13 +7,10 @@ branches:
   only:
     - master
 
-before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq build-essential libsdl1.2debian libsdl-image1.2 libopenal1 libsdl1.2-dev libsdl-image1.2-dev libopenal-dev libvorbis-dev
-install:
-  - cd ./source/src
-#  - chmod +x ../enet/configure
-script: make all
+before_install: sudo apt-get update -qq
+install: sudo apt-get install -qq build-essential libsdl1.2debian libsdl-image1.2 libopenal1 libsdl1.2-dev libsdl-image1.2-dev libopenal-dev libvorbis-dev
+script: cd ./source/src; make all
+
 notifications:
   irc:
     channels:
@@ -21,5 +18,5 @@ notifications:
     template: "%{repository}#%{branch} <%{author}> %{commit} [%{duration}] %{message} (#%{build_number}) %{build_url}"
     on_success: always # [always|never|change] default: always
     on_failure: always # [always|never|change] default: always
-    use_notice: false # doesn't show up in OmnomIRC
+    use_notice: false # notices don't show up in OmnomIRC
     skip_join: true
