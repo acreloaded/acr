@@ -503,7 +503,6 @@ void sendspawn(client *c)
     gs.lifesequence++;
     gs.state = CS_DEAD;
     // spawnpos
-    vec spawnpos;
     persistent_entity *spawn_ent = NULL;
     int r = fixspawn-->0 ? 4 : rnd(10) + 1;
     const int type = m_spawn_team(gamemode, mutators) ? (c->team ^ ((m_spawn_reversals(gamemode, mutators) && gamemillis > gamelimit / 2) ? 1 : 0)) : 100;
@@ -532,29 +531,29 @@ void sendspawn(client *c)
     }
     if (spawn_ent)
     {
-        spawnpos.x = spawn_ent->x;
-        spawnpos.y = spawn_ent->y;
+        gs.o.x = spawn_ent->x;
+        gs.o.y = spawn_ent->y;
         c->y = spawn_ent->attr1; // yaw
     }
     else
     {
         // try to spawn in a random place (might be solid)
-        spawnpos.x = rnd((1 << maplayout_factor) - MINBORD) + MINBORD;
-        spawnpos.y = rnd((1 << maplayout_factor) - MINBORD) + MINBORD;
+        gs.o.x = rnd((1 << maplayout_factor) - MINBORD) + MINBORD;
+        gs.o.y = rnd((1 << maplayout_factor) - MINBORD) + MINBORD;
         c->y = 0; // yaw
     }
     extern float getblockfloor(int id, bool check_vdelta = true);
-    spawnpos.z = getblockfloor(getmaplayoutid(spawnpos.x, spawnpos.y));
+    gs.o.z = getblockfloor(getmaplayoutid(gs.o.x, gs.o.y));
     extern bool checkpos(vec &p, bool alter = true);
-    checkpos(spawnpos); // fix spawn being stuck
-    spawnpos.z += PLAYERHEIGHT;
-    checkpos(spawnpos); // fix spawn being too high
+    checkpos(gs.o); // fix spawn being stuck
+    gs.o.z += PLAYERHEIGHT;
+    checkpos(gs.o); // fix spawn being too high
     c->p = 0; // pitch
     // send spawn state
     sendf(c->clientnum, 1, "ri9vvi4", SV_SPAWNSTATE, c->clientnum, gs.lifesequence,
         gs.health, gs.armour, gs.perk1, gs.perk2, gs.primary, gs.secondary,
         NUMGUNS, gs.ammo, NUMGUNS, gs.mag,
-        (int)(spawnpos.x*DMF), (int)(spawnpos.y*DMF), (int)(spawnpos.z*DMF), c->y);
+        (int)(gs.o.x*DMF), (int)(gs.o.y*DMF), (int)(gs.o.z*DMF), c->y);
     gs.lastspawn = gamemillis;
 }
 
