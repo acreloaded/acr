@@ -1691,6 +1691,17 @@ void updatesdesc(const char *newdesc, ENetAddress *caller = NULL)
     }
 }
 
+inline bool canspawn(client *c, bool connecting = false)
+{
+    if (!maplayout)
+        return false;
+    if (c->team == TEAM_SPECT || (team_isspect(c->team) && !m_team(gamemode, mutators)))
+        return false; // SP_SPECT
+    if (m_duke(gamemode, mutators))
+        return (connecting && totalclients <= 2); // || (arenaround && m_zombie(gamemode) && c->team == TEAM_RVSF && progressiveround != MAXZOMBIEROUND);
+    return true;
+}
+/*
 int canspawn(client *c)   // beware: canspawn() doesn't check for arena!
 {
     if(!c || c->type == ST_EMPTY || !c->isauthed || !team_isvalid(c->team) ||
@@ -1709,6 +1720,7 @@ int canspawn(client *c)   // beware: canspawn() doesn't check for arena!
     }
     return SP_OK;
 }
+*/
 
 int chooseteam(client &cl, int def = rnd(2))
 {
@@ -2602,7 +2614,7 @@ void sendresume(client &c, bool broadcast)
 {
     sendf(broadcast ? -1 : c.clientnum, 1, "ri9i6vvi", SV_RESUME,
             c.clientnum,
-            c.state.state,
+            c.state.state == CS_WAITING ? CS_DEAD : c.state.state,
             c.state.lifesequence,
             c.state.primary,
             c.state.secondary,
@@ -2730,7 +2742,7 @@ void welcomepacket(packetbuf &p, int n)
             client &c = *clients[i];
             if(c.type!=ST_TCPIP || c.clientnum==n) continue;
             putint(p, c.clientnum);
-            putint(p, c.state.state);
+            putint(p, c.state.state == CS_WAITING ? CS_DEAD : c.state.state);
             putint(p, c.state.lifesequence);
             putint(p, c.state.primary);
             putint(p, c.state.secondary);
@@ -3009,9 +3021,6 @@ void process(ENetPacket *packet, int sender, int chan)
                 if(!isdedicated || (smapstats.cgzsize == gzs && smapstats.hdr.maprevision == rev))
                 { // here any game really starts for a client: spawn, if it's a new game - don't spawn if the game was already running
                     cl->isonrightmap = true;
-                    int sp = canspawn(cl);
-                    sendf(sender, 1, "rii", SV_SPAWNDENY, sp);
-                    cl->spawnperm = sp;
                     if (cl->loggedwrongmap) logline(ACLOG_INFO, "[%s] %s is now on the right map: revision %d/%d", cl->gethostname(), cl->formatname(), rev, gzs);
                     bool spawn = false;
                     if(team_isspect(cl->team))
@@ -3034,7 +3043,6 @@ void process(ENetPacket *packet, int sender, int chan)
                     forcedeath(cl);
                     logline(ACLOG_INFO, "[%s] %s is on the wrong map: revision %d/%d", cl->gethostname(), cl->formatname(), rev, gzs);
                     cl->loggedwrongmap = true;
-                    sendf(sender, 1, "rii", SV_SPAWNDENY, SP_WRONGMAP);
                 }
                 break;
             }
@@ -3186,14 +3194,44 @@ void process(ENetPacket *packet, int sender, int chan)
 
             case SV_TRYSPAWN:
             {
-                int sp = canspawn(cl);
-                if(team_isspect(cl->team) && sp < SP_OK_NUM)
+                clientstate &cs = cl->state;
+                if (cs.state == CS_WAITING) // dequeue spawn
                 {
-                    updateclientteam(sender, TEAM_ANYACTIVE, FTR_PLAYERWISH);
-                    checkai(); // spawn unspectate
-                    sp = canspawn(cl);
+                    cs.state = CS_DEAD;
+                    sendf(sender, 1, "ri2", SV_TRYSPAWN, 0);
+                    break;
                 }
-                if( !m_duke(gamemode, mutators) && sp < SP_OK_NUM && gamemillis > cl->state.lastspawn + 1000 ) sendspawn(cl);
+                if (!cl->isonrightmap || !maplayout) // need the map for spawning
+                {
+                    //sendf(sender, 1, "ri", SV_MAPIDENT);
+                    break;
+                }
+                if (cs.state != CS_DEAD || cs.lastspawn >= 0) break; // not dead or already enqueued
+                // TODO
+                if (cl->team == TEAM_SPECT)
+                {
+                    break;
+                    /*
+                    // need to unspectate
+                    if (mastermode < MM_LOCKED || cp.type != ST_TCPIP || cp.priv >= PRIV_ADMIN)
+                    {
+                        updateclientteam(sender, chooseteam(cp), FTR_PLAYERWISH);
+                        checkai(); // spawn unspect
+                        // convertcheck();
+                    }
+                    else
+                    {
+                        sendf(sender, 1, "ri2", N_SWITCHTEAM, 1 << 4);
+                        break; // no enqueue
+                    }
+                    */
+                }
+                // can the player be enqueued?
+                if (!canspawn(cl)) break;
+                // enqueue for spawning
+                cs.state = CS_WAITING;
+                const int waitremain = SPAWNDELAY - gamemillis + cs.lastdeath;
+                sendf(sender, 1, "ri2", SV_TRYSPAWN, waitremain >= 1 ? waitremain : 1);
                 break;
             }
 

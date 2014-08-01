@@ -302,11 +302,11 @@ void processevents()
             }
         }
         // not alive: spawn queue
-        else if(/*cs.state == CS_WAITING ||*/ (c.type == ST_AI && valid_client(c.ownernum) && clients[c.ownernum]->isonrightmap && cs.state == CS_DEAD && cs.lastspawn<0))
+        else if(cs.state == CS_WAITING || (c.type == ST_AI && valid_client(c.ownernum) && clients[c.ownernum]->isonrightmap && cs.state == CS_DEAD && cs.lastspawn<0))
         {
             const int waitremain = SPAWNDELAY - gamemillis + cs.lastdeath;
-            extern int canspawn(client *c);
-            if(canspawn(&c) == SP_OK && waitremain <= 0)
+            extern bool canspawn(client *c, bool connecting = false);
+            if(canspawn(&c) && waitremain <= 0)
                 sendspawn(&c);
         }
         // akimbo out!

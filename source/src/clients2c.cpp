@@ -494,8 +494,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_MAPCHANGE:
             {
-                extern int spawnpermission;
-                spawnpermission = SP_SPECT;
                 getstring(text, p);
                 int mode = getint(p);
                 int downloadable = getint(p);
@@ -668,6 +666,15 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 int val = getint(p);
                 if(!d) break;
                 d->state = val ? CS_EDITING : CS_ALIVE;
+                break;
+            }
+
+            case SV_TRYSPAWN:
+            {
+                const int enqueued = getint(p);
+                extern bool spawnenqueued;
+                spawnenqueued = (enqueued > 0);
+                if (enqueued) player1->respawnoffset = lastmillis - SPAWNDELAY + enqueued;
                 break;
             }
 
@@ -1235,14 +1242,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 else if(alive==player1) hudoutf(_("you are the survivor!"));
                 else hudoutf(_("%s is the survivor!"), colorname(alive));
                 arenaintermission = lastmillis;
-                break;
-            }
-
-            case SV_SPAWNDENY:
-            {
-                extern int spawnpermission;
-                spawnpermission = getint(p);
-                if(spawnpermission == SP_REFILLMATCH) hudoutf("\f3You can now spawn to refill your team.");
                 break;
             }
 

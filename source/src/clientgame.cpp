@@ -30,7 +30,6 @@ int lastmillis = 0, totalmillis = 0, nextmillis = 0;
 int lasthit = 0;
 int curtime = 0;
 string clientmap = "";
-int spawnpermission = SP_WRONGMAP;
 
 char *getclientmap() { return clientmap; }
 
@@ -373,6 +372,8 @@ void teaminfo(const char *team, const char *attr)
 
 COMMAND(teaminfo, "ss");
 
+bool spawnenqueued = false;
+
 void deathstate(playerent *pl)
 {
     pl->state = CS_DEAD;
@@ -391,6 +392,7 @@ void deathstate(playerent *pl)
         setburst(false);
         if(editmode) toggleedit(true);
         damageblend(-1);
+        spawnenqueued = false;
         if(pl->team == TEAM_SPECT) spectatemode(SM_FLY);
         else if(team_isspect(pl->team)) spectatemode(SM_FOLLOWSAME);
     }
@@ -492,30 +494,14 @@ void moveotherplayers()
 }
 
 
-bool showhudtimer(int maxsecs, int startmillis, const char *msg, bool flash)
+bool showhudtimer(int maxmillis, int startmillis, const char *msg, bool flash)
 {
-    static string str = "";
-    static int tickstart = 0, curticks = -1, maxticks = -1;
-    int nextticks = (lastmillis - startmillis) / 200;
-    if(tickstart!=startmillis || maxticks != 5*maxsecs)
-    {
-        tickstart = startmillis;
-        maxticks = 5*maxsecs;
-        curticks = -1;
-        copystring(str, "\f3");
-    }
-    if(curticks >= maxticks) return false;
-    nextticks = min(nextticks, maxticks);
-    while(curticks < nextticks)
-    {
-        if(++curticks%5) concatstring(str, ".");
-        else
-        {
-            defformatstring(sec)("%d", maxsecs - (curticks/5));
-            concatstring(str, sec);
-        }
-    }
-    if(nextticks < maxticks) hudeditf(HUDMSG_TIMER|HUDMSG_OVERWRITE, flash ? str : str+2);
+    static int lasttick = 0;
+    if (lasttick > startmillis + maxmillis) return false;
+    lasttick = lastmillis;
+    const bool wave = m_progressive(gamemode, mutators), queued = !wave && spawnenqueued && !m_duke(gamemode, mutators);
+    defformatstring(str)("\f%s %.1fs", _(wave ? "1Next wave in" : queued ? "2Queued for spawn:" : "3Waiting for respawn:"), (startmillis + maxmillis - lastmillis) / 1000.f);
+    if (lastmillis <= startmillis + maxmillis) hudeditf(HUDMSG_TIMER | HUDMSG_OVERWRITE, flash || wave || queued ? str : str + 2);
     else hudeditf(HUDMSG_TIMER, msg);
     return true;
 }
@@ -524,17 +510,14 @@ int lastspawnattempt = 0;
 
 void showrespawntimer()
 {
-    if(intermission || spawnpermission > SP_OK_NUM) return;
-    if(m_duke(gamemode, mutators))
+    if(intermission) return;
+    if (m_duke(gamemode, mutators) || (m_convert(gamemode, mutators) && arenaintermission))
     {
         if(!arenaintermission) return;
-        showhudtimer(5, arenaintermission, "FIGHT!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
+        showhudtimer(5000, arenaintermission, _("FIGHT!"), lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
     }
-    else if(player1->state==CS_DEAD && m_flags(gamemode) && (!player1->isspectating() || player1->spectatemode==SM_DEATHCAM))
-    {
-        int secs = 5;
-        showhudtimer(secs, player1->respawnoffset, "READY!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
-    }
+    else if(player1->state==CS_DEAD)
+        showhudtimer(SPAWNDELAY, player1->respawnoffset, _("READY!"), lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
 }
 
 struct scriptsleep { int wait, millis; char *cmd; bool persist; };
@@ -601,6 +584,7 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
 void respawnself()
 {
     addmsg(SV_TRYSPAWN, "r");
+    spawnenqueued = !spawnenqueued;
 }
 
 extern int checkarea(int maplayout_factor, char *maplayout);
@@ -612,32 +596,11 @@ bool bad_map() // this function makes a pair with good_map from clients2c
     return (!m_edit(gamemode) && ( Mh >= MAXMHEIGHT || MA >= MAXMAREA ));
 }
 
-inline const char * spawn_message()
-{
-    if (spawnpermission == SP_WRONGMAP)
-    {
-        // Don't use "/n" within these messages. If you do, the words won't align to the middle of the screen.
-        if (securemapcheck(getclientmap()))
-        return "3The server will NOT allow spawning or getmap!";   // Also see client.cpp which has a conoutf message
-        else return "3You must be on the correct map to spawn. Type /getmap to download it.";
-    }
-    else if (m_edit(gamemode)) return "3Type /getmap or send a map and vote for it to start co-op edit.";
-    else if (multiplayer(false)) return "4Awaiting permission to spawn. \f2DON'T PANIC!";
-    else return ""; // theres no waiting for permission in sp
-    // Despite its many glaring (and occasionally fatal) inaccuracies, AssaultCube itself has outsold the
-    // Encyclopedia Galactica because it is slightly cheaper, and because it has the words "Don't Panic"
-    // in large, friendly letters.
-}
-
 void tryrespawn()
 {
     if ( multiplayer(false) && bad_map() )
     {
         hudoutf("This map is not supported in multiplayer. Read the docs about map quality/dimensions.");
-    }
-    else if(spawnpermission > SP_OK_NUM)
-    {
-        hudeditf(HUDMSG_TIMER, "\f%s", spawn_message());
     }
     else if(player1->state==CS_DEAD)
     {
@@ -651,7 +614,6 @@ void tryrespawn()
                 if (!arenaintermission) hudeditf(HUDMSG_TIMER, "waiting for new round to start...");
                 else lastspawnattempt = lastmillis;
             }
-            hudeditf(HUDMSG_TIMER, "\f%s", spawn_message());
         }
         else lastspawnattempt = lastmillis;
     }

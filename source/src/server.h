@@ -294,7 +294,6 @@ struct client                   // server side version of "dynent" type
     int at3_score, at3_lastforce, eff_score;
     bool at3_dontmove;
     int spawnindex;
-    int spawnperm, spawnpermsent;
     int salt;
     string pwd;
     uint authreq; // for AUTH
@@ -361,8 +360,6 @@ struct client                   // server side version of "dynent" type
         overflow = 0;
         timesync = false;
         isonrightmap = type == ST_AI || m_edit(gamemode);
-        spawnperm = SP_WRONGMAP;
-        spawnpermsent = servmillis;
         if(!getmap)
         {
             loggedwrongmap = false;
@@ -498,7 +495,7 @@ const char *messagenames[SV_NUM] =
     "SV_KNIFEADD", "SV_KNIFEREMOVE",
     "SV_CONFIRMADD", "SV_CONFIRMREMOVE",
     "SV_HUDEXTRAS", "SV_POINTS", "SV_DISCSCORES", "SV_KILL", "SV_DAMAGE",
-    "SV_TRYSPAWN", "SV_SPAWNSTATE", "SV_SPAWN", "SV_SPAWNDENY", "SV_FORCEDEATH", "SV_FORCEGIB",
+    "SV_TRYSPAWN", "SV_SPAWNSTATE", "SV_SPAWN", "SV_FORCEDEATH", "SV_FORCEGIB",
     "SV_ITEMLIST", "SV_ITEMSPAWN", "SV_ITEMACC",
     "SV_FLAGACTION", "SV_FLAGINFO", "SV_FLAGMSG", "SV_FLAGCNT",
     "SV_MAPCHANGE", "SV_NEXTMAP",
