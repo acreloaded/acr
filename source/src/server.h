@@ -155,6 +155,12 @@ struct clientstate : playerstate
         lastshot = gamemillis;
     }
 
+    clientstate &invalidate()
+    {
+        //valid = false; // TODO
+        return *this;
+    }
+
     void reset()
     {
         state = CS_DEAD;
@@ -437,6 +443,19 @@ struct clientidentity
     int clientnum;
 };
 
+struct sflaginfo
+{
+    int state;
+    int actor_cn;
+    int drop_cn, dropmillis;
+    float pos[3];
+    int lastupdate;
+    int stolentime;
+    short x, y;          // flag entity location
+
+    sflaginfo() { actor_cn = -1; }
+} sflaginfos[2];
+
 struct demofile
 {
     string info;
@@ -471,6 +490,7 @@ void sendf(int cn, int chan, const char *format, ...);
 void serverdied(client *target, client *actor, int damage, int gun, int style, const vec &source, float killdist = 0);
 void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source, float dist = 0);
 int explosion(client &owner, const vec &o2, int weap, bool teamcheck, bool gib = true, client *cflag = NULL);
+void nuke(client &owner, bool suicide = true, bool forced_all = true, bool friendly_fire = false);
 
 extern bool isdedicated;
 extern string smapname;

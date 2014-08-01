@@ -365,7 +365,103 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
             cs.pickup(sents[i].type);
         }
     }
-    // TODO flags
+    // flags
+    if (m_flags(gamemode) && !m_secure(gamemode)) loopi(2)
+    {
+        void flagaction(int flag, int action, int actor);
+        sflaginfo &f = sflaginfos[i];
+        sflaginfo &of = sflaginfos[team_opposite(i)];
+        bool forcez = false;
+        vec v(-1, -1, cs.o.z);
+        if (m_bomber(gamemode) && i == cp.team && f.state == CTFF_STOLEN && f.actor_cn == cp.clientnum)
+        {
+            v.x = of.x;
+            v.y = of.y;
+        }
+        else switch (f.state)
+        {
+            case CTFF_STOLEN:
+                if (!m_return(gamemode, mutators) || i != cp.team) break;
+            case CTFF_INBASE:
+                v.x = f.x; v.y = f.y;
+                break;
+            case CTFF_DROPPED:
+                v.x = f.pos[0]; v.y = f.pos[1];
+                forcez = true;
+                break;
+        }
+        if (v.x < 0) continue;
+        if (forcez)
+            v.z = f.pos[2];
+        else
+            v.z = getsblock(getmaplayoutid((int)v.x, (int)v.y)).floor + PLAYERHEIGHT;
+        float dist = cs.o.dist(v);
+        if (dist > 2) continue;
+        if (m_capture(gamemode))
+        {
+            if (i == cp.team) // it's our flag
+            {
+                if (f.state == CTFF_DROPPED)
+                {
+                    if (m_return(gamemode, mutators) /*&& (of.state != CTFF_STOLEN || of.actor_cn != sender)*/)
+                        flagaction(i, FA_PICKUP, cp.clientnum);
+                    else flagaction(i, FA_RETURN, cp.clientnum);
+                }
+                else if (f.state == CTFF_STOLEN && cp.clientnum == f.actor_cn)
+                    flagaction(i, FA_RETURN, cp.clientnum);
+                else if (f.state == CTFF_INBASE && of.state == CTFF_STOLEN && of.actor_cn == cp.clientnum && gamemillis >= of.stolentime + 1000)
+                    flagaction(team_opposite(i), FA_SCORE, cp.clientnum);
+            }
+            else
+            {
+                /*if(m_return && of.state == CTFF_STOLEN && of.actor_cn == sender) flagaction(team_opposite(i), FA_RETURN, sender);*/
+                flagaction(i, FA_PICKUP, cp.clientnum);
+            }
+        }
+        else if (m_hunt(gamemode) || m_bomber(gamemode))
+        {
+            // BTF only: score their flag by bombing their base!
+            if (f.state == CTFF_STOLEN)
+            {
+                flagaction(i, FA_SCORE, cp.clientnum);
+                // nuke message + points
+                nuke(cp, !m_gsp1(gamemode, mutators), false); // no suicide for demolition, but suicide for bomber
+                /*
+                if(m_gsp1(gamemode, mutators))
+                {
+                    // force round win
+                    loopv(clients) if(valid_client(i) && clients[i]->state.state == CS_ALIVE && !isteam(clients[i], &cp))
+                    forcedeath(clients[i], true);
+                }
+                else explosion(cp, v, WEAP_GRENADE); // identical to self-nades, replace with something else?
+                */
+            }
+            else if (i == cp.team)
+            {
+                if (m_hunt(gamemode)) f.drop_cn = -1; // force pickup
+                flagaction(i, FA_PICKUP, cp.clientnum);
+            }
+            else if (f.state == CTFF_DROPPED && gamemillis >= of.stolentime + 500)
+                flagaction(i, m_hunt(gamemode) ? FA_SCORE : FA_RETURN, cp.clientnum);
+        }
+        else if (m_keep(gamemode) && f.state == CTFF_INBASE)
+            flagaction(i, FA_PICKUP, cp.clientnum);
+        else if (m_ktf2(gamemode, mutators) && f.state != CTFF_STOLEN)
+        {
+            bool cantake = of.state != CTFF_STOLEN || of.actor_cn != cp.clientnum || !m_team(gamemode, mutators);
+            if (!cantake)
+            {
+                cantake = true;
+                loopv(clients)
+                    if (i != cp.clientnum && valid_client(i) && clients[i]->type != ST_AI && clients[i]->team == cp.team)
+                    {
+                        cantake = false;
+                        break;
+                    }
+            }
+            if (cantake) flagaction(i, FA_PICKUP, cp.clientnum);
+        }
+    }
     // TODO kill confirms
     // TODO throwing knife pickup
     return true;

@@ -970,18 +970,6 @@ void readdemo()
     }
 }
 
-struct sflaginfo
-{
-    int state;
-    int actor_cn;
-    float pos[3];
-    int lastupdate;
-    int stolentime;
-    short x, y;          // flag entity location
-
-    sflaginfo() { actor_cn = -1; }
-} sflaginfos[2];
-
 void putflaginfo(packetbuf &p, int flag)
 {
     sflaginfo &f = sflaginfos[flag];
@@ -1009,34 +997,6 @@ inline void send_item_list(packetbuf &p)
 
 #include "serverchecks.h"
 
-bool flagdistance(sflaginfo &f, int cn)
-{
-    if(!valid_client(cn) || m_demo(gamemode)) return false;
-    client &c = *clients[cn];
-    vec v(-1, -1, c.state.o.z);
-    switch(f.state)
-    {
-        case CTFF_INBASE:
-            v.x = f.x; v.y = f.y;
-            break;
-        case CTFF_DROPPED:
-            v.x = f.pos[0]; v.y = f.pos[1];
-            break;
-    }
-    bool lagging = (c.ping > 1000 || c.spj > 100);
-    if(v.x < 0 && !lagging) return true;
-    float dist = c.state.o.dist(v);
-    int pdist = check_pdist(&c,dist);
-    if(pdist)
-    {
-        c.farpickups++;
-        logline(ACLOG_INFO, "[%s] %s %s the %s flag at distance %.2f (%d)",
-            c.gethostname(), c.formatname(), (pdist == 2 ? "tried to touch" : "touched"), team_string(&f == sflaginfos + 1), dist, c.farpickups);
-        if (pdist==2) return false;
-    }
-    return lagging ? false : true; // today I found a lag hacker :: Brahma, 19-oct-2010... lets test it a bit
-}
-
 void sendflaginfo(int flag = -1, int cn = -1)
 {
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
@@ -1047,10 +1007,10 @@ void sendflaginfo(int flag = -1, int cn = -1)
 
 void flagmessage(int flag, int message, int actor, int cn = -1)
 {
-    if(message == FM_KTFSCORE)
-        sendf(cn, 1, "riiiii", SV_FLAGMSG, flag, message, actor, (gamemillis - sflaginfos[flag].stolentime) / 1000);
+    if(message == FA_KTFSCORE)
+        sendf(cn, 1, "ri5", SV_FLAGMSG, flag, message, actor, (gamemillis - sflaginfos[flag].stolentime) / 1000);
     else
-        sendf(cn, 1, "riiii", SV_FLAGMSG, flag, message, actor);
+        sendf(cn, 1, "ri4", SV_FLAGMSG, flag, message, actor);
 }
 
 void flagaction(int flag, int action, int actor)
@@ -1058,60 +1018,65 @@ void flagaction(int flag, int action, int actor)
     if(!valid_flag(flag)) return;
     sflaginfo &f = sflaginfos[flag];
     sflaginfo &of = sflaginfos[team_opposite(flag)];
-    bool deadactor = valid_client(actor) ? clients[actor]->state.state != CS_ALIVE || team_isspect(clients[actor]->team): true;
-    int abort = 0;
     int score = 0;
-    int message = -1;
+    int message = action;
 
-    if(m_capture(gamemode) || m_hunt(gamemode))
+    if (m_capture(gamemode) || m_hunt(gamemode) || m_ktf2(gamemode, mutators) || m_bomber(gamemode))
     {
         switch(action)
         {
-            case FA_PICKUP:  // ctf: f = enemy team    htf: f = own team
+            case FA_PICKUP:
+                if (f.drop_cn == actor && f.dropmillis + 2000 > servmillis) return;
             case FA_STEAL:
             {
-                if(deadactor || f.state != (action == FA_STEAL ? CTFF_INBASE : CTFF_DROPPED) || !flagdistance(f, actor)) { abort = 10; break; }
-                int team = team_base(clients[actor]->team);
-                if(m_capture(gamemode)) team = team_opposite(team);
-                if(team != flag) { abort = 11; break; }
                 f.state = CTFF_STOLEN;
                 f.actor_cn = actor;
-                message = FM_PICKUP;
+                f.stolentime = gamemillis; // needed for KTF2
                 break;
             }
             case FA_LOST:
-                if(actor == -1) actor = f.actor_cn;
             case FA_DROP:
-                if(f.state!=CTFF_STOLEN || f.actor_cn != actor) { abort = 12; break; }
+                if (actor == -1) actor = f.actor_cn;
                 f.state = CTFF_DROPPED;
                 loopi(3) f.pos[i] = clients[actor]->state.o[i];
-                message = action == FA_LOST ? FM_LOST : FM_DROP;
+                //if(f.pos[2] < smapstats.hdr.waterlevel) f.pos[2] = smapstats.hdr.waterlevel; // float to top of water
                 break;
             case FA_RETURN:
-                if(f.state!=CTFF_DROPPED || m_hunt(gamemode)) { abort = 13; break; }
                 f.state = CTFF_INBASE;
-                message = FM_RETURN;
                 break;
             case FA_SCORE:  // ctf: f = carried by actor flag,  htf: f = hunted flag (run over by actor)
-                if(m_capture(gamemode))
+                if (m_capture(gamemode)) score = 1;
+                else if (m_bomber(gamemode)) score = of.state == CTFF_INBASE ? 3 : of.state == CTFF_DROPPED ? 2 : 1;
+                else if (m_ktf2(gamemode, mutators))
                 {
-                    if(f.state != CTFF_STOLEN || f.actor_cn != actor || of.state != CTFF_INBASE || !flagdistance(of, actor)) { abort = 14; break; }
-                    score = 1;
-                    message = FM_SCORE;
+                    if (valid_client(f.actor_cn) && clients[f.actor_cn]->state.state == CS_ALIVE)
+                    {
+                        actor = f.actor_cn;
+                        score = 1;
+                        message = FA_KTFSCORE;
+                        break; // do not set to INBASE
+                    }
                 }
-                else if(m_hunt(gamemode))
+                else if (m_hunt(gamemode))
                 {
-                    if(f.state != CTFF_DROPPED || !flagdistance(f, actor)) { abort = 15; break; }
-                    score = (of.state == CTFF_STOLEN) ? 1 : 0;
-                    message = score ? FM_SCORE : FM_SCOREFAIL;
-                    if(of.actor_cn == actor) score *= 2;
+                    // strict: must have flag to score
+                    if (!m_gsp1(gamemode, mutators) || of.state == CTFF_STOLEN)
+                    {
+                        if (!m_gsp1(gamemode, mutators))
+                            ++score;
+                        if (of.state == CTFF_STOLEN)
+                        {
+                            ++score;
+                            if (of.actor_cn == actor) ++score;
+                        }
+                    }
+                    if (!score) message = FA_SCOREFAIL;
                 }
                 f.state = CTFF_INBASE;
                 break;
 
             case FA_RESET:
                 f.state = CTFF_INBASE;
-                message = FM_RESET;
                 break;
         }
     }
@@ -1120,105 +1085,84 @@ void flagaction(int flag, int action, int actor)
         switch(action)
         {
             case FA_STEAL:
-                if(deadactor || f.state != CTFF_INBASE || !flagdistance(f, actor)) { abort = 20; break; }
                 f.state = CTFF_STOLEN;
                 f.actor_cn = actor;
                 f.stolentime = gamemillis;
-                message = FM_PICKUP;
                 break;
             case FA_SCORE:  // f = carried by actor flag
-                if(actor != -1 || f.state != CTFF_STOLEN) { abort = 21; break; } // no client msg allowed here
                 if(valid_client(f.actor_cn) && clients[f.actor_cn]->state.state == CS_ALIVE && !team_isspect(clients[f.actor_cn]->team))
                 {
                     actor = f.actor_cn;
                     score = 1;
-                    message = FM_KTFSCORE;
+                    message = FA_KTFSCORE;
                     break;
                 }
             case FA_LOST:
-                if(actor == -1) actor = f.actor_cn;
             case FA_DROP:
-                if(f.actor_cn != actor || f.state != CTFF_STOLEN) { abort = 22; break; }
+                if (actor == -1) actor = f.actor_cn;
             case FA_RESET:
                 if(f.state == CTFF_STOLEN)
-                {
                     actor = f.actor_cn;
-                    message = FM_LOST;
-                }
                 f.state = CTFF_IDLE;
                 of.state = CTFF_INBASE;
                 sendflaginfo(team_opposite(flag));
                 break;
         }
     }
-    if(abort)
-    {
-        logline(ACLOG_DEBUG,"aborting flagaction(flag %d, action %d, actor %d), reason %d, resending flag states", flag, action, actor, abort);  // FIXME: remove this logline after some time - it will only show a few bad ping effects
-        sendflaginfo();
-        return;
-    }
-    if(score)
-    {
-        client *c = clients[actor];
-        c->state.flagscore += score;
-        //sendf(-1, 1, "riii", SV_FLAGCNT, actor, c->state.flagscore);
-        if (m_team(gamemode, mutators)) computeteamwork(c->team, c->clientnum); /** WIP */
-    }
-    if(valid_client(actor))
+    if (valid_client(actor))
     {
         client &c = *clients[actor];
-        switch(message)
+        if (score)
         {
-            case FM_PICKUP:
-                logline(ACLOG_INFO, "[%s] %s %s the flag", c.gethostname(), c.formatname(), action == FA_STEAL ? "stole" : "picked up");
+            c.state.invalidate().flagscore += score;
+            // usesteamscore(c.team).flagscore += score;
+            if (m_team(gamemode, mutators)) computeteamwork(c.team, actor); /** WIP */
+        }
+        /*usesteamscore(c.team).points += max(0,*/ ( flagpoints(&c, message));
+
+        switch (message)
+        {
+            case FA_PICKUP:
+            case FA_STEAL:
+                logline(ACLOG_INFO, "[%s] %s %s the flag", c.gethostname(), c.formatname(), action == FA_STEAL ? "stole" : "took");
                 break;
-            case FM_DROP:
-            case FM_LOST:
-                logline(ACLOG_INFO, "[%s] %s %s the flag", c.gethostname(), c.formatname(), message == FM_LOST ? "lost" : "dropped");
+            case FA_DROP:
+                f.drop_cn = actor;
+                f.dropmillis = servmillis;
+            case FA_LOST:
+                logline(ACLOG_INFO, "[%s] %s %s the flag", c.gethostname(), c.formatname(), message == FA_LOST ? "lost" : "dropped");
                 break;
-            case FM_RETURN:
+            case FA_RETURN:
                 logline(ACLOG_INFO, "[%s] %s returned the flag", c.gethostname(), c.formatname());
                 break;
-            case FM_SCORE:
-                if(m_hunt(gamemode))
+            case FA_SCORE:
+                if (m_hunt(gamemode))
                     logline(ACLOG_INFO, "[%s] %s hunted the flag for %s, new score %d", c.gethostname(), c.formatname(), team_string(c.team), c.state.flagscore);
                 else
                     logline(ACLOG_INFO, "[%s] %s scored with the flag for %s, new score %d", c.gethostname(), c.formatname(), team_string(c.team), c.state.flagscore);
                 break;
-            case FM_KTFSCORE:
+            case FA_KTFSCORE:
                 logline(ACLOG_INFO, "[%s] %s scored, carrying for %d seconds, new score %d", c.gethostname(), c.formatname(), (gamemillis - f.stolentime) / 1000, c.state.flagscore);
                 break;
-            case FM_SCOREFAIL:
+            case FA_SCOREFAIL:
                 logline(ACLOG_INFO, "[%s] %s failed to score", c.gethostname(), c.formatname());
                 break;
             default:
                 logline(ACLOG_INFO, "flagaction %d, actor %d, flag %d, message %d", action, actor, flag, message);
                 break;
         }
-        flagpoints (&c, message);
     }
-    else
-    {
-        switch(message)
-        {
-            case FM_RESET:
-                logline(ACLOG_INFO,"the server reset the flag for team %s", team_string(flag));
-                break;
-            default:
-                logline(ACLOG_INFO, "flagaction %d with invalid actor cn %d, flag %d, message %d", action, actor, flag, message);
-                break;
-        }
-    }
+    else if (message == FA_RESET) logline(ACLOG_INFO, "the server reset the flag for team %s", team_string(flag));
+    else logline(ACLOG_INFO, "flagaction %d, actor %d, flag %d, message %d", action, actor, flag, message);
 
     f.lastupdate = gamemillis;
     sendflaginfo(flag);
-    if(message >= 0)
-        flagmessage(flag, message, valid_client(actor) ? actor : -1);
+    flagmessage(flag, message, actor);
 }
 
 int clienthasflag(int cn)
 {
-    if(m_flags(gamemode) && valid_client(cn))
+    if (m_flags(gamemode) && !m_secure(gamemode) && valid_client(cn))
     {
         loopi(2) { if(sflaginfos[i].state==CTFF_STOLEN && sflaginfos[i].actor_cn==cn) return i; }
     }
@@ -1278,7 +1222,7 @@ void htf_forceflag(int flag)
         f.state = CTFF_STOLEN;
         f.actor_cn = cl->clientnum;
         sendflaginfo(flag);
-        flagmessage(flag, FM_PICKUP, cl->clientnum);
+        flagmessage(flag, FA_PICKUP, cl->clientnum);
         logline(ACLOG_INFO, "[%s] %s got forced to pickup the flag", cl->gethostname(), cl->formatname());
     }
     f.lastupdate = gamemillis;

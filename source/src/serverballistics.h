@@ -226,7 +226,7 @@ struct nukehit
     }
 };
 
-void nuke(client &owner, bool suicide = true, bool forced_all = true, bool friendly_fire = false)
+void nuke(client &owner, bool suicide, bool forced_all, bool friendly_fire)
 {
     vector<nukehit> hits;
     loopvj(clients)

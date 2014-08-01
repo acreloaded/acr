@@ -200,22 +200,24 @@ inline void addpt(client *c, int points, int n = -1) {
 #define TKPT         -20                           // player tks
 #define FLAGTKPT     -2*(10+cnumber)               // player tks the flag keeper/stealer
 
-void flagpoints(client *c, int message)
+int flagpoints(client *c, int message)
 {
+    int total = 0;
+
     float distance = 0;
     int cnumber = totalclients < 13 ? totalclients : 12;
     switch (message)
     {
-        case FM_PICKUP:
+        case FA_PICKUP:
             c->md.flagpos.x = c->state.o.x;
             c->md.flagpos.y = c->state.o.y;
             c->md.flagmillis = servmillis;
             if (m_capture(gamemode)) addpt(c, CTFPICKPT);
             break;
-        case FM_DROP:
+        case FA_DROP:
             if (m_capture(gamemode)) addpt(c, CTFDROPPT);
             break;
-        case FM_LOST:
+        case FA_LOST:
             if (m_hunt(gamemode)) addpt(c, HTFLOSTPT);
             else if (m_capture(gamemode)) {
                 distance = sqrt(POW2XY(c->state.o,c->md.flagpos));
@@ -223,22 +225,24 @@ void flagpoints(client *c, int message)
                 addpt(c, CTFLOSTPT);
             }
             break;
-        case FM_RETURN:
+        case FA_RETURN:
             addpt(c, CTFRETURNPT);
             break;
-        case FM_SCORE:
+        case FA_SCORE:
             if (m_capture(gamemode)) {
                 distance = sqrt(POW2XY(c->state.o,c->md.flagpos));
                 if (distance > 200) distance = 200;
                     addpt(c, CTFSCOREPT);
             } else addpt(c, HTFSCOREPT);
             break;
-        case FM_KTFSCORE:
+        case FA_KTFSCORE:
             addpt(c, KTFSCOREPT);
             break;
         default:
             break;
     }
+    addpt(c, total);
+    return total;
 }
 
 

@@ -1065,16 +1065,15 @@ COMMAND(suicide, "");
 
 void flagmsg(int flag, int message, int actor, int flagtime)
 {
-    static int musicplaying = -1;
     playerent *act = getclient(actor);
-    if(actor != getclientnum() && !act && message != FM_RESET) return;
+    if(actor != getclientnum() && !act && message != FA_RESET) return;
     bool own = flag == team_base(player1->team);
     bool neutral = team_isspect(player1->team);
     bool firstperson = actor == getclientnum();
     bool teammate = !act ? true : isteam(player1->team, act->team);
     bool firstpersondrop = false;
     defformatstring(ownerstr)("the %s", teamnames[flag]);
-    const char *teamstr = m_keep(gamemode) ? "the" : neutral ? ownerstr : own ? "your" : "the enemy";
+    const char *teamstr = m_ktf2(gamemode, mutators) ? ownerstr : m_keep(gamemode) ? "the" : neutral ? ownerstr : own ? "your" : "the enemy";
     const char *flagteam = (m_keep(gamemode) && !neutral) ? (teammate ? "your teammate " : "your enemy ") : "";
 
     if(identexists("onFlag"))
@@ -1085,20 +1084,21 @@ void flagmsg(int flag, int message, int actor, int flagtime)
 
     switch(message)
     {
-        case FM_PICKUP:
+        case FA_PICKUP:
+        case FA_STEAL:
             audiomgr.playsound(S_FLAGPICKUP, SP_HIGHEST);
             if(firstperson)
             {
-                hudoutf("\f2you have the %sflag", m_capture(gamemode) ? "enemy " : "");
-                audiomgr.musicsuggest(M_FLAGGRAB, m_capture(gamemode) ? 90*1000 : 900*1000, true);
-                musicplaying = flag;
+                hudoutf("\f2you %s the %sflag", message == FA_STEAL ? "stole" : "took", m_capture(gamemode) ? "enemy " : "");
+                if (!own || !m_capture(gamemode))
+                    audiomgr.musicsuggest(M_FLAGGRAB, m_capture(gamemode) ? 90*1000 : 900*1000, true);
             }
             else hudoutf("\f2%s%s has %s flag", flagteam, colorname(act), teamstr);
             break;
-        case FM_LOST:
-        case FM_DROP:
+        case FA_LOST:
+        case FA_DROP:
         {
-            const char *droplost = message == FM_LOST ? "lost" : "dropped";
+            const char *droplost = message == FA_LOST ? "lost" : "dropped";
             audiomgr.playsound(S_FLAGDROP, SP_HIGHEST);
             if(firstperson)
             {
@@ -1108,21 +1108,20 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             else hudoutf("\f2%s %s %s flag", colorname(act), droplost, teamstr);
             break;
         }
-        case FM_RETURN:
+        case FA_RETURN:
             audiomgr.playsound(S_FLAGRETURN, SP_HIGHEST);
-            if(firstperson) hudoutf("\f2you returned your flag");
-            else hudoutf("\f2%s returned %s flag", colorname(act), teamstr);
+            hudoutf("\f2%s returned %s flag", firstperson ? "you" : colorname(act), teamstr);
             break;
-        case FM_SCORE:
+        case FA_SCORE:
             audiomgr.playsound(S_FLAGSCORE, SP_HIGHEST);
             if(firstperson)
             {
                 hudoutf("\f2you scored");
-                if(m_capture(gamemode)) firstpersondrop = true;
+                firstpersondrop = true;
             }
             else hudoutf("\f2%s scored for %s", colorname(act), neutral ? teamnames[act->team] : teammate ? "your team" : "the enemy team");
             break;
-        case FM_KTFSCORE:
+        case FA_KTFSCORE:
         {
             audiomgr.playsound(S_KTFSCORE, SP_HIGHEST);
             const char *ta = firstperson ? "you have" : colorname(act);
@@ -1135,19 +1134,20 @@ void flagmsg(int flag, int message, int actor, int flagtime)
                 hudoutf("\f2%s%s%s kept the flag for %d seconds now", tc, ta, tb, flagtime);
             break;
         }
-        case FM_SCOREFAIL: // sound?
+        case FA_SCOREFAIL: // sound?
             hudoutf("\f2%s failed to score (own team flag not taken)", firstperson ? "you" : colorname(act));
             break;
-        case FM_RESET:
+        case FA_RESET:
             audiomgr.playsound(S_FLAGRETURN, SP_HIGHEST);
             hudoutf("the server reset the flag");
             firstpersondrop = true;
             break;
     }
-    if(firstpersondrop && flag == musicplaying)
+    if(firstpersondrop)
     {
-        audiomgr.musicfadeout(M_FLAGGRAB);
-        musicplaying = -1;
+        if ((flaginfos[0].state != CTFF_STOLEN || player1 != flaginfos[0].actor) &&
+            (flaginfos[1].state != CTFF_STOLEN || player1 != flaginfos[1].actor))
+            audiomgr.musicfadeout(M_FLAGGRAB);
     }
 }
 

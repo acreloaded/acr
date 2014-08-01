@@ -1227,7 +1227,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 int flag = getint(p);
                 int message = getint(p);
                 int actor = getint(p);
-                int flagtime = message == FM_KTFSCORE ? getint(p) : -1;
+                int flagtime = message == FA_KTFSCORE ? getint(p) : -1;
                 flagmsg(flag, message, actor, flagtime);
                 break;
             }
