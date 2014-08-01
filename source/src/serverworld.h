@@ -394,7 +394,7 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
         if (forcez)
             v.z = f.pos[2];
         else
-            v.z = getsblock(getmaplayoutid((int)v.x, (int)v.y)).floor + PLAYERHEIGHT;
+            v.z = getsblock(getmaplayoutid((int)v.x, (int)v.y)).floor;
         float dist = cs.o.dist(v);
         if (dist > 2) continue;
         if (m_capture(gamemode))

@@ -506,7 +506,7 @@ void flagdropped(int flag, float x, float y, float z)
     */
     f.pos.x = x;
     f.pos.y = y;
-    f.pos.z = z - (f.actor ? f.actor->eyeheight : PLAYERHEIGHT);
+    f.pos.z = z;
     f.flagent->spawned = true;
 }
 
