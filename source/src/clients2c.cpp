@@ -505,9 +505,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_ITEMLIST:
             {
-                int n;
                 resetspawns();
-                while((n = getint(p))!=-1) setspawn(n, true);
+                while (!p.overread())
+                {
+                    int n = getint(p);
+                    if (n == -1) break;
+                    setspawn(n);
+                }
                 break;
             }
 
@@ -1053,11 +1057,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
             }
             case SV_ITEMSPAWN:
-            {
-                int i = getint(p);
-                setspawn(i, true);
+                setspawn(getint(p));
                 break;
-            }
 
             case SV_ITEMACC:
             {

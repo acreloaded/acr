@@ -394,28 +394,26 @@ void checkitems(playerent *d)
 
 void spawnallitems()            // spawns items locally
 {
-    loopv(ents) if(ents[i].fitsmode(gamemode, mutators) || (multiplayer(false) && gamespeed!=100 && (i==-1)))
-    {
-        ents[i].spawned = true;
-        ents[i].lastmillis = lastmillis;
-    }
+    loopv(ents)
+        if(ents[i].fitsmode(gamemode, mutators) || (multiplayer(false) && gamespeed!=100 && (i==-1)))
+            ents[i].spawned = true;
 }
 
 void resetspawns(int type)
 {
     loopv(ents) if(type < 0 || type == ents[i].type) ents[i].spawned = false;
-    if(m_noitemsnade(gamemode, mutators) || m_pistol(gamemode, mutators))
+    if(m_noitemsnade(gamemode, mutators) || m_pistol(gamemode, mutators) || m_noitemsammo(gamemode, mutators))
     {
         loopv(ents) ents[i].transformtype(gamemode, mutators);
     }
 }
 
-void setspawn(int i, bool on)
+void setspawn(int i)
 {
     if(ents.inrange(i))
     {
-        ents[i].spawned = on;
-        if (on) ents[i].lastmillis = lastmillis; // to control trypickup spam
+        ents[i].spawned = true;
+        ents[i].spawntime = 0;
     }
 }
 
