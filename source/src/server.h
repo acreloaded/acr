@@ -277,7 +277,7 @@ struct client                   // server side version of "dynent" type
     int role, authpriv;
     int connectmillis, lmillis, ldt, spj;
     int mute, spam, lastvc; // server side voice comm spam control
-    int acversion, acbuildtype;
+    int acversion, acbuildtype, acthirdperson;
     bool isauthed; // for passworded servers
     bool haswelcome;
     bool isonrightmap, loggedwrongmap, freshgame;
@@ -485,7 +485,7 @@ const char *messagenames[SV_NUM] =
     "SV_SERVINFO", "SV_WELCOME",
     "SV_INITCLIENT", "SV_INITAI", "SV_CDIS", "SV_DELAI", "SV_REASSIGNAI", "SV_RESUME", "SV_MAPIDENT",
     "SV_CLIENT", "SV_POS", "SV_POSC", "SV_SOUND", "SV_PINGPONG", "SV_CLIENTPING",
-    "SV_TEXT", "SV_TEXTPRIVATE", "SV_WHOIS", "SV_SWITCHNAME", "SV_SWITCHSKIN", "SV_SETTEAM",
+    "SV_TEXT", "SV_TEXTPRIVATE", "SV_WHOIS", "SV_SWITCHNAME", "SV_SWITCHSKIN", "SV_THIRDPERSON", "SV_LEVEL", "SV_SETTEAM",
     "SV_CALLVOTE", "SV_CALLVOTEERR", "SV_VOTE", "SV_VOTEREMAIN", "SV_VOTERESULT",
     "SV_LISTDEMOS", "SV_SENDDEMOLIST", "SV_GETDEMO", "SV_SENDDEMO", "SV_DEMOPLAYBACK",
     "SV_AUTH_ACR_REQ", "SV_AUTH_ACR_CHAL",

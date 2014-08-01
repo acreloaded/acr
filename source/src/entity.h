@@ -141,8 +141,7 @@ enum { ENT_PLAYER = 0, ENT_BOT, ENT_CAMERA, ENT_BOUNCE };
 enum { HIT_NONE = 0, HIT_LEG, HIT_TORSO, HIT_HEAD };
 enum { CS_ALIVE = 0, CS_DEAD, CS_WAITING, CS_EDITING };
 enum { CR_DEFAULT = 0, CR_MASTER, CR_ADMIN, CR_MAX };
-enum { SM_NONE = 0, SM_DEATHCAM, SM_FOLLOW1ST, SM_FOLLOW3RD, SM_FOLLOW3RD_TRANSPARENT, SM_FLY, SM_OVERVIEW, SM_NUM };
-enum { FPCN_VOID = -4, FPCN_DEATHCAM = -2, FPCN_FLY = -2, FPCN_OVERVIEW = -1 };
+enum { SM_NONE = 0, SM_DEATHCAM, SM_FOLLOWSAME, SM_FOLLOWALT, SM_FLY, SM_OVERVIEW, SM_NUM };
 
 enum { PERK_NONE = 0, PERK_RADAR, PERK_NINJA, PERK_POWER, PERK_TIME, PERK_MAX };
 enum { PERK1_NONE = 0, PERK1_AGILE = PERK_MAX, PERK1_HAND, PERK1_LIGHT, PERK1_SCORE, PERK1_MAX, };
@@ -615,7 +614,7 @@ public:
     int team;
     int weaponchanging;
     int nextweapon; // weapon we switch to
-    int spectatemode, followplayercn;
+    int spectatemode, thirdperson;
     int eardamagemillis;
     int respawnoffset;
     vector<eventicon> icons;
@@ -646,7 +645,7 @@ public:
                   radarmillis(0), lastloudpos(0, 0, 0),
                   frags(0), flagscore(0), deaths(0), points(0), lastpain(0), lastvoicecom(0), lasthit(0), clientrole(CR_DEFAULT),
                   vote(VOTE_NEUTRAL), voternum(0),
-                  team(TEAM_SPECT), spectatemode(SM_NONE), followplayercn(FPCN_VOID), eardamagemillis(0), respawnoffset(0),
+                  team(TEAM_SPECT), spectatemode(SM_NONE), thirdperson(0), eardamagemillis(0), respawnoffset(0),
                   prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), lastattackweapon(NULL),
                   smoothmillis(-1),
                   head(-1, -1, -1), eject(-1, -1, -1), muzzle(-1, -1, -1), ignored(false), muted(false),
@@ -720,11 +719,7 @@ public:
         if(gun==GUN_GRENADE && damage > 50 * HEALTHSCALE) eardamagemillis = lastmillis+damage*100/HEALTHSCALE;
     }
 
-    void resetspec()
-    {
-        spectatemode = SM_NONE;
-        followplayercn = FPCN_VOID;
-    }
+    void resetspec() { spectatemode = SM_NONE; }
 
     void respawn(int gamemode, int mutators)
     {

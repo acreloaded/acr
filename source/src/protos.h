@@ -398,6 +398,8 @@ extern int gametimemaximum;
 extern int lastgametimeupdate;
 struct serverstate { int autoteam; int mastermode; int matchteamsize; void reset() { autoteam = mastermode = matchteamsize = 0; }};
 extern struct serverstate servstate;
+extern int thirdperson;
+#define isthirdperson (camera1 != focus)
 extern void updateworld(int curtime, int lastmillis);
 extern void resetmap(bool mrproper = true);
 extern void startmap(const char *name, bool reset = true);

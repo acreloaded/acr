@@ -693,7 +693,7 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
             numattach++;
         }
     }
-    if(player1->isspectating() && d->clientnum == player1->followplayercn && player1->spectatemode == SM_FOLLOW3RD_TRANSPARENT)
+    if ((isthirdperson && d == focus) || d->protect(lastmillis, gamemode, mutators))
     {
         anim |= ANIM_TRANSLUCENT; // see through followed player
         if(stenciling) return;
@@ -780,9 +780,9 @@ void renderclients()
     loopv(players)
     {
         playerent *d = players[i];
-        if (!d || (player1->isspectating() && /*!isthirdperson*/ player1->spectatemode == SM_FOLLOW1ST && d == focus))
+        if (!d || (player1->isspectating() && !isthirdperson && d == focus))
             continue;
         renderclient(d);
     }
-    if(player1->state==CS_DEAD || (reflecting && !refracting)) renderclient(player1);
+    if (isthirdperson || player1->state == CS_DEAD || focus != player1 || (reflecting && !refracting)) renderclient(player1);
 }

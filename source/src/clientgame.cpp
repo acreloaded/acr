@@ -392,8 +392,7 @@ void deathstate(playerent *pl)
         if(editmode) toggleedit(true);
         damageblend(-1);
         if(pl->team == TEAM_SPECT) spectatemode(SM_FLY);
-        else if(team_isspect(pl->team)) spectatemode(SM_FOLLOW1ST);
-        if(pl->spectatemode == SM_DEATHCAM) player1->followplayercn = FPCN_DEATHCAM;
+        else if(team_isspect(pl->team)) spectatemode(SM_FOLLOWSAME);
     }
     else pl->resetinterp();
 }
@@ -681,16 +680,13 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, int style, c
     pl->respawnoffset = pl->lastpain = lastmillis;
     if (pl != actor)
         actor->lasthit = lastmillis;
-    // could the author of the FIXME below please elaborate what's to fix?! (ft:2011mar28)
-    // I suppose someone wanted to play the hitsound for player1 or spectated player (lucas:2011may22)
-    playerent *h = player1->isspectating() && player1->followplayercn >= 0 && (player1->spectatemode == SM_FOLLOW1ST || player1->spectatemode == SM_FOLLOW3RD || player1->spectatemode == SM_FOLLOW3RD_TRANSPARENT) ? getclient(player1->followplayercn) : NULL;
-    if(!h) h = player1;
+
     if(identexists("onHit"))
     {
         defformatstring(o)("onHit %d %d %d %d %d", actor->clientnum, pl->clientnum, damage, gun, style);
         execute(o);
     }
-    if(actor==h && pl!=actor)
+    if(actor==focus && pl!=actor)
     {
         if( hitsound && lasthit != lastmillis) audiomgr.playsound(S_HITSOUND, SP_HIGH);
         lasthit = lastmillis;
@@ -1516,13 +1512,14 @@ void refreshsopmenu(void *menu, bool init)
 
 extern bool watchingdemo;
 
+VARFP(thirdperson, -MAXTHIRDPERSON, 0, MAXTHIRDPERSON, addmsg(SV_THIRDPERSON, "ri", thirdperson));
+
 // rotate through all spec-able players
 playerent *updatefollowplayer(int shiftdirection)
 {
     if(!shiftdirection)
     {
-        playerent *f = players.inrange(player1->followplayercn) ? players[player1->followplayercn] : NULL;
-        if(f && (watchingdemo || !f->isspectating())) return f;
+        if(focus && focus != player1 && (watchingdemo || !focus->isspectating())) return focus;
     }
 
     // collect spec-able players
@@ -1536,14 +1533,12 @@ playerent *updatefollowplayer(int shiftdirection)
     if(!available.length()) return NULL;
 
     // rotate
-    int oldidx = -1;
-    if(players.inrange(player1->followplayercn)) oldidx = available.find(players[player1->followplayercn]);
+    int oldidx = available.find(focus);
     if(oldidx<0) oldidx = 0;
     int idx = (oldidx+shiftdirection) % available.length();
     if(idx<0) idx += available.length();
 
-    player1->followplayercn = available[idx]->clientnum;
-    return players[player1->followplayercn];
+    return available[idx];
 }
 
 void spectate()
@@ -1560,8 +1555,8 @@ void setfollowplayer(int cn)
     {
         if(!(m_team(gamemode, mutators) && !watchingdemo && team_base(players[cn]->team) != team_base(player1->team)))
         {
-            player1->followplayercn = cn;
-            if(player1->spectatemode == SM_FLY) player1->spectatemode = SM_FOLLOW1ST;
+            focus = players[cn];
+            if(player1->spectatemode == SM_FLY) player1->spectatemode = SM_FOLLOWSAME;
         }
     }
 }
@@ -1574,9 +1569,8 @@ void spectatemode(int mode)
     showscores(false);
     switch(mode)
     {
-        case SM_FOLLOW1ST:
-        case SM_FOLLOW3RD:
-        case SM_FOLLOW3RD_TRANSPARENT:
+        case SM_FOLLOWSAME:
+        case SM_FOLLOWALT:
         {
             if(players.length() && updatefollowplayer()) break;
             else mode = SM_FLY;
@@ -1585,7 +1579,7 @@ void spectatemode(int mode)
         {
             if(player1->spectatemode != SM_FLY)
             {
-                playerent *f = getclient(player1->followplayercn);
+                playerent *f = updatefollowplayer();
                 if(f)
                 {
                     player1->o = f->o;
@@ -1594,13 +1588,12 @@ void spectatemode(int mode)
                     player1->resetinterp();
                 }
                 else entinmap(player1); // or drop 'em at a random place
-                player1->followplayercn = FPCN_FLY;
             }
             break;
         }
         case SM_OVERVIEW:
-            player1->followplayercn = FPCN_OVERVIEW;
-        break;
+            //player1->followplayercn = FPCN_OVERVIEW;
+            break;
         default: break;
     }
     player1->spectatemode = mode;
@@ -1609,8 +1602,8 @@ void spectatemode(int mode)
 void togglespect() // cycle through all spectating modes
 {
     int mode;
-    if(player1->spectatemode==SM_NONE) mode = SM_FOLLOW1ST; // start with 1st person spect
-    else mode = SM_FOLLOW1ST + ((player1->spectatemode - SM_FOLLOW1ST + 1) % (SM_OVERVIEW-SM_FOLLOW1ST)); // replace SM_OVERVIEW by SM_NUM to enable overview mode
+    if (player1->spectatemode == SM_NONE) mode = SM_FOLLOWSAME; // start with 1st person spect
+    else mode = SM_FOLLOWSAME + ((player1->spectatemode - SM_FOLLOWSAME + 1) % (SM_OVERVIEW - SM_FOLLOWSAME)); // replace SM_OVERVIEW by SM_NUM to enable overview mode
     spectatemode(mode);
 }
 

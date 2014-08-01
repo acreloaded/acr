@@ -545,6 +545,26 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 }
                 break;
 
+            case SV_THIRDPERSON:
+            case SV_LEVEL:
+            {
+                playerent *d = getclient(getint(p));
+                int info = getint(p);
+                if (!d || d == player1) break;
+                switch (type)
+                {
+                    case SV_THIRDPERSON:
+                        d->thirdperson = info;
+                        break;
+                    case SV_LEVEL:
+                        //info = clamp(info, 1, MAXLEVEL);
+                        d->level = info;
+                        if (d->pBot) d->pBot->MakeSkill(info);
+                        break;
+                }
+                break;
+            }
+
             case SV_INITCLIENT:            // another client either connected or changed name/team
             {
                 int cn = getint(p);
@@ -568,6 +588,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 loopi(2) d->setskin(i, getint(p));
                 d->level = getint(p);
                 d->team = getint(p);
+                /*d->build =*/ getint(p);
+                d->thirdperson = getint(p);
 
                 if(m_flags(gamemode)) loopi(2)
                 {

@@ -469,11 +469,52 @@ float fovy, aspect;
 int farplane;
 
 physent *camera1 = NULL;
+playerent *focus = NULL;
 
 void resetcamera()
 {
-    camera1 = player1;
+    camera1 = focus = player1;
 }
+
+void camera3(playerent *p, int dist)
+{
+    static physent camera3; // previously known as followcam
+    static playerent *lastplayer = NULL;
+    if (lastplayer != p || camera1 != &camera3)
+    {
+        camera3 = *(physent *)p;
+        camera3.type = ENT_CAMERA;
+        camera3.reset();
+        camera3.roll = 0;
+        camera3.move = -1;
+        camera1 = &camera3;
+        focus = lastplayer = p;
+    }
+    camera3.o = p->o;
+    if (!m_zombie(gamemode)) dist = abs(dist);
+    if (dist > 0){
+        const float thirdpersondist = dist*(1.f - p->zoomed * (sniper_weap(p->weaponsel->type) ? 2 : .5f));
+        camera3.vel.x = -sinf(RAD*p->yaw)*cosf(RAD*-p->pitch);
+        camera3.vel.y = cosf(RAD*p->yaw)*cosf(RAD*-p->pitch);
+        camera3.vel.z = sinf(RAD*-p->pitch);
+        vec s; // not used
+        camera3.o.add(camera3.vel.mul(max(0.f, min(rayclip(camera3.o, camera3.vel, s) - 1.1f, thirdpersondist))));
+        camera3.pitch = p->pitch;
+    }
+    else{
+        camera3.o.z += dist * (p->zoomed - 1.f);
+        // allow going out of bounds...
+        //if(!OUTBORD((int)p->o.x, (int)p->o.y) && camera3.o.z + 1 > S((int)p->o.x, (int)p->o.y)->ceil)
+        //camera3.o.z = S((int)p->o.x, (int)p->o.y)->ceil - 1;
+        camera3.pitch = max(p->pitch - 90 * (1.f - p->zoomed), -90.f);
+    }
+    camera3.yaw = p->yaw;
+}
+
+VARNP(deathcam, deathcamstyle, 0, 1, 1);
+FVARP(deathcamspeed, 0, 2, 1000);
+
+int lastdeathcamswitch = 0;
 
 void recomputecamera()
 {
@@ -483,15 +524,52 @@ void recomputecamera()
         {
             case SM_DEATHCAM:
             {
+                if (player1->team == TEAM_SPECT)
+                {
+                    player1->spectatemode = SM_FLY;
+                    break;
+                }
                 static physent deathcam;
-                if(camera1==&deathcam) return;
+                if (camera1 == &deathcam)
+                {
+                    /*
+                    if (deathcamstyle && (deathcamstyle == 2 || totalmillis - lastdeathcamswitch <= 3000))
+                    {
+                        playerent *a = getclient(player1->lastkiller);
+                        if (a)
+                        {
+                            vec v = vec(a->head.x >= 0 ? a->head : a->o).sub(camera1->o);
+                            if (v.magnitude() >= 0.1f)
+                            {
+                                //v.normalize();
+                                float aimyaw, aimpitch;
+                                vectoyawpitch(v, aimyaw, aimpitch);
+                                const float speed = (float(curtime) / 1000.f)*deathcamspeed;
+                                if (deathcamspeed > 0) scaleyawpitch(camera1->yaw, camera1->pitch, aimyaw, aimpitch, speed, speed*4.f);
+                                else { camera1->yaw = aimyaw; camera1->pitch = aimpitch; }
+                            }
+                        }
+                    }
+                    */
+                    return;
+                }
                 deathcam = *(physent *)player1;
                 deathcam.reset();
                 deathcam.type = ENT_CAMERA;
                 deathcam.roll = 0;
                 deathcam.move = -1;
                 camera1 = &deathcam;
+                focus = player1;
+                lastdeathcamswitch = totalmillis;
                 loopi(10) moveplayer(camera1, 10, true, 50);
+                /*
+                if (deathcamstyle)
+                {
+                    vec v = vec(focus->deathcamsrc).sub(camera1->o);
+                    if (v.magnitude() > .1f)
+                        vectoyawpitch(v, camera1->yaw, camera1->pitch);
+                }
+                */
                 break;
             }
             case SM_FLY:
@@ -510,43 +588,17 @@ void recomputecamera()
                 disableraytable();
                 break;
             }
-            case SM_FOLLOW1ST:
+            case SM_FOLLOWSAME:
+            case SM_FOLLOWALT:
             {
                 playerent *f = updatefollowplayer();
-                if(!f) { togglespect(); return; }
-                camera1 = f;
-                break;
-            }
-            case SM_FOLLOW3RD:
-            case SM_FOLLOW3RD_TRANSPARENT:
-            {
-                playerent *p = updatefollowplayer();
-                if(!p) { togglespect(); return; }
-                static physent followcam;
-                static playerent *lastplayer;
-                if(lastplayer != p || &followcam != camera1)
+                if (!f) { togglespect(); return; }
+                if (!f->thirdperson == (player1->spectatemode == SM_FOLLOWSAME))
                 {
-                    followcam = *(physent *)p;
-                    followcam.type = ENT_CAMERA;
-                    followcam.reset();
-                    followcam.roll = 0;
-                    followcam.move = -1;
-                    lastplayer = p;
-                    camera1 = &followcam;
+                    camera1 = f;
+                    focus = f;
                 }
-                followcam.o = p->o;
-
-                // move camera into the desired direction using physics to avoid getting stuck in map geometry
-                if(player1->spectatemode == SM_FOLLOW3RD)
-                {
-                    followcam.vel.x = -(float)(cosf(RAD*(p->yaw-90)))*p->radius;
-                    followcam.vel.y = -(float)(sinf(RAD*(p->yaw-90)))*p->radius;
-                    followcam.vel.z = p->eyeheight;
-                }
-                else followcam.vel.z = p->eyeheight/6.0f;
-                loopi(5) moveplayer(&followcam, 20, true, 5);
-                followcam.vel.x = followcam.vel.y = followcam.vel.z = 0.0f;
-                followcam.yaw = p->yaw;
+                else camera3(f, f->thirdperson ? f->thirdperson : 10);
                 break;
             }
 
@@ -557,7 +609,8 @@ void recomputecamera()
     }
     else
     {
-        resetcamera();
+        if (thirdperson) camera3(player1, thirdperson);
+        else resetcamera();
     }
 }
 
@@ -789,8 +842,10 @@ void drawminimap(int w, int h)
     }
     minimap = true;
     disableraytable();
-    physent *oldcam = camera1;
+    physent * const oldcam = camera1;
+    playerent * const oldfocus = focus;
     physent minicam;
+    focus = player1;
     camera1 = &minicam;
     camera1->type = ENT_CAMERA;
     camera1->o.x = mapdims[0] + mapdims[4]/2.0f;
@@ -853,6 +908,7 @@ void drawminimap(int w, int h)
     glEnable(GL_BLEND);
 
     camera1 = oldcam;
+    focus = oldfocus;
     minimap = false;
     glBindTexture(GL_TEXTURE_2D, minimaptex);
     glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, size, size);

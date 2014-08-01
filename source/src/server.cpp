@@ -2663,6 +2663,8 @@ void putinitclient(client &c, packetbuf &p)
     putint(p, c.skin[TEAM_RVSF]);
     putint(p, c.level);
     putint(p, c.team);
+    putint(p, c.acbuildtype);
+    putint(p, c.acthirdperson);
 }
 
 void sendinitclient(client &c)
@@ -2812,6 +2814,7 @@ void process(ENetPacket *packet, int sender, int chan)
         {
             cl->acversion = getint(p);
             cl->acbuildtype = getint(p);
+            cl->acthirdperson = getint(p);
             defformatstring(tags)(", AC: %d|%x", cl->acversion, cl->acbuildtype);
             getstring(text, p);
             filtername(text, text);
@@ -3170,6 +3173,16 @@ void process(ENetPacket *packet, int sender, int chan)
                 cl->lastprofileupdate = servmillis;
                 break;
             }
+
+            case SV_THIRDPERSON:
+                sendf(-1, 1, "ri3x", SV_THIRDPERSON, sender, cl->acthirdperson = getint(p), sender);
+                break;
+
+            /*
+            case SV_LEVEL:
+                sendf(-1, 1, "ri3x", N_LEVEL, sender, cl->state.level = clamp(getint(p), 1, MAXLEVEL), sender);
+                break;
+            */
 
             case SV_TRYSPAWN:
             {
