@@ -3207,24 +3207,10 @@ void process(ENetPacket *packet, int sender, int chan)
                     break;
                 }
                 if (cs.state != CS_DEAD || cs.lastspawn >= 0) break; // not dead or already enqueued
-                // TODO
-                if (cl->team == TEAM_SPECT)
+                if (team_isspect(cl->team))
                 {
-                    break;
-                    /*
-                    // need to unspectate
-                    if (mastermode < MM_LOCKED || cp.type != ST_TCPIP || cp.priv >= PRIV_ADMIN)
-                    {
-                        updateclientteam(sender, chooseteam(cp), FTR_PLAYERWISH);
-                        checkai(); // spawn unspect
-                        // convertcheck();
-                    }
-                    else
-                    {
-                        sendf(sender, 1, "ri2", N_SWITCHTEAM, 1 << 4);
-                        break; // no enqueue
-                    }
-                    */
+                    updateclientteam(sender, TEAM_ANYACTIVE, FTR_PLAYERWISH);
+                    checkai(); // spawn unspectate
                 }
                 // can the player be enqueued?
                 if (!canspawn(cl)) break;
