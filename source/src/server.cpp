@@ -3583,7 +3583,7 @@ void process(ENetPacket *packet, int sender, int chan)
                         logline(ACLOG_INFO, "[%s] %s was already authed for %s", cl->gethostname(), cl->formatname(), privname(cl->authpriv));
                         setpriv(sender, cl->authpriv);
                     }
-                    else if (cl->role < CR_ADMIN && text)
+                    else if (cl->role < CR_ADMIN && text[0])
                     {
                         disconnect_client(sender, DISC_SOPLOGINFAIL); // avoid brute-force
                         return;
@@ -3650,7 +3650,7 @@ void process(ENetPacket *packet, int sender, int chan)
                         if(m_demo(mode)) vi->action = new demoplayaction(newstring(text));
                         else
                         {
-                            char *vmap = newstring(text ? behindpath(text) : "");
+                            char *vmap = newstring(text[0] ? behindpath(text) : "");
                             vi->action = new mapaction(vmap, qmode, muts, sender, qmode!=mode);
                         }
                         break;

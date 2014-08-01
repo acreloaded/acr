@@ -196,9 +196,9 @@ struct giveadminaction : playeraction
         setpriv(cn, give);
     }
     virtual bool isvalid() { return playeraction::isvalid() && valid_client(from); }
-    giveadminaction(int cn, int role, int caller) : from(caller), playeraction(cn)
+    giveadminaction(int cn, int role, int caller) : playeraction(cn)
     {
-        reqcall = give = clamp(role, 1, clients[from]->role);
+        reqcall = give = clamp(role, 1, clients[from = caller]->role);
         reqveto = CR_MASTER; // giveadmin
         passratio = 0.1f;
         if (valid_client(cn))
@@ -286,7 +286,7 @@ struct banaction : removeplayeraction
         addban(clients[cn], DISC_MBAN, BAN_VOTE);
     }
     virtual bool isvalid() { return removeplayeraction::isvalid() && strlen(reason) >= 4; }
-    banaction(int cn, int mins, char *r, bool self_vote) : minutes(mins), removeplayeraction(cn)
+    banaction(int cn, int mins, char *r, bool self_vote) : removeplayeraction(cn), minutes(mins)
     {
         area = EE_DED_SERV; // dedicated only
         const bool is_weak = self_vote || weak(minutes <= 1);
