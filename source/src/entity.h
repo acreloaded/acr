@@ -611,7 +611,7 @@ public:
     int clientrole, vote, voternum;
     bool attacking;
     string name;
-    int team;
+    int team, build;
     int weaponchanging;
     int nextweapon; // weapon we switch to
     int spectatemode, thirdperson;
@@ -645,7 +645,7 @@ public:
                   radarmillis(0), lastloudpos(0, 0, 0),
                   frags(0), flagscore(0), deaths(0), points(0), lastpain(0), lastvoicecom(0), lasthit(0), clientrole(CR_DEFAULT),
                   vote(VOTE_NEUTRAL), voternum(0),
-                  team(TEAM_SPECT), spectatemode(SM_NONE), thirdperson(0), eardamagemillis(0), respawnoffset(0),
+                  team(TEAM_SPECT), build(0), spectatemode(SM_NONE), thirdperson(0), eardamagemillis(0), respawnoffset(0),
                   prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), lastattackweapon(NULL),
                   smoothmillis(-1),
                   head(-1, -1, -1), eject(-1, -1, -1), muzzle(-1, -1, -1), ignored(false), muted(false),

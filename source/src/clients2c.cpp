@@ -588,7 +588,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 loopi(2) d->setskin(i, getint(p));
                 d->level = getint(p);
                 d->team = getint(p);
-                /*d->build =*/ getint(p);
+                d->build = getint(p);
                 d->thirdperson = getint(p);
 
                 if(m_flags(gamemode)) loopi(2)
