@@ -277,7 +277,7 @@ struct client                   // server side version of "dynent" type
     int role, authpriv;
     int connectmillis, lmillis, ldt, spj;
     int mute, spam, lastvc; // server side voice comm spam control
-    int acversion, acbuildtype;
+    int acversion, acbuildtype, acthirdperson;
     bool isauthed; // for passworded servers
     bool haswelcome;
     bool isonrightmap, loggedwrongmap, freshgame;
@@ -294,7 +294,6 @@ struct client                   // server side version of "dynent" type
     int at3_score, at3_lastforce, eff_score;
     bool at3_dontmove;
     int spawnindex;
-    int spawnperm, spawnpermsent;
     int salt;
     string pwd;
     uint authreq; // for AUTH
@@ -361,8 +360,6 @@ struct client                   // server side version of "dynent" type
         overflow = 0;
         timesync = false;
         isonrightmap = type == ST_AI || m_edit(gamemode);
-        spawnperm = SP_WRONGMAP;
-        spawnpermsent = servmillis;
         if(!getmap)
         {
             loggedwrongmap = false;
@@ -393,7 +390,7 @@ struct client                   // server side version of "dynent" type
         name[0] = pwd[0] = demoflags = 0;
         bottomRTT = ping = 9999;
         team = TEAM_SPECT;
-        state.state = CS_SPECTATE;
+        state.state = CS_DEAD;
         loopi(2) skin[i] = 0;
         position.setsize(0);
         messages.setsize(0);
@@ -485,7 +482,7 @@ const char *messagenames[SV_NUM] =
     "SV_SERVINFO", "SV_WELCOME",
     "SV_INITCLIENT", "SV_INITAI", "SV_CDIS", "SV_DELAI", "SV_REASSIGNAI", "SV_RESUME", "SV_MAPIDENT",
     "SV_CLIENT", "SV_POS", "SV_POSC", "SV_SOUND", "SV_PINGPONG", "SV_CLIENTPING",
-    "SV_TEXT", "SV_TEXTPRIVATE", "SV_WHOIS", "SV_SWITCHNAME", "SV_SWITCHSKIN", "SV_SETTEAM",
+    "SV_TEXT", "SV_TEXTPRIVATE", "SV_WHOIS", "SV_SWITCHNAME", "SV_SWITCHSKIN", "SV_THIRDPERSON", "SV_LEVEL", "SV_SETTEAM",
     "SV_CALLVOTE", "SV_CALLVOTEERR", "SV_VOTE", "SV_VOTEREMAIN", "SV_VOTERESULT",
     "SV_LISTDEMOS", "SV_SENDDEMOLIST", "SV_GETDEMO", "SV_SENDDEMO", "SV_DEMOPLAYBACK",
     "SV_AUTH_ACR_REQ", "SV_AUTH_ACR_CHAL",
@@ -498,7 +495,7 @@ const char *messagenames[SV_NUM] =
     "SV_KNIFEADD", "SV_KNIFEREMOVE",
     "SV_CONFIRMADD", "SV_CONFIRMREMOVE",
     "SV_HUDEXTRAS", "SV_POINTS", "SV_DISCSCORES", "SV_KILL", "SV_DAMAGE",
-    "SV_TRYSPAWN", "SV_SPAWNSTATE", "SV_SPAWN", "SV_SPAWNDENY", "SV_FORCEDEATH", "SV_FORCEGIB",
+    "SV_TRYSPAWN", "SV_SPAWNSTATE", "SV_SPAWN", "SV_FORCEDEATH", "SV_FORCEGIB",
     "SV_ITEMLIST", "SV_ITEMSPAWN", "SV_ITEMACC",
     "SV_FLAGACTION", "SV_FLAGINFO", "SV_FLAGMSG", "SV_FLAGCNT",
     "SV_MAPCHANGE", "SV_NEXTMAP",

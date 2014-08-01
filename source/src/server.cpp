@@ -1398,8 +1398,8 @@ void arenacheck()
     loopv(clients)
     {
         client &c = *clients[i];
-        if(c.type==ST_EMPTY || !c.isauthed || !c.isonrightmap || team_isspect(c.team)) continue; /// TODO: simplify the team/state sysmtem, it is not smart to have SPECTATE in both, for example
-        if (c.state.lastspawn < 0 && (c.state.state==CS_DEAD || c.state.state==CS_SPECTATE))
+        if(c.type==ST_EMPTY || !c.isauthed || !c.isonrightmap || team_isspect(c.team)) continue;
+        if (c.state.lastspawn < 0 && c.state.state==CS_DEAD)
         {
             dead = true;
             lastdeath = max(lastdeath, c.state.lastdeath);
@@ -1691,6 +1691,17 @@ void updatesdesc(const char *newdesc, ENetAddress *caller = NULL)
     }
 }
 
+inline bool canspawn(client *c, bool connecting = false)
+{
+    if (!maplayout)
+        return false;
+    if (c->team == TEAM_SPECT || (team_isspect(c->team) && !m_team(gamemode, mutators)))
+        return false; // SP_SPECT
+    if (m_duke(gamemode, mutators))
+        return (connecting && totalclients <= 2); // || (arenaround && m_zombie(gamemode) && c->team == TEAM_RVSF && progressiveround != MAXZOMBIEROUND);
+    return true;
+}
+/*
 int canspawn(client *c)   // beware: canspawn() doesn't check for arena!
 {
     if(!c || c->type == ST_EMPTY || !c->isauthed || !team_isvalid(c->team) ||
@@ -1709,6 +1720,7 @@ int canspawn(client *c)   // beware: canspawn() doesn't check for arena!
     }
     return SP_OK;
 }
+*/
 
 int chooseteam(client &cl, int def = rnd(2))
 {
@@ -1769,7 +1781,6 @@ bool updateclientteam(int cln, int newteam, int ftr)
     if(ftr != FTR_INFO && (team_isspect(newteam) || (team_isactive(newteam) && team_isactive(cl.team)))) forcedeath(&cl);
     sendf(-1, 1, "riii", SV_SETTEAM, cln, newteam | ((ftr == FTR_SILENTFORCE ? FTR_INFO : ftr) << 4));
     if(ftr != FTR_INFO && !team_isspect(newteam) && team_isspect(cl.team)) sendspawn(&cl);
-    if (team_isspect(newteam)) cl.state.state = CS_SPECTATE;
     cl.team = newteam;
     return true;
 }
@@ -2603,7 +2614,7 @@ void sendresume(client &c, bool broadcast)
 {
     sendf(broadcast ? -1 : c.clientnum, 1, "ri9i6vvi", SV_RESUME,
             c.clientnum,
-            c.state.state,
+            c.state.state == CS_WAITING ? CS_DEAD : c.state.state,
             c.state.lifesequence,
             c.state.primary,
             c.state.secondary,
@@ -2664,6 +2675,8 @@ void putinitclient(client &c, packetbuf &p)
     putint(p, c.skin[TEAM_RVSF]);
     putint(p, c.level);
     putint(p, c.team);
+    putint(p, c.acbuildtype);
+    putint(p, c.acthirdperson);
 }
 
 void sendinitclient(client &c)
@@ -2729,7 +2742,7 @@ void welcomepacket(packetbuf &p, int n)
             client &c = *clients[i];
             if(c.type!=ST_TCPIP || c.clientnum==n) continue;
             putint(p, c.clientnum);
-            putint(p, c.state.state);
+            putint(p, c.state.state == CS_WAITING ? CS_DEAD : c.state.state);
             putint(p, c.state.lifesequence);
             putint(p, c.state.primary);
             putint(p, c.state.secondary);
@@ -2813,6 +2826,7 @@ void process(ENetPacket *packet, int sender, int chan)
         {
             cl->acversion = getint(p);
             cl->acbuildtype = getint(p);
+            cl->acthirdperson = getint(p);
             defformatstring(tags)(", AC: %d|%x", cl->acversion, cl->acbuildtype);
             getstring(text, p);
             filtername(text, text);
@@ -3007,9 +3021,6 @@ void process(ENetPacket *packet, int sender, int chan)
                 if(!isdedicated || (smapstats.cgzsize == gzs && smapstats.hdr.maprevision == rev))
                 { // here any game really starts for a client: spawn, if it's a new game - don't spawn if the game was already running
                     cl->isonrightmap = true;
-                    int sp = canspawn(cl);
-                    sendf(sender, 1, "rii", SV_SPAWNDENY, sp);
-                    cl->spawnperm = sp;
                     if (cl->loggedwrongmap) logline(ACLOG_INFO, "[%s] %s is now on the right map: revision %d/%d", cl->gethostname(), cl->formatname(), rev, gzs);
                     bool spawn = false;
                     if(team_isspect(cl->team))
@@ -3032,7 +3043,6 @@ void process(ENetPacket *packet, int sender, int chan)
                     forcedeath(cl);
                     logline(ACLOG_INFO, "[%s] %s is on the wrong map: revision %d/%d", cl->gethostname(), cl->formatname(), rev, gzs);
                     cl->loggedwrongmap = true;
-                    sendf(sender, 1, "rii", SV_SPAWNDENY, SP_WRONGMAP);
                 }
                 break;
             }
@@ -3172,16 +3182,42 @@ void process(ENetPacket *packet, int sender, int chan)
                 break;
             }
 
+            case SV_THIRDPERSON:
+                sendf(-1, 1, "ri3x", SV_THIRDPERSON, sender, cl->acthirdperson = getint(p), sender);
+                break;
+
+            /*
+            case SV_LEVEL:
+                sendf(-1, 1, "ri3x", N_LEVEL, sender, cl->state.level = clamp(getint(p), 1, MAXLEVEL), sender);
+                break;
+            */
+
             case SV_TRYSPAWN:
             {
-                int sp = canspawn(cl);
-                if(team_isspect(cl->team) && sp < SP_OK_NUM)
+                clientstate &cs = cl->state;
+                if (cs.state == CS_WAITING) // dequeue spawn
+                {
+                    cs.state = CS_DEAD;
+                    sendf(sender, 1, "ri2", SV_TRYSPAWN, 0);
+                    break;
+                }
+                if (!cl->isonrightmap || !maplayout) // need the map for spawning
+                {
+                    //sendf(sender, 1, "ri", SV_MAPIDENT);
+                    break;
+                }
+                if (cs.state != CS_DEAD || cs.lastspawn >= 0) break; // not dead or already enqueued
+                if (team_isspect(cl->team))
                 {
                     updateclientteam(sender, TEAM_ANYACTIVE, FTR_PLAYERWISH);
                     checkai(); // spawn unspectate
-                    sp = canspawn(cl);
                 }
-                if( !m_duke(gamemode, mutators) && sp < SP_OK_NUM && gamemillis > cl->state.lastspawn + 1000 ) sendspawn(cl);
+                // can the player be enqueued?
+                if (!canspawn(cl)) break;
+                // enqueue for spawning
+                cs.state = CS_WAITING;
+                const int waitremain = SPAWNDELAY - gamemillis + cs.lastdeath;
+                sendf(sender, 1, "ri2", SV_TRYSPAWN, waitremain >= 1 ? waitremain : 1);
                 break;
             }
 
@@ -3193,8 +3229,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 if(!cl->hasclient(cn)) break;
                 client &cp = *clients[cn];
                 clientstate &cs = cp.state;
-                if((cs.state!=CS_ALIVE && cs.state!=CS_DEAD && cs.state!=CS_SPECTATE) ||
-                    ls!=cs.lifesequence || cs.lastspawn<0) break;
+                if((cs.state!=CS_ALIVE && cs.state!=CS_DEAD) || ls!=cs.lifesequence || cs.lastspawn<0) break;
                 cs.lastspawn = -1;
                 cs.spawn = gamemillis;
                 cs.state = CS_ALIVE;
@@ -4313,7 +4348,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                 c.peer = event.peer;
                 c.peer->data = (void *)(size_t)c.clientnum;
                 c.connectmillis = servmillis;
-                c.state.state = CS_SPECTATE;
+                c.state.state = CS_DEAD;
                 c.salt = rnd(0x1000000)*((servmillis%1000)+1);
                 char hn[1024];
                 copystring(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");

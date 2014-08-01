@@ -47,11 +47,12 @@ int sortcolumns(coldata *col_a, coldata *col_b)
 struct sline
 {
     string s;
+    const char *altfont;
     color *bgcolor;
     char textcolor;
     vector<coldata> cols;
 
-    sline() : bgcolor(NULL), textcolor(0) { copystring(s, ""); }
+    sline() : altfont(NULL), bgcolor(NULL), textcolor(0) { copystring(s, ""); }
 
     void addcol(int priority, const char *format = NULL, ...)
     {
@@ -203,15 +204,24 @@ VARP(cncolumncolor, 0, 5, 9);
 
 void renderscore(playerent *d)
 {
-    string lagping;
+    string lagping, buildstr;
     static color localplayerc(0.2f, 0.2f, 0.2f, 0.2f), damagedplayerc(0.4f, 0.1f, 0.1f, 0.3f), damagingplayerc(0.1f, 0.1f, 0.4f, 0.3f);
     if (team_isspect(d->team)) copystring(lagping, "SPECT");
-    else if (d->state==CS_LAGGED || (d->ping > 999 && d->plag > 99)) copystring(lagping, "LAG");
+    else if (d->state==CS_WAITING || (d->ping > 999 && d->plag > 99)) copystring(lagping, "LAG");
     else
     {
         if(multiplayer(false)) formatstring(lagping)("%s/%s", colorpj(d->plag), colorping(d->ping));
         else formatstring(lagping)("%d/%d", d->plag, d->ping);
     }
+    const int buildinfo = d->build | (d == player1 ? getbuildtype() : 0), third = (d == player1) ? thirdperson : d->thirdperson;
+    buildstr[0] = '\0';
+    if (d->ownernum >= 0); // bot icon? in the future?
+    else if (buildinfo & 0x40) concatstring(buildstr, "\a4  "); // Windows
+    else if (buildinfo & 0x20) concatstring(buildstr, "\a3  "); // Mac
+    else if (buildinfo & 0x04) concatstring(buildstr, "\a2  "); // Linux
+    if (buildinfo & 0x08) concatstring(buildstr, "\a1  "); // Debug
+    if (third) concatstring(buildstr, "\a0  "); // Third-Person
+    if (buildinfo & 0x02) concatstring(buildstr, "\a5  "); // Authed
     const char *ign = d->ignored ? " (ignored)" : (d->muted ? " (muted)" : "");
     sline &line = scorelines.add();
     if(team_isspect(d->team)) line.textcolor = '4';
@@ -227,7 +237,8 @@ void renderscore(playerent *d)
         line.addcol(sc_lag, lagping);
     }
     line.addcol(sc_clientnum, "\fs\f%d%d\fr", cncolumncolor, d->clientnum);
-    line.addcol(sc_name, "\fs\f%c%s\fr%s", privcolor(d->clientrole, d->state == CS_DEAD), colorname(d, true), ign);
+    line.addcol(sc_name, "\fs\f%c%s\fr%s%s", privcolor(d->clientrole, d->state == CS_DEAD), colorname(d, true), ign, buildstr);
+    line.altfont = "build";
 }
 
 int totalplayers = 0;
@@ -400,7 +411,7 @@ void renderscores(void *menu, bool init)
     }
 
     menureset(menu);
-    loopv(scorelines) menumanual(menu, scorelines[i].getcols(), NULL, scorelines[i].bgcolor);
+    loopv(scorelines) menuimagemanual(menu, NULL, scorelines[i].altfont, scorelines[i].getcols(), NULL, scorelines[i].bgcolor);
     menuheader(menu, modeline, serverline);
 
     // update server stats

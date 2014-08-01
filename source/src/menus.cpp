@@ -338,7 +338,7 @@ struct mitemimagemanual : mitemmanual
                 xtraverts += 4;
             }
         }
-        else mitemmanual::render(x, y, w);
+        else draw_text(text, x, y);
     }
 };
 

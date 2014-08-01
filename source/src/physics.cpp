@@ -784,7 +784,7 @@ void attack(bool on)
 {
     if(intermission) return;
     if(editmode) editdrag(on);
-    else if(player1->state==CS_DEAD || player1->state==CS_SPECTATE)
+    else if(player1->state==CS_DEAD)
     {
         if(!on) tryrespawn();
     }
@@ -983,7 +983,7 @@ inline bool zooming(playerent *plx) { return sniper_weap(plx->weaponsel->type) &
 void mousemove(int odx, int ody)
 {
     static float fdx = 0, fdy = 0;
-    if(intermission || (player1->isspectating() && player1->spectatemode==SM_FOLLOW1ST)) return;
+    if (intermission || (player1->isspectating() && (player1->spectatemode == SM_FOLLOWSAME || player1->spectatemode == SM_FOLLOWALT))) return;
     float dx = odx, dy = ody;
     if(mfilter > 0.0f)
     {

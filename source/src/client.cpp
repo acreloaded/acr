@@ -613,6 +613,7 @@ void sendintro()
     putint(p, SV_CONNECT);
     putint(p, AC_VERSION);
     putint(p, getbuildtype());
+    putint(p, thirdperson);
     sendstring(player1->name, p);
     sendstring(genpwdhash(player1->name, clientpassword, sessionid), p);
     sendstring(!lang || strlen(lang) != 2 ? "" : lang, p);    clientpassword[0] = '\0';

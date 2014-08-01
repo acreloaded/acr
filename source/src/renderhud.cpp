@@ -807,13 +807,13 @@ void drawradar(playerent *p, int w, int h)
     else drawradar_vicinity(p,w,h);
 }
 
-void drawteamicons(int w, int h, bool spect)
+void drawteamicons(int w, int h)
 {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glColor3f(1, 1, 1);
     static Texture *icons = NULL;
     if(!icons) icons = textureload("packages/misc/teamicons.png", 3);
-    quad(icons->id, VIRTW-VIRTH/12-10, 10, VIRTH/12, team_base(spect ? players[player1->followplayercn]->team : player1->team) ? 0.5f : 0, 0, 0.49f, 1.0f);
+    quad(icons->id, VIRTW-VIRTH/12-10, 10, VIRTH/12, team_base(focus->team) ? 0.5f : 0, 0, 0.49f, 1.0f);
 }
 
 int damageblendmillis = 0;
@@ -969,15 +969,12 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     if(p->state==CS_ALIVE && !hidehudequipment) drawequipicons(p);
 
-    bool is_spect = (( player1->spectatemode==SM_FOLLOW1ST || player1->spectatemode==SM_FOLLOW3RD || player1->spectatemode==SM_FOLLOW3RD_TRANSPARENT ) &&
-            players.inrange(player1->followplayercn) && players[player1->followplayercn]);
-
     if (/*!menu &&*/ (show_hud_element(!hideradar, 5) || showmap)) drawradar(p, w, h);
     //if(showsgpat) drawsgpat(w,h); // shotty
     if(!editmode)
     {
         glMatrixMode(GL_MODELVIEW);
-        if (show_hud_element(!hideteam, 1) && m_team(gamemode, mutators)) drawteamicons(w, h, is_spect);
+        if (show_hud_element(!hideteam, 1) && m_team(gamemode, mutators)) drawteamicons(w, h);
         glMatrixMode(GL_PROJECTION);
     }
 
@@ -1010,7 +1007,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     extern int tsens(int x);
     tsens(-2000);
     extern void r_accuracy(int h);
-    if (!is_spect) r_accuracy(commandh);
+    if (!spectating) r_accuracy(commandh);
     if (hud_must_not_override(!hideconsole)) renderconsole();
     if (show_hud_element(!hideobits, 6)) renderobits();
     formatstring(enginestateinfo)("%d %d %d %d %d", curfps, lod_factor(), nquads, curvert, xtraverts);
@@ -1237,9 +1234,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         else if(player1->team == TEAM_CLA_SPECT) specttext = "[CLA]";
         else if(player1->team == TEAM_RVSF_SPECT) specttext = "[RVSF]";
         draw_text(specttext, VIRTW/40, VIRTH/10*7);
-        if(is_spect)
+        if(focus != player1)
         {
-            defformatstring(name)("Player %s", players[player1->followplayercn]->name);
+            defformatstring(name)("Player %s", focus->name);
             draw_text(name, VIRTW/40, VIRTH/10*8);
         }
     }

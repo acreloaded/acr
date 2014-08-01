@@ -7911,6 +7911,20 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </remarks>
         </command>
 
+        <variable name="thirdperson">
+          <description>0: first-person, otherwise the distance. Use negative for an overhead view in onslaught mode.</description>
+          <value token="N" description="distance" minValue="-25" maxValue="25" defaultValue="0"/>
+        </variable>
+
+        <variable name="deathcam">
+          <description>0: disable, 1 to follow for 3 seconds, 2 to follow forever</description>
+          <value token="N" description="style" minValue="0" maxValue="2" defaultValue="1"/>
+        </variable>
+
+        <variable name="deathcamspeed">
+          <description>Speed to move the deathcam, 0 for infinity</description>
+          <value token="N" description="distance" minValue="0" maxValue="1000" defaultValue="2"/>
+        </variable>
       </identifiers>
     </section>
     <!-- "TODO" Section Ends -->

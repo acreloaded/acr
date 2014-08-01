@@ -98,7 +98,7 @@ void updatelagtime(playerent *d)
     int lagtime = totalmillis-d->lastupdate;
     if(lagtime)
     {
-        if(d->state!=CS_SPAWNING && d->lastupdate) d->plag = (d->plag*5+lagtime)/6;
+        if(d->lastupdate) d->plag = (d->plag*5+lagtime)/6;
         d->lastupdate = totalmillis;
     }
 }
@@ -223,7 +223,7 @@ void parsepositions(ucharbuf &p)
                 d->smoothmillis = lastmillis;
             }
             else d->smoothmillis = 0;
-            if(d->state==CS_LAGGED || d->state==CS_SPAWNING) d->state = CS_ALIVE;
+            if (d->state == CS_WAITING) d->state = CS_ALIVE;
             // when playing a demo spectate first player we know about
             if(player1->isspectating() && player1->spectatemode==SM_NONE) togglespect();
             extern void clamproll(physent *pl);
@@ -494,8 +494,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_MAPCHANGE:
             {
-                extern int spawnpermission;
-                spawnpermission = SP_SPECT;
                 getstring(text, p);
                 int mode = getint(p);
                 int downloadable = getint(p);
@@ -545,6 +543,26 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 }
                 break;
 
+            case SV_THIRDPERSON:
+            case SV_LEVEL:
+            {
+                playerent *d = getclient(getint(p));
+                int info = getint(p);
+                if (!d || d == player1) break;
+                switch (type)
+                {
+                    case SV_THIRDPERSON:
+                        d->thirdperson = info;
+                        break;
+                    case SV_LEVEL:
+                        //info = clamp(info, 1, MAXLEVEL);
+                        d->level = info;
+                        if (d->pBot) d->pBot->MakeSkill(info);
+                        break;
+                }
+                break;
+            }
+
             case SV_INITCLIENT:            // another client either connected or changed name/team
             {
                 int cn = getint(p);
@@ -568,6 +586,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 loopi(2) d->setskin(i, getint(p));
                 d->level = getint(p);
                 d->team = getint(p);
+                d->build = getint(p);
+                d->thirdperson = getint(p);
 
                 if(m_flags(gamemode)) loopi(2)
                 {
@@ -645,13 +665,16 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             {
                 int val = getint(p);
                 if(!d) break;
-                if(val) d->state = CS_EDITING;
-                else
-                {
-                    //2011oct16:flowtron:keep spectator state
-                    //specators shouldn't be allowed to toggle editmode for themselves. they're ghosts!
-                    d->state = d->state==CS_SPECTATE?CS_SPECTATE:CS_ALIVE;
-                }
+                d->state = val ? CS_EDITING : CS_ALIVE;
+                break;
+            }
+
+            case SV_TRYSPAWN:
+            {
+                const int enqueued = getint(p);
+                extern bool spawnenqueued;
+                spawnenqueued = (enqueued > 0);
+                if (enqueued) player1->respawnoffset = lastmillis - SPAWNDELAY + enqueued;
                 break;
             }
 
@@ -1222,14 +1245,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
             }
 
-            case SV_SPAWNDENY:
-            {
-                extern int spawnpermission;
-                spawnpermission = getint(p);
-                if(spawnpermission == SP_REFILLMATCH) hudoutf("\f3You can now spawn to refill your team.");
-                break;
-            }
-
             case SV_FORCEDEATH:
             case SV_FORCEGIB:
             {
@@ -1334,7 +1349,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     }
                     else if(d->team != fnt && ftr == FTR_PLAYERWISH) conoutf(_("%s changed to active play"), you ? _("you") : colorname(d));
                     d->team = fnt;
-                    if(team_isspect(d->team)) d->state = CS_SPECTATE;
                 }
                 break;
             }
@@ -1511,7 +1525,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 {
                     curdemofile = newstring(demofile);
                     player1->resetspec();
-                    player1->state = CS_SPECTATE;
+                    player1->state = CS_DEAD;
                     player1->team = TEAM_SPECT;
                 }
                 else

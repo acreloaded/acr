@@ -30,7 +30,6 @@ int lastmillis = 0, totalmillis = 0, nextmillis = 0;
 int lasthit = 0;
 int curtime = 0;
 string clientmap = "";
-int spawnpermission = SP_WRONGMAP;
 
 char *getclientmap() { return clientmap; }
 
@@ -373,6 +372,8 @@ void teaminfo(const char *team, const char *attr)
 
 COMMAND(teaminfo, "ss");
 
+bool spawnenqueued = false;
+
 void deathstate(playerent *pl)
 {
     pl->state = CS_DEAD;
@@ -391,9 +392,9 @@ void deathstate(playerent *pl)
         setburst(false);
         if(editmode) toggleedit(true);
         damageblend(-1);
+        spawnenqueued = false;
         if(pl->team == TEAM_SPECT) spectatemode(SM_FLY);
-        else if(team_isspect(pl->team)) spectatemode(SM_FOLLOW1ST);
-        if(pl->spectatemode == SM_DEATHCAM) player1->followplayercn = FPCN_DEATHCAM;
+        else if(team_isspect(pl->team)) spectatemode(SM_FOLLOWSAME);
     }
     else pl->resetinterp();
 }
@@ -480,7 +481,7 @@ void moveotherplayers()
         if(!lagtime || intermission) continue;
         else if(lagtime>1000 && d->state==CS_ALIVE)
         {
-            d->state = CS_LAGGED;
+            d->state = CS_WAITING;
             continue;
         }
         if(d->state==CS_ALIVE || d->state==CS_EDITING)
@@ -493,30 +494,14 @@ void moveotherplayers()
 }
 
 
-bool showhudtimer(int maxsecs, int startmillis, const char *msg, bool flash)
+bool showhudtimer(int maxmillis, int startmillis, const char *msg, bool flash)
 {
-    static string str = "";
-    static int tickstart = 0, curticks = -1, maxticks = -1;
-    int nextticks = (lastmillis - startmillis) / 200;
-    if(tickstart!=startmillis || maxticks != 5*maxsecs)
-    {
-        tickstart = startmillis;
-        maxticks = 5*maxsecs;
-        curticks = -1;
-        copystring(str, "\f3");
-    }
-    if(curticks >= maxticks) return false;
-    nextticks = min(nextticks, maxticks);
-    while(curticks < nextticks)
-    {
-        if(++curticks%5) concatstring(str, ".");
-        else
-        {
-            defformatstring(sec)("%d", maxsecs - (curticks/5));
-            concatstring(str, sec);
-        }
-    }
-    if(nextticks < maxticks) hudeditf(HUDMSG_TIMER|HUDMSG_OVERWRITE, flash ? str : str+2);
+    static int lasttick = 0;
+    if (lasttick > startmillis + maxmillis) return false;
+    lasttick = lastmillis;
+    const bool wave = m_progressive(gamemode, mutators), queued = !wave && spawnenqueued && !m_duke(gamemode, mutators);
+    defformatstring(str)("\f%s %.1fs", _(wave ? "1Next wave in" : queued ? "2Queued for spawn:" : "3Waiting for respawn:"), (startmillis + maxmillis - lastmillis) / 1000.f);
+    if (lastmillis <= startmillis + maxmillis) hudeditf(HUDMSG_TIMER | HUDMSG_OVERWRITE, flash || wave || queued ? str : str + 2);
     else hudeditf(HUDMSG_TIMER, msg);
     return true;
 }
@@ -525,17 +510,14 @@ int lastspawnattempt = 0;
 
 void showrespawntimer()
 {
-    if(intermission || spawnpermission > SP_OK_NUM) return;
-    if(m_duke(gamemode, mutators))
+    if(intermission) return;
+    if (m_duke(gamemode, mutators) || (m_convert(gamemode, mutators) && arenaintermission))
     {
         if(!arenaintermission) return;
-        showhudtimer(5, arenaintermission, "FIGHT!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
+        showhudtimer(5000, arenaintermission, _("FIGHT!"), lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
     }
-    else if(player1->state==CS_DEAD && m_flags(gamemode) && (!player1->isspectating() || player1->spectatemode==SM_DEATHCAM))
-    {
-        int secs = 5;
-        showhudtimer(secs, player1->respawnoffset, "READY!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
-    }
+    else if(player1->state==CS_DEAD)
+        showhudtimer(SPAWNDELAY, player1->respawnoffset, _("READY!"), lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
 }
 
 struct scriptsleep { int wait, millis; char *cmd; bool persist; };
@@ -602,6 +584,7 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
 void respawnself()
 {
     addmsg(SV_TRYSPAWN, "r");
+    spawnenqueued = !spawnenqueued;
 }
 
 extern int checkarea(int maplayout_factor, char *maplayout);
@@ -613,66 +596,27 @@ bool bad_map() // this function makes a pair with good_map from clients2c
     return (!m_edit(gamemode) && ( Mh >= MAXMHEIGHT || MA >= MAXMAREA ));
 }
 
-inline const char * spawn_message()
-{
-    if (spawnpermission == SP_WRONGMAP)
-    {
-        // Don't use "/n" within these messages. If you do, the words won't align to the middle of the screen.
-        if (securemapcheck(getclientmap()))
-        return "3The server will NOT allow spawning or getmap!";   // Also see client.cpp which has a conoutf message
-        else return "3You must be on the correct map to spawn. Type /getmap to download it.";
-    }
-    else if (m_edit(gamemode)) return "3Type /getmap or send a map and vote for it to start co-op edit.";
-    else if (multiplayer(false)) return "4Awaiting permission to spawn. \f2DON'T PANIC!";
-    else return ""; // theres no waiting for permission in sp
-    // Despite its many glaring (and occasionally fatal) inaccuracies, AssaultCube itself has outsold the
-    // Encyclopedia Galactica because it is slightly cheaper, and because it has the words "Don't Panic"
-    // in large, friendly letters.
-}
-
-int waiting_permission = 0;
-
-bool tryrespawn()
+void tryrespawn()
 {
     if ( multiplayer(false) && bad_map() )
     {
         hudoutf("This map is not supported in multiplayer. Read the docs about map quality/dimensions.");
     }
-    else if(spawnpermission > SP_OK_NUM)
+    else if(player1->state==CS_DEAD)
     {
-        hudeditf(HUDMSG_TIMER, "\f%s", spawn_message());
-    }
-    else if(player1->state==CS_DEAD || player1->state==CS_SPECTATE)
-    {
-        if(team_isspect(player1->team))
+        respawnself();
+        int respawnmillis = player1->respawnoffset + (m_duke(gamemode, mutators) ? 0 : SPAWNDELAY);
+        if (lastmillis > respawnmillis)
         {
-            respawnself();
-            return true;
-        }
-        else
-        {
-            int respawnmillis = player1->respawnoffset+(m_duke(gamemode, mutators) ? 0 : (m_flags(gamemode) ? 5000 : 2000));
-            if(lastmillis>respawnmillis)
+            player1->attacking = false;
+            if (m_duke(gamemode, mutators))
             {
-                player1->attacking = false;
-                if(m_duke(gamemode, mutators))
-                {
-                    if(!arenaintermission) hudeditf(HUDMSG_TIMER, "waiting for new round to start...");
-                    else lastspawnattempt = lastmillis;
-                    return false;
-                }
-                if (lastmillis > waiting_permission)
-                {
-                    waiting_permission = lastmillis + 1000;
-                    respawnself();
-                }
-                else hudeditf(HUDMSG_TIMER, "\f%s", spawn_message());
-                return true;
+                if (!arenaintermission) hudeditf(HUDMSG_TIMER, "waiting for new round to start...");
+                else lastspawnattempt = lastmillis;
             }
-            else lastspawnattempt = lastmillis;
         }
+        else lastspawnattempt = lastmillis;
     }
-    return false;
 }
 
 VARP(hitsound, 0, 0, 1);
@@ -698,16 +642,13 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, int style, c
     pl->respawnoffset = pl->lastpain = lastmillis;
     if (pl != actor)
         actor->lasthit = lastmillis;
-    // could the author of the FIXME below please elaborate what's to fix?! (ft:2011mar28)
-    // I suppose someone wanted to play the hitsound for player1 or spectated player (lucas:2011may22)
-    playerent *h = player1->isspectating() && player1->followplayercn >= 0 && (player1->spectatemode == SM_FOLLOW1ST || player1->spectatemode == SM_FOLLOW3RD || player1->spectatemode == SM_FOLLOW3RD_TRANSPARENT) ? getclient(player1->followplayercn) : NULL;
-    if(!h) h = player1;
+
     if(identexists("onHit"))
     {
         defformatstring(o)("onHit %d %d %d %d %d", actor->clientnum, pl->clientnum, damage, gun, style);
         execute(o);
     }
-    if(actor==h && pl!=actor)
+    if(actor==focus && pl!=actor)
     {
         if( hitsound && lasthit != lastmillis) audiomgr.playsound(S_HITSOUND, SP_HIGH);
         lasthit = lastmillis;
@@ -1533,13 +1474,14 @@ void refreshsopmenu(void *menu, bool init)
 
 extern bool watchingdemo;
 
+VARFP(thirdperson, -MAXTHIRDPERSON, 0, MAXTHIRDPERSON, addmsg(SV_THIRDPERSON, "ri", thirdperson));
+
 // rotate through all spec-able players
 playerent *updatefollowplayer(int shiftdirection)
 {
     if(!shiftdirection)
     {
-        playerent *f = players.inrange(player1->followplayercn) ? players[player1->followplayercn] : NULL;
-        if(f && (watchingdemo || !f->isspectating())) return f;
+        if(focus && focus != player1 && (watchingdemo || !focus->isspectating())) return focus;
     }
 
     // collect spec-able players
@@ -1553,14 +1495,12 @@ playerent *updatefollowplayer(int shiftdirection)
     if(!available.length()) return NULL;
 
     // rotate
-    int oldidx = -1;
-    if(players.inrange(player1->followplayercn)) oldidx = available.find(players[player1->followplayercn]);
+    int oldidx = available.find(focus);
     if(oldidx<0) oldidx = 0;
     int idx = (oldidx+shiftdirection) % available.length();
     if(idx<0) idx += available.length();
 
-    player1->followplayercn = available[idx]->clientnum;
-    return players[player1->followplayercn];
+    return available[idx];
 }
 
 void spectate()
@@ -1577,8 +1517,8 @@ void setfollowplayer(int cn)
     {
         if(!(m_team(gamemode, mutators) && !watchingdemo && team_base(players[cn]->team) != team_base(player1->team)))
         {
-            player1->followplayercn = cn;
-            if(player1->spectatemode == SM_FLY) player1->spectatemode = SM_FOLLOW1ST;
+            focus = players[cn];
+            if(player1->spectatemode == SM_FLY) player1->spectatemode = SM_FOLLOWSAME;
         }
     }
 }
@@ -1586,14 +1526,13 @@ void setfollowplayer(int cn)
 // set new spect mode
 void spectatemode(int mode)
 {
-    if((player1->state != CS_DEAD && player1->state != CS_SPECTATE && !team_isspect(player1->team)) || (!m_team(gamemode, mutators) && !team_isspect(player1->team) && servstate.mastermode == MM_MATCH)) return;  // during ffa matches only SPECTATORS can spectate
+    if((player1->state != CS_DEAD && !team_isspect(player1->team)) || (!m_team(gamemode, mutators) && !team_isspect(player1->team) && servstate.mastermode == MM_MATCH)) return;  // during ffa matches only SPECTATORS can spectate
     if(mode == player1->spectatemode) return;
     showscores(false);
     switch(mode)
     {
-        case SM_FOLLOW1ST:
-        case SM_FOLLOW3RD:
-        case SM_FOLLOW3RD_TRANSPARENT:
+        case SM_FOLLOWSAME:
+        case SM_FOLLOWALT:
         {
             if(players.length() && updatefollowplayer()) break;
             else mode = SM_FLY;
@@ -1602,7 +1541,7 @@ void spectatemode(int mode)
         {
             if(player1->spectatemode != SM_FLY)
             {
-                playerent *f = getclient(player1->followplayercn);
+                playerent *f = updatefollowplayer();
                 if(f)
                 {
                     player1->o = f->o;
@@ -1611,13 +1550,12 @@ void spectatemode(int mode)
                     player1->resetinterp();
                 }
                 else entinmap(player1); // or drop 'em at a random place
-                player1->followplayercn = FPCN_FLY;
             }
             break;
         }
         case SM_OVERVIEW:
-            player1->followplayercn = FPCN_OVERVIEW;
-        break;
+            //player1->followplayercn = FPCN_OVERVIEW;
+            break;
         default: break;
     }
     player1->spectatemode = mode;
@@ -1626,8 +1564,8 @@ void spectatemode(int mode)
 void togglespect() // cycle through all spectating modes
 {
     int mode;
-    if(player1->spectatemode==SM_NONE) mode = SM_FOLLOW1ST; // start with 1st person spect
-    else mode = SM_FOLLOW1ST + ((player1->spectatemode - SM_FOLLOW1ST + 1) % (SM_OVERVIEW-SM_FOLLOW1ST)); // replace SM_OVERVIEW by SM_NUM to enable overview mode
+    if (player1->spectatemode == SM_NONE) mode = SM_FOLLOWSAME; // start with 1st person spect
+    else mode = SM_FOLLOWSAME + ((player1->spectatemode - SM_FOLLOWSAME + 1) % (SM_OVERVIEW - SM_FOLLOWSAME)); // replace SM_OVERVIEW by SM_NUM to enable overview mode
     spectatemode(mode);
 }
 
