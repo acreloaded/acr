@@ -465,6 +465,7 @@ void welcomepacket(packetbuf &p, int n);
 void sendwelcome(client *cl, int chan = 1);
 void sendpacket(int n, int chan, ENetPacket *packet, int exclude = -1, bool demopacket = false);
 int numclients();
+bool canspawn(client *c, bool connecting = false);
 bool updateclientteam(int cln, int newteam, int ftr);
 void forcedeath(client *cl, bool gib = false);
 void sendf(int cn, int chan, const char *format, ...);

@@ -305,7 +305,6 @@ void processevents()
         else if(cs.state == CS_WAITING || (c.type == ST_AI && valid_client(c.ownernum) && clients[c.ownernum]->isonrightmap && cs.state == CS_DEAD && cs.lastspawn<0))
         {
             const int waitremain = SPAWNDELAY - gamemillis + cs.lastdeath;
-            extern bool canspawn(client *c, bool connecting = false);
             if(canspawn(&c) && waitremain <= 0)
                 sendspawn(&c);
         }

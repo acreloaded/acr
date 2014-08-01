@@ -1691,7 +1691,7 @@ void updatesdesc(const char *newdesc, ENetAddress *caller = NULL)
     }
 }
 
-inline bool canspawn(client *c, bool connecting = false)
+inline bool canspawn(client *c, bool connecting)
 {
     if (!maplayout)
         return false;
@@ -1701,26 +1701,6 @@ inline bool canspawn(client *c, bool connecting = false)
         return (connecting && totalclients <= 2); // || (arenaround && m_zombie(gamemode) && c->team == TEAM_RVSF && progressiveround != MAXZOMBIEROUND);
     return true;
 }
-/*
-int canspawn(client *c)   // beware: canspawn() doesn't check for arena!
-{
-    if(!c || c->type == ST_EMPTY || !c->isauthed || !team_isvalid(c->team) ||
-        (c->type == ST_TCPIP && (c->state.lastdeath > 0 ? gamemillis - c->state.lastdeath : servmillis - c->connectmillis) < (m_duke(gamemode, mutators) ? 0 : (m_flags(gamemode) ? 5000 : 2000))) ||
-        (servmillis - c->connectmillis < 1000 + c->state.reconnections * 2000 &&
-          gamemillis > 10000 && totalclients > 3 && !team_isspect(c->team))) return SP_OK_NUM; // equivalent to SP_DENY
-    if(c->type != ST_AI && !c->isonrightmap) return SP_WRONGMAP;
-    if(mastermode == MM_MATCH && matchteamsize)
-    {
-        if(c->team == TEAM_SPECT || (team_isspect(c->team) && !m_team(gamemode, mutators))) return SP_SPECT;
-        if(c->team == TEAM_CLA_SPECT || c->team == TEAM_RVSF_SPECT)
-        {
-            if(numteamclients()[team_base(c->team)] >= matchteamsize) return SP_SPECT;
-            else return SP_REFILLMATCH;
-        }
-    }
-    return SP_OK;
-}
-*/
 
 int chooseteam(client &cl, int def = rnd(2))
 {
