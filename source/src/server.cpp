@@ -2932,7 +2932,6 @@ void process(ENetPacket *packet, int sender, int chan)
         else protocoldebug(false);
         #endif
 
-        type = checkmessage(cl,type);
         switch(type)
         {
             case SV_TEXT:
@@ -3019,7 +3018,6 @@ void process(ENetPacket *packet, int sender, int chan)
                 if (!cl->hasclient(cn)) break;
                 client &cp = *clients[cn];
                 if (gunselect < 0 || gunselect >= NUMGUNS) break;
-                if(!m_demo(gamemode) && !m_edit(gamemode)) checkweapon(type,gunselect);
 #if (SERVER_BUILTIN_MOD & 8)
                 if (weaponsel != cp.state.primary)
                 {
@@ -3257,8 +3255,6 @@ void process(ENetPacket *packet, int sender, int chan)
                             ev->pos.add(info);
                     }
                 }
-
-                if (!m_demo(gamemode) && !m_edit(gamemode)) checkshoot(sender, *ev);
 
                 client *cp = cl->hasclient(cn) ? clients[cn] : NULL;
                 if (cp)
@@ -4597,11 +4593,6 @@ void initserver(bool dedicated, int argc, char **argv)
         logline(ACLOG_VERBOSE,"maxclients: %d, lag trust: %d", scl.maxclients, scl.lagtrust);
         if(scl.master) logline(ACLOG_VERBOSE,"master server URL: \"%s\"", scl.master);
         if(scl.serverpassword[0]) logline(ACLOG_VERBOSE,"server password: \"%s\"", hiddenpwd(scl.serverpassword));
-#ifdef ACAC
-        logline(ACLOG_INFO, "anticheat: enabled");
-#else
-        logline(ACLOG_INFO, "anticheat: disabled");
-#endif
     }
 
     resetserverifempty();

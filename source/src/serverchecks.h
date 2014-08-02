@@ -12,10 +12,6 @@ inline bool outside_border(vec &po)
 
 extern inline void addban(client *cl, int reason, int type = BAN_AUTO);
 
-#ifdef ACAC
-#include "anticheat.h"
-#endif
-
 #define MINELINE 50
 
 //FIXME
@@ -234,9 +230,6 @@ void flagpoints(client *c, int message)
             if (m_capture(gamemode)) {
                 distance = sqrt(POW2XY(c->state.o,c->md.flagpos));
                 if (distance > 200) distance = 200;
-#ifdef ACAC
-                if ( validflagscore(distance,c) )
-#endif
                     addpt(c, CTFSCOREPT);
             } else addpt(c, HTFSCOREPT);
             break;
@@ -625,35 +618,5 @@ inline void checkmove(client *cl)
         cl->inputmillis = servmillis;
     }
 
-#ifdef ACAC
-    m_engine(cl);
-#endif
-
     // TODO: detect speedhack
 }
-
-inline void checkshoot(int & cn, timedevent & shot)
-{
-    // hit, tcn -> 0, -1
-#ifdef ACAC
-    s_engine(cn, shot, 0, -1);
-#endif
-    return;
-}
-
-inline void checkweapon(int & type, int & var)
-{
-#ifdef ACAC
-    w_engine(type,var);
-#endif
-    return;
-}
-
-inline int checkmessage(client *c, int type)
-{
-#ifdef ACAC
-    type = p_engine(c,type);
-#endif
-    return type;
-}
-
