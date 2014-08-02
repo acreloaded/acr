@@ -179,6 +179,8 @@ inline void addpt(client *c, int points, int n = -1) {
 #define CTFSCOREPT   (cnumber*distance/25+10)      // flag score
 #define HTFSCOREPT   (cnumber*4+10)
 #define KTFSCOREPT   (cnumber*2+10)
+#define SECUREPT      10                           // Secure/Overthrow
+#define SECUREDPT     1                            // Secured bonus
 #define COMBOPT       5                            // player frags with combo
 #define REPLYPT       2                            // reply success
 #define TWDONEPT      5                            // team work done

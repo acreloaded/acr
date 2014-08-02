@@ -987,12 +987,31 @@ void putflaginfo(packetbuf &p, int flag)
     }
 }
 
+void putsecureflaginfo(ucharbuf &p, ssecure &s)
+{
+    putint(p, SV_FLAGSECURE);
+    putint(p, s.id);
+    putint(p, s.team);
+    putint(p, s.enemy);
+    putint(p, s.overthrown);
+}
+
 inline void send_item_list(packetbuf &p)
 {
     putint(p, SV_ITEMLIST);
     loopv(sents) if(sents[i].spawned) putint(p, i);
     putint(p, -1);
-    if(m_flags(gamemode)) loopi(2) putflaginfo(p, i);
+    if (m_flags(gamemode))
+    {
+        if (m_secure(gamemode))
+        {
+            loopv(ssecures) putsecureflaginfo(p, ssecures[i]);
+        }
+        else
+        {
+            loopi(2) putflaginfo(p, i);
+        }
+    }
 }
 
 #include "serverchecks.h"
@@ -1002,6 +1021,14 @@ void sendflaginfo(int flag = -1, int cn = -1)
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     if(flag >= 0) putflaginfo(p, flag);
     else loopi(2) putflaginfo(p, i);
+    sendpacket(cn, 1, p.finalize());
+}
+
+void sendsecureflaginfo(ssecure *s = NULL, int cn = -1)
+{
+    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    if (s) putsecureflaginfo(p, *s);
+    else loopv(ssecures) putsecureflaginfo(p, ssecures[i]);
     sendpacket(cn, 1, p.finalize());
 }
 
@@ -2003,6 +2030,7 @@ void startgame(const char *newname, int newmode, int newmuts, int newtime, bool 
                 FlagFlag = pow2(f0.x - f1.x) + pow2(f0.y - f1.y);
                 coverdist = FlagFlag > 6 * COVERDIST ? COVERDIST : FlagFlag / 6;
             }
+            ssecures.shrink(0);
             entity e;
             loopi(smapstats.hdr.numents)
             {
@@ -2019,6 +2047,16 @@ void startgame(const char *newname, int newmode, int newmuts, int newtime, bool 
                 e.attr4 = pe.attr4;
                 e.spawned = e.fitsmode(smode, smuts);
                 e.spawntime = 0;
+                if (m_secure(newmode) && e.type == CTF_FLAG && e.attr2 >= 2)
+                {
+                    ssecure &s = ssecures.add();
+                    s.id = i;
+                    s.team = TEAM_SPECT;
+                    s.enemy = TEAM_SPECT;
+                    s.overthrown = 0;
+                    s.o = vec(e.x, e.y, getblockfloor(getmaplayoutid(e.x, e.y), false));
+                    s.last_service = 0;
+                }
             }
             mapbuffer.setrevision();
             logline(ACLOG_INFO, "Map height density information for %s: H = %.2f V = %d, A = %d and MA = %d", smapname, Mheight, Mvolume, Marea, Mopen);
@@ -4159,19 +4197,116 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         processevents();
         checkitemspawns(diff);
         bool ktfflagingame = false;
-        if(m_flags(gamemode)) loopi(2)
+        if (m_flags(gamemode))
         {
-            sflaginfo &f = sflaginfos[i];
-            if(f.state == CTFF_DROPPED && gamemillis-f.lastupdate > (m_capture(gamemode) ? 30000 : 10000)) flagaction(i, FA_RESET, -1);
-            if(m_hunt(gamemode) && f.state == CTFF_INBASE && gamemillis-f.lastupdate > (smapstats.flags[0] && smapstats.flags[1] ? 10000 : 1000))
+            if (m_secure(gamemode))
             {
-                htf_forceflag(i);
+                loopv(ssecures)
+                {
+                    // service around every 40 milliseconds, for the best (25 fps)
+                    // 10000ms / 255 units = ~39.2 ms / unit
+                    int sec_diff = (gamemillis - ssecures[i].last_service) / 39;
+                    if (!sec_diff) continue;
+                    ssecures[i].last_service += sec_diff * 39;
+                    if (!m_gsp1(gamemode, mutators)) sec_diff *= 2; // secure faster if non-direct
+                    int teams_inside[2] = { 0 };
+                    loopvj(clients)
+                        if (valid_client(j) && (clients[j]->team >= 0 && clients[j]->team < 2) && clients[j]->state.state == CS_ALIVE && clients[j]->state.o.dist(ssecures[i].o) <= 8.f + PLAYERRADIUS)
+                            ++teams_inside[clients[j]->team];
+                    const int returnbonus = ssecures[i].team == TEAM_SPECT ? 1 : m_gsp1(gamemode, mutators) ? 2 : 0; // how fast flags can return to its original owner, but 0 counts as 1 if there is a defender
+                    int defending = 0, opposing = 0;
+                    loopj(2)
+                    {
+                        if (j == ssecures[i].enemy || ssecures[i].enemy == TEAM_SPECT) opposing += teams_inside[j];
+                        else defending += teams_inside[j];
+                    }
+                    if (opposing > defending)
+                    {
+                        // starting to secure/overthrow?
+                        if (ssecures[i].enemy == TEAM_SPECT)
+                        {
+                            int team_max = 0, max_team = TEAM_SPECT;
+                            bool teams_matched = true;
+                            loopj(2) // prepared for more teams
+                            {
+                                if (teams_inside[j] > team_max)
+                                {
+                                    team_max = teams_inside[j];
+                                    max_team = j;
+                                    teams_matched = false;
+                                }
+                                else if (teams_inside[j] == team_max) teams_matched = true;
+                            }
+                            // first frame: start to capture, but we don't know how many units to give
+                            if (!teams_matched && max_team != ssecures[i].team) ssecures[i].enemy = max_team;
+                        }
+                        else
+                        {
+                            // securing/overthrowing
+                            ssecures[i].overthrown += sec_diff * (opposing - defending);
+                            if (ssecures[i].overthrown >= 255)
+                            {
+                                const bool is_secure = ssecures[i].team == TEAM_SPECT || m_gsp1(gamemode, mutators);
+                                loopvj(clients)
+                                    if (valid_client(j) && clients[j]->team == ssecures[i].enemy && clients[j]->state.state == CS_ALIVE && clients[j]->state.o.dist(ssecures[i].o) <= 8.f + PLAYERRADIUS)
+                                    {
+                                        addpt(clients[j], SECUREPT, is_secure ? PR_SECURE_SECURE : PR_SECURE_OVERTHROW);
+                                        clients[j]->state.invalidate().flagscore += m_gsp1(gamemode, mutators) ? ssecures[i].team == TEAM_SPECT ? 2 : 3 : 1;
+                                    }
+                                ssecures[i].team = is_secure ? ssecures[i].enemy : TEAM_SPECT;
+                                if (is_secure)
+                                {
+                                    ssecures[i].enemy = TEAM_SPECT;
+                                    ssecures[i].overthrown = 0;
+                                }
+                                else ssecures[i].overthrown = max(1, ssecures[i].overthrown - 255);
+                            }
+                            sendsecureflaginfo(&ssecures[i]);
+                        }
+                    }
+                    else if ((defending > opposing || (!opposing && returnbonus)) && ssecures[i].overthrown)
+                    {
+                        // going back to the original owner
+                        ssecures[i].overthrown -= sec_diff * (max(1, returnbonus) + defending - opposing);
+                        if (ssecures[i].overthrown <= 0)
+                        {
+                            ssecures[i].enemy = TEAM_SPECT;
+                            ssecures[i].overthrown = 0;
+                        }
+                        sendsecureflaginfo(&ssecures[i]);
+                    }
+                    // else: we are at an impasse
+                }
+                static int lastsecurereward = 0;
+                if (servmillis > lastsecurereward + 5000)
+                {
+                    // reward points for having some bases secured
+                    lastsecurereward = servmillis;
+                    int bonuses[2] = { 0 };
+                    loopv(ssecures)
+                        if (ssecures[i].team >= 0 && ssecures[i].team < 2)
+                        {
+                            ++bonuses[ssecures[i].team];
+                            //++usesteamscore(ssecures[i].team).flagscore;
+                        }
+                    loopv(clients)
+                        if (valid_client(i) && (clients[i]->team >= 0 && clients[i]->team < 2) && bonuses[clients[i]->team])
+                            addpt(clients[i], SECUREDPT * bonuses[clients[i]->team], PR_SECURE_SECURED);
+                }
             }
-            if(m_keep(gamemode) && f.state == CTFF_STOLEN && gamemillis-f.lastupdate > 15000)
+            else
             {
-                flagaction(i, FA_SCORE, -1);
+                loopi(2)
+                {
+                    sflaginfo &f = sflaginfos[i];
+                    if (f.state == CTFF_DROPPED && gamemillis - f.lastupdate > (m_capture(gamemode) ? 30000 : 10000)) flagaction(i, FA_RESET, -1);
+                    if (m_hunt(gamemode) && f.state == CTFF_INBASE && gamemillis - f.lastupdate > (smapstats.flags[0] && smapstats.flags[1] ? 10000 : 1000))
+                        htf_forceflag(i);
+                    if (m_keep(gamemode) && f.state == CTFF_STOLEN && gamemillis - f.lastupdate > 15000)
+                        flagaction(i, FA_SCORE, -1);
+                    if (f.state == CTFF_INBASE || f.state == CTFF_STOLEN) ktfflagingame = true;
+                }
             }
-            if(f.state == CTFF_INBASE || f.state == CTFF_STOLEN) ktfflagingame = true;
         }
         if(m_keep(gamemode) && !ktfflagingame) flagaction(rnd(2), FA_RESET, -1); // ktf flag watchdog
         if(m_duke(gamemode, mutators)) arenacheck();

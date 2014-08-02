@@ -1232,6 +1232,16 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
             }
 
+            case SV_FLAGSECURE:
+            {
+                const int ent = getint(p), team = getint(p), enemy = getint(p), overthrown = getint(p);
+                if (!ents.inrange(ent) || ents[ent].type != CTF_FLAG || (!team_isactive(team) && team != TEAM_SPECT) || ents[ent].attr2 < 2) break;
+                ents[ent].attr2 = 2 + team;
+                ents[ent].attr3 = enemy;
+                ents[ent].attr4 = overthrown;
+                break;
+            }
+
             case SV_ARENAWIN:
             {
                 int acn = getint(p);

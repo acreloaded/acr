@@ -217,14 +217,14 @@ void renderentities()
         else if (e.type == CTF_FLAG && m_secure(gamemode))
         {
             const int team = e.attr2 - 2;
-            defformatstring(path)("pickups/flags/%s", team != TEAM_SPECT ? team_basestring(team) : "ktf");
+            defformatstring(path)("pickups/flags/%s", team_isactive(team) ? team_basestring(team) : "ktf");
             rendermodel(path, ANIM_FLAG | ANIM_LOOP | ANIM_IDLE, 0, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor), (float)((e.attr1 + 7) - (e.attr1 + 7) % 15), 0, 120.0f);
         }
         else if(editmode || m_edit(gamemode))
         {
             if(e.type==CTF_FLAG)
             {
-                defformatstring(path)("pickups/flags/%s", (e.attr2 == TEAM_CLA || e.attr2 == TEAM_RVSF) ? team_basestring(e.attr2) : "ktf");
+                defformatstring(path)("pickups/flags/%s", team_isactive(e.attr2) ? team_basestring(e.attr2) : "ktf");
                 rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
             }
             else if((e.type == CLIP || e.type == PLCLIP) && showclips && !stenciling) renderclip(e);
@@ -282,11 +282,9 @@ void renderentities()
                 break;
             }
             case CTFF_DROPPED:
-            {
                 if(OUTBORD(f.pos.x, f.pos.y)) break;
                 rendermodel(fpath, ANIM_FLAG | ANIM_LOOP, 0, 0, f.pos, (float)((e.attr1 + 7) - (e.attr1 + 7) % 15), 0, 120.0f);
                 break;
-            }
             /*
             default:
             case CTFF_INBASE:

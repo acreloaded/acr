@@ -456,6 +456,14 @@ struct sflaginfo
     sflaginfo() { actor_cn = -1; }
 } sflaginfos[2];
 
+struct ssecure
+{
+    int id, team, enemy, overthrown;
+    vec o;
+    int last_service;
+};
+vector<ssecure> ssecures;
+
 struct demofile
 {
     string info;
