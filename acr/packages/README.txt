@@ -5,7 +5,7 @@ audio
 	misc
 		firstblood.ogg
 		headshot.ogg
-			[©?] probably OpenWarfare2
+			[(c)?] probably OpenWarfare2
 	weapon
 		auto.ogg
 		bolt.ogg
@@ -21,7 +21,7 @@ audio
 		sub_reload.ogg
 		sword.ogg
 		usp.ogg
-			[©?] Unknown
+			[(c)?] Unknown
 		katana.ogg - [reciprocal non-copyright] comes with the sword model by PROGONNA
 		sniper2.ogg - [CC BY-NC-ND 3.0] A section of a sound by Bobster
 crosshairs - [Copyright Ineligible]
@@ -32,7 +32,7 @@ eventicons
 	nuke.png
 	radar.png
 	suicidebomb.png
-		[©] Activision and Infinity Ward
+		[(c)] Activision and Infinity Ward
 	com.png - Protox Mod CC BY 3.0
 	bleed.png
 	chat.png
@@ -66,7 +66,7 @@ misc
 	obit.png - [LGPL] Combined by Victor from [LGPL] Crystal Icons
 	scope.png - [CC BY-NC-SA 3.0] Adjusted by Victor [CC BY-NC-SA 3.0] DeltaStrikeOp
 	startscreen.png - [Public Domain] Victor
-	waypoints.png - [CC BY-NC-SA 3.0] Victor except airstrike, enemy, friendly, grab, knife, nuke, stolen, return [©] Activision
+	waypoints.png - [CC BY-NC-SA 3.0] Victor except airstrike, enemy, friendly, grab, knife, nuke, stolen, return [(c)] Activision
 models
 	pickups
 		confirm
@@ -83,12 +83,12 @@ models
 		shell
 		shotgun
 		subgun
-			[©?] Unknown
+			[(c)?] Unknown
 		assault2
 		pistol
 			[CC0] Models by xdEpicZombie
 			[CC BY 3.0] Hands by Padge1
-			[©?] Textures are unknown
+			[(c)?] Textures are unknown
 		heal - [CC BY-NC-SA 2.5] Modified by Victor from [CC BY-NC-SA 2.5] a magic wand by {ak}bluwarguy
 		sniper - [CC BY-NC-ND 3.0] converted only by Victor, no other changes http://css.gamebanana.com/skins/42302
 		sniper2 - [CC BY 3.0] Padge1
