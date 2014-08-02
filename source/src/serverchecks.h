@@ -577,21 +577,6 @@ void check_afk()
     }
 }
 
-inline int check_pdist(client *c, float & dist) // pick up distance
-{
-    // ping 1000ms at max velocity can produce an error of 20 cubes
-    float delay = 9.0f + (float)c->ping * 0.02f + (float)c->spj * 0.025f; // at pj/ping 40/100, delay = 12
-    if ( dist > delay )
-    {
-        if ( dist < 1.5f * delay ) return 1;
-#ifdef ACAC
-        pickup_checks(c,dist-delay);
-#endif
-        return 2;
-    }
-    return 0;
-}
-
 /**
 If you read README.txt you must know that AC does not have cheat protection implemented.
 However this file is the sketch to a very special kind of cheat detection tools in server side.
