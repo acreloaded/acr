@@ -307,19 +307,10 @@ struct client                   // server side version of "dynent" type
     int mapcollisions, farpickups;
     enet_uint32 bottomRTT;
     medals md;
-    int lag;
     vec spawnp;
     int nvotes;
     int input, inputmillis;
-    int wn, f, g, t, y, p;
-    int yb, pb, oy, op, lda, ldda, fam;
-    int nt[10], np, lp, ls, lsm, ld, nd, nlt, lem, led;
-    vec cp[10], dp[10], d0, lv, lt, le;
-    float dda, tr, sda;
-    int ps, ph, tcn, bdt, pws;
-    float pr;
-    int yls, pls, tls;
-    int bs, bt, blg, bp;
+    int f, g, t, y, p;
 
     void addevent(timedevent *e)
     {
@@ -375,19 +366,9 @@ struct client                   // server side version of "dynent" type
         at3_lastforce = eff_score = 0;
         mapcollisions = farpickups = 0;
         md.reset();
-        lag = 0;
         spawnp = vec(-1e10f, -1e10f, -1e10f);
         lmillis = ldt = spj = 0;
         f = g = y = p = t = 0;
-        yb = pb = oy = op = lda = ldda = fam = 0;
-        np = lp = ls = lsm = ld = nd = nlt = lem = led = 0;
-        d0 = lv = lt = le = vec(0,0,0);
-        loopi(10) { cp[i] = dp[i] = vec(0,0,0); nt[i] = 0; }
-        dda = tr = sda = 0;
-        ps = ph = bdt = pws = 0;
-        tcn = -1;
-        pr = 0.0f;
-        yls = pls = tls = 0;
     }
 
     void reset()
@@ -413,8 +394,6 @@ struct client                   // server side version of "dynent" type
         freshgame = false;         // don't spawn into running games
         mute = spam = lastvc = badspeech = badmillis = nvotes = 0;
         input = inputmillis = 0;
-        wn = -1;
-        bs = bt = blg = bp = 0;
     }
 
     void zap()
