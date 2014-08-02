@@ -214,7 +214,7 @@ void renderentities()
                 renderent(e);
             }
         }
-        else if (e.type == CTF_FLAG && m_secure(gamemode))
+        else if (e.type == CTF_FLAG && m_secure(gamemode) && e.attr2 >= 2)
         {
             const int team = e.attr2 - 2;
             defformatstring(path)("pickups/flags/%s", team_isactive(team) ? team_basestring(team) : "ktf");
