@@ -7143,6 +7143,19 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </arguments>
         </command>
 
+        <command name="dm">
+          <description>Starts a map with the mode "Deathmatch"</description>
+          <examples>
+            <example>
+              <code><![CDATA[dm ac_complex]]></code>
+            </example>
+          </examples>
+          <arguments>
+            <variableArgument token="M" description="The name of the map you wish to play"/>
+            <variableArgument token="T" valueNotes="1..60" description="The time limit, in minutes (default 10 minutes if T is 0 or not specified)"/>
+          </arguments>
+        </command>
+
         <command name="ctf">
           <description>Starts a map with the mode "Capture the Flag"</description>
           <examples>
@@ -7156,16 +7169,16 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </arguments>
         </command>
 
-        <command name="dm">
-          <description>Starts a map with the mode "Deathmatch"</description>
+        <command name="stf">
+          <description>Starts a map with the mode "Secure the Flag"</description>
           <examples>
             <example>
-              <code><![CDATA[dm ac_complex]]></code>
+              <code><![CDATA[stf acr_recreation]]></code>
             </example>
           </examples>
           <arguments>
             <variableArgument token="M" description="The name of the map you wish to play"/>
-            <variableArgument token="T" valueNotes="1..60" description="The time limit, in minutes (default 10 minutes if T is 0 or not specified)"/>
+            <variableArgument token="T" valueNotes="1..60" description="The time limit, in minutes (default 15 minutes if T is 0 or not specified)"/>
           </arguments>
         </command>
 
@@ -7195,11 +7208,11 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </arguments>
         </command>
 
-        <command name="lms">
-          <description>Starts a map with the mode "Last Man Standing"</description>
+        <command name="bomber">
+          <description>Starts a map with the mode "Bomber"</description>
           <examples>
             <example>
-              <code><![CDATA[lms ac_complex]]></code>
+              <code><![CDATA[bomber ac_mines]]></code>
             </example>
           </examples>
           <arguments>
@@ -7208,94 +7221,16 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </arguments>
         </command>
 
-        <command name="lss">
-          <description>Starts a map with the mode "Last Swiss Standing"</description>
+        <command name="zombies">
+          <description>Starts a map with the mode "Zombies"</description>
           <examples>
             <example>
-              <code><![CDATA[lss ac_complex]]></code>
+              <code><![CDATA[zombies ac_mines]]></code>
             </example>
           </examples>
           <arguments>
             <variableArgument token="M" description="The name of the map you wish to play"/>
             <variableArgument token="T" valueNotes="1..60" description="The time limit, in minutes (default 10 minutes if T is 0 or not specified)"/>
-          </arguments>
-        </command>
-
-        <command name="osok">
-          <description>Starts a map with the mode "One shot, One kill"</description>
-          <examples>
-            <example>
-              <code><![CDATA[osok ac_complex]]></code>
-            </example>
-          </examples>
-          <arguments>
-            <variableArgument token="M" description="The name of the map you wish to play"/>
-            <variableArgument token="T" valueNotes="1..60" description="The time limit, in minutes (default 10 minutes if T is 0 or not specified)"/>
-          </arguments>
-        </command>
-
-        <command name="pf">
-          <description>Starts a map with the mode "Pistol Frenzy"</description>
-          <examples>
-            <example>
-              <code><![CDATA[pf ac_complex]]></code>
-            </example>
-          </examples>
-          <arguments>
-            <variableArgument token="M" description="The name of the map you wish to play"/>
-            <variableArgument token="T" valueNotes="1..60" description="The time limit, in minutes (default 10 minutes if T is 0 or not specified)"/>
-          </arguments>
-        </command>
-
-        <command name="tdm">
-          <description>Starts a map with the mode "Team Deathmatch"</description>
-          <examples>
-            <example>
-              <code><![CDATA[tdm ac_complex]]></code>
-            </example>
-          </examples>
-          <arguments>
-            <variableArgument token="M" description="The name of the map you wish to play"/>
-            <variableArgument token="T" valueNotes="1..60" description="The time limit, in minutes (default 15 minutes if T is 0 or not specified)"/>
-          </arguments>
-        </command>
-
-        <command name="tktf">
-          <description>Starts a map with the mode "Team Keep the Flag"</description>
-          <examples>
-            <example>
-              <code><![CDATA[tktf ac_mines]]></code>
-            </example>
-          </examples>
-          <arguments>
-            <variableArgument token="M" description="The name of the map you wish to play"/>
-            <variableArgument token="T" valueNotes="1..60" description="The time limit, in minutes (default 15 minutes if T is 0 or not specified)"/>
-          </arguments>
-        </command>
-
-        <command name="tosok">
-          <description>Starts a map with the mode "Team One Shot, One Kill"</description>
-          <examples>
-            <example>
-              <code><![CDATA[tosok ac_complex]]></code>
-            </example>
-          </examples>
-          <arguments>
-            <variableArgument token="M" description="The name of the map you wish to play"/>
-            <variableArgument token="T" valueNotes="1..60" description="The time limit, in minutes (default 15 minutes if T is 0 or not specified)"/>
-          </arguments>
-        </command>
-
-        <command name="ts">
-          <description>Starts a map with the mode "Team Survivor"</description>
-          <examples>
-            <example>
-              <code><![CDATA[ts ac_complex]]></code>
-            </example>
-          </examples>
-          <arguments>
-            <variableArgument token="M" description="The name of the map you wish to play"/>
-            <variableArgument token="T" valueNotes="1..60" description="The time limit, in minutes (default 15 minutes if T is 0 or not specified)"/>
           </arguments>
         </command>
 
