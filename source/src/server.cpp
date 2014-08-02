@@ -996,24 +996,6 @@ void putsecureflaginfo(ucharbuf &p, ssecure &s)
     putint(p, s.overthrown);
 }
 
-inline void send_item_list(packetbuf &p)
-{
-    putint(p, SV_ITEMLIST);
-    loopv(sents) if(sents[i].spawned) putint(p, i);
-    putint(p, -1);
-    if (m_flags(gamemode))
-    {
-        if (m_secure(gamemode))
-        {
-            loopv(ssecures) putsecureflaginfo(p, ssecures[i]);
-        }
-        else
-        {
-            loopi(2) putflaginfo(p, i);
-        }
-    }
-}
-
 #include "serverchecks.h"
 
 void sendflaginfo(int flag = -1, int cn = -1)
@@ -1995,6 +1977,45 @@ void startdemoplayback(const char *newname)
     setupdemoplayback();
 }
 
+inline void putmap(ucharbuf &p)
+{
+    putint(p, SV_MAPCHANGE);
+    sendstring(smapname, p);
+    putint(p, smode);
+    putint(p, smuts);
+    putint(p, mapbuffer.available());
+    putint(p, mapbuffer.revision);
+
+    loopv(sents)
+        if (sents[i].spawned)
+            putint(p, i);
+    putint(p, -1);
+
+    putint(p, 0);
+    putint(p, 0);
+    /*
+    putint(p, sknives.length());
+    loopv(sknives)
+    {
+        putint(p, sknives[i].id);
+        putint(p, KNIFETTL + sknives[i].millis - gamemillis);
+        putfloat(p, sknives[i].o.x);
+        putfloat(p, sknives[i].o.y);
+        putfloat(p, sknives[i].o.z);
+    }
+
+    putint(p, sconfirms.length());
+    loopv(sconfirms)
+    {
+        putint(p, sconfirms[i].id);
+        putint(p, sconfirms[i].team);
+        putfloat(p, sconfirms[i].o.x);
+        putfloat(p, sconfirms[i].o.y);
+        putfloat(p, sconfirms[i].o.z);
+    }
+    */
+}
+
 void startgame(const char *newname, int newmode, int newmuts, int newtime, bool notify)
 {
     if(!newname || !*newname || (newmode == G_DEMO && isdedicated)) fatal("startgame() abused");
@@ -2066,12 +2087,13 @@ void startgame(const char *newname, int newmode, int newmuts, int newtime, bool 
         if(notify)
         {
             // change map
-            sendf(-1, 1, "risiii", SV_MAPCHANGE, smapname, smode, mapbuffer.available(), mapbuffer.revision);
+            // sknives.setsize(0);
+            packetbuf q(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+            putmap(q);
+            sendpacket(-1, 1, q.finalize());
+            // time remaining
             if(smode>1 || (smode==0 && numnonlocalclients()>0)) sendf(-1, 1, "ri3", SV_TIMEUP, gamemillis, gamelimit);
         }
-        packetbuf q(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-        send_item_list(q); // always send the item list when a game starts
-        sendpacket(-1, 1, q.finalize());
         defformatstring(gsmsg)("Game start: %s on %s, %d players, %d minutes, mastermode %d, ", modestr(smode, smuts), smapname, numclients(), minremain, mastermode);
         if(mastermode == MM_MATCH) concatformatstring(gsmsg, "teamsize %d, ", matchteamsize);
         if(ms) concatformatstring(gsmsg, "(map rev %d/%d, %s, 'getmap' %sprepared)", smapstats.hdr.maprevision, smapstats.cgzsize, maplocstr[maploc], mapbuffer.available() ? "" : "not ");
@@ -2098,8 +2120,12 @@ void startgame(const char *newname, int newmode, int newmuts, int newtime, bool 
         }
         checkai(); // re-init ai (init)
         if(numnonlocalclients() > 0) setupdemorecord();
-        if(notify && m_keep(gamemode)) sendflaginfo();
-        if(notify) senddisconnectedscores(-1);
+        if (notify)
+        {
+            if (m_keep(gamemode)) sendflaginfo();
+            else if (m_secure(gamemode)) sendsecureflaginfo();
+            senddisconnectedscores(-1);
+        }
     }
 }
 
@@ -2655,11 +2681,7 @@ void welcomepacket(packetbuf &p, int n)
     putint(p, smapname[0] && !m_demo(gamemode) ? numcl : -1);
     if(smapname[0] && !m_demo(gamemode))
     {
-        putint(p, SV_MAPCHANGE);
-        sendstring(smapname, p);
-        putint(p, smode);
-        putint(p, mapbuffer.available());
-        putint(p, mapbuffer.revision);
+        putmap(p);
         if(smode>1 || (smode==0 && numnonlocalclients()>0))
         {
             putint(p, SV_TIMEUP);
@@ -2667,7 +2689,17 @@ void welcomepacket(packetbuf &p, int n)
             putint(p, gamelimit);
             //putint(p, minremain*60);
         }
-        send_item_list(p); // this includes the flags
+        if (m_flags(gamemode))
+        {
+            if (m_secure(gamemode))
+            {
+                loopv(ssecures) putsecureflaginfo(p, ssecures[i]);
+            }
+            else
+            {
+                loopi(2) putflaginfo(p, i);
+            }
+        }
     }
     savedscore *sc = NULL;
     if(c)

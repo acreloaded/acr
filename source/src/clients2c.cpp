@@ -27,10 +27,10 @@ VARP(autogetnewmaprevisions, 0, 1, 1);
 
 bool localwrongmap = false;
 int MA = 0, Hhits = 0; // flowtron: moved here
-bool changemapserv(char *name, int mode, int download, int revision)        // forced map change from the server
+bool changemapserv(char *name, int mode, int muts, int download, int revision)        // forced map change from the server
 {
     MA = Hhits = 0; // reset for checkarea()
-    gamemode = mode;
+    modecheck(gamemode = mode, mutators = muts);
     if(m_demo(gamemode)) return true;
     if(m_edit(gamemode))
     {
@@ -494,24 +494,48 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_MAPCHANGE:
             {
+                // get map info
                 getstring(text, p);
-                int mode = getint(p);
+                int mode = getint(p), muts = getint(p);
                 int downloadable = getint(p);
                 int revision = getint(p);
-                localwrongmap = !changemapserv(text, mode, downloadable, revision);
+                localwrongmap = !changemapserv(text, mode, muts, downloadable, revision);
                 if(m_duke(gamemode, mutators) && joining>2) deathstate(player1);
-                break;
-            }
 
-            case SV_ITEMLIST:
-            {
+                // get item spawns
+                int n;
                 resetspawns();
                 while (!p.overread())
                 {
-                    int n = getint(p);
+                    n = getint(p);
                     if (n == -1) break;
                     setspawn(n);
                 }
+
+                // get knives
+                n = getint(p); // reuse
+                /*
+                knives.setsize(0);
+                loopi(n)
+                {
+                    cknife &k = knives.add();
+                    k.id = getint(p);
+                    k.millis = totalmillis + getint(p);
+                    loopi(3) k.o[i] = getfloat(p);
+                }
+                */
+                // get confirms
+                n = getint(p); // more reuse
+                /*
+                confirms.setsize(0);
+                loopi(n)
+                {
+                    cconfirm &c = confirms.add();
+                    c.id = getint(p);
+                    c.team = getint(p);
+                    loopi(3) c.o[i] = getfloat(p);
+                }
+                */
                 break;
             }
 
