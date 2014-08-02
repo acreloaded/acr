@@ -305,7 +305,7 @@ struct client                   // server side version of "dynent" type
     vec spawnp;
     int nvotes;
     int input, inputmillis;
-    int ffire, wn, f, g, t, y, p;
+    int wn, f, g, t, y, p;
     int yb, pb, oy, op, lda, ldda, fam;
     int nt[10], np, lp, ls, lsm, ld, nd, nlt, lem, led;
     vec cp[10], dp[10], d0, lv, lt, le;
@@ -372,7 +372,6 @@ struct client                   // server side version of "dynent" type
         lag = 0;
         spawnp = vec(-1e10f, -1e10f, -1e10f);
         lmillis = ldt = spj = 0;
-        ffire = 0;
         f = g = y = p = t = 0;
         yb = pb = oy = op = lda = ldda = fam = 0;
         np = lp = ls = lsm = ld = nd = nlt = lem = led = 0;

@@ -580,21 +580,6 @@ void check_afk()
     }
 }
 
-/** This function counts how much non-killing-damage the player does to any teammates
-    The damage limit is 100 hp per minute, which is about 2 tks per minute in a normal game
-    In normal games, the players go over 6 tks only in the worst cases */
-void check_ffire(client *target, client *actor, int damage)
-{
-    if ( mastermode != MM_OPEN ) return;
-    actor->ffire += damage;
-    if ( actor->ffire > 300 && actor->ffire * 600 > gamemillis) {
-        logline(ACLOG_INFO, "[%s] %s kicked for excessive friendly fire", actor->gethostname(), actor->formatname());
-        defformatstring(msg)("%s kicked for excessive friendly fire", actor->formatname());
-        sendservmsg(msg);
-        disconnect_client(actor->clientnum, DISC_FFIRE);
-    }
-}
-
 inline int check_pdist(client *c, float & dist) // pick up distance
 {
     // ping 1000ms at max velocity can produce an error of 20 cubes

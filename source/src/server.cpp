@@ -1627,23 +1627,6 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
     }
     // don't issue respawn yet until DEATHMILLIS has elapsed
     // ts.respawn();
-
-    if (isdedicated && actor->type == ST_TCPIP && tk)
-    {
-        if (actor->state.frags < scl.banthreshold ||
-            /** teamkilling more than 6 (defaults), more than 2 per minute and less than 4 frags per tk */
-            (actor->state.teamkills >= -scl.banthreshold &&
-            actor->state.teamkills * 30 * 1000 > gamemillis &&
-            actor->state.frags < 4 * actor->state.teamkills))
-        {
-            addban(actor, DISC_AUTOBAN);
-        }
-        else if (actor->state.frags < scl.kickthreshold ||
-            /** teamkilling more than 5 (defaults), more than 1 tk per minute and less than 4 frags per tk */
-            (actor->state.teamkills >= -scl.kickthreshold &&
-            actor->state.teamkills * 60 * 1000 > gamemillis &&
-            actor->state.frags < 4 * actor->state.teamkills)) disconnect_client(actor->clientnum, DISC_AUTOKICK);
-    }
 }
 
 void client::suicide(int gun, int style)
@@ -1669,7 +1652,6 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
     }
     if (ts.health <= 0)
         serverdied(target, actor, damage, gun, style, source, dist);
-    else if ( target!=actor && isteam(target->team, actor->team) ) check_ffire (target, actor, damage); // friendly fire counter
 }
 
 #include "serverevents.h"
@@ -2458,7 +2440,11 @@ void senddisconnectedscores(int cn)
 
 const char *disc_reason(int reason)
 {
-    static const char *disc_reasons[DISC_NUM] = { "normal", "error - end of packet", "error - client num", "vote-kicked from the server", "vote-banned from the server", "error - tag type", "connection refused - you have been banned from this server", "incorrect password", "unsuccessful administrator login", "the server is FULL - try again later", "servers mastermode is \"private\" - wait until the servers mastermode is \"open\"", "auto-kick - your score dropped below the servers threshold", "auto-ban - your score dropped below the servers threshold", "duplicate connection", "inappropriate nickname", "error - packet flood", "auto-kick - team killing detected", "auto-kick - abnormal client behavior detected" };
+    static const char *disc_reasons[DISC_NUM] = {
+        "normal", "end of packet/overread", "vote-kicked", "vote-banned", "tag type", "connection refused - banned", "incorrect password", "failed login", "the server is FULL - try again later", "mastermode is \"private\" - must be \"open\"",
+        "bad nickname", "nickname is IP protected", "nickname requires password", "duplicate connection", "error - packet flood",
+        "extension", "ext2", "ext3"
+    };
     return reason >= 0 && (size_t)reason < sizeof(disc_reasons)/sizeof(disc_reasons[0]) ? disc_reasons[reason] : "unknown";
 }
 
@@ -2837,12 +2823,12 @@ void process(ENetPacket *packet, int sender, int chan)
             else if(wl == NWL_IPFAIL || wl == NWL_PWDFAIL)
             { // nickname matches whitelist, but IP is not in the required range or PWD doesn't match
                 logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong %s%s", cl->gethostname(), cl->name, wl == NWL_IPFAIL ? "IP" : "PWD", tags);
-                disconnect_client(sender, DISC_BADNICK);
+                disconnect_client(sender, wl == NWL_IPFAIL ? DISC_NAME_IP : DISC_NAME_PWD);
             }
             else if(bl > 0)
             { // nickname matches blacklist
                 logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d%s", cl->gethostname(), cl->name, bl, tags);
-                disconnect_client(sender, DISC_BADNICK);
+                disconnect_client(sender, DISC_NAME);
             }
             else if(passwords.check(cl->name, cl->pwd, cl->salt, &pd, (cl->type==ST_TCPIP ? cl->peer->address.host : 0)) && (pd.priv >= CR_ADMIN || (banned && !srvfull && !srvprivate)) && bantype != BAN_MASTER) // pass admins always through
             { // admin (or deban) password match
@@ -3112,12 +3098,12 @@ void process(ENetPacket *packet, int sender, int chan)
                     else if(servmillis - cl->lastprofileupdate > 10000) cl->fastprofileupdates = 0;
                     cl->lastprofileupdate = servmillis;
 
-                    switch(nickblacklist.checkwhitelist(*cl))
+                    switch (const int nwl = nickblacklist.checkwhitelist(*cl))
                     {
                         case NWL_PWDFAIL:
                         case NWL_IPFAIL:
                             logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong IP/PWD", cl->gethostname(), cl->name);
-                            disconnect_client(sender, DISC_BADNICK);
+                            disconnect_client(sender, nwl == NWL_IPFAIL ? DISC_NAME_IP : DISC_NAME_PWD);
                             break;
 
                         case NWL_UNLISTED:
@@ -3126,7 +3112,7 @@ void process(ENetPacket *packet, int sender, int chan)
                             if(l >= 0)
                             {
                                 logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d", cl->gethostname(), cl->name, l);
-                                disconnect_client(sender, DISC_BADNICK);
+                                disconnect_client(sender, DISC_NAME);
                             }
                             break;
                         }
@@ -4608,7 +4594,7 @@ void initserver(bool dedicated, int argc, char **argv)
         if(scl.mapperm[0]) logline(ACLOG_VERBOSE,"map permission string: \"%s\"", scl.mapperm);
         logline(ACLOG_VERBOSE,"server description: \"%s\"", scl.servdesc_full);
         if(scl.servdesc_pre[0] || scl.servdesc_suf[0]) logline(ACLOG_VERBOSE,"custom server description: \"%sCUSTOMPART%s\"", scl.servdesc_pre, scl.servdesc_suf);
-        logline(ACLOG_VERBOSE,"maxclients: %d, kick threshold: %d, ban threshold: %d", scl.maxclients, scl.kickthreshold, scl.banthreshold);
+        logline(ACLOG_VERBOSE,"maxclients: %d, lag trust: %d", scl.maxclients, scl.lagtrust);
         if(scl.master) logline(ACLOG_VERBOSE,"master server URL: \"%s\"", scl.master);
         if(scl.serverpassword[0]) logline(ACLOG_VERBOSE,"server password: \"%s\"", hiddenpwd(scl.serverpassword));
 #ifdef ACAC
