@@ -388,6 +388,8 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
 VARP(aboveheadiconsize, 0, 140, 1000);
 VARP(aboveheadiconfadetime, 1, 2000, 10000);
 
+const int waypointsize = 50;
+
 void renderaboveheadicon(playerent *p)
 {
     int t = lastmillis-p->lastvoicecom;
@@ -404,6 +406,208 @@ void renderaboveheadicon(playerent *p)
     quad(tex->id, vec(s/2.0f, 0.0f, s), vec(s/-2.0f, 0.0f, 0.0f), 0.0f, 0.0f, 1.0f, 1.0f);
     glDisable(GL_BLEND);
     glPopMatrix();
+}
+
+inline float render_2d_as_3d_start(const vec &o, bool thruwalls = true)
+{
+    glPushMatrix();
+    /*
+    glDisable(GL_TEXTURE_2D);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDepthMask(GL_FALSE);
+    glStencilMask(0x000000);
+    glDisable(GL_CULL_FACE);
+    */
+    if (thruwalls) glDisable(GL_DEPTH_TEST);
+    glDisable(GL_FOG);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+    glTranslatef(o.x, o.y, o.z);
+    glRotatef(camera1->yaw - 180, 0, 0, 1);
+    glRotatef(camera1->pitch, 1, 0, 0);
+    glRotatef(camera1->roll, 0, -1, 0);
+    extern float zoomfactor();
+    return sqrtf(o.dist(camera1->o)*zoomfactor());
+}
+
+inline void render_2d_as_3d_end(bool thruwalls = true)
+{
+    /*
+    glEnable(GL_CULL_FACE);
+    glStencilMask(0xFFFFFF);
+    glDepthMask(GL_TRUE);
+    glDisable(GL_BLEND);
+    glEnable(GL_TEXTURE_2D);
+    */
+    glDisable(GL_BLEND);
+    glEnable(GL_FOG);
+    if (thruwalls) glEnable(GL_DEPTH_TEST);
+    glPopMatrix();
+}
+
+void renderwaypoint(int wp, const vec &o, float alpha, bool thruwalls)
+{
+    static Texture *tex = NULL;
+    if (!tex)
+    {
+        tex = textureload("packages/misc/waypoints.png");
+        if (!tex) return;
+    }
+    const float scale = render_2d_as_3d_start(o, thruwalls), s = waypointsize / (wp == WP_KNIFE || wp == WP_EXP ? 200.f : 100.f) * scale;
+    glColor4f(1, 1, 1, alpha);
+    quad(tex->id, vec(s / 2.0f, 0.0f, s), vec(s / -2.0f, 0.0f, 0.0f), (wp % 6) / 6.f, (wp / 6) / 3.f, 1.0f / 6, 1.0f / 3);
+    render_2d_as_3d_end(thruwalls);
+}
+
+void renderprogress_back(const vec &o, const color &c)
+{
+    const float scale = render_2d_as_3d_start(o), s = waypointsize / 100.f * scale;
+    glColor4f(c.r, c.g, c.b, c.alpha);
+    quad(0, vec(.52f * scale, 0.0f, s + .27f * scale), vec(-.52f * scale, 0.0f, s + .08f * scale), 0.0f, 0.0f, 1.0f, 1.0f);
+    render_2d_as_3d_end();
+}
+
+void renderprogress(const vec &o, float progress, const color &c, float offset)
+{
+    const float scale = render_2d_as_3d_start(o), s = waypointsize / 100.f * scale;
+    glColor4f(c.r, c.g, c.b, c.alpha);
+    quad(0, vec((.5f - 1.f * offset) * scale, 0.0f, s + .25f * scale), vec((.5f - 1.f * (offset + progress)) * scale, 0.0f, s + .1f * scale), 0.0f, 0.0f, 1.0f, 1.0f);
+    render_2d_as_3d_end();
+}
+
+void renderwaypoints()
+{
+    if (!waypointsize) return;
+    // throwing knife pickups
+    /*
+    loopv(knives)
+    {
+        vec s;
+        bool ddt = focus->perk2 == PERK2_VISION;
+        if (!ddt)
+        {
+            vec dir, s;
+            (dir = focus->o).sub(knives[i].o).normalize();
+            ddt = rayclip(knives[i].o, dir, s) + 1.f >= focus->o.dist(knives[i].o);
+        }
+        renderwaypoint(WP_KNIFE, knives[i].o, (float)(knives[i].millis - totalmillis) / KNIFETTL, ddt);
+    }
+    */
+    // vision perk
+    if (focus->perk2 == PERK2_VISION)
+        loopv(bounceents)
+        {
+            bounceent *b = bounceents[i];
+            if (!b || (b->bouncetype != BT_NADE && b->bouncetype != BT_KNIFE)) continue;
+            if (b->bouncetype == BT_NADE && ((grenadeent *)b)->nadestate != 1) continue;
+            //if (b->bouncetype == BT_KNIFE && ((knifeent *)b)->knifestate != 1) continue;
+            renderwaypoint(b->bouncetype == BT_NADE ? WP_EXP : WP_KNIFE, b->o);
+        }
+    // flags
+    const int teamfix = focus->team == TEAM_SPECT ? TEAM_CLA : focus->team;
+    if (m_flags(gamemode))
+    {
+        if (m_secure(gamemode)) loopv(ents)
+        {
+            entity &e = ents[i];
+            if (e.type == CTF_FLAG && e.attr2 >= 2)
+            {
+                vec o(e.x, e.y, (float)S(int(e.x), int(e.y))->floor + PLAYERHEIGHT);
+                renderwaypoint(e.attr2 - 2 == TEAM_SPECT ? WP_SECURE : (e.attr2 - 2) == teamfix ? WP_DEFEND : WP_OVERTHROW, o, e.attr4 ? fabs(sinf(lastmillis / 200.f)) : 1.f, true);
+                if (e.attr4)
+                {
+                    float progress = e.attr4 / 255.f;
+                    renderprogress_back(o, color(0, 0, 0, .35f));
+                    if (m_gsp1(gamemode, mutators))
+                        renderprogress(o, progress, e.attr3 ? color(0, 0, 1, .28f) : color(1, 0, 0, .28f));
+                    else
+                    {
+                        renderprogress(o, e.attr2 - 2 == TEAM_SPECT ? .5f : progress / 2.f, color(1, 1, 1, .28f));
+                        if (e.attr2 - 2 == TEAM_SPECT)
+                            renderprogress(o, progress / 2.f, e.attr3 ? color(0, 0, 1, .28f) : color(1, 0, 0, .28f), .5f);
+                    }
+                }
+            }
+        }
+        else loopi(2)
+        {
+            const float a = 1;
+            int wp = -1;
+            vec o;
+
+            flaginfo &f = flaginfos[i];
+            entity &e = *f.flagent;
+
+            // flag
+            switch (f.state)
+            {
+                case CTFF_STOLEN:
+                    if (f.actor == focus && !isthirdperson) break;
+                    if (OUTBORD(f.actor->o.x, f.actor->o.y)) break;
+                    o = f.actor->o;
+                    wp = (focus == f.actor || (m_team(gamemode, mutators) && f.actor->team == teamfix)) ?
+                        // friendly
+                        (m_capture(gamemode) || m_bomber(gamemode)) ? WP_ESCORT : WP_DEFEND
+                        : // hostile below
+                        WP_KILL;
+                    break;
+                case CTFF_DROPPED:
+                    if (OUTBORD(f.pos.x, f.pos.y)) break;
+                    o = f.pos;
+                    o.z += PLAYERHEIGHT;
+                    if (m_capture(gamemode)) wp = i == teamfix ? WP_RETURN : WP_ENEMY;
+                    else if (m_keep(gamemode)) wp = WP_ENEMY;
+                    else if (m_bomber(gamemode)) wp = i == teamfix ? WP_BOMB : WP_DEFUSE;
+                    else wp = i == teamfix ? WP_FRIENDLY : WP_GRAB;
+                    break;
+            }
+            o.z += PLAYERABOVEEYE;
+            if (wp >= 0 && wp < WP_NUM) renderwaypoint(wp, o, a);
+
+            if (OUTBORD(e.x, e.y)) continue;
+
+            // flag base
+            wp = WP_STOLEN; // "wait"
+            switch (f.state){
+                default: // stolen or dropped
+                    if (m_bomber(gamemode)) wp = flaginfos[team_opposite(i)].state != CTFF_INBASE ? i == teamfix ? WP_DEFEND : WP_TARGET : -1;
+                    else if (m_keep(gamemode) ? (f.actor != focus && !isteam(f.actor, focus)) : m_team(gamemode, mutators) ? (i != teamfix) : (f.actor != focus)) wp = -1; break;
+                case CTFF_INBASE:
+                    if (m_capture(gamemode)){
+                        wp = i == teamfix ? WP_FRIENDLY : WP_GRAB;
+                    }
+                    else if (m_bomber(gamemode))
+                        wp = i == teamfix ? WP_BOMB : WP_TARGET;
+                    else if (m_hunt(gamemode))
+                        wp = i == teamfix ? WP_FRIENDLY : WP_ENEMY;
+                    else{ // if(m_keep(gamemode)){
+                        wp = WP_GRAB;
+                    }
+                    break;
+                case CTFF_IDLE: // KTF only
+                    // WAIT here if the opponent has the flag
+                    if (flaginfos[team_opposite(i)].state == CTFF_STOLEN && flaginfos[team_opposite(i)].actor && focus != flaginfos[team_opposite(i)].actor && !isteam(flaginfos[team_opposite(i)].actor, focus))
+                        break;
+                    wp = WP_ENEMY;
+                    break;
+            }
+            if (wp >= 0 && wp < WP_NUM) renderwaypoint(wp, vec(e.x, e.y, (float)S(int(e.x), int(e.y))->floor + PLAYERHEIGHT), a);
+        }
+    }
+    // players
+    loopv(players)
+    {
+        playerent *pl = i == getclientnum() ? player1 : players[i];
+        if (!pl || (pl == focus && !isthirdperson) || pl->state == CS_DEAD) continue;
+        const bool has_flag = m_flags(gamemode) && (flaginfos[0].state == CTFF_STOLEN && flaginfos[0].actor_cn == i) || (flaginfos[1].state == CTFF_STOLEN && flaginfos[1].actor_cn == i);
+        if (has_flag) continue;
+        const bool has_nuke = false; // pl->nukemillis >= totalmillis;
+        if (has_nuke || m_psychic(gamemode, mutators)){
+            renderwaypoint((focus == pl || isteam(focus, pl)) ? WP_DEFEND : WP_KILL, pl->o);
+            if (has_nuke) renderwaypoint(WP_NUKE, vec(pl->o.x, pl->o.y, pl->o.z + PLAYERHEIGHT));
+        }
+    }
 }
 
 void rendercursor(int x, int y, int w)
@@ -952,15 +1156,14 @@ VARP(specthudgun, 0, 1, 1);
 
 inline float zoomfactor()
 {
-    playerent * const p = focus;
     float adsmax = .864f, zoomf = adszoom/100.f;
-    if(sniper_weap(p->weaponsel->type) && p->zoomed)
+    if (sniper_weap(focus->weaponsel->type) && focus->zoomed)
     {
         adsmax = ADSZOOM;
         zoomf = scopezoom/100.f;
     }
-    else if (p->weaponsel->type == GUN_HEAL) zoomf = 0;
-    return min(p->zoomed / adsmax, 1.f) * zoomf + 1;
+    else if (focus->weaponsel->type == GUN_HEAL) zoomf = 0;
+    return min(focus->zoomed / adsmax, 1.f) * zoomf + 1;
 }
 
 void setperspective(float fovy, float nearplane)
@@ -1165,6 +1368,8 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
 
     readdepth(w, h, worldpos);
     playerincrosshair(worldhit, worldhitzone, (worldhitpos = worldpos));
+
+    renderwaypoints();
 
     startmodelbatches();
     renderclients();
