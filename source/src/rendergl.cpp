@@ -1155,7 +1155,7 @@ int xtraverts;
 VARP(hudgun, 0, 1, 1);
 VARP(specthudgun, 0, 1, 1);
 
-inline float zoomfactor()
+float zoomfactor()
 {
     float adsmax = .864f, zoomf = adszoom/100.f;
     if (sniper_weap(focus->weaponsel->type) && focus->zoomed)
