@@ -66,6 +66,7 @@ misc
 	obit.png - [LGPL] Combined by Victor from [LGPL] Crystal Icons
 	scope.png - [CC BY-NC-SA 3.0] Adjusted by Victor [CC BY-NC-SA 3.0] DeltaStrikeOp
 	startscreen.png - [Public Domain] Victor
+	waypoints.png - [CC BY-NC-SA 3.0] Victor except airstrike, enemy, friendly, grab, knife, nuke, stolen, return [©] Activision
 models
 	pickups
 		confirm
@@ -109,13 +110,3 @@ models
 			e-mail: makk_e@web.de
 perks - [CC BY 3.0] Colored Perk Icons for ACR Victor - adapted from [CC BY 3.0] Perks Icons for ACR by Protox
 streak - [LGPL] Colorized/Modified by Victor - [LGPL] Crystal Icons
-waypoints - [CC BY-NC-SA 3.0] Victor
-	airstrike.png
-	enemy.png
-	friendly.png
-	grab.png
-	knife.png
-	nuke.png
-	stolen.png
-	return.png
-		[©] Activision
