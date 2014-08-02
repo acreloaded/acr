@@ -511,10 +511,11 @@ void renderwaypoints()
         if (m_secure(gamemode)) loopv(ents)
         {
             entity &e = ents[i];
-            if (e.type == CTF_FLAG && e.attr2 >= 2)
+            const int team = e.attr2 - 2;
+            if (e.type == CTF_FLAG && team >= 0)
             {
                 vec o(e.x, e.y, (float)S(int(e.x), int(e.y))->floor + PLAYERHEIGHT);
-                renderwaypoint(e.attr2 - 2 == TEAM_SPECT ? WP_SECURE : (e.attr2 - 2) == teamfix ? WP_DEFEND : WP_OVERTHROW, o, e.attr4 ? fabs(sinf(lastmillis / 200.f)) : 1.f, true);
+                renderwaypoint(team == TEAM_SPECT ? WP_SECURE : team == teamfix ? WP_DEFEND : WP_OVERTHROW, o, e.attr4 ? fabs(sinf(lastmillis / 200.f)) : 1.f, true);
                 if (e.attr4)
                 {
                     float progress = e.attr4 / 255.f;
@@ -523,8 +524,8 @@ void renderwaypoints()
                         renderprogress(o, progress, e.attr3 ? color(0, 0, 1, .28f) : color(1, 0, 0, .28f));
                     else
                     {
-                        renderprogress(o, e.attr2 - 2 == TEAM_SPECT ? .5f : progress / 2.f, color(1, 1, 1, .28f));
-                        if (e.attr2 - 2 == TEAM_SPECT)
+                        renderprogress(o, team == TEAM_SPECT ? .5f : progress / 2.f, color(1, 1, 1, .28f));
+                        if (team == TEAM_SPECT)
                             renderprogress(o, progress / 2.f, e.attr3 ? color(0, 0, 1, .28f) : color(1, 0, 0, .28f), .5f);
                     }
                 }

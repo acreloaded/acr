@@ -898,10 +898,10 @@ void preparectf(bool cleanonly=false)
         loopv(ents)
         {
             entity &e = ents[i];
-            if(e.type==CTF_FLAG)
+            if (e.type == CTF_FLAG && e.attr2 < 2)
             {
                 e.spawned = true;
-                if(e.attr2>=2) { conoutf(_("%c3invalid ctf-flag entity (%i)"), CC, i); e.attr2 = 0; }
+                if(e.attr2>=2) { conoutf(_("%c3invalid ctf-flag entity (%i as %d)"), CC, i, e.attr2); e.attr2 = 0; }
                 flaginfo &f = flaginfos[e.attr2];
                 f.flagent = &e;
                 f.pos.x = (float) e.x;
