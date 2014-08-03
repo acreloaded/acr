@@ -422,10 +422,12 @@ void deathstate(playerent *pl)
     pl->spectatemode = SM_DEATHCAM;
     pl->respawnoffset = pl->lastpain = lastmillis;
     pl->move = pl->strafe = 0;
-    pl->pitch = pl->roll = 0;
+    pl->roll = 0;
     pl->zoomed = 0;
-    pl->attacking = false;
+    pl->attacking = pl->scoping = false;
     pl->weaponsel->onownerdies();
+    pl->damagelog.setsize(0);
+    pl->radarmillis = 0;
 
     if(pl==player1)
     {
@@ -705,8 +707,6 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, int style, c
         vec dir = pl->o;
         dir.sub(src).normalize();
         pl->hitpush(damage, dir, actor, gun);
-        // TODO assists
-        //if(pl->damagelog.find(actor->clientnum) < 0) pl->damagelog.add(actor->clientnum);
     }
 
     // critical damage
@@ -769,12 +769,12 @@ void dokill(playerent *pl, playerent *act, int gun, int style, int damage, int c
     }
 
     // assist checks
-    //pl->damagelog.removeobj(pl->clientnum);
-    //pl->damagelog.removeobj(act->clientnum);
-    //loopv(pl->damagelog) if (!getclient(pl->damagelog[i])) pl->damagelog.remove(i--);
+    pl->damagelog.removeobj(pl->clientnum);
+    pl->damagelog.removeobj(act->clientnum);
+    loopv(pl->damagelog) if (!getclient(pl->damagelog[i])) pl->damagelog.remove(i--);
 
     // killfeed
-    addobit(act, gun, style, headshot, pl, combo, /*pl->damagelog.length()*/ 0);
+    addobit(act, gun, style, headshot, pl, combo, pl->damagelog.length());
 
     // sound
     audiomgr.playsound(S_DIE1 + rnd(2), pl);

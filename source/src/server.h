@@ -123,7 +123,7 @@ struct clientstate : playerstate
     int state;
     int lastdeath, spawn, lifesequence;
     bool forced;
-    int lastshot;
+    int lastshot, lastkill, combo;
     projectilestate<6> grenades; // 5000ms TLL / (we can throw one every 650ms+200ms) = 6 nades possible
     projectilestate<3> knives;
     int akimbomillis, crouchmillis, scopemillis, drownmillis, drownval;
@@ -181,7 +181,7 @@ struct clientstate : playerstate
         vel = vec(0, 0, 0);
         lastdeath = 0;
         spawn = 0;
-        lastshot = 0;
+        lastshot = lastkill = combo = 0;
         akimbomillis = crouchmillis = scopemillis = drownmillis = drownval = 0;
         scoped = crouching = onfloor = false;
         fallz = -1e10f;

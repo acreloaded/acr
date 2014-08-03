@@ -38,7 +38,7 @@ int matchteamsize = 0;
 
 long int incoming_size = 0;
 
-static bool forceintermission = false;
+static bool forceintermission = false, nokills = false;
 
 string servdesc_current;
 ENetAddress servdesc_caller;
@@ -1282,6 +1282,7 @@ void arenacheck()
                 sendspawn(clients[i]);
         }
         items_blocked = false;
+        nokills = true;
         return;
     }
 
@@ -1505,42 +1506,215 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 {
     clientstate &ts = target->state;
 
+    const bool suic = (target == actor);
+    const bool tk = !suic && isteam(target->team, actor->team);
     int targethasflag = clienthasflag(target->clientnum);
-    bool tk = false, suic = false;
-    target->state.deaths++;
-    if (target != actor)
+
+    ts.damagelog.removeobj(target->clientnum);
+    // detect assisted suicide
+    if (suic && ts.damagelog.length() && gun != OBIT_NUKE)
     {
-        if (!isteam(target->team, actor->team)) actor->state.frags += (style & FRAG_GIB) && gun != GUN_GRENADE && gun != GUN_SHOTGUN ? 2 : 1;
+        loopv(ts.damagelog)
+            if (valid_client(ts.damagelog[i]) && !isteam(target->team, clients[ts.damagelog[i]]->team))
+            {
+                actor = clients[ts.damagelog[i]];
+                style = isheadshot(gun, style) ? FRAG_GIB : FRAG_NONE;
+                gun = OBIT_ASSIST;
+                ts.damagelog.remove(i/*--*/);
+                break;
+            }
+    }
+    // only things on target team that changes
+    //if (!m_confirm(gamemode, mutators)) ++usesteamscore(target->team).deaths;
+    // apply to individual
+    ++target->state.invalidate().deaths;
+    addpt(target, DEATHPT);
+    const int kills = (suic || tk) ? -1 : ((style & FRAG_GIB) ? 2 : 1);
+    actor->state.invalidate().frags += kills;
+
+    if (!suic)
+    {
+        // revenge
+        if (actor->state.revengelog.find(target->clientnum) >= 0)
+        {
+            style |= FRAG_REVENGE;
+            actor->state.revengelog.removeobj(target->clientnum);
+        }
+        target->state.revengelog.add(actor->clientnum);
+        // first blood (not for AI)
+        if (actor->type != ST_AI && nokills)
+        {
+            style |= FRAG_FIRST;
+            nokills = false;
+        }
+        // type of scoping
+        const int zoomtime = ADSTIME(actor->state.perk2 == PERK_TIME), scopeelapsed = gamemillis - actor->state.scopemillis;
+        if (actor->state.scoping)
+        {
+            // quick/recent/full
+            if (scopeelapsed >= zoomtime)
+            {
+                style |= FRAG_SCOPE_FULL;
+                if (scopeelapsed < zoomtime + 300)
+                    style |= FRAG_SCOPE_NONE; // recent, not hard
+            }
+        }
         else
         {
-            actor->state.frags--;
-            actor->state.teamkills++;
-            tk = true;
+            // no/quick
+            if (scopeelapsed >= zoomtime) style |= FRAG_SCOPE_NONE;
+        }
+        // buzzkill check
+        //if (buzzkilled)
+        if (false)
+        {
+            addptreason(actor, PR_BUZZKILL);
+            addptreason(target, PR_BUZZKILLED);
+        }
+        // streak
+        /*
+        if (gun != OBIT_NUKE)
+            actor->state.pointstreak += 5;
+        ++ts.deathstreak;
+        actor->state.deathstreak = ts.streakused = 0;
+        */
+        // teamkilling a flag carrier is bad
+        if ((m_hunt(gamemode) || m_keep(gamemode)) && tk && targethasflag >= 0)
+            --actor->state.invalidate().flagscore;
+    }
+
+    //ts.pointstreak = 0;
+    ts.wounds.shrink(0);
+    ts.damagelog.removeobj(actor->clientnum);
+    target->invalidateheals();
+
+    // assists
+    /*
+    loopv(ts.damagelog)
+    {
+        if (valid_client(ts.damagelog[i]))
+        {
+            const int factor = isteam(clients[ts.damagelog[i]], target) ? -1 : 1;
+            clients[ts.damagelog[i]]->state.invalidate().assists += factor;
+            if (factor > 0)
+                usesteamscore(actor->team).assists += factor; // add to assists
+            clients[ts.damagelog[i]]->state.pointstreak += factor * 2;
+        }
+        else ts.damagelog.remove(i--);
+    }
+    */
+
+    // killstreak rewards
+    // TODO
+
+    // combo reset check
+    if (gamemillis >= actor->state.lastkill + COMBOTIME) actor->state.combo = 0;
+    actor->state.lastkill = gamemillis;
+
+    // team points
+    int earnedpts = killpoints(target, actor, gun, style);
+    /*
+    if (m_confirm(gamemode, mutators))
+    {
+        // create confirm object if necessary
+        if (earnedpts > 0 || kills > 0)
+        {
+            sconfirm &c = sconfirms.add();
+            c.o = ts.o;
+            sendf(-1, 1, "ri3f3", SV_CONFIRMADD, c.id = ++confirmseq, c.team = actor->team, c.o.x, c.o.y, c.o.z);
+            c.actor = actor->clientnum;
+            c.target = target->clientnum;
+            c.points = max(0, earnedpts);
+            c.frag = max(0, kills);
+            c.death = target->team;
         }
     }
     else
-    { // suicide
-        actor->state.frags--;
-        suic = true;
-        logline(ACLOG_INFO, "[%s] %s suicided", actor->gethostname(), actor->formatname());
+    */
+    {
+        //if (earnedpts > 0) usesteamscore(actor->team).points += earnedpts;
+        //if (kills > 0) usesteamscore(actor->team).frags += kills;
     }
-    sendf(-1, 1, "ri8i3iv", SV_KILL, target->clientnum, actor->clientnum, gun, style, damage, 1,
-        (int)(source.x*DMF), (int)(source.y*DMF), (int)(source.z*DMF), (int)(killdist*DMF), 0, 0, NULL);
+
+    // automatic zombie count?
+
+    // send message
+    sendf(-1, 1, "ri8i3iv", SV_KILL, target->clientnum, actor->clientnum, gun, style, damage, ++actor->state.combo,
+        (int)(source.x*DMF), (int)(source.y*DMF), (int)(source.z*DMF), (int)(killdist*DMF),
+        ts.damagelog.length(), ts.damagelog.length(), ts.damagelog.getbuf());
+
     target->position.setsize(0);
     ts.state = CS_DEAD;
     ts.lastdeath = gamemillis;
-    if (!suic) logline(ACLOG_INFO, "[%s] %s [%s]%s %s", actor->gethostname(), actor->formatname(), killname(gun, style), tk ? " teammate" : "", target->formatname());
-    if (m_flags(gamemode) && targethasflag >= 0)
-    {
-        if (m_capture(gamemode))
-            flagaction(targethasflag, tk ? FA_RESET : FA_LOST, -1);
-        else if (m_hunt(gamemode))
-            flagaction(targethasflag, FA_LOST, -1);
-        else // ktf || tktf
-            flagaction(targethasflag, FA_RESET, -1);
-    }
     // don't issue respawn yet until DEATHMILLIS has elapsed
     // ts.respawn();
+    
+    // log message
+    if (target == actor)
+        logline(ACLOG_INFO, "[%s] %s [%s] (%.2f m)", actor->gethostname(), actor->formatname(), suicname(gun), killdist / 4.f);
+    else
+        logline(ACLOG_INFO, "[%s] %s [%s] %s (%.2f m)", actor->gethostname(), actor->formatname(), killname(gun, style), target->formatname(), killdist / 4.f);
+
+    // drop flags
+    if (targethasflag >= 0 && m_flags(gamemode) && !m_secure(gamemode))
+    {
+        if (m_ktf2(gamemode, mutators) && // KTF2 only
+            sflaginfos[team_opposite(targethasflag)].state != CTFF_INBASE) // other flag is not in base
+        {
+            if (sflaginfos[0].actor_cn == sflaginfos[1].actor_cn) // he has both
+            {
+                // reset the far one
+                const int farflag = ts.o.distxy(vec(sflaginfos[0].x, sflaginfos[0].y, 0)) > ts.o.distxy(vec(sflaginfos[1].x, sflaginfos[1].y, 0)) ? 0 : 1;
+                flagaction(farflag, FA_RESET, -1);
+                // drop the close one
+                targethasflag = team_opposite(farflag);
+            }
+            else // he only has this one
+            {
+                // reset this one
+                flagaction(targethasflag, FA_RESET, -1);
+                targethasflag = -1;
+            }
+        }
+        // drop all flags
+        while (targethasflag >= 0)
+        {
+            flagaction(targethasflag, (tk && m_capture(gamemode)) ? FA_RESET : FA_LOST, -1);
+            targethasflag = clienthasflag(target->clientnum);
+        }
+    }
+
+    // target streaks
+    /*
+    if (target->state.nukemillis)
+    {
+        // nuke cancelled!
+        target->state.nukemillis = 0;
+        sendf(-1, 1, "ri4", SV_STREAKUSE, target->clientnum, STREAK_NUKE, -2);
+    }
+    */
+    // deathstreaks MUST be processed after setting to CS_DEAD
+    /*
+    if ((explosive_weap(gun) || isheadshot(gun, style)) && ts.streakondeath == STREAK_REVENGE)
+        ts.streakondeath = STREAK_DROPNADE;
+    usestreak(*target, ts.streakondeath, m_zombie(gamemode) ? actor : NULL);
+    */
+
+    if (!suic)
+    {
+#if (SERVER_BUILTISV_MOD & 8)
+        // gungame advance
+#endif
+        // conversions
+        /*
+        if (m_convert(gamemode, mutators) && target->team != actor->team)
+        {
+            updateclientteam(target->clientnum, actor->team, FTR_SILENT);
+            // checkai(); // DO NOT balance bots here
+            convertcheck(true);
+        }
+        */
+    }
 }
 
 void client::suicide(int gun, int style)
@@ -1551,17 +1725,67 @@ void client::suicide(int gun, int style)
 
 void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source, float dist)
 {
-    if ( m_duke(gamemode, mutators) && gun == GUN_GRENADE && arenaroundstartmillis + 2000 > gamemillis && target != actor ) return;
-    clientstate &ts = target->state;
-    ts.dodamage(damage, gun);
-    if(damage < INT_MAX)
+    // moon jump = no damage during gib
+#if (SERVER_BUILTIN_MOD & 34) == 34 // 2 + 32
+#if (SERVER_BUILTIN_MOD & 4) != 4
+    if (m_gib(gamemode, mutators))
+#endif
+        return;
+#endif
+    if (!target || !actor || !damage) return;
+
+    if (target != actor)
     {
-        actor->state.damage += damage;
+        if (isteam(actor, target))
+        {
+            // for hardcore modes only
+            damage /= 2;
+            target = actor;
+        }
+        else if (m_vampire(gamemode, mutators) && actor->state.health < VAMPIREMAX)
+        {
+            int hpadd = damage / (rnd(3) + 3);
+            // cap at 300 HP
+            if (actor->state.health + hpadd > VAMPIREMAX)
+                hpadd = VAMPIREMAX - actor->state.health;
+            sendf(-1, 1, "ri3", SV_REGEN, actor->clientnum, actor->state.health += hpadd);
+        }
+    }
+
+    clientstate &ts = target->state;
+    if (ts.state != CS_ALIVE) return;
+
+    // damage changes
+    if (m_expert(gamemode, mutators))
+    {
+        if (gun == GUN_RPG)
+            damage /= ((style & (FRAG_GIB | FRAG_FLAG)) == (FRAG_GIB | FRAG_FLAG)) ? 1 : 3;
+        else if ((gun == GUN_GRENADE && (style & FRAG_FLAG)) || (style & FRAG_GIB) || melee_weap(gun))
+            damage *= 2;
+        else if (gun == GUN_GRENADE) damage /= 2;
+        else damage /= 8;
+    }
+    else if (m_real(gamemode, mutators))
+    {
+        if (gun == GUN_HEAL && target == actor) damage /= 2;
+        else damage *= 2;
+    }
+    else if (m_classic(gamemode, mutators)) damage /= 2;
+
+    ts.dodamage(damage, gun);
+    // ts.dodamage(damage, actor->state.perk1 == PERK_POWER);
+    ts.lastregen = gamemillis + REGENDELAY - REGENINT;
+    //ts.allowspeeding(gamemillis, 2000);
+
+    if (ts.health <= 0)
+        serverdied(target, actor, damage, gun, style, source, dist);
+    else
+    {
+        if (ts.damagelog.find(actor->clientnum) < 0)
+            ts.damagelog.add(actor->clientnum);
         sendf(-1, 1, "ri8i3", SV_DAMAGE, target->clientnum, actor->clientnum, damage, ts.armour, ts.health, gun, style,
             (int)(source.x*DMF), (int)(source.y*DMF), (int)(source.z*DMF));
     }
-    if (ts.health <= 0)
-        serverdied(target, actor, damage, gun, style, source, dist);
 }
 
 #include "serverevents.h"
@@ -2055,6 +2279,8 @@ void startgame(const char *newname, int newmode, int newmuts, int newtime, bool 
         if(ms) concatformatstring(gsmsg, "(map rev %d/%d, %s, 'getmap' %sprepared)", smapstats.hdr.maprevision, smapstats.cgzsize, maplocstr[maploc], mapbuffer.available() ? "" : "not ");
         else concatformatstring(gsmsg, "error: failed to preload map (map: %s)", maplocstr[maploc]);
         logline(ACLOG_INFO, "\n%s", gsmsg);
+        arenaround = 0;
+        nokills = true;
         if(m_duke(gamemode, mutators)) distributespawns();
         if(notify)
         {

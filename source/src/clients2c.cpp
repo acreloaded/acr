@@ -943,9 +943,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 //if (actor) actor->pointstreak = pointstreak;
                 if (victim)
                 {
-                    //victim->damagelog.setsize(0);
-                    //loopi(assists) victim->damagelog.add(getint(p));
-                    loopi(assists) getint(p);
+                    victim->damagelog.setsize(0);
+                    loopi(assists) victim->damagelog.add(getint(p));
                 }
                 else loopi(assists) getint(p);
                 // assists are consumed

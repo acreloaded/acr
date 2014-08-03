@@ -190,7 +190,8 @@ void addpt(client *c, int points, int reason)
 #define CTFFRAGPT   2*cnumber                      // player frags the flag stealer
 #define FRAGPT        10                           // player frags (normal)
 #define HEADSHOTPT    15                           // player gibs with head shot
-#define KNIFEPT       20                           // player gibs with the knife
+#define MELEEPT       20                           // player gibs with the knife or sword
+#define NADEPT        11                           // player gibs with a grenade
 #define SHOTGPT       12                           // player gibs with the shotgun
 #define GIBPT         11                           // player gibs otherwise
 
@@ -213,6 +214,56 @@ void addpt(client *c, int points, int reason)
 #define KCKILLPTS   3                              // player confirms a kill for himself or his teammate
 #define KCDENYPTS   2                              // player prevents the enemy from scoring KC points
 
+int killpoints(const client *target, client *actor, int gun, int style, bool assist = false)
+{
+    if (target == actor) return 0;
+    int cnumber = totalclients, gain = 0;
+    int reason = -1;
+    if (isteam(actor, target))
+    {
+        if (clienthasflag(target->clientnum) >= 0) gain += FLAGTKPT;
+        else gain += TKPT;
+    }
+    else
+    {
+        if (m_team(gamemode, mutators))
+        {
+            if (!m_flags(gamemode)) gain += TMBONUSPT;
+            else gain += FLBONUSPT;
+            if (m_hunt(gamemode) && clienthasflag(actor->clientnum) >= 0) gain += HTFFRAGPT;
+            if (m_capture(gamemode) && clienthasflag(target->clientnum) >= 0) gain += CTFFRAGPT;
+        }
+        else gain += BONUSPT;
+        if (style & FRAG_GIB)
+        {
+            if (melee_weap(gun)) gain += MELEEPT;
+            else if (gun == GUN_GRENADE) gain += NADEPT;
+            else if (gun == GUN_SHOTGUN)
+            {
+                gain += SHOTGPT;
+                reason = PR_SPLAT;
+            }
+            else if (isheadshot(gun, style))
+            {
+                gain += HEADSHOTPT;
+                reason = PR_HS;
+            }
+            else gain += GIBPT;
+        }
+        else gain += FRAGPT;
+    }
+    if (style & FRAG_FIRST) gain += FIRSTKILLPT;
+    if (style & FRAG_REVENGE) gain += REVENGEKILLPT;
+    gain *= clamp(actor->state.combo, 1, 5);
+    if (assist) gain *= ASSISTMUL;
+    else loopv(target->state.damagelog)
+    {
+        if (!valid_client(target->state.damagelog[i])) continue;
+        gain += max(0, killpoints(target, clients[target->state.damagelog[i]], gun, style, true)) * ASSISTRETMUL;
+    }
+    if (gain) addpt(actor, gain, assist ? PR_ASSIST : reason);
+    return gain;
+}
 
 int flagpoints(client *c, int message)
 {
