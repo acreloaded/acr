@@ -119,7 +119,7 @@ struct wound
 
 struct clientstate : playerstate
 {
-    vec o, vel, sg[SGRAYS];
+    vec o, vel, sg[SGRAYS], flagpickupo;
     int state;
     int lastdeath, spawn, lifesequence;
     bool forced;
@@ -248,26 +248,6 @@ struct savedscore
     }
 };
 
-struct medals
-{
-    int dpt, lasthit, lastgun, ncovers, nhs;
-    int combohits, combo, combofrags, combotime, combodamage, ncombos;
-    int ask, askmillis, linked, linkmillis, linkreason, upmillis, flagmillis;
-    int totalhits, totalshots;
-    bool updated, combosend;
-    vec pos, flagpos;
-    void reset()
-    {
-        dpt = lasthit = lastgun = ncovers = nhs = 0;
-        combohits = combo = combofrags = combotime = combodamage = ncombos = 0;
-        askmillis = linkmillis = upmillis = flagmillis = 0;
-        linkreason = linked = ask = -1;
-        totalhits = totalshots = 0;
-        updated = combosend = false;
-        pos = flagpos = vec(-1e10f, -1e10f, -1e10f);
-    }
-};
-
 struct client                   // server side version of "dynent" type
 {
     int type;
@@ -306,7 +286,6 @@ struct client                   // server side version of "dynent" type
     string authname; // for AUTH
     int mapcollisions, farpickups;
     enet_uint32 bottomRTT;
-    medals md;
     vec spawnp;
     int nvotes;
     int input, inputmillis;
@@ -365,7 +344,6 @@ struct client                   // server side version of "dynent" type
         lastevent = 0;
         at3_lastforce = eff_score = 0;
         mapcollisions = farpickups = 0;
-        md.reset();
         spawnp = vec(-1e10f, -1e10f, -1e10f);
         lmillis = ldt = spj = 0;
         f = g = y = p = t = 0;
@@ -474,6 +452,7 @@ bool canspawn(client *c, bool connecting = false);
 bool updateclientteam(int cln, int newteam, int ftr);
 void forcedeath(client *cl, bool gib = false);
 void sendf(int cn, int chan, const char *format, ...);
+void addpt(client *c, int points, int reason = -1);
 void serverdied(client *target, client *actor, int damage, int gun, int style, const vec &source, float killdist = 0);
 void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source, float dist = 0);
 int explosion(client &owner, const vec &o2, int weap, bool teamcheck, bool gib = true, client *cflag = NULL);
@@ -501,7 +480,7 @@ const char *messagenames[SV_NUM] =
     "SV_SG", "SV_RICOCHET", "SV_HEADSHOT", "SV_REGEN", "SV_HEAL", "SV_BLEED", "SV_STREAKREADY", "SV_STREAKUSE",
     "SV_KNIFEADD", "SV_KNIFEREMOVE",
     "SV_CONFIRMADD", "SV_CONFIRMREMOVE",
-    "SV_HUDEXTRAS", "SV_POINTS", "SV_DISCSCORES", "SV_KILL", "SV_DAMAGE",
+    "SV_POINTS", "SV_SCORE", "SV_TEAMSCORE", "SV_DISCSCORES", "SV_KILL", "SV_DAMAGE",
     "SV_TRYSPAWN", "SV_SPAWNSTATE", "SV_SPAWN", "SV_FORCEDEATH", "SV_FORCEGIB",
     "SV_ITEMSPAWN", "SV_ITEMACC",
     "SV_FLAGACTION", "SV_FLAGINFO", "SV_FLAGMSG", "SV_FLAGCNT",

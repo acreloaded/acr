@@ -8,8 +8,6 @@ inline bool outside_border(vec &po)
     return (po.x < 0 || po.y < 0 || po.x >= maplayoutssize || po.y >= maplayoutssize);
 }
 
-#define POW2XY(A,B) (pow2(A.x-B.x)+pow2(A.y-B.y))
-
 extern inline void addban(client *cl, int reason, int type = BAN_AUTO);
 
 #define MINELINE 50
@@ -150,24 +148,17 @@ int checkarea(int maplayout_factor, ssqr *maplayout)
     return maxarea;
 }
 
-/**
-This part is related to medals system. WIP
- */
-
-const char * medal_messages[] = { "defended the flag", "covered the flag stealer", "defended the dropped flag", "covered the flag keeper", "covered teammate" };
-enum { CTFLDEF, CTFLCOV, HTFLDEF, HTFLCOV, COVER, MEDALMESSAGENUM };
-inline void print_medal_messages(client *c, int n)
+inline void addptreason(client *c, int reason, int amt = 0)
 {
-    if (n<0 || n>=MEDALMESSAGENUM) return;
-    logline(ACLOG_VERBOSE, "[%s] %s %s", c->gethostname(), c->formatname(), medal_messages[n]);
+    if (c->type != ST_AI) sendf(c->clientnum, 1, "ri3", SV_POINTS, reason, amt);
 }
 
-inline void addpt(client *c, int points, int n = -1) {
-    c->state.points += points;
-    c->md.dpt += points;
-    c->md.updated = true;
-    c->md.upmillis = gamemillis + 240; // about 2 AR shots
-    print_medal_messages(c,n);
+void addpt(client *c, int points, int reason)
+{
+    if (!c || !points) return;
+    if (c->state.perk1 == PERK1_SCORE) points *= points > 0 ? 1.35f : 1.1f;
+    c->state.invalidate().points += points;
+    if (reason >= 0) addptreason(c, reason, points);
 }
 
 /** cnumber is the number of players in the game, at a max value of 12 */
@@ -181,6 +172,7 @@ inline void addpt(client *c, int points, int n = -1) {
 #define KTFSCOREPT   (cnumber*2+10)
 #define SECUREPT      10                           // Secure/Overthrow
 #define SECUREDPT     1                            // Secured bonus
+/*
 #define COMBOPT       5                            // player frags with combo
 #define REPLYPT       2                            // reply success
 #define TWDONEPT      5                            // team work done
@@ -189,6 +181,7 @@ inline void addpt(client *c, int points, int n = -1) {
 #define HTFLDEFPT     cnumber                      // player defended a droped flag (htf)
 #define HTFLCOVPT     cnumber*3                    // player covered the flag keeper (htf)
 #define COVERPT       cnumber*2                    // player covered teammate
+*/
 #define DEATHPT      -4                            // player died
 #define BONUSPT       target->state.points/400     // bonus (for killing high level enemies :: beware with exponential behavior!)
 #define FLBONUSPT     target->state.points/300     // bonus if flag team mode
@@ -199,356 +192,67 @@ inline void addpt(client *c, int points, int n = -1) {
 #define HEADSHOTPT    15                           // player gibs with head shot
 #define KNIFEPT       20                           // player gibs with the knife
 #define SHOTGPT       12                           // player gibs with the shotgun
+#define GIBPT         11                           // player gibs otherwise
+
+#define FIRSTKILLPT   25                           // player makes the first kill
+#define REVENGEKILLPT  5                           // player gets a payback
 #define TKPT         -20                           // player tks
 #define FLAGTKPT     -2*(10+cnumber)               // player tks the flag keeper/stealer
+
+#define ASSISTMUL 0.225f                           // multiply reward by this for assisters
+#define ASSISTRETMUL 0.125f                        // multiply assisters' rewards and return to original damager
+#define HEALTEAMPT     8                           // player heals his teammate else with the heal gun
+#define HEALSELFPT     2                           // player heals himself with the heal gun
+#define HEALENEMYPT   -1                           // player heals his enemy with the heal gun
+//#define HEALWOUNDPT    4                           // player heals his wound or wounds, times the number of his wounds
+
+#define ARENAWINPT  20                             // player survives the arena round
+#define ARENAWINDPT 15                             // player's team won the arena round
+#define ARENALOSEPT 1                              // player lost the arena round
+
+#define KCKILLPTS   3                              // player confirms a kill for himself or his teammate
+#define KCDENYPTS   2                              // player prevents the enemy from scoring KC points
+
 
 int flagpoints(client *c, int message)
 {
     int total = 0;
-
-    float distance = 0;
-    int cnumber = totalclients < 13 ? totalclients : 12;
+    const int cnumber = totalclients < 13 ? totalclients : 12;
     switch (message)
     {
         case FA_PICKUP:
-            c->md.flagpos.x = c->state.o.x;
-            c->md.flagpos.y = c->state.o.y;
-            c->md.flagmillis = servmillis;
-            if (m_capture(gamemode)) addpt(c, CTFPICKPT);
+            c->state.flagpickupo = c->state.o;
+            if (m_capture(gamemode)) total += CTFPICKPT;
             break;
         case FA_DROP:
-            if (m_capture(gamemode)) addpt(c, CTFDROPPT);
+            if (m_capture(gamemode)) total += CTFDROPPT;
             break;
         case FA_LOST:
-            if (m_hunt(gamemode)) addpt(c, HTFLOSTPT);
+            if (m_hunt(gamemode)) total += HTFLOSTPT;
             else if (m_capture(gamemode)) {
-                distance = sqrt(POW2XY(c->state.o,c->md.flagpos));
+                float distance = c->state.flagpickupo.dist(c->state.o);
                 if (distance > 200) distance = 200;                   // ~200 is the distance between the flags in ac_depot
-                addpt(c, CTFLOSTPT);
+                total += CTFLOSTPT;
             }
             break;
         case FA_RETURN:
-            addpt(c, CTFRETURNPT);
+            total += CTFRETURNPT;
             break;
         case FA_SCORE:
             if (m_capture(gamemode)) {
-                distance = sqrt(POW2XY(c->state.o,c->md.flagpos));
+                float distance = c->state.o.dist(c->state.flagpickupo);
                 if (distance > 200) distance = 200;
-                    addpt(c, CTFSCOREPT);
-            } else addpt(c, HTFSCOREPT);
+                total += CTFSCOREPT;
+            } else total += HTFSCOREPT;
             break;
         case FA_KTFSCORE:
-            addpt(c, KTFSCOREPT);
+            total += KTFSCOREPT;
             break;
         default:
             break;
     }
     addpt(c, total);
     return total;
-}
-
-
-inline int minhits2combo(int gun)
-{
-    switch (gun)
-    {
-        case GUN_SUBGUN:
-        case GUN_AKIMBO:
-            return 4;
-        case GUN_GRENADE:
-        case GUN_ASSAULT:
-            return 3;
-        default:
-            return 2;
-    }
-}
-
-void checkcombo(client *target, client *actor, int damage, int gun)
-{
-    int diffhittime = servmillis - actor->md.lasthit;
-    actor->md.lasthit = servmillis;
-    if ((gun == GUN_SHOTGUN || gun == GUN_GRENADE) && damage < 20)
-    {
-        actor->md.lastgun = gun;
-        return;
-    }
-
-    if ( diffhittime < 750 ) {
-        if ( gun == actor->md.lastgun )
-        {
-            if ( diffhittime * 2 < guns[gun].attackdelay * 3 )
-            {
-                actor->md.combohits++;
-                actor->md.combotime+=diffhittime;
-                actor->md.combodamage+=damage;
-                int mh2c = minhits2combo(gun);
-                if ( actor->md.combohits > mh2c && actor->md.combohits % mh2c == 1 )
-                {
-                    if (actor->md.combo < 5) actor->md.combo++;
-                    actor->md.ncombos++;
-                }
-            }
-        }
-        else
-        {
-            switch (gun)
-            {
-                case GUN_KNIFE:
-                case GUN_PISTOL:
-                    if ( guns[actor->md.lastgun].isauto ) break;
-                case GUN_SNIPER:
-                    if ( actor->md.lastgun > GUN_PISTOL ) break;
-                default:
-                    actor->md.combohits++;
-                    actor->md.combotime+=diffhittime;
-                    actor->md.combodamage+=damage;
-                    if (actor->md.combo < 5) actor->md.combo++;
-                    actor->md.ncombos++;
-                    break;
-            }
-        }
-    }
-    else
-    {
-        actor->md.combo = 0;
-        actor->md.combofrags = 0;
-        actor->md.combotime = 0;
-        actor->md.combodamage = 0;
-        actor->md.combohits = 0;
-    }
-    actor->md.lastgun = gun;
-}
-
-#define COVERDIST 2000 // about 45 cubes
-#define REPLYDIST 8000 // about 90 cubes
-float coverdist = COVERDIST;
-
-int checkteamrequests(int sender)
-{
-    int dtime, besttime = -1;
-    int bestid = -1;
-    client *ant = clients[sender];
-    loopv(clients) {
-        client *prot = clients[i];
-        if ( i!=sender && prot->type != ST_EMPTY && prot->team == ant->team &&
-             prot->state.state == CS_ALIVE && prot->md.askmillis > gamemillis && prot->md.ask >= 0 ) {
-            float dist = POW2XY(ant->state.o,prot->state.o);
-            if ( dist < REPLYDIST && (dtime=prot->md.askmillis-gamemillis) > besttime) {
-                bestid = i;
-                besttime = dtime;
-            }
-        }
-    }
-    if ( besttime >= 0 ) return bestid;
-    return -1;
-}
-
-/** WIP */
-void checkteamplay(int s, int sender)
-{
-    client *actor = clients[sender];
-
-    if ( actor->state.state != CS_ALIVE ) return;
-    switch(s){
-        case S_IMONDEFENSE: // informs
-            actor->md.linkmillis = gamemillis + 20000;
-            actor->md.linkreason = s;
-            break;
-        case S_COVERME: // demands
-        case S_STAYTOGETHER:
-        case S_STAYHERE:
-            actor->md.ask = s;
-            actor->md.askmillis = gamemillis + 5000;
-            break;
-        case S_AFFIRMATIVE: // replies
-        case S_ALLRIGHTSIR:
-        case S_YES:
-        {
-            int id = checkteamrequests(sender);
-            if ( id >= 0 ) {
-                client *sgt = clients[id];
-                actor->md.linked = id;
-                if ( actor->md.linkmillis < gamemillis ) addpt(actor,REPLYPT);
-                actor->md.linkmillis = gamemillis + 30000;
-                actor->md.linkreason = sgt->md.ask;
-                sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, HE_NUM+id);
-                switch( actor->md.linkreason ) { // check demands
-                    case S_STAYHERE:
-                        actor->md.pos = sgt->state.o;
-                        addpt(sgt,REPLYPT);
-                        break;
-                }
-            }
-            break;
-        }
-    }
-}
-
-void computeteamwork(int team, int exclude) // testing
-{
-    loopv(clients)
-    {
-        client *actor = clients[i];
-        if ( i == exclude || actor->type == ST_EMPTY || actor->team != team || actor->state.state != CS_ALIVE || actor->md.linkmillis < gamemillis ) continue;
-        vec position;
-        bool teamworkdone = false;
-        switch( actor->md.linkreason )
-        {
-            case S_IMONDEFENSE:
-                position = actor->spawnp;
-                teamworkdone = true;
-                break;
-            case S_STAYTOGETHER:
-                if ( valid_client(actor->md.linked) ) position = clients[actor->md.linked]->state.o;
-                teamworkdone = true;
-                break;
-            case S_STAYHERE:
-                position = actor->md.pos;
-                teamworkdone = true;
-                break;
-        }
-        if ( teamworkdone )
-        {
-            float dist = POW2XY(actor->state.o,position);
-            if (dist < COVERDIST)
-            {
-                addpt(actor,TWDONEPT);
-                sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, HE_TEAMWORK);
-            }
-        }
-    }
-}
-
-float a2c = 0, c2t = 0, a2t = 0; // distances: actor to covered, covered to target and actor to target
-
-inline bool testcover(int msg, int factor, client *actor)
-{
-    if ( a2c < coverdist && c2t < coverdist && a2t < coverdist )
-    {
-        sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, msg);
-        addpt(actor, factor);
-        actor->md.ncovers++;
-        return true;
-    }
-    return false;
-}
-
-#define CALCCOVER(C) \
-    a2c = POW2XY(actor->state.o,C);\
-    c2t = POW2XY(C,target->state.o);\
-    a2t = POW2XY(actor->state.o,target->state.o)
-
-bool validlink(client *actor, int cn)
-{
-    return actor->md.linked >= 0 && actor->md.linked == cn && gamemillis < actor->md.linkmillis && valid_client(actor->md.linked);
-}
-
-/** WIP */
-void checkcover(client *target, client *actor)
-{
-    int team = actor->team;
-    int oteam = team_opposite(team);
-
-    bool covered = false;
-    int coverid = -1;
-
-    int cnumber = totalclients < 13 ? totalclients : 12;
-
-    if ( m_flags(gamemode) ) {
-        sflaginfo &f = sflaginfos[team];
-        sflaginfo &of = sflaginfos[oteam];
-
-        if ( m_capture(gamemode) )
-        {
-            if ( f.state == CTFF_INBASE )
-            {
-                CALCCOVER(f);
-                if ( testcover(HE_FLAGDEFENDED, CTFLDEFPT, actor) ) print_medal_messages(actor,CTFLDEF);
-            }
-            if ( of.state == CTFF_STOLEN && actor->clientnum != of.actor_cn )
-            {
-                covered = true; coverid = of.actor_cn;
-                CALCCOVER(clients[of.actor_cn]->state.o);
-                if ( testcover(HE_FLAGCOVERED, CTFLCOVPT, actor) ) print_medal_messages(actor,CTFLCOV);
-            }
-        }
-        else if ( m_hunt(gamemode) )
-        {
-            if ( actor->clientnum != f.actor_cn )
-            {
-                if ( f.state == CTFF_DROPPED )
-                {
-                    struct { short x, y; } nf;
-                    nf.x = f.pos[0]; nf.y = f.pos[1];
-                    CALCCOVER(nf);
-                    if ( testcover(HE_FLAGDEFENDED, HTFLDEFPT, actor) ) print_medal_messages(actor,HTFLDEF);
-                }
-                if ( f.state == CTFF_STOLEN )
-                {
-                    covered = true; coverid = f.actor_cn;
-                    CALCCOVER(clients[f.actor_cn]->state.o);
-                    if ( testcover(HE_FLAGCOVERED, HTFLCOVPT, actor) ) print_medal_messages(actor,HTFLCOV);
-                }
-            }
-        }
-    }
-
-    if ( !(covered && actor->md.linked==coverid) && validlink(actor,actor->md.linked) )
-    {
-        CALCCOVER(clients[actor->md.linked]->state.o);
-        if ( testcover(HE_COVER, COVERPT, actor) ) print_medal_messages(actor,COVER);
-    }
-
-}
-
-#undef CALCCOVER
-
-/** WiP */
-void checkfrag(client *target, client *actor, int gun, int style)
-{
-    int targethasflag = clienthasflag(target->clientnum);
-    int actorhasflag = clienthasflag(actor->clientnum);
-    int cnumber = totalclients < 13 ? totalclients : 12;
-    addpt(target,DEATHPT);
-    if(target!=actor) {
-        if(!isteam(target->team, actor->team)) {
-
-            if (m_team(gamemode, mutators)) {
-                if(!m_flags(gamemode)) addpt(actor, TMBONUSPT);
-                else addpt(actor, FLBONUSPT);
-
-                checkcover (target, actor);
-                if ( m_hunt(gamemode) && actorhasflag >= 0 ) addpt(actor, HTFFRAGPT);
-
-                if ( m_capture(gamemode) && targethasflag >= 0 ) {
-                    addpt(actor, CTFFRAGPT);
-                }
-            }
-            else addpt(actor, BONUSPT);
-
-            if ((style & FRAG_GIB) && gun != GUN_GRENADE) {
-                if ( gun == GUN_SNIPER ) {
-                    addpt(actor, HEADSHOTPT);
-                    actor->md.nhs++;
-                }
-                else if ( gun == GUN_KNIFE ) addpt(actor, KNIFEPT);
-                else if ( gun == GUN_SHOTGUN ) addpt(actor, SHOTGPT);
-            }
-            else addpt(actor, FRAGPT);
-
-            if ( actor->md.combo ) {
-                actor->md.combofrags++;
-                addpt(actor,COMBOPT);
-                actor->md.combosend = true;
-            }
-
-        } else {
-
-            if ( targethasflag >= 0 ) addpt(actor, FLAGTKPT);
-            else addpt(actor, TKPT);
-
-        }
-    }
 }
 
 int next_afk_check = 200;

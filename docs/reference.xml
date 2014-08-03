@@ -5473,22 +5473,6 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <value token="V" description="enable/disable messages" minValue="0" maxValue="1" defaultValue="0"/>
         </variable>
 
-        <variable name="hudextras">
-          <description>Shows extra gameplay messages on certain events if connected to a server.</description>
-          <value token="N" description="enable/disable extra gameplay messages" minValue="0" maxValue="3" defaultValue="0"/>
-          <arguments>
-            <argument valueNotes="0 (off)"/>
-            <argument valueNotes="1 (show extra messages in the console)"/>
-            <argument valueNotes="2 (show extra messages in the console and on the HUD)"/>
-            <argument valueNotes="3 (SPAM extra messages in the console and on the HUD)"/>
-          </arguments>
-          <references>
-            <identifierReference identifier="consize"/>
-            <identifierReference identifier="hideconsole"/>
-            <identifierReference identifier="hidehudmsgs"/>
-          </references>
-        </variable>
-
         <variable name="hidespecthud">
           <description>Turns on or off the display of spectator staus.</description>
           <value token="V" description="enable/disable spectator status" minValue="0" maxValue="1" defaultValue="0"/>
@@ -7860,6 +7844,28 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <description>Speed to move the deathcam, 0 for infinity</description>
           <value token="N" description="distance" minValue="0" maxValue="1000" defaultValue="2"/>
         </variable>
+
+        <variable name="noob">
+          <description>Doubles level-up rate if active.</description>
+          <value token="N" description="noob mode" minValue="0" maxValue="1" defaultValue="0"/>
+        </variable>
+
+        <variable name="level">
+          <description>Rank up when your experience is full!</description>
+          <value token="N" description="level" minValue="1" maxValue="100" defaultValue="1"/>
+        </variable>
+
+        <variable name="experience">
+          <description>Experience accumulates when you get points.</description>
+          <value token="N" description="xp" minValue="0" maxValue="1000" defaultValue="0"/>
+        </variable>
+
+        <command name="expreason">
+          <description>Set the HUD experience points reason.</description>
+          <arguments>
+            <argument token="S" description="reason text"/>
+          </arguments>
+        </command>
       </identifiers>
     </section>
     <!-- "TODO" Section Ends -->

@@ -352,8 +352,7 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
         if(canheal)
         {
             // healing station
-            // TODO points
-            //addpt(&cp, HEALWOUNDPT * cs.wounds.length(), PR_HEALWOUND);
+            addpt(&cp, /*HEALWOUNDPT*/ 4 * cs.wounds.length(), PR_HEALWOUND);
             cs.wounds.shrink(0);
         }
         if(cantake)

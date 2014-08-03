@@ -372,6 +372,48 @@ void teaminfo(const char *team, const char *attr)
 
 COMMAND(teaminfo, "ss");
 
+VARP(noob, 0, 0, 1);
+VARFP(level, 1, 1, MAXLEVEL, addmsg(SV_LEVEL, "ri", level));
+VARFP(experience, 0, 0, MAXEXP, addexp(0));
+
+int lastexpadd = INT_MIN, lastexpaddamt = 0;
+void addexp(int xp)
+{
+    if (xp)
+    {
+        if (lastmillis <= lastexpadd + COMBOTIME)
+            lastexpaddamt += xp;
+        else
+            lastexpaddamt = xp;
+        lastexpadd = lastmillis;
+    }
+    // no experience "boost" from negative points
+    if (xp < 0)
+        return;
+    xp = xp * xp;
+    if (noob) xp <<= 1;
+#define xpfactor ((float)clamp(level, 1, 20))
+    experience += fabs((float)xp / xpfactor);
+    if (experience >= MAXEXP)
+    {
+        level = clamp(level + 1, 1, MAXLEVEL);
+        addmsg(SV_LEVEL, "ri", level);
+        experience = max(0.f, (experience - MAXEXP) / xpfactor);
+    }
+#undef xpfactor
+}
+
+
+int lastexptexttime = INT_MIN;
+string lastexptext;
+
+void expreason(const char *reason)
+{
+    formatstring(lastexptext)(*reason == '\f' ? "%s" : "\f2%s", reason);
+    lastexptexttime = lastmillis;
+}
+COMMAND(expreason, "s");
+
 bool spawnenqueued = false;
 
 void deathstate(playerent *pl)

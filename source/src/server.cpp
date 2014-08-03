@@ -395,42 +395,6 @@ void sendf(int cn, int chan, const char *format, ...)
     sendpacket(cn, chan, p.finalize(), exclude);
 }
 
-void sendextras()
-{
-    if ( gamemillis < nextsendscore ) return;
-    int count = 0, list[MAXCLIENTS];
-    loopv(clients)
-    {
-        client &c = *clients[i];
-        if ( c.type!=ST_TCPIP || !c.isauthed || !(c.md.updated && c.md.upmillis < gamemillis) ) continue;
-        if ( c.md.combosend )
-        {
-            sendf(c.clientnum, 1, "ri2", SV_HUDEXTRAS, min(c.md.combo,c.md.combofrags)-1 + HE_COMBO);
-            c.md.combosend = false;
-        }
-        if ( c.md.dpt )
-        {
-            list[count] = i;
-            count++;
-        }
-    }
-    nextsendscore = gamemillis + 160; // about 4 cicles
-    if ( !count ) return;
-
-    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    putint(p, SV_POINTS);
-    putint(p,count);
-    int *v = list;
-    loopi(count)
-    {
-        client &c = *clients[*v];
-        putint(p,c.clientnum); putint(p,c.md.dpt); c.md.updated = false; c.md.upmillis = c.md.dpt = 0;
-        v++;
-    }
-
-    sendpacket(-1, 1, p.finalize());
-}
-
 void sendservmsg(const char *msg, int cn)
 {
     sendf(cn, 1, "ris", SV_SERVMSG, msg);
@@ -1125,7 +1089,6 @@ void flagaction(int flag, int action, int actor)
         {
             c.state.invalidate().flagscore += score;
             // usesteamscore(c.team).flagscore += score;
-            if (m_team(gamemode, mutators)) computeteamwork(c.team, actor); /** WIP */
         }
         /*usesteamscore(c.team).points += max(0,*/ ( flagpoints(&c, message));
 
@@ -1436,7 +1399,6 @@ void sendtext(char *text, client *cl, int flags, int voice)
         if ( cl->spam < 0 ) cl->spam = 0;
         cl->lastvc = servmillis; // register
         if ( cl->spam > 4 ) { cl->mute = servmillis + 10000; voice = 0; } // 5 vcs in less than 20 seconds... shut up please
-        if ( m_team(gamemode, mutators) ) checkteamplay(voice, cl->clientnum); // finally here we check the teamplay comm
     }
     else voice = 0;
     string logmsg;
@@ -1546,7 +1508,6 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
     int targethasflag = clienthasflag(target->clientnum);
     bool tk = false, suic = false;
     target->state.deaths++;
-    checkfrag(target, actor, gun, style);
     if (target != actor)
     {
         if (!isteam(target->team, actor->team)) actor->state.frags += (style & FRAG_GIB) && gun != GUN_GRENADE && gun != GUN_SHOTGUN ? 2 : 1;
@@ -1598,10 +1559,6 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
         actor->state.damage += damage;
         sendf(-1, 1, "ri8i3", SV_DAMAGE, target->clientnum, actor->clientnum, damage, ts.armour, ts.health, gun, style,
             (int)(source.x*DMF), (int)(source.y*DMF), (int)(source.z*DMF));
-        if(target!=actor)
-        {
-            checkcombo (target, actor, damage, gun);
-        }
     }
     if (ts.health <= 0)
         serverdied(target, actor, damage, gun, style, source, dist);
@@ -2049,7 +2006,6 @@ void startgame(const char *newname, int newmode, int newmuts, int newtime, bool 
             {
                 sflaginfo &f0 = sflaginfos[0], &f1 = sflaginfos[1];
                 FlagFlag = pow2(f0.x - f1.x) + pow2(f0.y - f1.y);
-                coverdist = FlagFlag > 6 * COVERDIST ? COVERDIST : FlagFlag / 6;
             }
             ssecures.shrink(0);
             entity e;
@@ -3164,11 +3120,9 @@ void process(ENetPacket *packet, int sender, int chan)
                 sendf(-1, 1, "ri3x", SV_THIRDPERSON, sender, cl->acthirdperson = getint(p), sender);
                 break;
 
-            /*
             case SV_LEVEL:
-                sendf(-1, 1, "ri3x", N_LEVEL, sender, cl->state.level = clamp(getint(p), 1, MAXLEVEL), sender);
+                sendf(-1, 1, "ri3x", SV_LEVEL, sender, cl->level = clamp(getint(p), 1, MAXLEVEL), sender);
                 break;
-            */
 
             case SV_TRYSPAWN:
             {
@@ -4343,7 +4297,6 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         if(m_keep(gamemode) && !ktfflagingame) flagaction(rnd(2), FA_RESET, -1); // ktf flag watchdog
         if(m_duke(gamemode, mutators)) arenacheck();
 //        if(m_survivor(gamemode, mutators)) lmscheck();
-        sendextras();
         if ( scl.afk_limit && mastermode == MM_OPEN && next_afk_check < servmillis && gamemillis > 20 * 1000 ) check_afk();
     }
 

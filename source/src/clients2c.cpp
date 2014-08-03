@@ -308,56 +308,6 @@ bool good_map() // call this function only at startmap
     return map_quality > 0;
 }
 
-VARP(hudextras, 0, 0, 3);
-
-int teamworkid = -1;
-
-void showhudextras(char hudextras, char value){
-    void (*outf)(const char *s, ...) = (hudextras > 1 ? hudoutf : conoutf);
-    bool caps = hudextras < 3 ? false : true;
-    switch(value)
-    {
-        case HE_COMBO:
-        case HE_COMBO2:
-        case HE_COMBO3:
-        case HE_COMBO4:
-        case HE_COMBO5:
-        {
-            int n = value - HE_COMBO;
-            if (n > 3) outf("\f3%s",strcaps("monster combo!!!",caps)); // I expect to never see this one
-            else if (!n) outf("\f5%s",strcaps("combo", caps));
-            else outf("\f5%s x%d",strcaps("multi combo", caps),n+1);
-            break;
-        }
-        case HE_TEAMWORK:
-            outf("\f5%s",strcaps("teamwork done", caps)); break;
-        case HE_FLAGDEFENDED:
-            outf("\f5%s",strcaps("you defended the flag", caps)); break;
-        case HE_FLAGCOVERED:
-            outf("\f5%s",strcaps("you covered the flag", caps)); break;
-        case HE_COVER:
-            if (teamworkid >= 0)
-            {
-                playerent *p = getclient(teamworkid);
-                if (!p || p == player1) teamworkid = -1;
-                else outf("\f5you covered %s",p->name); break;
-            }
-        default:
-        {
-            if (value >= HE_NUM)
-            {
-                teamworkid = value - HE_NUM;
-                playerent *p = getclient(teamworkid);
-                if (!p || p == player1) teamworkid = -1;
-                else outf("\f4you replied to %s",p->name);
-            }
-            else outf("\f3Update your client!");
-            break;
-        }
-    }
-#undef SSPAM
-}
-
 void onCallVote(int type, int vcn, const votedata &vote)
 {
     if(identexists("onCallVote"))
@@ -378,8 +328,6 @@ void onChangeVote(int mod, int id, int cn)
 
 extern votedisplayinfo *curvote;
 
-bool medals_arrived=0;
-medalsst a_medals[END_MDS];
 void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 {
     static char text[MAXTRANS];
@@ -583,7 +531,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                         d->thirdperson = info;
                         break;
                     case SV_LEVEL:
-                        //info = clamp(info, 1, MAXLEVEL);
+                        info = clamp(info, 1, MAXLEVEL);
                         d->level = info;
                         if (d->pBot) d->pBot->MakeSkill(info);
                         break;
@@ -932,33 +880,35 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_POINTS:
             {
-                int count = getint(p);
-                if ( count > 0 ) {
-                    loopi(count){
-                        int pcn = getint(p); int score = getint(p);
-                        playerent *ppl = getclient(pcn);
-                        if (!ppl) break;
-                        ppl->points += score;
-                    }
-                } else {
-                    int medals = getint(p);
-                    if(medals > 0) {
-//                         medals_arrived=1;
-                        loopi(medals) {
-                            int mcn=getint(p); int mtype=getint(p); int mitem=getint(p);
-                            a_medals[mtype].assigned=1;
-                            a_medals[mtype].cn=mcn;
-                            a_medals[mtype].item=mitem;
-                        }
-                    }
-                }
-                break;
-            }
-
-            case SV_HUDEXTRAS:
-            {
-                char value = getint(p);
-                if (hudextras) showhudextras(hudextras, value);
+                const int reason = getint(p), points = getint(p);
+                addexp(points);
+                if (reason < 0 || reason >= PR_MAX) break;
+                const char *pointreason_names[PR_MAX] =
+                {
+                    "",
+                    _("Assist"),
+                    _("SPLAT!"),
+                    _("HEADSHOT!"),
+                    _("Kill Confirmed"),
+                    _("Kill Denied"),
+                    _("Healed Self"),
+                    _("Healed Teammate"),
+                    _("%c3Healed Enemy"),
+                    _("Prevented Bleedout!"),
+                    _("Teammate saved you!"), // Bleedout prevented by teammate
+                    _("%c0You won!"),
+                    _("%c1Your team wins!"),
+                    _("%c3You lost!"),
+                    _("%c1Domination bonus"),
+                    _("%c0Flag secured!"),
+                    _("%c3Flag overthrown!"),
+                    _("%c0Buzzkill!"),
+                    _("%c3Buzzkilled!"),
+                    _("%c1Got own tags!"),
+                    _("%c3Kill Denied"),
+                };
+                formatstring(text)(pointreason_names[reason], CC);
+                expreason(text);
                 break;
             }
 

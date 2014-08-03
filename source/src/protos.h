@@ -410,6 +410,8 @@ extern void resetmap(bool mrproper = true);
 extern void startmap(const char *name, bool reset = true);
 extern void changemap(const char *name);
 extern void initclient();
+extern void addexp(int xp);
+extern void expreason(const char *reason);
 extern void deathstate(playerent *pl);
 extern void dodamage(int damage, playerent *pl, playerent *actor, int gun, int style, const vec &src);
 extern void dokill(playerent *pl, playerent *act, int gun, int style, int damage, int combo, float dist);

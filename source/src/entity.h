@@ -54,8 +54,6 @@ struct entity : persistent_entity
 #define PLAYERABOVEEYE .7f
 #define WEAPONBELOWEYE .2f
 
-enum { PR_CLEAR = 0, PR_ASSIST, PR_SPLAT, PR_HS, PR_KC, PR_KD, PR_HEALSELF, PR_HEALTEAM, PR_HEALENEMY, PR_HEALWOUND, PR_HEALEDBYTEAMMATE, PR_ARENA_WIN, PR_ARENA_WIND, PR_ARENA_LOSE, PR_SECURE_SECURED, PR_SECURE_SECURE, PR_SECURE_OVERTHROW, PR_BUZZKILL, PR_BUZZKILLED, PR_KD_SELF, PR_KD_ENEMY, PR_MAX };
-
 #define HEALTHPRECISION 1
 #define HEALTHSCALE 10 // pow(10, HEALTHPRECISION)
 #define STARTHEALTH ((m_juggernaut(gamemode, mutators) ? 1000 : 100) * HEALTHSCALE)
@@ -66,6 +64,9 @@ enum { PR_CLEAR = 0, PR_ASSIST, PR_SPLAT, PR_HS, PR_KC, PR_KD, PR_HEALSELF, PR_H
 
 #define MAXZOMBIEROUND 30
 #define ZOMBIEHEALTHFACTOR 5
+
+#define MAXLEVEL 100
+#define MAXEXP 1000
 #define MAXTHIRDPERSON 25
 
 #define SPAWNDELAY (m_secure(gamemode) ? 2000 : m_flags(gamemode) ? 5000 : 1500)
@@ -829,9 +830,6 @@ public:
     void oncollision();
     void onmoved(const vec &dist);
 };
-
-enum {MD_FRAGS = 0, MD_DEATHS, END_MDS};
-struct medalsst {bool assigned; int cn; int item;};
 
 #ifndef STANDALONE
 struct pckserver
