@@ -432,8 +432,9 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
             .sub(
                 vec(surface)
                     .mul(2 * dir.dot(surface))
-            )
-            .add(to);
+            );
+        // 2 degrees (both ways = 4 degrees) distortion on all axis
+        dir.rotate_around_x((rnd(5) - 2)*RAD).rotate_around_y((rnd(5) - 2)*RAD).rotate_around_z((rnd(5) - 2)*RAD).add(to);
         // retrace
         straceShot(to, dir, &newsurface);
         const int ricochetdamage = shot(owner, to, dir, pos, weap, style, newsurface, exclude, dist2, penaltydist + 60, save); // 15 meters penalty for ricochet
