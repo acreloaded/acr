@@ -187,7 +187,7 @@ struct oline
     void merge(const oline &o)
     {
         // obit matches
-        style |= o.style; // merge styles
+        style |= o.style & ~FRAG_SCOPE; // merge styles
         headshot |= o.headshot;
         millis = max(millis, o.millis); // merge time by using the later one
         assist = max(assist, o.assist); // merge assist by using the larger one
