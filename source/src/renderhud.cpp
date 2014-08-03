@@ -846,7 +846,12 @@ COMMAND(lasttarget, "");
 
 inline int mm_adjust(int x)
 {
-    return (monitors + (((x << 1) - 1) << ((monitors & 1) ? 0 : 1))) * VIRTW / (2 * monitors);
+    return ((monitors + (((x << 1) - 1) << ((monitors & 1) ^ 1))) * VIRTW / monitors) >> 1;
+    /*
+    // original
+    if(monitors & 1) return (2*x + monitors - 1)*VIRTW/(2*monitors);
+    else return (4*x + monitors - 2)*VIRTW/(2*monitors);
+    */
 }
 
 int votersort(playerent **a, playerent **b)
