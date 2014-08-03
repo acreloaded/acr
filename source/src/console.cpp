@@ -199,7 +199,8 @@ struct oline
     int width, icons[OBIT_ICON_NUM];
     void recompute()
     {
-#define SETICON(icon, cond, s) cond { icons[icon] = text_width(str); concatstring(str, s); }
+        // text_width(" ") / 2 is approximately FONTH / 2
+#define SETICON(icon, cond, s) cond { icons[icon] = text_width(str) + FONTH / 2; concatstring(str, s); }
 #define SETICON1(icon, cond) SETICON(icon, cond, "   ") // the width of a 1:1 icon is 2 spaces + 1 space
         memset(icons, 0, sizeof(icons));
         copystring(str, actor);
