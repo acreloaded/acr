@@ -212,7 +212,7 @@ struct oline
                 SETICON1(OBIT_ICON_SCOPE_NONE, if (sniper_weap(obit)));
                 break;
             case 0:
-                SETICON1(OBIT_ICON_SCOPE_QUICK, );
+                SETICON1(OBIT_ICON_SCOPE_QUICK, if (obit < OBIT_START));
                 break;
             case FRAG_SCOPE_NONE | FRAG_SCOPE_FULL:
                 SETICON1(OBIT_ICON_SCOPE_RECENT, );
