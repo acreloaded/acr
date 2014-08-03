@@ -208,7 +208,7 @@ void saytext(playerent *d, char *text, int flags, int sound)
     else sound = 0;
     int textcolor = 0; // normal text
     if(flags&SAY_TEAM)
-        textcolor = d->team == TEAM_SPECT ? 4 : (d == player1 || isteam(player1->team, d->team)) ? 1 : 3;
+        textcolor = d->team == TEAM_SPECT ? 4 : (d == player1 || isteam(player1, d)) ? 1 : 3;
     if(flags&SAY_FORBIDDEN)
     {
         textcolor = 2; // denied yellow

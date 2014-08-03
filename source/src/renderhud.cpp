@@ -633,9 +633,9 @@ void drawradar_showmap(playerent *p, int w, int h)
     loopv(players) // other players
     {
         playerent *pl = players[i];
-        if(!pl || pl==p || !isteam(p->team, pl->team) || !team_isactive(pl->team)) continue;
+        if(!pl || pl==p || !isteam(p, pl) || !team_isactive(pl->team)) continue;
         vec rtmp = vec(pl->o).sub(mdd).mul(coordtrans);
-        drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state == CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, isteam(p->team, pl->team) ? 2 : 0, iconsize, isattacking(pl), "%s", colorname(pl));
+        drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state == CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, isteam(p, pl) ? 2 : 0, iconsize, isattacking(pl), "%s", colorname(pl));
     }
     if(m_flags(gamemode))
     {
@@ -721,12 +721,12 @@ void drawradar_vicinity(playerent *p, int w, int h)
     loopv(players) // other players
     {
         playerent *pl = players[i];
-        if(!pl || pl==p || !isteam(p->team, pl->team) || !team_isactive(pl->team)) continue;
+        if(!pl || pl==p || !isteam(p, pl) || !team_isactive(pl->team)) continue;
         vec rtmp = vec(pl->o).sub(p->o);
         if (rtmp.magnitude() > d2s)
             rtmp.normalize().mul(d2s);
         rtmp.mul(scaled);
-        drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, isteam(p->team, pl->team) ? 2 : 0, iconsize, isattacking(pl), "%s", colorname(pl));
+        drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, isteam(p, pl) ? 2 : 0, iconsize, isattacking(pl), "%s", colorname(pl));
     }
     if(m_flags(gamemode))
     {
@@ -914,7 +914,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     bool reloading = lastmillis < p->weaponsel->reloading + p->weaponsel->info.reloadtime;
     if(p->state != CS_DEAD && !reloading)
     {
-        const int teamtype = worldhit && worldhit->state == CS_ALIVE ? isteam(worldhit->team, p->team) ? 1 : 2 : 0;
+        const int teamtype = worldhit && worldhit->state == CS_ALIVE ? isteam(worldhit, p) ? 1 : 2 : 0;
         p->weaponsel->renderaimhelp(teamtype);
     }
 

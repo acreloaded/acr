@@ -1112,7 +1112,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
     bool own = flag == team_base(player1->team);
     bool neutral = team_isspect(player1->team);
     bool firstperson = actor == getclientnum();
-    bool teammate = !act ? true : isteam(player1->team, act->team);
+    bool teammate = !act ? true : isteam(player1, act);
     bool firstpersondrop = false;
     defformatstring(ownerstr)("the %s", teamnames[flag]);
     const char *teamstr = m_ktf2(gamemode, mutators) ? ownerstr : m_keep(gamemode) ? "the" : neutral ? ownerstr : own ? "your" : "the enemy";

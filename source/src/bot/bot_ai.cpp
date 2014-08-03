@@ -137,7 +137,7 @@ bool CBot::FindEnemy(void)
         bool found = IsInGame(m_pMyEnt->enemy);
 
         // Check if the enemy is still ingame, still alive, not joined my team and is visible
-        if (found && !isteam(m_pMyEnt->team, m_pMyEnt->enemy->team))
+        if (found && !isteam(m_pMyEnt, m_pMyEnt->enemy))
         {
             if ((m_pMyEnt->enemy->state == CS_ALIVE) && (IsVisible(m_pMyEnt->enemy)))
                 return true;
@@ -166,7 +166,7 @@ bool CBot::FindEnemy(void)
         {
             d = players[i]; // Handy shortcut
 
-            if (d == m_pMyEnt || !d || isteam(d->team, m_pMyEnt->team) || (d->state != CS_ALIVE))
+            if (d == m_pMyEnt || !d || isteam(d, m_pMyEnt) || (d->state != CS_ALIVE))
                 continue;
 
             // Check if the enemy is visible
@@ -190,7 +190,7 @@ bool CBot::FindEnemy(void)
         }
 
         // Then examine the local player
-        if (player1 && !isteam(player1->team, m_pMyEnt->team) &&
+        if (player1 && !isteam(player1, m_pMyEnt) &&
             (player1->state == CS_ALIVE))
         {
             // Check if the enemy is visible
@@ -245,7 +245,7 @@ bool CBot::CheckHunt(void)
         bool found = IsInGame(m_pHuntTarget);
 
         // Check if the enemy is still ingame, still alive, not joined my team and is visible
-        if (found && !isteam(m_pMyEnt->team, m_pHuntTarget->team))
+        if (found && !isteam(m_pMyEnt, m_pHuntTarget))
         {
             if ((m_pHuntTarget->state == CS_ALIVE) && IsReachable(m_vHuntLocation))
                 return true;
@@ -276,7 +276,7 @@ bool CBot::CheckHunt(void)
         {
             d = players[i]; // Handy shortcut
 
-            if (d == m_pMyEnt || !d || isteam(d->team, m_pMyEnt->team) || (d->state != CS_ALIVE))
+            if (d == m_pMyEnt || !d || isteam(d, m_pMyEnt) || (d->state != CS_ALIVE))
                 continue;
 
             flDist = GetDistance(d->o);
@@ -344,7 +344,7 @@ bool CBot::CheckHunt(void)
             }
 
         // Then examine the local player
-        if (player1 && !isteam(player1->team, m_pMyEnt->team) &&
+        if (player1 && !isteam(player1, m_pMyEnt) &&
             (player1->state == CS_ALIVE) && ((flDist = GetDistance(player1->o)) <= 250.0f))
         {
             d = player1;
@@ -689,12 +689,12 @@ void CBot::ShootEnemy()
     AimToVec(enemypos);
 
     playerent *d = player1;
-    if (d && isteam(d->team, m_pMyEnt->team) && (d->state == CS_ALIVE)
+    if (d && isteam(d, m_pMyEnt) && (d->state == CS_ALIVE)
         && IsVisible(d) && CheckFire(d->o)) return;
     loopv(players)
     {
         d = players[i];
-        if(d && isteam(d->team, m_pMyEnt->team) && (d->state == CS_ALIVE)
+        if(d && isteam(d, m_pMyEnt) && (d->state == CS_ALIVE)
              && IsVisible(d) && CheckFire(d->o)) return;
     }
 
@@ -2096,7 +2096,7 @@ void CBot::HearSound(int n, const vec *o)
             playerent *d = players[i];
 
             if (d == m_pMyEnt || !d || (d->state != CS_ALIVE) ||
-                isteam(m_pMyEnt->team, d->team))
+                isteam(m_pMyEnt, d))
                 continue;
 
             flDist = GetDistance(*o, d->o);
@@ -2109,7 +2109,7 @@ void CBot::HearSound(int n, const vec *o)
 
         // Check local player
         if (player1 && (player1->state == CS_ALIVE) &&
-            !isteam(m_pMyEnt->team, player1->team))
+            !isteam(m_pMyEnt, player1))
         {
             flDist = GetDistance(*o, player1->o);
             if ((flDist < flNearestDist) && IsVisible(player1))

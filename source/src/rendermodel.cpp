@@ -701,7 +701,7 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
     rendermodel(mdlname, anim|ANIM_DYNALLOC, tex, 1.5f, o, d->yaw+90, d->pitch/4, speed, basetime, d, a);
     if(!stenciling && !reflecting && !refracting)
     {
-        if(isteam(player1->team, d->team)) renderaboveheadicon(d);
+        if(isteam(player1, d)) renderaboveheadicon(d);
     }
 }
 

@@ -573,7 +573,7 @@ void renderwaypoints()
             switch (f.state){
                 default: // stolen or dropped
                     if (m_bomber(gamemode)) wp = flaginfos[team_opposite(i)].state != CTFF_INBASE ? i == teamfix ? WP_DEFEND : WP_TARGET : -1;
-                    else if (m_keep(gamemode) ? (f.actor != focus && !isteam(f.actor->team, focus->team)) : m_team(gamemode, mutators) ? (i != teamfix) : (f.actor != focus)) wp = -1; break;
+                    else if (m_keep(gamemode) ? (f.actor != focus && !isteam(f.actor, focus)) : m_team(gamemode, mutators) ? (i != teamfix) : (f.actor != focus)) wp = -1; break;
                 case CTFF_INBASE:
                     if (m_capture(gamemode)){
                         wp = i == teamfix ? WP_FRIENDLY : WP_GRAB;
@@ -588,7 +588,7 @@ void renderwaypoints()
                     break;
                 case CTFF_IDLE: // KTF only
                     // WAIT here if the opponent has the flag
-                    if (flaginfos[team_opposite(i)].state == CTFF_STOLEN && flaginfos[team_opposite(i)].actor && focus != flaginfos[team_opposite(i)].actor && !isteam(flaginfos[team_opposite(i)].actor->team, focus->team))
+                    if (flaginfos[team_opposite(i)].state == CTFF_STOLEN && flaginfos[team_opposite(i)].actor && focus != flaginfos[team_opposite(i)].actor && !isteam(flaginfos[team_opposite(i)].actor, focus))
                         break;
                     wp = WP_ENEMY;
                     break;
@@ -605,7 +605,7 @@ void renderwaypoints()
         if (has_flag) continue;
         const bool has_nuke = false; // pl->nukemillis >= totalmillis;
         if (has_nuke || m_psychic(gamemode, mutators)){
-            renderwaypoint((focus == pl || isteam(focus->team, pl->team)) ? WP_DEFEND : WP_KILL, pl->o);
+            renderwaypoint((focus == pl || isteam(focus, pl)) ? WP_DEFEND : WP_KILL, pl->o);
             if (has_nuke) renderwaypoint(WP_NUKE, vec(pl->o.x, pl->o.y, pl->o.z + PLAYERHEIGHT));
         }
     }

@@ -123,7 +123,7 @@ extern const char *teamnames[TEAM_NUM+1];
 extern const char *teamnames_s[TEAM_NUM+1];
 
 #define TEAM_VOID TEAM_NUM
-#define isteam(a,b)   (m_team(gamemode, mutators) && (a) == (b))
+#define isteam(a,b)   (m_team(gamemode, mutators) && (a)->team == (b)->team)
 #define team_opposite(o) (team_isvalid(o) && (o) < TEAM_SPECT ? (o) ^ 1 : TEAM_SPECT)
 #define team_base(t) ((t) & 1)
 #define team_basestring(t) ((t) == 1 ? teamnames[1] : ((t) == 0 ? teamnames[0] : "SPECT"))
@@ -135,7 +135,7 @@ extern const char *teamnames_s[TEAM_NUM+1];
 // note: team_isactive and team_base can/should be used to check the limits for arrays of size '2'
 static inline const char *team_string(int t, bool abbr = false) { const char **n = abbr ? teamnames_s : teamnames; return team_isvalid(t) ? n[t] : n[TEAM_NUM]; }
 #define team_color(t) (team_isspect(t) ? 4 : team_base(t) ? 1 : 3)
-#define team_rel_color(a, b) (a == b ? 1 : a && b && !team_isspect(b->team) ? isteam(a->team, b->team) ? 0 : 3 : 4)
+#define team_rel_color(a, b) (a == b ? 1 : a && b && !team_isspect(b->team) ? isteam(a, b) ? 0 : 3 : 4)
 
 enum { ENT_PLAYER = 0, ENT_BOT, ENT_CAMERA, ENT_BOUNCE };
 enum { HIT_NONE = 0, HIT_LEG, HIT_TORSO, HIT_HEAD };

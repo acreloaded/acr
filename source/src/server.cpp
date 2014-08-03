@@ -1507,7 +1507,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
     clientstate &ts = target->state;
 
     const bool suic = (target == actor);
-    const bool tk = !suic && isteam(target->team, actor->team);
+    const bool tk = !suic && isteam(target, actor);
     int targethasflag = clienthasflag(target->clientnum);
 
     ts.damagelog.removeobj(target->clientnum);
@@ -1515,7 +1515,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
     if (suic && ts.damagelog.length() && gun != OBIT_NUKE)
     {
         loopv(ts.damagelog)
-            if (valid_client(ts.damagelog[i]) && !isteam(target->team, clients[ts.damagelog[i]]->team))
+            if (valid_client(ts.damagelog[i]) && !isteam(target, clients[ts.damagelog[i]]))
             {
                 actor = clients[ts.damagelog[i]];
                 style = isheadshot(gun, style) ? FRAG_GIB : FRAG_NONE;

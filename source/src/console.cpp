@@ -154,7 +154,7 @@ void obit_name(char *out, playerent *pl, bool dark, int type)
         return;
     }
     const char colorset[2][3] = { { '0', '1', '3' }, { 'm', 'o', '7' } };
-    int color2 = pl == player1 ? 1 : isteam(pl->team, player1->team) ? 0 : 2;
+    int color2 = pl == player1 ? 1 : isteam(pl, player1) ? 0 : 2;
     if (type == 0)
         formatstring(out)("\f%c%c", colorset[dark ? 1 : 0][color2], !color2 ? '+' : color2 == 1 ? '*' : '-');
     else if (type == 1)

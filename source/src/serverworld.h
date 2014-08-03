@@ -286,7 +286,7 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
                         // check from side
                         const float dz2 = cs.o.z - ts.o.z;
                         if(dz2 > PLAYERABOVEEYE + 2 || -dz2 > PLAYERHEIGHT + 2) continue;
-                        if(!isteam(t.team, cp.team) && !ts.protect(gamemillis, gamemode, mutators))
+                        if(!isteam(&t, &cp) && !ts.protect(gamemillis, gamemode, mutators))
                             serverdied(&t, &cp, 0, OBIT_FALL, FRAG_NONE, cs.o);
                         hit = true;
                     }
