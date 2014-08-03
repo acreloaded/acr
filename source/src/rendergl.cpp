@@ -575,16 +575,14 @@ void renderwaypoints()
                     if (m_bomber(gamemode)) wp = flaginfos[team_opposite(i)].state != CTFF_INBASE ? i == teamfix ? WP_DEFEND : WP_TARGET : -1;
                     else if (m_keep(gamemode) ? (f.actor != focus && !isteam(f.actor, focus)) : m_team(gamemode, mutators) ? (i != teamfix) : (f.actor != focus)) wp = -1; break;
                 case CTFF_INBASE:
-                    if (m_capture(gamemode)){
+                    if (m_capture(gamemode))
                         wp = i == teamfix ? WP_FRIENDLY : WP_GRAB;
-                    }
                     else if (m_bomber(gamemode))
                         wp = i == teamfix ? WP_BOMB : WP_TARGET;
                     else if (m_hunt(gamemode))
                         wp = i == teamfix ? WP_FRIENDLY : WP_ENEMY;
-                    else{ // if(m_keep(gamemode)){
+                    else // if(m_keep(gamemode))
                         wp = WP_GRAB;
-                    }
                     break;
                 case CTFF_IDLE: // KTF only
                     // WAIT here if the opponent has the flag
@@ -601,10 +599,11 @@ void renderwaypoints()
     {
         playerent *pl = i == getclientnum() ? player1 : players[i];
         if (!pl || (pl == focus && !isthirdperson) || pl->state == CS_DEAD) continue;
-        const bool has_flag = m_flags(gamemode) && (flaginfos[0].state == CTFF_STOLEN && flaginfos[0].actor_cn == i) || (flaginfos[1].state == CTFF_STOLEN && flaginfos[1].actor_cn == i);
+        const bool has_flag = m_flags(gamemode) && ((flaginfos[0].state == CTFF_STOLEN && flaginfos[0].actor_cn == i) || (flaginfos[1].state == CTFF_STOLEN && flaginfos[1].actor_cn == i));
         if (has_flag) continue;
         const bool has_nuke = false; // pl->nukemillis >= totalmillis;
-        if (has_nuke || m_psychic(gamemode, mutators)){
+        if (has_nuke || m_psychic(gamemode, mutators))
+        {
             renderwaypoint((focus == pl || isteam(focus, pl)) ? WP_DEFEND : WP_KILL, pl->o);
             if (has_nuke) renderwaypoint(WP_NUKE, vec(pl->o.x, pl->o.y, pl->o.z + PLAYERHEIGHT));
         }
