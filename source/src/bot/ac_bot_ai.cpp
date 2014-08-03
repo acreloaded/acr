@@ -46,7 +46,7 @@ bool CACBot::ChoosePreferredWeapon()
 
     short sWeaponScore;
     float flDist = GetDistance(m_pMyEnt->enemy->o);
-    int bestWeap[NUMGUNS];
+    char bestWeap[NUMGUNS];
     loopi(NUMGUNS) bestWeap[i] = 0;
     // Choose a weapon
     for(int i=0; i<NUMGUNS; i++)
@@ -106,19 +106,26 @@ bool CACBot::ChoosePreferredWeapon()
         {
             bestWeaponScore = sWeaponScore;
             bestWeapon = i;
-            loopi(NUMGUNS) bestWeap[i] = 0;
+            loopi(bestWeapon) bestWeap[i] = 0;
             bestWeap[bestWeapon] = 1;
         }
         else if(sWeaponScore == bestWeaponScore) bestWeap[i] = 1;
     }
-    int tie=0;
-    loopi(NUMGUNS) tie+=bestWeap[i];
-    int select = rand() % tie, i=0;
-    while (select>=0)
+    int tie = 0;
+    loopi(NUMGUNS) tie += bestWeap[i];
+    if (tie)
     {
-        bestWeapon = i;
-        select -= bestWeap[i++];
+        if (tie > 1)
+        {
+            int select = rnd(tie), i = 0;
+            while (select >= 0)
+            {
+                bestWeapon = i;
+                select -= bestWeap[i++];
+            }
+        }
     }
+    else bestWeapon = GUN_KNIFE;
 
     return SelectGun(bestWeapon);
 };
