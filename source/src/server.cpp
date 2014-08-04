@@ -1866,7 +1866,7 @@ bool updateclientteam(int cln, int newteam, int ftr)
     // force a death if necessary
     if (cl.state.state != CS_DEAD && (m_team(gamemode, mutators) || newteam == TEAM_SPECT))
     {
-        if (ftr == FTR_PLAYERWISH) cl.suicide(newteam == TEAM_SPECT ? OBIT_SPECT : OBIT_TEAM, FRAG_NONE);
+        if (ftr == FTR_PLAYERWISH) cl.suicide(team_isspect(newteam) ? OBIT_SPECT : OBIT_TEAM, FRAG_NONE);
         else forcedeath(&cl);
     }
     return true;

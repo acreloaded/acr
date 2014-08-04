@@ -179,9 +179,12 @@ void newname(const char *name)
 
 int teamatoi(const char *name)
 {
-    string uc;
-    strtoupper(uc, name);
-    loopi(TEAM_NUM) if(!strcmp(teamnames[i], uc)) return i;
+    // team number
+    if (name[1] == '\0' && name[0] >= '0' && name[0] < ('0' + TEAM_NUM))
+        return name[0] - '0';
+    // team names
+    loopi(TEAM_NUM) if(!strcasecmp(teamnames[i], name)) return i;
+    // unknown
     return -1;
 }
 
@@ -192,11 +195,6 @@ void newteam(char *name)
         int nt = teamatoi(name);
         if(nt == player1->team) return; // same team
         if(!team_isvalid(nt)) { conoutf(_("%c3\"%s\" is not a valid team name (try CLA, RVSF or SPECTATOR)"), CC, name); return; }
-        if(team_isspect(nt))
-        {
-            if(player1->state != CS_DEAD) { conoutf(_("you'll need to be in a \"dead\" state to become a spectator")); return; }
-            if(!multiplayer()) { conoutf(_("you cannot spectate in singleplayer")); return; }
-        }
         if(player1->state == CS_EDITING) conoutf(_("you can't change team while editing"));
         else addmsg(SV_SETTEAM, "ri", nt);
     }

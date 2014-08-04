@@ -636,6 +636,8 @@ const char *suicname(int obit)
             return _("Revive");
         case OBIT_TEAM:
             return _("Team");
+        case OBIT_SPECT:
+            return _("Spect");
         case OBIT_JUG:
             return _("Juggernaut");
     }
@@ -666,8 +668,6 @@ const char *killname(int obit, int style)
             return _("Nuke");
         case OBIT_ASSIST:
             return _("Assist");
-        case OBIT_SPECT:
-            return _("Spect");
     }
     if (obit >= 0 && obit < NUMGUNS)
         return weapname(obit);
