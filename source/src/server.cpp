@@ -283,7 +283,7 @@ int *numteamclients(int exclude = -1, bool include_bots = false)
 
 int sendservermode(bool send = true)
 {
-    int sm = (autoteam ? AT_ENABLED : AT_DISABLED) | ((mastermode & MM_MASK) << 2) | (matchteamsize << 4);
+    int sm = (autoteam & 1) | ((mastermode & MM_MASK) << 2) | (matchteamsize << 4);
     if(send) sendf(-1, 1, "ri2", SV_SERVERMODE, sm);
     return sm;
 }
@@ -1951,7 +1951,6 @@ bool balanceteams(int ftr)  // pro vs noobs never more
     if ( 2 * tscore[h] < 3 * tscore[l] || totalscore < nplayers * 100 ) return true;
     if ( tscore[h] > 3 * tscore[l] && tscore[h] > 150 * nplayers )
     {
-//        sendf(-1, 1, "ri2", SV_SERVERMODE, sendservermode(false) | AT_SHUFFLE);
         shuffleteams();
         return true;
     }

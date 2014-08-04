@@ -364,7 +364,7 @@ struct shuffleteamaction : serveraction
 {
     void perform()
     {
-        sendf(-1, 1, "ri2", SV_SERVERMODE, sendservermode(false) | AT_SHUFFLE);
+        // shuffle sound?
         shuffleteams();
     }
     bool isvalid() { return serveraction::isvalid() && m_team(gamemode, mutators); }

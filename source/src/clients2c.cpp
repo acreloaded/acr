@@ -1325,7 +1325,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 servstate.autoteam = sm & 1;
                 servstate.mastermode = (sm >> 2) & MM_MASK;
                 servstate.matchteamsize = sm >> 4;
-                //if(sm & AT_SHUFFLE) playsound(TEAMSHUFFLE);    // TODO
                 break;
             }
 
