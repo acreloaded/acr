@@ -34,6 +34,8 @@ vector<demofile> demofiles;
 
 int mastermode = MM_OPEN, botbalance = -1;
 static bool autoteam = true;
+#define autobalance_mode (!m_zombie(gamemode) && !m_convert(gamemode, mutators))
+#define autobalance (autoteam && autobalance_mode)
 int matchteamsize = 0;
 
 long int incoming_size = 0;
@@ -301,7 +303,7 @@ void changematchteamsize(int newteamsize)
         {
             if(team_isactive(clients[i]->team))
             {
-                if(++size[clients[i]->team] > matchteamsize) updateclientteam(i, team_tospec(clients[i]->team), FTR_SILENTFORCE);
+                if(++size[clients[i]->team] > matchteamsize) updateclientteam(i, team_tospec(clients[i]->team), FTR_SILENT);
             }
         }
     }
@@ -317,7 +319,7 @@ void changemastermode(int newmode)
         {
             loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed)
             {
-                if(clients[i]->team == TEAM_CLA_SPECT || clients[i]->team == TEAM_RVSF_SPECT) updateclientteam(i, TEAM_SPECT, FTR_SILENTFORCE);
+                if(clients[i]->team == TEAM_CLA_SPECT || clients[i]->team == TEAM_RVSF_SPECT) updateclientteam(i, TEAM_SPECT, FTR_SILENT);
             }
         }
         else if(matchteamsize) changematchteamsize(matchteamsize);
@@ -1332,7 +1334,7 @@ void arenacheck()
     items_blocked = true;
     sendf(-1, 1, "ri2", SV_ARENAWIN, alive ? alive->clientnum : -1);
     arenaround = gamemillis+5000;
-    if(autoteam && m_team(gamemode, mutators)) refillteams(true);
+    if(autobalance && m_team(gamemode, mutators)) refillteams(true);
 }
 
 #define SPAMREPEATINTERVAL  20   // detect doubled lines only if interval < 20 seconds
@@ -1840,44 +1842,33 @@ int chooseteam(client &cl, int def = rnd(2))
     }
 }
 
-/** FIXME: this function is unnecessarily complicated */
 bool updateclientteam(int cln, int newteam, int ftr)
 {
-    if(!valid_client(cln)) return false;
-    if(!team_isvalid(newteam) && newteam != TEAM_ANYACTIVE) newteam = TEAM_SPECT;
+    if (!valid_client(cln) || !team_isvalid(newteam)) return false;
     client &cl = *clients[cln];
-    if(cl.team == newteam && ftr != FTR_AUTOTEAM) return true; // no change
-    if( mastermode == MM_OPEN && cl.state.forced && ftr == FTR_PLAYERWISH &&
-        newteam < TEAM_SPECT && team_base(cl.team) != team_base(newteam) ) return false; // no free will changes to forced people
-    if(newteam == TEAM_ANYACTIVE) // when spawning from spect
-        newteam = chooseteam(cl);
-    if(ftr == FTR_PLAYERWISH)
+    // zombies override
+    if (m_zombie(gamemode) && !m_convert(gamemode, mutators) && newteam != TEAM_SPECT) newteam = cl.type == ST_AI ? TEAM_CLA : TEAM_RVSF;
+
+    if (cl.team == newteam)
     {
-        int *teamsizes = numteamclients(cln, cl.type == ST_AI);
-        if(mastermode == MM_MATCH && matchteamsize && m_team(gamemode, mutators))
-        {
-            if(newteam != TEAM_SPECT && (team_base(newteam) != team_base(cl.team) || !m_team(gamemode, mutators))) return false; // no switching sides in match mode when teamsize is set
-        }
-        if(team_isactive(newteam))
-        {
-            if(!m_team(gamemode, mutators) && cl.state.state == CS_ALIVE) return false;  // no comments
-            if(mastermode == MM_MATCH)
-            {
-                if(m_team(gamemode, mutators) && matchteamsize && teamsizes[newteam] >= matchteamsize) return false;  // ensure maximum team size
-            }
-            else
-            {
-                if(m_team(gamemode, mutators) && autoteam && teamsizes[newteam] > teamsizes[team_opposite(newteam)]) return false; // don't switch to an already bigger team
-            }
-        }
-        else if(mastermode != MM_MATCH || !m_team(gamemode, mutators)) newteam = TEAM_SPECT; // only match mode (team) has more than one spect team
+        // only allow to notify
+        if (ftr != FTR_AUTO) return false;
     }
-    if(cl.team == newteam && ftr != FTR_AUTOTEAM) return true; // no change
-    if(cl.team != newteam) sdropflag(cl.clientnum);
-    if(ftr != FTR_INFO && (team_isspect(newteam) || (team_isactive(newteam) && team_isactive(cl.team)))) forcedeath(&cl);
-    sendf(-1, 1, "riii", SV_SETTEAM, cln, newteam | ((ftr == FTR_SILENTFORCE ? FTR_INFO : ftr) << 4));
-    if(ftr != FTR_INFO && !team_isspect(newteam) && team_isspect(cl.team)) sendspawn(&cl);
-    cl.team = newteam;
+    else cl.removeexplosives(); // no nade switch
+
+    // if (cl.team == TEAM_SPECT) cl.state.lastdeath = gamemillis;
+
+    // log message
+    logline(ftr == FTR_SILENT ? ACLOG_DEBUG : ACLOG_INFO, "[%s] %s is now on team %s", cl.gethostname(), cl.formatname(), team_string(newteam));
+    // send message
+    sendf(-1, 1, "ri3", SV_SETTEAM, cln, (cl.team = newteam) | (ftr << 4));
+
+    // force a death if necessary
+    if (cl.state.state != CS_DEAD && (m_team(gamemode, mutators) || newteam == TEAM_SPECT))
+    {
+        if (ftr == FTR_PLAYERWISH) cl.suicide(newteam == TEAM_SPECT ? OBIT_SPECT : OBIT_TEAM, FRAG_NONE);
+        else forcedeath(&cl);
+    }
     return true;
 }
 
@@ -1894,7 +1885,7 @@ int calcscores() // skill eval
 
 vector<int> shuffle;
 
-void shuffleteams(int ftr = FTR_AUTOTEAM)
+void shuffleteams(int ftr = FTR_AUTO)
 {
     int numplayers = numclients();
     int team, sums = calcscores();
@@ -2288,9 +2279,9 @@ void startgame(const char *newname, int newmode, int newmuts, int newtime, bool 
             if(m_team(gamemode, mutators))
             {
                 if(!lastteammode)
-                    shuffleteams(FTR_INFO);
+                    shuffleteams(FTR_SILENT);
                 else if(autoteam)
-                    refillteams(true, FTR_INFO);
+                    refillteams(true, FTR_SILENT);
             }
             // prepare spawns; players will spawn, once they've loaded the correct map
             loopv(clients) if(clients[i]->type!=ST_EMPTY)
@@ -2890,7 +2881,7 @@ void welcomepacket(packetbuf &p, int n)
         c->team = mastermode == MM_MATCH && sc ? team_tospec(sc->team) : TEAM_SPECT;
         putint(p, SV_SETTEAM);
         putint(p, n);
-        putint(p, c->team | (FTR_INFO << 4));
+        putint(p, c->team | (FTR_SILENT << 4));
 
         putint(p, SV_FORCEDEATH);
         putint(p, n);
@@ -3188,7 +3179,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     {
                         if(numclients() < 2 && !m_demo(gamemode) && mastermode != MM_MATCH) // spawn on empty servers
                         {
-                            spawn = updateclientteam(cl->clientnum, TEAM_ANYACTIVE, FTR_INFO);
+                            spawn = updateclientteam(cl->clientnum, chooseteam(*cl), FTR_SILENT);
                         }
                     }
                     else
@@ -3318,11 +3309,53 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_SETTEAM:
             {
                 int t = getint(p);
-                if(!updateclientteam(sender, team_isvalid(t) ? t : TEAM_SPECT, FTR_PLAYERWISH)) sendf(sender, 1, "rii", SV_TEAMDENY, t);
-                else
+                if (cl->team == t || !team_isvalid(t)) break;
+
+                if (cl->role < CR_ADMIN && t < TEAM_SPECT)
                 {
-                    checkai(); // user switch
+                    if (mastermode == MM_OPEN && cl->state.forced && team_base(cl->team) != team_base(t))
+                    {
+                        // no free will changes for forced people
+                        sendf(sender, 1, "ri2", SV_TEAMDENY, 0x10);
+                        break;
+                    }
+                    else if (!autobalance_mode)
+                    {
+                        sendf(sender, 1, "ri2", SV_TEAMDENY, 0x11);
+                        break;
+                    }
+                    else if (m_team(gamemode, mutators))
+                    {
+                        int *teamsizes = numteamclients(sender);
+                        if (mastermode == MM_MATCH)
+                        {
+                            if (matchteamsize && t != TEAM_SPECT)
+                            {
+                                if (team_base(t) != team_base(cl->team))
+                                {
+                                    // no switching sides in match mode when teamsize is set
+                                    sendf(sender, 1, "ri2", SV_TEAMDENY, 0x12);
+                                    break;
+                                }
+                                else if (team_isactive(t) && teamsizes[t] >= matchteamsize)
+                                {
+                                    // ensure maximum team size
+                                    sendf(sender, 1, "ri2", SV_TEAMDENY, t);
+                                    break;
+                                }
+                            }
+                        }
+                        else if (team_isactive(t) && autoteam && teamsizes[t] > teamsizes[team_opposite(t)])
+                        {
+                            // don't switch to an already bigger team
+                            sendf(sender, 1, "ri2", SV_TEAMDENY, t);
+                            break;
+                        }
+                    }
                 }
+                updateclientteam(sender, t, FTR_PLAYERWISH);
+                checkai(); // user switch
+                // convertcheck();
                 break;
             }
 
@@ -3367,7 +3400,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 if (cs.state != CS_DEAD || cs.lastspawn >= 0) break; // not dead or already enqueued
                 if (team_isspect(cl->team))
                 {
-                    updateclientteam(sender, TEAM_ANYACTIVE, FTR_PLAYERWISH);
+                    updateclientteam(sender, chooseteam(*cl), FTR_PLAYERWISH);
                     checkai(); // spawn unspectate
                 }
                 // can the player be enqueued?
@@ -4556,7 +4589,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
     serverms(smode, smuts, numplayers(false), minremain, smapname, servmillis, serverhost->address, &mnum, &msend, &mrec, &cnum, &csend, &crec, SERVER_PROTOCOL_VERSION);
 
-    if(autoteam && m_team(gamemode, mutators) && !m_duke(gamemode, mutators) && !interm && servmillis - lastfillup > 5000 && refillteams()) lastfillup = servmillis;
+    if(autobalance && m_team(gamemode, mutators) && !m_duke(gamemode, mutators) && !interm && servmillis - lastfillup > 5000 && refillteams()) lastfillup = servmillis;
 
     static unsigned int lastThrottleEpoch = 0;
     if(serverhost->bandwidthThrottleEpoch != lastThrottleEpoch)

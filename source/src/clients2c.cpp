@@ -1273,66 +1273,48 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             case SV_TEAMDENY:
             {
                 int t = getint(p);
-                if(m_team(gamemode, mutators))
-                {
-                    if(team_isvalid(t)) conoutf(_("you can't change to team %s"), team_string(t));
-                }
-                else
-                {
-                    conoutf(_("you can't change to %s mode"), team_isspect(t) ? _("spectate") : _("active"));
-                }
+                if (t == 0x10) conoutf(_("%c3you were forced into this team by a vote and may not switch"), CC);
+                else if (t == 0x11) conoutf(_("%c3you may not switch teams in this mode!"), CC);
+                else if (t == 0x12) conoutf(_("%c3match team size is set -- cannot switch sides"), CC);
+                else conoutf(_("%cteam %s is full!"), CC, team_string(t & 0xF));
                 break;
             }
 
             case SV_SETTEAM:
             {
-                int fpl = getint(p), fnt = getint(p), ftr = fnt >> 4;
-                fnt &= 0x0f;
-                playerent *d = newclient(fpl);
-                if(d)
+                int cn = getint(p), fnt = getint(p), ftr = fnt >> 4; fnt &= 0xf;
+                playerent *d = newclient(cn);
+                if (!d) break;
+                if (d->team == fnt)
                 {
-                    const char *nts = team_string(fnt);
-                    bool you = fpl == player1->clientnum;
-                    if(m_team(gamemode, mutators) || team_isspect(fnt))
-                    {
-                        if(d->team == fnt)
-                        {
-                            if(you && ftr == FTR_AUTOTEAM) hudoutf("you stay in team %s", nts);
-                        }
-                        else
-                        {
-                            if(you && !watchingdemo)
-                            {
-                                switch(ftr)
-                                {
-                                    case FTR_PLAYERWISH:
-                                        conoutf(_("you're now in team %s"), nts);
-                                        break;
-                                    case FTR_AUTOTEAM:
-                                        hudoutf(_("the server forced you to team %s"), nts);
-                                        break;
-                                }
-                            }
-                            else
-                            {
-                                const char *pls = colorname(d);
-                                bool et = team_base(player1->team) != team_base(fnt);
-                                switch(ftr)
-                                {
-                                    case FTR_PLAYERWISH:
-                                        conoutf(_("player %s switched to team %s"), pls, nts); // new message
-                                        break;
-                                    case FTR_AUTOTEAM:
-                                        if(watchingdemo) conoutf(_("the server forced %s to team %s"), colorname(d), nts);
-                                        else hudoutf(_("the server forced %s to %s team"), colorname(d), et ? _("the enemy") : _("your"));
-                                        break;
-                                }
-                            }
-                            if(you && !team_isspect(d->team) && team_isspect(fnt) && d->state == CS_DEAD) spectatemode(SM_FLY);
-                        }
+                    // no change
+                    switch (ftr){
+                        case FTR_PLAYERWISH:
+                            if (d == player1) hudoutf(_("%c1you %c2did not switch teams"), CC, CC);
+                            else conoutf(_("%c2%s did not switch teams"), CC, colorname(d));
+                            break;
+                        case FTR_AUTO:
+                            if (d == player1) hudoutf(_("%c1you %c2stay in team %s"), CC, CC, team_string(fnt));
+                            else if (d->ownernum < 0) conoutf(_("%c2%s stays on team %s"), CC, colorname(d), team_string(fnt));
+                            break;
                     }
-                    else if(d->team != fnt && ftr == FTR_PLAYERWISH) conoutf(_("%s changed to active play"), you ? _("you") : colorname(d));
+                }
+                else
+                {
+                    switch (ftr)
+                    {
+                        case FTR_PLAYERWISH:
+                            if (d == player1) hudoutf(_("%c1you %c2are now in team %s"), CC, CC, team_string(fnt));
+                            else conoutf(_("%c2%s switched to team %s"), CC, colorname(d), team_string(fnt));
+                            break;
+                        case FTR_AUTO:
+                            if (d == player1) hudoutf(_("%c2the server %c1forced you %c2to team %s"), CC, CC, CC, team_string(fnt));
+                            else if(d->ownernum < 0) conoutf(_("%c2the server forced %s to team %s"), CC, colorname(d), team_string(fnt));
+                            break;
+                    }
                     d->team = fnt;
+                    // client version of removeexplosives()
+                    removebounceents(d);
                 }
                 break;
             }

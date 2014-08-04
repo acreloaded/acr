@@ -189,7 +189,7 @@ void checkai()
                 if(ci.type != ST_AI) continue;
                 int teamb = chooseteam(ci, ci.team);
                 if (teamb == TEAM_SPECT) continue;
-                if(ci.team != teamb) updateclientteam(i, teamb, FTR_AUTOTEAM);
+                if(ci.team != teamb) updateclientteam(i, teamb, FTR_SILENT);
             }
         }
         else clearai();

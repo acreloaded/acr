@@ -328,7 +328,7 @@ void check_afk()
             defformatstring(msg)("%s is afk, switching to spectator", c.formatname());
             sendservmsg(msg);
             logline(ACLOG_INFO, "[%s] %s", c.gethostname(), msg);
-            updateclientteam(i, TEAM_SPECT, FTR_SILENTFORCE);
+            updateclientteam(i, TEAM_SPECT, FTR_SILENT);
             checkai(); // AFK check
         }
     }
