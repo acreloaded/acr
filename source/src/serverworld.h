@@ -385,6 +385,7 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
                 v.x = f.x; v.y = f.y;
                 break;
             case CTFF_DROPPED:
+                if (f.drop_cn == cp.clientnum && f.dropmillis + 2000 > servmillis) break;
                 v.x = f.pos[0]; v.y = f.pos[1];
                 forcez = true;
                 break;
@@ -414,7 +415,7 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
             else
             {
                 /*if(m_return && of.state == CTFF_STOLEN && of.actor_cn == sender) flagaction(team_opposite(i), FA_RETURN, sender);*/
-                flagaction(i, FA_PICKUP, cp.clientnum);
+                flagaction(i, f.state == CTFF_INBASE ? FA_STEAL : FA_PICKUP, cp.clientnum);
             }
         }
         else if (m_hunt(gamemode) || m_bomber(gamemode))

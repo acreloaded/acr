@@ -1129,7 +1129,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             audiomgr.playsound(S_FLAGPICKUP, SP_HIGHEST);
             if(firstperson)
             {
-                hudoutf("\f2you %s the %sflag", message == FA_STEAL ? "stole" : "took", m_capture(gamemode) ? "enemy " : "");
+                hudoutf("\f2you %s %s flag", message == FA_STEAL ? "stole" : "took", teamstr);
                 if (!own || !m_capture(gamemode))
                     audiomgr.musicsuggest(M_FLAGGRAB, m_capture(gamemode) ? 90*1000 : 900*1000, true);
             }
@@ -1142,15 +1142,16 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             audiomgr.playsound(S_FLAGDROP, SP_HIGHEST);
             if(firstperson)
             {
-                hudoutf("\f2you %s the flag", droplost);
+                hudoutf("\f2you %s %s flag", droplost, teamstr);
                 firstpersondrop = true;
             }
-            else hudoutf("\f2%s %s %s flag", colorname(act), droplost, teamstr);
+            else hudoutf("\f2%s %s %s %s flag", flagteam, colorname(act), droplost, teamstr);
             break;
         }
         case FA_RETURN:
             audiomgr.playsound(S_FLAGRETURN, SP_HIGHEST);
-            hudoutf("\f2%s returned %s flag", firstperson ? "you" : colorname(act), teamstr);
+            if (firstperson) hudoutf("\f2you returned %s flag", teamstr);
+            else hudoutf("\f2%s %s returned %s flag", flagteam, colorname(act), teamstr);
             break;
         case FA_SCORE:
             audiomgr.playsound(S_FLAGSCORE, SP_HIGHEST);

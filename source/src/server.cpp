@@ -1001,7 +1001,6 @@ void flagaction(int flag, int action, int actor)
         switch(action)
         {
             case FA_PICKUP:
-                if (f.drop_cn == actor && f.dropmillis + 2000 > servmillis) return;
             case FA_STEAL:
             {
                 f.state = CTFF_STOLEN;
@@ -1059,6 +1058,7 @@ void flagaction(int flag, int action, int actor)
     {
         switch(action)
         {
+            case FA_PICKUP:
             case FA_STEAL:
                 f.state = CTFF_STOLEN;
                 f.actor_cn = actor;
@@ -1145,7 +1145,7 @@ int clienthasflag(int cn)
 
 void ctfreset()
 {
-    int idleflag = m_keep(gamemode) ? rnd(2) : -1;
+    int idleflag = m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? rnd(2) : -1;
     loopi(2)
     {
         sflaginfos[i].actor_cn = -1;
