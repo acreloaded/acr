@@ -934,27 +934,19 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     gun = getint(p),
                     style = getint(p),
                     damage = getint(p),
-                    combo = getint(p);
+                    combo = getint(p),
+                    assist = getint(p);
                 float killdist = getint(p)/DMF;
                 vec src; loopi(3) src[i] = getint(p)/DMF;
-                const int assists = getint(p);
-                // assists are consumed soon
                 playerent *victim = getclient(vcn), *actor = getclient(acn);
                 //if (actor) actor->pointstreak = pointstreak;
-                if (victim)
-                {
-                    victim->damagelog.setsize(0);
-                    loopi(assists) victim->damagelog.add(getint(p));
-                }
-                else loopi(assists) getint(p);
-                // assists are consumed
 
                 if (!victim) break;
                 victim->health -= damage;
                 if (!actor) break;
                 dodamage(damage, victim, actor, gun, style, src);
                 //victim->deathcamsrc = src;
-                dokill(victim, actor, gun, style, damage, combo, killdist);
+                dokill(victim, actor, gun, style, damage, combo, assist, killdist);
                 break;
             }
 

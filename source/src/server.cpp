@@ -1591,20 +1591,20 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
     target->invalidateheals();
 
     // assists
-    /*
     loopv(ts.damagelog)
     {
         if (valid_client(ts.damagelog[i]))
         {
+            /*
             const int factor = isteam(clients[ts.damagelog[i]], target) ? -1 : 1;
             clients[ts.damagelog[i]]->state.invalidate().assists += factor;
             if (factor > 0)
                 usesteamscore(actor->team).assists += factor; // add to assists
             clients[ts.damagelog[i]]->state.pointstreak += factor * 2;
+            */
         }
         else ts.damagelog.remove(i--);
     }
-    */
 
     // killstreak rewards
     // TODO
@@ -1641,9 +1641,8 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
     // automatic zombie count?
 
     // send message
-    sendf(-1, 1, "ri8i3iv", SV_KILL, target->clientnum, actor->clientnum, gun, style, damage, ++actor->state.combo,
-        (int)(source.x*DMF), (int)(source.y*DMF), (int)(source.z*DMF), (int)(killdist*DMF),
-        ts.damagelog.length(), ts.damagelog.length(), ts.damagelog.getbuf());
+    sendf(-1, 1, "ri9i3", SV_KILL, target->clientnum, actor->clientnum, gun, style, damage, ++actor->state.combo, ts.damagelog.length(),
+        (int)(source.x*DMF), (int)(source.y*DMF), (int)(source.z*DMF), (int)(killdist*DMF));
 
     target->position.setsize(0);
     ts.state = CS_DEAD;

@@ -414,7 +414,7 @@ extern void addexp(int xp);
 extern void expreason(const char *reason);
 extern void deathstate(playerent *pl);
 extern void dodamage(int damage, playerent *pl, playerent *actor, int gun, int style, const vec &src);
-extern void dokill(playerent *pl, playerent *act, int gun, int style, int damage, int combo, float dist);
+extern void dokill(playerent *pl, playerent *act, int gun, int style, int damage, int combo, int assist, float dist);
 extern playerent *newplayerent();
 extern char *getclientmap();
 extern int getclientmode();

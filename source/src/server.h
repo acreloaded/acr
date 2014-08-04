@@ -129,7 +129,7 @@ struct clientstate : playerstate
     int akimbomillis, crouchmillis, scopemillis, drownmillis, drownval;
     bool scoped, crouching, onfloor; float fallz;
     int flagscore, frags, teamkills, deaths, shotdamage, damage, points, events, lastdisc, reconnections;
-    vector<int> revengelog;
+    vector<int> damagelog, revengelog;
     vector<wound> wounds;
 
     clientstate() : state(CS_DEAD) {}
@@ -185,6 +185,7 @@ struct clientstate : playerstate
         akimbomillis = crouchmillis = scopemillis = drownmillis = drownval = 0;
         scoped = crouching = onfloor = false;
         fallz = -1e10f;
+        damagelog.setsize(0);
         wounds.shrink(0); // no more wounds!
     }
 

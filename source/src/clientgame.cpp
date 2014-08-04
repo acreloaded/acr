@@ -424,7 +424,6 @@ void deathstate(playerent *pl)
     pl->zoomed = 0;
     pl->attacking = pl->scoping = false;
     pl->weaponsel->onownerdies();
-    pl->damagelog.setsize(0);
     pl->radarmillis = 0;
 
     if(pl==player1)
@@ -727,7 +726,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, int style, c
     else audiomgr.playsound(S_PAIN1 + rnd(5), pl);
 }
 
-void dokill(playerent *pl, playerent *act, int gun, int style, int damage, int combo, float dist)
+void dokill(playerent *pl, playerent *act, int gun, int style, int damage, int combo, int assist, float dist)
 {
     if(intermission) return;
 
@@ -766,13 +765,8 @@ void dokill(playerent *pl, playerent *act, int gun, int style, int damage, int c
             audiomgr.playsound(sound, pl, pl == focus ? SP_HIGHEST : SP_HIGH); // both get sounds if 1 meter apart...
     }
 
-    // assist checks
-    pl->damagelog.removeobj(pl->clientnum);
-    pl->damagelog.removeobj(act->clientnum);
-    loopv(pl->damagelog) if (!getclient(pl->damagelog[i])) pl->damagelog.remove(i--);
-
     // killfeed
-    addobit(act, gun, style, headshot, pl, combo, pl->damagelog.length());
+    addobit(act, gun, style, headshot, pl, combo, assist);
 
     // sound
     audiomgr.playsound(S_DIE1 + rnd(2), pl);

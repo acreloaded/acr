@@ -318,7 +318,6 @@ public:
     bool akimbo, scoping;
     int ammo[NUMGUNS], mag[NUMGUNS], gunwait[NUMGUNS];
     int pstatshots[NUMGUNS], pstatdamage[NUMGUNS];
-    vector<int> damagelog;
 
     playerstate() : armour(0), primary(GUN_ASSAULT), secondary(GUN_PISTOL), perk1(PERK1_NONE), perk2(PERK2_NONE),
         nextprimary(GUN_ASSAULT), nextsecondary(GUN_PISTOL), nextperk1(PERK1_NONE), nextperk2(PERK2_NONE),
