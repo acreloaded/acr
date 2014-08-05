@@ -392,6 +392,12 @@ void conoutf(const char *s, ...)
     delete[] conline; conline=newstring(sf);
 }
 
+void chatonlyf(const char *s, ...)
+{
+    defvformatstring(sf, s, s);
+    chat.addline(sf);
+}
+
 void chatoutf(const char *s, ...)
 {
     defvformatstring(sf, s, s);

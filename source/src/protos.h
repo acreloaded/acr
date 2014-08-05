@@ -816,6 +816,7 @@ extern bool checkchallenge(const char *answerstr, void *correct);
 // console
 extern void conoutf(const char *s, ...);
 extern void chatoutf(const char *s, ...);
+extern void chatonlyf(const char *s, ...);
 extern void addobit(playerent *actor, int weap, int style, bool headshot, playerent *target, int combo = 1, int assist = 0);
 
 // command

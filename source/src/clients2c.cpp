@@ -410,11 +410,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 filtertext(text, text);
                 playerent *d = getclient(cn);
                 if(d) saytext(d, text, flags, voice);
-                else if(cn == -1)
-                {
-                    chatoutf("\f4MOTD:");
-                    chatoutf("%s", text);
-                }
+                else if(cn == -1) chatonlyf("\f4MOTD:\n%s", text);
                 else chatoutf("\f5[\f1CONSOLE\f5] \f2%s", text);
                 break;
             }
@@ -554,7 +550,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 if(!text[0]) copystring(text, "unarmed");
                 copystring(d->name, text, MAXNAMELEN+1);
                 conoutf(_("connected: %s"), colorname(d));
-                chatoutf(_("%s %c0joined %c2the %c1game"), colorname(d), CC, CC, CC);
+                chatonlyf(_("%s %c0joined %c2the %c1game"), colorname(d), CC, CC, CC);
                 if(identexists("onConnect"))
                 {
                     defformatstring(onconnect)("onConnect %d", d->clientnum);
@@ -619,7 +615,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 {
                     extern const char *disc_reason(int reason);
                     conoutf(_("player %s disconnected (%s)"), colorname(d), disc_reason(reason));
-                    chatoutf(_("%s %c3left %c2the %c1game"), colorname(d), CC, CC, CC);
+                    chatonlyf(_("%s %c3left %c2the %c1game"), colorname(d), CC, CC, CC);
                 }
                 zapplayer(players[cn]);
                 if(identexists("onDisconnect"))

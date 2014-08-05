@@ -206,23 +206,29 @@ void saytext(playerent *d, char *text, int flags, int sound)
             audiomgr.playsound(sound, SP_HIGH);
     }
     else sound = 0;
-    int textcolor = 0; // normal text
+    char textcolor = '0'; // normal text
     if(flags&SAY_TEAM)
-        textcolor = d->team == TEAM_SPECT ? 4 : (d == player1 || isteam(player1, d)) ? 1 : 3;
+        // SPECT gray spect, friendly green, hostile red
+        textcolor = d->team == TEAM_SPECT ? '4' : (d == player1 || isteam(player1, d)) ? '1' : '3';
     if(flags&SAY_FORBIDDEN)
     {
-        textcolor = 2; // denied yellow
+        textcolor = '2'; // denied yellow
         concatformatstring(text, " \f3%s", "(forbidden speech)");
     }
     else if(flags&SAY_SPAM)
     {
-        textcolor = 2; // denied yellow
+        textcolor = '2'; // denied yellow
         concatformatstring(text, " \f3%s", _("spam_detected"));
     }
     else if(flags&SAY_MUTE)
     {
-        textcolor = 2; // denied yellow
+        textcolor = '2'; // denied yellow
         concatformatstring(text, " \f3%s", "MUTED BY THE SERVER");
+    }
+    else if (d->ignored && !d->clientrole)
+    {
+        textcolor = '2'; // denied yellow
+        //clientlogf("ignored: %s", textout);
     }
     string textout;
     // nametag
@@ -232,12 +238,10 @@ void saytext(playerent *d, char *text, int flags, int sound)
     if(flags & SAY_ACTION) formatstring(textout)("\f5* %s", nametag);
     else formatstring(textout)("\f5<%s\f5>", nametag);
     // format text output
-    if(sound) concatformatstring(textout, " \f4[\f6%d\f4] \f%d%s", sound, textcolor, text);
-    else concatformatstring(textout, " \f%d%s", textcolor, text);
+    if(sound) concatformatstring(textout, " \f4[\f6%d\f4] \f%c%s", sound, textcolor, text);
+    else concatformatstring(textout, " \f%c%s", textcolor, text);
     // output text
-    if(d->ignored && !d->clientrole)
-        clientlogf("ignored: %s", textout);
-    else if(textcolor == 2)
+    if (textcolor == 2)
         conoutf("%s", textout);
     else
         chatoutf("%s", textout);
