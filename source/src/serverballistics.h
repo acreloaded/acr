@@ -405,7 +405,12 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
         // penetration: distort ray and continue through...
         vec dir(to = end), newsurface;
         // 5 degrees (both ways = 10 degrees) distortion on all axis
-        dir.sub(from).normalize().rotate_around_x((rnd(11) - 5)*RAD).rotate_around_y((rnd(11) - 5)*RAD).rotate_around_z((rnd(11) - 5)*RAD).add(end);
+        dir.sub(from)
+            .normalize()
+            .rotate_around_x((rnd(11) - 5)*RAD)
+            .rotate_around_y((rnd(11) - 5)*RAD)
+            .rotate_around_z((rnd(11) - 5)*RAD)
+            .add(end);
         // retrace
         straceShot(end, dir, &newsurface);
         const int penetratedamage = shot(owner, end, dir, pos, weap, style, newsurface, exclude, dist2, penaltydist + 40, save); // 10 meters penalty for penetrating the player
@@ -422,13 +427,17 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
         // calculate reflected ray from incident ray and surface normal
         dir.sub(from).normalize();
         // r = i - 2 n (i . n)
-        dir
-            .sub(
-                vec(surface)
-                    .mul(2 * dir.dot(surface))
-            );
+        dir.sub(
+            vec(surface)
+                // .normalize()
+                .mul(2 * dir.dot(surface))
+        );
         // 2 degrees (both ways = 4 degrees) distortion on all axis
-        dir.rotate_around_x((rnd(5) - 2)*RAD).rotate_around_y((rnd(5) - 2)*RAD).rotate_around_z((rnd(5) - 2)*RAD).add(to);
+        dir
+            .rotate_around_x((rnd(5) - 2)*RAD)
+            .rotate_around_y((rnd(5) - 2)*RAD)
+            .rotate_around_z((rnd(5) - 2)*RAD)
+            .add(to);
         // retrace
         straceShot(to, dir, &newsurface);
         const int ricochetdamage = shot(owner, to, dir, pos, weap, style, newsurface, exclude, dist2, penaltydist + 60, save); // 15 meters penalty for ricochet
