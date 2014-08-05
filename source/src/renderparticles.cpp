@@ -608,6 +608,8 @@ void particle_fireball(int type, const vec &o, playerent *owner)
     newparticle(o, vec(0, 0, 0), (int)((parttypes[type].sz-1.0f)*100.0f), type);
     if (owner)
     {
+        if (radar_explosions.length() >= 128)
+            radar_explosions.setsize(64);
         radar_explosion &nx = radar_explosions.add();
         nx.owner = owner;
         nx.o[0] = o.x;
@@ -670,6 +672,8 @@ vector<radar_shotline> radar_shotlines;
 void addshotline(playerent *pl, vec from, const vec &to, int flags)
 {
     // radar shotlines
+    if (radar_shotlines.length() >= 256)
+        radar_shotlines.setsize(128);
     radar_shotline &s = radar_shotlines.add();
     s.owner = pl;
     s.from[0] = from.x;
