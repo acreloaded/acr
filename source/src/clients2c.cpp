@@ -554,6 +554,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 if(!text[0]) copystring(text, "unarmed");
                 copystring(d->name, text, MAXNAMELEN+1);
                 conoutf(_("connected: %s"), colorname(d));
+                chatoutf(_("%s %c0joined %c2the %c1game"), colorname(d), CC, CC, CC);
                 if(identexists("onConnect"))
                 {
                     defformatstring(onconnect)("onConnect %d", d->clientnum);
