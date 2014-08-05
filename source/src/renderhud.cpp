@@ -676,6 +676,14 @@ void drawradar_showmap(playerent *p, int w, int h)
             }
         }
     }
+    loopv(bounceents) // draw grenades
+    {
+        bounceent *b = bounceents[i];
+        if (!b || b->bouncetype != BT_NADE) continue;
+        if (((grenadeent *)b)->nadestate != 1) continue;
+        vec rtmp = vec(b->o).sub(mdd).mul(coordtrans);
+        drawradarent(rtmp.x, rtmp.y, 0, b->owner == p ? 2 : isteam(b->owner, p) ? 1 : 0, 3, iconsize / 1.5f, 1);
+    }
     glEnable(GL_BLEND);
     glPopMatrix();
 }
@@ -778,6 +786,17 @@ void drawradar_vicinity(playerent *p, int w, int h)
                 }
             }
         }
+    }
+    loopv(bounceents) // draw grenades
+    {
+        bounceent *b = bounceents[i];
+        if (!b || b->bouncetype != BT_NADE) continue;
+        if (((grenadeent *)b)->nadestate != 1) continue;
+        vec rtmp = vec(b->o).sub(p->o);
+        if (rtmp.magnitude() > d2s)
+            rtmp.normalize().mul(d2s);
+        rtmp.mul(scaled);
+        drawradarent(rtmp.x, rtmp.y, 0, b->owner == p ? 2 : isteam(b->owner, p) ? 1 : 0, 3, iconsize / 1.5f, 1);
     }
     showradarvalues = 0; // DEBUG - also see two bits commented-out above
     glEnable(GL_BLEND);
