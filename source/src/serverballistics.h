@@ -402,24 +402,18 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
         // add hit to the exclude list
         exclude.add(hit->clientnum);
 
-        // penetration
-        //if(!m_classic(gamemode, mutators) && dist2 < 100) // only penetrate players before 25 meters
-        // {
-            // distort ray and continue through...
-            vec dir(to = end), newsurface;
-            // 35 degrees (both ways = 70 degrees) distortion
-            //dir.sub(from).normalize().rotate_around_z((rnd(71)-35)*RAD).add(end);
-            // 5 degrees (both ways = 10 degrees) distortion on all axis
-            dir.sub(from).normalize().rotate_around_x((rnd(45) - 22)*RAD).rotate_around_y((rnd(11) - 5)*RAD).rotate_around_z((rnd(11) - 5)*RAD).add(end);
-            // retrace
-            straceShot(end, dir, &newsurface);
-            const int penetratedamage = shot(owner, end, dir, pos, weap, style, newsurface, exclude, dist2, penaltydist + 40, save); // 10 meters penalty for penetrating the player
-            sendf(-1, 1, "ri9", SV_RICOCHET, owner.clientnum, weap, (int)(end.x), (int)(end.y), (int)(end.z), (int)(dir.x), (int)(dir.y), (int)(dir.z));
-            return damage + penetratedamage;
-        //}
+        // penetration: distort ray and continue through...
+        vec dir(to = end), newsurface;
+        // 5 degrees (both ways = 10 degrees) distortion on all axis
+        dir.sub(from).normalize().rotate_around_x((rnd(11) - 5)*RAD).rotate_around_y((rnd(11) - 5)*RAD).rotate_around_z((rnd(11) - 5)*RAD).add(end);
+        // retrace
+        straceShot(end, dir, &newsurface);
+        const int penetratedamage = shot(owner, end, dir, pos, weap, style, newsurface, exclude, dist2, penaltydist + 40, save); // 10 meters penalty for penetrating the player
+        sendf(-1, 1, "ri9", SV_RICOCHET, owner.clientnum, weap, (int)(end.x*DMF), (int)(end.y*DMF), (int)(end.z*DMF), (int)(dir.x*DMF), (int)(dir.y*DMF), (int)(dir.z*DMF));
+        return damage + penetratedamage;
     }
     // ricochet
-    else if (!dist && from.dist(to) < 100 && surface.magnitude()) // ricochet once before 25 meters or going through a player
+    else if (!dist && surface.magnitude()) // ricochet once if it came from the gun directly
     {
         // reset exclusion to the owner, so a penetrated player can be hit twice
         if (exclude.length() > 1)
