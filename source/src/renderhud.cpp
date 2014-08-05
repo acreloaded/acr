@@ -685,6 +685,33 @@ void drawradar_showmap(playerent *p, int w, int h)
         drawradarent(rtmp.x, rtmp.y, 0, b->owner == p ? 2 : isteam(b->owner, p) ? 1 : 0, 3, iconsize / 1.5f, 1);
     }
     glEnable(GL_BLEND);
+    glDisable(GL_TEXTURE_2D);
+    loopv(radar_shotlines) // shotlines
+    {
+        if (radar_shotlines[i].expire < lastmillis) radar_shotlines.remove(i--);
+        else
+        {
+            static const GLubyte col_ownshot[3] = { 0x94, 0xB0, 0xDE }; // blue for your shots
+            static const GLubyte col_friendlyshot[3] = { 0xB8, 0xDC, 0x78 }; // light green-yellow for friendlies
+            static const GLubyte col_enemyshot[3] = { 0xFF, 0xFF, 0xFF }; // white for enemies
+            const GLubyte *col;
+            if (radar_shotlines[i].owner == p) col = col_ownshot;
+            else if (isteam(p, radar_shotlines[i].owner)) col = col_friendlyshot;
+            else col = col_enemyshot;
+            glBegin(GL_LINES);
+            vec from(radar_shotlines[i].from[0], radar_shotlines[i].from[1], 0), to(radar_shotlines[i].to[0], radar_shotlines[i].to[1], 0);
+            from.sub(mdd);
+            to.sub(mdd);
+            // source shot
+            glColor4ub(col[0], col[1], col[2], 200);
+            glVertex2f(from.x*coordtrans, from.y*coordtrans);
+            // dest shot
+            glColor4ub(col[0], col[1], col[2], 250);
+            glVertex2f(to.x*coordtrans, to.y*coordtrans);
+            glEnd();
+        }
+    }
+    glEnable(GL_TEXTURE_2D);
     glPopMatrix();
 }
 
@@ -787,6 +814,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
             }
         }
     }
+    showradarvalues = 0; // DEBUG - also see two bits commented-out above
     loopv(bounceents) // draw grenades
     {
         bounceent *b = bounceents[i];
@@ -798,7 +826,37 @@ void drawradar_vicinity(playerent *p, int w, int h)
         rtmp.mul(scaled);
         drawradarent(rtmp.x, rtmp.y, 0, b->owner == p ? 2 : isteam(b->owner, p) ? 1 : 0, 3, iconsize / 1.5f, 1);
     }
-    showradarvalues = 0; // DEBUG - also see two bits commented-out above
+    glDisable(GL_TEXTURE_2D);
+    loopv(radar_shotlines) // shotlines
+    {
+        if (radar_shotlines[i].expire < lastmillis) radar_shotlines.remove(i--);
+        else
+        {
+            static const GLubyte col_ownshot[3] = { 0x94, 0xB0, 0xDE }; // blue for your shots
+            static const GLubyte col_friendlyshot[3] = { 0xB8, 0xDC, 0x78 }; // light green-yellow for friendlies
+            static const GLubyte col_enemyshot[3] = { 0xFF, 0xFF, 0xFF }; // white for enemies
+            const GLubyte *col;
+            if (radar_shotlines[i].owner == p) col = col_ownshot;
+            else if (isteam(p, radar_shotlines[i].owner)) col = col_friendlyshot;
+            else col = col_enemyshot;
+            glBegin(GL_LINES);
+            vec from(radar_shotlines[i].from[0], radar_shotlines[i].from[1], 0), to(radar_shotlines[i].to[0], radar_shotlines[i].to[1], 0);
+            from.sub(p->o);
+            to.sub(p->o);
+            if (from.magnitude() > d2s)
+                from.normalize().mul(d2s);
+            if (to.magnitude() > d2s)
+                to.normalize().mul(d2s);
+            // source shot
+            glColor4ub(col[0], col[1], col[2], 200);
+            glVertex2f(from.x*scaled, from.y*scaled);
+            // dest shot
+            glColor4ub(col[0], col[1], col[2], 250);
+            glVertex2f(to.x*scaled, to.y*scaled);
+            glEnd();
+        }
+    }
+    glEnable(GL_TEXTURE_2D);
     glEnable(GL_BLEND);
     glPopMatrix();
     // eye candy:
