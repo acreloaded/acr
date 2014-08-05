@@ -121,7 +121,7 @@ struct clientstate : playerstate
 {
     vec o, vel, sg[SGRAYS], flagpickupo;
     int state;
-    int lastdeath, spawn, lifesequence;
+    int lastdeath, lifesequence;
     bool forced;
     int lastshot, lastkill, combo;
     projectilestate<6> grenades; // 5000ms TLL / (we can throw one every 650ms+200ms) = 6 nades possible
@@ -180,7 +180,6 @@ struct clientstate : playerstate
         o = vec(-1e10f, -1e10f, -1e10f);
         vel = vec(0, 0, 0);
         lastdeath = 0;
-        spawn = 0;
         lastshot = lastkill = combo = 0;
         akimbomillis = crouchmillis = scopemillis = drownmillis = drownval = 0;
         scoped = crouching = onfloor = false;

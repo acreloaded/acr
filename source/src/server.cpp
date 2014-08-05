@@ -1262,7 +1262,7 @@ bool items_blocked = false;
 bool free_items(int n)
 {
     client *c = clients[n];
-    int waitspawn = min(c->ping,200) + c->state.spawn; // flowtron to Brahma: can't this be removed now? (re: rev. 5270)
+    int waitspawn = min(c->ping,200) + c->state.lastspawn; // flowtron to Brahma: can't this be removed now? (re: rev. 5270)
     return !items_blocked && (waitspawn < gamemillis);
 }
 
@@ -1647,6 +1647,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
     target->position.setsize(0);
     ts.state = CS_DEAD;
     ts.lastdeath = gamemillis;
+    ts.lastspawn = -1;
     // don't issue respawn yet until DEATHMILLIS has elapsed
     // ts.respawn();
     
@@ -3419,8 +3420,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 client &cp = *clients[cn];
                 clientstate &cs = cp.state;
                 if((cs.state!=CS_ALIVE && cs.state!=CS_DEAD) || ls!=cs.lifesequence || cs.lastspawn<0) break;
-                cs.lastspawn = -1;
-                cs.spawn = gamemillis;
+                cs.lastspawn = gamemillis; // extend spawn protection time
                 cs.state = CS_ALIVE;
                 vec lasto = cs.o;
                 cs.o = cp.spawnp = o;
