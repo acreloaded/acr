@@ -4302,17 +4302,17 @@ void loggamestatus(const char *reason)
     logline(ACLOG_INFO, "Game status: %s on %s, %s, %s, %d clients%c %s",
                       modestr(gamemode, mutators), smapname, reason ? reason : text, mmfullname(mastermode), totalclients, custom_servdesc ? ',' : '\0', servdesc_current);
     if(!scl.loggamestatus) return;
-    logline(ACLOG_INFO, "cn name             %s%s score frag death %sping role    host", m_team(gamemode, mutators) ? "team " : "", m_flags(gamemode) ? "flag " : "", m_team(gamemode, mutators) ? "tk " : "");
+    logline(ACLOG_INFO, "cn  name             %s%s score frag death %sping role    host", m_team(gamemode, mutators) ? "team " : "", m_flags(gamemode) ? "flag " : "", m_team(gamemode, mutators) ? "tk " : "");
     loopv(clients)
     {
         client &c = *clients[i];
         if(c.type == ST_EMPTY || !c.name[0]) continue;
-        formatstring(text)("%2d %-16s ", c.clientnum, c.name);                 // cn name
-        if(m_team(gamemode, mutators)) concatformatstring(text, "%-4s ", team_string(c.team, true)); // teamname (abbreviated)
-        if(m_flags(gamemode)) concatformatstring(text, "%4d ", c.state.flagscore);             // flag
-        concatformatstring(text, "%6d ", c.state.points);                            // score
-        concatformatstring(text, "%4d %5d", c.state.frags, c.state.deaths);          // frag death
-        if(m_team(gamemode, mutators)) concatformatstring(text, " %2d", c.state.teamkills);          // tk
+        formatstring(text)("%2d%c %-16s ", c.clientnum, c.type == ST_AI ? '*' : ' ', c.name);         // cn * name
+        if(m_team(gamemode, mutators)) concatformatstring(text, "%-4s ", team_string(c.team, true));  // teamname (abbreviated)
+        if(m_flags(gamemode)) concatformatstring(text, "%4d ", c.state.flagscore);                    // flag
+        concatformatstring(text, "%6d ", c.state.points);                                             // score
+        concatformatstring(text, "%4d %5d", c.state.frags, c.state.deaths);                           // frag death
+        if(m_team(gamemode, mutators)) concatformatstring(text, " %2d", c.state.teamkills);           // tk
         logline(ACLOG_INFO, "%s%5d %-7s %s", text, c.ping, privname(c.role), c.gethostname());
         if(c.team != TEAM_SPECT)
         {
