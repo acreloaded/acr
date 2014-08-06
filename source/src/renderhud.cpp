@@ -578,6 +578,33 @@ vec getradarpos()
     return vec(VIRTW-10-VIRTH/28-overlaysize, 10+VIRTH/52, 0);
 }
 
+void DrawCircle(float cx, float cy, float r, GLubyte *col, float thickness = 1.f, int segments = 720)
+{
+    // Adapted from public domain code at http://slabode.exofire.net/circle_draw.shtml
+    const float theta = 2 * PI / float(segments);
+    const float c = cosf(theta); // precalculate the sine and cosine
+    const float s = sinf(theta);
+
+    float t;
+    float x = r; // we start at angle = 0
+    float y = 0;
+
+    glEnable(GL_LINE_SMOOTH);
+    glLineWidth(thickness);
+    glBegin(GL_LINE_LOOP);
+    glColor4ubv(col);
+    loopi(segments)
+    {
+        glVertex2f(x + cx, y + cy); // output vertex
+        // apply the rotation matrix
+        t = x;
+        x = c * x - s * y;
+        y = s * t + c * y;
+    }
+    glEnd();
+    glDisable(GL_LINE_SMOOTH);
+}
+
 VARP(showmapbackdrop, 0, 0, 2);
 VARP(showmapbackdroptransparency, 0, 75, 100);
 VARP(radarheight, 5, 150, 500);
@@ -676,7 +703,7 @@ void drawradar_showmap(playerent *p, int w, int h)
             }
         }
     }
-    loopv(bounceents) // draw grenades
+    loopv(bounceents) // grenades
     {
         bounceent *b = bounceents[i];
         if (!b || b->bouncetype != BT_NADE) continue;
@@ -686,6 +713,30 @@ void drawradar_showmap(playerent *p, int w, int h)
     }
     glEnable(GL_BLEND);
     glDisable(GL_TEXTURE_2D);
+    loopv(radar_explosions) // explosions
+    {
+        int ndelay = lastmillis - radar_explosions[i].millis;
+        if (ndelay > 600) radar_explosions.remove(i--);
+        else
+        {
+            static GLubyte col_ownexp[4] = { 0xf7, 0xf5, 0x34 }; // yellow for your own explosions
+            static GLubyte col_friendlyexp[4] = { 0x02, 0x13, 0xFB }; // blue for friendlies' explosions
+            static GLubyte col_enemyexp[4] = { 0xFB, 0x02, 0x02 }; // red for enemies' explosions
+            GLubyte *col;
+            if (radar_explosions[i].owner == p) col = col_ownexp;
+            else if (isteam(p, radar_explosions[i].owner)) col = col_friendlyexp;
+            else col = col_enemyexp;
+            vec nxpo(radar_explosions[i].o[0], radar_explosions[i].o[1], 0);
+            nxpo.sub(mdd).mul(coordtrans);
+            if (ndelay < 400)
+            {
+                col[3] = (1.f - ndelay / 400.f) * 255;
+                DrawCircle(nxpo.x, nxpo.y, ndelay / 100.f * coordtrans, col, 2.f);
+            }
+            col[3] = (1.f - ndelay / 600.f) * 255;
+            DrawCircle(nxpo.x, nxpo.y, pow(ndelay, 1.5f) / 3094.0923f * coordtrans, col);
+        }
+    }
     loopv(radar_shotlines) // shotlines
     {
         if (radar_shotlines[i].expire < lastmillis) radar_shotlines.remove(i--);
@@ -815,7 +866,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
         }
     }
     showradarvalues = 0; // DEBUG - also see two bits commented-out above
-    loopv(bounceents) // draw grenades
+    loopv(bounceents) // grenades
     {
         bounceent *b = bounceents[i];
         if (!b || b->bouncetype != BT_NADE) continue;
@@ -826,7 +877,35 @@ void drawradar_vicinity(playerent *p, int w, int h)
         rtmp.mul(scaled);
         drawradarent(rtmp.x, rtmp.y, 0, b->owner == p ? 2 : isteam(b->owner, p) ? 1 : 0, 3, iconsize / 1.5f, 1);
     }
+    glEnable(GL_BLEND);
     glDisable(GL_TEXTURE_2D);
+    loopv(radar_explosions) // explosions
+    {
+        int ndelay = lastmillis - radar_explosions[i].millis;
+        if (ndelay > 600) radar_explosions.remove(i--);
+        else
+        {
+            static GLubyte col_ownexp[4] = { 0xf7, 0xf5, 0x34 }; // yellow for your own explosions
+            static GLubyte col_friendlyexp[4] = { 0x02, 0x13, 0xFB }; // blue for friendlies' explosions
+            static GLubyte col_enemyexp[4] = { 0xFB, 0x02, 0x02 }; // red for enemies' explosions
+            GLubyte *col;
+            if (radar_explosions[i].owner == p) col = col_ownexp;
+            else if (isteam(p, radar_explosions[i].owner)) col = col_friendlyexp;
+            else col = col_enemyexp;
+            vec nxpo(radar_explosions[i].o[0], radar_explosions[i].o[1], 0);
+            nxpo.sub(p->o);
+            if (nxpo.magnitude() > d2s)
+                nxpo.normalize().mul(d2s);
+            nxpo.mul(scaled);
+            if (ndelay < 400)
+            {
+                col[3] = (1.f - ndelay / 400.f) * 255;
+                DrawCircle(nxpo.x, nxpo.y, ndelay / 100.f * scaled, col, 2.f);
+            }
+            col[3] = (1.f - ndelay / 600.f) * 255;
+            DrawCircle(nxpo.x, nxpo.y, pow(ndelay, 1.5f) / 3094.0923f * scaled, col);
+        }
+    }
     loopv(radar_shotlines) // shotlines
     {
         if (radar_shotlines[i].expire < lastmillis) radar_shotlines.remove(i--);
@@ -857,7 +936,6 @@ void drawradar_vicinity(playerent *p, int w, int h)
         }
     }
     glEnable(GL_TEXTURE_2D);
-    glEnable(GL_BLEND);
     glPopMatrix();
     // eye candy:
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
