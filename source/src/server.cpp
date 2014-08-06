@@ -1741,6 +1741,8 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
         if (isteam(actor, target))
         {
             // for hardcore modes only
+            if (actor->state.protect(gamemillis, gamemode, mutators))
+                return;
             damage /= 2;
             target = actor;
         }
