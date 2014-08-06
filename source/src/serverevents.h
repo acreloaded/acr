@@ -132,6 +132,10 @@ void shotevent::process(client *ci)
     cs.damage += damagedealt;
     cs.shotdamage += max(damagepotential, damagedealt);
 
+    // disable spawn protection
+    if (gamemillis < cs.lastspawn + SPAWNPROTECT)
+        cs.lastspawn = gamemillis - SPAWNPROTECT;
+
     // create packet
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     // packet shotgun rays

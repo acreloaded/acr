@@ -512,6 +512,9 @@ void weapon::sendshoot(const vec &to)
         }
     putint(p, -1);
     addmsgraw(p, true);
+    // disable spawn protection
+    if (lastmillis < owner->lastspawn + SPAWNPROTECT)
+        owner->lastspawn = lastmillis - SPAWNPROTECT;
     owner->pstatshots[owner->weaponsel->type]++; //NEW
 }
 
