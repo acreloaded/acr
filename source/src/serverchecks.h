@@ -330,6 +330,7 @@ void check_afk()
             logline(ACLOG_INFO, "[%s] %s", c.gethostname(), msg);
             updateclientteam(i, TEAM_SPECT, FTR_SILENT);
             checkai(); // AFK check
+            convertcheck();
         }
     }
 }

@@ -714,10 +714,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 d->yaw = getint(p);
                 d->pitch = d->roll = 0;
                 entinmap(d); // client may adjust spawn position a little
-                arenaintermission = 0;
                 if(d == player1 && m_duke(gamemode, mutators) && !localwrongmap)
                 {
-                    closemenu(NULL);
+                    if (!m_zombie(gamemode) && !m_convert(gamemode, mutators)) arenaintermission = 0;
+                    //closemenu(NULL);
                     conoutf(_("new round starting... fight!"));
                     hudeditf(HUDMSG_TIMER, "FIGHT!");
                 }
@@ -1248,6 +1248,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 if (round > MAXZOMBIEROUND) hudoutf(_("%c0the humans have prevailed!"), CC);
                 else if (info & 1) hudoutf(_("%c2Get ready for wave %c1%d%c4; %c0the humans held off the zombies!"), CC, CC, round, CC, CC);
                 else hudoutf(_("%c2Get ready for wave %c1%d%c4; %c3the zombies have overrun the humans!"), CC, CC, round, CC, CC);
+                arenaintermission = lastmillis;
+                break;
+            }
+
+            case SV_CONVERTWIN:
+            {
+                hudoutf(_("%c1%cbeveryone has been converted!"), CC, CC);
                 arenaintermission = lastmillis;
                 break;
             }

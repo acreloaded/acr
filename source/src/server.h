@@ -437,6 +437,8 @@ void startgame(const char *newname, int newmode, int newmuts, int newtime = -1, 
 void disconnect_client(int n, int reason = -1);
 void sendservmsg(const char *msg, int cn = -1);
 int clienthasflag(int cn);
+void convertcheck(bool quick = false);
+void shuffleteams(int ftr = FTR_AUTO);
 bool refillteams(bool now = false, int ftr = FTR_AUTO);
 void setpriv(int cn, int priv);
 mapstats *getservermapstats(const char *mapname, bool getlayout = false, int *maploc = NULL);

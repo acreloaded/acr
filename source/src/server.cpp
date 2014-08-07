@@ -1400,6 +1400,32 @@ void arenacheck()
         refillteams(true);
 }
 
+void convertcheck(bool quick)
+{
+    if (!m_convert(gamemode, mutators) || interm || gamemillis < arenaround || !numactiveclients()) return;
+    if (arenaround)
+    {
+        // start new convert round
+        shuffleteams(FTR_SILENT);
+        return arenanext(true);
+    }
+    if (quick) return;
+    // check if converted
+    int bigteam = -1, found = 0;
+    loopv(clients) if (clients[i]->type != ST_EMPTY && team_isactive(clients[i]->team))
+    {
+        if (!team_isvalid(bigteam)) bigteam = clients[i]->team;
+        if (clients[i]->team == bigteam) ++found;
+        else return; // nope
+    }
+    // game ends if not arena, and all enemies are converted
+    if (found >= 2)
+    {
+        sendf(-1, 1, "ri", SV_CONVERTWIN);
+        arenaround = gamemillis + 5000;
+    }
+}
+
 #define SPAMREPEATINTERVAL  20   // detect doubled lines only if interval < 20 seconds
 #define SPAMMAXREPEAT       3    // 4th time is SPAM
 #define SPAMCHARPERMINUTE   220  // good typist
@@ -1787,14 +1813,12 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
         // gungame advance
 #endif
         // conversions
-        /*
         if (m_convert(gamemode, mutators) && target->team != actor->team)
         {
             updateclientteam(target->clientnum, actor->team, FTR_SILENT);
             // checkai(); // DO NOT balance bots here
             convertcheck(true);
         }
-        */
     }
 }
 
@@ -1966,7 +1990,7 @@ int calcscores() // skill eval
 
 vector<int> shuffle;
 
-void shuffleteams(int ftr = FTR_AUTO)
+void shuffleteams(int ftr)
 {
     int numplayers = numclients();
     int team, sums = calcscores();
@@ -2001,6 +2025,7 @@ void shuffleteams(int ftr = FTR_AUTO)
         }
     }
     checkai(); // end of shuffle
+    // convertcheck();
 }
 
 bool balanceteams(int ftr)  // pro vs noobs never more
@@ -2060,6 +2085,7 @@ bool balanceteams(int ftr)  // pro vs noobs never more
         {
             updateclientteam(hid, l, ftr);
             // checkai(); // balance big to small
+            // convertcheck();
             clients[hid]->at3_lastforce = gamemillis;
             clients[hid]->state.forced = true;
             return true;
@@ -2093,6 +2119,7 @@ bool balanceteams(int ftr)  // pro vs noobs never more
             clients[bestpair[h]]->at3_lastforce = clients[bestpair[l]]->at3_lastforce = gamemillis;
             clients[bestpair[h]]->state.forced = clients[bestpair[l]]->state.forced = true;
             checkai(); // balance switch
+            // convertcheck();
             return true;
         }
     }
@@ -2175,6 +2202,7 @@ bool refillteams(bool now, int ftr)  // force only minimal amounts of players
                     clients[pick]->at3_lastforce = gamemillis;  // try not to force this player again for the next 5 minutes
                     switched = true;
                     // checkai(); // refill
+                    // convertcheck();
                 }
             }
         }
@@ -2381,6 +2409,7 @@ void startgame(const char *newname, int newmode, int newmuts, int newtime, bool 
             }
         }
         checkai(); // re-init ai (init)
+        // convertcheck();
         if(numnonlocalclients() > 0) setupdemorecord();
         if (notify)
         {
@@ -2779,6 +2808,7 @@ void disconnect_client(int n, int reason)
     clientdisconnect(n);
     if(*scoresaved && mastermode == MM_MATCH) senddisconnectedscores(-1);
     checkai(); // disconnect
+    convertcheck();
 }
 
 // for AUTH: WIP
@@ -3165,6 +3195,7 @@ void process(ENetPacket *packet, int sender, int chan)
         }
 
         checkai(); // connected
+        // convertcheck();
         while(reassignai());
     }
 
@@ -3491,6 +3522,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 {
                     updateclientteam(sender, chooseteam(*cl), FTR_PLAYERWISH);
                     checkai(); // spawn unspectate
+                    // convertcheck();
                 }
                 // can the player be enqueued?
                 if (!canspawn(cl)) break;
@@ -4642,8 +4674,8 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
             }
         }
         if(m_keep(gamemode) && !ktfflagingame) flagaction(rnd(2), FA_RESET, -1); // ktf flag watchdog
-        if(m_duke(gamemode, mutators)) arenacheck();
-//        if(m_survivor(gamemode, mutators)) lmscheck();
+        arenacheck();
+        convertcheck();
         if ( scl.afk_limit && mastermode == MM_OPEN && next_afk_check < servmillis && gamemillis > 20 * 1000 ) check_afk();
     }
 
