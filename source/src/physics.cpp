@@ -624,7 +624,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 
             pl->o.x -= f*d.x*push;
             pl->o.y -= f*d.y*push;
-            if(i==0 && pl->type==ENT_BOT) pl->yaw += (dr.cxy(d)>0 ? 2:-2); // force the bots to change direction
+            if(i==0 && pl->type==ENT_PLAYER && ((playerent *)pl)->ownernum >= 0) pl->yaw += (dr.cxy(d)>0 ? 2:-2); // force the bots to change direction
             if( !collide(pl, false, drop, rise) ) continue;
             pl->o.x += f*d.x*push;
             pl->o.y += f*d.y*push;
@@ -735,10 +735,10 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     }
 
     // apply volume-resize when crouching
-    if(pl->type==ENT_PLAYER || pl->type==ENT_BOT)
+    if(pl->type==ENT_PLAYER)
     {
 //         if(pl==player1 && !(intermission || player1->onladder || (pl->trycrouch && !player1->onfloor && player1->timeinair > 50))) updatecrouch(player1, player1->trycrouch);
-        if(!intermission && (pl == player1 || pl->type == ENT_BOT)) updatecrouch((playerent *)pl, pl->trycrouch);
+        if (!intermission && (pl == player1 || isowned((playerent *)pl))) updatecrouch((playerent *)pl, pl->trycrouch);
         const float croucheyeheight = pl->maxeyeheight*CROUCHHEIGHTMUL;
         resizephysent(pl, moveres, curtime, croucheyeheight, pl->maxeyeheight);
         // change zoom state

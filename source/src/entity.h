@@ -137,7 +137,7 @@ static inline const char *team_string(int t, bool abbr = false) { const char **n
 #define team_color(t) (team_isspect(t) ? 4 : team_base(t) ? 1 : 3)
 #define team_rel_color(a, b) (a == b ? 1 : a && b && !team_isspect(b->team) ? isteam(a, b) ? 0 : 3 : 4)
 
-enum { ENT_PLAYER = 0, ENT_BOT, ENT_CAMERA, ENT_BOUNCE };
+enum { ENT_PLAYER = 0, ENT_CAMERA, ENT_BOUNCE };
 enum { HIT_NONE = 0, HIT_LEG, HIT_TORSO, HIT_HEAD };
 enum { CS_ALIVE = 0, CS_DEAD, CS_WAITING, CS_EDITING };
 enum { CR_DEFAULT = 0, CR_MASTER, CR_ADMIN, CR_MAX };
