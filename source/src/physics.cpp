@@ -162,7 +162,7 @@ bool plcollide(physent *d, physent *o, float &headspace, float &hi, float &lo)  
         if(d->o.z-deyeheight<o->o.z-oeyeheight) { if(o->o.z-oeyeheight<hi) hi = o->o.z-oeyeheight-1; }
         else if(o->o.z+o->aboveeye>lo) lo = o->o.z+o->aboveeye+1;
 
-        if(fabs(o->o.z-d->o.z)<o->aboveeye+deyeheight) { hitplayer = o; return true; }
+        if ((d->o.z >= o->o.z && d->o.z - o->o.z <= o->aboveeye + deyeheight) || (o->o.z >= d->o.z && o->o.z - d->o.z <= d->aboveeye + oeyeheight)) { hitplayer = o; return true; }
         headspace = d->o.z-o->o.z-o->aboveeye-deyeheight;
         if(headspace<0) headspace = 10;
     }
@@ -194,8 +194,7 @@ bool mmcollide(physent *d, float &hi, float &lo)           // collide with a map
     loopv(ents)
     {
         entity &e = ents[i];
-        // if(e.type==CLIP || (e.type == PLCLIP && d->type == ENT_PLAYER))
-        if (e.type==CLIP || (e.type == PLCLIP && (d->type == ENT_BOT || d->type == ENT_PLAYER || (d->type == ENT_BOUNCE && ((bounceent *)d)->plclipped)))) // don't allow bots to hack themselves into plclips - Bukz 2011/04/14
+        if (e.type==CLIP || (e.type == PLCLIP && (d->type == ENT_PLAYER || (d->type == ENT_BOUNCE && ((bounceent *)d)->plclipped))))
         {
             if(fabs(e.x-d->o.x) < e.attr2 + d->radius && fabs(e.y-d->o.y) < e.attr3 + d->radius)
             {
@@ -297,12 +296,12 @@ bool collide(physent *d, bool spawn, float drop, float rise, int level) // level
 
     float headspace = 10.0f;
 
-    if( level&2 && d->type!=ENT_CAMERA)
+    if( level&2 && d->type!=ENT_PLAYER && d->type!=ENT_CAMERA)
     {
         loopv(players)       // collide with other players
         {
             playerent *o = players[i];
-            if(!o || o==d || (o==player1 && d->type==ENT_CAMERA)) continue;
+            if(!o || o==d) continue;
             if(plcollide(d, o, headspace, hi, lo)) return true;
         }
         if(d!=player1) if(plcollide(d, player1, headspace, hi, lo)) return true;
@@ -477,8 +476,10 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         {
             playerent *p = (playerent *)pl;
             float spd = 1;
+            // if (p->weaponsel) spd = gunspeed(p->weaponsel->type, p->ads, p->perk1 == PERK1_AGILE);
             if (p->sprinting) spd *= 0.6f; // sprint = walk for now
             d.mul(spd);
+            if (p->perk1 == PERK1_LIGHT) d.z *= 1.05f;
         }
 
         pl->vel.mul(fpsfric-1.0f);   // slowly apply friction and direction to velocity, gives a smooth movement
@@ -513,15 +514,14 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         {
             if(pl->type!=ENT_CAMERA)
             {
+                playerent *p = pl->type == ENT_PLAYER ? ((playerent *)pl) : NULL;
                 if(pl->onladder)
                 {
-                    const float climbspeed = 1.0f;
-
-                    if(pl->type==ENT_BOT && pl->state == CS_ALIVE) pl->vel.z = climbspeed; // bots climb upwards only
-                    else if(pl->type==ENT_PLAYER)
+                    if(p)
                     {
-                        if(((playerent *)pl)->k_up) pl->vel.z = climbspeed;
-                        else if(((playerent *)pl)->k_down) pl->vel.z = -climbspeed;
+                        const float climbspeed = p->perk1 == PERK1_HAND ? 1.5f : 1.0f;
+                        if(p->k_up || p->ownernum >= 0) pl->vel.z = climbspeed; // bots climb upwards only
+                        else if(p->k_down) pl->vel.z = -climbspeed;
                     }
                     pl->timeinair = 0;
                 }
@@ -544,8 +544,8 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                                 pl->vel.x /= 8.0f;
                                 pl->vel.y /= 8.0f;
                             }
-                            else if(pl->type==ENT_PLAYER && (pl == player1 || isowned((playerent *)pl)))
-                                audiomgr.playsoundc(S_JUMP, (playerent *)pl);
+                            else if(p && (p == player1 || isowned(p)) && p->perk2 != PERK_NINJA)
+                                audiomgr.playsoundc(S_JUMP, p);
                             pl->lastjump = lastmillis;
                         }
                         pl->timeinair = 0;
@@ -561,15 +561,8 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                     }
                 }
 
-                if(timeinair > 200 && !pl->timeinair)
-                {
-                    int sound = timeinair > 800 ? S_HARDLAND : S_SOFTLAND;
-                    if(pl->state!=CS_DEAD)
-                    {
-                        if(pl->type==ENT_PLAYER && (pl == player1 || isowned((playerent *)pl)))
-                            audiomgr.playsoundc(sound, (playerent *)pl);
-                    }
-                }
+                if (timeinair > 200 && !pl->timeinair && pl->state != CS_DEAD && p && (p == player1 || isowned(p)))
+                    audiomgr.playsoundc((timeinair > 800 && p->perk2 != PERK_NINJA) ? S_HARDLAND : S_SOFTLAND, p);
             }
 
             const float gravity = 20.0f;
@@ -736,7 +729,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     }
 
     // store previous locations of all players/bots
-    if(pl->type==ENT_PLAYER || pl->type==ENT_BOT)
+    if(pl->type==ENT_PLAYER)
     {
         ((playerent *)pl)->history.update(pl->o, lastmillis);
     }
