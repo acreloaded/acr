@@ -121,26 +121,27 @@ void checkai()
     // check if bots are disallowed
     if(!m_ai(gamemode)) return clearai();
     // check balance
-    /*
     if(m_progressive(gamemode, mutators))
     {
         if(progressiveround > MAXZOMBIEROUND) return clearai();
         const int zombies = clamp(progressiveround, 1, 20),
             zombies_suicide = max((int)floor(progressiveround / 2.f), progressiveround - 10);
         int zombies_suicide_given = 0;
-        while(countbots() < zombies) if(!addai()) break;
-        while(countbots() > zombies) if(!delai()) break;
+        while (countclients(ST_AI) < zombies) if (!addai()) break;
+        while (countclients(ST_AI) > zombies) if (!delai()) break;
 #if !(SERVER_BUILTIN_MOD & 128)
         // force suicide bombers
-        loopv(clients) if(clients[i]->type == ST_AI){
+        /*
+        loopv(clients) if(clients[i]->type == ST_AI)
+        {
             bool has_bomber = (++zombies_suicide_given <= zombies_suicide);
             clients[i]->state.deathstreak = has_bomber ? progressiveround == MAXZOMBIEROUND ? 8 : 5 : 0;
             clients[i]->state.streakondeath = has_bomber ? progressiveround == MAXZOMBIEROUND ? STREAK_REVENGE : STREAK_DROPNADE : -1;
         }
+        */
 #endif
     }
     else
-    */
     {
         int balance = 0;
         const int humans = numplayers(false);
@@ -154,8 +155,8 @@ void checkai()
                 }
                 // fallthrough for zombies
             case -1: // auto
-                /*if(m_zombie(gamemode)) balance = min(zombiebalance + humans, 30); // effectively zombiebalance, but capped at 30
-                else*/ if(m_duke(gamemode, mutators)) balance = max(humans, maplayout_factor - 3); // 3 - 5 - 8 (6 - 8 - 11 layout factor)
+                if(m_zombie(gamemode)) balance = min(zombiebalance + humans, 30); // effectively zombiebalance, but capped at 30
+                else if(m_duke(gamemode, mutators)) balance = max(humans, maplayout_factor - 3); // 3 - 5 - 8 (6 - 8 - 11 layout factor)
                 else if(m_team(gamemode, mutators)) balance = clamp((smapstats.spawns[0] + smapstats.spawns[1]) / 3, max(6, humans), 14);
                 else balance = clamp(smapstats.spawns[2] / 3, max(4, humans), 10);
                 break; // auto

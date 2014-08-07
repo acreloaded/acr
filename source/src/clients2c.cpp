@@ -1242,6 +1242,16 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
             }
 
+            case SV_ZOMBIESWIN:
+            {
+                const int info = getint(p), round = (info >> 1) & 0x7F;
+                if (round > MAXZOMBIEROUND) hudoutf(_("%c0the humans have prevailed!"), CC);
+                else if (info & 1) hudoutf(_("%c2Get ready for wave %c1%d%c4; %c0the humans held off the zombies!"), CC, CC, round, CC, CC);
+                else hudoutf(_("%c2Get ready for wave %c1%d%c4; %c3the zombies have overrun the humans!"), CC, CC, round, CC, CC);
+                arenaintermission = lastmillis;
+                break;
+            }
+
             case SV_FORCEDEATH:
             case SV_FORCEGIB:
             {

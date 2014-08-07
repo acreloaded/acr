@@ -32,7 +32,7 @@ vector<savedscore> savedscores;
 vector<ban> bans;
 vector<demofile> demofiles;
 
-int mastermode = MM_OPEN, botbalance = -1;
+int mastermode = MM_OPEN, botbalance = -1, progressiveround = 1, zombiebalance = 1, zombiesremain = 1;
 static bool autoteam = true;
 #define autobalance_mode (!m_zombie(gamemode) && !m_convert(gamemode, mutators))
 #define autobalance (autoteam && autobalance_mode)
@@ -1291,7 +1291,12 @@ void arenacheck()
 
     if(arenaround)
     {
-        // TODO progressive
+        if (m_progressive(gamemode, mutators) && progressiveround <= MAXZOMBIEROUND)
+        {
+            defformatstring(zombiemsg)("\f1Wave #\f0%d \f3has started\f2!", progressiveround);
+            sendservmsg(zombiemsg);
+            return arenanext(false); // bypass forced spawning
+        }
         return arenanext();
     }
 
@@ -1319,9 +1324,49 @@ void arenacheck()
 
     if ((found && (ha || !hd)) || !dead || gamemillis < lastdeath + 500) return;
     // what happened?
-    if (false)
+    if (m_progressive(gamemode, mutators))
     {
-        // TODO: progressive
+        const bool humanswin = !alive || alive->team == TEAM_RVSF;
+        progressiveround += humanswin ? 1 : -1;
+        if (progressiveround < 1) progressiveround = 1; // epic fail
+        else if (progressiveround > MAXZOMBIEROUND)
+        {
+            sendservmsg("\f0Good work! \f1The zombies have been defeated!");
+            forceintermission = true;
+        }
+        checkai(); // progressive zombies
+        // convertcheck();
+        sendf(-1, 1, "ri2", SV_ZOMBIESWIN, (progressiveround << 1) | (humanswin ? 1 : 0));
+        loopv(clients) if (clients[i]->type != ST_EMPTY && clients[i]->isauthed && clients[i]->team != TEAM_SPECT)
+        {
+            if (clients[i]->team == TEAM_CLA || progressiveround == MAXZOMBIEROUND)
+            {
+                // give humans time to prepare, except wave 30
+                clients[i]->removeexplosives();
+                if (clients[i]->state.state != CS_DEAD)
+                    forcedeath(clients[i]);
+            }
+            else if (clients[i]->isonrightmap && clients[i]->state.state == CS_DEAD)
+            {
+                // early repawn for humans, except wave 30
+                clients[i]->state.lastdeath = 1;
+                sendspawn(clients[i]);
+            }
+            int pts = 0, pr = -1;
+            if ((clients[i]->team == TEAM_CLA) == humanswin)
+            {
+                // he died
+                pts = ARENALOSEPT;
+                pr = PR_ARENA_LOSE;
+            }
+            else
+            {
+                // he survives
+                pts = ARENAWINPT;
+                pr = PR_ARENA_WIN;
+            }
+            addpt(clients[i], pts, pr);
+        }
     }
     else // duke
     {
@@ -1656,7 +1701,23 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
         //if (kills > 0) usesteamscore(actor->team).frags += kills;
     }
 
-    // automatic zombie count?
+    // automatic zombie count
+    if (m_zombie(gamemode) && !m_progressive(gamemode, mutators) && (botbalance == 0 || botbalance == -1) && target->team != actor->team)
+    {
+        if (target->team == TEAM_CLA)
+        {
+            // zombie was killed
+            --zombiesremain;
+            if (zombiesremain <= 0)
+            {
+                zombiesremain = (++zombiebalance + 1) >> 1;
+                checkai();
+            }
+        }
+        // human died
+        else if (++zombiesremain > zombiebalance)
+            zombiesremain = zombiebalance;
+    }
 
     // send message
     sendf(-1, 1, "ri9i3", SV_KILL, target->clientnum, actor->clientnum, gun, style, damage, ++actor->state.combo, ts.damagelog.length(),
@@ -1836,7 +1897,7 @@ inline bool canspawn(client *c, bool connecting)
     if (c->team == TEAM_SPECT || (team_isspect(c->team) && !m_team(gamemode, mutators)))
         return false; // SP_SPECT
     if (m_duke(gamemode, mutators))
-        return (connecting && totalclients <= 2); // || (arenaround && m_zombie(gamemode) && c->team == TEAM_RVSF && progressiveround != MAXZOMBIEROUND);
+        return (connecting && totalclients <= 2) || (arenaround && m_zombie(gamemode) && c->team == TEAM_RVSF && progressiveround != MAXZOMBIEROUND);
     return true;
 }
 
@@ -2291,6 +2352,8 @@ void startgame(const char *newname, int newmode, int newmuts, int newtime, bool 
         arenaround = 0;
         nokills = true;
         if(m_duke(gamemode, mutators)) distributespawns();
+        if (m_progressive(gamemode, mutators)) progressiveround = 1;
+        else if (m_zombie(gamemode)) zombiebalance = zombiesremain = 1;
         if(notify)
         {
             // shuffle if previous mode wasn't a team-mode
