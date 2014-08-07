@@ -1903,23 +1903,23 @@ inline bool canspawn(client *c, bool connecting)
 
 int chooseteam(client &cl, int def = rnd(2))
 {
+    // zombies override
+    if (m_zombie(gamemode) && !m_convert(gamemode, mutators))
+        return cl.type == ST_AI ? TEAM_CLA : TEAM_RVSF;
+    // match base team
     if(mastermode == MM_MATCH && cl.team < TEAM_SPECT)
-    {
         return team_base(cl.team);
-    }
+    // team sizes
+    int *teamsizes = numteamclients(cl.clientnum, cl.type == ST_AI);
+    if(autoteam && teamsizes[TEAM_CLA] != teamsizes[TEAM_RVSF]) return teamsizes[TEAM_CLA] < teamsizes[TEAM_RVSF] ? TEAM_CLA : TEAM_RVSF;
     else
-    {
-        int *teamsizes = numteamclients(cl.clientnum, cl.type == ST_AI);
-        if(autoteam && teamsizes[TEAM_CLA] != teamsizes[TEAM_RVSF]) return teamsizes[TEAM_CLA] < teamsizes[TEAM_RVSF] ? TEAM_CLA : TEAM_RVSF;
-        else
-        { // join weaker team
-            int teamscore[2] = {0, 0}, sum = calcscores();
-            loopv(clients) if(clients[i]->type!=ST_EMPTY && i != cl.clientnum && clients[i]->isauthed && clients[i]->team != TEAM_SPECT)
-            {
-                teamscore[team_base(clients[i]->team)] += clients[i]->at3_score;
-            }
-            return sum > 200 ? (teamscore[TEAM_CLA] < teamscore[TEAM_RVSF] ? TEAM_CLA : TEAM_RVSF) : def;
+    { // join weaker team
+        int teamscore[2] = {0, 0}, sum = calcscores();
+        loopv(clients) if(clients[i]->type!=ST_EMPTY && i != cl.clientnum && clients[i]->isauthed && clients[i]->team != TEAM_SPECT)
+        {
+            teamscore[team_base(clients[i]->team)] += clients[i]->at3_score;
         }
+        return sum > 200 ? (teamscore[TEAM_CLA] < teamscore[TEAM_RVSF] ? TEAM_CLA : TEAM_RVSF) : def;
     }
 }
 
@@ -2103,6 +2103,14 @@ int lastbalance = 0, waitbalance = 2 * 60 * 1000;
 
 bool refillteams(bool now, int ftr)  // force only minimal amounts of players
 {
+    if (m_zombie(gamemode) && !m_convert(gamemode, mutators))
+    {
+        // force to zombie teams
+        loopv(clients)
+            if (clients[i]->type != ST_EMPTY && !team_isspect(clients[i]->team))
+                updateclientteam(i, clients[i]->type == ST_AI ? TEAM_CLA : TEAM_RVSF, ftr);
+        return false;
+    }
     if(mastermode == MM_MATCH) return false;
     static int lasttime_eventeams = 0;
     int teamsize[2] = {0, 0}, teamscore[2] = {0, 0}, moveable[2] = {0, 0};
@@ -2359,10 +2367,10 @@ void startgame(const char *newname, int newmode, int newmuts, int newtime, bool 
             // shuffle if previous mode wasn't a team-mode
             if(m_team(gamemode, mutators))
             {
-                if(!lastteammode)
+                if (m_zombie(gamemode) || (lastteammode && autoteam))
+                    refillteams(true, FTR_SILENT); // force teams for zombies
+                else if (!lastteammode)
                     shuffleteams(FTR_SILENT);
-                else if(autoteam)
-                    refillteams(true, FTR_SILENT);
             }
             // prepare spawns; players will spawn, once they've loaded the correct map
             loopv(clients) if(clients[i]->type!=ST_EMPTY)
