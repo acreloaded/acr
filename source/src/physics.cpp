@@ -826,12 +826,18 @@ dir(right,    strafe, -1, k_right, k_left)
 void attack(bool on)
 {
     if(intermission) return;
+    static bool died = false;
     if(editmode) editdrag(on);
     else if(player1->state==CS_DEAD)
     {
-        if(!on) tryrespawn();
+        if(!on && died) tryrespawn();
+        died = true;
     }
-    else player1->attacking = on;
+    else
+    {
+        player1->attacking = on;
+        died = false;
+    }
 }
 
 void jumpn(bool on)
