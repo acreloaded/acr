@@ -534,6 +534,31 @@ void moveotherplayers()
     }
 }
 
+void updateradarpos()
+{
+    const bool has_radar = false;
+    const int interval = has_radar ? 400 : m_capture(gamemode) ? 4000 : 750;
+    loopv(players)
+    {
+        playerent *d = players[i];
+        if (!d) continue;
+        if (!has_radar)
+        {
+            if ((flaginfos[0].state != CTFF_STOLEN || flaginfos[0].actor != d) && (flaginfos[1].state != CTFF_STOLEN || flaginfos[1].actor != d))
+                continue;
+        }
+        int nextupdate = d->radarmillis + interval - d->radarmillis % interval;
+        if (lastmillis >= nextupdate)
+        {
+            d->lastloudpos.x = d->o.x;
+            d->lastloudpos.y = d->o.y;
+            d->lastloudpos.z = d->o.z;
+            d->lastloudpos.w = d->yaw;
+            d->radarmillis = lastmillis;
+        }
+    }
+}
+
 
 bool showhudtimer(int maxmillis, int startmillis, const char *msg, bool flash)
 {
@@ -612,6 +637,7 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
     if(getclientnum()>=0) shoot(player1, worldpos);     // only shoot when connected to server
     movebounceents();
     moveotherplayers();
+    updateradarpos();
     gets2c();
     showrespawntimer();
 
@@ -782,9 +808,10 @@ void dokill(playerent *pl, playerent *act, int gun, int style, int damage, int c
                 playerent *p = players[i];
                 if (!p || isteam(p, pl)) continue;
                 p->radarmillis = lastmillis + 1000;
-                p->lastloudpos[0] = p->o.x;
-                p->lastloudpos[1] = p->o.y;
-                p->lastloudpos[2] = p->yaw;
+                p->lastloudpos.x = p->o.x;
+                p->lastloudpos.y = p->o.y;
+                p->lastloudpos.z = p->o.z;
+                p->lastloudpos.w = p->yaw;
             }
         }
         pl->weapstats[pl->gunselect].kills--;

@@ -533,7 +533,8 @@ void weapon::attacksound()
         owner->radarmillis = lastmillis;
         owner->lastloudpos.x = owner->o.x;
         owner->lastloudpos.y = owner->o.y;
-        owner->lastloudpos.z = owner->yaw;
+        owner->lastloudpos.z = owner->o.z;
+        owner->lastloudpos.w = owner->yaw;
     }
     audiomgr.playsound(info.sound, owner, player1 == owner ? SP_HIGH : SP_NORMAL);
 }

@@ -533,7 +533,7 @@ void renderwaypoints()
         }
         else loopi(2)
         {
-            const float a = 1;
+            float a = 1;
             int wp = -1;
             vec o;
 
@@ -544,15 +544,24 @@ void renderwaypoints()
             switch (f.state)
             {
                 case CTFF_STOLEN:
+                {
+                    if (m_classic(gamemode, mutators)) break;
                     if (f.actor == focus && !isthirdperson) break;
                     if (OUTBORD(f.actor->o.x, f.actor->o.y)) break;
-                    o = f.actor->o;
-                    wp = (focus == f.actor || (m_team(gamemode, mutators) && f.actor->team == teamfix)) ?
-                        // friendly
-                        (m_capture(gamemode) || m_bomber(gamemode)) ? WP_ESCORT : WP_DEFEND
-                        : // hostile below
-                        WP_KILL;
+                    const bool friendly = (focus == f.actor || (m_team(gamemode, mutators) && f.actor->team == teamfix));
+                    if (friendly)
+                    {
+                        o = f.actor->o;
+                        wp = (m_capture(gamemode) || m_bomber(gamemode)) ? WP_ESCORT : WP_DEFEND;
+                    }
+                    else
+                    {
+                        o = vec(f.actor->lastloudpos.v);
+                        a = max(.15f, 1.f - (lastmillis - f.actor->radarmillis) / 5000.f);
+                        wp = WP_KILL;
+                    }
                     break;
+                }
                 case CTFF_DROPPED:
                     if (OUTBORD(f.pos.x, f.pos.y)) break;
                     o = f.pos;
@@ -569,6 +578,7 @@ void renderwaypoints()
             if (OUTBORD(e.x, e.y)) continue;
 
             // flag base
+            a = 1;
             wp = WP_STOLEN; // "wait"
             switch (f.state){
                 default: // stolen or dropped
