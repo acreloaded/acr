@@ -1208,12 +1208,36 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             {
                 int acn = getint(p);
                 playerent *alive = getclient(acn);
+                // check for multiple survivors
+                bool multi = false;
+                if (m_team(gamemode, mutators) && alive)
+                {
+#define teammate(p) (p != alive && p->state == CS_ALIVE && isteam(p, alive))
+                    if (teammate(player1)) multi = true;
+                    else loopv(players) if (players[i] && teammate(players[i])){ multi = true; break; }
+#undef teammate
+                }
                 conoutf(_("the round is over! next round in 5 seconds..."));
-                if(m_ai(gamemode) && acn==-2) hudoutf(_("the bots have won the round!"));
-                else if(!alive) hudoutf(_("everyone died!"));
-                else if(m_team(gamemode, mutators)) hudoutf(_("team %s has won the round!"), team_string(alive->team));
-                else if(alive==player1) hudoutf(_("you are the survivor!"));
-                else hudoutf(_("%s is the survivor!"), colorname(alive));
+
+                // no survivors
+                if (acn == -1) hudoutf(_("%c3everyone died; epic fail!"), CC);
+                // instead of waiting for bots to battle it out...
+                else if (acn == -2) hudoutf(_("the bots have won the round!"));
+                // should not happen? better safe than sorry
+                else if (!alive) hudoutf("unknown winner...?");
+                // Teams
+                else if (m_team(gamemode, mutators) && multi)
+                {
+                    if (alive->team == player1->team)
+                        hudoutf(_("your team is the victor!"));
+                    else
+                        hudoutf(_("your team was dominated!"));
+                }
+                // FFA or one team member
+                else if (alive == player1) hudoutf(_("you are the victor!"));
+                else hudoutf(_("%s is the victor!"), colorname(alive));
+
+                // set intermission time
                 arenaintermission = lastmillis;
                 break;
             }

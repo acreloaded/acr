@@ -1266,83 +1266,93 @@ void distributespawns()
     }
 }
 
-bool items_blocked = false;
-bool free_items(int n)
-{
-    client *c = clients[n];
-    int waitspawn = min(c->ping,200) + c->state.lastspawn; // flowtron to Brahma: can't this be removed now? (re: rev. 5270)
-    return !items_blocked && (waitspawn < gamemillis);
-}
-
 void checkitemspawns(int);
+
+void arenanext(bool forcespawn = true)
+{
+    // start new arena round
+    arenaround = 0;
+    arenaroundstartmillis = gamemillis;
+    distributespawns();
+    // purgesknives();
+    checkitemspawns(60 * 1000); // the server will respawn all items now
+    loopi(2) if (sflaginfos[i].state == CTFF_DROPPED || sflaginfos[i].state == CTFF_STOLEN) flagaction(i, FA_RESET, -1);
+    loopv(clients) if (clients[i]->type != ST_EMPTY && clients[i]->isauthed)
+    {
+        if (clients[i]->isonrightmap && team_isactive(clients[i]->team))
+            sendspawn(clients[i]);
+    }
+    nokills = true;
+}
 
 void arenacheck()
 {
     if(!m_duke(gamemode, mutators) || interm || gamemillis<arenaround || !numactiveclients()) return;
 
     if(arenaround)
-    {   // start new arena round
-        arenaround = 0;
-        arenaroundstartmillis = gamemillis;
-        distributespawns();
-        checkitemspawns(60*1000); // the server will respawn all items now
-        loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed)
-        {
-            if(clients[i]->isonrightmap && team_isactive(clients[i]->team))
-                sendspawn(clients[i]);
-        }
-        items_blocked = false;
-        nokills = true;
-        return;
+    {
+        // TODO progressive
+        return arenanext();
     }
 
-#ifndef STANDALONE
-    if(m_ai(gamemode) && clients[0]->type==ST_LOCAL)
-    {
-        int enemies = 0, alive_enemies = 0;
-        playerent *alive = NULL;
-        loopv(players) if(players[i] && (!m_team(gamemode, mutators) || players[i]->team == team_opposite(player1->team)))
-        {
-            enemies++;
-            if(players[i]->state == CS_ALIVE)
-            {
-                alive = players[i];
-                alive_enemies++;
-            }
-        }
-        if(player1->state != CS_DEAD) alive = player1;
-        if(enemies && (!alive_enemies || player1->state == CS_DEAD))
-        {
-            sendf(-1, 1, "ri2", SV_ARENAWIN, m_team(gamemode, mutators) ? (alive ? alive->clientnum : -1) : (alive && alive->type == ENT_BOT ? -2 : player1->state == CS_ALIVE ? player1->clientnum : -1));
-            arenaround = gamemillis+5000;
-        }
-        return;
-    }
-#endif
     client *alive = NULL;
     bool dead = false;
     int lastdeath = 0;
+    bool found = false; int ha = 0, hd = 0; // found a match to keep the round / humans alive / humans dead
     loopv(clients)
     {
         client &c = *clients[i];
         if(c.type==ST_EMPTY || !c.isauthed || !c.isonrightmap || team_isspect(c.team)) continue;
         if (c.state.lastspawn < 0 && c.state.state==CS_DEAD)
         {
+            if (c.type != ST_AI) ++hd;
             dead = true;
             lastdeath = max(lastdeath, c.state.lastdeath);
         }
         else if(c.state.state==CS_ALIVE)
         {
+            if (c.type != ST_AI) ++ha;
             if(!alive) alive = &c;
-            else if(!m_team(gamemode, mutators) || alive->team != c.team) return;
+            else if(!m_team(gamemode, mutators) || alive->team != c.team) found = true;
         }
     }
 
-    if(!dead || gamemillis < lastdeath + 500) return;
-    items_blocked = true;
-    sendf(-1, 1, "ri2", SV_ARENAWIN, alive ? alive->clientnum : -1);
+    if ((found && (ha || !hd)) || !dead || gamemillis < lastdeath + 500) return;
+    // what happened?
+    if (false)
+    {
+        // TODO: progressive
+    }
+    else // duke
+    {
+        const int cn = !ha && found ? -2 : // bots win
+            alive ? alive->clientnum : // someone/a team wins
+            -1 // everyone died
+            ;
+        // send message
+        sendf(-1, 1, "ri2", SV_ARENAWIN, cn);
+        // award points
+        loopv(clients) if (clients[i]->type != ST_EMPTY && clients[i]->isauthed && team_isactive(clients[i]->team))
+        {
+            int pts = ARENALOSEPT, pr = PR_ARENA_LOSE; // he died with this team, or bots win
+            if (clients[i]->state.state == CS_ALIVE) // he survives
+            {
+                pts = ARENAWINPT;
+                pr = PR_ARENA_WIN;
+            }
+            else if (alive && isteam(alive, clients[i])) // his team wins, but he is dead
+            {
+                pts = ARENAWINDPT;
+                pr = PR_ARENA_WIND;
+            }
+            addpt(clients[i], pts, pr);
+        }
+    }
+    // arena intermission
     arenaround = gamemillis+5000;
-    if(autobalance && m_team(gamemode, mutators)) refillteams(true);
+    // check team
+    if(autobalance && m_team(gamemode, mutators))
+        refillteams(true);
 }
 
 #define SPAMREPEATINTERVAL  20   // detect doubled lines only if interval < 20 seconds
@@ -2261,7 +2271,6 @@ void startgame(const char *newname, int newmode, int newmuts, int newtime, bool 
             }
             mapbuffer.setrevision();
             logline(ACLOG_INFO, "Map height density information for %s: H = %.2f V = %d, A = %d and MA = %d", smapname, Mheight, Mvolume, Marea, Mopen);
-            items_blocked = false;
         }
         else if(isdedicated) sendservmsg("\f3server error: map not found - please start another map or send this map to the server");
         if(notify)
