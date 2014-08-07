@@ -1116,3 +1116,17 @@ struct servercommandline
         return true;
     }
 };
+
+struct cknife
+{
+    int id, millis;
+    vec o;
+};
+extern vector<cknife> knives;
+
+struct cconfirm
+{
+    int id, team;
+    vec o;
+};
+extern vector<cconfirm> confirms;

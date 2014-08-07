@@ -58,6 +58,22 @@ int maplayout_factor, testlayout_factor, maplayoutssize;
 persistent_entity *mapents = NULL;
 servermapbuffer mapbuffer;
 
+vector<sconfirm> sconfirms;
+int confirmseq = 0;
+vector<sknife> sknives;
+int knifeseq = 0;
+void purgesconfirms()
+{
+    loopv(sconfirms)
+        sendf(-1, 1, "ri2", SV_CONFIRMREMOVE, sconfirms[i].id);
+}
+void purgesknives()
+{
+    loopv(sknives)
+        sendf(-1, 1, "ri2", SV_KNIFEREMOVE, sknives[i].id);
+    sknives.setsize(0);
+}
+
 // cmod
 char *global_name;
 int totalclients = 0;
@@ -1704,7 +1720,6 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 
     // team points
     int earnedpts = killpoints(target, actor, gun, style);
-    /*
     if (m_confirm(gamemode, mutators))
     {
         // create confirm object if necessary
@@ -1712,7 +1727,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
         {
             sconfirm &c = sconfirms.add();
             c.o = ts.o;
-            sendf(-1, 1, "ri3f3", SV_CONFIRMADD, c.id = ++confirmseq, c.team = actor->team, c.o.x, c.o.y, c.o.z);
+            sendf(-1, 1, "ri6", SV_CONFIRMADD, c.id = ++confirmseq, c.team = actor->team, (int)(c.o.x*DMF), (int)(c.o.y*DMF), (int)(c.o.z*DMF));
             c.actor = actor->clientnum;
             c.target = target->clientnum;
             c.points = max(0, earnedpts);
@@ -1721,7 +1736,6 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
         }
     }
     else
-    */
     {
         //if (earnedpts > 0) usesteamscore(actor->team).points += earnedpts;
         //if (kills > 0) usesteamscore(actor->team).frags += kills;
@@ -2279,17 +2293,14 @@ inline void putmap(ucharbuf &p)
             putint(p, i);
     putint(p, -1);
 
-    putint(p, 0);
-    putint(p, 0);
-    /*
     putint(p, sknives.length());
     loopv(sknives)
     {
         putint(p, sknives[i].id);
         putint(p, KNIFETTL + sknives[i].millis - gamemillis);
-        putfloat(p, sknives[i].o.x);
-        putfloat(p, sknives[i].o.y);
-        putfloat(p, sknives[i].o.z);
+        putint(p, (int)(sknives[i].o.x*DMF));
+        putint(p, (int)(sknives[i].o.y*DMF));
+        putint(p, (int)(sknives[i].o.z*DMF));
     }
 
     putint(p, sconfirms.length());
@@ -2297,11 +2308,10 @@ inline void putmap(ucharbuf &p)
     {
         putint(p, sconfirms[i].id);
         putint(p, sconfirms[i].team);
-        putfloat(p, sconfirms[i].o.x);
-        putfloat(p, sconfirms[i].o.y);
-        putfloat(p, sconfirms[i].o.z);
+        putint(p, (int)(sconfirms[i].o.x*DMF));
+        putint(p, (int)(sconfirms[i].o.y*DMF));
+        putint(p, (int)(sconfirms[i].o.z*DMF));
     }
-    */
 }
 
 void startgame(const char *newname, int newmode, int newmuts, int newtime, bool notify)
@@ -2410,6 +2420,10 @@ void startgame(const char *newname, int newmode, int newmuts, int newtime, bool 
         }
         checkai(); // re-init ai (init)
         // convertcheck();
+        // reset team scores
+        // loopi(TEAM_NUM - 1) steamscores[i] = steamscore(i);
+        purgesknives();
+        purgesconfirms(); // but leave the confirms for team modes in arena
         if(numnonlocalclients() > 0) setupdemorecord();
         if (notify)
         {
@@ -2751,23 +2765,19 @@ void clientdisconnect(int n)
 {
     if(!valid_client(n)) return;
     sdropflag(n);
-    // remove assists
-    /*
+    // remove assists/revenge
     loopv(clients) if(valid_client(i) && i != n)
     {
         clientstate &cs = clients[i]->state;
         cs.damagelog.removeobj(n);
         cs.revengelog.removeobj(n);
     }
-    */
-    /*
     // delete kill confirmed references
     loopv(sconfirms)
     {
         if(sconfirms[i].actor == n) sconfirms[i].actor = -1;
         if(sconfirms[i].target == n) sconfirms[i].target = -1;
     }
-    */
     clients[n]->zap();
 }
 
@@ -3060,6 +3070,253 @@ void forcedeath(client *cl, bool gib)
     cl->state.state = CS_DEAD;
     cl->state.respawn();
     sendf(-1, 1, "ri2", gib ? SV_FORCEGIB : SV_FORCEDEATH, cl->clientnum);
+}
+
+bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
+{
+    clientstate &cs = cp.state;
+    // Only check alive players (skip editmode users)
+    if(cs.state != CS_ALIVE) return true;
+    // new crouch and scope
+    const bool newcrouching = (newf >> 7) & 1;
+    if (cs.crouching != newcrouching)
+    {
+        cs.crouching = newcrouching;
+        cs.crouchmillis = gamemillis - CROUCHTIME + min(gamemillis - cs.crouchmillis, CROUCHTIME);
+    }
+    const bool newscoping = (newg >> 4) & 1;
+    if (newscoping != cs.scoping)
+    {
+        if (!newscoping || (ads_gun(cs.gunselect) && ads_classic_allowed(cs.gunselect)))
+        {
+            cs.scoping = newscoping;
+            cs.scopemillis = gamemillis - ADSTIME(cs.perk2 == PERK_TIME) + min(gamemillis - cs.scopemillis, ADSTIME(cs.perk2 == PERK_TIME));
+        }
+        // else: clear the scope from the packet? other clients can ignore it?
+    }
+    // deal damage from movements
+    if(!cs.protect(gamemillis, gamemode, mutators))
+    {
+        // medium transfer (falling damage)
+        const bool newonfloor = (newf>>4)&1, newonladder = (newf>>5)&1, newunderwater = newo.z < smapstats.hdr.waterlevel;
+        if((newonfloor || newonladder || newunderwater) && !cs.onfloor)
+        {
+            const float dz = cs.fallz - cs.o.z;
+            if(newonfloor)
+            { // air to solid
+                bool hit = false;
+                if(dz > 10)
+                { // fall at least 2.5 meters to fall onto others
+                    loopv(clients)
+                    {
+                        client &t = *clients[i];
+                        clientstate &ts = t.state;
+                        // basic checks
+                        if (t.type == ST_EMPTY || ts.state != CS_ALIVE || i == cp.clientnum) continue;
+                        // check from above
+                        if(ts.o.distxy(cs.o) > 2.5f*PLAYERRADIUS) continue;
+                        // check from side
+                        const float dz2 = cs.o.z - ts.o.z;
+                        if(dz2 > PLAYERABOVEEYE + 2 || -dz2 > PLAYERHEIGHT + 2) continue;
+                        if(!isteam(&t, &cp) && !ts.protect(gamemillis, gamemode, mutators))
+                            serverdied(&t, &cp, 0, OBIT_FALL, FRAG_NONE, cs.o);
+                        hit = true;
+                    }
+                }
+                if(!hit) // not cushioned by another player
+                {
+                    // 4 meters without damage + 2/0.5 HP/meter
+                    // int damage = ((cs.fallz - newo.z) - 16) * HEALTHSCALE / (cs.perk1 == PERK1_LIGHT ? 8 : 2);
+                    // 2 meters without damage, then square up to 10^2 = 100 for up to 20m (50m with lightweight)
+                    int damage = 0;
+                    if(dz > 8)
+                        damage = powf(min<float>((dz - 8) / 4 / 2, 10), 2.f) * HEALTHSCALE; // 10 * 10 = 100
+                    if(damage >= 1*HEALTHSCALE) // don't heal the player
+                    {
+                        // maximum damage is 99 for balance purposes
+                        serverdamage(&cp, &cp, min(damage, (m_classic(gamemode, mutators) ? 30 : 99) * HEALTHSCALE), OBIT_FALL, FRAG_NONE, cs.o); // max 99, "30" (15) for classic
+                    }
+                }
+            }
+            else if(newunderwater && dz > 32) // air to liquid, more than 8 meters
+                serverdamage(&cp, &cp, (m_classic(gamemode, mutators) ? 20 : 35) * HEALTHSCALE, OBIT_FALL_WATER, FRAG_NONE, cs.o); // fixed damage @ 35, "20" (10) for classic
+            cs.onfloor = true;
+        }
+        else if(!newonfloor)
+        { // airborne
+            if(cs.onfloor || cs.fallz < cs.o.z) cs.fallz = cs.o.z;
+            cs.onfloor = false;
+        }
+        // did we die?
+        if(cs.state != CS_ALIVE) return false;
+    }
+    // out of map check
+    vec checko(newo);
+    checko.z += PLAYERHEIGHT / 2; // because the positions are now at the feet
+    if (/*cp.type != ST_LOCAL &&*/ !m_edit(gamemode) && checkpos(checko, false))
+    {
+        if (cp.type == ST_AI) cp.suicide(NUMGUNS + 11);
+        else
+        {
+            logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cp.gethostname(), cp.formatname(), ++cp.mapcollisions);
+            defformatstring(msg)("%s \f2collides with the map \f5- \f3forcing death", cp.formatname());
+            sendservmsg(msg);
+            sendf(cp.clientnum, 1, "ri", SV_MAPIDENT);
+            forcedeath(&cp);
+            cp.isonrightmap = false; // cannot spawn until you get the right map
+        }
+        return false; // no pickups for you!
+    }
+    // the rest can proceed without killing
+    // item pickups
+    if(!m_zombie(gamemode) || cp.team != TEAM_CLA)
+        loopv(sents)
+    {
+        entity &e = sents[i];
+        const bool cantake = (e.spawned && cs.canpickup(e.type, cp.type == ST_AI)), canheal = (e.type == I_HEALTH && cs.wounds.length());
+        if(!cantake && !canheal) continue;
+        const int ls = (1 << maplayout_factor) - 2, maplayoutid = getmaplayoutid(e.x, e.y);
+        const bool getmapz = maplayout && e.x > 2 && e.y > 2 && e.x < ls && e.y < ls;
+        const char &mapz = getmapz ? getblockfloor(maplayoutid, false) : 0;
+        vec v(e.x, e.y, getmapz ? (mapz + e.attr1) : cs.o.z);
+        float dist = cs.o.dist(v);
+        if(dist > 3) continue;
+        if(canheal)
+        {
+            // healing station
+            addpt(&cp, HEALWOUNDPT * cs.wounds.length(), PR_HEALWOUND);
+            cs.wounds.shrink(0);
+        }
+        if(cantake)
+        {
+            // server side item pickup, acknowledge first client that moves to the entity
+            e.spawned = false;
+            int spawntime(int type);
+            sendf(-1, 1, "ri4", SV_ITEMACC, i, cp.clientnum, e.spawntime = spawntime(e.type));
+            cs.pickup(sents[i].type);
+        }
+    }
+    // flags
+    if (m_flags(gamemode) && !m_secure(gamemode)) loopi(2)
+    {
+        void flagaction(int flag, int action, int actor);
+        sflaginfo &f = sflaginfos[i];
+        sflaginfo &of = sflaginfos[team_opposite(i)];
+        bool forcez = false;
+        vec v(-1, -1, cs.o.z);
+        if (m_bomber(gamemode) && i == cp.team && f.state == CTFF_STOLEN && f.actor_cn == cp.clientnum)
+        {
+            v.x = of.x;
+            v.y = of.y;
+        }
+        else switch (f.state)
+        {
+            case CTFF_STOLEN:
+                if (!m_return(gamemode, mutators) || i != cp.team) break;
+            case CTFF_INBASE:
+                v.x = f.x; v.y = f.y;
+                break;
+            case CTFF_DROPPED:
+                if (f.drop_cn == cp.clientnum && f.dropmillis + 2000 > servmillis) break;
+                v.x = f.pos[0]; v.y = f.pos[1];
+                forcez = true;
+                break;
+        }
+        if (v.x < 0) continue;
+        if (forcez)
+            v.z = f.pos[2];
+        else
+            v.z = getsblock(getmaplayoutid((int)v.x, (int)v.y)).floor;
+        float dist = cs.o.dist(v);
+        if (dist > 2) continue;
+        if (m_capture(gamemode))
+        {
+            if (i == cp.team) // it's our flag
+            {
+                if (f.state == CTFF_DROPPED)
+                {
+                    if (m_return(gamemode, mutators) /*&& (of.state != CTFF_STOLEN || of.actor_cn != sender)*/)
+                        flagaction(i, FA_PICKUP, cp.clientnum);
+                    else flagaction(i, FA_RETURN, cp.clientnum);
+                }
+                else if (f.state == CTFF_STOLEN && cp.clientnum == f.actor_cn)
+                    flagaction(i, FA_RETURN, cp.clientnum);
+                else if (f.state == CTFF_INBASE && of.state == CTFF_STOLEN && of.actor_cn == cp.clientnum && gamemillis >= of.stolentime + 1000)
+                    flagaction(team_opposite(i), FA_SCORE, cp.clientnum);
+            }
+            else
+            {
+                /*if(m_return && of.state == CTFF_STOLEN && of.actor_cn == sender) flagaction(team_opposite(i), FA_RETURN, sender);*/
+                flagaction(i, f.state == CTFF_INBASE ? FA_STEAL : FA_PICKUP, cp.clientnum);
+            }
+        }
+        else if (m_hunt(gamemode) || m_bomber(gamemode))
+        {
+            // BTF only: score their flag by bombing their base!
+            if (f.state == CTFF_STOLEN)
+            {
+                flagaction(i, FA_SCORE, cp.clientnum);
+                // nuke message + points
+                nuke(cp, !m_gsp1(gamemode, mutators), false); // no suicide for demolition, but suicide for bomber
+                /*
+                if(m_gsp1(gamemode, mutators))
+                {
+                    // force round win
+                    loopv(clients) if(valid_client(i) && clients[i]->state.state == CS_ALIVE && !isteam(clients[i], &cp))
+                    forcedeath(clients[i], true);
+                }
+                else explosion(cp, v, WEAP_GRENADE); // identical to self-nades, replace with something else?
+                */
+            }
+            else if (i == cp.team)
+            {
+                if (m_hunt(gamemode)) f.drop_cn = -1; // force pickup
+                flagaction(i, FA_PICKUP, cp.clientnum);
+            }
+            else if (f.state == CTFF_DROPPED && gamemillis >= of.stolentime + 500)
+                flagaction(i, m_hunt(gamemode) ? FA_SCORE : FA_RETURN, cp.clientnum);
+        }
+        else if (m_keep(gamemode) && f.state == CTFF_INBASE)
+            flagaction(i, FA_PICKUP, cp.clientnum);
+        else if (m_ktf2(gamemode, mutators) && f.state != CTFF_STOLEN)
+        {
+            bool cantake = of.state != CTFF_STOLEN || of.actor_cn != cp.clientnum || !m_team(gamemode, mutators);
+            if (!cantake)
+            {
+                cantake = true;
+                loopv(clients)
+                    if (i != cp.clientnum && valid_client(i) && clients[i]->type != ST_AI && clients[i]->team == cp.team)
+                    {
+                        cantake = false;
+                        break;
+                    }
+            }
+            if (cantake) flagaction(i, FA_PICKUP, cp.clientnum);
+        }
+    }
+    // kill confirmed
+    loopv(sconfirms) if (sconfirms[i].o.dist(cs.o) < 5.f)
+    {
+        if (cp.team == sconfirms[i].team)
+        {
+            addpt(&cp, KCKILLPTS, PR_KC);
+            //usesteamscore(sconfirms[i].team).points += sconfirms[i].points;
+            // the following line doesn't have to set the valid flag twice
+            //getsteamscore(sconfirms[i].team).frags += sconfirms[i].frag;
+            //++usesteamscore(sconfirms[i].death).deaths;
+        }
+        else
+        {
+            addpt(&cp, KCDENYPTS, cp.clientnum == sconfirms[i].target ? PR_KD_SELF : PR_KD);
+            if (valid_client(sconfirms[i].actor) && clients[sconfirms[i].actor]->type != ST_AI)
+                addptreason(clients[sconfirms[i].actor], PR_KD_ENEMY);
+        }
+
+        sendf(-1, 1, "ri2", SV_CONFIRMREMOVE, sconfirms[i].id);
+        sconfirms.remove(i--);
+    }
+    // TODO throwing knife pickup
+    return true;
 }
 
 int checktype(int type, client *cl)

@@ -422,6 +422,19 @@ struct ssecure
 };
 vector<ssecure> ssecures;
 
+struct sconfirm
+{
+    int id, team, actor, target;
+    int points, frag, death;
+    vec o;
+};
+
+struct sknife
+{
+    int id, millis;
+    vec o;
+};
+
 struct demofile
 {
     string info;

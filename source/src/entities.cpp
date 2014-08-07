@@ -264,7 +264,15 @@ void renderentities()
             }
         }
     }
-    // TODO: confirms
+    /*if(m_confirm(gamemode, mutators))*/ loopv(confirms)
+    {
+        // unconfirmed kills
+        const int fixteam = player1->team == TEAM_SPECT ? TEAM_RVSF : team_base(player1->team);
+        const float yaw = lastmillis / 10.0f;
+        vec o = confirms[i].o;
+        o.z += 1.f + sinf(lastmillis / 100.0f + confirms[i].o.x + confirms[i].o.y) / 20.f;
+        rendermodel(fixteam == confirms[i].team ? "pickups/confirm" : "pickups/deny", ANIM_FLAG | ANIM_LOOP | ANIM_DYNALLOC, 0, 0, o, yaw, 0);
+    }
     if (m_flags(gamemode) && !m_secure(gamemode)) loopi(2)
     {
         flaginfo &f = flaginfos[i];

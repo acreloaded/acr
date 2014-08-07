@@ -1261,6 +1261,10 @@ void healgun::attackfx(const vec &from2, const vec &to, int millis)
 }
 
 
+vector<cconfirm> confirms;
+vector<cknife> knives;
+
+
 // knife
 
 knife::knife(playerent *owner) : weapon(owner, GUN_KNIFE) {}

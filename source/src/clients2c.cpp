@@ -458,28 +458,56 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
                 // get knives
                 n = getint(p); // reuse
-                /*
                 knives.setsize(0);
                 loopi(n)
                 {
                     cknife &k = knives.add();
                     k.id = getint(p);
                     k.millis = totalmillis + getint(p);
-                    loopi(3) k.o[i] = getfloat(p);
+                    loopi(3) k.o[i] = getint(p)/DMF;
                 }
-                */
                 // get confirms
                 n = getint(p); // more reuse
-                /*
                 confirms.setsize(0);
                 loopi(n)
                 {
                     cconfirm &c = confirms.add();
                     c.id = getint(p);
                     c.team = getint(p);
-                    loopi(3) c.o[i] = getfloat(p);
+                    loopi(3) c.o[i] = getint(p)/DMF;
                 }
-                */
+                break;
+            }
+
+            case SV_KNIFEADD:
+            {
+                cknife &k = knives.add();
+                k.id = getint(p);
+                k.millis = totalmillis + KNIFETTL;
+                loopi(3) k.o[i] = getint(p)/DMF;
+                break;
+            }
+
+            case SV_KNIFEREMOVE:
+            {
+                int id = getint(p);
+                loopv(knives) if (knives[i].id == id) knives.remove(i--);
+                break;
+            }
+
+            case SV_CONFIRMADD:
+            {
+                cconfirm &k = confirms.add();
+                k.id = getint(p);
+                k.team = getint(p);
+                loopi(3) k.o[i] = getint(p)/DMF;
+                break;
+            }
+
+            case SV_CONFIRMREMOVE:
+            {
+                int id = getint(p);
+                loopv(confirms) if (confirms[i].id == id) confirms.remove(i--);
                 break;
             }
 
