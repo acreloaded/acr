@@ -545,7 +545,6 @@ void renderwaypoints()
             {
                 case CTFF_STOLEN:
                 {
-                    if (m_classic(gamemode, mutators)) break;
                     if (f.actor == focus && !isthirdperson) break;
                     if (OUTBORD(f.actor->o.x, f.actor->o.y)) break;
                     const bool friendly = (focus == f.actor || (m_team(gamemode, mutators) && f.actor->team == teamfix));
@@ -556,6 +555,7 @@ void renderwaypoints()
                     }
                     else
                     {
+                        if (m_classic(gamemode, mutators)) break;
                         o = vec(f.actor->lastloudpos.v);
                         a = max(.15f, 1.f - (lastmillis - f.actor->radarmillis) / 5000.f);
                         wp = WP_KILL;
