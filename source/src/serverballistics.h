@@ -87,7 +87,7 @@ bool checkcrit(float dist, float m, int base = 0, int low = 4, int high = 100)
 inline void sendhit(client &actor, int gun, const vec &o, int dmg)
 {
     // no blood or explosions if using moon jump
-#if (SERVER_BUILTIN_MOD & 34) == 34 // 2 | 32
+#if (SERVER_BUILTIN_MOD & 6) == 6 // 2 | 4
 #if !(SERVER_BUILTIN_MOD & 4)
     if (m_gib(gamemode, mutators))
 #endif
@@ -334,7 +334,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
     // out of range? (super knife code)
     if (melee_weap(weap))
     {
-#if (SERVER_BUILTIN_MOD & 1)
+#if (SERVER_BUILTIN_MOD & 32)
         if (m_gib(gamemode, mutators))
         {
             static const int lulz[3] = { GUN_SNIPER, GUN_HEAL, GUN_RPG };

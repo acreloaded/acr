@@ -1833,7 +1833,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
             // gungame maxed out
             if (++actor->state.gungame >= GUNGAME_MAX)
             {
-                //actor->state.nukemillis = gamemillis; // deploy a nuke
+                actor->state.nukemillis = gamemillis; // deploy a nuke
                 actor->state.gungame = 0; // restart gungame
             }
             const int newprimary = actor->state.primary = actor->state.secondary = actor->state.gunselect = gungame[actor->state.gungame];
@@ -1860,8 +1860,8 @@ void client::suicide(int gun, int style)
 void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source, float dist)
 {
     // moon jump mario = no damage during gib
-#if (SERVER_BUILTIN_MOD & 32)
-#if !(SERVER_BUILTIN_MOD & 4)
+#if (SERVER_BUILTIN_MOD & 4)
+#if !(SERVER_BUILTIN_MOD & 2)
     if (m_gib(gamemode, mutators))
 #endif
         return;
@@ -4395,9 +4395,9 @@ void process(ENetPacket *packet, int sender, int chan)
                         if(clients[cn]->state.mag) break;
                         // INTENTIONAL FALLTHROUGH
                     case S_JUMP:
-#if (SERVER_BUILTIN_MOD & 2)
+#if (SERVER_BUILTIN_MOD & 1)
                         // native moonjump for humans
-#if !(SERVER_BUILTIN_MOD & 4)
+#if !(SERVER_BUILTIN_MOD & 2)
                         if (m_gib(gamemode, mutators))
 #endif
                         if (snd == S_JUMP && cn == sender)
