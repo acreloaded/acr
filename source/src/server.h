@@ -6,7 +6,7 @@
 // 4 = moon jump always on (requires 2)
 // 8 = gungame
 // 16 = explosive ammo
-// 32 = moonjump with no damage (mario)
+// 32 = moonjump: Mario - no damage allowed (requires 2)
 // 64 = /suicide for nuke
 // 128 = no explosive zombies
 
@@ -117,6 +117,23 @@ struct wound
     vec offset;
 };
 
+#if (SERVER_BUILTIN_MOD & 8) == 8
+const int gungame[] =
+{
+    GUN_ASSAULT2,
+    GUN_SNIPER,
+    GUN_SNIPER2,
+    GUN_ASSAULT,
+    GUN_SUBGUN,
+    GUN_BOLT,
+    GUN_SHOTGUN,
+    GUN_PISTOL,
+    GUN_RPG,
+    GUN_HEAL, // nuke after killing with this
+};
+const int GUNGAME_MAX = sizeof(gungame) / sizeof(*gungame);
+#endif
+
 struct clientstate : playerstate
 {
     vec o, vel, sg[SGRAYS], flagpickupo;
@@ -131,6 +148,9 @@ struct clientstate : playerstate
     int flagscore, frags, teamkills, deaths, shotdamage, damage, points, events, lastdisc, reconnections;
     vector<int> damagelog, revengelog;
     vector<wound> wounds;
+#if (SERVER_BUILTIN_MOD & 8)
+    int gungame;
+#endif
 
     clientstate() : state(CS_DEAD) {}
 
@@ -172,6 +192,9 @@ struct clientstate : playerstate
         flagscore = frags = teamkills = deaths = shotdamage = damage = points = events = lastdisc = reconnections = 0;
         revengelog.setsize(0);
         respawn();
+#if (SERVER_BUILTIN_MOD & 8)
+        gungame = 0;
+#endif
     }
 
     void respawn()
@@ -290,6 +313,9 @@ struct client                   // server side version of "dynent" type
     int nvotes;
     int input, inputmillis;
     int f, g, t, y, p;
+#if (SERVER_BUILTIN_MOD & 64)
+    bool nuked;
+#endif
 
     void addevent(timedevent *e)
     {
@@ -348,6 +374,9 @@ struct client                   // server side version of "dynent" type
         spawnp = vec(-1e10f, -1e10f, -1e10f);
         lmillis = ldt = spj = 0;
         f = g = y = p = t = 0;
+#if (SERVER_BUILTIN_MOD & 64)
+        nuked = false;
+#endif
     }
 
     void reset()

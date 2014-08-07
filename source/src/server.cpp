@@ -489,6 +489,9 @@ void sendspawn(client *c)
         gs.nextperk1 = PERK_NONE;
         gs.nextperk2 = (gs.nextprimary == GUN_BOLT || m_sniper(gamemode, mutators)) ? PERK2_STEADY : PERK2_NONE;
     }
+#if (SERVER_BUILTIN_MOD & 8)
+    gs.nextprimary = gs.nextsecondary = gungame[gs.gungame];
+#endif
     gs.spawnstate(c->team, smode, smuts);
     gs.lifesequence++;
     gs.state = CS_DEAD;
@@ -1823,8 +1826,20 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 
     if (!suic)
     {
-#if (SERVER_BUILTISV_MOD & 8)
+#if (SERVER_BUILTIN_MOD & 8)
         // gungame advance
+        if (gun != OBIT_NUKE)
+        {
+            // gungame maxed out
+            if (++actor->state.gungame >= GUNGAME_MAX)
+            {
+                //actor->state.nukemillis = gamemillis; // deploy a nuke
+                actor->state.gungame = 0; // restart gungame
+            }
+            const int newprimary = actor->state.primary = actor->state.secondary = actor->state.gunselect = gungame[actor->state.gungame];
+            sendf(-1, 1, "ri5", SV_RELOAD, actor->clientnum, newprimary, actor->state.mag[newprimary] = magsize(newprimary), actor->state.ammo[newprimary] = (ammostats[newprimary].start - 1));
+            sendf(-1, 1, "ri3", SV_WEAPCHANGE, actor->clientnum, newprimary);
+        }
 #endif
         // conversions
         if (m_convert(gamemode, mutators) && target->team != actor->team)
@@ -1844,9 +1859,9 @@ void client::suicide(int gun, int style)
 
 void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source, float dist)
 {
-    // moon jump = no damage during gib
-#if (SERVER_BUILTIN_MOD & 34) == 34 // 2 + 32
-#if (SERVER_BUILTIN_MOD & 4) != 4
+    // moon jump mario = no damage during gib
+#if (SERVER_BUILTIN_MOD & 32)
+#if !(SERVER_BUILTIN_MOD & 4)
     if (m_gib(gamemode, mutators))
 #endif
         return;
@@ -3583,10 +3598,10 @@ void process(ENetPacket *packet, int sender, int chan)
                 client &cp = *clients[cn];
                 if (gunselect < 0 || gunselect >= NUMGUNS) break;
 #if (SERVER_BUILTIN_MOD & 8)
-                if (weaponsel != cp.state.primary)
+                if (gunselect != cp.state.primary)
                 {
                     // stop bots from switching back
-                    sendf(-1, 1, "ri5", SV_RELOAD, cn, weaponsel, cp.state.mag[weaponsel] = 0, cp.state.ammo[weaponsel] = 0);
+                    sendf(-1, 1, "ri5", SV_RELOAD, cn, gunselect, cp.state.mag[gunselect] = 0, cp.state.ammo[gunselect] = 0);
                     // disallow switching
                     sendf(sender, 1, "ri3", SV_WEAPCHANGE, cn, cp.state.primary);
                 }
@@ -4380,7 +4395,17 @@ void process(ENetPacket *packet, int sender, int chan)
                         if(clients[cn]->state.mag) break;
                         // INTENTIONAL FALLTHROUGH
                     case S_JUMP:
-                        // TODO: insert moonjump code here
+#if (SERVER_BUILTIN_MOD & 2)
+                        // native moonjump for humans
+#if !(SERVER_BUILTIN_MOD & 4)
+                        if (m_gib(gamemode, mutators))
+#endif
+                        if (snd == S_JUMP && cn == sender)
+                        {
+                            sendf(-1, 1, "ri8i3", SV_DAMAGE, cn, cn, 200 * HEALTHSCALE, clients[cn]->state.armour, clients[cn]->state.health, GUN_KNIFE, FRAG_GIB, (int)(clients[cn]->state.o.x*DMF), (int)(clients[cn]->state.o.y*DMF), INT_MIN);
+                            sendf(-1, 1, "ri8i3", SV_DAMAGE, cn, cn, 0, clients[cn]->state.armour, clients[cn]->state.health, GUN_HEAL, FRAG_NONE, 0, 0, 0);
+                        }
+#endif
                     case S_SOFTLAND:
                     case S_HARDLAND:
                         QUEUE_MSG;

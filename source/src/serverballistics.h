@@ -88,7 +88,7 @@ inline void sendhit(client &actor, int gun, const vec &o, int dmg)
 {
     // no blood or explosions if using moon jump
 #if (SERVER_BUILTIN_MOD & 34) == 34 // 2 | 32
-#if (SERVER_BUILTIN_MOD & 4) != 4
+#if !(SERVER_BUILTIN_MOD & 4)
     if (m_gib(gamemode, mutators))
 #endif
         return;
@@ -327,30 +327,30 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
     const int mulset = sniper_weap(weap) ? MUL_SNIPER : MUL_NORMAL;
     int hitzone = HIT_NONE; vec end = to;
     // calculate the hit
-    client *hit = nearesthit(owner, from, to, !m_real(gamemode, mutators), hitzone, pos, exclude, end, melee_weap(weap));
+    client *hit = nearesthit(owner, from, to, !m_real(gamemode, mutators), hitzone, pos, exclude, end, melee_weap(weap) && (!(SERVER_BUILTIN_MOD & 1) || !m_gib(gamemode, mutators)));
     // damage check
     const float dist2 = dist + end.dist(from);
     int damage = effectiveDamage(weap, dist2 + penaltydist);
     // out of range? (super knife code)
     if (melee_weap(weap))
     {
-#if (SERVER_BUILTIN_MOD & 1) == 1
+#if (SERVER_BUILTIN_MOD & 1)
         if (m_gib(gamemode, mutators))
         {
-            static const int lulz[3] = { WEAP_SNIPER, WEAP_HEAL, WEAP_RPG };
-            sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, lulz[rnd(3)], from.x, from.y, from.z, to.x, to.y, to.z);
+            static const int lulz[3] = { GUN_SNIPER, GUN_HEAL, GUN_RPG };
+            sendf(-1, 1, "ri9", SV_RICOCHET, owner.clientnum, lulz[rnd(3)], (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF));
         }
         else
 #endif
         if (dist2 > guns[weap].endrange) return 0;
     }
-    #if (SERVER_BUILTIN_MOD & 16) == 16
+#if (SERVER_BUILTIN_MOD & 16)
     if (!dist)
     {
-        //sendf(-1, 1, "ri3f6", N_RICOCHET, owner.clientnum, WEAP_RPG, owner.state.o.x, owner.state.o.y, owner.state.o.z, end.x, end.y, end.z);
-        explosion(owner, end, WEAP_RPG, !m_real(gamemode, mutators), false);
+        // removed: red RPG shotline
+        explosion(owner, end, GUN_RPG, !m_real(gamemode, mutators), false);
     }
-    #endif
+#endif
     // we hit somebody
     if (hit && damage)
     {
