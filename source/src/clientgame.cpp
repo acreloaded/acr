@@ -19,6 +19,39 @@ void mode(int *n)
 }
 COMMAND(mode, "i");
 
+void muts(int *n)
+{
+    nextmuts = *n;
+    modecheck(nextmode, nextmuts);
+}
+COMMAND(muts, "i");
+
+void classicmode(int n)
+{
+    static const int cmodes[][2] = {
+        { G_DM, G_M_TEAM },
+        { G_DM, G_M_NONE },
+
+        { G_DM, G_M_GSP1 | G_M_TEAM | G_M_INSTA },
+        { G_DM, G_M_GSP1 | G_M_INSTA },
+
+        { G_CTF, G_M_TEAM },
+        { G_BOMBER, G_M_TEAM },
+        { G_HTF, G_M_TEAM },
+        { G_KTF, G_M_GSP1 },
+        { G_KTF, G_M_GSP1 | G_M_TEAM },
+
+        { G_DM, G_M_PISTOL },
+        { G_DM, G_M_GSP1 | G_M_GIB },
+
+        { G_DM, G_M_GSP1 | G_M_TEAM },
+        { G_DM, G_M_GSP1 },
+    };
+    if (n >= 0 && n < sizeof(cmodes) / sizeof(*cmodes))
+        modecheck(nextmode = cmodes[n][0], nextmuts = cmodes[n][1]);
+}
+COMMAND(classicmode, "i");
+
 bool intermission = false;
 int arenaintermission = 0;
 struct serverstate servstate = { 0 };

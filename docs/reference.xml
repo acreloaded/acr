@@ -2270,6 +2270,19 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           </references>
         </variable>
 
+        <variable name="mutators">
+          <description>Holds the current game mutators. READ ONLY</description>
+          <examples>
+            <example>
+              <code><![CDATA[echo $mutators]]></code>
+              <explanation>Output: 1</explanation>
+            </example>
+          </examples>
+          <references>
+            <identifierReference identifier="muts"/>
+          </references>
+        </variable>
+
         <variable name="connected">
           <description>Indicates if a connection to a server exists.</description>
           <value token="B" description="the connection state" valueNotes="1 (connected), 0 (disconnected)" minValue="0" maxValue="1" defaultValue="0"/>
@@ -7088,6 +7101,16 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
               <code><![CDATA[mode 5; map ac_shine; echo "CTF @ ac_shine"]]></code>
             </example>
           </examples>
+        </command>
+
+        <command name="muts">
+          <description>Sets the gameplay mutators to N for the next map loaded.</description>
+          <arguments>
+            <argument token="N" valueNotes="0" description="mutators"/>
+          </arguments>
+          <remarks>
+            <remark>You will need to define mutators before loading the map or it will stay as the last set of mutators played.</remark>
+          </remarks>
         </command>
 
         <command name="gamemodedesc">

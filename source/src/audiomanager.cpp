@@ -562,7 +562,7 @@ void audiomanager::updateaudio()
     location *tinnitusloc = updateloopsound(S_TINNITUS, tinnitus);
 
     // heartbeat
-    bool heartbeatsound = heartbeat && alive && firstperson && !m_sniper(gamemode, mutators) && player1->health <= heartbeat;
+    bool heartbeatsound = heartbeat && alive && firstperson && !m_sniper(gamemode, mutators) && player1->health <= heartbeat * HEALTHSCALE;
     updateloopsound(S_HEARTBEAT, heartbeatsound);
 
     // pitch fx
