@@ -5,11 +5,30 @@
 
 #include "cube.h"
 
+inline char cornertype(int x, int y)
+{
+    sqr &me = *S(x, y);
+    if (me.type != CORNER) return 0;
+    sqr &up = *S(x, y - 1);
+    sqr &left = *S(x - 1, y);
+    sqr &right = *S(x + 1, y);
+    sqr &down = *S(x, y + 1);
+    const uchar mes = me.ceil - me.floor;
+    const bool
+        u = up.type == SOLID || uchar(up.ceil - up.floor) < mes,
+        l = left.type == SOLID || uchar(left.ceil - left.floor) < mes,
+        r = right.type == SOLID || uchar(right.ceil - right.floor) < mes,
+        d = down.type == SOLID || uchar(down.ceil - down.floor) < mes;
+    if ((u && d) || (l && r)) return 0; // more than 2 cubes, or two adjecent ones
+    if ((u && !l) || (l && !u)) return 2; // top-right
+    return 1; // top-left
+}
+
 float raycube(const vec &o, const vec &ray, vec &surface)
 {
     surface = vec(0, 0, 0);
 
-    if(ray.iszero()) return -1;
+    if(ray.iszero()) return 0;
 
     vec v = o;
     float dist = 0, dx = 0, dy = 0, dz = 0;
@@ -18,15 +37,34 @@ float raycube(const vec &o, const vec &ray, vec &surface)
     for(nr=0;nr<512;nr++) // sam's suggestion :: I found no map which got nr > 350
     {
         int x = int(v.x), y = int(v.y);
-        if(x < 0 || y < 0 || x >= ssize || y >= ssize) return -1;
+        if(x < 0 || y < 0 || x >= ssize || y >= ssize) return dist;
         sqr *s = S(x, y);
         float floor = s->floor, ceil = s->ceil;
         if(s->type==FHF) floor -= s->vdelta/4.0f;
         if(s->type==CHF) ceil += s->vdelta/4.0f;
         if(SOLID(s) || v.z < floor || v.z > ceil)
         {
-            if((!dx && !dy) || s->wtex==DEFAULT_SKY || (!SOLID(s) && v.z > ceil && s->ctex==DEFAULT_SKY)) return -1;
-            if(s->type!=CORNER)// && s->type!=FHF && s->type!=CHF)
+            if((!dx && !dy) || s->wtex==DEFAULT_SKY || (!SOLID(s) && v.z > ceil && s->ctex==DEFAULT_SKY)) return dist;
+            int cornert = 0;
+            if (s->type == CORNER && (cornert = cornertype(x, y)))
+            {
+                float angle = atan2(v.y - o.y, v.x - o.x) / RAD;
+                while (angle < 0) angle += 360;
+                while (angle > 360) angle -= 360;
+                // maybe there is a better way?
+
+                // top-left
+                if (cornert == 1)
+                    surface.x = surface.y = (angle >= 135 && angle <= 315) ? -.7071f : .7071f;
+                // top-right
+                else if (cornert == 2)
+                {
+                    surface.x = (angle >= 45 && angle <= 225) ? -.7071f : .7071f;
+                    surface.y = -surface.x;
+                }
+            }
+            // make one for heightfields?
+            else
             {
                 if(dx<dy) surface.x = ray.x>0 ? -1 : 1;
                 else surface.y = ray.y>0 ? -1 : 1;
@@ -47,8 +85,20 @@ float raycube(const vec &o, const vec &ray, vec &surface)
         dz = ray.z ? ((ray.z > 0 ? ceil : floor) - v.z)/ray.z : 1e16f;
         if(dz < dx && dz < dy)
         {
-            if(ray.z>0 && s->ctex==DEFAULT_SKY) return -1;
-            if(s->type!=FHF && s->type!=CHF) surface.z = ray.z>0 ? -1 : 1;
+            if (s->ctex != DEFAULT_SKY || ray.z <= 0)
+            {
+                if (s->type != (ray.z>0 ? CHF : FHF)) // flat
+                    surface.z = ray.z>0 ? -1 : 1;
+                else // use top left surface
+                {
+                    const float f = (ray.z > 0) ? .25f : -.25f;
+                    vec b(1, 0, S(x + 1, y)->vdelta * f), c(0, 1, S(x, y + 1)->vdelta * f);
+                    surface = vec(0, 0, s->vdelta * f); // as a
+                    b.sub(surface);
+                    c.sub(surface);
+                    dz *= surface.cross(b, c).normalize().z;
+                }
+            }
             dist += dz;
             break;
         }
@@ -56,7 +106,7 @@ float raycube(const vec &o, const vec &ray, vec &surface)
         v.add(vec(ray).mul(disttonext));
         dist += disttonext;
     }
-    if (nr == 512) return -1;
+    if (nr == 512) return 0;
     return dist;
 }
 
