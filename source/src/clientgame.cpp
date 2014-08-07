@@ -416,6 +416,16 @@ bool spawnenqueued = false;
 
 void deathstate(playerent *pl)
 {
+    if (pl == player1)
+    {
+        if (showscoresondeath) showscores(true);
+        setscope(false);
+        setburst(false);
+        if (editmode) toggleedit(true);
+        damageblend(-1);
+        spawnenqueued = false;
+    }
+
     pl->state = CS_DEAD;
     pl->spectatemode = SM_DEATHCAM;
     pl->respawnoffset = pl->lastpain = lastmillis;
@@ -428,12 +438,6 @@ void deathstate(playerent *pl)
 
     if(pl==player1)
     {
-        if(showscoresondeath) showscores(true);
-        setscope(false);
-        setburst(false);
-        if(editmode) toggleedit(true);
-        damageblend(-1);
-        spawnenqueued = false;
         if(pl->team == TEAM_SPECT) spectatemode(SM_FLY);
         else if(team_isspect(pl->team)) spectatemode(SM_FOLLOWSAME);
     }
