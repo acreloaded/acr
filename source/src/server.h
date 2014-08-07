@@ -327,6 +327,7 @@ struct client                   // server side version of "dynent" type
 
     void removeexplosives();
     void suicide(int weap, int flags = FRAG_NONE);
+    void cheat(const char *reason);
 
     void mapchange(bool getmap = false)
     {

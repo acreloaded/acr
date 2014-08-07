@@ -99,6 +99,14 @@ void client::removeexplosives()
     state.knives.reset(); // remove active/flying knives (usually useless, since knives are fast)
 }
 
+void client::cheat(const char *reason)
+{
+    logline(ACLOG_INFO, "[%s] %s cheat detected (%s)", this->gethostname(), this->formatname(), reason);
+    defformatstring(cheatstr)("\f2%s \fs\f6(%d) \f3cheat detected \f4(%s)", this->name, this->clientnum, reason);
+    sendservmsg(cheatstr);
+    this->suicide(this->type == ST_AI ? OBIT_BOT : OBIT_CHEAT, FRAG_GIB);
+}
+
 void clientstate::addwound(int owner, const vec &woundloc)
 {
     wound &w = wounds.length() >= 8 ? wounds[0] : wounds.add();
@@ -4155,13 +4163,13 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_EDITMODE:
             {
                 const bool editing = getint(p) != 0;
+                if (cl->state.state != (editing ? CS_ALIVE : CS_EDITING)) break;
                 if (!m_edit(gamemode) && editing && cl->type == ST_TCPIP)
                 {
                     // unacceptable!
-                    serverdamage(cl, cl, 1000, GUN_KNIFE, FRAG_GIB, cl->state.o);
+                    cl->cheat("tried editmode");
                     break;
                 }
-                if (cl->state.state != (editing ? CS_ALIVE : CS_EDITING)) break;
                 cl->state.state = editing ? CS_EDITING : CS_ALIVE;
                 cl->state.onfloor = true; // prevent falling damage
                 //cl->state.allowspeeding(gamemillis, 1000); // prevent speeding detection
