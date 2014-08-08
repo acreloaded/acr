@@ -89,17 +89,81 @@ void shotevent::process(client *ci)
     else if (weap == GUN_GRENADE) damagepotential = 0;
     else damagepotential = effectiveDamage(weap, to.dist(from));
 
+    static vector<int> exclude;
     switch (weap)
     {
         case GUN_GRENADE: cs.grenades.add(id); break;
-        case GUN_RPG: // explosive tip is stuck to a player
+        case GUN_RPG: // formerly: crossbow explosive tip is stuck to a player
         {
-            // TODO
+            int hitzone = HIT_NONE;
+            vec expc;
+            exclude.setsize(0);
+            exclude.add(c.clientnum);
+            client *hit = nearesthit(c, from, to, !m_real(gamemode, mutators), hitzone, pos, exclude, expc);
+            float dist = 0;
+            if (hit)
+            {
+                int dmg = HEALTHSCALE;
+                dist = expc.dist(from);
+                if (dist <= 24) // close range puncture
+                    dmg *= 300;
+                else if (hitzone == HIT_HEAD)
+                {
+                    sendheadshot(from, to, dmg);
+                    dmg *= m_progressive(gamemode, mutators) ? (250) : (150);
+                }
+                else
+                    dmg *= m_progressive(gamemode, mutators) ? (hitzone * 75) : (55);
+                damagedealt += dmg;
+                sendhit(c, GUN_RPG, expc, dmg); // blood, not explosion
+                serverdamage(hit, &c, dmg, GUN_RPG, FRAG_GIB | (hitzone == HIT_HEAD ? FRAG_FLAG : FRAG_NONE), expc, expc.dist(from));
+            }
+            // fix explosion on walls
+            else
+            {
+                dist = to.dist(from) - .1f;
+                (expc = to).sub(from).normalize().mul(dist).add(from);
+            }
+            // instant explosion (after 6m)
+            int rpgexplodedmgdealt = dist >= 24 ? explosion(*ci, expc, GUN_RPG, !m_real(gamemode, mutators), false, hit) : 0;
+            cs.damage += rpgexplodedmgdealt;
+            cs.shotdamage += max<int>(effectiveDamage(GUN_RPG, 0), rpgexplodedmgdealt);
             break;
         }
-        case GUN_HEAL:
+        case GUN_HEAL: // healing a player
         {
-            // TODO
+            int hitzone = HIT_NONE;
+            vec end;
+            exclude.setsize(0);
+            exclude.add(c.clientnum);
+            client *hit = cs.scoping ? &c : nearesthit(c, from, to, false, hitzone, pos, exclude, end);
+            if (!hit) break;
+            if (hit->state.wounds.length())
+            {
+                // healing by a player
+                addpt(ci, HEALWOUNDPT * hit->state.wounds.length(), PR_HEALWOUND);
+                if (&c != hit) addptreason(hit, PR_HEALEDBYTEAMMATE);
+                hit->state.wounds.shrink(0);
+                // heal wounds = revive
+                sendf(-1, 1, "ri4", SV_HEAL, c.clientnum, hit->clientnum, hit->state.health);
+            }
+            if ((&c == hit) ? cs.health < MAXHEALTH : !isteam(&c, hit)) // that's right, no more self-heal abuse
+            {
+                const int flags = hitzone == HIT_HEAD ? FRAG_GIB : FRAG_NONE;
+                const float dist = hit->state.o.dist(from);
+                const int dmg = effectiveDamage(weap, dist) * (hitzone == HIT_HEAD ? muls[MUL_NORMAL].head : 1.f);
+                if (hitzone == HIT_HEAD)
+                    sendheadshot(from, to, dmg);
+                serverdamage(hit, &c, dmg, weap, flags, cs.o, dist);
+                damagedealt += dmg;
+            }
+            loopi(&c == hit ? 25 : 15)
+                // heals over the next 1 to 2.5 seconds (no time perk, for others)
+                hit->addtimer(new healevent(gamemillis + (10 + i) * 100 / (cs.perk1 == PERK_POWER ? 2 : 1), c.clientnum, cs.perk1 == PERK_POWER ? 2 : 1));
+            if (hit == &c) (end = to).sub(from).normalize().add(from); // 25 cm fx
+            // hide blood for healing weapon
+            // sendhit(c, WEAP_HEAL, end, dmg); // blood
+            to = end;
             break;
         }
         case GUN_KNIFE: // falls through if not "compact" (throw)
@@ -116,18 +180,15 @@ void shotevent::process(client *ci)
             // gs.allowspeeding(gamemillis, 1500);
             // fallthrough
         default:
-        {
             if (weap == GUN_SHOTGUN) // many rays, many players
                 damagedealt += shotgun(c, from, pos); // WARNING: modifies cs.sg
             else
             {
-                static vector<int> exclude;
                 exclude.setsize(0);
                 exclude.add(c.clientnum);
                 damagedealt += shot(c, from, to, pos, weap, FRAG_NONE, surface, exclude); // WARNING: modifies to
             }
             break;
-        }
     }
     cs.damage += damagedealt;
     cs.shotdamage += max(damagepotential, damagedealt);
@@ -199,22 +260,35 @@ void akimboevent::process(client *ci)
 }
 
 // unordered
-/*
 void healevent::process(client *ci)
 {
-    // ...
+    const int heal = hp * HEALTHSCALE, remain = MAXHEALTH - ci->state.health;
+    if (heal >= remain)
+    {
+        // fully healed!
+        ci->invalidateheals();
+        if (valid_client(id)){
+            if (id == ci->clientnum) addpt(clients[id], HEALSELFPT, PR_HEALSELF);
+            else if (isteam(ci, clients[id])) addpt(clients[id], HEALTEAMPT, PR_HEALTEAM);
+            else addpt(clients[id], HEALENEMYPT, PR_HEALENEMY);
+        }
+        ci->state.health = MAXHEALTH;
+        if (!m_zombie(gamemode)) return sendf(-1, 1, "ri4", SV_HEAL, id, ci->clientnum, ci->state.health);
+    }
+    // partial heal
+    else ci->state.health += heal;
+    sendf(-1, 1, "ri3", SV_REGEN, ci->clientnum, ci->state.health);
 }
 
 void suicidebomberevent::process(client *ci)
 {
-    explosion(*ci, ci->state.o, WEAP_GRENADE, !m_real(gamemode, mutators), true, valid_client(id) ? clients[id] : NULL);
+    explosion(*ci, ci->state.o, GUN_GRENADE, !m_real(gamemode, mutators), true, valid_client(id) ? clients[id] : NULL);
 }
 
 void airstrikeevent::process(client *ci)
 {
-    explosion(*ci, o, WEAP_GRENADE, !m_real(gamemode, mutators), false);
+    explosion(*ci, o, GUN_GRENADE, !m_real(gamemode, mutators), false);
 }
-*/
 
 // processing events
 bool timedevent::flush(client *ci, int fmillis)

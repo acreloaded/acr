@@ -74,6 +74,28 @@ struct reloadevent : timedevent
     void process(struct client *ci);
 };
 
+// unordered
+
+struct healevent : timedevent
+{
+    int hp;
+    healevent(int millis, int actor, int hp) : timedevent(GE_HEAL, millis, actor), hp(hp) {}
+    void process(client *ci);
+};
+
+struct suicidebomberevent : timedevent
+{
+    suicidebomberevent(int actor) : timedevent(GE_SUICIDEBOMB, 0, actor) {}
+    void process(client *ci);
+};
+
+struct airstrikeevent : timedevent
+{
+    vec o;
+    airstrikeevent(int millis, const vec &o) : timedevent(GE_AIRSTRIKE, millis, 0), o(o) {}
+    void process(client *ci);
+};
+
 template <int N>
 struct projectilestate
 {
@@ -678,12 +700,13 @@ const char *suicname(int obit)
         case OBIT_NUKE:
             return _("Nuke");
 
-        case OBIT_REVIVE:
-            return _("Revive");
         case OBIT_TEAM:
             return _("Team");
         case OBIT_SPECT:
             return _("Spect");
+
+        case OBIT_REVIVE:
+            return _("Revive");
         case OBIT_JUG:
             return _("Juggernaut");
     }
@@ -701,9 +724,10 @@ const char *killname(int obit, int style)
                 return _("Bleed");
         case GUN_RPG:
             if (style & FRAG_GIB)
-                return _("Impact");
+                return _("RPG Impact");
             else if (style & FRAG_FLAG)
                 return _("RPG Direct");
+            break;
         case GUN_GRENADE:
             if (!(style & FRAG_GIB))
                 return _("Airstrike");
@@ -714,6 +738,8 @@ const char *killname(int obit, int style)
             return _("Nuke");
         case OBIT_ASSIST:
             return _("Assist");
+        case OBIT_REVIVE:
+            return _("Revive");
     }
     if (obit >= 0 && obit < NUMGUNS)
         return weapname(obit);
