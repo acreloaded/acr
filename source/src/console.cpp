@@ -183,7 +183,13 @@ struct oline
     int millis, obit, style, assist, combo, merges;
     bool headshot;
     void cleanup() const { delete[] actor; delete[] target; delete[] str; }
-    bool mergable(const oline &o){ return o.obit == obit && !strcmp(o.actor, actor) && !strcmp(o.target, target); }
+    bool mergable(const oline &o)
+    {
+        if (o.obit != obit || strcmp(o.actor, actor) || strcmp(o.target, target))
+            return false;
+        const int stylemask = obit == GUN_KNIFE || obit == GUN_RPG ? FRAG_GIB | FRAG_FLAG : obit == GUN_GRENADE ? FRAG_GIB : FRAG_NONE;
+        return !((o.style ^ style) & stylemask); // (o.style & stylemask) == (style & stylemask);
+    }
     void merge(const oline &o)
     {
         // obit matches
