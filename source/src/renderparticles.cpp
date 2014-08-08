@@ -273,9 +273,9 @@ static struct parttype { int type; float r, g, b; int gr, tex; float sz; } partt
     { PT_BULLETHOLE, 0.2f, 0.2f, 1.0f, 0,  3, 0.1f  }, // hole decal M
     { PT_BULLETHOLE, 0.2f, 1.0f, 0.2f, 0,  3, 0.1f  }, // hole decal C
     // ACR extra particles
-    { PT_FIREBALL,   1.0f, 1.0f, 0.5f, 0,  2, 2.0f  }, // [22] RPG explosion fireball
-    { PT_PART,   0.2f, 1.0f, 0.3f, 18, 1, 0.13f  }, // [23] green: heal-line
-    { PT_PART,   1.0f, 0.2f, 0.2f, 15, 1, 0.11f }, // [24] red: RPG smokeline
+    { PT_FIREBALL,   1.0f, 1.0f, 0.5f, 0,  2, 4.0f  }, // [22] RPG explosion fireball
+    { PT_PART,       0.2f, 1.0f, 0.3f, 18, 1, 0.13f }, // [23] green: heal-line
+    { PT_PART,       1.0f, 0.2f, 0.2f, 15, 1, 0.11f }, // [24] red: RPG smokeline
 };
 
 VAR(particlesize, 20, 100, 500);
