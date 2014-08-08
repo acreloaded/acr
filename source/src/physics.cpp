@@ -312,8 +312,13 @@ bool collide(physent *d, bool spawn, float drop, float rise, int level) // level
 
     if(spawn)
     {
-        d->o.z = lo+eyeheight;       // just drop to floor (sideeffect)
-        d->onfloor = true;
+        if (d->o.z <= lo + eyeheight) // below floor
+        {
+            d->o.z = lo + eyeheight;
+            d->onfloor = true;
+        }
+        else if (d->o.z + d->aboveeye >= hi) // above ceiling
+            d->o.z = hi - d->aboveeye;
     }
     else
     {
