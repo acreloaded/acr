@@ -523,7 +523,7 @@ struct servernickblacklist : serverconfigfile
                 if(s && (!strcmp(l, "accept") || !strcmp(l, "a")))
                 { // accept nickname IP-range
                     int *i = whitelist.access(s);
-                    if(!i) i = &whitelist.access(newstring(s), -1);
+                    if(!i) i = &whitelist.access(s, -1);
                     s += strlen(s) + 1;
                     while(s < p)
                     {

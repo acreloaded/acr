@@ -36,6 +36,7 @@ bot_skill_s::bot_skill_s(float sk)
     flMaxAttackDelay = .4f + isk100 * 1.6f; // 0.4 to 2.0
     flMinEnemySearchDelay = .09f + isk100 * .21f; // 0.09 to 0.30
     flMaxEnemySearchDelay = .12f + isk100 * .24f; // 0.12 to 0.36
+    flAlwaysDetectDistance = 15*sk100;
     sShootAtFeetWithRLPercent = sk100 * 85; // 85 to 0
     bCanPredict = sk >= 80;
     iMaxHearVolume = 15 + sk100 * 60; // 15 to 75

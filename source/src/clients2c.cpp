@@ -1429,7 +1429,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                         break;
                 }
                 v = newvotedisplayinfo(d, type, vote);
-                if (v) v->expiremillis = totalmillis + voteremain;
+                if(!v) break;
+                v->expiremillis = totalmillis + voteremain;
                 displayvote(v);
                 onCallVote(type, v->owner->clientnum, vote);
                 break;
@@ -1643,8 +1644,10 @@ void receivefile(uchar *data, int len)
     static char text[MAXTRANS];
     ucharbuf p(data, len);
     int type = getint(p);
+    /*
     data += p.length();
     len -= p.length();
+    */
     switch(type)
     {
         case SV_SENDDEMO:
@@ -1654,7 +1657,7 @@ void receivefile(uchar *data, int len)
             defformatstring(demofn)("%s", parseDemoFilename(text));
             defformatstring(fname)("demos/%s%s.dmo", demosubpath, demofn);
             copystring(demosubpath, "");
-            data += strlen(text);
+            //data += strlen(text);
             int demosize = getint(p);
             if(p.remaining() < demosize)
             {

@@ -2627,6 +2627,7 @@ void sendcallvote(int cn = -1);
 
 bool scallvote(voteinfo *v) // true if a regular vote was called
 {
+    ASSERT(v);
     int area = isdedicated ? EE_DED_SERV : EE_LOCAL_SERV;
     int error = -1;
     client *c = clients[v->owner];

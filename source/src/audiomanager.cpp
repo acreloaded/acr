@@ -13,12 +13,7 @@ VARFP(musicvol, 0, 128, 255, audiomgr.setmusicvol(musicvol));
 // audio manager
 
 audiomanager::audiomanager()
-{
-    nosound = true;
-    currentpitch = 1.0f;
-    device = NULL;
-    context = NULL;
-}
+: nosound(true), currentpitch(1.0f), device(NULL), context(NULL), gamemusic(NULL) {}
 
 void audiomanager::initsound()
 {
@@ -719,10 +714,7 @@ bool entityreference::operator==(const worldobjreference &other) { return type==
 
 // static
 
-staticreference::staticreference(const vec &ref) : worldobjreference(WR_STATICPOS)
-{
-    pos = ref;
-}
+staticreference::staticreference(const vec &ref) : pos(ref), worldobjreference(WR_STATICPOS) {}
 
 worldobjreference *staticreference::clone() const
 {

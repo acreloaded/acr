@@ -46,7 +46,7 @@ struct shotevent : timedevent
     int weap;
     vec to;
     vector<posinfo> pos;
-    shotevent(int millis, int id, int weap) : timedevent(GE_SHOT, millis, id), weap(weap) { to = vec(0, 0, 0); pos.setsize(0); }
+    shotevent(int millis, int id, int weap) : timedevent(GE_SHOT, millis, id), weap(weap), to(0,0,0), compact(false) { pos.setsize(0); }
     bool compact;
     void process(struct client *ci);
 };
@@ -103,7 +103,7 @@ struct projectilestate
     int numprojs;
     int throwable;
 
-    projectilestate() : numprojs(0), throwable(0) {}
+    projectilestate() : /*projs(),*/ numprojs(0), throwable(0) {}
 
     void reset() { numprojs = 0; }
 

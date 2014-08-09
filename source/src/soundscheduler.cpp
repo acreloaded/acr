@@ -13,9 +13,7 @@ VARP(soundschedreserve, 0, 2, 100);
 
 sourcescheduler *sourcescheduler::inst;
 
-sourcescheduler::sourcescheduler()
-{
-}
+sourcescheduler::sourcescheduler() : numsoundchannels(0) {}
 
 sourcescheduler &sourcescheduler::instance()
 {

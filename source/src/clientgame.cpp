@@ -286,7 +286,7 @@ COMMAND(stopdemo, "");
 
 void playerinfo(int *cn, const char *attr)
 {
-    if(!*attr || !attr) return;
+    if(!*attr) return;
 
     int clientnum = *cn; // get player clientnum
     playerent *p = clientnum < 0 ? player1 : getclient(clientnum);
@@ -1301,7 +1301,7 @@ const char *votestring(int type, const votedata &vote)
             if (n >= G_MAX)
             {
                 if (gamemode == n - G_MAX && mutators == muts && !strcmp(clientmap, vote.str1))
-                    copystring(out, "repeat this map next"); 
+                    copystring(out, "repeat this map next");
                 else
                     formatstring(out)("set next map to %s in mode %s", vote.str1, modestr(n - G_MAX, muts, modeacronyms > 0));
             }
