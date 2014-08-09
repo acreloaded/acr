@@ -25,6 +25,7 @@
 				<Option projectResourceIncludeDirsRelation="1" />
 				<Compiler>
 					<Add option="-fomit-frame-pointer" />
+					<Add option="-std=c++11" />
 					<Add option="-w" />
 					<Add option="-Ofast" />
 				</Compiler>

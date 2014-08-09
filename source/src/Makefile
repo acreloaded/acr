@@ -1,6 +1,6 @@
 DEBUG ?= 0
 WARNINGS ?= 1
-override CXXFLAGS += -fsigned-char
+override CXXFLAGS += -fsigned-char --std=c++11
 ifeq ($(DEBUG), 1)
     override CXXFLAGS += -ggdb3 -D_DEBUG -Wextra
     override WARNINGS = 1
