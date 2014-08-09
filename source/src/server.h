@@ -103,7 +103,7 @@ struct projectilestate
     int numprojs;
     int throwable;
 
-    projectilestate() : /*projs(),*/ numprojs(0), throwable(0) {}
+    projectilestate() : projs{}, numprojs(0), throwable(0) {}
 
     void reset() { numprojs = 0; }
 
@@ -538,8 +538,8 @@ void convertcheck(bool quick = false);
 void shuffleteams(int ftr = FTR_AUTO);
 bool refillteams(bool now = false, int ftr = FTR_AUTO);
 void setpriv(int cn, int priv);
-mapstats *getservermapstats(const char *mapname, bool getlayout = false, int *maploc = NULL);
-int findmappath(const char *mapname, char *filename = NULL);
+mapstats *getservermapstats(const char *mapname, bool getlayout = false, int *maploc = nullptr);
+int findmappath(const char *mapname, char *filename = nullptr);
 int calcscores();
 void recordpacket(int chan, void *data, int len);
 void senddisconnectedscores(int cn);
@@ -555,7 +555,7 @@ void sendf(int cn, int chan, const char *format, ...);
 void addpt(client *c, int points, int reason = -1);
 void serverdied(client *target, client *actor, int damage, int gun, int style, const vec &source, float killdist = 0);
 void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source, float dist = 0);
-int explosion(client &owner, const vec &o2, int weap, bool teamcheck, bool gib = true, client *cflag = NULL);
+int explosion(client &owner, const vec &o2, int weap, bool teamcheck, bool gib = true, client *cflag = nullptr);
 void nuke(client &owner, bool suicide = true, bool forced_all = true, bool friendly_fire = false);
 
 extern bool isdedicated;
