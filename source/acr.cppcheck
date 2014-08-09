@@ -4,8 +4,8 @@
         <dir name="include/"/>
     </includedir>
     <paths>
-        <dir name="D:/C++/ACR/acr/source/src"/>
-        <dir name="D:/C++/ACR/acr/source/src/bot"/>
+        <dir name="./src"/>
+        <dir name="./src/bot"/>
     </paths>
     <libraries>
         <library>sdl</library>
