@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="1">
+    <includedir>
+        <dir name="include/"/>
+    </includedir>
+    <paths>
+        <dir name="D:/C++/ACR/acr/source/src"/>
+        <dir name="D:/C++/ACR/acr/source/src/bot"/>
+    </paths>
+    <libraries>
+        <library>sdl</library>
+        <library>windows</library>
+    </libraries>
+</project>
