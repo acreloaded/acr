@@ -144,7 +144,10 @@ model *loadmodel(const char *name, int i, bool trydl)
                 }
                 else
                 {
-                    mdllookup.access(newstring(name), nomodel);
+                    char* tempStr = newstring(name);
+                    mdllookup.access(tempStr, nomodel);
+                    free(tempStr);
+                    tempStr = NULL;
                     conoutf("\f3failed to load model %s", name);
                 }
             }
@@ -157,7 +160,10 @@ model *loadmodel(const char *name, int i, bool trydl)
                 conoutf(_("failed to load model %s"), name);
                 if(!nomodel) nomodel = new md2("nomodel");
                 m = nomodel;
-                mdllookup.access(newstring(name), m);
+                char* tempString = newstring(name);
+                mdllookup.access(tempString, m);
+                free(tempString);
+                tempString = NULL;
             }
         }
         else mdllookup.access(m->name(), m);

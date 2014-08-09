@@ -1155,6 +1155,7 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
 {
     const int fk[] = { SDLK_1, SDLK_2, SDLK_3, SDLK_4, SDLK_5, SDLK_6, SDLK_7, SDLK_8, SDLK_9, SDLK_0 };
     if(!isdown) return false;
+    if(!menu) return false;
     loopi(sizeof(fk)/sizeof(fk[0])) if(code == fk[i] && favcats.inrange(i))
     {
         int sel = ((gmenu *)menu)->menusel;

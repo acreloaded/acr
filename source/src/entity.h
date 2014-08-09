@@ -339,7 +339,7 @@ public:
             case I_ARMOUR:
                 return powerupstats[type-I_HEALTH];
             default:
-                return *(itemstat *)0;
+                return itemstat();
         }
     }
 

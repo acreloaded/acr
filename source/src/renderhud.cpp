@@ -645,10 +645,10 @@ void drawradar_showmap(playerent *p, int w, int h)
     glDisable(GL_BLEND);
 
     float gdim = max(mapdims[4], mapdims[5]); //no border
-    float coordtrans = (minimapviewsize)/(gdim);
-
     float offd = fabs(float(mapdims[5])-float(mapdims[4])) /2.0f;
     if(!gdim) { gdim = ssize/2.0f; offd = 0; }
+    float coordtrans = (minimapviewsize)/(gdim);
+
     float offx = gdim==mapdims[5] ? offd : 0;
     float offy = gdim==mapdims[4] ? offd : 0;
 
