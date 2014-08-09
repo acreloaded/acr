@@ -29,6 +29,7 @@ int nextstatus = 0, servmillis = 0, lastfillup = 0;
 vector<client *> clients;
 vector<worldstate *> worldstates;
 vector<savedscore> savedscores;
+vector<savedlimit> savedlimits;
 vector<ban> bans;
 vector<demofile> demofiles;
 
@@ -379,6 +380,29 @@ savedscore *findscore(client &c, bool insert)
     copystring(sc.name, c.name);
     sc.ip = c.peer->address.host;
     return &sc;
+}
+
+bool findlimit(client &c, bool insert)
+{
+    if (c.type != ST_TCPIP) return false;
+    if (insert)
+    {
+        if (savedlimits.length() >= 32) savedlimits.remove(0, 16); // halve the saved limits before it reaches 33
+        savedlimit &sl = savedlimits.add();
+        sl.ip = c.peer->address.host;
+        sl.save(c);
+        return true;
+    }
+    loopv(savedlimits)
+    {
+        savedlimit &sl = savedlimits[i];
+        if (sl.ip == c.peer->address.host)
+        {
+            sl.restore(c);
+            return true;
+        }
+    }
+    return false;
 }
 
 void sendf(int cn, int chan, const char *format, ...)
@@ -2814,12 +2838,15 @@ void disconnect_client(int n, int reason)
     const char *scoresaved = "";
     if(c.haswelcome)
     {
+        // save score
         savedscore *sc = findscore(c, true);
         if(sc)
         {
             sc->save(c.state, c.team);
             scoresaved = ", score saved";
         }
+        // save limits
+        findlimit(c, true);
     }
     int sp = (servmillis - c.connectmillis) / 1000;
     if (reason >= 0) logline(ACLOG_INFO, "[%s] disconnecting client %s (%s) cn %d, %d seconds played%s", c.gethostname(), c.name, disc_reason(reason), n, sp, scoresaved);
@@ -3460,6 +3487,7 @@ void process(ENetPacket *packet, int sender, int chan)
         if(restorescore(*cl)) { sendresume(*cl, true); senddisconnectedscores(-1); }
         else if(cl->type==ST_TCPIP) senddisconnectedscores(sender);
         sendinitclient(*cl);
+        findlimit(*cl, false);
         if (curvote)
         {
             sendcallvote(cl->clientnum);
@@ -4674,6 +4702,7 @@ void resetserverifempty()
     autoteam = true;
     changemastermode(MM_OPEN);
     nextmapname[0] = '\0';
+    savedlimits.shrink(0);
 }
 
 void sendworldstate()

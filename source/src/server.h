@@ -435,6 +435,38 @@ struct client                   // server side version of "dynent" type
     }
 };
 
+struct savedlimit
+{
+    enet_uint32 ip;
+    int lastvotecall;
+    int saychars, lastsay, spamcount;
+#if (SERVER_BUILTISV_MOD & 64)
+    bool nuked;
+#endif
+
+    void save(client &cl)
+    {
+        lastvotecall = cl.lastvotecall;
+        saychars = cl.saychars;
+        lastsay = cl.lastsay;
+        spamcount = cl.spamcount;
+#if (SERVER_BUILTIN_MOD & 64)
+        nuked = cl.nuked;
+#endif
+    }
+
+    void restore(client &cl)
+    {
+        cl.lastvotecall = lastvotecall;
+        cl.saychars = saychars;
+        cl.lastsay = lastsay;
+        cl.spamcount = spamcount;
+#if (SERVER_BUILTIN_MOD & 64)
+        cl.nuked = nuked;
+#endif
+    }
+};
+
 struct ban
 {
     ENetAddress address;
