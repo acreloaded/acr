@@ -5,8 +5,8 @@
 
 VAR(connected, 1, 0, 0);
 
-ENetHost *clienthost = NULL;
-ENetPeer *curpeer = NULL, *connpeer = NULL;
+ENetHost *clienthost = nullptr;
+ENetPeer *curpeer = nullptr, *connpeer = nullptr;
 int connmillis = 0, connattempts = 0, discmillis = 0;
 SVAR(curdemofile, "n/a");
 extern int searchlan;
@@ -18,7 +18,7 @@ bool multiplayer(bool msg)
 {
     // check not correct on listen server?
     if(curpeer && msg) conoutf(_("operation not available in multiplayer"));
-    return curpeer!=NULL;
+    return curpeer!=nullptr;
 }
 
 VAR(edithack, 0, 0, 1); // USE AT YOUR OWN RISK
@@ -49,17 +49,17 @@ void abortconnect()
     if(!connpeer) return;
     clientpassword[0] = '\0';
     if(connpeer->state!=ENET_PEER_STATE_DISCONNECTED) enet_peer_reset(connpeer);
-    connpeer = NULL;
+    connpeer = nullptr;
 #if 0
     if(!curpeer)
     {
         enet_host_destroy(clienthost);
-        clienthost = NULL;
+        clienthost = nullptr;
     }
 #endif
 }
 
-void connectserv_(const char *servername, int serverport = 0, const char *password = NULL)
+void connectserv_(const char *servername, int serverport = 0, const char *password = nullptr)
 {
     if(serverport <= 0) serverport = CUBE_DEFAULT_SERVER_PORT;
     if(watchingdemo) enddemoplayback();
@@ -92,7 +92,7 @@ void connectserv_(const char *servername, int serverport = 0, const char *passwo
     }
 
     if(!clienthost)
-        clienthost = enet_host_create(NULL, 2, 3, 0, 0);
+        clienthost = enet_host_create(nullptr, 2, 3, 0, 0);
 
     if(clienthost)
     {
@@ -115,7 +115,7 @@ void connectserv(char *servername, int *serverport, char *password)
 
 void lanconnect()
 {
-    connectserv_(NULL);
+    connectserv_(nullptr);
 }
 
 void whereami()
@@ -148,7 +148,7 @@ void disconnect(int onlyclean, int async)
             if(async) return;
             enet_peer_reset(curpeer);
         }
-        curpeer = NULL;
+        curpeer = nullptr;
         discmillis = 0;
         connected = 0;
         conoutf(_("disconnected"));
@@ -169,7 +169,7 @@ void disconnect(int onlyclean, int async)
     if(!connpeer && clienthost)
     {
         enet_host_destroy(clienthost);
-        clienthost = NULL;
+        clienthost = nullptr;
     }
 #endif
     if(!onlyclean) localconnect();
@@ -276,7 +276,7 @@ void echo(char *text)
     do
     {
         conoutf("%s", s ? s : "");
-        s = strtok(NULL, "\n");
+        s = strtok(nullptr, "\n");
     }
     while(s);
 }
@@ -289,7 +289,7 @@ void hudecho(char *text)
     do
     {
         outf("%s", s ? s : "");
-        s = strtok(NULL, "\n");
+        s = strtok(nullptr, "\n");
     }
     while(s);
 }
@@ -371,7 +371,7 @@ void cleanupclient()
     if(clienthost)
     {
         enet_host_destroy(clienthost);
-        clienthost = NULL;
+        clienthost = nullptr;
     }
 }
 
@@ -436,7 +436,7 @@ void sendpackettoserv(int chan, ENetPacket *packet)
 
 void c2skeepalive()
 {
-    if(clienthost && (curpeer || connpeer)) enet_host_service(clienthost, NULL, 0);
+    if(clienthost && (curpeer || connpeer)) enet_host_service(clienthost, nullptr, 0);
 }
 
 extern string masterpwd;
@@ -645,13 +645,13 @@ void gets2c()           // get updates from the server
             return;
         }
     }
-    while(clienthost!=NULL && enet_host_service(clienthost, &event, 0)>0)
+    while(clienthost!=nullptr && enet_host_service(clienthost, &event, 0)>0)
     switch(event.type)
     {
         case ENET_EVENT_TYPE_CONNECT:
             disconnect(1);
             curpeer = connpeer;
-            connpeer = NULL;
+            connpeer = nullptr;
             connected = 1;
             conoutf(_("connected to server"));
             if(identexists("onConnect"))
@@ -707,7 +707,7 @@ authkey *findauthkey(const char *desc)
 {
     loopv(authkeys) if(!strcmp(authkeys[i]->desc, desc) && !strcmp(authkeys[i]->name, player1->name)) return authkeys[i];
     loopv(authkeys) if(!strcmp(authkeys[i]->desc, desc)) return authkeys[i];
-    return NULL;
+    return nullptr;
 }
 
 void addauthkey(const char *name, const char *key, const char *desc)
@@ -970,8 +970,8 @@ int pckserversort(pckserver **a, pckserver **b)
     return (*a)->ping == (*b)->ping ? 0 : ((*a)->ping < (*b)->ping ? -1 : 1);
 }
 
-SDL_Thread* pingpcksrvthread = NULL;
-SDL_mutex *pingpcksrvlock = NULL;
+SDL_Thread* pingpcksrvthread = nullptr;
+SDL_mutex *pingpcksrvlock = nullptr;
 int pingpckservers(void *data)
 {
     SDL_mutexP(pingpcksrvlock);
@@ -995,7 +995,7 @@ int pingpckservers(void *data)
         curl_easy_getinfo(cu, CURLINFO_NAMELOOKUP_TIME, &namelookup);
         ping -= namelookup; // ignore DNS lookup time as it should be performed only once
         curl_easy_cleanup(cu);
-        cu = NULL;
+        cu = nullptr;
         if(result == CURLE_OPERATION_TIMEDOUT || result == CURLE_COULDNT_RESOLVE_HOST)
             serv->responsive = false;
         else
@@ -1015,8 +1015,8 @@ int pingpckservers(void *data)
     SDL_mutexV(pingpcksrvlock);
 
     SDL_DestroyMutex(pingpcksrvlock);
-    pingpcksrvthread = NULL;
-    pingpcksrvlock = NULL;
+    pingpcksrvthread = nullptr;
+    pingpcksrvlock = nullptr;
     return 0;
 }
 
@@ -1024,7 +1024,7 @@ void sortpckservers()
 {
     if(pingpcksrvthread || !havecurl) return;
     pingpcksrvlock = SDL_CreateMutex();
-    pingpcksrvthread = SDL_CreateThread(pingpckservers, NULL);
+    pingpcksrvthread = SDL_CreateThread(pingpckservers, nullptr);
 }
 COMMAND(sortpckservers, "");
 
@@ -1035,7 +1035,7 @@ static size_t write_callback(void *ptr, size_t size, size_t nmemb, FILE *stream)
 
 static int progress_callback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow)
 {
-    package *pck = (package *)clientp;
+    package *pck = reinterpret_cast<package *>(clientp);
     loadingscreen(_("downloading package %d out of %d...\n%s %.0f/%.0f KB (%.1f%%)\n(ESC to cancel)"), pck->number + 1, pck->number + pendingpackages.numelems,
         pck->name, dlnow/double(1000.0), dltotal/double(1000.0), dltotal == 0 ? 0 : (dlnow/dltotal * double(100.0)));
     if(interceptkey(SDLK_ESCAPE))
@@ -1066,7 +1066,7 @@ int processdownload(package *pck)
 
             case PCK_MAP: case PCK_MAPMODEL:
             {
-                addzip(tmpname, pck->name, NULL, true, pck->type);
+                addzip(tmpname, pck->name, nullptr, true, pck->type);
                 break;
             }
 
@@ -1074,7 +1074,7 @@ int processdownload(package *pck)
             {
                 char *fname = newstring(pck->name), *ls = strrchr(fname, '/');
                 if(ls) *ls = '\0';
-                addzip(tmpname, fname, NULL, true, pck->type);
+                addzip(tmpname, fname, nullptr, true, pck->type);
                 break;
             }
 
@@ -1118,7 +1118,7 @@ double dlpackage(package *pck)
     curl_easy_getinfo(pck->curl, CURLINFO_RESPONSE_CODE, &httpresult);
     curl_easy_getinfo(pck->curl, CURLINFO_SIZE_DOWNLOAD, &dlsize);
     curl_easy_cleanup(pck->curl);
-    pck->curl = NULL;
+    pck->curl = nullptr;
     fclose(outfile);
 
     pck->pending = false;
@@ -1129,7 +1129,7 @@ double dlpackage(package *pck)
         conoutf(_("\f3could not connect to %s"), pck->source->addr);
 
         // try to find another source
-        pckserver *source = NULL;
+        pckserver *source = nullptr;
         loopv(pckservers) if(pckservers[i]->responsive) { source = pckservers[i]; break; }
         if(!source)
         {

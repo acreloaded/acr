@@ -71,7 +71,7 @@ void CBot::Spawn()
     // Init all bot variables
 
      m_pMyEnt->targetyaw = m_pMyEnt->targetpitch = 0.0f;
-     m_pMyEnt->enemy = NULL;
+     m_pMyEnt->enemy = nullptr;
      m_pMyEnt->maxspeed = 22.0f;
      m_pMyEnt->pBot = this;
 
@@ -85,7 +85,7 @@ void CBot::Spawn()
      m_iStrafeTime = m_iStrafeCheckDelay = 0;
      m_iMoveDir = DIR_NONE;
 
-     m_pPrevEnemy = NULL;
+     m_pPrevEnemy = nullptr;
      m_iCombatNavTime = 0;
      m_iSPMoveTime = 0;
      m_iEnemySearchDelay = 0;
@@ -95,7 +95,7 @@ void CBot::Spawn()
      m_bShootAtFeet = (RandomLong(1, 100) <= m_pBotSkill->sShootAtFeetWithRLPercent);
      m_iHuntDelay = 0;
      m_vHuntLocation = m_vPrevHuntLocation = g_vecZero;
-     m_pHuntTarget = NULL;
+     m_pHuntTarget = nullptr;
      m_fPrevHuntDist = 0.0f;
      m_iHuntLastTurnLessTime = m_iHuntPlayerUpdateTime = m_iHuntPauseTime = 0;
      m_iLookAroundDelay = m_iLookAroundTime = m_iLookAroundUpdateTime = 0;
@@ -103,8 +103,8 @@ void CBot::Spawn()
      m_bLookLeft = false;
 
      m_iLastJumpPad = 0;
-     m_pTargetEnt = NULL;
-     m_pTargetFlag = NULL;
+     m_pTargetEnt = nullptr;
+     m_pTargetFlag = nullptr;
      while(!m_UnreachableEnts.Empty()) delete m_UnreachableEnts.Pop();
      m_iCheckTeleporterDelay = m_iCheckJumppadsDelay = 0;
      m_iCheckEntsDelay = 0;
@@ -309,7 +309,7 @@ bool CBot::SelectGun(int Gun)
 bool CBot::IsVisible(entity *e, bool CheckPlayers)
 {
      vec v(e->x, e->y, e->z);
-     return ::IsVisible(m_pMyEnt->o, v, (CheckPlayers) ? m_pMyEnt : NULL);
+     return ::IsVisible(m_pMyEnt->o, v, (CheckPlayers) ? m_pMyEnt : nullptr);
 }
 
 bool CBot::IsVisible(vec o, int Dir, float flDist, bool CheckPlayers, float *pEndDist)
@@ -394,23 +394,23 @@ void CBot::ResetCurrentTask()
      switch (m_eCurrentBotState)
      {
      case STATE_ENEMY:
-          m_pMyEnt->enemy = NULL;
-          m_pTargetEnt = NULL;
+          m_pMyEnt->enemy = nullptr;
+          m_pTargetEnt = nullptr;
           m_iCombatNavTime = m_iMoveDir = 0;
           m_bCombatJump = false;
           m_vGoal = g_vecZero;
           break;
      case STATE_FLAG:
-          m_pTargetFlag = NULL;
+          m_pTargetFlag = nullptr;
           m_vGoal = g_vecZero;
           break;
      case STATE_ENT:
-          m_pTargetEnt = NULL;
+          m_pTargetEnt = nullptr;
           m_vGoal = g_vecZero;
           break;
      case STATE_SP:
           m_iSPMoveTime = m_iMoveDir = 0;
-          m_pTargetEnt = NULL;
+          m_pTargetEnt = nullptr;
           m_vGoal = g_vecZero;
           break;
      case STATE_NORMAL:

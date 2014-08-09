@@ -11,7 +11,7 @@ struct docargument
     char *token, *desc, *values;
     bool vararg;
 
-    docargument() : token(NULL), desc(NULL), values(NULL), vararg(false) {};
+    docargument() : token(nullptr), desc(nullptr), values(nullptr), vararg(false) {};
     ~docargument()
     {
         DELETEA(token);
@@ -24,7 +24,7 @@ struct docref
 {
     char *name, *ident, *url, *article;
 
-    docref() : name(NULL), ident(NULL), url(NULL), article(NULL) {}
+    docref() : name(nullptr), ident(nullptr), url(nullptr), article(nullptr) {}
     ~docref()
     {
         DELETEA(name);
@@ -38,7 +38,7 @@ struct docexample
 {
     char *code, *explanation;
 
-    docexample() : code(NULL), explanation(NULL) {}
+    docexample() : code(nullptr), explanation(nullptr) {}
     ~docexample()
     {
         DELETEA(code);
@@ -50,7 +50,7 @@ struct dockey
 {
     char *alias, *name, *desc;
 
-    dockey() : alias(NULL), name(NULL), desc(NULL) {}
+    dockey() : alias(nullptr), name(nullptr), desc(nullptr) {}
     ~dockey()
     {
         DELETEA(alias);
@@ -68,7 +68,7 @@ struct docident
     vector<docexample> examples;
     vector<dockey> keys;
 
-    docident() : name(NULL), desc(NULL) {}
+    docident() : name(nullptr), desc(nullptr) {}
     ~docident()
     {
         DELETEA(name);
@@ -82,7 +82,7 @@ struct docsection
     vector<docident *> idents;
     void *menu;
 
-    docsection() : name(NULL), menu(NULL) {};
+    docsection() : name(nullptr), menu(nullptr) {};
     ~docsection()
     {
         DELETEA(name);
@@ -91,15 +91,15 @@ struct docsection
 
 vector<docsection> sections;
 hashtable<const char *, docident> docidents; // manage globally instead of a section tree to ensure uniqueness
-docsection *lastsection = NULL;
-docident *lastident = NULL;
+docsection *lastsection = nullptr;
+docident *lastident = nullptr;
 
 void adddocsection(char *name)
 {
     if(!name) return;
     docsection &s = sections.add();
     s.name = newstring(name);
-    s.menu = addmenu(s.name, NULL, true, renderdocsection);
+    s.menu = addmenu(s.name, nullptr, true, renderdocsection);
     lastsection = &s;
 }
 
@@ -120,7 +120,8 @@ void adddocargument(char *token, char *desc, char *values, char *vararg)
     docargument &a = lastident->arguments.add();
     a.token = newstring(token);
     a.desc = newstring(desc);
-    a.values = values && strlen(values) ? newstring(values) : NULL;
+    a.values = values && strlen(values) ? newstring(values) :
+        nullptr;
     a.vararg = vararg && atoi(vararg) == 1 ? true : false;
 }
 
@@ -135,9 +136,9 @@ void adddocref(char *name, char *ident, char *url, char *article) // FIXME... so
     if(!lastident || !name) return;
     docref &r = lastident->references.add();
     r.name = newstring(name);
-    r.ident = ident && strlen(ident) ? newstring(ident) : NULL;
-    r.url = url && strlen(url) ? newstring(url) : NULL;
-    r.article = article && strlen(article) ? newstring(article) : NULL;
+    r.ident = ident && strlen(ident) ? newstring(ident) : nullptr;
+    r.url = url && strlen(url) ? newstring(url) : nullptr;
+    r.article = article && strlen(article) ? newstring(article) : nullptr;
 }
 
 void adddocexample(char *code, char *explanation)
@@ -145,7 +146,7 @@ void adddocexample(char *code, char *explanation)
     if(!lastident || !code) return;
     docexample &e = lastident->examples.add();
     e.code = newstring(code);
-    e.explanation = explanation && strlen(explanation) ? newstring(explanation) : NULL;
+    e.explanation = explanation && strlen(explanation) ? newstring(explanation) : nullptr;
 }
 
 void adddockey(char *alias, char *name, char *desc)
@@ -153,8 +154,8 @@ void adddockey(char *alias, char *name, char *desc)
     if(!lastident || !alias) return;
     dockey &k = lastident->keys.add();
     k.alias = newstring(alias);
-    k.name = name && strlen(name) ? newstring(name) : NULL;
-    k.desc = desc && strlen(desc) ? newstring(desc) : NULL;
+    k.name = name && strlen(name) ? newstring(name) : nullptr;
+    k.desc = desc && strlen(desc) ? newstring(desc) : nullptr;
 }
 
 COMMANDN(docsection, adddocsection, "s");
@@ -165,10 +166,10 @@ COMMANDN(docref, adddocref, "ssss");
 COMMANDN(docexample, adddocexample, "ss");
 COMMANDN(dockey, adddockey, "sss");
 
-char *cvecstr(vector<char *> &cvec, const char *substr, int *rline = NULL)
+char *cvecstr(vector<char *> &cvec, const char *substr, int *rline = nullptr)
 {
-    char *r = NULL;
-    loopv(cvec) if(cvec[i]) if((r = strstr(cvec[i], substr)) != NULL)
+    char *r = nullptr;
+    loopv(cvec) if(cvec[i]) if((r = strstr(cvec[i], substr)) != nullptr)
     {
         if(rline) *rline = i;
         break;
@@ -201,7 +202,7 @@ void listundoneidents(vector<const char *> &inames, int allidents)
                     srch.add(id->references[j].name);
                     srch.add(id->references[j].url);
                 }
-                if(cvecstr(srch, "TODO") || cvecstr(srch, "UNDONE")) id = NULL;
+                if(cvecstr(srch, "TODO") || cvecstr(srch, "UNDONE")) id = nullptr;
             }
             if(!id) inames.add(name);
         }
@@ -252,7 +253,7 @@ void docfind(char *search)
 
 char *xmlstringenc(char *d, const char *s, size_t len)
 {
-    if(!d || !s) return NULL;
+    if(!d || !s) return nullptr;
     struct spchar { char c; char repl[8]; } const spchars[] = { {'&', "&amp;"}, {'<', "&lt;"}, {'>', "gt;"}, {'"', "&quot;"}, {'\'', "&apos;"}};
 
     char *dc = d;
@@ -378,7 +379,7 @@ int numargs(char *args)
     if(!args || !strlen(args)) return -1;
 
     int argidx = -1;
-    char *argstart = NULL;
+    char *argstart = nullptr;
 
     for(char *t = args; *t; t++)
     {
@@ -392,7 +393,7 @@ int numargs(char *args)
                 case '"': if(*(t-1) != '"') continue; break;
                 default: break;
             }
-            argstart = NULL;
+            argstart = nullptr;
         }
     }
     return argidx;
@@ -420,7 +421,7 @@ void renderdoc(int x, int y, int doch)
 
     char *openblock = strrchr(exp+1, '('); //find last open parenthesis
     char *closeblock = strrchr(exp+1, ')'); //find last closed parenthesis
-    char *temp = NULL;
+    char *temp = nullptr;
 
     if (openblock)
     {
@@ -431,14 +432,14 @@ void renderdoc(int x, int y, int doch)
     if(!exp || (*exp != '/' && f == 0) || strlen(exp) < 2) return;
 
     char *c = exp+1; if (f > 0) c = exp;
-    char *d = NULL; if (temp) d = temp;
+    char *d = nullptr; if (temp) d = temp;
 
     size_t clen = strlen(c);
     size_t dlen = 0; if (d) dlen = strlen(d);
 
     bool nc = false; //tests if text after open parenthesis is not a command
 
-    docident *ident = NULL;
+    docident *ident = nullptr;
 
     for(size_t i = 0; i < clen; i++) // search first matching cmd doc by stripping arguments of exp from right to left
     {
@@ -482,10 +483,10 @@ void renderdoc(int x, int y, int doch)
                     concatstring(label, " ");
                     concatstring(label, ident->arguments[j].token);
                 }
-                doclines.add(NULL);
+                doclines.add(nullptr);
 
                 doclines.add(ident->desc);
-                doclines.add(NULL);
+                doclines.add(nullptr);
 
                 if(ident->arguments.length() > 0) // args
                 {
@@ -530,13 +531,13 @@ void renderdoc(int x, int y, int doch)
                             a->values ? "(" : "", a->values ? a->values : "", a->values ? ")" : "");
                     }
 
-                    doclines.add(NULL);
+                    doclines.add(nullptr);
                 }
 
                 if(ident->remarks.length()) // remarks
                 {
                     loopvj(ident->remarks) doclines.add(ident->remarks[j]);
-                    doclines.add(NULL);
+                    doclines.add(nullptr);
                 }
 
                 if(ident->examples.length()) // examples
@@ -547,7 +548,7 @@ void renderdoc(int x, int y, int doch)
                         doclines.add(ident->examples[j].code);
                         doclines.add(ident->examples[j].explanation);
                     }
-                    doclines.add(NULL);
+                    doclines.add(nullptr);
                 }
 
                 if(ident->keys.length()) // default keys
@@ -559,7 +560,7 @@ void renderdoc(int x, int y, int doch)
                         defformatstring(line)("~%-10s %s", k.name ? k.name : k.alias, k.desc ? k.desc : "");
                         doclines.add(newstring(line));
                     }
-                    doclines.add(NULL);
+                    doclines.add(nullptr);
                 }
 
                 if(ident->references.length()) // references
@@ -633,7 +634,7 @@ void renderdoc(int x, int y, int doch)
     }
 }
 
-void *docmenu = NULL;
+void *docmenu = nullptr;
 
 struct msection { char *name; string cmd; };
 

@@ -34,7 +34,7 @@ void CBotManager::Init()
 
     LoadBotNamesFile();
     //WaypointClass.Init();
-    lsrand(time(NULL));
+    lsrand(time(nullptr));
 }
 
 void CBotManager::Think()
@@ -71,7 +71,7 @@ void CBotManager::Think()
              b->pBot->m_pMyEnt = b;
 
              // create skills
-             b->pBot->m_pBotSkill = NULL;
+             b->pBot->m_pBotSkill = nullptr;
              b->pBot->MakeSkill(b->level);
 
              // Sync waypoints
@@ -94,7 +94,7 @@ void CBotManager::LoadBotNamesFile()
 
     // Load bot file
     char szNameFileName[256];
-    MakeBotFileName("bot_names.txt", NULL, szNameFileName);
+    MakeBotFileName("bot_names.txt", nullptr, szNameFileName);
     FILE *fp = fopen(szNameFileName, "r");
     char szNameBuffer[256];
     int iIndex, iStrIndex;
@@ -105,7 +105,7 @@ void CBotManager::LoadBotNamesFile()
         return;
     }
 
-    while (fgets(szNameBuffer, 80, fp) != NULL)
+    while (fgets(szNameBuffer, 80, fp) != nullptr)
     {
         if (m_sBotNameCount >= MAXBOTNAMES)
         {
@@ -183,7 +183,7 @@ void playerent::removeai()
     }
     loopv(players)
         if(players[i] && this == players[i]->enemy)
-            players[i]->enemy = NULL;
+            players[i]->enemy = nullptr;
 }
 
 void CBotManager::EndMap()
@@ -279,18 +279,17 @@ void CBotManager::DelWaypoint(node_s *pNode)
 
 void CBotManager::MakeBotFileName(const char *szFileName, const char *szDir1, char *szOutput)
 {
-    const char *DirSeperator;
-
-#ifdef WIN32
-    DirSeperator = "\\";
-    strcpy(szOutput, "bot\\");
-#else
-    DirSeperator = "/";
-    strcpy(szOutput, "bot/");
-#endif
-
     if (szDir1)
     {
+        const char *DirSeperator;
+
+#ifdef WIN32
+        DirSeperator = "\\";
+        strcpy(szOutput, "bot\\");
+#else
+        DirSeperator = "/";
+        strcpy(szOutput, "bot/");
+#endif
         strcat(szOutput, szDir1);
         strcat(szOutput, DirSeperator);
     }
@@ -331,7 +330,7 @@ void CBotManager::PickNextTrigger()
 
         vec o(e.x, e.y, S(e.x, e.y)->floor+player1->eyeheight);
 
-        node_s *pWptNearEnt = NULL;
+        node_s *pWptNearEnt = nullptr;
 
         pWptNearEnt = WaypointClass.GetNearestTriggerWaypoint(o, 2.0f);
 

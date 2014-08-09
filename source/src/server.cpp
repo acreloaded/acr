@@ -11,7 +11,7 @@
 // 2011feb05:ft: quitproc
 #include "signal.h"
 // config
-servercontroller *svcctrl = NULL;
+servercontroller *svcctrl = nullptr;
 servercommandline scl;
 servermaprot maprot;
 serveripblacklist ipblacklist;
@@ -22,7 +22,7 @@ serverinfofile infofiles;
 
 // server state
 bool isdedicated = false;
-ENetHost *serverhost = NULL;
+ENetHost *serverhost = nullptr;
 
 int nextstatus = 0, servmillis = 0, lastfillup = 0;
 
@@ -54,9 +54,9 @@ int interm = 0;
 static int minremain = 0, gamemillis = 0, gamelimit = 0, /*lmsitemtype = 0,*/ nextsendscore = 0;
 mapstats smapstats;
 vector<entity> sents;
-ssqr *maplayout = NULL, *testlayout = NULL;
+ssqr *maplayout = nullptr, *testlayout = nullptr;
 int maplayout_factor, testlayout_factor, maplayoutssize;
-persistent_entity *mapents = NULL;
+persistent_entity *mapents = nullptr;
 servermapbuffer mapbuffer;
 
 vector<sconfirm> sconfirms;
@@ -354,7 +354,7 @@ void changemastermode(int newmode)
 
 savedscore *findscore(client &c, bool insert)
 {
-    if(c.type!=ST_TCPIP) return NULL;
+    if(c.type!=ST_TCPIP) return nullptr;
     enet_uint32 mask = ENET_HOST_TO_NET_32(mastermode == MM_MATCH ? 0xFFFF0000 : 0xFFFFFFFF); // in match mode, reconnecting from /16 subnet is allowed
     if(!insert)
     {
@@ -375,7 +375,7 @@ savedscore *findscore(client &c, bool insert)
         savedscore &sc = savedscores[i];
         if(!strcmp(sc.name, c.name) && (sc.ip & mask) == (c.peer->address.host & mask)) return &sc;
     }
-    if(!insert) return NULL;
+    if(!insert) return nullptr;
     savedscore &sc = savedscores.add();
     copystring(sc.name, c.name);
     sc.ip = c.peer->address.host;
@@ -520,7 +520,7 @@ void sendspawn(client *c)
     gs.lifesequence++;
     gs.state = CS_DEAD;
     // spawnpos
-    persistent_entity *spawn_ent = NULL;
+    persistent_entity *spawn_ent = nullptr;
     int r = fixspawn-->0 ? 4 : rnd(10) + 1;
     const int type = m_spawn_team(gamemode, mutators) ? (c->team ^ ((m_spawn_reversals(gamemode, mutators) && gamemillis > gamelimit / 2) ? 1 : 0)) : 100;
     if (m_duke(gamemode, mutators) && c->spawnindex >= 0)
@@ -575,7 +575,7 @@ void sendspawn(client *c)
 }
 
 // demo
-stream *demotmp = NULL, *demorecord = NULL, *demoplayback = NULL;
+stream *demotmp = nullptr, *demorecord = nullptr, *demoplayback = nullptr;
 bool recordpackets = false;
 int nextplayback = 0;
 
@@ -717,14 +717,14 @@ void enddemorecord()
 
     delete demorecord;
     recordpackets = false;
-    demorecord = NULL;
+    demorecord = nullptr;
 
     if(!demotmp) return;
 
     if(gamemillis < DEMO_MINTIME)
     {
         delete demotmp;
-        demotmp = NULL;
+        demotmp = nullptr;
         logline(ACLOG_INFO, "Demo discarded.");
         return;
     }
@@ -752,7 +752,7 @@ void enddemorecord()
     // .. now we use client-side parseable fileattribs
     int mPLAY = gamemillis >= gamelimit ? gamelimit/1000 : gamemillis/1000;
     int mDROP = gamemillis >= gamelimit ? 0 : (gamelimit - gamemillis)/1000;
-    int iTIME = time(NULL);
+    int iTIME = time(nullptr);
     const char *mTIME = numtime();
     const char *sMAPN = behindpath(smapname);
     string iMAPN;
@@ -763,7 +763,7 @@ void enddemorecord()
     d.len = len;
     demotmp->read(d.data, len);
     delete demotmp;
-    demotmp = NULL;
+    demotmp = nullptr;
     if(scl.demopath[0])
     {
         formatstring(msg)("%s%s.dmo", scl.demopath, getDemoFilename(gamemode, mutators, mPLAY, mDROP, iTIME, iMAPN)); //d.file);
@@ -790,11 +790,11 @@ void setupdemorecord()
     demotmp = opentempfile(demotmppath, "w+b");
     if(!demotmp) return;
 
-    stream *f = opengzfile(NULL, "wb", demotmp);
+    stream *f = opengzfile(nullptr, "wb", demotmp);
     if(!f)
     {
         delete demotmp;
-        demotmp = NULL;
+        demotmp = nullptr;
         return;
     }
 
@@ -862,7 +862,7 @@ bool sending_demo = false;
 
 void senddemo(int cn, int num)
 {
-    client *cl = cn>=0 ? clients[cn] : NULL;
+    client *cl = cn>=0 ? clients[cn] : nullptr;
     bool is_admin = (cl && cl->role >= CR_ADMIN);
     if(scl.demo_interm && (!interm || totalclients > 2) && !is_admin)
     {
@@ -906,7 +906,7 @@ void enddemoplayback()
 {
     if(!demoplayback) return;
     delete demoplayback;
-    demoplayback = NULL;
+    demoplayback = nullptr;
     watchingdemo = false;
 
     loopv(clients) sendf(i, 1, "risi", SV_DEMOPLAYBACK, "", i);
@@ -937,7 +937,7 @@ void setupdemoplayback()
     }
     if(msg[0])
     {
-        if(demoplayback) { delete demoplayback; demoplayback = NULL; }
+        if(demoplayback) { delete demoplayback; demoplayback = nullptr; }
         sendservmsg(msg);
         return;
     }
@@ -969,7 +969,7 @@ void readdemo()
         }
         lilswap(&chan, 1);
         lilswap(&len, 1);
-        ENetPacket *packet = enet_packet_create(NULL, len, 0);
+        ENetPacket *packet = enet_packet_create(nullptr, len, 0);
         if(!packet || demoplayback->read(packet->data, len)!=len)
         {
             if(packet) enet_packet_destroy(packet);
@@ -1023,7 +1023,7 @@ void sendflaginfo(int flag = -1, int cn = -1)
     sendpacket(cn, 1, p.finalize());
 }
 
-void sendsecureflaginfo(ssecure *s = NULL, int cn = -1)
+void sendsecureflaginfo(ssecure *s = nullptr, int cn = -1)
 {
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     if (s) putsecureflaginfo(p, *s);
@@ -1343,7 +1343,7 @@ void arenacheck()
         return arenanext();
     }
 
-    client *alive = NULL;
+    client *alive = nullptr;
     bool dead = false;
     int lastdeath = 0;
     bool found = false; int ha = 0, hd = 0; // found a match to keep the round / humans alive / humans dead
@@ -1796,7 +1796,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
     ts.lastspawn = -1;
     // don't issue respawn yet until DEATHMILLIS has elapsed
     // ts.respawn();
-    
+
     // log message
     if (target == actor)
         logline(ACLOG_INFO, "[%s] %s [%s] (%.2f m)", actor->gethostname(), actor->formatname(), suicname(gun), killdist / 4.f);
@@ -1845,7 +1845,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
     /*
     if ((explosive_weap(gun) || isheadshot(gun, style)) && ts.streakondeath == STREAK_REVENGE)
         ts.streakondeath = STREAK_DROPNADE;
-    usestreak(*target, ts.streakondeath, m_zombie(gamemode) ? actor : NULL);
+    usestreak(*target, ts.streakondeath, m_zombie(gamemode) ? actor : nullptr);
     */
 
     if (!suic)
@@ -1952,7 +1952,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 
 bool updatedescallowed(void) { return scl.servdesc_pre[0] || scl.servdesc_suf[0]; }
 
-void updatesdesc(const char *newdesc, ENetAddress *caller = NULL)
+void updatesdesc(const char *newdesc, ENetAddress *caller = nullptr)
 {
     if(!newdesc || !newdesc[0] || !updatedescallowed())
     {
@@ -2498,7 +2498,7 @@ void addgban(const char *name)
     mask.i = 0;
     loopi(4)
     {
-        char *end = NULL;
+        char *end = nullptr;
         int n = strtol(name, &end, 10);
         if(!end) break;
         if(end > name) { ip.b[i] = n; mask.b[i] = 0xFF; }
@@ -2555,7 +2555,7 @@ struct voteinfo
     int owner, callmillis, result, type;
     serveraction *action;
 
-    voteinfo() : owner(0), callmillis(0), result(VOTE_NEUTRAL), type(SA_NUM), action(NULL) {}
+    voteinfo() : owner(0), callmillis(0), result(VOTE_NEUTRAL), type(SA_NUM), action(nullptr) {}
     ~voteinfo() { delete action; }
 
     void end(int result, int veto)
@@ -2573,7 +2573,7 @@ struct voteinfo
         loopv(clients) clients[i]->vote = VOTE_NEUTRAL;
     }
 
-    bool isvalid() { return valid_client(owner) && action != NULL && action->isvalid(); }
+    bool isvalid() { return valid_client(owner) && action != nullptr && action->isvalid(); }
     bool isalive() { return servmillis - callmillis < action->length; }
 
     void evaluate(bool forceend = false, int veto = VOTE_NEUTRAL, int vetoowner = -1)
@@ -2604,7 +2604,7 @@ struct voteinfo
     }
 };
 
-static voteinfo *curvote = NULL;
+static voteinfo *curvote = nullptr;
 
 void scallvotesuc(voteinfo *v)
 {
@@ -2672,50 +2672,50 @@ void sendcallvote(int cn)
     switch (curvote->type)
     {
         case SA_KICK:
-            putint(q, ((kickaction *)curvote->action)->cn);
-            sendstring(((kickaction *)curvote->action)->reason, q);
+            putint(q, dynamic_cast<kickaction *>(curvote->action)->cn);
+            sendstring(dynamic_cast<kickaction *>(curvote->action)->reason, q);
             break;
         case SA_BAN:
-            putint(q, ((banaction *)curvote->action)->minutes);
-            putint(q, ((banaction *)curvote->action)->cn);
-            sendstring(((banaction *)curvote->action)->reason, q);
+            putint(q, dynamic_cast<banaction *>(curvote->action)->minutes);
+            putint(q, dynamic_cast<banaction *>(curvote->action)->cn);
+            sendstring(dynamic_cast<banaction *>(curvote->action)->reason, q);
             break;
         case SA_MASTERMODE:
-            putint(q, ((mastermodeaction *)curvote->action)->mode);
+            putint(q, dynamic_cast<mastermodeaction *>(curvote->action)->mode);
             break;
         case SA_AUTOTEAM:
-            putint(q, ((autoteamaction *)curvote->action)->enable ? 1 : 0);
+            putint(q, dynamic_cast<autoteamaction *>(curvote->action)->enable ? 1 : 0);
             break;
         case SA_FORCETEAM:
-            putint(q, ((forceteamaction *)curvote->action)->team);
-            putint(q, ((forceteamaction *)curvote->action)->cn);
+            putint(q, dynamic_cast<forceteamaction *>(curvote->action)->team);
+            putint(q, dynamic_cast<forceteamaction *>(curvote->action)->cn);
             break;
         case SA_GIVEADMIN:
-            putint(q, ((giveadminaction *)curvote->action)->give);
-            putint(q, ((giveadminaction *)curvote->action)->cn);
+            putint(q, dynamic_cast<giveadminaction *>(curvote->action)->give);
+            putint(q, dynamic_cast<giveadminaction *>(curvote->action)->cn);
             break;
         case SA_MAP:
-            putint(q, ((mapaction *)curvote->action)->muts);
-            putint(q, ((mapaction *)curvote->action)->mode + (((mapaction *)curvote->action)->queue ? G_MAX : 0));
-            sendstring(((mapaction *)curvote->action)->map, q);
+            putint(q, dynamic_cast<mapaction *>(curvote->action)->muts);
+            putint(q, dynamic_cast<mapaction *>(curvote->action)->mode + (((mapaction *)curvote->action)->queue ? G_MAX : 0));
+            sendstring(dynamic_cast<mapaction *>(curvote->action)->map, q);
             break;
         case SA_RECORDDEMO:
-            putint(q, ((recorddemoaction *)curvote->action)->enable ? 1 : 0);
+            putint(q, dynamic_cast<recorddemoaction *>(curvote->action)->enable ? 1 : 0);
             break;
         case SA_CLEARDEMOS:
-            putint(q, ((cleardemosaction *)curvote->action)->demo);
+            putint(q, dynamic_cast<cleardemosaction *>(curvote->action)->demo);
             break;
         case SA_SERVERDESC:
-            sendstring(((serverdescaction *)curvote->action)->desc, q);
+            sendstring(dynamic_cast<serverdescaction *>(curvote->action)->desc, q);
             break;
         case SA_BOTBALANCE:
-            putint(q, ((botbalanceaction *)curvote->action)->balance);
+            putint(q, dynamic_cast<botbalanceaction *>(curvote->action)->balance);
             break;
         case SA_SUBDUE:
-            putint(q, ((subdueaction *)curvote->action)->cn);
+            putint(q, dynamic_cast<subdueaction *>(curvote->action)->cn);
             break;
         case SA_REVOKE:
-            putint(q, ((revokeaction *)curvote->action)->cn);
+            putint(q, dynamic_cast<revokeaction *>(curvote->action)->cn);
             break;
         case SA_STOPDEMO:
             // compatibility
@@ -2869,7 +2869,7 @@ void disconnect_client(int n, int reason)
 client *findauth(uint id)
 {
     loopv(clients) if(clients[i]->authreq == id) return clients[i];
-    return NULL;
+    return nullptr;
 }
 
 void authfailed(uint id)
@@ -3019,7 +3019,7 @@ void welcomepacket(packetbuf &p, int n)
 {
     if(!smapname[0]) maprot.next(false);
 
-    client *c = valid_client(n) ? clients[n] : NULL;
+    client *c = valid_client(n) ? clients[n] : nullptr;
     int numcl = numclients();
 
     putint(p, SV_WELCOME);
@@ -3046,7 +3046,7 @@ void welcomepacket(packetbuf &p, int n)
             }
         }
     }
-    savedscore *sc = NULL;
+    savedscore *sc = nullptr;
     if(c)
     {
         if(c->type == ST_TCPIP) sendserveropinfo(n);
@@ -3386,7 +3386,7 @@ void process(ENetPacket *packet, int sender, int chan)
 {
     ucharbuf p(packet->data, packet->dataLength);
     char text[MAXTRANS];
-    client *cl = sender>=0 ? clients[sender] : NULL;
+    client *cl = sender>=0 ? clients[sender] : nullptr;
     pwddetail pd;
     int type;
 
@@ -3500,7 +3500,7 @@ void process(ENetPacket *packet, int sender, int chan)
         while(reassignai());
     }
 
-    if(!cl) { logline(ACLOG_ERROR, "<NULL> client in process()"); return; }  // should never happen anyway
+    if(!cl) { logline(ACLOG_ERROR, "<nullptr> client in process()"); return; }  // should never happen anyway
 
     if(packet->flags&ENET_PACKET_FLAG_RELIABLE) reliablemessages = true;
 
@@ -3904,7 +3904,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     }
                 }
 
-                client *cp = cl->hasclient(cn) ? clients[cn] : NULL;
+                client *cp = cl->hasclient(cn) ? clients[cn] : nullptr;
                 if (cp)
                 {
                     ev->millis = cp->getmillis(gamemillis, id);
@@ -3919,7 +3919,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 const int cn = getint(p), id = getint(p), weap = getint(p), flags = getint(p);
                 vec o;
                 loopi(3) o[i] = getint(p) / DMF;
-                client *cp = cl->hasclient(cn) ? clients[cn] : NULL;
+                client *cp = cl->hasclient(cn) ? clients[cn] : nullptr;
                 if (!cp) break;
                 cp->addevent(new destroyevent(cp->getmillis(gamemillis, id), id, weap, flags, o));
                 break;
@@ -4078,7 +4078,7 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 getstring(text, p);
                 filtertext(text, text);
-                const char *sentmap = behindpath(text), *reject = NULL;
+                const char *sentmap = behindpath(text), *reject = nullptr;
                 int mapsize = getint(p);
                 int cfgsize = getint(p);
                 int cfgsizegz = getint(p);
@@ -4161,7 +4161,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 getstring(text, p);
                 filtertext(text, text);
                 string filename;
-                const char *rmmap = behindpath(text), *reject = NULL;
+                const char *rmmap = behindpath(text), *reject = nullptr;
                 int mp = findmappath(rmmap);
                 int reqrole = strchr(scl.mapperm, 'D') ? CR_ADMIN : (strchr(scl.mapperm, 'd') ? CR_DEFAULT : CR_ADMIN + 100);
                 if(cl->role < reqrole) reject = "no permission";
@@ -4662,7 +4662,7 @@ void localclienttoserver(int chan, ENetPacket *packet)
 
 client &addclient()
 {
-    client *c = NULL;
+    client *c = nullptr;
     loopv(clients)
     {
         if(clients[i]->type==ST_EMPTY) { c = clients[i]; break; }
@@ -5036,7 +5036,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         rereadcfgs();
         if(nonlocalclients || serverhost->totalSentData || serverhost->totalReceivedData)
         {
-            if(nonlocalclients) loggamestatus(NULL);
+            if(nonlocalclients) loggamestatus(nullptr);
             logline(ACLOG_INFO, "Status at %s: %d remote clients, %.1f send, %.1f rec (K/sec);"
                                          " Ping: #%d|%d|%d; CSL: #%d|%d|%d (bytes)",
                                           timestring(true, "%d-%m-%Y %H:%M:%S"), nonlocalclients, serverhost->totalSentData/60.0f/1024, serverhost->totalReceivedData/60.0f/1024,
@@ -5100,7 +5100,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
 void cleanupserver()
 {
-    if(serverhost) { enet_host_destroy(serverhost); serverhost = NULL; }
+    if(serverhost) { enet_host_destroy(serverhost); serverhost = nullptr; }
     if(svcctrl)
     {
         svcctrl->stop();
@@ -5191,7 +5191,7 @@ void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENet
         putint(p,clients[i]->ping);             //Ping
         sendstring(clients[i]->name,p);         //Name
         sendstring(team_string(clients[i]->team),p); //Team
-        // "team_string(clients[i]->team)" sometimes return NULL according to RK, causing the server to crash. WTF ?
+        // "team_string(clients[i]->team)" sometimes return nullptr according to RK, causing the server to crash. WTF ?
         putint(p,clients[i]->state.frags);      //Frags
         putint(p,clients[i]->state.flagscore);  //Flagscore
         putint(p,clients[i]->state.deaths);     //Death
@@ -5278,7 +5278,7 @@ void quitproc(int param)
 
 void initserver(bool dedicated, int argc, char **argv)
 {
-    const char *service = NULL;
+    const char *service = nullptr;
 
     for(int i = 1; i<argc; i++)
     {

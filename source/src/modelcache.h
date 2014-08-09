@@ -17,28 +17,28 @@ template<class T> struct modelcacheentry
     {
         next = pos;
         prev = pos->entry::prev;
-        prev->entry::next = (T *)this;
-        next->entry::prev = (T *)this;
+        prev->entry::next = reinterpret_cast<T *>(this);
+        next->entry::prev = reinterpret_cast<T *>(this);
     }
 
     void linkafter(T *pos)
     {
         next = pos->entry::next;
         prev = pos;
-        prev->entry::next = (T *)this;
-        next->entry::prev = (T *)this;
+        prev->entry::next = reinterpret_cast<T *>(this);
+        next->entry::prev = reinterpret_cast<T *>(this);
     }
 
     void unlink()
     {
         prev->modelcacheentry<T>::next = next;
         next->modelcacheentry<T>::prev = prev;
-        prev = next = (T *)this;
+        prev = next = reinterpret_cast<T *>(this);
     }
 
     void *getdata()
     {
-        return (T *)this + 1;
+        return reinterpret_cast<T *>(this) + 1;
     }
 };
 
@@ -49,16 +49,16 @@ template<class T> struct modelcachelist : modelcacheentry<T>
     modelcachelist() : entry((T *)this, (T *)this) {}
 
     T *start() { return entry::next; }
-    T *end() { return (T *)this; }
+    T *end() { return reinterpret_cast<T *>(this); }
 
     void addfirst(entry *e)
     {
-        e->linkafter((T *)this);
+        e->linkafter(reinterpret_cast<T *>(this));
     }
 
     void addlast(entry *e)
     {
-        e->linkbefore((T *)this);
+        e->linkbefore(reinterpret_cast<T *>(this));
     }
 
     void removefirst()
@@ -85,10 +85,7 @@ struct modelcache
 
     void resize(size_t nsize)
     {
-        if(curalloc)
-        {
-            for(curalloc = (entry *)buf; curalloc; curalloc = curalloc->nextalloc) curalloc->unlink();
-        }
+        if(curalloc) for(curalloc = reinterpret_cast<entry *>(buf); curalloc; curalloc = curalloc->nextalloc) curalloc->unlink();
         DELETEA(buf);
         buf = nsize ? new uchar[nsize] : 0;
         size = nsize;
@@ -106,13 +103,13 @@ struct modelcache
             curalloc->size = reqsize;
             curalloc->locked = false;
             curalloc->nextalloc = NULL;
-            return (T *)curalloc;
+            return reinterpret_cast<T *>(curalloc);
         }
 
         if(curalloc) for(bool failed = false;;)
         {
             uchar *nextfree = curalloc ? (uchar *)curalloc + curalloc->size : (uchar *)buf;
-            entry *nextused = curalloc ? curalloc->nextalloc : (entry *)buf;
+            entry *nextused = curalloc ? curalloc->nextalloc : reinterpret_cast<entry *>(buf);
             for(;;)
             {
                 if(!nextused)
@@ -132,13 +129,13 @@ struct modelcache
             continue;
 
         success:
-            entry *result = (entry *)nextfree;
+            entry *result = reinterpret_cast<entry *>(nextfree);
             result->size = reqsize;
             result->locked = false;
             result->nextalloc = nextused;
             if(curalloc) curalloc->nextalloc = result;
             curalloc = result;
-            return (T *)curalloc;
+            return reinterpret_cast<T *>(curalloc);
         }
 
         curalloc = (entry *)buf;

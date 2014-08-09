@@ -371,7 +371,7 @@ struct locvector : vector<location *>
 {
     virtual ~locvector() {}
 
-    location *find(int sound, worldobjreference *ref/* = NULL*/, const vector<soundconfig> &soundcollection /* = gamesounds*/);
+    location *find(int sound, worldobjreference *ref/* = nullptr*/, const vector<soundconfig> &soundcollection /* = gamesounds*/);
     void delete_(int i);
     void replaceworldobjreference(const worldobjreference &oldr, const worldobjreference &newr);
     void updatelocations();
@@ -434,7 +434,7 @@ public:
     void playsound(int n, struct entity *e, int priority = SP_NORMAL);
     void playsound(int n, const vec *v, int priority = SP_NORMAL);
     void playsoundname(char *s, const vec *loc, int vol);
-    void playsoundc(int n, class playerent *p = NULL, int priority = SP_NORMAL);
+    void playsoundc(int n, class playerent *p = nullptr, int priority = SP_NORMAL);
     void sound(int n);
     int findsound(char *name, int vol, vector<soundconfig> &sounds);
     void detachsounds(class playerent *owner);

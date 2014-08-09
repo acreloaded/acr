@@ -282,7 +282,7 @@ void healevent::process(client *ci)
 
 void suicidebomberevent::process(client *ci)
 {
-    explosion(*ci, ci->state.o, GUN_GRENADE, !m_real(gamemode, mutators), true, valid_client(id) ? clients[id] : NULL);
+    explosion(*ci, ci->state.o, GUN_GRENADE, !m_real(gamemode, mutators), true, valid_client(id) ? clients[id] : nullptr);
 }
 
 void airstrikeevent::process(client *ci)

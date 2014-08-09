@@ -149,7 +149,7 @@ bool raycubelos(const vec &from, const vec &to, float margin)
     return dist > max(limit - margin, 0.0f);
 }
 
-physent *hitplayer = NULL;
+physent *hitplayer = nullptr;
 
 bool plcollide(physent *d, physent *o, float &headspace, float &hi, float &lo)          // collide with physent
 {
@@ -194,7 +194,7 @@ bool mmcollide(physent *d, float &hi, float &lo)           // collide with a map
     loopv(ents)
     {
         entity &e = ents[i];
-        if (e.type==CLIP || (e.type == PLCLIP && (d->type == ENT_PLAYER || (d->type == ENT_BOUNCE && ((bounceent *)d)->plclipped))))
+        if (e.type==CLIP || (e.type == PLCLIP && (d->type == ENT_PLAYER || (d->type == ENT_BOUNCE && dynamic_cast<bounceent *>(d)->plclipped))))
         {
             if(fabs(e.x-d->o.x) < e.attr2 + d->radius && fabs(e.y-d->o.y) < e.attr3 + d->radius)
             {
@@ -411,7 +411,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 {
     bool water = false;
     const bool editfly = pl->state==CS_EDITING;
-    const bool specfly = pl->type==ENT_PLAYER && ((playerent *)pl)->spectatemode==SM_FLY;
+    const bool specfly = pl->type==ENT_PLAYER && dynamic_cast<playerent *>(pl)->spectatemode==SM_FLY;
     const bool isfly = editfly || specfly;
 
     vec d;      // vector of direction we ideally want to move in
@@ -420,7 +420,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 
     if(pl->type==ENT_BOUNCE)
     {
-        bounceent* bounce = (bounceent *) pl;
+        bounceent* bounce = dynamic_cast<bounceent *>(pl);
         water = hdr.waterlevel>pl->o.z;
 
         const float speed = curtime*pl->maxspeed/(water ? 2000.0f : 1000.0f);
@@ -479,7 +479,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 
         if (pl->type == ENT_PLAYER)
         {
-            playerent *p = (playerent *)pl;
+            playerent *p = dynamic_cast<playerent *>(pl);
             float spd = 1;
             // if (p->weaponsel) spd = gunspeed(p->weaponsel->type, p->ads, p->perk1 == PERK1_AGILE);
             if (p->sprinting) spd *= 0.6f; // sprint = walk for now
@@ -519,7 +519,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         {
             if(pl->type!=ENT_CAMERA)
             {
-                playerent *p = pl->type == ENT_PLAYER ? ((playerent *)pl) : NULL;
+                playerent *p = pl->type == ENT_PLAYER ? dynamic_cast<playerent *>(pl) : nullptr;
                 if(pl->onladder)
                 {
                     if(p)
@@ -592,7 +592,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         pl->o.x += f*d.x;
         pl->o.y += f*d.y;
         pl->o.z += f*d.z;
-        hitplayer = NULL;
+        hitplayer = nullptr;
         if(!collide(pl, false, drop, rise)) continue;
         else collided = true;
         if(pl->type==ENT_BOUNCE && cornersurface)
@@ -614,7 +614,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
             }
             pl->o = oo;
         }
-        if(pl->type==ENT_CAMERA || (pl->type==ENT_PLAYER && pl->state==CS_DEAD && ((playerent *)pl)->spectatemode != SM_FLY))
+        if(pl->type==ENT_CAMERA || (pl->type==ENT_PLAYER && pl->state==CS_DEAD && dynamic_cast<playerent *>(pl)->spectatemode != SM_FLY))
         {
             pl->o.x -= f*d.x;
             pl->o.y -= f*d.y;
@@ -629,7 +629,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 
             pl->o.x -= f*d.x*push;
             pl->o.y -= f*d.y*push;
-            if(i==0 && pl->type==ENT_PLAYER && ((playerent *)pl)->ownernum >= 0) pl->yaw += (dr.cxy(d)>0 ? 2:-2); // force the bots to change direction
+            if(i==0 && pl->type==ENT_PLAYER && dynamic_cast<playerent *>(pl)->ownernum >= 0) pl->yaw += (dr.cxy(d)>0 ? 2:-2); // force the bots to change direction
             if( !collide(pl, false, drop, rise) ) continue;
             pl->o.x += f*d.x*push;
             pl->o.y += f*d.y*push;
@@ -736,18 +736,18 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     // store previous locations of all players/bots
     if(pl->type==ENT_PLAYER)
     {
-        ((playerent *)pl)->history.update(pl->o, lastmillis);
+        dynamic_cast<playerent *>(pl)->history.update(pl->o, lastmillis);
     }
 
     // apply volume-resize when crouching
     if(pl->type==ENT_PLAYER)
     {
 //         if(pl==player1 && !(intermission || player1->onladder || (pl->trycrouch && !player1->onfloor && player1->timeinair > 50))) updatecrouch(player1, player1->trycrouch);
-        if (!intermission && (pl == player1 || isowned((playerent *)pl))) updatecrouch((playerent *)pl, pl->trycrouch);
+        if (!intermission && (pl == player1 || isowned(dynamic_cast<playerent *>(pl)))) updatecrouch((playerent *)pl, pl->trycrouch);
         const float croucheyeheight = pl->maxeyeheight*CROUCHHEIGHTMUL;
         resizephysent(pl, moveres, curtime, croucheyeheight, pl->maxeyeheight);
         // change zoom state
-        playerent *ppl = (playerent *)pl;
+        playerent *ppl = dynamic_cast<playerent *>(pl);
         if (!intermission && pl->state == CS_ALIVE && (ppl->scoping ? ppl->zoomed < 1 : ppl->zoomed > 0)
             && ads_gun(ppl->weaponsel->type) && !ppl->weaponsel->reloading && !ppl->weaponchanging)
         {

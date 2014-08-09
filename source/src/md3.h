@@ -1,6 +1,6 @@
 struct md3;
 
-md3 *loadingmd3 = NULL;
+md3 *loadingmd3 = nullptr;
 
 string md3dir;
 
@@ -159,10 +159,10 @@ struct md3 : vertmodel
 
         if(a) for(int i = 0; a[i].tag; i++)
         {
-            vertmodel *m = (vertmodel *)a[i].m;
+            vertmodel *m = dynamic_cast<vertmodel*>(a[i].m);
             if(!m)
             {
-                if(a[i].pos) link(NULL, a[i].tag, a[i].pos);
+                if(a[i].pos) link(nullptr, a[i].tag, a[i].pos);
                 continue;
             }
             part *p = m->parts[0];
@@ -195,7 +195,7 @@ struct md3 : vertmodel
         if(!cullface) glEnable(GL_CULL_FACE);
         else if(anim&ANIM_MIRROR) glCullFace(GL_FRONT);
 
-        if(a) for(int i = 0; a[i].tag; i++) link(NULL, a[i].tag);
+        if(a) for(int i = 0; a[i].tag; i++) link(nullptr, a[i].tag);
 
         if(d) d->lastrendered = lastmillis;
     }
@@ -221,14 +221,14 @@ struct md3 : vertmodel
         {
             neverpersist = false;
             per_idents = true;
-            loadingmd3 = NULL;
+            loadingmd3 = nullptr;
             if(parts.empty()) return false;
             loopv(parts) if(!parts[i]->filename) return false;
         }
         else // md3 without configuration, try default tris and skin
         {
             per_idents = false;
-            loadingmd3 = NULL;
+            loadingmd3 = nullptr;
             md3part &mdl = *new md3part;
             parts.add(&mdl);
             mdl.model = this;

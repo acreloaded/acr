@@ -138,7 +138,7 @@ void snewmap(int factor)
         memcpy(maplayout + i, &defaultblock, sizeof(ssqr));
 }
 
-float sraycube(const vec &o, const vec &ray, vec *surface = NULL)
+float sraycube(const vec &o, const vec &ray, vec *surface = nullptr)
 { // server counterpart of raycube
     if(surface) *surface = vec(0, 0, 0);
     if(ray.iszero()) return 0;

@@ -98,7 +98,7 @@ void setedithide(char *text) // FIXME: human indexing inside
             if(sn!=-1) { loopv(eh_ents) { if(eh_ents[i]==sn) { k = true; } } }
             else sn = tn;
             if(!k) { if(sn>0 && sn<MAXENTTYPES) eh_ents.add(sn); }
-            s = strtok(NULL, " ");
+            s = strtok(nullptr, " ");
         }
         while(s);
     }
@@ -335,7 +335,7 @@ void pickupeffects(int n, playerent *d, int spawntime)
             if(identexists("onPickup"))
             {
                 string o;
-                itemstat *tmp = NULL;
+                itemstat *tmp = nullptr;
                 switch(e.type)
                 {
                     case I_CLIPS:   tmp = &ammostats[GUN_PISTOL]; break;
@@ -356,7 +356,7 @@ void pickupeffects(int n, playerent *d, int spawntime)
         }
     }
 
-    weapon *w = NULL;
+    weapon *w = nullptr;
     switch(e.type)
     {
         case I_AKIMBO: w = d->weapons[GUN_AKIMBO]; break;
@@ -483,7 +483,7 @@ void flagstolen(int flag, int act)
 {
     playerent *actor = getclient(act);
     flaginfo &f = flaginfos[flag];
-    f.actor = actor; // could be NULL if we just connected
+    f.actor = actor; // could be nullptr if we just connected
     f.actor_cn = act;
     f.flagent->spawned = false;
 }
@@ -531,7 +531,7 @@ void flagdropped(int flag, float x, float y, float z)
 void flaginbase(int flag)
 {
     flaginfo &f = flaginfos[flag];
-    f.actor = NULL; f.actor_cn = -1;
+    f.actor = nullptr; f.actor_cn = -1;
     f.pos = vec(f.flagent->x, f.flagent->y, f.flagent->z);
     f.flagent->spawned = true;
 }

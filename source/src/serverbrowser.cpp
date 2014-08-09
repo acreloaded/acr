@@ -30,7 +30,7 @@ SDL_cond *querycond, *resultcond;
 
 int resolverloop(void * data)
 {
-    resolverthread *rt = (resolverthread *)data;
+    resolverthread *rt = reinterpret_cast<resolverthread *>(data);
     SDL_LockMutex(resolvermutex);
     SDL_Thread *thread = rt->thread;
     SDL_UnlockMutex(resolvermutex);
@@ -53,7 +53,7 @@ int resolverloop(void * data)
             resolverresult &rr = resolverresults.add();
             rr.query = rt->query;
             rr.address = address;
-            rt->query = NULL;
+            rt->query = nullptr;
             rt->starttime = 0;
             SDL_CondSignal(resultcond);
         }
@@ -72,7 +72,7 @@ void resolverinit()
     loopi(RESOLVERTHREADS)
     {
         resolverthread &rt = resolverthreads.add();
-        rt.query = NULL;
+        rt.query = nullptr;
         rt.starttime = 0;
         rt.thread = SDL_CreateThread(resolverloop, &rt);
     }
@@ -89,7 +89,7 @@ void resolverstop(resolverthread &rt)
 #endif
         rt.thread = SDL_CreateThread(resolverloop, &rt);
     }
-    rt.query = NULL;
+    rt.query = nullptr;
     rt.starttime = 0;
     SDL_UnlockMutex(resolvermutex);
 }
@@ -194,9 +194,9 @@ bool resolverwait(const char *name, ENetAddress *address)
     return resolved;
 }
 
-SDL_Thread *connthread = NULL;
-SDL_mutex *connmutex = NULL;
-SDL_cond *conncond = NULL;
+SDL_Thread *connthread = nullptr;
+SDL_mutex *connmutex = nullptr;
+SDL_cond *conncond = nullptr;
 
 struct connectdata
 {
@@ -215,7 +215,7 @@ int connectthread(void *data)
         SDL_UnlockMutex(connmutex);
         return 0;
     }
-    connectdata cd = *(connectdata *)data;
+    connectdata cd = *reinterpret_cast<connectdata *>(data);
     SDL_UnlockMutex(connmutex);
 
     int result = enet_socket_connect(cd.sock, &cd.address);
@@ -227,7 +227,7 @@ int connectthread(void *data)
         SDL_UnlockMutex(connmutex);
         return 0;
     }
-    ((connectdata *)data)->result = result;
+    reinterpret_cast<connectdata *>(data)->result = result;
     SDL_CondSignal(conncond);
     SDL_UnlockMutex(connmutex);
 
@@ -275,7 +275,7 @@ int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &addre
     /* thread will actually timeout eventually if its still trying to connect
      * so just leave it (and let it destroy socket) instead of causing problems on some platforms by killing it
      */
-    connthread = NULL;
+    connthread = nullptr;
     SDL_UnlockMutex(connmutex);
 
     return cd.result;
@@ -290,13 +290,13 @@ char *getservername(int n) { return servers[n]->name; }
 serverinfo *findserverinfo(ENetAddress address)
 {
     loopv(servers) if(servers[i]->address.host == address.host && servers[i]->port == address.port) return servers[i];
-    return NULL;
+    return nullptr;
 }
 
 serverinfo *getconnectedserverinfo()
 {
     extern ENetPeer *curpeer;
-    if(!curpeer) return NULL;
+    if(!curpeer) return nullptr;
     return findserverinfo(curpeer->address);
 }
 
@@ -312,7 +312,7 @@ static serverinfo *newserver(const char *name, uint ip = ENET_HOST_ANY, int port
     else if(ip==ENET_HOST_ANY || enet_address_get_host_ip(&si->address, si->name, sizeof(si->name)) < 0)
     {
         delete si;
-        return NULL;
+        return nullptr;
     }
     si->port = port;
 
@@ -427,7 +427,7 @@ void checkresolver()
     }
     if(!resolving) return;
 
-    const char *name = NULL;
+    const char *name = nullptr;
     ENetAddress addr = { ENET_HOST_ANY, ENET_PORT_ANY };
     while(resolvercheck(&name, &addr))
     {
@@ -461,13 +461,13 @@ void checkpings()
     {
         int len = enet_socket_receive(pingsock, &addr, &buf, 1);
         if(len <= 0) return;
-        serverinfo *si = NULL;
+        serverinfo *si = nullptr;
         loopv(servers) if(addr.host == servers[i]->address.host && addr.port == servers[i]->address.port)
         {
             si = servers[i];
             break;
         }
-        if(!si && searchlan) si = newserver(NULL, addr.host, CUBE_SERVINFO_TO_SERV_PORT(addr.port));
+        if(!si && searchlan) si = newserver(nullptr, addr.host, CUBE_SERVINFO_TO_SERV_PORT(addr.port));
         if(!si) continue;
 
         ucharbuf p(ping, len);
@@ -727,7 +727,7 @@ int sicompare(serverinfo **ap, serverinfo **bp)
     else return -dir;
 }
 
-void *servmenu = NULL, *searchmenu = NULL, *serverinfomenu = NULL;
+void *servmenu = nullptr, *searchmenu = nullptr, *serverinfomenu = nullptr;
 vector<char *> namelists;
 
 string cursearch, cursearchuc;
@@ -749,7 +749,7 @@ bool matchplayername(const char *name)
     static string nameuc;
     copystring(nameuc, name);
     strtoupper(nameuc);
-    return strstr(nameuc, cursearchuc) != NULL;
+    return strstr(nameuc, cursearchuc) != nullptr;
 }
 
 VARP(serverbrowserhideip, 0, 2, 3);
@@ -774,7 +774,7 @@ const char *favcatargname(const char *refdes, int par)
 {
     static string text[3];
     static int i = 0;
-    if(par < 0 || par >= FC_NUM) return NULL;
+    if(par < 0 || par >= FC_NUM) return nullptr;
     i = (i + 1) % 3;
     formatstring(text[i])("sbfavourite_%s_%s", refdes, fc_als[par]);
     return text[i];
@@ -851,10 +851,10 @@ bool favcatcheckkey(serverinfo &si, const char *key)
     return false;
 }
 
-const char *favcatcheck(serverinfo &si, const char *ckeys, char *autokeys = NULL)
+const char *favcatcheck(serverinfo &si, const char *ckeys, char *autokeys = nullptr)
 {
-    if(!ckeys) return NULL;
-    static char *nkeys = NULL;
+    if(!ckeys) return nullptr;
+    static char *nkeys = nullptr;
     const char *sep = " \t\n\r";
     char *keys = newstring(ckeys), *k = strtok(keys, sep);
     bool res = false;
@@ -873,10 +873,10 @@ const char *favcatcheck(serverinfo &si, const char *ckeys, char *autokeys = NULL
             if(*nkeys) strcat(nkeys, " ");
             strcat(nkeys, k);
         }
-        k = strtok(NULL, sep);
+        k = strtok(nullptr, sep);
     }
     delete[] keys;
-    return res ? nkeys : NULL;
+    return res ? nkeys : nullptr;
 }
 
 vector<const char *> favcattags;
@@ -915,7 +915,7 @@ bool assignserverfavourites()
                     }
                 }
             }
-            k = strtok(NULL, sep);
+            k = strtok(nullptr, sep);
         }
         delete[] keys;
     }
@@ -929,7 +929,7 @@ bool assignserverfavourites()
 COMMAND(addfavcategory, "s");
 COMMAND(listfavcats, "");
 
-static serverinfo *lastselectedserver = NULL;
+static serverinfo *lastselectedserver = nullptr;
 static bool pinglastselected = false;
 
 VAR(masterserver_flags, 0, 0, 7);
@@ -941,9 +941,9 @@ void refreshservers(void *menu, bool init)
     static string title;
     bool issearch = menu == searchmenu;
     bool isinfo = menu == serverinfomenu;
-    bool isscoreboard = menu == NULL;
+    bool isscoreboard = menu == nullptr;
 
-    serverinfo *curserver = getconnectedserverinfo(), *oldsel = NULL;
+    serverinfo *curserver = getconnectedserverinfo(), *oldsel = nullptr;
     if(init)
     {
         loopi(PINGBUFSIZE) if(pingbuf[i] < totalmillis) pingbuf[i] = 0;
@@ -963,7 +963,7 @@ void refreshservers(void *menu, bool init)
         {
             bool found = false;
             loopv(servers) if(lastselectedserver == servers[i]) { found = true; break; }
-            if(!found) lastselectedserver = NULL;
+            if(!found) lastselectedserver = nullptr;
         }
         menutitle(menu, "extended server information (F5: refresh)");
         menureset(menu);
@@ -978,7 +978,7 @@ void refreshservers(void *menu, bool init)
             if(si.infotexts.length() && !pinglastselected)
             {
                 infotext[0] = '\0';
-                loopv(si.infotexts) menuimagemanual(menu, NULL, "bargraphs", si.infotexts[i]);
+                loopv(si.infotexts) menuimagemanual(menu, nullptr, "bargraphs", si.infotexts[i]);
             }
             else
             {
@@ -994,14 +994,14 @@ void refreshservers(void *menu, bool init)
         return;
     }
     if((init && issearch) || totalmillis - lastinfo >= (servpingrate * (issearch ? 2 : 1))/(maxservpings ? max(1, (servers.length() + maxservpings - 1) / maxservpings) : 1))
-        pingservers(issearch, isscoreboard ? curserver : NULL);
+        pingservers(issearch, isscoreboard ? curserver : nullptr);
     if(!init && menu)// && servers.inrange(((gmenu *)menu)->menusel))
     {
-        serverinfo *foundserver = NULL;
-        loopv(servers) if(servers[i]->menuline_from == ((gmenu *)menu)->menusel && servers[i]->menuline_to > servers[i]->menuline_from) { foundserver = servers[i]; break; }
+        serverinfo *foundserver = nullptr;
+        loopv(servers) if(servers[i]->menuline_from == reinterpret_cast<gmenu *>(menu)->menusel && servers[i]->menuline_to > servers[i]->menuline_from) { foundserver = servers[i]; break; }
         if(foundserver)
         {
-            if((usedselect || ((gmenu *)menu)->menusel > 0)) oldsel = foundserver;
+            if(usedselect || reinterpret_cast<gmenu *>(menu)->menusel > 0) oldsel = foundserver;
             lastselectedserver = foundserver;
         }
     }
@@ -1043,7 +1043,7 @@ void refreshservers(void *menu, bool init)
         loopv(servers)
         {
             serverinfo &si = *servers[i];
-            si.menuline_to = si.menuline_from = ((gmenu *)menu)->items.length();
+            si.menuline_to = si.menuline_from = reinterpret_cast<gmenu *>(menu)->items.length();
             if( !showallservers && si.lastpingmillis < servermenumillis ) continue; // no pong yet
             int banned = ((si.pongflags >> PONGFLAG_BANNED) & 1) | ((si.pongflags >> (PONGFLAG_BLACKLIST - 1)) & 2);
             bool showthisone = !(banned && showonlygoodservers) && !(showonlyfavourites > 0 && si.favcat != showonlyfavourites - 1);
@@ -1052,7 +1052,7 @@ void refreshservers(void *menu, bool init)
             int mmode = (si.pongflags >> PONGFLAG_MASTERMODE) & MM_MASK;
             char basecolor = banned ? '4' : (curserver == servers[i] ? '1' : '5');
             char plnumcolor = serverfull ? '2' : (needspasswd ? '3' : (mmode != MM_OPEN ? '1' : basecolor));
-            const char *favimage = NULL;
+            const char *favimage = nullptr;
             defformatstring(serverportpart)((serverbrowserhideip >= 3 || (serverbrowserhideip == 2 && si.port != CUBE_DEFAULT_SERVER_PORT)) ? ":%d" : "", si.port);
             if(si.address.host != ENET_HOST_ANY && si.ping != 9999)
             {
@@ -1104,14 +1104,14 @@ void refreshservers(void *menu, bool init)
                 menuimagemanual(menu, favimage, "serverquality", si.full, si.cmd, si.bgcolor, si.description);
                 if(!issearch && servers[i] == oldsel)
                 {
-                    ((gmenu *)menu)->menusel = ((gmenu *)menu)->items.length() - 1;
+                    reinterpret_cast<gmenu *>(menu)->menusel = reinterpret_cast<gmenu *>(menu)->items.length() - 1;
                     usedselect = true;
                     if(shownamesinbrowser) si.getinfo = EXTPING_NAMELIST;
                 }
                 if((shownamesinbrowser && servers[i] == oldsel && si.playernames.length()) || issearch)
                 {
                     int cur = 0;
-                    char *t = NULL;
+                    char *t = nullptr;
                     loopvj(si.playernames)
                     {
                         if(cur == 0)
@@ -1124,14 +1124,14 @@ void refreshservers(void *menu, bool init)
                         cur++;
                         if(cur == 4)
                         {
-                            menumanual(menu, t, NULL, NULL, NULL);
+                            menumanual(menu, t, nullptr, nullptr, nullptr);
                             cur = 0;
                         }
                     }
-                    if(cur) menumanual(menu, t, NULL, NULL, NULL);
+                    if(cur) menumanual(menu, t, nullptr, nullptr, nullptr);
                 }
             }
-            si.menuline_to = ((gmenu *)menu)->items.length();
+            si.menuline_to = reinterpret_cast<gmenu *>(menu)->items.length();
         }
         static string notfoundmsg;
         if(issearch)
@@ -1139,14 +1139,14 @@ void refreshservers(void *menu, bool init)
             if(curnl == 0)
             {
                 formatstring(notfoundmsg)("\t\tpattern \fs\f3%s\fr not found.", cursearch);
-                menumanual(menu, notfoundmsg, NULL, NULL, NULL);
+                menumanual(menu, notfoundmsg, nullptr, nullptr, nullptr);
             }
         }
-        else if(!((gmenu *)menu)->items.length() && showonlyfavourites && favcats.inrange(showonlyfavourites - 1))
+        else if(!reinterpret_cast<gmenu *>(menu)->items.length() && showonlyfavourites && favcats.inrange(showonlyfavourites - 1))
         {
             const char *desc = getalias(favcatargname(favcats[showonlyfavourites - 1], FC_DESC));
             formatstring(notfoundmsg)("no servers in category \f2%s", desc ? desc : favcattags[showonlyfavourites - 1]);
-            menumanual(menu, notfoundmsg, NULL, NULL, NULL);
+            menumanual(menu, notfoundmsg, nullptr, nullptr, nullptr);
         }
     }
 }
@@ -1158,7 +1158,7 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
     ASSERT(menu);
     loopi(sizeof(fk)/sizeof(fk[0])) if(code == fk[i] && favcats.inrange(i))
     {
-        int sel = ((gmenu *)menu)->menusel;
+        int sel = reinterpret_cast<gmenu *>(menu)->menusel;
         loopvj(servers) if(menu && (servers[j]->menuline_from <= sel && servers[j]->menuline_to > sel))
         {
             string ak; ak[0] = '\0';
@@ -1193,7 +1193,7 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
     switch(code)
     {
         case SDLK_HOME:
-            if(menu) ((gmenu *)menu)->menusel = 0;
+            if(menu) reinterpret_cast<gmenu *>(menu)->menusel = 0;
             return true;
 
         case SDLK_LEFT:
@@ -1252,7 +1252,7 @@ bool serverinfokey(void *menu, int code, bool isdown, int unicode)
     switch(code)
     {
         case SDLK_HOME:
-            if(menu) ((gmenu *)menu)->menusel = 0;
+            if(menu)reinterpret_cast<gmenu *>(menu)->menusel = 0;
             return true;
 
         case SDLK_F5:
@@ -1294,7 +1294,7 @@ struct resolver_data
 
 static int progress_callback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow)
 {
-    resolver_data *rd = (resolver_data *)clientp;
+    resolver_data *rd = reinterpret_cast<resolver_data *>(clientp);
     rd->timeout = SDL_GetTicks() - rd->starttime;
     show_out_of_renderloop_progress(min(float(rd->timeout)/RETRIEVELIMIT, 1.0f), rd->text);
     if(interceptkey(SDLK_ESCAPE))
@@ -1346,7 +1346,7 @@ void retrieveservers(vector<char> &data)
         result = curl_easy_perform(curl);
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpresult);
         curl_easy_cleanup(curl);
-        curl = NULL;
+        curl = nullptr;
         if(outfile) fclose(outfile);
 
         if(!result && httpresult == 200)
@@ -1382,7 +1382,7 @@ void retrieveservers(vector<char> &data)
             {
                 buf.data = (void *)req;
                 buf.dataLength = reqlen;
-                int sent = enet_socket_send(sock, NULL, &buf, 1);
+                int sent = enet_socket_send(sock, nullptr, &buf, 1);
                 if(sent < 0) break;
                 req += sent;
                 reqlen -= sent;
@@ -1401,7 +1401,7 @@ void retrieveservers(vector<char> &data)
                 if(data.length() >= data.capacity()) data.reserve(4096);
                 buf.data = data.getbuf() + data.length();
                 buf.dataLength = data.capacity() - data.length();
-                int recv = enet_socket_receive(sock, NULL, &buf, 1);
+                int recv = enet_socket_receive(sock, nullptr, &buf, 1);
                 if(recv <= 0) break;
                 data.advance(recv);
             }

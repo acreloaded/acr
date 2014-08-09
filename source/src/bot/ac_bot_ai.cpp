@@ -144,8 +144,8 @@ entity *CACBot::SearchForEnts(bool bUseWPs, float flRange, float flMaxHeight)
     */
 
     float flDist;
-    entity *pNewTargetEnt = NULL;
-    waypoint_s *pWptNearBot = NULL, *pBestWpt = NULL;
+    entity *pNewTargetEnt = nullptr;
+    waypoint_s *pWptNearBot = nullptr, *pBestWpt = nullptr;
     short sScore, sHighestScore = 0;
 
     if ((WaypointClass.m_iWaypointCount >= 1) && bUseWPs)
@@ -228,7 +228,7 @@ entity *CACBot::SearchForEnts(bool bUseWPs, float flRange, float flMaxHeight)
         if (f > 100.0f) f = 100.0f;
         sScore += ((100 - short(f)) / 2);
 
-        waypoint_s *pWptNearEnt = NULL;
+        waypoint_s *pWptNearEnt = nullptr;
         // If this entity isn't visible check if there is a nearby waypoint
         if (!IsReachable(o, flMaxHeight))//(!IsVisible(o))
         {
@@ -245,7 +245,7 @@ entity *CACBot::SearchForEnts(bool bUseWPs, float flRange, float flMaxHeight)
         }
 
         // Score on visibility
-        if (pWptNearEnt == NULL) // Ent is visible
+        if (pWptNearEnt == nullptr) // Ent is visible
             sScore += 30;
         else
             sScore += 15;
@@ -256,7 +256,7 @@ entity *CACBot::SearchForEnts(bool bUseWPs, float flRange, float flMaxHeight)
             if (pWptNearEnt)
                 pBestWpt = pWptNearEnt;
             else
-                pBestWpt = NULL; // Best ent so far doesn't need any waypoints
+                pBestWpt = nullptr; // Best ent so far doesn't need any waypoints
 
             sHighestScore = sScore;
             pNewTargetEnt = &ents[i];
@@ -288,8 +288,8 @@ entity *CACBot::SearchForFlags(bool bUseWPs, float flRange, float flMaxHeight)
         - Distance
     */
     float flDist;
-    entity *pNewTargetFlag = NULL;
-    waypoint_s *pWptNearBot = NULL, *pBestWpt = NULL;
+    entity *pNewTargetFlag = nullptr;
+    waypoint_s *pWptNearBot = nullptr, *pBestWpt = nullptr;
     short sScore, sHighestScore = 0;
     vec vNewGoal = g_vecZero;
 
@@ -327,7 +327,7 @@ entity *CACBot::SearchForFlags(bool bUseWPs, float flRange, float flMaxHeight)
         if (ff > 100.0f) ff = 100.0f;
         sScore += ((100 - short(ff)) / 2);
 
-        waypoint_s *pWptNearEnt = NULL;
+        waypoint_s *pWptNearEnt = nullptr;
         // If this flag entity isn't visible check if there is a nearby waypoint
         if (!IsReachable(o, flMaxHeight))//(!IsVisible(o))
         {
@@ -344,7 +344,7 @@ entity *CACBot::SearchForFlags(bool bUseWPs, float flRange, float flMaxHeight)
         }
 
         // Score on visibility
-        if (pWptNearEnt == NULL) // Ent is visible
+        if (pWptNearEnt == nullptr) // Ent is visible
             sScore += 6;
         else
             sScore += 3;
@@ -352,7 +352,7 @@ entity *CACBot::SearchForFlags(bool bUseWPs, float flRange, float flMaxHeight)
         if(sScore > sHighestScore)
         {
             if (pWptNearEnt) pBestWpt = pWptNearEnt;
-            else pBestWpt = NULL; // best flag doesn't need any waypoints
+            else pBestWpt = nullptr; // best flag doesn't need any waypoints
 
             vNewGoal = o;
             pNewTargetFlag = &e;

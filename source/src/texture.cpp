@@ -60,7 +60,7 @@ void scaletexture(uchar *src, uint sw, uint sh, uint bpp, uchar *dst, uint dw, u
     }
 }
 
-Texture *notexture = NULL, *noworldtexture = NULL;
+Texture *notexture = nullptr, *noworldtexture = nullptr;
 
 hashtable<char *, Texture> textures;
 
@@ -122,7 +122,7 @@ void resizetexture(int w, int h, bool mipmap, bool canreduce, GLenum target, int
 void uploadtexture(GLenum target, GLenum internal, int tw, int th, GLenum format, GLenum type, void *pixels, int pw, int ph, bool mipmap)
 {
     int bpp = formatsize(format);
-    uchar *buf = NULL;
+    uchar *buf = nullptr;
     if(pw!=tw || ph!=th)
     {
         buf = new uchar[tw*th*bpp];
@@ -177,7 +177,7 @@ SDL_Surface *wrapsurface(void *data, int width, int height, int bpp)
         case 3: return SDL_CreateRGBSurfaceFrom(data, width, height, 8*bpp, bpp*width, RGBMASKS);
         case 4: return SDL_CreateRGBSurfaceFrom(data, width, height, 8*bpp, bpp*width, RGBAMASKS);
     }
-    return NULL;
+    return nullptr;
 }
 
 SDL_Surface *creatergbsurface(int width, int height)
@@ -193,7 +193,7 @@ SDL_Surface *creatergbasurface(int width, int height)
 SDL_Surface *forcergbsurface(SDL_Surface *os)
 {
     SDL_Surface *ns = SDL_CreateRGBSurface(SDL_SWSURFACE, os->w, os->h, 24, RGBMASKS);
-    if(ns) SDL_BlitSurface(os, NULL, ns, NULL);
+    if(ns) SDL_BlitSurface(os, nullptr, ns, nullptr);
     SDL_FreeSurface(os);
     return ns;
 }
@@ -204,7 +204,7 @@ SDL_Surface *forcergbasurface(SDL_Surface *os)
     if(ns)
     {
         SDL_SetAlpha(os, 0, 0);
-        SDL_BlitSurface(os, NULL, ns, NULL);
+        SDL_BlitSurface(os, nullptr, ns, nullptr);
     }
     SDL_FreeSurface(os);
     return ns;
@@ -287,11 +287,11 @@ int fixcl(SDL_Surface *s, bool check = true, Uint8 value = 0, Uint8 mlimit = 255
 
 SDL_Surface *fixsurfaceformat(SDL_Surface *s)
 {
-    if(!s) return NULL;
+    if(!s) return nullptr;
     if(!s->pixels || min(s->w, s->h) <= 0 || s->format->BytesPerPixel <= 0)
     {
         SDL_FreeSurface(s);
-        return NULL;
+        return nullptr;
     }
     static const uint rgbmasks[] = { RGBMASKS }, rgbamasks[] = { RGBAMASKS };
     switch(s->format->BytesPerPixel)
@@ -364,7 +364,7 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 
         file++;
     }
 
-    SDL_Surface *s = NULL;
+    SDL_Surface *s = nullptr;
     stream *z = openzipfile(file, "rb");
     if(z)
     {
@@ -405,7 +405,7 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 
 
     if(texname[0]=='<')
     {
-        const char *cmd = &texname[1], *arg1 = strchr(cmd, ':');//, *arg2 = arg1 ? strchr(arg1, ',') : NULL;
+        const char *cmd = &texname[1], *arg1 = strchr(cmd, ':');//, *arg2 = arg1 ? strchr(arg1, ',') : nullptr;
         if(!arg1) arg1 = strchr(cmd, '>');
         if(!strncmp(cmd, "decal", arg1-cmd)) { s = texdecal(s); format = texformat(s->format->BitsPerPixel); }
     }
@@ -495,7 +495,7 @@ void texture(float *scale, char *name)
     Slot &s = slots.add();
     copystring(s.name, name);
     path(s.name);
-    s.tex = NULL;
+    s.tex = nullptr;
     s.loaded = false;
     s.scale = (*scale > 0 && *scale <= 2.0f) ? *scale : 1.0f;
 }
@@ -554,7 +554,7 @@ void reloadtextures()
     enumerate(textures, Texture, t, reloadtexture(t));
 }
 
-Texture *sky[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
+Texture *sky[6] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
 static string skybox;
 
 void loadsky(char *basename, bool reload)
@@ -832,7 +832,7 @@ void blitsurface(SDL_Surface *dst, SDL_Surface *src, int x, int y)
     }
 }
 
-Texture *e_wall = NULL, *e_floor = NULL, *e_ceil = NULL;
+Texture *e_wall = nullptr, *e_floor = nullptr, *e_ceil = nullptr;
 
 void guidetoggle()
 {
@@ -843,7 +843,7 @@ void guidetoggle()
         Slot *sc = &slots[DEFAULT_CEIL];
 
         //if textures match original texture
-        if(e_wall == NULL || e_floor == NULL || e_ceil == NULL)
+        if(e_wall == nullptr || e_floor == nullptr || e_ceil == nullptr)
         {
             //replace defaults with grid texures
             e_wall = sw->tex;
@@ -860,9 +860,9 @@ void guidetoggle()
             if(e_wall) sw->tex = e_wall;
             if(e_floor) sf->tex = e_floor;
             if(e_ceil) sc->tex = e_ceil;
-            e_wall = NULL;
-            e_floor = NULL;
-            e_ceil = NULL;
+            e_wall = nullptr;
+            e_floor = nullptr;
+            e_ceil = nullptr;
             conoutf("Guide: \fBoff");
         }
     }

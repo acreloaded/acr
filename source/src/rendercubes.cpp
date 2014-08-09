@@ -75,7 +75,7 @@ void renderstrips()
 
 void addstrip(int type, int tex, int start, int n)
 {
-    stripbatch *sb = NULL;
+    stripbatch *sb = nullptr;
     if(tex==DEFAULT_SKY)
     {
         if(minimap) return;
@@ -547,7 +547,7 @@ void rendershadow(int x, int y, int xs, int ys, const vec &texgenS, const vec &t
         {
             sqr *t = SW(s,1,0), *v = SW(s,0,1), *w = SW(s,0,-1), *z = SW(s,-1,0);
             bool topleft = true;
-            sqr *h1 = NULL, *h2 = NULL;
+            sqr *h1 = nullptr, *h2 = nullptr;
             if(SOLID(z))
             {
                 if(SOLID(w))      { h2 = s; topleft = false; }

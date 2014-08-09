@@ -28,12 +28,12 @@ struct winservice : servercontroller
     ~winservice()
     {
         if(status.dwCurrentState != SERVICE_STOPPED) stop();
-        callbacks::svc = NULL;
+        callbacks::svc = nullptr;
     }
 
     void start() // starts the server again on a new thread and returns once the windows service has stopped
     {
-        SERVICE_TABLE_ENTRY dispatchtable[] = { { (LPSTR)name, (LPSERVICE_MAIN_FUNCTION)callbacks::main }, { NULL, NULL } };
+        SERVICE_TABLE_ENTRY dispatchtable[] = { { (LPSTR)name, (LPSERVICE_MAIN_FUNCTION)callbacks::main }, { nullptr, nullptr } };
         if(StartServiceCtrlDispatcher(dispatchtable)) exit(EXIT_SUCCESS);
         else fatal("an error occurred running the ACR server as a Windows service. make sure you start the server from the service control manager and not from the command line.");
     }
@@ -103,7 +103,7 @@ struct winservice : servercontroller
         status.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
         status.dwServiceSpecificExitCode = 0;
         report(SERVICE_START_PENDING, 3000);
-        stopevent = CreateEvent(NULL, true, false, NULL);
+        stopevent = CreateEvent(nullptr, true, false, nullptr);
         if(!stopevent) { stop(); return EXIT_FAILURE; }
         extern int main(int argc, char **argv);
         return main(argc, argv);
@@ -119,17 +119,17 @@ struct winservice : servercontroller
 
     /*void log(const char *msg, bool error)
     {
-        HANDLE eventsrc = RegisterEventSource(NULL, "ACR Server");
+        HANDLE eventsrc = RegisterEventSource(nullptr, "ACR Server");
         if(eventsrc)
         {
             int eventid = ((error ? 0x11 : 0x1) << 10) & (0x1 << 9) & (FACILITY_NULL << 6) & 0x1; // TODO: create event definitions
             LPCTSTR msgs[1] = { msg };
-            int r = ReportEvent(eventsrc, error ? EVENTLOG_ERROR_TYPE : EVENTLOG_INFORMATION_TYPE, 0, 4, NULL, 1, 0, msgs, NULL);
+            int r = ReportEvent(eventsrc, error ? EVENTLOG_ERROR_TYPE : EVENTLOG_INFORMATION_TYPE, 0, 4, nullptr, 1, 0, msgs, nullptr);
             DeregisterEventSource(eventsrc);
         }
     }*/
 };
 
-winservice *winservice::callbacks::svc = (winservice *)NULL;
+winservice *winservice::callbacks::svc = (winservice *)nullptr;
 
 #endif

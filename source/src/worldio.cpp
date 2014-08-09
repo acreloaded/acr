@@ -137,7 +137,7 @@ uchar *readmap(char *name, int *size, int *revision)
 {
     setnames(name);
     uchar *data = (uchar *)loadfile(cgzname, size);
-    if(!data) { conoutf("\f3could not read map %s", cgzname); return NULL; }
+    if(!data) { conoutf("\f3could not read map %s", cgzname); return nullptr; }
     mapstats *ms = loadmapstats(cgzname, false);
     if(revision) *revision = ms->hdr.maprevision;
     return data;
@@ -242,7 +242,7 @@ void save_world(char *mname)
             f->write(&tmp, sizeof(persistent_entity));
         }
     }
-    sqr *t = NULL;
+    sqr *t = nullptr;
     int sc = 0;
     #define spurge while(sc) { f->putchar(255); if(sc>255) { f->putchar(255); sc -= 255; } else { f->putchar(sc); sc = 0; } }
     loopk(cubicsize)
@@ -386,11 +386,11 @@ bool load_world(char *mname)        // still supports all map formats that have 
     int diff = 0;
     Mv = Ma = Hhits = 0;
 
-    if(!mapinfo.numelems || (mapinfo.access(mname) && !cmpf(cgzname, mapinfo[mname]))) world = (sqr *)ents.getbuf();
+    if(!mapinfo.numelems || (mapinfo.access(mname) && !cmpf(cgzname, mapinfo[mname]))) world = reinterpret_cast<sqr *>(ents.getbuf());
     c2skeepalive();
     char texuse[256];
     loopi(256) texuse[i] = 0;
-    sqr *t = NULL;
+    sqr *t = nullptr;
     loopk(cubicsize)
     {
         char *c = mlayout + k;
@@ -405,7 +405,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
                 {
                     conoutf("while reading map at %d: type %d out of range", k, type);
                     delete f;
-                    f = NULL;
+                    f = nullptr;
                 }
                 *c = 127;
                 s->type = SOLID;
@@ -420,7 +420,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
             }
             case 255:
             {
-                if(!t || (n = f->getchar()) < 0) { delete f; f = NULL; k--; continue; }
+                if(!t || (n = f->getchar()) < 0) { delete f; f = nullptr; k--; continue; }
                 char tmp = *(c-1);
                 memset(c, tmp, n);
                 for(int i = 0; i<n; i++, k++) memcpy(&world[k], t, sizeof(sqr));
@@ -429,7 +429,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
             }
             case 254: // only in MAPVERSION<=2
             {
-                if(!t) { delete f; f = NULL; k--; continue; }
+                if(!t) { delete f; f = nullptr; k--; continue; }
                 *c = *(c-1);
                 memcpy(s, t, sizeof(sqr));
                 s->r = s->g = s->b = f->getchar();
@@ -457,7 +457,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
                 {
                     conoutf("while reading map at %d: type %d out of range", k, type);
                     delete f;
-                    f = NULL;
+                    f = nullptr;
                     k--;
                     continue;
                 }
@@ -544,7 +544,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
 
     c2skeepalive();
 
-    loadsky(NULL, true);
+    loadsky(nullptr, true);
 
     watch.start();
     loopi(256) if(texuse[i]) lookupworldtexture(i, false);

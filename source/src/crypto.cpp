@@ -215,7 +215,7 @@ template<int BI_DIGITS> struct bigint
         }
     }
 
-    template<int Y_DIGITS> bigint &operator=(const bigint<Y_DIGITS> &y)
+    template<int Y_DIGITS> bigint<BI_DIGITS> &operator=(const bigint<Y_DIGITS> &y)
     {
         len = y.len;
         memcpy(digits, y.digits, len*sizeof(digit));
@@ -791,7 +791,7 @@ void *parsepubkey(const char *pubstr)
 
 void freepubkey(void *pubkey)
 {
-    delete (ecjacobian *)pubkey;
+    delete reinterpret_cast<ecjacobian *>(pubkey);
 }
 
 void *genchallenge(void *pubkey, const void *seed, int seedlen, vector<char> &challengestr)
@@ -803,7 +803,7 @@ void *genchallenge(void *pubkey, const void *seed, int seedlen, vector<char> &ch
     challenge.len = 8*sizeof(hash.bytes)/BI_DIGIT_BITS;
     challenge.shrink();
 
-    ecjacobian answer(*(ecjacobian *)pubkey);
+    ecjacobian answer(*reinterpret_cast<ecjacobian *>(pubkey));
     answer.mul(challenge);
     answer.normalize();
 
@@ -850,7 +850,7 @@ uint randomMT()
     int cur = next;
     if(++next >= N)
     {
-        if(next > N) { seedMT(5489U + time(NULL)); cur = next++; }
+        if(next > N) { seedMT(5489U + time(nullptr)); cur = next++; }
         else next = 0;
     }
     uint y = (state[cur] & 0x80000000U) | (state[next] & 0x7FFFFFFFU);

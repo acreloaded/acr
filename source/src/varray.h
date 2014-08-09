@@ -82,14 +82,14 @@ namespace varray
     static attribinfo attribs[MAXATTRIBS], lastattribs[MAXATTRIBS];
     static int enabled = 0, numattribs = 0, attribmask = 0, numlastattribs = 0, lastattribmask = 0, vertexsize = 0, lastvertexsize = 0;
     static GLenum primtype = GL_TRIANGLES;
-    static uchar *lastbuf = NULL;
+    static uchar *lastbuf = nullptr;
     static bool changedattribs = false;
 
     void enable()
     {
         enabled = 0;
         numlastattribs = lastattribmask = lastvertexsize = 0;
-        lastbuf = NULL;
+        lastbuf = nullptr;
     }
 
     void begin(GLenum mode)

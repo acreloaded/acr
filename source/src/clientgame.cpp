@@ -135,7 +135,7 @@ const char *highlight(const char *text)
             }
             l = s + strlen(s);
         }
-        s = strtok(NULL, sep);
+        s = strtok(nullptr, sep);
     }
     if(MAXTRANS - strlen(result) > strlen(text) - (l - temp)) strcat(result, text + (l - temp));
     delete[] temp;
@@ -263,7 +263,7 @@ void curmodeattr(char *attr)
 COMMANDN(team, newteam, "s");
 COMMANDN(name, newname, "s");
 COMMAND(benchme, "");
-COMMANDF(isclient, "i", (int *cn) { intret(getclient(*cn) != NULL ? 1 : 0); } );
+COMMANDF(isclient, "i", (int *cn) { intret(getclient(*cn) != nullptr ? 1 : 0); } );
 COMMANDF(curmastermode, "", (void) { intret(servstate.mastermode); });
 COMMANDF(curautoteam, "", (void) { intret(servstate.autoteam); });
 COMMAND(curmodeattr, "s");
@@ -660,7 +660,7 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
         if(lastmillis - sleeps[i].millis >= sleeps[i].wait)
         {
             char *cmd = sleeps[i].cmd;
-            sleeps[i].cmd = NULL;
+            sleeps[i].cmd = nullptr;
             execute(cmd);
             delete[] cmd;
             if(sleeps[i].cmd || !sleeps.inrange(i)) break;
@@ -942,10 +942,10 @@ playerent *newclient(int cn)   // ensure valid entity
     if(cn<0 || cn>=MAXCLIENTS)
     {
         neterr("clientnum");
-        return NULL;
+        return nullptr;
     }
     if(cn == getclientnum()) return player1;
-    while(cn>=players.length()) players.add(NULL);
+    while(cn>=players.length()) players.add(nullptr);
     playerent *d = players[cn];
     if(d) return d;
     d = newplayerent();
@@ -957,7 +957,7 @@ playerent *newclient(int cn)   // ensure valid entity
 playerent *getclient(int cn)   // ensure valid entity
 {
     if(cn == player1->clientnum) return player1;
-    return players.inrange(cn) ? players[cn] : NULL;
+    return players.inrange(cn) ? players[cn] : nullptr;
 }
 
 void initclient()
@@ -977,7 +977,7 @@ void initflag(int i)
     flaginfo &f = flaginfos[i];
     f.flagent = &flagdummies[i];
     f.pos = vec(f.flagent->x, f.flagent->y, f.flagent->z);
-    f.actor = NULL;
+    f.actor = nullptr;
     f.actor_cn = -1;
     f.team = i;
     f.state = m_keep(gamemode) ? CTFF_IDLE : CTFF_INBASE;
@@ -1361,7 +1361,7 @@ const char *votestring(int type, const votedata &vote)
 
 votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, const votedata &vote)
 {
-    if(type < 0 || type >= SA_NUM) return NULL;
+    if(type < 0 || type >= SA_NUM) return nullptr;
     votedisplayinfo *v = new votedisplayinfo();
     v->owner = owner;
     v->type = type;
@@ -1370,7 +1370,7 @@ votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, const votedata &
     return v;
 }
 
-votedisplayinfo *curvote = NULL;
+votedisplayinfo *curvote = nullptr;
 
 void callvote(int type, const votedata &vote)
 {
@@ -1518,7 +1518,7 @@ COMMANDF(vote, "i", (int *v) { vote(*v); });
 
 void cleanplayervotes(playerent *p)
 {
-    if(curvote && curvote->owner==p) curvote->owner = NULL;
+    if(curvote && curvote->owner==p) curvote->owner = nullptr;
 }
 
 void whois(int *cn)
@@ -1552,7 +1552,7 @@ COMMAND(setadmin, "is");
 struct mline { string name, cmd; };
 static vector<mline> mlines;
 
-void *kickmenu = NULL, *banmenu = NULL, *forceteammenu = NULL, *giveadminmenu = NULL;
+void *kickmenu = nullptr, *banmenu = nullptr, *forceteammenu = nullptr, *giveadminmenu = nullptr;
 
 void refreshsopmenu(void *menu, bool init)
 {
@@ -1564,7 +1564,7 @@ void refreshsopmenu(void *menu, bool init)
         mline &m = mlines.add();
         copystring(m.name, colorname(players[i]));
         string kbr;
-        if(getalias("_kickbanreason")!=NULL) formatstring(kbr)(" [ %s ]", getalias("_kickbanreason")); // leading space!
+        if(getalias("_kickbanreason")!=nullptr) formatstring(kbr)(" [ %s ]", getalias("_kickbanreason")); // leading space!
         else kbr[0] = '\0';
         formatstring(m.cmd)("%s %d%s", menu==kickmenu ? "kick" : (menu==banmenu ? "ban" : (menu==forceteammenu ? "forceteam" : "giveadmin")), i, (menu==kickmenu||menu==banmenu)?(strlen(kbr)>8?kbr:" NONE"):""); // 8==3 + "format-extra-chars"
         menumanual(menu, m.name, m.cmd);
@@ -1591,7 +1591,7 @@ playerent *updatefollowplayer(int shiftdirection)
         if(players[i]->state==CS_DEAD || players[i]->isspectating()) continue;
         available.add(players[i]);
     }
-    if(!available.length()) return NULL;
+    if(!available.length()) return nullptr;
 
     // rotate
     int oldidx = available.find(focus);

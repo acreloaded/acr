@@ -77,7 +77,7 @@ struct keym
     char *name, *actions[NUMACTIONS];
     bool pressed;
 
-    keym() : code(-1), name(NULL), pressed(false) { loopi(NUMACTIONS) actions[i] = newstring(""); }
+    keym() : code(-1), name(nullptr), pressed(false) { loopi(NUMACTIONS) actions[i] = newstring(""); }
     ~keym() { DELETEA(name); loopi(NUMACTIONS) DELETEA(actions[i]); }
 };
 
@@ -91,13 +91,13 @@ extern bool bindc(int code, const char *action, int type = keym::ACTION_DEFAULT)
 extern void rendermenu();
 extern bool menuvisible();
 extern void menureset(void *menu);
-extern void menumanual(void *menu, char *text, char *action = NULL, color *bgcolor = NULL, const char *desc = NULL);
-extern void menuimagemanual(void *menu, const char *filename1, const char *filename2, char *text, char *action = NULL, color *bgcolor = NULL, const char *desc = NULL);
-extern void menutitle(void *menu, const char *title = NULL);
+extern void menumanual(void *menu, char *text, char *action = nullptr, color *bgcolor = nullptr, const char *desc = nullptr);
+extern void menuimagemanual(void *menu, const char *filename1, const char *filename2, char *text, char *action = nullptr, color *bgcolor = nullptr, const char *desc = nullptr);
+extern void menutitle(void *menu, const char *title = nullptr);
 extern bool needscoresreorder;
-extern void menuheader(void *menu, char *header = NULL, char *footer = NULL);
+extern void menuheader(void *menu, char *header = nullptr, char *footer = nullptr);
 extern bool menukey(int code, bool isdown, int unicode, SDLMod mod = KMOD_NONE);
-extern void *addmenu(const char *name, const char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(void *, bool) = NULL, bool (__cdecl *keyfunc)(void *, int, bool, int) = NULL, bool hotkeys = false, bool forwardkeys = false);
+extern void *addmenu(const char *name, const char *title = nullptr, bool allowinput = true, void (__cdecl *refreshfunc)(void *, bool) = nullptr, bool (__cdecl *keyfunc)(void *, int, bool, int) = nullptr, bool hotkeys = false, bool forwardkeys = false);
 extern void rendermenumdl();
 extern void menuset(void *m, bool save = true);
 extern void menuselect(void *menu, int sel);
@@ -121,9 +121,9 @@ struct mitem
     virtual void focus(bool on) { }
     virtual void key(int code, bool isdown, int unicode) { }
     virtual void init() {}
-    virtual const char *getdesc() { return NULL; }
-    virtual const char *gettext() { return NULL; }
-    virtual const char *getaction() { return NULL; }
+    virtual const char *getdesc() { return nullptr; }
+    virtual const char *gettext() { return nullptr; }
+    virtual const char *getaction() { return nullptr; }
     bool isselection();
     void renderbg(int x, int y, int w, color *c);
     static color gray, white, whitepulse, red;
@@ -217,7 +217,7 @@ struct serverinfo
     serverinfo()
      : mode(G_DM), muts(G_M_NONE), numplayers(0), maxclients(0), ping(9999), protocol(0), minremain(0),
        resolved(UNRESOLVED), port(-1), lastpingmillis(0), pongflags(0), getinfo(EXTPING_NOP),
-       bgcolor(NULL), favcat(-1), msweight(0), weight(0), uplinkqual(0), uplinkqual_age(0)
+       bgcolor(nullptr), favcat(-1), msweight(0), weight(0), uplinkqual(0), uplinkqual_age(0)
     {
         name[0] = full[0] = map[0] = sdesc[0] = description[0] = '\0';
         loopi(3) lang[i] = '\0';
@@ -250,11 +250,11 @@ extern void cleangl();
 extern void enablepolygonoffset(GLenum type);
 extern void disablepolygonoffset(GLenum type, bool restore = true);
 extern void line(int x1, int y1, float z1, int x2, int y2, float z2);
-extern void line(int x1, int y1, int x2, int y2, color *c = NULL);
+extern void line(int x1, int y1, int x2, int y2, color *c = nullptr);
 extern void box(block &b, float z1, float z2, float z3, float z4);
 extern void dot(int x, int y, float z);
 extern void linestyle(float width, int r, int g, int b);
-extern void blendbox(int x1, int y1, int x2, int y2, bool border, int tex = -1, color *c = NULL);
+extern void blendbox(int x1, int y1, int x2, int y2, bool border, int tex = -1, color *c = nullptr);
 extern void quad(GLuint tex, float x, float y, float s, float tx, float ty, float tsx, float tsy = 0);
 extern void quad(GLuint tex, vec &c1, vec &c2, float tx, float ty, float tsx, float tsy);
 extern void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr, int subdiv = 32);
@@ -339,7 +339,7 @@ extern void inittmus();
 extern void resettmu(int n);
 extern void scaletmu(int n, int rgbscale, int alphascale = 0);
 extern void colortmu(int n, float r = 0, float g = 0, float b = 0, float a = 0);
-extern void setuptmu(int n, const char *rgbfunc = NULL, const char *alphafunc = NULL);
+extern void setuptmu(int n, const char *rgbfunc = nullptr, const char *alphafunc = nullptr);
 
 struct zone { int x1, x2, y1, y2, color; }; // zones (drawn on the minimap)
 
@@ -368,7 +368,7 @@ extern void disconnect(int onlyclean = 0, int async = 0);
 extern void cleanupclient();
 extern void toserver(char *text, int voice = 0, bool action = false);
 extern void saytext(playerent *d, char *text, int flags, int sound);
-extern void addmsg(int type, const char *fmt = NULL, ...);
+extern void addmsg(int type, const char *fmt = nullptr, ...);
 extern void addmsgraw(ucharbuf &buf, bool reliable = true);
 extern bool multiplayer(bool msg = true);
 extern bool allowedittoggle();
@@ -380,7 +380,7 @@ extern void neterr(const char *s);
 extern int getclientnum();
 extern bool isowned(playerent *p);
 extern void changeteam(int team, bool respawn = true); // deprecated?
-extern void getmap(char *name = NULL, char *callback = NULL);
+extern void getmap(char *name = nullptr, char *callback = nullptr);
 extern void newteam(char *name);
 extern bool securemapcheck(const char *map, bool msg = true);
 extern int getbuildtype();
@@ -462,7 +462,7 @@ struct votedisplayinfo
     int type, result, expiryresult, yes_remain, no_remain, millis, nextvote, expiremillis;
     string desc;
     bool veto;
-    votedisplayinfo() : owner(NULL), result(VOTE_NEUTRAL), expiryresult(VOTE_NEUTRAL), yes_remain(1), no_remain(1), millis(0), nextvote(0), expiremillis(0), veto(false) { }
+    votedisplayinfo() : owner(nullptr), result(VOTE_NEUTRAL), expiryresult(VOTE_NEUTRAL), yes_remain(1), no_remain(1), millis(0), nextvote(0), expiremillis(0), veto(false) { }
 };
 extern const char *votestring(int type, const votedata &vote);
 extern votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, const votedata &vote);
@@ -594,7 +594,7 @@ extern void edittypexy(int type, block &sel);
 extern void edittexxy(int type, int t, block &sel);
 extern void editheightxy(bool isfloor, int amount, block &sel);
 //extern bool noteditmode();
-extern bool noteditmode(const char* func = NULL);
+extern bool noteditmode(const char* func = nullptr);
 extern void pruneundos(int maxremain = 0);
 
 // renderhud
@@ -607,11 +607,11 @@ enum
     HUDMSG_OVERWRITE = 1<<8
 };
 extern void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater);
-extern void loadingscreen(const char *fmt = NULL, ...);
+extern void loadingscreen(const char *fmt = nullptr, ...);
 extern void hudoutf(const char *s, ...);
 extern void hudonlyf(const char *s, ...);
 extern void hudeditf(int type, const char *s, ...);
-extern void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2 = 0, const char *text2 = NULL);
+extern void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2 = 0, const char *text2 = nullptr);
 extern void updatedmgindicator(vec &attack);
 extern vec getradarpos();
 
@@ -667,7 +667,7 @@ extern void particle_flash(int type, float scale, float angle, const vec &p);
 extern void particle_splash(int type, int num, int fade, const vec &p);
 extern void particle_trail(int type, int fade, const vec &from, const vec &to);
 extern void particle_emit(int type, int *args, int basetime, int seed, const vec &p);
-extern void particle_fireball(int type, const vec &o, playerent *owner = NULL);
+extern void particle_fireball(int type, const vec &o, playerent *owner = nullptr);
 extern void addshotline(playerent *d, vec from, const vec &to, int flags);
 extern void addheadshot(const vec &from, const vec &to, int damage);
 extern bool addbullethole(dynent *d, const vec &from, const vec &to, float radius = 1, bool noisy = true, int type = 0); // shotty
@@ -718,7 +718,7 @@ extern void audiomgr.playsound(int n, int priority = SP_NORMAL);
 extern void audiomgr.playsound(int n, physent *p, int priority = SP_NORMAL);
 extern void audiomgr.playsound(int n, entity *e, int priority = SP_NORMAL);
 extern void audiomgr.playsound(int n, const vec *v, int priority = SP_NORMAL);
-extern void audiomgr.playsoundc(int n, physent *p = NULL, int priority = SP_NORMAL);
+extern void audiomgr.playsoundc(int n, physent *p = nullptr, int priority = SP_NORMAL);
 extern void initsound();
 extern void soundcleanup();
 extern void musicsuggest(int id, int millis = 0, bool rndofs = false);
@@ -732,7 +732,7 @@ extern void writesoundconfig(stream *f);
 */
 
 // rendermodel
-extern void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed = 0, int basetime = 0, playerent *d = NULL, modelattach *a = NULL, float scale = 1.0f);
+extern void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed = 0, int basetime = 0, playerent *d = nullptr, modelattach *a = nullptr, float scale = 1.0f);
 extern void startmodelbatches();
 extern void endmodelbatches(bool flush = true);
 extern void clearmodelbatches();
@@ -761,8 +761,8 @@ extern void playerincrosshair(playerent* &pl, int &hitzone, vec &pos);
 extern int magsize(int gun);
 extern void setscope(bool activate);
 extern void setburst(bool activate);
-extern int intersect(playerent *d, const vec &from, const vec &to, vec *end = NULL);
-extern bool intersect(entity *e, const vec &from, const vec &to, vec *end = NULL);
+extern int intersect(playerent *d, const vec &from, const vec &to, vec *end = nullptr);
+extern bool intersect(entity *e, const vec &from, const vec &to, vec *end = nullptr);
 // Structure for storing traceresults
 struct traceresult_s
 {
@@ -872,7 +872,7 @@ extern const char *voteerrorstr(int n);
 extern const char *mmfullname(int n);
 extern void modecheck(int &mode, int &muts, int trying = 0);
 extern void fatal(const char *s, ...);
-extern void initserver(bool dedicated, int argc = 0, char **argv = NULL);
+extern void initserver(bool dedicated, int argc = 0, char **argv = nullptr);
 extern void cleanupserver();
 extern void localconnect();
 extern void localdisconnect();
@@ -951,7 +951,7 @@ struct serverconfigfile
     string filename;
     int filelen;
     char *buf;
-    serverconfigfile() : filelen(0), buf(NULL) { filename[0] = '\0'; }
+    serverconfigfile() : filelen(0), buf(nullptr) { filename[0] = '\0'; }
     virtual ~serverconfigfile() { DELETEA(buf); }
 
     virtual void read() {}
@@ -971,7 +971,7 @@ struct servercommandline
 
     servercommandline() :   uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), syslogfacility(6), filethres(-1), syslogthres(-1), maxdemos(5),
                             maxclients(DEFAULTCLIENTS), verbose(0), incoming_limit(10), afk_limit(45000), ban_time(20*60*1000), lagtrust(1), demotimelocal(0),
-                            ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(""),
+                            ip(""), master(nullptr), logident(""), serverpassword(""), adminpasswd(""), demopath(""),
                             maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), nbfile("config/nicknameblacklist.cfg"),
                             infopath("config/serverinfo"), motdpath("config/motd"), forbidden("config/forbidden.cfg"),
                             logtimestamp(false), demo_interm(false), loggamestatus(true),

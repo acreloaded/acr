@@ -37,7 +37,7 @@ void CACBot::Spawn()
      m_iStrafeTime = m_iStrafeCheckDelay = 0;
      m_iMoveDir = DIR_NONE;
 
-     m_pPrevEnemy = NULL;
+     m_pPrevEnemy = nullptr;
      m_iCombatNavTime = 0;
      m_iSPMoveTime = 0;
      m_iEnemySearchDelay = 0;
@@ -46,13 +46,13 @@ void CACBot::Spawn()
      m_bShootAtFeet = (RandomLong(1, 100) <= m_pBotSkill->sShootAtFeetWithRLPercent);
      m_iHuntDelay = 0;
      m_vHuntLocation = m_vPrevHuntLocation = g_vecZero;
-     m_pHuntTarget = NULL;
+     m_pHuntTarget = nullptr;
      m_fPrevHuntDist = 0.0f;
      m_iHuntLastTurnLessTime = m_iHuntPlayerUpdateTime = m_iHuntPauseTime = 0;
 
      m_iLastJumpPad = 0;
-     m_pTargetEnt = NULL;
-     m_pTargetFlag = NULL;
+     m_pTargetEnt = nullptr;
+     m_pTargetFlag = nullptr;
      m_iCheckTeleporterDelay = m_iCheckJumppadsDelay = 0;
      m_iCheckEntsDelay = 0;
      m_iCheckFlagsDelay = 0;

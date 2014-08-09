@@ -4,7 +4,7 @@
 #include "bot/bot.h"
 
 
-sqr *world = NULL;
+sqr *world = nullptr;
 int sfactor, ssize, cubicsize, mipsize;
 
 header hdr;
@@ -259,7 +259,7 @@ int findtype(char *what)
 entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, int v3, int v4)
 {
     int type = findtype(what);
-    if(type==NOTUSED) return NULL;
+    if(type==NOTUSED) return nullptr;
 
     if (type == SOUND && index >= 0)
     {
@@ -454,7 +454,7 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
 {
     if(!force && noteditmode("empty world")) return false;
     if(factor == -2 && !worldbordercheck(ssize/4 + MINBORD, ssize/4 + MINBORD, ssize/4 + MINBORD, ssize/4 + MINBORD, 0, 0)) { conoutf("map does not fit into smaller world"); return false; }
-    block *ow = NULL, be = { 0, 0, ssize, ssize }, bs = { ssize/4, ssize/4, ssize/2, ssize/2 };
+    block *ow = nullptr, be = { 0, 0, ssize, ssize }, bs = { ssize/4, ssize/4, ssize/2, ssize/2 };
     int oldfactor = sfactor;
     bool copy = false;
     if(world && factor<0) { factor = sfactor + (factor == -2 ? -1 : 1); copy = true; }

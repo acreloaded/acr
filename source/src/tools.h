@@ -3,10 +3,10 @@
 #ifndef _TOOLS_H
 #define _TOOLS_H
 
-#ifdef NULL
-#undef NULL
+#ifdef nullptr
+#undef nullptr
 #endif
-#define NULL 0
+#define nullptr 0
 
 typedef unsigned char uchar;
 typedef unsigned short ushort;
@@ -218,7 +218,7 @@ struct databuf
     int len, maxlen;
     uchar flags;
 
-    databuf() : buf(NULL), len(0), maxlen(0), flags(0) {}
+    databuf() : buf(nullptr), len(0), maxlen(0), flags(0) {}
 
     template <class U>
     databuf(T *buf, U maxlen) : buf(buf), len(0), maxlen((int)maxlen), flags(0) {}
@@ -283,7 +283,7 @@ struct packetbuf : ucharbuf
     packetbuf(ENetPacket *packet) : ucharbuf(packet->data, packet->dataLength), packet(packet), growth(0) {}
     packetbuf(int growth, int pflags = 0) : growth(growth)
     {
-        packet = enet_packet_create(NULL, growth, pflags);
+        packet = enet_packet_create(nullptr, growth, pflags);
         buf = (uchar *)packet->data;
         maxlen = packet->dataLength;
     }
@@ -331,7 +331,7 @@ struct packetbuf : ucharbuf
 
     void cleanup()
     {
-        if(growth > 0 && packet && !packet->referenceCount) { enet_packet_destroy(packet); packet = NULL; buf = NULL; len = maxlen = 0; }
+        if(growth > 0 && packet && !packet->referenceCount) { enet_packet_destroy(packet); packet = nullptr; buf = nullptr; len = maxlen = 0; }
     }
 };
 
@@ -381,11 +381,11 @@ template <class T> struct vector
     T *buf;
     int alen, ulen;
 
-    vector() : buf(NULL), alen(0), ulen(0)
+    vector() : buf(nullptr), alen(0), ulen(0)
     {
     }
 
-    vector(const vector &v) : buf(NULL), alen(0), ulen(0)
+    vector(const vector &v) : buf(nullptr), alen(0), ulen(0)
     {
         *this = v;
     }
@@ -453,7 +453,7 @@ template <class T> struct vector
     template<class ST>
     T *search(T *key, int (__cdecl *cf)(ST *, ST *), int i = 0, int n = -1)
     {
-        return (T *) bsearch(key, &buf[i], n<0 ? ulen : n, sizeof(T), (int (__cdecl *)(const void *,const void *))cf);
+        return reinterpret_cast<T *>(bsearch(key, &buf[i], n<0 ? ulen : n, sizeof(T), (int (__cdecl *)(const void *,const void *))cf));
     }
 
     void growbuf(int sz)
@@ -468,7 +468,7 @@ template <class T> struct vector
             memcpy(newbuf, buf, olen*sizeof(T));
             delete[] (uchar *)buf;
         }
-        buf = (T *)newbuf;
+        buf = reinterpret_cast<T*>(newbuf);
     }
 
     databuf<T> reserve(int sz)
@@ -612,10 +612,10 @@ template <class K, class T> struct hashtable
       : size(size)
     {
         numelems = 0;
-        chunks = NULL;
-        unused = NULL;
+        chunks = nullptr;
+        unused = nullptr;
         table = new chain *[size];
-        loopi(size) table[i] = NULL;
+        loopi(size) table[i] = nullptr;
     }
 
     ~hashtable()
@@ -659,7 +659,7 @@ template <class K, class T> struct hashtable
 
     T *access(const K &key)
     {
-        HTFIND(&c->data, NULL);
+        HTFIND(&c->data, nullptr);
     }
 
     T &access(const K &key, const T &data)
@@ -706,9 +706,9 @@ template <class K, class T> struct hashtable
 
     void clear(bool del = true)
     {
-        loopi(size) table[i] = NULL;
+        loopi(size) table[i] = nullptr;
         numelems = 0;
-        unused = NULL;
+        unused = nullptr;
         if(del) deletechunks();
         else
         {
@@ -909,7 +909,7 @@ struct stream
 };
 
 extern unsigned int &genguid(int, uint, int, const char *);
-extern const char *timestring(bool local = false, const char *fmt = NULL);
+extern const char *timestring(bool local = false, const char *fmt = nullptr);
 extern const char *asctime();
 extern const char *numtime();
 extern char *path(char *s);
@@ -928,15 +928,15 @@ extern stream *openrawfile(const char *filename, const char *mode);
 extern stream *openzipfile(const char *filename, const char *mode);
 extern stream *openfile(const char *filename, const char *mode);
 extern stream *opentempfile(const char *filename, const char *mode);
-extern stream *opengzfile(const char *filename, const char *mode, stream *file = NULL, int level = Z_BEST_COMPRESSION);
-extern char *loadfile(const char *fn, int *size, const char *mode = NULL);
+extern stream *opengzfile(const char *filename, const char *mode, stream *file = nullptr, int level = Z_BEST_COMPRESSION);
+extern char *loadfile(const char *fn, int *size, const char *mode = nullptr);
 extern bool listdir(const char *dir, const char *ext, vector<char *> &files);
 extern int listfiles(const char *dir, const char *ext, vector<char *> &files);
 extern int listzipfiles(const char *dir, const char *ext, vector<char *> &files);
 extern bool delfile(const char *path);
 extern bool copyfile(const char *source, const char *destination);
 extern bool preparedir(const char *destination);
-extern bool addzip(const char *name, const char *mount = NULL, const char *strip = NULL, bool extract = false, int type = -1);
+extern bool addzip(const char *name, const char *mount = nullptr, const char *strip = nullptr, bool extract = false, int type = -1);
 extern bool removezip(const char *name);
 extern struct mapstats *loadmapstats(const char *filename, bool getlayout);
 extern bool cmpb(void *b, int n, enet_uint32 c);
@@ -944,7 +944,7 @@ extern bool cmpf(char *fn, enet_uint32 c);
 extern enet_uint32 adler(unsigned char *data, size_t len);
 extern void endianswap(void *, int, int);
 extern bool isbigendian();
-extern void strtoupper(char *t, const char *s = NULL);
+extern void strtoupper(char *t, const char *s = nullptr);
 extern void seedMT(uint seed);
 extern uint randomMT(void);
 

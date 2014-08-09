@@ -11,7 +11,7 @@ float WrapYZAngle(float angle);
 
 float GetDistance(vec v1, vec v2);
 float Get2DDistance(vec v1, vec v2);
-bool IsVisible(vec v1, vec v2, dynent *tracer = NULL, bool SkipTags=false);
+bool IsVisible(vec v1, vec v2, dynent *tracer = nullptr, bool SkipTags=false);
 bool IsValidFile(const char *szFileName);
 bool FileIsOlder(const char *szFileName1, const char *szFileName2);
 vec PredictPos(vec pos, vec vel, float Time);
@@ -40,7 +40,7 @@ public:
           node_s *next;
           node_s *prev;
 
-          node_s(void) : next(NULL), prev(NULL)
+          node_s(void) : next(nullptr), prev(nullptr)
           {
                //memset(&Entry, 0, sizeof(Entry));
           };
@@ -54,8 +54,8 @@ public:
           {
                pNodeList = new node_s;
                pNodeList->Entry = entry;
-               pNodeList->next = NULL;
-               pNodeList->prev = NULL;
+               pNodeList->next = nullptr;
+               pNodeList->prev = nullptr;
                pLastNode = pNodeList;
                iNodeCount = 1;
           }
@@ -65,7 +65,7 @@ public:
                pLastNode->next->prev = pLastNode;
                pLastNode = pLastNode->next;
                pLastNode->Entry = entry;
-               pLastNode->next = NULL;
+               pLastNode->next = nullptr;
                iNodeCount++;
           }
      }
@@ -76,8 +76,8 @@ public:
           {
                pNodeList = new node_s;
                pNodeList->Entry = Entry;
-               pNodeList->next = NULL;
-               pNodeList->prev = NULL;
+               pNodeList->next = nullptr;
+               pNodeList->prev = nullptr;
                pLastNode = pNodeList;
                iNodeCount = 1;
           }
@@ -85,7 +85,7 @@ public:
           {
                node_s *pNew = new node_s;
                pNew->Entry = Entry;
-               pNew->prev = NULL;
+               pNew->prev = nullptr;
                pNew->next = pNodeList;
                pNodeList->prev = pNew;
                pNodeList = pNew;
@@ -102,14 +102,14 @@ public:
           if (pNode->Entry == Entry) // first node
           {
                if (pNodeList == pLastNode)
-                    pLastNode = NULL;
+                    pLastNode = nullptr;
 
                pNodeList = pNodeList->next;
                if (pNodeList)
-                    pNodeList->prev = NULL;
-               pNode->next = NULL;
+                    pNodeList->prev = nullptr;
+               pNode->next = nullptr;
                delete pNode;
-               pNode = NULL;
+               pNode = nullptr;
                iNodeCount--;
                return;
           }
@@ -118,12 +118,12 @@ public:
           {
                pNode = pLastNode;
                pLastNode = pLastNode->prev;
-               pLastNode->next = NULL;
+               pLastNode->next = nullptr;
 
-               pNode->next = NULL;
-               pNode->prev = NULL;
+               pNode->next = nullptr;
+               pNode->prev = nullptr;
                delete pNode;
-               pNode = NULL;
+               pNode = nullptr;
                iNodeCount--;
                return;
           }
@@ -143,10 +143,10 @@ public:
           pNode->next->prev = pPrevNode;
           pPrevNode->next = pNode->next;
 
-          pNode->next = NULL;
-          pNode->prev = NULL;
+          pNode->next = nullptr;
+          pNode->prev = nullptr;
           delete pNode;
-          pNode = NULL;
+          pNode = nullptr;
           iNodeCount--;
      }
 
@@ -162,10 +162,10 @@ public:
 
                pNodeList = pNodeList->next;
                if (pNodeList)
-                    pNodeList->prev = NULL;
-               pNode->next = NULL;
+                    pNodeList->prev = nullptr;
+               pNode->next = nullptr;
                delete pNode;
-               pNode = NULL;
+               pNode = nullptr;
                iNodeCount--;
                return;
           }
@@ -174,12 +174,12 @@ public:
           {
                pNode = pLastNode;
                pLastNode = pLastNode->prev;
-               pLastNode->next = NULL;
+               pLastNode->next = nullptr;
 
-               pNode->next = NULL;
-               pNode->prev = NULL;
+               pNode->next = nullptr;
+               pNode->prev = nullptr;
                delete pNode;
-               pNode = NULL;
+               pNode = nullptr;
                iNodeCount--;
                return;
           }
@@ -195,10 +195,10 @@ public:
           pNode->next->prev = pPrevNode;
           pPrevNode->next = pNode->next;
 
-          pNode->next = NULL;
-          pNode->prev = NULL;
+          pNode->next = nullptr;
+          pNode->prev = nullptr;
           delete pNode;
-          pNode = NULL;
+          pNode = nullptr;
           iNodeCount--;
      }
 
@@ -206,21 +206,21 @@ public:
      {
           node_s *pNode = pNodeList;
           node_s *pTemp;
-          while (pNode != NULL)
+          while (pNode != nullptr)
           {
                pTemp = pNode;
                pNode = pNode->next;
-               pTemp->next = NULL;
-               pTemp->prev = NULL;
+               pTemp->next = nullptr;
+               pTemp->prev = nullptr;
                delete pTemp;
           }
-          pNodeList = pLastNode = NULL;
+          pNodeList = pLastNode = nullptr;
           iNodeCount = 0;
      }
 
      void Reset(void) // Special case, doesn't delete existing nodes
      {
-          pNodeList = pLastNode = NULL;
+          pNodeList = pLastNode = nullptr;
           iNodeCount = 0;
      }
 
@@ -233,13 +233,13 @@ public:
                     return pNode;
                pNode = pNode->next;
           }
-          return NULL;
+          return nullptr;
      }
 
      C Pop(void)
      {
           if (!pNodeList)
-               return static_cast<C>(NULL);
+               return static_cast<C>(nullptr);
 
           C Entry = pNodeList->Entry;
           DeleteNode(pNodeList);
@@ -261,18 +261,18 @@ public:
 
      bool IsInList(C Entry)
      {
-          return (SearchNode(Entry) != NULL);
+          return (SearchNode(Entry) != nullptr);
      }
 
-     bool Empty(void)          { return (pNodeList == NULL); };
+     bool Empty(void)          { return (pNodeList == nullptr); };
      int NodeCount(void)      { return iNodeCount; };
 
 
      // construction/destruction
      TLinkedList(void)
      {
-          pNodeList = NULL;
-          pLastNode = NULL;
+          pNodeList = nullptr;
+          pLastNode = nullptr;
           iNodeCount = 0;
      };
 
@@ -305,10 +305,10 @@ public:
           D Priority;
           node_s *next;
 
-          node_s(C Ent, D Prior) : Entry(Ent), Priority(Prior), next(NULL) {};
+          node_s(C Ent, D Prior) : Entry(Ent), Priority(Prior), next(nullptr) {};
      };
 
-     TPriorList(void) : pHeadNode(NULL), pLastNode(NULL) {};
+     TPriorList(void) : pHeadNode(nullptr), pLastNode(nullptr) {};
      ~TPriorList(void) { Clear(); };
 
      void AddEntry(C Entry, D Prior)
@@ -324,7 +324,7 @@ public:
                iNodeCount++;
                node_s *pNew = new node_s(Entry, Prior);
                node_s *pNode = pHeadNode;
-               node_s *pPrev = NULL;
+               node_s *pPrev = nullptr;
 
                while(pNode)
                {
@@ -358,7 +358,7 @@ public:
      C Pop(void)
      {
           if (!pHeadNode)
-               return static_cast<C>(NULL);
+               return static_cast<C>(nullptr);
 
           C Entry = pHeadNode->Entry;
           DeleteNode(pHeadNode);
@@ -375,7 +375,7 @@ public:
                delete pTemp;
           }
 
-          pHeadNode = pLastNode = NULL;
+          pHeadNode = pLastNode = nullptr;
      }
 
      bool IsInList(C Entry, D Prior)
@@ -395,7 +395,7 @@ public:
           return false;
      }
 
-     bool Empty(void) { return (pHeadNode == NULL); }
+     bool Empty(void) { return (pHeadNode == nullptr); }
      node_s *GetFirst(void) { return pHeadNode; }
 private:
      node_s *pHeadNode;
@@ -412,7 +412,7 @@ private:
                pTemp = pTemp->next;
           }
 
-          return NULL;
+          return nullptr;
      }
 
      void DeleteNode(node_s *pNode)
@@ -426,9 +426,9 @@ private:
                     pLastNode = pHeadNode->next;
 
                pHeadNode = pHeadNode->next;
-               pNode->next = NULL;
+               pNode->next = nullptr;
                delete pNode;
-               pNode = NULL;
+               pNode = nullptr;
                iNodeCount--;
                return;
           }
@@ -436,11 +436,11 @@ private:
           if (pNode == pLastNode) // last node
           {
                pNode = pLastNode;
-               pLastNode->next = NULL;
+               pLastNode->next = nullptr;
 
-               pNode->next = NULL;
+               pNode->next = nullptr;
                delete pNode;
-               pNode = NULL;
+               pNode = nullptr;
                iNodeCount--;
                return;
           }
@@ -453,9 +453,9 @@ private:
 
           // unlink pNode
           pPrevNode->next = pNode->next;
-          pNode->next = NULL;
+          pNode->next = nullptr;
           delete pNode;
-          pNode = NULL;
+          pNode = nullptr;
           iNodeCount--;
      }
 };
@@ -499,7 +499,7 @@ public:
                     break;
           }
           delete pChoiceList;
-          pChoiceList = NULL;
+          pChoiceList = nullptr;
      }
 
      void Insert(C Choice, short Percent = 50)

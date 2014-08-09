@@ -3,7 +3,7 @@
 #include "cube.h"
 #define SCORERATIO(F,D) (float)(F >= 0 ? F : 0) / (float)(D > 0 ? D : 1)
 
-void *scoremenu = NULL;
+void *scoremenu = nullptr;
 bool needscoresreorder = true;
 
 void showscores(bool on)
@@ -28,7 +28,7 @@ struct coldata
     int priority;
     char *val;
 
-    coldata() : priority(-1), val(NULL) {}
+    coldata() : priority(-1), val(nullptr) {}
     ~coldata()
     {
         DELETEA(val);
@@ -52,9 +52,9 @@ struct sline
     char textcolor;
     vector<coldata> cols;
 
-    sline() : altfont(NULL), bgcolor(NULL), textcolor(0) { copystring(s, ""); }
+    sline() : altfont(nullptr), bgcolor(nullptr), textcolor(0) { copystring(s, ""); }
 
-    void addcol(int priority, const char *format = NULL, ...)
+    void addcol(int priority, const char *format = nullptr, ...)
     {
         if(priority < 0) return;
         coldata &col = cols.add();
@@ -225,7 +225,7 @@ void renderscore(playerent *d)
     const char *ign = d->ignored ? " (ignored)" : (d->muted ? " (muted)" : "");
     sline &line = scorelines.add();
     if(team_isspect(d->team)) line.textcolor = '4';
-    line.bgcolor = d->lastpain + 500 > lastmillis ? &damagedplayerc : d->lasthit + 500 > lastmillis ? &damagingplayerc : d == player1 ? &localplayerc : NULL;
+    line.bgcolor = d->lastpain + 500 > lastmillis ? &damagedplayerc : d->lasthit + 500 > lastmillis ? &damagingplayerc : d == player1 ? &localplayerc : nullptr;
 
     if(m_flags(gamemode)) line.addcol(sc_flags, "%d", d->flagscore);
     line.addcol(sc_frags, "%d", d->frags);
@@ -411,14 +411,14 @@ void renderscores(void *menu, bool init)
     }
 
     menureset(menu);
-    loopv(scorelines) menuimagemanual(menu, NULL, scorelines[i].altfont, scorelines[i].getcols(), NULL, scorelines[i].bgcolor);
+    loopv(scorelines) menuimagemanual(menu, nullptr, scorelines[i].altfont, scorelines[i].getcols(), nullptr, scorelines[i].bgcolor);
     menuheader(menu, modeline, serverline);
 
     // update server stats
     static int lastrefresh = 0;
     if(!lastrefresh || lastrefresh+5000<lastmillis)
     {
-        refreshservers(NULL, init);
+        refreshservers(nullptr, init);
         lastrefresh = lastmillis;
     }
 }
@@ -429,7 +429,7 @@ void addstr(char *dest, const char *src) { if(strlen(dest) + strlen(src) < MAXJP
 
 const char *asciiscores(bool destjpg)
 {
-    static char *buf = NULL;
+    static char *buf = nullptr;
     static string team, flags, text;
     playerent *d;
     vector<playerent *> scores;

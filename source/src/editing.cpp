@@ -83,9 +83,9 @@ bool noselection()
 char *editinfo()
 {
     static string info;
-    if(!editmode) return NULL;
+    if(!editmode) return nullptr;
     int e = closestent();
-    if(e<0) return NULL;
+    if(e<0) return nullptr;
     entity &c = ents[e];
     string selinfo = "no selection";
     if(selset()) formatstring(selinfo)("selection = (%d, %d)", (sels.last()).xs, (sels.last()).ys);
@@ -686,7 +686,7 @@ void selfliprotate(block &sel, int dir)
 {
     makeundo(sel);
     block *org = blockcopy(sel);
-    const sqr *q = (const sqr *)(org + 1);
+    const sqr *q = reinterpret_cast<const sqr *>(org + 1);
     int x1 = sel.x, x2 = sel.x + sel.xs - 1, y1 = sel.y, y2 = sel.y + sel.ys - 1, x, y;
     switch(dir)
     {

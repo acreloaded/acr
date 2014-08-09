@@ -1,6 +1,6 @@
 #include "ballistics.h"
 
-float srayclip(const vec &o, const vec &ray, vec *surface = NULL)
+float srayclip(const vec &o, const vec &ray, vec *surface = nullptr)
 {
     float dist = sraycube(o, ray, surface);
     vec to = ray;
@@ -28,7 +28,7 @@ float srayclip(const vec &o, const vec &ray, vec *surface = NULL)
 }
 
 // trace a shot
-void straceShot(const vec &from, vec &to, vec *surface = NULL)
+void straceShot(const vec &from, vec &to, vec *surface = nullptr)
 {
     vec tracer(to);
     tracer.sub(from).normalize();
@@ -37,7 +37,7 @@ void straceShot(const vec &from, vec &to, vec *surface = NULL)
 }
 
 // normal shots (ray through sphere and cylinder check)
-static inline int hitplayer(const vec &from, float yaw, float pitch, const vec &to, const vec &target, const vec &head, vec *end = NULL)
+static inline int hitplayer(const vec &from, float yaw, float pitch, const vec &to, const vec &target, const vec &head, vec *end = nullptr)
 {
     float dist;
     // intersect head
@@ -103,7 +103,7 @@ inline void sendheadshot(const vec &from, const vec &to, int damage)
 
 void parsepos(client &c, const vector<posinfo> &pos, vec &out_o, vec &out_head)
 {
-    const posinfo *info = NULL;
+    const posinfo *info = nullptr;
     loopv(pos) if (pos[i].cn == c.clientnum) { info = &pos[i]; break; }
     // position
     if (scl.lagtrust >= 2 && info) out_o = info->o;
@@ -269,7 +269,7 @@ struct shothit
 // hit checks
 client *nearesthit(client &actor, const vec &from, const vec &to, bool teamcheck, int &hitzone, const vector<posinfo> &pos, vector<int> &exclude, vec &end, bool melee = false)
 {
-    client *result = NULL;
+    client *result = nullptr;
     float dist = 4e9f; // a billion meters...
 #define MELEE_PRECISION 11
     vec melees[MELEE_PRECISION];
@@ -322,7 +322,7 @@ client *nearesthit(client &actor, const vec &from, const vec &to, bool teamcheck
 }
 
 // do a single line
-int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, int weap, int style, const vec &surface, vector<int> &exclude, float dist = 0, float penaltydist = 0, vector<shothit> *save = NULL)
+int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, int weap, int style, const vec &surface, vector<int> &exclude, float dist = 0, float penaltydist = 0, vector<shothit> *save = nullptr)
 {
     const int mulset = sniper_weap(weap) ? MUL_SNIPER : MUL_NORMAL;
     int hitzone = HIT_NONE; vec end = to;

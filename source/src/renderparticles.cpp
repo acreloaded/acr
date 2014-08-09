@@ -2,8 +2,8 @@
 
 #include "cube.h"
 
-static GLushort *hemiindices = NULL;
-static vec *hemiverts = NULL;
+static GLushort *hemiindices = nullptr;
+static vec *hemiverts = nullptr;
 static int heminumverts = 0, heminumindices = 0;
 
 static void subdivide(int depth, int face);
@@ -73,7 +73,7 @@ static struct expvert
 {
     vec pos;
     float u, v, s, t;
-} *expverts = NULL;
+} *expverts = nullptr;
 
 static GLuint expmodtex[2] = {0, 0};
 static GLuint lastexpmodtex = 0;
@@ -185,13 +185,13 @@ void cleanupexplosion()
 }
 
 struct particle { vec o, d; int fade, type; int millis; particle *next; };
-particle *parlist[MAXPARTYPES], *parempty = NULL;
+particle *parlist[MAXPARTYPES], *parempty = nullptr;
 
 static Texture *parttex[7];
 
 void particleinit()
 {
-    loopi(MAXPARTYPES) parlist[i] = NULL;
+    loopi(MAXPARTYPES) parlist[i] = nullptr;
 
     parttex[0] = textureload("packages/misc/base.png");
     parttex[1] = textureload("packages/misc/smoke.png");

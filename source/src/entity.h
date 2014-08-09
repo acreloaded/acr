@@ -249,7 +249,7 @@ public:
             prev[i].reset();
             current[i].reset();
             lastanimswitchtime[i] = -1;
-            lastmodel[i] = NULL;
+            lastmodel[i] = nullptr;
         }
         lastrendered = 0;
     }
@@ -339,7 +339,7 @@ public:
             case I_ARMOUR:
                 return &powerupstats[type-I_HEALTH];
             default:
-                return NULL;
+                return nullptr;
         }
     }
 
@@ -646,10 +646,10 @@ public:
                   frags(0), flagscore(0), deaths(0), points(0), lastpain(0), lastvoicecom(0), lasthit(0), clientrole(CR_DEFAULT),
                   vote(VOTE_NEUTRAL), voternum(0),
                   team(TEAM_SPECT), build(0), spectatemode(SM_NONE), thirdperson(0), eardamagemillis(0), respawnoffset(0),
-                  prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), lastattackweapon(NULL),
+                  prevweaponsel(nullptr), weaponsel(nullptr), nextweaponsel(nullptr), lastattackweapon(nullptr),
                   smoothmillis(-1),
                   head(-1, -1, -1), eject(-1, -1, -1), muzzle(-1, -1, -1), ignored(false), muted(false),
-                  ownernum(-1), level(0), pBot(NULL), enemy(NULL)
+                  ownernum(-1), level(0), pBot(nullptr), enemy(nullptr)
     {
         type = ENT_PLAYER;
         name[0] = 0;
@@ -657,7 +657,7 @@ public:
         aboveeye = PLAYERABOVEEYE;
         radius = PLAYERRADIUS;
         maxspeed = 16.0f;
-        skin_noteam = skin_cla = skin_rvsf = NULL;
+        skin_noteam = skin_cla = skin_rvsf = nullptr;
         loopi(2) nextskin[i] = 0;
         loopi(NUMGUNS) weapstats[i].deaths = weapstats[i].kills = 0;
         respawn(G_DM, G_M_NONE);
@@ -728,7 +728,7 @@ public:
         history.reset();
         if(weaponsel) weaponsel->reset();
         lastaction = 0;
-        lastattackweapon = NULL;
+        lastattackweapon = nullptr;
         attacking = false;
         //extern int lastmillis;
         weaponchanging = 0; // spawnkill is bad though // lastmillis - weapons[gunselect]->weaponchangetime / 2; // 2011jan16:ft: for a little no-shoot after spawn
@@ -797,7 +797,7 @@ public:
     bool plclipped;
     playerent *owner;
 
-    bounceent() : bouncetype(BT_NONE), rotspeed(1.0f), plclipped(false), owner(NULL)
+    bounceent() : bouncetype(BT_NONE), rotspeed(1.0f), plclipped(false), owner(nullptr)
     {
         type = ENT_BOUNCE;
         maxspeed = 40;
@@ -838,7 +838,7 @@ struct pckserver
     bool pending, responsive;
     int ping;
 
-    pckserver() : addr(NULL), pending(false), responsive(true), ping(-1) {}
+    pckserver() : addr(nullptr), pending(false), responsive(true), ping(-1) {}
 };
 
 enum { PCK_TEXTURE, PCK_SKYBOX, PCK_MAPMODEL, PCK_AUDIO, PCK_MAP, PCK_NUM };
@@ -851,6 +851,6 @@ struct package
     pckserver *source;
     CURL *curl;
 
-    package() : name(NULL), type(-1), number(0), pending(false), source(NULL), curl(NULL) {}
+    package() : name(nullptr), type(-1), number(0), pending(false), source(nullptr), curl(nullptr) {}
 };
 #endif

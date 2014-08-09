@@ -107,7 +107,7 @@ bool CWaypointClass::LoadWaypoints()
      BotManager.m_sCurrentTriggerNr = -1;
 
      // if file exists, read the waypoint structure from it
-     if (bfp != NULL)
+     if (bfp != nullptr)
      {
           bfp->read(&header, sizeof(header));
 
@@ -156,7 +156,7 @@ bool CWaypointClass::LoadWaypoints()
 
                               if (!pCurrent)
                               {
-                                   conoutf("Error: NULL path in waypoint file");
+                                   conoutf("Error: nullptr path in waypoint file");
                                    continue;
                               }
 
@@ -169,7 +169,7 @@ bool CWaypointClass::LoadWaypoints()
 
                                    if (!pTo)
                                    {
-                                        conoutf("Error: NULL path in waypoint file");
+                                        conoutf("Error: nullptr path in waypoint file");
                                         continue;
                                    }
 
@@ -218,7 +218,7 @@ bool CWaypointClass::LoadWaypoints()
 
                               if (!pCurrent)
                               {
-                                   conoutf("Error: NULL path in waypoint file");
+                                   conoutf("Error: nullptr path in waypoint file");
 
                                    for(j=0;j<num;j++) bfp->read(&to, sizeof(to)); // Read rest of block
                                    continue;
@@ -357,7 +357,7 @@ void CWaypointClass::SaveWaypoints()
                     bfp->write(&p->Entry->v_origin, sizeof(p->Entry->v_origin)); // write the origin of this path
 
                     // now write out each path...
-                    while (pPath != NULL)
+                    while (pPath != nullptr)
                     {
                          bfp->write(&pPath->Entry->v_origin, sizeof(pPath->Entry->v_origin));
                          pPath = pPath->next;  // go to next node in linked list
@@ -391,7 +391,7 @@ bool CWaypointClass::LoadWPExpFile()
      bfp = fopen(filename, "rb");
 
      // if file exists, read the waypoint structure from it
-     if (bfp != NULL)
+     if (bfp != nullptr)
      {
           fread(&header, sizeof(header), 1, bfp);
 
@@ -417,7 +417,7 @@ bool CWaypointClass::LoadWPExpFile()
 
                               if (!pCurrent)
                               {
-                                   conoutf("Error: NULL node in waypoint experience file");
+                                   conoutf("Error: nullptr node in waypoint experience file");
                                    continue;
                               }
 
@@ -532,7 +532,7 @@ void CWaypointClass::SaveWPExpFile()
                     fwrite(&num, sizeof(num), 1, bfp);  // write the count
                     fwrite(&p->Entry->v_origin, sizeof(vec), 1, bfp); // write the origin of this node
 
-                    while (p2 != NULL)
+                    while (p2 != nullptr)
                     {
                          // Write out the node which a bot can't reach with the current node
                          fwrite(&p2->Entry->v_origin, sizeof(vec), 1, bfp);
@@ -628,7 +628,7 @@ void CWaypointClass::DrawNearWaypoints()
     glDisable(GL_CULL_FACE);
 
      TLinkedList<node_s *>::node_s *pNode;
-     node_s *pNearest = NULL;
+     node_s *pNearest = nullptr;
      short i, j, MinI, MaxI, MinJ, MaxJ, Offset = (short)ceilf(15.0f / MAX_MAP_GRIDS);
      float flNearestDist = 9999.99f, flDist;
 
@@ -902,8 +902,8 @@ void CWaypointClass::DeletePath(node_s *pWP1, node_s *pWP2)
 
 void CWaypointClass::ManuallyCreatePath(vec v_src, int iCmd, bool TwoWay)
 {
-     static node_s *waypoint1 = NULL;  // initialized to unassigned
-     static node_s *waypoint2 = NULL;  // initialized to unassigned
+     static node_s *waypoint1 = nullptr;  // initialized to unassigned
+     static node_s *waypoint2 = nullptr;  // initialized to unassigned
 
      if (iCmd == 1)  // assign source of path
      {
@@ -943,8 +943,8 @@ void CWaypointClass::ManuallyCreatePath(vec v_src, int iCmd, bool TwoWay)
 
 void CWaypointClass::ManuallyDeletePath(vec v_src, int iCmd, bool TwoWay)
 {
-     static node_s *waypoint1 = NULL;  // initialized to unassigned
-     static node_s *waypoint2 = NULL;  // initialized to unassigned
+     static node_s *waypoint1 = nullptr;  // initialized to unassigned
+     static node_s *waypoint2 = nullptr;  // initialized to unassigned
 
      if (iCmd == 1)  // assign source of path
      {
@@ -1008,7 +1008,7 @@ bool CWaypointClass::WPIsReachable(vec from, vec to)
                     v_new_dest.z = v_new_dest.z - (JUMP_HEIGHT + 1.0f);
 
                     // check if we didn't hit anything, if so then it's in mid-air
-                    if (::IsVisible(v_new_src, v_new_dest, NULL))
+                    if (::IsVisible(v_new_src, v_new_dest, nullptr))
                     {
                          conoutf("to is in midair");
                          debugbeam(from, to);
@@ -1028,7 +1028,7 @@ bool CWaypointClass::WPIsReachable(vec from, vec to)
 
                v_down.z = v_down.z - 100.0f;  // straight down
 
-               TraceLine(v_check, v_down, NULL, false, &tr);
+               TraceLine(v_check, v_down, nullptr, false, &tr);
 
                  // height from ground
                last_height = GetDistance(v_check, tr.end);
@@ -1045,7 +1045,7 @@ bool CWaypointClass::WPIsReachable(vec from, vec to)
                     v_down = v_check;
                     v_down.z = v_down.z - 100.0f;
 
-                    TraceLine(v_check, v_down, NULL, false, &tr);
+                    TraceLine(v_check, v_down, nullptr, false, &tr);
 
                     curr_height = GetDistance(v_check, tr.end);
 
@@ -1073,7 +1073,7 @@ bool CWaypointClass::WPIsReachable(vec from, vec to)
 node_s *CWaypointClass::GetNearestWaypoint(vec v_src, float flRange)
 {
      TLinkedList<node_s *>::node_s *pNode;
-     node_s *pNearest = NULL;
+     node_s *pNearest = nullptr;
      short i, j, MinI, MaxI, MinJ, MaxJ, Offset = (short)ceil(flRange / MAX_MAP_GRIDS);
      float flNearestDist = 9999.99f, flDist;
 
@@ -1103,7 +1103,7 @@ node_s *CWaypointClass::GetNearestWaypoint(vec v_src, float flRange)
                     flDist = GetDistance(v_src, pNode->Entry->v_origin);
                     if ((flDist < flNearestDist) && (flDist <= flRange))
                     {
-                         if (IsVisible(v_src, pNode->Entry->v_origin, NULL))
+                         if (IsVisible(v_src, pNode->Entry->v_origin, nullptr))
                          {
                               pNearest = pNode->Entry;
                               flNearestDist = flDist;
@@ -1120,7 +1120,7 @@ node_s *CWaypointClass::GetNearestWaypoint(vec v_src, float flRange)
 node_s *CWaypointClass::GetNearestTriggerWaypoint(vec v_src, float flRange)
 {
      TLinkedList<node_s *>::node_s *pNode;
-     node_s *pNearest = NULL;
+     node_s *pNearest = nullptr;
      short i, j, MinI, MaxI, MinJ, MaxJ, Offset = (short)ceil(flRange / MAX_MAP_GRIDS);
      float flNearestDist = 9999.99f, flDist;
 
@@ -1156,7 +1156,7 @@ node_s *CWaypointClass::GetNearestTriggerWaypoint(vec v_src, float flRange)
                     flDist = GetDistance(v_src, pNode->Entry->v_origin);
                     if ((flDist < flNearestDist) && (flDist <= flRange))
                     {
-                         if (IsVisible(v_src, pNode->Entry->v_origin, NULL))
+                         if (IsVisible(v_src, pNode->Entry->v_origin, nullptr))
                          {
                               pNearest = pNode->Entry;
                               flNearestDist = flDist;
@@ -1186,7 +1186,7 @@ node_s *CWaypointClass::GetWaypointFromVec(const vec &v_src)
 
           pNode = pNode->next;
      }
-     return NULL;
+     return nullptr;
 }
 
 void CWaypointClass::CalcCost(node_s *pNode)
@@ -1211,7 +1211,7 @@ void CWaypointClass::CalcCost(node_s *pNode)
 
                // See if there is a obstacle(cube or mapmodel) nearby
                traceresult_s tr;
-               TraceLine(pNode->v_origin, to, NULL, false, &tr);
+               TraceLine(pNode->v_origin, to, nullptr, false, &tr);
                if (tr.collided)
                {
                     float flFraction = (GetDistance(pNode->v_origin, tr.end) /
@@ -1223,7 +1223,7 @@ void CWaypointClass::CalcCost(node_s *pNode)
 
                vec from = to;
                to.z -= (JUMP_HEIGHT - 1.0f);
-               TraceLine(from, to, NULL, false, &tr);
+               TraceLine(from, to, nullptr, false, &tr);
                if (!tr.collided)
                     flCost += 0.5f;
           }
@@ -1239,7 +1239,7 @@ void CWaypointClass::CalcCost(node_s *pNode)
 
                // See if there is a obstacle(cube or mapmodel) nearby
                traceresult_s tr;
-               TraceLine(pNode->v_origin, to, NULL, false, &tr);
+               TraceLine(pNode->v_origin, to, nullptr, false, &tr);
                if (tr.collided)
                {
                     float flFraction = (GetDistance(pNode->v_origin, tr.end) /
@@ -1251,7 +1251,7 @@ void CWaypointClass::CalcCost(node_s *pNode)
 
                vec from = to;
                to.z -= (JUMP_HEIGHT - 1.0f);
-               TraceLine(from, to, NULL, false, &tr);
+               TraceLine(from, to, nullptr, false, &tr);
                if (!tr.collided)
                     flCost += 0.5f;
           }
@@ -1443,7 +1443,7 @@ bool CWaypointClass::CanPlaceNodeHere(const vec &from)
           return false;
      }
 
-     if (GetNearestFloodWP(from, 2.0f, NULL)) return false;
+     if (GetNearestFloodWP(from, 2.0f, nullptr)) return false;
 
      for (a=(x-1);a<=(x+1);a++)
      {
@@ -1455,7 +1455,7 @@ bool CWaypointClass::CanPlaceNodeHere(const vec &from)
                v2 = v1;
                v2.z -= 1000.0f;
 
-               TraceLine(v1, v2, NULL, false, &tr, true);
+               TraceLine(v1, v2, nullptr, false, &tr, true);
                to = tr.end;
 
                if ((a >= (x-1)) && (a <= (x+1)) && (b >= (y-1)) && (b <= (y+1)))
@@ -1473,7 +1473,7 @@ bool CWaypointClass::CanPlaceNodeHere(const vec &from)
                     return false;
                }
 
-               TraceLine(from, to, NULL, false, &tr, true);
+               TraceLine(from, to, nullptr, false, &tr, true);
                if (tr.collided)
                     return false;
           }
@@ -1537,7 +1537,7 @@ void CWaypointClass::ConnectFloodWP(node_s *pWP)
                     flDist = GetDistance(pWP->v_origin, pNode->Entry->v_origin);
                     if (flDist <= flRange)
                     {
-                         if (IsVisible(pWP->v_origin, pNode->Entry->v_origin, NULL, true))
+                         if (IsVisible(pWP->v_origin, pNode->Entry->v_origin, nullptr, true))
                          {
                               // Connect a with b
                               pWP->ConnectedWPs.AddNode(pNode->Entry);
@@ -1561,7 +1561,7 @@ node_s *CWaypointClass::GetNearestFloodWP(vec v_origin, float flRange, node_s *p
                                           bool SkipTags)
 {
      TLinkedList<node_s *>::node_s *p;
-     node_s *pNearest = NULL;
+     node_s *pNearest = nullptr;
      short i, j, MinI, MaxI, MinJ, MaxJ, Offset = (short)ceil(flRange / MAX_MAP_GRIDS);
      float flNearestDist = 9999.99f, flDist;
 
@@ -1597,7 +1597,7 @@ node_s *CWaypointClass::GetNearestFloodWP(vec v_origin, float flRange, node_s *p
                     flDist = GetDistance(v_origin, p->Entry->v_origin);
                     if ((flDist < flNearestDist) && (flDist <= flRange))
                     {
-                         if (IsVisible(v_origin, p->Entry->v_origin, NULL, SkipTags))
+                         if (IsVisible(v_origin, p->Entry->v_origin, nullptr, SkipTags))
                          {
                               pNearest = p->Entry;
                               flNearestDist = flDist;
@@ -1614,7 +1614,7 @@ node_s *CWaypointClass::GetNearestFloodWP(vec v_origin, float flRange, node_s *p
 node_s *CWaypointClass::GetNearestTriggerFloodWP(vec v_origin, float flRange)
 {
      TLinkedList<node_s *>::node_s *p;
-     node_s *pNearest = NULL;
+     node_s *pNearest = nullptr;
      short i, j, MinI, MaxI, MinJ, MaxJ, Offset = (short)ceil(flRange / MAX_MAP_GRIDS);
      float flNearestDist = 9999.99f, flDist;
 
@@ -1650,7 +1650,7 @@ node_s *CWaypointClass::GetNearestTriggerFloodWP(vec v_origin, float flRange)
                     flDist = GetDistance(v_origin, p->Entry->v_origin);
                     if ((flDist < flNearestDist) && (flDist <= flRange))
                     {
-                         if (IsVisible(v_origin, p->Entry->v_origin, NULL))
+                         if (IsVisible(v_origin, p->Entry->v_origin, nullptr))
                          {
                               pNearest = p->Entry;
                               flNearestDist = flDist;
@@ -1798,7 +1798,7 @@ void CCubeWaypointClass::StartFlood()
                     for (float y=(y1+1.0f);y<=(y2-1.0f);y++)
                     {
                          vec from = { x, y, floor+2.0f };
-                         if (GetNearestFloodWP(from, 2.0f, NULL)) continue;
+                         if (GetNearestFloodWP(from, 2.0f, nullptr)) continue;
 
                          // Add WP
                          int flags = W_FL_FLOOD;
@@ -2141,7 +2141,7 @@ bool CBot::FindWaypoint()
      for (index=0; index < 3; index++)
      {
           min_distance[index] = 9999.0;
-          min_wp[index] = NULL;
+          min_wp[index] = nullptr;
      }
 
      TLinkedList<node_s *>::node_s *pNode = m_pCurrentWaypoint->pNode->ConnectedWPs.GetFirst();
@@ -2202,7 +2202,7 @@ bool CBot::FindWaypoint()
           pNode = pNode->next;
      }
 
-     wpselect = NULL;
+     wpselect = nullptr;
 
      // about 20% of the time choose a waypoint at random
      // (don't do this any more often than every 10 seconds)
@@ -2352,7 +2352,7 @@ bool CBot::HeadToWaypoint()
                {
                     // if waypoint not found, clear oldest previous index and try again
 
-                    m_pPrevWaypoints[index] = NULL;
+                    m_pPrevWaypoints[index] = nullptr;
                     index--;
                }
 
@@ -2525,7 +2525,7 @@ bool CBot::HeadToGoal()
                else
                {
                     // Current waypoint isn't reachable, search new one
-                    waypoint_s *pWP = NULL;
+                    waypoint_s *pWP = nullptr;
 
 #ifdef WP_FLOOD
                     if (m_pCurrentGoalWaypoint->pNode->iFlags & W_FL_FLOOD)
@@ -2580,7 +2580,7 @@ bool CBot::AStar()
      static int iCurrentCycles;
      static short newg;
      static waypoint_s *n, *n2;
-     static TLinkedList<node_s *>::node_s *pPath = NULL;
+     static TLinkedList<node_s *>::node_s *pPath = nullptr;
      static bool bPathFailed;
 
      iMaxCycles = BotManager.m_iFrameTime / 10;
@@ -2601,9 +2601,9 @@ bool CBot::AStar()
           CleanAStarLists(false);
 
           m_pCurrentWaypoint->g[0] = m_pCurrentWaypoint->g[1] = 0;
-          m_pCurrentWaypoint->pParent[0] = m_pCurrentWaypoint->pParent[1] = NULL;
+          m_pCurrentWaypoint->pParent[0] = m_pCurrentWaypoint->pParent[1] = nullptr;
           m_pCurrentGoalWaypoint->g[0] = m_pCurrentGoalWaypoint->g[1] = 0;
-          m_pCurrentGoalWaypoint->pParent[0] = m_pCurrentGoalWaypoint->pParent[1] = NULL;
+          m_pCurrentGoalWaypoint->pParent[0] = m_pCurrentGoalWaypoint->pParent[1] = nullptr;
 
           m_AStarNodeList.DeleteAllNodes();
 
@@ -2848,7 +2848,7 @@ void CBot::CleanAStarLists(bool bPathFailed)
           waypoint_s *p = m_AStarOpenList[0].Pop();
           p->bIsOpen[0] = p->bIsOpen[1] = false;
           p->bIsClosed[0] = p->bIsClosed[1] = false;
-          p->pParent[0] = p->pParent[1] = NULL;
+          p->pParent[0] = p->pParent[1] = nullptr;
           p->g[0] = p->g[1] = 0;
      }
 
@@ -2857,7 +2857,7 @@ void CBot::CleanAStarLists(bool bPathFailed)
           waypoint_s *p = m_AStarOpenList[1].Pop();
           p->bIsOpen[0] = p->bIsOpen[1] = false;
           p->bIsClosed[0] = p->bIsClosed[1] = false;
-          p->pParent[0] = p->pParent[1] = NULL;
+          p->pParent[0] = p->pParent[1] = nullptr;
           p->g[0] = p->g[1] = 0;
      }
 
@@ -2866,7 +2866,7 @@ void CBot::CleanAStarLists(bool bPathFailed)
           waypoint_s *p = m_AStarClosedList[0].Pop();
           p->bIsOpen[0] = p->bIsOpen[1] = false;
           p->bIsClosed[0] = p->bIsClosed[1] = false;
-          p->pParent[0] = p->pParent[1] = NULL;
+          p->pParent[0] = p->pParent[1] = nullptr;
           p->g[0] = p->g[1] = 0;
           if (bPathFailed)
                p->pNode->FailedGoalList.AddNode(m_pCurrentGoalWaypoint->pNode);
@@ -2877,7 +2877,7 @@ void CBot::CleanAStarLists(bool bPathFailed)
           waypoint_s *p = m_AStarClosedList[1].Pop();
           p->bIsOpen[0] = p->bIsOpen[1] = false;
           p->bIsClosed[0] = p->bIsClosed[1] = false;
-          p->pParent[0] = p->pParent[1] = NULL;
+          p->pParent[0] = p->pParent[1] = nullptr;
           p->g[0] = p->g[1] = 0;
           if (bPathFailed)
                p->pNode->FailedGoalList.AddNode(m_pCurrentWaypoint->pNode);
@@ -2887,13 +2887,13 @@ void CBot::CleanAStarLists(bool bPathFailed)
 void CBot::ResetWaypointVars()
 {
      m_iWaypointTime = 0;
-     m_pCurrentWaypoint = NULL;
-     m_pCurrentGoalWaypoint = NULL;
-     m_pPrevWaypoints[0] = NULL;
-     m_pPrevWaypoints[1] = NULL;
-     m_pPrevWaypoints[2] = NULL;
-     m_pPrevWaypoints[3] = NULL;
-     m_pPrevWaypoints[4] = NULL;
+     m_pCurrentWaypoint = nullptr;
+     m_pCurrentGoalWaypoint = nullptr;
+     m_pPrevWaypoints[0] = nullptr;
+     m_pPrevWaypoints[1] = nullptr;
+     m_pPrevWaypoints[2] = nullptr;
+     m_pPrevWaypoints[3] = nullptr;
+     m_pPrevWaypoints[4] = nullptr;
      m_fPrevWaypointDistance = 0;
      m_iWaypointHeadLastTurnLessTime = 0;
      m_iWaypointHeadPauseTime = 0;
@@ -2911,7 +2911,7 @@ void CBot::SetCurrentWaypoint(node_s *pNode)
 {
      waypoint_s *pWP = GetWPFromNode(pNode);
 #ifndef RELEASE_BUILD
-     if (!pWP || !pNode) condebug("NULL WP In SetCurrentWP");
+     if (!pWP || !pNode) condebug("nullptr WP In SetCurrentWP");
 #endif
 
      m_pCurrentWaypoint = pWP;
@@ -2921,7 +2921,7 @@ void CBot::SetCurrentWaypoint(node_s *pNode)
 void CBot::SetCurrentWaypoint(waypoint_s *pWP)
 {
 #ifndef RELEASE_BUILD
-     if (!pWP) condebug("NULL WP In SetCurrentWP(2)");
+     if (!pWP) condebug("nullptr WP In SetCurrentWP(2)");
 #endif
 
      m_pCurrentWaypoint = pWP;
@@ -2932,7 +2932,7 @@ void CBot::SetCurrentGoalWaypoint(node_s *pNode)
 {
      waypoint_s *pWP = GetWPFromNode(pNode);
 #ifndef RELEASE_BUILD
-     if (!pWP || !pNode) condebug("NULL WP In SetCurrentGoalWP");
+     if (!pWP || !pNode) condebug("nullptr WP In SetCurrentGoalWP");
 #endif
 
      m_pCurrentGoalWaypoint = pWP;
@@ -2941,7 +2941,7 @@ void CBot::SetCurrentGoalWaypoint(node_s *pNode)
 void CBot::SetCurrentGoalWaypoint(waypoint_s *pWP)
 {
 #ifndef RELEASE_BUILD
-     if (!pWP) condebug("NULL WP In SetCurrentGoalWP(2)");
+     if (!pWP) condebug("nullptr WP In SetCurrentGoalWP(2)");
 #endif
 
      m_pCurrentGoalWaypoint = pWP;
@@ -2951,7 +2951,7 @@ bool CBot::CurrentWPIsValid()
 {
      if (!m_pCurrentWaypoint)
      {
-          //condebug("Invalid WP: Is NULL");
+          //condebug("Invalid WP: Is nullptr");
           return false;
      }
 
@@ -2984,7 +2984,7 @@ bool CBot::ReachedGoalWP()
 
 waypoint_s *CBot::GetWPFromNode(node_s *pNode)
 {
-     if (!pNode) return NULL;
+     if (!pNode) return nullptr;
 
      short x, y;
      WaypointClass.GetNodeIndexes(pNode->v_origin, &x, &y);
@@ -2998,13 +2998,13 @@ waypoint_s *CBot::GetWPFromNode(node_s *pNode)
           p = p->next;
      }
 
-     return NULL;
+     return nullptr;
 }
 
 waypoint_s *CBot::GetNearestWaypoint(vec v_src, float flRange)
 {
      TLinkedList<waypoint_s *>::node_s *p;
-     waypoint_s *pNearest = NULL;
+     waypoint_s *pNearest = nullptr;
      short i, j, MinI, MaxI, MinJ, MaxJ, Offset = (short)ceil(flRange / MAX_MAP_GRIDS);
      float flNearestDist = 9999.99f, flDist;
 
@@ -3040,7 +3040,7 @@ waypoint_s *CBot::GetNearestWaypoint(vec v_src, float flRange)
                     flDist = GetDistance(v_src, p->Entry->pNode->v_origin);
                     if ((flDist < flNearestDist) && (flDist <= flRange))
                     {
-                         if (::IsVisible(v_src, p->Entry->pNode->v_origin, NULL))
+                         if (::IsVisible(v_src, p->Entry->pNode->v_origin, nullptr))
                          {
                               pNearest = p->Entry;
                               flNearestDist = flDist;
@@ -3057,7 +3057,7 @@ waypoint_s *CBot::GetNearestWaypoint(vec v_src, float flRange)
 waypoint_s *CBot::GetNearestTriggerWaypoint(vec v_src, float flRange)
 {
      TLinkedList<waypoint_s *>::node_s *p;
-     waypoint_s *pNearest = NULL;
+     waypoint_s *pNearest = nullptr;
      short i, j, MinI, MaxI, MinJ, MaxJ, Offset = (short)ceil(flRange / MAX_MAP_GRIDS);
      float flNearestDist = 9999.99f, flDist;
 
@@ -3093,7 +3093,7 @@ waypoint_s *CBot::GetNearestTriggerWaypoint(vec v_src, float flRange)
                     flDist = GetDistance(v_src, p->Entry->pNode->v_origin);
                     if ((flDist < flNearestDist) && (flDist <= flRange))
                     {
-                         if (::IsVisible(v_src, p->Entry->pNode->v_origin, NULL))
+                         if (::IsVisible(v_src, p->Entry->pNode->v_origin, nullptr))
                          {
                               pNearest = p->Entry;
                               flNearestDist = flDist;
@@ -3149,7 +3149,7 @@ void CBot::SyncWaypoints()
 waypoint_s *CBot::GetNearestFloodWP(vec v_origin, float flRange)
 {
      TLinkedList<waypoint_s *>::node_s *p;
-     waypoint_s *pNearest = NULL;
+     waypoint_s *pNearest = nullptr;
      short i, j, MinI, MaxI, MinJ, MaxJ, Offset = (short)ceil(flRange / MAX_MAP_GRIDS);
      float flNearestDist = 9999.99f, flDist;
 
@@ -3185,7 +3185,7 @@ waypoint_s *CBot::GetNearestFloodWP(vec v_origin, float flRange)
                     flDist = GetDistance(v_origin, p->Entry->pNode->v_origin);
                     if ((flDist < flNearestDist) && (flDist <= flRange))
                     {
-                         if (::IsVisible(v_origin, p->Entry->pNode->v_origin, NULL))
+                         if (::IsVisible(v_origin, p->Entry->pNode->v_origin, nullptr))
                          {
                               pNearest = p->Entry;
                               flNearestDist = flDist;
@@ -3202,7 +3202,7 @@ waypoint_s *CBot::GetNearestFloodWP(vec v_origin, float flRange)
 waypoint_s *CBot::GetNearestTriggerFloodWP(vec v_origin, float flRange)
 {
      TLinkedList<waypoint_s *>::node_s *p;
-     waypoint_s *pNearest = NULL;
+     waypoint_s *pNearest = nullptr;
      short i, j, MinI, MaxI, MinJ, MaxJ, Offset = (short)ceil(flRange / MAX_MAP_GRIDS);
      float flNearestDist = 9999.99f, flDist;
 
@@ -3238,7 +3238,7 @@ waypoint_s *CBot::GetNearestTriggerFloodWP(vec v_origin, float flRange)
                     flDist = GetDistance(v_origin, p->Entry->pNode->v_origin);
                     if ((flDist < flNearestDist) && (flDist <= flRange))
                     {
-                         if (::IsVisible(v_origin, p->Entry->pNode->v_origin, NULL))
+                         if (::IsVisible(v_origin, p->Entry->pNode->v_origin, nullptr))
                          {
                               pNearest = p->Entry;
                               flNearestDist = flDist;

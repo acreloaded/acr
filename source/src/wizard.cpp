@@ -22,7 +22,7 @@ static void addarg(vector<char> &argstr, const char *name)
 static void addarg(vector<char> &argstr, const char *name, const char *val)
 {
     addarg(argstr, name);
-    bool space = strchr(val, ' ')!=NULL;
+    bool space = strchr(val, ' ')!=nullptr;
     if(space) argstr.add('"');
     argstr.put(val, strlen(val));
     if(space) argstr.add('"');
@@ -46,7 +46,7 @@ static void readarg(vector<char> &argstr, const char *desc, const char *name)
 
 int wizardmain(int argc, char **argv)
 {
-    const char *outfile = NULL, *relpath = NULL;
+    const char *outfile = nullptr, *relpath = nullptr;
     for(int i = 1; i < argc; i++)
     {
         if(argv[i][0] == '-') continue;
