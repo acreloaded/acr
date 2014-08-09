@@ -85,7 +85,7 @@ struct console : consolebuffer<cline>
         }
     }
 
-    console() : consolebuffer<cline>(200) {}
+    console() : conskip(0), consolebuffer<cline>(200) {}
 };
 
 VARP(chatfade, 0, 15, 30);

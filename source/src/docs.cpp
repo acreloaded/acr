@@ -11,7 +11,7 @@ struct docargument
     char *token, *desc, *values;
     bool vararg;
 
-    docargument() : token(NULL), desc(NULL), values(NULL) {};
+    docargument() : token(NULL), desc(NULL), values(NULL), vararg(false) {};
     ~docargument()
     {
         DELETEA(token);
@@ -82,7 +82,7 @@ struct docsection
     vector<docident *> idents;
     void *menu;
 
-    docsection() : name(NULL) {};
+    docsection() : name(NULL), menu(NULL) {};
     ~docsection()
     {
         DELETEA(name);

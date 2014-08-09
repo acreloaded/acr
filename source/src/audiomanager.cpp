@@ -719,10 +719,7 @@ bool entityreference::operator==(const worldobjreference &other) { return type==
 
 // static
 
-staticreference::staticreference(const vec &ref) : worldobjreference(WR_STATICPOS)
-{
-    pos = ref;
-}
+staticreference::staticreference(const vec &ref) : pos(ref), worldobjreference(WR_STATICPOS) {}
 
 worldobjreference *staticreference::clone() const
 {
