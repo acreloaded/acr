@@ -316,10 +316,10 @@ void pickupeffects(int n, playerent *d, int spawntime)
     e.spawntime = lastmillis + spawntime;
     if(!d) return;
     d->pickup(e.type);
-    const itemstat &is = d->itemstats(e.type);
-    if(&is)
+    const itemstat *is = d->itemstats(e.type);
+    if(is)
     {
-        audiomgr.playsound(is.sound, d);
+        audiomgr.playsound(is->sound, d);
         if(d==player1)
         {
             /*

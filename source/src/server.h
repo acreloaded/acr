@@ -103,7 +103,7 @@ struct projectilestate
     int numprojs;
     int throwable;
 
-    projectilestate() : projs({}), numprojs(0), throwable(0) {}
+    projectilestate() : /*projs(),*/ numprojs(0), throwable(0) {}
 
     void reset() { numprojs = 0; }
 

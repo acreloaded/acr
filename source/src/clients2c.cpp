@@ -1644,8 +1644,10 @@ void receivefile(uchar *data, int len)
     static char text[MAXTRANS];
     ucharbuf p(data, len);
     int type = getint(p);
-    //data += p.length();
+    /*
+    data += p.length();
     len -= p.length();
+    */
     switch(type)
     {
         case SV_SENDDEMO:
