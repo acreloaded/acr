@@ -86,7 +86,7 @@ void mdlcachelimit(int *limit)
 
 COMMAND(mdlcachelimit, "i");
 
-vector<mapmodelinfo> mapmodels;
+vect<mapmodelinfo> mapmodels;
 
 void mapmodel(int *rad, int *h, int *zoff, char *snap, char *name)
 {
@@ -195,10 +195,10 @@ struct batchedmodel
 struct modelbatch
 {
     model *m;
-    vector<batchedmodel> batched;
+    vect<batchedmodel> batched;
 };
-static vector<modelbatch *> batches;
-static vector<modelattach> modelattached;
+static vect<modelbatch *> batches;
+static vect<modelattach> modelattached;
 static int numbatches = -1;
 
 void startmodelbatches()
@@ -323,7 +323,7 @@ void clearmodelbatches()
 
 void endmodelbatches(bool flush)
 {
-    vector<translucentmodel> translucent;
+    vect<translucentmodel> translucent;
     loopi(numbatches)
     {
         modelbatch &b = *batches[i];
@@ -715,7 +715,7 @@ VARP(teamdisplaymode, 0, 1, 2);
 
 #define SKINBASE "packages/models/playermodels"
 VARP(hidecustomskins, 0, 0, 2);
-static vector<char *> playerskinlist;
+static vect<char *> playerskinlist;
 
 const char *getclientskin(const char *name, const char *suf)
 {

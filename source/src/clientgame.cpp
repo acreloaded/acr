@@ -57,7 +57,7 @@ int arenaintermission = 0;
 struct serverstate servstate = { 0 };
 
 playerent *player1 = newplayerent();          // our client
-vector<playerent *> players;                  // other clients
+vect<playerent *> players;                  // other clients
 
 int lastmillis = 0, totalmillis = 0, nextmillis = 0;
 int lasthit = 0;
@@ -624,7 +624,7 @@ void showrespawntimer()
 }
 
 struct scriptsleep { int wait, millis; char *cmd; bool persist; };
-vector<scriptsleep> sleeps;
+vect<scriptsleep> sleeps;
 
 void addsleep(int msec, const char *cmd, bool persist)
 {
@@ -1011,7 +1011,7 @@ void preparectf(bool cleanonly=false)
 }
 
 struct mdesc { int mode, muts; char *desc; };
-vector<mdesc> gmdescs, mutdescs, gspdescs;
+vect<mdesc> gmdescs, mutdescs, gspdescs;
 
 void gamemodedesc(int *modenr, char *desc)
 {
@@ -1550,7 +1550,7 @@ void setadmin(int *claim, char *password)
 COMMAND(setadmin, "is");
 
 struct mline { string name, cmd; };
-static vector<mline> mlines;
+static vect<mline> mlines;
 
 void *kickmenu = nullptr, *banmenu = nullptr, *forceteammenu = nullptr, *giveadminmenu = nullptr;
 
@@ -1558,7 +1558,7 @@ void refreshsopmenu(void *menu, bool init)
 {
     menureset(menu);
     mlines.shrink(0);
-    mlines.reserve(players.length());
+    mlines.reserveR(players.length());
     loopv(players) if(players[i])
     {
         mline &m = mlines.add();
@@ -1584,7 +1584,7 @@ playerent *updatefollowplayer(int shiftdirection)
     }
 
     // collect spec-able players
-    vector<playerent *> available;
+    vect<playerent *> available;
     loopv(players) if(players[i])
     {
         if(player1->team != TEAM_SPECT && !watchingdemo && m_team(gamemode, mutators) && team_base(players[i]->team) != team_base(player1->team)) continue;

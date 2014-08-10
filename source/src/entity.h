@@ -582,7 +582,7 @@ struct eventicon
         TOTAL
     };
     int type, millis;
-    eventicon(int type, int millis) : type(type), millis(millis){}
+    eventicon(int type=0, int millis=0) : type(type), millis(millis){}
 };
 
 struct damageinfo
@@ -617,7 +617,7 @@ public:
     int spectatemode, thirdperson;
     int eardamagemillis;
     int respawnoffset;
-    vector<eventicon> icons;
+    vect<eventicon> icons;
     kd weapstats[NUMGUNS];
     bool allowmove() { return state!=CS_DEAD || spectatemode==SM_FLY; }
 

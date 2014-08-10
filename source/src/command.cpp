@@ -7,7 +7,7 @@ bool allowidentaccess(ident *id);
 char *exchangestr(char *o, const char *n) { delete[] o; return newstring(n); }
 void scripterr();
 
-vector<int> contextstack;
+vect<int> contextstack;
 bool contextsealed = false;
 bool contextisolated[IEXC_NUM] = { false };
 int execcontext;
@@ -475,9 +475,9 @@ void result(const char *s) { commandret = newstring(s); }
 #if 0
 // seer : script evaluation excessive recursion
 static int seer_count = 0; // count calls to executeret, check time every n1 (100) calls
-static int seer_index = -1; // position in timestamp vector
-vector<long long> seer_t1; // timestamp of last n2 (10) level-1 calls
-vector<long long> seer_t2; // timestamp of last n3 (10) level-2 calls
+static int seer_index = -1; // position in timestamp vect
+vect<long long> seer_t1; // timestamp of last n2 (10) level-1 calls
+vect<long long> seer_t2; // timestamp of last n3 (10) level-2 calls
 #endif
 char *executeret(const char *p)                            // all evaluation happens here, recursively
 {
@@ -550,7 +550,7 @@ char *executeret(const char *p)                            // all evaluation hap
                 {
                     case '=':
                         DELETEA(w[1]);
-                        swap(w[0], w[1]);
+                        swapB(w[0], w[1]);
                         c = "alias";
                         break;
                 }
@@ -664,7 +664,7 @@ char *executeret(const char *p)                            // all evaluation hap
 
                     case ID_ALIAS:                              // alias, also used as functions and (global) variables
                         delete[] w[0];
-                        static vector<ident *> argids;
+                        static vect<ident *> argids;
                         for(int i = 1; i<numargs; i++)
                         {
                             if(i > argids.length())
@@ -755,8 +755,8 @@ struct completeval
 {
     int type;
     char *dir, *ext;
-    vector<char *> dirlist;
-    vector<char *> list;
+    vect<char *> dirlist;
+    vect<char *> list;
 
     completeval(int type, const char *dir, const char *ext) : type(type), dir(dir && dir[0] ? newstring(dir) : nullptr), ext(ext && ext[0] ? newstring(ext) : nullptr) {}
     ~completeval() { DELETEA(dir); DELETEA(ext); dirlist.deletearrays(); list.deletearrays(); }
@@ -986,7 +986,7 @@ void execdir(const char *dir)
 {
         if(dir[0])
         {
-            vector<char *> files;
+            vect<char *> files;
             listfiles(dir, "cfg", files);
             loopv(files)
             {
@@ -1065,7 +1065,7 @@ void format(char **args, int numargs)
         return;
     }
 
-    vector<char> s;
+    vect<char> s;
     char *f = args[0];
     while(*f)
     {
@@ -1090,7 +1090,7 @@ void format(char **args, int numargs)
 #define whitespaceskip s += strspn(s, "\n\t \r")
 #define elementskip *s=='"' ? (++s, s += strcspn(s, "\"\n\0"), s += *s=='"') : s += strcspn(s, "\n\t \0")
 
-void explodelist(const char *s, vector<char *> &elems)
+void explodelist(const char *s, vect<char *> &elems)
 {
     whitespaceskip;
     while(*s)
@@ -1108,7 +1108,7 @@ void looplist(char *list, char *var, char *body)
     if(id->type!=ID_ALIAS) return;
     char *buf = newstring(MAXSTRLEN);
 
-    vector<char *> elems;
+    vect<char *> elems;
     explodelist(list, elems);
 
     loop_level++;
@@ -1255,7 +1255,7 @@ void testchar(char *s, int *type)
 
 char *strreplace(char *dest, const char *source, const char *search, const char *replace)
 {
-    vector<char> buf;
+    vect<char> buf;
 
     int searchlen = strlen(search);
     if(!searchlen) { copystring(dest, source); return dest; }
@@ -1292,7 +1292,7 @@ void sortlist(char *list)
         return;
     }
 
-    vector<char *> elems;
+    vect<char *> elems;
     explodelist(list, elems);
     elems.sort(stringsort);
 
@@ -1320,14 +1320,14 @@ void sortlist(char *list)
          return;
     }
 
-    vector<char *> elems;
+    vect<char *> elems;
     explodelist(list, elems);
 
-    vector<char *> swap;
-    explodelist(v, swap);
+    vect<char *> swapB;
+    explodelist(v, swapB);
 
     if (strcmp(v, "") == 0 || //no input
-    swap.length()%2 != 0) //incorrect input
+    swapB.length()%2 != 0) //incorrect input
     {
         result(buf);
         delete [] buf;
@@ -1336,13 +1336,13 @@ void sortlist(char *list)
 
     char tmp[255]; strcpy (tmp, "");
 
-    for(int i = 0; i < swap.length(); i+=2)
+    for(int i = 0; i < swapB.length(); i+=2)
     {
-        if (elems.inrange(atoi(swap[i])) && elems.inrange(atoi(swap[i + 1])))
+        if (elems.inrange(atoi(swapB[i])) && elems.inrange(atoi(swapB[i + 1])))
         {
-            strcpy(tmp, elems[atoi(swap[i])]);
-            strcpy(elems[atoi(swap[i])], elems[atoi(swap[i+1])]);
-            strcpy(elems[atoi(swap[i+1])], tmp);
+            strcpy(tmp, elems[atoi(swapB[i])]);
+            strcpy(elems[atoi(swapB[i])], elems[atoi(swapB[i+1])]);
+            strcpy(elems[atoi(swapB[i+1])], tmp);
         }
     }
 
@@ -1491,7 +1491,7 @@ void deletecfg()
 }
 #endif
 
-void identnames(vector<const char *> &names, bool builtinonly)
+void identnames(vect<const char *> &names, bool builtinonly)
 {
     enumeratekt(*idents, const char *, name, ident, id,
     {

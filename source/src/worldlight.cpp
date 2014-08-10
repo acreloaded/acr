@@ -204,7 +204,7 @@ struct dlight
     }
 };
 
-vector<dlight> dlights;
+vect<dlight> dlights;
 
 VARP(dynlight, 0, 1, 1);
 

@@ -49,9 +49,9 @@ struct tristrip
         bool haslink(ushort neighbor) const { loopi(3) if(n[i]==neighbor) return true; return false; }
     };
 
-    vector<triangle> triangles;
-    vector<ushort> connectivity[4];
-    vector<uchar> nodes;
+    vect<triangle> triangles;
+    vect<ushort> connectivity[4];
+    vect<uchar> nodes;
 
     template<class T>
     void addtriangles(const T *tris, int numtris)
@@ -173,20 +173,20 @@ struct tristrip
         {
             triangle &nexttri = triangles[tri.n[i]];
             int score = nexttri.numlinks();
-            bool swap = false;
+            bool swapB = false;
             if(v1!=UNUSED)
             {
                 if(!nexttri.hasvert(v1))
                 {
-                    swap = true;
+                    swapB = true;
                     score += nodes[v2] > nodes[v1] ? 1 : -1;
                 }
                 else if(nexttri.hasvert(v2)) continue;
                 else score += nodes[v1] > nodes[v2] ? 1 : -1;
-                if(!tsswap && swap) continue;
-                score += swap ? 1 : -1;
+                if(!tsswap && swapB) continue;
+                score += swapB ? 1 : -1;
             }
-            if(score < nextscore) { next = tri.n[i]; nextswap = swap; nextscore = score; }
+            if(score < nextscore) { next = tri.n[i]; nextswap = swapB; nextscore = score; }
         }
         if(next!=UNUSED)
         {
@@ -197,7 +197,7 @@ struct tristrip
         return next;
     }
 
-    void buildstrip(vector<ushort> &strip, bool reverse = false, bool prims = false)
+    void buildstrip(vect<ushort> &strip, bool reverse = false, bool prims = false)
     {
         ushort prev = leastconnected();
         if(prev==UNUSED) return;
@@ -211,9 +211,9 @@ struct tristrip
         }
         int from = findedge(first, triangles[cur]),
             to = findedge(first, triangles[cur], first.v[from]);
-        if(from+1!=to) swap(from, to);
+        if(from+1!=to) swapB(from, to);
         strip.add(first.v[(to+1)%3]);
-        if(reverse) swap(from, to);
+        if(reverse) swapB(from, to);
         strip.add(first.v[from]);
         strip.add(first.v[to]);
 
@@ -231,14 +231,14 @@ struct tristrip
 
     }
 
-    void buildstrips(vector<ushort> &strips, vector<drawcall> &draws, bool prims = true, bool degen = false)
+    void buildstrips(vect<ushort> &strips, vect<drawcall> &draws, bool prims = true, bool degen = false)
     {
-        vector<ushort> singles;
+        vect<ushort> singles;
         findconnectivity();
         int numtris = 0, numstrips = 0;
         while(remaining())
         {
-            vector<ushort> strip;
+            vect<ushort> strip;
             bool reverse = degen && !strips.empty() && (strips.length()&1);
             buildstrip(strip, reverse, prims);
             numstrips++;
@@ -280,4 +280,4 @@ struct tristrip
 
 static inline uint hthash(const tristrip::edge &x) { return x.from^x.to; }
 static inline bool htcmp(const tristrip::edge &x, const tristrip::edge &y) { return x.from==y.from && x.to==y.to; }
-            
+

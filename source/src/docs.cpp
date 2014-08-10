@@ -18,6 +18,45 @@ struct docargument
         DELETEA(desc);
         DELETEA(values);
     }
+
+    docargument& docargument::operator=(const docargument& other){
+        token = other.token ? newstring(other.token) : nullptr;
+        desc = other.desc ? newstring(other.desc) : nullptr;
+        values = other.values ? newstring(other.values) : nullptr;
+        vararg = other.vararg;
+        return *this;
+    }
+
+    docargument::docargument(const docargument& other){
+        token = other.token ? newstring(other.token) : nullptr;
+        desc = other.desc ? newstring(other.desc) : nullptr;
+        values = other.values ? newstring(other.values) : nullptr;
+        vararg = other.vararg;
+    }
+
+    docargument& docargument::operator=(docargument&& other){
+        DELETEA(token);
+        token = other.token;
+        other.token = nullptr;
+        DELETEA(desc);
+        desc = other.desc;
+        other.desc = nullptr;
+        DELETEA(values);
+        values = other.values;
+        other.values = nullptr;
+        vararg = other.vararg;
+        return *this;
+    }
+
+    docargument::docargument(docargument&& other){
+        token = other.token;
+        other.token = nullptr;
+        desc = other.desc;
+        other.desc = nullptr;
+        values = other.values;
+        other.values = nullptr;
+        vararg = other.vararg;
+    }
 };
 
 struct docref
@@ -32,6 +71,48 @@ struct docref
         DELETEA(url);
         DELETEA(article);
     }
+
+    docref& docref::operator=(const docref& other){
+        name = other.name ? newstring(other.name) : nullptr;
+        ident = other.ident ? newstring(other.ident) : nullptr;
+        url = other.url ? newstring(other.url) : nullptr;
+        article = other.article ? newstring(other.article) : nullptr;
+        return *this;
+    }
+
+    docref::docref(const docref& other){
+        name = other.name ? newstring(other.name) : nullptr;
+        ident = other.ident ? newstring(other.ident) : nullptr;
+        url = other.url ? newstring(other.url) : nullptr;
+        article = other.article ? newstring(other.article) : nullptr;
+    }
+
+    docref& docref::operator=(docref&& other){
+        DELETEA(name);
+        name = other.name;
+        other.name = nullptr;
+        DELETEA(ident);
+        ident = other.ident;
+        other.ident = nullptr;
+        DELETEA(url);
+        url = other.url;
+        other.url = nullptr;
+        DELETEA(article);
+        article = other.article;
+        other.article = nullptr;
+        return *this;
+    }
+
+    docref::docref(docref&& other){
+        name = other.name;
+        other.name = nullptr;
+        ident = other.ident;
+        other.ident = nullptr;
+        url = other.url;
+        other.url = nullptr;
+        article = other.article;
+        other.article = nullptr;
+    }
 };
 
 struct docexample
@@ -44,6 +125,34 @@ struct docexample
         DELETEA(code);
         DELETEA(explanation);
     }
+
+    docexample& docexample::operator=(const docexample& other) {
+        code = other.code ? newstring(other.code) : nullptr;
+        explanation = other.explanation ? newstring(other.explanation) : nullptr;
+        return *this;
+    }
+
+    docexample& docexample::operator=(docexample&& other) {
+        DELETEA(code);
+        DELETEA(explanation);
+        code = other.code;
+        explanation = other.explanation;
+        other.code = nullptr;
+        other.explanation = nullptr;
+        return *this;
+    }
+
+    docexample::docexample(docexample&& other){
+        code = other.code;
+        other.code = nullptr;
+        explanation = other.explanation;
+        other.explanation = nullptr;
+    };
+
+    docexample::docexample(const docexample& other){
+        code = other.code ? newstring(other.code) : nullptr;
+        explanation = other.explanation ? newstring(other.explanation) : nullptr;
+    };
 };
 
 struct dockey
@@ -57,16 +166,51 @@ struct dockey
         DELETEA(name);
         DELETEA(desc);
     }
+
+    dockey& dockey::operator=(const dockey& other){
+        alias = other.alias ? newstring(other.alias) : nullptr;
+        name = other.name ? newstring(other.name) : nullptr;
+        desc = other.desc ? newstring(other.desc) : nullptr;
+        return *this;
+    }
+
+    dockey::dockey(const dockey& other){
+        alias = other.alias ? newstring(other.alias) : nullptr;
+        name = other.name ? newstring(other.name) : nullptr;
+        desc = other.desc ? newstring(other.desc) : nullptr;
+    }
+
+    dockey& dockey::operator=(dockey&& other){
+        DELETEA(alias);
+        alias = other.alias;
+        other.alias = nullptr;
+        DELETEA(name);
+        name = other.name;
+        other.name = nullptr;
+        DELETEA(desc);
+        desc = other.desc;
+        other.desc = nullptr;
+        return *this;
+    }
+
+    dockey::dockey(dockey&& other){
+        alias = other.alias;
+        other.alias = nullptr;
+        name = other.name;
+        other.name = nullptr;
+        desc = other.desc;
+        other.desc = nullptr;
+    }
 };
 
 struct docident
 {
     char *name, *desc;
-    vector<docargument> arguments;
-    vector<char *> remarks;
-    vector<docref> references;
-    vector<docexample> examples;
-    vector<dockey> keys;
+    vect<docargument> arguments;
+    vect<char *> remarks;
+    vect<docref> references;
+    vect<docexample> examples;
+    vect<dockey> keys;
 
     docident() : name(nullptr), desc(nullptr) {}
     ~docident()
@@ -74,12 +218,60 @@ struct docident
         DELETEA(name);
         DELETEA(desc);
     }
+
+    docident& docident::operator=(const docident& other){
+        name = other.name ? newstring(other.name) : nullptr;
+        desc = other.desc ? newstring(other.desc) : nullptr;
+        arguments = other.arguments;
+        remarks = other.remarks;
+        references = other.references;
+        examples = other.examples;
+        keys = other.keys;
+        return *this;
+    }
+
+    docident::docident(const docident& other){
+        name = other.name ? newstring(other.name) : nullptr;
+        desc = other.desc ? newstring(other.desc) : nullptr;
+        arguments = other.arguments;
+        remarks = other.remarks;
+        references = other.references;
+        examples = other.examples;
+        keys = other.keys;
+    }
+
+    docident& docident::operator=(docident&& other){
+        DELETEA(name);
+        name = other.name;
+        other.name = nullptr;
+        DELETEA(desc);
+        desc = other.desc;
+        other.desc = nullptr;
+        arguments = other.arguments;
+        remarks = other.remarks;
+        references = other.references;
+        examples = other.examples;
+        keys = other.keys;
+        return *this;
+    }
+
+    docident::docident(docident&& other){
+        name = other.name;
+        other.name = nullptr;
+        desc = other.desc;
+        other.desc = nullptr;
+        arguments = other.arguments;
+        remarks = other.remarks;
+        references = other.references;
+        examples = other.examples;
+        keys = other.keys;
+    }
 };
 
 struct docsection
 {
     char *name;
-    vector<docident *> idents;
+    vect<docident *> idents;
     void *menu;
 
     docsection() : name(nullptr), menu(nullptr) {};
@@ -87,9 +279,38 @@ struct docsection
     {
         DELETEA(name);
     }
+
+    docsection& docsection::operator=(const docsection& other){
+        name = other.name ? newstring(other.name) : nullptr;
+        idents = other.idents;
+        menu = other.menu;
+        return *this;
+    }
+
+    docsection::docsection(const docsection& other){
+        name = other.name ? newstring(other.name) : nullptr;
+        idents = other.idents;
+        menu = other.menu;
+    }
+
+    docsection& docsection::operator=(docsection&& other){
+        DELETEA(name);
+        name = other.name;
+        other.name = nullptr;
+        idents = other.idents;
+        menu = other.menu;
+        return *this;
+    }
+
+    docsection::docsection(docsection&& other){
+        name = other.name;
+        other.name = nullptr;
+        idents = other.idents;
+        menu = other.menu;
+    }
 };
 
-vector<docsection> sections;
+vect<docsection> sections;
 hashtable<const char *, docident> docidents; // manage globally instead of a section tree to ensure uniqueness
 docsection *lastsection = nullptr;
 docident *lastident = nullptr;
@@ -166,7 +387,7 @@ COMMANDN(docref, adddocref, "ssss");
 COMMANDN(docexample, adddocexample, "ss");
 COMMANDN(dockey, adddockey, "sss");
 
-char *cvecstr(vector<char *> &cvec, const char *substr, int *rline = nullptr)
+char *cvecstr(vect<char *> &cvec, const char *substr, int *rline = nullptr)
 {
     char *r = nullptr;
     loopv(cvec) if(cvec[i]) if((r = strstr(cvec[i], substr)) != nullptr)
@@ -177,7 +398,7 @@ char *cvecstr(vector<char *> &cvec, const char *substr, int *rline = nullptr)
     return r;
 }
 
-void listundoneidents(vector<const char *> &inames, int allidents)
+void listundoneidents(vect<const char *> &inames, int allidents)
 {
     enumeratekt(*idents, const char *, name, ident, id,
     {
@@ -186,7 +407,7 @@ void listundoneidents(vector<const char *> &inames, int allidents)
             docident *id = docidents.access(name);
             if(id) // search for substrings that indicate undoneness
             {
-                vector<char *> srch;
+                vect<char *> srch;
                 srch.add(id->name);
                 srch.add(id->desc);
                 loopvj(id->remarks) srch.add(id->remarks[j]);
@@ -212,7 +433,7 @@ void listundoneidents(vector<const char *> &inames, int allidents)
 
 void docundone(int *allidents)
 {
-    vector<const char *> inames;
+    vect<const char *> inames;
     listundoneidents(inames, *allidents);
     inames.sort(stringsort);
     loopv(inames) conoutf("%s", inames[i]);
@@ -220,7 +441,7 @@ void docundone(int *allidents)
 
 void docinvalid()
 {
-    vector<const char *> inames;
+    vect<const char *> inames;
     identnames(inames, true);
     inames.sort(stringsort);
     enumerate(docidents, docident, d,
@@ -234,7 +455,7 @@ void docfind(char *search)
 {
     enumerate(docidents, docident, i,
     {
-        vector<char *> srch;
+        vect<char *> srch;
         srch.add(i.name);
         srch.add(i.desc);
         loopvk(i.remarks) srch.add(i.remarks[k]);
@@ -286,7 +507,7 @@ void docwriteref(int allidents, const char *ref, const char *schemalocation, con
     if(!f) return;
     char desc[] = "<description>TODO: Description</description>";
 
-    vector<const char *> inames;
+    vect<const char *> inames;
     if(allidents < 0) identnames(inames, true);   // -1: all builtin
     else listundoneidents(inames, allidents);      // 0: todo builtin, 1: todo builtin + alias
     inames.sort(stringsort);
@@ -473,7 +694,7 @@ void renderdoc(int x, int y, int doch)
 
             if(ident)
             {
-                vector<const char *> doclines;
+                vect<const char *> doclines;
 
                 char *label = newstringbuf(); // label
                 doclines.add(label);
@@ -645,7 +866,7 @@ int msectionsort(const msection *a, const msection *b)
 
 void renderdocsection(void *menu, bool init)
 {
-    static vector<msection> msections;
+    static vect<msection> msections;
     msections.shrink(0);
 
     loopv(sections)
@@ -669,7 +890,7 @@ struct maction { string cmd; };
 
 void renderdocmenu(void *menu, bool init)
 {
-    static vector<maction> actions;
+    static vect<maction> actions;
     actions.shrink(0);
     menureset(menu);
     loopv(sections)

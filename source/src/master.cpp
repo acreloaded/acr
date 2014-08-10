@@ -46,7 +46,7 @@ struct baninfo
 {
     enet_uint32 ip, mask;
 };
-vector<baninfo> bans, servbans, gbans;
+vect<baninfo> bans, servbans, gbans;
 
 void clearbans()
 {
@@ -56,7 +56,7 @@ void clearbans()
 }
 COMMAND(clearbans, "");
 
-void addban(vector<baninfo> &bans, const char *name)
+void addban(vect<baninfo> &bans, const char *name)
 {
     union { uchar b[sizeof(enet_uint32)]; enet_uint32 i; } ip, mask;
     ip.i = 0;
@@ -94,7 +94,7 @@ char *printban(const baninfo &ban, char *buf)
     return buf;
 }
 
-bool checkban(vector<baninfo> &bans, enet_uint32 host)
+bool checkban(vect<baninfo> &bans, enet_uint32 host)
 {
     loopv(bans) if((host & bans[i].mask) == bans[i].ip) return true;
     return false;
@@ -116,15 +116,15 @@ struct gameserver
     int port, numpings;
     enet_uint32 lastping, lastpong;
 };
-vector<gameserver *> gameservers;
+vect<gameserver *> gameservers;
 
 struct messagebuf
 {
-    vector<messagebuf *> &owner;
-    vector<char> buf;
+    vect<messagebuf *> &owner;
+    vect<char> buf;
     int refs;
 
-    messagebuf(vector<messagebuf *> &owner) : owner(owner), refs(0) {}
+    messagebuf(vect<messagebuf *> &owner) : owner(owner), refs(0) {}
 
     const char *getbuf() { return buf.getbuf(); }
     int length() { return buf.length(); }
@@ -146,7 +146,7 @@ struct messagebuf
         buf.put(m.buf.getbuf(), m.buf.length());
     }
 };
-vector<messagebuf *> gameserverlists, gbanlists;
+vect<messagebuf *> gameserverlists, gbanlists;
 bool updateserverlist = true;
 
 struct client
@@ -155,18 +155,18 @@ struct client
     ENetSocket socket;
     char input[INPUT_LIMIT];
     messagebuf *message;
-    vector<char> output;
+    vect<char> output;
     int inputpos, outputpos;
     enet_uint32 connecttime, lastinput;
     int servport;
     enet_uint32 lastauth; // for AUTH
-    vector<authreq> authreqs; // for AUTH
+    vect<authreq> authreqs; // for AUTH
     bool shouldpurge;
     bool registeredserver;
 
     client() : message(nullptr), inputpos(0), outputpos(0), servport(-1), lastauth(0), shouldpurge(false), registeredserver(false) {}
 };
-vector<client *> clients;
+vect<client *> clients;
 
 ENetSocket serversocket = ENET_SOCKET_NULL;
 
@@ -511,7 +511,7 @@ void reqauth(client &c, uint id, char *name)
     a.reqtime = servtime;
     a.id = id;
     uint seed[3] = { starttime, servtime, randomMT() };
-    static vector<char> buf;
+    static vect<char> buf;
     buf.setsize(0);
     a.answer = genchallenge(u->pubkey, seed, sizeof(seed), buf);
 

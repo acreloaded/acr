@@ -78,7 +78,7 @@ struct keym
     bool pressed;
 
     keym() : code(-1), name(nullptr), pressed(false) { loopi(NUMACTIONS) actions[i] = newstring(""); }
-    ~keym() { DELETEA(name); loopi(NUMACTIONS) DELETEA(actions[i]); }
+    //~keym() { DELETEA(name); loopi(NUMACTIONS) DELETEA(actions[i]); }
 };
 
 extern keym *keypressed;
@@ -147,7 +147,7 @@ struct mdirlist
 struct gmenu
 {
     const char *name, *title, *header, *footer;
-    vector<mitem *> items;
+    vect<mitem *> items;
     int mwidth;
     int menusel;
     bool allowinput, inited, hotkeys, forwardkeys;
@@ -203,9 +203,9 @@ struct serverinfo
     string cmd;
     int mode, muts, numplayers, maxclients, ping, protocol, minremain, resolved, port, lastpingmillis, pongflags, getinfo, menuline_from, menuline_to;
     ENetAddress address;
-    vector<const char *> playernames;
+    vect<const char *> playernames;
     uchar namedata[MAXTRANS];
-    vector<char *> infotexts;
+    vect<char *> infotexts;
     uchar textdata[MAXTRANS];
     char lang[3];
     color *bgcolor;
@@ -472,7 +472,7 @@ extern void clearvote();
 
 // scoreboard
 struct discscore { int team, flags, frags, deaths, points; char name[MAXNAMELEN + 1]; };
-extern vector<discscore> discscores;
+extern vect<discscore> discscores;
 extern void showscores(bool on);
 extern void renderscores(void *menu, bool init);
 extern const char *asciiscores(bool destjpg = false);
@@ -551,7 +551,7 @@ struct font
 
     char *name;
     Texture *tex;
-    vector<charinfo> chars;
+    vect<charinfo> chars;
     int defaultw, defaulth;
     int offsetx, offsety, offsetw, offseth;
     int skip;
@@ -677,8 +677,8 @@ extern void render_particles(int time, int typemask = ~0);
 
 struct radar_explosion { playerent *owner; int o[2]; int millis; };
 struct radar_shotline { playerent *owner; float from[2], to[2]; int expire; };
-extern vector<radar_explosion> radar_explosions;
-extern vector<radar_shotline> radar_shotlines;
+extern vect<radar_explosion> radar_explosions;
+extern vect<radar_shotline> radar_shotlines;
 
 // worldio
 extern int mapdims[8];
@@ -784,7 +784,7 @@ extern void rendermapmodels();
 extern void resetspawns(int type = -1);
 extern void setspawn(int i);
 extern void checkitems(playerent *d);
-extern vector<int> changedents;
+extern vect<int> changedents;
 extern void syncentchanges(bool force = false);
 
 // rndmap
@@ -803,13 +803,13 @@ enum { SAY_TEXT = 0, SAY_TEAM = 1 << 0, SAY_ACTION = 1 << 1, SAY_SPAM = 1 << 2, 
 extern int defaultgamelimit(int gamemode, int mutators);
 
 // crypto // for AUTH
-extern void genprivkey(const char *seed, vector<char> &privstr, vector<char> &pubstr);
+extern void genprivkey(const char *seed, vect<char> &privstr, vect<char> &pubstr);
 extern bool hashstring(const char *str, char *result, int maxlen);
 const char *genpwdhash(const char *name, const char *pwd, int salt);
-extern void answerchallenge(const char *privstr, const char *challenge, vector<char> &answerstr);
+extern void answerchallenge(const char *privstr, const char *challenge, vect<char> &answerstr);
 extern void *parsepubkey(const char *pubstr);
 extern void freepubkey(void *pubkey);
-extern void *genchallenge(void *pubkey, const void *seed, int seedlen, vector<char> &challengestr);
+extern void *genchallenge(void *pubkey, const void *seed, int seedlen, vect<char> &challengestr);
 extern void freechallenge(void *answer);
 extern bool checkchallenge(const char *answerstr, void *correct);
 
@@ -847,9 +847,9 @@ extern void alias(const char *name, const char *action, bool constant = false);
 extern const char *getalias(const char *name);
 extern void writecfg();
 extern void deletecfg();
-extern void identnames(vector<const char *> &names, bool builtinonly);
+extern void identnames(vect<const char *> &names, bool builtinonly);
 extern void changescriptcontext(int newcontext);
-extern void explodelist(const char *s, vector<char *> &elems);
+extern void explodelist(const char *s, vect<char *> &elems);
 extern char *indexlist(const char *s, int pos);
 extern char *parseword(const char *&p);
 extern char *strreplace(char *dest, const char *source, const char *search, const char *replace);
@@ -880,19 +880,19 @@ extern void localclienttoserver(int chan, ENetPacket *);
 extern void serverslice(uint timeout);
 extern void putint(ucharbuf &p, int n);
 extern void putint(packetbuf &p, int n);
-extern void putint(vector<uchar> &p, int n);
+extern void putint(vect<uchar> &p, int n);
 extern int getint(ucharbuf &p);
 extern void putuint(ucharbuf &p, int n);
 extern void putuint(packetbuf &p, int n);
-extern void putuint(vector<uchar> &p, int n);
+extern void putuint(vect<uchar> &p, int n);
 extern int getuint(ucharbuf &p);
 extern void putfloat(ucharbuf &p, float f);
 extern void putfloat(packetbuf &p, float f);
-extern void putfloat(vector<uchar> &p, float f);
+extern void putfloat(vect<uchar> &p, float f);
 extern float getfloat(ucharbuf &p);
 extern void sendstring(const char *t, ucharbuf &p);
 extern void sendstring(const char *t, packetbuf &p);
-extern void sendstring(const char *t, vector<uchar> &p);
+extern void sendstring(const char *t, vect<uchar> &p);
 extern void getstring(char *t, ucharbuf &p, int len = MAXTRANS);
 extern void filtertext(char *dst, const char *src, int whitespace = 1, int len = sizeof(string)-1);
 extern void filterrichtext(char *dst, const char *src, int len = sizeof(string)-1);
@@ -967,7 +967,7 @@ struct servercommandline
     bool logtimestamp, demo_interm, loggamestatus;
     string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm, mapperm;
     int clfilenesting;
-    vector<const char *> adminonlymaps;
+    vect<const char *> adminonlymaps;
 
     servercommandline() :   uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), syslogfacility(6), filethres(-1), syslogthres(-1), maxdemos(5),
                             maxclients(DEFAULTCLIENTS), verbose(0), incoming_limit(10), afk_limit(45000), ban_time(20*60*1000), lagtrust(1), demotimelocal(0),
@@ -1122,11 +1122,11 @@ struct cknife
     int id, millis;
     vec o;
 };
-extern vector<cknife> knives;
+extern vect<cknife> knives;
 
 struct cconfirm
 {
     int id, team;
     vec o;
 };
-extern vector<cconfirm> confirms;
+extern vect<cconfirm> confirms;

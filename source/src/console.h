@@ -1,10 +1,43 @@
-struct cline { char *line; int millis; void cleanup(){ delete[] line; } };
+struct cline {
+    char *line; int millis; void cleanup(){ delete[] line; }
+
+    cline::cline() : line(nullptr), millis(0) {}
+
+    cline& cline::operator=(const cline& other){
+        line = other.line ? newstring(other.line) : nullptr;
+        millis = other.millis;
+        return *this;
+    }
+
+    cline::cline(const cline& other){
+        line = other.line ? newstring(other.line) : nullptr;
+        millis = other.millis;
+    }
+
+    cline& cline::operator=(cline&& other){
+        DELETEA(line);
+        line = other.line;
+        other.line = nullptr;
+        millis = other.millis;
+        return *this;
+    }
+
+    cline::cline(cline&& other){
+        line = other.line;
+        other.line = nullptr;
+        millis = other.millis;
+    }
+
+    virtual cline::~cline(){
+        delete[] line;
+    }
+};
 
 extern int fullconsole;
 template<class LINE> struct consolebuffer
 {
     int maxlines;
-    vector<LINE> conlines;
+    vect<LINE> conlines;//should be a queue
 
     consolebuffer(int maxlines = 100) : maxlines(maxlines) {}
 
@@ -13,10 +46,10 @@ template<class LINE> struct consolebuffer
         LINE cl;
         // constrain the buffer size
         if (conlines.length() && conlines.length()>maxlines)
-            conlines.pop().cleanup();
-        cl.line = newstringbuf("");
+            conlines.pop();
+        cl.line = newstringbuf(sf);
+
         cl.millis = millis;                        // for how long to keep line on screen
-        copystring(cl.line, sf);
         return conlines.insert(0, cl);
     }
 

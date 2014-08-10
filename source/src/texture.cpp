@@ -486,7 +486,7 @@ struct Slot
     bool loaded;
 };
 
-vector<Slot> slots;
+vect<Slot> slots;
 
 void texturereset() { if(execcontext==IEXC_MAPCFG) slots.setsize(0); }
 

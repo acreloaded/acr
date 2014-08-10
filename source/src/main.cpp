@@ -714,7 +714,7 @@ void keyrepeat(bool on)
                              SDL_DEFAULT_REPEAT_INTERVAL);
 }
 
-vector<SDL_Event> events;
+vect<SDL_Event> events;
 
 void pushevent(const SDL_Event &e)
 {
@@ -892,7 +892,7 @@ VARP(gamestarts, 0, 0, INT_MAX);
 
 const char *rndmapname()
 {
-    vector<char *> maps;
+    vect<char *> maps;
     listfiles("packages/maps/official", "cgz", maps);
     char *map = newstring(maps[rnd(maps.length())]);
     maps.deletearrays();
@@ -949,7 +949,7 @@ void connectprotocol(char *protocolstring, string &servername, int &serverport, 
 }
 
 #if defined(WIN32) && !defined(__GNUC__)
-static char *parsecommandline(const char *src, vector<char *> &args)
+static char *parsecommandline(const char *src, vect<char *> &args)
 {
     char *buf = new char[strlen(src) + 1], *dst = buf;
     for(;;)
@@ -972,7 +972,7 @@ static char *parsecommandline(const char *src, vector<char *> &args)
 
 int WINAPI WinMain(_In_ HINSTANCE hInst, _In_opt_ HINSTANCE hPrev, _In_ LPSTR szCmdLine, _In_ int sw)
 {
-    vector<char *> args;
+    vect<char *> args;
     char *buf = parsecommandline(GetCommandLine(), args);
     SDL_SetModuleHandle(hInst);
     int status = SDL_main(args.length()-1, args.getbuf());

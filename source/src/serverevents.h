@@ -89,7 +89,7 @@ void shotevent::process(client *ci)
     else if (weap == GUN_GRENADE) damagepotential = 0;
     else damagepotential = effectiveDamage(weap, to.dist(from));
 
-    static vector<int> exclude;
+    static vect<int> exclude;
     switch (weap)
     {
         case GUN_GRENADE: cs.grenades.add(id); break;

@@ -499,6 +499,35 @@ struct hudline : cline
     int type;
 
     hudline() : type(HUDMSG_INFO) {}
+
+    hudline& hudline::operator=(const hudline& other){
+        line = other.line ? newstring(other.line) : nullptr;
+        millis = other.millis;
+        type = other.type;
+        return *this;
+    }
+
+    hudline::hudline(const hudline& other){
+        line = other.line ? newstring(other.line) : nullptr;
+        millis = other.millis;
+        type = other.type;
+    }
+
+    hudline& hudline::operator=(hudline&& other){
+        DELETEA(line);
+        line = other.line;
+        other.line = nullptr;
+        millis = other.millis;
+        type = other.type;
+        return *this;
+    }
+
+    hudline::hudline(hudline&& other){
+        line = other.line;
+        other.line = nullptr;
+        millis = other.millis;
+        type = other.type;
+    }
 };
 
 struct hudmessages : consolebuffer<hudline>
@@ -1249,7 +1278,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             draw_textf("%s", left, top+320, curvote->desc);
             draw_textf("----", left, top+400);
 
-            vector<playerent *> votepl[VOTE_NUM];
+            vect<playerent *> votepl[VOTE_NUM];
             string votestr[VOTE_NUM];
             if (!watchingdemo) votepl[player1->vote].add(player1);
             loopv(players)

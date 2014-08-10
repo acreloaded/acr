@@ -601,7 +601,7 @@ void particle_trail(int type, int fade, const vec &s, const vec &e)
     }
 }
 
-vector<radar_explosion> radar_explosions;
+vect<radar_explosion> radar_explosions;
 
 void particle_fireball(int type, const vec &o, playerent *owner)
 {
@@ -667,7 +667,7 @@ VARP(bulletairsoundrad, 0, 15, 1000);
 VARP(bulletairsoundsourcerad, 0, 8, 1000);
 VARP(bulletairsounddestrad, 0, 8, 1000);
 
-vector<radar_shotline> radar_shotlines;
+vect<radar_shotline> radar_shotlines;
 
 void addshotline(playerent *pl, vec from, const vec &to, int flags)
 {

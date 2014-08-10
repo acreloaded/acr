@@ -893,7 +893,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 getstring(text, p);
                 if(a && a->lastauth && lastmillis - a->lastauth < 60*1000)
                 {
-                    vector<char> buf;
+                    vect<char> buf;
                     answerchallenge(a->key, text, buf);
                     //conoutf("answering %u, challenge %s with %s", id, text, buf.getbuf());
                     addmsg(SV_AUTHANS, "rsis", a->desc, id, buf.getbuf());

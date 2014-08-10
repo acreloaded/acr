@@ -87,7 +87,7 @@ font *getfont(const char *name)
     return fonts.access(name);
 }
 
-static vector<font *> fontstack;
+static vect<font *> fontstack;
 
 void pushfont(const char *name)
 {
@@ -387,11 +387,11 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color, int a
     }
 }
 
-static vector<int> *columns = nullptr;
+static vect<int> *columns = nullptr;
 
 void text_startcolumns()
 {
-    if(!columns) columns = new vector<int>;
+    if(!columns) columns = new vect<int>;
 }
 
 void text_endcolumns()

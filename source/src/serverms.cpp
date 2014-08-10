@@ -21,7 +21,7 @@ ENetAddress masteraddress = { ENET_HOST_ANY, ENET_PORT_ANY }, serveraddress = { 
 string mastername = AC_MASTER_URI;
 int masterport = AC_MASTER_PORT, mastertype = AC_MASTER_HTTP;
 int lastupdatemaster = 0;
-vector<char> masterout, masterin;
+vect<char> masterout, masterin;
 int masteroutpos = 0, masterinpos = 0;
 
 void disconnectmaster()
@@ -145,7 +145,7 @@ void flushmasteroutput()
 void flushmasterinput()
 {
     if(masterin.length() >= masterin.capacity())
-        masterin.reserve(4096);
+        masterin.reserveR(4096);
 
     ENetBuffer buf;
     buf.data = &masterin[masterin.length()];

@@ -304,7 +304,7 @@ bool mapisok(mapstats *ms)
 
 struct servermaprot : serverconfigfile
 {
-    vector<configset> configsets;
+    vect<configset> configsets;
     int curcfgset;
 
     servermaprot() : curcfgset(-1) {}
@@ -416,7 +416,7 @@ struct servermaprot : serverconfigfile
 
 struct serveripblacklist : serverconfigfile
 {
-    vector<iprange> ipranges;
+    vect<iprange> ipranges;
 
     void read()
     {
@@ -487,9 +487,9 @@ struct servernickblacklist : serverconfigfile
     struct iprchain     { struct iprange ipr; const char *pwd; int next; };
     struct blackline    { int frag[MAXNICKFRAGMENTS]; bool ignorecase; int line; void clear() { loopi(MAXNICKFRAGMENTS) frag[i] = -1; } };
     hashtable<const char *, int> whitelist;
-    vector<iprchain> whitelistranges;
-    vector<blackline> blacklines;
-    vector<const char *> blfraglist;
+    vect<iprchain> whitelistranges;
+    vect<blackline> blacklines;
+    vect<const char *> blfraglist;
 
     void destroylists()
     {
@@ -725,7 +725,7 @@ enet_uint32 passguy = 0;
 
 struct serverpasswords : serverconfigfile
 {
-    vector<pwddetail> adminpwds;
+    vect<pwddetail> adminpwds;
     int staticpasses;
 
     serverpasswords() : staticpasses(0) {}
@@ -825,7 +825,7 @@ struct serverpasswords : serverconfigfile
 struct serverinfofile
 {
     struct serverinfotext { const char *type; char lang[3]; char *info; int lastcheck; };
-    vector<serverinfotext> serverinfotexts;
+    vect<serverinfotext> serverinfotexts;
     const char *infobase, *motdbase;
 
     void init(const char *info, const char *motd) { infobase = info; motdbase = motd; }

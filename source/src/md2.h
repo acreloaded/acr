@@ -34,10 +34,10 @@ struct md2 : vertmodel
 
     struct md2part : part
     {
-        void gentcverts(int *glcommands, vector<tcvert> &tcverts, vector<ushort> &vindexes, vector<tri> &tris)
+        void gentcverts(int *glcommands, vect<tcvert> &tcverts, vect<ushort> &vindexes, vect<tri> &tris)
         {
             hashtable<ivec, int> tchash;
-            vector<ushort> idxs;
+            vect<ushort> idxs;
             for(int *command = glcommands; (*command)!=0;)
             {
                 int numvertex = *command++;
@@ -106,9 +106,9 @@ struct md2 : vertmodel
             lilswap(glcommands, numglcommands);
             if(numglcommands < header.numglcommands) memset(&glcommands[numglcommands], 0, (header.numglcommands-numglcommands)*sizeof(int));
 
-            vector<tcvert> tcgen;
-            vector<ushort> vgen;
-            vector<tri> trigen;
+            vect<tcvert> tcgen;
+            vect<ushort> vgen;
+            vect<tri> trigen;
             gentcverts(glcommands, tcgen, vgen, trigen);
             delete[] glcommands;
 

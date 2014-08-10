@@ -6,7 +6,7 @@ hashtable<const char *, gmenu> menus;
 gmenu *curmenu = nullptr, *lastmenu = nullptr;
 color *menuselbgcolor = nullptr;
 
-vector<gmenu *> menustack;
+vect<gmenu *> menustack;
 
 VARP(browsefiledesc, 0, 1, 1);
 
@@ -1318,7 +1318,7 @@ void gmenu::init()
     if(dirlist && ((dirlist->dir != nullptr) && (dirlist->ext != nullptr)))
     {
         items.deletecontents();
-        vector<char *> files;
+        vect<char *> files;
         listfiles(dirlist->dir, dirlist->ext, files);
         files.sort(stringsort);
         loopv(files)
@@ -1484,7 +1484,7 @@ void gmenu::renderbg(int x1, int y1, int x2, int y2, bool border)
 // apply changes menu
 
 void *applymenu = nullptr;
-static vector<const char *> needsapply;
+static vect<const char *> needsapply;
 VARP(applydialog, 0, 1, 1);
 
 void addchange(const char *desc, int type)

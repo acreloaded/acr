@@ -8,6 +8,9 @@
 #endif
 #define nullptr 0
 
+#include<vector>
+#include<algorithm>
+
 typedef unsigned char uchar;
 typedef unsigned short ushort;
 typedef unsigned int uint;
@@ -28,11 +31,11 @@ typedef unsigned int uint;
 #define ASSERT(c) if(c) {}
 #endif
 
-#ifdef swap
-#undef swap
+#ifdef swapB
+#undef swapB
 #endif
 template<class T>
-static inline void swap(T &a, T &b)
+static inline void swapB(T &a, T &b)
 {
     T t = a;
     a = b;
@@ -374,185 +377,154 @@ struct bitbuf
     int rembits() { return (8 - blen) % 8; }   // 0..7 bits remaining in current byte
 };
 
-template <class T> struct vector
+template<class ST>
+class boolCaster
 {
-   static const int MINSIZE = 8;
+    public:
+        boolCaster(int (__cdecl *cf)(ST *, ST *)) : _cf( cf ) {}
+        bool operator() (ST a, ST b) { return _cf(&a, &b) == 1; }
+    private:
+        int ((__cdecl *_cf)(ST *, ST *));
+};
 
-    T *buf;
-    int alen, ulen;
+template<class T, class ST>
+class binaryCaster
+{
+    public:
+        binaryCaster(int (__cdecl *cf)(ST *, ST *), T a) : _cf( cf ), _a(a) {}
+        bool operator() (ST b) { return _cf(_a, &b) == 1; }
+    private:
+        int ((__cdecl *_cf)(ST *, ST *));
+        T _a;
+};
 
-    vector() : buf(nullptr), alen(0), ulen(0)
+template <class T>
+class vect : public std::vector<T>
+{
+public:
+    T &add(const T &x=T())
     {
-    }
-
-    vector(const vector &v) : buf(nullptr), alen(0), ulen(0)
-    {
-        *this = v;
-    }
-
-    ~vector() { shrink(0); if(buf) delete[] (uchar *)buf; }
-
-    vector<T> &operator=(const vector<T> &v)
-    {
-        shrink(0);
-        if(v.length() > alen) growbuf(v.length());
-        loopv(v) add(v[i]);
-        return *this;
-    }
-
-    T &add(const T &x)
-    {
-        if(ulen==alen) growbuf(ulen+1);
-        new (&buf[ulen]) T(x);
-        return buf[ulen++];
-    }
-
-    T &add()
-    {
-        if(ulen==alen) growbuf(ulen+1);
-        new (&buf[ulen]) T;
-        return buf[ulen++];
+        this->push_back(T(x));
+        return this->data()[this->size() - 1];
     }
 
     T &dup()
     {
-        if(ulen==alen) growbuf(ulen+1);
-        new (&buf[ulen]) T(buf[ulen-1]);
-        return buf[ulen++];
+		return add(this->back());
     }
 
-    bool inrange(size_t i) const { return i<size_t(ulen); }
-    bool inrange(int i) const { return i>=0 && i<ulen; }
+    bool inrange(size_t i) const { return i<size_t(this->size()); }
+    bool inrange(int i) const { return i>=0 && i<this->size(); }
 
-    T &pop() { return buf[--ulen]; }
-    T &last() { return buf[ulen-1]; }
-    void drop() { buf[--ulen].~T(); }
-    bool empty() const { return ulen==0; }
+    T &pop() { T temp = this->back(); this->pop_back(); return temp; }
+    T &last() { return this->back(); }
+    void drop() { this->pop_back(); }
 
-    int capacity() const { return alen; }
-    int length() const { return ulen; }
-    T &operator[](int i) { ASSERT(i>=0 && i<ulen); return buf[i]; }
-    const T &operator[](int i) const { ASSERT(i >= 0 && i<ulen); return buf[i]; }
+    int length() const { return(this->size()); }
+    //T &operator[](int i) { ASSERT(i>=0 && i<this->size()); return this->at(i); }
+    //const T &operator[](int i) const { ASSERT(i >= 0 && i<this->size()); return this->at(i); }
 
-    void shrink(int i)         { ASSERT(i<=ulen); while(ulen>i) drop(); }
-    void setsize(int i) { ASSERT(i<=ulen); ulen = i; }
+    void shrink(unsigned int i) { ASSERT(i<=this->size()); this->resize(i); }
+    void setsize(unsigned int i) { ASSERT(i<=this->size()); this->resize(i); }
 
-    void deletecontents() { while(!empty()) delete   pop(); }
-    void deletearrays() { while(!empty()) delete[] pop(); }
+    void deletecontents() { this->resize(0); }
+    void deletearrays() { this->resize(0); }
 
-    T *getbuf() { return buf; }
-    const T *getbuf() const { return buf; }
-    bool inbuf(const T *e) const { return e >= buf && e < &buf[ulen]; }
+    T *getbuf() { return this->data(); }
+    const T *getbuf() const { return this->data(); }
+    bool inbuf(const T *e) const { return e >= this->data() && e <= this->data()+this->size(); }
 
     template<class ST>
     void sort(int (__cdecl *cf)(ST *, ST *), int i = 0, int n = -1)
     {
-        qsort(&buf[i], n<0 ? ulen : n, sizeof(T), (int (__cdecl *)(const void *,const void *))cf);
+        std::sort(this->begin(), this->end(), boolCaster<ST>(cf));
     }
 
-    template<class ST>
-    T *search(T *key, int (__cdecl *cf)(ST *, ST *), int i = 0, int n = -1)
+	template<class ST>
+    T *search(T *key, int (__cdecl *cf)(ST*, ST*), int i = 0, int n = -1)
     {
-        return reinterpret_cast<T *>(bsearch(key, &buf[i], n<0 ? ulen : n, sizeof(T), (int (__cdecl *)(const void *,const void *))cf));
+        T* t = reinterpret_cast<T *>(this->data() +(find_if(this->begin(), this->end(), binaryCaster<T*, ST>(cf, key)) - this->begin()));
+        return cf(key, t) ? t : nullptr;
     }
 
     void growbuf(int sz)
     {
-        int olen = alen;
-        if(!alen) alen = max(MINSIZE, sz);
-        else while(alen < sz) alen *= 2;
-        if(alen <= olen) return;
-        uchar *newbuf = new uchar[alen*sizeof(T)];
-        if(olen > 0)
-        {
-            memcpy(newbuf, buf, olen*sizeof(T));
-            delete[] (uchar *)buf;
-        }
-        buf = reinterpret_cast<T*>(newbuf);
+        this->resize(sz);
     }
 
-    databuf<T> reserve(int sz)
+    databuf<T> reserveR(int sz)
     {
-        if(ulen+sz > alen) growbuf(ulen+sz);
-        return databuf<T>(&buf[ulen], sz);
+		int temp = this->size();
+		this->resize(temp + sz);
+        return databuf<T>(&this->back(), sz);
     }
 
     inline void advance(int sz)
     {
-        ulen += sz;
+        return;
     }
 
     void addbuf(const databuf<T> &p)
     {
-        advance(p.length());
+        return;
     }
 
     T *pad(int n)
     {
-        T *buf = reserve(n).buf;
-        advance(n);
-        return buf;
+        int t = this->size();
+        this->resize(t+n);
+        return this->data()+t;
     }
 
     void put(const T &v) { add(v); }
 
     void put(const T *v, int n)
     {
-        databuf<T> buf = reserve(n);
+        databuf<T> buf = reserveR(n);
         buf.put(v, n);
         addbuf(buf);
     }
 
     void remove(int i, int n)
     {
-        for(int p = i+n; p<ulen; p++) buf[p-n] = buf[p];
-        ulen -= n;
+        this->erase(this->begin()+i, this->begin()+n);
     }
 
     T remove(int i)
     {
-        T e = buf[i];
-        for(int p = i+1; p<ulen; p++) buf[p-1] = buf[p];
-        ulen--;
-        return e;
+        this->erase(this->begin()+i);
     }
 
     int find(const T &o)
     {
-        loopi(ulen) if(buf[i]==o) return i;
+        loopi(this->size()) if(this->data()[i]==o) return i;
         return -1;
     }
 
     void removeobj(const T &o)
     {
-        loopi(ulen) if(buf[i]==o) remove(i--);
+        loopi(this->size()) if(this->data()[i]==o) remove(i--);
     }
 
     void replacewithlast(const T &o)
     {
-        if(!ulen) return;
-        loopi(ulen-1) if(buf[i]==o)
+        if(this->empty()) return;
+        loopi(this->size()-1) if(this->at(i)==o)
         {
-            buf[i] = buf[ulen-1];
+            *(this->begin()+i) = this->back();
         }
-        ulen--;
     }
 
-    T &insert(int i, const T &e)
+    T &insert(int i, T &e)
     {
-        add(T());
-        for(int p = ulen-1; p>i; p--) buf[p] = buf[p-1];
-        buf[i] = e;
-        return buf[i];
+        ((std::vector<T>*)this)->insert(this->begin() + i, e);
+        return this->data()[i];
     }
 
-    T *insert(int i, const T *e, int n)
+	T *insert(int i, const T *e, int n)
     {
-        if(ulen+n>alen) growbuf(ulen+n);
         loopj(n) add(T());
-        for(int p = ulen-1; p>=i+n; p--) buf[p] = buf[p-n];
-        loopj(n) buf[i+j] = e[j];
-        return &buf[i];
+        return &this->data()[i];
     }
 };
 
@@ -930,9 +902,9 @@ extern stream *openfile(const char *filename, const char *mode);
 extern stream *opentempfile(const char *filename, const char *mode);
 extern stream *opengzfile(const char *filename, const char *mode, stream *file = nullptr, int level = Z_BEST_COMPRESSION);
 extern char *loadfile(const char *fn, int *size, const char *mode = nullptr);
-extern bool listdir(const char *dir, const char *ext, vector<char *> &files);
-extern int listfiles(const char *dir, const char *ext, vector<char *> &files);
-extern int listzipfiles(const char *dir, const char *ext, vector<char *> &files);
+extern bool listdir(const char *dir, const char *ext, vect<char *> &files);
+extern int listfiles(const char *dir, const char *ext, vect<char *> &files);
+extern int listzipfiles(const char *dir, const char *ext, vect<char *> &files);
 extern bool delfile(const char *path);
 extern bool copyfile(const char *source, const char *destination);
 extern bool preparedir(const char *destination);

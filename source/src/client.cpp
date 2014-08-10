@@ -377,7 +377,7 @@ void cleanupclient()
 
 // collect c2s messages conveniently
 
-vector<uchar> messages;
+vect<uchar> messages;
 bool messagereliable = false;
 
 void addmsg(int type, const char *fmt, ...)
@@ -699,7 +699,7 @@ void gets2c()           // get updates from the server
 
 // for AUTH:
 
-vector<authkey *> authkeys;
+vect<authkey *> authkeys;
 
 VARP(autoauth, 0, 1, 1);
 
@@ -726,7 +726,7 @@ bool _hasauthkey(const char *name, const char *desc)
 void genauthkey(const char *secret)
 {
     if(!secret[0]) { conoutf("you must specify a secret password"); return; }
-    vector<char> privkey, pubkey;
+    vect<char> privkey, pubkey;
     genprivkey(secret, privkey, pubkey);
     conoutf("private key: %s", privkey.getbuf());
     conoutf("public key: %s", pubkey.getbuf());
@@ -768,7 +768,7 @@ COMMANDF(auth, "s", (char *desc) { intret(tryauth(desc)); });
 
 // sendmap/getmap commands, should be replaced by more intuitive map downloading
 
-vector<char *> securemaps;
+vect<char *> securemaps;
 
 void resetsecuremaps() { securemaps.deletearrays(); }
 void securemap(char *map) { if(map) securemaps.add(newstring(map)); }
@@ -925,7 +925,7 @@ COMMANDN(rewind, rewinddemo, "i");
 // packages auto - downloader
 
 // arrays
-vector<pckserver *> pckservers;
+vect<pckserver *> pckservers;
 hashtable<const char *, package *> pendingpackages;
 
 // cubescript
@@ -975,7 +975,7 @@ SDL_mutex *pingpcksrvlock = nullptr;
 int pingpckservers(void *data)
 {
     SDL_mutexP(pingpcksrvlock);
-    vector<pckserver> serverstoping;
+    vect<pckserver> serverstoping;
     loopv(pckservers) serverstoping.add(*pckservers[i]);
     SDL_mutexV(pingpcksrvlock);
     // measure the time it took to receive each's server response

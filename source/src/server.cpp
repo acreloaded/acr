@@ -26,12 +26,12 @@ ENetHost *serverhost = nullptr;
 
 int nextstatus = 0, servmillis = 0, lastfillup = 0;
 
-vector<client *> clients;
-vector<worldstate *> worldstates;
-vector<savedscore> savedscores;
-vector<savedlimit> savedlimits;
-vector<ban> bans;
-vector<demofile> demofiles;
+vect<client *> clients;
+vect<worldstate *> worldstates;
+vect<savedscore> savedscores;
+vect<savedlimit> savedlimits;
+vect<ban> bans;
+vect<demofile> demofiles;
 
 int mastermode = MM_OPEN, botbalance = -1, progressiveround = 1, zombiebalance = 1, zombiesremain = 1;
 static bool autoteam = true;
@@ -53,15 +53,15 @@ int smode = G_DM, nextgamemode, smuts = G_M_TEAM, nextmutators;
 int interm = 0;
 static int minremain = 0, gamemillis = 0, gamelimit = 0, /*lmsitemtype = 0,*/ nextsendscore = 0;
 mapstats smapstats;
-vector<entity> sents;
+vect<entity> sents;
 ssqr *maplayout = nullptr, *testlayout = nullptr;
 int maplayout_factor, testlayout_factor, maplayoutssize;
 persistent_entity *mapents = nullptr;
 servermapbuffer mapbuffer;
 
-vector<sconfirm> sconfirms;
+vect<sconfirm> sconfirms;
 int confirmseq = 0;
-vector<sknife> sknives;
+vect<sknife> sknives;
 int knifeseq = 0;
 void purgesconfirms()
 {
@@ -222,14 +222,14 @@ bool buildworldstate()
     if(psize)
     {
         recordpacket(0, ws.positions.getbuf(), psize);
-        ucharbuf p = ws.positions.reserve(psize);
+        ucharbuf p = ws.positions.reserveR(psize);
         p.put(ws.positions.getbuf(), psize);
         ws.positions.addbuf(p);
     }
     if(msize)
     {
         recordpacket(1, ws.messages.getbuf(), msize);
-        ucharbuf p = ws.messages.reserve(msize);
+        ucharbuf p = ws.messages.reserveR(msize);
         p.put(ws.messages.getbuf(), msize);
         ws.messages.addbuf(p);
     }
@@ -1221,7 +1221,7 @@ void htf_forceflag(int flag)
 {
     sflaginfo &f = sflaginfos[flag];
     int besthealth = 0;
-    vector<int> clientnumbers;
+    vect<int> clientnumbers;
     loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
         if(clients[i]->state.state == CS_ALIVE && team_base(clients[i]->team) == flag)
@@ -1258,8 +1258,8 @@ int arenaround = 0, arenaroundstartmillis = 0;
 struct twoint { int index, value; };
 int cmpscore(const int *a, const int *b) { return clients[*a]->at3_score - clients[*b]->at3_score; }
 int cmptwoint(const struct twoint *a, const struct twoint *b) { return a->value - b->value; }
-vector<int> tdistrib;
-vector<twoint> sdistrib;
+vect<int> tdistrib;
+vect<twoint> sdistrib;
 
 void distributeteam(int team)
 {
@@ -2041,7 +2041,7 @@ int calcscores() // skill eval
     return sum;
 }
 
-vector<int> shuffle;
+vect<int> shuffle;
 
 void shuffleteams(int ftr)
 {
@@ -2478,7 +2478,7 @@ struct gbaninfo
     enet_uint32 ip, mask;
 };
 
-vector<gbaninfo> gbans;
+vect<gbaninfo> gbans;
 
 void cleargbans()
 {

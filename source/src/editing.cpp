@@ -8,7 +8,7 @@ bool editmode = false;
 // invariant: all code assumes that these are kept inside MINBORD distance of the edge of the map
 // => selections are checked when they are made or when the world is reloaded
 
-vector<block> sels;
+vect<block> sels;
 
 #define loopselxy(sel, b) { makeundo(sel); loop(x,(sel).xs) loop(y,(sel).ys) if(!OUTBORD(sel.x+x, sel.y+y)) { sqr *s = S((sel).x+x, (sel).y+y); b; } remip(sel); }
 #define loopselsxy(b) { loopv(sels) loopselxy(sels[i], b); }
@@ -231,7 +231,7 @@ void cursorupdate()                                     // called every frame fr
     glLineWidth(1);
 }
 
-vector<block *> undos;                                  // unlimited undo
+vect<block *> undos;                                  // unlimited undo
 VAR(undomegs, 0, 1, 10);                                // bounded by n megs
 
 void pruneundos(int maxremain)                          // bound memory
@@ -259,7 +259,7 @@ void editundo()
     freeblock(p);
 }
 
-vector<block *> copybuffers;
+vect<block *> copybuffers;
 
 void resetcopybuffers()
 {
@@ -350,8 +350,8 @@ void editdrag(bool isdown)
 
         if (identexists("newselkeys"))
         {
-            extern vector<keym> keyms;
-            vector<char *> elems;
+            extern vect<keym> keyms;
+            vect<char *> elems;
             explodelist(getalias("newselkeys"), elems);
 
             loopi(keyms.length()) if(keyms[i].pressed) loopj(elems.length())

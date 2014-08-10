@@ -10,7 +10,7 @@
 #endif
 
 string homedir = "";
-vector<char *> packagedirs;
+vect<char *> packagedirs;
 
 char *makerelpath(const char *dir, const char *file, const char *prefix, const char *cmd)
 {
@@ -245,7 +245,7 @@ const char *findfile(const char *filename, const char *mode)
     return filename;
 }
 
-bool listdir(const char *dir, const char *ext, vector<char *> &files)
+bool listdir(const char *dir, const char *ext, vect<char *> &files)
 {
     int extsize = ext ? (int)strlen(ext)+1 : 0;
     #if defined(WIN32)
@@ -284,7 +284,7 @@ bool listdir(const char *dir, const char *ext, vector<char *> &files)
     else return false;
 }
 
-int listfiles(const char *dir, const char *ext, vector<char *> &files)
+int listfiles(const char *dir, const char *ext, vect<char *> &files)
 {
     int dirs = 0;
     if(listdir(dir, ext, files)) dirs++;
@@ -331,7 +331,7 @@ bool preparedir(const char *destination)
 {
     string dir;
     copystring(dir, parentdir(destination));
-    vector<char *> dirs;
+    vect<char *> dirs;
     while(!fileexists(dir, "r"))
     {
         dirs.add(newstring(dir));

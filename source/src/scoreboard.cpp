@@ -50,7 +50,7 @@ struct sline
     const char *altfont;
     color *bgcolor;
     char textcolor;
-    vector<coldata> cols;
+    vect<coldata> cols;
 
     sline() : altfont(nullptr), bgcolor(nullptr), textcolor(0) { copystring(s, ""); }
 
@@ -82,13 +82,13 @@ struct sline
     }
 };
 
-static vector<sline> scorelines;
-vector<discscore> discscores;
+static vect<sline> scorelines;
+vect<discscore> discscores;
 
 struct teamscore
 {
     int team, frags, deaths, flagscore, points;
-    vector<playerent *> teammembers;
+    vect<playerent *> teammembers;
     teamscore(int t) : team(t), frags(0), deaths(0), flagscore(0), points(0) {}
 
     void addplayer(playerent *d)
@@ -303,7 +303,7 @@ void renderscores(void *menu, bool init)
     serverline[0] = '\0';
     scorelines.shrink(0);
 
-    vector<playerent *> scores;
+    vect<playerent *> scores;
     if(!watchingdemo) scores.add(player1);
     totalplayers = 1;
     loopv(players) if(players[i]) { scores.add(players[i]); totalplayers++; }
@@ -432,7 +432,7 @@ const char *asciiscores(bool destjpg)
     static char *buf = nullptr;
     static string team, flags, text;
     playerent *d;
-    vector<playerent *> scores;
+    vect<playerent *> scores;
 
     if(!buf) buf = (char *) malloc(MAXJPGCOM +1);
     if(!buf) return "";
@@ -513,7 +513,7 @@ void consolescores()
 void winners()
 {
     string winners = "";
-    vector<playerent *> scores;
+    vect<playerent *> scores;
     if(!watchingdemo) scores.add(player1);
     loopv(players) if(players[i]) { scores.add(players[i]); }
     scores.sort(scorecmp);

@@ -289,7 +289,7 @@ bool sbuffer::load(bool trydl)
                         vorbis_info *info = ov_info(&oggfile, -1);
 
                         const size_t BUFSIZE = 32*1024;
-                        vector<char> buf;
+                        vect<char> buf;
                         int bitstream;
                         long bytes;
 

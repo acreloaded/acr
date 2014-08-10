@@ -2,7 +2,7 @@
 
 #include "cube.h"
 
-vector<vertex> verts;
+vect<vertex> verts;
 
 void finishstrips();
 
@@ -20,7 +20,7 @@ void setupstrips()
     glTexCoordPointer(2, GL_FLOAT, sizeof(vertex), &buf->u);
 }
 
-struct strips { vector<GLint> first; vector<GLsizei> count; };
+struct strips { vect<GLint> first; vect<GLsizei> count; };
 
 struct stripbatch
 {
@@ -149,7 +149,7 @@ VAR(mergestrips, 0, 1, 1);
         if(mergestrips) switch(len) \
         { \
             case 3: type = GL_TRIANGLES; break; \
-            case 4: type = GL_QUADS; swap(verts.last(), verts[verts.length()-2]); break; \
+            case 4: type = GL_QUADS; swapB(verts.last(), verts[verts.length()-2]); break; \
         } \
         addstrip(type, striptex, firstindex, len); \
         striptype = 0; \
@@ -409,7 +409,7 @@ void resetcubes()
 }
 
 struct shadowvertex { float u, v, x, y, z; };
-vector<shadowvertex> shadowverts;
+vect<shadowvertex> shadowverts;
 
 static void resetshadowverts()
 {

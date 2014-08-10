@@ -19,9 +19,9 @@ struct resolverresult
     ENetAddress address;
 };
 
-vector<resolverthread> resolverthreads;
-vector<const char *> resolverqueries;
-vector<resolverresult> resolverresults;
+vect<resolverthread> resolverthreads;
+vect<const char *> resolverqueries;
+vect<resolverresult> resolverresults;
 SDL_mutex *resolvermutex;
 SDL_cond *querycond, *resultcond;
 
@@ -281,7 +281,7 @@ int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &addre
     return cd.result;
 }
 
-vector<serverinfo *> servers;
+vect<serverinfo *> servers;
 ENetSocket pingsock = ENET_SOCKET_NULL;
 int lastinfo = 0;
 
@@ -728,7 +728,7 @@ int sicompare(serverinfo **ap, serverinfo **bp)
 }
 
 void *servmenu = nullptr, *searchmenu = nullptr, *serverinfomenu = nullptr;
-vector<char *> namelists;
+vect<char *> namelists;
 
 string cursearch, cursearchuc;
 
@@ -757,7 +757,7 @@ VARP(serverbrowserhidefavtag, 0, 1, 2);
 VAR(showweights, 0, 0, 1);
 VARP(hidefavicons, 0, 0, 1);
 
-vector<char *> favcats;
+vect<char *> favcats;
 const char *fc_als[] = { "weight", "tag", "desc", "red", "green", "blue", "alpha", "keys", "ignore", "image" };
 enum { FC_WEIGHT = 0, FC_TAG, FC_DESC, FC_RED, FC_GREEN, FC_BLUE, FC_ALPHA, FC_KEYS, FC_IGNORE, FC_IMAGE, FC_NUM };
 
@@ -879,7 +879,7 @@ const char *favcatcheck(serverinfo &si, const char *ckeys, char *autokeys = null
     return res ? nkeys : nullptr;
 }
 
-vector<const char *> favcattags;
+vect<const char *> favcattags;
 
 bool assignserverfavourites()
 {
@@ -1310,7 +1310,7 @@ static size_t write_callback(void *ptr, size_t size, size_t nmemb, FILE *stream)
     return fwrite(ptr, size, nmemb, stream);
 }
 
-void retrieveservers(vector<char> &data)
+void retrieveservers(vect<char> &data)
 {
     if(mastertype == AC_MASTER_HTTP)
     {
@@ -1398,7 +1398,7 @@ void retrieveservers(vector<char> &data)
             enet_uint32 events = ENET_SOCKET_WAIT_RECEIVE;
             if(enet_socket_wait(sock, &events, 250) >= 0 && events)
             {
-                if(data.length() >= data.capacity()) data.reserve(4096);
+                if(data.length() >= data.capacity()) data.reserveR(4096);
                 buf.data = data.getbuf() + data.length();
                 buf.dataLength = data.capacity() - data.length();
                 int recv = enet_socket_receive(sock, nullptr, &buf, 1);
@@ -1422,7 +1422,7 @@ void updatefrommaster(int force)
     static int lastupdate = 0;
     if(!force && lastupdate && totalmillis-lastupdate<masterupdatefrequency*1000) return;
 
-    vector<char> data;
+    vect<char> data;
     retrieveservers(data);
 
     if(data.empty())

@@ -195,12 +195,12 @@ template<int BI_DIGITS> struct bigint
 
     void print(stream *out) const
     {
-        vector<char> buf;
+        vect<char> buf;
         printdigits(buf);
         out->write(buf.getbuf(), buf.length());
     }
 
-    void printdigits(vector<char> &buf) const
+    void printdigits(vect<char> &buf) const
     {
         loopi(len)
         {
@@ -670,7 +670,7 @@ struct ecjacobian
         return true;
     }
 
-    void print(vector<char> &buf)
+    void print(vect<char> &buf)
     {
         normalize();
         buf.add(y.hasbit(0) ? '-' : '+');
@@ -727,7 +727,7 @@ const ecjacobian ecjacobian::base(
 #error Unsupported GF
 #endif
 
-void genprivkey(const char *seed, vector<char> &privstr, vector<char> &pubstr)
+void genprivkey(const char *seed, vect<char> &privstr, vect<char> &pubstr)
 {
     tiger::hashval hash;
     tiger::hash((const uchar *)seed, (int)strlen(seed), hash);
@@ -770,7 +770,7 @@ const char *genpwdhash(const char *name, const char *pwd, int salt)
     return temp;
 }
 
-void answerchallenge(const char *privstr, const char *challenge, vector<char> &answerstr)
+void answerchallenge(const char *privstr, const char *challenge, vect<char> &answerstr)
 {
     gfint privkey;
     privkey.parse(privstr);
@@ -794,7 +794,7 @@ void freepubkey(void *pubkey)
     delete reinterpret_cast<ecjacobian *>(pubkey);
 }
 
-void *genchallenge(void *pubkey, const void *seed, int seedlen, vector<char> &challengestr)
+void *genchallenge(void *pubkey, const void *seed, int seedlen, vect<char> &challengestr)
 {
     tiger::hashval hash;
     tiger::hash((const uchar *)seed, sizeof(seed), hash);

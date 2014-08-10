@@ -5,8 +5,8 @@
 VAR(showclips, 0, 1, 1);
 VAR(showmodelclipping, 0, 1, 1);
 
-vector<entity> ents;
-vector<int> eh_ents; // edithide entities
+vect<entity> ents;
+vect<int> eh_ents; // edithide entities
 const char *entmdlnames[] =
  {
      "pistolclips", "ammobox", "nade", "health", "helmet", "kevlar", "akimbo", "nades", //FIXME
@@ -582,7 +582,7 @@ void entstats(void)
 
 COMMAND(entstats, "");
 
-vector<int> changedents;
+vect<int> changedents;
 int lastentsync = 0;
 
 void syncentchanges(bool force)

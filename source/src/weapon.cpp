@@ -78,7 +78,7 @@ void shiftweapon(int *s)
         weapon *akimbo = player1->weapons[GUN_AKIMBO];
 
         // collect available weapons
-        vector<weapon *> availweapons;
+        vect<weapon *> availweapons;
         const int weap_check_order[NUMGUNS] =
         {
             GUN_AKIMBO,
@@ -291,7 +291,7 @@ inline void attackevent(playerent *owner, int weapon)
     }
 }
 
-vector<bounceent *> bounceents;
+vect<bounceent *> bounceents;
 
 void removebounceents(playerent *owner)
 {
@@ -433,7 +433,7 @@ VARP(accuracy,0,0,1);
 void r_accuracy(int h)
 {
     if(!accuracy) return;
-    vector <char*>lines;
+    vect <char*>lines;
     int rows = 0, cols = 0;
     float spacing = curfont->defaultw*2, x_offset = curfont->defaultw, y_offset = float(2*h) - 2*spacing;
 
@@ -1259,8 +1259,8 @@ void healgun::attackfx(const vec &from2, const vec &to, int millis)
 }
 
 
-vector<cconfirm> confirms;
-vector<cknife> knives;
+vect<cconfirm> confirms;
+vect<cknife> knives;
 
 
 // knife

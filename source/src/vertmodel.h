@@ -168,8 +168,8 @@ struct vertmodel : model
         {
             tristrip ts;
             ts.addtriangles(tris, numtris);
-            vector<ushort> idxs;
-            vector<drawcall> draws;
+            vect<ushort> idxs;
+            vect<drawcall> draws;
             ts.buildstrips(idxs, draws);
             dynidx = new ushort[idxs.length()];
             memcpy(dynidx, idxs.getbuf(), idxs.length()*sizeof(ushort));
@@ -256,7 +256,7 @@ struct vertmodel : model
                 loopj(3)
                 {
                     uint e1 = shareverts[t.vert[j]], e2 = shareverts[t.vert[(j+1)%3]], shift = 0;
-                    if(e1 > e2) { swap(e1, e2); shift = 16; }
+                    if(e1 > e2) { swapB(e1, e2); shift = 16; }
                     uint &edge = edges.access(e1 | (e2<<16), ~0U);
                     if(((edge>>shift)&0xFFFF) != 0xFFFF) edge = 0;
                     else
@@ -272,7 +272,7 @@ struct vertmodel : model
                 loopj(3)
                 {
                     uint e1 = shareverts[t.vert[j]], e2 = shareverts[t.vert[(j+1)%3]], shift = 0;
-                    if(e1 > e2) { swap(e1, e2); shift = 16; }
+                    if(e1 > e2) { swapB(e1, e2); shift = 16; }
                     uint edge = edges[e1 | (e2<<16)];
                     if(!edge || int((edge>>shift)&0xFFFF)!=i) t.neighbor[j] = 0xFFFF;
                     else t.neighbor[j] = (edge>>(16-shift))&0xFFFF;
@@ -317,7 +317,7 @@ struct vertmodel : model
             if(prev) d->prev = *prev;
             else d->prev.fr1 = -1;
 
-            static vector<uchar> side;
+            static vect<uchar> side;
             side.setsize(0);
 
             loopi(numtris)
@@ -643,8 +643,8 @@ struct vertmodel : model
         char *filename;
         vertmodel *model;
         int index, numframes;
-        vector<mesh *> meshes;
-        vector<animinfo> *anims;
+        vect<mesh *> meshes;
+        vect<animinfo> *anims;
         linkedpart *links;
         tag *tags;
         int numtags;
@@ -716,7 +716,7 @@ struct vertmodel : model
             numtags++;
 
             linkedpart *nlinks = new linkedpart[numtags];
-            loopi(numtags-1) swap(links[i].emitter, nlinks[i].emitter);
+            loopi(numtags-1) swapB(links[i].emitter, nlinks[i].emitter);
             DELETEA(links);
             links = nlinks;
             return true;
@@ -807,7 +807,7 @@ struct vertmodel : model
             }
             else if(anims)
             {
-                vector<animinfo> &ais = anims[anim&ANIM_INDEX];
+                vect<animinfo> &ais = anims[anim&ANIM_INDEX];
                 if(ais.length())
                 {
                     animinfo &ai = ais[uint(varseed)%ais.length()];
@@ -947,7 +947,7 @@ struct vertmodel : model
                 conoutf("invalid frame %d, range %d in model %s", frame, range, model->loadname);
                 return;
             }
-            if(!anims) anims = new vector<animinfo>[NUMANIMS];
+            if(!anims) anims = new vect<animinfo>[NUMANIMS];
             animinfo &ai = anims[num].add();
             ai.frame = frame;
             ai.range = range;
@@ -1221,7 +1221,7 @@ struct vertmodel : model
 
     bool loaded;
     char *loadname;
-    vector<part *> parts;
+    vect<part *> parts;
 
     vertmodel(const char *name) : loaded(false)
     {

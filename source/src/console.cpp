@@ -469,7 +469,7 @@ int rendercommand_wip(int x, int y, int w)
 
 // keymap is defined externally in keymap.cfg
 
-vector<keym> keyms;
+vect<keym> keyms;
 
 const char *keycmds[keym::NUMACTIONS] = { "bind", "specbind", "editbind" };
 inline const char *keycmd(int type) { return type >= 0 && type < keym::NUMACTIONS ? keycmds[type] : ""; }
@@ -572,7 +572,7 @@ void searchbinds(const char *action, int type)
 {
     if(!action || !action[0]) return;
     if(type < keym::ACTION_DEFAULT || type >= keym::NUMACTIONS) { conoutf("invalid bind type \"%i\"", type); return; }
-    vector<char> names;
+    vect<char> names;
     loopv(keyms)
     {
         if(!strcmp(keyms[i].actions[type], action))
@@ -602,7 +602,7 @@ struct releaseaction
     keym *key;
     char *action;
 };
-vector<releaseaction> releaseactions;
+vect<releaseaction> releaseactions;
 
 char *addreleaseaction(const char *s)
 {
@@ -754,7 +754,7 @@ struct hline
         popscontext();
     }
 };
-vector<hline *> history;
+vect<hline *> history;
 int histpos = 0;
 
 VARP(maxhistory, 0, 1000, 10000);

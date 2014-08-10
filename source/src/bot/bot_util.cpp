@@ -131,17 +131,17 @@ void AnglesToVectors(vec angles, vec &forward, vec &right, vec &up)
      sin_roll = sinf (angle);
      cos_roll = cosf (angle);
 
-     // build the FORWARD vector
+     // build the FORWARD vect
      forward.x = cos_pitch * cos_yaw;
      forward.y = cos_pitch * sin_yaw;
      forward.z = -sin_pitch;
 
-     // build the RIGHT vector
+     // build the RIGHT vect
      right.x = -(-(sin_roll * sin_pitch * cos_yaw) - (cos_roll * -sin_yaw));
      right.y = -(-(sin_roll * sin_pitch * sin_yaw) - (cos_roll * cos_yaw));
      right.z = -(sin_roll * cos_pitch);
 
-     // build the UPWARDS vector
+     // build the UPWARDS vect
      up.x = ((cos_roll * sin_pitch * cos_yaw) - (sin_roll * -sin_yaw));
      up.y = ((cos_roll * sin_pitch * sin_yaw) - (sin_roll * cos_yaw));
      up.z = cos_roll * cos_pitch;
@@ -167,7 +167,7 @@ float WrapYZAngle(float angle)
      return angle;
 }
 
-// Sees how far it can come from 'from' to 'to' and puts the end vector in 'end'
+// Sees how far it can come from 'from' to 'to' and puts the end vect in 'end'
 // (1337 description :-)
 // UNDONE: Optimize this as much as possible
 void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult_s *tr,

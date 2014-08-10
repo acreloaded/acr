@@ -188,7 +188,7 @@ void audiomanager::registermusic(char *name)
     musics.add(newstring(name));
 }
 
-int audiomanager::findsound(char *name, int vol, vector<soundconfig> &sounds)
+int audiomanager::findsound(char *name, int vol, vect<soundconfig> &sounds)
 {
     loopv(sounds)
     {
@@ -197,7 +197,7 @@ int audiomanager::findsound(char *name, int vol, vector<soundconfig> &sounds)
     return -1;
 }
 
-int audiomanager::addsound(char *name, int vol, int maxuses, bool loop, vector<soundconfig> &sounds, bool load, int audibleradius)
+int audiomanager::addsound(char *name, int vol, int maxuses, bool loop, vect<soundconfig> &sounds, bool load, int audibleradius)
 {
     if(nosound) return -1;
     if(!soundvol) return -1;
@@ -430,7 +430,7 @@ COMMAND(soundtest, "");
 
 // sound configuration
 
-soundconfig::soundconfig(sbuffer *b, int vol, int maxuses, bool loop, int audibleradius)
+soundconfig::soundconfig(sbuffer *b=nullptr, int vol=0, int maxuses=0, bool loop=false, int audibleradius=0)
 {
     buf = b;
     this->vol = vol > 0 ? vol : 100;
@@ -452,7 +452,7 @@ void soundconfig::ondetach()
     uses--;
 }
 
-vector<soundconfig> gamesounds, mapsounds;
+vect<soundconfig> gamesounds, mapsounds;
 
 void audiomanager::detachsounds(playerent *owner)
 {

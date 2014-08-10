@@ -11,7 +11,7 @@ namespace varray
         MAXATTRIBS       = 5
     };
 
-    extern vector<uchar> data;
+    extern vect<uchar> data;
 
     extern void enable();
     extern void begin(GLenum mode);
@@ -78,7 +78,7 @@ namespace varray
         }
     };
 
-    vector<uchar> data;
+    vect<uchar> data;
     static attribinfo attribs[MAXATTRIBS], lastattribs[MAXATTRIBS];
     static int enabled = 0, numattribs = 0, attribmask = 0, numlastattribs = 0, lastattribmask = 0, vertexsize = 0, lastvertexsize = 0;
     static GLenum primtype = GL_TRIANGLES;

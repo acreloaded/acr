@@ -97,7 +97,7 @@ struct weaponmove
                 swayspeed *= plspeed/2;
                 swayupspeed *= plspeed/2;
 
-                swap(sway.x, sway.y);
+                swapB(sway.x, sway.y);
                 sway.y = -sway.y;
 
                 swayupspeed = fabs(swayupspeed); // sway a semicirle only

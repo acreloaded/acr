@@ -1010,7 +1010,7 @@ bool minimap = false, minimapdirty = true;
 int minimaplastsize = 0;
 GLuint minimaptex = 0;
 
-vector<zone> zones;
+vect<zone> zones;
 
 void renderzones(float z)
 {
@@ -1420,7 +1420,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
         disablepolygonoffset(GL_POLYGON_OFFSET_LINE, false);
     }
 
-    extern vector<vertex> verts;
+    extern vect<vertex> verts;
     gl_drawhud(w, h, (int)round_(curfps), nquads, verts.length(), underwater);
 
     glEnable(GL_CULL_FACE);

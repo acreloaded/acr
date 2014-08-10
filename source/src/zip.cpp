@@ -110,7 +110,7 @@ static bool findzipdirectory(FILE *f, zipdirectoryheader &hdr)
 VAR(dbgzip, 0, 0, 1);
 #endif
 
-static bool readzipdirectory(const char *archname, FILE *f, int entries, int offset, int size, vector<zipfile> &files)
+static bool readzipdirectory(const char *archname, FILE *f, int entries, int offset, int size, vect<zipfile> &files)
 {
     uchar *buf = new uchar[size], *src = buf;
     if(fseek(f, offset, SEEK_SET) < 0 || (int)fread(buf, 1, size, f) != size) { delete[] buf; return false; }
@@ -190,7 +190,7 @@ static bool readlocalfileheader(FILE *f, ziplocalfileheader &h, uint offset)
     return true;
 }
 
-static vector<ziparchive *> archives;
+static vect<ziparchive *> archives;
 
 ziparchive *findzip(const char *name)
 {
@@ -198,7 +198,7 @@ ziparchive *findzip(const char *name)
     return nullptr;
 }
 
-static bool checkprefix(vector<zipfile> &files, const char *prefix, int prefixlen)
+static bool checkprefix(vect<zipfile> &files, const char *prefix, int prefixlen)
 {
     loopv(files)
     {
@@ -224,7 +224,7 @@ bool fitspackage(char *filename, int type)
     }
 }
 
-static void mountzip(ziparchive &arch, vector<zipfile> &files, const char *mountdir, const char *stripdir, bool extract)
+static void mountzip(ziparchive &arch, vect<zipfile> &files, const char *mountdir, const char *stripdir, bool extract)
 {
     string packagesdir = "packages/";
     path(packagesdir);
@@ -307,7 +307,7 @@ bool addzip(const char *name, const char *mount, const char *strip, bool extract
         return false;
     }
     zipdirectoryheader h;
-    vector<zipfile> files;
+    vect<zipfile> files;
     if(!findzipdirectory(f, h) || !readzipdirectory(pname, f, h.entries, h.offset, h.size, files))
     {
         conoutf("could not read directory in zip %s", pname);
@@ -582,7 +582,7 @@ stream *openzipfile(const char *name, const char *mode)
     return nullptr;
 }
 
-int listzipfiles(const char *dir, const char *ext, vector<char *> &files)
+int listzipfiles(const char *dir, const char *ext, vect<char *> &files)
 {
     int extsize = ext ? (int)strlen(ext)+1 : 0, dirsize = (int)strlen(dir), dirs = 0;
     loopvrev(archives)
