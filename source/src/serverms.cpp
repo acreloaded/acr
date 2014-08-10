@@ -21,7 +21,7 @@ ENetAddress masteraddress = { ENET_HOST_ANY, ENET_PORT_ANY }, serveraddress = { 
 string mastername = AC_MASTER_URI;
 int masterport = AC_MASTER_PORT, mastertype = AC_MASTER_HTTP;
 int lastupdatemaster = 0;
-vector<char> masterout, masterin;
+vect<char> masterout, masterin;
 int masteroutpos = 0, masterinpos = 0;
 
 void disconnectmaster()
@@ -129,7 +129,7 @@ void flushmasteroutput()
     ENetBuffer buf;
     buf.data = &masterout[masteroutpos];
     buf.dataLength = masterout.length() - masteroutpos;
-    int sent = enet_socket_send(mastersock, NULL, &buf, 1);
+    int sent = enet_socket_send(mastersock, nullptr, &buf, 1);
     if(sent >= 0)
     {
         masteroutpos += sent;
@@ -145,12 +145,12 @@ void flushmasteroutput()
 void flushmasterinput()
 {
     if(masterin.length() >= masterin.capacity())
-        masterin.reserve(4096);
+        masterin.reserveR(4096);
 
     ENetBuffer buf;
     buf.data = &masterin[masterin.length()];
     buf.dataLength = masterin.capacity() - masterin.length();
-    int recv = enet_socket_receive(mastersock, NULL, &buf, 1);
+    int recv = enet_socket_receive(mastersock, nullptr, &buf, 1);
     if(recv > 0)
     {
         masterin.advance(recv);
@@ -197,7 +197,7 @@ void serverms(int mode, int muts, int numplayers, int minremain, char *smapname,
         maxsock = max(maxsock, lansock);
         ENET_SOCKETSET_ADD(sockset, lansock);
     }
-    if(enet_socketset_select(maxsock, &sockset, NULL, 0) <= 0) return;
+    if(enet_socketset_select(maxsock, &sockset, nullptr, 0) <= 0) return;
 
     // reply all server info requests
     static uchar data[MAXTRANS];

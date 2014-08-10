@@ -273,7 +273,8 @@ struct obitlist : consolebuffer<oline>
             if (fullconsole || (i < FADEMAX && totalmillis - conlines[i].millis < obitfade * 1000))
                 if (cl.mergable(conlines[i]))
                 {
-                    cl.merge(conlines.remove(i)); // remove, and "merge" into our line
+                    cl.merge(conlines[i]); // remove, and "merge" into our line
+                    conlines.remove(i);
                     break;
                 }
         return conlines.insert(0, cl);
@@ -285,8 +286,10 @@ struct obitlist : consolebuffer<oline>
         loopv(conlines) loopvjrev(conlines)
         {
             if (j <= i) break;
-            else if (conlines[i].mergable(conlines[j]))
-                conlines[i].merge(conlines.remove(j));
+            else if (conlines[i].mergable(conlines[j])){
+                conlines[i].merge(conlines[j]);
+                conlines.remove(j);
+            }
         }
     }
 
@@ -347,7 +350,7 @@ struct obitlist : consolebuffer<oline>
 console con;
 chatlist chat;
 textinputbuffer cmdline;
-char *cmdaction = NULL, *cmdprompt = NULL;
+char *cmdaction = nullptr, *cmdprompt = nullptr;
 bool saycommandon = false;
 
 VARFP(maxcon, 10, 200, 1000, con.setmaxlines(maxcon));
@@ -469,7 +472,7 @@ int rendercommand_wip(int x, int y, int w)
 
 // keymap is defined externally in keymap.cfg
 
-vector<keym> keyms;
+vect<keym> keyms;
 
 const char *keycmds[keym::NUMACTIONS] = { "bind", "specbind", "editbind" };
 inline const char *keycmd(int type) { return type >= 0 && type < keym::NUMACTIONS ? keycmds[type] : ""; }
@@ -486,19 +489,19 @@ COMMAND(keymap, "is");
 keym *findbind(const char *key)
 {
     loopv(keyms) if(!strcasecmp(keyms[i].name, key)) return &keyms[i];
-    return NULL;
+    return nullptr;
 }
 
 keym *findbinda(const char *action, int type)
 {
     loopv(keyms) if(!strcasecmp(keyms[i].actions[type], action)) return &keyms[i];
-    return NULL;
+    return nullptr;
 }
 
 keym *findbindc(int code)
 {
     loopv(keyms) if(keyms[i].code==code) return &keyms[i];
-    return NULL;
+    return nullptr;
 }
 
 void findkey(int *code)
@@ -534,8 +537,8 @@ void findkeycode(const char* s)
 COMMAND(findkey, "i");
 COMMAND(findkeycode, "s");
 
-keym *keypressed = NULL;
-char *keyaction = NULL;
+keym *keypressed = nullptr;
+char *keyaction = nullptr;
 
 bool bindkey(keym *km, const char *action, int type)
 {
@@ -572,7 +575,7 @@ void searchbinds(const char *action, int type)
 {
     if(!action || !action[0]) return;
     if(type < keym::ACTION_DEFAULT || type >= keym::NUMACTIONS) { conoutf("invalid bind type \"%i\"", type); return; }
-    vector<char> names;
+    vect<char> names;
     loopv(keyms)
     {
         if(!strcmp(keyms[i].actions[type], action))
@@ -602,11 +605,11 @@ struct releaseaction
     keym *key;
     char *action;
 };
-vector<releaseaction> releaseactions;
+vect<releaseaction> releaseactions;
 
 char *addreleaseaction(const char *s)
 {
-    if(!keypressed) return NULL;
+    if(!keypressed) return nullptr;
     releaseaction &ra = releaseactions.add();
     ra.key = keypressed;
     ra.action = newstring(s);
@@ -622,7 +625,7 @@ COMMAND(onrelease, "s");
 
 void saycommand(char *init)                         // turns input to the command line on or off
 {
-    SDL_EnableUNICODE(saycommandon = (init!=NULL));
+    SDL_EnableUNICODE(saycommandon = (init!=nullptr));
     setscope(false);
     setburst(false);
     if(!editmode) keyrepeat(saycommandon);
@@ -668,7 +671,7 @@ void pasteconsole(char *dst)
 {
     #ifdef WIN32
     if(!IsClipboardFormatAvailable(CF_TEXT)) return;
-    if(!OpenClipboard(NULL)) return;
+    if(!OpenClipboard(nullptr)) return;
     char *cb;
     do cb = (char *)GlobalLock(GetClipboardData(CF_TEXT));
     while(!cb);
@@ -707,7 +710,7 @@ struct hline
 {
     char *buf, *action, *prompt;
 
-    hline() : buf(NULL), action(NULL), prompt(NULL) {}
+    hline() : buf(nullptr), action(nullptr), prompt(nullptr) {}
     ~hline()
     {
         DELETEA(buf);
@@ -728,8 +731,8 @@ struct hline
     bool shouldsave()
     {
         return strcmp(cmdline.buf, buf) ||
-               (cmdaction ? !action || strcmp(cmdaction, action) : action!=NULL) ||
-               (cmdprompt ? !prompt || strcmp(cmdprompt, prompt) : prompt!=NULL);
+               (cmdaction ? !action || strcmp(cmdaction, action) : action!=nullptr) ||
+               (cmdprompt ? !prompt || strcmp(cmdprompt, prompt) : prompt!=nullptr);
     }
 
     void save()
@@ -754,7 +757,7 @@ struct hline
         popscontext();
     }
 };
-vector<hline *> history;
+vect<hline *> history;
 int histpos = 0;
 
 VARP(maxhistory, 0, 1000, 10000);
@@ -793,7 +796,7 @@ void execbind(keym &k, bool isdown)
         keyaction = action;
         keypressed = &k;
         execute(keyaction);
-        keypressed = NULL;
+        keypressed = nullptr;
         if(keyaction!=action) delete[] keyaction;
     }
     k.pressed = isdown;
@@ -849,7 +852,7 @@ void consolekey(int code, bool isdown, int cooked)
             // make laptop users happy; LMB shall only work with history
             if(code == SDL_AC_BUTTON_LEFT && histpos == history.length()) return;
 
-            hline *h = NULL;
+            hline *h = nullptr;
             if(cmdline.buf[0])
             {
                 if(history.empty() || history.last()->shouldsave())
@@ -864,20 +867,20 @@ void consolekey(int code, bool isdown, int cooked)
                 else h = history.last();
             }
             histpos = history.length();
-            saycommand(NULL);
+            saycommand(nullptr);
             if(h) h->run();
         }
         else if(code==SDLK_ESCAPE || code== SDL_AC_BUTTON_RIGHT)
         {
             histpos = history.length();
-            saycommand(NULL);
+            saycommand(nullptr);
         }
     }
 }
 
 void keypress(int code, bool isdown, int cooked, SDLMod mod)
 {
-    keym *haskey = NULL;
+    keym *haskey = nullptr;
     loopv(keyms) if(keyms[i].code==code) { haskey = &keyms[i]; break; }
     if(haskey && haskey->pressed) execbind(*haskey, isdown); // allow pressed keys to release
     else if(saycommandon) consolekey(code, isdown, cooked);  // keystrokes go to commandline
@@ -899,7 +902,7 @@ void keypress(int code, bool isdown, int cooked, SDLMod mod)
 
 char *getcurcommand()
 {
-    return saycommandon ? cmdline.buf : NULL;
+    return saycommandon ? cmdline.buf : nullptr;
 }
 
 void writebinds(stream *f)

@@ -13,16 +13,16 @@
     #include <sys/stat.h>
 #endif
 
-static void addarg(vector<char> &argstr, const char *name)
+static void addarg(vect<char> &argstr, const char *name)
 {
     argstr.add(' ');
     argstr.put(name, strlen(name));
 }
 
-static void addarg(vector<char> &argstr, const char *name, const char *val)
+static void addarg(vect<char> &argstr, const char *name, const char *val)
 {
     addarg(argstr, name);
-    bool space = strchr(val, ' ')!=NULL;
+    bool space = strchr(val, ' ')!=nullptr;
     if(space) argstr.add('"');
     argstr.put(val, strlen(val));
     if(space) argstr.add('"');
@@ -37,7 +37,7 @@ static void readarg(const char *desc, char *val, int len)
     if(end) *end = '\0';
 }
 
-static void readarg(vector<char> &argstr, const char *desc, const char *name)
+static void readarg(vect<char> &argstr, const char *desc, const char *name)
 {
     string val = "";
     readarg(desc, val, sizeof(val));
@@ -46,7 +46,7 @@ static void readarg(vector<char> &argstr, const char *desc, const char *name)
 
 int wizardmain(int argc, char **argv)
 {
-    const char *outfile = NULL, *relpath = NULL;
+    const char *outfile = nullptr, *relpath = nullptr;
     for(int i = 1; i < argc; i++)
     {
         if(argv[i][0] == '-') continue;
@@ -72,7 +72,7 @@ int wizardmain(int argc, char **argv)
            "If you're unsure about what to specify for the settings, leave the field blank.\n\n"
            "Read http://assault.cubers.net/docs/commandline.html for a description of these settings.\n\n");
 
-    vector<char> argstr;
+    vect<char> argstr;
     readarg(argstr, "Server description", "-n");
     readarg(argstr, "Message of the day", "-o");
     readarg(argstr, "Maximum clients (No more than 16 allowed!)", "-c");
@@ -128,8 +128,8 @@ int wizardmain(int argc, char **argv)
 
         printf("Installing the ACR Server as windows service ... "); fflush(stdout);
 
-        vector<char> path;
-        databuf<char> cwd = path.reserve(MAX_PATH);
+        vect<char> path;
+        databuf<char> cwd = path.reserveR(MAX_PATH);
         if(!_getcwd(cwd.buf, MAX_PATH))
         {
             printf("Failed!\n");

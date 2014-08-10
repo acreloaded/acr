@@ -89,7 +89,7 @@ void shotevent::process(client *ci)
     else if (weap == GUN_GRENADE) damagepotential = 0;
     else damagepotential = effectiveDamage(weap, to.dist(from));
 
-    static vector<int> exclude;
+    static vect<int> exclude;
     switch (weap)
     {
         case GUN_GRENADE: cs.grenades.add(id); break;
@@ -282,7 +282,7 @@ void healevent::process(client *ci)
 
 void suicidebomberevent::process(client *ci)
 {
-    explosion(*ci, ci->state.o, GUN_GRENADE, !m_real(gamemode, mutators), true, valid_client(id) ? clients[id] : NULL);
+    explosion(*ci, ci->state.o, GUN_GRENADE, !m_real(gamemode, mutators), true, valid_client(id) ? clients[id] : nullptr);
 }
 
 void airstrikeevent::process(client *ci)

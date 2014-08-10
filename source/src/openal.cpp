@@ -9,7 +9,7 @@ VAR(al_rollofffactor, 0, 100, 1000000);
 
 // represents an OpenAL source, an audio emitter in the 3D world
 
-source::source() : id(0), owner(NULL), locked(false), valid(false), priority(SP_NORMAL)
+source::source() : id(0), owner(nullptr), locked(false), valid(false), priority(SP_NORMAL)
 {
     valid = generate();
     ASSERT(!valid || alIsSource(id));
@@ -29,7 +29,7 @@ void source::lock()
 void source::unlock()
 {
     locked = false;
-    owner = NULL;
+    owner = nullptr;
     stop();
     buffer(0);
     DEBUG("source unlocked, " << lastmillis);
@@ -38,7 +38,7 @@ void source::unlock()
 void source::reset()
 {
     ASSERT(alIsSource(id));
-    owner = NULL;
+    owner = nullptr;
     locked = false;
     priority = SP_NORMAL;
 
@@ -72,7 +72,7 @@ void source::onreassign()
     if(owner)
     {
         owner->onsourcereassign(this);
-        owner = NULL;
+        owner = nullptr;
     }
 }
 
@@ -245,7 +245,7 @@ void source::printposition()
 
 // represents an OpenAL sound buffer
 
-sbuffer::sbuffer() : id(0), name(NULL)
+sbuffer::sbuffer() : id(0), name(nullptr)
 {
 }
 
@@ -284,12 +284,12 @@ bool sbuffer::load(bool trydl)
                 if(len >= 4 && !strcasecmp(filepath + len - 4, ".ogg"))
                 {
                     OggVorbis_File oggfile;
-                    if(!ov_open_callbacks(f, &oggfile, NULL, 0, oggcallbacks))
+                    if(!ov_open_callbacks(f, &oggfile, nullptr, 0, oggcallbacks))
                     {
                         vorbis_info *info = ov_info(&oggfile, -1);
 
                         const size_t BUFSIZE = 32*1024;
-                        vector<char> buf;
+                        vect<char> buf;
                         int bitstream;
                         long bytes;
 

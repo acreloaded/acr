@@ -20,7 +20,7 @@ static inline void putint_(T &p, int n)
 }
 void putint(ucharbuf &p, int n) { putint_(p, n); }
 void putint(packetbuf &p, int n) { putint_(p, n); }
-void putint(vector<uchar> &p, int n) { putint_(p, n); }
+void putint(vect<uchar> &p, int n) { putint_(p, n); }
 
 int getint(ucharbuf &p)
 {
@@ -61,7 +61,7 @@ static inline void putuint_(T &p, int n)
 }
 void putuint(ucharbuf &p, int n) { putuint_(p, n); }
 void putuint(packetbuf &p, int n) { putuint_(p, n); }
-void putuint(vector<uchar> &p, int n) { putuint_(p, n); }
+void putuint(vect<uchar> &p, int n) { putuint_(p, n); }
 
 int getuint(ucharbuf &p)
 {
@@ -85,7 +85,7 @@ static inline void putfloat_(T &p, float f)
 }
 void putfloat(ucharbuf &p, float f) { putfloat_(p, f); }
 void putfloat(packetbuf &p, float f) { putfloat_(p, f); }
-void putfloat(vector<uchar> &p, float f) { putfloat_(p, f); }
+void putfloat(vect<uchar> &p, float f) { putfloat_(p, f); }
 
 float getfloat(ucharbuf &p)
 {
@@ -104,7 +104,7 @@ static inline void sendstring_(const char *text, T &p)
 }
 void sendstring(const char *t, ucharbuf &p) { sendstring_(t, p); }
 void sendstring(const char *t, packetbuf &p) { sendstring_(t, p); }
-void sendstring(const char *t, vector<uchar> &p) { sendstring_(t, p); }
+void sendstring(const char *t, vect<uchar> &p) { sendstring_(t, p); }
 
 void getstring(char *text, ucharbuf &p, int len)
 {

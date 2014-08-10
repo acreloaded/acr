@@ -32,9 +32,9 @@ struct modelattach
     vec *pos;
     model *m;
 
-    modelattach() : tag(NULL), name(NULL), pos(NULL), m(NULL) {}
-    modelattach(const char *tag, const char *name) : tag(tag), name(name), pos(NULL), m(NULL) {}
-    modelattach(const char *tag, vec *pos) : tag(tag), name(NULL), pos(pos), m(NULL) {}
+    modelattach() : tag(nullptr), name(nullptr), pos(nullptr), m(nullptr) {}
+    modelattach(const char *tag, const char *name) : tag(tag), name(name), pos(nullptr), m(nullptr) {}
+    modelattach(const char *tag, vec *pos) : tag(tag), name(nullptr), pos(pos), m(nullptr) {}
 };
 
 class dynent;
@@ -56,11 +56,11 @@ struct model
 
     virtual void cleanup() = 0;
 
-    virtual void render(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, float pitch, dynent *d, modelattach *a = NULL, float scale = 1.0f) = 0;
+    virtual void render(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, float pitch, dynent *d, modelattach *a = nullptr, float scale = 1.0f) = 0;
     virtual void setskin(int tex = 0) = 0;
 
     virtual void genshadows(float height, float rad) {}
-    virtual void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, modelattach *a = NULL) {}
+    virtual void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, modelattach *a = nullptr) {}
     virtual bool hasshadows() { return false; }
 
     virtual void startrender() {}

@@ -3,7 +3,7 @@
 #include "cube.h"
 #define SCORERATIO(F,D) (float)(F >= 0 ? F : 0) / (float)(D > 0 ? D : 1)
 
-void *scoremenu = NULL;
+void *scoremenu = nullptr;
 bool needscoresreorder = true;
 
 void showscores(bool on)
@@ -28,10 +28,35 @@ struct coldata
     int priority;
     char *val;
 
-    coldata() : priority(-1), val(NULL) {}
+    coldata() : priority(-1), val(nullptr) {}
     ~coldata()
     {
         DELETEA(val);
+    }
+
+    coldata& coldata::operator=(const coldata& other){
+        val = other.val ? newstring(other.val) : nullptr;
+        priority = other.priority;
+        return *this;
+    }
+
+    coldata::coldata(const coldata& other){
+        val = other.val ? newstring(other.val) : nullptr;
+        priority = other.priority;
+    }
+
+    coldata& coldata::operator=(coldata&& other){
+        DELETEA(val);
+        val = other.val;
+        other.val = nullptr;
+        priority = other.priority;
+        return *this;
+    }
+
+    coldata::coldata(coldata&& other){
+        val = other.val;
+        other.val = nullptr;
+        priority = other.priority;
     }
 };
 
@@ -50,11 +75,11 @@ struct sline
     const char *altfont;
     color *bgcolor;
     char textcolor;
-    vector<coldata> cols;
+    vect<coldata> cols;
 
-    sline() : altfont(NULL), bgcolor(NULL), textcolor(0) { copystring(s, ""); }
+    sline() : altfont(nullptr), bgcolor(nullptr), textcolor(0) { copystring(s, ""); }
 
-    void addcol(int priority, const char *format = NULL, ...)
+    void addcol(int priority, const char *format = nullptr, ...)
     {
         if(priority < 0) return;
         coldata &col = cols.add();
@@ -82,13 +107,13 @@ struct sline
     }
 };
 
-static vector<sline> scorelines;
-vector<discscore> discscores;
+static vect<sline> scorelines;
+vect<discscore> discscores;
 
 struct teamscore
 {
     int team, frags, deaths, flagscore, points;
-    vector<playerent *> teammembers;
+    vect<playerent *> teammembers;
     teamscore(int t) : team(t), frags(0), deaths(0), flagscore(0), points(0) {}
 
     void addplayer(playerent *d)
@@ -225,7 +250,7 @@ void renderscore(playerent *d)
     const char *ign = d->ignored ? " (ignored)" : (d->muted ? " (muted)" : "");
     sline &line = scorelines.add();
     if(team_isspect(d->team)) line.textcolor = '4';
-    line.bgcolor = d->lastpain + 500 > lastmillis ? &damagedplayerc : d->lasthit + 500 > lastmillis ? &damagingplayerc : d == player1 ? &localplayerc : NULL;
+    line.bgcolor = d->lastpain + 500 > lastmillis ? &damagedplayerc : d->lasthit + 500 > lastmillis ? &damagingplayerc : d == player1 ? &localplayerc : nullptr;
 
     if(m_flags(gamemode)) line.addcol(sc_flags, "%d", d->flagscore);
     line.addcol(sc_frags, "%d", d->frags);
@@ -303,7 +328,7 @@ void renderscores(void *menu, bool init)
     serverline[0] = '\0';
     scorelines.shrink(0);
 
-    vector<playerent *> scores;
+    vect<playerent *> scores;
     if(!watchingdemo) scores.add(player1);
     totalplayers = 1;
     loopv(players) if(players[i]) { scores.add(players[i]); totalplayers++; }
@@ -411,14 +436,14 @@ void renderscores(void *menu, bool init)
     }
 
     menureset(menu);
-    loopv(scorelines) menuimagemanual(menu, NULL, scorelines[i].altfont, scorelines[i].getcols(), NULL, scorelines[i].bgcolor);
+    loopv(scorelines) menuimagemanual(menu, nullptr, scorelines[i].altfont, scorelines[i].getcols(), nullptr, scorelines[i].bgcolor);
     menuheader(menu, modeline, serverline);
 
     // update server stats
     static int lastrefresh = 0;
     if(!lastrefresh || lastrefresh+5000<lastmillis)
     {
-        refreshservers(NULL, init);
+        refreshservers(nullptr, init);
         lastrefresh = lastmillis;
     }
 }
@@ -429,10 +454,10 @@ void addstr(char *dest, const char *src) { if(strlen(dest) + strlen(src) < MAXJP
 
 const char *asciiscores(bool destjpg)
 {
-    static char *buf = NULL;
+    static char *buf = nullptr;
     static string team, flags, text;
     playerent *d;
-    vector<playerent *> scores;
+    vect<playerent *> scores;
 
     if(!buf) buf = (char *) malloc(MAXJPGCOM +1);
     if(!buf) return "";
@@ -513,7 +538,7 @@ void consolescores()
 void winners()
 {
     string winners = "";
-    vector<playerent *> scores;
+    vect<playerent *> scores;
     if(!watchingdemo) scores.add(player1);
     loopv(players) if(players[i]) { scores.add(players[i]); }
     scores.sort(scorecmp);

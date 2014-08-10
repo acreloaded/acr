@@ -7,7 +7,7 @@ bool allowidentaccess(ident *id);
 char *exchangestr(char *o, const char *n) { delete[] o; return newstring(n); }
 void scripterr();
 
-vector<int> contextstack;
+vect<int> contextstack;
 bool contextsealed = false;
 bool contextisolated[IEXC_NUM] = { false };
 int execcontext;
@@ -15,7 +15,7 @@ int execcontext;
 bool loop_break = false, loop_skip = false;             // break or continue (skip) current loop
 int loop_level = 0;                                      // avoid bad calls of break & continue
 
-hashtable<const char *, ident> *idents = NULL;          // contains ALL vars/commands/aliases
+hashtable<const char *, ident> *idents = nullptr;          // contains ALL vars/commands/aliases
 
 VAR(persistidents, 0, 1, 1);
 
@@ -34,7 +34,7 @@ void clearstack(ident &id)
         stack = stack->next;
         delete tmp;
     }
-    id.stack = NULL;
+    id.stack = nullptr;
 }
 
 void pushident(ident &id, char *val, int context = execcontext)
@@ -309,12 +309,12 @@ int getvar(const char *name)
     return *id->storage.i;
 }
 
-bool identexists(const char *name) { return idents->access(name)!=NULL; }
+bool identexists(const char *name) { return idents->access(name)!=nullptr; }
 
 const char *getalias(const char *name)
 {
     ident *i = idents->access(name);
-    return i && i->type==ID_ALIAS ? i->action : NULL;
+    return i && i->type==ID_ALIAS ? i->action : nullptr;
 }
 void _getalias(char *name)
 {
@@ -372,7 +372,7 @@ char *parseexp(const char *&p, int right)             // parse any nested set of
             p--;
             conoutf("missing \"%c\"", right);
             scripterr();
-            return NULL;
+            return nullptr;
         }
     }
     char *s = newstring(word, p-word-1);
@@ -417,7 +417,7 @@ char *parseword(const char *&p, int arg, int &infix)                       // pa
     if(*p=='[') return parseexp(p, ']');
     const char *word = p;
     p += strcspn(p, "; \t\r\n\0");
-    if(p-word==0) return NULL;
+    if(p-word==0) return nullptr;
     if(arg==1 && p-word==1) switch(*word)
     {
         case '=': infix = *word; break;
@@ -444,7 +444,7 @@ char *conc(char **w, int n, bool space)
 
 VARN(numargs, _numargs, 25, 0, 0);
 
-char *commandret = NULL;
+char *commandret = nullptr;
 
 void intret(int v)
 {
@@ -475,13 +475,13 @@ void result(const char *s) { commandret = newstring(s); }
 #if 0
 // seer : script evaluation excessive recursion
 static int seer_count = 0; // count calls to executeret, check time every n1 (100) calls
-static int seer_index = -1; // position in timestamp vector
-vector<long long> seer_t1; // timestamp of last n2 (10) level-1 calls
-vector<long long> seer_t2; // timestamp of last n3 (10) level-2 calls
+static int seer_index = -1; // position in timestamp vect
+vect<long long> seer_t1; // timestamp of last n2 (10) level-1 calls
+vect<long long> seer_t2; // timestamp of last n3 (10) level-2 calls
 #endif
 char *executeret(const char *p)                            // all evaluation happens here, recursively
 {
-    if(!p || !p[0]) return NULL;
+    if(!p || !p[0]) return nullptr;
     bool noproblem = true;
 #if 0
     if(execcontext>IEXC_CFG) // only PROMPT and MAP-CFG are checked for this, fooling with core/cfg at your own risk!
@@ -490,7 +490,7 @@ char *executeret(const char *p)                            // all evaluation hap
         if(seer_count>=100)
         {
             seer_index = (seer_index+1)%10;
-            long long cts = (long long) time(NULL);
+            long long cts = (long long) time(nullptr);
             if(seer_t1.length()>=10) seer_t1[seer_index] = cts;
             seer_t1.add(cts);
             int lc = (seer_index+11)%10;
@@ -520,7 +520,7 @@ char *executeret(const char *p)                            // all evaluation hap
 #endif
     const int MAXWORDS = 25;                    // limit, remove
     char *w[MAXWORDS];
-    char *retval = NULL;
+    char *retval = nullptr;
     #define setretval(v) { char *rv = v; if(rv) retval = rv; }
     if(noproblem) // if the "seer"-algorithm doesn't object
     {
@@ -550,7 +550,7 @@ char *executeret(const char *p)                            // all evaluation hap
                 {
                     case '=':
                         DELETEA(w[1]);
-                        swap(w[0], w[1]);
+                        swapB(w[0], w[1]);
                         c = "alias";
                         break;
                 }
@@ -583,21 +583,21 @@ char *executeret(const char *p)                            // all evaluation hap
                         if(strstr(id->sig, "v")) ((void (__cdecl *)(char **, int))id->fun)(&w[1], numargs-1);
                         else if(strstr(id->sig, "c") || strstr(id->sig, "w"))
                         {
-                            char *r = conc(w+1, numargs-1, strstr(id->sig, "c") != NULL);
+                            char *r = conc(w+1, numargs-1, strstr(id->sig, "c") != nullptr);
                             ((void (__cdecl *)(char *))id->fun)(r);
                             delete[] r;
                         }
                         else if(strstr(id->sig, "d"))
                         {
 #ifndef STANDALONE
-                            ((void (__cdecl *)(bool))id->fun)(addreleaseaction(id->name)!=NULL);
+                            ((void (__cdecl *)(bool))id->fun)(addreleaseaction(id->name)!=nullptr);
 #endif
                         }
                         else
                         {
                             int ib1, ib2, ib3, ib4, ib5, ib6, ib7, ib8;
                             float fb1, fb2, fb3, fb4, fb5, fb6, fb7, fb8;
-                            #define ARG(i) (id->sig[i-1] == 'i' ? ((void *)&(ib##i=strtol(w[i], NULL, 0))) : (id->sig[i-1] == 'f' ? ((void *)&(fb##i=atof(w[i]))) : (void *)w[i]))
+                            #define ARG(i) (id->sig[i-1] == 'i' ? ((void *)&(ib##i=strtol(w[i], nullptr, 0))) : (id->sig[i-1] == 'f' ? ((void *)&(fb##i=atof(w[i]))) : (void *)w[i]))
 
                             switch(strlen(id->sig))                // use very ad-hoc function signature, and just call it
                             {
@@ -616,7 +616,7 @@ char *executeret(const char *p)                            // all evaluation hap
                         }
 
                         setretval(commandret);
-                        commandret = NULL;
+                        commandret = nullptr;
                         break;
                     }
 
@@ -664,7 +664,7 @@ char *executeret(const char *p)                            // all evaluation hap
 
                     case ID_ALIAS:                              // alias, also used as functions and (global) variables
                         delete[] w[0];
-                        static vector<ident *> argids;
+                        static vect<ident *> argids;
                         for(int i = 1; i<numargs; i++)
                         {
                             if(i > argids.length())
@@ -702,12 +702,12 @@ int execute(const char *p)
 // tab-completion of all idents
 
 static int completesize = -1, completeidx = 0;
-static playerent *completeplayer = NULL;
+static playerent *completeplayer = nullptr;
 
 void resetcomplete()
 {
     completesize = -1;
-    completeplayer = NULL;
+    completeplayer = nullptr;
 }
 
 bool nickcomplete(char *s)
@@ -720,7 +720,7 @@ bool nickcomplete(char *s)
     if(completesize < 0) { completesize = (int)strlen(cp); completeidx = 0; }
 
     int idx = 0;
-    if(completeplayer!=NULL)
+    if(completeplayer!=nullptr)
     {
         idx = players.find(completeplayer)+1;
         if(!players.inrange(idx)) idx = 0;
@@ -755,10 +755,10 @@ struct completeval
 {
     int type;
     char *dir, *ext;
-    vector<char *> dirlist;
-    vector<char *> list;
+    vect<char *> dirlist;
+    vect<char *> list;
 
-    completeval(int type, const char *dir, const char *ext) : type(type), dir(dir && dir[0] ? newstring(dir) : NULL), ext(ext && ext[0] ? newstring(ext) : NULL) {}
+    completeval(int type, const char *dir, const char *ext) : type(type), dir(dir && dir[0] ? newstring(dir) : nullptr), ext(ext && ext[0] ? newstring(ext) : nullptr) {}
     ~completeval() { DELETEA(dir); DELETEA(ext); dirlist.deletearrays(); list.deletearrays(); }
 };
 
@@ -785,7 +785,7 @@ void addcomplete(char *command, int type, char *dir, char *ext)
         if(ext)
         {
             if(strchr(ext, '*')) ext[0] = '\0';
-            if(!ext[0]) ext = NULL;
+            if(!ext[0]) ext = nullptr;
         }
     }
     completekey key(type, dir, ext);
@@ -820,12 +820,12 @@ void addfilecomplete(char *command, char *dir, char *ext)
 
 void addlistcomplete(char *command, char *list)
 {
-    addcomplete(command, COMPLETE_LIST, list, NULL);
+    addcomplete(command, COMPLETE_LIST, list, nullptr);
 }
 
 void addnickcomplete(char *command)
 {
-    addcomplete(command, COMPLETE_NICK, NULL, NULL);
+    addcomplete(command, COMPLETE_NICK, nullptr, nullptr);
 }
 
 COMMANDN(complete, addfilecomplete, "sss");
@@ -880,7 +880,7 @@ void commandcomplete(char *s)
         if(*cp == ' ') init = true;
     }
 
-    completeval *cdata = NULL;
+    completeval *cdata = nullptr;
 
     char *end = strchr(s+1, ' '); //find end of command name
 
@@ -941,7 +941,7 @@ void complete(char *s)
 }
 #endif
 
-const char *curcontext = NULL, *curinfo = NULL;
+const char *curcontext = nullptr, *curinfo = nullptr;
 
 void scripterr()
 {
@@ -957,7 +957,7 @@ void setcontext(const char *context, const char *info)
 
 void resetcontext()
 {
-    curcontext = curinfo = NULL;
+    curcontext = curinfo = nullptr;
 }
 
 bool execfile(const char *cfgfile)
@@ -965,7 +965,7 @@ bool execfile(const char *cfgfile)
     string s;
     copystring(s, cfgfile);
     setcontext("file", cfgfile);
-    char *buf = loadfile(path(s), NULL);
+    char *buf = loadfile(path(s), nullptr);
     if(!buf)
     {
         resetcontext();
@@ -986,7 +986,7 @@ void execdir(const char *dir)
 {
         if(dir[0])
         {
-            vector<char *> files;
+            vect<char *> files;
             listfiles(dir, "cfg", files);
             loopv(files)
             {
@@ -1065,7 +1065,7 @@ void format(char **args, int numargs)
         return;
     }
 
-    vector<char> s;
+    vect<char> s;
     char *f = args[0];
     while(*f)
     {
@@ -1090,7 +1090,7 @@ void format(char **args, int numargs)
 #define whitespaceskip s += strspn(s, "\n\t \r")
 #define elementskip *s=='"' ? (++s, s += strcspn(s, "\"\n\0"), s += *s=='"') : s += strcspn(s, "\n\t \0")
 
-void explodelist(const char *s, vector<char *> &elems)
+void explodelist(const char *s, vect<char *> &elems)
 {
     whitespaceskip;
     while(*s)
@@ -1108,7 +1108,7 @@ void looplist(char *list, char *var, char *body)
     if(id->type!=ID_ALIAS) return;
     char *buf = newstring(MAXSTRLEN);
 
-    vector<char *> elems;
+    vect<char *> elems;
     explodelist(list, elems);
 
     loop_level++;
@@ -1255,7 +1255,7 @@ void testchar(char *s, int *type)
 
 char *strreplace(char *dest, const char *source, const char *search, const char *replace)
 {
-    vector<char> buf;
+    vect<char> buf;
 
     int searchlen = strlen(search);
     if(!searchlen) { copystring(dest, source); return dest; }
@@ -1292,7 +1292,7 @@ void sortlist(char *list)
         return;
     }
 
-    vector<char *> elems;
+    vect<char *> elems;
     explodelist(list, elems);
     elems.sort(stringsort);
 
@@ -1320,14 +1320,14 @@ void sortlist(char *list)
          return;
     }
 
-    vector<char *> elems;
+    vect<char *> elems;
     explodelist(list, elems);
 
-    vector<char *> swap;
-    explodelist(v, swap);
+    vect<char *> swapB;
+    explodelist(v, swapB);
 
     if (strcmp(v, "") == 0 || //no input
-    swap.length()%2 != 0) //incorrect input
+    swapB.length()%2 != 0) //incorrect input
     {
         result(buf);
         delete [] buf;
@@ -1336,13 +1336,13 @@ void sortlist(char *list)
 
     char tmp[255]; strcpy (tmp, "");
 
-    for(int i = 0; i < swap.length(); i+=2)
+    for(int i = 0; i < swapB.length(); i+=2)
     {
-        if (elems.inrange(atoi(swap[i])) && elems.inrange(atoi(swap[i + 1])))
+        if (elems.inrange(atoi(swapB[i])) && elems.inrange(atoi(swapB[i + 1])))
         {
-            strcpy(tmp, elems[atoi(swap[i])]);
-            strcpy(elems[atoi(swap[i])], elems[atoi(swap[i+1])]);
-            strcpy(elems[atoi(swap[i+1])], tmp);
+            strcpy(tmp, elems[atoi(swapB[i])]);
+            strcpy(elems[atoi(swapB[i])], elems[atoi(swapB[i+1])]);
+            strcpy(elems[atoi(swapB[i+1])], tmp);
         }
     }
 
@@ -1491,7 +1491,7 @@ void deletecfg()
 }
 #endif
 
-void identnames(vector<const char *> &names, bool builtinonly)
+void identnames(vect<const char *> &names, bool builtinonly)
 {
     enumeratekt(*idents, const char *, name, ident, id,
     {

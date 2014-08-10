@@ -78,7 +78,7 @@ void shiftweapon(int *s)
         weapon *akimbo = player1->weapons[GUN_AKIMBO];
 
         // collect available weapons
-        vector<weapon *> availweapons;
+        vect<weapon *> availweapons;
         const int weap_check_order[NUMGUNS] =
         {
             GUN_AKIMBO,
@@ -249,7 +249,7 @@ void playerincrosshair(playerent * &pl, int &hitzone, vec &pos)
 {
     const vec &from = camera1->o, &to = worldpos;
 
-    pl = NULL;
+    pl = nullptr;
     hitzone = HIT_NONE;
     float bestdist = 1e16f;
     loopv(players)
@@ -291,7 +291,7 @@ inline void attackevent(playerent *owner, int weapon)
     }
 }
 
-vector<bounceent *> bounceents;
+vect<bounceent *> bounceents;
 
 void removebounceents(playerent *owner)
 {
@@ -316,7 +316,7 @@ void movebounceents()
 void clearbounceents()
 {
     if(gamespeed==100);
-    else if(multiplayer(false)) bounceents.add((bounceent *)player1);
+    else if(multiplayer(false)) bounceents.add(dynamic_cast<bounceent *>(player1));
     loopv(bounceents) if(bounceents[i]) { delete bounceents[i]; bounceents.remove(i--); }
 }
 
@@ -383,7 +383,7 @@ void renderbounceents()
         }
         path(model);
         if (p->bouncetype == BT_SHELL) sethudgunperspective(true);
-        rendermodel(model, anim|ANIM_LOOP|ANIM_DYNALLOC, 0, PLAYERRADIUS, o, p->yaw+90, p->pitch, 0, basetime, NULL, NULL, scale);
+        rendermodel(model, anim|ANIM_LOOP|ANIM_DYNALLOC, 0, PLAYERRADIUS, o, p->yaw+90, p->pitch, 0, basetime, nullptr, nullptr, scale);
         if (p->bouncetype == BT_SHELL) sethudgunperspective(false);
     }
 }
@@ -433,7 +433,7 @@ VARP(accuracy,0,0,1);
 void r_accuracy(int h)
 {
     if(!accuracy) return;
-    vector <char*>lines;
+    vect <char*>lines;
     int rows = 0, cols = 0;
     float spacing = curfont->defaultw*2, x_offset = curfont->defaultw, y_offset = float(2*h) - 2*spacing;
 
@@ -624,8 +624,8 @@ void weapon::renderhudmodel(int lastaction, int index)
     if (righthanded == index) anim |= ANIM_MIRROR;
     if (emit) anim |= ANIM_PARTICLE;
     if (owner->protect(lastmillis, gamemode, mutators)) wm.anim |= ANIM_TRANSLUCENT;
-    modelattach a[3]; // a null one is needed
-    if (type != GUN_AKIMBO || ((akimbo *)this)->akimboside != index)
+    modelattach a[3]; // a nullptr one is needed
+    if (type != GUN_AKIMBO || dynamic_cast<akimbo *>(this)->akimboside != index)
     {
         owner->eject = vec(-1, -1, -1);
         a[0].tag = "tag_eject";
@@ -770,7 +770,7 @@ void grenadeent::onmoved(const vec &dist)
 
 // grenades
 
-grenades::grenades(playerent *owner) : weapon(owner, GUN_GRENADE), inhandnade(NULL), throwwait(325), throwmillis(0), state(GST_NONE) {}
+grenades::grenades(playerent *owner) : weapon(owner, GUN_GRENADE), inhandnade(nullptr), throwwait(325), throwmillis(0), state(GST_NONE) {}
 
 int grenades::flashtime() const { return 0; }
 
@@ -839,8 +839,8 @@ void grenades::attackfx(const vec &from, const vec &to, int millis) // other pla
 inline void explosioneffect(const vec &o)
 {
     particle_splash(PART_SPARK, 50, 300, o);
-    adddynlight(NULL, o, 16, 200, 100, 255, 255, 224);
-    adddynlight(NULL, o, 16, 600, 600, 192, 160, 128);
+    adddynlight(nullptr, o, 16, 200, 100, 255, 255, 224);
+    adddynlight(nullptr, o, 16, 600, 600, 192, 160, 128);
     audiomgr.playsound(S_FEXPLODE, &o);
 }
 
@@ -910,7 +910,7 @@ void grenades::thrownade(const vec &vel)
 {
     inhandnade->moveoutsidebbox(vel, owner);
     inhandnade->_throw(inhandnade->o, vel);
-    inhandnade = NULL;
+    inhandnade = nullptr;
 
     throwmillis = lastmillis;
     updatelastaction(owner);
@@ -939,7 +939,7 @@ void grenades::onownerdies() { reset(); if (owner == player1 && inhandnade) drop
 
 void grenades::removebounceent(bounceent *b)
 {
-    if(b == inhandnade) { inhandnade = NULL; reset(); }
+    if(b == inhandnade) { inhandnade = nullptr; reset(); }
 }
 
 // gun base class
@@ -965,7 +965,7 @@ bool gun::attack(vec &targ)
     {
         audiomgr.playsoundc(S_NOAMMO);
         gunwait += 250;
-        owner->lastattackweapon = NULL;
+        owner->lastattackweapon = nullptr;
         shots = 0;
         checkautoreload();
         return false;
@@ -1008,7 +1008,7 @@ void gun::attackshell(const vec &to)
     s->timetolive = gibttl;
     s->bouncetype = BT_SHELL;
 
-    const bool akimboflip = (type != GUN_AKIMBO || ((akimbo *)this)->akimboside == 0) != righthanded;
+    const bool akimboflip = (type != GUN_AKIMBO || dynamic_cast<akimbo *>(this)->akimboside == 0) != righthanded;
     s->vel = vec(1, rnd(101) / 800.f - .1f, (rnd(51) + 50) / 100.f);
     s->vel.rotate_around_z(owner->yaw*RAD);
     if (owner->eject.x >= 0)
@@ -1259,8 +1259,8 @@ void healgun::attackfx(const vec &from2, const vec &to, int millis)
 }
 
 
-vector<cconfirm> confirms;
-vector<cknife> knives;
+vect<cconfirm> confirms;
+vect<cknife> knives;
 
 
 // knife
@@ -1326,7 +1326,7 @@ void checkakimbo()
 {
     if(player1->akimbo)
     {
-        akimbo &a = *((akimbo *)player1->weapons[GUN_AKIMBO]);
+        akimbo &a = *dynamic_cast<akimbo *>(player1->weapons[GUN_AKIMBO]);
         if(a.timerout() || player1->state == CS_DEAD)
         {
             weapon &p = *player1->weapons[GUN_PISTOL];

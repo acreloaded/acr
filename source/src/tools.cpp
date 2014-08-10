@@ -69,7 +69,7 @@ void *basicgen()
     UUID u; // #pragma comment(lib, "Rpcrt4.lib")
             //#include <Rpc.h>
     switch(UuidCreateSequential (&u)){
-        default: return NULL;
+        default: return nullptr;
         case RPC_S_OK:
         case RPC_S_UUID_LOCAL_ONLY: // can we trust it?
             break;
@@ -87,14 +87,14 @@ void *basicgen()
     const char * const * temp = (char **)(char ***)20;
     --temp;
     temp = (char **)2000;
-    return (void *)(char *)(temp = NULL);
+    return (void *)(char *)(temp = nullptr);
 #endif
 }
 
 const char *timestring(bool local, const char *fmt)
 {
     static string asciitime;
-    time_t t = time(NULL);
+    time_t t = time(nullptr);
     struct tm * timeinfo;
     timeinfo = local ? localtime(&t) : gmtime (&t);
     strftime(asciitime, sizeof(string) - 1, fmt ? fmt : "%Y%m%d_%H.%M.%S", timeinfo); // sortable time for filenames
@@ -109,7 +109,7 @@ const char *asctime()
 const char *numtime()
 {
     static string numt;
-    formatstring(numt)("%ld", (long long) time(NULL));
+    formatstring(numt)("%ld", (long long) time(nullptr));
     return numt;
 }
 
@@ -124,8 +124,8 @@ extern int checkarea(int, ssqr *);
 mapstats *loadmapstats(const char *filename, bool getlayout)
 {
     static mapstats s;
-    static uchar *enttypes = NULL;
-    static short *entposs = NULL;
+    static uchar *enttypes = nullptr;
+    static short *entposs = nullptr;
 
     DELETEA(enttypes);
     loopi(MAXENTTYPES) s.entcnt[i] = 0;
@@ -133,12 +133,12 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
     loopi(2) s.flags[i] = 0;
 
     stream *f = opengzfile(filename, "rb");
-    if(!f) return NULL;
+    if(!f) return nullptr;
     memset(&s.hdr, 0, sizeof(header));
-    if(f->read(&s.hdr, sizeof(header)-sizeof(int)*16)!=sizeof(header)-sizeof(int)*16 || (strncmp(s.hdr.head, "CUBE", 4) && strncmp(s.hdr.head, "ACMP",4) && strncmp(s.hdr.head, "ACRM",4))) { delete f; return NULL; }
+    if(f->read(&s.hdr, sizeof(header)-sizeof(int)*16)!=sizeof(header)-sizeof(int)*16 || (strncmp(s.hdr.head, "CUBE", 4) && strncmp(s.hdr.head, "ACMP",4) && strncmp(s.hdr.head, "ACRM",4))) { delete f; return nullptr; }
     lilswap(&s.hdr.version, 4);
-    if(s.hdr.version>MAPVERSION || s.hdr.numents > MAXENTITIES || (s.hdr.version>=4 && f->read(&s.hdr.waterlevel, sizeof(int)*16)!=sizeof(int)*16)) { delete f; return NULL; }
-    if((s.hdr.version==7 || s.hdr.version==8) && !f->seek(sizeof(char)*128, SEEK_CUR)) { delete f; return NULL; }
+    if(s.hdr.version>MAPVERSION || s.hdr.numents > MAXENTITIES || (s.hdr.version>=4 && f->read(&s.hdr.waterlevel, sizeof(int)*16)!=sizeof(int)*16)) { delete f; return nullptr; }
+    if((s.hdr.version==7 || s.hdr.version==8) && !f->seek(sizeof(char)*128, SEEK_CUR)) { delete f; return nullptr; }
     if(s.hdr.version>=4)
     {
         lilswap(&s.hdr.waterlevel, 1);
@@ -175,7 +175,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
         bool fail = false;
         testlayout = new ssqr[layoutsize + 256];
         memset(testlayout, 0, layoutsize * sizeof(ssqr));
-        ssqr *t = NULL;
+        ssqr *t = nullptr;
         int diff = 0;
         Mvolume = Marea = SHhits = 0;
         loopk(layoutsize)
@@ -283,9 +283,9 @@ void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep)
     string out, t;
     formatstring(out)("Win32 Exception: 0x%x [0x%x]\n\n", er->ExceptionCode, er->ExceptionCode==EXCEPTION_ACCESS_VIOLATION ? er->ExceptionInformation[1] : -1);
     STACKFRAME sf = {{context->Eip, 0, AddrModeFlat}, {}, {context->Ebp, 0, AddrModeFlat}, {context->Esp, 0, AddrModeFlat}, 0};
-    SymInitialize(GetCurrentProcess(), NULL, TRUE);
+    SymInitialize(GetCurrentProcess(), nullptr, TRUE);
 
-    while(::StackWalk(IMAGE_FILE_MACHINE_I386, GetCurrentProcess(), GetCurrentThread(), &sf, context, NULL, ::SymFunctionTableAccess, ::SymGetModuleBase, NULL))
+    while(::StackWalk(IMAGE_FILE_MACHINE_I386, GetCurrentProcess(), GetCurrentThread(), &sf, context, nullptr, ::SymFunctionTableAccess, ::SymGetModuleBase, nullptr))
     {
         struct { IMAGEHLP_SYMBOL sym; string n; } si = { { sizeof( IMAGEHLP_SYMBOL ), 0, 0, 0, sizeof(string) } };
         IMAGEHLP_LINE li = { sizeof( IMAGEHLP_LINE ) };
@@ -393,11 +393,11 @@ const char *atoip(const char *s, enet_uint32 *ip)
 {
     unsigned int d[4];
     int n;
-    if(!s || sscanf(s, "%u.%u.%u.%u%n", d, d + 1, d + 2, d + 3, &n) != 4) return NULL;
+    if(!s || sscanf(s, "%u.%u.%u.%u%n", d, d + 1, d + 2, d + 3, &n) != 4) return nullptr;
     *ip = 0;
     loopi(4)
     {
-        if(d[i] > 255) return NULL;
+        if(d[i] > 255) return nullptr;
         *ip = (*ip << 8) + d[i];
     }
     return s + n;
@@ -405,17 +405,17 @@ const char *atoip(const char *s, enet_uint32 *ip)
 
 const char *atoipr(const char *s, iprange *ir)
 {
-    if((s = atoip(s, &ir->lr)) == NULL) return NULL;
+    if((s = atoip(s, &ir->lr)) == nullptr) return nullptr;
     ir->ur = ir->lr;
     s += strspn(s, " \t");
     if(*s == '-')
     {
-        if(!(s = atoip(s + 1, &ir->ur)) || ir->lr > ir->ur) return NULL;
+        if(!(s = atoip(s + 1, &ir->ur)) || ir->lr > ir->ur) return nullptr;
     }
     else if(*s == '/')
     {
         int m, n;
-        if(sscanf(s + 1, "%d%n", &m, &n) != 1 || m < 0 || m > 32) return NULL;
+        if(sscanf(s + 1, "%d%n", &m, &n) != 1 || m < 0 || m > 32) return nullptr;
         unsigned long bm = (1 << (32 - m)) - 1;
         ir->lr &= ~bm;
         ir->ur |= bm;

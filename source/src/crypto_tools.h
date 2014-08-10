@@ -1,9 +1,9 @@
 #ifndef __CRYPTO_TOOLS_H__
 #define __CRYPTO_TOOLS_H__
-#ifdef NULL
-#undef NULL
+#ifdef nullptr
+#undef nullptr
 #endif
-#define NULL 0
+#define nullptr 0
 
 typedef unsigned int uint;
 

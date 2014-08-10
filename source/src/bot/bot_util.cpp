@@ -324,7 +324,7 @@ float Get2DDistance(vec v1, vec v2)
 bool IsVisible(vec v1, vec v2, dynent *tracer, bool SkipTags)
 {
      traceresult_s tr;
-     TraceLine(v1, v2, tracer, (tracer!=NULL), &tr, SkipTags);
+     TraceLine(v1, v2, tracer, (tracer!=nullptr), &tr, SkipTags);
      return !tr.collided;
 }
 
@@ -459,7 +459,7 @@ const char *SkillNrToSkillName(short skillnr)
      else if (skillnr == 3) return "worse";
      else if (skillnr == 4) return "bad";
 
-     return NULL;
+     return nullptr;
 }
 
 bool IsInGame(dynent *d)

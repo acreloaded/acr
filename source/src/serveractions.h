@@ -57,9 +57,9 @@ struct mapaction : serveraction
         {
             bool notify = valid_client(caller);
             int maploc = MAP_NOTFOUND;
-            mapstats *ms = map[0] ? getservermapstats(map, false, &maploc) : NULL;
+            mapstats *ms = map[0] ? getservermapstats(map, false, &maploc) : nullptr;
             bool validname = validmapname(map);
-            mapok = (ms != NULL) && validname && ( m_edit(mode) ? !readonlymap(maploc) : mapisok(ms) );
+            mapok = (ms != nullptr) && validname && ( m_edit(mode) ? !readonlymap(maploc) : mapisok(ms) );
             if(!mapok)
             {
                 if(notify)

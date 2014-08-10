@@ -20,9 +20,9 @@ float shadowx1 = 1, shadowy1 = 1, shadowx2 = -1, shadowy2 = -1;
 
 static void extrudeshadowtiles(int x1, int y1, int x2, int y2, int x3, int y3)
 {
-    if(y1 > y2) { swap(x1, x2); swap(y1, y2); }
-    if(y2 > y3) { swap(x2, x3); swap(y2, y3); }
-    if(y1 > y2) { swap(x1, x2); swap(y1, y2); }
+    if(y1 > y2) { swapB(x1, x2); swapB(y1, y2); }
+    if(y2 > y3) { swapB(x2, x3); swapB(y2, y3); }
+    if(y1 > y2) { swapB(x1, x2); swapB(y1, y2); }
 
     if(y3 < 0 || y1 >= SHADOWROWS) return;
 
@@ -222,14 +222,14 @@ bool addshadowbox(const vec &bbmin, const vec &bbmax, const vec &extrude, const 
             tx2 = int(floor(SHADOWCOLUMNS * (sy2 + 1) / 2)), ty2 = int(floor(SHADOWROWS * (sx2 + 1) / 2));
         if(tx < tx1)
         {
-            if(ty < ty1) { swap(ty1, ty2); tx1--; ty1--; }
+            if(ty < ty1) { swapB(ty1, ty2); tx1--; ty1--; }
             else if(ty > ty2) { tx1--; ty1++; }
             else { tx2 = tx1; tx1--; tx2--; }
         }
         else if(tx > tx2)
         {
             if(ty < ty1) { ty1--; tx2++; }
-            else if(ty > ty2) { swap(ty1, ty2); ty1++; tx2++; }
+            else if(ty > ty2) { swapB(ty1, ty2); ty1++; tx2++; }
             else { tx1 = tx2; tx1++; tx2++; }
         }
         else

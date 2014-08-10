@@ -30,7 +30,7 @@ vec CBot::GetEnemyPos(playerent *d)
             vec end = o;
             end.z -= 900.0f;
             traceresult_s tr;
-            TraceLine(o, end, NULL, false, &tr);
+            TraceLine(o, end, nullptr, false, &tr);
             if ((o.z - tr.end.z) < 8.0f)
             {
                 end = o;
@@ -122,13 +122,13 @@ bool CBot::FindEnemy(void)
     // UNDONE: Enemies are now only scored on their distance
     if(BotsAgainstHumans())
     {
-        m_pMyEnt->enemy = NULL;
+        m_pMyEnt->enemy = nullptr;
         if(player1->state == CS_ALIVE)
         {
             m_pMyEnt->enemy = player1;
         }
 
-        return m_pMyEnt->enemy != NULL;
+        return m_pMyEnt->enemy != nullptr;
     }
 
     if (m_pMyEnt->enemy) // Bot already has an enemy
@@ -145,19 +145,19 @@ bool CBot::FindEnemy(void)
                 m_pPrevEnemy = m_pMyEnt->enemy;
         }
         else
-            m_pMyEnt->enemy = NULL;
+            m_pMyEnt->enemy = nullptr;
     }
 
-    if (m_iEnemySearchDelay > lastmillis) return (m_pMyEnt->enemy!=NULL);
+    if (m_iEnemySearchDelay > lastmillis) return (m_pMyEnt->enemy!=nullptr);
 
-    m_pMyEnt->enemy = NULL;
+    m_pMyEnt->enemy = nullptr;
 
     // Add enemy searchy delay
     float MinDelay = m_pBotSkill->flMinEnemySearchDelay;
     float MaxDelay = m_pBotSkill->flMaxEnemySearchDelay;
     m_iEnemySearchDelay = lastmillis + int(RandomFloat(MinDelay, MaxDelay) * 1000.0f);
 
-    playerent *pNewEnemy = NULL, *d = NULL;
+    playerent *pNewEnemy = nullptr, *d = nullptr;
     float flDist, flNearestDist = 99999.9f;
     short EnemyVal, BestEnemyVal = -100;
 
@@ -251,21 +251,21 @@ bool CBot::CheckHunt(void)
                 return true;
         }
         else
-            m_pHuntTarget = NULL;
+            m_pHuntTarget = nullptr;
     }
 
-    if (m_iHuntDelay > lastmillis) return (m_pHuntTarget!=NULL);
+    if (m_iHuntDelay > lastmillis) return (m_pHuntTarget!=nullptr);
 
     if (m_vHuntLocation!=g_vecZero)
         m_vPrevHuntLocation = m_vHuntLocation;
 
-    m_pHuntTarget = NULL;
+    m_pHuntTarget = nullptr;
     m_vHuntLocation = g_vecZero;
 
     // Add enemy hunt search delay
     m_iHuntDelay = lastmillis + 1500;
 
-    playerent *pNewEnemy = NULL, *d = NULL;
+    playerent *pNewEnemy = nullptr, *d = nullptr;
     float flDist, flNearestDist = 99999.9f, flNearestOldPosDistToEnemy = 99999.9f;
     float flNearestOldPosDistToBot = 99999.9f;
     short EnemyVal, BestEnemyVal = -100;
@@ -526,7 +526,7 @@ bool CBot::HuntEnemy(void)
     {
         if (bDone || !IsReachable(m_vHuntLocation))
         {
-            m_pHuntTarget = NULL;
+            m_pHuntTarget = nullptr;
             m_vPrevHuntLocation = m_vHuntLocation;
             m_vHuntLocation = g_vecZero;
             m_fPrevHuntDist = 0.0f;
@@ -625,7 +625,7 @@ bool CBot::HuntEnemy(void)
 
             if (bToHigh)
             {
-                m_pHuntTarget = NULL;
+                m_pHuntTarget = nullptr;
                 m_vPrevHuntLocation = m_vHuntLocation;
                 m_vHuntLocation = g_vecZero;
                 m_fPrevHuntDist = 0.0f;
@@ -640,7 +640,7 @@ bool CBot::HuntEnemy(void)
 
 void CBot::CheckWeaponSwitch()
 {
-    if(m_pMyEnt->nextweaponsel == NULL)  m_pMyEnt->weaponchanging = 0;
+    if(m_pMyEnt->nextweaponsel == nullptr)  m_pMyEnt->weaponchanging = 0;
     if(!m_pMyEnt->weaponchanging) return;
 
     int timeprogress = lastmillis-m_pMyEnt->weaponchanging;
@@ -813,7 +813,7 @@ void CBot::MainAI()
     else m_pMyEnt->trycrouch = false;
 
     if (!BotManager.BotsShoot() && m_pMyEnt->enemy)
-        m_pMyEnt->enemy = NULL; // Clear enemy when bots may not shoot
+        m_pMyEnt->enemy = nullptr; // Clear enemy when bots may not shoot
 
     if (m_bGoToDebugGoal) // For debugging the waypoint navigation
     {
@@ -1025,7 +1025,7 @@ void CBot::DoCombatNav()
             vec v(m_pTargetEnt->x, m_pTargetEnt->y,
                     S(m_pTargetEnt->x, m_pTargetEnt->y)->floor+m_pMyEnt->eyeheight);
             if ((GetDistance(v) > 25.0f) || !IsVisible(m_pTargetEnt))
-                m_pTargetEnt = NULL;
+                m_pTargetEnt = nullptr;
         }
 
         if (!m_pTargetEnt && (m_iCheckEntsDelay <= lastmillis))
@@ -1831,7 +1831,7 @@ bool CBot::WaterNav()
                         }
 
                         traceresult_s tr;
-                        TraceLine(v, v2, NULL, false, &tr);
+                        TraceLine(v, v2, nullptr, false, &tr);
                         if (tr.collided)
                         {
                             small_=true;
@@ -1886,7 +1886,7 @@ bool CBot::CheckItems()
     }
 
     if (m_vGoal==g_vecZero)
-        m_pTargetEnt = NULL;
+        m_pTargetEnt = nullptr;
 
     if (!m_pTargetEnt)
     {
@@ -1909,7 +1909,7 @@ bool CBot::CheckItems()
     {
         ResetWaypointVars();
         m_vGoal = g_vecZero;
-        m_pTargetEnt = NULL;
+        m_pTargetEnt = nullptr;
     }
 
     return false;
@@ -1927,7 +1927,7 @@ bool CBot::CheckFlags()
     }
 
     if (m_vGoal==g_vecZero)
-        m_pTargetFlag = NULL;
+        m_pTargetFlag = nullptr;
 
     if (!m_pTargetFlag || m_iCheckFlagsDelay <= lastmillis)
     {
@@ -1950,7 +1950,7 @@ bool CBot::CheckFlags()
     {
         ResetWaypointVars();
         m_vGoal = g_vecZero;
-        m_pTargetFlag = NULL;
+        m_pTargetFlag = nullptr;
     }
 
     return false;
@@ -2008,7 +2008,7 @@ bool CBot::IsReachable(vec to, float flMaxHeight)
                 v_new_dest.z = v_new_dest.z - (JUMP_HEIGHT + 1.0f);
 
                 // check if we didn't hit anything, if so then it's in mid-air
-                if (::IsVisible(v_new_src, v_new_dest, NULL))
+                if (::IsVisible(v_new_src, v_new_dest, nullptr))
                 {
                     condebug("to is in midair");
                     debugbeam(from, to);
@@ -2028,7 +2028,7 @@ bool CBot::IsReachable(vec to, float flMaxHeight)
 
             v_down.z = v_down.z - 100.0f;  // straight down
 
-            TraceLine(v_check, v_down, NULL, false, &tr);
+            TraceLine(v_check, v_down, nullptr, false, &tr);
 
               // height from ground
             last_height = GetDistance(v_check, tr.end);
@@ -2045,7 +2045,7 @@ bool CBot::IsReachable(vec to, float flMaxHeight)
                 v_down = v_check;
                 v_down.z = v_down.z - 100.0f;
 
-                TraceLine(v_check, v_down, NULL, false, &tr);
+                TraceLine(v_check, v_down, nullptr, false, &tr);
 
                 curr_height = GetDistance(v_check, tr.end);
 
@@ -2088,7 +2088,7 @@ void CBot::HearSound(int n, const vec *o)
 
     // Look who made the sound(check for the nearest enemy)
     float flDist, flNearestDist = 3.0f; // Range of 3 units
-    playerent *pNearest = NULL;
+    playerent *pNearest = nullptr;
 
         // Check all players first
         loopv(players)

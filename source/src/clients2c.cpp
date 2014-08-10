@@ -227,7 +227,7 @@ void parsepositions(ucharbuf &p)
             // when playing a demo spectate first player we know about
             if(player1->isspectating() && player1->spectatemode==SM_NONE) togglespect();
             extern void clamproll(physent *pl);
-            if(maxrollremote) clamproll((physent *) d);
+            if(maxrollremote) clamproll(dynamic_cast<physent *>(d));
             break;
         }
 
@@ -238,7 +238,7 @@ void parsepositions(ucharbuf &p)
 }
 
 extern int checkarea(int maplayout_factor, char *maplayout);
-char *mlayout = NULL;
+char *mlayout = nullptr;
 int Mv = 0, Ma = 0, F2F = 1000 * MINFF; // moved up:, MA = 0;
 float Mh = 0;
 extern int connected;
@@ -745,7 +745,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 if(d == player1 && m_duke(gamemode, mutators) && !localwrongmap)
                 {
                     if (!m_zombie(gamemode) && !m_convert(gamemode, mutators)) arenaintermission = 0;
-                    //closemenu(NULL);
+                    //closemenu(nullptr);
                     conoutf(_("new round starting... fight!"));
                     hudeditf(HUDMSG_TIMER, "FIGHT!");
                 }
@@ -893,7 +893,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 getstring(text, p);
                 if(a && a->lastauth && lastmillis - a->lastauth < 60*1000)
                 {
-                    vector<char> buf;
+                    vect<char> buf;
                     answerchallenge(a->key, text, buf);
                     //conoutf("answering %u, challenge %s with %s", id, text, buf.getbuf());
                     addmsg(SV_AUTHANS, "rsis", a->desc, id, buf.getbuf());
@@ -940,7 +940,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             case SV_REGEN:
             case SV_HEAL:
             {
-                playerent *healer = type == SV_HEAL ? getclient(getint(p)) : NULL;
+                playerent *healer = type == SV_HEAL ? getclient(getint(p)) : nullptr;
                 const int cn = getint(p), health = getint(p);
                 playerent *d = getclient(cn);
                 if (!d) break;
@@ -1391,7 +1391,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 int cn = getint(p), type = getint(p), voteremain = getint(p);
                 playerent *d = getclient(cn);
                 if( type < 0 || type >= SA_NUM ) break;
-                votedisplayinfo *v = NULL;
+                votedisplayinfo *v = nullptr;
                 // vote data storage
                 static votedata vote = votedata(text);
                 vote = votedata(text); // reset it
@@ -1473,7 +1473,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             {
                 int vres = getint(p), vetocn = getint(p);
                 playerent *d = getclient(vetocn);
-                curvote->veto = (d != NULL);
+                curvote->veto = (d != nullptr);
                 if (curvote && vres >= 0 && vres < VOTE_NUM)
                 {
                     curvote->result = vres;
@@ -1619,7 +1619,7 @@ const char *parseDemoFilename(char *srvfinfo)
         char sep[] = ":";
         char *pch;
         pch = strtok (srvfinfo,sep);
-        while (pch != NULL && fip < 4)
+        while (pch != nullptr && fip < 4)
         {
             fip++;
             switch(fip)
@@ -1631,7 +1631,7 @@ const char *parseDemoFilename(char *srvfinfo)
                 case 4: stamp = atoi(pch); break;
                 default: break;
             }
-            pch = strtok (NULL, sep);
+            pch = strtok (nullptr, sep);
         }
         copystring(srvmap, pch);
     }
@@ -1709,7 +1709,7 @@ void receivefile(uchar *data, int len)
 
         default:
             p.len = 0;
-            parsemessages(-1, NULL, p);
+            parsemessages(-1, nullptr, p);
             break;
     }
 }
@@ -1720,7 +1720,7 @@ void servertoclient(int chan, uchar *buf, int len, bool demo)   // processes any
     switch(chan)
     {
         case 0: parsepositions(p); break;
-        case 1: parsemessages(-1, NULL, p, demo); break;
+        case 1: parsemessages(-1, nullptr, p, demo); break;
         case 2: receivefile(p.buf, p.maxlen); break;
     }
 }

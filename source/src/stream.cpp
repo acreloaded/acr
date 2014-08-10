@@ -10,7 +10,7 @@
 #endif
 
 string homedir = "";
-vector<char *> packagedirs;
+vect<char *> packagedirs;
 
 char *makerelpath(const char *dir, const char *file, const char *prefix, const char *cmd)
 {
@@ -47,7 +47,7 @@ char *path(char *s)
             curpart = file+1;
         }
         for(char *t = curpart; (t = strpbrk(t, "/\\")); *t++ = PATHDIV);
-        for(char *prevdir = NULL, *curdir = s;;)
+        for(char *prevdir = nullptr, *curdir = s;;)
         {
             prevdir = curdir[0]==PATHDIV ? curdir+1 : curdir;
             curdir = strchr(prevdir, PATHDIV);
@@ -126,7 +126,7 @@ bool createdir(const char *path)
         path = copystring(strip, path, len);
     }
 #ifdef WIN32
-    return CreateDirectory(path, NULL)!=0;
+    return CreateDirectory(path, nullptr)!=0;
 #else
     return mkdir(path, 0777)==0;
 #endif
@@ -165,7 +165,7 @@ char *getregszvalue(HKEY root, const char *keystr, const char *query, REGSAM ext
         }
         RegCloseKey(key);
     }
-    return NULL;
+    return nullptr;
 }
 #endif
 
@@ -245,7 +245,7 @@ const char *findfile(const char *filename, const char *mode)
     return filename;
 }
 
-bool listdir(const char *dir, const char *ext, vector<char *> &files)
+bool listdir(const char *dir, const char *ext, vect<char *> &files)
 {
     int extsize = ext ? (int)strlen(ext)+1 : 0;
     #if defined(WIN32)
@@ -267,7 +267,7 @@ bool listdir(const char *dir, const char *ext, vector<char *> &files)
     if(d)
     {
         struct dirent *de;
-        while((de = readdir(d)) != NULL)
+        while((de = readdir(d)) != nullptr)
         {
             if(!ext) files.add(newstring(de->d_name));
             else
@@ -284,7 +284,7 @@ bool listdir(const char *dir, const char *ext, vector<char *> &files)
     else return false;
 }
 
-int listfiles(const char *dir, const char *ext, vector<char *> &files)
+int listfiles(const char *dir, const char *ext, vect<char *> &files)
 {
     int dirs = 0;
     if(listdir(dir, ext, files)) dirs++;
@@ -331,7 +331,7 @@ bool preparedir(const char *destination)
 {
     string dir;
     copystring(dir, parentdir(destination));
-    vector<char *> dirs;
+    vect<char *> dirs;
     while(!fileexists(dir, "r"))
     {
         dirs.add(newstring(dir));
@@ -345,20 +345,20 @@ bool preparedir(const char *destination)
 #ifndef STANDALONE
 static int rwopsseek(SDL_RWops *rw, int offset, int whence)
 {
-    stream *f = (stream *)rw->hidden.unknown.data1;
+    stream *f = reinterpret_cast<stream *>(rw->hidden.unknown.data1);
     if((!offset && whence==SEEK_CUR) || f->seek(offset, whence)) return f->tell();
     return -1;
 }
 
 static int rwopsread(SDL_RWops *rw, void *buf, int size, int nmemb)
 {
-    stream *f = (stream *)rw->hidden.unknown.data1;
+    stream *f = reinterpret_cast<stream *>(rw->hidden.unknown.data1);
     return f->read(buf, size*nmemb)/size;
 }
 
 static int rwopswrite(SDL_RWops *rw, const void *buf, int size, int nmemb)
 {
-    stream *f = (stream *)rw->hidden.unknown.data1;
+    stream *f = reinterpret_cast<stream *>(rw->hidden.unknown.data1);
     return f->write(buf, size*nmemb)/size;
 }
 
@@ -370,7 +370,7 @@ static int rwopsclose(SDL_RWops *rw)
 SDL_RWops *stream::rwops()
 {
     SDL_RWops *rw = SDL_AllocRW();
-    if(!rw) return NULL;
+    if(!rw) return nullptr;
     rw->hidden.unknown.data1 = this;
     rw->seek = rwopsseek;
     rw->read = rwopsread;
@@ -408,7 +408,7 @@ struct filestream : stream
 {
     FILE *file;
 
-    filestream() : file(NULL) {}
+    filestream() : file(nullptr) {}
     ~filestream() { close(); }
 
     bool open(const char *name, const char *mode)
@@ -427,7 +427,7 @@ struct filestream : stream
             }
         }
 #endif
-        return file!=NULL;
+        return file!=nullptr;
     }
 
     bool opentemp(const char *name, const char *mode)
@@ -438,12 +438,12 @@ struct filestream : stream
 #else
         file = tmpfile();
 #endif
-        return file!=NULL;
+        return file!=nullptr;
     }
 
     void close()
     {
-        if(file) { fclose(file); file = NULL; }
+        if(file) { fclose(file); file = nullptr; }
     }
 
     bool end() { return feof(file)!=0; }
@@ -453,7 +453,7 @@ struct filestream : stream
     int write(const void *buf, int len) { return (int)fwrite(buf, 1, len, file); }
     int getchar() { return fgetc(file); }
     bool putchar(int c) { return fputc(c, file)!=EOF; }
-    bool getline(char *str, int len) { return fgets(str, len, file)!=NULL; }
+    bool getline(char *str, int len) { return fgets(str, len, file)!=nullptr; }
     bool putstring(const char *str) { return fputs(str, file)!=EOF; }
 
     int printf(const char *fmt, ...)
@@ -498,12 +498,12 @@ struct gzstream : stream
     uint crc;
     int headersize;
 
-    gzstream() : file(NULL), buf(NULL), reading(false), writing(false), autoclose(false), crc(0), headersize(0)
+    gzstream() : file(nullptr), buf(nullptr), reading(false), writing(false), autoclose(false), crc(0), headersize(0)
     {
-        zfile.zalloc = NULL;
-        zfile.zfree = NULL;
-        zfile.opaque = NULL;
-        zfile.next_in = zfile.next_out = NULL;
+        zfile.zalloc = nullptr;
+        zfile.zfree = nullptr;
+        zfile.opaque = nullptr;
+        zfile.next_in = zfile.next_out = nullptr;
         zfile.avail_in = zfile.avail_out = 0;
     }
 
@@ -584,7 +584,7 @@ struct gzstream : stream
 
         autoclose = needclose;
         file = f;
-        crc = crc32(0, NULL, 0);
+        crc = crc32(0, nullptr, 0);
         buf = new uchar[BUFSIZE];
 
         if(reading)
@@ -683,10 +683,10 @@ struct gzstream : stream
             else
             {
                 zfile.avail_in = 0;
-                zfile.next_in = NULL;
+                zfile.next_in = nullptr;
             }
             inflateReset(&zfile);
-            crc = crc32(0, NULL, 0);
+            crc = crc32(0, nullptr, 0);
         }
 
         uchar skip[512];
@@ -755,14 +755,14 @@ stream *openrawfile(const char *filename, const char *mode)
 #ifndef STANDALONE
     if(mode && (mode[0]=='w' || mode[0]=='a')) conoutf("writing to file: %s", found);
 #endif
-    if(!found) return NULL;
+    if(!found) return nullptr;
     filestream *file = new filestream;
     if(!file->open(found, mode))
     {
 #ifndef STANDALONE
 //         conoutf("file failure! %s",filename);
 #endif
-        delete file; return NULL;
+        delete file; return nullptr;
     }
     return file;
 }
@@ -789,36 +789,36 @@ stream *opentempfile(const char *name, const char *mode)
 {
     const char *found = findfile(name, mode);
     filestream *file = new filestream;
-    if(!file->opentemp(found ? found : name, mode)) { delete file; return NULL; }
+    if(!file->opentemp(found ? found : name, mode)) { delete file; return nullptr; }
     return file;
 }
 
 stream *opengzfile(const char *filename, const char *mode, stream *file, int level)
 {
     stream *source = file ? file : openfile(filename, mode);
-    if(!source) return NULL;
+    if(!source) return nullptr;
     gzstream *gz = new gzstream;
-    if(!gz->open(source, mode, !file, level)) { if(!file) delete source; return NULL; }
+    if(!gz->open(source, mode, !file, level)) { if(!file) delete source; return nullptr; }
     return gz;
 }
 
 char *loadfile(const char *fn, int *size, const char *mode)
 {
     stream *f = openfile(fn, mode ? mode : "rb");
-    if(!f) return NULL;
+    if(!f) return nullptr;
     int len = f->size();
-    if(len<=0) { delete f; return NULL; }
+    if(len<=0) { delete f; return nullptr; }
     char *buf = new char[len+1];
-    if(!buf) { delete f; return NULL; }
+    if(!buf) { delete f; return nullptr; }
     buf[len] = 0;
     int rlen = f->read(buf, len);
     delete f;
     if(len!=rlen && (!mode || strchr(mode, 'b')))
     {
         delete[] buf;
-        return NULL;
+        return nullptr;
     }
-    if(size!=NULL) *size = len;
+    if(size!=nullptr) *size = len;
     return buf;
 }
 

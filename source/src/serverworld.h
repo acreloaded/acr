@@ -138,17 +138,18 @@ void snewmap(int factor)
         memcpy(maplayout + i, &defaultblock, sizeof(ssqr));
 }
 
-float sraycube(const vec &o, const vec &ray, vec *surface = NULL)
+float sraycube(const vec &o, const vec &ray, vec *surface = nullptr)
 { // server counterpart of raycube
     if(surface) *surface = vec(0, 0, 0);
     if(ray.iszero()) return 0;
 
     vec v = o;
-    float dist = 0, dx = 0, dy = 0, dz = 0;
+    float dist = 0;
 
     const int maxtraces = (1 << maplayout_factor << 2);
     for(int numtraces = 0; numtraces < maxtraces; numtraces++)
     {
+        float dx = 0, dy = 0, dz = 0;
         int x = int(v.x), y = int(v.y);
         if(x < 0 || y < 0 || x >= (1 << maplayout_factor) || y >= (1 << maplayout_factor)) return dist;
         const int mapid = getmaplayoutid(x, y);

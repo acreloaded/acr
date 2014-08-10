@@ -45,7 +45,7 @@ struct shotevent : timedevent
 {
     int weap;
     vec to;
-    vector<posinfo> pos;
+    vect<posinfo> pos;
     shotevent(int millis, int id, int weap) : timedevent(GE_SHOT, millis, id), weap(weap), to(0,0,0), compact(false) { pos.setsize(0); }
     bool compact;
     void process(struct client *ci);
@@ -103,7 +103,7 @@ struct projectilestate
     int numprojs;
     int throwable;
 
-    projectilestate() : /*projs(),*/ numprojs(0), throwable(0) {}
+    projectilestate() : projs{}, numprojs(0), throwable(0) {}
 
     void reset() { numprojs = 0; }
 
@@ -169,8 +169,8 @@ struct clientstate : playerstate
     int akimbomillis, crouchmillis, scopemillis, drownmillis, drownval;
     bool scoped, crouching, onfloor; float fallz;
     int flagscore, frags, teamkills, deaths, shotdamage, damage, points, events, lastdisc, reconnections;
-    vector<int> damagelog, revengelog;
-    vector<wound> wounds;
+    vect<int> damagelog, revengelog;
+    vect<wound> wounds;
 #if (SERVER_BUILTIN_MOD & 8)
     int gungame;
 #endif
@@ -319,8 +319,8 @@ struct client                   // server side version of "dynent" type
     int lastprofileupdate, fastprofileupdates;
     int demoflags;
     clientstate state;
-    vector<timedevent *> events, timers;
-    vector<uchar> position, messages;
+    vect<timedevent *> events, timers;
+    vect<uchar> position, messages;
     string lastsaytext;
     int saychars, lastsay, spamcount, badspeech, badmillis;
     int at3_score, at3_lastforce, eff_score;
@@ -476,7 +476,7 @@ struct ban
 struct worldstate
 {
     enet_uint32 uses;
-    vector<uchar> positions, messages;
+    vect<uchar> positions, messages;
 };
 
 struct clientidentity
@@ -504,7 +504,7 @@ struct ssecure
     vec o;
     int last_service;
 };
-vector<ssecure> ssecures;
+vect<ssecure> ssecures;
 
 struct sconfirm
 {
@@ -525,7 +525,7 @@ struct demofile
     string file;
     uchar *data;
     int len;
-    vector<clientidentity> clientssent;
+    vect<clientidentity> clientssent;
 };
 
 void clearai(), checkai();
@@ -538,8 +538,8 @@ void convertcheck(bool quick = false);
 void shuffleteams(int ftr = FTR_AUTO);
 bool refillteams(bool now = false, int ftr = FTR_AUTO);
 void setpriv(int cn, int priv);
-mapstats *getservermapstats(const char *mapname, bool getlayout = false, int *maploc = NULL);
-int findmappath(const char *mapname, char *filename = NULL);
+mapstats *getservermapstats(const char *mapname, bool getlayout = false, int *maploc = nullptr);
+int findmappath(const char *mapname, char *filename = nullptr);
 int calcscores();
 void recordpacket(int chan, void *data, int len);
 void senddisconnectedscores(int cn);
@@ -555,7 +555,7 @@ void sendf(int cn, int chan, const char *format, ...);
 void addpt(client *c, int points, int reason = -1);
 void serverdied(client *target, client *actor, int damage, int gun, int style, const vec &source, float killdist = 0);
 void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source, float dist = 0);
-int explosion(client &owner, const vec &o2, int weap, bool teamcheck, bool gib = true, client *cflag = NULL);
+int explosion(client &owner, const vec &o2, int weap, bool teamcheck, bool gib = true, client *cflag = nullptr);
 void nuke(client &owner, bool suicide = true, bool forced_all = true, bool friendly_fire = false);
 
 extern bool isdedicated;

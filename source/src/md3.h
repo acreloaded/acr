@@ -1,6 +1,6 @@
 struct md3;
 
-md3 *loadingmd3 = NULL;
+md3 *loadingmd3 = nullptr;
 
 string md3dir;
 
@@ -81,10 +81,10 @@ struct md3 : vertmodel
                     if(tag.name[0] && i<header.numtags) tags[i].name = newstring(tag.name);
                     tags[i].pos = vec(tag.pos.y, tag.pos.x, tag.pos.z);
                     memcpy(tags[i].transform, tag.rotation, sizeof(tag.rotation));
-                    // undo the x/y swap
-                    loopj(3) swap(tags[i].transform[0][j], tags[i].transform[1][j]);
+                    // undo the x/y swapB
+                    loopj(3) swapB(tags[i].transform[0][j], tags[i].transform[1][j]);
                     // then restore it
-                    loopj(3) swap(tags[i].transform[j][0], tags[i].transform[j][1]);
+                    loopj(3) swapB(tags[i].transform[j][0], tags[i].transform[j][1]);
                 }
                 links = new linkedpart[numtags];
             }
@@ -159,10 +159,10 @@ struct md3 : vertmodel
 
         if(a) for(int i = 0; a[i].tag; i++)
         {
-            vertmodel *m = (vertmodel *)a[i].m;
+            vertmodel *m = dynamic_cast<vertmodel*>(a[i].m);
             if(!m)
             {
-                if(a[i].pos) link(NULL, a[i].tag, a[i].pos);
+                if(a[i].pos) link(nullptr, a[i].tag, a[i].pos);
                 continue;
             }
             part *p = m->parts[0];
@@ -195,7 +195,7 @@ struct md3 : vertmodel
         if(!cullface) glEnable(GL_CULL_FACE);
         else if(anim&ANIM_MIRROR) glCullFace(GL_FRONT);
 
-        if(a) for(int i = 0; a[i].tag; i++) link(NULL, a[i].tag);
+        if(a) for(int i = 0; a[i].tag; i++) link(nullptr, a[i].tag);
 
         if(d) d->lastrendered = lastmillis;
     }
@@ -221,14 +221,14 @@ struct md3 : vertmodel
         {
             neverpersist = false;
             per_idents = true;
-            loadingmd3 = NULL;
+            loadingmd3 = nullptr;
             if(parts.empty()) return false;
             loopv(parts) if(!parts[i]->filename) return false;
         }
         else // md3 without configuration, try default tris and skin
         {
             per_idents = false;
-            loadingmd3 = NULL;
+            loadingmd3 = nullptr;
             md3part &mdl = *new md3part;
             parts.add(&mdl);
             mdl.model = this;

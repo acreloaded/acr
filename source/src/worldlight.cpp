@@ -204,7 +204,7 @@ struct dlight
     }
 };
 
-vector<dlight> dlights;
+vect<dlight> dlights;
 
 VARP(dynlight, 0, 1, 1);
 
@@ -253,7 +253,7 @@ void adddynlight(physent *owner, const vec &o, int reach, int expire, int fade, 
     d.g = g;
     d.b = b;
 
-    d.area = NULL;
+    d.area = nullptr;
     preparedynlight(d);
 }
 
@@ -275,7 +275,7 @@ void removedynlights(physent *owner)
 void dodynlights()
 {
     if(dlights.empty()) return;
-    const block *area = NULL;
+    const block *area = nullptr;
     loopv(dlights)
     {
         dlight &d = dlights[i];
@@ -312,7 +312,7 @@ void dodynlights()
 void undodynlights()
 {
     if(dlights.empty()) return;
-    const block *area = NULL;
+    const block *area = nullptr;
     loopvrev(dlights)
     {
         const dlight &d = dlights[i];
@@ -330,9 +330,9 @@ void undodynlights()
 
 block *blockcopy(const block &s)
 {
-    block *b = (block *)new uchar[sizeof(block)+s.xs*s.ys*sizeof(sqr)];
+    block *b = reinterpret_cast<block *>(new uchar[sizeof(block)+s.xs*s.ys*sizeof(sqr)]);
     *b = s;
-    sqr *q = (sqr *)(b+1);
+    sqr *q = reinterpret_cast<sqr *>(b+1);
     for(int y = s.y; y<s.ys+s.y; y++) for(int x = s.x; x<s.xs+s.x; x++) *q++ = *S(x,y);
     return b;
 }
@@ -372,6 +372,6 @@ void blockpaste(const block &b)
 
 void freeblock(block *&b)
 {
-    if(b) { delete[] (uchar *)b; b = NULL; }
+    if(b) { delete[] (uchar *)b; b = nullptr; }
 }
 

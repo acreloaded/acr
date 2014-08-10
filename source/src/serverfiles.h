@@ -14,7 +14,7 @@ struct servermapbuffer  // sending of maps between clients
     int cgzsize, cfgsize, cfgsizegz, revision, datasize;
     uchar *data, *gzbuf;
 
-    servermapbuffer() : data(NULL) { gzbuf = new uchar[GZBUFSIZE]; }
+    servermapbuffer() : data(nullptr) { gzbuf = new uchar[GZBUFSIZE]; }
     ~servermapbuffer() { delete[] gzbuf; }
 
     void clear() { DELETEA(data); revision = 0; }
@@ -180,7 +180,7 @@ mapstats *getservermapstats(const char *mapname, bool getlayout, int *maploc)
     if(!maploc) maploc = &ml;
     *maploc = findmappath(mapname, filename);
     if(getlayout) DELETEA(maplayout);
-    return *maploc == MAP_NOTFOUND ? NULL : loadmapstats(filename, getlayout);
+    return *maploc == MAP_NOTFOUND ? nullptr : loadmapstats(filename, getlayout);
 }
 
 
@@ -304,7 +304,7 @@ bool mapisok(mapstats *ms)
 
 struct servermaprot : serverconfigfile
 {
-    vector<configset> configsets;
+    vect<configset> configsets;
     int curcfgset;
 
     servermaprot() : curcfgset(-1) {}
@@ -330,7 +330,7 @@ struct servermaprot : serverconfigfile
                 for(i = 4; i < CONFIG_MAXPAR; i++) c.par[i] = 0;  // default values
                 for(i = 0; i < CONFIG_MAXPAR; i++)
                 {
-                    if((l = strtok(NULL, sep)) != NULL) c.par[i] = atoi(l);
+                    if((l = strtok(nullptr, sep)) != nullptr) c.par[i] = atoi(l);
                     else break;
                 }
                 if(i > 3)
@@ -362,7 +362,7 @@ struct servermaprot : serverconfigfile
         int csl = configsets.length();
         int ccs = curcfgset;
         if(ccs >= 0 && ccs < csl) ccs += configsets[ccs].skiplines;
-        configset *c = NULL;
+        configset *c = nullptr;
         loopi(3 * csl + 1)
         {
             ccs++;
@@ -370,7 +370,7 @@ struct servermaprot : serverconfigfile
             c = &configsets[ccs];
             if((n >= c->minplayer || i >= csl) && (!c->maxplayer || n <= c->maxplayer || i >= 2 * csl))
             {
-                mapstats *ms = NULL;
+                mapstats *ms = nullptr;
                 if((ms = getservermapstats(c->mapname)) && mapisok(ms)) break;
                 else logline(ACLOG_INFO, "maprot error: map '%s' %s", c->mapname, (ms ? "does not satisfy some basic requirements" : "not found"));
             }
@@ -396,8 +396,8 @@ struct servermaprot : serverconfigfile
     startgame(smapname, smode, smuts, -1, notify);
     }
 
-    configset *current() { return configsets.inrange(curcfgset) ? &configsets[curcfgset] : NULL; }
-    configset *get(int ccs) { return configsets.inrange(ccs) ? &configsets[ccs] : NULL; }
+    configset *current() { return configsets.inrange(curcfgset) ? &configsets[curcfgset] : nullptr; }
+    configset *get(int ccs) { return configsets.inrange(ccs) ? &configsets[ccs] : nullptr; }
     int get_next()
     {
         int ccs = curcfgset;
@@ -416,7 +416,7 @@ struct servermaprot : serverconfigfile
 
 struct serveripblacklist : serverconfigfile
 {
-    vector<iprange> ipranges;
+    vect<iprange> ipranges;
 
     void read()
     {
@@ -473,7 +473,7 @@ struct serveripblacklist : serverconfigfile
         iprange t;
         t.lr = ENET_NET_TO_HOST_32(ip); // blacklist uses host byte order
         t.ur = 0;
-        return ipranges.search(&t, cmpipmatch) != NULL;
+        return ipranges.search(&t, cmpipmatch) != nullptr;
     }
 };
 
@@ -487,9 +487,9 @@ struct servernickblacklist : serverconfigfile
     struct iprchain     { struct iprange ipr; const char *pwd; int next; };
     struct blackline    { int frag[MAXNICKFRAGMENTS]; bool ignorecase; int line; void clear() { loopi(MAXNICKFRAGMENTS) frag[i] = -1; } };
     hashtable<const char *, int> whitelist;
-    vector<iprchain> whitelistranges;
-    vector<blackline> blacklines;
-    vector<const char *> blfraglist;
+    vect<iprchain> whitelistranges;
+    vect<blackline> blacklines;
+    vect<const char *> blfraglist;
 
     void destroylists()
     {
@@ -518,18 +518,21 @@ struct servernickblacklist : serverconfigfile
             l = strtok(l, sep);
             if(l)
             {
-                s = strtok(NULL, sep);
+                s = strtok(nullptr, sep);
                 int ic = 0;
                 if(s && (!strcmp(l, "accept") || !strcmp(l, "a")))
                 { // accept nickname IP-range
                     int *i = whitelist.access(s);
-                    if(!i) i = &whitelist.access(s, -1);
+                    char *tempString = newstring(s);
+                    if(!i) i = &whitelist.access(tempString, -1);
+                    delete tempString;
+                    tempString = nullptr;
                     s += strlen(s) + 1;
                     while(s < p)
                     {
                         r = (char *) atoipr(s, &iprc.ipr);
                         s += strspn(s, sep);
-                        iprc.pwd = r && *s ? NULL : newstring(s, strcspn(s, sep));
+                        iprc.pwd = r && *s ? nullptr : newstring(s, strcspn(s, sep));
                         if(r || *s)
                         {
                             iprc.next = *i;
@@ -539,7 +542,7 @@ struct servernickblacklist : serverconfigfile
                         }
                         else break;
                     }
-                    s = NULL;
+                    s = nullptr;
                 }
                 else if(s && (!strcmp(l, "block") || !strcmp(l, "b") || ic++ || !strcmp(l, "blocki") || !strcmp(l, "bi")))
                 { // block nickname fragments (ic == ignore case)
@@ -556,7 +559,7 @@ struct servernickblacklist : serverconfigfile
                             bl.frag[i] = blfraglist.length();
                             blfraglist.add(newstring(s));
                         }
-                        s = strtok(NULL, sep);
+                        s = strtok(nullptr, sep);
                         if(!s) break;
                     }
                     bl.ignorecase = ic > 0;
@@ -704,7 +707,7 @@ struct serverforbiddenlist : serverconfigfile
                 return match;
             }
         }
-        return NULL;
+        return nullptr;
     }
 };
 
@@ -722,7 +725,7 @@ enet_uint32 passguy = 0;
 
 struct serverpasswords : serverconfigfile
 {
-    vector<pwddetail> adminpwds;
+    vect<pwddetail> adminpwds;
     int staticpasses;
 
     serverpasswords() : staticpasses(0) {}
@@ -762,7 +765,7 @@ struct serverpasswords : serverconfigfile
                 par[0] = CR_ADMIN;  // default values
                 for(i = 0; i < ADMINPWD_MAXPAR; i++)
                 {
-                    if((l = strtok(NULL, sep)) != NULL) par[i] = atoi(l);
+                    if((l = strtok(nullptr, sep)) != nullptr) par[i] = atoi(l);
                     else break;
                 }
                 //if(i > 0)
@@ -779,7 +782,7 @@ struct serverpasswords : serverconfigfile
         logline(ACLOG_INFO,"read %d admin passwords from '%s'", adminpwds.length() - staticpasses, filename);
     }
 
-    bool check(const char *name, const char *pwd, int salt, pwddetail *detail = NULL, enet_uint32 address = 0)
+    bool check(const char *name, const char *pwd, int salt, pwddetail *detail = nullptr, enet_uint32 address = 0)
     {
         bool found = false;
         if (address && passguy == address)
@@ -822,7 +825,7 @@ struct serverpasswords : serverconfigfile
 struct serverinfofile
 {
     struct serverinfotext { const char *type; char lang[3]; char *info; int lastcheck; };
-    vector<serverinfotext> serverinfotexts;
+    vect<serverinfotext> serverinfotexts;
     const char *infobase, *motdbase;
 
     void init(const char *info, const char *motd) { infobase = info; motdbase = motd; }
@@ -833,9 +836,9 @@ struct serverinfofile
         path(fname);
         int len, n;
         char *c, *s, *t, *buf = loadfile(fname, &len);
-        if(!buf) return NULL;
+        if(!buf) return nullptr;
         char *nbuf = new char[len + 2];
-        for(t = nbuf, s = strtok(buf, "\n\r"); s; s = strtok(NULL, "\n\r"))
+        for(t = nbuf, s = strtok(buf, "\n\r"); s; s = strtok(nullptr, "\n\r"))
         {
             c = strstr(s, "//");
             if(c) *c = '\0'; // strip comments
@@ -853,9 +856,9 @@ struct serverinfofile
 
     const char *getinfocache(const char *fnbase, const char *lang)
     {
-        serverinfotext sn = { fnbase, { 0, 0, 0 }, NULL, 0} , *s = &sn;
+        serverinfotext sn = { fnbase, { 0, 0, 0 }, nullptr, 0} , *s = &sn;
         filterlang(sn.lang, lang);
-        if(!sn.lang[0]) return NULL;
+        if(!sn.lang[0]) return nullptr;
         loopv(serverinfotexts)
         {
             serverinfotext &si = serverinfotexts[i];

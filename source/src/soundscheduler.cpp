@@ -17,7 +17,7 @@ sourcescheduler::sourcescheduler() : numsoundchannels(0) {}
 
 sourcescheduler &sourcescheduler::instance()
 {
-    if(inst==NULL) inst = new sourcescheduler();
+    if(inst==nullptr) inst = new sourcescheduler();
     return *inst;
 }
 
@@ -62,10 +62,10 @@ source *sourcescheduler::newsource(int priority, const vec &o)
     if(!sources.length())
     {
         DEBUG("empty source collection");
-        return NULL;
+        return nullptr;
     }
 
-    source *src = NULL;
+    source *src = nullptr;
 
     // reserve some sources for sounds of higher priority
     int reserved = (SP_HIGHEST-priority)*soundschedreserve;
@@ -90,7 +90,7 @@ source *sourcescheduler::newsource(int priority, const vec &o)
         if(SP_LOW==priority)
         {
             DEBUG("low prio sound aborted");
-            return NULL;
+            return nullptr;
         }
 
         // try replacing a used source
@@ -100,7 +100,7 @@ source *sourcescheduler::newsource(int priority, const vec &o)
 
         // score other sounds
         float worstscore = 0.0f;
-        source *worstsource = NULL;
+        source *worstsource = nullptr;
 
         loopv(sources)
         {
@@ -129,7 +129,7 @@ source *sourcescheduler::newsource(int priority, const vec &o)
     if(!src)
     {
         DEBUG("sound aborted, no channel takeover possible");
-        return NULL;
+        return nullptr;
     }
 
     src->reset();       // default settings

@@ -6,14 +6,14 @@
 
 VARF(audio, 0, 1, 1, initwarning("sound configuration", INIT_RESET, CHANGE_SOUND));
 VARP(audiodebug, 0, 0, 1);
-char *musicdonecmd = NULL;
+char *musicdonecmd = nullptr;
 
 VARFP(musicvol, 0, 128, 255, audiomgr.setmusicvol(musicvol));
 
 // audio manager
 
 audiomanager::audiomanager()
-: nosound(true), currentpitch(1.0f), device(NULL), context(NULL), gamemusic(NULL) {}
+: nosound(true), currentpitch(1.0f), device(nullptr), context(nullptr), gamemusic(nullptr) {}
 
 void audiomanager::initsound()
 {
@@ -24,19 +24,19 @@ void audiomanager::initsound()
     }
 
     nosound = true;
-    device = NULL;
-    context = NULL;
+    device = nullptr;
+    context = nullptr;
 
     // list available devices
-    if(alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT"))
+    if(alcIsExtensionPresent(nullptr, "ALC_ENUMERATION_EXT"))
     {
-        const ALCchar *devices = alcGetString(NULL, ALC_DEVICE_SPECIFIER);
+        const ALCchar *devices = alcGetString(nullptr, ALC_DEVICE_SPECIFIER);
         if(devices)
         {
             string d;
             copystring(d, "Audio devices: ");
 
-            // null separated device string
+            // nullptr separated device string
             for(const ALchar *c = devices; c[strlen(c)+1]; c += strlen(c)+1)
             {
                 if(c!=devices) concatstring(d, ", ");
@@ -48,11 +48,11 @@ void audiomanager::initsound()
 
     // open device
     const char *devicename = getalias("openaldevice");
-    device = alcOpenDevice(devicename && devicename[0] ? devicename : NULL);
+    device = alcOpenDevice(devicename && devicename[0] ? devicename : nullptr);
 
     if(device)
     {
-        context = alcCreateContext(device, NULL);
+        context = alcCreateContext(device, nullptr);
         if(context)
         {
             alcMakeContextCurrent(context);
@@ -188,7 +188,7 @@ void audiomanager::registermusic(char *name)
     musics.add(newstring(name));
 }
 
-int audiomanager::findsound(char *name, int vol, vector<soundconfig> &sounds)
+int audiomanager::findsound(char *name, int vol, vect<soundconfig> &sounds)
 {
     loopv(sounds)
     {
@@ -197,7 +197,7 @@ int audiomanager::findsound(char *name, int vol, vector<soundconfig> &sounds)
     return -1;
 }
 
-int audiomanager::addsound(char *name, int vol, int maxuses, bool loop, vector<soundconfig> &sounds, bool load, int audibleradius)
+int audiomanager::addsound(char *name, int vol, int maxuses, bool loop, vect<soundconfig> &sounds, bool load, int audibleradius)
 {
     if(nosound) return -1;
     if(!soundvol) return -1;
@@ -271,7 +271,7 @@ void audiomanager::soundcleanup()
     sourcescheduler::instance().reset();
 
     // shutdown openal
-    alcMakeContextCurrent(NULL);
+    alcMakeContextCurrent(nullptr);
     if(context) alcDestroyContext(context);
     if(device) alcCloseDevice(device);
 }
@@ -363,7 +363,7 @@ void audiomanager::updateplayerfootsteps(playerent *p)
 // manage looping sounds
 location *audiomanager::updateloopsound(int sound, bool active, float vol)
 {
-    location *l = locations.find(sound, NULL, gamesounds);
+    location *l = locations.find(sound, nullptr, gamesounds);
     if(!l && active) l = _playsound(sound, camerareference(), SP_HIGH, 0.0f, true);
     else if(l && !active) l->drop();
     if(l && vol != 1.0f) l->src->gain(vol);
@@ -430,7 +430,7 @@ COMMAND(soundtest, "");
 
 // sound configuration
 
-soundconfig::soundconfig(sbuffer *b, int vol, int maxuses, bool loop, int audibleradius)
+soundconfig::soundconfig(sbuffer *b=nullptr, int vol=0, int maxuses=0, bool loop=false, int audibleradius=0)
 {
     buf = b;
     this->vol = vol > 0 ? vol : 100;
@@ -452,7 +452,7 @@ void soundconfig::ondetach()
     uses--;
 }
 
-vector<soundconfig> gamesounds, mapsounds;
+vect<soundconfig> gamesounds, mapsounds;
 
 void audiomanager::detachsounds(playerent *owner)
 {
@@ -466,8 +466,8 @@ VARP(maxsoundsatonce, 0, 32, 100);
 
 location *audiomanager::_playsound(int n, const worldobjreference &r, int priority, float offset, bool loop)
 {
-    if(nosound || !soundvol) return NULL;
-    if(soundmuted(n)) return NULL;
+    if(nosound || !soundvol) return nullptr;
+    if(soundmuted(n)) return nullptr;
     DEBUGVAR(n);
     DEBUGVAR(priority);
 
@@ -480,7 +480,7 @@ location *audiomanager::_playsound(int n, const worldobjreference &r, int priori
         if(maxsoundsatonce && soundsatonce>maxsoundsatonce)
         {
             DEBUGVAR(soundsatonce);
-            return NULL;
+            return nullptr;
         }
     }
 
@@ -617,7 +617,7 @@ void audiomanager::updateaudio()
             if(musicdonecmd)
             {
                 char *cmd = musicdonecmd;
-                musicdonecmd = NULL;
+                musicdonecmd = nullptr;
                 execute(cmd);
                 delete[] cmd;
             }

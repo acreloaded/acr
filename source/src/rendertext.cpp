@@ -5,9 +5,9 @@
 int VIRTW;
 bool ignoreblinkingbit = false; // for remote-n-temp override of '\fb'
 static hashtable<const char *, font> fonts;
-static font *fontdef = NULL;
+static font *fontdef = nullptr;
 
-font *curfont = NULL;
+font *curfont = nullptr;
 
 VARP(allowblinkingtext, 0, 0, 1); // if you're so inclined
 VARP(__fontsetting, 0, 0, 2);
@@ -87,7 +87,7 @@ font *getfont(const char *name)
     return fonts.access(name);
 }
 
-static vector<font *> fontstack;
+static vect<font *> fontstack;
 
 void pushfont(const char *name)
 {
@@ -147,7 +147,7 @@ struct charringbuf : ringbuf<font::utf8charinfo, 32>
 };
 
 
-TTF_Font *ttffont = NULL;
+TTF_Font *ttffont = nullptr;
 font utf8font;
 charringbuf utf8chars;
 
@@ -288,7 +288,7 @@ font::charinfo &getcharinfo(int c)
         return info;
     }
     //else { font::charinfo &info = *loadchar(c); return info; }
-    //return NULL;
+    //return nullptr;
     font::charinfo &info = curfont->chars[0]; // 0 || (FONTCHARS-1)
     return info;
 }
@@ -387,11 +387,11 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color, int a
     }
 }
 
-static vector<int> *columns = NULL;
+static vect<int> *columns = nullptr;
 
 void text_startcolumns()
 {
-    if(!columns) columns = new vector<int>;
+    if(!columns) columns = new vect<int>;
 }
 
 void text_endcolumns()

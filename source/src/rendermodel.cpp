@@ -2,7 +2,7 @@
 
 VARP(animationinterpolationtime, 0, 150, 1000);
 
-model *loadingmodel = NULL;
+model *loadingmodel = nullptr;
 
 #include "tristrip.h"
 #include "modelcache.h"
@@ -86,7 +86,7 @@ void mdlcachelimit(int *limit)
 
 COMMAND(mdlcachelimit, "i");
 
-vector<mapmodelinfo> mapmodels;
+vect<mapmodelinfo> mapmodels;
 
 void mapmodel(int *rad, int *h, int *zoff, char *snap, char *name)
 {
@@ -94,7 +94,7 @@ void mapmodel(int *rad, int *h, int *zoff, char *snap, char *name)
     mmi.rad = *rad;
     mmi.h = *h;
     mmi.zoff = *zoff;
-    mmi.m = NULL;
+    mmi.m = nullptr;
     formatstring(mmi.name)("mapmodels/%s", name);
 }
 
@@ -109,13 +109,13 @@ COMMAND(mapmodel, "iiiss");
 COMMAND(mapmodelreset, "");
 
 hashtable<const char *, model *> mdllookup;
-model *nomodel = NULL;
+model *nomodel = nullptr;
 
 model *loadmodel(const char *name, int i, bool trydl)
 {
     if(!name)
     {
-        if(!mapmodels.inrange(i)) return NULL;
+        if(!mapmodels.inrange(i)) return nullptr;
         mapmodelinfo &mmi = mapmodels[i];
         if(mmi.m) return mmi.m;
         name = mmi.name;
@@ -136,7 +136,7 @@ model *loadmodel(const char *name, int i, bool trydl)
             if(!m->load())
             {
                 delete m;
-                loadingmodel = NULL;
+                loadingmodel = nullptr;
                 if(trydl)
                 {
                     defformatstring(dl)("packages/models/%s", name);
@@ -144,7 +144,10 @@ model *loadmodel(const char *name, int i, bool trydl)
                 }
                 else
                 {
-                    mdllookup.access(name, nomodel);
+                    char* tempStr = newstring(name);
+                    mdllookup.access(tempStr, nomodel);
+                    delete tempStr;
+                    tempStr = nullptr;
                     conoutf("\f3failed to load model %s", name);
                 }
             }
@@ -157,13 +160,16 @@ model *loadmodel(const char *name, int i, bool trydl)
                 conoutf(_("failed to load model %s"), name);
                 if(!nomodel) nomodel = new md2("nomodel");
                 m = nomodel;
-                mdllookup.access(name, m);
+                char* tempString = newstring(name);
+                mdllookup.access(tempString, m);
+                delete tempString;
+                tempString = nullptr;
             }
         }
         else mdllookup.access(m->name(), m);
-        loadingmodel = NULL;
+        loadingmodel = nullptr;
     }
-    if(m == nomodel) return NULL;
+    if(m == nomodel) return nullptr;
     if(mapmodels.inrange(i) && !mapmodels[i].m) mapmodels[i].m = m;
     return m;
 }
@@ -189,10 +195,10 @@ struct batchedmodel
 struct modelbatch
 {
     model *m;
-    vector<batchedmodel> batched;
+    vect<batchedmodel> batched;
 };
-static vector<modelbatch *> batches;
-static vector<modelattach> modelattached;
+static vect<modelbatch *> batches;
+static vect<modelattach> modelattached;
 static int numbatches = -1;
 
 void startmodelbatches()
@@ -203,7 +209,7 @@ void startmodelbatches()
 
 batchedmodel &addbatchedmodel(model *m)
 {
-    modelbatch *b = NULL;
+    modelbatch *b = nullptr;
     if(m->batch>=0 && m->batch<numbatches && batches[m->batch]->m==m) b = batches[m->batch];
     else
     {
@@ -221,7 +227,7 @@ batchedmodel &addbatchedmodel(model *m)
 
 void renderbatchedmodel(model *m, batchedmodel &b)
 {
-    modelattach *a = NULL;
+    modelattach *a = nullptr;
     if(b.attached>=0) a = &modelattached[b.attached];
 
     if(stenciling)
@@ -275,7 +281,7 @@ void renderbatchedmodelshadow(model *m, batchedmodel &b)
     if(s->type==FHF) center.z -= s->vdelta/4.0f;
     if(dynshadowquad && center.z-0.1f>b.o.z) return;
     center.z += 0.1f;
-    modelattach *a = NULL;
+    modelattach *a = nullptr;
     if(b.attached>=0) a = &modelattached[b.attached];
     float intensity = dynshadow/100.0f;
     if(dynshadowdecay) switch(b.anim&ANIM_INDEX)
@@ -317,7 +323,7 @@ void clearmodelbatches()
 
 void endmodelbatches(bool flush)
 {
-    vector<translucentmodel> translucent;
+    vect<translucentmodel> translucent;
     loopi(numbatches)
     {
         modelbatch &b = *batches[i];
@@ -351,7 +357,7 @@ void endmodelbatches(bool flush)
     if(translucent.length())
     {
         translucent.sort(sorttranslucentmodels);
-        model *lastmodel = NULL;
+        model *lastmodel = nullptr;
         loopv(translucent)
         {
             translucentmodel &tm = translucent[i];
@@ -405,7 +411,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
     if(a) for(int i = 0; a[i].tag; i++)
     {
         if(a[i].name) a[i].m = loadmodel(a[i].name);
-        //if(a[i].m && a[i].m->type()!=m->type()) a[i].m = NULL;
+        //if(a[i].m && a[i].m->type()!=m->type()) a[i].m = nullptr;
     }
 
     if(numbatches>=0 && !dbgmbatch)
@@ -555,7 +561,7 @@ void preload_entmodels()
      static const char *bouncemdlnames[] = { "misc/gib01", "misc/gib02", "misc/gib03", "weapons/grenade/static" };
      loopi(sizeof(bouncemdlnames)/sizeof(bouncemdlnames[0]))
      {
-         model *mdl = NULL;
+         model *mdl = nullptr;
          defformatstring(widn)("modmdlbounce%d", i);
 
          if (identexists(widn))
@@ -573,7 +579,7 @@ void preload_mapmodels(bool trydl)
     {
         entity &e = ents[i];
         if(e.type!=MAPMODEL || !mapmodels.inrange(e.attr2)) continue;
-        loadmodel(NULL, e.attr2, trydl);
+        loadmodel(nullptr, e.attr2, trydl);
         if(e.attr4) lookuptexture(e.attr4, notexture, trydl);
     }
 }
@@ -709,13 +715,13 @@ VARP(teamdisplaymode, 0, 1, 2);
 
 #define SKINBASE "packages/models/playermodels"
 VARP(hidecustomskins, 0, 0, 2);
-static vector<char *> playerskinlist;
+static vect<char *> playerskinlist;
 
 const char *getclientskin(const char *name, const char *suf)
 {
     static string tmp;
     int suflen = (int)strlen(suf), namelen = (int)strlen(name);
-    const char *s, *r = NULL;
+    const char *s, *r = nullptr;
     loopv(playerskinlist)
     {
         s = playerskinlist[i];
@@ -749,7 +755,7 @@ void renderclient(playerent *d)
 {
     if(!d) return;
     int team = team_base(d->team);
-    const char *cs = NULL, *skinbase = SKINBASE, *teamname = team_basestring(team);
+    const char *cs = nullptr, *skinbase = SKINBASE, *teamname = team_basestring(team);
     int skinid = 1 + d->skin();
     string skin;
     if(hidecustomskins == 0 || (hidecustomskins == 1 && !m_team(gamemode, mutators)))
@@ -772,7 +778,7 @@ void renderclient(playerent *d)
     defformatstring(widn)("modmdlvwep%d", d->weaponsel->type);
     if(d->weaponsel) formatstring(vwep)("weapons/%s/world", identexists(widn)?getalias(widn):d->weaponsel->info.modelname);
     else vwep[0] = 0;
-    renderclient(d, "playermodels", vwep[0] ? vwep : NULL, -(int)textureload(skin)->id);
+    renderclient(d, "playermodels", vwep[0] ? vwep : nullptr, -(int)textureload(skin)->id);
 }
 
 void renderclients()

@@ -258,12 +258,12 @@ public:
      void CheckFOV(void);
      bool IsVisible(const vec &o, bool CheckPlayers = false) { return ::IsVisible(m_pMyEnt->o, o,
                                                                       (CheckPlayers) ? m_pMyEnt :
-                                                                       NULL); };
+                                                                       nullptr); };
      bool IsVisible(playerent *d, bool CheckPlayers = false) { return ::IsVisible(m_pMyEnt->o, d->o,
                                                                                (CheckPlayers) ?
-                                                                                m_pMyEnt : NULL); };
+                                                                                m_pMyEnt : nullptr); };
      bool IsVisible(entity *e, bool CheckPlayers = false);
-     bool IsVisible(vec o, int Dir, float flDist, bool CheckPlayers, float *pEndDist = NULL);
+     bool IsVisible(vec o, int Dir, float flDist, bool CheckPlayers, float *pEndDist = nullptr);
      bool IsVisible(int Dir, float flDist, bool CheckPlayers)
                           { return IsVisible(m_pMyEnt->o, Dir, flDist, CheckPlayers); };
      bool IsInFOV(const vec &o);

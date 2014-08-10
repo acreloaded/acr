@@ -192,7 +192,7 @@ class sourcescheduler
 {
     int numsoundchannels;
     static sourcescheduler *inst;
-    vector<source *> sources;
+    vect<source *> sources;
 
 public:
     sourcescheduler();
@@ -367,11 +367,11 @@ public:
 };
 
 
-struct locvector : vector<location *>
+struct locvector : vect<location *>
 {
     virtual ~locvector() {}
 
-    location *find(int sound, worldobjreference *ref/* = NULL*/, const vector<soundconfig> &soundcollection /* = gamesounds*/);
+    location *find(int sound, worldobjreference *ref/* = nullptr*/, const vect<soundconfig> &soundcollection /* = gamesounds*/);
     void delete_(int i);
     void replaceworldobjreference(const worldobjreference &oldr, const worldobjreference &newr);
     void updatelocations();
@@ -386,7 +386,7 @@ class audiomanager
 {
     bool nosound;
     float currentpitch;
-    vector<char *> musics;
+    vect<char *> musics;
     ALCdevice *device;
     ALCcontext *context;
 
@@ -408,7 +408,7 @@ public:
     // configuration
     void setchannels(int num);
     void setlistenervol(int vol);
-    int addsound(char *name, int vol, int maxuses, bool loop, vector<soundconfig> &sounds, bool load, int audibleradius);
+    int addsound(char *name, int vol, int maxuses, bool loop, vect<soundconfig> &sounds, bool load, int audibleradius);
     void registermusic(char *name);
     void mutesound(int n, int off);
     void unmuteallsounds();
@@ -434,9 +434,9 @@ public:
     void playsound(int n, struct entity *e, int priority = SP_NORMAL);
     void playsound(int n, const vec *v, int priority = SP_NORMAL);
     void playsoundname(char *s, const vec *loc, int vol);
-    void playsoundc(int n, class playerent *p = NULL, int priority = SP_NORMAL);
+    void playsoundc(int n, class playerent *p = nullptr, int priority = SP_NORMAL);
     void sound(int n);
-    int findsound(char *name, int vol, vector<soundconfig> &sounds);
+    int findsound(char *name, int vol, vect<soundconfig> &sounds);
     void detachsounds(class playerent *owner);
 
     // update
@@ -452,7 +452,7 @@ void alclearerr();
 bool alerr(bool msg = true, int line = 0);
 #define ALERR alerr(true, __LINE__)
 
-extern vector<soundconfig> gamesounds, mapsounds;
+extern vect<soundconfig> gamesounds, mapsounds;
 extern ov_callbacks oggcallbacks;
 extern int soundvol;
 extern int audiodebug;

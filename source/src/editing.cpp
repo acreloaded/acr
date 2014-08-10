@@ -8,7 +8,7 @@ bool editmode = false;
 // invariant: all code assumes that these are kept inside MINBORD distance of the edge of the map
 // => selections are checked when they are made or when the world is reloaded
 
-vector<block> sels;
+vect<block> sels;
 
 #define loopselxy(sel, b) { makeundo(sel); loop(x,(sel).xs) loop(y,(sel).ys) if(!OUTBORD(sel.x+x, sel.y+y)) { sqr *s = S((sel).x+x, (sel).y+y); b; } remip(sel); }
 #define loopselsxy(b) { loopv(sels) loopselxy(sels[i], b); }
@@ -83,9 +83,9 @@ bool noselection()
 char *editinfo()
 {
     static string info;
-    if(!editmode) return NULL;
+    if(!editmode) return nullptr;
     int e = closestent();
-    if(e<0) return NULL;
+    if(e<0) return nullptr;
     entity &c = ents[e];
     string selinfo = "no selection";
     if(selset()) formatstring(selinfo)("selection = (%d, %d)", (sels.last()).xs, (sels.last()).ys);
@@ -231,7 +231,7 @@ void cursorupdate()                                     // called every frame fr
     glLineWidth(1);
 }
 
-vector<block *> undos;                                  // unlimited undo
+vect<block *> undos;                                  // unlimited undo
 VAR(undomegs, 0, 1, 10);                                // bounded by n megs
 
 void pruneundos(int maxremain)                          // bound memory
@@ -240,7 +240,7 @@ void pruneundos(int maxremain)                          // bound memory
     loopvrev(undos)
     {
         t += undos[i]->xs*undos[i]->ys*sizeof(sqr);
-        if(t>maxremain) delete[] (uchar *)undos.remove(i);
+        if(t>maxremain) undos.remove(i);
     }
 }
 
@@ -259,7 +259,7 @@ void editundo()
     freeblock(p);
 }
 
-vector<block *> copybuffers;
+vect<block *> copybuffers;
 
 void resetcopybuffers()
 {
@@ -350,8 +350,8 @@ void editdrag(bool isdown)
 
         if (identexists("newselkeys"))
         {
-            extern vector<keym> keyms;
-            vector<char *> elems;
+            extern vect<keym> keyms;
+            vect<char *> elems;
             explodelist(getalias("newselkeys"), elems);
 
             loopi(keyms.length()) if(keyms[i].pressed) loopj(elems.length())
@@ -686,7 +686,7 @@ void selfliprotate(block &sel, int dir)
 {
     makeundo(sel);
     block *org = blockcopy(sel);
-    const sqr *q = (const sqr *)(org + 1);
+    const sqr *q = reinterpret_cast<const sqr *>(org + 1);
     int x1 = sel.x, x2 = sel.x + sel.xs - 1, y1 = sel.y, y2 = sel.y + sel.ys - 1, x, y;
     switch(dir)
     {

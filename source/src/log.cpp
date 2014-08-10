@@ -21,7 +21,7 @@
 
 static const char *levelprefix[] = { "", "", "", "WARNING: ", "ERROR: " };
 static const char *levelname[] = { "DEBUG", "VERBOSE", "INFO", "WARNING", "ERROR", "DISABLED" };
-static FILE *fp = NULL;
+static FILE *fp = nullptr;
 static string filepath, ident, ident_full;
 static int facility = -1,
 #ifdef AC_USE_SYSLOG_DISABLE
@@ -54,7 +54,7 @@ bool initlogging(const char *identity, int facility_, int consolethres, int file
     }
     static int lognum = 0;
     formatstring(filepath)("serverlog_%s_%s.part%d.txt", timestring(true), identity, ++lognum);
-    if(fp) { fclose(fp); fp = NULL; }
+    if(fp) { fclose(fp); fp = nullptr; }
     if(filethreshold < ACLOG_NUM)
     {
         fp = fopen(filepath, "w");
@@ -72,7 +72,7 @@ bool initlogging(const char *identity, int facility_, int consolethres, int file
 
 void exitlogging()
 {
-    if(fp) { fclose(fp); fp = NULL; }
+    if(fp) { fclose(fp); fp = nullptr; }
 #ifdef AC_USE_SYSLOG
     if(syslogthreshold < ACLOG_NUM) closelog();
 #endif

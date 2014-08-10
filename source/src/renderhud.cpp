@@ -16,7 +16,7 @@ inline void turn_on_transparency(int alpha = 255)
 
 void drawequipicon(float x, float y, int col, int row, bool blend)
 {
-    static Texture *tex = NULL;
+    static Texture *tex = nullptr;
     if(!tex) tex = textureload("packages/misc/items.png", 4);
     if(tex)
     {
@@ -30,7 +30,7 @@ VARP(radarentsize, 4, 12, 64);
 
 void drawradaricon(float x, float y, float s, int col, int row)
 {
-    static Texture *tex = NULL;
+    static Texture *tex = nullptr;
     if(!tex) tex = textureload("packages/misc/radaricons.png", 3);
     if(tex)
     {
@@ -42,7 +42,7 @@ void drawradaricon(float x, float y, float s, int col, int row)
 
 void drawctficon(float x, float y, float s, int col, int row, float ts, int alpha)
 {
-    static Texture *ctftex = NULL, *htftex = NULL, *ktftex = NULL;
+    static Texture *ctftex = nullptr, *htftex = nullptr, *ktftex = nullptr;
     if(!ctftex) ctftex = textureload("packages/misc/ctficons.png", 3);
     if(!htftex) htftex = textureload("packages/misc/htficons.png", 3);
     if(!ktftex) ktftex = textureload("packages/misc/ktficons.png", 3);
@@ -63,7 +63,7 @@ void drawctficon(float x, float y, float s, int col, int row, float ts, int alph
 
 void drawvoteicon(float x, float y, int col, int row, bool noblend)
 {
-    static Texture *tex = NULL;
+    static Texture *tex = nullptr;
     if(!tex) tex = textureload("packages/misc/voteicons.png", 3);
     if(tex)
     {
@@ -140,7 +140,7 @@ void drawsgpat(int w, int h)
     glEnd();
 
     glEnable(GL_TEXTURE_2D);
-    static Texture *pattex = NULL;
+    static Texture *pattex = nullptr;
     if(!pattex) pattex = textureload("packages/misc/sgpat.png", 4);
     loopk(3)
     {
@@ -179,7 +179,7 @@ void drawsgpat(int w, int h)
 
 void drawscope(bool preload)
 {
-    static Texture *scopetex = NULL;
+    static Texture *scopetex = nullptr;
     if(!scopetex) scopetex = textureload("packages/misc/scope.png", 3);
     if(preload) return;
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -245,7 +245,7 @@ void drawscope(bool preload)
 }
 
 const char *crosshairnames[CROSSHAIR_NUM] = { "default", "scope", "shotgun", "v", "h", "hit", "reddot" };
-Texture *crosshairs[CROSSHAIR_NUM] = { NULL }; // weapon specific crosshairs
+Texture *crosshairs[CROSSHAIR_NUM] = { nullptr }; // weapon specific crosshairs
 
 Texture *loadcrosshairtexture(const char *c)
 {
@@ -471,7 +471,7 @@ void drawequipicons(playerent *p)
     glEnable(GL_BLEND);
 }
 
-void drawradarent(float x, float y, float yaw, int col, int row, float iconsize, bool pulse, const char *label = NULL, ...)
+void drawradarent(float x, float y, float yaw, int col, int row, float iconsize, bool pulse, const char *label = nullptr, ...)
 {
     glPushMatrix();
     if(pulse) glColor4f(1.0f, 1.0f, 1.0f, 0.2f+(sinf(lastmillis/30.0f)+1.0f)/2.0f);
@@ -499,6 +499,35 @@ struct hudline : cline
     int type;
 
     hudline() : type(HUDMSG_INFO) {}
+
+    hudline& operator=(const hudline& other){
+        line = other.line ? newstring(other.line) : nullptr;
+        millis = other.millis;
+        type = other.type;
+        return *this;
+    }
+
+    hudline(const hudline& other){
+        line = other.line ? newstring(other.line) : nullptr;
+        millis = other.millis;
+        type = other.type;
+    }
+
+    hudline& operator=(hudline&& other){
+        DELETEA(line);
+        line = other.line;
+        other.line = nullptr;
+        millis = other.millis;
+        type = other.type;
+        return *this;
+    }
+
+    hudline(hudline&& other){
+        line = other.line;
+        other.line = nullptr;
+        millis = other.millis;
+        type = other.type;
+    }
 };
 
 struct hudmessages : consolebuffer<hudline>
@@ -707,7 +736,7 @@ void drawradar_showmap(playerent *p, int w, int h)
     {
         bounceent *b = bounceents[i];
         if (!b || b->bouncetype != BT_NADE) continue;
-        if (((grenadeent *)b)->nadestate != 1) continue;
+        if (dynamic_cast<grenadeent *>(b)->nadestate != 1) continue;
         vec rtmp = vec(b->o).sub(mdd).mul(coordtrans);
         drawradarent(rtmp.x, rtmp.y, 0, b->owner == p ? 2 : isteam(b->owner, p) ? 1 : 0, 3, iconsize / 1.5f, 1);
     }
@@ -870,7 +899,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
     {
         bounceent *b = bounceents[i];
         if (!b || b->bouncetype != BT_NADE) continue;
-        if (((grenadeent *)b)->nadestate != 1) continue;
+        if (dynamic_cast<grenadeent *>(b)->nadestate != 1) continue;
         vec rtmp = vec(b->o).sub(p->o);
         if (rtmp.magnitude() > d2s)
             rtmp.normalize().mul(d2s);
@@ -940,12 +969,12 @@ void drawradar_vicinity(playerent *p, int w, int h)
     // eye candy:
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glColor3f(1, 1, 1);
-    static Texture *bordertex = NULL;
+    static Texture *bordertex = nullptr;
     if(!bordertex) bordertex = textureload("packages/misc/compass-base.png", 3);
     quad(bordertex->id, centerpos.x-halfviewsize-16, centerpos.y-halfviewsize-16, radarviewsize+32, 0, 0, 1, 1);
     if (show_hud_element(!hidecompass, 5))
     {
-        static Texture *compasstex = NULL;
+        static Texture *compasstex = nullptr;
         if(!compasstex) compasstex = textureload("packages/misc/compass-rose.png", 3);
         glPushMatrix();
         glTranslatef(centerpos.x, centerpos.y, 0);
@@ -966,7 +995,7 @@ void drawteamicons(int w, int h)
 {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glColor3f(1, 1, 1);
-    static Texture *icons = NULL;
+    static Texture *icons = nullptr;
     if(!icons) icons = textureload("packages/misc/teamicons.png", 3);
     quad(icons->id, VIRTW-VIRTH/12-10, 10, VIRTH/12, team_base(focus->team) ? 0.5f : 0, 0, 0.49f, 1.0f);
 }
@@ -1016,7 +1045,7 @@ int votersort(playerent **a, playerent **b)
 
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
 {
-    playerent *p = camera1->type<ENT_CAMERA ? (playerent *)camera1 : player1;
+    playerent *p = camera1->type<ENT_CAMERA ? dynamic_cast<playerent *>(camera1) : player1;
     bool spectating = player1->isspectating();
     int origVIRTW = VIRTW;
 
@@ -1047,7 +1076,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     if(lastmillis < damageblendmillis)
     {
-        static Texture *damagetex = NULL;
+        static Texture *damagetex = nullptr;
         if(!damagetex) damagetex = textureload("packages/misc/damage.png", 3);
 
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -1249,7 +1278,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             draw_textf("%s", left, top+320, curvote->desc);
             draw_textf("----", left, top+400);
 
-            vector<playerent *> votepl[VOTE_NUM];
+            vect<playerent *> votepl[VOTE_NUM];
             string votestr[VOTE_NUM];
             if (!watchingdemo) votepl[player1->vote].add(player1);
             loopv(players)
@@ -1438,7 +1467,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
 void loadingscreen(const char *fmt, ...)
 {
-    static Texture *logo = NULL;
+    static Texture *logo = nullptr;
     if(!logo) logo = textureload("packages/misc/startscreen.png", 3);
 
     glEnable(GL_TEXTURE_2D);

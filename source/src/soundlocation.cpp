@@ -6,9 +6,9 @@
 
 VARP(gainscale, 1, 90, 100);
 int warn_about_unregistered_sound = 0;
-location::location(int sound, const worldobjreference &r, int priority) : cfg(NULL), src(NULL), ref(NULL), stale(false), playmillis(0)
+location::location(int sound, const worldobjreference &r, int priority) : cfg(nullptr), src(nullptr), ref(nullptr), stale(false), playmillis(0)
 {
-    vector<soundconfig> &sounds = (r.type==worldobjreference::WR_ENTITY ? mapsounds : gamesounds);
+    vect<soundconfig> &sounds = (r.type==worldobjreference::WR_ENTITY ? mapsounds : gamesounds);
     if(!sounds.inrange(sound))
     {
         if (lastmillis - warn_about_unregistered_sound > 30 * 1000) // delay message to every 30 secs so console is not spammed.
@@ -92,7 +92,7 @@ void location::onsourcereassign(source *s)
     if(s==src)
     {
         stale = true;
-        src = NULL;
+        src = nullptr;
     }
 }
 
@@ -126,7 +126,7 @@ void location::updatepos()
         }
         case worldobjreference::WR_ENTITY:
         {
-            entityreference &eref = *(entityreference *)ref;
+            entityreference &eref = *dynamic_cast<entityreference *>(ref);
             const float vol = eref.ent->attr4<=0.0f ? 1.0f : eref.ent->attr4/255.0f;
             float dist = camera1->o.dist(pos);
 
@@ -225,28 +225,28 @@ void location::drop()
 
 // location collection
 
-location *locvector::find(int sound, worldobjreference *ref, const vector<soundconfig> &soundcollection /* = gamesounds*/)
+location *locvector::find(int sound, worldobjreference *ref, const vect<soundconfig> &soundcollection /* = gamesounds*/)
 {
-    if(sound<0 || sound>=soundcollection.length()) return NULL;
-    loopi(ulen) if(buf[i] && !buf[i]->stale)
+    if(sound<0 || sound>=soundcollection.length()) return nullptr;
+    loopi(this->size()) if(this->at(i) && !this->at(i)->stale)
     {
-        if(buf[i]->cfg != &soundcollection[sound]) continue; // check if its the same sound
-        if(ref && *buf[i]->ref!=*ref) continue; // optionally check if its the same reference
-        return buf[i]; // found
+        if(this->at(i)->cfg != &soundcollection[sound]) continue; // check if its the same sound
+        if(ref && *this->at(i)->ref != *ref) continue; // optionally check if its the same reference
+        return this->at(i); // found
     }
-    return NULL;
+    return nullptr;
 }
 
 void locvector::delete_(int i)
 {
-    delete remove(i);
+    this->remove(i);
 }
 
 void locvector::replaceworldobjreference(const worldobjreference &oldr, const worldobjreference &newr)
 {
     loopv(*this)
     {
-        location *l = buf[i];
+        location *l = this->at(i);
         if(!l || !l->ref) continue;
         if(*l->ref==oldr) l->attachworldobjreference(newr);
     }
@@ -257,17 +257,17 @@ void locvector::updatelocations()
 {
     // check if camera carrier changed
     bool camchanged = false;
-    static physent *lastcamera = NULL;
+    static physent *lastcamera = nullptr;
     if(lastcamera!=camera1)
     {
-        if(lastcamera!=NULL) camchanged = true;
+        if(lastcamera!=nullptr) camchanged = true;
         lastcamera = camera1;
     }
 
     // update all locations
     loopv(*this)
     {
-        location *l = buf[i];
+        location *l = this->at(i);
         if(!l) continue;
 
         l->update();
@@ -281,7 +281,7 @@ void locvector::forcepitch(float pitch)
 {
     loopv(*this)
     {
-        location *l = buf[i];
+        location *l = this->at(i);
         if(!l) continue;
         if(l->src && l->src->locked) l->src->pitch(pitch);
     }
@@ -292,7 +292,7 @@ void locvector::deleteworldobjsounds()
 {
     loopv(*this)
     {
-        location *l = buf[i];
+        location *l = this->at(i);
         if(!l) continue;
         // world-neutral sounds
         if(l->cfg == &gamesounds[S_MENUENTER] ||

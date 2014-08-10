@@ -11,7 +11,7 @@ private:
     SC_HANDLE scm;
 
 public:
-    winserviceinstaller(LPCSTR name, LPCSTR displayName, LPCSTR path) : name(name), displayName(displayName), path(path), scm(NULL)
+    winserviceinstaller(LPCSTR name, LPCSTR displayName, LPCSTR path) : name(name), displayName(displayName), path(path), scm(nullptr)
     {
     }
 
@@ -22,7 +22,7 @@ public:
 
     bool OpenManger()
     {
-        return ((scm = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS)) != NULL);
+        return ((scm = OpenSCManager(nullptr, nullptr, SC_MANAGER_ALL_ACCESS)) != nullptr);
     }
 
     void CloseManager()
@@ -34,7 +34,7 @@ public:
     {
         if(!scm) return -1;
         SC_HANDLE svc = OpenService(scm, name, SC_MANAGER_CONNECT);
-        bool installed = svc != NULL;
+        bool installed = svc != nullptr;
         CloseServiceHandle(svc);
         return installed ? 1 : 0;
     }
@@ -42,8 +42,8 @@ public:
     int Install()
     {
         if(!scm) return -1;
-        SC_HANDLE svc = CreateService(scm, name, displayName, SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS, SERVICE_DEMAND_START, SERVICE_ERROR_NORMAL, path, NULL, NULL, NULL, NULL, NULL);
-        if(svc == NULL) return 0;
+        SC_HANDLE svc = CreateService(scm, name, displayName, SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS, SERVICE_DEMAND_START, SERVICE_ERROR_NORMAL, path, nullptr, nullptr, nullptr, nullptr, nullptr);
+        if(svc == nullptr) return 0;
         else
         {
             CloseServiceHandle(svc);

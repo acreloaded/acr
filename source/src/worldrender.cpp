@@ -206,8 +206,8 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
         {
             // cull also
             bool topleft = true;
-            sqr *h1 = NULL;
-            sqr *h2 = NULL;
+            sqr *h1 = nullptr;
+            sqr *h2 = nullptr;
             if(SOLID(z))
             {
                 if(SOLID(w))      { render_wall(w, h2 = s, xx+1, yy, xx, yy+1, mip, t, v, false, 4); topleft = false; }

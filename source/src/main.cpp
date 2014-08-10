@@ -17,7 +17,7 @@ void cleanup(char *msg)         // single program exit point;
     if(msg)
     {
         #ifdef WIN32
-        MessageBox(NULL, msg, "ACR fatal error", MB_OK|MB_SYSTEMMODAL|MB_ICONERROR);
+        MessageBox(nullptr, msg, "ACR fatal error", MB_OK|MB_SYSTEMMODAL|MB_ICONERROR);
         #else
         printf("%s", msg);
         #endif
@@ -37,7 +37,7 @@ void quit()                     // normal exit
     writepcksourcecfg();
     if(resetcfg) deletecfg();
     else writecfg();
-    cleanup(NULL);
+    cleanup(nullptr);
     popscontext();
     exit(EXIT_SUCCESS);
 }
@@ -61,7 +61,7 @@ void fatal(const char *s, ...)    // failure exit
     exit(EXIT_FAILURE);
 }
 
-SDL_Surface *screen = NULL;
+SDL_Surface *screen = nullptr;
 
 static int initing = NOT_INITING;
 static bool restoredinits = false;
@@ -288,7 +288,7 @@ void jpeg_screenshot(const char *imagepath, bool mapshot = false)
 
 VARP(pngcompress, 0, 9, 9);
 
-void writepngchunk(stream *f, const char *type, uchar *data = NULL, uint len = 0)
+void writepngchunk(stream *f, const char *type, uchar *data = nullptr, uint len = 0)
 {
     f->putbig<uint>(len);
     f->write(type, 4);
@@ -325,9 +325,9 @@ int save_png(const char *filename, SDL_Surface *image)
     crc = crc32(crc, (const Bytef *)"IDAT", 4);
 
     z_stream z;
-    z.zalloc = NULL;
-    z.zfree = NULL;
-    z.opaque = NULL;
+    z.zalloc = nullptr;
+    z.zfree = nullptr;
+    z.opaque = nullptr;
 
     if(deflateInit(&z, pngcompress) != Z_OK)
         goto error;
@@ -542,7 +542,7 @@ void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
     putenv("SDL_VIDEO_CENTERED=1"); //Center window
     #endif
     if(fullscreen) flags |= SDL_FULLSCREEN;
-    SDL_Rect **modes = SDL_ListModes(NULL, SDL_OPENGL|flags);
+    SDL_Rect **modes = SDL_ListModes(nullptr, SDL_OPENGL|flags);
     if(modes && modes!=(SDL_Rect **)-1)
     {
         bool hasmode = false;
@@ -714,7 +714,7 @@ void keyrepeat(bool on)
                              SDL_DEFAULT_REPEAT_INTERVAL);
 }
 
-vector<SDL_Event> events;
+vect<SDL_Event> events;
 
 void pushevent(const SDL_Event &e)
 {
@@ -816,7 +816,7 @@ void checkinput()
     int tdx=0,tdy=0;
     while(events.length() || SDL_PollEvent(&event))
     {
-        if(events.length()) event = events.remove(0);
+        if(events.length()) { event = events[0]; events.remove(0); }
 
         switch(event.type)
         {
@@ -892,7 +892,7 @@ VARP(gamestarts, 0, 0, INT_MAX);
 
 const char *rndmapname()
 {
-    vector<char *> maps;
+    vect<char *> maps;
     listfiles("packages/maps/official", "cgz", maps);
     char *map = newstring(maps[rnd(maps.length())]);
     maps.deletearrays();
@@ -949,7 +949,7 @@ void connectprotocol(char *protocolstring, string &servername, int &serverport, 
 }
 
 #if defined(WIN32) && !defined(__GNUC__)
-static char *parsecommandline(const char *src, vector<char *> &args)
+static char *parsecommandline(const char *src, vect<char *> &args)
 {
     char *buf = new char[strlen(src) + 1], *dst = buf;
     for(;;)
@@ -965,14 +965,14 @@ static char *parsecommandline(const char *src, vector<char *> &args)
         }
         *dst++ = '\0';
     }
-    args.add(NULL);
+    args.add(nullptr);
     return buf;
 }
 
 
 int WINAPI WinMain(_In_ HINSTANCE hInst, _In_opt_ HINSTANCE hPrev, _In_ LPSTR szCmdLine, _In_ int sw)
 {
-    vector<char *> args;
+    vect<char *> args;
     char *buf = parsecommandline(GetCommandLine(), args);
     SDL_SetModuleHandle(hInst);
     int status = SDL_main(args.length()-1, args.getbuf());
@@ -998,13 +998,13 @@ int main(int argc, char **argv)
 
     bool dedicated = false;
     bool quitdirectly = false;
-    char *initscript = NULL;
-    char *initdemo = NULL;
+    char *initscript = nullptr;
+    char *initdemo = nullptr;
     bool direct_connect = false;               // to connect via assaultcube:// browser switch
     string servername, password;
     int serverport;
 
-    const char *initmap = NULL;
+    const char *initmap = nullptr;
 
     pushscontext(IEXC_CFG);
 
@@ -1116,7 +1116,7 @@ int main(int argc, char **argv)
     //initfont();
 
     initlog("video: misc");
-    SDL_WM_SetCaption("AssaultCube Reloaded", NULL);
+    SDL_WM_SetCaption("AssaultCube Reloaded", nullptr);
     keyrepeat(false);
     SDL_ShowCursor(0);
 
@@ -1147,15 +1147,15 @@ int main(int argc, char **argv)
 
     initlog("cfg");
     extern void *scoremenu, *servmenu, *searchmenu, *serverinfomenu, *kickmenu, *banmenu, *forceteammenu, *giveadminmenu, *docmenu, *applymenu;
-    scoremenu = addmenu("score", "columns", false, renderscores, NULL, false, true);
-    servmenu = addmenu("server", NULL, true, refreshservers, serverskey);
-    searchmenu = addmenu("search", NULL, true, refreshservers, serverskey);
-    serverinfomenu = addmenu("serverinfo", NULL, true, refreshservers, serverinfokey);
-    kickmenu = addmenu("kick player", NULL, true, refreshsopmenu);
-    banmenu = addmenu("ban player", NULL, true, refreshsopmenu);
-    forceteammenu = addmenu("force team", NULL, true, refreshsopmenu);
-    giveadminmenu = addmenu("give admin", NULL, true, refreshsopmenu);
-    docmenu = addmenu("reference", NULL, true, renderdocmenu);
+    scoremenu = addmenu("score", "columns", false, renderscores, nullptr, false, true);
+    servmenu = addmenu("server", nullptr, true, refreshservers, serverskey);
+    searchmenu = addmenu("search", nullptr, true, refreshservers, serverskey);
+    serverinfomenu = addmenu("serverinfo", nullptr, true, refreshservers, serverinfokey);
+    kickmenu = addmenu("kick player", nullptr, true, refreshsopmenu);
+    banmenu = addmenu("ban player", nullptr, true, refreshsopmenu);
+    forceteammenu = addmenu("force team", nullptr, true, refreshsopmenu);
+    giveadminmenu = addmenu("give admin", nullptr, true, refreshsopmenu);
+    docmenu = addmenu("reference", nullptr, true, renderdocmenu);
     applymenu = addmenu("apply", "apply changes now?", true, refreshapplymenu);
 
     exec("config/scontext.cfg");

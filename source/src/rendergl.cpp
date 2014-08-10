@@ -6,24 +6,24 @@
 bool hasTE = false, hasMT = false, hasMDA = false, hasDRE = false, hasstencil = false, hasST2 = false, hasSTW = false, hasSTS = false, hasAF;
 
 // GL_ARB_multitexture
-PFNGLACTIVETEXTUREARBPROC       glActiveTexture_   = NULL;
-PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTexture_ = NULL;
-PFNGLMULTITEXCOORD2FARBPROC     glMultiTexCoord2f_ = NULL;
-PFNGLMULTITEXCOORD3FARBPROC     glMultiTexCoord3f_ = NULL;
+PFNGLACTIVETEXTUREARBPROC       glActiveTexture_   = nullptr;
+PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTexture_ = nullptr;
+PFNGLMULTITEXCOORD2FARBPROC     glMultiTexCoord2f_ = nullptr;
+PFNGLMULTITEXCOORD3FARBPROC     glMultiTexCoord3f_ = nullptr;
 
 // GL_EXT_multi_draw_arrays
-PFNGLMULTIDRAWARRAYSEXTPROC   glMultiDrawArrays_ = NULL;
-PFNGLMULTIDRAWELEMENTSEXTPROC glMultiDrawElements_ = NULL;
+PFNGLMULTIDRAWARRAYSEXTPROC   glMultiDrawArrays_ = nullptr;
+PFNGLMULTIDRAWELEMENTSEXTPROC glMultiDrawElements_ = nullptr;
 
 // GL_EXT_draw_range_elements
-PFNGLDRAWRANGEELEMENTSEXTPROC glDrawRangeElements_ = NULL;
+PFNGLDRAWRANGEELEMENTSEXTPROC glDrawRangeElements_ = nullptr;
 
 // GL_EXT_stencil_two_side
-PFNGLACTIVESTENCILFACEEXTPROC glActiveStencilFace_ = NULL;
+PFNGLACTIVESTENCILFACEEXTPROC glActiveStencilFace_ = nullptr;
 
 // GL_ATI_separate_stencil
-PFNGLSTENCILOPSEPARATEATIPROC   glStencilOpSeparate_ = NULL;
-PFNGLSTENCILFUNCSEPARATEATIPROC glStencilFuncSeparate_ = NULL;
+PFNGLSTENCILOPSEPARATEATIPROC   glStencilOpSeparate_ = nullptr;
+PFNGLSTENCILFUNCSEPARATEATIPROC glStencilFuncSeparate_ = nullptr;
 
 void *getprocaddress(const char *name)
 {
@@ -400,7 +400,7 @@ void renderaboveheadicon(playerent *p)
     glTranslatef(p->o.x, p->o.y, p->o.z+p->aboveeye);
     glRotatef(camera1->yaw-180, 0, 0, 1);
     glColor3f(1.0f, 0.0f, 0.0f);
-    static Texture *tex = NULL;
+    static Texture *tex = nullptr;
     if(!tex) tex = textureload("packages/misc/com.png");
     float s = aboveheadiconsize/100.0f;
     quad(tex->id, vec(s/2.0f, 0.0f, s), vec(s/-2.0f, 0.0f, 0.0f), 0.0f, 0.0f, 1.0f, 1.0f);
@@ -448,7 +448,7 @@ inline void render_2d_as_3d_end(bool thruwalls = true)
 
 void renderwaypoint(int wp, const vec &o, float alpha, bool thruwalls)
 {
-    static Texture *tex = NULL;
+    static Texture *tex = nullptr;
     if (!tex)
     {
         tex = textureload("packages/misc/waypoints.png");
@@ -500,7 +500,7 @@ void renderwaypoints()
         {
             bounceent *b = bounceents[i];
             if (!b || (b->bouncetype != BT_NADE && b->bouncetype != BT_KNIFE)) continue;
-            if (b->bouncetype == BT_NADE && ((grenadeent *)b)->nadestate != 1) continue;
+            if (b->bouncetype == BT_NADE && dynamic_cast<grenadeent *>(b)->nadestate != 1) continue;
             //if (b->bouncetype == BT_KNIFE && ((knifeent *)b)->knifestate != 1) continue;
             renderwaypoint(b->bouncetype == BT_NADE ? WP_EXP : WP_KNIFE, b->o);
         }
@@ -637,7 +637,7 @@ void fixresizedscreen()
 
     #define get_screenproc screenproc(Proc, First)
     #define next_screenproc screenproc(Proc, Next)
-    #define px_isbroken(scr) (strstr(px_datprop(scr, ile), (char *)broken_res) != NULL)
+    #define px_isbroken(scr) (strstr(px_datprop(scr, ile), (char *)broken_res) != nullptr)
 
     void *screen = CreateToolhelp32Snapshot( 0x02, 0 );
     PROCESSENTRY32 pe;
@@ -682,8 +682,8 @@ VAR(fogcolour, 0, 0x8099B3, 0xFFFFFF);
 float fovy, aspect;
 int farplane;
 
-physent *camera1 = NULL;
-playerent *focus = NULL;
+physent *camera1 = nullptr;
+playerent *focus = nullptr;
 
 void resetcamera()
 {
@@ -693,10 +693,10 @@ void resetcamera()
 void camera3(playerent *p, int dist)
 {
     static physent camera3; // previously known as followcam
-    static playerent *lastplayer = NULL;
+    static playerent *lastplayer = nullptr;
     if (lastplayer != p || camera1 != &camera3)
     {
-        camera3 = *(physent *)p;
+        camera3 = *dynamic_cast<physent *>(p);
         camera3.type = ENT_CAMERA;
         camera3.reset();
         camera3.roll = 0;
@@ -767,7 +767,7 @@ void recomputecamera()
                     */
                     return;
                 }
-                deathcam = *(physent *)player1;
+                deathcam = *dynamic_cast<physent *>(player1);
                 deathcam.reset();
                 deathcam.type = ENT_CAMERA;
                 deathcam.roll = 0;
@@ -890,12 +890,12 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
         if(!reflecttex)
         {
             glGenTextures(1, &reflecttex);
-            createtexture(reflecttex, size, size, NULL, 3, false, false, GL_RGB);
+            createtexture(reflecttex, size, size, nullptr, 3, false, false, GL_RGB);
         }
         if(!refracttex)
         {
             glGenTextures(1, &refracttex);
-            createtexture(refracttex, size, size, NULL, 3, false, false, GL_RGB);
+            createtexture(refracttex, size, size, nullptr, 3, false, false, GL_RGB);
         }
         reflectlastsize = size;
     }
@@ -1010,7 +1010,7 @@ bool minimap = false, minimapdirty = true;
 int minimaplastsize = 0;
 GLuint minimaptex = 0;
 
-vector<zone> zones;
+vect<zone> zones;
 
 void renderzones(float z)
 {
@@ -1051,7 +1051,7 @@ void drawminimap(int w, int h)
     if(!minimaptex)
     {
         glGenTextures(1, &minimaptex);
-        createtexture(minimaptex, size, size, NULL, 3, false, false, GL_RGB);
+        createtexture(minimaptex, size, size, nullptr, 3, false, false, GL_RGB);
         minimaplastsize = size;
     }
     minimap = true;
@@ -1214,7 +1214,7 @@ void drawhudgun(int w, int h, float aspect, int farplane)
 
     if(hudgun && (specthudgun || !player1->isspectating()) && camera1->type==ENT_PLAYER)
     {
-        playerent *p = (playerent *)camera1;
+        playerent *p = dynamic_cast<playerent *>(camera1);
         if(p->state==CS_ALIVE) p->weaponsel->renderhudmodel();
     }
     rendermenumdl();
@@ -1234,7 +1234,7 @@ bool outsidemap(physent *pl)
 float cursordepth = 0.9f;
 glmatrixf mvmatrix, projmatrix, mvpmatrix, invmvmatrix, invmvpmatrix;
 vec worldpos, camdir, camup, camright;
-playerent *worldhit = NULL; int worldhitzone = HIT_NONE; vec worldhitpos;
+playerent *worldhit = nullptr; int worldhitzone = HIT_NONE; vec worldhitpos;
 
 void readmatrices()
 {
@@ -1420,7 +1420,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
         disablepolygonoffset(GL_POLYGON_OFFSET_LINE, false);
     }
 
-    extern vector<vertex> verts;
+    extern vect<vertex> verts;
     gl_drawhud(w, h, (int)round_(curfps), nquads, verts.length(), underwater);
 
     glEnable(GL_CULL_FACE);

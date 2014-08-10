@@ -34,10 +34,10 @@ struct md2 : vertmodel
 
     struct md2part : part
     {
-        void gentcverts(int *glcommands, vector<tcvert> &tcverts, vector<ushort> &vindexes, vector<tri> &tris)
+        void gentcverts(int *glcommands, vect<tcvert> &tcverts, vect<ushort> &vindexes, vect<tri> &tris)
         {
             hashtable<ivec, int> tchash;
-            vector<ushort> idxs;
+            vect<ushort> idxs;
             for(int *command = glcommands; (*command)!=0;)
             {
                 int numvertex = *command++;
@@ -106,9 +106,9 @@ struct md2 : vertmodel
             lilswap(glcommands, numglcommands);
             if(numglcommands < header.numglcommands) memset(&glcommands[numglcommands], 0, (header.numglcommands-numglcommands)*sizeof(int));
 
-            vector<tcvert> tcgen;
-            vector<ushort> vgen;
-            vector<tri> trigen;
+            vect<tcvert> tcgen;
+            vect<ushort> vgen;
+            vect<tri> trigen;
             gentcverts(glcommands, tcgen, vgen, trigen);
             delete[] glcommands;
 
@@ -183,7 +183,7 @@ struct md2 : vertmodel
 
         if(a) for(int i = 0; a[i].tag; i++)
         {
-            if(a[i].pos) link(NULL, a[i].tag, a[i].pos);
+            if(a[i].pos) link(nullptr, a[i].tag, a[i].pos);
         }
 
         if(!cullface) glDisable(GL_CULL_FACE);
@@ -214,13 +214,13 @@ struct md2 : vertmodel
 
         if(a) for(int i = 0; a[i].tag; i++)
         {
-            if(a[i].pos) link(NULL, a[i].tag, NULL);
+            if(a[i].pos) link(nullptr, a[i].tag, nullptr);
 
-            vertmodel *m = (vertmodel *)a[i].m;
+            vertmodel *m = dynamic_cast<vertmodel *>(a[i].m);
             if(!m) continue;
             m->parts[0]->index = parts.length()+i;
             m->setskin();
-            m->render(anim, varseed, speed, basetime, o, yaw, pitch, d, NULL, scale);
+            m->render(anim, varseed, speed, basetime, o, yaw, pitch, d, nullptr, scale);
         }
 
         if(d) d->lastrendered = lastmillis;
@@ -231,7 +231,7 @@ struct md2 : vertmodel
         parts[0]->rendershadow(anim, varseed, speed, basetime, o, yaw);
         if(a) for(int i = 0; a[i].tag; i++)
         {
-            vertmodel *m = (vertmodel *)a[i].m;
+            vertmodel *m = dynamic_cast<vertmodel *>(a[i].m);
             if(!m) continue;
             part *p = m->parts[0];
             p->rendershadow(anim, varseed, speed, basetime, o, yaw);
@@ -291,7 +291,7 @@ void md2tag(char *name, char *vert1, char *vert2, char *vert3, char *vert4)
     int indexes[4] = { -1, -1, -1, -1 }, numverts = 0;
     loopi(4)
     {
-        char *vert = NULL;
+        char *vert = nullptr;
         switch(i)
         {
             case 0: vert = vert1; break;
