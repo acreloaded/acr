@@ -816,7 +816,7 @@ void checkinput()
     int tdx=0,tdy=0;
     while(events.length() || SDL_PollEvent(&event))
     {
-        if(events.length()) event = events.remove(0);
+        if(events.length()) { event = events[0]; events.remove(0); }
 
         switch(event.type)
         {

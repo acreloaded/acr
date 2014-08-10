@@ -116,6 +116,81 @@ public:
      CWaypointClass(void);
      virtual ~CWaypointClass(void) { Clear(); };
 
+     CWaypointClass& CWaypointClass::operator=(const CWaypointClass& other){
+        strcpy(m_szMapName, other.m_szMapName);
+        m_bDrawWaypoints = other.m_bDrawWaypoints;
+        m_bDrawWPPaths = other.m_bDrawWPPaths;
+        m_bAutoWaypoint = other.m_bAutoWaypoint;
+        m_bAutoPlacePaths = other.m_bAutoPlacePaths;
+        m_bDrawWPText = other.m_bDrawWPText;
+        m_vLastCreatedWP = other.m_vLastCreatedWP;
+        m_fPathDrawTime = other.m_fPathDrawTime;
+        m_bFlooding = other.m_bFlooding;
+        m_bFilteringNodes = other.m_bFilteringNodes;
+        m_iFloodStartTime = other.m_iFloodStartTime;
+        m_iCurFloodX = other.m_iCurFloodX;
+        m_iCurFloodY = other.m_iCurFloodY;
+        m_iFloodSize = other.m_iFloodSize;
+        m_iFilteredNodes = other.m_iFilteredNodes;
+        return *this;
+    }
+
+    CWaypointClass::CWaypointClass(const CWaypointClass& other){
+        strcpy(m_szMapName, other.m_szMapName);
+        m_bDrawWaypoints = other.m_bDrawWaypoints;
+        m_bDrawWPPaths = other.m_bDrawWPPaths;
+        m_bAutoWaypoint = other.m_bAutoWaypoint;
+        m_bAutoPlacePaths = other.m_bAutoPlacePaths;
+        m_bDrawWPText = other.m_bDrawWPText;
+        m_vLastCreatedWP = other.m_vLastCreatedWP;
+        m_fPathDrawTime = other.m_fPathDrawTime;
+        m_bFlooding = other.m_bFlooding;
+        m_bFilteringNodes = other.m_bFilteringNodes;
+        m_iFloodStartTime = other.m_iFloodStartTime;
+        m_iCurFloodX = other.m_iCurFloodX;
+        m_iCurFloodY = other.m_iCurFloodY;
+        m_iFloodSize = other.m_iFloodSize;
+        m_iFilteredNodes = other.m_iFilteredNodes;
+    }
+
+    CWaypointClass& CWaypointClass::operator=(CWaypointClass&& other){
+        delete[] m_szMapName;
+        strcpy(m_szMapName, other.m_szMapName);
+        m_bDrawWaypoints = other.m_bDrawWaypoints;
+        m_bDrawWPPaths = other.m_bDrawWPPaths;
+        m_bAutoWaypoint = other.m_bAutoWaypoint;
+        m_bAutoPlacePaths = other.m_bAutoPlacePaths;
+        m_bDrawWPText = other.m_bDrawWPText;
+        m_vLastCreatedWP = other.m_vLastCreatedWP;
+        m_fPathDrawTime = other.m_fPathDrawTime;
+        m_bFlooding = other.m_bFlooding;
+        m_bFilteringNodes = other.m_bFilteringNodes;
+        m_iFloodStartTime = other.m_iFloodStartTime;
+        m_iCurFloodX = other.m_iCurFloodX;
+        m_iCurFloodY = other.m_iCurFloodY;
+        m_iFloodSize = other.m_iFloodSize;
+        m_iFilteredNodes = other.m_iFilteredNodes;
+        return *this;
+    }
+
+    CWaypointClass::CWaypointClass(CWaypointClass&& other){
+        strcpy(m_szMapName, other.m_szMapName);
+        m_bDrawWaypoints = other.m_bDrawWaypoints;
+        m_bDrawWPPaths = other.m_bDrawWPPaths;
+        m_bAutoWaypoint = other.m_bAutoWaypoint;
+        m_bAutoPlacePaths = other.m_bAutoPlacePaths;
+        m_bDrawWPText = other.m_bDrawWPText;
+        m_vLastCreatedWP = other.m_vLastCreatedWP;
+        m_fPathDrawTime = other.m_fPathDrawTime;
+        m_bFlooding = other.m_bFlooding;
+        m_bFilteringNodes = other.m_bFilteringNodes;
+        m_iFloodStartTime = other.m_iFloodStartTime;
+        m_iCurFloodX = other.m_iCurFloodX;
+        m_iCurFloodY = other.m_iCurFloodY;
+        m_iFloodSize = other.m_iFloodSize;
+        m_iFilteredNodes = other.m_iFilteredNodes;
+    }
+
      void Think(void);
      void Init(void);
      void Clear(void);

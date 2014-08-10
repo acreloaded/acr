@@ -712,7 +712,7 @@ authkey *findauthkey(const char *desc)
 
 void addauthkey(const char *name, const char *key, const char *desc)
 {
-    loopvrev(authkeys) if(!strcmp(authkeys[i]->desc, desc) && !strcmp(authkeys[i]->name, name)) delete authkeys.remove(i);
+    loopvrev(authkeys) if(!strcmp(authkeys[i]->desc, desc) && !strcmp(authkeys[i]->name, name)) authkeys.remove(i);
     if(name[0] && key[0]) authkeys.add(new authkey(name, key, desc));
 }
 

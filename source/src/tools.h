@@ -490,9 +490,11 @@ public:
         this->erase(this->begin()+i, this->begin()+n);
     }
 
-    T remove(int i)
+    T &remove(int i)
     {
+        T t = this->at(i);
         this->erase(this->begin()+i);
+        return t;
     }
 
     int find(const T &o)

@@ -273,7 +273,8 @@ struct obitlist : consolebuffer<oline>
             if (fullconsole || (i < FADEMAX && totalmillis - conlines[i].millis < obitfade * 1000))
                 if (cl.mergable(conlines[i]))
                 {
-                    cl.merge(conlines.remove(i)); // remove, and "merge" into our line
+                    cl.merge(conlines[i]); // remove, and "merge" into our line
+                    conlines.remove(i);
                     break;
                 }
         return conlines.insert(0, cl);
@@ -285,8 +286,10 @@ struct obitlist : consolebuffer<oline>
         loopv(conlines) loopvjrev(conlines)
         {
             if (j <= i) break;
-            else if (conlines[i].mergable(conlines[j]))
-                conlines[i].merge(conlines.remove(j));
+            else if (conlines[i].mergable(conlines[j])){
+                conlines[i].merge(conlines[j]);
+                conlines.remove(j);
+            }
         }
     }
 

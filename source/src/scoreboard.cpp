@@ -33,6 +33,31 @@ struct coldata
     {
         DELETEA(val);
     }
+
+    coldata& coldata::operator=(const coldata& other){
+        val = other.val ? newstring(other.val) : nullptr;
+        priority = other.priority;
+        return *this;
+    }
+
+    coldata::coldata(const coldata& other){
+        val = other.val ? newstring(other.val) : nullptr;
+        priority = other.priority;
+    }
+
+    coldata& coldata::operator=(coldata&& other){
+        DELETEA(val);
+        val = other.val;
+        other.val = nullptr;
+        priority = other.priority;
+        return *this;
+    }
+
+    coldata::coldata(coldata&& other){
+        val = other.val;
+        other.val = nullptr;
+        priority = other.priority;
+    }
 };
 
 // FIXME ? if two columns share teh same priority

@@ -1251,7 +1251,7 @@ struct vertmodel : model
     {
         //if(parts.length()!=1 || parts[0]->meshes.length()!=1) return;
         if(parts.length() < 1 || parts[0]->meshes.length() < 1) return;
-        mesh &m = *parts[0]->meshes[0];
+        mesh &m = *(parts[0]->meshes[0]);
         m.tex = tex;
     }
 
