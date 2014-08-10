@@ -414,7 +414,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     const bool specfly = pl->type==ENT_PLAYER && dynamic_cast<playerent *>(pl)->spectatemode==SM_FLY;
     const bool isfly = editfly || specfly;
 
-    vec d;      // vect of direction we ideally want to move in
+    vec d;      // vector of direction we ideally want to move in
 
     float drop = 0, rise = 0;
 

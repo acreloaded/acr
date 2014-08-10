@@ -78,7 +78,57 @@ struct keym
     bool pressed;
 
     keym() : code(-1), name(nullptr), pressed(false) { loopi(NUMACTIONS) actions[i] = newstring(""); }
-    //~keym() { DELETEA(name); loopi(NUMACTIONS) DELETEA(actions[i]); }
+    ~keym() { DELETEA(name); loopi(NUMACTIONS) DELETEA(actions[i]); }
+
+    keym& operator=(const keym& other){
+        name = other.name ? newstring(other.name) : nullptr;
+        actions[0] = other.actions[0] ? newstring(other.actions[0]) : nullptr;
+        actions[1] = other.actions[1] ? newstring(other.actions[1]) : nullptr;
+        actions[2] = other.actions[2] ? newstring(other.actions[2]) : nullptr;
+        pressed = other.pressed;
+        code = other.code;
+        return *this;
+    }
+
+    keym(const keym& other){
+        name = other.name ? newstring(other.name) : nullptr;
+        actions[0] = other.actions[0] ? newstring(other.actions[0]) : nullptr;
+        actions[1] = other.actions[1] ? newstring(other.actions[1]) : nullptr;
+        actions[2] = other.actions[2] ? newstring(other.actions[2]) : nullptr;
+        pressed = other.pressed;
+        code = other.code;
+    }
+
+    keym& operator=(keym&& other){
+        DELETEA(name);
+        name = other.name;
+        other.name = nullptr;
+        DELETEA(actions[0]);
+        actions[0] = other.actions[0];
+        other.actions[0] = nullptr;
+        DELETEA(actions[1]);
+        actions[1] = other.actions[1];
+        other.actions[1] = nullptr;
+        DELETEA(actions[2]);
+        actions[2] = other.actions[2];
+        other.actions[2] = nullptr;
+        pressed = other.pressed;
+        code = other.code;
+        return *this;
+    }
+
+    keym(keym&& other){
+        name = other.name;
+        other.name = nullptr;
+        actions[0] = other.actions[0];
+        other.actions[0] = nullptr;
+        actions[1] = other.actions[1];
+        other.actions[1] = nullptr;
+        actions[2] = other.actions[2];
+        other.actions[2] = nullptr;
+        pressed = other.pressed;
+        code = other.code;
+    }
 };
 
 extern keym *keypressed;

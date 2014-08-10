@@ -500,20 +500,20 @@ struct hudline : cline
 
     hudline() : type(HUDMSG_INFO) {}
 
-    hudline& hudline::operator=(const hudline& other){
+    hudline& operator=(const hudline& other){
         line = other.line ? newstring(other.line) : nullptr;
         millis = other.millis;
         type = other.type;
         return *this;
     }
 
-    hudline::hudline(const hudline& other){
+    hudline(const hudline& other){
         line = other.line ? newstring(other.line) : nullptr;
         millis = other.millis;
         type = other.type;
     }
 
-    hudline& hudline::operator=(hudline&& other){
+    hudline& operator=(hudline&& other){
         DELETEA(line);
         line = other.line;
         other.line = nullptr;
@@ -522,7 +522,7 @@ struct hudline : cline
         return *this;
     }
 
-    hudline::hudline(hudline&& other){
+    hudline(hudline&& other){
         line = other.line;
         other.line = nullptr;
         millis = other.millis;
