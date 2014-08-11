@@ -989,11 +989,6 @@ struct servercommandline
                         int ai = atoi(arg+13);
                         masterport = ai == 0 ? AC_MASTER_PORT : ai;
                     }
-                    else if(!strncmp(arg, "--mastertype=", 13))
-                    {
-                        int ai = atoi(arg+13);
-                        mastertype = ai > 0 ? 1 : 0;
-                    }
                     else return false;
                     break;
             case 'u': uprate = ai; break;
