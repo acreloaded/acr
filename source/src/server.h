@@ -328,8 +328,8 @@ struct client                   // server side version of "dynent" type
     int spawnindex;
     int salt;
     string pwd;
-    uint authreq; // for AUTH
-    string authname; // for AUTH
+    uint authreq;
+    string authname;
     int mapcollisions, farpickups;
     enet_uint32 bottomRTT;
     vec spawnp;
@@ -420,7 +420,7 @@ struct client                   // server side version of "dynent" type
         lastsaytext[0] = '\0';
         saychars = 0;
         spawnindex = -1;
-        authreq = 0; // for AUTH
+        authreq = 0;
         mapchange();
         freshgame = false;         // don't spawn into running games
         mute = spam = lastvc = badspeech = badmillis = nvotes = 0;

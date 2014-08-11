@@ -16,162 +16,302 @@ int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &remot
 }
 #endif
 
-ENetSocket mastersock = ENET_SOCKET_NULL;
-ENetAddress masteraddress = { ENET_HOST_ANY, ENET_PORT_ANY }, serveraddress = { ENET_HOST_ANY, ENET_PORT_ANY };
-string mastername = AC_MASTER_URI;
-int masterport = AC_MASTER_PORT, mastertype = AC_MASTER_HTTP;
-int lastupdatemaster = 0;
-vector<char> masterout, masterin;
-int masteroutpos = 0, masterinpos = 0;
+bool canreachauthserv = false;
 
-void disconnectmaster()
+ENetSocket httpgetsend(ENetAddress &remoteaddress, const char *hostname, const char *req, const char *agent, ENetAddress *localaddress = NULL)
 {
-    if(mastersock == ENET_SOCKET_NULL) return;
-
-    enet_socket_destroy(mastersock);
-    mastersock = ENET_SOCKET_NULL;
-
-    masterout.setsize(0);
-    masterin.setsize(0);
-    masteroutpos = masterinpos = 0;
-
-    masteraddress.host = ENET_HOST_ANY;
-    masteraddress.port = ENET_PORT_ANY;
-
-    //lastupdatemaster = 0;
-}
-
-ENetSocket connectmaster()
-{
-    if(!mastername[0]) return ENET_SOCKET_NULL;
-    //extern servercommandline scl;
-
-    if(masteraddress.host == ENET_HOST_ANY)
+    if (remoteaddress.host == ENET_HOST_ANY)
     {
-        logline(ACLOG_INFO, "looking up %s:%d...", mastername, masterport);
-        masteraddress.port = masterport;
-        if(!resolverwait(mastername, &masteraddress)) return ENET_SOCKET_NULL;
+#if defined AC_MASTER_DOMAIN && defined AC_MASTER_IPS
+        if (!strcmp(hostname, AC_MASTER_DOMAIN))
+        {
+            logline(ACLOG_INFO, "[%s] using %s...", AC_MASTER_IPS, AC_MASTER_DOMAIN);
+            if (!resolverwait(AC_MASTER_IPS, &remoteaddress)) return ENET_SOCKET_NULL;
+        }
+        else
+#endif
+        {
+            logline(ACLOG_INFO, "looking up %s...", hostname);
+            if (!resolverwait(hostname, &remoteaddress)) return ENET_SOCKET_NULL;
+            char hn[1024];
+            logline(ACLOG_INFO, "[%s] resolved %s", (!enet_address_get_host_ip(&remoteaddress, hn, sizeof(hn))) ? hn : "unknown", hostname);
+        }
     }
     ENetSocket sock = enet_socket_create(ENET_SOCKET_TYPE_STREAM);
-    if(sock != ENET_SOCKET_NULL && serveraddress.host != ENET_HOST_ANY && enet_socket_bind(sock, &serveraddress) < 0)
+    if (sock != ENET_SOCKET_NULL && localaddress && enet_socket_bind(sock, localaddress) < 0)
     {
         enet_socket_destroy(sock);
         sock = ENET_SOCKET_NULL;
     }
-    if(sock == ENET_SOCKET_NULL || connectwithtimeout(sock, mastername, masteraddress) < 0)
+    if (sock == ENET_SOCKET_NULL || connectwithtimeout(sock, hostname, remoteaddress)<0)
     {
-        logline(ACLOG_WARNING, sock==ENET_SOCKET_NULL ? "could not open socket" : "could not connect");
+        logline(ACLOG_WARNING, sock == ENET_SOCKET_NULL ? "could not open socket" : "could not connect");
         return ENET_SOCKET_NULL;
     }
-
-    enet_socket_set_option(sock, ENET_SOCKOPT_NONBLOCK, 1);
+    ENetBuffer buf;
+    defformatstring(httpget)("GET %s HTTP/1.0\nHost: %s\nUser-Agent: %s\n\n", req, hostname, agent);
+    buf.data = httpget;
+    buf.dataLength = strlen((char *)buf.data);
+    //logline(ACLOG_INFO, "sending request to %s...", hostname);
+    enet_socket_send(sock, NULL, &buf, 1);
+    canreachauthserv = true;
     return sock;
 }
 
-bool requestmaster(const char *req)
+bool httpgetreceive(ENetSocket sock, ENetBuffer &buf, int timeout = 0)
 {
-    if(mastersock == ENET_SOCKET_NULL)
+    if (sock == ENET_SOCKET_NULL) return false;
+    enet_uint32 events = ENET_SOCKET_WAIT_RECEIVE;
+    if (enet_socket_wait(sock, &events, timeout) >= 0 && events)
     {
-        mastersock = connectmaster();
-        if(mastersock == ENET_SOCKET_NULL) return false;
+        int len = enet_socket_receive(sock, NULL, &buf, 1);
+        if (len <= 0)
+        {
+            enet_socket_destroy(sock);
+            return false;
+        }
+        buf.data = ((char *)buf.data) + len;
+        ((char*)buf.data)[0] = 0;
+        buf.dataLength -= len;
     }
-
-    masterout.put(req, strlen(req));
     return true;
 }
 
-bool requestmasterf(const char *fmt, ...)
+uchar *stripheader(uchar *b)
 {
-    defvformatstring(req, fmt, fmt);
-    return requestmaster(req);
+    char *s = strstr((char *)b, "\n\r\n");
+    if (!s) s = strstr((char *)b, "\n\n");
+    return s ? (uchar *)s : b;
 }
 
-extern void processmasterinput(const char *cmd, int cmdlen, const char *args);
+ENetSocket mastersock = ENET_SOCKET_NULL;
+ENetAddress masteraddress = { ENET_HOST_ANY, 80 };
+ENetAddress serveraddress = { ENET_HOST_ANY, ENET_PORT_ANY };
+string masterbase, masterpath;
+int masterport = AC_MASTER_PORT;
+int lastupdatemaster = INT_MIN, lastresolvemaster = INT_MIN, lastauthreqprocessed = INT_MIN;
+#define MAXMASTERTRANS MAXTRANS // enlarge if response is big...
+uchar masterrep[MAXMASTERTRANS];
+ENetBuffer masterb;
+vector<authrequest> authrequests;
+vector<connectrequest> connectrequests;
 
-void processmasterinput()
+enum { MSR_REG = 0, MSR_CONNECT, MSR_AUTH_ANSWER };
+struct msrequest
 {
-    if(masterinpos >= masterin.length()) return;
-
-    char *input = &masterin[masterinpos], *end = (char *)memchr(input, '\n', masterin.length() - masterinpos);
-    while(end)
+    int type;
+    union
     {
-        *end++ = '\0';
+        void *data;
+        authrequest *a;
+        connectrequest *c;
+    };
+} *currentmsrequest = NULL;
 
-        const char *args = input;
-        while(args < end && !isspace(*args)) args++;
-        int cmdlen = args - input;
-        while(args < end && isspace(*args)) args++;
-
-        if(!strncmp(input, "failreg", cmdlen))
-            logline(ACLOG_WARNING, "master server registration failed: %s", args);
-        else if(!strncmp(input, "succreg", cmdlen))
-        {
-            logline(ACLOG_INFO, "master server registration succeeded");
-        }
-        else processmasterinput(input, cmdlen, args);
-
-        masterinpos = end - masterin.getbuf();
-        input = end;
-        end = (char *)memchr(input, '\n', masterin.length() - masterinpos);
-    }
-
-    if(masterinpos >= masterin.length())
+void freeconnectcheck(int cn)
+{
+    if (currentmsrequest && currentmsrequest->type == MSR_CONNECT && currentmsrequest->c && cn == currentmsrequest->c->cn)
     {
-        masterin.setsize(0);
-        masterinpos = 0;
+        delete currentmsrequest->c;
+        DELETEP(currentmsrequest);
     }
+    loopv(connectrequests)
+        if (connectrequests[i].cn == cn)
+            connectrequests.remove(i--);
 }
 
-void flushmasteroutput()
+void connectcheck(int cn, int guid, const char *hostname, int authreq, int authuser)
 {
-    if(masterout.empty()) return;
-
-    ENetBuffer buf;
-    buf.data = &masterout[masteroutpos];
-    buf.dataLength = masterout.length() - masteroutpos;
-    int sent = enet_socket_send(mastersock, NULL, &buf, 1);
-    if(sent >= 0)
-    {
-        masteroutpos += sent;
-        if(masteroutpos >= masterout.length())
-        {
-            masterout.setsize(0);
-            masteroutpos = 0;
-        }
-    }
-    else disconnectmaster();
+    freeconnectcheck(cn);
+    extern bool isdedicated;
+    if (!isdedicated) return;
+    connectrequest &creq = connectrequests.add();
+    creq.cn = cn;
+    creq.guid = guid;
+    creq.hostname = newstring(hostname);
+    creq.id = authreq;
+    creq.user = authuser;
 }
 
-void flushmasterinput()
-{
-    if(masterin.length() >= masterin.capacity())
-        masterin.reserve(4096);
-
-    ENetBuffer buf;
-    buf.data = &masterin[masterin.length()];
-    buf.dataLength = masterin.capacity() - masterin.length();
-    int recv = enet_socket_receive(mastersock, NULL, &buf, 1);
-    if(recv > 0)
-    {
-        masterin.advance(recv);
-        processmasterinput();
-    }
-    else disconnectmaster();
-}
-
-extern char *global_name;
-extern int interm;
-extern int totalclients;
-
-// send alive signal to masterserver after 40 minutes of uptime and if currently in intermission (so theoretically <= 1 hour)
-// TODO?: implement a thread to drop this "only in intermission" business, we'll need it once AUTH gets active!
+// send alive signal to masterserver every 40 minutes of uptime
+#define MSKEEPALIVE (40*60*1000)
+// re-resolve the master-server domain every 4 hours
+#define MSRERESOLVE (4*60*60*1000)
 static inline void updatemasterserver(int millis, int port)
 {
-    if(!lastupdatemaster || ((millis-lastupdatemaster)>40*60*1000 && (interm || !totalclients)))
+    if (mastersock != ENET_SOCKET_NULL || currentmsrequest) return; // busy
+    string path;
+    path[0] = '\0';
+
+    if (millis > lastupdatemaster + MSKEEPALIVE)
     {
-        char servername[30]; memset(servername,'\0',30); filtertext(servername,global_name,-1,20);
-        if(mastername[0]) requestmasterf("regserv %d %s %d\n", port, servername[0] ? servername : "noname", AC_VERSION);
+        logline(ACLOG_INFO, "sending registration request to master server");
+
+        currentmsrequest = new msrequest;
+        currentmsrequest->type = MSR_REG;
+        currentmsrequest->data = NULL;
+
+        formatstring(path)("%s/reg/%d/%d/%lu", masterpath, PROTOCOL_VERSION, port, *&genguid(546545656, 23413376U, 3453455, "h6ji54ehjwo345gjio34s5jig"));
         lastupdatemaster = millis + 1;
+    }
+    else if (millis > lastauthreqprocessed + 2500 && authrequests.length())
+    {
+        authrequest *r = new authrequest(authrequests.remove(0));
+
+        currentmsrequest = new msrequest;
+        currentmsrequest->type = MSR_AUTH_ANSWER;
+        currentmsrequest->a = r;
+
+        formatstring(path)("%s/ver/%d/%d/%08x%08x%08x%08x%08x", masterpath, port, r->id, r->hash[0], r->hash[1], r->hash[2], r->hash[3], r->hash[4]);
+        lastauthreqprocessed = millis;
+    }
+    else if (connectrequests.length())
+    {
+        if (!canreachauthserv) connectrequests.shrink(0);
+        else
+        {
+            connectrequest *c = new connectrequest(connectrequests.remove(0));
+
+            currentmsrequest = new msrequest;
+            currentmsrequest->type = MSR_CONNECT;
+            currentmsrequest->c = c;
+
+            if (c->id)
+                formatstring(path)("%s/con/%d/%s/%lu/%u/%u", masterpath, port, c->hostname, c->guid, c->id, c->user);
+            else
+                formatstring(path)("%s/con/%d/%s/%lu", masterpath, port, c->hostname, c->guid);
+
+            delete[] c->hostname;
+        }
+    }
+    if (!path[0]) return; // no request
+    if (millis > lastresolvemaster + MSRERESOLVE)
+    {
+        masteraddress.host = ENET_HOST_ANY;
+        lastresolvemaster = millis + 1;
+    }
+    defformatstring(agent)("ACR-Server/%d", AC_VERSION);
+    mastersock = httpgetsend(masteraddress, masterbase, path, agent, &serveraddress);
+    masterrep[0] = 0;
+    masterb.data = masterrep;
+    masterb.dataLength = MAXMASTERTRANS - 1;
+}
+
+void checkmasterreply()
+{
+    if (mastersock == ENET_SOCKET_NULL || httpgetreceive(mastersock, masterb)) return;
+    mastersock = ENET_SOCKET_NULL;
+    char replytext[MAXMASTERTRANS];
+    char *text = replytext;
+    filtertext(text, (const char *)stripheader(masterrep), 2, MAXMASTERTRANS - 1);
+    while (isspace(*text)) text++;
+    char *replytoken = strtok(text, "\n");
+    while (replytoken)
+    {
+        // process commands
+        char *tp = replytoken;
+        if (*tp++ == '*')
+        {
+            bool error = true;
+            if (currentmsrequest)
+            {
+                if (*tp == 'a' || *tp == 'b') // verdict: allow/ban connect
+                {
+                    if (currentmsrequest->type == MSR_CONNECT && currentmsrequest->c)
+                    {
+                        // extern void mastermute(int cn);
+                        extern void masterdisc(int cn, int result);
+                        int disc = DISC_NONE;
+                        if (*tp == 'b')
+                            switch (*++tp)
+                            {
+                                // GOOD reasons
+                                case 'm': // muted and not allowed to speak
+                                    // mastermute(currentmsrequest->c->cn);
+                                    // fallthrough
+                                case 'w': // IP whitelisted, not actually a banned verdict
+                                    disc = DISC_NONE;
+                                    break;
+                                // BAD reasons
+                                case 'i': // IP banned
+                                    disc = DISC_MBAN;
+                                    break;
+                                default: // unknown reason
+                                    disc = DISC_NUM;
+                                    break;
+                            }
+                        error = false;
+                        masterdisc(currentmsrequest->c->cn, disc);
+                    }
+                }
+                else if (*tp == 'd' || *tp == 'f' || *tp == 's' || *tp == 'c') // auth
+                {
+                    char t = *tp++;
+                    /*char *bar = strchr(tp, '|');
+                    if(bar) *bar = 0;
+                    uint authid = atoi(tp);
+                    if(bar && bar[1]) tp = bar + 1;
+                    */
+                    error = true;
+                    uint authid = 0;
+                    if (currentmsrequest->type == MSR_AUTH_ANSWER && currentmsrequest->a)
+                        authid = currentmsrequest->a->id;
+                    else if (currentmsrequest->type == MSR_CONNECT && currentmsrequest->c)
+                        authid = currentmsrequest->c->id;
+                    if (authid)
+                        switch (t)
+                        {
+                            case 'd': // fail to claim
+                            case 'f': // failure
+                                error = false;
+                                extern void authfailed(uint id, bool fail);
+                                authfailed(authid, t == 'd');
+                                break;
+                            case 's': // succeed
+                            {
+                                if (!*tp) break;
+                                char privk = *tp++;
+                                if (!privk) break;
+                                string name;
+                                filtertext(name, tp, 1, MAXNAMELEN);
+                                if (!*name) copystring(name, "<unnamed>");
+                                error = false;
+                                extern void authsucceeded(uint id, char priv, const char *name);
+                                authsucceeded(authid, privk - '0', name);
+                                break;
+                            }
+                            case 'c': // challenge
+                                if (!*tp) break;
+                                error = false;
+                                extern void authchallenged(uint id, int nonce);
+                                authchallenged(authid, atoi(tp));
+                                break;
+                        }
+                }
+            }
+            if (error) logline(ACLOG_INFO, "masterserver sent an unknown command: %s", replytoken);
+        }
+        else
+        {
+            while (isspace(*replytoken)) replytoken++;
+            if (*replytoken) logline(ACLOG_INFO, "masterserver reply: %s", replytoken);
+        }
+        replytoken = strtok(NULL, "\n");
+    }
+    if (currentmsrequest)
+    {
+        switch (currentmsrequest->type)
+        {
+            case MSR_REG:
+                break;
+            case MSR_AUTH_ANSWER:
+                delete currentmsrequest->a;
+                break;
+            case MSR_CONNECT:
+                delete currentmsrequest->c;
+                break;
+        }
+        DELETEP(currentmsrequest);
     }
 }
 
@@ -180,7 +320,7 @@ extern int getpongflags(enet_uint32 ip);
 
 void serverms(int mode, int muts, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int *mnum, int *msend, int *mrec, int *cnum, int *csend, int *crec, int protocol_version)
 {
-    flushmasteroutput();
+    checkmasterreply();
     updatemasterserver(millis, localaddr.port);
 
     static ENetSocketSet sockset;
@@ -323,15 +463,22 @@ void serverms(int mode, int muts, int numplayers, int minremain, char *smapname,
         if(std) *msend += (int)buf.dataLength;
         else *csend += (int)buf.dataLength;
     }
-
-    if(mastersock != ENET_SOCKET_NULL && ENET_SOCKETSET_CHECK(sockset, mastersock)) flushmasterinput();
 }
 
 // this function should be made better, because it is used just ONCE (no need of so much parameters)
 void servermsinit(const char *master, const char *ip, int infoport, bool listen)
 {
-    copystring(mastername, master);
-    disconnectmaster();
+    const char *mid = strstr(master, "/");
+    if (mid)
+    {
+        copystring(masterbase, master, mid - master + 1);
+        copystring(masterpath, mid + 1);
+    }
+    else
+    {
+        copystring(masterbase, master);
+        copystring(masterpath, "");
+    }
 
     if(listen)
     {

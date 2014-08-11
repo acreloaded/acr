@@ -369,11 +369,6 @@ extern void sendintro();
 extern void getdemo(int *idx, char *dsp);
 extern void listdemos();
 
-// serverms
-bool requestmasterf(const char *fmt, ...); // for AUTH et al
-//moving to server.cpp seems a bad idea.
-// :for AUTH
-
 // clientgame
 extern flaginfo flaginfos[2];
 extern int sessionid;
@@ -885,8 +880,8 @@ static inline void filtername(char *dst, const char *src)
     trimtrailingwhitespace(dst);
 }
 extern void startintermission();
-extern string mastername;
-extern int masterport, mastertype;
+extern string masterbase, masterpath;
+extern int masterport;
 extern ENetSocket connectmaster();
 extern uchar *retrieveservers(uchar *buf, int buflen);
 extern void serverms(int mode, int muts, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int *mnum, int *msend, int *mrec, int *cnum, int *csend, int *crec, int protocol_version);

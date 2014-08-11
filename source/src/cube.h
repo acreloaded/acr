@@ -69,8 +69,6 @@ extern int verbose;
 #define AC_MASTER_URI AC_MASTER_DOMAIN
 #define AC_MASTER_IPS "216.34.181.97"
 #endif
-#define AC_MASTER_HTTP 1 // default
-#define AC_MASTER_RAW 0
 //#define MAXCL 16
 
 #include "protos.h"                     // external function decls

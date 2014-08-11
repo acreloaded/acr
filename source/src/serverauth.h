@@ -1,4 +1,6 @@
-// for AUTH: WIP
+// ACR's simplified auth
+
+uint nextauthreq = 0; // move down?
 
 client *findauth(uint id)
 {
@@ -6,59 +8,44 @@ client *findauth(uint id)
     return NULL;
 }
 
-void authfailed(uint id)
+void authfailed(uint id, bool fail)
 {
     client *cl = findauth(id);
     if(!cl) return;
     cl->authreq = 0;
+    logline(ACLOG_INFO, "[%s] auth #%d %s!", cl->gethostname(), id, fail ? "failed" : "had an error");
+    sendf(cl->clientnum, 1, "ri2", SV_AUTH_ACR_CHAL, 3);
+    //checkauthdisc(*c);
 }
 
-void authsucceeded(uint id)
+void authsucceeded(uint id, char priv, const char *name)
 {
     client *cl = findauth(id);
     if(!cl) return;
     cl->authreq = 0;
-    logline(ACLOG_INFO, "player authenticated: %s", cl->formatname());
-    defformatstring(auth4u)("player authenticated: %s", cl->formatname());
-    sendf(-1, 1, "ris", SV_SERVMSG, auth4u);
-    //setmaster(cl, true, "", ci->authname);//TODO? compare to sauerbraten
+    filtertext(cl->authname, name);
+    logline(ACLOG_INFO, "[%s] auth #%d suceeded for %s as '%s'", cl->gethostname(), id, privname(priv), cl->authname);
+    // TODO
 }
 
-void authchallenged(uint id, const char *val)
+void authchallenged(uint id, int nonce)
 {
     client *cl = findauth(id);
     if(!cl) return;
-    //sendf(cl->clientnum, 1, "risis", SV_AUTHCHAL, "", id, val);
+    //sendf(cl->clientnum, 1, "ri3", SV_AUTH_ACR_REQ, nonce, cl->authtoken);
+    logline(ACLOG_INFO, "[%s] auth #%d challenged by master", cl->gethostname(), id);
 }
 
-uint nextauthreq = 0;
-
-void tryauth(client *cl, const char *user)
+void answerchallenge(client *cl, int hash[5])
 {
-    extern bool requestmasterf(const char *fmt, ...);
-    if(!nextauthreq) nextauthreq = 1;
-    cl->authreq = nextauthreq++;
-    filtertext(cl->authname, user, false, 100);
-    if(!requestmasterf("reqauth %u %s\n", cl->authreq, cl->authname))
-    {
-        cl->authreq = 0;
-        sendf(cl->clientnum, 1, "ris", SV_SERVMSG, "not connected to authentication server");
-    }
+    if (!cl->authreq) return;
+    // TODO
 }
 
-void answerchallenge(client *cl, uint id, char *val)
+void masterdisc(int cn, int result)
 {
-    if(cl->authreq != id) return;
-    extern bool requestmasterf(const char *fmt, ...);
-    for(char *s = val; *s; s++)
-    {
-        if(!isxdigit(*s)) { *s = '\0'; break; }
-    }
-    if(!requestmasterf("confauth %u %s\n", id, val))
-    {
-        cl->authreq = 0;
-        sendf(cl->clientnum, 1, "ris", SV_SERVMSG, "not connected to authentication server");
-    }
+    if (!valid_client(cn)) return;
+    client &ci = *clients[cn];
+    // ci.masterdisc = result;
+    // if (!ci.connectauth && result) checkauthdisc(ci, true);
 }
-
-// :for AUTH

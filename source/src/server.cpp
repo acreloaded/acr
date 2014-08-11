@@ -76,7 +76,6 @@ void purgesknives()
 }
 
 // cmod
-char *global_name;
 int totalclients = 0;
 int servertime = 0, serverlagged = 0;
 
@@ -5162,18 +5161,6 @@ void localconnect()
 }
 #endif
 
-void processmasterinput(const char *cmd, int cmdlen, const char *args)
-{
-// AUTH WiP
-    uint id;
-    string val;
-    if(sscanf(cmd, "failauth %u", &id) == 1) authfailed(id);
-    else if(sscanf(cmd, "succauth %u", &id) == 1) authsucceeded(id);
-    else if(sscanf(cmd, "chalauth %u %s", &id, val) == 2) authchallenged(id, val);
-    else if(!strncmp(cmd, "cleargbans", cmdlen)) cleargbans();
-    else if(sscanf(cmd, "addgban %s", val) == 1) addgban(val);
-}
-
 string server_name = "unarmed server";
 
 void quitproc(int param)
@@ -5212,9 +5199,6 @@ void initserver(bool dedicated, int argc, char **argv)
             svcctrl->start();
         }
     }
-
-    if ( strlen(scl.servdesc_full) ) global_name = scl.servdesc_full;
-    else global_name = server_name;
 
     smapname[0] = '\0';
 

@@ -78,11 +78,8 @@ void setskin(playerent *pl, int skin, int team)
     pl->setskin(team, skin);
 }
 
-extern char *global_name;
-
 char *colorname(playerent *d, bool stats)
 {
-    global_name = player1->name; // this certainly is not the best place to put this
     static string cname[4];
     static int num = 0;
     num = (num + 1) % 4;
