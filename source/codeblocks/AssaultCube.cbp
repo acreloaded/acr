@@ -414,6 +414,12 @@
 			<Option target="server-debug" />
 			<Option target="client-debug" />
 		</Unit>
+		<Unit filename="../src/serverauth.h">
+			<Option target="client" />
+			<Option target="server" />
+			<Option target="server-debug" />
+			<Option target="client-debug" />
+		</Unit>
 		<Unit filename="../src/serverballistics.h">
 			<Option target="client" />
 			<Option target="server" />

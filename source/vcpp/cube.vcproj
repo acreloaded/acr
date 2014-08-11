@@ -642,6 +642,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\serverauth.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\serverballistics.h"
 				>
 			</File>
