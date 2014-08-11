@@ -589,8 +589,6 @@ const char *messagenames[SV_NUM] =
     "SV_TEAMDENY", "SV_SERVERMODE",
     "SV_IPLIST",
     "SV_SERVMSG", "SV_EXTENSION",
-    "SV_ITEMPICKUP",
-    "SV_AUTHT", "SV_AUTHREQ", "SV_AUTHTRY", "SV_AUTHANS", "SV_AUTHCHAL"
 };
 
 const char *entnames[MAXENTTYPES] =

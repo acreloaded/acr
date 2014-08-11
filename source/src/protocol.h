@@ -45,9 +45,6 @@ enum
     // ???
     SV_TEAMDENY, SV_SERVERMODE,
     SV_SERVMSG, SV_EXTENSION,
-    // to be removed...
-    SV_ITEMPICKUP,
-    SV_AUTHT, SV_AUTHREQ, SV_AUTHTRY, SV_AUTHANS, SV_AUTHCHAL, // AC's auth
     SV_NUM, SV_CONNECT = SV_NUM
 };
 

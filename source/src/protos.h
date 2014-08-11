@@ -32,25 +32,6 @@ struct color
     color(float r, float g, float b, float a) : r(r), g(g), b(b), alpha(a) {}
 };
 
-struct authkey // for AUTH
-{
-    char *name, *key, *desc;
-    int lastauth;
-
-    authkey(const char *name, const char *key, const char *desc)
-        : name(newstring(name)), key(newstring(key)), desc(newstring(desc)),
-          lastauth(0)
-    {
-    }
-
-    ~authkey()
-    {
-        DELETEA(name);
-        DELETEA(key);
-        DELETEA(desc);
-    }
-};
-
 // console
 extern void keypress(int code, bool isdown, int cooked, SDLMod mod = KMOD_NONE);
 extern int rendercommand(int x, int y, int w);
@@ -387,8 +368,6 @@ extern int getbuildtype();
 extern void sendintro();
 extern void getdemo(int *idx, char *dsp);
 extern void listdemos();
-extern bool tryauth(const char *desc);
-extern authkey *findauthkey(const char *desc);
 
 // serverms
 bool requestmasterf(const char *fmt, ...); // for AUTH et al

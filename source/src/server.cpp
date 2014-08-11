@@ -2894,7 +2894,7 @@ void authchallenged(uint id, const char *val)
 {
     client *cl = findauth(id);
     if(!cl) return;
-    sendf(cl->clientnum, 1, "risis", SV_AUTHCHAL, "", id, val);
+    //sendf(cl->clientnum, 1, "risis", SV_AUTHCHAL, "", id, val);
 }
 
 uint nextauthreq = 0;
@@ -3942,37 +3942,6 @@ void process(ENetPacket *packet, int sender, int chan)
                 cp->addevent(new reloadevent(cp->getmillis(gamemillis, id), id, weap));
                 break;
             }
-
-            // for AUTH:
-
-            case SV_AUTHTRY:
-            {
-                string desc, name;
-                getstring(desc, p, sizeof(desc)); // unused for now
-                getstring(name, p, sizeof(name));
-                if(!desc[0]) tryauth(cl, name);
-                break;
-            }
-
-            case SV_AUTHANS:
-            {
-                string desc, ans;
-                getstring(desc, p, sizeof(desc)); // unused for now
-                uint id = (uint)getint(p);
-                getstring(ans, p, sizeof(ans));
-                if(!desc[0]) answerchallenge(cl, id, ans);
-                break;
-            }
-
-
-            case SV_AUTHT:
-            {
-/*                int n = getint(p);
-                loopi(n) getint(p);*/
-//                 if (cl) disconnect_client(cl->clientnum, DISC_TAGT); // remove this in the future, when auth is complete
-                break;
-            }
-            // :for AUTH
 
             case SV_PINGPONG:
                 sendf(sender, 1, "ii", SV_PINGPONG, getint(p));
