@@ -22,6 +22,7 @@ ENetSocket httpgetsend(ENetAddress &remoteaddress, const char *hostname, const c
 {
     if (remoteaddress.host == ENET_HOST_ANY)
     {
+        remoteaddress.port = masterport;
 #if defined AC_MASTER_DOMAIN && defined AC_MASTER_IPS
         if (!strcmp(hostname, AC_MASTER_DOMAIN))
         {
