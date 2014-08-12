@@ -149,6 +149,184 @@ namespace tiger
     }
 }
 
+/*
+Adapted from smallsha1:
+https://code.google.com/p/smallsha1/
+
+Copyright (c) 2011, Micael Hildenborg
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+* Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+* Neither the name of Micael Hildenborg nor the
+names of its contributors may be used to endorse or promote products
+derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY Micael Hildenborg ''AS IS'' AND ANY
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL Micael Hildenborg BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+/*
+Contributors:
+Gustav
+Several members in the gamedev.se forum.
+Gregory Petrosyan
+Porting to Arduino: Bruno Beloff
+*/
+
+namespace sha1
+{
+    namespace // local
+    {
+        // Rotate an integer value to left.
+        inline const unsigned long rol(const unsigned long value, const unsigned int steps)
+        {
+            return ((value << steps) | (value >> (32 - steps)));
+        }
+
+        // Sets the first 16 integers in the buffert to zero.
+        // Used for clearing the W buffert.
+        inline void clearWBuffert(unsigned long buffert[16])
+        {
+            memset(buffert, 0, 16 * sizeof(*buffert));
+        }
+
+        void innerHash(unsigned long result[5], unsigned long w[80])
+        {
+            unsigned long a = result[0];
+            unsigned long b = result[1];
+            unsigned long c = result[2];
+            unsigned long d = result[3];
+            unsigned long e = result[4];
+
+            long round = 0L;
+
+            #define sha1macro(func,val) \
+            { \
+                const unsigned long t = rol(a, 5) + (func)+e + val + w[round]; \
+                e = d; \
+                d = c; \
+                c = rol(b, 30); \
+                b = a; \
+                a = t; \
+            }
+
+            while (round < 16)
+            {
+                sha1macro((b & c) | (~b & d), 0x5a827999UL)
+                    ++round;
+            }
+
+            while (round < 20)
+            {
+                w[round] = rol((w[round - 3] ^ w[round - 8] ^ w[round - 14] ^ w[round - 16]), 1);
+                sha1macro((b & c) | (~b & d), 0x5a827999UL)
+                    ++round;
+            }
+
+            while (round < 40)
+            {
+                w[round] = rol((w[round - 3] ^ w[round - 8] ^ w[round - 14] ^ w[round - 16]), 1);
+                sha1macro(b ^ c ^ d, 0x6ed9eba1UL)
+                    ++round;
+            }
+
+            while (round < 60)
+            {
+                w[round] = rol((w[round - 3] ^ w[round - 8] ^ w[round - 14] ^ w[round - 16]), 1);
+                sha1macro((b & c) | (b & d) | (c & d), 0x8f1bbcdcUL)
+                    ++round;
+            }
+
+            while (round < 80)
+            {
+                w[round] = rol((w[round - 3] ^ w[round - 8] ^ w[round - 14] ^ w[round - 16]), 1);
+                sha1macro(b ^ c ^ d, 0xca62c1d6UL)
+                    ++round;
+            }
+
+            #undef sha1macro
+
+            result[0] += a;
+            result[1] += b;
+            result[2] += c;
+            result[3] += d;
+            result[4] += e;
+        }
+    }
+
+    void calc(const void* src, const int bytelength, unsigned char hash[20])
+    {
+        // Init the result array.
+        unsigned long result[5] = { 0x67452301UL, 0xefcdab89UL, 0x98badcfeUL, 0x10325476UL, 0xc3d2e1f0UL };
+
+        // Cast the void src pointer to be the byte array we can work with.
+        const unsigned char* sarray = (const unsigned char*)src;
+
+        // The reusable round buffer
+        unsigned long w[80];
+
+        memset(w, 0, 80 * sizeof(*w));
+
+        // Loop through all complete 64byte blocks.
+        const int endOfFullBlocks = bytelength - 64;
+        int endCurrentBlock;
+        int currentBlock = 0;
+
+        while (currentBlock <= endOfFullBlocks)
+        {
+            endCurrentBlock = currentBlock + 64;
+
+            // Init the round buffer with the 64 byte block data.
+            for (int roundPos = 0; currentBlock < endCurrentBlock; currentBlock += 4)
+            {
+                // This line will swap endian on big endian and keep endian on little endian.
+                w[roundPos++] = (unsigned long)sarray[currentBlock + 3]
+                    | (((unsigned long)sarray[currentBlock + 2]) << 8)
+                    | (((unsigned long)sarray[currentBlock + 1]) << 16)
+                    | (((unsigned long)sarray[currentBlock]) << 24);
+            }
+            innerHash(result, w);
+        }
+
+        // Handle the last and not-full 64 byte block if existing.
+        endCurrentBlock = bytelength - currentBlock;
+        clearWBuffert(w);
+        int lastBlockBytes;
+
+        for (lastBlockBytes = 0; lastBlockBytes < endCurrentBlock; lastBlockBytes++)
+            w[lastBlockBytes >> 2] |= ((unsigned long)sarray[lastBlockBytes + currentBlock]) << ((3 - (lastBlockBytes & 0x3)) << 3);
+
+        w[lastBlockBytes >> 2] |= 0x80L << ((3 - (lastBlockBytes & 0x3)) << 3);
+
+        if (endCurrentBlock >= 56)
+        {
+            innerHash(result, w);
+            clearWBuffert(w);
+        }
+
+        w[15] = bytelength << 3;
+
+        innerHash(result, w);
+
+        // Store hash in result pointer, and make sure we get in in the correct order on both endian models.
+        loopi(20)
+            hash[i] = (result[i >> 2] >> (((3 - i) & 0x3) << 3)) & 0xff;
+    }
+}
+
 /* Elliptic curve cryptography based on NIST DSS prime curves. */
 
 #define BI_DIGIT_BITS 16
@@ -768,6 +946,12 @@ const char *genpwdhash(const char *name, const char *pwd, int salt)
     tiger::hash((uchar *)temp, (int)strlen(temp), hash);
     formatstring(temp)("%llx %llx %llx", hash.chunks[0], hash.chunks[1], hash.chunks[2]);
     return temp;
+}
+
+bool gensha1(const char *str, unsigned char *dst)
+{
+    sha1::calc(str, strlen(str), dst);
+    return true;
 }
 
 void answerchallenge(const char *privstr, const char *challenge, vector<char> &answerstr)

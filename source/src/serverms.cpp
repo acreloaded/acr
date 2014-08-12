@@ -163,7 +163,13 @@ static inline void updatemasterserver(int millis, int port)
         currentmsrequest->type = MSR_AUTH_ANSWER;
         currentmsrequest->a = r;
 
-        formatstring(path)("%s/ver/%d/%d/%08x%08x%08x%08x%08x", masterpath, port, r->id, r->hash[0], r->hash[1], r->hash[2], r->hash[3], r->hash[4]);
+        formatstring(path)("%s/ver/%d/%d/%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+            masterpath, port, r->id,
+            r->hash[0], r->hash[1], r->hash[2], r->hash[3],
+            r->hash[4], r->hash[5], r->hash[6], r->hash[7],
+            r->hash[8], r->hash[9], r->hash[10], r->hash[11],
+            r->hash[12], r->hash[13], r->hash[14], r->hash[15],
+            r->hash[16], r->hash[17], r->hash[18], r->hash[19]);
         lastauthreqprocessed = millis;
     }
     else if (connectrequests.length())
@@ -277,7 +283,7 @@ void checkmasterreply()
                                 filtertext(name, tp, 1, MAXNAMELEN);
                                 if (!*name) copystring(name, "<unnamed>");
                                 error = false;
-                                extern void authsucceeded(uint id, char priv, const char *name);
+                                extern void authsucceeded(uint id, int priv, const char *name);
                                 authsucceeded(authid, privk - '0', name);
                                 break;
                             }

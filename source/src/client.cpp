@@ -611,6 +611,11 @@ int getbuildtype()
             0;
 }
 
+int authtoken = -1;
+VARP(connectauth, 0, 0, 1);
+VARP(authuser, 0, 0, INT_MAX);
+SVARP(authkey, "none");
+
 void sendintro()
 {
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
@@ -618,9 +623,23 @@ void sendintro()
     putint(p, AC_VERSION);
     putint(p, getbuildtype());
     putint(p, thirdperson);
+    putint(p, *&genguid(213409, 9983240U, 23489090, "24788rt792"));
+    if (connectauth)
+    {
+        authtoken = rand();
+        if (!authtoken) authtoken = 1;
+        putint(p, authtoken);
+        putint(p, authuser);
+    }
+    else
+    {
+        putint(p, 0);
+        putint(p, 0);
+    }
     sendstring(player1->name, p);
     sendstring(genpwdhash(player1->name, clientpassword, sessionid), p);
-    sendstring(!lang || strlen(lang) != 2 ? "" : lang, p);    clientpassword[0] = '\0';
+    clientpassword[0] = '\0';
+    sendstring(!lang || strlen(lang) != 2 ? "" : lang, p);
     putint(p, player1->nextprimary);
     putint(p, player1->nextsecondary);
     putint(p, player1->nextperk1);

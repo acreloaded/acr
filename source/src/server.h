@@ -309,8 +309,9 @@ struct client                   // server side version of "dynent" type
     int role, authpriv;
     int connectmillis, lmillis, ldt, spj;
     int mute, spam, lastvc; // server side voice comm spam control
-    int acversion, acbuildtype, acthirdperson;
+    int acversion, acbuildtype, acthirdperson, acguid;
     bool isauthed; // for passworded servers
+    bool connectauth;
     bool haswelcome;
     bool isonrightmap, loggedwrongmap, freshgame;
     bool timesync;
@@ -328,6 +329,7 @@ struct client                   // server side version of "dynent" type
     int spawnindex;
     int salt;
     string pwd;
+    int authtoken, authuser, masterdisc;
     uint authreq;
     string authname;
     int mapcollisions, farpickups;
@@ -411,7 +413,7 @@ struct client                   // server side version of "dynent" type
         loopi(2) skin[i] = 0;
         position.setsize(0);
         messages.setsize(0);
-        isauthed = haswelcome = false;
+        isauthed = connectauth = haswelcome = false;
         role = CR_DEFAULT;
         authpriv = -1;
         lastvotecall = 0;
@@ -420,7 +422,9 @@ struct client                   // server side version of "dynent" type
         lastsaytext[0] = '\0';
         saychars = 0;
         spawnindex = -1;
-        authreq = 0;
+        authtoken = authuser = authreq = 0;
+        authname[0] = '\0';
+        masterdisc = DISC_NONE;
         mapchange();
         freshgame = false;         // don't spawn into running games
         mute = spam = lastvc = badspeech = badmillis = nvotes = 0;
@@ -430,8 +434,8 @@ struct client                   // server side version of "dynent" type
     void zap()
     {
         type = ST_EMPTY;
-        role = CR_DEFAULT;
-        isauthed = haswelcome = false;
+        role = authpriv = CR_DEFAULT;
+        isauthed = connectauth = haswelcome = false;
     }
 };
 

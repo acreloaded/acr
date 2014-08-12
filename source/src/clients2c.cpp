@@ -1300,6 +1300,74 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
             }
 
+            case SV_AUTH_ACR_REQ:
+            {
+                int nonce = getint(p), sauthtoken = getint(p);
+                extern int authtoken;
+                if (nonce < 0 || sauthtoken != authtoken)
+                {
+                    conoutf("server challenged incorrectly");
+                    break;
+                }
+                authtoken = -1;
+                conoutf("server is challenging authentication details");
+                extern int authuser;
+                extern char *authkey;
+                unsigned char hash[20];
+                defformatstring(buf)("%d:%s!%d", authuser, authkey, nonce);
+                if (!gensha1(buf, hash))
+                {
+                    conoutf("could not compute message digest");
+                    break;
+                }
+                uchar buf2[MAXTRANS];
+                ucharbuf p(buf2, MAXTRANS);
+                putint(p, SV_AUTH_ACR_CHAL);
+                loopi(20) p.put(hash[i]);
+                addmsgraw(p);
+                break;
+            }
+
+            case SV_AUTH_ACR_CHAL:
+            {
+                switch(getint(p))
+                {
+                    case 0:
+                        conoutf("please wait, requesting credential match");
+                        break;
+                    case 1:
+                        conoutf("waiting for previous attempt...");
+                        break;
+                    case 2:
+                        conoutf("not connected to authentication server");
+                        break;
+                    case 3:
+                        conoutf("authority request failed, please check your credentials");
+                        break;
+                    case 4:
+                        conoutf("please wait, requesting authentication");
+                        break;
+                    case 5:
+                    {
+                        int cn = getint(p);
+                        getstring(text, p);
+                        playerent *d = getclient(cn);
+                        if (!d) break;
+                        filtertext(text, text, 1, MAXNAMELEN);
+                        d->build |= 0x02;
+                        conoutf("%s \f1identified as \f2'\f9%s\f2'", d == player1 ? "you are" : colorname(d), text);
+                        break;
+                    }
+                    case 6:
+                        conoutf("please wait %.3f seconds to request another challenge", getint(p) / 1000.f);
+                        break;
+                    default:
+                        conoutf("server sent undefined authority message");
+                        break;
+                }
+                break;
+            }
+
             case SV_TEAMDENY:
             {
                 int t = getint(p);

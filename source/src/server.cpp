@@ -2794,7 +2794,7 @@ const char *disc_reason(int reason)
 {
     static const char *disc_reasons[DISC_NUM] = {
         "normal", "end of packet/overread", "vote-kicked", "vote-banned", "tag type", "connection refused - banned", "incorrect password", "failed login", "the server is FULL - try again later", "mastermode is \"private\" - must be \"open\"",
-        "bad nickname", "nickname is IP protected", "nickname requires password", "duplicate connection", "error - packet flood",
+        "bad nickname", "nickname is IP protected", "nickname requires password", "duplicate connection", "error - packet flood", "timeout",
         "extension", "ext2", "ext3"
     };
     return reason >= 0 && (size_t)reason < sizeof(disc_reasons)/sizeof(disc_reasons[0]) ? disc_reasons[reason] : "unknown";
@@ -2858,6 +2858,8 @@ void disconnect_client(int n, int reason)
     if(curvote) curvote->evaluate();
     // do cleanup
     clientdisconnect(n);
+    extern void freeconnectcheck(int cn);
+    freeconnectcheck(n); // disconnect - ms check is void
     if(*scoresaved && mastermode == MM_MATCH) senddisconnectedscores(-1);
     checkai(); // disconnect
     convertcheck();
@@ -2930,7 +2932,7 @@ void putinitclient(client &c, packetbuf &p)
     putint(p, c.skin[TEAM_RVSF]);
     putint(p, c.level);
     putint(p, c.team);
-    putint(p, c.acbuildtype);
+    putint(p, c.acbuildtype | (c.authpriv > -1 ? 0x02 : 0));
     putint(p, c.acthirdperson);
 }
 
@@ -3334,7 +3336,8 @@ void process(ENetPacket *packet, int sender, int chan)
             cl->acversion = getint(p);
             cl->acbuildtype = getint(p);
             cl->acthirdperson = getint(p);
-            defformatstring(tags)(", AC: %d|%x", cl->acversion, cl->acbuildtype);
+            cl->acguid = getint(p) & (0x80 | 0x1F00 | 0x40 | 0x20 | 0x8 | 0x4);
+            const int connectauthtoken = getint(p), connectauthuser = getint(p);
             getstring(text, p);
             filtername(text, text);
             if(!text[0]) copystring(text, "unarmed");
@@ -3348,9 +3351,9 @@ void process(ENetPacket *packet, int sender, int chan)
             cl->state.nextperk1 = getint(p);
             cl->state.nextperk2 = getint(p);
             loopi(2) cl->skin[i] = getint(p);
+            logversion(*cl);
 
-            const int connectauthtoken = 0, connectauthuser = 0;
-            int disc = p.remaining() ? DISC_TAGT : allowconnect(*cl, cl->pwd, connectauthtoken, connectauthuser);
+            int disc = p.remaining() ? DISC_TAGT : allowconnect(*cl, connectauthtoken, connectauthuser);
 
             if (disc) disconnect_client(sender, disc);
             else cl->isauthed = true;
@@ -3365,6 +3368,10 @@ void process(ENetPacket *packet, int sender, int chan)
                 if(dup->type==ST_TCPIP && dup->peer->address.host==cl->peer->address.host && dup->peer->address.port==cl->peer->address.port)
                     disconnect_client(i, DISC_DUP);
             }
+
+            // ask the master-server about this client
+            extern void connectcheck(int cn, int guid, const char *hostname, int authreq, int authuser);
+            connectcheck(sender, cl->acguid, cl->hostname, cl->authreq, cl->authuser);
         }
 
         sendwelcome(cl);
@@ -4087,6 +4094,22 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_SETPRIV: // relinquish
                 setpriv(sender, CR_DEFAULT);
                 break;
+
+            case SV_AUTH_ACR_CHAL:
+            {
+                unsigned char hash[20];
+                loopi(20) hash[i] = p.get();
+                logline(ACLOG_INFO, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x", 
+                    hash[0], hash[1], hash[2], hash[3],
+                    hash[4], hash[5], hash[6], hash[7],
+                    hash[8], hash[9], hash[10], hash[11],
+                    hash[12], hash[13], hash[14], hash[15],
+                    hash[16], hash[17], hash[18], hash[19]);
+                bool answered = answerchallenge(*cl, hash);
+                if (cl->authreq && answered) cl->isauthed = true;
+                else checkauthdisc(*cl);
+                break;
+            }
 
             case SV_CALLVOTE:
             {
@@ -4874,6 +4897,8 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     serverms(smode, smuts, numplayers(false), minremain, smapname, servmillis, serverhost->address, &mnum, &msend, &mrec, &cnum, &csend, &crec, SERVER_PROTOCOL_VERSION);
 
     if (autobalance && m_team(gamemode, mutators) && !m_zombie(gamemode) && !m_duke(gamemode, mutators) && !interm && servmillis - lastfillup > 5000 && refillteams()) lastfillup = servmillis;
+
+    loopv(clients) if (clients[i]->type == ST_TCPIP && (!clients[i]->isauthed || clients[i]->connectauth) && clients[i]->connectmillis + 10000 <= servmillis) disconnect_client(i, DISC_TIMEOUT);
 
     static unsigned int lastThrottleEpoch = 0;
     if(serverhost->bandwidthThrottleEpoch != lastThrottleEpoch)

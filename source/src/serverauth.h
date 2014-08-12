@@ -20,13 +20,24 @@ inline bool canreqauth(client &cl, int authtoken, int authuser)
     return true;
 }
 
-int allowconnect(client &cl, const char *pwd = NULL, int authreq = 0, int authuser = 0)
+int allowconnect(client &cl, int authreq = 0, int authuser = 0)
 {
     if (cl.type == ST_LOCAL) return DISC_NONE;
     //if (!m_valid(gamemode)) return DISC_PRIVATE;
     if (cl.role >= CR_ADMIN) return DISC_NONE;
 
-    // TODO: connect auth
+    if (authreq && authuser && canreqauth(cl, authreq, authuser))
+    {
+        cl.authtoken = authreq;
+        cl.authuser = authuser;
+        if (!nextauthreq)
+            nextauthreq = 1;
+        cl.authreq = nextauthreq++;
+        cl.connectauth = true;
+        logline(ACLOG_INFO, "[%s] %s logged in, requesting auth #%d as %d", cl.gethostname(), cl.formatname(), cl.authreq, authuser);
+        return DISC_NONE;
+    }
+
     int bantype = getbantype(cl.clientnum);
     bool banned = bantype > BAN_NONE;
     bool srvfull = numnonlocalclients() > scl.maxclients;
@@ -79,10 +90,22 @@ int allowconnect(client &cl, const char *pwd = NULL, int authreq = 0, int authus
     else if (srvprivate) return DISC_MASTERMODE;
     else if (srvfull) return DISC_MAXCLIENTS;
     else if (banned) return DISC_BANREFUSE;
+    // does the master server want a disconnection?
+    else if (/*!scl.bypassglobalbans &&*/ cl.authpriv <= -1 && cl.masterdisc) return cl.masterdisc;
     else
     {
         logline(ACLOG_INFO, "[%s] %s logged in (default)%s", cl.gethostname(), cl.formatname(), wlp);
         return DISC_NONE;
+    }
+}
+
+void checkauthdisc(client &cl, bool force = false)
+{
+    if (cl.connectauth || force)
+    {
+        cl.connectauth = false;
+        const int disc = allowconnect(cl);
+        if (disc) disconnect_client(cl.clientnum, disc);
     }
 }
 
@@ -93,37 +116,78 @@ void authfailed(uint id, bool fail)
     cl->authreq = 0;
     logline(ACLOG_INFO, "[%s] auth #%d %s!", cl->gethostname(), id, fail ? "failed" : "had an error");
     sendf(cl->clientnum, 1, "ri2", SV_AUTH_ACR_CHAL, 3);
-    //checkauthdisc(*c);
+    checkauthdisc(*cl);
 }
 
-void authsucceeded(uint id, char priv, const char *name)
+void authsucceeded(uint id, int priv, const char *name)
 {
     client *cl = findauth(id);
     if(!cl) return;
     cl->authreq = 0;
     filtertext(cl->authname, name);
-    logline(ACLOG_INFO, "[%s] auth #%d suceeded for %s as '%s'", cl->gethostname(), id, privname(priv), cl->authname);
-    // TODO
+    logline(ACLOG_INFO, "[%s] auth #%d succeeded for %s as '%s'", cl->gethostname(), id, privname(priv), cl->authname);
+    //bool banremoved = false;
+    loopv(bans) if (bans[i].address.host == cl->peer->address.host){ bans.remove(i--); /*banremoved = true;*/ } // deban
+    // broadcast "identified" if privileged or a ban was removed
+    sendf(-1, 1, "ri3s", SV_AUTH_ACR_CHAL, 5, cl->clientnum, cl->authname);
+    if (priv)
+    {
+        cl->authpriv = clamp(priv, (int)CR_MASTER, (int)CR_MAX);
+        setpriv(cl->clientnum, cl->authpriv);
+        // unmute if auth has privilege
+        // cl->muted = false;
+    }
+    else cl->authpriv = CR_DEFAULT; // bypass master bans
+    checkauthdisc(*cl); // can bypass passwords
 }
 
 void authchallenged(uint id, int nonce)
 {
     client *cl = findauth(id);
     if(!cl) return;
-    //sendf(cl->clientnum, 1, "ri3", SV_AUTH_ACR_REQ, nonce, cl->authtoken);
+    sendf(cl->clientnum, 1, "ri3", SV_AUTH_ACR_REQ, nonce, cl->authtoken);
     logline(ACLOG_INFO, "[%s] auth #%d challenged by master", cl->gethostname(), id);
 }
 
-void answerchallenge(client *cl, int hash[5])
+bool answerchallenge(client &cl, unsigned char hash[20])
 {
-    if (!cl->authreq) return;
-    // TODO
+    if (!isdedicated){ sendf(cl.clientnum, 1, "ri2", SV_AUTH_ACR_CHAL, 2); return false; }
+    if (!cl.authreq) return false;
+    loopv(authrequests)
+    {
+        if (authrequests[i].id == cl.authreq)
+        {
+            sendf(cl.clientnum, 1, "ri2", SV_AUTH_ACR_CHAL, 1);
+            return false;
+        }
+    }
+    authrequest &r = authrequests.add();
+    r.id = cl.authreq;
+    memcpy(r.hash, hash, sizeof(unsigned char) * 20);
+    logline(ACLOG_INFO, "[%s] answers auth #%d", cl.gethostname(), r.id);
+    sendf(cl.clientnum, 1, "ri2", SV_AUTH_ACR_CHAL, 4);
+    return true;
 }
 
 void masterdisc(int cn, int result)
 {
     if (!valid_client(cn)) return;
-    client &ci = *clients[cn];
-    // ci.masterdisc = result;
-    // if (!ci.connectauth && result) checkauthdisc(ci, true);
+    client &cl = *clients[cn];
+    cl.masterdisc = result;
+    if (!cl.connectauth && result) checkauthdisc(cl, true);
+}
+
+void logversion(client &cl)
+{
+    string cdefs;
+    if (cl.acbuildtype & 0x40) cdefs[0] = 'W';
+    else if (cl.acbuildtype & 0x20) cdefs[0] = 'M';
+    else if (cl.acbuildtype & 0x04) cdefs[0] = 'L';
+    if (cl.acbuildtype & 0x08)
+    {
+        cdefs[1] = 'D';
+        cdefs[2] = '\0';
+    }
+    cdefs[1] = '\0';
+    logline(ACLOG_INFO, "[%s] %s runs %d [%x-%s] [GUID-%08X]", cl.gethostname(), cl.formatname(), cl.acversion, cl.acbuildtype, cdefs, cl.acguid);
 }
