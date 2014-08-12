@@ -91,7 +91,7 @@ int allowconnect(client &cl, int authreq = 0, int authuser = 0)
     else if (srvfull) return DISC_MAXCLIENTS;
     else if (banned) return DISC_BANREFUSE;
     // does the master server want a disconnection?
-    else if (/*!scl.bypassglobalbans &&*/ cl.authpriv <= -1 && cl.masterdisc) return cl.masterdisc;
+    else if (!scl.bypassglobalbans && cl.authpriv <= -1 && cl.masterdisc) return cl.masterdisc;
     else
     {
         logline(ACLOG_INFO, "[%s] %s logged in (default)%s", cl.gethostname(), cl.formatname(), wlp);
@@ -122,12 +122,18 @@ void authfailed(uint id, bool fail)
 void authsucceeded(uint id, int priv, const char *name)
 {
     client *cl = findauth(id);
-    if(!cl) return;
+    if (!cl) return;
     cl->authreq = 0;
     filtertext(cl->authname, name);
-    logline(ACLOG_INFO, "[%s] auth #%d succeeded for %s as '%s'", cl->gethostname(), id, privname(priv), cl->authname);
+    if (scl.bypassglobalpriv && priv)
+    {
+        priv = CR_DEFAULT;
+        logline(ACLOG_INFO, "[%s] auth #%d succeeded as '%s' (%s ignored)", cl->gethostname(), id, cl->authname, privname(priv));
+    }
+    else
+        logline(ACLOG_INFO, "[%s] auth #%d succeeded for %s as '%s'", cl->gethostname(), id, privname(priv), cl->authname);
     //bool banremoved = false;
-    loopv(bans) if (bans[i].address.host == cl->peer->address.host){ bans.remove(i--); /*banremoved = true;*/ } // deban
+    loopv(bans) if (bans[i].address.host == cl->peer->address.host){ bans.remove(i--); /*banremoved = true;*/ } // remove temporary bans
     // broadcast "identified" if privileged or a ban was removed
     sendf(-1, 1, "ri3s", SV_AUTH_ACR_CHAL, 5, cl->clientnum, cl->authname);
     if (priv)

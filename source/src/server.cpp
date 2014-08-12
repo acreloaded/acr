@@ -4992,7 +4992,16 @@ int getpongflags(enet_uint32 ip)
     int flags = mastermode << PONGFLAG_MASTERMODE;
     flags |= scl.serverpassword[0] ? 1 << PONGFLAG_PASSWORD : 0;
     loopv(bans) if(bans[i].address.host == ip) { flags |= 1 << PONGFLAG_BANNED; break; }
-    flags |= ipblacklist.check(ip) ? 1 << PONGFLAG_BLACKLIST : 0;
+    if (ipblacklist.check(ip))
+        flags |= 1 << PONGFLAG_BLACKLIST;
+    /*
+    if (ipmutelist.check(ip))
+        flags |= 1 << PONGFLAG_MUTE;
+    */
+    if (scl.bypassglobalbans)
+        flags |= 1 << PONGFLAG_BYPASSBANS;
+    if (scl.bypassglobalpriv)
+        flags |= 1 << PONGFLAG_BYPASSPRIV;
     return flags;
 }
 

@@ -78,6 +78,8 @@
 // rarely used switches:
 
 // -p     // serverpassword, for passworded servers
+// -k0    // ignore authserv bans (allow globally banned players to use the server)
+// -a     // ignore authserv privileges (only local admins can gain privileges)
 // -N     // syslog identity string
 // -F     // syslog facility, 0..7, default 6
 // -x     // adminpasswd, don't use, use serverpwd.cfg instead

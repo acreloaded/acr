@@ -939,7 +939,7 @@ struct servercommandline
 {
     int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, verbose, incoming_limit, afk_limit, ban_time, lagtrust, demotimelocal;
     const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile, *nbfile, *infopath, *motdpath, *forbidden, *demofilenameformat, *demotimestampformat;
-    bool logtimestamp, demo_interm, loggamestatus;
+    bool logtimestamp, demo_interm, loggamestatus, bypassglobalbans, bypassglobalpriv;
     string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm, mapperm;
     int clfilenesting;
     vector<const char *> adminonlymaps;
@@ -949,7 +949,7 @@ struct servercommandline
                             ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(""),
                             maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), nbfile("config/nicknameblacklist.cfg"),
                             infopath("config/serverinfo"), motdpath("config/motd"), forbidden("config/forbidden.cfg"),
-                            logtimestamp(false), demo_interm(false), loggamestatus(true),
+                            logtimestamp(false), demo_interm(false), loggamestatus(true), bypassglobalbans(false), bypassglobalpriv(false),
                             clfilenesting(0)
     {
         motd[0] = servdesc_full[0] = servdesc_pre[0] = servdesc_suf[0] = voteperm[0] = mapperm[0] = '\0';
@@ -1021,8 +1021,11 @@ struct servercommandline
                     if ((ai = atoi(&arg[3])) >= 0) lagtrust = ai;
                     else lagtrust = 0;
                 }
+                else if (arg[2] == '0')
+                    bypassglobalbans = true;
                 break;
             }
+            case 'a': bypassglobalpriv = true; break;
             case 'x': adminpasswd = a; break;
             case 'p': serverpassword = a; break;
             case 'D':
