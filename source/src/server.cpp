@@ -2734,22 +2734,20 @@ void sendcallvote(int cn)
     sendpacket(cn, 1, q.finalize());
 }
 
-void setpriv(int cn, int priv)
+void setpriv(client &cl, int priv)
 {
-    if(!valid_client(cn)) return;
-    client &c = *clients[cn];
-    if(!priv) // relinquish
+    if (!priv) // relinquish
     {
-        if(!c.role) return; // no privilege to relinquish
-        sendf(-1, 1, "ri4", SV_CLAIMPRIV, cn, c.role, 1);
-        logline(ACLOG_INFO, "[%s] %s relinquished %s access", c.gethostname(), c.formatname(), privname(c.role));
-        c.role = CR_DEFAULT;
+        if (!cl.role) return; // no privilege to relinquish
+        sendf(-1, 1, "ri4", SV_CLAIMPRIV, cl.clientnum, cl.role, 1);
+        logline(ACLOG_INFO, "[%s] %s relinquished %s access", cl.gethostname(), cl.formatname(), privname(cl.role));
+        cl.role = CR_DEFAULT;
         sendserveropinfo();
         return;
     }
-    else if(c.role >= priv)
+    else if (cl.role >= priv)
     {
-        sendf(cn, 1, "ri4", SV_CLAIMPRIV, cn, priv, 2);
+        sendf(cl.clientnum, 1, "ri4", SV_CLAIMPRIV, cl.clientnum, priv, 2);
         return;
     }
     /*
@@ -2757,12 +2755,12 @@ void setpriv(int cn, int priv)
     {
         loopv(clients)
             if(clients[i]->type != ST_EMPTY && clients[i]->authpriv < PRIV_MASTER && clients[i]->priv == PRIV_MASTER)
-                setpriv(i, PRIV_NONE);
+                setpriv(*clients[i], PRIV_NONE);
     }
     */
-    c.role = priv;
-    sendf(-1, 1, "ri4", SV_CLAIMPRIV, cn, c.role, 0);
-    logline(ACLOG_INFO, "[%s] %s claimed %s access", c.gethostname(), c.formatname(), privname(c.role));
+    cl.role = priv;
+    sendf(-1, 1, "ri4", SV_CLAIMPRIV, cl.clientnum, cl.role, 0);
+    logline(ACLOG_INFO, "[%s] %s claimed %s access", cl.gethostname(), cl.formatname(), privname(cl.role));
     sendserveropinfo();
     //if(curvote) curvote->evaluate();
 }
@@ -2834,7 +2832,7 @@ void disconnect_client(int n, int reason)
             if(!shiftai(*clients[i], -1, n))
                 deleteai(*clients[i]);
     // remove privilege
-    if(c.role) setpriv(n, CR_DEFAULT);
+    if(c.role) setpriv(c, CR_DEFAULT);
     c.state.lastdisc = servmillis;
     const char *scoresaved = "";
     if(c.haswelcome)
@@ -4065,13 +4063,13 @@ void process(ENetPacket *packet, int sender, int chan)
                 getstring(text, p);
                 pwddetail pd;
                 pd.line = -1;
-                if (cl->type == ST_LOCAL) setpriv(sender, CR_MAX);
+                if (cl->type == ST_LOCAL) setpriv(*cl, CR_MAX);
                 else if (!passwords.check(cl->name, text, cl->salt, &pd))
                 {
                     if (cl->authpriv >= CR_MASTER)
                     {
                         logline(ACLOG_INFO, "[%s] %s was already authed for %s", cl->gethostname(), cl->formatname(), privname(cl->authpriv));
-                        setpriv(sender, cl->authpriv);
+                        setpriv(*cl, cl->authpriv);
                     }
                     else if (cl->role < CR_ADMIN && text[0])
                     {
@@ -4086,14 +4084,14 @@ void process(ENetPacket *packet, int sender, int chan)
                 }
                 else
                 {
-                    setpriv(sender, pd.priv);
+                    setpriv(*cl, pd.priv);
                     if (pd.line >= 0) logline(ACLOG_INFO, "[%s] %s used %s password on line %d", cl->gethostname(), cl->formatname(), privname(pd.priv), pd.line);
                 }
                 break;
             }
 
             case SV_SETPRIV: // relinquish
-                setpriv(sender, CR_DEFAULT);
+                setpriv(*cl, CR_DEFAULT);
                 break;
 
             case SV_AUTH_ACR_CHAL:

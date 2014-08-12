@@ -69,7 +69,7 @@ int allowconnect(client &cl, int authreq = 0, int authuser = 0)
     {
         // admin (or deban) password match
         bool banremoved = false;
-        if (pd.priv) setpriv(cl.clientnum, pd.priv);
+        if (pd.priv) setpriv(cl, pd.priv);
         if (bantype == BAN_VOTE)
         {
             loopv(bans) if (bans[i].address.host == cl.peer->address.host) { bans.remove(i); banremoved = true; break; } // remove admin bans
@@ -139,7 +139,7 @@ void authsucceeded(uint id, int priv, const char *name)
     if (priv)
     {
         cl->authpriv = clamp(priv, (int)CR_MASTER, (int)CR_MAX);
-        setpriv(cl->clientnum, cl->authpriv);
+        setpriv(*cl, cl->authpriv);
         // unmute if auth has privilege
         // cl->muted = false;
     }

@@ -192,8 +192,8 @@ struct giveadminaction : playeraction
     void perform()
     {
         if (valid_client(from) && clients[from]->role < CR_ADMIN)
-            setpriv(from, CR_DEFAULT); // transfer master instead of give
-        setpriv(cn, give);
+            setpriv(*clients[from], CR_DEFAULT); // transfer master instead of give
+        setpriv(*clients[cn], give);
     }
     virtual bool isvalid() { return playeraction::isvalid() && valid_client(from); }
     giveadminaction(int cn, int role, int caller) : playeraction(cn)
@@ -208,7 +208,7 @@ struct giveadminaction : playeraction
 
 struct revokeaction : playeraction
 {
-    void perform() { setpriv(cn, CR_DEFAULT); }
+    void perform() { setpriv(*clients[cn], CR_DEFAULT); }
     virtual bool isvalid() { return playeraction::isvalid() && clients[cn]->role; }
     revokeaction(int cn) : playeraction(cn)
     {

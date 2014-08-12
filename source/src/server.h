@@ -541,7 +541,7 @@ int clienthasflag(int cn);
 void convertcheck(bool quick = false);
 void shuffleteams(int ftr = FTR_AUTO);
 bool refillteams(bool now = false, int ftr = FTR_AUTO);
-void setpriv(int cn, int priv);
+void setpriv(client &cl, int priv);
 mapstats *getservermapstats(const char *mapname, bool getlayout = false, int *maploc = NULL);
 int findmappath(const char *mapname, char *filename = NULL);
 int calcscores();
