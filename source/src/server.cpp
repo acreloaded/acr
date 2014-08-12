@@ -3323,7 +3323,6 @@ void process(ENetPacket *packet, int sender, int chan)
     ucharbuf p(packet->data, packet->dataLength);
     char text[MAXTRANS];
     client *cl = sender>=0 ? clients[sender] : NULL;
-    pwddetail pd;
     int type;
 
     if(cl && !cl->isauthed)
@@ -3349,64 +3348,12 @@ void process(ENetPacket *packet, int sender, int chan)
             cl->state.nextperk1 = getint(p);
             cl->state.nextperk2 = getint(p);
             loopi(2) cl->skin[i] = getint(p);
-            int bantype = getbantype(sender);
-            bool banned = bantype > BAN_NONE;
-            bool srvfull = numnonlocalclients() > scl.maxclients;
-            bool srvprivate = mastermode == MM_PRIVATE || mastermode == MM_MATCH;
-            bool matchreconnect = mastermode == MM_MATCH && findscore(*cl, false);
-            int bl = 0, wl = nickblacklist.checkwhitelist(*cl);
-            if(wl == NWL_PASS) concatstring(tags, ", nickname whitelist match");
-            if(wl == NWL_UNLISTED) bl = nickblacklist.checkblacklist(cl->name);
-            if(matchreconnect && !banned)
-            { // former player reconnecting to a server in match mode
-                cl->isauthed = true;
-                logline(ACLOG_INFO, "[%s] %s logged in (reconnect to match)%s", cl->gethostname(), cl->name, tags);
-            }
-            else if(wl == NWL_IPFAIL || wl == NWL_PWDFAIL)
-            { // nickname matches whitelist, but IP is not in the required range or PWD doesn't match
-                logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong %s%s", cl->gethostname(), cl->name, wl == NWL_IPFAIL ? "IP" : "PWD", tags);
-                disconnect_client(sender, wl == NWL_IPFAIL ? DISC_NAME_IP : DISC_NAME_PWD);
-            }
-            else if(bl > 0)
-            { // nickname matches blacklist
-                logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d%s", cl->gethostname(), cl->name, bl, tags);
-                disconnect_client(sender, DISC_NAME);
-            }
-            else if(passwords.check(cl->name, cl->pwd, cl->salt, &pd, (cl->type==ST_TCPIP ? cl->peer->address.host : 0)) && (pd.priv >= CR_ADMIN || (banned && !srvfull && !srvprivate)) && bantype != BAN_MASTER) // pass admins always through
-            { // admin (or deban) password match
-                cl->isauthed = true;
-                if (pd.priv) setpriv(sender, pd.priv);
-                if(bantype == BAN_VOTE)
-                {
-                    loopv(bans) if(bans[i].address.host == cl->peer->address.host) { bans.remove(i); concatstring(tags, ", ban removed"); break; } // remove admin bans
-                }
-                if(srvfull)
-                {
-                    loopv(clients) if(i != sender && clients[i]->type==ST_TCPIP)
-                    {
-                        disconnect_client(i, DISC_MAXCLIENTS); // disconnect someone else to fit maxclients again
-                        break;
-                    }
-                }
-                logline(ACLOG_INFO, "[%s] %s logged in using the admin password in line %d%s", cl->gethostname(), cl->name, pd.line, tags);
-            }
-            else if(scl.serverpassword[0] && !(srvprivate || srvfull || banned))
-            { // server password required
-                if(!strcmp(genpwdhash(cl->name, scl.serverpassword, cl->salt), cl->pwd))
-                {
-                    cl->isauthed = true;
-                    logline(ACLOG_INFO, "[%s] %s client logged in (using serverpassword)%s", cl->gethostname(), cl->name, tags);
-                }
-                else disconnect_client(sender, DISC_WRONGPW);
-            }
-            else if(srvprivate) disconnect_client(sender, DISC_MASTERMODE);
-            else if(srvfull) disconnect_client(sender, DISC_MAXCLIENTS);
-            else if(banned) disconnect_client(sender, DISC_BANREFUSE);
-            else
-            {
-                cl->isauthed = true;
-                logline(ACLOG_INFO, "[%s] %s logged in (default)%s", cl->gethostname(), cl->name, tags);
-            }
+
+            const int connectauthtoken = 0, connectauthuser = 0;
+            int disc = p.remaining() ? DISC_TAGT : allowconnect(*cl, cl->pwd, connectauthtoken, connectauthuser);
+
+            if (disc) disconnect_client(sender, disc);
+            else cl->isauthed = true;
         }
         if(!cl->isauthed) return;
 
