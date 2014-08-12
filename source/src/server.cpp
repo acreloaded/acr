@@ -1797,10 +1797,11 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
     // ts.respawn();
     
     // log message
+    const int logtype = actor->type == ST_AI && target->type == ST_AI ? ACLOG_VERBOSE : ACLOG_INFO;
     if (target == actor)
-        logline(ACLOG_INFO, "[%s] %s [%s] (%.2f m)", actor->gethostname(), actor->formatname(), suicname(gun), killdist / 4.f);
+        logline(logtype, "[%s] %s [%s] (%.2f m)", actor->gethostname(), actor->formatname(), suicname(gun), killdist / 4.f);
     else
-        logline(ACLOG_INFO, "[%s] %s [%s] %s (%.2f m)", actor->gethostname(), actor->formatname(), killname(gun, style), target->formatname(), killdist / 4.f);
+        logline(logtype, "[%s] %s [%s] %s (%.2f m)", actor->gethostname(), actor->formatname(), killname(gun, style), target->formatname(), killdist / 4.f);
 
     // drop flags
     if (targethasflag >= 0 && m_flags(gamemode) && !m_secure(gamemode))
