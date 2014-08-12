@@ -627,20 +627,24 @@ void checkpings()
         if(si->getinfo == query) si->getinfo = EXTPING_NOP;
         if(si->pongflags > 0)
         {
-            const char *sp = "";
+            formatstring(si->description)("%s  \f1(", si->sdesc);
+            bool first = true;
+#define addserverdesc(sp) { if(first) first = false; else concatstring(si->description, ", "); concatstring(si->description, sp); }
             int mm = si->pongflags >> PONGFLAG_MASTERMODE;
-            if(si->pongflags & (1 << PONGFLAG_BANNED))
-                sp = "you are banned from this server";
-            if(si->pongflags & (1 << PONGFLAG_BLACKLIST))
-                sp = "you are blacklisted on this server";
-            else if(si->pongflags & (1 << PONGFLAG_PASSWORD))
-                sp = "this server is password-protected";
-            else if(mm) sp = mmfullname(mm);
-            else if (si->pongflags & (1 << PONGFLAG_BYPASSBANS))
-                sp = "ignores global bans";
-            else if (si->pongflags & (1 << PONGFLAG_BYPASSPRIV))
-                sp = "ignores auth";
-            formatstring(si->description)("%s  \f1(%s)", si->sdesc, sp);
+            if (si->pongflags & (1 << PONGFLAG_BANNED))
+                addserverdesc("temp-banned")
+            if (si->pongflags & (1 << PONGFLAG_BLACKLIST))
+                addserverdesc("blacklisted")
+            if (si->pongflags & (1 << PONGFLAG_PASSWORD))
+                addserverdesc("password-protected")
+            if (mm)
+                addserverdesc(mmfullname(mm))
+            if (si->pongflags & (1 << PONGFLAG_BYPASSBANS))
+                addserverdesc("ignores global bans")
+            if (si->pongflags & (1 << PONGFLAG_BYPASSPRIV))
+                addserverdesc("ignores auth")
+            concatstring(si->description, ")");
+#undef addserverdesc
         }
     }
 }
