@@ -145,7 +145,7 @@ void shotevent::process(client *ci)
                 if (&c != hit) addptreason(hit, PR_HEALEDBYTEAMMATE);
                 hit->state.wounds.shrink(0);
                 // heal wounds = revive
-                sendf(-1, 1, "ri4", SV_HEAL, c.clientnum, hit->clientnum, hit->state.health);
+                sendf(NULL, 1, "ri4", SV_HEAL, c.clientnum, hit->clientnum, hit->state.health);
             }
             if ((&c == hit) ? cs.health < MAXHEALTH : !isteam(&c, hit)) // that's right, no more self-heal abuse
             {
@@ -245,7 +245,7 @@ void reloadevent::process(client *ci)
     cs.ammo[weap] -= /*reload*/ 1;
 
     int wait = millis - cs.lastshot;
-    sendf(-1, 1, "ri5", SV_RELOAD, ci->clientnum, weap, cs.mag[weap], cs.ammo[weap]);
+    sendf(NULL, 1, "ri5", SV_RELOAD, ci->clientnum, weap, cs.mag[weap], cs.ammo[weap]);
     if (!cs.gunwait[weap] || wait >= cs.gunwait[weap])
         cs.updateshot(millis);
     cs.gunwait[weap] += reloadtime(weap);
@@ -273,11 +273,11 @@ void healevent::process(client *ci)
             else addpt(clients[id], HEALENEMYPT, PR_HEALENEMY);
         }
         ci->state.health = MAXHEALTH;
-        if (!m_zombie(gamemode)) return sendf(-1, 1, "ri4", SV_HEAL, id, ci->clientnum, ci->state.health);
+        if (!m_zombie(gamemode)) return sendf(NULL, 1, "ri4", SV_HEAL, id, ci->clientnum, ci->state.health);
     }
     // partial heal
     else ci->state.health += heal;
-    sendf(-1, 1, "ri3", SV_REGEN, ci->clientnum, ci->state.health);
+    sendf(NULL, 1, "ri3", SV_REGEN, ci->clientnum, ci->state.health);
 }
 
 void suicidebomberevent::process(client *ci)
@@ -317,7 +317,7 @@ void processevents()
             // boom... gg
             //forceintermission = true;
             cs.nukemillis = 0;
-            sendf(-1, 1, "ri4", N_STREAKUSE, i, STREAK_NUKE, 0);
+            sendf(NULL, 1, "ri4", N_STREAKUSE, i, STREAK_NUKE, 0);
             // apply the nuke effect
             nuke(c);
         }
@@ -375,7 +375,7 @@ void processevents()
                 if(cs.perk1 == PERK_POWER) amt *= 1.4f;
                 if(amt >= STARTHEALTH - cs.health)
                     amt = STARTHEALTH - cs.health;
-                sendf(-1, 1, "ri3", SV_REGEN, i, cs.health += amt);
+                sendf(NULL, 1, "ri3", SV_REGEN, i, cs.health += amt);
                 cs.lastregen = gamemillis;
             }
         }

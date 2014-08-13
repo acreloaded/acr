@@ -536,7 +536,7 @@ void clearai(), checkai();
 
 void startgame(const char *newname, int newmode, int newmuts, int newtime = -1, bool notify = true);
 void disconnect_client(int n, int reason = -1);
-void sendservmsg(const char *msg, int cn = -1);
+void sendservmsg(const char *msg, client *cl = NULL);
 int clienthasflag(int cn);
 void convertcheck(bool quick = false);
 void shuffleteams(int ftr = FTR_AUTO);
@@ -555,7 +555,7 @@ int numclients();
 bool canspawn(client *c, bool connecting = false);
 bool updateclientteam(int cln, int newteam, int ftr);
 void forcedeath(client *cl, bool gib = false);
-void sendf(int cn, int chan, const char *format, ...);
+void sendf(client *cl, int chan, const char *format, ...);
 void addpt(client *c, int points, int reason = -1);
 void serverdied(client *target, client *actor, int damage, int gun, int style, const vec &source, float killdist = 0);
 void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source, float dist = 0);

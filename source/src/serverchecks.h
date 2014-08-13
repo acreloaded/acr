@@ -150,7 +150,7 @@ int checkarea(int maplayout_factor, ssqr *maplayout)
 
 inline void addptreason(client *c, int reason, int amt = 0)
 {
-    if (c->type != ST_AI) sendf(c->clientnum, 1, "ri3", SV_POINTS, reason, amt);
+    if (c->type != ST_AI) sendf(c, 1, "ri3", SV_POINTS, reason, amt);
 }
 
 void addpt(client *c, int points, int reason)

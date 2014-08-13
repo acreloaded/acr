@@ -66,12 +66,12 @@ int knifeseq = 0;
 void purgesconfirms()
 {
     loopv(sconfirms)
-        sendf(-1, 1, "ri2", SV_CONFIRMREMOVE, sconfirms[i].id);
+        sendf(NULL, 1, "ri2", SV_CONFIRMREMOVE, sconfirms[i].id);
 }
 void purgesknives()
 {
     loopv(sknives)
-        sendf(-1, 1, "ri2", SV_KNIFEREMOVE, sknives[i].id);
+        sendf(NULL, 1, "ri2", SV_KNIFEREMOVE, sknives[i].id);
     sknives.setsize(0);
 }
 
@@ -306,7 +306,7 @@ int *numteamclients(int exclude = -1, bool include_bots = false)
 int sendservermode(bool send = true)
 {
     int sm = (autoteam & 1) | ((mastermode & MM_MASK) << 2) | (matchteamsize << 4);
-    if(send) sendf(-1, 1, "ri2", SV_SERVERMODE, sm);
+    if(send) sendf(NULL, 1, "ri2", SV_SERVERMODE, sm);
     return sm;
 }
 
@@ -402,7 +402,7 @@ bool findlimit(client &c, bool insert)
     return false;
 }
 
-void sendf(int cn, int chan, const char *format, ...)
+void sendf(client *cl, int chan, const char *format, ...)
 {
     int exclude = -1;
     bool reliable = false;
@@ -439,12 +439,12 @@ void sendf(int cn, int chan, const char *format, ...)
         }
     }
     va_end(args);
-    sendpacket(clients[cn], chan, p.finalize(), exclude);
+    sendpacket(cl, chan, p.finalize(), exclude);
 }
 
-void sendservmsg(const char *msg, int cn)
+void sendservmsg(const char *msg, client *cl)
 {
-    sendf(cn, 1, "ris", SV_SERVMSG, msg);
+    sendf(cl, 1, "ris", SV_SERVMSG, msg);
 }
 
 #define SECURESPAWNDIST 15
@@ -564,7 +564,7 @@ void sendspawn(client *c)
     checkpos(gs.o); // fix spawn being too high
     c->p = 0; // pitch
     // send spawn state
-    sendf(c->clientnum, 1, "ri9vvi4", SV_SPAWNSTATE, c->clientnum, gs.lifesequence,
+    sendf(c, 1, "ri9vvi4", SV_SPAWNSTATE, c->clientnum, gs.lifesequence,
         gs.health, gs.armour, gs.perk1, gs.perk2, gs.primary, gs.secondary,
         NUMGUNS, gs.ammo, NUMGUNS, gs.mag,
         (int)(gs.o.x*DMF), (int)(gs.o.y*DMF), (int)(gs.o.z*DMF), c->y);
@@ -862,24 +862,24 @@ void senddemo(client &cl, int num)
     bool is_admin = cl.role >= CR_ADMIN;
     if(scl.demo_interm && (!interm || totalclients > 2) && !is_admin)
     {
-        sendservmsg("\f3sorry, but this server only sends demos at intermission.\n wait for the end of this game, please", cl.clientnum);
+        sendservmsg("\f3sorry, but this server only sends demos at intermission.\n wait for the end of this game, please", &cl);
         return;
     }
     if(!num) num = demofiles.length();
     if(!demofiles.inrange(num-1))
     {
-        if (demofiles.empty()) sendservmsg("no demos available", cl.clientnum);
+        if (demofiles.empty()) sendservmsg("no demos available", &cl);
         else
         {
             defformatstring(msg)("no demo %d available", num);
-            sendservmsg(msg, cl.clientnum);
+            sendservmsg(msg, &cl);
         }
         return;
     }
     demofile &d = demofiles[num-1];
     loopv(d.clientssent) if(d.clientssent[i].ip == cl.peer->address.host && d.clientssent[i].clientnum == cl.clientnum)
     {
-        sendservmsg("\f3Sorry, you have already downloaded this demo.", cl.clientnum);
+        sendservmsg("\f3Sorry, you have already downloaded this demo.", &cl);
         return;
     }
     clientidentity &ci = d.clientssent.add();
@@ -905,7 +905,7 @@ void enddemoplayback()
     demoplayback = NULL;
     watchingdemo = false;
 
-    loopv(clients) sendf(i, 1, "risi", SV_DEMOPLAYBACK, "", i);
+    loopv(clients) sendf(clients[i], 1, "risi", SV_DEMOPLAYBACK, "", i);
 
     sendservmsg("demo playback finished");
 
@@ -940,7 +940,7 @@ void setupdemoplayback()
 
     formatstring(msg)("playing demo \"%s\"", file);
     sendservmsg(msg);
-    sendf(-1, 1, "risi", SV_DEMOPLAYBACK, smapname, -1);
+    sendf(NULL, 1, "risi", SV_DEMOPLAYBACK, smapname, -1);
     watchingdemo = true;
 
     if(demoplayback->read(&nextplayback, sizeof(nextplayback))!=sizeof(nextplayback))
@@ -1027,12 +1027,12 @@ void sendsecureflaginfo(ssecure *s = NULL, client *cl = NULL)
     sendpacket(cl, 1, p.finalize());
 }
 
-void flagmessage(int flag, int message, int actor, int cn = -1)
+void flagmessage(int flag, int message, int actor)
 {
     if(message == FA_KTFSCORE)
-        sendf(cn, 1, "ri5", SV_FLAGMSG, flag, message, actor, (gamemillis - sflaginfos[flag].stolentime) / 1000);
+        sendf(NULL, 1, "ri5", SV_FLAGMSG, flag, message, actor, (gamemillis - sflaginfos[flag].stolentime) / 1000);
     else
-        sendf(cn, 1, "ri4", SV_FLAGMSG, flag, message, actor);
+        sendf(NULL, 1, "ri4", SV_FLAGMSG, flag, message, actor);
 }
 
 void flagaction(int flag, int action, int actor)
@@ -1375,7 +1375,7 @@ void arenacheck()
         }
         checkai(); // progressive zombies
         // convertcheck();
-        sendf(-1, 1, "ri2", SV_ZOMBIESWIN, (progressiveround << 1) | (humanswin ? 1 : 0));
+        sendf(NULL, 1, "ri2", SV_ZOMBIESWIN, (progressiveround << 1) | (humanswin ? 1 : 0));
         loopv(clients) if (clients[i]->type != ST_EMPTY && clients[i]->isauthed && clients[i]->team != TEAM_SPECT)
         {
             if (clients[i]->team == TEAM_CLA || progressiveround == MAXZOMBIEROUND)
@@ -1414,7 +1414,7 @@ void arenacheck()
             -1 // everyone died
             ;
         // send message
-        sendf(-1, 1, "ri2", SV_ARENAWIN, cn);
+        sendf(NULL, 1, "ri2", SV_ARENAWIN, cn);
         // award points
         loopv(clients) if (clients[i]->type != ST_EMPTY && clients[i]->isauthed && team_isactive(clients[i]->team))
         {
@@ -1460,7 +1460,7 @@ void convertcheck(bool quick)
     // game ends if not arena, and all enemies are converted
     if (found >= 2)
     {
-        sendf(-1, 1, "ri", SV_CONVERTWIN);
+        sendf(NULL, 1, "ri", SV_CONVERTWIN);
         arenaround = gamemillis + 5000;
     }
 }
@@ -1551,14 +1551,14 @@ void sendtext(char *text, client *cl, int flags, int voice)
         {
             logline(ACLOG_VERBOSE, "%s, forbidden speech (%s)", logmsg, forbidden);
             defformatstring(forbiddenmessage)("\f2forbidden speech: \f3%s \f2was detected", forbidden);
-            sendservmsg(forbiddenmessage, cl->clientnum);
-            sendf(cl->clientnum, 1, "ri4s", SV_TEXT, cl->clientnum, 0, flags | SAY_FORBIDDEN, text);
+            sendservmsg(forbiddenmessage, cl);
+            sendf(cl, 1, "ri4s", SV_TEXT, cl->clientnum, 0, flags | SAY_FORBIDDEN, text);
             return;
         }
         else if(spamdetect(cl, text))
         {
             logline(ACLOG_VERBOSE, "%s, SPAM detected", logmsg);
-            sendf(cl->clientnum, 1, "ri4s", SV_TEXT, cl->clientnum, 0, flags | SAY_SPAM, text);
+            sendf(cl, 1, "ri4s", SV_TEXT, cl->clientnum, 0, flags | SAY_SPAM, text);
             return;
         }
     }
@@ -1627,7 +1627,7 @@ void checkitemspawns(int diff)
         {
             sents[i].spawntime = 0;
             sents[i].spawned = true;
-            sendf(-1, 1, "ri2", SV_ITEMSPAWN, i);
+            sendf(NULL, 1, "ri2", SV_ITEMSPAWN, i);
         }
     }
 }
@@ -1750,7 +1750,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
         {
             sconfirm &c = sconfirms.add();
             c.o = ts.o;
-            sendf(-1, 1, "ri6", SV_CONFIRMADD, c.id = ++confirmseq, c.team = actor->team, (int)(c.o.x*DMF), (int)(c.o.y*DMF), (int)(c.o.z*DMF));
+            sendf(NULL, 1, "ri6", SV_CONFIRMADD, c.id = ++confirmseq, c.team = actor->team, (int)(c.o.x*DMF), (int)(c.o.y*DMF), (int)(c.o.z*DMF));
             c.actor = actor->clientnum;
             c.target = target->clientnum;
             c.points = max(0, earnedpts);
@@ -1783,7 +1783,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
     }
 
     // send message
-    sendf(-1, 1, "ri9i3", SV_KILL, target->clientnum, actor->clientnum, gun, style, damage, ++actor->state.combo, ts.damagelog.length(),
+    sendf(NULL, 1, "ri9i3", SV_KILL, target->clientnum, actor->clientnum, gun, style, damage, ++actor->state.combo, ts.damagelog.length(),
         (int)(source.x*DMF), (int)(source.y*DMF), (int)(source.z*DMF), (int)(killdist*DMF));
 
     target->position.setsize(0);
@@ -1835,7 +1835,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
     {
         // nuke cancelled!
         target->state.nukemillis = 0;
-        sendf(-1, 1, "ri4", SV_STREAKUSE, target->clientnum, STREAK_NUKE, -2);
+        sendf(NULL, 1, "ri4", SV_STREAKUSE, target->clientnum, STREAK_NUKE, -2);
     }
     */
     // deathstreaks MUST be processed after setting to CS_DEAD
@@ -1858,8 +1858,8 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
                 actor->state.gungame = 0; // restart gungame
             }
             const int newprimary = actor->state.primary = actor->state.secondary = actor->state.gunselect = gungame[actor->state.gungame];
-            sendf(-1, 1, "ri5", SV_RELOAD, actor->clientnum, newprimary, actor->state.mag[newprimary] = magsize(newprimary), actor->state.ammo[newprimary] = (ammostats[newprimary].start - 1));
-            sendf(-1, 1, "ri3", SV_WEAPCHANGE, actor->clientnum, newprimary);
+            sendf(NULL, 1, "ri5", SV_RELOAD, actor->clientnum, newprimary, actor->state.mag[newprimary] = magsize(newprimary), actor->state.ammo[newprimary] = (ammostats[newprimary].start - 1));
+            sendf(NULL, 1, "ri3", SV_WEAPCHANGE, actor->clientnum, newprimary);
         }
 #endif
         // conversions
@@ -1905,7 +1905,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
             // cap at 300 HP
             if (actor->state.health + hpadd > VAMPIREMAX)
                 hpadd = VAMPIREMAX - actor->state.health;
-            sendf(-1, 1, "ri3", SV_REGEN, actor->clientnum, actor->state.health += hpadd);
+            sendf(NULL, 1, "ri3", SV_REGEN, actor->clientnum, actor->state.health += hpadd);
         }
     }
 
@@ -1940,7 +1940,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
     {
         if (ts.damagelog.find(actor->clientnum) < 0)
             ts.damagelog.add(actor->clientnum);
-        sendf(-1, 1, "ri8i3", SV_DAMAGE, target->clientnum, actor->clientnum, damage, ts.armour, ts.health, gun, style,
+        sendf(NULL, 1, "ri8i3", SV_DAMAGE, target->clientnum, actor->clientnum, damage, ts.armour, ts.health, gun, style,
             (int)(source.x*DMF), (int)(source.y*DMF), (int)(source.z*DMF));
     }
 }
@@ -2016,7 +2016,7 @@ bool updateclientteam(int cln, int newteam, int ftr)
     // log message
     logline(ftr == FTR_SILENT ? ACLOG_DEBUG : ACLOG_INFO, "[%s] %s is now on team %s", cl.gethostname(), cl.formatname(), team_string(newteam));
     // send message
-    sendf(-1, 1, "ri3", SV_SETTEAM, cln, (cl.team = newteam) | (ftr << 4));
+    sendf(NULL, 1, "ri3", SV_SETTEAM, cln, (cl.team = newteam) | (ftr << 4));
 
     // force a death if necessary
     if (cl.state.state != CS_DEAD && (m_team(gamemode, mutators) || newteam == TEAM_SPECT))
@@ -2424,7 +2424,7 @@ void startgame(const char *newname, int newmode, int newmuts, int newtime, bool 
             putmap(q);
             sendpacket(NULL, 1, q.finalize());
             // time remaining
-            if(smode>1 || (smode==0 && numnonlocalclients()>0)) sendf(-1, 1, "ri3", SV_TIMEUP, gamemillis, gamelimit);
+            if(smode>1 || (smode==0 && numnonlocalclients()>0)) sendf(NULL, 1, "ri3", SV_TIMEUP, gamemillis, gamelimit);
         }
         defformatstring(gsmsg)("Game start: %s on %s, %d players, %d minutes, mastermode %d, ", modestr(smode, smuts), smapname, numclients(), minremain, mastermode);
         if(mastermode == MM_MATCH) concatformatstring(gsmsg, "teamsize %d, ", matchteamsize);
@@ -2538,7 +2538,7 @@ int getbantype(int cn)
     return BAN_NONE;
 }
 
-void sendserveropinfo(int receiver = -1)
+void sendserveropinfo(client *receiver = NULL)
 {
     loopv(clients)
         if(clients[i]->type!=ST_EMPTY)
@@ -2560,7 +2560,7 @@ struct voteinfo
         if(action && !action->isvalid()) result = VOTE_NO; // don't perform() invalid votes
         if (valid_client(veto)) logline(ACLOG_INFO, "[%s] vote %s, forced by %s (%d)", clients[owner]->gethostname(), result == VOTE_YES ? "passed" : "failed", clients[veto]->formatname(), veto);
         else logline(ACLOG_INFO, "[%s] vote %s (%s)", clients[owner]->gethostname(), result == VOTE_YES ? "passed" : "failed", veto == -2 ? "enough votes" : veto == -3 ? "expiry" : "unknown");
-        sendf(-1, 1, "ri3", SV_VOTERESULT, result, veto);
+        sendf(NULL, 1, "ri3", SV_VOTERESULT, result, veto);
         this->result = result;
         if(result == VOTE_YES)
         {
@@ -2585,7 +2585,7 @@ struct voteinfo
             ++stats[VOTE_NUM];
         }
         const int expireresult = stats[VOTE_YES] / (float)(stats[VOTE_NO] + stats[VOTE_YES]) > action->passratio ? VOTE_YES : VOTE_NO;
-        sendf(-1, 1, "ri4", SV_VOTEREMAIN, expireresult,
+        sendf(NULL, 1, "ri4", SV_VOTEREMAIN, expireresult,
             (int)(stats[VOTE_NUM] * action->passratio) + 1 - stats[VOTE_YES],
             (int)(stats[VOTE_NUM] * action->passratio) + 1 - stats[VOTE_NO]);
         // can it end?
@@ -2616,8 +2616,9 @@ void scallvotesuc(voteinfo *v)
 void scallvoteerr(voteinfo *v, int error)
 {
     if(!valid_client(v->owner)) return;
-    sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, error);
-    logline(ACLOG_INFO, "[%s] %s failed to call a vote: %s (%s)", clients[v->owner]->gethostname(), clients[v->owner]->formatname(), v->action && v->action->desc ? v->action->desc : "[unknown]", voteerrorstr(error));
+    client &owner = *clients[v->owner];
+    sendf(&owner, 1, "ri2", SV_CALLVOTEERR, error);
+    logline(ACLOG_INFO, "[%s] %s failed to call a vote: %s (%s)", owner.gethostname(), owner.formatname(), v->action && v->action->desc ? v->action->desc : "[unknown]", voteerrorstr(error));
 }
 
 void sendcallvote(client *cl = NULL);
@@ -2651,7 +2652,7 @@ bool scallvote(voteinfo *v) // true if a regular vote was called
         scallvotesuc(v);
         sendcallvote();
         // owner auto votes yes
-        sendf(-1, 1, "ri3", SV_VOTE, v->owner, (c->vote = VOTE_YES));
+        sendf(NULL, 1, "ri3", SV_VOTE, v->owner, (c->vote = VOTE_YES));
         curvote->evaluate();
         return true;
     }
@@ -2736,7 +2737,7 @@ void setpriv(client &cl, int priv)
     if (!priv) // relinquish
     {
         if (!cl.role) return; // no privilege to relinquish
-        sendf(-1, 1, "ri4", SV_CLAIMPRIV, cl.clientnum, cl.role, 1);
+        sendf(NULL, 1, "ri4", SV_CLAIMPRIV, cl.clientnum, cl.role, 1);
         logline(ACLOG_INFO, "[%s] %s relinquished %s access", cl.gethostname(), cl.formatname(), privname(cl.role));
         cl.role = CR_DEFAULT;
         sendserveropinfo();
@@ -2744,7 +2745,7 @@ void setpriv(client &cl, int priv)
     }
     else if (cl.role >= priv)
     {
-        sendf(cl.clientnum, 1, "ri4", SV_CLAIMPRIV, cl.clientnum, priv, 2);
+        sendf(&cl, 1, "ri4", SV_CLAIMPRIV, cl.clientnum, priv, 2);
         return;
     }
     /*
@@ -2756,7 +2757,7 @@ void setpriv(client &cl, int priv)
     }
     */
     cl.role = priv;
-    sendf(-1, 1, "ri4", SV_CLAIMPRIV, cl.clientnum, cl.role, 0);
+    sendf(NULL, 1, "ri4", SV_CLAIMPRIV, cl.clientnum, cl.role, 0);
     logline(ACLOG_INFO, "[%s] %s claimed %s access", cl.gethostname(), cl.formatname(), privname(cl.role));
     sendserveropinfo();
     //if(curvote) curvote->evaluate();
@@ -2850,7 +2851,7 @@ void disconnect_client(int n, int reason)
     totalclients--;
     c.peer->data = (void *)-1;
     if(reason>=0) enet_peer_disconnect(c.peer, reason);
-    sendf(-1, 1, "ri3", SV_CDIS, n, max(reason, 0));
+    sendf(NULL, 1, "ri3", SV_CDIS, n, max(reason, 0));
     if(curvote) curvote->evaluate();
     // do cleanup
     clientdisconnect(n);
@@ -2865,7 +2866,7 @@ void disconnect_client(int n, int reason)
 
 void sendresume(client &c, bool broadcast)
 {
-    sendf(broadcast ? -1 : c.clientnum, 1, "ri9i6vvi", SV_RESUME,
+    sendf(broadcast ? NULL : &c, 1, "ri9i6vvi", SV_RESUME,
             c.clientnum,
             c.state.state == CS_WAITING ? CS_DEAD : c.state.state,
             c.state.lifesequence,
@@ -2902,7 +2903,7 @@ bool restorescore(client &c)
 
 void sendservinfo(client &c)
 {
-    sendf(c.clientnum, 1, "ri5", SV_SERVINFO, c.clientnum, isdedicated ? SERVER_PROTOCOL_VERSION : PROTOCOL_VERSION, c.salt, scl.serverpassword[0] ? 1 : 0);
+    sendf(&c, 1, "ri5", SV_SERVINFO, c.clientnum, isdedicated ? SERVER_PROTOCOL_VERSION : PROTOCOL_VERSION, c.salt, scl.serverpassword[0] ? 1 : 0);
 }
 
 void putinitai(client &c, ucharbuf &p)
@@ -2983,7 +2984,7 @@ void welcomepacket(packetbuf &p, int n)
     savedscore *sc = NULL;
     if(c)
     {
-        if(c->type == ST_TCPIP) sendserveropinfo(n);
+        if(c->type == ST_TCPIP) sendserveropinfo(c);
         c->team = mastermode == MM_MATCH && sc ? team_tospec(sc->team) : TEAM_SPECT;
         putint(p, SV_SETTEAM);
         putint(p, n);
@@ -2991,7 +2992,7 @@ void welcomepacket(packetbuf &p, int n)
 
         putint(p, SV_FORCEDEATH);
         putint(p, n);
-        sendf(-1, 1, "ri2x", SV_FORCEDEATH, n, n);
+        sendf(NULL, 1, "ri2x", SV_FORCEDEATH, n, n);
     }
     if(!c || clients.length()>1)
     {
@@ -3046,7 +3047,7 @@ void forcedeath(client *cl, bool gib)
     sdropflag(cl->clientnum);
     cl->state.state = CS_DEAD;
     cl->state.respawn();
-    sendf(-1, 1, "ri2", gib ? SV_FORCEGIB : SV_FORCEDEATH, cl->clientnum);
+    sendf(NULL, 1, "ri2", gib ? SV_FORCEGIB : SV_FORCEDEATH, cl->clientnum);
 }
 
 bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
@@ -3138,7 +3139,7 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
             logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cp.gethostname(), cp.formatname(), ++cp.mapcollisions);
             defformatstring(msg)("%s \f2collides with the map \f5- \f3forcing death", cp.formatname());
             sendservmsg(msg);
-            sendf(cp.clientnum, 1, "ri", SV_MAPIDENT);
+            sendf(&cp, 1, "ri", SV_MAPIDENT);
             forcedeath(&cp);
             cp.isonrightmap = false; // cannot spawn until you get the right map
         }
@@ -3169,7 +3170,7 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
             // server side item pickup, acknowledge first client that moves to the entity
             e.spawned = false;
             int spawntime(int type);
-            sendf(-1, 1, "ri4", SV_ITEMACC, i, cp.clientnum, e.spawntime = spawntime(e.type));
+            sendf(NULL, 1, "ri4", SV_ITEMACC, i, cp.clientnum, e.spawntime = spawntime(e.type));
             cs.pickup(sents[i].type);
         }
     }
@@ -3289,7 +3290,7 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
                 addptreason(clients[sconfirms[i].actor], PR_KD_ENEMY);
         }
 
-        sendf(-1, 1, "ri2", SV_CONFIRMREMOVE, sconfirms[i].id);
+        sendf(NULL, 1, "ri2", SV_CONFIRMREMOVE, sconfirms[i].id);
         sconfirms.remove(i--);
     }
     // TODO throwing knife pickup
@@ -3455,19 +3456,19 @@ void process(ENetPacket *packet, int sender, int chan)
                     const char *forbidden = forbiddenlist.forbidden(text);
                     if(forbidden)
                     {
-                        sendservmsg("\f3Please do not spam; your message was not delivered.", sender);
+                        sendservmsg("\f3Please do not spam; your message was not delivered.", cl);
                         logline(ACLOG_INFO, "[%s] %s says to %s: '%s', SPAM detected", cl->gethostname(), cl->formatname(), target->formatname(), text);
                     }
                     else if(spamdetect(cl, text))
                     {
-                        sendservmsg("\f3Watch your language! Your message was not delivered.", sender);
+                        sendservmsg("\f3Watch your language! Your message was not delivered.", cl);
                         logline(ACLOG_INFO, "[%s] %s says to %s: '%s', forbidden (%s)", cl->gethostname(), cl->formatname(), target->formatname(), text, forbidden);
                     }
                     else
                     {
                         bool allowed = !(mastermode == MM_MATCH && cl->team != target->team) && cl->role >= roleconf('t');
                         logline(ACLOG_INFO, "[%s] %s says to %s: '%s'%s", cl->gethostname(), cl->formatname(), target->formatname(), text, allowed ? "" : ", disallowed");
-                        if(allowed) sendf(target->clientnum, 1, "riis", SV_TEXTPRIVATE, cl->clientnum, text);
+                        if(allowed) sendf(target, 1, "riis", SV_TEXTPRIVATE, cl->clientnum, text);
                     }
                 }
             }
@@ -3516,7 +3517,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 if (gunselect != cp.state.primary)
                 {
                     // stop bots from switching back
-                    sendf(-1, 1, "ri5", SV_RELOAD, cn, gunselect, cp.state.mag[gunselect] = 0, cp.state.ammo[gunselect] = 0);
+                    sendf(NULL, 1, "ri5", SV_RELOAD, cn, gunselect, cp.state.mag[gunselect] = 0, cp.state.ammo[gunselect] = 0);
                     // disallow switching
                     sendf(sender, 1, "ri3", SV_WEAPCHANGE, cn, cp.state.primary);
                 }
@@ -3550,7 +3551,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 --cps.grenades.throwable;
                 checkpos(from);
                 if (vel.magnitude() > NADEPOWER) vel.normalize().mul(NADEPOWER);
-                sendf(-1, 1, "ri9x", SV_THROWNADE, cn, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF),
+                sendf(NULL, 1, "ri9x", SV_THROWNADE, cn, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF),
                     (int)(vel.x*DNF), (int)(vel.y*DNF), (int)(vel.z*DNF), cooked, sender);
                 break;
             }
@@ -3623,12 +3624,12 @@ void process(ENetPacket *packet, int sender, int chan)
                     if (mastermode == MM_OPEN && cl->state.forced && team_base(cl->team) != team_base(t))
                     {
                         // no free will changes for forced people
-                        sendf(sender, 1, "ri2", SV_TEAMDENY, 0x10);
+                        sendf(cl, 1, "ri2", SV_TEAMDENY, 0x10);
                         break;
                     }
                     else if (!autobalance_mode)
                     {
-                        sendf(sender, 1, "ri2", SV_TEAMDENY, 0x11);
+                        sendf(cl, 1, "ri2", SV_TEAMDENY, 0x11);
                         break;
                     }
                     else if (m_team(gamemode, mutators))
@@ -3641,13 +3642,13 @@ void process(ENetPacket *packet, int sender, int chan)
                                 if (team_base(t) != team_base(cl->team))
                                 {
                                     // no switching sides in match mode when teamsize is set
-                                    sendf(sender, 1, "ri2", SV_TEAMDENY, 0x12);
+                                    sendf(cl, 1, "ri2", SV_TEAMDENY, 0x12);
                                     break;
                                 }
                                 else if (team_isactive(t) && teamsizes[t] >= matchteamsize)
                                 {
                                     // ensure maximum team size
-                                    sendf(sender, 1, "ri2", SV_TEAMDENY, t);
+                                    sendf(cl, 1, "ri2", SV_TEAMDENY, t);
                                     break;
                                 }
                             }
@@ -3655,7 +3656,7 @@ void process(ENetPacket *packet, int sender, int chan)
                         else if (team_isactive(t) && autoteam && teamsizes[t] > teamsizes[team_opposite(t)])
                         {
                             // don't switch to an already bigger team
-                            sendf(sender, 1, "ri2", SV_TEAMDENY, t);
+                            sendf(cl, 1, "ri2", SV_TEAMDENY, t);
                             break;
                         }
                     }
@@ -3683,11 +3684,11 @@ void process(ENetPacket *packet, int sender, int chan)
             }
 
             case SV_THIRDPERSON:
-                sendf(-1, 1, "ri3x", SV_THIRDPERSON, sender, cl->acthirdperson = getint(p), sender);
+                sendf(NULL, 1, "ri3x", SV_THIRDPERSON, sender, cl->acthirdperson = getint(p), sender);
                 break;
 
             case SV_LEVEL:
-                sendf(-1, 1, "ri3x", SV_LEVEL, sender, cl->level = clamp(getint(p), 1, MAXLEVEL), sender);
+                sendf(NULL, 1, "ri3x", SV_LEVEL, sender, cl->level = clamp(getint(p), 1, MAXLEVEL), sender);
                 break;
 
             case SV_TRYSPAWN:
@@ -3696,7 +3697,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 if (cs.state == CS_WAITING) // dequeue spawn
                 {
                     cs.state = CS_DEAD;
-                    sendf(sender, 1, "ri2", SV_TRYSPAWN, 0);
+                    sendf(cl, 1, "ri2", SV_TRYSPAWN, 0);
                     break;
                 }
                 if (!cl->isonrightmap || !maplayout) // need the map for spawning
@@ -3716,7 +3717,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 // enqueue for spawning
                 cs.state = CS_WAITING;
                 const int waitremain = SPAWNDELAY - gamemillis + cs.lastdeath;
-                sendf(sender, 1, "ri2", SV_TRYSPAWN, waitremain >= 1 ? waitremain : 1);
+                sendf(cl, 1, "ri2", SV_TRYSPAWN, waitremain >= 1 ? waitremain : 1);
                 break;
             }
 
@@ -3735,7 +3736,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 cs.o = cp.spawnp = o;
                 cp.spj = cp.ldt = 40;
                 // send spawn packet, but not with QUEUE_BUF -- we need it sequenced
-                sendf(-1, 1, "rxi3i6vvi4", sender, SV_SPAWN, cn, ls,
+                sendf(NULL, 1, "rxi3i6vvi4", sender, SV_SPAWN, cn, ls,
                     cs.health, cs.armour, cs.perk1, cs.perk2, cs.primary, cs.secondary,
                     NUMGUNS, cs.ammo, NUMGUNS, cs.mag, (int)(o.x*DMF), (int)(o.y*DMF), (int)(o.z*DMF), cl->y);
                 // bad spawn adjustment?
@@ -3830,7 +3831,7 @@ void process(ENetPacket *packet, int sender, int chan)
             }
 
             case SV_PINGPONG:
-                sendf(sender, 1, "ii", SV_PINGPONG, getint(p));
+                sendf(cl, 1, "ii", SV_PINGPONG, getint(p));
                 break;
 
             case SV_CLIENTPING:
@@ -3842,7 +3843,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 loopv(clients)
                     if(clients[i]->type != ST_EMPTY && (i == sender || clients[i]->ownernum == sender))
                         clients[i]->ping = ping;
-                sendf(-1, 1, "i3", SV_CLIENTPING, sender, ping);
+                sendf(NULL, 1, "i3", SV_CLIENTPING, sender, ping);
                 break;
             }
 
@@ -3948,27 +3949,27 @@ void process(ENetPacket *packet, int sender, int chan)
                 {
                     reject = "map is ro";
                     defformatstring(msg)("\f3map upload rejected: map %s is readonly", sentmap);
-                    sendservmsg(msg, sender);
+                    sendservmsg(msg, cl);
                 }
                 else if( scl.incoming_limit && ( scl.incoming_limit << 20 ) < incoming_size + mapsize + cfgsizegz )
                 {
                     reject = "server incoming reached its limits";
-                    sendservmsg("\f3server does not support more incomings: limit reached", sender);
+                    sendservmsg("\f3server does not support more incomings: limit reached", cl);
                 }
                 else if(mp == MAP_NOTFOUND && strchr(scl.mapperm, 'C') && cl->role < CR_ADMIN)
                 {
                     reject = "no permission for initial upload";
-                    sendservmsg("\f3initial map upload rejected: you need to be admin", sender);
+                    sendservmsg("\f3initial map upload rejected: you need to be admin", cl);
                 }
                 else if(mp == MAP_TEMP && revision >= mapbuffer.revision && !strchr(scl.mapperm, 'u') && cl->role < CR_ADMIN) // default: only admins can update maps
                 {
                     reject = "no permission to update";
-                    sendservmsg("\f3map update rejected: you need to be admin", sender);
+                    sendservmsg("\f3map update rejected: you need to be admin", cl);
                 }
                 else if(mp == MAP_TEMP && revision < mapbuffer.revision && !strchr(scl.mapperm, 'r') && cl->role < CR_ADMIN) // default: only admins can revert maps to older revisions
                 {
                     reject = "no permission to revert revision";
-                    sendservmsg("\f3map revert to older revision rejected: you need to be admin to upload an older map", sender);
+                    sendservmsg("\f3map revert to older revision rejected: you need to be admin to upload an older map", cl);
                 }
                 else
                 {
@@ -3984,7 +3985,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     else
                     {
                         reject = "write failed (no 'incoming'?)";
-                        sendservmsg("\f3map upload failed", sender);
+                        sendservmsg("\f3map upload failed", cl);
                     }
                 }
                 if (reject)
@@ -4007,7 +4008,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     cl->mapchange(true);
                     sendwelcome(cl, 2); // resend state properly
                 }
-                else sendservmsg("no map to get", cl->clientnum);
+                else sendservmsg("no map to get", cl);
                 break;
             }
 
@@ -4029,14 +4030,14 @@ void process(ENetPacket *packet, int sender, int chan)
                     formatstring(filename)(SERVERMAP_PATH_INCOMING "%s.cfg", rmmap);
                     remove(filename);
                     defformatstring(msg)("map '%s' deleted", rmmap);
-                    sendservmsg(msg, sender);
+                    sendservmsg(msg, cl);
                     logline(ACLOG_INFO, "[%s] deleted map %s", clients[sender]->gethostname(), rmmap);
                 }
                 if (reject)
                 {
                     logline(ACLOG_INFO, "[%s] deleting map %s failed: %s", clients[sender]->gethostname(), rmmap, reject);
                     defformatstring(msg)("\f3can't delete map '%s', %s", rmmap, reject);
-                    sendservmsg(msg, sender);
+                    sendservmsg(msg, cl);
                 }
                 break;
             }
@@ -4076,7 +4077,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 }
                 else if (!pd.priv)
                 {
-                    sendf(sender, 1, "ri4", SV_CLAIMPRIV, sender, 0, 3);
+                    sendf(cl, 1, "ri4", SV_CLAIMPRIV, sender, 0, 3);
                     if (pd.line >= 0) logline(ACLOG_INFO, "[%s] %s used non-privileged password on line %d", cl->gethostname(), cl->formatname(), pd.line);
                 }
                 else
@@ -4245,14 +4246,14 @@ void process(ENetPacket *packet, int sender, int chan)
                     {
                         if (cl->role >= curvote->action->reqcall && cl->role >= curvote->action->reqveto)
                             curvote->evaluate(true, vote, sender);
-                        else sendf(sender, 1, "ri2", SV_CALLVOTEERR, VOTEE_VETOPERM);
+                        else sendf(cl, 1, "ri2", SV_CALLVOTEERR, VOTEE_VETOPERM);
                         break;
                     }
                     else logline(ACLOG_INFO, "[%s] %s now votes %s", cl->gethostname(), cl->formatname(), vote == VOTE_NO ? "no" : "yes");
                 }
                 else logline(ACLOG_INFO, "[%s] %s voted %s", cl->gethostname(), cl->formatname(), vote == VOTE_NO ? "no" : "yes");
                 cl->vote = vote;
-                sendf(-1, 1, "ri3", SV_VOTE, sender, vote);
+                sendf(NULL, 1, "ri3", SV_VOTE, sender, vote);
                 curvote->evaluate();
                 break;
             }
@@ -4261,7 +4262,7 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 const int cn = getint(p);
                 if (!valid_client(cn) || clients[cn]->type != ST_TCPIP) break;
-                sendf(-1, 1, "ri4", SV_WHOIS, -1, sender, cn);
+                sendf(NULL, 1, "ri4", SV_WHOIS, -1, sender, cn);
                 uint ip = clients[cn]->peer->address.host;
                 uchar mask = 0;
                 if (cn == sender) mask = 32;
@@ -4273,7 +4274,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     case CR_MASTER: case CR_DEFAULT: default: mask = 20; break;
                 }
                 if (mask < 32) ip &= (1 << mask) - 1;
-                sendf(sender, 1, "ri5s", SV_WHOIS, cn, ip, mask, clients[cn]->peer->address.port, clients[cn]->authname);
+                sendf(cl, 1, "ri5s", SV_WHOIS, cn, ip, mask, clients[cn]->peer->address.port, clients[cn]->authname);
                 break;
             }
 
@@ -4302,8 +4303,8 @@ void process(ENetPacket *packet, int sender, int chan)
 #endif
                         if (snd == S_JUMP && cn == sender)
                         {
-                            sendf(-1, 1, "ri8i3", SV_DAMAGE, cn, cn, 200 * HEALTHSCALE, clients[cn]->state.armour, clients[cn]->state.health, GUN_KNIFE, FRAG_GIB, (int)(clients[cn]->state.o.x*DMF), (int)(clients[cn]->state.o.y*DMF), INT_MIN);
-                            sendf(-1, 1, "ri8i3", SV_DAMAGE, cn, cn, 0, clients[cn]->state.armour, clients[cn]->state.health, GUN_HEAL, FRAG_NONE, 0, 0, 0);
+                            sendf(NULL, 1, "ri8i3", SV_DAMAGE, cn, cn, 200 * HEALTHSCALE, clients[cn]->state.armour, clients[cn]->state.health, GUN_KNIFE, FRAG_GIB, (int)(clients[cn]->state.o.x*DMF), (int)(clients[cn]->state.o.y*DMF), INT_MIN);
+                            sendf(NULL, 1, "ri8i3", SV_DAMAGE, cn, cn, 0, clients[cn]->state.armour, clients[cn]->state.health, GUN_HEAL, FRAG_NONE, 0, 0, 0);
                         }
 #endif
                     case S_SOFTLAND:
@@ -4346,7 +4347,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     if(valid_client(sender) && clients[sender]->role>=CR_ADMIN)
                     {
                         logline(ACLOG_INFO, "[%s] %s writes to log: %s", cl->gethostname(), cl->formatname(), text);
-                        sendservmsg("your message has been logged", sender);
+                        sendservmsg("your message has been logged", cl);
                     }
                 }
                 else if(!strcmp(ext, "set::teamsize"))
@@ -4358,7 +4359,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     {
                         changematchteamsize(atoi(text));
                         defformatstring(msg)("match team size set to %d", matchteamsize);
-                        sendservmsg(msg, -1);
+                        sendservmsg(msg);
                     }
                 }
                 // else if()
@@ -4491,7 +4492,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 e.attr4 = attr4;
                 // is it spawned?
                 if((e.spawned = e.fitsmode(smode, smuts)))
-                    sendf(-1, 1, "ri2", SV_ITEMSPAWN, id);
+                    sendf(NULL, 1, "ri2", SV_ITEMSPAWN, id);
                 e.spawntime = 0;
                 QUEUE_MSG;
                 break;
@@ -4555,7 +4556,7 @@ void checkintermission()
     if(minremain>0)
     {
         minremain = (gamemillis>=gamelimit || forceintermission) ? 0 : (gamelimit - gamemillis + 60000 - 1)/60000;
-        sendf(-1, 1, "ri3", SV_TIMEUP, (gamemillis>=gamelimit || forceintermission) ? gamelimit : gamemillis, gamelimit);
+        sendf(NULL, 1, "ri3", SV_TIMEUP, (gamemillis>=gamelimit || forceintermission) ? gamelimit : gamemillis, gamelimit);
     }
     if(!interm && minremain<=0) interm = gamemillis+10000;
     forceintermission = false;
