@@ -681,42 +681,54 @@ void drawradar_showmap(playerent *p, int w, int h)
     }
     if(m_flags(gamemode))
     {
-        glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        loopi(2) // flag items
+        if (m_secure(gamemode))
         {
-            flaginfo &f = flaginfos[i];
-            entity *e = f.flagent;
-            if(!e) continue;
-            if(e->x == -1 && e-> y == -1) continue; // flagdummies
-            vec pos = vec(e->x, e->y, 0).sub(mdd).mul(coordtrans);
-            drawradarent(pos.x, pos.y, 0, m_keep(gamemode) ? 2 : f.team, 3, iconsize, false); // draw bases
-            vec fltxoff = vec(8, -8, 0);
-            vec cpos = vec(f.pos.x, f.pos.y, f.pos.z).sub(mdd).mul(coordtrans).add(fltxoff);
-            if(f.state!=CTFF_STOLEN && !(m_keep(gamemode) && f.state == CTFF_IDLE))
+        }
+        else
+        {
+            glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            loopi(2) // flag items
             {
-                float flgoff=fabs((radarentsize*2.1f)-8);
-                drawradarent(cpos.x+flgoff, cpos.y-flgoff, 0, 3, m_keep(gamemode) ? 2 : f.team, iconsize, false); // draw on entity pos
-            }
-            if(m_keep(gamemode) && f.state == CTFF_IDLE) continue;
-            if(f.state==CTFF_STOLEN)
-            {
-                float d2c = 1.6f * radarentsize/16.0f;
-                vec apos(d2c, -d2c, 0);
-                if(f.actor)
+                flaginfo &f = flaginfos[i];
+                entity *e = f.flagent;
+                if(!e) continue;
+                if(e->x == -1 && e-> y == -1) continue; // flagdummies
+                vec pos = vec(e->x, e->y, 0).sub(mdd).mul(coordtrans);
+                drawradarent(pos.x, pos.y, 0, m_keep(gamemode) && !m_ktf2(gamemode, mutators) && f.state != CTFF_IDLE ? 2 : f.team, 3, iconsize); // draw bases
+                vec fltxoff = vec(8, -8, 0);
+                vec cpos = vec(f.pos.x, f.pos.y, f.pos.z).sub(mdd).mul(coordtrans).add(fltxoff);
+                if(f.state!=CTFF_STOLEN)
                 {
-                    apos.add(f.actor->o);
-                    bool tm = i != team_base(p->team);
-                    if(m_hunt(gamemode)) tm = !tm;
-                    else if(m_keep(gamemode)) tm = true;
-                    if(tm)
-                    {
-                        apos.sub(mdd).mul(coordtrans);
-                        drawradarent(apos.x, apos.y, 0, 3, m_keep(gamemode) ? 2 : f.team, iconsize, true); // draw near flag thief
-                    }
+                    float flgoff=fabs((radarentsize*2.1f)-8);
+                    drawradarent(cpos.x+flgoff, cpos.y-flgoff, 0, 3, m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? 2 : f.team, iconsize, 0, f.state == CTFF_IDLE ? .3f : 1); // draw on entity pos
+                }
+                if (f.state == CTFF_STOLEN && f.actor)
+                {
+                    float d2c = 1.6f * radarentsize / 16.0f;
+                    vec apos(d2c, -d2c, 0);
+                    if (hasradar || isteam(p, f.actor))
+                        apos.add(f.actor->o);
+                    else if (!m_classic(gamemode, mutators))
+                        apos.add(f.actor->lastloudpos.v);
+                    apos.sub(mdd).mul(coordtrans);
+                    drawradarent(apos.x, apos.y, 0, 3, m_keep(gamemode) ? 2 : f.team, iconsize, f.team + 1); // draw near flag thief
                 }
             }
         }
+    }
+    else if (m_edit(gamemode))
+    {
+        loopv(ents)
+            if (ents[i].type == CTF_FLAG && !OUTBORD(ents[i].x, ents[i].y))
+            {
+                float d2c = 1.6f * radarentsize / 16.0f;
+                vec apos(d2c, -d2c, 0);
+                apos.x += ents[i].x;
+                apos.y += ents[i].y;
+                apos.sub(mdd).mul(coordtrans);
+                drawradarent(apos.x, apos.y, 0, clamp((int)ents[i].attr2, 0, 2), 3, iconsize);
+            }
     }
     loopv(bounceents) // grenades
     {
@@ -851,56 +863,71 @@ void drawradar_vicinity(playerent *p, int w, int h)
             drawradarent(rtmp.x, rtmp.y, pl->lastloudpos.w, pl->state == CS_DEAD ? 1 : (isattacking(pl) ? 2 : 0), isteam(p, pl) ? 2 : 0, iconsize, 0, (radarenemyfade - lastmillis + pl->radarmillis) / (float)radarenemyfade, "\f3%s", colorname(pl));
         }
     }
-    if(m_flags(gamemode))
+    if (m_flags(gamemode))
     {
-        glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        float d2c = 1.6f * radarentsize/16.0f;
-        loopi(2) // flag items
+        if (m_secure(gamemode))
         {
-            flaginfo &f = flaginfos[i];
-            entity *e = f.flagent;
-            if(!e) continue;
-            if(e->x == -1 && e-> y == -1) continue; // flagdummies
-            vec pos = vec(e->x, e->y, 0).sub(p->o);
-            vec cpos = vec(f.pos.x, f.pos.y, f.pos.z).sub(p->o);
-            //if(showradarvalues) { conoutf("dist2F[%d]: %.2f|%.2f || %.2f|%.2f", i, pos.x, pos.y, cpos.x, cpos.y); }
-            if (pos.magnitude() > d2s)
-                pos.normalize().mul(d2s);
-            pos.mul(scaled);
-            drawradarent(pos.x, pos.y, 0, m_keep(gamemode) ? 2 : f.team, 3, iconsize, false); // draw bases [circle doesn't need rotating]
-            if(f.state!=CTFF_STOLEN && !(m_keep(gamemode) && f.state == CTFF_IDLE))
+        }
+        else
+        {
+            glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            float d2c = 1.6f * radarentsize / 16.0f;
+            loopi(2) // flag items
             {
-                if (cpos.magnitude() > d2s)
-                    cpos.normalize().mul(d2s);
-                cpos.mul(scaled);
-                float flgoff=radarentsize/0.68f;
-                float ryaw=(camera1->yaw-45)*(2*PI/360);
-                float offx=flgoff*cosf(-ryaw);
-                float offy=flgoff*sinf(-ryaw);
-                drawradarent(cpos.x+offx, cpos.y-offy, camera1->yaw, 3, m_keep(gamemode) ? 2 : f.team, iconsize, false); // draw flag on entity pos
-            }
-            if(m_keep(gamemode) && f.state == CTFF_IDLE) continue;
-            if(f.state==CTFF_STOLEN)
-            {
-                vec apos(d2c, -d2c, 0);
-                if(f.actor)
+                flaginfo &f = flaginfos[i];
+                entity *e = f.flagent;
+                if (!e) continue;
+                if (e->x == -1 && e->y == -1) continue; // flagdummies
+                vec pos = vec(e->x, e->y, 0).sub(p->o);
+                vec cpos = vec(f.pos.x, f.pos.y, f.pos.z).sub(p->o);
+                //if(showradarvalues) { conoutf("dist2F[%d]: %.2f|%.2f || %.2f|%.2f", i, pos.x, pos.y, cpos.x, cpos.y); }
+                if (pos.magnitude() > d2s)
+                    pos.normalize().mul(d2s);
+                pos.mul(scaled);
+                drawradarent(pos.x, pos.y, 0, m_keep(gamemode) && !m_ktf2(gamemode, mutators) && f.state != CTFF_IDLE ? 2 : f.team, 3, iconsize); // draw bases [circle doesn't need rotating]
+                if (f.state != CTFF_STOLEN)
                 {
-                    apos.add(f.actor->o);
-                    bool tm = i != team_base(p->team);
-                    if(m_hunt(gamemode)) tm = !tm;
-                    else if(m_keep(gamemode)) tm = true;
-                    if(tm)
-                    {
-                        apos.sub(p->o);
-                        if (apos.magnitude() > d2s)
-                            apos.normalize().mul(d2s);
-                        apos.mul(scaled);
-                        drawradarent(apos.x, apos.y, camera1->yaw, 3, m_keep(gamemode) ? 2 : f.team, iconsize, true); // draw near flag thief
-                    }
+                    if (cpos.magnitude() > d2s)
+                        cpos.normalize().mul(d2s);
+                    cpos.mul(scaled);
+                    float flgoff = radarentsize / 0.68f;
+                    float ryaw = (camera1->yaw - 45)*(2 * PI / 360);
+                    float offx = flgoff*cosf(-ryaw);
+                    float offy = flgoff*sinf(-ryaw);
+                    drawradarent(cpos.x + offx, cpos.y - offy, camera1->yaw, 3, m_keep(gamemode) && !m_ktf2(gamemode, mutators) ? 2 : f.team, iconsize, 0, f.state == CTFF_IDLE ? .3f : 1); // draw flag on entity pos
+                }
+                if (f.state == CTFF_STOLEN && f.actor)
+                {
+                    vec apos(d2c, -d2c, 0);
+                    if (hasradar || isteam(p, f.actor))
+                        apos.add(f.actor->o);
+                    else if (!m_classic(gamemode, mutators))
+                        apos.add(f.actor->lastloudpos.v);
+                    apos.sub(p->o);
+                    if (apos.magnitude() > d2s)
+                        apos.normalize().mul(d2s);
+                    apos.mul(scaled);
+                    drawradarent(apos.x, apos.y, camera1->yaw, 3, m_keep(gamemode) ? 2 : f.team, iconsize, f.team + 1); // draw near flag thief
                 }
             }
         }
+    }
+    else if (m_edit(gamemode))
+    {
+        loopv(ents)
+            if (ents[i].type == CTF_FLAG && !OUTBORD(ents[i].x, ents[i].y))
+            {
+                float d2c = 1.6f * radarentsize / 16.0f;
+                vec apos(d2c, -d2c, 0);
+                apos.x += ents[i].x;
+                apos.y += ents[i].y;
+                apos.sub(p->o);
+                if (apos.magnitude() > d2s)
+                    apos.normalize().mul(d2s);
+                apos.mul(scaled);
+                drawradarent(apos.x, apos.y, 0, clamp((int)ents[i].attr2, 0, 2), 3, iconsize);
+            }
     }
     showradarvalues = 0; // DEBUG - also see two bits commented-out above
     loopv(bounceents) // grenades
