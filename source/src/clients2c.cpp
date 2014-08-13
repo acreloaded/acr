@@ -871,7 +871,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     p->weapons[gun]->reload(false);
                 p->ammo[gun] = ammo;
                 p->mag[gun] = mag;
-                //if (gun == GUN_KNIFE) p->addicon(eventicon::PICKUP);
+                if (gun == GUN_KNIFE) p->addicon(eventicon::PICKUP);
                 break;
             }
 

@@ -47,7 +47,7 @@ bool addai()
     b.reset();
     b.type = ST_AI;
     b.isauthed = b.isonrightmap = true;
-    b.team = rnd(2); // FIXME choose smaller/worse team
+    b.team = chooseteam(b);
     b.skin[0] = randomMT(); // random skins
     b.skin[1] = randomMT(); // random skins
     b.level = 40 + rnd(61); // how smart/stupid the bot is can be set here (currently random from 40 to 100)

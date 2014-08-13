@@ -3292,7 +3292,16 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
         sendf(NULL, 1, "ri2", SV_CONFIRMREMOVE, sconfirms[i].id);
         sconfirms.remove(i--);
     }
-    // TODO throwing knife pickup
+    // throwing knife pickup
+    if (cp.type != ST_AI) loopv(sknives)
+    {
+        const bool pickup = cs.o.dist(sknives[i].o) < 5 && cs.ammo[GUN_KNIFE] < ammostats[GUN_KNIFE].max, expired = gamemillis - sknives[i].millis > KNIFETTL;
+        if (pickup || expired){
+            if (pickup) sendf(NULL, 1, "ri5", SV_RELOAD, cp.clientnum, GUN_KNIFE, cs.mag[GUN_KNIFE], ++cs.ammo[GUN_KNIFE]);
+            sendf(NULL, 1, "ri2", SV_KNIFEREMOVE, sknives[i].id);
+            sknives.remove(i--);
+        }
+    }
     return true;
 }
 
@@ -3763,8 +3772,8 @@ void process(ENetPacket *packet, int sender, int chan)
                 break;
             }
 
-            case SV_SHOOT: // TODO: cn id weap to.x to.y to.z heads.length heads.v
-            case SV_SHOOTC: // TODO: cn id weap
+            case SV_SHOOT: // cn id weap to.x to.y to.z heads.length heads.v
+            case SV_SHOOTC: // cn id weap
             {
                 const int cn = getint(p), id = getint(p), weap = getint(p);
                 shotevent *ev = new shotevent(0, id, weap);
