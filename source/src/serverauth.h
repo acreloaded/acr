@@ -104,7 +104,7 @@ void checkauthdisc(client &cl, bool force = false)
     {
         cl.connectauth = false;
         const int disc = allowconnect(cl);
-        if (disc) disconnect_client(cl.clientnum, disc);
+        if (disc) disconnect_client(cl, disc);
     }
 }
 

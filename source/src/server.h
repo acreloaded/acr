@@ -535,7 +535,7 @@ struct demofile
 void clearai(), checkai();
 
 void startgame(const char *newname, int newmode, int newmuts, int newtime = -1, bool notify = true);
-void disconnect_client(int n, int reason = -1);
+void disconnect_client(client &cl, int reason = -1);
 void sendservmsg(const char *msg, client *cl = NULL);
 int clienthasflag(int cn);
 void convertcheck(bool quick = false);
@@ -548,12 +548,12 @@ int calcscores();
 void recordpacket(int chan, void *data, int len);
 void senddisconnectedscores(client *cl = NULL);
 void process(ENetPacket *packet, int sender, int chan);
-void welcomepacket(packetbuf &p, int n);
+void welcomepacket(packetbuf &p, client *c);
 void sendwelcome(client &cl, int chan = 1);
 void sendpacket(client *cl, int chan, ENetPacket *packet, int exclude = -1, bool demopacket = false);
 int numclients();
 bool canspawn(client &c, bool connecting = false);
-bool updateclientteam(int cln, int newteam, int ftr);
+bool updateclientteam(client &cl, int newteam, int ftr);
 void forcedeath(client &cl, bool gib = false);
 void sendf(client *cl, int chan, const char *format, ...);
 void addpt(client &c, int points, int reason = -1);

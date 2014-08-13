@@ -321,11 +321,12 @@ void changematchteamsize(int newteamsize)
     if(mastermode == MM_MATCH && matchteamsize && m_team(gamemode, mutators))
     {
         int size[2] = { 0 };
-        loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed && clients[i]->isonrightmap)
+        loopv(clients)
         {
-            if(team_isactive(clients[i]->team))
+            client &cl = *clients[i];
+            if (cl.type != ST_EMPTY && cl.isauthed && cl.isonrightmap && team_isactive(cl.team))
             {
-                if(++size[clients[i]->team] > matchteamsize) updateclientteam(i, team_tospec(clients[i]->team), FTR_SILENT);
+                if (++size[cl.team] > matchteamsize) updateclientteam(cl, team_tospec(cl.team), FTR_SILENT);
             }
         }
     }
@@ -339,9 +340,11 @@ void changemastermode(int newmode)
         senddisconnectedscores();
         if(mastermode != MM_MATCH)
         {
-            loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed)
+            loopv(clients)
             {
-                if(clients[i]->team == TEAM_CLA_SPECT || clients[i]->team == TEAM_RVSF_SPECT) updateclientteam(i, TEAM_SPECT, FTR_SILENT);
+                client &cl = *clients[i];
+                if (cl.type != ST_EMPTY && cl.isauthed && (cl.team == TEAM_CLA_SPECT || cl.team == TEAM_RVSF_SPECT))
+                    updateclientteam(cl, TEAM_SPECT, FTR_SILENT);
             }
         }
         else if(matchteamsize) changematchteamsize(matchteamsize);
@@ -825,7 +828,7 @@ void setupdemorecord()
     demorecord->write(&hdr, sizeof(demoheader));
 
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    welcomepacket(p, -1);
+    welcomepacket(p, NULL);
     writedemo(1, p.buf, p.len);
 }
 
@@ -1865,7 +1868,7 @@ void serverdied(client &target, client &actor, int damage, int gun, int style, c
         // conversions
         if (m_convert(gamemode, mutators) && target.team != actor.team)
         {
-            updateclientteam(target.clientnum, actor.team, FTR_SILENT);
+            updateclientteam(target, actor.team, FTR_SILENT);
             // checkai(); // DO NOT balance bots here
             convertcheck(true);
         }
@@ -1997,10 +2000,9 @@ int chooseteam(client &cl, int def = rnd(2))
     }
 }
 
-bool updateclientteam(int cln, int newteam, int ftr)
+bool updateclientteam(client &cl, int newteam, int ftr)
 {
-    if (!valid_client(cln) || !team_isvalid(newteam)) return false;
-    client &cl = *clients[cln];
+    if (!team_isvalid(newteam)) return false;
     // zombies override
     if (m_zombie(gamemode) && !m_convert(gamemode, mutators) && newteam != TEAM_SPECT) newteam = cl.type == ST_AI ? TEAM_CLA : TEAM_RVSF;
 
@@ -2016,7 +2018,7 @@ bool updateclientteam(int cln, int newteam, int ftr)
     // log message
     logline(ftr == FTR_SILENT ? ACLOG_DEBUG : ACLOG_INFO, "[%s] %s is now on team %s", cl.gethostname(), cl.formatname(), team_string(newteam));
     // send message
-    sendf(NULL, 1, "ri3", SV_SETTEAM, cln, (cl.team = newteam) | (ftr << 4));
+    sendf(NULL, 1, "ri3", SV_SETTEAM, cl, (cl.team = newteam) | (ftr << 4));
 
     // force a death if necessary
     if (cl.state.state != CS_DEAD && (m_team(gamemode, mutators) || newteam == TEAM_SPECT))
@@ -2052,7 +2054,7 @@ void shuffleteams(int ftr)
             sums += rnd(1000);
             team = sums & 1;
             if(teamsize[team] >= numplayers/2) team = team_opposite(team);
-            updateclientteam(i, team, ftr);
+            updateclientteam(*clients[i], team, ftr);
             teamsize[team]++;
             sums >>= 1;
         }
@@ -2070,7 +2072,7 @@ void shuffleteams(int ftr)
         shuffle.sort(cmpscore);
         loopi(shuffle.length())
         {
-            updateclientteam(shuffle[i], team, ftr);
+            updateclientteam(*clients[shuffle[i]], team, ftr);
             team = !team;
         }
     }
@@ -2114,7 +2116,8 @@ bool balanceteams(int ftr)  // pro vs noobs never more
     float diffscore = tscore[h] - tscore[l];
 
     int besth = 0, hid = -1;
-    int bestdiff = 0, bestpair[2] = {-1, -1};
+    int bestdiff = 0;
+    client *bestpair[2] = { NULL, NULL };
     if ( tsize[h] - tsize[l] > 0 ) // the h team has more players, so we will force only one player
     {
         loopv(clients) if( clients[i]->type!=ST_EMPTY )
@@ -2133,7 +2136,7 @@ bool balanceteams(int ftr)  // pro vs noobs never more
         }
         if ( hid >= 0 )
         {
-            updateclientteam(hid, l, ftr);
+            updateclientteam(*clients[hid], l, ftr);
             // checkai(); // balance big to small
             // convertcheck();
             clients[hid]->at3_lastforce = gamemillis;
@@ -2143,31 +2146,31 @@ bool balanceteams(int ftr)  // pro vs noobs never more
     } else { // the h score team has less or the same player number, so, lets exchange
         loopv(clients) if(clients[i]->type!=ST_EMPTY)
         {
-            client *c = clients[i]; // loop for h
-            if( c->isauthed && c->team == h && !c->state.forced && clienthasflag(i) < 0 )
+            client &ci = *clients[i]; // loop for h
+            if( ci.isauthed && ci.team == h && !ci.state.forced && clienthasflag(i) < 0 )
             {
                 loopvj(clients) if(clients[j]->type!=ST_EMPTY && j != i )
                 {
-                    client *cj = clients[j]; // loop for l
-                    if( cj->isauthed && cj->team == l && !cj->state.forced && clienthasflag(j) < 0 )
+                    client &cj = *clients[j]; // loop for l
+                    if( cj.isauthed && cj.team == l && !cj.state.forced && clienthasflag(j) < 0 )
                     {
-                        int pairdiff = 2 * (c->eff_score - cj->eff_score);
+                        int pairdiff = 2 * (ci.eff_score - cj.eff_score);
                         if ( pairdiff <= diffscore && 5 * pairdiff >= diffscore && pairdiff > bestdiff )
                         {
                             bestdiff = pairdiff;
-                            bestpair[h] = i;
-                            bestpair[l] = j;
+                            bestpair[h] = &ci;
+                            bestpair[l] = &cj;
                         }
                     }
                 }
             }
         }
-        if ( bestpair[h] >= 0 && bestpair[l] >= 0 )
+        if ( bestpair[h] && bestpair[l] )
         {
-            updateclientteam(bestpair[h], l, ftr);
-            updateclientteam(bestpair[l], h, ftr);
-            clients[bestpair[h]]->at3_lastforce = clients[bestpair[l]]->at3_lastforce = gamemillis;
-            clients[bestpair[h]]->state.forced = clients[bestpair[l]]->state.forced = true;
+            updateclientteam(*bestpair[h], l, ftr);
+            updateclientteam(*bestpair[l], h, ftr);
+            bestpair[h]->at3_lastforce = bestpair[l]->at3_lastforce = gamemillis;
+            bestpair[h]->state.forced = bestpair[l]->state.forced = true;
             checkai(); // balance switch
             // convertcheck();
             return true;
@@ -2185,7 +2188,7 @@ bool refillteams(bool now, int ftr)  // force only minimal amounts of players
         // force to zombie teams
         loopv(clients)
             if (clients[i]->type != ST_EMPTY && !team_isspect(clients[i]->team))
-                updateclientteam(i, clients[i]->type == ST_AI ? TEAM_CLA : TEAM_RVSF, ftr);
+                updateclientteam(*clients[i], clients[i]->type == ST_AI ? TEAM_CLA : TEAM_RVSF, ftr);
         return false;
     }
     if(mastermode == MM_MATCH) return false;
@@ -2226,7 +2229,7 @@ bool refillteams(bool now, int ftr)  // force only minimal amounts of players
             while(diffnum > 1 && moveable[bigteam] > 0)
             {
                 // pick best fitting cn
-                int pick = -1;
+                client *pick = NULL;
                 int bestfit = 1000000000;
                 int targetscore = diffscore / (diffnum & ~1);
                 loopv(clients) if(clients[i]->type!=ST_EMPTY && !clients[i]->at3_dontmove) // try all still movable players
@@ -2238,18 +2241,18 @@ bool refillteams(bool now, int ftr)  // force only minimal amounts of players
                     if(fit < bestfit + fit * rnd(100) / 400)   // search 'almost' best fit
                     {
                         bestfit = fit;
-                        pick = i;
+                        pick = clients[i];
                     }
                 }
-                if(pick < 0) break; // should really never happen
+                if(!pick) break; // should really never happen
                 // move picked player
-                clients[pick]->at3_dontmove = true;
+                pick->at3_dontmove = true;
                 moveable[bigteam]--;
-                if(updateclientteam(pick, !bigteam, ftr))
+                if(updateclientteam(*pick, !bigteam, ftr))
                 {
                     diffnum -= 2;
-                    diffscore -= 2 * clients[pick]->at3_score;
-                    clients[pick]->at3_lastforce = gamemillis;  // try not to force this player again for the next 5 minutes
+                    diffscore -= 2 * pick->at3_score;
+                    pick->at3_lastforce = gamemillis;  // try not to force this player again for the next 5 minutes
                     switched = true;
                     // checkai(); // refill
                     // convertcheck();
@@ -2510,7 +2513,7 @@ void addgban(const char *name)
     {
         client &c = *clients[i];
         if(c.type!=ST_TCPIP) continue;
-        if(checkgban(c.peer->address.host)) disconnect_client(c.clientnum, DISC_BANREFUSE);
+        if(checkgban(c.peer->address.host)) disconnect_client(c, DISC_BANREFUSE);
     }
 }
 
@@ -2518,7 +2521,7 @@ inline void addban(client &cl, int reason, int type)
 {
     ban b = { cl.peer->address, servmillis+scl.ban_time, type };
     bans.add(b);
-    disconnect_client(cl.clientnum, reason);
+    disconnect_client(cl, reason);
 }
 
 int getbantype(client &c)
@@ -2794,9 +2797,9 @@ const char *disc_reason(int reason)
     return reason >= 0 && (size_t)reason < sizeof(disc_reasons)/sizeof(disc_reasons[0]) ? disc_reasons[reason] : "unknown";
 }
 
-void clientdisconnect(int n)
+void clientdisconnect(client &cl)
 {
-    if(!valid_client(n)) return;
+    const int n = cl.clientnum;
     sdropflag(n);
     // remove assists/revenge
     loopv(clients) if(valid_client(i) && i != n)
@@ -2811,20 +2814,19 @@ void clientdisconnect(int n)
         if(sconfirms[i].actor == n) sconfirms[i].actor = -1;
         if(sconfirms[i].target == n) sconfirms[i].target = -1;
     }
-    clients[n]->zap();
+    cl.zap();
 }
 
 #include "serverai.h"
 
-void disconnect_client(int n, int reason)
+void disconnect_client(client &c, int reason)
 {
-    if(!clients.inrange(n) || clients[n]->type!=ST_TCPIP) return;
-    sdropflag(n);
-    client &c = *clients[n];
+    if(c.type!=ST_TCPIP) return;
+    sdropflag(c.clientnum);
     // reassign/delete AI
     loopv(clients)
-        if(clients[i]->ownernum == n)
-            if(!shiftai(*clients[i], -1, n))
+        if(clients[i]->ownernum == c.clientnum)
+            if(!shiftai(*clients[i], -1, c.clientnum))
                 deleteai(*clients[i]);
     // remove privilege
     if(c.role) setpriv(c, CR_DEFAULT);
@@ -2843,17 +2845,17 @@ void disconnect_client(int n, int reason)
         findlimit(c, true);
     }
     int sp = (servmillis - c.connectmillis) / 1000;
-    if (reason >= 0) logline(ACLOG_INFO, "[%s] disconnecting client %s (%s) cn %d, %d seconds played%s", c.gethostname(), c.name, disc_reason(reason), n, sp, scoresaved);
-    else logline(ACLOG_INFO, "[%s] disconnected client %s cn %d, %d seconds played%s", c.gethostname(), c.name, n, sp, scoresaved);
+    if (reason >= 0) logline(ACLOG_INFO, "[%s] disconnecting client %s (%s) cn %d, %d seconds played%s", c.gethostname(), c.name, disc_reason(reason), c.clientnum, sp, scoresaved);
+    else logline(ACLOG_INFO, "[%s] disconnected client %s cn %d, %d seconds played%s", c.gethostname(), c.name, c.clientnum, sp, scoresaved);
     totalclients--;
     c.peer->data = (void *)-1;
     if(reason>=0) enet_peer_disconnect(c.peer, reason);
-    sendf(NULL, 1, "ri3", SV_CDIS, n, max(reason, 0));
+    sendf(NULL, 1, "ri3", SV_CDIS, c.clientnum, max(reason, 0));
     if(curvote) curvote->evaluate();
     // do cleanup
-    clientdisconnect(n);
+    clientdisconnect(c);
     extern void freeconnectcheck(int cn);
-    freeconnectcheck(n); // disconnect - ms check is void
+    freeconnectcheck(c.clientnum); // disconnect - ms check is void
     if(*scoresaved && mastermode == MM_MATCH) senddisconnectedscores();
     checkai(); // disconnect
     convertcheck();
@@ -2947,12 +2949,12 @@ inline void welcomeinitclient(packetbuf &p, int exclude = -1)
     }
 }
 
-void welcomepacket(packetbuf &p, int n)
+void welcomepacket(packetbuf &p, client *c)
 {
     if(!smapname[0]) maprot.next(false);
 
-    client *c = valid_client(n) ? clients[n] : NULL;
-    int numcl = numclients();
+    const int n = c ? c->clientnum : -1;
+    const int numcl = numclients();
 
     putint(p, SV_WELCOME);
     putint(p, smapname[0] && !m_demo(gamemode) ? numcl : -1);
@@ -3034,7 +3036,7 @@ void welcomepacket(packetbuf &p, int n)
 void sendwelcome(client &cl, int chan)
 {
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    welcomepacket(p, cl.clientnum);
+    welcomepacket(p, &cl);
     sendpacket(&cl, chan, p.finalize());
     cl.haswelcome = true;
 }
@@ -3323,7 +3325,7 @@ void process(ENetPacket *packet, int sender, int chan)
     if(cl && !cl->isauthed)
     {
         if(chan==0) return;
-        else if(chan!=1 || getint(p)!=SV_CONNECT) disconnect_client(sender, DISC_TAGT);
+        else if(chan!=1 || getint(p)!=SV_CONNECT) disconnect_client(*cl, DISC_TAGT);
         else
         {
             cl->acversion = getint(p);
@@ -3348,7 +3350,7 @@ void process(ENetPacket *packet, int sender, int chan)
 
             int disc = p.remaining() ? DISC_TAGT : allowconnect(*cl, connectauthtoken, connectauthuser);
 
-            if (disc) disconnect_client(sender, disc);
+            if (disc) disconnect_client(*cl, disc);
             else cl->isauthed = true;
         }
         if(!cl->isauthed) return;
@@ -3357,9 +3359,9 @@ void process(ENetPacket *packet, int sender, int chan)
         {
             loopv(clients) if(i != sender)
             {
-                client *dup = clients[i];
-                if(dup->type==ST_TCPIP && dup->peer->address.host==cl->peer->address.host && dup->peer->address.port==cl->peer->address.port)
-                    disconnect_client(i, DISC_DUP);
+                client &dup = *clients[i];
+                if(dup.type==ST_TCPIP && dup.peer->address.host==cl->peer->address.host && dup.peer->address.port==cl->peer->address.port)
+                    disconnect_client(dup, DISC_DUP);
             }
 
             // ask the master-server about this client
@@ -3483,7 +3485,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     {
                         if(numclients() < 2 && !m_demo(gamemode) && mastermode != MM_MATCH) // spawn on empty servers
                         {
-                            spawn = updateclientteam(cl->clientnum, chooseteam(*cl), FTR_SILENT);
+                            spawn = updateclientteam(*cl, chooseteam(*cl), FTR_SILENT);
                         }
                     }
                     else
@@ -3592,7 +3594,7 @@ void process(ENetPacket *packet, int sender, int chan)
                         case NWL_PWDFAIL:
                         case NWL_IPFAIL:
                             logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong IP/PWD", cl->gethostname(), cl->name);
-                            disconnect_client(sender, nwl == NWL_IPFAIL ? DISC_NAME_IP : DISC_NAME_PWD);
+                            disconnect_client(*cl, nwl == NWL_IPFAIL ? DISC_NAME_IP : DISC_NAME_PWD);
                             break;
 
                         case NWL_UNLISTED:
@@ -3601,7 +3603,7 @@ void process(ENetPacket *packet, int sender, int chan)
                             if(l >= 0)
                             {
                                 logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d", cl->gethostname(), cl->name, l);
-                                disconnect_client(sender, DISC_NAME);
+                                disconnect_client(*cl, DISC_NAME);
                             }
                             break;
                         }
@@ -3657,7 +3659,7 @@ void process(ENetPacket *packet, int sender, int chan)
                         }
                     }
                 }
-                updateclientteam(sender, t, FTR_PLAYERWISH);
+                updateclientteam(*cl, t, FTR_PLAYERWISH);
                 checkai(); // user switch
                 // convertcheck();
                 break;
@@ -3704,7 +3706,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 if (cs.state != CS_DEAD || cs.lastspawn >= 0) break; // not dead or already enqueued
                 if (team_isspect(cl->team))
                 {
-                    updateclientteam(sender, chooseteam(*cl), FTR_PLAYERWISH);
+                    updateclientteam(*cl, chooseteam(*cl), FTR_PLAYERWISH);
                     checkai(); // spawn unspectate
                     // convertcheck();
                 }
@@ -4067,7 +4069,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     }
                     else if (cl->role < CR_ADMIN && text[0])
                     {
-                        disconnect_client(sender, DISC_SOPLOGINFAIL); // avoid brute-force
+                        disconnect_client(*cl, DISC_SOPLOGINFAIL); // avoid brute-force
                         return;
                     }
                 }
@@ -4507,16 +4509,16 @@ void process(ENetPacket *packet, int sender, int chan)
 
             default:
             case -1:
-                disconnect_client(sender, DISC_TAGT);
+                disconnect_client(*cl, DISC_TAGT);
                 return;
 
             case -2:
-                disconnect_client(sender, DISC_OVERFLOW);
+                disconnect_client(*cl, DISC_OVERFLOW);
                 return;
         }
     }
 
-    if(p.overread() && sender>=0) disconnect_client(sender, DISC_EOP);
+    if (p.overread() && sender >= 0) disconnect_client(*cl, DISC_EOP);
 
     #ifdef _DEBUG
     protocoldebug(false);
@@ -4891,7 +4893,12 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
     if (autobalance && m_team(gamemode, mutators) && !m_zombie(gamemode) && !m_duke(gamemode, mutators) && !interm && servmillis - lastfillup > 5000 && refillteams()) lastfillup = servmillis;
 
-    loopv(clients) if (clients[i]->type == ST_TCPIP && (!clients[i]->isauthed || clients[i]->connectauth) && clients[i]->connectmillis + 10000 <= servmillis) disconnect_client(i, DISC_TIMEOUT);
+    loopv(clients)
+    {
+        client &cl = *clients[i];
+        if (cl.type == ST_TCPIP && (!cl.isauthed || cl.connectauth) && cl.connectmillis + 10000 <= servmillis)
+            disconnect_client(cl, DISC_TIMEOUT);
+    }
 
     static unsigned int lastThrottleEpoch = 0;
     if(serverhost->bandwidthThrottleEpoch != lastThrottleEpoch)
@@ -4957,7 +4964,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
             {
                 int cn = (int)(size_t)event.peer->data;
                 if(!valid_client(cn)) break;
-                disconnect_client(cn);
+                disconnect_client(*clients[cn]);
                 break;
             }
 

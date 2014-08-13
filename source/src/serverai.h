@@ -67,7 +67,7 @@ void deleteai(client &c)
         return;
     const int cn = c.clientnum;
     c.ownernum = -1;
-    clientdisconnect(cn);
+    clientdisconnect(c);
     sendf(NULL, 1, "ri2", SV_DELAI, cn);
 }
 
@@ -190,7 +190,7 @@ void checkai()
                 if(ci.type != ST_AI) continue;
                 int teamb = chooseteam(ci, ci.team);
                 if (teamb == TEAM_SPECT) continue;
-                if(ci.team != teamb) updateclientteam(i, teamb, FTR_SILENT);
+                if(ci.team != teamb) updateclientteam(ci, teamb, FTR_SILENT);
             }
         }
         else clearai();
