@@ -151,7 +151,7 @@ struct forceteamaction : playeraction
 {
     int team;
     void perform() { updateclientteam(cn, team, FTR_AUTO); checkai(); /* forceteam */ }
-    virtual bool isvalid() { return playeraction::isvalid() && m_team(gamemode, mutators) && team_isvalid(team) && team != clients[cn].team; }
+    virtual bool isvalid() { return playeraction::isvalid() && m_team(gamemode, mutators) && team_isvalid(team) && team != clients[cn]->team; }
     forceteamaction(int cn, int caller, int team) : playeraction(cn), team(team)
     {
         if (cn != caller)
@@ -161,7 +161,7 @@ struct forceteamaction : playeraction
         }
         else passratio = 0.55f; // 55% to force self
         if (valid_client(cn) && team_isvalid(team))
-            formatstring(desc)("force player %s to team %s", clients[cn].formatname(), teamnames[team]);
+            formatstring(desc)("force player %s to team %s", clients[cn]->formatname(), teamnames[team]);
     }
 };
 
@@ -169,8 +169,8 @@ struct spectaction : playeraction
 {
     void perform()
     {
-        if (clients[cn].team == TEAM_SPECT)
-            updateclientteam(cn, chooseteam(clients[cn]), FTR_AUTO);
+        if (clients[cn]->team == TEAM_SPECT)
+            updateclientteam(cn, chooseteam(*clients[cn]), FTR_AUTO);
         else updateclientteam(cn, TEAM_SPECT, FTR_AUTO);
         checkai();
     }
@@ -182,7 +182,7 @@ struct spectaction : playeraction
         }
         else passratio = 0.55f;
         if (valid_client(cn))
-            formatstring(desc)("toggle spectator for %s", clients[cn].formatname());
+            formatstring(desc)("toggle spectator for %s", clients[cn]->formatname());
     }
 };
 
@@ -191,67 +191,67 @@ struct giveadminaction : playeraction
     int from, give;
     void perform()
     {
-        if (valid_client(from) && clients[from].role < CR_ADMIN)
-            setpriv(clients[from], CR_DEFAULT); // transfer master instead of give
-        setpriv(clients[cn], give);
+        if (valid_client(from) && clients[from]->role < CR_ADMIN)
+            setpriv(*clients[from], CR_DEFAULT); // transfer master instead of give
+        setpriv(*clients[cn], give);
     }
     virtual bool isvalid() { return playeraction::isvalid() && valid_client(from); }
     giveadminaction(int cn, int role, int caller) : playeraction(cn)
     {
-        reqcall = give = clamp(role, 1, clients[from = caller].role);
+        reqcall = give = clamp(role, 1, clients[from = caller]->role);
         reqveto = CR_MASTER; // giveadmin
         passratio = 0.1f;
         if (valid_client(cn))
-            formatstring(desc)("give %s to %s", privname(give), clients[cn].formatname());
+            formatstring(desc)("give %s to %s", privname(give), clients[cn]->formatname());
     }
 };
 
 struct revokeaction : playeraction
 {
-    void perform() { setpriv(clients[cn], CR_DEFAULT); }
-    virtual bool isvalid() { return playeraction::isvalid() && clients[cn].role; }
+    void perform() { setpriv(*clients[cn], CR_DEFAULT); }
+    virtual bool isvalid() { return playeraction::isvalid() && clients[cn]->role; }
     revokeaction(int cn) : playeraction(cn)
     {
         area = EE_DED_SERV; // dedicated only
-        reqcall = max((int)(CR_ADMIN), valid_client(cn) ? clients[cn].role : 0);
+        reqcall = max((int)(CR_ADMIN), valid_client(cn) ? clients[cn]->role : 0);
         passratio = 0.1f;
         if (valid_client(cn))
-            formatstring(desc)("revoke %s from %s", privname(clients[cn].role), clients[cn].formatname());
+            formatstring(desc)("revoke %s from %s", privname(clients[cn]->role), clients[cn]->formatname());
     }
 };
 
 inline int protectAdminPriv(const char conf, int cn)
 {
-    return max(roleconf(conf), valid_client(cn) && clients[cn].role >= CR_ADMIN ? clients[cn].role : 0);
+    return max(roleconf(conf), valid_client(cn) && clients[cn]->role >= CR_ADMIN ? clients[cn]->role : 0);
 }
 
 struct subdueaction : playeraction
 {
     void perform() { forcedeath(clients[cn], true); }
-    virtual bool isvalid() { return playeraction::isvalid() && !m_edit(gamemode) && clients[cn].team != TEAM_SPECT; }
+    virtual bool isvalid() { return playeraction::isvalid() && !m_edit(gamemode) && clients[cn]->team != TEAM_SPECT; }
     subdueaction(int cn) : playeraction(cn)
     {
         passratio = 0.8f;
         reqcall = protectAdminPriv('q', cn);
         length = 25000; // 25s
         if (valid_client(cn))
-            formatstring(desc)("subdue player %s", clients[cn].formatname());
+            formatstring(desc)("subdue player %s", clients[cn]->formatname());
     }
 };
 
 struct removeplayeraction : playeraction
 {
     removeplayeraction(int cn) : playeraction(cn) { }
-    virtual bool isvalid() { return playeraction::isvalid() && clients[cn].type == ST_TCPIP; }
+    virtual bool isvalid() { return playeraction::isvalid() && clients[cn]->type == ST_TCPIP; }
     bool weak(bool kicking)
     {
         if (!valid_client(cn)) return false;
         // lagging? (does not apply to bans)
         if (kicking && is_lagging(clients[cn])) return false;
         // 3+ K/D ratio & 6+ kills
-        if (clients[cn].state.frags >= max(6, clients[cn].state.deaths * 3)) return false;
+        if (clients[cn]->state.frags >= max(6, clients[cn]->state.deaths * 3)) return false;
         // 1 teamkill for every 15 frags
-        if (clients[cn].state.teamkills * 15 > clients[cn].state.frags) return false;
+        if (clients[cn]->state.teamkills * 15 > clients[cn]->state.frags) return false;
         // check spam?
         return true; // why kick or ban?
     }
@@ -272,7 +272,7 @@ struct kickaction : removeplayeraction
         reqveto = CR_MASTER; // kick
         length = is_weak ? 10000 : 35000; // 35s (10s if weak)
         if (valid_client(cn))
-            formatstring(desc)("kick player %s for %s%s", clients[cn].formatname(), reason, is_weak ? " (weak)" : "");
+            formatstring(desc)("kick player %s for %s%s", clients[cn]->formatname(), reason, is_weak ? " (weak)" : "");
     }
 };
 
@@ -283,7 +283,7 @@ struct banaction : removeplayeraction
     void perform()
     {
         // TODO use ban time
-        addban(&clients[cn], DISC_MBAN, BAN_VOTE);
+        addban(clients[cn], DISC_MBAN, BAN_VOTE);
     }
     virtual bool isvalid() { return removeplayeraction::isvalid() && strlen(reason) >= 4; }
     banaction(int cn, int mins, char *r, bool self_vote) : removeplayeraction(cn), minutes(mins)
@@ -296,7 +296,7 @@ struct banaction : removeplayeraction
         reqveto = CR_MASTER; // ban
         length = is_weak ? 8000 : 30000; // 30s (8s if weak)
         if (isvalid())
-            formatstring(desc)("ban player %s for %d minutes for %s%s", clients[cn].formatname(), minutes, reason, is_weak ? " (weak)" : "");
+            formatstring(desc)("ban player %s for %d minutes for %s%s", clients[cn]->formatname(), minutes, reason, is_weak ? " (weak)" : "");
     }
 };
 
@@ -411,7 +411,7 @@ struct serverdescaction : serveraction
         area = EE_DED_SERV; // dedicated only
         reqcall = roleconf('D');
         formatstring(desc)("set server description to '%s'", sdesc);
-        if(isvalid()) address = clients[cn].peer->address;
+        if(isvalid()) address = clients[cn]->peer->address;
     }
     ~serverdescaction() { DELETEA(sdesc); }
 };

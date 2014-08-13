@@ -26,7 +26,7 @@ ENetHost *serverhost = NULL;
 
 int nextstatus = 0, servmillis = 0, lastfillup = 0;
 
-vector<client> clients;
+vector<client *> clients;
 vector<worldstate *> worldstates;
 vector<savedscore> savedscores;
 vector<savedlimit> savedlimits;
@@ -83,7 +83,7 @@ int servertime = 0, serverlagged = 0;
 
 bool valid_client(int cn)
 {
-    return clients.inrange(cn) && clients[cn].type != ST_EMPTY;
+    return clients.inrange(cn) && clients[cn]->type != ST_EMPTY;
 }
 
 const char *client::formatname()
@@ -100,13 +100,13 @@ const char *client::gethostname()
 {
     if (ownernum < 0)
         return hostname;
-    return clients[ownernum].hostname;
+    return clients[ownernum]->hostname;
 }
 
 bool client::hasclient(int cn)
 {
     if(!valid_client(cn)) return false;
-    return clientnum == cn || clients[cn].ownernum == clientnum;
+    return clientnum == cn || clients[cn]->ownernum == clientnum;
 }
 
 void client::removeexplosives()
@@ -151,31 +151,31 @@ void cleanworldstate(ENetPacket *packet)
 void sendpacket(int n, int chan, ENetPacket *packet, int exclude, bool demopacket)
 {
     // fix exclude
-    if(valid_client(exclude) && clients[exclude].type == ST_AI)
-        exclude = clients[exclude].ownernum;
+    if(valid_client(exclude) && clients[exclude]->type == ST_AI)
+        exclude = clients[exclude]->ownernum;
     if(!valid_client(n))
     {
         if(n<0)
         {
             recordpacket(chan, packet->data, (int)packet->dataLength);
             loopv(clients)
-                if(i!=exclude && clients[i].type != ST_AI && (clients[i].type!=ST_TCPIP || clients[i].isauthed))
+                if(i!=exclude && clients[i]->type != ST_AI && (clients[i]->type!=ST_TCPIP || clients[i]->isauthed))
                     sendpacket(i, chan, packet, -1, demopacket);
         }
         return;
     }
-    if(clients[n].type == ST_AI)
+    if(clients[n]->type == ST_AI)
     {
         // reroute packets
-        n = clients[n].ownernum;
-        if(!valid_client(n) || n == exclude || clients[n].type == ST_AI)
+        n = clients[n]->ownernum;
+        if(!valid_client(n) || n == exclude || clients[n]->type == ST_AI)
             return;
     }
-    switch(clients[n].type)
+    switch(clients[n]->type)
     {
         case ST_TCPIP:
         {
-            enet_peer_send(clients[n].peer, chan, packet);
+            enet_peer_send(clients[n]->peer, chan, packet);
             break;
         }
 
@@ -193,12 +193,12 @@ bool buildworldstate()
     worldstate &ws = *new worldstate;
     loopvj(clients)
     {
-        if(clients[j].type!=ST_TCPIP || !clients[j].isauthed) continue;
+        if(clients[j]->type!=ST_TCPIP || !clients[j]->isauthed) continue;
         pkt[j].posoff = ws.positions.length();
         pkt[j].msgoff = ws.messages.length();
         loopv(clients)
         {
-            client &c = clients[i];
+            client &c = *clients[i];
             if(i != j && (c.type!=ST_AI || c.ownernum != j)) continue;
             c.overflow = 0;
             if(!c.position.empty())
@@ -236,7 +236,7 @@ bool buildworldstate()
     if(psize || msize)
         loopv(clients)
     {
-        client &c = clients[i];
+        client &c = *clients[i];
         if(c.type!=ST_TCPIP || !c.isauthed) continue;
         ENetPacket *packet;
         if(psize && psize>pkt[i].poslen)
@@ -275,7 +275,7 @@ bool buildworldstate()
 int countclients(int type, bool exclude = false)
 {
     int num = 0;
-    loopv(clients) if((clients[i].type!=type)==exclude) num++;
+    loopv(clients) if((clients[i]->type!=type)==exclude) num++;
     return num;
 }
 
@@ -286,14 +286,14 @@ int numnonlocalclients() { return countclients(ST_TCPIP); }
 int numauthedclients()
 {
     int num = 0;
-    loopv(clients) if(clients[i].type!=ST_EMPTY && clients[i].isauthed) num++;
+    loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed) num++;
     return num;
 }
 
 int numactiveclients()
 {
     int num = 0;
-    loopv(clients) if(clients[i].type!=ST_EMPTY && clients[i].isauthed && clients[i].isonrightmap && team_isactive(clients[i].team)) num++;
+    loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed && clients[i]->isonrightmap && team_isactive(clients[i]->team)) num++;
     return num;
 }
 
@@ -301,7 +301,7 @@ int *numteamclients(int exclude = -1, bool include_bots = false)
 {
     static int num[TEAM_NUM];
     loopi(TEAM_NUM) num[i] = 0;
-    loopv(clients) if(i != exclude && clients[i].type!=ST_EMPTY && (include_bots || clients[i].type!=ST_AI) && clients[i].isauthed && clients[i].isonrightmap && team_isvalid(clients[i].team)) num[clients[i].team]++;
+    loopv(clients) if(i != exclude && clients[i]->type!=ST_EMPTY && (include_bots || clients[i]->type!=ST_AI) && clients[i]->isauthed && clients[i]->isonrightmap && team_isvalid(clients[i]->team)) num[clients[i]->team]++;
     return num;
 }
 
@@ -323,11 +323,11 @@ void changematchteamsize(int newteamsize)
     if(mastermode == MM_MATCH && matchteamsize && m_team(gamemode, mutators))
     {
         int size[2] = { 0 };
-        loopv(clients) if(clients[i].type!=ST_EMPTY && clients[i].isauthed && clients[i].isonrightmap)
+        loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed && clients[i]->isonrightmap)
         {
-            if(team_isactive(clients[i].team))
+            if(team_isactive(clients[i]->team))
             {
-                if(++size[clients[i].team] > matchteamsize) updateclientteam(i, team_tospec(clients[i].team), FTR_SILENT);
+                if(++size[clients[i]->team] > matchteamsize) updateclientteam(i, team_tospec(clients[i]->team), FTR_SILENT);
             }
         }
     }
@@ -341,9 +341,9 @@ void changemastermode(int newmode)
         senddisconnectedscores(-1);
         if(mastermode != MM_MATCH)
         {
-            loopv(clients) if(clients[i].type!=ST_EMPTY && clients[i].isauthed)
+            loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed)
             {
-                if(clients[i].team == TEAM_CLA_SPECT || clients[i].team == TEAM_RVSF_SPECT) updateclientteam(i, TEAM_SPECT, FTR_SILENT);
+                if(clients[i]->team == TEAM_CLA_SPECT || clients[i]->team == TEAM_RVSF_SPECT) updateclientteam(i, TEAM_SPECT, FTR_SILENT);
             }
         }
         else if(matchteamsize) changematchteamsize(matchteamsize);
@@ -359,7 +359,7 @@ savedscore *findscore(client &c, bool insert)
     {
         loopv(clients)
         {
-            client &o = clients[i];
+            client &o = *clients[i];
             if(o.type!=ST_TCPIP || !o.isauthed) continue;
             if(o.clientnum!=c.clientnum && o.peer->address.host==c.peer->address.host && !strcmp(o.name, c.name))
             {
@@ -473,7 +473,7 @@ float nearestenemy(vec place, int team)
     float nearestenemydist = -1;
     loopv(clients)
     {
-        client &other = clients[i];
+        client &other = *clients[i];
         if (other.type == ST_EMPTY || other.team == TEAM_SPECT || (m_team(gamemode, mutators) && team == other.team)) continue;
         float dist = place.dist(other.state.o);
         if (dist < nearestenemydist || nearestenemydist == -1) nearestenemydist = dist;
@@ -482,13 +482,13 @@ float nearestenemy(vec place, int team)
     else return nearestenemydist;
 }
 
-void sendspawn(client &c)
+void sendspawn(client *c)
 {
-    if(team_isspect(c.team)) return;
-    clientstate &gs = c.state;
+    if(team_isspect(c->team)) return;
+    clientstate &gs = c->state;
     if (gs.lastdeath) gs.respawn();
     // spawnstate
-    if(c.type == ST_AI)
+    if(c->type == ST_AI)
     {
         // random loadout settings
         const int weap1[] = {
@@ -515,17 +515,17 @@ void sendspawn(client &c)
 #if (SERVER_BUILTIN_MOD & 8)
     gs.nextprimary = gs.nextsecondary = gungame[gs.gungame];
 #endif
-    gs.spawnstate(c.team, smode, smuts);
+    gs.spawnstate(c->team, smode, smuts);
     gs.lifesequence++;
     gs.state = CS_DEAD;
     // spawnpos
     persistent_entity *spawn_ent = NULL;
     int r = fixspawn-->0 ? 4 : rnd(10) + 1;
-    const int type = m_spawn_team(gamemode, mutators) ? (c.team ^ ((m_spawn_reversals(gamemode, mutators) && gamemillis > gamelimit / 2) ? 1 : 0)) : 100;
-    if (m_duke(gamemode, mutators) && c.spawnindex >= 0)
+    const int type = m_spawn_team(gamemode, mutators) ? (c->team ^ ((m_spawn_reversals(gamemode, mutators) && gamemillis > gamelimit / 2) ? 1 : 0)) : 100;
+    if (m_duke(gamemode, mutators) && c->spawnindex >= 0)
     {
         int x = -1;
-        loopi(c.spawnindex + 1) x = findspawn(x + 1, type);
+        loopi(c->spawnindex + 1) x = findspawn(x + 1, type);
         if (x >= 0) spawn_ent = &mapents[x];
     }
     else if (m_team(gamemode, mutators) || m_duke(gamemode, mutators))
@@ -541,7 +541,7 @@ void sendspawn(client &c)
         {
             spawncycle = !m_spawn_team(gamemode, mutators) && smapstats.spawns[2] > 5 ? findspawn(spawncycle + 1, 100) : findspawn(spawncycle + 1);
             if (spawncycle < 0) continue;
-            float dist = nearestenemy(vec(mapents[spawncycle].x, mapents[spawncycle].y, mapents[spawncycle].z), c.team);
+            float dist = nearestenemy(vec(mapents[spawncycle].x, mapents[spawncycle].y, mapents[spawncycle].z), c->team);
             if (!spawn_ent || dist < 0 || (bestdist >= 0 && dist > bestdist)) { spawn_ent = &mapents[spawncycle]; bestdist = dist; }
         }
     }
@@ -549,14 +549,14 @@ void sendspawn(client &c)
     {
         gs.o.x = spawn_ent->x;
         gs.o.y = spawn_ent->y;
-        c.y = spawn_ent->attr1; // yaw
+        c->y = spawn_ent->attr1; // yaw
     }
     else
     {
         // try to spawn in a random place (might be solid)
         gs.o.x = rnd((1 << maplayout_factor) - MINBORD) + MINBORD;
         gs.o.y = rnd((1 << maplayout_factor) - MINBORD) + MINBORD;
-        c.y = 0; // yaw
+        c->y = 0; // yaw
     }
     extern float getblockfloor(int id, bool check_vdelta = true);
     gs.o.z = getblockfloor(getmaplayoutid(gs.o.x, gs.o.y));
@@ -564,12 +564,12 @@ void sendspawn(client &c)
     checkpos(gs.o); // fix spawn being stuck
     gs.o.z += PLAYERHEIGHT;
     checkpos(gs.o); // fix spawn being too high
-    c.p = 0; // pitch
+    c->p = 0; // pitch
     // send spawn state
-    sendf(c.clientnum, 1, "ri9vvi4", SV_SPAWNSTATE, c.clientnum, gs.lifesequence,
+    sendf(c->clientnum, 1, "ri9vvi4", SV_SPAWNSTATE, c->clientnum, gs.lifesequence,
         gs.health, gs.armour, gs.perk1, gs.perk2, gs.primary, gs.secondary,
         NUMGUNS, gs.ammo, NUMGUNS, gs.mag,
-        (int)(gs.o.x*DMF), (int)(gs.o.y*DMF), (int)(gs.o.z*DMF), c.y);
+        (int)(gs.o.x*DMF), (int)(gs.o.y*DMF), (int)(gs.o.z*DMF), c->y);
     gs.lastspawn = gamemillis;
 }
 
@@ -819,9 +819,9 @@ void setupdemorecord()
     const char *bl = "";
     loopv(clients)
     {
-        client &ci = clients[i];
-        if(ci.type==ST_EMPTY) continue;
-        if(strlen(hdr.plist) + strlen(ci.name) < DHDR_PLISTCHARS - 2) { strcat(hdr.plist, bl); strcat(hdr.plist, ci.name); }
+        client *ci = clients[i];
+        if(ci->type==ST_EMPTY) continue;
+        if(strlen(hdr.plist) + strlen(ci->name) < DHDR_PLISTCHARS - 2) { strcat(hdr.plist, bl); strcat(hdr.plist, ci->name); }
         bl = " ";
     }
     demorecord->write(&hdr, sizeof(demoheader));
@@ -861,7 +861,7 @@ bool sending_demo = false;
 
 void senddemo(int cn, int num)
 {
-    client *cl = cn>=0 ? &clients[cn] : NULL;
+    client *cl = cn>=0 ? clients[cn] : NULL;
     bool is_admin = (cl && cl->role >= CR_ADMIN);
     if(scl.demo_interm && (!interm || totalclients > 2) && !is_admin)
     {
@@ -1062,7 +1062,7 @@ void flagaction(int flag, int action, int actor)
             case FA_DROP:
                 if (actor == -1) actor = f.actor_cn;
                 f.state = CTFF_DROPPED;
-                loopi(3) f.pos[i] = clients[actor].state.o[i];
+                loopi(3) f.pos[i] = clients[actor]->state.o[i];
                 //if(f.pos[2] < smapstats.hdr.waterlevel) f.pos[2] = smapstats.hdr.waterlevel; // float to top of water
                 break;
             case FA_RETURN:
@@ -1073,7 +1073,7 @@ void flagaction(int flag, int action, int actor)
                 else if (m_bomber(gamemode)) score = of.state == CTFF_INBASE ? 3 : of.state == CTFF_DROPPED ? 2 : 1;
                 else if (m_ktf2(gamemode, mutators))
                 {
-                    if (valid_client(f.actor_cn) && clients[f.actor_cn].state.state == CS_ALIVE)
+                    if (valid_client(f.actor_cn) && clients[f.actor_cn]->state.state == CS_ALIVE)
                     {
                         actor = f.actor_cn;
                         score = 1;
@@ -1115,7 +1115,7 @@ void flagaction(int flag, int action, int actor)
                 f.stolentime = gamemillis;
                 break;
             case FA_SCORE:  // f = carried by actor flag
-                if(valid_client(f.actor_cn) && clients[f.actor_cn].state.state == CS_ALIVE && !team_isspect(clients[f.actor_cn].team))
+                if(valid_client(f.actor_cn) && clients[f.actor_cn]->state.state == CS_ALIVE && !team_isspect(clients[f.actor_cn]->team))
                 {
                     actor = f.actor_cn;
                     score = 1;
@@ -1136,13 +1136,13 @@ void flagaction(int flag, int action, int actor)
     }
     if (valid_client(actor))
     {
-        client &c = clients[actor];
+        client &c = *clients[actor];
         if (score)
         {
             c.state.invalidate().flagscore += score;
             // usesteamscore(c.team).flagscore += score;
         }
-        /*usesteamscore(c.team).points += max(0,*/ ( flagpoints(c, message));
+        /*usesteamscore(c.team).points += max(0,*/ ( flagpoints(&c, message));
 
         switch (message)
         {
@@ -1221,17 +1221,17 @@ void htf_forceflag(int flag)
     sflaginfo &f = sflaginfos[flag];
     int besthealth = 0;
     vector<int> clientnumbers;
-    loopv(clients) if(clients[i].type!=ST_EMPTY)
+    loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
-        if(clients[i].state.state == CS_ALIVE && team_base(clients[i].team) == flag)
+        if(clients[i]->state.state == CS_ALIVE && team_base(clients[i]->team) == flag)
         {
-            if(clients[i].state.health == besthealth)
+            if(clients[i]->state.health == besthealth)
                 clientnumbers.add(i);
             else
             {
-                if(clients[i].state.health > besthealth)
+                if(clients[i]->state.health > besthealth)
                 {
-                    besthealth = clients[i].state.health;
+                    besthealth = clients[i]->state.health;
                     clientnumbers.shrink(0);
                     clientnumbers.add(i);
                 }
@@ -1242,12 +1242,12 @@ void htf_forceflag(int flag)
     if(clientnumbers.length())
     {
         int pick = rnd(clientnumbers.length());
-        client &cl = clients[clientnumbers[pick]];
+        client *cl = clients[clientnumbers[pick]];
         f.state = CTFF_STOLEN;
-        f.actor_cn = cl.clientnum;
+        f.actor_cn = cl->clientnum;
         sendflaginfo(flag);
-        flagmessage(flag, FA_PICKUP, cl.clientnum);
-        logline(ACLOG_INFO, "[%s] %s got forced to pickup the flag", cl.gethostname(), cl.formatname());
+        flagmessage(flag, FA_PICKUP, cl->clientnum);
+        logline(ACLOG_INFO, "[%s] %s got forced to pickup the flag", cl->gethostname(), cl->formatname());
     }
     f.lastupdate = gamemillis;
 }
@@ -1255,7 +1255,7 @@ void htf_forceflag(int flag)
 int arenaround = 0, arenaroundstartmillis = 0;
 
 struct twoint { int index, value; };
-int cmpscore(const int *a, const int *b) { return clients[*a].at3_score - clients[*b].at3_score; }
+int cmpscore(const int *a, const int *b) { return clients[*a]->at3_score - clients[*b]->at3_score; }
 int cmptwoint(const struct twoint *a, const struct twoint *b) { return a->value - b->value; }
 vector<int> tdistrib;
 vector<twoint> sdistrib;
@@ -1266,12 +1266,12 @@ void distributeteam(int team)
     if(!numsp) numsp = 30; // no spawns: try to distribute anyway
     twoint ti;
     tdistrib.shrink(0);
-    loopv(clients) if(clients[i].type!=ST_EMPTY)
+    loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
-        if(team == 100 || team == clients[i].team)
+        if(team == 100 || team == clients[i]->team)
         {
             tdistrib.add(i);
-            clients[i].at3_score = rnd(0x1000000);
+            clients[i]->at3_score = rnd(0x1000000);
         }
     }
     tdistrib.sort(cmpscore); // random player order
@@ -1286,16 +1286,16 @@ void distributeteam(int team)
     int x = 0;
     loopv(tdistrib)
     {
-        clients[tdistrib[i]].spawnindex = sdistrib[x++].index;
+        clients[tdistrib[i]]->spawnindex = sdistrib[x++].index;
         x %= sdistrib.length();
     }
 }
 
 void distributespawns()
 {
-    loopv(clients) if(clients[i].type!=ST_EMPTY)
+    loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
-        clients[i].spawnindex = -1;
+        clients[i]->spawnindex = -1;
     }
     if(m_team(gamemode, mutators))
     {
@@ -1319,9 +1319,9 @@ void arenanext(bool forcespawn = true)
     // purgesknives();
     checkitemspawns(60 * 1000); // the server will respawn all items now
     loopi(2) if (sflaginfos[i].state == CTFF_DROPPED || sflaginfos[i].state == CTFF_STOLEN) flagaction(i, FA_RESET, -1);
-    loopv(clients) if (clients[i].type != ST_EMPTY && clients[i].isauthed)
+    loopv(clients) if (clients[i]->type != ST_EMPTY && clients[i]->isauthed)
     {
-        if (clients[i].isonrightmap && team_isactive(clients[i].team))
+        if (clients[i]->isonrightmap && team_isactive(clients[i]->team))
             sendspawn(clients[i]);
     }
     nokills = true;
@@ -1348,7 +1348,7 @@ void arenacheck()
     bool found = false; int ha = 0, hd = 0; // found a match to keep the round / humans alive / humans dead
     loopv(clients)
     {
-        client &c = clients[i];
+        client &c = *clients[i];
         if(c.type==ST_EMPTY || !c.isauthed || !c.isonrightmap || team_isspect(c.team)) continue;
         if (c.state.lastspawn < 0 && c.state.state==CS_DEAD)
         {
@@ -1379,23 +1379,23 @@ void arenacheck()
         checkai(); // progressive zombies
         // convertcheck();
         sendf(-1, 1, "ri2", SV_ZOMBIESWIN, (progressiveround << 1) | (humanswin ? 1 : 0));
-        loopv(clients) if (clients[i].type != ST_EMPTY && clients[i].isauthed && clients[i].team != TEAM_SPECT)
+        loopv(clients) if (clients[i]->type != ST_EMPTY && clients[i]->isauthed && clients[i]->team != TEAM_SPECT)
         {
-            if (clients[i].team == TEAM_CLA || progressiveround == MAXZOMBIEROUND)
+            if (clients[i]->team == TEAM_CLA || progressiveround == MAXZOMBIEROUND)
             {
                 // give humans time to prepare, except wave 30
-                clients[i].removeexplosives();
-                if (clients[i].state.state != CS_DEAD)
+                clients[i]->removeexplosives();
+                if (clients[i]->state.state != CS_DEAD)
                     forcedeath(clients[i]);
             }
-            else if (clients[i].isonrightmap && clients[i].state.state == CS_DEAD)
+            else if (clients[i]->isonrightmap && clients[i]->state.state == CS_DEAD)
             {
                 // early repawn for humans, except wave 30
-                clients[i].state.lastdeath = 1;
+                clients[i]->state.lastdeath = 1;
                 sendspawn(clients[i]);
             }
             int pts = 0, pr = -1;
-            if ((clients[i].team == TEAM_CLA) == humanswin)
+            if ((clients[i]->team == TEAM_CLA) == humanswin)
             {
                 // he died
                 pts = ARENALOSEPT;
@@ -1419,15 +1419,15 @@ void arenacheck()
         // send message
         sendf(-1, 1, "ri2", SV_ARENAWIN, cn);
         // award points
-        loopv(clients) if (clients[i].type != ST_EMPTY && clients[i].isauthed && team_isactive(clients[i].team))
+        loopv(clients) if (clients[i]->type != ST_EMPTY && clients[i]->isauthed && team_isactive(clients[i]->team))
         {
             int pts = ARENALOSEPT, pr = PR_ARENA_LOSE; // he died with this team, or bots win
-            if (clients[i].state.state == CS_ALIVE) // he survives
+            if (clients[i]->state.state == CS_ALIVE) // he survives
             {
                 pts = ARENAWINPT;
                 pr = PR_ARENA_WIN;
             }
-            else if (alive && isteam(alive, &clients[i])) // his team wins, but he is dead
+            else if (alive && isteam(alive, clients[i])) // his team wins, but he is dead
             {
                 pts = ARENAWINDPT;
                 pr = PR_ARENA_WIND;
@@ -1454,10 +1454,10 @@ void convertcheck(bool quick)
     if (quick) return;
     // check if converted
     int bigteam = -1, found = 0;
-    loopv(clients) if (clients[i].type != ST_EMPTY && team_isactive(clients[i].team))
+    loopv(clients) if (clients[i]->type != ST_EMPTY && team_isactive(clients[i]->team))
     {
-        if (!team_isvalid(bigteam)) bigteam = clients[i].team;
-        if (clients[i].team == bigteam) ++found;
+        if (!team_isvalid(bigteam)) bigteam = clients[i]->team;
+        if (clients[i]->team == bigteam) ++found;
         else return; // nope
     }
     // game ends if not arena, and all enemies are converted
@@ -1574,14 +1574,14 @@ void sendtext(char *text, client *cl, int flags, int voice)
     sendstring(text, p);
     ENetPacket *packet = p.finalize();
     recordpacket(1, packet);
-    const int &st = cl->team;
+    int &st = cl->team;
     loopv(clients)
     {
-        if (clients[i].type == ST_EMPTY || clients[i].type == ST_AI)
+        if (clients[i]->type == ST_EMPTY || clients[i]->type == ST_AI)
             continue;
-        const int &rt = clients[i].team;
+        int &rt = clients[i]->team;
         if( !(flags & SAY_TEAM) || (i == cl->clientnum) ||        // common chat or same player
-            (clients[i].role >= CR_ADMIN) ||                     // admin reads all
+            (clients[i]->role >= CR_ADMIN) ||                     // admin reads all
            (team_isactive(st) && st == team_group(rt)) ||         // player to own team + own spects
            (team_isspect(st) && team_isspect(rt)))                // spectator to other spectators
             sendpacket(i, 1, packet);
@@ -1596,7 +1596,7 @@ int numplayers(bool include_bots = true)
     // Count every client that is not a bot
     int count = 0;
     loopv(clients)
-        if(clients[i].type != ST_EMPTY && clients[i].type != ST_AI)
+        if(clients[i]->type != ST_EMPTY && clients[i]->type != ST_AI)
             ++count;
     return count;
 }
@@ -1635,20 +1635,20 @@ void checkitemspawns(int diff)
     }
 }
 
-void serverdied(client &target, client &actor, int damage, int gun, int style, const vec &source, float killdist)
+void serverdied(client *target, client *actor, int damage, int gun, int style, const vec &source, float killdist)
 {
-    clientstate &ts = target.state;
+    clientstate &ts = target->state;
 
-    const bool suic = (&target == &actor);
-    const bool tk = !suic && isteam(&target, &actor);
-    int targethasflag = clienthasflag(target.clientnum);
+    const bool suic = (target == actor);
+    const bool tk = !suic && isteam(target, actor);
+    int targethasflag = clienthasflag(target->clientnum);
 
-    ts.damagelog.removeobj(target.clientnum);
+    ts.damagelog.removeobj(target->clientnum);
     // detect assisted suicide
     if (suic && ts.damagelog.length() && gun != OBIT_NUKE)
     {
         loopv(ts.damagelog)
-            if (valid_client(ts.damagelog[i]) && !isteam(&target, &clients[ts.damagelog[i]]))
+            if (valid_client(ts.damagelog[i]) && !isteam(target, clients[ts.damagelog[i]]))
             {
                 actor = clients[ts.damagelog[i]];
                 style = isheadshot(gun, style) ? FRAG_GIB : FRAG_NONE;
@@ -1660,29 +1660,29 @@ void serverdied(client &target, client &actor, int damage, int gun, int style, c
     // only things on target team that changes
     //if (!m_confirm(gamemode, mutators)) ++usesteamscore(target->team).deaths;
     // apply to individual
-    ++target.state.invalidate().deaths;
+    ++target->state.invalidate().deaths;
     addpt(target, DEATHPT);
     const int kills = (suic || tk) ? -1 : ((style & FRAG_GIB) ? 2 : 1);
-    actor.state.invalidate().frags += kills;
+    actor->state.invalidate().frags += kills;
 
     if (!suic)
     {
         // revenge
-        if (actor.state.revengelog.find(target.clientnum) >= 0)
+        if (actor->state.revengelog.find(target->clientnum) >= 0)
         {
             style |= FRAG_REVENGE;
-            actor.state.revengelog.removeobj(target.clientnum);
+            actor->state.revengelog.removeobj(target->clientnum);
         }
-        target.state.revengelog.add(actor.clientnum);
+        target->state.revengelog.add(actor->clientnum);
         // first blood (not for AI)
-        if (actor.type != ST_AI && nokills)
+        if (actor->type != ST_AI && nokills)
         {
             style |= FRAG_FIRST;
             nokills = false;
         }
         // type of scoping
-        const int zoomtime = ADSTIME(actor.state.perk2 == PERK_TIME), scopeelapsed = gamemillis - actor.state.scopemillis;
-        if (actor.state.scoping)
+        const int zoomtime = ADSTIME(actor->state.perk2 == PERK_TIME), scopeelapsed = gamemillis - actor->state.scopemillis;
+        if (actor->state.scoping)
         {
             // quick/recent/full
             if (scopeelapsed >= zoomtime)
@@ -1713,13 +1713,13 @@ void serverdied(client &target, client &actor, int damage, int gun, int style, c
         */
         // teamkilling a flag carrier is bad
         if ((m_hunt(gamemode) || m_keep(gamemode)) && tk && targethasflag >= 0)
-            --actor.state.invalidate().flagscore;
+            --actor->state.invalidate().flagscore;
     }
 
     //ts.pointstreak = 0;
     ts.wounds.shrink(0);
-    ts.damagelog.removeobj(actor.clientnum);
-    target.invalidateheals();
+    ts.damagelog.removeobj(actor->clientnum);
+    target->invalidateheals();
 
     // assists
     loopv(ts.damagelog)
@@ -1741,8 +1741,8 @@ void serverdied(client &target, client &actor, int damage, int gun, int style, c
     // TODO
 
     // combo reset check
-    if (gamemillis >= actor.state.lastkill + COMBOTIME) actor.state.combo = 0;
-    actor.state.lastkill = gamemillis;
+    if (gamemillis >= actor->state.lastkill + COMBOTIME) actor->state.combo = 0;
+    actor->state.lastkill = gamemillis;
 
     // team points
     int earnedpts = killpoints(target, actor, gun, style);
@@ -1753,12 +1753,12 @@ void serverdied(client &target, client &actor, int damage, int gun, int style, c
         {
             sconfirm &c = sconfirms.add();
             c.o = ts.o;
-            sendf(-1, 1, "ri6", SV_CONFIRMADD, c.id = ++confirmseq, c.team = actor.team, (int)(c.o.x*DMF), (int)(c.o.y*DMF), (int)(c.o.z*DMF));
-            c.actor = actor.clientnum;
-            c.target = target.clientnum;
+            sendf(-1, 1, "ri6", SV_CONFIRMADD, c.id = ++confirmseq, c.team = actor->team, (int)(c.o.x*DMF), (int)(c.o.y*DMF), (int)(c.o.z*DMF));
+            c.actor = actor->clientnum;
+            c.target = target->clientnum;
             c.points = max(0, earnedpts);
             c.frag = max(0, kills);
-            c.death = target.team;
+            c.death = target->team;
         }
     }
     else
@@ -1768,9 +1768,9 @@ void serverdied(client &target, client &actor, int damage, int gun, int style, c
     }
 
     // automatic zombie count
-    if (m_zombie(gamemode) && !m_progressive(gamemode, mutators) && (botbalance == 0 || botbalance == -1) && target.team != actor.team)
+    if (m_zombie(gamemode) && !m_progressive(gamemode, mutators) && (botbalance == 0 || botbalance == -1) && target->team != actor->team)
     {
-        if (target.team == TEAM_CLA)
+        if (target->team == TEAM_CLA)
         {
             // zombie was killed
             --zombiesremain;
@@ -1786,10 +1786,10 @@ void serverdied(client &target, client &actor, int damage, int gun, int style, c
     }
 
     // send message
-    sendf(-1, 1, "ri9i3", SV_KILL, target.clientnum, actor.clientnum, gun, style, damage, ++actor.state.combo, ts.damagelog.length(),
+    sendf(-1, 1, "ri9i3", SV_KILL, target->clientnum, actor->clientnum, gun, style, damage, ++actor->state.combo, ts.damagelog.length(),
         (int)(source.x*DMF), (int)(source.y*DMF), (int)(source.z*DMF), (int)(killdist*DMF));
 
-    target.position.setsize(0);
+    target->position.setsize(0);
     ts.state = CS_DEAD;
     ts.lastdeath = gamemillis;
     ts.lastspawn = -1;
@@ -1797,11 +1797,11 @@ void serverdied(client &target, client &actor, int damage, int gun, int style, c
     // ts.respawn();
     
     // log message
-    const int logtype = actor.type == ST_AI && target.type == ST_AI ? ACLOG_VERBOSE : ACLOG_INFO;
-    if (&target == &actor)
-        logline(logtype, "[%s] %s [%s] (%.2f m)", actor.gethostname(), actor.formatname(), suicname(gun), killdist / 4.f);
+    const int logtype = actor->type == ST_AI && target->type == ST_AI ? ACLOG_VERBOSE : ACLOG_INFO;
+    if (target == actor)
+        logline(logtype, "[%s] %s [%s] (%.2f m)", actor->gethostname(), actor->formatname(), suicname(gun), killdist / 4.f);
     else
-        logline(logtype, "[%s] %s [%s] %s (%.2f m)", actor.gethostname(), actor.formatname(), killname(gun, style), target.formatname(), killdist / 4.f);
+        logline(logtype, "[%s] %s [%s] %s (%.2f m)", actor->gethostname(), actor->formatname(), killname(gun, style), target->formatname(), killdist / 4.f);
 
     // drop flags
     if (targethasflag >= 0 && m_flags(gamemode) && !m_secure(gamemode))
@@ -1828,7 +1828,7 @@ void serverdied(client &target, client &actor, int damage, int gun, int style, c
         while (targethasflag >= 0)
         {
             flagaction(targethasflag, (tk && m_capture(gamemode)) ? FA_RESET : FA_LOST, -1);
-            targethasflag = clienthasflag(target.clientnum);
+            targethasflag = clienthasflag(target->clientnum);
         }
     }
 
@@ -1866,9 +1866,9 @@ void serverdied(client &target, client &actor, int damage, int gun, int style, c
         }
 #endif
         // conversions
-        if (m_convert(gamemode, mutators) && target.team != actor.team)
+        if (m_convert(gamemode, mutators) && target->team != actor->team)
         {
-            updateclientteam(target.clientnum, actor.team, FTR_SILENT);
+            updateclientteam(target->clientnum, actor->team, FTR_SILENT);
             // checkai(); // DO NOT balance bots here
             convertcheck(true);
         }
@@ -1878,10 +1878,10 @@ void serverdied(client &target, client &actor, int damage, int gun, int style, c
 void client::suicide(int gun, int style)
 {
     if (state.state != CS_DEAD)
-        serverdied(*this, *this, 0, gun, style, state.o);
+        serverdied(this, this, 0, gun, style, state.o);
 }
 
-void serverdamage(client &target, client &actor, int damage, int gun, int style, const vec &source, float dist)
+void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source, float dist)
 {
     // moon jump mario = no damage during gib
 #if (SERVER_BUILTIN_MOD & 4)
@@ -1890,29 +1890,29 @@ void serverdamage(client &target, client &actor, int damage, int gun, int style,
 #endif
         return;
 #endif
-    if (!damage) return;
+    if (!target || !actor || !damage) return;
 
-    if (&target != &actor)
+    if (target != actor)
     {
-        if (isteam(&actor, &target))
+        if (isteam(actor, target))
         {
             // for hardcore modes only
-            if (actor.state.protect(gamemillis, gamemode, mutators))
+            if (actor->state.protect(gamemillis, gamemode, mutators))
                 return;
             damage /= 2;
             target = actor;
         }
-        else if (m_vampire(gamemode, mutators) && actor.state.health < VAMPIREMAX)
+        else if (m_vampire(gamemode, mutators) && actor->state.health < VAMPIREMAX)
         {
             int hpadd = damage / (rnd(3) + 3);
             // cap at 300 HP
-            if (actor.state.health + hpadd > VAMPIREMAX)
-                hpadd = VAMPIREMAX - actor.state.health;
-            sendf(-1, 1, "ri3", SV_REGEN, actor.clientnum, actor.state.health += hpadd);
+            if (actor->state.health + hpadd > VAMPIREMAX)
+                hpadd = VAMPIREMAX - actor->state.health;
+            sendf(-1, 1, "ri3", SV_REGEN, actor->clientnum, actor->state.health += hpadd);
         }
     }
 
-    clientstate &ts = target.state;
+    clientstate &ts = target->state;
     if (ts.state != CS_ALIVE) return;
 
     // damage changes
@@ -1927,7 +1927,7 @@ void serverdamage(client &target, client &actor, int damage, int gun, int style,
     }
     else if (m_real(gamemode, mutators))
     {
-        if (gun == GUN_HEAL && &target == &actor) damage /= 2;
+        if (gun == GUN_HEAL && target == actor) damage /= 2;
         else damage *= 2;
     }
     else if (m_classic(gamemode, mutators)) damage /= 2;
@@ -1941,9 +1941,9 @@ void serverdamage(client &target, client &actor, int damage, int gun, int style,
         serverdied(target, actor, damage, gun, style, source, dist);
     else
     {
-        if (ts.damagelog.find(actor.clientnum) < 0)
-            ts.damagelog.add(actor.clientnum);
-        sendf(-1, 1, "ri8i3", SV_DAMAGE, target.clientnum, actor.clientnum, damage, ts.armour, ts.health, gun, style,
+        if (ts.damagelog.find(actor->clientnum) < 0)
+            ts.damagelog.add(actor->clientnum);
+        sendf(-1, 1, "ri8i3", SV_DAMAGE, target->clientnum, actor->clientnum, damage, ts.armour, ts.health, gun, style,
             (int)(source.x*DMF), (int)(source.y*DMF), (int)(source.z*DMF));
     }
 }
@@ -1967,14 +1967,14 @@ void updatesdesc(const char *newdesc, ENetAddress *caller = NULL)
     }
 }
 
-inline bool canspawn(client &c, bool connecting)
+inline bool canspawn(client *c, bool connecting)
 {
     if (!maplayout)
         return false;
-    if (c.team == TEAM_SPECT || (team_isspect(c.team) && !m_team(gamemode, mutators)))
+    if (c->team == TEAM_SPECT || (team_isspect(c->team) && !m_team(gamemode, mutators)))
         return false; // SP_SPECT
     if (m_duke(gamemode, mutators))
-        return (connecting && totalclients <= 2) || (arenaround && m_zombie(gamemode) && c.team == TEAM_RVSF && progressiveround != MAXZOMBIEROUND);
+        return (connecting && totalclients <= 2) || (arenaround && m_zombie(gamemode) && c->team == TEAM_RVSF && progressiveround != MAXZOMBIEROUND);
     return true;
 }
 
@@ -1992,9 +1992,9 @@ int chooseteam(client &cl, int def = rnd(2))
     else
     { // join weaker team
         int teamscore[2] = {0, 0}, sum = calcscores();
-        loopv(clients) if(clients[i].type!=ST_EMPTY && i != cl.clientnum && clients[i].isauthed && clients[i].team != TEAM_SPECT)
+        loopv(clients) if(clients[i]->type!=ST_EMPTY && i != cl.clientnum && clients[i]->isauthed && clients[i]->team != TEAM_SPECT)
         {
-            teamscore[team_base(clients[i].team)] += clients[i].at3_score;
+            teamscore[team_base(clients[i]->team)] += clients[i]->at3_score;
         }
         return sum > 200 ? (teamscore[TEAM_CLA] < teamscore[TEAM_RVSF] ? TEAM_CLA : TEAM_RVSF) : def;
     }
@@ -2003,7 +2003,7 @@ int chooseteam(client &cl, int def = rnd(2))
 bool updateclientteam(int cln, int newteam, int ftr)
 {
     if (!valid_client(cln) || !team_isvalid(newteam)) return false;
-    client &cl = clients[cln];
+    client &cl = *clients[cln];
     // zombies override
     if (m_zombie(gamemode) && !m_convert(gamemode, mutators) && newteam != TEAM_SPECT) newteam = cl.type == ST_AI ? TEAM_CLA : TEAM_RVSF;
 
@@ -2025,7 +2025,7 @@ bool updateclientteam(int cln, int newteam, int ftr)
     if (cl.state.state != CS_DEAD && (m_team(gamemode, mutators) || newteam == TEAM_SPECT))
     {
         if (ftr == FTR_PLAYERWISH) cl.suicide(team_isspect(newteam) ? OBIT_SPECT : OBIT_TEAM, FRAG_NONE);
-        else forcedeath(cl);
+        else forcedeath(&cl);
     }
     return true;
 }
@@ -2033,10 +2033,10 @@ bool updateclientteam(int cln, int newteam, int ftr)
 int calcscores() // skill eval
 {
     int sum = 0;
-    loopv(clients) if(clients[i].type!=ST_EMPTY)
+    loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
-        clientstate &cs = clients[i].state;
-        sum += clients[i].at3_score = cs.points > 0 ? ufSqrt((float)cs.points) : -ufSqrt((float)-cs.points);
+        clientstate &cs = clients[i]->state;
+        sum += clients[i]->at3_score = cs.points > 0 ? ufSqrt((float)cs.points) : -ufSqrt((float)-cs.points);
     }
     return sum;
 }
@@ -2050,7 +2050,7 @@ void shuffleteams(int ftr)
     if(gamemillis < 2 * 60 *1000)
     { // random
         int teamsize[2] = {0, 0};
-        loopv(clients) if(clients[i].type!=ST_EMPTY && clients[i].isonrightmap && !team_isspect(clients[i].team)) // only shuffle active players
+        loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isonrightmap && !team_isspect(clients[i]->team)) // only shuffle active players
         {
             sums += rnd(1000);
             team = sums & 1;
@@ -2065,9 +2065,9 @@ void shuffleteams(int ftr)
         shuffle.shrink(0);
         sums /= 4 * numplayers + 2;
         team = rnd(2);
-        loopv(clients) if(clients[i].type!=ST_EMPTY && clients[i].isonrightmap && !team_isspect(clients[i].team))
+        loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isonrightmap && !team_isspect(clients[i]->team))
         {
-            clients[i].at3_score += rnd(sums | 1);
+            clients[i]->at3_score += rnd(sums | 1);
             shuffle.add(i);
         }
         shuffle.sort(cmpscore);
@@ -2088,20 +2088,20 @@ bool balanceteams(int ftr)  // pro vs noobs never more
     int totalscore = 0, nplayers = 0;
     int flagmult = (m_capture(gamemode) ? 50 : (m_hunt(gamemode) ? 25 : 12));
 
-    loopv(clients) if(clients[i].type!=ST_EMPTY)
+    loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
-        client &c = clients[i];
-        if(c.isauthed && team_isactive(c.team))
+        client *c = clients[i];
+        if(c->isauthed && team_isactive(c->team))
         {
-            int time = servmillis - c.connectmillis + 5000;
+            int time = servmillis - c->connectmillis + 5000;
             if ( time > gamemillis ) time = gamemillis + 5000;
-            tsize[c.team]++;
+            tsize[c->team]++;
             // effective score per minute, thanks to wtfthisgame for the nice idea
             // in a normal game, normal players will do 500 points in 10 minutes
-            c.eff_score = c.state.points * 60 * 1000 / time + c.state.points / 6 + c.state.flagscore * flagmult;
-            tscore[c.team] += c.eff_score;
+            c->eff_score = c->state.points * 60 * 1000 / time + c->state.points / 6 + c->state.flagscore * flagmult;
+            tscore[c->team] += c->eff_score;
             nplayers++;
-            totalscore += c.state.points;
+            totalscore += c->state.points;
         }
     }
 
@@ -2120,16 +2120,16 @@ bool balanceteams(int ftr)  // pro vs noobs never more
     int bestdiff = 0, bestpair[2] = {-1, -1};
     if ( tsize[h] - tsize[l] > 0 ) // the h team has more players, so we will force only one player
     {
-        loopv(clients) if( clients[i].type!=ST_EMPTY )
+        loopv(clients) if( clients[i]->type!=ST_EMPTY )
         {
-            client &c = clients[i]; // loop for h
+            client *c = clients[i]; // loop for h
             // client from the h team, not forced in this game, and without the flag
-            if( c.isauthed && c.team == h && !c.state.forced && clienthasflag(i) < 0 )
+            if( c->isauthed && c->team == h && !c->state.forced && clienthasflag(i) < 0 )
             {
                 // do not exchange in the way that weaker team becomes the stronger or the change is less than 20% effective
-                if ( 2 * c.eff_score <= diffscore && 10 * c.eff_score >= diffscore && c.eff_score > besth )
+                if ( 2 * c->eff_score <= diffscore && 10 * c->eff_score >= diffscore && c->eff_score > besth )
                 {
-                    besth = c.eff_score;
+                    besth = c->eff_score;
                     hid = i;
                 }
             }
@@ -2139,22 +2139,22 @@ bool balanceteams(int ftr)  // pro vs noobs never more
             updateclientteam(hid, l, ftr);
             // checkai(); // balance big to small
             // convertcheck();
-            clients[hid].at3_lastforce = gamemillis;
-            clients[hid].state.forced = true;
+            clients[hid]->at3_lastforce = gamemillis;
+            clients[hid]->state.forced = true;
             return true;
         }
     } else { // the h score team has less or the same player number, so, lets exchange
-        loopv(clients) if(clients[i].type!=ST_EMPTY)
+        loopv(clients) if(clients[i]->type!=ST_EMPTY)
         {
-            client &c = clients[i]; // loop for h
-            if( c.isauthed && c.team == h && !c.state.forced && clienthasflag(i) < 0 )
+            client *c = clients[i]; // loop for h
+            if( c->isauthed && c->team == h && !c->state.forced && clienthasflag(i) < 0 )
             {
-                loopvj(clients) if(clients[j].type!=ST_EMPTY && j != i )
+                loopvj(clients) if(clients[j]->type!=ST_EMPTY && j != i )
                 {
-                    client &cj = clients[j]; // loop for l
-                    if( cj.isauthed && cj.team == l && !cj.state.forced && clienthasflag(j) < 0 )
+                    client *cj = clients[j]; // loop for l
+                    if( cj->isauthed && cj->team == l && !cj->state.forced && clienthasflag(j) < 0 )
                     {
-                        int pairdiff = 2 * (c.eff_score - cj.eff_score);
+                        int pairdiff = 2 * (c->eff_score - cj->eff_score);
                         if ( pairdiff <= diffscore && 5 * pairdiff >= diffscore && pairdiff > bestdiff )
                         {
                             bestdiff = pairdiff;
@@ -2169,8 +2169,8 @@ bool balanceteams(int ftr)  // pro vs noobs never more
         {
             updateclientteam(bestpair[h], l, ftr);
             updateclientteam(bestpair[l], h, ftr);
-            clients[bestpair[h]].at3_lastforce = clients[bestpair[l]].at3_lastforce = gamemillis;
-            clients[bestpair[h]].state.forced = clients[bestpair[l]].state.forced = true;
+            clients[bestpair[h]]->at3_lastforce = clients[bestpair[l]]->at3_lastforce = gamemillis;
+            clients[bestpair[h]]->state.forced = clients[bestpair[l]]->state.forced = true;
             checkai(); // balance switch
             // convertcheck();
             return true;
@@ -2187,8 +2187,8 @@ bool refillteams(bool now, int ftr)  // force only minimal amounts of players
     {
         // force to zombie teams
         loopv(clients)
-            if (clients[i].type != ST_EMPTY && !team_isspect(clients[i].team))
-                updateclientteam(i, clients[i].type == ST_AI ? TEAM_CLA : TEAM_RVSF, ftr);
+            if (clients[i]->type != ST_EMPTY && !team_isspect(clients[i]->team))
+                updateclientteam(i, clients[i]->type == ST_AI ? TEAM_CLA : TEAM_RVSF, ftr);
         return false;
     }
     if(mastermode == MM_MATCH) return false;
@@ -2197,20 +2197,20 @@ bool refillteams(bool now, int ftr)  // force only minimal amounts of players
     bool switched = false;
 
     calcscores();
-    loopv(clients) if(clients[i].type!=ST_EMPTY)     // playerlist stocktaking
+    loopv(clients) if(clients[i]->type!=ST_EMPTY)     // playerlist stocktaking
     {
-        client &c = clients[i];
-        c.at3_dontmove = true;
-        if(c.isauthed)
+        client *c = clients[i];
+        c->at3_dontmove = true;
+        if(c->isauthed)
         {
-            if(team_isactive(c.team)) // only active players count
+            if(team_isactive(c->team)) // only active players count
             {
-                teamsize[c.team]++;
-                teamscore[c.team] += c.at3_score;
+                teamsize[c->team]++;
+                teamscore[c->team] += c->at3_score;
                 if(clienthasflag(i) < 0)
                 {
-                    c.at3_dontmove = false;
-                    moveable[c.team]++;
+                    c->at3_dontmove = false;
+                    moveable[c->team]++;
                 }
             }
         }
@@ -2225,18 +2225,18 @@ bool refillteams(bool now, int ftr)  // force only minimal amounts of players
         if(now || gamemillis - lasttime_eventeams > 8000 + allplayers * 1000 || diffnum > 2 + allplayers / 10)
         {
             // time to even out teams
-            loopv(clients) if(clients[i].type!=ST_EMPTY && clients[i].team != bigteam) clients[i].at3_dontmove = true;  // dont move small team players
+            loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->team != bigteam) clients[i]->at3_dontmove = true;  // dont move small team players
             while(diffnum > 1 && moveable[bigteam] > 0)
             {
                 // pick best fitting cn
                 int pick = -1;
                 int bestfit = 1000000000;
                 int targetscore = diffscore / (diffnum & ~1);
-                loopv(clients) if(clients[i].type!=ST_EMPTY && !clients[i].at3_dontmove) // try all still movable players
+                loopv(clients) if(clients[i]->type!=ST_EMPTY && !clients[i]->at3_dontmove) // try all still movable players
                 {
-                    int fit = targetscore - clients[i].at3_score;
+                    int fit = targetscore - clients[i]->at3_score;
                     if(fit < 0 ) fit = -(fit * 15) / 10;       // avoid too good players
-                    int forcedelay = clients[i].at3_lastforce ? (1000 - (gamemillis - clients[i].at3_lastforce) / (5 * 60)) : 0;
+                    int forcedelay = clients[i]->at3_lastforce ? (1000 - (gamemillis - clients[i]->at3_lastforce) / (5 * 60)) : 0;
                     if(forcedelay > 0) fit += (fit * forcedelay) / 600;   // avoid lately forced players
                     if(fit < bestfit + fit * rnd(100) / 400)   // search 'almost' best fit
                     {
@@ -2246,13 +2246,13 @@ bool refillteams(bool now, int ftr)  // force only minimal amounts of players
                 }
                 if(pick < 0) break; // should really never happen
                 // move picked player
-                clients[pick].at3_dontmove = true;
+                clients[pick]->at3_dontmove = true;
                 moveable[bigteam]--;
                 if(updateclientteam(pick, !bigteam, ftr))
                 {
                     diffnum -= 2;
-                    diffscore -= 2 * clients[pick].at3_score;
-                    clients[pick].at3_lastforce = gamemillis;  // try not to force this player again for the next 5 minutes
+                    diffscore -= 2 * clients[pick]->at3_score;
+                    clients[pick]->at3_lastforce = gamemillis;  // try not to force this player again for the next 5 minutes
                     switched = true;
                     // checkai(); // refill
                     // convertcheck();
@@ -2450,10 +2450,10 @@ void startgame(const char *newname, int newmode, int newmuts, int newtime, bool 
                     shuffleteams(FTR_SILENT);
             }
             // prepare spawns; players will spawn, once they've loaded the correct map
-            loopv(clients) if(clients[i].type!=ST_EMPTY)
+            loopv(clients) if(clients[i]->type!=ST_EMPTY)
             {
-                client &c = clients[i];
-                c.mapchange();
+                client *c = clients[i];
+                c->mapchange();
                 forcedeath(c);
             }
         }
@@ -2511,7 +2511,7 @@ void addgban(const char *name)
 
     loopvrev(clients)
     {
-        client &c = clients[i];
+        client &c = *clients[i];
         if(c.type!=ST_TCPIP) continue;
         if(checkgban(c.peer->address.host)) disconnect_client(c.clientnum, DISC_BANREFUSE);
     }
@@ -2528,7 +2528,7 @@ inline void addban(client *cl, int reason, int type)
 int getbantype(int cn)
 {
     if(!valid_client(cn)) return BAN_NONE;
-    client &c = clients[cn];
+    client &c = *clients[cn];
     if(c.type==ST_LOCAL) return BAN_NONE;
     if(checkgban(c.peer->address.host)) return BAN_MASTER;
     if(ipblacklist.check(c.peer->address.host)) return BAN_BLACKLIST;
@@ -2544,8 +2544,8 @@ int getbantype(int cn)
 void sendserveropinfo(int receiver = -1)
 {
     loopv(clients)
-        if(clients[i].type!=ST_EMPTY)
-            sendf(receiver, 1, "ri3", SV_SETPRIV, i, clients[i].role);
+        if(clients[i]->type!=ST_EMPTY)
+            sendf(receiver, 1, "ri3", SV_SETPRIV, i, clients[i]->role);
 }
 
 #include "serveractions.h"
@@ -2561,16 +2561,16 @@ struct voteinfo
     void end(int result, int veto)
     {
         if(action && !action->isvalid()) result = VOTE_NO; // don't perform() invalid votes
-        if (valid_client(veto)) logline(ACLOG_INFO, "[%s] vote %s, forced by %s (%d)", clients[owner].gethostname(), result == VOTE_YES ? "passed" : "failed", clients[veto].formatname(), veto);
-        else logline(ACLOG_INFO, "[%s] vote %s (%s)", clients[owner].gethostname(), result == VOTE_YES ? "passed" : "failed", veto == -2 ? "enough votes" : veto == -3 ? "expiry" : "unknown");
+        if (valid_client(veto)) logline(ACLOG_INFO, "[%s] vote %s, forced by %s (%d)", clients[owner]->gethostname(), result == VOTE_YES ? "passed" : "failed", clients[veto]->formatname(), veto);
+        else logline(ACLOG_INFO, "[%s] vote %s (%s)", clients[owner]->gethostname(), result == VOTE_YES ? "passed" : "failed", veto == -2 ? "enough votes" : veto == -3 ? "expiry" : "unknown");
         sendf(-1, 1, "ri3", SV_VOTERESULT, result, veto);
         this->result = result;
         if(result == VOTE_YES)
         {
-            if(valid_client(owner)) clients[owner].lastvotecall = 0;
+            if(valid_client(owner)) clients[owner]->lastvotecall = 0;
             if(action) action->perform();
         }
-        loopv(clients) clients[i].vote = VOTE_NEUTRAL;
+        loopv(clients) clients[i]->vote = VOTE_NEUTRAL;
     }
 
     bool isvalid() { return valid_client(owner) && action != NULL && action->isvalid(); }
@@ -2583,8 +2583,8 @@ struct voteinfo
         int stats[VOTE_NUM+1] = {0};
         loopv(clients)
         {
-            if (clients[i].type == ST_EMPTY || clients[i].type == ST_AI) continue;
-            ++stats[clients[i].vote%VOTE_NUM];
+            if (clients[i]->type == ST_EMPTY || clients[i]->type == ST_AI) continue;
+            ++stats[clients[i]->vote%VOTE_NUM];
             ++stats[VOTE_NUM];
         }
         const int expireresult = stats[VOTE_YES] / (float)(stats[VOTE_NO] + stats[VOTE_YES]) > action->passratio ? VOTE_YES : VOTE_NO;
@@ -2597,7 +2597,7 @@ struct voteinfo
             if (veto == VOTE_NEUTRAL) end(expireresult, -3);
             else end(veto, vetoowner);
         }
-        else if (stats[VOTE_YES] / (float)stats[VOTE_NUM] > action->passratio || (!isdedicated && clients[owner].type == ST_LOCAL))
+        else if (stats[VOTE_YES] / (float)stats[VOTE_NUM] > action->passratio || (!isdedicated && clients[owner]->type == ST_LOCAL))
             end(VOTE_YES, -2);
         else if (stats[VOTE_NO] / (float)stats[VOTE_NUM] > action->passratio)
             end(VOTE_NO, -2);
@@ -2611,16 +2611,16 @@ void scallvotesuc(voteinfo *v)
     if(!v->isvalid()) return;
     DELETEP(curvote);
     curvote = v;
-    clients[v->owner].lastvotecall = servmillis;
-    clients[v->owner].nvotes--; // successful votes do not count as abuse
-    logline(ACLOG_INFO, "[%s] %s called a vote: %s", clients[v->owner].gethostname(), clients[v->owner].formatname(), v->action && v->action->desc ? v->action->desc : "[unknown]");
+    clients[v->owner]->lastvotecall = servmillis;
+    clients[v->owner]->nvotes--; // successful votes do not count as abuse
+    logline(ACLOG_INFO, "[%s] %s called a vote: %s", clients[v->owner]->gethostname(), clients[v->owner]->formatname(), v->action && v->action->desc ? v->action->desc : "[unknown]");
 }
 
 void scallvoteerr(voteinfo *v, int error)
 {
     if(!valid_client(v->owner)) return;
     sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, error);
-    logline(ACLOG_INFO, "[%s] %s failed to call a vote: %s (%s)", clients[v->owner].gethostname(), clients[v->owner].formatname(), v->action && v->action->desc ? v->action->desc : "[unknown]", voteerrorstr(error));
+    logline(ACLOG_INFO, "[%s] %s failed to call a vote: %s (%s)", clients[v->owner]->gethostname(), clients[v->owner]->formatname(), v->action && v->action->desc ? v->action->desc : "[unknown]", voteerrorstr(error));
 }
 
 void sendcallvote(int cn = -1);
@@ -2630,19 +2630,19 @@ bool scallvote(voteinfo *v) // true if a regular vote was called
     ASSERT(v);
     int area = isdedicated ? EE_DED_SERV : EE_LOCAL_SERV;
     int error = -1;
-    client &c = clients[v->owner];
+    client *c = clients[v->owner];
 
-    int time = servmillis - c.lastvotecall;
-    if ( c.nvotes > 0 && time > 4*60*1000 ) c.nvotes -= time/(4*60*1000);
-    if ( c.nvotes < 0 || c.role >= CR_ADMIN ) c.nvotes = 0;
-    c.nvotes++;
+    int time = servmillis - c->lastvotecall;
+    if ( c->nvotes > 0 && time > 4*60*1000 ) c->nvotes -= time/(4*60*1000);
+    if ( c->nvotes < 0 || c->role >= CR_ADMIN ) c->nvotes = 0;
+    c->nvotes++;
 
     if( !v || !v->isvalid() ) error = VOTEE_INVALID;
-    else if( v->action->reqcall > c.role ) error = VOTEE_PERMISSION;
+    else if( v->action->reqcall > c->role ) error = VOTEE_PERMISSION;
     else if( !(area & v->action->area) ) error = VOTEE_AREA;
     else if( curvote && curvote->result==VOTE_NEUTRAL ) error = VOTEE_CUR;
-    else if( c.role == CR_DEFAULT && v->action->isdisabled() ) error = VOTEE_DISABLED;
-    else if( (c.lastvotecall && servmillis - c.lastvotecall < 60*1000 && c.role < CR_ADMIN && numclients()>1) || c.nvotes > 3 ) error = VOTEE_MAX;
+    else if( c->role == CR_DEFAULT && v->action->isdisabled() ) error = VOTEE_DISABLED;
+    else if( (c->lastvotecall && servmillis - c->lastvotecall < 60*1000 && c->role < CR_ADMIN && numclients()>1) || c->nvotes > 3 ) error = VOTEE_MAX;
 
     if(error>=0)
     {
@@ -2654,7 +2654,7 @@ bool scallvote(voteinfo *v) // true if a regular vote was called
         scallvotesuc(v);
         sendcallvote();
         // owner auto votes yes
-        sendf(-1, 1, "ri3", SV_VOTE, v->owner, (c.vote = VOTE_YES));
+        sendf(-1, 1, "ri3", SV_VOTE, v->owner, (c->vote = VOTE_YES));
         curvote->evaluate();
         return true;
     }
@@ -2725,11 +2725,11 @@ void sendcallvote(int cn)
             break;
     }
     // send vote states
-    loopv(clients) if (clients[i].vote != VOTE_NEUTRAL)
+    loopv(clients) if (clients[i]->vote != VOTE_NEUTRAL)
     {
         putint(q, SV_VOTE);
         putint(q, i);
-        putint(q, clients[i].vote);
+        putint(q, clients[i]->vote);
     }
     sendpacket(cn, 1, q.finalize());
 }
@@ -2806,7 +2806,7 @@ void clientdisconnect(int n)
     // remove assists/revenge
     loopv(clients) if(valid_client(i) && i != n)
     {
-        clientstate &cs = clients[i].state;
+        clientstate &cs = clients[i]->state;
         cs.damagelog.removeobj(n);
         cs.revengelog.removeobj(n);
     }
@@ -2816,21 +2816,21 @@ void clientdisconnect(int n)
         if(sconfirms[i].actor == n) sconfirms[i].actor = -1;
         if(sconfirms[i].target == n) sconfirms[i].target = -1;
     }
-    clients[n].zap();
+    clients[n]->zap();
 }
 
 #include "serverai.h"
 
 void disconnect_client(int n, int reason)
 {
-    if(!clients.inrange(n) || clients[n].type!=ST_TCPIP) return;
+    if(!clients.inrange(n) || clients[n]->type!=ST_TCPIP) return;
     sdropflag(n);
-    client &c = clients[n];
+    client &c = *clients[n];
     // reassign/delete AI
     loopv(clients)
-        if(clients[i].ownernum == n)
-            if(!shiftai(clients[i], -1, n))
-                deleteai(clients[i]);
+        if(clients[i]->ownernum == n)
+            if(!shiftai(*clients[i], -1, n))
+                deleteai(*clients[i]);
     // remove privilege
     if(c.role) setpriv(c, CR_DEFAULT);
     c.state.lastdisc = servmillis;
@@ -2946,7 +2946,7 @@ inline void welcomeinitclient(packetbuf &p, int exclude = -1)
 {
     loopv(clients)
     {
-        client &c = clients[i];
+        client &c = *clients[i];
         if(c.type==ST_EMPTY || !c.isauthed || c.clientnum == exclude) continue;
         putinitclient(c, p);
     }
@@ -2956,7 +2956,7 @@ void welcomepacket(packetbuf &p, int n)
 {
     if(!smapname[0]) maprot.next(false);
 
-    client *c = valid_client(n) ? &clients[n] : NULL;
+    client *c = valid_client(n) ? clients[n] : NULL;
     int numcl = numclients();
 
     putint(p, SV_WELCOME);
@@ -3001,7 +3001,7 @@ void welcomepacket(packetbuf &p, int n)
         putint(p, SV_RESUME);
         loopv(clients)
         {
-            client &c = clients[i];
+            client &c = *clients[i];
             if(c.type!=ST_TCPIP || c.clientnum==n) continue;
             putint(p, c.clientnum);
             putint(p, c.state.state == CS_WAITING ? CS_DEAD : c.state.state);
@@ -3036,20 +3036,20 @@ void welcomepacket(packetbuf &p, int n)
     }
 }
 
-void sendwelcome(client &cl, int chan)
+void sendwelcome(client *cl, int chan)
 {
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    welcomepacket(p, cl.clientnum);
-    sendpacket(cl.clientnum, chan, p.finalize());
-    cl.haswelcome = true;
+    welcomepacket(p, cl->clientnum);
+    sendpacket(cl->clientnum, chan, p.finalize());
+    cl->haswelcome = true;
 }
 
-void forcedeath(client &cl, bool gib)
+void forcedeath(client *cl, bool gib)
 {
-    sdropflag(cl.clientnum);
-    cl.state.state = CS_DEAD;
-    cl.state.respawn();
-    sendf(-1, 1, "ri2", gib ? SV_FORCEGIB : SV_FORCEDEATH, cl.clientnum);
+    sdropflag(cl->clientnum);
+    cl->state.state = CS_DEAD;
+    cl->state.respawn();
+    sendf(-1, 1, "ri2", gib ? SV_FORCEGIB : SV_FORCEDEATH, cl->clientnum);
 }
 
 bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
@@ -3089,7 +3089,7 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
                 { // fall at least 2.5 meters to fall onto others
                     loopv(clients)
                     {
-                        client &t = clients[i];
+                        client &t = *clients[i];
                         clientstate &ts = t.state;
                         // basic checks
                         if (t.type == ST_EMPTY || ts.state != CS_ALIVE || i == cp.clientnum) continue;
@@ -3099,7 +3099,7 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
                         const float dz2 = cs.o.z - ts.o.z;
                         if(dz2 > PLAYERABOVEEYE + 2 || -dz2 > PLAYERHEIGHT + 2) continue;
                         if(!isteam(&t, &cp) && !ts.protect(gamemillis, gamemode, mutators))
-                            serverdied(t, cp, 0, OBIT_FALL, FRAG_NONE, cs.o);
+                            serverdied(&t, &cp, 0, OBIT_FALL, FRAG_NONE, cs.o);
                         hit = true;
                     }
                 }
@@ -3114,12 +3114,12 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
                     if(damage >= 1*HEALTHSCALE) // don't heal the player
                     {
                         // maximum damage is 99 for balance purposes
-                        serverdamage(cp, cp, min(damage, (m_classic(gamemode, mutators) ? 30 : 99) * HEALTHSCALE), OBIT_FALL, FRAG_NONE, cs.o); // max 99, "30" (15) for classic
+                        serverdamage(&cp, &cp, min(damage, (m_classic(gamemode, mutators) ? 30 : 99) * HEALTHSCALE), OBIT_FALL, FRAG_NONE, cs.o); // max 99, "30" (15) for classic
                     }
                 }
             }
             else if(newunderwater && dz > 32) // air to liquid, more than 8 meters
-                serverdamage(cp, cp, (m_classic(gamemode, mutators) ? 20 : 35) * HEALTHSCALE, OBIT_FALL_WATER, FRAG_NONE, cs.o); // fixed damage @ 35, "20" (10) for classic
+                serverdamage(&cp, &cp, (m_classic(gamemode, mutators) ? 20 : 35) * HEALTHSCALE, OBIT_FALL_WATER, FRAG_NONE, cs.o); // fixed damage @ 35, "20" (10) for classic
             cs.onfloor = true;
         }
         else if(!newonfloor)
@@ -3142,7 +3142,7 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
             defformatstring(msg)("%s \f2collides with the map \f5- \f3forcing death", cp.formatname());
             sendservmsg(msg);
             sendf(cp.clientnum, 1, "ri", SV_MAPIDENT);
-            forcedeath(cp);
+            forcedeath(&cp);
             cp.isonrightmap = false; // cannot spawn until you get the right map
         }
         return false; // no pickups for you!
@@ -3164,7 +3164,7 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
         if(canheal)
         {
             // healing station
-            addpt(cp, HEALWOUNDPT * cs.wounds.length(), PR_HEALWOUND);
+            addpt(&cp, HEALWOUNDPT * cs.wounds.length(), PR_HEALWOUND);
             cs.wounds.shrink(0);
         }
         if(cantake)
@@ -3265,7 +3265,7 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
             {
                 cantake = true;
                 loopv(clients)
-                    if (i != cp.clientnum && valid_client(i) && clients[i].type != ST_AI && clients[i].team == cp.team)
+                    if (i != cp.clientnum && valid_client(i) && clients[i]->type != ST_AI && clients[i]->team == cp.team)
                     {
                         cantake = false;
                         break;
@@ -3279,7 +3279,7 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
     {
         if (cp.team == sconfirms[i].team)
         {
-            addpt(cp, KCKILLPTS, PR_KC);
+            addpt(&cp, KCKILLPTS, PR_KC);
             //usesteamscore(sconfirms[i].team).points += sconfirms[i].points;
             // the following line doesn't have to set the valid flag twice
             //getsteamscore(sconfirms[i].team).frags += sconfirms[i].frag;
@@ -3287,8 +3287,8 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
         }
         else
         {
-            addpt(cp, KCDENYPTS, cp.clientnum == sconfirms[i].target ? PR_KD_SELF : PR_KD);
-            if (valid_client(sconfirms[i].actor) && clients[sconfirms[i].actor].type != ST_AI)
+            addpt(&cp, KCDENYPTS, cp.clientnum == sconfirms[i].target ? PR_KD_SELF : PR_KD);
+            if (valid_client(sconfirms[i].actor) && clients[sconfirms[i].actor]->type != ST_AI)
                 addptreason(clients[sconfirms[i].actor], PR_KD_ENEMY);
         }
 
@@ -3323,7 +3323,7 @@ void process(ENetPacket *packet, int sender, int chan)
 {
     ucharbuf p(packet->data, packet->dataLength);
     char text[MAXTRANS];
-    client *cl = sender>=0 ? &clients[sender] : NULL;
+    client *cl = sender>=0 ? clients[sender] : NULL;
     int type;
 
     if(cl && !cl->isauthed)
@@ -3363,8 +3363,8 @@ void process(ENetPacket *packet, int sender, int chan)
         {
             loopv(clients) if(i != sender)
             {
-                client &dup = clients[i];
-                if(dup.type==ST_TCPIP && dup.peer->address.host==cl->peer->address.host && dup.peer->address.port==cl->peer->address.port)
+                client *dup = clients[i];
+                if(dup->type==ST_TCPIP && dup->peer->address.host==cl->peer->address.host && dup->peer->address.port==cl->peer->address.port)
                     disconnect_client(i, DISC_DUP);
             }
 
@@ -3373,7 +3373,7 @@ void process(ENetPacket *packet, int sender, int chan)
             connectcheck(sender, cl->acguid, cl->hostname, cl->authreq, cl->authuser);
         }
 
-        sendwelcome(*cl);
+        sendwelcome(cl);
         if(restorescore(*cl)) { sendresume(*cl, true); senddisconnectedscores(-1); }
         else if(cl->type==ST_TCPIP) senddisconnectedscores(sender);
         sendinitclient(*cl);
@@ -3451,7 +3451,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 trimtrailingwhitespace(text);
 
                 if(!valid_client(targ)) break;
-                client &target = clients[targ];
+                client *target = clients[targ];
 
                 if(*text)
                 {
@@ -3459,18 +3459,18 @@ void process(ENetPacket *packet, int sender, int chan)
                     if(forbidden)
                     {
                         sendservmsg("\f3Please do not spam; your message was not delivered.", sender);
-                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s', SPAM detected", cl->gethostname(), cl->formatname(), target.formatname(), text);
+                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s', SPAM detected", cl->gethostname(), cl->formatname(), target->formatname(), text);
                     }
                     else if(spamdetect(cl, text))
                     {
                         sendservmsg("\f3Watch your language! Your message was not delivered.", sender);
-                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s', forbidden (%s)", cl->gethostname(), cl->formatname(), target.formatname(), text, forbidden);
+                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s', forbidden (%s)", cl->gethostname(), cl->formatname(), target->formatname(), text, forbidden);
                     }
                     else
                     {
-                        bool allowed = !(mastermode == MM_MATCH && cl->team != target.team) && cl->role >= roleconf('t');
-                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s'%s", cl->gethostname(), cl->formatname(), target.formatname(), text, allowed ? "" : ", disallowed");
-                        if(allowed) sendf(target.clientnum, 1, "riis", SV_TEXTPRIVATE, cl->clientnum, text);
+                        bool allowed = !(mastermode == MM_MATCH && cl->team != target->team) && cl->role >= roleconf('t');
+                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s'%s", cl->gethostname(), cl->formatname(), target->formatname(), text, allowed ? "" : ", disallowed");
+                        if(allowed) sendf(target->clientnum, 1, "riis", SV_TEXTPRIVATE, cl->clientnum, text);
                     }
                 }
             }
@@ -3497,12 +3497,12 @@ void process(ENetPacket *packet, int sender, int chan)
                         if((cl->freshgame || numclients() < 2) && !m_demo(gamemode)) spawn = true;
                     }
                     cl->freshgame = false;
-                    if(spawn) sendspawn(*cl);
+                    if(spawn) sendspawn(cl);
 
                 }
                 else
                 {
-                    forcedeath(*cl);
+                    forcedeath(cl);
                     logline(ACLOG_INFO, "[%s] %s is on the wrong map: revision %d/%d", cl->gethostname(), cl->formatname(), rev, gzs);
                     cl->loggedwrongmap = true;
                 }
@@ -3513,7 +3513,7 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 int cn = getint(p), gunselect = getint(p);
                 if (!cl->hasclient(cn)) break;
-                client &cp = clients[cn];
+                client &cp = *clients[cn];
                 if (gunselect < 0 || gunselect >= NUMGUNS) break;
 #if (SERVER_BUILTIN_MOD & 8)
                 if (gunselect != cp.state.primary)
@@ -3534,7 +3534,7 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 const int cn = getint(p);
                 if (!cl->hasclient(cn)) break;
-                clientstate &cs = clients[cn].state;
+                clientstate &cs = clients[cn]->state;
                 cs.gunwait[cs.gunselect = cs.primary] += SWITCHTIME(cs.perk1 == PERK_TIME) / 2;
                 QUEUE_MSG;
                 break;
@@ -3548,7 +3548,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 loopi(3) vel[i] = getint(p)/DNF;
                 int cooked = clamp(getint(p), 1, NADETTL);
                 if (!cl->hasclient(cn)) break;
-                clientstate &cps = clients[cn].state;
+                clientstate &cps = clients[cn]->state;
                 if (cps.grenades.throwable <= 0) break;
                 --cps.grenades.throwable;
                 checkpos(from);
@@ -3715,7 +3715,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     // convertcheck();
                 }
                 // can the player be enqueued?
-                if (!canspawn(*cl)) break;
+                if (!canspawn(cl)) break;
                 // enqueue for spawning
                 cs.state = CS_WAITING;
                 const int waitremain = SPAWNDELAY - gamemillis + cs.lastdeath;
@@ -3729,7 +3729,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 vec o;
                 loopi(3) o[i] = getint(p) / DMF;
                 if(!cl->hasclient(cn)) break;
-                client &cp = clients[cn];
+                client &cp = *clients[cn];
                 clientstate &cs = cp.state;
                 if((cs.state!=CS_ALIVE && cs.state!=CS_DEAD) || ls!=cs.lifesequence || cs.lastspawn<0) break;
                 cs.lastspawn = gamemillis; // extend spawn protection time
@@ -3743,7 +3743,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     NUMGUNS, cs.ammo, NUMGUNS, cs.mag, (int)(o.x*DMF), (int)(o.y*DMF), (int)(o.z*DMF), cl->y);
                 // bad spawn adjustment?
                 if (!m_edit(gamemode) && (lasto.distxy(cs.o) >= 6 * PLAYERRADIUS)) // || fabs(lasto.z - cs.o.z) >= 2 * PLAYERHEIGHT))
-                    serverdied(cp, cp, 0, OBIT_SPAWN, FRAG_NONE, cs.o);
+                    serverdied(&cp, &cp, 0, OBIT_SPAWN, FRAG_NONE, cs.o);
                 break;
             }
 
@@ -3751,18 +3751,18 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 const int cn = getint(p);
                 if(!cl->hasclient(cn)) break;
-                client &cp = clients[cn];
-                if(cp.state.state != CS_DEAD)
+                client *cp = clients[cn];
+                if(cp->state.state != CS_DEAD)
                 {
 #if (SERVER_BUILTIN_MOD & 64)
-                    if (cp.type != ST_AI && !cp.nuked)
+                    if (cp->type != ST_AI && !cp->nuked)
                     {
-                        cp.nuked = true;
-                        nuke(cp, true, true, true);
+                        cp->nuked = true;
+                        nuke(*cp, true, true, true);
                     }
                     else
 #endif
-                    cp.suicide(cn == sender ? OBIT_DEATH : OBIT_BOT, cn == sender ? FRAG_GIB : FRAG_NONE);
+                    cp->suicide( cn == sender ? OBIT_DEATH : OBIT_BOT, cn == sender ? FRAG_GIB : FRAG_NONE);
                 }
                 break;
             }
@@ -3793,11 +3793,11 @@ void process(ENetPacket *packet, int sender, int chan)
                     }
                 }
 
-                if (cl->hasclient(cn))
+                client *cp = cl->hasclient(cn) ? clients[cn] : NULL;
+                if (cp)
                 {
-                    client &cp = clients[cn];
-                    ev->millis = cp.getmillis(gamemillis, id);
-                    cp.addevent(ev);
+                    ev->millis = cp->getmillis(gamemillis, id);
+                    cp->addevent(ev);
                 }
                 else delete ev;
                 break;
@@ -3808,9 +3808,9 @@ void process(ENetPacket *packet, int sender, int chan)
                 const int cn = getint(p), id = getint(p), weap = getint(p), flags = getint(p);
                 vec o;
                 loopi(3) o[i] = getint(p) / DMF;
-                if (!cl->hasclient(cn)) break;
-                client &cp = clients[cn];
-                cp.addevent(new destroyevent(cp.getmillis(gamemillis, id), id, weap, flags, o));
+                client *cp = cl->hasclient(cn) ? clients[cn] : NULL;
+                if (!cp) break;
+                cp->addevent(new destroyevent(cp->getmillis(gamemillis, id), id, weap, flags, o));
                 break;
             }
 
@@ -3818,8 +3818,8 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 const int cn = getint(p), id = getint(p);
                 if (!cl->hasclient(cn)) break;
-                client &cp = clients[cn];
-                cp.addevent(new akimboevent(cp.getmillis(gamemillis, id), id));
+                client *cp = clients[cn];
+                cp->addevent(new akimboevent(cp->getmillis(gamemillis, id), id));
                 break;
             }
 
@@ -3827,8 +3827,8 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 int cn = getint(p), id = getint(p), weap = getint(p);
                 if (!cl->hasclient(cn)) break;
-                client &cp = clients[cn];
-                cp.addevent(new reloadevent(cp.getmillis(gamemillis, id), id, weap));
+                client *cp = clients[cn];
+                cp->addevent(new reloadevent(cp->getmillis(gamemillis, id), id, weap));
                 break;
             }
 
@@ -3843,8 +3843,8 @@ void process(ENetPacket *packet, int sender, int chan)
                 ping = clamp(ping, 0, 9999);
                 ping = cl->ping == 9999 ? ping : (cl->ping * 4 + ping) / 5;
                 loopv(clients)
-                    if(clients[i].type != ST_EMPTY && (i == sender || clients[i].ownernum == sender))
-                        clients[i].ping = ping;
+                    if(clients[i]->type != ST_EMPTY && (i == sender || clients[i]->ownernum == sender))
+                        clients[i]->ping = ping;
                 sendf(-1, 1, "i3", SV_CLIENTPING, sender, ping);
                 break;
             }
@@ -3864,7 +3864,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 if ((newg >> 3) & 1) dvel.z = getint(p) / DVELF;
                 int newf = getuint(p);
                 if(!valid_client(cn)) break;
-                client &cp = clients[cn];
+                client &cp = *clients[cn];
                 clientstate &cs = cp.state;
                 if(interm || !broadcast || (cs.state!=CS_ALIVE && cs.state!=CS_EDITING)) break;
                 // relay if still alive
@@ -3912,7 +3912,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 int g2 = q.getbits(1); // shooting
                 const int newg = (g1<<4) | (g2<<5);
                 if(!broadcast) break;
-                client &cp = clients[cn];
+                client &cp = *clients[cn];
                 clientstate &cs = cp.state;
                 if(!cp.isonrightmap || p.remaining() || p.overread()) { p.flags = 0; break; }
                 if(((newf >> 6) & 1) != (cs.lifesequence & 1) || usefactor != (smapstats.hdr.sfactor < 7 ? 7 : smapstats.hdr.sfactor)) break;
@@ -3979,8 +3979,8 @@ void process(ENetPacket *packet, int sender, int chan)
                     {
                         incoming_size += mapsize + cfgsizegz;
                         logline(ACLOG_INFO,"[%s] %s sent map %s, rev %d, %d + %d(%d) bytes written",
-                            cl->gethostname(), cl->formatname(), sentmap, revision, mapsize, cfgsize, cfgsizegz);
-                        defformatstring(msg)("%s (%d) up%sed map %s, rev %d%s", cl->formatname(), sender, mp == MAP_NOTFOUND ? "load": "dat", sentmap, revision,
+                            clients[sender]->gethostname(), clients[sender]->formatname(), sentmap, revision, mapsize, cfgsize, cfgsizegz);
+                        defformatstring(msg)("%s (%d) up%sed map %s, rev %d%s", clients[sender]->formatname(), sender, mp == MAP_NOTFOUND ? "load": "dat", sentmap, revision,
                             /*strcmp(sentmap, behindpath(smapname)) || smode == GMODE_COOPEDIT ? "" :*/ "\f3 (restart game to use new map version)");
                         sendservmsg(msg);
                     }
@@ -3993,7 +3993,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 if (reject)
                 {
                     logline(ACLOG_INFO,"[%s] %s sent map %s rev %d, rejected: %s",
-                        cl->gethostname(), cl->formatname(), sentmap, revision, reject);
+                        clients[sender]->gethostname(), clients[sender]->formatname(), sentmap, revision, reject);
                 }
                 p.len += mapsize + cfgsizegz;
                 break;
@@ -4008,7 +4008,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     if(sc) sc->save(cl->state, cl->team);
                     mapbuffer.sendmap(cl, 2);
                     cl->mapchange(true);
-                    sendwelcome(*cl, 2); // resend state properly
+                    sendwelcome(cl, 2); // resend state properly
                 }
                 else sendservmsg("no map to get", cl->clientnum);
                 break;
@@ -4033,11 +4033,11 @@ void process(ENetPacket *packet, int sender, int chan)
                     remove(filename);
                     defformatstring(msg)("map '%s' deleted", rmmap);
                     sendservmsg(msg, sender);
-                    logline(ACLOG_INFO, "[%s] deleted map %s", cl->gethostname(), rmmap);
+                    logline(ACLOG_INFO, "[%s] deleted map %s", clients[sender]->gethostname(), rmmap);
                 }
                 if (reject)
                 {
-                    logline(ACLOG_INFO, "[%s] deleting map %s failed: %s", cl->gethostname(), rmmap, reject);
+                    logline(ACLOG_INFO, "[%s] deleting map %s failed: %s", clients[sender]->gethostname(), rmmap, reject);
                     defformatstring(msg)("\f3can't delete map '%s', %s", rmmap, reject);
                     sendservmsg(msg, sender);
                 }
@@ -4263,12 +4263,12 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_WHOIS:
             {
                 const int cn = getint(p);
-                if (!valid_client(cn) || clients[cn].type != ST_TCPIP) break;
+                if (!valid_client(cn) || clients[cn]->type != ST_TCPIP) break;
                 sendf(-1, 1, "ri4", SV_WHOIS, -1, sender, cn);
-                uint ip = clients[cn].peer->address.host;
+                uint ip = clients[cn]->peer->address.host;
                 uchar mask = 0;
                 if (cn == sender) mask = 32;
-                else switch (cl->role)
+                else switch (clients[sender]->role)
                 {
                     // admins and server owner: f.f.f.f/32 full ip
                     case CR_MAX: case CR_ADMIN: mask = 32; break;
@@ -4276,7 +4276,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     case CR_MASTER: case CR_DEFAULT: default: mask = 20; break;
                 }
                 if (mask < 32) ip &= (1 << mask) - 1;
-                sendf(sender, 1, "ri5s", SV_WHOIS, cn, ip, mask, clients[cn].peer->address.port, clients[cn].authname);
+                sendf(sender, 1, "ri5s", SV_WHOIS, cn, ip, mask, clients[cn]->peer->address.port, clients[cn]->authname);
                 break;
             }
 
@@ -4295,7 +4295,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 switch(snd)
                 {
                     case S_NOAMMO:
-                        if(clients[cn].state.mag) break;
+                        if(clients[cn]->state.mag) break;
                         // INTENTIONAL FALLTHROUGH
                     case S_JUMP:
 #if (SERVER_BUILTIN_MOD & 1)
@@ -4305,8 +4305,8 @@ void process(ENetPacket *packet, int sender, int chan)
 #endif
                         if (snd == S_JUMP && cn == sender)
                         {
-                            sendf(-1, 1, "ri8i3", SV_DAMAGE, cn, cn, 200 * HEALTHSCALE, clients[cn].state.armour, clients[cn].state.health, GUN_KNIFE, FRAG_GIB, (int)(clients[cn].state.o.x*DMF), (int)(clients[cn].state.o.y*DMF), INT_MIN);
-                            sendf(-1, 1, "ri8i3", SV_DAMAGE, cn, cn, 0, clients[cn].state.armour, clients[cn].state.health, GUN_HEAL, FRAG_NONE, 0, 0, 0);
+                            sendf(-1, 1, "ri8i3", SV_DAMAGE, cn, cn, 200 * HEALTHSCALE, clients[cn]->state.armour, clients[cn]->state.health, GUN_KNIFE, FRAG_GIB, (int)(clients[cn]->state.o.x*DMF), (int)(clients[cn]->state.o.y*DMF), INT_MIN);
+                            sendf(-1, 1, "ri8i3", SV_DAMAGE, cn, cn, 0, clients[cn]->state.armour, clients[cn]->state.health, GUN_HEAL, FRAG_NONE, 0, 0, 0);
                         }
 #endif
                     case S_SOFTLAND:
@@ -4346,7 +4346,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     // note:        There is a 49 character limit. The server will ignore messages with 50+ characters.
 
                     getstring(text, p, n);
-                    if(cl->role>=CR_ADMIN)
+                    if(valid_client(sender) && clients[sender]->role>=CR_ADMIN)
                     {
                         logline(ACLOG_INFO, "[%s] %s writes to log: %s", cl->gethostname(), cl->formatname(), text);
                         sendservmsg("your message has been logged", sender);
@@ -4357,7 +4357,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     // intermediate solution to set the teamsize (will be voteable)
 
                     getstring(text, p, n);
-                    if(cl->role>=CR_ADMIN && mastermode == MM_MATCH)
+                    if(valid_client(sender) && clients[sender]->role>=CR_ADMIN && mastermode == MM_MATCH)
                     {
                         changematchteamsize(atoi(text));
                         defformatstring(msg)("match team size set to %d", matchteamsize);
@@ -4539,15 +4539,15 @@ client &addclient()
     client *c = NULL;
     loopv(clients)
     {
-        if(clients[i].type==ST_EMPTY) { c = &clients[i]; break; }
-        else if(clients[i].type==ST_AI) { deleteai(clients[i]); c = &clients[i]; break; }
+        if(clients[i]->type==ST_EMPTY) { c = clients[i]; break; }
+        else if(clients[i]->type==ST_AI) { deleteai(*clients[i]); c = clients[i]; break; }
     }
     if(!c)
     {
-        int cn = clients.length();
-        c = &clients.add();
-        c->clientnum = cn;
+        c = new client;
+        c->clientnum = clients.length();
         c->ownernum = -1;
+        clients.add(c);
     }
     c->reset();
     return *c;
@@ -4566,7 +4566,7 @@ void checkintermission()
 
 void resetserverifempty()
 {
-    loopv(clients) if(clients[i].type!=ST_EMPTY) return;
+    loopv(clients) if(clients[i]->type!=ST_EMPTY) return;
     resetserver("", G_DM, G_M_NONE, 10);
     matchteamsize = 0;
 #ifdef STANDALONE
@@ -4613,7 +4613,7 @@ void loggamestatus(const char *reason)
     logline(ACLOG_INFO, "cn  name             %s%s score frag death %sping role    host", m_team(gamemode, mutators) ? "team " : "", m_flags(gamemode) ? "flag " : "", m_team(gamemode, mutators) ? "tk " : "");
     loopv(clients)
     {
-        client &c = clients[i];
+        client &c = *clients[i];
         if(c.type == ST_EMPTY || !c.name[0]) continue;
         formatstring(text)("%2d%c %-16s ", c.clientnum, c.type == ST_AI ? '*' : ' ', c.name);         // cn * name
         if(m_team(gamemode, mutators)) concatformatstring(text, "%-4s ", team_string(c.team, true));  // teamname (abbreviated)
@@ -4667,7 +4667,7 @@ void linequalitystats(int elapsed)
         int c1 = 0, c2 = 0, r1 = 0, numc = 0;
         loopv(clients)
         {
-            client &c = clients[i];
+            client &c = *clients[i];
             if(c.type != ST_TCPIP) continue;
             numc++;
             enet_uint32 &rtt = c.peer->lastRoundTripTime, &throttle = c.peer->packetThrottle;
@@ -4762,8 +4762,8 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                     if (!m_gsp1(gamemode, mutators)) sec_diff *= 2; // secure faster if non-direct
                     int teams_inside[2] = { 0 };
                     loopvj(clients)
-                        if (valid_client(j) && (clients[j].team >= 0 && clients[j].team < 2) && clients[j].state.state == CS_ALIVE && clients[j].state.o.dist(ssecures[i].o) <= 8.f + PLAYERRADIUS)
-                            ++teams_inside[clients[j].team];
+                        if (valid_client(j) && (clients[j]->team >= 0 && clients[j]->team < 2) && clients[j]->state.state == CS_ALIVE && clients[j]->state.o.dist(ssecures[i].o) <= 8.f + PLAYERRADIUS)
+                            ++teams_inside[clients[j]->team];
                     const int returnbonus = ssecures[i].team == TEAM_SPECT ? 1 : m_gsp1(gamemode, mutators) ? 2 : 0; // how fast flags can return to its original owner, but 0 counts as 1 if there is a defender
                     int defending = 0, opposing = 0;
                     loopj(2)
@@ -4799,10 +4799,10 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                             {
                                 const bool is_secure = ssecures[i].team == TEAM_SPECT || m_gsp1(gamemode, mutators);
                                 loopvj(clients)
-                                    if (valid_client(j) && clients[j].team == ssecures[i].enemy && clients[j].state.state == CS_ALIVE && clients[j].state.o.dist(ssecures[i].o) <= 8.f + PLAYERRADIUS)
+                                    if (valid_client(j) && clients[j]->team == ssecures[i].enemy && clients[j]->state.state == CS_ALIVE && clients[j]->state.o.dist(ssecures[i].o) <= 8.f + PLAYERRADIUS)
                                     {
                                         addpt(clients[j], SECUREPT, is_secure ? PR_SECURE_SECURE : PR_SECURE_OVERTHROW);
-                                        clients[j].state.invalidate().flagscore += m_gsp1(gamemode, mutators) ? ssecures[i].team == TEAM_SPECT ? 2 : 3 : 1;
+                                        clients[j]->state.invalidate().flagscore += m_gsp1(gamemode, mutators) ? ssecures[i].team == TEAM_SPECT ? 2 : 3 : 1;
                                     }
                                 ssecures[i].team = is_secure ? ssecures[i].enemy : TEAM_SPECT;
                                 if (is_secure)
@@ -4841,8 +4841,8 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                             //++usesteamscore(ssecures[i].team).flagscore;
                         }
                     loopv(clients)
-                        if (valid_client(i) && (clients[i].team >= 0 && clients[i].team < 2) && bonuses[clients[i].team])
-                            addpt(clients[i], SECUREDPT * bonuses[clients[i].team], PR_SECURE_SECURED);
+                        if (valid_client(i) && (clients[i]->team >= 0 && clients[i]->team < 2) && bonuses[clients[i]->team])
+                            addpt(clients[i], SECUREDPT * bonuses[clients[i]->team], PR_SECURE_SECURED);
                 }
             }
             else
@@ -4897,7 +4897,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
     if (autobalance && m_team(gamemode, mutators) && !m_zombie(gamemode) && !m_duke(gamemode, mutators) && !interm && servmillis - lastfillup > 5000 && refillteams()) lastfillup = servmillis;
 
-    loopv(clients) if (clients[i].type == ST_TCPIP && (!clients[i].isauthed || clients[i].connectauth) && clients[i].connectmillis + 10000 <= servmillis) disconnect_client(i, DISC_TIMEOUT);
+    loopv(clients) if (clients[i]->type == ST_TCPIP && (!clients[i]->isauthed || clients[i]->connectauth) && clients[i]->connectmillis + 10000 <= servmillis) disconnect_client(i, DISC_TIMEOUT);
 
     static unsigned int lastThrottleEpoch = 0;
     if(serverhost->bandwidthThrottleEpoch != lastThrottleEpoch)
@@ -5007,7 +5007,7 @@ void extping_namelist(ucharbuf &p)
 {
     loopv(clients)
     {
-        if(clients[i].type == ST_TCPIP && clients[i].isauthed) sendstring(clients[i].name, p);
+        if(clients[i]->type == ST_TCPIP && clients[i]->isauthed) sendstring(clients[i]->name, p);
     }
     sendstring("", p);
 }
@@ -5054,12 +5054,12 @@ void extinfo_cnbuf(ucharbuf &p, int cn)
 {
     if(cn == -1) // add all available player ids
     {
-        loopv(clients) if(clients[i].type != ST_EMPTY)
-            putint(p,clients[i].clientnum);
+        loopv(clients) if(clients[i]->type != ST_EMPTY)
+            putint(p,clients[i]->clientnum);
     }
     else if(valid_client(cn)) // add single player only
     {
-        putint(p,clients[cn].clientnum);
+        putint(p,clients[cn]->clientnum);
     }
 }
 
@@ -5067,27 +5067,27 @@ void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENet
 {
     loopv(clients)
     {
-        if(clients[i].type != ST_TCPIP) continue;
-        if(pid>-1 && i!=pid) continue;
+        if(clients[i]->type != ST_TCPIP) continue;
+        if(pid>-1 && clients[i]->clientnum!=pid) continue;
 
         bool ismatch = mastermode == MM_MATCH;
         putint(p,EXT_PLAYERSTATS_RESP_STATS);  // send player stats following
-        putint(p,clients[i].clientnum);  //add player id
-        putint(p,clients[i].ping);             //Ping
-        sendstring(clients[i].name,p);         //Name
-        sendstring(team_string(clients[i].team),p); //Team
-        // "team_string(clients[i].team)" sometimes return NULL according to RK, causing the server to crash. WTF ?
-        putint(p,clients[i].state.frags);      //Frags
-        putint(p,clients[i].state.flagscore);  //Flagscore
-        putint(p,clients[i].state.deaths);     //Death
-        putint(p,clients[i].state.teamkills);  //Teamkills
-        putint(p,ismatch ? 0 : clients[i].state.damage*100/max(clients[i].state.shotdamage,1)); //Accuracy
-        putint(p,ismatch ? 0 : clients[i].state.health);     //Health
-        putint(p,ismatch ? 0 : clients[i].state.armour);     //Armour
-        putint(p,ismatch ? 0 : clients[i].state.gunselect);  //Gun selected
-        putint(p,clients[i].role);             //Role
-        putint(p,clients[i].state.state);      //State (Alive,Dead,Spawning,Lagged,Editing)
-        uint ip = clients[i].peer->address.host; // only 3 byte of the ip address (privacy protected)
+        putint(p,clients[i]->clientnum);  //add player id
+        putint(p,clients[i]->ping);             //Ping
+        sendstring(clients[i]->name,p);         //Name
+        sendstring(team_string(clients[i]->team),p); //Team
+        // "team_string(clients[i]->team)" sometimes return NULL according to RK, causing the server to crash. WTF ?
+        putint(p,clients[i]->state.frags);      //Frags
+        putint(p,clients[i]->state.flagscore);  //Flagscore
+        putint(p,clients[i]->state.deaths);     //Death
+        putint(p,clients[i]->state.teamkills);  //Teamkills
+        putint(p,ismatch ? 0 : clients[i]->state.damage*100/max(clients[i]->state.shotdamage,1)); //Accuracy
+        putint(p,ismatch ? 0 : clients[i]->state.health);     //Health
+        putint(p,ismatch ? 0 : clients[i]->state.armour);     //Armour
+        putint(p,ismatch ? 0 : clients[i]->state.gunselect);  //Gun selected
+        putint(p,clients[i]->role);             //Role
+        putint(p,clients[i]->state.state);      //State (Alive,Dead,Spawning,Lagged,Editing)
+        uint ip = clients[i]->peer->address.host; // only 3 byte of the ip address (privacy protected)
         p.put((uchar*)&ip,3);
 
         buf.dataLength = len + p.length();
@@ -5107,11 +5107,11 @@ void extinfo_teamscorebuf(ucharbuf &p)
     if(!m_team(gamemode, mutators)) return;
 
     int teamsizes[TEAM_NUM] = { 0 }, fragscores[TEAM_NUM] = { 0 }, flagscores[TEAM_NUM] = { 0 };
-    loopv(clients) if(clients[i].type!=ST_EMPTY && team_isvalid(clients[i].team))
+    loopv(clients) if(clients[i]->type!=ST_EMPTY && team_isvalid(clients[i]->team))
     {
-        teamsizes[clients[i].team] += 1;
-        fragscores[clients[i].team] += clients[i].state.frags;
-        flagscores[clients[i].team] += clients[i].state.flagscore;
+        teamsizes[clients[i]->team] += 1;
+        fragscores[clients[i]->team] += clients[i]->state.frags;
+        flagscores[clients[i]->team] += clients[i]->state.flagscore;
     }
 
     loopi(TEAM_NUM) if(teamsizes[i])
@@ -5127,7 +5127,7 @@ void extinfo_teamscorebuf(ucharbuf &p)
 #ifndef STANDALONE
 void localdisconnect()
 {
-    loopv(clients) if(clients[i].type==ST_LOCAL) clients[i].zap();
+    loopv(clients) if(clients[i]->type==ST_LOCAL) clients[i]->zap();
 }
 
 void localconnect()

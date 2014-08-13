@@ -4,7 +4,7 @@ uint nextauthreq = 0; // move down?
 
 client *findauth(uint id)
 {
-    loopv(clients) if(clients[i].authreq == id) return &clients[i];
+    loopv(clients) if(clients[i]->authreq == id) return clients[i];
     return NULL;
 }
 
@@ -178,7 +178,7 @@ bool answerchallenge(client &cl, unsigned char hash[20])
 void masterdisc(int cn, int result)
 {
     if (!valid_client(cn)) return;
-    client &cl = clients[cn];
+    client &cl = *clients[cn];
     cl.masterdisc = result;
     if (!cl.connectauth && result) checkauthdisc(cl, true);
 }

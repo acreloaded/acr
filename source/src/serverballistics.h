@@ -195,11 +195,11 @@ int explosion(client &owner, const vec &o2, int weap, bool teamcheck, bool gib, 
     // find the hits
     loopv(clients)
     {
-        client &target = clients[i];
+        client &target = *clients[i];
         if (target.type == ST_EMPTY || target.state.state != CS_ALIVE ||
             target.state.protect(gamemillis, gamemode, mutators) ||
             (&owner != &target && teamcheck && isteam(&owner, &target))) continue;
-        damagedealt += radialeffect((weap == GUN_GRENADE && cflag && cflag != &target) ? *cflag : owner, target, hits, o, weap, gib, (weap == GUN_RPG && &clients[i] == cflag));
+        damagedealt += radialeffect((weap == GUN_GRENADE && cflag && cflag != &target) ? *cflag : owner, target, hits, o, weap, gib, (weap == GUN_RPG && clients[i] == cflag));
     }
     // sort the hits
     hits.sort(explosivehit::compare);
@@ -207,7 +207,7 @@ int explosion(client &owner, const vec &o2, int weap, bool teamcheck, bool gib, 
     loopv(hits)
     {
         sendhit(owner, weap, hits[i].o, hits[i].damage);
-        serverdamage(*hits[i].target, *hits[i].owner, hits[i].damage, weap, hits[i].flags, o, hits[i].dist);
+        serverdamage(hits[i].target, hits[i].owner, hits[i].damage, weap, hits[i].flags, o, hits[i].dist);
     }
     return damagedealt;
 }
@@ -231,20 +231,20 @@ void nuke(client &owner, bool suicide, bool forced_all, bool friendly_fire)
     vector<nukehit> hits;
     loopvj(clients)
     {
-        client &cl = clients[j];
-        if (cl.type != ST_EMPTY && cl.team != TEAM_SPECT && (&cl != &owner) && (friendly_fire || !isteam(&cl, &owner)) && (forced_all || cl.state.state == CS_ALIVE))
+        client *cl = clients[j];
+        if (cl->type != ST_EMPTY && cl->team != TEAM_SPECT && cl != &owner && (friendly_fire || !isteam(cl, &owner)) && (forced_all || cl->state.state == CS_ALIVE))
         {
             // sort hits
             nukehit &hit = hits.add();
-            hit.distance = cl.state.o.dist(owner.state.o);
-            if (cl.type != ST_AI) hit.distance += 80; // 20 meters to prioritize non-bots
-            hit.target = &cl;
+            hit.distance = cl->state.o.dist(owner.state.o);
+            if (cl->type != ST_AI) hit.distance += 80; // 20 meters to prioritize non-bots
+            hit.target = cl;
         }
     }
     hits.sort(nukehit::compare);
     loopv(hits)
     {
-        serverdied(*hits[i].target, owner, 0, OBIT_NUKE, !rnd(3) ? FRAG_GIB : FRAG_NONE, owner.state.o, hits[i].distance);
+        serverdied(hits[i].target, &owner, 0, OBIT_NUKE, !rnd(3) ? FRAG_GIB : FRAG_NONE, owner.state.o, hits[i].distance);
         // fx
         sendhit(owner, GUN_GRENADE, hits[i].target->state.o, 0);
     }
@@ -290,7 +290,7 @@ client *nearesthit(client &actor, const vec &from, const vec &to, bool teamcheck
     }
     loopv(clients)
     {
-        client &t = clients[i];
+        client &t = *clients[i];
         clientstate &ts = t.state;
         // basic checks
         if (t.type == ST_EMPTY || ts.state != CS_ALIVE || exclude.find(i) >= 0 ||
@@ -397,7 +397,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
             h.flags = style;
             h.dist = dist2;
         }
-        else serverdamage(*hit, owner, damage, weap, style, from, dist2);
+        else serverdamage(hit, &owner, damage, weap, style, from, dist2);
 
         // add hit to the exclude list
         exclude.add(hit->clientnum);
@@ -467,7 +467,7 @@ int shotgun(client &owner, const vec &from, vector<posinfo> &pos)
     loopv(clients)
     {
         // apply damage
-        client &t = clients[i];
+        client &t = *clients[i];
         clientstate &ts = t.state;
         // basic checks
         if (t.type == ST_EMPTY || ts.state != CS_ALIVE) continue;
@@ -486,7 +486,7 @@ int shotgun(client &owner, const vec &from, vector<posinfo> &pos)
         shotgunflags |= damage >= SGGIB * HEALTHSCALE ? FRAG_GIB : FRAG_NONE;
         if (m_progressive(gamemode, mutators) && shotgunflags & FRAG_GIB)
         damage = max(damage, 350 * HEALTHSCALE);
-        serverdamage(t, owner, damage, GUN_SHOTGUN, shotgunflags, from, bestdist);
+        serverdamage(&t, &owner, damage, GUN_SHOTGUN, shotgunflags, from, bestdist);
     }
     return damagedealt;
 }

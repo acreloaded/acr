@@ -4,16 +4,17 @@
 #include "serverballistics.h"
 
 // ordered
-void destroyevent::process(client &ci)
+void destroyevent::process(client *ci)
 {
-    clientstate &cs = ci.state;
+    client &c = *ci;
+    clientstate &cs = c.state;
     int damagepotential = effectiveDamage(weap, 0), damagedealt = 0;
     switch (weap)
     {
         case GUN_GRENADE:
         {
             if (!cs.grenades.remove(flags)) return;
-            damagedealt += explosion(ci, o, weap, !m_real(gamemode, mutators));
+            damagedealt += explosion(c, o, weap, !m_real(gamemode, mutators));
             break;
         }
 
@@ -30,9 +31,10 @@ void destroyevent::process(client &ci)
     cs.shotdamage += max(damagedealt, damagepotential);
 }
 
-void shotevent::process(client &ci)
+void shotevent::process(client *ci)
 {
-    clientstate &cs = ci.state;
+    client &c = *ci;
+    clientstate &cs = c.state;
     int wait = millis - cs.lastshot;
     if (!cs.isalive(gamemillis) || // dead
         weap<0 || weap >= NUMGUNS || // invalid weapon
@@ -96,8 +98,8 @@ void shotevent::process(client &ci)
             int hitzone = HIT_NONE;
             vec expc;
             exclude.setsize(0);
-            exclude.add(ci.clientnum);
-            client *hit = nearesthit(ci, from, to, !m_real(gamemode, mutators), hitzone, pos, exclude, expc);
+            exclude.add(c.clientnum);
+            client *hit = nearesthit(c, from, to, !m_real(gamemode, mutators), hitzone, pos, exclude, expc);
             float dist = 0;
             if (hit)
             {
@@ -113,8 +115,8 @@ void shotevent::process(client &ci)
                 else
                     dmg *= m_progressive(gamemode, mutators) ? (hitzone * 75) : (55);
                 damagedealt += dmg;
-                sendhit(ci, GUN_RPG, expc, dmg); // blood, not explosion
-                serverdamage(*hit, ci, dmg, GUN_RPG, FRAG_GIB | (hitzone == HIT_HEAD ? FRAG_FLAG : FRAG_NONE), expc, expc.dist(from));
+                sendhit(c, GUN_RPG, expc, dmg); // blood, not explosion
+                serverdamage(hit, &c, dmg, GUN_RPG, FRAG_GIB | (hitzone == HIT_HEAD ? FRAG_FLAG : FRAG_NONE), expc, expc.dist(from));
             }
             // fix explosion on walls
             else
@@ -123,7 +125,7 @@ void shotevent::process(client &ci)
                 (expc = to).sub(from).normalize().mul(dist).add(from);
             }
             // instant explosion (after 6m)
-            int rpgexplodedmgdealt = dist >= 24 ? explosion(ci, expc, GUN_RPG, !m_real(gamemode, mutators), false, hit) : 0;
+            int rpgexplodedmgdealt = dist >= 24 ? explosion(*ci, expc, GUN_RPG, !m_real(gamemode, mutators), false, hit) : 0;
             cs.damage += rpgexplodedmgdealt;
             cs.shotdamage += max<int>(effectiveDamage(GUN_RPG, 0), rpgexplodedmgdealt);
             break;
@@ -133,34 +135,34 @@ void shotevent::process(client &ci)
             int hitzone = HIT_NONE;
             vec end;
             exclude.setsize(0);
-            exclude.add(ci.clientnum);
-            client *hit = cs.scoping ? &ci : nearesthit(ci, from, to, false, hitzone, pos, exclude, end);
+            exclude.add(c.clientnum);
+            client *hit = cs.scoping ? &c : nearesthit(c, from, to, false, hitzone, pos, exclude, end);
             if (!hit) break;
             if (hit->state.wounds.length())
             {
                 // healing by a player
                 addpt(ci, HEALWOUNDPT * hit->state.wounds.length(), PR_HEALWOUND);
-                if (&ci != hit) addptreason(*hit, PR_HEALEDBYTEAMMATE);
+                if (&c != hit) addptreason(hit, PR_HEALEDBYTEAMMATE);
                 hit->state.wounds.shrink(0);
                 // heal wounds = revive
-                sendf(-1, 1, "ri4", SV_HEAL, ci.clientnum, hit->clientnum, hit->state.health);
+                sendf(-1, 1, "ri4", SV_HEAL, c.clientnum, hit->clientnum, hit->state.health);
             }
-            if ((&ci == hit) ? cs.health < MAXHEALTH : !isteam(&ci, hit)) // that's right, no more self-heal abuse
+            if ((&c == hit) ? cs.health < MAXHEALTH : !isteam(&c, hit)) // that's right, no more self-heal abuse
             {
                 const int flags = hitzone == HIT_HEAD ? FRAG_GIB : FRAG_NONE;
                 const float dist = hit->state.o.dist(from);
                 const int dmg = effectiveDamage(weap, dist) * (hitzone == HIT_HEAD ? muls[MUL_NORMAL].head : 1.f);
                 if (hitzone == HIT_HEAD)
                     sendheadshot(from, to, dmg);
-                serverdamage(*hit, ci, dmg, weap, flags, cs.o, dist);
+                serverdamage(hit, &c, dmg, weap, flags, cs.o, dist);
                 damagedealt += dmg;
             }
-            loopi(&ci == hit ? 25 : 15)
+            loopi(&c == hit ? 25 : 15)
                 // heals over the next 1 to 2.5 seconds (no time perk, for others)
-                hit->addtimer(new healevent(gamemillis + (10 + i) * 100 / (cs.perk1 == PERK_POWER ? 2 : 1), ci.clientnum, cs.perk1 == PERK_POWER ? 2 : 1));
-            if (hit == &ci) (end = to).sub(from).normalize().add(from); // 25 cm fx
+                hit->addtimer(new healevent(gamemillis + (10 + i) * 100 / (cs.perk1 == PERK_POWER ? 2 : 1), c.clientnum, cs.perk1 == PERK_POWER ? 2 : 1));
+            if (hit == &c) (end = to).sub(from).normalize().add(from); // 25 cm fx
             // hide blood for healing weapon
-            // sendhit(ci, WEAP_HEAL, end, dmg); // blood
+            // sendhit(c, WEAP_HEAL, end, dmg); // blood
             to = end;
             break;
         }
@@ -179,12 +181,12 @@ void shotevent::process(client &ci)
             // fallthrough
         default:
             if (weap == GUN_SHOTGUN) // many rays, many players
-                damagedealt += shotgun(ci, from, pos); // WARNING: modifies cs.sg
+                damagedealt += shotgun(c, from, pos); // WARNING: modifies cs.sg
             else
             {
                 exclude.setsize(0);
-                exclude.add(ci.clientnum);
-                damagedealt += shot(ci, from, to, pos, weap, FRAG_NONE, surface, exclude); // WARNING: modifies to
+                exclude.add(c.clientnum);
+                damagedealt += shot(c, from, to, pos, weap, FRAG_NONE, surface, exclude); // WARNING: modifies to
             }
             break;
     }
@@ -210,7 +212,7 @@ void shotevent::process(client &ci)
     }
     // packet shot message
     putint(p, compact ? SV_SHOOTC : SV_SHOOT);
-    putint(p, ci.clientnum);
+    putint(p, c.clientnum);
     putint(p, weap);
     if (!compact)
     {
@@ -221,12 +223,12 @@ void shotevent::process(client &ci)
         putint(p, (int)(to.y*DMF));
         putint(p, (int)(to.z*DMF));
     }
-    sendpacket(-1, 1, p.finalize(), !compact && weap != GUN_GRENADE ? -1 : ci.clientnum);
+    sendpacket(-1, 1, p.finalize(), !compact && weap != GUN_GRENADE ? -1 : c.clientnum);
 }
 
-void reloadevent::process(client &ci)
+void reloadevent::process(client *ci)
 {
-    clientstate &cs = ci.state;
+    clientstate &cs = ci->state;
     if (!cs.isalive(gamemillis) || // dead
         weap<0 || weap >= NUMGUNS || // invalid weapon
         (weap == GUN_AKIMBO && cs.akimbomillis < gamemillis) || // akimbo after out
@@ -243,59 +245,59 @@ void reloadevent::process(client &ci)
     cs.ammo[weap] -= /*reload*/ 1;
 
     int wait = millis - cs.lastshot;
-    sendf(-1, 1, "ri5", SV_RELOAD, ci.clientnum, weap, cs.mag[weap], cs.ammo[weap]);
+    sendf(-1, 1, "ri5", SV_RELOAD, ci->clientnum, weap, cs.mag[weap], cs.ammo[weap]);
     if (!cs.gunwait[weap] || wait >= cs.gunwait[weap])
         cs.updateshot(millis);
     cs.gunwait[weap] += reloadtime(weap);
 }
 
-void akimboevent::process(client &ci)
+void akimboevent::process(client *ci)
 {
-    clientstate &cs = ci.state;
+    clientstate &cs = ci->state;
     if (!cs.isalive(gamemillis) || !cs.akimbo || cs.akimbomillis) return;
     // WHY DOES THIS EVENT TYPE EVEN EXIST?!
     cs.akimbomillis = gamemillis + 30000;
 }
 
 // unordered
-void healevent::process(client &ci)
+void healevent::process(client *ci)
 {
-    const int heal = hp * HEALTHSCALE, remain = MAXHEALTH - ci.state.health;
+    const int heal = hp * HEALTHSCALE, remain = MAXHEALTH - ci->state.health;
     if (heal >= remain)
     {
         // fully healed!
-        ci.invalidateheals();
+        ci->invalidateheals();
         if (valid_client(id)){
-            if (id == ci.clientnum) addpt(clients[id], HEALSELFPT, PR_HEALSELF);
-            else if (isteam(&ci, &clients[id])) addpt(clients[id], HEALTEAMPT, PR_HEALTEAM);
+            if (id == ci->clientnum) addpt(clients[id], HEALSELFPT, PR_HEALSELF);
+            else if (isteam(ci, clients[id])) addpt(clients[id], HEALTEAMPT, PR_HEALTEAM);
             else addpt(clients[id], HEALENEMYPT, PR_HEALENEMY);
         }
-        ci.state.health = MAXHEALTH;
-        if (!m_zombie(gamemode)) return sendf(-1, 1, "ri4", SV_HEAL, id, ci.clientnum, ci.state.health);
+        ci->state.health = MAXHEALTH;
+        if (!m_zombie(gamemode)) return sendf(-1, 1, "ri4", SV_HEAL, id, ci->clientnum, ci->state.health);
     }
     // partial heal
-    else ci.state.health += heal;
-    sendf(-1, 1, "ri3", SV_REGEN, ci.clientnum, ci.state.health);
+    else ci->state.health += heal;
+    sendf(-1, 1, "ri3", SV_REGEN, ci->clientnum, ci->state.health);
 }
 
-void suicidebomberevent::process(client &ci)
+void suicidebomberevent::process(client *ci)
 {
-    explosion(ci, ci.state.o, GUN_GRENADE, !m_real(gamemode, mutators), true, valid_client(id) ? &clients[id] : NULL);
+    explosion(*ci, ci->state.o, GUN_GRENADE, !m_real(gamemode, mutators), true, valid_client(id) ? clients[id] : NULL);
 }
 
-void airstrikeevent::process(client &ci)
+void airstrikeevent::process(client *ci)
 {
-    explosion(ci, o, GUN_GRENADE, !m_real(gamemode, mutators), false);
+    explosion(*ci, o, GUN_GRENADE, !m_real(gamemode, mutators), false);
 }
 
 // processing events
-bool timedevent::flush(client &ci, int fmillis)
+bool timedevent::flush(client *ci, int fmillis)
 {
     if (!valid) return true;
     else if (millis > fmillis) return false;
-    else if (millis >= ci.lastevent)
+    else if (millis >= ci->lastevent)
     {
-        ci.lastevent = millis;
+        ci->lastevent = millis;
         process(ci);
     }
     return true;
@@ -305,7 +307,7 @@ void processevents()
 {
     loopv(clients)
     {
-        client &c = clients[i];
+        client &c = *clients[i];
         if(c.type==ST_EMPTY || !c.isauthed || team_isspect(c.team)) continue;
         clientstate &cs = c.state;
         /*
@@ -336,7 +338,7 @@ void processevents()
                 while(cs.drownval < drownstate)
                 {
                     ++cs.drownval;
-                    serverdamage(c, c, (m_classic(gamemode, mutators) ? 5 : (cs.drownval + 10)) * HEALTHSCALE, OBIT_DROWN, FRAG_NONE, cs.o);
+                    serverdamage(&c, &c, (m_classic(gamemode, mutators) ? 5 : (cs.drownval + 10)) * HEALTHSCALE, OBIT_DROWN, FRAG_NONE, cs.o);
                     if(cs.state != CS_ALIVE) break; // dead!
                 }
             }
@@ -351,7 +353,7 @@ void processevents()
                     if(!valid_client(w.inflictor)) cs.wounds.remove(i--);
                     else if(w.lastdealt + 500 < gamemillis)
                     {
-                        client &owner = clients[w.inflictor];
+                        client &owner = *clients[w.inflictor];
                         const int bleeddmg = (m_zombie(gamemode) ? BLEEDDMGZ : owner.state.perk2 == PERK_POWER ? BLEEDDMGPLUS : BLEEDDMG) * HEALTHSCALE;
                         owner.state.damage += bleeddmg;
                         owner.state.shotdamage += bleeddmg;
@@ -361,7 +363,7 @@ void processevents()
                         // blood fx and stuff
                         sendhit(owner, GUN_KNIFE, woundloc, bleeddmg);
                         // use wounded location as damage source
-                        serverdamage(c, owner, bleeddmg, GUN_KNIFE, FRAG_NONE, woundloc, c.state.o.dist(owner.state.o));
+                        serverdamage(&c, &owner, bleeddmg, GUN_KNIFE, FRAG_NONE, woundloc, c.state.o.dist(owner.state.o));
                         w.lastdealt = gamemillis;
                     }
                 }
@@ -378,11 +380,11 @@ void processevents()
             }
         }
         // not alive: spawn queue
-        else if(cs.state == CS_WAITING || (c.type == ST_AI && valid_client(c.ownernum) && clients[c.ownernum].isonrightmap && cs.state == CS_DEAD && cs.lastspawn<0))
+        else if(cs.state == CS_WAITING || (c.type == ST_AI && valid_client(c.ownernum) && clients[c.ownernum]->isonrightmap && cs.state == CS_DEAD && cs.lastspawn<0))
         {
             const int waitremain = SPAWNDELAY - gamemillis + cs.lastdeath;
-            if(canspawn(c) && waitremain <= 0)
-                sendspawn(c);
+            if(canspawn(&c) && waitremain <= 0)
+                sendspawn(&c);
         }
         // akimbo out!
         if(cs.akimbomillis && cs.akimbomillis < gamemillis) { cs.akimbomillis = 0; cs.akimbo = false; }
@@ -390,7 +392,7 @@ void processevents()
         while(c.events.length()) // are ordered
         {
             timedevent *ev = c.events[0];
-            if (ev->flush(c, gamemillis)) delete c.events.remove(0);
+            if (ev->flush(&c, gamemillis)) delete c.events.remove(0);
             else break;
         }
         // timers
@@ -403,7 +405,7 @@ void processevents()
             }
             else if (c.timers[j]->millis <= gamemillis)
             {
-                c.timers[j]->process(c);
+                c.timers[j]->process(&c);
                 delete c.timers.remove(j--);
             }
         }
