@@ -207,7 +207,7 @@ int explosion(client &owner, const vec &o2, int weap, bool teamcheck, bool gib, 
     loopv(hits)
     {
         sendhit(owner, weap, hits[i].o, hits[i].damage);
-        serverdamage(hits[i].target, hits[i].owner, hits[i].damage, weap, hits[i].flags, o, hits[i].dist);
+        serverdamage(*hits[i].target, *hits[i].owner, hits[i].damage, weap, hits[i].flags, o, hits[i].dist);
     }
     return damagedealt;
 }
@@ -244,7 +244,7 @@ void nuke(client &owner, bool suicide, bool forced_all, bool friendly_fire)
     hits.sort(nukehit::compare);
     loopv(hits)
     {
-        serverdied(hits[i].target, &owner, 0, OBIT_NUKE, !rnd(3) ? FRAG_GIB : FRAG_NONE, owner.state.o, hits[i].distance);
+        serverdied(*hits[i].target, owner, 0, OBIT_NUKE, !rnd(3) ? FRAG_GIB : FRAG_NONE, owner.state.o, hits[i].distance);
         // fx
         sendhit(owner, GUN_GRENADE, hits[i].target->state.o, 0);
     }
@@ -397,7 +397,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
             h.flags = style;
             h.dist = dist2;
         }
-        else serverdamage(hit, &owner, damage, weap, style, from, dist2);
+        else serverdamage(*hit, owner, damage, weap, style, from, dist2);
 
         // add hit to the exclude list
         exclude.add(hit->clientnum);
@@ -486,7 +486,7 @@ int shotgun(client &owner, const vec &from, vector<posinfo> &pos)
         shotgunflags |= damage >= SGGIB * HEALTHSCALE ? FRAG_GIB : FRAG_NONE;
         if (m_progressive(gamemode, mutators) && shotgunflags & FRAG_GIB)
         damage = max(damage, 350 * HEALTHSCALE);
-        serverdamage(&t, &owner, damage, GUN_SHOTGUN, shotgunflags, from, bestdist);
+        serverdamage(t, owner, damage, GUN_SHOTGUN, shotgunflags, from, bestdist);
     }
     return damagedealt;
 }

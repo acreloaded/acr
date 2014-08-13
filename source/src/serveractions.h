@@ -227,7 +227,7 @@ inline int protectAdminPriv(const char conf, int cn)
 
 struct subdueaction : playeraction
 {
-    void perform() { forcedeath(clients[cn], true); }
+    void perform() { forcedeath(*clients[cn], true); }
     virtual bool isvalid() { return playeraction::isvalid() && !m_edit(gamemode) && clients[cn]->team != TEAM_SPECT; }
     subdueaction(int cn) : playeraction(cn)
     {
@@ -247,7 +247,7 @@ struct removeplayeraction : playeraction
     {
         if (!valid_client(cn)) return false;
         // lagging? (does not apply to bans)
-        if (kicking && is_lagging(clients[cn])) return false;
+        if (kicking && is_lagging(*clients[cn])) return false;
         // 3+ K/D ratio & 6+ kills
         if (clients[cn]->state.frags >= max(6, clients[cn]->state.deaths * 3)) return false;
         // 1 teamkill for every 15 frags
@@ -283,7 +283,7 @@ struct banaction : removeplayeraction
     void perform()
     {
         // TODO use ban time
-        addban(clients[cn], DISC_MBAN, BAN_VOTE);
+        addban(*clients[cn], DISC_MBAN, BAN_VOTE);
     }
     virtual bool isvalid() { return removeplayeraction::isvalid() && strlen(reason) >= 4; }
     banaction(int cn, int mins, char *r, bool self_vote) : removeplayeraction(cn), minutes(mins)

@@ -1,6 +1,6 @@
-inline bool is_lagging(client *cl)
+inline bool is_lagging(client &cl)
 {
-    return ( cl->spj > 50 || cl->ping > 500 || cl->ldt > 80 ); // do not change this except if you really know what are you doing
+    return ( cl.spj > 50 || cl.ping > 500 || cl.ldt > 80 ); // do not change this except if you really know what are you doing
 }
 
 inline bool outside_border(vec &po)
@@ -8,7 +8,7 @@ inline bool outside_border(vec &po)
     return (po.x < 0 || po.y < 0 || po.x >= maplayoutssize || po.y >= maplayoutssize);
 }
 
-extern inline void addban(client *cl, int reason, int type = BAN_AUTO);
+extern inline void addban(client &cl, int reason, int type = BAN_AUTO);
 
 #define MINELINE 50
 
@@ -148,16 +148,16 @@ int checkarea(int maplayout_factor, ssqr *maplayout)
     return maxarea;
 }
 
-inline void addptreason(client *c, int reason, int amt = 0)
+inline void addptreason(client &c, int reason, int amt = 0)
 {
-    if (c->type != ST_AI) sendf(c, 1, "ri3", SV_POINTS, reason, amt);
+    if (c.type != ST_AI) sendf(&c, 1, "ri3", SV_POINTS, reason, amt);
 }
 
-void addpt(client *c, int points, int reason)
+void addpt(client &c, int points, int reason)
 {
-    if (!c || !points) return;
-    if (c->state.perk1 == PERK1_SCORE) points *= points > 0 ? 1.35f : 1.1f;
-    c->state.invalidate().points += points;
+    if (!points) return;
+    if (c.state.perk1 == PERK1_SCORE) points *= points > 0 ? 1.35f : 1.1f;
+    c.state.invalidate().points += points;
     if (reason >= 0) addptreason(c, reason, points);
 }
 
@@ -183,9 +183,9 @@ void addpt(client *c, int points, int reason)
 #define COVERPT       cnumber*2                    // player covered teammate
 */
 #define DEATHPT      -4                            // player died
-#define BONUSPT       target->state.points/400     // bonus (for killing high level enemies :: beware with exponential behavior!)
-#define FLBONUSPT     target->state.points/300     // bonus if flag team mode
-#define TMBONUSPT     target->state.points/200     // bonus if team mode (to give some extra reward for playing tdm modes)
+#define BONUSPT       target.state.points/400      // bonus (for killing high level enemies :: beware with exponential behavior!)
+#define FLBONUSPT     target.state.points/300      // bonus if flag team mode
+#define TMBONUSPT     target.state.points/200      // bonus if team mode (to give some extra reward for playing tdm modes)
 #define HTFFRAGPT     cnumber/2                    // player frags while carrying the flag
 #define CTFFRAGPT   2*cnumber                      // player frags the flag stealer
 #define FRAGPT        10                           // player frags (normal)
@@ -214,14 +214,14 @@ void addpt(client *c, int points, int reason)
 #define KCKILLPTS   3                              // player confirms a kill for himself or his teammate
 #define KCDENYPTS   2                              // player prevents the enemy from scoring KC points
 
-int killpoints(const client *target, client *actor, int gun, int style, bool assist = false)
+int killpoints(const client &target, client &actor, int gun, int style, bool assist = false)
 {
-    if (target == actor) return 0;
+    if (&target == &actor) return 0;
     int cnumber = totalclients, gain = 0;
     int reason = -1;
-    if (isteam(actor, target))
+    if (isteam(&actor, &target))
     {
-        if (clienthasflag(target->clientnum) >= 0) gain += FLAGTKPT;
+        if (clienthasflag(target.clientnum) >= 0) gain += FLAGTKPT;
         else gain += TKPT;
     }
     else
@@ -230,8 +230,8 @@ int killpoints(const client *target, client *actor, int gun, int style, bool ass
         {
             if (!m_flags(gamemode)) gain += TMBONUSPT;
             else gain += FLBONUSPT;
-            if (m_hunt(gamemode) && clienthasflag(actor->clientnum) >= 0) gain += HTFFRAGPT;
-            if (m_capture(gamemode) && clienthasflag(target->clientnum) >= 0) gain += CTFFRAGPT;
+            if (m_hunt(gamemode) && clienthasflag(actor.clientnum) >= 0) gain += HTFFRAGPT;
+            if (m_capture(gamemode) && clienthasflag(target.clientnum) >= 0) gain += CTFFRAGPT;
         }
         else gain += BONUSPT;
         if (style & FRAG_GIB)
@@ -254,25 +254,25 @@ int killpoints(const client *target, client *actor, int gun, int style, bool ass
     }
     if (style & FRAG_FIRST) gain += FIRSTKILLPT;
     if (style & FRAG_REVENGE) gain += REVENGEKILLPT;
-    gain *= clamp(actor->state.combo, 1, 5);
+    gain *= clamp(actor.state.combo, 1, 5);
     if (assist) gain *= ASSISTMUL;
-    else loopv(target->state.damagelog)
+    else loopv(target.state.damagelog)
     {
-        if (!valid_client(target->state.damagelog[i])) continue;
-        gain += max(0, killpoints(target, clients[target->state.damagelog[i]], gun, style, true)) * ASSISTRETMUL;
+        if (!valid_client(target.state.damagelog[i])) continue;
+        gain += max(0, killpoints(target, *clients[target.state.damagelog[i]], gun, style, true)) * ASSISTRETMUL;
     }
     if (gain) addpt(actor, gain, assist ? PR_ASSIST : reason);
     return gain;
 }
 
-int flagpoints(client *c, int message)
+int flagpoints(client &c, int message)
 {
     int total = 0;
     const int cnumber = totalclients < 13 ? totalclients : 12;
     switch (message)
     {
         case FA_PICKUP:
-            c->state.flagpickupo = c->state.o;
+            c.state.flagpickupo = c.state.o;
             if (m_capture(gamemode)) total += CTFPICKPT;
             break;
         case FA_DROP:
@@ -281,7 +281,7 @@ int flagpoints(client *c, int message)
         case FA_LOST:
             if (m_hunt(gamemode)) total += HTFLOSTPT;
             else if (m_capture(gamemode)) {
-                float distance = c->state.flagpickupo.dist(c->state.o);
+                float distance = c.state.flagpickupo.dist(c.state.o);
                 if (distance > 200) distance = 200;                   // ~200 is the distance between the flags in ac_depot
                 total += CTFLOSTPT;
             }
@@ -291,7 +291,7 @@ int flagpoints(client *c, int message)
             break;
         case FA_SCORE:
             if (m_capture(gamemode)) {
-                float distance = c->state.o.dist(c->state.flagpickupo);
+                float distance = c.state.o.dist(c.state.flagpickupo);
                 if (distance > 200) distance = 200;
                 total += CTFSCOREPT;
             } else total += HTFSCOREPT;
@@ -351,18 +351,18 @@ This part is here for compatibility purposes.
 If you know nothing about these detections, please, just ignore it.
 */
 
-inline void checkmove(client *cl)
+inline void checkmove(client &cl)
 {
-    cl->ldt = gamemillis - cl->lmillis;
-    cl->lmillis = gamemillis;
-    if ( cl->ldt < 40 ) cl->ldt = 40;
-    cl->t += cl->ldt;
-    cl->spj = (( 7 * cl->spj + cl->ldt ) >> 3);
+    cl.ldt = gamemillis - cl.lmillis;
+    cl.lmillis = gamemillis;
+    if ( cl.ldt < 40 ) cl.ldt = 40;
+    cl.t += cl.ldt;
+    cl.spj = (( 7 * cl.spj + cl.ldt ) >> 3);
 
-    if ( cl->input != cl->f )
+    if ( cl.input != cl.f )
     {
-        cl->input = cl->f;
-        cl->inputmillis = servmillis;
+        cl.input = cl.f;
+        cl.inputmillis = servmillis;
     }
 
     // TODO: detect speedhack

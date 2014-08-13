@@ -55,9 +55,9 @@ bool addai()
     copystring(b.name, "a bot");
     copystring(b.hostname, "<bot>");
     sendf(NULL, 1, "ri8", SV_INITAI, cn, b.ownernum, b.bot_seed = randomMT(), b.skin[0], b.skin[1], b.team, b.level);
-    forcedeath(&b);
-    if(canspawn(&b))
-        sendspawn(&b);
+    forcedeath(b);
+    if(canspawn(b))
+        sendspawn(b);
     return true;
 }
 
@@ -89,7 +89,7 @@ bool shiftai(client &c, int ncn = -1, int exclude = -1)
         if(!valid_client(ncn) || clients[ncn]->type == ST_AI) return false;
     }
     c.ownernum = ncn;
-    forcedeath(&c); // prevent spawn state bugs
+    forcedeath(c); // prevent spawn state bugs
     sendf(NULL, 1, "ri3", SV_REASSIGNAI, c.clientnum, c.ownernum);
     return true;
 }

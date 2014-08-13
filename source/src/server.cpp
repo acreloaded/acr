@@ -480,13 +480,13 @@ float nearestenemy(vec place, int team)
     else return nearestenemydist;
 }
 
-void sendspawn(client *c)
+void sendspawn(client &c)
 {
-    if(team_isspect(c->team)) return;
-    clientstate &gs = c->state;
+    if(team_isspect(c.team)) return;
+    clientstate &gs = c.state;
     if (gs.lastdeath) gs.respawn();
     // spawnstate
-    if(c->type == ST_AI)
+    if(c.type == ST_AI)
     {
         // random loadout settings
         const int weap1[] = {
@@ -513,17 +513,17 @@ void sendspawn(client *c)
 #if (SERVER_BUILTIN_MOD & 8)
     gs.nextprimary = gs.nextsecondary = gungame[gs.gungame];
 #endif
-    gs.spawnstate(c->team, smode, smuts);
+    gs.spawnstate(c.team, smode, smuts);
     gs.lifesequence++;
     gs.state = CS_DEAD;
     // spawnpos
     persistent_entity *spawn_ent = NULL;
     int r = fixspawn-->0 ? 4 : rnd(10) + 1;
-    const int type = m_spawn_team(gamemode, mutators) ? (c->team ^ ((m_spawn_reversals(gamemode, mutators) && gamemillis > gamelimit / 2) ? 1 : 0)) : 100;
-    if (m_duke(gamemode, mutators) && c->spawnindex >= 0)
+    const int type = m_spawn_team(gamemode, mutators) ? (c.team ^ ((m_spawn_reversals(gamemode, mutators) && gamemillis > gamelimit / 2) ? 1 : 0)) : 100;
+    if (m_duke(gamemode, mutators) && c.spawnindex >= 0)
     {
         int x = -1;
-        loopi(c->spawnindex + 1) x = findspawn(x + 1, type);
+        loopi(c.spawnindex + 1) x = findspawn(x + 1, type);
         if (x >= 0) spawn_ent = &mapents[x];
     }
     else if (m_team(gamemode, mutators) || m_duke(gamemode, mutators))
@@ -539,7 +539,7 @@ void sendspawn(client *c)
         {
             spawncycle = !m_spawn_team(gamemode, mutators) && smapstats.spawns[2] > 5 ? findspawn(spawncycle + 1, 100) : findspawn(spawncycle + 1);
             if (spawncycle < 0) continue;
-            float dist = nearestenemy(vec(mapents[spawncycle].x, mapents[spawncycle].y, mapents[spawncycle].z), c->team);
+            float dist = nearestenemy(vec(mapents[spawncycle].x, mapents[spawncycle].y, mapents[spawncycle].z), c.team);
             if (!spawn_ent || dist < 0 || (bestdist >= 0 && dist > bestdist)) { spawn_ent = &mapents[spawncycle]; bestdist = dist; }
         }
     }
@@ -547,14 +547,14 @@ void sendspawn(client *c)
     {
         gs.o.x = spawn_ent->x;
         gs.o.y = spawn_ent->y;
-        c->y = spawn_ent->attr1; // yaw
+        c.y = spawn_ent->attr1; // yaw
     }
     else
     {
         // try to spawn in a random place (might be solid)
         gs.o.x = rnd((1 << maplayout_factor) - MINBORD) + MINBORD;
         gs.o.y = rnd((1 << maplayout_factor) - MINBORD) + MINBORD;
-        c->y = 0; // yaw
+        c.y = 0; // yaw
     }
     extern float getblockfloor(int id, bool check_vdelta = true);
     gs.o.z = getblockfloor(getmaplayoutid(gs.o.x, gs.o.y));
@@ -562,12 +562,12 @@ void sendspawn(client *c)
     checkpos(gs.o); // fix spawn being stuck
     gs.o.z += PLAYERHEIGHT;
     checkpos(gs.o); // fix spawn being too high
-    c->p = 0; // pitch
+    c.p = 0; // pitch
     // send spawn state
-    sendf(c, 1, "ri9vvi4", SV_SPAWNSTATE, c->clientnum, gs.lifesequence,
+    sendf(&c, 1, "ri9vvi4", SV_SPAWNSTATE, c.clientnum, gs.lifesequence,
         gs.health, gs.armour, gs.perk1, gs.perk2, gs.primary, gs.secondary,
         NUMGUNS, gs.ammo, NUMGUNS, gs.mag,
-        (int)(gs.o.x*DMF), (int)(gs.o.y*DMF), (int)(gs.o.z*DMF), c->y);
+        (int)(gs.o.x*DMF), (int)(gs.o.y*DMF), (int)(gs.o.z*DMF), c.y);
     gs.lastspawn = gamemillis;
 }
 
@@ -909,7 +909,7 @@ void enddemoplayback()
 
     sendservmsg("demo playback finished");
 
-    loopv(clients) sendwelcome(clients[i]);
+    loopv(clients) sendwelcome(*clients[i]);
 }
 
 void setupdemoplayback()
@@ -1139,7 +1139,7 @@ void flagaction(int flag, int action, int actor)
             c.state.invalidate().flagscore += score;
             // usesteamscore(c.team).flagscore += score;
         }
-        /*usesteamscore(c.team).points += max(0,*/ ( flagpoints(&c, message));
+        /*usesteamscore(c.team).points += max(0,*/ ( flagpoints(c, message));
 
         switch (message)
         {
@@ -1319,7 +1319,7 @@ void arenanext(bool forcespawn = true)
     loopv(clients) if (clients[i]->type != ST_EMPTY && clients[i]->isauthed)
     {
         if (clients[i]->isonrightmap && team_isactive(clients[i]->team))
-            sendspawn(clients[i]);
+            sendspawn(*clients[i]);
     }
     nokills = true;
 }
@@ -1383,13 +1383,13 @@ void arenacheck()
                 // give humans time to prepare, except wave 30
                 clients[i]->removeexplosives();
                 if (clients[i]->state.state != CS_DEAD)
-                    forcedeath(clients[i]);
+                    forcedeath(*clients[i]);
             }
             else if (clients[i]->isonrightmap && clients[i]->state.state == CS_DEAD)
             {
                 // early repawn for humans, except wave 30
                 clients[i]->state.lastdeath = 1;
-                sendspawn(clients[i]);
+                sendspawn(*clients[i]);
             }
             int pts = 0, pr = -1;
             if ((clients[i]->team == TEAM_CLA) == humanswin)
@@ -1404,7 +1404,7 @@ void arenacheck()
                 pts = ARENAWINPT;
                 pr = PR_ARENA_WIN;
             }
-            addpt(clients[i], pts, pr);
+            addpt(*clients[i], pts, pr);
         }
     }
     else // duke
@@ -1429,7 +1429,7 @@ void arenacheck()
                 pts = ARENAWINDPT;
                 pr = PR_ARENA_WIND;
             }
-            addpt(clients[i], pts, pr);
+            addpt(*clients[i], pts, pr);
         }
     }
     // arena intermission
@@ -1470,26 +1470,26 @@ void convertcheck(bool quick)
 #define SPAMCHARPERMINUTE   220  // good typist
 #define SPAMCHARINTERVAL    30   // allow 20 seconds typing at maxspeed
 
-bool spamdetect(client *cl, char *text) // checks doubled lines and average typing speed
+bool spamdetect(client &cl, char *text) // checks doubled lines and average typing speed
 {
-    if(cl->type != ST_TCPIP || cl->role >= CR_ADMIN) return false;
+    if(cl.type != ST_TCPIP || cl.role >= CR_ADMIN) return false;
     bool spam = false;
-    int pause = servmillis - cl->lastsay;
+    int pause = servmillis - cl.lastsay;
     if(pause < 0 || pause > 90*1000) pause = 90*1000;
-    cl->saychars -= (SPAMCHARPERMINUTE * pause) / (60*1000);
-    cl->saychars += (int)strlen(text);
-    if(cl->saychars < 0) cl->saychars = 0;
-    if(text[0] && !strcmp(text, cl->lastsaytext) && servmillis - cl->lastsay < SPAMREPEATINTERVAL*1000)
+    cl.saychars -= (SPAMCHARPERMINUTE * pause) / (60*1000);
+    cl.saychars += (int)strlen(text);
+    if(cl.saychars < 0) cl.saychars = 0;
+    if(text[0] && !strcmp(text, cl.lastsaytext) && servmillis - cl.lastsay < SPAMREPEATINTERVAL*1000)
     {
-        spam = ++cl->spamcount > SPAMMAXREPEAT;
+        spam = ++cl.spamcount > SPAMMAXREPEAT;
     }
     else
     {
-         copystring(cl->lastsaytext, text);
-         cl->spamcount = 0;
+         copystring(cl.lastsaytext, text);
+         cl.spamcount = 0;
     }
-    cl->lastsay = servmillis;
-    if(cl->saychars > (SPAMCHARPERMINUTE * SPAMCHARINTERVAL) / 60)
+    cl.lastsay = servmillis;
+    if(cl.saychars > (SPAMCHARPERMINUTE * SPAMCHARINTERVAL) / 60)
         spam = true;
     return spam;
 }
@@ -1520,64 +1520,64 @@ bool spamdetect(client *cl, char *text) // checks doubled lines and average typi
 //  b) no hidden messages from spects to active teams,
 //  c) no spect talk to players during 'match'
 
-void sendtext(char *text, client *cl, int flags, int voice)
+void sendtext(char *text, client &cl, int flags, int voice)
 {
     // voicecom spam filter
-    if(voice >= S_AFFIRMATIVE && voice <= S_AWESOME2 && servmillis > cl->mute) // valid and client is not muted
+    if(voice >= S_AFFIRMATIVE && voice <= S_AWESOME2 && servmillis > cl.mute) // valid and client is not muted
     {
-        if ( cl->lastvc + 4000 < servmillis ) { if ( cl->spam > 0 ) cl->spam -= (servmillis - cl->lastvc) / 4000; } // no vc in the last 4 seconds
-        else cl->spam++; // the guy is spamming
-        if ( cl->spam < 0 ) cl->spam = 0;
-        cl->lastvc = servmillis; // register
-        if ( cl->spam > 4 ) { cl->mute = servmillis + 10000; voice = 0; } // 5 vcs in less than 20 seconds... shut up please
+        if ( cl.lastvc + 4000 < servmillis ) { if ( cl.spam > 0 ) cl.spam -= (servmillis - cl.lastvc) / 4000; } // no vc in the last 4 seconds
+        else cl.spam++; // the guy is spamming
+        if ( cl.spam < 0 ) cl.spam = 0;
+        cl.lastvc = servmillis; // register
+        if ( cl.spam > 4 ) { cl.mute = servmillis + 10000; voice = 0; } // 5 vcs in less than 20 seconds... shut up please
     }
     else voice = 0;
     string logmsg;
-    if (flags & SAY_ACTION) formatstring(logmsg)("[%s] * %s '%s' ", cl->gethostname(), cl->formatname(), text);
-    else formatstring(logmsg)("[%s] <%s> '%s' ", cl->gethostname(), cl->formatname(), text);
+    if (flags & SAY_ACTION) formatstring(logmsg)("[%s] * %s '%s' ", cl.gethostname(), cl.formatname(), text);
+    else formatstring(logmsg)("[%s] <%s> '%s' ", cl.gethostname(), cl.formatname(), text);
     // Check team flag
-    if(cl->team == TEAM_VOID || (!m_team(gamemode, mutators) && cl->team != TEAM_SPECT))
+    if(cl.team == TEAM_VOID || (!m_team(gamemode, mutators) && cl.team != TEAM_SPECT))
         flags &= ~SAY_TEAM; // forced common chat
-    else if(mastermode != MM_MATCH || !matchteamsize || team_isactive(cl->team) || (cl->team == TEAM_SPECT && cl->role >= CR_ADMIN));
+    else if(mastermode != MM_MATCH || !matchteamsize || team_isactive(cl.team) || (cl.team == TEAM_SPECT && cl.role >= CR_ADMIN));
     else // forced team chat
         flags |= SAY_TEAM;
     if(flags & SAY_TEAM)
-        concatformatstring(logmsg, "(%s) ", team_basestring(cl->team));
+        concatformatstring(logmsg, "(%s) ", team_basestring(cl.team));
     if(voice)
         concatformatstring(logmsg, "[%d] ", voice);
-    if(cl->type == ST_TCPIP && cl->role < CR_ADMIN)
+    if(cl.type == ST_TCPIP && cl.role < CR_ADMIN)
     {
         if(const char *forbidden = forbiddenlist.forbidden(text))
         {
             logline(ACLOG_VERBOSE, "%s, forbidden speech (%s)", logmsg, forbidden);
             defformatstring(forbiddenmessage)("\f2forbidden speech: \f3%s \f2was detected", forbidden);
-            sendservmsg(forbiddenmessage, cl);
-            sendf(cl, 1, "ri4s", SV_TEXT, cl->clientnum, 0, flags | SAY_FORBIDDEN, text);
+            sendservmsg(forbiddenmessage, &cl);
+            sendf(&cl, 1, "ri4s", SV_TEXT, cl.clientnum, 0, flags | SAY_FORBIDDEN, text);
             return;
         }
         else if(spamdetect(cl, text))
         {
             logline(ACLOG_VERBOSE, "%s, SPAM detected", logmsg);
-            sendf(cl, 1, "ri4s", SV_TEXT, cl->clientnum, 0, flags | SAY_SPAM, text);
+            sendf(&cl, 1, "ri4s", SV_TEXT, cl.clientnum, 0, flags | SAY_SPAM, text);
             return;
         }
     }
     logline(ACLOG_INFO, "%s", logmsg);
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     putint(p, SV_TEXT);
-    putint(p, cl->clientnum);
+    putint(p, cl.clientnum);
     putint(p, voice);
     putint(p, flags);
     sendstring(text, p);
     ENetPacket *packet = p.finalize();
     recordpacket(1, packet);
-    const int &st = cl->team;
+    const int &st = cl.team;
     loopv(clients)
     {
         if (clients[i]->type == ST_EMPTY || clients[i]->type == ST_AI)
             continue;
         const int &rt = clients[i]->team;
-        if( !(flags & SAY_TEAM) || (i == cl->clientnum) ||        // common chat or same player
+        if( !(flags & SAY_TEAM) || (i == cl.clientnum) ||         // common chat or same player
             (clients[i]->role >= CR_ADMIN) ||                     // admin reads all
            (team_isactive(st) && st == team_group(rt)) ||         // player to own team + own spects
            (team_isspect(st) && team_isspect(rt)))                // spectator to other spectators
@@ -1632,22 +1632,22 @@ void checkitemspawns(int diff)
     }
 }
 
-void serverdied(client *target, client *actor, int damage, int gun, int style, const vec &source, float killdist)
+void serverdied(client &target, client &actor, int damage, int gun, int style, const vec &source, float killdist)
 {
-    clientstate &ts = target->state;
+    clientstate &ts = target.state;
 
-    const bool suic = (target == actor);
-    const bool tk = !suic && isteam(target, actor);
-    int targethasflag = clienthasflag(target->clientnum);
+    const bool suic = (&target == &actor);
+    const bool tk = !suic && isteam(&target, &actor);
+    int targethasflag = clienthasflag(target.clientnum);
 
-    ts.damagelog.removeobj(target->clientnum);
+    ts.damagelog.removeobj(target.clientnum);
     // detect assisted suicide
     if (suic && ts.damagelog.length() && gun != OBIT_NUKE)
     {
         loopv(ts.damagelog)
-            if (valid_client(ts.damagelog[i]) && !isteam(target, clients[ts.damagelog[i]]))
+            if (valid_client(ts.damagelog[i]) && !isteam(&target, clients[ts.damagelog[i]]))
             {
-                actor = clients[ts.damagelog[i]];
+                actor = *clients[ts.damagelog[i]];
                 style = isheadshot(gun, style) ? FRAG_GIB : FRAG_NONE;
                 gun = OBIT_ASSIST;
                 ts.damagelog.remove(i/*--*/);
@@ -1657,29 +1657,29 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
     // only things on target team that changes
     //if (!m_confirm(gamemode, mutators)) ++usesteamscore(target->team).deaths;
     // apply to individual
-    ++target->state.invalidate().deaths;
+    ++ts.invalidate().deaths;
     addpt(target, DEATHPT);
     const int kills = (suic || tk) ? -1 : ((style & FRAG_GIB) ? 2 : 1);
-    actor->state.invalidate().frags += kills;
+    actor.state.invalidate().frags += kills;
 
     if (!suic)
     {
         // revenge
-        if (actor->state.revengelog.find(target->clientnum) >= 0)
+        if (actor.state.revengelog.find(target.clientnum) >= 0)
         {
             style |= FRAG_REVENGE;
-            actor->state.revengelog.removeobj(target->clientnum);
+            actor.state.revengelog.removeobj(target.clientnum);
         }
-        target->state.revengelog.add(actor->clientnum);
+        ts.revengelog.add(actor.clientnum);
         // first blood (not for AI)
-        if (actor->type != ST_AI && nokills)
+        if (actor.type != ST_AI && nokills)
         {
             style |= FRAG_FIRST;
             nokills = false;
         }
         // type of scoping
-        const int zoomtime = ADSTIME(actor->state.perk2 == PERK_TIME), scopeelapsed = gamemillis - actor->state.scopemillis;
-        if (actor->state.scoping)
+        const int zoomtime = ADSTIME(actor.state.perk2 == PERK_TIME), scopeelapsed = gamemillis - actor.state.scopemillis;
+        if (actor.state.scoping)
         {
             // quick/recent/full
             if (scopeelapsed >= zoomtime)
@@ -1710,13 +1710,13 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
         */
         // teamkilling a flag carrier is bad
         if ((m_hunt(gamemode) || m_keep(gamemode)) && tk && targethasflag >= 0)
-            --actor->state.invalidate().flagscore;
+            --actor.state.invalidate().flagscore;
     }
 
     //ts.pointstreak = 0;
     ts.wounds.shrink(0);
-    ts.damagelog.removeobj(actor->clientnum);
-    target->invalidateheals();
+    ts.damagelog.removeobj(actor.clientnum);
+    target.invalidateheals();
 
     // assists
     loopv(ts.damagelog)
@@ -1738,8 +1738,8 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
     // TODO
 
     // combo reset check
-    if (gamemillis >= actor->state.lastkill + COMBOTIME) actor->state.combo = 0;
-    actor->state.lastkill = gamemillis;
+    if (gamemillis >= actor.state.lastkill + COMBOTIME) actor.state.combo = 0;
+    actor.state.lastkill = gamemillis;
 
     // team points
     int earnedpts = killpoints(target, actor, gun, style);
@@ -1750,12 +1750,12 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
         {
             sconfirm &c = sconfirms.add();
             c.o = ts.o;
-            sendf(NULL, 1, "ri6", SV_CONFIRMADD, c.id = ++confirmseq, c.team = actor->team, (int)(c.o.x*DMF), (int)(c.o.y*DMF), (int)(c.o.z*DMF));
-            c.actor = actor->clientnum;
-            c.target = target->clientnum;
+            sendf(NULL, 1, "ri6", SV_CONFIRMADD, c.id = ++confirmseq, c.team = actor.team, (int)(c.o.x*DMF), (int)(c.o.y*DMF), (int)(c.o.z*DMF));
+            c.actor = actor.clientnum;
+            c.target = target.clientnum;
             c.points = max(0, earnedpts);
             c.frag = max(0, kills);
-            c.death = target->team;
+            c.death = target.team;
         }
     }
     else
@@ -1765,9 +1765,9 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
     }
 
     // automatic zombie count
-    if (m_zombie(gamemode) && !m_progressive(gamemode, mutators) && (botbalance == 0 || botbalance == -1) && target->team != actor->team)
+    if (m_zombie(gamemode) && !m_progressive(gamemode, mutators) && (botbalance == 0 || botbalance == -1) && target.team != actor.team)
     {
-        if (target->team == TEAM_CLA)
+        if (target.team == TEAM_CLA)
         {
             // zombie was killed
             --zombiesremain;
@@ -1783,10 +1783,10 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
     }
 
     // send message
-    sendf(NULL, 1, "ri9i3", SV_KILL, target->clientnum, actor->clientnum, gun, style, damage, ++actor->state.combo, ts.damagelog.length(),
+    sendf(NULL, 1, "ri9i3", SV_KILL, target.clientnum, actor.clientnum, gun, style, damage, ++actor.state.combo, ts.damagelog.length(),
         (int)(source.x*DMF), (int)(source.y*DMF), (int)(source.z*DMF), (int)(killdist*DMF));
 
-    target->position.setsize(0);
+    target.position.setsize(0);
     ts.state = CS_DEAD;
     ts.lastdeath = gamemillis;
     ts.lastspawn = -1;
@@ -1794,11 +1794,11 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
     // ts.respawn();
     
     // log message
-    const int logtype = actor->type == ST_AI && target->type == ST_AI ? ACLOG_VERBOSE : ACLOG_INFO;
-    if (target == actor)
-        logline(logtype, "[%s] %s [%s] (%.2f m)", actor->gethostname(), actor->formatname(), suicname(gun), killdist / 4.f);
+    const int logtype = actor.type == ST_AI && target.type == ST_AI ? ACLOG_VERBOSE : ACLOG_INFO;
+    if (suic)
+        logline(logtype, "[%s] %s [%s] (%.2f m)", actor.gethostname(), actor.formatname(), suicname(gun), killdist / 4.f);
     else
-        logline(logtype, "[%s] %s [%s] %s (%.2f m)", actor->gethostname(), actor->formatname(), killname(gun, style), target->formatname(), killdist / 4.f);
+        logline(logtype, "[%s] %s [%s] %s (%.2f m)", actor.gethostname(), actor.formatname(), killname(gun, style), target.formatname(), killdist / 4.f);
 
     // drop flags
     if (targethasflag >= 0 && m_flags(gamemode) && !m_secure(gamemode))
@@ -1825,7 +1825,7 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
         while (targethasflag >= 0)
         {
             flagaction(targethasflag, (tk && m_capture(gamemode)) ? FA_RESET : FA_LOST, -1);
-            targethasflag = clienthasflag(target->clientnum);
+            targethasflag = clienthasflag(target.clientnum);
         }
     }
 
@@ -1863,9 +1863,9 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
         }
 #endif
         // conversions
-        if (m_convert(gamemode, mutators) && target->team != actor->team)
+        if (m_convert(gamemode, mutators) && target.team != actor.team)
         {
-            updateclientteam(target->clientnum, actor->team, FTR_SILENT);
+            updateclientteam(target.clientnum, actor.team, FTR_SILENT);
             // checkai(); // DO NOT balance bots here
             convertcheck(true);
         }
@@ -1875,10 +1875,10 @@ void serverdied(client *target, client *actor, int damage, int gun, int style, c
 void client::suicide(int gun, int style)
 {
     if (state.state != CS_DEAD)
-        serverdied(this, this, 0, gun, style, state.o);
+        serverdied(*this, *this, 0, gun, style, state.o);
 }
 
-void serverdamage(client *target, client *actor, int damage, int gun, int style, const vec &source, float dist)
+void serverdamage(client &target, client &actor, int damage, int gun, int style, const vec &source, float dist)
 {
     // moon jump mario = no damage during gib
 #if (SERVER_BUILTIN_MOD & 4)
@@ -1887,29 +1887,29 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
 #endif
         return;
 #endif
-    if (!target || !actor || !damage) return;
+    if (!damage) return;
 
-    if (target != actor)
+    if (&target != &actor)
     {
-        if (isteam(actor, target))
+        if (isteam(&actor, &target))
         {
             // for hardcore modes only
-            if (actor->state.protect(gamemillis, gamemode, mutators))
+            if (actor.state.protect(gamemillis, gamemode, mutators))
                 return;
             damage /= 2;
             target = actor;
         }
-        else if (m_vampire(gamemode, mutators) && actor->state.health < VAMPIREMAX)
+        else if (m_vampire(gamemode, mutators) && actor.state.health < VAMPIREMAX)
         {
             int hpadd = damage / (rnd(3) + 3);
             // cap at 300 HP
-            if (actor->state.health + hpadd > VAMPIREMAX)
-                hpadd = VAMPIREMAX - actor->state.health;
-            sendf(NULL, 1, "ri3", SV_REGEN, actor->clientnum, actor->state.health += hpadd);
+            if (actor.state.health + hpadd > VAMPIREMAX)
+                hpadd = VAMPIREMAX - actor.state.health;
+            sendf(NULL, 1, "ri3", SV_REGEN, actor.clientnum, actor.state.health += hpadd);
         }
     }
 
-    clientstate &ts = target->state;
+    clientstate &ts = target.state;
     if (ts.state != CS_ALIVE) return;
 
     // damage changes
@@ -1924,7 +1924,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
     }
     else if (m_real(gamemode, mutators))
     {
-        if (gun == GUN_HEAL && target == actor) damage /= 2;
+        if (gun == GUN_HEAL && &target == &actor) damage /= 2;
         else damage *= 2;
     }
     else if (m_classic(gamemode, mutators)) damage /= 2;
@@ -1938,9 +1938,9 @@ void serverdamage(client *target, client *actor, int damage, int gun, int style,
         serverdied(target, actor, damage, gun, style, source, dist);
     else
     {
-        if (ts.damagelog.find(actor->clientnum) < 0)
-            ts.damagelog.add(actor->clientnum);
-        sendf(NULL, 1, "ri8i3", SV_DAMAGE, target->clientnum, actor->clientnum, damage, ts.armour, ts.health, gun, style,
+        if (ts.damagelog.find(actor.clientnum) < 0)
+            ts.damagelog.add(actor.clientnum);
+        sendf(NULL, 1, "ri8i3", SV_DAMAGE, target.clientnum, actor.clientnum, damage, ts.armour, ts.health, gun, style,
             (int)(source.x*DMF), (int)(source.y*DMF), (int)(source.z*DMF));
     }
 }
@@ -1964,14 +1964,14 @@ void updatesdesc(const char *newdesc, ENetAddress *caller = NULL)
     }
 }
 
-inline bool canspawn(client *c, bool connecting)
+inline bool canspawn(client &c, bool connecting)
 {
     if (!maplayout)
         return false;
-    if (c->team == TEAM_SPECT || (team_isspect(c->team) && !m_team(gamemode, mutators)))
+    if (c.team == TEAM_SPECT || (team_isspect(c.team) && !m_team(gamemode, mutators)))
         return false; // SP_SPECT
     if (m_duke(gamemode, mutators))
-        return (connecting && totalclients <= 2) || (arenaround && m_zombie(gamemode) && c->team == TEAM_RVSF && progressiveround != MAXZOMBIEROUND);
+        return (connecting && totalclients <= 2) || (arenaround && m_zombie(gamemode) && c.team == TEAM_RVSF && progressiveround != MAXZOMBIEROUND);
     return true;
 }
 
@@ -2022,7 +2022,7 @@ bool updateclientteam(int cln, int newteam, int ftr)
     if (cl.state.state != CS_DEAD && (m_team(gamemode, mutators) || newteam == TEAM_SPECT))
     {
         if (ftr == FTR_PLAYERWISH) cl.suicide(team_isspect(newteam) ? OBIT_SPECT : OBIT_TEAM, FRAG_NONE);
-        else forcedeath(&cl);
+        else forcedeath(cl);
     }
     return true;
 }
@@ -2449,8 +2449,8 @@ void startgame(const char *newname, int newmode, int newmuts, int newtime, bool 
             // prepare spawns; players will spawn, once they've loaded the correct map
             loopv(clients) if(clients[i]->type!=ST_EMPTY)
             {
-                client *c = clients[i];
-                c->mapchange();
+                client &c = *clients[i];
+                c.mapchange();
                 forcedeath(c);
             }
         }
@@ -2514,12 +2514,11 @@ void addgban(const char *name)
     }
 }
 
-inline void addban(client *cl, int reason, int type)
+inline void addban(client &cl, int reason, int type)
 {
-    if(!cl) return;
-    ban b = { cl->peer->address, servmillis+scl.ban_time, type };
+    ban b = { cl.peer->address, servmillis+scl.ban_time, type };
     bans.add(b);
-    disconnect_client(cl->clientnum, reason);
+    disconnect_client(cl.clientnum, reason);
 }
 
 int getbantype(int cn)
@@ -3034,20 +3033,20 @@ void welcomepacket(packetbuf &p, int n)
     }
 }
 
-void sendwelcome(client *cl, int chan)
+void sendwelcome(client &cl, int chan)
 {
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    welcomepacket(p, cl->clientnum);
-    sendpacket(cl, chan, p.finalize());
-    cl->haswelcome = true;
+    welcomepacket(p, cl.clientnum);
+    sendpacket(&cl, chan, p.finalize());
+    cl.haswelcome = true;
 }
 
-void forcedeath(client *cl, bool gib)
+void forcedeath(client &cl, bool gib)
 {
-    sdropflag(cl->clientnum);
-    cl->state.state = CS_DEAD;
-    cl->state.respawn();
-    sendf(NULL, 1, "ri2", gib ? SV_FORCEGIB : SV_FORCEDEATH, cl->clientnum);
+    sdropflag(cl.clientnum);
+    cl.state.state = CS_DEAD;
+    cl.state.respawn();
+    sendf(NULL, 1, "ri2", gib ? SV_FORCEGIB : SV_FORCEDEATH, cl.clientnum);
 }
 
 bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
@@ -3097,7 +3096,7 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
                         const float dz2 = cs.o.z - ts.o.z;
                         if(dz2 > PLAYERABOVEEYE + 2 || -dz2 > PLAYERHEIGHT + 2) continue;
                         if(!isteam(&t, &cp) && !ts.protect(gamemillis, gamemode, mutators))
-                            serverdied(&t, &cp, 0, OBIT_FALL, FRAG_NONE, cs.o);
+                            serverdied(t, cp, 0, OBIT_FALL, FRAG_NONE, cs.o);
                         hit = true;
                     }
                 }
@@ -3112,12 +3111,12 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
                     if(damage >= 1*HEALTHSCALE) // don't heal the player
                     {
                         // maximum damage is 99 for balance purposes
-                        serverdamage(&cp, &cp, min(damage, (m_classic(gamemode, mutators) ? 30 : 99) * HEALTHSCALE), OBIT_FALL, FRAG_NONE, cs.o); // max 99, "30" (15) for classic
+                        serverdamage(cp, cp, min(damage, (m_classic(gamemode, mutators) ? 30 : 99) * HEALTHSCALE), OBIT_FALL, FRAG_NONE, cs.o); // max 99, "30" (15) for classic
                     }
                 }
             }
             else if(newunderwater && dz > 32) // air to liquid, more than 8 meters
-                serverdamage(&cp, &cp, (m_classic(gamemode, mutators) ? 20 : 35) * HEALTHSCALE, OBIT_FALL_WATER, FRAG_NONE, cs.o); // fixed damage @ 35, "20" (10) for classic
+                serverdamage(cp, cp, (m_classic(gamemode, mutators) ? 20 : 35) * HEALTHSCALE, OBIT_FALL_WATER, FRAG_NONE, cs.o); // fixed damage @ 35, "20" (10) for classic
             cs.onfloor = true;
         }
         else if(!newonfloor)
@@ -3140,7 +3139,7 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
             defformatstring(msg)("%s \f2collides with the map \f5- \f3forcing death", cp.formatname());
             sendservmsg(msg);
             sendf(&cp, 1, "ri", SV_MAPIDENT);
-            forcedeath(&cp);
+            forcedeath(cp);
             cp.isonrightmap = false; // cannot spawn until you get the right map
         }
         return false; // no pickups for you!
@@ -3162,7 +3161,7 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
         if(canheal)
         {
             // healing station
-            addpt(&cp, HEALWOUNDPT * cs.wounds.length(), PR_HEALWOUND);
+            addpt(cp, HEALWOUNDPT * cs.wounds.length(), PR_HEALWOUND);
             cs.wounds.shrink(0);
         }
         if(cantake)
@@ -3277,7 +3276,7 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
     {
         if (cp.team == sconfirms[i].team)
         {
-            addpt(&cp, KCKILLPTS, PR_KC);
+            addpt(cp, KCKILLPTS, PR_KC);
             //usesteamscore(sconfirms[i].team).points += sconfirms[i].points;
             // the following line doesn't have to set the valid flag twice
             //getsteamscore(sconfirms[i].team).frags += sconfirms[i].frag;
@@ -3285,9 +3284,9 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
         }
         else
         {
-            addpt(&cp, KCDENYPTS, cp.clientnum == sconfirms[i].target ? PR_KD_SELF : PR_KD);
+            addpt(cp, KCDENYPTS, cp.clientnum == sconfirms[i].target ? PR_KD_SELF : PR_KD);
             if (valid_client(sconfirms[i].actor) && clients[sconfirms[i].actor]->type != ST_AI)
-                addptreason(clients[sconfirms[i].actor], PR_KD_ENEMY);
+                addptreason(*clients[sconfirms[i].actor], PR_KD_ENEMY);
         }
 
         sendf(NULL, 1, "ri2", SV_CONFIRMREMOVE, sconfirms[i].id);
@@ -3297,11 +3296,10 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
     return true;
 }
 
-int checktype(int type, client *cl)
+int checktype(int type, client &cl)
 {
-    if (cl && cl->type==ST_LOCAL) return type; // local
     if (type < 0 || type >= SV_NUM) return -1; // out of range
-    if (cl && cl->type == ST_TCPIP)
+    if (cl.type == ST_TCPIP)
     {
         // only allow edit messages in coop-edit mode
         if (!m_edit(smode) && type >= SV_EDITH && type <= SV_NEWMAP) return -1; // SV_EDITMODE is handled
@@ -3309,7 +3307,7 @@ int checktype(int type, client *cl)
         static const int exempt[] = { SV_POS, SV_POSC, SV_SPAWN, SV_SHOOT, SV_SHOOTC, SV_EXPLODE };
         // these types don't not contribute to overflow, just because the bots will have to send them too
         loopi(sizeof(exempt) / sizeof(int)) if (type == exempt[i]) return type;
-        if(++cl->overflow >= 200) return -2;
+        if(++cl.overflow >= 200) return -2;
     }
     return type;
 }
@@ -3371,7 +3369,7 @@ void process(ENetPacket *packet, int sender, int chan)
             connectcheck(sender, cl->acguid, cl->hostname, cl->authreq, cl->authuser);
         }
 
-        sendwelcome(cl);
+        sendwelcome(*cl);
         if(restorescore(*cl)) { sendresume(*cl, true); senddisconnectedscores(); }
         else if(cl->type==ST_TCPIP) senddisconnectedscores(cl);
         sendinitclient(*cl);
@@ -3414,7 +3412,7 @@ void process(ENetPacket *packet, int sender, int chan)
     int curmsg;
     while((curmsg = p.length()) < p.maxlen)
     {
-        type = checktype(getint(p), cl);
+        type = checktype(getint(p), *cl);
 
         #ifdef _DEBUG
         if(type!=SV_POS && type!=SV_POSC && type!=SV_CLIENTPING && type!=SV_PINGPONG && type!=SV_CLIENT)
@@ -3437,7 +3435,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 filtertext(text, text);
                 trimtrailingwhitespace(text);
                 if(*text)
-                    sendtext(text, cl, flags, voice);
+                    sendtext(text, *cl, flags, voice);
                 break;
             }
 
@@ -3459,7 +3457,7 @@ void process(ENetPacket *packet, int sender, int chan)
                         sendservmsg("\f3Please do not spam; your message was not delivered.", cl);
                         logline(ACLOG_INFO, "[%s] %s says to %s: '%s', SPAM detected", cl->gethostname(), cl->formatname(), target->formatname(), text);
                     }
-                    else if(spamdetect(cl, text))
+                    else if(spamdetect(*cl, text))
                     {
                         sendservmsg("\f3Watch your language! Your message was not delivered.", cl);
                         logline(ACLOG_INFO, "[%s] %s says to %s: '%s', forbidden (%s)", cl->gethostname(), cl->formatname(), target->formatname(), text, forbidden);
@@ -3495,12 +3493,12 @@ void process(ENetPacket *packet, int sender, int chan)
                         if((cl->freshgame || numclients() < 2) && !m_demo(gamemode)) spawn = true;
                     }
                     cl->freshgame = false;
-                    if(spawn) sendspawn(cl);
+                    if(spawn) sendspawn(*cl);
 
                 }
                 else
                 {
-                    forcedeath(cl);
+                    forcedeath(*cl);
                     logline(ACLOG_INFO, "[%s] %s is on the wrong map: revision %d/%d", cl->gethostname(), cl->formatname(), rev, gzs);
                     cl->loggedwrongmap = true;
                 }
@@ -3713,7 +3711,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     // convertcheck();
                 }
                 // can the player be enqueued?
-                if (!canspawn(cl)) break;
+                if (!canspawn(*cl)) break;
                 // enqueue for spawning
                 cs.state = CS_WAITING;
                 const int waitremain = SPAWNDELAY - gamemillis + cs.lastdeath;
@@ -3741,7 +3739,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     NUMGUNS, cs.ammo, NUMGUNS, cs.mag, (int)(o.x*DMF), (int)(o.y*DMF), (int)(o.z*DMF), cl->y);
                 // bad spawn adjustment?
                 if (!m_edit(gamemode) && (lasto.distxy(cs.o) >= 6 * PLAYERRADIUS)) // || fabs(lasto.z - cs.o.z) >= 2 * PLAYERHEIGHT))
-                    serverdied(&cp, &cp, 0, OBIT_SPAWN, FRAG_NONE, cs.o);
+                    serverdied(cp, cp, 0, OBIT_SPAWN, FRAG_NONE, cs.o);
                 break;
             }
 
@@ -3873,7 +3871,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 cp.p = newp;
                 cp.g = newg;
                 cp.f = newf;
-                checkmove(&cp);
+                checkmove(cp);
                 if(!isdedicated) break;
                 cp.position.setsize(0);
                 while(curmsg<p.length()) cp.position.add(p.buf[curmsg++]);
@@ -3923,7 +3921,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 cp.p = newp;
                 cp.f = newf;
                 cp.g = newg;
-                checkmove(&cp);
+                checkmove(cp);
                 if(!isdedicated) break;
                 cp.position.setsize(0);
                 while(curmsg<p.length()) cp.position.add(p.buf[curmsg++]);
@@ -4006,7 +4004,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     if(sc) sc->save(cl->state, cl->team);
                     mapbuffer.sendmap(cl, 2);
                     cl->mapchange(true);
-                    sendwelcome(cl, 2); // resend state properly
+                    sendwelcome(*cl, 2); // resend state properly
                 }
                 else sendservmsg("no map to get", cl);
                 break;
@@ -4799,7 +4797,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                                 loopvj(clients)
                                     if (valid_client(j) && clients[j]->team == ssecures[i].enemy && clients[j]->state.state == CS_ALIVE && clients[j]->state.o.dist(ssecures[i].o) <= 8.f + PLAYERRADIUS)
                                     {
-                                        addpt(clients[j], SECUREPT, is_secure ? PR_SECURE_SECURE : PR_SECURE_OVERTHROW);
+                                        addpt(*clients[j], SECUREPT, is_secure ? PR_SECURE_SECURE : PR_SECURE_OVERTHROW);
                                         clients[j]->state.invalidate().flagscore += m_gsp1(gamemode, mutators) ? ssecures[i].team == TEAM_SPECT ? 2 : 3 : 1;
                                     }
                                 ssecures[i].team = is_secure ? ssecures[i].enemy : TEAM_SPECT;
@@ -4840,7 +4838,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                         }
                     loopv(clients)
                         if (valid_client(i) && (clients[i]->team >= 0 && clients[i]->team < 2) && bonuses[clients[i]->team])
-                            addpt(clients[i], SECUREDPT * bonuses[clients[i]->team], PR_SECURE_SECURED);
+                            addpt(*clients[i], SECUREDPT * bonuses[clients[i]->team], PR_SECURE_SECURED);
                 }
             }
             else
