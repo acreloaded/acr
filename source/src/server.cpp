@@ -1881,7 +1881,7 @@ void client::suicide(int gun, int style)
         serverdied(*this, *this, 0, gun, style, state.o);
 }
 
-void serverdamage(client &target, client &actor, int damage, int gun, int style, const vec &source, float dist)
+void serverdamage(client &target_, client &actor, int damage, int gun, int style, const vec &source, float dist)
 {
     // moon jump mario = no damage during gib
 #if (SERVER_BUILTIN_MOD & 4)
@@ -1892,15 +1892,16 @@ void serverdamage(client &target, client &actor, int damage, int gun, int style,
 #endif
     if (!damage) return;
 
-    if (&target != &actor)
+    client *target = &target_;
+    if (target != &actor)
     {
-        if (isteam(&actor, &target))
+        if (isteam(&actor, target))
         {
             // for hardcore modes only
             if (actor.state.protect(gamemillis, gamemode, mutators))
                 return;
             damage /= 2;
-            target = actor;
+            target = &actor;
         }
         else if (m_vampire(gamemode, mutators) && actor.state.health < VAMPIREMAX)
         {
@@ -1912,7 +1913,7 @@ void serverdamage(client &target, client &actor, int damage, int gun, int style,
         }
     }
 
-    clientstate &ts = target.state;
+    clientstate &ts = target->state;
     if (ts.state != CS_ALIVE) return;
 
     // damage changes
@@ -1927,7 +1928,7 @@ void serverdamage(client &target, client &actor, int damage, int gun, int style,
     }
     else if (m_real(gamemode, mutators))
     {
-        if (gun == GUN_HEAL && &target == &actor) damage /= 2;
+        if (gun == GUN_HEAL && target == &actor) damage /= 2;
         else damage *= 2;
     }
     else if (m_classic(gamemode, mutators)) damage /= 2;
@@ -1938,12 +1939,12 @@ void serverdamage(client &target, client &actor, int damage, int gun, int style,
     //ts.allowspeeding(gamemillis, 2000);
 
     if (ts.health <= 0)
-        serverdied(target, actor, damage, gun, style, source, dist);
+        serverdied(*target, actor, damage, gun, style, source, dist);
     else
     {
         if (ts.damagelog.find(actor.clientnum) < 0)
             ts.damagelog.add(actor.clientnum);
-        sendf(NULL, 1, "ri8i3", SV_DAMAGE, target.clientnum, actor.clientnum, damage, ts.armour, ts.health, gun, style,
+        sendf(NULL, 1, "ri8i3", SV_DAMAGE, target->clientnum, actor.clientnum, damage, ts.armour, ts.health, gun, style,
             (int)(source.x*DMF), (int)(source.y*DMF), (int)(source.z*DMF));
     }
 }
