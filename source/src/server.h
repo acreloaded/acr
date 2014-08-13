@@ -37,8 +37,8 @@ struct timedevent
     int type, millis, id;
     timedevent(int type, int millis, int id) : valid(true), type(type), millis(millis), id(id) { }
     virtual ~timedevent() {}
-    virtual bool flush(struct client *ci, int fmillis);
-    virtual void process(struct client *ci) = 0;
+    virtual bool flush(struct client &ci, int fmillis);
+    virtual void process(struct client &ci) = 0;
 };
 
 struct shotevent : timedevent
@@ -48,7 +48,7 @@ struct shotevent : timedevent
     vector<posinfo> pos;
     shotevent(int millis, int id, int weap) : timedevent(GE_SHOT, millis, id), weap(weap), to(0,0,0), compact(false) { pos.setsize(0); }
     bool compact;
-    void process(struct client *ci);
+    void process(struct client &ci);
 };
 
 struct destroyevent : timedevent
@@ -56,7 +56,7 @@ struct destroyevent : timedevent
     int weap, flags;
     vec o;
     destroyevent(int millis, int id, int weap, int flags, const vec &o) : timedevent(GE_PROJ, millis, id), weap(weap), flags(flags), o(o) {}
-    void process(struct client *ci);
+    void process(struct client &ci);
 };
 
 // switchevent?
@@ -64,14 +64,14 @@ struct destroyevent : timedevent
 struct akimboevent : timedevent
 {
     akimboevent(int millis, int id) : timedevent(GE_AKIMBO, millis, id) {}
-    void process(struct client *ci);
+    void process(struct client &ci);
 };
 
 struct reloadevent : timedevent
 {
     int weap;
     reloadevent(int millis, int id, int weap) : timedevent(GE_RELOAD, millis, id), weap(weap) {}
-    void process(struct client *ci);
+    void process(struct client &ci);
 };
 
 // unordered
@@ -80,20 +80,20 @@ struct healevent : timedevent
 {
     int hp;
     healevent(int millis, int actor, int hp) : timedevent(GE_HEAL, millis, actor), hp(hp) {}
-    void process(client *ci);
+    void process(client &ci);
 };
 
 struct suicidebomberevent : timedevent
 {
     suicidebomberevent(int actor) : timedevent(GE_SUICIDEBOMB, 0, actor) {}
-    void process(client *ci);
+    void process(client &ci);
 };
 
 struct airstrikeevent : timedevent
 {
     vec o;
     airstrikeevent(int millis, const vec &o) : timedevent(GE_AIRSTRIKE, millis, 0), o(o) {}
-    void process(client *ci);
+    void process(client &ci);
 };
 
 template <int N>
