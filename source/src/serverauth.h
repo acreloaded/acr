@@ -37,7 +37,7 @@ int allowconnect(client &cl, int authreq = 0, int authuser = 0)
         return DISC_NONE;
     }
 
-    int bantype = getbantype(cl.clientnum);
+    int bantype = getbantype(cl);
     bool banned = bantype > BAN_NONE;
     bool srvfull = numnonlocalclients() > scl.maxclients;
     bool srvprivate = mastermode == MM_PRIVATE || mastermode == MM_MATCH;

@@ -2521,10 +2521,8 @@ inline void addban(client &cl, int reason, int type)
     disconnect_client(cl.clientnum, reason);
 }
 
-int getbantype(int cn)
+int getbantype(client &c)
 {
-    if(!valid_client(cn)) return BAN_NONE;
-    client &c = *clients[cn];
     if(c.type==ST_LOCAL) return BAN_NONE;
     if(checkgban(c.peer->address.host)) return BAN_MASTER;
     if(ipblacklist.check(c.peer->address.host)) return BAN_BLACKLIST;
