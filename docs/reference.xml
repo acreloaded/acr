@@ -5637,6 +5637,11 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <value token="V" description="size of icons inside radar" minValue="4" maxValue="64" defaultValue="12"/>
         </variable>
 
+        <variable name="radarenemyfade">
+          <description>Sets the fade time for enemy players shown in the radar and the minimap.</description>
+          <value token="V" description="milliseconds to fade" minValue="0" maxValue="1250" defaultValue="1250"/>
+        </variable>
+
         <variable name="cncolumncolor">
           <description>colour of CN column in scoreboard</description>
           <value token="N" description="color" minValue="0" maxValue="9" defaultValue="5"/>
