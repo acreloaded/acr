@@ -13,9 +13,10 @@ extern vector<authrequest> authrequests;
 inline bool canreqauth(client &cl, int authtoken, int authuser)
 {
     extern bool canreachauthserv;
-    if (!isdedicated || !canreachauthserv){ sendf(&cl, 1, "ri2", SV_AUTH_ACR_CHAL, 2); return false; } // not dedicated/connected
-    // if (ci.authreq){ sendf(&cl, 1, "ri2", SV_AUTH_ACR_CHAL, 1);	return false;	} // already pending
-    // if (ci.authmillis + 2000 > servmillis){ sendf(&cl, 1, "ri3", SV_AUTH_ACR_CHAL, 6, cl.authmillis + 2000 - servmillis); return false; } // flood check
+    const int cn = cl.clientnum;
+    if (!isdedicated || !canreachauthserv){ sendf(cn, 1, "ri2", SV_AUTH_ACR_CHAL, 2); return false; } // not dedicated/connected
+    // if (ci.authreq){ sendf(cn, 1, "ri2", SV_AUTH_ACR_CHAL, 1);	return false;	} // already pending
+    // if (ci.authmillis + 2000 > servmillis){ sendf(cn, 1, "ri3", SV_AUTH_ACR_CHAL, 6, cl.authmillis + 2000 - servmillis); return false; } // flood check
     return true;
 }
 
@@ -68,7 +69,7 @@ int allowconnect(client &cl, int authreq = 0, int authuser = 0)
     {
         // admin (or deban) password match
         bool banremoved = false;
-        if (pd.priv) setpriv(cl, pd.priv);
+        if (pd.priv) setpriv(cl.clientnum, pd.priv);
         if (bantype == BAN_VOTE)
         {
             loopv(bans) if (bans[i].address.host == cl.peer->address.host) { bans.remove(i); banremoved = true; break; } // remove admin bans
@@ -114,7 +115,7 @@ void authfailed(uint id, bool fail)
     if(!cl) return;
     cl->authreq = 0;
     logline(ACLOG_INFO, "[%s] auth #%d %s!", cl->gethostname(), id, fail ? "failed" : "had an error");
-    sendf(cl, 1, "ri2", SV_AUTH_ACR_CHAL, 3);
+    sendf(cl->clientnum, 1, "ri2", SV_AUTH_ACR_CHAL, 3);
     checkauthdisc(*cl);
 }
 
@@ -134,11 +135,11 @@ void authsucceeded(uint id, int priv, const char *name)
     //bool banremoved = false;
     loopv(bans) if (bans[i].address.host == cl->peer->address.host){ bans.remove(i--); /*banremoved = true;*/ } // remove temporary bans
     // broadcast "identified" if privileged or a ban was removed
-    sendf(NULL, 1, "ri3s", SV_AUTH_ACR_CHAL, 5, cl->clientnum, cl->authname);
+    sendf(-1, 1, "ri3s", SV_AUTH_ACR_CHAL, 5, cl->clientnum, cl->authname);
     if (priv)
     {
         cl->authpriv = clamp(priv, (int)CR_MASTER, (int)CR_MAX);
-        setpriv(*cl, cl->authpriv);
+        setpriv(cl->clientnum, cl->authpriv);
         // unmute if auth has privilege
         // cl->muted = false;
     }
@@ -150,19 +151,19 @@ void authchallenged(uint id, int nonce)
 {
     client *cl = findauth(id);
     if(!cl) return;
-    sendf(cl, 1, "ri3", SV_AUTH_ACR_REQ, nonce, cl->authtoken);
+    sendf(cl->clientnum, 1, "ri3", SV_AUTH_ACR_REQ, nonce, cl->authtoken);
     logline(ACLOG_INFO, "[%s] auth #%d challenged by master", cl->gethostname(), id);
 }
 
 bool answerchallenge(client &cl, unsigned char hash[20])
 {
-    if (!isdedicated){ sendf(&cl, 1, "ri2", SV_AUTH_ACR_CHAL, 2); return false; }
+    if (!isdedicated){ sendf(cl.clientnum, 1, "ri2", SV_AUTH_ACR_CHAL, 2); return false; }
     if (!cl.authreq) return false;
     loopv(authrequests)
     {
         if (authrequests[i].id == cl.authreq)
         {
-            sendf(&cl, 1, "ri2", SV_AUTH_ACR_CHAL, 1);
+            sendf(cl.clientnum, 1, "ri2", SV_AUTH_ACR_CHAL, 1);
             return false;
         }
     }
@@ -170,7 +171,7 @@ bool answerchallenge(client &cl, unsigned char hash[20])
     r.id = cl.authreq;
     memcpy(r.hash, hash, sizeof(unsigned char) * 20);
     logline(ACLOG_INFO, "[%s] answers auth #%d", cl.gethostname(), r.id);
-    sendf(&cl, 1, "ri2", SV_AUTH_ACR_CHAL, 4);
+    sendf(cl.clientnum, 1, "ri2", SV_AUTH_ACR_CHAL, 4);
     return true;
 }
 
