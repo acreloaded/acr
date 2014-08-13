@@ -2018,7 +2018,7 @@ bool updateclientteam(client &cl, int newteam, int ftr)
     // log message
     logline(ftr == FTR_SILENT ? ACLOG_DEBUG : ACLOG_INFO, "[%s] %s is now on team %s", cl.gethostname(), cl.formatname(), team_string(newteam));
     // send message
-    sendf(NULL, 1, "ri3", SV_SETTEAM, cl, (cl.team = newteam) | (ftr << 4));
+    sendf(NULL, 1, "ri3", SV_SETTEAM, cl.clientnum, (cl.team = newteam) | (ftr << 4));
 
     // force a death if necessary
     if (cl.state.state != CS_DEAD && (m_team(gamemode, mutators) || newteam == TEAM_SPECT))
