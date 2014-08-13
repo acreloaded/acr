@@ -683,6 +683,18 @@ void drawradar_showmap(playerent *p, int w, int h)
     {
         if (m_secure(gamemode))
         {
+            loopv(ents)
+            {
+                entity &e = ents[i];
+                if (e.type != CTF_FLAG || e.attr2 < 2 || OUTBORD(ents[i].x, ents[i].y))
+                    continue;
+                float overthrown = ents[i].attr4 / 255.f, owned = 1.f - overthrown;
+                const int newteam = (ents[i].attr2 == TEAM_SPECT + 2 || m_gsp1(gamemode, mutators)) ? ents[i].attr3 : 2;
+                // base only
+                vec pos = vec(e.x, e.y, 0).sub(mdd).mul(coordtrans);
+                drawradarent(pos.x, pos.y, 0, clamp((int)(ents[i].attr2 - 2), (int)TEAM_CLA, 2), 3, iconsize, 0, owned);
+                drawradarent(pos.x, pos.y, 0, newteam, 3, iconsize, 0, overthrown);
+            }
         }
         else
         {
@@ -867,6 +879,21 @@ void drawradar_vicinity(playerent *p, int w, int h)
     {
         if (m_secure(gamemode))
         {
+            loopv(ents)
+            {
+                entity &e = ents[i];
+                if (e.type != CTF_FLAG || e.attr2 < 2 || OUTBORD(ents[i].x, ents[i].y))
+                    continue;
+                float overthrown = ents[i].attr4 / 255.f, owned = 1.f - overthrown;
+                const int newteam = (ents[i].attr2 == TEAM_SPECT + 2 || m_gsp1(gamemode, mutators)) ? ents[i].attr3 : 2;
+                // base only
+                vec pos = vec(e.x, e.y, 0).sub(p->o);
+                if (pos.magnitude() > d2s)
+                    pos.normalize().mul(d2s);
+                pos.mul(scaled);
+                drawradarent(pos.x, pos.y, 0, clamp((int)(ents[i].attr2 - 2), (int)TEAM_CLA, 2), 3, iconsize, 0, owned);
+                drawradarent(pos.x, pos.y, 0, newteam, 3, iconsize, 0, overthrown);
+            }
         }
         else
         {
