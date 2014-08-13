@@ -54,7 +54,7 @@ bool addai()
     b.ownernum = aiowner;
     copystring(b.name, "a bot");
     copystring(b.hostname, "<bot>");
-    sendf(-1, 1, "ri8", SV_INITAI, cn, b.ownernum, b.bot_seed = randomMT(), b.skin[0], b.skin[1], b.team, b.level);
+    sendf(NULL, 1, "ri8", SV_INITAI, cn, b.ownernum, b.bot_seed = randomMT(), b.skin[0], b.skin[1], b.team, b.level);
     forcedeath(&b);
     if(canspawn(&b))
         sendspawn(&b);
@@ -68,7 +68,7 @@ void deleteai(client &c)
     const int cn = c.clientnum;
     c.ownernum = -1;
     clientdisconnect(cn);
-    sendf(-1, 1, "ri2", SV_DELAI, cn);
+    sendf(NULL, 1, "ri2", SV_DELAI, cn);
 }
 
 bool delai()
@@ -90,7 +90,7 @@ bool shiftai(client &c, int ncn = -1, int exclude = -1)
     }
     c.ownernum = ncn;
     forcedeath(&c); // prevent spawn state bugs
-    sendf(-1, 1, "ri3", SV_REASSIGNAI, c.clientnum, c.ownernum);
+    sendf(NULL, 1, "ri3", SV_REASSIGNAI, c.clientnum, c.ownernum);
     return true;
 }
 

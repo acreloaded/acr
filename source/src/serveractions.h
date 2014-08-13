@@ -65,20 +65,20 @@ struct mapaction : serveraction
                 if(notify)
                 {
                     if(!validname)
-                        sendservmsg("invalid map name", caller);
+                        sendservmsg("invalid map name", clients[caller]);
                     else
                     {
                         sendservmsg(ms ?
                             ( m_edit(mode) ? "this map cannot be coopedited in this server" : "sorry, but this map does not satisfy some quality requisites to be played in MultiPlayer Mode" ) :
                             "the server does not have this map",
-                            caller);
+                            clients[caller]);
                     }
                 }
             }
             else if (m_edit(mode))
             {
                 reqcall = roleconf('E');
-                if (notify && reqcall) sendservmsg("\f3INFO: coopedit is restricted", caller);
+                if (notify && reqcall) sendservmsg("\f3INFO: coopedit is restricted", clients[caller]);
             }
             else
             { // check, if map supports mode
@@ -94,7 +94,7 @@ struct mapaction : serveraction
                     if (!secures) concatstring(msg, "secure flags, ");
                     // trim off the last 2
                     msg[strlen(msg) - 2] = '\0';
-                    if(notify) sendservmsg(msg, caller);
+                    if (notify) sendservmsg(msg, clients[caller]);
                     logline(ACLOG_INFO, "%s", msg);
                 }
             }
@@ -192,8 +192,8 @@ struct giveadminaction : playeraction
     void perform()
     {
         if (valid_client(from) && clients[from]->role < CR_ADMIN)
-            setpriv(from, CR_DEFAULT); // transfer master instead of give
-        setpriv(cn, give);
+            setpriv(*clients[from], CR_DEFAULT); // transfer master instead of give
+        setpriv(*clients[cn], give);
     }
     virtual bool isvalid() { return playeraction::isvalid() && valid_client(from); }
     giveadminaction(int cn, int role, int caller) : playeraction(cn)
@@ -208,7 +208,7 @@ struct giveadminaction : playeraction
 
 struct revokeaction : playeraction
 {
-    void perform() { setpriv(cn, CR_DEFAULT); }
+    void perform() { setpriv(*clients[cn], CR_DEFAULT); }
     virtual bool isvalid() { return playeraction::isvalid() && clients[cn]->role; }
     revokeaction(int cn) : playeraction(cn)
     {

@@ -93,12 +93,12 @@ inline void sendhit(client &actor, int gun, const vec &o, int dmg)
 #endif
         return;
 #endif
-    sendf(-1, 1, "ri7", SV_EXPLODE, actor.clientnum, gun, dmg, (int)(o.x*DMF), (int)(o.y*DMF), (int)(o.z*DMF));
+    sendf(NULL, 1, "ri7", SV_EXPLODE, actor.clientnum, gun, dmg, (int)(o.x*DMF), (int)(o.y*DMF), (int)(o.z*DMF));
 }
 
 inline void sendheadshot(const vec &from, const vec &to, int damage)
 {
-    sendf(-1, 1, "ri8", SV_HEADSHOT, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), damage);
+    sendf(NULL, 1, "ri8", SV_HEADSHOT, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), damage);
 }
 
 void parsepos(client &c, const vector<posinfo> &pos, vec &out_o, vec &out_head)
@@ -338,7 +338,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
         if (m_gib(gamemode, mutators))
         {
             static const int lulz[3] = { GUN_SNIPER, GUN_HEAL, GUN_RPG };
-            sendf(-1, 1, "ri9", SV_RICOCHET, owner.clientnum, lulz[rnd(3)], (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF));
+            sendf(NULL, 1, "ri9", SV_RICOCHET, owner.clientnum, lulz[rnd(3)], (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF));
         }
         else
 #endif
@@ -379,7 +379,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
             else if (!isteam(&owner, hit)) // do not cause teammates to bleed
             {
                 hit->state.addwound(owner.clientnum, end);
-                sendf(-1, 1, "ri2", SV_BLEED, hit->clientnum);
+                sendf(NULL, 1, "ri2", SV_BLEED, hit->clientnum);
             }
         }
 
@@ -414,7 +414,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
         // retrace
         straceShot(end, dir, &newsurface);
         const int penetratedamage = shot(owner, end, dir, pos, weap, style, newsurface, exclude, dist2, penaltydist + 40, save); // 10 meters penalty for penetrating the player
-        sendf(-1, 1, "ri9", SV_RICOCHET, owner.clientnum, weap, (int)(end.x*DMF), (int)(end.y*DMF), (int)(end.z*DMF), (int)(dir.x*DMF), (int)(dir.y*DMF), (int)(dir.z*DMF));
+        sendf(NULL, 1, "ri9", SV_RICOCHET, owner.clientnum, weap, (int)(end.x*DMF), (int)(end.y*DMF), (int)(end.z*DMF), (int)(dir.x*DMF), (int)(dir.y*DMF), (int)(dir.z*DMF));
         return damage + penetratedamage;
     }
     // ricochet
@@ -441,7 +441,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
         // retrace
         straceShot(to, dir, &newsurface);
         const int ricochetdamage = shot(owner, to, dir, pos, weap, style, newsurface, exclude, dist2, penaltydist + 60, save); // 15 meters penalty for ricochet
-        sendf(-1, 1, "ri9", SV_RICOCHET, owner.clientnum, weap, (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), (int)(dir.x*DMF), (int)(dir.y*DMF), (int)(dir.z*DMF));
+        sendf(NULL, 1, "ri9", SV_RICOCHET, owner.clientnum, weap, (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), (int)(dir.x*DMF), (int)(dir.y*DMF), (int)(dir.z*DMF));
         return damage + ricochetdamage;
     }
     return 0;
