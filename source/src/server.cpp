@@ -1635,12 +1635,13 @@ void checkitemspawns(int diff)
     }
 }
 
-void serverdied(client &target, client &actor, int damage, int gun, int style, const vec &source, float killdist)
+void serverdied(client &target, client &actor_, int damage, int gun, int style, const vec &source, float killdist)
 {
+    client *actor = &actor_;
     clientstate &ts = target.state;
 
-    const bool suic = (&target == &actor);
-    const bool tk = !suic && isteam(&target, &actor);
+    const bool suic = (&target == actor);
+    const bool tk = !suic && isteam(&target, actor);
     int targethasflag = clienthasflag(target.clientnum);
 
     ts.damagelog.removeobj(target.clientnum);
@@ -1650,39 +1651,42 @@ void serverdied(client &target, client &actor, int damage, int gun, int style, c
         loopv(ts.damagelog)
             if (valid_client(ts.damagelog[i]) && !isteam(&target, clients[ts.damagelog[i]]))
             {
-                actor = *clients[ts.damagelog[i]];
+                actor = clients[ts.damagelog[i]];
                 style = isheadshot(gun, style) ? FRAG_GIB : FRAG_NONE;
                 gun = OBIT_ASSIST;
                 ts.damagelog.remove(i/*--*/);
                 break;
             }
     }
+
+    clientstate &as = actor->state;
+
     // only things on target team that changes
     //if (!m_confirm(gamemode, mutators)) ++usesteamscore(target->team).deaths;
     // apply to individual
     ++ts.invalidate().deaths;
     addpt(target, DEATHPT);
     const int kills = (suic || tk) ? -1 : ((style & FRAG_GIB) ? 2 : 1);
-    actor.state.invalidate().frags += kills;
+    as.invalidate().frags += kills;
 
     if (!suic)
     {
         // revenge
-        if (actor.state.revengelog.find(target.clientnum) >= 0)
+        if (as.revengelog.find(target.clientnum) >= 0)
         {
             style |= FRAG_REVENGE;
-            actor.state.revengelog.removeobj(target.clientnum);
+            as.revengelog.removeobj(target.clientnum);
         }
-        ts.revengelog.add(actor.clientnum);
+        ts.revengelog.add(actor->clientnum);
         // first blood (not for AI)
-        if (actor.type != ST_AI && nokills)
+        if (actor->type != ST_AI && nokills)
         {
             style |= FRAG_FIRST;
             nokills = false;
         }
         // type of scoping
-        const int zoomtime = ADSTIME(actor.state.perk2 == PERK_TIME), scopeelapsed = gamemillis - actor.state.scopemillis;
-        if (actor.state.scoping)
+        const int zoomtime = ADSTIME(as.perk2 == PERK_TIME), scopeelapsed = gamemillis - as.scopemillis;
+        if (as.scoping)
         {
             // quick/recent/full
             if (scopeelapsed >= zoomtime)
@@ -1701,7 +1705,7 @@ void serverdied(client &target, client &actor, int damage, int gun, int style, c
         //if (buzzkilled)
         if (false)
         {
-            addptreason(actor, PR_BUZZKILL);
+            addptreason(*actor, PR_BUZZKILL);
             addptreason(target, PR_BUZZKILLED);
         }
         // streak
@@ -1713,12 +1717,12 @@ void serverdied(client &target, client &actor, int damage, int gun, int style, c
         */
         // teamkilling a flag carrier is bad
         if ((m_hunt(gamemode) || m_keep(gamemode)) && tk && targethasflag >= 0)
-            --actor.state.invalidate().flagscore;
+            --as.invalidate().flagscore;
     }
 
     //ts.pointstreak = 0;
     ts.wounds.shrink(0);
-    ts.damagelog.removeobj(actor.clientnum);
+    ts.damagelog.removeobj(actor->clientnum);
     target.invalidateheals();
 
     // assists
@@ -1741,11 +1745,11 @@ void serverdied(client &target, client &actor, int damage, int gun, int style, c
     // TODO
 
     // combo reset check
-    if (gamemillis >= actor.state.lastkill + COMBOTIME) actor.state.combo = 0;
-    actor.state.lastkill = gamemillis;
+    if (gamemillis >= as.lastkill + COMBOTIME) as.combo = 0;
+    as.lastkill = gamemillis;
 
     // team points
-    int earnedpts = killpoints(target, actor, gun, style);
+    int earnedpts = killpoints(target, *actor, gun, style);
     if (m_confirm(gamemode, mutators))
     {
         // create confirm object if necessary
@@ -1753,8 +1757,8 @@ void serverdied(client &target, client &actor, int damage, int gun, int style, c
         {
             sconfirm &c = sconfirms.add();
             c.o = ts.o;
-            sendf(NULL, 1, "ri6", SV_CONFIRMADD, c.id = ++confirmseq, c.team = actor.team, (int)(c.o.x*DMF), (int)(c.o.y*DMF), (int)(c.o.z*DMF));
-            c.actor = actor.clientnum;
+            sendf(NULL, 1, "ri6", SV_CONFIRMADD, c.id = ++confirmseq, c.team = actor->team, (int)(c.o.x*DMF), (int)(c.o.y*DMF), (int)(c.o.z*DMF));
+            c.actor = actor->clientnum;
             c.target = target.clientnum;
             c.points = max(0, earnedpts);
             c.frag = max(0, kills);
@@ -1768,7 +1772,7 @@ void serverdied(client &target, client &actor, int damage, int gun, int style, c
     }
 
     // automatic zombie count
-    if (m_zombie(gamemode) && !m_progressive(gamemode, mutators) && (botbalance == 0 || botbalance == -1) && target.team != actor.team)
+    if (m_zombie(gamemode) && !m_progressive(gamemode, mutators) && (botbalance == 0 || botbalance == -1) && target.team != actor->team)
     {
         if (target.team == TEAM_CLA)
         {
@@ -1786,7 +1790,7 @@ void serverdied(client &target, client &actor, int damage, int gun, int style, c
     }
 
     // send message
-    sendf(NULL, 1, "ri9i3", SV_KILL, target.clientnum, actor.clientnum, gun, style, damage, ++actor.state.combo, ts.damagelog.length(),
+    sendf(NULL, 1, "ri9i3", SV_KILL, target.clientnum, actor->clientnum, gun, style, damage, ++as.combo, ts.damagelog.length(),
         (int)(source.x*DMF), (int)(source.y*DMF), (int)(source.z*DMF), (int)(killdist*DMF));
 
     target.position.setsize(0);
@@ -1797,11 +1801,11 @@ void serverdied(client &target, client &actor, int damage, int gun, int style, c
     // ts.respawn();
     
     // log message
-    const int logtype = actor.type == ST_AI && target.type == ST_AI ? ACLOG_VERBOSE : ACLOG_INFO;
+    const int logtype = actor->type == ST_AI && target.type == ST_AI ? ACLOG_VERBOSE : ACLOG_INFO;
     if (suic)
-        logline(logtype, "[%s] %s [%s] (%.2f m)", actor.gethostname(), actor.formatname(), suicname(gun), killdist / 4.f);
+        logline(logtype, "[%s] %s [%s] (%.2f m)", actor->gethostname(), actor->formatname(), suicname(gun), killdist / 4.f);
     else
-        logline(logtype, "[%s] %s [%s] %s (%.2f m)", actor.gethostname(), actor.formatname(), killname(gun, style), target.formatname(), killdist / 4.f);
+        logline(logtype, "[%s] %s [%s] %s (%.2f m)", actor->gethostname(), actor->formatname(), killname(gun, style), target.formatname(), killdist / 4.f);
 
     // drop flags
     if (targethasflag >= 0 && m_flags(gamemode) && !m_secure(gamemode))
@@ -1866,9 +1870,9 @@ void serverdied(client &target, client &actor, int damage, int gun, int style, c
         }
 #endif
         // conversions
-        if (m_convert(gamemode, mutators) && target.team != actor.team)
+        if (m_convert(gamemode, mutators) && target.team != actor->team)
         {
-            updateclientteam(target, actor.team, FTR_SILENT);
+            updateclientteam(target, actor->team, FTR_SILENT);
             // checkai(); // DO NOT balance bots here
             convertcheck(true);
         }
