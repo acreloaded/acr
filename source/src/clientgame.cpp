@@ -47,7 +47,7 @@ void classicmode(int n)
         { G_DM, G_M_GSP1 | G_M_TEAM },
         { G_DM, G_M_GSP1 },
     };
-    if (n >= 0 && n < sizeof(cmodes) / sizeof(*cmodes))
+    if (n >= 0 && n < (int)(sizeof(cmodes) / sizeof(*cmodes)))
         modecheck(nextmode = cmodes[n][0], nextmuts = cmodes[n][1]);
 }
 COMMAND(classicmode, "i");
