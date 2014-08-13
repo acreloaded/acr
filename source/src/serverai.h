@@ -4,11 +4,11 @@ int findaiclient(int exclude = -1) // person with least bots, if possible
     int cn = -1, bots = MAXCLIENTS;
     loopv(clients)
     {
-        client *c = clients[i];
-        if(i == exclude || c->type == ST_EMPTY || c->type == ST_AI /*|| !*c->name || !c->connected*/) continue;
+        client &c = clients[i];
+        if(i == exclude || c.type == ST_EMPTY || c.type == ST_AI /*|| !*c.name || !c.connected*/) continue;
         int n = 0;
         loopvj(clients)
-            if(clients[j]->type == ST_AI && clients[j]->ownernum == i)
+            if(clients[j].type == ST_AI && clients[j].ownernum == i)
                 ++n;
         if(n < bots || cn < 0)
         {
@@ -27,9 +27,9 @@ bool addai()
     {
         if(numbots > (m_zombie(gamemode) ? MAXCLIENTS : MAXBOTS))
             return false;
-        if(clients[i]->type == ST_AI)
+        if(clients[i].type == ST_AI)
             ++numbots;
-        else if(clients[i]->type == ST_EMPTY)
+        else if(clients[i].type == ST_EMPTY)
         {
             cn = i;
             break;
@@ -39,11 +39,11 @@ bool addai()
     {
         if(clients.length() >= MAXCLIENTS)
             return false;
-        client *c = new client;
-        c->clientnum = cn = clients.length();
-        clients.add(c);
+        cn = clients.length();
+        client &c = clients.add();
+        c.clientnum = cn;
     }
-    client &b = *clients[cn];
+    client &b = clients[cn];
     b.reset();
     b.type = ST_AI;
     b.isauthed = b.isonrightmap = true;
@@ -55,9 +55,9 @@ bool addai()
     copystring(b.name, "a bot");
     copystring(b.hostname, "<bot>");
     sendf(-1, 1, "ri8", SV_INITAI, cn, b.ownernum, b.bot_seed = randomMT(), b.skin[0], b.skin[1], b.team, b.level);
-    forcedeath(&b);
-    if(canspawn(&b))
-        sendspawn(&b);
+    forcedeath(b);
+    if(canspawn(b))
+        sendspawn(b);
     return true;
 }
 
@@ -73,9 +73,9 @@ void deleteai(client &c)
 
 bool delai()
 {
-    loopvrev(clients) if(clients[i]->type == ST_AI)
+    loopvrev(clients) if(clients[i].type == ST_AI)
     {
-        deleteai(*clients[i]);
+        deleteai(clients[i]);
         return true;
     }
     return false;
@@ -83,35 +83,35 @@ bool delai()
 
 bool shiftai(client &c, int ncn = -1, int exclude = -1)
 {
-    if(!valid_client(ncn) || clients[ncn]->type == ST_AI)
+    if(!valid_client(ncn) || clients[ncn].type == ST_AI)
     {
         ncn = findaiclient(exclude);
-        if(!valid_client(ncn) || clients[ncn]->type == ST_AI) return false;
+        if(!valid_client(ncn) || clients[ncn].type == ST_AI) return false;
     }
     c.ownernum = ncn;
-    forcedeath(&c); // prevent spawn state bugs
+    forcedeath(c); // prevent spawn state bugs
     sendf(-1, 1, "ri3", SV_REASSIGNAI, c.clientnum, c.ownernum);
     return true;
 }
 
-void clearai(){ loopv(clients) if(clients[i]->type == ST_AI) deleteai(*clients[i]); }
+void clearai(){ loopv(clients) if(clients[i].type == ST_AI) deleteai(clients[i]); }
 
 bool reassignai(int exclude = -1)
 {
     int hi = -1, lo = -1, hicount = -1, locount = -1;
     loopv(clients)
     {
-        client *ci = clients[i];
-        if(ci->type == ST_EMPTY || ci->type == ST_AI || !ci->name[0] || !ci->isauthed || ci->clientnum == exclude) continue;
+        client &ci = clients[i];
+        if(ci.type == ST_EMPTY || ci.type == ST_AI || !ci.name[0] || !ci.isauthed || ci.clientnum == exclude) continue;
         int thiscount = 0;
-        loopvj(clients) if(clients[j]->ownernum == ci->clientnum) ++thiscount;
+        loopvj(clients) if(clients[j].ownernum == ci.clientnum) ++thiscount;
         if(hi < 0 || thiscount > hicount){ hi = i; hicount = thiscount; }
         if(lo < 0 || thiscount < locount){ lo = i; locount = thiscount; }
     }
     if(hi >= 0 && lo >= 0 && hicount > locount + 1)
     {
-        client *ci = clients[hi];
-        loopv(clients) if(clients[i]->type == ST_AI && clients[i]->ownernum == ci->clientnum) return shiftai(*clients[i], lo);
+        client &ci = clients[hi];
+        loopv(clients) if(clients[i].type == ST_AI && clients[i].ownernum == ci.clientnum) return shiftai(clients[i], lo);
     }
     return false;
 }
@@ -167,13 +167,16 @@ void checkai()
             if(m_team(gamemode, mutators) && !m_zombie(gamemode))
             {
                 int plrs[2] = {0}, highest = -1;
-                loopv(clients) if(valid_client(i) && clients[i]->type != ST_AI && clients[i]->team < 2){
-                    ++plrs[clients[i]->team];
-                    if(highest < 0 || plrs[clients[i]->team] > plrs[highest]) highest = clients[i]->team;
+                loopv(clients) if(valid_client(i) && clients[i].type != ST_AI && clients[i].team < 2)
+                {
+                    ++plrs[clients[i].team];
+                    if(highest < 0 || plrs[clients[i].team] > plrs[highest]) highest = clients[i].team;
                 }
-                if(highest >= 0){
+                if(highest >= 0)
+                {
                     int bots = balance-humans;
-                    loopi(2) if(i != highest && plrs[i] < plrs[highest]) loopj(plrs[highest]-plrs[i]){
+                    loopi(2) if(i != highest && plrs[i] < plrs[highest]) loopj(plrs[highest]-plrs[i])
+                    {
                         if(bots > 0) --bots;
                         else ++balance;
                     }
@@ -186,7 +189,7 @@ void checkai()
             if(m_team(gamemode, mutators) && !m_convert(gamemode, mutators))
                 loopvrev(clients)
             {
-                client &ci = *clients[i];
+                client &ci = clients[i];
                 if(ci.type != ST_AI) continue;
                 int teamb = chooseteam(ci, ci.team);
                 if (teamb == TEAM_SPECT) continue;
