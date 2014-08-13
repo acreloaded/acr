@@ -71,7 +71,7 @@ struct weaponmove
             float progress = 0.0f;
             float k_back = 0.0f;
 
-            if(p->weaponsel==p->lastattackweapon)
+            if (p->weaponsel == p->lastattackweapon || p->weaponsel->type == GUN_RPG)
             {
                 progress = max(0.0f, min(1.0f, timediff/(float)animtime));
                 // f(x) = -sin(x-1.5)^3

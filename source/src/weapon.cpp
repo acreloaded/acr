@@ -1125,7 +1125,7 @@ crossbow::crossbow(playerent *owner) : gun(owner, GUN_RPG) {}
 int crossbow::modelanim()
 {
     // very simple and stupid animation system
-    return mag ? ANIM_GUN_SHOOT : ANIM_GUN_IDLE;
+    return mag ? ANIM_GUN_IDLE : ANIM_GUN_SHOOT;
 }
 
 void crossbow::attackfx(const vec &from2, const vec &to, int millis)
