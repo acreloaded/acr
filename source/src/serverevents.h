@@ -223,7 +223,7 @@ void shotevent::process(client *ci)
         putint(p, (int)(to.y*DMF));
         putint(p, (int)(to.z*DMF));
     }
-    sendpacket(-1, 1, p.finalize(), !compact && weap != GUN_GRENADE ? -1 : c.clientnum);
+    sendpacket(NULL, 1, p.finalize(), !compact && weap != GUN_GRENADE ? -1 : c.clientnum);
 }
 
 void reloadevent::process(client *ci)

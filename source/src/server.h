@@ -546,11 +546,11 @@ mapstats *getservermapstats(const char *mapname, bool getlayout = false, int *ma
 int findmappath(const char *mapname, char *filename = NULL);
 int calcscores();
 void recordpacket(int chan, void *data, int len);
-void senddisconnectedscores(int cn);
+void senddisconnectedscores(client *cl = NULL);
 void process(ENetPacket *packet, int sender, int chan);
 void welcomepacket(packetbuf &p, int n);
 void sendwelcome(client *cl, int chan = 1);
-void sendpacket(int n, int chan, ENetPacket *packet, int exclude = -1, bool demopacket = false);
+void sendpacket(client *cl, int chan, ENetPacket *packet, int exclude = -1, bool demopacket = false);
 int numclients();
 bool canspawn(client *c, bool connecting = false);
 bool updateclientteam(int cln, int newteam, int ftr);

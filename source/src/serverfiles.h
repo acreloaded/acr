@@ -127,7 +127,7 @@ struct servermapbuffer  // sending of maps between clients
         putint(p, cfgsizegz);
         putint(p, revision);
         p.put(data, datasize);
-        sendpacket(cl->clientnum, chan, p.finalize());
+        sendpacket(cl, chan, p.finalize());
     }
 };
 

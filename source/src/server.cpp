@@ -148,34 +148,32 @@ void cleanworldstate(ENetPacket *packet)
    }
 }
 
-void sendpacket(int n, int chan, ENetPacket *packet, int exclude, bool demopacket)
+void sendpacket(client *cl, int chan, ENetPacket *packet, int exclude, bool demopacket)
 {
     // fix exclude
     if(valid_client(exclude) && clients[exclude]->type == ST_AI)
         exclude = clients[exclude]->ownernum;
-    if(!valid_client(n))
+    if(!cl)
     {
-        if(n<0)
-        {
-            recordpacket(chan, packet->data, (int)packet->dataLength);
-            loopv(clients)
-                if(i!=exclude && clients[i]->type != ST_AI && (clients[i]->type!=ST_TCPIP || clients[i]->isauthed))
-                    sendpacket(i, chan, packet, -1, demopacket);
-        }
+        // broadcast
+        recordpacket(chan, packet->data, (int)packet->dataLength);
+        loopv(clients)
+            if(i!=exclude && clients[i]->type != ST_AI && (clients[i]->type!=ST_TCPIP || clients[i]->isauthed))
+                sendpacket(clients[i], chan, packet, -1, demopacket);
         return;
     }
-    if(clients[n]->type == ST_AI)
+    if(cl->type == ST_AI)
     {
         // reroute packets
-        n = clients[n]->ownernum;
-        if(!valid_client(n) || n == exclude || clients[n]->type == ST_AI)
+        if (!valid_client(cl->ownernum) || cl->ownernum == exclude || clients[cl->ownernum]->type == ST_AI)
             return;
+        cl = clients[cl->ownernum];
     }
-    switch(clients[n]->type)
+    switch(cl->type)
     {
         case ST_TCPIP:
         {
-            enet_peer_send(clients[n]->peer, chan, packet);
+            enet_peer_send(cl->peer, chan, packet);
             break;
         }
 
@@ -244,7 +242,7 @@ bool buildworldstate()
             packet = enet_packet_create(&ws.positions[!pkt[i].poslen ? 0 : pkt[i].posoff+pkt[i].poslen],
                                         psize-pkt[i].poslen,
                                         ENET_PACKET_FLAG_NO_ALLOCATE);
-            sendpacket(i, 0, packet);
+            sendpacket(&c, 0, packet);
             if(!packet->referenceCount) enet_packet_destroy(packet);
             else { ++ws.uses; packet->freeCallback = cleanworldstate; }
         }
@@ -254,7 +252,7 @@ bool buildworldstate()
             packet = enet_packet_create(&ws.messages[!pkt[i].msglen ? 0 : pkt[i].msgoff+pkt[i].msglen],
                                         msize-pkt[i].msglen,
                                         (reliablemessages ? ENET_PACKET_FLAG_RELIABLE : 0) | ENET_PACKET_FLAG_NO_ALLOCATE);
-            sendpacket(i, 1, packet);
+            sendpacket(&c, 1, packet);
             if(!packet->referenceCount) enet_packet_destroy(packet);
             else { ++ws.uses; packet->freeCallback = cleanworldstate; }
         }
@@ -338,7 +336,7 @@ void changemastermode(int newmode)
     if(mastermode != newmode)
     {
         mastermode = newmode;
-        senddisconnectedscores(-1);
+        senddisconnectedscores();
         if(mastermode != MM_MATCH)
         {
             loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed)
@@ -441,7 +439,7 @@ void sendf(int cn, int chan, const char *format, ...)
         }
     }
     va_end(args);
-    sendpacket(cn, chan, p.finalize(), exclude);
+    sendpacket(clients[cn], chan, p.finalize(), exclude);
 }
 
 void sendservmsg(const char *msg, int cn)
@@ -831,13 +829,13 @@ void setupdemorecord()
     writedemo(1, p.buf, p.len);
 }
 
-void listdemos(int cn)
+void listdemos(client *cl)
 {
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     putint(p, SV_SENDDEMOLIST);
     putint(p, demofiles.length());
     loopv(demofiles) sendstring(demofiles[i].info, p);
-    sendpacket(cn, 1, p.finalize());
+    sendpacket(cl, 1, p.finalize());
 }
 
 static void cleardemos(int n)
@@ -859,35 +857,34 @@ static void cleardemos(int n)
 
 bool sending_demo = false;
 
-void senddemo(int cn, int num)
+void senddemo(client &cl, int num)
 {
-    client *cl = cn>=0 ? clients[cn] : NULL;
-    bool is_admin = (cl && cl->role >= CR_ADMIN);
+    bool is_admin = cl.role >= CR_ADMIN;
     if(scl.demo_interm && (!interm || totalclients > 2) && !is_admin)
     {
-        sendservmsg("\f3sorry, but this server only sends demos at intermission.\n wait for the end of this game, please", cn);
+        sendservmsg("\f3sorry, but this server only sends demos at intermission.\n wait for the end of this game, please", cl.clientnum);
         return;
     }
     if(!num) num = demofiles.length();
     if(!demofiles.inrange(num-1))
     {
-        if(demofiles.empty()) sendservmsg("no demos available", cn);
+        if (demofiles.empty()) sendservmsg("no demos available", cl.clientnum);
         else
         {
             defformatstring(msg)("no demo %d available", num);
-            sendservmsg(msg, cn);
+            sendservmsg(msg, cl.clientnum);
         }
         return;
     }
     demofile &d = demofiles[num-1];
-    loopv(d.clientssent) if(d.clientssent[i].ip == cl->peer->address.host && d.clientssent[i].clientnum == cl->clientnum)
+    loopv(d.clientssent) if(d.clientssent[i].ip == cl.peer->address.host && d.clientssent[i].clientnum == cl.clientnum)
     {
-        sendservmsg("\f3Sorry, you have already downloaded this demo.", cl->clientnum);
+        sendservmsg("\f3Sorry, you have already downloaded this demo.", cl.clientnum);
         return;
     }
     clientidentity &ci = d.clientssent.add();
-    ci.ip = cl->peer->address.host;
-    ci.clientnum = cl->clientnum;
+    ci.ip = cl.peer->address.host;
+    ci.clientnum = cl.clientnum;
 
     if (interm) sending_demo = true;
     packetbuf p(MAXTRANS + d.len, ENET_PACKET_FLAG_RELIABLE);
@@ -895,7 +892,7 @@ void senddemo(int cn, int num)
     sendstring(d.file, p);
     putint(p, d.len);
     p.put(d.data, d.len);
-    sendpacket(cn, 2, p.finalize());
+    sendpacket(&cl, 2, p.finalize());
 }
 
 int demoprotocol;
@@ -975,7 +972,7 @@ void readdemo()
             enddemoplayback();
             return;
         }
-        sendpacket(-1, chan, packet, -1, true);
+        sendpacket(NULL, chan, packet, -1, true);
         if(!packet->referenceCount) enet_packet_destroy(packet);
         if(demoplayback->read(&nextplayback, sizeof(nextplayback))!=sizeof(nextplayback))
         {
@@ -1014,20 +1011,20 @@ void putsecureflaginfo(ucharbuf &p, ssecure &s)
 
 #include "serverchecks.h"
 
-void sendflaginfo(int flag = -1, int cn = -1)
+void sendflaginfo(int flag = -1, client *cl = NULL)
 {
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     if(flag >= 0) putflaginfo(p, flag);
     else loopi(2) putflaginfo(p, i);
-    sendpacket(cn, 1, p.finalize());
+    sendpacket(cl, 1, p.finalize());
 }
 
-void sendsecureflaginfo(ssecure *s = NULL, int cn = -1)
+void sendsecureflaginfo(ssecure *s = NULL, client *cl = NULL)
 {
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     if (s) putsecureflaginfo(p, *s);
     else loopv(ssecures) putsecureflaginfo(p, ssecures[i]);
-    sendpacket(cn, 1, p.finalize());
+    sendpacket(cl, 1, p.finalize());
 }
 
 void flagmessage(int flag, int message, int actor, int cn = -1)
@@ -1574,17 +1571,17 @@ void sendtext(char *text, client *cl, int flags, int voice)
     sendstring(text, p);
     ENetPacket *packet = p.finalize();
     recordpacket(1, packet);
-    int &st = cl->team;
+    const int &st = cl->team;
     loopv(clients)
     {
         if (clients[i]->type == ST_EMPTY || clients[i]->type == ST_AI)
             continue;
-        int &rt = clients[i]->team;
+        const int &rt = clients[i]->team;
         if( !(flags & SAY_TEAM) || (i == cl->clientnum) ||        // common chat or same player
             (clients[i]->role >= CR_ADMIN) ||                     // admin reads all
            (team_isactive(st) && st == team_group(rt)) ||         // player to own team + own spects
            (team_isspect(st) && team_isspect(rt)))                // spectator to other spectators
-            sendpacket(i, 1, packet);
+            sendpacket(clients[i], 1, packet);
     }
 }
 
@@ -2425,7 +2422,7 @@ void startgame(const char *newname, int newmode, int newmuts, int newtime, bool 
             // sknives.setsize(0);
             packetbuf q(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
             putmap(q);
-            sendpacket(-1, 1, q.finalize());
+            sendpacket(NULL, 1, q.finalize());
             // time remaining
             if(smode>1 || (smode==0 && numnonlocalclients()>0)) sendf(-1, 1, "ri3", SV_TIMEUP, gamemillis, gamelimit);
         }
@@ -2468,7 +2465,7 @@ void startgame(const char *newname, int newmode, int newmuts, int newtime, bool 
         {
             if (m_keep(gamemode)) sendflaginfo();
             else if (m_secure(gamemode)) sendsecureflaginfo();
-            senddisconnectedscores(-1);
+            senddisconnectedscores();
         }
     }
 }
@@ -2623,7 +2620,7 @@ void scallvoteerr(voteinfo *v, int error)
     logline(ACLOG_INFO, "[%s] %s failed to call a vote: %s (%s)", clients[v->owner]->gethostname(), clients[v->owner]->formatname(), v->action && v->action->desc ? v->action->desc : "[unknown]", voteerrorstr(error));
 }
 
-void sendcallvote(int cn = -1);
+void sendcallvote(client *cl = NULL);
 
 bool scallvote(voteinfo *v) // true if a regular vote was called
 {
@@ -2660,7 +2657,7 @@ bool scallvote(voteinfo *v) // true if a regular vote was called
     }
 }
 
-void sendcallvote(int cn)
+void sendcallvote(client *cl)
 {
     if (!curvote || curvote->result != VOTE_NEUTRAL)
         return;
@@ -2731,7 +2728,7 @@ void sendcallvote(int cn)
         putint(q, i);
         putint(q, clients[i]->vote);
     }
-    sendpacket(cn, 1, q.finalize());
+    sendpacket(cl, 1, q.finalize());
 }
 
 void setpriv(client &cl, int priv)
@@ -2765,7 +2762,7 @@ void setpriv(client &cl, int priv)
     //if(curvote) curvote->evaluate();
 }
 
-void senddisconnectedscores(int cn)
+void senddisconnectedscores(client *cl)
 {
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     putint(p, SV_DISCSCORES);
@@ -2786,7 +2783,7 @@ void senddisconnectedscores(int cn)
         }
     }
     putint(p, -1);
-    sendpacket(cn, 1, p.finalize());
+    sendpacket(cl, 1, p.finalize());
 }
 
 const char *disc_reason(int reason)
@@ -2859,7 +2856,7 @@ void disconnect_client(int n, int reason)
     clientdisconnect(n);
     extern void freeconnectcheck(int cn);
     freeconnectcheck(n); // disconnect - ms check is void
-    if(*scoresaved && mastermode == MM_MATCH) senddisconnectedscores(-1);
+    if(*scoresaved && mastermode == MM_MATCH) senddisconnectedscores();
     checkai(); // disconnect
     convertcheck();
 }
@@ -2939,7 +2936,7 @@ void sendinitclient(client &c)
 {
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     putinitclient(c, p);
-    sendpacket(-1, 1, p.finalize(), c.clientnum);
+    sendpacket(NULL, 1, p.finalize(), c.clientnum);
 }
 
 inline void welcomeinitclient(packetbuf &p, int exclude = -1)
@@ -3040,7 +3037,7 @@ void sendwelcome(client *cl, int chan)
 {
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     welcomepacket(p, cl->clientnum);
-    sendpacket(cl->clientnum, chan, p.finalize());
+    sendpacket(cl, chan, p.finalize());
     cl->haswelcome = true;
 }
 
@@ -3374,13 +3371,13 @@ void process(ENetPacket *packet, int sender, int chan)
         }
 
         sendwelcome(cl);
-        if(restorescore(*cl)) { sendresume(*cl, true); senddisconnectedscores(-1); }
-        else if(cl->type==ST_TCPIP) senddisconnectedscores(sender);
+        if(restorescore(*cl)) { sendresume(*cl, true); senddisconnectedscores(); }
+        else if(cl->type==ST_TCPIP) senddisconnectedscores(cl);
         sendinitclient(*cl);
         findlimit(*cl, false);
         if (curvote)
         {
-            sendcallvote(cl->clientnum);
+            sendcallvote(cl);
             curvote->evaluate();
         }
 
@@ -4281,11 +4278,11 @@ void process(ENetPacket *packet, int sender, int chan)
             }
 
             case SV_LISTDEMOS:
-                listdemos(sender);
+                listdemos(cl);
                 break;
 
             case SV_GETDEMO:
-                senddemo(sender, getint(p));
+                senddemo(*cl, getint(p));
                 break;
 
             case SV_SOUND:
