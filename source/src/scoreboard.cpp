@@ -15,14 +15,14 @@ void showscores(bool on)
 COMMANDF(showscores, "i", (int *on) { showscores(*on != 0); });
 
 VARFP(sc_flags,      0,  0, 100, needscoresreorder = true);
-VARFP(sc_frags,      0,  1, 100, needscoresreorder = true);
-VARFP(sc_deaths,    -1,  2, 100, needscoresreorder = true);
-VARFP(sc_assists,    0,  3, 100, needscoresreorder = true);
-VARFP(sc_ratio,     -1, -1, 100, needscoresreorder = true);
-VARFP(sc_score,     -1,  4, 100, needscoresreorder = true);
-VARFP(sc_lag,       -1,  5, 100, needscoresreorder = true);
-VARFP(sc_clientnum,  0,  6, 100, needscoresreorder = true);
-VARFP(sc_name,       0,  7, 100, needscoresreorder = true);
+VARFP(sc_frags,      0, 10, 100, needscoresreorder = true);
+VARFP(sc_deaths,    -1, 20, 100, needscoresreorder = true);
+VARFP(sc_assists,    0, 30, 100, needscoresreorder = true);
+VARFP(sc_ratio,     -1, 40, 100, needscoresreorder = true);
+VARFP(sc_score,     -1, 50, 100, needscoresreorder = true);
+VARFP(sc_lag,       -1, 60, 100, needscoresreorder = true);
+VARFP(sc_clientnum,  0, 70, 100, needscoresreorder = true);
+VARFP(sc_name,       0, 80, 100, needscoresreorder = true);
 
 struct coldata
 {

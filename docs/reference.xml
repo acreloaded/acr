@@ -5707,42 +5707,42 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
 
         <variable name="sc_frags">
           <description>Sets the order priority for the column frags on the scoreboard.</description>
-          <value token="V" description="low priority: left, high priority: right" minValue="0" maxValue="100" defaultValue="1" />
+          <value token="V" description="low priority: left, high priority: right" minValue="0" maxValue="100" defaultValue="10" />
         </variable>
 
         <variable name="sc_deaths">
           <description>Sets the order priority for the column deaths or disables it on the scoreboard.</description>
-          <value token="V" description="-1: disable, low priority: left, high priority: right" minValue="-1" maxValue="100" defaultValue="2" />
+          <value token="V" description="-1: disable, low priority: left, high priority: right" minValue="-1" maxValue="100" defaultValue="20" />
         </variable>
 
         <variable name="sc_assists">
           <description>Sets the order priority for the column assists or disables it on the scoreboard.</description>
-          <value token="V" description="-1: disable, low priority: left, high priority: right" minValue="-1" maxValue="100" defaultValue="3" />
+          <value token="V" description="-1: disable, low priority: left, high priority: right" minValue="-1" maxValue="100" defaultValue="30" />
         </variable>
 
         <variable name="sc_ratio">
           <description>Sets the order priority for the column ratio or disables it on the scoreboard.</description>
-          <value token="V" description="-1: disable, low priority: left, high priority: right" minValue="-1" maxValue="100" defaultValue="-1" />
+          <value token="V" description="-1: disable, low priority: left, high priority: right" minValue="-1" maxValue="100" defaultValue="40" />
         </variable>
 
         <variable name="sc_score">
           <description>Sets the order priority for the column score or disables it on the scoreboard.</description>
-          <value token="V" description="-1: disable, low priority: left, high priority: right" minValue="-1" maxValue="100" defaultValue="4" />
+          <value token="V" description="-1: disable, low priority: left, high priority: right" minValue="-1" maxValue="100" defaultValue="50" />
         </variable>
 
         <variable name="sc_lag">
           <description>Sets the order priority for the column pj/ping or disables it on the scoreboard.</description>
-          <value token="V" description="-1: disable, low priority: left, high priority: right" minValue="-1" maxValue="100" defaultValue="5" />
+          <value token="V" description="-1: disable, low priority: left, high priority: right" minValue="-1" maxValue="100" defaultValue="60" />
         </variable>
 
         <variable name="sc_clientnum">
           <description>Sets the order priority for the column cn on the scoreboard.</description>
-          <value token="V" description="low priority: left, high priority: right" minValue="0" maxValue="100" defaultValue="6" />
+          <value token="V" description="low priority: left, high priority: right" minValue="0" maxValue="100" defaultValue="70" />
         </variable>
 
         <variable name="sc_name">
           <description>Sets the order priority for the column name on the scoreboard.</description>
-          <value token="V" description="low priority: left, high priority: right" minValue="0" maxValue="100" defaultValue="7" />
+          <value token="V" description="low priority: left, high priority: right" minValue="0" maxValue="100" defaultValue="80" />
         </variable>
 
       </identifiers>
