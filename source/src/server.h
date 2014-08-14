@@ -797,5 +797,40 @@ bool isheadshot(int weapon, int style)
     return true;
 }
 
+float gunspeed(int gun, float zoomed, bool lightweight)
+{
+    float ret = lightweight ? 1.07f : 1;
+    ret *= 1 - zoomed / (lightweight ? 3.5f : 3.f);
+    switch (gun){
+        case GUN_KNIFE:
+        case GUN_PISTOL:
+        case GUN_GRENADE:
+        case GUN_HEAL:
+            //ret *= 1;
+            break;
+        case GUN_SWORD:
+            ret *= .98f;
+            break;
+        case GUN_AKIMBO:
+            ret *= .96f;
+            break;
+        case GUN_SNIPER:
+        case GUN_BOLT:
+        case GUN_SNIPER2:
+            ret *= .93f;
+            break;
+        case GUN_SHOTGUN:
+        case GUN_SUBGUN:
+            ret *= .93f;
+            break;
+        case GUN_ASSAULT:
+        case GUN_ASSAULT2:
+        case GUN_RPG:
+            ret *= .92f;
+            break;
+    }
+    return ret;
+}
+
 const char *teamnames[TEAM_NUM+1] = {"CLA", "RVSF", "CLA-SPECT", "RVSF-SPECT", "SPECTATOR", "void"};
 const char *teamnames_s[TEAM_NUM+1] = {"CLA", "RVSF", "CSPC", "RSPC", "SPEC", "void"};

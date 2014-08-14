@@ -1937,8 +1937,7 @@ void serverdamage(client &target_, client &actor, int damage, int gun, int style
     }
     else if (m_classic(gamemode, mutators)) damage /= 2;
 
-    ts.dodamage(damage, gun);
-    // ts.dodamage(damage, actor->state.perk1 == PERK_POWER);
+    ts.dodamage(damage, gun, actor.state.perk1 == PERK_POWER);
     ts.lastregen = gamemillis + REGENDELAY - REGENINT;
     //ts.allowspeeding(gamemillis, 2000);
 
@@ -3112,7 +3111,7 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
                     // 2 meters without damage, then square up to 10^2 = 100 for up to 20m (50m with lightweight)
                     int damage = 0;
                     if(dz > 8)
-                        damage = powf(min<float>((dz - 8) / 4 / 2, 10), 2.f) * HEALTHSCALE; // 10 * 10 = 100
+                        damage = powf(min<float>((dz - 8) / 4 / (cs.perk1 == PERK1_LIGHT ? 5 : 2), 10), 2.f) * HEALTHSCALE; // 10 * 10 = 100
                     if(damage >= 1*HEALTHSCALE) // don't heal the player
                     {
                         // maximum damage is 99 for balance purposes

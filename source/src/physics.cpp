@@ -481,7 +481,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         {
             playerent *p = (playerent *)pl;
             float spd = 1;
-            // if (p->weaponsel) spd = gunspeed(p->weaponsel->type, p->ads, p->perk1 == PERK1_AGILE);
+            if (p->weaponsel) spd = gunspeed(p->weaponsel->type, p->zoomed, p->perk1 == PERK1_AGILE);
             if (p->sprinting) spd *= 0.6f; // sprint = walk for now
             d.mul(spd);
             if (p->perk1 == PERK1_LIGHT) d.z *= 1.05f;

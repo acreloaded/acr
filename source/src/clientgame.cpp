@@ -576,20 +576,34 @@ void updateradarpos()
     {
         playerent *d = players[i];
         if (!d) continue;
-        if (!has_radar)
+        if (has_radar)
+            goto UPDATE_POSITION;
+        if (d->perk1 != PERK_NINJA)
         {
-            if ((flaginfos[0].state != CTFF_STOLEN || flaginfos[0].actor != d) && (flaginfos[1].state != CTFF_STOLEN || flaginfos[1].actor != d))
-                continue;
+            if (focus->perk2 == PERK_RADAR && IsVisible(focus->o, d->o))
+                goto UPDATE_POSITION;
+            else loopvj(players)
+            {
+                playerent *pll = players[j];
+                if (!pll || focus == pll || !isteam(focus, pll) || (pll->state != CS_ALIVE && pll->state != CS_EDITING) || pll->perk2 != PERK_RADAR) continue;
+                if (IsVisible(pll->o, d->o)) goto UPDATE_POSITION;
+            }
         }
-        int nextupdate = d->radarmillis + interval - d->radarmillis % interval;
-        if (lastmillis >= nextupdate)
+        if ((flaginfos[0].state == CTFF_STOLEN && flaginfos[0].actor == d) ||
+            (flaginfos[1].state == CTFF_STOLEN && flaginfos[1].actor == d))
         {
-            d->lastloudpos.x = d->o.x;
-            d->lastloudpos.y = d->o.y;
-            d->lastloudpos.z = d->o.z;
-            d->lastloudpos.w = d->yaw;
-            d->radarmillis = lastmillis;
+            int nextupdate = d->radarmillis + interval - d->radarmillis % interval;
+            if (lastmillis >= nextupdate)
+                goto UPDATE_POSITION;
         }
+        continue;
+        // update position
+        UPDATE_POSITION:
+        d->lastloudpos.x = d->o.x;
+        d->lastloudpos.y = d->o.y;
+        d->lastloudpos.z = d->o.z;
+        d->lastloudpos.w = d->yaw;
+        d->radarmillis = lastmillis;
     }
 }
 

@@ -115,6 +115,7 @@ extern int effectiveDamage(int gun, float dist, bool explosive = false, bool use
 extern const char *suicname(int obit);
 extern const char *killname(int obit, int style);
 extern bool isheadshot(int weapon, int style);
+extern float gunspeed(int gun, float zoomed, bool lightweight);
 
 /** roseta stone:
        0000,         0001,      0010,           0011,            0100,       0101 */
@@ -510,7 +511,7 @@ public:
     }
 
     // just subtract damage here, can set death, etc. later in code calling this
-    int dodamage(int damage, int gun)
+    int dodamage(int damage, int gun, bool penetration)
     {
         guninfo gi = guns[gun];
         if(damage == INT_MAX)
@@ -523,7 +524,7 @@ public:
         // 4-level armour - tiered approach: 16%, 33%, 37%, 41%
         // Please update ./ac_website/htdocs/docs/introduction.html if this changes.
         int armoursection = 0;
-        int ad = damage;
+        int ad;
         if(armour > 25) armoursection = 1;
         if(armour > 50) armoursection = 2;
         if(armour > 75) armoursection = 3;
@@ -538,8 +539,8 @@ public:
 
         //ra - reduced armor
         //rd - reduced damage
-        int ra = (int) (ad * damage/100.0f);
-        int rd = ra-(ra*(gi.piercing/100.0f)); //Who cares about rounding errors anyways?
+        int ra = (int) (ad * damage/100.0f) >> (penetration ? 1 : 0);
+        int rd = penetration ? 0 : ra - (ra*(gi.piercing / 100.0f)); //Who cares about rounding errors anyways?
 
         armour -= ra;
         damage -= rd;
