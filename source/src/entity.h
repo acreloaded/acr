@@ -529,24 +529,16 @@ public:
 
         // 4-level armour - tiered approach: 16%, 33%, 37%, 41%
         // Please update ./ac_website/htdocs/docs/introduction.html if this changes.
-        int armoursection = 0;
-        int ad;
-        if(armour > 25) armoursection = 1;
-        if(armour > 50) armoursection = 2;
-        if(armour > 75) armoursection = 3;
-        switch(armoursection)
-        {
-            case 0: ad = (int) (16.0f/25.0f * armour); break;             // 16
-            case 1: ad = (int) (17.0f/25.0f * armour) - 1; break;         // 33
-            case 2: ad = (int) (4.0f/25.0f * armour) + 25; break;         // 37
-            case 3: ad = (int) (4.0f/25.0f * armour) + 25; break;         // 41
-            default: break;
-        }
+        int ad = 0;
+        if (armour > 75)      ad = (int)(4.0f / 25.0f * armour) + 25;     // 41
+        else if (armour > 50) ad = (int)(4.0f / 25.0f * armour) + 25;     // 37
+        else if (armour > 25) ad = (int)(17.0f / 25.0f * armour) - 1;     // 33
+        else                  ad = (int)(16.0f / 25.0f * armour);         // 16
 
         //ra - reduced armor
         //rd - reduced damage
         int ra = (int) (ad * damage/100.0f) >> (penetration ? 1 : 0);
-        int rd = penetration ? 0 : ra - (ra*(gi.piercing / 100.0f)); //Who cares about rounding errors anyways?
+        int rd = penetration ? 0 : (ra*(1 - gi.piercing / 100.0f));
 
         armour -= ra;
         damage -= rd;
