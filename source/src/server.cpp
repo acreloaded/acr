@@ -1324,7 +1324,7 @@ void arenanext(bool forcespawn = true)
     arenaround = 0;
     arenaroundstartmillis = gamemillis;
     distributespawns();
-    // purgesknives();
+    purgesknives();
     checkitemspawns(60 * 1000); // the server will respawn all items now
     loopi(2) if (sflaginfos[i].state == CTFF_DROPPED || sflaginfos[i].state == CTFF_STOLEN) flagaction(i, FA_RESET, -1);
     loopv(clients) if (clients[i]->type != ST_EMPTY && clients[i]->isauthed)
@@ -2472,7 +2472,7 @@ void startgame(const char *newname, int newmode, int newmuts, int newtime, bool 
         checkai(); // re-init ai (init)
         // convertcheck();
         // reset team scores
-        // loopi(TEAM_NUM - 1) steamscores[i] = steamscore(i);
+        loopi(2) steamscores[i] = steamscore(i);
         purgesknives();
         purgesconfirms(); // but leave the confirms for team modes in arena
         if(numnonlocalclients() > 0) setupdemorecord();
