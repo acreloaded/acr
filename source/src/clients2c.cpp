@@ -1139,7 +1139,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             case SV_PINGPONG:
             {
                 int millis = getint(p);
-                addmsg(SV_CLIENTPING, "i", totalmillis - millis);
+                if (multiplayer(false)) addmsg(SV_CLIENTPING, "i", totalmillis - millis);
+                else addmsg(SV_CLIENTPING, "i", curtime);
                 break;
             }
 
