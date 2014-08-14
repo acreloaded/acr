@@ -84,7 +84,7 @@ VARP(hideteam, 0, 0, 1);
 VARP(hidectfhud, 0, 0, 1); // hardcore doesn't override
 VARP(hidevote, 0, 0, 2);
 VARP(hidehudmsgs, 0, 0, 1);
-VARP(hidehudequipment, 0, 0, 1); // TODO hardcore
+VARP(hidehudequipment, 0, 0, 1);
 VARP(hideconsole, 0, 0, 1);
 VARP(hideobits, 0, 0, 1);
 VARP(hidespecthud, 0, 0, 1); // hardcore doesn't override
@@ -457,17 +457,51 @@ void drawequipicons(playerent *p)
     glColor4f(1.0f, 1.0f, 1.0f, 0.2f+(sinf(lastmillis/100.0f)+1.0f)/2.0f);
 
     // health & armor
-    if(p->armour) drawequipicon(560, 1650, (p->armour-1)/25, 2, false);
-    drawequipicon(20, 1650, 2, 3, (p->state!=CS_DEAD && p->health<=20 && !m_sniper(gamemode, mutators)));
-    if(p->mag[GUN_GRENADE]) drawequipicon(1520, 1650, 3, 1, false);
+    if (show_hud_element(!hidehudequipment, 1))
+    {
+        int hc = 0, hr = 3;
+        if (p->armour)
+        {
+            hr = 2;
+            if (p->armour >= 100) hc = 4;
+            else if (p->armour >= 75) hc = 3;
+            else if (p->armour >= 50) hc = 2;
+            else if (p->armour >= 25) hc = 1;
+            else hc = 0;
+        }
+        drawequipicon(20, 1650, hc, hr, (p->state != CS_DEAD && p->health <= 35 * HEALTHSCALE && m_regen(gamemode, mutators)));
+    }
+
+    // grenades and throwing knives
+    int equipx = 0;
+    loopi(min(3, p->mag[GUN_GRENADE])) drawequipicon(1020 + equipx++ * 25, 1650, 1, 1, false);
+    loopi(min(3, p->ammo[GUN_KNIFE])) drawequipicon(1060 + equipx++ * 30, 1650, 0, 0, false);
 
     // weapons
-    int c = p->weaponsel->type != GUN_GRENADE ? p->weaponsel->type : p->prevweaponsel->type, r = 0;
-    if(c==GUN_AKIMBO) c = GUN_PISTOL; // same icon for akimb & pistol
-    if(c>3) { c -= 4; r = 1; }
-
-    if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS)
-        drawequipicon(1020, 1650, c, r, (!p->weaponsel->mag && p->weaponsel->type != GUN_KNIFE && p->weaponsel->type != GUN_GRENADE));
+    if (p->weaponsel && p->weaponsel->type >= GUN_KNIFE && p->weaponsel->type < NUMGUNS)
+    {
+        int c = p->weaponsel->type, r = 0;
+        if (c == GUN_GRENADE)
+        {
+            // draw nades separately
+            if (p->prevweaponsel && p->prevweaponsel->type != GUN_GRENADE) c = p->prevweaponsel->type;
+            else if (p->nextweaponsel && p->nextweaponsel->type != GUN_GRENADE) c = p->nextweaponsel->type;
+            else c = 14; // unknown = HP symbol
+        }
+        switch (c){
+            case GUN_KNIFE: case GUN_PISTOL: case GUN_SHOTGUN: case GUN_SUBGUN: break; // aligned properly
+            default: c = 0; break;
+            case GUN_SWORD: c = 0; r = 0; break; // special: sword uses knife
+            case GUN_SNIPER: case GUN_BOLT: case GUN_SNIPER2: c = 4; r = 0; break; // special: snipers are shared
+            case GUN_ASSAULT: c = 0; r = 1; break;
+            case GUN_GRENADE: c = 1; r = 1; break;
+            case GUN_HEAL: c = 2; r = 1; break;
+            case GUN_RPG: c = 3; r = 1; break;
+            case GUN_ASSAULT2: c = 4; r = 1; break;
+            case GUN_AKIMBO: c = GUN_PISTOL; break; // special: pistol and akimbo share
+        }
+        drawequipicon(560, 1650, c, r, ((!p->weaponsel->ammo || p->weaponsel->mag < magsize(p->weaponsel->type) / 3) && !melee_weap(p->weaponsel->type) && p->weaponsel->type != GUN_GRENADE));
+    }
     glEnable(GL_BLEND);
 }
 
@@ -1173,7 +1207,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     drawdmgindicator();
 
-    if(p->state==CS_ALIVE && !hidehudequipment) drawequipicons(p);
+    if (p->state == CS_ALIVE && show_hud_element(!hidehudequipment, 3)) drawequipicons(p);
 
     if (/*!menu &&*/ (show_hud_element(!hideradar, 5) || showmap)) drawradar(p, w, h);
     //if(showsgpat) drawsgpat(w,h); // shotty
@@ -1463,58 +1497,66 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         }
     }
 
-    if(p->state==CS_ALIVE)
+    glLoadIdentity();
+    glOrtho(0, origVIRTW/2, VIRTH/2, 0, -1, 1);
+    glTranslatef((float)origVIRTW*(monitors - 2 + (monitors&1))/(4.*monitors), 0., 0.);
+
+    if (show_hud_element(!hidehudequipment, 3) && p->state != CS_DEAD && p->state != CS_EDITING)
+    {
+        pushfont("huddigits");
+        if (show_hud_element(!hidehudequipment, 1))
+        {
+            defformatstring(healthstr)("%d", p->health / HEALTHSCALE);
+            draw_text(healthstr, 90, 823);
+            if (p->armour)
+            {
+                int offset = text_width(healthstr);
+                glPushMatrix();
+                glScalef(0.5f, 0.5f, 1.0f);
+                draw_textf("%d", (90 + offset) * 2, 823*2, p->armour);
+                glPopMatrix();
+            }
+        }
+        if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS)
+        {
+            glMatrixMode(GL_MODELVIEW);
+            if (p->weaponsel->type!=GUN_GRENADE) p->weaponsel->renderstats();
+            else if (p->prevweaponsel && p->prevweaponsel->type != GUN_GRENADE) p->prevweaponsel->renderstats();
+            else if (p->nextweaponsel && p->nextweaponsel->type != GUN_GRENADE) p->nextweaponsel->renderstats();
+            // if(p->mag[GUN_GRENADE]) p->weapons[GUN_GRENADE]->renderstats();
+            glMatrixMode(GL_PROJECTION);
+        }
+        popfont();
+    }
+
+    if(m_flags(gamemode) && !hidectfhud)
     {
         glLoadIdentity();
-        glOrtho(0, origVIRTW/2, VIRTH/2, 0, -1, 1);
-        glTranslatef((float)origVIRTW*(monitors - 2 + (monitors&1))/(4.*monitors), 0., 0.);
+        glOrtho(0, origVIRTW, VIRTH, 0, -1, 1);
+        glTranslatef((float)origVIRTW*(monitors - 2 + (monitors&1))/(2.*monitors), 0., 0.);
+        glColor4f(1.0f, 1.0f, 1.0f, 0.2f);
+        turn_on_transparency(255);
+        int flagscores[2];
+        teamflagscores(flagscores[0], flagscores[1]);
 
-        if(!hidehudequipment)
+        loopi(2) // flag state
         {
-            pushfont("huddigits");
-            draw_textf("%d",  90, 823, p->health/HEALTHSCALE);
-            if(p->armour) draw_textf("%d", 360, 823, p->armour);
-            if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS)
+            drawctficon(i*120+VIRTW/4.0f*3.0f, 1650, 120, i, 0, 1/4.0f, flaginfos[i].state == CTFF_INBASE ? 255 : 100);
+            if(m_team(gamemode, mutators))
             {
-                glMatrixMode(GL_MODELVIEW);
-                if (p->weaponsel->type!=GUN_GRENADE) p->weaponsel->renderstats();
-                else p->prevweaponsel->renderstats();
-                if(p->mag[GUN_GRENADE]) p->weapons[GUN_GRENADE]->renderstats();
-                glMatrixMode(GL_PROJECTION);
+                defformatstring(count)("%d", flagscores[i]);
+                int cw, ch;
+                text_bounds(count, cw, ch);
+                draw_textf(count, i*120+VIRTW/4.0f*3.0f+60-cw/2, 1590);
             }
-            popfont();
         }
 
-
-        if(m_flags(gamemode) && !hidectfhud)
+        // big flag-stolen icon
+        int ft = 0;
+        if((flaginfos[0].state==CTFF_STOLEN && flaginfos[0].actor == p) ||
+            (flaginfos[1].state==CTFF_STOLEN && flaginfos[1].actor == p && ++ft))
         {
-            glLoadIdentity();
-            glOrtho(0, origVIRTW, VIRTH, 0, -1, 1);
-            glTranslatef((float)origVIRTW*(monitors - 2 + (monitors&1))/(2.*monitors), 0., 0.);
-            glColor4f(1.0f, 1.0f, 1.0f, 0.2f);
-            turn_on_transparency(255);
-            int flagscores[2];
-            teamflagscores(flagscores[0], flagscores[1]);
-
-            loopi(2) // flag state
-            {
-                drawctficon(i*120+VIRTW/4.0f*3.0f, 1650, 120, i, 0, 1/4.0f, flaginfos[i].state == CTFF_INBASE ? 255 : 100);
-                if(m_team(gamemode, mutators))
-                {
-                    defformatstring(count)("%d", flagscores[i]);
-                    int cw, ch;
-                    text_bounds(count, cw, ch);
-                    draw_textf(count, i*120+VIRTW/4.0f*3.0f+60-cw/2, 1590);
-                }
-            }
-
-            // big flag-stolen icon
-            int ft = 0;
-            if((flaginfos[0].state==CTFF_STOLEN && flaginfos[0].actor == p) ||
-               (flaginfos[1].state==CTFF_STOLEN && flaginfos[1].actor == p && ++ft))
-            {
-                drawctficon(VIRTW-225-10, VIRTH*5/8, 225, ft, 1, 1/2.0f, (sinf(lastmillis/100.0f)+1.0f) *128);
-            }
+            drawctficon(VIRTW-225-10, VIRTH*5/8, 225, ft, 1, 1/2.0f, (sinf(lastmillis/100.0f)+1.0f) *128);
         }
     }
 

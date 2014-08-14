@@ -37,7 +37,7 @@ enum
 
 #define primary_weap(x) (x > 0 && x<NUMGUNS && x != GUN_GRENADE && x != GUN_PISTOL && x!= GUN_HEAL && x != GUN_SWORD && x != GUN_RPG)
 #define secondary_weap(x) (x > 0 && x<NUMGUNS && (x == GUN_PISTOL || x == GUN_HEAL || x == GUN_SWORD || x == GUN_RPG))
-#define melee_weap(g) (g == GUN_KNIFE) // || g == GUN_SWORD)
+#define melee_weap(g) (g == GUN_KNIFE || g == GUN_SWORD)
 #define explosive_weap(g) (g == GUN_GRENADE || g == GUN_RPG)
 #define suppressed_weap(g) (melee_weap(g) || g == GUN_GRENADE || g == GUN_HEAL)
 #define sniper_weap(g) (g == GUN_SNIPER || g == GUN_BOLT || g == GUN_SNIPER2)

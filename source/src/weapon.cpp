@@ -568,13 +568,13 @@ void weapon::renderstats()
 {
     char gunstats[64];
     if(oldfashionedgunstats) sprintf(gunstats, "%i/%i", mag, ammo); else sprintf(gunstats, "%i", mag);
-    draw_text(gunstats, 590, 823);
+    draw_text(gunstats, 360, 823);
     if(!oldfashionedgunstats)
     {
         int offset = text_width(gunstats);
         glScalef(0.5f, 0.5f, 1.0f);
         sprintf(gunstats, "%i", ammo);
-        draw_text(gunstats, (590 + offset)*2, 826*2);
+        draw_text(gunstats, (360 + offset)*2, 826*2);
         glLoadIdentity();
     }
 }
