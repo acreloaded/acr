@@ -875,6 +875,39 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
             }
 
+            case SV_TEAMSCORE:
+            {
+                const int team = getint(p),
+                    points = getint(p),
+                    flags = getint(p),
+                    frags = getint(p),
+                    assist = getint(p),
+                    death = getint(p);
+                if (!team_isactive(team)) break;
+                /*
+                teamscore &t = teamscores[team];
+                t.points = points;
+                t.flagscore = flags;
+                t.frags = frags;
+                t.assists = assist;
+                t.deaths = death;
+                */
+                break;
+            }
+
+            case SV_SCORE:
+            {
+                const int cn = getint(p), score = getint(p), flags = getint(p), frags = getint(p), assists = getint(p), deaths = getint(p);
+                playerent *d = getclient(cn);
+                if (!d) break;
+                d->points = score;
+                d->flagscore = flags;
+                d->frags = frags;
+                d->assists = assists;
+                d->deaths = deaths;
+                break;
+            }
+
             case SV_POINTS:
             {
                 const int reason = getint(p), points = getint(p);
@@ -972,7 +1005,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 {
                     int cn = getint(p);
                     if(p.overread() || cn<0) break;
-                    int state = getint(p), lifesequence = getint(p), primary = getint(p), secondary = getint(p), perk1 = getint(p), perk2 = getint(p), gunselect = getint(p), flagscore = getint(p), frags = getint(p), deaths = getint(p), health = getint(p), armour = getint(p), points = getint(p);
+                    int state = getint(p), lifesequence = getint(p), primary = getint(p), secondary = getint(p), perk1 = getint(p), perk2 = getint(p), gunselect = getint(p), flagscore = getint(p), frags = getint(p), assists = getint(p), deaths = getint(p), health = getint(p), armour = getint(p), points = getint(p);
                     int ammo[NUMGUNS], mag[NUMGUNS];
                     loopi(NUMGUNS) ammo[i] = getint(p);
                     loopi(NUMGUNS) mag[i] = getint(p);
@@ -982,6 +1015,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     d->lifesequence = lifesequence;
                     d->flagscore = flagscore;
                     d->frags = frags;
+                    d->assists = assists;
                     d->deaths = deaths;
                     d->points = points;
                     if(d!=player1)
@@ -1005,7 +1039,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             {
                 discscores.shrink(0);
                 int team;
-                while((team = getint(p)) >= 0)
+                while((team = getint(p)) >= 0 && !p.overread())
                 {
                     discscore &ds = discscores.add();
                     ds.team = team;
@@ -1013,6 +1047,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     filtername(ds.name, text);
                     ds.flags = getint(p);
                     ds.frags = getint(p);
+                    ds.assists = getint(p);
                     ds.deaths = getint(p);
                     ds.points = getint(p);
                 }

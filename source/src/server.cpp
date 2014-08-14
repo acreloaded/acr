@@ -1730,9 +1730,9 @@ void serverdied(client &target, client &actor_, int damage, int gun, int style, 
     {
         if (valid_client(ts.damagelog[i]))
         {
-            /*
-            const int factor = isteam(clients[ts.damagelog[i]], target) ? -1 : 1;
+            const int factor = isteam(clients[ts.damagelog[i]], &target) ? -1 : 1;
             clients[ts.damagelog[i]]->state.invalidate().assists += factor;
+            /*
             if (factor > 0)
                 usesteamscore(actor->team).assists += factor; // add to assists
             clients[ts.damagelog[i]]->state.pointstreak += factor * 2;
@@ -2782,6 +2782,7 @@ void senddisconnectedscores(client *cl)
                 sendstring(sc.name, p);
                 putint(p, sc.flagscore);
                 putint(p, sc.frags);
+                putint(p, sc.assists);
                 putint(p, sc.deaths);
                 putint(p, sc.points);
             }
@@ -2869,7 +2870,7 @@ void disconnect_client(client &c, int reason)
 
 void sendresume(client &c, bool broadcast)
 {
-    sendf(broadcast ? NULL : &c, 1, "ri9i6vvi", SV_RESUME,
+    sendf(broadcast ? NULL : &c, 1, "ri9i7vvi", SV_RESUME,
             c.clientnum,
             c.state.state == CS_WAITING ? CS_DEAD : c.state.state,
             c.state.lifesequence,
@@ -2880,6 +2881,7 @@ void sendresume(client &c, bool broadcast)
             c.state.gunselect,
             c.state.flagscore,
             c.state.frags,
+            c.state.assists,
             c.state.deaths,
             c.state.health,
             c.state.armour,
@@ -3014,6 +3016,7 @@ void welcomepacket(packetbuf &p, client *c)
             putint(p, c.state.gunselect);
             putint(p, c.state.flagscore);
             putint(p, c.state.frags);
+            putint(p, c.state.assists);
             putint(p, c.state.deaths);
             putint(p, c.state.health);
             putint(p, c.state.armour);
@@ -4619,7 +4622,7 @@ void loggamestatus(const char *reason)
     logline(ACLOG_INFO, "Game status: %s on %s, %s, %s, %d clients%c %s",
                       modestr(gamemode, mutators), smapname, reason ? reason : text, mmfullname(mastermode), totalclients, custom_servdesc ? ',' : '\0', servdesc_current);
     if(!scl.loggamestatus) return;
-    logline(ACLOG_INFO, "cn  name             %s%s score frag death %sping role    host", m_team(gamemode, mutators) ? "team " : "", m_flags(gamemode) ? "flag " : "", m_team(gamemode, mutators) ? "tk " : "");
+    logline(ACLOG_INFO, "cn  name             %s%s score frag death ping role    host", m_team(gamemode, mutators) ? "team " : "", m_flags(gamemode) ? "flag " : "");
     loopv(clients)
     {
         client &c = *clients[i];
@@ -4629,7 +4632,6 @@ void loggamestatus(const char *reason)
         if(m_flags(gamemode)) concatformatstring(text, "%4d ", c.state.flagscore);                    // flag
         concatformatstring(text, "%6d ", c.state.points);                                             // score
         concatformatstring(text, "%4d %5d", c.state.frags, c.state.deaths);                           // frag death
-        if(m_team(gamemode, mutators)) concatformatstring(text, " %2d", c.state.teamkills);           // tk
         logline(ACLOG_INFO, "%s%5d %-7s %s", text, c.ping, privname(c.role), c.gethostname());
         if(c.team != TEAM_SPECT)
         {
@@ -4757,6 +4759,12 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         processevents();
         checkitemspawns(diff);
         bool ktfflagingame = false;
+        //loopi(2) if ((!i || m_team(gamemode, mutators)) && !steamscores[i].valid) sendteamscore(i);
+        loopv(clients) if (valid_client(i) && !clients[i]->state.valid)
+        {
+            sendf(NULL, 1, "ri7", SV_SCORE, i, clients[i]->state.points, clients[i]->state.flagscore, clients[i]->state.frags, clients[i]->state.assists, clients[i]->state.deaths);
+            clients[i]->state.valid = true;
+        }
         if (m_flags(gamemode))
         {
             if (m_secure(gamemode))
@@ -5094,7 +5102,7 @@ void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENet
         putint(p,clients[i]->state.frags);      //Frags
         putint(p,clients[i]->state.flagscore);  //Flagscore
         putint(p,clients[i]->state.deaths);     //Death
-        putint(p,clients[i]->state.teamkills);  //Teamkills
+        putint(p,clients[i]->state.assists);    //Assists
         putint(p,ismatch ? 0 : clients[i]->state.damage*100/max(clients[i]->state.shotdamage,1)); //Accuracy
         putint(p,ismatch ? 0 : clients[i]->state.health);     //Health
         putint(p,ismatch ? 0 : clients[i]->state.armour);     //Armour

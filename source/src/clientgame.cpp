@@ -323,6 +323,7 @@ void playerinfo(int *cn, const char *attr)
     ATTR_INT(state, p->state);
     ATTR_INT(role, p->clientrole);
     ATTR_INT(frags, p->frags);
+    ATTR_INT(assists, p->assists);
     ATTR_INT(flags, p->flagscore);
     ATTR_INT(points, p->points);
     ATTR_INT(deaths, p->deaths);
@@ -1111,8 +1112,8 @@ void startmap(const char *name, bool reset)   // called just after a map load
 
     if(!reset) return;
 
-    player1->frags = player1->flagscore = player1->deaths = player1->lifesequence = player1->points = 0;
-    loopv(players) if(players[i]) players[i]->frags = players[i]->flagscore = players[i]->deaths = players[i]->lifesequence = players[i]->points = 0;
+    player1->frags = player1->assists = player1->flagscore = player1->deaths = player1->lifesequence = player1->points = 0;
+    loopv(players) if(players[i]) players[i]->frags = players[i]->assists = players[i]->flagscore = players[i]->deaths = players[i]->lifesequence = players[i]->points = 0;
     if(editmode) toggleedit(true);
     intermission = false;
     showscores(false);

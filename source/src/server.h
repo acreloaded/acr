@@ -168,14 +168,15 @@ struct clientstate : playerstate
     projectilestate<3> knives;
     int akimbomillis, crouchmillis, scopemillis, drownmillis, drownval;
     bool scoped, crouching, onfloor; float fallz;
-    int flagscore, frags, teamkills, deaths, shotdamage, damage, points, events, lastdisc, reconnections;
+    int flagscore, frags, assists, deaths, shotdamage, damage, points, events, lastdisc, reconnections;
     vector<int> damagelog, revengelog;
     vector<wound> wounds;
+    bool valid;
 #if (SERVER_BUILTIN_MOD & 8)
     int gungame;
 #endif
 
-    clientstate() : state(CS_DEAD) {}
+    clientstate() : state(CS_DEAD), valid(true) {}
 
     bool isalive(int gamemillis)
     {
@@ -200,7 +201,7 @@ struct clientstate : playerstate
 
     clientstate &invalidate()
     {
-        //valid = false; // TODO
+        valid = false;
         return *this;
     }
 
@@ -212,8 +213,9 @@ struct clientstate : playerstate
         knives.reset();
         akimbomillis = 0;
         scoped = forced = false;
-        flagscore = frags = teamkills = deaths = shotdamage = damage = points = events = lastdisc = reconnections = 0;
+        flagscore = frags = assists = deaths = shotdamage = damage = points = events = lastdisc = reconnections = 0;
         revengelog.setsize(0);
+        valid = true;
         respawn();
 #if (SERVER_BUILTIN_MOD & 8)
         gungame = 0;
@@ -251,21 +253,21 @@ struct savedscore
 {
     string name;
     uint ip;
-    int frags, flagscore, deaths, teamkills, shotdamage, damage, team, points, events, lastdisc, reconnections;
+    int frags, assists, flagscore, deaths, shotdamage, damage, team, points, events, lastdisc, reconnections;
     bool valid, forced;
 
     void reset()
     {
         // to avoid 2 connections with the same score... this can disrupt some laggers that eventually produces 2 connections (but it is rare)
-        frags = flagscore = deaths = teamkills = shotdamage = damage = points = events = lastdisc = reconnections = 0;
+        frags = assists = flagscore = deaths = shotdamage = damage = points = events = lastdisc = reconnections = 0;
     }
 
     void save(clientstate &cs, int t)
     {
         frags = cs.frags;
+        assists = cs.assists;
         flagscore = cs.flagscore;
         deaths = cs.deaths;
-        teamkills = cs.teamkills;
         shotdamage = cs.shotdamage;
         damage = cs.damage;
         points = cs.points;
@@ -280,9 +282,9 @@ struct savedscore
     void restore(clientstate &cs)
     {
         cs.frags = frags;
+        cs.assists = assists;
         cs.flagscore = flagscore;
         cs.deaths = deaths;
-        cs.teamkills = teamkills;
         cs.shotdamage = shotdamage;
         cs.damage = damage;
         cs.points = points;

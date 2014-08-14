@@ -5715,6 +5715,11 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <value token="V" description="-1: disable, low priority: left, high priority: right" minValue="-1" maxValue="100" defaultValue="2" />
         </variable>
 
+        <variable name="sc_assists">
+          <description>Sets the order priority for the column assists or disables it on the scoreboard.</description>
+          <value token="V" description="-1: disable, low priority: left, high priority: right" minValue="-1" maxValue="100" defaultValue="3" />
+        </variable>
+
         <variable name="sc_ratio">
           <description>Sets the order priority for the column ratio or disables it on the scoreboard.</description>
           <value token="V" description="-1: disable, low priority: left, high priority: right" minValue="-1" maxValue="100" defaultValue="-1" />

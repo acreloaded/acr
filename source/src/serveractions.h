@@ -250,8 +250,6 @@ struct removeplayeraction : playeraction
         if (kicking && is_lagging(*clients[cn])) return false;
         // 3+ K/D ratio & 6+ kills
         if (clients[cn]->state.frags >= max(6, clients[cn]->state.deaths * 3)) return false;
-        // 1 teamkill for every 15 frags
-        if (clients[cn]->state.teamkills * 15 > clients[cn]->state.frags) return false;
         // check spam?
         return true; // why kick or ban?
     }

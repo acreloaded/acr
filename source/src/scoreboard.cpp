@@ -17,6 +17,7 @@ COMMANDF(showscores, "i", (int *on) { showscores(*on != 0); });
 VARFP(sc_flags,      0,  0, 100, needscoresreorder = true);
 VARFP(sc_frags,      0,  1, 100, needscoresreorder = true);
 VARFP(sc_deaths,    -1,  2, 100, needscoresreorder = true);
+VARFP(sc_assists,    0,  3, 100, needscoresreorder = true);
 VARFP(sc_ratio,     -1, -1, 100, needscoresreorder = true);
 VARFP(sc_score,     -1,  4, 100, needscoresreorder = true);
 VARFP(sc_lag,       -1,  5, 100, needscoresreorder = true);
@@ -191,6 +192,7 @@ void renderdiscscores(int team)
 
         if(m_flags(gamemode)) line.addcol(sc_flags, "%d", d.flags);
         line.addcol(sc_frags, "%d", d.frags);
+        line.addcol(sc_assists, "%d", d.assists);
         line.addcol(sc_deaths, "%d", d.deaths);
         line.addcol(sc_ratio, "%.2f", SCORERATIO(d.frags, d.deaths));
         if(multiplayer(false) || watchingdemo) line.addcol(sc_score, "%d", max(d.points, 0));
@@ -229,6 +231,7 @@ void renderscore(playerent *d)
 
     if(m_flags(gamemode)) line.addcol(sc_flags, "%d", d->flagscore);
     line.addcol(sc_frags, "%d", d->frags);
+    line.addcol(sc_assists, "%d", d->assists);
     line.addcol(sc_deaths, "%d", d->deaths);
     line.addcol(sc_ratio, "%.2f", SCORERATIO(d->frags, d->deaths));
     if(multiplayer(false) || watchingdemo)
@@ -256,6 +259,7 @@ int renderteamscore(teamscore *t)
 
     if(m_flags(gamemode)) line.addcol(sc_flags, "%d", t->flagscore);
     line.addcol(sc_frags, "%d", t->frags);
+    line.addcol(sc_assists, "%d", 0); // t->assists);
     line.addcol(sc_deaths, "%d", t->deaths);
     line.addcol(sc_ratio, "%.2f", SCORERATIO(t->frags, t->deaths));
     if(multiplayer(false) || watchingdemo)
@@ -282,6 +286,7 @@ void reorderscorecolumns()
 
     if(m_flags(gamemode)) sscore.addcol(sc_flags, "flags");
     sscore.addcol(sc_frags, "frags");
+    sscore.addcol(sc_assists, "assists");
     sscore.addcol(sc_deaths, "deaths");
     sscore.addcol(sc_ratio, "ratio");
     if(multiplayer(false) || watchingdemo)
