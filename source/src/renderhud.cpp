@@ -1141,7 +1141,6 @@ int votersort(playerent **a, playerent **b)
 
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
 {
-    playerent *p = camera1->type<ENT_CAMERA ? (playerent *)camera1 : player1;
     bool spectating = player1->isspectating();
     int origVIRTW = VIRTW;
 
@@ -1196,20 +1195,20 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if (worldhit) strcpy(lastseen, worldhit->name);
     bool menu = menuvisible();
     bool command = getcurcommand() ? true : false;
-    bool reloading = lastmillis < p->weaponsel->reloading + p->weaponsel->info.reloadtime;
-    if(p->state != CS_DEAD && !reloading)
+    bool reloading = lastmillis < focus->weaponsel->reloading + focus->weaponsel->info.reloadtime;
+    if (focus->state != CS_DEAD && !reloading)
     {
-        const int teamtype = worldhit && worldhit->state == CS_ALIVE ? isteam(worldhit, p) ? 1 : 2 : 0;
-        p->weaponsel->renderaimhelp(teamtype);
+        const int teamtype = worldhit && worldhit->state == CS_ALIVE ? isteam(worldhit, focus) ? 1 : 2 : 0;
+        focus->weaponsel->renderaimhelp(teamtype);
     }
 
     drawhitmarker();
 
     drawdmgindicator();
 
-    if (p->state == CS_ALIVE && show_hud_element(!hidehudequipment, 3)) drawequipicons(p);
+    if (focus->state == CS_ALIVE && show_hud_element(!hidehudequipment, 3)) drawequipicons(focus);
 
-    if (/*!menu &&*/ (show_hud_element(!hideradar, 5) || showmap)) drawradar(p, w, h);
+    if (/*!menu &&*/ (show_hud_element(!hideradar, 5) || showmap)) drawradar(focus, w, h);
     //if(showsgpat) drawsgpat(w,h); // shotty
     if(!editmode)
     {
@@ -1451,7 +1450,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     if (hud_must_not_override(!hidehudmsgs)) hudmsgs.render();
 
-    if(!hidespecthud && !menu && p->state==CS_DEAD && p->spectatemode<=SM_DEATHCAM)
+    if (!hidespecthud && !menu && focus->state == CS_DEAD && focus->spectatemode <= SM_DEATHCAM)
     {
         glLoadIdentity();
         glOrtho(0, origVIRTW*3/2, VIRTH*3/2, 0, -1, 1);
@@ -1476,7 +1475,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glOrtho(0, origVIRTW, VIRTH, 0, -1, 1);
         glTranslatef((float)origVIRTW*(monitors - 2 + (monitors&1))/(2.*monitors), 0., 0.);
         glScalef(0.8, 0.8, 1);
-        draw_textf("Speed: %.2f", VIRTW/2, VIRTH, p->vel.magnitudexy());
+        draw_textf("Speed: %.2f", VIRTW / 2, VIRTH, focus->vel.magnitudexy());
         glPopMatrix();
     }
 
@@ -1501,28 +1500,28 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     glOrtho(0, origVIRTW/2, VIRTH/2, 0, -1, 1);
     glTranslatef((float)origVIRTW*(monitors - 2 + (monitors&1))/(4.*monitors), 0., 0.);
 
-    if (show_hud_element(!hidehudequipment, 3) && p->state != CS_DEAD && p->state != CS_EDITING)
+    if (show_hud_element(!hidehudequipment, 3) && focus->state != CS_DEAD && focus->state != CS_EDITING)
     {
         pushfont("huddigits");
         if (show_hud_element(!hidehudequipment, 1))
         {
-            defformatstring(healthstr)("%d", p->health / HEALTHSCALE);
+            defformatstring(healthstr)("%d", focus->health / HEALTHSCALE);
             draw_text(healthstr, 90, 823);
-            if (p->armour)
+            if (focus->armour)
             {
                 int offset = text_width(healthstr);
                 glPushMatrix();
                 glScalef(0.5f, 0.5f, 1.0f);
-                draw_textf("%d", (90 + offset) * 2, 823*2, p->armour);
+                draw_textf("%d", (90 + offset) * 2, 823 * 2, focus->armour);
                 glPopMatrix();
             }
         }
-        if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS)
+        if (focus->weaponsel && focus->weaponsel->type >= GUN_KNIFE && focus->weaponsel->type<NUMGUNS)
         {
             glMatrixMode(GL_MODELVIEW);
-            if (p->weaponsel->type!=GUN_GRENADE) p->weaponsel->renderstats();
-            else if (p->prevweaponsel && p->prevweaponsel->type != GUN_GRENADE) p->prevweaponsel->renderstats();
-            else if (p->nextweaponsel && p->nextweaponsel->type != GUN_GRENADE) p->nextweaponsel->renderstats();
+            if (focus->weaponsel->type != GUN_GRENADE) focus->weaponsel->renderstats();
+            else if (focus->prevweaponsel && focus->prevweaponsel->type != GUN_GRENADE) focus->prevweaponsel->renderstats();
+            else if (focus->nextweaponsel && focus->nextweaponsel->type != GUN_GRENADE) focus->nextweaponsel->renderstats();
             // if(p->mag[GUN_GRENADE]) p->weapons[GUN_GRENADE]->renderstats();
             glMatrixMode(GL_PROJECTION);
         }
@@ -1553,8 +1552,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
         // big flag-stolen icon
         int ft = 0;
-        if((flaginfos[0].state==CTFF_STOLEN && flaginfos[0].actor == p) ||
-            (flaginfos[1].state==CTFF_STOLEN && flaginfos[1].actor == p && ++ft))
+        if ((flaginfos[0].state == CTFF_STOLEN && flaginfos[0].actor == focus) ||
+            (flaginfos[1].state == CTFF_STOLEN && flaginfos[1].actor == focus && ++ft))
         {
             drawctficon(VIRTW-225-10, VIRTH*5/8, 225, ft, 1, 1/2.0f, (sinf(lastmillis/100.0f)+1.0f) *128);
         }
