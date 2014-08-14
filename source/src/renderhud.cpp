@@ -40,25 +40,40 @@ void drawradaricon(float x, float y, float s, int col, int row)
     }
 }
 
-void drawctficon(float x, float y, float s, int col, int row, float ts, int alpha)
+void drawflagicons(const flaginfo &f, playerent *p)
 {
-    static Texture *ctftex = NULL, *htftex = NULL, *ktftex = NULL;
-    if(!ctftex) ctftex = textureload("packages/misc/ctficons.png", 3);
-    if(!htftex) htftex = textureload("packages/misc/htficons.png", 3);
-    if(!ktftex) ktftex = textureload("packages/misc/ktficons.png", 3);
-    glColor4ub(255, 255, 255, alpha);
-    if(m_hunt(gamemode))
+    static Texture *ctftex = textureload("packages/misc/ctficons.png", 3),
+                   *hktftex = textureload("packages/misc/hktficons.png", 3),
+                   *flagtex = textureload("packages/misc/flagicons.png", 3);
+    if (flagtex)
     {
-        if(htftex) drawicon(htftex, x, y, s, col, row, ts);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glColor4f(1, 1, 1,
+            f.state == CTFF_INBASE ? .2f :
+            f.state == CTFF_IDLE ? .1f :
+            f.actor == p && f.state == CTFF_STOLEN ? (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f :
+            1
+            );
+        // CTF
+        int row = 0;
+        // HTF
+        if (m_hunt(gamemode)) row = 1;
+        // KTF
+        else if (m_keep(gamemode)) row = 2;
+        drawicon(flagtex, f.team * 120 + VIRTW / 4.0f*3.0f, 1650, 120, f.team, row, 1 / 3.f);
     }
-    else if(m_keep(gamemode))
-    {
-        if(ktftex) drawicon(ktftex, x, y, s, col, row, ts);
-    }
-    else
-    {
-        if(ctftex) drawicon(ctftex, x, y, s, col, row, ts);
-    }
+    // Must be stolen for big flag-stolen icon
+    if (f.state != CTFF_STOLEN) return;
+    Texture *t = (m_capture(gamemode) || (m_ktf2(gamemode, mutators) && m_team(gamemode, mutators))) ? ctftex : hktftex;
+    if (!t) return;
+    // CTF OR KTF2/Returner
+    int row = (m_capture(gamemode) || (m_ktf2(gamemode, mutators) && m_team(gamemode, mutators))) && f.actor && f.actor->team == f.team ? 1 : 0;
+    // HTF + KTF
+    if (m_keep(gamemode) && !(m_ktf2(gamemode, mutators) && m_team(gamemode, mutators))) row = 1;
+    // pulses
+    glColor4f(1, 1, 1, f.actor == p ? (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f : .6f);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+    drawicon(t, VIRTW - 225 * (!f.team && flaginfos[1].state != CTFF_STOLEN ? 1 : 2 - f.team) - 10, VIRTH * 5 / 8, 225, f.team, row, 1 / 2.f);
 }
 
 void drawvoteicon(float x, float y, int col, int row, bool noblend)
@@ -1540,7 +1555,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
         loopi(2) // flag state
         {
-            drawctficon(i*120+VIRTW/4.0f*3.0f, 1650, 120, i, 0, 1/4.0f, flaginfos[i].state == CTFF_INBASE ? 255 : 100);
+            drawflagicons(flaginfos[i], focus);
             if(m_team(gamemode, mutators))
             {
                 defformatstring(count)("%d", flagscores[i]);
@@ -1548,14 +1563,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
                 text_bounds(count, cw, ch);
                 draw_textf(count, i*120+VIRTW/4.0f*3.0f+60-cw/2, 1590);
             }
-        }
-
-        // big flag-stolen icon
-        int ft = 0;
-        if ((flaginfos[0].state == CTFF_STOLEN && flaginfos[0].actor == focus) ||
-            (flaginfos[1].state == CTFF_STOLEN && flaginfos[1].actor == focus && ++ft))
-        {
-            drawctficon(VIRTW-225-10, VIRTH*5/8, 225, ft, 1, 1/2.0f, (sinf(lastmillis/100.0f)+1.0f) *128);
         }
     }
 
