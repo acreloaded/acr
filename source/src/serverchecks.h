@@ -158,7 +158,7 @@ void addpt(client &c, int points, int reason)
     if (!points) return;
     if (c.state.perk1 == PERK1_SCORE) points *= points > 0 ? 1.35f : 1.1f;
     c.state.invalidate().points += points;
-    if (reason >= 0) addptreason(c, reason, points);
+    addptreason(c, reason, points);
 }
 
 /** cnumber is the number of players in the game, at a max value of 12 */
