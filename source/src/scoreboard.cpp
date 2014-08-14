@@ -174,7 +174,7 @@ void renderdiscscores(int team)
         line.addcol(sc_assists, "%d", d.assists);
         line.addcol(sc_deaths, "%d", d.deaths);
         line.addcol(sc_ratio, "%.2f", SCORERATIO(d.frags, d.deaths));
-        if(multiplayer(false) || watchingdemo) line.addcol(sc_score, "%d", max(d.points, 0));
+        line.addcol(sc_score, "%d", max(d.points, 0));
         line.addcol(sc_lag, clag);
         line.addcol(sc_clientnum, "DISC");
         line.addcol(sc_name, d.name);
@@ -187,13 +187,9 @@ void renderscore(playerent *d)
 {
     string lagping, buildstr;
     static color localplayerc(0.2f, 0.2f, 0.2f, 0.2f), damagedplayerc(0.4f, 0.1f, 0.1f, 0.3f), damagingplayerc(0.1f, 0.1f, 0.4f, 0.3f);
-    if (team_isspect(d->team)) copystring(lagping, "SPECT");
-    else if (d->state==CS_WAITING || (d->ping > 999 && d->plag > 99)) copystring(lagping, "LAG");
-    else
-    {
-        if(multiplayer(false)) formatstring(lagping)("%s/%s", colorpj(d->plag), colorping(d->ping));
-        else formatstring(lagping)("%d/%d", d->plag, d->ping);
-    }
+    if (team_isspect(d->team)) copystring(lagping, colorping(d->ping));
+    else if (d->state == CS_WAITING || (d->ping > 999 && d->plag > 99)) formatstring(lagping)("LAG/%s", colorpj(d->plag), colorping(d->ping));
+    else formatstring(lagping)("%s/%s", colorpj(d->plag), colorping(d->ping));
     const int buildinfo = d->build | (d == player1 ? getbuildtype() : 0), third = (d == player1) ? thirdperson : d->thirdperson;
     buildstr[0] = '\0';
     if (d->ownernum >= 0); // bot icon? in the future?
@@ -213,11 +209,8 @@ void renderscore(playerent *d)
     line.addcol(sc_assists, "%d", d->assists);
     line.addcol(sc_deaths, "%d", d->deaths);
     line.addcol(sc_ratio, "%.2f", SCORERATIO(d->frags, d->deaths));
-    if(multiplayer(false) || watchingdemo)
-    {
-        line.addcol(sc_score, "%d", max(d->points, 0));
-        line.addcol(sc_lag, lagping);
-    }
+    line.addcol(sc_score, "%d", max(d->points, 0));
+    line.addcol(sc_lag, lagping);
     line.addcol(sc_clientnum, "\fs\f%d%d\fr", cncolumncolor, d->clientnum);
     line.addcol(sc_name, "\fs\f%c%s\fr%s%s", privcolor(d->clientrole, d->state == CS_DEAD), colorname(d, true), ign, buildstr);
     line.altfont = "build";
@@ -234,24 +227,26 @@ int renderteamscore(teamsum &t)
     }
     sline &line = scorelines.add();
     int n = t.teammembers.length();
-    defformatstring(plrs)("(%d %s)", n, n == 1 ? "player" : "players");
+    defformatstring(plrs)("(%d %s)", n, t.team == TEAM_SPECT ? "spectating" :
+        m_zombie(gamemode) && t.team == TEAM_CLA ? "zombies" : n == 1 ? "player" : "players");
 
-    const teamscore &ts = teamscores[t.team];
+    static teamscore nullteamscore(TEAM_SPECT);
+    const teamscore &ts = team_isactive(t.team) ? teamscores[t.team] : nullteamscore;
     if(m_flags(gamemode)) line.addcol(sc_flags, "%d", ts.flagscore);
     line.addcol(sc_frags, "%d", ts.frags);
     line.addcol(sc_assists, "%d", ts.assists);
     line.addcol(sc_deaths, "%d", ts.deaths);
     line.addcol(sc_ratio, "%.2f", SCORERATIO(ts.frags, ts.deaths));
-    if(multiplayer(false) || watchingdemo)
-    {
-        line.addcol(sc_score, "%d", max(ts.points, 0));
-        line.addcol(sc_lag);
-    }
-    line.addcol(sc_clientnum, team_string(t.team));
-    line.addcol(sc_name, plrs);
+    line.addcol(sc_score, "%d", max(ts.points, 0));
+    if (t.team == TEAM_SPECT)
+        line.addcol(sc_lag, "%s", colorping(t.ping / max(t.teammembers.length(), 1)));
+    else
+        line.addcol(sc_lag, "%s/%s", colorpj(t.pj / max(t.teammembers.length(), 1)), colorping(t.ping / max(t.teammembers.length(), 1)));
+    line.addcol(sc_clientnum, m_team(gamemode, mutators) || t.team == TEAM_SPECT ? team_string(t.team, true) : "FFA");
+    line.addcol(sc_name, "%s", plrs);
 
-    static color teamcolors[2] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f) };
-    line.bgcolor = &teamcolors[team_base(t.team)];
+    static color teamcolors[4] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f), color(.4f, .4f, .4f, .3f), color(.8f, .8f, .8f, .4f) };
+    line.bgcolor = &teamcolors[t.team == TEAM_SPECT ? 2 : m_team(gamemode, mutators) ? team_base(t.team) : 3];
     loopv(t.teammembers) renderscore(t.teammembers[i]);
     return n;
 }
@@ -269,11 +264,8 @@ void reorderscorecolumns()
     sscore.addcol(sc_assists, "assists");
     sscore.addcol(sc_deaths, "deaths");
     sscore.addcol(sc_ratio, "ratio");
-    if(multiplayer(false) || watchingdemo)
-    {
-        sscore.addcol(sc_score, "score");
-        sscore.addcol(sc_lag, "pj/ping");
-    }
+    sscore.addcol(sc_score, "score");
+    sscore.addcol(sc_lag, "pj/ping");
     sscore.addcol(sc_clientnum, "cn");
     sscore.addcol(sc_name, "name");
     menutitle(scoremenu, newstring(sscore.getcols()));
@@ -320,7 +312,9 @@ void renderscores(void *menu, bool init)
     }
     else
     { // ffa mode
-        loopv(scores) if(scores[i]->team != TEAM_SPECT) renderscore(scores[i]);
+        teamsum ffateamsum = teamsum(0);
+        loopv(scores) if (scores[i]->team != TEAM_SPECT) ffateamsum.addplayer(scores[i]);
+        renderteamscore(ffateamsum);
         loopi(2) renderdiscscores(i);
         if(scores.length() > 0)
         {
@@ -339,7 +333,9 @@ void renderscores(void *menu, bool init)
             space.s[0] = 0;
         }
         renderdiscscores(TEAM_SPECT);
-        loopv(scores) if(scores[i]->team == TEAM_SPECT) renderscore(scores[i]);
+        teamsum spectteamsum = teamsum(TEAM_SPECT);
+        loopv(scores) if (scores[i]->team == TEAM_SPECT) spectteamsum.addplayer(scores[i]);
+        renderteamscore(spectteamsum);
     }
 
     if(getclientmap()[0])
