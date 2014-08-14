@@ -1566,6 +1566,45 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     VIRTW = origVIRTW;
 
+    // perk icons
+    glLoadIdentity();
+    glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    if (show_hud_element(true, 1))
+    {
+        static Texture *perktex1[PERK1_MAX] = { NULL }, *perktex2[PERK1_MAX] = { NULL };
+        if (!perktex1[0])
+        {
+            const char *perktexname1[PERK1_MAX] = { "none", "radar", "ninja", "power", "time", "speed", "hand", "light", "point" };
+            const char *perktexname2[PERK2_MAX] = { "none", "radar", "ninja", "power", "time", "vision", "streak", "steady", "health", };
+            loopi(PERK1_MAX)
+            {
+                if (perktex1[i]) continue;
+                defformatstring(tname)("packages/perks/%s.png", perktexname1[i]);
+                perktex1[i] = textureload(tname);
+            }
+            loopi(PERK1_MAX)
+            {
+                if (perktex2[i]) continue;
+                defformatstring(tname)("packages/perks/%s.png", perktexname2[i]);
+                perktex2[i] = textureload(tname);
+            }
+        }
+        Texture *perk1 = perktex1[focus->perk1%PERK1_MAX], *perk2 = perktex2[focus->perk2%PERK2_MAX];
+        if (perk1 != perk2)
+        {
+            glColor4f(1.0f, 1.0f, 1.0f, focus->perk1 /* != PERK_NONE */ && focus->state != CS_DEAD ? .78f : .3f);
+            quad(perk1->id, VIRTW - 440 - 15 - 100, VIRTH - 100 - 10, 100, 0, 0, 1);
+        }
+
+        if (perk2)
+        {
+            glColor4f(1.0f, 1.0f, 1.0f, focus->perk2 /* != PERK_NONE */ && focus->state != CS_DEAD ? .78f : .3f);
+            quad(perk2->id, VIRTW - 440, VIRTH - 100 - 10, 100, 0, 0, 1);
+        }
+    }
+
     glDisable(GL_BLEND);
     glDisable(GL_TEXTURE_2D);
     glEnable(GL_DEPTH_TEST);
