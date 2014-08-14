@@ -1584,7 +1584,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
                 defformatstring(tname)("packages/perks/%s.png", perktexname1[i]);
                 perktex1[i] = textureload(tname);
             }
-            loopi(PERK1_MAX)
+            loopi(PERK2_MAX)
             {
                 if (perktex2[i]) continue;
                 defformatstring(tname)("packages/perks/%s.png", perktexname2[i]);
