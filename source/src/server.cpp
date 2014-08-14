@@ -30,6 +30,14 @@ vector<client *> clients;
 vector<worldstate *> worldstates;
 vector<savedscore> savedscores;
 vector<savedlimit> savedlimits;
+struct steamscore : teamscore
+{
+    bool valid;
+    steamscore(int team) : teamscore(team), valid(true) { }
+};
+steamscore steamscores[2] = { steamscore(TEAM_CLA), steamscore(TEAM_RVSF) };
+inline steamscore &getsteamscore(int team){ return steamscores[(m_team(gamemode, mutators) && team == 1) ? 1 : 0]; }
+inline steamscore &usesteamscore(int team){ getsteamscore(team).valid = false; return getsteamscore(team); }
 vector<ban> bans;
 vector<demofile> demofiles;
 
@@ -1140,9 +1148,9 @@ void flagaction(int flag, int action, int actor)
         if (score)
         {
             c.state.invalidate().flagscore += score;
-            // usesteamscore(c.team).flagscore += score;
+            usesteamscore(c.team).flagscore += score;
         }
-        /*usesteamscore(c.team).points += max(0,*/ ( flagpoints(c, message));
+        usesteamscore(c.team).points += max(0, flagpoints(c, message));
 
         switch (message)
         {
@@ -1662,7 +1670,7 @@ void serverdied(client &target, client &actor_, int damage, int gun, int style, 
     clientstate &as = actor->state;
 
     // only things on target team that changes
-    //if (!m_confirm(gamemode, mutators)) ++usesteamscore(target->team).deaths;
+    if (!m_confirm(gamemode, mutators)) ++usesteamscore(target.team).deaths;
     // apply to individual
     ++ts.invalidate().deaths;
     addpt(target, DEATHPT);
@@ -1732,9 +1740,9 @@ void serverdied(client &target, client &actor_, int damage, int gun, int style, 
         {
             const int factor = isteam(clients[ts.damagelog[i]], &target) ? -1 : 1;
             clients[ts.damagelog[i]]->state.invalidate().assists += factor;
-            /*
             if (factor > 0)
                 usesteamscore(actor->team).assists += factor; // add to assists
+            /*
             clients[ts.damagelog[i]]->state.pointstreak += factor * 2;
             */
         }
@@ -1767,8 +1775,8 @@ void serverdied(client &target, client &actor_, int damage, int gun, int style, 
     }
     else
     {
-        //if (earnedpts > 0) usesteamscore(actor->team).points += earnedpts;
-        //if (kills > 0) usesteamscore(actor->team).frags += kills;
+        if (earnedpts > 0) usesteamscore(actor->team).points += earnedpts;
+        if (kills > 0) usesteamscore(actor->team).frags += kills;
     }
 
     // automatic zombie count
@@ -2945,6 +2953,27 @@ void sendinitclient(client &c)
     sendpacket(NULL, 1, p.finalize(), c.clientnum);
 }
 
+void putteamscore(int team, ucharbuf &p, bool set_valid)
+{
+    if (team < 0 || team > 1) return;
+    steamscore &t = steamscores[team];
+    putint(p, SV_TEAMSCORE);
+    putint(p, team);
+    putint(p, t.points);
+    putint(p, t.flagscore);
+    putint(p, t.frags);
+    putint(p, t.assists);
+    putint(p, t.deaths);
+    if (set_valid) t.valid = true;
+}
+
+void sendteamscore(int team, client *cl = NULL)
+{
+    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    putteamscore(team, p, true);
+    sendpacket(cl, 1, p.finalize());
+}
+
 inline void welcomeinitclient(packetbuf &p, int exclude = -1)
 {
     loopv(clients)
@@ -3026,6 +3055,8 @@ void welcomepacket(packetbuf &p, client *c)
         }
         putint(p, -1);
         welcomeinitclient(p, n);
+        putteamscore(0, p, false);
+        if(m_team(gamemode, mutators)) putteamscore(1, p, false);
     }
     putint(p, SV_SERVERMODE);
     putint(p, sendservermode(false));
@@ -3284,10 +3315,10 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
         if (cp.team == sconfirms[i].team)
         {
             addpt(cp, KCKILLPTS, PR_KC);
-            //usesteamscore(sconfirms[i].team).points += sconfirms[i].points;
+            usesteamscore(sconfirms[i].team).points += sconfirms[i].points;
             // the following line doesn't have to set the valid flag twice
-            //getsteamscore(sconfirms[i].team).frags += sconfirms[i].frag;
-            //++usesteamscore(sconfirms[i].death).deaths;
+            getsteamscore(sconfirms[i].team).frags += sconfirms[i].frag;
+            ++usesteamscore(sconfirms[i].death).deaths;
         }
         else
         {
@@ -4759,7 +4790,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         processevents();
         checkitemspawns(diff);
         bool ktfflagingame = false;
-        //loopi(2) if ((!i || m_team(gamemode, mutators)) && !steamscores[i].valid) sendteamscore(i);
+        loopi(2) if ((!i || m_team(gamemode, mutators)) && !steamscores[i].valid) sendteamscore(i);
         loopv(clients) if (valid_client(i) && !clients[i]->state.valid)
         {
             sendf(NULL, 1, "ri7", SV_SCORE, i, clients[i]->state.points, clients[i]->state.flagscore, clients[i]->state.frags, clients[i]->state.assists, clients[i]->state.deaths);
@@ -4855,7 +4886,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                         if (ssecures[i].team >= 0 && ssecures[i].team < 2)
                         {
                             ++bonuses[ssecures[i].team];
-                            //++usesteamscore(ssecures[i].team).flagscore;
+                            ++usesteamscore(ssecures[i].team).flagscore;
                         }
                     loopv(clients)
                         if (valid_client(i) && (clients[i]->team >= 0 && clients[i]->team < 2) && bonuses[clients[i]->team])

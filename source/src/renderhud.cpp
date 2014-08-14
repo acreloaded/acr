@@ -1550,15 +1550,13 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glTranslatef((float)origVIRTW*(monitors - 2 + (monitors&1))/(2.*monitors), 0., 0.);
         glColor4f(1.0f, 1.0f, 1.0f, 0.2f);
         turn_on_transparency(255);
-        int flagscores[2];
-        teamflagscores(flagscores[0], flagscores[1]);
 
         loopi(2) // flag state
         {
             drawflagicons(flaginfos[i], focus);
             if(m_team(gamemode, mutators))
             {
-                defformatstring(count)("%d", flagscores[i]);
+                defformatstring(count)("%d", teamscores[i].flagscore);
                 int cw, ch;
                 text_bounds(count, cw, ch);
                 draw_textf(count, i*120+VIRTW/4.0f*3.0f+60-cw/2, 1590);

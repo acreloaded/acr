@@ -884,14 +884,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     assist = getint(p),
                     death = getint(p);
                 if (!team_isactive(team)) break;
-                /*
                 teamscore &t = teamscores[team];
                 t.points = points;
                 t.flagscore = flags;
                 t.frags = frags;
                 t.assists = assist;
                 t.deaths = death;
-                */
                 break;
             }
 

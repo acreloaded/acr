@@ -86,49 +86,28 @@ struct sline
 static vector<sline> scorelines;
 vector<discscore> discscores;
 
-struct teamscore
+teamscore teamscores[2] = { teamscore(TEAM_CLA), teamscore(TEAM_RVSF) };
+
+struct teamsum
 {
-    int team, frags, deaths, flagscore, points;
+    int team, lvl, ping, pj;
     vector<playerent *> teammembers;
-    teamscore(int t) : team(t), frags(0), deaths(0), flagscore(0), points(0) {}
+    teamsum(int t) : team(t), lvl(0), ping(0), pj(0) { }
 
     void addplayer(playerent *d)
     {
-        if(!d) return;
+        if (!d) return;
         teammembers.add(d);
-        frags += d->frags;
-        deaths += d->deaths;
-        points += d->points;
-        if(m_flags(gamemode)) flagscore += d->flagscore;
-    }
-
-    void addscore(discscore &d)
-    {
-        frags += d.frags;
-        deaths += d.deaths;
-        points += d.points;
-        if(m_flags(gamemode)) flagscore += d.flags;
+        extern int level;
+        lvl += d == player1 ? level : d->level;
+        ping += d->ping;
+        pj += d->plag;
     }
 };
 
-void teamflagscores(int &team1, int &team2)
+static int teamscorecmp(const teamsum *a, const teamsum *b)
 {
-    teamscore teamscores[2] = { teamscore(TEAM_CLA), teamscore(TEAM_RVSF) };
-    loopv(players) if(players[i] && players[i]->team != TEAM_SPECT)
-    {
-        teamscores[team_base(players[i]->team)].addplayer(players[i]);
-    }
-    loopv(discscores) if(discscores[i].team != TEAM_SPECT)
-    {
-        teamscores[team_base(discscores[i].team)].addscore(discscores[i]);
-    }
-    if(!watchingdemo) teamscores[team_base(player1->team)].addplayer(player1);
-    team1 = teamscores[0].flagscore;
-    team2 = teamscores[1].flagscore;
-}
-
-static int teamscorecmp(const teamscore *x, const teamscore *y)
-{
+    teamscore *x = &teamscores[a->team], *y = &teamscores[b->team];
     if(x->flagscore > y->flagscore) return -1;
     if(x->flagscore < y->flagscore) return 1;
     if(x->frags > y->frags) return -1;
@@ -136,7 +115,7 @@ static int teamscorecmp(const teamscore *x, const teamscore *y)
     if(x->points > y->points) return -1;
     if(x->points < y->points) return 1;
     if(x->deaths < y->deaths) return -1;
-    return 0;
+    return x->team - y->team;
 }
 
 static int scorecmp(playerent **x, playerent **y)
@@ -246,7 +225,7 @@ void renderscore(playerent *d)
 
 int totalplayers = 0;
 
-int renderteamscore(teamscore *t)
+int renderteamscore(teamsum &t)
 {
     if(!scorelines.empty()) // space between teams
     {
@@ -254,25 +233,26 @@ int renderteamscore(teamscore *t)
         space.s[0] = 0;
     }
     sline &line = scorelines.add();
-    int n = t->teammembers.length();
+    int n = t.teammembers.length();
     defformatstring(plrs)("(%d %s)", n, n == 1 ? "player" : "players");
 
-    if(m_flags(gamemode)) line.addcol(sc_flags, "%d", t->flagscore);
-    line.addcol(sc_frags, "%d", t->frags);
-    line.addcol(sc_assists, "%d", 0); // t->assists);
-    line.addcol(sc_deaths, "%d", t->deaths);
-    line.addcol(sc_ratio, "%.2f", SCORERATIO(t->frags, t->deaths));
+    const teamscore &ts = teamscores[t.team];
+    if(m_flags(gamemode)) line.addcol(sc_flags, "%d", ts.flagscore);
+    line.addcol(sc_frags, "%d", ts.frags);
+    line.addcol(sc_assists, "%d", ts.assists);
+    line.addcol(sc_deaths, "%d", ts.deaths);
+    line.addcol(sc_ratio, "%.2f", SCORERATIO(ts.frags, ts.deaths));
     if(multiplayer(false) || watchingdemo)
     {
-        line.addcol(sc_score, "%d", max(t->points, 0));
+        line.addcol(sc_score, "%d", max(ts.points, 0));
         line.addcol(sc_lag);
     }
-    line.addcol(sc_clientnum, team_string(t->team));
+    line.addcol(sc_clientnum, team_string(t.team));
     line.addcol(sc_name, plrs);
 
     static color teamcolors[2] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f) };
-    line.bgcolor = &teamcolors[team_base(t->team)];
-    loopv(t->teammembers) renderscore(t->teammembers[i]);
+    line.bgcolor = &teamcolors[team_base(t.team)];
+    loopv(t.teammembers) renderscore(t.teammembers[i]);
     return n;
 }
 
@@ -322,15 +302,15 @@ void renderscores(void *menu, bool init)
     int winner = -1;
     if(m_team(gamemode, mutators))
     {
-        teamscore teamscores[2] = { teamscore(TEAM_CLA), teamscore(TEAM_RVSF) };
+        teamsum teamsums[2] = { teamsum(TEAM_CLA), teamsum(TEAM_RVSF) };
 
-        loopv(scores) if(scores[i]->team != TEAM_SPECT) teamscores[team_base(scores[i]->team)].addplayer(scores[i]);
-        loopv(discscores) if(discscores[i].team != TEAM_SPECT) teamscores[team_base(discscores[i].team)].addscore(discscores[i]);
+        loopv(scores) if(scores[i]->team != TEAM_SPECT) teamsums[team_base(scores[i]->team)].addplayer(scores[i]);
+        //loopv(discscores) if (discscores[i].team != TEAM_SPECT) teamsums[team_base(discscores[i].team)].addscore(discscores[i]);
 
-        int sort = teamscorecmp(&teamscores[TEAM_CLA], &teamscores[TEAM_RVSF]) < 0 ? 0 : 1;
+        int sort = teamscorecmp(&teamsums[TEAM_CLA], &teamsums[TEAM_RVSF]) < 0 ? 0 : 1;
         loopi(2)
         {
-            renderteamscore(&teamscores[sort ^ i]);
+            renderteamscore(teamsums[sort ^ i]);
             renderdiscscores(sort ^ i);
         }
         winner = m_flags(gamemode) ?
@@ -526,13 +506,15 @@ void winners()
 
     if(m_team(gamemode, mutators))
     {
-        teamscore teamscores[2] = { teamscore(TEAM_CLA), teamscore(TEAM_RVSF) };
+        teamsum teamsums[2] = { teamsum(TEAM_CLA), teamsum(TEAM_RVSF) };
 
-        loopv(scores) if(scores[i]->team != TEAM_SPECT) teamscores[team_base(scores[i]->team)].addplayer(scores[i]);
+        loopv(scores) if (scores[i]->team != TEAM_SPECT) teamsums[team_base(scores[i]->team)].addplayer(scores[i]);
+        /*
         loopv(discscores) if(discscores[i].team != TEAM_SPECT)
-        teamscores[team_base(discscores[i].team)].addscore(discscores[i]);
+            teamsums[team_base(discscores[i].team)].addscore(discscores[i]);
+        */
 
-        int sort = teamscorecmp(&teamscores[TEAM_CLA], &teamscores[TEAM_RVSF]);
+        int sort = teamscorecmp(&teamsums[TEAM_CLA], &teamsums[TEAM_RVSF]);
         if(!sort) copystring(winners, "0 1");
         else itoa(winners, sort < 0 ? 0 : 1);
     }

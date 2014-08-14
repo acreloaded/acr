@@ -138,6 +138,12 @@ static inline const char *team_string(int t, bool abbr = false) { const char **n
 #define team_color(t) (team_isspect(t) ? 4 : team_base(t) ? 1 : 3)
 #define team_rel_color(a, b) (a == b ? 1 : a && b && !team_isspect(b->team) ? isteam(a, b) ? 0 : 3 : 4)
 
+struct teamscore
+{
+    int team, points, flagscore, frags, assists, deaths;
+    teamscore(int team) : team(team), points(0), flagscore(0), frags(0), assists(0), deaths(0) { }
+};
+
 enum { ENT_PLAYER = 0, ENT_CAMERA, ENT_BOUNCE };
 enum { HIT_NONE = 0, HIT_LEG, HIT_TORSO, HIT_HEAD };
 enum { CS_ALIVE = 0, CS_DEAD, CS_WAITING, CS_EDITING };

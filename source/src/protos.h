@@ -447,11 +447,11 @@ extern void clearvote();
 // scoreboard
 struct discscore { int team, flags, frags, assists, deaths, points; char name[MAXNAMELEN + 1]; };
 extern vector<discscore> discscores;
+extern teamscore teamscores[2];
 extern void showscores(bool on);
 extern void renderscores(void *menu, bool init);
 extern const char *asciiscores(bool destjpg = false);
 extern void consolescores();
-extern void teamflagscores(int &team1, int &team2);
 
 // world
 extern void setupworld(int factor);
