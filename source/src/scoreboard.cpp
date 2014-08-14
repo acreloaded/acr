@@ -230,14 +230,25 @@ int renderteamscore(teamsum &t)
     defformatstring(plrs)("(%d %s)", n, t.team == TEAM_SPECT ? "spectating" :
         m_zombie(gamemode) && t.team == TEAM_CLA ? "zombies" : n == 1 ? "player" : "players");
 
-    static teamscore nullteamscore(TEAM_SPECT);
-    const teamscore &ts = team_isactive(t.team) ? teamscores[t.team] : nullteamscore;
-    if(m_flags(gamemode)) line.addcol(sc_flags, "%d", ts.flagscore);
-    line.addcol(sc_frags, "%d", ts.frags);
-    line.addcol(sc_assists, "%d", ts.assists);
-    line.addcol(sc_deaths, "%d", ts.deaths);
-    line.addcol(sc_ratio, "%.2f", SCORERATIO(ts.frags, ts.deaths));
-    line.addcol(sc_score, "%d", max(ts.points, 0));
+    if (team_isactive(t.team))
+    {
+        const teamscore &ts = teamscores[t.team];
+        if (m_flags(gamemode)) line.addcol(sc_flags, "%d", ts.flagscore);
+        line.addcol(sc_frags, "%d", ts.frags);
+        line.addcol(sc_assists, "%d", ts.assists);
+        line.addcol(sc_deaths, "%d", ts.deaths);
+        line.addcol(sc_ratio, "%.2f", SCORERATIO(ts.frags, ts.deaths));
+        line.addcol(sc_score, "%d", max(ts.points, 0));
+    }
+    else
+    {
+        if (m_flags(gamemode)) line.addcol(sc_flags);
+        line.addcol(sc_frags);
+        line.addcol(sc_assists);
+        line.addcol(sc_deaths);
+        line.addcol(sc_ratio);
+        line.addcol(sc_score);
+    }
     if (t.team == TEAM_SPECT)
         line.addcol(sc_lag, "%s", colorping(t.ping / max(t.teammembers.length(), 1)));
     else
