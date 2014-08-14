@@ -201,7 +201,7 @@ void saytext(playerent *d, char *text, int flags, int sound)
 {
     if(sound >= 0 && sound < S_NULL && !(d->muted || d->ignored))
     {
-        //d->addicon(eventicon::VOICECOM);
+        d->addicon(eventicon::VOICECOM);
         if( voicecomsounds == 1 || (voicecomsounds == 2 && (flags & SAY_TEAM)) )
             audiomgr.playsound(sound, SP_HIGH);
     }

@@ -784,9 +784,8 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, int style, c
     // critical damage
     if(style & FRAG_CRIT)
     {
-        // TODO with icons
-        //actor->addicon(eventicon::CRITICAL);
-        //pl->addicon(eventicon::CRITICAL);
+        actor->addicon(eventicon::CRITICAL);
+        pl->addicon(eventicon::CRITICAL);
     }
 
     // roll if you are hit

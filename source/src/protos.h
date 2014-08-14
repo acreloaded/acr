@@ -324,6 +324,8 @@ extern void setuptmu(int n, const char *rgbfunc = NULL, const char *alphafunc = 
 
 struct zone { int x1, x2, y1, y2, color; }; // zones (drawn on the minimap)
 
+extern Texture **geteventicons();
+
 // rendercubes
 extern void mipstats(int a, int b, int c);
 extern void render_flat(int tex, int x, int y, int size, int h, sqr *l1, sqr *l2, sqr *l3, sqr *l4, bool isceil);

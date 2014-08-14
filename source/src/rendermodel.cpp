@@ -699,10 +699,13 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
         if(stenciling) return;
     }
     rendermodel(mdlname, anim|ANIM_DYNALLOC, tex, 1.5f, o, d->yaw+90, d->pitch/4, speed, basetime, d, a);
+    /*
     if(!stenciling && !reflecting && !refracting)
     {
-        if(isteam(player1, d)) renderaboveheadicon(d);
+        //if(isteam(player1, d)) renderaboveheadicon(d);
+        //if(dbghbox) renderhbox(d);
     }
+    */
 }
 
 VARP(teamdisplaymode, 0, 1, 2);
@@ -773,6 +776,8 @@ void renderclient(playerent *d)
     if(d->weaponsel) formatstring(vwep)("weapons/%s/world", identexists(widn)?getalias(widn):d->weaponsel->info.modelname);
     else vwep[0] = 0;
     renderclient(d, "playermodels", vwep[0] ? vwep : NULL, -(int)textureload(skin)->id);
+    if (!stenciling && !reflecting && !refracting)
+        renderaboveheadicon(d);
 }
 
 void renderclients()

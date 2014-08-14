@@ -1219,6 +1219,60 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     drawhitmarker();
 
+    // TODO: fake red dot
+
+    // event icons
+    static Texture **texs = geteventicons();
+    if (!isthirdperson) loopv(focus->icons)
+    {
+        eventicon &icon = focus->icons[i];
+        if (icon.type < 0 || icon.type >= eventicon::TOTAL || icon.millis + 3000 < lastmillis)
+        {
+            focus->icons.remove(i--);
+            continue;
+        }
+        Texture *tex = texs[icon.type];
+        int h = 1;
+        float aspect = 1, scalef = 1, offset = (lastmillis - icon.millis) / 3000.f * 160.f;
+        switch (icon.type)
+        {
+            case eventicon::CHAT:
+            case eventicon::VOICECOM:
+            case eventicon::PICKUP:
+                scalef = .4f;
+                break;
+            case eventicon::HEADSHOT:
+            case eventicon::CRITICAL:
+            case eventicon::REVENGE:
+            case eventicon::FIRSTBLOOD:
+                aspect = 2;
+                h = 4;
+                break;
+            case eventicon::DECAPITATED:
+            case eventicon::BLEED:
+                scalef = .4f;
+                break;
+            default:
+                scalef = .3f;
+                break;
+        }
+        glBindTexture(GL_TEXTURE_2D, tex->id);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_BLEND);
+        glColor4f(1.f, 1.f, 1.f, (3000 + icon.millis - lastmillis) / 3000.f);
+        glBegin(GL_QUADS);
+        float anim = lastmillis / 100 % (h * 2);
+        if (anim >= h) anim = h * 2 - anim + 1;
+        anim /= h;
+        const float xx = VIRTH * .15f * scalef, yy = /*VIRTH * .2f * scalef*/ xx / aspect, yoffset = VIRTH * -.15f - offset;
+        glTexCoord2f(0, anim); glVertex2f(VIRTW / 2 - xx, VIRTH / 2 - yy + yoffset);
+        glTexCoord2f(1, anim); glVertex2f(VIRTW / 2 + xx, VIRTH / 2 - yy + yoffset);
+        anim += 1.f / h;
+        glTexCoord2f(1, anim); glVertex2f(VIRTW / 2 + xx, VIRTH / 2 + yy + yoffset);
+        glTexCoord2f(0, anim); glVertex2f(VIRTW / 2 - xx, VIRTH / 2 + yy + yoffset);
+        glEnd();
+    }
+
     drawdmgindicator();
 
     if (focus->state == CS_ALIVE && show_hud_element(!hidehudequipment, 3)) drawequipicons(focus);

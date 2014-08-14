@@ -807,6 +807,21 @@ void cleanuptmus()
     loopi(MAXTMUS) tmus[i] = invalidtmu;
 }
 
+Texture **geteventicons()
+{
+    static Texture *texs[eventicon::TOTAL] = { NULL };
+    if (!texs[0])
+    {
+        const char *texname[eventicon::TOTAL] = { "chat", "com", "headshot", "decapitated", "firstblood", "critical", "revenge", "bleed", "up", "radar", "airstrike", "nuke", "juggernaut", "dropnade", "suicidebomb" };
+        loopi(eventicon::TOTAL)
+        {
+            defformatstring(tname)("packages/eventicons/%s.png", texname[i]);
+            texs[i] = textureload(tname);
+        }
+    }
+    return texs;
+}
+
 
 // only works on 32 bit surfaces with alpha in 4th byte!
 void blitsurface(SDL_Surface *dst, SDL_Surface *src, int x, int y)

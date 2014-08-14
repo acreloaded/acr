@@ -392,6 +392,7 @@ const int waypointsize = 50;
 
 void renderaboveheadicon(playerent *p)
 {
+    /*
     int t = lastmillis-p->lastvoicecom;
     if(!aboveheadiconsize || !p->lastvoicecom || t > aboveheadiconfadetime) return;
     glPushMatrix();
@@ -406,6 +407,51 @@ void renderaboveheadicon(playerent *p)
     quad(tex->id, vec(s/2.0f, 0.0f, s), vec(s/-2.0f, 0.0f, 0.0f), 0.0f, 0.0f, 1.0f, 1.0f);
     glDisable(GL_BLEND);
     glPopMatrix();
+    */
+    static Texture **texs = geteventicons();
+    loopi(p->icons.length() + 1)
+    {
+        eventicon *icon;
+        if (p->icons.inrange(i)) icon = &p->icons[i];
+        /*
+        else if (i == p->icons.length() && p->state != CS_DEAD && p->typing)
+        {
+            static eventicon icon_chat(eventicon::CHAT, 0);
+            icon_chat.millis = lastmillis;
+            icon = &icon_chat;
+        }
+        */
+        else continue;
+        const int t = lastmillis - icon->millis;
+        if (icon->type < 0 || icon->type >= eventicon::TOTAL || t > aboveheadiconfadetime)
+        {
+            p->icons.remove(i--);
+            continue;
+        }
+        if (!aboveheadiconsize || t > aboveheadiconfadetime) continue;
+        Texture *tex = texs[icon->type];
+        uint h = 1; float aspect = 2, scalef = 3;
+        switch (icon->type)
+        {
+            case eventicon::HEADSHOT: case eventicon::CRITICAL: case eventicon::REVENGE: case eventicon::FIRSTBLOOD: h = 4; break;
+            case eventicon::DECAPITATED: case eventicon::BLEED: scalef = 2; aspect = 1; break;
+            default: scalef = aspect = 1; break;
+        }
+        glPushMatrix();
+        glDepthMask(GL_FALSE);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_BLEND);
+        glTranslatef(p->o.x, p->o.y, p->o.z + p->aboveeye);
+        glRotatef(camera1->yaw - 180, 0, 0, 1);
+        glColor4f(1.0f, 1.0f, 1.0f, (aboveheadiconfadetime - t) / float(aboveheadiconfadetime));
+        float s = aboveheadiconsize / 75.0f*scalef, offset = t * 2.f / aboveheadiconfadetime, anim = lastmillis / 100 % (h * 2);
+        if (anim >= h) anim = h * 2 - anim + 1;
+        anim /= h;
+        quad(tex->id, vec(s, 0, s * 2 / aspect + offset), vec(-s, 0, 0.0f + offset), 0.0f, anim, 1.0f, 1.f / h);
+        glDisable(GL_BLEND);
+        glDepthMask(GL_TRUE);
+        glPopMatrix();
+    }
 }
 
 inline float render_2d_as_3d_start(const vec &o, bool thruwalls = true)
