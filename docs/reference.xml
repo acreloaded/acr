@@ -6315,17 +6315,17 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
 
         <variable name="damagescreenalpha">
           <description>if overlay of blood-spat, at what blending (transparency) level?</description>
-          <value token="N" description="damagescreen transparency" minValue="1" maxValue="100" defaultValue="45"/>
+          <value token="N" description="damagescreen transparency" minValue="1" maxValue="100" defaultValue="55"/>
         </variable>
 
         <variable name="damagescreenfactor">
           <description>if overlay of blood-spat, use which factor?</description>
-          <value token="N" description="damagescreen factor" minValue="1" maxValue="100" defaultValue="7"/>
+          <value token="N" description="damagescreen factor" minValue="1" maxValue="100" defaultValue="4"/>
         </variable>
 
         <variable name="damagescreenfade">
           <description>if overlay of blood-spat, at what speed does it fade?</description>
-          <value token="N" description="damagescreen fade" minValue="0" maxValue="1000" defaultValue="125"/>
+          <value token="N" description="damagescreen fade" minValue="0" maxValue="1000" defaultValue="325"/>
         </variable>
 
         <variable name="popdeadplayers">

@@ -1114,15 +1114,24 @@ void drawteamicons(int w, int h)
 int damageblendmillis = 0;
 
 VARFP(damagescreen, 0, 1, 1, { if(!damagescreen) damageblendmillis = 0; });
-VARP(damagescreenfactor, 1, 7, 100);
-VARP(damagescreenalpha, 1, 45, 100);
-VARP(damagescreenfade, 0, 125, 1000);
+VARP(damagescreenfactor, 1, 4, 100); // only for non-regen modes
+VARP(damagescreenalpha, 1, 55, 100);
+VARP(damagescreenfade, 0, 325, 1000); // only for non-regen modes
 
 void damageblend(int n)
 {
-    if(!damagescreen) return;
-    if(lastmillis > damageblendmillis) damageblendmillis = lastmillis;
-    damageblendmillis += n*damagescreenfactor;
+    if(!damagescreen || m_regen(gamemode, mutators)) return;
+    if (n < 0)
+    {
+        // clear damage screen
+        damageblendmillis = 0;
+    }
+    else
+    {
+        // extend by up to 5 seconds
+        if (lastmillis > damageblendmillis) damageblendmillis = lastmillis;
+        damageblendmillis += min(n*damagescreenfactor, 5000);
+    }
 }
 
 string enginestateinfo = "";
@@ -1184,25 +1193,43 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glEnd();
     }
 
-    if(lastmillis < damageblendmillis)
+    // damage screen
+    if(damagescreen)
     {
-        static Texture *damagetex = NULL;
-        if(!damagetex) damagetex = textureload("packages/misc/damage.png", 3);
+        static float fade = 0;
+        if (m_regen(gamemode, mutators))
+        {
+            const int maxhealth = 100 * HEALTHSCALE;
+            float newfade = 0;
+            if (focus->state == CS_ALIVE && focus->health >= 0 && focus->health < maxhealth)
+                newfade = sqrtf(1.f - focus->health / (float)maxhealth);
+            fade = clamp((fade * 40.f + newfade) / 41.f, 0.f, 1.f);
+        }
+        else if (lastmillis < damageblendmillis)
+        {
+            fade = 1.f;
+            if (damageblendmillis - lastmillis < damagescreenfade)
+                fade *= (damageblendmillis - lastmillis) / (float)damagescreenfade;
+        }
+        else fade = 0;
 
-        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-        glEnable(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, damagetex->id);
-        float fade = damagescreenalpha/100.0f;
-        if(damageblendmillis - lastmillis < damagescreenfade)
-            fade *= float(damageblendmillis - lastmillis)/damagescreenfade;
-        glColor4f(fade, fade, fade, fade);
+        if (fade >= 0.05f)
+        {
+            static Texture *damagetex = NULL;
+            if (!damagetex) damagetex = textureload("packages/misc/damage.png", 3);
 
-        glBegin(GL_TRIANGLE_STRIP);
-        glTexCoord2f(0, 0); glVertex2f(0, 0);
-        glTexCoord2f(1, 0); glVertex2f(VIRTW, 0);
-        glTexCoord2f(0, 1); glVertex2f(0, VIRTH);
-        glTexCoord2f(1, 1); glVertex2f(VIRTW, VIRTH);
-        glEnd();
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glEnable(GL_TEXTURE_2D);
+            glBindTexture(GL_TEXTURE_2D, damagetex->id);
+            glColor4f(1, 1, 1, fade * damagescreenalpha / 100.f);
+
+            glBegin(GL_TRIANGLE_STRIP);
+            glTexCoord2f(0, 0); glVertex2f(0, 0);
+            glTexCoord2f(1, 0); glVertex2f(VIRTW, 0);
+            glTexCoord2f(0, 1); glVertex2f(0, VIRTH);
+            glTexCoord2f(1, 1); glVertex2f(VIRTW, VIRTH);
+            glEnd();
+        }
     }
 
     glEnable(GL_TEXTURE_2D);
