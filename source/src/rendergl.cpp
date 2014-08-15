@@ -392,22 +392,6 @@ const int waypointsize = 50;
 
 void renderaboveheadicon(playerent *p)
 {
-    /*
-    int t = lastmillis-p->lastvoicecom;
-    if(!aboveheadiconsize || !p->lastvoicecom || t > aboveheadiconfadetime) return;
-    glPushMatrix();
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_BLEND);
-    glTranslatef(p->o.x, p->o.y, p->o.z+p->aboveeye);
-    glRotatef(camera1->yaw-180, 0, 0, 1);
-    glColor3f(1.0f, 0.0f, 0.0f);
-    static Texture *tex = NULL;
-    if(!tex) tex = textureload("packages/misc/com.png");
-    float s = aboveheadiconsize/100.0f;
-    quad(tex->id, vec(s/2.0f, 0.0f, s), vec(s/-2.0f, 0.0f, 0.0f), 0.0f, 0.0f, 1.0f, 1.0f);
-    glDisable(GL_BLEND);
-    glPopMatrix();
-    */
     static Texture **texs = geteventicons();
     loopi(p->icons.length() + 1)
     {
