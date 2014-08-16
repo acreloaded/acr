@@ -100,6 +100,7 @@ VARP(hidectfhud, 0, 0, 1); // hardcore doesn't override
 VARP(hidevote, 0, 0, 2);
 VARP(hidehudmsgs, 0, 0, 1);
 VARP(hidehudequipment, 0, 0, 1);
+VARP(hidehudtarget, 0, 0, 1);
 VARP(hideconsole, 0, 0, 1);
 VARP(hideobits, 0, 0, 1);
 VARP(hidespecthud, 0, 0, 1); // hardcore doesn't override
@@ -1305,7 +1306,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     int commandh = 1570 + FONTH;
     if(command) commandh -= rendercommand(20, 1570, VIRTW);
     else if(infostr) draw_text(infostr, 20, 1570);
-    else // if(show_hud_element(true, 1))
+    else if(show_hud_element(!hidehudtarget, 1))
     {
         defformatstring(hudtext)("\f0[\f1%04.1f\f3m\f0]", focus->o.dist(worldhitpos) / 4.f);
         static string hudtarget;

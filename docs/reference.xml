@@ -5486,6 +5486,11 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <value token="V" description="enable/disable messages" minValue="0" maxValue="1" defaultValue="0"/>
         </variable>
 
+        <variable name="hidehudtarget">
+          <description>Turns on or off the display of the distance meter and target identification.</description>
+          <value token="V" description="enable/disable distance meter and target" minValue="0" maxValue="1" defaultValue="0"/>
+        </variable>
+
         <variable name="hidespecthud">
           <description>Turns on or off the display of spectator staus.</description>
           <value token="V" description="enable/disable spectator status" minValue="0" maxValue="1" defaultValue="0"/>
