@@ -1640,7 +1640,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    if (show_hud_element(true, 1))
+    if (show_hud_element(!hidehudequipment, 6))
     {
         static Texture *perktex1[PERK1_MAX] = { NULL }, *perktex2[PERK1_MAX] = { NULL };
         if (!perktex1[0])

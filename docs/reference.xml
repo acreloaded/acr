@@ -5515,12 +5515,12 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
           <description>Sets HUD removals in hardcore mode.</description>
           <remarks>
             <remark>0: no change</remark>
-            <remark>1: -non-essential (streak meter, team - use scoreboard!, perk, distance, health)</remark>
+            <remark>1: -non-essential (streak meter, team - use scoreboard!, distance, health)</remark>
             <remark>2: -crosshair</remark>
             <remark>3: -hit markers</remark>
             <remark>4: -ammo count</remark>
             <remark>5: -radar</remark>
-            <remark>6: -killfeed</remark>
+            <remark>6: -killfeed, perk</remark>
           </remarks>
           <value token="V" description="hardcore level" minValue="0" maxValue="6" defaultValue="2"/>
         </variable>
