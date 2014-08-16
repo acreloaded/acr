@@ -588,7 +588,7 @@ struct damageinfo
 {
     vec o;
     int millis, damage;
-    damageinfo(vec o, int t, int d) : o(o), millis(t), damage(d) {}
+    damageinfo(vec src, int time, int damage) : o(src), millis(time), damage(damage) { }
 };
 
 struct kd
@@ -617,6 +617,7 @@ public:
     int eardamagemillis;
     int respawnoffset;
     vector<eventicon> icons;
+    vector<damageinfo> damagestack;
     kd weapstats[NUMGUNS];
     bool allowmove() { return state!=CS_DEAD || spectatemode==SM_FLY; }
 
@@ -684,6 +685,7 @@ public:
     {
         removeai();
         icons.shrink(0);
+        //damagestack.setsize(0);
         extern void removebounceents(playerent *owner);
         extern void removedynlights(physent *owner);
         extern void zapplayerflags(playerent *owner);
@@ -735,6 +737,7 @@ public:
         eardamagemillis = 0;
         eyeheight = maxeyeheight;
         curskin = nextskin[team_base(team)];
+        damagestack.setsize(0);
     }
 
     void spawnstate(int team, int gamemode, int mutators)

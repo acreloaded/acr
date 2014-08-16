@@ -412,57 +412,47 @@ void drawhitmarker()
 VARP(hidedamageindicator, 0, 0, 1);
 VARP(damageindicatorsize, 0, 200, 10000);
 VARP(damageindicatordist, 0, 500, 10000);
-VARP(damageindicatortime, 1, 1000, 10000);
+VARP(damageindicatortime, 1, 2000, 10000);
 VARP(damageindicatoralpha, 1, 50, 100);
-int damagedirections[4] = {0};
-
-void updatedmgindicator(vec &attack)
-{
-    if(hidedamageindicator || !damageindicatorsize) return;
-    float bestdist = 0.0f;
-    int bestdir = -1;
-    loopi(4)
-    {
-        vec d;
-        d.x = (float)(cosf(RAD*(player1->yaw-90+(i*90))));
-        d.y = (float)(sinf(RAD*(player1->yaw-90+(i*90))));
-        d.z = 0.0f;
-        d.add(player1->o);
-        float dist = d.dist(attack);
-        if(dist < bestdist || bestdir==-1)
-        {
-            bestdist = dist;
-            bestdir = i;
-        }
-    }
-    damagedirections[bestdir] = lastmillis+damageindicatortime;
-}
 
 void drawdmgindicator()
 {
-    if(!damageindicatorsize) return;
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDisable(GL_TEXTURE_2D);
-    float size = (float)damageindicatorsize;
-    loopi(4)
-    {
-        if(!damagedirections[i] || damagedirections[i] < lastmillis) continue;
-        float t = damageindicatorsize/(float)(damagedirections[i]-lastmillis);
-        glPushMatrix();
-        glColor4f(0.5f, 0.0f, 0.0f, damageindicatoralpha/100.0f);
-        glTranslatef(VIRTW/2, VIRTH/2, 0);
-        glRotatef(i*90, 0, 0, 1);
-        glTranslatef(0, (float)-damageindicatordist, 0);
-        glScalef(max(0.0f, 1.0f-t), max(0.0f, 1.0f-t), 0);
+    if (!damageindicatorsize || !focus->damagestack.length()) return;
 
-        glBegin(GL_TRIANGLES);
-        glVertex3f(size/2.0f, size/2.0f, 0.0f);
-        glVertex3f(-size/2.0f, size/2.0f, 0.0f);
-        glVertex3f(0.0f, 0.0f, 0.0f);
+    static Texture *damagedirtex = NULL;
+    if (!damagedirtex) damagedirtex = textureload("packages/misc/damagedir.png", 3);
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+    glBindTexture(GL_TEXTURE_2D, damagedirtex->id);
+
+    loopv(focus->damagestack)
+    {
+        const damageinfo &pain = focus->damagestack[i];
+        const float damagefade = damageindicatortime + pain.damage * 200 / HEALTHSCALE;
+        if (pain.millis + damagefade <= lastmillis)
+        {
+            focus->damagestack.remove(i--);
+            continue;
+        }
+        vec dir = pain.o;
+        dir.sub(focus->o).normalize();
+        const float fade = (1 - (lastmillis - pain.millis) / damagefade) * damageindicatoralpha / 100.f,
+            dirangle = dir.x ? atan2f(dir.y, dir.x) / RAD : dir.y < 0 ? 270 : 90;
+        glPushMatrix();
+        glTranslatef(VIRTW / 2, VIRTH / 2, 0);
+        glRotatef(dirangle + 90 - player1->yaw, 0, 0, 1);
+        glTranslatef(0, -damageindicatordist, 0);
+        glColor4f(1, 1, 1, fade);
+
+        glBegin(GL_TRIANGLE_STRIP);
+        glTexCoord2f(0, 0); glVertex2f(-damageindicatorsize, -damageindicatorsize / 2);
+        glTexCoord2f(1, 0); glVertex2f( damageindicatorsize, -damageindicatorsize / 2);
+        glTexCoord2f(0, 1); glVertex2f(-damageindicatorsize,  damageindicatorsize / 2);
+        glTexCoord2f(1, 1); glVertex2f( damageindicatorsize,  damageindicatorsize / 2);
         glEnd();
         glPopMatrix();
     }
-    glEnable(GL_TEXTURE_2D);
 }
 
 void drawequipicons(playerent *p)
@@ -1193,6 +1183,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glEnd();
     }
 
+    glEnable(GL_TEXTURE_2D);
+
     // damage screen
     if(damagescreen)
     {
@@ -1219,7 +1211,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             if (!damagetex) damagetex = textureload("packages/misc/damage.png", 3);
 
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            glEnable(GL_TEXTURE_2D);
             glBindTexture(GL_TEXTURE_2D, damagetex->id);
             glColor4f(1, 1, 1, fade * damagescreenalpha / 100.f);
 
@@ -1231,8 +1222,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             glEnd();
         }
     }
-
-    glEnable(GL_TEXTURE_2D);
+    // damage direction
+    drawdmgindicator();
 
     if (worldhit) strcpy(lastseen, worldhit->name);
     bool menu = menuvisible();
@@ -1299,8 +1290,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glTexCoord2f(0, anim); glVertex2f(VIRTW / 2 - xx, VIRTH / 2 + yy + yoffset);
         glEnd();
     }
-
-    drawdmgindicator();
 
     if (focus->state == CS_ALIVE && show_hud_element(!hidehudequipment, 3)) drawequipicons(focus);
 

@@ -5600,7 +5600,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuber
 
         <variable name="damageindicatortime">
           <description>Sets how long the damage indicator stays on screen.</description>
-          <value token="V" description="damage indicator display time" minValue="1" maxValue="10000" defaultValue="1000"/>
+          <value token="V" description="damage indicator display time" minValue="1" maxValue="10000" defaultValue="2000"/>
         </variable>
 
         <variable name="hitmarkerfade">

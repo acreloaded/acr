@@ -773,8 +773,8 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, int style, c
     // damage direction/hit push
     if (pl != actor || gun == GUN_GRENADE || gun == GUN_RPG || pl->o.dist(src) > 4)
     {
-        // TODO damage indicator
-        //pl->damagestack.add(damageinfo(src, lastmillis, damage));
+        // damage indicator
+        pl->damagestack.add(damageinfo(src, lastmillis, damage));
         // push
         vec dir = pl->o;
         dir.sub(src).normalize();
