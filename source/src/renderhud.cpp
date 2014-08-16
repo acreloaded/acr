@@ -423,7 +423,6 @@ void drawdmgindicator()
     if (!damagedirtex) damagedirtex = textureload("packages/misc/damagedir.png", 3);
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_BLEND);
     glBindTexture(GL_TEXTURE_2D, damagedirtex->id);
 
     loopv(focus->damagestack)
