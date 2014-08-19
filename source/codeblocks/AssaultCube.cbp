@@ -16,7 +16,7 @@
 		</MakeCommands>
 		<Build>
 			<Target title="client">
-				<Option output="../../bin_win32/ac_client.exe" prefix_auto="0" extension_auto="0" />
+				<Option output="../../bin_win32/acr_client.exe" prefix_auto="0" extension_auto="0" />
 				<Option working_dir="../../" />
 				<Option object_output=".objs/default" />
 				<Option type="1" />
@@ -51,7 +51,7 @@
 				</Linker>
 			</Target>
 			<Target title="client-debug">
-				<Option output="../../bin_win32/ac_client.exe" prefix_auto="0" extension_auto="0" />
+				<Option output="../../bin_win32/acr_client.exe" prefix_auto="0" extension_auto="0" />
 				<Option working_dir="../../" />
 				<Option object_output=".objs/debug" />
 				<Option type="1" />
@@ -87,7 +87,7 @@
 				</Linker>
 			</Target>
 			<Target title="server">
-				<Option output="../../bin_win32/ac_server.exe" prefix_auto="0" extension_auto="0" />
+				<Option output="../../bin_win32/acr_server.exe" prefix_auto="0" extension_auto="0" />
 				<Option working_dir="../../" />
 				<Option object_output=".objs/server" />
 				<Option type="1" />
@@ -108,7 +108,7 @@
 				</Linker>
 			</Target>
 			<Target title="server-debug">
-				<Option output="../../bin_win32/ac_server.exe" prefix_auto="0" extension_auto="0" />
+				<Option output="../../bin_win32/acr_server.exe" prefix_auto="0" extension_auto="0" />
 				<Option working_dir="../../" />
 				<Option object_output=".objs/server-debug" />
 				<Option type="1" />

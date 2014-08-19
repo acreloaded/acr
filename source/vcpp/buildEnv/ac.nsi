@@ -527,7 +527,7 @@ Function ConfigureWithoutAppdata
     ; configure ac without home dir
     
     FileOpen $9 "$INSTDIR\AssaultCube.bat" w
-    FileWrite $9 "start bin_win32\ac_client.exe --init %1 %2 %3 %4 %5$\r$\n"
+    FileWrite $9 "start bin_win32\acr_client.exe --init %1 %2 %3 %4 %5$\r$\n"
     FileClose $9
 
 FunctionEnd
@@ -605,7 +605,7 @@ Section "Register URL protocol" REGISTERURL
 
     WriteRegStr HKCR "${AC_URLPROTOCOL}" "" "${AC_SHORTNAME}"
     WriteRegStr HKCR "${AC_URLPROTOCOL}" "URL Protocol" ""
-    WriteRegStr HKCR "${AC_URLPROTOCOL}\DefaultIcon" "" '"$INSTDIR\bin_win32\ac_client.exe"'
+    WriteRegStr HKCR "${AC_URLPROTOCOL}\DefaultIcon" "" '"$INSTDIR\bin_win32\acr_client.exe"'
     WriteRegStr HKCR "${AC_URLPROTOCOL}\shell\open\command" "" '"cmd.exe" /C cd "$INSTDIR" & "assaultcube.bat" "%1"'
 
 SectionEnd

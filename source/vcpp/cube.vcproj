@@ -85,14 +85,14 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="enet.lib ogg.lib libvorbisfile.lib openal32.lib efx-util.lib odbc32.lib odbccp32.lib zdll.lib opengl32.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib Dbghelp.lib jpeg.lib libintl.lib SDL_ttf.lib libcurl.lib wldap32.lib"
-				OutputFile="../../bin_win32/ac_client.exe"
+				OutputFile="../../bin_win32/acr_client.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\lib"
 				GenerateManifest="true"
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Release/ac_client.pdb"
+				ProgramDatabaseFile=".\Release/acr_client.pdb"
 				GenerateMapFile="true"
 				MapFileName=".\Release/cube.map"
 				MapExports="true"
@@ -187,14 +187,14 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="enet.lib ogg.lib libvorbisfile.lib openal32.lib zdll.lib opengl32.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib Dbghelp.lib jpeg.lib libintl.lib SDL_ttf.lib libcurl.lib wldap32.lib"
-				OutputFile="../../bin_win32/ac_client.exe"
+				OutputFile="../../bin_win32/acr_client.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\lib"
 				GenerateManifest="true"
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Debug/ac_client.pdb"
+				ProgramDatabaseFile=".\Debug/acr_client.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -204,7 +204,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
-				AdditionalOptions="/nologo /outputresource:&quot;..\..\bin_win32\ac_client.exe;#1&quot;"
+				AdditionalOptions="/nologo /outputresource:&quot;..\..\bin_win32\acr_client.exe;#1&quot;"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -294,7 +294,7 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/PROFILE"
 				AdditionalDependencies="enet.lib ogg.lib libvorbisfile.lib openal32.lib zdll.lib opengl32.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib Dbghelp.lib libintl.lib jpeg.lib libcurl.lib wldap32.lib"
-				OutputFile="..\..\bin_win32\ac_client.exe"
+				OutputFile="..\..\bin_win32\acr_client.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\lib"
@@ -396,13 +396,13 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="enet.lib odbc32.lib odbccp32.lib zdll.lib opengl32.lib SDL.lib ws2_32.lib winmm.lib Dbghelp.lib"
-				OutputFile="../../bin_win32/ac_server.exe"
+				OutputFile="../../bin_win32/acr_server.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\lib"
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Standalone/ac_server.pdb"
+				ProgramDatabaseFile=".\Standalone/acr_server.pdb"
 				GenerateMapFile="true"
 				MapFileName=".\Standalone/cube.map"
 				MapExports="true"
@@ -490,13 +490,13 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="enet.lib odbc32.lib odbccp32.lib zdll.lib opengl32.lib SDL.lib ws2_32.lib winmm.lib Dbghelp.lib"
-				OutputFile="../../bin_win32/ac_server.exe"
+				OutputFile="../../bin_win32/acr_server.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\lib"
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Standalone Debug/ac_server.pdb"
+				ProgramDatabaseFile=".\Standalone Debug/acr_server.pdb"
 				SubSystem="1"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -506,7 +506,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
-				AdditionalOptions="/nologo /outputresource:&quot;..\..\bin_win32\ac_server.exe;#1&quot;"
+				AdditionalOptions="/nologo /outputresource:&quot;..\..\bin_win32\acr_server.exe;#1&quot;"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
