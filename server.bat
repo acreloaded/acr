@@ -1,3 +1,3 @@
-bin_win32\ac_server.exe -Cconfig/servercmdline.txt %*
+bin_win32\acr_server.exe -Cconfig/servercmdline.txt %*
 pause
 
