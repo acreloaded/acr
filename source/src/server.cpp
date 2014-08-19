@@ -458,6 +458,57 @@ void sendservmsg(const char *msg, client *cl)
     sendf(cl, 1, "ris", SV_SERVMSG, msg);
 }
 
+void streakready(client &c, int streak)
+{
+    if (streak < 0 || streak >= STREAK_NUM) return;
+    if (streak == STREAK_AIRSTRIKE) ++c.state.airstrikes;
+    sendf(NULL, 1, "ri3", SV_STREAKREADY, c.clientnum, streak);
+}
+
+void usestreak(client &c, int streak, client *actor = NULL, const vec *o = NULL)
+{
+    if (streak < 0 || streak >= STREAK_NUM) return;
+    int info = 0;
+    switch (streak)
+    {
+        case STREAK_AIRSTRIKE:
+        {
+            if (!o) break;
+            sendf(NULL, 1, "ri9", SV_RICOCHET, c.clientnum, GUN_RPG, (int)(c.state.o.x*DMF), (int)(c.state.o.y*DMF), (int)(c.state.o.z*DMF), (int)(o->x*DMF), (int)(o->y*DMF), (int)(o->z*DMF));
+            sendf(NULL, 1, "ri7", SV_EXPLODE, c.clientnum, GUN_RPG, 0, (int)(o->x*DMF), (int)(o->y*DMF), (int)(o->z*DMF));
+            int airmillis = gamemillis + 1000;
+            loopi(5)
+            {
+                airmillis += rnd(200) + 50;
+                vec airo = *o;
+                airo.add(vec(rnd(7) - 3, rnd(7) - 3, rnd(7) - 3));
+                extern bool checkpos(vec &p, bool alter = true);
+                checkpos(airo);
+                c.addtimer(new airstrikeevent(airmillis, airo));
+            }
+            info = --c.state.airstrikes;
+            break;
+        }
+        case STREAK_RADAR:
+            c.state.radarearned = gamemillis + (info = 15000);
+            break;
+        case STREAK_NUKE:
+            c.state.nukemillis = gamemillis + (info = 30000);
+            break;
+        case STREAK_JUG:
+            info = (c.state.health += min(2000 * HEALTHSCALE, c.state.health * 7 + 200 * HEALTHSCALE));
+            break;
+        case STREAK_REVENGE:
+            c.addtimer(new suicidebomberevent(actor ? actor->clientnum : -1));
+            // fallthrough
+        case STREAK_DROPNADE:
+            info = rand();
+            c.state.grenades.add(info);
+            break;
+    }
+    sendf(NULL, 1, "ri4", SV_STREAKUSE, c.clientnum, streak, info);
+}
+
 #define SECURESPAWNDIST 15
 int spawncycle = -1;
 int fixspawn = 2;
@@ -580,6 +631,12 @@ void sendspawn(client &c)
         NUMGUNS, gs.ammo, NUMGUNS, gs.mag,
         (int)(gs.o.x*DMF), (int)(gs.o.y*DMF), (int)(gs.o.z*DMF), c.y);
     gs.lastspawn = gamemillis;
+
+    int dstreak = gs.deathstreak + (gs.perk2 == PERK2_STREAK ? 1 : 0);
+    if (dstreak >= 8) gs.streakondeath = STREAK_REVENGE;
+    else if (dstreak >= 5 && (c.type != ST_AI || m_progressive(gamemode, mutators))) gs.streakondeath = STREAK_DROPNADE;
+    else gs.streakondeath = -1;
+    streakready(c, gs.streakondeath);
 }
 
 // demo
@@ -1710,25 +1767,31 @@ void serverdied(client &target, client &actor_, int damage, int gun, int style, 
             if (scopeelapsed >= zoomtime) style |= FRAG_SCOPE_NONE;
         }
         // buzzkill check
-        //if (buzzkilled)
-        if (false)
+        bool buzzkilled = false;
+        int kstreak_next = ts.pointstreak / 5 + 1;
+        const int kstreaks_checked[] = { 7, 9, 11, 17 }; // it goes forever, but we only check the first juggernaut
+        loopi(sizeof(kstreaks_checked) / sizeof(*kstreaks_checked))
+            if (ts.streakused < kstreaks_checked[i] * 5 && kstreaks_checked[i] == kstreak_next)
+            {
+                buzzkilled = true;
+                break;
+            }
+        if (buzzkilled)
         {
             addptreason(*actor, PR_BUZZKILL);
             addptreason(target, PR_BUZZKILLED);
         }
         // streak
-        /*
         if (gun != OBIT_NUKE)
-            actor->state.pointstreak += 5;
+            as.pointstreak += 5;
         ++ts.deathstreak;
         actor->state.deathstreak = ts.streakused = 0;
-        */
         // teamkilling a flag carrier is bad
         if ((m_hunt(gamemode) || m_keep(gamemode)) && tk && targethasflag >= 0)
-            --as.invalidate().flagscore;
+            --as.flagscore;
     }
 
-    //ts.pointstreak = 0;
+    ts.pointstreak = 0;
     ts.wounds.shrink(0);
     ts.damagelog.removeobj(actor->clientnum);
     target.invalidateheals();
@@ -1739,18 +1802,34 @@ void serverdied(client &target, client &actor_, int damage, int gun, int style, 
         if (valid_client(ts.damagelog[i]))
         {
             const int factor = isteam(clients[ts.damagelog[i]], &target) ? -1 : 1;
-            clients[ts.damagelog[i]]->state.invalidate().assists += factor;
+            clientstate &cs = clients[ts.damagelog[i]]->state;
+            cs.invalidate();
+            cs.assists += factor;
             if (factor > 0)
                 usesteamscore(actor->team).assists += factor; // add to assists
-            /*
-            clients[ts.damagelog[i]]->state.pointstreak += factor * 2;
-            */
+            cs.pointstreak += factor * 2;
         }
         else ts.damagelog.remove(i--);
     }
 
     // killstreak rewards
-    // TODO
+    int effectivestreak = actor->state.pointstreak + (actor->state.perk2 == PERK2_STREAK ? 5 : 0);
+#define checkstreak(n) if(effectivestreak >= n * 5 && actor->state.streakused < n * 5)
+    checkstreak(7) streakready(*actor, STREAK_AIRSTRIKE);
+    checkstreak(9) usestreak(*actor, STREAK_RADAR);
+    checkstreak(11) usestreak(*actor, STREAK_NUKE);
+    int jugcheck = max(0, (actor->state.streakused / 5 - 17) / 5);
+    // 17, 22, 27, 32, 37 ...
+    if (gun != OBIT_NUKE)
+        while (effectivestreak >= (17 + jugcheck * 5) * 5)
+        {
+            if (actor->state.streakused < (17 + jugcheck * 5) * 5) usestreak(*actor, STREAK_JUG);
+            ++jugcheck;
+        }
+#undef checkstreak
+    // restart streak
+    // actor->state.pointstreak %= 11 * 5;
+    actor->state.streakused = effectivestreak;
 
     // combo reset check
     if (gamemillis >= as.lastkill + COMBOTIME) as.combo = 0;
@@ -1845,20 +1924,16 @@ void serverdied(client &target, client &actor_, int damage, int gun, int style, 
     }
 
     // target streaks
-    /*
-    if (target->state.nukemillis)
+    if (ts.nukemillis)
     {
         // nuke cancelled!
-        target->state.nukemillis = 0;
-        sendf(NULL, 1, "ri4", SV_STREAKUSE, target->clientnum, STREAK_NUKE, -2);
+        ts.nukemillis = 0;
+        sendf(NULL, 1, "ri4", SV_STREAKUSE, target.clientnum, STREAK_NUKE, -2);
     }
-    */
     // deathstreaks MUST be processed after setting to CS_DEAD
-    /*
     if ((explosive_weap(gun) || isheadshot(gun, style)) && ts.streakondeath == STREAK_REVENGE)
         ts.streakondeath = STREAK_DROPNADE;
-    usestreak(*target, ts.streakondeath, m_zombie(gamemode) ? actor : NULL);
-    */
+    usestreak(target, ts.streakondeath, m_zombie(gamemode) ? actor : NULL);
 
     if (!suic)
     {
@@ -2889,11 +2964,16 @@ void sendresume(client &c, bool broadcast)
             c.state.gunselect,
             c.state.flagscore,
             c.state.frags,
+            c.state.points,
             c.state.assists,
             c.state.deaths,
             c.state.health,
             c.state.armour,
-            c.state.points,
+            c.state.pointstreak,
+            c.state.deathstreak,
+            c.state.airstrikes,
+            c.state.radarearned,
+            c.state.nukemillis,
             NUMGUNS, c.state.ammo,
             NUMGUNS, c.state.mag,
             -1);
@@ -3045,11 +3125,16 @@ void welcomepacket(packetbuf &p, client *c)
             putint(p, c.state.gunselect);
             putint(p, c.state.flagscore);
             putint(p, c.state.frags);
+            putint(p, c.state.points);
             putint(p, c.state.assists);
             putint(p, c.state.deaths);
             putint(p, c.state.health);
             putint(p, c.state.armour);
-            putint(p, c.state.points);
+            putint(p, c.state.pointstreak);
+            putint(p, c.state.deathstreak);
+            putint(p, c.state.airstrikes);
+            putint(p, c.state.radarearned);
+            putint(p, c.state.nukemillis);
             loopi(NUMGUNS) putint(p, c.state.ammo[i]);
             loopi(NUMGUNS) putint(p, c.state.mag[i]);
         }
@@ -3598,6 +3683,18 @@ void process(ENetPacket *packet, int sender, int chan)
                 if (vel.magnitude() > NADEPOWER) vel.normalize().mul(NADEPOWER);
                 sendf(NULL, 1, "ri9x", SV_THROWNADE, cn, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF),
                     (int)(vel.x*DNF), (int)(vel.y*DNF), (int)(vel.z*DNF), cooked, sender);
+                break;
+            }
+
+            case SV_STREAKUSE:
+            {
+                vec o;
+                loopi(3) o[i] = getint(p) / DMF;
+                // can't use streaks unless alive
+                if (!cl->state.isalive(gamemillis)) break;
+                // check how many airstrikes available first
+                if (cl->state.airstrikes > 0)
+                    usestreak(*cl, STREAK_AIRSTRIKE, NULL, &o);
                 break;
             }
 
@@ -4793,7 +4890,14 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         loopi(2) if ((!i || m_team(gamemode, mutators)) && !steamscores[i].valid) sendteamscore(i);
         loopv(clients) if (valid_client(i) && !clients[i]->state.valid)
         {
-            sendf(NULL, 1, "ri7", SV_SCORE, i, clients[i]->state.points, clients[i]->state.flagscore, clients[i]->state.frags, clients[i]->state.assists, clients[i]->state.deaths);
+            sendf(NULL, 1, "ri9", SV_SCORE, i,
+                clients[i]->state.points,
+                clients[i]->state.flagscore,
+                clients[i]->state.frags,
+                clients[i]->state.assists,
+                clients[i]->state.deaths,
+                clients[i]->state.pointstreak,
+                clients[i]->state.deathstreak);
             clients[i]->state.valid = true;
         }
         if (m_flags(gamemode))

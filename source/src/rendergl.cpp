@@ -641,7 +641,7 @@ void renderwaypoints()
         if (!pl || (pl == focus && !isthirdperson) || pl->state == CS_DEAD) continue;
         const bool has_flag = m_flags(gamemode) && ((flaginfos[0].state == CTFF_STOLEN && flaginfos[0].actor_cn == i) || (flaginfos[1].state == CTFF_STOLEN && flaginfos[1].actor_cn == i));
         if (has_flag) continue;
-        const bool has_nuke = false; // pl->nukemillis >= totalmillis;
+        const bool has_nuke = pl->nukemillis >= totalmillis;
         if (has_nuke || m_psychic(gamemode, mutators))
         {
             renderwaypoint((focus == pl || isteam(focus, pl)) ? WP_DEFEND : WP_KILL, pl->o);

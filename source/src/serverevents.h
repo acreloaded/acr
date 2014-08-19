@@ -310,18 +310,16 @@ void processevents()
         client &c = *clients[i];
         if(c.type==ST_EMPTY || !c.isauthed || team_isspect(c.team)) continue;
         clientstate &cs = c.state;
-        /*
-        // game ending nuke...
+        // (formerly) game ending nuke...
         if(cs.nukemillis && cs.nukemillis <= gamemillis && minremain)
         {
             // boom... gg
             //forceintermission = true;
             cs.nukemillis = 0;
-            sendf(NULL, 1, "ri4", N_STREAKUSE, i, STREAK_NUKE, 0);
+            sendf(NULL, 1, "ri4", SV_STREAKUSE, i, STREAK_NUKE, 0);
             // apply the nuke effect
             nuke(c);
         }
-        */
         // drown, bleed, regen
         if(cs.state == CS_ALIVE)
         {

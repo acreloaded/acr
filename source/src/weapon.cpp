@@ -193,7 +193,7 @@ COMMANDN(reload, selfreload, "");
 void selfuse()
 {
     // for now we're only using it for airstrikes
-    addmsg(SV_STREAKUSE, "rf3", worldhitpos.x, worldhitpos.y, worldhitpos.z);
+    addmsg(SV_STREAKUSE, "ri3", (int)(worldhitpos.x*DMF), (int)(worldhitpos.y*DMF), (int)(worldhitpos.z*DMF));
 }
 COMMANDN(use, selfuse, "");
 

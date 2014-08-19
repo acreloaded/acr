@@ -169,6 +169,7 @@ struct clientstate : playerstate
     int akimbomillis, crouchmillis, scopemillis, drownmillis, drownval;
     bool scoped, crouching, onfloor; float fallz;
     int flagscore, frags, assists, deaths, shotdamage, damage, points, events, lastdisc, reconnections;
+    int pointstreak, deathstreak, airstrikes, radarearned, nukemillis, streakused, streakondeath;
     vector<int> damagelog, revengelog;
     vector<wound> wounds;
     bool valid;
@@ -199,7 +200,7 @@ struct clientstate : playerstate
         lastshot = gamemillis;
     }
 
-    clientstate &invalidate()
+    inline clientstate &invalidate()
     {
         valid = false;
         return *this;
@@ -214,6 +215,8 @@ struct clientstate : playerstate
         akimbomillis = 0;
         scoped = forced = false;
         flagscore = frags = assists = deaths = shotdamage = damage = points = events = lastdisc = reconnections = 0;
+        pointstreak = deathstreak = airstrikes = radarearned = nukemillis = streakused = 0;
+        streakondeath = -1;
         revengelog.setsize(0);
         valid = true;
         respawn();

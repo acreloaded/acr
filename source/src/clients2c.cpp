@@ -862,6 +862,89 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
             }
 
+            case SV_STREAKREADY:
+            {
+                playerent *d = getclient(getint(p));
+                const int streak = getint(p);
+                if (!d) break;
+                switch (streak)
+                {
+                    case STREAK_AIRSTRIKE:
+                        d->addicon(eventicon::AIRSTRIKE);
+                        ++d->airstrikes;
+                        break;
+                    case STREAK_DROPNADE:
+                        d->addicon(eventicon::DROPNADE);
+                        break;
+                    case STREAK_REVENGE:
+                        d->addicon(eventicon::SUICIDEBOMB);
+                        break;
+                }
+                break;
+            }
+
+            case SV_STREAKUSE:
+            {
+                playerent *d = getclient(getint(p));
+                const int streak = getint(p), info = getint(p);
+                if (!d) break;
+                switch (streak)
+                {
+                    case STREAK_AIRSTRIKE:
+                        // may be delayed? in the future?
+                        d->airstrikes = info;
+                        break;
+                    case STREAK_RADAR:
+                        d->radarearned = lastmillis + info;
+                        d->addicon(eventicon::RADAR);
+                        break;
+                    case STREAK_NUKE:
+                        if (info > 0) // deploy nuke
+                        {
+                            d->nukemillis = lastmillis + info;
+                            d->addicon(eventicon::NUKE);
+                            audiomgr.playsound(S_CALLVOTE, SP_HIGHEST);
+                            // add voice?
+                            chatoutf("\f2%s is deploying a nuke! \f%s!", colorname(d), d == player1 ? "0Stay alive" : isteam(d, player1) ? "1Defend" : "3Stop it");
+                        }
+                        else if (!info) // nuke deployed
+                        {
+                            // gg...
+                            d->nukemillis = 0;
+                            chatoutf("\f3%s deployed a nuke!", colorname(d));
+                            audiomgr.playsound(S_VOTEPASS, SP_HIGHEST);
+                        }
+                        else if (info == -2) // nuke cancelled
+                        {
+                            d->nukemillis = 0;
+                            chatoutf("\f2%s lost the nuke!", colorname(d));
+                            // add icon?
+                            audiomgr.playsound(S_VOTEFAIL, SP_HIGHEST);
+                        }
+                        break;
+                    case STREAK_JUG:
+                        d->health = info;
+                        d->addicon(eventicon::JUGGERNAUT);
+                        addobit(d, OBIT_JUG, FRAG_NONE, false, NULL);
+                        break;
+                    case STREAK_DROPNADE:
+                    case STREAK_REVENGE:
+                    {
+                        grenadeent *g = new grenadeent(d, NADETTL - MARTYRDOMTTL);
+                        bounceents.add(g);
+                        g->id = info;
+
+                        g->nadestate = /* NS_THROWN */ 1;
+                        g->o = d->o;
+                        g->moveoutsidebbox((g->vel = vec(0, 0, 0)), d);
+                        g->resetinterp();
+                        g->inwater = hdr.waterlevel > g->o.z;
+                        break;
+                    }
+                }
+                break;
+            }
+
             case SV_RELOAD:
             {
                 int cn = getint(p), gun = getint(p), mag = getint(p), ammo = getint(p);
@@ -895,7 +978,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_SCORE:
             {
-                const int cn = getint(p), score = getint(p), flags = getint(p), frags = getint(p), assists = getint(p), deaths = getint(p);
+                const int cn = getint(p),
+                    score = getint(p),
+                    flags = getint(p),
+                    frags = getint(p),
+                    assists = getint(p),
+                    deaths = getint(p),
+                    pointstreak = getint(p),
+                    deathstreak = getint(p);
                 playerent *d = getclient(cn);
                 if (!d) break;
                 d->points = score;
@@ -903,6 +993,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 d->frags = frags;
                 d->assists = assists;
                 d->deaths = deaths;
+                d->pointstreak = pointstreak;
+                d->deathstreak = deathstreak;
                 break;
             }
 
@@ -967,7 +1059,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 float killdist = getint(p)/DMF;
                 vec src; loopi(3) src[i] = getint(p)/DMF;
                 playerent *victim = getclient(vcn), *actor = getclient(acn);
-                //if (actor) actor->pointstreak = pointstreak;
 
                 if (!victim) break;
                 victim->health -= damage;
@@ -1003,7 +1094,25 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 {
                     int cn = getint(p);
                     if(p.overread() || cn<0) break;
-                    int state = getint(p), lifesequence = getint(p), primary = getint(p), secondary = getint(p), perk1 = getint(p), perk2 = getint(p), gunselect = getint(p), flagscore = getint(p), frags = getint(p), assists = getint(p), deaths = getint(p), health = getint(p), armour = getint(p), points = getint(p);
+                    const int state = getint(p),
+                        lifesequence = getint(p),
+                        primary = getint(p),
+                        secondary = getint(p),
+                        perk1 = getint(p),
+                        perk2 = getint(p),
+                        gunselect = getint(p),
+                        flagscore = getint(p),
+                        frags = getint(p),
+                        points = getint(p),
+                        assists = getint(p),
+                        deaths = getint(p),
+                        health = getint(p),
+                        armour = getint(p),
+                        pointstreak = getint(p),
+                        deathstreak = getint(p),
+                        airstrikes = getint(p),
+                        radarearned = getint(p),
+                        nukemillis = getint(p);
                     int ammo[NUMGUNS], mag[NUMGUNS];
                     loopi(NUMGUNS) ammo[i] = getint(p);
                     loopi(NUMGUNS) mag[i] = getint(p);
@@ -1013,9 +1122,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     d->lifesequence = lifesequence;
                     d->flagscore = flagscore;
                     d->frags = frags;
+                    d->points = points;
                     d->assists = assists;
                     d->deaths = deaths;
-                    d->points = points;
+                    d->pointstreak = pointstreak;
+                    d->deathstreak = deathstreak;
+                    d->airstrikes = airstrikes;
+                    d->radarearned = lastmillis + radarearned;
+                    d->nukemillis = lastmillis + nukemillis;
                     if(d!=player1)
                     {
                         d->primary = primary;
