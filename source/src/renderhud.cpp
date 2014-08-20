@@ -1676,7 +1676,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     }
 
     // streak meter
-    if (show_hud_element(true, 1))
+    if (show_hud_element(!hidehudequipment, 1))
     {
         const float streakscale = 1.5f;
         static Texture *streakt[2][4] = { NULL }; // TODO: use native triangles?
@@ -1697,8 +1697,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         }
         // streak misc
         // streak num
-        if (focus->deathstreak) draw_textf("\f3-%d", (VIRTW - 620 - 23 - max(11 - focus->deathstreak, 1) * 50) * streakscale, (VIRTH - 50 - 40) * streakscale, focus->deathstreak);
-        else draw_textf("\f%c%.1f", (VIRTW - 620 - 23 - max(11 - currentstreak, 1) * 50) * streakscale, (VIRTH - 50 - 40) * streakscale,
+        if (focus->deathstreak) draw_textf("\f3-%d", (VIRTW - 620 - 12 - max(11 - focus->deathstreak, 1) * 50) * streakscale, (VIRTH - 50 - 40) * streakscale, focus->deathstreak);
+        else draw_textf("\f%c%.1f", (VIRTW - 620 - 15 - max(11 - currentstreak, 1) * 50) * streakscale, (VIRTH - 50 - 40) * streakscale,
             focus->pointstreak >= 9 * 5 ? '1' :
             focus->pointstreak >= 7 * 5 ? '0' :
             focus->pointstreak >= 3 * 5 ? '2' :
@@ -1706,7 +1706,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             '4',
             focus->pointstreak / 5.f);
         // airstrikes
-        draw_textf("\f4x\f%c%d", (VIRTW - 620 - 23 - 5 * 50) * streakscale, (VIRTH - 50) * streakscale, focus->airstrikes ? '0' : '5', focus->airstrikes);
+        draw_textf("\f4x\f%c%d", (VIRTW - 620 - 10 - 5 * 50) * streakscale, (VIRTH - 50) * streakscale, focus->airstrikes ? '0' : '5', focus->airstrikes);
         // radar time
         int stotal, sr;
         playerent *spl;
