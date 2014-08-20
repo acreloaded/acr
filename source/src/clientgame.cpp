@@ -697,6 +697,66 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
     c2sinfo();   // do this last, to reduce the effective frame lag
 }
 
+void radarinfo(int &total, playerent *&last, int &lastremain, const playerent *p)
+{
+    // we return with the parameters!
+    total = 0;
+    last = NULL;
+    lastremain = 0;
+    // loop through players
+    loopi(players.length() + 1)
+    {
+        playerent *pl = players.inrange(i) ? players[i] : player1;
+        if (!pl) continue; // null
+        if (pl->radarearned <= lastmillis) continue; // no radar!
+        if (p && p != pl && p->team != TEAM_SPECT && !isteam(p, pl)) continue; // not the same team
+        // add to total
+        ++total;
+        // we want the HIGHEST number possible
+        if (pl->radarearned > lastmillis + lastremain)
+        {
+            lastremain = pl->radarearned - lastmillis;
+            last = pl;
+        }
+    }
+}
+
+bool radarup(playerent *p)
+{
+    loopi(players.length() + 1)
+    {
+        playerent *pl = players.inrange(i) ? players[i] : player1;
+        if (!pl) continue; // null
+        if (pl->radarearned <= lastmillis) continue; // no radar!
+        if (p != pl && p->team != TEAM_SPECT && !isteam(p, pl)) continue; // not the same team
+        // add to total
+        return true;
+    }
+    return false;
+}
+
+void nukeinfo(int &total, playerent *&first, int &firstremain)
+{
+    total = 0;
+    first = NULL;
+    firstremain = 0;
+    // loop through players
+    loopi(players.length() + 1)
+    {
+        playerent *pl = players.inrange(i) ? players[i] : player1;
+        if (!pl) continue; // null
+        if (pl->nukemillis <= lastmillis) continue; // no upcoming nuke
+        // add to total
+        ++total;
+        // we want the LEAST number possible
+        if (!firstremain || pl->nukemillis < lastmillis + firstremain)
+        {
+            firstremain = pl->nukemillis - lastmillis;
+            first = pl;
+        }
+    }
+}
+
 void respawnself()
 {
     addmsg(SV_TRYSPAWN, "r");

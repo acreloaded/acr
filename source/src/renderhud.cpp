@@ -699,7 +699,7 @@ void drawradar_showmap(playerent *p, int w, int h)
     // local player
     drawradarent(ppv.x, ppv.y, p->yaw, p->state == CS_DEAD ? 1 : (isattacking(p) ? 2 : 0), 1, iconsize, isattacking(p) ? 1 : 0, p->state == CS_DEAD ? .5f : 1.f, "\f1%s", colorname(p));
     // other players
-    const bool hasradar = false /* radarup(p) */ || p->team == TEAM_SPECT;
+    const bool hasradar = radarup(p) || p->team == TEAM_SPECT;
     loopv(players)
     {
         playerent *pl = players[i];
@@ -883,7 +883,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
     glTranslatef(halfviewsize, halfviewsize, 0);
     // local player
     drawradarent(0, 0, p->yaw, p->state == CS_DEAD ? 1 : (isattacking(p) ? 2 : 0), 1, iconsize, isattacking(p) ? 1 : 0, p->state == CS_DEAD ? .5f : 1.f, "\f1%s", colorname(p));
-    const bool hasradar = false /* radarup(p) */ || p->team == TEAM_SPECT;
+    const bool hasradar = radarup(p) || p->team == TEAM_SPECT;
     // other players
     loopv(players)
     {
@@ -1673,6 +1673,50 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             glColor4f(1.0f, 1.0f, 1.0f, focus->perk2 /* != PERK_NONE */ && focus->state != CS_DEAD ? .78f : .3f);
             quad(perk2->id, VIRTW - 440, VIRTH - 100 - 10, 100, 0, 0, 1);
         }
+    }
+
+    // streak meter
+    if (show_hud_element(true, 1))
+    {
+        const float streakscale = 1.5f;
+        static Texture *streakt[2][4] = { NULL }; // TODO: use native triangles?
+        loopi(2) loopj(4)
+        {
+            // done, current, outstanding
+            defformatstring(path)("packages/streak/%d%s.png", i, j ? j > 1 ? j > 2 ? "d" : "" : "c" : "o");
+            streakt[i][j] = textureload(path);
+        }
+        glLoadIdentity();
+        glOrtho(0, VIRTW * streakscale, VIRTH * streakscale, 0, -1, 1);
+        // we have the blend function set by the perk icon
+        const int currentstreak = floor(focus->pointstreak / 5.f);
+        loopi(11){
+            glColor4f(1, 1, 1, focus->state != CS_DEAD ? (currentstreak == i || i >= 10) ? (0.3f + fabs(sinf(lastmillis / 500.0f)) / 2 * ((i - 1) % 5) / 4.f) : .8f : .3f);
+            quad(streakt[i & 1][currentstreak > i ? 2 : currentstreak == i ? 1 : focus->deathstreak >= i ? 3 : 0]->id,
+                (VIRTW - 620 - 15 - (11 * 50) + i * 50) * streakscale, (VIRTH - 80 - 35) * streakscale, 80 * streakscale, 0, 0, 1);
+        }
+        // streak misc
+        // streak num
+        if (focus->deathstreak) draw_textf("\f3-%d", (VIRTW - 620 - 23 - max(11 - focus->deathstreak, 1) * 50) * streakscale, (VIRTH - 50 - 40) * streakscale, focus->deathstreak);
+        else draw_textf("\f%c%.1f", (VIRTW - 620 - 23 - max(11 - currentstreak, 1) * 50) * streakscale, (VIRTH - 50 - 40) * streakscale,
+            focus->pointstreak >= 9 * 5 ? '1' :
+            focus->pointstreak >= 7 * 5 ? '0' :
+            focus->pointstreak >= 3 * 5 ? '2' :
+            focus->pointstreak ? '2' :
+            '4',
+            focus->pointstreak / 5.f);
+        // airstrikes
+        draw_textf("\f4x\f%c%d", (VIRTW - 620 - 23 - 5 * 50) * streakscale, (VIRTH - 50) * streakscale, focus->airstrikes ? '0' : '5', focus->airstrikes);
+        // radar time
+        int stotal, sr;
+        playerent *spl;
+        radarinfo(stotal, spl, sr, focus);
+        if (!sr || !spl) stotal = 0; // safety
+        draw_textf("%d:\f%d%04.1f", (VIRTW - 620 - 40 - 3 * 50) * streakscale, (VIRTH - 50 - 80 - 25) * streakscale, stotal, stotal ? team_rel_color(focus, spl) : 5, sr / 1000.f);
+        // nuke timer
+        nukeinfo(stotal, spl, sr);
+        if (!sr || !spl) stotal = 0; // more safety
+        draw_textf("%d:\f%d%04.1f", (VIRTW - 620 - 40 - 50) * streakscale, (VIRTH - 50) * streakscale, stotal, stotal ? team_rel_color(focus, spl) : 5, sr / 1000.f);
     }
 
     glDisable(GL_BLEND);

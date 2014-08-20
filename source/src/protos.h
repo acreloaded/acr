@@ -410,6 +410,10 @@ struct votedata
 extern void callvote(int type, const votedata &vote);
 extern void addsleep(int msec, const char *cmd, bool persist = false);
 extern void resetsleep(bool force = false);
+// streak-related
+extern void radarinfo(int &total, playerent *&last, int &lastremain, const playerent *p = NULL);
+extern bool radarup(playerent *p);
+extern void nukeinfo(int &total, playerent *&first, int &firstremain);
 //game mode extras
 extern void flagpickup(int fln);
 extern void tryflagdrop();
