@@ -3,9 +3,10 @@ bin_win32/openal32.dll
 data/*
 packages/maps/servermaps/incoming/*
 
-# Non-third-party binaries
+# Binaries (except .dll)
 bin_win32/acr_*.exe
 bin_unix/*
+docs/xml/msxsl.exe
 
 # Source code
 source/codeblocks_dev

@@ -59,7 +59,7 @@
 
 
 <cuberef xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://assault.cubers.net/docs/xml"
-name="AssaultCube Documentation" version="Current" xsi:schemaLocation="xml/cuberef.xsd">
+name="AssaultCube Documentation" version="Current" xsi:schemaLocation="http://assault.cubers.net xml/cuberef.xsd">
   <sections sort="true">
   <!--
     Sections available: General, Gameplay, Game modes, Visuals, Heads-Up Display, Sound
