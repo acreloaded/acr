@@ -64,7 +64,7 @@ int allowconnect(client &cl, int authreq = 0, int authuser = 0)
         logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d%s", cl.gethostname(), cl.formatname(), bl, wlp);
         return DISC_NAME;
     }
-    else if (passwords.check(cl.name, cl.pwd, cl.salt, &pd, (cl.type == ST_TCPIP ? cl.peer->address.host : 0)) && (pd.priv >= CR_ADMIN || (banned && !srvfull && !srvprivate)) && bantype != BAN_MASTER) // pass admins always through
+    else if (passwords.check(cl.name, cl.pwd, cl.salt, &pd, (cl.type == ST_TCPIP ? cl.peer->address.host : 0)) && (pd.priv >= CR_ADMIN || (banned && !srvfull && !srvprivate))) // pass admins always through
     {
         // admin (or deban) password match
         bool banremoved = false;

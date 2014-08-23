@@ -2560,50 +2560,6 @@ void startgame(const char *newname, int newmode, int newmuts, int newtime, bool 
     }
 }
 
-struct gbaninfo
-{
-    enet_uint32 ip, mask;
-};
-
-vector<gbaninfo> gbans;
-
-void cleargbans()
-{
-    gbans.shrink(0);
-}
-
-bool checkgban(uint ip)
-{
-    loopv(gbans) if((ip & gbans[i].mask) == gbans[i].ip) return true;
-    return false;
-}
-
-void addgban(const char *name)
-{
-    union { uchar b[sizeof(enet_uint32)]; enet_uint32 i; } ip, mask;
-    ip.i = 0;
-    mask.i = 0;
-    loopi(4)
-    {
-        char *end = NULL;
-        int n = strtol(name, &end, 10);
-        if(!end) break;
-        if(end > name) { ip.b[i] = n; mask.b[i] = 0xFF; }
-        name = end;
-        while(*name && *name++ != '.');
-    }
-    gbaninfo &ban = gbans.add();
-    ban.ip = ip.i;
-    ban.mask = mask.i;
-
-    loopvrev(clients)
-    {
-        client &c = *clients[i];
-        if(c.type!=ST_TCPIP) continue;
-        if(checkgban(c.peer->address.host)) disconnect_client(c, DISC_BANREFUSE);
-    }
-}
-
 inline void addban(client &cl, int reason, int type)
 {
     ban b = { cl.peer->address, servmillis+scl.ban_time, type };
@@ -2614,7 +2570,6 @@ inline void addban(client &cl, int reason, int type)
 int getbantype(client &c)
 {
     if(c.type==ST_LOCAL) return BAN_NONE;
-    if(checkgban(c.peer->address.host)) return BAN_MASTER;
     if(ipblacklist.check(c.peer->address.host)) return BAN_BLACKLIST;
     loopv(bans)
     {

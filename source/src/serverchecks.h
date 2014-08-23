@@ -8,8 +8,6 @@ inline bool outside_border(vec &po)
     return (po.x < 0 || po.y < 0 || po.x >= maplayoutssize || po.y >= maplayoutssize);
 }
 
-extern inline void addban(client &cl, int reason, int type = BAN_AUTO);
-
 #define MINELINE 50
 
 //FIXME
