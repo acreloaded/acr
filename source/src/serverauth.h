@@ -131,9 +131,11 @@ void authsucceeded(uint id, int priv, const char *name)
     }
     else
         logline(ACLOG_INFO, "[%s] auth #%d succeeded for %s as '%s'", cl->gethostname(), id, privname(priv), cl->authname);
-    //bool banremoved = false;
-    loopv(bans) if (bans[i].address.host == cl->peer->address.host){ bans.remove(i--); /*banremoved = true;*/ } // remove temporary bans
-    // broadcast "identified" if privileged or a ban was removed
+    // remove temporary bans
+    if (priv)
+        loopv(bans)
+            if (bans[i].type == BAN_VOTE && bans[i].address.host == cl->peer->address.host)
+                bans.remove(i--);
     sendf(NULL, 1, "ri3s", SV_AUTH_ACR_CHAL, 5, cl->clientnum, cl->authname);
     if (priv)
     {
