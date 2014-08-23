@@ -1308,7 +1308,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     else if(infostr) draw_text(infostr, 20, 1570);
     else if(show_hud_element(!hidehudtarget, 1))
     {
-        defformatstring(hudtext)("\f0[\f1%04.1f\f3m\f0]", focus->o.dist(worldhitpos) / 4.f);
+        defformatstring(hudtext)("\f0[\f1%04.1f\f3m\f0]", focus->o.dist(worldhitpos) / CUBES_PER_METER);
         static string hudtarget;
         static int lasttarget = INT_MIN;
         if(worldhit)

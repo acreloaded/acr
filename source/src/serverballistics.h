@@ -237,7 +237,7 @@ void nuke(client &owner, bool suicide, bool forced_all, bool friendly_fire)
             // sort hits
             nukehit &hit = hits.add();
             hit.distance = cl->state.o.dist(owner.state.o);
-            if (cl->type != ST_AI) hit.distance += 80; // 20 meters to prioritize non-bots
+            if (cl->type != ST_AI) hit.distance += 25 * CUBES_PER_METER; // to prioritize non-bots
             hit.target = cl;
         }
     }
@@ -270,7 +270,7 @@ struct shothit
 client *nearesthit(client &actor, const vec &from, const vec &to, bool teamcheck, int &hitzone, const vector<posinfo> &pos, vector<int> &exclude, vec &end, bool melee = false)
 {
     client *result = NULL;
-    float dist = 4e9f; // a billion meters...
+    float dist = FLT_MAX;
 #define MELEE_PRECISION 11
     vec melees[MELEE_PRECISION];
     if (melee)
@@ -413,7 +413,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
             .add(end);
         // retrace
         straceShot(end, dir, &newsurface);
-        const int penetratedamage = shot(owner, end, dir, pos, weap, style, newsurface, exclude, dist2, penaltydist + 40, save); // 10 meters penalty for penetrating the player
+        const int penetratedamage = shot(owner, end, dir, pos, weap, style, newsurface, exclude, dist2, penaltydist + 10 * CUBES_PER_METER, save); // distance penalty for penetrating the player
         sendf(NULL, 1, "ri9", SV_RICOCHET, owner.clientnum, weap, (int)(end.x*DMF), (int)(end.y*DMF), (int)(end.z*DMF), (int)(dir.x*DMF), (int)(dir.y*DMF), (int)(dir.z*DMF));
         return damage + penetratedamage;
     }
@@ -440,7 +440,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
             .add(to);
         // retrace
         straceShot(to, dir, &newsurface);
-        const int ricochetdamage = shot(owner, to, dir, pos, weap, style, newsurface, exclude, dist2, penaltydist + 60, save); // 15 meters penalty for ricochet
+        const int ricochetdamage = shot(owner, to, dir, pos, weap, style, newsurface, exclude, dist2, penaltydist + 15 * CUBES_PER_METER, save); // distance penalty for ricochet
         sendf(NULL, 1, "ri9", SV_RICOCHET, owner.clientnum, weap, (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), (int)(dir.x*DMF), (int)(dir.y*DMF), (int)(dir.z*DMF));
         return damage + ricochetdamage;
     }

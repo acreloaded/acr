@@ -1890,9 +1890,9 @@ void serverdied(client &target, client &actor_, int damage, int gun, int style, 
     // log message
     const int logtype = actor->type == ST_AI && target.type == ST_AI ? ACLOG_VERBOSE : ACLOG_INFO;
     if (suic)
-        logline(logtype, "[%s] %s [%s] (%.2f m)", actor->gethostname(), actor->formatname(), suicname(gun), killdist / 4.f);
+        logline(logtype, "[%s] %s [%s] (%.2f m)", actor->gethostname(), actor->formatname(), suicname(gun), killdist / CUBES_PER_METER);
     else
-        logline(logtype, "[%s] %s [%s] %s (%.2f m)", actor->gethostname(), actor->formatname(), killname(gun, style), target.formatname(), killdist / 4.f);
+        logline(logtype, "[%s] %s [%s] %s (%.2f m)", actor->gethostname(), actor->formatname(), killname(gun, style), target.formatname(), killdist / CUBES_PER_METER);
 
     // drop flags
     if (targethasflag >= 0 && m_flags(gamemode) && !m_secure(gamemode))
@@ -3159,9 +3159,10 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
             const float dz = cs.fallz - cs.o.z;
             if(newonfloor)
             { // air to solid
-                bool hit = false;
-                if(dz > 10)
-                { // fall at least 2.5 meters to fall onto others
+                if (dz > 2.5 * CUBES_PER_METER)
+                {
+                    bool hit = false;
+                    // fall onto others
                     loopv(clients)
                     {
                         client &t = *clients[i];
@@ -3177,23 +3178,21 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
                             serverdied(t, cp, 0, OBIT_FALL, FRAG_NONE, cs.o);
                         hit = true;
                     }
-                }
-                if(!hit) // not cushioned by another player
-                {
-                    // 4 meters without damage + 2/0.5 HP/meter
-                    // int damage = ((cs.fallz - newo.z) - 16) * HEALTHSCALE / (cs.perk1 == PERK1_LIGHT ? 8 : 2);
-                    // 2 meters without damage, then square up to 10^2 = 100 for up to 20m (50m with lightweight)
-                    int damage = 0;
-                    if(dz > 8)
-                        damage = powf(min<float>((dz - 8) / 4 / (cs.perk1 == PERK1_LIGHT ? 5 : 2), 10), 2.f) * HEALTHSCALE; // 10 * 10 = 100
-                    if(damage >= 1*HEALTHSCALE) // don't heal the player
+                    if (!hit) // not cushioned by another player
                     {
-                        // maximum damage is 99 for balance purposes
-                        serverdamage(cp, cp, min(damage, (m_classic(gamemode, mutators) ? 30 : 99) * HEALTHSCALE), OBIT_FALL, FRAG_NONE, cs.o); // max 99, "30" (15) for classic
+                        // 4 meters without damage + 2/0.5 HP/meter
+                        // int damage = ((cs.fallz - newo.z) - 4 * CUBES_PER_METER) * HEALTHSCALE / (cs.perk1 == PERK1_LIGHT ? 8 : 2);
+                        // 2 meters without damage, then quadratic up to 100 @ 22m (52m with lightweight)
+                        int damage = min((int)(powf((dz - 2 * CUBES_PER_METER) / (cs.perk1 == PERK1_LIGHT ? 20 : 8), 2.f) * HEALTHSCALE), 100 * HEALTHSCALE);
+                        if (damage >= 1 * HEALTHSCALE) // don't heal the player
+                        {
+                            // maximum damage is 95 for balance purposes
+                            serverdamage(cp, cp, min(damage, (m_classic(gamemode, mutators) ? 30 : 95) * HEALTHSCALE), OBIT_FALL, FRAG_NONE, cs.o); // max 95, "30" (15) for classic
+                        }
                     }
                 }
             }
-            else if(newunderwater && dz > 32) // air to liquid, more than 8 meters
+            else if (newunderwater && dz > 8 * CUBES_PER_METER) // air to liquid
                 serverdamage(cp, cp, (m_classic(gamemode, mutators) ? 20 : 35) * HEALTHSCALE, OBIT_FALL_WATER, FRAG_NONE, cs.o); // fixed damage @ 35, "20" (10) for classic
             cs.onfloor = true;
         }

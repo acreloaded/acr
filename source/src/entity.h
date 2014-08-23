@@ -45,6 +45,8 @@ struct entity : persistent_entity
     }
 };
 
+#define CUBES_PER_METER 4 // assume 4 cubes make up 1 meter
+
 #define HEADSIZE 0.4f
 #define TORSOPART 0.35f
 #define LEGPART (1.f - TORSOPART)

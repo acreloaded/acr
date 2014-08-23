@@ -434,7 +434,6 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         }
         else // apply gravity
         {
-            const float CUBES_PER_METER = 4; // assumes 4 cubes make up 1 meter
             const float BOUNCE_MASS = 0.5f; // sane default mass of 0.5 kg
             const float GRAVITY = BOUNCE_MASS*9.81f/CUBES_PER_METER/1000.0f;
             bounce->vel.z -= GRAVITY*curtime;
