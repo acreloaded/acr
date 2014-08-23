@@ -1679,7 +1679,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if (show_hud_element(!hidehudequipment, 1))
     {
         const float streakscale = 1.5f;
-        static Texture *streakt[2][4] = { NULL }; // TODO: use native triangles?
+        static Texture *streakt[2][4] = { { NULL } }; // TODO: use native plain OpenGL triangles?
         loopi(2) loopj(4)
         {
             // done, current, outstanding
