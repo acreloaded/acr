@@ -138,7 +138,7 @@ void authsucceeded(uint id, int priv, const char *name)
     if (priv)
     {
         cl->authpriv = clamp(priv, (int)CR_MASTER, (int)CR_MAX);
-        setpriv(*cl, cl->authpriv);
+        // setpriv(*cl, cl->authpriv);
         // unmute if auth has privilege
         // cl->muted = false;
     }
