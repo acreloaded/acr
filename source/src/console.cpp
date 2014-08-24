@@ -296,6 +296,9 @@ struct obitlist : consolebuffer<oline>
         glPushMatrix();
         glLoadIdentity();
         glOrtho(0, VIRTW*ts, VIRTH*ts, 0, -1, 1);
+        int origVIRTW = VIRTW;
+        glTranslatef((float)ts*VIRTW*(monitors - 2 + (monitors&1))/(2.*monitors), 0., 0.);
+        VIRTW /= (float)monitors/(float)(2 - (monitors & 1));
         int linei = 0, /*consumed = 0,*/ y = ts * VIRTH * .5f;
         // every line is 1 line
         linei = min(fullconsole ? FADEMAX : maxlines, conlines.length());
@@ -340,6 +343,7 @@ struct obitlist : consolebuffer<oline>
                     popfont();
             }
         }
+        VIRTW = origVIRTW;
         glPopMatrix();
     }
 } obits;

@@ -569,7 +569,10 @@ struct hudmessages : consolebuffer<hudline>
         if(!conlines.length()) return;
         glPushMatrix();
         glLoadIdentity();
-        glOrtho(0, VIRTW*0.9f, VIRTH*0.9f, 0, -1, 1);
+        int origVIRTW = VIRTW;
+        glOrtho(0, origVIRTW*0.9f, VIRTH*0.9f, 0, -1, 1);
+        glTranslatef((float)0.9f*origVIRTW*(monitors - 2 + (monitors&1))/(2.*monitors), 0., 0.);
+        VIRTW /= (float)monitors/(float)(2 - (monitors & 1));
         int dispmillis = arenaintermission ? 6000 : 3000;
         loopi(min(conlines.length(), 3)) if(totalmillis-conlines[i].millis<dispmillis)
         {
@@ -578,6 +581,7 @@ struct hudmessages : consolebuffer<hudline>
             draw_text(c.line, int(tw > VIRTW*0.9f ? 0 : (VIRTW*0.9f-tw)/2), int(((VIRTH*0.9f)/4*3)+FONTH*i+pow((totalmillis-c.millis)/(float)dispmillis, 4)*VIRTH*0.9f/4.0f));
         }
         glPopMatrix();
+        VIRTW = origVIRTW;
     }
 };
 
@@ -1350,7 +1354,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     extern void r_accuracy(int h);
     if (!spectating) r_accuracy(commandh);
     if (hud_must_not_override(!hideconsole)) renderconsole();
+    VIRTW=origVIRTW;
     if (show_hud_element(!hideobits, 6)) renderobits();
+    VIRTW /= (float)monitors/(float)(2 - (monitors & 1));
     formatstring(enginestateinfo)("%d %d %d %d %d", curfps, lod_factor(), nquads, curvert, xtraverts);
     if(showstats)
     {
@@ -1533,7 +1539,10 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if(menu) rendermenu();
     else if(command) renderdoc(40, VIRTH, max(commandh*2 - VIRTH, 0));
 
+    VIRTW = origVIRTW;
     if (hud_must_not_override(!hidehudmsgs)) hudmsgs.render();
+    VIRTW /= (float)monitors/(float)(2 - (monitors & 1));
+
 
     if (!hidespecthud && !menu && focus->state == CS_DEAD && focus->spectatemode <= SM_DEATHCAM)
     {
@@ -1634,12 +1643,11 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         }
     }
 
-    VIRTW = origVIRTW;
-
     // perk icons
     glLoadIdentity();
-    glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
+    glOrtho(0, origVIRTW, VIRTH, 0, -1, 1);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glTranslatef((float)VIRTW*(monitors - 2 + (monitors&1))/(2.*monitors), 0., 0.);
 
     if (show_hud_element(!hidehudequipment, 6))
     {
@@ -1687,7 +1695,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             streakt[i][j] = textureload(path);
         }
         glLoadIdentity();
-        glOrtho(0, VIRTW * streakscale, VIRTH * streakscale, 0, -1, 1);
+        glOrtho(0, origVIRTW * streakscale, VIRTH * streakscale, 0, -1, 1);
+        glTranslatef((float)streakscale*origVIRTW*(monitors - 2 + (monitors&1))/(2.*monitors), 0., 0.);
         // we have the blend function set by the perk icon
         const int currentstreak = floor(focus->pointstreak / 5.f);
         loopi(11){
@@ -1718,6 +1727,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         if (!sr || !spl) stotal = 0; // more safety
         draw_textf("%d:\f%d%04.1f", (VIRTW - 620 - 40 - 50) * streakscale, (VIRTH - 50) * streakscale, stotal, stotal ? team_rel_color(focus, spl) : 5, sr / 1000.f);
     }
+
+    VIRTW = origVIRTW;
 
     glDisable(GL_BLEND);
     glDisable(GL_TEXTURE_2D);
