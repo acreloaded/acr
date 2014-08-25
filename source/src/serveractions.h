@@ -315,12 +315,18 @@ struct botbalanceaction : serveraction
 {
     int balance;
     void perform() { botbalance = balance; checkai(); /* botbalance changed */ }
-    bool isvalid() { return balance >= -1 && balance <= MAXCLIENTS; }
     botbalanceaction(int balance) : balance(balance)
     {
         reqcall = roleconf('a');
         reqveto = CR_MASTER; // botbalance
-        if(isvalid()) formatstring(desc)("change botbalance to %d", balance);
+        if (isvalid())
+        {
+            if (balance == 1) copystring(desc, "bots balance teams only");
+            else if (!balance) copystring(desc, "disable all bots");
+            else if (balance == -1) copystring(desc, "automatically balance bots");
+            else if (balance < -1) formatstring(desc)("balance to %d RED, %d BLUE", ((balance / -32) & 0x0F), ((balance / -2) & 0x0F));
+            else formatstring(desc)("balance to %d players", balance);
+        }
     }
 };
 
