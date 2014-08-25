@@ -164,7 +164,7 @@ void checkai()
         {
             if(m_team(gamemode, mutators) && !m_zombie(gamemode))
             {
-                if (botbalance < -1) balance = (((botbalance) / -32) & 0x0F) + (((botbalance) / -2) & 0x0F);
+                if (botbalance < -1) balance = (botbalance / -100) + (-botbalance % 100);
                 else
                 {
                     int plrs[2] = { 0 }, highest = -1;

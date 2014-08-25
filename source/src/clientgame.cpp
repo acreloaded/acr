@@ -1405,7 +1405,7 @@ const char *votestring(int type, const votedata &vote)
             else if (vote.int1 == -1)
                 copystring(out, "automatically balance bots");
             else if (vote.int1 < -1)
-                formatstring(out)("balance to %d RED, %d BLUE", ((vote.int1 / -32) & 0x0F), ((vote.int1 / -2) & 0x0F));
+                formatstring(out)("balance to %d RED, %d BLUE", vote.int1 / -100, -vote.int1 % 100);
             else
                 formatstring(out)("balance to %d players", vote.int1);
             break;

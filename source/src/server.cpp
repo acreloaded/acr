@@ -2065,7 +2065,7 @@ inline bool canspawn(client &c, bool connecting)
     return true;
 }
 
-int chooseteam(client &cl, int def = rnd(2))
+int chooseteam(client &cl, int suggest = -1)
 {
     // zombies override
     if (m_zombie(gamemode) && !m_convert(gamemode, mutators))
@@ -2075,7 +2075,16 @@ int chooseteam(client &cl, int def = rnd(2))
         return team_base(cl.team);
     // team sizes
     int *teamsizes = numteamclients(cl.clientnum, cl.type == ST_AI);
-    if(autoteam && teamsizes[TEAM_CLA] != teamsizes[TEAM_RVSF]) return teamsizes[TEAM_CLA] < teamsizes[TEAM_RVSF] ? TEAM_CLA : TEAM_RVSF;
+    if (botbalance < -1)
+    {
+        const int target_CLA = botbalance / -100;
+        const int target_RVSF = -botbalance % 100;
+        if (teamsizes[TEAM_CLA] < target_CLA || teamsizes[TEAM_RVSF] < target_RVSF)
+            return teamsizes[TEAM_CLA] * target_RVSF < teamsizes[TEAM_RVSF] * target_CLA ? TEAM_CLA : TEAM_RVSF;
+        return TEAM_SPECT;
+    }
+    else if(autobalance && teamsizes[TEAM_CLA] != teamsizes[TEAM_RVSF])
+        return teamsizes[TEAM_CLA] < teamsizes[TEAM_RVSF] ? TEAM_CLA : TEAM_RVSF;
     else
     { // join weaker team
         int teamscore[2] = {0, 0}, sum = calcscores();
@@ -2083,7 +2092,9 @@ int chooseteam(client &cl, int def = rnd(2))
         {
             teamscore[team_base(clients[i]->team)] += clients[i]->at3_score;
         }
-        return sum > 200 ? (teamscore[TEAM_CLA] < teamscore[TEAM_RVSF] ? TEAM_CLA : TEAM_RVSF) : def;
+        if (sum > 200 && teamscore[TEAM_CLA] != teamscore[TEAM_RVSF])
+            return teamscore[TEAM_CLA] < teamscore[TEAM_RVSF] ? TEAM_CLA : TEAM_RVSF;
+        return team_isvalid(suggest) ? suggest : rnd(2);
     }
 }
 
