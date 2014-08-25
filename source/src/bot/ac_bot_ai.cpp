@@ -68,6 +68,8 @@ bool CACBot::ChoosePreferredWeapon()
                 if(WeaponInfoTable[m_pMyEnt->primary].eWeaponType == TYPE_SNIPER) sWeaponScore += 10; // At a close range, knife & pistol are strong with a sniper like primary weapon
                 if(WeaponInfoTable[m_pMyEnt->primary].eWeaponType == TYPE_SHOTGUN) sWeaponScore -= 2; // Penalize a bit knife and pistol on close range with shotgun
             }
+
+            if(flDist < 50 && WeaponInfoTable[i].eWeaponType == TYPE_SNIPER) sWeaponScore -= 5;
         }
         else if (((flDist < WeaponInfoTable[i].flMinFireDistance) ||
                 (flDist > WeaponInfoTable[i].flMaxFireDistance)) && i != GUN_GRENADE && i != GUN_RPG)

@@ -66,7 +66,8 @@ void deleteai(client &c)
     if(c.type != ST_AI || c.ownernum < 0)
         return;
     const int cn = c.clientnum;
-    c.ownernum = -1;
+    c.ownernum = -1;VARP(clabalance, 0, 0, 16);
+VARP(rvsfbalance, 0, 0, 16);
     clientdisconnect(c);
     sendf(NULL, 1, "ri2", SV_DELAI, cn);
 }
@@ -116,6 +117,9 @@ bool reassignai(int exclude = -1)
     return false;
 }
 
+
+extern int clabalance;
+extern int rsvfbalance;
 void checkai()
 {
     // check if bots are disallowed
@@ -143,22 +147,29 @@ void checkai()
     {
         int balance = 0;
         const int humans = numplayers(false);
-        if(humans) switch(botbalance)
-        {
-            case  0: // force no bots, except for zombies
-                if(!m_zombie(gamemode))
-                {
-                    balance = 0;
-                    break;
-                }
-                // fallthrough for zombies
-            case -1: // auto
-                if(m_zombie(gamemode)) balance = min(zombiebalance + humans, 30); // effectively zombiebalance, but capped at 30
-                else if(m_duke(gamemode, mutators)) balance = max(humans, maplayout_factor - 3); // 3 - 5 - 8 (6 - 8 - 11 layout factor)
-                else if(m_team(gamemode, mutators)) balance = clamp((smapstats.spawns[0] + smapstats.spawns[1]) / 3, max(6, humans), 14);
-                else balance = clamp(smapstats.spawns[2] / 3, max(4, humans), 10);
-                break; // auto
-            default: balance = max(humans, botbalance); break; // force bot count
+        if(humans){
+            if(!rvsfbalance && !clabalance) switch(botbalance)
+            {
+                case  0: // force no bots, except for zombies
+                    if(!m_zombie(gamemode))
+                    {
+                        balance = 0;
+                        break;
+                    }
+                    // fallthrough for zombies
+                case -1: // auto
+                    if(m_zombie(gamemode)) balance = min(zombiebalance + humans, 30); // effectively zombiebalance, but capped at 30
+                    else if(m_duke(gamemode, mutators)) balance = max(humans, maplayout_factor - 3); // 3 - 5 - 8 (6 - 8 - 11 layout factor)
+                    else if(m_team(gamemode, mutators)) balance = clamp((smapstats.spawns[0] + smapstats.spawns[1]) / 3, max(6, humans), 14);
+                    else balance = clamp(smapstats.spawns[2] / 3, max(4, humans), 10);
+                    break; // auto
+                default: balance = max(humans, botbalance); break; // force bot count
+            }
+            else
+                balance = rvsfbalance + clabalance;
+        }
+        else{
+            balance = -1;
         }
         if(balance > 0)
         {

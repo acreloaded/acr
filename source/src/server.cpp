@@ -1886,7 +1886,7 @@ void serverdied(client &target, client &actor_, int damage, int gun, int style, 
     ts.lastspawn = -1;
     // don't issue respawn yet until DEATHMILLIS has elapsed
     // ts.respawn();
-    
+
     // log message
     const int logtype = actor->type == ST_AI && target.type == ST_AI ? ACLOG_VERBOSE : ACLOG_INFO;
     if (suic)
@@ -2065,6 +2065,8 @@ inline bool canspawn(client &c, bool connecting)
     return true;
 }
 
+VARP(clabalance, 0, 0, 16);
+VARP(rvsfbalance, 0, 0, 16);
 int chooseteam(client &cl, int def = rnd(2))
 {
     // zombies override
@@ -2075,7 +2077,20 @@ int chooseteam(client &cl, int def = rnd(2))
         return team_base(cl.team);
     // team sizes
     int *teamsizes = numteamclients(cl.clientnum, cl.type == ST_AI);
-    if(autoteam && teamsizes[TEAM_CLA] != teamsizes[TEAM_RVSF]) return teamsizes[TEAM_CLA] < teamsizes[TEAM_RVSF] ? TEAM_CLA : TEAM_RVSF;
+    if(clabalance || rvsfbalance){
+        int sendTo = teamsizes[TEAM_CLA] < teamsizes[TEAM_RVSF] ? TEAM_CLA : TEAM_RVSF;
+        if(teamsizes[TEAM_CLA] < teamsizes[TEAM_RVSF]){
+            if(teamsizes[TEAM_CLA] < clabalance) return TEAM_CLA;
+            else if(teamsizes[TEAM_RVSF] < rvsfbalance) return TEAM_RVSF;
+            else return TEAM_CLA_SPECT;
+        }
+        else{
+            if(teamsizes[TEAM_RVSF] < rvsfbalance) return TEAM_RVSF;
+            else if(teamsizes[TEAM_CLA] < clabalance) return TEAM_CLA;
+            else return TEAM_CLA_SPECT;
+        }
+    }
+    else if(autoteam && teamsizes[TEAM_CLA] != teamsizes[TEAM_RVSF]) return teamsizes[TEAM_CLA] < teamsizes[TEAM_RVSF] ? TEAM_CLA : TEAM_RVSF;
     else
     { // join weaker team
         int teamscore[2] = {0, 0}, sum = calcscores();
@@ -4192,7 +4207,7 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 unsigned char hash[20];
                 loopi(20) hash[i] = p.get();
-                logline(ACLOG_INFO, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x", 
+                logline(ACLOG_INFO, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
                     hash[0], hash[1], hash[2], hash[3],
                     hash[4], hash[5], hash[6], hash[7],
                     hash[8], hash[9], hash[10], hash[11],
