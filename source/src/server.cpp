@@ -1886,7 +1886,7 @@ void serverdied(client &target, client &actor_, int damage, int gun, int style, 
     ts.lastspawn = -1;
     // don't issue respawn yet until DEATHMILLIS has elapsed
     // ts.respawn();
-    
+
     // log message
     const int logtype = actor->type == ST_AI && target.type == ST_AI ? ACLOG_VERBOSE : ACLOG_INFO;
     if (suic)
@@ -4192,7 +4192,7 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 unsigned char hash[20];
                 loopi(20) hash[i] = p.get();
-                logline(ACLOG_INFO, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x", 
+                logline(ACLOG_INFO, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
                     hash[0], hash[1], hash[2], hash[3],
                     hash[4], hash[5], hash[6], hash[7],
                     hash[8], hash[9], hash[10], hash[11],
