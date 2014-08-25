@@ -3715,6 +3715,9 @@ void process(ENetPacket *packet, int sender, int chan)
                 int t = getint(p);
                 if (cl->team == t || !team_isvalid(t)) break;
 
+                if (mastermode != MM_MATCH && (t == TEAM_CLA_SPECT || t == TEAM_RVSF_SPECT))
+                    t = TEAM_SPECT;
+
                 if (cl->role < CR_ADMIN && t < TEAM_SPECT)
                 {
                     if (mastermode == MM_OPEN && cl->state.forced && team_base(cl->team) != team_base(t))
