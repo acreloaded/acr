@@ -232,8 +232,8 @@ void saytext(playerent *d, char *text, int flags, int sound)
     }
     string textout;
     // nametag
-    defformatstring(nametag)("\f%d%s", /*team_rel_color(player1->team, d->team)*/ 1, colorname(d));
-    if(flags & SAY_TEAM) concatformatstring(nametag, " \f5(\f%d%s\f5)", /* team_color(d->team) */ 1, team_string(d->team));
+    defformatstring(nametag)("\f%d%s", team_rel_color(player1, d), colorname(d));
+    if(flags & SAY_TEAM) concatformatstring(nametag, " \f5(\f%d%s\f5)", team_color(d->team), team_string(d->team));
     // more nametag
     if(flags & SAY_ACTION) formatstring(textout)("\f5* %s", nametag);
     else formatstring(textout)("\f5<%s\f5>", nametag);
@@ -241,7 +241,7 @@ void saytext(playerent *d, char *text, int flags, int sound)
     if(sound) concatformatstring(textout, " \f4[\f6%d\f4] \f%c%s", sound, textcolor, text);
     else concatformatstring(textout, " \f%c%s", textcolor, text);
     // output text
-    if (textcolor == 2)
+    if (textcolor == '2')
         conoutf("%s", textout);
     else
         chatoutf("%s", textout);
