@@ -19,7 +19,7 @@ struct serveraction
 
     virtual void perform() = 0;
     virtual bool isvalid() { return true; }
-    virtual bool isdisabled() { return false; }
+    virtual bool isdisabled() const { return false; }
     serveraction() : reqcall(CR_DEFAULT), reqveto(CR_ADMIN), length(40000), passratio(.5f), area(EE_ALL) { desc[0] = '\0'; }
     virtual ~serveraction() { }
 };
@@ -50,7 +50,7 @@ struct mapaction : serveraction
         }
     }
     bool isvalid() { return serveraction::isvalid() && m_valid(mode) && !m_demo(mode) && map[0] && mapok; }
-    bool isdisabled() { return maprot.current() && !maprot.current()->vote; }
+    bool isdisabled() const { return maprot.current() && !maprot.current()->vote; }
     mapaction(char *map, int mode, int muts, int caller, bool q) : map(map), mode(mode), muts(muts), queue(q)
     {
         if(isdedicated)

@@ -2623,8 +2623,8 @@ struct voteinfo
         loopv(clients) clients[i]->vote = VOTE_NEUTRAL;
     }
 
-    bool isvalid() { return valid_client(owner) && action != NULL && action->isvalid(); }
-    bool isalive() { return servmillis - callmillis < action->length; }
+    bool isvalid() const { return valid_client(owner) && action != NULL && action->isvalid(); }
+    bool isalive() const { return servmillis - callmillis < action->length; }
 
     void evaluate(bool forceend = false, int veto = VOTE_NEUTRAL, int vetoowner = -1)
     {
@@ -2656,43 +2656,42 @@ struct voteinfo
 
 static voteinfo *curvote = NULL;
 
-void scallvotesuc(voteinfo *v)
+void scallvotesuc(voteinfo &v)
 {
-    if(!v->isvalid()) return;
+    if(!v.isvalid()) return;
     DELETEP(curvote);
-    curvote = v;
-    clients[v->owner]->lastvotecall = servmillis;
-    clients[v->owner]->nvotes--; // successful votes do not count as abuse
-    logline(ACLOG_INFO, "[%s] %s called a vote: %s", clients[v->owner]->gethostname(), clients[v->owner]->formatname(), v->action && v->action->desc ? v->action->desc : "[unknown]");
+    curvote = &v;
+    clients[v.owner]->lastvotecall = servmillis;
+    clients[v.owner]->nvotes--; // successful votes do not count as abuse
+    logline(ACLOG_INFO, "[%s] %s called a vote: %s", clients[v.owner]->gethostname(), clients[v.owner]->formatname(), v.action && v.action->desc ? v.action->desc : "[unknown]");
 }
 
-void scallvoteerr(voteinfo *v, int error)
+void scallvoteerr(const voteinfo &v, int error)
 {
-    if(!valid_client(v->owner)) return;
-    client &owner = *clients[v->owner];
+    if(!valid_client(v.owner)) return;
+    client &owner = *clients[v.owner];
     sendf(&owner, 1, "ri2", SV_CALLVOTEERR, error);
-    logline(ACLOG_INFO, "[%s] %s failed to call a vote: %s (%s)", owner.gethostname(), owner.formatname(), v->action && v->action->desc ? v->action->desc : "[unknown]", voteerrorstr(error));
+    logline(ACLOG_INFO, "[%s] %s failed to call a vote: %s (%s)", owner.gethostname(), owner.formatname(), v.action && v.action->desc ? v.action->desc : "[unknown]", voteerrorstr(error));
 }
 
 void sendcallvote(client *cl = NULL);
 
-bool scallvote(voteinfo *v) // true if a regular vote was called
+bool scallvote(voteinfo &v) // true if a regular vote was called
 {
-    ASSERT(v);
     int area = isdedicated ? EE_DED_SERV : EE_LOCAL_SERV;
     int error = -1;
-    client *c = clients[v->owner];
+    client *c = clients[v.owner];
 
     int time = servmillis - c->lastvotecall;
     if ( c->nvotes > 0 && time > 4*60*1000 ) c->nvotes -= time/(4*60*1000);
     if ( c->nvotes < 0 || c->role >= CR_ADMIN ) c->nvotes = 0;
     c->nvotes++;
 
-    if( !v || !v->isvalid() ) error = VOTEE_INVALID;
-    else if( v->action->reqcall > c->role ) error = VOTEE_PERMISSION;
-    else if( !(area & v->action->area) ) error = VOTEE_AREA;
+    if( !v.isvalid() ) error = VOTEE_INVALID;
+    else if( v.action->reqcall > c->role ) error = VOTEE_PERMISSION;
+    else if( !(area & v.action->area) ) error = VOTEE_AREA;
     else if( curvote && curvote->result==VOTE_NEUTRAL ) error = VOTEE_CUR;
-    else if( c->role == CR_DEFAULT && v->action->isdisabled() ) error = VOTEE_DISABLED;
+    else if( c->role == CR_DEFAULT && v.action->isdisabled() ) error = VOTEE_DISABLED;
     else if( (c->lastvotecall && servmillis - c->lastvotecall < 60*1000 && c->role < CR_ADMIN && numclients()>1) || c->nvotes > 3 ) error = VOTEE_MAX;
 
     if(error>=0)
@@ -2705,7 +2704,7 @@ bool scallvote(voteinfo *v) // true if a regular vote was called
         scallvotesuc(v);
         sendcallvote();
         // owner auto votes yes
-        sendf(NULL, 1, "ri3", SV_VOTE, v->owner, (c->vote = VOTE_YES));
+        sendf(NULL, 1, "ri3", SV_VOTE, v.owner, (c->vote = VOTE_YES));
         curvote->evaluate();
         return true;
     }
@@ -4342,7 +4341,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 }
                 vi->owner = sender;
                 vi->callmillis = servmillis;
-                if(!scallvote(vi)) delete vi;
+                if(!scallvote(*vi)) delete vi;
                 break;
             }
 
