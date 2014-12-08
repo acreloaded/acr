@@ -1282,7 +1282,7 @@ int stringsort(const char **a, const char **b) { return strcmp(*a, *b); }
 void sortlist(char *list)
  {
     char* buf;
-    buf = new char [strlen(list)]; strcpy(buf, ""); //output
+    buf = newstring(strlen(list)); buf[0] = '\0'; //output
 
     if(strcmp(list, "") == 0)
     {
@@ -1310,7 +1310,7 @@ void sortlist(char *list)
  void swapelements(char *list, char *v)
  {
     char* buf;
-    buf = new char [strlen(list)]; strcpy(buf, ""); //output
+    buf = newstring(strlen(list)); buf[0] = '\0'; //output
 
     if(strcmp(list, "") == 0)
     {

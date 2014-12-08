@@ -133,6 +133,8 @@ void snewmap(int factor)
     defaultblock.floor = 0;
     defaultblock.ceil = 16;
     defaultblock.vdelta = 0;
+    defaultblock.wtex = DEFAULT_WALL;
+    defaultblock.ctex = DEFAULT_WALL;
     maplayout = new ssqr[layoutsize + 256];
     loopi(layoutsize)
         memcpy(maplayout + i, &defaultblock, sizeof(ssqr));

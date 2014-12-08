@@ -521,7 +521,7 @@ public:
     // just subtract damage here, can set death, etc. later in code calling this
     int dodamage(int damage, int gun, bool penetration)
     {
-        guninfo gi = guns[gun];
+        const int piercing = (gun >= 0 && gun < NUMGUNS) ? guns[gun].piercing : 0;
         if(damage == INT_MAX)
         {
             damage = health;
@@ -540,7 +540,7 @@ public:
         //ra - reduced armor
         //rd - reduced damage
         int ra = (int) (ad * damage/100.0f) >> (penetration ? 1 : 0);
-        int rd = penetration ? 0 : (ra*(1 - gi.piercing / 100.0f));
+        int rd = penetration ? 0 : (ra*(1 - piercing / 100.0f));
 
         armour -= ra;
         damage -= rd;
@@ -715,7 +715,7 @@ public:
 
     void hitpush(int damage, const vec &dir, playerent *actor, int gun)
     {
-        if (gun<0 || gun>NUMGUNS || dir.iszero() || !damage) return;
+        if (gun<0 || gun>=NUMGUNS || dir.iszero() || !damage) return;
         const float pushf = damage * guns[gun].pushfactor / 100.0f / HEALTHSCALE;
         vec push(dir);
         push.normalize().mul(pushf);

@@ -136,6 +136,8 @@ model *loadmodel(const char *name, int i, bool trydl)
             if(!m->load())
             {
                 delete m;
+                if (!nomodel) nomodel = new md2("nomodel");
+                m = nomodel;
                 loadingmodel = NULL;
                 if(trydl)
                 {
