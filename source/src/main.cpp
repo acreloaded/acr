@@ -415,6 +415,8 @@ void png_screenshot(const char *imagepath, bool mapshot = false)
         else
         {
             conoutf("no mapshot prepared!");
+            delete[] tmp;
+            SDL_FreeSurface(image);
             return;
         }
     }

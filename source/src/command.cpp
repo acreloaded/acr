@@ -657,7 +657,7 @@ char *executeret(const char *p)                            // all evaluation hap
                         if(!w[1][0]) conoutf(strchr(*id->storage.s, '"') ? "%s = [%s]" : "%s = \"%s\"", c, *id->storage.s); // var with no value just prints its current value
                         else
                         {
-                            *id->storage.s = exchangestr(*id->storage.s, newstring(w[1]));
+                            *id->storage.s = exchangestr(*id->storage.s, w[1]);
                             if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
                         }
                         break;
@@ -1106,7 +1106,7 @@ void looplist(char *list, char *var, char *body)
 {
     ident *id = newident(var, execcontext);
     if(id->type!=ID_ALIAS) return;
-    char *buf = newstring(MAXSTRLEN);
+    char *buf = NULL;
 
     vector<char *> elems;
     explodelist(list, elems);

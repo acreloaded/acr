@@ -1140,7 +1140,12 @@ bool requirepackage(int type, const char *path)
     pck->name = unixpath(newstring(path));
     pck->type = type;
     loopv(pckservers) if(pckservers[i]->responsive) { pck->source = pckservers[i]; break; }
-    if(!pck->source) { conoutf(_("\f3no responsive source server found, can't download")); return false; }
+    if(!pck->source)
+    {
+        conoutf(_("\f3no responsive source server found, can't download"));
+        delete pck;
+        return false;
+    }
     pck->pending = true;
 
     pendingpackages.access(pck->name, pck);
