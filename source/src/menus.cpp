@@ -527,7 +527,7 @@ struct mitemtextinput : mitemtext
 
         if(hideinput) // "mask" user input with asterisks, use for menuitemtextinputs that take passwords // TODO: better masking code?
         {
-            memcpy(showinput, '*', strlen(showinput) * sizeof(*showinput));
+            memset(showinput, '*', strlen(showinput) * sizeof(*showinput));
         }
 
         draw_text(showinput, x + w - tw, y, 255, 255, 255, 255, selection ? (input.pos >= 0 ? (input.pos > sc ? sc : input.pos) : cibl) : -1);
