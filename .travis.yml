@@ -6,10 +6,11 @@ compiler:
 branches:
   only:
     - master
+    - coverity_scan
 
 before_install: sudo apt-get update -qq
 install: sudo apt-get install -qq build-essential libsdl1.2debian libsdl-image1.2 libopenal1 libsdl1.2-dev libsdl-image1.2-dev libopenal-dev libvorbis-dev libenet-dev
-script: cd ./source/src; make all
+script: if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then cd ./source/src; make all; fi
 
 notifications:
   irc:
@@ -20,3 +21,18 @@ notifications:
     on_failure: always # [always|never|change] default: always
     use_notice: false # notices don't show up in OmnomIRC
     skip_join: true
+
+env:
+  global:
+   # encrypted COVERITY_SCAN_TOKEN
+   - secure: "TSLZh9etpZPF/rApCEy5FNOLnwG9/8gY5c+TaUlM24lgZnFX3Hqus0IbXLTnFwYDrEtlGPBnrpQxaWb6SbfKrc6VAQjvtOptVoZ5xQfyyg9CRIZSRr3XW57Yg8RI1LX4hTptd2t2vVrl/xUvHNS21S1E+15gkUISoKqdrDeMvGk="
+
+addons:
+  coverity_scan:
+    project:
+      name: "acreloaded/acr"
+      description: "Build submitted via Travis CI"
+    notification_email: nobody@domain.invalid
+    build_command_prepend: "cd ./source/src"
+    build_command:   "make all"
+    branch_pattern: coverity_scan
