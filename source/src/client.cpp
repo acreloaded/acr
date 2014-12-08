@@ -1022,7 +1022,7 @@ int processdownload(package *pck)
 
             case PCK_SKYBOX:
             {
-                char *fname = newstring(pck->name), *ls = strrchr(fname, '/');
+                char *fname = pck->name/*newstring(pck->name)*/, *ls = strrchr(fname, '/');
                 if(ls) *ls = '\0';
                 addzip(tmpname, fname, NULL, true, pck->type);
                 break;

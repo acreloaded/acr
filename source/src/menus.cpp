@@ -525,17 +525,12 @@ struct mitemtextinput : mitemtext
         }
         copystring(showinput, input.buf + iboff, sc + 1);
 
-        char *masked = showinput;
         if(hideinput) // "mask" user input with asterisks, use for menuitemtextinputs that take passwords // TODO: better masking code?
         {
-            masked = newstring(showinput);
-            for(unsigned int i = 0; i < strlen(masked); i++)
-            {
-                masked[i] = '*';
-            }
+            memcpy(showinput, '*', strlen(showinput) * sizeof(*showinput));
         }
 
-        draw_text(masked, x + w - tw, y, 255, 255, 255, 255, selection ? (input.pos >= 0 ? (input.pos > sc ? sc : input.pos) : cibl) : -1);
+        draw_text(showinput, x + w - tw, y, 255, 255, 255, 255, selection ? (input.pos >= 0 ? (input.pos > sc ? sc : input.pos) : cibl) : -1);
     }
 
     virtual void focus(bool on)

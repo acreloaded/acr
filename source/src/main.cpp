@@ -189,6 +189,7 @@ void bmp_screenshot(const char *imagepath, bool mapshot = false)
         else
         {
             conoutf("no mapshot prepared!");
+            delete[] tmp;
             return;
         }
     }

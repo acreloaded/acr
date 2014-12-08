@@ -1138,7 +1138,7 @@ VARP(showtargetname,0,1,1);
 VARP(showspeed, 0, 0, 1);
 VARP(monitors, 1, 1, 12);
 
-static char lastseen [20];
+static char lastseen [MAXNAMELEN+1];
 void lasttarget() { result(lastseen); }
 COMMAND(lasttarget, "");
 
@@ -1229,7 +1229,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     // damage direction
     drawdmgindicator();
 
-    if (worldhit) strcpy(lastseen, worldhit->name);
+    if (worldhit) copystring(lastseen, worldhit->name, MAXNAMELEN+1);
     bool menu = menuvisible();
     bool command = getcurcommand() ? true : false;
     bool reloading = lastmillis < focus->weaponsel->reloading + focus->weaponsel->info.reloadtime;
