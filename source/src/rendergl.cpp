@@ -1232,7 +1232,7 @@ void sethudgunperspective(bool on)
     if(on)
     {
         glScalef(1, 1, 0.5f); // fix hudugns colliding with map geometry
-        setperspective(75.0f, 0.3f); // y fov fixed at 75 degrees
+        setperspective(55.0f, 0.01f); // fixed y fov
     }
     else setperspective(fovy, 0.15f);
     glMatrixMode(GL_MODELVIEW);
