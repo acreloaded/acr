@@ -917,8 +917,8 @@ bool assignserverfavourites()
                         si.favcat = j;
                         if(alxn[FC_ALPHA])
                         {
-                            if(!si.bgcolor) si.bgcolor = new color;
-                            new (si.bgcolor) color(((float)alxn[FC_RED])/100, ((float)alxn[FC_GREEN])/100, ((float)alxn[FC_BLUE])/100, ((float)alxn[FC_ALPHA])/100);
+                            if (si.bgcolor) delete si.bgcolor;
+                            si.bgcolor = new color(((float)alxn[FC_RED]) / 100, ((float)alxn[FC_GREEN]) / 100, ((float)alxn[FC_BLUE]) / 100, ((float)alxn[FC_ALPHA]) / 100);
                         }
                     }
                 }
@@ -929,7 +929,7 @@ bool assignserverfavourites()
     }
     loopv(servers) if(servers[i]->favcat == -1)
     {
-        DELETEA(servers[i]->bgcolor);
+        DELETEP(servers[i]->bgcolor);
     }
     return res;
 }
@@ -1167,7 +1167,7 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
     loopi(sizeof(fk)/sizeof(fk[0])) if(code == fk[i] && favcats.inrange(i))
     {
         int sel = ((gmenu *)menu)->menusel;
-        loopvj(servers) if(menu && (servers[j]->menuline_from <= sel && servers[j]->menuline_to > sel))
+        loopvj(servers) if(servers[j]->menuline_from <= sel && servers[j]->menuline_to > sel)
         {
             string ak; ak[0] = '\0';
             const char *keyalias = favcatargname(favcats[i], FC_KEYS), *key = getalias(keyalias), *rest = favcatcheck(*servers[j], key, ak), *desc = getalias(favcatargname(favcats[i], FC_DESC));
@@ -1201,7 +1201,7 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
     switch(code)
     {
         case SDLK_HOME:
-            if(menu) ((gmenu *)menu)->menusel = 0;
+            ((gmenu *)menu)->menusel = 0;
             return true;
 
         case SDLK_LEFT:

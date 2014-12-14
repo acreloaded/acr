@@ -2656,22 +2656,22 @@ struct voteinfo
 
 static voteinfo *curvote = NULL;
 
-void scallvotesuc(voteinfo &v)
+inline void scallvotesuc(voteinfo &v)
 {
     if(!v.isvalid()) return;
     DELETEP(curvote);
     curvote = &v;
     clients[v.owner]->lastvotecall = servmillis;
     clients[v.owner]->nvotes--; // successful votes do not count as abuse
-    logline(ACLOG_INFO, "[%s] %s called a vote: %s", clients[v.owner]->gethostname(), clients[v.owner]->formatname(), v.action && v.action->desc ? v.action->desc : "[unknown]");
+    logline(ACLOG_INFO, "[%s] %s called a vote: %s", clients[v.owner]->gethostname(), clients[v.owner]->formatname(), v.action && v.action->desc[0] ? v.action->desc : "[unknown]");
 }
 
-void scallvoteerr(const voteinfo &v, int error)
+inline void scallvoteerr(const voteinfo &v, int error)
 {
     if(!valid_client(v.owner)) return;
     client &owner = *clients[v.owner];
     sendf(&owner, 1, "ri2", SV_CALLVOTEERR, error);
-    logline(ACLOG_INFO, "[%s] %s failed to call a vote: %s (%s)", owner.gethostname(), owner.formatname(), v.action && v.action->desc ? v.action->desc : "[unknown]", voteerrorstr(error));
+    logline(ACLOG_INFO, "[%s] %s failed to call a vote: %s (%s)", owner.gethostname(), owner.formatname(), v.action && v.action->desc[0] ? v.action->desc : "[unknown]", voteerrorstr(error));
 }
 
 void sendcallvote(client *cl = NULL);
@@ -4250,7 +4250,7 @@ void process(ENetPacket *packet, int sender, int chan)
                                 else fatal("unable to get next map in maprot");
 #else
                                 defformatstring(nextmapalias)("nextmap_%s", getclientmap());
-                                strcpy(text, getalias(nextmapalias));
+                                copystring(text, getalias(nextmapalias));
                                 mode = getclientmode();
                                 muts = mutators;
 #endif

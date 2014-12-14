@@ -308,7 +308,7 @@ public:
           node_s(C Ent, D Prior) : Entry(Ent), Priority(Prior), next(NULL) {};
      };
 
-     TPriorList(void) : pHeadNode(NULL), pLastNode(NULL) {};
+     TPriorList(void) : pHeadNode(NULL), pLastNode(NULL), iNodeCount(0) {};
      ~TPriorList(void) { Clear(); };
 
      void AddEntry(C Entry, D Prior)

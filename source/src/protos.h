@@ -27,7 +27,6 @@ extern PFNGLSTENCILFUNCSEPARATEATIPROC glStencilFuncSeparate_;
 struct color
 {
     float r, g, b, alpha;
-    color(){}
     color(float r, float g, float b) : r(r), g(g), b(b), alpha(1.0f) {}
     color(float r, float g, float b, float a) : r(r), g(g), b(b), alpha(a) {}
 };
@@ -442,7 +441,9 @@ struct votedisplayinfo
     int type, result, expiryresult, yes_remain, no_remain, millis, nextvote, expiremillis;
     string desc;
     bool veto;
-    votedisplayinfo() : owner(NULL), result(VOTE_NEUTRAL), expiryresult(VOTE_NEUTRAL), yes_remain(1), no_remain(1), millis(0), nextvote(0), expiremillis(0), veto(false) { }
+    votedisplayinfo(playerent *owner, int type, int millis, const char *desc) :
+        owner(owner), type(type), result(VOTE_NEUTRAL), expiryresult(VOTE_NEUTRAL), yes_remain(1), no_remain(1),
+        millis(millis), nextvote(0), expiremillis(0), veto(false) { copystring(this->desc, desc); }
 };
 extern const char *votestring(int type, const votedata &vote);
 extern votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, const votedata &vote);

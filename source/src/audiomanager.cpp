@@ -90,7 +90,7 @@ void audiomanager::music(char *name, int millis, char *cmd)
     stopsound();
     if(musicvol && *name)
     {
-        if(cmd[0]) musicdonecmd = newstring(cmd);
+        if(cmd && cmd[0]) musicdonecmd = newstring(cmd);
 
         if(gamemusic->open(name))
         {

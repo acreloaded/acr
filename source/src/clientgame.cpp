@@ -134,7 +134,7 @@ const char *highlight(const char *text)
         }
         s = strtok(NULL, sep);
     }
-    if(MAXTRANS - strlen(result) > strlen(text) - (l - temp)) strcat(result, text + (l - temp));
+    if(MAXTRANS - strlen(result) > strlen(text + (l - temp))) strcat(result, text + (l - temp));
     delete[] temp;
     return *result ? result : text;
 }
@@ -1050,7 +1050,6 @@ void initflag(int i)
     f.pos = vec(f.flagent->x, f.flagent->y, f.flagent->z);
     f.actor = NULL;
     f.actor_cn = -1;
-    f.team = i;
     f.state = m_keep(gamemode) ? CTFF_IDLE : CTFF_INBASE;
 }
 
@@ -1433,12 +1432,7 @@ const char *votestring(int type, const votedata &vote)
 votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, const votedata &vote)
 {
     if(type < 0 || type >= SA_NUM) return NULL;
-    votedisplayinfo *v = new votedisplayinfo();
-    v->owner = owner;
-    v->type = type;
-    v->millis = totalmillis + (30+10)*1000;
-    copystring(v->desc, votestring(type, vote));
-    return v;
+    return new votedisplayinfo(owner, type, totalmillis + (30 + 10) * 1000, votestring(type, vote));
 }
 
 votedisplayinfo *curvote = NULL;

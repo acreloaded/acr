@@ -462,13 +462,13 @@ template <class T> struct vector
         if(!alen) alen = max(MINSIZE, sz);
         else while(alen < sz) alen *= 2;
         if(alen <= olen) return;
-        uchar *newbuf = new uchar[alen*sizeof(T)];
+        T *newbuf = (T *)(new uchar[alen*sizeof(T)]);
         if(olen > 0)
         {
             memcpy(newbuf, buf, olen*sizeof(T));
             delete[] (uchar *)buf;
         }
-        buf = (T *)newbuf;
+        buf = newbuf;
     }
 
     databuf<T> reserve(int sz)

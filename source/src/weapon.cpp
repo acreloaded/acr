@@ -478,7 +478,7 @@ COMMAND(accuracyreset, "");
 // weapon
 
 weapon::weapon(class playerent *owner, int type) : type(type), owner(owner), info(guns[type]),
-    ammo(owner->ammo[type]), mag(owner->mag[type]), gunwait(owner->gunwait[type]), reloading(0), lastaction(0) {}
+    ammo(owner->ammo[type]), mag(owner->mag[type]), gunwait(owner->gunwait[type]), shots(0), reloading(0), lastaction(0) {}
 
 int weapon::flashtime() const { return clamp((int)info.attackdelay/4, 60, 150); }
 

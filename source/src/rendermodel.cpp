@@ -546,9 +546,9 @@ void preload_entmodels()
          defformatstring(widn)("modmdlpickup%d", i-3);
 
          if (identexists(widn))
-         strcat(buf, getalias(widn));
+             concatstring(buf, getalias(widn));
          else
-         strcat(buf, entmdlnames[i]);
+             concatstring(buf, entmdlnames[i]);
 
          model *mdl = loadmodel(buf);
 
@@ -774,8 +774,11 @@ void renderclient(playerent *d)
         }
     }
     string vwep;
-    defformatstring(widn)("modmdlvwep%d", d->weaponsel->type);
-    if(d->weaponsel) formatstring(vwep)("weapons/%s/world", identexists(widn)?getalias(widn):d->weaponsel->info.modelname);
+    if (d->weaponsel)
+    {
+        defformatstring(widn)("modmdlvwep%d", d->weaponsel->type);
+        formatstring(vwep)("weapons/%s/world", identexists(widn) ? getalias(widn) : d->weaponsel->info.modelname);
+    }
     else vwep[0] = 0;
     renderclient(d, "playermodels", vwep[0] ? vwep : NULL, -(int)textureload(skin)->id);
     if (!stenciling && !reflecting && !refracting)

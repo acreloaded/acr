@@ -387,23 +387,23 @@ bool CACBot::CanTakeFlag(const entity &e)
     else
     {
         if(e.type != CTF_FLAG || (e.attr2 != 0 && e.attr2 != 1)) return false;
-        flaginfo &f = flaginfos[e.attr2];
-        flaginfo &of = flaginfos[team_opposite(e.attr2)];
-        const int i = f.team;
+        const int f_team = e.attr2;
+        flaginfo &f = flaginfos[f_team];
+        flaginfo &of = flaginfos[team_opposite(f_team)];
         switch(f.state)
         {
             case CTFF_INBASE: // go to this base
                 // if CTF capturing our flag
-                if(m_capture(gamemode) && (i != m_pMyEnt->team || of.state != CTFF_STOLEN || of.actor != m_pMyEnt)) return false;
+                if (m_capture(gamemode) && (f_team != m_pMyEnt->team || of.state != CTFF_STOLEN || of.actor != m_pMyEnt)) return false;
                 // in HTF to take out own flag
-                else if(m_hunt(gamemode) && i != m_pMyEnt->team) return false;
+                else if (m_hunt(gamemode) && f_team != m_pMyEnt->team) return false;
                 // in BTF to take own flag, and to score it on the enemy base
-                else if(m_bomber(gamemode) && i != m_pMyEnt->team && (of.state != CTFF_STOLEN || of.actor != m_pMyEnt)) return false;
+                else if (m_bomber(gamemode) && f_team != m_pMyEnt->team && (of.state != CTFF_STOLEN || of.actor != m_pMyEnt)) return false;
                 // if KTF
                 break;
             case CTFF_STOLEN: // go to our stolen flag's base
                 // if rCTF and we have our flag
-                if(!m_return(gamemode, mutators) || f.actor != m_pMyEnt || f.team != m_pMyEnt->team) return false;
+                if (!m_return(gamemode, mutators) || f.actor != m_pMyEnt || f_team != m_pMyEnt->team) return false;
                 break;
             case CTFF_IDLE: // not active
                 return false;

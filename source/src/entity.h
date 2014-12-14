@@ -783,13 +783,12 @@ enum { CTFF_INBASE = 0, CTFF_STOLEN, CTFF_DROPPED, CTFF_IDLE };
 
 struct flaginfo
 {
-    int team;
     entity *flagent;
     int actor_cn;
     playerent *actor;
     vec pos;
     int state; // one of CTFF_*
-    flaginfo() : flagent(0), actor(0), state(CTFF_INBASE) {}
+    flaginfo() : flagent(0), actor(0), actor_cn(-1), state(CTFF_INBASE) {}
 };
 
 // nades, gibs

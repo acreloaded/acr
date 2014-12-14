@@ -403,6 +403,7 @@ void renderdoc(int x, int y, int doch)
     if(!docvisible) return;
 
     char *exp = getcurcommand();
+    if (!exp) return;
 
     int o = 0; //offset
     int f = 0; //last found
@@ -428,7 +429,7 @@ void renderdoc(int x, int y, int doch)
         temp = openblock + 1;
     }
 
-    if(!exp || (*exp != '/' && f == 0) || strlen(exp) < 2) return;
+    if((*exp != '/' && f == 0) || strlen(exp) < 2) return;
 
     char *c = exp+1; if (f > 0) c = exp;
     char *d = NULL; if (temp) d = temp;
