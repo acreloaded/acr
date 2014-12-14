@@ -51,7 +51,7 @@ char *getfiledesc(const char *dir, const char *name, const char *ext)
     return NULL;
 }
 
-void menuset(void *m, bool save)
+void menuset(gmenu *m, bool save)
 {
     if(curmenu==m) return;
     if(curmenu)
@@ -59,7 +59,7 @@ void menuset(void *m, bool save)
         if(save && curmenu->allowinput) menustack.add(curmenu);
         else curmenu->close();
     }
-    if((curmenu = (gmenu *)m)) curmenu->open();
+    if((curmenu = m)) curmenu->open();
 }
 
 void showmenu(const char *name, bool top)
@@ -113,9 +113,9 @@ void showmenu_(const char *name)
     showmenu(name, true);
 }
 
-void menuselect(void *menu, int sel)
+void menuselect(gmenu *menu, int sel)
 {
-    gmenu &m = *(gmenu *)menu;
+    gmenu &m = *menu;
 
     if(sel<0) sel = m.items.length()>0 ? m.items.length()-1 : 0;
     else if(sel>=m.items.length()) sel = 0;
@@ -861,7 +861,7 @@ struct mitemmuts : mitem
 
 // console iface
 
-void *addmenu(const char *name, const char *title, bool allowinput, void (__cdecl *refreshfunc)(void *, bool), bool (__cdecl *keyfunc)(void *, int, bool, int), bool hotkeys, bool forwardkeys)
+gmenu *addmenu(const char *name, const char *title, bool allowinput, gmenu::refreshfunc_t refreshfunc, gmenu::keyfunc_t keyfunc, bool hotkeys, bool forwardkeys)
 {
     name = newstring(name);
     gmenu &menu = menus[name];
@@ -889,10 +889,9 @@ void newmenu(char *name, int *hotkeys, int *forwardkeys)
     addmenu(name, NULL, true, NULL, NULL, *hotkeys > 0, *forwardkeys > 0);
 }
 
-void menureset(void *menu)
+void menureset(gmenu *menu)
 {
-    gmenu &m = *(gmenu *)menu;
-    m.items.deletecontents();
+    menu->items.deletecontents();
 }
 
 void delmenu(const char *name)
@@ -905,29 +904,25 @@ void delmenu(const char *name)
 
 COMMAND(delmenu, "s");
 
-void menumanual(void *menu, char *text, char *action, color *bgcolor, const char *desc)
+void menumanual(gmenu *menu, char *text, char *action, color *bgcolor, const char *desc)
 {
-    gmenu &m = *(gmenu *)menu;
-    m.items.add(new mitemmanual(&m, text, action, NULL, bgcolor, desc));
+    menu->items.add(new mitemmanual(menu, text, action, NULL, bgcolor, desc));
 }
 
-void menuimagemanual(void *menu, const char *filename, const char *altfontname, char *text, char *action, color *bgcolor, const char *desc)
+void menuimagemanual(gmenu *menu, const char *filename, const char *altfontname, char *text, char *action, color *bgcolor, const char *desc)
 {
-    gmenu &m = *(gmenu *)menu;
-    m.items.add(new mitemimagemanual(&m, filename, altfontname, text, action, NULL, bgcolor, desc));
+    menu->items.add(new mitemimagemanual(menu, filename, altfontname, text, action, NULL, bgcolor, desc));
 }
 
-void menutitle(void *menu, const char *title)
+void menutitle(gmenu *menu, const char *title)
 {
-    gmenu &m = *(gmenu *)menu;
-    m.title = title;
+    menu->title = title;
 }
 
-void menuheader(void *menu, char *header, char *footer)
+void menuheader(gmenu *menu, char *header, char *footer)
 {
-    gmenu &m = *(gmenu *)menu;
-    m.header = header && header[0] ? header : NULL;
-    m.footer = footer && footer[0] ? footer : NULL;
+    menu->header = header && header[0] ? header : NULL;
+    menu->footer = footer && footer[0] ? footer : NULL;
 }
 void lastmenu_header(char *header, char *footer)
 {
@@ -939,14 +934,13 @@ void lastmenu_header(char *header, char *footer)
 }
 COMMANDN(menuheader, lastmenu_header, "ss");
 
-void menufont(void *menu, const char *usefont)
+void menufont(gmenu *menu, const char *usefont)
 {
-    gmenu &m = *(gmenu *)menu;
     if(usefont==NULL)
     {
-        DELETEA(m.usefont);
-        m.usefont = NULL;
-    } else m.usefont = newstring(usefont);
+        DELETEA(menu->usefont);
+        menu->usefont = NULL;
+    } else menu->usefont = newstring(usefont);
 }
 
 void setmenufont(char *usefont)
@@ -958,8 +952,7 @@ void setmenufont(char *usefont)
 void setmenublink(int *truth)
 {
     if(!lastmenu) return;
-    gmenu &m = *(gmenu *)lastmenu;
-    m.allowblink = *truth != 0;
+    lastmenu->allowblink = *truth != 0;
 }
 
 void menuinit(char *initaction)
@@ -1478,7 +1471,7 @@ void gmenu::renderbg(int x1, int y1, int x2, int y2, bool border)
 
 // apply changes menu
 
-void *applymenu = NULL;
+gmenu *applymenu = NULL;
 static vector<const char *> needsapply;
 VARP(applydialog, 0, 1, 1);
 
@@ -1503,9 +1496,8 @@ void clearchanges(int type)
     closemenu("apply");
 }
 
-void refreshapplymenu(void *menu, bool init)
+void refreshapplymenu(gmenu *m, bool init)
 {
-    gmenu *m = (gmenu *) menu;
     if(!m || (!init && needsapply.length() != m->items.length()-3)) return;
     m->items.deletecontents();
     loopv(needsapply) m->items.add(new mitemtext(m, newstring(needsapply[i]), NULL, NULL, NULL));
@@ -1519,7 +1511,7 @@ void setscorefont();
 VARFP(scorefont, 0, 0, 1, setscorefont());
 void setscorefont()
 {
-    extern void *scoremenu;
+    extern gmenu *scoremenu;
     switch(scorefont)
     {
         case 1: menufont(scoremenu, "mono"); break;

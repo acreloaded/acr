@@ -2,7 +2,7 @@
 
 #include "cube.h"
 
-void renderdocsection(void *menu, bool init);
+void renderdocsection(gmenu *menu, bool init);
 
 extern hashtable<const char *, ident> *idents;
 
@@ -80,7 +80,7 @@ struct docsection
 {
     char *name;
     vector<docident *> idents;
-    void *menu;
+    gmenu *menu;
 
     docsection() : name(NULL), menu(NULL) {};
     ~docsection()
@@ -634,7 +634,7 @@ void renderdoc(int x, int y, int doch)
     }
 }
 
-void *docmenu = NULL;
+gmenu *docmenu = NULL;
 
 struct msection { char *name; string cmd; };
 
@@ -643,7 +643,7 @@ int msectionsort(const msection *a, const msection *b)
     return strcmp(a->name, b->name);
 }
 
-void renderdocsection(void *menu, bool init)
+void renderdocsection(gmenu *menu, bool init)
 {
     static vector<msection> msections;
     msections.shrink(0);
@@ -667,7 +667,7 @@ void renderdocsection(void *menu, bool init)
 
 struct maction { string cmd; };
 
-void renderdocmenu(void *menu, bool init)
+void renderdocmenu(gmenu *menu, bool init)
 {
     static vector<maction> actions;
     actions.shrink(0);

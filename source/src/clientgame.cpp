@@ -1617,9 +1617,9 @@ COMMAND(setadmin, "is");
 struct mline { string name, cmd; };
 static vector<mline> mlines;
 
-void *kickmenu = NULL, *banmenu = NULL, *forceteammenu = NULL, *giveadminmenu = NULL;
+gmenu *kickmenu = NULL, *banmenu = NULL, *forceteammenu = NULL, *giveadminmenu = NULL;
 
-void refreshsopmenu(void *menu, bool init)
+void refreshsopmenu(gmenu *menu, bool init)
 {
     menureset(menu);
     mlines.shrink(0);

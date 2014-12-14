@@ -735,7 +735,7 @@ int sicompare(serverinfo **ap, serverinfo **bp)
     else return -dir;
 }
 
-void *servmenu = NULL, *searchmenu = NULL, *serverinfomenu = NULL;
+gmenu *servmenu = NULL, *searchmenu = NULL, *serverinfomenu = NULL;
 vector<char *> namelists;
 
 string cursearch, cursearchuc;
@@ -942,7 +942,7 @@ static bool pinglastselected = false;
 
 VAR(masterserver_flags, 0, 0, 7);
 
-void refreshservers(void *menu, bool init)
+void refreshservers(gmenu *menu, bool init)
 {
     static int servermenumillis;
     static bool usedselect = false;
@@ -1003,13 +1003,13 @@ void refreshservers(void *menu, bool init)
     }
     if((init && issearch) || totalmillis - lastinfo >= (servpingrate * (issearch ? 2 : 1))/(maxservpings ? max(1, (servers.length() + maxservpings - 1) / maxservpings) : 1))
         pingservers(issearch, isscoreboard ? curserver : NULL);
-    if(!init && menu)// && servers.inrange(((gmenu *)menu)->menusel))
+    if(!init && menu)// && servers.inrange(menu->menusel))
     {
         serverinfo *foundserver = NULL;
-        loopv(servers) if(servers[i]->menuline_from == ((gmenu *)menu)->menusel && servers[i]->menuline_to > servers[i]->menuline_from) { foundserver = servers[i]; break; }
+        loopv(servers) if(servers[i]->menuline_from == menu->menusel && servers[i]->menuline_to > servers[i]->menuline_from) { foundserver = servers[i]; break; }
         if(foundserver)
         {
-            if((usedselect || ((gmenu *)menu)->menusel > 0)) oldsel = foundserver;
+            if((usedselect || menu->menusel > 0)) oldsel = foundserver;
             lastselectedserver = foundserver;
         }
     }
@@ -1051,7 +1051,7 @@ void refreshservers(void *menu, bool init)
         loopv(servers)
         {
             serverinfo &si = *servers[i];
-            si.menuline_to = si.menuline_from = ((gmenu *)menu)->items.length();
+            si.menuline_to = si.menuline_from = menu->items.length();
             if( !showallservers && si.lastpingmillis < servermenumillis ) continue; // no pong yet
             int banned = ((si.pongflags >> PONGFLAG_BANNED) & 1) | ((si.pongflags >> (PONGFLAG_BLACKLIST - 1)) & 2);
             bool showthisone = !(banned && showonlygoodservers) && !(showonlyfavourites > 0 && si.favcat != showonlyfavourites - 1);
@@ -1112,7 +1112,7 @@ void refreshservers(void *menu, bool init)
                 menuimagemanual(menu, favimage, "serverquality", si.full, si.cmd, si.bgcolor, si.description);
                 if(!issearch && servers[i] == oldsel)
                 {
-                    ((gmenu *)menu)->menusel = ((gmenu *)menu)->items.length() - 1;
+                    menu->menusel = menu->items.length() - 1;
                     usedselect = true;
                     if(shownamesinbrowser) si.getinfo = EXTPING_NAMELIST;
                 }
@@ -1139,7 +1139,7 @@ void refreshservers(void *menu, bool init)
                     if(cur) menumanual(menu, t, NULL, NULL, NULL);
                 }
             }
-            si.menuline_to = ((gmenu *)menu)->items.length();
+            si.menuline_to = menu->items.length();
         }
         static string notfoundmsg;
         if(issearch)
@@ -1150,7 +1150,7 @@ void refreshservers(void *menu, bool init)
                 menumanual(menu, notfoundmsg, NULL, NULL, NULL);
             }
         }
-        else if(!((gmenu *)menu)->items.length() && showonlyfavourites && favcats.inrange(showonlyfavourites - 1))
+        else if(!menu->items.length() && showonlyfavourites && favcats.inrange(showonlyfavourites - 1))
         {
             const char *desc = getalias(favcatargname(favcats[showonlyfavourites - 1], FC_DESC));
             formatstring(notfoundmsg)("no servers in category \f2%s", desc ? desc : favcattags[showonlyfavourites - 1]);
@@ -1159,14 +1159,14 @@ void refreshservers(void *menu, bool init)
     }
 }
 
-bool serverskey(void *menu, int code, bool isdown, int unicode)
+bool serverskey(gmenu *menu, int code, bool isdown, int unicode)
 {
     const int fk[] = { SDLK_1, SDLK_2, SDLK_3, SDLK_4, SDLK_5, SDLK_6, SDLK_7, SDLK_8, SDLK_9, SDLK_0 };
     if(!isdown) return false;
     ASSERT(menu);
     loopi(sizeof(fk)/sizeof(fk[0])) if(code == fk[i] && favcats.inrange(i))
     {
-        int sel = ((gmenu *)menu)->menusel;
+        int sel = menu->menusel;
         loopvj(servers) if(servers[j]->menuline_from <= sel && servers[j]->menuline_to > sel)
         {
             string ak; ak[0] = '\0';
@@ -1201,7 +1201,7 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
     switch(code)
     {
         case SDLK_HOME:
-            ((gmenu *)menu)->menusel = 0;
+            menu->menusel = 0;
             return true;
 
         case SDLK_LEFT:
@@ -1254,13 +1254,13 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
     return false;
 }
 
-bool serverinfokey(void *menu, int code, bool isdown, int unicode)
+bool serverinfokey(gmenu *menu, int code, bool isdown, int unicode)
 {
     if(!isdown) return false;
     switch(code)
     {
         case SDLK_HOME:
-            if(menu) ((gmenu *)menu)->menusel = 0;
+            if(menu) menu->menusel = 0;
             return true;
 
         case SDLK_F5:

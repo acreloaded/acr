@@ -3,7 +3,7 @@
 #include "cube.h"
 #define SCORERATIO(F,D) (float)(F >= 0 ? F : 0) / (float)(D > 0 ? D : 1)
 
-void *scoremenu = NULL;
+gmenu *scoremenu = NULL;
 bool needscoresreorder = true;
 
 void showscores(bool on)
@@ -267,7 +267,7 @@ extern bool watchingdemo;
 void reorderscorecolumns()
 {
     needscoresreorder = false;
-    extern void *scoremenu;
+    extern gmenu *scoremenu;
     sline sscore;
 
     if(m_flags(gamemode)) sscore.addcol(sc_flags, "flags");
@@ -282,7 +282,7 @@ void reorderscorecolumns()
     menutitle(scoremenu, newstring(sscore.getcols()));
 }
 
-void renderscores(void *menu, bool init)
+void renderscores(gmenu *menu, bool init)
 {
     if(needscoresreorder) reorderscorecolumns();
     static string modeline, serverline;

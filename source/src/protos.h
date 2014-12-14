@@ -70,22 +70,22 @@ extern bool bindc(int code, const char *action, int type = keym::ACTION_DEFAULT)
 // menus
 extern void rendermenu();
 extern bool menuvisible();
-extern void menureset(void *menu);
-extern void menumanual(void *menu, char *text, char *action = NULL, color *bgcolor = NULL, const char *desc = NULL);
-extern void menuimagemanual(void *menu, const char *filename1, const char *filename2, char *text, char *action = NULL, color *bgcolor = NULL, const char *desc = NULL);
-extern void menutitle(void *menu, const char *title = NULL);
+extern void menureset(struct gmenu *menu);
+extern void menumanual(struct gmenu *menu, char *text, char *action = NULL, color *bgcolor = NULL, const char *desc = NULL);
+extern void menuimagemanual(struct gmenu *menu, const char *filename1, const char *filename2, char *text, char *action = NULL, color *bgcolor = NULL, const char *desc = NULL);
+extern void menutitle(struct gmenu *menu, const char *title = NULL);
 extern bool needscoresreorder;
-extern void menuheader(void *menu, char *header = NULL, char *footer = NULL);
+extern void menuheader(struct gmenu *menu, char *header = NULL, char *footer = NULL);
 extern bool menukey(int code, bool isdown, int unicode, SDLMod mod = KMOD_NONE);
-extern void *addmenu(const char *name, const char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(void *, bool) = NULL, bool (__cdecl *keyfunc)(void *, int, bool, int) = NULL, bool hotkeys = false, bool forwardkeys = false);
+extern struct gmenu *addmenu(const char *name, const char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(struct gmenu *, bool) = NULL, bool (__cdecl *keyfunc)(struct gmenu *, int, bool, int) = NULL, bool hotkeys = false, bool forwardkeys = false);
 extern void rendermenumdl();
-extern void menuset(void *m, bool save = true);
-extern void menuselect(void *menu, int sel);
+extern void menuset(struct gmenu *m, bool save = true);
+extern void menuselect(struct gmenu *menu, int sel);
 extern void showmenu(const char *name, bool top = true);
 extern void closemenu(const char *name);
 extern void addchange(const char *desc, int type);
 extern void clearchanges(int type);
-extern void refreshapplymenu(void *menu, bool init);
+extern void refreshapplymenu(gmenu *menu, bool init);
 
 struct mitem
 {
@@ -131,8 +131,10 @@ struct gmenu
     int mwidth;
     int menusel;
     bool allowinput, inited, hotkeys, forwardkeys;
-    void (__cdecl *refreshfunc)(void *, bool);
-    bool (__cdecl *keyfunc)(void *, int, bool, int);
+    typedef void(__cdecl *refreshfunc_t)(gmenu *, bool);
+    typedef bool(__cdecl *keyfunc_t)(gmenu *, int, bool, int);
+    refreshfunc_t refreshfunc;
+    keyfunc_t keyfunc;
     char *initaction;
     char *usefont;
     bool allowblink;
@@ -167,9 +169,9 @@ extern char *getservername(int n);
 extern bool resolverwait(const char *name, ENetAddress *address);
 extern int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &remoteaddress);
 extern void writeservercfg();
-extern void refreshservers(void *menu, bool init);
-extern bool serverskey(void *menu, int code, bool isdown, int unicode);
-extern bool serverinfokey(void *menu, int code, bool isdown, int unicode);
+extern void refreshservers(gmenu *menu, bool init);
+extern bool serverskey(gmenu *menu, int code, bool isdown, int unicode);
+extern bool serverinfokey(gmenu *menu, int code, bool isdown, int unicode);
 
 struct serverinfo
 {
@@ -426,7 +428,7 @@ extern void flagmsg(int flag, int message, int actor, int flagtime);
 extern void arenarespawn();
 extern void tryrespawn();
 extern void serveropcommand(int cmd, int arg1);
-extern void refreshsopmenu(void *menu, bool init);
+extern void refreshsopmenu(gmenu *menu, bool init);
 extern char *colorname(playerent *d, bool stats = false);
 extern char *colorping(int ping);
 extern char *colorpj(int pj);
@@ -456,7 +458,7 @@ struct discscore { int team, flags, frags, assists, deaths, points; char name[MA
 extern vector<discscore> discscores;
 extern teamscore teamscores[2];
 extern void showscores(bool on);
-extern void renderscores(void *menu, bool init);
+extern void renderscores(gmenu *menu, bool init);
 extern const char *asciiscores(bool destjpg = false);
 extern void consolescores();
 
@@ -772,7 +774,7 @@ extern void perlinarea(block &b, int scale, int seed, int psize);
 
 // doc
 extern void renderdoc(int x, int y, int doch);
-extern void renderdocmenu(void *menu, bool init);
+extern void renderdocmenu(gmenu *menu, bool init);
 extern void toggledoc();
 extern void scrolldoc(int i);
 extern int stringsort(const char **a, const char **b);
