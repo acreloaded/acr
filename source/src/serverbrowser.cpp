@@ -917,8 +917,8 @@ bool assignserverfavourites()
                         si.favcat = j;
                         if(alxn[FC_ALPHA])
                         {
-                            if (si.bgcolor) delete si.bgcolor;
-                            si.bgcolor = new color(((float)alxn[FC_RED]) / 100, ((float)alxn[FC_GREEN]) / 100, ((float)alxn[FC_BLUE]) / 100, ((float)alxn[FC_ALPHA]) / 100);
+                            if (!si.bgcolor) si.bgcolor = new color(0, 0, 0);
+                            new (si.bgcolor) color(((float)alxn[FC_RED]) / 100, ((float)alxn[FC_GREEN]) / 100, ((float)alxn[FC_BLUE]) / 100, ((float)alxn[FC_ALPHA]) / 100);
                         }
                     }
                 }
