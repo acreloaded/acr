@@ -1508,6 +1508,7 @@ void callvote_parser(int *type, const char *arg1, const char *arg2, const char *
                     break;
                 case SA_BAN:
                     copystring(str1, arg3);
+                    // fallthrough
                 case SA_FORCETEAM:
                 case SA_GIVEADMIN:
                     vote.int2 = atoi(arg2);

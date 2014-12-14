@@ -1218,6 +1218,7 @@ void flagaction(int flag, int action, int actor)
             case FA_DROP:
                 f.drop_cn = actor;
                 f.dropmillis = servmillis;
+                // fallthrough
             case FA_LOST:
                 logline(ACLOG_INFO, "[%s] %s %s the flag", c.gethostname(), c.formatname(), message == FA_LOST ? "lost" : "dropped");
                 break;
@@ -4402,7 +4403,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 switch(snd)
                 {
                     case S_NOAMMO:
-                        if(clients[cn]->state.mag) break;
+                        if (clients[cn]->state.mag[clients[cn]->state.gunselect]) break;
                         // INTENTIONAL FALLTHROUGH
                     case S_JUMP:
 #if (SERVER_BUILTIN_MOD & 1)

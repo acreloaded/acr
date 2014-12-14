@@ -198,7 +198,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
                     f->getchar(); f->getchar();
                     break;
                 default:
-                    if(sq.type<0 || sq.type>=MAXTYPE)  { fail = true; break; }
+                    if(/*sq.type<0 ||*/ sq.type>=MAXTYPE)  { fail = true; break; }
                     sq.floor = f->getchar();
                     sq.ceil = f->getchar();
                     if(sq.floor >= sq.ceil && sq.ceil > -128) sq.floor = sq.ceil - 1;  // for pre 12_13

@@ -264,9 +264,9 @@ struct obitlist : consolebuffer<oline>
         cl.merges = 1;
         cl.headshot = headshot;
         if (actor && actor != target)
-            obit_name(cl.actor, actor, false, actor ? (obitamt >= 3 || (actor->ownernum < 0 && obitamt >= 1)) ? 2 : (actor->ownernum < 0) ? 1 : 0 : 0);
+            obit_name(cl.actor, actor, false, (obitamt >= 3 || (actor->ownernum < 0 && obitamt >= 1)) ? 2 : (actor->ownernum < 0) ? 1 : 0);
         if (target)
-            obit_name(cl.target, target, obit < OBIT_SPECIAL, target ? (obitamt >= 3 || (actor == target && obitamt >= 2) || ((target->ownernum < 0) && obitamt >= 1)) ? 2 : (target->ownernum < 0) ? 1 : 0 : 0);
+            obit_name(cl.target, target, obit < OBIT_SPECIAL, (obitamt >= 3 || (actor == target && obitamt >= 2) || ((target->ownernum < 0) && obitamt >= 1)) ? 2 : (target->ownernum < 0) ? 1 : 0);
         cl.recompute();
         // try merge
         loopv(conlines)

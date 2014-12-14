@@ -234,6 +234,7 @@ void filterrichtext(char *dst, const char *src, int len)
                 case 'x':
                     b = 16;
                     c = *++src;
+                    // fallthrough
                 default:
                     if(isspace(c)) continue;
                     if(b == 0 && !isdigit(c)) break;

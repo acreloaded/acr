@@ -1810,7 +1810,6 @@ bool CBot::WaterNav()
 
                 for (int a=(x-2);a<=(x+2);a++)
                 {
-                    if (small_) break;
                     for (int b=(y-2);b<=(y+2);b++)
                     {
                         if ((x==a) && (y==b)) continue;
@@ -1838,7 +1837,6 @@ bool CBot::WaterNav()
                             break;
                         }
                     }
-                    if (small_) break;
                 }
                 if (small_)
                 {

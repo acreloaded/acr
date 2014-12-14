@@ -1206,7 +1206,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 loopi(4) hdr.watercolor[i] = getint(p);
                 if (newwaterlevel == hdr.waterlevel) break;
                 hdr.waterlevel = newwaterlevel;
-                conoutf(_("%s changed the water-level to %d"), colorname(d), hdr.waterlevel);
+                if (d && d != player1)
+                    conoutf(_("%s changed the water-level to %d"), colorname(d), hdr.waterlevel);
                 break;
             }
 
@@ -1807,7 +1808,7 @@ const char *parseDemoFilename(char *srvfinfo)
         char sep[] = ":";
         char *pch;
         pch = strtok (srvfinfo,sep);
-        while (pch != NULL && fip < 4)
+        while (pch != NULL && fip < 5)
         {
             fip++;
             switch(fip)

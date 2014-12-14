@@ -567,8 +567,9 @@ void renderwaypoints()
             int wp = -1;
             vec o;
 
-            flaginfo &f = flaginfos[i];
-            entity &e = *f.flagent;
+            const flaginfo &f = flaginfos[i];
+            const flaginfo &of = flaginfos[team_opposite(i)];
+            const entity &e = *f.flagent;
 
             // flag
             switch (f.state)
@@ -612,7 +613,7 @@ void renderwaypoints()
             wp = WP_STOLEN; // "wait"
             switch (f.state){
                 default: // stolen or dropped
-                    if (m_bomber(gamemode)) wp = flaginfos[team_opposite(i)].state != CTFF_INBASE ? i == teamfix ? WP_DEFEND : WP_TARGET : -1;
+                    if (m_bomber(gamemode)) wp = of.state != CTFF_INBASE ? i == teamfix ? WP_DEFEND : WP_TARGET : -1;
                     else if (m_keep(gamemode) ? (f.actor != focus && !isteam(f.actor, focus)) : m_team(gamemode, mutators) ? (i != teamfix) : (f.actor != focus)) wp = -1; break;
                 case CTFF_INBASE:
                     if (m_capture(gamemode))
@@ -626,7 +627,7 @@ void renderwaypoints()
                     break;
                 case CTFF_IDLE: // KTF only
                     // WAIT here if the opponent has the flag
-                    if (flaginfos[team_opposite(i)].state == CTFF_STOLEN && flaginfos[team_opposite(i)].actor && focus != flaginfos[team_opposite(i)].actor && !isteam(flaginfos[team_opposite(i)].actor, focus))
+                    if (of.state == CTFF_STOLEN && of.actor && focus != of.actor && !isteam(of.actor, focus))
                         break;
                     wp = WP_ENEMY;
                     break;

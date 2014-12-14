@@ -310,7 +310,7 @@ entity *CACBot::SearchForFlags(bool bUseWPs, float flRange, float flMaxHeight)
         if(!CanTakeFlag(e)) continue;
         //vec o = g_vecZero;
         vec o = vec(e.x, e.y, S(e.x, e.y)->floor + PLAYERHEIGHT + PLAYERABOVEEYE);
-        if(!m_secure(gamemode) && e.attr2 >= 0 && e.attr2 < 2)
+        if(!m_secure(gamemode) && /*e.attr2 >= 0 &&*/ e.attr2 < 2)
         {
             flaginfo &f = flaginfos[e.attr2];
             // flaginfo &of = flaginfos[team_opposite(i)];

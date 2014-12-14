@@ -285,7 +285,7 @@ entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, in
         case MAPMODEL:
             e.attr4 = e.attr3;
             e.attr3 = e.attr2;
-            e.attr2 = (uchar)e.attr1;
+            // fallthrough
         case PLAYERSTART:
         case CTF_FLAG:
             e.attr2 = v1;

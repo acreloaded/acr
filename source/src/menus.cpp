@@ -703,7 +703,8 @@ struct mitemkeyinput : mitem
         static color capturec(0.4f, 0, 0);
         if(isselection()) blendbox(x+w-tk-FONTH, y-FONTH/6, x+w+FONTH, y+FONTH+FONTH/6, false, -1, capture ? &capturec : NULL);
         draw_text(text, x, y);
-        draw_text(keyname, x+w-tk, y);
+        if (keyname)
+            draw_text(keyname, x+w-tk, y);
     }
 
     virtual void init()
@@ -1203,6 +1204,7 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
                     }
                     return true;
                 }
+                // fallthrough
             default:
             {
                 if(!curmenu->allowinput) return false;

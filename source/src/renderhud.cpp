@@ -657,7 +657,7 @@ VARP(radarenemyfade, 0, 1250, 1250);
 
 void drawradar_showmap(playerent *p, int w, int h)
 {
-    float minimapviewsize = 3*min(VIRTW,VIRTH)/4; //minimap default size
+    float minimapviewsize = min(VIRTW,VIRTH)*0.75f; //minimap default size
     float halfviewsize = minimapviewsize/2.0f;
     float iconsize = radarentsize/0.2f;
     glColor3f(1.0f, 1.0f, 1.0f);
