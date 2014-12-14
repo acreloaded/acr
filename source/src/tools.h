@@ -390,7 +390,7 @@ template <class T> struct vector
         *this = v;
     }
 
-    ~vector() { shrink(0); if(buf) delete[] (uchar *)buf; }
+    ~vector() { shrink(0); if(buf) ::operator delete(buf); }
 
     vector<T> &operator=(const vector<T> &v)
     {
@@ -462,11 +462,11 @@ template <class T> struct vector
         if(!alen) alen = max(MINSIZE, sz);
         else while(alen < sz) alen *= 2;
         if(alen <= olen) return;
-        T *newbuf = (T *)(new uchar[alen*sizeof(T)]);
+        T *newbuf = (T *)(::operator new(alen*sizeof(T)));
         if(olen > 0)
         {
             memcpy(newbuf, buf, olen*sizeof(T));
-            delete[] (uchar *)buf;
+            ::operator delete(buf);
         }
         buf = newbuf;
     }
