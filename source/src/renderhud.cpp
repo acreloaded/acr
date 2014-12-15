@@ -1233,11 +1233,13 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if (worldhit) copystring(lastseen, worldhit->name, MAXNAMELEN+1);
     bool menu = menuvisible();
     bool command = getcurcommand() ? true : false;
-    bool reloading = lastmillis < focus->weaponsel->reloading + focus->weaponsel->info.reloadtime;
-    if (focus->state != CS_DEAD && !reloading)
+    if (!focus->weaponchanging && !focus->weaponsel->reloading)
     {
         const int teamtype = worldhit && worldhit->state == CS_ALIVE ? isteam(worldhit, focus) ? 1 : 2 : 0;
-        focus->weaponsel->renderaimhelp(teamtype);
+        if (focus->state == CS_EDITING)
+            drawcrosshair(focus, CROSSHAIR_SCOPE, teamtype);
+        else if (focus->state != CS_DEAD && (!m_zombie(gamemode) || focus->thirdperson >= 0))
+            focus->weaponsel->renderaimhelp(teamtype);
     }
 
     drawhitmarker();
