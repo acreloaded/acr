@@ -71,16 +71,16 @@ extern bool bindc(int code, const char *action, int type = keym::ACTION_DEFAULT)
 extern void rendermenu();
 extern bool menuvisible();
 extern void menureset(struct gmenu *menu);
-extern void menumanual(struct gmenu *menu, char *text, char *action = NULL, color *bgcolor = NULL, const char *desc = NULL);
-extern void menuimagemanual(struct gmenu *menu, const char *filename1, const char *filename2, char *text, char *action = NULL, color *bgcolor = NULL, const char *desc = NULL);
-extern void menutitle(struct gmenu *menu, const char *title = NULL);
+extern void menumanual(gmenu *menu, char *text, char *action = NULL, color *bgcolor = NULL, const char *desc = NULL);
+extern void menuimagemanual(gmenu *menu, const char *filename1, const char *filename2, char *text, char *action = NULL, color *bgcolor = NULL, const char *desc = NULL);
+extern void menutitle(gmenu *menu, const char *title = NULL);
 extern bool needscoresreorder;
-extern void menuheader(struct gmenu *menu, char *header = NULL, char *footer = NULL);
+extern void menuheader(gmenu *menu, char *header = NULL, char *footer = NULL);
 extern bool menukey(int code, bool isdown, int unicode, SDLMod mod = KMOD_NONE);
-extern struct gmenu *addmenu(const char *name, const char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(struct gmenu *, bool) = NULL, bool (__cdecl *keyfunc)(struct gmenu *, int, bool, int) = NULL, bool hotkeys = false, bool forwardkeys = false);
+extern gmenu *addmenu(const char *name, const char *title = NULL, bool allowinput = true, void (*refreshfunc)(gmenu *, bool) = NULL, bool (*keyfunc)(gmenu *, int, bool, int) = NULL, bool hotkeys = false, bool forwardkeys = false);
 extern void rendermenumdl();
-extern void menuset(struct gmenu *m, bool save = true);
-extern void menuselect(struct gmenu *menu, int sel);
+extern void menuset(gmenu *m, bool save = true);
+extern void menuselect(gmenu *menu, int sel);
 extern void showmenu(const char *name, bool top = true);
 extern void closemenu(const char *name);
 extern void addchange(const char *desc, int type);
@@ -89,7 +89,7 @@ extern void refreshapplymenu(gmenu *menu, bool init);
 
 struct mitem
 {
-    struct gmenu *parent;
+    gmenu *parent;
     color *bgcolor;
 
     mitem(gmenu *parent, color *bgcolor, int type) : parent(parent), bgcolor(bgcolor), type(type) {}
@@ -131,8 +131,8 @@ struct gmenu
     int mwidth;
     int menusel;
     bool allowinput, inited, hotkeys, forwardkeys;
-    typedef void(__cdecl *refreshfunc_t)(gmenu *, bool);
-    typedef bool(__cdecl *keyfunc_t)(gmenu *, int, bool, int);
+    typedef void(*refreshfunc_t)(gmenu *, bool);
+    typedef bool(*keyfunc_t)(gmenu *, int, bool, int);
     refreshfunc_t refreshfunc;
     keyfunc_t keyfunc;
     char *initaction;
