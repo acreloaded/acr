@@ -742,16 +742,27 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     if(pl->type==ENT_PLAYER)
     {
 //         if(pl==player1 && !(intermission || player1->onladder || (pl->trycrouch && !player1->onfloor && player1->timeinair > 50))) updatecrouch(player1, player1->trycrouch);
-        if (!intermission && (pl == player1 || isowned((playerent *)pl))) updatecrouch((playerent *)pl, pl->trycrouch);
+        playerent *ppl = (playerent *)pl;
+        if (!intermission && (pl == player1 || isowned(ppl))) updatecrouch(ppl, pl->trycrouch);
         const float croucheyeheight = pl->maxeyeheight*CROUCHHEIGHTMUL;
         resizephysent(pl, moveres, curtime, croucheyeheight, pl->maxeyeheight);
         // change zoom state
-        playerent *ppl = (playerent *)pl;
-        if (!intermission && pl->state == CS_ALIVE && (ppl->scoping ? ppl->zoomed < 1 : ppl->zoomed > 0)
-            && ads_gun(ppl->weaponsel->type) && !ppl->weaponsel->reloading && !ppl->weaponchanging)
+        const int scopetime = ADSTIME(ppl->perk2 == PERK_TIME);
+        const bool needscope = ppl->scoping && (!ppl->weaponsel->reloading || lastmillis > ppl->lastaction + ppl->weaponsel->info.reloadtime - scopetime) && !ppl->weaponchanging;
+        if (!intermission && pl->state == CS_ALIVE && (needscope ? ppl->zoomed < 1 : ppl->zoomed > 0) && ads_gun(ppl->weaponsel->type))
         {
-            ppl->zoomed += curtime * (ppl->scoping ? 1.f : -1.f) / ADSTIME(ppl->perk2 == PERK_TIME);
-            ppl->zoomed = clamp(ppl->zoomed, 0.f, 1.f);
+            if (needscope)
+            {
+                ppl->zoomed += (float)curtime / scopetime;
+                if (ppl->zoomed > 1)
+                    ppl->zoomed = 1;
+            }
+            else
+            {
+                ppl->zoomed -= (float)curtime / scopetime;
+                if (ppl->zoomed < 0)
+                    ppl->zoomed = 0;
+            }
         }
     }
 }
