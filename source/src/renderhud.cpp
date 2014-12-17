@@ -331,9 +331,16 @@ void drawcrosshair(playerent *p, int n, int teamtype)
     {
         float clen = chsize * 3.6f;
         float cthickness = chsize * 2.f;
-        chsize = p->weaponsel->dynspread() * 100 * (p->perk2 == PERK2_STEADY ? .65f : 1) / dynfov();
-        //if (isthirdperson) chsize *= worldpos.dist(focus->o) / worldpos.dist(camera1->o);
-        if (m_classic(gamemode, mutators)) chsize *= .6f;
+        const bool honly = melee_weap(p->weaponsel->type) || p->weaponsel->type == GUN_GRENADE;
+
+        if (honly)
+            chsize = chsize * 1.5f;
+        else
+        {
+            chsize = p->weaponsel->dynspread() * 100 * (p->perk2 == PERK2_STEADY ? .65f : 1) / dynfov();
+            //if (isthirdperson) chsize *= worldpos.dist(focus->o) / worldpos.dist(camera1->o);
+            if (m_classic(gamemode, mutators)) chsize *= .6f;
+        }
 
         Texture *cv = crosshairs[CROSSHAIR_V], *ch = crosshairs[CROSSHAIR_H];
         if (!cv) cv = textureload("packages/crosshairs/vertical.png", 3);
@@ -341,21 +348,6 @@ void drawcrosshair(playerent *p, int n, int teamtype)
 
         // horizontal
         glBindTexture(GL_TEXTURE_2D, ch->id);
-        glBegin(GL_QUADS);
-        // top
-        glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 - cthickness, VIRTH / 2 - chsize - clen);
-        glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 + cthickness, VIRTH / 2 - chsize - clen);
-        glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 + cthickness, VIRTH / 2 - chsize);
-        glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 - cthickness, VIRTH / 2 - chsize);
-        // bottom
-        glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 - cthickness, VIRTH / 2 + chsize);
-        glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 + cthickness, VIRTH / 2 + chsize);
-        glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 + cthickness, VIRTH / 2 + chsize + clen);
-        glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 - cthickness, VIRTH / 2 + chsize + clen);
-        glEnd();
-
-        // vertical
-        glBindTexture(GL_TEXTURE_2D, cv->id);
         glBegin(GL_QUADS);
         // left
         glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 - chsize - clen, VIRTH / 2 - cthickness);
@@ -368,6 +360,24 @@ void drawcrosshair(playerent *p, int n, int teamtype)
         glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 + chsize + clen, VIRTH / 2 + cthickness);
         glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 + chsize, VIRTH / 2 + cthickness);
         glEnd();
+
+        // vertical
+        if (!honly)
+        {
+            glBindTexture(GL_TEXTURE_2D, cv->id);
+            glBegin(GL_QUADS);
+            // top
+            glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 - cthickness, VIRTH / 2 - chsize - clen);
+            glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 + cthickness, VIRTH / 2 - chsize - clen);
+            glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 + cthickness, VIRTH / 2 - chsize);
+            glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 - cthickness, VIRTH / 2 - chsize);
+            // bottom
+            glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 - cthickness, VIRTH / 2 + chsize);
+            glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 + cthickness, VIRTH / 2 + chsize);
+            glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 + cthickness, VIRTH / 2 + chsize + clen);
+            glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 - cthickness, VIRTH / 2 + chsize + clen);
+            glEnd();
+        }
     }
     else
     {

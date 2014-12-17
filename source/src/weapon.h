@@ -149,8 +149,6 @@ struct grenades : weapon
     void onownerdies();
     void removebounceent(bounceent *b);
     int flashtime() const;
-
-    void renderaimhelp(int teamtype) { }
 };
 
 
@@ -194,7 +192,6 @@ struct sword : weapon
 
     void attackfx(const vec &from, const vec &to, int millis);
     void renderstats(){}
-    void renderaimhelp(int teamtype){}
 
     int flashtime() const;
 };
