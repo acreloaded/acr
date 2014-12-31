@@ -208,9 +208,18 @@ void drawscope(bool preload)
           x1 = VIRTW/2 - sz/2,
           x2 = VIRTW/2 + sz/2,
           y1 = VIRTH/2 - sz/2,
-          y2 = VIRTH/2 + sz/2,
-          border = (512 - 64*2)/512.0f;
+          y2 = VIRTH/2 + sz/2;
+    //    border = (512 - 64*2)/512.0f;
 
+    // draw scope as square
+    glBegin(GL_TRIANGLE_STRIP);
+    glTexCoord2f(0, 0); glVertex2f(x1, y1);
+    glTexCoord2f(1, 0); glVertex2f(x2, y1);
+    glTexCoord2f(0, 1); glVertex2f(x1, y2);
+    glTexCoord2f(1, 1); glVertex2f(x2, y2);
+    glEnd();
+
+    /*
     // draw center viewport
     glBegin(GL_TRIANGLE_FAN);
     glTexCoord2f(0.5f, 0.5f);
@@ -222,9 +231,12 @@ void drawscope(bool preload)
         glVertex2f(x1 + c*sz, y1 + s*sz);
     }
     glEnd();
+    */
 
-    glDisable(GL_BLEND);
+    glDisable(GL_TEXTURE_2D);
+    glColor4f(0.0f, 0.0f, 0.0f, 0.75f);
 
+    /*
     // draw outer scope
     glBegin(GL_TRIANGLE_STRIP);
     loopi(8+1)
@@ -238,6 +250,7 @@ void drawscope(bool preload)
         glVertex2f(x1 + c*sz, y1 + s*sz);
     }
     glEnd();
+    */
 
     // fill unused space with border texels
     if(x1 > 0 || x2 < VIRTW || y1 > 0 || y2 < VIRTH)
@@ -258,7 +271,7 @@ void drawscope(bool preload)
         glEnd();
     }
 
-    glEnable(GL_BLEND);
+    glEnable(GL_TEXTURE_2D);
 }
 
 const char *crosshairnames[CROSSHAIR_NUM] = { "default", "scope", "shotgun", "v", "h", "hit", "reddot" };
