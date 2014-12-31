@@ -1295,7 +1295,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glEnable(GL_BLEND);
         glColor4f(1.f, 1.f, 1.f, (3000 + icon.millis - lastmillis) / 3000.f);
-        glBegin(GL_QUADS);
+        glBegin(GL_TRIANGLE_STRIP);
         float anim = lastmillis / 100 % (h * 2);
         if (anim >= h) anim = h * 2 - anim + 1;
         anim /= h;
@@ -1303,8 +1303,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glTexCoord2f(0, anim); glVertex2f(VIRTW / 2 - xx, VIRTH / 2 - yy + yoffset);
         glTexCoord2f(1, anim); glVertex2f(VIRTW / 2 + xx, VIRTH / 2 - yy + yoffset);
         anim += 1.f / h;
-        glTexCoord2f(1, anim); glVertex2f(VIRTW / 2 + xx, VIRTH / 2 + yy + yoffset);
         glTexCoord2f(0, anim); glVertex2f(VIRTW / 2 - xx, VIRTH / 2 + yy + yoffset);
+        glTexCoord2f(1, anim); glVertex2f(VIRTW / 2 + xx, VIRTH / 2 + yy + yoffset);
         glEnd();
     }
 
