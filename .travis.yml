@@ -33,6 +33,6 @@ addons:
       name: "acreloaded/acr"
       description: "Build submitted via Travis CI"
     notification_email: nobody@domain.invalid
-    build_command_prepend: "cd ./source/src"
+    build_command_prepend: "if [ ${CC} != 'gcc' ]; then exit; fi; cd ./source/src"
     build_command:   "make all"
     branch_pattern: coverity_scan
