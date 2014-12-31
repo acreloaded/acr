@@ -758,7 +758,7 @@ public:
     {
         if(!w) return;
         extern int lastmillis;
-        weaponsel->ondeselecting();
+        // weaponsel->ondeselecting();
         weaponchanging = lastmillis;
         nextweaponsel = w;
         extern playerent *player1;

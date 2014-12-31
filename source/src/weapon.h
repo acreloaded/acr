@@ -107,7 +107,7 @@ struct weapon
     virtual void renderaimhelp(int teamtype);
 
     virtual void onselecting();
-    virtual void ondeselecting() {}
+    // virtual void ondeselecting() {}
     virtual void onammopicked() {}
     virtual void onownerdies() {}
     virtual void removebounceent(bounceent *b) {}
@@ -154,12 +154,15 @@ struct grenades : weapon
 
 struct gun : weapon
 {
+    bool autoreloading;
+
     gun(playerent *owner, int type);
     virtual bool attack(vec &targ);
     virtual void attackshell(const vec &to);
     virtual void attackfx(const vec &from, const vec &to, int millis);
     int modelanim();
-    void checkautoreload();
+    virtual bool reload(bool autoreloaded);
+    bool checkautoreload();
 };
 
 

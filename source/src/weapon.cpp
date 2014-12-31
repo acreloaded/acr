@@ -944,10 +944,14 @@ void grenades::removebounceent(bounceent *b)
 
 // gun base class
 
-gun::gun(playerent *owner, int type) : weapon(owner, type) {}
+gun::gun(playerent *owner, int type) : weapon(owner, type), autoreloading(false) {}
 
 bool gun::attack(vec &targ)
 {
+    // Cancel auto-reload
+    if(owner == player1 && owner->attacking)
+        autoreloading = false;
+
     int attackmillis = lastmillis-owner->lastaction - gunwait;
     if(attackmillis<0) return false;
     gunwait = reloading = 0;
@@ -955,7 +959,7 @@ bool gun::attack(vec &targ)
     if(!owner->attacking)
     {
         shots = 0;
-        checkautoreload();
+        if(owner == player1 || isowned(player1)) checkautoreload();
         return false;
     }
 
@@ -963,11 +967,23 @@ bool gun::attack(vec &targ)
     updatelastaction(owner, attackmillis);
     if(!mag)
     {
-        audiomgr.playsoundc(S_NOAMMO);
+        audiomgr.playsoundc(S_NOAMMO, owner);
         gunwait += 250;
         owner->lastattackweapon = NULL;
         shots = 0;
-        checkautoreload();
+        owner->attacking = false;
+        if (!checkautoreload())
+        {
+            if (owner->secondary != owner->primary)
+            {
+                if (type != owner->secondary && (owner->weapons[owner->secondary]->mag || owner->weapons[owner->secondary]->ammo))
+                    selectweapon(owner->weapons[owner->secondary]);
+                else if (type != owner->primary && (owner->weapons[owner->primary]->mag || owner->weapons[owner->primary]->ammo))
+                    selectweapon(owner->weapons[owner->primary]);
+                else audiomgr.playsoundc(S_NOAMMO, owner);
+            }
+            else audiomgr.playsoundc(S_NOAMMO, owner);
+        }
         return false;
     }
 
@@ -1051,7 +1067,24 @@ void gun::attackfx(const vec &from, const vec &to, int millis)
 }
 
 int gun::modelanim() { return modelattacking() ? ANIM_GUN_SHOOT|ANIM_LOOP : ANIM_GUN_IDLE; }
-void gun::checkautoreload() { if(autoreload && owner==player1 && !mag) reload(true); }
+
+bool gun::reload(bool autoreloaded)
+{
+    if (owner == player1)
+        autoreloading = (mag + reloadsize(type) < magsize(type)) && ammo;
+    return weapon::reload(autoreloaded);
+}
+
+bool gun::checkautoreload()
+{
+    if (owner != player1) return false;
+    if (autoreloading || (autoreload && !mag && ammo))
+    {
+        reload(true);
+        return true;
+    }
+    return false;
+}
 
 
 // shotgun
