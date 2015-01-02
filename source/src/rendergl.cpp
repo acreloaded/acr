@@ -777,24 +777,36 @@ void recomputecamera()
                 static physent deathcam;
                 if (camera1 == &deathcam)
                 {
-                    /*
                     if (deathcamstyle && (deathcamstyle == 2 || totalmillis - lastdeathcamswitch <= 3000))
                     {
                         playerent *a = getclient(player1->lastkiller);
                         if (a)
                         {
-                            vec v = vec(a->head.x >= 0 ? a->head : a->o).sub(camera1->o);
+                            vec v = camera1->o;
+                            v.sub(a->head.x >= 0 ? a->head : a->o);
                             if (v.magnitude() >= 0.1f)
                             {
-                                //v.normalize();
                                 float aimyaw, aimpitch;
                                 vectoyawpitch(v, aimyaw, aimpitch);
                                 const float speed = (float(curtime) / 1000.f)*deathcamspeed;
-                                if (deathcamspeed > 0) scaleyawpitch(camera1->yaw, camera1->pitch, aimyaw, aimpitch, speed, speed*4.f);
-                                else { camera1->yaw = aimyaw; camera1->pitch = aimpitch; }
+                                if (deathcamspeed > 0) scaleyawpitch(camera1->yaw, camera1->pitch, aimyaw, -aimpitch, speed, speed*4.f);
+                                else { camera1->yaw = aimyaw; camera1->pitch = -aimpitch; }
                             }
+                            return;
                         }
                     }
+                    /*
+                    // transfer expired deathcam to SM_FLY
+                    player1->o = camera1->o;
+                    player1->vel = camera1->vel;
+                    player1->vel_t = camera1->vel_t;
+                    player1->deltapos = camera1->deltapos;
+                    player1->newpos = camera1->newpos;
+                    player1->yaw = camera1->yaw;
+                    player1->pitch = camera1->pitch;
+                    player1->roll = camera1->roll;
+                    player1->spectatemode = SM_FLY;
+                    resetcamera();
                     */
                     return;
                 }
@@ -807,14 +819,16 @@ void recomputecamera()
                 focus = player1;
                 lastdeathcamswitch = totalmillis;
                 loopi(10) moveplayer(camera1, 10, true, 50);
-                /*
-                if (deathcamstyle)
+                if (deathcamstyle /*&& !getclient(player1->lastkiller)*/)
                 {
-                    vec v = vec(focus->deathcamsrc).sub(camera1->o);
+                    vec v = camera1->o;
+                    v.sub(focus->deathcamsrc);
                     if (v.magnitude() > .1f)
+                    {
                         vectoyawpitch(v, camera1->yaw, camera1->pitch);
+                        camera1->pitch = -camera1->pitch;
+                    }
                 }
-                */
                 break;
             }
             case SM_FLY:

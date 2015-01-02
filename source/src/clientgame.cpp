@@ -445,6 +445,7 @@ COMMAND(expreason, "s");
 
 bool spawnenqueued = false;
 
+VARP(autospectate, 0, 1, 4); // 0: off, 1: same, 2: alt, +2 with bots
 void deathstate(playerent *pl)
 {
     if (pl == player1)
@@ -462,15 +463,32 @@ void deathstate(playerent *pl)
     pl->respawnoffset = pl->lastpain = lastmillis;
     pl->move = pl->strafe = 0;
     pl->roll = 0;
-    pl->zoomed = 0;
+    pl->zoomed = pl->pitchvel = /*pl->pitchreturn =*/ 0;
     pl->attacking = pl->scoping = false;
     pl->weaponsel->onownerdies();
     pl->radarmillis = 0;
 
     if(pl==player1)
     {
-        if(pl->team == TEAM_SPECT) spectatemode(SM_FLY);
-        else if(team_isspect(pl->team)) spectatemode(SM_FOLLOWSAME);
+        if (autospectate)
+        {
+            playerent *killer = getclient(pl->lastkiller);
+            if (!killer || killer == pl || (autospectate <= 2 && killer->ownernum >= 0))
+                goto NOAUTOSPECTATE;
+            pl->spectatemode = (autospectate & 1) ? SM_FOLLOWSAME : SM_FOLLOWALT;
+            focus = killer;
+        }
+        else
+        {
+            NOAUTOSPECTATE:
+            if (pl->lastkiller == pl->clientnum)
+            {
+                pl->o.z += pl->eyeheight - 1.0f;
+                pl->spectatemode = SM_FLY;
+            }
+            else
+                pl->spectatemode = SM_DEATHCAM;
+        }
     }
     else pl->resetinterp();
 }
@@ -501,6 +519,7 @@ VAR(lastpm, 1, -1, 0);
 void zapplayer(playerent *&d)
 {
     if(d && d->clientnum == lastpm) lastpm = -1;
+    if(focus == d) focus = player1;
     DELETEP(d);
 }
 
@@ -869,6 +888,9 @@ void dokill(playerent *pl, playerent *act, int gun, int style, int damage, int c
         defformatstring(killevent)("onKill %d %d %d %d", act->clientnum, pl->clientnum, gun, style);
         execute(killevent);
     }
+
+    // set last killer for the client's killcams
+    pl->lastkiller = (gun == OBIT_ASSIST ? pl : act)->clientnum;
 
     const bool headshot = isheadshot(gun, style);
 
@@ -1701,6 +1723,7 @@ void spectatemode(int mode)
         {
             if(players.length() && updatefollowplayer()) break;
             else mode = SM_FLY;
+            // fallthrough
         }
         case SM_FLY:
         {

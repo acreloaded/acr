@@ -609,7 +609,7 @@ public:
     int radarmillis; vec4 lastloudpos;
     int frags, assists, flagscore, deaths, points;
     int pointstreak, deathstreak, airstrikes, radarearned, nukemillis;
-    int lastaction, lastmove, lastpain, lasthit;
+    int lastaction, lastmove, lastpain, lasthit, lastkiller;
     int clientrole, vote, voternum;
     bool attacking;
     string name;
@@ -635,6 +635,7 @@ public:
     int smoothmillis;
 
     vec head, eject, muzzle;
+    vec deathcamsrc;
 
     bool ignored, muted;
 
@@ -648,12 +649,13 @@ public:
                   radarmillis(0), lastloudpos(0, 0, 0, 0),
                   frags(0), assists(0), flagscore(0), deaths(0), points(0),
                   pointstreak(0), deathstreak(0), airstrikes(0), radarearned(0), nukemillis(0),
-                  lastpain(0), lasthit(0), clientrole(CR_DEFAULT),
+                  lastpain(0), lasthit(0), lastkiller(-1), clientrole(CR_DEFAULT),
                   vote(VOTE_NEUTRAL), voternum(0),
                   team(TEAM_SPECT), build(0), spectatemode(SM_NONE), thirdperson(0), eardamagemillis(0), respawnoffset(0),
                   prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), lastattackweapon(NULL),
                   smoothmillis(-1),
-                  head(-1, -1, -1), eject(-1, -1, -1), muzzle(-1, -1, -1), ignored(false), muted(false),
+                  head(-1, -1, -1), eject(-1, -1, -1), muzzle(-1, -1, -1), deathcamsrc(-1, -1, -1),
+                  ignored(false), muted(false),
                   ownernum(-1), level(0), pBot(NULL), enemy(NULL)
     {
         type = ENT_PLAYER;

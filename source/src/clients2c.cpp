@@ -1056,15 +1056,15 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     damage = getint(p),
                     combo = getint(p),
                     assist = getint(p);
-                float killdist = getint(p)/DMF;
                 vec src; loopi(3) src[i] = getint(p)/DMF;
+                float killdist = getint(p) / DMF;
                 playerent *victim = getclient(vcn), *actor = getclient(acn);
 
                 if (!victim) break;
                 victim->health -= damage;
                 if (!actor) break;
                 dodamage(damage, victim, actor, gun, style, src);
-                //victim->deathcamsrc = src;
+                victim->deathcamsrc = src;
                 dokill(victim, actor, gun, style, damage, combo, assist, killdist);
                 break;
             }
