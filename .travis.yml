@@ -8,9 +8,14 @@ branches:
     - master
     - coverity_scan
 
-before_install: sudo apt-get update -qq
+before_install:
+  - if [[ ${TRAVIS_BRANCH} == 'coverity_scan' && ${CC} != 'gcc' ]]; then exit; fi;
+  - sudo apt-get update -qq
 install: sudo apt-get install -qq build-essential libsdl1.2debian libsdl-image1.2 libopenal1 libsdl1.2-dev libsdl-image1.2-dev libopenal-dev libvorbis-dev libenet-dev
-script: if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then cd ./source/src; make all; fi
+script:
+  - if [ ${COVERITY_SCAN_BRANCH} == 1 ]; then exit; fi
+  - cd ./source/src
+  - make all
 
 notifications:
   irc:
@@ -33,6 +38,6 @@ addons:
       name: "acreloaded/acr"
       description: "Build submitted via Travis CI"
     notification_email: nobody@domain.invalid
-    build_command_prepend: "if [ ${CC} != 'gcc' ]; then exit; fi; cd ./source/src"
+    build_command_prepend: "cd ./source/src"
     build_command:   "make all"
     branch_pattern: coverity_scan
