@@ -1675,8 +1675,10 @@ playerent *updatefollowplayer(int shiftdirection)
     vector<playerent *> available;
     loopv(players) if(players[i])
     {
-        if(player1->team != TEAM_SPECT && !watchingdemo && m_team(gamemode, mutators) && team_base(players[i]->team) != team_base(player1->team)) continue;
-        if(players[i]->state==CS_DEAD || players[i]->isspectating()) continue;
+        if (player1->team == TEAM_SPECT) continue;
+        //if(!watchingdemo && m_team(gamemode, mutators) && team_base(players[i]->team) != team_base(player1->team)) continue;
+        //if (players[i]->ownernum < 0 && !spectatebots) continue;
+        if (players[i]->state == CS_DEAD && !m_duke(gamemode, mutators)) continue;
         available.add(players[i]);
     }
     if(!available.length()) return NULL;
@@ -1687,7 +1689,7 @@ playerent *updatefollowplayer(int shiftdirection)
     int idx = (oldidx+shiftdirection) % available.length();
     if(idx<0) idx += available.length();
 
-    return available[idx];
+    return (focus = available[idx]);
 }
 
 void spectate()
