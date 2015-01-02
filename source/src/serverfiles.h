@@ -374,8 +374,9 @@ struct servermaprot : serverconfigfile
                 if((ms = getservermapstats(c->mapname)) && mapisok(ms)) break;
                 else logline(ACLOG_INFO, "maprot error: map '%s' %s", c->mapname, (ms ? "does not satisfy some basic requirements" : "not found"));
             }
-            if(i >= 3 * csl) fatal("maprot unusable"); // not a single map in rotation can be found...
+            if(i >= 3 * csl) c = NULL; // not a single map in rotation can be found...
         }
+        if(!c) fatal("maprot unusable");
         if(!nochange)
         {
             curcfgset = ccs;

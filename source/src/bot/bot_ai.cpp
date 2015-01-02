@@ -763,6 +763,7 @@ int CBot::GetShootDelay()
 {
     // UNDONE
     return m_pMyEnt->gunwait[m_pMyEnt->gunselect];
+    /*
     if ((WeaponInfoTable[m_pMyEnt->gunselect].eWeaponType == TYPE_MELEE) ||
         (WeaponInfoTable[m_pMyEnt->gunselect].eWeaponType == TYPE_AUTO))
         return m_pMyEnt->gunwait[m_pMyEnt->gunselect];
@@ -770,6 +771,7 @@ int CBot::GetShootDelay()
     float flMinShootDelay = m_pBotSkill->flMinAttackDelay;
     float flMaxShootDelay = m_pBotSkill->flMaxAttackDelay;
     return max(m_pMyEnt->gunwait[m_pMyEnt->gunselect], int(RandomFloat(flMinShootDelay, flMaxShootDelay) * 1000.0f));
+    */
 }
 
 void CBot::CheckReload() // reload gun if no enemies are around

@@ -1190,6 +1190,7 @@ void flagaction(int flag, int action, int actor)
             case FA_LOST:
             case FA_DROP:
                 if (actor == -1) actor = f.actor_cn;
+                // fallthrough
             case FA_RESET:
                 if(f.state == CTFF_STOLEN)
                     actor = f.actor_cn;
@@ -2657,24 +2658,6 @@ struct voteinfo
 
 static voteinfo *curvote = NULL;
 
-inline void scallvotesuc(voteinfo &v)
-{
-    if(!v.isvalid()) return;
-    DELETEP(curvote);
-    curvote = &v;
-    clients[v.owner]->lastvotecall = servmillis;
-    clients[v.owner]->nvotes--; // successful votes do not count as abuse
-    logline(ACLOG_INFO, "[%s] %s called a vote: %s", clients[v.owner]->gethostname(), clients[v.owner]->formatname(), v.action && v.action->desc[0] ? v.action->desc : "[unknown]");
-}
-
-inline void scallvoteerr(const voteinfo &v, int error)
-{
-    if(!valid_client(v.owner)) return;
-    client &owner = *clients[v.owner];
-    sendf(&owner, 1, "ri2", SV_CALLVOTEERR, error);
-    logline(ACLOG_INFO, "[%s] %s failed to call a vote: %s (%s)", owner.gethostname(), owner.formatname(), v.action && v.action->desc[0] ? v.action->desc : "[unknown]", voteerrorstr(error));
-}
-
 void sendcallvote(client *cl = NULL);
 
 bool scallvote(voteinfo &v) // true if a regular vote was called
@@ -2697,12 +2680,18 @@ bool scallvote(voteinfo &v) // true if a regular vote was called
 
     if(error>=0)
     {
-        scallvoteerr(v, error);
+        sendf(c, 1, "ri2", SV_CALLVOTEERR, error);
+        logline(ACLOG_INFO, "[%s] %s failed to call a vote: %s (%s)", c->gethostname(), c->formatname(), v.action && v.action->desc[0] ? v.action->desc : "[unknown]", voteerrorstr(error));
         return false;
     }
     else
     {
-        scallvotesuc(v);
+        DELETEP(curvote);
+        curvote = &v;
+        c->lastvotecall = servmillis;
+        c->nvotes--; // successful votes do not count as abuse
+        logline(ACLOG_INFO, "[%s] %s called a vote: %s", c->gethostname(), c->formatname(), v.action && v.action->desc[0] ? v.action->desc : "[unknown]");
+
         sendcallvote();
         // owner auto votes yes
         sendf(NULL, 1, "ri3", SV_VOTE, v.owner, (c->vote = VOTE_YES));

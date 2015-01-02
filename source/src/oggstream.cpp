@@ -36,7 +36,7 @@ ov_callbacks oggcallbacks = { oggcallbackread, oggcallbackseek, oggcallbackclose
 
 // ogg audio streaming
 
-oggstream::oggstream() : valid(false), isopen(false), src(NULL)
+oggstream::oggstream() : valid(false), isopen(false), src(NULL), volume(0.0f)
 {
     reset();
 

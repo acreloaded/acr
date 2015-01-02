@@ -1334,15 +1334,14 @@ void sortlist(char *list)
         return;
     }
 
-    char tmp[255]; strcpy (tmp, "");
-
     for(int i = 0; i < swap.length(); i+=2)
     {
         if (elems.inrange(atoi(swap[i])) && elems.inrange(atoi(swap[i + 1])))
         {
-            strcpy(tmp, elems[atoi(swap[i])]);
+            char *tmp = newstring(elems[atoi(swap[i])]);
             strcpy(elems[atoi(swap[i])], elems[atoi(swap[i+1])]);
             strcpy(elems[atoi(swap[i+1])], tmp);
+            delete[] tmp;
         }
     }
 

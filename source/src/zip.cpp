@@ -90,6 +90,7 @@ static bool findzipdirectory(FILE *f, zipdirectoryheader &hdr)
         if(search >= buf) { src = search; break; }
     }
 
+    if(!src) return false;
     if(&buf[len] - src < ZIP_DIRECTORY_SIZE) return false;
 
     hdr.signature = lilswap(*(uint *)src); src += 4;
