@@ -862,6 +862,19 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
             }
 
+            case SV_THROWKNIFE:
+            {
+                playerent *d = getclient(getint(p));
+                vec from, to;
+                loopk(3) from[k] = getint(p) / DMF;
+                loopk(3) to[k] = getint(p) / DNF;
+                if (!d) break;
+                d->lastaction = lastmillis;
+                d->lastattackweapon = d->weapons[GUN_KNIFE];
+                if (d->weapons[GUN_KNIFE]) d->weapons[GUN_KNIFE]->attackfx(from, to, 1);
+                break;
+            }
+
             case SV_STREAKREADY:
             {
                 playerent *d = getclient(getint(p));

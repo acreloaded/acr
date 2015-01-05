@@ -261,17 +261,28 @@ struct akimbo : gun
     bool timerout();
 };
 
+class knifeent;
 
 struct knife : weapon
 {
     knife(playerent *owner);
+    knifeent *inhandknife;
+    int state;
 
     bool attack(vec &targ);
+    void reset();
+    bool busy();
+    bool selectable();
     int modelanim();
 
-    void drawstats();
+    void activateknife();
+    void throwknife(bool weak = false);
+    void throwknife(const vec &vel);
+
     void attackfx(const vec &from, const vec &to, int millis);
-    void renderstats();
+    void renderstats() {}
+    void onownerdies();
+    void removebounceent(bounceent *b);
 
     int flashtime() const;
 };

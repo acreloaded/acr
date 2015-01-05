@@ -510,11 +510,10 @@ void renderwaypoints()
 {
     if (!waypointsize) return;
     // throwing knife pickups
-    /*
     loopv(knives)
     {
         vec s;
-        bool ddt = focus->perk2 == PERK2_VISION;
+        bool ddt = focus->perk2 == PERK2_VISION; // disable depth test
         if (!ddt)
         {
             vec dir, s;
@@ -523,15 +522,14 @@ void renderwaypoints()
         }
         renderwaypoint(WP_KNIFE, knives[i].o, (float)(knives[i].millis - totalmillis) / KNIFETTL, ddt);
     }
-    */
     // vision perk
     if (focus->perk2 == PERK2_VISION)
         loopv(bounceents)
         {
             bounceent *b = bounceents[i];
             if (!b || (b->bouncetype != BT_NADE && b->bouncetype != BT_KNIFE)) continue;
-            if (b->bouncetype == BT_NADE && ((grenadeent *)b)->nadestate != 1) continue;
-            //if (b->bouncetype == BT_KNIFE && ((knifeent *)b)->knifestate != 1) continue;
+            if (b->bouncetype == BT_NADE && ((grenadeent *)b)->nadestate != GST_INHAND) continue;
+            if (b->bouncetype == BT_KNIFE && ((knifeent *)b)->knifestate != GST_INHAND) continue;
             renderwaypoint(b->bouncetype == BT_NADE ? WP_EXP : WP_KNIFE, b->o);
         }
     // flags

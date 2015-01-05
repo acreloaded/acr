@@ -231,6 +231,7 @@ public:
         zoomed = 0;
     }
 
+    virtual bool trystick(playerent *pl) { return false; }
     virtual void oncollision() {}
     virtual void onmoved(const vec &dist) {}
 };
@@ -837,6 +838,24 @@ public:
     void moveoutsidebbox(const vec &direction, playerent *boundingbox);
     void oncollision();
     void onmoved(const vec &dist);
+};
+
+class knifeent : public bounceent
+{
+public:
+    bool local;
+    int knifestate;
+    playerent *hit;
+    knifeent(playerent *owner, int millis = 0);
+    ~knifeent();
+    void activate();
+    void _throw(const vec &from, const vec &vel);
+    void explode();
+    virtual void destroy();
+    virtual bool applyphysics();
+    void moveoutsidebbox(const vec &direction, playerent *boundingbox);
+    virtual void oncollision();
+    virtual bool trystick(playerent *pl);
 };
 
 #ifndef STANDALONE

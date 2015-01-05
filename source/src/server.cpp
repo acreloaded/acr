@@ -3372,8 +3372,10 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
     // throwing knife pickup
     if (cp.type != ST_AI) loopv(sknives)
     {
-        const bool pickup = cs.o.dist(sknives[i].o) < 5 && cs.ammo[GUN_KNIFE] < ammostats[GUN_KNIFE].max, expired = gamemillis - sknives[i].millis > KNIFETTL;
-        if (pickup || expired){
+        const bool pickup = cs.o.dist(sknives[i].o) < 5 && cs.ammo[GUN_KNIFE] < ammostats[GUN_KNIFE].max;
+        const bool expired = gamemillis - sknives[i].millis > KNIFETTL;
+        if (pickup || expired)
+        {
             if (pickup) sendf(NULL, 1, "ri5", SV_RELOAD, cp.clientnum, GUN_KNIFE, cs.mag[GUN_KNIFE], ++cs.ammo[GUN_KNIFE]);
             sendf(NULL, 1, "ri2", SV_KNIFEREMOVE, sknives[i].id);
             sknives.remove(i--);
@@ -3637,6 +3639,22 @@ void process(ENetPacket *packet, int sender, int chan)
                 if (vel.magnitude() > NADEPOWER) vel.normalize().mul(NADEPOWER);
                 sendf(NULL, 1, "ri9x", SV_THROWNADE, cn, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF),
                     (int)(vel.x*DNF), (int)(vel.y*DNF), (int)(vel.z*DNF), cooked, sender);
+                break;
+            }
+
+            case SV_THROWKNIFE:
+            {
+                const int cn = getint(p);
+                vec from, vel;
+                loopi(3) from[i] = getint(p) / DMF;
+                loopi(3) vel[i] = getint(p) / DNF;
+                if (!cl->hasclient(cn)) break;
+                clientstate &cps = clients[cn]->state;
+                if (cps.knives.throwable <= 0) break;
+                --cps.knives.throwable;
+                checkpos(from);
+                if (vel.magnitude() > KNIFEPOWER) vel.normalize().mul(KNIFEPOWER);
+                sendf(NULL, 1, "ri8x", SV_THROWKNIFE, cn, from.x*DMF, from.y*DMF, from.z*DMF, vel.x*DNF, vel.y*DNF, vel.z*DNF, sender);
                 break;
             }
 

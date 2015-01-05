@@ -270,7 +270,7 @@ struct shothit
 client *nearesthit(client &actor, const vec &from, const vec &to, bool teamcheck, int &hitzone, const vector<posinfo> &pos, vector<int> &exclude, vec &end, bool melee = false)
 {
     client *result = NULL;
-    float dist = 8e36; // 2 undecillion meters
+    float dist = 8e36f; // 2 undecillion meters
 #define MELEE_PRECISION 11
     vec melees[MELEE_PRECISION];
     if (melee)

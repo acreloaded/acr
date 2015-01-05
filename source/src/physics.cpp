@@ -594,24 +594,29 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         hitplayer = NULL;
         if(!collide(pl, false, drop, rise)) continue;
         else collided = true;
-        if(pl->type==ENT_BOUNCE && cornersurface)
-        { // try corner bounce
-            float ct2f = cornersurface == 2 ? -1.0 : 1.0;
-            vec oo = pl->o, xd = d;
-            xd.x = d.y * ct2f;
-            xd.y = d.x * ct2f;
-            pl->o.x += f * (-d.x + xd.x);
-            pl->o.y += f * (-d.y + xd.y);
-            if(!collide(pl, false, drop, rise))
-            {
-                d = xd;
-                float sw = pl->vel.x * ct2f;
-                pl->vel.x = pl->vel.y * ct2f;
-                pl->vel.y = sw;
-                pl->vel.mul(0.7f);
-                continue;
+        if(pl->type == ENT_BOUNCE)
+        {
+            // stick to players
+            if(hitplayer && hitplayer->type == ENT_PLAYER && pl->trystick((playerent *)hitplayer)) return;
+            if(cornersurface)
+            { // try corner bounce
+                float ct2f = cornersurface == 2 ? -1.0 : 1.0;
+                vec oo = pl->o, xd = d;
+                xd.x = d.y * ct2f;
+                xd.y = d.x * ct2f;
+                pl->o.x += f * (-d.x + xd.x);
+                pl->o.y += f * (-d.y + xd.y);
+                if(!collide(pl, false, drop, rise))
+                {
+                    d = xd;
+                    float sw = pl->vel.x * ct2f;
+                    pl->vel.x = pl->vel.y * ct2f;
+                    pl->vel.y = sw;
+                    pl->vel.mul(0.7f);
+                    continue;
+                }
+                //pl->o = oo;
             }
-            pl->o = oo;
         }
         if(pl->type==ENT_CAMERA || (pl->type==ENT_PLAYER && pl->state==CS_DEAD && ((playerent *)pl)->spectatemode != SM_FLY))
         {

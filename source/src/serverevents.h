@@ -20,7 +20,43 @@ void destroyevent::process(client *ci)
 
         case GUN_KNIFE:
         {
-            // ...
+            if (!cs.knives.removeany()) return;
+            ushort dmg = effectiveDamage(GUN_KNIFE, 0);
+            client *hit = valid_client(flags) && flags != c.clientnum ? clients[flags] : NULL;
+            bool done = false;
+            if (hit) // FIXME: change this to server-sided collision?
+            {
+                clientstate &ts = hit->state;
+                if (ts.state == CS_ALIVE && !ts.protect(gamemillis, gamemode, mutators) && !isteam(&c, hit)) // cannot make teammates bleed
+                {
+                    int tknifeflags = FRAG_FLAG;
+                    if (checkcrit(0, 0, 20)) // 5% critical hit chance
+                    {
+                        tknifeflags |= FRAG_CRIT;
+                        dmg *= 1.6f; // 80 * 1.6 = 128 damage = almost instant kill!
+                    }
+                    else dmg /= 1.5f; // 80 / 2 = 53 just because of the bleeding effect
+                    damagedealt += dmg;
+
+                    int cubefloor = getblockfloor(getmaplayoutid((o.x = ts.o.x), (o.y = ts.o.y)));
+                    o.z = ts.o.z + PLAYERHEIGHT > cubefloor ? (cubefloor + ts.o.z + PLAYERHEIGHT) / 2 : cubefloor;
+
+                    // bleeding damage
+                    if (!m_zombie(gamemode)) // && !isteam(&c, hit))
+                    {
+                        hit->state.addwound(c.clientnum, o);
+                        sendf(NULL, 1, "ri2", SV_BLEED, flags);
+                    }
+                    done = true;
+                    serverdamage(*hit, c, dmg, GUN_KNIFE, FRAG_FLAG, vec(0, 0, 0));
+                }
+            }
+
+            sendhit(c, GUN_KNIFE, o, done ? dmg : 0);
+            sknife &k = sknives.add();
+            k.millis = gamemillis;
+            k.o = o;
+            sendf(NULL, 1, "ri5", SV_KNIFEADD, k.id = ++knifeseq, (int)(o.x*DMF), (int)(o.y*DMF), (int)(o.z*DMF));
             break;
         }
 
