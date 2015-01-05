@@ -1353,7 +1353,7 @@ void knifeent::_throw(const vec &from, const vec &vel)
     resetinterp();
     inwater = hdr.waterlevel>o.z;
 
-    if (local) addmsg(SV_THROWKNIFE, "ri7", owner->clientnum, o.x*DMF, o.y*DMF, o.z*DMF, vel.x*DNF, vel.y*DNF, vel.z*DNF);
+    if (local) addmsg(SV_THROWKNIFE, "ri7", owner->clientnum, int(o.x*DMF), int(o.y*DMF), int(o.z*DMF), int(vel.x*DNF), int(vel.y*DNF), int(vel.z*DNF));
     audiomgr.playsound(S_GRENADETHROW, SP_HIGH); // S_KNIFETHROW
 }
 
