@@ -3,27 +3,31 @@
 $model "models/players/model/model.md3"
 // reference frame
 //$frames -1 -1
-// frame 1-4
-$frames 1 4
+// frame 1-3
+$frames 1 3
 $flags 0
 $numskins 0
 
 // you can have one or no parent tag
 //$parenttag "tag_muzzle"
+//$parenttag "tag_eject"
+//$parenttag "tag_zoom"
 
 // tags
 $tag "tag_muzzle"
+$tag "tag_eject"
+$tag "tag_zoom"
 
 // meshes (surfaces)
-$mesh "hands"
+$mesh "arm"
 $skin "models/players/model/skin.tga"
 $flags 0
 
-$mesh "wand"
+$mesh "arm2"
 $skin "models/players/model/skin.tga"
 $flags 0
 
-$mesh "tip"
+$mesh "m82"
 $skin "models/players/model/skin.tga"
 $flags 0
 

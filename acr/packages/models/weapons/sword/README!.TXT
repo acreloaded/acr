@@ -1,4 +1,4 @@
-This was modified by Victor, who must release it under the public domain for the previous licence:
+This was modified by Victor, who must release it under the previous licence:
 DO NOT COPYRIGHT!
 THIS MOD IS MADE BY PROGONNA.
 UNDERSTAND THE CONCEPT OF DIRECTORIES :)
