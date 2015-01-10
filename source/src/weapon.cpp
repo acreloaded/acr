@@ -1120,9 +1120,11 @@ void shotgun::attackfx(const vec &from, const vec &to, int millis)
                 addbullethole(owner, from, sg[i], 0, false);
             }
         adddynlight(owner, from, 4, 100, 50, 96, 80, 64);
-        attackshell(to);
         if (owner != player1 && !isowned(owner))
+        {
+            attackshell(to);
             attacksound();
+        }
     }
     else
     {
