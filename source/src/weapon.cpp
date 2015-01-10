@@ -88,6 +88,7 @@ void shiftweapon(int *s)
             GUN_PISTOL,
             GUN_HEAL,
             GUN_RPG,
+            GUN_PISTOL2,
             // primary
             GUN_SHOTGUN,
             GUN_SUBGUN,
@@ -97,6 +98,7 @@ void shiftweapon(int *s)
             GUN_ASSAULT,
             GUN_SWORD,
             GUN_ASSAULT2,
+            GUN_SNIPER3,
         };
         loopi(NUMGUNS)
         {
@@ -677,6 +679,8 @@ void weapon::equipplayer(playerent *pl)
     pl->weapons[GUN_RPG] = new crossbow(pl);
     pl->weapons[GUN_ASSAULT2] = new ak47(pl);
     pl->weapons[GUN_SNIPER2] = new m82(pl);
+    pl->weapons[GUN_SNIPER3] = new mk12(pl);
+    pl->weapons[GUN_PISTOL2] = new m1911(pl);
     pl->primary = GUN_ASSAULT;
     pl->selectweapon(GUN_ASSAULT);
 }

@@ -144,6 +144,7 @@ struct wound
 const int gungame[] =
 {
     GUN_ASSAULT2,
+    GUN_SNIPER3,
     GUN_SNIPER,
     GUN_SNIPER2,
     GUN_ASSAULT,
@@ -151,6 +152,7 @@ const int gungame[] =
     GUN_BOLT,
     GUN_SHOTGUN,
     GUN_PISTOL,
+    GUN_PISTOL2,
     GUN_RPG,
     GUN_HEAL, // nuke after killing with this
 };
@@ -625,6 +627,8 @@ itemstat ammostats[NUMGUNS] =
     { 1, 3, 4, S_ITEMAMMO },    // RPG
     { 3, 4, 6, S_ITEMAMMO },    // ak47
     { 2, 3, 4, S_ITEMAMMO },    // m82
+    { 3, 4, 5, S_ITEMAMMO },    // mk12
+    { 2, 5, 6, S_ITEMAMMO },    // m1911
 };
 
 itemstat powerupstats[I_ARMOUR-I_HEALTH+1] =
@@ -655,6 +659,8 @@ guninfo guns[NUMGUNS] =
     { "rpg",      S_RPG,      S_NULL,      2000,  120, 190,  0,  32, 18,  50, 200,  75,   3,  1,  1, 3, 1,  48,  50, 100,  0, 2, false },
     { "assault2", S_ASSAULT2, S_RASSAULT2, 2000,  100, 42,  48, 120, 12,   0, 150,  94,   3, 30, 31, 0, 3,  42,  62, 100, 62, 1, true },
     { "sniper2",  S_SNIPER2,  S_RSNIPER2,  2000,  120, 110, 75, 120, 45,  35, 300,  98, 120, 10, 11, 4, 4,  95,  96, 100, 85, 5, false },
+    { "sniper3",  S_ASSAULT,  S_RASSAULT,  2100,  120, 36,  65, 100, 16,   0, 235,  96,   3, 20, 21, 0, 3,  47,  59, 100, 62, 1, true },
+    { "pistol2",  S_PISTOL,   S_RPISTOL,   1400,  110, 36,  26,  96, 10,   0, 130,  92,  10,  7,  8, 6, 2,  48,  54, 100, 70, 1, false },
 };
 
 const mul muls[MUL_NUM] =
@@ -711,6 +717,8 @@ inline const char *weapname(int weap)
         _("RPG-7"),
         _("AK-47"),
         _("M82"),
+        _("MK12"),
+        _("M1911"),
     };
     return weapnames[weap];
 }
@@ -811,6 +819,7 @@ float gunspeed(int gun, float zoomed, bool lightweight)
         case GUN_PISTOL:
         case GUN_GRENADE:
         case GUN_HEAL:
+        case GUN_PISTOL2:
             //ret *= 1;
             break;
         case GUN_SWORD:
@@ -830,6 +839,7 @@ float gunspeed(int gun, float zoomed, bool lightweight)
             break;
         case GUN_ASSAULT:
         case GUN_ASSAULT2:
+        case GUN_SNIPER3:
         case GUN_RPG:
             ret *= .92f;
             break;

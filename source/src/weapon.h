@@ -14,6 +14,8 @@ enum
     GUN_RPG,
     GUN_ASSAULT2,
     GUN_SNIPER2,
+    GUN_SNIPER3,
+    GUN_PISTOL2,
     NUMGUNS,
     // extra obits
     OBIT_START = NUMGUNS,
@@ -36,11 +38,11 @@ enum
 };
 
 #define primary_weap(x) (x > 0 && x<NUMGUNS && x != GUN_GRENADE && x != GUN_PISTOL && x!= GUN_HEAL && x != GUN_SWORD && x != GUN_RPG)
-#define secondary_weap(x) (x > 0 && x<NUMGUNS && (x == GUN_PISTOL || x == GUN_HEAL || x == GUN_SWORD || x == GUN_RPG))
+#define secondary_weap(x) (x > 0 && x<NUMGUNS && (x == GUN_PISTOL || x == GUN_HEAL || x == GUN_SWORD || x == GUN_RPG || x == GUN_PISTOL2))
 #define melee_weap(g) (g == GUN_KNIFE || g == GUN_SWORD)
 #define explosive_weap(g) (g == GUN_GRENADE || g == GUN_RPG)
 #define suppressed_weap(g) (melee_weap(g) || g == GUN_GRENADE || g == GUN_HEAL)
-#define sniper_weap(g) (g == GUN_SNIPER || g == GUN_BOLT || g == GUN_SNIPER2)
+#define sniper_weap(g) (g == GUN_SNIPER || g == GUN_BOLT || g == GUN_SNIPER2 || g == GUN_SNIPER3)
 #define burst_weap(g) (g == GUN_ASSAULT || g == GUN_ASSAULT2 || g == GUN_SUBGUN)
 #define ads_gun(g) (!melee_weap(g) && g != GUN_GRENADE && g != GUN_AKIMBO)
 #define ads_classic_allowed(g) (!m_classic(gamemode, mutators) || sniper_weap(g) || g == GUN_HEAL)
@@ -174,6 +176,10 @@ struct pistol : gun
 {
     pistol(playerent *owner) : gun(owner, GUN_PISTOL) {}
 };
+struct m1911 : gun
+{
+    m1911(playerent *owner) : gun(owner, GUN_PISTOL2) {}
+};
 
 
 struct healgun : gun
@@ -225,6 +231,7 @@ struct scopedprimary : gun
 struct m21 : scopedprimary { m21(playerent *owner) : scopedprimary(owner, GUN_SNIPER) {} };
 struct m82 : scopedprimary { m82(playerent *owner) : scopedprimary(owner, GUN_SNIPER2) {} };
 struct boltrifle : scopedprimary { boltrifle(playerent *owner) : scopedprimary(owner, GUN_BOLT) {} };
+struct mk12 : scopedprimary { mk12(playerent *owner) : scopedprimary(owner, GUN_SNIPER3) {} };
 
 struct shotgun : gun
 {

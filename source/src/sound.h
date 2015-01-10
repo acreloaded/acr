@@ -83,6 +83,10 @@ enum
     S_RSNIPER2,
     S_ASSAULT2,
     S_RASSAULT2,
+    S_SNIPER3,
+    S_RSNIPER3,
+    S_PISTOL2,
+    S_RPISTOL2,
     S_NULL
 };
 

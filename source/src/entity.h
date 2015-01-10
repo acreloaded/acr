@@ -424,6 +424,7 @@ public:
             case GUN_GRENADE:
             case GUN_AKIMBO:
             case GUN_ASSAULT2:
+            case GUN_SNIPER3:
                 if (m_sniper(gamemode, mutators))
                 {
                     primary = GUN_BOLT;
@@ -456,6 +457,7 @@ public:
             case GUN_HEAL:
             case GUN_SWORD:
             case GUN_RPG:
+            case GUN_PISTOL2:
                 secondary = nextsecondary;
                 break;
         }

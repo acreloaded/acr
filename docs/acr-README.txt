@@ -100,11 +100,13 @@ models
 		heal/world - [CC BY-NC-SA 2.5] Modified skin by Victor
 		heal/skin_hands
 		knife - [CC BY-NC-SA 2.5] Reanimated by Victor
-		pistol
+		pistol - [CC BY-NC-SA 2.5] Modified skin by Victor
+		pistol2
 		rpg/skin_hands.jpg
 		rpg/world - [CC BY-NC-SA 2.5] Modified skin by Victor
 		sniper2/world
 		sniper2/menu
+		sniper3
 		sword/skin_hands.jpg
 			[CC BY-NC-SA 2.5]
 			by "makkE"

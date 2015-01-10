@@ -34,6 +34,8 @@ weaponinfo_s WeaponInfoTable[NUMGUNS] =
     { TYPE_ROCKET,    30.0f,  120.0f,  60.0f,  10.0f,  200.0f,   1 }, // RPG
     { TYPE_AUTO,      10.0f,  120.0f,  48.0f,   0.0f,  125.0f,   5 }, // ASSAULT2
     { TYPE_SNIPER,    30.0f,  120.0f,  75.0f,   0.0f,  200.0f,   2 }, // SNIPER2
+    { TYPE_SNIPER,    25.0f,  110.0f,  70.0f,   0.0f,  175.0f,   3 }, // SNIPER3
+    { TYPE_NORMAL,     5.0f,   90.0f,  24.0f,   0.0f,  100.0f,   3 }, // PISTOL2
 };
 
 // Code of CACBot - Start

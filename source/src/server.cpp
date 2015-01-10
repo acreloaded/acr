@@ -562,10 +562,12 @@ void sendspawn(client &c)
             GUN_ASSAULT,
             GUN_SWORD,
             GUN_ASSAULT2,
+            GUN_SNIPER3,
         }, weap2[] = {
             GUN_PISTOL,
             GUN_HEAL,
             GUN_RPG,
+            GUN_PISTOL2,
         };
         gs.nextprimary = weap1[rnd(m_insta(gamemode, mutators) ? 2 : m_sniper(gamemode, mutators) ? 3 : sizeof(weap1) / sizeof(int))];
         gs.nextsecondary = weap2[rnd(sizeof(weap2) / sizeof(int))];
