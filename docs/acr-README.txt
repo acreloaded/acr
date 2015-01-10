@@ -85,7 +85,6 @@ models
 		subgun
 			[(c)?] Unknown
 		assault2
-		pistol
 			[CC0] Models by xdEpicZombie
 			[CC BY 3.0] Hands by Padge1
 			[(c)?] Textures are unknown
@@ -98,9 +97,12 @@ models
 		bolt/menu - [CC BY-NC-SA 2.5] Modified by Victor
 		bolt/world - [CC BY-NC-SA 2.5] Modified by Victor
 		bolt/skin_hands.jpg
+		heal/world - [CC BY-NC-SA 2.5] Modified skin by Victor
 		heal/skin_hands
 		knife - [CC BY-NC-SA 2.5] Reanimated by Victor
+		pistol
 		rpg/skin_hands.jpg
+		rpg/world - [CC BY-NC-SA 2.5] Modified skin by Victor
 		sniper2/world
 		sniper2/menu
 		sword/skin_hands.jpg
