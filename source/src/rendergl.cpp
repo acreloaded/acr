@@ -1218,7 +1218,7 @@ float zoomfactor()
     else
         zoomf = adszoom / 100.f;
 
-    return min(focus->zoomed, 1.f) * zoomf + 1;
+    return focus->zoomed * zoomf + 1;
 }
 
 void setperspective(float fovy, float nearplane)
