@@ -180,6 +180,7 @@ struct healgun : gun
 {
     healgun(playerent *owner);
 
+    void attackshell(const vec &to) {}
     void attackfx(const vec &from, const vec &to, int millis);
 
     int flashtime() const { return 0; }
@@ -207,13 +208,13 @@ struct crossbow : gun
 
     virtual void attackfx(const vec &from, const vec &to, int millis);
     void attackhit(const vec &o);
-    void attackshell(const vec &to){};
+    void attackshell(const vec &to) {}
 };
 
 
 struct scopedprimary : gun
 {
-#define ADSZOOM .85f
+#define ADSZOOM .90f
     scopedprimary(playerent *owner, int type) : gun(owner, type) {}
     void attackfx(const vec &from, const vec &to, int millis);
 

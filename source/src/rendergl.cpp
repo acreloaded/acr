@@ -1209,13 +1209,20 @@ VARP(specthudgun, 0, 1, 1);
 
 float zoomfactor()
 {
-    float adsmax = .864f, zoomf = adszoom/100.f;
+    if (focus->weaponsel->type == GUN_HEAL)
+        return 1; // no zoom
+
+    float adsmax, zoomf;
     if (sniper_weap(focus->weaponsel->type) && focus->zoomed)
     {
-        adsmax = ADSZOOM;
-        zoomf = scopezoom/100.f;
+        adsmax = 0.85f; // ADSZOOM;
+        zoomf = scopezoom / 100.f;
     }
-    else if (focus->weaponsel->type == GUN_HEAL) zoomf = 0;
+    else
+    {
+        adsmax = 0.8f;
+        zoomf = adszoom / 100.f;
+    }
     return min(focus->zoomed / adsmax, 1.f) * zoomf + 1;
 }
 
