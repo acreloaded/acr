@@ -1209,21 +1209,16 @@ VARP(specthudgun, 0, 1, 1);
 
 float zoomfactor()
 {
-    if (focus->weaponsel->type == GUN_HEAL)
+    if (!focus->zoomed || focus->weaponsel->type == GUN_HEAL)
         return 1; // no zoom
 
-    float adsmax, zoomf;
-    if (sniper_weap(focus->weaponsel->type) && focus->zoomed)
-    {
-        adsmax = 0.85f; // ADSZOOM;
+    float zoomf;
+    if (sniper_weap(focus->weaponsel->type))
         zoomf = scopezoom / 100.f;
-    }
     else
-    {
-        adsmax = 0.8f;
         zoomf = adszoom / 100.f;
-    }
-    return min(focus->zoomed / adsmax, 1.f) * zoomf + 1;
+
+    return min(focus->zoomed, 1.f) * zoomf + 1;
 }
 
 void setperspective(float fovy, float nearplane)
