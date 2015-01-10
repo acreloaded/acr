@@ -1205,8 +1205,11 @@ void scopedprimary::attackfx(const vec &from2, const vec &to, int millis)
         if (owner->muzzle.x >= 0)
             from = owner->muzzle;
         else from.z -= WEAPONBELOWEYE;
-        attackshell(to);
-        if (owner != player1 && !isowned(owner)) attacksound();
+        if (owner != player1 && !isowned(owner))
+        {
+            attackshell(to);
+            attacksound();
+        }
     }
 
     addbullethole(owner, from, to);
