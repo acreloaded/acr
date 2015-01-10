@@ -153,7 +153,7 @@ struct md3 : vertmodel
         }
     };
 
-    void render(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, float pitch, dynent *d, modelattach *a, float scale)
+    void render(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, float pitch, dynent *d, modelattach *a, float scale, float zoomed)
     {
         if(!loaded) return;
 
@@ -190,7 +190,7 @@ struct md3 : vertmodel
         matrixstack[0].rotate_around_z((yaw+180)*RAD);
         matrixstack[0].rotate_around_y(-pitch*RAD);
         if(anim&ANIM_MIRROR || scale!=1) matrixstack[0].scale(scale, anim&ANIM_MIRROR ? -scale : scale, scale);
-        parts[0]->render(anim, varseed, speed, basetime, d);
+        parts[0]->render(anim, varseed, speed, basetime, d, zoomed);
 
         if(!cullface) glEnable(GL_CULL_FACE);
         else if(anim&ANIM_MIRROR) glCullFace(GL_FRONT);

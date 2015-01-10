@@ -846,7 +846,7 @@ struct vertmodel : model
             return true;
         }
 
-        void render(int anim, int varseed, float speed, int basetime, dynent *d)
+        void render(int anim, int varseed, float speed, int basetime, dynent *d, float zoomed)
         {
             if(meshes.empty()) return;
             animstate as;
@@ -865,7 +865,7 @@ struct vertmodel : model
                 ai_t = (lastmillis-d->lastanimswitchtime[index])/(float)animationinterpolationtime;
             }
 
-            if(d && d->zoomed)
+            if(zoomed)
                 loopi(numtags)
                 {
                     if (strcmp(tags[i].name, "tag_zoom")) continue;
@@ -876,7 +876,7 @@ struct vertmodel : model
                     vec4 trans_new;
                     matrixstack[matrixpos].transform(linkmat.gettranslation(), trans_new);
 
-                    trans.sub(trans_new.v).mul(d->zoomed);
+                    trans.sub(trans_new.v).mul(zoomed);
                     matrixstack[matrixpos].translate(trans);
                     break;
                 }
@@ -912,7 +912,7 @@ struct vertmodel : model
                         linkmat.invertvertex(shadowpos);
                     }
 
-                    link.p->render(anim, varseed, speed, basetime, d);
+                    link.p->render(anim, varseed, speed, basetime, d, zoomed);
 
                     if(stenciling)
                     {
@@ -1007,7 +1007,7 @@ struct vertmodel : model
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             model->startrender();
-            render(ANIM_ALL|ANIM_NOINTERP|ANIM_NOSKIN, 0, 1, lastmillis-frame, NULL);
+            render(ANIM_ALL|ANIM_NOINTERP|ANIM_NOSKIN, 0, 1, lastmillis-frame, NULL, 0);
             model->endrender();
 
             uchar *pixels = new uchar[2*aasize*aasize];

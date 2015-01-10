@@ -187,6 +187,7 @@ struct batchedmodel
     playerent *d;
     int attached;
     float scale;
+    float zoomed;
 };
 struct modelbatch
 {
@@ -228,7 +229,7 @@ void renderbatchedmodel(model *m, batchedmodel &b)
 
     if(stenciling)
     {
-        m->render(b.anim|ANIM_NOSKIN, b.varseed, b.speed, b.basetime, b.o, b.yaw, b.pitch, b.d, a, b.scale);
+        m->render(b.anim|ANIM_NOSKIN, b.varseed, b.speed, b.basetime, b.o, b.yaw, b.pitch, b.d, a, b.scale, b.zoomed);
         return;
     }
 
@@ -246,7 +247,7 @@ void renderbatchedmodel(model *m, batchedmodel &b)
     {
         glDepthMask(GL_FALSE);
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-        m->render(b.anim|ANIM_NOSKIN, b.varseed, b.speed, b.basetime, b.o, b.yaw, b.pitch, b.d, a, b.scale);
+        m->render(b.anim|ANIM_NOSKIN, b.varseed, b.speed, b.basetime, b.o, b.yaw, b.pitch, b.d, a, b.scale, b.zoomed);
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
         glDepthFunc(GL_LEQUAL);
@@ -258,7 +259,7 @@ void renderbatchedmodel(model *m, batchedmodel &b)
         glColor4f(color[0], color[1], color[2], m->translucency);
     }
 
-    m->render(b.anim, b.varseed, b.speed, b.basetime, b.o, b.yaw, b.pitch, b.d, a, b.scale);
+    m->render(b.anim, b.varseed, b.speed, b.basetime, b.o, b.yaw, b.pitch, b.d, a, b.scale, b.zoomed);
 
     if(b.anim&ANIM_TRANSLUCENT)
     {
@@ -373,7 +374,7 @@ const int dbgmbatch = 0;
 //VAR(dbgmbatch, 0, 0, 1);
 
 VARP(popdeadplayers, 0, 0, 1);
-void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed, int basetime, playerent *d, modelattach *a, float scale)
+void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed, int basetime, playerent *d, modelattach *a, float scale, float zoomed)
 {
     if(popdeadplayers && d && a)
     {
@@ -425,13 +426,14 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
         b.attached = a ? modelattached.length() : -1;
         if(a) for(int i = 0;; i++) { modelattached.add(a[i]); if(!a[i].tag) break; }
         b.scale = scale;
+        b.zoomed = zoomed;
         return;
     }
 
     if(stenciling)
     {
         m->startrender();
-        m->render(anim|ANIM_NOSKIN, varseed, speed, basetime, o, yaw, pitch, d, a, scale);
+        m->render(anim|ANIM_NOSKIN, varseed, speed, basetime, o, yaw, pitch, d, a, scale, zoomed);
         m->endrender();
         return;
     }
@@ -471,7 +473,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
     {
         glDepthMask(GL_FALSE);
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-        m->render(anim|ANIM_NOSKIN, varseed, speed, basetime, o, yaw, pitch, d, a, scale);
+        m->render(anim|ANIM_NOSKIN, varseed, speed, basetime, o, yaw, pitch, d, a, scale, zoomed);
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
         glDepthFunc(GL_LEQUAL);
@@ -483,7 +485,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
         glColor4f(color[0], color[1], color[2], m->translucency);
     }
 
-    m->render(anim, varseed, speed, basetime, o, yaw, pitch, d, a, scale);
+    m->render(anim, varseed, speed, basetime, o, yaw, pitch, d, a, scale, zoomed);
 
     if(anim&ANIM_TRANSLUCENT)
     {

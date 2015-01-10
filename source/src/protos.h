@@ -713,7 +713,7 @@ extern void writesoundconfig(stream *f);
 */
 
 // rendermodel
-extern void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed = 0, int basetime = 0, playerent *d = NULL, modelattach *a = NULL, float scale = 1.0f);
+extern void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed = 0, int basetime = 0, playerent *d = NULL, modelattach *a = NULL, float scale = 1.0f, float zoomed = 0.0f);
 extern void startmodelbatches();
 extern void endmodelbatches(bool flush = true);
 extern void clearmodelbatches();
