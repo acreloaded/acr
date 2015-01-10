@@ -76,11 +76,16 @@ models
 			Markus Bekel
 			e-mail: makk_e@web.de
 	playermodels - [Public Domain] Protox AssaultCube HQ Reskin
+	shells
+		pistol - [(c)?] Unknown
+		rifle
+		shotgun
+		sniper
+			[CC BY 4.0] Gavin Nichols
 	weapon
 		assault
 		bolt
 		rpg
-		shell
 		shotgun
 		subgun
 			[(c)?] Unknown

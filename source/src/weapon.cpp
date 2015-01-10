@@ -348,7 +348,14 @@ void renderbounceents()
                 break;
             case BT_SHELL:
             {
-                copystring(model, "weapons/shell");
+                defformatstring(shellalias)("modmdlweapshell%d", p->info);
+                if (identexists(shellalias))
+                    copystring(model, getalias(shellalias));
+                else
+                {
+                    static const char *shellmodels[4] = { "shells/pistol", "shells/rifle", "shells/shotgun", "shells/sniper" };
+                    copystring(model, shellmodels[p->info-1]);
+                }
                 scale = shellsize;
                 int t = lastmillis - p->millis;
                 if (t>p->timetolive - 2000)
@@ -948,7 +955,7 @@ void grenades::removebounceent(bounceent *b)
 
 // gun base class
 
-gun::gun(playerent *owner, int type) : weapon(owner, type), autoreloading(false) {}
+gun::gun(playerent *owner, int type, int shelltype) : weapon(owner, type), autoreloading(false), shelltype(shelltype) {}
 
 bool gun::attack(vec &targ)
 {
@@ -1021,12 +1028,13 @@ VARP(shellttl, 0, 4000, 20000);
 void gun::attackshell(const vec &to)
 {
     extern int hudgun;
-    if (!shellttl || (owner == focus && !hudgun)) return;
+    if (!shellttl || !shelltype || (owner == focus && !hudgun)) return;
     bounceent *s = bounceents.add(new bounceent);
     s->owner = owner;
     s->millis = lastmillis;
     s->timetolive = gibttl;
     s->bouncetype = BT_SHELL;
+    s->info = shelltype;
 
     const bool akimboflip = (type != GUN_AKIMBO || ((akimbo *)this)->akimboside == 0) != righthanded;
     s->vel = vec(1, rnd(101) / 800.f - .1f, (rnd(51) + 50) / 100.f);
@@ -1093,7 +1101,7 @@ bool gun::checkautoreload()
 
 // shotgun
 
-shotgun::shotgun(playerent *owner) : gun(owner, GUN_SHOTGUN) {}
+shotgun::shotgun(playerent *owner) : gun(owner, GUN_SHOTGUN, 3) {}
 
 int shotgun::dynspread() { return info.spread * (1 - owner->zoomed * info.spreadrem / 100.f); }
 
@@ -1158,7 +1166,7 @@ int sword::flashtime() const { return 0; }
 
 // crossbow (RPG)
 
-crossbow::crossbow(playerent *owner) : gun(owner, GUN_RPG) {}
+crossbow::crossbow(playerent *owner) : gun(owner, GUN_RPG, 0) {}
 int crossbow::modelanim()
 {
     // very simple and stupid animation system
@@ -1230,7 +1238,7 @@ float assaultrifle::dynrecoil() { return weapon::dynrecoil() + (rnd(8)*-0.01f); 
 
 // akimbo
 
-akimbo::akimbo(playerent *owner) : gun(owner, GUN_AKIMBO), akimboside(0), akimbomillis(0)
+akimbo::akimbo(playerent *owner) : gun(owner, GUN_AKIMBO, 1), akimboside(0), akimbomillis(0)
 {
     akimbolastaction[0] = akimbolastaction[1] = 0;
 }
@@ -1277,7 +1285,7 @@ bool akimbo::timerout() { return akimbomillis && akimbomillis <= lastmillis; }
 
 // healgun
 
-healgun::healgun(playerent *owner) : gun(owner, GUN_HEAL) {}
+healgun::healgun(playerent *owner) : gun(owner, GUN_HEAL, 0) {}
 
 void healgun::attackfx(const vec &from2, const vec &to, int millis)
 {

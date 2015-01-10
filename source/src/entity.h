@@ -807,8 +807,9 @@ public:
     float rotspeed;
     bool plclipped;
     playerent *owner;
+    int info;
 
-    bounceent() : bouncetype(BT_NONE), rotspeed(1.0f), plclipped(false), owner(NULL)
+    bounceent() : bouncetype(BT_NONE), rotspeed(1.0f), plclipped(false), owner(NULL), info(0)
     {
         type = ENT_BOUNCE;
         maxspeed = 40;

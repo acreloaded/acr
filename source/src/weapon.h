@@ -157,10 +157,11 @@ struct grenades : weapon
 struct gun : weapon
 {
     bool autoreloading;
+    const int shelltype;
 
-    gun(playerent *owner, int type);
+    gun(playerent *owner, int type, int shelltype);
     virtual bool attack(vec &targ);
-    virtual void attackshell(const vec &to);
+    void attackshell(const vec &to);
     virtual void attackfx(const vec &from, const vec &to, int millis);
     int modelanim();
     virtual bool reload(bool autoreloaded);
@@ -170,15 +171,15 @@ struct gun : weapon
 
 struct subgun : gun
 {
-    subgun(playerent *owner) : gun(owner, GUN_SUBGUN) {}
+    subgun(playerent *owner) : gun(owner, GUN_SUBGUN, 1) {}
 };
 struct pistol : gun
 {
-    pistol(playerent *owner) : gun(owner, GUN_PISTOL) {}
+    pistol(playerent *owner) : gun(owner, GUN_PISTOL, 1) {}
 };
 struct m1911 : gun
 {
-    m1911(playerent *owner) : gun(owner, GUN_PISTOL2) {}
+    m1911(playerent *owner) : gun(owner, GUN_PISTOL2, 1) {}
 };
 
 
@@ -186,7 +187,6 @@ struct healgun : gun
 {
     healgun(playerent *owner);
 
-    void attackshell(const vec &to) {}
     void attackfx(const vec &from, const vec &to, int millis);
 
     int flashtime() const { return 0; }
@@ -214,14 +214,13 @@ struct crossbow : gun
 
     virtual void attackfx(const vec &from, const vec &to, int millis);
     void attackhit(const vec &o);
-    void attackshell(const vec &to) {}
 };
 
 
 struct scopedprimary : gun
 {
 #define ADSZOOM .90f
-    scopedprimary(playerent *owner, int type) : gun(owner, type) {}
+    scopedprimary(playerent *owner, int type) : gun(owner, type, 4) {}
     void attackfx(const vec &from, const vec &to, int millis);
 
     float dynrecoil();
@@ -244,7 +243,7 @@ struct shotgun : gun
 
 struct assaultrifle : gun
 {
-    assaultrifle(playerent *owner, int type) : gun(owner, type) { }
+    assaultrifle(playerent *owner, int type) : gun(owner, type, 3) { }
     float dynrecoil();
 };
 struct m16 : assaultrifle { m16(playerent *owner) : assaultrifle(owner, GUN_ASSAULT) {} };

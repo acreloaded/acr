@@ -141,6 +141,9 @@ void preload_hudguns()
         defformatstring(path)("weapons/%s", identexists(widn)?getalias(widn):guns[i].modelname);
         loadmodel(path);
     }
-    loadmodel(identexists("modmdlweapshell") ? getalias("modmdlweapshell") : "weapons/shell");
+    loadmodel(identexists("modmdlweapshell1") ? getalias("modmdlweapshell1") : "shells/pistol");
+    loadmodel(identexists("modmdlweapshell2") ? getalias("modmdlweapshell2") : "shells/rifle");
+    loadmodel(identexists("modmdlweapshell3") ? getalias("modmdlweapshell3") : "shells/shotgun");
+    loadmodel(identexists("modmdlweapshell4") ? getalias("modmdlweapshell4") : "shells/sniper");
 }
 
