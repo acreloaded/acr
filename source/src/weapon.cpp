@@ -615,6 +615,7 @@ void weapon::attackhit(const vec &o)
 
 VARP(righthanded, 0, 1, 1); // flowtron 20090727
 
+VAR(silencertest, 0, 0, 1);
 void weapon::renderhudmodel(int lastaction, int index)
 {
     playerent *p = owner;
@@ -633,7 +634,8 @@ void weapon::renderhudmodel(int lastaction, int index)
     if (righthanded == index) anim |= ANIM_MIRROR;
     if (emit) anim |= ANIM_PARTICLE;
     if (owner->protect(lastmillis, gamemode, mutators)) wm.anim |= ANIM_TRANSLUCENT;
-    modelattach a[3]; // a null one is needed
+    modelattach a[4]; // a null one is needed at the end
+    int numattach = 0;
     if (type != GUN_AKIMBO || ((akimbo *)this)->akimboside != index)
     {
         owner->eject = vec(-1, -1, -1);
@@ -642,6 +644,15 @@ void weapon::renderhudmodel(int lastaction, int index)
         owner->muzzle = vec(-1, -1, -1);
         a[1].tag = "tag_muzzle";
         a[1].pos = &owner->muzzle;
+        numattach = 2;
+    }
+    if (silencertest)
+    {
+        a[numattach].tag = "tag_muzzle";
+        a[numattach].m = loadmodel("weapons/silencer");
+        if (!a[numattach].m)
+            a[numattach].m = loadmodel("shells/pistol");
+        // ++numattach;
     }
     rendermodel(path, wm.anim|anim, 0, -1, wm.pos, p->yaw+90, p->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, a, 1.28f, p->zoomed);
 }

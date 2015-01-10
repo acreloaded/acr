@@ -79,7 +79,7 @@ models
 	shells
 		pistol - [(c)?] Unknown
 		rifle
-		shotgun
+		shotgun - [CC BY 4.0] Skin modified by Victor
 		sniper
 			[CC BY 4.0] Gavin Nichols
 	weapon
