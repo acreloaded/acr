@@ -785,6 +785,22 @@ void renderclient(playerent *d)
     renderclient(d, "playermodels", vwep[0] ? vwep : NULL, -(int)textureload(skin)->id);
     if (!stenciling && !reflecting && !refracting)
         renderaboveheadicon(d);
+
+    extern int fakelasertest;
+    if (fakelasertest)
+    {
+        glDisable(GL_TEXTURE_2D);
+        glBegin(GL_LINES);
+        linestyle(1.5f, 255, 0, 0);
+        vec from(d->muzzle.x >= 0 ? d->muzzle : d->o);
+        glVertex3f(from.x, from.y, from.z);
+        vec to(sinf(RAD*d->yaw)*cosf(RAD*d->pitch), -cosf(RAD*d->yaw)*cosf(RAD*d->pitch), sinf(RAD*d->pitch));
+        to.add(from);
+        traceShot(from, to);
+        glVertex3f(to.x, to.y, to.z);
+        glEnd();
+        glEnable(GL_TEXTURE_2D);
+    }
 }
 
 void renderclients()

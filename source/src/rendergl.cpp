@@ -1253,6 +1253,7 @@ void sethudgunperspective(bool on)
     glMatrixMode(GL_MODELVIEW);
 }
 
+VAR(fakelasertest, 0, 0, 1);
 void drawhudgun(int w, int h, float aspect, int farplane)
 {
     sethudgunperspective(true);
@@ -1261,6 +1262,17 @@ void drawhudgun(int w, int h, float aspect, int farplane)
     {
         playerent *p = (playerent *)camera1;
         if(p->state==CS_ALIVE) p->weaponsel->renderhudmodel();
+
+        if (fakelasertest && p->muzzle.x >= 0)
+        {
+            glDisable(GL_TEXTURE_2D);
+            glBegin(GL_LINES);
+            linestyle(1.5f, 255, 0, 0);
+            glVertex3f(p->muzzle.x, p->muzzle.y, p->muzzle.z);
+            glVertex3f(worldpos.x, worldpos.y, worldpos.z);
+            glEnd();
+            glEnable(GL_TEXTURE_2D);
+        }
     }
     rendermenumdl();
 
