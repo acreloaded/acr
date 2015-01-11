@@ -61,7 +61,7 @@ extern int hwtexsize, hwmaxaniso;
 extern int numspawn[3], maploaded, numflagspawn[2];
 extern int verbose;
 
-#define AC_VERSION 20601
+#define AC_VERSION 20602
 #define AC_MASTER_URI "ms.acr.victorz.ca"
 #define AC_MASTER_PORT 80
 #ifndef AC_MASTER_URI
