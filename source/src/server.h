@@ -1,7 +1,7 @@
 // server.h
 
 #define SERVER_BUILTIN_MOD 0
-// disjunction (|) or sum (+) of following:
+// bitwise disjunction/OR (|) or sum (+) of following:
 // 1: moon jump
 // 2: moon jump always on, not just gib only (requires 1)
 // 4: moon jump Mario - no damage allowed (requires 1)
@@ -10,6 +10,7 @@
 // 32: super knife (gib only)
 // 64: /suicide for nuke
 // 128: no explosive zombies
+// 256: infinite ammo
 
 #define gamemode smode   // allows the gamemode macros to work with the server mode
 #define mutators smuts   // allows the mutators macros to work with the server mode

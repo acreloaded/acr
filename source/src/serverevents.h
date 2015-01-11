@@ -278,7 +278,9 @@ void reloadevent::process(client *ci)
 
     // perform the reload
     cs.mag[weap] = min(mag, cs.mag[weap] + reload);
+#if !(SERVER_BUILTIN_MOD & 256)
     cs.ammo[weap] -= /*reload*/ 1;
+#endif
 
     int wait = millis - cs.lastshot;
     sendf(NULL, 1, "ri5", SV_RELOAD, ci->clientnum, weap, cs.mag[weap], cs.ammo[weap]);
