@@ -39,7 +39,7 @@ weaponinfo_s WeaponInfoTable[NUMGUNS] =
 };
 
 // Code of CACBot - Start
-
+long lastSwitchMillis = 0;
 bool CACBot::ChoosePreferredWeapon()
 {
     if(lastmillis < m_iChangeWeaponDelay) return false;
@@ -52,6 +52,7 @@ bool CACBot::ChoosePreferredWeapon()
     loopi(NUMGUNS) bestWeap[i] = 0;
     // Choose a weapon
     for(int i=0; i<NUMGUNS; i++)
+
     {
         sWeaponScore = primary_weap(i) ? 5 : 0; // Primary are usually better
 
@@ -131,7 +132,14 @@ bool CACBot::ChoosePreferredWeapon()
     }
     else bestWeapon = GUN_KNIFE;
 
-    return SelectGun(bestWeapon);
+    //Dont switch weapons every time
+    if((lastmillis -lastSwitchMillis) > 100) {
+        lastSwitchMillis = lastmillis;
+        return SelectGun(bestWeapon);
+    } else {
+        return 0;
+    }
+
 };
 
 void CACBot::Reload(int Gun)
