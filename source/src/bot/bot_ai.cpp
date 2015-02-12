@@ -5,7 +5,7 @@
 //
 //
 // Author:  <rickhelmus@gmail.com>
-//
+// 
 
 
 // Code of CBot - Start
