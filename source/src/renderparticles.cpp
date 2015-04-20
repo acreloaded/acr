@@ -682,7 +682,7 @@ void addshotline(playerent *pl, vec from, const vec &to, int flags)
     s.to[1] = to.y;
     s.expire = lastmillis + max(75, shotlinettl) * 2;
 
-    if(!shotlinettl || !shotline || (pl == player1 && shotline == 1)) return;
+    if(!shotlinettl || !shotline || (pl == player1 && (shotline == 1 || m_classic(gamemode, mutators))) || m_real(gamemode, mutators)) return;
 
     vec unitv;
     if (flags & 1) // first shot
