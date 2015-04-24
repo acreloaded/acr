@@ -335,6 +335,11 @@ struct servermaprot : serverconfigfile
                 }
                 if(i > 3)
                 {
+                    // mode/mutator sanity check
+                    modecheck(c.mode, c.muts);
+                    if (m_demo(c.mode))
+                        c.mode = G_DM;
+
                     configsets.add(c);
                     logline(ACLOG_VERBOSE," %s, %s, %d minutes, vote:%d, minplayer:%d, maxplayer:%d, skiplines:%d", c.mapname, modestr(c.mode, c.muts, false), c.time, c.vote, c.minplayer, c.maxplayer, c.skiplines);
                 }
