@@ -26,7 +26,7 @@ void muts(int *n)
 }
 COMMAND(muts, "i");
 
-void classicmode(int n)
+void classicmode(int *n)
 {
     static const int cmodes[][2] = {
         { G_DM, G_M_TEAM },
@@ -47,8 +47,8 @@ void classicmode(int n)
         { G_DM, G_M_GSP1 | G_M_TEAM },
         { G_DM, G_M_GSP1 },
     };
-    if (n >= 0 && n < (int)(sizeof(cmodes) / sizeof(*cmodes)))
-        modecheck(nextmode = cmodes[n][0], nextmuts = cmodes[n][1]);
+    if (*n >= 0 && *n < (int)(sizeof(cmodes) / sizeof(*cmodes)))
+        modecheck(nextmode = cmodes[*n][0], nextmuts = cmodes[*n][1]);
 }
 COMMAND(classicmode, "i");
 
