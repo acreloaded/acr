@@ -1708,13 +1708,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     getstring(text, p);
                     filtertext(text, text);
                     defformatstring(cip)("%d", ip & 0xFF);
-                    if (mask > 8 || (ip >> 8) & 0xFF)
+                    if (mask > 8 || ip & 0xFFFFFF00)
                     {
                         concatformatstring(cip, ".%d", (ip >> 8) & 0xFF);
-                        if (mask > 16 || (ip >> 16) & 0xFF)
+                        if (mask > 16 || ip & 0xFFFF0000)
                         {
                             concatformatstring(cip, ".%d", (ip >> 16) & 0xFF);
-                            if (mask > 24 || (ip >> 24) & 0xFF)
+                            if (mask > 24 || ip & 0xFF00000)
                                 concatformatstring(cip, ".%d", (ip >> 24) & 0xFF);
                         }
                     }
