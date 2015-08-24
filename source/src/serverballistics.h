@@ -201,6 +201,25 @@ int explosion(client &owner, const vec &o2, int weap, bool teamcheck, bool gib, 
             (&owner != &target && teamcheck && isteam(&owner, &target))) continue;
         damagedealt += radialeffect((weap == GUN_GRENADE && cflag && cflag != &target) ? *cflag : owner, target, hits, o, weap, gib, (weap == GUN_RPG && clients[i] == cflag));
     }
+    if (m_overload(gamemode) && team_isactive(owner.team))
+    {
+        const int ot = team_opposite(owner.team);
+        sflaginfo &f = sflaginfos[ot];
+        vec flag_o(f.x, f.y, getsblock(getmaplayoutid((int)f.x, (int)f.y)).floor + (PLAYERHEIGHT + PLAYERABOVEEYE) / 2);
+        const float dist = o.dist(flag_o);
+        if (dist < PLAYERRADIUS * 4)
+        {
+            damagedealt += guns[weap].damage / 2;
+
+            sendf(NULL, 1, "ri2", SV_DAMAGEOBJECTIVE, owner.clientnum);
+            f.damagetime = gamemillis;
+            if ((f.damage += guns[weap].damage / 2 * (m_gsp1(gamemode, mutators) ? 7 : 5)) >= 255000)
+            {
+                f.damage = 0;
+                flagaction(ot, FA_SCORE, owner.clientnum);
+            }
+        }
+    }
     // sort the hits
     hits.sort(explosivehit::compare);
     // apply the hits
@@ -326,15 +345,11 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
 {
     const int mulset = sniper_weap(weap) ? MUL_SNIPER : MUL_NORMAL;
     int hitzone = HIT_NONE; vec end = to;
-    // calculate the hit
-    client *hit = nearesthit(owner, from, to, !m_real(gamemode, mutators), hitzone, pos, exclude, end, melee_weap(weap) && (!(SERVER_BUILTIN_MOD & 1) || !m_gib(gamemode, mutators)));
-    // damage check
-    const float dist2 = dist + end.dist(from);
-    int damage = effectiveDamage(weap, dist2 + penaltydist);
-    // out of range? (super knife code)
+    // out of range?
     if (melee_weap(weap))
     {
 #if (SERVER_BUILTIN_MOD & 32)
+        // super knife
         if (m_gib(gamemode, mutators))
         {
             static const int lulz[3] = { GUN_SNIPER, GUN_HEAL, GUN_RPG };
@@ -342,8 +357,21 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
         }
         else
 #endif
-        if (dist2 > guns[weap].endrange) return 0;
+        {
+            // limit melee distance
+            to.sub(from);
+            if (to.magnitude() > guns[weap].endrange)
+            {
+                to.normalize().mul(guns[weap].endrange);
+            }
+            to.add(from);
+        }
     }
+    // calculate the hit
+    client *hit = nearesthit(owner, from, to, !m_real(gamemode, mutators), hitzone, pos, exclude, end, melee_weap(weap) && (!(SERVER_BUILTIN_MOD & 1) || !m_gib(gamemode, mutators)));
+    // damage check
+    const float dist2 = dist + end.dist(from);
+    int damage = effectiveDamage(weap, dist2 + penaltydist);
 #if (SERVER_BUILTIN_MOD & 16)
     if (!dist)
     {
@@ -417,32 +445,58 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
         sendf(NULL, 1, "ri9", SV_RICOCHET, owner.clientnum, weap, (int)(end.x*DMF), (int)(end.y*DMF), (int)(end.z*DMF), (int)(dir.x*DMF), (int)(dir.y*DMF), (int)(dir.z*DMF));
         return damage + penetratedamage;
     }
-    // ricochet
-    else if (!dist && surface.magnitude()) // ricochet once if it came from the gun directly
+    else
     {
-        // reset exclusion to the owner, so a penetrated player can be hit twice
-        if (exclude.length() > 1)
-            exclude.setsize(1);
-        vec dir(to), newsurface;
-        // calculate reflected ray from incident ray and surface normal
-        dir.sub(from).normalize();
-        // r = i - 2 n (i . n)
-        dir.sub(
-            vec(surface)
-                // .normalize()
-                .mul(2 * dir.dot(surface))
-        );
-        // 2 degrees (both ways = 4 degrees) distortion on all axis
-        dir
-            .rotate_around_x((rnd(5) - 2)*RAD)
-            .rotate_around_y((rnd(5) - 2)*RAD)
-            .rotate_around_z((rnd(5) - 2)*RAD)
-            .add(to);
-        // retrace
-        straceShot(to, dir, &newsurface);
-        const int ricochetdamage = shot(owner, to, dir, pos, weap, style, newsurface, exclude, dist2, penaltydist + 15 * CUBES_PER_METER, save); // distance penalty for ricochet
-        sendf(NULL, 1, "ri9", SV_RICOCHET, owner.clientnum, weap, (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), (int)(dir.x*DMF), (int)(dir.y*DMF), (int)(dir.z*DMF));
-        return damage + ricochetdamage;
+        if (m_overload(gamemode) && team_isactive(owner.team))
+        {
+            const int ot = team_opposite(owner.team);
+            sflaginfo &f = sflaginfos[ot];
+            vec bottom(f.x, f.y, getsblock(getmaplayoutid((int)f.x, (int)f.y)).floor), top(bottom);
+            top.z += PLAYERHEIGHT + PLAYERABOVEEYE;
+            float dist;
+            if (intersectcylinder(from, to, bottom, top, PLAYERRADIUS * 2, dist))
+            {
+                damage = effectiveDamage(weap, dist + penaltydist);
+                to.sub(from).mul(dist).add(from);
+
+                sendf(NULL, 1, "ri2", SV_DAMAGEOBJECTIVE, owner.clientnum);
+                f.damagetime = gamemillis;
+                if ((f.damage += damage * (m_gsp1(gamemode, mutators) ? 7 : 5)) >= 255000)
+                {
+                    f.damage = 0;
+                    flagaction(ot, FA_SCORE, owner.clientnum);
+                }
+
+                return damage;
+            }
+        }
+        // ricochet
+        if (!dist && surface.magnitude()) // ricochet once if it came from the gun directly
+        {
+            // reset exclusion to the owner, so a penetrated player can be hit twice
+            if (exclude.length() > 1)
+                exclude.setsize(1);
+            vec dir(to), newsurface;
+            // calculate reflected ray from incident ray and surface normal
+            dir.sub(from).normalize();
+            // r = i - 2 n (i . n)
+            dir.sub(
+                vec(surface)
+                    // .normalize()
+                    .mul(2 * dir.dot(surface))
+            );
+            // 2 degrees (both ways = 4 degrees) distortion on all axis
+            dir
+                .rotate_around_x((rnd(5) - 2)*RAD)
+                .rotate_around_y((rnd(5) - 2)*RAD)
+                .rotate_around_z((rnd(5) - 2)*RAD)
+                .add(to);
+            // retrace
+            straceShot(to, dir, &newsurface);
+            const int ricochetdamage = shot(owner, to, dir, pos, weap, style, newsurface, exclude, dist2, penaltydist + 15 * CUBES_PER_METER, save); // distance penalty for ricochet
+            sendf(NULL, 1, "ri9", SV_RICOCHET, owner.clientnum, weap, (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), (int)(dir.x*DMF), (int)(dir.y*DMF), (int)(dir.z*DMF));
+            return damage + ricochetdamage;
+        }
     }
     return 0;
 }

@@ -505,6 +505,7 @@ struct sflaginfo
     float pos[3];
     int lastupdate;
     int stolentime;
+    int damage, damagetime;
     short x, y;          // flag entity location
 
     sflaginfo() { actor_cn = -1; }
@@ -592,14 +593,14 @@ const char *messagenames[SV_NUM] =
     "SV_SG", "SV_RICOCHET", "SV_HEADSHOT", "SV_REGEN", "SV_HEAL", "SV_BLEED", "SV_STREAKREADY", "SV_STREAKUSE",
     "SV_KNIFEADD", "SV_KNIFEREMOVE",
     "SV_CONFIRMADD", "SV_CONFIRMREMOVE",
-    "SV_POINTS", "SV_SCORE", "SV_TEAMSCORE", "SV_DISCSCORES", "SV_KILL", "SV_DAMAGE",
+    "SV_POINTS", "SV_SCORE", "SV_TEAMSCORE", "SV_DISCSCORES", "SV_KILL", "SV_DAMAGE", "SV_DAMAGEOBJECTIVE",
     "SV_TRYSPAWN", "SV_SPAWNSTATE", "SV_SPAWN", "SV_FORCEDEATH", "SV_FORCEGIB",
     "SV_ITEMSPAWN", "SV_ITEMACC",
-    "SV_FLAGACTION", "SV_FLAGINFO", "SV_FLAGMSG", "SV_FLAGCNT",
+    "SV_DROPFLAG", "SV_FLAGINFO", "SV_FLAGMSG", "SV_FLAGSECURE", "SV_FLAGOVERLOAD",
     "SV_MAPCHANGE", "SV_NEXTMAP",
     "SV_ARENAWIN", "SV_ZOMBIESWIN", "SV_CONVERTWIN",
+    "SV_TIMEUP",
     "SV_TEAMDENY", "SV_SERVERMODE",
-    "SV_IPLIST",
     "SV_SERVMSG", "SV_EXTENSION",
 };
 

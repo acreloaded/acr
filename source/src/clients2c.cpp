@@ -1101,6 +1101,22 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
             }
 
+            case SV_DAMAGEOBJECTIVE:
+            {
+                const int cn = getint(p);
+                playerent *d = getclient(cn);
+                if (d)
+                {
+                    d->lasthit = lastmillis;
+                    if (d == focus)
+                    {
+                        extern int hitsound, lasthit;
+                        if (hitsound && lasthit != lastmillis) audiomgr.playsound(S_HITSOUND, SP_HIGH);
+                        lasthit = lastmillis;
+                    }
+                }
+            }
+
             case SV_RESUME:
             {
                 loopi(MAXCLIENTS)
@@ -1363,6 +1379,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 ents[ent].attr2 = 2 + team;
                 ents[ent].attr3 = enemy;
                 ents[ent].attr4 = overthrown;
+                break;
+            }
+
+            case SV_FLAGOVERLOAD:
+            {
+                const int team = getint(p), health = getint(p);
+                if (team < 0 || team >= 2) break;
+                flaginfos[team].flagent->attr3 = health;
                 break;
             }
 

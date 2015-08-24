@@ -1068,6 +1068,12 @@ void putflaginfo(packetbuf &p, int flag)
             loopi(3) putuint(p, (int)(f.pos[i]*DMF));
             break;
     }
+    if (m_overload(gamemode))
+    {
+        putint(p, SV_FLAGOVERLOAD);
+        putint(p, flag);
+        putint(p, 255 - f.damage / 1000);
+    }
 }
 
 void putsecureflaginfo(ucharbuf &p, ssecure &s)
@@ -1113,7 +1119,7 @@ void flagaction(int flag, int action, int actor)
     int score = 0;
     int message = action;
 
-    if (m_capture(gamemode) || m_hunt(gamemode) || m_ktf2(gamemode, mutators) || m_bomber(gamemode))
+    if (m_capture(gamemode) || m_hunt(gamemode) || m_ktf2(gamemode, mutators) || m_bomber(gamemode) || m_overload(gamemode))
     {
         switch(action)
         {
@@ -1136,7 +1142,7 @@ void flagaction(int flag, int action, int actor)
                 f.state = CTFF_INBASE;
                 break;
             case FA_SCORE:  // ctf: f = carried by actor flag,  htf: f = hunted flag (run over by actor)
-                if (m_capture(gamemode)) score = 1;
+                if (m_capture(gamemode) || m_overload(gamemode)) score = 1;
                 else if (m_bomber(gamemode)) score = of.state == CTFF_INBASE ? 3 : of.state == CTFF_DROPPED ? 2 : 1;
                 else if (m_ktf2(gamemode, mutators))
                 {
@@ -1255,7 +1261,7 @@ void flagaction(int flag, int action, int actor)
 
 int clienthasflag(int cn)
 {
-    if (m_flags(gamemode) && !m_secure(gamemode) && valid_client(cn))
+    if (m_flags(gamemode) && !m_secure(gamemode) && !m_overload(gamemode) && valid_client(cn))
     {
         loopi(2) { if(sflaginfos[i].state==CTFF_STOLEN && sflaginfos[i].actor_cn==cn) return i; }
     }
@@ -1899,7 +1905,7 @@ void serverdied(client &target, client &actor_, int damage, int gun, int style, 
         logline(logtype, "[%s] %s [%s] %s (%.2f m)", actor->gethostname(), actor->formatname(), killname(gun, style), target.formatname(), killdist / CUBES_PER_METER);
 
     // drop flags
-    if (targethasflag >= 0 && m_flags(gamemode) && !m_secure(gamemode))
+    if (targethasflag >= 0 && m_flags(gamemode) && !m_secure(gamemode) && !m_overload(gamemode))
     {
         if (m_ktf2(gamemode, mutators) && // KTF2 only
             sflaginfos[team_opposite(targethasflag)].state != CTFF_INBASE) // other flag is not in base
@@ -2481,6 +2487,8 @@ void startgame(const char *newname, int newmode, int newmuts, int newtime, bool 
                 {
                     f.x = mapents[smapstats.flagents[i]].x;
                     f.y = mapents[smapstats.flagents[i]].y;
+                    if (m_overload(gamemode))
+                        f.damage = f.damagetime = f.lastupdate = 0;
                 }
                 else f.x = f.y = -1;
             }
@@ -2568,7 +2576,7 @@ void startgame(const char *newname, int newmode, int newmuts, int newtime, bool 
         if(numnonlocalclients() > 0) setupdemorecord();
         if (notify)
         {
-            if (m_keep(gamemode)) sendflaginfo();
+            if (m_keep(gamemode) || m_overload(gamemode)) sendflaginfo();
             else if (m_secure(gamemode)) sendsecureflaginfo();
             senddisconnectedscores();
         }
@@ -3253,7 +3261,7 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
         }
     }
     // flags
-    if (m_flags(gamemode) && !m_secure(gamemode)) loopi(2)
+    if (m_flags(gamemode) && !m_secure(gamemode) && m_overload(gamemode)) loopi(2)
     {
         void flagaction(int flag, int action, int actor);
         sflaginfo &f = sflaginfos[i];
@@ -4972,6 +4980,25 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                     loopv(clients)
                         if (valid_client(i) && (clients[i]->team >= 0 && clients[i]->team < 2) && bonuses[clients[i]->team])
                             addpt(*clients[i], SECUREDPT * bonuses[clients[i]->team], PR_SECURE_SECURED);
+                }
+            }
+            else if (m_overload(gamemode))
+            {
+                loopi(2)
+                {
+                    // same service time as secure flags
+                    sflaginfo &f = sflaginfos[i];
+                    int sec_diff = (gamemillis - f.lastupdate) / 39;
+                    if (!sec_diff) continue;
+                    if (f.damage && gamemillis > f.damagetime + (m_gsp1(gamemode, mutators) ? 3000 : 5000))
+                    {
+                        if ((f.damage -= sec_diff * (m_gsp1(gamemode, mutators) ? 750 : 250)) < 0)
+                            f.damage = 0;
+                        sendf(NULL, 1, "ri3", SV_FLAGOVERLOAD, i, 255 - f.damage / 1000);
+                    }
+                    else if (f.damagetime > f.lastupdate)
+                        sendf(NULL, 1, "ri3", SV_FLAGOVERLOAD, i, 255 - f.damage / 1000);
+                    f.lastupdate += sec_diff * 39;
                 }
             }
             else
