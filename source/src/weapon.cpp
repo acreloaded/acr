@@ -61,7 +61,7 @@ void selectweapon(weapon *w)
 
 void requestweapon(int *w)
 {
-    if(keypressed && player1->state == CS_ALIVE && *w >= 0 && *w < NUMGUNS )
+    if(/*keypressed &&*/ player1->state == CS_ALIVE && *w >= 0 && *w < NUMGUNS )
     {
         if (player1->akimbo && *w==GUN_PISTOL) *w = GUN_AKIMBO;
         selectweapon(player1->weapons[*w]);
@@ -135,7 +135,7 @@ void shiftweapon(int *s)
 }
 
 bool quicknade = false, nadeattack = false;
-VARP(quicknade_hold, 0, 0, 1);
+VARP(quicknade_hold, 0, 1, 1);
 
 void quicknadethrow(bool on)
 {
@@ -152,6 +152,24 @@ void quicknadethrow(bool on)
     {
         nadeattack = player1->attacking = false;
         if(player1->weaponsel->type == GUN_GRENADE) quicknade = true;
+    }
+}
+
+void quickknifethrow(bool on)
+{
+    if(player1->state != CS_ALIVE) return;
+    if(on)
+    {
+        if(player1->weapons[GUN_KNIFE]->mag > 0)
+        {
+            if(player1->weaponsel->type != GUN_KNIFE) selectweapon(player1->weapons[GUN_KNIFE]);
+            if(player1->weaponsel->type == GUN_KNIFE || quicknade_hold) { player1->scoping = true; nadeattack = true; }
+        }
+    }
+    else if (nadeattack)
+    {
+        nadeattack = player1->scoping = false;
+        if(player1->weaponsel->type == GUN_KNIFE) quicknade = true;
     }
 }
 
@@ -174,6 +192,7 @@ void magreserve(int *w) { if(*w >= 0 && *w < NUMGUNS) intret(player1->weapons[*w
 COMMANDN(weapon, requestweapon, "i");
 COMMAND(shiftweapon, "i");
 COMMAND(quicknadethrow, "d");
+COMMAND(quickknifethrow, "d");
 COMMAND(currentprimary, "");
 COMMAND(currentsecondary, "");
 COMMAND(prevweapon, "");
@@ -1426,14 +1445,15 @@ bool knife::attack(vec &targ)
     int attackmillis = lastmillis-owner->lastaction - gunwait;
     if (owner->scoping || state)
     {
-        const bool waitdone = attackmillis + gunwait >= 500;
+        const bool quickwait = attackmillis*3>=gunwait && !(m_duke(gamemode, mutators) && m_team(gamemode, mutators) && arenaintermission);
+        const bool waitdone = attackmillis + gunwait >= 500 && quickwait;
         switch (state)
         {
             case GST_NONE:
                 if (waitdone && owner->scoping && this == owner->weaponsel) activateknife(); // activate
                 break;
             case GST_INHAND:
-                if (inhandknife && waitdone)
+                if (inhandknife && (waitdone || ( quicknade && quickwait )))
                 {
                     if (!owner->scoping || this != owner->weaponsel) throwknife(); // throw
                     else if (!inhandknife->isalive(lastmillis)) throwknife(true);
@@ -1515,6 +1535,8 @@ void knife::activateknife()
 
 void knife::throwknife(bool weak)
 {
+    if (quicknade && owner->weaponsel->type == GUN_KNIFE) selectweapon(owner->prevweaponsel);
+    quicknade = false;
     if (!inhandknife) return;
     vec vel(sinf(RAD*owner->yaw) * cosf(RAD*owner->pitch), -cosf(RAD*owner->yaw) * cosf(RAD*owner->pitch), sinf(RAD*owner->pitch));
     vel.mul(weak ? NADEPOWER : KNIFEPOWER);

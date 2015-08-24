@@ -7766,6 +7766,14 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="http://as
           <description>TODO: Description</description>
         </command>
 
+        <command name="quickknifethrow">
+          <description>TODO: Description</description>
+        </command>
+
+        <command name="quickknife">
+          <description>TODO: Description</description>
+        </command>
+
         <command name="removezip">
           <description>TODO: Description</description>
           <arguments>
