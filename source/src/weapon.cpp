@@ -1443,7 +1443,7 @@ bool knife::attack(vec &targ)
                 if (attackmillis + gunwait >= 250)
                 {
                     reset();
-                    if (!ammo)
+                    if (!ammo && this==owner->weaponsel)
                     {
                         addmsg(SV_QUICKSWITCH, "ri", owner->clientnum);
                         owner->weaponchanging = lastmillis - 1 - (SWITCHTIME(owner->perk2 == PERK_TIME) / 2);
