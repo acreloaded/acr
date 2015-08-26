@@ -3155,7 +3155,7 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
     if(!cs.protect(gamemillis, gamemode, mutators))
     {
         // medium transfer (falling damage)
-        const bool newonfloor = (newf>>4)&1, newonladder = (newf>>5)&1, newunderwater = newo.z < smapstats.hdr.waterlevel;
+        const bool newonfloor = (newf>>4)&1, newonladder = (newf>>5)&1, newunderwater = newo.z + PLAYERHEIGHT * cs.crouchfactor(gamemillis) < smapstats.hdr.waterlevel;
         if((newonfloor || newonladder || newunderwater) && !cs.onfloor)
         {
             const float dz = cs.fallz - cs.o.z;
