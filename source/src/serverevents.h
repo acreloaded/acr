@@ -362,7 +362,7 @@ void processevents()
         if(cs.state == CS_ALIVE)
         {
             // drown underwater
-            if(cs.o.z < smapstats.hdr.waterlevel)
+            if(cs.o.z + PLAYERHEIGHT * cs.crouchfactor(gamemillis) < smapstats.hdr.waterlevel)
             {
                 if(cs.drownmillis <= 0)
                 {
