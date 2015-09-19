@@ -395,8 +395,8 @@ bool CACBot::CanTakeFlag(const entity &e)
         switch(f.state)
         {
             case CTFF_INBASE: // go to this base
-                // if CTF capturing our flag
-                if (m_capture(gamemode) && (f_team != m_pMyEnt->team || of.state != CTFF_STOLEN || of.actor != m_pMyEnt)) return false;
+                // in CTF to capture the enemy flag and to return our flag
+                if (m_capture(gamemode) && f_team == m_pMyEnt->team && (of.state != CTFF_STOLEN || of.actor != m_pMyEnt)) return false;
                 // in HTF to take out own flag
                 else if (m_hunt(gamemode) && f_team != m_pMyEnt->team) return false;
                 // in BTF to take own flag, and to score it on the enemy base
