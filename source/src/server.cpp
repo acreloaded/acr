@@ -4390,18 +4390,34 @@ void process(ENetPacket *packet, int sender, int chan)
                 const int cn = getint(p);
                 if (!valid_client(cn) || clients[cn]->type != ST_TCPIP) break;
                 sendf(NULL, 1, "ri4", SV_WHOIS, -1, sender, cn);
-                uint ip = clients[cn]->peer->address.host;
-                uchar mask = 0;
-                if (cn == sender) mask = 32;
-                else switch (clients[sender]->role)
+                uchar ipv6[16];
+                int mask = 0;
+                if (true) // if (IPv4)
                 {
-                    // admins and server owner: f.f.f.f/32 full ip
-                    case CR_MAX: case CR_ADMIN: mask = 32; break;
-                    // masters and users: f.f.h/12 full, full, half, empty
-                    case CR_MASTER: case CR_DEFAULT: default: mask = 20; break;
+                    uint ipv4 = clients[cn]->peer->address.host;
+                    if (cn == sender) mask = 32;
+                    else switch (clients[sender]->role)
+                    {
+                        // admins and server owner: f.f.f.f/32 full ip
+                        case CR_MAX: case CR_ADMIN: mask = 32; break;
+                        // masters and users: f.f.h/12 full, full, half, empty
+                        case CR_MASTER: case CR_DEFAULT: default: mask = 20; break;
+                    }
+                    if (mask < 32) ipv4 &= (1 << mask) - 1;
+
+                    memset(ipv6, 0, sizeof(char) * 10);
+                    ipv6[10] = 0xFF;
+                    ipv6[11] = 0xFF;
+                    ipv6[12] = ipv4 & 0xFF;
+                    ipv4 >>= 8;
+                    ipv6[13] = ipv4 & 0xFF;
+                    ipv4 >>= 8;
+                    ipv6[14] = ipv4 & 0xFF;
+                    ipv4 >>= 8;
+                    ipv6[15] = ipv4 & 0xFF;
+                    mask += 96;
                 }
-                if (mask < 32) ip &= (1 << mask) - 1;
-                sendf(cl, 1, "ri5s", SV_WHOIS, cn, ip, mask, clients[cn]->peer->address.port, clients[cn]->authname);
+                sendf(cl, 1, "ri2mi2s", SV_WHOIS, cn, 16, ipv6, mask, clients[cn]->peer->address.port, clients[cn]->authname);
                 break;
             }
 

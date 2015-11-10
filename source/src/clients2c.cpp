@@ -1728,22 +1728,69 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 }
                 else
                 {
-                    const int ip = getint(p), mask = getint(p), port = getint(p);
+                    uchar ip[16];
+                    loopi(16) ip[i] = p.get();
+                    const int mask = getint(p), port = getint(p);
                     getstring(text, p);
                     filtertext(text, text);
-                    defformatstring(cip)("%d", ip & 0xFF);
-                    if (mask > 8 || ip & 0xFFFFFF00)
+                    string cip;
+                    cip[0] = '\0';
+                    if (ip[10] == 0xFF && ip[11] == 0xFF &&
+                        !ip[0] && !ip[1] && !ip[2] && !ip[3] && !ip[4] && !ip[5] && !ip[6] && !ip[7] && !ip[8] && !ip[9])
                     {
-                        concatformatstring(cip, ".%d", (ip >> 8) & 0xFF);
-                        if (mask > 16 || ip & 0xFFFF0000)
+                        // IPv4
+                        formatstring(cip)("::ffff:%d.%d.%d.%d", ip[12], ip[13], ip[14], ip[15]);
+                    }
+                    else
+                    {
+                        // IPv6
+                        // Find longest groups of zeros
+                        int a = -1, b = -1;
+                        for (int i = 0; i < 16; )
                         {
-                            concatformatstring(cip, ".%d", (ip >> 16) & 0xFF);
-                            if (mask > 24 || ip & 0xFF00000)
-                                concatformatstring(cip, ".%d", (ip >> 24) & 0xFF);
+                            int start = i;
+
+                            while (i < 16 && !ip[i] && !ip[i + 1])
+                                i += 2;
+
+                            if (i - start > b - a)
+                            {
+                                a = start;
+                                b = i;
+                            }
+
+                            if (i == start)
+                                i += 2;
+                        }
+
+                        // The symbol "::" MUST NOT be used to shorten just one 16 bit 0 field.
+                        if (b - a <= 2)
+                        a = b = -1;
+
+                        // Format groups
+                        for (int i = 0; i < 16; i += 2)
+                        {
+                            if (i == a)
+                            {
+                                concatstring(cip, "::");
+                                i = b;
+                                if (i >= 16)
+                                    break;
+                            }
+
+                            if (i)
+                                concatstring(cip, ":");
+
+                            if(ip[i])
+                                concatformatstring(cip, "%x%02x", ip[i], ip[i+1]);
+                            else
+                                concatformatstring(cip, "%x", ip[i+1]);
                         }
                     }
-                    if (mask < 32) concatformatstring(cip, "/%d", mask);
-                    conoutf(_("whois on %s returned %s:%d"), pl ? colorname(pl) : "unknown", cip, port);
+
+                    if (mask < 128) concatformatstring(cip, "/%d", mask);
+
+                    conoutf(_("whois on %s returned [%s]:%d"), pl ? colorname(pl) : "unknown", cip, port);
                     if (text[0])
                         conoutf(_("this user is authed as '%s'"), text);
                     else
