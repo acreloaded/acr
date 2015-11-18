@@ -1734,59 +1734,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     getstring(text, p);
                     filtertext(text, text);
                     string cip;
-                    cip[0] = '\0';
-                    if (ip[10] == 0xFF && ip[11] == 0xFF &&
-                        !ip[0] && !ip[1] && !ip[2] && !ip[3] && !ip[4] && !ip[5] && !ip[6] && !ip[7] && !ip[8] && !ip[9])
-                    {
-                        // IPv4
-                        formatstring(cip)("::ffff:%d.%d.%d.%d", ip[12], ip[13], ip[14], ip[15]);
-                    }
-                    else
-                    {
-                        // IPv6
-                        // Find longest groups of zeros
-                        int a = -1, b = -1;
-                        for (int i = 0; i < 16; )
-                        {
-                            int start = i;
-
-                            while (i < 16 && !ip[i] && !ip[i + 1])
-                                i += 2;
-
-                            if (i - start > b - a)
-                            {
-                                a = start;
-                                b = i;
-                            }
-
-                            if (i == start)
-                                i += 2;
-                        }
-
-                        // The symbol "::" MUST NOT be used to shorten just one 16 bit 0 field.
-                        if (b - a <= 2)
-                        a = b = -1;
-
-                        // Format groups
-                        for (int i = 0; i < 16; i += 2)
-                        {
-                            if (i == a)
-                            {
-                                concatstring(cip, "::");
-                                i = b;
-                                if (i >= 16)
-                                    break;
-                            }
-
-                            if (i)
-                                concatstring(cip, ":");
-
-                            if(ip[i])
-                                concatformatstring(cip, "%x%02x", ip[i], ip[i+1]);
-                            else
-                                concatformatstring(cip, "%x", ip[i+1]);
-                        }
-                    }
+                    copystring(cip, ip6toa(ip));
 
                     if (mask < 128) concatformatstring(cip, "/%d", mask);
 

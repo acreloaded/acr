@@ -433,6 +433,68 @@ const char *iptoa(const enet_uint32 ip)
     return s[buf];
 }
 
+extern const char *ip6toa(unsigned char ip[16])
+{
+    static string s[2];
+    static int buf = 0;
+    buf = (buf + 1) % 2;
+    if (ip[10] == 0xFF && ip[11] == 0xFF &&
+        !ip[0] && !ip[1] && !ip[2] && !ip[3] && !ip[4] &&
+        !ip[5] && !ip[6] && !ip[7] && !ip[8] && !ip[9])
+    {
+        // IPv4
+        formatstring(s[buf])("::ffff:%d.%d.%d.%d", ip[12], ip[13], ip[14], ip[15]);
+    }
+    else
+    {
+        // IPv6
+        // Find longest groups of zeros
+        int a = -1, b = -1;
+        for (int i = 0; i < 16; )
+        {
+            int start = i;
+
+            while (i < 16 && !ip[i] && !ip[i + 1])
+                i += 2;
+
+            if (i - start > b - a)
+            {
+                a = start;
+                b = i;
+            }
+
+            if (i == start)
+                i += 2;
+        }
+
+        // The symbol "::" MUST NOT be used to shorten just one 16 bit 0 field.
+        if (b - a <= 2)
+        a = b = -1;
+
+        // Format groups
+        s[buf][0] = '\0';
+        for (int i = 0; i < 16; i += 2)
+        {
+            if (i == a)
+            {
+                concatstring(s[buf], "::");
+                i = b;
+                if (i >= 16)
+                    break;
+            }
+
+            if (i)
+                concatstring(s[buf], ":");
+
+            if(ip[i])
+                concatformatstring(s[buf], "%x%02x", ip[i], ip[i+1]);
+            else
+                concatformatstring(s[buf], "%x", ip[i+1]);
+        }
+    }
+    return s[buf];
+}
+
 const char *iprtoa(const struct iprange &ipr)
 {
     static string s[2];
