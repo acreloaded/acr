@@ -107,6 +107,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				AdditionalManifestFiles="manifest.xml"
 				EmbedManifest="true"
 			/>
 			<Tool

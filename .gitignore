@@ -7,6 +7,7 @@ packages/maps/servermaps/incoming/*
 bin_win32/acr_*.exe
 bin_unix/*
 docs/xml/msxsl.exe
+*.pdb
 
 # Source code
 source/codeblocks_dev
