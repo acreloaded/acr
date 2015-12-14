@@ -2634,26 +2634,27 @@ struct voteinfo
     {
         if(result!=VOTE_NEUTRAL) return; // block double action
         if(action && !action->isvalid()) end(VOTE_NO, -1);
-        int stats[VOTE_NUM+1] = {0};
+        int stats[VOTE_NUM] = {0}, total_votes;
         loopv(clients)
         {
             if (clients[i]->type == ST_EMPTY || clients[i]->type == ST_AI) continue;
-            ++stats[clients[i]->vote%VOTE_NUM];
-            ++stats[VOTE_NUM];
+            ++stats[clients[i]->vote];
+            ++total_votes;
         }
-        const int expireresult = stats[VOTE_YES] / (float)(stats[VOTE_NO] + stats[VOTE_YES]) > action->passratio ? VOTE_YES : VOTE_NO;
+        const int required_votes = total_votes * action->passratio;
+        const int expireresult = stats[VOTE_YES] > (int)((stats[VOTE_NO] + stats[VOTE_YES]) * action->passratio) ? VOTE_YES : VOTE_NO;
         sendf(NULL, 1, "ri4", SV_VOTEREMAIN, expireresult,
-            (int)(stats[VOTE_NUM] * action->passratio) + 1 - stats[VOTE_YES],
-            (int)(stats[VOTE_NUM] * action->passratio) + 1 - stats[VOTE_NO]);
+            required_votes + 1 - stats[VOTE_YES],
+            required_votes + 1 - stats[VOTE_NO]);
         // can it end?
         if (forceend)
         {
             if (veto == VOTE_NEUTRAL) end(expireresult, -3);
             else end(veto, vetoowner);
         }
-        else if (stats[VOTE_YES] / (float)stats[VOTE_NUM] > action->passratio || (!isdedicated && clients[owner]->type == ST_LOCAL))
+        else if (stats[VOTE_YES] > required_votes || (!isdedicated && clients[owner]->type == ST_LOCAL))
             end(VOTE_YES, -2);
-        else if (stats[VOTE_NO] / (float)stats[VOTE_NUM] > action->passratio)
+        else if (stats[VOTE_NO] > required_votes)
             end(VOTE_NO, -2);
     }
 };
