@@ -2634,18 +2634,19 @@ struct voteinfo
     {
         if(result!=VOTE_NEUTRAL) return; // block double action
         if(action && !action->isvalid()) end(VOTE_NO, -1);
-        int stats[VOTE_NUM] = {0}, total_votes;
+        int stats[VOTE_NUM] = {0}, total_votes = 0;
         loopv(clients)
         {
             if (clients[i]->type == ST_EMPTY || clients[i]->type == ST_AI) continue;
             ++stats[clients[i]->vote];
             ++total_votes;
         }
-        const int required_votes = total_votes * action->passratio;
-        const int expireresult = stats[VOTE_YES] > (int)((stats[VOTE_NO] + stats[VOTE_YES]) * action->passratio) ? VOTE_YES : VOTE_NO;
+        const int required_votes = total_votes * action->passratio,
+            required_votes_strict = total_votes * max(action->passratio, 1 - action->passratio),
+            expireresult = stats[VOTE_YES] > (int)((stats[VOTE_NO] + stats[VOTE_YES]) * action->passratio) ? VOTE_YES : VOTE_NO;
         sendf(NULL, 1, "ri4", SV_VOTEREMAIN, expireresult,
             required_votes + 1 - stats[VOTE_YES],
-            required_votes + 1 - stats[VOTE_NO]);
+            required_votes_strict + 1 - stats[VOTE_NO]);
         // can it end?
         if (forceend)
         {
@@ -2654,7 +2655,7 @@ struct voteinfo
         }
         else if (stats[VOTE_YES] > required_votes || (!isdedicated && clients[owner]->type == ST_LOCAL))
             end(VOTE_YES, -2);
-        else if (stats[VOTE_NO] > required_votes)
+        else if (stats[VOTE_NO] > required_votes_strict)
             end(VOTE_NO, -2);
     }
 };
