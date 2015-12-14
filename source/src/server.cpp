@@ -4359,19 +4359,24 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_VOTE:
             {
                 int vote = getint(p);
-                if (!curvote || !curvote->action || vote < VOTE_YES || vote > VOTE_NO) break;
-                if (cl->vote != VOTE_NEUTRAL)
+                if (!curvote || !curvote->action || vote < 0 || vote >= VOTE_NUM) break;
+                if (cl->vote == vote)
                 {
-                    if (cl->vote == vote)
-                    {
-                        if (cl->role >= curvote->action->reqcall && cl->role >= curvote->action->reqveto)
-                            curvote->evaluate(true, vote, sender);
-                        else sendf(cl, 1, "ri2", SV_CALLVOTEERR, VOTEE_VETOPERM);
+                    if (vote == VOTE_NEUTRAL)
                         break;
-                    }
-                    else logline(ACLOG_INFO, "[%s] %s now votes %s", cl->gethostname(), cl->formatname(), vote == VOTE_NO ? "no" : "yes");
+
+                    // try to veto
+                    if (cl->role >= curvote->action->reqcall && cl->role >= curvote->action->reqveto)
+                        curvote->evaluate(true, vote, sender);
+                    else
+                        sendf(cl, 1, "ri2", SV_CALLVOTEERR, VOTEE_VETOPERM);
+                    break;
                 }
-                else logline(ACLOG_INFO, "[%s] %s voted %s", cl->gethostname(), cl->formatname(), vote == VOTE_NO ? "no" : "yes");
+                logline(ACLOG_INFO, "[%s] %s %s %s",
+                    cl->gethostname(),
+                    cl->formatname(),
+                    cl->vote == VOTE_NEUTRAL ? "voted" : "changed vote to",
+                    vote == VOTE_NEUTRAL ? "neutral" : vote == VOTE_NO ? "no" : "yes");
                 cl->vote = vote;
                 sendf(NULL, 1, "ri3", SV_VOTE, sender, vote);
                 curvote->evaluate();
