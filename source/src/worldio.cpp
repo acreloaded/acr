@@ -6,8 +6,14 @@ void backup(char *name, char *backupname)
 {
     string backupfile;
     copystring(backupfile, findfile(backupname, "wb"));
-    remove(backupfile);
-    rename(findfile(name, "wb"), backupfile);
+    if(remove(backupfile) != 0)
+    {
+        conoutf("Could not delete '%s'", backupfile);
+        return;
+    }
+    const char *oldfile = findfile(name, "wb");
+    if(rename(oldfile, backupfile) != 0)
+        conoutf("Could not rename '%s' to '%s'", oldfile, backupfile);
 }
 
 static string cgzname, ocgzname, bakname, pcfname, mcfname, omcfname, mapname;
