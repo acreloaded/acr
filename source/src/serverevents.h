@@ -370,7 +370,7 @@ void processevents()
                         cs.drownval = max(cs.drownval - ((servmillis + cs.drownmillis) / 1000), 0);
                     cs.drownmillis = gamemillis;
                 }
-                char drownstate = max(0, (gamemillis - cs.drownmillis) / 1000 - 10);
+                int drownstate = clamp((gamemillis - cs.drownmillis) / 1000 - 10, 0, 20);
                 while(cs.drownval < drownstate)
                 {
                     ++cs.drownval;
