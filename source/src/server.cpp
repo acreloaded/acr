@@ -502,7 +502,7 @@ void usestreak(client &c, int streak, client *actor = NULL, const vec *o = NULL)
             c.addtimer(new suicidebomberevent(actor ? actor->clientnum : -1));
             // fallthrough
         case STREAK_DROPNADE:
-            info = rand();
+            info = randomMT();
             c.state.grenades.add(info);
             break;
     }

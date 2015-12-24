@@ -626,7 +626,7 @@ void sendintro()
     putint(p, *&genguid(213409, 9983240U, 23489090, "24788rt792"));
     if (connectauth)
     {
-        authtoken = rand();
+        authtoken = randomMT();
         if (!authtoken) authtoken = 1;
         putint(p, authtoken);
         putint(p, authuser);
