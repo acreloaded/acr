@@ -2912,7 +2912,7 @@ void disconnect_client(client &c, int reason)
 
 void sendresume(client &c, bool broadcast)
 {
-    sendf(broadcast ? NULL : &c, 1, "ri9i7vvi", SV_RESUME,
+    sendf(broadcast ? NULL : &c, 1, "ri9i7i5vvi", SV_RESUME,
             c.clientnum,
             c.state.state == CS_WAITING ? CS_DEAD : c.state.state,
             c.state.lifesequence,
@@ -2960,7 +2960,6 @@ void sendservinfo(client &c)
 
 void putinitai(client &c, ucharbuf &p)
 {
-    // cn, b.ownernum, b.bot_seed = randomMT(), b.skin[0], b.skin[1], b.team, b.level
     putint(p, SV_INITAI);
     putint(p, c.clientnum);
     putint(p, c.ownernum);
@@ -3961,9 +3960,6 @@ void process(ENetPacket *packet, int sender, int chan)
                 if(!cl) break;
                 ping = clamp(ping, 0, 9999);
                 ping = cl->ping == 9999 ? ping : (cl->ping * 4 + ping) / 5;
-                loopv(clients)
-                    if(clients[i]->type != ST_EMPTY && (i == sender || clients[i]->ownernum == sender))
-                        clients[i]->ping = ping;
                 sendf(NULL, 1, "i3", SV_CLIENTPING, sender, ping);
                 break;
             }
@@ -4419,8 +4415,9 @@ void process(ENetPacket *packet, int sender, int chan)
                 switch(snd)
                 {
                     case S_NOAMMO:
-                        if (clients[cn]->state.mag[clients[cn]->state.gunselect]) break;
-                        // INTENTIONAL FALLTHROUGH
+                        if (!clients[cn]->state.mag[clients[cn]->state.gunselect])
+                            QUEUE_MSG;
+                        break;
                     case S_JUMP:
 #if (SERVER_BUILTIN_MOD & 1)
                         // native moonjump for humans
@@ -4433,6 +4430,7 @@ void process(ENetPacket *packet, int sender, int chan)
                             sendf(NULL, 1, "ri8i3", SV_DAMAGE, cn, cn, 0, clients[cn]->state.armour, clients[cn]->state.health, GUN_HEAL, FRAG_NONE, 0, 0, 0);
                         }
 #endif
+                        // intentional fallthrough
                     case S_SOFTLAND:
                     case S_HARDLAND:
                         QUEUE_MSG;
@@ -4627,8 +4625,10 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_NEWMAP: // the server needs to create a new layout
             {
                 const int size = getint(p);
-                if(size < 0) maplayout_factor++;
+                if (size == -2) --maplayout_factor;
+                else if(size < 0) ++maplayout_factor;
                 else maplayout_factor = size;
+                // move ents? for enlarge/shrink
                 DELETEA(maplayout)
                 if(maplayout_factor >= 0) snewmap(maplayout_factor);
                 QUEUE_MSG;
@@ -4739,12 +4739,14 @@ void loggamestatus(const char *reason)
     {
         client &c = *clients[i];
         if(c.type == ST_EMPTY || !c.name[0]) continue;
-        formatstring(text)("%2d%c %-16s ", c.clientnum, c.type == ST_AI ? '*' : ' ', c.name);         // cn * name
+        const bool bot = c.type == ST_AI;
+        formatstring(text)("%2d%c %-16s ", c.clientnum, bot ? '*' : ' ', c.name);         // cn * name
         if(m_team(gamemode, mutators)) concatformatstring(text, "%-4s ", team_string(c.team, true));  // teamname (abbreviated)
         if(m_flags(gamemode)) concatformatstring(text, "%4d ", c.state.flagscore);                    // flag
         concatformatstring(text, "%6d ", c.state.points);                                             // score
         concatformatstring(text, "%4d %5d", c.state.frags, c.state.deaths);                           // frag death
-        logline(ACLOG_INFO, "%s%5d %-7s %s", text, c.ping, privname(c.role), c.gethostname());
+        const int ping = bot && valid_client(c.ownernum) ? clients[c.ownernum]->ping : c.ping;
+        logline(ACLOG_INFO, "%s%5d %-7s %s", text, ping, privname(c.role), c.gethostname());
         if(c.team != TEAM_SPECT)
         {
             int t = team_base(c.team);

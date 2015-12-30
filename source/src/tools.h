@@ -414,6 +414,15 @@ template <class T> struct vector
         return buf[ulen++];
     }
 
+    // same as add(), but do not reallocate if L is already allocated
+    template <unsigned int L>
+    inline T &add_limit()
+    {
+        if(ulen==alen && ulen >= L)
+            return buf[ulen-1];
+        return add();
+    }
+
     T &dup()
     {
         if(ulen==alen) growbuf(ulen+1);

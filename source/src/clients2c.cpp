@@ -481,7 +481,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_KNIFEADD:
             {
-                cknife &k = knives.add();
+                cknife &k = knives.add_limit<1000>();
                 k.id = getint(p);
                 k.millis = totalmillis + KNIFETTL;
                 loopi(3) k.o[i] = getint(p)/DMF;
@@ -497,7 +497,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_CONFIRMADD:
             {
-                cconfirm &k = confirms.add();
+                cconfirm &k = confirms.add_limit<10000>();
                 k.id = getint(p);
                 k.team = getint(p);
                 loopi(3) k.o[i] = getint(p)/DMF;
@@ -567,13 +567,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             {
                 int cn = getint(p);
                 playerent *d = newclient(cn);
+                getstring(text, p);
                 if(!d || d == player1)
                 {
-                    getstring(text, p);
-                    loopi(4) getint(p);
+                    loopi(6) getint(p);
                     break;
                 }
-                getstring(text, p);
                 filtername(text, text);
                 if(!text[0]) copystring(text, "unarmed");
                 copystring(d->name, text, MAXNAMELEN+1);
@@ -603,7 +602,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             {
                 const int cn = getint(p);
                 playerent *d = newclient(cn);
-                if(!d || d == player1) break; // should NOT happen!
+                if(!d || d == player1)
+                {
+                    // this should never happen!
+                    loopi(6) getint(p);
+                    break;
+                }
                 d->ownernum = getint(p);
                 BotManager.GetBotName(getint(p), d);
                 loopi(2) d->setskin(i, getint(p));
@@ -713,7 +717,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 if(!d || (d != player1 && !isowned(d))) { static playerent dummy; d = &dummy; }
                 if ( map_quality == MAP_IS_BAD )
                 {
-                    loopi(7+2*NUMGUNS) getint(p);
+                    loopi(7+2*NUMGUNS+4) getint(p);
                     conoutf(_("map deemed unplayable - fix it before you can spawn"));
                     break;
                 }
@@ -1320,7 +1324,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             case SV_FLAGINFO:
             {
                 int flag = getint(p);
-                if(flag<0 || flag>1) return;
+                if(flag<0 || flag>1)
+                {
+                    neterr("invalid SV_FLAGINFO flag number");
+                    break;
+                }
                 flaginfo &f = flaginfos[flag];
                 f.state = getint(p);
                 switch(f.state)
@@ -1651,12 +1659,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 const int cn = getint(p), vote = getint(p);
                 if (!curvote) break;
                 playerent *d = getclient(cn);
-                if (!d || vote < VOTE_NEUTRAL || vote > VOTE_NO) break;
+                if (!d || vote < 0 || vote >= VOTE_NUM) break;
                 d->vote = vote;
                 if (vote == VOTE_NEUTRAL) break;
                 d->voternum = curvote->nextvote++;
                 if ((/*voteid*/ true || d == player1) && (d != curvote->owner || curvote->millis + 100 < lastmillis))
-                    conoutf("%s \f6(%d) \f2voted \f%s", (d == player1) ? "\f1you" : d->name, cn, vote == VOTE_NO ? "3no" : "0yes");
+                    conoutf("%s %c6(%d) %c2voted %s", (d == player1) ? "\f1you" : d->name, CC, cn, CC, vote == VOTE_NO ? "\f3no" : "\f0yes");
                 onChangeVote( 2, vote, cn );
                 break;
             }
