@@ -610,11 +610,19 @@ void particle_fireball(int type, const vec &o, playerent *owner)
     {
         if (radar_explosions.length() >= 128)
             radar_explosions.setsize(64);
+
         radar_explosion &nx = radar_explosions.add();
-        nx.owner = owner;
-        nx.o[0] = o.x;
-        nx.o[1] = o.y;
+        nx.o = o;
         nx.millis = lastmillis;
+
+        // col[3] is reserved for a dynamic alpha value
+        static GLubyte col_ownexp[4] = { 0xF7, 0xF5, 0x34 }; // yellow for your own explosions
+        static GLubyte col_friendlyexp[4] = { 0x02, 0x13, 0xFB }; // blue for friendlies' explosions
+        static GLubyte col_enemyexp[4] = { 0xFB, 0x02, 0x02 }; // red for enemies' explosions
+
+        if (focus == owner) nx.col = col_ownexp;
+        else if (isteam(focus, owner)) nx.col = col_friendlyexp;
+        else nx.col = col_enemyexp;
     }
 }
 
@@ -674,13 +682,19 @@ void addshotline(playerent *pl, vec from, const vec &to, int flags)
     // radar shotlines
     if (radar_shotlines.length() >= 256)
         radar_shotlines.setsize(128);
+
     radar_shotline &s = radar_shotlines.add();
-    s.owner = pl;
-    s.from[0] = from.x;
-    s.from[1] = from.y;
-    s.to[0] = to.x;
-    s.to[1] = to.y;
+    s.from = from;
+    s.to = to;
     s.expire = lastmillis + max(75, shotlinettl) * 2;
+
+    static const GLubyte col_ownshot[3] = { 0x94, 0xB0, 0xDE }; // blue for your shots
+    static const GLubyte col_friendlyshot[3] = { 0xB8, 0xDC, 0x78 }; // light green-yellow for friendlies
+    static const GLubyte col_enemyshot[3] = { 0xFF, 0xFF, 0xFF }; // white for enemies
+
+    if (focus == pl) s.col = col_ownshot;
+    else if (isteam(focus, pl)) s.col = col_friendlyshot;
+    else s.col = col_enemyshot;
 
     if(!shotlinettl || !shotline || (pl == player1 && (shotline == 1 || m_classic(gamemode, mutators))) || m_real(gamemode, mutators)) return;
 

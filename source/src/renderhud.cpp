@@ -830,14 +830,9 @@ void drawradar_showmap(playerent *p, int w, int h)
         if (ndelay > 600) radar_explosions.remove(i--);
         else
         {
-            static GLubyte col_ownexp[4] = { 0xf7, 0xf5, 0x34 }; // yellow for your own explosions
-            static GLubyte col_friendlyexp[4] = { 0x02, 0x13, 0xFB }; // blue for friendlies' explosions
-            static GLubyte col_enemyexp[4] = { 0xFB, 0x02, 0x02 }; // red for enemies' explosions
-            GLubyte *col;
-            if (radar_explosions[i].owner == p) col = col_ownexp;
-            else if (isteam(p, radar_explosions[i].owner)) col = col_friendlyexp;
-            else col = col_enemyexp;
-            vec nxpo(radar_explosions[i].o[0], radar_explosions[i].o[1], 0);
+            radar_explosion &radar_exp = radar_explosions[i];
+            GLubyte *&col = radar_exp.col;
+            vec nxpo(radar_exp.o);
             nxpo.sub(mdd).mul(coordtrans);
             if (ndelay < 400)
             {
@@ -853,15 +848,10 @@ void drawradar_showmap(playerent *p, int w, int h)
         if (radar_shotlines[i].expire < lastmillis) radar_shotlines.remove(i--);
         else
         {
-            static const GLubyte col_ownshot[3] = { 0x94, 0xB0, 0xDE }; // blue for your shots
-            static const GLubyte col_friendlyshot[3] = { 0xB8, 0xDC, 0x78 }; // light green-yellow for friendlies
-            static const GLubyte col_enemyshot[3] = { 0xFF, 0xFF, 0xFF }; // white for enemies
-            const GLubyte *col;
-            if (radar_shotlines[i].owner == p) col = col_ownshot;
-            else if (isteam(p, radar_shotlines[i].owner)) col = col_friendlyshot;
-            else col = col_enemyshot;
+            radar_shotline &radar_s = radar_shotlines[i];
+            const GLubyte *&col = radar_s.col;
             glBegin(GL_LINES);
-            vec from(radar_shotlines[i].from[0], radar_shotlines[i].from[1], 0), to(radar_shotlines[i].to[0], radar_shotlines[i].to[1], 0);
+            vec from(radar_s.from), to(radar_s.to);
             from.sub(mdd);
             to.sub(mdd);
             // source shot
@@ -1048,14 +1038,9 @@ void drawradar_vicinity(playerent *p, int w, int h)
         if (ndelay > 600) radar_explosions.remove(i--);
         else
         {
-            static GLubyte col_ownexp[4] = { 0xf7, 0xf5, 0x34 }; // yellow for your own explosions
-            static GLubyte col_friendlyexp[4] = { 0x02, 0x13, 0xFB }; // blue for friendlies' explosions
-            static GLubyte col_enemyexp[4] = { 0xFB, 0x02, 0x02 }; // red for enemies' explosions
-            GLubyte *col;
-            if (radar_explosions[i].owner == p) col = col_ownexp;
-            else if (isteam(p, radar_explosions[i].owner)) col = col_friendlyexp;
-            else col = col_enemyexp;
-            vec nxpo(radar_explosions[i].o[0], radar_explosions[i].o[1], 0);
+            radar_explosion &radar_exp = radar_explosions[i];
+            GLubyte *&col = radar_exp.col;
+            vec nxpo(radar_exp.o);
             nxpo.sub(p->o);
             if (nxpo.magnitude() > d2s)
                 nxpo.normalize().mul(d2s);
@@ -1074,15 +1059,10 @@ void drawradar_vicinity(playerent *p, int w, int h)
         if (radar_shotlines[i].expire < lastmillis) radar_shotlines.remove(i--);
         else
         {
-            static const GLubyte col_ownshot[3] = { 0x94, 0xB0, 0xDE }; // blue for your shots
-            static const GLubyte col_friendlyshot[3] = { 0xB8, 0xDC, 0x78 }; // light green-yellow for friendlies
-            static const GLubyte col_enemyshot[3] = { 0xFF, 0xFF, 0xFF }; // white for enemies
-            const GLubyte *col;
-            if (radar_shotlines[i].owner == p) col = col_ownshot;
-            else if (isteam(p, radar_shotlines[i].owner)) col = col_friendlyshot;
-            else col = col_enemyshot;
+            radar_shotline &radar_s = radar_shotlines[i];
+            const GLubyte *&col = radar_s.col;
             glBegin(GL_LINES);
-            vec from(radar_shotlines[i].from[0], radar_shotlines[i].from[1], 0), to(radar_shotlines[i].to[0], radar_shotlines[i].to[1], 0);
+            vec from(radar_s.from), to(radar_s.to);
             from.sub(p->o);
             to.sub(p->o);
             if (from.magnitude() > d2s)

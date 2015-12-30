@@ -656,8 +656,8 @@ extern bool addscorchmark(const vec &o, float radius = 7);
 
 extern void render_particles(int time, int typemask = ~0);
 
-struct radar_explosion { playerent *owner; int o[2]; int millis; };
-struct radar_shotline { playerent *owner; float from[2], to[2]; int expire; };
+struct radar_explosion { vec o; int millis; GLubyte *col; };
+struct radar_shotline { vec from, to; int expire; const GLubyte *col; };
 extern vector<radar_explosion> radar_explosions;
 extern vector<radar_shotline> radar_shotlines;
 
