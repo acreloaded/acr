@@ -161,7 +161,7 @@ void checkai()
                     else balance = clamp(smapstats.spawns[2] / 3, max(4, humans), 10);
                     break; // auto
                 default:
-                    if(balance > 0)
+                    if(botbalance > 0)
                         balance = max(humans, botbalance); // force bot count
                     else
                         balance = (botbalance / -100) + (-botbalance % 100); // team balance
