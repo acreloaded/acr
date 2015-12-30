@@ -1,6 +1,6 @@
 # Local game data
 bin_win32/openal32.dll
-data/*
+home/*
 packages/maps/servermaps/incoming/*
 
 # Binaries (except .dll)
