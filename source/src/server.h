@@ -563,7 +563,7 @@ void sendpacket(client *cl, int chan, ENetPacket *packet, int exclude = -1, bool
 int numclients();
 bool canspawn(client &c, bool connecting = false);
 bool updateclientteam(client &cl, int newteam, int ftr);
-void forcedeath(client &cl, bool gib = false);
+void forcedeath(client &cl);
 void sendf(client *cl, int chan, const char *format, ...);
 void addpt(client &c, int points, int reason = -1);
 void serverdied(client &target, client &actor, int damage, int gun, int style, const vec &source, float killdist = 0);
@@ -594,7 +594,7 @@ const char *messagenames[SV_NUM] =
     "SV_KNIFEADD", "SV_KNIFEREMOVE",
     "SV_CONFIRMADD", "SV_CONFIRMREMOVE",
     "SV_POINTS", "SV_SCORE", "SV_TEAMSCORE", "SV_DISCSCORES", "SV_KILL", "SV_DAMAGE", "SV_DAMAGEOBJECTIVE",
-    "SV_TRYSPAWN", "SV_SPAWNSTATE", "SV_SPAWN", "SV_FORCEDEATH", "SV_FORCEGIB",
+    "SV_TRYSPAWN", "SV_SPAWNSTATE", "SV_SPAWN", "SV_FORCEDEATH",
     "SV_ITEMSPAWN", "SV_ITEMACC",
     "SV_DROPFLAG", "SV_FLAGINFO", "SV_FLAGMSG", "SV_FLAGSECURE", "SV_FLAGOVERLOAD",
     "SV_MAPCHANGE",

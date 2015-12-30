@@ -227,7 +227,7 @@ inline int protectAdminPriv(const char conf, int cn)
 
 struct subdueaction : playeraction
 {
-    void perform() { forcedeath(*clients[cn], true); }
+    void perform() { forcedeath(*clients[cn]); }
     virtual bool isvalid() { return playeraction::isvalid() && !m_edit(gamemode) && clients[cn]->team != TEAM_SPECT; }
     subdueaction(int cn) : playeraction(cn)
     {

@@ -3130,12 +3130,12 @@ void sendwelcome(client &cl, int chan)
     cl.haswelcome = true;
 }
 
-void forcedeath(client &cl, bool gib)
+void forcedeath(client &cl)
 {
     sdropflag(cl.clientnum);
     cl.state.state = CS_DEAD;
     cl.state.respawn();
-    sendf(NULL, 1, "ri2", gib ? SV_FORCEGIB : SV_FORCEDEATH, cl.clientnum);
+    sendf(NULL, 1, "ri2", SV_FORCEDEATH, cl.clientnum);
 }
 
 bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
@@ -3328,7 +3328,7 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
                 {
                     // force round win
                     loopv(clients) if(valid_client(i) && clients[i]->state.state == CS_ALIVE && !isteam(clients[i], &cp))
-                    forcedeath(clients[i], true);
+                    forcedeath(clients[i]);
                 }
                 else explosion(cp, v, WEAP_GRENADE); // identical to self-nades, replace with something else?
                 */
