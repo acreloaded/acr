@@ -961,6 +961,7 @@ struct iprange { enet_uint32 lr, ur; };
 extern const char *atoip(const char *s, enet_uint32 *ip);
 extern const char *atoipr(const char *s, iprange *ir);
 extern const char *iptoa(const enet_uint32 ip);
+extern const char *ip6toa(unsigned char ip[16]);
 extern const char *iprtoa(const struct iprange &ipr);
 extern int cmpiprange(const struct iprange *a, const struct iprange *b);
 extern int cmpipmatch(const struct iprange *a, const struct iprange *b);

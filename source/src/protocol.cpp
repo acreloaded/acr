@@ -529,7 +529,15 @@ gametypes gametype[G_MAX] = {
             G_M_ALL & ~(G_M_CONVERT),
         },
         "zombies", { "progressive" },
-    }
+    },
+	{
+        G_OVERLOAD, G_M_TEAM,
+        {
+            G_M_ALL,
+            G_M_ALL,
+        },
+        "overload", { "quick" },
+    },
 };
 // mutator definitions
 mutstypes mutstype[G_M_NUM] = {

@@ -1105,6 +1105,22 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
             }
 
+            case SV_DAMAGEOBJECTIVE:
+            {
+                const int cn = getint(p);
+                playerent *d = getclient(cn);
+                if (d)
+                {
+                    d->lasthit = lastmillis;
+                    if (d == focus)
+                    {
+                        extern int hitsound, lasthit;
+                        if (hitsound && lasthit != lastmillis) audiomgr.playsound(S_HITSOUND, SP_HIGH);
+                        lasthit = lastmillis;
+                    }
+                }
+            }
+
             case SV_RESUME:
             {
                 loopi(MAXCLIENTS)
@@ -1371,6 +1387,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 ents[ent].attr2 = 2 + team;
                 ents[ent].attr3 = enemy;
                 ents[ent].attr4 = overthrown;
+                break;
+            }
+
+            case SV_FLAGOVERLOAD:
+            {
+                const int team = getint(p), health = getint(p);
+                if (team < 0 || team >= 2) break;
+                flaginfos[team].flagent->attr3 = health;
                 break;
             }
 
@@ -1712,22 +1736,17 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 }
                 else
                 {
-                    const int ip = getint(p), mask = getint(p), port = getint(p);
+                    uchar ip[16];
+                    loopi(16) ip[i] = p.get();
+                    const int mask = getint(p), port = getint(p);
                     getstring(text, p);
                     filtertext(text, text);
-                    defformatstring(cip)("%d", ip & 0xFF);
-                    if (mask > 8 || ip & 0xFFFFFF00)
-                    {
-                        concatformatstring(cip, ".%d", (ip >> 8) & 0xFF);
-                        if (mask > 16 || ip & 0xFFFF0000)
-                        {
-                            concatformatstring(cip, ".%d", (ip >> 16) & 0xFF);
-                            if (mask > 24 || ip & 0xFF00000)
-                                concatformatstring(cip, ".%d", (ip >> 24) & 0xFF);
-                        }
-                    }
-                    if (mask < 32) concatformatstring(cip, "/%d", mask);
-                    conoutf(_("whois on %s returned %s:%d"), pl ? colorname(pl) : "unknown", cip, port);
+                    string cip;
+                    copystring(cip, ip6toa(ip));
+
+                    if (mask < 128) concatformatstring(cip, "/%d", mask);
+
+                    conoutf(_("whois on %s returned [%s]:%d"), pl ? colorname(pl) : "unknown", cip, port);
                     if (text[0])
                         conoutf(_("this user is authed as '%s'"), text);
                     else

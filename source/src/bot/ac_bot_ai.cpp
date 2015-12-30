@@ -401,6 +401,8 @@ bool CACBot::CanTakeFlag(const entity &e)
                 else if (m_hunt(gamemode) && f_team != m_pMyEnt->team) return false;
                 // in BTF to take own flag, and to score it on the enemy base
                 else if (m_bomber(gamemode) && f_team != m_pMyEnt->team && (of.state != CTFF_STOLEN || of.actor != m_pMyEnt)) return false;
+                // in overload
+                else if (m_overload(gamemode) && (f_team == m_pMyEnt->team || (IsVisible(f.pos) && f.pos.dist(m_pMyEnt->o) <= 40))) return false;
                 // if KTF
                 break;
             case CTFF_STOLEN: // go to our stolen flag's base

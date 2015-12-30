@@ -620,6 +620,8 @@ void renderwaypoints()
                         wp = i == teamfix ? WP_BOMB : WP_TARGET;
                     else if (m_hunt(gamemode))
                         wp = i == teamfix ? WP_FRIENDLY : WP_ENEMY;
+                    else if (m_overload(gamemode))
+                        wp = i == teamfix ? WP_FRIENDLY : WP_TARGET;
                     else // if(m_keep(gamemode))
                         wp = WP_GRAB;
                     break;
@@ -630,7 +632,15 @@ void renderwaypoints()
                     wp = WP_ENEMY;
                     break;
             }
-            if (wp >= 0 && wp < WP_NUM) renderwaypoint(wp, vec(e.x, e.y, (float)S(int(e.x), int(e.y))->floor + PLAYERHEIGHT), a);
+            o.x = e.x;
+            o.y = e.y;
+            o.z = (float)S(int(e.x), int(e.y))->floor + PLAYERHEIGHT;
+            if (wp >= 0 && wp < WP_NUM) renderwaypoint(wp, o, a);
+            if (m_overload(gamemode))
+            {
+                renderprogress_back(o, color(0, 0, 0, .35f));
+                renderprogress(o, e.attr3 / 255.f, color(1, 1, 1, .28f));
+            }
         }
     }
     // players

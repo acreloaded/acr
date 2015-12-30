@@ -6,7 +6,7 @@
 #define CUBE_SERVINFO_PORT_LAN 28778
 #define CUBE_SERVINFO_PORT(serverport) (serverport+1)
 #define CUBE_SERVINFO_TO_SERV_PORT(servinfoport) (servinfoport-1)
-#define PROTOCOL_VERSION 138            // bump when protocol changes (use negative numbers for mods!)
+#define PROTOCOL_VERSION 139            // bump when protocol changes (use negative numbers for mods!)
 #define DEMO_VERSION 2                  // bump when demo format changes
 #define DEMO_MAGIC "ACR_REPLAY_FILE!"
 #define DEMO_MINTIME 10000              // don't keep demo recordings with less than 10 seconds
@@ -35,10 +35,10 @@ enum
     SV_KNIFEADD, SV_KNIFEREMOVE, // knives
     SV_CONFIRMADD, SV_CONFIRMREMOVE, // kill confirmed
     // gameplay
-    SV_POINTS, SV_SCORE, SV_TEAMSCORE, SV_DISCSCORES, SV_KILL, SV_DAMAGE, // scoring
+    SV_POINTS, SV_SCORE, SV_TEAMSCORE, SV_DISCSCORES, SV_KILL, SV_DAMAGE, SV_DAMAGEOBJECTIVE, // scoring
     SV_TRYSPAWN, SV_SPAWNSTATE, SV_SPAWN, SV_FORCEDEATH, SV_FORCEGIB, // spawning
     SV_ITEMSPAWN, SV_ITEMACC, // items
-    SV_DROPFLAG, SV_FLAGINFO, SV_FLAGMSG, SV_FLAGSECURE, // flags
+    SV_DROPFLAG, SV_FLAGINFO, SV_FLAGMSG, SV_FLAGSECURE, SV_FLAGOVERLOAD, // flags
     SV_MAPCHANGE, // maps
     SV_ARENAWIN, SV_ZOMBIESWIN, SV_CONVERTWIN, // round end/remaining
     SV_TIMEUP,
@@ -102,6 +102,7 @@ enum // game modes
     G_KTF,
     G_BOMBER,
     G_ZOMBIE,
+    G_OVERLOAD,
     G_MAX,
 };
 
@@ -148,8 +149,9 @@ extern mutstypes mutstype[G_M_NUM];
 #define m_keep(g)           (g == G_KTF)
 #define m_bomber(g)         (g == G_BOMBER)
 #define m_zombie(g)         (g == G_ZOMBIE)
+#define m_overload(g)       (g == G_OVERLOAD)
 
-#define m_flags(g)          (m_capture(g) || m_secure(g) || m_hunt(g) || m_keep(g) || m_bomber(g))
+#define m_flags(g)          (m_capture(g) || m_secure(g) || m_hunt(g) || m_keep(g) || m_bomber(g) || m_overload(g))
 #define m_ai(g)             (m_valid(g) && !m_demo(g) && !m_edit(g)) // extra bots not available in demo/edit
 
 #define m_implied(a,b)      (gametype[a].implied)
