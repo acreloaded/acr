@@ -172,7 +172,7 @@ extern mutstypes mutstype[G_M_NUM];
 #define m_expert(a,b)       ((b & G_M_EXPERT) || (m_implied(a,b) & G_M_EXPERT))
 #define m_pistol(a,b)       ((b & G_M_PISTOL) || (m_implied(a,b) & G_M_PISTOL))
 #define m_gib(a,b)          ((b & G_M_GIB) || (m_implied(a,b) & G_M_GIB))
-#define m_demolition(a,b)   ((b & G_M_EXPLOSIVE) || (m_implied(a,b) & G_M_EXPLOSIVE))
+#define m_explosive(a,b)    ((b & G_M_EXPLOSIVE) || (m_implied(a,b) & G_M_EXPLOSIVE))
 
 #define m_gsp1(a,b)         ((b & G_M_GSP1) || (m_implied(a,b) & G_M_GSP1))
 //#define m_gsp(a,b)          (m_gsp1(a,b))
@@ -180,7 +180,7 @@ extern mutstypes mutstype[G_M_NUM];
 #define m_spawn_team(a,b)   (m_team(a,b) && !m_keep(a) && !m_zombie(a))
 #define m_spawn_reversals(a,b) (!m_capture(a) && !m_hunt(a) && !m_bomber(a))
 #define m_noitems(a,b)      (false)
-#define m_noitemsammo(a,b)  (m_sniper(a,b) || m_demolition(a,b))
+#define m_noitemsammo(a,b)  (m_sniper(a,b) || m_explosive(a,b))
 #define m_noitemsnade(a,b)  (m_gib(a,b))
 #define m_noprimary(a,b)    (m_nosecondary(a,b) || m_gib(a,b))
 #define m_nosecondary(a,b)  (m_gib(a,b))

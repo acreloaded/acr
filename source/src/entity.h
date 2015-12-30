@@ -413,7 +413,7 @@ public:
         if (m_zombie(gamemode) && team == TEAM_CLA) primary = GUN_SWORD;
         else if(m_pistol(gamemode, mutators)) primary = GUN_PISTOL;
         else if (m_gib(gamemode, mutators)) primary = GUN_KNIFE;
-        else if (m_demolition(gamemode, mutators)) primary = GUN_RPG; // inversion
+        else if (m_explosive(gamemode, mutators)) primary = GUN_RPG; // inversion
         else switch (nextprimary)
         {
             default: primary = m_sniper(gamemode, mutators) ? GUN_BOLT : GUN_ASSAULT; break;
@@ -448,7 +448,7 @@ public:
 
         if (m_zombie(gamemode) && team == TEAM_CLA) secondary = GUN_KNIFE;
         else if (m_pistol(gamemode, mutators)) secondary = primary; // no secondary
-        else if (m_sniper(gamemode, mutators) || m_demolition(gamemode, mutators) || m_gib(gamemode, mutators))
+        else if (m_sniper(gamemode, mutators) || m_explosive(gamemode, mutators) || m_gib(gamemode, mutators))
             secondary = GUN_SWORD;
         else switch (nextsecondary)
         {
