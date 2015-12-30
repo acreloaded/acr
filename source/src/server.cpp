@@ -3966,8 +3966,8 @@ void process(ENetPacket *packet, int sender, int chan)
                 int ping = getint(p);
                 if(!cl) break;
                 ping = clamp(ping, 0, 9999);
-                ping = cl->ping == 9999 ? ping : (cl->ping * 4 + ping) / 5;
-                sendf(NULL, 1, "i3", SV_CLIENTPING, sender, ping);
+                cl->ping = cl->ping == 9999 ? ping : (cl->ping * 4 + ping) / 5;
+                sendf(NULL, 1, "i3", SV_CLIENTPING, sender, cl->ping);
                 break;
             }
 
