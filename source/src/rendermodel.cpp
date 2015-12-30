@@ -787,7 +787,7 @@ void renderclient(playerent *d)
         renderaboveheadicon(d);
 
     extern int fakelasertest;
-    if (fakelasertest)
+    if (!stenciling && !reflecting && !refracting && fakelasertest)
     {
         glDisable(GL_TEXTURE_2D);
         glBegin(GL_LINES);
