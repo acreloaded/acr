@@ -10,12 +10,12 @@ docs/xml/msxsl.exe
 *.pdb
 
 # Source code
-source/codeblocks_dev
-source/vcpp_dev
-source/xcode_dev
+source/codeblocks_dev*
+source/vcpp_dev*
+source/xcode_dev*
 
 # Server debugging
-server_dev.bat
+server_dev*.bat
 serverlog_*.txt
 
 # OS generated files
