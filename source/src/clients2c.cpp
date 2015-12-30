@@ -1475,11 +1475,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                         chatoutf(_("%s %s %s access"), n, t ? _("relinquished") : _("claimed"), privname(r));
                         break;
                     case 2:
-                        if (d == player1) hudoutf(_("you already have %s access"), privname(r));
+                        if (!r) hudoutf(_("%c2this password is not privileged; it is a deban password!"), CC);
+                        else if (d == player1) hudoutf(_("you already have %s access"), privname(r));
                         else hudoutf(_("there is already another %s (%s)"), privname(r), n);
-                        break;
-                    case 3:
-                        hudoutf(_("%c2this password is not privileged; it is a deban password!"), CC);
                         break;
                 }
                 break;
@@ -1755,7 +1753,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
             }
 
-            case SV_SENDDEMOLIST:
+            case SV_LISTDEMOS:
             {
                 int demos = getint(p);
                 if(!demos) conoutf(_("no demos available"));
@@ -1879,7 +1877,7 @@ void receivefile(uchar *data, int len)
     */
     switch(type)
     {
-        case SV_SENDDEMO:
+        case SV_GETDEMO:
         {
             getstring(text, p);
             extern string demosubpath;

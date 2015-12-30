@@ -902,7 +902,7 @@ void setupdemorecord()
 void listdemos(client *cl)
 {
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    putint(p, SV_SENDDEMOLIST);
+    putint(p, SV_LISTDEMOS);
     putint(p, demofiles.length());
     loopv(demofiles) sendstring(demofiles[i].info, p);
     sendpacket(cl, 1, p.finalize());
@@ -958,7 +958,7 @@ void senddemo(client &cl, int num)
 
     if (interm) sending_demo = true;
     packetbuf p(MAXTRANS + d.len, ENET_PACKET_FLAG_RELIABLE);
-    putint(p, SV_SENDDEMO);
+    putint(p, SV_GETDEMO);
     sendstring(d.file, p);
     putint(p, d.len);
     p.put(d.data, d.len);
@@ -4202,7 +4202,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 }
                 else if (!pd.priv)
                 {
-                    sendf(cl, 1, "ri4", SV_CLAIMPRIV, sender, 0, 3);
+                    sendf(cl, 1, "ri4", SV_CLAIMPRIV, sender, 0, 2);
                     if (pd.line >= 0) logline(ACLOG_INFO, "[%s] %s used non-privileged password on line %d", cl->gethostname(), cl->formatname(), pd.line);
                 }
                 else
