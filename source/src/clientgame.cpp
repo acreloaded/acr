@@ -78,7 +78,7 @@ void setskin(playerent *pl, int skin, int team)
     pl->setskin(team, skin);
 }
 
-char *colorname(playerent *d, bool stats)
+char *colorname(playerent *d)
 {
     static string cname[4];
     static int num = 0;
@@ -87,12 +87,6 @@ char *colorname(playerent *d, bool stats)
         formatstring(cname[num])("%s \fs\f6(%d)\fr", d->name, d->clientnum);
     else
         formatstring(cname[num])("%s \fs\f7[%d-%d]\fr", d->name, d->clientnum, d->ownernum);
-    if (stats && !team_isspect(d->team))
-    {
-        defformatstring(stat)("%d%.*f", (d->state == CS_DEAD || d->health <= 0) ? 4 : d->health > 50 * HEALTHSCALE ? 0 : d->health > 25 * HEALTHSCALE ? 2 : 3, HEALTHPRECISION, d->health / (float)HEALTHSCALE);
-        if (d->armour) formatstring(stat)("%s\f5-\f4%d", stat, d->armour);
-        concatformatstring(cname[num], " \f5[\f%s\f5]", stat);
-    }
     return cname[num];
 }
 
@@ -1449,12 +1443,6 @@ const char *votestring(int type, const votedata &vote)
         case SA_SHUFFLETEAMS: copystring(out, "shuffle teams"); break;
     }
     return out;
-}
-
-votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, const votedata &vote)
-{
-    if(type < 0 || type >= SA_NUM) return NULL;
-    return new votedisplayinfo(owner, type, totalmillis + (30 + 10) * 1000, votestring(type, vote));
 }
 
 votedisplayinfo *curvote = NULL;

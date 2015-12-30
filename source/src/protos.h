@@ -429,7 +429,7 @@ extern void arenarespawn();
 extern void tryrespawn();
 extern void serveropcommand(int cmd, int arg1);
 extern void refreshsopmenu(gmenu *menu, bool init);
-extern char *colorname(playerent *d, bool stats = false);
+extern char *colorname(playerent *d);
 extern char *colorping(int ping);
 extern char *colorpj(int pj);
 extern const char *highlight(const char *text);
@@ -439,15 +439,30 @@ extern playerent *updatefollowplayer(int shiftdirection = 0);
 struct votedisplayinfo
 {
     playerent *owner;
-    int type, result, expiryresult, yes_remain, no_remain, millis, nextvote, expiremillis;
+    int type, millis, expiremillis;
+    float passratio;
+    int result, stats[VOTE_NUM], req_n, req_y;
     string desc;
-    bool veto;
-    votedisplayinfo(playerent *owner, int type, int millis, const char *desc) :
-        owner(owner), type(type), result(VOTE_NEUTRAL), expiryresult(VOTE_NEUTRAL), yes_remain(1), no_remain(1),
-        millis(millis), nextvote(0), expiremillis(0), veto(false) { copystring(this->desc, desc); }
+    bool veto, expire_pass;
+    votedisplayinfo(playerent *owner, int type, int millis, const char *desc, float ratio) :
+        owner(owner), type(type), millis(millis), expiremillis(millis), passratio(ratio), result(VOTE_NEUTRAL), veto(false),
+        expire_pass(false), req_n(0), req_y(0)
+    {
+        copystring(this->desc, desc);
+        loopi(VOTE_NUM) stats[i] = 0;
+
+        recompute();
+    }
+
+    void recompute()
+    {
+        const int total_votes = stats[VOTE_NO] + stats[VOTE_YES] + stats[VOTE_NEUTRAL];
+        req_y = total_votes * passratio;
+        req_n = total_votes * (1 - passratio);
+        expire_pass = stats[VOTE_YES] > (int)((stats[VOTE_NO] + stats[VOTE_YES]) * passratio);
+    }
 };
 extern const char *votestring(int type, const votedata &vote);
-extern votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, const votedata &vote);
 extern void callvoteerr(int e);
 extern void displayvote(votedisplayinfo *v);
 extern void clearvote();

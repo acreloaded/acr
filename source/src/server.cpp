@@ -2649,21 +2649,19 @@ struct voteinfo
             ++stats[clients[i]->vote];
             ++total_votes;
         }
-        const int required_votes = total_votes * action->passratio,
-            required_votes_strict = total_votes * max(action->passratio, 1 - action->passratio),
+        const int required_votes_yes = total_votes * action->passratio,
+            required_votes_no = total_votes * (1 - action->passratio),
             expireresult = stats[VOTE_YES] > (int)((stats[VOTE_NO] + stats[VOTE_YES]) * action->passratio) ? VOTE_YES : VOTE_NO;
-        sendf(NULL, 1, "ri4", SV_VOTEREMAIN, expireresult,
-            required_votes + 1 - stats[VOTE_YES],
-            required_votes_strict + 1 - stats[VOTE_NO]);
+        sendf(NULL, 1, "riv", SV_VOTESTATUS, VOTE_NUM, stats);
         // can it end?
         if (forceend)
         {
             if (veto == VOTE_NEUTRAL) end(expireresult, -3);
             else end(veto, vetoowner);
         }
-        else if (stats[VOTE_YES] > required_votes || (!isdedicated && clients[owner]->type == ST_LOCAL))
+        else if (stats[VOTE_YES] > required_votes_yes || (!isdedicated && clients[owner]->type == ST_LOCAL))
             end(VOTE_YES, -2);
-        else if (stats[VOTE_NO] > required_votes_strict)
+        else if (stats[VOTE_NO] > required_votes_no)
             end(VOTE_NO, -2);
     }
 };
@@ -2721,6 +2719,7 @@ void sendcallvote(client *cl)
     putint(q, curvote->owner);
     putint(q, curvote->type);
     putint(q, curvote->action->length - servmillis + curvote->callmillis);
+    putint(q, (int)(curvote->action->passratio * 32000));
     switch (curvote->type)
     {
         case SA_KICK:

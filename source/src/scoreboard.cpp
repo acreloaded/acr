@@ -185,20 +185,44 @@ VARP(cncolumncolor, 0, 5, 9);
 
 void renderscore(playerent *d)
 {
-    string lagping, buildstr;
+    string lagping, name;
     static color localplayerc(0.2f, 0.2f, 0.2f, 0.2f), damagedplayerc(0.4f, 0.1f, 0.1f, 0.3f), damagingplayerc(0.1f, 0.1f, 0.4f, 0.3f);
+
     if (team_isspect(d->team)) copystring(lagping, colorping(d->ping));
     else if (d->state == CS_WAITING || (d->ping > 999 && d->plag > 99)) formatstring(lagping)("LAG/%s", colorpj(d->plag), colorping(d->ping));
     else formatstring(lagping)("%s/%s", colorpj(d->plag), colorping(d->ping));
+
+    copystring(name, colorname(d));
+
+    extern votedisplayinfo *curvote;
+    if (curvote && curvote->millis >= totalmillis && d->ownernum < 0)
+        concatstring(name,
+            d->vote == VOTE_YES ? " \f5[\f0Y\f5]" :
+            d->vote == VOTE_NO ? " \f5[\f3N\f5]" :
+            " \f5[\f2?\f5]");
+
+    if (!team_isspect(d->team))
+    {
+        defformatstring(stat)("%d%.*f",
+            (d->state == CS_DEAD || d->health <= 0) ? 4 :
+            d->health > 50 * HEALTHSCALE ? 0 :
+            d->health > 25 * HEALTHSCALE ? 2 : 3,
+            HEALTHPRECISION,
+            d->health / (float)HEALTHSCALE);
+        if (d->armour)
+            concatformatstring(stat, "\f5-\f4%d", d->armour);
+        concatformatstring(name, " \f5[\f%s\f5]", stat);
+    }
+
     const int buildinfo = d->build | (d == player1 ? getbuildtype() : 0), third = (d == player1) ? thirdperson : d->thirdperson;
-    buildstr[0] = '\0';
     if (d->ownernum >= 0); // bot icon? in the future?
-    else if (buildinfo & 0x40) concatstring(buildstr, "\a4  "); // Windows
-    else if (buildinfo & 0x20) concatstring(buildstr, "\a3  "); // Mac
-    else if (buildinfo & 0x04) concatstring(buildstr, "\a2  "); // Linux
-    if (buildinfo & 0x08) concatstring(buildstr, "\a1  "); // Debug
-    if (third) concatstring(buildstr, "\a0  "); // Third-Person
-    if (buildinfo & 0x02) concatstring(buildstr, "\a5  "); // Authed
+    else if (buildinfo & 0x40) concatstring(name, "\a4  "); // Windows
+    else if (buildinfo & 0x20) concatstring(name, "\a3  "); // Mac
+    else if (buildinfo & 0x04) concatstring(name, "\a2  "); // Linux
+    if (buildinfo & 0x08) concatstring(name, "\a1  "); // Debug
+    if (third) concatstring(name, "\a0  "); // Third-Person
+    if (buildinfo & 0x02) concatstring(name, "\a5  "); // Authed
+
     const char *ign = d->ignored ? " (ignored)" : (d->muted ? " (muted)" : "");
     sline &line = scorelines.add();
     if(team_isspect(d->team)) line.textcolor = '4';
@@ -212,7 +236,7 @@ void renderscore(playerent *d)
     line.addcol(sc_score, "%d", max(d->points, 0));
     line.addcol(sc_lag, lagping);
     line.addcol(sc_clientnum, "\fs\f%d%d\fr", cncolumncolor, d->clientnum);
-    line.addcol(sc_name, "\fs\f%c%s\fr%s%s", privcolor(d->clientrole, d->state == CS_DEAD), colorname(d, true), ign, buildstr);
+    line.addcol(sc_name, "\fs\f%c%s\fr%s", privcolor(d->clientrole, d->state == CS_DEAD), name, ign);
     line.altfont = "build";
 }
 

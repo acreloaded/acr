@@ -1618,10 +1618,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_CALLVOTE:
             {
-                int cn = getint(p), type = getint(p), voteremain = getint(p);
+                int cn = getint(p), type = getint(p), remain = getint(p);
+                float ratio = getint(p) / 32000.f;
                 playerent *d = getclient(cn);
                 if( type < 0 || type >= SA_NUM ) break;
-                votedisplayinfo *v = NULL;
                 // vote data storage
                 static votedata vote = votedata(text);
                 vote = votedata(text); // reset it
@@ -1658,9 +1658,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     case SA_SHUFFLETEAMS:
                         break;
                 }
-                v = newvotedisplayinfo(d, type, vote);
-                if(!v) break;
-                v->expiremillis = totalmillis + voteremain;
+                if(type < 0 || type >= SA_NUM) break;
+                votedisplayinfo *v = new votedisplayinfo(d, type, totalmillis + remain, votestring(type, vote), ratio);
                 displayvote(v);
                 onCallVote(type, v->owner->clientnum, vote);
                 break;
@@ -1682,20 +1681,22 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 if (!d || vote < 0 || vote >= VOTE_NUM) break;
                 d->vote = vote;
                 if (vote == VOTE_NEUTRAL) break;
-                d->voternum = curvote->nextvote++;
                 if ((/*voteid*/ true || d == player1) && (d != curvote->owner || curvote->millis + 100 < lastmillis))
                     conoutf("%s %c6(%d) %c2voted %s", (d == player1) ? "\f1you" : d->name, CC, cn, CC, vote == VOTE_NO ? "\f3no" : "\f0yes");
                 onChangeVote( 2, vote, cn );
                 break;
             }
 
-            case SV_VOTEREMAIN:
+            case SV_VOTESTATUS:
             {
-                const int projection = getint(p), yes_remain = getint(p), no_remain = getint(p);
-                if (!curvote) break;
-                curvote->expiryresult = projection;
-                curvote->yes_remain = yes_remain;
-                curvote->no_remain = no_remain;
+                if (!curvote)
+                {
+                    loopi(VOTE_NUM) getint(p);
+                    break;
+                }
+                loopi(VOTE_NUM)
+                    curvote->stats[i] = getint(p);
+                curvote->recompute();
                 break;
             }
 
