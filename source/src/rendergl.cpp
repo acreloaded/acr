@@ -1419,16 +1419,32 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     glColor3f(1, 1, 1);
     glDisable(GL_FOG);
     glDepthFunc(GL_GREATER);
+    if (m_void(gamemode, mutators))
+    {
+        glDisable(GL_TEXTURE_2D);
+        static const GLubyte voidSkyColor[] = { 20, 20, 20 };
+        glColor3ubv(voidSkyColor);
+    }
     draw_envbox(fog*4/3);
+    if (m_void(gamemode, mutators))
+        glEnable(GL_TEXTURE_2D);
     glDepthFunc(GL_LESS);
     fixresizedscreen();
     glEnable(GL_FOG);
 
     transplayer();
 
+    if (m_void(gamemode, mutators))
+    {
+        //setuptmu(0, "C * P x 2");
+    }
+    else
     setuptmu(0, "T * P x 2");
 
     renderstrips();
+
+    if (m_void(gamemode, mutators))
+        setuptmu(0, "T * P x 2");
 
 
     xtraverts = 0;
@@ -1446,6 +1462,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     readdepth(w, h, worldpos);
     playerincrosshair(worldhit, worldhitzone, (worldhitpos = worldpos));
 
+    // TODO: move to gl_drawhud and use world to screen
     renderwaypoints();
 
     startmodelbatches();

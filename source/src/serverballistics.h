@@ -120,7 +120,7 @@ void parsepos(client &c, const vector<posinfo> &pos, vec &out_o, vec &out_head)
         out_head.add(out_o);
     }
     // no match? not trusted? approximate a location for the head
-    else out_head = vec(.2f, -.25f, .25f).rotate_around_z(c.y * RAD).add(out_o);
+    else out_head = vec(0, -.25f, .25f).rotate_around_z(c.y * RAD).add(out_o);
 }
 
 // explosions

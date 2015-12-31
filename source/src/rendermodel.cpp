@@ -582,15 +582,80 @@ void preload_mapmodels(bool trydl)
     }
 }
 
+VAR(dbghbox, 0, 0, 1); // restored from previous versions of AC
+
+#define HBOXPRECISION 32
+#define HBOXPRECISIONV 10
+
 inline void renderhboxpart(playerent *d, vec top, vec bottom, vec up)
 {
-    if(d->state==CS_ALIVE && d->head.x >= 0)
+    vec spoke;
+    spoke.orthogonal(up);
+    spoke.normalize().mul(d->radius);
+
+    glBegin(GL_LINE_LOOP);
+    loopi(HBOXPRECISION)
     {
+        vec pos(spoke);
+        pos.rotate(2*M_PI*i/(float)HBOXPRECISION, up).add(top);
+        glVertex3fv(pos.v);
+    }
+    glEnd();
+    glBegin(GL_LINE_LOOP);
+    loopi(HBOXPRECISION)
+    {
+        vec pos(spoke);
+        pos.rotate(2*M_PI*i/ (float)HBOXPRECISION, up).add(bottom);
+        glVertex3fv(pos.v);
+    }
+    glEnd();
+    glBegin(GL_LINES);
+    loopi(HBOXPRECISIONV)
+    {
+        vec pos(spoke);
+        pos.rotate(2*M_PI*i/(float)HBOXPRECISIONV, up).add(bottom);
+        glVertex3fv(pos.v);
+        pos.sub(bottom).add(top);
+        glVertex3fv(pos.v);
+    }
+    glEnd();
+}
+
+void renderhbox(playerent *d)
+{
+    if (d->state != CS_ALIVE && d->state != CS_EDITING)
+        return;
+
+    if (m_psychic(gamemode, mutators))
+        glDisable(GL_DEPTH_TEST);
+
+    typedef GLubyte hbox_color_t[3];
+    static const hbox_color_t hbox_colors[][3] = {
+        // { head, torso, legs },
+        // friendly
+        { { 128, 255,   0 }, {   0, 255,   0 }, {  64, 255,   0 } },
+        // enemy
+        { { 255, 128,   0 }, { 255,   0,   0 }, { 255,  64,   0 } },
+    };
+    const hbox_color_t *hbox_color = hbox_colors[focus == d || isteam(focus, d) ? 0 : 1];
+
+    glDisable(GL_TEXTURE_2D);
+
+    float y = d->yaw*RAD, p = (d->pitch/4+90)*RAD, c = cosf(p);
+    vec bottom(d->o), up(sinf(y)*c, -cosf(y)*c, sinf(p)), top(up), mid(up);
+    bottom.z -= d->eyeheight;
+    float h = d->eyeheight /*+ d->aboveeye*/;          // shoulder limit
+    mid.mul(h*LEGPART).add(bottom);
+    top.mul(h).add(bottom);
+
+    if(d->head.x >= 0)
+    {
+        glColor3ubv(hbox_color[0]);
         glBegin(GL_LINE_LOOP);
-        loopi(8)
+        loopi(HBOXPRECISION)
         {
             vec pos(camright);
-            pos.rotate(2*M_PI*i/8.0f, camdir).mul(HEADSIZE).add(d->head);
+            pos.rotate(2*M_PI*i/(float)HBOXPRECISION, camdir).mul(HEADSIZE).add(d->head);
             glVertex3fv(pos.v);
         }
         glEnd();
@@ -601,40 +666,22 @@ inline void renderhboxpart(playerent *d, vec top, vec bottom, vec up)
         glEnd();
     }
 
-    vec spoke;
-    spoke.orthogonal(up);
-    spoke.normalize().mul(d->radius);
+    glColor3ubv(hbox_color[1]);
+    renderhboxpart(d,top,mid,up);
+    glColor3ubv(hbox_color[2]);
+    renderhboxpart(d,mid,bottom,up);
 
-    glBegin(GL_LINE_LOOP);
-    loopi(8)
-    {
-        vec pos(spoke);
-        pos.rotate(2*M_PI*i/8.0f, up).add(top);
-        glVertex3fv(pos.v);
-    }
-    glEnd();
-    glBegin(GL_LINE_LOOP);
-    loopi(8)
-    {
-        vec pos(spoke);
-        pos.rotate(2*M_PI*i/8.0f, up).add(bottom);
-        glVertex3fv(pos.v);
-    }
-    glEnd();
-    glBegin(GL_LINES);
-    loopi(8)
-    {
-        vec pos(spoke);
-        pos.rotate(2*M_PI*i/8.0f, up).add(bottom);
-        glVertex3fv(pos.v);
-        pos.sub(bottom).add(top);
-        glVertex3fv(pos.v);
-    }
-    glEnd();
+    glEnable(GL_TEXTURE_2D);
+
+    if (m_psychic(gamemode, mutators))
+        glEnable(GL_DEPTH_TEST);
 }
 
 void renderclient(playerent *d, const char *mdlname, const char *vwepname, int tex)
 {
+    if(!m_void(gamemode, mutators))
+    {
+
     int varseed = (int)(size_t)d;
     int anim = ANIM_IDLE|ANIM_LOOP;
     float speed = 0.0;
@@ -703,10 +750,18 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
         if(stenciling) return;
     }
     rendermodel(mdlname, anim|ANIM_DYNALLOC, tex, 1.5f, o, d->yaw+90, d->pitch/4, speed, basetime, d, a);
+
+    }
+    else // void mutator
+    {
+        (d->head = d->o).add(vec(0, -.25f, .25f).rotate_around_z(d->yaw * RAD));
+        d->muzzle = d->eject = vec(-1, -1, -1);
+    }
+
     if(!stenciling && !reflecting && !refracting)
     {
         renderaboveheadicon(d);
-        //if(dbghbox) renderhbox(d);
+        if((dbghbox && watchingdemo) || m_void(gamemode, mutators)) renderhbox(d);
         extern int fakelasertest;
         if (fakelasertest)
         {

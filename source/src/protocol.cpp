@@ -578,6 +578,11 @@ mutstypes mutstype[G_M_NUM] = {
         G_M_ALL,
         "psychic",
     },
+    {
+        G_M_VOID, G_M_VOID,
+        G_M_ALL,
+        "void",
+    },
     // damage
     {
         G_M_JUGGERNAUT, G_M_JUGGERNAUT,
