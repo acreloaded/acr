@@ -446,7 +446,7 @@ struct votedisplayinfo
     bool veto, expire_pass;
     votedisplayinfo(playerent *owner, int type, int millis, const char *desc, float ratio) :
         owner(owner), type(type), millis(millis), expiremillis(millis), passratio(ratio), result(VOTE_NEUTRAL), veto(false),
-        expire_pass(false), req_n(0), req_y(0)
+        req_n(0), req_y(0), expire_pass(false)
     {
         copystring(this->desc, desc);
         loopi(VOTE_NUM) stats[i] = 0;
