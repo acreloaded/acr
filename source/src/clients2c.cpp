@@ -1120,6 +1120,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                         lasthit = lastmillis;
                     }
                 }
+                break;
             }
 
             case SV_RESUME:
