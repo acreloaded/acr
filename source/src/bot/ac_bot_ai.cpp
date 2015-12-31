@@ -200,10 +200,13 @@ entity *CACBot::SearchForEnts(bool bUseWPs, float flRange, float flMaxHeight)
                bInteresting = (m_pMyEnt->armour < sMaxAmmo);
                sAmmo = m_pMyEnt->armour;
                break;
+            // bots are not allowed to pickup alimbo
+            /*
             case I_AKIMBO:
                bInteresting = !m_pMyEnt->akimbo;
                sAmmo = -1;
                break;
+            */
         };
 
         if (!bInteresting)

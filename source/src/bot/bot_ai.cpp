@@ -1016,7 +1016,7 @@ void CBot::DoCombatNav()
 
     // Check for nearby items?
     if (((m_iCheckEntsDelay < lastmillis) || m_pTargetEnt) &&
-        m_pBotSkill->bCanSearchItemsInCombat)
+        m_pBotSkill->bCanSearchItemsInCombat && !(m_zombie(gamemode) && m_pMyEnt->team == TEAM_CLA))
     {
         m_iCheckEntsDelay = lastmillis + 125;
         bool bSearchItems = false;
