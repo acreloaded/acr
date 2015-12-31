@@ -868,6 +868,7 @@ extern const char *modestr(int gamemode, int mutators, bool acronyms = false);
 extern const char *voteerrorstr(int n);
 extern const char *mmfullname(int n);
 extern void modecheck(int &mode, int &muts, int trying = 0);
+// coverity[+kill]
 extern void fatal(const char *s, ...);
 extern void initserver(bool dedicated, int argc = 0, char **argv = NULL);
 extern void cleanupserver();

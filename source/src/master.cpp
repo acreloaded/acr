@@ -173,6 +173,7 @@ ENetSocket serversocket = ENET_SOCKET_NULL;
 time_t starttime;
 enet_uint32 servtime = 0;
 
+// coverity[+kill]
 void fatal(const char *fmt, ...)
 {
     va_list args;
