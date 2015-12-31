@@ -1,3 +1,3 @@
 void fatal(const char *s, ...) {
-	__coverity_panic__();
+  __coverity_panic__();
 }

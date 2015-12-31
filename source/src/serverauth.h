@@ -14,7 +14,7 @@ inline bool canreqauth(client &cl, int authtoken, int authuser)
 {
     extern bool canreachauthserv;
     if (!isdedicated || !canreachauthserv){ sendf(&cl, 1, "ri2", SV_AUTH_ACR_CHAL, 2); return false; } // not dedicated/connected
-    // if (ci.authreq){ sendf(&cl, 1, "ri2", SV_AUTH_ACR_CHAL, 1);	return false;	} // already pending
+    // if (ci.authreq){ sendf(&cl, 1, "ri2", SV_AUTH_ACR_CHAL, 1); return false; } // already pending
     // if (ci.authmillis + 2000 > servmillis){ sendf(&cl, 1, "ri3", SV_AUTH_ACR_CHAL, 6, cl.authmillis + 2000 - servmillis); return false; } // flood check
     return true;
 }

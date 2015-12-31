@@ -530,7 +530,7 @@ gametypes gametype[G_MAX] = {
         },
         "zombies", { "progressive" },
     },
-	{
+    {
         G_OVERLOAD, G_M_TEAM,
         {
             G_M_ALL,
