@@ -423,7 +423,7 @@ VARP(gibspeed, 1, 30, 100);
 
 void addgib(playerent *d)
 {
-    if(!d || !gib || !gibttl || m_void(gamemode, mutators)) return;
+    if(!d || !gib || !gibttl || render_void) return;
     audiomgr.playsound(S_GIB, d);
 
     loopi(gibnum)

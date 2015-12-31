@@ -54,6 +54,7 @@ extern float fovy, aspect;
 extern int farplane;
 extern bool minimap, reflecting, refracting;
 extern int stenciling, stencilshadow;
+extern bool render_void;
 extern bool intermission;
 extern int arenaintermission;
 extern hashtable<char *, enet_uint32> mapinfo;

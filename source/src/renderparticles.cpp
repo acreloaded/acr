@@ -567,7 +567,7 @@ void particle_flash(int type, float scale, float angle, const vec &p)
 
 void particle_splash(int type, int num, int fade, const vec &p)
 {
-    if(parttypes[type].type==PT_BLOOD && (!blood || m_void(gamemode, mutators))) return;
+    if(parttypes[type].type==PT_BLOOD && (!blood || render_void)) return;
     loopi(num)
     {
         const int radius = 150;
@@ -726,7 +726,7 @@ void addshotline(playerent *pl, vec from, const vec &to, int flags)
 
 void addheadshot(const vec &from, const vec &to, int damage)
 {
-    if(!blood || !bloodttl || m_void(gamemode, mutators) || to.dist(from) < 1) return;
+    if(!blood || !bloodttl || render_void || to.dist(from) < 1) return;
     // make bloody stains! multiple times...
     int num = clamp(damage/15, 1, 7);
     loopi(num)

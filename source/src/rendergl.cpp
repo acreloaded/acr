@@ -915,6 +915,8 @@ void genclipmatrix(float a, float b, float c, float d)
     clipmatrix[14] = clip[3]*scale;
 }
 
+bool render_void = false;
+
 bool reflecting = false, refracting = false;
 GLuint reflecttex = 0, refracttex = 0;
 int reflectlastsize = 0;
@@ -1419,14 +1421,14 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     glColor3f(1, 1, 1);
     glDisable(GL_FOG);
     glDepthFunc(GL_GREATER);
-    if (m_void(gamemode, mutators))
+    if (render_void)
     {
         glDisable(GL_TEXTURE_2D);
         static const GLubyte voidSkyColor[] = { 20, 20, 20 };
         glColor3ubv(voidSkyColor);
     }
     draw_envbox(fog*4/3);
-    if (m_void(gamemode, mutators))
+    if (render_void)
         glEnable(GL_TEXTURE_2D);
     glDepthFunc(GL_LESS);
     fixresizedscreen();
@@ -1434,7 +1436,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
 
     transplayer();
 
-    if (m_void(gamemode, mutators))
+    if (render_void)
     {
         //setuptmu(0, "C * P x 2");
     }
@@ -1443,7 +1445,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
 
     renderstrips();
 
-    if (m_void(gamemode, mutators))
+    if (render_void)
         setuptmu(0, "T * P x 2");
 
 

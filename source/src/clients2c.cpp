@@ -31,6 +31,7 @@ bool changemapserv(char *name, int mode, int muts, int download, int revision)  
 {
     MA = Hhits = 0; // reset for checkarea()
     modecheck(gamemode = mode, mutators = muts);
+    render_void = m_void(gamemode, mutators);
     if(m_demo(gamemode)) return true;
     if(m_edit(gamemode))
     {

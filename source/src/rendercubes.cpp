@@ -12,7 +12,7 @@ void setupstrips()
 
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
-    if (!m_void(gamemode, mutators))
+    if (!render_void)
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
     vertex *buf = verts.getbuf();
@@ -59,13 +59,13 @@ void renderstripssky()
 
 void renderstrips()
 {
-    if (m_void(gamemode, mutators))
+    if (render_void)
         glDisable(GL_TEXTURE_2D);
 
     loopj(renderedtexs)
     {
         stripbatch &sb = stripbatches[j];
-        if (m_void(gamemode, mutators))
+        if (render_void)
         {
             /*
             int h = detrnd21(sb.tex);
@@ -82,10 +82,10 @@ void renderstrips()
 
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
-    if (!m_void(gamemode, mutators))
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-    else
+    if (render_void)
         glEnable(GL_TEXTURE_2D);
+    else
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
 void addstrip(int type, int tex, int start, int n)

@@ -679,7 +679,7 @@ void renderhbox(playerent *d)
 
 void renderclient(playerent *d, const char *mdlname, const char *vwepname, int tex)
 {
-    if(!m_void(gamemode, mutators))
+    if(!render_void)
     {
 
     int varseed = (int)(size_t)d;
@@ -761,7 +761,7 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
     if(!stenciling && !reflecting && !refracting)
     {
         renderaboveheadicon(d);
-        if((dbghbox && watchingdemo) || m_void(gamemode, mutators)) renderhbox(d);
+        if((dbghbox && watchingdemo) || render_void) renderhbox(d);
         extern int fakelasertest;
         if (fakelasertest)
         {
