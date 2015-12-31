@@ -416,7 +416,7 @@ template <class T> struct vector
     }
 
     // same as add(), but do not reallocate if L is already allocated
-    template <unsigned int L>
+    template <int L>
     inline T &add_limit()
     {
         if(ulen==alen && ulen >= L)

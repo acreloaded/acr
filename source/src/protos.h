@@ -445,20 +445,20 @@ struct votedisplayinfo
     string desc;
     bool veto, expire_pass;
     votedisplayinfo(playerent *owner, int type, int millis, const char *desc, float ratio) :
-        owner(owner), type(type), millis(millis), expiremillis(millis), passratio(ratio), result(VOTE_NEUTRAL), veto(false),
-        req_n(0), req_y(0), expire_pass(false)
+        owner(owner), type(type), millis(millis), expiremillis(millis), passratio(ratio),
+        result(VOTE_NEUTRAL), req_n(0), req_y(0),
+        veto(false), expire_pass(false)
     {
         copystring(this->desc, desc);
         loopi(VOTE_NUM) stats[i] = 0;
-
-        recompute();
     }
 
     void recompute()
     {
         const int total_votes = stats[VOTE_NO] + stats[VOTE_YES] + stats[VOTE_NEUTRAL];
-        req_y = total_votes * passratio;
-        req_n = total_votes * (1 - passratio);
+        // We need to exceed the amount, hence the +1
+        req_y = 1 + (int)(total_votes * passratio);
+        req_n = 1 + (int)(total_votes * (1 - passratio));
         expire_pass = stats[VOTE_YES] > (int)((stats[VOTE_NO] + stats[VOTE_YES]) * passratio);
     }
 };
