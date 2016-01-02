@@ -1034,8 +1034,8 @@ uint randomMT()
     int cur = next;
     if(++next >= N)
     {
+        next = 0;
         if(next > N) { seedMT(5489U + time(NULL)); cur = next++; }
-        else next = 0;
     }
     uint y = (state[cur] & 0x80000000U) | (state[next] & 0x7FFFFFFFU);
     state[cur] = y = state[cur < N-M ? cur + M : cur + M-N] ^ (y >> 1) ^ (-(y & 1U) & K);
