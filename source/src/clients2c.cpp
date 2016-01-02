@@ -1859,7 +1859,7 @@ const char *parseDemoFilename(char *srvfinfo)
             }
             pch = strtok (NULL, sep);
         }
-        copystring(srvmap, pch);
+        copystring(srvmap, pch ? pch : "unknown_map");
     }
     extern const char *getDemoFilename(int gmode, int gmuts, int mplay, int mdrop, int tstamp, char *srvmap);
     return getDemoFilename(gmode, gmuts, mplay, mdrop, stamp, srvmap);
