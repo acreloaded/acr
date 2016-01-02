@@ -1,5 +1,4 @@
 #define MAXCLIENTS 256                  // in a multiplayer game, can be arbitrarily changed
-#define MAXBOTS 64
 #define DEFAULTCLIENTS 12
 #define MAXTRANS 5000                   // max amount of data to swallow in 1 go
 #define CUBE_DEFAULT_SERVER_PORT 28770

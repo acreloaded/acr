@@ -960,7 +960,7 @@ struct serverconfigfile
 // server commandline parsing
 struct servercommandline
 {
-    int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, verbose, incoming_limit, afk_limit, ban_time, lagtrust, demotimelocal;
+    int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, maxbots, verbose, incoming_limit, afk_limit, ban_time, lagtrust, demotimelocal;
     const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile, *nbfile, *infopath, *motdpath, *forbidden, *demofilenameformat, *demotimestampformat;
     bool logtimestamp, demo_interm, loggamestatus, bypassglobalbans, bypassglobalpriv;
     string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm, mapperm;
@@ -968,7 +968,7 @@ struct servercommandline
     vector<const char *> adminonlymaps;
 
     servercommandline() :   uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), syslogfacility(6), filethres(-1), syslogthres(-1), maxdemos(5),
-                            maxclients(DEFAULTCLIENTS), verbose(0), incoming_limit(10), afk_limit(45000), ban_time(20*60*1000), lagtrust(1), demotimelocal(0),
+                            maxclients(DEFAULTCLIENTS), maxbots(MAXCLIENTS), verbose(0), incoming_limit(10), afk_limit(45000), ban_time(20*60*1000), lagtrust(1), demotimelocal(0),
                             ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(""),
                             maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), nbfile("config/nicknameblacklist.cfg"),
                             infopath("config/serverinfo"), motdpath("config/motd"), forbidden("config/forbidden.cfg"),
@@ -1026,7 +1026,12 @@ struct servercommandline
                 }
                 break;
             case 'A': if(*a) adminonlymaps.add(a); break;
-            case 'c': if(ai > 0) maxclients = min(ai, MAXCLIENTS); break;
+            case 'c':
+                if(*a == 'b')
+                    maxbots = clamp(atoi(a + 1), 0, MAXCLIENTS);
+                else if(ai > 0)
+                    maxclients = min(ai, MAXCLIENTS);
+                break;
             case 'k':
             {
                 if(arg[2]=='A' && arg[3]!='\0')

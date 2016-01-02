@@ -25,17 +25,15 @@ bool addai()
     if(!valid_client(aiowner)) return false;
     loopv(clients)
     {
-        if(numbots > (m_zombie(gamemode) ? MAXCLIENTS : MAXBOTS))
+        if(clients[i]->type == ST_AI && ++numbots > scl.maxbots)
             return false;
-        if(clients[i]->type == ST_AI)
-            ++numbots;
         else if(clients[i]->type == ST_EMPTY)
         {
             cn = i;
             break;
         }
     }
-    if(cn < 0)
+    if(cn == -1)
     {
         if(clients.length() >= MAXCLIENTS)
             return false;
