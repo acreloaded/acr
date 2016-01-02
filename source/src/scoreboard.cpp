@@ -421,7 +421,10 @@ void renderscores(gmenu *menu, bool init)
             filtertext(text, s->sdesc);
             //for(char *p = text; (p = strchr(p, '\"')); *p++ = ' ');
             //text[30] = '\0'; // serverbrowser has less room - +8 chars here - 2010AUG03 - seems it was too much, falling back to 30 (for now): TODO get real width of menu as reference-width. FIXME: cutoff
-            concatformatstring(serverline, "%s:%d %s", s->name, s->port, text);
+            if(s->port == CUBE_DEFAULT_SERVER_PORT)
+                concatformatstring(serverline, "%s %s", s->name, text);
+            else
+                concatformatstring(serverline, "%s:%d %s", s->name, s->port, text);
             //printf("SERVERLINE: %s\n", serverline);
         }
     }
