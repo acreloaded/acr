@@ -2559,30 +2559,6 @@ bool CBot::HeadToGoal()
      return HeadToWaypoint();
 }
 
-// ACR: temporary cycle detection
-// loops calling this function seem to be infinite loops
-// because of cycles in the respective linked lists
-template <int P>
-inline bool temp_containsLoop(waypoint_s *slow)
-{
-    if(!slow)
-        return false;
-
-    waypoint_s *fast = slow;
-    for(;;)
-    {
-        fast = fast->pParent[P];
-        if(!fast)
-            return false;
-        fast = fast->pParent[P];
-        if(!fast)
-            return false;
-        slow = slow->pParent[P];
-	    if(fast == slow)
-	        return true;
-    }
-}
-
 // to disable, comment out the above function and uncomment this line
 //#define temp_containsLoop(n) false
 
@@ -2674,12 +2650,30 @@ bool CBot::AStar()
                BotManager.m_sUsingAStarBotsCount--;
 
                // ACR: FIXME linked lists should not have loops
-               if(!temp_containsLoop<0>(n))
+               waypoint_s *fast = n;
                while(n)
                {
                     m_AStarNodeList.PushNode(n);
                     n = n->pParent[0];
+                    // ACR: temporary cycle detection
+                    // loops calling this function seem to be infinite loops
+                    // because of cycles in the respective linked lists
+                    #define ACR_anti_inf_loop_crash(v, i) \
+                    if(fast) \
+                    { \
+                        fast = fast->pParent[i]; \
+                        if(fast == v) \
+                            break; \
+                        if(fast) \
+                        { \
+                            fast = fast->pParent[i]; \
+                            if(fast == v) \
+                                break; \
+                        } \
+                    }
+                    ACR_anti_inf_loop_crash(n, 0);
                }
+               n = NULL; // REMOVEME
 
                CleanAStarLists(false);
 
@@ -2710,20 +2704,24 @@ bool CBot::AStar()
                     BotManager.m_sUsingAStarBotsCount--;
 
                     // ACR: FIXME linked lists should not have loops
-                    if(!temp_containsLoop<1>(n2))
+                    waypoint_s *fast = n2;
                     while(n2)
                     {
                          m_AStarNodeList.AddNode(n2);
                          n2 = n2->pParent[1];
+                         ACR_anti_inf_loop_crash(n2, 1);
                     }
+                    n2 = NULL; // REMOVEME
 
                     // ACR: FIXME linked lists should not have loops
-                    if(!temp_containsLoop<0>(n))
+                    fast = n;
                     while(n)
                     {
                          m_AStarNodeList.PushNode(n);
                          n = n->pParent[0];
+                         ACR_anti_inf_loop_crash(n, 0);
                     }
+                    n = NULL; // REMOVEME
 
                     CleanAStarLists(false);
 
@@ -2781,13 +2779,16 @@ bool CBot::AStar()
                     m_bCalculatingAStarPath = false;
                     BotManager.m_sUsingAStarBotsCount--;
 
+                    // this one seems to be OK
                     // // ACR: FIXME linked lists should not have loops
-                    // if(!temp_containsLoop<1>(n)) // this one seems to be OK
+                    // waypoint_s *fast = n;
                     while(n)
                     {
                          m_AStarNodeList.AddNode(n);
                          n = n->pParent[1];
+                         // ACR_anti_inf_loop_crash(n, 1);
                     }
+                    // n = NULL; // REMOVEME
 
                     CleanAStarLists(false);
 
@@ -2818,20 +2819,24 @@ bool CBot::AStar()
                          BotManager.m_sUsingAStarBotsCount--;
 
                          // ACR: FIXME linked lists should not have loops
-                         if(!temp_containsLoop<0>(n2))
+                         waypoint_s *fast = n2;
                          while(n2)
                          {
                               m_AStarNodeList.PushNode(n2);
                               n2 = n2->pParent[0];
+                              ACR_anti_inf_loop_crash(n2, 0);
                          }
+                         n2 = NULL; // REMOVEME
 
                          // ACR: FIXME linked lists should not have loops
-                         if(!temp_containsLoop<1>(n))
+                         fast = n;
                          while(n)
                          {
                               m_AStarNodeList.AddNode(n);
                               n = n->pParent[1];
+                              ACR_anti_inf_loop_crash(n, 1);
                          }
+                         n = NULL; // REMOVEME
 
                          CleanAStarLists(false);
 
