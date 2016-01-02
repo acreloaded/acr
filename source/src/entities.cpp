@@ -413,7 +413,7 @@ void checkitems(playerent *d)
 void spawnallitems()            // spawns items locally
 {
     loopv(ents)
-        if(ents[i].fitsmode(gamemode, mutators) || (multiplayer(false) && gamespeed!=100 && (i==-1)))
+        if(ents[i].fitsmode(gamemode, mutators))
             ents[i].spawned = true;
 }
 
