@@ -62,6 +62,7 @@ vector<playerent *> players;                  // other clients
 int lastmillis = 0, totalmillis = 0, nextmillis = 0;
 int lasthit = 0;
 int curtime = 0;
+int curtime_real = 0;
 string clientmap = "";
 
 char *getclientmap() { return clientmap; }

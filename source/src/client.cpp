@@ -14,7 +14,7 @@ extern int searchlan;
 int getclientnum() { return player1 ? player1->clientnum : -1; }
 bool isowned(playerent *p) { return player1 && p && p->ownernum >= 0 && p->ownernum == player1->clientnum; }
 
-bool multiplayer(bool msg)
+inline bool multiplayer(bool msg)
 {
     // check not correct on listen server?
     if(curpeer && msg) conoutf(_("operation not available in multiplayer"));
@@ -582,8 +582,19 @@ void c2sinfo(bool force)                    // send update to the server
         }
         if(totalmillis-lastping>250)
         {
-            putint(p, SV_PINGPONG);
-            putint(p, totalmillis);
+            if (multiplayer(false))
+            {
+                putint(p, SV_PINGPONG);
+                putint(p, totalmillis);
+            }
+            else
+            {
+                // use frame delay as local ping
+                player1->ping = curtime_real;
+                loopv(players)
+                    if(players[i] /* && players[i]->ownernum == player1->clientnum */)
+                        players[i]->ping = curtime_real;
+            }
             lastping = totalmillis;
         }
         if(p.length()) sendpackettoserv(1, p.finalize());

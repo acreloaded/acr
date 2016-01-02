@@ -46,6 +46,7 @@ extern vec worldpos, camup, camright, camdir; // current target of the crosshair
 extern playerent *worldhit; extern int worldhitzone; extern vec worldhitpos;
 extern int lastmillis, totalmillis, nextmillis; // last time
 extern int curtime;                     // current frame time
+extern int curtime_real;                //  ^, but for offline with gamespeed!=100
 extern int interm;
 extern int gamemode, nextmode, mutators, nextmuts;
 extern int gamespeed;
