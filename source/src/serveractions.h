@@ -315,8 +315,8 @@ struct botbalanceaction : serveraction
 {
     int balance;
     void perform() { botbalance = balance; checkai(); /* botbalance changed */ }
-    bool isvalid() { return balance >= -9999 && balance <= MAXCLIENTS; }
-    botbalanceaction(int balance) : balance(balance)
+    bool isvalid() { return true /*balance >= -9999 && balance <= MAXCLIENTS*/; }
+    botbalanceaction(int balance) : balance(clamp(balance, -9999, MAXCLIENTS))
     {
         reqcall = roleconf('a');
         reqveto = CR_MASTER; // botbalance
