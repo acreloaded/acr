@@ -408,11 +408,18 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             {
                 int cn = getint(p), voice = getint(p), flags = getint(p);
                 getstring(text, p);
-                filtertext(text, text);
-                playerent *d = getclient(cn);
-                if(d) saytext(d, text, flags, voice);
-                else if(cn == -1) chatonlyf("\f4MOTD:\n%s", text);
-                else chatoutf("\f5[\f1CONSOLE\f5] \f2%s", text);
+                if(cn >= 0)
+                {
+                    playerent *d = getclient(cn);
+                    if(!d) break;
+                    filtertext(text, text);
+                    saytext(d, text, flags, voice);
+                }
+                else
+                {
+                    filterrichtext(text, text);
+                    chatoutf(cn == -1 ? "\f4MOTD: %s" : "\f5[\f1CONSOLE\f5] \f2%s", text);
+                }
                 break;
             }
 
