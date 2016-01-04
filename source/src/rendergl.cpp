@@ -1097,12 +1097,13 @@ void readmatrices()
 
 bool worldtoscreen(const vec &world, vec2 &screen)
 {
-    float x = mvpmatrix.transformx(world),
-          y = mvpmatrix.transformy(world),
-          w = mvpmatrix.transformw(world);
+    const float x = mvpmatrix.transformx(world),
+                y = mvpmatrix.transformy(world),
+                w = mvpmatrix.transformw(world),
+                wa = fabs(w);
 
-    screen.x = ((x / w + 1.0f) / 2.0f);
-    screen.y = ((1.0f - y / w) / 2.0f);
+    screen.x = ((x / wa + 1.0f) / 2.0f);
+    screen.y = ((1.0f - y / wa) / 2.0f);
     return w >= 0.01f;
 }
 

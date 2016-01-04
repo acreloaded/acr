@@ -1346,7 +1346,8 @@ void drawwaypoint(WP_t wp, const vec &o, float alpha = 1.0f)//, float dx = 0, fl
     }
     vec2 pos;
     if(!worldtoscreen(o, pos))
-        return;
+        alpha *= 0.2f;
+    glColor4f(1, 1, 1, alpha);
     /*
     if (pos.x < -0.5f || pos.y < -0.5f || pos.x > 1.5f || pos.y > 1.5f)
         return;
