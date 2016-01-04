@@ -1095,16 +1095,38 @@ void readmatrices()
     invmvpmatrix.invert(mvpmatrix);
 }
 
-bool worldtoscreen(const vec &world, vec2 &screen)
+int worldtoscreen(const vec &world, vec2 &screen, int options)
 {
     const float x = mvpmatrix.transformx(world),
-                y = mvpmatrix.transformy(world),
-                w = mvpmatrix.transformw(world),
-                wa = fabs(w);
+                y = mvpmatrix.transformy(world);
+          float w = mvpmatrix.transformw(world);
 
-    screen.x = ((x / wa + 1.0f) / 2.0f);
-    screen.y = ((1.0f - y / wa) / 2.0f);
-    return w >= 0.01f;
+    int flags = 0;
+
+    if (w < 0)
+    {
+        w = -w;
+        flags = W2S_OUT_BEHIND;
+    }
+
+    if (w < 1.0e-6f)
+        return W2S_OUT_INVALID;
+
+    /*
+    if (options & W2S_IN_CLAMP)
+    {
+        const float f = max(fabs(x), fabs(y));
+        if (f > w)
+        {
+            w = f;
+            flags |= W2S_OUT_CLAMPED;
+        }
+    }
+    */
+
+    screen.x = (x / w + 1.0f) / 2.0f;
+    screen.y = (1.0f - y / w) / 2.0f;
+    return flags;
 }
 
 void traceShot(const vec &from, vec &to)

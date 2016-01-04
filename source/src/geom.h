@@ -146,10 +146,8 @@ struct vec2
     {
         struct { float x, y; };
         float v[2];
+        //int i[2];
     };
-
-    vec2() {}
-    vec2(float x, float y) : x(x), y(y) {}
 };
 
 struct vec4

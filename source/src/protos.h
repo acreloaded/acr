@@ -242,7 +242,17 @@ extern void quad(GLuint tex, vec &c1, vec &c2, float tx, float ty, float tsx, fl
 extern void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr, int subdiv = 32);
 extern void setperspective(float fovy, float nearplane);
 extern void sethudgunperspective(bool on);
-extern bool worldtoscreen(const vec &world, vec2 &screen);
+enum
+{
+    W2S_IN_CLAMP = 1 << 0,
+};
+enum
+{
+    W2S_OUT_BEHIND = 1 << 0,
+    //W2S_OUT_CLAMPED = 1 << 1,
+    W2S_OUT_INVALID = 1 << 2,
+};
+extern int worldtoscreen(const vec &world, vec2 &screen, int options = 0);
 extern void traceShot(const vec &from, vec &to); // , float len = ssize << 1);
 extern void gl_drawframe(int w, int h, float changelod, float curfps);
 extern void clearminimap();

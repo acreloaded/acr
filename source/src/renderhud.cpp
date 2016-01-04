@@ -1336,7 +1336,47 @@ enum WP_t
 
 const int waypointsize = 60; // TODO: make this VARP
 
-void drawwaypoint(WP_t wp, const vec &o, float alpha = 1.0f)//, float dx = 0, float dy = 0)
+inline float getwaypointsize(WP_t wp)
+{
+    return waypointsize * ((wp == WP_KNIFE || wp == WP_EXP) ? 1.2f : 2.0f);
+}
+
+// return value is whether the point is off thescreen
+bool waypoint_adjust_pos(vec2 &pos, int dx, int dy, int w, int h, bool force_offscreen = false)
+{
+    pos.x = pos.x * VIRTW + dx;
+    pos.y = pos.y * VIRTH + dy;
+
+    // FIXME: could this adjustment be done in worldtoscreen instead?
+
+    // Half of avaliable screen space before clamping
+    const int hW = (VIRTW - w) >> 1,
+              hH = (VIRTH - h) >> 1;
+
+    // Shift coordinates so that the screen center is at (0,0)
+    pos.x -= hW;
+    pos.y -= hH;
+
+    const float nx = fabs(pos.x/hW),
+                ny = fabs(pos.y/hH),
+                factor = max(nx, ny);
+
+    bool adjusted = false;
+    if (force_offscreen || factor >= 1)
+    {
+        pos.x /= factor;
+        pos.y /= factor;
+        adjusted = true;
+    }
+
+    // Restore original offset
+    pos.x += hW;
+    pos.y += hH;
+
+    return adjusted;
+}
+
+void drawwaypoint(WP_t wp, const vec &o, float alpha = 1.0f, int up_shift = 1)
 {
     static Texture *tex = NULL;
     if (!tex)
@@ -1344,18 +1384,21 @@ void drawwaypoint(WP_t wp, const vec &o, float alpha = 1.0f)//, float dx = 0, fl
         tex = textureload("packages/misc/waypoints.png");
         //if (!tex) return;
     }
+
+    const float size = getwaypointsize(wp);
+
     vec2 pos;
-    if(!worldtoscreen(o, pos))
-        alpha *= 0.2f;
-    glColor4f(1, 1, 1, alpha);
-    /*
-    if (pos.x < -0.5f || pos.y < -0.5f || pos.x > 1.5f || pos.y > 1.5f)
+    int flags = worldtoscreen(o, pos);
+
+    if (flags & W2S_OUT_INVALID)
         return;
-    */
-    float size = waypointsize;
-    if (wp == WP_KNIFE || wp == WP_EXP)
-        size *= 0.8f;
-    quad(tex->id, pos.x * VIRTW - size, pos.y * VIRTH - size, size * 2, (wp % 6) / 6.f, (wp / 6) / 3.f, 1 / 6.f, 1 / 3.f);
+
+    if(waypoint_adjust_pos(pos, size * -0.5f, size * -1.125f * up_shift, size, size, flags & W2S_OUT_BEHIND))
+        alpha *= 0.25f;
+
+    glColor4f(1, 1, 1, alpha);
+    // 6 columns, 3 rows
+    quad(tex->id, pos.x, pos.y, size, (wp % 6) / 6.f, (wp / 6) / 3.f, 1 / 6.f, 1 / 3.f);
 }
 
 void drawprogressbar_back(const vec &o, const color &c)
@@ -1548,15 +1591,14 @@ void drawwaypoints()
              (flaginfos[1].state == CTFF_STOLEN && flaginfos[1].actor_cn == i));
 
         if (has_flag)
-            // it was already drawn
+            // it was already drawn earlier
             continue;
 
         const bool has_nuke = pl->nukemillis >= totalmillis;
         if (has_nuke || m_psychic(gamemode, mutators))
         {
             drawwaypoint((focus == pl || isteam(focus, pl)) ? WP_DEFEND : WP_KILL, pl->o);
-            // TODO: translate icon instead of adding to z
-            if (has_nuke) drawwaypoint(WP_NUKE, vec(pl->o.x, pl->o.y, pl->o.z + PLAYERHEIGHT), 1.0f);
+            if (has_nuke) drawwaypoint(WP_NUKE, pl->o, 1.0f, 2);
         }
     }
 }
