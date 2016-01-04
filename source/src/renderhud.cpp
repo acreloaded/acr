@@ -1405,19 +1405,20 @@ void drawwaypoint(WP_t wp, const vec &o, float alpha = 1.0f, int up_shift = 1)
     quad(tex->id, pos.x, pos.y, size, (wp % 6) / 6.f, (wp / 6) / 3.f, 1 / 6.f, 1 / 3.f);
 }
 
+// TODO: fix progress bars that are off the screen
 void drawprogressbar_back(const vec &o, color c)
 {
     // TODO: do worldtoscreen() in drawwaypoints()
     vec2 pos;
     int flags = worldtoscreen(o, pos);
 
-    if (flags & W2S_OUT_INVALID)
+    if (flags /* & (W2S_OUT_BEHIND | W2S_OUT_INVALID) */)
         return;
 
-    const float w = waypointsize * 1.04f * 3,
-                h = waypointsize * 0.20f * 3;
+    const float w = waypointsize * 1.05f * 3.2f,
+                h = waypointsize * 0.20f * 3.2f;
 
-    if (waypoint_adjust_pos(pos, -w/2, -h/2, w, h, flags & W2S_OUT_BEHIND))
+    if (waypoint_adjust_pos(pos, -w/2, -h/2, w, h/*, flags & W2S_OUT_BEHIND*/))
         c.alpha *= 0.25f;
 
     glColor4fv(c.v);
@@ -1430,13 +1431,13 @@ void drawprogressbar(const vec &o, float progress, color c, float offset = 0)
     vec2 pos;
     int flags = worldtoscreen(o, pos);
 
-    if (flags & W2S_OUT_INVALID)
+    if (flags /* & (W2S_OUT_BEHIND | W2S_OUT_INVALID) */)
         return;
 
-    const float w = waypointsize * 1.00f * 3,
-                h = waypointsize * 0.15f * 3;
+    const float w = waypointsize * 1.00f * 3.2f,
+                h = waypointsize * 0.15f * 3.2f;
 
-    if (waypoint_adjust_pos(pos, w * (offset - 0.5f), -h/2, w * progress, h, flags & W2S_OUT_BEHIND))
+    if (waypoint_adjust_pos(pos, w * (offset - 0.5f), -h/2, w * progress, h/*, flags & W2S_OUT_BEHIND*/))
         c.alpha *= 0.25f;
 
     glColor4fv(c.v);
