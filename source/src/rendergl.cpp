@@ -261,6 +261,17 @@ void quad(GLuint tex, const vec &c1, const vec &c2, float tx, float ty, float ts
     xtraverts += 4;
 }
 
+void quad(float x, float y, float sx, float sy)
+{
+    glBegin(GL_TRIANGLE_STRIP);
+    glVertex2f(x,    y);
+    glVertex2f(x+sx, y);
+    glVertex2f(x,    y+sy);
+    glVertex2f(x+sx, y+sy);
+    glEnd();
+    xtraverts += 4;
+}
+
 void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr, int subdiv)
 {
     glBindTexture(GL_TEXTURE_2D, tex);

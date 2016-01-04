@@ -1334,11 +1334,14 @@ enum WP_t
     WP_NUM
 };
 
-const int waypointsize = 60; // TODO: make this VARP
+const int waypointsize = 100; // TODO: make this VARP
 
 inline float getwaypointsize(WP_t wp)
 {
-    return waypointsize * ((wp == WP_KNIFE || wp == WP_EXP) ? 1.2f : 2.0f);
+    if (wp == WP_KNIFE || wp == WP_EXP)
+        return waypointsize * 0.6f;
+
+    return waypointsize;
 }
 
 // return value is whether the point is off thescreen
@@ -1387,6 +1390,7 @@ void drawwaypoint(WP_t wp, const vec &o, float alpha = 1.0f, int up_shift = 1)
 
     const float size = getwaypointsize(wp);
 
+    // TODO: do worldtoscreen() in drawwaypoints()
     vec2 pos;
     int flags = worldtoscreen(o, pos);
 
@@ -1401,24 +1405,42 @@ void drawwaypoint(WP_t wp, const vec &o, float alpha = 1.0f, int up_shift = 1)
     quad(tex->id, pos.x, pos.y, size, (wp % 6) / 6.f, (wp / 6) / 3.f, 1 / 6.f, 1 / 3.f);
 }
 
-void drawprogressbar_back(const vec &o, const color &c)
+void drawprogressbar_back(const vec &o, color c)
 {
-    /*
-    const float scale = render_2d_as_3d_start(o), s = waypointsize / 100.f * scale;
-    glColor4f(c.r, c.g, c.b, c.alpha);
-    quad(0, vec(.52f * scale, 0.0f, s + .27f * scale), vec(-.52f * scale, 0.0f, s + .08f * scale), 0.0f, 0.0f, 1.0f, 1.0f);
-    render_2d_as_3d_end();
-    */
+    // TODO: do worldtoscreen() in drawwaypoints()
+    vec2 pos;
+    int flags = worldtoscreen(o, pos);
+
+    if (flags & W2S_OUT_INVALID)
+        return;
+
+    const float w = waypointsize * 1.04f * 3,
+                h = waypointsize * 0.20f * 3;
+
+    if (waypoint_adjust_pos(pos, -w/2, -h/2, w, h, flags & W2S_OUT_BEHIND))
+        c.alpha *= 0.25f;
+
+    glColor4fv(c.v);
+    quad(pos.x, pos.y, w, h);
 }
 
-void drawprogressbar(const vec &o, float progress, const color &c, float offset = 0)
+void drawprogressbar(const vec &o, float progress, color c, float offset = 0)
 {
-    /*
-    const float scale = render_2d_as_3d_start(o), s = waypointsize / 100.f * scale;
-    glColor4f(c.r, c.g, c.b, c.alpha);
-    quad(0, vec((.5f - 1.f * offset) * scale, 0.0f, s + .25f * scale), vec((.5f - 1.f * (offset + progress)) * scale, 0.0f, s + .1f * scale), 0.0f, 0.0f, 1.0f, 1.0f);
-    render_2d_as_3d_end();
-    */
+    // TODO: do worldtoscreen() in drawwaypoints()
+    vec2 pos;
+    int flags = worldtoscreen(o, pos);
+
+    if (flags & W2S_OUT_INVALID)
+        return;
+
+    const float w = waypointsize * 1.00f * 3,
+                h = waypointsize * 0.15f * 3;
+
+    if (waypoint_adjust_pos(pos, w * (offset - 0.5f), -h/2, w * progress, h, flags & W2S_OUT_BEHIND))
+        c.alpha *= 0.25f;
+
+    glColor4fv(c.v);
+    quad(pos.x, pos.y, w * progress, h);
 }
 
 void drawwaypoints()
@@ -1468,6 +1490,7 @@ void drawwaypoints()
                 drawwaypoint(team == TEAM_SPECT ? WP_SECURE : team == teamfix ? WP_DEFEND : WP_OVERTHROW, o, e.attr4 ? fabs(sinf(lastmillis / 200.f)) : 1.f);
                 if (e.attr4)
                 {
+                    glDisable(GL_TEXTURE_2D);
                     float progress = e.attr4 / 255.f;
                     drawprogressbar_back(o, color(0, 0, 0, 0.35f));
                     if (m_gsp1(gamemode, mutators))
@@ -1480,6 +1503,7 @@ void drawwaypoints()
                         if (team == TEAM_SPECT)
                             drawprogressbar(o, progress / 2.0f, e.attr3 ? color(0, 0, 1, .28f) : color(1, 0, 0, .28f), 0.5f);
                     }
+                    glEnable(GL_TEXTURE_2D);
                 }
             }
         }
@@ -1575,8 +1599,10 @@ void drawwaypoints()
             if (wp != WP_NUM) drawwaypoint(wp, o, a);
             if (m_overload(gamemode))
             {
+                glDisable(GL_TEXTURE_2D);
                 drawprogressbar_back(o, color(0, 0, 0, .35f));
                 drawprogressbar(o, e.attr3 / 255.f, color(1, 1, 1, .28f));
+                glEnable(GL_TEXTURE_2D);
             }
         }
     }

@@ -26,7 +26,12 @@ extern PFNGLSTENCILFUNCSEPARATEATIPROC glStencilFuncSeparate_;
 
 struct color
 {
-    float r, g, b, alpha;
+    union
+    {
+        struct { float r, g, b, alpha; };
+        float v[4];
+    };
+
     color(float r, float g, float b) : r(r), g(g), b(b), alpha(1.0f) {}
     color(float r, float g, float b, float a) : r(r), g(g), b(b), alpha(a) {}
 };
@@ -239,6 +244,7 @@ extern void linestyle(float width, int r, int g, int b);
 extern void blendbox(int x1, int y1, int x2, int y2, bool border, int tex = -1, color *c = NULL);
 extern void quad(GLuint tex, float x, float y, float s, float tx, float ty, float tsx, float tsy = 0);
 extern void quad(GLuint tex, vec &c1, vec &c2, float tx, float ty, float tsx, float tsy);
+extern void quad(float x, float y, float sx, float sy);
 extern void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr, int subdiv = 32);
 extern void setperspective(float fovy, float nearplane);
 extern void sethudgunperspective(bool on);
