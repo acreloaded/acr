@@ -434,6 +434,61 @@ void drawhitmarker()
     glEnd();
 }
 
+void draweventicons()
+{
+    static Texture **texs = geteventicons();
+
+    loopv(focus->icons)
+    {
+        eventicon &icon = focus->icons[i];
+        if (icon.type < 0 || icon.type >= eventicon::TOTAL || icon.millis + 3000 < lastmillis)
+        {
+            focus->icons.remove(i--);
+            continue;
+        }
+        Texture *tex = texs[icon.type];
+        int h = 1;
+        float aspect = 1, scalef = 1, offset = (lastmillis - icon.millis) / 3000.f * 160.f;
+        switch (icon.type)
+        {
+        case eventicon::CHAT:
+        case eventicon::VOICECOM:
+        case eventicon::PICKUP:
+            scalef = .4f;
+            break;
+        case eventicon::HEADSHOT:
+        case eventicon::CRITICAL:
+        case eventicon::REVENGE:
+        case eventicon::FIRSTBLOOD:
+            aspect = 2;
+            h = 4;
+            break;
+        case eventicon::DECAPITATED:
+        case eventicon::BLEED:
+            scalef = .4f;
+            break;
+        default:
+            scalef = .3f;
+            break;
+        }
+        glBindTexture(GL_TEXTURE_2D, tex->id);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_BLEND);
+        glColor4f(1.f, 1.f, 1.f, (3000 + icon.millis - lastmillis) / 3000.f);
+        glBegin(GL_TRIANGLE_STRIP);
+        float anim = lastmillis / 100 % (h * 2);
+        if (anim >= h) anim = h * 2 - anim + 1;
+        anim /= h;
+        const float xx = VIRTH * .15f * scalef, yy = /*VIRTH * .2f * scalef*/ xx / aspect, yoffset = VIRTH * -.15f - offset;
+        glTexCoord2f(0, anim); glVertex2f(VIRTW / 2 - xx, VIRTH / 2 - yy + yoffset);
+        glTexCoord2f(1, anim); glVertex2f(VIRTW / 2 + xx, VIRTH / 2 - yy + yoffset);
+        anim += 1.f / h;
+        glTexCoord2f(0, anim); glVertex2f(VIRTW / 2 - xx, VIRTH / 2 + yy + yoffset);
+        glTexCoord2f(1, anim); glVertex2f(VIRTW / 2 + xx, VIRTH / 2 + yy + yoffset);
+        glEnd();
+    }
+}
+
 VARP(hidedamageindicator, 0, 0, 1);
 VARP(damageindicatorsize, 0, 200, 10000);
 VARP(damageindicatordist, 0, 500, 10000);
@@ -1174,6 +1229,87 @@ void drawdamagescreen()
     }
 }
 
+void drawperkicons(int origVIRTW)
+{
+    static Texture *perktex1[PERK1_MAX] = { NULL }, *perktex2[PERK1_MAX] = { NULL };
+    if (!perktex1[0])
+    {
+        const char *perktexname1[PERK1_MAX] = { "none", "radar", "ninja", "power", "time", "speed", "hand", "light", "point" };
+        const char *perktexname2[PERK2_MAX] = { "none", "radar", "ninja", "power", "time", "vision", "streak", "steady", "health", };
+        loopi(PERK1_MAX)
+        {
+            if (perktex1[i]) continue;
+            defformatstring(tname)("packages/perks/%s.png", perktexname1[i]);
+            perktex1[i] = textureload(tname);
+        }
+        loopi(PERK2_MAX)
+        {
+            if (perktex2[i]) continue;
+            defformatstring(tname)("packages/perks/%s.png", perktexname2[i]);
+            perktex2[i] = textureload(tname);
+        }
+    }
+
+    Texture *perk1 = perktex1[focus->perk1%PERK1_MAX],
+        *perk2 = perktex2[focus->perk2%PERK2_MAX];
+
+    if (perk1 != perk2)
+    {
+        glColor4f(1.0f, 1.0f, 1.0f, focus->perk1 /* != PERK_NONE */ && focus->state != CS_DEAD ? .78f : .3f);
+        quad(perk1->id, VIRTW - 440 - 15 - 100, VIRTH - 100 - 10, 100, 0, 0, 1);
+    }
+
+    if (perk2)
+    {
+        glColor4f(1.0f, 1.0f, 1.0f, focus->perk2 /* != PERK_NONE */ && focus->state != CS_DEAD ? .78f : .3f);
+        quad(perk2->id, VIRTW - 440, VIRTH - 100 - 10, 100, 0, 0, 1);
+    }
+}
+
+void drawstreakmeter(int origVIRTW)
+{
+    const float streakscale = 1.5f;
+    static Texture *streakt[2][4] = { { NULL } };
+    loopi(2) loopj(4)
+    {
+        // done, current, outstanding
+        defformatstring(path)("packages/streak/%d%s.png", i, j ? j > 1 ? j > 2 ? "d" : "" : "c" : "o");
+        streakt[i][j] = textureload(path);
+    }
+    glLoadIdentity();
+    glOrtho(0, origVIRTW * streakscale, VIRTH * streakscale, 0, -1, 1);
+    glTranslatef((float)streakscale*origVIRTW*(monitors - 2 + (monitors&1))/(2.*monitors), 0., 0.);
+    // we have the blend function set by the perk icon
+    const int currentstreak = floor(focus->pointstreak / 5.f);
+    loopi(11){
+        glColor4f(1, 1, 1, focus->state != CS_DEAD ? (currentstreak == i || i >= 10) ? (0.3f + fabs(sinf(lastmillis / 500.0f)) / 2 * ((i - 1) % 5) / 4.f) : .8f : .3f);
+        quad(streakt[i & 1][currentstreak > i ? 2 : currentstreak == i ? 1 : focus->deathstreak >= i ? 3 : 0]->id,
+            (VIRTW - 620 - 15 - (11 * 50) + i * 50) * streakscale, (VIRTH - 80 - 35) * streakscale, 80 * streakscale, 0, 0, 1);
+    }
+    // streak misc
+    // streak num
+    if (focus->deathstreak) draw_textf("\f3-%d", (VIRTW - 620 - 12 - max(11 - focus->deathstreak, 1) * 50) * streakscale, (VIRTH - 50 - 40) * streakscale, focus->deathstreak);
+    else draw_textf("\f%c%.1f", (VIRTW - 620 - 15 - max(11 - currentstreak, 1) * 50) * streakscale, (VIRTH - 50 - 40) * streakscale,
+        focus->pointstreak >= 9 * 5 ? '1' :
+        focus->pointstreak >= 7 * 5 ? '0' :
+        focus->pointstreak >= 3 * 5 ? '2' :
+        focus->pointstreak ? '2' :
+        '4',
+        focus->pointstreak / 5.f);
+    // airstrikes
+    draw_textf("\f4x\f%c%d", (VIRTW - 620 - 10 - 5 * 50) * streakscale, (VIRTH - 50) * streakscale, focus->airstrikes ? '0' : '5', focus->airstrikes);
+    // radar time
+    int stotal, sr;
+    playerent *spl;
+    radarinfo(stotal, spl, sr, focus);
+    if (!sr || !spl) stotal = 0; // safety
+    draw_textf("%d:\f%d%04.1f", (VIRTW - 620 - 40 - 3 * 50) * streakscale, (VIRTH - 50 - 80 - 25) * streakscale, stotal, stotal ? team_rel_color(focus, spl) : 5, sr / 1000.f);
+    // nuke timer
+    nukeinfo(stotal, spl, sr);
+    if (!sr || !spl) stotal = 0; // more safety
+    draw_textf("%d:\f%d%04.1f", (VIRTW - 620 - 40 - 50) * streakscale, (VIRTH - 50) * streakscale, stotal, stotal ? team_rel_color(focus, spl) : 5, sr / 1000.f);
+}
+
 string enginestateinfo = "";
 void CSgetEngineState() { result(enginestateinfo); }
 COMMANDN(getEngineState, CSgetEngineState, "");
@@ -1230,11 +1366,15 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     glEnable(GL_TEXTURE_2D);
 
-    // damage screen
     if(damagescreen)
         drawdamagescreen();
     // damage direction
     drawdmgindicator();
+
+    //drawwaypoints();
+
+    // TODO: fake red dot (could go here)
+    // real red dot would be rendered elsewhere
 
     if (worldhit) copystring(lastseen, worldhit->name, MAXNAMELEN+1);
     bool menu = menuvisible();
@@ -1250,59 +1390,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     drawhitmarker();
 
-    // TODO: fake red dot
-
-    // event icons
-    static Texture **texs = geteventicons();
-    if (!isthirdperson) loopv(focus->icons)
-    {
-        eventicon &icon = focus->icons[i];
-        if (icon.type < 0 || icon.type >= eventicon::TOTAL || icon.millis + 3000 < lastmillis)
-        {
-            focus->icons.remove(i--);
-            continue;
-        }
-        Texture *tex = texs[icon.type];
-        int h = 1;
-        float aspect = 1, scalef = 1, offset = (lastmillis - icon.millis) / 3000.f * 160.f;
-        switch (icon.type)
-        {
-            case eventicon::CHAT:
-            case eventicon::VOICECOM:
-            case eventicon::PICKUP:
-                scalef = .4f;
-                break;
-            case eventicon::HEADSHOT:
-            case eventicon::CRITICAL:
-            case eventicon::REVENGE:
-            case eventicon::FIRSTBLOOD:
-                aspect = 2;
-                h = 4;
-                break;
-            case eventicon::DECAPITATED:
-            case eventicon::BLEED:
-                scalef = .4f;
-                break;
-            default:
-                scalef = .3f;
-                break;
-        }
-        glBindTexture(GL_TEXTURE_2D, tex->id);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glEnable(GL_BLEND);
-        glColor4f(1.f, 1.f, 1.f, (3000 + icon.millis - lastmillis) / 3000.f);
-        glBegin(GL_TRIANGLE_STRIP);
-        float anim = lastmillis / 100 % (h * 2);
-        if (anim >= h) anim = h * 2 - anim + 1;
-        anim /= h;
-        const float xx = VIRTH * .15f * scalef, yy = /*VIRTH * .2f * scalef*/ xx / aspect, yoffset = VIRTH * -.15f - offset;
-        glTexCoord2f(0, anim); glVertex2f(VIRTW / 2 - xx, VIRTH / 2 - yy + yoffset);
-        glTexCoord2f(1, anim); glVertex2f(VIRTW / 2 + xx, VIRTH / 2 - yy + yoffset);
-        anim += 1.f / h;
-        glTexCoord2f(0, anim); glVertex2f(VIRTW / 2 - xx, VIRTH / 2 + yy + yoffset);
-        glTexCoord2f(1, anim); glVertex2f(VIRTW / 2 + xx, VIRTH / 2 + yy + yoffset);
-        glEnd();
-    }
+    if (!isthirdperson)
+        draweventicons();
 
     if (focus->state == CS_ALIVE && show_hud_element(!hidehudequipment, 3)) drawequipicons(focus);
 
@@ -1310,9 +1399,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     //if(showsgpat) drawsgpat(w,h); // shotty
     if(!editmode)
     {
-        glMatrixMode(GL_MODELVIEW);
+        //glMatrixMode(GL_MODELVIEW);
         if (show_hud_element(!hideteam, 1) && m_team(gamemode, mutators)) drawteamicons(w, h);
-        glMatrixMode(GL_PROJECTION);
+        //glMatrixMode(GL_PROJECTION);
     }
 
     char *infostr = editinfo();
@@ -1621,84 +1710,13 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     glTranslatef((float)VIRTW*(monitors - 2 + (monitors&1))/(2.*monitors), 0., 0.);
 
     if (show_hud_element(!hidehudequipment, 6))
-    {
-        static Texture *perktex1[PERK1_MAX] = { NULL }, *perktex2[PERK1_MAX] = { NULL };
-        if (!perktex1[0])
-        {
-            const char *perktexname1[PERK1_MAX] = { "none", "radar", "ninja", "power", "time", "speed", "hand", "light", "point" };
-            const char *perktexname2[PERK2_MAX] = { "none", "radar", "ninja", "power", "time", "vision", "streak", "steady", "health", };
-            loopi(PERK1_MAX)
-            {
-                if (perktex1[i]) continue;
-                defformatstring(tname)("packages/perks/%s.png", perktexname1[i]);
-                perktex1[i] = textureload(tname);
-            }
-            loopi(PERK2_MAX)
-            {
-                if (perktex2[i]) continue;
-                defformatstring(tname)("packages/perks/%s.png", perktexname2[i]);
-                perktex2[i] = textureload(tname);
-            }
-        }
-        Texture *perk1 = perktex1[focus->perk1%PERK1_MAX], *perk2 = perktex2[focus->perk2%PERK2_MAX];
-        if (perk1 != perk2)
-        {
-            glColor4f(1.0f, 1.0f, 1.0f, focus->perk1 /* != PERK_NONE */ && focus->state != CS_DEAD ? .78f : .3f);
-            quad(perk1->id, VIRTW - 440 - 15 - 100, VIRTH - 100 - 10, 100, 0, 0, 1);
-        }
+        drawperkicons(origVIRTW);
 
-        if (perk2)
-        {
-            glColor4f(1.0f, 1.0f, 1.0f, focus->perk2 /* != PERK_NONE */ && focus->state != CS_DEAD ? .78f : .3f);
-            quad(perk2->id, VIRTW - 440, VIRTH - 100 - 10, 100, 0, 0, 1);
-        }
-    }
-
-    // streak meter
     if (show_hud_element(!hidehudequipment, 1))
-    {
-        const float streakscale = 1.5f;
-        static Texture *streakt[2][4] = { { NULL } }; // TODO: use native plain OpenGL triangles?
-        loopi(2) loopj(4)
-        {
-            // done, current, outstanding
-            defformatstring(path)("packages/streak/%d%s.png", i, j ? j > 1 ? j > 2 ? "d" : "" : "c" : "o");
-            streakt[i][j] = textureload(path);
-        }
-        glLoadIdentity();
-        glOrtho(0, origVIRTW * streakscale, VIRTH * streakscale, 0, -1, 1);
-        glTranslatef((float)streakscale*origVIRTW*(monitors - 2 + (monitors&1))/(2.*monitors), 0., 0.);
-        // we have the blend function set by the perk icon
-        const int currentstreak = floor(focus->pointstreak / 5.f);
-        loopi(11){
-            glColor4f(1, 1, 1, focus->state != CS_DEAD ? (currentstreak == i || i >= 10) ? (0.3f + fabs(sinf(lastmillis / 500.0f)) / 2 * ((i - 1) % 5) / 4.f) : .8f : .3f);
-            quad(streakt[i & 1][currentstreak > i ? 2 : currentstreak == i ? 1 : focus->deathstreak >= i ? 3 : 0]->id,
-                (VIRTW - 620 - 15 - (11 * 50) + i * 50) * streakscale, (VIRTH - 80 - 35) * streakscale, 80 * streakscale, 0, 0, 1);
-        }
-        // streak misc
-        // streak num
-        if (focus->deathstreak) draw_textf("\f3-%d", (VIRTW - 620 - 12 - max(11 - focus->deathstreak, 1) * 50) * streakscale, (VIRTH - 50 - 40) * streakscale, focus->deathstreak);
-        else draw_textf("\f%c%.1f", (VIRTW - 620 - 15 - max(11 - currentstreak, 1) * 50) * streakscale, (VIRTH - 50 - 40) * streakscale,
-            focus->pointstreak >= 9 * 5 ? '1' :
-            focus->pointstreak >= 7 * 5 ? '0' :
-            focus->pointstreak >= 3 * 5 ? '2' :
-            focus->pointstreak ? '2' :
-            '4',
-            focus->pointstreak / 5.f);
-        // airstrikes
-        draw_textf("\f4x\f%c%d", (VIRTW - 620 - 10 - 5 * 50) * streakscale, (VIRTH - 50) * streakscale, focus->airstrikes ? '0' : '5', focus->airstrikes);
-        // radar time
-        int stotal, sr;
-        playerent *spl;
-        radarinfo(stotal, spl, sr, focus);
-        if (!sr || !spl) stotal = 0; // safety
-        draw_textf("%d:\f%d%04.1f", (VIRTW - 620 - 40 - 3 * 50) * streakscale, (VIRTH - 50 - 80 - 25) * streakscale, stotal, stotal ? team_rel_color(focus, spl) : 5, sr / 1000.f);
-        // nuke timer
-        nukeinfo(stotal, spl, sr);
-        if (!sr || !spl) stotal = 0; // more safety
-        draw_textf("%d:\f%d%04.1f", (VIRTW - 620 - 40 - 50) * streakscale, (VIRTH - 50) * streakscale, stotal, stotal ? team_rel_color(focus, spl) : 5, sr / 1000.f);
-    }
+        drawstreakmeter(origVIRTW);
 
+    // TODO: it would be easier to have a size/scale parameter for draw_text/draw_textf
+    // rather than changing the projection matrix many times
     VIRTW = origVIRTW;
 
     glDisable(GL_BLEND);
