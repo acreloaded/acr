@@ -1764,8 +1764,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         draw_text(lastexptext, VIRTW * 11 / 20, VIRTH * 8 / 20 + FONTH, a, a, a, a);
     }
 
-    glLoadIdentity();
-    glOrtho(0, origVIRTW*2, VIRTH*2, 0, -1, 1);
+    //glLoadIdentity();
+    //glOrtho(0, origVIRTW*2, VIRTH*2, 0, -1, 1);
+    glScalef(1/2.0f, 1/2.0f, 1);
     glTranslatef((float)origVIRTW*(float)((float)monitors - 2. + (float)(monitors&1))/((float)monitors), 0., 0.);
     extern int tsens(int x);
     tsens(-2000);
@@ -1894,24 +1895,28 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             {
                 case VOTE_NEUTRAL:
                     drawvoteicon(left, top, 0, 0, true);
+                    top += 560;
                     if (player1->vote == VOTE_NEUTRAL)
-                        draw_textf("\f3please vote yes or no (F1/F2)", left, top+560);
+                        draw_textf("\f3please vote yes or no (F1/F2)", left, top);
                     else
-                        draw_textf("\f2you voted \f%s \f1(F%d to change)", left, top + 560, player1->vote == VOTE_NO ? "3no" : "0yes", player1->vote == VOTE_NO ? 1 : 2);
+                        draw_textf("\f2you voted \f%s \f1(F%d to change)", left, top, player1->vote == VOTE_NO ? "3no" : "0yes", player1->vote == VOTE_NO ? 1 : 2);
                     break;
                 default:
                     drawvoteicon(left, top, (curvote->result-1)&1, 1, false);
-                    draw_textf("\f%s \f%s", left, top+560, curvote->veto ? "1VETO" : "2vote", curvote->result == VOTE_YES ? "0PASSED" : "3FAILED");
+                    top += 560;
+                    draw_textf("\f%s \f%s", left, top, curvote->veto ? "1VETO" : "2vote", curvote->result == VOTE_YES ? "0PASSED" : "3FAILED");
                     break;
             }
-            glLoadIdentity();
-            glOrtho(0, VIRTW*2.2, VIRTH*2.2, 0, -1, 1);
-            left *= 1.1; top += 560; top *= 1.1;
+            //glPushMatrix();
+            glScalef(1/1.1f, 1/1.1f, 1);
+            left *= 1.1;
+            top *= 1.1;
             draw_textf("\f1Votes: \f0Y \f5(\f4%d/%d\f5) \f7/ \f3N \f5(\f4%d/%d\f5) \f7/ \f2? \f5(\f4%d\f5)", left, top += 88,
                 curvote->stats[VOTE_YES], curvote->req_y,
                 curvote->stats[VOTE_NO], curvote->req_n,
                 curvote->stats[VOTE_NEUTRAL]);
             // TODO: draw "progress bar" of votes
+            //glPopMatrix();
         }
     }
     //else draw_textf("%c%d here F1/F2 will be praised during a vote", 20*2, VIRTH+560, '\f', 0); // see position (left/top) setting in block above
@@ -1945,12 +1950,12 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if(showspeed)
     {
         glLoadIdentity();
-        glPushMatrix();
+        //glPushMatrix();
         glOrtho(0, origVIRTW, VIRTH, 0, -1, 1);
         glTranslatef((float)origVIRTW*(monitors - 2 + (monitors&1))/(2.*monitors), 0., 0.);
         glScalef(0.8, 0.8, 1);
         draw_textf("Speed: %.2f", VIRTW / 2, VIRTH, focus->vel.magnitudexy());
-        glPopMatrix();
+        //glPopMatrix();
     }
 
     if(!hidespecthud && spectating && player1->spectatemode!=SM_DEATHCAM)
