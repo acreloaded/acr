@@ -1269,13 +1269,15 @@ void drawperkicons(int origVIRTW)
 void drawstreakmeter(int origVIRTW)
 {
     const float streakscale = 1.5f;
+    // TODO: merge to one texture?
     static Texture *streakt[2][4] = { { NULL } };
-    loopi(2) loopj(4)
-    {
-        // done, current, outstanding
-        defformatstring(path)("packages/streak/%d%s.png", i, j ? j > 1 ? j > 2 ? "d" : "" : "c" : "o");
-        streakt[i][j] = textureload(path);
-    }
+    if(!streakt[0][0])
+        loopi(2) loopj(4)
+        {
+            // deathstreak, done, current, outstanding
+            defformatstring(path)("packages/streak/%d%s.png", i, j ? j > 1 ? j > 2 ? "d" : "" : "c" : "o");
+            streakt[i][j] = textureload(path);
+        }
     glLoadIdentity();
     glOrtho(0, origVIRTW * streakscale, VIRTH * streakscale, 0, -1, 1);
     glTranslatef((float)streakscale*origVIRTW*(monitors - 2 + (monitors&1))/(2.*monitors), 0., 0.);
