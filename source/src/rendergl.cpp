@@ -388,8 +388,6 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
 VARP(aboveheadiconsize, 0, 140, 1000);
 VARP(aboveheadiconfadetime, 1, 2000, 10000);
 
-const int waypointsize = 50;
-
 void renderaboveheadicon(playerent *p)
 {
     static Texture **texs = geteventicons();
@@ -1095,6 +1093,16 @@ void readmatrices()
     mvpmatrix.mul(projmatrix, mvmatrix);
     invmvmatrix.invert(mvmatrix);
     invmvpmatrix.invert(mvpmatrix);
+}
+
+void worldtoscreen(const vec &world, vec2 &screen)
+{
+    float x = mvpmatrix.transformx(world),
+          y = mvpmatrix.transformy(world),
+          w = mvpmatrix.transformw(world);
+
+    screen.x = ((x / w + 1.0f) / 2.0f);
+    screen.y = ((1.0f - y / w) / 2.0f);
 }
 
 void traceShot(const vec &from, vec &to)

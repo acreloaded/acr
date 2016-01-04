@@ -140,6 +140,18 @@ static inline uint hthash(const vec &k)
     return k.i[0]^k.i[1]^k.i[2];
 }
 
+struct vec2
+{
+    union
+    {
+        struct { float x, y; };
+        float v[2];
+    };
+
+    vec2() {}
+    vec2(float x, float y) : x(x), y(y) {}
+};
+
 struct vec4
 {
     union

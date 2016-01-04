@@ -1312,6 +1312,253 @@ void drawstreakmeter(int origVIRTW)
     draw_textf("%d:\f%d%04.1f", (VIRTW - 620 - 40 - 50) * streakscale, (VIRTH - 50) * streakscale, stotal, stotal ? team_rel_color(focus, spl) : 5, sr / 1000.f);
 }
 
+enum WP_t
+{
+    WP_KNIFE = 0,
+    WP_EXP,
+    WP_KILL,
+    WP_ESCORT,
+    WP_DEFEND,
+    WP_SECURE,
+    WP_OVERTHROW,
+    WP_GRAB,
+    WP_ENEMY,
+    WP_FRIENDLY,
+    WP_STOLEN,
+    WP_RETURN,
+    WP_DEFUSE,
+    WP_TARGET,
+    WP_BOMB,
+    WP_AIRSTRIKE,
+    WP_NUKE,
+    WP_NUM
+};
+
+const int waypointsize = 60; // TODO: make this VARP
+
+void drawwaypoint(WP_t wp, const vec &o, float alpha = 1.0f)//, float dx = 0, float dy = 0)
+{
+    static Texture *tex = NULL;
+    if (!tex)
+    {
+        tex = textureload("packages/misc/waypoints.png");
+        //if (!tex) return;
+    }
+    vec2 pos;
+    worldtoscreen(o, pos);
+    /*
+    if (pos.x < -0.5f || pos.y < -0.5f || pos.x > 1.5f || pos.y > 1.5f)
+        return;
+    */
+    float size = waypointsize;
+    if (wp == WP_KNIFE || wp == WP_EXP)
+        size *= 0.8f;
+    quad(tex->id, pos.x * VIRTW - size, pos.y * VIRTH - size, size * 2, (wp % 6) / 6.f, (wp / 6) / 3.f, 1 / 6.f, 1 / 3.f);
+}
+
+void drawprogressbar_back(const vec &o, const color &c)
+{
+    /*
+    const float scale = render_2d_as_3d_start(o), s = waypointsize / 100.f * scale;
+    glColor4f(c.r, c.g, c.b, c.alpha);
+    quad(0, vec(.52f * scale, 0.0f, s + .27f * scale), vec(-.52f * scale, 0.0f, s + .08f * scale), 0.0f, 0.0f, 1.0f, 1.0f);
+    render_2d_as_3d_end();
+    */
+}
+
+void drawprogressbar(const vec &o, float progress, const color &c, float offset = 0)
+{
+    /*
+    const float scale = render_2d_as_3d_start(o), s = waypointsize / 100.f * scale;
+    glColor4f(c.r, c.g, c.b, c.alpha);
+    quad(0, vec((.5f - 1.f * offset) * scale, 0.0f, s + .25f * scale), vec((.5f - 1.f * (offset + progress)) * scale, 0.0f, s + .1f * scale), 0.0f, 0.0f, 1.0f, 1.0f);
+    render_2d_as_3d_end();
+    */
+}
+
+void drawwaypoints()
+{
+    //if (!waypointsize) return;
+
+    // TODO: do worldtoscreen() in this function and reuse adjusted coordinates
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // throwing knife pickups
+    loopv(knives)
+    {
+        vec s;
+        bool visible = focus->perk2 == PERK2_VISION;
+        if (!visible)
+        {
+            vec dir, s;
+            (dir = focus->o).sub(knives[i].o).normalize();
+            visible = rayclip(knives[i].o, dir, s) + 1.f >= focus->o.dist(knives[i].o);
+            if (!visible)
+                continue;
+        }
+        drawwaypoint(WP_KNIFE, knives[i].o, (float)(knives[i].millis - totalmillis) / KNIFETTL);
+    }
+    // vision perk
+    if (focus->perk2 == PERK2_VISION)
+        loopv(bounceents)
+        {
+            bounceent *b = bounceents[i];
+            if (!b || (b->bouncetype != BT_NADE && b->bouncetype != BT_KNIFE)) continue;
+            if (b->bouncetype == BT_NADE && ((grenadeent *)b)->nadestate != GST_INHAND) continue;
+            if (b->bouncetype == BT_KNIFE && ((knifeent *)b)->knifestate != GST_INHAND) continue;
+            drawwaypoint(b->bouncetype == BT_NADE ? WP_EXP : WP_KNIFE, b->o);
+        }
+    // flags
+    const int teamfix = /*focus->team == TEAM_SPECT ? TEAM_CLA :*/ team_base(focus->team);
+    if (m_flags(gamemode))
+    {
+        if (m_secure(gamemode)) loopv(ents)
+        {
+            entity &e = ents[i];
+            const int team = e.attr2 - 2;
+            if (e.type == CTF_FLAG && team >= 0)
+            {
+                vec o(e.x, e.y, (float)S(int(e.x), int(e.y))->floor + PLAYERHEIGHT);
+                drawwaypoint(team == TEAM_SPECT ? WP_SECURE : team == teamfix ? WP_DEFEND : WP_OVERTHROW, o, e.attr4 ? fabs(sinf(lastmillis / 200.f)) : 1.f);
+                if (e.attr4)
+                {
+                    float progress = e.attr4 / 255.f;
+                    drawprogressbar_back(o, color(0, 0, 0, 0.35f));
+                    if (m_gsp1(gamemode, mutators))
+                        // directly to other color
+                        drawprogressbar(o, progress, e.attr3 ? color(0, 0, 1, .28f) : color(1, 0, 0, .28f));
+                    else
+                    {
+                        // half of the progress is neutral
+                        drawprogressbar(o, team == TEAM_SPECT ? .5f : progress / 2.f, color(1, 1, 1, .28f));
+                        if (team == TEAM_SPECT)
+                            drawprogressbar(o, progress / 2.0f, e.attr3 ? color(0, 0, 1, .28f) : color(1, 0, 0, .28f), 0.5f);
+                    }
+                }
+            }
+        }
+        else loopi(2)
+        {
+            float a = 1.0f;
+            WP_t wp = WP_NUM;
+            vec o;
+
+            const flaginfo &f = flaginfos[i], &of = flaginfos[team_opposite(i)];
+            const entity &e = *f.flagent;
+
+            // flag
+            switch (f.state)
+            {
+                case CTFF_STOLEN:
+                {
+                    if (f.actor == focus && !isthirdperson) break;
+                    if (OUTBORD(f.actor->o.x, f.actor->o.y)) break;
+                    const bool friendly = (focus == f.actor || (m_team(gamemode, mutators) && f.actor->team == teamfix));
+                    if (friendly)
+                    {
+                        o = f.actor->o;
+                        wp = (m_capture(gamemode) || m_bomber(gamemode)) ? WP_ESCORT : WP_DEFEND;
+                    }
+                    else
+                    {
+                        if (m_classic(gamemode, mutators)) break;
+                        o = vec(f.actor->lastloudpos.v);
+                        a = max(.15f, 1.f - (lastmillis - f.actor->radarmillis) / 5000.f);
+                        wp = WP_KILL;
+                    }
+                    break;
+                }
+
+                case CTFF_DROPPED:
+                    if (OUTBORD(f.pos.x, f.pos.y)) break;
+                    o = f.pos;
+                    o.z += PLAYERHEIGHT;
+                    if (m_capture(gamemode))
+                        // return our flags
+                        wp = i == teamfix ? WP_RETURN : WP_ENEMY;
+                    else if (m_keep(gamemode))
+                        // this shouldn't happen?
+                        wp = WP_GRAB;
+                    else if (m_bomber(gamemode))
+                        // take our bomb or defuse the enemy bomb
+                        wp = i == teamfix ? WP_BOMB : WP_DEFUSE;
+                    else
+                        // grab the enemy flag
+                        wp = i == teamfix ? WP_FRIENDLY : WP_GRAB;
+                    break;
+            }
+            o.z += PLAYERABOVEEYE;
+            if (wp != WP_NUM) drawwaypoint(wp, o, a);
+
+            if (OUTBORD(e.x, e.y)) continue;
+
+            // flag base
+            a = 1;
+            wp = WP_STOLEN; // "wait"
+            switch (f.state){
+                default: // stolen or dropped
+                    if (m_bomber(gamemode))
+                        wp = of.state == CTFF_INBASE ?
+                            i == teamfix ? WP_DEFEND : WP_TARGET : // defend our flag, or target the enemy
+                            WP_NUM;
+                    // TODO: explain this line
+                    else if (m_keep(gamemode) ? (f.actor != focus && !isteam(f.actor, focus)) : m_team(gamemode, mutators) ? (i != teamfix) : (f.actor != focus))
+                        wp = WP_NUM; break;
+                case CTFF_INBASE:
+                    if (m_capture(gamemode))
+                        wp = i == teamfix ? WP_FRIENDLY : WP_GRAB;
+                    else if (m_bomber(gamemode))
+                        wp = i == teamfix ? WP_BOMB : WP_TARGET;
+                    else if (m_hunt(gamemode))
+                        wp = i == teamfix ? WP_FRIENDLY : WP_ENEMY;
+                    else if (m_overload(gamemode))
+                        wp = i == teamfix ? WP_FRIENDLY : WP_TARGET;
+                    else // if(m_keep(gamemode))
+                        wp = WP_GRAB;
+                    break;
+                case CTFF_IDLE: // KTF only
+                    // WAIT here if the opponent has the flag
+                    if (of.state == CTFF_STOLEN && of.actor && focus != of.actor && !isteam(of.actor, focus))
+                        break;
+                    wp = WP_ENEMY;
+                    break;
+            }
+            o.x = e.x;
+            o.y = e.y;
+            o.z = (float)S(int(e.x), int(e.y))->floor + PLAYERHEIGHT;
+            if (wp != WP_NUM) drawwaypoint(wp, o, a);
+            if (m_overload(gamemode))
+            {
+                drawprogressbar_back(o, color(0, 0, 0, .35f));
+                drawprogressbar(o, e.attr3 / 255.f, color(1, 1, 1, .28f));
+            }
+        }
+    }
+    // players
+    loopv(players)
+    {
+        playerent *pl = i == getclientnum() ? player1 : players[i];
+        if (!pl || (pl == focus && !isthirdperson) || pl->state == CS_DEAD) continue;
+
+        const bool has_flag = m_flags(gamemode) &&
+            ((flaginfos[0].state == CTFF_STOLEN && flaginfos[0].actor_cn == i) ||
+             (flaginfos[1].state == CTFF_STOLEN && flaginfos[1].actor_cn == i));
+
+        if (has_flag)
+            // it was already drawn
+            continue;
+
+        const bool has_nuke = pl->nukemillis >= totalmillis;
+        if (has_nuke || m_psychic(gamemode, mutators))
+        {
+            drawwaypoint((focus == pl || isteam(focus, pl)) ? WP_DEFEND : WP_KILL, pl->o);
+            // TODO: translate icon instead of adding to z
+            if (has_nuke) drawwaypoint(WP_NUKE, vec(pl->o.x, pl->o.y, pl->o.z + PLAYERHEIGHT), 1.0f);
+        }
+    }
+}
+
 string enginestateinfo = "";
 void CSgetEngineState() { result(enginestateinfo); }
 COMMANDN(getEngineState, CSgetEngineState, "");
@@ -1373,11 +1620,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     // damage direction
     drawdmgindicator();
 
-    //drawwaypoints();
-
-    // TODO: fake red dot (could go here)
-    // real red dot would be rendered elsewhere
-
     if (worldhit) copystring(lastseen, worldhit->name, MAXNAMELEN+1);
     bool menu = menuvisible();
     bool command = getcurcommand() ? true : false;
@@ -1391,6 +1633,11 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     }
 
     drawhitmarker();
+
+    drawwaypoints();
+
+    // TODO: fake red dot (could go here)
+    // real red dot would be rendered elsewhere
 
     if (!isthirdperson)
         draweventicons();

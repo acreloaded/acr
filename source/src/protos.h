@@ -242,6 +242,7 @@ extern void quad(GLuint tex, vec &c1, vec &c2, float tx, float ty, float tsx, fl
 extern void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr, int subdiv = 32);
 extern void setperspective(float fovy, float nearplane);
 extern void sethudgunperspective(bool on);
+extern void worldtoscreen(const vec &world, vec2 &screen);
 extern void traceShot(const vec &from, vec &to); // , float len = ssize << 1);
 extern void gl_drawframe(int w, int h, float changelod, float curfps);
 extern void clearminimap();
