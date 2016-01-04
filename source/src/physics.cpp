@@ -115,6 +115,8 @@ float raycube(const vec &o, const vec &ray, vec &surface)
 float rayclip(const vec &o, const vec &ray, vec &surface)
 {
     float dist = raycube(o, ray, surface);
+    if(dist <= 0.01f)
+        return dist;
     vec to = ray;
     to.mul(dist).add(o);
     bool collided = false;
@@ -135,7 +137,9 @@ float rayclip(const vec &o, const vec &ray, vec &surface)
             // which surface did it hit?
         }
     }
-    return collided ? to.dist(o) : dist;
+    if (collided)
+        dist = to.dist(o);
+    return dist;
 }
 
 bool raycubelos(const vec &from, const vec &to, float margin)

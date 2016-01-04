@@ -1318,7 +1318,7 @@ void readmatrices()
     invmvpmatrix.invert(mvpmatrix);
 }
 
-void traceShot(const vec &from, vec &to, float len)
+void traceShot(const vec &from, vec &to)
 {
     vec tracer(to);
     tracer.sub(from).normalize();
