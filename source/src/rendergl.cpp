@@ -1095,7 +1095,7 @@ void readmatrices()
     invmvpmatrix.invert(mvpmatrix);
 }
 
-void worldtoscreen(const vec &world, vec2 &screen)
+bool worldtoscreen(const vec &world, vec2 &screen)
 {
     float x = mvpmatrix.transformx(world),
           y = mvpmatrix.transformy(world),
@@ -1103,6 +1103,7 @@ void worldtoscreen(const vec &world, vec2 &screen)
 
     screen.x = ((x / w + 1.0f) / 2.0f);
     screen.y = ((1.0f - y / w) / 2.0f);
+    return w >= 0.01f;
 }
 
 void traceShot(const vec &from, vec &to)

@@ -1345,7 +1345,8 @@ void drawwaypoint(WP_t wp, const vec &o, float alpha = 1.0f)//, float dx = 0, fl
         //if (!tex) return;
     }
     vec2 pos;
-    worldtoscreen(o, pos);
+    if(!worldtoscreen(o, pos))
+        return;
     /*
     if (pos.x < -0.5f || pos.y < -0.5f || pos.x > 1.5f || pos.y > 1.5f)
         return;
