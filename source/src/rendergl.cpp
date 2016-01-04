@@ -1347,7 +1347,6 @@ void readdepth(int w, int h, vec &pos)
     vec4 world;
     invmvpmatrix.transform(screen, world);
     pos = vec(world.x, world.y, world.z).div(world.w);
-    if(!editmode) traceShot(camera1->o, pos);
 }
 
 void gl_drawframe(int w, int h, float changelod, float curfps)
