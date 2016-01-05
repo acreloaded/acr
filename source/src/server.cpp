@@ -3264,7 +3264,7 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
         }
     }
     // flags
-    if (m_flags(gamemode) && !m_secure(gamemode) && m_overload(gamemode)) loopi(2)
+    if (m_flags(gamemode) && !m_secure(gamemode) && !m_overload(gamemode)) loopi(2)
     {
         void flagaction(int flag, int action, int actor);
         sflaginfo &f = sflaginfos[i];
