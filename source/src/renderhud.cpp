@@ -1727,23 +1727,24 @@ void drawwaypoints()
             }
         }
     }
-    // players
+    // player defend/kill/nuke waypoints
     loopv(players)
     {
         playerent *pl = i == getclientnum() ? player1 : players[i];
-        if (!pl || (pl == focus && !isthirdperson) || pl->state == CS_DEAD) continue;
-
-        const bool has_flag = m_flags(gamemode) &&
-            ((flaginfos[0].state == CTFF_STOLEN && flaginfos[0].actor_cn == i) ||
-             (flaginfos[1].state == CTFF_STOLEN && flaginfos[1].actor_cn == i));
-
-        if (has_flag)
-            // it was already drawn earlier
-            continue;
+        const bool local = (pl == focus);
+        if (!pl || (local && !isthirdperson) || pl->state == CS_DEAD) continue;
 
         const bool has_nuke = pl->nukemillis >= totalmillis;
         if (has_nuke || m_psychic(gamemode, mutators))
         {
+            const bool has_flag = m_flags(gamemode) &&
+                ((flaginfos[0].state == CTFF_STOLEN && flaginfos[0].actor_cn == i) ||
+                    (flaginfos[1].state == CTFF_STOLEN && flaginfos[1].actor_cn == i));
+
+            if (has_flag)
+                // it was already drawn earlier
+                continue;
+
             vec2 pos;
             int flags = worldtoscreen(pl->o, pos);
 
@@ -1754,6 +1755,43 @@ void drawwaypoints()
             if (has_nuke) drawwaypoint(WP_NUKE, pos, flags, 1.0f, 2);
         }
     }
+    // nametags
+    #define NAMETAGSCALE 0.65f
+    glPushMatrix();
+    glScalef(NAMETAGSCALE, NAMETAGSCALE, 1);
+    loopv(players)
+    {
+        playerent *pl = i == getclientnum() ? player1 : players[i];
+        const bool local = (pl == focus);
+        if (!pl || (local && !isthirdperson) || pl->state == CS_DEAD) continue;
+
+        vec o = pl->o;
+        o.z += pl->aboveeye;
+
+        vec2 pos;
+        int flags = worldtoscreen(o, pos);
+
+        if (flags /*& (W2S_OUT_INVALID | W2S_OUT_BEHIND) */)
+            continue;
+
+        // nametags
+        extern bool IsVisible(vec v1, vec v2, dynent *tracer = NULL, bool SkipTags = false);
+        if (local || pl == worldhit || (isteam(pl, focus) && IsVisible(focus->o, pl->o)))
+        {
+            string nametagtext;
+            nametagtext[0] = '\f';
+            nametagtext[1] = local ? '1' : isteam(focus, pl) ? '0' : '3';
+            copystring(&nametagtext[2], colorname(pl), MAXSTRLEN - 2);
+
+            int alpha = 255;
+            const int width = text_width(nametagtext);
+            if (waypoint_adjust_pos(pos, width * -0.5f * NAMETAGSCALE, -FONTH, width, FONTH/*, flags & W2S_OUT_BEHIND*/))
+                alpha = 64;
+
+            draw_text(nametagtext, pos.x / NAMETAGSCALE, pos.y / NAMETAGSCALE, 255, 255, 255, alpha);
+        }
+    }
+    glPopMatrix();
 }
 
 string enginestateinfo = "";
