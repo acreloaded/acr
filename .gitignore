@@ -2,6 +2,7 @@
 bin_win32/openal32.dll
 home/*
 packages/maps/servermaps/incoming/*
+!packages/maps/servermaps/incoming/readme.txt
 
 # Binaries (except .dll)
 bin_win32/acr_*.exe
