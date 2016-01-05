@@ -52,10 +52,6 @@ then
 fi
 
 if [ -x "/sbin/ldconfig" ]; then
-  if [ -z "$(/sbin/ldconfig -p | grep "libSDL-1.2")" ]; then
-    echo "To run AssaultCube, please ensure SDL v1.2 libraries are installed."
-    exit 1
-  fi
   if [ -z "$(/sbin/ldconfig -p | grep "libz")" ]; then
     echo "To run AssaultCube, please ensure z libraries are installed."
     exit 1
