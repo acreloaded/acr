@@ -1429,27 +1429,42 @@ inline float max_escape_distance(int time, float vel_parallel, float maxspeed)
     // Use the closed-form solution instead...
     float dist = 0;
 
-    while (time > 0)
-    {
-        //const float friction = 6; // water ? 20.0f : (pl->onfloor || isfly ? 6.0f : (pl->onladder ? 1.5f : 30.0f));
-        //const float fpsfric = max(friction / physframetime * 20.0f, 1.0f);
-        // physframetime is 5
+    int t = time;
+    float vel = vel_parallel;
 
-        // with above values, (sqrt(2) is max vel from straferunning)
-        vel_parallel = (vel_parallel * 24 + sqrt(2)) / 25.0f;
+    while (t > 0)
+    {
+        const int physframetime = 5;
+        const int curtime = physframetime;
+        //const bool crouching = pl->crouching || pl->eyeheight < pl->maxeyeheight;
+        //const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed*(crouching && pl->state != CS_EDITING ? chspeed : 1.0f)*(pl==player1 && isfly ? flyspeed : 1.0f);
+            //const float speed = physframetime / 1000.0f * maxspeed;
+        //const float friction = water ? 20.0f : (pl->onfloor || isfly ? 6.0f : (pl->onladder ? 1.5f : 30.0f));
+            //const float friction = 6.0f;
+        //const float fpsfric = max(friction/curtime*20.0f, 1.0f);
+            //const float fpsfric = 24.0f;
+
+        // with above values, (sqrt(2) * maxspeed is max vel from straferunning)
+        vel = (vel * (24.0f-1) + SQRT2 * maxspeed) / 24.0f;
 
         // speed is maxspeed when not crouching
-        //dist += vel_parallel * physframetime * maxspeed;
+        dist += vel * curtime * 1e-3f; // vel_parallel_* speed
 
-        time -= 5;
+        t -= curtime;
     }
 
     return dist;
     */
 
-    const float f = powf(0.96f, (time + 4) / 5); // round up exponent
+    const int iterations = (time + 4) / 5;
 
-    return time * 1e-3f * SQRT2 * (maxspeed * (1 - f) + vel_parallel * f);
+    // If we keep x times the old vel and (1-x) times the new vel each time,
+    // the sum of time for old vel is x/(1-x)*(1-pow(x, n)), and the sum of time
+    // for the new vel is the total time minus that.
+    // In this case, x=23/24.
+    const float vel_p_weight = 23.0f * (1 - powf(0.95833333333f, iterations));
+
+    return 5e-3f * (SQRT2 * maxspeed * (iterations - vel_p_weight) + vel_parallel * vel_p_weight);
 }
 
 void drawwaypoints()
