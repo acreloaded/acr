@@ -585,25 +585,18 @@ void moveotherplayers()
 
 void updateradarpos()
 {
-    const bool has_radar = false;
+    const bool has_radar = radarup(focus) || focus->team == TEAM_SPECT;
     const int interval = has_radar ? 400 : m_capture(gamemode) ? 4000 : 750;
     loopv(players)
     {
         playerent *d = players[i];
         if (!d) continue;
-        if (has_radar)
+
+        // pointstreak or selected enemy
+        if (has_radar || d == worldhit)
             goto UPDATE_POSITION;
-        if (d->perk1 != PERK_NINJA)
-        {
-            if (focus->perk2 == PERK_RADAR && IsVisible(focus->o, d->o))
-                goto UPDATE_POSITION;
-            else loopvj(players)
-            {
-                playerent *pll = players[j];
-                if (!pll || focus == pll || !isteam(focus, pll) || (pll->state != CS_ALIVE && pll->state != CS_EDITING) || pll->perk2 != PERK_RADAR) continue;
-                if (IsVisible(pll->o, d->o)) goto UPDATE_POSITION;
-            }
-        }
+
+        // flag carrier
         if ((flaginfos[0].state == CTFF_STOLEN && flaginfos[0].actor == d) ||
             (flaginfos[1].state == CTFF_STOLEN && flaginfos[1].actor == d))
         {
@@ -611,14 +604,33 @@ void updateradarpos()
             if (lastmillis >= nextupdate)
                 goto UPDATE_POSITION;
         }
+
+        if (isteam(focus, d))
+        {
+            // visible teammates (not for radar, but for nametags)
+            if (IsVisible(focus->o, d->o))
+                goto UPDATE_POSITION;
+        }
+        else if (d->perk1 != PERK_NINJA) // enemys who don't have ninja
+        {
+            // radar and visible
+            if (focus->perk2 == PERK_RADAR && IsVisible(focus->o, d->o))
+                goto UPDATE_POSITION;
+
+            // teammates with radar
+            loopvj(players)
+            {
+                playerent *pll = players[j];
+                if (!pll || focus == pll || !isteam(focus, pll) || (pll->state != CS_ALIVE && pll->state != CS_EDITING) || pll->perk2 != PERK_RADAR)
+                    continue;
+                if (IsVisible(pll->o, d->o))
+                    goto UPDATE_POSITION;
+            }
+        }
         continue;
-        // update position
+
         UPDATE_POSITION:
-        d->lastloudpos.x = d->o.x;
-        d->lastloudpos.y = d->o.y;
-        d->lastloudpos.z = d->o.z;
-        d->lastloudpos.w = d->yaw;
-        d->radarmillis = lastmillis;
+        d->updateradarpos(lastmillis);
     }
 }
 
@@ -927,16 +939,13 @@ void dokill(playerent *pl, playerent *act, int gun, int style, int damage, int c
         // suicide
         if (pl == focus)
         {
-            // radar scan if the player suicided
+            // do a radar scan if the local player suicided
             loopv(players)
             {
                 playerent *p = players[i];
-                if (!p || isteam(p, pl)) continue;
-                p->radarmillis = lastmillis + 1000;
-                p->lastloudpos.x = p->o.x;
-                p->lastloudpos.y = p->o.y;
-                p->lastloudpos.z = p->o.z;
-                p->lastloudpos.w = p->yaw;
+                if (!p) continue;
+
+                p->updateradarpos(lastmillis + 1000);
             }
         }
         pl->weapstats[pl->gunselect].kills--;

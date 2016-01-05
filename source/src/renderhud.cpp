@@ -1771,40 +1771,37 @@ void drawwaypoints()
         }
     }
     // nametags
-    #define NAMETAGSCALE 0.65f
-    glPushMatrix();
-    glScalef(NAMETAGSCALE, NAMETAGSCALE, 1);
-    loopv(players)
+    const int nametagfade = 750; // TODO: make VARP and document in docs/reference.xml
+    if (nametagfade)
     {
-        playerent *pl = i == getclientnum() ? player1 : players[i];
-        const bool local = (pl == focus);
-        if (!pl || (local && !isthirdperson) || pl->state == CS_DEAD) continue;
-
-        vec o = pl->o;
-        o.z += pl->aboveeye;
-
-        vec2 pos;
-        int flags = worldtoscreen(o, pos);
-
-        if (flags /*& (W2S_OUT_INVALID | W2S_OUT_BEHIND) */)
-            continue;
-
-        // nametags
-        extern bool IsVisible(vec v1, vec v2, dynent *tracer = NULL, bool SkipTags = false);
-        if (local || pl == worldhit || (isteam(pl, focus) && IsVisible(focus->o, pl->o)))
+        #define NAMETAGSCALE 0.65f
+        glPushMatrix();
+        glScalef(NAMETAGSCALE, NAMETAGSCALE, 1);
+        loopv(players)
         {
+            playerent *pl = i == getclientnum() ? player1 : players[i];
+            const bool local = (pl == focus);
+            if (!pl || pl->state == CS_DEAD || (local ? !isthirdperson : (pl->radarmillis + nametagfade <= lastmillis))) continue;
+
+            vec2 pos;
+            int flags = worldtoscreen(vec(pl->lastloudpos.v), pos);
+
+            if (flags /*& (W2S_OUT_INVALID | W2S_OUT_BEHIND) */)
+                continue;
+
             string nametagtext;
             nametagtext[0] = '\f';
             nametagtext[1] = local ? '1' : isteam(focus, pl) ? '0' : '3';
             copystring(&nametagtext[2], colorname(pl), MAXSTRLEN - 2);
 
-            int alpha = 255;
+            int alpha = (nametagfade - lastmillis + pl->radarmillis) / (float)nametagfade * 255.0f;
             const int width = text_width(nametagtext);
             if (waypoint_adjust_pos(pos, width * -0.5f * NAMETAGSCALE, -FONTH, width, FONTH/*, flags & W2S_OUT_BEHIND*/))
-                alpha = 64;
+                // divide by 4 if off screen
+                alpha >>= 2;
 
             draw_text(nametagtext, pos.x / NAMETAGSCALE, pos.y / NAMETAGSCALE, 255, 255, 255, alpha);
-        }
+    }
     }
     glPopMatrix();
 }

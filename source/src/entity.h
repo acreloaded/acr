@@ -778,6 +778,25 @@ public:
         t = team_base(t < 0 ? team : t);
         nextskin[t] = abs(s) % maxskin[t];
     }
+
+    void updateradarpos(int millis)
+    {
+        if (head.x >= 0)
+        {
+            lastloudpos.x = head.x;
+            lastloudpos.y = head.y;
+            lastloudpos.z = head.z;
+        }
+        else
+        {
+            lastloudpos.x = o.x;
+            lastloudpos.y = o.y;
+            lastloudpos.z = o.z;
+        }
+        lastloudpos.z += aboveeye;
+        lastloudpos.w = yaw;
+        radarmillis = millis;
+    }
 };
 #endif //#ifndef STANDALONE
 

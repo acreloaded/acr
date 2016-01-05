@@ -554,14 +554,10 @@ bool weapon::modelattacking()
 void weapon::attacksound()
 {
     if(info.sound == S_NULL) return;
+
     if (!suppressed_weap(type))
-    {
-        owner->radarmillis = lastmillis;
-        owner->lastloudpos.x = owner->o.x;
-        owner->lastloudpos.y = owner->o.y;
-        owner->lastloudpos.z = owner->o.z;
-        owner->lastloudpos.w = owner->yaw;
-    }
+        owner->updateradarpos(lastmillis);
+
     audiomgr.playsound(info.sound, owner, player1 == owner ? SP_HIGH : SP_NORMAL);
 }
 
