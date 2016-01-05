@@ -609,7 +609,8 @@ private:
 public:
     int clientnum, lastupdate, plag, ping;
     int lifesequence;                   // sequence id for each respawn, used in damage test
-    int radarmillis; vec4 lastloudpos;
+    vec4 lastloudpos;
+    int radarmillis, nametagmillis;
     int frags, assists, flagscore, deaths, points;
     int pointstreak, deathstreak, airstrikes, radarearned, nukemillis;
     int lastaction, lastmove, lastpain, lasthit, lastkiller;
@@ -779,7 +780,7 @@ public:
         nextskin[t] = abs(s) % maxskin[t];
     }
 
-    void updateradarpos(int millis)
+    void updateradarpos(int millis, bool nametag = false)
     {
         if (head.x >= 0)
         {
@@ -796,6 +797,8 @@ public:
         lastloudpos.z += aboveeye;
         lastloudpos.w = yaw;
         radarmillis = millis;
+        if (nametag)
+            nametagmillis = millis;
     }
 };
 #endif //#ifndef STANDALONE

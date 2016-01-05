@@ -630,7 +630,7 @@ void updateradarpos()
         continue;
 
         UPDATE_POSITION:
-        d->updateradarpos(lastmillis);
+        d->updateradarpos(lastmillis, true);
     }
 }
 
