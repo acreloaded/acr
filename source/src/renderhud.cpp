@@ -1524,14 +1524,14 @@ void drawwaypoints()
 
                 // Table of important values
                 // damage normal          classic
-                // immune (green)
+                // immune
                 //    0   55              27
                 // 0.05   (116.436770493) 26.9969316438
-                // not too bad (blue)
+                // not too bad
                 //   20   25.4244555064   25.7434899096
-                // probably lethal (no extra HP or armour) (red)
+                // probably lethal (no extra HP or armour)
                 //  100   14.9639749427   19.9408215387
-                // likely lethal (no juggernaut) (dark red)
+                // likely lethal (no juggernaut)
                 //  150   11.8168944405   15.2300540201
                 */
 
@@ -1542,23 +1542,30 @@ void drawwaypoints()
 
                 const float (&damages)[4] = damage_sets[m_classic(gamemode, mutators)];
 
-                if (dist >= damages[0])
+                if (dist > damages[0])
                     time_color = dist_color = '0'; // immune
-                else if (dist >= damages[1])
-                    time_color = dist_color = '1'; // < 20 damage
                 else
                 {
                     // compute whether we can escape to a safe distance
                     const float m_dist = dist + max_escape_distance(ttl, focus->vel.dot(unitv), focus->maxspeed);
-                    // indicate best escape
-                    time_color = m_dist >= damages[0] ? 'o' : m_dist >= damages[1] ? 'm' : '3';
                     // indicate lethality
-                    dist_color = dist > damages[2] ? '2' : dist > damages[3] ? '3' : '7';
+                    dist_color =
+                        dist > damages[1] ? '1' : // 0.1-20  damage
+                        dist > damages[2] ? '2' : //  20-100 damage
+                        dist > damages[3] ? '3' : // 100-150 damage
+                        '7'; // >= 150 damage
+                    // indicate best escape
+                    time_color =
+                        m_dist > damages[0] ? 'm' :
+                        m_dist > damages[1] ? dist_color == '1' ? '1' : 'o' :
+                        m_dist > damages[2] ? dist_color == '2' ? '2' : '9' :
+                        m_dist > damages[3] ? dist_color == '3' ? '3' : '7' :
+                        '3';
                 }
 
-                defformatstring(nadetimertext)("\f%c%d\f4/\f%c%.1f",
+                defformatstring(nadetimertext)("\f%c%.1fs\f4/\f%c%.0fm",
                     time_color,
-                    ttl,
+                    ttl / 1000.f,
                     dist_color,
                     dist / CUBES_PER_METER);
 
