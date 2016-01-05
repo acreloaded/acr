@@ -980,7 +980,7 @@ struct servercommandline
     vector<const char *> adminonlymaps;
 
     servercommandline() :   uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), syslogfacility(6), filethres(-1), syslogthres(-1), maxdemos(5),
-                            maxclients(DEFAULTCLIENTS), maxbots(MAXCLIENTS), verbose(0), incoming_limit(10), afk_limit(45000), ban_time(20*60*1000), lagtrust(1), demotimelocal(0),
+                            maxclients(DEFAULTCLIENTS), maxbots(DEFAULTBOTS), verbose(0), incoming_limit(10), afk_limit(45000), ban_time(20*60*1000), lagtrust(1), demotimelocal(0),
                             ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(""),
                             maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), nbfile("config/nicknameblacklist.cfg"),
                             infopath("config/serverinfo"), motdpath("config/motd"), forbidden("config/forbidden.cfg"),

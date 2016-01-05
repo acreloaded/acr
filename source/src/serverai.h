@@ -25,7 +25,7 @@ bool addai()
     if(!valid_client(aiowner)) return false;
     loopv(clients)
     {
-        if(clients[i]->type == ST_AI && ++numbots > scl.maxbots)
+        if(clients[i]->type == ST_AI && ++numbots >= scl.maxbots)
             return false;
         else if(clients[i]->type == ST_EMPTY)
         {
