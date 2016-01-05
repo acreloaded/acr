@@ -366,7 +366,7 @@ extern void toserver(char *text, int voice = 0, bool action = false);
 extern void saytext(playerent *d, char *text, int flags, int sound);
 extern void addmsg(int type, const char *fmt = NULL, ...);
 extern void addmsgraw(ucharbuf &buf, bool reliable = true);
-inline bool multiplayer(bool msg = true);
+extern bool multiplayer(bool msg = true);
 extern bool allowedittoggle();
 extern void sendpackettoserv(int chan, ENetPacket *packet);
 extern void gets2c();

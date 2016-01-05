@@ -15,7 +15,7 @@ int getclientnum() { return player1 ? player1->clientnum : -1; }
 bool isowned(playerent *p) { return player1 && p && p->ownernum >= 0 && p->ownernum == player1->clientnum; }
 
 // is there any way to force the compiler to inline this function?
-inline bool multiplayer(bool msg)
+bool multiplayer(bool msg)
 {
     // check not correct on listen server?
     if(curpeer && msg) conoutf(_("operation not available in multiplayer"));
