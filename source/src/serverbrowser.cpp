@@ -625,11 +625,20 @@ void checkpings()
             si->pongflags = 0;
         }
         if(si->getinfo == query) si->getinfo = EXTPING_NOP;
-        if(si->pongflags > 0)
+        if(si->pongflags > 0 || si->protocol!=PROTOCOL_VERSION)
         {
             formatstring(si->description)("%s  \f1(", si->sdesc);
             bool first = true;
 #define addserverdesc(sp) { if(first) first = false; else concatstring(si->description, ", "); concatstring(si->description, sp); }
+
+            if(si->protocol!=PROTOCOL_VERSION)
+            {
+                if(si->protocol < 0)
+                    addserverdesc("modded");
+                if(si->protocol != -PROTOCOL_VERSION)
+                    addserverdesc(abs(si->protocol) < PROTOCOL_VERSION ? "older protocol" : "newer protocol")
+            }
+
             int mm = si->pongflags >> PONGFLAG_MASTERMODE;
             if (si->pongflags & (1 << PONGFLAG_BANNED))
                 addserverdesc("temp-banned")
@@ -1058,16 +1067,16 @@ void refreshservers(gmenu *menu, bool init)
             bool serverfull = si.numplayers >= si.maxclients;
             bool needspasswd = (si.pongflags & (1 << PONGFLAG_PASSWORD)) > 0;
             int mmode = (si.pongflags >> PONGFLAG_MASTERMODE) & MM_MASK;
-            char basecolor = banned ? '4' : (curserver == servers[i] ? '1' : '5');
+            char basecolor = si.protocol!=PROTOCOL_VERSION ? '7' : banned ? '4' : (curserver == servers[i] ? '1' : '5');
             char plnumcolor = serverfull ? '2' : (needspasswd ? '3' : (mmode != MM_OPEN ? '1' : basecolor));
             const char *favimage = NULL;
             defformatstring(serverportpart)((serverbrowserhideip >= 3 || (serverbrowserhideip == 2 && si.port != CUBE_DEFAULT_SERVER_PORT)) ? ":%d" : "", si.port);
             if(si.address.host != ENET_HOST_ANY && si.ping != 9999)
             {
-                if(si.protocol!=PROTOCOL_VERSION)
+                if(si.protocol!=PROTOCOL_VERSION && showonlygoodservers)
                 {
-                    if(!showonlygoodservers) formatstring(si.full)("%s%s [%s]", si.name, serverportpart, si.protocol<0 ? "modded version" : (si.protocol<PROTOCOL_VERSION ? "older protocol" : "newer protocol"));
-                    else showthisone = false;
+                    // we still show descriptions of older/newer/modded servers
+                    showthisone = false;
                 }
                 else
                 {
