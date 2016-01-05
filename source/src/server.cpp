@@ -1396,6 +1396,9 @@ void arenanext(bool forcespawn = true)
     loopi(2) if (sflaginfos[i].state == CTFF_DROPPED || sflaginfos[i].state == CTFF_STOLEN) flagaction(i, FA_RESET, -1);
     loopv(clients) if (clients[i]->type != ST_EMPTY && clients[i]->isauthed)
     {
+        // prevent grenades from going into the next round
+        clients[i]->removeexplosives();
+
         if (clients[i]->isonrightmap && team_isactive(clients[i]->team))
             sendspawn(*clients[i]);
     }
