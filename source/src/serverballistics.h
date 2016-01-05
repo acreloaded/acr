@@ -209,11 +209,12 @@ int explosion(client &owner, const vec &o2, int weap, bool teamcheck, bool gib, 
         const float dist = o.dist(flag_o);
         if (dist < PLAYERRADIUS * 4)
         {
-            damagedealt += guns[weap].damage / 2;
+            const int explosivedamage = guns[weap].damage >> 1; // half
+            damagedealt += explosivedamage;
 
             sendf(NULL, 1, "ri2", SV_DAMAGEOBJECTIVE, owner.clientnum);
             f.damagetime = gamemillis;
-            if ((f.damage += guns[weap].damage / 2 * (m_gsp1(gamemode, mutators) ? 7 : 5)) >= 255000)
+            if ((f.damage += explosivedamage * (m_gsp1(gamemode, mutators) ? 16 : 8)) >= 255000)
             {
                 f.damage = 0;
                 flagaction(ot, FA_SCORE, owner.clientnum);
@@ -461,7 +462,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
 
                 sendf(NULL, 1, "ri2", SV_DAMAGEOBJECTIVE, owner.clientnum);
                 f.damagetime = gamemillis;
-                if ((f.damage += damage * (m_gsp1(gamemode, mutators) ? 7 : 5)) >= 255000)
+                if ((f.damage += damage * (m_gsp1(gamemode, mutators) ? 16 : 8)) >= 255000)
                 {
                     f.damage = 0;
                     flagaction(ot, FA_SCORE, owner.clientnum);

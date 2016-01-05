@@ -5022,7 +5022,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                     if (!sec_diff) continue;
                     if (f.damage && gamemillis > f.damagetime + (m_gsp1(gamemode, mutators) ? 3000 : 5000))
                     {
-                        if ((f.damage -= sec_diff * (m_gsp1(gamemode, mutators) ? 750 : 250)) < 0)
+                        if ((f.damage -= sec_diff * (m_gsp1(gamemode, mutators) ? 1250 : 750)) < 0)
                             f.damage = 0;
                         sendf(NULL, 1, "ri3", SV_FLAGOVERLOAD, i, 255 - f.damage / 1000);
                     }
