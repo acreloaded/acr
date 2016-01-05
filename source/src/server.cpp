@@ -4760,22 +4760,22 @@ void loggamestatus(const char *reason)
     logline(ACLOG_INFO, "Game status: %s on %s, %s, %s, %d clients%c %s",
                       modestr(gamemode, mutators), smapname, reason ? reason : text, mmfullname(mastermode), totalclients, custom_servdesc ? ',' : '\0', servdesc_current);
     if(!scl.loggamestatus) return;
-    logline(ACLOG_INFO, "cn  own name             %s%s score frag death ping role    host", m_team(gamemode, mutators) ? "team " : "", m_flags(gamemode) ? "flag " : "");
+    logline(ACLOG_INFO, "cn  name             %s%s score frag death ping role    host", m_team(gamemode, mutators) ? "team " : "", m_flags(gamemode) ? "flag " : "");
     loopv(clients)
     {
         client &c = *clients[i];
         if(c.type == ST_EMPTY || !c.name[0]) continue;
         const bool bot = c.type == ST_AI;
-        if(bot)
-            formatstring(text)("%3d %3d %-16s ", c.clientnum, c.ownernum, c.name);                    // cn, owner
-        else
-            formatstring(text)("%3d     %-16s ", c.clientnum, c.name);                                // cn
+        formatstring(text)("%-3d %-16s ", c.clientnum, c.name);                                       // cn, name
         if(m_team(gamemode, mutators)) concatformatstring(text, "%-4s ", team_string(c.team, true));  // teamname (abbreviated)
         if(m_flags(gamemode)) concatformatstring(text, "%4d ", c.state.flagscore);                    // flag
         concatformatstring(text, "%6d ", c.state.points);                                             // score
         concatformatstring(text, "%4d %5d", c.state.frags, c.state.deaths);                           // frag death
         const int ping = bot && valid_client(c.ownernum) ? clients[c.ownernum]->ping : c.ping;
-        logline(ACLOG_INFO, "%s%5d %-7s %s", text, ping, privname(c.role), c.gethostname());
+        if(bot)
+            logline(ACLOG_INFO, "%s%5d %-7s bot:%d", text, ping, privname(c.role), c.ownernum);
+        else
+            logline(ACLOG_INFO, "%s%5d %-7s %s", text, ping, privname(c.role), c.hostname);
         if(c.team != TEAM_SPECT)
         {
             int t = team_base(c.team);
