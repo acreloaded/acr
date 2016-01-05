@@ -6113,7 +6113,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="http://as
         </variable>
 
         <variable name="nadedetail">
-          <value token="V" description="" minValue="0" maxValue="20" defaultValue="9"/>
+          <value token="V" description="" minValue="0" maxValue="16" defaultValue="7"/>
         </variable>
 
         <variable name="fullscreen">

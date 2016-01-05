@@ -881,7 +881,7 @@ inline void explosioneffect(const vec &o)
     audiomgr.playsound(S_FEXPLODE, &o);
 }
 
-VARP(nadedetail, 0, 9, 20);
+VARP(nadedetail, 0, 7, 16);
 
 void grenades::attackhit(const vec &o)
 {
