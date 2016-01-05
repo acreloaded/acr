@@ -166,16 +166,20 @@ void sendpacket(client *cl, int chan, ENetPacket *packet, int exclude, bool demo
         // broadcast
         recordpacket(chan, packet->data, (int)packet->dataLength);
         loopv(clients)
-            if(i!=exclude && clients[i]->type != ST_AI && (clients[i]->type!=ST_TCPIP || clients[i]->isauthed))
+            if(i!=exclude && clients[i]->type != ST_EMPTY && clients[i]->type != ST_AI && (clients[i]->type!=ST_TCPIP || clients[i]->isauthed))
                 sendpacket(clients[i], chan, packet, -1, demopacket);
         return;
     }
     if(cl->type == ST_AI)
     {
         // reroute packets
-        if (!valid_client(cl->ownernum) || cl->ownernum == exclude || clients[cl->ownernum]->type == ST_AI)
+        if (!valid_client(cl->ownernum) || cl->ownernum == exclude)
             return;
+
         cl = clients[cl->ownernum];
+
+        //if(cl->type == ST_AI)
+        //    return;
     }
     switch(cl->type)
     {
@@ -3667,7 +3671,10 @@ void process(ENetPacket *packet, int sender, int chan)
                 --cps.knives.throwable;
                 checkpos(from);
                 if (vel.magnitude() > KNIFEPOWER) vel.normalize().mul(KNIFEPOWER);
-                sendf(NULL, 1, "ri8x", SV_THROWKNIFE, cn, from.x*DMF, from.y*DMF, from.z*DMF, vel.x*DNF, vel.y*DNF, vel.z*DNF, sender);
+                sendf(NULL, 1, "ri8x", SV_THROWKNIFE, cn,
+                    (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF),
+                    (int)(vel.x*DNF), (int)(vel.y*DNF), (int)(vel.z*DNF),
+                    sender);
                 break;
             }
 

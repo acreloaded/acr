@@ -880,7 +880,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 vec from, to;
                 loopk(3) from[k] = getint(p) / DMF;
                 loopk(3) to[k] = getint(p) / DNF;
-                if (!d) break;
+                if (!d || d == player1 || isowned(d)) break;
                 d->lastaction = lastmillis;
                 d->lastattackweapon = d->weapons[GUN_KNIFE];
                 if (d->weapons[GUN_KNIFE]) d->weapons[GUN_KNIFE]->attackfx(from, to, 1);
