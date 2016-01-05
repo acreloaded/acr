@@ -1423,6 +1423,35 @@ void drawprogressbar(vec2 pos, float progress, color c, float offset = 0)
     quad(pos.x, pos.y, w * progress, h);
 }
 
+inline float max_escape_distance(int time, float vel_parallel, float maxspeed)
+{
+    /*
+    // Use the closed-form solution instead...
+    float dist = 0;
+
+    while (time > 0)
+    {
+        //const float friction = 6; // water ? 20.0f : (pl->onfloor || isfly ? 6.0f : (pl->onladder ? 1.5f : 30.0f));
+        //const float fpsfric = max(friction / physframetime * 20.0f, 1.0f);
+        // physframetime is 5
+
+        // with above values, (sqrt(2) is max vel from straferunning)
+        vel_parallel = (vel_parallel * 24 + sqrt(2)) / 25.0f;
+
+        // speed is maxspeed when not crouching
+        //dist += vel_parallel * physframetime * maxspeed;
+
+        time -= 5;
+    }
+
+    return dist;
+    */
+
+    const float f = powf(0.96f, (time + 4) / 5); // round up exponent
+
+    return time * 1e-3f * SQRT2 * (maxspeed * (1 - f) + vel_parallel * f);
+}
+
 void drawwaypoints()
 {
     //if (!waypointsize) return;
@@ -1452,7 +1481,7 @@ void drawwaypoints()
         drawwaypoint(WP_KNIFE, pos, flags, (float)(knives[i].millis - totalmillis) / KNIFETTL);
     }
     // vision perk
-    if (focus->perk2 == PERK2_VISION)
+    if (focus->perk2 == PERK2_VISION || m_psychic(gamemode, mutators))
         loopv(bounceents)
         {
             bounceent *b = bounceents[i];
@@ -1470,7 +1499,76 @@ void drawwaypoints()
 
             if (b->bouncetype == BT_NADE)
             {
-                // TODO: timer
+                vec unitv;
+                const float dist = focus->o.dist(b->o, unitv);
+                unitv.div(dist);
+
+                const int ttl = b->millis - lastmillis + b->timetolive;
+
+                char dist_color, time_color;
+
+                /*
+                // for GUN_GRENADE
+                if (useReciprocal) // 0 if dist >= 55
+                    finaldamage = 220 / (1 + (220 - 1)*powf(dist / 55, 4));
+                else
+                {
+                    if (dist >= 27) return 0;
+                    subtractfactor = dist / 27;
+                    finaldamage = 220 * (1 - subtractfactor * subtractfactor);
+                }
+
+                // Solutions
+                // normal_dist = 55 * powf((220 / finaldamage - 1) / (220 - 1), 1/4)
+                // classic_dist = sqrt(1 - finaldamage/220)*27
+
+                // Table of important values
+                // damage normal          classic
+                // immune (green)
+                //    0   55              27
+                // 0.05   (116.436770493) 26.9969316438
+                // not too bad (blue)
+                //   20   25.4244555064   25.7434899096
+                // probably lethal (no extra HP or armour) (red)
+                //  100   14.9639749427   19.9408215387
+                // likely lethal (no juggernaut) (dark red)
+                //  150   11.8168944405   15.2300540201
+                */
+
+                const static float damage_sets[2][4] = {
+                    { 55.0f,          25.4244555064f, 14.9639749427f, 11.8168944405f },
+                    { 26.9969316438f, 25.7434899096f, 19.9408215387f, 15.2300540201f },
+                };
+
+                const float (&damages)[4] = damage_sets[m_classic(gamemode, mutators)];
+
+                if (dist >= damages[0])
+                    time_color = dist_color = '0'; // immune
+                else if (dist >= damages[1])
+                    time_color = dist_color = '1'; // < 20 damage
+                else
+                {
+                    // compute whether we can escape to a safe distance
+                    const float m_dist = dist + max_escape_distance(ttl, focus->vel.dot(unitv), focus->maxspeed);
+                    // indicate best escape
+                    time_color = m_dist >= damages[0] ? 'o' : m_dist >= damages[1] ? 'm' : '3';
+                    // indicate lethality
+                    dist_color = dist > damages[2] ? '2' : dist > damages[3] ? '3' : '7';
+                }
+
+                defformatstring(nadetimertext)("\f%c%d\f4/\f%c%.1f",
+                    time_color,
+                    ttl,
+                    dist_color,
+                    dist / CUBES_PER_METER);
+
+                const int width = text_width(nadetimertext);
+                waypoint_adjust_pos(pos, width * -0.5f / 1.5f, 0, width, FONTH, flags & W2S_OUT_BEHIND);
+
+                glPushMatrix();
+                glScalef(1/1.5f, 1/1.5f, 1);
+                draw_text(nadetimertext, pos.x * 1.5f, pos.y * 1.5f);
+                glPopMatrix();
             }
         }
     // flags
