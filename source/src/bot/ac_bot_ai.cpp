@@ -399,25 +399,29 @@ bool CACBot::CanTakeFlag(const entity &e)
         {
             case CTFF_INBASE: // go to this base
                 // in CTF to capture the enemy flag and to return our flag
-                if (m_capture(gamemode) && f_team == m_pMyEnt->team && (of.state != CTFF_STOLEN || of.actor != m_pMyEnt)) return false;
-                // in HTF to take out own flag
-                else if (m_hunt(gamemode) && f_team != m_pMyEnt->team) return false;
+                if (m_capture(gamemode))
+                    return f_team != m_pMyEnt->team || (of.state == CTFF_STOLEN && of.actor == m_pMyEnt);
+                // in HTF to take our own flag
+                else if (m_hunt(gamemode))
+                    return f_team == m_pMyEnt->team;
                 // in BTF to take own flag, and to score it on the enemy base
-                else if (m_bomber(gamemode) && f_team != m_pMyEnt->team && (of.state != CTFF_STOLEN || of.actor != m_pMyEnt)) return false;
+                else if (m_bomber(gamemode))
+                    return f_team == m_pMyEnt->team || (of.state == CTFF_STOLEN && of.actor == m_pMyEnt);
                 // in overload
-                else if (m_overload(gamemode) && (f_team == m_pMyEnt->team || (IsVisible(f.pos) && f.pos.dist(m_pMyEnt->o) <= 40))) return false;
-                // if KTF
-                break;
+                else if (m_overload(gamemode))
+                    return f_team != m_pMyEnt->team && (/*!IsVisible(f.pos) ||*/ f.pos.dist(m_pMyEnt->o) > 30);
+                // if KTF, always
+                return true;
             case CTFF_STOLEN: // go to our stolen flag's base
                 // if rCTF and we have our flag
-                if (!m_return(gamemode, mutators) || f.actor != m_pMyEnt || f_team != m_pMyEnt->team) return false;
-                break;
+                return m_return(gamemode, mutators) && f.actor == m_pMyEnt && f_team == m_pMyEnt->team;
             case CTFF_IDLE: // not active
+                // never
                 return false;
             case CTFF_DROPPED: // take every dropped flag, regardless of anything!
-                break;
+                // always
+                return true;
         }
-        return true;
     }
 }
 
