@@ -1570,12 +1570,9 @@ void drawwaypoints()
                     dist / CUBES_PER_METER);
 
                 const int width = text_width(nadetimertext);
-                waypoint_adjust_pos(pos, width * -0.5f / 1.5f, 0, width, FONTH, flags & W2S_OUT_BEHIND);
+                waypoint_adjust_pos(pos, width * -0.5f, 0, width, FONTH, flags & W2S_OUT_BEHIND);
 
-                glPushMatrix();
-                glScalef(1/1.5f, 1/1.5f, 1);
-                draw_text(nadetimertext, pos.x * 1.5f, pos.y * 1.5f);
-                glPopMatrix();
+                draw_text(nadetimertext, pos.x, pos.y);
             }
         }
     // flags
