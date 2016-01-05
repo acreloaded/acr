@@ -4760,13 +4760,16 @@ void loggamestatus(const char *reason)
     logline(ACLOG_INFO, "Game status: %s on %s, %s, %s, %d clients%c %s",
                       modestr(gamemode, mutators), smapname, reason ? reason : text, mmfullname(mastermode), totalclients, custom_servdesc ? ',' : '\0', servdesc_current);
     if(!scl.loggamestatus) return;
-    logline(ACLOG_INFO, "cn  name             %s%s score frag death ping role    host", m_team(gamemode, mutators) ? "team " : "", m_flags(gamemode) ? "flag " : "");
+    logline(ACLOG_INFO, "cn  own name             %s%s score frag death ping role    host", m_team(gamemode, mutators) ? "team " : "", m_flags(gamemode) ? "flag " : "");
     loopv(clients)
     {
         client &c = *clients[i];
         if(c.type == ST_EMPTY || !c.name[0]) continue;
         const bool bot = c.type == ST_AI;
-        formatstring(text)("%2d%c %-16s ", c.clientnum, bot ? '*' : ' ', c.name);         // cn * name
+        if(bot)
+            formatstring(text)("%3d %3d %-16s ", c.clientnum, c.ownernum, c.name);                    // cn, owner
+        else
+            formatstring(text)("%3d     %-16s ", c.clientnum, c.name);                                // cn
         if(m_team(gamemode, mutators)) concatformatstring(text, "%-4s ", team_string(c.team, true));  // teamname (abbreviated)
         if(m_flags(gamemode)) concatformatstring(text, "%4d ", c.state.flagscore);                    // flag
         concatformatstring(text, "%6d ", c.state.points);                                             // score
