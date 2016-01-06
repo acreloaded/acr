@@ -782,19 +782,9 @@ public:
 
     void updateradarpos(int millis, bool nametag = false)
     {
-        if (head.x >= 0)
-        {
-            lastloudpos.x = head.x;
-            lastloudpos.y = head.y;
-            lastloudpos.z = head.z;
-        }
-        else
-        {
-            lastloudpos.x = o.x;
-            lastloudpos.y = o.y;
-            lastloudpos.z = o.z;
-        }
-        lastloudpos.z += aboveeye;
+        lastloudpos.x = o.x;
+        lastloudpos.y = o.y;
+        lastloudpos.z = o.z + aboveeye;
         lastloudpos.w = yaw;
         radarmillis = millis;
         if (nametag)

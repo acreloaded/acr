@@ -590,7 +590,7 @@ void updateradarpos()
     loopv(players)
     {
         playerent *d = players[i];
-        if (!d) continue;
+        if (!d || d == focus) continue;
 
         // pointstreak or selected enemy
         if (has_radar || d == worldhit)

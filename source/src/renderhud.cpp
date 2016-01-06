@@ -1780,8 +1780,7 @@ void drawwaypoints()
         loopv(players)
         {
             playerent *pl = i == getclientnum() ? player1 : players[i];
-            const bool local = (pl == focus);
-            if (!pl || pl->state == CS_DEAD || (local ? !isthirdperson : (pl->nametagmillis + nametagfade <= lastmillis))) continue;
+            if (!pl || pl == focus || pl->state == CS_DEAD || pl->nametagmillis + nametagfade <= lastmillis) continue;
 
             vec2 pos;
             int flags = worldtoscreen(vec(pl->lastloudpos.v), pos);
@@ -1791,7 +1790,7 @@ void drawwaypoints()
 
             string nametagtext;
             nametagtext[0] = '\f';
-            nametagtext[1] = local ? '1' : isteam(focus, pl) ? '0' : '3';
+            nametagtext[1] = isteam(focus, pl) ? '0' : '3';
             copystring(&nametagtext[2], colorname(pl), MAXSTRLEN - 2);
 
             int alpha = (nametagfade - lastmillis + pl->nametagmillis) / (float)nametagfade * 255.0f;
