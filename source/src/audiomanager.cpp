@@ -309,7 +309,7 @@ void audiomanager::updateplayerfootsteps(playerent *p)
         locations.find(S_WATERFOOTSTEPSCROUCH, &ref, gamesounds)
     };
 
-    bool local = (p == camera1);
+    bool local = (p == camera1 || p == focus);
     bool inrange = footsteps && (local || (camera1->o.dist(p->o) < footstepradius));
 
     if(!footsteps || (local && !localfootsteps) || !inrange || p->state != CS_ALIVE || lastmillis-p->lastpain < 300 || (!p->onfloor && p->timeinair>50) || (!p->move && !p->strafe) || p->inwater)
@@ -513,7 +513,7 @@ void audiomanager::playsoundname(char *s, const vec *loc, int vol)
 
 void audiomanager::playsoundc(int n, playerent *p, int priority)
 {
-    if(p && p!=player1) playsound(n, p, priority);
+    if(p && p!=player1 && p!=focus) playsound(n, p, priority);
     else
         playsound(n, priority);
     addmsg(SV_SOUND, "i2", p ? p->clientnum : getclientnum(), n);
@@ -632,7 +632,7 @@ void audiomanager::updateaudio()
     o[1].x = o[1].y = 0.0f;
     o[1].z = -1.0f;
     alListenerfv(AL_ORIENTATION, (ALfloat *) &o);
-    alListenerfv(AL_POSITION, (ALfloat *) &camera1->o);
+    alListenerfv(AL_POSITION, (ALfloat *) &focus->o);
 
     alcProcessContext(context);
 }
@@ -683,7 +683,7 @@ const vec &physentreference::currentposition() const
 
 bool physentreference::nodistance()
 {
-    return phys==camera1;
+    return phys==camera1 || phys==focus;
 }
 
 bool physentreference::operator==(const worldobjreference &other)
