@@ -419,6 +419,7 @@ bool CACBot::CanTakeFlag(const entity &e)
                 // never
                 return false;
             case CTFF_DROPPED: // take every dropped flag, regardless of anything!
+            default:
                 // always
                 return true;
         }
