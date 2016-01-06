@@ -143,15 +143,15 @@ struct explosivehit
 // explosions call this to check
 int radialeffect(client &owner, client &target, vector<explosivehit> &hits, const vec &o, int weap, bool gib, bool max_damage = false)
 {
-    vec hit_location = target.state.o;
-    hit_location.z += (PLAYERABOVEEYE + PLAYERHEIGHT) / 2.f;
+    vec hit_location = target.state.o, hit_location2 = target.state.o;
+    hit_location.z += (PLAYERHEIGHT + PLAYERABOVEEYE) / 2.f;
+    hit_location2.z += PLAYERHEIGHT * target.state.crouchfactor(gamemillis);
     // distance calculations
-    float dist = max_damage ? 0 : min(hit_location.dist(o), target.state.o.dist(o));
+    float dist = max_damage ? 0 : min(hit_location.dist(o), hit_location2.dist(o));
     const bool useReciprocal = !m_classic(gamemode, mutators);
     if (dist >= (useReciprocal ? guns[weap].endrange : guns[weap].rangesub)) return 0; // too far away
-    vec ray1(hit_location), ray2(target.state.o);
+    vec ray1(hit_location), ray2(hit_location2);
     ray1.sub(o).normalize();
-    ray2.z += PLAYERHEIGHT * target.state.crouchfactor(gamemillis);
     ray2.sub(o).normalize();
     if (srayclip(o, ray1) < dist && srayclip(o, ray2) < dist) return 0; // not visible
     float dmg = effectiveDamage(weap, dist, true, useReciprocal);
@@ -163,10 +163,10 @@ int radialeffect(client &owner, client &target, vector<explosivehit> &hits, cons
         dmg *= 1.4f;
     }
     // did the nade headshot?
-    if (weap == GUN_GRENADE && owner.clientnum != target.clientnum && o.z > ray2.z)
+    if (weap == GUN_GRENADE && owner.clientnum != target.clientnum && o.z > hit_location2.z)
     {
         expflags |= FRAG_FLAG;
-        sendheadshot(o, (hit_location = target.state.o), dmg);
+        sendheadshot(o, (hit_location = hit_location2), dmg);
         dmg *= 1.2f;
     }
     // was the RPG direct?

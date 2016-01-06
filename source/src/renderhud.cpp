@@ -1464,7 +1464,10 @@ inline float max_escape_distance(int time, float vel_parallel, float maxspeed)
     // In this case, x=23/24.
     const float vel_p_weight = 23.0f * (1 - powf(0.95833333333f, iterations));
 
-    return 5e-3f * (SQRT2 * maxspeed * (iterations - vel_p_weight) + vel_parallel * vel_p_weight);
+    //return 5e-3f * (SQRT2 * maxspeed * (iterations - vel_p_weight) + vel_parallel * vel_p_weight);
+
+    // without straferunning,
+    return 5e-3f * (maxspeed * (iterations - vel_p_weight) + vel_parallel * vel_p_weight);
 }
 
 void drawwaypoints()
@@ -1550,19 +1553,25 @@ void drawwaypoints()
                 //  150   11.8168944405   15.2300540201
                 */
 
-                const static float damage_sets[2][4] = {
-                    { 55.0f,          25.4244555064f, 14.9639749427f, 11.8168944405f },
+                const bool useReciprocal = !m_classic(gamemode, mutators);
+
+                typedef float damage_set_t[4];
+                const static damage_set_t damage_sets[2] = {
                     { 26.9969316438f, 25.7434899096f, 19.9408215387f, 15.2300540201f },
+                    { 55.0f,          25.4244555064f, 14.9639749427f, 11.8168944405f },
                 };
 
-                const float (&damages)[4] = damage_sets[m_classic(gamemode, mutators)];
+                const damage_set_t &damages = damage_sets[useReciprocal];
+
+                // compute whether we can escape to a safe distance
+                // and the worst possible damage
+                const float max_dist = dist + max_escape_distance(ttl, focus->vel.dot(unitv), focus->maxspeed),
+                            min_dist = max(dist + max_escape_distance(ttl, focus->vel.dot(unitv), -focus->maxspeed), 0.0f);
 
                 if (dist > damages[0])
                     time_color = dist_color = '0'; // immune
                 else
                 {
-                    // compute whether we can escape to a safe distance
-                    const float m_dist = dist + max_escape_distance(ttl, focus->vel.dot(unitv), focus->maxspeed);
                     // indicate lethality
                     dist_color =
                         dist > damages[1] ? '1' : // 0.1-20  damage
@@ -1571,23 +1580,34 @@ void drawwaypoints()
                         '7'; // >= 150 damage
                     // indicate best escape
                     time_color =
-                        m_dist > damages[0] ? 'm' :
-                        m_dist > damages[1] ? dist_color == '1' ? '1' : 'o' :
-                        m_dist > damages[2] ? dist_color == '2' ? '2' : '9' :
-                        m_dist > damages[3] ? dist_color == '3' ? '3' : '7' :
+                        max_dist > damages[0] ? 'm' :
+                        max_dist > damages[1] ? dist_color == '1' ? '1' : 'o' :
+                        max_dist > damages[2] ? dist_color == '2' ? '2' : '9' :
+                        max_dist > damages[3] ? dist_color == '3' ? '3' : '7' :
                         '3';
                 }
 
-                defformatstring(nadetimertext)("\f%c%.1fs\f4/\f%c%.0fm",
+                defformatstring(nadetimertext)("\f%c%.1fs\f3@\f%c%.0fm",
                     time_color,
                     ttl / 1000.f,
                     dist_color,
                     dist / CUBES_PER_METER);
 
+                // estimated minimum/impending/maximum damage
+                defformatstring(nadedmgtext)("\f%c%d\f5/\f%c%d/\f4%d",
+                    time_color,
+                    time_color == '0' || time_color == 'm' ? 0 : effectiveDamage(GUN_GRENADE, max_dist, true, useReciprocal) / HEALTHSCALE,
+                    dist_color,
+                    dist_color == '0' ? 0 : effectiveDamage(GUN_GRENADE, dist, true, useReciprocal) / HEALTHSCALE,
+                    // TODO: color for maximum possible damage?
+                    min_dist > damages[0] ? 0 : effectiveDamage(GUN_GRENADE, min_dist, true, useReciprocal) / HEALTHSCALE);
+
                 const int width = text_width(nadetimertext);
-                waypoint_adjust_pos(pos, width * -0.5f, 0, width, FONTH, flags & W2S_OUT_BEHIND);
+                waypoint_adjust_pos(pos, width * -0.5f, 0, width, FONTH << 1, flags & W2S_OUT_BEHIND);
 
                 draw_text(nadetimertext, pos.x, pos.y);
+                // FIXME: fix center alignment
+                draw_text(nadedmgtext, pos.x, pos.y + FONTH);
             }
         }
     // flags
