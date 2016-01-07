@@ -2064,7 +2064,12 @@ void serverdamage(client &target_, client &actor, int damage, int gun, int style
     if (ts.state != CS_ALIVE) return;
 
     // damage changes
-    if (!(/*gun == GUN_ASSAULT_PRO || gun == GUN_SHOTGUN_PRO ||*/ gun == GUN_ACR_PRO))
+    if (gun == GUN_ASSAULT_PRO || gun == GUN_SHOTGUN_PRO || gun == GUN_ACR_PRO)
+    {
+        if (m_classic(gamemode, mutators) && gun != GUN_ACR_PRO)
+            damage /= 2;
+    }
+    else
     {
         if (m_expert(gamemode, mutators))
         {
