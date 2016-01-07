@@ -1819,7 +1819,7 @@ void drawwaypoints()
 
             string nametagtext;
             nametagtext[0] = '\f';
-            nametagtext[1] = focus->team == TEAM_SPECT ? team_color(pl->team)+'0' : isteam(focus, pl) ? '0' : '3';
+            nametagtext[1] = focus->team == TEAM_SPECT ? team_color(pl->team)+'0' : isteam(focus, pl) ? '1' : '3';
             copystring(&nametagtext[2], colorname(pl), MAXSTRLEN - 2);
 
             int alpha = (nametagfade - totalmillis + pl->nametagmillis) / (float)nametagfade * 255.0f;
