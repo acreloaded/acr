@@ -208,33 +208,53 @@ void saytext(playerent *d, char *text, int flags, int sound)
     }
     else sound = 0;
     char textcolor = '0'; // normal text
-    if(flags&SAY_TEAM)
-        // SPECT gray spect, friendly green, hostile red
-        textcolor = d->team == TEAM_SPECT ? '4' : (d == player1 || isteam(player1, d)) ? '1' : '3';
     if(flags&SAY_FORBIDDEN)
     {
         textcolor = '2'; // denied yellow
-        concatformatstring(text, " \f3%s", "(forbidden speech)");
+        concatformatstring(text, " \f3%s", _("(forbidden speech)"));
     }
     else if(flags&SAY_SPAM)
     {
         textcolor = '2'; // denied yellow
-        concatformatstring(text, " \f3%s", _("spam_detected"));
+        concatformatstring(text, " \f3%s", _("(spam detected)"));
     }
     else if(flags&SAY_MUTE)
     {
         textcolor = '2'; // denied yellow
-        concatformatstring(text, " \f3%s", "MUTED BY THE SERVER");
+        concatformatstring(text, " \f3%s", _("MUTED BY THE SERVER"));
+    }
+    else if(flags&SAY_DISALLOW)
+    {
+        textcolor = '2'; // denied yellow
+        concatformatstring(text, " \f3%s", _("(disallowed)"));
     }
     else if (d->ignored && !d->clientrole)
     {
         textcolor = '2'; // denied yellow
         //clientlogf("ignored: %s", textout);
+        //clientlogf("ignored: pm %s %s", colorname(d), text);
     }
+    else if (flags&SAY_PRIVATE)
+    {
+        // PM orange
+        textcolor = '9';
+
+        extern int lastpm;
+        lastpm = d->clientnum;
+        if (d != player1 && identexists("onPM"))
+        {
+            defformatstring(onpm)("onPM %d [%s]", d->clientnum, text);
+            execute(onpm);
+        }
+    }
+    else if (flags&SAY_TEAM)
+        // SPECT gray, friendly green, hostile red
+        textcolor = d->team == TEAM_SPECT ? '4' : (d == player1 || isteam(player1, d)) ? '1' : '3';
     string textout;
     // nametag
     defformatstring(nametag)("\f%d%s", team_rel_color(player1, d), colorname(d));
     if(flags & SAY_TEAM) concatformatstring(nametag, " \f5(\f%d%s\f5)", team_color(d->team), team_string(d->team));
+    if(flags & SAY_PRIVATE) concatstring(nametag, " \f5(\f9PM\f5)");
     // more nametag
     if(flags & SAY_ACTION) formatstring(textout)("\f5* %s", nametag);
     else formatstring(textout)("\f5<%s\f5>", nametag);
@@ -337,7 +357,9 @@ void pm(char *text)
     filtertext(text, text);
     trimtrailingwhitespace(text);
 
-    addmsg(SV_TEXTPRIVATE, "ris", cn, text);
+    const bool action = false;
+    const int voice = 0;
+    addmsg(SV_TEXT, "ri3s", (action ? SAY_ACTION : 0) | SAY_PRIVATE, voice, cn, text);
     conoutf("to %s:\f9 %s", colorname(to), highlight(text));
 }
 COMMAND(pm, "c");

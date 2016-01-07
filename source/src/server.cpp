@@ -1608,8 +1608,21 @@ bool spamdetect(client &cl, char *text) // checks doubled lines and average typi
 //  b) no hidden messages from spects to active teams,
 //  c) no spect talk to players during 'match'
 
-void sendtext(char *text, client &cl, int flags, int voice)
+void sendtext(char *text, client &cl, int flags, int voice, int targ)
 {
+    client *target;
+    if (targ == -1)
+        target = NULL;
+    else if (valid_client(targ))
+    {
+        target = clients[targ];
+
+        if(target == &cl || target->type == ST_AI)
+            return;
+    }
+    else
+        return;
+
     // voicecom spam filter
     if(voice >= S_AFFIRMATIVE && voice <= S_AWESOME2 && servmillis > cl.mute) // valid and client is not muted
     {
@@ -1635,6 +1648,7 @@ void sendtext(char *text, client &cl, int flags, int voice)
         concatformatstring(logmsg, "[%d] ", voice);
     if(cl.type == ST_TCPIP && cl.role < CR_ADMIN)
     {
+        extern int roleconf(int key);
         if(const char *forbidden = forbiddenlist.forbidden(text))
         {
             logline(ACLOG_VERBOSE, "%s, forbidden speech (%s)", logmsg, forbidden);
@@ -1649,6 +1663,12 @@ void sendtext(char *text, client &cl, int flags, int voice)
             sendf(&cl, 1, "ri4s", SV_TEXT, cl.clientnum, 0, flags | SAY_SPAM, text);
             return;
         }
+        else if (target && ((mastermode == MM_MATCH && cl.team != target->team) || cl.role < roleconf('t')))
+        {
+            logline(ACLOG_VERBOSE, "%s, disallowed", logmsg);
+            sendf(&cl, 1, "ri4s", SV_TEXT, cl.clientnum, 0, flags | SAY_DISALLOW, text);
+            return;
+        }
     }
     logline(ACLOG_INFO, "%s", logmsg);
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
@@ -1658,6 +1678,12 @@ void sendtext(char *text, client &cl, int flags, int voice)
     putint(p, flags);
     sendstring(text, p);
     ENetPacket *packet = p.finalize();
+    if (target)
+    {
+        sendpacket(target, 1, packet);
+        sendpacket(&cl, 1, packet);
+        return;
+    }
     recordpacket(1, packet);
     const int &st = cl.team;
     loopv(clients)
@@ -3551,48 +3577,16 @@ void process(ENetPacket *packet, int sender, int chan)
         {
             case SV_TEXT:
             {
-                int flags = getint(p) & 3;
-                int voice = getint(p);
+                const int flags = getint(p) & SAY_CLIENT,
+                          voice = getint(p),
+                          targ = flags & SAY_PRIVATE ? getint(p) : -1;
                 getstring(text, p);
                 filtertext(text, text);
                 trimtrailingwhitespace(text);
                 if(*text)
-                    sendtext(text, *cl, flags, voice);
+                    sendtext(text, *cl, flags, voice, targ);
                 break;
             }
-
-            case SV_TEXTPRIVATE:
-            {
-                int targ = getint(p);
-                getstring(text, p);
-                filtertext(text, text);
-                trimtrailingwhitespace(text);
-
-                if(!valid_client(targ)) break;
-                client *target = clients[targ];
-
-                if(*text)
-                {
-                    const char *forbidden = forbiddenlist.forbidden(text);
-                    if(forbidden)
-                    {
-                        sendservmsg("\f3Please do not spam; your message was not delivered.", cl);
-                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s', SPAM detected", cl->gethostname(), cl->formatname(), target->formatname(), text);
-                    }
-                    else if(spamdetect(*cl, text))
-                    {
-                        sendservmsg("\f3Watch your language! Your message was not delivered.", cl);
-                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s', forbidden (%s)", cl->gethostname(), cl->formatname(), target->formatname(), text, forbidden);
-                    }
-                    else
-                    {
-                        bool allowed = !(mastermode == MM_MATCH && cl->team != target->team) && cl->role >= roleconf('t');
-                        logline(ACLOG_INFO, "[%s] %s says to %s: '%s'%s", cl->gethostname(), cl->formatname(), target->formatname(), text, allowed ? "" : ", disallowed");
-                        if(allowed) sendf(target, 1, "riis", SV_TEXTPRIVATE, cl->clientnum, text);
-                    }
-                }
-            }
-            break;
 
             case SV_MAPIDENT:
             {

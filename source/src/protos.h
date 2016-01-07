@@ -807,7 +807,12 @@ extern int stringsort(const char **a, const char **b);
 #endif
 
 // protocol [client and server]
-enum { SAY_TEXT = 0, SAY_TEAM = 1 << 0, SAY_ACTION = 1 << 1, SAY_SPAM = 1 << 2, SAY_MUTE = 1 << 3, SAY_FORBIDDEN = 1 << 4 };
+enum
+{
+    SAY_TEXT = 0, SAY_TEAM = 1 << 0, SAY_ACTION = 1 << 1, SAY_PRIVATE = 1 << 2,
+    SAY_CLIENT = (1 << 3) - 1,
+    SAY_SPAM = 1 << 3, SAY_MUTE = 1 << 4, SAY_FORBIDDEN = 1 << 5, SAY_DISALLOW = 1 << 6
+};
 extern int defaultgamelimit(int gamemode, int mutators);
 
 // crypto // for AUTH

@@ -243,7 +243,6 @@ char *mlayout = NULL;
 int Mv = 0, Ma = 0, F2F = 1000 * MINFF; // moved up:, MA = 0;
 float Mh = 0;
 extern int connected;
-extern int lastpm;
 extern bool noflags;
 bool item_fail = false;
 int map_quality = MAP_IS_EDITABLE;
@@ -419,27 +418,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 {
                     filterrichtext(text, text);
                     chatoutf(cn == -1 ? "\f4MOTD: %s" : "\f5[\f1CONSOLE\f5] \f2%s", text);
-                }
-                break;
-            }
-
-            case SV_TEXTPRIVATE:
-            {
-                int cn = getint(p);
-                getstring(text, p);
-                filtertext(text, text);
-                playerent *d = getclient(cn);
-                if(!d) break;
-                if(d->ignored) clientlogf("ignored: pm %s %s", colorname(d), text);
-                else
-                {
-                    chatoutf("%s (PM):\f9 %s", colorname(d), highlight(text));
-                    lastpm = d->clientnum;
-                    if(identexists("onPM"))
-                    {
-                        defformatstring(onpm)("onPM %d [%s]", d->clientnum, text);
-                        execute(onpm);
-                    }
                 }
                 break;
             }
