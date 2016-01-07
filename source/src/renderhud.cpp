@@ -806,10 +806,10 @@ void drawradar_showmap(playerent *p, int w, int h)
             vec rtmp = vec(pl->o).sub(mdd).mul(coordtrans);
             drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state == CS_DEAD ? 1 : (isattacking(pl) ? 2 : 0), isteam(p, pl) ? 1 : 0, iconsize, isattacking(pl) ? 1 : 0, pl->team == TEAM_SPECT ? .2f : pl->state == CS_DEAD ? .5f : 1, "\f%c%s", pl->team == TEAM_SPECT ? '4' : isteam(p, pl) ? '1' : (p->team == TEAM_SPECT) ? team_color(pl->team) : '3', colorname(pl));
         }
-        else if (pl->radarmillis + radarenemyfade >= lastmillis)
+        else if (pl->radarmillis + radarenemyfade >= totalmillis)
         {
             vec rtmp = vec(pl->lastloudpos.v).sub(mdd).mul(coordtrans);
-            drawradarent(rtmp.x, rtmp.y, pl->lastloudpos.w, isattacking(pl) ? 2 : 0, 0, iconsize, 0, (radarenemyfade - lastmillis + pl->radarmillis) / (float)radarenemyfade, "\f3%s", colorname(pl));
+            drawradarent(rtmp.x, rtmp.y, pl->lastloudpos.w, isattacking(pl) ? 2 : 0, 0, iconsize, 0, (radarenemyfade - totalmillis + pl->radarmillis) / (float)radarenemyfade, "\f3%s", colorname(pl));
         }
     }
     if(m_flags(gamemode))
@@ -989,13 +989,13 @@ void drawradar_vicinity(playerent *p, int w, int h)
             rtmp.mul(scaled);
             drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state == CS_DEAD ? 1 : (isattacking(pl) ? 2 : 0), isteam(p, pl) ? 1 : 0, iconsize, isattacking(pl) ? 1 : 0, pl->team == TEAM_SPECT ? .2f : pl->state == CS_DEAD ? .5f : 1, "\f%c%s", pl->team == TEAM_SPECT ? '4' : isteam(p, pl) ? '1' : (p->team == TEAM_SPECT) ? team_color(pl->team) : '3', colorname(pl));
         }
-        else if (pl->radarmillis + radarenemyfade >= lastmillis)
+        else if (pl->radarmillis + radarenemyfade >= totalmillis)
         {
             vec rtmp = vec(pl->lastloudpos.v).sub(p->o);
             if (rtmp.magnitude() > d2s)
                 rtmp.normalize().mul(d2s);
             rtmp.mul(scaled);
-            drawradarent(rtmp.x, rtmp.y, pl->lastloudpos.w, pl->state == CS_DEAD ? 1 : (isattacking(pl) ? 2 : 0), 0, iconsize, 0, (radarenemyfade - lastmillis + pl->radarmillis) / (float)radarenemyfade, "\f3%s", colorname(pl));
+            drawradarent(rtmp.x, rtmp.y, pl->lastloudpos.w, pl->state == CS_DEAD ? 1 : (isattacking(pl) ? 2 : 0), 0, iconsize, 0, (radarenemyfade - totalmillis + pl->radarmillis) / (float)radarenemyfade, "\f3%s", colorname(pl));
         }
     }
     if (m_flags(gamemode))
@@ -1679,7 +1679,7 @@ void drawwaypoints()
                     {
                         if (m_classic(gamemode, mutators)) break;
                         o = vec(f.actor->lastloudpos.v);
-                        a = max(.15f, 1.f - (lastmillis - f.actor->radarmillis) / 5000.f);
+                        a = max(.15f, 1.f - (totalmillis - f.actor->radarmillis) / 5000.f);
                         wp = WP_KILL;
                     }
                     break;
@@ -1806,7 +1806,7 @@ void drawwaypoints()
         loopv(players)
         {
             playerent *pl = i == getclientnum() ? player1 : players[i];
-            if (!pl || pl == focus || pl->state == CS_DEAD || pl->nametagmillis + nametagfade <= lastmillis) continue;
+            if (!pl || pl == focus || pl->state == CS_DEAD || pl->nametagmillis + nametagfade <= totalmillis) continue;
 
             vec2 pos;
             int flags = worldtoscreen(vec(pl->lastloudpos.v), pos);
@@ -1819,7 +1819,7 @@ void drawwaypoints()
             nametagtext[1] = isteam(focus, pl) ? '0' : '3';
             copystring(&nametagtext[2], colorname(pl), MAXSTRLEN - 2);
 
-            int alpha = (nametagfade - lastmillis + pl->nametagmillis) / (float)nametagfade * 255.0f;
+            int alpha = (nametagfade - totalmillis + pl->nametagmillis) / (float)nametagfade * 255.0f;
             const int width = text_width(nametagtext);
             if (waypoint_adjust_pos(pos, width * -0.5f * NAMETAGSCALE, -FONTH, width, FONTH/*, flags & W2S_OUT_BEHIND*/))
                 // divide by 4 if off screen

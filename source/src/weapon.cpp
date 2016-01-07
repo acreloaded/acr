@@ -559,7 +559,7 @@ void weapon::attacksound()
     if(info.sound == S_NULL) return;
 
     if (!suppressed_weap(type))
-        owner->updateradarpos(lastmillis);
+        owner->updateradarpos(totalmillis);
 
     audiomgr.playsound(info.sound, owner, player1 == owner ? SP_HIGH : SP_NORMAL);
 }
