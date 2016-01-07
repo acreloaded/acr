@@ -804,7 +804,20 @@ void drawradar_showmap(playerent *p, int w, int h)
         if (force)
         {
             vec rtmp = vec(pl->o).sub(mdd).mul(coordtrans);
-            drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state == CS_DEAD ? 1 : (isattacking(pl) ? 2 : 0), isteam(p, pl) ? 1 : 0, iconsize, isattacking(pl) ? 1 : 0, pl->team == TEAM_SPECT ? .2f : pl->state == CS_DEAD ? .5f : 1, "\f%c%s", pl->team == TEAM_SPECT ? '4' : isteam(p, pl) ? '1' : (p->team == TEAM_SPECT) ? team_color(pl->team) : '3', colorname(pl));
+            drawradarent(rtmp.x, rtmp.y, pl->yaw,
+                pl->state == CS_DEAD ? 1 : (isattacking(pl) ? 2 : 0),
+                p->team == TEAM_SPECT ? team_base(pl->team) : isteam(p, pl) ? 1 : 0,
+                iconsize,
+                isattacking(pl) ? 1 : 0,
+                pl->team == TEAM_SPECT ? .2f :
+                    pl->state == CS_DEAD ? .5f :
+                    1,
+                "\f%c%s",
+                p->team == TEAM_SPECT ? team_color(pl->team)+'0' :
+                    pl->team == TEAM_SPECT ? '4' :
+                    isteam(p, pl) ? '1' :
+                    '3',
+                colorname(pl));
         }
         else if (pl->radarmillis + radarenemyfade >= totalmillis)
         {
@@ -987,7 +1000,19 @@ void drawradar_vicinity(playerent *p, int w, int h)
                     rtmp.normalize().mul(d2s);
             }
             rtmp.mul(scaled);
-            drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state == CS_DEAD ? 1 : (isattacking(pl) ? 2 : 0), isteam(p, pl) ? 1 : 0, iconsize, isattacking(pl) ? 1 : 0, pl->team == TEAM_SPECT ? .2f : pl->state == CS_DEAD ? .5f : 1, "\f%c%s", pl->team == TEAM_SPECT ? '4' : isteam(p, pl) ? '1' : (p->team == TEAM_SPECT) ? team_color(pl->team) : '3', colorname(pl));
+            drawradarent(rtmp.x, rtmp.y, pl->yaw,
+                pl->state == CS_DEAD ? 1 : (isattacking(pl) ? 2 : 0),
+                p->team == TEAM_SPECT ? team_base(pl->team) : isteam(p, pl) ? 1 : 0,
+                iconsize,
+                isattacking(pl) ? 1 : 0,
+                pl->team == TEAM_SPECT ? .2f :
+                    pl->state == CS_DEAD ? .5f :
+                    1,
+                "\f%c%s",
+                p->team == TEAM_SPECT ? team_color(pl->team)+'0' :
+                    pl->team == TEAM_SPECT ? '4' :
+                    isteam(p, pl) ? '1' :
+                    '3', colorname(pl));
         }
         else if (pl->radarmillis + radarenemyfade >= totalmillis)
         {
@@ -1794,7 +1819,7 @@ void drawwaypoints()
 
             string nametagtext;
             nametagtext[0] = '\f';
-            nametagtext[1] = isteam(focus, pl) ? '0' : '3';
+            nametagtext[1] = focus->team == TEAM_SPECT ? team_color(pl->team)+'0' : isteam(focus, pl) ? '0' : '3';
             copystring(&nametagtext[2], colorname(pl), MAXSTRLEN - 2);
 
             int alpha = (nametagfade - totalmillis + pl->nametagmillis) / (float)nametagfade * 255.0f;
