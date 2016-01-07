@@ -384,12 +384,18 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
     if (hit && damage)
     {
         // damage multipliers
-        if (!m_classic(gamemode, mutators) || hitzone >= HIT_HEAD)
+        if(guns[weap].mulset == MUL_PRO)
+        {
+            if (hitzone == HIT_HEAD)
+                //damage *= mulset.head;
+                ; // multiplying by 1 does nothing
+            else
+                damage = 0;
+        }
+        else if (!m_classic(gamemode, mutators) || hitzone >= HIT_HEAD || guns[weap].mulset == MUL_PRO2)
         {
             if (hitzone == HIT_HEAD)
                 damage *= m_progressive(gamemode, mutators) ? 7 : mulset.head;
-            else if (guns[weap].mulset == MUL_PRO)
-                damage = 0;
             else if (hitzone == HIT_TORSO)
                 damage *= mulset.torso;
             // legs is always 1

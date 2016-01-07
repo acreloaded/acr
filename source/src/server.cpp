@@ -2064,21 +2064,24 @@ void serverdamage(client &target_, client &actor, int damage, int gun, int style
     if (ts.state != CS_ALIVE) return;
 
     // damage changes
-    if (m_expert(gamemode, mutators))
+    if (!(/*gun == GUN_ASSAULT_PRO || gun == GUN_SHOTGUN_PRO ||*/ gun == GUN_ACR_PRO))
     {
-        if (gun == GUN_RPG)
-            damage /= ((style & (FRAG_GIB | FRAG_FLAG)) == (FRAG_GIB | FRAG_FLAG)) ? 1 : 3;
-        else if ((gun == GUN_GRENADE && (style & FRAG_FLAG)) || (style & FRAG_GIB) || melee_weap(gun))
-            damage *= 2;
-        else if (gun == GUN_GRENADE) damage /= 2;
-        else damage /= 8;
+        if (m_expert(gamemode, mutators))
+        {
+            if (gun == GUN_RPG)
+                damage /= ((style & (FRAG_GIB | FRAG_FLAG)) == (FRAG_GIB | FRAG_FLAG)) ? 1 : 3;
+            else if ((gun == GUN_GRENADE && (style & FRAG_FLAG)) || (style & FRAG_GIB) || melee_weap(gun))
+                damage *= 2;
+            else if (gun == GUN_GRENADE) damage /= 2;
+            else damage /= 8;
+        }
+        else if (m_real(gamemode, mutators))
+        {
+            if (gun == GUN_HEAL && target == &actor) damage /= 2;
+            else damage *= 2;
+        }
+        else if (m_classic(gamemode, mutators)) damage /= 2;
     }
-    else if (m_real(gamemode, mutators))
-    {
-        if (gun == GUN_HEAL && target == &actor) damage /= 2;
-        else damage *= 2;
-    }
-    else if (m_classic(gamemode, mutators)) damage /= 2;
 
     ts.dodamage(damage, gun, actor.state.perk1 == PERK_POWER);
     ts.lastregen = gamemillis + REGENDELAY - REGENINT;
