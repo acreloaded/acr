@@ -791,7 +791,7 @@ void drawradar_showmap(playerent *p, int w, int h)
     vec ppv = vec(p->o).sub(mdd).mul(coordtrans);
 
     // local player
-    drawradarent(ppv.x, ppv.y, p->yaw, p->state == CS_DEAD ? 1 : (isattacking(p) ? 2 : 0), 1, iconsize, isattacking(p) ? 1 : 0, p->state == CS_DEAD ? .5f : 1.f, "\f1%s", colorname(p));
+    drawradarent(ppv.x, ppv.y, p->yaw, p->state == CS_DEAD ? 1 : (isattacking(p) ? 2 : 0), 2, iconsize, isattacking(p) ? 1 : 0, p->state == CS_DEAD ? .5f : 1.f, "\f0%s", colorname(p));
     // other players
     const bool hasradar = radarup(p) || p->team == TEAM_SPECT;
     loopv(players)
@@ -804,12 +804,12 @@ void drawradar_showmap(playerent *p, int w, int h)
         if (force)
         {
             vec rtmp = vec(pl->o).sub(mdd).mul(coordtrans);
-            drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state == CS_DEAD ? 1 : (isattacking(pl) ? 2 : 0), isteam(p, pl) ? 2 : 0, iconsize, isattacking(pl) ? 1 : 0, pl->team == TEAM_SPECT ? .2f : pl->state == CS_DEAD ? .5f : 1, "\f%d%s", pl->team == TEAM_SPECT ? 4 : isteam(p, pl) ? 0 : (p->team == TEAM_SPECT) ? team_color(pl->team) : 3, colorname(pl));
+            drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state == CS_DEAD ? 1 : (isattacking(pl) ? 2 : 0), isteam(p, pl) ? 1 : 0, iconsize, isattacking(pl) ? 1 : 0, pl->team == TEAM_SPECT ? .2f : pl->state == CS_DEAD ? .5f : 1, "\f%c%s", pl->team == TEAM_SPECT ? '4' : isteam(p, pl) ? '1' : (p->team == TEAM_SPECT) ? team_color(pl->team) : '3', colorname(pl));
         }
         else if (pl->radarmillis + radarenemyfade >= lastmillis)
         {
             vec rtmp = vec(pl->lastloudpos.v).sub(mdd).mul(coordtrans);
-            drawradarent(rtmp.x, rtmp.y, pl->lastloudpos.w, isattacking(pl) ? 2 : 0, isteam(p, pl) ? 2 : 0, iconsize, 0, (radarenemyfade - lastmillis + pl->radarmillis) / (float)radarenemyfade, "\f3%s", colorname(pl));
+            drawradarent(rtmp.x, rtmp.y, pl->lastloudpos.w, isattacking(pl) ? 2 : 0, 0, iconsize, 0, (radarenemyfade - lastmillis + pl->radarmillis) / (float)radarenemyfade, "\f3%s", colorname(pl));
         }
     }
     if(m_flags(gamemode))
@@ -966,7 +966,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
     circle(minimaptex, halfviewsize, halfviewsize, halfviewsize, usecenter.x/(float)gdim, usecenter.y/(float)gdim, scaleh, 31); //Draw mimimaptext as radar background
     glTranslatef(halfviewsize, halfviewsize, 0);
     // local player
-    drawradarent(0, 0, p->yaw, p->state == CS_DEAD ? 1 : (isattacking(p) ? 2 : 0), 1, iconsize, isattacking(p) ? 1 : 0, p->state == CS_DEAD ? .5f : 1.f, "\f1%s", colorname(p));
+    drawradarent(0, 0, p->yaw, p->state == CS_DEAD ? 1 : (isattacking(p) ? 2 : 0), 2, iconsize, isattacking(p) ? 1 : 0, p->state == CS_DEAD ? .5f : 1.f, "\f0%s", colorname(p));
     const bool hasradar = radarup(p) || p->team == TEAM_SPECT;
     // other players
     loopv(players)
@@ -987,7 +987,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
                     rtmp.normalize().mul(d2s);
             }
             rtmp.mul(scaled);
-            drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state == CS_DEAD ? 1 : (isattacking(pl) ? 2 : 0), isteam(p, pl) ? 2 : 0, iconsize, isattacking(pl) ? 1 : 0, pl->team == TEAM_SPECT ? .2f : pl->state == CS_DEAD ? .5f : 1, "\f%d%s", pl->team == TEAM_SPECT ? 4 : isteam(p, pl) ? 0 : (p->team == TEAM_SPECT) ? team_color(pl->team) : 3, colorname(pl));
+            drawradarent(rtmp.x, rtmp.y, pl->yaw, pl->state == CS_DEAD ? 1 : (isattacking(pl) ? 2 : 0), isteam(p, pl) ? 1 : 0, iconsize, isattacking(pl) ? 1 : 0, pl->team == TEAM_SPECT ? .2f : pl->state == CS_DEAD ? .5f : 1, "\f%c%s", pl->team == TEAM_SPECT ? '4' : isteam(p, pl) ? '1' : (p->team == TEAM_SPECT) ? team_color(pl->team) : '3', colorname(pl));
         }
         else if (pl->radarmillis + radarenemyfade >= lastmillis)
         {
@@ -995,7 +995,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
             if (rtmp.magnitude() > d2s)
                 rtmp.normalize().mul(d2s);
             rtmp.mul(scaled);
-            drawradarent(rtmp.x, rtmp.y, pl->lastloudpos.w, pl->state == CS_DEAD ? 1 : (isattacking(pl) ? 2 : 0), isteam(p, pl) ? 2 : 0, iconsize, 0, (radarenemyfade - lastmillis + pl->radarmillis) / (float)radarenemyfade, "\f3%s", colorname(pl));
+            drawradarent(rtmp.x, rtmp.y, pl->lastloudpos.w, pl->state == CS_DEAD ? 1 : (isattacking(pl) ? 2 : 0), 0, iconsize, 0, (radarenemyfade - lastmillis + pl->radarmillis) / (float)radarenemyfade, "\f3%s", colorname(pl));
         }
     }
     if (m_flags(gamemode))
