@@ -236,7 +236,7 @@ struct oline
         if (combo > 1)
             concatformatstring(str, " \f3[#%d]", combo);
         if (merges > 1)
-            concatformatstring(str, " \f5(x%d)", merges);
+            concatformatstring(str, " \f9(x%d)", merges);
         width = text_width(str);
     }
 };
