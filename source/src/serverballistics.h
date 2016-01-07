@@ -451,7 +451,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
             .add(end);
         // retrace
         straceShot(end, dir, &newsurface);
-        const int penetratedamage = shot(owner, end, dir, pos, weap, style, newsurface, exclude, dist2, penaltydist + 10 * CUBES_PER_METER, save); // distance penalty for penetrating the player
+        const int penetratedamage = shot(owner, end, dir, pos, weap, style|FRAG_PENETRATE, newsurface, exclude, dist2, penaltydist + 10 * CUBES_PER_METER, save); // distance penalty for penetrating the player
         sendf(NULL, 1, "ri9", SV_RICOCHET, owner.clientnum, weap, (int)(end.x*DMF), (int)(end.y*DMF), (int)(end.z*DMF), (int)(dir.x*DMF), (int)(dir.y*DMF), (int)(dir.z*DMF));
         return damage + penetratedamage;
     }
@@ -486,15 +486,16 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
             // reset exclusion to the owner, so a penetrated player can be hit twice
             if (exclude.length() > 1)
                 exclude.setsize(1);
-            vec dir(to), newsurface;
+            vec dir(to);
             // calculate reflected ray from incident ray and surface normal
             dir.sub(from).normalize();
-            // r = i - 2 n (i . n)
-            dir.sub(
-                vec(surface)
-                    // .normalize()
-                    .mul(2 * dir.dot(surface))
-            );
+
+            const float dotproduct = dir.dot(surface);
+            if (fabs(dotproduct) > 0.96592582628f) // minimum angle is 15 degrees from normal
+                return damage;
+
+            // r = i - 2 (i . n) n
+            dir.sub(vec(surface).mul(2 * dotproduct));
             // 2 degrees (both ways = 4 degrees) distortion on all axis
             dir
                 .rotate_around_x((rnd(5) - 2)*RAD)
@@ -502,8 +503,9 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
                 .rotate_around_z((rnd(5) - 2)*RAD)
                 .add(to);
             // retrace
+            vec newsurface;
             straceShot(to, dir, &newsurface);
-            const int ricochetdamage = shot(owner, to, dir, pos, weap, style, newsurface, exclude, dist2, penaltydist + 15 * CUBES_PER_METER, save); // distance penalty for ricochet
+            const int ricochetdamage = shot(owner, to, dir, pos, weap, style|FRAG_RICOCHET, newsurface, exclude, dist2, penaltydist + 15 * CUBES_PER_METER, save); // distance penalty for ricochet
             sendf(NULL, 1, "ri9", SV_RICOCHET, owner.clientnum, weap, (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), (int)(dir.x*DMF), (int)(dir.y*DMF), (int)(dir.z*DMF));
             return damage + ricochetdamage;
         }

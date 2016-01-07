@@ -232,6 +232,10 @@ struct oline
         SETICON1(OBIT_ICON_REVENGE, if (style & FRAG_REVENGE));
         SETICON1(OBIT_ICON_CRIT, if (style & FRAG_CRIT));
         // TODO other icons
+        if(style & FRAG_RICOCHET)
+            concatstring(str, "\f6< "); // temporary "icon"
+        if(style & FRAG_PENETRATE)
+            concatstring(str, "\f6> "); // temporary "icon"
         concatstring(str, target);
         if (combo > 1)
             concatformatstring(str, " \f3[#%d]", combo);

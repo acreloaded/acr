@@ -59,9 +59,11 @@ enum
     FRAG_REVENGE = 1 << 3,
     FRAG_CRIT = 1 << 4,
     FRAG_FLAG = 1 << 5,
-    FRAG_COMEBACK = 1 << 6,
-    FRAG_FIRST = 1 << 7,
-    FRAG_VALID = (1 << ((7) + 1)) - 1,
+    FRAG_RICOCHET = 1 << 6,
+    FRAG_PENETRATE = 1 << 7,
+    FRAG_COMEBACK = 1 << 8,
+    FRAG_FIRST = 1 << 9,
+    FRAG_VALID = (1 << ((9) + 1)) - 1,
     FRAG_SCOPE = FRAG_SCOPE_NONE | FRAG_SCOPE_FULL,
 }; // up to 1 << 6 is optimal
 
