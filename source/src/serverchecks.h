@@ -252,14 +252,22 @@ int killpoints(const client &target, client &actor, int gun, int style, bool ass
     }
     if (style & FRAG_FIRST) gain += FIRSTKILLPT;
     if (style & FRAG_REVENGE) gain += REVENGEKILLPT;
+    if (gun == GUN_ACR_PRO)
+        gain <<= 2; // 4x points
+    else if (gun == GUN_ASSAULT_PRO || gun == GUN_SHOTGUN_PRO)
+        gain <<= 1; // double points
     gain *= clamp(actor.state.combo, 1, 5);
-    if (assist) gain *= ASSISTMUL;
+    if (assist)
+    {
+        gain *= ASSISTMUL;
+        reason = assist;
+    }
     else loopv(target.state.damagelog)
     {
         if (!valid_client(target.state.damagelog[i])) continue;
         gain += max(0, killpoints(target, *clients[target.state.damagelog[i]], gun, style, true)) * ASSISTRETMUL;
     }
-    if (gain) addpt(actor, gain, assist ? PR_ASSIST : reason);
+    if (gain) addpt(actor, gain, reason);
     return gain;
 }
 

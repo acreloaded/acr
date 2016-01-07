@@ -101,11 +101,11 @@ struct itemstat { int add, start, max, sound; };
 extern itemstat ammostats[NUMGUNS];
 extern itemstat powerupstats[I_ARMOUR-I_HEALTH+1];
 
-struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, range, endrange, rangesub, piercing, spread, spreadrem, kick, addsize, magsize, mdl_kick_rot, mdl_kick_back, recoil, maxrecoil, recoilbackfade, recoilangle, pushfactor; bool isauto; };
+struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, range, endrange, rangesub, piercing, spread, spreadrem, kick, addsize, magsize, mdl_kick_rot, mdl_kick_back, recoil, maxrecoil, recoilbackfade, recoilangle, pushfactor; bool isauto; int mulset; };
 extern guninfo guns[NUMGUNS];
 
 struct mul { float torso, head; };
-enum { MUL_NORMAL = 0, MUL_SNIPER, MUL_SHOTGUN, MUL_NUM };
+enum { MUL_NORMAL = 0, MUL_SNIPER, MUL_SHOT, MUL_PRO, MUL_PRO2, MUL_NUM };
 extern const mul muls[MUL_NUM];
 
 static inline int reloadtime(int gun) { return guns[gun].reloadtime; }
@@ -425,6 +425,8 @@ public:
             case GUN_AKIMBO:
             case GUN_ASSAULT2:
             case GUN_SNIPER3:
+            case GUN_ASSAULT_PRO:
+            case GUN_ACR_PRO:
                 if (m_sniper(gamemode, mutators))
                 {
                     primary = GUN_BOLT;
@@ -458,6 +460,7 @@ public:
             case GUN_SWORD:
             case GUN_RPG:
             case GUN_PISTOL2:
+            case GUN_SHOTGUN_PRO:
                 secondary = nextsecondary;
                 break;
         }

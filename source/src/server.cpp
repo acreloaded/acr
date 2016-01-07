@@ -567,11 +567,14 @@ void sendspawn(client &c)
             GUN_SWORD,
             GUN_ASSAULT2,
             GUN_SNIPER3,
+            //GUN_ASSAULT_PRO,
+            //GUN_ACR_PRO,
         }, weap2[] = {
             GUN_PISTOL,
             GUN_HEAL,
             GUN_RPG,
             GUN_PISTOL2,
+            //GUN_SHOTGUN_PRO,
         };
         gs.nextprimary = weap1[rnd(m_insta(gamemode, mutators) ? 2 : m_sniper(gamemode, mutators) ? 3 : sizeof(weap1) / sizeof(int))];
         gs.nextsecondary = weap2[rnd(sizeof(weap2) / sizeof(int))];
@@ -1800,7 +1803,14 @@ void serverdied(client &target, client &actor_, int damage, int gun, int style, 
         }
         // streak
         if (gun != OBIT_NUKE)
-            as.pointstreak += 5;
+        {
+            int pointstreak_gain = 5;
+            if(gun == GUN_ACR_PRO)
+                pointstreak_gain = 17; // 3.4 kills
+            else if (gun == GUN_ASSAULT_PRO || gun == GUN_SHOTGUN_PRO)
+                pointstreak_gain = 8; // 1.6 kills
+            as.pointstreak += pointstreak_gain;
+        }
         ++ts.deathstreak;
         actor->state.deathstreak = ts.streakused = 0;
         // teamkilling a flag carrier is bad
@@ -1873,6 +1883,13 @@ void serverdied(client &target, client &actor_, int damage, int gun, int style, 
     {
         if (earnedpts > 0) usesteamscore(actor->team).points += earnedpts;
         if (kills > 0) usesteamscore(actor->team).frags += kills;
+    }
+
+    // pro kills
+    if(gun == GUN_ACR_PRO || gun == GUN_ASSAULT_PRO || gun == GUN_SHOTGUN_PRO)
+    {
+        addptreason(*actor, PR_PRO_KILL);
+        addptreason(target, PR_PRO_DEATH);
     }
 
     // automatic zombie count

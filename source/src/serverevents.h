@@ -95,7 +95,7 @@ void shotevent::process(client *ci)
     from.z += PLAYERHEIGHT * crouchfactor; // both use 75% to 100%
     const int zoomtime = ADSTIME(cs.perk2 == PERK_TIME);
     float adsfactor = 1 - float(cs.scoping ? min(gamemillis - cs.scopemillis, zoomtime) : zoomtime - min(gamemillis - cs.scopemillis, zoomtime)) * guns[weap].spreadrem / 100 / zoomtime;
-    if (weap == GUN_SHOTGUN)
+    if (weap == GUN_SHOTGUN || weap == GUN_SHOTGUN_PRO)
     {
         // apply shotgun spread
         if (m_classic(gamemode, mutators)) adsfactor *= .75f;
@@ -117,7 +117,7 @@ void shotevent::process(client *ci)
     straceShot(from, to, &surface);
     // calculate shot properties
     int damagepotential = 0, damagedealt = 0;
-    if (weap == GUN_SHOTGUN)
+    if (weap == GUN_SHOTGUN || weap == GUN_SHOTGUN_PRO)
         loopi(SGRAYS)
             damagepotential += effectiveDamage(weap, vec(cs.sg[i]).dist(from));
     else if (melee_weap(weap)) damagepotential = guns[weap].damage; // melee damage
@@ -216,8 +216,8 @@ void shotevent::process(client *ci)
             // gs.allowspeeding(gamemillis, 1500);
             // fallthrough
         default:
-            if (weap == GUN_SHOTGUN) // many rays, many players
-                damagedealt += shotgun(c, from, pos); // WARNING: modifies cs.sg
+            if (weap == GUN_SHOTGUN || weap == GUN_SHOTGUN_PRO) // many rays, many players
+                damagedealt += shotgun(c, from, pos, weap); // WARNING: modifies cs.sg
             else
             {
                 exclude.setsize(0);
@@ -236,7 +236,7 @@ void shotevent::process(client *ci)
     // create packet
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     // packet shotgun rays
-    if(weap==GUN_SHOTGUN)
+    if(weap==GUN_SHOTGUN || weap==GUN_SHOTGUN_PRO)
     {
         putint(p, SV_SG);
         loopi(SGRAYS)

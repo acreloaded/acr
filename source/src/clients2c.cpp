@@ -1051,6 +1051,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     _("%c3Buzzkilled!"),
                     _("%c1Got own tags!"),
                     _("%c3Kill Denied"),
+                    _("%c0Humiliated Noob"),
+                    _("%c3Humiliated, Noob"),
                 };
                 formatstring(text)(pointreason_names[reason], CC);
                 expreason(text);

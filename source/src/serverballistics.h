@@ -344,7 +344,7 @@ client *nearesthit(client &actor, const vec &from, const vec &to, bool teamcheck
 // do a single line
 int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, int weap, int style, const vec &surface, vector<int> &exclude, float dist = 0, float penaltydist = 0, vector<shothit> *save = NULL)
 {
-    const int mulset = sniper_weap(weap) ? MUL_SNIPER : MUL_NORMAL;
+    const mul &mulset = muls[guns[weap].mulset];
     int hitzone = HIT_NONE; vec end = to;
     // out of range?
     if (melee_weap(weap))
@@ -387,9 +387,12 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
         if (!m_classic(gamemode, mutators) || hitzone >= HIT_HEAD)
         {
             if (hitzone == HIT_HEAD)
-                damage *= m_progressive(gamemode, mutators) ? 7 : muls[mulset].head;
+                damage *= m_progressive(gamemode, mutators) ? 7 : mulset.head;
+            else if (guns[weap].mulset == MUL_PRO)
+                damage = 0;
             else if (hitzone == HIT_TORSO)
-                damage *= muls[mulset].torso;
+                damage *= mulset.torso;
+            // legs is always 1
         }
         // gib check
         if ((melee_weap(weap) || hitzone == HIT_HEAD) && !save) style |= FRAG_GIB;
@@ -502,7 +505,7 @@ int shot(client &owner, const vec &from, vec &to, const vector<posinfo> &pos, in
     return 0;
 }
 
-int shotgun(client &owner, const vec &from, vector<posinfo> &pos)
+int shotgun(client &owner, const vec &from, vector<posinfo> &pos, int weap)
 {
     int damagedealt = 0;
     clientstate &gs = owner.state;
@@ -517,7 +520,7 @@ int shotgun(client &owner, const vec &from, vector<posinfo> &pos)
         static vector<int> exclude;
         exclude.setsize(0);
         exclude.add(owner.clientnum);
-        shot(owner, from, gs.sg[i], pos, GUN_SHOTGUN, FRAG_NONE, surface, exclude, 0, 0, &hits);
+        shot(owner, from, gs.sg[i], pos, weap, FRAG_NONE, surface, exclude, 0, 0, &hits);
     }
     loopv(clients)
     {
@@ -540,8 +543,8 @@ int shotgun(client &owner, const vec &from, vector<posinfo> &pos)
         damagedealt += damage;
         shotgunflags |= damage >= SGGIB * HEALTHSCALE ? FRAG_GIB : FRAG_NONE;
         if (m_progressive(gamemode, mutators) && shotgunflags & FRAG_GIB)
-        damage = max(damage, 350 * HEALTHSCALE);
-        serverdamage(t, owner, damage, GUN_SHOTGUN, shotgunflags, from, bestdist);
+            damage = max(damage, 350 * HEALTHSCALE);
+        serverdamage(t, owner, damage, weap, shotgunflags, from, bestdist);
     }
     return damagedealt;
 }

@@ -89,6 +89,7 @@ void shiftweapon(int *s)
             GUN_HEAL,
             GUN_RPG,
             GUN_PISTOL2,
+            GUN_SHOTGUN_PRO,
             // primary
             GUN_SHOTGUN,
             GUN_SUBGUN,
@@ -99,6 +100,8 @@ void shiftweapon(int *s)
             GUN_SWORD,
             GUN_ASSAULT2,
             GUN_SNIPER3,
+            GUN_ASSAULT_PRO,
+            GUN_ACR_PRO,
         };
         loopi(NUMGUNS)
         {
@@ -470,7 +473,7 @@ void r_accuracy(int h)
         float acc = 100.0f*accuracym[i].hits/(float)accuracym[i].shots;
         string line;
         rows++;
-        if(i == GUN_GRENADE || i == GUN_SHOTGUN)
+        if(i == GUN_GRENADE || i == GUN_SHOTGUN || i == GUN_SHOTGUN_PRO)
         {
             formatstring(line)("\f5%5.1f%s (%.1f/%d) :\f0%s", acc, "%", accuracym[i].hits, (int)accuracym[i].shots, killname(i, FRAG_NONE));
         }
@@ -698,22 +701,25 @@ bool weapon::deselectable() { return !reloading; }
 void weapon::equipplayer(playerent *pl)
 {
     if(!pl) return;
-    pl->weapons[GUN_ASSAULT] = new m16(pl);
+    pl->weapons[GUN_ASSAULT] = new assaultrifle(pl, GUN_ASSAULT);
     pl->weapons[GUN_GRENADE] = new grenades(pl);
     pl->weapons[GUN_KNIFE] = new knife(pl);
     pl->weapons[GUN_PISTOL] = new pistol(pl);
-    pl->weapons[GUN_SHOTGUN] = new shotgun(pl);
-    pl->weapons[GUN_SNIPER] = new m21(pl);
+    pl->weapons[GUN_SHOTGUN] = new shotgun(pl, GUN_SHOTGUN);
+    pl->weapons[GUN_SNIPER] = new scopedprimary(pl, GUN_SNIPER);
     pl->weapons[GUN_SUBGUN] = new subgun(pl);
     pl->weapons[GUN_AKIMBO] = new akimbo(pl);
-    pl->weapons[GUN_BOLT] = new boltrifle(pl);
+    pl->weapons[GUN_BOLT] = new scopedprimary(pl, GUN_BOLT);
     pl->weapons[GUN_HEAL] = new healgun(pl);
     pl->weapons[GUN_SWORD] = new sword(pl);
     pl->weapons[GUN_RPG] = new crossbow(pl);
-    pl->weapons[GUN_ASSAULT2] = new ak47(pl);
-    pl->weapons[GUN_SNIPER2] = new m82(pl);
-    pl->weapons[GUN_SNIPER3] = new mk12(pl);
+    pl->weapons[GUN_ASSAULT2] = new assaultrifle(pl, GUN_ASSAULT2);
+    pl->weapons[GUN_SNIPER2] = new scopedprimary(pl, GUN_SNIPER2);
+    pl->weapons[GUN_SNIPER3] = new scopedprimary(pl, GUN_SNIPER3);
     pl->weapons[GUN_PISTOL2] = new m1911(pl);
+    pl->weapons[GUN_ASSAULT_PRO] = new assaultrifle(pl, GUN_ASSAULT_PRO);
+    pl->weapons[GUN_SHOTGUN_PRO] = new shotgun(pl, GUN_SHOTGUN_PRO);
+    pl->weapons[GUN_ACR_PRO] = new assaultrifle(pl, GUN_ACR_PRO);
     pl->primary = GUN_ASSAULT;
     pl->selectweapon(GUN_ASSAULT);
 }
@@ -1127,7 +1133,7 @@ bool gun::checkautoreload()
 
 // shotgun
 
-shotgun::shotgun(playerent *owner) : gun(owner, GUN_SHOTGUN, 3) {}
+//shotgun::shotgun(playerent *owner) : gun(owner, GUN_SHOTGUN, 3) {}
 
 int shotgun::dynspread() { return info.spread * (1 - owner->zoomed * info.spreadrem / 100.f); }
 

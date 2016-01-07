@@ -16,6 +16,9 @@ enum
     GUN_SNIPER2,
     GUN_SNIPER3,
     GUN_PISTOL2,
+    GUN_ASSAULT_PRO,
+    GUN_SHOTGUN_PRO,
+    GUN_ACR_PRO,
     NUMGUNS,
     // extra obits
     OBIT_START = NUMGUNS,
@@ -43,7 +46,7 @@ enum
 #define explosive_weap(g) (g == GUN_GRENADE || g == GUN_RPG)
 #define suppressed_weap(g) (melee_weap(g) || g == GUN_GRENADE || g == GUN_HEAL)
 #define sniper_weap(g) (g == GUN_SNIPER || g == GUN_BOLT || g == GUN_SNIPER2 || g == GUN_SNIPER3)
-#define burst_weap(g) (g == GUN_ASSAULT || g == GUN_ASSAULT2 || g == GUN_SUBGUN)
+#define burst_weap(g) (g == GUN_ASSAULT || g == GUN_ASSAULT2 || g == GUN_SUBGUN || g == GUN_ASSAULT_PRO || g == GUN_ACR_PRO)
 #define ads_gun(g) (!melee_weap(g) && g != GUN_GRENADE && g != GUN_AKIMBO)
 #define ads_classic_allowed(g) (!m_classic(gamemode, mutators) || sniper_weap(g) || g == GUN_HEAL)
 
@@ -227,14 +230,16 @@ struct scopedprimary : gun
     void renderhudmodel();
     void renderaimhelp(int teamtype);
 };
+/*
 struct m21 : scopedprimary { m21(playerent *owner) : scopedprimary(owner, GUN_SNIPER) {} };
 struct m82 : scopedprimary { m82(playerent *owner) : scopedprimary(owner, GUN_SNIPER2) {} };
 struct boltrifle : scopedprimary { boltrifle(playerent *owner) : scopedprimary(owner, GUN_BOLT) {} };
 struct mk12 : scopedprimary { mk12(playerent *owner) : scopedprimary(owner, GUN_SNIPER3) {} };
+*/
 
 struct shotgun : gun
 {
-    shotgun(playerent *owner);
+    shotgun(playerent *owner, int type) : gun(owner, type, 3) { }
     int dynspread();
     void attackfx(const vec &from, const vec &to, int millis);
     void renderaimhelp(int teamtype);
@@ -246,8 +251,10 @@ struct assaultrifle : gun
     assaultrifle(playerent *owner, int type) : gun(owner, type, 3) { }
     float dynrecoil();
 };
+/*
 struct m16 : assaultrifle { m16(playerent *owner) : assaultrifle(owner, GUN_ASSAULT) {} };
 struct ak47 : assaultrifle { ak47(playerent *owner) : assaultrifle(owner, GUN_ASSAULT2) {} };
+*/
 
 
 struct akimbo : gun

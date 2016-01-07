@@ -582,11 +582,17 @@ void drawequipicons(playerent *p)
             case GUN_SNIPER3:
                 c = 4; r = 0;
                 break;
-            case GUN_ASSAULT: c = 0; r = 1; break;
+            case GUN_ASSAULT:
+            case GUN_ASSAULT_PRO:
+                c = 0; r = 1;
+                break;
             case GUN_GRENADE: c = 1; r = 1; break;
             case GUN_HEAL: c = 2; r = 1; break;
             case GUN_RPG: c = 3; r = 1; break;
-            case GUN_ASSAULT2: c = 4; r = 1; break;
+            case GUN_ASSAULT2:
+            case GUN_ACR_PRO:
+                c = 4; r = 1;
+                break;
             case GUN_AKIMBO: case GUN_PISTOL2: c = GUN_PISTOL; break; // special: pistols
         }
         drawequipicon(560, 1650, c, r, ((!p->weaponsel->ammo || p->weaponsel->mag < magsize(p->weaponsel->type) / 3) && !melee_weap(p->weaponsel->type) && p->weaponsel->type != GUN_GRENADE));

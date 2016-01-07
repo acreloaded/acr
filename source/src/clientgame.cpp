@@ -911,7 +911,7 @@ void dokill(playerent *pl, playerent *act, int gun, int style, int damage, int c
         sound = S_FIRSTBLOOD;
         icon = eventicon::FIRSTBLOOD;
     }
-    else if (headshot && gun != GUN_SHOTGUN) // shotgun doesn't count as a 'real' headshot
+    else if (headshot && gun != GUN_SHOTGUN && gun != GUN_SHOTGUN_PRO) // shotgun doesn't count as a 'real' headshot
     {
         sound = S_HEADSHOT;
         icon = eventicon::HEADSHOT;
