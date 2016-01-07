@@ -686,30 +686,28 @@ int effectiveDamage(int gun, float dist, bool explosive, bool useReciprocal)
     if(gun == GUN_ACR_PRO)
         return 1; // 0.1 damage
 
-    float finaldamage;
-    if (dist <= guns[gun].range || (!guns[gun].range && !guns[gun].endrange))
-        finaldamage = guns[gun].damage;
+    if (dist <= guns[gun].range)
+        return guns[gun].damage * HEALTHSCALE;
     else if (dist >= guns[gun].endrange)
-        finaldamage = guns[gun].damage - guns[gun].rangesub;
+        return (guns[gun].damage - guns[gun].rangesub) * HEALTHSCALE;
     else
     {
         float subtractfactor = (dist - guns[gun].range) / (guns[gun].endrange - guns[gun].range);
         if (explosive)
         {
             if (useReciprocal)
-                finaldamage = guns[gun].damage / (1 + (guns[gun].damage - 1)*powf(subtractfactor, 4));
+                return guns[gun].damage / (1 + (guns[gun].damage - 1)*powf(subtractfactor, 4)) * HEALTHSCALE;
             else
             {
                 // rangesub becomes the new rangeend
                 if (dist >= guns[gun].rangesub) return 0;
                 subtractfactor = (dist - guns[gun].range) / (guns[gun].rangesub - guns[gun].range);
-                finaldamage = guns[gun].damage * (1 - subtractfactor * subtractfactor);
+                return guns[gun].damage * (1 - subtractfactor * subtractfactor) * HEALTHSCALE;
             }
         }
         else
-            finaldamage = guns[gun].damage - subtractfactor * guns[gun].rangesub;
+            return (guns[gun].damage - subtractfactor * guns[gun].rangesub) * HEALTHSCALE;
     }
-    return finaldamage * HEALTHSCALE;
 }
 
 inline const char *weapname(int weap)

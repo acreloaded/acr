@@ -1523,8 +1523,12 @@ void drawwaypoints()
 
             if (b->bouncetype == BT_NADE)
             {
-                vec unitv;
-                const float dist = focus->o.dist(b->o, unitv);
+                vec unitv = focus->o;
+                const float alt_z = unitv.z + (PLAYERHEIGHT + PLAYERABOVEEYE) / 2.f - focus->eyeheight;
+                if(fabs(b->o.z - alt_z) < fabs(b->o.z - unitv.z))
+                    unitv.z = alt_z;
+                unitv.sub(b->o);
+                const float dist = unitv.magnitude();
                 unitv.div(dist);
 
                 const int ttl = b->millis - lastmillis + b->timetolive;
@@ -1600,13 +1604,13 @@ void drawwaypoints()
                     dist / CUBES_PER_METER);
 
                 // estimated minimum/impending/maximum damage
-                defformatstring(nadedmgtext)("\f%c%d\f5/\f%c%d/\f4%d",
+                defformatstring(nadedmgtext)("\f%c%.1f\f5/\f%c%.1f/\f4%.1f",
                     time_color,
-                    time_color == '0' || time_color == 'm' ? 0 : effectiveDamage(GUN_GRENADE, max_dist, true, useReciprocal) / HEALTHSCALE,
+                    time_color == '0' || time_color == 'm' ? 0 : effectiveDamage(GUN_GRENADE, max_dist, true, useReciprocal) / (float)HEALTHSCALE,
                     dist_color,
-                    dist_color == '0' ? 0 : effectiveDamage(GUN_GRENADE, dist, true, useReciprocal) / HEALTHSCALE,
+                    dist_color == '0' ? 0 : effectiveDamage(GUN_GRENADE, dist, true, useReciprocal) / (float)HEALTHSCALE,
                     // TODO: color for maximum possible damage?
-                    min_dist > damages[0] ? 0 : effectiveDamage(GUN_GRENADE, min_dist, true, useReciprocal) / HEALTHSCALE);
+                    min_dist > damages[0] ? 0 : effectiveDamage(GUN_GRENADE, min_dist, true, useReciprocal) / (float)HEALTHSCALE);
 
                 const int width = text_width(nadetimertext);
                 waypoint_adjust_pos(pos, width * -0.5f, 0, width, FONTH << 1, flags & W2S_OUT_BEHIND);
