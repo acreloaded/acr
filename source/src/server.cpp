@@ -3277,7 +3277,8 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
     checko.z += PLAYERHEIGHT / 2; // because the positions are now at the feet
     if (/*cp.type != ST_LOCAL &&*/ !m_edit(gamemode) && checkpos(checko, false))
     {
-        if (cp.type == ST_AI) cp.suicide(NUMGUNS + 11);
+        if (cp.type == ST_AI)
+            cp.suicide(OBIT_BOT);
         else
         {
             logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cp.gethostname(), cp.formatname(), ++cp.mapcollisions);
@@ -4161,6 +4162,13 @@ void process(ENetPacket *packet, int sender, int chan)
                     cl->mapchange(true);
                     sendwelcome(*cl, 2); // resend state properly
                 }
+#ifndef STANDALONE
+                else if(cl->type == ST_LOCAL && !cl->isonrightmap)
+                {
+                    cl->isonrightmap = true;
+                    conoutf("isonrightmap has been reset to true");
+                }
+#endif
                 else sendservmsg("no map to get", cl);
                 break;
             }
