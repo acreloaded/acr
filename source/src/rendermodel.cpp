@@ -758,15 +758,17 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
     if(!stenciling && !reflecting && !refracting)
     {
         renderaboveheadicon(d);
-        if (((dbghbox && watchingdemo) || render_void) && (d->state == CS_ALIVE || d->state == CS_EDITING))
+        if ((d->state == CS_ALIVE || d->state == CS_EDITING) && ((dbghbox && watchingdemo) || render_void || m_psychic(gamemode, mutators)))
         {
             if (m_psychic(gamemode, mutators))
             {
-                //glDepthFunc(GL_GEQUAL);
-                glDisable(GL_DEPTH_TEST);
+                //glDisable(GL_DEPTH_TEST);
+                glDepthFunc(GL_GEQUAL);
+                glDepthMask(GL_FALSE);
                 renderhbox(d, true);
+                glDepthMask(GL_TRUE);
                 glDepthFunc(GL_LESS);
-                glEnable(GL_DEPTH_TEST);
+                //glEnable(GL_DEPTH_TEST);
             }
             renderhbox(d);
         }
