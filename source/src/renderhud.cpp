@@ -1533,91 +1533,62 @@ void drawwaypoints()
 
                 const int ttl = b->millis - lastmillis + b->timetolive;
 
-                char dist_color, time_color;
-
-                /*
-                // for GUN_GRENADE
-                if (useReciprocal) // 0 if dist >= 55
-                    finaldamage = 220 / (1 + (220 - 1)*powf(dist / 55, 4));
-                else
-                {
-                    if (dist >= 27) return 0;
-                    subtractfactor = dist / 27;
-                    finaldamage = 220 * (1 - subtractfactor * subtractfactor);
-                }
-
-                // Solutions
-                // normal_dist = 55 * powf((220 / finaldamage - 1) / (220 - 1), 1/4)
-                // classic_dist = sqrt(1 - finaldamage/220)*27
-
-                // Table of important values
-                // damage normal          classic
-                // immune
-                //    0   55              27
-                // 0.05   (116.436770493) 26.9969316438
-                // not too bad
-                //   20   25.4244555064   25.7434899096
-                // probably lethal (no extra HP or armour)
-                //  100   14.9639749427   19.9408215387
-                // likely lethal (no juggernaut)
-                //  150   11.8168944405   15.2300540201
-                */
-
-                const bool useReciprocal = !m_classic(gamemode, mutators);
-
-                typedef float damage_set_t[4];
-                const static damage_set_t damage_sets[2] = {
-                    { 26.9969316438f, 25.7434899096f, 19.9408215387f, 15.2300540201f },
-                    { 55.0f,          25.4244555064f, 14.9639749427f, 11.8168944405f },
-                };
-
-                const damage_set_t &damages = damage_sets[useReciprocal];
-
                 // compute whether we can escape to a safe distance
-                // and the worst possible damage
+                // and the worst possible damage if we do the opposite
                 const float max_dist = dist + max_escape_distance(ttl, focus->vel.dot(unitv), focus->maxspeed),
                             min_dist = max(dist + max_escape_distance(ttl, focus->vel.dot(unitv), -focus->maxspeed), 0.0f);
 
-                if (dist > damages[0])
-                    time_color = dist_color = '0'; // immune
-                else
-                {
-                    // indicate lethality
-                    dist_color =
-                        dist > damages[1] ? '1' : // 0.1-20  damage
-                        dist > damages[2] ? '2' : //  20-100 damage
-                        dist > damages[3] ? '3' : // 100-150 damage
-                        '7'; // >= 150 damage
-                    // indicate best escape
-                    time_color =
-                        max_dist > damages[0] ? 'm' :
-                        max_dist > damages[1] ? dist_color == '1' ? '1' : 'o' :
-                        max_dist > damages[2] ? dist_color == '2' ? '2' : '9' :
-                        max_dist > damages[3] ? dist_color == '3' ? '3' : '7' :
-                        '3';
-                }
+                const bool useReciprocal = !m_classic(gamemode, mutators);
+                const int damage = effectiveDamage(GUN_GRENADE, dist, true, useReciprocal),
+                          min_damage = effectiveDamage(GUN_GRENADE, max_dist, true, useReciprocal),
+                          max_damage = effectiveDamage(GUN_GRENADE, min_dist, true, useReciprocal);
 
+                const int damages[3] = {
+                    // immune
+                    // 0.5 * HEALTHSCALE, // (no need to allocate 5 on stack)
+                    // not too bad
+                    focus->health - 80 * HEALTHSCALE,
+                    // can survive
+                    focus->health,
+                    // probably lethal
+                    focus->health + 50 * HEALTHSCALE,
+                    // very likely lethal
+                };
+
+                const char dcol =
+                    damage <=          5 ? '0' :
+                    damage <= damages[0] ? '1' :
+                    damage <= damages[1] ? '2' :
+                    damage <= damages[2] ? '3' :
+                        '7',
+                    dcol_min =
+                        min_damage <=          5 ? dcol == '0' ? '0' : 'm' :
+                        min_damage <= damages[0] ? dcol == '1' ? '1' : 'o' :
+                        min_damage <= damages[1] ? dcol == '2' ? '2' : '9' :
+                        min_damage <= damages[2] ? dcol == '3' ? '3' : '7' :
+                            '4';
+                // dcol_max is not important
+
+                // time/distance
                 defformatstring(nadetimertext)("\f%c%.1fs\f3@\f%c%.0fm",
-                    time_color,
+                    dcol_min,
                     ttl / 1000.f,
-                    dist_color,
+                    dcol,
                     dist / CUBES_PER_METER);
 
                 // estimated minimum/impending/maximum damage
-                defformatstring(nadedmgtext)("\f%c%.1f\f5/\f%c%.1f/\f4%.1f",
-                    time_color,
-                    time_color == '0' || time_color == 'm' ? 0 : effectiveDamage(GUN_GRENADE, max_dist, true, useReciprocal) / (float)HEALTHSCALE,
-                    dist_color,
-                    dist_color == '0' ? 0 : effectiveDamage(GUN_GRENADE, dist, true, useReciprocal) / (float)HEALTHSCALE,
-                    // TODO: color for maximum possible damage?
-                    min_dist > damages[0] ? 0 : effectiveDamage(GUN_GRENADE, min_dist, true, useReciprocal) / (float)HEALTHSCALE);
+                defformatstring(nadedmgtext)("\f%c%.1f\f5/\f%c%.1f/\f4%.0f",
+                    dcol_min, (float)min_damage / HEALTHSCALE,
+                    dcol, (float)damage / HEALTHSCALE,
+                    (float)max_damage / HEALTHSCALE);
 
-                const int width = text_width(nadetimertext);
-                waypoint_adjust_pos(pos, width * -0.5f, 0, width, FONTH << 1, flags & W2S_OUT_BEHIND);
+                const int width1 = text_width(nadetimertext),
+                          width2 = text_width(nadedmgtext),
+                          max_width = max(width1, width2);
+                waypoint_adjust_pos(pos, -max_width/2, 0, max_width, FONTH * 2, flags & W2S_OUT_BEHIND);
 
-                draw_text(nadetimertext, pos.x, pos.y);
-                // FIXME: fix center alignment
-                draw_text(nadedmgtext, pos.x, pos.y + FONTH);
+                draw_text(nadetimertext, pos.x + (max_width-width1)/2, pos.y);
+                draw_text(nadedmgtext, pos.x + (max_width-width2)/2, pos.y + FONTH);
             }
         }
     // flags
@@ -1825,7 +1796,7 @@ void drawwaypoints()
 
             int alpha = (nametagfade - totalmillis + pl->nametagmillis) / (float)nametagfade * 255.0f;
             const int width = text_width(nametagtext);
-            if (waypoint_adjust_pos(pos, width * -0.5f * NAMETAGSCALE, -FONTH, width, FONTH/*, flags & W2S_OUT_BEHIND*/))
+            if (waypoint_adjust_pos(pos, width * -0.5f * NAMETAGSCALE, -FONTH * NAMETAGSCALE, width, FONTH/*, flags & W2S_OUT_BEHIND*/))
                 // divide by 4 if off screen
                 alpha >>= 2;
 

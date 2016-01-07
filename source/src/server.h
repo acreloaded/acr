@@ -689,7 +689,7 @@ int effectiveDamage(int gun, float dist, bool explosive, bool useReciprocal)
     if (dist <= guns[gun].range)
         return guns[gun].damage * HEALTHSCALE;
     else if (dist >= guns[gun].endrange)
-        return (guns[gun].damage - guns[gun].rangesub) * HEALTHSCALE;
+        return explosive ? 0 : (guns[gun].damage - guns[gun].rangesub) * HEALTHSCALE;
     else
     {
         float subtractfactor = (dist - guns[gun].range) / (guns[gun].endrange - guns[gun].range);
