@@ -621,7 +621,7 @@ inline void renderhboxpart(playerent *d, vec top, vec bottom, vec up)
     glEnd();
 }
 
-void renderhbox(playerent *d, bool dark = false)
+void renderhbox(playerent *d, const vec &oldhead, bool dark = false)
 {
     typedef GLubyte hbox_color_t[3];
     static const hbox_color_t hbox_colors[][3] = {
@@ -647,21 +647,22 @@ void renderhbox(playerent *d, bool dark = false)
     mid.mul(h*LEGPART).add(bottom);
     top.mul(h).add(bottom);
 
-    if(d->head.x >= 0)
+    const vec &head = d->head.x >= 0 ? d->head : oldhead;
+    if(head.x >= 0)
     {
         glColor3ubv(hbox_color[0]);
         glBegin(GL_LINE_LOOP);
         loopi(HBOXPRECISION)
         {
             vec pos(camright);
-            pos.rotate(2*M_PI*i/(float)HBOXPRECISION, camdir).mul(HEADSIZE).add(d->head);
+            pos.rotate(2*M_PI*i/(float)HBOXPRECISION, camdir).mul(HEADSIZE).add(head);
             glVertex3fv(pos.v);
         }
         glEnd();
 
         glBegin(GL_LINES);
         glVertex3fv(bottom.v);
-        glVertex3fv(d->head.v);
+        glVertex3fv(head.v);
         glEnd();
     }
 
@@ -676,6 +677,8 @@ void renderhbox(playerent *d, bool dark = false)
 
 void renderclient(playerent *d, const char *mdlname, const char *vwepname, int tex)
 {
+    vec oldhead = vec(-1, -1, -1);
+
     if(!render_void)
     {
 
@@ -727,6 +730,7 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
             anim |= ANIM_PARTICLE;
         if(d != player1 && d->state==CS_ALIVE)
         {
+            oldhead = d->head;
             d->head = vec(-1, -1, -1);
             a[numattach].tag = "tag_head";
             a[numattach].pos = &d->head;
@@ -765,12 +769,12 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
                 //glDisable(GL_DEPTH_TEST);
                 glDepthFunc(GL_GEQUAL);
                 glDepthMask(GL_FALSE);
-                renderhbox(d, true);
+                renderhbox(d, oldhead, true);
                 glDepthMask(GL_TRUE);
                 glDepthFunc(GL_LESS);
                 //glEnable(GL_DEPTH_TEST);
             }
-            renderhbox(d);
+            renderhbox(d, oldhead);
         }
         extern int fakelasertest;
         if (fakelasertest)
