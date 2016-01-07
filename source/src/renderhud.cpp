@@ -1351,20 +1351,18 @@ inline float getwaypointsize(WP_t wp)
 }
 
 // return value is whether the point is off thescreen
-bool waypoint_adjust_pos(vec2 &pos, int dx, int dy, int w, int h, bool force_offscreen = false)
+bool waypoint_adjust_pos(vec2 &pos, int w, int h, bool force_offscreen = false)
 {
-    pos.x = pos.x * VIRTW + dx;
-    pos.y = pos.y * VIRTH + dy;
+    pos.x = pos.x * VIRTW;
+    pos.y = pos.y * VIRTH;
 
-    // FIXME: could this adjustment be done in worldtoscreen instead?
-
-    // Half of avaliable screen space before clamping
+    // Half of available screen space before clamping
     const int hW = (VIRTW - w) >> 1,
               hH = (VIRTH - h) >> 1;
 
     // Shift coordinates so that the screen center is at (0,0)
-    pos.x -= hW;
-    pos.y -= hH;
+    pos.x -= VIRTW >> 1;
+    pos.y -= VIRTH >> 1;
 
     const float nx = fabs(pos.x/hW),
                 ny = fabs(pos.y/hH),
@@ -1378,14 +1376,15 @@ bool waypoint_adjust_pos(vec2 &pos, int dx, int dy, int w, int h, bool force_off
         adjusted = true;
     }
 
-    // Restore original offset
+    // Restore original offset with
+    // half of width and height subtracted
     pos.x += hW;
     pos.y += hH;
 
     return adjusted;
 }
 
-void drawwaypoint(WP_t wp, vec2 pos, int flags, float alpha = 1.0f, int up_shift = 1)
+void drawwaypoint(WP_t wp, vec2 pos, int flags, float alpha = 1.0f, int up_shift = 0)
 {
     static Texture *tex = NULL;
     if (!tex)
@@ -1396,7 +1395,8 @@ void drawwaypoint(WP_t wp, vec2 pos, int flags, float alpha = 1.0f, int up_shift
 
     const float size = getwaypointsize(wp);
 
-    if(waypoint_adjust_pos(pos, size * -0.5f, size * -1.125f * up_shift, size, size, flags & W2S_OUT_BEHIND))
+    pos.y -= size * (1.125f * up_shift + 0.625f) / VIRTH;
+    if(waypoint_adjust_pos(pos, size, size, flags & W2S_OUT_BEHIND))
         alpha *= 0.25f;
 
     glColor4f(1, 1, 1, alpha);
@@ -1409,7 +1409,7 @@ void drawprogressbar_back(vec2 pos, color c)
     const float w = waypointsize * 1.05f * 3.2f,
                 h = waypointsize * 0.20f * 3.2f;
 
-    if (waypoint_adjust_pos(pos, -w/2, -h/2, w, h/*, flags & W2S_OUT_BEHIND*/))
+    if (waypoint_adjust_pos(pos, w, h/*, flags & W2S_OUT_BEHIND*/))
         c.alpha *= 0.25f;
 
     glColor4fv(c.v);
@@ -1420,13 +1420,14 @@ void drawprogressbar(vec2 pos, float progress, color c, float offset = 0)
 {
     const float w = waypointsize * 1.00f * 3.2f,
                 h = waypointsize * 0.15f * 3.2f,
-                fullw = waypointsize * 1.05f * 3.2f;
+                fullw = waypointsize * 1.05f * 3.2f,
+                fullh = waypointsize * 0.20f * 3.2f;
 
-    if (waypoint_adjust_pos(pos, w * (offset - 0.5f), -h/2, fullw, h/*, flags & W2S_OUT_BEHIND*/))
+    if (waypoint_adjust_pos(pos, fullw, fullh/*, flags & W2S_OUT_BEHIND*/))
         c.alpha *= 0.25f;
 
     glColor4fv(c.v);
-    quad(pos.x, pos.y, w * progress, h);
+    quad(pos.x + (fullw-w) * 0.5f + w * offset, pos.y + (fullh-h) * 0.5f, w * progress, h);
 }
 
 inline float max_escape_distance(int time, float vel_parallel, float maxspeed)
@@ -1585,7 +1586,9 @@ void drawwaypoints()
                 const int width1 = text_width(nadetimertext),
                           width2 = text_width(nadedmgtext),
                           max_width = max(width1, width2);
-                waypoint_adjust_pos(pos, -max_width/2, 0, max_width, FONTH * 2, flags & W2S_OUT_BEHIND);
+
+                pos.y += FONTH / (float)VIRTH;
+                waypoint_adjust_pos(pos, max_width, FONTH * 2, flags & W2S_OUT_BEHIND);
 
                 draw_text(nadetimertext, pos.x + (max_width-width1)/2, pos.y);
                 draw_text(nadedmgtext, pos.x + (max_width-width2)/2, pos.y + FONTH);
@@ -1768,7 +1771,7 @@ void drawwaypoints()
                 continue;
 
             drawwaypoint((focus == pl || isteam(focus, pl)) ? WP_DEFEND : WP_KILL, pos, flags);
-            if (has_nuke) drawwaypoint(WP_NUKE, pos, flags, 1.0f, 2);
+            if (has_nuke) drawwaypoint(WP_NUKE, pos, flags, 1.0f, 1);
         }
     }
     // nametags
@@ -1796,8 +1799,10 @@ void drawwaypoints()
 
             int alpha = (nametagfade - totalmillis + pl->nametagmillis) / (float)nametagfade * 255.0f;
             const int width = text_width(nametagtext);
-            if (waypoint_adjust_pos(pos, width * -0.5f * NAMETAGSCALE, -FONTH * NAMETAGSCALE, width, FONTH/*, flags & W2S_OUT_BEHIND*/))
-                // divide by 4 if off screen
+
+            pos.y -= FONTH * NAMETAGSCALE / 2 / VIRTH;
+            if (waypoint_adjust_pos(pos, width * NAMETAGSCALE, FONTH * NAMETAGSCALE/*, flags & W2S_OUT_BEHIND*/))
+                // divide alpha by 4 if off screen
                 alpha >>= 2;
 
             draw_text(nametagtext, pos.x / NAMETAGSCALE, pos.y / NAMETAGSCALE, 255, 255, 255, alpha);
