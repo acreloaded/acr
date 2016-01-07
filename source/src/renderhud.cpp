@@ -1404,7 +1404,6 @@ void drawwaypoint(WP_t wp, vec2 pos, int flags, float alpha = 1.0f, int up_shift
     quad(tex->id, pos.x, pos.y, size, (wp % 6) / 6.f, (wp / 6) / 3.f, 1 / 6.f, 1 / 3.f);
 }
 
-// TODO: fix progress bars that are off the screen
 void drawprogressbar_back(vec2 pos, color c)
 {
     const float w = waypointsize * 1.05f * 3.2f,
@@ -1420,9 +1419,10 @@ void drawprogressbar_back(vec2 pos, color c)
 void drawprogressbar(vec2 pos, float progress, color c, float offset = 0)
 {
     const float w = waypointsize * 1.00f * 3.2f,
-                h = waypointsize * 0.15f * 3.2f;
+                h = waypointsize * 0.15f * 3.2f,
+                fullw = waypointsize * 1.05f * 3.2f;
 
-    if (waypoint_adjust_pos(pos, w * (offset - 0.5f), -h/2, w * progress, h/*, flags & W2S_OUT_BEHIND*/))
+    if (waypoint_adjust_pos(pos, w * (offset - 0.5f), -h/2, fullw, h/*, flags & W2S_OUT_BEHIND*/))
         c.alpha *= 0.25f;
 
     glColor4fv(c.v);
