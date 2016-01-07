@@ -621,14 +621,8 @@ inline void renderhboxpart(playerent *d, vec top, vec bottom, vec up)
     glEnd();
 }
 
-void renderhbox(playerent *d)
+void renderhbox(playerent *d, bool dark = false)
 {
-    if (d->state != CS_ALIVE && d->state != CS_EDITING)
-        return;
-
-    if (m_psychic(gamemode, mutators))
-        glDisable(GL_DEPTH_TEST);
-
     typedef GLubyte hbox_color_t[3];
     static const hbox_color_t hbox_colors[][3] = {
         // { head, torso, legs },
@@ -636,10 +630,15 @@ void renderhbox(playerent *d)
         { { 128, 255,   0 }, {   0, 255,   0 }, {  64, 255,   0 } },
         // enemy
         { { 255, 128,   0 }, { 255,   0,   0 }, { 255,  64,   0 } },
+        // darker versions
+        { {  64, 128,   0 }, {   0, 128,   0 }, {  32, 128,   0 } },
+        { { 128,  64,   0 }, { 128,   0,   0 }, { 128,  32,   0 } },
     };
-    const hbox_color_t *hbox_color = hbox_colors[focus == d || isteam(focus, d) ? 0 : 1];
+    const hbox_color_t *hbox_color = hbox_colors[(focus == d || isteam(focus, d) ? 0 : 1) | (dark ? 2 : 0)];
 
     glDisable(GL_TEXTURE_2D);
+    glDisable(GL_FOG);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     float y = d->yaw*RAD, p = (d->pitch/4+90)*RAD, c = cosf(p);
     vec bottom(d->o), up(sinf(y)*c, -cosf(y)*c, sinf(p)), top(up), mid(up);
@@ -671,10 +670,8 @@ void renderhbox(playerent *d)
     glColor3ubv(hbox_color[2]);
     renderhboxpart(d,mid,bottom,up);
 
+    glEnable(GL_FOG);
     glEnable(GL_TEXTURE_2D);
-
-    if (m_psychic(gamemode, mutators))
-        glEnable(GL_DEPTH_TEST);
 }
 
 void renderclient(playerent *d, const char *mdlname, const char *vwepname, int tex)
@@ -761,7 +758,18 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
     if(!stenciling && !reflecting && !refracting)
     {
         renderaboveheadicon(d);
-        if((dbghbox && watchingdemo) || render_void) renderhbox(d);
+        if (((dbghbox && watchingdemo) || render_void) && (d->state == CS_ALIVE || d->state == CS_EDITING))
+        {
+            if (m_psychic(gamemode, mutators))
+            {
+                //glDepthFunc(GL_GEQUAL);
+                glDisable(GL_DEPTH_TEST);
+                renderhbox(d, true);
+                glDepthFunc(GL_LESS);
+                glEnable(GL_DEPTH_TEST);
+            }
+            renderhbox(d);
+        }
         extern int fakelasertest;
         if (fakelasertest)
         {
