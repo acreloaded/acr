@@ -677,10 +677,12 @@ void renderhbox(playerent *d, const vec &oldhead, bool dark = false)
 
 void renderclient(playerent *d, const char *mdlname, const char *vwepname, int tex)
 {
-    vec oldhead = vec(-1, -1, -1);
-
-    if(!render_void)
+    if(render_void)
     {
+        (d->head = d->o).add(vec(0, -.25f, .25f).rotate_around_z(d->yaw * RAD));
+        d->muzzle = d->eject = vec(-1, -1, -1);
+        return;
+    }
 
     int varseed = (int)(size_t)d;
     int anim = ANIM_IDLE|ANIM_LOOP;
@@ -730,7 +732,6 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
             anim |= ANIM_PARTICLE;
         if(d != player1 && d->state==CS_ALIVE)
         {
-            oldhead = d->head;
             d->head = vec(-1, -1, -1);
             a[numattach].tag = "tag_head";
             a[numattach].pos = &d->head;
@@ -751,47 +752,6 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
         if(stenciling) return;
     }
     rendermodel(mdlname, anim|ANIM_DYNALLOC, tex, 1.5f, o, d->yaw+90, d->pitch/4, speed, basetime, d, a);
-
-    }
-    else // void mutator
-    {
-        (d->head = d->o).add(vec(0, -.25f, .25f).rotate_around_z(d->yaw * RAD));
-        d->muzzle = d->eject = vec(-1, -1, -1);
-    }
-
-    if(!stenciling && !reflecting && !refracting)
-    {
-        renderaboveheadicon(d);
-        if ((d->state == CS_ALIVE || d->state == CS_EDITING) && ((dbghbox && watchingdemo) || render_void || m_psychic(gamemode, mutators)))
-        {
-            if (m_psychic(gamemode, mutators))
-            {
-                //glDisable(GL_DEPTH_TEST);
-                glDepthFunc(GL_GEQUAL);
-                glDepthMask(GL_FALSE);
-                renderhbox(d, oldhead, true);
-                glDepthMask(GL_TRUE);
-                glDepthFunc(GL_LESS);
-                //glEnable(GL_DEPTH_TEST);
-            }
-            renderhbox(d, oldhead);
-        }
-        extern int fakelasertest;
-        if (fakelasertest)
-        {
-            glDisable(GL_TEXTURE_2D);
-            glBegin(GL_LINES);
-            linestyle(1.5f, 255, 0, 0);
-            vec from(d->muzzle.x >= 0 ? d->muzzle : d->o);
-            glVertex3f(from.x, from.y, from.z);
-            vec to(sinf(RAD*d->yaw)*cosf(RAD*d->pitch), -cosf(RAD*d->yaw)*cosf(RAD*d->pitch), sinf(RAD*d->pitch));
-            to.add(from);
-            traceShot(from, to);
-            glVertex3f(to.x, to.y, to.z);
-            glEnd();
-            glEnable(GL_TEXTURE_2D);
-        }
-    }
 }
 
 VARP(teamdisplaymode, 0, 1, 2);
@@ -864,7 +824,43 @@ void renderclient(playerent *d)
         formatstring(vwep)("weapons/%s/world", identexists(widn) ? getalias(widn) : d->weaponsel->info.modelname);
     }
     else vwep[0] = 0;
+
+    vec oldhead = d->head;
     renderclient(d, "playermodels", vwep[0] ? vwep : NULL, -(int)textureload(skin)->id);
+
+    if(!stenciling && !reflecting && !refracting)
+    {
+        renderaboveheadicon(d);
+        if ((d->state == CS_ALIVE || d->state == CS_EDITING) && ((dbghbox && watchingdemo) || render_void || m_psychic(gamemode, mutators)))
+        {
+            if (m_psychic(gamemode, mutators))
+            {
+                //glDisable(GL_DEPTH_TEST);
+                glDepthFunc(GL_GEQUAL);
+                glDepthMask(GL_FALSE);
+                renderhbox(d, oldhead, true);
+                glDepthMask(GL_TRUE);
+                glDepthFunc(GL_LESS);
+                //glEnable(GL_DEPTH_TEST);
+            }
+            renderhbox(d, oldhead);
+        }
+        extern int fakelasertest;
+        if (fakelasertest)
+        {
+            glDisable(GL_TEXTURE_2D);
+            glBegin(GL_LINES);
+            linestyle(1.5f, 255, 0, 0);
+            vec from(d->muzzle.x >= 0 ? d->muzzle : d->o);
+            glVertex3f(from.x, from.y, from.z);
+            vec to(sinf(RAD*d->yaw)*cosf(RAD*d->pitch), -cosf(RAD*d->yaw)*cosf(RAD*d->pitch), sinf(RAD*d->pitch));
+            to.add(from);
+            traceShot(from, to);
+            glVertex3f(to.x, to.y, to.z);
+            glEnd();
+            glEnable(GL_TEXTURE_2D);
+        }
+    }
 }
 
 void renderclients()
