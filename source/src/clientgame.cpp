@@ -461,7 +461,7 @@ void deathstate(playerent *pl)
     pl->zoomed = pl->pitchvel = /*pl->pitchreturn =*/ 0;
     pl->attacking = pl->scoping = false;
     pl->weaponsel->onownerdies();
-    pl->radarmillis = 0;
+    pl->radarmillis = pl->nametagmillis = 0;
 
     if(pl==player1)
     {
