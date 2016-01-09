@@ -54,6 +54,7 @@ ENetSocket httpgetsend(ENetAddress &remoteaddress, const char *hostname, const c
     buf.data = httpget;
     buf.dataLength = strlen((char *)buf.data);
     //logline(ACLOG_INFO, "sending request to %s...", hostname);
+    logline(ACLOG_INFO, "sending request to %s: GET %s", hostname, req);
     enet_socket_send(sock, NULL, &buf, 1);
     canreachauthserv = true;
     return sock;
@@ -152,7 +153,7 @@ static inline void updatemasterserver(int millis, int port)
         currentmsrequest->type = MSR_REG;
         currentmsrequest->data = NULL;
 
-        formatstring(path)("%s/reg/%d/%d/%lu", masterpath, PROTOCOL_VERSION, port, *&genguid(546545656, 23413376U, 3453455, "h6ji54ehjwo345gjio34s5jig"));
+        formatstring(path)("%s/r?v=%lu&p=%u&guid32=%lu", masterpath, PROTOCOL_VERSION, port, *&genguid(546545656, 23413376U, 3453455, "h6ji54ehjwo345gjio34s5jig"));
         lastupdatemaster = millis + 1;
     }
     else if (millis > lastauthreqprocessed + 2500 && authrequests.length())
@@ -163,7 +164,7 @@ static inline void updatemasterserver(int millis, int port)
         currentmsrequest->type = MSR_AUTH_ANSWER;
         currentmsrequest->a = r;
 
-        formatstring(path)("%s/ver/%d/%d/%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+        formatstring(path)("%s/v?p=%u&i=%lu&a=%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
             masterpath, port, r->id,
             r->hash[0], r->hash[1], r->hash[2], r->hash[3],
             r->hash[4], r->hash[5], r->hash[6], r->hash[7],
@@ -183,10 +184,11 @@ static inline void updatemasterserver(int millis, int port)
             currentmsrequest->type = MSR_CONNECT;
             currentmsrequest->c = c;
 
+            // FIXME: this assumes we have IPv4 hostnames
             if (c->id)
-                formatstring(path)("%s/con/%d/%s/%lu/%u/%u", masterpath, port, c->hostname, c->guid, c->id, c->user);
+                formatstring(path)("%s/a?p=%u&a=::ffff:%s&guid32=%lu&i=%u&u=%u", masterpath, port, c->hostname, c->guid, c->id, c->user);
             else
-                formatstring(path)("%s/con/%d/%s/%lu", masterpath, port, c->hostname, c->guid);
+                formatstring(path)("%s/a?p=%u&a=::ffff:%s&guid32=%lu", masterpath, port, c->hostname, c->guid);
 
             delete[] c->hostname;
         }
