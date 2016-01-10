@@ -1480,8 +1480,18 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             case SV_AUTH_ACR_REQ:
             {
                 int sauthtoken = getint(p);
-                uchar buf[128];
-                p.get(buf, 128);
+                uchar buf[48+128];
+                // We choose the first 384 bits
+                loopi(48)
+                {
+                    int num = randomMT();
+                    buf[i++] = num;
+                    buf[i++] = num >> 8;
+                    buf[i++] = num >> 16;
+                    buf[i] = num >> 24;
+                }
+                // Last 1024 bits are specified by the master-server
+                p.get(&buf[48], 128);
                 extern int authtoken;
                 if (sauthtoken != authtoken)
                 {
@@ -1503,6 +1513,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 uchar buf2[MAXTRANS];
                 ucharbuf p(buf2, MAXTRANS);
                 putint(p, SV_AUTH_ACR_CHAL);
+                p.put(buf, 48);
                 p.put(hash, 32);
                 addmsgraw(p);
                 break;

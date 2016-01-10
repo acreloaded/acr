@@ -165,15 +165,21 @@ static inline void updatemasterserver(int millis, int port)
         currentmsrequest->type = MSR_AUTH_ANSWER;
         currentmsrequest->a = r;
 
-        char hashbuf[2*32+1];
-        hashbuf[2*32] = '\0';
+        char cbuf[2*48+1], abuf[2*32+1];
+        cbuf[2*48] = '\0';
+        abuf[2*32] = '\0';
+        loopi(48)
+        {
+            cbuf[i*2] = "0123456789abcdef"[r->crandom[i] >> 4];
+            cbuf[i*2+1] = "0123456789abcdef"[r->crandom[i] & 0xF];
+        }
         loopi(32)
         {
-            hashbuf[i*2] = "0123456789abcdef"[r->hash[i] >> 4];
-            hashbuf[i*2+1] = "0123456789abcdef"[r->hash[i] & 0xF];
+            abuf[i*2] = "0123456789abcdef"[r->canswer[i] >> 4];
+            abuf[i*2+1] = "0123456789abcdef"[r->canswer[i] & 0xF];
         }
 
-        formatstring(path)("%s/v?p=%u&i=%lu&a=%s", masterpath, port, r->id, hashbuf);
+        formatstring(path)("%s/v?p=%u&i=%lu&a=%s&c=%s", masterpath, port, r->id, abuf, cbuf);
         lastauthreqprocessed = millis;
     }
     else if (connectrequests.length())

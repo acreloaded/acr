@@ -167,7 +167,7 @@ void authchallenged(uint id, const char *chal)
     logline(ACLOG_DEBUG, "%s", chal);
 }
 
-bool answerchallenge(client &cl, unsigned char hash[32])
+bool answerchallenge(client &cl, uchar crandom[48], uchar canswer[32])
 {
     if (!isdedicated){ sendf(&cl, 1, "ri2", SV_AUTH_ACR_CHAL, 2); return false; }
     if (!cl.authreq) return false;
@@ -181,7 +181,8 @@ bool answerchallenge(client &cl, unsigned char hash[32])
     }
     authrequest &r = authrequests.add();
     r.id = cl.authreq;
-    memcpy(r.hash, hash, sizeof(unsigned char) * 32);
+    memcpy(r.crandom, crandom, sizeof(uchar) * 48);
+    memcpy(r.canswer, canswer, sizeof(uchar) * 32);
     logline(ACLOG_INFO, "[%s] answers auth #%d", cl.gethostname(), r.id);
     sendf(&cl, 1, "ri2", SV_AUTH_ACR_CHAL, 4);
     return true;

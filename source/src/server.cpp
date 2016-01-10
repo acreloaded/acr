@@ -4255,9 +4255,9 @@ void process(ENetPacket *packet, int sender, int chan)
 
             case SV_AUTH_ACR_CHAL:
             {
-                uchar hash[32];
-                p.get(hash, 32);
-                bool answered = answerchallenge(*cl, hash);
+                uchar info[48+32];
+                p.get(info, 48+32);
+                bool answered = answerchallenge(*cl, &info[0], &info[48]);
                 if (cl->authreq && answered) cl->isauthed = true;
                 else checkauthdisc(*cl);
                 break;
