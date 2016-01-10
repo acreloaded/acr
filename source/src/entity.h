@@ -614,7 +614,7 @@ public:
     int lifesequence;                   // sequence id for each respawn, used in damage test
     vec4 lastloudpos;
     int radarmillis, nametagmillis;
-    int frags, assists, flagscore, deaths, points;
+    int frags, assists, flagscore, deaths, points, rank;
     int pointstreak, deathstreak, airstrikes, radarearned, nukemillis;
     int lastaction, lastmove, lastpain, lasthit, lastkiller;
     int clientrole, vote;
@@ -654,7 +654,7 @@ public:
 
     playerent() : curskin(0), clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0),
                   lastloudpos(0, 0, 0, 0), radarmillis(0), nametagmillis(0),
-                  frags(0), assists(0), flagscore(0), deaths(0), points(0),
+                  frags(0), assists(0), flagscore(0), deaths(0), points(0), rank(0),
                   pointstreak(0), deathstreak(0), airstrikes(0), radarearned(0), nukemillis(0),
                   lastpain(0), lasthit(0), lastkiller(-1), clientrole(CR_DEFAULT), vote(VOTE_NEUTRAL),
                   team(TEAM_SPECT), build(0), spectatemode(SM_NONE), thirdperson(0), eardamagemillis(0), respawnoffset(0),

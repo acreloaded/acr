@@ -20,6 +20,7 @@ VARFP(sc_deaths,    -1, 20, 100, needscoresreorder = true);
 VARFP(sc_assists,    0, 30, 100, needscoresreorder = true);
 VARFP(sc_ratio,     -1, 40, 100, needscoresreorder = true);
 VARFP(sc_score,     -1, 50, 100, needscoresreorder = true);
+VARFP(sc_rank,      -1, 55, 100, needscoresreorder = true);
 VARFP(sc_lag,       -1, 60, 100, needscoresreorder = true);
 VARFP(sc_clientnum,  0, 70, 100, needscoresreorder = true);
 VARFP(sc_name,       0, 80, 100, needscoresreorder = true);
@@ -177,6 +178,7 @@ void renderdiscscores(int team)
         line.addcol(sc_score, "%d", max(d.points, 0));
         line.addcol(sc_lag, clag);
         line.addcol(sc_clientnum, "DISC");
+        line.addcol(sc_rank); //line.addcol(sc_rank, "%d", d.rank);
         line.addcol(sc_name, d.name);
     }
 }
@@ -236,6 +238,8 @@ void renderscore(playerent *d)
     line.addcol(sc_score, "%d", max(d->points, 0));
     line.addcol(sc_lag, lagping);
     line.addcol(sc_clientnum, "\fs\f%d%d\fr", cncolumncolor, d->clientnum);
+    const int rmod10 = d->rank % 10;
+    line.addcol(sc_rank, "%d%s", d->rank, (d->rank / 10 == 1) ? "th" : rmod10 == 1 ? "st" : rmod10 == 2 ? "nd" : rmod10 == 3 ? "rd" : "th");
     line.addcol(sc_name, "\fs\f%c%s\fr%s", privcolor(d->clientrole, d->state == CS_DEAD), name, ign);
     line.altfont = "build";
 }
@@ -278,6 +282,7 @@ int renderteamscore(teamsum &t)
     else
         line.addcol(sc_lag, "%s/%s", colorpj(t.pj / max(t.teammembers.length(), 1)), colorping(t.ping / max(t.teammembers.length(), 1)));
     line.addcol(sc_clientnum, m_team(gamemode, mutators) || t.team == TEAM_SPECT ? team_string(t.team, true) : "FFA");
+    line.addcol(sc_rank);
     line.addcol(sc_name, "%s", plrs);
 
     static color teamcolors[4] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f), color(.4f, .4f, .4f, .3f), color(.8f, .8f, .8f, .4f) };
@@ -302,6 +307,7 @@ void reorderscorecolumns()
     sscore.addcol(sc_score, "score");
     sscore.addcol(sc_lag, "pj/ping");
     sscore.addcol(sc_clientnum, "cn");
+    sscore.addcol(sc_rank, "rank");
     sscore.addcol(sc_name, "name");
     menutitle(scoremenu, newstring(sscore.getcols()));
 }
@@ -321,6 +327,14 @@ void renderscores(gmenu *menu, bool init)
     loopv(players) if(players[i]) { scores.add(players[i]); totalplayers++; }
     scores.sort(scorecmp);
     discscores.sort(discscorecmp);
+    // rank players
+    int n = 1;
+    loopv(scores)
+    {
+        if (i && scores[i - 1]->points != scores[i]->points)
+            ++n;
+        scores[i]->rank = n;
+    }
 
     int spectators = 0;
     loopv(scores) if(scores[i]->team == TEAM_SPECT) spectators++;

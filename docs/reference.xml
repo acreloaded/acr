@@ -5735,6 +5735,11 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="http://as
           <value token="V" description="-1: disable, low priority: left, high priority: right" minValue="-1" maxValue="100" defaultValue="50" />
         </variable>
 
+        <variable name="sc_rank">
+          <description>Sets the order priority for the column rank or disables it on the scoreboard.</description>
+          <value token="V" description="-1: disable, low priority: left, high priority: right" minValue="-1" maxValue="100" defaultValue="55" />
+        </variable>
+
         <variable name="sc_lag">
           <description>Sets the order priority for the column pj/ping or disables it on the scoreboard.</description>
           <value token="V" description="-1: disable, low priority: left, high priority: right" minValue="-1" maxValue="100" defaultValue="60" />
