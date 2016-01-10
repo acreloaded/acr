@@ -2290,7 +2290,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="http://as
 
         <variable name="maxroll">
           <description>Sets the maximum value the display will roll on strafing.</description>
-          <value token="N" description="the roll value" minValue="0" maxValue="20" defaultValue="0"/>
+          <value token="N" description="the roll value" minValue="0" maxValue="45" defaultValue="0"/>
         </variable>
 
         <variable name="numconlines">
@@ -5520,7 +5520,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="http://as
           <description>Sets HUD removals in hardcore mode.</description>
           <remarks>
             <remark>0: no change</remark>
-            <remark>1: -non-essential (streak meter, team - use scoreboard!, distance, health)</remark>
+            <remark>1: -non-essential (streak meter, team - use scoreboard!, distance rangefinder, health, nade timer)</remark>
             <remark>2: -crosshair</remark>
             <remark>3: -hit markers</remark>
             <remark>4: -ammo count</remark>
@@ -5937,6 +5937,16 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="http://as
         <variable name="aboveheadiconsize">
           <description>Sets the size for the icon shown above players.</description>
           <value token="V" description="Icon size" minValue="0" maxValue="1000" defaultValue="140"/>
+        </variable>
+
+        <variable name="waypointsize">
+          <description>Sets the size for the waypoint icons shown above players.</description>
+          <value token="V" description="Waypoint size" minValue="0" maxValue="500" defaultValue="100"/>
+        </variable>
+
+        <variable name="nametagfade">
+          <description>Sets the amount of time in milliseconds for nametags above players to fade out. 0 disables nametags.</description>
+          <value token="V" description="Nametag fade time" minValue="0" maxValue="2000" defaultValue="750"/>
         </variable>
 
         <variable name="bloodttl">
@@ -7814,7 +7824,7 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="http://as
 
         <variable name="maxrollremote">
           <description>TODO</description>
-          <value token="N" description="TODO" minValue="0" maxValue="20" defaultValue="0"/>
+          <value token="N" description="TODO" minValue="0" maxValue="45" defaultValue="45"/>
         </variable>
 
         <variable name="mdldlist">
@@ -7879,6 +7889,11 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="http://as
         <variable name="thirdperson">
           <description>0: first-person, otherwise the distance. Use negative for an overhead view in onslaught mode.</description>
           <value token="N" description="distance" minValue="-25" maxValue="25" defaultValue="0"/>
+        </variable>
+
+        <variable name="spectatebots">
+          <description>0: specate only humans, 1: spectate all</description>
+          <value token="N" description="enable" minValue="0" maxValue="1" defaultValue="0"/>
         </variable>
 
         <variable name="deathcam">

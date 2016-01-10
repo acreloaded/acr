@@ -1803,7 +1803,7 @@ void serverdied(client &target, client &actor_, int damage, int gun, int style, 
             if (scopeelapsed >= zoomtime)
             {
                 style |= FRAG_SCOPE_FULL;
-                if (scopeelapsed < zoomtime + 300)
+                if (scopeelapsed < zoomtime + 1000)
                     style |= FRAG_SCOPE_NONE; // recent, not hard
             }
         }

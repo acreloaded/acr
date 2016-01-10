@@ -355,7 +355,7 @@ bool collide(physent *d, bool spawn, float drop, float rise, int level) // level
     return false;
 }
 
-VARP(maxroll, 0, 0, 20); // note: when changing max value, fix network transmission
+VARP(maxroll, 0, 0, 45); // note: when changing max value, fix network transmission
 //VAR(recoilbackfade, 0, 100, 1000);
 
 void resizephysent(physent *pl, int moveres, int curtime, float min, float max)

@@ -1365,7 +1365,8 @@ enum WP_t
     WP_NUM
 };
 
-const int waypointsize = 100; // TODO: make this VARP
+VARP(waypointsize, 0, 100, 500);
+VARP(nametagfade, 0, 750, 2000);
 
 inline float getwaypointsize(WP_t wp)
 {
@@ -1800,7 +1801,6 @@ void drawwaypoints()
         }
     }
     // nametags
-    const int nametagfade = 750; // TODO: make VARP and document in docs/reference.xml
     if (nametagfade)
     {
         #define NAMETAGSCALE 0.65f
@@ -1971,15 +1971,14 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         draw_text(lastexptext, VIRTW * 11 / 20, VIRTH * 8 / 20 + FONTH, a, a, a, a);
     }
 
-    // Grenade timer
-    if (focus->weaponsel == focus->weapons[GUN_GRENADE])
+    // Grenade throw timer
+    if (show_hud_element(!hidehudequipment, 1) && focus->weaponsel == focus->weapons[GUN_GRENADE])
     {
         grenadeent *g = ((grenades *)focus->weapons[GUN_GRENADE])->inhandnade;
         if(g)
         {
             const int ttl = g->millis - lastmillis + g->timetolive;
-            char ttl_txt[7];
-            ttl_txt[0] = '\f';
+            char ttl_txt[10] = "\f01.23\f4s";
             // We could make the colors based on minimum damage and current health
             // but that would involve having to consider both the nade and the player moving.
             // For the thrown nade timer, we assumed that the grenade is not moving.
@@ -1989,7 +1988,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
                 ttl >=  500 ? '2' :
                 ttl >=  200 ? '3' :
                 '7';
-            ttl_txt[6] = '\0';
             div_t divresult = div(ttl / 10, 10);
             ttl_txt[5] = divresult.rem + '0';
             divresult = div(divresult.quot, 10);
