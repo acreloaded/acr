@@ -1574,8 +1574,8 @@ void drawwaypoints()
                     // 0.5 * HEALTHSCALE, // (no need to allocate 5 on stack)
                     // not too bad
                     focus->health - 80 * HEALTHSCALE,
-                    // can survive
-                    focus->health,
+                    // can probably survive
+                    focus->health - HEALTHSCALE / 2,
                     // probably lethal
                     focus->health + 50 * HEALTHSCALE,
                     // very likely lethal
@@ -1596,7 +1596,7 @@ void drawwaypoints()
                 // dcol_max is not important
 
                 // time/distance
-                defformatstring(nadetimertext)("\f%c%.1fs\f3@\f%c%.0fm",
+                defformatstring(nadetimertext)("\f%c%.2fs\f3@\f%c%.0fm",
                     dcol_min,
                     ttl / 1000.f,
                     dcol,
