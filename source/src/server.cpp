@@ -3045,7 +3045,7 @@ void putinitclient(client &c, packetbuf &p)
     putint(p, c.skin[TEAM_RVSF]);
     putint(p, c.level);
     putint(p, c.team);
-    putint(p, c.acbuildtype | (c.authpriv > -1 ? 0x02 : 0));
+    putint(p, c.acbuildtype | (c.authpriv != -1 ? 0x02 : 0));
     putint(p, c.acthirdperson);
 }
 

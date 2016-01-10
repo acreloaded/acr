@@ -90,7 +90,7 @@ int allowconnect(client &cl, int authreq = 0, int authuser = 0)
     else if (srvfull) return DISC_MAXCLIENTS;
     else if (banned) return DISC_BANREFUSE;
     // does the master server want a disconnection?
-    else if (!scl.bypassglobalbans && cl.authpriv <= -1 && cl.masterdisc) return cl.masterdisc;
+    else if (!scl.bypassglobalbans && cl.authpriv == -1 && cl.masterdisc) return cl.masterdisc;
     else
     {
         logline(ACLOG_INFO, "[%s] %s logged in (default)%s", cl.gethostname(), cl.formatname(), wlp);
@@ -130,9 +130,14 @@ void authsucceeded(uint id, int priv, const char *name)
         logline(ACLOG_INFO, "[%s] auth #%d succeeded as '%s' (%s ignored)", cl->gethostname(), id, cl->authname, privname(priv));
     }
     else
-        logline(ACLOG_INFO, "[%s] auth #%d succeeded for %s as '%s'", cl->gethostname(), id, priv == -1 ? "named" : privname(priv), cl->authname);
+        logline(ACLOG_INFO, "[%s] auth #%d succeeded for %s as '%s'", cl->gethostname(), id, priv < 0 ? "name-only" : privname(priv), cl->authname);
     sendf(NULL, 1, "ri4s", SV_AUTH_ACR_CHAL, 5, cl->clientnum, priv, cl->authname);
-    if (priv != -1)
+    if (priv < 0)
+    {
+        // name only
+        cl->authpriv = -2;
+    }
+    else
     {
         // even CR_DEFAULT can bypass master bans
         // remove temporary bans
@@ -163,7 +168,7 @@ void authchallenged(uint id, const char *chal)
         buf[i] |= hex2char(chal[(i << 1) | 1]);
     }
     sendf(cl, 1, "ri2m", SV_AUTH_ACR_REQ, cl->authtoken, 128, buf);
-    logline(ACLOG_INFO, "[%s] auth #%d challenged by master with", cl->gethostname(), id);
+    logline(ACLOG_INFO, "[%s] auth #%d challenged by master", cl->gethostname(), id);
     logline(ACLOG_DEBUG, "%s", chal);
 }
 

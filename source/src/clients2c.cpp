@@ -1546,7 +1546,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                         if (!d) break;
                         filtertext(text, text, 1, MAXNAMELEN);
                         d->build |= 0x02;
-                        conoutf("%s \f1identified as \f2'\f9%s\f2'", d == player1 ? "you are" : colorname(d), text);
+                        const char *privn, privc = privcolor(priv);
+                        if(priv >= CR_DEFAULT && priv <= CR_MAX)
+                            privn = privname(priv);
+                        else
+                            privn = "name-only";
+                        conoutf("%s \f1identified \f0as \f2'\f9%s\f2' \f4for \f%c%s", d == player1 ? "you are" : colorname(d), text, privc, privn);
                         break;
                     }
                     case 6:

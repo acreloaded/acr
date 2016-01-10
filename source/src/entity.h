@@ -172,7 +172,7 @@ static inline const char *privname(int priv)
 {
     switch (priv)
     {
-        case CR_DEFAULT: return "user";
+        case CR_DEFAULT: return "deban";
         case CR_MASTER: return "master";
         case CR_ADMIN: return "admin";
         case CR_MAX: return "highest";
