@@ -1479,28 +1479,31 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_AUTH_ACR_REQ:
             {
-                int nonce = getint(p), sauthtoken = getint(p);
+                int sauthtoken = getint(p);
+                uchar buf[128];
+                p.get(buf, 128);
                 extern int authtoken;
-                if (nonce < 0 || sauthtoken != authtoken)
+                if (sauthtoken != authtoken)
                 {
                     conoutf("server challenged incorrectly");
                     break;
                 }
                 authtoken = -1;
                 conoutf("server is challenging authentication details");
-                extern int authuser;
                 extern char *authkey;
-                unsigned char hash[20];
-                defformatstring(buf)("%d:%s!%d", authuser, authkey, nonce);
-                if (!gensha1(buf, hash))
+                uchar hash[32];
+                hmac_sha256(buf, sizeof(buf)/sizeof(*buf), (uchar *)authkey, strlen(authkey), hash);
+                /*
+                if (hash_failed)
                 {
                     conoutf("could not compute message digest");
                     break;
                 }
+                */
                 uchar buf2[MAXTRANS];
                 ucharbuf p(buf2, MAXTRANS);
                 putint(p, SV_AUTH_ACR_CHAL);
-                loopi(20) p.put(hash[i]);
+                p.put(hash, 32);
                 addmsgraw(p);
                 break;
             }
@@ -1526,7 +1529,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                         break;
                     case 5:
                     {
-                        int cn = getint(p);
+                        const int cn = getint(p), priv = getint(p);
                         getstring(text, p);
                         playerent *d = getclient(cn);
                         if (!d) break;

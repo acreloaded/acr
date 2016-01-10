@@ -819,7 +819,7 @@ extern int defaultgamelimit(int gamemode, int mutators);
 extern void genprivkey(const char *seed, vector<char> &privstr, vector<char> &pubstr);
 extern bool hashstring(const char *str, char *result, int maxlen);
 const char *genpwdhash(const char *name, const char *pwd, int salt);
-bool gensha1(const char *str, unsigned char *dst);
+void hmac_sha256(const unsigned char *data, size_t data_len, const unsigned char *key, size_t key_len, unsigned char out[32]);
 extern void answerchallenge(const char *privstr, const char *challenge, vector<char> &answerstr);
 extern void *parsepubkey(const char *pubstr);
 extern void freepubkey(void *pubkey);

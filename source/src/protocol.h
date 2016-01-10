@@ -113,7 +113,7 @@ enum { BAN_NONE = 0, BAN_VOTE, BAN_BLACKLIST };
 enum { PONGFLAG_PASSWORD = 0, PONGFLAG_BANNED, PONGFLAG_BLACKLIST, PONGFLAG_BYPASSBANS, PONGFLAG_BYPASSPRIV, PONGFLAG_MASTERMODE = 6, PONGFLAG_NUM };
 enum { EXTPING_NOP = 0, EXTPING_NAMELIST, EXTPING_SERVERINFO, EXTPING_MAPROT, EXTPING_UPLINKSTATS, EXTPING_NUM };
 
-struct authrequest { uint id; unsigned char hash[20]; };
+struct authrequest { uint id; unsigned char hash[32]; };
 struct connectrequest { int cn, guid; const char *hostname; int id, user; };
 
 // new game mode/mutator system

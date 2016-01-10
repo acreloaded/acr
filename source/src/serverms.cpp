@@ -54,7 +54,7 @@ ENetSocket httpgetsend(ENetAddress &remoteaddress, const char *hostname, const c
     buf.data = httpget;
     buf.dataLength = strlen((char *)buf.data);
     //logline(ACLOG_INFO, "sending request to %s...", hostname);
-    logline(ACLOG_INFO, "sending request to %s: GET %s", hostname, req);
+    logline(ACLOG_VERBOSE, "sending request to %s: GET %s", hostname, req);
     enet_socket_send(sock, NULL, &buf, 1);
     canreachauthserv = true;
     return sock;
@@ -95,6 +95,7 @@ int lastupdatemaster = INT_MIN, lastresolvemaster = INT_MIN, lastauthreqprocesse
 #define MAXMASTERTRANS MAXTRANS // enlarge if response is big...
 uchar masterrep[MAXMASTERTRANS];
 ENetBuffer masterb;
+// FIXME: a linked list makes more sense for these:
 vector<authrequest> authrequests;
 vector<connectrequest> connectrequests;
 
@@ -164,13 +165,15 @@ static inline void updatemasterserver(int millis, int port)
         currentmsrequest->type = MSR_AUTH_ANSWER;
         currentmsrequest->a = r;
 
-        formatstring(path)("%s/v?p=%u&i=%lu&a=%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
-            masterpath, port, r->id,
-            r->hash[0], r->hash[1], r->hash[2], r->hash[3],
-            r->hash[4], r->hash[5], r->hash[6], r->hash[7],
-            r->hash[8], r->hash[9], r->hash[10], r->hash[11],
-            r->hash[12], r->hash[13], r->hash[14], r->hash[15],
-            r->hash[16], r->hash[17], r->hash[18], r->hash[19]);
+        char hashbuf[2*32+1];
+        hashbuf[2*32] = '\0';
+        loopi(32)
+        {
+            hashbuf[i*2] = "0123456789abcdef"[r->hash[i] >> 4];
+            hashbuf[i*2+1] = "0123456789abcdef"[r->hash[i] & 0xF];
+        }
+
+        formatstring(path)("%s/v?p=%u&i=%lu&a=%s", masterpath, port, r->id, hashbuf);
         lastauthreqprocessed = millis;
     }
     else if (connectrequests.length())
@@ -286,14 +289,14 @@ void checkmasterreply()
                                 if (!*name) copystring(name, "<unnamed>");
                                 error = false;
                                 extern void authsucceeded(uint id, int priv, const char *name);
-                                authsucceeded(authid, privk - '0', name);
+                                authsucceeded(authid, privk >= '0' && privk <= '3' ? privk - '0' : -1, name);
                                 break;
                             }
                             case 'c': // challenge
                                 if (!*tp) break;
                                 error = false;
-                                extern void authchallenged(uint id, int nonce);
-                                authchallenged(authid, atoi(tp));
+                                extern void authchallenged(uint id, const char *chal);
+                                authchallenged(authid, tp);
                                 break;
                         }
                 }

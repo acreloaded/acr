@@ -124,39 +124,50 @@ void authsucceeded(uint id, int priv, const char *name)
     if (!cl) return;
     cl->authreq = 0;
     filtertext(cl->authname, name);
-    if (scl.bypassglobalpriv && priv)
+    if (scl.bypassglobalpriv && priv != -1)
     {
         priv = CR_DEFAULT;
         logline(ACLOG_INFO, "[%s] auth #%d succeeded as '%s' (%s ignored)", cl->gethostname(), id, cl->authname, privname(priv));
     }
     else
-        logline(ACLOG_INFO, "[%s] auth #%d succeeded for %s as '%s'", cl->gethostname(), id, privname(priv), cl->authname);
-    // remove temporary bans
-    if (priv)
+        logline(ACLOG_INFO, "[%s] auth #%d succeeded for %s as '%s'", cl->gethostname(), id, priv == -1 ? "named" : privname(priv), cl->authname);
+    sendf(NULL, 1, "ri4s", SV_AUTH_ACR_CHAL, 5, cl->clientnum, priv, cl->authname);
+    if (priv != -1)
+    {
+        // even CR_DEFAULT can bypass master bans
+        // remove temporary bans
         loopv(bans)
             if (bans[i].type == BAN_VOTE && bans[i].address.host == cl->peer->address.host)
                 bans.remove(i--);
-    sendf(NULL, 1, "ri3s", SV_AUTH_ACR_CHAL, 5, cl->clientnum, cl->authname);
-    if (priv)
-    {
-        cl->authpriv = clamp(priv, (int)CR_MASTER, (int)CR_MAX);
+        cl->authpriv = clamp(priv, (int)CR_DEFAULT, (int)CR_MAX);
         // setpriv(*cl, cl->authpriv);
         // unmute if auth has privilege
         // cl->muted = false;
     }
-    else cl->authpriv = CR_DEFAULT; // bypass master bans
     checkauthdisc(*cl); // can bypass passwords
 }
 
-void authchallenged(uint id, int nonce)
+void authchallenged(uint id, const char *chal)
 {
     client *cl = findauth(id);
     if(!cl) return;
-    sendf(cl, 1, "ri3", SV_AUTH_ACR_REQ, nonce, cl->authtoken);
-    logline(ACLOG_INFO, "[%s] auth #%d challenged by master", cl->gethostname(), id);
+    uchar buf[128] = { 0 };
+    loopi(128)
+    {
+        #define hex2char(c) (c > '9' ? c-'a'+10 : c-'0')
+        if(!chal[i << 1])
+            break;
+        buf[i] = hex2char(chal[i << 1]) << 4;
+        if(!chal[(i << 1) | 1])
+            break;
+        buf[i] |= hex2char(chal[(i << 1) | 1]);
+    }
+    sendf(cl, 1, "ri2m", SV_AUTH_ACR_REQ, cl->authtoken, 128, buf);
+    logline(ACLOG_INFO, "[%s] auth #%d challenged by master with", cl->gethostname(), id);
+    logline(ACLOG_DEBUG, "%s", chal);
 }
 
-bool answerchallenge(client &cl, unsigned char hash[20])
+bool answerchallenge(client &cl, unsigned char hash[32])
 {
     if (!isdedicated){ sendf(&cl, 1, "ri2", SV_AUTH_ACR_CHAL, 2); return false; }
     if (!cl.authreq) return false;
@@ -170,7 +181,7 @@ bool answerchallenge(client &cl, unsigned char hash[20])
     }
     authrequest &r = authrequests.add();
     r.id = cl.authreq;
-    memcpy(r.hash, hash, sizeof(unsigned char) * 20);
+    memcpy(r.hash, hash, sizeof(unsigned char) * 32);
     logline(ACLOG_INFO, "[%s] answers auth #%d", cl.gethostname(), r.id);
     sendf(&cl, 1, "ri2", SV_AUTH_ACR_CHAL, 4);
     return true;

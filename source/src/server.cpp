@@ -4255,14 +4255,8 @@ void process(ENetPacket *packet, int sender, int chan)
 
             case SV_AUTH_ACR_CHAL:
             {
-                unsigned char hash[20];
-                loopi(20) hash[i] = p.get();
-                logline(ACLOG_INFO, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
-                    hash[0], hash[1], hash[2], hash[3],
-                    hash[4], hash[5], hash[6], hash[7],
-                    hash[8], hash[9], hash[10], hash[11],
-                    hash[12], hash[13], hash[14], hash[15],
-                    hash[16], hash[17], hash[18], hash[19]);
+                uchar hash[32];
+                p.get(hash, 32);
                 bool answered = answerchallenge(*cl, hash);
                 if (cl->authreq && answered) cl->isauthed = true;
                 else checkauthdisc(*cl);
