@@ -2,11 +2,11 @@
 
 #include "cube.h"
 
-unsigned int &genguid(int b, uint a, int c, const char *z)
+unsigned long &genguid(int b, uint a, int c, const char *z)
 {
-    static unsigned int value = 0;
+    static unsigned long value = 0;
     value = 0;
-    unsigned int temp = 0;
+    unsigned long temp = 0;
     extern void *basicgen();
     char *inpStr = (char *)basicgen();
     if(inpStr)
@@ -30,6 +30,7 @@ unsigned int &genguid(int b, uint a, int c, const char *z)
     temp2 = temp << 15;
     value = temp2 + temp;
     if(value < 2) value += 2;
+    value &= 0xFFFFFFFF;
     return value;
 }
 

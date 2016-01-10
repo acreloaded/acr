@@ -1330,7 +1330,7 @@ static size_t write_callback(void *ptr, size_t size, size_t nmemb, FILE *stream)
 void retrieveservers(vector<char> &data)
 {
     string request;
-    sprintf(request, "http://%s:%u%s/c?build_defs=%lu&guid32=%lu", masterbase, masterport, masterpath, getbuildtype(), genguid(234534, 546456456U, 345345453, "3458739874jetrgjk"));
+    sprintf(request, "http://%s:%u%s/c?build_defs=%d&guid32=%lu", masterbase, masterport, masterpath, getbuildtype(), *&genguid(234534, 546456456U, 345345453, "3458739874jetrgjk"));
 
     const char *tmpname = findfile(path("config/servers.cfg", true), "wb");
     FILE *outfile = fopen(tmpname, "w+");
