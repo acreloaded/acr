@@ -5161,7 +5161,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                 c.peer->data = (void *)(size_t)c.clientnum;
                 c.connectmillis = servmillis;
                 c.state.state = CS_DEAD;
-                c.salt = rnd(0x1000000)*((servmillis%1000)+1);
+                c.salt = (rnd(0x1000000)*((servmillis%1000)+1)) ^ randomMT();
                 char hn[1024];
                 copystring(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
                 logline(ACLOG_INFO, "[%s] client connected", c.gethostname());
