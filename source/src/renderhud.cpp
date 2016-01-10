@@ -1954,6 +1954,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         draw_text(hudtext, 20, 1570);
     }
 
+    // +XP (Experience) indicator
     extern int lastexpadd, lastexptexttime;
     if (lastmillis <= lastexpadd + COMBOTIME)
     {
@@ -1962,12 +1963,42 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         const short a = (lastexpadd + COMBOTIME - lastmillis) * 255 / COMBOTIME;
         draw_text(scoreaddtxt, VIRTW * 11 / 20, VIRTH * 8 / 20, a, a, a, a);
     }
-
+    // Point reason text
     if (lastmillis <= lastexptexttime + COMBOTIME)
     {
         extern string lastexptext;
         const short a = (lastexptexttime + COMBOTIME - lastmillis) * 255 / COMBOTIME;
         draw_text(lastexptext, VIRTW * 11 / 20, VIRTH * 8 / 20 + FONTH, a, a, a, a);
+    }
+
+    // Grenade timer
+    if (focus->weaponsel == focus->weapons[GUN_GRENADE])
+    {
+        grenadeent *g = ((grenades *)focus->weapons[GUN_GRENADE])->inhandnade;
+        if(g)
+        {
+            const int ttl = g->millis - lastmillis + g->timetolive;
+            char ttl_txt[7];
+            ttl_txt[0] = '\f';
+            // We could make the colors based on minimum damage and current health
+            // but that would involve having to consider both the nade and the player moving.
+            // For the thrown nade timer, we assumed that the grenade is not moving.
+            ttl_txt[1] =
+                ttl >= 3000 ? '0' :
+                ttl >= 1000 ? '1' :
+                ttl >=  500 ? '2' :
+                ttl >=  200 ? '3' :
+                '7';
+            ttl_txt[6] = '\0';
+            div_t divresult = div(ttl / 10, 10);
+            ttl_txt[5] = divresult.rem + '0';
+            divresult = div(divresult.quot, 10);
+            ttl_txt[4] = divresult.rem + '0';
+            ttl_txt[3] = '.';
+            // Assume that ttl is 9999 or less
+            ttl_txt[2] = divresult.quot + '0';
+            draw_text(ttl_txt, (VIRTW - text_width(ttl_txt)) / 2 , VIRTH * 9 / 20);
+        }
     }
 
     //glLoadIdentity();
