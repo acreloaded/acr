@@ -638,6 +638,8 @@ void saycommand(char *init)                         // turns input to the comman
     DELETEA(cmdaction);
     DELETEA(cmdprompt);
     cmdline.pos = -1;
+
+    addmsg(SV_TYPING, "ri", saycommandon ? 1 : 0);
 }
 
 void inputcommand(char *init, char *action, char *prompt)

@@ -3643,6 +3643,15 @@ void process(ENetPacket *packet, int sender, int chan)
                 break;
             }
 
+            case SV_TYPING:
+            {
+                // FIXME: this is not totally reliable for clients connecting
+                // after this message has been sent
+                const int typing = getint(p);
+                sendf(NULL, 1, "ri3", SV_TYPING, sender, typing);
+                break;
+            }
+
             case SV_MAPIDENT:
             {
                 int gzs = getint(p);

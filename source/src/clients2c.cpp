@@ -444,6 +444,15 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 break;
             }
 
+            case SV_TYPING:
+            {
+                const int cn = getint(p), typing = getint(p);
+                playerent *d = getclient(cn);
+                if (d)
+                    d->typing = (typing != 0);
+                break;
+            }
+
             case SV_MAPCHANGE:
             {
                 // get map info

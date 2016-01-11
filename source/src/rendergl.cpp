@@ -406,14 +406,12 @@ void renderaboveheadicon(playerent *p)
     {
         eventicon *icon;
         if (p->icons.inrange(i)) icon = &p->icons[i];
-        /*
         else if (i == p->icons.length() && p->state != CS_DEAD && p->typing)
         {
             static eventicon icon_chat(eventicon::CHAT, 0);
             icon_chat.millis = lastmillis;
             icon = &icon_chat;
         }
-        */
         else continue;
         const int t = lastmillis - icon->millis;
         if (icon->type < 0 || icon->type >= eventicon::TOTAL || t > aboveheadiconfadetime)

@@ -618,7 +618,7 @@ public:
     int pointstreak, deathstreak, airstrikes, radarearned, nukemillis;
     int lastaction, lastmove, lastpain, lasthit, lastkiller;
     int clientrole, vote;
-    bool attacking;
+    bool attacking, typing;
     string name;
     int team, build;
     int weaponchanging;
@@ -657,6 +657,7 @@ public:
                   frags(0), assists(0), flagscore(0), deaths(0), points(0), rank(0),
                   pointstreak(0), deathstreak(0), airstrikes(0), radarearned(0), nukemillis(0),
                   lastpain(0), lasthit(0), lastkiller(-1), clientrole(CR_DEFAULT), vote(VOTE_NEUTRAL),
+                  typing(false),
                   team(TEAM_SPECT), build(0), spectatemode(SM_NONE), thirdperson(0), eardamagemillis(0), respawnoffset(0),
                   prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), lastattackweapon(NULL),
                   smoothmillis(-1),
