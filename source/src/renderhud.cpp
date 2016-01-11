@@ -1582,11 +1582,14 @@ void drawwaypoints()
                     // very likely lethal
                 };
 
+                extern bool IsVisible(vec v1, vec v2, dynent *tracer = NULL, bool SkipTags = false);
+                const bool visible = IsVisible(focus->o, b->o);
+
                 const char dcol =
-                    damage <=          5 ? '0' :
-                    damage <= damages[0] ? '1' :
-                    damage <= damages[1] ? '2' :
-                    damage <= damages[2] ? '3' :
+                    damage <=          5 ? visible ? '0' : 'm' :
+                    damage <= damages[0] ? visible ? '1' : 'o' :
+                    damage <= damages[1] ? visible ? '2' : '9' :
+                    damage <= damages[2] ? visible ? '3' : '7' :
                         '7',
                     dcol_min =
                         min_damage <=          5 ? dcol == '0' ? '0' : 'm' :
