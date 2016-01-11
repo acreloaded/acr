@@ -287,7 +287,13 @@ int renderteamscore(teamsum &t)
 
     static color teamcolors[4] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f), color(.4f, .4f, .4f, .3f), color(.8f, .8f, .8f, .4f) };
     line.bgcolor = &teamcolors[t.team == TEAM_SPECT ? 2 : m_team(gamemode, mutators) ? team_base(t.team) : 3];
-    loopv(t.teammembers) renderscore(t.teammembers[i]);
+    loopv(t.teammembers)
+    {
+        // Hide dead AI zombies
+        if (m_zombie(gamemode) && t.teammembers[i]->team == TEAM_CLA && t.teammembers[i]->ownernum >= 0 && t.teammembers[i]->state == CS_DEAD)
+            continue;
+        renderscore(t.teammembers[i]);
+    }
     return n;
 }
 
