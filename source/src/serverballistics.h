@@ -191,15 +191,34 @@ int explosion(client &owner, const vec &o2, int weap, bool teamcheck, bool gib, 
     sendhit(owner, weap, o, 0); // 0 means display explosion
     // these are our hits
     vector<explosivehit> hits;
+
+    client *own_alt = NULL;
     // give credits to the shooter for killing the zombie!
+    if (m_zombie(gamemode) && owner.team == TEAM_CLA && owner.state.revengelog.length() && valid_client(owner.state.revengelog.last()))
+    {
+        own_alt = clients[owner.state.revengelog.last()];
+        if (own_alt->team != TEAM_RVSF)
+            own_alt = NULL;
+    }
+    // suicide bomber's killer
+    else if (weap == GUN_GRENADE && cflag && !isteam(cflag, &owner))
+        own_alt = cflag;
+
     // find the hits
     loopv(clients)
     {
         client &target = *clients[i];
         if (target.type == ST_EMPTY || target.state.state != CS_ALIVE ||
-            target.state.protect(gamemillis, gamemode, mutators) ||
-            (&owner != &target && teamcheck && isteam(&owner, &target))) continue;
-        damagedealt += radialeffect((weap == GUN_GRENADE && cflag && cflag != &target) ? *cflag : owner, target, hits, o, weap, gib, (weap == GUN_RPG && clients[i] == cflag));
+            target.state.protect(gamemillis, gamemode, mutators)) continue;
+        client *own = &owner;
+        if (&owner != &target && isteam(&owner, &target))
+        {
+            if (own_alt)
+                own = own_alt;
+            else if (teamcheck)
+                continue;
+        }
+        damagedealt += radialeffect(*own, target, hits, o, weap, gib, (weap == GUN_RPG && clients[i] == cflag));
     }
     if (m_overload(gamemode) && team_isactive(owner.team))
     {
