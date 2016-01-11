@@ -163,7 +163,7 @@ int radialeffect(client &owner, client &target, vector<explosivehit> &hits, cons
         dmg *= 1.4f;
     }
     // did the nade headshot?
-    if (weap == GUN_GRENADE && owner.clientnum != target.clientnum && o.z > hit_location2.z)
+    if (weap == GUN_GRENADE && &owner != &target && o.z > hit_location2.z)
     {
         expflags |= FRAG_FLAG;
         sendheadshot(o, (hit_location = hit_location2), dmg);
@@ -259,9 +259,14 @@ struct nukehit
 
     static int compare(nukehit *a, nukehit *b)
     {
-        if (a->distance < b->distance) return -1; // less distance, deal it faster
-        if (a->distance > b->distance) return 1; // more distance, deal it slower
-        return 0; // same?
+        // less distance, so do it earlier
+        if (a->distance < b->distance)
+            return -1;
+        // more distance, so do it later
+        if (a->distance > b->distance)
+            return 1;
+        // same
+        return 0;
     }
 };
 
@@ -276,7 +281,7 @@ void nuke(client &owner, bool suicide, bool forced_all, bool friendly_fire)
             // sort hits
             nukehit &hit = hits.add();
             hit.distance = cl->state.o.dist(owner.state.o);
-            if (cl->type != ST_AI) hit.distance += 25 * CUBES_PER_METER; // to prioritize non-bots
+            if (cl->type == ST_AI) hit.distance += 25 * CUBES_PER_METER; // to prioritize non-bots
             hit.target = cl;
         }
     }

@@ -1407,7 +1407,24 @@ void arenanext(bool forcespawn = true)
         clients[i]->removeexplosives();
 
         if (clients[i]->isonrightmap && team_isactive(clients[i]->team))
-            sendspawn(*clients[i]);
+        {
+            clientstate &cs = clients[i]->state;
+            if (forcespawn || cs.state == CS_DEAD)
+            {
+                cs.lastdeath = 1;
+                sendspawn(*clients[i]);
+            }
+            // Refill humans' health/ammo for the next zombie round
+            else if (m_progressive(gamemode, mutators) && clients[i]->team == TEAM_RVSF)
+            {
+                if (cs.canpickup(I_HEALTH, false))
+                    cs.pickup(I_HEALTH);
+                sendf(NULL, 1, "ri3", SV_REGEN, i, cs.health);
+                if (cs.canpickup(I_AMMO, false))
+                    cs.pickup(I_AMMO);
+                sendf(NULL, 1, "ri5", SV_RELOAD, i, cs.primary, cs.mag[cs.primary], cs.ammo[cs.primary]);
+            }
+        }
     }
     nokills = true;
 }
@@ -1464,7 +1481,7 @@ void arenacheck()
         checkai(); // progressive zombies
         // convertcheck();
         sendf(NULL, 1, "ri2", SV_ZOMBIESWIN, (progressiveround << 1) | (humanswin ? 1 : 0));
-        loopv(clients) if (clients[i]->type != ST_EMPTY && clients[i]->isauthed && clients[i]->team != TEAM_SPECT)
+        loopv(clients) if (clients[i]->type != ST_EMPTY && clients[i]->isauthed && !team_isspect(clients[i]->team))
         {
             if (clients[i]->team == TEAM_CLA || progressiveround == MAXZOMBIEROUND)
             {
@@ -3210,8 +3227,17 @@ void sendwelcome(client &cl, int chan)
 void forcedeath(client &cl)
 {
     sdropflag(cl.clientnum);
-    cl.state.state = CS_DEAD;
-    cl.state.respawn();
+    clientstate &cs = cl.state;
+    cs.state = CS_DEAD;
+    cs.respawn();
+    cs.lastspawn = -1;
+    cs.lastdeath = gamemillis;
+    if (cs.nukemillis)
+    {
+        // nuke cancelled!
+        cs.nukemillis = 0;
+        sendf(NULL, 1, "ri4", SV_STREAKUSE, cl.clientnum, STREAK_NUKE, -2);
+    }
     sendf(NULL, 1, "ri2", SV_FORCEDEATH, cl.clientnum);
 }
 

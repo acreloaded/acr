@@ -823,7 +823,7 @@ bool grenades::attack(vec &targ)
 {
     int attackmillis = lastmillis-owner->lastaction;
 
-    bool quickwait = attackmillis*3>=gunwait && !(m_duke(gamemode, mutators) && m_team(gamemode, mutators) && arenaintermission);
+    bool quickwait = attackmillis*3>=gunwait && !(m_survivor(gamemode, mutators) && m_team(gamemode, mutators) && arenaintermission);
     bool waitdone = attackmillis>=gunwait && quickwait;
     if(waitdone) gunwait = reloading = 0;
 
@@ -1447,7 +1447,7 @@ bool knife::attack(vec &targ)
     int attackmillis = lastmillis-owner->lastaction - gunwait;
     if (owner->scoping || state)
     {
-        const bool quickwait = attackmillis*3>=gunwait && !(m_duke(gamemode, mutators) && m_team(gamemode, mutators) && arenaintermission);
+        const bool quickwait = attackmillis*3>=gunwait && !(m_survivor(gamemode, mutators) && m_team(gamemode, mutators) && arenaintermission);
         const bool waitdone = attackmillis + gunwait >= 500 && quickwait;
         switch (state)
         {
