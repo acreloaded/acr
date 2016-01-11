@@ -91,6 +91,8 @@ void drawvoteicon(float x, float y, int col, int row, bool noblend)
 }
 
 VARP(crosshairsize, 0, 15, 50);
+VARP(crosshairreddotsize, 0, 0, 50);
+VARP(crosshairreddottreshold, 0, 750, 1000);
 VARP(showstats, 0, 1, 2);
 VARP(crosshairfx, 0, 1, 1);
 VARP(crosshairteamsign, 0, 1, 1);
@@ -1916,8 +1918,25 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     drawwaypoints();
 
-    // TODO: fake red dot (could go here)
+    // fake red dot
     // real red dot would be rendered elsewhere
+    if (crosshairreddotsize && (int)(focus->zoomed * 1000) >= crosshairreddottreshold)
+    {
+        glColor4f(1, 1, 1, focus->zoomed * focus->zoomed);
+        Texture *ch = crosshairs[CROSSHAIR_REDDOT];
+        if (!ch) ch = textureload("packages/crosshairs/red_dot.png", 3);
+        if (ch->bpp == 32) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        else glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+        glBindTexture(GL_TEXTURE_2D, ch->id);
+        glBegin(GL_QUADS);
+        const float hitsize = crosshairreddotsize * 2;
+        glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 - hitsize, VIRTH / 2 - hitsize);
+        glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 + hitsize, VIRTH / 2 - hitsize);
+        glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 + hitsize, VIRTH / 2 + hitsize);
+        glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 - hitsize, VIRTH / 2 + hitsize);
+        glEnd();
+    }
 
     if (!isthirdperson)
         draweventicons();

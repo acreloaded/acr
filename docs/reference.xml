@@ -5633,6 +5633,21 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="http://as
           <value token="B" description="Turns the effects on (1) or off (0)" minValue="0" maxValue="1" defaultValue="1"/>
         </variable>
 
+        <variable name="crosshairreddotsize">
+          <description>Sets the size of the fake red dot.</description>
+          <remarks>
+            <remark>
+            The fake red dot is turned off entirely if the size is set to 0.
+            </remark>
+          </remarks>
+          <value token="N" description="the crosshair size" minValue="0" maxValue="50" defaultValue="0"/>
+        </variable>
+
+        <variable name="crosshairreddottreshold">
+          <description>Sets the zoom threshold for the red dot.</description>
+          <value token="N" description="the crosshair size" minValue="0" maxValue="1000" defaultValue="750"/>
+        </variable>
+
         <variable name="nosway">
           <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
         </variable>
