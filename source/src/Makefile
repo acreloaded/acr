@@ -27,7 +27,7 @@ endif
 PLATFORM= $(shell uname -s)
 PLATFORM_PREFIX=native
 
-INCLUDES= -I. -Ibot -I/usr/include/enet/include
+INCLUDES= -I. -Ibot -I../enet/include
 
 STRIP=
 ifeq (,$(findstring -g,$(CXXFLAGS)))
@@ -39,13 +39,13 @@ endif
 MV=mv
 ifneq (,$(findstring MINGW,$(PLATFORM)))
 WINDRES= windres
-CLIENT_INCLUDES= $(INCLUDES)
-CLIENT_LIBS= -L/usr/lib -lmingw32 -lSDLmain -lSDL -lSDL_image -lzdll -lopengl32 -lenet -lOpenAL32 -llibvorbisfile -llibintl -lcurldll 
+CLIENT_INCLUDES= $(INCLUDES) -I../include
+CLIENT_LIBS= -mwindows -L../lib -lmingw32 -lSDLmain -lSDL -lSDL_image -lzdll -lopengl32 -lenet -lOpenAL32 -llibvorbisfile -llibintl -lcurldll -lws2_32 -lwinmm 
 else
 USRLIB=$(shell if [ -e /usr/lib64 ]; then echo "/usr/lib64"; else echo "/usr/lib"; fi)
 #override CXXFLAGS+= -rdynamic  # clang++ doesn't use this...
 CLIENT_INCLUDES= $(INCLUDES) -I/usr/include `sdl-config --cflags` -idirafter ../include
-CLIENT_LIBS= -lenet -L$(USRLIB) -lX11 `sdl-config --libs` -lSDL_image -lz -lGL -lopenal -lvorbisfile -lcurl
+CLIENT_LIBS= -L../enet/.libs -lenet -L$(USRLIB) -lX11 `sdl-config --libs` -lSDL_image -lz -lGL -lopenal -lvorbisfile -lcurl
 endif
 
 CLIENT_OBJS= \
@@ -107,10 +107,10 @@ CLIENT_PCH= cube.h.gch
 
 ifneq (,$(findstring MINGW,$(PLATFORM)))
 SERVER_INCLUDES= -DSTANDALONE $(INCLUDES) -I../include
-SERVER_LIBS= -L/usr/lib -lzdll -lenet -llibintl -lws2_32 -lwinmm
+SERVER_LIBS= -L../lib -lzdll -lenet -llibintl -lws2_32 -lwinmm
 else
 SERVER_INCLUDES= -DSTANDALONE $(INCLUDES)
-SERVER_LIBS= -L/usr/lib -lenet -lz
+SERVER_LIBS= -L../enet/.libs -lenet -lz
 endif
 
 SERVER_OBJS= \
@@ -137,8 +137,18 @@ default: all
 
 all: client server
 
+../enet/Makefile:
+	cd ../enet; ./configure --enable-shared=no --enable-static=yes
+
+libenet: ../enet/Makefile
+	-$(MAKE) -C ../enet all
+
+clean-enet: ../enet/Makefile
+	$(MAKE) -C ../enet/ clean
+
 clean:
 	-$(RM) $(CLIENT_PCH) $(CLIENT_OBJS) $(SERVER_OBJS) $(MASTER_OBJS) ac_client ac_server ac_master
+#	-$(MAKE) -C ../enet/ clean
 
 %.h.gch: %.h
 	$(CXX) $(CXXFLAGS) -o $@.tmp $(subst .h.gch,.h,$@)
@@ -167,12 +177,12 @@ client_install: client
 server_install: server
 
 else
-client: $(CLIENT_OBJS)
+client: libenet $(CLIENT_OBJS)
 	$(CXX) $(CXXFLAGS) -o ac_client $(CLIENT_OBJS) $(CLIENT_LIBS)
 
-server: $(SERVER_OBJS)
+server: libenet $(SERVER_OBJS)
 	$(CXX) $(CXXFLAGS) -o ac_server $(SERVER_OBJS) $(SERVER_LIBS)
-master: $(MASTER_OBJS)
+master: libenet $(MASTER_OBJS)
 	$(CXX) $(CXXFLAGS) -o ac_master $(MASTER_OBJS) $(SERVER_LIBS)
 
 client_install: client
