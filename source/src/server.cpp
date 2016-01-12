@@ -4065,10 +4065,10 @@ void process(ENetPacket *packet, int sender, int chan)
                 int newy = getuint(p);
                 int newp = getint(p);
                 int newg = getuint(p);
-                if ((newg >> 0) & 1) getint(p); // roll
-                if ((newg >> 1) & 1) dvel.x = getint(p) / DVELF;
-                if ((newg >> 2) & 1) dvel.y = getint(p) / DVELF;
-                if ((newg >> 3) & 1) dvel.z = getint(p) / DVELF;
+                if ((newg >> 3) & 1) getint(p); // roll
+                if ((newg >> 0) & 1) dvel.x = getint(p) / DVELF;
+                if ((newg >> 1) & 1) dvel.y = getint(p) / DVELF;
+                if ((newg >> 2) & 1) dvel.z = getint(p) / DVELF;
                 int newf = getuint(p);
                 if(!valid_client(cn)) break;
                 client &cp = *clients[cn];
@@ -4117,6 +4117,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 if(negz) zt = -zt;
                 int g1 = q.getbits(1); // scoping
                 int g2 = q.getbits(1); // shooting
+                q.getbits(1); // sprinting
                 const int newg = (g1<<4) | (g2<<5);
                 if(!broadcast) break;
                 client &cp = *clients[cn];
