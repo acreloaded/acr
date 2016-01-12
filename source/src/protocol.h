@@ -6,7 +6,7 @@
 #define CUBE_SERVINFO_PORT_LAN 28778
 #define CUBE_SERVINFO_PORT(serverport) (serverport+1)
 #define CUBE_SERVINFO_TO_SERV_PORT(servinfoport) (servinfoport-1)
-#define PROTOCOL_VERSION 139            // bump when protocol changes (use negative numbers for mods!)
+#define PROTOCOL_VERSION 140            // bump when protocol changes (use negative numbers for mods!)
 #define DEMO_VERSION 2                  // bump when demo format changes
 #define DEMO_MAGIC "ACR_REPLAY_FILE!"
 #define DEMO_MINTIME 10000              // don't keep demo recordings with less than 10 seconds

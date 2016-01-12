@@ -937,7 +937,7 @@ bool havecurl = false, canceldownloads = false;
 
 void setupcurl()
 {
-    if(curl_global_init(CURL_GLOBAL_NOTHING)) conoutf(_("\f3could not init cURL, content downloads not available"));
+    if(curl_global_init(CURL_GLOBAL_NOTHING)) conoutf(_("%c3could not init cURL, content downloads not available"), CC);
     else
     {
         havecurl = true;
@@ -1044,7 +1044,7 @@ int processdownload(package *pck)
                 const char *pckname = findfile(path(pck->name, true), "w+");
                 preparedir(pckname);
                 // with textures/sounds, the image/audio file itself is sent. Just need to copy it from the temporary file
-                if(!copyfile(tmpname, pckname)) conoutf(_("\f3failed to install"), pckname);
+                if(!copyfile(tmpname, pckname)) conoutf(_("%c3failed to install %s"), CC, pckname);
                 break;
             }
 
@@ -1110,14 +1110,14 @@ double dlpackage(package *pck)
     {
         // mark source unresponsive
         pck->source->responsive = false;
-        conoutf(_("\f3could not connect to %s"), pck->source->addr);
+        conoutf(_("%c3could not connect to %s"), CC, pck->source->addr);
 
         // try to find another source
         pckserver *source = NULL;
         loopv(pckservers) if(pckservers[i]->responsive) { source = pckservers[i]; break; }
         if(!source)
         {
-            conoutf(_("\f3no more servers to connect to"));
+            conoutf(_("%c3no more servers to connect to"), CC);
             canceldownloads = true;
             return 0;
         }
@@ -1133,8 +1133,8 @@ double dlpackage(package *pck)
         return dlpackage(pck); // retry current
     }
     if(!result && httpresult == 200) processdownload(pck);
-    else if(result == CURLE_ABORTED_BY_CALLBACK) conoutf(_("\f3download cancelled"));
-    else conoutf(_("\f2request for %s failed (cURL %d, HTTP %d)"), req, result, httpresult);
+    else if(result == CURLE_ABORTED_BY_CALLBACK) conoutf(_("%c3download cancelled"), CC);
+    else conoutf(_("%c2request for %s failed (cURL %d, HTTP %d)"), CC, req, result, httpresult);
     return (!result && httpresult == 200) ? dlsize : 0;
 }
 
@@ -1176,7 +1176,7 @@ bool requirepackage(int type, const char *path)
     loopv(pckservers) if(pckservers[i]->responsive) { pck->source = pckservers[i]; break; }
     if(!pck->source)
     {
-        conoutf(_("\f3no responsive source server found, can't download"));
+        conoutf(_("%c3no responsive source server found, can't download"), CC);
         delete pck;
         return false;
     }
