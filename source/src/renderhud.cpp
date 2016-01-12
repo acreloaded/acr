@@ -1548,8 +1548,10 @@ void drawwaypoints()
             if (flags & W2S_OUT_INVALID)
                 continue;
 
+            // Grenade/knife marker
             drawwaypoint(b->bouncetype == BT_NADE ? WP_EXP : WP_KNIFE, pos, flags);
 
+            // Grenade info
             if (b->bouncetype == BT_NADE)
             {
                 vec unitv = focus->o;
@@ -1619,10 +1621,12 @@ void drawwaypoints()
                           max_width = max(width1, width2);
 
                 pos.y += FONTH / (float)VIRTH;
-                waypoint_adjust_pos(pos, max_width, FONTH * 2, flags & W2S_OUT_BEHIND);
+                int alpha = visible ? 255 : 90; // 35% for invisible nades
+                if(waypoint_adjust_pos(pos, max_width, FONTH * 2, flags & W2S_OUT_BEHIND))
+                    alpha -= 63; // -25% if off screen
 
-                draw_text(nadetimertext, pos.x + (max_width-width1)/2, pos.y);
-                draw_text(nadedmgtext, pos.x + (max_width-width2)/2, pos.y + FONTH);
+                draw_text(nadetimertext, pos.x + (max_width-width1)/2, pos.y, 255, 255, 255, alpha);
+                draw_text(nadedmgtext, pos.x + (max_width-width2)/2, pos.y + FONTH, 255, 255, 255, alpha);
             }
         }
     // flags
