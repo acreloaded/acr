@@ -482,7 +482,7 @@ void checkpings()
                 break;
         }
         si->protocol = getint(p);
-        if(si->protocol!=PROTOCOL_VERSION) si->ping = 9998;
+        //if(si->protocol!=PROTOCOL_VERSION) si->ping = 9998; // use weights instead
         si->mode = getint(p);
         si->muts = getint(p);
         si->numplayers = getint(p);
@@ -672,8 +672,8 @@ void serversortprepare()
     loopv(servers)
     {
         serverinfo &si = *servers[i];
-        // basic group weights: used(700) - empty(500) - unusable(200)
-        if(si.protocol != PROTOCOL_VERSION) si.weight += 200;
+        // basic group weights: used(700) - empty(500) - usable(200) - unusable(100)
+        if(si.protocol != PROTOCOL_VERSION) si.weight += (si.protocol == -PROTOCOL_VERSION ? 200 : 100);
         else if(!si.numplayers) si.weight += 500;
         else
         {
