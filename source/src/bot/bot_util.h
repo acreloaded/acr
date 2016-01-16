@@ -476,7 +476,7 @@ template <class C> class TMultiChoice
           int MinVal;
           int MaxVal;
           C Choice;
-          SMultiChoice(void) : MinVal(0), MaxVal(0){};
+          SMultiChoice(int MinVal, int MaxVal, C Choice) : MinVal(MinVal), MaxVal(MaxVal), Choice(Choice) {};
      };
 
      int TotalVal;
@@ -507,11 +507,7 @@ public:
           if (Percent == 0)
                return;
 
-          SMultiChoice *pChoiceEntry = new SMultiChoice;
-
-          pChoiceEntry->MinVal = TotalVal;
-          pChoiceEntry->MaxVal = TotalVal + Percent;
-          pChoiceEntry->Choice = Choice;
+          SMultiChoice *pChoiceEntry = new SMultiChoice(TotalVal, TotalVal + Percent, Choice);
 
           pChoiceList->AddNode(pChoiceEntry);
 

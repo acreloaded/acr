@@ -507,8 +507,6 @@ struct sflaginfo
     int stolentime;
     int damage, damagetime;
     short x, y;          // flag entity location
-
-    sflaginfo() { actor_cn = -1; }
 } sflaginfos[2];
 
 struct ssecure
