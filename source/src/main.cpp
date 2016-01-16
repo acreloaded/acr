@@ -42,7 +42,6 @@ void quit()                     // normal exit
     exit(EXIT_SUCCESS);
 }
 
-// coverity[+kill]
 void fatal(const char *s, ...)    // failure exit
 {
     static int errors = 0;

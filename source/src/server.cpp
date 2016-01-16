@@ -5524,7 +5524,6 @@ void initserver(bool dedicated, int argc, char **argv)
 #ifdef STANDALONE
 
 void localservertoclient(int chan, uchar *buf, int len, bool demo) {}
-// coverity[+kill]
 void fatal(const char *s, ...)
 {
     defvformatstring(msg,s,s);
