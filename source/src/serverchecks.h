@@ -324,6 +324,7 @@ void check_afk()
     {
         client &c = *clients[i];
         if ( c.type != ST_TCPIP || c.connectmillis + 60 * 1000 > servmillis ||
+             team_isspect(c.team) ||
              c.inputmillis + scl.afk_limit > servmillis || clienthasflag(c.clientnum) != -1 ) continue;
         if ( ( c.state.state == CS_DEAD && !m_duke(gamemode, mutators) && c.state.lastdeath + 45 * 1000 < gamemillis) ||
              ( c.state.state == CS_ALIVE ) /*||
