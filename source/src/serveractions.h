@@ -406,17 +406,14 @@ struct cleardemosaction : serveraction
 
 struct serverdescaction : serveraction
 {
-    char *sdesc;
-    int cn;
-    ENetAddress address;
-    void perform() { updatesdesc(sdesc, &address); }
-    bool isvalid() { return serveraction::isvalid() && updatedescallowed() && valid_client(cn); }
-    serverdescaction(char *sdesc, int cn) : sdesc(sdesc), cn(cn)
+    const char *sdesc;
+    void perform() { updatesdesc(sdesc); }
+    bool isvalid() { return serveraction::isvalid() && updatedescallowed(); }
+    serverdescaction(const char *sdesc) : sdesc(newstring(sdesc))
     {
         area = EE_DED_SERV; // dedicated only
         reqcall = roleconf('D');
         formatstring(desc)("set server description to '%s'", sdesc);
-        if(isvalid()) address = clients[cn]->peer->address;
     }
     ~serverdescaction() { DELETEA(sdesc); }
 };

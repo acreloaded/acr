@@ -52,7 +52,6 @@ long int incoming_size = 0;
 static bool forceintermission = false, nokills = false;
 
 string servdesc_current;
-ENetAddress servdesc_caller;
 bool custom_servdesc = false;
 
 // current game
@@ -2124,7 +2123,7 @@ void serverdamage(client &target_, client &actor, int damage, int gun, int style
 
 bool updatedescallowed(void) { return scl.servdesc_pre[0] || scl.servdesc_suf[0]; }
 
-void updatesdesc(const char *newdesc, ENetAddress *caller = NULL)
+void updatesdesc(const char *newdesc)
 {
     if(!newdesc || !newdesc[0] || !updatedescallowed())
     {
@@ -2135,7 +2134,6 @@ void updatesdesc(const char *newdesc, ENetAddress *caller = NULL)
     {
         formatstring(servdesc_current)("%s%s%s", scl.servdesc_pre, newdesc, scl.servdesc_suf);
         custom_servdesc = true;
-        if(caller) servdesc_caller = *caller;
     }
 }
 
@@ -4422,7 +4420,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     case SA_SERVERDESC:
                         getstring(text, p);
                         filtertext(text, text);
-                        vi->action = new serverdescaction(newstring(text), sender);
+                        vi->action = new serverdescaction(text);
                         break;
                     case SA_SHUFFLETEAMS:
                         vi->action = new shuffleteamaction();
