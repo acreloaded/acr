@@ -1424,6 +1424,8 @@ void gmenu::render()
             footlen = 0;
             if(text_width(footer)>w)
             {
+                /*
+                // AC's implementation
                 int tflo = 0;
                 int cflw = 0;
                 unsigned int cflc = 0;
@@ -1451,6 +1453,36 @@ void gmenu::render()
                         tflo = cflc-1;
                         footlen++;
                     }
+                }
+                */
+                const char *p = footer;
+                for (;;)
+                {
+                    string curline;
+                    copystring(curline, p);
+
+                    int curlen = min(strlen(p)+1, (size_t)MAXSTRLEN);
+                    while (--curlen)
+                    {
+                        curline[curlen] = '\0';
+
+                        if (text_width(curline) <= w)
+                            break;
+                    }
+
+                    ++footlen;
+
+                    // force the line to be drawn
+                    if (!curlen)
+                    {
+                        draw_text(p, x, y);
+                        break;
+                    }
+
+                    draw_text(curline, x, y);
+
+                    p += curlen;
+                    y += step;
                 }
             }
             else draw_text(footer, x, y);
