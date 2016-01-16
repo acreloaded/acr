@@ -1109,7 +1109,11 @@ struct servercommandline
             {
                 serverconfigfile cfg;
                 cfg.init(a);
-                cfg.load();
+                if (!cfg.load())
+                {
+                    printf("failed to load config file '%s'\n", a);
+                    break;
+                }
                 int line = 1;
                 clfilenesting++;
                 if(cfg.buf)
