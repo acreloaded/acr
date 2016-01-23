@@ -2978,12 +2978,17 @@ void disconnect_client(client &c, int reason)
     c.peer->data = (void *)-1;
     if(reason>=0) enet_peer_disconnect(c.peer, reason);
     sendf(NULL, 1, "ri3", SV_CDIS, c.clientnum, max(reason, 0));
-    if(curvote) curvote->evaluate();
     // do cleanup
     clientdisconnect(c);
     extern void freeconnectcheck(int cn);
     freeconnectcheck(c.clientnum); // disconnect - ms check is void
     if(*scoresaved && mastermode == MM_MATCH) senddisconnectedscores();
+    if(curvote)
+    {
+        if(curvote->owner == c.clientnum)
+            curvote->owner = -1;
+        curvote->evaluate();
+    }
     checkai(); // disconnect
     convertcheck();
 }
