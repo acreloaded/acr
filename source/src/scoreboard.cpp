@@ -188,7 +188,10 @@ VARP(cncolumncolor, 0, 5, 9);
 void renderscore(playerent *d)
 {
     string lagping, name;
-    static color localplayerc(0.2f, 0.2f, 0.2f, 0.2f), damagedplayerc(0.4f, 0.1f, 0.1f, 0.3f), damagingplayerc(0.1f, 0.1f, 0.4f, 0.3f);
+    static color localplayerc(0.2f, 0.2f, 0.2f, 0.2f),
+        damagedplayerc(0.4f, 0.1f, 0.1f, 0.3f),
+        damagingplayerc(0.1f, 0.1f, 0.4f, 0.3f),
+        regenplayerc(0.1f, 0.4f, 0.1f, 0.3f);
 
     if (team_isspect(d->team)) copystring(lagping, colorping(d->ping));
     else if (d->state == CS_WAITING || (d->ping > 999 && d->plag > 99)) formatstring(lagping)("LAG/%s", colorpj(d->plag), colorping(d->ping));
@@ -228,7 +231,11 @@ void renderscore(playerent *d)
     const char *ign = d->ignored ? " (ignored)" : (d->muted ? " (muted)" : "");
     sline &line = scorelines.add();
     if(team_isspect(d->team)) line.textcolor = '4';
-    line.bgcolor = d->lastpain + 500 > lastmillis ? &damagedplayerc : d->lasthit + 500 > lastmillis ? &damagingplayerc : d == player1 ? &localplayerc : NULL;
+    line.bgcolor = d->lastpain + 500 > lastmillis ? &damagedplayerc :
+        d->lasthit + 500 > lastmillis ? &damagingplayerc :
+        d->lastregen + 500 > lastmillis ? &regenplayerc :
+        d == player1 ? &localplayerc :
+        NULL;
 
     if(m_flags(gamemode)) line.addcol(sc_flags, "%d", d->flagscore);
     line.addcol(sc_frags, "%d", d->frags);
