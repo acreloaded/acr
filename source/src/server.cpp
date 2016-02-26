@@ -2696,8 +2696,10 @@ struct voteinfo
     void end(int result, int veto)
     {
         if(action && !action->isvalid()) result = VOTE_NO; // don't perform() invalid votes
-        if (valid_client(veto)) logline(ACLOG_INFO, "[%s] vote %s, forced by %s (%d)", clients[owner]->gethostname(), result == VOTE_YES ? "passed" : "failed", clients[veto]->formatname(), veto);
-        else logline(ACLOG_INFO, "[%s] vote %s (%s)", clients[owner]->gethostname(), result == VOTE_YES ? "passed" : "failed", veto == -2 ? "enough votes" : veto == -3 ? "expiry" : "unknown");
+        const char *owner_hostname = valid_client(owner) ? clients[owner]->gethostname() : "unknown";
+        const char *result_str = result == VOTE_YES ? "passed" : "failed";
+        if (valid_client(veto)) logline(ACLOG_INFO, "[%s] vote %s, forced by %s (%d)", owner_hostname, result_str, clients[veto]->formatname(), veto);
+        else logline(ACLOG_INFO, "[%s] vote %s (%s)", owner_hostname, result_str, veto == -2 ? "enough votes" : veto == -3 ? "expiry" : "unknown");
         sendf(NULL, 1, "ri3", SV_VOTERESULT, result, veto);
         this->result = result;
         if(result == VOTE_YES)
