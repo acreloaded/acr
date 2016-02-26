@@ -4303,7 +4303,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 else
                 {
                     setpriv(*cl, pd.priv);
-                    if (pd.line >= 0) logline(ACLOG_INFO, "[%s] %s used %s password on line %d", cl->gethostname(), cl->formatname(), privname(pd.priv), pd.line);
+                    if (pd.line >= 0) logline(ACLOG_INFO, "[%s] %s used %s password on line %d", cl->gethostname(), cl->formatname(), privname(pd.priv, true), pd.line);
                 }
                 break;
             }

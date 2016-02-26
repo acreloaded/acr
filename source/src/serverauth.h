@@ -130,7 +130,7 @@ void authsucceeded(uint id, int priv, const char *name)
         logline(ACLOG_INFO, "[%s] auth #%d succeeded as '%s' (%s ignored)", cl->gethostname(), id, cl->authname, privname(priv));
     }
     else
-        logline(ACLOG_INFO, "[%s] auth #%d succeeded for %s as '%s'", cl->gethostname(), id, priv < 0 ? "name-only" : privname(priv), cl->authname);
+        logline(ACLOG_INFO, "[%s] auth #%d succeeded for %s as '%s'", cl->gethostname(), id, privname(priv, true), cl->authname);
     sendf(NULL, 1, "ri4s", SV_AUTH_ACR_CHAL, 5, cl->clientnum, priv, cl->authname);
     if (priv < 0)
     {

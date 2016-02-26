@@ -1588,7 +1588,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                         d->build |= 0x02;
                         const char *privn, privc = privcolor(priv);
                         if(priv >= CR_DEFAULT && priv <= CR_MAX)
-                            privn = privname(priv);
+                            privn = privname(priv, true);
                         else
                             privn = "name-only";
                         conoutf("%s \f1identified \f0as \f2'\f9%s\f2' \f4for \f%c%s", d == player1 ? "you are" : colorname(d), text, privc, privn);

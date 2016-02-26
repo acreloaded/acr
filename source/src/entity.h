@@ -168,16 +168,16 @@ static inline const char privcolor(int priv, bool dead = false)
     return '5';
 }
 
-static inline const char *privname(int priv)
+static inline const char *privname(int priv, bool auth = false)
 {
     switch (priv)
     {
-        case CR_DEFAULT: return "deban";
+        case CR_DEFAULT: return auth ? "deban" : "user";
         case CR_MASTER: return "master";
         case CR_ADMIN: return "admin";
         case CR_MAX: return "highest";
     }
-    return "unknown";
+    return auth ? "name-only" : "unknown";
 }
 
 class worldobject

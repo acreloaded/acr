@@ -776,7 +776,7 @@ struct serverpasswords : serverconfigfile
                     c.line = line;
                     c.priv = par[0];
                     adminpwds.add(c);
-                    logline(ACLOG_VERBOSE,"line%4d: %s %s", c.line, hiddenpwd(c.pwd), privname(c.priv));
+                    logline(ACLOG_VERBOSE,"line%4d: %s %s", c.line, hiddenpwd(c.pwd), privname(c.priv, true));
                 }
             }
             line++;
