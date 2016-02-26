@@ -477,7 +477,7 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
 
     checkselections(); // assert no selection became invalid
 
-    strncpy(hdr.head, "ACMP", 4);
+    memcpy(hdr.head, "ACMP", 4 * sizeof(char));
     hdr.version = MAPVERSION;
     hdr.headersize = sizeof(header);
     hdr.sfactor = sfactor;
