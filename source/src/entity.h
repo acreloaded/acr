@@ -486,6 +486,11 @@ public:
             perk1 = PERK1_AGILE;
             perk2 = PERK2_STREAK;
         }
+        else if(m_classic(gamemode, mutators))
+        {
+            perk1 = PERK1_LIGHT;
+            perk2 = PERK2_STREAK;
+        }
         else
         {
             perk1 = nextperk1;
@@ -494,6 +499,7 @@ public:
 
         if (perk1 <= PERK1_NONE || perk1 >= PERK1_MAX) perk1 = rnd(PERK1_MAX - 1) + 1;
         if (perk2 <= PERK2_NONE || perk2 >= PERK2_MAX) perk2 = rnd(PERK2_MAX - PERK_MAX - 1) + PERK_MAX + 1;
+
         // special perks need both slots
         if (perk1 < PERK_MAX) perk2 = perk1;
 
