@@ -42,7 +42,7 @@ void destroyevent::process(client *ci)
                     o.z = ts.o.z + PLAYERHEIGHT > cubefloor ? (cubefloor + ts.o.z + PLAYERHEIGHT) / 2 : cubefloor;
 
                     // bleeding damage
-                    if (!m_zombie(gamemode)) // && !isteam(&c, hit))
+                    if (!m_zombie(gamemode) && !m_classic(gamemode, mutators))
                     {
                         hit->state.addwound(c.clientnum, o);
                         sendf(NULL, 1, "ri2", SV_BLEED, flags);
