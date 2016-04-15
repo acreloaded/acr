@@ -629,7 +629,7 @@ void resetgl()
 {
     clearchanges(CHANGE_GFX);
 
-    loadingscreen();
+    loadingscreen(_("resetting OpenGL (1/2)"));
 
     extern void cleanupparticles();
     extern void cleanupmodels();
@@ -656,7 +656,7 @@ void resetgl()
     if(!reloadtexture(*notexture) ||
        !reloadtexture("packages/misc/startscreen.png"))
         fatal("failed to reload core texture");
-    loadingscreen();
+    loadingscreen(_("resetting OpenGL (2/2)"));
     c2skeepalive();
     restoregamma();
     c2skeepalive();
@@ -1141,7 +1141,7 @@ int main(int argc, char **argv)
     if(!setfont("mono")) fatal("no mono font specified");
     if(!setfont("default")) fatal("no default font specified");
 
-    loadingscreen();
+    loadingscreen(_("initializing"));
 
     particleinit();
 
