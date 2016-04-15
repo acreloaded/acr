@@ -72,7 +72,7 @@ struct entity : persistent_entity
 #define MAXTHIRDPERSON 25
 
 #define SPAWNDELAY (m_secure(gamemode) || m_overload(gamemode) ? 2000 : m_flags(gamemode) ? 5000 : 1500)
-#define SPAWNPROTECT (m_classic(gamemode) ? 1000 : m_flags(gamemode) ? 1500 : m_team(gamemode, mutators) ? 2000 : 1750)
+#define SPAWNPROTECT (m_classic(gamemode, mutators) ? 1000 : m_flags(gamemode) ? 1500 : m_team(gamemode, mutators) ? 2000 : 1750)
 
 #define REGENDELAY 4250
 #define REGENINT 2500
