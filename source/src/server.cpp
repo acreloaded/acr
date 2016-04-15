@@ -1767,7 +1767,7 @@ void serverdied(client &target, client &actor_, int damage, int gun, int style, 
     client *actor = &actor_;
     clientstate &ts = target.state;
 
-    const bool suic = (&target == actor);
+    bool suic = (&target == actor);
     const bool tk = !suic && isteam(&target, actor);
     int targethasflag = clienthasflag(target.clientnum);
 
@@ -1782,6 +1782,7 @@ void serverdied(client &target, client &actor_, int damage, int gun, int style, 
                 style = isheadshot(gun, style) ? FRAG_GIB : FRAG_NONE;
                 gun = OBIT_ASSIST;
                 ts.damagelog.remove(i/*--*/);
+                suic = false;
                 break;
             }
     }
