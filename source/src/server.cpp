@@ -1715,7 +1715,7 @@ void sendtext(char *text, client &cl, int flags, int voice, int targ)
     }
 }
 
-int numplayers(bool include_bots = true)
+int numplayers(bool include_bots = true, bool include_spect = false)
 {
     // Count every client
     if(include_bots)
@@ -1723,7 +1723,7 @@ int numplayers(bool include_bots = true)
     // Count every client that is not a bot
     int count = 0;
     loopv(clients)
-        if(clients[i]->type != ST_EMPTY && clients[i]->type != ST_AI)
+        if(clients[i]->type != ST_EMPTY && (include_spect || clients[i]->type != ST_AI) && clients[i]->type != ST_AI)
             ++count;
     return count;
 }
@@ -5168,7 +5168,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
     if(!isdedicated) return;     // below is network only
 
-    serverms(smode, smuts, numplayers(false), minremain, smapname, servmillis, serverhost->address, &mnum, &msend, &mrec, &cnum, &csend, &crec, SERVER_PROTOCOL_VERSION);
+    serverms(smode, smuts, numplayers(false, true), minremain, smapname, servmillis, serverhost->address, &mnum, &msend, &mrec, &cnum, &csend, &crec, SERVER_PROTOCOL_VERSION);
 
     if (autobalance && m_team(gamemode, mutators) && !m_zombie(gamemode) && !m_duke(gamemode, mutators) && !interm && servmillis - lastfillup > 5000 && refillteams()) lastfillup = servmillis;
 
