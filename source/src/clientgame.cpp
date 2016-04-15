@@ -586,7 +586,10 @@ void moveotherplayers()
 void updateradarpos()
 {
     const bool has_radar = radarup(focus) || focus->team == TEAM_SPECT;
-    const int interval = has_radar ? 400 : m_capture(gamemode) ? 4000 : 750;
+    const int interval = has_radar ? 400 :
+                            m_classic(gamemode, mutators) ? 10000 :
+                            m_capture(gamemode) ? 4000 :
+                            750;
     loopv(players)
     {
         playerent *d = players[i];
