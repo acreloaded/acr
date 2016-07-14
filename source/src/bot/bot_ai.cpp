@@ -5,7 +5,7 @@
 //
 //
 // Author:  <rickhelmus@gmail.com>
-//
+// 
 
 
 // Code of CBot - Start
@@ -18,7 +18,8 @@ extern weaponinfo_s WeaponInfoTable[NUMGUNS];
 vec CBot::GetEnemyPos(playerent *d)
 {
     // Aim offset idea by botman
-    vec o = m_pMyEnt->weaponsel->type == GUN_SNIPER && d->head.x >= 0 ? d->head : d->o, offset;
+    // For ACR: Try to aim at the head with auto, too - rXn
+    vec o = (m_pMyEnt->weaponsel->type == GUN_SNIPER || m_pMyEnt->weaponsel->type == TYPE_AUTO) && d->head.x >= 0 ? d->head : d->o, offset;
     float flDist = GetDistance(o), flScale;
 
     if (WeaponInfoTable[m_pMyEnt->gunselect].eWeaponType == TYPE_ROCKET)
@@ -77,9 +78,9 @@ vec CBot::GetEnemyPos(playerent *d)
         break;
     case 1:
         // GOOD, offset a little for x, y, and z
-        offset.x = RandomFloat(-3, 3) * flScale;
-        offset.y = RandomFloat(-3, 3) * flScale;
-        offset.z = RandomFloat(-6, 6) * flScale;
+        offset.x = RandomFloat(-2, 2) * flScale;
+        offset.y = RandomFloat(-2, 2) * flScale;
+        offset.z = RandomFloat(-4, 4) * flScale;
         break;
     case 2:
         // FAIR, offset somewhat for x, y, and z
@@ -711,7 +712,7 @@ void CBot::ShootEnemy()
                 float yawtoturn = fabs(WrapYZAngle(m_pMyEnt->yaw - m_pMyEnt->targetyaw));
                 float pitchtoturn = fabs(WrapYZAngle(m_pMyEnt->pitch - m_pMyEnt->targetpitch));
 
-                if ((yawtoturn > 5) || (pitchtoturn > 15)) // UNDONE: Should be skill based
+                if ((yawtoturn > 3) || (pitchtoturn > 10)) // UNDONE: Should be skill based
                     return;
             }
 
@@ -1337,11 +1338,12 @@ bool CBot::CheckStuck()
         m_iStuckTime = 0;
 
         // stuck in geometry?
-        if(!collide(m_pMyEnt))
-        {
-            StuckLastResort();
-            return true;
-        }
+	// Produces random suicides where bots have simply run against a wall -- rXn
+//         if(!collide(m_pMyEnt))
+//         {
+//             StuckLastResort();
+//             return true;
+//         }
 
         // Crap bot is stuck, lets just try some random things
 
