@@ -1337,7 +1337,7 @@ bool CBot::CheckStuck()
         m_iStuckTime = 0;
 
         // stuck in geometry?
-        if(!collide(m_pMyEnt))
+        if(collide(m_pMyEnt))
         {
             StuckLastResort();
             return true;
