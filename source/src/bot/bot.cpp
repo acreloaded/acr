@@ -298,12 +298,17 @@ float CBot::GetDistance(entity *e)
 
 bool CBot::SelectGun(int Gun)
 {
-     if(!m_pMyEnt->weaponsel->deselectable() || !m_pMyEnt->weapons[Gun]->selectable() || m_pMyEnt->weaponsel->reloading || m_pMyEnt->weaponchanging) return false;
-     if(m_pMyEnt->weaponsel->type != Gun)
+    if(!m_pMyEnt->weaponsel->deselectable()) return false;
+    if(!m_pMyEnt->weapons[Gun]->selectable()) return false;
+    if(m_pMyEnt->weaponsel->reloading || m_pMyEnt->weaponchanging) return false;
+    if(m_pMyEnt->weaponsel->type != Gun)
+    {
         m_pMyEnt->weaponswitch(m_pMyEnt->weapons[Gun]);
-     extern weaponinfo_s WeaponInfoTable[NUMGUNS];
-     m_bShootAtFeet = WeaponInfoTable[Gun].eWeaponType == TYPE_ROCKET;
-     return true;
+        m_iChangeWeaponDelay = lastmillis + 1000;
+    }
+    // extern weaponinfo_s WeaponInfoTable[NUMGUNS];
+    // m_bShootAtFeet = WeaponInfoTable[Gun].eWeaponType == TYPE_ROCKET;
+    return true;
 }
 
 bool CBot::IsVisible(entity *e, bool CheckPlayers)
