@@ -19,7 +19,7 @@ inline bool canreqauth(client &cl, int authtoken, int authuser)
     return true;
 }
 
-int allowconnect(client &cl, int authreq = 0, int authuser = 0)
+int allowconnect(client &cl, uint authreq = 0, uint authuser = 0)
 {
     if (cl.type == ST_LOCAL) return DISC_NONE;
     //if (!m_valid(gamemode)) return DISC_PRIVATE;
@@ -33,7 +33,7 @@ int allowconnect(client &cl, int authreq = 0, int authuser = 0)
             nextauthreq = 1;
         cl.authreq = nextauthreq++;
         cl.connectauth = true;
-        logline(ACLOG_INFO, "[%s] %s logged in, requesting auth #%d as %d", cl.gethostname(), cl.formatname(), cl.authreq, authuser);
+        logline(ACLOG_INFO, "[%s] %s logged in, requesting auth #%u as %u", cl.gethostname(), cl.formatname(), cl.authreq, authuser);
         return DISC_NONE;
     }
 
@@ -113,7 +113,7 @@ void authfailed(uint id, bool fail)
     client *cl = findauth(id);
     if(!cl) return;
     cl->authreq = 0;
-    logline(ACLOG_INFO, "[%s] auth #%d %s!", cl->gethostname(), id, fail ? "failed" : "had an error");
+    logline(ACLOG_INFO, "[%s] auth #%u %s!", cl->gethostname(), id, fail ? "failed" : "had an error");
     sendf(cl, 1, "ri2", SV_AUTH_ACR_CHAL, 3);
     checkauthdisc(*cl);
 }
@@ -127,10 +127,10 @@ void authsucceeded(uint id, int priv, const char *name)
     if (scl.bypassglobalpriv && priv != -1)
     {
         priv = CR_DEFAULT;
-        logline(ACLOG_INFO, "[%s] auth #%d succeeded as '%s' (%s ignored)", cl->gethostname(), id, cl->authname, privname(priv));
+        logline(ACLOG_INFO, "[%s] auth #%u succeeded as '%s' (%s ignored)", cl->gethostname(), id, cl->authname, privname(priv));
     }
     else
-        logline(ACLOG_INFO, "[%s] auth #%d succeeded for %s as '%s'", cl->gethostname(), id, privname(priv, true), cl->authname);
+        logline(ACLOG_INFO, "[%s] auth #%u succeeded for %s as '%s'", cl->gethostname(), id, privname(priv, true), cl->authname);
     sendf(NULL, 1, "ri4s", SV_AUTH_ACR_CHAL, 5, cl->clientnum, priv, cl->authname);
     if (priv < 0)
     {
@@ -168,7 +168,7 @@ void authchallenged(uint id, const char *chal)
         buf[i] |= hex2char(chal[(i << 1) | 1]);
     }
     sendf(cl, 1, "ri2m", SV_AUTH_ACR_REQ, cl->authtoken, 128, buf);
-    logline(ACLOG_INFO, "[%s] auth #%d challenged by master", cl->gethostname(), id);
+    logline(ACLOG_INFO, "[%s] auth #%u challenged by master", cl->gethostname(), id);
     logline(ACLOG_DEBUG, "%s", chal);
 }
 
@@ -188,7 +188,7 @@ bool answerchallenge(client &cl, uchar crandom[48], uchar canswer[32])
     r.id = cl.authreq;
     memcpy(r.crandom, crandom, sizeof(uchar) * 48);
     memcpy(r.canswer, canswer, sizeof(uchar) * 32);
-    logline(ACLOG_INFO, "[%s] answers auth #%d", cl.gethostname(), r.id);
+    logline(ACLOG_INFO, "[%s] answers auth #%u", cl.gethostname(), r.id);
     sendf(&cl, 1, "ri2", SV_AUTH_ACR_CHAL, 4);
     return true;
 }

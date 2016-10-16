@@ -98,32 +98,19 @@ ENetBuffer masterb;
 // FIXME: a linked list makes more sense for these:
 vector<authrequest> authrequests;
 vector<connectrequest> connectrequests;
-
-enum { MSR_REG = 0, MSR_CONNECT, MSR_AUTH_ANSWER };
-struct msrequest
-{
-    int type;
-    union
-    {
-        void *data;
-        authrequest *a;
-        connectrequest *c;
-    };
-} *currentmsrequest = NULL;
+uint authid = 0;
+int authcn = -1;
 
 void freeconnectcheck(int cn)
 {
-    if (currentmsrequest && currentmsrequest->type == MSR_CONNECT && currentmsrequest->c && cn == currentmsrequest->c->cn)
-    {
-        delete currentmsrequest->c;
-        DELETEP(currentmsrequest);
-    }
+    if (authcn == cn)
+        authcn = -1;
     loopv(connectrequests)
         if (connectrequests[i].cn == cn)
             connectrequests.remove(i--);
 }
 
-void connectcheck(int cn, int guid, const char *hostname, int authreq, int authuser)
+void connectcheck(int cn, int guid, const char *hostname, uint authreq, uint authuser)
 {
     freeconnectcheck(cn);
     extern bool isdedicated;
@@ -142,44 +129,36 @@ void connectcheck(int cn, int guid, const char *hostname, int authreq, int authu
 #define MSRERESOLVE (4*60*60*1000)
 static inline void updatemasterserver(int millis, int port)
 {
-    if (mastersock != ENET_SOCKET_NULL || currentmsrequest) return; // busy
+    if (mastersock != ENET_SOCKET_NULL) return;
     string path;
     path[0] = '\0';
 
     if (millis > lastupdatemaster + MSKEEPALIVE)
     {
         logline(ACLOG_INFO, "sending registration request to master server");
-
-        currentmsrequest = new msrequest;
-        currentmsrequest->type = MSR_REG;
-        currentmsrequest->data = NULL;
-
         formatstring(path)("%s/r?v=%lu&p=%u&guid32=%lu", masterpath, PROTOCOL_VERSION, port, *&genguid(546545656, 23413376U, 3453455, "h6ji54ehjwo345gjio34s5jig"));
         lastupdatemaster = millis + 1;
     }
     else if (millis > lastauthreqprocessed + 2500 && authrequests.length())
     {
-        authrequest *r = new authrequest(authrequests.remove(0));
-
-        currentmsrequest = new msrequest;
-        currentmsrequest->type = MSR_AUTH_ANSWER;
-        currentmsrequest->a = r;
+        authrequest r = authrequests.remove(0);
+        authid = r.id;
 
         char cbuf[2*48+1], abuf[2*32+1];
         cbuf[2*48] = '\0';
         abuf[2*32] = '\0';
         loopi(48)
         {
-            cbuf[i*2] = "0123456789abcdef"[r->crandom[i] >> 4];
-            cbuf[i*2+1] = "0123456789abcdef"[r->crandom[i] & 0xF];
+            cbuf[i*2] = "0123456789abcdef"[r.crandom[i] >> 4];
+            cbuf[i*2+1] = "0123456789abcdef"[r.crandom[i] & 0xF];
         }
         loopi(32)
         {
-            abuf[i*2] = "0123456789abcdef"[r->canswer[i] >> 4];
-            abuf[i*2+1] = "0123456789abcdef"[r->canswer[i] & 0xF];
+            abuf[i*2] = "0123456789abcdef"[r.canswer[i] >> 4];
+            abuf[i*2+1] = "0123456789abcdef"[r.canswer[i] & 0xF];
         }
 
-        formatstring(path)("%s/v?p=%u&i=%lu&a=%s&c=%s", masterpath, port, r->id, abuf, cbuf);
+        formatstring(path)("%s/v?p=%u&i=%lu&a=%s&c=%s", masterpath, port, r.id, abuf, cbuf);
         lastauthreqprocessed = millis;
     }
     else if (connectrequests.length())
@@ -187,19 +166,17 @@ static inline void updatemasterserver(int millis, int port)
         if (!canreachauthserv) connectrequests.shrink(0);
         else
         {
-            connectrequest *c = new connectrequest(connectrequests.remove(0));
-
-            currentmsrequest = new msrequest;
-            currentmsrequest->type = MSR_CONNECT;
-            currentmsrequest->c = c;
+            connectrequest c = connectrequests.remove(0);
+            authid = c.id;
+            authcn = c.cn;
 
             // FIXME: this assumes we have IPv4 hostnames
-            if (c->id)
-                formatstring(path)("%s/a?p=%u&a=::ffff:%s&guid32=%lu&i=%u&u=%u", masterpath, port, c->hostname, c->guid, c->id, c->user);
+            if (authid)
+                formatstring(path)("%s/a?p=%u&a=::ffff:%s&guid32=%lu&i=%u&u=%u", masterpath, port, c.hostname, c.guid, c.id, c.user);
             else
-                formatstring(path)("%s/a?p=%u&a=::ffff:%s&guid32=%lu", masterpath, port, c->hostname, c->guid);
+                formatstring(path)("%s/a?p=%u&a=::ffff:%s&guid32=%lu", masterpath, port, c.hostname, c.guid);
 
-            delete[] c->hostname;
+            delete[] c.hostname;
         }
     }
     if (!path[0]) return; // no request
@@ -213,6 +190,77 @@ static inline void updatemasterserver(int millis, int port)
     masterrep[0] = 0;
     masterb.data = masterrep;
     masterb.dataLength = MAXMASTERTRANS - 1;
+    // mastersock could be ENET_SOCKET_NULL
+    // but authid and authcn would be ignored
+}
+
+bool processmastercmd(const char *p)
+{
+    if (!authid)
+        return false;
+
+    switch (*p)
+    {
+        // verdict: allow/ban connect
+        case 'b':
+        {
+            int disc;
+            disc = DISC_NONE;
+            switch (*++p)
+            {
+                // GOOD reasons
+                case 'm': // muted and not allowed to speak
+                    // extern void mastermute(int cn);
+                    // mastermute(currentmsrequest->c->cn);
+                    break;
+                case 'w': // IP whitelisted, not actually a banned verdict
+                    break;
+                // BAD reasons
+                case 'i': // IP banned
+                    disc = DISC_MBAN;
+                    break;
+                default: // unknown reason
+                    disc = DISC_NUM;
+                    break;
+            }
+        case 'a':
+            if (*p == 'a')
+                disc = DISC_NONE;
+
+            if (authcn == -1)
+                return false;
+
+            extern void masterdisc(int cn, int result);
+            masterdisc(authcn, disc);
+            break;
+        }
+
+        // auth
+        case 'd': // fail to claim
+        case 'f': // failure
+            extern void authfailed(uint id, bool fail);
+            authfailed(authid, *p == 'd');
+            break;
+        case 's': // succeed
+        {
+            char privk = *++p;
+            if (!privk) return false;
+            string name;
+            filtertext(name, ++p, 1, MAXNAMELEN);
+            if (!*name) copystring(name, "<unnamed>");
+            extern void authsucceeded(uint id, int priv, const char *name);
+            authsucceeded(authid, privk >= '0' && privk <= '3' ? privk - '0' : -1, name);
+            break;
+        }
+        case 'c': // challenge
+        {
+            if (!*++p) return false;
+            extern void authchallenged(uint id, const char *chal);
+            authchallenged(authid, p);
+            break;
+        }
+    }
+    return true;
 }
 
 void checkmasterreply()
@@ -227,87 +275,11 @@ void checkmasterreply()
     while (replytoken)
     {
         // process commands
-        char *tp = replytoken;
-        if (*tp++ == '*')
+        if (*replytoken == '*')
         {
-            bool error = true;
-            if (currentmsrequest)
-            {
-                if (*tp == 'a' || *tp == 'b') // verdict: allow/ban connect
-                {
-                    if (currentmsrequest->type == MSR_CONNECT && currentmsrequest->c)
-                    {
-                        // extern void mastermute(int cn);
-                        extern void masterdisc(int cn, int result);
-                        int disc = DISC_NONE;
-                        if (*tp == 'b')
-                            switch (*++tp)
-                            {
-                                // GOOD reasons
-                                case 'm': // muted and not allowed to speak
-                                    // mastermute(currentmsrequest->c->cn);
-                                    // fallthrough
-                                case 'w': // IP whitelisted, not actually a banned verdict
-                                    disc = DISC_NONE;
-                                    break;
-                                // BAD reasons
-                                case 'i': // IP banned
-                                    disc = DISC_MBAN;
-                                    break;
-                                default: // unknown reason
-                                    disc = DISC_NUM;
-                                    break;
-                            }
-                        error = false;
-                        masterdisc(currentmsrequest->c->cn, disc);
-                    }
-                }
-                else if (*tp == 'd' || *tp == 'f' || *tp == 's' || *tp == 'c') // auth
-                {
-                    char t = *tp++;
-                    /*char *bar = strchr(tp, '|');
-                    if(bar) *bar = 0;
-                    uint authid = atoi(tp);
-                    if(bar && bar[1]) tp = bar + 1;
-                    */
-                    error = true;
-                    uint authid = 0;
-                    if (currentmsrequest->type == MSR_AUTH_ANSWER && currentmsrequest->a)
-                        authid = currentmsrequest->a->id;
-                    else if (currentmsrequest->type == MSR_CONNECT && currentmsrequest->c)
-                        authid = currentmsrequest->c->id;
-                    if (authid)
-                        switch (t)
-                        {
-                            case 'd': // fail to claim
-                            case 'f': // failure
-                                error = false;
-                                extern void authfailed(uint id, bool fail);
-                                authfailed(authid, t == 'd');
-                                break;
-                            case 's': // succeed
-                            {
-                                if (!*tp) break;
-                                char privk = *tp++;
-                                if (!privk) break;
-                                string name;
-                                filtertext(name, tp, 1, MAXNAMELEN);
-                                if (!*name) copystring(name, "<unnamed>");
-                                error = false;
-                                extern void authsucceeded(uint id, int priv, const char *name);
-                                authsucceeded(authid, privk >= '0' && privk <= '3' ? privk - '0' : -1, name);
-                                break;
-                            }
-                            case 'c': // challenge
-                                if (!*tp) break;
-                                error = false;
-                                extern void authchallenged(uint id, const char *chal);
-                                authchallenged(authid, tp);
-                                break;
-                        }
-                }
-            }
-            if (error) logline(ACLOG_INFO, "masterserver sent an unknown command: %s", replytoken);
+            replytoken++;
+            if (!processmastercmd(replytoken))
+                logline(ACLOG_INFO, "masterserver sent an unknown command: %s", replytoken);
         }
         else
         {
@@ -316,21 +288,8 @@ void checkmasterreply()
         }
         replytoken = strtok(NULL, "\n");
     }
-    if (currentmsrequest)
-    {
-        switch (currentmsrequest->type)
-        {
-            case MSR_REG:
-                break;
-            case MSR_AUTH_ANSWER:
-                delete currentmsrequest->a;
-                break;
-            case MSR_CONNECT:
-                delete currentmsrequest->c;
-                break;
-        }
-        DELETEP(currentmsrequest);
-    }
+    authid = 0;
+    authcn = -1;
 }
 
 ENetSocket pongsock = ENET_SOCKET_NULL, lansock = ENET_SOCKET_NULL;

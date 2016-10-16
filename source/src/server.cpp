@@ -3557,7 +3557,7 @@ void process(ENetPacket *packet, int sender, int chan)
             loopi(2) cl->skin[i] = getint(p);
             logversion(*cl);
 
-            int disc = p.remaining() ? DISC_TAGT : allowconnect(*cl, connectauthtoken, connectauthuser);
+            int disc = p.remaining() ? DISC_TAGT : allowconnect(*cl, (uint)connectauthtoken, (uint)connectauthuser);
 
             if (disc) disconnect_client(*cl, disc);
             else cl->isauthed = true;
@@ -3574,7 +3574,7 @@ void process(ENetPacket *packet, int sender, int chan)
             }
 
             // ask the master-server about this client
-            extern void connectcheck(int cn, int guid, const char *hostname, int authreq, int authuser);
+            extern void connectcheck(int cn, int guid, const char *hostname, uint authreq, uint authuser);
             connectcheck(sender, cl->acguid, cl->hostname, cl->authreq, cl->authuser);
         }
 

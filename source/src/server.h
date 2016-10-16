@@ -337,8 +337,8 @@ struct client                   // server side version of "dynent" type
     int spawnindex;
     int salt;
     string pwd;
-    int authtoken, authuser, masterdisc;
-    uint authreq;
+    uint authtoken, authuser, authreq;
+    int masterdisc;
     string authname;
     int mapcollisions, farpickups;
     enet_uint32 bottomRTT;
