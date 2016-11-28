@@ -1679,7 +1679,7 @@ playerent *updatefollowplayer(int shiftdirection)
     loopv(players)
     {
         if (!players[i]) continue;
-        if (player1->team == TEAM_SPECT) continue;
+        if (team_isspect(players[i]->team)) continue;
         //if(!watchingdemo && m_team(gamemode, mutators) && team_base(players[i]->team) != team_base(player1->team)) continue;
         if (players[i]->ownernum >= 0 && !spectatebots) continue;
         if (players[i]->state == CS_DEAD && !m_duke(gamemode, mutators)) continue;
