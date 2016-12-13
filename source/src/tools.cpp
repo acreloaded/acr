@@ -597,3 +597,11 @@ bool glmatrixf::invert(const glmatrixf &m, float mindet)
     return true;
 }
 
+// Fix for Visual C++ 14 Compiler / Visual Studio 2015
+#if _MSC_VER >= 1900
+extern "C" FILE * __cdecl __iob_func(void)
+{
+    static FILE _iob[] = { *stdin, *stdout, *stderr };
+    return _iob;
+}
+#endif
