@@ -4,6 +4,8 @@ VARP(swaymovediv, 1, 200, 1000);
 VARP(swayupspeeddiv, 1, 105, 1000);
 VARP(swayupmovediv, 1, 200, 1000);
 
+vec swaytest;
+
 struct weaponmove
 {
     static vec swaydir;
@@ -34,6 +36,8 @@ struct weaponmove
 
         if(p->onfloor || p->onladder || p->inwater) swaymillis += lastmillis-lastsway;
         lastsway = lastmillis;
+
+        swaytest.x = swaytest.y = swaytest.z = 0;
 
         if(p->weaponchanging)
         {
@@ -126,6 +130,8 @@ struct weaponmove
             pos.x -= aimdir.x*k_back+sway.x;
             pos.y -= aimdir.y*k_back+sway.y;
             pos.z -= aimdir.z*k_back+sway.z;
+
+            (swaytest = aimdir).mul(-k_back).add(sway);
         }
     }
 };

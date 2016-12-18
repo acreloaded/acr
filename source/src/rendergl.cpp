@@ -1051,7 +1051,7 @@ void sethudgunperspective(bool on)
     glMatrixMode(GL_MODELVIEW);
 }
 
-VAR(fakelasertest, 0, 0, 1);
+VAR(fakelasertest, 0, 0, 2); // 0: off, 1: local player, 2: everyone
 void drawhudgun(int w, int h, float aspect, int farplane)
 {
     sethudgunperspective(true);
@@ -1067,7 +1067,14 @@ void drawhudgun(int w, int h, float aspect, int farplane)
             glBegin(GL_LINES);
             linestyle(1.5f, 255, 0, 0);
             glVertex3f(p->muzzle.x, p->muzzle.y, p->muzzle.z);
-            glVertex3f(worldpos.x, worldpos.y, worldpos.z);
+            extern vec swaytest;
+            vec end;
+            float dist = worldpos.dist(p->muzzle, end);
+            end.add(vec(swaytest).mul(dist));
+            vec surface;
+            dist = raycube(p->muzzle, end, surface);
+            end.mul(dist).add(p->muzzle);
+            glVertex3fv(end.v);
             glEnd();
             glEnable(GL_TEXTURE_2D);
         }

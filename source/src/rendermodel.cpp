@@ -846,7 +846,7 @@ void renderclient(playerent *d)
             renderhbox(d, oldhead);
         }
         extern int fakelasertest;
-        if (fakelasertest)
+        if (fakelasertest >= 2)
         {
             glDisable(GL_TEXTURE_2D);
             glBegin(GL_LINES);
