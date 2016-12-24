@@ -350,7 +350,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     if(tmp.version>=4 && f->read(&tmp.waterlevel, sizeof(int)*16)!=sizeof(int)*16) { conoutf("\f3while reading map: header malformatted (water level)"); delete f; return false; }
     if((tmp.version==7 || tmp.version==8) && !f->seek(sizeof(char)*128, SEEK_CUR)) { conoutf("\f3while reading map: header malformatted (1.1 extensions)"); delete f; return false; }
     hdr = tmp;
-    loadingscreen("%s", hdr.maptitle);
+    loadingscreen("reading\n%s", hdr.maptitle);
     resetmap();
     if(hdr.version>=4)
     {
@@ -514,7 +514,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     calclight();
     conoutf("read map %s rev %d (%d milliseconds)", cgzname, hdr.maprevision, watch.stop());
     conoutf("%s", hdr.maptitle);
-    loadingscreen("processing map scripts - %s", hdr.maptitle);
+    loadingscreen("map scripts\n%s", hdr.maptitle);
     pushscontext(IEXC_MAPCFG); // untrusted altogether
     per_idents = false;
     neverpersist = true;
@@ -526,35 +526,35 @@ bool load_world(char *mname)        // still supports all map formats that have 
     popscontext();
 
     c2skeepalive();
-    loadingscreen("loading world textures - %s", hdr.maptitle);
+    loadingscreen("world textures\n%s", hdr.maptitle);
 
     watch.start();
     loopi(256) if(texuse[i]) lookupworldtexture(i, autodownload ? true : false);
     int texloadtime = watch.stop();
 
     c2skeepalive();
-    loadingscreen("loading map models - %s", hdr.maptitle);
+    loadingscreen("map models\n%s", hdr.maptitle);
 
     watch.start();
     preload_mapmodels(autodownload ? true : false);
     int mdlloadtime = watch.stop();
 
     c2skeepalive();
-    loadingscreen("loading map sounds - %s", hdr.maptitle);
+    loadingscreen("map sounds\n%s", hdr.maptitle);
 
     watch.start();
     audiomgr.preloadmapsounds(autodownload ? true : false);
     int audioloadtime = watch.stop();
 
     c2skeepalive();
-    loadingscreen("downloading packages - %s", hdr.maptitle);
+    loadingscreen("packages\n%s", hdr.maptitle);
 
     watch.start();
     int downloaded = downloadpackages();
     if(downloaded > 0) printf("downloaded content (%d KB in %d seconds)\n", downloaded/1000, watch.stop()/1000);
 
     c2skeepalive();
-    loadingscreen("loading sky - %s", hdr.maptitle);
+    loadingscreen("sky\n%s", hdr.maptitle);
 
     loadsky(NULL, true);
 
@@ -562,12 +562,12 @@ bool load_world(char *mname)        // still supports all map formats that have 
     loopi(256) if(texuse[i]) lookupworldtexture(i, false);
     printf("loaded textures (%d milliseconds)\n", texloadtime+watch.stop());
     c2skeepalive();
-    loadingscreen("loading map models - %s", hdr.maptitle);
+    loadingscreen("map models\n%s", hdr.maptitle);
     watch.start();
     preload_mapmodels(false);
     printf("loaded mapmodels (%d milliseconds)\n", mdlloadtime+watch.stop());
     c2skeepalive();
-    loadingscreen("loading map sounds again - %s", hdr.maptitle);
+    loadingscreen("map sounds again\n%s", hdr.maptitle);
     watch.start();
     audiomgr.preloadmapsounds(false);
     printf("loaded mapsounds (%d milliseconds)\n", audioloadtime+watch.stop());
