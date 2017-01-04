@@ -1,6 +1,8 @@
 #include "modelcache.h"
 #include "tristrip_t.h"
 
+FVAR(adsf, -3.f, 0.f, 3.f);
+
 // externs from rendermodel.cpp
 extern int animationinterpolationtime;
 
@@ -863,6 +865,22 @@ struct vertmodel : model
 				ai_t = (lastmillis-d->lastanimswitchtime[index])/(float)animationinterpolationtime;
 			}
 		   
+			loopi(numtags)
+			{
+				tag &t = tags[i];
+				if(strcmp(t.name, "tag_muzzle")) continue;
+
+				glmatrixf linkmat;//, transformed;
+				gentagmatrix(cur, doai ? &prev : NULL, ai_t, i, linkmat.v);
+				vec trans = matrixstack[matrixpos].gettranslation();
+				vec4 trans_new;
+				matrixstack[matrixpos].transform(linkmat.gettranslation(), trans_new);
+
+				trans.sub(trans_new.v).mul(adsf);
+				matrixstack[matrixpos].translate(trans);
+				break;
+			}
+
 			glPushMatrix();
 			glMultMatrixf(matrixstack[matrixpos].v);
 			loopv(meshes) meshes[i]->render(as, cur, doai ? &prev : NULL, ai_t);

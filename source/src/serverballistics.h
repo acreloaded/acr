@@ -193,7 +193,7 @@ int explosion(client &owner, const vec &o2, int weap, bool teamcheck, bool gib, 
 // let's order the nuke hits by distance
 struct nukehit{
 	client *target;
-	float distance; // it would be double if this engine wern't so conservative
+	float distance; // it would be double if this engine weren't so conservative
 };
 
 // a way to sort it
