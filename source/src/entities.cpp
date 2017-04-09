@@ -66,9 +66,9 @@ void rendermapmodels()
         entity &e = ents[i];
         if(e.type==MAPMODEL)
         {
-            mapmodelinfo &mmi = getmminfo(e.attr2);
-            if(!&mmi) continue;
-            rendermodel(mmi.name, ANIM_MAPMODEL|ANIM_LOOP, e.attr4, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor+mmi.zoff+e.attr3), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 10.0f);
+            mapmodelinfo *mmi = getmminfo(e.attr2);
+            if(!mmi) continue;
+            rendermodel(mmi->name, ANIM_MAPMODEL|ANIM_LOOP, e.attr4, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor+mmi->zoff+e.attr3), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 10.0f);
         }
     }
 }
@@ -236,14 +236,14 @@ void renderentities()
             }
             else if(e.type == MAPMODEL && showclips && showmodelclipping && !stenciling)
             {
-                mapmodelinfo &mmi = getmminfo(e.attr2);
-                if(&mmi && mmi.h)
+                mapmodelinfo *mmi = getmminfo(e.attr2);
+                if(mmi && mmi->h)
                 {
                     entity ce = e;
                     ce.type = MAPMODEL;
-                    ce.attr1 = mmi.zoff+e.attr3;
-                    ce.attr2 = ce.attr3 = mmi.rad;
-                    ce.attr4 = mmi.h;
+                    ce.attr1 = mmi->zoff+e.attr3;
+                    ce.attr2 = ce.attr3 = mmi->rad;
+                    ce.attr4 = mmi->h;
                     renderclip(ce);
                 }
             }
@@ -554,8 +554,8 @@ void entstats(void)
         {
             case MAPMODEL:
             {
-                mapmodelinfo &mmi = getmminfo(e.attr2);
-                if(&mmi && mmi.h) clipents++;
+                mapmodelinfo *mmi = getmminfo(e.attr2);
+                if(mmi && mmi->h) clipents++;
                 break;
             }
             case PLAYERSTART:

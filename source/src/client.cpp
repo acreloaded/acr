@@ -432,7 +432,8 @@ void addmsg(int type, const char *fmt, ...)
             case 's':
             {
                 const char *t = va_arg(args, const char *);
-                if(t) sendstring(t, p); break;
+                if(t) sendstring(t, p);
+                break;
             }
         }
         va_end(args);

@@ -1782,15 +1782,15 @@ void CCubeWaypointClass::StartFlood()
           }
           else if (e.type == MAPMODEL)
           {
-               mapmodelinfo &mmi = getmminfo(e.attr2);
-               if(!&mmi || !mmi.h || !mmi.rad) continue;
+               mapmodelinfo *mmi = getmminfo(e.attr2);
+               if(!&mmi || !mmi->h || !mmi->rad) continue;
 
-               float floor = (float)(S(e.x, e.y)->floor+mmi.zoff+e.attr3)+mmi.h;
+               float floor = (float)(S(e.x, e.y)->floor+mmi->zoff+e.attr3)+mmi->h;
 
-               float x1 = e.x - mmi.rad;
-               float x2 = e.x + mmi.rad;
-               float y1 = e.y - mmi.rad;
-               float y2 = e.y + mmi.rad;
+               float x1 = e.x - mmi->rad;
+               float x2 = e.x + mmi->rad;
+               float y1 = e.y - mmi->rad;
+               float y2 = e.y + mmi->rad;
 
                // UNDONE?
                for (float x=(x1+1.0f);x<=(x2-1.0f);x++)

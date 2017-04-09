@@ -1739,7 +1739,8 @@ void drawwaypoints()
                             WP_NUM;
                     // TODO: explain this line
                     else if (m_keep(gamemode) ? (f.actor != focus && !isteam(f.actor, focus)) : m_team(gamemode, mutators) ? (i != teamfix) : (f.actor != focus))
-                        wp = WP_NUM; break;
+                        wp = WP_NUM;
+                    break;
                 case CTFF_INBASE:
                     if (m_capture(gamemode))
                         wp = i == teamfix ? WP_FRIENDLY : WP_GRAB;
