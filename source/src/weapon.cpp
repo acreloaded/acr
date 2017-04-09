@@ -263,7 +263,7 @@ int intersect(playerent *d, const vec &from, const vec &to, vec *end)
 bool intersect(entity *e, const vec &from, const vec &to, vec *end)
 {
     mapmodelinfo *mmi = getmminfo(e->attr2);
-    if(!&mmi || !mmi->h) return false;
+    if(!mmi || !mmi->h) return false;
 
     float lo = float(S(e->x, e->y)->floor+mmi->zoff+e->attr3);
     return intersectbox(vec(e->x, e->y, lo+mmi->h/2.0f), vec(mmi->rad, mmi->rad, mmi->h/2.0f), from, to, end);

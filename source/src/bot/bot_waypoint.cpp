@@ -1783,7 +1783,7 @@ void CCubeWaypointClass::StartFlood()
           else if (e.type == MAPMODEL)
           {
                mapmodelinfo *mmi = getmminfo(e.attr2);
-               if(!&mmi || !mmi->h || !mmi->rad) continue;
+               if(!mmi || !mmi->h || !mmi->rad) continue;
 
                float floor = (float)(S(e.x, e.y)->floor+mmi->zoff+e.attr3)+mmi->h;
 
