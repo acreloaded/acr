@@ -1826,8 +1826,9 @@ void serverdied(client &target, client &actor_, int damage, int gun, int style, 
         }
         else
         {
-            // no/quick
+            // no/recent
             if (scopeelapsed >= zoomtime) style |= FRAG_SCOPE_NONE;
+            else style |= FRAG_SCOPE_NONE | FRAG_SCOPE_FULL;
         }
         // buzzkill check
         bool buzzkilled = false;
