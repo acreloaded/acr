@@ -694,8 +694,8 @@ public:
                         icons.remove(i--);
                 break;
         }
-        extern int lastmillis;
-        eventicon icon(type, lastmillis);
+        extern int totalmillis;
+        eventicon icon(type, totalmillis);
         icons.add(icon);
     }
 

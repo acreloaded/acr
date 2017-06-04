@@ -613,7 +613,7 @@ void particle_fireball(int type, const vec &o, playerent *owner)
 
         radar_explosion &nx = radar_explosions.add();
         nx.o = o;
-        nx.millis = lastmillis;
+        nx.millis = totalmillis;
 
         // col[3] is reserved for a dynamic alpha value
         static GLubyte col_ownexp[4] = { 0xF7, 0xF5, 0x34 }; // yellow for your own explosions
@@ -686,7 +686,7 @@ void addshotline(playerent *pl, vec from, const vec &to, int flags)
     radar_shotline &s = radar_shotlines.add();
     s.from = from;
     s.to = to;
-    s.expire = lastmillis + max(75, shotlinettl) * 2;
+    s.expire = totalmillis + max(75, shotlinettl) * 2;
 
     static const GLubyte col_ownshot[3] = { 0x94, 0xB0, 0xDE }; // blue for your shots
     static const GLubyte col_friendlyshot[3] = { 0xB8, 0xDC, 0x78 }; // light green-yellow for friendlies

@@ -409,11 +409,11 @@ void renderaboveheadicon(playerent *p)
         else if (i == p->icons.length() && p->state != CS_DEAD && p->typing)
         {
             static eventicon icon_chat(eventicon::CHAT, 0);
-            icon_chat.millis = lastmillis;
+            icon_chat.millis = totalmillis;
             icon = &icon_chat;
         }
         else continue;
-        const int t = lastmillis - icon->millis;
+        const int t = totalmillis - icon->millis;
         if (icon->type < 0 || icon->type >= eventicon::TOTAL || t > aboveheadiconfadetime)
         {
             p->icons.remove(i--);
@@ -435,7 +435,7 @@ void renderaboveheadicon(playerent *p)
         glTranslatef(p->o.x, p->o.y, p->o.z + p->aboveeye);
         glRotatef(camera1->yaw - 180, 0, 0, 1);
         glColor4f(1.0f, 1.0f, 1.0f, (aboveheadiconfadetime - t) / float(aboveheadiconfadetime));
-        float s = aboveheadiconsize / 75.0f*scalef, offset = t * 2.f / aboveheadiconfadetime, anim = lastmillis / 100 % (h * 2);
+        float s = aboveheadiconsize / 75.0f*scalef, offset = t * 2.f / aboveheadiconfadetime, anim = totalmillis / 100 % (h * 2);
         if (anim >= h) anim = h * 2 - anim + 1;
         anim /= h;
         quad(tex->id, vec(s, 0, s * 2 / aspect + offset), vec(-s, 0, 0.0f + offset), 0.0f, anim, 1.0f, 1.f / h);
@@ -447,7 +447,7 @@ void renderaboveheadicon(playerent *p)
 
 void rendercursor(int x, int y, int w)
 {
-    color c(1, 1, 1, (sinf(lastmillis/200.0f)+1.0f)/2.0f);
+    color c(1, 1, 1, (sinf(totalmillis/200.0f)+1.0f)/2.0f);
     blendbox(x, y, x+w, y+FONTH, true, -1, &c);
 }
 

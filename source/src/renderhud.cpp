@@ -52,7 +52,7 @@ void drawflagicons(int team, playerent *p)
         glColor4f(1, 1, 1,
             f.state == CTFF_INBASE ? .2f :
             f.state == CTFF_IDLE ? .1f :
-            f.actor == p && f.state == CTFF_STOLEN ? (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f :
+            f.actor == p && f.state == CTFF_STOLEN ? (sinf(totalmillis / 100.0f) + 1.0f) / 2.0f :
             1
             );
         // CTF
@@ -72,7 +72,7 @@ void drawflagicons(int team, playerent *p)
     // HTF + KTF
     if (m_keep(gamemode) && !(m_ktf2(gamemode, mutators) && m_team(gamemode, mutators))) row = 1;
     // pulses
-    glColor4f(1, 1, 1, f.actor == p ? (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f : .6f);
+    glColor4f(1, 1, 1, f.actor == p ? (sinf(totalmillis / 100.0f) + 1.0f) / 2.0f : .6f);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
     drawicon(t, VIRTW - 225 * (!team && flaginfos[1].state != CTFF_STOLEN ? 1 : 2 - team) - 10, VIRTH * 5 / 8, 225, team, row, 1 / 2.f);
 }
@@ -443,14 +443,14 @@ void draweventicons()
     loopv(focus->icons)
     {
         eventicon &icon = focus->icons[i];
-        if (icon.type < 0 || icon.type >= eventicon::TOTAL || icon.millis + 3000 < lastmillis)
+        if (icon.type < 0 || icon.type >= eventicon::TOTAL || icon.millis + 3000 < totalmillis)
         {
             focus->icons.remove(i--);
             continue;
         }
         Texture *tex = texs[icon.type];
         int h = 1;
-        float aspect = 1, scalef = 1, offset = (lastmillis - icon.millis) / 3000.f * 160.f;
+        float aspect = 1, scalef = 1, offset = (totalmillis - icon.millis) / 3000.f * 160.f;
         switch (icon.type)
         {
         case eventicon::CHAT:
@@ -476,9 +476,9 @@ void draweventicons()
         glBindTexture(GL_TEXTURE_2D, tex->id);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glEnable(GL_BLEND);
-        glColor4f(1.f, 1.f, 1.f, (3000 + icon.millis - lastmillis) / 3000.f);
+        glColor4f(1.f, 1.f, 1.f, (3000 + icon.millis - totalmillis) / 3000.f);
         glBegin(GL_TRIANGLE_STRIP);
-        float anim = lastmillis / 100 % (h * 2);
+        float anim = (totalmillis / 100) % (h * 2);
         if (anim >= h) anim = h * 2 - anim + 1;
         anim /= h;
         const float xx = VIRTH * .15f * scalef, yy = /*VIRTH * .2f * scalef*/ xx / aspect, yoffset = VIRTH * -.15f - offset;
@@ -511,14 +511,14 @@ void drawdmgindicator()
     {
         const damageinfo &pain = focus->damagestack[i];
         const float damagefade = damageindicatortime + pain.damage * 200 / HEALTHSCALE;
-        if (pain.millis + damagefade <= lastmillis)
+        if (pain.millis + damagefade <= totalmillis)
         {
             focus->damagestack.remove(i--);
             continue;
         }
         vec dir = pain.o;
         dir.sub(focus->o).normalize();
-        const float fade = (1 - (lastmillis - pain.millis) / damagefade) * damageindicatoralpha / 100.f,
+        const float fade = (1 - (totalmillis - pain.millis) / damagefade) * damageindicatoralpha / 100.f,
             dirangle = dir.x ? atan2f(dir.y, dir.x) / RAD : dir.y < 0 ? 270 : 90;
         glPushMatrix();
         glTranslatef(VIRTW / 2, VIRTH / 2, 0);
@@ -540,7 +540,7 @@ void drawequipicons(playerent *p)
 {
     glDisable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glColor4f(1.0f, 1.0f, 1.0f, 0.2f+(sinf(lastmillis/100.0f)+1.0f)/2.0f);
+    glColor4f(1.0f, 1.0f, 1.0f, 0.2f+(sinf(totalmillis/100.0f)+1.0f)/2.0f);
 
     // health & armor
     if (show_hud_element(!hidehudequipment, 1))
@@ -605,7 +605,7 @@ void drawequipicons(playerent *p)
 void drawradarent(float x, float y, float yaw, int col, int row, float iconsize, int pulse = 0, float alpha = 1.0f, const char *label = NULL, ...)
 {
     glPushMatrix();
-    if(pulse) glColor4f(1.0f, 1.0f, 1.0f, 0.2f+(sinf(lastmillis/30.0f+pulse)+1.0f)/2.0f);
+    if(pulse) glColor4f(1.0f, 1.0f, 1.0f, 0.2f+(sinf(totalmillis/30.0f+pulse)+1.0f)/2.0f);
     else glColor4f(1, 1, 1, alpha);
     glTranslatef(x, y, 0);
     glRotatef(yaw, 0, 0, 1);
@@ -846,7 +846,7 @@ void drawradar_showmap(playerent *p, int w, int h)
         }
         else
         {
-            glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f);
+            glColor4f(1.0f, 1.0f, 1.0f, (sinf(totalmillis / 100.0f) + 1.0f) / 2.0f);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             loopi(2) // flag items
             {
@@ -902,7 +902,7 @@ void drawradar_showmap(playerent *p, int w, int h)
     glDisable(GL_TEXTURE_2D);
     loopv(radar_explosions) // explosions
     {
-        int ndelay = lastmillis - radar_explosions[i].millis;
+        int ndelay = totalmillis - radar_explosions[i].millis;
         if (ndelay > 600) radar_explosions.remove(i--);
         else
         {
@@ -921,7 +921,7 @@ void drawradar_showmap(playerent *p, int w, int h)
     }
     loopv(radar_shotlines) // shotlines
     {
-        if (radar_shotlines[i].expire < lastmillis) radar_shotlines.remove(i--);
+        if (radar_shotlines[i].expire < totalmillis) radar_shotlines.remove(i--);
         else
         {
             radar_shotline &radar_s = radar_shotlines[i];
@@ -1047,7 +1047,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
         }
         else
         {
-            glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f);
+            glColor4f(1.0f, 1.0f, 1.0f, (sinf(totalmillis / 100.0f) + 1.0f) / 2.0f);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             float d2c = 1.6f * radarentsize / 16.0f;
             loopi(2) // flag items
@@ -1122,7 +1122,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
     glDisable(GL_TEXTURE_2D);
     loopv(radar_explosions) // explosions
     {
-        int ndelay = lastmillis - radar_explosions[i].millis;
+        int ndelay = totalmillis - radar_explosions[i].millis;
         if (ndelay > 600) radar_explosions.remove(i--);
         else
         {
@@ -1144,7 +1144,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
     }
     loopv(radar_shotlines) // shotlines
     {
-        if (radar_shotlines[i].expire < lastmillis) radar_shotlines.remove(i--);
+        if (radar_shotlines[i].expire < totalmillis) radar_shotlines.remove(i--);
         else
         {
             radar_shotline &radar_s = radar_shotlines[i];
@@ -1236,11 +1236,11 @@ void drawdamagescreen()
             newfade = sqrtf(1.f - focus->health / (float)maxhealth);
         fade = clamp((fade * 40.f + newfade) / 41.f, 0.f, 1.f);
     }
-    else if (lastmillis < damageblendmillis)
+    else if (totalmillis < damageblendmillis)
     {
         fade = 1.f;
-        if (damageblendmillis - lastmillis < damagescreenfade)
-            fade *= (damageblendmillis - lastmillis) / (float)damagescreenfade;
+        if (damageblendmillis - totalmillis < damagescreenfade)
+            fade *= (damageblendmillis - totalmillis) / (float)damagescreenfade;
     }
     else fade = 0;
 
@@ -1317,7 +1317,7 @@ void drawstreakmeter(int origVIRTW)
     // we have the blend function set by the perk icon
     const int currentstreak = floor(focus->pointstreak / 5.f);
     loopi(11){
-        glColor4f(1, 1, 1, focus->state != CS_DEAD ? (currentstreak == i || i >= 10) ? (0.3f + fabs(sinf(lastmillis / 500.0f)) / 2 * ((i - 1) % 5) / 4.f) : .8f : .3f);
+        glColor4f(1, 1, 1, focus->state != CS_DEAD ? (currentstreak == i || i >= 10) ? (0.3f + fabs(sinf(totalmillis / 500.0f)) / 2 * ((i - 1) % 5) / 4.f) : .8f : .3f);
         quad(streakt[i & 1][currentstreak > i ? 2 : currentstreak == i ? 1 : focus->deathstreak >= i ? 3 : 0]->id,
             (VIRTW - 620 - 15 - (11 * 50) + i * 50) * streakscale, (VIRTH - 80 - 35) * streakscale, 80 * streakscale, 0, 0, 1);
     }
@@ -1645,7 +1645,7 @@ void drawwaypoints()
                 if (flags & W2S_OUT_INVALID)
                     continue;
 
-                drawwaypoint(team == TEAM_SPECT ? WP_SECURE : team == teamfix ? WP_DEFEND : WP_OVERTHROW, pos, flags, e.attr4 ? fabs(sinf(lastmillis / 200.f)) : 1.f);
+                drawwaypoint(team == TEAM_SPECT ? WP_SECURE : team == teamfix ? WP_DEFEND : WP_OVERTHROW, pos, flags, e.attr4 ? fabs(sinf(totalmillis / 200.f)) : 1.f);
 
                 if (e.attr4 && !(flags /* & W2S_OUT_BEHIND */))
                 {
@@ -1998,11 +1998,11 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             formatstring(hudtarget)(" \f2[\f%d%s\f2] \f4[\f%s\f4]", team_rel_color(focus, worldhit), colorname(worldhit),
                 worldhitzone==HIT_HEAD?"3HEAD":worldhitzone==HIT_TORSO?"2TORSO":"0LEGS");
             concatstring(hudtext, hudtarget);
-            lasttarget = lastmillis;
+            lasttarget = totalmillis;
         }
-        else if(lastmillis - lasttarget < 800)
+        else if(totalmillis - lasttarget < 800)
         {
-            const short a = (800 - lastmillis + lasttarget) * 255 / 800;
+            const short a = (800 - totalmillis + lasttarget) * 255 / 800;
             draw_text(hudtarget, 20 + text_width(hudtext), 1570, a, a, a, a);
         }
         draw_text(hudtext, 20, 1570);
@@ -2010,18 +2010,18 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     // +XP (Experience) indicator
     extern int lastexpadd, lastexptexttime;
-    if (lastmillis <= lastexpadd + COMBOTIME)
+    if (totalmillis <= lastexpadd + COMBOTIME)
     {
         extern int lastexpaddamt;
         defformatstring(scoreaddtxt)("\f%c%+d", !lastexpaddamt ? '4' : lastexpaddamt >= 0 ? '2' : '3', lastexpaddamt);
-        const short a = (lastexpadd + COMBOTIME - lastmillis) * 255 / COMBOTIME;
+        const short a = (lastexpadd + COMBOTIME - totalmillis) * 255 / COMBOTIME;
         draw_text(scoreaddtxt, VIRTW * 11 / 20, VIRTH * 8 / 20, a, a, a, a);
     }
     // Point reason text
-    if (lastmillis <= lastexptexttime + COMBOTIME)
+    if (totalmillis <= lastexptexttime + COMBOTIME)
     {
         extern string lastexptext;
-        const short a = (lastexptexttime + COMBOTIME - lastmillis) * 255 / COMBOTIME;
+        const short a = (lastexptexttime + COMBOTIME - totalmillis) * 255 / COMBOTIME;
         draw_text(lastexptext, VIRTW * 11 / 20, VIRTH * 8 / 20 + FONTH, a, a, a, a);
     }
 
@@ -2166,7 +2166,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         {
             int left = 20*2, top = VIRTH;
             if (curvote->result == VOTE_NEUTRAL)
-                draw_textf("%s called a vote: %.2f seconds remaining", left, top + 240, curvote->owner ? colorname(curvote->owner) : "(unknown)", (curvote->expiremillis - lastmillis) / 1000.0f);
+                draw_textf("%s called a vote: %.2f seconds remaining", left, top + 240, curvote->owner ? colorname(curvote->owner) : "(unknown)", (curvote->expiremillis - totalmillis) / 1000.0f);
             else
                 draw_textf("%s called a vote:", left, top+240, curvote->owner ? colorname(curvote->owner) : "(unknown)");
             draw_textf("%s", left, top+320, curvote->desc);
@@ -2179,7 +2179,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
                 curvote->stats[VOTE_NO]);
 
             glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-            glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis/100.0f)+1.0f) / 2.0f);
+            glColor4f(1.0f, 1.0f, 1.0f, (sinf(totalmillis/100.0f)+1.0f) / 2.0f);
             switch(curvote->result)
             {
                 case VOTE_NEUTRAL:

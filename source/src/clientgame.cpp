@@ -405,11 +405,11 @@ void addexp(int xp)
 {
     if (xp)
     {
-        if (lastmillis <= lastexpadd + COMBOTIME)
+        if (totalmillis <= lastexpadd + COMBOTIME)
             lastexpaddamt += xp;
         else
             lastexpaddamt = xp;
-        lastexpadd = lastmillis;
+        lastexpadd = totalmillis;
     }
     // no experience "boost" from negative points
     if (xp < 0)
@@ -434,7 +434,7 @@ string lastexptext;
 void expreason(const char *reason)
 {
     formatstring(lastexptext)(*reason == '\f' ? "%s" : "\f2%s", reason);
-    lastexptexttime = lastmillis;
+    lastexptexttime = totalmillis;
 }
 COMMAND(expreason, "s");
 
@@ -863,7 +863,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, int style, c
     if (pl != actor || gun == GUN_GRENADE || gun == GUN_RPG || pl->o.dist(src) > 4)
     {
         // damage indicator
-        pl->damagestack.add(damageinfo(src, lastmillis, damage));
+        pl->damagestack.add(damageinfo(src, totalmillis, damage));
         // push
         vec dir = pl->o;
         dir.sub(src).normalize();
