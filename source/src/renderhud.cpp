@@ -1961,9 +1961,36 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     int commandh = 1570 + FONTH;
     if(command) commandh -= rendercommand(20, 1570, VIRTW);
     else if(infostr) draw_text(infostr, 20, 1570);
-    else if(show_hud_element(!hidehudtarget, 1))
+    else if (show_hud_element(!hidehudtarget, 1))
     {
-        defformatstring(hudtext)("\f0[\f1%04.1f\f3m\f0]", focus->o.dist(worldhitpos) / CUBES_PER_METER);
+        static vec lasthudtrackpos;
+        static int lasthudtrackmillis = 0;
+        static float lasthudtrackspeed = 0;
+        static char lasthudtracktype = 0;
+
+        if (worldhit)
+        {
+            // use target speed
+            lasthudtrackspeed = worldhit->vel.magnitude() * worldhit->maxspeed / CUBES_PER_METER;
+            lasthudtrackpos = worldhitpos;
+            lasthudtrackmillis = totalmillis + 1250; // stick for 1.5 seconds
+            lasthudtracktype = lasthudtrackspeed >= 0.2f ? '2' : 0; // yellow
+        }
+        else if(totalmillis > lasthudtrackmillis + 250)
+        {
+            // use average movement speed
+            lasthudtrackspeed = lasthudtrackpos.sub(worldpos).magnitude() * (4 / CUBES_PER_METER);
+            lasthudtrackpos = worldhitpos;
+            lasthudtrackmillis = totalmillis;
+            lasthudtracktype = lasthudtrackspeed >= 0.5f && lasthudtrackspeed < 25.0f ? '1' : 0; // blue
+        }
+
+        defformatstring(hudtext)("\f0[\f1%04.1f\f3m", focus->o.dist(worldhitpos) / CUBES_PER_METER);
+        if (lasthudtracktype) {
+            concatformatstring(hudtext, "\f4, \f%c%.1f \f3m/s", lasthudtracktype, lasthudtrackspeed);
+        }
+        concatstring(hudtext, "\f0]");
+
         static string hudtarget;
         static int lasttarget = INT_MIN;
         if(worldhit)
