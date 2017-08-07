@@ -50,7 +50,7 @@ ENetSocket httpgetsend(ENetAddress &remoteaddress, const char *hostname, const c
         return ENET_SOCKET_NULL;
     }
     ENetBuffer buf;
-    defformatstring(httpget)("GET %s HTTP/1.0\nHost: %s\nUser-Agent: %s\n\n", req, hostname, agent);
+    defformatstring(httpget)("GET %s HTTP/1.0\r\nHost: %s\r\nUser-Agent: %s\r\n\r\n", req, hostname, agent);
     buf.data = httpget;
     buf.dataLength = strlen((char *)buf.data);
     //logline(ACLOG_INFO, "sending request to %s...", hostname);
