@@ -113,11 +113,11 @@ VAR(dbgzip, 0, 0, 1);
 
 static bool readzipdirectory(const char *archname, FILE *f, int entries, int offset, int size, vector<zipfile> &files)
 {
-    uchar *buf = new uchar[size], *src = buf;
+    uchar *buf = new uchar[size], *src = buf, *guard = buf + size;
     if(fseek(f, offset, SEEK_SET) < 0 || (int)fread(buf, 1, size, f) != size) { delete[] buf; return false; }
     loopi(entries)
     {
-        if(src + ZIP_FILE_SIZE > &buf[size]) break;
+        if(src + ZIP_FILE_SIZE > guard) break;
 
         zipfileheader hdr;
         hdr.signature = lilswap(*(uint *)src); src += 4;
@@ -143,7 +143,7 @@ static bool readzipdirectory(const char *archname, FILE *f, int entries, int off
             src += hdr.namelength + hdr.extralength + hdr.commentlength;
             continue;
         }
-        if(src + hdr.namelength > &buf[size]) break;
+        if(src + hdr.namelength > guard) break;
 
         string pname;
         int namelen = min((int)hdr.namelength, (int)sizeof(pname)-1);

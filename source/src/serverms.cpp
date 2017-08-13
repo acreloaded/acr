@@ -223,6 +223,7 @@ bool processmastercmd(const char *p)
                     disc = DISC_NUM;
                     break;
             }
+            // fallthrough
         case 'a':
             if (*p == 'a')
                 disc = DISC_NONE;

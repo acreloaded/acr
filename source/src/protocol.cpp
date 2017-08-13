@@ -109,9 +109,10 @@ void sendstring(const char *t, vector<uchar> &p) { sendstring_(t, p); }
 void getstring(char *text, ucharbuf &p, int len)
 {
     char *t = text;
+    char *last = &text[len-1];
     do
     {
-        if(t>=&text[len]) { text[len-1] = 0; return; }
+        if(t>last) { *last = 0; return; }
         if(!p.remaining()) { *t = 0; return; }
         *t = getint(p);
     }
