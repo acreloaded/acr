@@ -381,7 +381,7 @@ struct servermaprot : serverconfigfile
             }
             if(i >= 3 * csl) c = NULL; // not a single map in rotation can be found...
         }
-        if(!c) return fatal("maprot unusable"), -1; // returning isn't actually necessary
+        if(!c) fatal("maprot unusable");
         if(!nochange)
         {
             curcfgset = ccs;
