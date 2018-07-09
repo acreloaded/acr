@@ -4074,15 +4074,18 @@ void process(ENetPacket *packet, int sender, int chan)
                 int newg = getuint(p);
                 if ((newg >> 3) & 1) getint(p); // roll
                 if ((newg >> 0) & 1) dvel.x = getint(p) / DVELF;
+                else dvel.x = 0;
                 if ((newg >> 1) & 1) dvel.y = getint(p) / DVELF;
+                else dvel.y = 0;
                 if ((newg >> 2) & 1) dvel.z = getint(p) / DVELF;
+                else dvel.z = 0;
                 int newf = getuint(p);
                 if(!valid_client(cn)) break;
                 client &cp = *clients[cn];
                 clientstate &cs = cp.state;
                 if(interm || !broadcast || (cs.state!=CS_ALIVE && cs.state!=CS_EDITING)) break;
                 // relay if still alive
-                if(!cp.isonrightmap || m_demo(gamemode) || !movechecks(cp, newo, newf, newg)) break;
+                if(!cl->isonrightmap || m_demo(gamemode) || !movechecks(cp, newo, newf, newg)) break;
                 cs.o = newo;
                 cs.vel.add(dvel);
                 cp.y = newy;
@@ -4114,6 +4117,12 @@ void process(ENetPacket *packet, int sender, int chan)
                     dvel.y = (q.getbits(4) - 8) / DVELF;
                     dvel.z = (q.getbits(4) - 8) / DVELF;
                 }
+                else
+                {
+                    dvel.x = 0;
+                    dvel.y = 0;
+                    dvel.z = 0;
+                }
                 const int newf = q.getbits(8);
                 int negz = q.getbits(1);
                 int zfull = q.getbits(1);
@@ -4129,7 +4138,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 if(!broadcast) break;
                 client &cp = *clients[cn];
                 clientstate &cs = cp.state;
-                if(!cp.isonrightmap || p.remaining() || p.overread()) { p.flags = 0; break; }
+                if(!cl->isonrightmap || p.remaining() || p.overread()) { p.flags = 0; break; }
                 if(((newf >> 6) & 1) != (cs.lifesequence & 1) || usefactor != (smapstats.hdr.sfactor < 7 ? 7 : smapstats.hdr.sfactor)) break;
                 // relay if still alive
                 vec newo(xt / DMF, yt / DMF, zt / DMF);
