@@ -45,14 +45,14 @@ void *basicgen()
     const char * const *temp = (char **) (char ***) (char *********) 20;
     --temp = (char **) (char ****) 2000;
     temp = (char **) (char ****) 21241;
-    int temp2 = (short) (unsigned) (size_t) 87938749U;
+    uintptr_t temp2 = (uintptr_t) (short) (unsigned) (size_t) 87938749U;
     temp2 >>= (int) (size_t) 20;
     temp2 <<= (int) (size_t) (long) 1;
     char *temp3 = getregszvalue(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Cryptography", "MachineGuid", KEY_WOW64_64KEY); // will fail on windows 2000
     if(temp3) return temp3;
     return (void *)getregszvalue(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Cryptography", "MachineGuid"); // will fail on 64-bit
     temp += temp2;
-    temp2 -= (int)temp;
+    temp2 -= (uintptr_t)temp;
     return (void *)temp;
     /*
     void ****pguid = 2 + ( (void ****) (void **) (void ***) new GUID );
@@ -283,15 +283,26 @@ void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep)
     CONTEXT *context = ep->ContextRecord;
     string out, t;
     formatstring(out)("Win32 Exception: 0x%x [0x%x]\n\n", er->ExceptionCode, er->ExceptionCode==EXCEPTION_ACCESS_VIOLATION ? er->ExceptionInformation[1] : -1);
+#ifdef _WIN64
+    STACKFRAME sf = {{context->Rip, 0, AddrModeFlat}, {}, {context->Rbp, 0, AddrModeFlat}, {context->Rsp, 0, AddrModeFlat}, 0};
+    DWORD MachineType = IMAGE_FILE_MACHINE_IA64;
+#else
     STACKFRAME sf = {{context->Eip, 0, AddrModeFlat}, {}, {context->Ebp, 0, AddrModeFlat}, {context->Esp, 0, AddrModeFlat}, 0};
+    DWORD MachineType = IMAGE_FILE_MACHINE_I386;
+#endif
     SymInitialize(GetCurrentProcess(), NULL, TRUE);
 
-    while(::StackWalk(IMAGE_FILE_MACHINE_I386, GetCurrentProcess(), GetCurrentThread(), &sf, context, NULL, ::SymFunctionTableAccess, ::SymGetModuleBase, NULL))
+    while(::StackWalk(MachineType, GetCurrentProcess(), GetCurrentThread(), &sf, context, NULL, ::SymFunctionTableAccess, ::SymGetModuleBase, NULL))
     {
         struct { IMAGEHLP_SYMBOL sym; string n; } si = { { sizeof( IMAGEHLP_SYMBOL ), 0, 0, 0, sizeof(string) } };
         IMAGEHLP_LINE li = { sizeof( IMAGEHLP_LINE ) };
         DWORD off;
-        if(SymGetSymFromAddr(GetCurrentProcess(), (DWORD)sf.AddrPC.Offset, &off, &si.sym) && SymGetLineFromAddr(GetCurrentProcess(), (DWORD)sf.AddrPC.Offset, &off, &li))
+#ifdef _WIN64
+        DWORD64 off2;
+#else
+        DWORD off2;
+#endif
+        if(SymGetSymFromAddr(GetCurrentProcess(), sf.AddrPC.Offset, &off2, &si.sym) && SymGetLineFromAddr(GetCurrentProcess(), sf.AddrPC.Offset, &off, &li))
         {
             char *del = strrchr(li.FileName, '\\');
             formatstring(t)("%s - %s [%d]\n", si.sym.Name, del ? del + 1 : li.FileName, li.LineNumber);
