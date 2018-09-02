@@ -795,7 +795,7 @@ struct mitemmuts : mitem
 {
     int num;
 
-    mitemmuts(gmenu *parent, int num) : mitem(parent, bgcolor, mitem::TYPE_CHECKBOX), num(num) {};
+    mitemmuts(gmenu *parent, int num, color *bgcolor) : mitem(parent, bgcolor, mitem::TYPE_CHECKBOX), num(num) {};
 
     /*
     ~mitemmuts()
@@ -1034,7 +1034,7 @@ void menuitemcheckbox(char *text, char *value, char *action)
 void menuitemmuts(int *mut)
 {
     if(!lastmenu) return;
-    lastmenu->items.add(new mitemmuts(lastmenu, *mut));
+    lastmenu->items.add(new mitemmuts(lastmenu, *mut, NULL));
 }
 
 void menumdl(char *mdl, char *anim, int *rotspeed, int *scale)
