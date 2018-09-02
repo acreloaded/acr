@@ -129,6 +129,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
     static short *entposs = NULL;
 
     DELETEA(enttypes);
+    DELETEA(entposs);
     loopi(MAXENTTYPES) s.entcnt[i] = 0;
     loopi(3) s.spawns[i] = 0;
     loopi(2) s.flags[i] = 0;
