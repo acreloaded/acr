@@ -863,6 +863,9 @@ void attack(bool on)
     }
 }
 
+VARP(crouchtoggle, 0, 0, 1);
+VARP(sprinttoggle, 0, 0, 1);
+
 void jumpn(bool on)
 {
     if(intermission) return;
@@ -887,12 +890,14 @@ void updatecrouch(playerent *p, bool on)
 void crouch(bool on)
 {
     if(player1->isspectating()) return;
+    if (crouchtoggle) on ^= player1->trycrouch;
     player1->trycrouch = on;
 }
 
 void sprint(bool on)
 {
     if (intermission) return;
+    if (sprinttoggle) on ^= player1->sprinting;
     player1->sprinting = on;
 }
 

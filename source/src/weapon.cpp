@@ -1573,12 +1573,25 @@ void knife::attackfx(const vec &from, const vec &to, int millis)
     else if ((millis & 1) && owner != player1 && !isowned(owner)) attacksound();
 }
 
+VARP(scopetoggle, 0, 0, 1);
 
 void setscope(bool enable)
 {
-    if (intermission || player1->state != CS_ALIVE || player1->scoping == enable) return;
+    if (intermission || player1->state != CS_ALIVE) return;
     if (player1->weaponsel->type == GUN_KNIFE || (ads_gun(player1->weaponsel->type) && ads_classic_allowed(player1->weaponsel->type)))
-        player1->scoping = enable;
+    {
+        if (scopetoggle)
+        {
+            if (enable)
+            {
+                player1->scoping ^= true;
+            }
+        }
+        else
+        {
+            player1->scoping = enable;
+        }
+    }
 }
 
 COMMANDF(setscope, "i", (int *on) { setscope(*on != 0); });
