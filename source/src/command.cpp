@@ -1399,7 +1399,7 @@ void gt(int *a, int *b)    { intret((int)(*a > *b)); }     COMMANDN(>, gt, "ii")
 void lte(int *a, int *b)    { intret((int)(*a <= *b)); }   COMMANDN(<=, lte, "ii");
 void gte(int *a, int *b)    { intret((int)(*a >= *b)); }   COMMANDN(>=, gte, "ii");
 
-COMMANDF(round, "f", (float *a) { intret((int)round_(*a)); });
+COMMANDF(round, "f", (float *a) { intret((int)round(*a)); });
 COMMANDF(ceil,  "f", (float *a) { intret((int)ceil(*a)); });
 COMMANDF(floor, "f", (float *a) { intret((int)floor(*a)); });
 

@@ -55,8 +55,6 @@ static inline T min(T a, T b)
     return a < b ? a : b;
 }
 
-static inline float round_(float x) { return x > 0.0f ? floor(x + 0.5f) : ceil(x - 0.5f); }
-
 static inline char popcount(unsigned i){ char c; for(c = 0; i; ++c) i &= i - 1; return c; }
 
 #define clamp(a,b,c) (max(b, min(a, c)))
