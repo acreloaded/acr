@@ -1120,7 +1120,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 target->armour = armour;
                 target->health = health;
                 dodamage(damage, target, actor, gun, style, src);
-                actor->pstatdamage[gun] += damage; //NEW
+                if (gun >= 0 && gun < NUMGUNS) actor->pstatdamage[gun] += damage; //NEW
                 break;
             }
 
