@@ -4,6 +4,7 @@
 
 #define SERVERMAP_PATH          "packages/maps/servermaps/"
 #define SERVERMAP_PATH_BUILTIN  "packages/maps/official/"
+#define SERVERMAP_PATH_BUILTIN2 "acr/packages/maps/official/"
 #define SERVERMAP_PATH_INCOMING "packages/maps/servermaps/incoming/"
 
 #define GZBUFSIZE ((MAXCFGFILESIZE * 11) / 10)
@@ -145,32 +146,29 @@ int findmappath(const char *mapname, char *filename)
     string tempname;
     if(!filename) filename = tempname;
     const char *name = behindpath(mapname);
+
     formatstring(filename)(SERVERMAP_PATH_BUILTIN "%s.cgz", name);
     path(filename);
-    int loc = MAP_NOTFOUND;
-    if(getfilesize(filename) > 10) loc = MAP_OFFICIAL;
-    else
-    {
+    if(getfilesize(filename) > 10) return MAP_OFFICIAL;
+
+    formatstring(filename)(SERVERMAP_PATH_BUILTIN2 "%s.cgz", name);
+    path(filename);
+    if(getfilesize(filename) > 10) return MAP_OFFICIAL;
+
 #ifndef STANDALONE
-        copystring(filename, setnames(name));
-        if(!isdedicated && getfilesize(filename) > 10) loc = MAP_LOCAL;
-        else
-        {
+    copystring(filename, setnames(name));
+    if(!isdedicated && getfilesize(filename) > 10) return MAP_LOCAL;
 #endif
-            formatstring(filename)(SERVERMAP_PATH "%s.cgz", name);
-            path(filename);
-            if(isdedicated && getfilesize(filename) > 10) loc = MAP_CUSTOM;
-            else
-            {
-                formatstring(filename)(SERVERMAP_PATH_INCOMING "%s.cgz", name);
-                path(filename);
-                if(isdedicated && getfilesize(filename) > 10) loc = MAP_TEMP;
-            }
-#ifndef STANDALONE
-        }
-#endif
-    }
-    return loc;
+
+    formatstring(filename)(SERVERMAP_PATH "%s.cgz", name);
+    path(filename);
+    if(isdedicated && getfilesize(filename) > 10) return MAP_CUSTOM;
+
+    formatstring(filename)(SERVERMAP_PATH_INCOMING "%s.cgz", name);
+    path(filename);
+    if(isdedicated && getfilesize(filename) > 10) return MAP_TEMP;
+
+    return MAP_NOTFOUND;
 }
 
 mapstats *getservermapstats(const char *mapname, bool getlayout, int *maploc)
