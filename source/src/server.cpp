@@ -480,7 +480,7 @@ void usestreak(client &c, int streak, client *actor = NULL, const vec *o = NULL)
             sendf(NULL, 1, "ri9", SV_RICOCHET, c.clientnum, GUN_RPG, (int)(c.state.o.x*DMF), (int)(c.state.o.y*DMF), (int)(c.state.o.z*DMF), (int)(o->x*DMF), (int)(o->y*DMF), (int)(o->z*DMF));
             sendf(NULL, 1, "ri7", SV_EXPLODE, c.clientnum, GUN_RPG, 0, (int)(o->x*DMF), (int)(o->y*DMF), (int)(o->z*DMF));
             int airmillis = gamemillis + 1000;
-            loopi(5)
+            loopi(m_classic(gamemode, mutators) ? 3 : 5)
             {
                 airmillis += rnd(200) + 50;
                 vec airo = *o;
@@ -493,10 +493,10 @@ void usestreak(client &c, int streak, client *actor = NULL, const vec *o = NULL)
             break;
         }
         case STREAK_RADAR:
-            c.state.radarearned = gamemillis + (info = 15000);
+            c.state.radarearned = gamemillis + (info = m_classic(gamemode, mutators) ? 10000 : 15000);
             break;
         case STREAK_NUKE:
-            c.state.nukemillis = gamemillis + (info = 30000);
+            c.state.nukemillis = gamemillis + (info = m_classic(gamemode, mutators) ? 60000 : 30000);
             break;
         case STREAK_JUG:
             info = (c.state.health += min(2000 * HEALTHSCALE, c.state.health * 7 + 200 * HEALTHSCALE));
