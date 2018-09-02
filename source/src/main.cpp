@@ -516,7 +516,7 @@ void setresdata(char *s, enet_uint32 c)
 COMMANDF(screenres, "ii", (int *w, int *h) { screenres(*w, *h); });
 
 static int curgamma = 100;
-VARNFP(vgamma, vgamma, 30, 100, 300,
+VARNFP(gamma, vgamma, 30, 100, 300,
 {
     if(vgamma == curgamma) return;
     curgamma = vgamma;
