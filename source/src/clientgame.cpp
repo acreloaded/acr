@@ -805,9 +805,10 @@ void tryrespawn()
 {
     if ( multiplayer(false) && bad_map() )
     {
-        hudoutf("This map is not supported in multiplayer. Read the docs about map quality/dimensions.");
+        hudoutf("This map would not be supported in multiplayer in AC. Read the docs about map quality/dimensions.");
     }
-    else if(player1->state==CS_DEAD)
+
+    if(player1->state==CS_DEAD)
     {
         respawnself();
         int respawnmillis = player1->respawnoffset + (m_duke(gamemode, mutators) ? 0 : SPAWNDELAY);

@@ -732,11 +732,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             {
                 playerent *d = getclient(getint(p));
                 if(!d || (d != player1 && !isowned(d))) { static playerent dummy; d = &dummy; }
-                if ( map_quality == MAP_IS_BAD )
+                if ( map_quality == MAP_IS_BAD && d == player1 )
                 {
-                    loopi(7+2*NUMGUNS+4) getint(p);
-                    conoutf(_("map deemed unplayable - fix it before you can spawn"));
-                    break;
+                    conoutf(_("map deemed unplayable in AC"));
                 }
 
                 if(d == player1)

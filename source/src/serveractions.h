@@ -59,7 +59,7 @@ struct mapaction : serveraction
             int maploc = MAP_NOTFOUND;
             mapstats *ms = map[0] ? getservermapstats(map, false, &maploc) : NULL;
             bool validname = validmapname(map);
-            mapok = (ms != NULL) && validname && ( m_edit(mode) ? !readonlymap(maploc) : mapisok(ms) );
+            mapok = (ms != NULL) && validname && ( m_edit(mode) ? !readonlymap(maploc) : true /*mapisok(ms)*/ );
             if(!mapok)
             {
                 if(notify)
@@ -96,6 +96,12 @@ struct mapaction : serveraction
                     msg[strlen(msg) - 2] = '\0';
                     if (notify) sendservmsg(msg, clients[caller]);
                     logline(ACLOG_INFO, "%s", msg);
+                }
+
+                // provide warning in case map designers are also targeting AC
+                if (!mapisok(ms))
+                {
+                    if (notify) sendservmsg("this map would not satisfy some quality requisites to be played in MultiPlayer Mode in AC", clients[caller]);
                 }
             }
             loopv(scl.adminonlymaps)
