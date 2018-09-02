@@ -136,7 +136,7 @@ static inline void updatemasterserver(int millis, int port)
     if (millis > lastupdatemaster + MSKEEPALIVE)
     {
         logline(ACLOG_INFO, "sending registration request to master server");
-        formatstring(path)("%s/r?v=%lu&p=%u&guid32=%lu", masterpath, PROTOCOL_VERSION, port, *&genguid(546545656, 23413376U, 3453455, "h6ji54ehjwo345gjio34s5jig"));
+        formatstring(path)("%s/r?v=%lu&g=%lu&p=%u&guid32=%lu", masterpath, PROTOCOL_VERSION, AC_VERSION, port, *&genguid(546545656, 23413376U, 3453455, "h6ji54ehjwo345gjio34s5jig"));
         lastupdatemaster = millis + 1;
     }
     else if (millis > lastauthreqprocessed + 2500 && authrequests.length())
