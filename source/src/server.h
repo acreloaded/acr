@@ -659,7 +659,7 @@ guninfo guns[NUMGUNS] =
     { "bolt",     S_BOLT,     S_RBOLT,     2000, 1500, 120, 80, 130, 48,  40, 250,  97,  36,  8,  9, 4, 4, 110, 135, 100, 80, 3, false, MUL_SNIPER },
     { "heal",     S_HEAL,     S_NULL,      1200,  100, 20,   4,   8, 10,   0,  50,   1,   1, 10, 11, 0, 0,  10,  20, 100,  8, 4, true,  MUL_NORMAL },
     { "sword",    S_SWORD,    S_NULL,         0,  480, 90,   7,   9, 81, 100,   1,   0,   1,  0,  1, 0, 2,   0,   0, 100,  0, 0, true,  MUL_NORMAL },
-    { "rpg",      S_RPG,      S_NULL,      2000,  120, 190,  0,  32, 18,  50, 200,  75,   3,  1,  1, 3, 1,  48,  50, 100,  0, 2, false, MUL_NORMAL },
+    { "rpg",      S_RPG,      S_NULL,      2000,  120, 190,  0,  32, 15,  50, 200,  75,   3,  1,  1, 3, 1,  48,  50, 100,  0, 2, false, MUL_NORMAL },
     { "assault2", S_ASSAULT2, S_RASSAULT2, 2000,  100, 42,  48, 120, 12,   0, 150,  94,   3, 30, 31, 0, 3,  42,  62, 100, 62, 1, true,  MUL_NORMAL },
     { "sniper2",  S_SNIPER2,  S_RSNIPER2,  2000,  120, 110, 75, 120, 45,  35, 300,  98, 120, 10, 11, 4, 4,  95,  96, 100, 85, 5, false, MUL_SNIPER },
     { "sniper3",  S_SNIPER3,  S_RSNIPER3,  2100,  120, 36,  65, 100, 16,   0, 235,  96,   3, 20, 21, 0, 3,  47,  59, 100, 62, 1, true,  MUL_SNIPER },
