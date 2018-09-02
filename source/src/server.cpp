@@ -1922,6 +1922,12 @@ void serverdied(client &target, client &actor_, int damage, int gun, int style, 
             c.frag = max(0, kills);
             c.death = target.team;
         }
+
+        // 'confirm overload' small flags reset
+        if (m_overload(gamemode))
+        {
+            ts.smallflags = 0;
+        }
     }
     else
     {
@@ -3373,7 +3379,7 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
         }
     }
     // flags
-    if (m_flags(gamemode) && !m_secure(gamemode) && !m_overload(gamemode)) loopi(2)
+    if (m_flags(gamemode) && !m_secure(gamemode) && !(m_overload(gamemode) && !(m_confirm(gamemode, mutators) && cs.smallflags))) loopi(2)
     {
         void flagaction(int flag, int action, int actor);
         sflaginfo &f = sflaginfos[i];
@@ -3469,6 +3475,15 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
             }
             if (cantake) flagaction(i, FA_PICKUP, cp.clientnum);
         }
+        else if (m_overload(gamemode) && f.state == CTFF_INBASE && i != cp.team)
+        {
+            loopi(cs.smallflags)
+            {
+                flagaction(i, FA_SCORE, cp.clientnum);
+            }
+
+            cs.smallflags = 0;
+        }
     }
     // kill confirmed
     loopv(sconfirms) if (sconfirms[i].o.dist(cs.o) < 5.f)
@@ -3480,6 +3495,11 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
             // the following line doesn't have to set the valid flag twice
             getsteamscore(sconfirms[i].team).frags += sconfirms[i].frag;
             ++usesteamscore(sconfirms[i].death).deaths;
+
+            if (m_overload(gamemode) /*&& m_confirm(gamemode, mutators)*/)
+            {
+                cs.smallflags++;
+            }
         }
         else
         {

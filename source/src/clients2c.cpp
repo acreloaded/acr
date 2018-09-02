@@ -1063,6 +1063,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 };
                 formatstring(text)(pointreason_names[reason], CC);
                 expreason(text);
+
+                // Hacky way to increase small flag count
+                if (reason == PR_KC && m_confirm(gamemode, mutators) && m_overload(gamemode))
+                {
+                    player1->smallflags++;
+                }
                 break;
             }
 

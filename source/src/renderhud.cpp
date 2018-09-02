@@ -63,18 +63,32 @@ void drawflagicons(int team, playerent *p)
         else if (m_keep(gamemode)) row = 2;
         drawicon(flagtex, team * 120 + VIRTW / 4.0f*3.0f, 1650, 120, team, row, 1 / 3.f);
     }
+
+    const int smallFlags = m_overload(gamemode) && m_confirm(gamemode, mutators) && team == player1->team ? player1->smallflags : 0;
+
     // Must be stolen for big flag-stolen icon
-    if (f.state != CTFF_STOLEN) return;
+    if (f.state != CTFF_STOLEN && !smallFlags) return;
+
     Texture *t = (m_capture(gamemode) || (m_ktf2(gamemode, mutators) && m_team(gamemode, mutators))) ? ctftex : hktftex;
     if (!t) return;
     // CTF OR KTF2/Returner
     int row = (m_capture(gamemode) || (m_ktf2(gamemode, mutators) && m_team(gamemode, mutators))) && f.actor && f.actor->team == team ? 1 : 0;
-    // HTF + KTF
+    // KTF
     if (m_keep(gamemode) && !(m_ktf2(gamemode, mutators) && m_team(gamemode, mutators))) row = 1;
+    else if (m_overload(gamemode)) row = 1;
     // pulses
     glColor4f(1, 1, 1, f.actor == p ? (sinf(totalmillis / 100.0f) + 1.0f) / 2.0f : .6f);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
     drawicon(t, VIRTW - 225 * (!team && flaginfos[1].state != CTFF_STOLEN ? 1 : 2 - team) - 10, VIRTH * 5 / 8, 225, team, row, 1 / 2.f);
+
+    if (smallFlags)
+    {
+        defformatstring(count)("x%d", smallFlags);
+
+        int cw, ch;
+        text_bounds(count, cw, ch);
+        draw_text(count, VIRTW - 225 * (!team && flaginfos[1].state != CTFF_STOLEN ? 1 : 2 - team) - 10 + (225 - cw) / 2, VIRTH * 5 / 8 + (225 - ch) / 2);
+    }
 }
 
 void drawvoteicon(float x, float y, int col, int row, bool noblend)

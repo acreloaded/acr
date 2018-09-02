@@ -938,6 +938,12 @@ void dokill(playerent *pl, playerent *act, int gun, int style, int damage, int c
     // sound
     audiomgr.playsound(S_DIE1 + rnd(2), pl);
 
+    // 'confirm overload' small flags reset
+    if (m_confirm(gamemode, mutators) && m_overload(gamemode))
+    {
+        pl->smallflags = 0;
+    }
+
     if (pl == act)
     {
         // suicide
@@ -1208,8 +1214,8 @@ void startmap(const char *name, bool reset)   // called just after a map load
 
     if(!reset) return;
 
-    player1->frags = player1->assists = player1->flagscore = player1->deaths = player1->lifesequence = player1->points = player1->rank = player1->pointstreak = player1->deathstreak = player1->airstrikes = player1->radarmillis = player1->nametagmillis = player1->nukemillis = 0;
-    loopv(players) if(players[i]) players[i]->frags = players[i]->assists = players[i]->flagscore = players[i]->deaths = players[i]->lifesequence = players[i]->points = player1->rank = players[i]->pointstreak = players[i]->deathstreak = players[i]->airstrikes = players[i]->radarmillis = players[i]->nametagmillis = players[i]->nukemillis = 0;
+    player1->frags = player1->assists = player1->flagscore = player1->deaths = player1->lifesequence = player1->points = player1->rank = player1->smallflags = player1->pointstreak = player1->deathstreak = player1->airstrikes = player1->radarmillis = player1->nametagmillis = player1->nukemillis = 0;
+    loopv(players) if(players[i]) players[i]->frags = players[i]->assists = players[i]->flagscore = players[i]->deaths = players[i]->lifesequence = players[i]->points = player1->rank = players[i]->smallflags = players[i]->pointstreak = players[i]->deathstreak = players[i]->airstrikes = players[i]->radarmillis = players[i]->nametagmillis = players[i]->nukemillis = 0;
     if(editmode) toggleedit(true);
     intermission = false;
     showscores(false);
@@ -1325,6 +1331,9 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             {
                 hudoutf("\f2you scored");
                 firstpersondrop = true;
+
+                // Reset small flag counter (this is incorrect if the flag was scored by overloading the base)
+                if (m_overload(gamemode) && m_confirm(gamemode, mutators)) act->smallflags = 0;
             }
             else hudoutf("\f2%s scored for %s", colorname(act), neutral ? teamnames[act->team] : teammate ? "your team" : "the enemy team");
             break;
