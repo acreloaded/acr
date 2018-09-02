@@ -2040,6 +2040,11 @@ void serverdied(client &target, client &actor_, int damage, int gun, int style, 
         if (m_convert(gamemode, mutators) && target.team != actor->team)
         {
             updateclientteam(target, actor->team, FTR_SILENT);
+
+            if (m_void(gamemode, mutators) && team_isactive(actor->team))
+            {
+                sendf(NULL, 1, "ri3", SV_SETTEAM, actor->clientnum, (actor->team = team_opposite(actor->team)) | (FTR_SILENT << 4));
+            }
             // checkai(); // DO NOT balance bots here
             convertcheck(true);
         }
