@@ -90,6 +90,7 @@ void drawvoteicon(float x, float y, int col, int row, bool noblend)
     }
 }
 
+VARP(crosshairmode, 0, 2, 2);
 VARP(crosshairsize, 0, 15, 50);
 VARP(crosshairreddotsize, 0, 0, 50);
 VARP(crosshairreddottreshold, 0, 750, 1000);
@@ -342,74 +343,89 @@ void drawcrosshair(playerent *p, int n, int teamtype)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
     glColor4f(col.r, col.g, col.b, col.alpha * 0.8f);
     float chsize = (n == CROSSHAIR_SCOPE) ? 24.f : crosshairsize;
-    if (n == CROSSHAIR_DEFAULT)
+
+    // draw old-style crosshair
+    if ((n != CROSSHAIR_DEFAULT && n != CROSSHAIR_SHOTGUN) || crosshairmode)
     {
-        float clen = chsize * 3.6f;
-        float cthickness = chsize * 2.f;
-        const bool honly = melee_weap(p->weaponsel->type) || p->weaponsel->type == GUN_GRENADE;
-
-        if (honly)
-            chsize = chsize * 1.5f;
-        else
-        {
-            chsize = p->weaponsel->dynspread() * 100 * (p->perk2 == PERK2_STEADY ? .65f : 1) / dynfov();
-            //if (isthirdperson) chsize *= worldpos.dist(focus->o) / worldpos.dist(camera1->o);
-            if (m_classic(gamemode, mutators)) chsize *= .6f;
-        }
-
-        Texture *cv = crosshairs[CROSSHAIR_V], *ch = crosshairs[CROSSHAIR_H];
-        if (!cv) cv = textureload("packages/crosshairs/vertical.png", 3);
-        if (!ch) ch = textureload("packages/crosshairs/horizontal.png", 3);
-
-        // horizontal
-        glBindTexture(GL_TEXTURE_2D, ch->id);
-        glBegin(GL_QUADS);
-        // left
-        glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 - chsize - clen, VIRTH / 2 - cthickness);
-        glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 - chsize, VIRTH / 2 - cthickness);
-        glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 - chsize, VIRTH / 2 + cthickness);
-        glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 - chsize - clen, VIRTH / 2 + cthickness);
-        // right
-        glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 + chsize, VIRTH / 2 - cthickness);
-        glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 + chsize + clen, VIRTH / 2 - cthickness);
-        glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 + chsize + clen, VIRTH / 2 + cthickness);
-        glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 + chsize, VIRTH / 2 + cthickness);
-        glEnd();
-
-        // vertical
-        if (!honly)
-        {
-            glBindTexture(GL_TEXTURE_2D, cv->id);
-            glBegin(GL_QUADS);
-            // top
-            glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 - cthickness, VIRTH / 2 - chsize - clen);
-            glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 + cthickness, VIRTH / 2 - chsize - clen);
-            glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 + cthickness, VIRTH / 2 - chsize);
-            glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 - cthickness, VIRTH / 2 - chsize);
-            // bottom
-            glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 - cthickness, VIRTH / 2 + chsize);
-            glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 + cthickness, VIRTH / 2 + chsize);
-            glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 + cthickness, VIRTH / 2 + chsize + clen);
-            glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 - cthickness, VIRTH / 2 + chsize + clen);
-            glEnd();
-        }
-    }
-    else
-    {
-        if (n == CROSSHAIR_SHOTGUN)
-        {
-            chsize = p->weaponsel->dynspread() * 100 * (p->perk2 == PERK2_STEADY ? .75f : 1) / dynfov();
-            //if (isthirdperson) chsize *= worldpos.dist(focus->o) / worldpos.dist(camera1->o);
-            if (m_classic(gamemode, mutators)) chsize *= .75f;
-        }
-
-        glBindTexture(GL_TEXTURE_2D, crosshair->id);
+        Texture *c = (n == CROSSHAIR_SHOTGUN && crosshairs[CROSSHAIR_DEFAULT]) ? crosshairs[CROSSHAIR_DEFAULT] : crosshair;
+        glBindTexture(GL_TEXTURE_2D, c->id);
         glBegin(GL_TRIANGLE_STRIP);
         glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 - chsize, VIRTH / 2 - chsize);
         glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 + chsize, VIRTH / 2 - chsize);
         glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 - chsize, VIRTH / 2 + chsize);
         glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 + chsize, VIRTH / 2 + chsize);
         glEnd();
+    }
+
+    // draw new-style crosshair
+    if (crosshairmode != 1)
+    {
+        if (n == CROSSHAIR_SHOTGUN)
+        {
+            chsize = p->weaponsel->dynspread() * 100 * (p->perk2 == PERK2_STEADY ? .75f : 1) / dynfov();
+            //if (isthirdperson) chsize *= worldpos.dist(focus->o) / worldpos.dist(camera1->o);
+            if (m_classic(gamemode, mutators)) chsize *= .75f;
+
+            glBindTexture(GL_TEXTURE_2D, crosshair->id);
+            glBegin(GL_TRIANGLE_STRIP);
+            glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 - chsize, VIRTH / 2 - chsize);
+            glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 + chsize, VIRTH / 2 - chsize);
+            glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 - chsize, VIRTH / 2 + chsize);
+            glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 + chsize, VIRTH / 2 + chsize);
+            glEnd();
+        }
+        else if (n == CROSSHAIR_DEFAULT)
+        {
+            float clen = chsize * 3.6f;
+            float cthickness = chsize * 2.f;
+            const bool honly = melee_weap(p->weaponsel->type) || p->weaponsel->type == GUN_GRENADE;
+
+            if (honly)
+                chsize = chsize * 1.5f;
+            else
+            {
+                chsize = p->weaponsel->dynspread() * 100 * (p->perk2 == PERK2_STEADY ? .65f : 1) / dynfov();
+                //if (isthirdperson) chsize *= worldpos.dist(focus->o) / worldpos.dist(camera1->o);
+                if (m_classic(gamemode, mutators)) chsize *= .6f;
+            }
+
+            Texture *cv = crosshairs[CROSSHAIR_V], *ch = crosshairs[CROSSHAIR_H];
+            if (!cv) cv = textureload("packages/crosshairs/vertical.png", 3);
+            if (!ch) ch = textureload("packages/crosshairs/horizontal.png", 3);
+
+            // horizontal
+            glBindTexture(GL_TEXTURE_2D, ch->id);
+            glBegin(GL_QUADS);
+            // left
+            glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 - chsize - clen, VIRTH / 2 - cthickness);
+            glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 - chsize, VIRTH / 2 - cthickness);
+            glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 - chsize, VIRTH / 2 + cthickness);
+            glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 - chsize - clen, VIRTH / 2 + cthickness);
+            // right
+            glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 + chsize, VIRTH / 2 - cthickness);
+            glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 + chsize + clen, VIRTH / 2 - cthickness);
+            glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 + chsize + clen, VIRTH / 2 + cthickness);
+            glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 + chsize, VIRTH / 2 + cthickness);
+            glEnd();
+
+            // vertical
+            if (!honly)
+            {
+                glBindTexture(GL_TEXTURE_2D, cv->id);
+                glBegin(GL_QUADS);
+                // top
+                glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 - cthickness, VIRTH / 2 - chsize - clen);
+                glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 + cthickness, VIRTH / 2 - chsize - clen);
+                glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 + cthickness, VIRTH / 2 - chsize);
+                glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 - cthickness, VIRTH / 2 - chsize);
+                // bottom
+                glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 - cthickness, VIRTH / 2 + chsize);
+                glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 + cthickness, VIRTH / 2 + chsize);
+                glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 + cthickness, VIRTH / 2 + chsize + clen);
+                glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 - cthickness, VIRTH / 2 + chsize + clen);
+                glEnd();
+            }
+        }
     }
 }
 

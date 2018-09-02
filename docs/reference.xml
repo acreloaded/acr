@@ -5613,6 +5613,16 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="http://as
           <value token="V" description="hit marker display time" minValue="0" maxValue="5000" defaultValue="750"/>
         </variable>
 
+        <variable name="crosshairmode">
+          <description>Use the new-style, old AC-style crosshair, or both.</description>
+          <remarks>
+            <remark>
+            0 uses only the new crosshair; 1 uses only the old crosshair; 2 uses both.
+            </remark>
+          </remarks>
+          <value token="N" description="crosshair mode" minValue="0" maxValue="2" defaultValue="2"/>
+        </variable>
+
         <variable name="crosshairsize">
           <description>Sets the size of your crosshair.</description>
           <remarks>
