@@ -961,6 +961,14 @@ void dokill(playerent *pl, playerent *act, int gun, int style, int damage, int c
             act->weapstats[gun].kills++;
             pl->weapstats[pl->gunselect].deaths++;
         }
+
+        if (m_void(gamemode, mutators) && act->state == CS_ALIVE && (act == player1 || isowned(act)))
+        {
+            act->o = pl->o;
+            act->newpos = pl->newpos;
+            act->yaw = pl->yaw;
+            act->pitch = pl->pitch;
+        }
     }
     // deathstreak
     /*
