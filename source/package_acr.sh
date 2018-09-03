@@ -21,7 +21,7 @@
 
 REPOPATH=..
 OUTPUTPATH=../../ACR_packaged
-OUTPUTNAME=acr_02_06_03
+OUTPUTNAME=acr_02_07_00
 
 # Arguments: package_name 
 make_package() {
