@@ -25,7 +25,7 @@ OUTPUTNAME=acr_02_06_03
 
 # Arguments: package_name 
 make_package() {
-  mkdir $OUTPUTPATH/${OUTPUTNAME}-$1
+  mkdir -p $OUTPUTPATH/${OUTPUTNAME}-$1
   if [ $1 == "serv" ]; then
     # Server binaries
     mkdir $OUTPUTPATH/${OUTPUTNAME}-$1/bin_win32
