@@ -64,8 +64,8 @@ void deleteai(client &c)
     if(c.type != ST_AI || c.ownernum < 0)
         return;
     const int cn = c.clientnum;
-    c.ownernum = -1;
     clientdisconnect(c);
+    c.ownernum = -1;
     sendf(NULL, 1, "ri2", SV_DELAI, cn);
 }
 
