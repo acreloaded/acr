@@ -56,7 +56,7 @@ int allowconnect(client &cl, uint authreq = 0, uint authuser = 0)
     {
         // nickname matches whitelist, but IP is not in the required range or PWD doesn't match
         logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong %s%s", cl.gethostname(), cl.formatname(), wl == NWL_IPFAIL ? "IP" : "PWD", wlp);
-        return NWL_IPFAIL ? DISC_NAME_IP : DISC_NAME_PWD;
+        return wl == NWL_IPFAIL ? DISC_NAME_IP : DISC_NAME_PWD;
     }
     else if (bl > 0)
     {
