@@ -52,8 +52,7 @@ bool initlogging(const char *identity, int facility_, int consolethres, int file
         if((logsock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM)) == ENET_SOCKET_NULL || enet_address_set_host(&logdest, "localhost") < 0) syslogthreshold = ACLOG_NUM;
 #endif
     }
-    static int lognum = 0;
-    formatstring(filepath)("serverlog_%s_%s.part%d.txt", timestring(true), identity, ++lognum);
+    formatstring(filepath)("serverlog_%s_%s.part1.txt", timestring(true), identity);
     if(fp) { fclose(fp); fp = NULL; }
     if(filethreshold < ACLOG_NUM)
     {
@@ -93,7 +92,26 @@ bool logline(int level, const char *msg, ...)
     { // break into single lines first
         if((p = strchr(l, '\n'))) *p = '\0';
         if(consolethreshold <= level) printf("%s%s%s\n", ts, ld, l);
-        if(fp && filethreshold <= level) flogsz += max(0, fprintf(fp, "%s%s%s\n", ts, ld, l));
+        if (fp && filethreshold <= level)
+        {
+            if (flogsz && flogsz + strlen(ts) + strlen(ld) + strlen(l) + 1 >= ACLOG_LIMIT)
+            {
+                // roll to next log file if it's too big
+                static int lognum = 1;
+                formatstring(filepath)("serverlog_%s_%s.part%d.txt", timestring(true), ident, ++lognum);
+
+                fclose(fp);
+                fp = fopen(filepath, "w");
+                if (!fp) printf("failed to open \"%s\" for writing\n", filepath);
+                else printf("logging to new file: \"%s\"\n", filepath);
+
+                // enabled = consolethreshold < ACLOG_NUM || fp || syslogthreshold < ACLOG_NUM;
+
+                flogsz = 0;
+            }
+
+            if (fp) flogsz += max(0, fprintf(fp, "%s%s%s\n", ts, ld, l));
+        }
         if(syslogthreshold <= level)
 #ifdef AC_USE_SYSLOG
             syslog(levels[level], "%s", l);
@@ -113,12 +131,6 @@ bool logline(int level, const char *msg, ...)
     if(fp && filethreshold <= level)
     {
         fflush(fp);
-        // reset log if it's too big
-        if(flogsz >= ACLOG_LIMIT)
-        {
-            initlogging(ident, facility, consolethreshold, filethreshold, syslogthreshold, timestamp);
-            flogsz = 0;
-        }
     }
     return consolethreshold <= level;
 }
