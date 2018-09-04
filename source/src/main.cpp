@@ -656,11 +656,11 @@ void resetgl()
     if(!reloadtexture(*notexture) ||
        !reloadtexture("packages/misc/startscreen.png"))
         fatal("failed to reload core texture");
+    reloadfonts();
     loadingscreen(_("resetting OpenGL (2/2)"));
     c2skeepalive();
     restoregamma();
     c2skeepalive();
-    reloadfonts();
     reloadtextures();
     c2skeepalive();
     drawscope(true); // 2011feb05:ft: preload scope.png
