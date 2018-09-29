@@ -74,6 +74,7 @@ void purgesconfirms()
 {
     loopv(sconfirms)
         sendf(NULL, 1, "ri2", SV_CONFIRMREMOVE, sconfirms[i].id);
+    sconfirms.setsize(0);
 }
 void purgesknives()
 {
