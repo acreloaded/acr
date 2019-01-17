@@ -4230,7 +4230,7 @@ void process(ENetPacket *packet, int sender, int chan)
                         incoming_size += mapsize + cfgsizegz;
                         logline(ACLOG_INFO,"[%s] %s sent map %s, rev %d, %d + %d(%d) bytes written",
                             clients[sender]->gethostname(), clients[sender]->formatname(), sentmap, revision, mapsize, cfgsize, cfgsizegz);
-                        defformatstring(msg)("%s (%d) up%sed map %s, rev %d%s", clients[sender]->formatname(), sender, mp == MAP_NOTFOUND ? "load": "dat", sentmap, revision,
+                        defformatstring(msg)("%s up%sed map %s, rev %d%s", clients[sender]->formatname(), mp == MAP_NOTFOUND ? "load": "dat", sentmap, revision,
                             /*strcmp(sentmap, behindpath(smapname)) || smode == GMODE_COOPEDIT ? "" :*/ "\f3 (restart game to use new map version)");
                         sendservmsg(msg);
                     }
