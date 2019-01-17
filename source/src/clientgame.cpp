@@ -1317,13 +1317,13 @@ void flagmsg(int flag, int message, int actor, int flagtime)
                 hudoutf("\f2you %s %s flag", droplost, teamstr);
                 firstpersondrop = true;
             }
-            else hudoutf("\f2%s %s %s %s flag", flagteam, colorname(act), droplost, teamstr);
+            else hudoutf("\f2%s%s %s %s flag", flagteam, colorname(act), droplost, teamstr);
             break;
         }
         case FA_RETURN:
             audiomgr.playsound(S_FLAGRETURN, SP_HIGHEST);
             if (firstperson) hudoutf("\f2you returned %s flag", teamstr);
-            else hudoutf("\f2%s %s returned %s flag", flagteam, colorname(act), teamstr);
+            else hudoutf("\f2%s%s returned %s flag", flagteam, colorname(act), teamstr);
             break;
         case FA_SCORE:
             audiomgr.playsound(S_FLAGSCORE, SP_HIGHEST);
