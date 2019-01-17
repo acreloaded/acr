@@ -1355,7 +1355,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             break;
         case FA_RESET:
             audiomgr.playsound(S_FLAGRETURN, SP_HIGHEST);
-            hudoutf("the server reset the flag");
+            hudoutf("the server reset %s flag", teamstr);
             firstpersondrop = true;
             break;
     }
