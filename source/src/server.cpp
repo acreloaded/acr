@@ -3382,7 +3382,12 @@ bool movechecks(client &cp, const vec &newo, const int newf, const int newg)
             int spawntime(int type);
             sendf(NULL, 1, "ri4", SV_ITEMACC, i, cp.clientnum, e.spawntime = spawntime(e.type));
             cs.pickup(sents[i].type);
-            if (m_lss(gamemode, mutators) && sents[i].type == I_GRENADE) cs.pickup(sents[i].type); // get two nades at lss
+            if (m_lss(gamemode, mutators) && sents[i].type == I_GRENADE)
+            {
+                // get two nades at lss
+                cs.pickup(I_GRENADE);
+                sendf(NULL, 1, "ri4", SV_ITEMACC, i, cp.clientnum, e.spawntime);
+            }
         }
     }
     // flags
