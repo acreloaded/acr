@@ -198,7 +198,15 @@ void masterdisc(int cn, int result)
     if (!valid_client(cn)) return;
     client &cl = *clients[cn];
     cl.masterdisc = result;
-    if (!cl.connectauth && result) checkauthdisc(cl, true);
+    if (result)
+    {
+        logline(ACLOG_INFO, "[%s] master disconnects client for %s", cl.gethostname(), disc_reason(result));
+        if (!cl.connectauth) checkauthdisc(cl, true);
+    }
+    else
+    {
+        logline(ACLOG_VERBOSE, "[%s] master allows client", cl.gethostname());
+    }
 }
 
 void logversion(client &cl)
