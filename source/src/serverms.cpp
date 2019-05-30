@@ -196,9 +196,6 @@ static inline void updatemasterserver(int millis, int port)
 
 bool processmastercmd(const char *p)
 {
-    if (!authid)
-        return false;
-
     switch (*p)
     {
         // verdict: allow/ban connect
@@ -228,40 +225,41 @@ bool processmastercmd(const char *p)
             if (*p == 'a')
                 disc = DISC_NONE;
 
-            if (authcn == -1)
-                return false;
+            if (authcn == -1) break;
 
             extern void masterdisc(int cn, int result);
             masterdisc(authcn, disc);
-            break;
+
+            return true;
         }
 
         // auth
         case 'd': // fail to claim
         case 'f': // failure
+            if (!authid) break;
             extern void authfailed(uint id, bool fail);
             authfailed(authid, *p == 'd');
-            break;
+            return true;
         case 's': // succeed
         {
             char privk = *++p;
-            if (!privk) return false;
+            if (!authid || !privk) break;
             string name;
             filtertext(name, ++p, 1, MAXNAMELEN);
             if (!*name) copystring(name, "<unnamed>");
             extern void authsucceeded(uint id, int priv, const char *name);
             authsucceeded(authid, privk >= '0' && privk <= '3' ? privk - '0' : -1, name);
-            break;
+            return true;
         }
         case 'c': // challenge
         {
-            if (!*++p) return false;
+            if (!authid || !*++p) break;
             extern void authchallenged(uint id, const char *chal);
             authchallenged(authid, p);
-            break;
+            return true;
         }
     }
-    return true;
+    return false;
 }
 
 void checkmasterreply()
