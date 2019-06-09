@@ -193,9 +193,9 @@ void shotevent::process(client *ci)
                 serverdamage(*hit, c, dmg, weap, flags, cs.o, dist);
                 damagedealt += dmg;
             }
-            loopi(&c == hit ? 25 : 15)
+            loopi(&c == hit ? 5 : 3)
                 // heals over the next 1 to 2.5 seconds (no time perk, for others)
-                hit->addtimer(new healevent(gamemillis + (10 + i) * 100 / (cs.perk1 == PERK_POWER ? 2 : 1), c.clientnum, cs.perk1 == PERK_POWER ? 2 : 1));
+                hit->addtimer(new healevent(gamemillis + (2 + i) * 500 / (cs.perk1 == PERK_POWER ? 2 : 1), c.clientnum, cs.perk1 == PERK_POWER ? 10 : 5));
             if (hit == &c) (end = to).sub(from).normalize().add(from); // 25 cm fx
             // hide blood for healing weapon
             // sendhit(c, WEAP_HEAL, end, dmg); // blood
