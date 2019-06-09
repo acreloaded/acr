@@ -401,6 +401,10 @@ VARP(aboveheadiconfadetime, 1, 2000, 10000);
 
 void renderaboveheadicon(playerent *p)
 {
+    glDepthMask(GL_FALSE);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+
     static Texture **texs = geteventicons();
     loopi(p->icons.length() + 1)
     {
@@ -429,9 +433,6 @@ void renderaboveheadicon(playerent *p)
             default: scalef = aspect = 1; break;
         }
         glPushMatrix();
-        glDepthMask(GL_FALSE);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glEnable(GL_BLEND);
         glTranslatef(p->o.x, p->o.y, p->o.z + p->aboveeye);
         glRotatef(camera1->yaw - 180, 0, 0, 1);
         glColor4f(1.0f, 1.0f, 1.0f, (aboveheadiconfadetime - t) / float(aboveheadiconfadetime));
@@ -439,10 +440,38 @@ void renderaboveheadicon(playerent *p)
         if (anim >= h) anim = h * 2 - anim + 1;
         anim /= h;
         quad(tex->id, vec(s, 0, s * 2 / aspect + offset), vec(-s, 0, 0.0f + offset), 0.0f, anim, 1.0f, 1.f / h);
-        glDisable(GL_BLEND);
-        glDepthMask(GL_TRUE);
         glPopMatrix();
     }
+
+    loopv(p->damagelist_world)
+    {
+        const damageparticleinfo &d = p->damagelist_world[i];
+        const int t = totalmillis - d.millis;
+        if (t > aboveheadiconfadetime)
+        {
+            p->damagelist_world.remove(i--);
+            continue;
+        }
+
+        div_t dmg = div(d.damage, HEALTHSCALE);
+        defformatstring(damagetext)(dmg.rem ? "\f%c%d.%*d" : "\f%c%d", d.color, dmg.quot, HEALTHPRECISION, dmg.rem);
+        const int xoff = d.xoff - text_width(damagetext) / 2;
+        const float yoff = d.yoff + t * 8.f / aboveheadiconfadetime;
+        const float scalef = sqrt(camera1->o.dist(d.o)) * 0.005;
+
+        if (d.ours) glDisable(GL_DEPTH_TEST);
+        glPushMatrix();
+        glTranslatef(d.o.x, d.o.y, d.o.z + yoff);
+        glRotatef(camera1->yaw, 0, 0, 1);
+        glRotatef(camera1->pitch + 90, -1, 0, 0);
+        glScalef(scalef, scalef, 1);
+        draw_text(damagetext, xoff, 0, 255, 255, 255, 255 * min(aboveheadiconfadetime - t, aboveheadiconfadetime) / (float)aboveheadiconfadetime);
+        glPopMatrix();
+        if (d.ours) glEnable(GL_DEPTH_TEST);
+    }
+
+    glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
 }
 
 void rendercursor(int x, int y, int w)

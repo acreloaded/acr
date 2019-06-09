@@ -605,6 +605,19 @@ struct damageinfo
     damageinfo(vec src, int time, int damage) : o(src), millis(time), damage(damage) { }
 };
 
+struct damageparticleinfo
+{
+    vec o;
+    int millis, damage;
+    float xoff, yoff;
+    char color;
+    bool ours;
+    damageparticleinfo(vec o, int time, int damage, bool ours) : o(o), millis(time), damage(abs(damage)),
+        xoff((rnd(100) - 50) / 50.f), yoff(-rnd(101) / 100.f),
+        color(damage > 0 ? '3' : damage < 0 ? '0' : '2'), ours(ours)
+    { }
+};
+
 struct kd
 {
     int kills;
@@ -633,7 +646,8 @@ public:
     int eardamagemillis;
     int respawnoffset;
     vector<eventicon> icons;
-    vector<damageinfo> damagestack;
+    vector<damageinfo> damagelist_hud;
+    vector<damageparticleinfo> damagelist_world;
     kd weapstats[NUMGUNS];
     bool allowmove() { return state!=CS_DEAD || spectatemode==SM_FLY; }
 
@@ -699,13 +713,27 @@ public:
         icons.add(icon);
     }
 
+    void adddamage_world(int millis, int damage, bool ours)
+    {
+        int damagemillis = millis;
+        if (!damagelist_world.empty())
+        {
+            damageparticleinfo &l = damagelist_world.last();
+            damagemillis = max(damagemillis, l.millis + 150);
+        }
+        vec od = o;
+        od.z += aboveeye;
+        damagelist_world.add(damageparticleinfo(od, damagemillis, damage, ours));
+    }
+
     void removeai();
 
     virtual ~playerent()
     {
         removeai();
         icons.shrink(0);
-        //damagestack.setsize(0);
+        // damagelist_hud.setsize(0);
+        // damagelist_world.setsize(0);
         extern void removebounceents(playerent *owner);
         extern void removedynlights(physent *owner);
         extern void zapplayerflags(playerent *owner);
@@ -757,7 +785,7 @@ public:
         eardamagemillis = 0;
         eyeheight = maxeyeheight;
         curskin = nextskin[team_base(team)];
-        damagestack.setsize(0);
+        damagelist_hud.setsize(0);
     }
 
     void spawnstate(int team, int gamemode, int mutators)

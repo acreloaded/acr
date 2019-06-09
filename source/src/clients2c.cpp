@@ -1079,6 +1079,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 const int cn = getint(p), health = getint(p);
                 playerent *d = getclient(cn);
                 if (!d) break;
+                d->adddamage_world(totalmillis, d->health - health, d == focus);
                 d->health = health;
                 d->lastregen = lastmillis;
                 if (!healer) break;

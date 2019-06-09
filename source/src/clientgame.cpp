@@ -864,12 +864,14 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, int style, c
     if (pl != actor || gun == GUN_GRENADE || gun == GUN_RPG || pl->o.dist(src) > 4)
     {
         // damage indicator
-        pl->damagestack.add(damageinfo(src, totalmillis, damage));
+        if (pl == focus) pl->damagelist_hud.add(damageinfo(src, totalmillis, damage));
         // push
         vec dir = pl->o;
         dir.sub(src).normalize();
         pl->hitpush(damage, dir, actor, gun);
     }
+    // damage particles
+    pl->adddamage_world(totalmillis, damage, pl == focus || actor == focus);
 
     // critical damage
     if(style & FRAG_CRIT)

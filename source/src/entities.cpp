@@ -315,7 +315,11 @@ void pickupeffects(int n, playerent *d, int spawntime)
     e.spawned = false;
     e.spawntime = lastmillis + spawntime;
     if(!d) return;
+
+    const int oldhealth = d->health;
     d->pickup(e.type);
+    if (d->health != oldhealth) d->adddamage_world(totalmillis, oldhealth - d->health, d == focus);
+
     const itemstat *is = d->itemstats(e.type);
     if(is)
     {

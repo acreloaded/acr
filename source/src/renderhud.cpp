@@ -470,17 +470,18 @@ void draweventicons()
 {
     static Texture **texs = geteventicons();
 
+    const int eventicontime = 3000;
     loopv(focus->icons)
     {
         eventicon &icon = focus->icons[i];
-        if (icon.type < 0 || icon.type >= eventicon::TOTAL || icon.millis + 3000 < totalmillis)
+        if (icon.type < 0 || icon.type >= eventicon::TOTAL || icon.millis + eventicontime < totalmillis)
         {
             focus->icons.remove(i--);
             continue;
         }
         Texture *tex = texs[icon.type];
         int h = 1;
-        float aspect = 1, scalef = 1, offset = (totalmillis - icon.millis) / 3000.f * 160.f;
+        float aspect = 1, scalef = 1, offset = (totalmillis - icon.millis) / (float)eventicontime * 160.f;
         switch (icon.type)
         {
         case eventicon::CHAT:
@@ -506,7 +507,7 @@ void draweventicons()
         glBindTexture(GL_TEXTURE_2D, tex->id);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glEnable(GL_BLEND);
-        glColor4f(1.f, 1.f, 1.f, (3000 + icon.millis - totalmillis) / 3000.f);
+        glColor4f(1.f, 1.f, 1.f, (eventicontime + icon.millis - totalmillis) / (float)eventicontime);
         glBegin(GL_TRIANGLE_STRIP);
         float anim = (totalmillis / 100) % (h * 2);
         if (anim >= h) anim = h * 2 - anim + 1;
@@ -519,6 +520,26 @@ void draweventicons()
         glTexCoord2f(1, anim); glVertex2f(VIRTW / 2 + xx, VIRTH / 2 + yy + yoffset);
         glEnd();
     }
+
+    const int damagetime = 3000;
+    loopv(focus->damagelist_world)
+    {
+        const damageparticleinfo &d = focus->damagelist_world[i];
+        const int t = totalmillis - d.millis;
+        if (t > damagetime)
+        {
+            focus->damagelist_world.remove(i--);
+            continue;
+        }
+
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_BLEND);
+        div_t dmg = div(d.damage, HEALTHSCALE);
+        defformatstring(damagetext)(dmg.rem ? "\f%c%d.%*d" : "\f%c%d", d.color, dmg.quot, HEALTHPRECISION, dmg.rem);
+        const int xoff = d.xoff * 50 - text_width(damagetext) / 2;
+        const float yoff = d.yoff * 50 - t * (float)(VIRTH / 3) / damagetime;
+        draw_text(damagetext, VIRTW / 2 + xoff, VIRTH / 2 + yoff, 255, 255, 255, 255 * min(damagetime - t, damagetime) / (float)damagetime);
+    }
 }
 
 VARP(hidedamageindicator, 0, 0, 1);
@@ -529,7 +550,7 @@ VARP(damageindicatoralpha, 1, 50, 100);
 
 void drawdmgindicator()
 {
-    if (!damageindicatorsize || !focus->damagestack.length()) return;
+    if (!damageindicatorsize || !focus->damagelist_hud.length()) return;
 
     static Texture *damagedirtex = NULL;
     if (!damagedirtex) damagedirtex = textureload("packages/misc/damagedir.png", 3);
@@ -537,13 +558,13 @@ void drawdmgindicator()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBindTexture(GL_TEXTURE_2D, damagedirtex->id);
 
-    loopv(focus->damagestack)
+    loopv(focus->damagelist_hud)
     {
-        const damageinfo &pain = focus->damagestack[i];
+        const damageinfo &pain = focus->damagelist_hud[i];
         const float damagefade = damageindicatortime + pain.damage * 200 / HEALTHSCALE;
         if (pain.millis + damagefade <= totalmillis)
         {
-            focus->damagestack.remove(i--);
+            focus->damagelist_hud.remove(i--);
             continue;
         }
         vec dir = pain.o;
