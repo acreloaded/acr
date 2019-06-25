@@ -87,7 +87,7 @@ char *colorname(playerent *d)
     if(d->ownernum < 0)
         formatstring(cname[num])("%s \fs\f6(%d)\fr", d->name, d->clientnum);
     else
-        formatstring(cname[num])("%s \fs\f7[%d-%d]\fr", d->name, d->clientnum, d->ownernum);
+        formatstring(cname[num])("%s \fs\f7[%d-%d]\fr", m_zombie(gamemode) ? "a zombie" : d->name, d->clientnum, d->ownernum);
     return cname[num];
 }
 
