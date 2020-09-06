@@ -443,21 +443,23 @@ void renderaboveheadicon(playerent *p)
         glPopMatrix();
     }
 
-    loopv(p->damagelist_world)
+    float prevYoff = 0;
+    loopvrev(p->damagelist_world)
     {
         const damageparticleinfo &d = p->damagelist_world[i];
         const int t = totalmillis - d.millis;
         if (t > aboveheadiconfadetime)
         {
-            p->damagelist_world.remove(i--);
+            p->damagelist_world.remove(i);
             continue;
         }
 
         div_t dmg = div(d.damage, HEALTHSCALE);
         defformatstring(damagetext)(dmg.rem ? "\f%c%d.%*d" : "\f%c%d", d.color, dmg.quot, HEALTHPRECISION, dmg.rem);
         const int xoff = d.xoff - text_width(damagetext) / 2;
-        const float yoff = d.yoff + t * 8.f / aboveheadiconfadetime;
+        const float yoff = max(d.yoff + t * 8.f / aboveheadiconfadetime, prevYoff);
         const float scalef = sqrt(camera1->o.dist(d.o)) * 0.005;
+        prevYoff = yoff + scalef * FONTH + 0.1f;
 
         if (d.ours) glDisable(GL_DEPTH_TEST);
         glPushMatrix();

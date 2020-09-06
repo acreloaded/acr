@@ -715,15 +715,9 @@ public:
 
     void adddamage_world(int millis, int damage, bool ours)
     {
-        int damagemillis = millis;
-        if (!damagelist_world.empty())
-        {
-            damageparticleinfo &l = damagelist_world.last();
-            damagemillis = max(damagemillis, l.millis + 150);
-        }
         vec od = o;
         od.z += aboveeye;
-        damagelist_world.add(damageparticleinfo(od, damagemillis, damage, ours));
+        damagelist_world.add(damageparticleinfo(od, millis, damage, ours));
     }
 
     void removeai();

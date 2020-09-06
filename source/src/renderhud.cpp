@@ -522,13 +522,14 @@ void draweventicons()
     }
 
     const int damagetime = 3000;
-    loopv(focus->damagelist_world)
+    float prevYoff = 0;
+    loopvrev(focus->damagelist_world)
     {
         const damageparticleinfo &d = focus->damagelist_world[i];
         const int t = totalmillis - d.millis;
         if (t > damagetime)
         {
-            focus->damagelist_world.remove(i--);
+            focus->damagelist_world.remove(i);
             continue;
         }
 
@@ -537,7 +538,8 @@ void draweventicons()
         div_t dmg = div(d.damage, HEALTHSCALE);
         defformatstring(damagetext)(dmg.rem ? "\f%c%d.%*d" : "\f%c%d", d.color, dmg.quot, HEALTHPRECISION, dmg.rem);
         const int xoff = d.xoff * 50 - text_width(damagetext) / 2;
-        const float yoff = d.yoff * 50 - t * (float)(VIRTH / 3) / damagetime;
+        const float yoff = min(d.yoff * 50 - t * (float)(VIRTH / 3) / damagetime, prevYoff);
+        prevYoff = yoff - FONTH;
         draw_text(damagetext, VIRTW / 2 + xoff, VIRTH / 2 + yoff, 255, 255, 255, 255 * min(damagetime - t, damagetime) / (float)damagetime);
     }
 }
