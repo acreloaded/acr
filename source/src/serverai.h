@@ -125,8 +125,8 @@ void checkai()
         const int zombies = clamp(progressiveround, 1, 20),
             zombies_suicide = max((int)floor(progressiveround / 2.f), progressiveround - 10);
         int zombies_suicide_given = 0;
-        while (countclients(ST_AI) < zombies) if (!addai()) break;
-        while (countclients(ST_AI) > zombies) if (!delai()) break;
+        while (numbots() < zombies) if (!addai()) break;
+        while (numbots() > zombies) if (!delai()) break;
 #if !(SERVER_BUILTIN_MOD & 128)
         // force suicide bomber count
         loopv(clients) if(clients[i]->type == ST_AI)
