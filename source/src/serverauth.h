@@ -200,7 +200,10 @@ void masterdisc(int cn, int result)
     cl.masterdisc = result;
     if (result)
     {
-        logline(ACLOG_INFO, "[%s] master disconnects client for %s", cl.gethostname(), disc_reason(result));
+        logline(ACLOG_INFO, "[%s] master disconnects client for %s%s",
+            cl.gethostname(), disc_reason(result),
+            cl.connectauth ? ", pending auth" : "");
+
         if (!cl.connectauth) checkauthdisc(cl, true);
     }
     else
