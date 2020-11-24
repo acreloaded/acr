@@ -55,12 +55,9 @@ void drawflagicons(int team, playerent *p)
             f.actor == p && f.state == CTFF_STOLEN ? (sinf(totalmillis / 100.0f) + 1.0f) / 2.0f :
             1
             );
-        // CTF
-        int row = 0;
-        // HTF
-        if (m_hunt(gamemode)) row = 1;
-        // KTF
-        else if (m_keep(gamemode)) row = 2;
+        int row = m_capture(gamemode) ? 0 // CTF
+            : m_keep(gamemode) ? 2 // KTF
+            : 1; // HTF or Bomber
         drawicon(flagtex, team * 120 + VIRTW / 4.0f*3.0f, 1650, 120, team, row, 1 / 3.f);
     }
 
@@ -71,7 +68,7 @@ void drawflagicons(int team, playerent *p)
 
     Texture *t = (m_capture(gamemode) || (m_ktf2(gamemode, mutators) && m_team(gamemode, mutators))) ? ctftex : hktftex;
     if (!t) return;
-    // CTF OR KTF2/Returner
+    // CTF (returner) OR KTF2
     int row = (m_capture(gamemode) || (m_ktf2(gamemode, mutators) && m_team(gamemode, mutators))) && f.actor && f.actor->team == team ? 1 : 0;
     // KTF
     if (m_keep(gamemode) && !(m_ktf2(gamemode, mutators) && m_team(gamemode, mutators))) row = 1;
