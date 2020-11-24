@@ -567,15 +567,17 @@ void checkpings()
                     case EXTPING_UPLINKSTATS:
                     {
                         si->uplinkqual_age = totalmillis;
-                        //if(si->maxclients > 3)
+                        if(si->maxclients > 3)
                         {
-                            int maxs = 0, maxc = 0, ts, tc;
+                            int ignore = (si->maxclients < 8 ? 3 : 6) - 1;
+                            int maxs = 0, maxc = 0;
                             loopi(min(si->maxclients, MAXCLIENTS))
                             {
-                                ts = tc = si->uplinkstats[i] = p.get();
-                                if(si->maxclients < 8 || i > 2)
+                                si->uplinkstats[i] = p.get();
+                                if(i > ignore)
                                 {
-                                    ts &= 0xF0; tc &= 0x0F;
+                                    int ts = si->uplinkstats[i] & 0xF0;
+                                    int tc = si->uplinkstats[i] & 0x0F;
                                     if(ts > maxs) maxs = ts;
                                     if(ts > 0x40 && tc > maxc) maxc = tc;   // spent time = 2 ^ ((ts >> 4) - 1) * 30 sec, so 0x50 is 8..15 minutes
                                 }
