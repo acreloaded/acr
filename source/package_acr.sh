@@ -34,6 +34,10 @@ make_package() {
     cp $REPOPATH/bin_win32/zlib1.dll $OUTPUTPATH/${OUTPUTNAME}-$1/bin_win32/zlib1.dll
     cp $REPOPATH/bin_unix/linux_server $OUTPUTPATH/${OUTPUTNAME}-$1/bin_unix/linux_server
     cp $REPOPATH/bin_unix/linux_64_server $OUTPUTPATH/${OUTPUTNAME}-$1/bin_unix/linux_64_server
+    # Add official maps
+    mkdir -p $OUTPUTPATH/${OUTPUTNAME}-$1/acr/packages/maps/official
+    cp -R $REPOPATH/acr/packages/maps/official/*.cfg $OUTPUTPATH/${OUTPUTNAME}-$1/acr/packages/maps/official
+    cp -R $REPOPATH/acr/packages/maps/official/*.cgz $OUTPUTPATH/${OUTPUTNAME}-$1/acr/packages/maps/official
     # Default server config
     mkdir $OUTPUTPATH/${OUTPUTNAME}-$1/config
     cp $REPOPATH/config/default.* $OUTPUTPATH/${OUTPUTNAME}-$1/config
