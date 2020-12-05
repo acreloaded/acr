@@ -1,0 +1,237 @@
+name: Build
+
+on:
+  push:
+    branches: [ master, github-actions_build ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  # notification:
+  #   runs-on: ubuntu-latest
+  #   name: Notifications
+  #   steps:
+  #   - name: IRC notification
+  #     uses: Gottox/irc-message-action@v1
+  #     with:
+  #       channel: '#acreloaded-dev'
+  #       nickname: ACRbot-GitHub
+  #       message: |-
+  #         ${{ github.repository }} <${{ github.event.commits[0].author.name }}> ${{ github.event.ref }}: ${{ github.event.before }} -> ${{ github.event.after }} ${{ github.event.commits[0].message }} ${{ github.event.compare }} (${{ github.run_id }} #${{ github.run_number }}) ${{ github.action_path }}
+  #   if: github.event_name == 'push'
+
+  build_windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.0.2
+      - name: Compile Client
+        run: msbuild .\source\vcpp\cube.sln /p:Configuration=Release
+      - name: Compile Server
+        run: msbuild .\source\vcpp\cube.sln /p:Configuration=Standalone
+      - uses: actions/upload-artifact@v2
+        with:
+          name: bin_win
+          path: bin_win32/acr_*.exe
+
+  build_linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: sudo apt-get update
+      - run: sudo apt-get install -y ${{ matrix.packages }} make automake libsdl1.2-dev libsdl-image1.2-dev libopenal-dev libvorbis-dev libcurl3-dev
+      - working-directory: ./source/src
+        run: make install
+        env:
+          CC: ${{ matrix.cc }}
+          CC_FOR_BUILD: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+          CXX_FOR_BUILD: ${{ matrix.cxx }}
+      - run: |
+          mv bin_unix/native_client bin_unix/linux_64_client
+          mv bin_unix/native_server bin_unix/linux_64_server
+        if: matrix.official
+      - uses: actions/upload-artifact@v2
+        with:
+          name: bin_linux
+          path: bin_unix/*
+        if: matrix.official
+    continue-on-error: ${{ !matrix.official }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: gcc
+            cc: gcc
+            cxx: g++
+            packages: gcc g++
+            official: true
+          - name: clang
+            cc: clang
+            cxx: clang++
+            packages: clang
+
+  package:
+    runs-on: ubuntu-latest
+    needs: [ build_windows, build_linux ]
+    steps:
+      - run: sudo apt install p7zip-full
+      - uses: actions/checkout@v2
+        with:
+          path: repo
+      - uses: actions/download-artifact@v2
+        with:
+          path: artifacts
+      - run: |
+          cp artifacts/bin_win/*.exe repo/bin_win32/
+          mkdir -p repo/bin_unix
+          cp artifacts/bin_linux/* repo/bin_unix/
+
+      - run: |
+          ver="_${event_ref:10}"
+          echo "ver=$ver" >> $GITHUB_ENV
+        env:
+          event_ref: ${{ github.event.ref }}
+        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+
+      # Package
+      - working-directory: ./repo/source
+        run: ./package_acr.sh "$ver"
+      - working-directory: ./ACR_packaged
+        run: |
+          7za a -mx=1 -mfb=258 -mpass=15 out/acr${ver}-l.zip ./acr${ver}-l/*
+          7za a -mx=1 -mfb=258 -mpass=15 out/acr${ver}-w.zip ./acr${ver}-w/*
+          7za a -mx=1 -mfb=258 -mpass=15 out/acr${ver}-serv.zip ./acr${ver}-serv/*
+          7za a -mx=1 -mfb=258 -mpass=15 out/acr${ver}-src.zip ./acr${ver}-src/*
+          7za a -mx=1 -mfb=258 -mpass=15 out/acr${ver}-l_bin.zip ../repo/bin_unix/*
+          7za a -mx=1 -mfb=258 -mpass=15 out/acr${ver}-w_bin.zip ../repo/bin_win32/acr_*.exe
+          cd out
+          sha256sum -b * > ../SHA256SUMS
+          sha512sum -b * > ../SHA512SUMS
+
+      # Upload artifacts
+      - uses: actions/upload-artifact@v2
+        with:
+          name: SHA256SUMS
+          path: ACR_packaged/SHA256SUMS
+      - uses: actions/upload-artifact@v2
+        with:
+          name: SHA512SUMS
+          path: ACR_packaged/SHA512SUMS
+      - uses: actions/upload-artifact@v2
+        with:
+          name: acr${{ env.ver }}-l.zip
+          path: ACR_packaged/out/acr${{ env.ver }}-l.zip
+      - uses: actions/upload-artifact@v2
+        with:
+          name: acr${{ env.ver }}-w.zip
+          path: ACR_packaged/out/acr${{ env.ver }}-w.zip
+      - uses: actions/upload-artifact@v2
+        with:
+          name: acr${{ env.ver }}-serv.zip
+          path: ACR_packaged/out/acr${{ env.ver }}-serv.zip
+      - uses: actions/upload-artifact@v2
+        with:
+          name: acr${{ env.ver }}-src.zip
+          path: ACR_packaged/out/acr${{ env.ver }}-src.zip
+      - uses: actions/upload-artifact@v2
+        with:
+          name: acr${{ env.ver }}-l_bin.zip
+          path: ACR_packaged/out/acr${{ env.ver }}-l_bin.zip
+      - uses: actions/upload-artifact@v2
+        with:
+          name: acr${{ env.ver }}-w_bin.zip
+          path: ACR_packaged/out/acr${{ env.ver }}-w_bin.zip
+
+      # Create Release
+      - name: Write Release Notes
+        run: python ./repo/source/package_acr_notes.py ./ACR_packaged/SHA256SUMS "$ver" > release_notes
+        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_CUSTOM }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body_path: release_notes
+          draft: true
+        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+
+      # Upload release assets
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_CUSTOM }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ACR_packaged/SHA256SUMS
+          asset_name: SHA256SUMS
+          asset_content_type: application/zip
+        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_CUSTOM }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ACR_packaged/SHA512SUMS
+          asset_name: SHA512SUMS
+          asset_content_type: application/zip
+        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_CUSTOM }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ACR_packaged/out/acr${{ env.ver }}-l.zip
+          asset_name: acr${{ env.ver }}-l.zip
+          asset_content_type: application/zip
+        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_CUSTOM }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ACR_packaged/out/acr${{ env.ver }}-w.zip
+          asset_name: acr${{ env.ver }}-w.zip
+          asset_content_type: application/zip
+        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_CUSTOM }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ACR_packaged/out/acr${{ env.ver }}-serv.zip
+          asset_name: acr${{ env.ver }}-serv.zip
+          asset_content_type: application/zip
+        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_CUSTOM }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ACR_packaged/out/acr${{ env.ver }}-src.zip
+          asset_name: acr${{ env.ver }}-src.zip
+          asset_content_type: application/zip
+        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_CUSTOM }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ACR_packaged/out/acr${{ env.ver }}-l_bin.zip
+          asset_name: acr${{ env.ver }}-l_bin.zip
+          asset_content_type: application/zip
+        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_CUSTOM }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ACR_packaged/out/acr${{ env.ver }}-w_bin.zip
+          asset_name: acr${{ env.ver }}-w_bin.zip
+          asset_content_type: application/zip
+        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
