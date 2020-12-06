@@ -4,7 +4,7 @@
 
 /* Based off the reference implementation of Tiger, a cryptographically
  * secure 192 bit hash function by Ross Anderson and Eli Biham. More info at:
- * http://www.cs.technion.ac.il/~biham/Reports/Tiger/
+ * https://cs.technion.ac.il/~biham/Reports/Tiger/
  */
 
 #define TIGER_PASSES 3
@@ -159,7 +159,7 @@ namespace tiger
  *
  * FIPS 180-2 SHA-224/256/384/512 implementation
  * Issue date:  04/30/2005
- * http://www.ouah.org/ogay/sha2/
+ * http://ouah.org/ogay/sha2/
  *
  * Copyright (C) 2005, 2007 Olivier Gay <olivier.gay@a3.epfl.ch>
  * All rights reserved.

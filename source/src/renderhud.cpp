@@ -765,7 +765,7 @@ vec getradarpos()
 
 void DrawCircle(float cx, float cy, float r, GLubyte *col, float thickness = 1.f, int segments = 720)
 {
-    // Adapted from public domain code at http://slabode.exofire.net/circle_draw.shtml
+    // Adapted from public domain code at https://slabode.exofire.net/circle_draw.shtml
     const float theta = 2 * PI / float(segments);
     const float c = cosf(theta); // precalculate the sine and cosine
     const float s = sinf(theta);

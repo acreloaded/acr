@@ -23,7 +23,7 @@ Cube Engine Authors
 
 Wouter 'Aardappel' van Oortmerssen, Lee 'Eihrul' Salzman and others.
 See README_CUBEENGINE.txt and
-http://www.cubeengine.com
+http://cubeengine.com
 
 
 pCube Authors
@@ -37,7 +37,7 @@ Sauerbraten Authors
 ===================
 
 Wouter 'Aardappel' van Oortmerssen, Lee 'Eihrul' Salzman, Mike 'Gilt' Dysart and others.
-http://www.sauerbraten.org
+http://sauerbraten.org
 
 
 Cheat Protection

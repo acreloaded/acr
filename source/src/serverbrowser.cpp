@@ -1389,7 +1389,7 @@ void updatefrommaster(int force)
 
     if(data.empty())
     {
-        conoutf("Master server is not replying. \f1Get more information at http://ms.acr.victorz.ca/bans");
+        conoutf("Master server is not replying. \f1Get more information at https://acrms.victorz.ca/bans");
     }
     else
     {

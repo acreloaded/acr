@@ -66,11 +66,11 @@ int wizardmain(int argc, char **argv)
     printf("You will also need to ensure that the UDP port you choose is open.\n"
            "Whatever port you choose, you will need to forward that port, plus one port after that.\n"
            "If you're having issues, use and forward the default ports %d and %d\n"
-           "Use http://www.portforward.com for guidance.\n\n", CUBE_DEFAULT_SERVER_PORT, CUBE_SERVINFO_PORT(CUBE_DEFAULT_SERVER_PORT));
+           "Use https://portforward.com for guidance.\n\n", CUBE_DEFAULT_SERVER_PORT, CUBE_SERVINFO_PORT(CUBE_DEFAULT_SERVER_PORT));
     printf("Now to specify some optional settings for your server.\n"
            "The default settings will be used if you leave the fields blank.\n"
            "If you're unsure about what to specify for the settings, leave the field blank.\n\n"
-           "Read http://assault.cubers.net/docs/commandline.html for a description of these settings.\n\n");
+           "Read https://assault.cubers.net/docs/commandline.html for a description of these settings.\n\n");
 
     vector<char> argstr;
     readarg(argstr, "Server description", "-n");

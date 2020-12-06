@@ -1,8 +1,8 @@
 // Fast Inverse Sqrt
-// http://www.gamedev.net/community/forums/topic.asp?topic_id=139956
+// https://gamedev.net/community/forums/topic.asp?topic_id=139956
 // http://www.lomont.org/Math/Papers/2003/InvSqrt.pdf
 // http://www.mceniry.net/papers/Fast%20Inverse%20Square%20Root.pdf
-// http://en.wikipedia.org/wiki/Fast_inverse_square_root
+// https://en.wikipedia.org/wiki/Fast_inverse_square_root
 #define UFINVSQRT(x)  union { int d; float f; } u; u.f = x; u.d = 0x5f3759df - (u.d >> 1)
 inline float ufInvSqrt (float x) { UFINVSQRT(x); return u.f; } // about 3.5% of error
 inline float fInvSqrt (float x) { UFINVSQRT(x); return 0.5f * u.f * ( 3.00175f - x * u.f * u.f ); } // about 0.1% of error

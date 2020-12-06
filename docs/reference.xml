@@ -9,7 +9,7 @@
 
 <!--
   You may be able to redistribute this content under specific conditions.
-  Please read the licensing information, available @ http://assault.cubers.net/docs/license.html for the
+  Please read the licensing information, available @ https://assault.cubers.net/docs/license.html for the
   conditions that would apply to what you may be redistributing.
 -->
 
@@ -7722,13 +7722,13 @@ name="AssaultCube Documentation" version="Current" xsi:schemaLocation="http://as
             <argument token="S" description="STRING"/>
           </arguments>
           <remarks>
-            <remark>same as strftime() - see http://www.cplusplus.com/reference/clibrary/ctime/strftime/ for details</remark>
+            <remark>same as strftime() - see https://cplusplus.com/reference/clibrary/ctime/strftime/ for details</remark>
           </remarks>
           <references>
             <identifierReference identifier="getdemotimeformat"/>
             <identifierReference identifier="getdemonameformat"/>
             <identifierReference identifier="demonameformat"/>
-            <webReference url="http://www.cplusplus.com/reference/clibrary/ctime/strftime/" name="C++-Reference"/>
+            <webReference url="https://cplusplus.com/reference/clibrary/ctime/strftime/" name="C++-Reference"/>
           </references>
         </command>
 
