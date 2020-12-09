@@ -675,6 +675,8 @@ void serversortprepare()
     {
         serverinfo &si = *servers[i];
         // basic group weights: used(700) - empty(500) - usable(200) - unusable(100)
+        // used: +100 with official map
+        // any:  -50 if bypassing master-server policy
         if(si.protocol != PROTOCOL_VERSION) si.weight += (si.protocol == -PROTOCOL_VERSION ? 200 : 100);
         else if(!si.numplayers) si.weight += 500;
         else
@@ -682,6 +684,7 @@ void serversortprepare()
             si.weight += 700;
             if(serversortpreferofficial && securemapcheck(si.map, false)) si.weight += 100;
         }
+        if(si.pongflags & ((1 << PONGFLAG_BYPASSBANS) | (1 << PONGFLAG_BYPASSPRIV))) si.weight -= 50;
         si.weight += si.msweight;
     }
 }
