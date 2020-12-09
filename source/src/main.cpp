@@ -629,7 +629,7 @@ void resetgl()
 {
     clearchanges(CHANGE_GFX);
 
-    loadingscreen(_("resetting OpenGL (1/2)"));
+    loadingscreen();
 
     extern void cleanupparticles();
     extern void cleanupmodels();
@@ -656,13 +656,14 @@ void resetgl()
     if(!reloadtexture(*notexture) ||
        !reloadtexture("packages/misc/startscreen.png"))
         fatal("failed to reload core texture");
-    loadingscreen(_("resetting OpenGL (2/2)"));
     c2skeepalive();
     restoregamma();
     c2skeepalive();
     reloadfonts();
+    loadingscreen(_("resetting OpenGL (1/3)"));
     reloadtextures();
     c2skeepalive();
+    loadingscreen(_("resetting OpenGL (2/3)"));
     drawscope(true); // 2011feb05:ft: preload scope.png
     preload_playermodels();
     c2skeepalive();
