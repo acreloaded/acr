@@ -629,7 +629,7 @@ void resetgl()
 {
     clearchanges(CHANGE_GFX);
 
-    loadingscreen();
+    loadingscreen(_("resetting OpenGL (0/3)"));
 
     extern void cleanupparticles();
     extern void cleanupmodels();
