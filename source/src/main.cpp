@@ -267,14 +267,14 @@ void jpeg_screenshot(const char *imagepath, bool mapshot = false)
 
         int stride = 3*tw;
 
-        GLubyte *swapline = (GLubyte *) malloc(stride);
+        GLubyte *swapline = new GLubyte[stride];
         for(int row = 0; row < th/2; row++)
         {
             memcpy(swapline, pixels + row * stride, stride);
             memcpy(pixels + row * stride, pixels + (th - row - 1) * stride, stride);
             memcpy(pixels + (th - row -1) * stride, swapline, stride);
         }
-        free(swapline);
+        delete swapline;
     }
 
     const char *filename = findfile(screenshotpath(imagepath, "jpg"), "wb");

@@ -32,7 +32,7 @@ static void readarg(const char *desc, char *val, int len)
 {
     printf("%s: ", desc);
     fflush(stdout);
-    fgets(val, len, stdin);
+    if (!fgets(val, len, stdin)) *val = '\0';
     char *end = strchr(val, '\n');
     if(end) *end = '\0';
 }
