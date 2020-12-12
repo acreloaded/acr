@@ -1,0 +1,15 @@
+name: Build (macOS testing)
+
+on:
+  push:
+    branches: [ build_macos ]
+  workflow_dispatch:
+
+jobs:
+  build_mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - working-directory: ./source/xcode
+        run: xcodebuild -project "./assaultcube.xcodeproj" -target "assaultcube" -configuration "Release-Deployment"
+      - run: ls -rl .
