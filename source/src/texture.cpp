@@ -872,9 +872,9 @@ void guidetoggle()
         else
         {
             // restore textures
-            if(e_wall) sw->tex = e_wall;
-            if(e_floor) sf->tex = e_floor;
-            if(e_ceil) sc->tex = e_ceil;
+            sw->tex = e_wall;
+            sf->tex = e_floor;
+            sc->tex = e_ceil;
             e_wall = NULL;
             e_floor = NULL;
             e_ceil = NULL;

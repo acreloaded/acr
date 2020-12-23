@@ -205,10 +205,9 @@ public:
      void DeleteAllNodes(void)
      {
           node_s *pNode = pNodeList;
-          node_s *pTemp;
           while (pNode != NULL)
           {
-               pTemp = pNode;
+               node_s *pTemp = pNode;
                pNode = pNode->next;
                pTemp->next = NULL;
                pTemp->prev = NULL;
@@ -367,10 +366,9 @@ public:
 
      void Clear(void)
      {
-          node_s *pTemp;
           while(pHeadNode)
           {
-               pTemp = pHeadNode;
+               node_s *pTemp = pHeadNode;
                pHeadNode = pHeadNode->next;
                delete pTemp;
           }

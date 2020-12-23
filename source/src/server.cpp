@@ -370,7 +370,7 @@ void changemastermode(int newmode)
     }
 }
 
-savedscore *findscore(client &c, bool insert)
+savedscore *findscore(const client &c, bool insert)
 {
     if(c.type!=ST_TCPIP) return NULL;
     enet_uint32 mask = ENET_HOST_TO_NET_32(mastermode == MM_MATCH ? 0xFFFF0000 : 0xFFFFFFFF); // in match mode, reconnecting from /16 subnet is allowed
@@ -538,7 +538,7 @@ int findspawn(int index, uchar attr2)
 }
 
 // returns -1 for a free place, else dist to the nearest enemy
-float nearestenemy(vec place, int team)
+float nearestenemy(const vec &place, int team)
 {
     float nearestenemydist = -1;
     loopv(clients)
@@ -1089,7 +1089,7 @@ void putflaginfo(packetbuf &p, int flag)
     }
 }
 
-void putsecureflaginfo(ucharbuf &p, ssecure &s)
+void putsecureflaginfo(ucharbuf &p, const ssecure &s)
 {
     putint(p, SV_FLAGSECURE);
     putint(p, s.id);
@@ -2153,7 +2153,7 @@ void updatesdesc(const char *newdesc)
     }
 }
 
-inline bool canspawn(client &c, bool connecting)
+inline bool canspawn(const client &c, bool connecting)
 {
     if (!maplayout)
         return false;
@@ -2679,7 +2679,7 @@ inline void addban(client &cl, int reason, int type)
     disconnect_client(cl, reason);
 }
 
-int getbantype(client &c)
+int getbantype(const client &c)
 {
     if(c.type==ST_LOCAL) return BAN_NONE;
     if(ipblacklist.check(c.peer->address.host)) return BAN_BLACKLIST;
@@ -3061,7 +3061,7 @@ void sendservinfo(client &c)
     sendf(&c, 1, "ri5", SV_SERVINFO, c.clientnum, isdedicated ? SERVER_PROTOCOL_VERSION : PROTOCOL_VERSION, c.salt, scl.serverpassword[0] ? 1 : 0);
 }
 
-void putinitai(client &c, ucharbuf &p)
+void putinitai(const client &c, ucharbuf &p)
 {
     putint(p, SV_INITAI);
     putint(p, c.clientnum);
@@ -3176,10 +3176,10 @@ void welcomepacket(packetbuf &p, client *c)
             }
         }
     }
-    savedscore *sc = NULL;
     if(c)
     {
         if(c->type == ST_TCPIP) sendserveropinfo(c);
+        savedscore *sc = findscore(*c, false);
         c->team = mastermode == MM_MATCH && sc ? team_tospec(sc->team) : TEAM_SPECT;
         putint(p, SV_SETTEAM);
         putint(p, n);
@@ -3890,7 +3890,7 @@ void process(ENetPacket *packet, int sender, int chan)
                         int *teamsizes = numteamclients(sender);
                         if (mastermode == MM_MATCH)
                         {
-                            if (matchteamsize && t != TEAM_SPECT)
+                            if (matchteamsize)
                             {
                                 if (team_base(t) != team_base(cl->team))
                                 {
@@ -4542,7 +4542,7 @@ void process(ENetPacket *packet, int sender, int chan)
                         // masters and users: f.f.h/12 full, full, half, empty
                         case CR_MASTER: case CR_DEFAULT: default: mask = 20; break;
                     }
-                    if (mask < 32) ipv4 &= (1 << mask) - 1;
+                    if (mask < 32) ipv4 &= (1u << mask) - 1;
 
                     memset(ipv6, 0, sizeof(char) * 10);
                     ipv6[10] = 0xFF;
@@ -5497,12 +5497,12 @@ void initserver(bool dedicated, int argc, char **argv)
     {
         #ifdef WIN32
         svcctrl = new winservice(service);
-        #endif
         if(svcctrl)
         {
             svcctrl->argc = argc; svcctrl->argv = argv;
             svcctrl->start();
         }
+        #endif
     }
 
     smapname[0] = '\0';

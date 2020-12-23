@@ -1115,11 +1115,11 @@ struct servercommandline
                     printf("failed to load config file '%s'\n", a);
                     break;
                 }
-                int line = 1;
                 clfilenesting++;
                 if(cfg.buf)
                 {
                     printf("reading commandline parameters from file '%s'\n", a);
+                    int line = 1;
                     for(char *p = cfg.buf, *l; p < cfg.buf + cfg.filelen; line++)
                     {
                         l = p; p += strlen(p) + 1;

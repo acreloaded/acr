@@ -939,7 +939,7 @@ void CBot::MainAI()
             // Time to check the environment?
             else if (m_iCheckEnvDelay < lastmillis)
             {
-                if (m_vWaterGoal!=g_vecZero) m_vWaterGoal = g_vecZero;
+                /*if (m_vWaterGoal!=g_vecZero)*/ m_vWaterGoal = g_vecZero;
 
                 // Check for stuck and strafe
                 if (UnderWater(m_pMyEnt->o) || !CheckStuck())
@@ -1973,7 +1973,7 @@ bool CBot::IsReachable(vec to, float flMaxHeight)
     traceresult_s tr;
     float curr_height, last_height;
 
-    float distance = GetDistance(from, to);
+    float distance; // = GetDistance(from, to);
 
     // is the destination close enough?
     //if (distance < REACHABLE_RANGE)

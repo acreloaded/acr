@@ -1755,7 +1755,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             {
                 int vres = getint(p), vetocn = getint(p);
                 playerent *d = getclient(vetocn);
-                curvote->veto = (d != NULL);
+                if (curvote) curvote->veto = (d != NULL);
                 if (curvote && vres >= 0 && vres < VOTE_NUM)
                 {
                     curvote->result = vres;

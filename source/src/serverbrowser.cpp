@@ -254,7 +254,7 @@ int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &addre
     connectdata cd = { sock, address, -1 };
     connthread = SDL_CreateThread(connectthread, &cd);
 
-    int starttime = SDL_GetTicks(), timeout = 0;
+    int starttime = SDL_GetTicks();
     for(;;)
     {
         if(!SDL_CondWaitTimeout(conncond, connmutex, 250))
@@ -262,7 +262,7 @@ int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &addre
             if(cd.result<0) enet_socket_destroy(sock);
             break;
         }
-        timeout = SDL_GetTicks() - starttime;
+        int timeout = SDL_GetTicks() - starttime;
         show_out_of_renderloop_progress(min(float(timeout)/CONNLIMIT, 1.0f), text);
         SDL_Event event;
         while(SDL_PollEvent(&event))
@@ -816,7 +816,7 @@ void addfavcategory(const char *refdes)
     loopi(FC_NUM) alx[i] = getalias(favcatargname(text, i)) ? 1 : 0;
     loopi(3)
     {
-        formatstring(val)("%d", *text & (1 << i) ? 90 : 10);
+        formatstring(val)("%d", (*text & (1 << i)) ? 90 : 10);
         if(!alx[i + FC_RED]) alias(favcatargname(text, i + FC_RED), val);
     }
     formatstring(val)("favourites %d", favcats.length());
@@ -1335,7 +1335,7 @@ static size_t write_callback(void *ptr, size_t size, size_t nmemb, FILE *stream)
 void retrieveservers(vector<char> &data)
 {
     string request;
-    sprintf(request, "http://%s:%u%s/c?build_defs=%d&guid32=%lu", masterbase, masterport, masterpath, getbuildtype(), *&genguid(234534, 546456456U, 345345453, "3458739874jetrgjk"));
+    sprintf(request, "http://%s:%d%s/c?build_defs=%d&guid32=%lu", masterbase, masterport, masterpath, getbuildtype(), *&genguid(234534, 546456456U, 345345453, "3458739874jetrgjk"));
 
     const char *tmpname = findfile(path("config/servers.cfg", true), "wb");
     FILE *outfile = fopen(tmpname, "w+");
@@ -1366,8 +1366,7 @@ void retrieveservers(vector<char> &data)
     result = curl_easy_perform(curl);
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpresult);
     curl_easy_cleanup(curl);
-    curl = NULL;
-    if(outfile) fclose(outfile);
+    fclose(outfile);
 
     if(!result && httpresult == 200)
     {

@@ -338,7 +338,6 @@ void pickupeffects(int n, playerent *d, int spawntime)
             */
             if(identexists("onPickup"))
             {
-                string o;
                 itemstat *tmp = NULL;
                 switch(e.type)
                 {
@@ -353,7 +352,7 @@ void pickupeffects(int n, playerent *d, int spawntime)
                 }
                 if(tmp)
                 {
-                    formatstring(o)("onPickup %d %d", e.type - 3, m_lss(gamemode, mutators) && e.type == I_GRENADE ? 2 : tmp->add);
+                    defformatstring(o)("onPickup %d %d", e.type - 3, m_lss(gamemode, mutators) && e.type == I_GRENADE ? 2 : tmp->add);
                     execute(o);
                 }
             }

@@ -559,7 +559,7 @@ void welcomepacket(packetbuf &p, client *c);
 void sendwelcome(client &cl, int chan = 1);
 void sendpacket(client *cl, int chan, ENetPacket *packet, int exclude = -1, bool demopacket = false);
 int numclients();
-bool canspawn(client &c, bool connecting = false);
+bool canspawn(const client &c, bool connecting = false);
 bool updateclientteam(client &cl, int newteam, int ftr);
 void forcedeath(client &cl);
 void sendf(client *cl, int chan, const char *format, ...);

@@ -853,7 +853,7 @@ void checkinput()
 
             case SDL_ACTIVEEVENT:
                 if(event.active.state & SDL_APPINPUTFOCUS)
-                    inputgrab(grabinput = event.active.gain!=0);
+                    inputgrab(grabinput = (event.active.gain!=0));
                 if(event.active.state & SDL_APPACTIVE)
                     minimized = !event.active.gain;
 #if 0
@@ -917,7 +917,7 @@ void connectprotocol(char *protocolstring, string &servername, int &serverport, 
     if(!len) { conoutf("\f3bad commandline syntax", protocolstring); return; }
     copystring(servername, p, min(len+1, MAXSTRLEN));
     direct_connect = true;
-    if(*c && *c==':')
+    if(*c==':')
     {
         c++; p = c; len = 0;
         while(*c && *c!='/' && *c!='?') { len++; c++; }
@@ -927,8 +927,8 @@ void connectprotocol(char *protocolstring, string &servername, int &serverport, 
             serverport = atoi(sp);
         }
     }
-    if(*c && *c=='/') c++;
-    if(!*c || *c!='?') return;
+    if(*c=='/') c++;
+    if(*c!='?') return;
     do
     {
         if(*c) c++;

@@ -347,7 +347,7 @@ void addgameserver(client &c)
     s.lastping = s.lastpong = 0;
 }
 
-client *findclient(gameserver &s)
+client *findclient(const gameserver &s)
 {
     loopv(clients)
     {
@@ -358,7 +358,7 @@ client *findclient(gameserver &s)
     return NULL;
 }
 
-void servermessage(gameserver &s, const char *msg)
+void servermessage(const gameserver &s, const char *msg)
 {
     client *c = findclient(s);
     if(c) outputf(*c, msg);
@@ -571,7 +571,7 @@ bool checkclientinput(client &c)
         else if(sscanf(c.input, "regserv %d", &port) == 1)
         {
             if(checkban(servbans, c.address.host)) return false;
-            if(port < 0 || port + 1 < 0 || (c.servport >= 0 && port != c.servport)) outputf(c, "failreg invalid port\n");
+            if(port < 0 || port >= 65535 || (c.servport >= 0 && port != c.servport)) outputf(c, "failreg invalid port\n");
             else
             {
                 c.servport = port;

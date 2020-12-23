@@ -818,7 +818,7 @@ struct mitemmuts : mitem
     inline int status()
     {
         // is it set?
-        int stats = nextmuts & (1 << num) ? 1 : 0;
+        int stats = (nextmuts & (1 << num)) ? 1 : 0;
 
         // can we apply it?
         int trying = 1 << num,

@@ -393,7 +393,7 @@ void clientlogf(const char *s, ...)
     { // break into single lines first
         if((p = strchr(l, '\n'))) *p = '\0';
         printf("%s%s\n", ts, l);
-        l = p + 1;
+        if(p) l = p + 1;
     }
     while(p);
 }

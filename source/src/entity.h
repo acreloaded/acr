@@ -602,7 +602,7 @@ struct damageinfo
 {
     vec o;
     int millis, damage;
-    damageinfo(vec src, int time, int damage) : o(src), millis(time), damage(damage) { }
+    damageinfo(const vec &src, int time, int damage) : o(src), millis(time), damage(damage) { }
 };
 
 struct damageparticleinfo
@@ -612,7 +612,7 @@ struct damageparticleinfo
     float xoff, yoff;
     char color;
     bool ours;
-    damageparticleinfo(vec o, int time, int damage, bool ours) : o(o), millis(time), damage(abs(damage)),
+    damageparticleinfo(const vec &o, int time, int damage, bool ours) : o(o), millis(time), damage(abs(damage)),
         xoff((rnd(100) - 50) / 50.f), yoff(-rnd(101) / 100.f),
         color(damage > 0 ? '3' : damage < 0 ? '0' : '2'), ours(ours)
     { }

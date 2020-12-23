@@ -244,7 +244,7 @@ void pruneundos(int maxremain)                          // bound memory
     }
 }
 
-void makeundo(block &sel)
+void makeundo(const block &sel)
 {
     undos.add(blockcopy(sel));
     pruneundos(undomegs<<20);
