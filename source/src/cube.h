@@ -64,7 +64,7 @@ extern int numspawn[3], maploaded, numflagspawn[2];
 extern int verbose;
 
 #define AC_VERSION 20700
-#define AC_MASTER_URI "ms.acr.victorz.ca"
+#define AC_MASTER_URI "acrms.victorz.ca"
 #define AC_MASTER_PORT 80
 #ifndef AC_MASTER_URI
 #define AC_MASTER_DOMAIN "ms.acr"
