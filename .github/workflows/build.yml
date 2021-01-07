@@ -151,7 +151,7 @@ jobs:
 
       # Create Release
       - name: Write Release Notes
-        run: python ./repo/source/package_acr_notes.py ./ACR_packaged/SHA256SUMS "$ver" > release_notes
+        run: python3 ./repo/source/package_acr_notes.py ./ACR_packaged/SHA256SUMS "$ver" > release_notes
         if: env.is_release == 'true'
       - name: Create Release
         id: create_release

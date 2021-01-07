@@ -1,3 +1,4 @@
+import os
 import sys
 
 sums_file_name, version = sys.argv[1:]
@@ -23,7 +24,6 @@ for base, target in (
     print('| {: <18} | {: <32} |'.format(target, file_name))
 
 print('')
-print(sums_file_name)
+print(os.path.basename(sums_file_name))
 print('```hash')
-print(sums_file_content)
-print('```')
+print(sums_file_content, end='```')
