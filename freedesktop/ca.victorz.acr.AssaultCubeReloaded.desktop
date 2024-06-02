@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Exec=acreloaded
+Terminal=false
+Name=AssaultCube Reloaded
+GenericName=Realistic Multiplayer FPS
+Icon=ca.victorz.acr.AssaultCubeReloaded
+StartupNotify=false
+Categories=Game;ActionGame;
