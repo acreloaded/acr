@@ -2,10 +2,10 @@ name: Build
 
 on:
   push:
-    branches: [ master, github-actions_build ]
+    branches: [ main, github-actions_build ]
     tags: [ 'v*' ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
   workflow_dispatch:
 
 env:
