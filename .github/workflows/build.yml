@@ -28,14 +28,14 @@ jobs:
   build_windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.0.2
+        uses: microsoft/setup-msbuild@v2
       - name: Compile Client
         run: msbuild .\source\vcpp\cube.sln /p:Configuration=Release
       - name: Compile Server
         run: msbuild .\source\vcpp\cube.sln /p:Configuration=Standalone
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: bin_win
           path: bin_win32/acr_*.exe
@@ -43,7 +43,7 @@ jobs:
   build_linux:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - run: sudo apt-get update
       - run: sudo apt-get install -y ${{ matrix.packages }} make automake libsdl1.2-dev libsdl-image1.2-dev libopenal-dev libvorbis-dev libcurl3-dev
       - working-directory: ./source/src
@@ -57,7 +57,7 @@ jobs:
           mv bin_unix/native_client bin_unix/linux_64_client
           mv bin_unix/native_server bin_unix/linux_64_server
         if: matrix.official
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: bin_linux
           path: bin_unix/*
@@ -82,10 +82,10 @@ jobs:
     needs: [ build_windows, build_linux ]
     steps:
       - run: sudo apt install p7zip-full
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           path: repo
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           path: artifacts
       - run: |
@@ -116,35 +116,35 @@ jobs:
           sha512sum -b * > ../SHA512SUMS
 
       # Upload artifacts
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: SHA256SUMS
           path: ACR_packaged/SHA256SUMS
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: SHA512SUMS
           path: ACR_packaged/SHA512SUMS
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: acr${{ env.ver }}-l.zip
           path: ACR_packaged/out/acr${{ env.ver }}-l.zip
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: acr${{ env.ver }}-w.zip
           path: ACR_packaged/out/acr${{ env.ver }}-w.zip
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: acr${{ env.ver }}-serv.zip
           path: ACR_packaged/out/acr${{ env.ver }}-serv.zip
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: acr${{ env.ver }}-src.zip
           path: ACR_packaged/out/acr${{ env.ver }}-src.zip
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: acr${{ env.ver }}-l_bin.zip
           path: ACR_packaged/out/acr${{ env.ver }}-l_bin.zip
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: acr${{ env.ver }}-w_bin.zip
           path: ACR_packaged/out/acr${{ env.ver }}-w_bin.zip
