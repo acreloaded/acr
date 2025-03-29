@@ -91,7 +91,7 @@ ENetAddress masteraddress = { ENET_HOST_ANY, 80 };
 ENetAddress serveraddress = { ENET_HOST_ANY, ENET_PORT_ANY };
 string masterbase, masterpath;
 int masterport = AC_MASTER_PORT;
-int lastupdatemaster = INT_MIN, lastresolvemaster = INT_MIN, lastauthreqprocessed = INT_MIN;
+unsigned lastupdatemaster = 10000, lastresolvemaster = 10000, lastauthreqprocessed = 0;
 #define MAXMASTERTRANS MAXTRANS // enlarge if response is big...
 uchar masterrep[MAXMASTERTRANS];
 ENetBuffer masterb;
@@ -133,13 +133,13 @@ static inline void updatemasterserver(int millis, int port)
     string path;
     path[0] = '\0';
 
-    if (millis > lastupdatemaster + MSKEEPALIVE)
+    if (millis - lastupdatemaster > MSKEEPALIVE)
     {
         logline(ACLOG_INFO, "sending registration request to master server");
         formatstring(path)("%s/r?v=%lu&g=%lu&p=%u&guid32=%lu", masterpath, PROTOCOL_VERSION, AC_VERSION, port, *&genguid(546545656, 23413376U, 3453455, "h6ji54ehjwo345gjio34s5jig"));
         lastupdatemaster = millis + 1;
     }
-    else if (millis > lastauthreqprocessed + 2500 && authrequests.length())
+    else if (millis - lastauthreqprocessed > 2500 && authrequests.length())
     {
         authrequest r = authrequests.remove(0);
         authid = r.id;
@@ -180,7 +180,7 @@ static inline void updatemasterserver(int millis, int port)
         }
     }
     if (!path[0]) return; // no request
-    if (millis > lastresolvemaster + MSRERESOLVE)
+    if (millis - lastresolvemaster > MSRERESOLVE)
     {
         masteraddress.host = ENET_HOST_ANY;
         lastresolvemaster = millis + 1;
