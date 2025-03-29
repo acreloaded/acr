@@ -3573,9 +3573,9 @@ void process(ENetPacket *packet, int sender, int chan)
         else
         {
             cl->acversion = getint(p);
-            cl->acbuildtype = getint(p);
+            cl->acbuildtype = getint(p) & (0x80 | 0x1F00 | 0x40 | 0x20 | 0x08 | 0x04);
             cl->acthirdperson = getint(p);
-            cl->acguid = getint(p) & (0x80 | 0x1F00 | 0x40 | 0x20 | 0x8 | 0x4);
+            cl->acguid = getint(p);
             const int connectauthtoken = getint(p), connectauthuser = getint(p);
             getstring(text, p);
             filtername(text, text);
