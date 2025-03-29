@@ -14,7 +14,10 @@ else
 endif
 
 ifeq ($(CXX),g++)
-    override CXXFLAGS += -fpermissive 
+    override CXXFLAGS += -fpermissive -Wall -fsigned-char -ffast-math -rdynamic -Wno-format-zero-length
+    ifeq "$(shell expr 'gcc -dumpversion' \>= 8)" "1"
+        override CXXFLAGS+= -Wno-stringop-truncation
+    endif
 endif
 
 ifeq ($(WARNINGS), 1)
