@@ -3707,6 +3707,8 @@ void process(ENetPacket *packet, int sender, int chan)
                         if(numclients() < 2 && !m_demo(gamemode) && mastermode != MM_MATCH) // spawn on empty servers
                         {
                             spawn = updateclientteam(*cl, chooseteam(*cl), FTR_SILENT);
+                            checkai(); // joined empty server
+                            // convertcheck();
                         }
                     }
                     else
