@@ -29,8 +29,12 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install Windows XP build tools
+        run: |
+          "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\setup.exe" modify --quiet --productId Microsoft.VisualStudio.Product.Enterprise --channelId VisualStudio.17.Release --add Microsoft.VisualStudio.Component.WinXP
+        shell: cmd
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.0.2
+        uses: microsoft/setup-msbuild@v2
       - name: Compile Client
         run: msbuild .\source\vcpp\cube.sln /p:Configuration=Release
       - name: Compile Server
