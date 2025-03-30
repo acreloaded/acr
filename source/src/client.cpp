@@ -656,7 +656,7 @@ void sendintro()
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     putint(p, SV_CONNECT);
     putint(p, AC_VERSION);
-    putint(p, getbuildtype());
+    putint(p, (player1->build = getbuildtype()));
     putint(p, thirdperson);
     putint(p, *&genguid(213409, 9983240U, 23489090, "24788rt792"));
     if (connectauth)

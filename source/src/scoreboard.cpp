@@ -219,7 +219,7 @@ void renderscore(playerent *d)
         concatformatstring(name, " \f5[\f%s\f5]", stat);
     }
 
-    const int buildinfo = d->build | (d == player1 ? getbuildtype() : 0), third = (d == player1) ? thirdperson : d->thirdperson;
+    const int buildinfo = d->build, third = (d == player1) ? thirdperson : d->thirdperson;
     if (d->ownernum >= 0); // bot icon? in the future?
     else if (buildinfo & 0x40) concatstring(name, "\a4  "); // Windows
     else if (buildinfo & 0x20) concatstring(name, "\a3  "); // Mac
