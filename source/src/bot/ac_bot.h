@@ -13,6 +13,8 @@
 #ifndef AC_BOT_H
 #define AC_BOT_H
 
+#define AC_BOT_DEBUG 0
+
 #ifdef AC_CUBE
 
 class CACBot: public CBot
@@ -41,7 +43,7 @@ public:
 inline void AddScreenText(const char *t, ...) {} // UNDONE
 inline void AddDebugText(const char *t, ...)
 {
-#ifdef _DEBUG
+#if AC_BOT_DEBUG && defined _DEBUG
     va_list v;
     va_start(v, t);
     conoutf(t,v);
