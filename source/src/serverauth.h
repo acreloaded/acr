@@ -214,15 +214,13 @@ void masterdisc(int cn, int result)
 
 void logversion(client &cl)
 {
-    string cdefs;
-    if (cl.acbuildtype & 0x40) cdefs[0] = 'W';
-    else if (cl.acbuildtype & 0x20) cdefs[0] = 'M';
-    else if (cl.acbuildtype & 0x04) cdefs[0] = 'L';
-    if (cl.acbuildtype & 0x08)
-    {
-        cdefs[1] = 'D';
-        cdefs[2] = '\0';
-    }
-    cdefs[1] = '\0';
-    logline(ACLOG_INFO, "[%s] %s runs %d [%x-%s] [GUID-%08X]", cl.gethostname(), cl.formatname(), cl.acversion, cl.acbuildtype, cdefs, cl.acguid);
+    char ctype;
+    if (cl.acbuildtype & 0x40) ctype = 'W';
+    else if (cl.acbuildtype & 0x20) ctype = 'M';
+    else if (cl.acbuildtype & 0x04) ctype = 'L';
+    else ctype = 'U';
+
+    bool isdebug = cl.acbuildtype & 0x08;
+
+    logline(ACLOG_INFO, "[%s] %s runs %d [%x-%c%s] [GUID-%08X]", cl.gethostname(), cl.formatname(), cl.acversion, cl.acbuildtype, ctype, isdebug ? "D" : "", cl.acguid);
 }
