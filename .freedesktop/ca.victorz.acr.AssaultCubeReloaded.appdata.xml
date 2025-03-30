@@ -2,7 +2,7 @@
 <component type="desktop">
   <id>ca.victorz.acr.AssaultCubeReloaded</id>
   <metadata_license>CC0-1.0</metadata_license>
-  <project_license>Zlib AND LicenseRef-proprietary=https://assault.cubers.net/docs/license.html</project_license>
+  <project_license>Cube AND LicenseRef-proprietary=https://assault.cubers.net/docs/license.html</project_license>
   <developer_name>AssaultCube Reloaded Task Force</developer_name>
   <name>AssaultCube Reloaded</name>
   <summary>First-person-shooter game</summary>
