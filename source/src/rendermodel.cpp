@@ -109,7 +109,7 @@ COMMAND(mapmodel, "iiiss");
 COMMAND(mapmodelreset, "");
 
 hashtable<const char *, model *> mdllookup;
-model *nomodel = NULL;
+hashtable<const char*, char> mdlnotfound;
 
 model *loadmodel(const char *name, int i, bool trydl)
 {
@@ -120,6 +120,7 @@ model *loadmodel(const char *name, int i, bool trydl)
         if(mmi.m) return mmi.m;
         name = mmi.name;
     }
+    if (mdlnotfound.access(name)) return NULL;
     model **mm = mdllookup.access(name);
     model *m;
     if(mm) m = *mm;
@@ -136,18 +137,11 @@ model *loadmodel(const char *name, int i, bool trydl)
             if(!m->load())
             {
                 delete m;
-                if (!nomodel) nomodel = new md2("nomodel");
-                m = nomodel;
-                loadingmodel = NULL;
+                m = loadingmodel = NULL;
                 if(trydl)
                 {
                     defformatstring(dl)("packages/models/%s", name);
                     requirepackage(PCK_MAPMODEL, dl);
-                }
-                else
-                {
-                    mdllookup.access(name, nomodel);
-                    conoutf("\f3failed to load model %s", name);
                 }
             }
         }
@@ -156,16 +150,15 @@ model *loadmodel(const char *name, int i, bool trydl)
         {
             if(!trydl)
             {
-                conoutf(_("failed to load model %s"), name);
-                if(!nomodel) nomodel = new md2("nomodel");
-                m = nomodel;
-                mdllookup.access(name, m);
+                conoutf("\f3failed to load model %s", name);
+                m = NULL;
+                mdlnotfound.access(newstring(name), 0);
             }
         }
         else mdllookup.access(m->name(), m);
         loadingmodel = NULL;
     }
-    if(m == nomodel) return NULL;
+    if(m == NULL) return NULL;
     if(mapmodels.inrange(i) && !mapmodels[i].m) mapmodels[i].m = m;
     return m;
 }
