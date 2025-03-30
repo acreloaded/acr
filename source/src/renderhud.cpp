@@ -917,7 +917,7 @@ void drawradar_showmap(playerent *p, int w, int h)
                 {
                     float d2c = 1.6f * radarentsize / 16.0f;
                     vec apos(d2c, -d2c, 0);
-                    if (hasradar || isteam(p, f.actor))
+                    if (hasradar || p == f.actor || isteam(p, f.actor))
                         apos.add(f.actor->o);
                     else if (!m_classic(gamemode, mutators))
                         apos.add(f.actor->lastloudpos.v);
@@ -1127,7 +1127,7 @@ void drawradar_vicinity(playerent *p, int w, int h)
                 if (f.state == CTFF_STOLEN && f.actor)
                 {
                     vec apos(d2c, -d2c, 0);
-                    if (hasradar || isteam(p, f.actor))
+                    if (hasradar || p == f.actor || isteam(p, f.actor))
                         apos.add(f.actor->o);
                     else if (!m_classic(gamemode, mutators))
                         apos.add(f.actor->lastloudpos.v);
