@@ -1284,7 +1284,7 @@ void sortlist(char *list)
     char* buf;
     buf = newstring(strlen(list)); buf[0] = '\0'; //output
 
-    if(strcmp(list, "") == 0)
+    if(!*list)
     {
         //no input
         result(buf);
@@ -1312,7 +1312,7 @@ void sortlist(char *list)
     char* buf;
     buf = newstring(strlen(list)); buf[0] = '\0'; //output
 
-    if(strcmp(list, "") == 0)
+    if(!*list)
     {
         // no input
          result(buf);
@@ -1326,7 +1326,7 @@ void sortlist(char *list)
     vector<char *> swap;
     explodelist(v, swap);
 
-    if (strcmp(v, "") == 0 || //no input
+    if (!*v || //no input
     swap.length()%2 != 0) //incorrect input
     {
         result(buf);

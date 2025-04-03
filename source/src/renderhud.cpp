@@ -301,7 +301,7 @@ Texture *loadcrosshairtexture(const char *c)
 
 void loadcrosshair(char *c, char *name)
 {
-    if (strcmp(name, "") == 0 || strcmp(name, "all") == 0)
+    if (!*name || strcmp(name, "all") == 0)
     {
         for (int i = 0; i < CROSSHAIR_NUM; i++)
         {
