@@ -194,8 +194,7 @@ void renderscore(playerent *d)
         regenplayerc(0.1f, 0.4f, 0.1f, 0.3f);
 
     if (team_isspect(d->team)) copystring(lagping, colorping(d->ping));
-    else if (d->state == CS_WAITING || (d->ping > 999 && d->plag > 99)) formatstring(lagping)("LAG/%s", colorpj(d->plag), colorping(d->ping));
-    else formatstring(lagping)("%s/%s", colorpj(d->plag), colorping(d->ping));
+    else formatstring(lagping)("%s/%s", d->state == CS_WAITING || (d->ping > 999 && d->plag > 99) ? "LAG" : colorpj(d->plag), colorping(d->ping));
 
     copystring(name, colorname(d));
 

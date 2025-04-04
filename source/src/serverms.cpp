@@ -127,7 +127,7 @@ void connectcheck(int cn, int guid, const char *hostname, uint authreq, uint aut
 #define MSKEEPALIVE (40*60*1000)
 // re-resolve the master-server domain every 4 hours
 #define MSRERESOLVE (4*60*60*1000)
-static inline void updatemasterserver(int millis, int port)
+static inline void updatemasterserver(int millis, uint port)
 {
     if (mastersock != ENET_SOCKET_NULL) return;
     string path;
@@ -136,7 +136,7 @@ static inline void updatemasterserver(int millis, int port)
     if (millis - lastupdatemaster > MSKEEPALIVE)
     {
         logline(ACLOG_INFO, "sending registration request to master server");
-        formatstring(path)("%s/r?v=%lu&g=%lu&p=%u&guid32=%lu", masterpath, PROTOCOL_VERSION, AC_VERSION, port, *&genguid(546545656, 23413376U, 3453455, "h6ji54ehjwo345gjio34s5jig"));
+        formatstring(path)("%s/r?v=%d&g=%d&p=%u&guid32=%lu", masterpath, PROTOCOL_VERSION, AC_VERSION, port, *&genguid(546545656, 23413376U, 3453455, "h6ji54ehjwo345gjio34s5jig"));
         lastupdatemaster = millis + 1;
     }
     else if (millis - lastauthreqprocessed > 2500 && authrequests.length())

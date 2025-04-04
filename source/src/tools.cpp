@@ -110,7 +110,7 @@ const char *asctime()
 const char *numtime()
 {
     static string numt;
-    formatstring(numt)("%ld", (long long) time(NULL));
+    formatstring(numt)("%lld", (long long) time(NULL));
     return numt;
 }
 
