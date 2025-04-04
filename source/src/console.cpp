@@ -102,7 +102,7 @@ struct chatlist : consolebuffer<cline>
             char *l = conlines[i].line;
             int width, height;
             text_bounds(l, width, height, conwidth);
-            consumed += ceil(float(height/FONTH));
+            consumed += ceil((float)height / FONTH);
             if (consumed > (fullconsole ? FADEMAX : maxlines))
                 break;
             ++linei;

@@ -158,7 +158,7 @@ static inline void updatemasterserver(int millis, int port)
             abuf[i*2+1] = "0123456789abcdef"[r.canswer[i] & 0xF];
         }
 
-        formatstring(path)("%s/v?p=%u&i=%lu&a=%s&c=%s", masterpath, port, r.id, abuf, cbuf);
+        formatstring(path)("%s/v?p=%u&i=%u&a=%s&c=%s", masterpath, port, r.id, abuf, cbuf);
         lastauthreqprocessed = millis;
     }
     else if (connectrequests.length())

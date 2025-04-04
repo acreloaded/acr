@@ -114,7 +114,7 @@ enum { PONGFLAG_PASSWORD = 0, PONGFLAG_BANNED, PONGFLAG_BLACKLIST, PONGFLAG_BYPA
 enum { EXTPING_NOP = 0, EXTPING_NAMELIST, EXTPING_SERVERINFO, EXTPING_MAPROT, EXTPING_UPLINKSTATS, EXTPING_NUM };
 
 struct authrequest { uint id; uchar crandom[48], canswer[32]; };
-struct connectrequest { int cn, guid; const char *hostname; uint id, user; };
+struct connectrequest { int cn; unsigned long guid; const char* hostname; uint id, user; };
 
 // new game mode/mutator system
 enum // game modes

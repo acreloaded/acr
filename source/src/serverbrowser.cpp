@@ -530,7 +530,7 @@ void checkpings()
                             ADDINFOLINE("this server does not provide additional information");
                             break;
                         }
-                        strcpy(si->lang, text);
+                        strncpy(si->lang, text, 3);
                         while(p.remaining())
                         {
                             getstring(text, p);
