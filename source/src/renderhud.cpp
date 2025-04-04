@@ -2364,7 +2364,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
                 defformatstring(count)("%d", teamscores[i].flagscore);
                 int cw, ch;
                 text_bounds(count, cw, ch);
-                draw_textf(count, i*120+VIRTW/4.0f*3.0f+60-cw/2, 1590);
+                draw_text(count, i*120+VIRTW/4.0f*3.0f+60-cw/2, 1590);
             }
         }
     }

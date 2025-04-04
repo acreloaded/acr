@@ -1075,7 +1075,9 @@ void refreshservers(gmenu *menu, bool init)
             char basecolor = si.protocol!=PROTOCOL_VERSION ? '7' : banned ? '4' : (curserver == servers[i] ? '1' : '5');
             char plnumcolor = serverfull ? '2' : (needspasswd ? '3' : (mmode != MM_OPEN ? '1' : basecolor));
             const char *favimage = NULL;
-            defformatstring(serverportpart)((serverbrowserhideip >= 3 || (serverbrowserhideip == 2 && si.port != CUBE_DEFAULT_SERVER_PORT)) ? ":%d" : "", si.port);
+            string serverportpart;
+            if(serverbrowserhideip >= 3 || (serverbrowserhideip == 2 && si.port != CUBE_DEFAULT_SERVER_PORT)) formatstring(serverportpart)(":%d", si.port);
+            else serverportpart[0] = '\0';
             if(si.address.host != ENET_HOST_ANY && si.ping != 9999)
             {
                 if(si.protocol!=PROTOCOL_VERSION && showonlygoodservers)

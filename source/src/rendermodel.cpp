@@ -677,7 +677,6 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
         return;
     }
 
-    int varseed = (int)(size_t)d;
     int anim = ANIM_IDLE|ANIM_LOOP;
     float speed = 0.0;
     vec o(d->o);
@@ -689,7 +688,6 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
         loopv(bounceents) if(bounceents[i]->bouncetype==BT_GIB && bounceents[i]->owner==d) return;
         d->pitch = 0.1f;
         anim = ANIM_DEATH;
-        varseed += d->lastpain;
         basetime = d->lastpain;
         int t = lastmillis-d->lastpain;
         if(t<0 || t>20000) return;

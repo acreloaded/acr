@@ -1529,7 +1529,7 @@ void callvote_parser(int *type, const char *arg1, const char *arg2, const char *
     {
         int t = *type;
         if (t < 0 || t >= SA_NUM)
-            conoutf("\f3invalid vote: \f2%d %s %s %s", type, arg1, arg2, arg3);
+            conoutf("\f3invalid vote: \f2%d %s %s %s", t, arg1, arg2, arg3);
         else
         {
             // storage of vote data

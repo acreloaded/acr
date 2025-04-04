@@ -48,7 +48,7 @@ void destroyevent::process(client *ci)
                         sendf(NULL, 1, "ri2", SV_BLEED, flags);
                     }
                     done = true;
-                    serverdamage(*hit, c, dmg, GUN_KNIFE, FRAG_FLAG, vec(0, 0, 0));
+                    serverdamage(*hit, c, dmg, GUN_KNIFE, tknifeflags, vec(0, 0, 0));
                 }
             }
 
