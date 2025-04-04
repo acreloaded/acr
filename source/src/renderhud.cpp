@@ -652,6 +652,8 @@ void drawequipicons(playerent *p)
     glEnable(GL_BLEND);
 }
 
+void drawradarent(float x, float y, float yaw, int col, int row, float iconsize, bool pulse, const char *label, ...) PRINTFARGS(8, 9);
+
 void drawradarent(float x, float y, float yaw, int col, int row, float iconsize, int pulse = 0, float alpha = 1.0f, const char *label = NULL, ...)
 {
     glPushMatrix();

@@ -45,7 +45,7 @@ extern char *getcurcommand();
 extern char *addreleaseaction(const char *s);
 extern void writebinds(stream *f);
 extern void pasteconsole(char *dst);
-extern void clientlogf(const char *s, ...);
+extern void clientlogf(const char *s, ...) PRINTFARGS(1, 2);
 
 struct keym
 {
@@ -364,7 +364,7 @@ extern void disconnect(int onlyclean = 0, int async = 0);
 extern void cleanupclient();
 extern void toserver(char *text, int voice = 0, bool action = false);
 extern void saytext(playerent *d, char *text, int flags, int sound);
-extern void addmsg(int type, const char *fmt = NULL, ...);
+extern void addmsg(int type, const char *fmt = NULL, ...) PRINTFARGS(2, 3);
 extern void addmsgraw(ucharbuf &buf, bool reliable = true);
 extern bool multiplayer(bool msg = true);
 extern bool allowedittoggle();
@@ -582,7 +582,7 @@ extern font *getfont(const char *name);
 extern void pushfont(const char *name);
 extern void popfont();
 extern void draw_text(const char *str, int left, int top, int r = 255, int g = 255, int b = 255, int a = 255, int cursor = -1, int maxwidth = -1);
-extern void draw_textf(const char *fstr, int left, int top, ...);
+extern void draw_textf(const char *fstr, int left, int top, ...) PRINTFARGS(1, 4);
 extern int text_width(const char *str);
 extern int text_visible(const char *str, int max);
 extern void text_bounds(const char *str, int &width, int &height, int maxwidth = -1);
@@ -616,10 +616,10 @@ enum
     HUDMSG_OVERWRITE = 1<<8
 };
 extern void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater);
-extern void loadingscreen(const char *fmt = NULL, ...);
-extern void hudoutf(const char *s, ...);
-extern void hudonlyf(const char *s, ...);
-extern void hudeditf(int type, const char *s, ...);
+extern void loadingscreen(const char *fmt = NULL, ...) PRINTFARGS(1, 2);
+extern void hudoutf(const char *s, ...) PRINTFARGS(1, 2);
+extern void hudonlyf(const char *s, ...) PRINTFARGS(1, 2);
+extern void hudeditf(int type, const char *s, ...) PRINTFARGS(2, 3);
 extern void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2 = 0, const char *text2 = NULL);
 extern vec getradarpos();
 
@@ -827,9 +827,9 @@ extern void freechallenge(void *answer);
 extern bool checkchallenge(const char *answerstr, void *correct);
 
 // console
-extern void conoutf(const char *s, ...);
-extern void chatoutf(const char *s, ...);
-extern void chatonlyf(const char *s, ...);
+extern void conoutf(const char *s, ...) PRINTFARGS(1, 2);
+extern void chatoutf(const char *s, ...) PRINTFARGS(1, 2);
+extern void chatonlyf(const char *s, ...) PRINTFARGS(1, 2);
 extern void addobit(playerent *actor, int weap, int style, bool headshot, playerent *target, int combo = 1, int assist = 0);
 
 // command
@@ -884,7 +884,7 @@ extern const char *modestr(int gamemode, int mutators, bool acronyms = false);
 extern const char *voteerrorstr(int n);
 extern const char *mmfullname(int n);
 extern void modecheck(int &mode, int &muts, int trying = 0);
-extern void fatal(const char *s, ...);
+extern void fatal(const char *s, ...) PRINTFARGS(1, 2);
 extern void initserver(bool dedicated, int argc = 0, char **argv = NULL);
 extern void cleanupserver();
 extern void localconnect();
@@ -955,7 +955,7 @@ enum { ACLOG_DEBUG = 0, ACLOG_VERBOSE, ACLOG_INFO, ACLOG_WARNING, ACLOG_ERROR, A
 
 extern bool initlogging(const char *identity, int facility_, int consolethres, int filethres, int syslogthres, bool logtimestamp);
 extern void exitlogging();
-extern bool logline(int level, const char *msg, ...);
+extern bool logline(int level, const char *msg, ...) PRINTFARGS(2, 3);
 
 // server config
 

@@ -1088,7 +1088,8 @@ void refreshservers(gmenu *menu, bool init)
                     if(!hidefavicons && showfavtag && si.favcat > -1) favimage = getalias(favcatargname(favcats[si.favcat], FC_IMAGE));
                     filterrichtext(text, si.favcat > -1 && !favimage ? favcattags[si.favcat] : "");
                     if(showweights) concatformatstring(text, "(%d)", si.weight);
-                    formatstring(si.full)(showfavtag ? (favimage ? "\t" : "\fs%s\fr\t") : "", text);
+                    if(showfavtag && !favimage) formatstring(si.full)("\fs%s\fr\t", text);
+                    copystring(si.full, showfavtag ? "\t" : "");
                     concatformatstring(si.full, "\fs\f%c%s\t\fs\f%c%d/%d\fr\t\a%c  %s", basecolor, colorping(si.ping), plnumcolor, si.numplayers, si.maxclients, '0' + si.uplinkqual, si.pongflags & ((1 << PONGFLAG_BYPASSBANS) | (1 << PONGFLAG_BYPASSPRIV)) ? "! " : "");
                     if(si.map[0])
                     {
@@ -1096,7 +1097,8 @@ void refreshservers(gmenu *menu, bool init)
                         if(showmr) concatformatstring(si.full, ", (%d)", si.minremain);
                     }
                     else concatformatstring(si.full, "empty");
-                    concatformatstring(si.full, !serverbrowserhideip ? ": " : ": %s%s", si.name, serverportpart);
+                    if(!serverbrowserhideip) concatstring(si.full, ": ");
+                    else concatformatstring(si.full, ": %s%s", si.name, serverportpart);
                     concatformatstring(si.full, "\fr %s", si.sdesc);
                 }
             }

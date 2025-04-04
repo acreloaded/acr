@@ -487,13 +487,8 @@ void r_accuracy(int h)
     if(rows<1) return;
     cols++;
     blendbox(x_offset, spacing+y_offset, spacing+x_offset+curfont->defaultw*cols, y_offset-curfont->defaulth*rows, true, -1);
-    int x=0;
-    loopv(lines)
-    {
-        char *line = lines[i];
-        draw_textf(line,spacing*0.5+x_offset,y_offset-x*curfont->defaulth-0.5*spacing);
-        x++;
-    }
+    int x = spacing * 0.5 + x_offset, y = y_offset - 0.5 * spacing;
+    loopv(lines) draw_text(lines[i], x, y - i * curfont->defaulth);
 }
 
 void accuracyreset()

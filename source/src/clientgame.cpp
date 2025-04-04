@@ -286,7 +286,7 @@ void playerinfo(int *cn, const char *attr)
     if(!p)
     {
         if(!m_ai(gamemode) && multiplayer(false)) // bot clientnums are still glitchy, causing this message to sometimes appear in offline/singleplayer when it shouldn't??? -Bukz 2012may
-            conoutf("invalid clientnum cn: %s attr: %s", cn, attr);
+            conoutf("invalid clientnum cn: %d attr: %s", clientnum, attr);
         return;
     }
 
@@ -644,8 +644,8 @@ bool showhudtimer(int maxmillis, int startmillis, const char *msg, bool flash)
     lasttick = lastmillis;
     const bool wave = m_progressive(gamemode, mutators), queued = !wave && spawnenqueued && !m_duke(gamemode, mutators);
     defformatstring(str)("\f%s %.1fs", _(wave ? "1Next wave in" : queued ? "2Queued for spawn:" : "3Waiting for respawn:"), (startmillis + maxmillis - lastmillis) / 1000.f);
-    if (lastmillis <= startmillis + maxmillis) hudeditf(HUDMSG_TIMER | HUDMSG_OVERWRITE, flash || wave || queued ? str : str + 2);
-    else hudeditf(HUDMSG_TIMER, msg);
+    if (lastmillis <= startmillis + maxmillis) hudeditf(HUDMSG_TIMER | HUDMSG_OVERWRITE, "%s", flash || wave || queued ? str : str + 2);
+    else hudeditf(HUDMSG_TIMER, "%s", msg);
     return true;
 }
 

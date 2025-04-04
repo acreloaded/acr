@@ -56,7 +56,7 @@ struct sline
 
     sline() : altfont(NULL), bgcolor(NULL), textcolor(0) { copystring(s, ""); }
 
-    void addcol(int priority, const char *format = NULL, ...)
+    void addcol(int priority, const char *format = NULL, ...) PRINTFARGS(3, 4)
     {
         if(priority < 0) return;
         coldata &col = cols.add();
@@ -176,10 +176,10 @@ void renderdiscscores(int team)
         line.addcol(sc_deaths, "%d", d.deaths);
         line.addcol(sc_ratio, "%.2f", SCORERATIO(d.frags, d.deaths));
         line.addcol(sc_score, "%d", max(d.points, 0));
-        line.addcol(sc_lag, clag);
+        line.addcol(sc_lag, "%s", clag);
         line.addcol(sc_clientnum, "DISC");
         line.addcol(sc_rank); //line.addcol(sc_rank, "%d", d.rank);
-        line.addcol(sc_name, d.name);
+        line.addcol(sc_name, "%s", d.name);
     }
 }
 
@@ -243,7 +243,7 @@ void renderscore(playerent *d)
     line.addcol(sc_deaths, "%d", d->deaths);
     line.addcol(sc_ratio, "%.2f", SCORERATIO(d->frags, d->deaths));
     line.addcol(sc_score, "%d", max(d->points, 0));
-    line.addcol(sc_lag, lagping);
+    line.addcol(sc_lag, "%s", lagping);
     line.addcol(sc_clientnum, "\fs\f%d%d\fr", cncolumncolor, d->clientnum);
     const int rmod10 = d->rank % 10;
     line.addcol(sc_rank, "%d%s", d->rank, (d->rank / 10 == 1) ? "th" : rmod10 == 1 ? "st" : rmod10 == 2 ? "nd" : rmod10 == 3 ? "rd" : "th");
@@ -253,7 +253,7 @@ void renderscore(playerent *d)
 
 int totalplayers = 0;
 
-int renderteamscore(teamsum &t)
+void renderteamscore(teamsum &t)
 {
     if(!scorelines.empty()) // space between teams
     {
@@ -261,9 +261,6 @@ int renderteamscore(teamsum &t)
         space.s[0] = 0;
     }
     sline &line = scorelines.add();
-    int n = t.teammembers.length();
-    defformatstring(plrs)("(%d %s)", n, t.team == TEAM_SPECT ? "spectating" :
-        m_zombie(gamemode) && t.team == TEAM_CLA ? "zombies" : n == 1 ? "player" : "players");
 
     if (team_isactive(t.team))
     {
@@ -288,9 +285,11 @@ int renderteamscore(teamsum &t)
         line.addcol(sc_lag, "%s", colorping(t.ping / max(t.teammembers.length(), 1)));
     else
         line.addcol(sc_lag, "%s/%s", colorpj(t.pj / max(t.teammembers.length(), 1)), colorping(t.ping / max(t.teammembers.length(), 1)));
-    line.addcol(sc_clientnum, m_team(gamemode, mutators) || t.team == TEAM_SPECT ? team_string(t.team, true) : "FFA");
+    line.addcol(sc_clientnum, "%s", m_team(gamemode, mutators) || t.team == TEAM_SPECT ? team_string(t.team, true) : "FFA");
     line.addcol(sc_rank);
-    line.addcol(sc_name, "%s", plrs);
+    int n = t.teammembers.length();
+    line.addcol(sc_name, "(%d %s)", n, t.team == TEAM_SPECT ? "spectating" :
+        m_zombie(gamemode) && t.team == TEAM_CLA ? "zombies" : n == 1 ? "player" : "players");
 
     static color teamcolors[4] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f), color(.4f, .4f, .4f, .3f), color(.8f, .8f, .8f, .4f) };
     line.bgcolor = &teamcolors[t.team == TEAM_SPECT ? 2 : m_team(gamemode, mutators) ? team_base(t.team) : 3];
@@ -301,7 +300,6 @@ int renderteamscore(teamsum &t)
             continue;
         renderscore(t.teammembers[i]);
     }
-    return n;
 }
 
 extern bool watchingdemo;
@@ -439,7 +437,11 @@ void renderscores(gmenu *menu, bool init)
         serverinfo *s = getconnectedserverinfo();
         if(s)
         {
-            if(servstate.mastermode > MM_OPEN) concatformatstring(serverline, servstate.mastermode == MM_MATCH ? "M%d " : "P ", servstate.matchteamsize);
+            if(servstate.mastermode > MM_OPEN)
+            {
+                if (servstate.mastermode == MM_MATCH) concatformatstring(serverline, "M%d ", servstate.matchteamsize);
+                else concatstring(serverline, "P ");
+            }
             // ft: 2010jun12: this can write over the menu boundary
             //concatformatstring(serverline, "%s:%d %s", s->name, s->port, s->sdesc);
             // for now we'll just cut it off, same as the serverbrowser
@@ -495,7 +497,7 @@ const char *asciiscores(bool destjpg)
     }
     if(getclientmap()[0])
     {
-        formatstring(text)("\n\"%s\" on map %s", modestr(gamemode, mutators, 0), getclientmap(), asctime());
+        formatstring(text)("\n\"%s\" on map %s", modestr(gamemode, mutators, 0), getclientmap());
         addstr(buf, text);
     }
     if(multiplayer(false))

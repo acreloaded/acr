@@ -342,7 +342,7 @@ struct vertmodel : model
                 }
             }
 
-            if(dbgstenc >= (owner->numframes > 1 || as.anim&ANIM_DYNALLOC ? 2 : 1)) conoutf("%s: %d tris", owner->filename, (idx - d->idxs())/3);
+            if(dbgstenc >= (owner->numframes > 1 || as.anim&ANIM_DYNALLOC ? 2 : 1)) conoutf("%s: %uh tris", owner->filename, (idx - d->idxs())/3);
 
             d->size = (uchar *)idx - (uchar *)d;
             return d;
