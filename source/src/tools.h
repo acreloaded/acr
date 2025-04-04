@@ -828,19 +828,7 @@ inline char *newstring(const char *s)           { return newstring(s, strlen(s))
 inline char *newstringbuf()                     { return newstring(MAXSTRLEN-1); }
 inline char *newstringbuf(const char *s)        { return newstring(s, MAXSTRLEN-1); }
 
-#ifndef STANDALONE
-inline const char *_gettext(const char *msgid)
-{
-    if(msgid && msgid[0] != '\0')
-        return gettext(msgid);
-    else
-        return "";
-}
-#else
-#define _gettext(s) s
-#endif
-
-#define _(s) _gettext(s)
+#define _(s) (s)
 
 const int islittleendian = 1;
 #ifdef SDL_BYTEORDER

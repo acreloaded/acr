@@ -283,14 +283,6 @@
 			<Option target="client" />
 			<Option target="client-debug" />
 		</Unit>
-		<Unit filename="../src/i18n.cpp">
-			<Option target="client" />
-			<Option target="client-debug" />
-		</Unit>
-		<Unit filename="../src/i18n.h">
-			<Option target="client" />
-			<Option target="client-debug" />
-		</Unit>
 		<Unit filename="../src/log.cpp">
 			<Option target="client" />
 			<Option target="server" />
@@ -467,10 +459,6 @@
 			<Option target="client-debug" />
 		</Unit>
 		<Unit filename="../src/shadow.cpp">
-			<Option target="client" />
-			<Option target="client-debug" />
-		</Unit>
-		<Unit filename="../src/sound.cpp">
 			<Option target="client" />
 			<Option target="client-debug" />
 		</Unit>

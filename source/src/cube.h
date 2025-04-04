@@ -13,7 +13,6 @@
 #include "weapon.h"
 #include "entity.h"
 #include "world.h"
-#include "i18n.h"
 #include "command.h"
 
 #ifndef STANDALONE

@@ -116,6 +116,8 @@ VARF(fullscreen, 0, 0, 1, setfullscreen(fullscreen!=0));
 VARF(fullscreen, 0, 1, 1, setfullscreen(fullscreen!=0));
 #endif
 
+SVARFP(lang, "en", filterlang(lang, lang));
+
 void writeinitcfg()
 {
     if(!restoredinits) return;
@@ -134,7 +136,7 @@ void writeinitcfg()
     extern int audio, soundchannels;
     f->printf("audio %d\n", audio > 0 ? 1 : 0);
     f->printf("soundchannels %d\n", soundchannels);
-    f->printf("lang %s\n", lang);
+    if(lang && *lang) f->printf("lang %s\n", lang);
     delete f;
 }
 
@@ -1082,8 +1084,6 @@ int main(int argc, char **argv)
         }
     }
     if(quitdirectly) return EXIT_SUCCESS;
-
-    i18nmanager i18n("AC", path("packages/locale", true));
 
     initing = NOT_INITING;
 

@@ -9,7 +9,7 @@ To learn about the build process, see [`.github/workflows/build.yml`](.github/wo
 ## Side Projects
 
 - Updater https://github.com/acreloaded/updater
-- Translations https://github.com/acreloaded/translations
+- Translations https://github.com/acreloaded/translations (obsolete)
 
 ## Video
 
