@@ -364,7 +364,7 @@ extern void disconnect(int onlyclean = 0, int async = 0);
 extern void cleanupclient();
 extern void toserver(char *text, int voice = 0, bool action = false);
 extern void saytext(playerent *d, char *text, int flags, int sound);
-extern void addmsg(int type, const char *fmt = NULL, ...) PRINTFARGS(2, 3);
+extern void addmsg(int type, const char* fmt = NULL, ...);
 extern void addmsgraw(ucharbuf &buf, bool reliable = true);
 extern bool multiplayer(bool msg = true);
 extern bool allowedittoggle();
