@@ -11,6 +11,10 @@ on:
 env:
   is_release: ${{ github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v') }}
 
+permissions:
+  id-token: write
+  attestations: write
+
 jobs:
   # notification:
   #   runs-on: ubuntu-latest
@@ -153,9 +157,21 @@ jobs:
           name: acr${{ env.ver }}-w_bin.zip
           path: ACR_packaged/out/acr${{ env.ver }}-w_bin.zip
 
+      # Attest build provenance
+      - uses: actions/attest-build-provenance@v2
+        id: attest-sha256
+        with:
+          subject-checksums: ACR_packaged/SHA256SUMS
+        if: env.is_release == 'true'
+      - uses: actions/attest-build-provenance@v2
+        id: attest-sha512
+        with:
+          subject-checksums: ACR_packaged/SHA512SUMS
+        if: env.is_release == 'true'
+
       # Create Release
       - name: Write Release Notes
-        run: python3 ./repo/source/package_acr_notes.py ./ACR_packaged/SHA256SUMS "$ver" > release_notes
+        run: python3 ./repo/source/package_acr_notes.py ./ACR_packaged/SHA256SUMS "$ver" "${{ steps.attest-sha256.outputs.attestation-url }}" "${{ steps.attest-sha512.outputs.attestation-url }}" > release_notes
         if: env.is_release == 'true'
       - name: Create Release
         id: create_release

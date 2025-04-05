@@ -1,7 +1,7 @@
 import os
 import sys
 
-sums_file_name, version = sys.argv[1:]
+sums_file_name, version, attest256, attest512 = sys.argv[1:]
 
 sums_file_content = '<unknown>'
 with open(sums_file_name) as f:
@@ -27,3 +27,8 @@ print('')
 print(os.path.basename(sums_file_name))
 print('```hash')
 print(sums_file_content, end='```')
+print('')
+print('Build provenance attestations')
+print('')
+print('- SHA256: ' + attest256)
+print('- SHA512: ' + attest512)
