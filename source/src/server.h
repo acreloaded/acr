@@ -712,25 +712,25 @@ inline const char *weapname(int weap)
 {
     const char *weapnames[NUMGUNS] =
     {
-        _("Knife"),
-        _("USP"),
-        _("M1014"),
-        _("MP5"),
-        _("M21"),
-        _("M16A3"),
-        _("M67"),
-        _("Akimbo"),
-        _("Intervention"),
-        _("Heal"),
-        _("Sword"),
-        _("RPG-7"),
-        _("AK-47"),
-        _("M82"),
-        _("MK12"),
-        _("M1911"),
-        _("M16 Pro"),
-        _("M1014 Pro"),
-        _("ACR Pro"),
+        "Knife",
+        "USP",
+        "M1014",
+        "MP5",
+        "M21",
+        "M16A3",
+        "M67",
+        "Akimbo",
+        "Intervention",
+        "Heal",
+        "Sword",
+        "RPG-7",
+        "AK-47",
+        "M82",
+        "MK12",
+        "M1911",
+        "M16 Pro",
+        "M1014 Pro",
+        "ACR Pro",
     };
     return weapnames[weap];
 }
@@ -741,31 +741,31 @@ const char *suicname(int obit)
     switch (obit)
     {
         case OBIT_DEATH:
-            return _("K");
+            return "K";
         case OBIT_BOT:
-            return _("Bot");
+            return "Bot";
         case OBIT_SPAWN:
-            return _("Spawn");
+            return "Spawn";
         case OBIT_FF:
-            return _("FF");
+            return "FF";
         case OBIT_DROWN:
-            return _("Drown");
+            return "Drown";
         case OBIT_CHEAT:
-            return _("hax");
+            return "hax";
         case OBIT_FALL_WATER:
-            return _("Splash");
+            return "Splash";
         case OBIT_FALL:
-            return _("Fall");
+            return "Fall";
         case OBIT_NUKE:
-            return _("Nuke");
+            return "Nuke";
 
         case OBIT_TEAM:
-            return _("Team");
+            return "Team";
         case OBIT_SPECT:
-            return _("Spect");
+            return "Spect";
 
         case OBIT_REVIVE:
-            return _("Revive");
+            return "Revive";
     }
     return "x";
 }
@@ -776,29 +776,29 @@ const char *killname(int obit, int style)
         case GUN_KNIFE:
             if (style & FRAG_GIB) break;
             else if (style & FRAG_FLAG)
-                return _("Throwing Knife");
+                return "Throwing Knife";
             else
-                return _("Bleed");
+                return "Bleed";
         case GUN_RPG:
             if (style & FRAG_GIB)
-                return _("RPG Impact");
+                return "RPG Impact";
             else if (style & FRAG_FLAG)
-                return _("RPG Direct");
+                return "RPG Direct";
             break;
         case GUN_GRENADE:
             if (!(style & FRAG_GIB))
-                return _("Airstrike");
+                return "Airstrike";
             break;
         case OBIT_FALL:
-            return _("Jump");
+            return "Jump";
         case OBIT_NUKE:
-            return _("Nuke");
+            return "Nuke";
         case OBIT_ASSIST:
-            return _("Assist");
+            return "Assist";
         case OBIT_REVIVE:
-            return _("Revive");
+            return "Revive";
         case OBIT_JUG:
-            return _("Juggernaut");
+            return "Juggernaut";
     }
     if (obit >= 0 && obit < NUMGUNS)
         return weapname(obit);

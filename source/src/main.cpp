@@ -631,7 +631,7 @@ void resetgl()
 {
     clearchanges(CHANGE_GFX);
 
-    loadingscreen(_("resetting OpenGL (0/3)"));
+    loadingscreen("resetting OpenGL (0/3)");
 
     extern void cleanupparticles();
     extern void cleanupmodels();
@@ -662,10 +662,10 @@ void resetgl()
     restoregamma();
     c2skeepalive();
     reloadfonts();
-    loadingscreen(_("resetting OpenGL (1/3)"));
+    loadingscreen("resetting OpenGL (1/3)");
     reloadtextures();
     c2skeepalive();
-    loadingscreen(_("resetting OpenGL (2/3)"));
+    loadingscreen("resetting OpenGL (2/3)");
     drawscope(true); // 2011feb05:ft: preload scope.png
     preload_playermodels();
     c2skeepalive();
@@ -1139,7 +1139,7 @@ int main(int argc, char **argv)
     if(!setfont("mono")) fatal("no mono font specified");
     if(!setfont("default")) fatal("no default font specified");
 
-    loadingscreen(_("initializing"));
+    loadingscreen("initializing");
 
     particleinit();
 

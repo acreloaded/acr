@@ -45,7 +45,7 @@ bool changemapserv(char *name, int mode, int muts, int download, int revision)  
         bool revmatch = hdr.maprevision == revision || revision == 0;
         if(watchingdemo)
         {
-            if(!revmatch) conoutf(_("%c3demo was recorded on map revision %d, you have map revision %d"), CC, revision, hdr.maprevision);
+            if(!revmatch) conoutf("\f3demo was recorded on map revision %d, you have map revision %d", revision, hdr.maprevision);
         }
         else
         {
@@ -65,9 +65,9 @@ bool changemapserv(char *name, int mode, int muts, int download, int revision)  
             }
             else
             {
-                if(!loaded || download < 10) conoutf(_("\"getmap\" to download the current map from the server"));
-                else conoutf(_("\"getmap\" to download a %s version of the current map from the server"),
-                         revision == 0 ? _("different") : (revision > hdr.maprevision ? _("newer") : _("older")));
+                if(!loaded || download < 10) conoutf("\"getmap\" to download the current map from the server");
+                else conoutf("\"getmap\" to download a %s version of the current map from the server",
+                         revision == 0 ? "different" : (revision > hdr.maprevision ? "newer" : "older"));
             }
         }
     }
@@ -356,7 +356,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 int mycn = getint(p), prot = getint(p);
                 if (prot != PROTOCOL_VERSION && !(watchingdemo && prot == -PROTOCOL_VERSION))
                 {
-                    conoutf(_("%c3incompatible game protocol (local protocol: %d :: server protocol: %d)"), CC, PROTOCOL_VERSION, prot);
+                    conoutf("\f3incompatible game protocol (local protocol: %d :: server protocol: %d)", PROTOCOL_VERSION, prot);
                     conoutf("\f3if this occurs a lot, obtain an upgrade from \f1https://acr.victorz.ca");
                     if(watchingdemo) conoutf("breaking loop : \f3this demo is using a different protocol\f5 : end it now!"); // SVN-WiP-bug: causes endless retry loop else!
                     else disconnect();
@@ -364,7 +364,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 }
                 sessionid = getint(p);
                 player1->clientnum = mycn;
-                if(getint(p) > 0) conoutf(_("INFO: this server is password protected"));
+                if(getint(p) > 0) conoutf("INFO: this server is password protected");
                 sendintro();
                 break;
             }
@@ -530,7 +530,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_MAPIDENT:
             {
-                conoutf(_("%c3please %c1get the map %c2by typing %c0/getmap"), CC, CC, CC, CC);
+                conoutf("\f3please \f1get the map \f2by typing \f0/getmap");
                 break;
             }
 
@@ -541,7 +541,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 if(d)
                 {
                     if(strcmp(d->name, text))
-                        conoutf(_("%s is now known as %s"), colorname(d), text);
+                        conoutf("%s is now known as %s", colorname(d), text);
                     if(identexists("onNameChange"))
                     {
                         defformatstring(onnamechange)("onNameChange %d \"%s\"", d->clientnum, text);
@@ -593,8 +593,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 filtername(text, text);
                 if(!text[0]) copystring(text, "unarmed");
                 copystring(d->name, text, MAXNAMELEN+1);
-                conoutf(_("connected: %s"), colorname(d));
-                chatonlyf(_("%s %c0joined %c2the %c1game"), colorname(d), CC, CC, CC);
+                conoutf("connected: %s", colorname(d));
+                chatonlyf("%s \f0joined \f2the \f1game", colorname(d));
                 if(identexists("onConnect"))
                 {
                     defformatstring(onconnect)("onConnect %d", d->clientnum);
@@ -663,8 +663,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 if(d->name[0])
                 {
                     extern const char *disc_reason(int reason);
-                    conoutf(_("player %s disconnected (%s)"), colorname(d), disc_reason(reason));
-                    chatonlyf(_("%s %c3left %c2the %c1game"), colorname(d), CC, CC, CC);
+                    conoutf("player %s disconnected (%s)", colorname(d), disc_reason(reason));
+                    chatonlyf("%s \f3left \f2the \f1game", colorname(d));
                 }
                 zapplayer(players[cn]);
                 if(identexists("onDisconnect"))
@@ -734,7 +734,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 if(!d || (d != player1 && !isowned(d))) { static playerent dummy; d = &dummy; }
                 if ( map_quality == MAP_IS_BAD && d == player1 )
                 {
-                    conoutf(_("map deemed unplayable in AC"));
+                    conoutf("map deemed unplayable in AC");
                 }
 
                 if(d == player1)
@@ -765,7 +765,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 {
                     if (!m_zombie(gamemode) && !m_convert(gamemode, mutators)) arenaintermission = 0;
                     //closemenu(NULL);
-                    conoutf(_("new round starting... fight!"));
+                    conoutf("new round starting... fight!");
                     hudeditf(HUDMSG_TIMER, "FIGHT!");
                 }
                 addmsg(SV_SPAWN, "ri5", d->clientnum, d->lifesequence, (int)(d->o.x*DMF), (int)(d->o.y*DMF), (int)(d->o.z*DMF));
@@ -1038,30 +1038,30 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 const char *pointreason_names[PR_MAX] =
                 {
                     "",
-                    _("Assist"),
-                    _("SPLAT!"),
-                    _("HEADSHOT!"),
-                    _("Kill Confirmed"),
-                    _("Kill Denied"),
-                    _("Healed Self"),
-                    _("Healed Teammate"),
-                    _("%c3Healed Enemy"),
-                    _("Prevented Bleedout!"),
-                    _("Teammate saved you!"), // Bleedout prevented by teammate
-                    _("%c0You won!"),
-                    _("%c1Your team wins!"),
-                    _("%c3You lost!"),
-                    _("%c1Domination bonus"),
-                    _("%c0Flag secured!"),
-                    _("%c3Flag overthrown!"),
-                    _("%c0Buzzkill!"),
-                    _("%c3Buzzkilled!"),
-                    _("%c1Got own tags!"),
-                    _("%c3Kill Denied"),
-                    _("%c0Pro Kill"),
-                    _("%c3Killed by Pro weapon"),
+                    "Assist",
+                    "SPLAT!",
+                    "HEADSHOT!",
+                    "Kill Confirmed",
+                    "Kill Denied",
+                    "Healed Self",
+                    "Healed Teammate",
+                    "\f3Healed Enemy",
+                    "Prevented Bleedout!",
+                    "Teammate saved you!", // Bleedout prevented by teammate
+                    "\f0You won!",
+                    "\f1Your team wins!",
+                    "\f3You lost!",
+                    "\f1Domination bonus",
+                    "\f0Flag secured!",
+                    "\f3Flag overthrown!",
+                    "\f0Buzzkill!",
+                    "\f3Buzzkilled!",
+                    "\f1Got own tags!",
+                    "\f3Kill Denied",
+                    "\f0Pro Kill",
+                    "\f3Killed by Pro weapon",
                 };
-                formatstring(text)(pointreason_names[reason], CC);
+                formatstring(text)(pointreason_names[reason]);
                 expreason(text);
 
                 // Hacky way to increase small flag count
@@ -1265,7 +1265,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 if (newwaterlevel == hdr.waterlevel) break;
                 hdr.waterlevel = newwaterlevel;
                 if (d && d != player1)
-                    conoutf(_("%s changed the water-level to %d"), colorname(d), hdr.waterlevel);
+                    conoutf("%s changed the water-level to %d", colorname(d), hdr.waterlevel);
                 break;
             }
 
@@ -1275,7 +1275,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 if(size>=0) empty_world(size, true);
                 else empty_world(-1, true);
                 if(d && d!=player1)
-                    conoutf(size>=0 ? _("%s started a new map of size %d") : _("%s enlarged the map to size %d"), colorname(d), sfactor);
+                    conoutf(size>=0 ? "%s started a new map of size %d" : "%s enlarged the map to size %d", colorname(d), sfactor);
                 break;
             }
 
@@ -1434,25 +1434,25 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     else loopv(players) if (players[i] && teammate(players[i])){ multi = true; break; }
 #undef teammate
                 }
-                conoutf(_("the round is over! next round in 5 seconds..."));
+                conoutf("the round is over! next round in 5 seconds...");
 
                 // no survivors
-                if (acn == -1) hudoutf(_("%c3everyone died; epic fail!"), CC);
+                if (acn == -1) hudoutf("\f3everyone died; epic fail!");
                 // instead of waiting for bots to battle it out...
-                else if (acn == -2) hudoutf(_("the bots have won the round!"));
+                else if (acn == -2) hudoutf("the bots have won the round!");
                 // should not happen? better safe than sorry
                 else if (!alive) hudoutf("unknown winner...?");
                 // Teams
                 else if (m_team(gamemode, mutators) && multi)
                 {
                     if (alive->team == player1->team)
-                        hudoutf(_("your team is the victor!"));
+                        hudoutf("your team is the victor!");
                     else
-                        hudoutf(_("your team was dominated!"));
+                        hudoutf("your team was dominated!");
                 }
                 // FFA or one team member
-                else if (alive == player1) hudoutf(_("you are the victor!"));
-                else hudoutf(_("%s is the victor!"), colorname(alive));
+                else if (alive == player1) hudoutf("you are the victor!");
+                else hudoutf("%s is the victor!", colorname(alive));
 
                 // set intermission time
                 arenaintermission = lastmillis;
@@ -1462,9 +1462,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             case SV_ZOMBIESWIN:
             {
                 const int info = getint(p), round = (info >> 1) & 0x7F;
-                if (round > MAXZOMBIEROUND) hudoutf(_("%c0the humans have prevailed!"), CC);
-                else if (info & 1) hudoutf(_("%c2Get ready for wave %c1%d%c4; %c0the humans held off the zombies!"), CC, CC, round, CC, CC);
-                else hudoutf(_("%c2Get ready for wave %c1%d%c4; %c3the zombies have overrun the humans!"), CC, CC, round, CC, CC);
+                if (round > MAXZOMBIEROUND) hudoutf("\f0the humans have prevailed!");
+                else if (info & 1) hudoutf("\f2Get ready for wave \f1%d\f4; \f0the humans held off the zombies!", round);
+                else hudoutf("\f2Get ready for wave \f1%d\f4; \f3the zombies have overrun the humans!", round);
                 loopv(players)
                 {
                     playerent *p = players[i];
@@ -1480,7 +1480,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
             case SV_CONVERTWIN:
             {
-                hudoutf(_("%c1%cbeveryone has been converted!"), CC, CC);
+                hudoutf("\f1\fbeveryone has been converted!");
                 arenaintermission = lastmillis;
                 break;
             }
@@ -1502,12 +1502,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 switch (t){
                     case 0:
                     case 1:
-                        chatoutf(_("%s %s %s access"), n, t ? _("relinquished") : _("claimed"), privname(r));
+                        chatoutf("%s %s %s access", n, t ? "relinquished" : "claimed", privname(r));
                         break;
                     case 2:
-                        if (!r) hudoutf(_("%c2this password is not privileged; it is a deban password!"), CC);
-                        else if (d == player1) hudoutf(_("you already have %s access"), privname(r));
-                        else hudoutf(_("there is already another %s (%s)"), privname(r), n);
+                        if (!r) hudoutf("\f2this password is not privileged; it is a deban password!");
+                        else if (d == player1) hudoutf("you already have %s access", privname(r));
+                        else hudoutf("there is already another %s (%s)", privname(r), n);
                         break;
                 }
                 break;
@@ -1612,10 +1612,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             case SV_TEAMDENY:
             {
                 int t = getint(p);
-                if (t == 0x10) conoutf(_("%c3you were forced into this team by a vote and may not switch"), CC);
-                else if (t == 0x11) conoutf(_("%c3you may not switch teams in this mode!"), CC);
-                else if (t == 0x12) conoutf(_("%c3match team size is set -- cannot switch sides"), CC);
-                else conoutf(_("%cteam %s is full!"), CC, team_string(t & 0xF));
+                if (t == 0x10) conoutf("\f3you were forced into this team by a vote and may not switch");
+                else if (t == 0x11) conoutf("\f3you may not switch teams in this mode!");
+                else if (t == 0x12) conoutf("\f3match team size is set -- cannot switch sides");
+                else conoutf("\f3team %s is full!", team_string(t & 0xF));
                 break;
             }
 
@@ -1629,12 +1629,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     // no change
                     switch (ftr){
                         case FTR_PLAYERWISH:
-                            if (d == player1) hudoutf(_("%c1you %c2did not switch teams"), CC, CC);
-                            else conoutf(_("%c2%s did not switch teams"), CC, colorname(d));
+                            if (d == player1) hudoutf("\f1you \f2did not switch teams");
+                            else conoutf("\f2%s did not switch teams", colorname(d));
                             break;
                         case FTR_AUTO:
-                            if (d == player1) hudoutf(_("%c1you %c2stay in team %s"), CC, CC, team_string(fnt));
-                            else if (d->ownernum < 0) conoutf(_("%c2%s stays on team %s"), CC, colorname(d), team_string(fnt));
+                            if (d == player1) hudoutf("\f1you \f2stay in team %s", team_string(fnt));
+                            else if (d->ownernum < 0) conoutf("\f2%s stays on team %s", colorname(d), team_string(fnt));
                             break;
                     }
                 }
@@ -1643,12 +1643,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     switch (ftr)
                     {
                         case FTR_PLAYERWISH:
-                            if (d == player1) hudoutf(_("%c1you %c2are now in team %s"), CC, CC, team_string(fnt));
-                            else conoutf(_("%c2%s switched to team %s"), CC, colorname(d), team_string(fnt));
+                            if (d == player1) hudoutf("\f1you \f2are now in team %s", team_string(fnt));
+                            else conoutf("\f2%s switched to team %s", colorname(d), team_string(fnt));
                             break;
                         case FTR_AUTO:
-                            if (d == player1) hudoutf(_("%c2the server %c1forced you %c2to team %s"), CC, CC, CC, team_string(fnt));
-                            else if(d->ownernum < 0) conoutf(_("%c2the server forced %s to team %s"), CC, colorname(d), team_string(fnt));
+                            if (d == player1) hudoutf("\f2the server \f1forced you \f2to team %s", team_string(fnt));
+                            else if(d->ownernum < 0) conoutf("\f2the server forced %s to team %s", colorname(d), team_string(fnt));
                             break;
                     }
                     d->team = fnt;
@@ -1733,7 +1733,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 d->vote = vote;
                 if (vote == VOTE_NEUTRAL) break;
                 if ((/*voteid*/ true || d == player1) && (d != curvote->owner || curvote->millis + 100 < lastmillis))
-                    conoutf("%s %c6(%d) %c2voted %s", (d == player1) ? "\f1you" : d->name, CC, cn, CC, vote == VOTE_NO ? "\f3no" : "\f0yes");
+                    conoutf("%s \f6(%d) \f2voted %s", (d == player1) ? "\f1you" : d->name, cn, vote == VOTE_NO ? "\f3no" : "\f0yes");
                 onChangeVote( 2, vote, cn );
                 break;
             }
@@ -1761,7 +1761,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     curvote->result = vres;
                     curvote->millis = totalmillis + 5000;
                     if (d) conoutf("\f1%s vetoed the vote to %s", colorname(d), vres == VOTE_YES ? "\f0pass" : "\f3fail");
-                    conoutf(vres == VOTE_YES ? _("vote %c0passed") : _("vote %c3failed"), CC);
+                    conoutf(vres == VOTE_YES ? "vote \f0passed" : "vote \f3failed");
                     audiomgr.playsound(vres == VOTE_YES ? S_VOTEPASS : S_VOTEFAIL, SP_HIGH);
                     if (identexists("onVoteEnd")) execute("onVoteEnd");
                     extern int votepending;
@@ -1780,7 +1780,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     const int owner = getint(p), wants = getint(p);
                     pl = getclient(owner);
                     playerent *wanted = getclient(wants);
-                    conoutf(_("%s requests whois on %s"), pl ? colorname(pl) : "someone", wanted ? colorname(wanted) : "someone");
+                    conoutf("%s requests whois on %s", pl ? colorname(pl) : "someone", wanted ? colorname(wanted) : "someone");
                 }
                 else
                 {
@@ -1794,11 +1794,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
 
                     if (mask < 128) concatformatstring(cip, "/%d", mask);
 
-                    conoutf(_("whois on %s returned [%s]:%d"), pl ? colorname(pl) : "unknown", cip, port);
+                    conoutf("whois on %s returned [%s]:%d", pl ? colorname(pl) : "unknown", cip, port);
                     if (text[0])
-                        conoutf(_("this user is authed as '%s'"), text);
+                        conoutf("this user is authed as '%s'", text);
                     else
-                        conoutf(_("this user is not authed"));
+                        conoutf("this user is not authed");
                 }
                 break;
             }
@@ -1806,7 +1806,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             case SV_LISTDEMOS:
             {
                 int demos = getint(p);
-                if(!demos) conoutf(_("no demos available"));
+                if(!demos) conoutf("no demos available");
                 else loopi(demos)
                 {
                     getstring(text, p);
@@ -1947,10 +1947,10 @@ void receivefile(uchar *data, int len)
             stream *demo = openrawfile(fname, "wb");
             if(!demo)
             {
-                conoutf(_("failed writing to \"%s\""), fname);
+                conoutf("failed writing to \"%s\"", fname);
                 return;
             }
-            conoutf(_("received demo \"%s\""), fname);
+            conoutf("received demo \"%s\"", fname);
             demo->write(&p.buf[p.len], demosize);
             delete demo;
             break;
@@ -1959,14 +1959,14 @@ void receivefile(uchar *data, int len)
         case SV_RECVMAP:
         {
             getstring(text, p);
-            conoutf(_("received map \"%s\" from server, reloading.."), text);
+            conoutf("received map \"%s\" from server, reloading..", text);
             int mapsize = getint(p);
             int cfgsize = getint(p);
             int cfgsizegz = getint(p);
             /* int revision = */ getint(p);
             int size = mapsize + cfgsizegz;
             if(MAXMAPSENDSIZE < mapsize + cfgsizegz || cfgsize > MAXCFGFILESIZE) { // sam's suggestion
-                conoutf(_("map %s is too large to receive"), text);
+                conoutf("map %s is too large to receive", text);
             } else {
                 if(p.remaining() < size)
                 {

@@ -146,8 +146,8 @@ void listignored()
     string pl;
     pl[0] = '\0';
     loopv(players) if(players[i] && players[i]->ignored) concatformatstring(pl, ", %s", colorname(players[i]));
-    if(*pl) conoutf(_("ignored players: %s"), pl + 2);
-    else conoutf(_("no players were ignored."));
+    if(*pl) conoutf("ignored players: %s", pl + 2);
+    else conoutf("no players were ignored.");
 }
 
 void clearignored(int *cn)
@@ -166,8 +166,8 @@ void listmuted()
     string pl;
     pl[0] = '\0';
     loopv(players) if(players[i] && players[i]->muted) concatformatstring(pl, ", %s", colorname(players[i]));
-    if(*pl) conoutf(_("muted players: %s"), pl + 2);
-    else conoutf(_("no players were muted."));
+    if(*pl) conoutf("muted players: %s", pl + 2);
+    else conoutf("no players were muted.");
 }
 
 void clearmuted(char *cn)
@@ -198,8 +198,8 @@ void newname(const char *name)
         updateclientname(player1);
         addmsg(SV_SWITCHNAME, "rs", player1->name);
     }
-    else conoutf(_("your name is: %s"), player1->name);
-    //alias(_("curname"), player1->name); // WTF? stef went crazy - this isn't something to translate either.
+    else conoutf("your name is: %s", player1->name);
+    //alias("curname", player1->name); // WTF? stef went crazy - this isn't something to translate either.
     alias("curname", player1->name);
 }
 
@@ -220,11 +220,11 @@ void newteam(char *name)
     {
         int nt = teamatoi(name);
         if(nt == player1->team) return; // same team
-        if(!team_isvalid(nt)) { conoutf(_("%c3\"%s\" is not a valid team name (try CLA, RVSF or SPECTATOR)"), CC, name); return; }
-        if(player1->state == CS_EDITING) conoutf(_("you can't change team while editing"));
+        if(!team_isvalid(nt)) { conoutf("\f3\"%s\" is not a valid team name (try CLA, RVSF or SPECTATOR)", name); return; }
+        if(player1->state == CS_EDITING) conoutf("you can't change team while editing");
         else addmsg(SV_SETTEAM, "ri", nt);
     }
-    else conoutf(_("your team is: %s"), team_string(player1->team));
+    else conoutf("your team is: %s", team_string(player1->team));
 }
 
 void benchme()
@@ -268,7 +268,7 @@ VARP(autoscreenshot, 0, 0, 1);
 void stopdemo()
 {
     if(watchingdemo) enddemoplayback();
-    else conoutf(_("not playing a demo"));
+    else conoutf("not playing a demo");
 }
 COMMAND(stopdemo, "");
 
@@ -643,7 +643,7 @@ bool showhudtimer(int maxmillis, int startmillis, const char *msg, bool flash)
     if (lasttick > startmillis + maxmillis) return false;
     lasttick = lastmillis;
     const bool wave = m_progressive(gamemode, mutators), queued = !wave && spawnenqueued && !m_duke(gamemode, mutators);
-    defformatstring(str)("\f%s %.1fs", _(wave ? "1Next wave in" : queued ? "2Queued for spawn:" : "3Waiting for respawn:"), (startmillis + maxmillis - lastmillis) / 1000.f);
+    defformatstring(str)("\f%s %.1fs", wave ? "1Next wave in" : queued ? "2Queued for spawn:" : "3Waiting for respawn:", (startmillis + maxmillis - lastmillis) / 1000.f);
     if (lastmillis <= startmillis + maxmillis) hudeditf(HUDMSG_TIMER | HUDMSG_OVERWRITE, "%s", flash || wave || queued ? str : str + 2);
     else hudeditf(HUDMSG_TIMER, "%s", msg);
     return true;
@@ -657,10 +657,10 @@ void showrespawntimer()
     if (m_duke(gamemode, mutators) || (m_convert(gamemode, mutators) && arenaintermission))
     {
         if(!arenaintermission) return;
-        showhudtimer(5000, arenaintermission, _("FIGHT!"), lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
+        showhudtimer(5000, arenaintermission, "FIGHT!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
     }
     else if(player1->state==CS_DEAD)
-        showhudtimer(SPAWNDELAY, player1->respawnoffset, _("READY!"), lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
+        showhudtimer(SPAWNDELAY, player1->respawnoffset, "READY!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
 }
 
 struct scriptsleep { int wait, millis; char *cmd; bool persist; };
@@ -834,7 +834,7 @@ void burstshots(int gun, int shots)
         if(shots >= 0) burstshotssettings[gun] = min(shots, (guns[gun].magsize-1));
         else intret(burstshotssettings[gun]);
     }
-    else conoutf(_("invalid gun specified"));
+    else conoutf("invalid gun specified");
 }
 
 COMMANDF(burstshots, "ii", (int *g, int *s) { burstshots(*g, *s); });
@@ -1034,8 +1034,8 @@ void timeupdate(int milliscur, int millismax)
         extern bool needsautoscreenshot;
         if(autoscreenshot) needsautoscreenshot = true;
         player1->attacking = false;
-        conoutf(_("intermission:"));
-        conoutf(_("game has ended!"));
+        conoutf("intermission:");
+        conoutf("game has ended!");
         consolescores();
         showscores(true);
         if(identexists("start_intermission")) execute("start_intermission");
@@ -1049,7 +1049,7 @@ void timeupdate(int milliscur, int millismax)
             hudoutf("1 minute left!");
             if(identexists("onLastMin")) execute("onLastMin");
         }
-        else if(clockdisplay==0) conoutf(_("time remaining: %d minutes"), minutesremaining);
+        else if(clockdisplay==0) conoutf("time remaining: %d minutes", minutesremaining);
     }
 }
 
@@ -1114,7 +1114,7 @@ void preparectf(bool cleanonly=false)
             if (e.type == CTF_FLAG && e.attr2 < 2)
             {
                 e.spawned = true;
-                if(e.attr2>=2) { conoutf(_("%c3invalid ctf-flag entity (%i as %d)"), CC, i, e.attr2); e.attr2 = 0; }
+                if(e.attr2>=2) { conoutf("\f3invalid ctf-flag entity (%i as %d)", i, e.attr2); e.attr2 = 0; }
                 flaginfo &f = flaginfos[e.attr2];
                 f.flagent = &e;
                 f.pos.x = (float) e.x;
@@ -1210,7 +1210,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
     preparectf(!m_flags(gamemode));
     suicided = -1;
     lasthit = 0;
-    if(good_map()==MAP_IS_BAD) conoutf(_("You cannot play in this map due to quality requisites. Please, report this incident."));
+    if(good_map()==MAP_IS_BAD) conoutf("You cannot play in this map due to quality requisites. Please, report this incident.");
     if (mapstats_hud) showmapstats();
 
     if(!reset) return;
@@ -1225,7 +1225,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
     lastgametimeupdate = 0;
     arenaintermission = 0;
     bool noflags = (m_capture(gamemode) || m_keep(gamemode)) && (!numflagspawn[0] || !numflagspawn[1]);
-    if(*clientmap) conoutf(_("game mode is \"%s\"%s"), modestr(gamemode, mutators, modeacronyms > 0), noflags ? " - \f2but there are no flag bases on this map" : "");
+    if(*clientmap) conoutf("game mode is \"%s\"%s", modestr(gamemode, mutators, modeacronyms > 0), noflags ? " - \f2but there are no flag bases on this map" : "");
 
     if(showmodedescriptions)
     {
@@ -1520,7 +1520,7 @@ void callvote(int type, const votedata &vote)
         }
         sendpackettoserv(1, p.finalize());
     }
-    else conoutf(_("%c3invalid vote"), CC);
+    else conoutf("\f3invalid vote");
 }
 
 void callvote_parser(int *type, const char *arg1, const char *arg2, const char *arg3)
@@ -1590,7 +1590,7 @@ void displayvote(votedisplayinfo *v)
     if(!v) return;
     DELETEP(curvote);
     curvote = v;
-    conoutf(_("%s called a vote: %s"), v->owner ? colorname(v->owner) : "", curvote->desc);
+    conoutf("%s called a vote: %s", v->owner ? colorname(v->owner) : "", curvote->desc);
     audiomgr.playsound(S_CALLVOTE, SP_HIGHEST);
     player1->vote = VOTE_NEUTRAL;
     loopv(players) if (players[i]) players[i]->vote = VOTE_NEUTRAL;
@@ -1600,7 +1600,7 @@ void displayvote(votedisplayinfo *v)
 void callvoteerr(int e)
 {
     if(e < 0 || e >= VOTEE_NUM) return;
-    conoutf(_("%c3could not vote: %s"), CC, voteerrorstr(e));
+    conoutf("\f3could not vote: %s", voteerrorstr(e));
 }
 
 void clearvote() { DELETEP(curvote); }
