@@ -20,7 +20,7 @@ for base, target in (
     ('w_bin', 'Windows (Binaries)'),
     ('l_bin', 'Linux (Binaries)'),
 ):
-    file_name = 'acr{}-{}.zip'.format(version, base)
+    file_name = 'acr_{}-{}.zip'.format(version, base)
     print('| {: <18} | {: <32} |'.format(target, file_name))
 
 print('')

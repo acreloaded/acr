@@ -102,24 +102,17 @@ jobs:
           mkdir -p repo/bin_unix
           cp artifacts/bin_linux/* repo/bin_unix/
 
-      - run: |
-          ver="_${event_ref:10}"
-          echo "ver=$ver" >> $GITHUB_ENV
-        env:
-          event_ref: ${{ github.event.ref }}
-        if: env.is_release == 'true'
-
       # Package
       - working-directory: ./repo/source
-        run: ./package_acr.sh "$ver"
+        run: ./package_acr.sh "${{ github.ref_name }}"
       - working-directory: ./ACR_packaged
         run: |
-          7za a ${{ env.compress_flags }} out/acr${ver}-l.zip ./acr${ver}-l/*
-          7za a ${{ env.compress_flags }} out/acr${ver}-w.zip ./acr${ver}-w/*
-          7za a ${{ env.compress_flags }} out/acr${ver}-serv.zip ./acr${ver}-serv/*
-          7za a ${{ env.compress_flags }} out/acr${ver}-src.zip ./acr${ver}-src/*
-          7za a ${{ env.compress_flags }} out/acr${ver}-l_bin.zip ../repo/bin_unix/*
-          7za a ${{ env.compress_flags }} out/acr${ver}-w_bin.zip ../repo/bin_win32/acr_*.exe
+          7za a ${{ env.compress_flags }} out/acr_${{ github.ref_name }}-l.zip ./acr_${{ github.ref_name }}-l/*
+          7za a ${{ env.compress_flags }} out/acr_${{ github.ref_name }}-w.zip ./acr_${{ github.ref_name }}-w/*
+          7za a ${{ env.compress_flags }} out/acr_${{ github.ref_name }}-serv.zip ./acr_${{ github.ref_name }}-serv/*
+          7za a ${{ env.compress_flags }} out/acr_${{ github.ref_name }}-src.zip ./acr_${{ github.ref_name }}-src/*
+          7za a ${{ env.compress_flags }} out/acr_${{ github.ref_name }}-l_bin.zip ../repo/bin_unix/*
+          7za a ${{ env.compress_flags }} out/acr_${{ github.ref_name }}-w_bin.zip ../repo/bin_win32/acr_*.exe
           cd out
           sha256sum -b * > ../SHA256SUMS
           sha512sum -b * > ../SHA512SUMS
@@ -135,33 +128,33 @@ jobs:
           path: ACR_packaged/SHA512SUMS
       - uses: actions/upload-artifact@v4
         with:
-          name: acr${{ env.ver }}-l.zip
-          path: ACR_packaged/out/acr${{ env.ver }}-l.zip
+          name: acr_${{ github.ref_name }}-l.zip
+          path: ACR_packaged/out/acr_${{ github.ref_name }}-l.zip
           compression-level: 0
       - uses: actions/upload-artifact@v4
         with:
-          name: acr${{ env.ver }}-w.zip
-          path: ACR_packaged/out/acr${{ env.ver }}-w.zip
+          name: acr_${{ github.ref_name }}-w.zip
+          path: ACR_packaged/out/acr_${{ github.ref_name }}-w.zip
           compression-level: 0
       - uses: actions/upload-artifact@v4
         with:
-          name: acr${{ env.ver }}-serv.zip
-          path: ACR_packaged/out/acr${{ env.ver }}-serv.zip
+          name: acr_${{ github.ref_name }}-serv.zip
+          path: ACR_packaged/out/acr_${{ github.ref_name }}-serv.zip
           compression-level: 0
       - uses: actions/upload-artifact@v4
         with:
-          name: acr${{ env.ver }}-src.zip
-          path: ACR_packaged/out/acr${{ env.ver }}-src.zip
+          name: acr_${{ github.ref_name }}-src.zip
+          path: ACR_packaged/out/acr_${{ github.ref_name }}-src.zip
           compression-level: 0
       - uses: actions/upload-artifact@v4
         with:
-          name: acr${{ env.ver }}-l_bin.zip
-          path: ACR_packaged/out/acr${{ env.ver }}-l_bin.zip
+          name: acr_${{ github.ref_name }}-l_bin.zip
+          path: ACR_packaged/out/acr_${{ github.ref_name }}-l_bin.zip
           compression-level: 0
       - uses: actions/upload-artifact@v4
         with:
-          name: acr${{ env.ver }}-w_bin.zip
-          path: ACR_packaged/out/acr${{ env.ver }}-w_bin.zip
+          name: acr_${{ github.ref_name }}-w_bin.zip
+          path: ACR_packaged/out/acr_${{ github.ref_name }}-w_bin.zip
           compression-level: 0
 
       # Attest build provenance
@@ -176,92 +169,11 @@ jobs:
           subject-checksums: ACR_packaged/SHA512SUMS
         if: env.is_release == 'true'
 
-      # Create Release
-      - name: Write Release Notes
-        run: python3 ./repo/source/package_acr_notes.py ./ACR_packaged/SHA256SUMS "$ver" "${{ steps.attest-sha256.outputs.attestation-url }}" "${{ steps.attest-sha512.outputs.attestation-url }}" > release_notes
-        if: env.is_release == 'true'
       - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
+        run: |
+          python3 ./repo/source/package_acr_notes.py ./ACR_packaged/SHA256SUMS "${{ github.ref_name }}" "${{ steps.attest-sha256.outputs.attestation-url }}" "${{ steps.attest-sha512.outputs.attestation-url }}" > release_notes
+          cd repo
+          gh release create ${{ github.ref_name }} -d -F ../release_notes ../ACR_packaged/{SHA*SUMS,out/*}
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_CUSTOM }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          body_path: release_notes
-          draft: true
-        if: env.is_release == 'true'
-
-      # Upload release assets
-      - uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_CUSTOM }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ACR_packaged/SHA256SUMS
-          asset_name: SHA256SUMS
-          asset_content_type: application/zip
-        if: env.is_release == 'true'
-      - uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_CUSTOM }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ACR_packaged/SHA512SUMS
-          asset_name: SHA512SUMS
-          asset_content_type: application/zip
-        if: env.is_release == 'true'
-      - uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_CUSTOM }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ACR_packaged/out/acr${{ env.ver }}-l.zip
-          asset_name: acr${{ env.ver }}-l.zip
-          asset_content_type: application/zip
-        if: env.is_release == 'true'
-      - uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_CUSTOM }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ACR_packaged/out/acr${{ env.ver }}-w.zip
-          asset_name: acr${{ env.ver }}-w.zip
-          asset_content_type: application/zip
-        if: env.is_release == 'true'
-      - uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_CUSTOM }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ACR_packaged/out/acr${{ env.ver }}-serv.zip
-          asset_name: acr${{ env.ver }}-serv.zip
-          asset_content_type: application/zip
-        if: env.is_release == 'true'
-      - uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_CUSTOM }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ACR_packaged/out/acr${{ env.ver }}-src.zip
-          asset_name: acr${{ env.ver }}-src.zip
-          asset_content_type: application/zip
-        if: env.is_release == 'true'
-      - uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_CUSTOM }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ACR_packaged/out/acr${{ env.ver }}-l_bin.zip
-          asset_name: acr${{ env.ver }}-l_bin.zip
-          asset_content_type: application/zip
-        if: env.is_release == 'true'
-      - uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_CUSTOM }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ACR_packaged/out/acr${{ env.ver }}-w_bin.zip
-          asset_name: acr${{ env.ver }}-w_bin.zip
-          asset_content_type: application/zip
+          GH_TOKEN: ${{ secrets.GH_TOKEN_CUSTOM }}
         if: env.is_release == 'true'
