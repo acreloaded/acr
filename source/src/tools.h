@@ -371,7 +371,7 @@ struct bitbuf
         }
     }
 
-    int rembits() { return (8 - blen) % 8; }   // 0..7 bits remaining in current byte
+    uint rembits() { return (8 - blen) % 8; }   // 0..7 bits remaining in current byte
 };
 
 template <class T> struct vector
