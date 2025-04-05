@@ -10,6 +10,7 @@ on:
 
 env:
   is_release: ${{ github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v') }}
+  compress_flags: ${{ env.is_release == 'true' && '-mx=9 -mfb=258 -mpass=15' || '-mx=5' }}
 
 permissions:
   id-token: write
@@ -113,12 +114,12 @@ jobs:
         run: ./package_acr.sh "$ver"
       - working-directory: ./ACR_packaged
         run: |
-          7za a -mx=9 -mfb=258 -mpass=15 out/acr${ver}-l.zip ./acr${ver}-l/*
-          7za a -mx=9 -mfb=258 -mpass=15 out/acr${ver}-w.zip ./acr${ver}-w/*
-          7za a -mx=9 -mfb=258 -mpass=15 out/acr${ver}-serv.zip ./acr${ver}-serv/*
-          7za a -mx=9 -mfb=258 -mpass=15 out/acr${ver}-src.zip ./acr${ver}-src/*
-          7za a -mx=9 -mfb=258 -mpass=15 out/acr${ver}-l_bin.zip ../repo/bin_unix/*
-          7za a -mx=9 -mfb=258 -mpass=15 out/acr${ver}-w_bin.zip ../repo/bin_win32/acr_*.exe
+          7za a ${{ env.compress_flags }} out/acr${ver}-l.zip ./acr${ver}-l/*
+          7za a ${{ env.compress_flags }} out/acr${ver}-w.zip ./acr${ver}-w/*
+          7za a ${{ env.compress_flags }} out/acr${ver}-serv.zip ./acr${ver}-serv/*
+          7za a ${{ env.compress_flags }} out/acr${ver}-src.zip ./acr${ver}-src/*
+          7za a ${{ env.compress_flags }} out/acr${ver}-l_bin.zip ../repo/bin_unix/*
+          7za a ${{ env.compress_flags }} out/acr${ver}-w_bin.zip ../repo/bin_win32/acr_*.exe
           cd out
           sha256sum -b * > ../SHA256SUMS
           sha512sum -b * > ../SHA512SUMS
