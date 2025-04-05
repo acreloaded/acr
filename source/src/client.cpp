@@ -1172,7 +1172,7 @@ bool requirepackage(int type, const char *path)
     if(!havecurl || canceldownloads || type < 0 || type >= PCK_NUM || pendingpackages.access(path)) return false;
 
     package *pck = new package;
-    pck->name = unixpath(newstring(path));
+    unixpath(copystring(pck->name, path));
     pck->type = type;
     loopv(pckservers) if(pckservers[i]->responsive) { pck->source = pckservers[i]; break; }
     if(!pck->source)
