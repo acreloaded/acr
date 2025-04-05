@@ -9,8 +9,8 @@ on:
   workflow_dispatch:
 
 env:
-  is_release: ${{ github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v') }}
-  compress_flags: ${{ env.is_release == 'true' && '-mx=9 -mfb=258 -mpass=15' || '-mx=5' }}
+  is_release: ${{ github.ref_type == 'tag' }}
+  compress_flags: ${{ github.ref_type == 'tag' && '-mx=9 -mfb=258 -mpass=15' || '-mx=5' }}
 
 permissions:
   id-token: write
