@@ -498,13 +498,7 @@ void mapsize(void)
 {
     switch(ssize)
     {
-        case 128:  intret(7);  break;
-        case 256:  intret(8);  break;
-        case 512:  intret(9);  break;
-        case 1024: intret(10); break;
-        case 2048: intret(11); break;
-        case 4096: intret(12); break;
-        default:   intret(6);  break;
+        intret(sfactor);
     }
 }
 
