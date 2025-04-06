@@ -12,10 +12,6 @@ env:
   is_release: ${{ github.ref_type == 'tag' }}
   compress_flags: ${{ github.ref_type == 'tag' && '-mx=9 -mfb=258 -mpass=15' || '-mx=5' }}
 
-permissions:
-  id-token: write
-  attestations: write
-
 jobs:
   # notification:
   #   runs-on: ubuntu-latest
@@ -89,6 +85,9 @@ jobs:
   package:
     runs-on: ubuntu-latest
     needs: [ build_windows, build_linux ]
+    permissions:
+      id-token: write
+      attestations: write
     steps:
       - run: sudo apt install p7zip-full
       - uses: actions/checkout@v4
