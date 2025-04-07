@@ -59,7 +59,8 @@ jobs:
           CC_FOR_BUILD: ${{ matrix.cc }}
           CXX: ${{ matrix.cxx }}
           CXX_FOR_BUILD: ${{ matrix.cxx }}
-      - run: |
+      - name: Change prefix from native_ to linux_64_
+        run: |
           mv bin_unix/native_client bin_unix/linux_64_client
           mv bin_unix/native_server bin_unix/linux_64_server
         if: matrix.official
