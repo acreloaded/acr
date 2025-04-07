@@ -136,38 +136,38 @@ jobs:
       - name: Upload Linux
         uses: actions/upload-artifact@v4
         with:
-          name: acr_${{ env.ver }}-l.zip
-          path: ACR_packaged/out/acr_${{ env.ver }}-l.zip
+          name: acr${{ env.ver }}-l.zip
+          path: ACR_packaged/out/acr${{ env.ver }}-l.zip
           compression-level: 0
       - name: Upload Windows
         uses: actions/upload-artifact@v4
         with:
-          name: acr_${{ env.ver }}-w.zip
-          path: ACR_packaged/out/acr_${{ env.ver }}-w.zip
+          name: acr${{ env.ver }}-w.zip
+          path: ACR_packaged/out/acr${{ env.ver }}-w.zip
           compression-level: 0
       - name: Upload Server Pack
         uses: actions/upload-artifact@v4
         with:
-          name: acr_${{ env.ver }}-serv.zip
-          path: ACR_packaged/out/acr_${{ env.ver }}-serv.zip
+          name: acr${{ env.ver }}-serv.zip
+          path: ACR_packaged/out/acr${{ env.ver }}-serv.zip
           compression-level: 0
       - name: Upload Source
         uses: actions/upload-artifact@v4
         with:
-          name: acr_${{ env.ver }}-src.zip
-          path: ACR_packaged/out/acr_${{ env.ver }}-src.zip
+          name: acr${{ env.ver }}-src.zip
+          path: ACR_packaged/out/acr${{ env.ver }}-src.zip
           compression-level: 0
       - name: Upload Linux Binaries
         uses: actions/upload-artifact@v4
         with:
-          name: acr_${{ env.ver }}-l_bin.zip
-          path: ACR_packaged/out/acr_${{ env.ver }}-l_bin.zip
+          name: acr${{ env.ver }}-l_bin.zip
+          path: ACR_packaged/out/acr${{ env.ver }}-l_bin.zip
           compression-level: 0
       - name: Upload Windows Binaries
         uses: actions/upload-artifact@v4
         with:
-          name: acr_${{ env.ver }}-w_bin.zip
-          path: ACR_packaged/out/acr_${{ env.ver }}-w_bin.zip
+          name: acr${{ env.ver }}-w_bin.zip
+          path: ACR_packaged/out/acr${{ env.ver }}-w_bin.zip
           compression-level: 0
 
       # Attest build provenance
