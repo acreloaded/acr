@@ -95,18 +95,21 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: repo
-      - uses: actions/download-artifact@v4
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
         with:
           path: artifacts
-      - run: |
+      - name: Copy binaries from artifacts
+        run: |
           cp artifacts/bin_win/*.exe repo/bin_win32/
           mkdir -p repo/bin_unix
           cp artifacts/bin_linux/* repo/bin_unix/
 
       # Package
-      - working-directory: ./repo/source
+      - name: Make packages
+        working-directory: ./repo/source
         run: ./package_acr.sh "$ver"
-      - name: Compress
+      - name: Compress packages
         working-directory: ./ACR_packaged
         run: |
           7za a ${{ env.compress_flags }} out/acr$ver-l.zip ./acr$ver-l/*
@@ -120,52 +123,62 @@ jobs:
           sha512sum -b * > ../SHA512SUMS
 
       # Upload artifacts
-      - uses: actions/upload-artifact@v4
+      - name: Upload SHA256SUMS
+        uses: actions/upload-artifact@v4
         with:
           name: SHA256SUMS
           path: ACR_packaged/SHA256SUMS
-      - uses: actions/upload-artifact@v4
+      - name: Upload SHA512SUMS
+        uses: actions/upload-artifact@v4
         with:
           name: SHA512SUMS
           path: ACR_packaged/SHA512SUMS
-      - uses: actions/upload-artifact@v4
+      - name: Upload Linux
+        uses: actions/upload-artifact@v4
         with:
           name: acr_${{ env.ver }}-l.zip
           path: ACR_packaged/out/acr_${{ env.ver }}-l.zip
           compression-level: 0
-      - uses: actions/upload-artifact@v4
+      - name: Upload Windows
+        uses: actions/upload-artifact@v4
         with:
           name: acr_${{ env.ver }}-w.zip
           path: ACR_packaged/out/acr_${{ env.ver }}-w.zip
           compression-level: 0
-      - uses: actions/upload-artifact@v4
+      - name: Upload Server Pack
+        uses: actions/upload-artifact@v4
         with:
           name: acr_${{ env.ver }}-serv.zip
           path: ACR_packaged/out/acr_${{ env.ver }}-serv.zip
           compression-level: 0
-      - uses: actions/upload-artifact@v4
+      - name: Upload Source
+        uses: actions/upload-artifact@v4
         with:
           name: acr_${{ env.ver }}-src.zip
           path: ACR_packaged/out/acr_${{ env.ver }}-src.zip
           compression-level: 0
-      - uses: actions/upload-artifact@v4
+      - name: Upload Linux Binaries
+        uses: actions/upload-artifact@v4
         with:
           name: acr_${{ env.ver }}-l_bin.zip
           path: ACR_packaged/out/acr_${{ env.ver }}-l_bin.zip
           compression-level: 0
-      - uses: actions/upload-artifact@v4
+      - name: Upload Windows Binaries
+        uses: actions/upload-artifact@v4
         with:
           name: acr_${{ env.ver }}-w_bin.zip
           path: ACR_packaged/out/acr_${{ env.ver }}-w_bin.zip
           compression-level: 0
 
       # Attest build provenance
-      - uses: actions/attest-build-provenance@v2
+      - name: Attest SHA256
+        uses: actions/attest-build-provenance@v2
         id: attest-sha256
         with:
           subject-checksums: ACR_packaged/SHA256SUMS
         if: env.is_release == 'true'
-      - uses: actions/attest-build-provenance@v2
+      - name: Attest SHA512
+        uses: actions/attest-build-provenance@v2
         id: attest-sha512
         with:
           subject-checksums: ACR_packaged/SHA512SUMS
