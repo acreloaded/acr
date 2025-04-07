@@ -9,6 +9,7 @@ on:
   workflow_dispatch:
 
 env:
+  ver: ${{ github.ref_type == 'tag' && format('_{0}', github.ref_name) || '' }}
   is_release: ${{ github.ref_type == 'tag' }}
   compress_flags: ${{ github.ref_type == 'tag' && '-mx=9 -mfb=258 -mpass=15' || '-mx=5' }}
 
@@ -104,15 +105,16 @@ jobs:
 
       # Package
       - working-directory: ./repo/source
-        run: ./package_acr.sh "${{ github.ref_name }}"
-      - working-directory: ./ACR_packaged
+        run: ./package_acr.sh "$ver"
+      - name: Compress
+        working-directory: ./ACR_packaged
         run: |
-          7za a ${{ env.compress_flags }} out/acr_${{ github.ref_name }}-l.zip ./acr_${{ github.ref_name }}-l/*
-          7za a ${{ env.compress_flags }} out/acr_${{ github.ref_name }}-w.zip ./acr_${{ github.ref_name }}-w/*
-          7za a ${{ env.compress_flags }} out/acr_${{ github.ref_name }}-serv.zip ./acr_${{ github.ref_name }}-serv/*
-          7za a ${{ env.compress_flags }} out/acr_${{ github.ref_name }}-src.zip ./acr_${{ github.ref_name }}-src/*
-          7za a ${{ env.compress_flags }} out/acr_${{ github.ref_name }}-l_bin.zip ../repo/bin_unix/*
-          7za a ${{ env.compress_flags }} out/acr_${{ github.ref_name }}-w_bin.zip ../repo/bin_win32/acr_*.exe
+          7za a ${{ env.compress_flags }} out/acr_${ver}-l.zip ./acr_${ver}-l/*
+          7za a ${{ env.compress_flags }} out/acr_${ver}-w.zip ./acr_${ver}-w/*
+          7za a ${{ env.compress_flags }} out/acr_${ver}-serv.zip ./acr_${ver}-serv/*
+          7za a ${{ env.compress_flags }} out/acr_${ver}-src.zip ./acr_${ver}-src/*
+          7za a ${{ env.compress_flags }} out/acr_${ver}-l_bin.zip ../repo/bin_unix/*
+          7za a ${{ env.compress_flags }} out/acr_${ver}-w_bin.zip ../repo/bin_win32/acr_*.exe
           cd out
           sha256sum -b * > ../SHA256SUMS
           sha512sum -b * > ../SHA512SUMS
@@ -128,33 +130,33 @@ jobs:
           path: ACR_packaged/SHA512SUMS
       - uses: actions/upload-artifact@v4
         with:
-          name: acr_${{ github.ref_name }}-l.zip
-          path: ACR_packaged/out/acr_${{ github.ref_name }}-l.zip
+          name: acr_${{ env.ver }}-l.zip
+          path: ACR_packaged/out/acr_${{ env.ver }}-l.zip
           compression-level: 0
       - uses: actions/upload-artifact@v4
         with:
-          name: acr_${{ github.ref_name }}-w.zip
-          path: ACR_packaged/out/acr_${{ github.ref_name }}-w.zip
+          name: acr_${{ env.ver }}-w.zip
+          path: ACR_packaged/out/acr_${{ env.ver }}-w.zip
           compression-level: 0
       - uses: actions/upload-artifact@v4
         with:
-          name: acr_${{ github.ref_name }}-serv.zip
-          path: ACR_packaged/out/acr_${{ github.ref_name }}-serv.zip
+          name: acr_${{ env.ver }}-serv.zip
+          path: ACR_packaged/out/acr_${{ env.ver }}-serv.zip
           compression-level: 0
       - uses: actions/upload-artifact@v4
         with:
-          name: acr_${{ github.ref_name }}-src.zip
-          path: ACR_packaged/out/acr_${{ github.ref_name }}-src.zip
+          name: acr_${{ env.ver }}-src.zip
+          path: ACR_packaged/out/acr_${{ env.ver }}-src.zip
           compression-level: 0
       - uses: actions/upload-artifact@v4
         with:
-          name: acr_${{ github.ref_name }}-l_bin.zip
-          path: ACR_packaged/out/acr_${{ github.ref_name }}-l_bin.zip
+          name: acr_${{ env.ver }}-l_bin.zip
+          path: ACR_packaged/out/acr_${{ env.ver }}-l_bin.zip
           compression-level: 0
       - uses: actions/upload-artifact@v4
         with:
-          name: acr_${{ github.ref_name }}-w_bin.zip
-          path: ACR_packaged/out/acr_${{ github.ref_name }}-w_bin.zip
+          name: acr_${{ env.ver }}-w_bin.zip
+          path: ACR_packaged/out/acr_${{ env.ver }}-w_bin.zip
           compression-level: 0
 
       # Attest build provenance
@@ -171,7 +173,7 @@ jobs:
 
       - name: Create Release
         run: |
-          python3 ./repo/source/package_acr_notes.py ./ACR_packaged/SHA256SUMS "${{ github.ref_name }}" "${{ steps.attest-sha256.outputs.attestation-url }}" "${{ steps.attest-sha512.outputs.attestation-url }}" > release_notes
+          python3 ./repo/source/package_acr_notes.py ./ACR_packaged/SHA256SUMS "$ver" "${{ steps.attest-sha256.outputs.attestation-url }}" "${{ steps.attest-sha512.outputs.attestation-url }}" > release_notes
           cd repo
           gh release create ${{ github.ref_name }} -d -F ../release_notes ../ACR_packaged/{SHA*SUMS,out/*}
         env:
