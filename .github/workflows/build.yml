@@ -109,12 +109,12 @@ jobs:
       - name: Compress
         working-directory: ./ACR_packaged
         run: |
-          7za a ${{ env.compress_flags }} out/acr_${ver}-l.zip ./acr_${ver}-l/*
-          7za a ${{ env.compress_flags }} out/acr_${ver}-w.zip ./acr_${ver}-w/*
-          7za a ${{ env.compress_flags }} out/acr_${ver}-serv.zip ./acr_${ver}-serv/*
-          7za a ${{ env.compress_flags }} out/acr_${ver}-src.zip ./acr_${ver}-src/*
-          7za a ${{ env.compress_flags }} out/acr_${ver}-l_bin.zip ../repo/bin_unix/*
-          7za a ${{ env.compress_flags }} out/acr_${ver}-w_bin.zip ../repo/bin_win32/acr_*.exe
+          7za a ${{ env.compress_flags }} out/acr$ver-l.zip ./acr$ver-l/*
+          7za a ${{ env.compress_flags }} out/acr$ver-w.zip ./acr$ver-w/*
+          7za a ${{ env.compress_flags }} out/acr$ver-serv.zip ./acr$ver-serv/*
+          7za a ${{ env.compress_flags }} out/acr$ver-src.zip ./acr$ver-src/*
+          7za a ${{ env.compress_flags }} out/acr$ver-l_bin.zip ../repo/bin_unix/*
+          7za a ${{ env.compress_flags }} out/acr$ver-w_bin.zip ../repo/bin_win32/acr_*.exe
           cd out
           sha256sum -b * > ../SHA256SUMS
           sha512sum -b * > ../SHA512SUMS
