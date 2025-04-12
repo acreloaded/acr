@@ -1052,7 +1052,7 @@ VARP(shellttl, 0, 4000, 20000);
 void gun::attackshell(const vec &to)
 {
     extern int hudgun;
-    if (!shellttl || !shelltype || (owner == focus && !hudgun)) return;
+    if (!shellttl || !shelltype || (owner == focus && !hudgun && !isthirdperson)) return;
     bounceent *s = bounceents.add(new bounceent);
     s->owner = owner;
     s->millis = lastmillis;
