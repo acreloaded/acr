@@ -37,8 +37,6 @@ struct weaponmove
         if(p->onfloor || p->onladder || p->inwater) swaymillis += lastmillis-lastsway;
         lastsway = lastmillis;
 
-        swaytest.x = swaytest.y = swaytest.z = 0;
-
         if(p->weaponsel->reloading)
         {
             anim = ANIM_GUN_RELOAD;
