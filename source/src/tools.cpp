@@ -162,7 +162,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
         TRANSFORMOLDENTITIES(s.hdr)
 
         // sanitize entity
-        short maxcoord = (1 << hdr.sfactor) - 1;
+        short maxcoord = (1 << s.hdr.sfactor) - 1;
         if(e.x < 0) e.x = 0;
         if(e.x > maxcoord) e.x = maxcoord;
         if(e.y < 0) e.y = 0;
