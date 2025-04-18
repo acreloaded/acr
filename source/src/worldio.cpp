@@ -374,6 +374,14 @@ bool load_world(char *mname)        // still supports all map formats that have 
         lilswap((short *)&e, 4);
         e.spawned = false;
         TRANSFORMOLDENTITIES(hdr)
+
+        // sanitize entity
+        short maxcoord = (1 << hdr.sfactor) - 1;
+        if(e.x < 0) e.x = 0;
+        if(e.x > maxcoord) e.x = maxcoord;
+        if(e.y < 0) e.y = 0;
+        if(e.y > maxcoord) e.y = maxcoord;
+
         if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100))
         {
             if(e.attr2 == 100)
