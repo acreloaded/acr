@@ -5516,7 +5516,7 @@ void initserver(bool dedicated, int argc, char **argv)
     int conthres = scl.verbose > 1 ? ACLOG_DEBUG : (scl.verbose ? ACLOG_VERBOSE : ACLOG_INFO);
     if(dedicated && !initlogging(identity, scl.syslogfacility, conthres, scl.filethres, scl.syslogthres, scl.logtimestamp))
         printf("WARNING: logging not started!\n");
-    logline(ACLOG_INFO, "logging local ACR server (version %d, protocol %d/%d) now..", AC_VERSION, SERVER_PROTOCOL_VERSION, EXT_VERSION);
+    logline(ACLOG_INFO, "logging local ACR server (version " STR(AC_VERSION) ", protocol " STR(SERVER_PROTOCOL_VERSION) "/" STR(EXT_VERSION) ") now..");
 
     copystring(servdesc_current, scl.servdesc_full);
     servermsinit(scl.master ? scl.master : AC_MASTER_URI, scl.ip, CUBE_SERVINFO_PORT(scl.serverport), dedicated);

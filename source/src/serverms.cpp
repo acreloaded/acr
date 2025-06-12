@@ -136,7 +136,7 @@ static inline void updatemasterserver(int millis, uint port)
     if (millis - lastupdatemaster > MSKEEPALIVE)
     {
         logline(ACLOG_INFO, "sending registration request to master server");
-        formatstring(path)("%s/r?v=%d&g=%d&p=%u&guid32=%lu", masterpath, PROTOCOL_VERSION, AC_VERSION, port, *&genguid(546545656, 23413376U, 3453455, "h6ji54ehjwo345gjio34s5jig"));
+        formatstring(path)("%s/r?v=" STR(PROTOCOL_VERSION) "&g=" STR(AC_VERSION) "&p=%u&guid32=%lu", masterpath, port, *&genguid(546545656, 23413376U, 3453455, "h6ji54ehjwo345gjio34s5jig"));
         lastupdatemaster = millis + 1;
     }
     else if (millis - lastauthreqprocessed > 2500 && authrequests.length())
@@ -185,7 +185,7 @@ static inline void updatemasterserver(int millis, uint port)
         masteraddress.host = ENET_HOST_ANY;
         lastresolvemaster = millis + 1;
     }
-    defformatstring(agent)("ACR-Server/%d", AC_VERSION);
+    const char *agent = "ACR-Server/" STR(AC_VERSION);
     mastersock = httpgetsend(masteraddress, masterbase, path, agent, &serveraddress);
     masterrep[0] = 0;
     masterb.data = masterrep;

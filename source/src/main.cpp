@@ -1051,7 +1051,7 @@ int main(int argc, char **argv)
                     }
                     else if(!strcmp(argv[i], "--protocol"))
                     {
-                        printf("%d\n", PROTOCOL_VERSION);
+                        puts(STR(PROTOCOL_VERSION));
                         quitdirectly = true;
                     }
                     else if(!strncmp(argv[i], "--loadmap=", 10))

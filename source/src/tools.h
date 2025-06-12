@@ -79,6 +79,9 @@ static inline char popcount(unsigned i){ char c; for(c = 0; i; ++c) i &= i - 1; 
 #define SQRT3 (1.7320508f)
 #define RAD (PI / 180.0f)
 
+#define STR_HELPER(x) #x
+#define STR(x) STR_HELPER(x)
+
 #ifdef WIN32
 #ifdef M_PI
 #undef M_PI

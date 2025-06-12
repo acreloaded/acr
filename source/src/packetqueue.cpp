@@ -28,7 +28,7 @@ bool packetqueue::flushtolog(const char *logfile)
     if(!f) return false;
 
     // header
-    f->printf("ACR v%d PACKET LOG : proto %d : @ %11s\n\n", AC_VERSION, PROTOCOL_VERSION, numtime());
+    f->printf("ACR v" STR(AC_VERSION) " PACKET LOG : proto " STR(PROTOCOL_VERSION) " : @ %11s\n\n", numtime());
     // serialize each packet
     loopv(packets)
     {
