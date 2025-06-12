@@ -1366,6 +1366,7 @@ void retrieveservers(vector<char> &data)
     curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
     curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, rd);
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, RETRIEVELIMIT/1000);
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "ACR-Client/" STR(AC_VERSION));
     result = curl_easy_perform(curl);
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpresult);
     curl_easy_cleanup(curl);
