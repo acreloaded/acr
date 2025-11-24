@@ -55,4 +55,9 @@
     </release>
   </releases>
   <launchable type="desktop-id">ca.victorz.acr.AssaultCubeReloaded.desktop</launchable>
+  <keywords>
+    <keyword>action game</keyword>
+    <keyword>first person shooter</keyword>
+    <keyword>fps game</keyword>
+  </keywords>
 </component>
