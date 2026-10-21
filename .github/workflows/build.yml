@@ -36,7 +36,7 @@ jobs:
           $installerDir = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer'
           $installPath = & (Join-Path $installerDir 'vswhere.exe') -latest -products '*' -property installationPath
           if (-not $installPath) { throw 'Visual Studio installation not found' }
-          & (Join-Path $installerDir 'setup.exe') modify --installPath "$installPath" --quiet --wait --norestart --add Microsoft.VisualStudio.Component.WinXP
+          & (Join-Path $installerDir 'setup.exe') modify --installPath "$installPath" --quiet --norestart --add Microsoft.VisualStudio.Component.WinXP
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
         shell: pwsh
       - name: Add msbuild to PATH
