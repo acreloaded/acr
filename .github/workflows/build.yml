@@ -19,7 +19,7 @@ jobs:
   #   name: Notifications
   #   steps:
   #   - name: IRC notification
-  #     uses: Gottox/irc-message-action@v1
+  #     uses: Gottox/irc-message-action@v2
   #     with:
   #       channel: '#acreloaded-dev'
   #       nickname: ACRbot-GitHub
@@ -30,18 +30,18 @@ jobs:
   build_windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install Windows XP build tools
         run: |
           "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\setup.exe" modify --quiet --productId Microsoft.VisualStudio.Product.Enterprise --channelId VisualStudio.17.Release --add Microsoft.VisualStudio.Component.WinXP
         shell: cmd
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v2
+        uses: microsoft/setup-msbuild@v3
       - name: Compile Client
         run: msbuild .\source\vcpp\cube.sln /p:Configuration=Release
       - name: Compile Server
         run: msbuild .\source\vcpp\cube.sln /p:Configuration=Standalone
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: bin_win
           path: bin_win32/acr_*.exe
@@ -49,7 +49,7 @@ jobs:
   build_linux:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: sudo apt-get update
       - run: sudo apt-get install -y ${{ matrix.packages }} make automake libsdl1.2-dev libsdl-image1.2-dev libopenal-dev libvorbis-dev libcurl3-dev
       - working-directory: ./source/src
@@ -64,7 +64,7 @@ jobs:
           mv bin_unix/native_client bin_unix/linux_64_client
           mv bin_unix/native_server bin_unix/linux_64_server
         if: matrix.official
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: bin_linux
           path: bin_unix/*
@@ -93,11 +93,11 @@ jobs:
       attestations: write
     steps:
       - run: sudo apt install p7zip-full
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           path: repo
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
       - name: Copy binaries from artifacts
@@ -125,47 +125,47 @@ jobs:
 
       # Upload artifacts
       - name: Upload SHA256SUMS
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: SHA256SUMS
           path: ACR_packaged/SHA256SUMS
       - name: Upload SHA512SUMS
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: SHA512SUMS
           path: ACR_packaged/SHA512SUMS
       - name: Upload Linux
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: acr${{ env.ver }}-l.zip
           path: ACR_packaged/out/acr${{ env.ver }}-l.zip
           compression-level: 0
       - name: Upload Windows
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: acr${{ env.ver }}-w.zip
           path: ACR_packaged/out/acr${{ env.ver }}-w.zip
           compression-level: 0
       - name: Upload Server Pack
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: acr${{ env.ver }}-serv.zip
           path: ACR_packaged/out/acr${{ env.ver }}-serv.zip
           compression-level: 0
       - name: Upload Source
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: acr${{ env.ver }}-src.zip
           path: ACR_packaged/out/acr${{ env.ver }}-src.zip
           compression-level: 0
       - name: Upload Linux Binaries
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: acr${{ env.ver }}-l_bin.zip
           path: ACR_packaged/out/acr${{ env.ver }}-l_bin.zip
           compression-level: 0
       - name: Upload Windows Binaries
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: acr${{ env.ver }}-w_bin.zip
           path: ACR_packaged/out/acr${{ env.ver }}-w_bin.zip
@@ -173,13 +173,13 @@ jobs:
 
       # Attest build provenance
       - name: Attest SHA256
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         id: attest-sha256
         with:
           subject-checksums: ACR_packaged/SHA256SUMS
         if: env.is_release == 'true'
       - name: Attest SHA512
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         id: attest-sha512
         with:
           subject-checksums: ACR_packaged/SHA512SUMS

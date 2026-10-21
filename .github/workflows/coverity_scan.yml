@@ -7,7 +7,7 @@ jobs:
   build_linux_coverity:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
       - run: sudo apt-get update
       - run: sudo apt-get install -y g++ make automake libsdl1.2-dev libsdl-image1.2-dev libopenal-dev libvorbis-dev libcurl3-dev
 
